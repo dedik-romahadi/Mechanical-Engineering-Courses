@@ -34,7 +34,7 @@ Semua materi diorganisir dengan baik, mudah dicari, dan siap pakai!
 | Machine Learning               | 📌 Planned     | Machine Learning & AI untuk aplikasi rekayasa mesin |
 | Pemrosesan Sinyal              | 📌 Planned     | Analisis sinyal, FFT, filtering, dan pemrosesan data |
 | Brain Computer Interface       | 📌 Planned     | Antarmuka otak-komputer & aplikasi mekatronika |
-| Computer-Aided Design          | 📌 Planned     | Desain 3D (SolidWorks, Fusion 360, AutoCAD, dll) |
+| Computer-Aided Design          | 📌 Planned     | Desain 3D SolidWorks |
 | Pemrograman Komputer           | 📌 Planned     | Python, MATLAB, dan pemrograman untuk engineering |
 
 > Materi terus bertambah setiap minggu. Star ⭐ repo ini supaya tidak ketinggalan update!
