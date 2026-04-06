@@ -2221,60 +2221,71 @@ drawBearing(0.25);
 <!-- ==================== VISITOR SYSTEM JS ==================== -->
 <script>
 const MODULE_ID = 'modul2';
+const STORAGE_KEY_IDENTITY = `optoauto_identity_${MODULE_ID}`;
+const STORAGE_KEY_VISITORS = `optoauto_visitors_${MODULE_ID}`;
 let panelOpen = false;
 
-async function initVisitor() {
-  try {
-    const me = await window.storage.get(`my_identity_${MODULE_ID}`);
-    if (me && me.value) {
-      document.getElementById('visitorOverlay').classList.add('hidden');
-      document.getElementById('visitorFab').style.display = 'flex';
-      setTimeout(() => loadVisitors(), 300);
-    }
-  } catch(e) {}
+function getVisitors() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY_VISITORS)) || []; }
+  catch(e) { return []; }
 }
 
-async function submitVisitor() {
+function saveVisitors(list) {
+  localStorage.setItem(STORAGE_KEY_VISITORS, JSON.stringify(list));
+}
+
+function getIdentity() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY_IDENTITY)); }
+  catch(e) { return null; }
+}
+
+function saveIdentity(v) {
+  localStorage.setItem(STORAGE_KEY_IDENTITY, JSON.stringify(v));
+}
+
+function initVisitor() {
+  const me = getIdentity();
+  if (me && me.nama) {
+    document.getElementById('visitorOverlay').classList.add('hidden');
+    document.getElementById('visitorFab').style.display = 'flex';
+    loadVisitors();
+  }
+}
+
+function submitVisitor() {
   const nama = document.getElementById('vNama').value.trim();
   const nim  = document.getElementById('vNim').value.trim();
   const errEl = document.getElementById('vError');
 
   const isDosen = nama.toLowerCase() === 'dedik romahadi';
 
-  if (!nama || (!isDosen && !nim)) { errEl.style.display = 'block'; return; }
+  if (!nama || (!isDosen && !nim)) {
+    errEl.style.display = 'block';
+    return;
+  }
   errEl.style.display = 'none';
 
-  const visitor = { nama, nim: isDosen ? 'DOSEN' : nim, role: isDosen ? 'dosen' : 'student', timestamp: new Date().toISOString() };
+  const visitor = {
+    nama,
+    nim: isDosen ? 'DOSEN' : nim,
+    role: isDosen ? 'dosen' : 'student',
+    timestamp: new Date().toISOString()
+  };
 
-  try {
-    await window.storage.set(`my_identity_${MODULE_ID}`, JSON.stringify(visitor));
-    const key = `visitors_${MODULE_ID}:${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
-    await window.storage.set(key, JSON.stringify(visitor), true);
+  saveIdentity(visitor);
 
-    document.getElementById('visitorOverlay').classList.add('hidden');
-    document.getElementById('visitorFab').style.display = 'flex';
-    setTimeout(() => loadVisitors(), 300);
-  } catch(err) {
-    document.getElementById('visitorOverlay').classList.add('hidden');
-    document.getElementById('visitorFab').style.display = 'flex';
-  }
-}
-
-async function dosenBypass() {
-  const visitor = { nama: 'Dedik Romahadi', nim: 'DOSEN', role: 'dosen', timestamp: new Date().toISOString() };
-
-  try {
-    await window.storage.set(`my_identity_${MODULE_ID}`, JSON.stringify(visitor));
-    const key = `visitors_${MODULE_ID}:${Date.now()}_dosen`;
-    await window.storage.set(key, JSON.stringify(visitor), true);
-  } catch(e) {}
+  const visitors = getVisitors();
+  const idx = visitors.findIndex(v => v.nama === visitor.nama && v.nim === visitor.nim);
+  if (idx >= 0) visitors[idx] = visitor;
+  else visitors.push(visitor);
+  saveVisitors(visitors);
 
   document.getElementById('visitorOverlay').classList.add('hidden');
   document.getElementById('visitorFab').style.display = 'flex';
-  setTimeout(() => loadVisitors(), 300);
+  loadVisitors();
 }
 
-async function loadVisitors() {
+function loadVisitors() {
   const listEl = document.getElementById('vpList');
   const countEl = document.getElementById('fabCount');
   const badgeEl = document.getElementById('vpBadge');
@@ -2283,93 +2294,71 @@ async function loadVisitors() {
   const statMhs = document.getElementById('statMhs');
   const statDosen = document.getElementById('statDosen');
 
-  try {
-    const res = await window.storage.list(`visitors_${MODULE_ID}:`, true);
-    if (!res || !res.keys || res.keys.length === 0) {
-      listEl.innerHTML = '<div class="vp-empty">Belum ada pengunjung tercatat.</div>';
-      tableEl.innerHTML = '<div style="text-align:center;padding:40px 24px;color:var(--s500);font-size:.88rem;">Belum ada pengunjung yang tercatat.</div>';
-      countEl.textContent = '0'; badgeEl.textContent = '0 orang';
-      statTotal.textContent = '0'; statMhs.textContent = '0'; statDosen.textContent = '0';
-      return;
-    }
+  const visitors = getVisitors();
+  visitors.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-    const visitors = [];
-    for (const k of res.keys) {
-      try {
-        const d = await window.storage.get(k, true);
-        if (d && d.value) visitors.push(JSON.parse(d.value));
-      } catch(e) {}
-    }
-
-    visitors.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-    const seen = new Set();
-    const unique = [];
-    for (const v of visitors) {
-      const id = `${v.nama}|${v.nim}`;
-      if (!seen.has(id)) { seen.add(id); unique.push(v); }
-    }
-
-    const mhsCount = unique.filter(v => v.role !== 'dosen').length;
-    const dosenCount = unique.filter(v => v.role === 'dosen').length;
-
-    countEl.textContent = unique.length;
-    badgeEl.textContent = unique.length + ' orang';
-    statTotal.textContent = unique.length;
-    statMhs.textContent = mhsCount;
-    statDosen.textContent = dosenCount;
-
-    if (unique.length === 0) {
-      listEl.innerHTML = '<div class="vp-empty">Belum ada pengunjung tercatat.</div>';
-      tableEl.innerHTML = '<div style="text-align:center;padding:40px 24px;color:var(--s500);font-size:.88rem;">Belum ada pengunjung yang tercatat.</div>';
-      return;
-    }
-
-    listEl.innerHTML = unique.map(v => {
-      const isDosen = v.role === 'dosen';
-      const initials = v.nama.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
-      const dt = new Date(v.timestamp);
-      const timeStr = dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'}) +
-                      ' ' + dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-      return `
-        <div class="vp-item">
-          <div class="vp-avatar ${isDosen?'dosen':'student'}">${initials}</div>
-          <div class="vp-info">
-            <div class="vp-name">${isDosen?'👨‍🏫 ':''}${escHtml(v.nama)}</div>
-            <div class="vp-nim">${isDosen?'Dosen Pengampu':escHtml(v.nim)}</div>
-          </div>
-          <div class="vp-time">${timeStr}</div>
-        </div>`;
-    }).join('');
-
-    tableEl.innerHTML = unique.map((v, i) => {
-      const isDosen = v.role === 'dosen';
-      const initials = v.nama.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
-      const dt = new Date(v.timestamp);
-      const timeStr = dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) +
-                      ', ' + dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-      const avatarColor = isDosen ? 'background:rgba(251,191,36,.12);color:var(--amber);' : 'background:rgba(45,212,191,.12);color:var(--teal);';
-      const roleChip = isDosen
-        ? '<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(251,191,36,.1);color:var(--amber);border:1px solid rgba(251,191,36,.2);margin-left:8px;">Dosen</span>'
-        : '';
-      return `
-        <div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;cursor:default;" onmouseenter="this.style.background='rgba(255,255,255,.03)'" onmouseleave="this.style.background='transparent'">
-          <div style="width:44px;flex-shrink:0;font-size:.82rem;color:var(--s500);font-weight:600;">${i+1}</div>
-          <div style="flex:2;display:flex;align-items:center;gap:12px;">
-            <div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${avatarColor}">${initials}</div>
-            <div>
-              <div style="font-weight:600;font-size:.88rem;color:var(--s200);">${escHtml(v.nama)}${roleChip}</div>
-            </div>
-          </div>
-          <div style="flex:1;font-size:.8rem;color:var(--s400);font-family:'Courier New',monospace;">${isDosen?'—':escHtml(v.nim)}</div>
-          <div style="flex:1;text-align:right;font-size:.78rem;color:var(--s500);">${timeStr}</div>
-        </div>`;
-    }).join('');
-
-  } catch(e) {
-    listEl.innerHTML = '<div class="vp-empty">Gagal memuat data pengunjung.</div>';
-    tableEl.innerHTML = '<div style="text-align:center;padding:40px 24px;color:var(--s500);font-size:.88rem;">Gagal memuat data pengunjung.</div>';
+  const seen = new Set();
+  const unique = [];
+  for (const v of visitors) {
+    const id = `${v.nama}|${v.nim}`;
+    if (!seen.has(id)) { seen.add(id); unique.push(v); }
   }
+
+  const mhsCount = unique.filter(v => v.role !== 'dosen').length;
+  const dosenCount = unique.filter(v => v.role === 'dosen').length;
+
+  countEl.textContent = unique.length;
+  badgeEl.textContent = unique.length + ' orang';
+  statTotal.textContent = unique.length;
+  statMhs.textContent = mhsCount;
+  statDosen.textContent = dosenCount;
+
+  if (unique.length === 0) {
+    listEl.innerHTML = '<div class="vp-empty">Belum ada pengunjung tercatat.</div>';
+    tableEl.innerHTML = '<div style="text-align:center;padding:40px 24px;color:var(--s500);font-size:.88rem;">Belum ada pengunjung yang tercatat.</div>';
+    return;
+  }
+
+  listEl.innerHTML = unique.map(v => {
+    const isDosen = v.role === 'dosen';
+    const initials = v.nama.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    const dt = new Date(v.timestamp);
+    const timeStr = dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'}) +
+                    ' ' + dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    return `
+      <div class="vp-item">
+        <div class="vp-avatar ${isDosen?'dosen':'student'}">${initials}</div>
+        <div class="vp-info">
+          <div class="vp-name">${isDosen?'👨‍🏫 ':''}${escHtml(v.nama)}</div>
+          <div class="vp-nim">${isDosen?'Dosen Pengampu':escHtml(v.nim)}</div>
+        </div>
+        <div class="vp-time">${timeStr}</div>
+      </div>`;
+  }).join('');
+
+  tableEl.innerHTML = unique.map((v, i) => {
+    const isDosen = v.role === 'dosen';
+    const initials = v.nama.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    const dt = new Date(v.timestamp);
+    const timeStr = dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) +
+                    ', ' + dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    const avatarColor = isDosen ? 'background:rgba(251,191,36,.12);color:var(--amber);' : 'background:rgba(45,212,191,.12);color:var(--teal);';
+    const roleChip = isDosen
+      ? '<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(251,191,36,.1);color:var(--amber);border:1px solid rgba(251,191,36,.2);margin-left:8px;">Dosen</span>'
+      : '';
+    return `
+      <div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;cursor:default;" onmouseenter="this.style.background='rgba(255,255,255,.03)'" onmouseleave="this.style.background='transparent'">
+        <div style="width:44px;flex-shrink:0;font-size:.82rem;color:var(--s500);font-weight:600;">${i+1}</div>
+        <div style="flex:2;display:flex;align-items:center;gap:12px;">
+          <div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${avatarColor}">${initials}</div>
+          <div>
+            <div style="font-weight:600;font-size:.88rem;color:var(--s200);">${escHtml(v.nama)}${roleChip}</div>
+          </div>
+        </div>
+        <div style="flex:1;font-size:.8rem;color:var(--s400);font-family:'Courier New',monospace;">${isDosen?'—':escHtml(v.nim)}</div>
+        <div style="flex:1;text-align:right;font-size:.78rem;color:var(--s500);">${timeStr}</div>
+      </div>`;
+  }).join('');
 }
 
 function togglePanel() {
@@ -2391,10 +2380,7 @@ function escHtml(s) { const d = document.createElement('div'); d.textContent = s
 document.getElementById('vNim').addEventListener('keydown', function(e){ if(e.key==='Enter') submitVisitor(); });
 document.getElementById('vNama').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('vNim').focus(); });
 
-if (window.storage) { initVisitor(); } else {
-  document.getElementById('visitorOverlay').classList.add('hidden');
-  document.getElementById('visitorFab').style.display = 'flex';
-}
+initVisitor();
 </script>
 </body>
 </html>
