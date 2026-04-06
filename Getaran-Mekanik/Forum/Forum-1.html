@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forum Diskusi — Modul 2 Getaran Mekanik</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #060a10;
+    --surface: #0d1520;
+    --border:  #1a2840;
+    --cyan:    #00e5ff;
+    --amber:   #ffb300;
+    --green:   #00e676;
+    --pink:    #ff4081;
+    --violet:  #7c4dff;
+    --text:    #cdd6e8;
+    --muted:   #4a6080;
+    --font-display: 'DM Serif Display', serif;
+    --font-body:    'Outfit', sans-serif;
+    --font-mono:    'JetBrains Mono', monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: var(--font-body); font-size: 16px;
+    line-height: 1.7; overflow-x: hidden;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ── DOT GRID CANVAS ── */
+  #dotGrid {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 0; pointer-events: none; opacity: .5;
+  }
+
+  /* ── SCROLL PROGRESS ── */
+  #scrollProgress {
+    position: fixed; top: 60px; left: 0; height: 3px;
+    background: linear-gradient(90deg, var(--cyan), var(--green), var(--amber));
+    z-index: 101; width: 0; transition: width .1s;
+    box-shadow: 0 0 12px rgba(0,229,255,.5);
+  }
+
+  /* ── SCROLL REVEAL ── */
+  .reveal {
+    opacity: 0; transform: translateY(28px);
+    transition: opacity .7s ease, transform .7s ease;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── BACK TO TOP ── */
+  #backToTop {
+    position: fixed; bottom: 32px; right: 32px; z-index: 99;
+    width: 48px; height: 48px; border-radius: 14px;
+    background: rgba(0,229,255,.1); border: 1px solid rgba(0,229,255,.3);
+    color: var(--cyan); font-size: 20px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transform: translateY(20px);
+    transition: opacity .3s, transform .3s, background .2s;
+    backdrop-filter: blur(12px);
+  }
+  #backToTop.show { opacity: 1; transform: translateY(0); }
+  #backToTop:hover { background: rgba(0,229,255,.2); box-shadow: 0 8px 24px rgba(0,229,255,.15); }
+
+  /* ── FLOATING ORBS ── */
+  .orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .08; pointer-events: none; }
+  .orb-1 { width: 400px; height: 400px; background: var(--cyan); top: -100px; right: -60px; animation: orbF 10s ease-in-out infinite; }
+  .orb-2 { width: 300px; height: 300px; background: var(--amber); bottom: -80px; left: -60px; animation: orbF 12s ease-in-out infinite reverse; }
+  @keyframes orbF { 0%,100%{transform:translate(0,0)} 50%{transform:translate(15px,-15px)} }
+
+  /* ── NAVBAR ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(6,10,16,0.9); backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px; height: 60px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-brand { font-family: var(--font-mono); font-size: 13px; color: var(--cyan); letter-spacing: 2px; display: flex; align-items: center; gap: 10px; }
+  .nav-brand .pulse { width: 8px; height: 8px; background: var(--green); border-radius: 50%; animation: navPulse 1.6s ease-in-out infinite; }
+  @keyframes navPulse { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,230,118,.5)} 50%{opacity:.6;box-shadow:0 0 0 6px rgba(0,230,118,0)} }
+  .nav-badge  { font-family: var(--font-mono); font-size: 11px; background: rgba(255,179,0,0.1); border: 1px solid rgba(255,179,0,0.3); color: var(--amber); padding: 4px 12px; border-radius: 20px; }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 55vh; display: flex; align-items: center; justify-content: center;
+    padding: 80px 32px 48px; position: relative; overflow: hidden; z-index: 1;
+  }
+  .hero-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.035) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 80% 90% at 50% 50%, black, transparent);
+  }
+  .hero-content { position: relative; text-align: center; max-width: 720px; z-index: 2; }
+  .hero-tag {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--amber); border: 1px solid rgba(255,179,0,.3);
+    background: rgba(255,179,0,.07);
+    padding: 7px 20px; border-radius: 20px;
+    letter-spacing: 3px; margin-bottom: 28px; text-transform: uppercase;
+    animation: fadeDown .8s ease both;
+  }
+  @keyframes fadeDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+  .blink { animation: blink 1.2s step-end infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  h1.hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(36px, 5.5vw, 66px);
+    line-height: 1.08; color: #fff; margin-bottom: 18px;
+    animation: fadeUp .8s ease .15s both;
+  }
+  h1.hero-title em { color: var(--cyan); font-style: italic; }
+  .hero-sub { font-size: 17px; color: var(--muted); max-width: 520px; margin: 0 auto; font-weight: 300; animation: fadeUp .8s ease .3s both; }
+
+  .divider { border: none; border-top: 1px solid var(--border); }
+
+  /* ── SECTION ── */
+  .section { max-width: 800px; margin: 0 auto; padding: 64px 32px; position: relative; z-index: 1; }
+  .section-label { font-family: var(--font-mono); font-size: 11px; color: var(--cyan); letter-spacing: 4px; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+  .section-label::before { content: ''; width: 28px; height: 2px; background: var(--cyan); border-radius: 2px; }
+  h2.section-title { font-family: var(--font-display); font-size: clamp(26px, 3.5vw, 40px); color: #fff; margin-bottom: 14px; line-height: 1.15; }
+
+  /* ── SCENARIO BOX ── */
+  .scenario-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-left: 4px solid var(--amber); border-radius: 16px;
+    padding: 28px 32px; margin-bottom: 48px; position: relative;
+    transition: transform .3s, box-shadow .3s;
+  }
+  .scenario-box:hover { transform: translateY(-3px); box-shadow: 0 12px 36px rgba(0,0,0,.3); }
+  .scenario-box::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--amber), var(--pink));
+    border-radius: 16px 16px 0 0;
+  }
+  .scenario-label { font-family: var(--font-mono); font-size: 10px; color: var(--amber); letter-spacing: 3px; margin-bottom: 14px; }
+  .scenario-box p { font-size: 15px; color: var(--text); line-height: 1.85; }
+
+  /* ── CANVAS ANIM ── */
+  canvas#cv {
+    display: block; width: 100%; border-radius: 12px;
+    background: #030810; border: 1px solid rgba(0,229,255,.12);
+    margin: 20px 0 8px;
+  }
+  .cv-caption { font-family: var(--font-mono); font-size: 11px; color: var(--muted); text-align: center; margin-bottom: 28px; }
+
+  /* ── QUESTION CARDS ── */
+  .q-stack { display: flex; flex-direction: column; gap: 16px; }
+
+  .q-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 18px; overflow: hidden;
+    transition: border-color .3s, transform .3s;
+  }
+  .q-card:hover { transform: translateY(-4px); border-color: rgba(0,229,255,.2); box-shadow: 0 12px 36px rgba(0,0,0,.3); }
+
+  .q-head {
+    padding: 22px 26px; display: flex; align-items: flex-start;
+    gap: 16px; cursor: pointer; user-select: none;
+  }
+  .q-num {
+    font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+    padding: 4px 11px; border-radius: 8px; flex-shrink: 0; margin-top: 3px;
+  }
+  .q-head h3 { font-size: 17px; font-weight: 600; color: #fff; flex: 1; line-height: 1.4; }
+  .q-arrow { font-size: 20px; color: var(--muted); transition: transform .3s; flex-shrink: 0; margin-top: 2px; }
+  .q-card.open .q-arrow { transform: rotate(90deg); color: var(--cyan); }
+
+  .q-body { max-height: 0; overflow: hidden; transition: max-height .4s cubic-bezier(.4,0,.2,1); }
+  .q-card.open .q-body { max-height: 600px; }
+  .q-inner {
+    padding: 20px 26px 26px;
+    border-top: 1px solid var(--border);
+    font-size: 15px; color: var(--text); line-height: 1.85;
+  }
+  .q-inner strong { color: var(--amber); }
+
+  /* ── POLL ── */
+  .poll { margin-top: 20px; }
+  .poll-q { font-size: 13px; font-weight: 600; color: var(--muted); font-family: var(--font-mono); letter-spacing: 1px; margin-bottom: 10px; }
+  .poll-opts { display: flex; flex-direction: column; gap: 8px; }
+  .p-opt {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px; border-radius: 10px; cursor: pointer;
+    border: 1px solid var(--border); background: rgba(255,255,255,.02);
+    font-size: 14px; color: var(--text); transition: all .2s;
+  }
+  .p-opt:hover { border-color: rgba(0,229,255,.25); }
+  .p-opt.right { border-color: var(--green); background: rgba(0,230,118,.08); color: var(--green); pointer-events:none; }
+  .p-opt.wrong { border-color: var(--pink);  background: rgba(255,64,129,.07);  color: var(--pink);  pointer-events:none; }
+  .p-opt.dim   { opacity: .3; pointer-events: none; }
+  .p-circle {
+    width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border);
+    flex-shrink: 0; transition: all .2s;
+  }
+  .p-opt.right .p-circle { background: var(--green); border-color: var(--green); }
+  .p-opt.wrong .p-circle { background: var(--pink);  border-color: var(--pink);  }
+  .p-fb {
+    margin-top: 10px; padding: 11px 15px; border-radius: 10px;
+    font-size: 13px; display: none; line-height: 1.6;
+  }
+  .p-fb.show { display: block; }
+  .p-fb.r { background: rgba(0,230,118,.07); border: 1px solid rgba(0,230,118,.22); color: var(--green); }
+  .p-fb.w { background: rgba(255,64,129,.07); border: 1px solid rgba(255,64,129,.22); color: var(--pink); }
+
+  /* ── CLOSING ── */
+  .closing {
+    background: linear-gradient(135deg, rgba(0,229,255,.05), rgba(124,77,255,.05));
+    border: 1px solid rgba(0,229,255,.14); border-radius: 20px;
+    padding: 44px; text-align: center; margin-top: 0;
+    transition: transform .3s, box-shadow .3s;
+  }
+  .closing:hover { transform: translateY(-3px); box-shadow: 0 12px 36px rgba(0,229,255,.06); }
+  .closing h3 { font-family: var(--font-display); font-size: 28px; color: #fff; margin-bottom: 10px; }
+  .closing p  { font-size: 15px; color: var(--muted); max-width: 440px; margin: 0 auto; }
+
+  footer { border-top: 1px solid var(--border); padding: 36px 32px; text-align: center; font-size: 13px; color: var(--muted); font-family: var(--font-mono); position: relative; z-index: 1; }
+  footer a { color: var(--cyan); text-decoration: none; }
+
+/* ============================================================
+   VISITOR SYSTEM
+   ============================================================ */
+.visitor-overlay {
+  position:fixed; inset:0; z-index:9999;
+  background:rgba(8,14,26,.92); backdrop-filter:blur(16px);
+  display:flex; align-items:center; justify-content:center;
+  opacity:1; transition:opacity .4s;
+}
+.visitor-overlay.hidden { opacity:0; pointer-events:none; }
+
+.visitor-modal {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-2xl); padding:40px 36px;
+  max-width:440px; width:90%; text-align:center;
+  box-shadow:0 32px 80px rgba(0,0,0,.6);
+  animation: modalIn .5s cubic-bezier(.16,1,.3,1);
+}
+@keyframes modalIn {
+  0%{ opacity:0; transform:translateY(30px) scale(.96); }
+  100%{ opacity:1; transform:translateY(0) scale(1); }
+}
+
+.visitor-modal h2 {
+  font-family:'Syne',sans-serif; font-weight:800; font-size:1.5rem;
+  background:linear-gradient(135deg,#5eead4,#a5f3fc);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  margin-bottom:6px;
+}
+.visitor-modal p.sub { color:var(--s300); font-size:.85rem; margin-bottom:28px; }
+
+.v-input {
+  width:100%; padding:14px 18px; border-radius:14px;
+  border:1px solid var(--s700); background:rgba(255,255,255,.05);
+  color:#fff; font-family:'DM Sans',sans-serif; font-size:.95rem;
+  outline:none; transition:border .25s;
+  margin-bottom:14px;
+}
+.v-input::placeholder { color:var(--s400); }
+.v-input:focus { border-color:var(--teal); box-shadow:0 0 0 3px rgba(45,212,191,.15); }
+
+.v-btn-primary {
+  width:100%; padding:14px; border-radius:14px; border:none;
+  background:linear-gradient(135deg,#14b8a6,#06b6d4);
+  color:#fff; font-family:'Syne',sans-serif; font-weight:700;
+  font-size:1.05rem; text-shadow:0 1px 2px rgba(0,0,0,.3); cursor:pointer; transition:transform .2s, box-shadow .2s;
+  margin-top:6px;
+}
+.v-btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(20,184,166,.5); }
+.v-btn-primary:disabled { opacity:.4; cursor:not-allowed; transform:none; box-shadow:none; }
+
+.v-error { color:#fda4af; font-size:.8rem; margin-bottom:10px; display:none; }
+
+/* Floating Visitor Button */
+.visitor-fab {
+  position:fixed; bottom:24px; right:24px; z-index:8888;
+  width:56px; height:56px; border-radius:50%;
+  background:linear-gradient(135deg,var(--teal),#22d3ee);
+  border:none; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  box-shadow:0 6px 24px rgba(45,212,191,.4);
+  transition:transform .25s, box-shadow .25s;
+  font-size:1.4rem;
+}
+.visitor-fab:hover { transform:scale(1.08); box-shadow:0 8px 32px rgba(45,212,191,.5); }
+
+.visitor-fab .fab-count {
+  position:absolute; top:-4px; right:-4px;
+  background:var(--rose); color:#fff; font-size:.65rem; font-weight:700;
+  min-width:22px; height:22px; border-radius:50%; display:flex;
+  align-items:center; justify-content:center; padding:0 5px;
+  border:2px solid var(--bg);
+}
+
+/* Visitor Panel */
+.visitor-panel {
+  position:fixed; bottom:92px; right:24px; z-index:8887;
+  width:340px; max-height:480px; overflow:hidden;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-2xl); box-shadow:0 24px 64px rgba(0,0,0,.5);
+  display:flex; flex-direction:column;
+  transform:translateY(12px) scale(.95); opacity:0; pointer-events:none;
+  transition:transform .3s cubic-bezier(.16,1,.3,1), opacity .25s;
+}
+.visitor-panel.open { transform:translateY(0) scale(1); opacity:1; pointer-events:auto; }
+
+.vp-header {
+  padding:20px 22px 14px; border-bottom:1px solid rgba(255,255,255,.06);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.vp-header h3 { font-family:'Syne',sans-serif; font-weight:700; font-size:1rem; color:#fff; }
+.vp-header .vp-badge {
+  background:rgba(45,212,191,.12); color:var(--teal); font-size:.7rem;
+  font-weight:700; padding:4px 10px; border-radius:999px;
+}
+
+.vp-list { overflow-y:auto; padding:10px 16px 16px; flex:1; }
+
+.vp-item {
+  display:flex; align-items:center; gap:12px;
+  padding:10px 12px; border-radius:14px; margin-bottom:6px;
+  background:rgba(255,255,255,.03); transition:background .2s;
+}
+.vp-item:hover { background:rgba(255,255,255,.06); }
+
+.vp-avatar {
+  width:38px; height:38px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700; font-size:.85rem; flex-shrink:0;
+}
+.vp-avatar.student { background:rgba(45,212,191,.12); color:var(--teal); }
+.vp-avatar.dosen   { background:rgba(251,191,36,.12);  color:var(--amber); }
+
+.vp-info { flex:1; min-width:0; }
+.vp-name { font-weight:600; font-size:.88rem; color:var(--s200); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.vp-nim  { font-size:.72rem; color:var(--s500); font-family:'Courier New',monospace; }
+.vp-time { font-size:.68rem; color:var(--s500); text-align:right; flex-shrink:0; white-space:nowrap; }
+
+.vp-empty { text-align:center; padding:32px 16px; color:var(--s500); font-size:.85rem; }
+
+@media(max-width:480px){
+  .visitor-panel { width:calc(100vw - 32px); right:16px; bottom:88px; }
+  .visitor-fab { bottom:18px; right:18px; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ==================== VISITOR MODAL ==================== -->
+<div class="visitor-overlay" id="visitorOverlay">
+  <div class="visitor-modal">
+    <div style="font-size:2.8rem;margin-bottom:12px;">🎓</div>
+    <h2>Selamat Datang!</h2>
+    <p class="sub">Silakan masukkan identitas Anda untuk mengakses modul ini.</p>
+    <p class="v-error" id="vError">⚠ Nama dan NIM wajib diisi.</p>
+    <input type="text" class="v-input" id="vNama" placeholder="Nama Lengkap" autocomplete="off">
+    <input type="text" class="v-input" id="vNim" placeholder="NIM (Nomor Induk Mahasiswa)" autocomplete="off">
+    <button class="v-btn-primary" id="vSubmit" onclick="submitVisitor()">Masuk ke Forum →</button>
+  </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="visitor-overlay hidden" id="resetOverlay" style="z-index:10000;">
+  <div class="visitor-modal" style="max-width:380px;">
+    <div style="font-size:2.4rem;margin-bottom:12px;">🔐</div>
+    <h2 style="font-size:1.3rem;">Konfirmasi Reset</h2>
+    <p class="sub">Masukkan password untuk menghapus semua data pengunjung.</p>
+    <p class="v-error" id="resetError">⚠ Password salah.</p>
+    <input type="password" class="v-input" id="resetPw" placeholder="Password" autocomplete="off">
+    <button class="v-btn-primary" style="background:linear-gradient(135deg,var(--rose),#f43f5e);" onclick="confirmReset()">Hapus Semua Pengunjung</button>
+    <button style="width:100%;margin-top:12px;padding:12px;border-radius:14px;border:1px solid var(--s700);background:rgba(255,255,255,.04);color:var(--s400);font-family:'DM Sans',sans-serif;font-weight:600;font-size:.88rem;cursor:pointer;" onclick="hideResetModal()">Batal</button>
+  </div>
+</div>
+
+<!-- Floating Visitor Button -->
+<button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Daftar Pengunjung">
+  👥
+  <span class="fab-count" id="fabCount">0</span>
+</button>
+
+<!-- Visitor Panel -->
+<div class="visitor-panel" id="visitorPanel">
+  <div class="vp-header">
+    <h3>👥 Pengunjung</h3>
+    <span class="vp-badge" id="vpBadge">0 orang</span>
+  </div>
+  <div class="vp-list" id="vpList">
+    <div class="vp-empty">Memuat data pengunjung...</div>
+  </div>
+</div>
+
+
+
+<!-- Scroll progress bar -->
+<div id="scrollProgress"></div>
+
+<!-- Oscillating dot grid background -->
+<canvas id="dotGrid"></canvas>
+
+<!-- Back to top -->
+<button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<!-- NAVBAR -->
+<nav>
+  <span class="nav-brand"><span class="pulse"></span> GETARANMESIN // FORUM DISKUSI</span>
+  <span class="nav-badge">👨‍🏫 MODUL 2 · 2026</span>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-grid"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="hero-content">
+    <div class="hero-tag"><span class="blink">●</span> Forum Diskusi · Modul 2 · Getaran Mekanik</div>
+    <h1 class="hero-title">Mesin Bergetar —<br><em>Apa yang Terjadi?</em></h1>
+    <p class="hero-sub">Amati animasi berikut, baca skenarionya, lalu diskusikan tiga pertanyaan bersama kelompok Anda.</p>
+  </div>
+</div>
+
+<!-- SKENARIO + ANIMASI -->
+<hr class="divider">
+<div class="section">
+  <div class="section-label reveal">Skenario</div>
+  <h2 class="section-title reveal">Sebuah Mesin<br>yang Aneh</h2>
+
+  <div class="scenario-box reveal">
+    <div class="scenario-label">📋 KASUS</div>
+    <p>
+      Seorang teknisi mengamati sebuah <strong style="color:var(--amber)">pompa air industri</strong> yang bergetar tidak normal. Setelah diukur, diperoleh data sistem: massa <strong style="color:var(--cyan)">m = 10 kg</strong>, kekakuan bantalan <strong style="color:var(--cyan)">k = 1000 N/m</strong>, koefisien redaman <strong style="color:var(--cyan)">c = 20 Ns/m</strong>, dan motor berputar menghasilkan gaya eksitasi dengan frekuensi <strong style="color:var(--pink)">ω = 9.5 rad/s</strong>.
+    </p>
+  </div>
+
+  <!-- Animasi -->
+  <canvas id="cv" height="180"></canvas>
+  <div class="cv-caption" id="cv-caption">── simpangan x(t) &nbsp;|&nbsp; Gunakan data di atas untuk analisis</div>
+
+  <!-- Pertanyaan -->
+  <div class="section-label" style="margin-top:48px;">Pertanyaan Diskusi</div>
+  <h2 class="section-title" style="margin-bottom:28px;">Diskusikan<br>Tiga Hal Ini</h2>
+
+  <div class="q-stack">
+
+    <!-- Q1 -->
+    <div class="q-card reveal" id="q1">
+      <div class="q-head" onclick="toggle('q1')">
+        <div class="q-num" style="background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.2);color:var(--cyan)">01</div>
+        <h3>Termasuk jenis getaran apa sistem pompa ini?</h3>
+        <span class="q-arrow">›</span>
+      </div>
+      <div class="q-body">
+        <div class="q-inner">
+          Hitung <strong>ωₙ</strong> dan <strong>ζ</strong> sistem. Kemudian klasifikasikan getaran ini berdasarkan:
+          <ul style="margin:12px 0 0 20px;display:flex;flex-direction:column;gap:6px;">
+            <li>Kondisi redamannya (underdamped / critically / overdamped)</li>
+            <li>Sumber getarannya (getaran bebas atau getaran paksa)</li>
+          </ul>
+          <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+            <span style="font-family:var(--font-mono);font-size:13px;background:rgba(0,229,255,.07);border:1px solid rgba(0,229,255,.18);color:var(--cyan);padding:7px 14px;border-radius:8px;">ωₙ = √(k/m)</span>
+            <span style="font-family:var(--font-mono);font-size:13px;background:rgba(0,229,255,.07);border:1px solid rgba(0,229,255,.18);color:var(--cyan);padding:7px 14px;border-radius:8px;">ζ = c / (2√km)</span>
+          </div>
+
+          <div class="poll">
+            <div class="poll-q">QUICK CHECK — Kondisi redaman sistem ini?</div>
+            <div class="poll-opts" id="p1">
+              <div class="p-opt" onclick="vote(1,this,false)"><div class="p-circle"></div>Overdamped (ζ &gt; 1)</div>
+              <div class="p-opt" onclick="vote(1,this,true)"> <div class="p-circle"></div>Underdamped (ζ &lt; 1)</div>
+              <div class="p-opt" onclick="vote(1,this,false)"><div class="p-circle"></div>Critically damped (ζ = 1)</div>
+            </div>
+            <div class="p-fb r" id="p1r">✅ Benar! ζ = 20 / (2×√(1000×10)) = 20/200 = <strong>0.1</strong> → Underdamped. Sistem berosilasi dan meluruh perlahan.</div>
+            <div class="p-fb w" id="p1w">❌ Coba lagi. Hitung dulu cc = 2√(km), lalu ζ = c/cc.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="q-card reveal" id="q2">
+      <div class="q-head" onclick="toggle('q2')">
+        <div class="q-num" style="background:rgba(255,179,0,.1);border:1px solid rgba(255,179,0,.2);color:var(--amber)">02</div>
+        <h3>Apakah pompa ini berisiko mengalami resonansi?</h3>
+        <span class="q-arrow">›</span>
+      </div>
+      <div class="q-body">
+        <div class="q-inner">
+          Hitung rasio frekuensi <strong>r = ω/ωₙ</strong> dan Dynamic Magnification Factor (<strong>DMF</strong>). Dari hasil hitungan tersebut, apakah kondisi ini berbahaya bagi mesin? Jelaskan alasan Anda.
+          <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+            <span style="font-family:var(--font-mono);font-size:13px;background:rgba(255,179,0,.07);border:1px solid rgba(255,179,0,.18);color:var(--amber);padding:7px 14px;border-radius:8px;">r = ω / ωₙ</span>
+            <span style="font-family:var(--font-mono);font-size:13px;background:rgba(255,179,0,.07);border:1px solid rgba(255,179,0,.18);color:var(--amber);padding:7px 14px;border-radius:8px;">DMF = 1/√[(1−r²)²+(2ζr)²]</span>
+          </div>
+
+          <div class="poll">
+            <div class="poll-q">QUICK CHECK — Berapa nilai r sistem ini?</div>
+            <div class="poll-opts" id="p2">
+              <div class="p-opt" onclick="vote(2,this,false)"><div class="p-circle"></div>r = 0.50 — jauh dari resonansi</div>
+              <div class="p-opt" onclick="vote(2,this,false)"><div class="p-circle"></div>r = 1.00 — tepat resonansi</div>
+              <div class="p-opt" onclick="vote(2,this,true)"> <div class="p-circle"></div>r = 0.95 — mendekati resonansi</div>
+            </div>
+            <div class="p-fb r" id="p2r">✅ Tepat! ωₙ = √(1000/10) = 10 rad/s, maka r = 9.5/10 = <strong>0.95</strong>. Sangat dekat dengan resonansi — perlu diwaspadai!</div>
+            <div class="p-fb w" id="p2w">❌ Hitung dulu ωₙ = √(k/m), kemudian r = ω/ωₙ = 9.5/ωₙ.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="q-card reveal" id="q3">
+      <div class="q-head" onclick="toggle('q3')">
+        <div class="q-num" style="background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.2);color:var(--green)">03</div>
+        <h3>Apa yang harus dilakukan teknisi tersebut?</h3>
+        <span class="q-arrow">›</span>
+      </div>
+      <div class="q-body">
+        <div class="q-inner">
+          Berdasarkan klasifikasi dan analisis resonansi di atas, berikan <strong>minimal satu rekomendasi teknis</strong> yang bisa dilakukan teknisi untuk mengurangi risiko getaran berbahaya pada pompa ini. Gunakan konsep yang telah dipelajari di Modul 2 (modifikasi <em>k</em>, <em>c</em>, atau <em>ω operasi</em>).
+          <div style="margin-top:16px;background:rgba(0,230,118,.05);border:1px solid rgba(0,230,118,.18);border-radius:10px;padding:14px 16px;font-size:14px;color:var(--muted);">
+            💬 <em>Tidak ada satu jawaban benar — yang dinilai adalah <strong style="color:var(--green)">penalaran dan penggunaan konsep</strong> dari Modul 2.</em>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Closing -->
+  <div class="closing reveal" style="margin-top:48px;">
+    <div style="font-size:44px;margin-bottom:16px;">💬</div>
+    <h3>Sampaikan Pendapat Anda!</h3>
+    <p style="margin-top:8px;">Tulis jawaban dan tanggapan Anda di forum diskusi LMS kampus. Baca juga pendapat kelompok lain dan berikan komentar yang membangun.</p>
+  </div>
+</div>
+
+<footer>
+  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Forum Diskusi Modul 2 · Getaran Mekanik</p>
+</footer>
+
+<script>
+/* ── OSCILLATING DOT GRID BACKGROUND ── */
+{
+  const cv = document.getElementById('dotGrid');
+  const ctx = cv.getContext('2d');
+  let w, h, t = 0;
+  const spacing = 44;
+  const dotR = 1.8;
+
+  function resize() { w = cv.width = window.innerWidth; h = cv.height = window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+
+  function drawGrid() {
+    ctx.clearRect(0, 0, w, h);
+    const cols = Math.ceil(w / spacing) + 1;
+    const rows = Math.ceil(h / spacing) + 1;
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const bx = c * spacing;
+        const by = r * spacing;
+        // each dot oscillates with phase offset based on position
+        const phase = (c * 0.3 + r * 0.4) + t * 0.025;
+        const offsetY = Math.sin(phase) * 6;
+        const offsetX = Math.cos(phase * 0.7) * 3;
+        const x = bx + offsetX;
+        const y = by + offsetY;
+
+        // color based on oscillation
+        const intensity = (Math.sin(phase) + 1) / 2;
+        const alpha = 0.08 + intensity * 0.18;
+
+        // alternate colors
+        const hue = ((c + r) % 3 === 0) ? '0,229,255' : ((c + r) % 3 === 1) ? '255,179,0' : '124,77,255';
+        ctx.fillStyle = `rgba(${hue},${alpha})`;
+        ctx.beginPath();
+        ctx.arc(x, y, dotR + intensity * 0.8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // connect to right neighbor
+        if (c < cols - 1) {
+          const nx = (c + 1) * spacing + Math.cos(((c+1) * 0.3 + r * 0.4) + t * 0.025) * 3 * 0.7;
+          const ny = (r) * spacing + Math.sin(((c+1) * 0.3 + r * 0.4) + t * 0.025) * 6;
+          ctx.strokeStyle = `rgba(0,229,255,${alpha * 0.25})`;
+          ctx.lineWidth = 0.4;
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(nx, ny);
+          ctx.stroke();
+        }
+      }
+    }
+    t++;
+    requestAnimationFrame(drawGrid);
+  }
+  drawGrid();
+}
+
+/* ── SCROLL PROGRESS + BACK TO TOP ── */
+window.addEventListener('scroll', () => {
+  const s = document.documentElement.scrollTop;
+  const h = document.documentElement.scrollHeight - window.innerHeight;
+  document.getElementById('scrollProgress').style.width = (s / h * 100) + '%';
+  const btn = document.getElementById('backToTop');
+  if (s > 300) btn.classList.add('show'); else btn.classList.remove('show');
+});
+
+/* ── SCROLL REVEAL ── */
+const revealIO = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), i * 60);
+      revealIO.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => revealIO.observe(el));
+
+/* ── ANIMASI SINYAL ── */
+const cvSim = document.getElementById('cv');
+cvSim.height = 180;
+let tSim = 0;
+const m=10, k=1000, c=20, omega=9.5;
+const wn=Math.sqrt(k/m), zeta=c/(2*Math.sqrt(k*m));
+let state=[1,0];
+
+function rk4(y,t,dt){
+  const f=(_,yy)=>[yy[1],(500*Math.cos(omega*_)-c*yy[1]-k*yy[0])/m];
+  const k1=f(t,y),k2=f(t+dt/2,y.map((v,i)=>v+dt/2*k1[i]));
+  const k3=f(t+dt/2,y.map((v,i)=>v+dt/2*k2[i])),k4=f(t+dt,y.map((v,i)=>v+dt*k3[i]));
+  return y.map((v,i)=>v+dt/6*(k1[i]+2*k2[i]+2*k3[i]+k4[i]));
+}
+
+let hist=[], dt=0.016;
+function drawSim(){
+  const W=cvSim.clientWidth||800; cvSim.width=W; const H=cvSim.height;
+  const ctx=cvSim.getContext('2d');
+  state=rk4(state,tSim,dt); tSim+=dt;
+  hist.push(state[0]);
+  const KEEP=Math.floor(W/1.2);
+  if(hist.length>KEEP) hist.shift();
+
+  ctx.fillStyle='#030810'; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(0,229,255,0.06)'; ctx.lineWidth=1;
+  for(let x=0;x<W;x+=60){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=44){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  ctx.strokeStyle='rgba(0,229,255,.15)'; ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();
+
+  const peak=Math.max(0.001,...hist.map(Math.abs));
+  const amp=(H/2-14)/peak;
+  ctx.strokeStyle='#00e5ff'; ctx.lineWidth=2.5;
+  ctx.shadowColor='#00e5ff'; ctx.shadowBlur=12;
+  ctx.beginPath();
+  hist.forEach((v,i)=>{ const px=(i/(KEEP-1))*(W-2)+1, py=H/2-v*amp; i===0?ctx.moveTo(px,py):ctx.lineTo(px,py); });
+  ctx.stroke(); ctx.shadowBlur=0;
+
+  if(hist.length){
+    const ly=H/2-hist[hist.length-1]*amp;
+    ctx.fillStyle='#ffb300'; ctx.shadowColor='#ffb300'; ctx.shadowBlur=14;
+    ctx.beginPath();ctx.arc(W-2,ly,5,0,Math.PI*2);ctx.fill(); ctx.shadowBlur=0;
+  }
+  requestAnimationFrame(drawSim);
+}
+drawSim();
+
+/* ── ACCORDION ── */
+function toggle(id){
+  document.getElementById(id).classList.toggle('open');
+}
+
+/* ── POLL ── */
+function vote(n,el,correct){
+  const wrap=document.getElementById('p'+n);
+  if(wrap.dataset.done) return;
+  wrap.dataset.done='1';
+  wrap.querySelectorAll('.p-opt').forEach(o=>{ if(o!==el) o.classList.add('dim'); });
+  el.classList.add(correct?'right':'wrong');
+  const fr=document.getElementById('p'+n+'r'), fw=document.getElementById('p'+n+'w');
+  (correct?fr:fw).classList.add('show');
+}
+</script>
+
+<!-- ==================== VISITOR SYSTEM JS ==================== -->
+<script>
+const MODULE_ID = 'forum1';
+const STORAGE_KEY_IDENTITY = `optoauto_identity_${MODULE_ID}`;
+const STORAGE_KEY_VISITORS = `optoauto_visitors_${MODULE_ID}`;
+let panelOpen = false;
+
+function getVisitors() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY_VISITORS)) || []; }
+  catch(e) { return []; }
+}
+function saveVisitors(list) {
+  localStorage.setItem(STORAGE_KEY_VISITORS, JSON.stringify(list));
+}
+function getIdentity() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY_IDENTITY)); }
+  catch(e) { return null; }
+}
+function saveIdentity(v) {
+  localStorage.setItem(STORAGE_KEY_IDENTITY, JSON.stringify(v));
+}
+
+function initVisitor() {
+  const me = getIdentity();
+  if (me && me.nama) {
+    document.getElementById('visitorOverlay').classList.add('hidden');
+    document.getElementById('visitorFab').style.display = 'flex';
+    loadVisitors();
+  }
+}
+
+function isValidName(name) {
+  if (!name) return false;
+  const words = name.split(/\s+/);
+  return words.every(w => w.length > 0 && /^[A-Z][a-z]*$/.test(w));
+}
+function isValidNim(nim) {
+  return /^\d+$/.test(nim);
+}
+
+function submitVisitor() {
+  const nama = document.getElementById('vNama').value.trim();
+  const nim  = document.getElementById('vNim').value.trim();
+  const errEl = document.getElementById('vError');
+  const isDosen = nama.toLowerCase() === 'dedik romahadi';
+
+  if (!nama) { errEl.textContent = '⚠ Nama wajib diisi.'; errEl.style.display = 'block'; return; }
+  if (!isValidName(nama)) { errEl.textContent = '⚠ Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi'; errEl.style.display = 'block'; return; }
+  if (!isDosen && !nim) { errEl.textContent = '⚠ NIM wajib diisi.'; errEl.style.display = 'block'; return; }
+  if (!isDosen && !isValidNim(nim)) { errEl.textContent = '⚠ NIM harus berupa angka tanpa spasi. Contoh: 41522010001'; errEl.style.display = 'block'; return; }
+
+  errEl.style.display = 'none';
+  const visitor = { nama, nim: isDosen ? 'DOSEN' : nim, role: isDosen ? 'dosen' : 'student', timestamp: new Date().toISOString() };
+  saveIdentity(visitor);
+
+  const visitors = getVisitors();
+  const idx = visitors.findIndex(v => v.nama === visitor.nama && v.nim === visitor.nim);
+  if (idx >= 0) visitors[idx] = visitor; else visitors.push(visitor);
+  saveVisitors(visitors);
+
+  document.getElementById('visitorOverlay').classList.add('hidden');
+  document.getElementById('visitorFab').style.display = 'flex';
+  loadVisitors();
+}
+
+function loadVisitors() {
+  const listEl = document.getElementById('vpList');
+  const countEl = document.getElementById('fabCount');
+  const badgeEl = document.getElementById('vpBadge');
+  const visitors = getVisitors();
+  visitors.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+  const seen = new Set(); const unique = [];
+  for (const v of visitors) { const id = `${v.nama}|${v.nim}`; if (!seen.has(id)) { seen.add(id); unique.push(v); } }
+
+  countEl.textContent = unique.length;
+  badgeEl.textContent = unique.length + ' orang';
+
+  // Update in-page table if exists
+  const statTotal = document.getElementById('statTotal');
+  const statMhs = document.getElementById('statMhs');
+  const statDosen = document.getElementById('statDosen');
+  const tableEl = document.getElementById('visitorTableBody');
+  if (statTotal) {
+    const mhsCount = unique.filter(v => v.role !== 'dosen').length;
+    const dosenCount = unique.filter(v => v.role === 'dosen').length;
+    statTotal.textContent = unique.length;
+    if (statMhs) statMhs.textContent = mhsCount;
+    if (statDosen) statDosen.textContent = dosenCount;
+  }
+
+  if (unique.length === 0) {
+    listEl.innerHTML = '<div class="vp-empty">Belum ada pengunjung tercatat.</div>';
+    if (tableEl) tableEl.innerHTML = '<div style="text-align:center;padding:40px 24px;color:var(--s500);font-size:.88rem;">Belum ada pengunjung yang tercatat.</div>';
+    return;
+  }
+
+  listEl.innerHTML = unique.map(v => {
+    const isDosen = v.role === 'dosen';
+    const initials = v.nama.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    const dt = new Date(v.timestamp);
+    const timeStr = dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'}) + ' ' + dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    return `<div class="vp-item"><div class="vp-avatar ${isDosen?'dosen':'student'}">${initials}</div><div class="vp-info"><div class="vp-name">${isDosen?'👨‍🏫 ':''}${escHtml(v.nama)}</div><div class="vp-nim">${isDosen?'Dosen Pengampu':escHtml(v.nim)}</div></div><div class="vp-time">${timeStr}</div></div>`;
+  }).join('');
+
+  if (tableEl) {
+    tableEl.innerHTML = unique.map((v, i) => {
+      const isDosen = v.role === 'dosen';
+      const initials = v.nama.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+      const dt = new Date(v.timestamp);
+      const timeStr = dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) + ', ' + dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+      const avatarColor = isDosen ? 'background:rgba(251,191,36,.12);color:var(--amber);' : 'background:rgba(45,212,191,.12);color:var(--teal);';
+      const roleChip = isDosen ? '<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(251,191,36,.1);color:var(--amber);border:1px solid rgba(251,191,36,.2);margin-left:8px;">Dosen</span>' : '';
+      return `<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:var(--s500);font-weight:600;">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${avatarColor}">${initials}</div><div><div style="font-weight:600;font-size:.88rem;color:var(--s200);">${escHtml(v.nama)}${roleChip}</div></div></div><div style="flex:1;font-size:.8rem;color:var(--s400);font-family:'Courier New',monospace;">${isDosen?'—':escHtml(v.nim)}</div><div style="flex:1;text-align:right;font-size:.78rem;color:var(--s500);">${timeStr}</div></div>`;
+    }).join('');
+  }
+}
+
+function togglePanel() {
+  panelOpen = !panelOpen;
+  document.getElementById('visitorPanel').classList.toggle('open', panelOpen);
+  if (panelOpen) loadVisitors();
+}
+document.addEventListener('click', function(e) {
+  const panel = document.getElementById('visitorPanel');
+  const fab = document.getElementById('visitorFab');
+  if (panelOpen && !panel.contains(e.target) && !fab.contains(e.target)) { panelOpen = false; panel.classList.remove('open'); }
+});
+
+function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function showResetModal() {
+  document.getElementById('resetOverlay').classList.remove('hidden');
+  document.getElementById('resetPw').value = '';
+  document.getElementById('resetError').style.display = 'none';
+  setTimeout(() => document.getElementById('resetPw').focus(), 100);
+}
+function hideResetModal() { document.getElementById('resetOverlay').classList.add('hidden'); }
+
+function confirmReset() {
+  const pw = document.getElementById('resetPw').value;
+  if (pw !== 'TeknikMesin0602') { document.getElementById('resetError').style.display = 'block'; return; }
+  localStorage.removeItem(STORAGE_KEY_VISITORS);
+  localStorage.removeItem(STORAGE_KEY_IDENTITY);
+  hideResetModal(); loadVisitors();
+  document.getElementById('visitorOverlay').classList.remove('hidden');
+  document.getElementById('visitorFab').style.display = 'none';
+}
+
+document.getElementById('resetPw').addEventListener('keydown', function(e){ if(e.key==='Enter') confirmReset(); });
+document.getElementById('resetOverlay').addEventListener('click', function(e){ if(e.target === this) hideResetModal(); });
+document.getElementById('vNim').addEventListener('keydown', function(e){ if(e.key==='Enter') submitVisitor(); });
+document.getElementById('vNama').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('vNim').focus(); });
+
+initVisitor();
+</script>
+
+</body>
+</html>
