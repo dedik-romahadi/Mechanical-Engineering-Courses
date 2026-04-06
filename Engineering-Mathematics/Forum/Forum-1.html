@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forum Diskusi — Matematika Teknik Pertemuan 2</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+:root{--bg:#06090f;--bg2:#0c1220;--bg3:#131d2e;--c1:#38bdf8;--c2:#818cf8;--c3:#f472b6;--c4:#fb923c;--c5:#34d399;--t1:#e8ecf4;--t2:#94a3b8;--t3:#64748b;--bd:#1e293b}
+*{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth}
+body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--t1);line-height:1.75;overflow-x:hidden;min-height:100vh}
+
+/* ── HERO ── */
+.hero{padding:4rem 2rem 3rem;text-align:center;position:relative;overflow:hidden;background:linear-gradient(170deg,#06090f 0%,#0e1a35 40%,#1a0e2e 70%,#06090f 100%)}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 20%,rgba(56,189,248,.08),transparent 60%),radial-gradient(ellipse at 70% 80%,rgba(129,140,248,.08),transparent 60%);pointer-events:none}
+.hero::after{content:'💬';position:absolute;top:1.5rem;right:2rem;font-size:4rem;opacity:.08;pointer-events:none;animation:floatEmoji 4s ease-in-out infinite}
+@keyframes floatEmoji{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-12px) rotate(8deg)}}
+
+.badge{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.25rem;background:rgba(129,140,248,.1);border:1px solid rgba(129,140,248,.25);border-radius:999px;font-size:.8rem;color:var(--c2);font-weight:700;letter-spacing:.08em;margin-bottom:1.25rem;position:relative;z-index:1}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(2rem,5vw,3.2rem);font-weight:900;line-height:1.15;margin-bottom:.75rem;position:relative;z-index:1}
+.hero h1 .hl{background:linear-gradient(135deg,var(--c1),var(--c2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero>p{font-size:1rem;color:var(--t2);max-width:540px;margin:0 auto 1.5rem;position:relative;z-index:1}
+.hero-meta{display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;position:relative;z-index:1}
+.chip{display:inline-flex;align-items:center;gap:.5rem;padding:.45rem 1rem;background:rgba(255,255,255,.04);border:1px solid var(--bd);border-radius:10px;font-size:.82rem;font-weight:600}
+
+/* ── INSTRUCTION BANNER ── */
+.banner{max-width:740px;margin:0 auto;padding:0 2rem}
+.banner-inner{background:linear-gradient(135deg,rgba(251,146,60,.08),rgba(244,114,182,.08));border:1px solid rgba(251,146,60,.2);border-radius:16px;padding:1.5rem 2rem;text-align:center;position:relative;overflow:hidden}
+.banner-inner::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--c4),var(--c3),var(--c2))}
+.banner-inner h3{color:var(--c4);font-weight:700;font-size:1rem;margin-bottom:.4rem}
+.banner-inner p{font-size:.92rem;color:var(--t2)}
+.banner-inner strong{color:var(--t1)}
+
+/* ── MAIN ── */
+.main{max-width:740px;margin:0 auto;padding:2.5rem 2rem 4rem}
+
+/* ── CHALLENGE CARDS ── */
+.challenge{margin-bottom:2.5rem;perspective:1000px}
+
+.challenge-card{background:var(--bg3);border:1px solid var(--bd);border-radius:20px;overflow:hidden;transition:all .4s cubic-bezier(.34,1.56,.64,1);position:relative;cursor:default}
+.challenge-card:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.4);border-color:rgba(129,140,248,.25)}
+
+.challenge-top{height:4px}
+.challenge-top.blue{background:linear-gradient(90deg,#38bdf8,#818cf8)}
+.challenge-top.pink{background:linear-gradient(90deg,#f472b6,#fb923c)}
+.challenge-top.green{background:linear-gradient(90deg,#34d399,#38bdf8)}
+
+.challenge-header{display:flex;align-items:center;gap:1rem;padding:1.5rem 2rem 0}
+.challenge-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0}
+.challenge-icon.blue{background:rgba(56,189,248,.12)}
+.challenge-icon.pink{background:rgba(244,114,182,.12)}
+.challenge-icon.green{background:rgba(52,211,153,.12)}
+.challenge-label{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--t3)}
+.challenge-title{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;line-height:1.3}
+
+.challenge-body{padding:1.25rem 2rem 1.75rem}
+
+.math-display{background:rgba(56,189,248,.05);border-left:4px solid var(--c1);padding:1rem 1.5rem;margin:1rem 0;border-radius:0 12px 12px 0;text-align:center;font-size:1.05rem;overflow-x:auto}
+
+.challenge-prompt{margin-top:1rem;padding:1.25rem 1.5rem;background:rgba(129,140,248,.06);border:1px solid rgba(129,140,248,.15);border-radius:12px}
+.challenge-prompt p{font-size:.92rem;color:var(--t2)}
+.challenge-prompt strong{color:var(--c2)}
+
+/* ── REVEAL BUTTON ── */
+.reveal-area{margin-top:1.25rem;overflow:hidden}
+.reveal-btn{display:inline-flex;align-items:center;gap:.5rem;padding:.6rem 1.5rem;background:rgba(129,140,248,.1);border:1px solid rgba(129,140,248,.25);border-radius:10px;color:var(--c2);font-weight:700;font-size:.85rem;cursor:pointer;transition:all .3s;font-family:inherit}
+.reveal-btn:hover{background:var(--c2);color:#fff;transform:translateY(-1px);box-shadow:0 4px 15px rgba(129,140,248,.3)}
+.reveal-content{max-height:0;opacity:0;transition:all .5s ease;overflow:hidden}
+.reveal-content.open{max-height:500px;opacity:1;margin-top:1rem}
+.reveal-inner{padding:1.25rem 1.5rem;background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.18);border-radius:12px}
+.reveal-inner h5{color:var(--c5);font-weight:700;margin-bottom:.4rem;font-size:.9rem}
+.reveal-inner p{font-size:.9rem;color:var(--t2)}
+
+/* ── INTERACTIVE POLL ── */
+.poll{margin-top:1.25rem}
+.poll-label{font-size:.82rem;font-weight:600;color:var(--t3);margin-bottom:.6rem}
+.poll-opts{display:flex;flex-direction:column;gap:.5rem}
+.poll-opt{display:flex;align-items:center;gap:.75rem;padding:.85rem 1.25rem;background:var(--bg2);border:2px solid var(--bd);border-radius:12px;cursor:pointer;transition:all .3s;font-size:.92rem}
+.poll-opt:hover{border-color:rgba(56,189,248,.4);background:rgba(56,189,248,.04)}
+.poll-opt.selected{border-color:var(--c1);background:rgba(56,189,248,.08)}
+.poll-opt.selected .poll-dot{background:var(--c1);border-color:var(--c1);box-shadow:0 0 8px rgba(56,189,248,.4)}
+.poll-opt.correct{border-color:var(--c5);background:rgba(52,211,153,.08)}
+.poll-opt.wrong{border-color:#ef4444;background:rgba(239,68,68,.06)}
+.poll-dot{width:20px;height:20px;border-radius:50%;border:2px solid var(--t3);flex-shrink:0;transition:all .3s;display:flex;align-items:center;justify-content:center}
+.poll-opt.selected .poll-dot::after{content:'';width:8px;height:8px;background:#fff;border-radius:50%}
+.poll-result{margin-top:.75rem;padding:.75rem 1rem;border-radius:8px;font-weight:600;font-size:.9rem;display:none}
+.poll-result.ok{display:block;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);color:var(--c5)}
+.poll-result.no{display:block;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#f87171}
+
+.poll-check{margin-top:.75rem;padding:.55rem 1.25rem;background:linear-gradient(135deg,var(--c1),var(--c2));color:#fff;font-weight:700;font-size:.85rem;border:none;border-radius:10px;cursor:pointer;font-family:inherit;transition:all .3s}
+.poll-check:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(56,189,248,.3)}
+
+/* ── FOOTER ── */
+footer{text-align:center;padding:2.5rem 2rem;border-top:1px solid var(--bd);color:var(--t3);font-size:.82rem}
+
+/* ── ANIMATIONS ── */
+.fi{opacity:0;transform:translateY(25px);transition:all .6s ease-out}.fi.vis{opacity:1;transform:translateY(0)}
+
+@media(max-width:600px){.challenge-header{padding:1.25rem 1.5rem 0}.challenge-body{padding:1rem 1.5rem 1.5rem}.poll-opts{gap:.4rem}}
+
+/* ── VISITOR SYSTEM ── */
+.visitor-overlay{position:fixed;inset:0;z-index:9999;background:rgba(6,10,18,.92);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity .4s}
+.visitor-overlay.hidden{opacity:0;pointer-events:none}
+.visitor-modal{background:#131d2e;border:1px solid #1e293b;border-radius:24px;padding:40px 36px;max-width:440px;width:90%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.6);animation:vmIn .5s cubic-bezier(.16,1,.3,1)}
+@keyframes vmIn{0%{opacity:0;transform:translateY(30px) scale(.96)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.visitor-modal h2{font-weight:900;font-size:1.5rem;background:linear-gradient(135deg,#38bdf8,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
+.visitor-modal .vsub{color:#64748b;font-size:.85rem;margin-bottom:28px}
+.v-input{width:100%;padding:14px 18px;border-radius:14px;border:1px solid #1e293b;background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-size:.95rem;outline:none;transition:border .25s;margin-bottom:14px}
+.v-input::placeholder{color:#64748b}
+.v-input:focus{border-color:#38bdf8;box-shadow:0 0 0 3px rgba(255,255,255,.08)}
+.v-btn-primary{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#38bdf8,#818cf8);color:#fff;font-weight:700;font-size:1rem;cursor:pointer;transition:transform .2s,box-shadow .2s;margin-top:6px}
+.v-btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,255,255,.1)}
+.v-error{color:#fb7185;font-size:.8rem;margin-bottom:10px;display:none}
+.visitor-fab{position:fixed;bottom:24px;right:24px;z-index:8888;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#38bdf8,#818cf8);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(0,0,0,.4);transition:transform .25s;font-size:1.4rem}
+.visitor-fab:hover{transform:scale(1.08)}
+.visitor-fab .fab-count{position:absolute;top:-4px;right:-4px;background:#fb7185;color:#fff;font-size:.65rem;font-weight:700;min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid #06090f}
+.visitor-panel{position:fixed;bottom:92px;right:24px;z-index:8887;width:340px;max-height:480px;overflow:hidden;background:#131d2e;border:1px solid #1e293b;border-radius:20px;box-shadow:0 24px 64px rgba(0,0,0,.5);display:flex;flex-direction:column;transform:translateY(12px) scale(.95);opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .25s}
+.visitor-panel.open{transform:translateY(0) scale(1);opacity:1;pointer-events:auto}
+.vp-header{padding:20px 22px 14px;border-bottom:1px solid #1e293b;display:flex;align-items:center;justify-content:space-between}
+.vp-header h3{font-weight:700;font-size:1rem;color:#fff}
+.vp-badge{background:rgba(255,255,255,.08);color:#38bdf8;font-size:.7rem;font-weight:700;padding:4px 10px;border-radius:999px}
+.vp-list{overflow-y:auto;padding:10px 16px 16px;flex:1}
+.vp-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;margin-bottom:6px;background:rgba(255,255,255,.03);transition:background .2s}
+.vp-item:hover{background:rgba(255,255,255,.06)}
+.vp-avatar{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0}
+.vp-avatar.student{background:rgba(255,255,255,.08);color:#38bdf8}
+.vp-avatar.dosen{background:rgba(255,255,255,.08);color:#818cf8}
+.vp-info{flex:1;min-width:0}
+.vp-name{font-weight:600;font-size:.88rem;color:#e8ecf4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vp-nim{font-size:.72rem;color:#64748b;font-family:monospace}
+.vp-time{font-size:.68rem;color:#64748b;text-align:right;flex-shrink:0;white-space:nowrap}
+.vp-empty{text-align:center;padding:32px 16px;color:#64748b;font-size:.85rem}
+@media(max-width:480px){.visitor-panel{width:calc(100vw - 32px);right:16px;bottom:88px}}
+
+</style>
+</head>
+<body>
+
+<!-- VISITOR MODAL -->
+<div class="visitor-overlay" id="visitorOverlay">
+  <div class="visitor-modal">
+    <div style="font-size:2.8rem;margin-bottom:12px;">🎓</div>
+    <h2>Selamat Datang!</h2>
+    <p class="vsub">Silakan masukkan identitas Anda untuk mengakses halaman ini.</p>
+    <p class="v-error" id="vError"></p>
+    <input type="text" class="v-input" id="vNama" placeholder="Nama Lengkap" autocomplete="off">
+    <input type="text" class="v-input" id="vNim" placeholder="NIM (Nomor Induk Mahasiswa)" autocomplete="off">
+    <button class="v-btn-primary" onclick="submitVisitor()">Masuk →</button>
+  </div>
+</div>
+<button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Daftar Pengunjung">👥<span class="fab-count" id="fabCount">0</span></button>
+<div class="visitor-panel" id="visitorPanel">
+  <div class="vp-header"><h3>👥 Pengunjung</h3><span class="vp-badge" id="vpBadge">0 orang</span></div>
+  <div class="vp-list" id="vpList"><div class="vp-empty">Memuat...</div></div>
+</div>
+
+
+<!-- ═══ HERO ═══ -->
+<header class="hero">
+  <div class="badge">💬 FORUM DISKUSI • Pertemuan 2</div>
+  <h1><span class="hl">Forum Diskusi</span><br>Modul 1 & 2</h1>
+  <p>Jawab pertanyaan-pertanyaan berikut di <strong>Forum Diskusi Fast Learning Pertemuan 2</strong>. Pikirkan baik-baik sebelum menjawab!</p>
+  <div class="hero-meta">
+    <div class="chip">👨‍🏫 Dedik Romahadi</div>
+    <div class="chip">📚 Modul 1 & 2</div>
+    <div class="chip">💬 Jawab di Fast Learning</div>
+  </div>
+</header>
+
+<!-- ═══ INSTRUCTION ═══ -->
+<div class="banner" style="margin-top:-1rem;margin-bottom:1rem;">
+  <div class="banner-inner fi">
+    <h3>📢 Cara Menjawab</h3>
+    <p>Baca & pikirkan setiap soal di halaman ini, lalu tuliskan jawaban kamu di <strong>Forum Diskusi Fast Learning Pertemuan 2</strong>. Berikan juga tanggapan terhadap jawaban teman-temanmu!</p>
+  </div>
+</div>
+
+<!-- ═══ MAIN ═══ -->
+<main class="main">
+
+  <!-- ━━━ SOAL 1: POLL ━━━ -->
+  <div class="challenge fi">
+    <div class="challenge-card">
+      <div class="challenge-top blue"></div>
+      <div class="challenge-header">
+        <div class="challenge-icon blue">🧩</div>
+        <div>
+          <div class="challenge-label">Diskusi 1 — Modul 1</div>
+          <div class="challenge-title">Tebak Jenis PD!</div>
+        </div>
+      </div>
+      <div class="challenge-body">
+        <p>Perhatikan persamaan berikut:</p>
+        <div class="math-display">$$x^2\,y'' + 3x\,y' - 5y = \sin x$$</div>
+        <p>Persamaan ini termasuk PD jenis apa?</p>
+
+        <div class="poll">
+          <div class="poll-label">Pilih jawaban kamu:</div>
+          <div class="poll-opts" id="p1">
+            <div class="poll-opt" onclick="selPoll(this,'p1')"><div class="poll-dot"></div>PD Biasa Linier Orde 2 Homogen</div>
+            <div class="poll-opt" data-correct onclick="selPoll(this,'p1')"><div class="poll-dot"></div>PD Biasa Linier Orde 2 Non-Homogen</div>
+            <div class="poll-opt" onclick="selPoll(this,'p1')"><div class="poll-dot"></div>PD Parsial Non-Linier Orde 2</div>
+            <div class="poll-opt" onclick="selPoll(this,'p1')"><div class="poll-dot"></div>PD Biasa Non-Linier Orde 1</div>
+          </div>
+          <button class="poll-check" onclick="checkPoll('p1')">Cek Jawaban</button>
+          <div class="poll-result" id="res-p1"></div>
+        </div>
+
+        <div class="challenge-prompt">
+          <p>📝 <strong>Di forum diskusi, jelaskan:</strong> Mengapa kamu memilih jawaban tersebut? Sebutkan ciri-ciri apa saja yang kamu perhatikan untuk menentukan klasifikasinya.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ━━━ SOAL 2: REVEAL ━━━ -->
+  <div class="challenge fi">
+    <div class="challenge-card">
+      <div class="challenge-top pink"></div>
+      <div class="challenge-header">
+        <div class="challenge-icon pink">🤔</div>
+        <div>
+          <div class="challenge-label">Diskusi 2 — Modul 1</div>
+          <div class="challenge-title">Benarkah Ini Solusi?</div>
+        </div>
+      </div>
+      <div class="challenge-body">
+        <p>Diberikan PD:</p>
+        <div class="math-display">$$y' + y = 0$$</div>
+        <p>Seorang teman mengklaim bahwa \(y = 5\sin x\) adalah penyelesaian dari PD di atas.</p>
+
+        <div class="challenge-prompt">
+          <p>📝 <strong>Di forum diskusi, jawab:</strong> Apakah klaim teman tersebut benar atau salah? Buktikan dengan mensubstitusikan \(y = 5\sin x\) ke dalam PD. Tunjukkan langkah perhitungannya!</p>
+        </div>
+
+        <div class="reveal-area">
+          <button class="reveal-btn" onclick="toggleReveal(this)">💡 Lihat Petunjuk</button>
+          <div class="reveal-content">
+            <div class="reveal-inner">
+              <h5>Petunjuk</h5>
+              <p>Hitung \(y' = \frac{d}{dx}[5\sin x] = 5\cos x\). Lalu substitusi ke PD: apakah \(5\cos x + 5\sin x = 0\) untuk <em>semua</em> nilai \(x\)?</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ━━━ SOAL 3: POLL ━━━ -->
+  <div class="challenge fi">
+    <div class="challenge-card">
+      <div class="challenge-top green"></div>
+      <div class="challenge-header">
+        <div class="challenge-icon green">🔀</div>
+        <div>
+          <div class="challenge-label">Diskusi 3 — Modul 2</div>
+          <div class="challenge-title">Bisa Dipisahkan atau Tidak?</div>
+        </div>
+      </div>
+      <div class="challenge-body">
+        <p>Di antara PD berikut, mana yang <strong>bisa</strong> diselesaikan dengan metode variabel terpisah?</p>
+
+        <div class="math-display">$$\text{(A)} \;\; \frac{dy}{dx} = x^2 y \qquad \text{(B)} \;\; \frac{dy}{dx} = x + y \qquad \text{(C)} \;\; \frac{dy}{dx} = \frac{\cos x}{e^y}$$</div>
+
+        <div class="poll">
+          <div class="poll-label">Pilih jawaban kamu:</div>
+          <div class="poll-opts" id="p3">
+            <div class="poll-opt" data-correct onclick="selPoll(this,'p3')"><div class="poll-dot"></div>(A) dan (C) saja</div>
+            <div class="poll-opt" onclick="selPoll(this,'p3')"><div class="poll-dot"></div>(A), (B), dan (C) semuanya bisa</div>
+            <div class="poll-opt" onclick="selPoll(this,'p3')"><div class="poll-dot"></div>(B) dan (C) saja</div>
+            <div class="poll-opt" onclick="selPoll(this,'p3')"><div class="poll-dot"></div>Hanya (A) saja</div>
+          </div>
+          <button class="poll-check" onclick="checkPoll('p3')">Cek Jawaban</button>
+          <div class="poll-result" id="res-p3"></div>
+        </div>
+
+        <div class="challenge-prompt">
+          <p>📝 <strong>Di forum diskusi, jelaskan:</strong> Untuk PD yang bisa dipisah, tunjukkan langkah pemisahannya. Untuk yang tidak bisa, jelaskan mengapa.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ━━━ SOAL 4: REVEAL ━━━ -->
+  <div class="challenge fi">
+    <div class="challenge-card">
+      <div class="challenge-top blue"></div>
+      <div class="challenge-header">
+        <div class="challenge-icon blue">🌡️</div>
+        <div>
+          <div class="challenge-label">Diskusi 4 — Modul 2</div>
+          <div class="challenge-title">Cerita Kopi Panas</div>
+        </div>
+      </div>
+      <div class="challenge-body">
+        <p>Kamu menyeduh kopi dengan suhu 90°C di ruangan bersuhu 22°C. Menurut Hukum Pendinginan Newton:</p>
+        <div class="math-display">$$\frac{dT}{dt} = -k(T - 22)$$</div>
+
+        <div class="challenge-prompt">
+          <p>📝 <strong>Di forum diskusi, jawab:</strong></p>
+          <p>1. Mengapa PD di atas termasuk PD variabel terpisah? Tunjukkan langkah pemisahannya.</p>
+          <p>2. Apakah kopimu pernah <em>benar-benar</em> mencapai suhu ruangan (22°C)? Jelaskan secara matematis mengapa ya/tidak.</p>
+        </div>
+
+        <div class="reveal-area">
+          <button class="reveal-btn" onclick="toggleReveal(this)">💡 Lihat Petunjuk</button>
+          <div class="reveal-content">
+            <div class="reveal-inner">
+              <h5>Petunjuk</h5>
+              <p>Solusi umumnya adalah \(T(t) = 22 + Ce^{-kt}\). Perhatikan apa yang terjadi saat \(t \to \infty\). Apakah \(e^{-kt}\) pernah mencapai tepat nol?</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ━━━ SOAL 5: POLL + REFLECTION ━━━ -->
+  <div class="challenge fi">
+    <div class="challenge-card">
+      <div class="challenge-top pink"></div>
+      <div class="challenge-header">
+        <div class="challenge-icon pink">💡</div>
+        <div>
+          <div class="challenge-label">Diskusi 5 — Modul 1 & 2</div>
+          <div class="challenge-title">Refleksi: Apa Gunanya PD?</div>
+        </div>
+      </div>
+      <div class="challenge-body">
+        <p>Persamaan diferensial banyak digunakan di dunia teknik mesin.</p>
+
+        <div class="challenge-prompt">
+          <p>📝 <strong>Di forum diskusi, jawab:</strong></p>
+          <p>Sebutkan <strong>1 contoh nyata</strong> dalam kehidupan sehari-hari atau bidang teknik mesin yang melibatkan persamaan diferensial. Jelaskan secara singkat:</p>
+          <p style="margin-top:.5rem;">• Apa fenomenanya?</p>
+          <p>• Bagaimana bentuk PD-nya (boleh umum)?</p>
+          <p>• Apakah termasuk PD variabel terpisah?</p>
+        </div>
+
+        <div class="reveal-area">
+          <button class="reveal-btn" onclick="toggleReveal(this)">💡 Contoh Inspirasi</button>
+          <div class="reveal-content">
+            <div class="reveal-inner">
+              <h5>Inspirasi Jawaban</h5>
+              <p>Beberapa contoh: getaran mesin, aliran fluida dalam pipa, pendinginan mesin mobil, peluruhan radioaktif, pertumbuhan populasi bakteri, rangkaian listrik RC, pegas-redaman pada suspensi kendaraan. Pilih satu dan jelaskan dengan kata-katamu sendiri!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ═══ FOOTER ═══ -->
+<footer>
+  <p>💬 Forum Diskusi — Matematika Teknik Pertemuan 2</p>
+  <p style="margin-top:.35rem;">Dosen Pengampu: Dedik Romahadi</p>
+</footer>
+
+<!-- ═══ SCRIPTS ═══ -->
+<script>
+document.addEventListener('DOMContentLoaded',()=>{renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})});
+
+// Fade-in
+const obs=new IntersectionObserver(e=>{e.forEach(en=>{if(en.isIntersecting)en.target.classList.add('vis')})},{threshold:.08});
+document.querySelectorAll('.fi').forEach(el=>obs.observe(el));
+
+// Poll select
+function selPoll(opt,id){
+  document.querySelectorAll(`#${id} .poll-opt`).forEach(o=>{o.classList.remove('selected','correct','wrong')});
+  opt.classList.add('selected');
+  // Reset result
+  const res=document.getElementById('res-'+id);
+  res.className='poll-result';res.style.display='none';
+}
+
+// Poll check
+function checkPoll(id){
+  const opts=document.querySelectorAll(`#${id} .poll-opt`);
+  const sel=[...opts].find(o=>o.classList.contains('selected'));
+  const res=document.getElementById('res-'+id);
+  if(!sel){res.className='poll-result no';res.textContent='⚠️ Pilih jawaban dulu!';res.style.display='block';return}
+  opts.forEach(o=>{
+    o.classList.remove('correct','wrong');
+    if(o.hasAttribute('data-correct'))o.classList.add('correct');
+    else if(o.classList.contains('selected')&&!o.hasAttribute('data-correct'))o.classList.add('wrong');
+  });
+  if(sel.hasAttribute('data-correct')){res.className='poll-result ok';res.textContent='🎉 Benar! Sekarang jelaskan alasanmu di Forum Diskusi.'}
+  else{res.className='poll-result no';res.textContent='❌ Coba pikirkan lagi. Lihat jawaban yang benar (hijau) dan jelaskan di forum mengapa jawaban itu benar.'}
+  res.style.display='block';
+}
+
+// Reveal toggle
+function toggleReveal(btn){
+  const content=btn.nextElementSibling;
+  content.classList.toggle('open');
+  btn.textContent=content.classList.contains('open')?'🙈 Sembunyikan Petunjuk':'💡 Lihat Petunjuk';
+  if(btn.textContent.includes('Inspirasi'))btn.textContent=content.classList.contains('open')?'🙈 Sembunyikan':'💡 Contoh Inspirasi';
+}
+</script>
+<script>
+// ── VISITOR SYSTEM ──
+const MODULE_ID='forum-1';
+const SK_ID=`optoauto_identity_${MODULE_ID}`;
+const SK_V=`optoauto_visitors_${MODULE_ID}`;
+let panelOpen=false;
+function getVisitors(){try{return JSON.parse(localStorage.getItem(SK_V))||[]}catch(e){return[]}}
+function saveVisitors(l){localStorage.setItem(SK_V,JSON.stringify(l))}
+function getIdentity(){try{return JSON.parse(localStorage.getItem(SK_ID))}catch(e){return null}}
+function saveIdentity(v){localStorage.setItem(SK_ID,JSON.stringify(v))}
+function isValidName(n){if(!n)return false;return n.split(/\s+/).every(w=>w.length>0&&/^[A-Z][a-z]*$/.test(w))}
+function isValidNim(n){return/^\d+$/.test(n)}
+function initVisitor(){const me=getIdentity();if(me&&me.nama){document.getElementById('visitorOverlay').classList.add('hidden');document.getElementById('visitorFab').style.display='flex';loadVisitors()}}
+function submitVisitor(){
+  const nama=document.getElementById('vNama').value.trim();
+  const nim=document.getElementById('vNim').value.trim();
+  const err=document.getElementById('vError');
+  const isDosen=nama.toLowerCase()==='dedik romahadi';
+  if(!nama){err.textContent='⚠ Nama wajib diisi.';err.style.display='block';return}
+  if(!isValidName(nama)){err.textContent='⚠ Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi';err.style.display='block';return}
+  if(!isDosen&&!nim){err.textContent='⚠ NIM wajib diisi.';err.style.display='block';return}
+  if(!isDosen&&!isValidNim(nim)){err.textContent='⚠ NIM harus berupa angka.';err.style.display='block';return}
+  err.style.display='none';
+  const visitor={nama,nim:isDosen?'DOSEN':nim,role:isDosen?'dosen':'student',timestamp:new Date().toISOString()};
+  saveIdentity(visitor);
+  const visitors=getVisitors();
+  const idx=visitors.findIndex(v=>v.nama===visitor.nama&&v.nim===visitor.nim);
+  if(idx>=0)visitors[idx]=visitor;else visitors.push(visitor);
+  saveVisitors(visitors);
+  document.getElementById('visitorOverlay').classList.add('hidden');
+  document.getElementById('visitorFab').style.display='flex';
+  loadVisitors();
+}
+function loadVisitors(){
+  const listEl=document.getElementById('vpList'),countEl=document.getElementById('fabCount'),badgeEl=document.getElementById('vpBadge');
+  const visitors=getVisitors();visitors.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+  const seen=new Set(),unique=[];
+  for(const v of visitors){const id=`${v.nama}|${v.nim}`;if(!seen.has(id)){seen.add(id);unique.push(v)}}
+  countEl.textContent=unique.length;badgeEl.textContent=unique.length+' orang';
+  if(!unique.length){listEl.innerHTML='<div class="vp-empty">Belum ada pengunjung.</div>';return}
+  listEl.innerHTML=unique.map(v=>{
+    const isDosen=v.role==='dosen';
+    const ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const dt=new Date(v.timestamp);
+    const ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    return `<div class="vp-item"><div class="vp-avatar ${isDosen?'dosen':'student'}">${ini}</div><div class="vp-info"><div class="vp-name">${isDosen?'👨‍🏫 ':''}${escH(v.nama)}</div><div class="vp-nim">${isDosen?'Dosen Pengampu':escH(v.nim)}</div></div><div class="vp-time">${ts}</div></div>`
+  }).join('');
+}
+function togglePanel(){panelOpen=!panelOpen;document.getElementById('visitorPanel').classList.toggle('open',panelOpen);if(panelOpen)loadVisitors()}
+document.addEventListener('click',function(e){const p=document.getElementById('visitorPanel'),f=document.getElementById('visitorFab');if(panelOpen&&!p.contains(e.target)&&!f.contains(e.target)){panelOpen=false;p.classList.remove('open')}});
+function escH(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+document.getElementById('vNim').addEventListener('keydown',function(e){if(e.key==='Enter')submitVisitor()});
+document.getElementById('vNama').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('vNim').focus()});
+initVisitor();
+</script>
+</body>
+</html>
