@@ -13,7 +13,7 @@
 ## 🌟 Tentang Repository Ini
 
 Selamat datang di **Mechanical Engineering Courses**!  
-Repository ini berisi kumpulan lengkap materi kuliah Teknik Mesin yang dikurasi rapi — mulai dari mata kuliah inti hingga topik interdisipliner terkini seperti Machine Learning dan Brain Computer Interface.
+Repository ini berisi kumpulan lengkap materi kuliah Teknik Mesin yang dikurasi rapi — mulai dari mata kuliah inti hingga topik interdisipliner terkini seperti Machine Learning dan Brain-Computer Interface.
 
 Cocok banget buat:
 - Mahasiswa Teknik Mesin (S1/S2)
@@ -26,16 +26,16 @@ Semua materi diorganisir dengan baik, mudah dicari, dan siap pakai!
 
 | Mata Kuliah                    | Status         | Isi Utama                                      |
 |--------------------------------|----------------|------------------------------------------------|
-| Getaran Mekanik                | ✅ Complete    | Getaran bebas, paksa, sistem multi-DOF, analisis modal |
+| Getaran Mekanik                | 🔄 On Going    | Getaran bebas, paksa, sistem multi-DOF, analisis modal |
 | Optimalisasi dan Automasi      | 🔄 On Going    | Optimasi rekayasa, algoritma, dan automasi sistem |
-| Metode Numerik                 | ✅ Complete    | Metode numerik, solusi persamaan diferensial & aljabar |
-| Engineering Mathematics        | ✅ Complete    | Matematika lanjutan untuk teknik (kalkulus, PDE, dll) |
-| Control System                 | ✅ Complete    | Sistem kendali, PID, state-space, stabilitas |
-| Machine Learning               | 🔄 On Going    | Machine Learning & AI untuk aplikasi rekayasa mesin |
-| Pemrosesan Sinyal              | ✅ Complete    | Analisis sinyal, FFT, filtering, dan pemrosesan data |
+| Metode Numerik                 | 📌 Planned     | Metode numerik, solusi persamaan diferensial & aljabar |
+| Engineering Mathematics        | 🔄 On Going    | Matematika lanjutan untuk teknik (kalkulus, PDE, dll) |
+| Control System                 | 📌 Planned     | Sistem kendali, PID, state-space, stabilitas |
+| Machine Learning               | 📌 Planned     | Machine Learning & AI untuk aplikasi rekayasa mesin |
+| Pemrosesan Sinyal              | 📌 Planned     | Analisis sinyal, FFT, filtering, dan pemrosesan data |
 | Brain Computer Interface       | 📌 Planned     | Antarmuka otak-komputer & aplikasi mekatronika |
-| Computer-Aided Design          | ✅ Complete    | Desain 3D (SolidWorks, Fusion 360, AutoCAD, dll) |
-| Pemrograman Komputer           | ✅ Complete    | Python, MATLAB, dan pemrograman untuk engineering |
+| Computer-Aided Design          | 📌 Planned     | Desain 3D (SolidWorks, Fusion 360, AutoCAD, dll) |
+| Pemrograman Komputer           | 📌 Planned     | Python, MATLAB, dan pemrograman untuk engineering |
 
 > Materi terus bertambah setiap minggu. Star ⭐ repo ini supaya tidak ketinggalan update!
 
