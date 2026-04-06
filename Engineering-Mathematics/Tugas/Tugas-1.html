@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tugas 1 — Matematika Teknik | Modul 1 & 2</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+:root{--bg:#070b16;--bg2:#0e1525;--bg3:#151e30;--c1:#00e09e;--c2:#0ea5e9;--c3:#f97316;--c4:#ef4444;--c5:#a855f7;--c6:#facc15;--t1:#e8ecf4;--t2:#94a3b8;--t3:#64748b;--bd:#1e293b;--grad:linear-gradient(135deg,#070b16,#0c1a3a,#0a1424)}
+*{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth}
+body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--t1);line-height:1.8;overflow-x:hidden}
+::-webkit-scrollbar{width:7px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--c2);border-radius:4px}
+
+/* ── HERO ── */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;background:var(--grad);position:relative;padding:2rem;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 20% 80%,rgba(0,224,158,.06),transparent 50%),radial-gradient(circle at 80% 20%,rgba(14,165,233,.08),transparent 50%),radial-gradient(circle at 50% 50%,rgba(249,115,22,.04),transparent 40%);pointer-events:none}
+.particles{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.p{position:absolute;width:3px;height:3px;background:var(--c3);border-radius:50%;opacity:0;animation:fl 9s infinite}
+@keyframes fl{0%{opacity:0;transform:translateY(100vh) scale(0)}10%{opacity:.7}90%{opacity:.2}100%{opacity:0;transform:translateY(-20vh) scale(1.5)}}
+@keyframes fsd{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+.badge{display:inline-flex;align-items:center;gap:.5rem;padding:.6rem 1.5rem;background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.35);border-radius:999px;font-size:.85rem;color:var(--c3);font-weight:700;letter-spacing:.06em;margin-bottom:1.5rem;animation:fsd .8s ease-out;position:relative;z-index:1}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(2.8rem,7vw,5.5rem);font-weight:900;line-height:1.05;margin-bottom:.5rem;animation:fsd 1s ease-out .2s both;z-index:1;position:relative}
+.hero h1 .hl{background:linear-gradient(135deg,var(--c3),var(--c4));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero .sub{font-size:1.1rem;color:var(--t2);max-width:560px;margin-bottom:2rem;animation:fsd 1s ease-out .35s both;z-index:1;position:relative}
+
+/* ── COUNTDOWN ── */
+.cd-wrap{animation:fsd 1s ease-out .5s both;z-index:1;position:relative;margin-bottom:2rem}
+.cd-label{font-size:.75rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--c4);margin-bottom:.75rem}
+.cd{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap}
+.cd-box{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:14px;padding:.6rem 1rem;min-width:75px;text-align:center;backdrop-filter:blur(8px)}
+.cd-num{font-family:'JetBrains Mono',monospace;font-size:clamp(1.6rem,4vw,2.2rem);font-weight:800;color:var(--c4);line-height:1.1}
+.cd-unit{font-size:.65rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em}
+.cd-deadline{margin-top:.75rem;font-size:.85rem;color:var(--t3)}
+.cd-expired{color:var(--c4);font-weight:700;font-size:1.1rem;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* ── LECTURER & META ── */
+.meta-row{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;animation:fsd 1s ease-out .65s both;z-index:1;position:relative;margin-bottom:2rem}
+.meta-chip{display:inline-flex;align-items:center;gap:.6rem;padding:.6rem 1.25rem;background:rgba(14,165,233,.08);border:1px solid rgba(14,165,233,.2);border-radius:12px;font-size:.85rem;font-weight:600;color:var(--t1);backdrop-filter:blur(8px)}
+.meta-chip .ic{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--c2),var(--c5));display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.meta-chip small{color:var(--t3);font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+
+.hero-cta{animation:fsd 1s ease-out .8s both;z-index:1;position:relative}
+.btn-p{padding:.85rem 2.5rem;background:linear-gradient(135deg,var(--c3),var(--c4));color:#fff;font-weight:700;font-size:1rem;border:none;border-radius:12px;cursor:pointer;text-decoration:none;transition:all .3s;display:inline-flex;align-items:center;gap:.5rem}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(249,115,22,.3)}
+
+/* ── NAV ── */
+.nav{position:sticky;top:0;z-index:100;background:rgba(7,11,22,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--bd);padding:.75rem 2rem;display:flex;gap:.5rem;overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav a{white-space:nowrap;padding:.5rem 1rem;border-radius:8px;color:var(--t2);text-decoration:none;font-size:.85rem;font-weight:600;transition:all .3s;flex-shrink:0}
+.nav a:hover,.nav a.active{background:rgba(249,115,22,.1);color:var(--c3)}
+
+/* ── SECTIONS ── */
+.sec{max-width:920px;margin:0 auto;padding:4.5rem 2rem}
+.sl{font-size:.8rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--c3);margin-bottom:.75rem}
+.st{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,4vw,2.4rem);font-weight:900;margin-bottom:1.5rem;line-height:1.2}
+.sd{width:60px;height:4px;background:linear-gradient(90deg,var(--c3),var(--c4));border-radius:2px;margin-bottom:2rem}
+
+/* ── CARDS ── */
+.card{background:var(--bg3);border:1px solid var(--bd);border-radius:16px;padding:2rem;margin-bottom:1.5rem;transition:all .3s;position:relative;overflow:hidden}
+.card:hover{border-color:rgba(249,115,22,.3);transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.3)}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--c3),var(--c4),var(--c5))}
+.card h3{font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:.75rem}
+
+/* ── GROUP CARDS ── */
+.grp{background:var(--bg3);border:1px solid var(--bd);border-radius:16px;overflow:hidden;transition:all .3s}
+.grp:hover{border-color:rgba(14,165,233,.3);transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,0,0,.3)}
+.grp-head{padding:1.25rem 1.75rem;display:flex;align-items:center;gap:1rem}
+.grp-head.a{background:linear-gradient(135deg,rgba(14,165,233,.12),rgba(0,224,158,.06));border-bottom:2px solid rgba(14,165,233,.3)}
+.grp-head.b{background:linear-gradient(135deg,rgba(168,85,247,.12),rgba(14,165,233,.06));border-bottom:2px solid rgba(168,85,247,.3)}
+.grp-emoji{font-size:2rem}.grp-title{font-weight:800;font-size:1.3rem}.grp-count{font-size:.8rem;color:var(--t3);font-weight:600}
+.grp-list{padding:1rem 1.75rem}
+.grp-item{display:flex;align-items:center;gap:1rem;padding:.75rem .5rem;border-bottom:1px solid rgba(30,41,59,.5);font-size:.95rem;transition:all .3s}
+.grp-item:last-child{border-bottom:none}
+.grp-item:hover{padding-left:1rem;background:rgba(255,255,255,.02);border-radius:8px}
+.grp-nim{font-family:'JetBrains Mono',monospace;font-size:.75rem;padding:.25rem .6rem;border-radius:6px;font-weight:600;flex-shrink:0}
+.grp-head.a+.grp-list .grp-nim{background:rgba(14,165,233,.12);color:var(--c2)}
+.grp-head.b+.grp-list .grp-nim{background:rgba(168,85,247,.12);color:var(--c5)}
+
+/* ── SOAL ── */
+.soal{background:var(--bg3);border:1px solid var(--bd);border-radius:16px;margin:1.75rem 0;overflow:hidden;transition:all .3s}
+.soal:hover{border-color:rgba(249,115,22,.25)}
+.soal-head{display:flex;align-items:center;gap:1rem;padding:1.15rem 1.75rem;background:rgba(249,115,22,.06);border-bottom:1px solid var(--bd)}
+.soal-num{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--c3),var(--c4));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.95rem;flex-shrink:0}
+.soal-tag{font-size:.7rem;padding:.2rem .6rem;border-radius:6px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-left:auto}
+.soal-tag.m1{background:rgba(0,224,158,.12);color:var(--c1)}.soal-tag.m2{background:rgba(14,165,233,.12);color:var(--c2)}
+.soal-body{padding:1.75rem}
+.mb{background:rgba(14,165,233,.06);border-left:4px solid var(--c2);padding:1.1rem 1.5rem;margin:1rem 0;border-radius:0 12px 12px 0;overflow-x:auto;text-align:center;font-size:1.05rem}
+
+/* ── CODE ── */
+.cb{background:#0d1117;border:1px solid var(--bd);border-radius:12px;margin:1.5rem 0;overflow:hidden}
+.cbh{display:flex;align-items:center;justify-content:space-between;padding:.7rem 1.2rem;background:rgba(255,255,255,.03);border-bottom:1px solid var(--bd)}
+.cbh span{font-size:.8rem;font-weight:600;color:var(--t3);display:flex;align-items:center;gap:.5rem}
+.dots{display:flex;gap:6px}.dots span{width:10px;height:10px;border-radius:50%}.dots span:nth-child(1){background:#ff5f57}.dots span:nth-child(2){background:#febc2e}.dots span:nth-child(3){background:#28c840}
+.ccp{padding:.3rem .7rem;background:rgba(255,255,255,.05);border:1px solid var(--bd);color:var(--t3);border-radius:6px;cursor:pointer;font-size:.72rem;font-family:inherit;transition:all .3s}
+.ccp:hover{background:rgba(0,224,158,.15);color:var(--c1);border-color:rgba(0,224,158,.3)}
+.cbd{padding:1.2rem;overflow-x:auto}
+.cbd pre{font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.7;color:#c9d1d9;white-space:pre}
+.cm{color:#8b949e}.kw{color:#ff7b72}.str{color:#a5d6ff}.fn{color:#d2a8ff}.nm{color:#79c0ff}
+
+/* ── INFO BOXES ── */
+.info{border-radius:14px;padding:1.5rem 1.75rem;margin:1.5rem 0}
+.info.warn{background:rgba(250,204,21,.06);border:1px solid rgba(250,204,21,.2)}
+.info.warn h4{color:var(--c6);margin-bottom:.5rem;font-weight:700}
+.info.imp{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2)}
+.info.imp h4{color:var(--c4);margin-bottom:.5rem;font-weight:700}
+.info.ok{background:rgba(0,224,158,.06);border:1px solid rgba(0,224,158,.2)}
+.info.ok h4{color:var(--c1);margin-bottom:.5rem;font-weight:700}
+
+/* ── SUBMIT STEPS ── */
+.steps{counter-reset:s;margin:1.5rem 0}
+.si{display:flex;gap:1.2rem;margin-bottom:1.5rem;position:relative}
+.si::before{counter-increment:s;content:counter(s);width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--c3),var(--c4));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;flex-shrink:0;margin-top:2px}
+.si:not(:last-child)::after{content:'';position:absolute;left:17px;top:40px;bottom:-8px;width:2px;background:var(--bd)}
+
+/* ── FADE ── */
+.fi{opacity:0;transform:translateY(30px);transition:all .6s ease-out}.fi.vis{opacity:1;transform:translateY(0)}
+
+/* ── FOOTER ── */
+footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:var(--t3);font-size:.85rem}
+
+@media(max-width:768px){.sec{padding:3rem 1.25rem}.soal-body,.card{padding:1.5rem}.cd-box{min-width:62px;padding:.5rem .75rem}.grp-grid{grid-template-columns:1fr!important}}
+
+/* ── VISITOR SYSTEM ── */
+.visitor-overlay{position:fixed;inset:0;z-index:9999;background:rgba(6,10,18,.92);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity .4s}
+.visitor-overlay.hidden{opacity:0;pointer-events:none}
+.visitor-modal{background:#151e30;border:1px solid #1e293b;border-radius:24px;padding:40px 36px;max-width:440px;width:90%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.6);animation:vmIn .5s cubic-bezier(.16,1,.3,1)}
+@keyframes vmIn{0%{opacity:0;transform:translateY(30px) scale(.96)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.visitor-modal h2{font-weight:900;font-size:1.5rem;background:linear-gradient(135deg,#00e09e,#0ea5e9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
+.visitor-modal .vsub{color:#64748b;font-size:.85rem;margin-bottom:28px}
+.v-input{width:100%;padding:14px 18px;border-radius:14px;border:1px solid #1e293b;background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-size:.95rem;outline:none;transition:border .25s;margin-bottom:14px}
+.v-input::placeholder{color:#64748b}
+.v-input:focus{border-color:#00e09e;box-shadow:0 0 0 3px rgba(255,255,255,.08)}
+.v-btn-primary{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#00e09e,#0ea5e9);color:#fff;font-weight:700;font-size:1rem;cursor:pointer;transition:transform .2s,box-shadow .2s;margin-top:6px}
+.v-btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,255,255,.1)}
+.v-error{color:#fb7185;font-size:.8rem;margin-bottom:10px;display:none}
+.visitor-fab{position:fixed;bottom:24px;right:24px;z-index:8888;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#00e09e,#0ea5e9);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(0,0,0,.4);transition:transform .25s;font-size:1.4rem}
+.visitor-fab:hover{transform:scale(1.08)}
+.visitor-fab .fab-count{position:absolute;top:-4px;right:-4px;background:#fb7185;color:#fff;font-size:.65rem;font-weight:700;min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid #070b16}
+.visitor-panel{position:fixed;bottom:92px;right:24px;z-index:8887;width:340px;max-height:480px;overflow:hidden;background:#151e30;border:1px solid #1e293b;border-radius:20px;box-shadow:0 24px 64px rgba(0,0,0,.5);display:flex;flex-direction:column;transform:translateY(12px) scale(.95);opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .25s}
+.visitor-panel.open{transform:translateY(0) scale(1);opacity:1;pointer-events:auto}
+.vp-header{padding:20px 22px 14px;border-bottom:1px solid #1e293b;display:flex;align-items:center;justify-content:space-between}
+.vp-header h3{font-weight:700;font-size:1rem;color:#fff}
+.vp-badge{background:rgba(255,255,255,.08);color:#00e09e;font-size:.7rem;font-weight:700;padding:4px 10px;border-radius:999px}
+.vp-list{overflow-y:auto;padding:10px 16px 16px;flex:1}
+.vp-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;margin-bottom:6px;background:rgba(255,255,255,.03);transition:background .2s}
+.vp-item:hover{background:rgba(255,255,255,.06)}
+.vp-avatar{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0}
+.vp-avatar.student{background:rgba(255,255,255,.08);color:#00e09e}
+.vp-avatar.dosen{background:rgba(255,255,255,.08);color:#0ea5e9}
+.vp-info{flex:1;min-width:0}
+.vp-name{font-weight:600;font-size:.88rem;color:#e8ecf4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vp-nim{font-size:.72rem;color:#64748b;font-family:monospace}
+.vp-time{font-size:.68rem;color:#64748b;text-align:right;flex-shrink:0;white-space:nowrap}
+.vp-empty{text-align:center;padding:32px 16px;color:#64748b;font-size:.85rem}
+@media(max-width:480px){.visitor-panel{width:calc(100vw - 32px);right:16px;bottom:88px}}
+
+</style>
+</head>
+<body>
+
+<!-- VISITOR MODAL -->
+<div class="visitor-overlay" id="visitorOverlay">
+  <div class="visitor-modal">
+    <div style="font-size:2.8rem;margin-bottom:12px;">🎓</div>
+    <h2>Selamat Datang!</h2>
+    <p class="vsub">Silakan masukkan identitas Anda untuk mengakses halaman ini.</p>
+    <p class="v-error" id="vError"></p>
+    <input type="text" class="v-input" id="vNama" placeholder="Nama Lengkap" autocomplete="off">
+    <input type="text" class="v-input" id="vNim" placeholder="NIM (Nomor Induk Mahasiswa)" autocomplete="off">
+    <button class="v-btn-primary" onclick="submitVisitor()">Masuk →</button>
+  </div>
+</div>
+<button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Daftar Pengunjung">👥<span class="fab-count" id="fabCount">0</span></button>
+<div class="visitor-panel" id="visitorPanel">
+  <div class="vp-header"><h3>👥 Pengunjung</h3><span class="vp-badge" id="vpBadge">0 orang</span></div>
+  <div class="vp-list" id="vpList"><div class="vp-empty">Memuat...</div></div>
+</div>
+
+
+<!-- ═══════ HERO ═══════ -->
+<section class="hero">
+  <div class="particles">
+    <div class="p" style="left:10%;animation-delay:0s;background:var(--c3)"></div>
+    <div class="p" style="left:25%;animation-delay:1.5s;background:var(--c4)"></div>
+    <div class="p" style="left:40%;animation-delay:3s;background:var(--c6)"></div>
+    <div class="p" style="left:55%;animation-delay:.7s;background:var(--c3)"></div>
+    <div class="p" style="left:70%;animation-delay:2.2s;background:var(--c4)"></div>
+    <div class="p" style="left:85%;animation-delay:4s;background:var(--c6)"></div>
+  </div>
+
+  <div class="badge">📋 TUGAS 1 • Pertemuan 2</div>
+  <h1><span class="hl">Tugas 1</span><br>Matematika Teknik</h1>
+  <p class="sub">Modul 1 (Persamaan Diferensial) & Modul 2 (PD Variabel Terpisah)<br>10 Soal — Dikerjakan Manual & Jupyter Notebook</p>
+
+  <!-- Countdown -->
+  <div class="cd-wrap">
+    <div class="cd-label">⏰ Waktu Tersisa</div>
+    <div class="cd" id="countdown">
+      <div class="cd-box"><div class="cd-num" id="cd-d">--</div><div class="cd-unit">Hari</div></div>
+      <div class="cd-box"><div class="cd-num" id="cd-h">--</div><div class="cd-unit">Jam</div></div>
+      <div class="cd-box"><div class="cd-num" id="cd-m">--</div><div class="cd-unit">Menit</div></div>
+      <div class="cd-box"><div class="cd-num" id="cd-s">--</div><div class="cd-unit">Detik</div></div>
+    </div>
+    <div class="cd-deadline">Deadline: <strong>10 April 2026, Pukul 23:59 WIB</strong></div>
+  </div>
+
+  <!-- Meta -->
+  <div class="meta-row">
+    <div class="meta-chip"><div class="ic">👨‍🏫</div><div><small>Dosen</small><br>Dedik Romahadi</div></div>
+    <div class="meta-chip"><div class="ic">📚</div><div><small>Submit di</small><br>Fast Learning Pert. 2</div></div>
+    <div class="meta-chip"><div class="ic">📄</div><div><small>Format</small><br>.ipynb &amp; .html</div></div>
+  </div>
+
+  <div class="hero-cta">
+    <a href="#soal" class="btn-p">📝 Lihat Soal</a>
+  </div>
+</section>
+
+<!-- ═══════ NAV ═══════ -->
+<nav class="nav">
+  <a href="#ketentuan">📋 Ketentuan</a>
+  <a href="#kelompok">👥 Kelompok</a>
+  <a href="#soal">📝 Soal 1–10</a>
+  <a href="#jupyter">🐍 Template Jupyter</a>
+  <a href="#submit">📤 Cara Submit</a>
+</nav>
+
+<!-- ═══════ KETENTUAN ═══════ -->
+<section class="sec fi" id="ketentuan">
+  <div class="sl">📋 KETENTUAN</div>
+  <h2 class="st">Ketentuan Tugas 1</h2>
+  <div class="sd"></div>
+
+  <div class="info warn">
+    <h4>⚠️ Penting — Baca Sebelum Mengerjakan</h4>
+    <p>Tugas dikerjakan <strong>per kelompok</strong>, namun <strong>setiap anggota wajib memahami seluruh jawaban</strong> dan siap menjelaskan di pertemuan TMV (Tatap Muka Virtual) berikutnya. Dosen dapat menunjuk anggota mana saja untuk menjelaskan soal tertentu.</p>
+  </div>
+
+  <div class="card">
+    <h3>📌 Ringkasan Tugas</h3>
+    <table style="width:100%;border-collapse:collapse;margin-top:1rem;">
+      <tr style="border-bottom:1px solid var(--bd)"><td style="padding:.6rem 0;color:var(--t3);width:140px;font-weight:600;font-size:.85rem;">Materi</td><td style="padding:.6rem 0;">Modul 1 (PD Orde Satu) & Modul 2 (PD Variabel Terpisah)</td></tr>
+      <tr style="border-bottom:1px solid var(--bd)"><td style="padding:.6rem 0;color:var(--t3);font-weight:600;font-size:.85rem;">Jumlah Soal</td><td style="padding:.6rem 0;">10 soal</td></tr>
+      <tr style="border-bottom:1px solid var(--bd)"><td style="padding:.6rem 0;color:var(--t3);font-weight:600;font-size:.85rem;">Cara Pengerjaan</td><td style="padding:.6rem 0;">Manual (tulis tangan / ketik) <strong>dan</strong> menggunakan Jupyter Notebook di VS Code</td></tr>
+      <tr style="border-bottom:1px solid var(--bd)"><td style="padding:.6rem 0;color:var(--t3);font-weight:600;font-size:.85rem;">Format Submit</td><td style="padding:.6rem 0;"><code style="background:var(--bg2);padding:.15rem .5rem;border-radius:4px;font-size:.85rem;">.ipynb</code> dan <code style="background:var(--bg2);padding:.15rem .5rem;border-radius:4px;font-size:.85rem;">.html</code></td></tr>
+      <tr style="border-bottom:1px solid var(--bd)"><td style="padding:.6rem 0;color:var(--t3);font-weight:600;font-size:.85rem;">Upload di</td><td style="padding:.6rem 0;">Fast Learning — Pertemuan 2</td></tr>
+      <tr style="border-bottom:1px solid var(--bd)"><td style="padding:.6rem 0;color:var(--t3);font-weight:600;font-size:.85rem;">Deadline</td><td style="padding:.6rem 0;"><strong style="color:var(--c4);">10 April 2026, Pukul 23:59 WIB</strong></td></tr>
+      <tr><td style="padding:.6rem 0;color:var(--t3);font-weight:600;font-size:.85rem;">Pengerjaan</td><td style="padding:.6rem 0;">Per kelompok — setiap anggota wajib paham semua jawaban</td></tr>
+    </table>
+  </div>
+
+  <div class="info imp">
+    <h4>🚨 Catatan Penilaian</h4>
+    <p>Pada pertemuan TMV berikutnya, dosen akan <strong>menunjuk acak</strong> anggota kelompok untuk menjelaskan penyelesaian soal tertentu. Jika tidak bisa menjelaskan, nilai anggota tersebut akan dikurangi. Pastikan semua anggota benar-benar memahami setiap langkah penyelesaian!</p>
+  </div>
+</section>
+
+<!-- ═══════ KELOMPOK ═══════ -->
+<section class="sec fi" id="kelompok">
+  <div class="sl">👥 KELOMPOK</div>
+  <h2 class="st">Pembagian Kelompok</h2>
+  <div class="sd"></div>
+
+  <div class="grp-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+    <!-- Kelompok A -->
+    <div class="grp">
+      <div class="grp-head a">
+        <span class="grp-emoji">🔵</span>
+        <div><div class="grp-title">Kelompok A</div><div class="grp-count">4 Anggota</div></div>
+      </div>
+      <div class="grp-list">
+        <div class="grp-item"><span class="grp-nim">41324110004</span>Martinus Aprilla Galuh Prakoso</div>
+        <div class="grp-item"><span class="grp-nim">41324110014</span>Moch Anas Mustaqim</div>
+        <div class="grp-item"><span class="grp-nim">41324110035</span>Ahmad Sabawi</div>
+        <div class="grp-item"><span class="grp-nim">41324110038</span>Shola Airlangga Kanianto</div>
+      </div>
+    </div>
+    <!-- Kelompok B -->
+    <div class="grp">
+      <div class="grp-head b">
+        <span class="grp-emoji">🟣</span>
+        <div><div class="grp-title">Kelompok B</div><div class="grp-count">3 Anggota</div></div>
+      </div>
+      <div class="grp-list">
+        <div class="grp-item"><span class="grp-nim">41325120003</span>Eka Bima Saputra</div>
+        <div class="grp-item"><span class="grp-nim">41325120010</span>Farhan Galih Mahendra</div>
+        <div class="grp-item"><span class="grp-nim">41325120014</span>Riyo Pujo Pratomo</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ SOAL ═══════ -->
+<section class="sec fi" id="soal">
+  <div class="sl">📝 SOAL</div>
+  <h2 class="st">Soal Tugas 1 (10 Soal)</h2>
+  <div class="sd"></div>
+  <p style="margin-bottom:1.5rem;">Kerjakan setiap soal secara <strong>manual</strong> (tunjukkan langkah-langkah) dan <strong>verifikasi/selesaikan menggunakan Python (SymPy)</strong> di Jupyter Notebook.</p>
+
+  <!-- SOAL 1 -->
+  <div class="soal">
+    <div class="soal-head"><div class="soal-num">1</div><strong>Klasifikasi PD</strong><span class="soal-tag m1">Modul 1</span></div>
+    <div class="soal-body">
+      <p>Klasifikasikan setiap PD berikut berdasarkan: <strong>Jenis</strong> (Biasa/Parsial), <strong>Kelinieran</strong> (Linier/Non-Linier), <strong>Orde</strong>, dan <strong>Homogenitas</strong> (Homogen/Non-Homogen).</p>
+      <div class="mb">$$\text{a)} \quad y'' + 3y' - 10y = 0$$</div>
+      <div class="mb">$$\text{b)} \quad (y''')^2 + y'' \cdot y' = \sin x$$</div>
+      <div class="mb">$$\text{c)} \quad \frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial t^2} = 0$$</div>
+    </div>
+  </div>
+
+  <!-- SOAL 2 -->
+  <div class="soal">
+    <div class="soal-head"><div class="soal-num">2</div><strong>Verifikasi Solusi PD</strong><span class="soal-tag m1">Modul 1</span></div>
+    <div class="soal-body">
+      <p>Selidiki apakah \(y = e^{5x}\) merupakan penyelesaian bagi PD:</p>
+      <div class="mb">$$y'' - 3y' - 10y = 0$$</div>
+      <p>Tunjukkan proses substitusi secara lengkap.</p>
+    </div>
+  </div>
+
+  <!-- SOAL 3 -->
+  <div class="soal">
+    <div class="soal-head"><div class="soal-num">3</div><strong>Verifikasi Solusi PD (Non-Homogen)</strong><span class="soal-tag m1">Modul 1</span></div>
+    <div class="soal-body">
+      <p>Selidiki apakah \(y = x^2 + e^x\) merupakan penyelesaian bagi PD:</p>
+      <div class="mb">$$y'' - y = 2 - x^2$$</div>
+    </div>
+  </div>
+
+  <!-- SOAL 4 -->
+  <div class="soal">
+    <div class="soal-head"><div class="soal-num">4</div><strong>PD Variabel Terpisah Sederhana</strong><span class="soal-tag m2">Modul 2</span></div>
+    <div class="soal-body">
+      <p>Carilah penyelesaian umum dari PD:</p>
+      <div class="mb">$$6y\,y' = 5x^4$$</div>
+    </div>
+  </div>
+
+  <!-- SOAL 5 -->
+  <div class="soal">
+    <div class="soal-head"><div class="soal-num">5</div><strong>PD Variabel Terpisah (Faktorisasi)</strong><span class="soal-tag m2">Modul 2</span></div>
+    <div class="soal-body">
+      <p>Carilah penyelesaian umum dari PD:</p>
+      <div class="mb">$$(2x + 4xy^2)\,dx + (3y + 3x^2y)\,dy = 0$$</div>
+      <p><em>Petunjuk: faktorkan setiap suku terlebih dahulu, lalu bagi agar variabel terpisah.</em></p>
+    </div>
+  </div>
+
+  <!-- SOAL 6 -->
+  <div class="soal">
+    <div class="soal-head"><div class="soal-num">6</div><strong>PD Variabel Terpisah dengan Syarat Awal</strong><span class="soal-tag m2">Modul 2</span></div>
+    <div class="soal-body">
+      <p>Carilah penyelesaian khusus PD berikut, dengan syarat \(y(0) = 3\):</p>
+      <div class="mb">$$\frac{dy}{dx} = \frac{2x}{y}$$</div>
+    </div>
+  </div>
+
+  <!-- SOAL 7 -->
+  <div class="soal">
+    <div class="soal-head"><div class="soal-num">7</div><strong>PD Variabel Terpisah (Eksponensial)</strong><span class="soal-tag m2">Modul 2</span></div>
+    <div class="soal-body">
+      <p>Carilah penyelesaian umum dari PD:</p>
+      <div class="mb">$$\frac{dy}{dx} = \frac{e^x}{e^y}$$</div>
+    </div>
+  </div>
+
+  <!-- SOAL 8 -->
+  <div class="soal">
+    <div class="soal-head"><div class="soal-num">8</div><strong>PD Variabel Terpisah dengan Syarat Awal</strong><span class="soal-tag m2">Modul 2</span></div>
+    <div class="soal-body">
+      <p>Carilah penyelesaian khusus PD berikut, dengan syarat \(y(1) = 0\):</p>
+      <div class="mb">$$\frac{dy}{dx} = \frac{x^2 + 1}{y + 1}$$</div>
+    </div>
+  </div>
+
+  <!-- SOAL 9 -->
+  <div class="soal">
+    <div class="soal-head"><div class="soal-num">9</div><strong>Aplikasi: Peluruhan Radioaktif</strong><span class="soal-tag m2">Modul 2</span></div>
+    <div class="soal-body">
+      <p>Suatu zat radioaktif meluruh menurut PD:</p>
+      <div class="mb">$$\frac{dN}{dt} = -\lambda N$$</div>
+      <p>Jika massa awal \(N(0) = 200\) gram dan setelah 5 jam menjadi 120 gram:</p>
+      <p><strong>a)</strong> Tentukan nilai \(\lambda\).</p>
+      <p><strong>b)</strong> Berapa massa zat setelah 12 jam?</p>
+      <p><strong>c)</strong> Berapa waktu paruh (\(t_{1/2}\)) zat tersebut?</p>
+    </div>
+  </div>
+
+  <!-- SOAL 10 -->
+  <div class="soal">
+    <div class="soal-head"><div class="soal-num">10</div><strong>Aplikasi: Hukum Pendinginan Newton</strong><span class="soal-tag m2">Modul 2</span></div>
+    <div class="soal-body">
+      <p>Sebuah benda bersuhu 150°C diletakkan di ruangan bersuhu 25°C. Setelah 10 menit suhu benda turun menjadi 100°C.</p>
+      <p><strong>a)</strong> Tentukan model matematika dan penyelesaian umumnya.</p>
+      <p><strong>b)</strong> Tentukan nilai konstanta \(k\).</p>
+      <p><strong>c)</strong> Berapa suhu benda setelah 30 menit?</p>
+      <p><strong>d)</strong> Berapa waktu yang dibutuhkan agar suhu benda menjadi 40°C?</p>
+      <p><strong>e)</strong> Buat plot grafik \(T(t)\) untuk \(0 \le t \le 120\) menit menggunakan Python.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ JUPYTER TEMPLATE ═══════ -->
+<section class="sec fi" id="jupyter">
+  <div class="sl">🐍 TEMPLATE</div>
+  <h2 class="st">Template Jupyter Notebook</h2>
+  <div class="sd"></div>
+  <p>Gunakan template berikut sebagai acuan. Buat satu notebook (<code>.ipynb</code>) yang berisi penyelesaian semua 10 soal.</p>
+
+  <div class="cb"><div class="cbh"><div class="dots"><span></span><span></span><span></span></div><span>Python — Cell 1: Setup</span><button class="ccp" onclick="cpC(this)">📋 Copy</button></div><div class="cbd">
+<pre><span class="cm"># ═══ TUGAS 1 — MATEMATIKA TEKNIK ═══</span>
+<span class="cm"># Kelompok: [A / B]</span>
+<span class="cm"># Anggota :</span>
+<span class="cm">#   1. [Nama] - [NIM]</span>
+<span class="cm">#   2. [Nama] - [NIM]</span>
+<span class="cm">#   3. [Nama] - [NIM]</span>
+<span class="cm">#   4. [Nama] - [NIM] (jika ada)</span>
+
+<span class="kw">from</span> sympy <span class="kw">import</span> *
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+
+x = <span class="fn">symbols</span>(<span class="str">'x'</span>)
+y = <span class="fn">Function</span>(<span class="str">'y'</span>)
+t, k, C1, lam = <span class="fn">symbols</span>(<span class="str">'t k C1 lambda'</span>, positive=True)
+
+<span class="fn">print</span>(<span class="str">"Setup berhasil! ✅"</span>)</pre>
+  </div></div>
+
+  <div class="cb"><div class="cbh"><div class="dots"><span></span><span></span><span></span></div><span>Python — Cell 2: Contoh Soal 2 (Verifikasi)</span><button class="ccp" onclick="cpC(this)">📋 Copy</button></div><div class="cbd">
+<pre><span class="cm"># ═══ SOAL 2: Verifikasi y = e^(5x) untuk y'' - 3y' - 10y = 0 ═══</span>
+
+x = <span class="fn">symbols</span>(<span class="str">'x'</span>)
+y_func = <span class="fn">exp</span>(<span class="nm">5</span>*x)
+
+y1 = <span class="fn">diff</span>(y_func, x)       <span class="cm"># y'</span>
+y2 = <span class="fn">diff</span>(y_func, x, <span class="nm">2</span>)    <span class="cm"># y''</span>
+
+<span class="fn">print</span>(<span class="str">f"y   = {y_func}"</span>)
+<span class="fn">print</span>(<span class="str">f"y'  = {y1}"</span>)
+<span class="fn">print</span>(<span class="str">f"y'' = {y2}"</span>)
+
+<span class="cm"># Substitusi ke PD: y'' - 3y' - 10y</span>
+hasil = <span class="fn">simplify</span>(y2 - <span class="nm">3</span>*y1 - <span class="nm">10</span>*y_func)
+<span class="fn">print</span>(<span class="str">f"\ny'' - 3y' - 10y = {hasil}"</span>)
+<span class="fn">print</span>(<span class="str">"✅ Penyelesaian!"</span> <span class="kw">if</span> hasil == <span class="nm">0</span> <span class="kw">else</span> <span class="str">"❌ Bukan penyelesaian."</span>)</pre>
+  </div></div>
+
+  <div class="cb"><div class="cbh"><div class="dots"><span></span><span></span><span></span></div><span>Python — Cell 3: Contoh Soal 4 (PD Var. Terpisah)</span><button class="ccp" onclick="cpC(this)">📋 Copy</button></div><div class="cbd">
+<pre><span class="cm"># ═══ SOAL 4: Selesaikan 6y*y' = 5x^4 ═══</span>
+
+x = <span class="fn">symbols</span>(<span class="str">'x'</span>)
+y = <span class="fn">Function</span>(<span class="str">'y'</span>)
+
+pd = <span class="fn">Eq</span>(<span class="nm">6</span>*y(x)*y(x).<span class="fn">diff</span>(x), <span class="nm">5</span>*x**<span class="nm">4</span>)
+sol = <span class="fn">dsolve</span>(pd, y(x))
+<span class="fn">print</span>(<span class="str">"Solusi:"</span>, sol)</pre>
+  </div></div>
+
+  <div class="cb"><div class="cbh"><div class="dots"><span></span><span></span><span></span></div><span>Python — Cell 4: Contoh Soal 10 (Plot Pendinginan)</span><button class="ccp" onclick="cpC(this)">📋 Copy</button></div><div class="cbd">
+<pre><span class="cm"># ═══ SOAL 10: Plot kurva pendinginan Newton ═══</span>
+
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+
+T0 = <span class="nm">150</span>     <span class="cm"># suhu awal</span>
+Tm = <span class="nm">25</span>      <span class="cm"># suhu ruangan</span>
+k  = ...     <span class="cm"># hitung dari syarat T(10) = 100</span>
+
+t = np.<span class="fn">linspace</span>(<span class="nm">0</span>, <span class="nm">120</span>, <span class="nm">500</span>)
+T = Tm + (T0 - Tm) * np.<span class="fn">exp</span>(-k * t)
+
+plt.<span class="fn">figure</span>(figsize=(<span class="nm">10</span>, <span class="nm">6</span>))
+plt.<span class="fn">plot</span>(t, T, <span class="str">'cyan'</span>, lw=<span class="nm">2.5</span>, label=<span class="str">f'T(t) = {Tm} + {T0-Tm}e^(-{k:.4f}t)'</span>)
+plt.<span class="fn">axhline</span>(y=Tm, color=<span class="str">'orange'</span>, ls=<span class="str">'--'</span>, label=<span class="str">f'Suhu ruangan = {Tm}°C'</span>)
+plt.<span class="fn">xlabel</span>(<span class="str">'Waktu (menit)'</span>); plt.<span class="fn">ylabel</span>(<span class="str">'Suhu (°C)'</span>)
+plt.<span class="fn">title</span>(<span class="str">'Hukum Pendinginan Newton'</span>)
+plt.<span class="fn">legend</span>(); plt.<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>)
+plt.<span class="fn">show</span>()</pre>
+  </div></div>
+</section>
+
+<!-- ═══════ SUBMIT ═══════ -->
+<section class="sec fi" id="submit">
+  <div class="sl">📤 SUBMIT</div>
+  <h2 class="st">Cara Submit Tugas</h2>
+  <div class="sd"></div>
+
+  <div class="steps">
+    <div class="si"><div class="sc" style="flex:1"><h4 style="font-weight:700;">Kerjakan semua soal di Jupyter Notebook</h4><p style="color:var(--t2);font-size:.95rem;">Buka VS Code → buat file <code>Tugas1_Kelompok[A/B].ipynb</code>. Kerjakan semua 10 soal dengan langkah-langkah jelas (gunakan Markdown cell untuk penjelasan dan Code cell untuk perhitungan SymPy).</p></div></div>
+    <div class="si"><div class="sc" style="flex:1"><h4 style="font-weight:700;">Ekspor ke HTML</h4><p style="color:var(--t2);font-size:.95rem;">Di VS Code: <code>Ctrl+Shift+P</code> → ketik <strong>"Jupyter: Export to HTML"</strong>. Atau di terminal: <code>jupyter nbconvert --to html Tugas1_KelompokA.ipynb</code></p></div></div>
+    <div class="si"><div class="sc" style="flex:1"><h4 style="font-weight:700;">Upload ke Fast Learning</h4><p style="color:var(--t2);font-size:.95rem;">Masuk ke platform <strong>Fast Learning</strong> → Pertemuan 2 → Upload <strong>dua file</strong>: file <code>.ipynb</code> dan file <code>.html</code>.</p></div></div>
+    <div class="si"><div class="sc" style="flex:1"><h4 style="font-weight:700;">Pastikan semua anggota paham</h4><p style="color:var(--t2);font-size:.95rem;">Diskusikan bersama kelompok. Setiap anggota harus bisa menjelaskan penyelesaian soal yang ditunjuk oleh dosen pada pertemuan TMV berikutnya.</p></div></div>
+  </div>
+
+  <div class="info ok">
+    <h4>✅ Checklist Sebelum Submit</h4>
+    <p>☐ Semua 10 soal terjawab dengan langkah lengkap</p>
+    <p>☐ Setiap soal memiliki penyelesaian manual (di Markdown cell) DAN kode Python</p>
+    <p>☐ Soal 10 memiliki grafik plot Python</p>
+    <p>☐ File <code>.ipynb</code> sudah di-export ke <code>.html</code></p>
+    <p>☐ Kedua file diupload di Fast Learning Pertemuan 2</p>
+    <p>☐ Semua anggota memahami setiap jawaban</p>
+  </div>
+</section>
+
+<!-- ═══════ FOOTER ═══════ -->
+<footer>
+  <p>📋 Tugas 1 — Matematika Teknik (Modul 1 & 2)</p>
+  <p style="margin-top:.5rem;">W132100010 • Fakultas Teknik — Teknik Mesin</p>
+  <p style="margin-top:.25rem;font-size:.8rem;">Dosen Pengampu: Dedik Romahadi</p>
+</footer>
+
+<!-- ═══════ SCRIPTS ═══════ -->
+<script>
+document.addEventListener('DOMContentLoaded',()=>{renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})});
+
+// Countdown to 10 April 2026 23:59 WIB (UTC+7)
+function updateCountdown(){
+  const deadline=new Date('2026-04-10T23:59:00+07:00').getTime();
+  const now=new Date().getTime();
+  const diff=deadline-now;
+  if(diff<=0){
+    document.getElementById('cd-d').textContent='00';
+    document.getElementById('cd-h').textContent='00';
+    document.getElementById('cd-m').textContent='00';
+    document.getElementById('cd-s').textContent='00';
+    const dl=document.querySelector('.cd-deadline');
+    dl.innerHTML='<span class="cd-expired">⚠️ DEADLINE SUDAH LEWAT!</span>';
+    return;
+  }
+  const d=Math.floor(diff/(1000*60*60*24));
+  const h=Math.floor((diff%(1000*60*60*24))/(1000*60*60));
+  const m=Math.floor((diff%(1000*60*60))/(1000*60));
+  const s=Math.floor((diff%(1000*60))/1000);
+  document.getElementById('cd-d').textContent=String(d).padStart(2,'0');
+  document.getElementById('cd-h').textContent=String(h).padStart(2,'0');
+  document.getElementById('cd-m').textContent=String(m).padStart(2,'0');
+  document.getElementById('cd-s').textContent=String(s).padStart(2,'0');
+}
+updateCountdown();
+setInterval(updateCountdown,1000);
+
+// Fade-in
+const obs=new IntersectionObserver(e=>{e.forEach(en=>{if(en.isIntersecting)en.target.classList.add('vis')})},{threshold:.1});
+document.querySelectorAll('.fi').forEach(el=>obs.observe(el));
+
+// Active nav
+window.addEventListener('scroll',()=>{const secs=document.querySelectorAll('.sec');const links=document.querySelectorAll('.nav a');let cur='';secs.forEach(s=>{if(window.scrollY>=s.offsetTop-120)cur=s.id});links.forEach(l=>{l.classList.remove('active');if(l.getAttribute('href')==='#'+cur)l.classList.add('active')})});
+
+// Copy code
+function cpC(btn){const code=btn.closest('.cb').querySelector('pre').textContent;navigator.clipboard.writeText(code).then(()=>{btn.textContent='✅ Copied!';setTimeout(()=>btn.textContent='📋 Copy',2000)})}
+</script>
+<script>
+// ── VISITOR SYSTEM ──
+const MODULE_ID='tugas-1';
+const SK_ID=`optoauto_identity_${MODULE_ID}`;
+const SK_V=`optoauto_visitors_${MODULE_ID}`;
+let panelOpen=false;
+function getVisitors(){try{return JSON.parse(localStorage.getItem(SK_V))||[]}catch(e){return[]}}
+function saveVisitors(l){localStorage.setItem(SK_V,JSON.stringify(l))}
+function getIdentity(){try{return JSON.parse(localStorage.getItem(SK_ID))}catch(e){return null}}
+function saveIdentity(v){localStorage.setItem(SK_ID,JSON.stringify(v))}
+function isValidName(n){if(!n)return false;return n.split(/\s+/).every(w=>w.length>0&&/^[A-Z][a-z]*$/.test(w))}
+function isValidNim(n){return/^\d+$/.test(n)}
+function initVisitor(){const me=getIdentity();if(me&&me.nama){document.getElementById('visitorOverlay').classList.add('hidden');document.getElementById('visitorFab').style.display='flex';loadVisitors()}}
+function submitVisitor(){
+  const nama=document.getElementById('vNama').value.trim();
+  const nim=document.getElementById('vNim').value.trim();
+  const err=document.getElementById('vError');
+  const isDosen=nama.toLowerCase()==='dedik romahadi';
+  if(!nama){err.textContent='⚠ Nama wajib diisi.';err.style.display='block';return}
+  if(!isValidName(nama)){err.textContent='⚠ Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi';err.style.display='block';return}
+  if(!isDosen&&!nim){err.textContent='⚠ NIM wajib diisi.';err.style.display='block';return}
+  if(!isDosen&&!isValidNim(nim)){err.textContent='⚠ NIM harus berupa angka.';err.style.display='block';return}
+  err.style.display='none';
+  const visitor={nama,nim:isDosen?'DOSEN':nim,role:isDosen?'dosen':'student',timestamp:new Date().toISOString()};
+  saveIdentity(visitor);
+  const visitors=getVisitors();
+  const idx=visitors.findIndex(v=>v.nama===visitor.nama&&v.nim===visitor.nim);
+  if(idx>=0)visitors[idx]=visitor;else visitors.push(visitor);
+  saveVisitors(visitors);
+  document.getElementById('visitorOverlay').classList.add('hidden');
+  document.getElementById('visitorFab').style.display='flex';
+  loadVisitors();
+}
+function loadVisitors(){
+  const listEl=document.getElementById('vpList'),countEl=document.getElementById('fabCount'),badgeEl=document.getElementById('vpBadge');
+  const visitors=getVisitors();visitors.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+  const seen=new Set(),unique=[];
+  for(const v of visitors){const id=`${v.nama}|${v.nim}`;if(!seen.has(id)){seen.add(id);unique.push(v)}}
+  countEl.textContent=unique.length;badgeEl.textContent=unique.length+' orang';
+  if(!unique.length){listEl.innerHTML='<div class="vp-empty">Belum ada pengunjung.</div>';return}
+  listEl.innerHTML=unique.map(v=>{
+    const isDosen=v.role==='dosen';
+    const ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const dt=new Date(v.timestamp);
+    const ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    return `<div class="vp-item"><div class="vp-avatar ${isDosen?'dosen':'student'}">${ini}</div><div class="vp-info"><div class="vp-name">${isDosen?'👨‍🏫 ':''}${escH(v.nama)}</div><div class="vp-nim">${isDosen?'Dosen Pengampu':escH(v.nim)}</div></div><div class="vp-time">${ts}</div></div>`
+  }).join('');
+}
+function togglePanel(){panelOpen=!panelOpen;document.getElementById('visitorPanel').classList.toggle('open',panelOpen);if(panelOpen)loadVisitors()}
+document.addEventListener('click',function(e){const p=document.getElementById('visitorPanel'),f=document.getElementById('visitorFab');if(panelOpen&&!p.contains(e.target)&&!f.contains(e.target)){panelOpen=false;p.classList.remove('open')}});
+function escH(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+document.getElementById('vNim').addEventListener('keydown',function(e){if(e.key==='Enter')submitVisitor()});
+document.getElementById('vNama').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('vNim').focus()});
+initVisitor();
+</script>
+</body>
+</html>
