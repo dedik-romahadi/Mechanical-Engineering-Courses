@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pembagian Kelompok | Getaran Mekanik</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #04080f;
+    --surface: #0a1628;
+    --border:  #162444;
+    --cyan:    #00d4ff;
+    --blue:    #3b82f6;
+    --emerald: #10b981;
+    --violet:  #8b5cf6;
+    --amber:   #f59e0b;
+    --pink:    #f472b6;
+    --red:     #ef4444;
+    --text:    #c1d0e6;
+    --muted:   #4a6080;
+    --white:   #eef2f7;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Sora', sans-serif; font-size: 16px;
+    line-height: 1.7; overflow-x: hidden;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .04;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ── LOADING SCREEN ── */
+  #loader {
+    position: fixed; inset: 0; z-index: 9999;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity 1s cubic-bezier(.4,0,.2,1), visibility 1s;
+  }
+  #loader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  .loader-content { text-align: center; max-width: 480px; padding: 24px; }
+  .loader-icon {
+    width: 100px; height: 100px; margin: 0 auto 32px;
+    background: rgba(0,212,255,.06); border: 2px solid rgba(0,212,255,.2);
+    border-radius: 28px; display: flex; align-items: center; justify-content: center;
+    font-size: 48px; position: relative;
+    animation: iconBounce 2s ease-in-out infinite;
+  }
+  @keyframes iconBounce { 0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-8px) rotate(-3deg)} }
+  .loader-icon::after {
+    content: ''; position: absolute; inset: -4px;
+    border: 3px solid transparent; border-top-color: var(--cyan);
+    border-radius: 32px; animation: spin 1.2s linear infinite;
+  }
+  @keyframes spin { to{transform:rotate(360deg)} }
+  .loader-title {
+    font-size: 32px; font-weight: 800; color: var(--white);
+    letter-spacing: -1px; margin-bottom: 8px;
+  }
+  .loader-sub { font-size: 16px; color: var(--muted); margin-bottom: 36px; }
+  .progress-wrap {
+    width: 100%; max-width: 320px; margin: 0 auto 12px;
+    background: rgba(255,255,255,.06); border-radius: 20px;
+    height: 6px; overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%; width: 0; border-radius: 20px;
+    background: linear-gradient(90deg, var(--cyan), var(--violet));
+    transition: width .15s;
+  }
+  .progress-text {
+    font-family: 'Space Mono', monospace; font-size: 12px;
+    color: var(--muted); display: flex; justify-content: space-between;
+    max-width: 320px; margin: 0 auto 36px;
+  }
+  .loader-btn {
+    display: inline-flex; align-items: center; gap: 12px;
+    padding: 16px 36px; background: var(--white); color: var(--bg);
+    font-family: 'Sora', sans-serif; font-weight: 700; font-size: 16px;
+    border: none; border-radius: 16px; cursor: pointer;
+    transition: transform .2s, box-shadow .3s;
+    box-shadow: 0 8px 32px rgba(0,212,255,.15);
+  }
+  .loader-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,212,255,.25); }
+  .loader-btn:active { transform: scale(.97); }
+  .loader-btn svg { transition: transform .3s; }
+  .loader-btn:hover svg { transform: translateX(4px); }
+  .loader-hint { margin-top: 20px; font-size: 12px; color: rgba(255,255,255,.2); }
+
+  /* ── MAIN CONTENT ── */
+  #main { opacity: 0; transition: opacity .8s ease; position: relative; z-index: 1; }
+  #main.show { opacity: 1; }
+
+  /* ── NAVBAR ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(4,8,15,.85); backdrop-filter: blur(24px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px; height: 64px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-brand {
+    display: flex; align-items: center; gap: 14px;
+  }
+  .nav-avatar {
+    width: 40px; height: 40px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--amber), #ff9800);
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
+  }
+  .nav-info h1 {
+    font-size: 16px; font-weight: 700; color: var(--white); line-height: 1.2;
+  }
+  .nav-info p {
+    font-size: 11px; color: var(--amber); font-family: 'Space Mono', monospace;
+    letter-spacing: 1px;
+  }
+  .nav-badge {
+    font-family: 'Space Mono', monospace; font-size: 12px;
+    background: rgba(255,255,255,.05); border: 1px solid var(--border);
+    padding: 6px 16px; border-radius: 20px; color: var(--text);
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    text-align: center; padding: 120px 24px 60px;
+    position: relative; overflow: hidden;
+  }
+  #confettiCanvas {
+    position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  }
+  .header-tag {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-family: 'Space Mono', monospace; font-size: 11px;
+    color: var(--cyan); border: 1px solid rgba(0,212,255,.25);
+    background: rgba(0,212,255,.05); padding: 8px 22px; border-radius: 24px;
+    letter-spacing: 3px; text-transform: uppercase; margin-bottom: 28px;
+    position: relative; z-index: 1;
+    animation: fadeDown .7s ease both;
+  }
+  @keyframes fadeDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
+  .header h2 {
+    font-size: clamp(36px, 6vw, 64px); font-weight: 800;
+    line-height: 1.05; color: var(--white); margin-bottom: 16px;
+    position: relative; z-index: 1; letter-spacing: -2px;
+    animation: fadeUp .7s ease .1s both;
+  }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:translateY(0)} }
+  .header h2 em {
+    font-style: normal;
+    background: linear-gradient(90deg, var(--cyan), var(--emerald), var(--violet));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header p {
+    font-size: 18px; color: var(--muted); max-width: 540px;
+    margin: 0 auto; position: relative; z-index: 1;
+    animation: fadeUp .7s ease .2s both;
+  }
+
+  /* ── GROUPS GRID ── */
+  .groups-container {
+    max-width: 1200px; margin: 0 auto; padding: 0 24px 80px;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+  }
+  @media (max-width: 900px) { .groups-container { grid-template-columns: 1fr; max-width: 500px; } }
+
+  .group-card {
+    border-radius: 24px; overflow: hidden;
+    border: 1px solid; transition: transform .5s cubic-bezier(.34,1.56,.64,1), box-shadow .5s;
+    opacity: 0; transform: translateY(40px);
+    animation: cardIn .7s ease forwards;
+  }
+  .group-card:nth-child(1) { animation-delay: .3s; }
+  .group-card:nth-child(2) { animation-delay: .5s; }
+  .group-card:nth-child(3) { animation-delay: .7s; }
+  @keyframes cardIn { to{opacity:1;transform:translateY(0)} }
+  .group-card:hover { transform: translateY(-12px) scale(1.02); }
+
+  /* Card themes */
+  .card-blue { background: linear-gradient(160deg, #081e3d, #0a2a52); border-color: rgba(59,130,246,.3); }
+  .card-blue:hover { box-shadow: 0 24px 60px rgba(59,130,246,.15); }
+  .card-emerald { background: linear-gradient(160deg, #052e21, #064e36); border-color: rgba(16,185,129,.3); }
+  .card-emerald:hover { box-shadow: 0 24px 60px rgba(16,185,129,.15); }
+  .card-violet { background: linear-gradient(160deg, #1a0a3e, #2d1566); border-color: rgba(139,92,246,.3); }
+  .card-violet:hover { box-shadow: 0 24px 60px rgba(139,92,246,.15); }
+
+  .card-accent { height: 4px; }
+  .card-header { padding: 32px 28px 24px; }
+  .card-icon {
+    width: 56px; height: 56px; border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; margin-bottom: 16px;
+    animation: float 3s ease-in-out infinite;
+  }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+  .card-header h3 {
+    font-size: 28px; font-weight: 800; color: var(--white); margin-bottom: 4px;
+  }
+  .card-header .card-subtitle { font-size: 13px; margin-bottom: 16px; }
+  .card-count {
+    font-family: 'Space Mono', monospace; font-size: 11px;
+    padding: 4px 14px; border-radius: 20px; display: inline-block;
+  }
+
+  .card-body { padding: 0 20px 28px; }
+  .member-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 16px; border-radius: 14px; margin-bottom: 8px;
+    background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.05);
+    transition: transform .3s, background .3s, border-color .3s;
+    opacity: 0; animation: memberIn .5s ease forwards;
+  }
+  .member-item:hover { transform: translateX(8px); background: rgba(255,255,255,.06); }
+  @keyframes memberIn { from{opacity:0;transform:translateX(-16px)} to{opacity:1;transform:translateX(0)} }
+
+  .member-num {
+    font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+    min-width: 32px; height: 32px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .member-id {
+    font-family: 'Space Mono', monospace; font-size: 11px;
+    padding: 4px 12px; border-radius: 10px; flex-shrink: 0;
+  }
+  .member-name { font-size: 14px; font-weight: 500; color: var(--white); flex: 1; }
+
+  /* Member animation delays */
+  .member-item:nth-child(1) { animation-delay: .1s; }
+  .member-item:nth-child(2) { animation-delay: .18s; }
+  .member-item:nth-child(3) { animation-delay: .26s; }
+  .member-item:nth-child(4) { animation-delay: .34s; }
+  .member-item:nth-child(5) { animation-delay: .42s; }
+
+  /* ── DOSEN MESSAGE ── */
+  .dosen-msg {
+    max-width: 680px; margin: 0 auto 80px; padding: 0 24px;
+    opacity: 0; animation: fadeUp .7s ease .9s forwards;
+  }
+  .dosen-card {
+    background: linear-gradient(135deg, rgba(0,212,255,.04), rgba(139,92,246,.03));
+    border: 1px solid rgba(0,212,255,.15);
+    border-radius: 24px; padding: 44px 36px; text-align: center;
+    transition: transform .3s, box-shadow .3s;
+  }
+  .dosen-card:hover { transform: translateY(-4px); box-shadow: 0 16px 48px rgba(0,212,255,.08); }
+  .dosen-avatar {
+    width: 72px; height: 72px; border-radius: 20px;
+    background: linear-gradient(135deg, var(--amber), #ff9800);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 36px; margin-bottom: 24px;
+    animation: float 3s ease-in-out infinite;
+  }
+  .dosen-card p {
+    font-size: 17px; line-height: 1.9; color: var(--text); margin-bottom: 24px;
+  }
+  .dosen-tag {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-family: 'Space Mono', monospace; font-size: 12px;
+    background: rgba(255,255,255,.04); border: 1px solid var(--border);
+    padding: 8px 20px; border-radius: 20px; color: var(--text);
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border); padding: 40px 24px;
+    text-align: center; font-family: 'Space Mono', monospace;
+    font-size: 12px; color: var(--muted);
+  }
+
+/* ============================================================
+   VISITOR SYSTEM
+   ============================================================ */
+.visitor-overlay {
+  position:fixed; inset:0; z-index:9999;
+  background:rgba(8,14,26,.92); backdrop-filter:blur(16px);
+  display:flex; align-items:center; justify-content:center;
+  opacity:1; transition:opacity .4s;
+}
+.visitor-overlay.hidden { opacity:0; pointer-events:none; }
+
+.visitor-modal {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-2xl); padding:40px 36px;
+  max-width:440px; width:90%; text-align:center;
+  box-shadow:0 32px 80px rgba(0,0,0,.6);
+  animation: modalIn .5s cubic-bezier(.16,1,.3,1);
+}
+@keyframes modalIn {
+  0%{ opacity:0; transform:translateY(30px) scale(.96); }
+  100%{ opacity:1; transform:translateY(0) scale(1); }
+}
+
+.visitor-modal h2 {
+  font-family:'Syne',sans-serif; font-weight:800; font-size:1.5rem;
+  background:linear-gradient(135deg,#5eead4,#a5f3fc);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  margin-bottom:6px;
+}
+.visitor-modal p.sub { color:var(--s300); font-size:.85rem; margin-bottom:28px; }
+
+.v-input {
+  width:100%; padding:14px 18px; border-radius:14px;
+  border:1px solid var(--s700); background:rgba(255,255,255,.05);
+  color:#fff; font-family:'DM Sans',sans-serif; font-size:.95rem;
+  outline:none; transition:border .25s;
+  margin-bottom:14px;
+}
+.v-input::placeholder { color:var(--s400); }
+.v-input:focus { border-color:var(--teal); box-shadow:0 0 0 3px rgba(45,212,191,.15); }
+
+.v-btn-primary {
+  width:100%; padding:14px; border-radius:14px; border:none;
+  background:linear-gradient(135deg,#14b8a6,#06b6d4);
+  color:#fff; font-family:'Syne',sans-serif; font-weight:700;
+  font-size:1.05rem; text-shadow:0 1px 2px rgba(0,0,0,.3); cursor:pointer; transition:transform .2s, box-shadow .2s;
+  margin-top:6px;
+}
+.v-btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(20,184,166,.5); }
+.v-btn-primary:disabled { opacity:.4; cursor:not-allowed; transform:none; box-shadow:none; }
+
+.v-error { color:#fda4af; font-size:.8rem; margin-bottom:10px; display:none; }
+
+/* Floating Visitor Button */
+.visitor-fab {
+  position:fixed; bottom:24px; right:24px; z-index:8888;
+  width:56px; height:56px; border-radius:50%;
+  background:linear-gradient(135deg,var(--teal),#22d3ee);
+  border:none; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  box-shadow:0 6px 24px rgba(45,212,191,.4);
+  transition:transform .25s, box-shadow .25s;
+  font-size:1.4rem;
+}
+.visitor-fab:hover { transform:scale(1.08); box-shadow:0 8px 32px rgba(45,212,191,.5); }
+
+.visitor-fab .fab-count {
+  position:absolute; top:-4px; right:-4px;
+  background:var(--rose); color:#fff; font-size:.65rem; font-weight:700;
+  min-width:22px; height:22px; border-radius:50%; display:flex;
+  align-items:center; justify-content:center; padding:0 5px;
+  border:2px solid var(--bg);
+}
+
+/* Visitor Panel */
+.visitor-panel {
+  position:fixed; bottom:92px; right:24px; z-index:8887;
+  width:340px; max-height:480px; overflow:hidden;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-2xl); box-shadow:0 24px 64px rgba(0,0,0,.5);
+  display:flex; flex-direction:column;
+  transform:translateY(12px) scale(.95); opacity:0; pointer-events:none;
+  transition:transform .3s cubic-bezier(.16,1,.3,1), opacity .25s;
+}
+.visitor-panel.open { transform:translateY(0) scale(1); opacity:1; pointer-events:auto; }
+
+.vp-header {
+  padding:20px 22px 14px; border-bottom:1px solid rgba(255,255,255,.06);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.vp-header h3 { font-family:'Syne',sans-serif; font-weight:700; font-size:1rem; color:#fff; }
+.vp-header .vp-badge {
+  background:rgba(45,212,191,.12); color:var(--teal); font-size:.7rem;
+  font-weight:700; padding:4px 10px; border-radius:999px;
+}
+
+.vp-list { overflow-y:auto; padding:10px 16px 16px; flex:1; }
+
+.vp-item {
+  display:flex; align-items:center; gap:12px;
+  padding:10px 12px; border-radius:14px; margin-bottom:6px;
+  background:rgba(255,255,255,.03); transition:background .2s;
+}
+.vp-item:hover { background:rgba(255,255,255,.06); }
+
+.vp-avatar {
+  width:38px; height:38px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700; font-size:.85rem; flex-shrink:0;
+}
+.vp-avatar.student { background:rgba(45,212,191,.12); color:var(--teal); }
+.vp-avatar.dosen   { background:rgba(251,191,36,.12);  color:var(--amber); }
+
+.vp-info { flex:1; min-width:0; }
+.vp-name { font-weight:600; font-size:.88rem; color:var(--s200); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.vp-nim  { font-size:.72rem; color:var(--s500); font-family:'Courier New',monospace; }
+.vp-time { font-size:.68rem; color:var(--s500); text-align:right; flex-shrink:0; white-space:nowrap; }
+
+.vp-empty { text-align:center; padding:32px 16px; color:var(--s500); font-size:.85rem; }
+
+@media(max-width:480px){
+  .visitor-panel { width:calc(100vw - 32px); right:16px; bottom:88px; }
+  .visitor-fab { bottom:18px; right:18px; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ==================== VISITOR MODAL ==================== -->
+<div class="visitor-overlay" id="visitorOverlay">
+  <div class="visitor-modal">
+    <div style="font-size:2.8rem;margin-bottom:12px;">🎓</div>
+    <h2>Selamat Datang!</h2>
+    <p class="sub">Silakan masukkan identitas Anda untuk mengakses modul ini.</p>
+    <p class="v-error" id="vError">⚠ Nama dan NIM wajib diisi.</p>
+    <input type="text" class="v-input" id="vNama" placeholder="Nama Lengkap" autocomplete="off">
+    <input type="text" class="v-input" id="vNim" placeholder="NIM (Nomor Induk Mahasiswa)" autocomplete="off">
+    <button class="v-btn-primary" id="vSubmit" onclick="submitVisitor()">Masuk ke Pembagian Kelompok →</button>
+  </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="visitor-overlay hidden" id="resetOverlay" style="z-index:10000;">
+  <div class="visitor-modal" style="max-width:380px;">
+    <div style="font-size:2.4rem;margin-bottom:12px;">🔐</div>
+    <h2 style="font-size:1.3rem;">Konfirmasi Reset</h2>
+    <p class="sub">Masukkan password untuk menghapus semua data pengunjung.</p>
+    <p class="v-error" id="resetError">⚠ Password salah.</p>
+    <input type="password" class="v-input" id="resetPw" placeholder="Password" autocomplete="off">
+    <button class="v-btn-primary" style="background:linear-gradient(135deg,var(--rose),#f43f5e);" onclick="confirmReset()">Hapus Semua Pengunjung</button>
+    <button style="width:100%;margin-top:12px;padding:12px;border-radius:14px;border:1px solid var(--s700);background:rgba(255,255,255,.04);color:var(--s400);font-family:'DM Sans',sans-serif;font-weight:600;font-size:.88rem;cursor:pointer;" onclick="hideResetModal()">Batal</button>
+  </div>
+</div>
+
+<!-- Floating Visitor Button -->
+<button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Daftar Pengunjung">
+  👥
+  <span class="fab-count" id="fabCount">0</span>
+</button>
+
+<!-- Visitor Panel -->
+<div class="visitor-panel" id="visitorPanel">
+  <div class="vp-header">
+    <h3>👥 Pengunjung</h3>
+    <span class="vp-badge" id="vpBadge">0 orang</span>
+  </div>
+  <div class="vp-list" id="vpList">
+    <div class="vp-empty">Memuat data pengunjung...</div>
+  </div>
+</div>
+
+
+
+<!-- ═══════ LOADING SCREEN ═══════ -->
+<div id="loader">
+  <div class="loader-content">
+    <div class="loader-icon">〰️</div>
+    <h2 class="loader-title">Halo Mahasiswa Hebat! 👋</h2>
+    <p class="loader-sub">Dosen sedang menyusun 3 kelompok dengan desain keren...</p>
+
+    <div class="progress-wrap">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div class="progress-text">
+      <span>Memproses daftar</span>
+      <span id="progressPct">0%</span>
+    </div>
+
+    <button class="loader-btn" onclick="revealContent()">
+      <span>TAMPILKAN 3 KELOMPOK</span>
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </button>
+    <p class="loader-hint">Klik tombol di atas atau tunggu 4 detik</p>
+  </div>
+</div>
+
+<!-- ═══════ MAIN CONTENT ═══════ -->
+<div id="main">
+
+  <!-- Navbar -->
+  <nav>
+    <div class="nav-brand">
+      <div class="nav-avatar">👨‍🏫</div>
+      <div class="nav-info">
+        <h1>Getaran Mekanik</h1>
+        <p>PENGUMUMAN · APR 2026</p>
+      </div>
+    </div>
+    <div class="nav-badge">
+      👥 <span>15 Mahasiswa · 3 Kelompok</span>
+    </div>
+  </nav>
+
+  <!-- Header -->
+  <div class="header">
+    <canvas id="confettiCanvas"></canvas>
+    <div class="header-tag">📋 &nbsp;Pengumuman Pembagian Kelompok</div>
+    <h2>PEMBAGIAN KELOMPOK<br><em>Getaran Mekanik</em></h2>
+    <p>15 mahasiswa dibagi secara adil</p>
+  </div>
+
+  <!-- ═══════ 3 GROUP CARDS ═══════ -->
+  <div class="groups-container">
+
+    <!-- KELOMPOK 1 — BLUE -->
+    <div class="group-card card-blue">
+      <div class="card-accent" style="background:linear-gradient(90deg,#3b82f6,#60a5fa)"></div>
+      <div class="card-header">
+        <div class="card-icon" style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.2);">🔵</div>
+        <h3>Kelompok 1</h3>
+        <p class="card-subtitle" style="color:#60a5fa;">Modern · Professional · Tech</p>
+        <span class="card-count" style="background:rgba(59,130,246,.12);color:#60a5fa;border:1px solid rgba(59,130,246,.2);">5 Anggota</span>
+      </div>
+      <div class="card-body">
+        <div class="member-item" style="border-color:rgba(59,130,246,.1);">
+          <div class="member-num" style="background:rgba(59,130,246,.1);color:#60a5fa;">1</div>
+          <span class="member-id" style="background:rgba(59,130,246,.08);color:#60a5fa;">41320120080</span>
+          <span class="member-name">CAHYO SUKO PRANOTO</span>
+        </div>
+        <div class="member-item" style="border-color:rgba(59,130,246,.1);">
+          <div class="member-num" style="background:rgba(59,130,246,.1);color:#60a5fa;">2</div>
+          <span class="member-id" style="background:rgba(59,130,246,.08);color:#60a5fa;">41322110088</span>
+          <span class="member-name">FAJAR NUR NGALIM</span>
+        </div>
+        <div class="member-item" style="border-color:rgba(59,130,246,.1);">
+          <div class="member-num" style="background:rgba(59,130,246,.1);color:#60a5fa;">3</div>
+          <span class="member-id" style="background:rgba(59,130,246,.08);color:#60a5fa;">41322120003</span>
+          <span class="member-name">WAHYU SETYAWAN</span>
+        </div>
+        <div class="member-item" style="border-color:rgba(59,130,246,.1);">
+          <div class="member-num" style="background:rgba(59,130,246,.1);color:#60a5fa;">4</div>
+          <span class="member-id" style="background:rgba(59,130,246,.08);color:#60a5fa;">41322120017</span>
+          <span class="member-name">ALVIN MIFTAKHUL KHOIR</span>
+        </div>
+        <div class="member-item" style="border-color:rgba(59,130,246,.1);">
+          <div class="member-num" style="background:rgba(59,130,246,.1);color:#60a5fa;">5</div>
+          <span class="member-id" style="background:rgba(59,130,246,.08);color:#60a5fa;">41322120022</span>
+          <span class="member-name">ADE ZAKARIA</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- KELOMPOK 2 — EMERALD -->
+    <div class="group-card card-emerald">
+      <div class="card-accent" style="background:linear-gradient(90deg,#10b981,#34d399)"></div>
+      <div class="card-header">
+        <div class="card-icon" style="background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.2);">🟢</div>
+        <h3>Kelompok 2</h3>
+        <p class="card-subtitle" style="color:#34d399;">Energetic · Fresh · Dynamic</p>
+        <span class="card-count" style="background:rgba(16,185,129,.12);color:#34d399;border:1px solid rgba(16,185,129,.2);">5 Anggota</span>
+      </div>
+      <div class="card-body">
+        <div class="member-item" style="border-color:rgba(16,185,129,.1);">
+          <div class="member-num" style="background:rgba(16,185,129,.1);color:#34d399;">1</div>
+          <span class="member-id" style="background:rgba(16,185,129,.08);color:#34d399;">41323110006</span>
+          <span class="member-name">ANWAR MUTAKIN</span>
+        </div>
+        <div class="member-item" style="border-color:rgba(16,185,129,.1);">
+          <div class="member-num" style="background:rgba(16,185,129,.1);color:#34d399;">2</div>
+          <span class="member-id" style="background:rgba(16,185,129,.08);color:#34d399;">41323110022</span>
+          <span class="member-name">TAUFIK NUR HIDAYAT</span>
+        </div>
+        <div class="member-item" style="border-color:rgba(16,185,129,.1);">
+          <div class="member-num" style="background:rgba(16,185,129,.1);color:#34d399;">3</div>
+          <span class="member-id" style="background:rgba(16,185,129,.08);color:#34d399;">41323110057</span>
+          <span class="member-name">M. DAVINDRA PRAMUDIAZ</span>
+        </div>
+        <div class="member-item" style="border-color:rgba(16,185,129,.1);">
+          <div class="member-num" style="background:rgba(16,185,129,.1);color:#34d399;">4</div>
+          <span class="member-id" style="background:rgba(16,185,129,.08);color:#34d399;">41323120009</span>
+          <span class="member-name">RESPATI MIFTAKHUL HADI</span>
+        </div>
+        <div class="member-item" style="border-color:rgba(16,185,129,.1);">
+          <div class="member-num" style="background:rgba(16,185,129,.1);color:#34d399;">5</div>
+          <span class="member-id" style="background:rgba(16,185,129,.08);color:#34d399;">41323120011</span>
+          <span class="member-name">MARCEL LUIS AMSTRONG</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- KELOMPOK 3 — VIOLET -->
+    <div class="group-card card-violet">
+      <div class="card-accent" style="background:linear-gradient(90deg,#8b5cf6,#a78bfa)"></div>
+      <div class="card-header">
+        <div class="card-icon" style="background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.2);">🔮</div>
+        <h3>Kelompok 3</h3>
+        <p class="card-subtitle" style="color:#a78bfa;">Creative · Elegant · Premium</p>
+        <span class="card-count" style="background:rgba(139,92,246,.12);color:#a78bfa;border:1px solid rgba(139,92,246,.2);">5 Anggota</span>
+      </div>
+      <div class="card-body">
+        <div class="member-item" style="border-color:rgba(139,92,246,.1);">
+          <div class="member-num" style="background:rgba(139,92,246,.1);color:#a78bfa;">1</div>
+          <span class="member-id" style="background:rgba(139,92,246,.08);color:#a78bfa;">41324110040</span>
+          <span class="member-name">MUHAMAD RIFAI</span>
+        </div>
+        <div class="member-item" style="border-color:rgba(139,92,246,.1);">
+          <div class="member-num" style="background:rgba(139,92,246,.1);color:#a78bfa;">2</div>
+          <span class="member-id" style="background:rgba(139,92,246,.08);color:#a78bfa;">41324110043</span>
+          <span class="member-name">ILHAMUL FAJRI</span>
+        </div>
+        <div class="member-item" style="border-color:rgba(139,92,246,.1);">
+          <div class="member-num" style="background:rgba(139,92,246,.1);color:#a78bfa;">3</div>
+          <span class="member-id" style="background:rgba(139,92,246,.08);color:#a78bfa;">41324120032</span>
+          <span class="member-name">PANJI EKA ALFIANINDRA</span>
+        </div>
+        <div class="member-item" style="border-color:rgba(139,92,246,.1);">
+          <div class="member-num" style="background:rgba(139,92,246,.1);color:#a78bfa;">4</div>
+          <span class="member-id" style="background:rgba(139,92,246,.08);color:#a78bfa;">41325110021</span>
+          <span class="member-name">FAIZAL HAKIM MAULANA</span>
+        </div>
+        <div class="member-item" style="border-color:rgba(139,92,246,.1);">
+          <div class="member-num" style="background:rgba(139,92,246,.1);color:#a78bfa;">5</div>
+          <span class="member-id" style="background:rgba(139,92,246,.08);color:#a78bfa;">41325110030</span>
+          <span class="member-name">ARI TOMPODUNG</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Dosen Message -->
+  <div class="dosen-msg">
+    <div class="dosen-card">
+      <div class="dosen-avatar">👨‍🏫</div>
+      <p>Kelompok sudah siap digunakan untuk diskusi dan proyek.<br>Saya harap kalian saling mendukung dan menghasilkan karya terbaik.<br><br>Jika ada pertanyaan, langsung hubungi saya ya! 🚀</p>
+      <div class="dosen-tag">
+        <span style="color:var(--amber)">✦</span>
+        <span>Dosen Pengampu Mata Kuliah - Dedik Romahadi</span>
+        <span style="color:var(--amber)">✦</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p>© 2026 · Dedik Romahadi · Getaran Mekanik · Teknik Mesin · Universitas Mercu Buana</p>
+</footer>
+
+<script>
+/* ── LOADING PROGRESS ── */
+let progress = 0;
+let revealed = false;
+const bar = document.getElementById('progressBar');
+const pct = document.getElementById('progressPct');
+
+const autoProgress = setInterval(() => {
+  if (revealed) return;
+  progress += Math.random() * 5 + 2;
+  if (progress > 65) { clearInterval(autoProgress); return; }
+  bar.style.width = progress + '%';
+  pct.textContent = Math.floor(progress) + '%';
+}, 100);
+
+function revealContent() {
+  if (revealed) return;
+  revealed = true;
+  clearInterval(autoProgress);
+
+  const fast = setInterval(() => {
+    progress += Math.random() * 12 + 6;
+    if (progress > 100) progress = 100;
+    bar.style.width = progress + '%';
+    pct.textContent = Math.floor(progress) + '%';
+    if (progress >= 100) {
+      clearInterval(fast);
+      setTimeout(() => {
+        document.getElementById('loader').classList.add('hidden');
+        const main = document.getElementById('main');
+        main.classList.add('show');
+        launchConfetti();
+        setInterval(launchConfetti, 8000);
+      }, 500);
+    }
+  }, 40);
+}
+
+// Auto reveal after 4 seconds
+setTimeout(() => { if (!revealed) revealContent(); }, 4200);
+
+/* ── CONFETTI ── */
+function launchConfetti() {
+  const canvas = document.getElementById('confettiCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.parentElement.offsetWidth;
+  canvas.height = canvas.parentElement.offsetHeight;
+
+  const colors = ['#00d4ff','#8b5cf6','#10b981','#f59e0b','#f472b6','#3b82f6'];
+  const pieces = [];
+
+  for (let i = 0; i < 80; i++) {
+    pieces.push({
+      x: Math.random() * canvas.width,
+      y: -20 - Math.random() * 200,
+      w: 6 + Math.random() * 8,
+      h: 4 + Math.random() * 6,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vy: 1.5 + Math.random() * 3,
+      vx: (Math.random() - .5) * 2,
+      rot: Math.random() * 360,
+      vr: (Math.random() - .5) * 8,
+      opacity: 1,
+    });
+  }
+
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let alive = false;
+    pieces.forEach(p => {
+      if (p.opacity <= 0) return;
+      alive = true;
+      p.y += p.vy;
+      p.x += p.vx;
+      p.rot += p.vr;
+      if (p.y > canvas.height * .7) p.opacity -= .015;
+
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot * Math.PI / 180);
+      ctx.globalAlpha = Math.max(0, p.opacity);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    });
+    frame++;
+    if (alive && frame < 300) requestAnimationFrame(draw);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  draw();
+}
+</script>
+
+<!-- ==================== VISITOR SYSTEM JS ==================== -->
+<script>
+const MODULE_ID = 'pembagian_kelompok';
+const STORAGE_KEY_IDENTITY = `optoauto_identity_${MODULE_ID}`;
+const STORAGE_KEY_VISITORS = `optoauto_visitors_${MODULE_ID}`;
+let panelOpen = false;
+
+function getVisitors() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY_VISITORS)) || []; }
+  catch(e) { return []; }
+}
+function saveVisitors(list) {
+  localStorage.setItem(STORAGE_KEY_VISITORS, JSON.stringify(list));
+}
+function getIdentity() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY_IDENTITY)); }
+  catch(e) { return null; }
+}
+function saveIdentity(v) {
+  localStorage.setItem(STORAGE_KEY_IDENTITY, JSON.stringify(v));
+}
+
+function initVisitor() {
+  const me = getIdentity();
+  if (me && me.nama) {
+    document.getElementById('visitorOverlay').classList.add('hidden');
+    document.getElementById('visitorFab').style.display = 'flex';
+    loadVisitors();
+  }
+}
+
+function isValidName(name) {
+  if (!name) return false;
+  const words = name.split(/\s+/);
+  return words.every(w => w.length > 0 && /^[A-Z][a-z]*$/.test(w));
+}
+function isValidNim(nim) {
+  return /^\d+$/.test(nim);
+}
+
+function submitVisitor() {
+  const nama = document.getElementById('vNama').value.trim();
+  const nim  = document.getElementById('vNim').value.trim();
+  const errEl = document.getElementById('vError');
+  const isDosen = nama.toLowerCase() === 'dedik romahadi';
+
+  if (!nama) { errEl.textContent = '⚠ Nama wajib diisi.'; errEl.style.display = 'block'; return; }
+  if (!isValidName(nama)) { errEl.textContent = '⚠ Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi'; errEl.style.display = 'block'; return; }
+  if (!isDosen && !nim) { errEl.textContent = '⚠ NIM wajib diisi.'; errEl.style.display = 'block'; return; }
+  if (!isDosen && !isValidNim(nim)) { errEl.textContent = '⚠ NIM harus berupa angka tanpa spasi. Contoh: 41522010001'; errEl.style.display = 'block'; return; }
+
+  errEl.style.display = 'none';
+  const visitor = { nama, nim: isDosen ? 'DOSEN' : nim, role: isDosen ? 'dosen' : 'student', timestamp: new Date().toISOString() };
+  saveIdentity(visitor);
+
+  const visitors = getVisitors();
+  const idx = visitors.findIndex(v => v.nama === visitor.nama && v.nim === visitor.nim);
+  if (idx >= 0) visitors[idx] = visitor; else visitors.push(visitor);
+  saveVisitors(visitors);
+
+  document.getElementById('visitorOverlay').classList.add('hidden');
+  document.getElementById('visitorFab').style.display = 'flex';
+  loadVisitors();
+}
+
+function loadVisitors() {
+  const listEl = document.getElementById('vpList');
+  const countEl = document.getElementById('fabCount');
+  const badgeEl = document.getElementById('vpBadge');
+  const visitors = getVisitors();
+  visitors.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+  const seen = new Set(); const unique = [];
+  for (const v of visitors) { const id = `${v.nama}|${v.nim}`; if (!seen.has(id)) { seen.add(id); unique.push(v); } }
+
+  countEl.textContent = unique.length;
+  badgeEl.textContent = unique.length + ' orang';
+
+  // Update in-page table if exists
+  const statTotal = document.getElementById('statTotal');
+  const statMhs = document.getElementById('statMhs');
+  const statDosen = document.getElementById('statDosen');
+  const tableEl = document.getElementById('visitorTableBody');
+  if (statTotal) {
+    const mhsCount = unique.filter(v => v.role !== 'dosen').length;
+    const dosenCount = unique.filter(v => v.role === 'dosen').length;
+    statTotal.textContent = unique.length;
+    if (statMhs) statMhs.textContent = mhsCount;
+    if (statDosen) statDosen.textContent = dosenCount;
+  }
+
+  if (unique.length === 0) {
+    listEl.innerHTML = '<div class="vp-empty">Belum ada pengunjung tercatat.</div>';
+    if (tableEl) tableEl.innerHTML = '<div style="text-align:center;padding:40px 24px;color:var(--s500);font-size:.88rem;">Belum ada pengunjung yang tercatat.</div>';
+    return;
+  }
+
+  listEl.innerHTML = unique.map(v => {
+    const isDosen = v.role === 'dosen';
+    const initials = v.nama.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    const dt = new Date(v.timestamp);
+    const timeStr = dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'}) + ' ' + dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    return `<div class="vp-item"><div class="vp-avatar ${isDosen?'dosen':'student'}">${initials}</div><div class="vp-info"><div class="vp-name">${isDosen?'👨‍🏫 ':''}${escHtml(v.nama)}</div><div class="vp-nim">${isDosen?'Dosen Pengampu':escHtml(v.nim)}</div></div><div class="vp-time">${timeStr}</div></div>`;
+  }).join('');
+
+  if (tableEl) {
+    tableEl.innerHTML = unique.map((v, i) => {
+      const isDosen = v.role === 'dosen';
+      const initials = v.nama.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+      const dt = new Date(v.timestamp);
+      const timeStr = dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) + ', ' + dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+      const avatarColor = isDosen ? 'background:rgba(251,191,36,.12);color:var(--amber);' : 'background:rgba(45,212,191,.12);color:var(--teal);';
+      const roleChip = isDosen ? '<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(251,191,36,.1);color:var(--amber);border:1px solid rgba(251,191,36,.2);margin-left:8px;">Dosen</span>' : '';
+      return `<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:var(--s500);font-weight:600;">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${avatarColor}">${initials}</div><div><div style="font-weight:600;font-size:.88rem;color:var(--s200);">${escHtml(v.nama)}${roleChip}</div></div></div><div style="flex:1;font-size:.8rem;color:var(--s400);font-family:'Courier New',monospace;">${isDosen?'—':escHtml(v.nim)}</div><div style="flex:1;text-align:right;font-size:.78rem;color:var(--s500);">${timeStr}</div></div>`;
+    }).join('');
+  }
+}
+
+function togglePanel() {
+  panelOpen = !panelOpen;
+  document.getElementById('visitorPanel').classList.toggle('open', panelOpen);
+  if (panelOpen) loadVisitors();
+}
+document.addEventListener('click', function(e) {
+  const panel = document.getElementById('visitorPanel');
+  const fab = document.getElementById('visitorFab');
+  if (panelOpen && !panel.contains(e.target) && !fab.contains(e.target)) { panelOpen = false; panel.classList.remove('open'); }
+});
+
+function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function showResetModal() {
+  document.getElementById('resetOverlay').classList.remove('hidden');
+  document.getElementById('resetPw').value = '';
+  document.getElementById('resetError').style.display = 'none';
+  setTimeout(() => document.getElementById('resetPw').focus(), 100);
+}
+function hideResetModal() { document.getElementById('resetOverlay').classList.add('hidden'); }
+
+function confirmReset() {
+  const pw = document.getElementById('resetPw').value;
+  if (pw !== 'TeknikMesin0602') { document.getElementById('resetError').style.display = 'block'; return; }
+  localStorage.removeItem(STORAGE_KEY_VISITORS);
+  localStorage.removeItem(STORAGE_KEY_IDENTITY);
+  hideResetModal(); loadVisitors();
+  document.getElementById('visitorOverlay').classList.remove('hidden');
+  document.getElementById('visitorFab').style.display = 'none';
+}
+
+document.getElementById('resetPw').addEventListener('keydown', function(e){ if(e.key==='Enter') confirmReset(); });
+document.getElementById('resetOverlay').addEventListener('click', function(e){ if(e.target === this) hideResetModal(); });
+document.getElementById('vNim').addEventListener('keydown', function(e){ if(e.key==='Enter') submitVisitor(); });
+document.getElementById('vNama').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('vNim').focus(); });
+
+initVisitor();
+</script>
+
+</body>
+</html>
