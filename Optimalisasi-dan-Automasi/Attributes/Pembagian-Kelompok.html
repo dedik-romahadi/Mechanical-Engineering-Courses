@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pembagian Kelompok | Optimization & Automation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap');
+
+        :root {
+            --bg-deep: #0a0e1a;
+            --bg-card: rgba(255,255,255,0.04);
+            --border-glass: rgba(255,255,255,0.08);
+            --text-primary: #f0f2f8;
+            --text-muted: #7a82a0;
+            --accent-blue: #4f8cff;
+            --accent-cyan: #00e5c8;
+            --accent-violet: #a78bfa;
+            --accent-amber: #fbbf24;
+            --accent-rose: #fb7185;
+            --accent-emerald: #34d399;
+            --glow-blue: rgba(79,140,255,0.15);
+            --glow-cyan: rgba(0,229,200,0.15);
+            --glow-violet: rgba(167,139,250,0.15);
+            --glow-amber: rgba(251,191,36,0.15);
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Sora', sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── PARTICLE CANVAS ── */
+        #particles {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ── GRID OVERLAY ── */
+        .grid-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+        }
+
+        /* ── LOADER ── */
+        #loader {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: var(--bg-deep);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.9s ease, visibility 0.9s ease;
+        }
+        #loader.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loader-content { text-align: center; }
+
+        .orbit-container {
+            width: 140px; height: 140px;
+            position: relative;
+            margin: 0 auto 40px;
+        }
+        .orbit-ring {
+            position: absolute; inset: 0;
+            border: 2px solid rgba(255,255,255,0.06);
+            border-radius: 50%;
+        }
+        .orbit-ring:nth-child(1) { animation: orbitSpin 3s linear infinite; border-top-color: var(--accent-cyan); }
+        .orbit-ring:nth-child(2) { inset: 15px; animation: orbitSpin 2.4s linear infinite reverse; border-right-color: var(--accent-violet); }
+        .orbit-ring:nth-child(3) { inset: 30px; animation: orbitSpin 1.8s linear infinite; border-bottom-color: var(--accent-amber); }
+        .orbit-center {
+            position: absolute;
+            inset: 42px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-violet));
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 0 40px var(--glow-blue);
+        }
+
+        @keyframes orbitSpin { to { transform: rotate(360deg); } }
+
+        .loader-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            margin-bottom: 8px;
+        }
+        .loader-sub {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 36px;
+        }
+
+        .progress-track {
+            width: 280px;
+            height: 4px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 10px;
+            margin: 0 auto 16px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan), var(--accent-violet));
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        .progress-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .loader-btn {
+            margin-top: 36px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-violet));
+            color: #fff;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 100px;
+            font-family: 'Sora', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            letter-spacing: -0.01em;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 30px rgba(79,140,255,0.3);
+        }
+        .loader-btn:hover {
+            transform: translateY(-2px) scale(1.04);
+            box-shadow: 0 12px 40px rgba(79,140,255,0.45);
+        }
+        .loader-btn:active { transform: scale(0.97); }
+        .loader-btn i { margin-left: 8px; transition: transform 0.3s; }
+        .loader-btn:hover i { transform: translateX(4px); }
+
+        /* ── MAIN CONTENT ── */
+        #main-content {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #main-content.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ── NAVBAR ── */
+        .navbar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+            padding: 16px 32px;
+            background: rgba(10,14,26,0.7);
+            backdrop-filter: blur(20px) saturate(1.8);
+            border-bottom: 1px solid var(--border-glass);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            transition: all 0.3s;
+        }
+        .navbar-icon {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+            box-shadow: 0 4px 15px rgba(79,140,255,0.25);
+        }
+        .navbar-text h1 {
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+        .navbar-text p {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+        .navbar-badge {
+            margin-left: auto;
+            display: flex; align-items: center; gap: 6px;
+            background: rgba(255,255,255,0.05);
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 0.7rem;
+            color: var(--accent-cyan);
+            border: 1px solid rgba(0,229,200,0.15);
+        }
+        .navbar-badge .dot {
+            width: 6px; height: 6px;
+            background: var(--accent-cyan);
+            border-radius: 50%;
+            animation: pulse-dot 2s infinite;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.7); }
+        }
+
+        /* ── HERO ── */
+        .hero {
+            padding: 140px 0 60px;
+            text-align: center;
+            position: relative;
+        }
+        .hero-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-glass);
+            padding: 8px 20px;
+            border-radius: 100px;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--text-muted);
+            margin-bottom: 28px;
+            animation: fadeDown 0.8s 0.2s both;
+        }
+        .hero-chip i { color: var(--accent-amber); font-size: 0.8rem; }
+
+        .hero h1 {
+            font-size: clamp(2.6rem, 6vw, 4.5rem);
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            line-height: 1.05;
+            margin-bottom: 20px;
+            animation: fadeDown 0.8s 0.35s both;
+        }
+        .hero h1 .highlight {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue), var(--accent-violet));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-top: 32px;
+            animation: fadeDown 0.8s 0.5s both;
+        }
+        .hero-stat {
+            text-align: center;
+        }
+        .hero-stat .num {
+            font-size: 2rem;
+            font-weight: 800;
+            font-family: 'Space Mono', monospace;
+        }
+        .hero-stat .label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+
+        @keyframes fadeDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── GROUP CARDS ── */
+        .groups-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+            gap: 20px;
+            padding-bottom: 40px;
+        }
+
+        .group-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glass);
+            border-radius: 20px;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .group-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .group-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(255,255,255,0.15);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .card-accent {
+            height: 3px;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .card-header {
+            padding: 24px 24px 0;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+        .card-icon {
+            width: 48px; height: 48px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem;
+            color: #fff;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .card-icon::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 18px;
+            opacity: 0.2;
+            z-index: -1;
+        }
+        .card-header h2 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+        .card-header .member-count {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .card-header .member-count i {
+            font-size: 0.6rem;
+        }
+
+        .member-list {
+            list-style: none;
+            padding: 0 16px 20px;
+        }
+        .member-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            transition: all 0.25s ease;
+            cursor: default;
+            opacity: 0;
+            transform: translateX(-15px);
+        }
+        .member-item.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .member-item:hover {
+            background: rgba(255,255,255,0.04);
+            transform: translateX(6px);
+        }
+
+        .member-avatar {
+            width: 32px; height: 32px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .member-info { flex: 1; min-width: 0; }
+        .member-name {
+            font-size: 0.8rem;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .member-nim {
+            font-size: 0.62rem;
+            font-family: 'Space Mono', monospace;
+            color: var(--text-muted);
+            letter-spacing: 0.04em;
+        }
+
+        .member-idx {
+            font-size: 0.55rem;
+            color: rgba(255,255,255,0.2);
+            font-family: 'Space Mono', monospace;
+        }
+
+        /* ── CARD COLOR VARIANTS ── */
+        .card-blue .card-accent { background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan)); }
+        .card-blue .card-icon { background: linear-gradient(135deg, #3b6de0, var(--accent-blue)); }
+        .card-blue .card-icon::after { background: var(--accent-blue); }
+        .card-blue .member-avatar { background: var(--glow-blue); color: var(--accent-blue); }
+
+        .card-emerald .card-accent { background: linear-gradient(90deg, var(--accent-emerald), var(--accent-cyan)); }
+        .card-emerald .card-icon { background: linear-gradient(135deg, #10b981, var(--accent-emerald)); }
+        .card-emerald .card-icon::after { background: var(--accent-emerald); }
+        .card-emerald .member-avatar { background: var(--glow-cyan); color: var(--accent-emerald); }
+
+        .card-violet .card-accent { background: linear-gradient(90deg, var(--accent-violet), var(--accent-rose)); }
+        .card-violet .card-icon { background: linear-gradient(135deg, #7c3aed, var(--accent-violet)); }
+        .card-violet .card-icon::after { background: var(--accent-violet); }
+        .card-violet .member-avatar { background: var(--glow-violet); color: var(--accent-violet); }
+
+        .card-amber .card-accent { background: linear-gradient(90deg, var(--accent-amber), var(--accent-rose)); }
+        .card-amber .card-icon { background: linear-gradient(135deg, #d97706, var(--accent-amber)); }
+        .card-amber .card-icon::after { background: var(--accent-amber); }
+        .card-amber .member-avatar { background: var(--glow-amber); color: var(--accent-amber); }
+
+        /* ── BOTTOM MESSAGE ── */
+        .dosen-msg {
+            max-width: 680px;
+            margin: 40px auto 60px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-glass);
+            border-radius: 24px;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .dosen-msg::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle at center, rgba(79,140,255,0.04), transparent 60%);
+            pointer-events: none;
+        }
+        .dosen-msg-icon {
+            width: 64px; height: 64px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-violet));
+            border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.6rem;
+            box-shadow: 0 8px 30px rgba(79,140,255,0.2);
+        }
+        .dosen-msg h3 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+        .dosen-msg p {
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            line-height: 1.8;
+        }
+        .dosen-msg .sig {
+            margin-top: 24px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.72rem;
+            color: var(--accent-cyan);
+            background: rgba(0,229,200,0.06);
+            padding: 8px 18px;
+            border-radius: 100px;
+            border: 1px solid rgba(0,229,200,0.1);
+        }
+
+        /* ── FOOTER ── */
+        footer {
+            text-align: center;
+            padding: 30px;
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.2);
+            border-top: 1px solid var(--border-glass);
+        }
+
+        /* ── SEARCH BAR ── */
+        .search-container {
+            max-width: 420px;
+            margin: 0 auto 36px;
+            position: relative;
+            animation: fadeDown 0.8s 0.65s both;
+        }
+        .search-container i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        .search-input {
+            width: 100%;
+            padding: 14px 18px 14px 46px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-glass);
+            border-radius: 14px;
+            color: var(--text-primary);
+            font-family: 'Sora', sans-serif;
+            font-size: 0.85rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+        .search-input::placeholder { color: var(--text-muted); }
+        .search-input:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px var(--glow-blue);
+        }
+
+        /* ── CONFETTI ── */
+        .confetti-piece {
+            position: fixed;
+            z-index: 9998;
+            pointer-events: none;
+            animation: confetti-fall 3.5s linear forwards;
+        }
+        @keyframes confetti-fall {
+            0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 640px) {
+            .navbar { padding: 12px 16px; }
+            .navbar-text h1 { font-size: 0.8rem; }
+            .navbar-badge { display: none; }
+            .hero { padding: 110px 0 40px; }
+            .hero-stats { gap: 20px; }
+            .hero-stat .num { font-size: 1.5rem; }
+            .groups-grid { grid-template-columns: 1fr; gap: 16px; }
+            .dosen-msg { padding: 28px 20px; }
+        }
+
+        /* ── VISITOR SYSTEM ── */
+        .visitor-overlay {
+            position:fixed; inset:0; z-index:99999;
+            background:rgba(10,14,26,.94); backdrop-filter:blur(16px);
+            display:flex; align-items:center; justify-content:center;
+            opacity:1; transition:opacity .4s;
+        }
+        .visitor-overlay.hidden { opacity:0; pointer-events:none; }
+
+        .visitor-modal {
+            background:rgba(255,255,255,0.04); border:1px solid var(--border-glass);
+            border-radius:24px; padding:40px 36px;
+            max-width:440px; width:90%; text-align:center;
+            box-shadow:0 32px 80px rgba(0,0,0,.6);
+            animation: vModalIn .5s cubic-bezier(.16,1,.3,1);
+        }
+        @keyframes vModalIn {
+            0%{ opacity:0; transform:translateY(30px) scale(.96); }
+            100%{ opacity:1; transform:translateY(0) scale(1); }
+        }
+
+        .visitor-modal h2 {
+            font-size:1.5rem; font-weight:800;
+            background:linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+            margin-bottom:6px;
+        }
+        .visitor-modal p.sub { color:var(--text-muted); font-size:.85rem; margin-bottom:28px; }
+
+        .v-input {
+            width:100%; padding:14px 18px; border-radius:14px;
+            border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.05);
+            color:#fff; font-family:'Sora',sans-serif; font-size:.95rem;
+            outline:none; transition:border .25s; margin-bottom:14px;
+        }
+        .v-input::placeholder { color:var(--text-muted); }
+        .v-input:focus { border-color:var(--accent-cyan); box-shadow:0 0 0 3px rgba(0,229,200,.15); }
+
+        .v-btn-primary {
+            width:100%; padding:14px; border-radius:14px; border:none;
+            background:linear-gradient(135deg, var(--accent-blue), var(--accent-violet));
+            color:#fff; font-family:'Sora',sans-serif; font-weight:700;
+            font-size:1rem; cursor:pointer; transition:transform .2s, box-shadow .2s;
+            margin-top:6px;
+        }
+        .v-btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(79,140,255,.35); }
+        .v-btn-primary:disabled { opacity:.4; cursor:not-allowed; transform:none; box-shadow:none; }
+
+        .v-error { color:var(--accent-rose); font-size:.8rem; margin-bottom:10px; display:none; }
+
+        .v-btn-cancel {
+            width:100%; padding:12px; border-radius:14px; margin-top:12px;
+            border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.04);
+            color:var(--text-muted); font-family:'Sora',sans-serif; font-weight:600;
+            font-size:.88rem; cursor:pointer; transition:all .25s;
+        }
+        .v-btn-cancel:hover { background:rgba(255,255,255,.08); }
+
+        /* Floating Visitor Button */
+        .visitor-fab {
+            position:fixed; bottom:24px; right:24px; z-index:8888;
+            width:56px; height:56px; border-radius:50%;
+            background:linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            border:none; cursor:pointer; display:flex; align-items:center; justify-content:center;
+            box-shadow:0 6px 24px rgba(79,140,255,.4);
+            transition:transform .25s, box-shadow .25s; font-size:1.4rem;
+        }
+        .visitor-fab:hover { transform:scale(1.08); box-shadow:0 8px 32px rgba(79,140,255,.5); }
+        .visitor-fab .fab-count {
+            position:absolute; top:-4px; right:-4px;
+            background:var(--accent-rose); color:#fff; font-size:.65rem; font-weight:700;
+            min-width:22px; height:22px; border-radius:50%; display:flex;
+            align-items:center; justify-content:center; padding:0 5px;
+            border:2px solid var(--bg-deep);
+        }
+
+        /* Visitor Panel */
+        .visitor-panel {
+            position:fixed; bottom:92px; right:24px; z-index:8887;
+            width:340px; max-height:480px; overflow:hidden;
+            background:rgba(15,20,35,.95); border:1px solid var(--border-glass);
+            border-radius:20px; box-shadow:0 24px 64px rgba(0,0,0,.5);
+            display:flex; flex-direction:column;
+            transform:translateY(12px) scale(.95); opacity:0; pointer-events:none;
+            transition:transform .3s cubic-bezier(.16,1,.3,1), opacity .25s;
+        }
+        .visitor-panel.open { transform:translateY(0) scale(1); opacity:1; pointer-events:auto; }
+
+        .vp-header {
+            padding:20px 22px 14px; border-bottom:1px solid var(--border-glass);
+            display:flex; align-items:center; justify-content:space-between;
+        }
+        .vp-header h3 { font-weight:700; font-size:1rem; color:#fff; }
+        .vp-header .vp-badge {
+            background:rgba(0,229,200,.12); color:var(--accent-cyan); font-size:.7rem;
+            font-weight:700; padding:4px 10px; border-radius:999px;
+        }
+
+        .vp-list { overflow-y:auto; padding:10px 16px 16px; flex:1; }
+
+        .vp-item {
+            display:flex; align-items:center; gap:12px;
+            padding:10px 12px; border-radius:14px; margin-bottom:6px;
+            background:rgba(255,255,255,.03); transition:background .2s;
+        }
+        .vp-item:hover { background:rgba(255,255,255,.06); }
+
+        .vp-avatar {
+            width:38px; height:38px; border-radius:12px;
+            display:flex; align-items:center; justify-content:center;
+            font-weight:700; font-size:.85rem; flex-shrink:0;
+        }
+        .vp-avatar.student { background:rgba(0,229,200,.12); color:var(--accent-cyan); }
+        .vp-avatar.dosen   { background:rgba(251,191,36,.12); color:var(--accent-amber); }
+
+        .vp-info { flex:1; min-width:0; }
+        .vp-name { font-weight:600; font-size:.88rem; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .vp-nim  { font-size:.72rem; color:var(--text-muted); font-family:'Space Mono',monospace; }
+        .vp-time { font-size:.68rem; color:var(--text-muted); text-align:right; flex-shrink:0; white-space:nowrap; }
+
+        .vp-empty { text-align:center; padding:32px 16px; color:var(--text-muted); font-size:.85rem; }
+
+        @media(max-width:480px){
+            .visitor-panel { width:calc(100vw - 32px); right:16px; bottom:88px; }
+            .visitor-fab { bottom:18px; right:18px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══ VISITOR LOGIN MODAL ═══ -->
+<div class="visitor-overlay" id="visitorOverlay">
+  <div class="visitor-modal">
+    <div style="font-size:2.8rem;margin-bottom:12px;">🎓</div>
+    <h2>Selamat Datang!</h2>
+    <p class="sub">Silakan masukkan identitas Anda untuk mengakses halaman ini.</p>
+    <p class="v-error" id="vError">⚠ Nama dan NIM wajib diisi.</p>
+    <input type="text" class="v-input" id="vNama" placeholder="Nama Lengkap" autocomplete="off">
+    <input type="text" class="v-input" id="vNim" placeholder="NIM (Nomor Induk Mahasiswa)" autocomplete="off">
+    <button class="v-btn-primary" id="vSubmit" onclick="submitVisitor()">Masuk →</button>
+  </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="visitor-overlay hidden" id="resetOverlay" style="z-index:100000;">
+  <div class="visitor-modal" style="max-width:380px;">
+    <div style="font-size:2.4rem;margin-bottom:12px;">🔐</div>
+    <h2 style="font-size:1.3rem;">Konfirmasi Reset</h2>
+    <p class="sub">Masukkan password untuk menghapus semua data pengunjung.</p>
+    <p class="v-error" id="resetError">⚠ Password salah.</p>
+    <input type="password" class="v-input" id="resetPw" placeholder="Password" autocomplete="off">
+    <button class="v-btn-primary" style="background:linear-gradient(135deg,var(--accent-rose),#f43f5e);" onclick="confirmReset()">Hapus Semua Pengunjung</button>
+    <button class="v-btn-cancel" onclick="hideResetModal()">Batal</button>
+  </div>
+</div>
+
+<!-- Floating Visitor Button -->
+<button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Daftar Pengunjung">
+  👥
+  <span class="fab-count" id="fabCount">0</span>
+</button>
+
+<!-- Visitor Panel -->
+<div class="visitor-panel" id="visitorPanel">
+  <div class="vp-header">
+    <h3>👥 Pengunjung</h3>
+    <span class="vp-badge" id="vpBadge">0 orang</span>
+  </div>
+  <div class="vp-list" id="vpList">
+    <div class="vp-empty">Memuat data pengunjung...</div>
+  </div>
+</div>
+
+<canvas id="particles"></canvas>
+<div class="grid-overlay"></div>
+
+<!-- ═══ LOADER ═══ -->
+<div id="loader">
+    <div class="loader-content">
+        <div class="orbit-container">
+            <div class="orbit-ring"></div>
+            <div class="orbit-ring"></div>
+            <div class="orbit-ring"></div>
+            <div class="orbit-center"><i class="fas fa-atom"></i></div>
+        </div>
+        <div class="loader-title">Optimization & Automation</div>
+        <div class="loader-sub" id="loader-status">Menyiapkan pembagian kelompok...</div>
+        <div class="progress-track">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="progress-label"><span id="progress-pct">0</span>% loaded</div>
+        <button class="loader-btn" onclick="revealContent()">
+            Lihat Kelompok <i class="fas fa-arrow-right"></i>
+        </button>
+    </div>
+</div>
+
+<!-- ═══ NAVBAR ═══ -->
+<nav class="navbar">
+    <div class="navbar-icon"><i class="fas fa-microchip"></i></div>
+    <div class="navbar-text">
+        <h1>Optimization & Automation</h1>
+        <p>Pembagian Kelompok</p>
+    </div>
+    <div class="navbar-badge">
+        <span class="dot"></span>
+        <span>27 Mahasiswa Aktif</span>
+    </div>
+</nav>
+
+<!-- ═══ MAIN ═══ -->
+<div id="main-content">
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="hero-chip">
+            <i class="fas fa-bullhorn"></i>
+            Pengumuman Resmi Dosen
+        </div>
+        <h1>Pembagian<br><span class="highlight">Kelompok</span></h1>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <div class="num" style="color: var(--accent-cyan)">27</div>
+                <div class="label">Mahasiswa</div>
+            </div>
+            <div class="hero-stat">
+                <div class="num" style="color: var(--accent-violet)">4</div>
+                <div class="label">Kelompok</div>
+            </div>
+            <div class="hero-stat">
+                <div class="num" style="color: var(--accent-amber)">6-7</div>
+                <div class="label">Per Kelompok</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Search -->
+    <div class="search-container">
+        <i class="fas fa-search"></i>
+        <input type="text" class="search-input" id="searchInput" placeholder="Cari nama atau NIM mahasiswa..." oninput="filterMembers(this.value)">
+    </div>
+
+    <!-- Groups Grid -->
+    <div class="groups-grid" id="groupsGrid">
+
+        <!-- Kelompok 1 -->
+        <div class="group-card card-blue" data-group="1">
+            <div class="card-accent"></div>
+            <div class="card-header">
+                <div class="card-icon"><i class="fas fa-rocket"></i></div>
+                <div>
+                    <h2>Kelompok 1</h2>
+                    <div class="member-count"><i class="fas fa-users"></i> 7 Anggota</div>
+                </div>
+            </div>
+            <ul class="member-list">
+                <li class="member-item" data-name="ANGGA HANDIAPUTRA YUDHATAMA" data-nim="41321120054">
+                    <div class="member-avatar">AH</div>
+                    <div class="member-info">
+                        <div class="member-name">ANGGA HANDIAPUTRA YUDHATAMA</div>
+                        <div class="member-nim">41321120054</div>
+                    </div>
+                    <div class="member-idx">01</div>
+                </li>
+                <li class="member-item" data-name="MUHAMMAD MAHLIAN HADI MAULANA" data-nim="41321120057">
+                    <div class="member-avatar">MM</div>
+                    <div class="member-info">
+                        <div class="member-name">MUHAMMAD MAHLIAN HADI MAULANA</div>
+                        <div class="member-nim">41321120057</div>
+                    </div>
+                    <div class="member-idx">02</div>
+                </li>
+                <li class="member-item" data-name="ARIP TEGUH SUHARTO" data-nim="41322010021">
+                    <div class="member-avatar">AT</div>
+                    <div class="member-info">
+                        <div class="member-name">ARIP TEGUH SUHARTO</div>
+                        <div class="member-nim">41322010021</div>
+                    </div>
+                    <div class="member-idx">03</div>
+                </li>
+                <li class="member-item" data-name="AHMAD NURDIN SIMATUPANG" data-nim="41322010029">
+                    <div class="member-avatar">AN</div>
+                    <div class="member-info">
+                        <div class="member-name">AHMAD NURDIN SIMATUPANG</div>
+                        <div class="member-nim">41322010029</div>
+                    </div>
+                    <div class="member-idx">04</div>
+                </li>
+                <li class="member-item" data-name="EKI WIRATAMA PUTRA" data-nim="41322110039">
+                    <div class="member-avatar">EW</div>
+                    <div class="member-info">
+                        <div class="member-name">EKI WIRATAMA PUTRA</div>
+                        <div class="member-nim">41322110039</div>
+                    </div>
+                    <div class="member-idx">05</div>
+                </li>
+                <li class="member-item" data-name="MOCHAMAD NURCHOLIS" data-nim="41322110067">
+                    <div class="member-avatar">MN</div>
+                    <div class="member-info">
+                        <div class="member-name">MOCHAMAD NURCHOLIS</div>
+                        <div class="member-nim">41322110067</div>
+                    </div>
+                    <div class="member-idx">06</div>
+                </li>
+                <li class="member-item" data-name="SHOLIH FAUZAN" data-nim="41322110080">
+                    <div class="member-avatar">SF</div>
+                    <div class="member-info">
+                        <div class="member-name">SHOLIH FAUZAN</div>
+                        <div class="member-nim">41322110080</div>
+                    </div>
+                    <div class="member-idx">07</div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Kelompok 2 -->
+        <div class="group-card card-emerald" data-group="2">
+            <div class="card-accent"></div>
+            <div class="card-header">
+                <div class="card-icon"><i class="fas fa-bolt"></i></div>
+                <div>
+                    <h2>Kelompok 2</h2>
+                    <div class="member-count"><i class="fas fa-users"></i> 7 Anggota</div>
+                </div>
+            </div>
+            <ul class="member-list">
+                <li class="member-item" data-name="FICKRI DIMAS AL FALLAH" data-nim="41322110087">
+                    <div class="member-avatar">FD</div>
+                    <div class="member-info">
+                        <div class="member-name">FICKRI DIMAS AL FALLAH</div>
+                        <div class="member-nim">41322110087</div>
+                    </div>
+                    <div class="member-idx">01</div>
+                </li>
+                <li class="member-item" data-name="MUHAMMAD IBNU FAUZI" data-nim="41322110089">
+                    <div class="member-avatar">MI</div>
+                    <div class="member-info">
+                        <div class="member-name">MUHAMMAD IBNU FAUZI</div>
+                        <div class="member-nim">41322110089</div>
+                    </div>
+                    <div class="member-idx">02</div>
+                </li>
+                <li class="member-item" data-name="ADE YULIAN SAPUTRA" data-nim="41322110093">
+                    <div class="member-avatar">AY</div>
+                    <div class="member-info">
+                        <div class="member-name">ADE YULIAN SAPUTRA</div>
+                        <div class="member-nim">41322110093</div>
+                    </div>
+                    <div class="member-idx">03</div>
+                </li>
+                <li class="member-item" data-name="DEVI KRISTIANTO" data-nim="41322120018">
+                    <div class="member-avatar">DK</div>
+                    <div class="member-info">
+                        <div class="member-name">DEVI KRISTIANTO</div>
+                        <div class="member-nim">41322120018</div>
+                    </div>
+                    <div class="member-idx">04</div>
+                </li>
+                <li class="member-item" data-name="FAIYUN" data-nim="41322120038">
+                    <div class="member-avatar">FA</div>
+                    <div class="member-info">
+                        <div class="member-name">FAIYUN</div>
+                        <div class="member-nim">41322120038</div>
+                    </div>
+                    <div class="member-idx">05</div>
+                </li>
+                <li class="member-item" data-name="SUTARI" data-nim="41322120039">
+                    <div class="member-avatar">SU</div>
+                    <div class="member-info">
+                        <div class="member-name">SUTARI</div>
+                        <div class="member-nim">41322120039</div>
+                    </div>
+                    <div class="member-idx">06</div>
+                </li>
+                <li class="member-item" data-name="KIANDRY RIDHO WIDODO" data-nim="41323110002">
+                    <div class="member-avatar">KR</div>
+                    <div class="member-info">
+                        <div class="member-name">KIANDRY RIDHO WIDODO</div>
+                        <div class="member-nim">41323110002</div>
+                    </div>
+                    <div class="member-idx">07</div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Kelompok 3 -->
+        <div class="group-card card-violet" data-group="3">
+            <div class="card-accent"></div>
+            <div class="card-header">
+                <div class="card-icon"><i class="fas fa-star"></i></div>
+                <div>
+                    <h2>Kelompok 3</h2>
+                    <div class="member-count"><i class="fas fa-users"></i> 7 Anggota</div>
+                </div>
+            </div>
+            <ul class="member-list">
+                <li class="member-item" data-name="SYAMSUDIN" data-nim="41323110003">
+                    <div class="member-avatar">SY</div>
+                    <div class="member-info">
+                        <div class="member-name">SYAMSUDIN</div>
+                        <div class="member-nim">41323110003</div>
+                    </div>
+                    <div class="member-idx">01</div>
+                </li>
+                <li class="member-item" data-name="TRESNA SETYA PUTRA" data-nim="41323110005">
+                    <div class="member-avatar">TS</div>
+                    <div class="member-info">
+                        <div class="member-name">TRESNA SETYA PUTRA</div>
+                        <div class="member-nim">41323110005</div>
+                    </div>
+                    <div class="member-idx">02</div>
+                </li>
+                <li class="member-item" data-name="EDWIN ANUGRAH EFFENDY" data-nim="41323110011">
+                    <div class="member-avatar">EA</div>
+                    <div class="member-info">
+                        <div class="member-name">EDWIN ANUGRAH EFFENDY</div>
+                        <div class="member-nim">41323110011</div>
+                    </div>
+                    <div class="member-idx">03</div>
+                </li>
+                <li class="member-item" data-name="TAUFIK NUR HIDAYAT" data-nim="41323110022">
+                    <div class="member-avatar">TN</div>
+                    <div class="member-info">
+                        <div class="member-name">TAUFIK NUR HIDAYAT</div>
+                        <div class="member-nim">41323110022</div>
+                    </div>
+                    <div class="member-idx">04</div>
+                </li>
+                <li class="member-item" data-name="YOYOK KRISTIYONO" data-nim="41323110026">
+                    <div class="member-avatar">YK</div>
+                    <div class="member-info">
+                        <div class="member-name">YOYOK KRISTIYONO</div>
+                        <div class="member-nim">41323110026</div>
+                    </div>
+                    <div class="member-idx">05</div>
+                </li>
+                <li class="member-item" data-name="SAKHA KHAIRUL HAKIM" data-nim="41323110040">
+                    <div class="member-avatar">SK</div>
+                    <div class="member-info">
+                        <div class="member-name">SAKHA KHAIRUL HAKIM</div>
+                        <div class="member-nim">41323110040</div>
+                    </div>
+                    <div class="member-idx">06</div>
+                </li>
+                <li class="member-item" data-name="RISKI KRISTANTO" data-nim="41323110042">
+                    <div class="member-avatar">RK</div>
+                    <div class="member-info">
+                        <div class="member-name">RISKI KRISTANTO</div>
+                        <div class="member-nim">41323110042</div>
+                    </div>
+                    <div class="member-idx">07</div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Kelompok 4 -->
+        <div class="group-card card-amber" data-group="4">
+            <div class="card-accent"></div>
+            <div class="card-header">
+                <div class="card-icon"><i class="fas fa-gem"></i></div>
+                <div>
+                    <h2>Kelompok 4</h2>
+                    <div class="member-count"><i class="fas fa-users"></i> 6 Anggota</div>
+                </div>
+            </div>
+            <ul class="member-list">
+                <li class="member-item" data-name="M. NADHIF AL-RAFID" data-nim="41324120004">
+                    <div class="member-avatar">MN</div>
+                    <div class="member-info">
+                        <div class="member-name">M. NADHIF AL-RAFID</div>
+                        <div class="member-nim">41324120004</div>
+                    </div>
+                    <div class="member-idx">01</div>
+                </li>
+                <li class="member-item" data-name="THIMOTIUS BRIANTIKA PERMANA" data-nim="41324120021">
+                    <div class="member-avatar">TB</div>
+                    <div class="member-info">
+                        <div class="member-name">THIMOTIUS BRIANTIKA PERMANA</div>
+                        <div class="member-nim">41324120021</div>
+                    </div>
+                    <div class="member-idx">02</div>
+                </li>
+                <li class="member-item" data-name="ADITYA RAMADHAN" data-nim="41324120025">
+                    <div class="member-avatar">AR</div>
+                    <div class="member-info">
+                        <div class="member-name">ADITYA RAMADHAN</div>
+                        <div class="member-nim">41324120025</div>
+                    </div>
+                    <div class="member-idx">03</div>
+                </li>
+                <li class="member-item" data-name="HERA DIPTA NUR PRAPTAMA" data-nim="41324120026">
+                    <div class="member-avatar">HD</div>
+                    <div class="member-info">
+                        <div class="member-name">HERA DIPTA NUR PRAPTAMA</div>
+                        <div class="member-nim">41324120026</div>
+                    </div>
+                    <div class="member-idx">04</div>
+                </li>
+                <li class="member-item" data-name="PANJI EKA ALFIANINDRA" data-nim="41324120032">
+                    <div class="member-avatar">PE</div>
+                    <div class="member-info">
+                        <div class="member-name">PANJI EKA ALFIANINDRA</div>
+                        <div class="member-nim">41324120032</div>
+                    </div>
+                    <div class="member-idx">05</div>
+                </li>
+                <li class="member-item" data-name="SLAMET RAMDHANI" data-nim="41325110020">
+                    <div class="member-avatar">SR</div>
+                    <div class="member-info">
+                        <div class="member-name">SLAMET RAMDHANI</div>
+                        <div class="member-nim">41325110020</div>
+                    </div>
+                    <div class="member-idx">06</div>
+                </li>
+            </ul>
+        </div>
+
+    </div>
+
+    <!-- Dosen Message -->
+    <div class="dosen-msg">
+        <div class="dosen-msg-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+        <h3>Pesan dari Dosen</h3>
+        <p>
+            Kelompok sudah siap digunakan untuk diskusi dan proyek.<br>
+            Saling mendukung dan hasilkan karya terbaik kalian.<br>
+            Jika ada pertanyaan, langsung hubungi saya!
+        </p>
+        <div class="sig">
+            <i class="fas fa-graduation-cap"></i>
+            Dosen Pengampu Mata Kuliah - Dedik Romahadi
+        </div>
+    </div>
+
+    <!-- ═══ DAFTAR PENGUNJUNG ═══ -->
+    <div style="max-width:800px;margin:0 auto 60px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px;">
+        <div>
+          <div style="display:inline-flex;align-items:center;gap:8px;background:var(--bg-card);border:1px solid var(--border-glass);padding:6px 16px;border-radius:100px;font-size:.7rem;text-transform:uppercase;letter-spacing:.15em;color:var(--text-muted);margin-bottom:12px;">
+            <i class="fas fa-users" style="color:var(--accent-cyan);font-size:.75rem;"></i> Pengunjung
+          </div>
+          <h2 style="font-size:1.6rem;font-weight:800;letter-spacing:-0.03em;">Daftar Pengunjung</h2>
+          <p style="color:var(--text-muted);font-size:.85rem;margin-top:6px;">Mahasiswa dan dosen yang telah mengakses halaman ini.</p>
+        </div>
+        <button onclick="showResetModal()" style="padding:10px 20px;border-radius:12px;border:1px solid rgba(251,113,133,.3);background:rgba(251,113,133,.08);color:var(--accent-rose);font-family:'Sora',sans-serif;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:6px;" onmouseenter="this.style.background='rgba(251,113,133,.18)'" onmouseleave="this.style.background='rgba(251,113,133,.08)'">🗑 Reset</button>
+      </div>
+
+      <div style="background:var(--bg-card);border:1px solid var(--border-glass);border-radius:20px;overflow:hidden;">
+        <!-- Stats bar -->
+        <div style="display:flex;gap:1px;background:rgba(255,255,255,.02);">
+          <div style="flex:1;padding:20px 24px;text-align:center;">
+            <div id="statTotal" style="font-family:'Space Mono',monospace;font-weight:700;font-size:2rem;color:var(--accent-cyan);">—</div>
+            <div style="font-size:.7rem;color:var(--text-muted);margin-top:2px;text-transform:uppercase;letter-spacing:.1em;">Total</div>
+          </div>
+          <div style="flex:1;padding:20px 24px;text-align:center;border-left:1px solid var(--border-glass);border-right:1px solid var(--border-glass);">
+            <div id="statMhs" style="font-family:'Space Mono',monospace;font-weight:700;font-size:2rem;color:var(--accent-violet);">—</div>
+            <div style="font-size:.7rem;color:var(--text-muted);margin-top:2px;text-transform:uppercase;letter-spacing:.1em;">Mahasiswa</div>
+          </div>
+          <div style="flex:1;padding:20px 24px;text-align:center;">
+            <div id="statDosen" style="font-family:'Space Mono',monospace;font-weight:700;font-size:2rem;color:var(--accent-amber);">—</div>
+            <div style="font-size:.7rem;color:var(--text-muted);margin-top:2px;text-transform:uppercase;letter-spacing:.1em;">Dosen</div>
+          </div>
+        </div>
+
+        <!-- Table header -->
+        <div style="display:flex;padding:14px 24px;background:rgba(255,255,255,.02);border-top:1px solid var(--border-glass);border-bottom:1px solid var(--border-glass);font-size:.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;">
+          <div style="width:44px;flex-shrink:0;">No</div>
+          <div style="flex:2;">Nama</div>
+          <div style="flex:1;">NIM</div>
+          <div style="flex:1;text-align:right;">Waktu Akses</div>
+        </div>
+
+        <!-- Visitor rows -->
+        <div id="visitorTableBody" style="max-height:420px;overflow-y:auto;">
+          <div style="text-align:center;padding:40px 24px;color:var(--text-muted);font-size:.88rem;">
+            ⏳ Memuat data pengunjung...
+          </div>
+        </div>
+      </div>
+    </div>
+
+</div>
+
+<footer>
+    &copy; 2026 &bull; Optimization & Automation &bull; Dibuat dengan <span style="color:var(--accent-rose)">&hearts;</span> oleh Dosen Pengampu - Dedik Romahadi
+</footer>
+
+<script>
+// ─── PARTICLES ───
+(function initParticles() {
+    const canvas = document.getElementById('particles');
+    const ctx = canvas.getContext('2d');
+    let w, h, particles = [];
+
+    function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    for (let i = 0; i < 60; i++) {
+        particles.push({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            r: Math.random() * 1.5 + 0.5,
+            dx: (Math.random() - 0.5) * 0.3,
+            dy: (Math.random() - 0.5) * 0.3,
+            a: Math.random() * 0.3 + 0.1
+        });
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, w, h);
+        particles.forEach(p => {
+            p.x += p.dx; p.y += p.dy;
+            if (p.x < 0) p.x = w; if (p.x > w) p.x = 0;
+            if (p.y < 0) p.y = h; if (p.y > h) p.y = 0;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(79,140,255,${p.a})`;
+            ctx.fill();
+        });
+        // Draw connections
+        for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+                const dx = particles[i].x - particles[j].x;
+                const dy = particles[i].y - particles[j].y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 120) {
+                    ctx.beginPath();
+                    ctx.moveTo(particles[i].x, particles[i].y);
+                    ctx.lineTo(particles[j].x, particles[j].y);
+                    ctx.strokeStyle = `rgba(79,140,255,${0.06 * (1 - dist / 120)})`;
+                    ctx.lineWidth = 0.5;
+                    ctx.stroke();
+                }
+            }
+        }
+        requestAnimationFrame(draw);
+    }
+    draw();
+})();
+
+// ─── LOADER PROGRESS ───
+let autoProgress = 0;
+const progressFill = document.getElementById('progress-fill');
+const progressPct = document.getElementById('progress-pct');
+const loaderStatus = document.getElementById('loader-status');
+const statusTexts = [
+    'Menyiapkan pembagian kelompok...',
+    'Mengurutkan 27 mahasiswa...',
+    'Menghitung keseimbangan kelompok...',
+    'Hampir selesai...'
+];
+let statusIdx = 0;
+
+const autoInterval = setInterval(() => {
+    autoProgress += Math.random() * 3 + 1;
+    if (autoProgress > 70) { clearInterval(autoInterval); autoProgress = 70; }
+    progressFill.style.width = autoProgress + '%';
+    progressPct.textContent = Math.floor(autoProgress);
+}, 120);
+
+setInterval(() => {
+    statusIdx = (statusIdx + 1) % statusTexts.length;
+    loaderStatus.style.opacity = '0';
+    setTimeout(() => {
+        loaderStatus.textContent = statusTexts[statusIdx];
+        loaderStatus.style.opacity = '1';
+    }, 300);
+}, 2500);
+
+// ─── REVEAL ───
+function revealContent() {
+    clearInterval(autoInterval);
+    let p = autoProgress;
+    const fill = setInterval(() => {
+        p += Math.random() * 10 + 5;
+        if (p >= 100) p = 100;
+        progressFill.style.width = p + '%';
+        progressPct.textContent = Math.floor(p);
+        if (p >= 100) {
+            clearInterval(fill);
+            setTimeout(() => {
+                document.getElementById('loader').classList.add('hidden');
+                const main = document.getElementById('main-content');
+                main.classList.add('visible');
+                animateCards();
+                launchConfetti();
+            }, 500);
+        }
+    }, 40);
+}
+
+// ─── ANIMATE CARDS ───
+function animateCards() {
+    const cards = document.querySelectorAll('.group-card');
+    cards.forEach((card, i) => {
+        setTimeout(() => {
+            card.classList.add('visible');
+            // Animate members
+            const members = card.querySelectorAll('.member-item');
+            members.forEach((m, j) => {
+                setTimeout(() => m.classList.add('visible'), j * 80);
+            });
+        }, i * 200);
+    });
+}
+
+// ─── CONFETTI ───
+function launchConfetti() {
+    const colors = ['#4f8cff', '#00e5c8', '#a78bfa', '#fbbf24', '#fb7185', '#34d399'];
+    for (let i = 0; i < 80; i++) {
+        const el = document.createElement('div');
+        el.className = 'confetti-piece';
+        el.style.left = Math.random() * 100 + 'vw';
+        el.style.width = Math.random() * 8 + 4 + 'px';
+        el.style.height = el.style.width;
+        el.style.background = colors[Math.floor(Math.random() * colors.length)];
+        el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+        el.style.animationDuration = Math.random() * 2 + 2 + 's';
+        el.style.animationDelay = Math.random() * 0.8 + 's';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 5000);
+    }
+}
+
+// ─── SEARCH FILTER ───
+function filterMembers(query) {
+    const q = query.toLowerCase().trim();
+    document.querySelectorAll('.member-item').forEach(item => {
+        const name = item.dataset.name.toLowerCase();
+        const nim = item.dataset.nim;
+        const match = !q || name.includes(q) || nim.includes(q);
+        item.style.display = match ? '' : 'none';
+        if (match && q) {
+            item.style.background = 'rgba(79,140,255,0.08)';
+        } else {
+            item.style.background = '';
+        }
+    });
+    // Show/hide empty cards
+    document.querySelectorAll('.group-card').forEach(card => {
+        const visible = card.querySelectorAll('.member-item[style=""], .member-item:not([style])');
+        const hiddenAll = [...card.querySelectorAll('.member-item')].every(m => m.style.display === 'none');
+        card.style.display = hiddenAll ? 'none' : '';
+    });
+}
+
+// ─── KEYBOARD SHORTCUT ───
+document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && document.getElementById('loader').offsetParent !== null) {
+        revealContent();
+    }
+});
+
+// ─── VISITOR SYSTEM ───
+const MODULE_ID = 'pembagian-kelompok';
+const STORAGE_KEY_IDENTITY = `optoauto_identity_${MODULE_ID}`;
+const STORAGE_KEY_VISITORS = `optoauto_visitors_${MODULE_ID}`;
+let panelOpen = false;
+
+function getVisitors() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY_VISITORS)) || []; }
+  catch(e) { return []; }
+}
+function saveVisitors(list) { localStorage.setItem(STORAGE_KEY_VISITORS, JSON.stringify(list)); }
+function getIdentity() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY_IDENTITY)); }
+  catch(e) { return null; }
+}
+function saveIdentity(v) { localStorage.setItem(STORAGE_KEY_IDENTITY, JSON.stringify(v)); }
+
+function isValidName(name) {
+  if (!name) return false;
+  const words = name.split(/\s+/);
+  return words.every(w => w.length > 0 && /^[A-Z][a-z]*$/.test(w));
+}
+function isValidNim(nim) { return /^\d+$/.test(nim); }
+
+function initVisitor() {
+  const me = getIdentity();
+  if (me && me.nama) {
+    document.getElementById('visitorOverlay').classList.add('hidden');
+    document.getElementById('visitorFab').style.display = 'flex';
+    loadVisitorList();
+  }
+}
+
+function submitVisitor() {
+  const nama = document.getElementById('vNama').value.trim();
+  const nim  = document.getElementById('vNim').value.trim();
+  const errEl = document.getElementById('vError');
+  const isDosen = nama.toLowerCase() === 'dedik romahadi';
+
+  if (!nama) { errEl.textContent = '⚠ Nama wajib diisi.'; errEl.style.display = 'block'; return; }
+  if (!isValidName(nama)) { errEl.textContent = '⚠ Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi'; errEl.style.display = 'block'; return; }
+  if (!isDosen && !nim) { errEl.textContent = '⚠ NIM wajib diisi.'; errEl.style.display = 'block'; return; }
+  if (!isDosen && !isValidNim(nim)) { errEl.textContent = '⚠ NIM harus berupa angka tanpa spasi. Contoh: 41522010001'; errEl.style.display = 'block'; return; }
+  errEl.style.display = 'none';
+
+  const visitor = { nama, nim: isDosen ? 'DOSEN' : nim, role: isDosen ? 'dosen' : 'student', timestamp: new Date().toISOString() };
+  saveIdentity(visitor);
+
+  const visitors = getVisitors();
+  const idx = visitors.findIndex(v => v.nama === visitor.nama && v.nim === visitor.nim);
+  if (idx >= 0) visitors[idx] = visitor; else visitors.push(visitor);
+  saveVisitors(visitors);
+
+  document.getElementById('visitorOverlay').classList.add('hidden');
+  document.getElementById('visitorFab').style.display = 'flex';
+  loadVisitorList();
+}
+
+function loadVisitorList() {
+  const listEl = document.getElementById('vpList');
+  const countEl = document.getElementById('fabCount');
+  const badgeEl = document.getElementById('vpBadge');
+  const tableEl = document.getElementById('visitorTableBody');
+  const statTotal = document.getElementById('statTotal');
+  const statMhs = document.getElementById('statMhs');
+  const statDosen = document.getElementById('statDosen');
+
+  const visitors = getVisitors();
+  visitors.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+  const seen = new Set(); const unique = [];
+  for (const v of visitors) { const id = `${v.nama}|${v.nim}`; if (!seen.has(id)) { seen.add(id); unique.push(v); } }
+
+  const mhsCount = unique.filter(v => v.role !== 'dosen').length;
+  const dosenCount = unique.filter(v => v.role === 'dosen').length;
+
+  countEl.textContent = unique.length;
+  badgeEl.textContent = unique.length + ' orang';
+  statTotal.textContent = unique.length;
+  statMhs.textContent = mhsCount;
+  statDosen.textContent = dosenCount;
+
+  if (unique.length === 0) {
+    listEl.innerHTML = '<div class="vp-empty">Belum ada pengunjung tercatat.</div>';
+    tableEl.innerHTML = '<div style="text-align:center;padding:40px 24px;color:var(--text-muted);font-size:.88rem;">Belum ada pengunjung yang tercatat.</div>';
+    return;
+  }
+
+  listEl.innerHTML = unique.map(v => {
+    const isDosen = v.role === 'dosen';
+    const initials = v.nama.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    const dt = new Date(v.timestamp);
+    const timeStr = dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'}) + ' ' + dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    return `<div class="vp-item"><div class="vp-avatar ${isDosen?'dosen':'student'}">${initials}</div><div class="vp-info"><div class="vp-name">${isDosen?'👨‍🏫 ':''}${escHtml(v.nama)}</div><div class="vp-nim">${isDosen?'Dosen Pengampu':escHtml(v.nim)}</div></div><div class="vp-time">${timeStr}</div></div>`;
+  }).join('');
+
+  tableEl.innerHTML = unique.map((v, i) => {
+    const isDosen = v.role === 'dosen';
+    const initials = v.nama.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    const dt = new Date(v.timestamp);
+    const timeStr = dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) + ', ' + dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    const avatarColor = isDosen ? 'background:rgba(251,191,36,.12);color:var(--accent-amber);' : 'background:rgba(0,229,200,.12);color:var(--accent-cyan);';
+    const roleChip = isDosen ? '<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(251,191,36,.1);color:var(--accent-amber);border:1px solid rgba(251,191,36,.2);margin-left:8px;">Dosen</span>' : '';
+    return `<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid var(--border-glass);transition:background .2s;cursor:default;" onmouseenter="this.style.background='rgba(255,255,255,.03)'" onmouseleave="this.style.background='transparent'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:var(--text-muted);font-weight:600;">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${avatarColor}">${initials}</div><div><div style="font-weight:600;font-size:.88rem;color:var(--text-primary);">${escHtml(v.nama)}${roleChip}</div></div></div><div style="flex:1;font-size:.8rem;color:var(--text-muted);font-family:'Space Mono',monospace;">${isDosen?'—':escHtml(v.nim)}</div><div style="flex:1;text-align:right;font-size:.78rem;color:var(--text-muted);">${timeStr}</div></div>`;
+  }).join('');
+}
+
+function togglePanel() {
+  panelOpen = !panelOpen;
+  document.getElementById('visitorPanel').classList.toggle('open', panelOpen);
+  if (panelOpen) loadVisitorList();
+}
+
+document.addEventListener('click', function(e) {
+  const panel = document.getElementById('visitorPanel');
+  const fab = document.getElementById('visitorFab');
+  if (panelOpen && !panel.contains(e.target) && !fab.contains(e.target)) {
+    panelOpen = false; panel.classList.remove('open');
+  }
+});
+
+function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function showResetModal() {
+  document.getElementById('resetOverlay').classList.remove('hidden');
+  document.getElementById('resetPw').value = '';
+  document.getElementById('resetError').style.display = 'none';
+  setTimeout(() => document.getElementById('resetPw').focus(), 100);
+}
+function hideResetModal() { document.getElementById('resetOverlay').classList.add('hidden'); }
+
+function confirmReset() {
+  const pw = document.getElementById('resetPw').value;
+  if (pw !== 'TeknikMesin0602') { document.getElementById('resetError').style.display = 'block'; return; }
+  localStorage.removeItem(STORAGE_KEY_VISITORS);
+  localStorage.removeItem(STORAGE_KEY_IDENTITY);
+  hideResetModal(); loadVisitorList();
+  document.getElementById('visitorOverlay').classList.remove('hidden');
+  document.getElementById('visitorFab').style.display = 'none';
+}
+
+document.getElementById('resetPw').addEventListener('keydown', function(e){ if(e.key==='Enter') confirmReset(); });
+document.getElementById('resetOverlay').addEventListener('click', function(e){ if(e.target === this) hideResetModal(); });
+document.getElementById('vNim').addEventListener('keydown', function(e){ if(e.key==='Enter') submitVisitor(); });
+document.getElementById('vNama').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('vNim').focus(); });
+
+initVisitor();
+</script>
+
+</body>
+</html>
