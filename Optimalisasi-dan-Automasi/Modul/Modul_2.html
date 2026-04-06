@@ -1047,6 +1047,19 @@ footer {
   </div>
 </div>
 
+<!-- Reset Password Modal -->
+<div class="visitor-overlay hidden" id="resetOverlay" style="z-index:10000;">
+  <div class="visitor-modal" style="max-width:380px;">
+    <div style="font-size:2.4rem;margin-bottom:12px;">🔐</div>
+    <h2 style="font-size:1.3rem;">Konfirmasi Reset</h2>
+    <p class="sub">Masukkan password untuk menghapus semua data pengunjung.</p>
+    <p class="v-error" id="resetError">⚠ Password salah.</p>
+    <input type="password" class="v-input" id="resetPw" placeholder="Password" autocomplete="off">
+    <button class="v-btn-primary" style="background:linear-gradient(135deg,var(--rose),#f43f5e);" onclick="confirmReset()">Hapus Semua Pengunjung</button>
+    <button class="v-btn-dosen" style="margin-top:12px;border-color:var(--s700);color:var(--s400);background:rgba(255,255,255,.04);" onclick="hideResetModal()">Batal</button>
+  </div>
+</div>
+
 <!-- Floating Visitor Button -->
 <button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Daftar Pengunjung">
   👥
@@ -1836,10 +1849,13 @@ plt.show()
 
 <!-- ==================== DAFTAR PENGUNJUNG ==================== -->
 <section class="section container">
-  <div class="section-header">
-    <span class="badge mb-3">👥 Pengunjung</span>
-    <h2 class="text-3xl font-black text-white mb-2">Daftar Pengunjung</h2>
-    <p class="text-s400" style="max-width:700px;">Daftar mahasiswa dan dosen yang telah mengakses modul ini.</p>
+  <div class="section-header" style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:16px;">
+    <div>
+      <span class="badge mb-3">👥 Pengunjung</span>
+      <h2 class="text-3xl font-black text-white mb-2">Daftar Pengunjung</h2>
+      <p class="text-s400" style="max-width:700px;">Daftar mahasiswa dan dosen yang telah mengakses modul ini.</p>
+    </div>
+    <button onclick="showResetModal()" style="margin-top:8px;padding:10px 20px;border-radius:12px;border:1px solid rgba(251,113,133,.3);background:rgba(251,113,133,.08);color:var(--rose);font-family:'DM Sans',sans-serif;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:6px;" onmouseenter="this.style.background='rgba(251,113,133,.18)';this.style.borderColor='rgba(251,113,133,.5)'" onmouseleave="this.style.background='rgba(251,113,133,.08)';this.style.borderColor='rgba(251,113,133,.3)'">🗑 Reset Pengunjung</button>
     <div class="section-number">LOG</div>
   </div>
 
@@ -2252,6 +2268,16 @@ function initVisitor() {
   }
 }
 
+function isValidName(name) {
+  if (!name) return false;
+  const words = name.split(/\s+/);
+  return words.every(w => w.length > 0 && /^[A-Z][a-z]*$/.test(w));
+}
+
+function isValidNim(nim) {
+  return /^\d+$/.test(nim);
+}
+
 function submitVisitor() {
   const nama = document.getElementById('vNama').value.trim();
   const nim  = document.getElementById('vNim').value.trim();
@@ -2259,10 +2285,26 @@ function submitVisitor() {
 
   const isDosen = nama.toLowerCase() === 'dedik romahadi';
 
-  if (!nama || (!isDosen && !nim)) {
-    errEl.style.display = 'block';
-    return;
+  if (!nama) {
+    errEl.textContent = '⚠ Nama wajib diisi.';
+    errEl.style.display = 'block'; return;
   }
+
+  if (!isValidName(nama)) {
+    errEl.textContent = '⚠ Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi';
+    errEl.style.display = 'block'; return;
+  }
+
+  if (!isDosen && !nim) {
+    errEl.textContent = '⚠ NIM wajib diisi.';
+    errEl.style.display = 'block'; return;
+  }
+
+  if (!isDosen && !isValidNim(nim)) {
+    errEl.textContent = '⚠ NIM harus berupa angka tanpa spasi. Contoh: 41522010001';
+    errEl.style.display = 'block'; return;
+  }
+
   errEl.style.display = 'none';
 
   const visitor = {
@@ -2376,6 +2418,38 @@ document.addEventListener('click', function(e) {
 });
 
 function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function showResetModal() {
+  document.getElementById('resetOverlay').classList.remove('hidden');
+  document.getElementById('resetPw').value = '';
+  document.getElementById('resetError').style.display = 'none';
+  setTimeout(() => document.getElementById('resetPw').focus(), 100);
+}
+
+function hideResetModal() {
+  document.getElementById('resetOverlay').classList.add('hidden');
+}
+
+function confirmReset() {
+  const pw = document.getElementById('resetPw').value;
+  if (pw !== 'TeknikMesin0602') {
+    document.getElementById('resetError').style.display = 'block';
+    return;
+  }
+  localStorage.removeItem(STORAGE_KEY_VISITORS);
+  localStorage.removeItem(STORAGE_KEY_IDENTITY);
+  hideResetModal();
+  loadVisitors();
+  document.getElementById('visitorOverlay').classList.remove('hidden');
+  document.getElementById('visitorFab').style.display = 'none';
+}
+
+document.getElementById('resetPw').addEventListener('keydown', function(e){
+  if(e.key==='Enter') confirmReset();
+});
+document.getElementById('resetOverlay').addEventListener('click', function(e){
+  if(e.target === this) hideResetModal();
+});
 
 document.getElementById('vNim').addEventListener('keydown', function(e){ if(e.key==='Enter') submitVisitor(); });
 document.getElementById('vNama').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('vNim').focus(); });
