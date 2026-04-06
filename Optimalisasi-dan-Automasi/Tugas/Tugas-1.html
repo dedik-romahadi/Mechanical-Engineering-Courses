@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tugas 1 • Optimalisasi & Otomasi • Dedik Romahadi</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+
+:root {
+  --teal:    #2dd4bf;
+  --amber:   #fbbf24;
+  --rose:    #fb7185;
+  --violet:  #a78bfa;
+  --lime:    #a3e635;
+  --bg:      #080e1a;
+  --surface: #0f1929;
+  --s700:    #334155;
+  --s600:    #475569;
+  --s500:    #64748b;
+  --s400:    #94a3b8;
+  --s300:    #cbd5e1;
+  --s200:    #e2e8f0;
+  --border:  rgba(45,212,191,.15);
+}
+
+html { scroll-behavior:smooth; }
+
+body {
+  font-family:'DM Sans',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--s200);
+  min-height:100vh;
+  overflow-x:hidden;
+  font-size:15px;
+  line-height:1.6;
+}
+
+h1,h2,h3,h4,h5 { font-family:'Syne',sans-serif; line-height:1.15; }
+
+code {
+  font-family:'Courier New',monospace;
+  font-size:.82em;
+  background:rgba(255,255,255,.07);
+  padding:2px 7px;
+  border-radius:6px;
+  color:var(--teal);
+}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.container { max-width:1100px; margin:0 auto; padding:0 24px; }
+
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+
+.flex         { display:flex; }
+.flex-center  { display:flex; align-items:center; justify-content:center; }
+.flex-between { display:flex; align-items:center; justify-content:space-between; }
+.flex-wrap    { flex-wrap:wrap; }
+.items-start  { align-items:flex-start; }
+.gap-2  { gap:8px; }  .gap-3 { gap:12px; } .gap-4 { gap:16px; }
+.gap-6  { gap:24px; } .gap-8 { gap:32px; }
+.flex-1 { flex:1; } .flex-shrink-0 { flex-shrink:0; }
+.ml-auto { margin-left:auto; } .mx-auto { margin-left:auto; margin-right:auto; }
+
+.text-center { text-align:center; }
+.relative    { position:relative; }
+.overflow-hidden { overflow:hidden; }
+.w-full { width:100%; }
+
+/* spacing */
+.mt-2{margin-top:8px}  .mt-3{margin-top:12px} .mt-4{margin-top:16px}
+.mt-6{margin-top:24px} .mt-8{margin-top:32px} .mt-10{margin-top:40px}
+.mt-12{margin-top:48px}
+.mb-2{margin-bottom:8px}  .mb-3{margin-bottom:12px} .mb-4{margin-bottom:16px}
+.mb-6{margin-bottom:24px} .mb-8{margin-bottom:32px}
+.p-4{padding:16px} .p-5{padding:20px} .p-6{padding:24px} .p-8{padding:32px}
+.py-2{padding-top:8px;padding-bottom:8px}
+.py-3{padding-top:12px;padding-bottom:12px}
+.px-4{padding-left:16px;padding-right:16px}
+.px-5{padding-left:20px;padding-right:20px}
+.px-6{padding-left:24px;padding-right:24px}
+
+/* typography */
+.text-xs{font-size:.75rem}  .text-sm{font-size:.875rem}
+.text-lg{font-size:1.125rem}.text-xl{font-size:1.25rem}
+.text-2xl{font-size:1.5rem} .text-3xl{font-size:1.875rem}
+.font-medium{font-weight:500}  .font-semibold{font-weight:600}
+.font-bold{font-weight:700}    .font-black{font-weight:800}
+.font-mono{font-family:'Courier New',monospace}
+.uppercase{text-transform:uppercase}
+.tracking-widest{letter-spacing:.15em}
+.tracking-wide{letter-spacing:.05em}
+.leading-relaxed{line-height:1.7}
+.italic{font-style:italic}
+
+/* colors */
+.text-white{color:#fff}
+.text-teal{color:var(--teal)}   .text-amber{color:var(--amber)}
+.text-rose{color:var(--rose)}   .text-violet{color:var(--violet)}
+.text-lime{color:var(--lime)}
+.text-s300{color:var(--s300)}   .text-s400{color:var(--s400)}
+.text-s500{color:var(--s500)}
+
+/* ============================================================
+   BADGE & CHIPS
+   ============================================================ */
+.badge {
+  display:inline-flex; align-items:center; gap:7px;
+  background:rgba(45,212,191,.1); border:1px solid rgba(45,212,191,.3);
+  color:var(--teal); padding:5px 14px; border-radius:999px;
+  font-size:.72rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
+}
+
+.chip {
+  display:inline-block; padding:4px 12px; border-radius:10px;
+  font-size:.72rem; font-weight:500;
+}
+.chip-teal   { background:rgba(45,212,191,.1);  color:var(--teal);   border:1px solid rgba(45,212,191,.2);  }
+.chip-amber  { background:rgba(251,191,36,.1);   color:var(--amber);  border:1px solid rgba(251,191,36,.2);  }
+.chip-rose   { background:rgba(251,113,133,.1);  color:var(--rose);   border:1px solid rgba(251,113,133,.2); }
+.chip-violet { background:rgba(167,139,250,.1);  color:var(--violet); border:1px solid rgba(167,139,250,.2); }
+.chip-lime   { background:rgba(163,230,53,.1);   color:var(--lime);   border:1px solid rgba(163,230,53,.2);  }
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero {
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, #0d3a5c 0%, #080e1a 70%);
+  border-bottom:1px solid var(--border);
+  padding:64px 0 48px;
+}
+
+.hero-inner {
+  display:flex; flex-direction:column; gap:32px;
+}
+@media(min-width:900px){
+  .hero-inner { flex-direction:row; align-items:flex-end; justify-content:space-between; }
+}
+
+.hero-title {
+  font-size:clamp(2rem,5vw,3.6rem);
+  font-weight:800; line-height:1.06;
+  background:linear-gradient(135deg,#5eead4,#a5f3fc,#e2e8f0);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+}
+
+.hero-right { text-align:right; flex-shrink:0; }
+
+/* ============================================================
+   TICKER
+   ============================================================ */
+.ticker-wrap { border:1px solid var(--s700); border-radius:20px; overflow:hidden; margin-top:36px; }
+.ticker-head { background:rgba(15,23,42,.7); padding:8px 16px; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--s700); }
+.live-dot {
+  width:10px; height:10px; border-radius:50%; background:var(--amber); flex-shrink:0;
+  animation:pingAmber 1.8s ease-out infinite;
+}
+@keyframes pingAmber {
+  0%  { box-shadow:0 0 0 0 rgba(251,191,36,.7); }
+  80% { box-shadow:0 0 0 10px rgba(251,191,36,0); }
+  100%{ box-shadow:0 0 0 0 rgba(251,191,36,0); }
+}
+.ticker-body { padding:10px 16px; overflow:hidden; }
+.ticker-track { display:flex; gap:40px; width:max-content; animation:tickMove 22s linear infinite; }
+@keyframes tickMove { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+.ticker-item { white-space:nowrap; font-size:.72rem; font-family:'Courier New',monospace; color:rgba(251,191,36,.75); }
+
+/* ============================================================
+   SECTION
+   ============================================================ */
+.section { margin-top:80px; }
+.section-header { position:relative; margin-bottom:32px; }
+.section-number {
+  font-family:'Syne',sans-serif; font-size:5rem; font-weight:800;
+  color:rgba(45,212,191,.07); line-height:1;
+  position:absolute; right:0; top:-12px;
+  pointer-events:none; user-select:none;
+}
+
+/* ============================================================
+   WELCOME BOX
+   ============================================================ */
+.welcome-box {
+  background:linear-gradient(90deg,rgba(251,191,36,.07),transparent);
+  border:1px solid rgba(251,191,36,.25); border-radius:28px;
+  padding:32px; display:flex; gap:24px; align-items:flex-start; margin-top:48px;
+}
+.welcome-icon {
+  flex-shrink:0; width:64px; height:64px;
+  background:linear-gradient(135deg,var(--amber),#f59e0b);
+  border-radius:20px; display:flex; align-items:center; justify-content:center;
+  font-size:2rem; box-shadow:0 8px 24px rgba(251,191,36,.3);
+}
+
+/* ============================================================
+   COUNTDOWN
+   ============================================================ */
+.countdown-wrapper {
+  background: linear-gradient(135deg, rgba(251,191,36,.08) 0%, rgba(251,113,133,.06) 100%);
+  border:1px solid rgba(251,191,36,.3);
+  border-radius:28px;
+  padding:40px 32px;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+
+.countdown-wrapper::before {
+  content:'';
+  position:absolute; inset:0;
+  background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(251,191,36,.07), transparent);
+  pointer-events:none;
+}
+
+.countdown-title {
+  font-size:.75rem; text-transform:uppercase; letter-spacing:.15em;
+  color:var(--amber); font-weight:600; margin-bottom:8px;
+}
+
+.deadline-text {
+  font-family:'Syne',sans-serif; font-size:1.1rem; font-weight:600;
+  color:var(--s300); margin-bottom:32px;
+}
+.deadline-text strong { color:var(--amber); }
+
+.countdown-grid {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:12px;
+  max-width:480px; margin:0 auto 24px;
+}
+
+@media(max-width:480px){ .countdown-grid { grid-template-columns:repeat(2,1fr); } }
+
+.cd-block {
+  background:rgba(0,0,0,.35);
+  border:1px solid rgba(251,191,36,.2);
+  border-radius:20px;
+  padding:20px 8px 14px;
+  position:relative;
+}
+
+.cd-num {
+  font-family:'Syne',sans-serif;
+  font-size:clamp(2rem,6vw,3rem);
+  font-weight:800;
+  line-height:1;
+  color:#fff;
+  display:block;
+  transition:color .3s;
+}
+
+.cd-num.urgent { color:var(--rose); }
+.cd-num.warn   { color:var(--amber); }
+
+.cd-label {
+  font-size:.65rem; text-transform:uppercase; letter-spacing:.1em;
+  color:var(--s500); font-weight:600; margin-top:6px; display:block;
+}
+
+.cd-sep {
+  font-family:'Syne',sans-serif; font-size:2rem; font-weight:800;
+  color:rgba(251,191,36,.35); align-self:center; padding-bottom:16px;
+}
+
+.expired-msg {
+  font-family:'Syne',sans-serif; font-size:1.5rem; font-weight:700;
+  color:var(--rose); display:none;
+}
+
+/* progress bar */
+.cd-progress-wrap {
+  max-width:480px; margin:0 auto;
+}
+.cd-progress-label {
+  display:flex; justify-content:space-between;
+  font-size:.72rem; color:var(--s500); margin-bottom:6px;
+}
+.cd-progress-track {
+  height:6px; background:rgba(255,255,255,.08); border-radius:6px; overflow:hidden;
+}
+.cd-progress-bar {
+  height:100%; border-radius:6px;
+  background:linear-gradient(90deg,var(--amber),var(--rose));
+  transition:width 1s linear;
+}
+
+/* ============================================================
+   TASK OVERVIEW CARDS
+   ============================================================ */
+.overview-card {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:22px;
+  padding:28px;
+  position:relative;
+  overflow:hidden;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1), box-shadow .3s;
+}
+.overview-card:hover {
+  transform:translateY(-8px) scale(1.01);
+  box-shadow:0 20px 40px rgba(0,0,0,.35);
+}
+.overview-card::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:2px;
+  background:var(--oc-accent,var(--teal));
+}
+.ov-icon {
+  width:52px; height:52px; border-radius:16px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.8rem; margin-bottom:16px;
+}
+.ov-num {
+  position:absolute; top:20px; right:20px;
+  font-family:'Syne',sans-serif; font-size:3.5rem; font-weight:800;
+  color:rgba(255,255,255,.04); line-height:1;
+}
+
+/* ============================================================
+   TASK DETAIL PANELS
+   ============================================================ */
+.detail-panel {
+  background:rgba(15,25,41,.85);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:28px;
+  overflow:hidden;
+}
+
+.detail-panel-head {
+  padding:24px 28px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  display:flex; align-items:center; gap:14px;
+}
+
+.mod-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:6px 14px; border-radius:12px;
+  font-size:.75rem; font-weight:700;
+  font-family:'Syne',sans-serif; letter-spacing:.04em;
+  flex-shrink:0;
+}
+
+.detail-body { padding:24px 28px; }
+
+.task-item {
+  display:flex; gap:14px; align-items:flex-start;
+  padding:14px 0;
+  border-bottom:1px solid rgba(255,255,255,.04);
+}
+.task-item:last-child { border-bottom:none; padding-bottom:0; }
+
+.task-bullet {
+  width:28px; height:28px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:.75rem; font-weight:800; font-family:'Syne',sans-serif;
+  flex-shrink:0; margin-top:1px;
+}
+
+/* ============================================================
+   WARNING / ATTENTION BOX
+   ============================================================ */
+.attn-box {
+  border-radius:24px;
+  padding:28px 32px;
+  display:flex; gap:20px; align-items:flex-start;
+}
+.attn-amber {
+  background:linear-gradient(90deg,rgba(251,191,36,.1),rgba(251,191,36,.04));
+  border:1px solid rgba(251,191,36,.3);
+}
+.attn-rose {
+  background:linear-gradient(90deg,rgba(251,113,133,.1),rgba(251,113,133,.04));
+  border:1px solid rgba(251,113,133,.3);
+}
+.attn-violet {
+  background:linear-gradient(90deg,rgba(167,139,250,.1),rgba(167,139,250,.04));
+  border:1px solid rgba(167,139,250,.3);
+}
+.attn-teal {
+  background:linear-gradient(90deg,rgba(45,212,191,.1),rgba(45,212,191,.04));
+  border:1px solid rgba(45,212,191,.3);
+}
+
+.attn-icon-wrap {
+  width:48px; height:48px; border-radius:16px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.6rem; flex-shrink:0;
+}
+
+/* ============================================================
+   SUBMISSION FORMAT
+   ============================================================ */
+.file-card {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:24px;
+  display:flex; gap:16px; align-items:flex-start;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1), border-color .25s, box-shadow .3s;
+}
+.file-card:hover {
+  transform:translateY(-6px);
+  border-color:var(--fc-accent, var(--teal));
+  box-shadow:0 16px 32px rgba(0,0,0,.3), 0 0 20px -8px var(--fc-accent, var(--teal));
+}
+.file-icon {
+  width:52px; height:52px; border-radius:16px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.8rem; flex-shrink:0;
+}
+.file-ext {
+  font-family:'Syne',sans-serif; font-weight:800; font-size:1.4rem;
+  display:block; line-height:1;
+}
+
+/* ============================================================
+   GROUP TABLE
+   ============================================================ */
+.group-table-wrap {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:24px; overflow:hidden;
+}
+.group-tabs {
+  display:flex; border-bottom:1px solid rgba(255,255,255,.06);
+  overflow-x:auto;
+}
+.g-tab {
+  padding:14px 22px; font-size:.82rem; font-weight:600;
+  cursor:pointer; border:none; background:transparent;
+  color:var(--s500); font-family:'DM Sans',sans-serif;
+  transition:all .25s; white-space:nowrap; border-bottom:2px solid transparent;
+  margin-bottom:-1px;
+}
+.g-tab:hover { color:var(--s300); }
+.g-tab.active { color:var(--teal); border-bottom-color:var(--teal); background:rgba(45,212,191,.04); }
+
+.g-panel { display:none; padding:24px 28px; }
+.g-panel.active { display:block; }
+
+.member-row {
+  display:flex; align-items:center; gap:14px;
+  padding:11px 0; border-bottom:1px solid rgba(255,255,255,.04);
+  transition:background .2s; border-radius:8px;
+}
+.member-row:last-child { border-bottom:none; }
+.member-idx {
+  width:28px; height:28px; border-radius:9px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:.7rem; font-weight:800; font-family:'Syne',sans-serif;
+  flex-shrink:0;
+}
+.member-nim { font-family:'Courier New',monospace; font-size:.72rem; color:var(--s500); }
+.member-name { flex:1; font-size:.88rem; color:var(--s300); font-weight:500; }
+
+/* ============================================================
+   CODE CELLS
+   ============================================================ */
+.cell {
+  background:rgba(15,25,41,.85); border:1px solid rgba(255,255,255,.08);
+  border-radius:24px; overflow:hidden; margin-bottom:16px;
+}
+.cell-bar {
+  background:rgba(255,255,255,.04); padding:9px 18px;
+  display:flex; align-items:center; gap:10px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.dot-row { display:flex; gap:6px; }
+.dot { width:10px; height:10px; border-radius:50%; }
+.dot-r{background:rgba(239,68,68,.6)} .dot-y{background:rgba(234,179,8,.6)} .dot-g{background:rgba(34,197,94,.6)}
+.cell-label { font-family:'Courier New',monospace; font-size:.7rem; color:var(--s500); }
+.code-pre {
+  background:#020810; padding:20px 24px;
+  font-family:'Courier New',monospace; font-size:.78rem;
+  line-height:1.75; overflow-x:auto; white-space:pre; color:#e2e8f0; margin:0;
+}
+.kw{color:#c084fc} .fn{color:#60a5fa} .str{color:#86efac}
+.cm{color:#475569;font-style:italic} .nm{color:#fbbf24} .op{color:var(--teal)}
+
+/* ============================================================
+   HINT BOX
+   ============================================================ */
+.hint-box { padding:12px 16px; border-radius:14px; font-size:.83rem; }
+.hint-teal   { background:rgba(45,212,191,.08);  border:1px solid rgba(45,212,191,.2);  color:#99f6e4; }
+.hint-amber  { background:rgba(251,191,36,.08);  border:1px solid rgba(251,191,36,.2);  color:#fde68a; }
+.hint-rose   { background:rgba(251,113,133,.08); border:1px solid rgba(251,113,133,.2); color:#fecdd3; }
+.hint-violet { background:rgba(167,139,250,.08); border:1px solid rgba(167,139,250,.2); color:#ddd6fe; }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+footer {
+  border-top:1px solid rgba(255,255,255,.06);
+  padding:32px 0; text-align:center;
+  font-size:.75rem; color:var(--s500); margin-top:64px;
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(28px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.fade-up  { animation:fadeUp .7s ease forwards; }
+.d1 { animation-delay:.1s; opacity:0; }
+.d2 { animation-delay:.2s; opacity:0; }
+.d3 { animation-delay:.3s; opacity:0; }
+
+@keyframes pulse-glow {
+  0%,100% { box-shadow:0 0 0 0 rgba(251,191,36,.4); }
+  50%     { box-shadow:0 0 0 12px rgba(251,191,36,0); }
+}
+.pulse-glow { animation:pulse-glow 2.5s ease-in-out infinite; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media(max-width:800px){
+  .grid-2 { grid-template-columns:1fr; }
+  .grid-3 { grid-template-columns:1fr 1fr; }
+  .hero-right { text-align:left; }
+  .countdown-grid { grid-template-columns:repeat(2,1fr); }
+}
+@media(max-width:500px){
+  .grid-3 { grid-template-columns:1fr; }
+  .detail-panel-head { flex-wrap:wrap; }
+}
+
+/* ── VISITOR SYSTEM ── */
+.visitor-overlay{position:fixed;inset:0;z-index:99999;background:rgba(8,14,26,.94);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity .4s}
+.visitor-overlay.hidden{opacity:0;pointer-events:none}
+.visitor-modal{background:var(--surface,#0f1929);border:1px solid var(--border,rgba(45,212,191,.15));border-radius:24px;padding:40px 36px;max-width:440px;width:90%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.6);animation:vModalIn .5s cubic-bezier(.16,1,.3,1)}
+@keyframes vModalIn{0%{opacity:0;transform:translateY(30px) scale(.96)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.visitor-modal h2{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,#5eead4,#a5f3fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
+.visitor-modal p.sub{color:var(--s400,#94a3b8);font-size:.85rem;margin-bottom:28px}
+.v-input{width:100%;padding:14px 18px;border-radius:14px;border:1px solid var(--s700,#334155);background:rgba(255,255,255,.05);color:#fff;font-family:'DM Sans',system-ui,sans-serif;font-size:.95rem;outline:none;transition:border .25s;margin-bottom:14px}
+.v-input::placeholder{color:var(--s500,#64748b)}
+.v-input:focus{border-color:var(--teal,#2dd4bf);box-shadow:0 0 0 3px rgba(45,212,191,.15)}
+.v-btn-primary{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--teal,#2dd4bf),#22d3ee);color:#080e1a;font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;cursor:pointer;transition:transform .2s,box-shadow .2s;margin-top:6px}
+.v-btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(45,212,191,.35)}
+.v-error{color:var(--rose,#fb7185);font-size:.8rem;margin-bottom:10px;display:none}
+.v-btn-cancel{width:100%;padding:12px;border-radius:14px;margin-top:12px;border:1px solid var(--s700,#334155);background:rgba(255,255,255,.04);color:var(--s400,#94a3b8);font-family:'DM Sans',sans-serif;font-weight:600;font-size:.88rem;cursor:pointer;transition:all .25s}
+.v-btn-cancel:hover{background:rgba(255,255,255,.08)}
+.visitor-fab{position:fixed;bottom:24px;right:24px;z-index:8888;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--teal,#2dd4bf),#22d3ee);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(45,212,191,.4);transition:transform .25s,box-shadow .25s;font-size:1.4rem}
+.visitor-fab:hover{transform:scale(1.08);box-shadow:0 8px 32px rgba(45,212,191,.5)}
+.visitor-fab .fab-count{position:absolute;top:-4px;right:-4px;background:var(--rose,#fb7185);color:#fff;font-size:.65rem;font-weight:700;min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid var(--bg,#080e1a)}
+.visitor-panel{position:fixed;bottom:92px;right:24px;z-index:8887;width:340px;max-height:480px;overflow:hidden;background:var(--surface,#0f1929);border:1px solid var(--border,rgba(45,212,191,.15));border-radius:20px;box-shadow:0 24px 64px rgba(0,0,0,.5);display:flex;flex-direction:column;transform:translateY(12px) scale(.95);opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .25s}
+.visitor-panel.open{transform:translateY(0) scale(1);opacity:1;pointer-events:auto}
+.vp-header{padding:20px 22px 14px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between}
+.vp-header h3{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:#fff}
+.vp-header .vp-badge{background:rgba(45,212,191,.12);color:var(--teal,#2dd4bf);font-size:.7rem;font-weight:700;padding:4px 10px;border-radius:999px}
+.vp-list{overflow-y:auto;padding:10px 16px 16px;flex:1}
+.vp-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;margin-bottom:6px;background:rgba(255,255,255,.03);transition:background .2s}
+.vp-item:hover{background:rgba(255,255,255,.06)}
+.vp-avatar{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0}
+.vp-avatar.student{background:rgba(45,212,191,.12);color:var(--teal,#2dd4bf)}
+.vp-avatar.dosen{background:rgba(251,191,36,.12);color:var(--amber,#fbbf24)}
+.vp-info{flex:1;min-width:0}
+.vp-name{font-weight:600;font-size:.88rem;color:var(--s200,#e2e8f0);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vp-nim{font-size:.72rem;color:var(--s500,#64748b);font-family:'Courier New',monospace}
+.vp-time{font-size:.68rem;color:var(--s500,#64748b);text-align:right;flex-shrink:0;white-space:nowrap}
+.vp-empty{text-align:center;padding:32px 16px;color:var(--s500,#64748b);font-size:.85rem}
+@media(max-width:480px){.visitor-panel{width:calc(100vw - 32px);right:16px;bottom:88px}.visitor-fab{bottom:18px;right:18px}}
+
+</style>
+</head>
+<body>
+
+<!-- ═══ VISITOR LOGIN MODAL ═══ -->
+<div class="visitor-overlay" id="visitorOverlay">
+  <div class="visitor-modal">
+    <div style="font-size:2.8rem;margin-bottom:12px;">🎓</div>
+    <h2>Selamat Datang!</h2>
+    <p class="sub">Silakan masukkan identitas Anda untuk mengakses halaman ini.</p>
+    <p class="v-error" id="vError"></p>
+    <input type="text" class="v-input" id="vNama" placeholder="Nama Lengkap" autocomplete="off">
+    <input type="text" class="v-input" id="vNim" placeholder="NIM (Nomor Induk Mahasiswa)" autocomplete="off">
+    <button class="v-btn-primary" id="vSubmit" onclick="submitVisitor()">Masuk ke Halaman →</button>
+  </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="visitor-overlay hidden" id="resetOverlay" style="z-index:100000;">
+  <div class="visitor-modal" style="max-width:380px;">
+    <div style="font-size:2.4rem;margin-bottom:12px;">🔐</div>
+    <h2 style="font-size:1.3rem;">Konfirmasi Reset</h2>
+    <p class="sub">Masukkan password untuk menghapus semua data pengunjung.</p>
+    <p class="v-error" id="resetError">⚠ Password salah.</p>
+    <input type="password" class="v-input" id="resetPw" placeholder="Password" autocomplete="off">
+    <button class="v-btn-primary" style="background:linear-gradient(135deg,var(--rose,#fb7185),#f43f5e);" onclick="confirmReset()">Hapus Semua Pengunjung</button>
+    <button class="v-btn-cancel" onclick="hideResetModal()">Batal</button>
+  </div>
+</div>
+
+<!-- Floating Visitor Button -->
+<button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Daftar Pengunjung">👥<span class="fab-count" id="fabCount">0</span></button>
+
+<!-- Visitor Panel -->
+<div class="visitor-panel" id="visitorPanel">
+  <div class="vp-header"><h3>👥 Pengunjung</h3><span class="vp-badge" id="vpBadge">0 orang</span></div>
+  <div class="vp-list" id="vpList"><div class="vp-empty">Memuat data pengunjung...</div></div>
+</div>
+
+
+<!-- ==================== HERO ==================== -->
+<header class="hero">
+  <div class="container">
+    <div class="fade-up">
+      <span class="badge">📋 Tugas 1</span>
+    </div>
+
+    <div class="hero-inner mt-6">
+      <div class="fade-up d1">
+        <h1 class="hero-title">Tugas Kelompok 1<br>Optimalisasi &amp; Otomasi</h1>
+        <p class="mt-3 text-s400" style="font-size:1.05rem;max-width:520px;">
+          Simulasi Modul 1 &amp; 2 + Soal Latihan Modul 2 •
+          Dikerjakan bersama kelompok, dipahami oleh setiap anggota.
+        </p>
+        <div class="flex flex-wrap gap-3 mt-5">
+          <span class="chip chip-amber">📅 Deadline: 8 April 2026</span>
+          <span class="chip chip-teal">📁 Format: .ipynb &amp; .html</span>
+          <span class="chip chip-violet">👥 Kerja Kelompok</span>
+        </div>
+      </div>
+      <div class="hero-right fade-up d2">
+        <p class="text-xs uppercase tracking-widest text-s500 mb-1">Dosen Pengampu</p>
+        <p style="font-size:1.6rem;font-family:'Syne',sans-serif;font-weight:700;">Dedik Romahadi</p>
+        <p class="text-s500 mt-1" style="font-size:.85rem;">Optimalisasi &amp; Otomasi • S1 Teknik Mesin</p>
+      </div>
+    </div>
+
+    <!-- Ticker -->
+    <div class="ticker-wrap mt-10">
+      <div class="ticker-head">
+        <div class="live-dot"></div>
+        <span class="text-xs uppercase tracking-widest font-mono font-semibold" style="color:var(--amber);">Deadline Alert — Tugas 1 • 8 April 2026 • 23:59 WIB</span>
+      </div>
+      <div class="ticker-body">
+        <div class="ticker-track" id="ticker"></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ==================== WELCOME ==================== -->
+<div class="container">
+  <div class="welcome-box fade-up d2">
+    <div class="welcome-icon">📌</div>
+    <div>
+      <h2 class="text-xl font-bold mb-2">Narasi Tugas 1</h2>
+      <p class="text-s300 leading-relaxed">
+        Selamat datang di <strong class="text-amber">Tugas Pertama</strong> mata kuliah Optimalisasi dan Otomasi!
+        Tugas ini dirancang agar seluruh anggota kelompok
+        <strong>benar-benar memahami</strong> materi Pertemuan 1 &amp; 2 melalui praktik langsung di Jupyter Notebook.
+        Setiap kelompok mengerjakan seluruh <strong class="text-teal">contoh simulasi pada Modul 1 dan Modul 2</strong>,
+        sekaligus menyelesaikan <strong class="text-lime">soal latihan pada Modul 2</strong>.
+        Ingat — <strong class="text-amber">setiap anggota wajib memahami tugasnya</strong>
+        karena akan diminta menjelaskan di pertemuan TMV selanjutnya!
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== COUNTDOWN ==================== -->
+<section class="section container">
+  <div class="countdown-wrapper pulse-glow">
+    <p class="countdown-title">⏳ Waktu Tersisa Hingga Deadline</p>
+    <p class="deadline-text">
+      <strong>Rabu, 8 April 2026 — Pukul 23:59 WIB</strong>
+    </p>
+
+    <div class="countdown-grid" id="cdGrid">
+      <div class="cd-block">
+        <span class="cd-num" id="cdDays">--</span>
+        <span class="cd-label">Hari</span>
+      </div>
+      <div class="cd-block">
+        <span class="cd-num" id="cdHours">--</span>
+        <span class="cd-label">Jam</span>
+      </div>
+      <div class="cd-block">
+        <span class="cd-num" id="cdMins">--</span>
+        <span class="cd-label">Menit</span>
+      </div>
+      <div class="cd-block">
+        <span class="cd-num" id="cdSecs">--</span>
+        <span class="cd-label">Detik</span>
+      </div>
+    </div>
+
+    <p class="expired-msg" id="expiredMsg">⛔ Deadline sudah lewat!</p>
+
+    <div class="cd-progress-wrap">
+      <div class="cd-progress-label">
+        <span id="progressLabel">Menghitung…</span>
+        <span id="progressPct">—</span>
+      </div>
+      <div class="cd-progress-track">
+        <div class="cd-progress-bar" id="cdBar" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SECTION 1: OVERVIEW ==================== -->
+<section class="section container">
+  <div class="section-header">
+    <span class="section-number">01</span>
+    <span class="badge mb-3">Gambaran Tugas</span>
+    <h2 class="text-3xl font-bold mt-2">Apa yang Harus Dikerjakan?</h2>
+    <p class="text-s400 mt-2">Tiga komponen utama yang wajib diselesaikan setiap kelompok.</p>
+  </div>
+
+  <div class="grid-3">
+
+    <div class="overview-card" style="--oc-accent:var(--teal)">
+      <span class="ov-num">A</span>
+      <div class="ov-icon" style="background:rgba(45,212,191,.1)">🔬</div>
+      <h3 class="font-bold text-lg text-teal mb-2">Simulasi Modul 1</h3>
+      <p class="text-s400" style="font-size:.87rem;line-height:1.65;">
+        Jalankan <strong class="text-s300">seluruh cell simulasi</strong> pada Modul 1 —
+        mulai dari import library, visualisasi time series normal,
+        dekomposisi karakteristik, hingga perbandingan Normal vs Faulty.
+      </p>
+      <div class="flex flex-wrap gap-2 mt-4">
+        <span class="chip chip-teal">4 Cell</span>
+        <span class="chip chip-teal">Jupyter Notebook</span>
+      </div>
+    </div>
+
+    <div class="overview-card" style="--oc-accent:var(--violet)">
+      <span class="ov-num">B</span>
+      <div class="ov-icon" style="background:rgba(167,139,250,.1)">📡</div>
+      <h3 class="font-bold text-lg text-violet mb-2">Simulasi Modul 2</h3>
+      <p class="text-s400" style="font-size:.87rem;line-height:1.65;">
+        Jalankan <strong class="text-s300">seluruh cell simulasi</strong> pada Modul 2 —
+        univariate &amp; multivariate time series, data sensor industri,
+        discrete vs continuous, hingga perbandingan bearing.
+      </p>
+      <div class="flex flex-wrap gap-2 mt-4">
+        <span class="chip chip-violet">5 Cell</span>
+        <span class="chip chip-violet">Jupyter Notebook</span>
+      </div>
+    </div>
+
+    <div class="overview-card" style="--oc-accent:var(--amber)">
+      <span class="ov-num">C</span>
+      <div class="ov-icon" style="background:rgba(251,191,36,.1)">✏️</div>
+      <h3 class="font-bold text-lg text-amber mb-2">Soal Latihan Modul 2</h3>
+      <p class="text-s400" style="font-size:.87rem;line-height:1.65;">
+        Selesaikan <strong class="text-s300">soal latihan 1, 2, dan 3</strong> pada Modul 2.
+        Lengkapi kode yang kosong, buat plot, hitung statistik,
+        dan jawab pertanyaan di Markdown cell.
+      </p>
+      <div class="flex flex-wrap gap-2 mt-4">
+        <span class="chip chip-amber">3 Soal</span>
+        <span class="chip chip-amber">+ Bonus</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ==================== SECTION 2: DETAIL TUGAS ==================== -->
+<section class="section container">
+  <div class="section-header">
+    <span class="section-number">02</span>
+    <span class="badge mb-3">Detail Tugas</span>
+    <h2 class="text-3xl font-bold mt-2">Rincian Setiap Komponen</h2>
+    <p class="text-s400 mt-2">Panduan langkah demi langkah untuk setiap bagian tugas.</p>
+  </div>
+
+  <!-- Modul 1 -->
+  <div class="detail-panel mb-6">
+    <div class="detail-panel-head">
+      <div class="mod-badge" style="background:rgba(45,212,191,.12);color:var(--teal);border:1px solid rgba(45,212,191,.25);">
+        📘 Modul 1
+      </div>
+      <div>
+        <h3 class="font-bold text-xl">Simulasi Pertemuan 1 — Pengantar Time Series</h3>
+        <p class="text-xs text-s500 mt-1">Jalankan semua cell, pastikan output chart muncul</p>
+      </div>
+    </div>
+    <div class="detail-body">
+
+      <div class="task-item">
+        <div class="task-bullet" style="background:rgba(45,212,191,.14);color:var(--teal);">1</div>
+        <div>
+          <p class="font-semibold text-s200" style="font-size:.92rem;">Cell 1 — Import Library</p>
+          <p class="text-s400 mt-1" style="font-size:.85rem;">
+            Import <code>numpy</code> dan <code>matplotlib.pyplot</code>. Set style dark background agar tampilan profesional.
+            Verifikasi semua library berhasil diimport.
+          </p>
+        </div>
+      </div>
+
+      <div class="task-item">
+        <div class="task-bullet" style="background:rgba(45,212,191,.14);color:var(--teal);">2</div>
+        <div>
+          <p class="font-semibold text-s200" style="font-size:.92rem;">Cell 2 — Visualisasi Time Series Normal</p>
+          <p class="text-s400 mt-1" style="font-size:.85rem;">
+            Buat sinyal getaran mesin normal (5 detik, 500 Hz, frekuensi 30 Hz, noise Gaussian σ=0.15).
+            Plot dengan label sumbu lengkap. Jawab pertanyaan di <strong class="text-teal">Markdown cell</strong>:
+            ada tren naik? Berapa perkiraan amplitudo noise? Berapa sampling rate dalam Hz?
+          </p>
+        </div>
+      </div>
+
+      <div class="task-item">
+        <div class="task-bullet" style="background:rgba(45,212,191,.14);color:var(--teal);">3</div>
+        <div>
+          <p class="font-semibold text-s200" style="font-size:.92rem;">Cell 3 — Identifikasi Karakteristik</p>
+          <p class="text-s400 mt-1" style="font-size:.85rem;">
+            Dekomposisi sinyal 60 detik menjadi 5 subplot: sinyal total, tren, musiman (periode 8s),
+            siklik (periode 30s), dan noise. Jawab: komponen mana yang dominan?
+            Apa perbedaan musiman vs siklik dari grafik?
+          </p>
+        </div>
+      </div>
+
+      <div class="task-item">
+        <div class="task-bullet" style="background:rgba(45,212,191,.14);color:var(--teal);">4</div>
+        <div>
+          <p class="font-semibold text-s200" style="font-size:.92rem;">Cell 4 — Normal vs Faulty &amp; Hitung RMS</p>
+          <p class="text-s400 mt-1" style="font-size:.85rem;">
+            Plot Normal dan Faulty dalam satu grafik. Hitung dan print RMS keduanya beserta rasionya.
+            Lanjutkan dengan modifikasi: ubah amplitudo Faulty menjadi 2.5×, hitung RMS, Peak, dan Crest Factor,
+            lalu tulis kesimpulan di Markdown cell.
+          </p>
+        </div>
+      </div>
+
+      <div class="hint-box hint-teal mt-4">
+        💡 <strong>Tips Modul 1:</strong> Pastikan setiap cell dijalankan berurutan dari atas ke bawah.
+        Jika muncul error, cek apakah Cell 1 sudah dijalankan terlebih dahulu.
+      </div>
+    </div>
+  </div>
+
+  <!-- Modul 2 Simulasi -->
+  <div class="detail-panel mb-6">
+    <div class="detail-panel-head">
+      <div class="mod-badge" style="background:rgba(167,139,250,.12);color:var(--violet);border:1px solid rgba(167,139,250,.25);">
+        📗 Modul 2 — Simulasi
+      </div>
+      <div>
+        <h3 class="font-bold text-xl">Simulasi Pertemuan 2 — Jenis &amp; Sumber Time Series</h3>
+        <p class="text-xs text-s500 mt-1">5 cell simulasi, jalankan semua dan pastikan output terlihat</p>
+      </div>
+    </div>
+    <div class="detail-body">
+
+      <div class="task-item">
+        <div class="task-bullet" style="background:rgba(167,139,250,.14);color:var(--violet);">1</div>
+        <div>
+          <p class="font-semibold text-s200" style="font-size:.92rem;">Cell 1 — Import Library</p>
+          <p class="text-s400 mt-1" style="font-size:.85rem;">
+            Import <code>numpy</code>, <code>matplotlib.pyplot</code>, <code>pandas</code>, dan <code>scipy.signal</code>.
+            Verifikasi semua berhasil.
+          </p>
+        </div>
+      </div>
+
+      <div class="task-item">
+        <div class="task-bullet" style="background:rgba(167,139,250,.14);color:var(--violet);">2</div>
+        <div>
+          <p class="font-semibold text-s200" style="font-size:.92rem;">Cell 2 — Generate Data Sensor Univariate</p>
+          <p class="text-s400 mt-1" style="font-size:.85rem;">
+            Buat sinyal Normal (frekuensi 25 Hz, sampling 1000 Hz, 2 detik) dan Faulty
+            dengan impuls kerusakan bearing. Print total data points, durasi, RMS Normal, dan RMS Faulty.
+          </p>
+        </div>
+      </div>
+
+      <div class="task-item">
+        <div class="task-bullet" style="background:rgba(167,139,250,.14);color:var(--violet);">3</div>
+        <div>
+          <p class="font-semibold text-s200" style="font-size:.92rem;">Cell 3 — Plot Univariate Time Series</p>
+          <p class="text-s400 mt-1" style="font-size:.85rem;">
+            Plot dua subplot: kondisi Normal (hijau teal) dan Faulty (merah rose), masing-masing
+            dengan garis RMS sebagai referensi. Berikan judul dan label yang jelas.
+          </p>
+        </div>
+      </div>
+
+      <div class="task-item">
+        <div class="task-bullet" style="background:rgba(167,139,250,.14);color:var(--violet);">4</div>
+        <div>
+          <p class="font-semibold text-s200" style="font-size:.92rem;">Cell 4 — Plot Multivariate (3 Sensor)</p>
+          <p class="text-s400 mt-1" style="font-size:.85rem;">
+            Simulasikan pompa hidrolik 60 detik (1 Hz) dengan 3 sensor bersamaan: getaran, suhu, RPM.
+            Tampilkan 3 subplot dengan <code>sharex=True</code>. Buat DataFrame dan print <code>describe()</code>.
+          </p>
+        </div>
+      </div>
+
+      <div class="task-item">
+        <div class="task-bullet" style="background:rgba(167,139,250,.14);color:var(--violet);">5</div>
+        <div>
+          <p class="font-semibold text-s200" style="font-size:.92rem;">Cell 5 — Discrete vs Continuous &amp; Aliasing</p>
+          <p class="text-s400 mt-1" style="font-size:.85rem;">
+            Bandingkan sinyal kontinu (1000 titik) dengan sinyal diskret (sampling 10 Hz) dalam satu figure dua subplot.
+            Gunakan <code>stem()</code> untuk sinyal diskret.
+          </p>
+        </div>
+      </div>
+
+      <div class="hint-box hint-violet mt-4">
+        💡 <strong>Tips Modul 2:</strong> Untuk Cell 4, pastikan argumen <code>sharex=True</code> aktif
+        agar sumbu waktu semua subplot tersinkronisasi. Untuk Cell 5, perhatikan perbedaan visual
+        antara sinyal kontinu dan diskret — ini penting untuk memahami konsep sampling rate.
+      </div>
+    </div>
+  </div>
+
+  <!-- Modul 2 Latihan -->
+  <div class="detail-panel">
+    <div class="detail-panel-head">
+      <div class="mod-badge" style="background:rgba(251,191,36,.12);color:var(--amber);border:1px solid rgba(251,191,36,.25);">
+        ✏️ Modul 2 — Latihan
+      </div>
+      <div>
+        <h3 class="font-bold text-xl">Soal Latihan Modul 2</h3>
+        <p class="text-xs text-s500 mt-1">Lengkapi kode, buat plot, dan jawab pertanyaan</p>
+      </div>
+    </div>
+    <div class="detail-body">
+
+      <div class="task-item">
+        <div class="task-bullet" style="background:rgba(45,212,191,.14);color:var(--teal);">🟢</div>
+        <div>
+          <p class="font-semibold text-s200" style="font-size:.92rem;">Soal 1 — Univariate: Plot Getaran Mesin <span class="chip chip-teal" style="font-size:.65rem;padding:2px 8px;">Mudah</span></p>
+          <p class="text-s400 mt-1" style="font-size:.85rem;">
+            Lengkapi kode scaffold (isi bagian <code>???</code>): sampling rate 500 Hz, frekuensi 30 Hz,
+            noise Gaussian σ=0.15. Plot 500 sampel pertama dengan label lengkap.
+            Jawab di Markdown cell: total sampel, frekuensi maksimum (Teorema Nyquist).
+          </p>
+        </div>
+      </div>
+
+      <div class="task-item">
+        <div class="task-bullet" style="background:rgba(251,191,36,.14);color:var(--amber);">🟡</div>
+        <div>
+          <p class="font-semibold text-s200" style="font-size:.92rem;">Soal 2 — Multivariate: 3 Sensor Bersamaan <span class="chip chip-amber" style="font-size:.65rem;padding:2px 8px;">Sedang</span></p>
+          <p class="text-s400 mt-1" style="font-size:.85rem;">
+            Simulasikan kompresor 120 detik (2 Hz) dengan 3 sensor: Getaran (tren naik 0.005/detik),
+            Suhu 70°C (tren naik 0.2/detik, noise ±3°C), Tekanan 8 bar (sinusoidal periode 30s, noise ±0.2 bar).
+            Buat DataFrame, 3 subplot, dan <code>describe()</code>.
+            Jawab: sensor mana yang bertren? Apa dampak jika sampling rate dikurangi jadi 0.5 Hz?
+          </p>
+        </div>
+      </div>
+
+      <div class="task-item">
+        <div class="task-bullet" style="background:rgba(251,113,133,.14);color:var(--rose);">🔴</div>
+        <div>
+          <p class="font-semibold text-s200" style="font-size:.92rem;">Soal 3 — Studi Kasus Bearing Normal vs Faulty <span class="chip chip-rose" style="font-size:.65rem;padding:2px 8px;">Menantang</span></p>
+          <p class="text-s400 mt-1" style="font-size:.85rem;">
+            Buat dua sinyal bearing (sampling 2000 Hz, 3 detik). Plot perbandingan (Bagian A).
+            Hitung RMS, Peak, Crest Factor, dan Std untuk Normal dan Faulty (Bagian B).
+            Jawab di Markdown: adakah impuls mendadak? Berapa kali lipat kenaikan RMS?
+            Sensor apa yang paling cocok untuk deteksi bearing fault? (Bagian C)
+          </p>
+        </div>
+      </div>
+
+      <div class="task-item">
+        <div class="task-bullet" style="background:rgba(167,139,250,.14);color:var(--violet);">⭐</div>
+        <div>
+          <p class="font-semibold text-s200" style="font-size:.92rem;">Soal Bonus — Discrete vs Continuous &amp; Nyquist <span class="chip chip-violet" style="font-size:.65rem;padding:2px 8px;">+10 Poin</span></p>
+          <p class="text-s400 mt-1" style="font-size:.85rem;">
+            Buat sinyal frekuensi 40 Hz, sampling dengan 3 rate: 100 Hz (aman), 50 Hz (batas Nyquist),
+            dan 60 Hz (aliasing!). Plot ketiganya dalam satu figure dan jelaskan fenomena aliasing
+            yang terjadi pada sampling 60 Hz.
+          </p>
+        </div>
+      </div>
+
+      <div class="hint-box hint-amber mt-4">
+        💡 <strong>Tips Soal Latihan:</strong>
+        RMS = <code>np.sqrt(np.mean(data**2))</code> &nbsp;|&nbsp;
+        Peak = <code>np.max(np.abs(data))</code> &nbsp;|&nbsp;
+        Crest Factor = <code>Peak / RMS</code> — nilai &gt; 3 biasanya indikasi kerusakan.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SECTION 3: PERHATIAN PENTING ==================== -->
+<section class="section container">
+  <div class="section-header">
+    <span class="section-number">03</span>
+    <span class="badge mb-3">⚠️ Perhatian</span>
+    <h2 class="text-3xl font-bold mt-2">Hal-Hal Penting yang Wajib Diperhatikan</h2>
+    <p class="text-s400 mt-2">Baca dengan seksama sebelum mulai mengerjakan.</p>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:16px;">
+
+    <div class="attn-box attn-rose">
+      <div class="attn-icon-wrap" style="background:rgba(251,113,133,.12)">⚠️</div>
+      <div>
+        <h4 class="font-bold text-rose text-lg mb-2">Setiap Anggota Wajib Memahami Seluruh Tugas</h4>
+        <p class="text-s300 leading-relaxed" style="font-size:.9rem;">
+          Tugas ini dikerjakan bersama kelompok, namun <strong class="text-rose">setiap anggota kelompok
+          wajib memahami seluruh pekerjaan</strong> — bukan hanya bagian yang ia kerjakan sendiri.
+          Pada pertemuan TMV selanjutnya, <strong>dosen akan meminta setiap anggota menjelaskan
+          hasil tugas secara acak</strong>. Pastikan tidak ada yang sekadar "titip nama"!
+        </p>
+      </div>
+    </div>
+
+    <div class="attn-box attn-amber">
+      <div class="attn-icon-wrap" style="background:rgba(251,191,36,.12)">🕰️</div>
+      <div>
+        <h4 class="font-bold text-amber text-lg mb-2">Diskusi Internal Kelompok adalah Kunci</h4>
+        <p class="text-s300 leading-relaxed" style="font-size:.9rem;">
+          Manfaatkan waktu berdiskusi bersama anggota kelompok.
+          Jelaskan satu sama lain apa yang dipahami dari setiap cell kode dan setiap grafik yang dihasilkan.
+          Gunakan <strong class="text-amber">Grup WhatsApp Kelas</strong> untuk diskusi lintas kelompok
+          jika mengalami kesulitan.
+        </p>
+      </div>
+    </div>
+
+    <div class="attn-box attn-violet">
+      <div class="attn-icon-wrap" style="background:rgba(167,139,250,.12)">🎯</div>
+      <div>
+        <h4 class="font-bold text-violet text-lg mb-2">Fokus pada Pemahaman Konsep, Bukan Sekadar Output</h4>
+        <p class="text-s300 leading-relaxed" style="font-size:.9rem;">
+          Tujuan utama tugas ini bukan hanya menghasilkan grafik yang cantik, tetapi
+          <strong class="text-violet">memahami makna di balik setiap sinyal</strong> —
+          mengapa RMS faulty lebih tinggi? Apa yang menyebabkan impuls pada bearing rusak?
+          Mengapa urutan waktu penting dalam time series?
+          Jawab pertanyaan-pertanyaan ini di <strong>Markdown cell</strong> dengan kalimat sendiri.
+        </p>
+      </div>
+    </div>
+
+    <div class="attn-box attn-teal">
+      <div class="attn-icon-wrap" style="background:rgba(45,212,191,.12)">✅</div>
+      <div>
+        <h4 class="font-bold text-teal text-lg mb-2">Pastikan Semua Cell Sudah Di-Run Sebelum Export</h4>
+        <p class="text-s300 leading-relaxed" style="font-size:.9rem;">
+          Sebelum mengekspor file, jalankan seluruh notebook dari awal menggunakan
+          <code>Kernel → Restart &amp; Run All</code>. Pastikan semua cell menghasilkan output
+          (grafik, teks, atau tabel) yang terlihat. File <code>.ipynb</code> tanpa output
+          yang tampil <strong class="text-rose">tidak akan dinilai</strong>.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ==================== SECTION 4: FORMAT PENGUMPULAN ==================== -->
+<section class="section container">
+  <div class="section-header">
+    <span class="section-number">04</span>
+    <span class="badge mb-3">📁 Pengumpulan</span>
+    <h2 class="text-3xl font-bold mt-2">Format &amp; Cara Pengumpulan</h2>
+    <p class="text-s400 mt-2">Setiap kelompok mengumpulkan dua file dengan format penamaan yang benar.</p>
+  </div>
+
+  <div class="grid-2 mb-8">
+
+    <div class="file-card" style="--fc-accent:var(--teal)">
+      <div class="file-icon" style="background:rgba(45,212,191,.1)">📓</div>
+      <div>
+        <span class="file-ext text-teal">.ipynb</span>
+        <p class="font-bold text-s200 mt-2 mb-1">Jupyter Notebook</p>
+        <p class="text-s400" style="font-size:.85rem;line-height:1.6;">
+          File notebook utama berisi seluruh cell kode yang sudah dijalankan beserta outputnya
+          (grafik, tabel, teks). Pastikan output setiap cell sudah tampil.
+        </p>
+        <div class="hint-box hint-teal mt-3" style="font-size:.78rem;">
+          📄 Nama file: <code>Tugas1_Kelompok[N]_NIM_Nama.ipynb</code><br>
+          Contoh: <code>Tugas1_Kelompok1_41321120054_Angga.ipynb</code>
+        </div>
+      </div>
+    </div>
+
+    <div class="file-card" style="--fc-accent:var(--amber)">
+      <div class="file-icon" style="background:rgba(251,191,36,.1)">🌐</div>
+      <div>
+        <span class="file-ext text-amber">.html</span>
+        <p class="font-bold text-s200 mt-2 mb-1">Export HTML dari Notebook</p>
+        <p class="text-s400" style="font-size:.85rem;line-height:1.6;">
+          Export notebook ke format HTML agar mudah dibuka tanpa instalasi Python.
+          Caranya: di VS Code, klik ikon <code>...</code> → <em>Export</em> → <em>HTML</em>.
+        </p>
+        <div class="hint-box hint-amber mt-3" style="font-size:.78rem;">
+          📄 Nama file: <code>Tugas1_Kelompok[N]_NIM_Nama.html</code><br>
+          Contoh: <code>Tugas1_Kelompok1_41321120054_Angga.html</code>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Export steps -->
+  <div class="detail-panel">
+    <div class="detail-panel-head">
+      <div class="mod-badge" style="background:rgba(45,212,191,.1);color:var(--teal);border:1px solid rgba(45,212,191,.2);">
+        💻 Langkah Export
+      </div>
+      <h3 class="font-bold text-lg">Cara Export Notebook ke HTML di VS Code</h3>
+    </div>
+    <div class="detail-body">
+      <div class="grid-2">
+        <div>
+          <p class="font-semibold text-s300 mb-3" style="font-size:.88rem;">Metode 1 — Via VS Code UI</p>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div class="task-item" style="padding:10px 0;">
+              <div class="task-bullet" style="background:rgba(45,212,191,.1);color:var(--teal);font-size:.65rem;">1</div>
+              <p class="text-s400" style="font-size:.85rem;">Buka file <code>.ipynb</code> di VS Code</p>
+            </div>
+            <div class="task-item" style="padding:10px 0;">
+              <div class="task-bullet" style="background:rgba(45,212,191,.1);color:var(--teal);font-size:.65rem;">2</div>
+              <p class="text-s400" style="font-size:.85rem;">Klik <code>Kernel → Restart &amp; Run All</code></p>
+            </div>
+            <div class="task-item" style="padding:10px 0;">
+              <div class="task-bullet" style="background:rgba(45,212,191,.1);color:var(--teal);font-size:.65rem;">3</div>
+              <p class="text-s400" style="font-size:.85rem;">Klik ikon <code>...</code> (pojok kanan atas) → <em>Export</em></p>
+            </div>
+            <div class="task-item" style="padding:10px 0;border-bottom:none;">
+              <div class="task-bullet" style="background:rgba(45,212,191,.1);color:var(--teal);font-size:.65rem;">4</div>
+              <p class="text-s400" style="font-size:.85rem;">Pilih <strong class="text-teal">HTML</strong> → simpan</p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="font-semibold text-s300 mb-3" style="font-size:.88rem;">Metode 2 — Via Terminal</p>
+          <div class="cell">
+            <div class="cell-bar">
+              <div class="dot-row"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+              <span class="cell-label">Terminal / Miniconda Prompt</span>
+            </div>
+<pre class="code-pre"><span class="cm"># Aktifkan environment terlebih dahulu</span>
+conda activate optauto
+
+<span class="cm"># Jalankan perintah nbconvert</span>
+jupyter nbconvert --to html \
+  Tugas1_Kelompok1_NIM_Nama.ipynb
+
+<span class="cm"># File .html akan muncul di folder yang sama</span></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SECTION 5: DAFTAR KELOMPOK ==================== -->
+<section class="section container">
+  <div class="section-header">
+    <span class="section-number">05</span>
+    <span class="badge mb-3">👥 Kelompok</span>
+    <h2 class="text-3xl font-bold mt-2">Daftar Kelompok</h2>
+    <p class="text-s400 mt-2">Klik tab untuk melihat anggota setiap kelompok.</p>
+  </div>
+
+  <div class="group-table-wrap">
+    <div class="group-tabs">
+      <button class="g-tab active" onclick="switchGroup(this,'g1')">1️⃣ Kelompok 1</button>
+      <button class="g-tab"        onclick="switchGroup(this,'g2')">2️⃣ Kelompok 2</button>
+      <button class="g-tab"        onclick="switchGroup(this,'g3')">3️⃣ Kelompok 3</button>
+      <button class="g-tab"        onclick="switchGroup(this,'g4')">4️⃣ Kelompok 4</button>
+    </div>
+
+    <!-- Kelompok 1 -->
+    <div class="g-panel active" id="g1">
+      <p class="text-xs text-s500 uppercase tracking-wide font-semibold mb-4">7 Anggota</p>
+      <div id="list-g1"></div>
+    </div>
+
+    <!-- Kelompok 2 -->
+    <div class="g-panel" id="g2">
+      <p class="text-xs text-s500 uppercase tracking-wide font-semibold mb-4">7 Anggota</p>
+      <div id="list-g2"></div>
+    </div>
+
+    <!-- Kelompok 3 -->
+    <div class="g-panel" id="g3">
+      <p class="text-xs text-s500 uppercase tracking-wide font-semibold mb-4">7 Anggota</p>
+      <div id="list-g3"></div>
+    </div>
+
+    <!-- Kelompok 4 -->
+    <div class="g-panel" id="g4">
+      <p class="text-xs text-s500 uppercase tracking-wide font-semibold mb-4">6 Anggota</p>
+      <div id="list-g4"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FOOTER ==================== -->
+<footer>
+  <div class="container">
+    <p>Tugas 1 disusun oleh <span style="color:var(--teal)">Dedik Romahadi</span> •
+       Optimalisasi &amp; Otomasi • S1 Teknik Mesin • Universitas Mercu Buana</p>
+    <p style="margin-top:4px;">Deadline: <strong style="color:var(--amber)">8 April 2026 pukul 23:59 WIB</strong> • Format: .ipynb &amp; .html</p>
+  </div>
+</footer>
+
+
+<!-- ==================== SCRIPTS ==================== -->
+<script>
+/* -------- TICKER -------- */
+(function(){
+  const items = [
+    '📋 Tugas 1 — Deadline 8 April 2026 pukul 23.59 WIB',
+    '📓 Submit format .ipynb dan .html',
+    '👥 Kerja kelompok — setiap anggota wajib memahami',
+    '🔬 Modul 1: 4 cell simulasi time series',
+    '📡 Modul 2: 5 cell simulasi sensor industri',
+    '✏️ Latihan Modul 2: Soal 1, 2, 3 + Bonus',
+    '⚠️ Akan ditanya saat pertemuan TMV selanjutnya!',
+    '💻 Export notebook: Kernel → Restart & Run All → Export → HTML',
+  ];
+  const dup = [...items,...items];
+  document.getElementById('ticker').innerHTML =
+    dup.map(d=>`<span class="ticker-item">[ ${d} ]</span>`).join('');
+})();
+
+/* -------- COUNTDOWN -------- */
+(function(){
+  // Deadline: 8 April 2026, 23:59 WIB (UTC+7 → UTC: 16:59)
+  const deadline = new Date('2026-04-08T23:59:00+07:00').getTime();
+  // Assignment start reference: 2 April 2026 (today)
+  const assignStart = new Date('2026-04-02T00:00:00+07:00').getTime();
+  const totalDuration = deadline - assignStart;
+
+  function pad(n){ return String(n).padStart(2,'0'); }
+
+  function tick(){
+    const now  = Date.now();
+    const left = deadline - now;
+
+    if(left <= 0){
+      document.getElementById('cdGrid').style.display = 'none';
+      document.getElementById('expiredMsg').style.display = 'block';
+      document.getElementById('cdBar').style.width = '100%';
+      document.getElementById('progressLabel').textContent = 'Deadline sudah berakhir';
+      document.getElementById('progressPct').textContent = '100%';
+      return;
+    }
+
+    const d  = Math.floor(left / 86400000);
+    const h  = Math.floor((left % 86400000) / 3600000);
+    const m  = Math.floor((left % 3600000)  / 60000);
+    const s  = Math.floor((left % 60000)    / 1000);
+
+    document.getElementById('cdDays').textContent  = pad(d);
+    document.getElementById('cdHours').textContent = pad(h);
+    document.getElementById('cdMins').textContent  = pad(m);
+    document.getElementById('cdSecs').textContent  = pad(s);
+
+    /* color urgency */
+    const nums = ['cdDays','cdHours','cdMins','cdSecs'].map(id=>document.getElementById(id));
+    nums.forEach(el=>{
+      el.classList.remove('urgent','warn');
+      if(d === 0 && h < 3) el.classList.add('urgent');
+      else if(d === 0) el.classList.add('warn');
+    });
+
+    /* progress bar */
+    const elapsed = now - assignStart;
+    const pct = Math.min(100, Math.max(0, (elapsed / totalDuration) * 100));
+    document.getElementById('cdBar').style.width = pct.toFixed(2) + '%';
+
+    const daysLeft = d + (h/24) + (m/1440);
+    document.getElementById('progressLabel').textContent =
+      d > 0
+        ? `${d} hari ${h} jam tersisa`
+        : h > 0
+          ? `${h} jam ${m} menit tersisa`
+          : `${m} menit ${s} detik tersisa — segera kumpulkan!`;
+    document.getElementById('progressPct').textContent = pct.toFixed(1) + '% waktu terpakai';
+  }
+
+  tick();
+  setInterval(tick, 1000);
+})();
+
+/* -------- GROUP DATA -------- */
+const GROUPS = {
+  g1: {
+    color:'#2dd4bf',
+    members:[
+      ['41321120054','ANGGA HANDIAPUTRA YUDHATAMA'],
+      ['41321120057','MUHAMMAD MAHLIAN HADI MAULANA'],
+      ['41322010021','ARIP TEGUH SUHARTO'],
+      ['41322010029','AHMAD NURDIN SIMATUPANG'],
+      ['41322110039','EKI WIRATAMA PUTRA'],
+      ['41322110067','MOCHAMAD NURCHOLIS'],
+      ['41322110080','SHOLIH FAUZAN'],
+    ]
+  },
+  g2: {
+    color:'#a3e635',
+    members:[
+      ['41322110087','FICKRI DIMAS AL FALLAH'],
+      ['41322110089','MUHAMMAD IBNU FAUZI'],
+      ['41322110093','ADE YULIAN SAPUTRA'],
+      ['41322120018','DEVI KRISTIANTO'],
+      ['41322120038','FAIYUN'],
+      ['41322120039','SUTARI'],
+      ['41323110002','KIANDRY RIDHO WIDODO'],
+    ]
+  },
+  g3: {
+    color:'#a78bfa',
+    members:[
+      ['41323110003','SYAMSUDIN'],
+      ['41323110005','TRESNA SETYA PUTRA'],
+      ['41323110011','EDWIN ANUGRAH EFFENDY'],
+      ['41323110022','TAUFIK NUR HIDAYAT'],
+      ['41323110026','YOYOK KRISTIYONO'],
+      ['41323110040','SAKHA KHAIRUL HAKIM'],
+      ['41323110042','RISKI KRISTANTO'],
+    ]
+  },
+  g4: {
+    color:'#fbbf24',
+    members:[
+      ['41324120004','M. NADHIF AL-RAFID'],
+      ['41324120021','THIMOTIUS BRIANTIKA PERMANA'],
+      ['41324120025','ADITYA RAMADHAN'],
+      ['41324120026','HERA DIPTA NUR PRAPTAMA'],
+      ['41324120032','PANJI EKA ALFIANINDRA'],
+      ['41325110020','SLAMET RAMDHANI'],
+    ]
+  }
+};
+
+function renderGroups(){
+  Object.entries(GROUPS).forEach(([key, grp])=>{
+    const el = document.getElementById('list-' + key);
+    el.innerHTML = grp.members.map(([ nim, name ], i) => `
+      <div class="member-row">
+        <div class="member-idx" style="background:${grp.color}18;color:${grp.color}">${i+1}</div>
+        <span class="member-nim">${nim}</span>
+        <span class="member-name">${name}</span>
+      </div>
+    `).join('');
+  });
+}
+
+function switchGroup(btn, id){
+  document.querySelectorAll('.g-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.g-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+renderGroups();
+</script>
+
+<!-- ═══ DAFTAR PENGUNJUNG ═══ -->
+<section style="max-width:900px;margin:48px auto 0;padding:0 24px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px;">
+    <div>
+      <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.3);color:var(--teal,#2dd4bf);padding:5px 14px;border-radius:999px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;">👥 Pengunjung</span>
+      <h2 style="font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:#fff;margin-top:12px;">Daftar Pengunjung</h2>
+      <p style="color:var(--s400,#94a3b8);font-size:.85rem;margin-top:6px;">Mahasiswa dan dosen yang telah mengakses halaman ini.</p>
+    </div>
+    <button onclick="showResetModal()" style="padding:10px 20px;border-radius:12px;border:1px solid rgba(251,113,133,.3);background:rgba(251,113,133,.08);color:var(--rose,#fb7185);font-family:'DM Sans',sans-serif;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:6px;" onmouseenter="this.style.background='rgba(251,113,133,.18)'" onmouseleave="this.style.background='rgba(251,113,133,.08)'">🗑 Reset</button>
+  </div>
+  <div style="background:var(--surface,#0f1929);border:1px solid var(--border,rgba(45,212,191,.15));border-radius:20px;overflow:hidden;">
+    <div style="display:flex;gap:1px;background:rgba(255,255,255,.04);">
+      <div style="flex:1;padding:20px 24px;text-align:center;"><div id="statTotal" style="font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;color:var(--teal,#2dd4bf);">—</div><div style="font-size:.75rem;color:var(--s500,#64748b);margin-top:2px;">Total Pengunjung</div></div>
+      <div style="flex:1;padding:20px 24px;text-align:center;border-left:1px solid rgba(255,255,255,.06);border-right:1px solid rgba(255,255,255,.06);"><div id="statMhs" style="font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;color:var(--violet,#a78bfa);">—</div><div style="font-size:.75rem;color:var(--s500,#64748b);margin-top:2px;">Mahasiswa</div></div>
+      <div style="flex:1;padding:20px 24px;text-align:center;"><div id="statDosen" style="font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;color:var(--amber,#fbbf24);">—</div><div style="font-size:.75rem;color:var(--s500,#64748b);margin-top:2px;">Dosen</div></div>
+    </div>
+    <div style="display:flex;padding:14px 24px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;font-weight:600;color:var(--s500,#64748b);text-transform:uppercase;letter-spacing:.08em;">
+      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:right;">Waktu Akses</div>
+    </div>
+    <div id="visitorTableBody" style="max-height:420px;overflow-y:auto;"><div style="text-align:center;padding:40px 24px;color:var(--s500,#64748b);font-size:.88rem;">⏳ Memuat data pengunjung...</div></div>
+  </div>
+</section>
+
+<script>
+// ═══ VISITOR SYSTEM ═══
+const MODULE_ID='tugas-1';
+const STORAGE_KEY_IDENTITY=`optoauto_identity_${MODULE_ID}`;
+const STORAGE_KEY_VISITORS=`optoauto_visitors_${MODULE_ID}`;
+let panelOpen=false;
+
+function getVisitors(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY_VISITORS))||[];}catch(e){return[];}}
+function saveVisitors(l){localStorage.setItem(STORAGE_KEY_VISITORS,JSON.stringify(l));}
+function getIdentity(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY_IDENTITY));}catch(e){return null;}}
+function saveIdentity(v){localStorage.setItem(STORAGE_KEY_IDENTITY,JSON.stringify(v));}
+
+function isValidName(n){if(!n)return false;return n.split(/\s+/).every(w=>w.length>0&&/^[A-Z][a-z]*$/.test(w));}
+function isValidNim(n){return /^\d+$/.test(n);}
+
+function initVisitor(){
+  const me=getIdentity();
+  if(me&&me.nama){document.getElementById('visitorOverlay').classList.add('hidden');document.getElementById('visitorFab').style.display='flex';loadVisitorList();}
+}
+
+function submitVisitor(){
+  const nama=document.getElementById('vNama').value.trim();
+  const nim=document.getElementById('vNim').value.trim();
+  const err=document.getElementById('vError');
+  const isDosen=nama.toLowerCase()==='dedik romahadi';
+  if(!nama){err.textContent='⚠ Nama wajib diisi.';err.style.display='block';return;}
+  if(!isValidName(nama)){err.textContent='⚠ Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi';err.style.display='block';return;}
+  if(!isDosen&&!nim){err.textContent='⚠ NIM wajib diisi.';err.style.display='block';return;}
+  if(!isDosen&&!isValidNim(nim)){err.textContent='⚠ NIM harus berupa angka tanpa spasi. Contoh: 41522010001';err.style.display='block';return;}
+  err.style.display='none';
+  const v={nama,nim:isDosen?'DOSEN':nim,role:isDosen?'dosen':'student',timestamp:new Date().toISOString()};
+  saveIdentity(v);
+  const vs=getVisitors();const idx=vs.findIndex(x=>x.nama===v.nama&&x.nim===v.nim);
+  if(idx>=0)vs[idx]=v;else vs.push(v);saveVisitors(vs);
+  document.getElementById('visitorOverlay').classList.add('hidden');
+  document.getElementById('visitorFab').style.display='flex';loadVisitorList();
+}
+
+function loadVisitorList(){
+  const listEl=document.getElementById('vpList'),countEl=document.getElementById('fabCount'),badgeEl=document.getElementById('vpBadge'),tableEl=document.getElementById('visitorTableBody'),stT=document.getElementById('statTotal'),stM=document.getElementById('statMhs'),stD=document.getElementById('statDosen');
+  const visitors=getVisitors();visitors.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+  const seen=new Set(),unique=[];for(const v of visitors){const id=`${v.nama}|${v.nim}`;if(!seen.has(id)){seen.add(id);unique.push(v);}}
+  const mc=unique.filter(v=>v.role!=='dosen').length,dc=unique.filter(v=>v.role==='dosen').length;
+  countEl.textContent=unique.length;badgeEl.textContent=unique.length+' orang';stT.textContent=unique.length;stM.textContent=mc;stD.textContent=dc;
+  if(!unique.length){listEl.innerHTML='<div class="vp-empty">Belum ada pengunjung.</div>';tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:var(--s500);font-size:.88rem;">Belum ada pengunjung.</div>';return;}
+  listEl.innerHTML=unique.map(v=>{const d=v.role==='dosen',ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),dt=new Date(v.timestamp),ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});return `<div class="vp-item"><div class="vp-avatar ${d?'dosen':'student'}">${ini}</div><div class="vp-info"><div class="vp-name">${d?'👨‍🏫 ':''}${escH(v.nama)}</div><div class="vp-nim">${d?'Dosen Pengampu':escH(v.nim)}</div></div><div class="vp-time">${ts}</div></div>`;}).join('');
+  tableEl.innerHTML=unique.map((v,i)=>{const d=v.role==='dosen',ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),dt=new Date(v.timestamp),ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}),ac=d?'background:rgba(251,191,36,.12);color:var(--amber,#fbbf24);':'background:rgba(45,212,191,.12);color:var(--teal,#2dd4bf);',rc=d?'<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(251,191,36,.1);color:var(--amber,#fbbf24);border:1px solid rgba(251,191,36,.2);margin-left:8px;">Dosen</span>':'';return `<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;" onmouseenter="this.style.background='rgba(255,255,255,.03)'" onmouseleave="this.style.background='transparent'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:var(--s500);font-weight:600;">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${ac}">${ini}</div><div><div style="font-weight:600;font-size:.88rem;color:var(--s200,#e2e8f0);">${escH(v.nama)}${rc}</div></div></div><div style="flex:1;font-size:.8rem;color:var(--s400);font-family:'Courier New',monospace;">${d?'—':escH(v.nim)}</div><div style="flex:1;text-align:right;font-size:.78rem;color:var(--s500);">${ts}</div></div>`;}).join('');
+}
+
+function togglePanel(){panelOpen=!panelOpen;document.getElementById('visitorPanel').classList.toggle('open',panelOpen);if(panelOpen)loadVisitorList();}
+document.addEventListener('click',function(e){const p=document.getElementById('visitorPanel'),f=document.getElementById('visitorFab');if(panelOpen&&!p.contains(e.target)&&!f.contains(e.target)){panelOpen=false;p.classList.remove('open');}});
+function escH(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+function showResetModal(){document.getElementById('resetOverlay').classList.remove('hidden');document.getElementById('resetPw').value='';document.getElementById('resetError').style.display='none';setTimeout(()=>document.getElementById('resetPw').focus(),100);}
+function hideResetModal(){document.getElementById('resetOverlay').classList.add('hidden');}
+function confirmReset(){if(document.getElementById('resetPw').value!=='TeknikMesin0602'){document.getElementById('resetError').style.display='block';return;}localStorage.removeItem(STORAGE_KEY_VISITORS);localStorage.removeItem(STORAGE_KEY_IDENTITY);hideResetModal();loadVisitorList();document.getElementById('visitorOverlay').classList.remove('hidden');document.getElementById('visitorFab').style.display='none';}
+document.getElementById('resetPw').addEventListener('keydown',function(e){if(e.key==='Enter')confirmReset();});
+document.getElementById('resetOverlay').addEventListener('click',function(e){if(e.target===this)hideResetModal();});
+document.getElementById('vNim').addEventListener('keydown',function(e){if(e.key==='Enter')submitVisitor();});
+document.getElementById('vNama').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('vNim').focus();});
+initVisitor();
+</script>
+
+</body>
+</html>
