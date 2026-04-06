@@ -1,6 +1,7 @@
 # 🚀 Mechanical Engineering Courses
 
-[![GitHub stars](https://img.shields.io/github/stars/dedik-romahadi/Mechanical-Engineering-Courses?style=social)](https://github.com/yourusername/Mechanical-Engineering-Courses)
+[![GitHub stars](https://img.shields.io/github/stars/dedik-romahadi/Mechanical-Engineering-Courses?style=social)]
+(https://github.com/dedik-romahadi/Mechanical-Engineering-Courses)
 [![License](https://img.shields.io/github/license/dedik-romahadi/Mechanical-Engineering-Courses)](LICENSE)
 ![GitHub repo size](https://img.shields.io/github/repo-size/dedik-romahadi/Mechanical-Engineering-Courses)
 ![Last Commit](https://img.shields.io/github/last-commit/dedik-romahadi/Mechanical-Engineering-Courses)
@@ -39,10 +40,19 @@ Semua materi diorganisir dengan baik, mudah dicari, dan siap pakai!
 > Materi terus bertambah setiap minggu. Star ⭐ repo ini supaya tidak ketinggalan update!
 
 ## 🗂️ Struktur Repository
+
+```bash
 Mechanical-Engineering-Courses/
-├── Getaran_Mekanik/
-├── Optimalisasi_dan_Automasi/
-├── Engineering_Mathematics/
+├── 01_Getaran_Mekanik/
+├── 02_Optimalisasi_dan_Automasi/
+├── 03_Metode_Numerik/
+├── 04_Engineering_Mathematics/
+├── 05_Control_System/
+├── 06_Machine_Learning/
+├── 07_Pemrosesan_Sinyal/
+├── 08_Brain_Computer_Interface/
+├── 09_Computer_Aided_Design/
+├── 10_Pemrograman_Komputer/
 └── README.md
 
 
