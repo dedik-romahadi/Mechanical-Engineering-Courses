@@ -3,512 +3,481 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Setup Python — Getaran Mekanik</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<title>Setup Python & Jupyter Notebook • Optimalisasi & Otomasi • Dedik Romahadi</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+
 <style>
-  :root {
-    --bg:      #04080f;
-    --surface: #0a1628;
-    --surface2:#101e36;
-    --border:  #162444;
-    --cyan:    #00d4ff;
-    --blue:    #3b82f6;
-    --amber:   #f59e0b;
-    --green:   #10b981;
-    --pink:    #f472b6;
-    --violet:  #8b5cf6;
-    --red:     #ef4444;
-    --text:    #c1d0e6;
-    --muted:   #4a6080;
-    --white:   #eef2f7;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-  body {
-    background: var(--bg); color: var(--text);
-    font-family: 'Sora', sans-serif; font-size: 16px;
-    line-height: 1.7; overflow-x: hidden;
-  }
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  /* ── NOISE OVERLAY ── */
-  body::before {
-    content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .04;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
+:root {
+  --teal:    #2dd4bf;
+  --amber:   #fbbf24;
+  --rose:    #fb7185;
+  --violet:  #a78bfa;
+  --lime:    #a3e635;
+  --bg:      #080e1a;
+  --surface: #0f1929;
+  --s700:    #334155;
+  --s600:    #475569;
+  --s500:    #64748b;
+  --s400:    #94a3b8;
+  --s300:    #cbd5e1;
+  --s200:    #e2e8f0;
+  --border:  rgba(45,212,191,.15);
+}
 
-  /* ── WAVE CANVAS ── */
-  #waveCanvas {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    z-index: 0; pointer-events: none; opacity: .35;
-  }
+html { scroll-behavior: smooth; }
 
-  /* ── NAVBAR ── */
-  nav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    background: rgba(4,8,15,.85); backdrop-filter: blur(24px) saturate(1.3);
-    border-bottom: 1px solid var(--border);
-    padding: 0 32px; height: 64px;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .nav-brand {
-    font-family: 'Space Mono', monospace; font-size: 13px;
-    color: var(--cyan); letter-spacing: 3px; display: flex; align-items: center; gap: 10px;
-  }
-  .nav-brand .pulse { width: 8px; height: 8px; background: var(--green); border-radius: 50%; animation: pulse 1.6s ease-in-out infinite; }
-  @keyframes pulse { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(16,185,129,.5)} 50%{opacity:.6;box-shadow:0 0 0 6px rgba(16,185,129,0)} }
-  .nav-links { display: flex; gap: 28px; }
-  .nav-links a {
-    font-size: 12px; font-weight: 500; color: var(--muted);
-    text-decoration: none; letter-spacing: 1.5px; text-transform: uppercase;
-    transition: color .25s; position: relative;
-  }
-  .nav-links a::after {
-    content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px;
-    background: var(--cyan); border-radius: 2px; transition: width .3s;
-  }
-  .nav-links a:hover { color: var(--cyan); }
-  .nav-links a:hover::after { width: 100%; }
-  .nav-badge {
-    font-family: 'Space Mono', monospace; font-size: 11px;
-    background: rgba(0,212,255,.08); border: 1px solid rgba(0,212,255,.2);
-    color: var(--cyan); padding: 5px 14px; border-radius: 20px;
-  }
-  @media (max-width: 768px) {
-    .nav-links { display: none; }
-    nav { padding: 0 16px; }
-  }
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--s200);
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-size: 15px;
+  line-height: 1.6;
+}
 
-  /* ── HERO ── */
-  .hero {
-    min-height: 100vh; display: flex; align-items: center; justify-content: center;
-    padding: 80px 32px 60px; position: relative; overflow: hidden; z-index: 1;
-  }
-  .hero-grid {
-    position: absolute; inset: 0;
-    background-image:
-      linear-gradient(rgba(0,212,255,.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,212,255,.03) 1px, transparent 1px);
-    background-size: 56px 56px;
-    mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, black, transparent);
-  }
-  .orb { position: absolute; border-radius: 50%; filter: blur(100px); opacity: .07; pointer-events: none; }
-  .orb-1 { width: 500px; height: 500px; background: var(--violet); top: -120px; right: -80px; animation: orbA 10s ease-in-out infinite; }
-  .orb-2 { width: 400px; height: 400px; background: var(--cyan); bottom: -80px; left: -80px; animation: orbA 12s ease-in-out infinite reverse; }
-  .orb-3 { width: 300px; height: 300px; background: var(--green); top: 40%; left: 60%; animation: orbA 14s ease-in-out infinite 3s; }
-  @keyframes orbA { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(20px,-20px) scale(1.05)} 66%{transform:translate(-15px,15px) scale(.95)} }
+h1,h2,h3,h4,h5 { font-family: 'Syne', sans-serif; line-height: 1.15; }
 
-  .hero-content { position: relative; text-align: center; max-width: 920px; z-index: 2; }
-  .hero-tag {
-    display: inline-flex; align-items: center; gap: 10px;
-    font-family: 'Space Mono', monospace; font-size: 11px;
-    color: var(--cyan); border: 1px solid rgba(0,212,255,.25);
-    background: rgba(0,212,255,.05); padding: 8px 22px; border-radius: 24px;
-    letter-spacing: 3px; margin-bottom: 32px; text-transform: uppercase;
-    animation: fadeDown .8s ease both;
-  }
-  @keyframes fadeDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
-  @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+a { color: var(--teal); text-decoration: none; }
+a:hover { text-decoration: underline; }
 
-  h1.hero-title {
-    font-size: clamp(42px, 7vw, 88px);
-    font-weight: 800; line-height: 1.0; color: var(--white);
-    margin-bottom: 24px; letter-spacing: -2px;
-    animation: fadeUp .8s ease .15s both;
-  }
-  h1.hero-title em { color: var(--cyan); font-style: italic; }
-  h1.hero-title span { color: var(--green); }
-  .hero-sub {
-    font-size: 18px; color: var(--muted); max-width: 600px;
-    margin: 0 auto 44px; font-weight: 300;
-    animation: fadeUp .8s ease .3s both;
-  }
-  .hero-pills {
-    display: flex; flex-wrap: wrap; gap: 10px;
-    justify-content: center; margin-bottom: 48px;
-    animation: fadeUp .8s ease .45s both;
-  }
-  .pill {
-    font-size: 13px; font-weight: 500; padding: 8px 20px;
-    border-radius: 24px; border: 1px solid var(--border);
-    background: rgba(255,255,255,.03); color: var(--text);
-    transition: border-color .3s, background .3s;
-  }
-  .pill:hover { border-color: var(--cyan); background: rgba(0,212,255,.05); }
-  .hero-os {
-    display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
-    animation: fadeUp .8s ease .6s both;
-  }
-  .os-badge {
-    display: flex; align-items: center; gap: 10px;
-    padding: 12px 24px; border-radius: 14px;
-    background: rgba(255,255,255,.03); border: 1px solid var(--border);
-    font-size: 14px; font-weight: 500; color: var(--text);
-    transition: border-color .3s, transform .3s, box-shadow .3s;
-  }
-  .os-badge:hover { border-color: var(--cyan); transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,212,255,.1); }
-  .os-icon { font-size: 20px; }
-
-  /* ── SECTION ── */
-  .section {
-    max-width: 1100px; margin: 0 auto;
-    padding: 80px 32px; position: relative; z-index: 1;
-  }
-  .section-label {
-    font-family: 'Space Mono', monospace; font-size: 11px;
-    color: var(--cyan); letter-spacing: 4px; text-transform: uppercase; margin-bottom: 12px;
-    display: flex; align-items: center; gap: 10px;
-  }
-  .section-label::before { content: ''; width: 28px; height: 2px; background: var(--cyan); border-radius: 2px; }
-  h2.section-title {
-    font-size: clamp(28px, 4vw, 48px); color: var(--white);
-    margin-bottom: 16px; line-height: 1.15; font-weight: 700;
-  }
-  .section-desc { font-size: 16px; color: var(--muted); max-width: 660px; margin-bottom: 48px; }
-  .divider { border: none; border-top: 1px solid var(--border); margin: 0; }
-
-  /* ── INSTRUCTOR NOTE ── */
-  .instructor-note {
-    background: linear-gradient(135deg, rgba(0,212,255,.04), rgba(139,92,246,.03));
-    border: 1px solid rgba(0,212,255,.15);
-    border-left: 4px solid var(--cyan); border-radius: 18px;
-    padding: 28px 30px; display: flex; gap: 20px; align-items: flex-start;
-    margin-bottom: 52px; transition: transform .3s, box-shadow .3s;
-  }
-  .instructor-note:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,212,255,.08); }
-  .inst-avatar {
-    width: 56px; height: 56px; border-radius: 16px; flex-shrink: 0;
-    background: linear-gradient(135deg, rgba(0,212,255,.15), rgba(139,92,246,.1));
-    border: 1px solid rgba(0,212,255,.2);
-    display: flex; align-items: center; justify-content: center; font-size: 28px;
-    animation: float 3s ease-in-out infinite;
-  }
-  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
-  .instructor-note h3 { font-size: 17px; font-weight: 600; color: var(--cyan); margin-bottom: 8px; }
-  .instructor-note p { font-size: 15px; color: var(--text); line-height: 1.8; }
-
-  /* ── STEP CARDS ── */
-  .steps-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-bottom: 22px; }
-  @media (max-width: 768px) { .steps-grid { grid-template-columns: 1fr; } }
-  .step-card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 22px;
-    overflow: hidden; transition: border-color .4s, transform .4s, box-shadow .4s;
-  }
-  .step-card:hover { transform: translateY(-6px); box-shadow: 0 20px 60px rgba(0,0,0,.4); }
-  .step-bar { height: 3px; position: relative; overflow: hidden; }
-  .step-bar::after {
-    content: ''; position: absolute; inset: 0;
-    background: inherit; animation: shimmer 2s ease-in-out infinite;
-  }
-  @keyframes shimmer { 0%{transform:translateX(-100%)} 50%{transform:translateX(100%)} 100%{transform:translateX(-100%)} }
-  .step-head {
-    padding: 26px 28px 20px; display: flex; align-items: center; gap: 16px;
-    border-bottom: 1px solid var(--border);
-  }
-  .step-num-badge {
-    width: 48px; height: 48px; border-radius: 14px; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Space Mono', monospace; font-size: 18px; font-weight: 700;
-    transition: transform .3s;
-  }
-  .step-card:hover .step-num-badge { transform: scale(1.1) rotate(-3deg); }
-  .step-head h3 { font-size: 18px; font-weight: 600; color: var(--white); }
-  .step-head p { font-size: 13px; color: var(--muted); margin-top: 3px; }
-  .step-body { padding: 24px 28px; }
-
-  /* sub-steps */
-  .sub-step {
-    display: flex; align-items: flex-start; gap: 14px;
-    padding: 13px 0; border-bottom: 1px solid rgba(255,255,255,.04);
-    transition: padding-left .3s;
-  }
-  .sub-step:hover { padding-left: 8px; }
-  .sub-step:last-child { border-bottom: none; }
-  .sub-num {
-    font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
-    width: 26px; height: 26px; border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; margin-top: 2px;
-  }
-  .sub-text { font-size: 14px; color: var(--text); line-height: 1.7; }
-  .sub-text a { color: var(--cyan); text-decoration: none; border-bottom: 1px solid rgba(0,212,255,.3); transition: border-color .2s; }
-  .sub-text a:hover { border-color: var(--cyan); }
-  .sub-text strong { color: var(--amber); }
-  code {
-    font-family: 'Space Mono', monospace; font-size: 12px;
-    background: rgba(0,0,0,.4); padding: 2px 8px; border-radius: 5px;
-    border: 1px solid rgba(255,255,255,.06);
-  }
-
-  /* ── CODE BLOCKS ── */
-  .code-wrap {
-    background: #020610; border: 1px solid var(--border);
-    border-radius: 16px; overflow: hidden; margin-top: 0;
-    transition: box-shadow .3s;
-  }
-  .code-wrap:hover { box-shadow: 0 0 30px rgba(0,212,255,.06); }
-  .code-header {
-    padding: 10px 20px; background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .code-label { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
-  .code-dots { display: flex; gap: 6px; }
-  .code-dots span { width: 10px; height: 10px; border-radius: 50%; }
-  .code-lang {
-    font-family: 'Space Mono', monospace; font-size: 11px;
-    background: rgba(0,212,255,.08); color: var(--cyan);
-    padding: 3px 12px; border-radius: 20px; border: 1px solid rgba(0,212,255,.15);
-  }
-  pre {
-    padding: 22px 24px; font-family: 'Space Mono', monospace; font-size: 13px;
-    line-height: 1.9; overflow-x: auto; color: #c1d0e6; white-space: pre;
-  }
-  .cm { color: #3d5a7c; }
-  .kw { color: #8b5cf6; }
-  .fn { color: #00d4ff; }
-  .st { color: #10b981; }
-  .nm { color: #f59e0b; }
-  .op { color: #f472b6; }
-
-  /* ── VSCODE GRID ── */
-  .vscode-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; }
-  @media (max-width: 800px) { .vscode-grid { grid-template-columns: 1fr; } }
-  .vs-card {
-    background: rgba(255,255,255,.02); border: 1px solid var(--border);
-    border-radius: 18px; padding: 24px; transition: border-color .3s, transform .3s, box-shadow .3s;
-  }
-  .vs-card:hover { border-color: var(--violet); transform: translateY(-4px); box-shadow: 0 12px 40px rgba(139,92,246,.1); }
-  .vs-card-title {
-    font-size: 14px; font-weight: 600; color: var(--white);
-    margin-bottom: 18px; display: flex; align-items: center; gap: 10px;
-  }
-  .vs-card-title span {
-    font-family: 'Space Mono', monospace; font-size: 10px;
-    background: rgba(139,92,246,.12); color: var(--violet);
-    padding: 3px 10px; border-radius: 8px;
-  }
-  .ext-list { display: flex; flex-direction: column; gap: 12px; }
-  .ext-item {
-    display: flex; align-items: center; gap: 10px;
-    font-size: 13px; color: var(--text);
-    padding: 6px 0; transition: transform .2s;
-  }
-  .ext-item:hover { transform: translateX(4px); }
-  .ext-check { color: var(--green); font-size: 14px; flex-shrink: 0; }
-  .ext-opt { color: var(--muted); font-size: 11px; font-family: 'Space Mono', monospace; }
-  .vs-btn {
-    display: block; text-align: center; padding: 13px 18px; border-radius: 12px;
-    background: linear-gradient(135deg, rgba(139,92,246,.12), rgba(139,92,246,.06));
-    border: 1px solid rgba(139,92,246,.25);
-    color: var(--violet); font-weight: 600; font-size: 14px;
-    text-decoration: none; transition: background .3s, transform .2s;
-  }
-  .vs-btn:hover { background: rgba(139,92,246,.2); transform: translateY(-2px); }
-
-  /* ── TEST GRID ── */
-  .test-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
-  @media (max-width: 768px) { .test-grid { grid-template-columns: 1fr; } }
-  .test-card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 22px;
-    overflow: hidden; transition: border-color .3s, transform .3s;
-  }
-  .test-card:hover { transform: translateY(-4px); }
-  .test-head {
-    padding: 18px 26px; border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 12px;
-  }
-  .test-dot { width: 10px; height: 10px; border-radius: 50%; }
-  .test-head-title { font-size: 14px; font-weight: 600; color: var(--white); }
-
-  /* ── LIBRARY TABLE ── */
-  .lib-table-wrap {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 22px; overflow: hidden; margin-bottom: 32px;
-  }
-  .lib-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  th {
-    background: var(--surface2); padding: 14px 18px;
-    color: var(--cyan); font-family: 'Space Mono', monospace;
-    font-size: 11px; text-align: left; letter-spacing: 1px;
-    border-bottom: 1px solid var(--border);
-  }
-  td {
-    padding: 14px 18px; color: var(--text); vertical-align: top;
-    border-bottom: 1px solid rgba(255,255,255,.04);
-  }
-  tr { transition: background .2s; }
-  tr:hover td { background: rgba(0,212,255,.02); }
-  .lib-name { font-family: 'Space Mono', monospace; font-size: 13px; color: var(--amber); font-weight: 700; }
-
-  /* ── INFO BOX ── */
-  .info-box {
-    background: linear-gradient(135deg, rgba(0,212,255,.04), rgba(16,185,129,.03));
-    border: 1px solid rgba(0,212,255,.12);
-    border-radius: 14px; padding: 18px 24px;
-    font-size: 14px; color: var(--text);
-    display: flex; align-items: flex-start; gap: 12px;
-  }
-  .info-box strong { color: var(--cyan); }
-  .info-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
-
-  /* ── SCROLL REVEAL ── */
-  .reveal {
-    opacity: 0; transform: translateY(28px);
-    transition: opacity .7s ease, transform .7s ease;
-  }
-  .reveal.visible { opacity: 1; transform: translateY(0); }
-
-  /* ── FOOTER ── */
-  footer {
-    border-top: 1px solid var(--border); padding: 44px 32px;
-    text-align: center; font-size: 13px; color: var(--muted);
-    font-family: 'Space Mono', monospace; position: relative; z-index: 1;
-  }
-  footer a { color: var(--cyan); text-decoration: none; }
-
-  /* ── SCROLL PROGRESS ── */
-  #scrollProgress {
-    position: fixed; top: 64px; left: 0; height: 2px;
-    background: linear-gradient(90deg, var(--cyan), var(--violet));
-    z-index: 101; width: 0; transition: width .1s;
-    box-shadow: 0 0 10px rgba(0,212,255,.5);
-  }
+code {
+  font-family: 'Courier New', monospace;
+  font-size: .82em;
+  background: rgba(255,255,255,.07);
+  padding: 2px 7px;
+  border-radius: 6px;
+  color: var(--teal);
+}
 
 /* ============================================================
-   VISITOR SYSTEM
+   LAYOUT
    ============================================================ */
-.visitor-overlay {
-  position:fixed; inset:0; z-index:9999;
-  background:rgba(8,14,26,.92); backdrop-filter:blur(16px);
-  display:flex; align-items:center; justify-content:center;
-  opacity:1; transition:opacity .4s;
-}
-.visitor-overlay.hidden { opacity:0; pointer-events:none; }
+.container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
 
-.visitor-modal {
-  background:var(--surface); border:1px solid var(--border);
-  border-radius:var(--radius-2xl); padding:40px 36px;
-  max-width:440px; width:90%; text-align:center;
-  box-shadow:0 32px 80px rgba(0,0,0,.6);
-  animation: modalIn .5s cubic-bezier(.16,1,.3,1);
-}
-@keyframes modalIn {
-  0%{ opacity:0; transform:translateY(30px) scale(.96); }
-  100%{ opacity:1; transform:translateY(0) scale(1); }
-}
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 
-.visitor-modal h2 {
-  font-family:'Syne',sans-serif; font-weight:800; font-size:1.5rem;
-  background:linear-gradient(135deg,#5eead4,#a5f3fc);
-  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-  margin-bottom:6px;
-}
-.visitor-modal p.sub { color:var(--s300); font-size:.85rem; margin-bottom:28px; }
+.flex         { display: flex; }
+.flex-center  { display: flex; align-items: center; justify-content: center; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.flex-wrap    { flex-wrap: wrap; }
+.items-start  { align-items: flex-start; }
+.gap-3 { gap: 12px; } .gap-4 { gap: 16px; }
+.gap-6 { gap: 24px; } .gap-8 { gap: 32px; }
+.flex-1       { flex: 1; }
+.flex-shrink-0{ flex-shrink: 0; }
+.ml-auto      { margin-left: auto; }
+.mx-auto      { margin-left: auto; margin-right: auto; }
+.text-center  { text-align: center; }
+.text-right   { text-align: right; }
+.relative     { position: relative; }
+.overflow-x-auto { overflow-x: auto; }
+.w-full       { width: 100%; }
 
-.v-input {
-  width:100%; padding:14px 18px; border-radius:14px;
-  border:1px solid var(--s700); background:rgba(255,255,255,.05);
-  color:#fff; font-family:'DM Sans',sans-serif; font-size:.95rem;
-  outline:none; transition:border .25s;
-  margin-bottom:14px;
-}
-.v-input::placeholder { color:var(--s400); }
-.v-input:focus { border-color:var(--teal); box-shadow:0 0 0 3px rgba(45,212,191,.15); }
+/* spacing */
+.mt-2{margin-top:8px}   .mt-3{margin-top:12px}  .mt-4{margin-top:16px}
+.mt-6{margin-top:24px}  .mt-8{margin-top:32px}   .mt-10{margin-top:40px}
+.mt-12{margin-top:48px}
+.mb-2{margin-bottom:8px} .mb-3{margin-bottom:12px} .mb-4{margin-bottom:16px}
+.mb-6{margin-bottom:24px}.mb-8{margin-bottom:32px}
 
-.v-btn-primary {
-  width:100%; padding:14px; border-radius:14px; border:none;
-  background:linear-gradient(135deg,#14b8a6,#06b6d4);
-  color:#fff; font-family:'Syne',sans-serif; font-weight:700;
-  font-size:1.05rem; text-shadow:0 1px 2px rgba(0,0,0,.3); cursor:pointer; transition:transform .2s, box-shadow .2s;
-  margin-top:6px;
-}
-.v-btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(20,184,166,.5); }
-.v-btn-primary:disabled { opacity:.4; cursor:not-allowed; transform:none; box-shadow:none; }
+/* typography */
+.text-xs{font-size:.75rem}   .text-sm{font-size:.875rem}
+.text-lg{font-size:1.125rem} .text-xl{font-size:1.25rem}
+.text-2xl{font-size:1.5rem}  .text-3xl{font-size:1.875rem}
+.font-medium{font-weight:500}   .font-semibold{font-weight:600}
+.font-bold{font-weight:700}     .font-black{font-weight:800}
+.font-mono{font-family:'Courier New',monospace}
+.uppercase{text-transform:uppercase}
+.tracking-widest{letter-spacing:.15em}
+.leading-relaxed{line-height:1.7}
 
-.v-error { color:#fda4af; font-size:.8rem; margin-bottom:10px; display:none; }
+/* colors */
+.text-white{color:#fff}
+.text-teal{color:var(--teal)}    .text-amber{color:var(--amber)}
+.text-rose{color:var(--rose)}    .text-violet{color:var(--violet)}
+.text-lime{color:var(--lime)}
+.text-s300{color:var(--s300)}    .text-s400{color:var(--s400)}
+.text-s500{color:var(--s500)}
 
-/* Floating Visitor Button */
-.visitor-fab {
-  position:fixed; bottom:24px; right:24px; z-index:8888;
-  width:56px; height:56px; border-radius:50%;
-  background:linear-gradient(135deg,var(--teal),#22d3ee);
-  border:none; cursor:pointer; display:flex; align-items:center; justify-content:center;
-  box-shadow:0 6px 24px rgba(45,212,191,.4);
-  transition:transform .25s, box-shadow .25s;
-  font-size:1.4rem;
-}
-.visitor-fab:hover { transform:scale(1.08); box-shadow:0 8px 32px rgba(45,212,191,.5); }
-
-.visitor-fab .fab-count {
-  position:absolute; top:-4px; right:-4px;
-  background:var(--rose); color:#fff; font-size:.65rem; font-weight:700;
-  min-width:22px; height:22px; border-radius:50%; display:flex;
-  align-items:center; justify-content:center; padding:0 5px;
-  border:2px solid var(--bg);
+/* ============================================================
+   BADGE & CHIPS
+   ============================================================ */
+.badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: rgba(45,212,191,.1); border: 1px solid rgba(45,212,191,.3);
+  color: var(--teal); padding: 5px 14px; border-radius: 999px;
+  font-size: .72rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
 }
 
-/* Visitor Panel */
-.visitor-panel {
-  position:fixed; bottom:92px; right:24px; z-index:8887;
-  width:340px; max-height:480px; overflow:hidden;
-  background:var(--surface); border:1px solid var(--border);
-  border-radius:var(--radius-2xl); box-shadow:0 24px 64px rgba(0,0,0,.5);
-  display:flex; flex-direction:column;
-  transform:translateY(12px) scale(.95); opacity:0; pointer-events:none;
-  transition:transform .3s cubic-bezier(.16,1,.3,1), opacity .25s;
+.chip {
+  display: inline-block; padding: 4px 12px; border-radius: 10px;
+  font-size: .72rem; font-weight: 500;
 }
-.visitor-panel.open { transform:translateY(0) scale(1); opacity:1; pointer-events:auto; }
+.chip-teal   { background: rgba(45,212,191,.1);  color: var(--teal);   border: 1px solid rgba(45,212,191,.2);  }
+.chip-amber  { background: rgba(251,191,36,.1);   color: var(--amber);  border: 1px solid rgba(251,191,36,.2);  }
+.chip-violet { background: rgba(167,139,250,.1);  color: var(--violet); border: 1px solid rgba(167,139,250,.2); }
+.chip-lime   { background: rgba(163,230,53,.1);   color: var(--lime);   border: 1px solid rgba(163,230,53,.2);  }
+.chip-rose   { background: rgba(251,113,133,.1);  color: var(--rose);   border: 1px solid rgba(251,113,133,.2); }
 
-.vp-header {
-  padding:20px 22px 14px; border-bottom:1px solid rgba(255,255,255,.06);
-  display:flex; align-items:center; justify-content:space-between;
-}
-.vp-header h3 { font-family:'Syne',sans-serif; font-weight:700; font-size:1rem; color:#fff; }
-.vp-header .vp-badge {
-  background:rgba(45,212,191,.12); color:var(--teal); font-size:.7rem;
-  font-weight:700; padding:4px 10px; border-radius:999px;
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero {
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, #0d3a5c 0%, #080e1a 70%);
+  border-bottom: 1px solid var(--border);
+  padding: 64px 0 48px;
 }
 
-.vp-list { overflow-y:auto; padding:10px 16px 16px; flex:1; }
-
-.vp-item {
-  display:flex; align-items:center; gap:12px;
-  padding:10px 12px; border-radius:14px; margin-bottom:6px;
-  background:rgba(255,255,255,.03); transition:background .2s;
+.hero-inner {
+  display: flex; flex-direction: column; gap: 32px;
 }
-.vp-item:hover { background:rgba(255,255,255,.06); }
-
-.vp-avatar {
-  width:38px; height:38px; border-radius:12px;
-  display:flex; align-items:center; justify-content:center;
-  font-weight:700; font-size:.85rem; flex-shrink:0;
+@media(min-width:900px){
+  .hero-inner { flex-direction: row; align-items: flex-end; justify-content: space-between; }
 }
-.vp-avatar.student { background:rgba(45,212,191,.12); color:var(--teal); }
-.vp-avatar.dosen   { background:rgba(251,191,36,.12);  color:var(--amber); }
 
-.vp-info { flex:1; min-width:0; }
-.vp-name { font-weight:600; font-size:.88rem; color:var(--s200); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.vp-nim  { font-size:.72rem; color:var(--s500); font-family:'Courier New',monospace; }
-.vp-time { font-size:.68rem; color:var(--s500); text-align:right; flex-shrink:0; white-space:nowrap; }
-
-.vp-empty { text-align:center; padding:32px 16px; color:var(--s500); font-size:.85rem; }
-
-@media(max-width:480px){
-  .visitor-panel { width:calc(100vw - 32px); right:16px; bottom:88px; }
-  .visitor-fab { bottom:18px; right:18px; }
+.hero-title {
+  font-size: clamp(1.9rem, 4.5vw, 3.4rem);
+  font-weight: 800; line-height: 1.08;
+  background: linear-gradient(135deg, #5eead4, #a5f3fc, #e2e8f0);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
 }
+
+.hero-right { text-align: right; flex-shrink: 0; }
+
+/* ============================================================
+   TICKER
+   ============================================================ */
+.ticker-wrap { border: 1px solid var(--s700); border-radius: 20px; overflow: hidden; margin-top: 36px; }
+.ticker-head { background: rgba(15,23,42,.7); padding: 8px 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--s700); }
+.live-dot {
+  width: 10px; height: 10px; border-radius: 50%; background: var(--lime); flex-shrink: 0;
+  animation: pingLime 1.8s ease-out infinite;
+}
+@keyframes pingLime {
+  0%  { box-shadow: 0 0 0 0 rgba(163,230,53,.7); }
+  80% { box-shadow: 0 0 0 10px rgba(163,230,53,0); }
+  100%{ box-shadow: 0 0 0 0 rgba(163,230,53,0); }
+}
+.ticker-body { padding: 10px 16px; overflow: hidden; }
+.ticker-track { display: flex; gap: 40px; width: max-content; animation: tickMove 22s linear infinite; }
+@keyframes tickMove { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+.ticker-item { white-space: nowrap; font-size: .72rem; font-family: 'Courier New',monospace; color: rgba(163,230,53,.75); }
+
+/* ============================================================
+   WELCOME BOX
+   ============================================================ */
+.welcome-box {
+  background: linear-gradient(90deg, rgba(45,212,191,.08), transparent);
+  border: 1px solid rgba(45,212,191,.2); border-radius: 28px;
+  padding: 32px; display: flex; gap: 24px; align-items: flex-start; margin-top: 48px;
+}
+.welcome-icon {
+  flex-shrink: 0; width: 64px; height: 64px;
+  background: linear-gradient(135deg, var(--teal), #22d3ee);
+  border-radius: 20px; display: flex; align-items: center; justify-content: center;
+  font-size: 2rem; box-shadow: 0 8px 24px rgba(45,212,191,.3);
+}
+
+/* ============================================================
+   SECTION
+   ============================================================ */
+.section { margin-top: 80px; }
+.section-header { position: relative; margin-bottom: 32px; }
+.section-number {
+  font-family: 'Syne', sans-serif; font-size: 5rem; font-weight: 800;
+  color: rgba(45,212,191,.07); line-height: 1;
+  position: absolute; right: 0; top: -12px;
+  pointer-events: none; user-select: none;
+}
+
+/* ============================================================
+   STEP CARDS
+   ============================================================ */
+.step-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  overflow: hidden;
+  transition: transform .35s cubic-bezier(.34,1.56,.64,1), box-shadow .3s, border-color .25s;
+}
+.step-card:hover {
+  transform: translateY(-10px) scale(1.01);
+  box-shadow: 0 24px 48px rgba(0,0,0,.4);
+  border-color: var(--sc, var(--teal));
+}
+.step-accent { height: 3px; }
+.step-body { padding: 28px; }
+
+.step-head {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 22px;
+}
+.step-num {
+  width: 44px; height: 44px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; flex-shrink: 0;
+}
+
+/* ============================================================
+   SUBSTEP LIST
+   ============================================================ */
+.substep {
+  display: flex; gap: 14px; align-items: flex-start;
+  padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,.04);
+  font-size: .9rem; color: var(--s300);
+}
+.substep:last-child { border-bottom: none; padding-bottom: 0; }
+.substep-num {
+  font-family: 'Courier New', monospace; font-size: .72rem; font-weight: 700;
+  background: rgba(255,255,255,.07); color: var(--teal);
+  padding: 3px 9px; border-radius: 8px; flex-shrink: 0; margin-top: 2px;
+}
+
+/* ============================================================
+   EXTENSION LIST
+   ============================================================ */
+.ext-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; border-radius: 12px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.05);
+  margin-bottom: 8px; font-size: .87rem;
+  transition: background .2s, border-color .2s;
+}
+.ext-item:hover { background: rgba(255,255,255,.07); border-color: rgba(45,212,191,.2); }
+.ext-item:last-child { margin-bottom: 0; }
+.ext-check { color: var(--lime); font-weight: 700; flex-shrink: 0; }
+.ext-tag { margin-left: auto; font-size: .68rem; font-family: 'Courier New',monospace; color: var(--s500); }
+
+/* ============================================================
+   VS CODE BUTTON
+   ============================================================ */
+.vscode-btn {
+  display: block; text-align: center; padding: 14px 20px;
+  background: linear-gradient(135deg, #0078d4, #005a9e);
+  color: #fff; border-radius: 14px; font-weight: 600;
+  font-size: .9rem; text-decoration: none;
+  transition: all .25s; margin-top: 16px;
+  border: 1px solid rgba(0,120,212,.4);
+}
+.vscode-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,120,212,.4);
+  text-decoration: none;
+}
+
+/* ============================================================
+   CODE CELLS
+   ============================================================ */
+.cell {
+  background: rgba(15,25,41,.9);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 22px; overflow: hidden; margin-bottom: 16px;
+}
+.cell-bar {
+  background: rgba(255,255,255,.04); padding: 9px 18px;
+  display: flex; align-items: center; gap: 10px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.dot-row { display: flex; gap: 6px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot-r { background: rgba(239,68,68,.6); }
+.dot-y { background: rgba(234,179,8,.6); }
+.dot-g { background: rgba(34,197,94,.6); }
+.cell-label { font-family: 'Courier New',monospace; font-size: .7rem; color: var(--s500); }
+.cell-run   { font-family: 'Courier New',monospace; font-size: .7rem; color: var(--teal); margin-left: auto; }
+
+.code-pre {
+  background: #020810; padding: 22px 24px;
+  font-family: 'Courier New',monospace; font-size: .78rem;
+  line-height: 1.75; overflow-x: auto; white-space: pre;
+  color: #e2e8f0; margin: 0; border: none;
+}
+.kw  { color: #c084fc; }  .fn  { color: #60a5fa; }
+.str { color: #86efac; }  .cm  { color: #475569; font-style: italic; }
+.nm  { color: #fbbf24; }  .op  { color: var(--teal); }
+.cmd { color: #e2e8f0; }  .flag{ color: var(--amber); }
+
+/* ============================================================
+   HINT BOX
+   ============================================================ */
+.hint-box { padding: 12px 16px; border-radius: 14px; font-size: .83rem; margin-top: 16px; }
+.hint-teal   { background: rgba(45,212,191,.08);  border: 1px solid rgba(45,212,191,.2);  color: #99f6e4; }
+.hint-amber  { background: rgba(251,191,36,.08);  border: 1px solid rgba(251,191,36,.2);  color: #fde68a; }
+.hint-rose   { background: rgba(251,113,133,.08); border: 1px solid rgba(251,113,133,.2); color: #fecdd3; }
+.hint-violet { background: rgba(167,139,250,.08); border: 1px solid rgba(167,139,250,.2); color: #ddd6fe; }
+.hint-lime   { background: rgba(163,230,53,.08);  border: 1px solid rgba(163,230,53,.2);  color: #d9f99d; }
+
+/* ============================================================
+   LIBRARY GRID
+   ============================================================ */
+.lib-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px; padding: 18px 20px;
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1), box-shadow .3s, border-color .25s;
+}
+.lib-card:hover {
+  transform: translateY(-6px);
+  border-color: var(--lc, var(--teal));
+  box-shadow: 0 12px 28px rgba(0,0,0,.35), 0 0 16px -6px var(--lc, var(--teal));
+}
+.lib-icon { font-size: 1.8rem; margin-bottom: 10px; display: block; }
+.lib-name { font-family: 'Courier New',monospace; font-size: .85rem; font-weight: 700; margin-bottom: 4px; }
+.lib-desc { font-size: .78rem; color: var(--s500); line-height: 1.5; }
+
+/* ============================================================
+   FLOWCHART SVG
+   ============================================================ */
+.flow-diagram {
+  background: rgba(2,8,16,.8);
+  border: 1px solid rgba(45,212,191,.15);
+  border-radius: 20px;
+  padding: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  overflow-x: auto;
+}
+
+.flow-node {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.flow-box {
+  border-radius: 14px; padding: 12px 20px;
+  font-family: 'Syne',sans-serif; font-weight: 700; font-size: .82rem;
+  text-align: center; min-width: 110px; border: 1px solid;
+  transition: transform .25s;
+}
+.flow-box:hover { transform: scale(1.05); }
+.flow-sub { font-size: .65rem; font-family: 'Courier New',monospace; color: var(--s500); }
+
+.flow-arrow {
+  display: flex; align-items: center;
+  font-size: 1.2rem; color: var(--s600);
+  padding: 0 8px; flex-shrink: 0;
+}
+
+/* ============================================================
+   INTERPRETER STEPS
+   ============================================================ */
+.kbd {
+  display: inline-block;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 8px;
+  padding: 3px 10px;
+  font-family: 'Courier New',monospace;
+  font-size: .8rem;
+  color: var(--amber);
+}
+
+/* ============================================================
+   DETAIL PANEL (like in Modul 2)
+   ============================================================ */
+.detail-panel {
+  background: rgba(15,25,41,.85);
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 26px;
+  overflow: hidden;
+}
+.detail-panel-head {
+  padding: 22px 28px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  display: flex; align-items: center; gap: 14px;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+footer {
+  border-top: 1px solid rgba(255,255,255,.06);
+  padding: 32px 0; text-align: center;
+  font-size: .75rem; color: var(--s500); margin-top: 64px;
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp .7s ease forwards; }
+.d1 { animation-delay: .1s; opacity: 0; }
+.d2 { animation-delay: .2s; opacity: 0; }
+.d3 { animation-delay: .3s; opacity: 0; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media(max-width:900px){
+  .grid-2 { grid-template-columns: 1fr; }
+  .hero-right { text-align: left; }
+}
+@media(max-width:640px){
+  .grid-3 { grid-template-columns: 1fr 1fr; }
+  .flow-diagram { flex-direction: column; }
+  .flow-arrow { transform: rotate(90deg); }
+}
+@media(max-width:420px){
+  .grid-3 { grid-template-columns: 1fr; }
+}
+
+/* ── VISITOR SYSTEM ── */
+.visitor-overlay{position:fixed;inset:0;z-index:99999;background:rgba(8,14,26,.94);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity .4s}
+.visitor-overlay.hidden{opacity:0;pointer-events:none}
+.visitor-modal{background:var(--surface,#0f1929);border:1px solid var(--border,rgba(45,212,191,.15));border-radius:24px;padding:40px 36px;max-width:440px;width:90%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.6);animation:vModalIn .5s cubic-bezier(.16,1,.3,1)}
+@keyframes vModalIn{0%{opacity:0;transform:translateY(30px) scale(.96)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.visitor-modal h2{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,#5eead4,#a5f3fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
+.visitor-modal p.sub{color:var(--s400,#94a3b8);font-size:.85rem;margin-bottom:28px}
+.v-input{width:100%;padding:14px 18px;border-radius:14px;border:1px solid var(--s700,#334155);background:rgba(255,255,255,.05);color:#fff;font-family:'DM Sans',system-ui,sans-serif;font-size:.95rem;outline:none;transition:border .25s;margin-bottom:14px}
+.v-input::placeholder{color:var(--s500,#64748b)}
+.v-input:focus{border-color:var(--teal,#2dd4bf);box-shadow:0 0 0 3px rgba(45,212,191,.15)}
+.v-btn-primary{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--teal,#2dd4bf),#22d3ee);color:#080e1a;font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;cursor:pointer;transition:transform .2s,box-shadow .2s;margin-top:6px}
+.v-btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(45,212,191,.35)}
+.v-error{color:var(--rose,#fb7185);font-size:.8rem;margin-bottom:10px;display:none}
+.v-btn-cancel{width:100%;padding:12px;border-radius:14px;margin-top:12px;border:1px solid var(--s700,#334155);background:rgba(255,255,255,.04);color:var(--s400,#94a3b8);font-family:'DM Sans',sans-serif;font-weight:600;font-size:.88rem;cursor:pointer;transition:all .25s}
+.v-btn-cancel:hover{background:rgba(255,255,255,.08)}
+.visitor-fab{position:fixed;bottom:24px;right:24px;z-index:8888;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--teal,#2dd4bf),#22d3ee);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(45,212,191,.4);transition:transform .25s,box-shadow .25s;font-size:1.4rem}
+.visitor-fab:hover{transform:scale(1.08);box-shadow:0 8px 32px rgba(45,212,191,.5)}
+.visitor-fab .fab-count{position:absolute;top:-4px;right:-4px;background:var(--rose,#fb7185);color:#fff;font-size:.65rem;font-weight:700;min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid var(--bg,#080e1a)}
+.visitor-panel{position:fixed;bottom:92px;right:24px;z-index:8887;width:340px;max-height:480px;overflow:hidden;background:var(--surface,#0f1929);border:1px solid var(--border,rgba(45,212,191,.15));border-radius:20px;box-shadow:0 24px 64px rgba(0,0,0,.5);display:flex;flex-direction:column;transform:translateY(12px) scale(.95);opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .25s}
+.visitor-panel.open{transform:translateY(0) scale(1);opacity:1;pointer-events:auto}
+.vp-header{padding:20px 22px 14px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between}
+.vp-header h3{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:#fff}
+.vp-header .vp-badge{background:rgba(45,212,191,.12);color:var(--teal,#2dd4bf);font-size:.7rem;font-weight:700;padding:4px 10px;border-radius:999px}
+.vp-list{overflow-y:auto;padding:10px 16px 16px;flex:1}
+.vp-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;margin-bottom:6px;background:rgba(255,255,255,.03);transition:background .2s}
+.vp-item:hover{background:rgba(255,255,255,.06)}
+.vp-avatar{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0}
+.vp-avatar.student{background:rgba(45,212,191,.12);color:var(--teal,#2dd4bf)}
+.vp-avatar.dosen{background:rgba(251,191,36,.12);color:var(--amber,#fbbf24)}
+.vp-info{flex:1;min-width:0}
+.vp-name{font-weight:600;font-size:.88rem;color:var(--s200,#e2e8f0);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vp-nim{font-size:.72rem;color:var(--s500,#64748b);font-family:'Courier New',monospace}
+.vp-time{font-size:.68rem;color:var(--s500,#64748b);text-align:right;flex-shrink:0;white-space:nowrap}
+.vp-empty{text-align:center;padding:32px 16px;color:var(--s500,#64748b);font-size:.85rem}
+@media(max-width:480px){.visitor-panel{width:calc(100vw - 32px);right:16px;bottom:88px}.visitor-fab{bottom:18px;right:18px}}
 
 </style>
 </head>
 <body>
 
-<!-- ==================== VISITOR MODAL ==================== -->
+<!-- ═══ VISITOR LOGIN MODAL ═══ -->
 <div class="visitor-overlay" id="visitorOverlay">
   <div class="visitor-modal">
     <div style="font-size:2.8rem;margin-bottom:12px;">🎓</div>
     <h2>Selamat Datang!</h2>
-    <p class="sub">Silakan masukkan identitas Anda untuk mengakses modul ini.</p>
-    <p class="v-error" id="vError">⚠ Nama dan NIM wajib diisi.</p>
+    <p class="sub">Silakan masukkan identitas Anda untuk mengakses halaman ini.</p>
+    <p class="v-error" id="vError"></p>
     <input type="text" class="v-input" id="vNama" placeholder="Nama Lengkap" autocomplete="off">
     <input type="text" class="v-input" id="vNim" placeholder="NIM (Nomor Induk Mahasiswa)" autocomplete="off">
     <button class="v-btn-primary" id="vSubmit" onclick="submitVisitor()">Masuk ke Setup Python →</button>
@@ -516,590 +485,802 @@
 </div>
 
 <!-- Reset Password Modal -->
-<div class="visitor-overlay hidden" id="resetOverlay" style="z-index:10000;">
+<div class="visitor-overlay hidden" id="resetOverlay" style="z-index:100000;">
   <div class="visitor-modal" style="max-width:380px;">
     <div style="font-size:2.4rem;margin-bottom:12px;">🔐</div>
     <h2 style="font-size:1.3rem;">Konfirmasi Reset</h2>
     <p class="sub">Masukkan password untuk menghapus semua data pengunjung.</p>
     <p class="v-error" id="resetError">⚠ Password salah.</p>
     <input type="password" class="v-input" id="resetPw" placeholder="Password" autocomplete="off">
-    <button class="v-btn-primary" style="background:linear-gradient(135deg,var(--rose),#f43f5e);" onclick="confirmReset()">Hapus Semua Pengunjung</button>
-    <button style="width:100%;margin-top:12px;padding:12px;border-radius:14px;border:1px solid var(--s700);background:rgba(255,255,255,.04);color:var(--s400);font-family:'DM Sans',sans-serif;font-weight:600;font-size:.88rem;cursor:pointer;" onclick="hideResetModal()">Batal</button>
+    <button class="v-btn-primary" style="background:linear-gradient(135deg,var(--rose,#fb7185),#f43f5e);" onclick="confirmReset()">Hapus Semua Pengunjung</button>
+    <button class="v-btn-cancel" onclick="hideResetModal()">Batal</button>
   </div>
 </div>
 
 <!-- Floating Visitor Button -->
-<button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Daftar Pengunjung">
-  👥
-  <span class="fab-count" id="fabCount">0</span>
-</button>
+<button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Daftar Pengunjung">👥<span class="fab-count" id="fabCount">0</span></button>
 
 <!-- Visitor Panel -->
 <div class="visitor-panel" id="visitorPanel">
-  <div class="vp-header">
-    <h3>👥 Pengunjung</h3>
-    <span class="vp-badge" id="vpBadge">0 orang</span>
-  </div>
-  <div class="vp-list" id="vpList">
-    <div class="vp-empty">Memuat data pengunjung...</div>
-  </div>
+  <div class="vp-header"><h3>👥 Pengunjung</h3><span class="vp-badge" id="vpBadge">0 orang</span></div>
+  <div class="vp-list" id="vpList"><div class="vp-empty">Memuat data pengunjung...</div></div>
 </div>
 
 
-
-<!-- Scroll progress bar -->
-<div id="scrollProgress"></div>
-
-<!-- Animated wave background -->
-<canvas id="waveCanvas"></canvas>
-
-<!-- ─── NAVBAR ─── -->
-<nav>
-  <span class="nav-brand"><span class="pulse"></span> GETARAN // SETUP</span>
-  <div class="nav-links">
-    <a href="#langkah">Langkah Setup</a>
-    <a href="#vscode">VS Code</a>
-    <a href="#tes">Tes &amp; Contoh</a>
-    <a href="#library">Library</a>
-  </div>
-  <span class="nav-badge">👨‍🏫 DEDIK ROMAHADI</span>
-</nav>
-
-<!-- ─── HERO ─── -->
-<div class="hero">
-  <div class="hero-grid"></div>
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-  <div class="orb orb-3"></div>
-  <div class="hero-content">
-    <div class="hero-tag">
-      〰️ &nbsp;Panduan Setup · Getaran Mekanik · 2026
+<!-- ==================== HERO ==================== -->
+<header class="hero">
+  <div class="container">
+    <div class="fade-up">
+      <span class="badge">⚙️ Panduan Setup</span>
     </div>
-    <h1 class="hero-title">
-      Setup <em>Python</em><br>untuk <span>Getaran Mekanik</span>
-    </h1>
-    <p class="hero-sub">Setup lengkap dari nol menggunakan Miniconda + VS Code untuk simulasi getaran bebas/paksa, analisis multi-DoF, respons frekuensi, dan visualisasi getaran.</p>
-    <div class="hero-pills">
-      <span class="pill">🐍 Python (Latest)</span>
-      <span class="pill">📦 Miniconda</span>
-      <span class="pill">📓 Jupyter Notebook</span>
-      <span class="pill">🖥️ VS Code</span>
-      <span class="pill">⏱️ ~10 Menit</span>
+
+    <div class="hero-inner mt-6">
+      <div class="fade-up d1">
+        <h1 class="hero-title">Setup Python &amp;<br>Jupyter Notebook</h1>
+        <p class="mt-3 text-s400" style="font-size:1.05rem;max-width:500px;">
+          Konfigurasi lengkap environment Python untuk Mata Kuliah
+          Optimalisasi &amp; Otomasi menggunakan <strong class="text-teal">Miniconda</strong> +
+          <strong class="text-violet">VS Code</strong>.
+        </p>
+        <div class="flex flex-wrap gap-3 mt-5">
+          <span class="chip chip-lime">🖥️ Windows / macOS / Linux</span>
+          <span class="chip chip-teal">⏱️ Hanya ~10 menit</span>
+          <span class="chip chip-violet">🐍 100% Conda</span>
+        </div>
+      </div>
+      <div class="hero-right fade-up d2">
+        <p class="text-xs uppercase tracking-widest text-s500 mb-1">Dosen Pengampu</p>
+        <p style="font-size:1.6rem;font-family:'Syne',sans-serif;font-weight:700;">Dedik Romahadi</p>
+        <p class="text-s500 mt-1" style="font-size:.85rem;">Optimalisasi &amp; Otomasi • S1 Teknik Mesin</p>
+      </div>
     </div>
-    <div class="hero-os">
-      <div class="os-badge"><span class="os-icon">🪟</span> Windows</div>
-      <div class="os-badge"><span class="os-icon">🍎</span> macOS</div>
-      <div class="os-badge"><span class="os-icon">🐧</span> Linux</div>
+
+    <!-- Ticker -->
+    <div class="ticker-wrap mt-10">
+      <div class="ticker-head">
+        <div class="live-dot"></div>
+        <span class="text-xs uppercase tracking-widest font-mono font-semibold" style="color:var(--lime);">
+          Environment: optauto • Python (latest) • Miniconda • VS Code • Jupyter
+        </span>
+      </div>
+      <div class="ticker-body">
+        <div class="ticker-track" id="ticker"></div>
+      </div>
     </div>
   </div>
-</div>
+</header>
 
-<!-- ─── LANGKAH SETUP ─── -->
-<hr class="divider">
-<div class="section" id="langkah">
-  <div class="section-label reveal">Panduan Instalasi</div>
-  <h2 class="section-title reveal">Langkah-Langkah<br>Setup Environment</h2>
-  <p class="section-desc reveal">Ikuti tiga langkah berikut secara berurutan. Setelah selesai, environment <code>getaran</code> siap digunakan untuk semua simulasi.</p>
-
-  <!-- Instructor note -->
-  <div class="instructor-note reveal">
-    <div class="inst-avatar">👨‍🏫</div>
+<!-- ==================== WELCOME ==================== -->
+<div class="container">
+  <div class="welcome-box fade-up d2">
+    <div class="welcome-icon">👨‍🏫</div>
     <div>
-      <h3>Halo Mahasiswa Getaran Mekanik! 👋</h3>
-      <p>Setup ini disusun khusus agar kalian bisa langsung mengerjakan simulasi getaran, menyelesaikan persamaan diferensial getaran, menganalisis respons sistem dalam domain waktu &amp; frekuensi, serta membuat animasi getaran. Semua berjalan nyaman di <strong style="color:var(--cyan)">VS Code + Jupyter Notebook</strong>.</p>
+      <h2 class="text-xl font-bold mb-2">Halo, Mahasiswa Optimalisasi &amp; Otomasi!</h2>
+      <p class="text-s300 leading-relaxed">
+        Selamat datang di panduan setup yang saya susun khusus untuk mata kuliah ini.
+        Dengan konfigurasi ini, kalian bisa langsung menulis kode
+        <strong class="text-teal">matematika simbolik (SymPy)</strong>,
+        memproses sinyal <strong class="text-violet">(SciPy)</strong>,
+        melatih model ML <strong class="text-amber">(scikit-learn + PyTorch)</strong>,
+        dan membuat flowchart otomatis menggunakan
+        <strong class="text-lime">Graphviz + NetworkX</strong>.
+        Semua berjalan mulus di <strong>VS Code + Jupyter Notebook</strong>.
+        Ikuti langkah demi langkah dengan sabar — hanya butuh sekitar 10 menit!
+      </p>
     </div>
   </div>
+</div>
 
-  <!-- STEP 1 & 2 -->
-  <div class="steps-grid">
+<!-- ==================== SECTION 1: MINICONDA ==================== -->
+<section class="section container">
+  <div class="section-header">
+    <span class="section-number">01</span>
+    <span class="badge mb-3">Langkah Pertama</span>
+    <h2 class="text-3xl font-bold mt-2">Instal Miniconda</h2>
+    <p class="text-s400 mt-2">Basis Python yang ringan, cepat, dan mudah dikelola. Ini fondasi segalanya.</p>
+  </div>
 
-    <!-- STEP 1: Miniconda -->
-    <div class="step-card reveal">
-      <div class="step-bar" style="background:linear-gradient(90deg,var(--cyan),#40c4ff)"></div>
-      <div class="step-head">
-        <div class="step-num-badge" style="background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);color:var(--cyan)">01</div>
-        <div>
-          <h3>📦 Instal Miniconda</h3>
-          <p>Python environment manager yang ringan</p>
+  <div class="grid-2">
+
+    <!-- Steps -->
+    <div class="step-card" style="--sc:var(--teal)">
+      <div class="step-accent" style="background:linear-gradient(90deg,var(--teal),#22d3ee);"></div>
+      <div class="step-body">
+        <div class="step-head">
+          <div class="step-num" style="background:rgba(45,212,191,.12)">📥</div>
+          <div>
+            <h3 class="font-bold text-xl text-teal">Download &amp; Install</h3>
+            <p class="text-xs text-s500 mt-1">Miniconda3 — distribusi Python minimal</p>
+          </div>
+        </div>
+
+        <div class="substep">
+          <span class="substep-num">01</span>
+          <span>Buka browser → kunjungi
+            <a href="https://docs.conda.io/en/latest/miniconda.html" target="_blank">docs.conda.io/miniconda</a>
+          </span>
+        </div>
+        <div class="substep">
+          <span class="substep-num">02</span>
+          <span>Pilih installer sesuai OS kalian:
+            <strong class="text-teal">Miniconda3 Windows 64-bit</strong> /
+            macOS / Linux
+          </span>
+        </div>
+        <div class="substep">
+          <span class="substep-num">03</span>
+          <span>Jalankan installer →
+            <strong class="text-amber">centang "Add Miniconda3 to PATH"</strong>
+            → klik Next sampai selesai
+          </span>
+        </div>
+        <div class="substep">
+          <span class="substep-num">04</span>
+          <span>Buka terminal baru → ketik
+            <code>conda --version</code> untuk verifikasi instalasi
+          </span>
+        </div>
+
+        <div class="hint-box hint-teal">
+          💡 Jika <code>conda</code> tidak dikenali setelah install, restart terminal
+          atau cari <strong>Miniconda Prompt</strong> di Start Menu Windows.
         </div>
       </div>
-      <div class="step-body">
-        <div class="sub-step">
-          <div class="sub-num" style="background:rgba(0,212,255,.08);color:var(--cyan)">1</div>
-          <div class="sub-text">🌐 Buka situs resmi → <a href="https://docs.conda.io/en/latest/miniconda.html" target="_blank">docs.conda.io/miniconda</a></div>
-        </div>
-        <div class="sub-step">
-          <div class="sub-num" style="background:rgba(0,212,255,.08);color:var(--cyan)">2</div>
-          <div class="sub-text">⬇️ Unduh <strong>Miniconda3 terbaru</strong> sesuai sistem operasi (64-bit)</div>
-        </div>
-        <div class="sub-step">
-          <div class="sub-num" style="background:rgba(0,212,255,.08);color:var(--cyan)">3</div>
-          <div class="sub-text">⚙️ Jalankan installer → <strong>centang "Add Miniconda3 to PATH"</strong></div>
-        </div>
-        <div class="sub-step">
-          <div class="sub-num" style="background:rgba(0,212,255,.08);color:var(--cyan)">4</div>
-          <div class="sub-text">✅ Verifikasi — buka terminal baru lalu ketik: <code>conda --version</code></div>
-        </div>
-        <div style="margin-top:16px;">
-          <div class="code-wrap">
-            <div class="code-header">
-              <span class="code-label">
-                <span class="code-dots"><span style="background:#ef4444"></span><span style="background:#f59e0b"></span><span style="background:#10b981"></span></span>
-                Terminal / Command Prompt
-              </span>
-              <span class="code-lang">Shell</span>
+    </div>
+
+    <!-- Verify cell -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div class="step-card" style="--sc:var(--lime)">
+        <div class="step-accent" style="background:linear-gradient(90deg,var(--lime),var(--teal));"></div>
+        <div class="step-body">
+          <div class="step-head">
+            <div class="step-num" style="background:rgba(163,230,53,.12)">✅</div>
+            <div>
+              <h3 class="font-bold text-lg text-lime">Verifikasi Instalasi</h3>
+              <p class="text-xs text-s500 mt-1">Jalankan di terminal / Miniconda Prompt</p>
             </div>
-            <pre><span class="cm"># Verifikasi Miniconda berhasil diinstal</span>
+          </div>
+          <div class="cell" style="margin-bottom:0">
+            <div class="cell-bar">
+              <div class="dot-row"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+              <span class="cell-label">Terminal / Miniconda Prompt</span>
+            </div>
+<pre class="code-pre"><span class="cm"># Cek versi conda</span>
 conda --version
-<span class="cm"># Output contoh: conda 24.x.x</span></pre>
+
+<span class="cm"># Output yang diharapkan:</span>
+<span class="str">conda 24.x.x</span>
+
+<span class="cm"># Cek versi Python</span>
+python --version
+
+<span class="cm"># Output yang diharapkan:</span>
+<span class="str">Python 3.x.x  </span><span class="cm"># versi terbaru yang tersedia</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- OS chips -->
+      <div class="step-card" style="--sc:var(--violet);padding:0">
+        <div class="step-accent" style="background:linear-gradient(90deg,var(--violet),#818cf8);"></div>
+        <div class="step-body">
+          <p class="text-xs text-s500 uppercase tracking-widest font-semibold mb-3">Kompatibilitas OS</p>
+          <div class="flex flex-wrap gap-2">
+            <span class="chip chip-teal">🪟 Windows 10/11 (64-bit)</span>
+            <span class="chip chip-violet">🍎 macOS 12+ (Intel &amp; Apple Silicon)</span>
+            <span class="chip chip-lime">🐧 Ubuntu 20.04+ / Debian</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- STEP 2: Environment -->
-    <div class="step-card reveal">
-      <div class="step-bar" style="background:linear-gradient(90deg,var(--green),#1de9b6)"></div>
-      <div class="step-head">
-        <div class="step-num-badge" style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);color:var(--green)">02</div>
-        <div>
-          <h3>🔧 Buat Environment <code style="font-size:13px">getaran</code></h3>
-          <p>Python versi terbaru otomatis</p>
-        </div>
+  </div>
+</section>
+
+<!-- ==================== SECTION 2: ENVIRONMENT ==================== -->
+<section class="section container">
+  <div class="section-header">
+    <span class="section-number">02</span>
+    <span class="badge mb-3">Langkah Kedua</span>
+    <h2 class="text-3xl font-bold mt-2">Buat Environment <code>optauto</code></h2>
+    <p class="text-s400 mt-2">
+      Environment terisolasi agar library mata kuliah ini tidak bentrok dengan project lain.
+    </p>
+  </div>
+
+  <!-- Create env -->
+  <div class="cell mb-6">
+    <div class="cell-bar">
+      <div class="dot-row"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+      <span class="cell-label">Miniconda Prompt / Terminal — Buat &amp; Aktifkan Environment</span>
+    </div>
+<pre class="code-pre"><span class="cm"># Buka Miniconda Prompt (Windows: cari "Miniconda Prompt" di Start)</span>
+<span class="cm"># macOS/Linux: buka Terminal biasa</span>
+
+<span class="cm"># 1. Buat environment baru — conda otomatis memilih Python terbaru</span>
+<span class="cm">#    (tidak perlu menentukan versi secara manual)</span>
+conda create -n optauto python -y
+
+<span class="cm"># Cek versi Python yang terinstal</span>
+conda activate optauto
+python --version   <span class="cm"># output: Python 3.x.x (versi terbaru)</span>
+
+<span class="cm"># 2. Prompt akan berubah menjadi: (optauto) C:\Users\...></span>
+<span class="cm"># Artinya environment sudah aktif ✅</span></pre>
+  </div>
+
+  <!-- Install packages -->
+  <div class="cell mb-6">
+    <div class="cell-bar">
+      <div class="dot-row"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+      <span class="cell-label">Miniconda Prompt — Install Semua Paket (jalankan 1 kali)</span>
+    </div>
+<pre class="code-pre"><span class="cm"># Install semua library sekaligus dari channel conda-forge</span>
+<span class="cm"># Proses ini ~5-10 menit tergantung kecepatan internet</span>
+conda install -c conda-forge <span class="flag">\</span>
+    jupyter numpy scipy pandas matplotlib <span class="flag">\</span>
+    sympy scikit-learn <span class="flag">\</span>
+    pytorch torchvision torchaudio cpuonly <span class="flag">\</span>
+    graphviz python-graphviz networkx -y
+
+<span class="cm"># Daftarkan environment ke Jupyter kernel</span>
+python -m ipykernel install --user <span class="flag">\</span>
+    --name optauto <span class="flag">\</span>
+    --display-name <span class="str">"Python (optauto)"</span>
+
+<span class="cm"># Verifikasi: cek daftar paket yang terinstal</span>
+conda list</pre>
+  </div>
+
+  <div class="hint-box hint-amber">
+    ⚠️ <strong>Penting:</strong> Pastikan environment <code>optauto</code> sudah aktif
+    (terlihat di prompt) sebelum menjalankan perintah <code>conda install</code>.
+    Jika tidak, library akan terinstal di environment yang salah.
+  </div>
+
+  <!-- Library grid -->
+  <div style="margin-top:32px;">
+    <p class="text-xs text-s500 uppercase tracking-widest font-semibold mb-4">Library yang Akan Terinstal</p>
+    <div class="grid-3" style="gap:12px;">
+
+      <div class="lib-card" style="--lc:var(--teal)">
+        <span class="lib-icon">🔢</span>
+        <p class="lib-name text-teal">NumPy &amp; Pandas</p>
+        <p class="lib-desc">Manipulasi array, matriks, dan data tabular. Fondasi seluruh komputasi numerik.</p>
       </div>
+
+      <div class="lib-card" style="--lc:var(--violet)">
+        <span class="lib-icon">📡</span>
+        <p class="lib-name text-violet">SciPy</p>
+        <p class="lib-desc">Pemrosesan sinyal, optimasi matematis, dan analisis frekuensi (FFT).</p>
+      </div>
+
+      <div class="lib-card" style="--lc:var(--lime)">
+        <span class="lib-icon">📊</span>
+        <p class="lib-name text-lime">Matplotlib</p>
+        <p class="lib-desc">Visualisasi data — plot time series, histogram, spektrum frekuensi.</p>
+      </div>
+
+      <div class="lib-card" style="--lc:var(--amber)">
+        <span class="lib-icon">🧮</span>
+        <p class="lib-name text-amber">SymPy</p>
+        <p class="lib-desc">Matematika simbolik — turunan, integral, persamaan diferensial secara eksak.</p>
+      </div>
+
+      <div class="lib-card" style="--lc:var(--rose)">
+        <span class="lib-icon">🤖</span>
+        <p class="lib-name text-rose">scikit-learn &amp; PyTorch</p>
+        <p class="lib-desc">Machine learning klasik (KNN, SVM, Random Forest) dan deep learning.</p>
+      </div>
+
+      <div class="lib-card" style="--lc:var(--teal)">
+        <span class="lib-icon">🗺️</span>
+        <p class="lib-name text-teal">Graphviz &amp; NetworkX</p>
+        <p class="lib-desc">Pembuatan flowchart otomatis dan visualisasi graph sistem kontrol.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SECTION 3: VS CODE ==================== -->
+<section class="section container">
+  <div class="section-header">
+    <span class="section-number">03</span>
+    <span class="badge mb-3">Langkah Ketiga</span>
+    <h2 class="text-3xl font-bold mt-2">Setup Visual Studio Code</h2>
+    <p class="text-s400 mt-2">IDE utama yang akan kita gunakan selama satu semester.</p>
+  </div>
+
+  <div class="grid-3">
+
+    <!-- Download -->
+    <div class="step-card" style="--sc:#0078d4">
+      <div class="step-accent" style="background:linear-gradient(90deg,#0078d4,#0ea5e9);"></div>
       <div class="step-body">
-        <div class="code-wrap">
-          <div class="code-header">
-            <span class="code-label">
-              <span class="code-dots"><span style="background:#ef4444"></span><span style="background:#f59e0b"></span><span style="background:#10b981"></span></span>
-              Miniconda Prompt / Terminal
-            </span>
-            <span class="code-lang">Shell</span>
-          </div>
-          <pre><span class="cm"># Buat environment baru</span>
-conda create -n getaran python -y
-conda activate getaran
-
-<span class="cm"># Instal paket inti Getaran Mekanik</span>
-conda install -c conda-forge \
-  jupyter numpy scipy matplotlib \
-  sympy pandas control -y
-
-<span class="cm"># Opsional: animasi interaktif</span>
-conda install -c conda-forge \
-  ipympl jupyterlab_widgets -y
-
-<span class="cm"># Daftarkan kernel ke Jupyter</span>
-python -m ipykernel install \
-  --user \
-  --name getaran \
-  --display-name <span class="st">"Python (getaran)"</span></pre>
+        <div class="step-head">
+          <div class="step-num" style="background:rgba(0,120,212,.15)">📦</div>
+          <h3 class="font-bold text-lg" style="color:#60b4f8">1. Download &amp; Install</h3>
         </div>
-        <div style="margin-top:16px;" class="info-box">
-          <span class="info-icon">💡</span>
-          <div><strong>Tips:</strong> Setiap kali membuka terminal baru, jalankan <code>conda activate getaran</code> sebelum memulai Jupyter. Cek versi Python: <code>python --version</code>.</div>
+        <p class="text-s400 mb-4" style="font-size:.87rem;">
+          Download VS Code versi terbaru dari situs resmi Microsoft. Tersedia untuk semua OS.
+        </p>
+        <a href="https://code.visualstudio.com/" target="_blank" class="vscode-btn">
+          → code.visualstudio.com
+        </a>
+        <div class="hint-box hint-teal" style="margin-top:14px;">
+          💡 Centang <strong>"Add to PATH"</strong> saat proses instalasi agar bisa diakses dari terminal.
+        </div>
+      </div>
+    </div>
+
+    <!-- Extensions -->
+    <div class="step-card" style="--sc:var(--violet)">
+      <div class="step-accent" style="background:linear-gradient(90deg,var(--violet),#818cf8);"></div>
+      <div class="step-body">
+        <div class="step-head">
+          <div class="step-num" style="background:rgba(167,139,250,.12)">🧩</div>
+          <h3 class="font-bold text-lg text-violet">2. Install Extension</h3>
+        </div>
+        <p class="text-s400 mb-4" style="font-size:.87rem;">
+          Buka VS Code → ikon Extensions (Ctrl+Shift+X) → cari dan install:
+        </p>
+        <div class="ext-item">
+          <span class="ext-check">✔</span>
+          <span class="text-s300" style="font-size:.87rem;">Python</span>
+          <span class="ext-tag">Microsoft</span>
+        </div>
+        <div class="ext-item">
+          <span class="ext-check">✔</span>
+          <span class="text-s300" style="font-size:.87rem;">Jupyter</span>
+          <span class="ext-tag">Microsoft</span>
+        </div>
+        <div class="ext-item">
+          <span class="ext-check">✔</span>
+          <span class="text-s300" style="font-size:.87rem;">Jupyter Keymap</span>
+          <span class="ext-tag">Microsoft</span>
+        </div>
+        <div class="ext-item">
+          <span class="ext-check">✔</span>
+          <span class="text-s300" style="font-size:.87rem;">Pylance</span>
+          <span class="ext-tag">Microsoft</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interpreter -->
+    <div class="step-card" style="--sc:var(--amber)">
+      <div class="step-accent" style="background:linear-gradient(90deg,var(--amber),var(--lime));"></div>
+      <div class="step-body">
+        <div class="step-head">
+          <div class="step-num" style="background:rgba(251,191,36,.12)">🐍</div>
+          <h3 class="font-bold text-lg text-amber">3. Pilih Interpreter</h3>
+        </div>
+        <p class="text-s400 mb-4" style="font-size:.87rem;">
+          Hubungkan VS Code dengan environment <code>optauto</code>:
+        </p>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div class="substep" style="padding:10px 0">
+            <span class="substep-num">01</span>
+            <span style="font-size:.87rem;">Tekan <span class="kbd">Ctrl+Shift+P</span></span>
+          </div>
+          <div class="substep" style="padding:10px 0">
+            <span class="substep-num">02</span>
+            <span style="font-size:.87rem;">Ketik <span class="kbd">Python: Select Interpreter</span></span>
+          </div>
+          <div class="substep" style="padding:10px 0">
+            <span class="substep-num">03</span>
+            <span style="font-size:.87rem;">Pilih <strong class="text-amber">Python (optauto)</strong> dari daftar</span>
+          </div>
+          <div class="substep" style="padding:10px 0;border-bottom:none">
+            <span class="substep-num">04</span>
+            <span style="font-size:.87rem;">Cek status bar bawah: muncul <code>optauto</code> ✅</span>
+          </div>
         </div>
       </div>
     </div>
 
   </div>
+</section>
 
-  <!-- STEP 3: VS Code -->
-  <div id="vscode" class="step-card reveal" style="margin-top:0;">
-    <div class="step-bar" style="background:linear-gradient(90deg,var(--violet),#e040fb)"></div>
-    <div class="step-head">
-      <div class="step-num-badge" style="background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);color:var(--violet)">03</div>
-      <div>
-        <h3>🖥️ Konfigurasi Visual Studio Code</h3>
-        <p>IDE utama untuk Jupyter Notebook di mata kuliah ini</p>
-      </div>
-    </div>
-    <div class="step-body">
-      <div class="vscode-grid">
-        <div class="vs-card">
-          <div class="vs-card-title">🖥️ Install VS Code <span>Langkah 1</span></div>
-          <p style="font-size:14px;color:var(--muted);margin-bottom:18px;">Unduh dan instal VS Code versi terbaru dari situs resmi Microsoft.</p>
-          <a href="https://code.visualstudio.com/" target="_blank" class="vs-btn">⬇️ Unduh VS Code →</a>
-        </div>
-        <div class="vs-card">
-          <div class="vs-card-title">🧩 Pasang Extension <span>Langkah 2</span></div>
-          <div class="ext-list">
-            <div class="ext-item"><span class="ext-check">✅</span> Python <span style="color:var(--muted);font-size:12px">(Microsoft)</span></div>
-            <div class="ext-item"><span class="ext-check">✅</span> Jupyter <span style="color:var(--muted);font-size:12px">(Microsoft)</span></div>
-            <div class="ext-item"><span class="ext-check">✅</span> Jupyter Keymap</div>
-            <div class="ext-item"><span class="ext-check">✅</span> Pylance</div>
-            <div class="ext-item"><span style="color:var(--muted)">○</span> vscode-icons <span class="ext-opt">opsional</span></div>
-          </div>
-        </div>
-        <div class="vs-card">
-          <div class="vs-card-title">⚙️ Pilih Kernel <span>Langkah 3</span></div>
-          <div class="code-wrap">
-            <div class="code-header" style="padding:8px 14px;">
-              <span class="code-label">
-                <span class="code-dots"><span style="background:#ef4444"></span><span style="background:#f59e0b"></span><span style="background:#10b981"></span></span>
-                VS Code
-              </span>
-            </div>
-            <pre style="font-size:12px;padding:16px;"><span style="color:var(--muted)">Ctrl + Shift + P</span>
-<span style="color:var(--amber)">Python: Select Interpreter</span>
-→ pilih <span style="color:var(--green)">Python (getaran)</span>
-
-Saat buka <span style="color:var(--cyan)">.ipynb</span>:
-→ klik kernel di kanan atas
-→ pilih <span style="color:var(--green)">Python (getaran)</span></pre>
-          </div>
-        </div>
-      </div>
-    </div>
+<!-- ==================== SECTION 4: TEST NOTEBOOK ==================== -->
+<section class="section container">
+  <div class="section-header">
+    <span class="section-number">04</span>
+    <span class="badge mb-3">Langkah Keempat</span>
+    <h2 class="text-3xl font-bold mt-2">Test Notebook — Verifikasi Semua Library</h2>
+    <p class="text-s400 mt-2">
+      Buat file baru: <code>File → New File → Jupyter Notebook (.ipynb)</code> →
+      pilih kernel <strong class="text-amber">Python (optauto)</strong>.
+    </p>
   </div>
 
-</div>
+  <div class="grid-2">
 
-<!-- ─── TES & CONTOH ─── -->
-<hr class="divider">
-<div class="section" id="tes">
-  <div class="section-label reveal">Verifikasi Instalasi</div>
-  <h2 class="section-title reveal">Tes Instalasi &amp;<br>Contoh Simulasi</h2>
-  <p class="section-desc reveal">Buat file <code>.ipynb</code> baru di VS Code, pilih kernel <code>Python (getaran)</code>, lalu jalankan cell berikut.</p>
-
-  <div class="test-grid">
-    <!-- TEST CELL -->
-    <div class="test-card reveal">
-      <div class="test-head">
-        <div class="test-dot" style="background:var(--green);box-shadow:0 0 8px rgba(16,185,129,.5)"></div>
-        <span class="test-head-title">🧪 Cell 1 — Tes Semua Library</span>
-      </div>
-      <div class="code-wrap" style="border-radius:0 0 22px 22px;border:none;border-top:1px solid var(--border);">
-        <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
+    <!-- Test cell -->
+    <div>
+      <p class="text-xs text-s500 uppercase tracking-widest font-semibold mb-3">Cell 1 — Import &amp; Verifikasi</p>
+      <div class="cell">
+        <div class="cell-bar">
+          <div class="dot-row"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+          <span class="cell-label">test_environment.ipynb</span>
+          <span class="cell-run">[ ] Run</span>
+        </div>
+<pre class="code-pre"><span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> pandas <span class="kw">as</span> pd
 <span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
-<span class="kw">from</span> scipy.integrate <span class="kw">import</span> solve_ivp
 <span class="kw">import</span> sympy <span class="kw">as</span> sp
-<span class="kw">from</span> control <span class="kw">import</span> tf, step_response
+<span class="kw">from</span> scipy <span class="kw">import</span> signal
+<span class="kw">import</span> sklearn
+<span class="kw">import</span> torch
+<span class="kw">import</span> networkx <span class="kw">as</span> nx
+<span class="kw">from</span> graphviz <span class="kw">import</span> Digraph
 
-<span class="fn">print</span>(<span class="st">"NumPy   :"</span>, np.__version__)
-<span class="fn">print</span>(<span class="st">"SymPy   :"</span>, sp.__version__)
-<span class="fn">print</span>(<span class="st">"✅ Semua paket Getaran Mekanik siap!"</span>)</pre>
+<span class="fn">print</span>(<span class="str">"NumPy    :"</span>, np.__version__)
+<span class="fn">print</span>(<span class="str">"Pandas   :"</span>, pd.__version__)
+<span class="fn">print</span>(<span class="str">"SymPy    :"</span>, sp.__version__)
+<span class="fn">print</span>(<span class="str">"sklearn  :"</span>, sklearn.__version__)
+<span class="fn">print</span>(<span class="str">"PyTorch  :"</span>, torch.__version__)
+<span class="fn">print</span>(<span class="str">"NetworkX :"</span>, nx.__version__)
+<span class="fn">print</span>(<span class="str">"✅ Semua library siap digunakan!"</span>)</pre>
+      </div>
+
+      <div class="hint-box hint-lime" style="margin-top:12px;">
+        🎯 Jika semua baris versi tercetak tanpa error → setup kalian <strong>berhasil</strong>!
+        Jika ada <code>ModuleNotFoundError</code>, pastikan kernel aktif adalah
+        <strong>Python (optauto)</strong>.
       </div>
     </div>
 
-    <!-- SAMPLE CODE -->
-    <div class="test-card reveal">
-      <div class="test-head">
-        <div class="test-dot" style="background:var(--cyan);box-shadow:0 0 8px rgba(0,212,255,.5)"></div>
-        <span class="test-head-title">〰️ Cell 2 — Simulasi Getaran Bebas Teredam</span>
+    <!-- Quick test time series -->
+    <div>
+      <p class="text-xs text-s500 uppercase tracking-widest font-semibold mb-3">Cell 2 — Quick Test Plot</p>
+      <div class="cell">
+        <div class="cell-bar">
+          <div class="dot-row"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+          <span class="cell-label">test_environment.ipynb</span>
+          <span class="cell-run">[ ] Run</span>
+        </div>
+<pre class="code-pre"><span class="cm"># Quick test: plot sinyal sinusoidal sederhana</span>
+plt.style.use(<span class="str">'dark_background'</span>)
+plt.rcParams[<span class="str">'figure.facecolor'</span>] = <span class="str">'#0f172a'</span>
+plt.rcParams[<span class="str">'axes.facecolor'</span>]   = <span class="str">'#1e293b'</span>
+plt.rcParams[<span class="str">'grid.color'</span>]        = <span class="str">'#334155'</span>
+
+t = np.linspace(<span class="nm">0</span>, <span class="nm">2</span>, <span class="nm">500</span>)
+y = np.sin(<span class="nm">2</span> * np.pi * <span class="nm">5</span> * t)
+
+plt.figure(figsize=(<span class="nm">8</span>, <span class="nm">3</span>))
+plt.plot(t, y, color=<span class="str">'#2dd4bf'</span>, lw=<span class="nm">2</span>, label=<span class="str">'5 Hz Signal'</span>)
+plt.title(<span class="str">'✅ Environment Siap!'</span>)
+plt.xlabel(<span class="str">'Waktu (s)'</span>); plt.ylabel(<span class="str">'Amplitudo'</span>)
+plt.legend(); plt.grid(<span class="kw">True</span>, alpha=<span class="nm">0.3</span>)
+plt.tight_layout(); plt.show()</pre>
       </div>
-      <div class="code-wrap" style="border-radius:0 0 22px 22px;border:none;border-top:1px solid var(--border);">
-        <pre><span class="cm"># Sistem massa-pegas-redam (underdamped)</span>
-m, c, k <span class="op">=</span> <span class="nm">1.0</span>, <span class="nm">0.5</span>, <span class="nm">20.0</span>
-wn   <span class="op">=</span> np.<span class="fn">sqrt</span>(k<span class="op">/</span>m)
-zeta <span class="op">=</span> c <span class="op">/</span> (<span class="nm">2</span> <span class="op">*</span> np.<span class="fn">sqrt</span>(k<span class="op">*</span>m))
 
-t  <span class="op">=</span> np.<span class="fn">linspace</span>(<span class="nm">0</span>, <span class="nm">20</span>, <span class="nm">1000</span>)
-y0 <span class="op">=</span> [<span class="nm">0.1</span>, <span class="nm">0.0</span>]
-
-<span class="kw">def</span> <span class="fn">damped_vib</span>(t, y):
-    <span class="kw">return</span> [y[<span class="nm">1</span>],
-            <span class="op">-</span><span class="nm">2</span><span class="op">*</span>zeta<span class="op">*</span>wn<span class="op">*</span>y[<span class="nm">1</span>] <span class="op">-</span> wn<span class="op">**</span><span class="nm">2</span><span class="op">*</span>y[<span class="nm">0</span>]]
-
-sol <span class="op">=</span> solve_ivp(damped_vib, (<span class="nm">0</span>,<span class="nm">20</span>), y0,
-               t_eval<span class="op">=</span>t, method<span class="op">=</span><span class="st">'RK45'</span>)
-
-plt.<span class="fn">figure</span>(figsize<span class="op">=</span>(<span class="nm">9</span>, <span class="nm">3.5</span>))
-plt.<span class="fn">plot</span>(sol.t, sol.y[<span class="nm">0</span>], <span class="st">'#00d4ff'</span>, lw<span class="op">=</span><span class="nm">2</span>,
-        label<span class="op">=</span><span class="st">f'ζ = {zeta:.3f}'</span>)
-plt.<span class="fn">axhline</span>(<span class="nm">0</span>, color<span class="op">=</span><span class="st">'gray'</span>, lw<span class="op">=</span><span class="nm">0.8</span>, ls<span class="op">=</span><span class="st">'--'</span>)
-plt.<span class="fn">xlabel</span>(<span class="st">'Waktu (s)'</span>)
-plt.<span class="fn">ylabel</span>(<span class="st">'Perpindahan x(t) [m]'</span>)
-plt.<span class="fn">title</span>(<span class="st">f'Getaran Bebas Teredam'</span>)
-plt.<span class="fn">legend</span>(); plt.<span class="fn">tight_layout</span>()
-plt.<span class="fn">show</span>()</pre>
+      <div class="hint-box hint-teal" style="margin-top:12px;">
+        📈 Jika grafik sinusoidal muncul di bawah cell → Jupyter + Matplotlib
+        berjalan sempurna di VS Code kalian!
       </div>
     </div>
+
   </div>
-</div>
+</section>
 
-<!-- ─── LIBRARY REFERENCE ─── -->
-<hr class="divider">
-<div class="section" id="library">
-  <div class="section-label reveal">Referensi Paket</div>
-  <h2 class="section-title reveal">Library yang<br>Digunakan</h2>
-  <p class="section-desc reveal">Daftar lengkap paket Python dalam environment <code>getaran</code> beserta fungsi utamanya.</p>
-
-  <div class="lib-table-wrap reveal" style="overflow-x:auto;">
-    <table class="lib-table">
-      <thead>
-        <tr>
-          <th>Library</th>
-          <th>Versi</th>
-          <th>Fungsi Utama</th>
-          <th>Contoh</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td><span class="lib-name">NumPy</span></td><td><code>≥ 1.26</code></td><td>Array numerik, matriks kekakuan &amp; massa, trigonometri</td><td><code>np.sqrt(k/m)</code></td></tr>
-        <tr><td><span class="lib-name">SciPy</span></td><td><code>≥ 1.12</code></td><td>Solver ODE (RK45), FFT, nilai eigen analisis modal</td><td><code>solve_ivp()</code></td></tr>
-        <tr><td><span class="lib-name">Matplotlib</span></td><td><code>≥ 3.8</code></td><td>Plot respons waktu, diagram fase, animasi getaran</td><td><code>plt.plot()</code></td></tr>
-        <tr><td><span class="lib-name">SymPy</span></td><td><code>≥ 1.12</code></td><td>Komputasi simbolik persamaan gerak, solusi analitik</td><td><code>sp.dsolve()</code></td></tr>
-        <tr><td><span class="lib-name">Pandas</span></td><td><code>≥ 2.1</code></td><td>Manajemen data pengukuran, CSV sensor akselerometer</td><td><code>pd.read_csv()</code></td></tr>
-        <tr><td><span class="lib-name">control</span></td><td><code>≥ 0.9</code></td><td>Fungsi transfer, diagram Bode, stabilitas sistem</td><td><code>tf(num, den)</code></td></tr>
-        <tr><td><span class="lib-name">ipympl</span></td><td><code>≥ 0.9</code></td><td>Grafik interaktif Jupyter (zoom, pan, animasi)</td><td><code>%matplotlib widget</code></td></tr>
-      </tbody>
-    </table>
+<!-- ==================== SECTION 5: FLOWCHART ==================== -->
+<section class="section container">
+  <div class="section-header">
+    <span class="section-number">05</span>
+    <span class="badge mb-3">Bonus — Fitur Lanjutan</span>
+    <h2 class="text-3xl font-bold mt-2">Flowchart Otomatis dengan Graphviz</h2>
+    <p class="text-s400 mt-2">
+      Graphviz memungkinkan pembuatan diagram alur sistem otomasi secara programatik —
+      sangat berguna untuk visualisasi pipeline data dan sistem kontrol.
+    </p>
   </div>
 
-  <!-- Quick reference -->
-  <div class="step-card reveal">
-    <div class="step-bar" style="background:linear-gradient(90deg,var(--amber),#ff9800)"></div>
-    <div class="step-head">
-      <div class="step-num-badge" style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);color:var(--amber)">⚡</div>
-      <div>
-        <h3>🚀 Perintah Cepat — Environment</h3>
-        <p>Cheat sheet manajemen conda environment</p>
+  <!-- Flow diagram visual -->
+  <div class="flow-diagram mb-8">
+    <div class="flow-node">
+      <div class="flow-box" style="background:rgba(45,212,191,.1);border-color:rgba(45,212,191,.4);color:var(--teal);">
+        📥 Input Sinyal
       </div>
+      <span class="flow-sub">sensor data</span>
     </div>
-    <div class="step-body" style="padding:0;">
-      <div class="code-wrap" style="border:none;border-radius:0;">
-        <pre><span class="cm"># Aktifkan environment setiap sesi baru</span>
-conda activate getaran
-
-<span class="cm"># Cek semua paket yang terinstal</span>
-conda list
-
-<span class="cm"># Update semua paket</span>
-conda update --all -c conda-forge -y
-
-<span class="cm"># Export environment untuk dibagikan</span>
-conda env export <span class="op">></span> getaran_environment.yml
-
-<span class="cm"># Buat ulang environment dari file</span>
-conda env create -f getaran_environment.yml</pre>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node">
+      <div class="flow-box" style="background:rgba(167,139,250,.1);border-color:rgba(167,139,250,.4);color:var(--violet);">
+        🔧 Filter FIR
       </div>
+      <span class="flow-sub">scipy.signal</span>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node">
+      <div class="flow-box" style="background:rgba(251,191,36,.1);border-color:rgba(251,191,36,.4);color:var(--amber);">
+        🤖 Model ML
+      </div>
+      <span class="flow-sub">sklearn / torch</span>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node">
+      <div class="flow-box" style="background:rgba(163,230,53,.1);border-color:rgba(163,230,53,.4);color:var(--lime);">
+        🎯 Output Optimal
+      </div>
+      <span class="flow-sub">keputusan otomatis</span>
     </div>
   </div>
 
-</div>
+  <div class="grid-2">
 
+    <!-- Flowchart code -->
+    <div>
+      <p class="text-xs text-s500 uppercase tracking-widest font-semibold mb-3">Kode Flowchart Graphviz</p>
+      <div class="cell">
+        <div class="cell-bar">
+          <div class="dot-row"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+          <span class="cell-label">flowchart_demo.ipynb</span>
+          <span class="cell-run">[ ] Run</span>
+        </div>
+<pre class="code-pre"><span class="kw">from</span> graphviz <span class="kw">import</span> Digraph
+
+dot = Digraph(comment=<span class="str">'Optimasi Proses'</span>)
+dot.attr(rankdir=<span class="str">'LR'</span>, bgcolor=<span class="str">'#0f172a'</span>)
+dot.attr(<span class="str">'node'</span>, style=<span class="str">'filled'</span>,
+         fontname=<span class="str">'Helvetica'</span>, fontcolor=<span class="str">'white'</span>)
+
+dot.node(<span class="str">'A'</span>, <span class="str">'Input Sinyal'</span>,  fillcolor=<span class="str">'#0e7490'</span>)
+dot.node(<span class="str">'B'</span>, <span class="str">'Filter FIR'</span>,    fillcolor=<span class="str">'#4f46e5'</span>)
+dot.node(<span class="str">'C'</span>, <span class="str">'Model ML'</span>,      fillcolor=<span class="str">'#b45309'</span>)
+dot.node(<span class="str">'D'</span>, <span class="str">'Output Optimal'</span>, fillcolor=<span class="str">'#166534'</span>)
+
+dot.edges([<span class="str">'AB'</span>, <span class="str">'BC'</span>, <span class="str">'CD'</span>])
+
+<span class="cm"># Render → simpan sebagai PNG</span>
+dot.render(<span class="str">'flow_optimasi'</span>, format=<span class="str">'png'</span>, cleanup=<span class="kw">True</span>)
+
+<span class="cm"># Tampilkan inline di notebook</span>
+dot</pre>
+      </div>
+    </div>
+
+    <!-- NetworkX code -->
+    <div>
+      <p class="text-xs text-s500 uppercase tracking-widest font-semibold mb-3">Kode Graph NetworkX</p>
+      <div class="cell">
+        <div class="cell-bar">
+          <div class="dot-row"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+          <span class="cell-label">networkx_demo.ipynb</span>
+          <span class="cell-run">[ ] Run</span>
+        </div>
+<pre class="code-pre"><span class="kw">import</span> networkx <span class="kw">as</span> nx
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+
+<span class="cm"># Buat directed graph sistem kontrol</span>
+G = nx.DiGraph()
+edges = [
+    (<span class="str">'Sensor'</span>,   <span class="str">'Preprocessing'</span>),
+    (<span class="str">'Preprocessing'</span>, <span class="str">'Feature Extraction'</span>),
+    (<span class="str">'Feature Extraction'</span>, <span class="str">'Classifier'</span>),
+    (<span class="str">'Classifier'</span>, <span class="str">'Decision'</span>),
+    (<span class="str">'Decision'</span>,  <span class="str">'Aktuator'</span>),
+]
+G.add_edges_from(edges)
+
+colors = [<span class="str">'#0e7490'</span>,<span class="str">'#4f46e5'</span>,<span class="str">'#b45309'</span>,<span class="str">'#7c3aed'</span>,<span class="str">'#166534'</span>]
+pos = nx.spring_layout(G, seed=<span class="nm">42</span>)
+
+plt.figure(figsize=(<span class="nm">9</span>, <span class="nm">4</span>))
+nx.draw(G, pos, with_labels=<span class="kw">True</span>, node_color=colors,
+        edge_color=<span class="str">'#475569'</span>, node_size=<span class="nm">2000</span>,
+        font_color=<span class="str">'white'</span>, font_size=<span class="nm">8</span>,
+        font_weight=<span class="str">'bold'</span>, arrows=<span class="kw">True</span>)
+plt.title(<span class="str">'Sistem Otomasi — Pipeline Data'</span>)
+plt.tight_layout(); plt.show()</pre>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="hint-box hint-violet mt-2">
+    🗺️ <strong>Tips:</strong> VS Code juga mendukung diagram
+    <strong>Mermaid</strong> langsung di file Markdown (<code>.md</code>) —
+    tulis sintaks diagram dan preview otomatis muncul. Sangat cepat untuk
+    membuat flowchart tanpa kode Python!
+  </div>
+</section>
+
+<!-- ==================== SECTION 6: RINGKASAN ==================== -->
+<section class="section container" style="margin-bottom:0;">
+  <div class="section-header">
+    <span class="section-number">06</span>
+    <span class="badge mb-3">Ringkasan</span>
+    <h2 class="text-3xl font-bold mt-2">Checklist Setup Selesai</h2>
+    <p class="text-s400 mt-2">Pastikan semua langkah sudah terceklis sebelum mulai Modul 1.</p>
+  </div>
+
+  <div class="detail-panel">
+    <div class="detail-panel-head">
+      <div style="width:40px;height:40px;border-radius:12px;background:rgba(45,212,191,.1);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;">🏁</div>
+      <h3 class="font-bold text-lg">Verifikasi Akhir</h3>
+    </div>
+    <div style="padding:24px 28px;">
+      <div style="display:flex;flex-direction:column;gap:0;">
+
+        <div class="substep" style="padding:14px 0;">
+          <span style="color:var(--lime);font-size:1rem;">✅</span>
+          <div>
+            <p class="font-semibold text-s200" style="font-size:.9rem;">Miniconda terinstal &amp; <code>conda --version</code> berjalan</p>
+            <p class="text-s500 text-xs mt-1">Tampil versi conda di terminal tanpa error</p>
+          </div>
+        </div>
+
+        <div class="substep" style="padding:14px 0;">
+          <span style="color:var(--lime);font-size:1rem;">✅</span>
+          <div>
+            <p class="font-semibold text-s200" style="font-size:.9rem;">Environment <code>optauto</code> berhasil dibuat &amp; diaktifkan</p>
+            <p class="text-s500 text-xs mt-1">Prompt terminal menampilkan <code>(optauto)</code></p>
+          </div>
+        </div>
+
+        <div class="substep" style="padding:14px 0;">
+          <span style="color:var(--lime);font-size:1rem;">✅</span>
+          <div>
+            <p class="font-semibold text-s200" style="font-size:.9rem;">Semua library terinstal (NumPy, SciPy, PyTorch, dst.)</p>
+            <p class="text-s500 text-xs mt-1"><code>conda list</code> menampilkan paket-paket di atas</p>
+          </div>
+        </div>
+
+        <div class="substep" style="padding:14px 0;">
+          <span style="color:var(--lime);font-size:1rem;">✅</span>
+          <div>
+            <p class="font-semibold text-s200" style="font-size:.9rem;">VS Code terinstal beserta 4 extension wajib</p>
+            <p class="text-s500 text-xs mt-1">Python, Jupyter, Jupyter Keymap, Pylance</p>
+          </div>
+        </div>
+
+        <div class="substep" style="padding:14px 0;">
+          <span style="color:var(--lime);font-size:1rem;">✅</span>
+          <div>
+            <p class="font-semibold text-s200" style="font-size:.9rem;">Interpreter VS Code menunjuk ke <code>Python (optauto)</code></p>
+            <p class="text-s500 text-xs mt-1">Status bar bawah VS Code menampilkan <code>optauto</code></p>
+          </div>
+        </div>
+
+        <div class="substep" style="padding:14px 0;border-bottom:none;">
+          <span style="color:var(--lime);font-size:1rem;">✅</span>
+          <div>
+            <p class="font-semibold text-s200" style="font-size:.9rem;">Test notebook berjalan tanpa error &amp; grafik muncul</p>
+            <p class="text-s500 text-xs mt-1">Cell import &amp; cell plot keduanya menghasilkan output</p>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="hint-box hint-teal" style="margin-top:8px;">
+        🚀 <strong>Setup selesai!</strong> Kalian sudah siap mengikuti seluruh praktikum
+        Optimalisasi &amp; Otomasi. Buka Modul 1 dan mulai coding!
+        Jika ada kendala, hubungi dosen melalui Grup WhatsApp Kelas.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FOOTER ==================== -->
 <footer>
-  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Setup Python · Getaran Mekanik · Teknik Mesin</p>
-  <p style="margin-top:8px;color:#1a2840">Miniconda · VS Code · Jupyter Notebook · Python</p>
+  <div class="container">
+    <p>Panduan disusun oleh <span style="color:var(--teal)">Dedik Romahadi</span> •
+       Optimalisasi &amp; Otomasi • S1 Teknik Mesin • Universitas Mercu Buana</p>
+    <p style="margin-top:4px;">
+      Stack: Python (latest) • Miniconda • VS Code • Jupyter Notebook • 2025/2026
+    </p>
+  </div>
 </footer>
 
+
+<!-- ==================== SCRIPTS ==================== -->
 <script>
-/* ── WAVE CANVAS ── */
-const canvas = document.getElementById('waveCanvas');
-const ctx = canvas.getContext('2d');
-let w, h, t = 0;
-
-function resize() {
-  w = canvas.width = window.innerWidth;
-  h = canvas.height = window.innerHeight;
-}
-resize();
-window.addEventListener('resize', resize);
-
-function drawWaves() {
-  ctx.clearRect(0, 0, w, h);
-  const waves = [
-    { amp: 40, freq: 0.008, speed: 0.015, y: h * 0.35, color: 'rgba(0,212,255,0.08)' },
-    { amp: 30, freq: 0.012, speed: 0.020, y: h * 0.50, color: 'rgba(139,92,246,0.06)' },
-    { amp: 25, freq: 0.015, speed: 0.025, y: h * 0.65, color: 'rgba(16,185,129,0.05)' },
-    { amp: 20, freq: 0.010, speed: 0.018, y: h * 0.80, color: 'rgba(245,158,11,0.04)' },
+/* -------- TICKER -------- */
+(function(){
+  const items = [
+    'conda create -n optauto python -y  # versi terbaru otomatis',
+    'conda activate optauto',
+    'conda install -c conda-forge numpy scipy pandas matplotlib sympy scikit-learn pytorch -y',
+    'python -m ipykernel install --user --name optauto',
+    'VS Code → Ctrl+Shift+P → Python: Select Interpreter → Python (optauto)',
+    'import numpy as np  ✅',
+    'import torch  ✅',
+    'from graphviz import Digraph  ✅',
+    'print("Semua library siap!")  ✅',
   ];
-
-  waves.forEach(wave => {
-    ctx.beginPath();
-    ctx.moveTo(0, h);
-    for (let x = 0; x <= w; x += 2) {
-      const y = wave.y + Math.sin(x * wave.freq + t * wave.speed) * wave.amp
-              + Math.sin(x * wave.freq * 1.5 + t * wave.speed * 0.7) * wave.amp * 0.4;
-      ctx.lineTo(x, y);
-    }
-    ctx.lineTo(w, h);
-    ctx.closePath();
-    ctx.fillStyle = wave.color;
-    ctx.fill();
-  });
-
-  t++;
-  requestAnimationFrame(drawWaves);
-}
-drawWaves();
-
-/* ── SCROLL REVEAL ── */
-const io = new IntersectionObserver((entries) => {
-  entries.forEach((e, i) => {
-    if (e.isIntersecting) {
-      setTimeout(() => e.target.classList.add('visible'), i * 80);
-      io.unobserve(e.target);
-    }
-  });
-}, { threshold: 0.08 });
-
-document.querySelectorAll('.reveal').forEach(el => io.observe(el));
-
-/* ── SCROLL PROGRESS ── */
-window.addEventListener('scroll', () => {
-  const scrollTop = document.documentElement.scrollTop;
-  const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-  const progress = (scrollTop / scrollHeight) * 100;
-  document.getElementById('scrollProgress').style.width = progress + '%';
-});
+  const dup = [...items, ...items];
+  document.getElementById('ticker').innerHTML =
+    dup.map(d => `<span class="ticker-item">$ ${d}</span>`).join('');
+})();
 </script>
 
-<!-- ==================== VISITOR SYSTEM JS ==================== -->
+<!-- ═══ DAFTAR PENGUNJUNG ═══ -->
+<section style="max-width:900px;margin:48px auto 0;padding:0 24px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px;">
+    <div>
+      <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.3);color:var(--teal,#2dd4bf);padding:5px 14px;border-radius:999px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;">👥 Pengunjung</span>
+      <h2 style="font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:#fff;margin-top:12px;">Daftar Pengunjung</h2>
+      <p style="color:var(--s400,#94a3b8);font-size:.85rem;margin-top:6px;">Mahasiswa dan dosen yang telah mengakses halaman ini.</p>
+    </div>
+    <button onclick="showResetModal()" style="padding:10px 20px;border-radius:12px;border:1px solid rgba(251,113,133,.3);background:rgba(251,113,133,.08);color:var(--rose,#fb7185);font-family:'DM Sans',sans-serif;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:6px;" onmouseenter="this.style.background='rgba(251,113,133,.18)'" onmouseleave="this.style.background='rgba(251,113,133,.08)'">🗑 Reset</button>
+  </div>
+  <div style="background:var(--surface,#0f1929);border:1px solid var(--border,rgba(45,212,191,.15));border-radius:20px;overflow:hidden;">
+    <div style="display:flex;gap:1px;background:rgba(255,255,255,.04);">
+      <div style="flex:1;padding:20px 24px;text-align:center;"><div id="statTotal" style="font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;color:var(--teal,#2dd4bf);">—</div><div style="font-size:.75rem;color:var(--s500,#64748b);margin-top:2px;">Total Pengunjung</div></div>
+      <div style="flex:1;padding:20px 24px;text-align:center;border-left:1px solid rgba(255,255,255,.06);border-right:1px solid rgba(255,255,255,.06);"><div id="statMhs" style="font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;color:var(--violet,#a78bfa);">—</div><div style="font-size:.75rem;color:var(--s500,#64748b);margin-top:2px;">Mahasiswa</div></div>
+      <div style="flex:1;padding:20px 24px;text-align:center;"><div id="statDosen" style="font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;color:var(--amber,#fbbf24);">—</div><div style="font-size:.75rem;color:var(--s500,#64748b);margin-top:2px;">Dosen</div></div>
+    </div>
+    <div style="display:flex;padding:14px 24px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;font-weight:600;color:var(--s500,#64748b);text-transform:uppercase;letter-spacing:.08em;">
+      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:right;">Waktu Akses</div>
+    </div>
+    <div id="visitorTableBody" style="max-height:420px;overflow-y:auto;"><div style="text-align:center;padding:40px 24px;color:var(--s500,#64748b);font-size:.88rem;">⏳ Memuat data pengunjung...</div></div>
+  </div>
+</section>
+
 <script>
-const MODULE_ID = 'setup_python';
-const STORAGE_KEY_IDENTITY = `optoauto_identity_${MODULE_ID}`;
-const STORAGE_KEY_VISITORS = `optoauto_visitors_${MODULE_ID}`;
-let panelOpen = false;
+// ═══ VISITOR SYSTEM ═══
+const MODULE_ID='setup-python';
+const STORAGE_KEY_IDENTITY=`optoauto_identity_${MODULE_ID}`;
+const STORAGE_KEY_VISITORS=`optoauto_visitors_${MODULE_ID}`;
+let panelOpen=false;
 
-function getVisitors() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY_VISITORS)) || []; }
-  catch(e) { return []; }
-}
-function saveVisitors(list) {
-  localStorage.setItem(STORAGE_KEY_VISITORS, JSON.stringify(list));
-}
-function getIdentity() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY_IDENTITY)); }
-  catch(e) { return null; }
-}
-function saveIdentity(v) {
-  localStorage.setItem(STORAGE_KEY_IDENTITY, JSON.stringify(v));
-}
+function getVisitors(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY_VISITORS))||[];}catch(e){return[];}}
+function saveVisitors(l){localStorage.setItem(STORAGE_KEY_VISITORS,JSON.stringify(l));}
+function getIdentity(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY_IDENTITY));}catch(e){return null;}}
+function saveIdentity(v){localStorage.setItem(STORAGE_KEY_IDENTITY,JSON.stringify(v));}
 
-function initVisitor() {
-  const me = getIdentity();
-  if (me && me.nama) {
-    document.getElementById('visitorOverlay').classList.add('hidden');
-    document.getElementById('visitorFab').style.display = 'flex';
-    loadVisitors();
-  }
+function isValidName(n){if(!n)return false;return n.split(/\s+/).every(w=>w.length>0&&/^[A-Z][a-z]*$/.test(w));}
+function isValidNim(n){return /^\d+$/.test(n);}
+
+function initVisitor(){
+  const me=getIdentity();
+  if(me&&me.nama){document.getElementById('visitorOverlay').classList.add('hidden');document.getElementById('visitorFab').style.display='flex';loadVisitorList();}
 }
 
-function isValidName(name) {
-  if (!name) return false;
-  const words = name.split(/\s+/);
-  return words.every(w => w.length > 0 && /^[A-Z][a-z]*$/.test(w));
-}
-function isValidNim(nim) {
-  return /^\d+$/.test(nim);
-}
-
-function submitVisitor() {
-  const nama = document.getElementById('vNama').value.trim();
-  const nim  = document.getElementById('vNim').value.trim();
-  const errEl = document.getElementById('vError');
-  const isDosen = nama.toLowerCase() === 'dedik romahadi';
-
-  if (!nama) { errEl.textContent = '⚠ Nama wajib diisi.'; errEl.style.display = 'block'; return; }
-  if (!isValidName(nama)) { errEl.textContent = '⚠ Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi'; errEl.style.display = 'block'; return; }
-  if (!isDosen && !nim) { errEl.textContent = '⚠ NIM wajib diisi.'; errEl.style.display = 'block'; return; }
-  if (!isDosen && !isValidNim(nim)) { errEl.textContent = '⚠ NIM harus berupa angka tanpa spasi. Contoh: 41522010001'; errEl.style.display = 'block'; return; }
-
-  errEl.style.display = 'none';
-  const visitor = { nama, nim: isDosen ? 'DOSEN' : nim, role: isDosen ? 'dosen' : 'student', timestamp: new Date().toISOString() };
-  saveIdentity(visitor);
-
-  const visitors = getVisitors();
-  const idx = visitors.findIndex(v => v.nama === visitor.nama && v.nim === visitor.nim);
-  if (idx >= 0) visitors[idx] = visitor; else visitors.push(visitor);
-  saveVisitors(visitors);
-
+function submitVisitor(){
+  const nama=document.getElementById('vNama').value.trim();
+  const nim=document.getElementById('vNim').value.trim();
+  const err=document.getElementById('vError');
+  const isDosen=nama.toLowerCase()==='dedik romahadi';
+  if(!nama){err.textContent='⚠ Nama wajib diisi.';err.style.display='block';return;}
+  if(!isValidName(nama)){err.textContent='⚠ Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi';err.style.display='block';return;}
+  if(!isDosen&&!nim){err.textContent='⚠ NIM wajib diisi.';err.style.display='block';return;}
+  if(!isDosen&&!isValidNim(nim)){err.textContent='⚠ NIM harus berupa angka tanpa spasi. Contoh: 41522010001';err.style.display='block';return;}
+  err.style.display='none';
+  const v={nama,nim:isDosen?'DOSEN':nim,role:isDosen?'dosen':'student',timestamp:new Date().toISOString()};
+  saveIdentity(v);
+  const vs=getVisitors();const idx=vs.findIndex(x=>x.nama===v.nama&&x.nim===v.nim);
+  if(idx>=0)vs[idx]=v;else vs.push(v);saveVisitors(vs);
   document.getElementById('visitorOverlay').classList.add('hidden');
-  document.getElementById('visitorFab').style.display = 'flex';
-  loadVisitors();
+  document.getElementById('visitorFab').style.display='flex';loadVisitorList();
 }
 
-function loadVisitors() {
-  const listEl = document.getElementById('vpList');
-  const countEl = document.getElementById('fabCount');
-  const badgeEl = document.getElementById('vpBadge');
-  const visitors = getVisitors();
-  visitors.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-  const seen = new Set(); const unique = [];
-  for (const v of visitors) { const id = `${v.nama}|${v.nim}`; if (!seen.has(id)) { seen.add(id); unique.push(v); } }
-
-  countEl.textContent = unique.length;
-  badgeEl.textContent = unique.length + ' orang';
-
-  // Update in-page table if exists
-  const statTotal = document.getElementById('statTotal');
-  const statMhs = document.getElementById('statMhs');
-  const statDosen = document.getElementById('statDosen');
-  const tableEl = document.getElementById('visitorTableBody');
-  if (statTotal) {
-    const mhsCount = unique.filter(v => v.role !== 'dosen').length;
-    const dosenCount = unique.filter(v => v.role === 'dosen').length;
-    statTotal.textContent = unique.length;
-    if (statMhs) statMhs.textContent = mhsCount;
-    if (statDosen) statDosen.textContent = dosenCount;
-  }
-
-  if (unique.length === 0) {
-    listEl.innerHTML = '<div class="vp-empty">Belum ada pengunjung tercatat.</div>';
-    if (tableEl) tableEl.innerHTML = '<div style="text-align:center;padding:40px 24px;color:var(--s500);font-size:.88rem;">Belum ada pengunjung yang tercatat.</div>';
-    return;
-  }
-
-  listEl.innerHTML = unique.map(v => {
-    const isDosen = v.role === 'dosen';
-    const initials = v.nama.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
-    const dt = new Date(v.timestamp);
-    const timeStr = dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'}) + ' ' + dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-    return `<div class="vp-item"><div class="vp-avatar ${isDosen?'dosen':'student'}">${initials}</div><div class="vp-info"><div class="vp-name">${isDosen?'👨‍🏫 ':''}${escHtml(v.nama)}</div><div class="vp-nim">${isDosen?'Dosen Pengampu':escHtml(v.nim)}</div></div><div class="vp-time">${timeStr}</div></div>`;
-  }).join('');
-
-  if (tableEl) {
-    tableEl.innerHTML = unique.map((v, i) => {
-      const isDosen = v.role === 'dosen';
-      const initials = v.nama.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
-      const dt = new Date(v.timestamp);
-      const timeStr = dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) + ', ' + dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-      const avatarColor = isDosen ? 'background:rgba(251,191,36,.12);color:var(--amber);' : 'background:rgba(45,212,191,.12);color:var(--teal);';
-      const roleChip = isDosen ? '<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(251,191,36,.1);color:var(--amber);border:1px solid rgba(251,191,36,.2);margin-left:8px;">Dosen</span>' : '';
-      return `<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:var(--s500);font-weight:600;">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${avatarColor}">${initials}</div><div><div style="font-weight:600;font-size:.88rem;color:var(--s200);">${escHtml(v.nama)}${roleChip}</div></div></div><div style="flex:1;font-size:.8rem;color:var(--s400);font-family:'Courier New',monospace;">${isDosen?'—':escHtml(v.nim)}</div><div style="flex:1;text-align:right;font-size:.78rem;color:var(--s500);">${timeStr}</div></div>`;
-    }).join('');
-  }
+function loadVisitorList(){
+  const listEl=document.getElementById('vpList'),countEl=document.getElementById('fabCount'),badgeEl=document.getElementById('vpBadge'),tableEl=document.getElementById('visitorTableBody'),stT=document.getElementById('statTotal'),stM=document.getElementById('statMhs'),stD=document.getElementById('statDosen');
+  const visitors=getVisitors();visitors.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+  const seen=new Set(),unique=[];for(const v of visitors){const id=`${v.nama}|${v.nim}`;if(!seen.has(id)){seen.add(id);unique.push(v);}}
+  const mc=unique.filter(v=>v.role!=='dosen').length,dc=unique.filter(v=>v.role==='dosen').length;
+  countEl.textContent=unique.length;badgeEl.textContent=unique.length+' orang';stT.textContent=unique.length;stM.textContent=mc;stD.textContent=dc;
+  if(!unique.length){listEl.innerHTML='<div class="vp-empty">Belum ada pengunjung.</div>';tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:var(--s500);font-size:.88rem;">Belum ada pengunjung.</div>';return;}
+  listEl.innerHTML=unique.map(v=>{const d=v.role==='dosen',ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),dt=new Date(v.timestamp),ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});return `<div class="vp-item"><div class="vp-avatar ${d?'dosen':'student'}">${ini}</div><div class="vp-info"><div class="vp-name">${d?'👨‍🏫 ':''}${escH(v.nama)}</div><div class="vp-nim">${d?'Dosen Pengampu':escH(v.nim)}</div></div><div class="vp-time">${ts}</div></div>`;}).join('');
+  tableEl.innerHTML=unique.map((v,i)=>{const d=v.role==='dosen',ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),dt=new Date(v.timestamp),ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}),ac=d?'background:rgba(251,191,36,.12);color:var(--amber,#fbbf24);':'background:rgba(45,212,191,.12);color:var(--teal,#2dd4bf);',rc=d?'<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(251,191,36,.1);color:var(--amber,#fbbf24);border:1px solid rgba(251,191,36,.2);margin-left:8px;">Dosen</span>':'';return `<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;" onmouseenter="this.style.background='rgba(255,255,255,.03)'" onmouseleave="this.style.background='transparent'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:var(--s500);font-weight:600;">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${ac}">${ini}</div><div><div style="font-weight:600;font-size:.88rem;color:var(--s200,#e2e8f0);">${escH(v.nama)}${rc}</div></div></div><div style="flex:1;font-size:.8rem;color:var(--s400);font-family:'Courier New',monospace;">${d?'—':escH(v.nim)}</div><div style="flex:1;text-align:right;font-size:.78rem;color:var(--s500);">${ts}</div></div>`;}).join('');
 }
 
-function togglePanel() {
-  panelOpen = !panelOpen;
-  document.getElementById('visitorPanel').classList.toggle('open', panelOpen);
-  if (panelOpen) loadVisitors();
-}
-document.addEventListener('click', function(e) {
-  const panel = document.getElementById('visitorPanel');
-  const fab = document.getElementById('visitorFab');
-  if (panelOpen && !panel.contains(e.target) && !fab.contains(e.target)) { panelOpen = false; panel.classList.remove('open'); }
-});
+function togglePanel(){panelOpen=!panelOpen;document.getElementById('visitorPanel').classList.toggle('open',panelOpen);if(panelOpen)loadVisitorList();}
+document.addEventListener('click',function(e){const p=document.getElementById('visitorPanel'),f=document.getElementById('visitorFab');if(panelOpen&&!p.contains(e.target)&&!f.contains(e.target)){panelOpen=false;p.classList.remove('open');}});
+function escH(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 
-function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-
-function showResetModal() {
-  document.getElementById('resetOverlay').classList.remove('hidden');
-  document.getElementById('resetPw').value = '';
-  document.getElementById('resetError').style.display = 'none';
-  setTimeout(() => document.getElementById('resetPw').focus(), 100);
-}
-function hideResetModal() { document.getElementById('resetOverlay').classList.add('hidden'); }
-
-function confirmReset() {
-  const pw = document.getElementById('resetPw').value;
-  if (pw !== 'TeknikMesin0602') { document.getElementById('resetError').style.display = 'block'; return; }
-  localStorage.removeItem(STORAGE_KEY_VISITORS);
-  localStorage.removeItem(STORAGE_KEY_IDENTITY);
-  hideResetModal(); loadVisitors();
-  document.getElementById('visitorOverlay').classList.remove('hidden');
-  document.getElementById('visitorFab').style.display = 'none';
-}
-
-document.getElementById('resetPw').addEventListener('keydown', function(e){ if(e.key==='Enter') confirmReset(); });
-document.getElementById('resetOverlay').addEventListener('click', function(e){ if(e.target === this) hideResetModal(); });
-document.getElementById('vNim').addEventListener('keydown', function(e){ if(e.key==='Enter') submitVisitor(); });
-document.getElementById('vNama').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('vNim').focus(); });
-
+function showResetModal(){document.getElementById('resetOverlay').classList.remove('hidden');document.getElementById('resetPw').value='';document.getElementById('resetError').style.display='none';setTimeout(()=>document.getElementById('resetPw').focus(),100);}
+function hideResetModal(){document.getElementById('resetOverlay').classList.add('hidden');}
+function confirmReset(){if(document.getElementById('resetPw').value!=='TeknikMesin0602'){document.getElementById('resetError').style.display='block';return;}localStorage.removeItem(STORAGE_KEY_VISITORS);localStorage.removeItem(STORAGE_KEY_IDENTITY);hideResetModal();loadVisitorList();document.getElementById('visitorOverlay').classList.remove('hidden');document.getElementById('visitorFab').style.display='none';}
+document.getElementById('resetPw').addEventListener('keydown',function(e){if(e.key==='Enter')confirmReset();});
+document.getElementById('resetOverlay').addEventListener('click',function(e){if(e.target===this)hideResetModal();});
+document.getElementById('vNim').addEventListener('keydown',function(e){if(e.key==='Enter')submitVisitor();});
+document.getElementById('vNama').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('vNim').focus();});
 initVisitor();
 </script>
 
