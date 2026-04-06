@@ -1,0 +1,1875 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modul 2 — Sistem Getaran & Klasifikasi</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #060a10;
+    --surface:   #0d1520;
+    --border:    #1a2840;
+    --cyan:      #00e5ff;
+    --amber:     #ffb300;
+    --green:     #00e676;
+    --pink:      #ff4081;
+    --violet:    #7c4dff;
+    --text:      #cdd6e8;
+    --muted:     #4a6080;
+    --font-display: 'DM Serif Display', serif;
+    --font-body:    'Outfit', sans-serif;
+    --font-mono:    'JetBrains Mono', monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── Noise texture overlay ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── WAVE CANVAS ── */
+  #waveCanvas {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 0; pointer-events: none; opacity: .3;
+  }
+
+  /* ── SCROLL PROGRESS ── */
+  #scrollProgress {
+    position: fixed; top: 60px; left: 0; height: 3px;
+    background: linear-gradient(90deg, var(--cyan), var(--violet), var(--pink));
+    z-index: 101; width: 0; transition: width .1s;
+    box-shadow: 0 0 12px rgba(0,229,255,.6);
+  }
+
+  /* ── SCROLL REVEAL ── */
+  .reveal {
+    opacity: 0; transform: translateY(28px);
+    transition: opacity .7s ease, transform .7s ease;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── FLOATING ORBS ── */
+  .orb { position: absolute; border-radius: 50%; filter: blur(100px); opacity: .07; pointer-events: none; }
+  .orb-1 { width: 500px; height: 500px; background: var(--violet); top: -120px; right: -80px; animation: orbA 10s ease-in-out infinite; }
+  .orb-2 { width: 400px; height: 400px; background: var(--cyan); bottom: -80px; left: -80px; animation: orbA 12s ease-in-out infinite reverse; }
+  .orb-3 { width: 300px; height: 300px; background: var(--green); top: 40%; left: 60%; animation: orbA 14s ease-in-out infinite 3s; }
+  @keyframes orbA { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(20px,-20px) scale(1.05)} 66%{transform:translate(-15px,15px) scale(.95)} }
+
+  /* ── BACK TO TOP ── */
+  #backToTop {
+    position: fixed; bottom: 32px; right: 32px; z-index: 99;
+    width: 48px; height: 48px; border-radius: 14px;
+    background: rgba(0,229,255,.1); border: 1px solid rgba(0,229,255,.3);
+    color: var(--cyan); font-size: 20px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transform: translateY(20px);
+    transition: opacity .3s, transform .3s, background .2s, box-shadow .2s;
+    backdrop-filter: blur(12px);
+  }
+  #backToTop.show { opacity: 1; transform: translateY(0); }
+  #backToTop:hover { background: rgba(0,229,255,.2); box-shadow: 0 8px 24px rgba(0,229,255,.15); }
+
+  /* ── NAVBAR ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(6,10,16,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    height: 60px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-brand {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--cyan);
+    letter-spacing: 2px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .nav-brand .pulse { width: 8px; height: 8px; background: var(--green); border-radius: 50%; animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,230,118,.5)} 50%{opacity:.6;box-shadow:0 0 0 6px rgba(0,230,118,0)} }
+  .nav-links { display: flex; gap: 28px; }
+  .nav-links a {
+    font-size: 12px; font-weight: 500;
+    color: var(--muted); text-decoration: none;
+    letter-spacing: 1px; text-transform: uppercase;
+    transition: color .2s; position: relative;
+  }
+  .nav-links a::after {
+    content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px;
+    background: var(--cyan); border-radius: 2px; transition: width .3s;
+  }
+  .nav-links a:hover { color: var(--cyan); }
+  .nav-links a:hover::after { width: 100%; }
+  .nav-badge {
+    font-family: var(--font-mono); font-size: 11px;
+    background: rgba(0,229,255,0.1); border: 1px solid rgba(0,229,255,0.3);
+    color: var(--cyan); padding: 4px 12px; border-radius: 20px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 80px 32px 40px;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+  }
+  .hero-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black, transparent);
+  }
+  .hero-content { position: relative; text-align: center; max-width: 900px; z-index: 2; }
+  .hero-tag {
+    display: inline-block;
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--amber); border: 1px solid rgba(255,179,0,.35);
+    background: rgba(255,179,0,.07);
+    padding: 5px 16px; border-radius: 20px;
+    letter-spacing: 3px; margin-bottom: 28px;
+    text-transform: uppercase;
+    animation: fadeDown .8s ease both;
+  }
+  @keyframes fadeDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+  h1.hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(42px, 7vw, 82px);
+    line-height: 1.05;
+    color: #fff;
+    margin-bottom: 24px;
+    animation: fadeUp .8s ease .15s both;
+  }
+  h1.hero-title em { color: var(--cyan); font-style: italic; }
+  .hero-sub {
+    font-size: 18px; color: var(--muted);
+    max-width: 560px; margin: 0 auto 48px;
+    font-weight: 300;
+    animation: fadeUp .8s ease .3s both;
+  }
+  .hero-pills { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; animation: fadeUp .8s ease .45s both; }
+  .pill {
+    font-size: 12px; font-weight: 500;
+    padding: 7px 18px; border-radius: 20px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,.04);
+    color: var(--text);
+    transition: border-color .3s, background .3s, transform .3s;
+  }
+  .pill:hover { border-color: var(--cyan); background: rgba(0,229,255,.05); transform: translateY(-2px); }
+
+  /* ── SECTION WRAPPER ── */
+  .section { max-width: 1100px; margin: 0 auto; padding: 80px 32px; position: relative; z-index: 1; }
+  .section-label {
+    font-family: var(--font-mono); font-size: 11px; color: var(--cyan);
+    letter-spacing: 4px; text-transform: uppercase; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-label::before { content: ''; width: 28px; height: 2px; background: var(--cyan); border-radius: 2px; }
+  h2.section-title {
+    font-family: var(--font-display);
+    font-size: clamp(28px, 4vw, 48px);
+    color: #fff; margin-bottom: 16px; line-height: 1.15;
+  }
+  .section-desc { font-size: 16px; color: var(--muted); max-width: 640px; margin-bottom: 48px; }
+
+  /* ── CARDS ── */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    transition: border-color .3s, transform .4s, box-shadow .4s;
+  }
+  .card:hover { border-color: var(--cyan); transform: translateY(-6px); box-shadow: 0 16px 48px rgba(0,229,255,.08); }
+  .card-icon { font-size: 28px; margin-bottom: 14px; display: inline-block; animation: float 3s ease-in-out infinite; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+  .card h3 { font-size: 17px; font-weight: 600; color: #fff; margin-bottom: 8px; }
+  .card p { font-size: 14px; color: var(--muted); }
+  .card .formula {
+    margin-top: 12px;
+    font-family: var(--font-mono); font-size: 15px;
+    color: var(--cyan); background: rgba(0,229,255,.07);
+    border: 1px solid rgba(0,229,255,.15);
+    padding: 8px 14px; border-radius: 8px;
+    display: inline-block;
+    transition: background .3s, box-shadow .3s;
+  }
+  .card:hover .formula { background: rgba(0,229,255,.12); box-shadow: 0 0 20px rgba(0,229,255,.1); }
+
+  /* ── CLASSIFICATION TREE ── */
+  .classif-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px;
+  }
+  .classif-tree { display: flex; flex-direction: column; gap: 16px; }
+  .classif-row { display: flex; gap: 12px; align-items: stretch; flex-wrap: wrap; }
+  .classif-root {
+    background: linear-gradient(135deg, rgba(0,229,255,.15), rgba(0,229,255,.05));
+    border: 1px solid rgba(0,229,255,.4);
+    border-radius: 12px; padding: 14px 24px;
+    font-weight: 600; color: var(--cyan);
+    font-size: 15px; text-align: center;
+    min-width: 160px;
+  }
+  .classif-branch {
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap; flex: 1;
+  }
+  .classif-node {
+    border-radius: 10px; padding: 10px 18px;
+    font-size: 13px; font-weight: 500;
+    border: 1px solid;
+    transition: transform .3s, box-shadow .3s;
+    cursor: default;
+  }
+  .classif-node:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,.3); }
+  .cn-amber { background: rgba(255,179,0,.1); border-color: rgba(255,179,0,.4); color: var(--amber); }
+  .cn-green  { background: rgba(0,230,118,.1); border-color: rgba(0,230,118,.4); color: var(--green); }
+  .cn-pink   { background: rgba(255,64,129,.1); border-color: rgba(255,64,129,.4); color: var(--pink); }
+  .cn-violet { background: rgba(124,77,255,.1); border-color: rgba(124,77,255,.4); color: var(--violet); }
+  .cn-cyan   { background: rgba(0,229,255,.1);  border-color: rgba(0,229,255,.4);  color: var(--cyan);   }
+  .classif-connector {
+    width: 32px; border-top: 2px dashed var(--border);
+    flex-shrink: 0; align-self: center;
+  }
+
+  /* ── ANIMATION PANELS ── */
+  .anim-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 32px;
+    transition: border-color .4s, box-shadow .4s;
+  }
+  .anim-panel:hover { border-color: rgba(0,229,255,.25); box-shadow: 0 16px 48px rgba(0,0,0,.3); }
+  .anim-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .anim-dot { width: 10px; height: 10px; border-radius: 50%; animation: pulse 1.6s ease-in-out infinite; }
+  .anim-title { font-size: 14px; font-weight: 600; color: #fff; }
+  .anim-body { padding: 24px; }
+  .anim-body canvas { border-radius: 10px; background: #030810; display: block; width: 100%; }
+
+  .ctrl-row { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 16px; align-items: center; }
+  .ctrl-group { flex: 1; min-width: 160px; }
+  .ctrl-group label { font-size: 12px; color: var(--muted); font-family: var(--font-mono); display: block; margin-bottom: 6px; }
+  .ctrl-group input[type=range] { width: 100%; accent-color: var(--cyan); cursor: pointer; }
+  .ctrl-val { font-family: var(--font-mono); font-size: 13px; color: var(--cyan); font-weight: 700; }
+  .btn-anim {
+    padding: 10px 24px; border-radius: 10px; border: 1px solid rgba(0,229,255,.4);
+    background: rgba(0,229,255,.08); color: var(--cyan);
+    font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+    cursor: pointer; transition: background .2s, transform .2s, box-shadow .2s;
+    letter-spacing: 1px;
+  }
+  .btn-anim:hover { background: rgba(0,229,255,.18); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,229,255,.15); }
+  .btn-anim:active { transform: scale(.97); }
+
+  /* ── PHASE PORTRAIT ── */
+  .phase-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 700px) { .phase-grid { grid-template-columns: 1fr; } }
+
+  /* ── DIVIDER ── */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0;
+  }
+
+  /* ── CODE BLOCKS ── */
+  .code-wrap {
+    background: #030810;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 24px;
+    transition: box-shadow .3s;
+  }
+  .code-wrap:hover { box-shadow: 0 0 30px rgba(0,229,255,.05); }
+  .code-header {
+    padding: 10px 18px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .code-label { font-family: var(--font-mono); font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+  .code-dots { display: flex; gap: 6px; }
+  .code-dots span { width: 10px; height: 10px; border-radius: 50%; }
+  .code-lang {
+    font-family: var(--font-mono); font-size: 11px;
+    background: rgba(0,229,255,.1); color: var(--cyan);
+    padding: 2px 10px; border-radius: 20px; border: 1px solid rgba(0,229,255,.2);
+  }
+  pre {
+    padding: 22px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.8;
+    overflow-x: auto;
+    color: #cdd6e8;
+    white-space: pre;
+  }
+  .kw  { color: #7c4dff; } /* keyword   */
+  .fn  { color: #00e5ff; } /* function  */
+  .st  { color: #00e676; } /* string    */
+  .cm  { color: #3d5a7c; } /* comment   */
+  .nm  { color: #ffb300; } /* number    */
+  .op  { color: #ff4081; } /* operator  */
+
+  /* ── PROBLEM CARDS ── */
+  .problems { display: grid; gap: 20px; }
+  .prob {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    border-left: 4px solid var(--amber);
+    transition: border-color .3s, transform .3s, box-shadow .3s;
+  }
+  .prob:hover { transform: translateY(-4px); box-shadow: 0 12px 36px rgba(0,0,0,.3); }
+  .prob:nth-child(2) { border-left-color: var(--cyan); }
+  .prob:nth-child(3) { border-left-color: var(--green); }
+  .prob:nth-child(4) { border-left-color: var(--pink); }
+  .prob:nth-child(5) { border-left-color: var(--violet); }
+  .prob-num {
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--amber); letter-spacing: 3px; margin-bottom: 8px;
+  }
+  .prob:nth-child(2) .prob-num { color: var(--cyan); }
+  .prob:nth-child(3) .prob-num { color: var(--green); }
+  .prob:nth-child(4) .prob-num { color: var(--pink); }
+  .prob:nth-child(5) .prob-num { color: var(--violet); }
+  .prob h4 { font-size: 17px; font-weight: 600; color: #fff; margin-bottom: 10px; }
+  .prob p  { font-size: 14px; color: var(--text); margin-bottom: 8px; }
+  .prob .given {
+    background: rgba(0,0,0,.3); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 16px;
+    font-family: var(--font-mono); font-size: 12px; color: var(--amber);
+    margin-top: 10px;
+  }
+  .prob .hint {
+    margin-top: 10px;
+    font-size: 13px; color: var(--muted); font-style: italic;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px 32px; text-align: center;
+    font-size: 13px; color: var(--muted);
+    font-family: var(--font-mono);
+    position: relative; z-index: 1;
+  }
+  footer a { color: var(--cyan); text-decoration: none; }
+
+  /* ── Info box ── */
+  .info-box {
+    background: rgba(0,229,255,.05);
+    border: 1px solid rgba(0,229,255,.2);
+    border-left: 4px solid var(--cyan);
+    border-radius: 12px; padding: 18px 22px; margin-bottom: 20px;
+    font-size: 14px; color: var(--text);
+    transition: transform .3s, box-shadow .3s;
+  }
+  .info-box:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,229,255,.06); }
+  .info-box strong { color: var(--cyan); }
+
+  /* Table */
+  .table-wrap { overflow-x: auto; margin-bottom: 32px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th {
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 12px 16px; color: var(--cyan);
+    font-family: var(--font-mono); font-size: 12px; text-align: left;
+  }
+  td {
+    border: 1px solid var(--border);
+    padding: 12px 16px; color: var(--text);
+  }
+  tr:hover td { background: rgba(0,229,255,.03); }
+
+/* ============================================================
+   VISITOR SYSTEM
+   ============================================================ */
+.visitor-overlay {
+  position:fixed; inset:0; z-index:9999;
+  background:rgba(8,14,26,.92); backdrop-filter:blur(16px);
+  display:flex; align-items:center; justify-content:center;
+  opacity:1; transition:opacity .4s;
+}
+.visitor-overlay.hidden { opacity:0; pointer-events:none; }
+
+.visitor-modal {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-2xl); padding:40px 36px;
+  max-width:440px; width:90%; text-align:center;
+  box-shadow:0 32px 80px rgba(0,0,0,.6);
+  animation: modalIn .5s cubic-bezier(.16,1,.3,1);
+}
+@keyframes modalIn {
+  0%{ opacity:0; transform:translateY(30px) scale(.96); }
+  100%{ opacity:1; transform:translateY(0) scale(1); }
+}
+
+.visitor-modal h2 {
+  font-family:'Syne',sans-serif; font-weight:800; font-size:1.5rem;
+  background:linear-gradient(135deg,#5eead4,#a5f3fc);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  margin-bottom:6px;
+}
+.visitor-modal p.sub { color:var(--s300); font-size:.85rem; margin-bottom:28px; }
+
+.v-input {
+  width:100%; padding:14px 18px; border-radius:14px;
+  border:1px solid var(--s700); background:rgba(255,255,255,.05);
+  color:#fff; font-family:'DM Sans',sans-serif; font-size:.95rem;
+  outline:none; transition:border .25s;
+  margin-bottom:14px;
+}
+.v-input::placeholder { color:var(--s400); }
+.v-input:focus { border-color:var(--teal); box-shadow:0 0 0 3px rgba(45,212,191,.15); }
+
+.v-btn-primary {
+  width:100%; padding:14px; border-radius:14px; border:none;
+  background:linear-gradient(135deg,#14b8a6,#06b6d4);
+  color:#fff; font-family:'Syne',sans-serif; font-weight:700;
+  font-size:1.05rem; text-shadow:0 1px 2px rgba(0,0,0,.3); cursor:pointer; transition:transform .2s, box-shadow .2s;
+  margin-top:6px;
+}
+.v-btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(20,184,166,.5); }
+.v-btn-primary:disabled { opacity:.4; cursor:not-allowed; transform:none; box-shadow:none; }
+
+.v-error { color:#fda4af; font-size:.8rem; margin-bottom:10px; display:none; }
+
+/* Floating Visitor Button */
+.visitor-fab {
+  position:fixed; bottom:24px; right:24px; z-index:8888;
+  width:56px; height:56px; border-radius:50%;
+  background:linear-gradient(135deg,var(--teal),#22d3ee);
+  border:none; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  box-shadow:0 6px 24px rgba(45,212,191,.4);
+  transition:transform .25s, box-shadow .25s;
+  font-size:1.4rem;
+}
+.visitor-fab:hover { transform:scale(1.08); box-shadow:0 8px 32px rgba(45,212,191,.5); }
+
+.visitor-fab .fab-count {
+  position:absolute; top:-4px; right:-4px;
+  background:var(--rose); color:#fff; font-size:.65rem; font-weight:700;
+  min-width:22px; height:22px; border-radius:50%; display:flex;
+  align-items:center; justify-content:center; padding:0 5px;
+  border:2px solid var(--bg);
+}
+
+/* Visitor Panel */
+.visitor-panel {
+  position:fixed; bottom:92px; right:24px; z-index:8887;
+  width:340px; max-height:480px; overflow:hidden;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-2xl); box-shadow:0 24px 64px rgba(0,0,0,.5);
+  display:flex; flex-direction:column;
+  transform:translateY(12px) scale(.95); opacity:0; pointer-events:none;
+  transition:transform .3s cubic-bezier(.16,1,.3,1), opacity .25s;
+}
+.visitor-panel.open { transform:translateY(0) scale(1); opacity:1; pointer-events:auto; }
+
+.vp-header {
+  padding:20px 22px 14px; border-bottom:1px solid rgba(255,255,255,.06);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.vp-header h3 { font-family:'Syne',sans-serif; font-weight:700; font-size:1rem; color:#fff; }
+.vp-header .vp-badge {
+  background:rgba(45,212,191,.12); color:var(--teal); font-size:.7rem;
+  font-weight:700; padding:4px 10px; border-radius:999px;
+}
+
+.vp-list { overflow-y:auto; padding:10px 16px 16px; flex:1; }
+
+.vp-item {
+  display:flex; align-items:center; gap:12px;
+  padding:10px 12px; border-radius:14px; margin-bottom:6px;
+  background:rgba(255,255,255,.03); transition:background .2s;
+}
+.vp-item:hover { background:rgba(255,255,255,.06); }
+
+.vp-avatar {
+  width:38px; height:38px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700; font-size:.85rem; flex-shrink:0;
+}
+.vp-avatar.student { background:rgba(45,212,191,.12); color:var(--teal); }
+.vp-avatar.dosen   { background:rgba(251,191,36,.12);  color:var(--amber); }
+
+.vp-info { flex:1; min-width:0; }
+.vp-name { font-weight:600; font-size:.88rem; color:var(--s200); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.vp-nim  { font-size:.72rem; color:var(--s500); font-family:'Courier New',monospace; }
+.vp-time { font-size:.68rem; color:var(--s500); text-align:right; flex-shrink:0; white-space:nowrap; }
+
+.vp-empty { text-align:center; padding:32px 16px; color:var(--s500); font-size:.85rem; }
+
+@media(max-width:480px){
+  .visitor-panel { width:calc(100vw - 32px); right:16px; bottom:88px; }
+  .visitor-fab { bottom:18px; right:18px; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ==================== VISITOR MODAL ==================== -->
+<div class="visitor-overlay" id="visitorOverlay">
+  <div class="visitor-modal">
+    <div style="font-size:2.8rem;margin-bottom:12px;">🎓</div>
+    <h2>Selamat Datang!</h2>
+    <p class="sub">Silakan masukkan identitas Anda untuk mengakses modul ini.</p>
+    <p class="v-error" id="vError">⚠ Nama dan NIM wajib diisi.</p>
+    <input type="text" class="v-input" id="vNama" placeholder="Nama Lengkap" autocomplete="off">
+    <input type="text" class="v-input" id="vNim" placeholder="NIM (Nomor Induk Mahasiswa)" autocomplete="off">
+    <button class="v-btn-primary" id="vSubmit" onclick="submitVisitor()">Masuk ke Modul 2 →</button>
+  </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="visitor-overlay hidden" id="resetOverlay" style="z-index:10000;">
+  <div class="visitor-modal" style="max-width:380px;">
+    <div style="font-size:2.4rem;margin-bottom:12px;">🔐</div>
+    <h2 style="font-size:1.3rem;">Konfirmasi Reset</h2>
+    <p class="sub">Masukkan password untuk menghapus semua data pengunjung.</p>
+    <p class="v-error" id="resetError">⚠ Password salah.</p>
+    <input type="password" class="v-input" id="resetPw" placeholder="Password" autocomplete="off">
+    <button class="v-btn-primary" style="background:linear-gradient(135deg,var(--rose),#f43f5e);" onclick="confirmReset()">Hapus Semua Pengunjung</button>
+    <button style="width:100%;margin-top:12px;padding:12px;border-radius:14px;border:1px solid var(--s700);background:rgba(255,255,255,.04);color:var(--s400);font-family:'DM Sans',sans-serif;font-weight:600;font-size:.88rem;cursor:pointer;" onclick="hideResetModal()">Batal</button>
+  </div>
+</div>
+
+<!-- Floating Visitor Button -->
+<button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Daftar Pengunjung">
+  👥
+  <span class="fab-count" id="fabCount">0</span>
+</button>
+
+<!-- Visitor Panel -->
+<div class="visitor-panel" id="visitorPanel">
+  <div class="vp-header">
+    <h3>👥 Pengunjung</h3>
+    <span class="vp-badge" id="vpBadge">0 orang</span>
+  </div>
+  <div class="vp-list" id="vpList">
+    <div class="vp-empty">Memuat data pengunjung...</div>
+  </div>
+</div>
+
+
+
+<!-- Scroll progress bar -->
+<div id="scrollProgress"></div>
+
+<!-- Animated wave background -->
+<canvas id="waveCanvas"></canvas>
+
+<!-- Back to top button -->
+<button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<!-- ═══════════════════════ NAVBAR ═══════════════════════ -->
+<nav>
+  <span class="nav-brand"><span class="pulse"></span> GETARANMESIN // MODUL 2</span>
+  <div class="nav-links">
+    <a href="#teori">Teori</a>
+    <a href="#klasifikasi">Klasifikasi</a>
+    <a href="#animasi">Animasi</a>
+    <a href="#fase">Fase</a>
+    <a href="#jupyter">Jupyter</a>
+    <a href="#latihan">Latihan</a>
+  </div>
+  <span class="nav-badge">👨‍🏫 DEDIK ROMAHADI</span>
+</nav>
+
+<!-- ═══════════════════════ HERO ═══════════════════════ -->
+<div class="hero">
+  <div class="hero-grid"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="hero-content">
+    <span class="hero-tag">〰️ Modul 2 • Getaran Mekanik</span>
+    <h1 class="hero-title">Sistem Getaran<br>&amp; <em>Klasifikasinya</em></h1>
+    <p class="hero-sub">Memahami berbagai jenis sistem getaran, model matematisnya, diagram fase, dan simulasi numerik dengan Python.</p>
+    <div class="hero-pills">
+      <span class="pill">⚙️ 1-DoF &amp; 2-DoF</span>
+      <span class="pill">📊 Diagram Fase</span>
+      <span class="pill">🔵 Getaran Bebas</span>
+      <span class="pill">⚡ Getaran Paksa</span>
+      <span class="pill">🌀 Getaran Teredam</span>
+      <span class="pill">🐍 Python Simulation</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ TEORI DASAR ═══════════════════ -->
+<hr class="divider">
+<div class="section" id="teori">
+  <div class="section-label reveal">Bagian 01</div>
+  <h2 class="section-title reveal">Konsep Dasar<br>Sistem Getaran</h2>
+  <p class="section-desc reveal">Sistem getaran terdiri dari tiga elemen utama yang saling berinteraksi menghasilkan gerak osilasi.</p>
+
+  <div class="cards" style="margin-bottom:40px;">
+    <div class="card reveal">
+      <div class="card-icon">⚖️</div>
+      <h3>Massa (Inertia)</h3>
+      <p>Elemen yang menyimpan energi kinetik. Gaya inersia melawan percepatan gerak. Semakin besar massa, semakin lambat respons sistem.</p>
+      <span class="formula">F = m·ẍ</span>
+    </div>
+    <div class="card reveal">
+      <div class="card-icon">🌀</div>
+      <h3>Kekakuan (Stiffness)</h3>
+      <p>Pegas menyimpan energi potensial elastis. Kekakuan pegas menentukan frekuensi alami sistem dan besarnya gaya pemulih.</p>
+      <span class="formula">F = k·x</span>
+    </div>
+    <div class="card reveal">
+      <div class="card-icon">💧</div>
+      <h3>Redaman (Damping)</h3>
+      <p>Dashpot (peredam) mendisipasi energi menjadi panas. Mengurangi amplitudo seiring waktu. Tanpa redaman, getaran berlangsung selamanya.</p>
+      <span class="formula">F = c·ẋ</span>
+    </div>
+    <div class="card reveal">
+      <div class="card-icon">📐</div>
+      <h3>Persamaan Gerak Umum</h3>
+      <p>Kombinasi ketiga elemen menghasilkan persamaan diferensial orde 2 yang mendeskripsikan perilaku sistem getaran sepenuhnya.</p>
+      <span class="formula">mẍ + cẋ + kx = F(t)</span>
+    </div>
+    <div class="card reveal">
+      <div class="card-icon">📡</div>
+      <h3>Frekuensi Alami (ωₙ)</h3>
+      <p>Frekuensi getaran bebas tanpa redaman. Jika gaya eksitasi mendekati ωₙ, terjadi <strong style="color:var(--pink)">resonansi</strong> yang dapat merusak mesin.</p>
+      <span class="formula">ωₙ = √(k/m)</span>
+    </div>
+    <div class="card reveal">
+      <div class="card-icon">📉</div>
+      <h3>Rasio Redaman (ζ)</h3>
+      <p>Perbandingan redaman aktual terhadap redaman kritis. Menentukan apakah sistem underdamped, critically damped, atau overdamped.</p>
+      <span class="formula">ζ = c / (2√km)</span>
+    </div>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>Catatan Penting:</strong> Resonansi terjadi ketika frekuensi eksitasi = frekuensi alami (ω = ωₙ). Pada kondisi ini amplitudo teoritis → ∞ (pada sistem tanpa redaman). Dalam praktik, redaman membatasi amplitudo, namun tetap sangat berbahaya bagi struktur mesin.
+  </div>
+</div>
+
+<!-- ═══════════════════ KLASIFIKASI ═══════════════════ -->
+<hr class="divider">
+<div class="section" id="klasifikasi">
+  <div class="section-label reveal">Bagian 02</div>
+  <h2 class="section-title reveal">Klasifikasi<br>Sistem Getaran</h2>
+  <p class="section-desc reveal">Getaran mesin diklasifikasikan berdasarkan beberapa kriteria penting berikut ini.</p>
+
+  <div class="classif-wrap reveal" style="margin-bottom:40px;">
+    <div class="classif-tree">
+
+      <div class="classif-row">
+        <div class="classif-root">GETARAN MESIN</div>
+        <div class="classif-connector"></div>
+        <div class="classif-branch">
+          <div class="classif-node cn-cyan">Berdasarkan<br>Gaya Eksitasi</div>
+          <div class="classif-node cn-amber">Berdasarkan<br>Redaman</div>
+          <div class="classif-node cn-green">Berdasarkan<br>Linieritas</div>
+          <div class="classif-node cn-pink">Berdasarkan<br>DoF</div>
+          <div class="classif-node cn-violet">Berdasarkan<br>Sifat Eksitasi</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="table-wrap reveal">
+    <table>
+      <thead>
+        <tr>
+          <th>Kategori</th><th>Jenis</th><th>Karakteristik</th><th>Contoh</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td rowspan="2" style="color:var(--cyan);font-weight:600">Berdasarkan Gaya</td>
+            <td>Getaran Bebas</td>
+            <td>Tidak ada gaya luar setelah gangguan awal. Sistem bergetar pada ωₙ</td>
+            <td>Bandul yang dihentakkan</td></tr>
+        <tr><td>Getaran Paksa</td>
+            <td>Ada gaya eksitasi periodik berkelanjutan F(t). Frekuensi respons = frekuensi eksitasi</td>
+            <td>Motor tidak seimbang, gempa bumi</td></tr>
+        <tr><td rowspan="3" style="color:var(--amber);font-weight:600">Berdasarkan Redaman</td>
+            <td>Tak Teredam (ζ=0)</td>
+            <td>Getaran berlangsung selamanya dengan amplitudo konstan</td>
+            <td>Model ideal, referensi teoritis</td></tr>
+        <tr><td>Underdamped (ζ&lt;1)</td>
+            <td>Getaran osilasi yang amplitudonya menurun eksponensial</td>
+            <td>Suspensi kendaraan normal</td></tr>
+        <tr><td>Overdamped (ζ&gt;1)</td>
+            <td>Kembali ke ekuilibrium tanpa osilasi, sangat lambat</td>
+            <td>Peredam pintu hidrolik</td></tr>
+        <tr><td rowspan="2" style="color:var(--green);font-weight:600">Berdasarkan Liniearitas</td>
+            <td>Linier</td>
+            <td>Prinsip superposisi berlaku. Koefisien m, c, k konstan</td>
+            <td>Sistem pegas Hookean</td></tr>
+        <tr><td>Non-linier</td>
+            <td>Prinsip superposisi tidak berlaku. Bisa chaotic</td>
+            <td>Getaran besar, kontak/benturan</td></tr>
+        <tr><td rowspan="3" style="color:var(--pink);font-weight:600">Berdasarkan DoF</td>
+            <td>1 DoF</td>
+            <td>1 koordinat bebas, 1 frekuensi alami</td>
+            <td>Massa tunggal pada pegas</td></tr>
+        <tr><td>2 DoF</td>
+            <td>2 koordinat bebas, 2 frekuensi alami, 2 modus getar</td>
+            <td>Kendaraan 2-massa, absorber getaran</td></tr>
+        <tr><td>Multi-DoF / Kontinu</td>
+            <td>n koordinat bebas, n frekuensi alami. Analisis modal</td>
+            <td>Struktur mesin kompleks</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════ ANIMASI ═══════════════════ -->
+<hr class="divider">
+<div class="section" id="animasi">
+  <div class="section-label reveal">Bagian 03</div>
+  <h2 class="section-title reveal">Animasi Interaktif<br>Berbagai Jenis Getaran</h2>
+  <p class="section-desc reveal">Ubah parameter dan amati perbedaan perilaku masing-masing jenis sistem getaran secara real-time.</p>
+
+  <!-- ANIMASI 1: PERBANDINGAN TIGA TIPE REDAMAN -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--cyan)"></div>
+      <span class="anim-title">Animasi 1 — Perbandingan Tiga Kondisi Redaman (1-DoF)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cv1" height="220"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group">
+          <label>Frekuensi Alami ωₙ (rad/s) — <span class="ctrl-val" id="v_wn">5.0</span></label>
+          <input type="range" id="sl_wn" min="2" max="12" step="0.5" value="5">
+        </div>
+        <div class="ctrl-group">
+          <label>Amplitudo Awal x₀ — <span class="ctrl-val" id="v_x0">1.0</span></label>
+          <input type="range" id="sl_x0" min="0.2" max="1.5" step="0.05" value="1">
+        </div>
+        <button class="btn-anim" id="btn1" onclick="toggleAnim1()">⏸ PAUSE</button>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:24px;font-size:12px;font-family:var(--font-mono)">
+        <span style="color:#00e5ff">── Underdamped (ζ=0.1)</span>
+        <span style="color:#ffb300">── Critically Damped (ζ=1)</span>
+        <span style="color:#ff4081">── Overdamped (ζ=2)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANIMASI 2: MASSA-PEGAS-DASHPOT VISUAL + TIME PLOT -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--amber)"></div>
+      <span class="anim-title">Animasi 2 — Sistem Massa-Pegas-Dashpot (Getaran Bebas Teredam)</span>
+    </div>
+    <div class="anim-body">
+      <div style="display:grid;grid-template-columns:320px 1fr;gap:16px;align-items:start;">
+        <canvas id="cv2mech" height="280" style="min-width:0"></canvas>
+        <canvas id="cv2plot" height="280" style="min-width:0"></canvas>
+      </div>
+      <div class="ctrl-row">
+        <div class="ctrl-group">
+          <label>Massa m (kg) — <span class="ctrl-val" id="v_m">1.0</span></label>
+          <input type="range" id="sl_m" min="0.5" max="4" step="0.1" value="1">
+        </div>
+        <div class="ctrl-group">
+          <label>Kekakuan k (N/m) — <span class="ctrl-val" id="v_k">25</span></label>
+          <input type="range" id="sl_k" min="5" max="100" step="5" value="25">
+        </div>
+        <div class="ctrl-group">
+          <label>Redaman c (Ns/m) — <span class="ctrl-val" id="v_c">1.0</span></label>
+          <input type="range" id="sl_c" min="0" max="20" step="0.5" value="1">
+        </div>
+        <button class="btn-anim" id="btn2" onclick="toggleAnim2()">⏸ PAUSE</button>
+      </div>
+      <div id="info_zeta" style="margin-top:8px;font-family:var(--font-mono);font-size:13px;color:var(--green)">
+        ζ = 0.10 | ωₙ = 5.00 rad/s | kondisi: UNDERDAMPED
+      </div>
+    </div>
+  </div>
+
+  <!-- ANIMASI 3: GETARAN PAKSA + RESONANSI -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--pink)"></div>
+      <span class="anim-title">Animasi 3 — Getaran Paksa & Fenomena Resonansi</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cv3" height="240"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group">
+          <label>Frekuensi Eksitasi ω (rad/s) — <span class="ctrl-val" id="v_omega">3.0</span></label>
+          <input type="range" id="sl_omega" min="0.5" max="14" step="0.1" value="3">
+        </div>
+        <div class="ctrl-group">
+          <label>ωₙ sistem (rad/s) — <span class="ctrl-val" id="v_wn3">5.0</span></label>
+          <input type="range" id="sl_wn3" min="1" max="12" step="0.5" value="5">
+        </div>
+        <div class="ctrl-group">
+          <label>Rasio Redaman ζ — <span class="ctrl-val" id="v_zeta3">0.10</span></label>
+          <input type="range" id="sl_zeta3" min="0.01" max="0.8" step="0.01" value="0.1">
+        </div>
+        <button class="btn-anim" id="btn3" onclick="toggleAnim3()">⏸ PAUSE</button>
+      </div>
+      <div id="info_forced" style="margin-top:8px;font-family:var(--font-mono);font-size:13px;color:var(--pink)"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ DIAGRAM FASE ═══════════════════ -->
+<hr class="divider">
+<div class="section" id="fase">
+  <div class="section-label reveal">Bagian 04</div>
+  <h2 class="section-title reveal">Diagram Fase<br>(Phase Portrait)</h2>
+  <p class="section-desc reveal">Diagram fase menggambarkan trajektori sistem dalam ruang fase (x, ẋ). Sangat berguna untuk menganalisis stabilitas dan perilaku sistem tanpa menyelesaikan persamaan diferensial secara eksplisit.</p>
+
+  <div class="info-box reveal">
+    <strong>Cara Membaca Diagram Fase:</strong> Sumbu horizontal = perpindahan x(t), Sumbu vertikal = kecepatan ẋ(t). Setiap kurva (trajektori) mewakili kondisi awal berbeda. Arah gerak selalu mengikuti panah — memutar searah atau berlawanan jarum jam tergantung jenis sistem.
+  </div>
+
+  <div class="phase-grid">
+    <!-- Phase 1: Undamped -->
+    <div class="anim-panel reveal">
+      <div class="anim-header">
+        <div class="anim-dot" style="background:var(--cyan)"></div>
+        <span class="anim-title">Fase: Tak Teredam (ζ = 0)</span>
+      </div>
+      <div class="anim-body">
+        <canvas id="ph1" width="380" height="300"></canvas>
+        <p style="font-size:12px;color:var(--muted);margin-top:8px;font-family:var(--font-mono)">Lintasan: Ellips tertutup (energi konstan)</p>
+      </div>
+    </div>
+    <!-- Phase 2: Underdamped -->
+    <div class="anim-panel reveal">
+      <div class="anim-header">
+        <div class="anim-dot" style="background:var(--green)"></div>
+        <span class="anim-title">Fase: Underdamped (ζ = 0.1)</span>
+      </div>
+      <div class="anim-body">
+        <canvas id="ph2" width="380" height="300"></canvas>
+        <p style="font-size:12px;color:var(--muted);margin-top:8px;font-family:var(--font-mono)">Lintasan: Spiral menuju origin (energi berkurang)</p>
+      </div>
+    </div>
+    <!-- Phase 3: Critically damped -->
+    <div class="anim-panel reveal">
+      <div class="anim-header">
+        <div class="anim-dot" style="background:var(--amber)"></div>
+        <span class="anim-title">Fase: Critically Damped (ζ = 1)</span>
+      </div>
+      <div class="anim-body">
+        <canvas id="ph3" width="380" height="300"></canvas>
+        <p style="font-size:12px;color:var(--muted);margin-top:8px;font-family:var(--font-mono)">Lintasan: Melengkung langsung ke origin</p>
+      </div>
+    </div>
+    <!-- Phase 4: Forced -->
+    <div class="anim-panel reveal">
+      <div class="anim-header">
+        <div class="anim-dot" style="background:var(--pink)"></div>
+        <span class="anim-title">Fase: Getaran Paksa (Steady-State)</span>
+      </div>
+      <div class="anim-body">
+        <canvas id="ph4" width="380" height="300"></canvas>
+        <div class="ctrl-row" style="margin-top:8px;">
+          <div class="ctrl-group" style="min-width:120px;">
+            <label>ω/ωₙ — <span class="ctrl-val" id="v_r">0.60</span></label>
+            <input type="range" id="sl_r" min="0.1" max="1.9" step="0.05" value="0.6">
+          </div>
+          <div class="ctrl-group" style="min-width:120px;">
+            <label>ζ — <span class="ctrl-val" id="v_zp">0.10</span></label>
+            <input type="range" id="sl_zp" min="0.01" max="0.5" step="0.01" value="0.1">
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px;font-family:var(--font-mono)">Lintasan: Ellips (Lissajous) — steady-state</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ JUPYTER NOTEBOOK ═══════════════════ -->
+<hr class="divider">
+<div class="section" id="jupyter">
+  <div class="section-label reveal">Bagian 05</div>
+  <h2 class="section-title reveal">Simulasi Fase Getaran<br>di Jupyter Notebook</h2>
+  <p class="section-desc reveal">Copy-paste kode berikut ke file <code style="font-family:var(--font-mono);color:var(--cyan);background:rgba(0,229,255,.07);padding:2px 8px;border-radius:4px">getaran_fase.ipynb</code> di VS Code. Pastikan environment <code style="font-family:var(--font-mono);color:var(--amber)">getaran</code> sudah aktif.</p>
+
+  <!-- CELL 1 -->
+  <div class="code-wrap reveal">
+    <div class="code-header">
+      <span class="code-label"><span class="code-dots"><span style="background:#ef4444"></span><span style="background:#f59e0b"></span><span style="background:#10b981"></span></span> &nbsp;CELL 1 — Import Library</span>
+      <span class="code-lang">Python</span>
+    </div>
+    <pre><span class="cm"># ================================================================
+# SIMULASI DIAGRAM FASE GETARAN MESIN
+# Mata Kuliah: Getaran Mekanik | Teknik Mesin
+# ================================================================</span>
+
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+<span class="kw">import</span> matplotlib.gridspec <span class="kw">as</span> gridspec
+<span class="kw">from</span> scipy.integrate <span class="kw">import</span> solve_ivp
+<span class="kw">from</span> matplotlib.animation <span class="kw">import</span> FuncAnimation
+<span class="kw">from</span> IPython.display <span class="kw">import</span> HTML
+
+plt.style.use(<span class="st">'dark_background'</span>)
+<span class="op">%</span>matplotlib inline
+<span class="fn">print</span>(<span class="st">"✅ Library siap!"</span>)</pre>
+  </div>
+
+  <!-- CELL 2 -->
+  <div class="code-wrap reveal">
+    <div class="code-header">
+      <span class="code-label"><span class="code-dots"><span style="background:#ef4444"></span><span style="background:#f59e0b"></span><span style="background:#10b981"></span></span> &nbsp;CELL 2 — Fungsi Persamaan Gerak & Solver</span>
+      <span class="code-lang">Python</span>
+    </div>
+    <pre><span class="cm"># ── Parameter sistem ──────────────────────────────────────────</span>
+m   <span class="op">=</span> <span class="nm">1.0</span>    <span class="cm"># massa (kg)</span>
+k   <span class="op">=</span> <span class="nm">25.0</span>   <span class="cm"># kekakuan (N/m)</span>
+c   <span class="op">=</span> <span class="nm">1.0</span>    <span class="cm"># redaman (Ns/m)</span>
+wn  <span class="op">=</span> np.<span class="fn">sqrt</span>(k<span class="op">/</span>m)
+zeta<span class="op">=</span> c <span class="op">/</span> (<span class="nm">2</span> <span class="op">*</span> np.<span class="fn">sqrt</span>(k<span class="op">*</span>m))
+<span class="fn">print</span>(<span class="st">f"ωₙ = {wn:.3f} rad/s  |  ζ = {zeta:.4f}"</span>)
+
+<span class="cm"># ── ODE untuk getaran bebas teredam ───────────────────────────</span>
+<span class="kw">def</span> <span class="fn">free_vib</span>(t, y, m, c, k):
+    <span class="st">"""y[0]=x, y[1]=xdot  →  returns [xdot, xddot]"""</span>
+    xdot  <span class="op">=</span> y[<span class="nm">1</span>]
+    xddot <span class="op">=</span> <span class="op">-</span>(c<span class="op">/</span>m)<span class="op">*</span>y[<span class="nm">1</span>] <span class="op">-</span> (k<span class="op">/</span>m)<span class="op">*</span>y[<span class="nm">0</span>]
+    <span class="kw">return</span> [xdot, xddot]
+
+<span class="cm"># ── ODE untuk getaran paksa harmonik ──────────────────────────</span>
+<span class="kw">def</span> <span class="fn">forced_vib</span>(t, y, m, c, k, F0, omega):
+    xdot  <span class="op">=</span> y[<span class="nm">1</span>]
+    xddot <span class="op">=</span> (F0<span class="op">*</span>np.<span class="fn">cos</span>(omega<span class="op">*</span>t) <span class="op">-</span> c<span class="op">*</span>y[<span class="nm">1</span>] <span class="op">-</span> k<span class="op">*</span>y[<span class="nm">0</span>]) <span class="op">/</span> m
+    <span class="kw">return</span> [xdot, xddot]
+
+<span class="cm"># ── Fungsi solver umum ────────────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">solve_system</span>(ode_func, y0, t_span, t_eval, <span class="op">**</span>kwargs):
+    sol <span class="op">=</span> solve_ivp(ode_func, t_span, y0,
+                    t_eval<span class="op">=</span>t_eval, method<span class="op">=</span><span class="st">'RK45'</span>,
+                    rtol<span class="op">=</span><span class="nm">1e-8</span>, atol<span class="op">=</span><span class="nm">1e-10</span>,
+                    args<span class="op">=</span><span class="fn">tuple</span>(kwargs.values()))
+    <span class="kw">return</span> sol.t, sol.y[<span class="nm">0</span>], sol.y[<span class="nm">1</span>]  <span class="cm"># t, x, xdot</span></pre>
+  </div>
+
+  <!-- CELL 3 -->
+  <div class="code-wrap reveal">
+    <div class="code-header">
+      <span class="code-label"><span class="code-dots"><span style="background:#ef4444"></span><span style="background:#f59e0b"></span><span style="background:#10b981"></span></span> &nbsp;CELL 3 — Diagram Fase: Perbandingan 4 Kondisi</span>
+      <span class="code-lang">Python</span>
+    </div>
+    <pre><span class="cm"># ── Simulasi beberapa kondisi redaman ─────────────────────────</span>
+t_span <span class="op">=</span> (<span class="nm">0</span>, <span class="nm">20</span>)
+t_eval <span class="op">=</span> np.<span class="fn">linspace</span>(<span class="nm">0</span>, <span class="nm">20</span>, <span class="nm">4000</span>)
+configs <span class="op">=</span> [
+    {<span class="st">'label'</span>: <span class="st">'Underdamped ζ=0.05'</span>, <span class="st">'c'</span>: <span class="nm">0.5</span>,  <span class="st">'color'</span>: <span class="st">'#00e5ff'</span>},
+    {<span class="st">'label'</span>: <span class="st">'Underdamped ζ=0.15'</span>, <span class="st">'c'</span>: <span class="nm">1.5</span>,  <span class="st">'color'</span>: <span class="st">'#00e676'</span>},
+    {<span class="st">'label'</span>: <span class="st">'Critically Damped'</span>,   <span class="st">'c'</span>: <span class="nm">10.0</span>, <span class="st">'color'</span>: <span class="st">'#ffb300'</span>},
+    {<span class="st">'label'</span>: <span class="st">'Overdamped ζ=2.0'</span>,    <span class="st">'c'</span>: <span class="nm">20.0</span>, <span class="st">'color'</span>: <span class="st">'#ff4081'</span>},
+]
+
+fig, axes <span class="op">=</span> plt.<span class="fn">subplots</span>(<span class="nm">2</span>, <span class="nm">2</span>, figsize<span class="op">=</span>(<span class="nm">12</span>, <span class="nm">9</span>),
+                         facecolor<span class="op">=</span><span class="st">'#060a10'</span>)
+fig.<span class="fn">suptitle</span>(<span class="st">'Diagram Fase — Getaran Bebas Teredam\nm=1 kg, k=25 N/m, x₀=1 m, ẋ₀=0'</span>,
+             color<span class="op">=</span><span class="st">'white'</span>, fontsize<span class="op">=</span><span class="nm">13</span>, y<span class="op">=</span><span class="nm">0.98</span>)
+
+<span class="kw">for</span> ax, cfg <span class="kw">in</span> <span class="fn">zip</span>(axes.<span class="fn">flat</span>(), configs):
+    t, x, xd <span class="op">=</span> <span class="fn">solve_system</span>(free_vib, [<span class="nm">1.0</span>, <span class="nm">0.0</span>],
+                              t_span, t_eval,
+                              m<span class="op">=</span>m, c<span class="op">=</span>cfg[<span class="st">'c'</span>], k<span class="op">=</span>k)
+    zeta_i <span class="op">=</span> cfg[<span class="st">'c'</span>] <span class="op">/</span> (<span class="nm">2</span><span class="op">*</span>np.<span class="fn">sqrt</span>(k<span class="op">*</span>m))
+
+    ax.<span class="fn">set_facecolor</span>(<span class="st">'#0d1520'</span>)
+    <span class="cm"># Plot trajektori + titik awal</span>
+    ax.<span class="fn">plot</span>(x, xd, color<span class="op">=</span>cfg[<span class="st">'color'</span>], lw<span class="op">=</span><span class="nm">1.5</span>, alpha<span class="op">=</span><span class="nm">0.9</span>)
+    ax.<span class="fn">scatter</span>(x[<span class="nm">0</span>], xd[<span class="nm">0</span>], color<span class="op">=</span><span class="st">'white'</span>, s<span class="op">=</span><span class="nm">60</span>,
+               zorder<span class="op">=</span><span class="nm">5</span>, label<span class="op">=</span><span class="st">'Titik awal'</span>)
+    ax.<span class="fn">axhline</span>(<span class="nm">0</span>, color<span class="op">=</span><span class="st">'#1a2840'</span>, lw<span class="op">=</span><span class="nm">0.8</span>)
+    ax.<span class="fn">axvline</span>(<span class="nm">0</span>, color<span class="op">=</span><span class="st">'#1a2840'</span>, lw<span class="op">=</span><span class="nm">0.8</span>)
+    ax.<span class="fn">set_xlabel</span>(<span class="st">'Perpindahan x (m)'</span>,  color<span class="op">=</span><span class="st">'#4a6080'</span>, fontsize<span class="op">=</span><span class="nm">10</span>)
+    ax.<span class="fn">set_ylabel</span>(<span class="st">'Kecepatan ẋ (m/s)'</span>, color<span class="op">=</span><span class="st">'#4a6080'</span>, fontsize<span class="op">=</span><span class="nm">10</span>)
+    ax.<span class="fn">set_title</span>(cfg[<span class="st">'label'</span>] <span class="op">+</span> <span class="st">f' (ζ={zeta_i:.3f})'</span>,
+                color<span class="op">=</span>cfg[<span class="st">'color'</span>], fontsize<span class="op">=</span><span class="nm">11</span>)
+    ax.<span class="fn">tick_params</span>(colors<span class="op">=</span><span class="st">'#4a6080'</span>)
+    ax.spines[<span class="st">'bottom'</span>].<span class="fn">set_color</span>(<span class="st">'#1a2840'</span>)
+    ax.spines[<span class="st">'left'</span>].<span class="fn">set_color</span>(<span class="st">'#1a2840'</span>)
+    ax.spines[<span class="st">'top'</span>].<span class="fn">set_visible</span>(<span class="kw">False</span>)
+    ax.spines[<span class="st">'right'</span>].<span class="fn">set_visible</span>(<span class="kw">False</span>)
+    ax.<span class="fn">legend</span>(fontsize<span class="op">=</span><span class="nm">9</span>)
+
+plt.<span class="fn">tight_layout</span>()
+plt.<span class="fn">savefig</span>(<span class="st">'diagram_fase_redaman.png'</span>, dpi<span class="op">=</span><span class="nm">150</span>,
+             bbox_inches<span class="op">=</span><span class="st">'tight'</span>, facecolor<span class="op">=</span><span class="st">'#060a10'</span>)
+plt.<span class="fn">show</span>()</pre>
+  </div>
+
+  <!-- CELL 4 -->
+  <div class="code-wrap reveal">
+    <div class="code-header">
+      <span class="code-label"><span class="code-dots"><span style="background:#ef4444"></span><span style="background:#f59e0b"></span><span style="background:#10b981"></span></span> &nbsp;CELL 4 — Diagram Fase: Getaran Paksa (Steady-State Lissajous)</span>
+      <span class="code-lang">Python</span>
+    </div>
+    <pre><span class="cm"># ── Simulasi fase getaran paksa untuk berbagai rasio frekuensi ─</span>
+F0     <span class="op">=</span> <span class="nm">1.0</span>   <span class="cm"># amplitudo gaya (N)</span>
+wn     <span class="op">=</span> <span class="nm">5.0</span>   <span class="cm"># frekuensi alami</span>
+zeta   <span class="op">=</span> <span class="nm">0.1</span>   <span class="cm"># rasio redaman</span>
+c_val  <span class="op">=</span> <span class="nm">2</span><span class="op">*</span>zeta<span class="op">*</span>wn<span class="op">*</span>m
+k_val  <span class="op">=</span> wn<span class="op">**</span><span class="nm">2</span><span class="op">*</span>m
+
+ratios <span class="op">=</span> [<span class="nm">0.5</span>, <span class="nm">0.8</span>, <span class="nm">1.0</span>, <span class="nm">1.3</span>]   <span class="cm"># r = ω/ωₙ</span>
+colors <span class="op">=</span> [<span class="st">'#00e5ff'</span>, <span class="st">'#00e676'</span>, <span class="st">'#ff4081'</span>, <span class="st">'#ffb300'</span>]
+
+fig, axes <span class="op">=</span> plt.<span class="fn">subplots</span>(<span class="nm">2</span>, <span class="nm">2</span>, figsize<span class="op">=</span>(<span class="nm">12</span>, <span class="nm">9</span>),
+                         facecolor<span class="op">=</span><span class="st">'#060a10'</span>)
+fig.<span class="fn">suptitle</span>(<span class="st">'Diagram Fase — Getaran Paksa (Steady-State)\nF₀=1N, ωₙ=5 rad/s, ζ=0.1'</span>,
+             color<span class="op">=</span><span class="st">'white'</span>, fontsize<span class="op">=</span><span class="nm">13</span>)
+
+<span class="kw">for</span> ax, r, col <span class="kw">in</span> <span class="fn">zip</span>(axes.<span class="fn">flat</span>(), ratios, colors):
+    omega_i <span class="op">=</span> r <span class="op">*</span> wn
+    <span class="cm"># Integrasikan cukup lama agar steady-state tercapai</span>
+    t_long  <span class="op">=</span> np.<span class="fn">linspace</span>(<span class="nm">0</span>, <span class="nm">80</span>, <span class="nm">16000</span>)
+    t, x, xd <span class="op">=</span> <span class="fn">solve_system</span>(forced_vib, [<span class="nm">0.0</span>, <span class="nm">0.0</span>],
+                              (<span class="nm">0</span>, <span class="nm">80</span>), t_long,
+                              m<span class="op">=</span>m, c<span class="op">=</span>c_val, k<span class="op">=</span>k_val,
+                              F0<span class="op">=</span>F0, omega<span class="op">=</span>omega_i)
+    <span class="cm"># Ambil hanya bagian steady-state (50% akhir)</span>
+    half <span class="op">=</span> <span class="fn">len</span>(x)<span class="op">//</span><span class="nm">2</span>
+    ax.<span class="fn">set_facecolor</span>(<span class="st">'#0d1520'</span>)
+    ax.<span class="fn">plot</span>(x[half:], xd[half:], color<span class="op">=</span>col, lw<span class="op">=</span><span class="nm">1.5</span>)
+    ax.<span class="fn">axhline</span>(<span class="nm">0</span>, color<span class="op">=</span><span class="st">'#1a2840'</span>, lw<span class="op">=</span><span class="nm">0.8</span>)
+    ax.<span class="fn">axvline</span>(<span class="nm">0</span>, color<span class="op">=</span><span class="st">'#1a2840'</span>, lw<span class="op">=</span><span class="nm">0.8</span>)
+    ax.<span class="fn">set_xlabel</span>(<span class="st">'Perpindahan x (m)'</span>,  color<span class="op">=</span><span class="st">'#4a6080'</span>, fontsize<span class="op">=</span><span class="nm">10</span>)
+    ax.<span class="fn">set_ylabel</span>(<span class="st">'Kecepatan ẋ (m/s)'</span>, color<span class="op">=</span><span class="st">'#4a6080'</span>, fontsize<span class="op">=</span><span class="nm">10</span>)
+    <span class="cm"># Hitung DMF analitik</span>
+    dmf <span class="op">=</span> <span class="nm">1</span><span class="op">/</span>np.<span class="fn">sqrt</span>((<span class="nm">1</span><span class="op">-</span>r<span class="op">**</span><span class="nm">2</span>)<span class="op">**</span><span class="nm">2</span> <span class="op">+</span> (<span class="nm">2</span><span class="op">*</span>zeta<span class="op">*</span>r)<span class="op">**</span><span class="nm">2</span>)
+    ax.<span class="fn">set_title</span>(<span class="st">f'r = ω/ωₙ = {r:.1f}  |  DMF = {dmf:.3f}'</span>,
+                color<span class="op">=</span>col, fontsize<span class="op">=</span><span class="nm">11</span>)
+    ax.<span class="fn">tick_params</span>(colors<span class="op">=</span><span class="st">'#4a6080'</span>)
+    ax.spines[<span class="st">'top'</span>].<span class="fn">set_visible</span>(<span class="kw">False</span>)
+    ax.spines[<span class="st">'right'</span>].<span class="fn">set_visible</span>(<span class="kw">False</span>)
+
+plt.<span class="fn">tight_layout</span>()
+plt.<span class="fn">show</span>()</pre>
+  </div>
+
+  <!-- CELL 5: ANIMATED -->
+  <div class="code-wrap reveal">
+    <div class="code-header">
+      <span class="code-label"><span class="code-dots"><span style="background:#ef4444"></span><span style="background:#f59e0b"></span><span style="background:#10b981"></span></span> &nbsp;CELL 5 — Animasi Trajektori Fase Real-Time</span>
+      <span class="code-lang">Python</span>
+    </div>
+    <pre><span class="cm"># ── Animasi trajektori fase yang berkembang seiring waktu ──────</span>
+m, k, c <span class="op">=</span> <span class="nm">1.0</span>, <span class="nm">25.0</span>, <span class="nm">1.0</span>
+t_eval   <span class="op">=</span> np.<span class="fn">linspace</span>(<span class="nm">0</span>, <span class="nm">30</span>, <span class="nm">6000</span>)
+t, x, xd <span class="op">=</span> <span class="fn">solve_system</span>(free_vib, [<span class="nm">1.5</span>, <span class="nm">0.0</span>],
+                          (<span class="nm">0</span>, <span class="nm">30</span>), t_eval,
+                          m<span class="op">=</span>m, c<span class="op">=</span>c, k<span class="op">=</span>k)
+
+fig, (ax1, ax2) <span class="op">=</span> plt.<span class="fn">subplots</span>(<span class="nm">1</span>, <span class="nm">2</span>, figsize<span class="op">=</span>(<span class="nm">13</span>, <span class="nm">5</span>),
+                                facecolor<span class="op">=</span><span class="st">'#060a10'</span>)
+
+<span class="kw">for</span> ax <span class="kw">in</span> [ax1, ax2]:
+    ax.<span class="fn">set_facecolor</span>(<span class="st">'#0d1520'</span>)
+    ax.<span class="fn">tick_params</span>(colors<span class="op">=</span><span class="st">'#4a6080'</span>)
+    ax.spines[<span class="st">'top'</span>].<span class="fn">set_visible</span>(<span class="kw">False</span>)
+    ax.spines[<span class="st">'right'</span>].<span class="fn">set_visible</span>(<span class="kw">False</span>)
+
+ax1.<span class="fn">set_xlim</span>(<span class="nm">0</span>, <span class="nm">30</span>);    ax1.<span class="fn">set_ylim</span>(<span class="fn">min</span>(x)<span class="op">*</span><span class="nm">1.2</span>, <span class="fn">max</span>(x)<span class="op">*</span><span class="nm">1.2</span>)
+ax1.<span class="fn">set_xlabel</span>(<span class="st">'Waktu t (s)'</span>, color<span class="op">=</span><span class="st">'#4a6080'</span>)
+ax1.<span class="fn">set_ylabel</span>(<span class="st">'Perpindahan x (m)'</span>, color<span class="op">=</span><span class="st">'#4a6080'</span>)
+ax1.<span class="fn">set_title</span>(<span class="st">'Respons Waktu'</span>, color<span class="op">=</span><span class="st">'white'</span>)
+
+ax2.<span class="fn">set_xlim</span>(<span class="fn">min</span>(x)<span class="op">*</span><span class="nm">1.3</span>, <span class="fn">max</span>(x)<span class="op">*</span><span class="nm">1.3</span>)
+ax2.<span class="fn">set_ylim</span>(<span class="fn">min</span>(xd)<span class="op">*</span><span class="nm">1.3</span>, <span class="fn">max</span>(xd)<span class="op">*</span><span class="nm">1.3</span>)
+ax2.<span class="fn">set_xlabel</span>(<span class="st">'x (m)'</span>, color<span class="op">=</span><span class="st">'#4a6080'</span>)
+ax2.<span class="fn">set_ylabel</span>(<span class="st">'ẋ (m/s)'</span>, color<span class="op">=</span><span class="st">'#4a6080'</span>)
+ax2.<span class="fn">set_title</span>(<span class="st">'Diagram Fase'</span>, color<span class="op">=</span><span class="st">'white'</span>)
+ax2.<span class="fn">axhline</span>(<span class="nm">0</span>, color<span class="op">=</span><span class="st">'#1a2840'</span>, lw<span class="op">=</span><span class="nm">0.8</span>)
+ax2.<span class="fn">axvline</span>(<span class="nm">0</span>, color<span class="op">=</span><span class="st">'#1a2840'</span>, lw<span class="op">=</span><span class="nm">0.8</span>)
+
+line1, <span class="op">=</span> ax1.<span class="fn">plot</span>([], [], <span class="st">'#00e5ff'</span>, lw<span class="op">=</span><span class="nm">1.5</span>)
+line2, <span class="op">=</span> ax2.<span class="fn">plot</span>([], [], <span class="st">'#00e5ff'</span>, lw<span class="op">=</span><span class="nm">1.5</span>)
+dot1,  <span class="op">=</span> ax1.<span class="fn">plot</span>([], [], <span class="st">'o'</span>, color<span class="op">=</span><span class="st">'#ffb300'</span>, ms<span class="op">=</span><span class="nm">8</span>)
+dot2,  <span class="op">=</span> ax2.<span class="fn">plot</span>([], [], <span class="st">'o'</span>, color<span class="op">=</span><span class="st">'#ffb300'</span>, ms<span class="op">=</span><span class="nm">8</span>)
+
+step <span class="op">=</span> <span class="nm">10</span>   <span class="cm"># tampilkan setiap 10 titik per frame</span>
+<span class="kw">def</span> <span class="fn">animate</span>(i):
+    n <span class="op">=</span> (i<span class="op">+</span><span class="nm">1</span>)<span class="op">*</span>step
+    line1.<span class="fn">set_data</span>(t[:n], x[:n])
+    line2.<span class="fn">set_data</span>(x[:n], xd[:n])
+    dot1.<span class="fn">set_data</span>([t[n<span class="op">-</span><span class="nm">1</span>]], [x[n<span class="op">-</span><span class="nm">1</span>]])
+    dot2.<span class="fn">set_data</span>([x[n<span class="op">-</span><span class="nm">1</span>]], [xd[n<span class="op">-</span><span class="nm">1</span>]])
+    <span class="kw">return</span> line1, line2, dot1, dot2
+
+ani <span class="op">=</span> FuncAnimation(fig, animate,
+                    frames<span class="op">=</span><span class="fn">len</span>(t)<span class="op">//</span>step<span class="op">-</span><span class="nm">1</span>,
+                    interval<span class="op">=</span><span class="nm">25</span>, blit<span class="op">=</span><span class="kw">True</span>)
+plt.<span class="fn">tight_layout</span>()
+HTML(ani.<span class="fn">to_jshtml</span>())</pre>
+  </div>
+
+</div>
+
+<!-- ═══════════════════ SOAL LATIHAN ═══════════════════ -->
+<hr class="divider">
+<div class="section" id="latihan">
+  <div class="section-label reveal">Bagian 06</div>
+  <h2 class="section-title reveal">Soal Latihan<br>Jupyter Notebook</h2>
+  <p class="section-desc reveal">Kerjakan soal-soal berikut menggunakan Jupyter Notebook di VS Code. Gunakan library NumPy, SciPy, dan Matplotlib. Sertakan diagram fase, respons waktu, dan analisis hasil.</p>
+
+  <div class="problems">
+
+    <div class="prob reveal">
+      <div class="prob-num">SOAL 01 — KLASIFIKASI SISTEM</div>
+      <h4>Identifikasi Kondisi Redaman</h4>
+      <p>Sebuah sistem massa-pegas-peredam memiliki parameter berikut. Tentukan: (a) frekuensi alami ωₙ, (b) rasio redaman ζ, (c) klasifikasi sistem (underdamped/critically/overdamped), (d) plot diagram fase dan respons waktu untuk t = 0 sampai 15 detik.</p>
+      <div class="given">
+        Sistem A: m = 2 kg, k = 50 N/m, c = 4 Ns/m, x₀ = 0.5 m, ẋ₀ = 0 m/s
+        Sistem B: m = 2 kg, k = 50 N/m, c = 20 Ns/m, x₀ = 0.5 m, ẋ₀ = 0 m/s
+        Sistem C: m = 2 kg, k = 50 N/m, c = 40 Ns/m, x₀ = 0.5 m, ẋ₀ = 0 m/s
+      </div>
+      <div class="hint">💡 Hint: Hitung cc = 2√(km) → ζ = c/cc. Buat subplot 3×2 (fase + waktu untuk tiap sistem). Tampilkan nilai ζ di judul subplot.</div>
+    </div>
+
+    <div class="prob reveal">
+      <div class="prob-num">SOAL 02 — PENGARUH KONDISI AWAL</div>
+      <h4>Multi-Trajektori pada Diagram Fase</h4>
+      <p>Untuk sistem underdamped (m=1 kg, k=16 N/m, c=0.8 Ns/m), gambarkan diagram fase dengan <strong>6 kondisi awal berbeda</strong> dalam satu plot. Analisis pola yang terbentuk dan identifikasi titik ekuilibrium sistem.</p>
+      <div class="given">
+        Kondisi awal (x₀, ẋ₀):
+        (1.0, 0),  (0, 4.0),  (-1.0, 0),  (0, -4.0),  (0.8, 3.0),  (-0.8, -3.0)
+        Rentang waktu: t = 0 sampai 25 detik
+      </div>
+      <div class="hint">💡 Hint: Gunakan loop untuk setiap kondisi awal. Tandai titik awal dengan scatter plot (★). Beri warna berbeda tiap trajektori. Gambarkan panah arah dengan quiver atau annotate.</div>
+    </div>
+
+    <div class="prob reveal">
+      <div class="prob-num">SOAL 03 — GETARAN PAKSA & RESONANSI</div>
+      <h4>Karakteristik Steady-State Getaran Paksa</h4>
+      <p>Sistem 1-DoF dengan m=1 kg, k=100 N/m, ζ=0.05 dikenai gaya F(t) = 10·cos(ωt) N. Buat: (a) kurva Dynamic Magnification Factor (DMF) vs rasio frekuensi r, (b) diagram fase steady-state untuk r = 0.5, 1.0, 1.5, (c) identifikasi nilai DMF maksimum dan frekuensi resonansinya.</p>
+      <div class="given">
+        ωₙ = √(k/m) = 10 rad/s
+        r = ω/ωₙ, variasikan r dari 0.1 sampai 2.5
+        DMF = 1 / √[(1−r²)² + (2ζr)²]
+        Fase: θ = arctan(2ζr / (1−r²))
+      </div>
+      <div class="hint">💡 Hint: Plot DMF vs r dengan vertical line di r=1 (resonansi). Annotate nilai DMF_max = 1/(2ζ√(1−ζ²)). Untuk diagram fase, integrasikan sampai t=100s dan ambil 50% akhir data.</div>
+    </div>
+
+    <div class="prob reveal">
+      <div class="prob-num">SOAL 04 — ENERGI SISTEM GETARAN</div>
+      <h4>Analisis Energi dari Diagram Fase</h4>
+      <p>Untuk sistem underdamped (m=1.5 kg, k=30 N/m, c=1.5 Ns/m), hitung dan plot: (a) energi kinetik EK = ½mẋ², (b) energi potensial EP = ½kx², (c) energi total E = EK + EP terhadap waktu, (d) gambarkan elips energi konstan pada diagram fase, (e) hitung laju disipasi daya P(t) = cẋ².</p>
+      <div class="given">
+        Kondisi awal: x₀ = 1.0 m, ẋ₀ = 0 m/s
+        Energi awal: E₀ = ½kx₀² = ½ × 30 × 1² = 15 Joule
+        Rentang waktu: t = 0 sampai 20 detik
+      </div>
+      <div class="hint">💡 Hint: Buat layout 2×2 subplot. Plot EK, EP, E_total dalam satu axes dengan warna berbeda. Overlay elips E=konstan pada diagram fase. Hitung waktu saat energi berkurang 90% dari E₀.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════ DAFTAR PUSTAKA ═══════════════════ -->
+<hr class="divider">
+<div class="section">
+  <div class="section-label reveal">Referensi</div>
+  <h2 class="section-title reveal">Daftar Pustaka</h2>
+
+  <div class="reveal" style="display:flex;flex-direction:column;gap:14px;margin-top:8px;">
+
+    <div style="display:flex;gap:16px;align-items:flex-start;padding:18px 22px;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--cyan);border-radius:12px;transition:transform .3s;">
+      <span style="font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--cyan);background:rgba(0,229,255,.08);padding:4px 10px;border-radius:6px;flex-shrink:0;">[1]</span>
+      <div style="font-size:14px;color:var(--text);line-height:1.7;">
+        S. S. Rao, <em style="color:#fff;">Mechanical Vibrations</em>, Sixth Edition in SI Units. Pearson, 2018.
+      </div>
+    </div>
+
+    <div style="display:flex;gap:16px;align-items:flex-start;padding:18px 22px;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--amber);border-radius:12px;transition:transform .3s;">
+      <span style="font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--amber);background:rgba(255,179,0,.08);padding:4px 10px;border-radius:6px;flex-shrink:0;">[2]</span>
+      <div style="font-size:14px;color:var(--text);line-height:1.7;">
+        A. R. Mohanty, <em style="color:#fff;">Machinery Condition Monitoring: Principles and Practices</em>. CRC Press, 2015.
+      </div>
+    </div>
+
+    <div style="display:flex;gap:16px;align-items:flex-start;padding:18px 22px;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--pink);border-radius:12px;transition:transform .3s;">
+      <span style="font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--pink);background:rgba(255,64,129,.08);padding:4px 10px;border-radius:6px;flex-shrink:0;">[3]</span>
+      <div style="font-size:14px;color:var(--text);line-height:1.7;">
+        YouTube Playlist — <em style="color:#fff;">Mechanical Vibrations</em>.<br>
+        <a href="https://www.youtube.com/playlist?list=PLfqwi9TYj9V84uPoS9gJ2Imkw2qLDYv_F" target="_blank" style="color:var(--cyan);text-decoration:none;font-family:var(--font-mono);font-size:12px;border-bottom:1px solid rgba(0,229,255,.3);transition:border-color .2s;">▶ youtube.com/playlist?list=PLfqwi9TYj9V84u...</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Modul Getaran Mekanik · Teknik Mesin</p>
+  <p style="margin-top:8px;color:#2a3850">Dibuat dengan HTML5 Canvas • JetBrains Mono • DM Serif Display</p>
+</footer>
+
+<!-- ═══════════════════ JAVASCRIPT ═══════════════════ -->
+<script>
+/* ── WAVE BACKGROUND ── */
+{
+  const canvas = document.getElementById('waveCanvas');
+  const ctx = canvas.getContext('2d');
+  let w, h, t = 0;
+  function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+  function drawBgWaves() {
+    ctx.clearRect(0, 0, w, h);
+    const waves = [
+      { amp: 35, freq: 0.008, speed: 0.012, y: h * 0.3, color: 'rgba(0,229,255,0.06)' },
+      { amp: 25, freq: 0.012, speed: 0.018, y: h * 0.5, color: 'rgba(124,77,255,0.04)' },
+      { amp: 20, freq: 0.015, speed: 0.022, y: h * 0.7, color: 'rgba(0,230,118,0.04)' },
+      { amp: 18, freq: 0.010, speed: 0.015, y: h * 0.85, color: 'rgba(255,179,0,0.03)' },
+    ];
+    waves.forEach(wave => {
+      ctx.beginPath(); ctx.moveTo(0, h);
+      for (let x = 0; x <= w; x += 2) {
+        const y = wave.y + Math.sin(x * wave.freq + t * wave.speed) * wave.amp
+                + Math.sin(x * wave.freq * 1.5 + t * wave.speed * 0.7) * wave.amp * 0.4;
+        ctx.lineTo(x, y);
+      }
+      ctx.lineTo(w, h); ctx.closePath(); ctx.fillStyle = wave.color; ctx.fill();
+    });
+    t++; requestAnimationFrame(drawBgWaves);
+  }
+  drawBgWaves();
+}
+
+/* ── SCROLL PROGRESS + BACK TO TOP ── */
+window.addEventListener('scroll', () => {
+  const s = document.documentElement.scrollTop;
+  const h = document.documentElement.scrollHeight - window.innerHeight;
+  document.getElementById('scrollProgress').style.width = (s / h * 100) + '%';
+  const btn = document.getElementById('backToTop');
+  if (s > 400) btn.classList.add('show'); else btn.classList.remove('show');
+});
+
+/* ── SCROLL REVEAL ── */
+const revealIO = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), i * 60);
+      revealIO.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => revealIO.observe(el));
+
+/* ──────────────────────────────────────────────────────────────
+   UTILITY
+   ────────────────────────────────────────────────────────────── */
+function rk4(f, y, t, dt, ...params) {
+  const k1 = f(t,        y,        ...params);
+  const k2 = f(t+dt/2,   y.map((v,i)=>v+dt/2*k1[i]), ...params);
+  const k3 = f(t+dt/2,   y.map((v,i)=>v+dt/2*k2[i]), ...params);
+  const k4 = f(t+dt,     y.map((v,i)=>v+dt*k3[i]),    ...params);
+  return y.map((v,i)=>v + dt/6*(k1[i]+2*k2[i]+2*k3[i]+k4[i]));
+}
+function freeVib(t, y, m, c, k) {
+  return [y[1], -(c/m)*y[1] - (k/m)*y[0]];
+}
+function forcedVib(t, y, m, c, k, F0, omega) {
+  return [y[1], (F0*Math.cos(omega*t) - c*y[1] - k*y[0])/m];
+}
+function resize(canvas) {
+  canvas.width  = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   ANIMASI 1 — Perbandingan Tiga Kondisi Redaman
+   ────────────────────────────────────────────────────────────── */
+{
+  const cv  = document.getElementById('cv1');
+  cv.height = 220;
+  let playing = true, raf1, t1 = 0;
+  const dt = 0.016;
+
+  function draw1() {
+    const W = cv.clientWidth; cv.width = W;
+    const H = cv.height;
+    const ctx = cv.getContext('2d');
+    const wn  = parseFloat(document.getElementById('sl_wn').value);
+    const x0  = parseFloat(document.getElementById('sl_x0').value);
+    document.getElementById('v_wn').textContent = wn.toFixed(1);
+    document.getElementById('v_x0').textContent = x0.toFixed(2);
+
+    ctx.fillStyle = '#030810'; ctx.fillRect(0,0,W,H);
+    // grid
+    ctx.strokeStyle='#0d1e33'; ctx.lineWidth=1;
+    for(let x=0;x<W;x+=60){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+    // axis
+    ctx.strokeStyle='#1a3050'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(0,H/2); ctx.lineTo(W,H/2); ctx.stroke();
+
+    const configs = [
+      {zeta:0.1,  color:'#00e5ff'},
+      {zeta:1.0,  color:'#ffb300'},
+      {zeta:2.0,  color:'#ff4081'}
+    ];
+    const m = 1, k = wn*wn*m;
+    const tMax = 10;
+    const pxPerSec = W/tMax;
+    const amp = (H/2 - 20);
+
+    configs.forEach(cfg => {
+      const c = 2*cfg.zeta*Math.sqrt(k*m);
+      let y = [x0, 0], ti = 0;
+      ctx.beginPath();
+      ctx.strokeStyle = cfg.color;
+      ctx.lineWidth   = 2;
+      ctx.shadowColor = cfg.color; ctx.shadowBlur = 6;
+
+      while(ti <= tMax) {
+        const px = ti * pxPerSec;
+        const py = H/2 - y[0]*amp;
+        if(ti===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+        y  = rk4(freeVib, y, ti, dt, m, c, k);
+        ti += dt;
+      }
+      ctx.stroke(); ctx.shadowBlur = 0;
+    });
+
+    // current time line (animates across)
+    const phase = (t1 % tMax) / tMax;
+    const lx    = phase * W;
+    ctx.strokeStyle='rgba(255,255,255,0.3)'; ctx.lineWidth=1;
+    ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(lx,0); ctx.lineTo(lx,H); ctx.stroke();
+    ctx.setLineDash([]);
+
+    if(playing) { t1 += dt; raf1 = requestAnimationFrame(draw1); }
+  }
+  window.toggleAnim1 = function() {
+    playing = !playing;
+    document.getElementById('btn1').textContent = playing ? '⏸ PAUSE' : '▶ PLAY';
+    if(playing) draw1();
+  };
+  ['sl_wn','sl_x0'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{if(!playing)draw1();}));
+  draw1();
+}
+
+/* ──────────────────────────────────────────────────────────────
+   ANIMASI 2 — Massa-Pegas-Dashpot + Time Plot
+   ────────────────────────────────────────────────────────────── */
+{
+  const cvM  = document.getElementById('cv2mech');
+  const cvP  = document.getElementById('cv2plot');
+  cvM.height = 280; cvP.height = 280;
+  let playing2 = true, raf2;
+  let t2 = 0, state2 = [1.0, 0.0];
+  let hist_t = [], hist_x = [];
+  const dt = 0.016;
+
+  function params2() {
+    const m = parseFloat(document.getElementById('sl_m').value);
+    const k = parseFloat(document.getElementById('sl_k').value);
+    const c = parseFloat(document.getElementById('sl_c').value);
+    document.getElementById('v_m').textContent = m.toFixed(1);
+    document.getElementById('v_k').textContent = k;
+    document.getElementById('v_c').textContent = c.toFixed(1);
+    return {m,k,c};
+  }
+
+  function drawMech(ctx, W, H, x, k_val) {
+    ctx.fillStyle='#030810'; ctx.fillRect(0,0,W,H);
+    const cx = W/2, cy = H/2;
+    const maxDisp = 60, massW = 50, massH = 50;
+    const dispPx = x * maxDisp;
+
+    // Wall
+    ctx.fillStyle='#1a2840';
+    ctx.fillRect(10, cy-50, 18, 100);
+    ctx.strokeStyle='#2a3850'; ctx.lineWidth=1;
+    for(let i=0;i<8;i++){ctx.beginPath();ctx.moveTo(10,cy-50+i*12);ctx.lineTo(0,cy-44+i*12);ctx.stroke();}
+
+    // Spring (zigzag)
+    const sx1=28, sx2=cx+dispPx-massW/2, sy=cy-20;
+    const coils=8, coilW=(sx2-sx1)/coils;
+    ctx.strokeStyle='#00e5ff'; ctx.lineWidth=2;
+    ctx.shadowColor='#00e5ff'; ctx.shadowBlur=8;
+    ctx.beginPath(); ctx.moveTo(sx1,sy);
+    for(let i=0;i<coils;i++){
+      ctx.lineTo(sx1+coilW*(i+0.25), sy-(i%2===0?-14:14));
+      ctx.lineTo(sx1+coilW*(i+0.75), sy-(i%2===0?14:-14));
+    }
+    ctx.lineTo(sx2,sy); ctx.stroke(); ctx.shadowBlur=0;
+    ctx.fillStyle='#00e5ff'; ctx.font='10px JetBrains Mono'; ctx.fillText('k',sx1+(sx2-sx1)/2-4,sy-20);
+
+    // Dashpot
+    const dx1=28, dx2=cx+dispPx-massW/2, dy=cy+20;
+    const dmid=(dx1+dx2)/2;
+    ctx.strokeStyle='#ffb300'; ctx.lineWidth=2;
+    ctx.shadowColor='#ffb300'; ctx.shadowBlur=6;
+    ctx.beginPath();ctx.moveTo(dx1,dy);ctx.lineTo(dmid-10,dy);ctx.stroke();
+    ctx.strokeRect(dmid-10,dy-10,20,20); // cylinder
+    ctx.beginPath();ctx.moveTo(dmid,dy);ctx.lineTo(dx2,dy);ctx.stroke();
+    ctx.shadowBlur=0;
+    ctx.fillStyle='#ffb300'; ctx.font='10px JetBrains Mono'; ctx.fillText('c',dmid-3,dy-14);
+
+    // Mass
+    ctx.fillStyle='#1a2840'; ctx.strokeStyle='#cdd6e8'; ctx.lineWidth=2;
+    ctx.shadowColor='rgba(255,255,255,0.2)'; ctx.shadowBlur=12;
+    ctx.fillRect(cx+dispPx-massW/2, cy-massH/2, massW, massH);
+    ctx.strokeRect(cx+dispPx-massW/2, cy-massH/2, massW, massH);
+    ctx.shadowBlur=0;
+    ctx.fillStyle='white'; ctx.font='bold 16px Outfit'; ctx.textAlign='center';
+    ctx.fillText('m', cx+dispPx, cy+6); ctx.textAlign='left';
+
+    // Ground line
+    ctx.strokeStyle='#2a3850'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(0,cy+massH/2+8); ctx.lineTo(W,cy+massH/2+8); ctx.stroke();
+
+    // Labels
+    ctx.fillStyle='#4a6080'; ctx.font='11px JetBrains Mono';
+    ctx.fillText(`x = ${x.toFixed(3)} m`, 12, H-12);
+  }
+
+  function drawPlot(ctx, W, H) {
+    ctx.fillStyle='#030810'; ctx.fillRect(0,0,W,H);
+    // grid
+    ctx.strokeStyle='#0d1e33'; ctx.lineWidth=1;
+    for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+    // axis
+    ctx.strokeStyle='#1a3050'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(0,H/2); ctx.lineTo(W,H/2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(40,0);  ctx.lineTo(40,H);   ctx.stroke();
+
+    const tWin = 10, tStart = Math.max(0, hist_t[hist_t.length-1] - tWin);
+    ctx.strokeStyle='#00e5ff'; ctx.lineWidth=2;
+    ctx.shadowColor='#00e5ff'; ctx.shadowBlur=6;
+    ctx.beginPath();
+    let first = true;
+    for(let i=0;i<hist_t.length;i++) {
+      if(hist_t[i] < tStart) continue;
+      const px = 40 + (hist_t[i]-tStart)/(tWin)*(W-50);
+      const py = H/2 - hist_x[i]*(H/2-20);
+      if(first){ctx.moveTo(px,py);first=false;} else ctx.lineTo(px,py);
+    }
+    ctx.stroke(); ctx.shadowBlur=0;
+
+    ctx.fillStyle='#4a6080'; ctx.font='11px JetBrains Mono';
+    ctx.fillText('t (s)', W-40, H/2+16);
+    ctx.fillText('x(t)', 44, 16);
+  }
+
+  function loop2() {
+    const p = params2();
+    const wn  = Math.sqrt(p.k/p.m);
+    const zeta = p.c/(2*Math.sqrt(p.k*p.m));
+    let cond = zeta<1 ? 'UNDERDAMPED' : zeta===1 ? 'CRITICALLY' : 'OVERDAMPED';
+    const col  = zeta<1 ? '#00e676' : zeta<1.05 ? '#ffb300' : '#ff4081';
+    document.getElementById('info_zeta').style.color = col;
+    document.getElementById('info_zeta').textContent =
+      `ζ = ${zeta.toFixed(4)}  |  ωₙ = ${wn.toFixed(3)} rad/s  |  Kondisi: ${cond}`;
+
+    state2 = rk4(freeVib, state2, t2, dt, p.m, p.c, p.k);
+    t2 += dt;
+    hist_t.push(t2); hist_x.push(state2[0]);
+    if(hist_t.length > 3000){ hist_t.shift(); hist_x.shift(); }
+
+    const ctxM = cvM.getContext('2d');
+    const ctxP = cvP.getContext('2d');
+    const WM   = cvM.clientWidth||320, WP = cvP.clientWidth||400;
+    cvM.width=WM; cvP.width=WP;
+    drawMech(ctxM, WM, cvM.height, state2[0], p.k);
+    drawPlot(ctxP, WP, cvP.height);
+
+    if(playing2) raf2 = requestAnimationFrame(loop2);
+  }
+  window.toggleAnim2 = function() {
+    playing2 = !playing2;
+    document.getElementById('btn2').textContent = playing2?'⏸ PAUSE':'▶ PLAY';
+    if(playing2) loop2();
+  };
+  ['sl_m','sl_k','sl_c'].forEach(id=>{
+    document.getElementById(id).addEventListener('input',()=>{
+      t2=0; state2=[1.0,0.0]; hist_t=[]; hist_x=[];
+    });
+  });
+  loop2();
+}
+
+/* ──────────────────────────────────────────────────────────────
+   ANIMASI 3 — Getaran Paksa & Resonansi
+   ────────────────────────────────────────────────────────────── */
+{
+  const cv  = document.getElementById('cv3');
+  cv.height = 240;
+  let playing3=true, raf3, t3=0, state3=[0,0];
+  const dt=0.016;
+  let histX=[], histT=[], histF=[];
+
+  function loop3() {
+    const omega = parseFloat(document.getElementById('sl_omega').value);
+    const wn3   = parseFloat(document.getElementById('sl_wn3').value);
+    const zeta3 = parseFloat(document.getElementById('sl_zeta3').value);
+    document.getElementById('v_omega').textContent = omega.toFixed(1);
+    document.getElementById('v_wn3').textContent   = wn3.toFixed(1);
+    document.getElementById('v_zeta3').textContent = zeta3.toFixed(2);
+    const m=1, k=wn3*wn3, c=2*zeta3*wn3, F0=1;
+    const r = omega/wn3;
+    const dmf = 1/Math.sqrt((1-r*r)**2 + (2*zeta3*r)**2);
+    const resonance = Math.abs(r-1)<0.12;
+    document.getElementById('info_forced').style.color = resonance?'#ff4081':'#4a6080';
+    document.getElementById('info_forced').textContent =
+      `r = ω/ωₙ = ${r.toFixed(3)}  |  DMF = ${dmf.toFixed(3)}  ${resonance?'⚠️ MENDEKATI RESONANSI!':''}`;
+
+    state3 = rk4(forcedVib, state3, t3, dt, m, c, k, F0, omega);
+    t3 += dt;
+    histT.push(t3); histX.push(state3[0]); histF.push(F0*Math.cos(omega*t3));
+    if(histT.length>2000){histT.shift();histX.shift();histF.shift();}
+
+    const W=cv.clientWidth||800; cv.width=W;
+    const H=cv.height;
+    const ctx=cv.getContext('2d');
+    ctx.fillStyle='#030810'; ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='#0d1e33'; ctx.lineWidth=1;
+    for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+    ctx.strokeStyle='#1a3050'; ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();
+
+    const tWin=10, tStart=Math.max(0,histT[histT.length-1]-tWin);
+    const amp = (H/2-20) / Math.max(1, Math.max(...histX.map(Math.abs)));
+    // response
+    ctx.strokeStyle='#00e5ff'; ctx.lineWidth=2.5; ctx.shadowColor='#00e5ff'; ctx.shadowBlur=8;
+    ctx.beginPath(); let f1=true;
+    for(let i=0;i<histT.length;i++){
+      if(histT[i]<tStart)continue;
+      const px=((histT[i]-tStart)/tWin)*W;
+      const py=H/2 - histX[i]*amp;
+      if(f1){ctx.moveTo(px,py);f1=false;}else ctx.lineTo(px,py);
+    }
+    ctx.stroke(); ctx.shadowBlur=0;
+    // excitation force (scaled)
+    ctx.strokeStyle='rgba(255,64,129,0.5)'; ctx.lineWidth=1.5;
+    ctx.beginPath(); f1=true;
+    for(let i=0;i<histT.length;i++){
+      if(histT[i]<tStart)continue;
+      const px=((histT[i]-tStart)/tWin)*W;
+      const py=H/2 - histF[i]*(H/4);
+      if(f1){ctx.moveTo(px,py);f1=false;}else ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+
+    ctx.fillStyle='#00e5ff'; ctx.font='11px JetBrains Mono'; ctx.fillText('x(t) respons',8,16);
+    ctx.fillStyle='#ff4081'; ctx.fillText('F(t) eksitasi',8,32);
+    if(playing3) raf3=requestAnimationFrame(loop3);
+  }
+  window.toggleAnim3=function(){
+    playing3=!playing3;
+    document.getElementById('btn3').textContent=playing3?'⏸ PAUSE':'▶ PLAY';
+    if(playing3) loop3();
+  };
+  ['sl_omega','sl_wn3','sl_zeta3'].forEach(id=>{
+    document.getElementById(id).addEventListener('input',()=>{
+      t3=0;state3=[0,0];histT=[];histX=[];histF=[];
+    });
+  });
+  loop3();
+}
+
+/* ──────────────────────────────────────────────────────────────
+   DIAGRAM FASE (4 panel statis)
+   ────────────────────────────────────────────────────────────── */
+function drawPhasePlot(canvasId, zeta, color, forced=false, r=0.6, zetaP=0.1) {
+  const cv = document.getElementById(canvasId);
+  const W = cv.parentElement.clientWidth - 48 || 360;
+  cv.width = W; cv.height = 300;
+  const ctx = cv.getContext('2d');
+  const m=1, wn=5, k=wn*wn, c=2*zeta*wn*m;
+  const dt=0.01;
+
+  ctx.fillStyle='#030810'; ctx.fillRect(0,0,W,300);
+  // gather trajectory
+  let pts = [], y=[1.5,0], t=0;
+  const tMax = forced ? 80 : 15;
+  while(t<tMax){
+    pts.push([...y]); // x, xdot
+    if(forced) {
+      const cf = 2*zetaP*wn*m, F0=1, om=r*wn;
+      y = rk4(forcedVib, y, t, dt, m, cf, k, F0, om);
+    } else {
+      y = rk4(freeVib, y, t, dt, m, c, k);
+    }
+    t+=dt;
+  }
+
+  // find extents
+  let xMin=Infinity,xMax=-Infinity,vMin=Infinity,vMax=-Infinity;
+  if(forced){
+    const half=Math.floor(pts.length/2);
+    pts = pts.slice(half);
+  }
+  for(const [x,v] of pts){
+    xMin=Math.min(xMin,x);xMax=Math.max(xMax,x);
+    vMin=Math.min(vMin,v);vMax=Math.max(vMax,v);
+  }
+  const pad=0.15;
+  const xR=xMax-xMin, vR=vMax-vMin;
+  xMin-=xR*pad; xMax+=xR*pad; vMin-=vR*pad; vMax+=vR*pad;
+
+  function toCanvas(x,v){
+    return [
+      ((x-xMin)/(xMax-xMin))*(W-60)+30,
+      300 - ((v-vMin)/(vMax-vMin))*(300-60) - 30
+    ];
+  }
+
+  // grid
+  ctx.strokeStyle='#0d1e33'; ctx.lineWidth=1;
+  for(let i=0;i<=5;i++){
+    const xv=xMin+(xMax-xMin)*i/5;
+    const [px]=toCanvas(xv,0); ctx.beginPath();ctx.moveTo(px,0);ctx.lineTo(px,300);ctx.stroke();
+    const vv=vMin+(vMax-vMin)*i/5;
+    const [,pv]=toCanvas(0,vv); ctx.beginPath();ctx.moveTo(0,pv);ctx.lineTo(W,pv);ctx.stroke();
+  }
+  // axes
+  const [ax0,ay0]=toCanvas(0,0);
+  ctx.strokeStyle='#1a3050'; ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(30,ay0);ctx.lineTo(W-10,ay0);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(ax0,10);ctx.lineTo(ax0,290);ctx.stroke();
+
+  // trajectory
+  ctx.strokeStyle=color; ctx.lineWidth=2; ctx.shadowColor=color; ctx.shadowBlur=10;
+  ctx.beginPath();
+  pts.forEach(([x,v],i)=>{
+    const [px,py]=toCanvas(x,v);
+    if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+  });
+  ctx.stroke(); ctx.shadowBlur=0;
+
+  // start dot
+  const [sx,sy]=toCanvas(pts[0][0],pts[0][1]);
+  ctx.fillStyle='white'; ctx.beginPath(); ctx.arc(sx,sy,5,0,Math.PI*2); ctx.fill();
+
+  // direction arrows
+  const step=Math.floor(pts.length/6);
+  ctx.fillStyle=color;
+  for(let i=step;i<pts.length;i+=step){
+    const [px,py]=toCanvas(pts[i][0],pts[i][1]);
+    const [px2,py2]=toCanvas(pts[Math.min(i+3,pts.length-1)][0],pts[Math.min(i+3,pts.length-1)][1]);
+    const angle=Math.atan2(py2-py,px2-px);
+    ctx.save();ctx.translate(px,py);ctx.rotate(angle);
+    ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-10,-5);ctx.lineTo(-10,5);ctx.closePath();ctx.fill();
+    ctx.restore();
+  }
+
+  // labels
+  ctx.fillStyle='#4a6080'; ctx.font='11px JetBrains Mono';
+  ctx.fillText('x →',W-30,ay0+14);
+  ctx.fillText('ẋ ↑',ax0+6,18);
+}
+
+function drawAllPhase() {
+  drawPhasePlot('ph1', 0.0,  '#00e5ff');
+  drawPhasePlot('ph2', 0.08, '#00e676');
+  drawPhasePlot('ph3', 1.0,  '#ffb300');
+  const r  = parseFloat(document.getElementById('sl_r').value);
+  const zp = parseFloat(document.getElementById('sl_zp').value);
+  document.getElementById('v_r').textContent  = r.toFixed(2);
+  document.getElementById('v_zp').textContent = zp.toFixed(2);
+  drawPhasePlot('ph4', zp, '#ff4081', true, r, zp);
+}
+
+['sl_r','sl_zp'].forEach(id=>document.getElementById(id).addEventListener('input', drawAllPhase));
+window.addEventListener('load',  ()=>{ setTimeout(drawAllPhase, 200); });
+window.addEventListener('resize',()=>{ setTimeout(drawAllPhase, 100); });
+</script>
+
+<!-- ==================== VISITOR SYSTEM JS ==================== -->
+<script>
+const MODULE_ID = 'modul2';
+const STORAGE_KEY_IDENTITY = `optoauto_identity_${MODULE_ID}`;
+const STORAGE_KEY_VISITORS = `optoauto_visitors_${MODULE_ID}`;
+let panelOpen = false;
+
+function getVisitors() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY_VISITORS)) || []; }
+  catch(e) { return []; }
+}
+function saveVisitors(list) {
+  localStorage.setItem(STORAGE_KEY_VISITORS, JSON.stringify(list));
+}
+function getIdentity() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY_IDENTITY)); }
+  catch(e) { return null; }
+}
+function saveIdentity(v) {
+  localStorage.setItem(STORAGE_KEY_IDENTITY, JSON.stringify(v));
+}
+
+function initVisitor() {
+  const me = getIdentity();
+  if (me && me.nama) {
+    document.getElementById('visitorOverlay').classList.add('hidden');
+    document.getElementById('visitorFab').style.display = 'flex';
+    loadVisitors();
+  }
+}
+
+function isValidName(name) {
+  if (!name) return false;
+  const words = name.split(/\s+/);
+  return words.every(w => w.length > 0 && /^[A-Z][a-z]*$/.test(w));
+}
+function isValidNim(nim) {
+  return /^\d+$/.test(nim);
+}
+
+function submitVisitor() {
+  const nama = document.getElementById('vNama').value.trim();
+  const nim  = document.getElementById('vNim').value.trim();
+  const errEl = document.getElementById('vError');
+  const isDosen = nama.toLowerCase() === 'dedik romahadi';
+
+  if (!nama) { errEl.textContent = '⚠ Nama wajib diisi.'; errEl.style.display = 'block'; return; }
+  if (!isValidName(nama)) { errEl.textContent = '⚠ Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi'; errEl.style.display = 'block'; return; }
+  if (!isDosen && !nim) { errEl.textContent = '⚠ NIM wajib diisi.'; errEl.style.display = 'block'; return; }
+  if (!isDosen && !isValidNim(nim)) { errEl.textContent = '⚠ NIM harus berupa angka tanpa spasi. Contoh: 41522010001'; errEl.style.display = 'block'; return; }
+
+  errEl.style.display = 'none';
+  const visitor = { nama, nim: isDosen ? 'DOSEN' : nim, role: isDosen ? 'dosen' : 'student', timestamp: new Date().toISOString() };
+  saveIdentity(visitor);
+
+  const visitors = getVisitors();
+  const idx = visitors.findIndex(v => v.nama === visitor.nama && v.nim === visitor.nim);
+  if (idx >= 0) visitors[idx] = visitor; else visitors.push(visitor);
+  saveVisitors(visitors);
+
+  document.getElementById('visitorOverlay').classList.add('hidden');
+  document.getElementById('visitorFab').style.display = 'flex';
+  loadVisitors();
+}
+
+function loadVisitors() {
+  const listEl = document.getElementById('vpList');
+  const countEl = document.getElementById('fabCount');
+  const badgeEl = document.getElementById('vpBadge');
+  const visitors = getVisitors();
+  visitors.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+  const seen = new Set(); const unique = [];
+  for (const v of visitors) { const id = `${v.nama}|${v.nim}`; if (!seen.has(id)) { seen.add(id); unique.push(v); } }
+
+  countEl.textContent = unique.length;
+  badgeEl.textContent = unique.length + ' orang';
+
+  // Update in-page table if exists
+  const statTotal = document.getElementById('statTotal');
+  const statMhs = document.getElementById('statMhs');
+  const statDosen = document.getElementById('statDosen');
+  const tableEl = document.getElementById('visitorTableBody');
+  if (statTotal) {
+    const mhsCount = unique.filter(v => v.role !== 'dosen').length;
+    const dosenCount = unique.filter(v => v.role === 'dosen').length;
+    statTotal.textContent = unique.length;
+    if (statMhs) statMhs.textContent = mhsCount;
+    if (statDosen) statDosen.textContent = dosenCount;
+  }
+
+  if (unique.length === 0) {
+    listEl.innerHTML = '<div class="vp-empty">Belum ada pengunjung tercatat.</div>';
+    if (tableEl) tableEl.innerHTML = '<div style="text-align:center;padding:40px 24px;color:var(--s500);font-size:.88rem;">Belum ada pengunjung yang tercatat.</div>';
+    return;
+  }
+
+  listEl.innerHTML = unique.map(v => {
+    const isDosen = v.role === 'dosen';
+    const initials = v.nama.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    const dt = new Date(v.timestamp);
+    const timeStr = dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'}) + ' ' + dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    return `<div class="vp-item"><div class="vp-avatar ${isDosen?'dosen':'student'}">${initials}</div><div class="vp-info"><div class="vp-name">${isDosen?'👨‍🏫 ':''}${escHtml(v.nama)}</div><div class="vp-nim">${isDosen?'Dosen Pengampu':escHtml(v.nim)}</div></div><div class="vp-time">${timeStr}</div></div>`;
+  }).join('');
+
+  if (tableEl) {
+    tableEl.innerHTML = unique.map((v, i) => {
+      const isDosen = v.role === 'dosen';
+      const initials = v.nama.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+      const dt = new Date(v.timestamp);
+      const timeStr = dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) + ', ' + dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+      const avatarColor = isDosen ? 'background:rgba(251,191,36,.12);color:var(--amber);' : 'background:rgba(45,212,191,.12);color:var(--teal);';
+      const roleChip = isDosen ? '<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(251,191,36,.1);color:var(--amber);border:1px solid rgba(251,191,36,.2);margin-left:8px;">Dosen</span>' : '';
+      return `<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:var(--s500);font-weight:600;">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${avatarColor}">${initials}</div><div><div style="font-weight:600;font-size:.88rem;color:var(--s200);">${escHtml(v.nama)}${roleChip}</div></div></div><div style="flex:1;font-size:.8rem;color:var(--s400);font-family:'Courier New',monospace;">${isDosen?'—':escHtml(v.nim)}</div><div style="flex:1;text-align:right;font-size:.78rem;color:var(--s500);">${timeStr}</div></div>`;
+    }).join('');
+  }
+}
+
+function togglePanel() {
+  panelOpen = !panelOpen;
+  document.getElementById('visitorPanel').classList.toggle('open', panelOpen);
+  if (panelOpen) loadVisitors();
+}
+document.addEventListener('click', function(e) {
+  const panel = document.getElementById('visitorPanel');
+  const fab = document.getElementById('visitorFab');
+  if (panelOpen && !panel.contains(e.target) && !fab.contains(e.target)) { panelOpen = false; panel.classList.remove('open'); }
+});
+
+function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function showResetModal() {
+  document.getElementById('resetOverlay').classList.remove('hidden');
+  document.getElementById('resetPw').value = '';
+  document.getElementById('resetError').style.display = 'none';
+  setTimeout(() => document.getElementById('resetPw').focus(), 100);
+}
+function hideResetModal() { document.getElementById('resetOverlay').classList.add('hidden'); }
+
+function confirmReset() {
+  const pw = document.getElementById('resetPw').value;
+  if (pw !== 'TeknikMesin0602') { document.getElementById('resetError').style.display = 'block'; return; }
+  localStorage.removeItem(STORAGE_KEY_VISITORS);
+  localStorage.removeItem(STORAGE_KEY_IDENTITY);
+  hideResetModal(); loadVisitors();
+  document.getElementById('visitorOverlay').classList.remove('hidden');
+  document.getElementById('visitorFab').style.display = 'none';
+}
+
+document.getElementById('resetPw').addEventListener('keydown', function(e){ if(e.key==='Enter') confirmReset(); });
+document.getElementById('resetOverlay').addEventListener('click', function(e){ if(e.target === this) hideResetModal(); });
+document.getElementById('vNim').addEventListener('keydown', function(e){ if(e.key==='Enter') submitVisitor(); });
+document.getElementById('vNama').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('vNim').focus(); });
+
+initVisitor();
+</script>
+
+</body>
+</html>
