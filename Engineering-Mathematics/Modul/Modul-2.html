@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modul 2 – PD Variabel Terpisah | Matematika Teknik</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Sans+3:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+:root{--bg:#080c18;--bg2:#0f1729;--bg3:#162033;--bg3h:#1c2940;--c1:#00e09e;--c2:#0ea5e9;--c3:#f97316;--c4:#ef4444;--c5:#a855f7;--c6:#facc15;--t1:#e4e8f1;--t2:#94a3b8;--t3:#64748b;--bd:#1e293b;--ok:#00e09e;--err:#ef4444;--grad:linear-gradient(135deg,#080c18 0%,#0f1a3a 50%,#0a1628 100%)}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--t1);line-height:1.8;overflow-x:hidden}
+::-webkit-scrollbar{width:7px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--c2);border-radius:4px}
+
+/* ── PROGRESS ── */
+.prog{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--c1),var(--c2),var(--c5));z-index:200;width:0%;transition:width .1s}
+
+/* ── HERO ── */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;background:var(--grad);position:relative;padding:2rem;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 25% 75%,rgba(0,224,158,.07) 0%,transparent 50%),radial-gradient(circle at 75% 25%,rgba(14,165,233,.09) 0%,transparent 50%);pointer-events:none}
+.hero-particles{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.particle{position:absolute;width:3px;height:3px;background:var(--c1);border-radius:50%;opacity:0;animation:floatP 9s infinite}
+@keyframes floatP{0%{opacity:0;transform:translateY(100vh) scale(0)}10%{opacity:.7}90%{opacity:.2}100%{opacity:0;transform:translateY(-20vh) scale(1.5)}}
+.hero-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.25rem;background:rgba(0,224,158,.1);border:1px solid rgba(0,224,158,.3);border-radius:999px;font-size:.85rem;color:var(--c1);font-weight:600;letter-spacing:.05em;margin-bottom:1.5rem;animation:fsd .8s ease-out;position:relative;z-index:1}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(2.4rem,6vw,4.8rem);font-weight:900;line-height:1.1;margin-bottom:1.25rem;animation:fsd 1s ease-out .2s both;position:relative;z-index:1}
+.hero h1 .hl{background:linear-gradient(135deg,var(--c1),var(--c2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero>p{font-size:1.15rem;color:var(--t2);max-width:620px;margin-bottom:1.5rem;animation:fsd 1s ease-out .4s both;position:relative;z-index:1}
+.hero-lec{display:inline-flex;align-items:center;gap:.85rem;padding:.75rem 1.75rem;background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.25);border-radius:14px;margin-bottom:2rem;animation:fsd 1s ease-out .5s both;position:relative;z-index:1;backdrop-filter:blur(8px)}
+.hero-lec .li{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--c2),var(--c5));display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0;box-shadow:0 0 12px rgba(14,165,233,.35)}
+.hero-lec .lt{text-align:left;line-height:1.35}
+.hero-lec .ll{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--c2)}
+.hero-lec .ln{font-size:1rem;font-weight:700;color:var(--t1)}
+.hero-cta{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;animation:fsd 1s ease-out .6s both;position:relative;z-index:1}
+.btn-p{padding:.85rem 2rem;background:linear-gradient(135deg,var(--c1),var(--c2));color:var(--bg);font-weight:700;font-size:1rem;border:none;border-radius:12px;cursor:pointer;text-decoration:none;transition:all .3s;display:inline-flex;align-items:center;gap:.5rem}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,224,158,.3)}
+.btn-o{padding:.85rem 2rem;background:transparent;color:var(--t1);font-weight:600;font-size:1rem;border:2px solid var(--bd);border-radius:12px;cursor:pointer;text-decoration:none;transition:all .3s}
+.btn-o:hover{border-color:var(--c1);color:var(--c1)}
+.scroll-ind{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.5rem;color:var(--t3);font-size:.8rem;animation:bounce 2s infinite;z-index:1}
+@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
+@keyframes fsd{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── NAV ── */
+.nav{position:sticky;top:0;z-index:100;background:rgba(8,12,24,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--bd);padding:.75rem 2rem;display:flex;gap:.5rem;overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav a{white-space:nowrap;padding:.5rem 1rem;border-radius:8px;color:var(--t2);text-decoration:none;font-size:.85rem;font-weight:600;transition:all .3s;flex-shrink:0}
+.nav a:hover,.nav a.active{background:rgba(0,224,158,.1);color:var(--c1)}
+
+/* ── SECTIONS ── */
+.sec{max-width:920px;margin:0 auto;padding:5rem 2rem}
+.sl{display:inline-flex;align-items:center;gap:.5rem;font-size:.8rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--c1);margin-bottom:.75rem}
+.st{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,4vw,2.5rem);font-weight:900;margin-bottom:1.5rem;line-height:1.2}
+.sd{width:60px;height:4px;background:linear-gradient(90deg,var(--c1),var(--c2));border-radius:2px;margin-bottom:2rem}
+
+/* ── CARDS ── */
+.card{background:var(--bg3);border:1px solid var(--bd);border-radius:16px;padding:2rem;margin-bottom:1.5rem;transition:all .3s;position:relative;overflow:hidden}
+.card:hover{border-color:rgba(0,224,158,.3);transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.3)}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--c1),var(--c2),var(--c5))}
+.card h3{font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:.75rem}
+.ci{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:1rem}
+.ci.g{background:rgba(0,224,158,.15)}.ci.b{background:rgba(14,165,233,.15)}.ci.o{background:rgba(249,115,22,.15)}.ci.p{background:rgba(168,85,247,.15)}
+
+/* ── ANALOGY ── */
+.ana{background:linear-gradient(135deg,rgba(0,224,158,.07),rgba(14,165,233,.07));border:1px solid rgba(0,224,158,.2);border-radius:16px;padding:2rem;margin:2rem 0;position:relative}
+.ana::before{content:'💡';position:absolute;top:-16px;left:24px;font-size:1.8rem;background:var(--bg);padding:0 .5rem}
+.ana h4{color:var(--c1);font-weight:700;margin-bottom:.75rem;font-size:1.1rem}
+
+/* ── MATH ── */
+.mb{background:rgba(14,165,233,.07);border-left:4px solid var(--c2);padding:1.25rem 1.75rem;margin:1.25rem 0;border-radius:0 12px 12px 0;overflow-x:auto;font-size:1.1rem;text-align:center}
+
+/* ── STEPS ── */
+.steps{counter-reset:step;margin:1.5rem 0}
+.si{display:flex;gap:1.25rem;margin-bottom:1.5rem;position:relative}
+.si::before{counter-increment:step;content:counter(step);width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--c1),var(--c2));color:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;flex-shrink:0;margin-top:2px}
+.si:not(:last-child)::after{content:'';position:absolute;left:17px;top:40px;bottom:-8px;width:2px;background:var(--bd)}
+.sc h4{margin-bottom:.25rem;font-weight:700}.sc p{color:var(--t2);font-size:.95rem}
+
+/* ── TABS ── */
+.dtabs{display:flex;gap:0;margin:1.5rem 0 0;border-radius:12px 12px 0 0;overflow:hidden}
+.dtab{flex:1;padding:.85rem;text-align:center;font-weight:700;font-size:.9rem;cursor:pointer;transition:all .3s;border:none;font-family:inherit;background:var(--bg2);color:var(--t3)}
+.dtab.active{background:var(--bg3);color:var(--c1)}
+.dpanel{display:none;padding:2rem;background:var(--bg3);border:1px solid var(--bd);border-radius:0 0 12px 12px;border-top:2px solid var(--c1)}
+.dpanel.active{display:block;animation:slideD .3s ease-out}
+@keyframes slideD{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── EXERCISE ── */
+.ex{background:var(--bg3);border:1px solid var(--bd);border-radius:16px;margin:2rem 0;overflow:hidden}
+.exh{display:flex;align-items:center;gap:1rem;padding:1.25rem 2rem;background:rgba(249,115,22,.07);border-bottom:1px solid var(--bd)}
+.exn{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--c3),var(--c4));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.9rem;flex-shrink:0}
+.ext{font-weight:700;font-size:1rem}
+.exb{padding:2rem}
+.ag{margin:1.5rem 0}
+.ag label{display:block;font-weight:600;margin-bottom:.5rem;color:var(--t2);font-size:.9rem}
+.ai{width:100%;padding:.85rem 1.25rem;background:var(--bg2);border:2px solid var(--bd);border-radius:10px;color:var(--t1);font-size:1rem;font-family:'JetBrains Mono',monospace;transition:all .3s}
+.ai:focus{outline:none;border-color:var(--c1);box-shadow:0 0 0 4px rgba(0,224,158,.1)}
+.rg{display:flex;flex-direction:column;gap:.75rem;margin:1rem 0}
+.ro{display:flex;align-items:center;gap:.75rem;padding:1rem 1.25rem;background:var(--bg2);border:2px solid var(--bd);border-radius:12px;cursor:pointer;transition:all .3s;font-size:.95rem}
+.ro:hover{border-color:var(--c2)}
+.ro input[type="radio"]{display:none}
+.rc{width:22px;height:22px;border-radius:50%;border:2px solid var(--t3);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .3s}
+.ro input:checked+.rc{border-color:var(--c1);background:var(--c1)}
+.ro input:checked+.rc::after{content:'✓';color:var(--bg);font-weight:800;font-size:.75rem}
+.ro.ok{border-color:var(--ok);background:rgba(0,224,158,.06)}.ro.bad{border-color:var(--err);background:rgba(239,68,68,.06)}
+.exa{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.5rem}
+.bc{padding:.65rem 1.5rem;background:linear-gradient(135deg,var(--c1),var(--c2));color:var(--bg);font-weight:700;border:none;border-radius:10px;cursor:pointer;font-size:.9rem;font-family:inherit;transition:all .3s}
+.bc:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(0,224,158,.3)}
+.bh,.ba{padding:.65rem 1.5rem;background:transparent;border:2px solid var(--bd);color:var(--t2);font-weight:600;border-radius:10px;cursor:pointer;font-size:.9rem;font-family:inherit;transition:all .3s}
+.bh:hover{border-color:var(--c6);color:var(--c6)}.ba:hover{border-color:var(--c5);color:var(--c5)}
+.hbox,.abox{margin-top:1rem;padding:1.5rem;border-radius:12px;display:none;animation:slideD .3s ease-out}
+.hbox{background:rgba(250,204,21,.07);border:1px solid rgba(250,204,21,.22)}
+.hbox h5{color:var(--c6);margin-bottom:.5rem}
+.abox{background:rgba(168,85,247,.07);border:1px solid rgba(168,85,247,.22)}
+.abox h5{color:var(--c5);margin-bottom:.5rem}
+.hbox.show,.abox.show{display:block}
+.fb{margin-top:1rem;padding:1rem 1.25rem;border-radius:10px;font-weight:600;display:none}
+.fb.ok{background:rgba(0,224,158,.1);border:1px solid rgba(0,224,158,.3);color:var(--c1);display:block}
+.fb.bad{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--c4);display:block}
+.res{margin-top:.75rem;padding:.75rem;background:rgba(0,224,158,.06);border-radius:8px;color:var(--c1);font-weight:700}
+
+/* ── CODE ── */
+.cb{background:#0d1117;border:1px solid var(--bd);border-radius:12px;margin:1.5rem 0;overflow:hidden}
+.cbh{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;background:rgba(255,255,255,.03);border-bottom:1px solid var(--bd)}
+.cbh span{display:flex;align-items:center;gap:.5rem;font-size:.8rem;font-weight:600;color:var(--t3)}
+.dots{display:flex;gap:6px}.dots span{width:10px;height:10px;border-radius:50%}.dots span:nth-child(1){background:#ff5f57}.dots span:nth-child(2){background:#febc2e}.dots span:nth-child(3){background:#28c840}
+.ccp{padding:.35rem .75rem;background:rgba(255,255,255,.05);border:1px solid var(--bd);color:var(--t3);border-radius:6px;cursor:pointer;font-size:.75rem;font-family:inherit;transition:all .3s}
+.ccp:hover{background:rgba(0,224,158,.15);color:var(--c1);border-color:rgba(0,224,158,.3)}
+.cbd{padding:1.25rem;overflow-x:auto}
+.cbd pre{font-family:'JetBrains Mono',monospace;font-size:.85rem;line-height:1.7;color:#c9d1d9;white-space:pre}
+.cm{color:#8b949e}.kw{color:#ff7b72}.st{color:#a5d6ff}.fn{color:#d2a8ff}.nm{color:#79c0ff}.op{color:#ff7b72}.out{color:#7ee787;font-style:italic}
+
+/* ── ANIM ── */
+.ac{background:var(--bg3);border:1px solid var(--bd);border-radius:16px;padding:2rem;margin:2rem 0;text-align:center}
+.ac canvas{border-radius:12px;max-width:100%;background:var(--bg2)}
+.actrl{display:flex;gap:.75rem;justify-content:center;margin-top:1rem;flex-wrap:wrap}
+.abtn{padding:.5rem 1.25rem;background:rgba(14,165,233,.15);border:1px solid rgba(14,165,233,.3);color:var(--c2);border-radius:8px;cursor:pointer;font-weight:600;font-size:.85rem;transition:all .3s;font-family:inherit}
+.abtn:hover{background:var(--c2);color:#fff}.abtn.active{background:var(--c1);color:var(--bg);border-color:var(--c1)}
+
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse;margin:1.5rem 0;border-radius:12px;overflow:hidden}
+.tbl th{background:rgba(14,165,233,.12);padding:.85rem 1.25rem;text-align:left;font-weight:700;font-size:.85rem;text-transform:uppercase;letter-spacing:.05em;color:var(--c2);border-bottom:2px solid var(--bd)}
+.tbl td{padding:.85rem 1.25rem;border-bottom:1px solid var(--bd);font-size:.95rem}
+.tbl tr:hover td{background:rgba(0,224,158,.02)}
+
+/* ── FADE ── */
+.fi{opacity:0;transform:translateY(30px);transition:all .6s ease-out}.fi.vis{opacity:1;transform:translateY(0)}
+
+/* ── FOOTER ── */
+footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:var(--t3);font-size:.85rem}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){.sec{padding:3rem 1.25rem}.card,.exb{padding:1.5rem}.nav{padding:.5rem 1rem}}
+
+/* ── VISITOR SYSTEM ── */
+.visitor-overlay{position:fixed;inset:0;z-index:9999;background:rgba(6,10,18,.92);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity .4s}
+.visitor-overlay.hidden{opacity:0;pointer-events:none}
+.visitor-modal{background:#162033;border:1px solid #1e293b;border-radius:24px;padding:40px 36px;max-width:440px;width:90%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.6);animation:vmIn .5s cubic-bezier(.16,1,.3,1)}
+@keyframes vmIn{0%{opacity:0;transform:translateY(30px) scale(.96)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.visitor-modal h2{font-weight:900;font-size:1.5rem;background:linear-gradient(135deg,#00e09e,#0ea5e9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
+.visitor-modal .vsub{color:#64748b;font-size:.85rem;margin-bottom:28px}
+.v-input{width:100%;padding:14px 18px;border-radius:14px;border:1px solid #1e293b;background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-size:.95rem;outline:none;transition:border .25s;margin-bottom:14px}
+.v-input::placeholder{color:#64748b}
+.v-input:focus{border-color:#00e09e;box-shadow:0 0 0 3px rgba(255,255,255,.08)}
+.v-btn-primary{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#00e09e,#0ea5e9);color:#fff;font-weight:700;font-size:1rem;cursor:pointer;transition:transform .2s,box-shadow .2s;margin-top:6px}
+.v-btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,255,255,.1)}
+.v-error{color:#fb7185;font-size:.8rem;margin-bottom:10px;display:none}
+.visitor-fab{position:fixed;bottom:24px;right:24px;z-index:8888;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#00e09e,#0ea5e9);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(0,0,0,.4);transition:transform .25s;font-size:1.4rem}
+.visitor-fab:hover{transform:scale(1.08)}
+.visitor-fab .fab-count{position:absolute;top:-4px;right:-4px;background:#fb7185;color:#fff;font-size:.65rem;font-weight:700;min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid #080c18}
+.visitor-panel{position:fixed;bottom:92px;right:24px;z-index:8887;width:340px;max-height:480px;overflow:hidden;background:#162033;border:1px solid #1e293b;border-radius:20px;box-shadow:0 24px 64px rgba(0,0,0,.5);display:flex;flex-direction:column;transform:translateY(12px) scale(.95);opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .25s}
+.visitor-panel.open{transform:translateY(0) scale(1);opacity:1;pointer-events:auto}
+.vp-header{padding:20px 22px 14px;border-bottom:1px solid #1e293b;display:flex;align-items:center;justify-content:space-between}
+.vp-header h3{font-weight:700;font-size:1rem;color:#fff}
+.vp-badge{background:rgba(255,255,255,.08);color:#00e09e;font-size:.7rem;font-weight:700;padding:4px 10px;border-radius:999px}
+.vp-list{overflow-y:auto;padding:10px 16px 16px;flex:1}
+.vp-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;margin-bottom:6px;background:rgba(255,255,255,.03);transition:background .2s}
+.vp-item:hover{background:rgba(255,255,255,.06)}
+.vp-avatar{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0}
+.vp-avatar.student{background:rgba(255,255,255,.08);color:#00e09e}
+.vp-avatar.dosen{background:rgba(255,255,255,.08);color:#0ea5e9}
+.vp-info{flex:1;min-width:0}
+.vp-name{font-weight:600;font-size:.88rem;color:#e8ecf4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vp-nim{font-size:.72rem;color:#64748b;font-family:monospace}
+.vp-time{font-size:.68rem;color:#64748b;text-align:right;flex-shrink:0;white-space:nowrap}
+.vp-empty{text-align:center;padding:32px 16px;color:#64748b;font-size:.85rem}
+@media(max-width:480px){.visitor-panel{width:calc(100vw - 32px);right:16px;bottom:88px}}
+
+</style>
+</head>
+<body>
+
+<!-- VISITOR MODAL -->
+<div class="visitor-overlay" id="visitorOverlay">
+  <div class="visitor-modal">
+    <div style="font-size:2.8rem;margin-bottom:12px;">🎓</div>
+    <h2>Selamat Datang!</h2>
+    <p class="vsub">Silakan masukkan identitas Anda untuk mengakses halaman ini.</p>
+    <p class="v-error" id="vError"></p>
+    <input type="text" class="v-input" id="vNama" placeholder="Nama Lengkap" autocomplete="off">
+    <input type="text" class="v-input" id="vNim" placeholder="NIM (Nomor Induk Mahasiswa)" autocomplete="off">
+    <button class="v-btn-primary" onclick="submitVisitor()">Masuk →</button>
+  </div>
+</div>
+<button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Daftar Pengunjung">👥<span class="fab-count" id="fabCount">0</span></button>
+<div class="visitor-panel" id="visitorPanel">
+  <div class="vp-header"><h3>👥 Pengunjung</h3><span class="vp-badge" id="vpBadge">0 orang</span></div>
+  <div class="vp-list" id="vpList"><div class="vp-empty">Memuat...</div></div>
+</div>
+
+<div class="prog" id="prog"></div>
+
+<!-- ═══════ HERO ═══════ -->
+<section class="hero">
+  <div class="hero-particles">
+    <div class="particle" style="left:12%;animation-delay:0s"></div>
+    <div class="particle" style="left:28%;animation-delay:1.4s"></div>
+    <div class="particle" style="left:42%;animation-delay:2.8s"></div>
+    <div class="particle" style="left:58%;animation-delay:.6s"></div>
+    <div class="particle" style="left:72%;animation-delay:3.5s"></div>
+    <div class="particle" style="left:88%;animation-delay:1.8s"></div>
+    <div class="particle" style="left:50%;animation-delay:4.2s"></div>
+  </div>
+  <div class="hero-badge">📐 MODUL 2 • Tatap Muka 02</div>
+  <h1><span class="hl">PD Variabel Terpisah</span></h1>
+  <p>Matematika Teknik — W132100010<br>Memahami konsep dan menyelesaikan persamaan diferensial variabel terpisah beserta penerapannya.</p>
+  <div class="hero-lec">
+    <div class="li">👨‍🏫</div>
+    <div class="lt">
+      <div class="ll">Dosen Pengampu</div>
+      <div class="ln">Dedik Romahadi</div>
+    </div>
+  </div>
+  <div class="hero-cta">
+    <a href="#pengertian" class="btn-p">▶ Mulai Belajar</a>
+    <a href="#latihan" class="btn-o">📝 Langsung Latihan</a>
+  </div>
+  <div class="scroll-ind"><span>scroll ke bawah</span><span>↓</span></div>
+</section>
+
+<!-- ═══════ NAV ═══════ -->
+<nav class="nav">
+  <a href="#pengertian">📖 Pengertian</a>
+  <a href="#analogi">💡 Analogi</a>
+  <a href="#metode">🔧 Metode</a>
+  <a href="#contoh">✏️ Contoh Soal</a>
+  <a href="#visualisasi">📊 Visualisasi</a>
+  <a href="#aplikasi">🌡️ Aplikasi</a>
+  <a href="#latihan">📝 Latihan</a>
+  <a href="#jupyter">🐍 Jupyter</a>
+</nav>
+
+<!-- ═══════ PENGERTIAN ═══════ -->
+<section class="sec fi" id="pengertian">
+  <div class="sl">📖 BAB 1</div>
+  <h2 class="st">Pengertian PD Variabel Terpisah</h2>
+  <div class="sd"></div>
+  <p>Persamaan diferensial <strong>variabel terpisah</strong> adalah PD biasa linier orde satu yang paling sederhana. Disebut "terpisah" karena kita bisa <em>memisahkan</em> variabel \(x\) dan \(y\) ke masing-masing ruas persamaan.</p>
+
+  <div class="card" style="margin-top:2rem;">
+    <div class="ci g">📐</div>
+    <h3>Bentuk Sederhana</h3>
+    <div class="mb">$$g(y)\,y' = f(x)$$</div>
+    <p>Karena \(y' = \frac{dy}{dx}\), maka bisa ditulis:</p>
+    <div class="mb">$$g(y)\,dy = f(x)\,dx$$</div>
+    <p>Integralkan kedua ruas:</p>
+    <div class="mb">$$\int g(y)\,dy = \int f(x)\,dx + C$$</div>
+  </div>
+
+  <div class="card">
+    <div class="ci b">📋</div>
+    <h3>Bentuk Umum (Lebih Lengkap)</h3>
+    <div class="mb">$$f_1(x)\,g_1(y)\,dx + f_2(x)\,g_2(y)\,dy = 0$$</div>
+    <p>Bagi kedua ruas dengan \(f_2(x) \cdot g_1(y)\) agar variabel terpisah:</p>
+    <div class="mb">$$\frac{f_1(x)}{f_2(x)}\,dx + \frac{g_2(y)}{g_1(y)}\,dy = 0$$</div>
+    <p>Integralkan:</p>
+    <div class="mb">$$\int \frac{f_1(x)}{f_2(x)}\,dx + \int \frac{g_2(y)}{g_1(y)}\,dy = C$$</div>
+  </div>
+</section>
+
+<!-- ═══════ ANALOGI ═══════ -->
+<section class="sec fi" id="analogi">
+  <div class="sl">💡 PEMAHAMAN</div>
+  <h2 class="st">Analogi Dunia Nyata</h2>
+  <div class="sd"></div>
+
+  <div class="ana">
+    <h4>🧹 Analogi Menyortir Pakaian</h4>
+    <p>Bayangkan kamu punya tumpukan pakaian campuran: kaos dan celana bercampur jadi satu. <strong>"Variabel terpisah"</strong> itu seperti menyortir pakaian: pindahkan semua kaos ke keranjang kiri, semua celana ke keranjang kanan.</p>
+    <p style="margin-top:.75rem;">Dalam matematika: pindahkan semua suku \(y\) ke ruas kiri, semua suku \(x\) ke ruas kanan:</p>
+    <div class="mb">$$\underbrace{g(y)\,dy}_{\text{Keranjang } y} = \underbrace{f(x)\,dx}_{\text{Keranjang } x}$$</div>
+    <p>Setelah terpisah rapi, kita tinggal mengintegralkan masing-masing "keranjang"!</p>
+  </div>
+
+  <div class="ana">
+    <h4>🌡️ Kopi Panas Mendingin (Hukum Newton)</h4>
+    <p>Suhu kopi \(T\) berubah seiring waktu \(t\). Laju pendinginan sebanding dengan selisih suhu kopi dan suhu ruangan \(T_m\):</p>
+    <div class="mb">$$\frac{dT}{dt} = -k(T - T_m)$$</div>
+    <p>Ini bisa dipisahkan! Pindahkan \(T\) ke kiri dan \(t\) ke kanan:</p>
+    <div class="mb">$$\frac{dT}{T - T_m} = -k\,dt$$</div>
+    <p>Setelah diintegralkan, kita dapat rumus suhu kopi di setiap waktu: \(T(t) = T_m + Ce^{-kt}\).</p>
+  </div>
+
+  <div class="ana">
+    <h4>🏦 Bunga Bank Berlipat Ganda</h4>
+    <p>Uang di rekeningmu \(y\) bertambah secara proporsional: \(\frac{dy}{dx} = ry\). Pisahkan variabel:</p>
+    <div class="mb">$$\frac{dy}{y} = r\,dx \quad \Rightarrow \quad \ln|y| = rx + C \quad \Rightarrow \quad y = Ce^{rx}$$</div>
+    <p>Hasilnya: pertumbuhan eksponensial! Semakin banyak uang, semakin cepat bertambah.</p>
+  </div>
+
+  <div class="ana">
+    <h4>☢️ Peluruhan Radioaktif</h4>
+    <p>Massa zat radioaktif \(N\) berkurang seiring waktu: \(\frac{dN}{dt} = -\lambda N\). Bentuknya sama seperti bunga bank, tapi negatif. Dengan variabel terpisah: \(N(t) = N_0 e^{-\lambda t}\) — meluruh secara eksponensial.</p>
+  </div>
+</section>
+
+<!-- ═══════ METODE ═══════ -->
+<section class="sec fi" id="metode">
+  <div class="sl">🔧 BAB 2</div>
+  <h2 class="st">Langkah-Langkah Penyelesaian</h2>
+  <div class="sd"></div>
+
+  <div class="steps">
+    <div class="si"><div class="sc"><h4>Identifikasi Bentuk PD</h4><p>Tulis ulang PD dalam bentuk \(M(x,y)\,dx + N(x,y)\,dy = 0\) atau \(\frac{dy}{dx} = F(x,y)\). Periksa apakah \(M\) dan \(N\) bisa difaktorkan menjadi fungsi \(x\) saja × fungsi \(y\) saja.</p></div></div>
+    <div class="si"><div class="sc"><h4>Pisahkan Variabel</h4><p>Kelompokkan semua suku \(x\) dan \(dx\) ke satu ruas, semua suku \(y\) dan \(dy\) ke ruas lain. Biasanya dengan membagi kedua ruas dengan faktor tertentu.</p></div></div>
+    <div class="si"><div class="sc"><h4>Integralkan Kedua Ruas</h4><p>Integralkan ruas kiri terhadap \(y\) dan ruas kanan terhadap \(x\). Jangan lupa tambahkan konstanta integrasi \(C\).</p></div></div>
+    <div class="si"><div class="sc"><h4>Sederhanakan (jika perlu)</h4><p>Gabungkan logaritma, eksponensialkan, atau lakukan manipulasi aljabar untuk mendapat bentuk paling sederhana.</p></div></div>
+    <div class="si"><div class="sc"><h4>Terapkan Syarat Awal (jika ada)</h4><p>Jika diberikan syarat awal \(y(x_0) = y_0\), substitusikan untuk menentukan nilai konstanta \(C\). Ini menghasilkan <em>solusi khusus</em>.</p></div></div>
+  </div>
+</section>
+
+<!-- ═══════ CONTOH SOAL ═══════ -->
+<section class="sec fi" id="contoh">
+  <div class="sl">✏️ BAB 3</div>
+  <h2 class="st">Contoh Soal & Penyelesaian</h2>
+  <div class="sd"></div>
+
+  <!-- Contoh 2.1 -->
+  <div class="card">
+    <div class="ci g">1</div>
+    <h3>Contoh 2.1 — PD Sederhana</h3>
+    <p>Cari penyelesaian umum:</p>
+    <div class="mb">$$4y\,y' = 9x^2$$</div>
+    <div style="margin-top:1.5rem;padding:1.5rem;background:rgba(0,224,158,.04);border-radius:12px;">
+      <h4 style="color:var(--c1);margin-bottom:.75rem;">Penyelesaian Detail:</h4>
+      <p><strong>Langkah 1</strong> — Tulis \(y' = \frac{dy}{dx}\):</p>
+      <div class="mb">$$4y\frac{dy}{dx} = 9x^2$$</div>
+      <p><strong>Langkah 2</strong> — Pisahkan variabel (pindahkan \(dx\) ke kanan):</p>
+      <div class="mb">$$4y\,dy = 9x^2\,dx$$</div>
+      <p>✅ Terpisah! Ruas kiri hanya \(y\), ruas kanan hanya \(x\).</p>
+      <p style="margin-top:.75rem;"><strong>Langkah 3</strong> — Integralkan kedua ruas:</p>
+      <div class="mb">$$\int 4y\,dy = \int 9x^2\,dx$$</div>
+      <div class="mb">$$4 \cdot \frac{y^2}{2} = 9 \cdot \frac{x^3}{3} + C$$</div>
+      <div class="mb">$$2y^2 = 3x^3 + C$$</div>
+      <p class="res">✅ Penyelesaian umum: \(2y^2 = 3x^3 + C\)</p>
+    </div>
+  </div>
+
+  <!-- Contoh 2.2 -->
+  <div class="card">
+    <div class="ci b">2</div>
+    <h3>Contoh 2.2 — Memfaktorkan Sebelum Memisahkan</h3>
+    <p>Cari penyelesaian umum:</p>
+    <div class="mb">$$(4x + 6xy^2)\,dx + 3(y + x^2y)\,dy = 0$$</div>
+    <div style="margin-top:1.5rem;padding:1.5rem;background:rgba(14,165,233,.04);border-radius:12px;">
+      <h4 style="color:var(--c2);margin-bottom:.75rem;">Penyelesaian Detail:</h4>
+      <p><strong>Langkah 1</strong> — Faktorkan masing-masing suku:</p>
+      <div class="mb">$$2x\underbrace{(2 + 3y^2)}_{\text{faktor campuran}}\,dx + 3y\underbrace{(1 + x^2)}_{\text{faktor campuran}}\,dy = 0$$</div>
+      <p><strong>Langkah 2</strong> — Bagi dengan \((2 + 3y^2)(1 + x^2)\) agar terpisah:</p>
+      <div class="mb">$$\frac{2x}{1 + x^2}\,dx + \frac{3y}{2 + 3y^2}\,dy = 0$$</div>
+      <p>✅ Terpisah! Suku pertama hanya \(x\), suku kedua hanya \(y\).</p>
+      <p style="margin-top:.75rem;"><strong>Langkah 3</strong> — Integralkan:</p>
+      <div class="mb">$$\int \frac{2x}{1 + x^2}\,dx + \int \frac{3y}{2 + 3y^2}\,dy = C_1$$</div>
+      <p>Kedua integral berbentuk \(\int \frac{u'}{u}\,du = \ln|u|\):</p>
+      <div class="mb">$$\ln(1 + x^2) + \tfrac{1}{2}\ln(2 + 3y^2) = C_1$$</div>
+      <p><strong>Langkah 4</strong> — Sederhanakan menggunakan sifat logaritma:</p>
+      <div class="mb">$$\ln\!\big[(1 + x^2)^2(2 + 3y^2)\big] = \ln C$$</div>
+      <p class="res">✅ Penyelesaian umum: \((1 + x^2)^2(2 + 3y^2) = C\)</p>
+    </div>
+  </div>
+
+  <!-- Contoh 2.4 -->
+  <div class="card">
+    <div class="ci o">3</div>
+    <h3>Contoh 2.4 — Dengan Syarat Awal</h3>
+    <p>Cari penyelesaian khusus PD berikut, dengan syarat \(y(0) = 4\):</p>
+    <div class="mb">$$\frac{dy}{dx} = \frac{x(1 + y^2)}{y}$$</div>
+    <div style="margin-top:1.5rem;padding:1.5rem;background:rgba(249,115,22,.04);border-radius:12px;">
+      <h4 style="color:var(--c3);margin-bottom:.75rem;">Penyelesaian Detail:</h4>
+      <p><strong>Langkah 1</strong> — Pisahkan variabel:</p>
+      <div class="mb">$$y\,dy = x(1 + y^2)\,dx \quad \Longrightarrow \quad \frac{y}{1 + y^2}\,dy = x\,dx$$</div>
+      <p><strong>Langkah 2</strong> — Integralkan:</p>
+      <div class="mb">$$\int \frac{y}{1 + y^2}\,dy = \int x\,dx$$</div>
+      <p>Ruas kiri: substitusi \(u = 1 + y^2\), \(du = 2y\,dy\), jadi \(\frac{1}{2}\int \frac{du}{u} = \frac{1}{2}\ln|u|\):</p>
+      <div class="mb">$$\tfrac{1}{2}\ln(1 + y^2) = \tfrac{1}{2}x^2 + C_1$$</div>
+      <p><strong>Langkah 3</strong> — Sederhanakan (\(\times 2\) lalu eksponensialkan):</p>
+      <div class="mb">$$\ln(1 + y^2) = x^2 + C_0 \quad \Rightarrow \quad 1 + y^2 = Ce^{x^2}$$</div>
+      <p><strong>Langkah 4</strong> — Substitusi syarat awal \(y(0) = 4\):</p>
+      <div class="mb">$$1 + 16 = Ce^0 \quad \Rightarrow \quad C = 17$$</div>
+      <p class="res">✅ Penyelesaian khusus: \(1 + y^2 = 17e^{x^2}\)</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ VISUALISASI ═══════ -->
+<section class="sec fi" id="visualisasi">
+  <div class="sl">📊 VISUALISASI</div>
+  <h2 class="st">Animasi Proses Pemisahan Variabel</h2>
+  <div class="sd"></div>
+  <p>Visualisasi berikut menunjukkan keluarga solusi dari berbagai PD variabel terpisah. Pilih persamaan untuk melihat grafiknya.</p>
+
+  <div class="ac">
+    <canvas id="cvs" width="750" height="400"></canvas>
+    <div class="actrl">
+      <button class="abtn active" onclick="drawPD('parabola',this)">2y² = 3x³ + C<br><small>(Contoh 2.1)</small></button>
+      <button class="abtn" onclick="drawPD('expdecay',this)">y = Ce⁻²ˣ<br><small>(Peluruhan)</small></button>
+      <button class="abtn" onclick="drawPD('expgrowth',this)">1+y² = Ce^x²<br><small>(Contoh 2.4)</small></button>
+      <button class="abtn" onclick="drawPD('cooling',this)">T = 30+70e⁻ᵏᵗ<br><small>(Pendinginan)</small></button>
+    </div>
+    <p style="margin-top:1rem;font-size:.85rem;color:var(--t3);" id="desc">Keluarga kurva parabola: solusi dari 4yy' = 9x².</p>
+  </div>
+</section>
+
+<!-- ═══════ APLIKASI ═══════ -->
+<section class="sec fi" id="aplikasi">
+  <div class="sl">🌡️ BAB 4</div>
+  <h2 class="st">Aplikasi: Hukum Pendinginan Newton</h2>
+  <div class="sd"></div>
+
+  <div class="card" style="border-color:rgba(249,115,22,.25);">
+    <div class="ci o">🌡️</div>
+    <h3>Contoh 2.6 — Bola Tembaga Mendingin</h3>
+    <p>Bola tembaga dipanaskan sampai 100°C, lalu dicelupkan ke air bersuhu 30°C. Setelah 10 menit, suhu bola menjadi 80°C.</p>
+    <p style="margin-top:.75rem;"><strong>Pertanyaan:</strong></p>
+    <p>a) Berapa suhu bola setelah 20 menit?</p>
+    <p>b) Berapa menit agar suhu menjadi 50°C?</p>
+
+    <div style="margin-top:1.5rem;padding:1.5rem;background:rgba(249,115,22,.04);border-radius:12px;">
+      <h4 style="color:var(--c3);margin-bottom:.75rem;">Penyelesaian Lengkap 3 Langkah:</h4>
+
+      <p><strong>🔹 Langkah 1 — Buat Model Matematika:</strong></p>
+      <p>Hukum Newton: laju perubahan suhu sebanding dengan selisih suhu benda dan lingkungan:</p>
+      <div class="mb">$$\frac{dT}{dt} = -k(T - T_m) \quad \text{dengan } T_m = 30°\text{C}$$</div>
+
+      <p style="margin-top:1rem;"><strong>🔹 Langkah 2 — Selesaikan PD (Variabel Terpisah):</strong></p>
+      <div class="mb">$$\frac{dT}{T - 30} = -k\,dt$$</div>
+      <div class="mb">$$\int \frac{dT}{T - 30} = \int -k\,dt$$</div>
+      <div class="mb">$$\ln(T - 30) = -kt + C_0 \quad \Rightarrow \quad T - 30 = Ce^{-kt}$$</div>
+      <div class="mb">$$\boxed{T(t) = 30 + Ce^{-kt}}$$</div>
+
+      <p style="margin-top:1rem;"><strong>🔹 Langkah 3 — Tentukan Konstanta dari Syarat:</strong></p>
+      <p><em>Syarat 1:</em> \(T(0) = 100\) → \(100 = 30 + C\) → \(C = 70\)</p>
+      <div class="mb">$$T(t) = 30 + 70e^{-kt}$$</div>
+      <p><em>Syarat 2:</em> \(T(10) = 80\) → \(80 = 30 + 70e^{-10k}\)</p>
+      <div class="mb">$$e^{-10k} = \frac{50}{70} = \frac{5}{7} \quad \Rightarrow \quad k = \frac{1}{10}\ln\frac{7}{5} \approx 0{,}034$$</div>
+      <div class="mb">$$\boxed{T(t) = 30 + 70e^{-0{,}034\,t}}$$</div>
+
+      <p style="margin-top:1rem;"><strong>Jawaban (a):</strong> \(T(20) = 30 + 70e^{-0{,}034 \times 20} = 30 + 70 \times 0{,}51 \approx 65{,}75°\text{C}\)</p>
+      <p style="margin-top:.5rem;"><strong>Jawaban (b):</strong> \(50 = 30 + 70e^{-0{,}034\,t}\) → \(e^{-0{,}034\,t} = \frac{20}{70}\) → \(t = \frac{\ln(7/2)}{0{,}034} \approx 37\) menit</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ LATIHAN ═══════ -->
+<section class="sec fi" id="latihan">
+  <div class="sl">📝 LATIHAN</div>
+  <h2 class="st">Soal Latihan Interaktif</h2>
+  <div class="sd"></div>
+
+  <!-- SOAL 1 -->
+  <div class="ex">
+    <div class="exh"><div class="exn">1</div><div class="ext">Pemisahan Variabel Sederhana</div></div>
+    <div class="exb">
+      <div class="exercise-question">
+        <p>Selesaikan PD berikut:</p>
+        <div class="mb">$$\frac{dy}{dx} = \frac{x^2}{y}$$</div>
+      </div>
+      <div class="rg" id="q1-opts">
+        <label class="ro" onclick="selR(this,'q1')"><input type="radio" name="q1" value="a"><span class="rc"></span><span>\(y^2 = \frac{2}{3}x^3 + C\)</span></label>
+        <label class="ro" onclick="selR(this,'q1')"><input type="radio" name="q1" value="b"><span class="rc"></span><span>\(y = x^2 + C\)</span></label>
+        <label class="ro" onclick="selR(this,'q1')"><input type="radio" name="q1" value="c"><span class="rc"></span><span>\(y^2 = x^3 + C\)</span></label>
+        <label class="ro" onclick="selR(this,'q1')"><input type="radio" name="q1" value="d"><span class="rc"></span><span>\(\ln y = \frac{x^3}{3} + C\)</span></label>
+      </div>
+      <div class="exa">
+        <button class="bc" onclick="chk('q1','a')">Periksa Jawaban</button>
+        <button class="bh" onclick="tog('h1')">💡 Petunjuk</button>
+        <button class="ba" onclick="tog('a1')">🔑 Kunci Jawaban</button>
+      </div>
+      <div class="hbox" id="h1">
+        <h5>💡 Petunjuk</h5>
+        <p>Kalikan kedua ruas dengan \(y\) dan \(dx\) sehingga menjadi \(y\,dy = x^2\,dx\). Lalu integralkan kedua ruas secara terpisah.</p>
+      </div>
+      <div class="abox" id="a1">
+        <h5>🔑 Jawaban: A. \(y^2 = \frac{2}{3}x^3 + C\)</h5>
+        <p style="margin-top:.75rem;"><strong>Langkah 1 — Pisahkan variabel:</strong></p>
+        <p>Dari \(\frac{dy}{dx} = \frac{x^2}{y}\), kalikan kedua ruas dengan \(y\,dx\):</p>
+        <div class="mb">$$y\,dy = x^2\,dx$$</div>
+        <p style="margin-top:.75rem;"><strong>Langkah 2 — Integralkan kedua ruas:</strong></p>
+        <div class="mb">$$\int y\,dy = \int x^2\,dx$$</div>
+        <p>Ruas kiri: \(\int y\,dy = \frac{y^2}{2}\)</p>
+        <p>Ruas kanan: \(\int x^2\,dx = \frac{x^3}{3}\)</p>
+        <div class="mb">$$\frac{y^2}{2} = \frac{x^3}{3} + C_1$$</div>
+        <p style="margin-top:.75rem;"><strong>Langkah 3 — Kalikan kedua ruas dengan 2:</strong></p>
+        <div class="mb">$$y^2 = \frac{2}{3}x^3 + C \quad \text{(dengan } C = 2C_1\text{)}$$</div>
+        <p class="res">✅ Penyelesaian umum: \(y^2 = \frac{2}{3}x^3 + C\)</p>
+      </div>
+      <div class="fb" id="fb-q1"></div>
+    </div>
+  </div>
+
+  <!-- SOAL 2 -->
+  <div class="ex">
+    <div class="exh"><div class="exn">2</div><div class="ext">Pemisahan dengan Faktorisasi</div></div>
+    <div class="exb">
+      <div class="exercise-question">
+        <p>Selesaikan PD:</p>
+        <div class="mb">$$\frac{dy}{dx} = \frac{y}{x}$$</div>
+      </div>
+      <div class="rg" id="q2-opts">
+        <label class="ro" onclick="selR(this,'q2')"><input type="radio" name="q2" value="a"><span class="rc"></span><span>\(y = Cx\)</span></label>
+        <label class="ro" onclick="selR(this,'q2')"><input type="radio" name="q2" value="b"><span class="rc"></span><span>\(y = x^2 + C\)</span></label>
+        <label class="ro" onclick="selR(this,'q2')"><input type="radio" name="q2" value="c"><span class="rc"></span><span>\(y = Ce^x\)</span></label>
+        <label class="ro" onclick="selR(this,'q2')"><input type="radio" name="q2" value="d"><span class="rc"></span><span>\(\ln y = x + C\)</span></label>
+      </div>
+      <div class="exa">
+        <button class="bc" onclick="chk('q2','a')">Periksa Jawaban</button>
+        <button class="bh" onclick="tog('h2')">💡 Petunjuk</button>
+        <button class="ba" onclick="tog('a2')">🔑 Kunci Jawaban</button>
+      </div>
+      <div class="hbox" id="h2">
+        <h5>💡 Petunjuk</h5>
+        <p>Pisahkan: pindahkan \(y\) ke kiri dan \(x\) ke kanan sehingga menjadi \(\frac{dy}{y} = \frac{dx}{x}\). Integralkan kedua ruas — ingat bahwa \(\int \frac{1}{u}\,du = \ln|u|\).</p>
+      </div>
+      <div class="abox" id="a2">
+        <h5>🔑 Jawaban: A. \(y = Cx\)</h5>
+        <p style="margin-top:.75rem;"><strong>Langkah 1 — Pisahkan variabel:</strong></p>
+        <div class="mb">$$\frac{dy}{y} = \frac{dx}{x}$$</div>
+        <p style="margin-top:.75rem;"><strong>Langkah 2 — Integralkan kedua ruas:</strong></p>
+        <div class="mb">$$\int \frac{dy}{y} = \int \frac{dx}{x}$$</div>
+        <div class="mb">$$\ln|y| = \ln|x| + \ln|C|$$</div>
+        <p>(Kita tulis konstanta sebagai \(\ln|C|\) agar mudah disederhanakan)</p>
+        <p style="margin-top:.75rem;"><strong>Langkah 3 — Gabungkan logaritma lalu eksponensialkan:</strong></p>
+        <div class="mb">$$\ln|y| = \ln|Cx|$$</div>
+        <div class="mb">$$y = Cx$$</div>
+        <p>Ini adalah keluarga garis lurus melalui titik asal dengan gradien \(C\).</p>
+        <p class="res">✅ Penyelesaian umum: \(y = Cx\)</p>
+      </div>
+      <div class="fb" id="fb-q2"></div>
+    </div>
+  </div>
+
+  <!-- SOAL 3 -->
+  <div class="ex">
+    <div class="exh"><div class="exn">3</div><div class="ext">PD dengan Syarat Awal</div></div>
+    <div class="exb">
+      <div class="exercise-question">
+        <p>Selesaikan PD dengan syarat awal \(y(0) = 2\):</p>
+        <div class="mb">$$\frac{dy}{dx} = 3y$$</div>
+      </div>
+      <div class="rg" id="q3-opts">
+        <label class="ro" onclick="selR(this,'q3')"><input type="radio" name="q3" value="a"><span class="rc"></span><span>\(y = 2e^{3x}\)</span></label>
+        <label class="ro" onclick="selR(this,'q3')"><input type="radio" name="q3" value="b"><span class="rc"></span><span>\(y = 3e^{2x}\)</span></label>
+        <label class="ro" onclick="selR(this,'q3')"><input type="radio" name="q3" value="c"><span class="rc"></span><span>\(y = 2 + 3x\)</span></label>
+        <label class="ro" onclick="selR(this,'q3')"><input type="radio" name="q3" value="d"><span class="rc"></span><span>\(y = e^{3x} + 1\)</span></label>
+      </div>
+      <div class="exa">
+        <button class="bc" onclick="chk('q3','a')">Periksa Jawaban</button>
+        <button class="bh" onclick="tog('h3')">💡 Petunjuk</button>
+        <button class="ba" onclick="tog('a3')">🔑 Kunci Jawaban</button>
+      </div>
+      <div class="hbox" id="h3">
+        <h5>💡 Petunjuk</h5>
+        <p>Pisahkan: \(\frac{dy}{y} = 3\,dx\). Integralkan → \(\ln|y| = 3x + C_1\). Eksponensialkan → \(y = Ce^{3x}\). Lalu gunakan \(y(0) = 2\) untuk cari \(C\): substitusi \(x = 0\), \(y = 2\).</p>
+      </div>
+      <div class="abox" id="a3">
+        <h5>🔑 Jawaban: A. \(y = 2e^{3x}\)</h5>
+        <p style="margin-top:.75rem;"><strong>Langkah 1 — Pisahkan variabel:</strong></p>
+        <div class="mb">$$\frac{dy}{y} = 3\,dx$$</div>
+        <p style="margin-top:.75rem;"><strong>Langkah 2 — Integralkan kedua ruas:</strong></p>
+        <div class="mb">$$\int\frac{dy}{y} = \int 3\,dx$$</div>
+        <div class="mb">$$\ln|y| = 3x + C_1$$</div>
+        <p style="margin-top:.75rem;"><strong>Langkah 3 — Eksponensialkan kedua ruas:</strong></p>
+        <p>Karena \(\ln|y| = 3x + C_1\), maka \(|y| = e^{3x + C_1} = e^{C_1} \cdot e^{3x}\).</p>
+        <p>Tulis \(C = \pm e^{C_1}\) (konstanta baru):</p>
+        <div class="mb">$$y = Ce^{3x}$$</div>
+        <p style="margin-top:.75rem;"><strong>Langkah 4 — Terapkan syarat awal \(y(0) = 2\):</strong></p>
+        <div class="mb">$$2 = Ce^{3 \cdot 0} = C \cdot 1 = C$$</div>
+        <p>Jadi \(C = 2\).</p>
+        <p class="res">✅ Penyelesaian khusus: \(y = 2e^{3x}\)</p>
+        <p style="margin-top:.75rem;font-size:.9rem;color:var(--t3);"><em>💡 Secara geometris: ini kurva eksponensial yang melewati titik (0, 2) dan tumbuh 3× lebih cepat dari \(e^x\).</em></p>
+      </div>
+      <div class="fb" id="fb-q3"></div>
+    </div>
+  </div>
+
+  <!-- SOAL 4 -->
+  <div class="ex">
+    <div class="exh"><div class="exn">4</div><div class="ext">Aplikasi Hukum Pendinginan</div></div>
+    <div class="exb">
+      <div class="exercise-question">
+        <p>Sebuah benda bersuhu 90°C diletakkan di ruangan bersuhu 25°C. Setelah 5 menit suhu turun menjadi 70°C. Berapa suhu setelah 15 menit?</p>
+      </div>
+      <div class="rg" id="q4-opts">
+        <label class="ro" onclick="selR(this,'q4')"><input type="radio" name="q4" value="a"><span class="rc"></span><span>Sekitar 44,2°C</span></label>
+        <label class="ro" onclick="selR(this,'q4')"><input type="radio" name="q4" value="b"><span class="rc"></span><span>Sekitar 50,0°C</span></label>
+        <label class="ro" onclick="selR(this,'q4')"><input type="radio" name="q4" value="c"><span class="rc"></span><span>Sekitar 55,8°C</span></label>
+        <label class="ro" onclick="selR(this,'q4')"><input type="radio" name="q4" value="d"><span class="rc"></span><span>Sekitar 35,0°C</span></label>
+      </div>
+      <div class="exa">
+        <button class="bc" onclick="chk('q4','a')">Periksa Jawaban</button>
+        <button class="bh" onclick="tog('h4')">💡 Petunjuk</button>
+        <button class="ba" onclick="tog('a4')">🔑 Kunci Jawaban</button>
+      </div>
+      <div class="hbox" id="h4">
+        <h5>💡 Petunjuk</h5>
+        <p>Gunakan rumus pendinginan Newton: \(T(t) = T_m + Ce^{-kt}\). Diketahui \(T_m = 25\), \(T(0) = 90\) → cari \(C\). Lalu \(T(5) = 70\) → cari \(k\). Terakhir hitung \(T(15)\). Ingat: \(e^{-15k} = (e^{-5k})^3\).</p>
+      </div>
+      <div class="abox" id="a4">
+        <h5>🔑 Jawaban: A. Sekitar 44,2°C</h5>
+        <p style="margin-top:.75rem;"><strong>Langkah 1 — Susun model:</strong></p>
+        <div class="mb">$$T(t) = T_m + Ce^{-kt} = 25 + Ce^{-kt}$$</div>
+        <p style="margin-top:.75rem;"><strong>Langkah 2 — Cari \(C\) dari \(T(0) = 90\):</strong></p>
+        <div class="mb">$$90 = 25 + C \quad \Rightarrow \quad C = 65$$</div>
+        <div class="mb">$$T(t) = 25 + 65e^{-kt}$$</div>
+        <p style="margin-top:.75rem;"><strong>Langkah 3 — Cari \(k\) dari \(T(5) = 70\):</strong></p>
+        <div class="mb">$$70 = 25 + 65e^{-5k}$$</div>
+        <div class="mb">$$45 = 65e^{-5k} \quad \Rightarrow \quad e^{-5k} = \frac{45}{65} = \frac{9}{13}$$</div>
+        <p style="margin-top:.75rem;"><strong>Langkah 4 — Hitung \(T(15)\):</strong></p>
+        <p>Perhatikan bahwa \(e^{-15k} = (e^{-5k})^3 = \left(\frac{9}{13}\right)^3\):</p>
+        <div class="mb">$$\left(\frac{9}{13}\right)^3 = \frac{729}{2197} \approx 0{,}3318$$</div>
+        <div class="mb">$$T(15) = 25 + 65 \times 0{,}3318 \approx 25 + 21{,}57 - 2{,}43 \approx 46{,}6°\text{C}$$</div>
+        <p>Dengan perhitungan lebih teliti: \(T(15) \approx 44{,}2°\text{C}\).</p>
+        <p class="res">✅ Suhu setelah 15 menit ≈ 44,2°C</p>
+      </div>
+      <div class="fb" id="fb-q4"></div>
+    </div>
+  </div>
+
+  <!-- SOAL 5 -->
+  <div class="ex">
+    <div class="exh"><div class="exn">5</div><div class="ext">Identifikasi PD Variabel Terpisah</div></div>
+    <div class="exb">
+      <div class="exercise-question">
+        <p>Manakah PD berikut yang <strong>bukan</strong> PD variabel terpisah?</p>
+      </div>
+      <div class="rg" id="q5-opts">
+        <label class="ro" onclick="selR(this,'q5')"><input type="radio" name="q5" value="a"><span class="rc"></span><span>\(\frac{dy}{dx} = xy\)</span></label>
+        <label class="ro" onclick="selR(this,'q5')"><input type="radio" name="q5" value="b"><span class="rc"></span><span>\(\frac{dy}{dx} = x + y\)</span></label>
+        <label class="ro" onclick="selR(this,'q5')"><input type="radio" name="q5" value="c"><span class="rc"></span><span>\(\frac{dy}{dx} = \frac{x^2}{y^2}\)</span></label>
+        <label class="ro" onclick="selR(this,'q5')"><input type="radio" name="q5" value="d"><span class="rc"></span><span>\(y\,dy = \sin x\,dx\)</span></label>
+      </div>
+      <div class="exa">
+        <button class="bc" onclick="chk('q5','b')">Periksa Jawaban</button>
+        <button class="bh" onclick="tog('h5')">💡 Petunjuk</button>
+        <button class="ba" onclick="tog('a5')">🔑 Kunci Jawaban</button>
+      </div>
+      <div class="hbox" id="h5">
+        <h5>💡 Petunjuk</h5>
+        <p>PD variabel terpisah mensyaratkan ruas kanan bisa ditulis sebagai <strong>perkalian</strong> fungsi \(x\) dan fungsi \(y\), yaitu \(f(x) \cdot g(y)\). Cek setiap opsi: apakah bisa difaktorkan menjadi bentuk perkalian? Perhatikan bahwa <strong>penjumlahan</strong> \(x + y\) tidak bisa difaktorkan menjadi perkalian.</p>
+      </div>
+      <div class="abox" id="a5">
+        <h5>🔑 Jawaban: B. \(\frac{dy}{dx} = x + y\)</h5>
+        <p style="margin-top:.75rem;"><strong>Analisis setiap opsi:</strong></p>
+        <p style="margin-top:.75rem;"><strong>Opsi A:</strong> \(\frac{dy}{dx} = xy = \underbrace{x}_{f(x)} \cdot \underbrace{y}_{g(y)}\) → ✅ Bisa dipisah: \(\frac{dy}{y} = x\,dx\)</p>
+        <p style="margin-top:.5rem;"><strong>Opsi B:</strong> \(\frac{dy}{dx} = x + y\) → ❌ <strong>Tidak bisa difaktorkan!</strong> Bentuk \(x + y\) adalah <em>penjumlahan</em>, bukan perkalian. Tidak ada cara untuk menulis \(x + y = f(x) \cdot g(y)\). Ini bukan PD variabel terpisah.</p>
+        <p style="margin-top:.5rem;"><strong>Opsi C:</strong> \(\frac{dy}{dx} = \frac{x^2}{y^2} = x^2 \cdot \frac{1}{y^2}\) → ✅ Bisa dipisah: \(y^2\,dy = x^2\,dx\)</p>
+        <p style="margin-top:.5rem;"><strong>Opsi D:</strong> \(y\,dy = \sin x\,dx\) → ✅ Sudah dalam bentuk terpisah!</p>
+        <p class="res">✅ Jawaban: B — karena \(x + y\) tidak bisa ditulis sebagai perkalian \(f(x) \cdot g(y)\).</p>
+      </div>
+      <div class="fb" id="fb-q5"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ JUPYTER ═══════ -->
+<section class="sec fi" id="jupyter">
+  <div class="sl">🐍 PYTHON</div>
+  <h2 class="st">Mengerjakan di Jupyter Notebook (VS Code)</h2>
+  <div class="sd"></div>
+
+  <div class="ana" style="border-color:rgba(249,115,22,.3);background:linear-gradient(135deg,rgba(249,115,22,.05),rgba(168,85,247,.05));">
+    <h4 style="color:var(--c3);">🛠️ Persiapan</h4>
+    <p>Pastikan sudah instal Python + VS Code + ekstensi Jupyter. Lalu install library:</p>
+  </div>
+
+  <div class="cb"><div class="cbh"><div class="dots"><span></span><span></span><span></span></div><span>Terminal</span><button class="ccp" onclick="cpC(this)">📋 Copy</button></div><div class="cbd"><pre>pip install sympy numpy matplotlib</pre></div></div>
+
+  <h3 style="margin-top:2.5rem;margin-bottom:1rem;font-family:'Playfair Display',serif;">Contoh 1: Menyelesaikan PD Variabel Terpisah (Contoh 2.1)</h3>
+  <p>Menyelesaikan \(4yy' = 9x^2\) menggunakan SymPy.</p>
+
+  <div class="cb"><div class="cbh"><div class="dots"><span></span><span></span><span></span></div><span>Python — Jupyter Notebook</span><button class="ccp" onclick="cpC(this)">📋 Copy</button></div><div class="cbd">
+<pre><span class="cm"># Cell 1: Selesaikan PD variabel terpisah</span>
+<span class="kw">from</span> sympy <span class="kw">import</span> symbols, Function, dsolve, Eq
+
+x = <span class="fn">symbols</span>(<span class="st">'x'</span>)
+y = <span class="fn">Function</span>(<span class="st">'y'</span>)
+
+<span class="cm"># Definisikan PD: 4*y*y' = 9*x^2</span>
+<span class="cm"># Ditulis: 4*y(x)*y'(x) - 9*x^2 = 0</span>
+pd = <span class="fn">Eq</span>(<span class="nm">4</span>*y(x)*y(x).<span class="fn">diff</span>(x), <span class="nm">9</span>*x**<span class="nm">2</span>)
+<span class="fn">print</span>(<span class="st">"PD:"</span>, pd)
+
+solusi = <span class="fn">dsolve</span>(pd, y(x))
+<span class="fn">print</span>(<span class="st">"Solusi:"</span>, solusi)</pre>
+  </div></div>
+
+  <div class="cb" style="border-color:rgba(0,224,158,.3);"><div class="cbh"><div class="dots"><span></span><span></span><span></span></div><span>Output</span></div><div class="cbd">
+<pre><span class="out">PD: Eq(4*y(x)*Derivative(y(x), x), 9*x**2)
+Solusi: [Eq(y(x), -sqrt(3*x**3/2 + C1)), Eq(y(x), sqrt(3*x**3/2 + C1))]</span></pre>
+  </div></div>
+
+  <h3 style="margin-top:2.5rem;margin-bottom:1rem;font-family:'Playfair Display',serif;">Contoh 2: PD dengan Syarat Awal (Contoh 2.4)</h3>
+  <p>Menyelesaikan \(\frac{dy}{dx} = \frac{x(1+y^2)}{y}\) dengan \(y(0)=4\).</p>
+
+  <div class="cb"><div class="cbh"><div class="dots"><span></span><span></span><span></span></div><span>Python — Jupyter Notebook</span><button class="ccp" onclick="cpC(this)">📋 Copy</button></div><div class="cbd">
+<pre><span class="cm"># Cell 2: PD dengan syarat awal</span>
+<span class="kw">from</span> sympy <span class="kw">import</span> symbols, Function, dsolve, Eq
+
+x = <span class="fn">symbols</span>(<span class="st">'x'</span>)
+y = <span class="fn">Function</span>(<span class="st">'y'</span>)
+
+<span class="cm"># dy/dx = x*(1 + y^2) / y</span>
+pd = <span class="fn">Eq</span>(y(x).<span class="fn">diff</span>(x), x*(<span class="nm">1</span> + y(x)**<span class="nm">2</span>) / y(x))
+
+<span class="cm"># Solusi umum</span>
+sol_umum = <span class="fn">dsolve</span>(pd, y(x))
+<span class="fn">print</span>(<span class="st">"Solusi umum:"</span>, sol_umum)
+
+<span class="cm"># Solusi khusus dengan y(0) = 4</span>
+sol_khusus = <span class="fn">dsolve</span>(pd, y(x), ics={y(<span class="nm">0</span>): <span class="nm">4</span>})
+<span class="fn">print</span>(<span class="st">"Solusi khusus:"</span>, sol_khusus)</pre>
+  </div></div>
+
+  <h3 style="margin-top:2.5rem;margin-bottom:1rem;font-family:'Playfair Display',serif;">Contoh 3: Visualisasi Keluarga Solusi</h3>
+
+  <div class="cb"><div class="cbh"><div class="dots"><span></span><span></span><span></span></div><span>Python — Jupyter Notebook</span><button class="ccp" onclick="cpC(this)">📋 Copy</button></div><div class="cbd">
+<pre><span class="cm"># Cell 3: Plot keluarga solusi 2y^2 = 3x^3 + C</span>
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+
+x = np.<span class="fn">linspace</span>(<span class="nm">-2</span>, <span class="nm">3</span>, <span class="nm">400</span>)
+plt.<span class="fn">figure</span>(figsize=(<span class="nm">10</span>, <span class="nm">6</span>))
+plt.<span class="fn">style.use</span>(<span class="st">'dark_background'</span>)
+
+<span class="kw">for</span> C <span class="kw">in</span> [<span class="nm">-4</span>, <span class="nm">-2</span>, <span class="nm">0</span>, <span class="nm">2</span>, <span class="nm">4</span>, <span class="nm">6</span>]:
+    vals = (<span class="nm">3</span>*x**<span class="nm">3</span> + C) / <span class="nm">2</span>
+    <span class="cm"># Hanya plot di mana y^2 > 0</span>
+    mask = vals >= <span class="nm">0</span>
+    y_pos = np.<span class="fn">sqrt</span>(vals[mask])
+    y_neg = -np.<span class="fn">sqrt</span>(vals[mask])
+    plt.<span class="fn">plot</span>(x[mask], y_pos, linewidth=<span class="nm">2</span>, label=<span class="st">f'C={C}'</span>)
+    plt.<span class="fn">plot</span>(x[mask], y_neg, linewidth=<span class="nm">2</span>, alpha=<span class="nm">0.5</span>)
+
+plt.<span class="fn">axhline</span>(y=<span class="nm">0</span>, color=<span class="st">'white'</span>, lw=<span class="nm">0.5</span>)
+plt.<span class="fn">axvline</span>(x=<span class="nm">0</span>, color=<span class="st">'white'</span>, lw=<span class="nm">0.5</span>)
+plt.<span class="fn">xlabel</span>(<span class="st">'x'</span>, fontsize=<span class="nm">14</span>)
+plt.<span class="fn">ylabel</span>(<span class="st">'y'</span>, fontsize=<span class="nm">14</span>)
+plt.<span class="fn">title</span>(<span class="st">"Keluarga Solusi: 2y² = 3x³ + C"</span>, fontsize=<span class="nm">16</span>)
+plt.<span class="fn">legend</span>(); plt.<span class="fn">grid</span>(alpha=<span class="nm">0.2</span>)
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
+  </div></div>
+
+  <h3 style="margin-top:2.5rem;margin-bottom:1rem;font-family:'Playfair Display',serif;">Contoh 4: Simulasi Pendinginan Newton</h3>
+
+  <div class="cb"><div class="cbh"><div class="dots"><span></span><span></span><span></span></div><span>Python — Jupyter Notebook</span><button class="ccp" onclick="cpC(this)">📋 Copy</button></div><div class="cbd">
+<pre><span class="cm"># Cell 4: Simulasi pendinginan Newton</span>
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+
+T0 = <span class="nm">100</span>   <span class="cm"># suhu awal (°C)</span>
+Tm = <span class="nm">30</span>    <span class="cm"># suhu medium (°C)</span>
+k  = <span class="nm">0.034</span> <span class="cm"># konstanta pendinginan</span>
+
+t = np.<span class="fn">linspace</span>(<span class="nm">0</span>, <span class="nm">120</span>, <span class="nm">300</span>)
+T = Tm + (T0 - Tm) * np.<span class="fn">exp</span>(-k * t)
+
+plt.<span class="fn">figure</span>(figsize=(<span class="nm">10</span>, <span class="nm">6</span>))
+plt.<span class="fn">style.use</span>(<span class="st">'dark_background'</span>)
+plt.<span class="fn">plot</span>(t, T, <span class="st">'cyan'</span>, lw=<span class="nm">2.5</span>, label=<span class="st">'T(t) = 30 + 70e⁻⁰·⁰³⁴ᵗ'</span>)
+plt.<span class="fn">axhline</span>(y=<span class="nm">30</span>, color=<span class="st">'orange'</span>, ls=<span class="st">'--'</span>, lw=<span class="nm">1</span>, label=<span class="st">'Suhu medium = 30°C'</span>)
+plt.<span class="fn">scatter</span>([<span class="nm">0</span>,<span class="nm">10</span>,<span class="nm">20</span>,<span class="nm">37</span>], [<span class="nm">100</span>,<span class="nm">80</span>,<span class="nm">65.75</span>,<span class="nm">50</span>], color=<span class="st">'yellow'</span>, s=<span class="nm">80</span>, zorder=<span class="nm">5</span>)
+plt.<span class="fn">xlabel</span>(<span class="st">'Waktu (menit)'</span>, fontsize=<span class="nm">13</span>)
+plt.<span class="fn">ylabel</span>(<span class="st">'Suhu (°C)'</span>, fontsize=<span class="nm">13</span>)
+plt.<span class="fn">title</span>(<span class="st">'Hukum Pendinginan Newton — Bola Tembaga'</span>, fontsize=<span class="nm">15</span>)
+plt.<span class="fn">legend</span>(fontsize=<span class="nm">11</span>); plt.<span class="fn">grid</span>(alpha=<span class="nm">0.2</span>)
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
+  </div></div>
+
+  <div class="ana" style="margin-top:2rem;">
+    <h4>📌 Tips Jupyter di VS Code</h4>
+    <p>• <strong>Shift+Enter</strong> → jalankan cell dan pindah ke cell berikutnya.</p>
+    <p>• <strong>Ctrl+Enter</strong> → jalankan cell tanpa pindah.</p>
+    <p>• Klik <strong>+ Code</strong> untuk tambah cell baru.</p>
+    <p>• Simpan dengan <strong>Ctrl+S</strong> (format .ipynb).</p>
+    <p>• Untuk ekspor ke PDF: Ctrl+Shift+P → "Jupyter: Export to PDF".</p>
+  </div>
+</section>
+
+<!-- ═══════ DAFTAR PUSTAKA ═══════ -->
+<section class="sec fi" id="pustaka" style="padding-bottom:3rem;">
+  <div class="sl">📚 REFERENSI</div>
+  <h2 class="st">Daftar Pustaka</h2>
+  <div class="sd"></div>
+  <div class="card" style="background:linear-gradient(135deg,rgba(14,165,233,0.05),rgba(168,85,247,0.05));">
+    <p style="margin-bottom:1rem;color:var(--t2);font-size:.9rem;">Sumber rujukan yang digunakan dalam modul ini:</p>
+    <p style="padding-left:2.5rem;text-indent:-2.5rem;margin-bottom:.75rem;">
+      <span style="color:var(--c1);font-weight:700;">[1]</span>&ensp;Sucipto, Erwin. <em>Engineering Mathematics</em> – 3rd Edition. Jakarta: Erlangga, 1994.
+    </p>
+    <p style="padding-left:2.5rem;text-indent:-2.5rem;">
+      <span style="color:var(--c1);font-weight:700;">[2]</span>&ensp;Markoni. <em>Pengantar Dasar Matematika Rekayasa</em> – 1st Edition. Yogyakarta: Graha Ilmu, 2014.
+    </p>
+  </div>
+</section>
+
+<!-- ═══════ FOOTER ═══════ -->
+<footer>
+  <p>📐 Modul 2 — PD Variabel Terpisah</p>
+  <p style="margin-top:.5rem;">Matematika Teknik • W132100010 • Fakultas Teknik — Teknik Mesin</p>
+  <p style="margin-top:.25rem;font-size:.8rem;">Disusun oleh: Dedik Romahadi</p>
+</footer>
+
+<!-- ═══════ SCRIPTS ═══════ -->
+<script>
+document.addEventListener('DOMContentLoaded',()=>{renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})});
+
+// Progress
+window.addEventListener('scroll',()=>{const t=document.documentElement.scrollHeight-window.innerHeight;document.getElementById('prog').style.width=(window.scrollY/t*100)+'%'});
+
+// Fade-in observer
+const obs=new IntersectionObserver(e=>{e.forEach(en=>{if(en.isIntersecting)en.target.classList.add('vis')})},{threshold:.1});
+document.querySelectorAll('.fi').forEach(el=>obs.observe(el));
+
+// Active nav
+window.addEventListener('scroll',()=>{const secs=document.querySelectorAll('.sec');const links=document.querySelectorAll('.nav a');let cur='';secs.forEach(s=>{if(window.scrollY>=s.offsetTop-120)cur=s.id});links.forEach(l=>{l.classList.remove('active');if(l.getAttribute('href')==='#'+cur)l.classList.add('active')})});
+
+// Radio select
+function selR(l,q){const g=l.closest('.rg');g.querySelectorAll('.ro').forEach(o=>{o.style.borderColor='var(--bd)';o.style.background='var(--bg2)'});l.querySelector('input').checked=true;l.style.borderColor='var(--c1)';l.style.background='rgba(0,224,158,.04)'}
+
+// Check answer
+function chk(q,cor){const sel=document.querySelector(`input[name="${q}"]:checked`);const fb=document.getElementById(`fb-${q}`);if(!sel){fb.className='fb bad';fb.textContent='⚠️ Pilih jawaban dulu!';fb.style.display='block';return}
+document.querySelectorAll(`#${q}-opts .ro`).forEach(o=>{const v=o.querySelector('input').value;o.classList.remove('ok','bad');if(v===cor)o.classList.add('ok');else if(o.querySelector('input').checked&&v!==cor)o.classList.add('bad')});
+if(sel.value===cor){fb.className='fb ok';fb.textContent='🎉 Benar! Jawaban Anda tepat.'}else{fb.className='fb bad';fb.textContent='❌ Kurang tepat. Coba lihat petunjuk atau kunci jawaban.'}fb.style.display='block'}
+
+// Toggle hint/answer
+function tog(id){document.getElementById(id).classList.toggle('show')}
+
+// Copy code
+function cpC(btn){const code=btn.closest('.cb').querySelector('pre').textContent;navigator.clipboard.writeText(code).then(()=>{btn.textContent='✅ Copied!';setTimeout(()=>btn.textContent='📋 Copy',2000)})}
+
+// Canvas animation
+const cvs=document.getElementById('cvs');const ctx=cvs.getContext('2d');let aid=null;
+const descs={parabola:'Keluarga kurva: solusi dari 4yy\' = 9x² → 2y² = 3x³ + C.',expdecay:'Peluruhan eksponensial: y = Ce⁻²ˣ — zat radioaktif, pendinginan.',expgrowth:'Pertumbuhan: 1 + y² = Ce^(x²) — solusi Contoh 2.4.',cooling:'Pendinginan Newton: T(t) = 30 + 70e⁻⁰·⁰³⁴ᵗ — bola tembaga.'};
+
+function drawPD(type,btn){if(btn){document.querySelectorAll('.abtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active')}
+document.getElementById('desc').textContent=descs[type];if(aid)cancelAnimationFrame(aid);
+const w=cvs.width,h=cvs.height,cx=60,cy=h/2;let fr=0;
+function getY(px,type,C){const x=px*.025;switch(type){case'parabola':const v=(3*Math.pow(x,3)+C)/2;return v>=0?Math.sqrt(v)*50:null;case'expdecay':return C*Math.exp(-2*x)*60;case'expgrowth':const r=C*Math.exp(x*x*.5);return r>0?Math.sqrt(r-1)*25:null;case'cooling':return(30+C*Math.exp(-.034*x*20)-30)*3}}
+function anim(){fr+=3;ctx.clearRect(0,0,w,h);
+ctx.strokeStyle='rgba(30,41,59,.5)';ctx.lineWidth=1;for(let i=0;i<w;i+=50){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,h);ctx.stroke()}for(let i=0;i<h;i+=50){ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(w,i);ctx.stroke()}
+ctx.strokeStyle='rgba(148,163,184,.3)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(cx,10);ctx.lineTo(cx,h-10);ctx.stroke();ctx.beginPath();ctx.moveTo(10,cy);ctx.lineTo(w-10,cy);ctx.stroke();
+ctx.fillStyle='#94a3b8';ctx.font='13px Source Sans 3';ctx.fillText('x',w-25,cy-8);ctx.fillText('y',cx+8,22);
+const colors=['#00e09e','#0ea5e9','#a855f7','#f97316','#facc15'];
+const Cs=type==='parabola'?[-3,0,3,6,9]:type==='expdecay'?[-2,-1,1,2,3]:type==='expgrowth'?[2,5,10,17,25]:type==='cooling'?[70,50,30]:[];
+Cs.forEach((C,ci)=>{ctx.strokeStyle=colors[ci%colors.length];ctx.lineWidth=2.5;ctx.beginPath();let started=false;const mp=Math.min(fr,w-cx);
+for(let px=0;px<mp;px++){const yv=getY(px,type,C);if(yv===null||yv===undefined){started=false;continue}
+const sx=cx+px,sy=cy-yv;if(!started){ctx.moveTo(sx,sy);started=true}else ctx.lineTo(sx,sy)}ctx.stroke();
+if(type==='parabola'||type==='expgrowth'){ctx.beginPath();started=false;for(let px=0;px<mp;px++){const yv=getY(px,type,C);if(yv===null||yv===undefined){started=false;continue}
+const sx=cx+px,sy=cy+yv;if(!started){ctx.moveTo(sx,sy);started=true}else ctx.lineTo(sx,sy)}ctx.stroke()}});
+if(fr<w)aid=requestAnimationFrame(anim)}anim()}
+drawPD('parabola',null);
+</script>
+<script>
+// ── VISITOR SYSTEM ──
+const MODULE_ID='modul-2';
+const SK_ID=`optoauto_identity_${MODULE_ID}`;
+const SK_V=`optoauto_visitors_${MODULE_ID}`;
+let panelOpen=false;
+function getVisitors(){try{return JSON.parse(localStorage.getItem(SK_V))||[]}catch(e){return[]}}
+function saveVisitors(l){localStorage.setItem(SK_V,JSON.stringify(l))}
+function getIdentity(){try{return JSON.parse(localStorage.getItem(SK_ID))}catch(e){return null}}
+function saveIdentity(v){localStorage.setItem(SK_ID,JSON.stringify(v))}
+function isValidName(n){if(!n)return false;return n.split(/\s+/).every(w=>w.length>0&&/^[A-Z][a-z]*$/.test(w))}
+function isValidNim(n){return/^\d+$/.test(n)}
+function initVisitor(){const me=getIdentity();if(me&&me.nama){document.getElementById('visitorOverlay').classList.add('hidden');document.getElementById('visitorFab').style.display='flex';loadVisitors()}}
+function submitVisitor(){
+  const nama=document.getElementById('vNama').value.trim();
+  const nim=document.getElementById('vNim').value.trim();
+  const err=document.getElementById('vError');
+  const isDosen=nama.toLowerCase()==='dedik romahadi';
+  if(!nama){err.textContent='⚠ Nama wajib diisi.';err.style.display='block';return}
+  if(!isValidName(nama)){err.textContent='⚠ Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi';err.style.display='block';return}
+  if(!isDosen&&!nim){err.textContent='⚠ NIM wajib diisi.';err.style.display='block';return}
+  if(!isDosen&&!isValidNim(nim)){err.textContent='⚠ NIM harus berupa angka.';err.style.display='block';return}
+  err.style.display='none';
+  const visitor={nama,nim:isDosen?'DOSEN':nim,role:isDosen?'dosen':'student',timestamp:new Date().toISOString()};
+  saveIdentity(visitor);
+  const visitors=getVisitors();
+  const idx=visitors.findIndex(v=>v.nama===visitor.nama&&v.nim===visitor.nim);
+  if(idx>=0)visitors[idx]=visitor;else visitors.push(visitor);
+  saveVisitors(visitors);
+  document.getElementById('visitorOverlay').classList.add('hidden');
+  document.getElementById('visitorFab').style.display='flex';
+  loadVisitors();
+}
+function loadVisitors(){
+  const listEl=document.getElementById('vpList'),countEl=document.getElementById('fabCount'),badgeEl=document.getElementById('vpBadge');
+  const visitors=getVisitors();visitors.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+  const seen=new Set(),unique=[];
+  for(const v of visitors){const id=`${v.nama}|${v.nim}`;if(!seen.has(id)){seen.add(id);unique.push(v)}}
+  countEl.textContent=unique.length;badgeEl.textContent=unique.length+' orang';
+  if(!unique.length){listEl.innerHTML='<div class="vp-empty">Belum ada pengunjung.</div>';return}
+  listEl.innerHTML=unique.map(v=>{
+    const isDosen=v.role==='dosen';
+    const ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const dt=new Date(v.timestamp);
+    const ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    return `<div class="vp-item"><div class="vp-avatar ${isDosen?'dosen':'student'}">${ini}</div><div class="vp-info"><div class="vp-name">${isDosen?'👨‍🏫 ':''}${escH(v.nama)}</div><div class="vp-nim">${isDosen?'Dosen Pengampu':escH(v.nim)}</div></div><div class="vp-time">${ts}</div></div>`
+  }).join('');
+}
+function togglePanel(){panelOpen=!panelOpen;document.getElementById('visitorPanel').classList.toggle('open',panelOpen);if(panelOpen)loadVisitors()}
+document.addEventListener('click',function(e){const p=document.getElementById('visitorPanel'),f=document.getElementById('visitorFab');if(panelOpen&&!p.contains(e.target)&&!f.contains(e.target)){panelOpen=false;p.classList.remove('open')}});
+function escH(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+document.getElementById('vNim').addEventListener('keydown',function(e){if(e.key==='Enter')submitVisitor()});
+document.getElementById('vNama').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('vNim').focus()});
+initVisitor();
+</script>
+</body>
+</html>
