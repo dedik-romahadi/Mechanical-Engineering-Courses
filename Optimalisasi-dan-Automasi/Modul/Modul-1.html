@@ -1377,244 +1377,134 @@ new Chart(document.getElementById('sparkNoise'), {
 });
 </script>
 
-<!-- ==================== VISITOR SYSTEM JS ==================== -->
-<script>
-const MODULE_ID = 'modul1';
-const STORAGE_KEY_IDENTITY = `optoauto_identity_${MODULE_ID}`;
-const STORAGE_KEY_VISITORS = `optoauto_visitors_${MODULE_ID}`;
+<!-- ==================== VISITOR SYSTEM JS (Firebase) ==================== -->
+<script type="module">
+// === VISITOR SYSTEM (Firebase) ===
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getDatabase, ref, push, set, get, remove, onValue } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",
+  authDomain: "getaran-mekanik.firebaseapp.com",
+  databaseURL: "https://getaran-mekanik-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "getaran-mekanik",
+  storageBucket: "getaran-mekanik.firebasestorage.app",
+  messagingSenderId: "430886299733",
+  appId: "1:430886299733:web:0edecd5d4adf73e7440cdc",
+  measurementId: "G-NBMYLXXF18"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const MODULE_ID = 'modul-1';
+const DB_PATH = `visitors/OptoAuto/${MODULE_ID}`;
+const LOCAL_KEY = `optoauto_identity_${MODULE_ID}`;
 let panelOpen = false;
 
-function getVisitors() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY_VISITORS)) || []; }
-  catch(e) { return []; }
-}
-
-function saveVisitors(list) {
-  localStorage.setItem(STORAGE_KEY_VISITORS, JSON.stringify(list));
-}
-
-function getIdentity() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY_IDENTITY)); }
-  catch(e) { return null; }
-}
-
-function saveIdentity(v) {
-  localStorage.setItem(STORAGE_KEY_IDENTITY, JSON.stringify(v));
-}
+function getIdentity() { try { return JSON.parse(localStorage.getItem(LOCAL_KEY)); } catch(e) { return null; } }
+function saveIdentity(v) { localStorage.setItem(LOCAL_KEY, JSON.stringify(v)); }
+function isValidName(n) { if(!n) return false; return n.split(/\s+/).every(w => w.length > 0 && /^[A-Z][a-z]*$/.test(w)); }
+function isValidNim(n) { return /^\d+$/.test(n); }
+function escH(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
 function initVisitor() {
   const me = getIdentity();
   if (me && me.nama) {
     document.getElementById('visitorOverlay').classList.add('hidden');
     document.getElementById('visitorFab').style.display = 'flex';
-    loadVisitors();
   }
+  onValue(ref(db, DB_PATH), (snap) => {
+    const data = snap.val();
+    const visitors = data ? Object.entries(data).map(([k,v]) => ({...v, _key:k})) : [];
+    renderVisitorList(visitors);
+  });
 }
 
-function isValidName(name) {
-  if (!name) return false;
-  const words = name.split(/\s+/);
-  return words.every(w => w.length > 0 && /^[A-Z][a-z]*$/.test(w));
-}
-
-function isValidNim(nim) {
-  return /^\d+$/.test(nim);
-}
-
-function submitVisitor() {
+window.submitVisitor = async function() {
   const nama = document.getElementById('vNama').value.trim();
   const nim  = document.getElementById('vNim').value.trim();
-  const errEl = document.getElementById('vError');
-
+  const err  = document.getElementById('vError');
   const isDosen = nama.toLowerCase() === 'dedik romahadi';
-
-  if (!nama) {
-    errEl.textContent = '⚠ Nama wajib diisi.';
-    errEl.style.display = 'block'; return;
-  }
-
-  if (!isValidName(nama)) {
-    errEl.textContent = '⚠ Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi';
-    errEl.style.display = 'block'; return;
-  }
-
-  if (!isDosen && !nim) {
-    errEl.textContent = '⚠ NIM wajib diisi.';
-    errEl.style.display = 'block'; return;
-  }
-
-  if (!isDosen && !isValidNim(nim)) {
-    errEl.textContent = '⚠ NIM harus berupa angka tanpa spasi. Contoh: 41522010001';
-    errEl.style.display = 'block'; return;
-  }
-
-  errEl.style.display = 'none';
-
-  const visitor = {
-    nama,
-    nim: isDosen ? 'DOSEN' : nim,
-    role: isDosen ? 'dosen' : 'student',
-    timestamp: new Date().toISOString()
-  };
-
-  // Save identity
+  if (!nama) { err.textContent = '\u26a0 Nama wajib diisi.'; err.style.display = 'block'; return; }
+  if (!isValidName(nama)) { err.textContent = '\u26a0 Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi'; err.style.display = 'block'; return; }
+  if (!isDosen && !nim) { err.textContent = '\u26a0 NIM wajib diisi.'; err.style.display = 'block'; return; }
+  if (!isDosen && !isValidNim(nim)) { err.textContent = '\u26a0 NIM harus berupa angka tanpa spasi. Contoh: 41522010001'; err.style.display = 'block'; return; }
+  err.style.display = 'none';
+  const visitor = { nama, nim: isDosen ? 'DOSEN' : nim, role: isDosen ? 'dosen' : 'student', timestamp: new Date().toISOString() };
   saveIdentity(visitor);
-
-  // Add to visitor log (deduplicate by nama+nim)
-  const visitors = getVisitors();
-  const idx = visitors.findIndex(v => v.nama === visitor.nama && v.nim === visitor.nim);
-  if (idx >= 0) visitors[idx] = visitor;
-  else visitors.push(visitor);
-  saveVisitors(visitors);
-
+  try {
+    const snapshot = await get(ref(db, DB_PATH));
+    const data = snapshot.val() || {};
+    let existingKey = null;
+    for (const [k, v] of Object.entries(data)) { if (v.nama === visitor.nama && v.nim === visitor.nim) { existingKey = k; break; } }
+    if (existingKey) { await set(ref(db, `${DB_PATH}/${existingKey}`), visitor); }
+    else { await push(ref(db, DB_PATH), visitor); }
+  } catch(e) { console.error('Firebase write error:', e); }
   document.getElementById('visitorOverlay').classList.add('hidden');
   document.getElementById('visitorFab').style.display = 'flex';
-  loadVisitors();
-}
+};
 
-function loadVisitors() {
+function renderVisitorList(visitors) {
   const listEl = document.getElementById('vpList');
   const countEl = document.getElementById('fabCount');
   const badgeEl = document.getElementById('vpBadge');
   const tableEl = document.getElementById('visitorTableBody');
-  const statTotal = document.getElementById('statTotal');
-  const statMhs = document.getElementById('statMhs');
-  const statDosen = document.getElementById('statDosen');
-
-  const visitors = getVisitors();
-
-  // Sort newest first
+  const stT = document.getElementById('statTotal');
+  const stM = document.getElementById('statMhs');
+  const stD = document.getElementById('statDosen');
   visitors.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-  // Deduplicate
-  const seen = new Set();
-  const unique = [];
-  for (const v of visitors) {
-    const id = `${v.nama}|${v.nim}`;
-    if (!seen.has(id)) { seen.add(id); unique.push(v); }
-  }
-
-  const mhsCount = unique.filter(v => v.role !== 'dosen').length;
-  const dosenCount = unique.filter(v => v.role === 'dosen').length;
-
-  countEl.textContent = unique.length;
-  badgeEl.textContent = unique.length + ' orang';
-  statTotal.textContent = unique.length;
-  statMhs.textContent = mhsCount;
-  statDosen.textContent = dosenCount;
-
-  if (unique.length === 0) {
-    listEl.innerHTML = '<div class="vp-empty">Belum ada pengunjung tercatat.</div>';
-    tableEl.innerHTML = '<div style="text-align:center;padding:40px 24px;color:var(--s500);font-size:.88rem;">Belum ada pengunjung yang tercatat.</div>';
+  const seen = new Set(), unique = [];
+  for (const v of visitors) { const id = `${v.nama}|${v.nim}`; if (!seen.has(id)) { seen.add(id); unique.push(v); } }
+  const mc = unique.filter(v => v.role !== 'dosen').length;
+  const dc = unique.filter(v => v.role === 'dosen').length;
+  countEl.textContent = unique.length; badgeEl.textContent = unique.length + ' orang';
+  stT.textContent = unique.length; stM.textContent = mc; stD.textContent = dc;
+  if (!unique.length) {
+    listEl.innerHTML = '<div class="vp-empty">Belum ada pengunjung.</div>';
+    tableEl.innerHTML = '<div style="text-align:center;padding:40px 24px;color:var(--s500);font-size:.88rem;">Belum ada pengunjung.</div>';
     return;
   }
-
-  // Floating panel
   listEl.innerHTML = unique.map(v => {
-    const isDosen = v.role === 'dosen';
-    const initials = v.nama.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    const d = v.role === 'dosen';
+    const ini = v.nama.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
     const dt = new Date(v.timestamp);
-    const timeStr = dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'}) +
-                    ' ' + dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-    return `
-      <div class="vp-item">
-        <div class="vp-avatar ${isDosen?'dosen':'student'}">${initials}</div>
-        <div class="vp-info">
-          <div class="vp-name">${isDosen?'👨‍🏫 ':''}${escHtml(v.nama)}</div>
-          <div class="vp-nim">${isDosen?'Dosen Pengampu':escHtml(v.nim)}</div>
-        </div>
-        <div class="vp-time">${timeStr}</div>
-      </div>`;
+    const ts = dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'}) + ' ' + dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    return `<div class="vp-item"><div class="vp-avatar ${d?'dosen':'student'}">${ini}</div><div class="vp-info"><div class="vp-name">${d?'\ud83d\udc68\u200d\ud83c\udfeb ':''}${escH(v.nama)}</div><div class="vp-nim">${d?'Dosen Pengampu':escH(v.nim)}</div></div><div class="vp-time">${ts}</div></div>`;
   }).join('');
-
-  // In-page table
   tableEl.innerHTML = unique.map((v, i) => {
-    const isDosen = v.role === 'dosen';
-    const initials = v.nama.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    const d = v.role === 'dosen';
+    const ini = v.nama.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
     const dt = new Date(v.timestamp);
-    const timeStr = dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) +
-                    ', ' + dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-    const avatarColor = isDosen ? 'background:rgba(251,191,36,.12);color:var(--amber);' : 'background:rgba(45,212,191,.12);color:var(--teal);';
-    const roleChip = isDosen
-      ? '<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(251,191,36,.1);color:var(--amber);border:1px solid rgba(251,191,36,.2);margin-left:8px;">Dosen</span>'
-      : '';
-    return `
-      <div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;cursor:default;" onmouseenter="this.style.background='rgba(255,255,255,.03)'" onmouseleave="this.style.background='transparent'">
-        <div style="width:44px;flex-shrink:0;font-size:.82rem;color:var(--s500);font-weight:600;">${i+1}</div>
-        <div style="flex:2;display:flex;align-items:center;gap:12px;">
-          <div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${avatarColor}">${initials}</div>
-          <div>
-            <div style="font-weight:600;font-size:.88rem;color:var(--s200);">${escHtml(v.nama)}${roleChip}</div>
-          </div>
-        </div>
-        <div style="flex:1;font-size:.8rem;color:var(--s400);font-family:'Courier New',monospace;">${isDosen?'—':escHtml(v.nim)}</div>
-        <div style="flex:1;text-align:right;font-size:.78rem;color:var(--s500);">${timeStr}</div>
-      </div>`;
+    const ts = dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) + ', ' + dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    const ac = d ? 'background:rgba(251,191,36,.12);color:var(--amber,#fbbf24);' : 'background:rgba(45,212,191,.12);color:var(--teal,#2dd4bf);';
+    const rc = d ? '<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(251,191,36,.1);color:var(--amber,#fbbf24);border:1px solid rgba(251,191,36,.2);margin-left:8px;">Dosen</span>' : '';
+    return `<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;" onmouseenter="this.style.background='rgba(255,255,255,.03)'" onmouseleave="this.style.background='transparent'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:var(--s500);font-weight:600;">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${ac}">${ini}</div><div><div style="font-weight:600;font-size:.88rem;color:var(--s200,#e2e8f0);">${escH(v.nama)}${rc}</div></div></div><div style="flex:1;font-size:.8rem;color:var(--s400);font-family:'Courier New',monospace;">${d?'\u2014':escH(v.nim)}</div><div style="flex:1;text-align:right;font-size:.78rem;color:var(--s500);">${ts}</div></div>`;
   }).join('');
 }
 
-function togglePanel() {
-  panelOpen = !panelOpen;
-  document.getElementById('visitorPanel').classList.toggle('open', panelOpen);
-  if (panelOpen) loadVisitors();
-}
-
+window.togglePanel = function() { panelOpen = !panelOpen; document.getElementById('visitorPanel').classList.toggle('open', panelOpen); };
 document.addEventListener('click', function(e) {
-  const panel = document.getElementById('visitorPanel');
-  const fab = document.getElementById('visitorFab');
-  if (panelOpen && !panel.contains(e.target) && !fab.contains(e.target)) {
-    panelOpen = false;
-    panel.classList.remove('open');
-  }
+  const p = document.getElementById('visitorPanel'), f = document.getElementById('visitorFab');
+  if (panelOpen && !p.contains(e.target) && !f.contains(e.target)) { panelOpen = false; p.classList.remove('open'); }
 });
 
-function escHtml(s) {
-  const d = document.createElement('div');
-  d.textContent = s;
-  return d.innerHTML;
-}
+window.showResetModal = function() { document.getElementById('resetOverlay').classList.remove('hidden'); document.getElementById('resetPw').value = ''; document.getElementById('resetError').style.display = 'none'; setTimeout(() => document.getElementById('resetPw').focus(), 100); };
+window.hideResetModal = function() { document.getElementById('resetOverlay').classList.add('hidden'); };
 
-function showResetModal() {
-  document.getElementById('resetOverlay').classList.remove('hidden');
-  document.getElementById('resetPw').value = '';
-  document.getElementById('resetError').style.display = 'none';
-  setTimeout(() => document.getElementById('resetPw').focus(), 100);
-}
-
-function hideResetModal() {
-  document.getElementById('resetOverlay').classList.add('hidden');
-}
-
-function confirmReset() {
-  const pw = document.getElementById('resetPw').value;
-  if (pw !== 'TeknikMesin0602') {
-    document.getElementById('resetError').style.display = 'block';
-    return;
-  }
-  localStorage.removeItem(STORAGE_KEY_VISITORS);
-  localStorage.removeItem(STORAGE_KEY_IDENTITY);
+window.confirmReset = async function() {
+  if (document.getElementById('resetPw').value !== 'TeknikMesin0602') { document.getElementById('resetError').style.display = 'block'; return; }
+  try { await remove(ref(db, DB_PATH)); } catch(e) { console.error('Firebase delete error:', e); }
+  localStorage.removeItem(LOCAL_KEY);
   hideResetModal();
-  loadVisitors();
-  // Show login modal again
   document.getElementById('visitorOverlay').classList.remove('hidden');
   document.getElementById('visitorFab').style.display = 'none';
-}
+};
 
-document.getElementById('resetPw').addEventListener('keydown', function(e){
-  if(e.key==='Enter') confirmReset();
-});
-document.getElementById('resetOverlay').addEventListener('click', function(e){
-  if(e.target === this) hideResetModal();
-});
+document.getElementById('resetPw').addEventListener('keydown', function(e) { if (e.key === 'Enter') confirmReset(); });
+document.getElementById('resetOverlay').addEventListener('click', function(e) { if (e.target === this) hideResetModal(); });
+document.getElementById('vNim').addEventListener('keydown', function(e) { if (e.key === 'Enter') submitVisitor(); });
+document.getElementById('vNama').addEventListener('keydown', function(e) { if (e.key === 'Enter') document.getElementById('vNim').focus(); });
 
-document.getElementById('vNim').addEventListener('keydown', function(e){
-  if(e.key==='Enter') submitVisitor();
-});
-document.getElementById('vNama').addEventListener('keydown', function(e){
-  if(e.key==='Enter') document.getElementById('vNim').focus();
-});
-
-// Init
 initVisitor();
 </script>
 </body>
