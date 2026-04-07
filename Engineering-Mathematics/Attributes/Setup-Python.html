@@ -468,6 +468,17 @@ footer {
 @media(max-width:480px){.visitor-panel{width:calc(100vw - 32px);right:16px;bottom:88px}.visitor-fab{bottom:18px;right:18px}}
 
 </style>
+
+<!-- Firebase SDK -->
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import{getDatabase,ref,push,set,get,remove,onValue}from"https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+const firebaseConfig={apiKey:"AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",authDomain:"getaran-mekanik.firebaseapp.com",databaseURL:"https://getaran-mekanik-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"getaran-mekanik",storageBucket:"getaran-mekanik.firebasestorage.app",messagingSenderId:"430886299733",appId:"1:430886299733:web:0edecd5d4adf73e7440cdc"};
+const app=initializeApp(firebaseConfig);
+const db=getDatabase(app);
+window._fbDb=db;window._fbRef=ref;window._fbPush=push;window._fbSet=set;window._fbGet=get;window._fbRemove=remove;window._fbOnValue=onValue;
+</script>
+
 </head>
 <body>
 
@@ -1222,14 +1233,15 @@ plt.tight_layout(); plt.show()</pre>
 </section>
 
 <script>
-// ═══ VISITOR SYSTEM ═══
+// ═══ VISITOR SYSTEM (FIREBASE) ═══
 const MODULE_ID='setup-python';
 const STORAGE_KEY_IDENTITY=`optoauto_identity_${MODULE_ID}`;
-const STORAGE_KEY_VISITORS=`optoauto_visitors_${MODULE_ID}`;
 let panelOpen=false;
+let _fbReady=false;
+let _fbUnsub=null;
 
-function getVisitors(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY_VISITORS))||[];}catch(e){return[];}}
-function saveVisitors(l){localStorage.setItem(STORAGE_KEY_VISITORS,JSON.stringify(l));}
+function waitFb(cb){if(window._fbDb){_fbReady=true;cb();}else{const iv=setInterval(()=>{if(window._fbDb){_fbReady=true;clearInterval(iv);cb();}},100);}}
+
 function getIdentity(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY_IDENTITY));}catch(e){return null;}}
 function saveIdentity(v){localStorage.setItem(STORAGE_KEY_IDENTITY,JSON.stringify(v));}
 
@@ -1238,7 +1250,8 @@ function isValidNim(n){return /^\d+$/.test(n);}
 
 function initVisitor(){
   const me=getIdentity();
-  if(me&&me.nama){document.getElementById('visitorOverlay').classList.add('hidden');document.getElementById('visitorFab').style.display='flex';loadVisitorList();}
+  if(me&&me.nama){document.getElementById('visitorOverlay').classList.add('hidden');document.getElementById('visitorFab').style.display='flex';}
+  waitFb(()=>{listenVisitors();});
 }
 
 function submitVisitor(){
@@ -1253,36 +1266,63 @@ function submitVisitor(){
   err.style.display='none';
   const v={nama,nim:isDosen?'DOSEN':nim,role:isDosen?'dosen':'student',timestamp:new Date().toISOString()};
   saveIdentity(v);
-  const vs=getVisitors();const idx=vs.findIndex(x=>x.nama===v.nama&&x.nim===v.nim);
-  if(idx>=0)vs[idx]=v;else vs.push(v);saveVisitors(vs);
+  waitFb(()=>{
+    const dbRef=window._fbRef(window._fbDb,'visitors/'+MODULE_ID);
+    window._fbGet(dbRef).then(snap=>{
+      const data=snap.val()||{};
+      let existKey=null;
+      Object.entries(data).forEach(([k,val])=>{if(val.nama===v.nama&&val.nim===v.nim)existKey=k;});
+      if(existKey){window._fbSet(window._fbRef(window._fbDb,'visitors/'+MODULE_ID+'/'+existKey),v);}
+      else{window._fbPush(dbRef,v);}
+    }).catch(()=>{window._fbPush(dbRef,v);});
+  });
   document.getElementById('visitorOverlay').classList.add('hidden');
-  document.getElementById('visitorFab').style.display='flex';loadVisitorList();
+  document.getElementById('visitorFab').style.display='flex';
 }
 
-function loadVisitorList(){
+function listenVisitors(){
+  const dbRef=window._fbRef(window._fbDb,'visitors/'+MODULE_ID);
+  if(_fbUnsub)_fbUnsub();
+  _fbUnsub=window._fbOnValue(dbRef,(snap)=>{
+    const data=snap.val()||{};
+    const visitors=Object.values(data);
+    renderVisitors(visitors);
+  });
+}
+
+function renderVisitors(visitors){
   const listEl=document.getElementById('vpList'),countEl=document.getElementById('fabCount'),badgeEl=document.getElementById('vpBadge'),tableEl=document.getElementById('visitorTableBody'),stT=document.getElementById('statTotal'),stM=document.getElementById('statMhs'),stD=document.getElementById('statDosen');
-  const visitors=getVisitors();visitors.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+  visitors.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
   const seen=new Set(),unique=[];for(const v of visitors){const id=`${v.nama}|${v.nim}`;if(!seen.has(id)){seen.add(id);unique.push(v);}}
   const mc=unique.filter(v=>v.role!=='dosen').length,dc=unique.filter(v=>v.role==='dosen').length;
   countEl.textContent=unique.length;badgeEl.textContent=unique.length+' orang';stT.textContent=unique.length;stM.textContent=mc;stD.textContent=dc;
-  if(!unique.length){listEl.innerHTML='<div class="vp-empty">Belum ada pengunjung.</div>';tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:var(--s500);font-size:.88rem;">Belum ada pengunjung.</div>';return;}
-  listEl.innerHTML=unique.map(v=>{const d=v.role==='dosen',ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),dt=new Date(v.timestamp),ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});return `<div class="vp-item"><div class="vp-avatar ${d?'dosen':'student'}">${ini}</div><div class="vp-info"><div class="vp-name">${d?'👨‍🏫 ':''}${escH(v.nama)}</div><div class="vp-nim">${d?'Dosen Pengampu':escH(v.nim)}</div></div><div class="vp-time">${ts}</div></div>`;}).join('');
-  tableEl.innerHTML=unique.map((v,i)=>{const d=v.role==='dosen',ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),dt=new Date(v.timestamp),ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}),ac=d?'background:rgba(251,191,36,.12);color:var(--amber,#fbbf24);':'background:rgba(45,212,191,.12);color:var(--teal,#2dd4bf);',rc=d?'<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(251,191,36,.1);color:var(--amber,#fbbf24);border:1px solid rgba(251,191,36,.2);margin-left:8px;">Dosen</span>':'';return `<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;" onmouseenter="this.style.background='rgba(255,255,255,.03)'" onmouseleave="this.style.background='transparent'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:var(--s500);font-weight:600;">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${ac}">${ini}</div><div><div style="font-weight:600;font-size:.88rem;color:var(--s200,#e2e8f0);">${escH(v.nama)}${rc}</div></div></div><div style="flex:1;font-size:.8rem;color:var(--s400);font-family:'Courier New',monospace;">${d?'—':escH(v.nim)}</div><div style="flex:1;text-align:right;font-size:.78rem;color:var(--s500);">${ts}</div></div>`;}).join('');
+  if(!unique.length){listEl.innerHTML='<div class="vp-empty">Belum ada pengunjung.</div>';tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">Belum ada pengunjung.</div>';return;}
+  listEl.innerHTML=unique.map(v=>{const d=v.role==='dosen',ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),dt=new Date(v.timestamp),ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});return `<div class="vp-item"><div class="vp-avatar ${d?'dosen':'student'}">${ini}</div><div class="vp-info"><div class="vp-name">${d?'\u{1F468}\u200D\u{1F3EB} ':''}${escH(v.nama)}</div><div class="vp-nim">${d?'Dosen Pengampu':escH(v.nim)}</div></div><div class="vp-time">${ts}</div></div>`;}).join('');
+  tableEl.innerHTML=unique.map((v,i)=>{const d=v.role==='dosen',ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),dt=new Date(v.timestamp),ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}),ac=d?'background:rgba(251,191,36,.12);color:#fbbf24;':'background:rgba(255,255,255,.08);color:#e2e8f0;',rc=d?'<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2);margin-left:8px;">Dosen</span>':'';return `<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;" onmouseenter="this.style.background='rgba(255,255,255,.03)'" onmouseleave="this.style.background='transparent'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:#64748b;font-weight:600;">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${ac}">${ini}</div><div><div style="font-weight:600;font-size:.88rem;color:#e2e8f0;">${escH(v.nama)}${rc}</div></div></div><div style="flex:1;font-size:.8rem;color:#94a3b8;font-family:monospace;">${d?'\u2014':escH(v.nim)}</div><div style="flex:1;text-align:right;font-size:.78rem;color:#64748b;">${ts}</div></div>`;}).join('');
 }
 
-function togglePanel(){panelOpen=!panelOpen;document.getElementById('visitorPanel').classList.toggle('open',panelOpen);if(panelOpen)loadVisitorList();}
+function togglePanel(){panelOpen=!panelOpen;document.getElementById('visitorPanel').classList.toggle('open',panelOpen);}
 document.addEventListener('click',function(e){const p=document.getElementById('visitorPanel'),f=document.getElementById('visitorFab');if(panelOpen&&!p.contains(e.target)&&!f.contains(e.target)){panelOpen=false;p.classList.remove('open');}});
 function escH(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 
 function showResetModal(){document.getElementById('resetOverlay').classList.remove('hidden');document.getElementById('resetPw').value='';document.getElementById('resetError').style.display='none';setTimeout(()=>document.getElementById('resetPw').focus(),100);}
 function hideResetModal(){document.getElementById('resetOverlay').classList.add('hidden');}
-function confirmReset(){if(document.getElementById('resetPw').value!=='TeknikMesin0602'){document.getElementById('resetError').style.display='block';return;}localStorage.removeItem(STORAGE_KEY_VISITORS);localStorage.removeItem(STORAGE_KEY_IDENTITY);hideResetModal();loadVisitorList();document.getElementById('visitorOverlay').classList.remove('hidden');document.getElementById('visitorFab').style.display='none';}
+function confirmReset(){
+  if(document.getElementById('resetPw').value!=='TeknikMesin0602'){document.getElementById('resetError').style.display='block';return;}
+  waitFb(()=>{
+    window._fbRemove(window._fbRef(window._fbDb,'visitors/'+MODULE_ID)).then(()=>{
+      localStorage.removeItem(STORAGE_KEY_IDENTITY);
+      hideResetModal();
+      document.getElementById('visitorOverlay').classList.remove('hidden');
+      document.getElementById('visitorFab').style.display='none';
+    });
+  });
+}
 document.getElementById('resetPw').addEventListener('keydown',function(e){if(e.key==='Enter')confirmReset();});
 document.getElementById('resetOverlay').addEventListener('click',function(e){if(e.target===this)hideResetModal();});
 document.getElementById('vNim').addEventListener('keydown',function(e){if(e.key==='Enter')submitVisitor();});
 document.getElementById('vNama').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('vNim').focus();});
 initVisitor();
 </script>
-
 </body>
 </html>
