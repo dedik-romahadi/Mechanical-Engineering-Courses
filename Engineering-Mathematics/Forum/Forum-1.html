@@ -137,6 +137,17 @@ footer{text-align:center;padding:2.5rem 2rem;border-top:1px solid var(--bd);colo
 .vp-empty{text-align:center;padding:32px 16px;color:#64748b;font-size:.85rem}
 @media(max-width:480px){.visitor-panel{width:calc(100vw - 32px);right:16px;bottom:88px}.visitor-fab{bottom:18px;right:18px}}
 
+
+/* ── COUNTDOWN ── */
+.cd-wrap{animation:fsd 1s ease-out .5s both;z-index:1;position:relative;margin-bottom:2rem;margin-top:1.5rem}
+.cd-label{font-size:.75rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--c4);margin-bottom:.75rem}
+.cd{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap}
+.cd-box{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:14px;padding:.6rem 1rem;min-width:75px;text-align:center;backdrop-filter:blur(8px)}
+.cd-num{font-family:'JetBrains Mono',monospace;font-size:clamp(1.6rem,4vw,2.2rem);font-weight:800;color:var(--c4);line-height:1.1}
+.cd-unit{font-size:.65rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em}
+.cd-deadline{margin-top:.75rem;font-size:.85rem;color:var(--t3)}
+.cd-expired{color:var(--c4);font-weight:700;font-size:1.1rem;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 </style>
 
 </head>
@@ -218,6 +229,18 @@ footer{text-align:center;padding:2.5rem 2rem;border-top:1px solid var(--bd);colo
     <div class="chip">👨‍🏫 Dedik Romahadi</div>
     <div class="chip">📚 Modul 1 & 2</div>
     <div class="chip">💬 Jawab di Fast Learning</div>
+  </div>
+
+  <!-- Countdown -->
+  <div class="cd-wrap">
+    <div class="cd-label">⏰ Waktu Tersisa</div>
+    <div class="cd" id="countdown">
+      <div class="cd-box"><div class="cd-num" id="cd-d">--</div><div class="cd-unit">Hari</div></div>
+      <div class="cd-box"><div class="cd-num" id="cd-h">--</div><div class="cd-unit">Jam</div></div>
+      <div class="cd-box"><div class="cd-num" id="cd-m">--</div><div class="cd-unit">Menit</div></div>
+      <div class="cd-box"><div class="cd-num" id="cd-s">--</div><div class="cd-unit">Detik</div></div>
+    </div>
+    <div class="cd-deadline" id="cdDeadline">Deadline: <strong>Menunggu jadwal...</strong></div>
   </div>
 </header>
 
@@ -545,6 +568,7 @@ function initVisitor(){
   });
 }
 
+let countdownInterval=null;
 function updateScheduleDisplay(){
   const info = document.getElementById('scheduleInfo');
   const range = document.getElementById('scheduleRange');
@@ -555,9 +579,42 @@ function updateScheduleDisplay(){
     const dur = currentSchedule.duration || Math.round((e-s)/(24*60*60*1000));
     const fmt = (d) => d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
     range.textContent = fmt(s) + '  \u2014  ' + fmt(e) + '  ('+dur+' hari)';
+    // Start countdown
+    startCountdown(e);
   } else {
     info.style.display='none';
   }
+}
+function startCountdown(deadline){
+  const dlEl=document.getElementById('cdDeadline');
+  if(dlEl){
+    const fmt=deadline.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+    const tm=deadline.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    dlEl.innerHTML='Deadline: <strong>'+fmt+', Pukul '+tm+' WIB</strong>';
+  }
+  if(countdownInterval) clearInterval(countdownInterval);
+  function tick(){
+    const now=new Date().getTime(), diff=deadline.getTime()-now;
+    if(diff<=0){
+      document.getElementById('cd-d').textContent='00';
+      document.getElementById('cd-h').textContent='00';
+      document.getElementById('cd-m').textContent='00';
+      document.getElementById('cd-s').textContent='00';
+      if(dlEl) dlEl.innerHTML='<span class="cd-expired">\u26a0\ufe0f DEADLINE SUDAH LEWAT!</span>';
+      clearInterval(countdownInterval);
+      return;
+    }
+    const d=Math.floor(diff/(1000*60*60*24));
+    const h=Math.floor((diff%(1000*60*60*24))/(1000*60*60));
+    const m=Math.floor((diff%(1000*60*60))/(1000*60));
+    const s=Math.floor((diff%(1000*60))/1000);
+    document.getElementById('cd-d').textContent=String(d).padStart(2,'0');
+    document.getElementById('cd-h').textContent=String(h).padStart(2,'0');
+    document.getElementById('cd-m').textContent=String(m).padStart(2,'0');
+    document.getElementById('cd-s').textContent=String(s).padStart(2,'0');
+  }
+  tick();
+  countdownInterval=setInterval(tick,1000);
 }
 
 function isLate(timestamp){
