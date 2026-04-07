@@ -154,6 +154,30 @@ footer{text-align:center;padding:2.5rem 2rem;border-top:1px solid var(--bd);colo
     <button class="v-btn-cancel" onclick="showScheduleModal()" style="margin-top:8px;border-color:rgba(99,102,241,.3);color:#818cf8;">🕐 Atur Jadwal Perkuliahan (Admin)</button>
   </div>
 </div>
+<!-- Reset Password Modal -->
+<div class="visitor-overlay hidden" id="resetOverlay" style="z-index:100000;">
+  <div class="visitor-modal" style="max-width:380px;">
+    <div style="font-size:2.4rem;margin-bottom:12px;">🔐</div>
+    <h2 style="font-size:1.3rem;">Konfirmasi Reset</h2>
+    <p class="sub">Masukkan password untuk menghapus semua data pengunjung.</p>
+    <p class="v-error" id="resetError">⚠ Password salah.</p>
+    <input type="password" class="v-input" id="resetPw" placeholder="Password" autocomplete="off">
+    <button class="v-btn-primary" style="background:linear-gradient(135deg,#fb7185,#f43f5e);" onclick="confirmReset()">Hapus Semua Pengunjung</button>
+    <button class="v-btn-cancel" onclick="hideResetModal()">Batal</button>
+  </div>
+</div>
+<!-- Reset Password Modal -->
+<div class="visitor-overlay hidden" id="resetOverlay" style="z-index:100000;">
+  <div class="visitor-modal" style="max-width:380px;">
+    <div style="font-size:2.4rem;margin-bottom:12px;">🔐</div>
+    <h2 style="font-size:1.3rem;">Konfirmasi Reset</h2>
+    <p class="sub">Masukkan password untuk menghapus semua data pengunjung.</p>
+    <p class="v-error" id="resetError">⚠ Password salah.</p>
+    <input type="password" class="v-input" id="resetPw" placeholder="Password" autocomplete="off">
+    <button class="v-btn-primary" style="background:linear-gradient(135deg,#fb7185,#f43f5e);" onclick="confirmReset()">Hapus Semua Pengunjung</button>
+    <button class="v-btn-cancel" onclick="hideResetModal()">Batal</button>
+  </div>
+</div>
 <!-- Schedule Modal -->
 <div class="visitor-overlay hidden" id="scheduleOverlay" style="z-index:100000;">
   <div class="visitor-modal" style="max-width:480px;width:95%;">
@@ -165,7 +189,7 @@ footer{text-align:center;padding:2.5rem 2rem;border-top:1px solid var(--bd);colo
     <div style="display:flex;gap:10px;margin-bottom:14px;">
       <div style="flex:1;text-align:left;">
         <label style="font-size:.75rem;color:#94a3b8;font-weight:600;display:block;margin-bottom:4px;">Durasi (hari)</label>
-        <input type="number" class="v-input" id="scheduleDuration" min="1" placeholder="Contoh: 7" style="margin-bottom:0;">
+        <input type="number" class="v-input" id="scheduleDuration" min="1" value="7" placeholder="7" style="margin-bottom:0;">
       </div>
       <div style="flex:1;text-align:left;">
         <label style="font-size:.75rem;color:#94a3b8;font-weight:600;display:block;margin-bottom:4px;">Batas Akhir (Due Date)</label>
@@ -391,7 +415,7 @@ footer{text-align:center;padding:2.5rem 2rem;border-top:1px solid var(--bd);colo
       <h2 style="font-size:1.6rem;font-weight:800;color:#fff;margin-top:12px;">Daftar Pengunjung</h2>
       <p style="color:#94a3b8;font-size:.85rem;margin-top:6px;">Mahasiswa dan dosen yang telah mengakses halaman ini.</p>
     </div>
-    
+    <div style="display:flex;gap:8px;flex-wrap:wrap;"><button onclick="showResetModal()" style="padding:10px 20px;border-radius:12px;border:1px solid rgba(251,113,133,.3);background:rgba(251,113,133,.08);color:#fb7185;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:6px;" onmouseenter="this.style.background='rgba(251,113,133,.18)'" onmouseleave="this.style.background='rgba(251,113,133,.08)'">🗑 Reset</button></div>
   </div>
 <div id="scheduleInfo" style="display:none;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.2);border-radius:14px;padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
       <span style="font-size:1.2rem;">🕐</span>
@@ -548,9 +572,8 @@ function submitVisitor(){
   const nama=document.getElementById('vNama').value.trim(), nim=document.getElementById('vNim').value.trim(), err=document.getElementById('vError');
   // Schedule checks
   if(!currentSchedule || !currentSchedule.start || !currentSchedule.end){err.textContent='\u26a0 Jadwal belum disetel. Silakan atur jadwal terlebih dahulu.';err.style.display='block';return;}
-  const now=new Date().getTime(), schedStart=new Date(currentSchedule.start).getTime(), schedEnd=new Date(currentSchedule.end).getTime();
+  const now=new Date().getTime(), schedStart=new Date(currentSchedule.start).getTime();
   if(now<schedStart){const sd=new Date(currentSchedule.start);err.textContent='\u26a0 Akses belum dibuka. Jadwal dimulai pada '+sd.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+' '+sd.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+'.';err.style.display='block';return;}
-  if(now>schedEnd){err.textContent='\u26a0 Waktu akses sudah berakhir (melewati batas akhir jadwal).';err.style.display='block';return;}
   const isDosen=nama.toLowerCase()==='dedik romahadi';
   if(!nama){err.textContent='⚠ Nama wajib diisi.';err.style.display='block';return;}
   if(!isValidName(nama)){err.textContent='⚠ Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi';err.style.display='block';return;}
@@ -612,6 +635,11 @@ function togglePanel(){panelOpen=!panelOpen;document.getElementById('visitorPane
 document.addEventListener('click',function(e){const p=document.getElementById('visitorPanel'),f=document.getElementById('visitorFab');if(panelOpen&&!p.contains(e.target)&&!f.contains(e.target)){panelOpen=false;p.classList.remove('open');}});
 function escH(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 
+
+// Reset
+function showResetModal(){document.getElementById('resetOverlay').classList.remove('hidden');document.getElementById('resetPw').value='';document.getElementById('resetError').style.display='none';setTimeout(()=>document.getElementById('resetPw').focus(),100);}
+function hideResetModal(){document.getElementById('resetOverlay').classList.add('hidden');}
+function confirmReset(){if(document.getElementById('resetPw').value!=='TeknikMesin0602'){document.getElementById('resetError').style.display='block';return;}remove(ref(db,DB_PATH));localStorage.removeItem(LOCAL_IDENTITY);hideResetModal();document.getElementById('visitorOverlay').classList.remove('hidden');document.getElementById('visitorFab').style.display='none';}
 // Schedule
 function showScheduleModal(){
   document.getElementById('scheduleOverlay').classList.remove('hidden');
@@ -621,8 +649,7 @@ function showScheduleModal(){
     document.getElementById('scheduleDuration').value=currentSchedule.duration||'';
     document.getElementById('scheduleDue').value=currentSchedule.due||'';
   } else {
-    document.getElementById('scheduleDuration').value='';
-    document.getElementById('scheduleDue').value='';
+    document.getElementById('scheduleDuration').value='7';var dd=new Date();dd.setDate(dd.getDate()+7);dd.setHours(23,59,0,0);document.getElementById('scheduleDue').value=dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0')+'T23:59';
   }
   setTimeout(()=>document.getElementById('schedulePw').focus(),100);
 }
@@ -645,12 +672,16 @@ function saveSchedule(){
   document.getElementById('visitorFab').style.display='none';
 }
 
+document.getElementById('resetPw').addEventListener('keydown',function(e){if(e.key==='Enter')confirmReset();});
+document.getElementById('resetOverlay').addEventListener('click',function(e){if(e.target===this)hideResetModal();});
 document.getElementById('scheduleOverlay').addEventListener('click',function(e){if(e.target===this)hideScheduleModal();});
 document.getElementById('schedulePw').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('scheduleDuration').focus();});
 document.getElementById('vNim').addEventListener('keydown',function(e){if(e.key==='Enter')submitVisitor();});
 document.getElementById('vNama').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('vNim').focus();});
 
+
 window.submitVisitor=submitVisitor;window.togglePanel=togglePanel;
+window.showResetModal=showResetModal;window.hideResetModal=hideResetModal;window.confirmReset=confirmReset;
 window.showScheduleModal=showScheduleModal;window.hideScheduleModal=hideScheduleModal;window.saveSchedule=saveSchedule;
 
 initVisitor();
