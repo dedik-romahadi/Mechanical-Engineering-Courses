@@ -1039,44 +1039,43 @@ footer {
   <div class="visitor-modal">
     <div style="font-size:2.8rem;margin-bottom:12px;">🎓</div>
     <h2>Selamat Datang!</h2>
-    <p class="sub">Silakan masukkan identitas Anda untuk mengakses modul ini.</p>
-    <p class="v-error" id="vError">⚠ Nama dan NIM wajib diisi.</p>
+    <p class="sub">Silakan masukkan identitas Anda untuk mengakses halaman ini.</p>
+    <p class="v-error" id="vError"></p>
     <input type="text" class="v-input" id="vNama" placeholder="Nama Lengkap" autocomplete="off">
     <input type="text" class="v-input" id="vNim" placeholder="NIM (Nomor Induk Mahasiswa)" autocomplete="off">
     <button class="v-btn-primary" id="vSubmit" onclick="submitVisitor()">Masuk ke Modul 2 →</button>
-    <button class="v-btn-primary" style="background:linear-gradient(135deg,#6366f1,#818cf8);margin-top:8px;font-size:.8rem;" onclick="showScheduleModal()">🕐 Atur Jadwal Perkuliahan (Admin)</button>
+    <button class="v-btn-cancel" onclick="showScheduleModal()" style="margin-top:8px;border-color:rgba(99,102,241,.3);color:#818cf8;">🕐 Atur Jadwal Perkuliahan (Admin)</button>
   </div>
 </div>
 
 <!-- Reset Password Modal -->
-<div class="visitor-overlay hidden" id="resetOverlay" style="z-index:10000;">
+<div class="visitor-overlay hidden" id="resetOverlay" style="z-index:100000;">
   <div class="visitor-modal" style="max-width:380px;">
     <div style="font-size:2.4rem;margin-bottom:12px;">🔐</div>
     <h2 style="font-size:1.3rem;">Konfirmasi Reset</h2>
     <p class="sub">Masukkan password untuk menghapus semua data pengunjung.</p>
     <p class="v-error" id="resetError">⚠ Password salah.</p>
     <input type="password" class="v-input" id="resetPw" placeholder="Password" autocomplete="off">
-    <button class="v-btn-primary" style="background:linear-gradient(135deg,var(--rose),#f43f5e);" onclick="confirmReset()">Hapus Semua Pengunjung</button>
-    <button class="v-btn-dosen" style="margin-top:12px;border-color:var(--s700);color:var(--s400);background:rgba(255,255,255,.04);" onclick="hideResetModal()">Batal</button>
+    <button class="v-btn-primary" style="background:linear-gradient(135deg,var(--rose,#fb7185),#f43f5e);" onclick="confirmReset()">Hapus Semua Pengunjung</button>
+    <button class="v-btn-cancel" onclick="hideResetModal()">Batal</button>
   </div>
 </div>
 
-
 <!-- Schedule Modal -->
 <div class="visitor-overlay hidden" id="scheduleOverlay" style="z-index:100000;">
-  <div class="visitor-modal" style="max-width:520px;width:95%;">
+  <div class="visitor-modal" style="max-width:480px;width:95%;">
     <div style="font-size:2.4rem;margin-bottom:12px;">🕐</div>
     <h2 style="font-size:1.3rem;">Atur Jadwal Perkuliahan</h2>
-    <p class="sub">Masukkan password lalu tentukan durasi dan batas akhir perkuliahan.</p>
+    <p class="sub">Masukkan password, durasi (hari), dan batas waktu akhir.</p>
     <p class="v-error" id="scheduleError"></p>
     <input type="password" class="v-input" id="schedulePw" placeholder="Password" autocomplete="off">
     <div style="display:flex;gap:10px;margin-bottom:14px;">
       <div style="flex:1;text-align:left;">
-        <label style="font-size:.75rem;color:var(--s400,#94a3b8);font-weight:600;display:block;margin-bottom:4px;">Durasi (hari)</label>
-        <input type="number" class="v-input" id="scheduleDuration" value="7" min="1" style="margin-bottom:0;">
+        <label style="font-size:.75rem;color:#94a3b8;font-weight:600;display:block;margin-bottom:4px;">Durasi (hari)</label>
+        <input type="number" class="v-input" id="scheduleDuration" min="1" value="7" placeholder="7" style="margin-bottom:0;">
       </div>
       <div style="flex:1;text-align:left;">
-        <label style="font-size:.75rem;color:var(--s400,#94a3b8);font-weight:600;display:block;margin-bottom:4px;">Batas Akhir (Due Date)</label>
+        <label style="font-size:.75rem;color:#94a3b8;font-weight:600;display:block;margin-bottom:4px;">Batas Akhir (Due Date)</label>
         <input type="datetime-local" class="v-input" id="scheduleDue" style="margin-bottom:0;">
       </div>
     </div>
@@ -1084,27 +1083,14 @@ footer {
     <button class="v-btn-cancel" onclick="hideScheduleModal()">Batal</button>
   </div>
 </div>
-    <button class="v-btn-primary" onclick="saveSchedule()">💾 Simpan Jadwal</button>
-    <button class="v-btn-primary" style="background:linear-gradient(135deg,#64748b,#475569);margin-top:8px;" onclick="clearSchedule()">🗑 Hapus Jadwal</button>
-    <button class="v-btn-cancel" onclick="hideScheduleModal()">Batal</button>
-  </div>
-</div>
 
 <!-- Floating Visitor Button -->
-<button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Daftar Pengunjung">
-  👥
-  <span class="fab-count" id="fabCount">0</span>
-</button>
+<button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Daftar Pengunjung">👥<span class="fab-count" id="fabCount">0</span></button>
 
 <!-- Visitor Panel -->
 <div class="visitor-panel" id="visitorPanel">
-  <div class="vp-header">
-    <h3>👥 Pengunjung</h3>
-    <span class="vp-badge" id="vpBadge">0 orang</span>
-  </div>
-  <div class="vp-list" id="vpList">
-    <div class="vp-empty">Memuat data pengunjung...</div>
-  </div>
+  <div class="vp-header"><h3>👥 Pengunjung</h3><span class="vp-badge" id="vpBadge">0 orang</span></div>
+  <div class="vp-list" id="vpList"><div class="vp-empty">Memuat data pengunjung...</div></div>
 </div>
 
 <!-- ==================== HERO ==================== -->
@@ -2278,9 +2264,18 @@ drawBearing(0.25);
 
 <!-- ==================== VISITOR SYSTEM JS (Firebase) ==================== -->
 <script type="module">
-// === VISITOR SYSTEM (Firebase + Schedule) ===
+// ═══ FIREBASE VISITOR SYSTEM (with Schedule) ═══
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getDatabase, ref, push, set, get, remove, onValue } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+import { getDatabase, ref, get, set, remove, onValue } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+
+const MODULE_ID = 'modul-2';
+const DB_PATH = `visitors/OptoAuto/${MODULE_ID}`;
+const PERTEMUAN = 'pertemuan-2';
+const RELATED_MODULES = ['forum-2','tugas-2'];
+const SCHEDULE_PATH = `settings/OptoAuto/${PERTEMUAN}/schedule`;
+const LOCAL_IDENTITY = `optoauto_identity_${MODULE_ID}`;
+let panelOpen = false;
+let currentSchedule = null;
 
 const firebaseConfig = {
   apiKey: "AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",
@@ -2295,50 +2290,18 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-const MODULE_ID = 'modul-2';
-const DB_PATH = `visitors/OptoAuto/${MODULE_ID}`;
-const PERTEMUAN = 'pertemuan-2';
-const SCHEDULE_PATH = `settings/OptoAuto/${PERTEMUAN}/schedule`;
-const LOCAL_KEY = `optoauto_identity_${MODULE_ID}`;
-const RELATED_MODULES = ['forum-2', 'tugas-2'];
-let panelOpen = false;
-let currentSchedule = null;
 
-function getIdentity() { try { return JSON.parse(localStorage.getItem(LOCAL_KEY)); } catch(e) { return null; } }
-function saveIdentity(v) { localStorage.setItem(LOCAL_KEY, JSON.stringify(v)); }
-function isValidName(n) { if(!n) return false; return n.split(/\s+/).every(w => w.length > 0 && /^[A-Z][a-z]*$/.test(w)); }
-function isValidNim(n) { return /^\d+$/.test(n); }
-function escH(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-function sanitizeKey(s) { return s.replace(/[.#$/\[\]]/g, '_'); }
+function getIdentity(){try{return JSON.parse(localStorage.getItem(LOCAL_IDENTITY));}catch(e){return null;}}
+function saveIdentity(v){localStorage.setItem(LOCAL_IDENTITY, JSON.stringify(v));}
+function isValidName(n){if(!n)return false;return n.split(/\s+/).every(w=>w.length>0&&/^[A-Z][a-z]*$/.test(w));}
+function isValidNim(n){return /^\d+$/.test(n);}
+function escH(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function sanitizeKey(s){return s.replace(/[.#$/\[\]]/g,'_');}
 
-function isLate(timestamp) {
-  if (!currentSchedule || !currentSchedule.start || !currentSchedule.end) return false;
-  const t = new Date(timestamp).getTime();
-  const s = new Date(currentSchedule.start).getTime();
-  const e = new Date(currentSchedule.end).getTime();
-  return t < s || t > e;
-}
-
-function updateScheduleDisplay() {
-  const info = document.getElementById('scheduleInfo');
-  const range = document.getElementById('scheduleRange');
-  if (!info || !range) return;
-  if (currentSchedule && currentSchedule.start && currentSchedule.end) {
-    info.style.display = 'flex';
-    const s = new Date(currentSchedule.start), e = new Date(currentSchedule.end);
-    const fmt = (d) => d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-    range.textContent = fmt(s) + '  \u2014  ' + fmt(e);
-  } else {
-    info.style.display = 'none';
-  }
-}
-
-function initVisitor() {
+function initVisitor(){
   const me = getIdentity();
-  if (me && me.nama) {
-    document.getElementById('visitorOverlay').classList.add('hidden');
-    document.getElementById('visitorFab').style.display = 'flex';
-  }
+  if(me && me.nama){document.getElementById('visitorOverlay').classList.add('hidden');document.getElementById('visitorFab').style.display='flex';}
+
   // Listen schedule
   onValue(ref(db, SCHEDULE_PATH), (snap) => {
     currentSchedule = snap.val();
@@ -2348,139 +2311,165 @@ function initVisitor() {
       renderVisitors(data ? Object.values(data) : []);
     }, {onlyOnce: true});
   });
+
   // Listen visitors
-  onValue(ref(db, DB_PATH), (snap) => {
-    const data = snap.val();
+  onValue(ref(db, DB_PATH), (snapshot) => {
+    const data = snapshot.val();
     renderVisitors(data ? Object.values(data) : []);
   });
 }
 
-window.submitVisitor = async function() {
-  const nama = document.getElementById('vNama').value.trim();
-  const nim  = document.getElementById('vNim').value.trim();
-  const err  = document.getElementById('vError');
-  const isDosen = nama.toLowerCase() === 'dedik romahadi';
-  // Schedule check
-  if (!currentSchedule || !currentSchedule.start || !currentSchedule.end) { err.textContent = '\u26a0 Jadwal belum disetel. Silakan atur jadwal terlebih dahulu.'; err.style.display = 'block'; return; }
-  const now = new Date().getTime(), startT = new Date(currentSchedule.start).getTime();
-  if (now < startT) { const sd = new Date(currentSchedule.start); err.textContent = '\u26a0 Akses belum dibuka. Jadwal dimulai pada ' + sd.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}) + ' pukul ' + sd.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) + ' WIB.'; err.style.display = 'block'; return; }
-  if (!nama) { err.textContent = '\u26a0 Nama wajib diisi.'; err.style.display = 'block'; return; }
-  if (!isValidName(nama)) { err.textContent = '\u26a0 Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi'; err.style.display = 'block'; return; }
-  if (!isDosen && !nim) { err.textContent = '\u26a0 NIM wajib diisi.'; err.style.display = 'block'; return; }
-  if (!isDosen && !isValidNim(nim)) { err.textContent = '\u26a0 NIM harus berupa angka tanpa spasi. Contoh: 41522010001'; err.style.display = 'block'; return; }
-  err.style.display = 'none';
-  const visitor = { nama, nim: isDosen ? 'DOSEN' : nim, role: isDosen ? 'dosen' : 'student', timestamp: new Date().toISOString() };
-  saveIdentity(visitor);
-  set(ref(db, `${DB_PATH}/${sanitizeKey(isDosen ? `dosen_${nama}` : `mhs_${nim}`)}`), visitor);
+function updateScheduleDisplay(){
+  const info = document.getElementById('scheduleInfo');
+  const range = document.getElementById('scheduleRange');
+  if(!info || !range) return;
+  if(currentSchedule && currentSchedule.start && currentSchedule.end){
+    info.style.display='flex';
+    const s = new Date(currentSchedule.start), e = new Date(currentSchedule.end);
+    const fmt = (d) => d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    const dur = currentSchedule.duration || Math.round((e-s)/(24*60*60*1000));
+    range.textContent = fmt(s) + '  \u2014  ' + fmt(e) + '  ('+dur+' hari)';
+  } else {
+    info.style.display='none';
+  }
+}
+
+function isLate(timestamp){
+  if(!currentSchedule || !currentSchedule.start || !currentSchedule.end) return false;
+  const t = new Date(timestamp).getTime();
+  const s = new Date(currentSchedule.start).getTime();
+  const e = new Date(currentSchedule.end).getTime();
+  return t < s || t > e;
+}
+
+function submitVisitor(){
+  const nama=document.getElementById('vNama').value.trim(), nim=document.getElementById('vNim').value.trim(), err=document.getElementById('vError');
+  // Schedule checks
+  if(!currentSchedule || !currentSchedule.start || !currentSchedule.end){err.textContent='\u26a0 Jadwal belum disetel. Silakan atur jadwal terlebih dahulu.';err.style.display='block';return;}
+  const now=new Date().getTime(), schedStart=new Date(currentSchedule.start).getTime();
+  if(now<schedStart){const sd=new Date(currentSchedule.start);err.textContent='\u26a0 Akses belum dibuka. Jadwal dimulai pada '+sd.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+' '+sd.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+'.';err.style.display='block';return;}
+  const isDosen=nama.toLowerCase()==='dedik romahadi';
+  if(!nama){err.textContent='\u26a0 Nama wajib diisi.';err.style.display='block';return;}
+  if(!isValidName(nama)){err.textContent='\u26a0 Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi';err.style.display='block';return;}
+  if(!isDosen&&!nim){err.textContent='\u26a0 NIM wajib diisi.';err.style.display='block';return;}
+  if(!isDosen&&!isValidNim(nim)){err.textContent='\u26a0 NIM harus berupa angka tanpa spasi. Contoh: 41522010001';err.style.display='block';return;}
+  err.style.display='none';
+  const v={nama,nim:isDosen?'DOSEN':nim,role:isDosen?'dosen':'student',timestamp:new Date().toISOString()};
+  saveIdentity(v);
+  set(ref(db, `${DB_PATH}/${sanitizeKey(isDosen?`dosen_${nama}`:`mhs_${nim}`)}`), v);
   document.getElementById('visitorOverlay').classList.add('hidden');
-  document.getElementById('visitorFab').style.display = 'flex';
-};
+  document.getElementById('visitorFab').style.display='flex';
+}
 
-function renderVisitors(visitors) {
-  visitors.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-  const seen = new Set(), unique = [];
-  for (const v of visitors) { const id = `${v.nama}|${v.nim}`; if (!seen.has(id)) { seen.add(id); unique.push(v); } }
-  const mc = unique.filter(v => v.role !== 'dosen').length;
-  const dc = unique.filter(v => v.role === 'dosen').length;
-  const lateCount = unique.filter(v => v.role !== 'dosen' && isLate(v.timestamp)).length;
+function renderVisitors(visitors){
+  visitors.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+  const seen=new Set(),unique=[];
+  for(const v of visitors){const id=v.nama+'|'+v.nim;if(!seen.has(id)){seen.add(id);unique.push(v);}}
+  const mc=unique.filter(v=>v.role!=='dosen').length, dc=unique.filter(v=>v.role==='dosen').length;
+  const lateCount=unique.filter(v=>v.role!=='dosen'&&isLate(v.timestamp)).length;
 
-  document.getElementById('fabCount').textContent = unique.length;
-  document.getElementById('vpBadge').textContent = unique.length + ' orang';
-  document.getElementById('statTotal').textContent = unique.length;
-  document.getElementById('statMhs').textContent = mc;
-  document.getElementById('statDosen').textContent = dc;
-  const statLateEl = document.getElementById('statLate');
-  if (statLateEl) statLateEl.textContent = lateCount;
+  document.getElementById('fabCount').textContent=unique.length;
+  document.getElementById('vpBadge').textContent=unique.length+' orang';
+  document.getElementById('statTotal').textContent=unique.length;
+  document.getElementById('statMhs').textContent=mc;
+  document.getElementById('statDosen').textContent=dc;
+  const statLateEl=document.getElementById('statLate');
+  if(statLateEl) statLateEl.textContent=lateCount;
 
-  const listEl = document.getElementById('vpList'), tableEl = document.getElementById('visitorTableBody');
+  const listEl=document.getElementById('vpList'), tableEl=document.getElementById('visitorTableBody');
 
-  if (!unique.length) {
-    listEl.innerHTML = '<div class="vp-empty">Belum ada pengunjung.</div>';
-    tableEl.innerHTML = '<div style="text-align:center;padding:40px 24px;color:var(--s500,#64748b);font-size:.88rem;">Belum ada pengunjung.</div>';
+  if(!unique.length){
+    listEl.innerHTML='<div class="vp-empty">Belum ada pengunjung.</div>';
+    tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:var(--s500,#64748b);font-size:.88rem;">Belum ada pengunjung.</div>';
     return;
   }
 
-  listEl.innerHTML = unique.map(v => {
-    const d = v.role === 'dosen', ini = v.nama.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
-    const dt = new Date(v.timestamp), ts = dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'}) + ' ' + dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-    const late = !d && isLate(v.timestamp);
-    const lBadge = late ? '<span style="color:#fb7185;font-size:.65rem;font-weight:600;margin-left:4px;">\u23f0 Terlambat</span>' : '';
-    return `<div class="vp-item" style="${late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':''}"><div class="vp-avatar ${d?'dosen':'student'}" style="${late?'background:rgba(251,113,133,.12);color:#fb7185;':''}">${ini}</div><div class="vp-info"><div class="vp-name">${d?'\ud83d\udc68\u200d\ud83c\udfeb ':''}${escH(v.nama)}${lBadge}</div><div class="vp-nim">${d?'Dosen Pengampu':escH(v.nim)}</div></div><div class="vp-time">${ts}</div></div>`;
+  listEl.innerHTML=unique.map(v=>{
+    const d=v.role==='dosen', ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    const late=!d&&isLate(v.timestamp);
+    const lBadge=late?'<span style="color:#fb7185;font-size:.65rem;font-weight:600;margin-left:4px;">\u23f0 Terlambat</span>':'';
+    return '<div class="vp-item" style="'+(late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':'')+'"><div class="vp-avatar '+(d?'dosen':'student')+'" style="'+(late?'background:rgba(251,113,133,.12);color:#fb7185;':'')+'">'+ ini+'</div><div class="vp-info"><div class="vp-name">'+(d?'\ud83d\udc68\u200d\ud83c\udfeb ':'')+escH(v.nama)+lBadge+'</div><div class="vp-nim">'+(d?'Dosen Pengampu':escH(v.nim))+'</div></div><div class="vp-time">'+ts+'</div></div>';
   }).join('');
 
-  tableEl.innerHTML = unique.map((v, i) => {
-    const d = v.role === 'dosen', ini = v.nama.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
-    const dt = new Date(v.timestamp), ts = dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) + ', ' + dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-    const late = !d && isLate(v.timestamp);
-    const rowBg = late ? 'background:rgba(251,113,133,.04);' : '';
-    const nameColor = late ? 'color:#fb7185;' : 'color:var(--s200,#e2e8f0);';
-    const ac = d ? 'background:rgba(251,191,36,.12);color:var(--amber,#fbbf24);' : late ? 'background:rgba(251,113,133,.12);color:#fb7185;' : 'background:rgba(45,212,191,.12);color:var(--teal,#2dd4bf);';
-    const rc = d ? '<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(251,191,36,.1);color:var(--amber,#fbbf24);border:1px solid rgba(251,191,36,.2);margin-left:8px;">Dosen</span>' : '';
-    const statusCol = d ? '<span style="color:var(--s500,#64748b);font-size:.75rem;">\u2014</span>' : late ? '<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(251,113,133,.12);color:#fb7185;border:1px solid rgba(251,113,133,.25);">\u23f0 Terlambat</span>' : '<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.25);">\u2705 Tepat Waktu</span>';
-    return `<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;${rowBg}" onmouseenter="this.style.background='rgba(255,255,255,.03)'" onmouseleave="this.style.background='${late?"rgba(251,113,133,.04)":"transparent"}'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:${late?'#fb7185':'var(--s500,#64748b)'};font-weight:600;">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${ac}">${ini}</div><div><div style="font-weight:600;font-size:.88rem;${nameColor}">${escH(v.nama)}${rc}</div></div></div><div style="flex:1;font-size:.8rem;color:${late?'#fb7185':'var(--s400,#94a3b8)'};font-family:monospace;">${d?'\u2014':escH(v.nim)}</div><div style="flex:1;text-align:center;">${statusCol}</div><div style="flex:1;text-align:right;font-size:.78rem;color:${late?'#fb7185':'var(--s500,#64748b)'};">${ts}</div></div>`;
+  tableEl.innerHTML=unique.map((v,i)=>{
+    const d=v.role==='dosen', ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    const late=!d&&isLate(v.timestamp);
+    const rowBg=late?'background:rgba(251,113,133,.04);':'';
+    const nameColor=late?'color:#fb7185;':'color:var(--s200,#e2e8f0);';
+    const ac=d?'background:rgba(251,191,36,.12);color:var(--amber,#fbbf24);':late?'background:rgba(251,113,133,.12);color:#fb7185;':'background:rgba(45,212,191,.12);color:var(--teal,#2dd4bf);';
+    const rc=d?'<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(251,191,36,.1);color:var(--amber,#fbbf24);border:1px solid rgba(251,191,36,.2);margin-left:8px;">Dosen</span>':'';
+    const statusCol=d?'<span style="color:var(--s500,#64748b);font-size:.75rem;">\u2014</span>':late?'<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(251,113,133,.12);color:#fb7185;border:1px solid rgba(251,113,133,.25);">\u23f0 Terlambat</span>':'<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.25);">\u2705 Tepat Waktu</span>';
+    return '<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);'+rowBg+'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:'+(late?'#fb7185':'var(--s500,#64748b)')+';font-weight:600;">'+(i+1)+'</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;'+ac+'">'+ini+'</div><div><div style="font-weight:600;font-size:.88rem;'+nameColor+'">'+escH(v.nama)+rc+'</div></div></div><div style="flex:1;font-size:.8rem;color:'+(late?'#fb7185':'var(--s400,#94a3b8)')+';font-family:monospace;">'+(d?'\u2014':escH(v.nim))+'</div><div style="flex:1;text-align:center;">'+statusCol+'</div><div style="flex:1;text-align:right;font-size:.78rem;color:'+(late?'#fb7185':'var(--s500,#64748b)')+';">'+ts+'</div></div>';
   }).join('');
 }
 
-window.togglePanel = function() { panelOpen = !panelOpen; document.getElementById('visitorPanel').classList.toggle('open', panelOpen); };
-document.addEventListener('click', function(e) {
-  const p = document.getElementById('visitorPanel'), f = document.getElementById('visitorFab');
-  if (panelOpen && !p.contains(e.target) && !f.contains(e.target)) { panelOpen = false; p.classList.remove('open'); }
-});
-function escHG(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function togglePanel(){panelOpen=!panelOpen;document.getElementById('visitorPanel').classList.toggle('open',panelOpen);}
+document.addEventListener('click',function(e){const p=document.getElementById('visitorPanel'),f=document.getElementById('visitorFab');if(panelOpen&&!p.contains(e.target)&&!f.contains(e.target)){panelOpen=false;p.classList.remove('open');}});
 
 // Reset
-window.showResetModal = function() { document.getElementById('resetOverlay').classList.remove('hidden'); document.getElementById('resetPw').value = ''; document.getElementById('resetError').style.display = 'none'; setTimeout(() => document.getElementById('resetPw').focus(), 100); };
-window.hideResetModal = function() { document.getElementById('resetOverlay').classList.add('hidden'); };
-window.confirmReset = async function() {
-  if (document.getElementById('resetPw').value !== 'TeknikMesin0602') { document.getElementById('resetError').style.display = 'block'; return; }
-  try { await remove(ref(db, DB_PATH)); } catch(e) { console.error(e); }
-  try { await remove(ref(db, SCHEDULE_PATH)); } catch(e) { console.error(e); }
-  for (const rm of RELATED_MODULES) { try { await remove(ref(db, `visitors/OptoAuto/${rm}`)); } catch(e) {} }
-  localStorage.removeItem(LOCAL_KEY);
+function showResetModal(){document.getElementById('resetOverlay').classList.remove('hidden');document.getElementById('resetPw').value='';document.getElementById('resetError').style.display='none';setTimeout(()=>document.getElementById('resetPw').focus(),100);}
+function hideResetModal(){document.getElementById('resetOverlay').classList.add('hidden');}
+function confirmReset(){
+  if(document.getElementById('resetPw').value!=='TeknikMesin0602'){document.getElementById('resetError').style.display='block';return;}
+  // Reset data pengunjung modul ini
+  remove(ref(db,DB_PATH));
+  localStorage.removeItem(LOCAL_IDENTITY);
+  // Reset jadwal
+  remove(ref(db,SCHEDULE_PATH));
+  // Reset data pengunjung forum & tugas terkait
+  RELATED_MODULES.forEach(function(mid){
+    remove(ref(db,'visitors/OptoAuto/'+mid));
+    localStorage.removeItem('optoauto_identity_'+mid);
+  });
   hideResetModal();
   document.getElementById('visitorOverlay').classList.remove('hidden');
-  document.getElementById('visitorFab').style.display = 'none';
-};
+  document.getElementById('visitorFab').style.display='none';
+}
 
 // Schedule
-window.showScheduleModal = function() {
+function showScheduleModal(){
   document.getElementById('scheduleOverlay').classList.remove('hidden');
-  document.getElementById('schedulePw').value = '';
-  document.getElementById('scheduleError').textContent = ''; document.getElementById('scheduleError').style.display = 'none';
-  if (currentSchedule && currentSchedule.due) {
-    document.getElementById('scheduleDuration').value = currentSchedule.duration || 7;
-    document.getElementById('scheduleDue').value = currentSchedule.due || '';
+  document.getElementById('schedulePw').value='';
+  document.getElementById('scheduleError').textContent='';document.getElementById('scheduleError').style.display='none';
+  if(currentSchedule){
+    document.getElementById('scheduleDuration').value=currentSchedule.duration||'';
+    document.getElementById('scheduleDue').value=currentSchedule.due||'';
   } else {
-    document.getElementById('scheduleDuration').value = 7;
-    const def = new Date(Date.now() + 7*24*60*60*1000); def.setHours(23,59,0,0);
-    document.getElementById('scheduleDue').value = def.toISOString().slice(0,16);
+    document.getElementById('scheduleDuration').value='7';var dd=new Date();dd.setDate(dd.getDate()+7);dd.setHours(23,59,0,0);document.getElementById('scheduleDue').value=dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0')+'T23:59';
   }
-  setTimeout(() => document.getElementById('schedulePw').focus(), 100);
-};
-window.hideScheduleModal = function() { document.getElementById('scheduleOverlay').classList.add('hidden'); };
-window.saveSchedule = async function() {
-  const pw = document.getElementById('schedulePw').value;
-  if (pw !== 'TeknikMesin0602') { document.getElementById('scheduleError').textContent = '\u26a0 Password salah.'; document.getElementById('scheduleError').style.display = 'block'; return; }
-  const duration = parseInt(document.getElementById('scheduleDuration').value) || 7;
-  const dueVal = document.getElementById('scheduleDue').value;
-  if (!dueVal) { document.getElementById('scheduleError').textContent = '\u26a0 Batas akhir (due date) harus diisi.'; document.getElementById('scheduleError').style.display = 'block'; return; }
-  const end = new Date(dueVal);
-  const start = new Date(end.getTime() - duration * 24 * 60 * 60 * 1000);
-  const scheduleData = { start: start.toISOString(), end: end.toISOString(), duration: duration, due: dueVal };
-  await set(ref(db, SCHEDULE_PATH), scheduleData);
-  // Auto-reset: clear visitor data for this module and related modules
-  try { await remove(ref(db, DB_PATH)); } catch(e) {}
-  for (const rm of RELATED_MODULES) { try { await remove(ref(db, `visitors/OptoAuto/${rm}`)); } catch(e) {} }
-  localStorage.removeItem(LOCAL_KEY);
+  setTimeout(()=>document.getElementById('schedulePw').focus(),100);
+}
+function hideScheduleModal(){document.getElementById('scheduleOverlay').classList.add('hidden');}
+function saveSchedule(){
+  const pw=document.getElementById('schedulePw').value;
+  if(pw!=='TeknikMesin0602'){document.getElementById('scheduleError').textContent='\u26a0 Password salah.';document.getElementById('scheduleError').style.display='block';return;}
+  const dur=parseInt(document.getElementById('scheduleDuration').value), due=document.getElementById('scheduleDue').value;
+  if(!dur||dur<1){document.getElementById('scheduleError').textContent='\u26a0 Durasi harus diisi (minimal 1 hari).';document.getElementById('scheduleError').style.display='block';return;}
+  if(!due){document.getElementById('scheduleError').textContent='\u26a0 Batas akhir (due date) harus diisi.';document.getElementById('scheduleError').style.display='block';return;}
+  const dueDate=new Date(due);
+  const startDate=new Date(dueDate.getTime()-dur*24*60*60*1000);
+  const s=startDate.toISOString(), e=dueDate.toISOString();
+  // Auto-reset visitor data
+  remove(ref(db,DB_PATH));
+  localStorage.removeItem(LOCAL_IDENTITY);
+  set(ref(db, SCHEDULE_PATH), {start:s, end:e, duration:dur, due:due});
   hideScheduleModal();
-};
+  document.getElementById('visitorOverlay').classList.remove('hidden');
+  document.getElementById('visitorFab').style.display='none';
+}
 
-document.getElementById('resetPw').addEventListener('keydown', function(e) { if (e.key === 'Enter') confirmReset(); });
-document.getElementById('resetOverlay').addEventListener('click', function(e) { if (e.target === this) hideResetModal(); });
-document.getElementById('scheduleOverlay').addEventListener('click', function(e) { if (e.target === this) hideScheduleModal(); });
-document.getElementById('schedulePw').addEventListener('keydown', function(e) { if (e.key === 'Enter') document.getElementById('scheduleDuration').focus(); });
-document.getElementById('vNim').addEventListener('keydown', function(e) { if (e.key === 'Enter') submitVisitor(); });
-document.getElementById('vNama').addEventListener('keydown', function(e) { if (e.key === 'Enter') document.getElementById('vNim').focus(); });
+document.getElementById('resetPw').addEventListener('keydown',function(e){if(e.key==='Enter')confirmReset();});
+document.getElementById('resetOverlay').addEventListener('click',function(e){if(e.target===this)hideResetModal();});
+document.getElementById('scheduleOverlay').addEventListener('click',function(e){if(e.target===this)hideScheduleModal();});
+document.getElementById('schedulePw').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('scheduleDuration').focus();});
+document.getElementById('vNim').addEventListener('keydown',function(e){if(e.key==='Enter')submitVisitor();});
+document.getElementById('vNama').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('vNim').focus();});
+
+window.submitVisitor=submitVisitor;window.togglePanel=togglePanel;
+window.showResetModal=showResetModal;window.hideResetModal=hideResetModal;window.confirmReset=confirmReset;
+window.showScheduleModal=showScheduleModal;window.hideScheduleModal=hideScheduleModal;window.saveSchedule=saveSchedule;
 
 initVisitor();
 </script>
