@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Forum Diskusi — Matematika Teknik Pertemuan 2</title>
+<title>Forum Diskusi — Matematika 4 Pertemuan 2</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
@@ -138,6 +138,17 @@ footer{text-align:center;padding:2.5rem 2rem;border-top:1px solid var(--bd);colo
 @media(max-width:480px){.visitor-panel{width:calc(100vw - 32px);right:16px;bottom:88px}.visitor-fab{bottom:18px;right:18px}}
 
 </style>
+
+<!-- Firebase SDK -->
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import{getDatabase,ref,push,set,get,remove,onValue}from"https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+const firebaseConfig={apiKey:"AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",authDomain:"getaran-mekanik.firebaseapp.com",databaseURL:"https://getaran-mekanik-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"getaran-mekanik",storageBucket:"getaran-mekanik.firebasestorage.app",messagingSenderId:"430886299733",appId:"1:430886299733:web:0edecd5d4adf73e7440cdc"};
+const app=initializeApp(firebaseConfig);
+const db=getDatabase(app);
+window._fbDb=db;window._fbRef=ref;window._fbPush=push;window._fbSet=set;window._fbGet=get;window._fbRemove=remove;window._fbOnValue=onValue;
+</script>
+
 </head>
 <body>
 <!-- ═══ VISITOR LOGIN MODAL ═══ -->
@@ -395,7 +406,7 @@ footer{text-align:center;padding:2.5rem 2rem;border-top:1px solid var(--bd);colo
 
 <!-- ═══ FOOTER ═══ -->
 <footer>
-  <p>💬 Forum Diskusi — Matematika Teknik Pertemuan 2</p>
+  <p>💬 Forum Diskusi — Matematika 4 Pertemuan 2</p>
   <p style="margin-top:.35rem;">Dosen Pengampu: Dedik Romahadi</p>
 </footer>
 
@@ -443,66 +454,129 @@ function toggleReveal(btn){
 <script>
 
 </script>
-<script>
-// ═══ VISITOR SYSTEM ═══
-const MODULE_ID='forum-1';
-const STORAGE_KEY_IDENTITY=`optoauto_identity_${MODULE_ID}`;
-const STORAGE_KEY_VISITORS=`optoauto_visitors_${MODULE_ID}`;
-let panelOpen=false;
 
-function getVisitors(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY_VISITORS))||[];}catch(e){return[];}}
-function saveVisitors(l){localStorage.setItem(STORAGE_KEY_VISITORS,JSON.stringify(l));}
-function getIdentity(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY_IDENTITY));}catch(e){return null;}}
-function saveIdentity(v){localStorage.setItem(STORAGE_KEY_IDENTITY,JSON.stringify(v));}
+
+<script type="module">
+// ═══ FIREBASE + VISITOR SYSTEM ═══
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getDatabase, ref, get, set, remove, onValue } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",
+  authDomain: "getaran-mekanik.firebaseapp.com",
+  databaseURL: "https://getaran-mekanik-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "getaran-mekanik",
+  storageBucket: "getaran-mekanik.firebasestorage.app",
+  messagingSenderId: "430886299733",
+  appId: "1:430886299733:web:0edecd5d4adf73e7440cdc",
+  measurementId: "G-NBMYLXXF18"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const MODULE_ID = 'forum-1';
+const DB_PATH = `visitors/math4/${MODULE_ID}`;
+const LOCAL_IDENTITY = `optoauto_identity_${MODULE_ID}`;
+let panelOpen = false;
+
+function getIdentity(){try{return JSON.parse(localStorage.getItem(LOCAL_IDENTITY));}catch(e){return null;}}
+function saveIdentity(v){localStorage.setItem(LOCAL_IDENTITY, JSON.stringify(v));}
 
 function isValidName(n){if(!n)return false;return n.split(/\s+/).every(w=>w.length>0&&/^[A-Z][a-z]*$/.test(w));}
 function isValidNim(n){return /^\d+$/.test(n);}
 
+function sanitizeKey(s){return s.replace(/[.#$/\[\]]/g,'_');}
+
 function initVisitor(){
-  const me=getIdentity();
-  if(me&&me.nama){document.getElementById('visitorOverlay').classList.add('hidden');document.getElementById('visitorFab').style.display='flex';loadVisitorList();}
+  const me = getIdentity();
+  if(me && me.nama){
+    document.getElementById('visitorOverlay').classList.add('hidden');
+    document.getElementById('visitorFab').style.display='flex';
+  }
+  // Listen for realtime updates
+  const dbRef = ref(db, DB_PATH);
+  onValue(dbRef, (snapshot) => {
+    const data = snapshot.val();
+    const visitors = data ? Object.values(data) : [];
+    renderVisitors(visitors);
+  });
 }
 
 function submitVisitor(){
-  const nama=document.getElementById('vNama').value.trim();
-  const nim=document.getElementById('vNim').value.trim();
-  const err=document.getElementById('vError');
-  const isDosen=nama.toLowerCase()==='dedik romahadi';
+  const nama = document.getElementById('vNama').value.trim();
+  const nim = document.getElementById('vNim').value.trim();
+  const err = document.getElementById('vError');
+  const isDosen = nama.toLowerCase() === 'dedik romahadi';
   if(!nama){err.textContent='⚠ Nama wajib diisi.';err.style.display='block';return;}
   if(!isValidName(nama)){err.textContent='⚠ Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi';err.style.display='block';return;}
-  if(!isDosen&&!nim){err.textContent='⚠ NIM wajib diisi.';err.style.display='block';return;}
-  if(!isDosen&&!isValidNim(nim)){err.textContent='⚠ NIM harus berupa angka tanpa spasi. Contoh: 41522010001';err.style.display='block';return;}
+  if(!isDosen && !nim){err.textContent='⚠ NIM wajib diisi.';err.style.display='block';return;}
+  if(!isDosen && !isValidNim(nim)){err.textContent='⚠ NIM harus berupa angka tanpa spasi. Contoh: 41522010001';err.style.display='block';return;}
   err.style.display='none';
-  const v={nama,nim:isDosen?'DOSEN':nim,role:isDosen?'dosen':'student',timestamp:new Date().toISOString()};
+  const v = {nama, nim: isDosen?'DOSEN':nim, role: isDosen?'dosen':'student', timestamp: new Date().toISOString()};
   saveIdentity(v);
-  const vs=getVisitors();const idx=vs.findIndex(x=>x.nama===v.nama&&x.nim===v.nim);
-  if(idx>=0)vs[idx]=v;else vs.push(v);saveVisitors(vs);
+  const key = sanitizeKey(isDosen ? `dosen_${nama}` : `mhs_${nim}`);
+  set(ref(db, `${DB_PATH}/${key}`), v);
   document.getElementById('visitorOverlay').classList.add('hidden');
-  document.getElementById('visitorFab').style.display='flex';loadVisitorList();
+  document.getElementById('visitorFab').style.display='flex';
 }
 
-function loadVisitorList(){
-  const listEl=document.getElementById('vpList'),countEl=document.getElementById('fabCount'),badgeEl=document.getElementById('vpBadge'),tableEl=document.getElementById('visitorTableBody'),stT=document.getElementById('statTotal'),stM=document.getElementById('statMhs'),stD=document.getElementById('statDosen');
-  const visitors=getVisitors();visitors.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
-  const seen=new Set(),unique=[];for(const v of visitors){const id=`${v.nama}|${v.nim}`;if(!seen.has(id)){seen.add(id);unique.push(v);}}
-  const mc=unique.filter(v=>v.role!=='dosen').length,dc=unique.filter(v=>v.role==='dosen').length;
-  countEl.textContent=unique.length;badgeEl.textContent=unique.length+' orang';stT.textContent=unique.length;stM.textContent=mc;stD.textContent=dc;
-  if(!unique.length){listEl.innerHTML='<div class="vp-empty">Belum ada pengunjung.</div>';tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">Belum ada pengunjung.</div>';return;}
-  listEl.innerHTML=unique.map(v=>{const d=v.role==='dosen',ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),dt=new Date(v.timestamp),ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});return `<div class="vp-item"><div class="vp-avatar ${d?'dosen':'student'}">${ini}</div><div class="vp-info"><div class="vp-name">${d?'👨‍🏫 ':''}${escH(v.nama)}</div><div class="vp-nim">${d?'Dosen Pengampu':escH(v.nim)}</div></div><div class="vp-time">${ts}</div></div>`;}).join('');
-  tableEl.innerHTML=unique.map((v,i)=>{const d=v.role==='dosen',ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),dt=new Date(v.timestamp),ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}),ac=d?'background:rgba(251,191,36,.12);color:#fbbf24;':'background:rgba(255,255,255,.08);color:#e2e8f0;',rc=d?'<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2);margin-left:8px;">Dosen</span>':'';return `<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;" onmouseenter="this.style.background='rgba(255,255,255,.03)'" onmouseleave="this.style.background='transparent'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:#64748b;font-weight:600;">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${ac}">${ini}</div><div><div style="font-weight:600;font-size:.88rem;color:#e2e8f0;">${escH(v.nama)}${rc}</div></div></div><div style="flex:1;font-size:.8rem;color:#94a3b8;font-family:monospace;">${d?'—':escH(v.nim)}</div><div style="flex:1;text-align:right;font-size:.78rem;color:#64748b;">${ts}</div></div>`;}).join('');
+function renderVisitors(visitors){
+  visitors.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+  const seen=new Set(), unique=[];
+  for(const v of visitors){const id=`${v.nama}|${v.nim}`;if(!seen.has(id)){seen.add(id);unique.push(v);}}
+  const mc=unique.filter(v=>v.role!=='dosen').length, dc=unique.filter(v=>v.role==='dosen').length;
+
+  const countEl=document.getElementById('fabCount'), badgeEl=document.getElementById('vpBadge');
+  const listEl=document.getElementById('vpList'), tableEl=document.getElementById('visitorTableBody');
+  const stT=document.getElementById('statTotal'), stM=document.getElementById('statMhs'), stD=document.getElementById('statDosen');
+
+  countEl.textContent=unique.length; badgeEl.textContent=unique.length+' orang';
+  stT.textContent=unique.length; stM.textContent=mc; stD.textContent=dc;
+
+  if(!unique.length){
+    listEl.innerHTML='<div class="vp-empty">Belum ada pengunjung.</div>';
+    tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">Belum ada pengunjung.</div>';
+    return;
+  }
+
+  listEl.innerHTML=unique.map(v=>{
+    const d=v.role==='dosen', ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    return `<div class="vp-item"><div class="vp-avatar ${d?'dosen':'student'}">${ini}</div><div class="vp-info"><div class="vp-name">${d?'👨‍🏫 ':''}${escH(v.nama)}</div><div class="vp-nim">${d?'Dosen Pengampu':escH(v.nim)}</div></div><div class="vp-time">${ts}</div></div>`;
+  }).join('');
+
+  tableEl.innerHTML=unique.map((v,i)=>{
+    const d=v.role==='dosen', ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    const ac=d?'background:rgba(251,191,36,.12);color:#fbbf24;':'background:rgba(255,255,255,.08);color:#e2e8f0;';
+    const rc=d?'<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2);margin-left:8px;">Dosen</span>':'';
+    return `<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;" onmouseenter="this.style.background='rgba(255,255,255,.03)'" onmouseleave="this.style.background='transparent'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:#64748b;font-weight:600;">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${ac}">${ini}</div><div><div style="font-weight:600;font-size:.88rem;color:#e2e8f0;">${escH(v.nama)}${rc}</div></div></div><div style="flex:1;font-size:.8rem;color:#94a3b8;font-family:monospace;">${d?'\u2014':escH(v.nim)}</div><div style="flex:1;text-align:right;font-size:.78rem;color:#64748b;">${ts}</div></div>`;
+  }).join('');
 }
 
-function togglePanel(){panelOpen=!panelOpen;document.getElementById('visitorPanel').classList.toggle('open',panelOpen);if(panelOpen)loadVisitorList();}
+function togglePanel(){panelOpen=!panelOpen;document.getElementById('visitorPanel').classList.toggle('open',panelOpen);}
 document.addEventListener('click',function(e){const p=document.getElementById('visitorPanel'),f=document.getElementById('visitorFab');if(panelOpen&&!p.contains(e.target)&&!f.contains(e.target)){panelOpen=false;p.classList.remove('open');}});
 function escH(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 
 function showResetModal(){document.getElementById('resetOverlay').classList.remove('hidden');document.getElementById('resetPw').value='';document.getElementById('resetError').style.display='none';setTimeout(()=>document.getElementById('resetPw').focus(),100);}
 function hideResetModal(){document.getElementById('resetOverlay').classList.add('hidden');}
-function confirmReset(){if(document.getElementById('resetPw').value!=='TeknikMesin0602'){document.getElementById('resetError').style.display='block';return;}localStorage.removeItem(STORAGE_KEY_VISITORS);localStorage.removeItem(STORAGE_KEY_IDENTITY);hideResetModal();loadVisitorList();document.getElementById('visitorOverlay').classList.remove('hidden');document.getElementById('visitorFab').style.display='none';}
+function confirmReset(){
+  if(document.getElementById('resetPw').value!=='TeknikMesin0602'){document.getElementById('resetError').style.display='block';return;}
+  remove(ref(db, DB_PATH));
+  localStorage.removeItem(LOCAL_IDENTITY);
+  hideResetModal();
+  document.getElementById('visitorOverlay').classList.remove('hidden');
+  document.getElementById('visitorFab').style.display='none';
+}
 document.getElementById('resetPw').addEventListener('keydown',function(e){if(e.key==='Enter')confirmReset();});
 document.getElementById('resetOverlay').addEventListener('click',function(e){if(e.target===this)hideResetModal();});
 document.getElementById('vNim').addEventListener('keydown',function(e){if(e.key==='Enter')submitVisitor();});
 document.getElementById('vNama').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('vNim').focus();});
+
+// Expose to global for onclick handlers
+window.submitVisitor=submitVisitor; window.togglePanel=togglePanel;
+window.showResetModal=showResetModal; window.hideResetModal=hideResetModal; window.confirmReset=confirmReset;
+
 initVisitor();
 </script>
 </body>
