@@ -256,7 +256,7 @@ footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:
       <div class="cd-box"><div class="cd-num" id="cd-m">--</div><div class="cd-unit">Menit</div></div>
       <div class="cd-box"><div class="cd-num" id="cd-s">--</div><div class="cd-unit">Detik</div></div>
     </div>
-    <div class="cd-deadline">Deadline: <strong>10 April 2026, Pukul 23:59 WIB</strong></div>
+    <div class="cd-deadline" id="cdDeadline">Deadline: <strong>Menunggu jadwal...</strong></div>
   </div>
 
   <!-- Meta -->
@@ -605,31 +605,6 @@ plt.<span class="fn">show</span>()</pre>
 <script>
 document.addEventListener('DOMContentLoaded',()=>{renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})});
 
-// Countdown to 10 April 2026 23:59 WIB (UTC+7)
-function updateCountdown(){
-  const deadline=new Date('2026-04-10T23:59:00+07:00').getTime();
-  const now=new Date().getTime();
-  const diff=deadline-now;
-  if(diff<=0){
-    document.getElementById('cd-d').textContent='00';
-    document.getElementById('cd-h').textContent='00';
-    document.getElementById('cd-m').textContent='00';
-    document.getElementById('cd-s').textContent='00';
-    const dl=document.querySelector('.cd-deadline');
-    dl.innerHTML='<span class="cd-expired">⚠️ DEADLINE SUDAH LEWAT!</span>';
-    return;
-  }
-  const d=Math.floor(diff/(1000*60*60*24));
-  const h=Math.floor((diff%(1000*60*60*24))/(1000*60*60));
-  const m=Math.floor((diff%(1000*60*60))/(1000*60));
-  const s=Math.floor((diff%(1000*60))/1000);
-  document.getElementById('cd-d').textContent=String(d).padStart(2,'0');
-  document.getElementById('cd-h').textContent=String(h).padStart(2,'0');
-  document.getElementById('cd-m').textContent=String(m).padStart(2,'0');
-  document.getElementById('cd-s').textContent=String(s).padStart(2,'0');
-}
-updateCountdown();
-setInterval(updateCountdown,1000);
 
 // Fade-in
 const obs=new IntersectionObserver(e=>{e.forEach(en=>{if(en.isIntersecting)en.target.classList.add('vis')})},{threshold:.1});
@@ -698,6 +673,7 @@ function initVisitor(){
   });
 }
 
+let countdownInterval=null;
 function updateScheduleDisplay(){
   const info = document.getElementById('scheduleInfo');
   const range = document.getElementById('scheduleRange');
@@ -708,9 +684,42 @@ function updateScheduleDisplay(){
     const dur = currentSchedule.duration || Math.round((e-s)/(24*60*60*1000));
     const fmt = (d) => d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
     range.textContent = fmt(s) + '  \u2014  ' + fmt(e) + '  ('+dur+' hari)';
+    // Start countdown
+    startCountdown(e);
   } else {
     info.style.display='none';
   }
+}
+function startCountdown(deadline){
+  const dlEl=document.getElementById('cdDeadline');
+  if(dlEl){
+    const fmt=deadline.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+    const tm=deadline.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    dlEl.innerHTML='Deadline: <strong>'+fmt+', Pukul '+tm+' WIB</strong>';
+  }
+  if(countdownInterval) clearInterval(countdownInterval);
+  function tick(){
+    const now=new Date().getTime(), diff=deadline.getTime()-now;
+    if(diff<=0){
+      document.getElementById('cd-d').textContent='00';
+      document.getElementById('cd-h').textContent='00';
+      document.getElementById('cd-m').textContent='00';
+      document.getElementById('cd-s').textContent='00';
+      if(dlEl) dlEl.innerHTML='<span class="cd-expired">\u26a0\ufe0f DEADLINE SUDAH LEWAT!</span>';
+      clearInterval(countdownInterval);
+      return;
+    }
+    const d=Math.floor(diff/(1000*60*60*24));
+    const h=Math.floor((diff%(1000*60*60*24))/(1000*60*60));
+    const m=Math.floor((diff%(1000*60*60))/(1000*60));
+    const s=Math.floor((diff%(1000*60))/1000);
+    document.getElementById('cd-d').textContent=String(d).padStart(2,'0');
+    document.getElementById('cd-h').textContent=String(h).padStart(2,'0');
+    document.getElementById('cd-m').textContent=String(m).padStart(2,'0');
+    document.getElementById('cd-s').textContent=String(s).padStart(2,'0');
+  }
+  tick();
+  countdownInterval=setInterval(tick,1000);
 }
 
 function isLate(timestamp){
