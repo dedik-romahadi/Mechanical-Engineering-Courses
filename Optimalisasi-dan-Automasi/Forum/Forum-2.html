@@ -450,6 +450,18 @@ footer {
 .vp-empty{text-align:center;padding:32px 16px;color:var(--s500,#64748b);font-size:.85rem}
 @media(max-width:480px){.visitor-panel{width:calc(100vw - 32px);right:16px;bottom:88px}.visitor-fab{bottom:18px;right:18px}}
 
+
+/* COUNTDOWN */
+.countdown-wrap { background:linear-gradient(135deg,rgba(45,212,191,.07),rgba(167,139,250,.05)); border:1px solid rgba(45,212,191,.22); border-radius:20px; padding:36px 40px; text-align:center; position:relative; overflow:hidden; max-width:1100px; margin:0 auto; }
+.countdown-wrap::before { content:''; position:absolute; inset:0; background:repeating-linear-gradient(45deg,transparent,transparent 10px,rgba(45,212,191,.015) 10px,rgba(45,212,191,.015) 11px); }
+.countdown-label { font-family:'Courier New',monospace; font-size:11px; color:var(--teal); letter-spacing:4px; text-transform:uppercase; margin-bottom:24px; position:relative; }
+.countdown-boxes { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; position:relative; }
+.cd-box { background:rgba(0,0,0,.5); border:1px solid rgba(45,212,191,.25); border-radius:14px; padding:18px 26px; min-width:84px; }
+.cd-num { font-family:'Syne',sans-serif; font-size:46px; color:var(--teal); line-height:1; }
+.cd-unit { font-family:'Courier New',monospace; font-size:10px; color:var(--s500); letter-spacing:2px; margin-top:5px; }
+.cd-sep { font-family:'Syne',sans-serif; font-size:38px; color:rgba(45,212,191,.25); align-self:center; }
+.cd-note { margin-top:20px; font-size:13px; color:var(--s500); font-family:'Courier New',monospace; position:relative; }
+
 </style>
 </head>
 <body>
@@ -469,7 +481,6 @@ footer {
 
 <!-- Floating Visitor Button -->
 <button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Daftar Pengunjung">👥<span class="fab-count" id="fabCount">0</span></button>
-
 <!-- Visitor Panel -->
 <div class="visitor-panel" id="visitorPanel">
   <div class="vp-header"><h3>👥 Pengunjung</h3><span class="vp-badge" id="vpBadge">0 orang</span></div>
@@ -505,6 +516,24 @@ footer {
     </div>
   </div>
 </header>
+
+<!-- COUNTDOWN -->
+<div style="max-width:1100px;margin:0 auto;padding:48px 32px 0;">
+  <div class="countdown-wrap">
+    <div class="countdown-label">⏰ Hitung Mundur — Deadline Pengumpulan Forum 2</div>
+    <div class="countdown-boxes">
+      <div class="cd-box"><div class="cd-num" id="cd-hari">--</div><div class="cd-unit">HARI</div></div>
+      <div class="cd-sep">:</div>
+      <div class="cd-box"><div class="cd-num" id="cd-jam">--</div><div class="cd-unit">JAM</div></div>
+      <div class="cd-sep">:</div>
+      <div class="cd-box"><div class="cd-num" id="cd-menit">--</div><div class="cd-unit">MENIT</div></div>
+      <div class="cd-sep">:</div>
+      <div class="cd-box"><div class="cd-num" id="cd-detik">--</div><div class="cd-unit">DETIK</div></div>
+    </div>
+    <div class="cd-note" id="cdDeadline">Deadline: <strong style="color:var(--teal)">Menunggu jadwal...</strong></div>
+  </div>
+</div>
+
 
 <!-- ==================== INTRO ==================== -->
 <div class="container">
@@ -1110,9 +1139,17 @@ drawCompare();
 </section>
 
 <script type="module">
-// === VISITOR SYSTEM (Firebase + Schedule) ===
+// ═══ FIREBASE VISITOR SYSTEM (with Schedule) ═══
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getDatabase, ref, push, set, get, remove, onValue } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+import { getDatabase, ref, get, set, remove, onValue } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+
+const MODULE_ID = 'forum-2';
+const DB_PATH = `visitors/OptoAuto/${MODULE_ID}`;
+const PERTEMUAN = 'pertemuan-2';
+const SCHEDULE_PATH = `settings/OptoAuto/${PERTEMUAN}/schedule`;
+const LOCAL_IDENTITY = `optoauto_identity_${MODULE_ID}`;
+let panelOpen = false;
+let currentSchedule = null;
 
 const firebaseConfig = {
   apiKey: "AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",
@@ -1127,49 +1164,18 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-const MODULE_ID = 'forum-2';
-const DB_PATH = `visitors/OptoAuto/${MODULE_ID}`;
-const PERTEMUAN = 'pertemuan-2';
-const SCHEDULE_PATH = `settings/OptoAuto/${PERTEMUAN}/schedule`;
-const LOCAL_KEY = `optoauto_identity_${MODULE_ID}`;
-let panelOpen = false;
-let currentSchedule = null;
 
-function getIdentity() { try { return JSON.parse(localStorage.getItem(LOCAL_KEY)); } catch(e) { return null; } }
-function saveIdentity(v) { localStorage.setItem(LOCAL_KEY, JSON.stringify(v)); }
-function isValidName(n) { if(!n) return false; return n.split(/\s+/).every(w => w.length > 0 && /^[A-Z][a-z]*$/.test(w)); }
-function isValidNim(n) { return /^\d+$/.test(n); }
-function escH(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-function sanitizeKey(s) { return s.replace(/[.#$/\[\]]/g, '_'); }
+function getIdentity(){try{return JSON.parse(localStorage.getItem(LOCAL_IDENTITY));}catch(e){return null;}}
+function saveIdentity(v){localStorage.setItem(LOCAL_IDENTITY, JSON.stringify(v));}
+function isValidName(n){if(!n)return false;return n.split(/\s+/).every(w=>w.length>0&&/^[A-Z][a-z]*$/.test(w));}
+function isValidNim(n){return /^\d+$/.test(n);}
+function escH(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function sanitizeKey(s){return s.replace(/[.#$/\[\]]/g,'_');}
 
-function isLate(timestamp) {
-  if (!currentSchedule || !currentSchedule.start || !currentSchedule.end) return false;
-  const t = new Date(timestamp).getTime();
-  const s = new Date(currentSchedule.start).getTime();
-  const e = new Date(currentSchedule.end).getTime();
-  return t < s || t > e;
-}
-
-function updateScheduleDisplay() {
-  const info = document.getElementById('scheduleInfo');
-  const range = document.getElementById('scheduleRange');
-  if (!info || !range) return;
-  if (currentSchedule && currentSchedule.start && currentSchedule.end) {
-    info.style.display = 'flex';
-    const s = new Date(currentSchedule.start), e = new Date(currentSchedule.end);
-    const fmt = (d) => d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-    range.textContent = fmt(s) + '  \u2014  ' + fmt(e);
-  } else {
-    info.style.display = 'none';
-  }
-}
-
-function initVisitor() {
+function initVisitor(){
   const me = getIdentity();
-  if (me && me.nama) {
-    document.getElementById('visitorOverlay').classList.add('hidden');
-    document.getElementById('visitorFab').style.display = 'flex';
-  }
+  if(me && me.nama){document.getElementById('visitorOverlay').classList.add('hidden');document.getElementById('visitorFab').style.display='flex';}
+
   // Listen schedule
   onValue(ref(db, SCHEDULE_PATH), (snap) => {
     currentSchedule = snap.val();
@@ -1179,122 +1185,143 @@ function initVisitor() {
       renderVisitors(data ? Object.values(data) : []);
     }, {onlyOnce: true});
   });
+
   // Listen visitors
-  onValue(ref(db, DB_PATH), (snap) => {
-    const data = snap.val();
+  onValue(ref(db, DB_PATH), (snapshot) => {
+    const data = snapshot.val();
     renderVisitors(data ? Object.values(data) : []);
   });
 }
 
-window.submitVisitor = async function() {
-  const nama = document.getElementById('vNama').value.trim();
-  const nim  = document.getElementById('vNim').value.trim();
-  const err  = document.getElementById('vError');
-  const isDosen = nama.toLowerCase() === 'dedik romahadi';
-  // Schedule check
-  if (!currentSchedule || !currentSchedule.start || !currentSchedule.end) { err.textContent = '\u26a0 Jadwal belum disetel. Silakan atur jadwal terlebih dahulu.'; err.style.display = 'block'; return; }
-  const now = new Date().getTime(), startT = new Date(currentSchedule.start).getTime();
-  if (now < startT) { const sd = new Date(currentSchedule.start); err.textContent = '\u26a0 Akses belum dibuka. Jadwal dimulai pada ' + sd.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}) + ' pukul ' + sd.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) + ' WIB.'; err.style.display = 'block'; return; }
-  if (!nama) { err.textContent = '\u26a0 Nama wajib diisi.'; err.style.display = 'block'; return; }
-  if (!isValidName(nama)) { err.textContent = '\u26a0 Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi'; err.style.display = 'block'; return; }
-  if (!isDosen && !nim) { err.textContent = '\u26a0 NIM wajib diisi.'; err.style.display = 'block'; return; }
-  if (!isDosen && !isValidNim(nim)) { err.textContent = '\u26a0 NIM harus berupa angka tanpa spasi. Contoh: 41522010001'; err.style.display = 'block'; return; }
-  err.style.display = 'none';
-  const visitor = { nama, nim: isDosen ? 'DOSEN' : nim, role: isDosen ? 'dosen' : 'student', timestamp: new Date().toISOString() };
-  saveIdentity(visitor);
-  set(ref(db, `${DB_PATH}/${sanitizeKey(isDosen ? `dosen_${nama}` : `mhs_${nim}`)}`), visitor);
+let countdownInterval=null;
+function updateScheduleDisplay(){
+  const info = document.getElementById('scheduleInfo');
+  const range = document.getElementById('scheduleRange');
+  if(!info || !range) return;
+  if(currentSchedule && currentSchedule.start && currentSchedule.end){
+    info.style.display='flex';
+    const s = new Date(currentSchedule.start), e = new Date(currentSchedule.end);
+    const dur = currentSchedule.duration || Math.round((e-s)/(24*60*60*1000));
+    const fmt = (d) => d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    range.textContent = fmt(s) + '  \u2014  ' + fmt(e) + '  ('+dur+' hari)';
+    startCountdown(e);
+  } else {
+    info.style.display='none';
+  }
+}
+function startCountdown(deadline){
+  const cdNote=document.getElementById('cdDeadline')||document.querySelector('.cd-note');
+  if(cdNote){
+    const fmt=deadline.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+    const tm=deadline.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    cdNote.innerHTML='Deadline: <strong style="color:var(--cyan,#00e5ff)">'+fmt+' \u00b7 Pukul '+tm+' WIB</strong>';
+  }
+  if(countdownInterval) clearInterval(countdownInterval);
+  function tick(){
+    const now=new Date().getTime(), diff=deadline.getTime()-now;
+    const dEl=document.getElementById('cd-hari'), hEl=document.getElementById('cd-jam'), mEl=document.getElementById('cd-menit'), sEl=document.getElementById('cd-detik');
+    if(!dEl) return;
+    if(diff<=0){
+      dEl.textContent='00';hEl.textContent='00';mEl.textContent='00';sEl.textContent='00';
+      if(cdNote) cdNote.innerHTML='<span style="color:#fb7185;">\u26a0\ufe0f DEADLINE SUDAH LEWAT!</span>';
+      clearInterval(countdownInterval);
+      return;
+    }
+    const d=Math.floor(diff/(1000*60*60*24));
+    const h=Math.floor((diff%(1000*60*60*24))/(1000*60*60));
+    const m=Math.floor((diff%(1000*60*60))/(1000*60));
+    const s=Math.floor((diff%(1000*60))/1000);
+    dEl.textContent=String(d).padStart(2,'0');
+    hEl.textContent=String(h).padStart(2,'0');
+    mEl.textContent=String(m).padStart(2,'0');
+    sEl.textContent=String(s).padStart(2,'0');
+  }
+  tick();
+  countdownInterval=setInterval(tick,1000);
+}
+
+function isLate(timestamp){
+  if(!currentSchedule || !currentSchedule.start || !currentSchedule.end) return false;
+  const t = new Date(timestamp).getTime();
+  const s = new Date(currentSchedule.start).getTime();
+  const e = new Date(currentSchedule.end).getTime();
+  return t < s || t > e;
+}
+
+function submitVisitor(){
+  const nama=document.getElementById('vNama').value.trim(), nim=document.getElementById('vNim').value.trim(), err=document.getElementById('vError');
+  // Schedule checks
+  if(!currentSchedule || !currentSchedule.start || !currentSchedule.end){err.textContent='\u26a0 Jadwal belum disetel oleh admin di halaman Modul. Hubungi dosen.';err.style.display='block';return;}
+  const now=new Date().getTime(), schedStart=new Date(currentSchedule.start).getTime();
+  if(now<schedStart){const sd=new Date(currentSchedule.start);err.textContent='\u26a0 Akses belum dibuka. Jadwal dimulai pada '+sd.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+' '+sd.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+'.';err.style.display='block';return;}
+  const isDosen=nama.toLowerCase()==='dedik romahadi';
+  if(!nama){err.textContent='\u26a0 Nama wajib diisi.';err.style.display='block';return;}
+  if(!isValidName(nama)){err.textContent='\u26a0 Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi';err.style.display='block';return;}
+  if(!isDosen&&!nim){err.textContent='\u26a0 NIM wajib diisi.';err.style.display='block';return;}
+  if(!isDosen&&!isValidNim(nim)){err.textContent='\u26a0 NIM harus berupa angka tanpa spasi. Contoh: 41522010001';err.style.display='block';return;}
+  err.style.display='none';
+  const v={nama,nim:isDosen?'DOSEN':nim,role:isDosen?'dosen':'student',timestamp:new Date().toISOString()};
+  saveIdentity(v);
+  set(ref(db, `${DB_PATH}/${sanitizeKey(isDosen?`dosen_${nama}`:`mhs_${nim}`)}`), v);
   document.getElementById('visitorOverlay').classList.add('hidden');
-  document.getElementById('visitorFab').style.display = 'flex';
-};
+  document.getElementById('visitorFab').style.display='flex';
+}
 
-function renderVisitors(visitors) {
-  visitors.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-  const seen = new Set(), unique = [];
-  for (const v of visitors) { const id = `${v.nama}|${v.nim}`; if (!seen.has(id)) { seen.add(id); unique.push(v); } }
-  const mc = unique.filter(v => v.role !== 'dosen').length;
-  const dc = unique.filter(v => v.role === 'dosen').length;
-  const lateCount = unique.filter(v => v.role !== 'dosen' && isLate(v.timestamp)).length;
+function renderVisitors(visitors){
+  visitors.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+  const seen=new Set(),unique=[];
+  for(const v of visitors){const id=v.nama+'|'+v.nim;if(!seen.has(id)){seen.add(id);unique.push(v);}}
+  const mc=unique.filter(v=>v.role!=='dosen').length, dc=unique.filter(v=>v.role==='dosen').length;
+  const lateCount=unique.filter(v=>v.role!=='dosen'&&isLate(v.timestamp)).length;
 
-  document.getElementById('fabCount').textContent = unique.length;
-  document.getElementById('vpBadge').textContent = unique.length + ' orang';
-  document.getElementById('statTotal').textContent = unique.length;
-  document.getElementById('statMhs').textContent = mc;
-  document.getElementById('statDosen').textContent = dc;
-  const statLateEl = document.getElementById('statLate');
-  if (statLateEl) statLateEl.textContent = lateCount;
+  document.getElementById('fabCount').textContent=unique.length;
+  document.getElementById('vpBadge').textContent=unique.length+' orang';
+  document.getElementById('statTotal').textContent=unique.length;
+  document.getElementById('statMhs').textContent=mc;
+  document.getElementById('statDosen').textContent=dc;
+  const statLateEl=document.getElementById('statLate');
+  if(statLateEl) statLateEl.textContent=lateCount;
 
-  const listEl = document.getElementById('vpList'), tableEl = document.getElementById('visitorTableBody');
+  const listEl=document.getElementById('vpList'), tableEl=document.getElementById('visitorTableBody');
 
-  if (!unique.length) {
-    listEl.innerHTML = '<div class="vp-empty">Belum ada pengunjung.</div>';
-    tableEl.innerHTML = '<div style="text-align:center;padding:40px 24px;color:var(--s500,#64748b);font-size:.88rem;">Belum ada pengunjung.</div>';
+  if(!unique.length){
+    listEl.innerHTML='<div class="vp-empty">Belum ada pengunjung.</div>';
+    tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:var(--s500,#64748b);font-size:.88rem;">Belum ada pengunjung.</div>';
     return;
   }
 
-  listEl.innerHTML = unique.map(v => {
-    const d = v.role === 'dosen', ini = v.nama.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
-    const dt = new Date(v.timestamp), ts = dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'}) + ' ' + dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-    const late = !d && isLate(v.timestamp);
-    const lBadge = late ? '<span style="color:#fb7185;font-size:.65rem;font-weight:600;margin-left:4px;">\u23f0 Terlambat</span>' : '';
-    return `<div class="vp-item" style="${late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':''}"><div class="vp-avatar ${d?'dosen':'student'}" style="${late?'background:rgba(251,113,133,.12);color:#fb7185;':''}">${ini}</div><div class="vp-info"><div class="vp-name">${d?'\ud83d\udc68\u200d\ud83c\udfeb ':''}${escH(v.nama)}${lBadge}</div><div class="vp-nim">${d?'Dosen Pengampu':escH(v.nim)}</div></div><div class="vp-time">${ts}</div></div>`;
+  listEl.innerHTML=unique.map(v=>{
+    const d=v.role==='dosen', ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    const late=!d&&isLate(v.timestamp);
+    const lBadge=late?'<span style="color:#fb7185;font-size:.65rem;font-weight:600;margin-left:4px;">\u23f0 Terlambat</span>':'';
+    return '<div class="vp-item" style="'+(late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':'')+'"><div class="vp-avatar '+(d?'dosen':'student')+'" style="'+(late?'background:rgba(251,113,133,.12);color:#fb7185;':'')+'">'+ ini+'</div><div class="vp-info"><div class="vp-name">'+(d?'\ud83d\udc68\u200d\ud83c\udfeb ':'')+escH(v.nama)+lBadge+'</div><div class="vp-nim">'+(d?'Dosen Pengampu':escH(v.nim))+'</div></div><div class="vp-time">'+ts+'</div></div>';
   }).join('');
 
-  tableEl.innerHTML = unique.map((v, i) => {
-    const d = v.role === 'dosen', ini = v.nama.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
-    const dt = new Date(v.timestamp), ts = dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) + ', ' + dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-    const late = !d && isLate(v.timestamp);
-    const rowBg = late ? 'background:rgba(251,113,133,.04);' : '';
-    const nameColor = late ? 'color:#fb7185;' : 'color:var(--s200,#e2e8f0);';
-    const ac = d ? 'background:rgba(251,191,36,.12);color:var(--amber,#fbbf24);' : late ? 'background:rgba(251,113,133,.12);color:#fb7185;' : 'background:rgba(45,212,191,.12);color:var(--teal,#2dd4bf);';
-    const rc = d ? '<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(251,191,36,.1);color:var(--amber,#fbbf24);border:1px solid rgba(251,191,36,.2);margin-left:8px;">Dosen</span>' : '';
-    const statusCol = d ? '<span style="color:var(--s500,#64748b);font-size:.75rem;">\u2014</span>' : late ? '<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(251,113,133,.12);color:#fb7185;border:1px solid rgba(251,113,133,.25);">\u23f0 Terlambat</span>' : '<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.25);">\u2705 Tepat Waktu</span>';
-    return `<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;${rowBg}" onmouseenter="this.style.background='rgba(255,255,255,.03)'" onmouseleave="this.style.background='${late?"rgba(251,113,133,.04)":"transparent"}'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:${late?'#fb7185':'var(--s500,#64748b)'};font-weight:600;">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${ac}">${ini}</div><div><div style="font-weight:600;font-size:.88rem;${nameColor}">${escH(v.nama)}${rc}</div></div></div><div style="flex:1;font-size:.8rem;color:${late?'#fb7185':'var(--s400,#94a3b8)'};font-family:monospace;">${d?'\u2014':escH(v.nim)}</div><div style="flex:1;text-align:center;">${statusCol}</div><div style="flex:1;text-align:right;font-size:.78rem;color:${late?'#fb7185':'var(--s500,#64748b)'};">${ts}</div></div>`;
+  tableEl.innerHTML=unique.map((v,i)=>{
+    const d=v.role==='dosen', ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    const late=!d&&isLate(v.timestamp);
+    const rowBg=late?'background:rgba(251,113,133,.04);':'';
+    const nameColor=late?'color:#fb7185;':'color:var(--s200,#e2e8f0);';
+    const ac=d?'background:rgba(251,191,36,.12);color:var(--amber,#fbbf24);':late?'background:rgba(251,113,133,.12);color:#fb7185;':'background:rgba(45,212,191,.12);color:var(--teal,#2dd4bf);';
+    const rc=d?'<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(251,191,36,.1);color:var(--amber,#fbbf24);border:1px solid rgba(251,191,36,.2);margin-left:8px;">Dosen</span>':'';
+    const statusCol=d?'<span style="color:var(--s500,#64748b);font-size:.75rem;">\u2014</span>':late?'<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(251,113,133,.12);color:#fb7185;border:1px solid rgba(251,113,133,.25);">\u23f0 Terlambat</span>':'<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.25);">\u2705 Tepat Waktu</span>';
+    return '<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);'+rowBg+'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:'+(late?'#fb7185':'var(--s500,#64748b)')+';font-weight:600;">'+(i+1)+'</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;'+ac+'">'+ini+'</div><div><div style="font-weight:600;font-size:.88rem;'+nameColor+'">'+escH(v.nama)+rc+'</div></div></div><div style="flex:1;font-size:.8rem;color:'+(late?'#fb7185':'var(--s400,#94a3b8)')+';font-family:monospace;">'+(d?'\u2014':escH(v.nim))+'</div><div style="flex:1;text-align:center;">'+statusCol+'</div><div style="flex:1;text-align:right;font-size:.78rem;color:'+(late?'#fb7185':'var(--s500,#64748b)')+';">'+ts+'</div></div>';
   }).join('');
 }
 
-window.togglePanel = function() { panelOpen = !panelOpen; document.getElementById('visitorPanel').classList.toggle('open', panelOpen); };
-document.addEventListener('click', function(e) {
-  const p = document.getElementById('visitorPanel'), f = document.getElementById('visitorFab');
-  if (panelOpen && !p.contains(e.target) && !f.contains(e.target)) { panelOpen = false; p.classList.remove('open'); }
-});
-function escHG(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-
-// Reset
-
-
-// Schedule
+function togglePanel(){panelOpen=!panelOpen;document.getElementById('visitorPanel').classList.toggle('open',panelOpen);}
+document.addEventListener('click',function(e){const p=document.getElementById('visitorPanel'),f=document.getElementById('visitorFab');if(panelOpen&&!p.contains(e.target)&&!f.contains(e.target)){panelOpen=false;p.classList.remove('open');}});
 
 
 
+document.getElementById('vNim').addEventListener('keydown',function(e){if(e.key==='Enter')submitVisitor();});
+document.getElementById('vNama').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('vNim').focus();});
 
-document.getElementById('vNim').addEventListener('keydown', function(e) { if (e.key === 'Enter') submitVisitor(); });
-document.getElementById('vNama').addEventListener('keydown', function(e) { if (e.key === 'Enter') document.getElementById('vNim').focus(); });
-
-
-// Countdown
-function startCountdown() {
-  const el = document.getElementById('countdownDisplay');
-  const dlEl = document.getElementById('deadlineText');
-  if (!el) return;
-  function update() {
-    if (!currentSchedule || !currentSchedule.end) { el.textContent = 'Menunggu jadwal...'; if(dlEl) dlEl.textContent = ''; return; }
-    const end = new Date(currentSchedule.end).getTime();
-    const now = Date.now();
-    const diff = end - now;
-    if (diff <= 0) { el.innerHTML = '<span style="color:var(--rose);">⚠️ DEADLINE SUDAH LEWAT!</span>'; if(dlEl) dlEl.textContent = ''; return; }
-    const d = Math.floor(diff / 86400000), h = Math.floor((diff % 86400000) / 3600000), m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
-    el.innerHTML = `<span style="color:var(--teal);font-weight:700;">${d}</span> Hari <span style="color:var(--amber);font-weight:700;">${h}</span> Jam <span style="color:var(--violet);font-weight:700;">${m}</span> Menit <span style="color:var(--lime);font-weight:700;">${s}</span> Detik`;
-    if (dlEl) {
-      const eDate = new Date(currentSchedule.end);
-      dlEl.textContent = 'Deadline: ' + eDate.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}) + ', Pukul ' + eDate.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) + ' WIB';
-    }
-  }
-  update();
-  setInterval(update, 1000);
-}
+window.submitVisitor=submitVisitor;window.togglePanel=togglePanel;
 
 initVisitor();
-startCountdown();
 </script>
 
 </body>
