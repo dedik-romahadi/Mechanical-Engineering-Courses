@@ -164,30 +164,6 @@ footer{text-align:center;padding:2.5rem 2rem;border-top:1px solid var(--bd);colo
     <button class="v-btn-primary" id="vSubmit" onclick="submitVisitor()">Masuk ke Forum 1 →</button>
   </div>
 </div>
-<!-- Reset Password Modal -->
-<div class="visitor-overlay hidden" id="resetOverlay" style="z-index:100000;">
-  <div class="visitor-modal" style="max-width:380px;">
-    <div style="font-size:2.4rem;margin-bottom:12px;">🔐</div>
-    <h2 style="font-size:1.3rem;">Konfirmasi Reset</h2>
-    <p class="sub">Masukkan password untuk menghapus semua data pengunjung.</p>
-    <p class="v-error" id="resetError">⚠ Password salah.</p>
-    <input type="password" class="v-input" id="resetPw" placeholder="Password" autocomplete="off">
-    <button class="v-btn-primary" style="background:linear-gradient(135deg,#fb7185,#f43f5e);" onclick="confirmReset()">Hapus Semua Pengunjung</button>
-    <button class="v-btn-cancel" onclick="hideResetModal()">Batal</button>
-  </div>
-</div>
-<!-- Reset Password Modal -->
-<div class="visitor-overlay hidden" id="resetOverlay" style="z-index:100000;">
-  <div class="visitor-modal" style="max-width:380px;">
-    <div style="font-size:2.4rem;margin-bottom:12px;">🔐</div>
-    <h2 style="font-size:1.3rem;">Konfirmasi Reset</h2>
-    <p class="sub">Masukkan password untuk menghapus semua data pengunjung.</p>
-    <p class="v-error" id="resetError">⚠ Password salah.</p>
-    <input type="password" class="v-input" id="resetPw" placeholder="Password" autocomplete="off">
-    <button class="v-btn-primary" style="background:linear-gradient(135deg,#fb7185,#f43f5e);" onclick="confirmReset()">Hapus Semua Pengunjung</button>
-    <button class="v-btn-cancel" onclick="hideResetModal()">Batal</button>
-  </div>
-</div>
 
 <!-- Floating Visitor Button -->
 <button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Daftar Pengunjung">👥<span class="fab-count" id="fabCount">0</span></button>
@@ -415,7 +391,7 @@ footer{text-align:center;padding:2.5rem 2rem;border-top:1px solid var(--bd);colo
       <h2 style="font-size:1.6rem;font-weight:800;color:#fff;margin-top:12px;">Daftar Pengunjung</h2>
       <p style="color:#94a3b8;font-size:.85rem;margin-top:6px;">Mahasiswa dan dosen yang telah mengakses halaman ini.</p>
     </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;"><button onclick="showResetModal()" style="padding:10px 20px;border-radius:12px;border:1px solid rgba(251,113,133,.3);background:rgba(251,113,133,.08);color:#fb7185;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:6px;" onmouseenter="this.style.background='rgba(251,113,133,.18)'" onmouseleave="this.style.background='rgba(251,113,133,.08)'">🗑 Reset</button></div>
+    
   </div>
 <div id="scheduleInfo" style="display:none;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.2);border-radius:14px;padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
       <span style="font-size:1.2rem;">🕐</span>
@@ -510,7 +486,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-const MODULE_ID = 'forum-1';
+const MODULE_ID = 'forum-2';
 const DB_PATH = `visitors/math4/${MODULE_ID}`;
 const PERTEMUAN = 'pertemuan-2';
 const SCHEDULE_PATH = `settings/math4/${PERTEMUAN}/schedule`;
@@ -671,20 +647,13 @@ document.addEventListener('click',function(e){const p=document.getElementById('v
 function escH(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 
 
-// Reset
-function showResetModal(){document.getElementById('resetOverlay').classList.remove('hidden');document.getElementById('resetPw').value='';document.getElementById('resetError').style.display='none';setTimeout(()=>document.getElementById('resetPw').focus(),100);}
-function hideResetModal(){document.getElementById('resetOverlay').classList.add('hidden');}
-function confirmReset(){if(document.getElementById('resetPw').value!=='TeknikMesin0602'){document.getElementById('resetError').style.display='block';return;}remove(ref(db,DB_PATH));localStorage.removeItem(LOCAL_IDENTITY);hideResetModal();document.getElementById('visitorOverlay').classList.remove('hidden');document.getElementById('visitorFab').style.display='none';}
 // Schedule
 
-document.getElementById('resetPw').addEventListener('keydown',function(e){if(e.key==='Enter')confirmReset();});
-document.getElementById('resetOverlay').addEventListener('click',function(e){if(e.target===this)hideResetModal();});
 document.getElementById('vNim').addEventListener('keydown',function(e){if(e.key==='Enter')submitVisitor();});
 document.getElementById('vNama').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('vNim').focus();});
 
 
 window.submitVisitor=submitVisitor;window.togglePanel=togglePanel;
-window.showResetModal=showResetModal;window.hideResetModal=hideResetModal;window.confirmReset=confirmReset;
 
 initVisitor();
 </script>
