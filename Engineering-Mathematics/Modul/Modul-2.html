@@ -217,18 +217,6 @@ footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:
     <button class="v-btn-cancel" onclick="hideResetModal()">Batal</button>
   </div>
 </div>
-<!-- Reset Password Modal -->
-<div class="visitor-overlay hidden" id="resetOverlay" style="z-index:100000;">
-  <div class="visitor-modal" style="max-width:380px;">
-    <div style="font-size:2.4rem;margin-bottom:12px;">🔐</div>
-    <h2 style="font-size:1.3rem;">Konfirmasi Reset</h2>
-    <p class="sub">Masukkan password untuk menghapus semua data pengunjung.</p>
-    <p class="v-error" id="resetError">⚠ Password salah.</p>
-    <input type="password" class="v-input" id="resetPw" placeholder="Password" autocomplete="off">
-    <button class="v-btn-primary" style="background:linear-gradient(135deg,#fb7185,#f43f5e);" onclick="confirmReset()">Hapus Semua Pengunjung</button>
-    <button class="v-btn-cancel" onclick="hideResetModal()">Batal</button>
-  </div>
-</div>
 <!-- Schedule Modal -->
 <div class="visitor-overlay hidden" id="scheduleOverlay" style="z-index:100000;">
   <div class="visitor-modal" style="max-width:480px;width:95%;">
@@ -981,6 +969,7 @@ const db = getDatabase(app);
 const MODULE_ID = 'modul-2';
 const DB_PATH = `visitors/math4/${MODULE_ID}`;
 const PERTEMUAN = 'pertemuan-2';
+const RELATED_MODULES = ['forum-2','tugas-2'];
 const SCHEDULE_PATH = `settings/math4/${PERTEMUAN}/schedule`;
 const LOCAL_IDENTITY = `optoauto_identity_${MODULE_ID}`;
 let panelOpen = false;
@@ -1108,7 +1097,22 @@ function escH(s){const d=document.createElement('div');d.textContent=s;return d.
 // Reset
 function showResetModal(){document.getElementById('resetOverlay').classList.remove('hidden');document.getElementById('resetPw').value='';document.getElementById('resetError').style.display='none';setTimeout(()=>document.getElementById('resetPw').focus(),100);}
 function hideResetModal(){document.getElementById('resetOverlay').classList.add('hidden');}
-function confirmReset(){if(document.getElementById('resetPw').value!=='TeknikMesin0602'){document.getElementById('resetError').style.display='block';return;}remove(ref(db,DB_PATH));localStorage.removeItem(LOCAL_IDENTITY);hideResetModal();document.getElementById('visitorOverlay').classList.remove('hidden');document.getElementById('visitorFab').style.display='none';}
+function confirmReset(){
+  if(document.getElementById('resetPw').value!=='TeknikMesin0602'){document.getElementById('resetError').style.display='block';return;}
+  // Reset data pengunjung modul ini
+  remove(ref(db,DB_PATH));
+  localStorage.removeItem(LOCAL_IDENTITY);
+  // Reset jadwal
+  remove(ref(db,SCHEDULE_PATH));
+  // Reset data pengunjung forum & tugas terkait
+  RELATED_MODULES.forEach(function(mid){
+    remove(ref(db,'visitors/math4/'+mid));
+    localStorage.removeItem('optoauto_identity_'+mid);
+  });
+  hideResetModal();
+  document.getElementById('visitorOverlay').classList.remove('hidden');
+  document.getElementById('visitorFab').style.display='none';
+}
 // Schedule
 function showScheduleModal(){
   document.getElementById('scheduleOverlay').classList.remove('hidden');
