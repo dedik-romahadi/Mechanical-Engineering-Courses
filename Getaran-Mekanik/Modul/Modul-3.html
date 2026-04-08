@@ -1,0 +1,1893 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modul 3 — Getaran Bebas Teredam</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #060a10;
+    --surface:   #0d1520;
+    --border:    #1a2840;
+    --cyan:      #00e5ff;
+    --amber:     #ffb300;
+    --green:     #00e676;
+    --pink:      #ff4081;
+    --violet:    #7c4dff;
+    --text:      #cdd6e8;
+    --muted:     #4a6080;
+    --font-display: 'DM Serif Display', serif;
+    --font-body:    'Outfit', sans-serif;
+    --font-mono:    'JetBrains Mono', monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0;
+  }
+
+  #waveCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; opacity: .3; }
+  #scrollProgress { position: fixed; top: 60px; left: 0; height: 3px; background: linear-gradient(90deg, var(--cyan), var(--violet), var(--pink)); z-index: 101; width: 0; transition: width .1s; box-shadow: 0 0 12px rgba(0,229,255,.6); }
+
+  .reveal { opacity: 0; transform: translateY(28px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  .orb { position: absolute; border-radius: 50%; filter: blur(100px); opacity: .07; pointer-events: none; }
+  .orb-1 { width: 500px; height: 500px; background: var(--violet); top: -120px; right: -80px; animation: orbA 10s ease-in-out infinite; }
+  .orb-2 { width: 400px; height: 400px; background: var(--cyan); bottom: -80px; left: -80px; animation: orbA 12s ease-in-out infinite reverse; }
+  .orb-3 { width: 300px; height: 300px; background: var(--green); top: 40%; left: 60%; animation: orbA 14s ease-in-out infinite 3s; }
+  @keyframes orbA { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(20px,-20px) scale(1.05)} 66%{transform:translate(-15px,15px) scale(.95)} }
+
+  #backToTop {
+    position: fixed; bottom: 32px; right: 32px; z-index: 99;
+    width: 48px; height: 48px; border-radius: 14px;
+    background: rgba(0,229,255,.1); border: 1px solid rgba(0,229,255,.3);
+    color: var(--cyan); font-size: 20px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transform: translateY(20px);
+    transition: opacity .3s, transform .3s, background .2s, box-shadow .2s;
+    backdrop-filter: blur(12px);
+  }
+  #backToTop.show { opacity: 1; transform: translateY(0); }
+  #backToTop:hover { background: rgba(0,229,255,.2); box-shadow: 0 8px 24px rgba(0,229,255,.15); }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(6,10,16,0.85); backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px; height: 60px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-brand { font-family: var(--font-mono); font-size: 13px; color: var(--cyan); letter-spacing: 2px; display: flex; align-items: center; gap: 10px; }
+  .nav-brand .pulse { width: 8px; height: 8px; background: var(--green); border-radius: 50%; animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,230,118,.5)} 50%{opacity:.6;box-shadow:0 0 0 6px rgba(0,230,118,0)} }
+  .nav-links { display: flex; gap: 28px; }
+  .nav-links a {
+    font-size: 12px; font-weight: 500; color: var(--muted); text-decoration: none;
+    letter-spacing: 1px; text-transform: uppercase; transition: color .2s; position: relative;
+  }
+  .nav-links a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: var(--cyan); border-radius: 2px; transition: width .3s; }
+  .nav-links a:hover { color: var(--cyan); }
+  .nav-links a:hover::after { width: 100%; }
+  .nav-badge { font-family: var(--font-mono); font-size: 11px; background: rgba(0,229,255,0.1); border: 1px solid rgba(0,229,255,0.3); color: var(--cyan); padding: 4px 12px; border-radius: 20px; }
+
+  .hero {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 80px 32px 40px; position: relative; overflow: hidden; z-index: 1;
+  }
+  .hero-grid {
+    position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(0,229,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,229,255,0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black, transparent);
+  }
+  .hero-content { position: relative; text-align: center; max-width: 900px; z-index: 2; }
+  .hero-tag {
+    display: inline-block; font-family: var(--font-mono); font-size: 11px;
+    color: var(--amber); border: 1px solid rgba(255,179,0,.35); background: rgba(255,179,0,.07);
+    padding: 5px 16px; border-radius: 20px; letter-spacing: 3px; margin-bottom: 28px; text-transform: uppercase;
+    animation: fadeDown .8s ease both;
+  }
+  @keyframes fadeDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+  h1.hero-title {
+    font-family: var(--font-display); font-size: clamp(42px, 7vw, 82px);
+    line-height: 1.05; color: #fff; margin-bottom: 24px; animation: fadeUp .8s ease .15s both;
+  }
+  h1.hero-title em { color: var(--cyan); font-style: italic; }
+  .hero-sub { font-size: 18px; color: var(--muted); max-width: 600px; margin: 0 auto 48px; font-weight: 300; animation: fadeUp .8s ease .3s both; }
+  .hero-pills { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; animation: fadeUp .8s ease .45s both; }
+  .pill {
+    font-size: 12px; font-weight: 500; padding: 7px 18px; border-radius: 20px;
+    border: 1px solid var(--border); background: rgba(255,255,255,.04); color: var(--text);
+    transition: border-color .3s, background .3s, transform .3s;
+  }
+  .pill:hover { border-color: var(--cyan); background: rgba(0,229,255,.05); transform: translateY(-2px); }
+
+  .section { max-width: 1100px; margin: 0 auto; padding: 80px 32px; position: relative; z-index: 1; }
+  .section-label {
+    font-family: var(--font-mono); font-size: 11px; color: var(--cyan);
+    letter-spacing: 4px; text-transform: uppercase; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-label::before { content: ''; width: 28px; height: 2px; background: var(--cyan); border-radius: 2px; }
+  h2.section-title { font-family: var(--font-display); font-size: clamp(28px, 4vw, 48px); color: #fff; margin-bottom: 16px; line-height: 1.15; }
+  .section-desc { font-size: 16px; color: var(--muted); max-width: 640px; margin-bottom: 48px; }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px;
+    transition: border-color .3s, transform .4s, box-shadow .4s;
+  }
+  .card:hover { border-color: var(--cyan); transform: translateY(-6px); box-shadow: 0 16px 48px rgba(0,229,255,.08); }
+  .card-icon { font-size: 28px; margin-bottom: 14px; display: inline-block; animation: float 3s ease-in-out infinite; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+  .card h3 { font-size: 17px; font-weight: 600; color: #fff; margin-bottom: 8px; }
+  .card p { font-size: 14px; color: var(--muted); }
+  .card .formula {
+    margin-top: 12px; font-family: var(--font-mono); font-size: 15px;
+    color: var(--cyan); background: rgba(0,229,255,.07); border: 1px solid rgba(0,229,255,.15);
+    padding: 8px 14px; border-radius: 8px; display: inline-block; transition: background .3s, box-shadow .3s;
+  }
+  .card:hover .formula { background: rgba(0,229,255,.12); box-shadow: 0 0 20px rgba(0,229,255,.1); }
+
+  /* Analogy box */
+  .analogy-box {
+    background: linear-gradient(135deg, rgba(124,77,255,.08), rgba(0,229,255,.05));
+    border: 1px solid rgba(124,77,255,.25); border-left: 4px solid var(--violet);
+    border-radius: 14px; padding: 22px 26px; margin-bottom: 24px;
+    font-size: 15px; color: var(--text); transition: transform .3s, box-shadow .3s;
+  }
+  .analogy-box:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(124,77,255,.1); }
+  .analogy-box .analogy-label { font-family: var(--font-mono); font-size: 11px; color: var(--violet); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; display: block; }
+
+  .anim-panel {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+    overflow: hidden; margin-bottom: 32px; transition: border-color .4s, box-shadow .4s;
+  }
+  .anim-panel:hover { border-color: rgba(0,229,255,.25); box-shadow: 0 16px 48px rgba(0,0,0,.3); }
+  .anim-header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+  .anim-dot { width: 10px; height: 10px; border-radius: 50%; animation: pulse 1.6s ease-in-out infinite; }
+  .anim-title { font-size: 14px; font-weight: 600; color: #fff; }
+  .anim-body { padding: 24px; }
+  .anim-body canvas { border-radius: 10px; background: #030810; display: block; width: 100%; }
+
+  .ctrl-row { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 16px; align-items: center; }
+  .ctrl-group { flex: 1; min-width: 160px; }
+  .ctrl-group label { font-size: 12px; color: var(--muted); font-family: var(--font-mono); display: block; margin-bottom: 6px; }
+  .ctrl-group input[type=range] { width: 100%; accent-color: var(--cyan); cursor: pointer; }
+  .ctrl-val { font-family: var(--font-mono); font-size: 13px; color: var(--cyan); font-weight: 700; }
+  .btn-anim {
+    padding: 10px 24px; border-radius: 10px; border: 1px solid rgba(0,229,255,.4);
+    background: rgba(0,229,255,.08); color: var(--cyan);
+    font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+    cursor: pointer; transition: background .2s, transform .2s, box-shadow .2s; letter-spacing: 1px;
+  }
+  .btn-anim:hover { background: rgba(0,229,255,.18); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,229,255,.15); }
+  .btn-anim:active { transform: scale(.97); }
+
+  .phase-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 700px) { .phase-grid { grid-template-columns: 1fr; } }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+
+  .code-wrap { background: #030810; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 24px; transition: box-shadow .3s; }
+  .code-wrap:hover { box-shadow: 0 0 30px rgba(0,229,255,.05); }
+  .code-header { padding: 10px 18px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .code-label { font-family: var(--font-mono); font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+  .code-dots { display: flex; gap: 6px; }
+  .code-dots span { width: 10px; height: 10px; border-radius: 50%; }
+  .code-lang { font-family: var(--font-mono); font-size: 11px; background: rgba(0,229,255,.1); color: var(--cyan); padding: 2px 10px; border-radius: 20px; border: 1px solid rgba(0,229,255,.2); }
+  pre { padding: 22px; font-family: var(--font-mono); font-size: 13px; line-height: 1.8; overflow-x: auto; color: #cdd6e8; white-space: pre; }
+  .kw { color: #7c4dff; } .fn { color: #00e5ff; } .st { color: #00e676; } .cm { color: #3d5a7c; } .nm { color: #ffb300; } .op { color: #ff4081; }
+
+  .problems { display: grid; gap: 20px; }
+  .prob {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px;
+    border-left: 4px solid var(--amber); transition: border-color .3s, transform .3s, box-shadow .3s;
+  }
+  .prob:hover { transform: translateY(-4px); box-shadow: 0 12px 36px rgba(0,0,0,.3); }
+  .prob:nth-child(2) { border-left-color: var(--cyan); }
+  .prob:nth-child(3) { border-left-color: var(--green); }
+  .prob:nth-child(4) { border-left-color: var(--pink); }
+  .prob:nth-child(5) { border-left-color: var(--violet); }
+  .prob-num { font-family: var(--font-mono); font-size: 11px; color: var(--amber); letter-spacing: 3px; margin-bottom: 8px; }
+  .prob:nth-child(2) .prob-num { color: var(--cyan); }
+  .prob:nth-child(3) .prob-num { color: var(--green); }
+  .prob:nth-child(4) .prob-num { color: var(--pink); }
+  .prob:nth-child(5) .prob-num { color: var(--violet); }
+  .prob h4 { font-size: 17px; font-weight: 600; color: #fff; margin-bottom: 10px; }
+  .prob p { font-size: 14px; color: var(--text); margin-bottom: 8px; }
+  .prob .given {
+    background: rgba(0,0,0,.3); border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px 16px; font-family: var(--font-mono); font-size: 12px; color: var(--amber); margin-top: 10px;
+  }
+  .prob .hint { margin-top: 10px; font-size: 13px; color: var(--muted); font-style: italic; }
+
+  /* Interactive answer section */
+  .answer-input-area { margin-top: 16px; }
+  .answer-input-area label { font-size: 13px; color: var(--muted); font-family: var(--font-mono); display: block; margin-bottom: 6px; }
+  .answer-input-area input[type=number], .answer-input-area select {
+    padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border);
+    background: rgba(255,255,255,.05); color: #fff; font-family: var(--font-mono); font-size: 14px;
+    outline: none; transition: border-color .2s; width: 100%; max-width: 300px; margin-bottom: 10px;
+  }
+  .answer-input-area input:focus, .answer-input-area select:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0,229,255,.12); }
+  .check-btn {
+    padding: 10px 20px; border-radius: 10px; border: 1px solid rgba(0,230,118,.4);
+    background: rgba(0,230,118,.1); color: var(--green);
+    font-family: var(--font-mono); font-size: 12px; font-weight: 700; cursor: pointer;
+    transition: background .2s, transform .2s; letter-spacing: 1px; margin-right: 8px;
+  }
+  .check-btn:hover { background: rgba(0,230,118,.2); transform: translateY(-2px); }
+  .answer-key-btn {
+    padding: 10px 20px; border-radius: 10px; border: 1px solid rgba(255,179,0,.4);
+    background: rgba(255,179,0,.08); color: var(--amber);
+    font-family: var(--font-mono); font-size: 12px; font-weight: 700; cursor: pointer;
+    transition: background .2s, transform .2s; letter-spacing: 1px;
+  }
+  .answer-key-btn:hover { background: rgba(255,179,0,.18); transform: translateY(-2px); }
+  .feedback { margin-top: 10px; padding: 12px 16px; border-radius: 10px; font-size: 13px; font-family: var(--font-mono); display: none; }
+  .feedback.correct { background: rgba(0,230,118,.1); border: 1px solid rgba(0,230,118,.3); color: var(--green); display: block; }
+  .feedback.wrong { background: rgba(255,64,129,.1); border: 1px solid rgba(255,64,129,.3); color: var(--pink); display: block; }
+  .answer-reveal {
+    margin-top: 14px; padding: 18px 22px; border-radius: 12px;
+    background: rgba(255,179,0,.06); border: 1px solid rgba(255,179,0,.2);
+    display: none; font-size: 14px; color: var(--text); line-height: 1.8;
+  }
+  .answer-reveal.show { display: block; animation: fadeUp .4s ease; }
+  .answer-reveal h5 { color: var(--amber); font-family: var(--font-mono); font-size: 12px; letter-spacing: 2px; margin-bottom: 8px; }
+  .answer-reveal .step { margin-bottom: 6px; }
+  .answer-reveal .step strong { color: var(--cyan); }
+
+  .info-box {
+    background: rgba(0,229,255,.05); border: 1px solid rgba(0,229,255,.2);
+    border-left: 4px solid var(--cyan); border-radius: 12px; padding: 18px 22px; margin-bottom: 20px;
+    font-size: 14px; color: var(--text); transition: transform .3s, box-shadow .3s;
+  }
+  .info-box:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,229,255,.06); }
+  .info-box strong { color: var(--cyan); }
+
+  .table-wrap { overflow-x: auto; margin-bottom: 32px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { background: var(--surface); border: 1px solid var(--border); padding: 12px 16px; color: var(--cyan); font-family: var(--font-mono); font-size: 12px; text-align: left; }
+  td { border: 1px solid var(--border); padding: 12px 16px; color: var(--text); }
+  tr:hover td { background: rgba(0,229,255,.03); }
+
+  footer { border-top: 1px solid var(--border); padding: 40px 32px; text-align: center; font-size: 13px; color: var(--muted); font-family: var(--font-mono); position: relative; z-index: 1; }
+  footer a { color: var(--cyan); text-decoration: none; }
+
+  /* Visitor system styles */
+  .visitor-overlay{position:fixed;inset:0;z-index:99999;background:rgba(8,14,26,.94);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity .4s}
+  .visitor-overlay.hidden{opacity:0;pointer-events:none}
+  .visitor-modal{background:var(--surface,#0f1929);border:1px solid var(--border,rgba(45,212,191,.15));border-radius:24px;padding:40px 36px;max-width:440px;width:90%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.6);animation:vModalIn .5s cubic-bezier(.16,1,.3,1)}
+  @keyframes vModalIn{0%{opacity:0;transform:translateY(30px) scale(.96)}100%{opacity:1;transform:translateY(0) scale(1)}}
+  .visitor-modal h2{font-family:'Outfit',sans-serif;font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,#5eead4,#a5f3fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
+  .visitor-modal p.sub{color:#94a3b8;font-size:.85rem;margin-bottom:28px}
+  .v-input{width:100%;padding:14px 18px;border-radius:14px;border:1px solid #334155;background:rgba(255,255,255,.05);color:#fff;font-family:'Outfit',system-ui,sans-serif;font-size:.95rem;outline:none;transition:border .25s;margin-bottom:14px}
+  .v-input::placeholder{color:#64748b}
+  .v-input:focus{border-color:#2dd4bf;box-shadow:0 0 0 3px rgba(45,212,191,.15)}
+  .v-btn-primary{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#2dd4bf,#22d3ee);color:#080e1a;font-family:'Outfit',sans-serif;font-weight:700;font-size:1rem;cursor:pointer;transition:transform .2s,box-shadow .2s;margin-top:6px}
+  .v-btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(45,212,191,.35)}
+  .v-error{color:#fb7185;font-size:.8rem;margin-bottom:10px;display:none}
+  .v-btn-cancel{width:100%;padding:12px;border-radius:14px;margin-top:12px;border:1px solid #334155;background:rgba(255,255,255,.04);color:#94a3b8;font-family:'Outfit',sans-serif;font-weight:600;font-size:.88rem;cursor:pointer;transition:all .25s}
+  .v-btn-cancel:hover{background:rgba(255,255,255,.08)}
+  .visitor-fab{position:fixed;bottom:24px;right:24px;z-index:8888;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#2dd4bf,#22d3ee);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(45,212,191,.4);transition:transform .25s,box-shadow .25s;font-size:1.4rem}
+  .visitor-fab:hover{transform:scale(1.08);box-shadow:0 8px 32px rgba(45,212,191,.5)}
+  .visitor-fab .fab-count{position:absolute;top:-4px;right:-4px;background:#fb7185;color:#fff;font-size:.65rem;font-weight:700;min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid var(--bg)}
+  .visitor-panel{position:fixed;bottom:92px;right:24px;z-index:8887;width:340px;max-height:480px;overflow:hidden;background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:0 24px 64px rgba(0,0,0,.5);display:flex;flex-direction:column;transform:translateY(12px) scale(.95);opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .25s}
+  .visitor-panel.open{transform:translateY(0) scale(1);opacity:1;pointer-events:auto}
+  .vp-header{padding:20px 22px 14px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between}
+  .vp-header h3{font-family:'Outfit',sans-serif;font-weight:700;font-size:1rem;color:#fff}
+  .vp-header .vp-badge{background:rgba(45,212,191,.12);color:#2dd4bf;font-size:.7rem;font-weight:700;padding:4px 10px;border-radius:999px}
+  .vp-list{overflow-y:auto;padding:10px 16px 16px;flex:1}
+  .vp-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;margin-bottom:6px;background:rgba(255,255,255,.03);transition:background .2s}
+  .vp-item:hover{background:rgba(255,255,255,.06)}
+  .vp-avatar{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0}
+  .vp-avatar.student{background:rgba(45,212,191,.12);color:#2dd4bf}
+  .vp-avatar.dosen{background:rgba(251,191,36,.12);color:#fbbf24}
+  .vp-info{flex:1;min-width:0}
+  .vp-name{font-weight:600;font-size:.88rem;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .vp-nim{font-size:.72rem;color:#64748b;font-family:'Courier New',monospace}
+  .vp-time{font-size:.68rem;color:#64748b;text-align:right;flex-shrink:0;white-space:nowrap}
+  .vp-empty{text-align:center;padding:32px 16px;color:#64748b;font-size:.85rem}
+  @media(max-width:480px){.visitor-panel{width:calc(100vw - 32px);right:16px;bottom:88px}.visitor-fab{bottom:18px;right:18px}}
+  @media(max-width:768px){.nav-links{display:none}}
+</style>
+</head>
+<body>
+
+<!-- ═══ VISITOR LOGIN MODAL ═══ -->
+<div class="visitor-overlay" id="visitorOverlay">
+  <div class="visitor-modal">
+    <div style="font-size:2.8rem;margin-bottom:12px;">🎓</div>
+    <h2>Selamat Datang!</h2>
+    <p class="sub">Silakan masukkan identitas Anda untuk mengakses halaman ini.</p>
+    <p class="v-error" id="vError"></p>
+    <input type="text" class="v-input" id="vNama" placeholder="Nama Lengkap" autocomplete="off">
+    <input type="text" class="v-input" id="vNim" placeholder="NIM (Nomor Induk Mahasiswa)" autocomplete="off">
+    <button class="v-btn-primary" id="vSubmit" onclick="submitVisitor()">Masuk ke Modul 3 →</button>
+    <button class="v-btn-cancel" onclick="showScheduleModal()" style="margin-top:8px;border-color:rgba(99,102,241,.3);color:#818cf8;">🕐 Atur Jadwal Perkuliahan (Admin)</button>
+  </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="visitor-overlay hidden" id="resetOverlay" style="z-index:100000;">
+  <div class="visitor-modal" style="max-width:380px;">
+    <div style="font-size:2.4rem;margin-bottom:12px;">🔐</div>
+    <h2 style="font-size:1.3rem;">Konfirmasi Reset</h2>
+    <p class="sub">Masukkan password untuk menghapus semua data pengunjung.</p>
+    <p class="v-error" id="resetError">⚠ Password salah.</p>
+    <input type="password" class="v-input" id="resetPw" placeholder="Password" autocomplete="off">
+    <button class="v-btn-primary" style="background:linear-gradient(135deg,#fb7185,#f43f5e);" onclick="confirmReset()">Hapus Semua Pengunjung</button>
+    <button class="v-btn-cancel" onclick="hideResetModal()">Batal</button>
+  </div>
+</div>
+
+<!-- Schedule Modal -->
+<div class="visitor-overlay hidden" id="scheduleOverlay" style="z-index:100000;">
+  <div class="visitor-modal" style="max-width:480px;width:95%;">
+    <div style="font-size:2.4rem;margin-bottom:12px;">🕐</div>
+    <h2 style="font-size:1.3rem;">Atur Jadwal Perkuliahan</h2>
+    <p class="sub">Masukkan password, durasi (hari), dan batas waktu akhir.</p>
+    <p class="v-error" id="scheduleError"></p>
+    <input type="password" class="v-input" id="schedulePw" placeholder="Password" autocomplete="off">
+    <div style="display:flex;gap:10px;margin-bottom:14px;">
+      <div style="flex:1;text-align:left;">
+        <label style="font-size:.75rem;color:#94a3b8;font-weight:600;display:block;margin-bottom:4px;">Durasi (hari)</label>
+        <input type="number" class="v-input" id="scheduleDuration" min="1" value="7" placeholder="7" style="margin-bottom:0;">
+      </div>
+      <div style="flex:1;text-align:left;">
+        <label style="font-size:.75rem;color:#94a3b8;font-weight:600;display:block;margin-bottom:4px;">Batas Akhir (Due Date)</label>
+        <input type="datetime-local" class="v-input" id="scheduleDue" style="margin-bottom:0;">
+      </div>
+    </div>
+    <button class="v-btn-primary" onclick="saveSchedule()">💾 Simpan Jadwal</button>
+    <button class="v-btn-cancel" onclick="hideScheduleModal()">Batal</button>
+  </div>
+</div>
+
+<!-- Floating Visitor Button -->
+<button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Daftar Pengunjung">👥<span class="fab-count" id="fabCount">0</span></button>
+
+<!-- Visitor Panel -->
+<div class="visitor-panel" id="visitorPanel">
+  <div class="vp-header"><h3>👥 Pengunjung</h3><span class="vp-badge" id="vpBadge">0 orang</span></div>
+  <div class="vp-list" id="vpList"><div class="vp-empty">Memuat data pengunjung...</div></div>
+</div>
+
+<div id="scrollProgress"></div>
+<canvas id="waveCanvas"></canvas>
+<button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<!-- ═══════════════════════ NAVBAR ═══════════════════════ -->
+<nav>
+  <span class="nav-brand"><span class="pulse"></span> GETARANMESIN // MODUL 3</span>
+  <div class="nav-links">
+    <a href="#teori">Teori</a>
+    <a href="#analogi">Analogi</a>
+    <a href="#animasi">Animasi</a>
+    <a href="#fase">Fase</a>
+    <a href="#jupyter">Jupyter</a>
+    <a href="#latihan">Latihan</a>
+  </div>
+  <span class="nav-badge">👨‍🏫 DEDIK ROMAHADI</span>
+</nav>
+
+<!-- ═══════════════════════ HERO ═══════════════════════ -->
+<div class="hero">
+  <div class="hero-grid"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="hero-content">
+    <span class="hero-tag">〰️ Modul 3 • Getaran Mekanik</span>
+    <h1 class="hero-title">Getaran Bebas<br><em>Teredam</em></h1>
+    <p class="hero-sub">Memahami perilaku sistem getaran saat energi terdisipasi: Underdamped, Critically Damped, dan Overdamped.</p>
+    <div class="hero-pills">
+      <span class="pill">💧 Damping Ratio ζ</span>
+      <span class="pill">📉 Underdamped</span>
+      <span class="pill">⚖️ Critically Damped</span>
+      <span class="pill">🐌 Overdamped</span>
+      <span class="pill">📊 Logarithmic Decrement</span>
+      <span class="pill">🐍 Python Simulation</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ TEORI DASAR ═══════════════════ -->
+<hr class="divider">
+<div class="section" id="teori">
+  <div class="section-label reveal">Bagian 01</div>
+  <h2 class="section-title reveal">Teori Getaran<br>Bebas Teredam</h2>
+  <p class="section-desc reveal">Ketika sistem getaran kehilangan energi akibat gesekan atau peredam (damper), amplitudo getaran akan berkurang seiring waktu. Perilaku ini ditentukan oleh <strong style="color:var(--cyan)">rasio redaman (ζ)</strong>.</p>
+
+  <div class="info-box reveal">
+    <strong>Persamaan Gerak:</strong> Untuk sistem massa-pegas-peredam tanpa gaya luar, persamaan geraknya adalah: <code style="font-family:var(--font-mono);color:var(--cyan);">mẍ + cẋ + kx = 0</code>. Solusi bergantung pada nilai rasio redaman ζ = c / cₖᵣ, dimana cₖᵣ = 2√(km) adalah <strong>redaman kritis</strong>.
+  </div>
+
+  <div class="cards" style="margin-bottom:40px;">
+    <div class="card reveal" style="border-left:3px solid var(--cyan);">
+      <div class="card-icon">🌊</div>
+      <h3>Underdamped (ζ &lt; 1)</h3>
+      <p>Sistem masih berosilasi, tetapi amplitudo menurun secara eksponensial seiring waktu. Ini adalah kondisi paling umum pada mesin dan struktur.</p>
+      <span class="formula">x(t) = X₀ e⁻ᶻωₙᵗ sin(ωd·t + φ)</span>
+      <p style="margin-top:10px;font-size:13px;color:var(--muted)">ωd = ωₙ√(1−ζ²) adalah <strong style="color:var(--cyan)">frekuensi teredam</strong></p>
+    </div>
+    <div class="card reveal" style="border-left:3px solid var(--amber);">
+      <div class="card-icon">⚖️</div>
+      <h3>Critically Damped (ζ = 1)</h3>
+      <p>Sistem kembali ke posisi setimbang secepat mungkin <strong>tanpa berosilasi</strong>. Ini adalah batas antara osilasi dan non-osilasi.</p>
+      <span class="formula">x(t) = (A + Bt) e⁻ωₙᵗ</span>
+      <p style="margin-top:10px;font-size:13px;color:var(--muted)">Redaman kritis: c = cₖᵣ = 2√(km)</p>
+    </div>
+    <div class="card reveal" style="border-left:3px solid var(--pink);">
+      <div class="card-icon">🐌</div>
+      <h3>Overdamped (ζ &gt; 1)</h3>
+      <p>Sistem kembali ke posisi setimbang tanpa berosilasi, tetapi <strong>lebih lambat</strong> dari critically damped. Terlalu banyak redaman justru memperlambat sistem.</p>
+      <span class="formula">x(t) = C₁e^(s₁t) + C₂e^(s₂t)</span>
+      <p style="margin-top:10px;font-size:13px;color:var(--muted)">s₁,s₂ = −ζωₙ ± ωₙ√(ζ²−1) — keduanya negatif</p>
+    </div>
+  </div>
+
+  <!-- Tabel ringkasan -->
+  <div class="table-wrap reveal">
+    <table>
+      <thead><tr><th>Parameter</th><th>Underdamped (ζ&lt;1)</th><th>Critically Damped (ζ=1)</th><th>Overdamped (ζ&gt;1)</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--cyan);font-weight:600">Perilaku</td><td>Osilasi dengan amplitudo menurun</td><td>Kembali tanpa osilasi (tercepat)</td><td>Kembali tanpa osilasi (lambat)</td></tr>
+        <tr><td style="color:var(--cyan);font-weight:600">Akar Karakteristik</td><td>Kompleks konjugat</td><td>Akar kembar real</td><td>Dua akar real negatif</td></tr>
+        <tr><td style="color:var(--cyan);font-weight:600">Frek. Teredam ωd</td><td>ωₙ√(1−ζ²)</td><td>Tidak ada (ωd = 0)</td><td>Tidak ada</td></tr>
+        <tr><td style="color:var(--cyan);font-weight:600">Contoh Nyata</td><td>Suspensi mobil, ayunan</td><td>Door closer ideal</td><td>Shock absorber tebal</td></tr>
+        <tr><td style="color:var(--cyan);font-weight:600">Diagram Fase</td><td>Spiral menuju origin</td><td>Kurva langsung ke origin</td><td>Kurva eksponensial ke origin</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Logarithmic Decrement -->
+  <div class="info-box reveal">
+    <strong>Logarithmic Decrement (δ):</strong> Ukuran seberapa cepat amplitudo menurun pada sistem underdamped. Dihitung dari rasio dua puncak berturutan:
+    <code style="font-family:var(--font-mono);color:var(--cyan);display:block;margin-top:8px;font-size:15px;">δ = ln(x₁/x₂) = 2πζ / √(1−ζ²)</code>
+    <span style="display:block;margin-top:6px;font-size:13px;color:var(--muted)">Dari pengukuran δ, kita bisa menentukan ζ: <code style="color:var(--amber);font-family:var(--font-mono);">ζ = δ / √(4π² + δ²)</code></span>
+  </div>
+</div>
+
+<!-- ═══════════════════ ANALOGI ═══════════════════ -->
+<hr class="divider">
+<div class="section" id="analogi">
+  <div class="section-label reveal">Bagian 02</div>
+  <h2 class="section-title reveal">Analogi<br>Kehidupan Sehari-hari</h2>
+  <p class="section-desc reveal">Konsep redaman akan lebih mudah dipahami dengan analogi yang dekat dengan pengalaman kita.</p>
+
+  <div class="analogy-box reveal">
+    <span class="analogy-label">🚗 Analogi 1 — Suspensi Mobil</span>
+    Bayangkan mobil Anda melewati polisi tidur. <strong style="color:var(--cyan)">Underdamped:</strong> Mobil memantul beberapa kali sebelum berhenti (suspensi terlalu empuk). <strong style="color:var(--amber)">Critically damped:</strong> Mobil memantul sekali dan langsung stabil (suspensi ideal). <strong style="color:var(--pink)">Overdamped:</strong> Mobil kembali sangat lambat dan terasa "keras" (suspensi terlalu kaku, tidak nyaman).
+  </div>
+
+  <div class="analogy-box reveal" style="border-left-color:var(--cyan);">
+    <span class="analogy-label" style="color:var(--cyan);">🚪 Analogi 2 — Pintu Door Closer</span>
+    Perhatikan pintu dengan penutup otomatis (door closer). Jika mekanismenya terlalu longgar, pintu <strong style="color:var(--cyan)">berayun bolak-balik</strong> beberapa kali sebelum menutup (underdamped). Jika diatur sempurna, pintu menutup <strong style="color:var(--amber)">dengan lembut dan cepat</strong> tanpa memantul (critically damped). Jika terlalu kencang, pintu <strong style="color:var(--pink)">menutup sangat lambat</strong> dan menjengkelkan (overdamped).
+  </div>
+
+  <div class="analogy-box reveal" style="border-left-color:var(--green);background:linear-gradient(135deg, rgba(0,230,118,.08), rgba(0,229,255,.03));">
+    <span class="analogy-label" style="color:var(--green);">☕ Analogi 3 — Kopi di Cangkir</span>
+    Saat Anda membawa cangkir kopi sambil berjalan: Jika kopi <strong style="color:var(--cyan)">bergoyang-goyang</strong> beberapa kali dan hampir tumpah, itu seperti underdamped. Jika Anda membawa dengan sangat hati-hati dan kopi <strong style="color:var(--amber)">langsung diam</strong> tanpa bergoyang, itu critically damped. Jika Anda menaruh kopi sangat kental (seperti madu) yang <strong style="color:var(--pink)">sangat lambat berhenti</strong>, itu overdamped.
+  </div>
+
+  <div class="analogy-box reveal" style="border-left-color:var(--pink);background:linear-gradient(135deg, rgba(255,64,129,.08), rgba(0,229,255,.03));">
+    <span class="analogy-label" style="color:var(--pink);">🏀 Analogi 4 — Bola Basket vs Bola Bowling</span>
+    Jatuhkan bola ke lantai: <strong style="color:var(--cyan)">Bola basket (underdamped)</strong> memantul berkali-kali dengan ketinggian yang makin berkurang. <strong style="color:var(--amber)">Bola tenis di pasir (critically damped)</strong> memantul sekali kecil dan langsung berhenti. <strong style="color:var(--pink)">Bola bowling di lumpur (overdamped)</strong> mendarat dan tenggelam perlahan tanpa memantul sama sekali.
+  </div>
+</div>
+
+<!-- ═══════════════════ ANIMASI ═══════════════════ -->
+<hr class="divider">
+<div class="section" id="animasi">
+  <div class="section-label reveal">Bagian 03</div>
+  <h2 class="section-title reveal">Animasi Interaktif<br>Tiga Kondisi Redaman</h2>
+  <p class="section-desc reveal">Ubah parameter dan amati perbedaan perilaku masing-masing kondisi redaman secara real-time.</p>
+
+  <!-- ANIMASI 1: Perbandingan 3 Redaman -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--cyan)"></div>
+      <span class="anim-title">Animasi 1 — Perbandingan Tiga Kondisi Redaman</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cv1" height="260"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group">
+          <label>Frekuensi Alami ωₙ (rad/s) — <span class="ctrl-val" id="v_wn">5.0</span></label>
+          <input type="range" id="sl_wn" min="2" max="12" step="0.5" value="5">
+        </div>
+        <div class="ctrl-group">
+          <label>Amplitudo Awal x₀ (m) — <span class="ctrl-val" id="v_x0">1.0</span></label>
+          <input type="range" id="sl_x0" min="0.2" max="2.0" step="0.1" value="1">
+        </div>
+        <button class="btn-anim" id="btn1" onclick="toggleAnim1()">⏸ PAUSE</button>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:24px;flex-wrap:wrap;font-size:12px;font-family:var(--font-mono)">
+        <span style="color:#00e5ff">── Underdamped (ζ=0.1)</span>
+        <span style="color:#ffb300">── Critically Damped (ζ=1.0)</span>
+        <span style="color:#ff4081">── Overdamped (ζ=2.0)</span>
+        <span style="color:rgba(255,255,255,.3)">┊ Envelope e⁻ᶻωₙᵗ</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANIMASI 2: Massa-Pegas-Dashpot Visual -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--amber)"></div>
+      <span class="anim-title">Animasi 2 — Sistem Massa-Pegas-Dashpot Interaktif</span>
+    </div>
+    <div class="anim-body">
+      <div style="display:grid;grid-template-columns:320px 1fr;gap:16px;align-items:start;">
+        <canvas id="cv2mech" height="300" style="min-width:0"></canvas>
+        <canvas id="cv2plot" height="300" style="min-width:0"></canvas>
+      </div>
+      <div class="ctrl-row">
+        <div class="ctrl-group">
+          <label>Massa m (kg) — <span class="ctrl-val" id="v_m">1.0</span></label>
+          <input type="range" id="sl_m" min="0.5" max="5" step="0.1" value="1">
+        </div>
+        <div class="ctrl-group">
+          <label>Kekakuan k (N/m) — <span class="ctrl-val" id="v_k">25</span></label>
+          <input type="range" id="sl_k" min="5" max="100" step="5" value="25">
+        </div>
+        <div class="ctrl-group">
+          <label>Redaman c (Ns/m) — <span class="ctrl-val" id="v_c">1.0</span></label>
+          <input type="range" id="sl_c" min="0" max="30" step="0.5" value="1">
+        </div>
+        <button class="btn-anim" id="btn2" onclick="toggleAnim2()">⏸ PAUSE</button>
+      </div>
+      <div id="info_zeta" style="margin-top:8px;font-family:var(--font-mono);font-size:13px;color:var(--green)">
+        ζ = 0.10 | ωₙ = 5.00 rad/s | ωd = 4.97 rad/s | Kondisi: UNDERDAMPED
+      </div>
+    </div>
+  </div>
+
+  <!-- ANIMASI 3: Logarithmic Decrement Visual -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--green)"></div>
+      <span class="anim-title">Animasi 3 — Logarithmic Decrement (Mengukur Redaman)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cv3" height="260"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group">
+          <label>Rasio Redaman ζ — <span class="ctrl-val" id="v_zeta3">0.10</span></label>
+          <input type="range" id="sl_zeta3" min="0.01" max="0.5" step="0.01" value="0.1">
+        </div>
+        <div class="ctrl-group">
+          <label>ωₙ (rad/s) — <span class="ctrl-val" id="v_wn3">5.0</span></label>
+          <input type="range" id="sl_wn3" min="2" max="12" step="0.5" value="5">
+        </div>
+      </div>
+      <div id="info_logdec" style="margin-top:8px;font-family:var(--font-mono);font-size:13px;color:var(--green)"></div>
+    </div>
+  </div>
+
+  <!-- ANIMASI 4: Energi Sistem -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--pink)"></div>
+      <span class="anim-title">Animasi 4 — Disipasi Energi Sistem Teredam</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cv4" height="260"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group">
+          <label>Rasio Redaman ζ — <span class="ctrl-val" id="v_zeta4">0.15</span></label>
+          <input type="range" id="sl_zeta4" min="0.01" max="0.6" step="0.01" value="0.15">
+        </div>
+        <button class="btn-anim" onclick="drawEnergy()">🔄 REDRAW</button>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:24px;flex-wrap:wrap;font-size:12px;font-family:var(--font-mono)">
+        <span style="color:#00e5ff">── Energi Kinetik (½mẋ²)</span>
+        <span style="color:#00e676">── Energi Potensial (½kx²)</span>
+        <span style="color:#ffb300">── Energi Total</span>
+        <span style="color:#ff4081">── Daya Disipasi (cẋ²)</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ DIAGRAM FASE ═══════════════════ -->
+<hr class="divider">
+<div class="section" id="fase">
+  <div class="section-label reveal">Bagian 04</div>
+  <h2 class="section-title reveal">Diagram Fase<br>Getaran Teredam</h2>
+  <p class="section-desc reveal">Diagram fase menunjukkan bagaimana trajektori sistem berubah pada berbagai kondisi redaman. Perhatikan perbedaan pola spiral (underdamped) vs langsung menuju origin (critically/overdamped).</p>
+
+  <div class="phase-grid">
+    <div class="anim-panel reveal">
+      <div class="anim-header">
+        <div class="anim-dot" style="background:var(--cyan)"></div>
+        <span class="anim-title">Underdamped (ζ = 0.08)</span>
+      </div>
+      <div class="anim-body">
+        <canvas id="ph1" width="400" height="300"></canvas>
+        <p style="font-size:12px;color:var(--muted);margin-top:8px;font-family:var(--font-mono)">Spiral menuju origin — amplitudo menurun tiap siklus</p>
+      </div>
+    </div>
+    <div class="anim-panel reveal">
+      <div class="anim-header">
+        <div class="anim-dot" style="background:var(--green)"></div>
+        <span class="anim-title">Underdamped (ζ = 0.3)</span>
+      </div>
+      <div class="anim-body">
+        <canvas id="ph2" width="400" height="300"></canvas>
+        <p style="font-size:12px;color:var(--muted);margin-top:8px;font-family:var(--font-mono)">Spiral lebih cepat menuju origin — redaman lebih besar</p>
+      </div>
+    </div>
+    <div class="anim-panel reveal">
+      <div class="anim-header">
+        <div class="anim-dot" style="background:var(--amber)"></div>
+        <span class="anim-title">Critically Damped (ζ = 1.0)</span>
+      </div>
+      <div class="anim-body">
+        <canvas id="ph3" width="400" height="300"></canvas>
+        <p style="font-size:12px;color:var(--muted);margin-top:8px;font-family:var(--font-mono)">Langsung menuju origin — jalur tercepat tanpa osilasi</p>
+      </div>
+    </div>
+    <div class="anim-panel reveal">
+      <div class="anim-header">
+        <div class="anim-dot" style="background:var(--pink)"></div>
+        <span class="anim-title">Overdamped (ζ = 2.0)</span>
+      </div>
+      <div class="anim-body">
+        <canvas id="ph4" width="400" height="300"></canvas>
+        <p style="font-size:12px;color:var(--muted);margin-top:8px;font-family:var(--font-mono)">Mendekati origin lebih lambat — terlalu banyak redaman</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ JUPYTER NOTEBOOK ═══════════════════ -->
+<hr class="divider">
+<div class="section" id="jupyter">
+  <div class="section-label reveal">Bagian 05</div>
+  <h2 class="section-title reveal">Simulasi di<br>Jupyter Notebook</h2>
+  <p class="section-desc reveal">Copy-paste kode berikut ke file <code style="font-family:var(--font-mono);color:var(--cyan);background:rgba(0,229,255,.07);padding:2px 8px;border-radius:4px">getaran_teredam.ipynb</code> di VS Code. Pastikan environment <code style="font-family:var(--font-mono);color:var(--amber)">getaran</code> sudah aktif.</p>
+
+  <div class="info-box reveal">
+    <strong>Cara Membuka Jupyter Notebook di VS Code:</strong><br>
+    1. Buka VS Code → tekan <code style="color:var(--cyan)">Ctrl+Shift+P</code> → ketik "Create: New Jupyter Notebook"<br>
+    2. Pilih kernel Python (environment <code style="color:var(--amber)">getaran</code>)<br>
+    3. Copy-paste setiap cell di bawah ke cell baru di notebook Anda<br>
+    4. Jalankan setiap cell dengan <code style="color:var(--cyan)">Shift+Enter</code>
+  </div>
+
+  <!-- CELL 1 -->
+  <div class="code-wrap reveal">
+    <div class="code-header">
+      <span class="code-label"><span class="code-dots"><span style="background:#ef4444"></span><span style="background:#f59e0b"></span><span style="background:#10b981"></span></span> &nbsp;CELL 1 — Import Library</span>
+      <span class="code-lang">Python</span>
+    </div>
+    <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+<span class="kw">from</span> scipy.integrate <span class="kw">import</span> solve_ivp
+<span class="kw">from</span> matplotlib.animation <span class="kw">import</span> FuncAnimation
+<span class="kw">from</span> IPython.display <span class="kw">import</span> HTML
+
+<span class="cm"># ── Styling ala dark-mode ──</span>
+plt.rcParams.update({
+    <span class="st">'figure.facecolor'</span>: <span class="st">'#060a10'</span>,
+    <span class="st">'axes.facecolor'</span>: <span class="st">'#0d1520'</span>,
+    <span class="st">'axes.edgecolor'</span>: <span class="st">'#1a2840'</span>,
+    <span class="st">'text.color'</span>: <span class="st">'#cdd6e8'</span>,
+    <span class="st">'xtick.color'</span>: <span class="st">'#4a6080'</span>,
+    <span class="st">'ytick.color'</span>: <span class="st">'#4a6080'</span>,
+    <span class="st">'axes.labelcolor'</span>: <span class="st">'#4a6080'</span>,
+    <span class="st">'font.size'</span>: <span class="nm">11</span>,
+})
+
+<span class="fn">print</span>(<span class="st">"✅ Library berhasil dimuat!"</span>)</pre>
+  </div>
+
+  <!-- CELL 2 -->
+  <div class="code-wrap reveal">
+    <div class="code-header">
+      <span class="code-label"><span class="code-dots"><span style="background:#ef4444"></span><span style="background:#f59e0b"></span><span style="background:#10b981"></span></span> &nbsp;CELL 2 — Solver & Perbandingan 3 Kondisi Redaman</span>
+      <span class="code-lang">Python</span>
+    </div>
+    <pre><span class="cm"># ── Fungsi persamaan gerak getaran bebas teredam ──</span>
+<span class="kw">def</span> <span class="fn">free_damped</span>(t, y, m, c, k):
+    x, xdot <span class="op">=</span> y
+    <span class="kw">return</span> [xdot, <span class="op">-</span>(c<span class="op">/</span>m)<span class="op">*</span>xdot <span class="op">-</span> (k<span class="op">/</span>m)<span class="op">*</span>x]
+
+<span class="cm"># ── Parameter dasar ──</span>
+m <span class="op">=</span> <span class="nm">1.0</span>   <span class="cm"># kg</span>
+k <span class="op">=</span> <span class="nm">25.0</span>  <span class="cm"># N/m  →  ωₙ = 5 rad/s</span>
+wn <span class="op">=</span> np.<span class="fn">sqrt</span>(k<span class="op">/</span>m)
+cc <span class="op">=</span> <span class="nm">2</span><span class="op">*</span>np.<span class="fn">sqrt</span>(k<span class="op">*</span>m)   <span class="cm"># redaman kritis</span>
+
+<span class="cm"># 3 kondisi redaman</span>
+cases <span class="op">=</span> [
+    {<span class="st">'label'</span>: <span class="st">'Underdamped (ζ=0.1)'</span>,  <span class="st">'zeta'</span>: <span class="nm">0.1</span>, <span class="st">'color'</span>: <span class="st">'#00e5ff'</span>},
+    {<span class="st">'label'</span>: <span class="st">'Critically (ζ=1.0)'</span>,   <span class="st">'zeta'</span>: <span class="nm">1.0</span>, <span class="st">'color'</span>: <span class="st">'#ffb300'</span>},
+    {<span class="st">'label'</span>: <span class="st">'Overdamped (ζ=2.0)'</span>,   <span class="st">'zeta'</span>: <span class="nm">2.0</span>, <span class="st">'color'</span>: <span class="st">'#ff4081'</span>},
+]
+
+t_span <span class="op">=</span> (<span class="nm">0</span>, <span class="nm">10</span>)
+t_eval <span class="op">=</span> np.<span class="fn">linspace</span>(<span class="nm">0</span>, <span class="nm">10</span>, <span class="nm">2000</span>)
+y0 <span class="op">=</span> [<span class="nm">1.0</span>, <span class="nm">0.0</span>]  <span class="cm"># x₀ = 1 m, ẋ₀ = 0</span>
+
+fig, (ax1, ax2) <span class="op">=</span> plt.<span class="fn">subplots</span>(<span class="nm">1</span>, <span class="nm">2</span>, figsize<span class="op">=</span>(<span class="nm">14</span>, <span class="nm">5</span>))
+
+<span class="kw">for</span> case <span class="kw">in</span> cases:
+    c <span class="op">=</span> case[<span class="st">'zeta'</span>] <span class="op">*</span> cc
+    sol <span class="op">=</span> <span class="fn">solve_ivp</span>(free_damped, t_span, y0,
+                     t_eval<span class="op">=</span>t_eval, args<span class="op">=</span>(m, c, k),
+                     max_step<span class="op">=</span><span class="nm">0.01</span>)
+    ax1.<span class="fn">plot</span>(sol.t, sol.y[<span class="nm">0</span>], color<span class="op">=</span>case[<span class="st">'color'</span>],
+            lw<span class="op">=</span><span class="nm">2</span>, label<span class="op">=</span>case[<span class="st">'label'</span>])
+    ax2.<span class="fn">plot</span>(sol.y[<span class="nm">0</span>], sol.y[<span class="nm">1</span>], color<span class="op">=</span>case[<span class="st">'color'</span>],
+            lw<span class="op">=</span><span class="nm">1.5</span>, label<span class="op">=</span>case[<span class="st">'label'</span>])
+
+<span class="cm"># Envelope underdamped</span>
+env <span class="op">=</span> y0[<span class="nm">0</span>] <span class="op">*</span> np.<span class="fn">exp</span>(<span class="op">-</span><span class="nm">0.1</span><span class="op">*</span>wn<span class="op">*</span>t_eval)
+ax1.<span class="fn">plot</span>(t_eval, env, <span class="st">'--'</span>, color<span class="op">=</span><span class="st">'#00e5ff'</span>, alpha<span class="op">=</span><span class="nm">0.4</span>, lw<span class="op">=</span><span class="nm">1</span>)
+ax1.<span class="fn">plot</span>(t_eval, <span class="op">-</span>env, <span class="st">'--'</span>, color<span class="op">=</span><span class="st">'#00e5ff'</span>, alpha<span class="op">=</span><span class="nm">0.4</span>, lw<span class="op">=</span><span class="nm">1</span>)
+
+ax1.<span class="fn">set_xlabel</span>(<span class="st">'Waktu t (s)'</span>); ax1.<span class="fn">set_ylabel</span>(<span class="st">'Perpindahan x (m)'</span>)
+ax1.<span class="fn">set_title</span>(<span class="st">'Respons Waktu — 3 Kondisi Redaman'</span>, color<span class="op">=</span><span class="st">'white'</span>)
+ax1.<span class="fn">legend</span>(fontsize<span class="op">=</span><span class="nm">9</span>); ax1.<span class="fn">axhline</span>(<span class="nm">0</span>, color<span class="op">=</span><span class="st">'#1a2840'</span>, lw<span class="op">=</span><span class="nm">0.8</span>)
+
+ax2.<span class="fn">set_xlabel</span>(<span class="st">'x (m)'</span>); ax2.<span class="fn">set_ylabel</span>(<span class="st">'ẋ (m/s)'</span>)
+ax2.<span class="fn">set_title</span>(<span class="st">'Diagram Fase'</span>, color<span class="op">=</span><span class="st">'white'</span>)
+ax2.<span class="fn">legend</span>(fontsize<span class="op">=</span><span class="nm">9</span>)
+ax2.<span class="fn">axhline</span>(<span class="nm">0</span>, color<span class="op">=</span><span class="st">'#1a2840'</span>, lw<span class="op">=</span><span class="nm">0.8</span>)
+ax2.<span class="fn">axvline</span>(<span class="nm">0</span>, color<span class="op">=</span><span class="st">'#1a2840'</span>, lw<span class="op">=</span><span class="nm">0.8</span>)
+
+plt.<span class="fn">tight_layout</span>()
+plt.<span class="fn">show</span>()</pre>
+  </div>
+
+  <!-- CELL 3 -->
+  <div class="code-wrap reveal">
+    <div class="code-header">
+      <span class="code-label"><span class="code-dots"><span style="background:#ef4444"></span><span style="background:#f59e0b"></span><span style="background:#10b981"></span></span> &nbsp;CELL 3 — Logarithmic Decrement</span>
+      <span class="code-lang">Python</span>
+    </div>
+    <pre><span class="cm"># ── Hitung dan visualisasikan logarithmic decrement ──</span>
+zeta <span class="op">=</span> <span class="nm">0.1</span>
+c <span class="op">=</span> zeta <span class="op">*</span> cc
+sol <span class="op">=</span> <span class="fn">solve_ivp</span>(free_damped, (<span class="nm">0</span>, <span class="nm">15</span>), [<span class="nm">1.0</span>, <span class="nm">0.0</span>],
+                 t_eval<span class="op">=</span>np.<span class="fn">linspace</span>(<span class="nm">0</span>, <span class="nm">15</span>, <span class="nm">5000</span>),
+                 args<span class="op">=</span>(m, c, k), max_step<span class="op">=</span><span class="nm">0.005</span>)
+
+<span class="cm"># Cari puncak-puncak positif</span>
+x <span class="op">=</span> sol.y[<span class="nm">0</span>]
+peaks <span class="op">=</span> []
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">1</span>, <span class="fn">len</span>(x)<span class="op">-</span><span class="nm">1</span>):
+    <span class="kw">if</span> x[i] <span class="op">></span> x[i<span class="op">-</span><span class="nm">1</span>] <span class="kw">and</span> x[i] <span class="op">></span> x[i<span class="op">+</span><span class="nm">1</span>] <span class="kw">and</span> x[i] <span class="op">></span> <span class="nm">0.01</span>:
+        peaks.<span class="fn">append</span>(i)
+
+fig, ax <span class="op">=</span> plt.<span class="fn">subplots</span>(figsize<span class="op">=</span>(<span class="nm">12</span>, <span class="nm">5</span>))
+ax.<span class="fn">plot</span>(sol.t, x, color<span class="op">=</span><span class="st">'#00e5ff'</span>, lw<span class="op">=</span><span class="nm">2</span>)
+
+<span class="cm"># Tandai puncak dan hitung δ</span>
+<span class="kw">for</span> i, pk <span class="kw">in</span> <span class="fn">enumerate</span>(peaks[:<span class="nm">6</span>]):
+    ax.<span class="fn">plot</span>(sol.t[pk], x[pk], <span class="st">'o'</span>, color<span class="op">=</span><span class="st">'#ffb300'</span>, ms<span class="op">=</span><span class="nm">10</span>)
+    ax.<span class="fn">annotate</span>(<span class="st">f'x{i+1}={x[pk]:.3f}'</span>,
+                (sol.t[pk], x[pk]),
+                textcoords<span class="op">=</span><span class="st">"offset points"</span>,
+                xytext<span class="op">=</span>(<span class="nm">10</span>, <span class="nm">10</span>),
+                color<span class="op">=</span><span class="st">'#ffb300'</span>, fontsize<span class="op">=</span><span class="nm">9</span>)
+    <span class="kw">if</span> i <span class="op">></span> <span class="nm">0</span>:
+        delta <span class="op">=</span> np.<span class="fn">log</span>(x[peaks[i<span class="op">-</span><span class="nm">1</span>]] <span class="op">/</span> x[pk])
+        t_mid <span class="op">=</span> (sol.t[peaks[i<span class="op">-</span><span class="nm">1</span>]] <span class="op">+</span> sol.t[pk]) <span class="op">/</span> <span class="nm">2</span>
+        ax.<span class="fn">annotate</span>(<span class="st">f'δ={delta:.4f}'</span>,
+                    (t_mid, (x[peaks[i<span class="op">-</span><span class="nm">1</span>]]<span class="op">+</span>x[pk])<span class="op">/</span><span class="nm">2</span>),
+                    color<span class="op">=</span><span class="st">'#ff4081'</span>, fontsize<span class="op">=</span><span class="nm">9</span>,
+                    ha<span class="op">=</span><span class="st">'center'</span>)
+
+<span class="cm"># Teori: δ = 2πζ/√(1-ζ²)</span>
+delta_teori <span class="op">=</span> <span class="nm">2</span><span class="op">*</span>np.pi<span class="op">*</span>zeta <span class="op">/</span> np.<span class="fn">sqrt</span>(<span class="nm">1</span> <span class="op">-</span> zeta<span class="op">**</span><span class="nm">2</span>)
+<span class="fn">print</span>(<span class="st">f"Logarithmic Decrement teoritis: δ = {delta_teori:.4f}"</span>)
+<span class="fn">print</span>(<span class="st">f"ζ dari δ: {delta_teori / np.sqrt(4*np.pi**2 + delta_teori**2):.4f}"</span>)
+
+ax.<span class="fn">set_xlabel</span>(<span class="st">'Waktu t (s)'</span>)
+ax.<span class="fn">set_ylabel</span>(<span class="st">'Perpindahan x (m)'</span>)
+ax.<span class="fn">set_title</span>(<span class="st">f'Logarithmic Decrement — ζ = {zeta}'</span>, color<span class="op">=</span><span class="st">'white'</span>)
+ax.<span class="fn">axhline</span>(<span class="nm">0</span>, color<span class="op">=</span><span class="st">'#1a2840'</span>, lw<span class="op">=</span><span class="nm">0.8</span>)
+plt.<span class="fn">tight_layout</span>()
+plt.<span class="fn">show</span>()</pre>
+  </div>
+
+  <!-- CELL 4 -->
+  <div class="code-wrap reveal">
+    <div class="code-header">
+      <span class="code-label"><span class="code-dots"><span style="background:#ef4444"></span><span style="background:#f59e0b"></span><span style="background:#10b981"></span></span> &nbsp;CELL 4 — Analisis Energi Disipasi</span>
+      <span class="code-lang">Python</span>
+    </div>
+    <pre><span class="cm"># ── Energi sistem teredam ──</span>
+zeta <span class="op">=</span> <span class="nm">0.15</span>
+c <span class="op">=</span> zeta <span class="op">*</span> cc
+sol <span class="op">=</span> <span class="fn">solve_ivp</span>(free_damped, (<span class="nm">0</span>, <span class="nm">20</span>), [<span class="nm">1.0</span>, <span class="nm">0.0</span>],
+                 t_eval<span class="op">=</span>np.<span class="fn">linspace</span>(<span class="nm">0</span>, <span class="nm">20</span>, <span class="nm">4000</span>),
+                 args<span class="op">=</span>(m, c, k), max_step<span class="op">=</span><span class="nm">0.005</span>)
+
+x, xd <span class="op">=</span> sol.y[<span class="nm">0</span>], sol.y[<span class="nm">1</span>]
+EK <span class="op">=</span> <span class="nm">0.5</span> <span class="op">*</span> m <span class="op">*</span> xd<span class="op">**</span><span class="nm">2</span>      <span class="cm"># Energi kinetik</span>
+EP <span class="op">=</span> <span class="nm">0.5</span> <span class="op">*</span> k <span class="op">*</span> x<span class="op">**</span><span class="nm">2</span>       <span class="cm"># Energi potensial</span>
+ET <span class="op">=</span> EK <span class="op">+</span> EP                <span class="cm"># Energi total</span>
+PD <span class="op">=</span> c <span class="op">*</span> xd<span class="op">**</span><span class="nm">2</span>              <span class="cm"># Daya disipasi</span>
+
+fig, axes <span class="op">=</span> plt.<span class="fn">subplots</span>(<span class="nm">2</span>, <span class="nm">2</span>, figsize<span class="op">=</span>(<span class="nm">14</span>, <span class="nm">9</span>))
+
+axes[<span class="nm">0</span>,<span class="nm">0</span>].<span class="fn">plot</span>(sol.t, EK, color<span class="op">=</span><span class="st">'#00e5ff'</span>, lw<span class="op">=</span><span class="nm">1.5</span>, label<span class="op">=</span><span class="st">'EK'</span>)
+axes[<span class="nm">0</span>,<span class="nm">0</span>].<span class="fn">plot</span>(sol.t, EP, color<span class="op">=</span><span class="st">'#00e676'</span>, lw<span class="op">=</span><span class="nm">1.5</span>, label<span class="op">=</span><span class="st">'EP'</span>)
+axes[<span class="nm">0</span>,<span class="nm">0</span>].<span class="fn">plot</span>(sol.t, ET, color<span class="op">=</span><span class="st">'#ffb300'</span>, lw<span class="op">=</span><span class="nm">2</span>, label<span class="op">=</span><span class="st">'E Total'</span>)
+axes[<span class="nm">0</span>,<span class="nm">0</span>].<span class="fn">set_title</span>(<span class="st">'Energi vs Waktu'</span>, color<span class="op">=</span><span class="st">'white'</span>)
+axes[<span class="nm">0</span>,<span class="nm">0</span>].<span class="fn">legend</span>()
+
+axes[<span class="nm">0</span>,<span class="nm">1</span>].<span class="fn">plot</span>(x, xd, color<span class="op">=</span><span class="st">'#00e5ff'</span>, lw<span class="op">=</span><span class="nm">1.5</span>)
+axes[<span class="nm">0</span>,<span class="nm">1</span>].<span class="fn">set_title</span>(<span class="st">'Diagram Fase'</span>, color<span class="op">=</span><span class="st">'white'</span>)
+axes[<span class="nm">0</span>,<span class="nm">1</span>].<span class="fn">set_xlabel</span>(<span class="st">'x (m)'</span>); axes[<span class="nm">0</span>,<span class="nm">1</span>].<span class="fn">set_ylabel</span>(<span class="st">'ẋ (m/s)'</span>)
+
+axes[<span class="nm">1</span>,<span class="nm">0</span>].<span class="fn">plot</span>(sol.t, PD, color<span class="op">=</span><span class="st">'#ff4081'</span>, lw<span class="op">=</span><span class="nm">1.5</span>)
+axes[<span class="nm">1</span>,<span class="nm">0</span>].<span class="fn">set_title</span>(<span class="st">'Daya Disipasi P = cẋ²'</span>, color<span class="op">=</span><span class="st">'white'</span>)
+axes[<span class="nm">1</span>,<span class="nm">0</span>].<span class="fn">set_xlabel</span>(<span class="st">'Waktu t (s)'</span>)
+axes[<span class="nm">1</span>,<span class="nm">0</span>].<span class="fn">fill_between</span>(sol.t, PD, alpha<span class="op">=</span><span class="nm">0.2</span>, color<span class="op">=</span><span class="st">'#ff4081'</span>)
+
+axes[<span class="nm">1</span>,<span class="nm">1</span>].<span class="fn">plot</span>(sol.t, x, color<span class="op">=</span><span class="st">'#00e5ff'</span>, lw<span class="op">=</span><span class="nm">2</span>)
+env <span class="op">=</span> np.<span class="fn">exp</span>(<span class="op">-</span>zeta<span class="op">*</span>wn<span class="op">*</span>sol.t)
+axes[<span class="nm">1</span>,<span class="nm">1</span>].<span class="fn">plot</span>(sol.t, env, <span class="st">'--'</span>, color<span class="op">=</span><span class="st">'#ffb300'</span>, alpha<span class="op">=</span><span class="nm">0.6</span>)
+axes[<span class="nm">1</span>,<span class="nm">1</span>].<span class="fn">plot</span>(sol.t, <span class="op">-</span>env, <span class="st">'--'</span>, color<span class="op">=</span><span class="st">'#ffb300'</span>, alpha<span class="op">=</span><span class="nm">0.6</span>)
+axes[<span class="nm">1</span>,<span class="nm">1</span>].<span class="fn">set_title</span>(<span class="st">'Respons + Envelope'</span>, color<span class="op">=</span><span class="st">'white'</span>)
+axes[<span class="nm">1</span>,<span class="nm">1</span>].<span class="fn">set_xlabel</span>(<span class="st">'Waktu t (s)'</span>)
+
+<span class="kw">for</span> ax <span class="kw">in</span> axes.<span class="fn">flat</span>:
+    ax.<span class="fn">axhline</span>(<span class="nm">0</span>, color<span class="op">=</span><span class="st">'#1a2840'</span>, lw<span class="op">=</span><span class="nm">0.8</span>)
+
+plt.<span class="fn">tight_layout</span>()
+plt.<span class="fn">show</span>()
+<span class="fn">print</span>(<span class="st">f"Energi awal: {ET[0]:.4f} J"</span>)
+<span class="fn">print</span>(<span class="st">f"Energi akhir: {ET[-1]:.6f} J"</span>)
+<span class="fn">print</span>(<span class="st">f"Energi terdisipasi: {ET[0]-ET[-1]:.4f} J ({(1-ET[-1]/ET[0])*100:.1f}%)"</span>)</pre>
+  </div>
+</div>
+
+<!-- ═══════════════════ SOAL LATIHAN ═══════════════════ -->
+<hr class="divider">
+<div class="section" id="latihan">
+  <div class="section-label reveal">Bagian 06</div>
+  <h2 class="section-title reveal">Soal Latihan<br>Interaktif</h2>
+  <p class="section-desc reveal">Kerjakan soal-soal berikut langsung di halaman ini. Cek jawaban Anda, lalu verifikasi dengan Jupyter Notebook di VS Code.</p>
+
+  <div class="problems">
+
+    <!-- SOAL 1 -->
+    <div class="prob reveal">
+      <div class="prob-num">SOAL 01 — IDENTIFIKASI KONDISI REDAMAN</div>
+      <h4>Tentukan Tipe Redaman Sistem</h4>
+      <p>Sebuah sistem massa-pegas-peredam memiliki parameter: <strong>m = 2 kg</strong>, <strong>k = 200 N/m</strong>, <strong>c = 12 Ns/m</strong>. Tentukan:</p>
+      <p>(a) Frekuensi alami ωₙ, (b) Redaman kritis cₖᵣ, (c) Rasio redaman ζ, (d) Tipe redaman sistem</p>
+      <div class="given">m = 2 kg, k = 200 N/m, c = 12 Ns/m</div>
+      <div class="hint">💡 Hint: ωₙ = √(k/m), cₖᵣ = 2√(km), ζ = c/cₖᵣ</div>
+
+      <div class="answer-input-area">
+        <label>Jawaban ωₙ (rad/s):</label>
+        <input type="number" id="ans1a" step="0.01" placeholder="...">
+        <label>Jawaban ζ:</label>
+        <input type="number" id="ans1b" step="0.001" placeholder="...">
+        <label>Tipe Redaman:</label>
+        <select id="ans1c">
+          <option value="">— Pilih —</option>
+          <option value="under">Underdamped (ζ < 1)</option>
+          <option value="crit">Critically Damped (ζ = 1)</option>
+          <option value="over">Overdamped (ζ > 1)</option>
+        </select>
+        <div style="margin-top:10px">
+          <button class="check-btn" onclick="checkSoal1()">✓ CEK JAWABAN</button>
+          <button class="answer-key-btn" onclick="toggleKey('key1')">🔑 KUNCI JAWABAN</button>
+        </div>
+        <div class="feedback" id="fb1"></div>
+        <div class="answer-reveal" id="key1">
+          <h5>🔑 KUNCI JAWABAN — SOAL 01</h5>
+          <div class="step"><strong>Langkah 1:</strong> ωₙ = √(k/m) = √(200/2) = √100 = <strong style="color:var(--amber)">10 rad/s</strong></div>
+          <div class="step"><strong>Langkah 2:</strong> cₖᵣ = 2√(km) = 2√(200×2) = 2√400 = 2×20 = <strong style="color:var(--amber)">40 Ns/m</strong></div>
+          <div class="step"><strong>Langkah 3:</strong> ζ = c/cₖᵣ = 12/40 = <strong style="color:var(--amber)">0.3</strong></div>
+          <div class="step"><strong>Langkah 4:</strong> Karena ζ = 0.3 < 1, sistem adalah <strong style="color:var(--cyan)">UNDERDAMPED</strong></div>
+          <div class="step"><strong>Langkah 5:</strong> ωd = ωₙ√(1−ζ²) = 10√(1−0.09) = 10×0.9539 = <strong style="color:var(--amber)">9.539 rad/s</strong></div>
+          <div class="step" style="margin-top:12px;padding:10px 14px;background:rgba(0,229,255,.06);border-radius:8px;font-size:12px;">
+            <strong style="color:var(--cyan)">📓 Jupyter Notebook:</strong><br>
+            <code style="color:var(--green)">m, k, c = 2, 200, 12</code><br>
+            <code style="color:var(--green)">wn = np.sqrt(k/m)  # 10.0</code><br>
+            <code style="color:var(--green)">cc = 2*np.sqrt(k*m)  # 40.0</code><br>
+            <code style="color:var(--green)">zeta = c/cc  # 0.3</code><br>
+            <code style="color:var(--green)">wd = wn*np.sqrt(1-zeta**2)  # 9.539</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SOAL 2 -->
+    <div class="prob reveal">
+      <div class="prob-num">SOAL 02 — LOGARITHMIC DECREMENT</div>
+      <h4>Menentukan Rasio Redaman dari Data Eksperimen</h4>
+      <p>Dari pengukuran getaran bebas sebuah mesin, diperoleh amplitudo puncak pertama x₁ = 4.5 mm dan amplitudo puncak kelima x₅ = 1.2 mm. Tentukan:</p>
+      <p>(a) Logarithmic decrement δ (rata-rata per siklus), (b) Rasio redaman ζ</p>
+      <div class="given">x₁ = 4.5 mm, x₅ = 1.2 mm (4 siklus antara puncak 1 dan 5)</div>
+      <div class="hint">💡 Hint: Untuk n siklus, δ = (1/n)·ln(x₁/xₙ₊₁). Lalu ζ = δ/√(4π²+δ²)</div>
+
+      <div class="answer-input-area">
+        <label>Jawaban δ (log decrement per siklus):</label>
+        <input type="number" id="ans2a" step="0.0001" placeholder="...">
+        <label>Jawaban ζ:</label>
+        <input type="number" id="ans2b" step="0.0001" placeholder="...">
+        <div style="margin-top:10px">
+          <button class="check-btn" onclick="checkSoal2()">✓ CEK JAWABAN</button>
+          <button class="answer-key-btn" onclick="toggleKey('key2')">🔑 KUNCI JAWABAN</button>
+        </div>
+        <div class="feedback" id="fb2"></div>
+        <div class="answer-reveal" id="key2">
+          <h5>🔑 KUNCI JAWABAN — SOAL 02</h5>
+          <div class="step"><strong>Langkah 1:</strong> Jumlah siklus n = 5 − 1 = <strong style="color:var(--amber)">4 siklus</strong></div>
+          <div class="step"><strong>Langkah 2:</strong> δ = (1/n)·ln(x₁/x₅) = (1/4)·ln(4.5/1.2) = (1/4)·ln(3.75) = (1/4)×1.3218 = <strong style="color:var(--amber)">0.3305</strong></div>
+          <div class="step"><strong>Langkah 3:</strong> ζ = δ/√(4π²+δ²) = 0.3305/√(39.4784+0.1092) = 0.3305/√39.5876 = 0.3305/6.2919 = <strong style="color:var(--amber)">0.0525</strong></div>
+          <div class="step" style="margin-top:12px;padding:10px 14px;background:rgba(0,229,255,.06);border-radius:8px;font-size:12px;">
+            <strong style="color:var(--cyan)">📓 Jupyter Notebook:</strong><br>
+            <code style="color:var(--green)">x1, x5 = 4.5, 1.2</code><br>
+            <code style="color:var(--green)">n = 4</code><br>
+            <code style="color:var(--green)">delta = (1/n) * np.log(x1/x5)  # 0.3305</code><br>
+            <code style="color:var(--green)">zeta = delta / np.sqrt(4*np.pi**2 + delta**2)  # 0.0525</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SOAL 3 -->
+    <div class="prob reveal">
+      <div class="prob-num">SOAL 03 — FREKUENSI TEREDAM & PERIODE</div>
+      <h4>Hitung Frekuensi dan Periode Getaran Teredam</h4>
+      <p>Sebuah sistem dengan m = 5 kg, k = 500 N/m, c = 20 Ns/m. Tentukan:</p>
+      <p>(a) Frekuensi alami ωₙ, (b) Rasio redaman ζ, (c) Frekuensi teredam ωd, (d) Periode getaran teredam Td</p>
+      <div class="given">m = 5 kg, k = 500 N/m, c = 20 Ns/m</div>
+      <div class="hint">💡 Hint: ωd = ωₙ√(1−ζ²), Td = 2π/ωd</div>
+
+      <div class="answer-input-area">
+        <label>Jawaban ωₙ (rad/s):</label>
+        <input type="number" id="ans3a" step="0.01" placeholder="...">
+        <label>Jawaban ζ:</label>
+        <input type="number" id="ans3b" step="0.001" placeholder="...">
+        <label>Jawaban ωd (rad/s):</label>
+        <input type="number" id="ans3c" step="0.01" placeholder="...">
+        <label>Jawaban Td (detik):</label>
+        <input type="number" id="ans3d" step="0.001" placeholder="...">
+        <div style="margin-top:10px">
+          <button class="check-btn" onclick="checkSoal3()">✓ CEK JAWABAN</button>
+          <button class="answer-key-btn" onclick="toggleKey('key3')">🔑 KUNCI JAWABAN</button>
+        </div>
+        <div class="feedback" id="fb3"></div>
+        <div class="answer-reveal" id="key3">
+          <h5>🔑 KUNCI JAWABAN — SOAL 03</h5>
+          <div class="step"><strong>Langkah 1:</strong> ωₙ = √(k/m) = √(500/5) = √100 = <strong style="color:var(--amber)">10 rad/s</strong></div>
+          <div class="step"><strong>Langkah 2:</strong> cₖᵣ = 2√(km) = 2√(500×5) = 2√2500 = 2×50 = <strong style="color:var(--amber)">100 Ns/m</strong></div>
+          <div class="step"><strong>Langkah 3:</strong> ζ = c/cₖᵣ = 20/100 = <strong style="color:var(--amber)">0.2</strong></div>
+          <div class="step"><strong>Langkah 4:</strong> ωd = ωₙ√(1−ζ²) = 10√(1−0.04) = 10×0.9798 = <strong style="color:var(--amber)">9.798 rad/s</strong></div>
+          <div class="step"><strong>Langkah 5:</strong> Td = 2π/ωd = 2π/9.798 = <strong style="color:var(--amber)">0.641 detik</strong></div>
+          <div class="step" style="margin-top:12px;padding:10px 14px;background:rgba(0,229,255,.06);border-radius:8px;font-size:12px;">
+            <strong style="color:var(--cyan)">📓 Jupyter Notebook:</strong><br>
+            <code style="color:var(--green)">m, k, c = 5, 500, 20</code><br>
+            <code style="color:var(--green)">wn = np.sqrt(k/m)  # 10.0</code><br>
+            <code style="color:var(--green)">cc = 2*np.sqrt(k*m)  # 100.0</code><br>
+            <code style="color:var(--green)">zeta = c/cc  # 0.2</code><br>
+            <code style="color:var(--green)">wd = wn*np.sqrt(1-zeta**2)  # 9.798</code><br>
+            <code style="color:var(--green)">Td = 2*np.pi/wd  # 0.641</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SOAL 4 -->
+    <div class="prob reveal">
+      <div class="prob-num">SOAL 04 — WAKTU SETTLING</div>
+      <h4>Berapa Lama Getaran Meredam 98%?</h4>
+      <p>Untuk sistem underdamped dengan ωₙ = 8 rad/s dan ζ = 0.05, tentukan:</p>
+      <p>(a) Waktu yang diperlukan agar amplitudo berkurang hingga 2% dari nilai awal (settling time 2%), (b) Jumlah siklus osilasi yang terjadi selama waktu tersebut</p>
+      <div class="given">ωₙ = 8 rad/s, ζ = 0.05, kriteria settling: amplitudo ≤ 2% dari x₀</div>
+      <div class="hint">💡 Hint: Envelope = e^(−ζωₙt). Set e^(−ζωₙt) = 0.02 → t = −ln(0.02)/(ζωₙ). Jumlah siklus = t/Td</div>
+
+      <div class="answer-input-area">
+        <label>Jawaban t_settling (detik):</label>
+        <input type="number" id="ans4a" step="0.01" placeholder="...">
+        <label>Jawaban jumlah siklus:</label>
+        <input type="number" id="ans4b" step="0.1" placeholder="...">
+        <div style="margin-top:10px">
+          <button class="check-btn" onclick="checkSoal4()">✓ CEK JAWABAN</button>
+          <button class="answer-key-btn" onclick="toggleKey('key4')">🔑 KUNCI JAWABAN</button>
+        </div>
+        <div class="feedback" id="fb4"></div>
+        <div class="answer-reveal" id="key4">
+          <h5>🔑 KUNCI JAWABAN — SOAL 04</h5>
+          <div class="step"><strong>Langkah 1:</strong> e^(−ζωₙt) = 0.02</div>
+          <div class="step"><strong>Langkah 2:</strong> −ζωₙt = ln(0.02) = −3.912</div>
+          <div class="step"><strong>Langkah 3:</strong> t = 3.912/(0.05×8) = 3.912/0.4 = <strong style="color:var(--amber)">9.78 detik</strong></div>
+          <div class="step"><strong>Langkah 4:</strong> ωd = 8√(1−0.0025) = 8×0.99875 = 7.99 rad/s</div>
+          <div class="step"><strong>Langkah 5:</strong> Td = 2π/7.99 = 0.7862 detik</div>
+          <div class="step"><strong>Langkah 6:</strong> Jumlah siklus = 9.78/0.7862 = <strong style="color:var(--amber)">12.4 siklus</strong></div>
+          <div class="step" style="margin-top:12px;padding:10px 14px;background:rgba(0,229,255,.06);border-radius:8px;font-size:12px;">
+            <strong style="color:var(--cyan)">📓 Jupyter Notebook:</strong><br>
+            <code style="color:var(--green)">wn, zeta = 8, 0.05</code><br>
+            <code style="color:var(--green)">ts = -np.log(0.02)/(zeta*wn)  # 9.78</code><br>
+            <code style="color:var(--green)">wd = wn*np.sqrt(1-zeta**2)  # 7.99</code><br>
+            <code style="color:var(--green)">Td = 2*np.pi/wd  # 0.786</code><br>
+            <code style="color:var(--green)">n_cycles = ts/Td  # 12.4</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SOAL 5 -->
+    <div class="prob reveal">
+      <div class="prob-num">SOAL 05 — DESAIN PEREDAM</div>
+      <h4>Menentukan Koefisien Redaman untuk Kondisi Kritis</h4>
+      <p>Sebuah mesin dengan massa 50 kg ditopang oleh pegas dengan kekakuan 4500 N/m. Tentukan:</p>
+      <p>(a) Koefisien redaman c yang diperlukan agar sistem critically damped, (b) Jika c sebenarnya = 200 Ns/m, berapa ζ dan apa tipe redamannya?</p>
+      <div class="given">m = 50 kg, k = 4500 N/m</div>
+      <div class="hint">💡 Hint: Untuk critically damped, c = cₖᵣ = 2√(km)</div>
+
+      <div class="answer-input-area">
+        <label>Jawaban cₖᵣ (Ns/m):</label>
+        <input type="number" id="ans5a" step="0.1" placeholder="...">
+        <label>Jawaban ζ (jika c=200):</label>
+        <input type="number" id="ans5b" step="0.001" placeholder="...">
+        <label>Tipe Redaman (jika c=200):</label>
+        <select id="ans5c">
+          <option value="">— Pilih —</option>
+          <option value="under">Underdamped (ζ < 1)</option>
+          <option value="crit">Critically Damped (ζ = 1)</option>
+          <option value="over">Overdamped (ζ > 1)</option>
+        </select>
+        <div style="margin-top:10px">
+          <button class="check-btn" onclick="checkSoal5()">✓ CEK JAWABAN</button>
+          <button class="answer-key-btn" onclick="toggleKey('key5')">🔑 KUNCI JAWABAN</button>
+        </div>
+        <div class="feedback" id="fb5"></div>
+        <div class="answer-reveal" id="key5">
+          <h5>🔑 KUNCI JAWABAN — SOAL 05</h5>
+          <div class="step"><strong>Langkah 1:</strong> cₖᵣ = 2√(km) = 2√(4500×50) = 2√225000 = 2×474.34 = <strong style="color:var(--amber)">948.68 Ns/m</strong></div>
+          <div class="step"><strong>Langkah 2:</strong> ζ = c/cₖᵣ = 200/948.68 = <strong style="color:var(--amber)">0.211</strong></div>
+          <div class="step"><strong>Langkah 3:</strong> Karena ζ = 0.211 < 1, sistem <strong style="color:var(--cyan)">UNDERDAMPED</strong></div>
+          <div class="step" style="margin-top:12px;padding:10px 14px;background:rgba(0,229,255,.06);border-radius:8px;font-size:12px;">
+            <strong style="color:var(--cyan)">📓 Jupyter Notebook:</strong><br>
+            <code style="color:var(--green)">m, k = 50, 4500</code><br>
+            <code style="color:var(--green)">cc = 2*np.sqrt(k*m)  # 948.68</code><br>
+            <code style="color:var(--green)">zeta = 200/cc  # 0.211</code><br>
+            <code style="color:var(--green)">print(f"Underdamped: ζ = {zeta:.3f}")</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════ DAFTAR PUSTAKA ═══════════════════ -->
+<hr class="divider">
+<div class="section">
+  <div class="section-label reveal">Referensi</div>
+  <h2 class="section-title reveal">Daftar Pustaka</h2>
+  <div class="reveal" style="display:flex;flex-direction:column;gap:14px;margin-top:8px;">
+    <div style="display:flex;gap:16px;align-items:flex-start;padding:18px 22px;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--cyan);border-radius:12px;">
+      <span style="font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--cyan);background:rgba(0,229,255,.08);padding:4px 10px;border-radius:6px;flex-shrink:0;">[1]</span>
+      <div style="font-size:14px;color:var(--text);line-height:1.7;">S. S. Rao, <em style="color:#fff;">Mechanical Vibrations</em>, Sixth Edition in SI Units. Pearson, 2018. — <strong style="color:var(--cyan)">Chapter 2: Free Vibration of Single-Degree-of-Freedom Systems</strong></div>
+    </div>
+    <div style="display:flex;gap:16px;align-items:flex-start;padding:18px 22px;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--amber);border-radius:12px;">
+      <span style="font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--amber);background:rgba(255,179,0,.08);padding:4px 10px;border-radius:6px;flex-shrink:0;">[2]</span>
+      <div style="font-size:14px;color:var(--text);line-height:1.7;">A. R. Mohanty, <em style="color:#fff;">Machinery Condition Monitoring: Principles and Practices</em>. CRC Press, 2015.</div>
+    </div>
+    <div style="display:flex;gap:16px;align-items:flex-start;padding:18px 22px;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--pink);border-radius:12px;">
+      <span style="font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--pink);background:rgba(255,64,129,.08);padding:4px 10px;border-radius:6px;flex-shrink:0;">[3]</span>
+      <div style="font-size:14px;color:var(--text);line-height:1.7;">YouTube Playlist — <em style="color:#fff;">Mechanical Vibrations</em>.<br>
+        <a href="https://www.youtube.com/playlist?list=PLfqwi9TYj9V84uPoS9gJ2Imkw2qLDYv_F" target="_blank" style="color:var(--cyan);text-decoration:none;font-family:var(--font-mono);font-size:12px;border-bottom:1px solid rgba(0,229,255,.3);">▶ youtube.com/playlist?list=PLfqwi9TYj9V84u...</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Modul Getaran Mekanik · Teknik Mesin</p>
+  <p style="margin-top:8px;color:#2a3850">Dibuat dengan HTML5 Canvas • JetBrains Mono • DM Serif Display</p>
+</footer>
+
+<!-- ═══════════════════ JAVASCRIPT ═══════════════════ -->
+<script>
+/* ── WAVE BACKGROUND ── */
+{
+  const canvas = document.getElementById('waveCanvas');
+  const ctx = canvas.getContext('2d');
+  let w, h, t = 0;
+  function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+  function drawBgWaves() {
+    ctx.clearRect(0, 0, w, h);
+    const waves = [
+      { amp: 35, freq: 0.008, speed: 0.012, y: h * 0.3, color: 'rgba(0,229,255,0.06)' },
+      { amp: 25, freq: 0.012, speed: 0.018, y: h * 0.5, color: 'rgba(124,77,255,0.04)' },
+      { amp: 20, freq: 0.015, speed: 0.022, y: h * 0.7, color: 'rgba(0,230,118,0.04)' },
+      { amp: 18, freq: 0.010, speed: 0.015, y: h * 0.85, color: 'rgba(255,179,0,0.03)' },
+    ];
+    waves.forEach(wave => {
+      ctx.beginPath(); ctx.moveTo(0, h);
+      for (let x = 0; x <= w; x += 2) {
+        const y = wave.y + Math.sin(x * wave.freq + t * wave.speed) * wave.amp
+                + Math.sin(x * wave.freq * 1.5 + t * wave.speed * 0.7) * wave.amp * 0.4;
+        ctx.lineTo(x, y);
+      }
+      ctx.lineTo(w, h); ctx.closePath(); ctx.fillStyle = wave.color; ctx.fill();
+    });
+    t++; requestAnimationFrame(drawBgWaves);
+  }
+  drawBgWaves();
+}
+
+/* ── SCROLL PROGRESS + BACK TO TOP ── */
+window.addEventListener('scroll', () => {
+  const s = document.documentElement.scrollTop;
+  const h = document.documentElement.scrollHeight - window.innerHeight;
+  document.getElementById('scrollProgress').style.width = (s / h * 100) + '%';
+  const btn = document.getElementById('backToTop');
+  if (s > 400) btn.classList.add('show'); else btn.classList.remove('show');
+});
+
+/* ── SCROLL REVEAL ── */
+const revealIO = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) { setTimeout(() => e.target.classList.add('visible'), i * 60); revealIO.unobserve(e.target); }
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => revealIO.observe(el));
+
+/* ── UTILITY ── */
+function rk4(f, y, t, dt, ...params) {
+  const k1 = f(t, y, ...params);
+  const k2 = f(t+dt/2, y.map((v,i)=>v+dt/2*k1[i]), ...params);
+  const k3 = f(t+dt/2, y.map((v,i)=>v+dt/2*k2[i]), ...params);
+  const k4 = f(t+dt, y.map((v,i)=>v+dt*k3[i]), ...params);
+  return y.map((v,i)=>v + dt/6*(k1[i]+2*k2[i]+2*k3[i]+k4[i]));
+}
+function freeVib(t, y, m, c, k) { return [y[1], -(c/m)*y[1] - (k/m)*y[0]]; }
+
+/* ══════════════════════════════════════════
+   ANIMASI 1 — Perbandingan Tiga Redaman
+   ══════════════════════════════════════════ */
+{
+  const cv = document.getElementById('cv1');
+  cv.height = 260;
+  let playing = true, raf1, t1 = 0;
+  const dt = 0.016;
+
+  function draw1() {
+    const W = cv.clientWidth; cv.width = W;
+    const H = cv.height;
+    const ctx = cv.getContext('2d');
+    const wn = parseFloat(document.getElementById('sl_wn').value);
+    const x0 = parseFloat(document.getElementById('sl_x0').value);
+    document.getElementById('v_wn').textContent = wn.toFixed(1);
+    document.getElementById('v_x0').textContent = x0.toFixed(1);
+
+    ctx.fillStyle = '#030810'; ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='#0d1e33'; ctx.lineWidth=1;
+    for(let x=0;x<W;x+=60){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+    ctx.strokeStyle='#1a3050'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(0,H/2); ctx.lineTo(W,H/2); ctx.stroke();
+
+    const configs = [{zeta:0.1,color:'#00e5ff'},{zeta:1.0,color:'#ffb300'},{zeta:2.0,color:'#ff4081'}];
+    const m = 1, k = wn*wn*m;
+    const tMax = 10, pxPerSec = W/tMax, amp = (H/2 - 20);
+
+    // Draw envelope for underdamped
+    ctx.strokeStyle='rgba(0,229,255,0.2)'; ctx.lineWidth=1; ctx.setLineDash([6,4]);
+    ctx.beginPath();
+    for(let ti=0;ti<=tMax;ti+=dt){
+      const px=ti*pxPerSec; const ev=x0*Math.exp(-0.1*wn*ti);
+      if(ti===0){ctx.moveTo(px,H/2-ev*amp);}else{ctx.lineTo(px,H/2-ev*amp);}
+    }
+    ctx.stroke();
+    ctx.beginPath();
+    for(let ti=0;ti<=tMax;ti+=dt){
+      const px=ti*pxPerSec; const ev=x0*Math.exp(-0.1*wn*ti);
+      if(ti===0){ctx.moveTo(px,H/2+ev*amp);}else{ctx.lineTo(px,H/2+ev*amp);}
+    }
+    ctx.stroke(); ctx.setLineDash([]);
+
+    configs.forEach(cfg => {
+      const c = 2*cfg.zeta*Math.sqrt(k*m);
+      let y = [x0, 0], ti = 0;
+      ctx.beginPath(); ctx.strokeStyle = cfg.color; ctx.lineWidth = 2;
+      ctx.shadowColor = cfg.color; ctx.shadowBlur = 6;
+      while(ti <= tMax) {
+        const px = ti * pxPerSec, py = H/2 - y[0]*amp;
+        if(ti===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+        y = rk4(freeVib, y, ti, dt, m, c, k); ti += dt;
+      }
+      ctx.stroke(); ctx.shadowBlur = 0;
+    });
+
+    const phase = (t1 % tMax) / tMax, lx = phase * W;
+    ctx.strokeStyle='rgba(255,255,255,0.3)'; ctx.lineWidth=1;
+    ctx.setLineDash([4,4]); ctx.beginPath(); ctx.moveTo(lx,0); ctx.lineTo(lx,H); ctx.stroke(); ctx.setLineDash([]);
+
+    // Time labels
+    ctx.fillStyle='#4a6080'; ctx.font='11px JetBrains Mono';
+    for(let s=0;s<=tMax;s+=2){ctx.fillText(s+'s',s*pxPerSec+2,H-4);}
+
+    if(playing) { t1 += dt; raf1 = requestAnimationFrame(draw1); }
+  }
+  window.toggleAnim1 = function() {
+    playing = !playing;
+    document.getElementById('btn1').textContent = playing ? '⏸ PAUSE' : '▶ PLAY';
+    if(playing) draw1();
+  };
+  ['sl_wn','sl_x0'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{if(!playing)draw1();}));
+  draw1();
+}
+
+/* ══════════════════════════════════════════
+   ANIMASI 2 — Massa-Pegas-Dashpot + Plot
+   ══════════════════════════════════════════ */
+{
+  const cvM = document.getElementById('cv2mech');
+  const cvP = document.getElementById('cv2plot');
+  cvM.height = 300; cvP.height = 300;
+  let playing2 = true, raf2;
+  let t2 = 0, state2 = [1.0, 0.0];
+  let hist_t = [], hist_x = [];
+  const dt = 0.016;
+
+  function params2() {
+    const m = parseFloat(document.getElementById('sl_m').value);
+    const k = parseFloat(document.getElementById('sl_k').value);
+    const c = parseFloat(document.getElementById('sl_c').value);
+    document.getElementById('v_m').textContent = m.toFixed(1);
+    document.getElementById('v_k').textContent = k;
+    document.getElementById('v_c').textContent = c.toFixed(1);
+    return {m,k,c};
+  }
+
+  function drawMech(ctx, W, H, x) {
+    ctx.fillStyle='#030810'; ctx.fillRect(0,0,W,H);
+    const cx=W/2, cy=H/2, maxDisp=60, massW=50, massH=50, dispPx=x*maxDisp;
+
+    // Wall
+    ctx.fillStyle='#1a2840'; ctx.fillRect(10, cy-50, 18, 100);
+    ctx.strokeStyle='#2a3850'; ctx.lineWidth=1;
+    for(let i=0;i<8;i++){ctx.beginPath();ctx.moveTo(10,cy-50+i*12);ctx.lineTo(0,cy-44+i*12);ctx.stroke();}
+
+    // Spring (top)
+    const sx1=28, sx2=cx+dispPx-massW/2, sy=cy-20, segs=12, segW=(sx2-sx1)/segs;
+    ctx.strokeStyle='#00e5ff'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(sx1,sy);
+    for(let i=0;i<segs;i++){
+      const zigX=sx1+segW*(i+0.5), zigY=i%2===0?sy-10:sy+10;
+      ctx.lineTo(zigX,zigY);
+    }
+    ctx.lineTo(sx2,sy); ctx.stroke();
+
+    // Dashpot (bottom)
+    const dy=cy+20, dw=16, dLen=sx2-sx1;
+    ctx.strokeStyle='#ff4081'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(sx1,dy); ctx.lineTo(sx1+dLen*0.3,dy); ctx.stroke();
+    ctx.strokeRect(sx1+dLen*0.3, dy-dw/2, dLen*0.4, dw);
+    ctx.beginPath(); ctx.moveTo(sx1+dLen*0.5,dy); ctx.lineTo(sx2,dy); ctx.stroke();
+
+    // Mass
+    const mx=cx+dispPx-massW/2, my=cy-massH/2;
+    ctx.fillStyle='rgba(0,229,255,0.15)'; ctx.strokeStyle='#00e5ff'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.roundRect(mx, my, massW, massH, 8); ctx.fill(); ctx.stroke();
+    ctx.fillStyle='#fff'; ctx.font='bold 14px JetBrains Mono'; ctx.textAlign='center';
+    ctx.fillText('m', cx+dispPx, cy+5);
+
+    // Ground
+    ctx.strokeStyle='#2a3850'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(0,cy+60); ctx.lineTo(W,cy+60); ctx.stroke();
+
+    // Label
+    ctx.fillStyle='#4a6080'; ctx.font='11px JetBrains Mono'; ctx.textAlign='left';
+    ctx.fillText('Spring (k)',40,cy-32);
+    ctx.fillText('Dashpot (c)',40,cy+42);
+
+    // Displacement arrow
+    if(Math.abs(dispPx) > 5){
+      ctx.strokeStyle='#ffb300'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(cx,cy+80); ctx.lineTo(cx+dispPx,cy+80); ctx.stroke();
+      ctx.fillStyle='#ffb300';
+      const dir = dispPx>0?1:-1;
+      ctx.beginPath(); ctx.moveTo(cx+dispPx,cy+80); ctx.lineTo(cx+dispPx-dir*8,cy+75); ctx.lineTo(cx+dispPx-dir*8,cy+85); ctx.closePath(); ctx.fill();
+      ctx.font='11px JetBrains Mono'; ctx.textAlign='center';
+      ctx.fillText('x='+x.toFixed(2),cx+dispPx/2,cy+96);
+    }
+  }
+
+  function drawPlot(ctx, W, H) {
+    ctx.fillStyle='#030810'; ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='#0d1e33'; ctx.lineWidth=1;
+    for(let x=0;x<W;x+=60){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+    ctx.strokeStyle='#1a3050'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(0,H/2); ctx.lineTo(W,H/2); ctx.stroke();
+
+    if(hist_t.length<2) return;
+    const tWin=10, tEnd=hist_t[hist_t.length-1], tStart=Math.max(0,tEnd-tWin);
+    const amp=H/2-20;
+
+    ctx.strokeStyle='#00e5ff'; ctx.lineWidth=2; ctx.shadowColor='#00e5ff'; ctx.shadowBlur=6;
+    ctx.beginPath(); let f=true;
+    for(let i=0;i<hist_t.length;i++){
+      if(hist_t[i]<tStart) continue;
+      const px=((hist_t[i]-tStart)/tWin)*W, py=H/2-hist_x[i]*amp;
+      if(f){ctx.moveTo(px,py);f=false;}else ctx.lineTo(px,py);
+    }
+    ctx.stroke(); ctx.shadowBlur=0;
+  }
+
+  function loop2() {
+    const {m,k,c} = params2();
+    const wn=Math.sqrt(k/m), cc=2*Math.sqrt(k*m), zeta=c/cc;
+    const wd=zeta<1?wn*Math.sqrt(1-zeta*zeta):0;
+    let cond='UNDERDAMPED';
+    if(Math.abs(zeta-1)<0.01) cond='CRITICALLY DAMPED';
+    else if(zeta>1) cond='OVERDAMPED';
+    document.getElementById('info_zeta').textContent=
+      `ζ = ${zeta.toFixed(3)} | ωₙ = ${wn.toFixed(2)} rad/s | ωd = ${wd.toFixed(2)} rad/s | Kondisi: ${cond}`;
+    document.getElementById('info_zeta').style.color=
+      zeta<1?'var(--cyan)':Math.abs(zeta-1)<0.01?'var(--amber)':'var(--pink)';
+
+    state2 = rk4(freeVib, state2, t2, dt, m, c, k);
+    t2 += dt;
+    hist_t.push(t2); hist_x.push(state2[0]);
+    if(hist_t.length>2000){hist_t.shift();hist_x.shift();}
+
+    const W1=cvM.clientWidth; cvM.width=W1;
+    drawMech(cvM.getContext('2d'), W1, cvM.height, state2[0]);
+    const W2=cvP.clientWidth; cvP.width=W2;
+    drawPlot(cvP.getContext('2d'), W2, cvP.height);
+
+    if(playing2) raf2=requestAnimationFrame(loop2);
+  }
+  window.toggleAnim2=function(){
+    playing2=!playing2;
+    document.getElementById('btn2').textContent=playing2?'⏸ PAUSE':'▶ PLAY';
+    if(playing2) loop2();
+  };
+  ['sl_m','sl_k','sl_c'].forEach(id=>{
+    document.getElementById(id).addEventListener('input',()=>{t2=0;state2=[1,0];hist_t=[];hist_x=[];});
+  });
+  loop2();
+}
+
+/* ══════════════════════════════════════════
+   ANIMASI 3 — Logarithmic Decrement
+   ══════════════════════════════════════════ */
+function drawLogDec() {
+  const cv = document.getElementById('cv3');
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const zeta = parseFloat(document.getElementById('sl_zeta3').value);
+  const wn = parseFloat(document.getElementById('sl_wn3').value);
+  document.getElementById('v_zeta3').textContent = zeta.toFixed(2);
+  document.getElementById('v_wn3').textContent = wn.toFixed(1);
+
+  ctx.fillStyle='#030810'; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='#0d1e33'; ctx.lineWidth=1;
+  for(let x=0;x<W;x+=60){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  ctx.strokeStyle='#1a3050'; ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();
+
+  const m=1, k=wn*wn, c=2*zeta*wn;
+  const tMax=12, amp=H/2-20;
+  let y=[1,0], ti=0, pts=[];
+  while(ti<=tMax){pts.push({t:ti,x:y[0]});y=rk4(freeVib,y,ti,0.01,m,c,k);ti+=0.01;}
+
+  // Draw curve
+  ctx.strokeStyle='#00e5ff'; ctx.lineWidth=2; ctx.shadowColor='#00e5ff'; ctx.shadowBlur=6;
+  ctx.beginPath();
+  pts.forEach((p,i)=>{
+    const px=p.t/tMax*W, py=H/2-p.x*amp;
+    if(i===0)ctx.moveTo(px,py); else ctx.lineTo(px,py);
+  });
+  ctx.stroke(); ctx.shadowBlur=0;
+
+  // Envelope
+  ctx.strokeStyle='rgba(255,179,0,0.4)'; ctx.lineWidth=1; ctx.setLineDash([6,4]);
+  ctx.beginPath();
+  pts.forEach((p,i)=>{const px=p.t/tMax*W,ev=Math.exp(-zeta*wn*p.t);if(i===0)ctx.moveTo(px,H/2-ev*amp);else ctx.lineTo(px,H/2-ev*amp);});
+  ctx.stroke();
+  ctx.beginPath();
+  pts.forEach((p,i)=>{const px=p.t/tMax*W,ev=Math.exp(-zeta*wn*p.t);if(i===0)ctx.moveTo(px,H/2+ev*amp);else ctx.lineTo(px,H/2+ev*amp);});
+  ctx.stroke(); ctx.setLineDash([]);
+
+  // Find peaks
+  const peaks=[];
+  for(let i=1;i<pts.length-1;i++){
+    if(pts[i].x>pts[i-1].x && pts[i].x>pts[i+1].x && pts[i].x>0.005) peaks.push(i);
+  }
+
+  // Mark peaks and show δ
+  let deltas=[];
+  for(let i=0;i<Math.min(peaks.length,6);i++){
+    const p=pts[peaks[i]];
+    const px=p.t/tMax*W, py=H/2-p.x*amp;
+    ctx.fillStyle='#ffb300'; ctx.beginPath(); ctx.arc(px,py,5,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#ffb300'; ctx.font='10px JetBrains Mono';
+    ctx.fillText(`x${i+1}=${p.x.toFixed(3)}`, px+8, py-8);
+    if(i>0){
+      const d=Math.log(pts[peaks[i-1]].x/p.x);
+      deltas.push(d);
+      const midT=(pts[peaks[i-1]].t+p.t)/2;
+      ctx.fillStyle='#ff4081'; ctx.font='10px JetBrains Mono';
+      ctx.fillText(`δ=${d.toFixed(3)}`, midT/tMax*W, H/2-((pts[peaks[i-1]].x+p.x)/2)*amp-14);
+    }
+  }
+
+  const deltaTeori = zeta<1 ? 2*Math.PI*zeta/Math.sqrt(1-zeta*zeta) : 0;
+  const zetaFromDelta = deltaTeori>0 ? deltaTeori/Math.sqrt(4*Math.PI*Math.PI+deltaTeori*deltaTeori) : 0;
+  const avgDelta = deltas.length>0 ? deltas.reduce((a,b)=>a+b,0)/deltas.length : 0;
+  document.getElementById('info_logdec').innerHTML =
+    `δ_teori = ${deltaTeori.toFixed(4)} | δ_numerik = ${avgDelta.toFixed(4)} | ζ_dari_δ = ${zetaFromDelta.toFixed(4)} | ωd = ${(wn*Math.sqrt(1-zeta*zeta)).toFixed(2)} rad/s`;
+}
+['sl_zeta3','sl_wn3'].forEach(id=>document.getElementById(id).addEventListener('input',drawLogDec));
+drawLogDec();
+
+/* ══════════════════════════════════════════
+   ANIMASI 4 — Disipasi Energi
+   ══════════════════════════════════════════ */
+window.drawEnergy = function() {
+  const cv = document.getElementById('cv4');
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const zeta = parseFloat(document.getElementById('sl_zeta4').value);
+  document.getElementById('v_zeta4').textContent = zeta.toFixed(2);
+
+  ctx.fillStyle='#030810'; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='#0d1e33'; ctx.lineWidth=1;
+  for(let x=0;x<W;x+=60){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+  const m=1, wn=5, k=wn*wn, c=2*zeta*wn;
+  const tMax=12;
+  let y=[1,0], ti=0, pts=[];
+  while(ti<=tMax){
+    const EK=0.5*m*y[1]*y[1], EP=0.5*k*y[0]*y[0], ET=EK+EP, PD=c*y[1]*y[1];
+    pts.push({t:ti,EK,EP,ET,PD});
+    y=rk4(freeVib,y,ti,0.01,m,c,k); ti+=0.01;
+  }
+
+  const maxE=pts[0].ET*1.1;
+  const scale=H/maxE;
+
+  // ET
+  ctx.strokeStyle='#ffb300'; ctx.lineWidth=2.5; ctx.beginPath();
+  pts.forEach((p,i)=>{const px=p.t/tMax*W,py=H-p.ET*scale;if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);});
+  ctx.stroke();
+  // EK
+  ctx.strokeStyle='#00e5ff'; ctx.lineWidth=1.5; ctx.beginPath();
+  pts.forEach((p,i)=>{const px=p.t/tMax*W,py=H-p.EK*scale;if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);});
+  ctx.stroke();
+  // EP
+  ctx.strokeStyle='#00e676'; ctx.lineWidth=1.5; ctx.beginPath();
+  pts.forEach((p,i)=>{const px=p.t/tMax*W,py=H-p.EP*scale;if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);});
+  ctx.stroke();
+  // PD (scaled)
+  const maxPD=Math.max(...pts.map(p=>p.PD));
+  if(maxPD>0){
+    ctx.strokeStyle='#ff4081'; ctx.lineWidth=1.5; ctx.beginPath();
+    pts.forEach((p,i)=>{const px=p.t/tMax*W,py=H-(p.PD/maxPD)*maxE*0.5*scale;if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);});
+    ctx.stroke();
+  }
+
+  ctx.fillStyle='#4a6080'; ctx.font='11px JetBrains Mono';
+  for(let s=0;s<=tMax;s+=2){ctx.fillText(s+'s',s/tMax*W+2,H-4);}
+  ctx.fillText(`E₀=${pts[0].ET.toFixed(2)}J`,4,14);
+};
+document.getElementById('sl_zeta4').addEventListener('input',drawEnergy);
+drawEnergy();
+
+/* ══════════════════════════════════════════
+   DIAGRAM FASE STATIS
+   ══════════════════════════════════════════ */
+function drawPhasePlot(canvasId, zeta, color) {
+  const cv = document.getElementById(canvasId);
+  const W = cv.parentElement.clientWidth - 48 || 360;
+  cv.width = W; cv.height = 300;
+  const ctx = cv.getContext('2d');
+  const m=1, wn=5, k=wn*wn, c=2*zeta*wn;
+  const dt=0.01;
+  ctx.fillStyle='#030810'; ctx.fillRect(0,0,W,300);
+
+  let pts=[], y=[1.5,0], t=0;
+  while(t<15){pts.push([...y]); y=rk4(freeVib,y,t,dt,m,c,k); t+=dt;}
+
+  let xMin=Infinity,xMax=-Infinity,vMin=Infinity,vMax=-Infinity;
+  for(const [x,v] of pts){xMin=Math.min(xMin,x);xMax=Math.max(xMax,x);vMin=Math.min(vMin,v);vMax=Math.max(vMax,v);}
+  const pad=0.15, xR=xMax-xMin, vR=vMax-vMin;
+  xMin-=xR*pad; xMax+=xR*pad; vMin-=vR*pad; vMax+=vR*pad;
+
+  function toCanvas(x,v){return[((x-xMin)/(xMax-xMin))*(W-60)+30, 300-((v-vMin)/(vMax-vMin))*240-30];}
+
+  ctx.strokeStyle='#0d1e33'; ctx.lineWidth=1;
+  for(let i=0;i<=5;i++){
+    const xv=xMin+(xMax-xMin)*i/5;const[px]=toCanvas(xv,0);ctx.beginPath();ctx.moveTo(px,0);ctx.lineTo(px,300);ctx.stroke();
+    const vv=vMin+(vMax-vMin)*i/5;const[,pv]=toCanvas(0,vv);ctx.beginPath();ctx.moveTo(0,pv);ctx.lineTo(W,pv);ctx.stroke();
+  }
+  const [ax0,ay0]=toCanvas(0,0);
+  ctx.strokeStyle='#1a3050'; ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(30,ay0);ctx.lineTo(W-10,ay0);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(ax0,10);ctx.lineTo(ax0,290);ctx.stroke();
+
+  ctx.strokeStyle=color; ctx.lineWidth=2; ctx.shadowColor=color; ctx.shadowBlur=10;
+  ctx.beginPath();
+  pts.forEach(([x,v],i)=>{const [px,py]=toCanvas(x,v);if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);});
+  ctx.stroke(); ctx.shadowBlur=0;
+
+  const [sx,sy]=toCanvas(pts[0][0],pts[0][1]);
+  ctx.fillStyle='white'; ctx.beginPath(); ctx.arc(sx,sy,5,0,Math.PI*2); ctx.fill();
+
+  const step=Math.floor(pts.length/6);
+  ctx.fillStyle=color;
+  for(let i=step;i<pts.length;i+=step){
+    const [px,py]=toCanvas(pts[i][0],pts[i][1]);
+    const [px2,py2]=toCanvas(pts[Math.min(i+3,pts.length-1)][0],pts[Math.min(i+3,pts.length-1)][1]);
+    const angle=Math.atan2(py2-py,px2-px);
+    ctx.save();ctx.translate(px,py);ctx.rotate(angle);
+    ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-10,-5);ctx.lineTo(-10,5);ctx.closePath();ctx.fill();
+    ctx.restore();
+  }
+
+  ctx.fillStyle='#4a6080'; ctx.font='11px JetBrains Mono';
+  ctx.fillText('x →',W-30,ay0+14);
+  ctx.fillText('ẋ ↑',ax0+6,18);
+}
+
+function drawAllPhase(){
+  drawPhasePlot('ph1',0.08,'#00e5ff');
+  drawPhasePlot('ph2',0.3,'#00e676');
+  drawPhasePlot('ph3',1.0,'#ffb300');
+  drawPhasePlot('ph4',2.0,'#ff4081');
+}
+window.addEventListener('load',()=>{setTimeout(drawAllPhase,200);});
+window.addEventListener('resize',()=>{setTimeout(drawAllPhase,100);setTimeout(drawLogDec,100);setTimeout(drawEnergy,100);});
+
+/* ══════════════════════════════════════════
+   SOAL LATIHAN — CHECK & REVEAL
+   ══════════════════════════════════════════ */
+function showFeedback(id, correct, msg) {
+  const el = document.getElementById(id);
+  el.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function toggleKey(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('show');
+}
+
+window.checkSoal1 = function() {
+  const a = parseFloat(document.getElementById('ans1a').value);
+  const b = parseFloat(document.getElementById('ans1b').value);
+  const c = document.getElementById('ans1c').value;
+  if(!a||!b||!c) { showFeedback('fb1',false,'⚠ Isi semua jawaban terlebih dahulu.'); return; }
+  const ok1 = Math.abs(a-10)<0.1, ok2 = Math.abs(b-0.3)<0.02, ok3 = c==='under';
+  if(ok1&&ok2&&ok3) showFeedback('fb1',true,'✅ Semua jawaban benar! ωₙ = 10 rad/s, ζ = 0.3, Underdamped.');
+  else {
+    let msg='❌ ';
+    if(!ok1) msg+='ωₙ salah (harusnya 10). ';
+    if(!ok2) msg+='ζ salah (harusnya 0.3). ';
+    if(!ok3) msg+='Tipe redaman salah (harusnya Underdamped). ';
+    showFeedback('fb1',false,msg);
+  }
+};
+
+window.checkSoal2 = function() {
+  const a = parseFloat(document.getElementById('ans2a').value);
+  const b = parseFloat(document.getElementById('ans2b').value);
+  if(!a||!b) { showFeedback('fb2',false,'⚠ Isi semua jawaban.'); return; }
+  const ok1 = Math.abs(a-0.3305)<0.02, ok2 = Math.abs(b-0.0525)<0.005;
+  if(ok1&&ok2) showFeedback('fb2',true,'✅ Benar! δ ≈ 0.3305, ζ ≈ 0.0525.');
+  else {
+    let msg='❌ ';
+    if(!ok1) msg+=`δ salah (harusnya ≈ 0.3305, kamu: ${a}). `;
+    if(!ok2) msg+=`ζ salah (harusnya ≈ 0.0525, kamu: ${b}). `;
+    showFeedback('fb2',false,msg);
+  }
+};
+
+window.checkSoal3 = function() {
+  const a=parseFloat(document.getElementById('ans3a').value);
+  const b=parseFloat(document.getElementById('ans3b').value);
+  const c=parseFloat(document.getElementById('ans3c').value);
+  const d=parseFloat(document.getElementById('ans3d').value);
+  if(!a||!b||!c||!d){showFeedback('fb3',false,'⚠ Isi semua jawaban.');return;}
+  const ok1=Math.abs(a-10)<0.1, ok2=Math.abs(b-0.2)<0.02, ok3=Math.abs(c-9.798)<0.1, ok4=Math.abs(d-0.641)<0.02;
+  if(ok1&&ok2&&ok3&&ok4) showFeedback('fb3',true,'✅ Semua benar! ωₙ=10, ζ=0.2, ωd=9.798, Td=0.641s.');
+  else {
+    let msg='❌ ';
+    if(!ok1) msg+='ωₙ salah. '; if(!ok2) msg+='ζ salah. '; if(!ok3) msg+='ωd salah. '; if(!ok4) msg+='Td salah. ';
+    showFeedback('fb3',false,msg+'Cek kunci jawaban untuk detail.');
+  }
+};
+
+window.checkSoal4 = function() {
+  const a=parseFloat(document.getElementById('ans4a').value);
+  const b=parseFloat(document.getElementById('ans4b').value);
+  if(!a||!b){showFeedback('fb4',false,'⚠ Isi semua jawaban.');return;}
+  const ok1=Math.abs(a-9.78)<0.3, ok2=Math.abs(b-12.4)<0.5;
+  if(ok1&&ok2) showFeedback('fb4',true,'✅ Benar! t_settling ≈ 9.78s, ~12.4 siklus.');
+  else {
+    let msg='❌ ';
+    if(!ok1) msg+=`t_settling salah (harusnya ≈ 9.78). `; if(!ok2) msg+=`jumlah siklus salah (harusnya ≈ 12.4). `;
+    showFeedback('fb4',false,msg);
+  }
+};
+
+window.checkSoal5 = function() {
+  const a=parseFloat(document.getElementById('ans5a').value);
+  const b=parseFloat(document.getElementById('ans5b').value);
+  const c=document.getElementById('ans5c').value;
+  if(!a||!b||!c){showFeedback('fb5',false,'⚠ Isi semua jawaban.');return;}
+  const ok1=Math.abs(a-948.68)<5, ok2=Math.abs(b-0.211)<0.02, ok3=c==='under';
+  if(ok1&&ok2&&ok3) showFeedback('fb5',true,'✅ Benar! cₖᵣ ≈ 948.68, ζ ≈ 0.211, Underdamped.');
+  else {
+    let msg='❌ ';
+    if(!ok1) msg+='cₖᵣ salah. '; if(!ok2) msg+='ζ salah. '; if(!ok3) msg+='Tipe salah. ';
+    showFeedback('fb5',false,msg);
+  }
+};
+</script>
+
+<!-- ═══ DAFTAR PENGUNJUNG ═══ -->
+<section style="max-width:900px;margin:48px auto 0;padding:0 24px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px;">
+    <div>
+      <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.3);color:#2dd4bf;padding:5px 14px;border-radius:999px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;">👥 Pengunjung</span>
+      <h2 style="font-family:'Outfit',sans-serif;font-size:1.6rem;font-weight:800;color:#fff;margin-top:12px;">Daftar Pengunjung</h2>
+      <p style="color:#94a3b8;font-size:.85rem;margin-top:6px;">Mahasiswa dan dosen yang telah mengakses halaman ini.</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button onclick="showResetModal()" style="padding:10px 20px;border-radius:12px;border:1px solid rgba(251,113,133,.3);background:rgba(251,113,133,.08);color:#fb7185;font-family:'Outfit',sans-serif;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:6px;" onmouseenter="this.style.background='rgba(251,113,133,.18)'" onmouseleave="this.style.background='rgba(251,113,133,.08)'">🗑 Reset</button>
+    </div>
+  </div>
+  <div id="scheduleInfo" style="display:none;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.2);border-radius:14px;padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    <span style="font-size:1.2rem;">🕐</span>
+    <div style="flex:1;min-width:200px;">
+      <div style="font-size:.75rem;font-weight:600;color:#818cf8;text-transform:uppercase;letter-spacing:.08em;">Jadwal Perkuliahan</div>
+      <div id="scheduleRange" style="font-size:.88rem;color:#e2e8f0;font-weight:600;margin-top:2px;">—</div>
+    </div>
+    <div style="text-align:center;">
+      <div id="statLate" style="font-weight:800;font-size:1.4rem;color:#fb7185;">0</div>
+      <div style="font-size:.7rem;color:#64748b;">Terlambat</div>
+    </div>
+  </div>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;">
+    <div style="display:flex;gap:1px;background:rgba(255,255,255,.04);">
+      <div style="flex:1;padding:20px 24px;text-align:center;"><div id="statTotal" style="font-family:'Outfit',sans-serif;font-weight:800;font-size:2rem;color:#2dd4bf;">—</div><div style="font-size:.75rem;color:#64748b;margin-top:2px;">Total Pengunjung</div></div>
+      <div style="flex:1;padding:20px 24px;text-align:center;border-left:1px solid rgba(255,255,255,.06);border-right:1px solid rgba(255,255,255,.06);"><div id="statMhs" style="font-family:'Outfit',sans-serif;font-weight:800;font-size:2rem;color:#a78bfa;">—</div><div style="font-size:.75rem;color:#64748b;margin-top:2px;">Mahasiswa</div></div>
+      <div style="flex:1;padding:20px 24px;text-align:center;"><div id="statDosen" style="font-family:'Outfit',sans-serif;font-weight:800;font-size:2rem;color:#fbbf24;">—</div><div style="font-size:.75rem;color:#64748b;margin-top:2px;">Dosen</div></div>
+    </div>
+    <div style="display:flex;padding:14px 24px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.08em;">
+      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:1;text-align:right;">Waktu Akses</div>
+    </div>
+    <div id="visitorTableBody" style="max-height:420px;overflow-y:auto;"><div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">⏳ Memuat data pengunjung...</div></div>
+  </div>
+</section>
+
+<script type="module">
+// ═══ FIREBASE VISITOR SYSTEM ═══
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getDatabase, ref, get, set, remove, onValue } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+
+const MODULE_ID = 'modul-3';
+const DB_PATH = `visitors/getaran_mekanik/${MODULE_ID}`;
+const PERTEMUAN = 'pertemuan-3';
+const RELATED_MODULES = ['forum-3','tugas-3'];
+const SCHEDULE_PATH = `settings/getaran_mekanik/${PERTEMUAN}/schedule`;
+const LOCAL_IDENTITY = `optoauto_identity_${MODULE_ID}`;
+let panelOpen = false;
+let currentSchedule = null;
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",
+  authDomain: "getaran-mekanik.firebaseapp.com",
+  databaseURL: "https://getaran-mekanik-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "getaran-mekanik",
+  storageBucket: "getaran-mekanik.firebasestorage.app",
+  messagingSenderId: "430886299733",
+  appId: "1:430886299733:web:0edecd5d4adf73e7440cdc",
+  measurementId: "G-NBMYLXXF18"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+function getIdentity(){try{return JSON.parse(localStorage.getItem(LOCAL_IDENTITY));}catch(e){return null;}}
+function saveIdentity(v){localStorage.setItem(LOCAL_IDENTITY, JSON.stringify(v));}
+function isValidName(n){if(!n)return false;return n.split(/\s+/).every(w=>w.length>0&&/^[A-Z][a-z]*$/.test(w));}
+function isValidNim(n){return /^\d+$/.test(n);}
+function escH(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function sanitizeKey(s){return s.replace(/[.#$/\[\]]/g,'_');}
+
+function initVisitor(){
+  const me = getIdentity();
+  if(me && me.nama){document.getElementById('visitorOverlay').classList.add('hidden');document.getElementById('visitorFab').style.display='flex';}
+  onValue(ref(db, SCHEDULE_PATH), (snap) => {
+    currentSchedule = snap.val();
+    updateScheduleDisplay();
+    onValue(ref(db, DB_PATH), (vsnap) => {
+      const data = vsnap.val();
+      renderVisitors(data ? Object.values(data) : []);
+    }, {onlyOnce: true});
+  });
+  onValue(ref(db, DB_PATH), (snapshot) => {
+    const data = snapshot.val();
+    renderVisitors(data ? Object.values(data) : []);
+  });
+}
+
+function updateScheduleDisplay(){
+  const info = document.getElementById('scheduleInfo');
+  const range = document.getElementById('scheduleRange');
+  if(!info || !range) return;
+  if(currentSchedule && currentSchedule.start && currentSchedule.end){
+    info.style.display='flex';
+    const s = new Date(currentSchedule.start), e = new Date(currentSchedule.end);
+    const fmt = (d) => d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    const dur = currentSchedule.duration || Math.round((e-s)/(24*60*60*1000));
+    range.textContent = fmt(s) + '  —  ' + fmt(e) + '  ('+dur+' hari)';
+  } else { info.style.display='none'; }
+}
+
+function isLate(timestamp){
+  if(!currentSchedule || !currentSchedule.start || !currentSchedule.end) return false;
+  const t = new Date(timestamp).getTime();
+  const s = new Date(currentSchedule.start).getTime();
+  const e = new Date(currentSchedule.end).getTime();
+  return t < s || t > e;
+}
+
+function submitVisitor(){
+  const nama=document.getElementById('vNama').value.trim(), nim=document.getElementById('vNim').value.trim(), err=document.getElementById('vError');
+  if(!currentSchedule || !currentSchedule.start || !currentSchedule.end){err.textContent='⚠ Jadwal belum disetel. Silakan atur jadwal terlebih dahulu.';err.style.display='block';return;}
+  const now=new Date().getTime(), schedStart=new Date(currentSchedule.start).getTime();
+  if(now<schedStart){const sd=new Date(currentSchedule.start);err.textContent='⚠ Akses belum dibuka. Jadwal dimulai pada '+sd.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+' '+sd.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+'.';err.style.display='block';return;}
+  const isDosen=nama.toLowerCase()==='dedik romahadi';
+  if(!nama){err.textContent='⚠ Nama wajib diisi.';err.style.display='block';return;}
+  if(!isValidName(nama)){err.textContent='⚠ Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi';err.style.display='block';return;}
+  if(!isDosen&&!nim){err.textContent='⚠ NIM wajib diisi.';err.style.display='block';return;}
+  if(!isDosen&&!isValidNim(nim)){err.textContent='⚠ NIM harus berupa angka tanpa spasi. Contoh: 41522010001';err.style.display='block';return;}
+  err.style.display='none';
+  const v={nama,nim:isDosen?'DOSEN':nim,role:isDosen?'dosen':'student',timestamp:new Date().toISOString()};
+  saveIdentity(v);
+  set(ref(db, `${DB_PATH}/${sanitizeKey(isDosen?`dosen_${nama}`:`mhs_${nim}`)}`), v);
+  document.getElementById('visitorOverlay').classList.add('hidden');
+  document.getElementById('visitorFab').style.display='flex';
+}
+
+function renderVisitors(visitors){
+  visitors.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+  const seen=new Set(),unique=[];
+  for(const v of visitors){const id=v.nama+'|'+v.nim;if(!seen.has(id)){seen.add(id);unique.push(v);}}
+  const mc=unique.filter(v=>v.role!=='dosen').length, dc=unique.filter(v=>v.role==='dosen').length;
+  const lateCount=unique.filter(v=>v.role!=='dosen'&&isLate(v.timestamp)).length;
+
+  document.getElementById('fabCount').textContent=unique.length;
+  document.getElementById('vpBadge').textContent=unique.length+' orang';
+  document.getElementById('statTotal').textContent=unique.length;
+  document.getElementById('statMhs').textContent=mc;
+  document.getElementById('statDosen').textContent=dc;
+  const statLateEl=document.getElementById('statLate');
+  if(statLateEl) statLateEl.textContent=lateCount;
+
+  const listEl=document.getElementById('vpList'), tableEl=document.getElementById('visitorTableBody');
+
+  if(!unique.length){
+    listEl.innerHTML='<div class="vp-empty">Belum ada pengunjung.</div>';
+    tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">Belum ada pengunjung.</div>';
+    return;
+  }
+
+  listEl.innerHTML=unique.map(v=>{
+    const d=v.role==='dosen', ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    const late=!d&&isLate(v.timestamp);
+    const lBadge=late?'<span style="color:#fb7185;font-size:.65rem;font-weight:600;margin-left:4px;">⏰ Terlambat</span>':'';
+    return '<div class="vp-item" style="'+(late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':'')+'"><div class="vp-avatar '+(d?'dosen':'student')+'" style="'+(late?'background:rgba(251,113,133,.12);color:#fb7185;':'')+'">'+ ini+'</div><div class="vp-info"><div class="vp-name">'+(d?'👨‍🏫 ':'')+escH(v.nama)+lBadge+'</div><div class="vp-nim">'+(d?'Dosen Pengampu':escH(v.nim))+'</div></div><div class="vp-time">'+ts+'</div></div>';
+  }).join('');
+
+  tableEl.innerHTML=unique.map((v,i)=>{
+    const d=v.role==='dosen', ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    const late=!d&&isLate(v.timestamp);
+    const rowBg=late?'background:rgba(251,113,133,.04);':'';
+    const nameColor=late?'color:#fb7185;':'color:#e2e8f0;';
+    const ac=d?'background:rgba(251,191,36,.12);color:#fbbf24;':late?'background:rgba(251,113,133,.12);color:#fb7185;':'background:rgba(45,212,191,.12);color:#2dd4bf;';
+    const rc=d?'<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2);margin-left:8px;">Dosen</span>':'';
+    const statusCol=d?'<span style="color:#64748b;font-size:.75rem;">—</span>':late?'<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(251,113,133,.12);color:#fb7185;border:1px solid rgba(251,113,133,.25);">⏰ Terlambat</span>':'<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.25);">✅ Tepat Waktu</span>';
+    return '<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);'+rowBg+'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:'+(late?'#fb7185':'#64748b')+';font-weight:600;">'+(i+1)+'</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;'+ac+'">'+ini+'</div><div><div style="font-weight:600;font-size:.88rem;'+nameColor+'">'+escH(v.nama)+rc+'</div></div></div><div style="flex:1;font-size:.8rem;color:'+(late?'#fb7185':'#94a3b8')+';font-family:monospace;">'+(d?'—':escH(v.nim))+'</div><div style="flex:1;text-align:center;">'+statusCol+'</div><div style="flex:1;text-align:right;font-size:.78rem;color:'+(late?'#fb7185':'#64748b')+';">'+ts+'</div></div>';
+  }).join('');
+}
+
+function togglePanel(){panelOpen=!panelOpen;document.getElementById('visitorPanel').classList.toggle('open',panelOpen);}
+document.addEventListener('click',function(e){const p=document.getElementById('visitorPanel'),f=document.getElementById('visitorFab');if(panelOpen&&!p.contains(e.target)&&!f.contains(e.target)){panelOpen=false;p.classList.remove('open');}});
+
+function showResetModal(){document.getElementById('resetOverlay').classList.remove('hidden');document.getElementById('resetPw').value='';document.getElementById('resetError').style.display='none';setTimeout(()=>document.getElementById('resetPw').focus(),100);}
+function hideResetModal(){document.getElementById('resetOverlay').classList.add('hidden');}
+function confirmReset(){
+  if(document.getElementById('resetPw').value!=='TeknikMesin0602'){document.getElementById('resetError').style.display='block';return;}
+  remove(ref(db,DB_PATH));
+  localStorage.removeItem(LOCAL_IDENTITY);
+  remove(ref(db,SCHEDULE_PATH));
+  RELATED_MODULES.forEach(function(mid){
+    remove(ref(db,'visitors/getaran_mekanik/'+mid));
+    localStorage.removeItem('optoauto_identity_'+mid);
+  });
+  hideResetModal();
+  document.getElementById('visitorOverlay').classList.remove('hidden');
+  document.getElementById('visitorFab').style.display='none';
+}
+
+function showScheduleModal(){
+  document.getElementById('scheduleOverlay').classList.remove('hidden');
+  document.getElementById('schedulePw').value='';
+  document.getElementById('scheduleError').textContent='';document.getElementById('scheduleError').style.display='none';
+  if(currentSchedule){
+    document.getElementById('scheduleDuration').value=currentSchedule.duration||'';
+    document.getElementById('scheduleDue').value=currentSchedule.due||'';
+  } else {
+    document.getElementById('scheduleDuration').value='7';var dd=new Date();dd.setDate(dd.getDate()+7);dd.setHours(23,59,0,0);document.getElementById('scheduleDue').value=dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0')+'T23:59';
+  }
+  setTimeout(()=>document.getElementById('schedulePw').focus(),100);
+}
+function hideScheduleModal(){document.getElementById('scheduleOverlay').classList.add('hidden');}
+function saveSchedule(){
+  const pw=document.getElementById('schedulePw').value;
+  if(pw!=='TeknikMesin0602'){document.getElementById('scheduleError').textContent='⚠ Password salah.';document.getElementById('scheduleError').style.display='block';return;}
+  const dur=parseInt(document.getElementById('scheduleDuration').value), due=document.getElementById('scheduleDue').value;
+  if(!dur||dur<1){document.getElementById('scheduleError').textContent='⚠ Durasi harus diisi (minimal 1 hari).';document.getElementById('scheduleError').style.display='block';return;}
+  if(!due){document.getElementById('scheduleError').textContent='⚠ Batas akhir (due date) harus diisi.';document.getElementById('scheduleError').style.display='block';return;}
+  const dueDate=new Date(due);
+  const startDate=new Date(dueDate.getTime()-dur*24*60*60*1000);
+  const s=startDate.toISOString(), e=dueDate.toISOString();
+  remove(ref(db,DB_PATH));
+  localStorage.removeItem(LOCAL_IDENTITY);
+  set(ref(db, SCHEDULE_PATH), {start:s, end:e, duration:dur, due:due});
+  hideScheduleModal();
+  document.getElementById('visitorOverlay').classList.remove('hidden');
+  document.getElementById('visitorFab').style.display='none';
+}
+
+document.getElementById('resetPw').addEventListener('keydown',function(e){if(e.key==='Enter')confirmReset();});
+document.getElementById('resetOverlay').addEventListener('click',function(e){if(e.target===this)hideResetModal();});
+document.getElementById('scheduleOverlay').addEventListener('click',function(e){if(e.target===this)hideScheduleModal();});
+document.getElementById('schedulePw').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('scheduleDuration').focus();});
+document.getElementById('vNim').addEventListener('keydown',function(e){if(e.key==='Enter')submitVisitor();});
+document.getElementById('vNama').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('vNim').focus();});
+
+window.submitVisitor=submitVisitor;window.togglePanel=togglePanel;
+window.showResetModal=showResetModal;window.hideResetModal=hideResetModal;window.confirmReset=confirmReset;
+window.showScheduleModal=showScheduleModal;window.hideScheduleModal=hideScheduleModal;window.saveSchedule=saveSchedule;
+
+initVisitor();
+</script>
+
+</body>
+</html>
