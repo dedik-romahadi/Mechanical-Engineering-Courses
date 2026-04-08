@@ -2341,7 +2341,7 @@ function isLate(timestamp){
   return t < s || t > e;
 }
 
-function submitVisitor(){
+async function submitVisitor(){
   const nama=document.getElementById('vNama').value.trim(), nim=document.getElementById('vNim').value.trim(), err=document.getElementById('vError');
   // Schedule checks
   if(!currentSchedule || !currentSchedule.start || !currentSchedule.end){err.textContent='\u26a0 Jadwal belum disetel. Silakan atur jadwal terlebih dahulu.';err.style.display='block';return;}
@@ -2353,9 +2353,12 @@ function submitVisitor(){
   if(!isDosen&&!nim){err.textContent='\u26a0 NIM wajib diisi.';err.style.display='block';return;}
   if(!isDosen&&!isValidNim(nim)){err.textContent='\u26a0 NIM harus berupa angka tanpa spasi. Contoh: 41522010001';err.style.display='block';return;}
   err.style.display='none';
-  const v={nama,nim:isDosen?'DOSEN':nim,role:isDosen?'dosen':'student',timestamp:new Date().toISOString()};
+  const key=sanitizeKey(isDosen?`dosen_${nama}`:`mhs_${nim}`);
+  const existing=await get(ref(db,`${DB_PATH}/${key}`));
+  const firstTs=existing.exists()&&existing.val().timestamp?existing.val().timestamp:new Date().toISOString();
+  const v={nama,nim:isDosen?'DOSEN':nim,role:isDosen?'dosen':'student',timestamp:firstTs};
   saveIdentity(v);
-  set(ref(db, `${DB_PATH}/${sanitizeKey(isDosen?`dosen_${nama}`:`mhs_${nim}`)}`), v);
+  await set(ref(db,`${DB_PATH}/${key}`),v);
   document.getElementById('visitorOverlay').classList.add('hidden');
   document.getElementById('visitorFab').style.display='flex';
 }
