@@ -381,6 +381,7 @@
     <a href="#analogi">Analogi</a>
     <a href="#animasi">Animasi</a>
     <a href="#fase">Fase</a>
+    <a href="#pegas">Pegas</a>
     <a href="#jupyter">Jupyter</a>
     <a href="#latihan">Latihan</a>
   </div>
@@ -464,6 +465,7 @@
     <span style="display:block;margin-top:6px;font-size:13px;color:var(--muted)">Dari pengukuran δ, kita bisa menentukan ζ: <code style="color:var(--amber);font-family:var(--font-mono);">ζ = δ / √(4π² + δ²)</code></span>
   </div>
 </div>
+
 
 <!-- ═══════════════════ ANALOGI ═══════════════════ -->
 <hr class="divider">
@@ -595,7 +597,7 @@
           <label>Rasio Redaman ζ — <span class="ctrl-val" id="v_zeta4">0.15</span></label>
           <input type="range" id="sl_zeta4" min="0.01" max="0.6" step="0.01" value="0.15">
         </div>
-        <button class="btn-anim" onclick="drawEnergy()">🔄 REDRAW</button>
+        <button class="btn-anim" id="btnRedrawEnergy" onclick="window.drawEnergy()">🔄 REDRAW</button>
       </div>
       <div style="margin-top:12px;display:flex;gap:24px;flex-wrap:wrap;font-size:12px;font-family:var(--font-mono)">
         <span style="color:#00e5ff">── Energi Kinetik (½mẋ²)</span>
@@ -658,10 +660,202 @@
   </div>
 </div>
 
+<!-- ═══════════════════ HUKUM HOOKE & PEGAS EKUIVALEN ═══════════════════ -->
+<hr class="divider">
+<div class="section" id="pegas">
+  <div class="section-label reveal">Bagian 05</div>
+  <h2 class="section-title reveal">Hukum Hooke &amp;<br>Pegas Ekuivalen</h2>
+  <p class="section-desc reveal">Memahami konstanta pegas, energi potensial elastis, dan cara menghitung pegas ekuivalen untuk sistem seri-paralel.</p>
+
+  <div class="info-box reveal">
+    <strong>Hukum Hooke:</strong> Gaya yang dialami pegas sebanding dengan perpanjangannya: <code style="font-family:var(--font-mono);color:var(--cyan);">F = k · Δx</code>. Pada kondisi setimbang statis, gaya pegas = gaya gravitasi: <code style="font-family:var(--font-mono);color:var(--amber);">k · Δx = m · g</code>
+  </div>
+
+  <div class="cards" style="margin-bottom:32px;">
+    <div class="card reveal" style="border-left:3px solid var(--cyan);">
+      <div class="card-icon">🌀</div>
+      <h3>Konstanta Pegas (k)</h3>
+      <p>Ukuran kekakuan pegas. Semakin besar k, semakin sulit pegas untuk diregangkan. Dari Hukum Hooke: k = F/Δx = mg/Δx</p>
+      <span class="formula">k = mg / Δx</span>
+    </div>
+    <div class="card reveal" style="border-left:3px solid var(--green);">
+      <div class="card-icon">⚡</div>
+      <h3>Energi Potensial Elastis</h3>
+      <p>Energi yang tersimpan dalam pegas saat diregangkan atau ditekan dari posisi alaminya.</p>
+      <span class="formula">EP = ½ k Δx²</span>
+    </div>
+    <div class="card reveal" style="border-left:3px solid var(--amber);">
+      <div class="card-icon">🔽</div>
+      <h3>Energi Potensial Gravitasi</h3>
+      <p>Perubahan energi potensial gravitasi saat massa turun sejauh Δx dari posisi awal.</p>
+      <span class="formula">ΔEP_grav = −m g Δx</span>
+    </div>
+    <div class="card reveal" style="border-left:3px solid var(--pink);">
+      <div class="card-icon">🔗</div>
+      <h3>Pegas Seri &amp; Paralel</h3>
+      <p><strong style="color:var(--cyan)">Seri:</strong> 1/keq = 1/k₁ + 1/k₂ + ...<br><strong style="color:var(--amber)">Paralel:</strong> keq = k₁ + k₂ + ...</p>
+      <span class="formula">Seri ↔ lebih lunak | Paralel ↔ lebih kaku</span>
+    </div>
+  </div>
+
+  <!-- ★ ANIMASI INTERAKTIF: Massa Digantung Pegas ★ -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--cyan)"></div>
+      <span class="anim-title">Animasi 5 — Massa Digantung dari Pegas (Hukum Hooke)</span>
+    </div>
+    <div class="anim-body">
+      <div style="display:grid;grid-template-columns:280px 1fr;gap:16px;align-items:start;">
+        <canvas id="cvSpring" height="380" style="min-width:0"></canvas>
+        <div>
+          <div id="springInfo" style="font-family:var(--font-mono);font-size:13px;line-height:2.2;color:var(--text);padding:12px 0;"></div>
+        </div>
+      </div>
+      <div class="ctrl-row">
+        <div class="ctrl-group">
+          <label>Massa m (kg) — <span class="ctrl-val" id="v_ms">8.0</span></label>
+          <input type="range" id="sl_ms" min="1" max="30" step="0.5" value="8">
+        </div>
+        <div class="ctrl-group">
+          <label>Perpanjangan Δx (cm) — <span class="ctrl-val" id="v_dx">16.0</span></label>
+          <input type="range" id="sl_dx" min="2" max="40" step="0.5" value="16">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ★ ANIMASI INTERAKTIF: Pegas Ekuivalen (Seri-Paralel) ★ -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--amber)"></div>
+      <span class="anim-title">Animasi 6 — Pegas Ekuivalen (Seri-Paralel) &amp; Frekuensi</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvKeq" height="340" style="min-width:0"></canvas>
+      <div id="keqInfo" style="margin-top:12px;font-family:var(--font-mono);font-size:13px;line-height:2.0;color:var(--text);"></div>
+      <div class="ctrl-row">
+        <div class="ctrl-group">
+          <label>k₁ (N/m) — <span class="ctrl-val" id="v_k1">800</span></label>
+          <input type="range" id="sl_k1" min="100" max="2000" step="50" value="800">
+        </div>
+        <div class="ctrl-group">
+          <label>k₂ (N/m) — <span class="ctrl-val" id="v_k2">1000</span></label>
+          <input type="range" id="sl_k2" min="100" max="2000" step="50" value="1000">
+        </div>
+        <div class="ctrl-group">
+          <label>k₃ (N/m) — <span class="ctrl-val" id="v_k3">1500</span></label>
+          <input type="range" id="sl_k3" min="100" max="2000" step="50" value="1500">
+        </div>
+        <div class="ctrl-group">
+          <label>k₄ (N/m) — <span class="ctrl-val" id="v_k4">500</span></label>
+          <input type="range" id="sl_k4" min="100" max="2000" step="50" value="500">
+        </div>
+        <div class="ctrl-group">
+          <label>Frekuensi f (Hz) — <span class="ctrl-val" id="v_freq">300</span></label>
+          <input type="range" id="sl_freq" min="10" max="600" step="10" value="300">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ★ SOAL INTERAKTIF 1: Massa-Pegas ★ -->
+  <div class="prob reveal" style="border-left-color:var(--cyan);">
+    <div class="prob-num" style="color:var(--cyan);">STUDI KASUS 1 — MASSA DIGANTUNG PEGAS</div>
+    <h4>Analisis Pegas dengan Beban Statis</h4>
+    <p>Ada massa <strong>8 kg</strong> digantung dari sebuah pegas dan mengalami perpanjangan sebesar <strong>16 cm</strong> terhadap panjang aslinya. Tentukan:</p>
+    <p>(a) Konstanta pegas k, (b) Energi potensial elastis, (c) Perubahan energi potensial gravitasi, (d) Perpanjangan jika massa diganti 20 kg</p>
+    <div class="given">m = 8 kg, Δx = 16 cm = 0.16 m, g = 9.81 m/s²</div>
+
+    <div class="answer-input-area">
+      <label>Jawaban k (N/m):</label>
+      <input type="number" id="ans_s1a" step="0.1" placeholder="...">
+      <label>Jawaban EP elastis (Joule):</label>
+      <input type="number" id="ans_s1b" step="0.01" placeholder="...">
+      <label>Jawaban ΔEP gravitasi (Joule):</label>
+      <input type="number" id="ans_s1c" step="0.01" placeholder="...">
+      <label>Jawaban Δx baru untuk 20 kg (cm):</label>
+      <input type="number" id="ans_s1d" step="0.1" placeholder="...">
+      <div style="margin-top:10px">
+        <button class="check-btn" onclick="window.checkStudi1()">✓ CEK JAWABAN</button>
+        <button class="answer-key-btn" onclick="toggleKey('keyS1')">🔑 KUNCI JAWABAN</button>
+      </div>
+      <div class="feedback" id="fbS1"></div>
+      <div class="answer-reveal" id="keyS1">
+        <h5>🔑 KUNCI JAWABAN — STUDI KASUS 1</h5>
+        <div class="step"><strong>a) Konstanta pegas k:</strong></div>
+        <div class="step">Pada kesetimbangan statis: F_pegas = F_gravitasi → k·Δx = m·g</div>
+        <div class="step">k = m·g / Δx = (8 × 9.81) / 0.16 = 78.48 / 0.16 = <strong style="color:var(--amber)">490.5 N/m</strong></div>
+        <div class="step" style="margin-top:8px;"><strong>b) Energi potensial elastis:</strong></div>
+        <div class="step">EP = ½ k Δx² = ½ × 490.5 × (0.16)² = ½ × 490.5 × 0.0256 = <strong style="color:var(--amber)">6.278 J</strong></div>
+        <div class="step" style="margin-top:8px;"><strong>c) Perubahan energi potensial gravitasi:</strong></div>
+        <div class="step">ΔEP_grav = −m·g·Δx = −8 × 9.81 × 0.16 = <strong style="color:var(--amber)">−12.557 J</strong></div>
+        <div class="step">(Negatif karena massa turun → energi potensial gravitasi berkurang)</div>
+        <div class="step" style="margin-top:8px;"><strong>d) Perpanjangan dengan massa 20 kg:</strong></div>
+        <div class="step">Δx₂ = m₂·g / k = (20 × 9.81) / 490.5 = 196.2 / 490.5 = 0.4 m = <strong style="color:var(--amber)">40 cm</strong></div>
+        <div class="step">Atau secara proporsional: Δx₂ = Δx₁ × (m₂/m₁) = 16 × (20/8) = <strong style="color:var(--amber)">40 cm</strong></div>
+        <div class="step" style="margin-top:12px;padding:10px 14px;background:rgba(0,229,255,.06);border-radius:8px;font-size:12px;">
+          <strong style="color:var(--cyan)">📓 Jupyter Notebook:</strong><br>
+          <code style="color:var(--green)">m, dx, g = 8, 0.16, 9.81</code><br>
+          <code style="color:var(--green)">k = m*g/dx  # 490.5 N/m</code><br>
+          <code style="color:var(--green)">EP = 0.5*k*dx**2  # 6.278 J</code><br>
+          <code style="color:var(--green)">dEP_grav = -m*g*dx  # -12.557 J</code><br>
+          <code style="color:var(--green)">dx2 = 20*g/k  # 0.4 m = 40 cm</code>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ★ SOAL INTERAKTIF 2: Pegas Ekuivalen ★ -->
+  <div class="prob reveal" style="border-left-color:var(--amber);margin-top:20px;">
+    <div class="prob-num" style="color:var(--amber);">STUDI KASUS 2 — PEGAS EKUIVALEN &amp; FREKUENSI</div>
+    <h4>Sistem Pegas Seri-Paralel</h4>
+    <p>Jika k₁ = 800 N/m, k₂ = 1000 N/m, k₃ = 1500 N/m, k₄ = 500 N/m dan frekuensi = 300 Hz. Dengan konfigurasi: k₁ dan k₂ <strong>paralel</strong>, hasilnya <strong>seri</strong> dengan k₃, lalu hasilnya <strong>paralel</strong> dengan k₄. Tentukan:</p>
+    <p>(a) Konstanta ekuivalen keq, (b) Massa benda yang digantung, (c) Periode osilasi</p>
+    <div class="given">k₁ = 800 N/m, k₂ = 1000 N/m, k₃ = 1500 N/m, k₄ = 500 N/m, f = 300 Hz
+Konfigurasi: (k₁ ∥ k₂) — seri — k₃ kemudian ∥ k₄
+Rumus: f = (1/2π)√(keq/m) → m = keq/(2πf)²</div>
+
+    <div class="answer-input-area">
+      <label>Jawaban keq (N/m):</label>
+      <input type="number" id="ans_s2a" step="0.1" placeholder="...">
+      <label>Jawaban massa m (kg):</label>
+      <input type="number" id="ans_s2b" step="0.0001" placeholder="...">
+      <label>Jawaban periode T (detik):</label>
+      <input type="number" id="ans_s2c" step="0.0001" placeholder="...">
+      <div style="margin-top:10px">
+        <button class="check-btn" onclick="window.checkStudi2()">✓ CEK JAWABAN</button>
+        <button class="answer-key-btn" onclick="toggleKey('keyS2')">🔑 KUNCI JAWABAN</button>
+      </div>
+      <div class="feedback" id="fbS2"></div>
+      <div class="answer-reveal" id="keyS2">
+        <h5>🔑 KUNCI JAWABAN — STUDI KASUS 2</h5>
+        <div class="step"><strong>Langkah 1:</strong> k₁₂ (paralel) = k₁ + k₂ = 800 + 1000 = <strong style="color:var(--cyan)">1800 N/m</strong></div>
+        <div class="step"><strong>Langkah 2:</strong> k₁₂₃ (seri k₁₂ dan k₃) = (k₁₂ × k₃)/(k₁₂ + k₃) = (1800 × 1500)/(1800 + 1500) = 2700000/3300 = <strong style="color:var(--cyan)">818.18 N/m</strong></div>
+        <div class="step"><strong>Langkah 3:</strong> keq (paralel k₁₂₃ dan k₄) = k₁₂₃ + k₄ = 818.18 + 500 = <strong style="color:var(--amber)">1318.18 N/m</strong></div>
+        <div class="step" style="margin-top:8px;"><strong>Langkah 4:</strong> Massa dari frekuensi:</div>
+        <div class="step">f = (1/2π)√(keq/m) → m = keq/(2πf)²</div>
+        <div class="step">m = 1318.18 / (2π × 300)² = 1318.18 / (1884.96)² = 1318.18 / 3553073.3 = <strong style="color:var(--amber)">3.71 × 10⁻⁴ kg ≈ 0.000371 kg</strong></div>
+        <div class="step" style="margin-top:8px;"><strong>Langkah 5:</strong> Periode:</div>
+        <div class="step">T = 1/f = 1/300 = <strong style="color:var(--amber)">0.00333 detik ≈ 3.33 ms</strong></div>
+        <div class="step" style="margin-top:12px;padding:10px 14px;background:rgba(0,229,255,.06);border-radius:8px;font-size:12px;">
+          <strong style="color:var(--cyan)">📓 Jupyter Notebook:</strong><br>
+          <code style="color:var(--green)">k1, k2, k3, k4 = 800, 1000, 1500, 500</code><br>
+          <code style="color:var(--green)">f = 300  # Hz</code><br>
+          <code style="color:var(--green)">k12 = k1 + k2  # paralel = 1800</code><br>
+          <code style="color:var(--green)">k123 = (k12*k3)/(k12+k3)  # seri = 818.18</code><br>
+          <code style="color:var(--green)">keq = k123 + k4  # paralel = 1318.18</code><br>
+          <code style="color:var(--green)">m = keq / (2*np.pi*f)**2  # 0.000371 kg</code><br>
+          <code style="color:var(--green)">T = 1/f  # 0.00333 s</code>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════════ JUPYTER NOTEBOOK ═══════════════════ -->
 <hr class="divider">
 <div class="section" id="jupyter">
-  <div class="section-label reveal">Bagian 05</div>
+  <div class="section-label reveal">Bagian 06</div>
   <h2 class="section-title reveal">Simulasi di<br>Jupyter Notebook</h2>
   <p class="section-desc reveal">Copy-paste kode berikut ke file <code style="font-family:var(--font-mono);color:var(--cyan);background:rgba(0,229,255,.07);padding:2px 8px;border-radius:4px">getaran_teredam.ipynb</code> di VS Code. Pastikan environment <code style="font-family:var(--font-mono);color:var(--amber)">getaran</code> sudah aktif.</p>
 
@@ -868,7 +1062,7 @@ plt.<span class="fn">show</span>()
 <!-- ═══════════════════ SOAL LATIHAN ═══════════════════ -->
 <hr class="divider">
 <div class="section" id="latihan">
-  <div class="section-label reveal">Bagian 06</div>
+  <div class="section-label reveal">Bagian 07</div>
   <h2 class="section-title reveal">Soal Latihan<br>Interaktif</h2>
   <p class="section-desc reveal">Kerjakan soal-soal berikut langsung di halaman ini. Cek jawaban Anda, lalu verifikasi dengan Jupyter Notebook di VS Code.</p>
 
@@ -1452,9 +1646,10 @@ drawLogDec();
 /* ══════════════════════════════════════════
    ANIMASI 4 — Disipasi Energi
    ══════════════════════════════════════════ */
-window.drawEnergy = function() {
+function drawEnergy() {
   const cv = document.getElementById('cv4');
-  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  if(!cv) return;
+  const W = cv.clientWidth || cv.parentElement.clientWidth || 600; cv.width = W; const H = cv.height || 260; cv.height = H;
   const ctx = cv.getContext('2d');
   const zeta = parseFloat(document.getElementById('sl_zeta4').value);
   document.getElementById('v_zeta4').textContent = zeta.toFixed(2);
@@ -1499,8 +1694,10 @@ window.drawEnergy = function() {
   ctx.fillStyle='#4a6080'; ctx.font='11px JetBrains Mono';
   for(let s=0;s<=tMax;s+=2){ctx.fillText(s+'s',s/tMax*W+2,H-4);}
   ctx.fillText(`E₀=${pts[0].ET.toFixed(2)}J`,4,14);
-};
+}
+window.drawEnergy = drawEnergy;
 document.getElementById('sl_zeta4').addEventListener('input',drawEnergy);
+document.getElementById('btnRedrawEnergy').addEventListener('click',drawEnergy);
 drawEnergy();
 
 /* ══════════════════════════════════════════
@@ -1651,6 +1848,253 @@ window.checkSoal5 = function() {
     let msg='❌ ';
     if(!ok1) msg+='cₖᵣ salah. '; if(!ok2) msg+='ζ salah. '; if(!ok3) msg+='Tipe salah. ';
     showFeedback('fb5',false,msg);
+  }
+};
+
+/* ══════════════════════════════════════════
+   ANIMASI 5 — Massa Digantung dari Pegas
+   ══════════════════════════════════════════ */
+function drawSpring() {
+  const cv = document.getElementById('cvSpring');
+  if(!cv) return;
+  const W = cv.clientWidth || cv.parentElement.clientWidth || 280; cv.width = W; const H = 380; cv.height = H;
+  const ctx = cv.getContext('2d');
+  const m = parseFloat(document.getElementById('sl_ms').value);
+  const dx = parseFloat(document.getElementById('sl_dx').value);
+  document.getElementById('v_ms').textContent = m.toFixed(1);
+  document.getElementById('v_dx').textContent = dx.toFixed(1);
+
+  const g = 9.81;
+  const dxM = dx / 100; // meters
+  const k = m * g / dxM;
+  const EP = 0.5 * k * dxM * dxM;
+  const dEPgrav = -m * g * dxM;
+  const dx20 = (20 * g / k) * 100; // cm
+
+  ctx.fillStyle = '#030810'; ctx.fillRect(0, 0, W, H);
+
+  // Ceiling
+  ctx.fillStyle = '#1a2840'; ctx.fillRect(W/2 - 60, 10, 120, 14);
+  ctx.strokeStyle = '#2a3850'; ctx.lineWidth = 1;
+  for(let i = 0; i < 8; i++) { ctx.beginPath(); ctx.moveTo(W/2-55+i*15, 10); ctx.lineTo(W/2-60+i*15, 2); ctx.stroke(); }
+
+  const anchorY = 24;
+  const naturalLen = 60;
+  const pxPerCm = 3.5;
+  const extPx = dx * pxPerCm;
+  const springEnd = anchorY + naturalLen + extPx;
+  const massW = 60, massH = 50;
+
+  // Natural length marker
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
+  ctx.beginPath(); ctx.moveTo(W/2 - 80, anchorY + naturalLen); ctx.lineTo(W/2 + 80, anchorY + naturalLen); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#4a6080'; ctx.font = '10px JetBrains Mono'; ctx.textAlign = 'right';
+  ctx.fillText('panjang asli', W/2 - 84, anchorY + naturalLen + 4);
+
+  // Δx arrow
+  if(extPx > 5) {
+    const arrowX = W/2 + 70;
+    ctx.strokeStyle = '#ffb300'; ctx.lineWidth = 2; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(arrowX, anchorY + naturalLen); ctx.lineTo(arrowX, springEnd); ctx.stroke();
+    // arrowheads
+    ctx.fillStyle = '#ffb300';
+    ctx.beginPath(); ctx.moveTo(arrowX-5, anchorY+naturalLen+8); ctx.lineTo(arrowX, anchorY+naturalLen); ctx.lineTo(arrowX+5, anchorY+naturalLen+8); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(arrowX-5, springEnd-8); ctx.lineTo(arrowX, springEnd); ctx.lineTo(arrowX+5, springEnd-8); ctx.fill();
+    ctx.font = '11px JetBrains Mono'; ctx.textAlign = 'left';
+    ctx.fillText('Δx=' + dx.toFixed(1) + 'cm', arrowX + 8, (anchorY + naturalLen + springEnd) / 2 + 4);
+  }
+
+  // Spring (zigzag)
+  const segs = 14; const totalLen = naturalLen + extPx;
+  const segH = totalLen / segs; const zigW = 18;
+  ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(W/2, anchorY);
+  for(let i = 0; i < segs; i++) {
+    const y1 = anchorY + segH * (i + 0.5);
+    const xOff = (i % 2 === 0) ? zigW : -zigW;
+    ctx.lineTo(W/2 + xOff, y1);
+  }
+  ctx.lineTo(W/2, springEnd); ctx.stroke();
+
+  // Mass block
+  const my = springEnd;
+  ctx.fillStyle = 'rgba(0,229,255,0.15)'; ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.roundRect(W/2 - massW/2, my, massW, massH, 8); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 16px JetBrains Mono'; ctx.textAlign = 'center';
+  ctx.fillText(m.toFixed(1) + ' kg', W/2, my + massH/2 + 6);
+
+  // Gravity arrow
+  ctx.strokeStyle = '#ff4081'; ctx.lineWidth = 2;
+  const gArrowLen = Math.min(40, m * 3);
+  ctx.beginPath(); ctx.moveTo(W/2, my + massH + 4); ctx.lineTo(W/2, my + massH + 4 + gArrowLen); ctx.stroke();
+  ctx.fillStyle = '#ff4081';
+  ctx.beginPath(); ctx.moveTo(W/2-5, my+massH+gArrowLen-4); ctx.lineTo(W/2, my+massH+4+gArrowLen); ctx.lineTo(W/2+5, my+massH+gArrowLen-4); ctx.fill();
+  ctx.font = '11px JetBrains Mono'; ctx.fillText('mg', W/2, my + massH + gArrowLen + 16);
+
+  // Info panel
+  const info = document.getElementById('springInfo');
+  info.innerHTML =
+    `<span style="color:var(--cyan);">k = mg/Δx = ${(m*g).toFixed(2)} / ${dxM.toFixed(4)}</span><br>` +
+    `<strong style="color:#fff;font-size:18px;">k = ${k.toFixed(2)} N/m</strong><br><br>` +
+    `<span style="color:var(--green);">EP = ½kΔx² = ½ × ${k.toFixed(1)} × ${dxM.toFixed(4)}²</span><br>` +
+    `<strong style="color:#fff;">EP = ${EP.toFixed(4)} J</strong><br><br>` +
+    `<span style="color:var(--pink);">ΔEP_grav = −mgΔx = −${m}×${g}×${dxM.toFixed(2)}</span><br>` +
+    `<strong style="color:#fff;">ΔEP_grav = ${dEPgrav.toFixed(4)} J</strong><br><br>` +
+    `<span style="color:var(--amber);">Jika m = 20 kg:</span><br>` +
+    `<span style="color:var(--amber);">Δx = m₂g/k = ${(20*g).toFixed(1)}/${k.toFixed(1)}</span><br>` +
+    `<strong style="color:#fff;">Δx = ${dx20.toFixed(2)} cm</strong>`;
+}
+['sl_ms','sl_dx'].forEach(id=>document.getElementById(id).addEventListener('input', drawSpring));
+window.addEventListener('load', ()=>setTimeout(drawSpring, 300));
+window.addEventListener('resize', ()=>setTimeout(drawSpring, 100));
+drawSpring();
+
+/* ══════════════════════════════════════════
+   ANIMASI 6 — Pegas Ekuivalen Seri-Paralel
+   ══════════════════════════════════════════ */
+function drawKeq() {
+  const cv = document.getElementById('cvKeq');
+  if(!cv) return;
+  const W = cv.clientWidth || cv.parentElement.clientWidth || 600; cv.width = W; const H = 340; cv.height = H;
+  const ctx = cv.getContext('2d');
+
+  const k1=parseFloat(document.getElementById('sl_k1').value);
+  const k2=parseFloat(document.getElementById('sl_k2').value);
+  const k3=parseFloat(document.getElementById('sl_k3').value);
+  const k4=parseFloat(document.getElementById('sl_k4').value);
+  const freq=parseFloat(document.getElementById('sl_freq').value);
+  document.getElementById('v_k1').textContent=k1;
+  document.getElementById('v_k2').textContent=k2;
+  document.getElementById('v_k3').textContent=k3;
+  document.getElementById('v_k4').textContent=k4;
+  document.getElementById('v_freq').textContent=freq;
+
+  const k12 = k1 + k2; // parallel
+  const k123 = (k12 * k3) / (k12 + k3); // series
+  const keq = k123 + k4; // parallel
+  const omega = 2 * Math.PI * freq;
+  const mass = keq / (omega * omega);
+  const period = 1 / freq;
+
+  ctx.fillStyle = '#030810'; ctx.fillRect(0, 0, W, H);
+
+  // Draw schematic
+  const cx = W / 2, startY = 30;
+  ctx.font = 'bold 11px JetBrains Mono'; ctx.textAlign = 'center';
+
+  // Step 1: k1 ∥ k2
+  const boxW = 80, boxH = 36, gap = 20;
+  // k1 box
+  ctx.fillStyle='rgba(0,229,255,.12)'; ctx.strokeStyle='#00e5ff'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.roundRect(cx - boxW - gap/2, startY, boxW, boxH, 6); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#00e5ff'; ctx.fillText('k₁='+k1, cx - boxW/2 - gap/2, startY + boxH/2 + 4);
+  // k2 box
+  ctx.fillStyle='rgba(0,229,255,.12)'; ctx.strokeStyle='#00e5ff';
+  ctx.beginPath(); ctx.roundRect(cx + gap/2, startY, boxW, boxH, 6); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#00e5ff'; ctx.fillText('k₂='+k2, cx + boxW/2 + gap/2, startY + boxH/2 + 4);
+  // Parallel symbol
+  ctx.fillStyle='#fff'; ctx.font='10px JetBrains Mono';
+  ctx.fillText('PARALEL', cx, startY + boxH + 16);
+  // Connecting lines
+  ctx.strokeStyle='rgba(255,255,255,.3)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(cx - gap/2, startY + boxH/2); ctx.lineTo(cx + gap/2, startY + boxH/2); ctx.stroke();
+
+  // Arrow down
+  const y2 = startY + boxH + 26;
+  ctx.strokeStyle='#ffb300'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(cx, startY + boxH + 20); ctx.lineTo(cx, y2 + 10); ctx.stroke();
+  ctx.fillStyle='#ffb300'; ctx.beginPath(); ctx.moveTo(cx-4,y2+4); ctx.lineTo(cx,y2+12); ctx.lineTo(cx+4,y2+4); ctx.fill();
+
+  // k12 result
+  ctx.fillStyle='rgba(255,179,0,.12)'; ctx.strokeStyle='#ffb300'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.roundRect(cx - boxW/2, y2 + 12, boxW, boxH, 6); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#ffb300'; ctx.font='bold 11px JetBrains Mono';
+  ctx.fillText('k₁₂='+k12.toFixed(0), cx, y2 + 12 + boxH/2 + 4);
+
+  // Step 2: k12 seri k3
+  const y3 = y2 + 12 + boxH + 10;
+  ctx.fillStyle='rgba(0,230,118,.12)'; ctx.strokeStyle='#00e676'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.roundRect(cx + boxW/2 + 30, y3, boxW, boxH, 6); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#00e676'; ctx.fillText('k₃='+k3, cx + boxW/2 + 30 + boxW/2, y3 + boxH/2 + 4);
+  // Series label
+  ctx.fillStyle='#fff'; ctx.font='10px JetBrains Mono';
+  ctx.fillText('SERI', cx + 20, y3 + boxH/2 + 4);
+  // Connect
+  ctx.strokeStyle='rgba(255,255,255,.3)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(cx + boxW/2, y2 + 12 + boxH); ctx.lineTo(cx + boxW/2 + 30 + boxW/2, y3); ctx.stroke();
+
+  // Arrow down
+  const y4 = y3 + boxH + 16;
+  ctx.strokeStyle='#ffb300'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(cx, y3 + boxH + 6); ctx.lineTo(cx, y4 + 10); ctx.stroke();
+  ctx.fillStyle='#ffb300'; ctx.beginPath(); ctx.moveTo(cx-4,y4+4); ctx.lineTo(cx,y4+12); ctx.lineTo(cx+4,y4+4); ctx.fill();
+
+  // k123 result
+  ctx.fillStyle='rgba(255,179,0,.12)'; ctx.strokeStyle='#ffb300'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.roundRect(cx - boxW/2, y4 + 12, boxW, boxH, 6); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#ffb300'; ctx.font='bold 11px JetBrains Mono';
+  ctx.fillText('k₁₂₃='+k123.toFixed(1), cx, y4 + 12 + boxH/2 + 4);
+
+  // Step 3: k123 paralel k4
+  const y5 = y4 + 12 + boxH + 10;
+  ctx.fillStyle='rgba(255,64,129,.12)'; ctx.strokeStyle='#ff4081'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.roundRect(cx + boxW/2 + 30, y5, boxW, boxH, 6); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#ff4081'; ctx.fillText('k₄='+k4, cx + boxW/2 + 30 + boxW/2, y5 + boxH/2 + 4);
+  ctx.fillStyle='#fff'; ctx.font='10px JetBrains Mono';
+  ctx.fillText('PARALEL', cx + 20, y5 + boxH/2 + 4);
+
+  // Arrow down to keq
+  const y6 = y5 + boxH + 16;
+  ctx.strokeStyle='var(--violet)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(cx, y5 + boxH + 6); ctx.lineTo(cx, y6 + 10); ctx.stroke();
+
+  // keq final
+  ctx.fillStyle='rgba(124,77,255,.15)'; ctx.strokeStyle='#7c4dff'; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.roundRect(cx - boxW*0.7, y6 + 12, boxW*1.4, boxH + 6, 8); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#fff'; ctx.font='bold 14px JetBrains Mono';
+  ctx.fillText('keq = '+keq.toFixed(2)+' N/m', cx, y6 + 12 + (boxH+6)/2 + 5);
+
+  // Info
+  document.getElementById('keqInfo').innerHTML =
+    `<span style="color:var(--cyan);">① k₁₂ (paralel) = k₁ + k₂ = ${k1} + ${k2} = <strong>${k12.toFixed(0)} N/m</strong></span><br>` +
+    `<span style="color:var(--green);">② k₁₂₃ (seri) = (k₁₂ × k₃)/(k₁₂ + k₃) = (${k12.toFixed(0)} × ${k3})/(${k12.toFixed(0)} + ${k3}) = <strong>${k123.toFixed(2)} N/m</strong></span><br>` +
+    `<span style="color:var(--pink);">③ keq (paralel) = k₁₂₃ + k₄ = ${k123.toFixed(2)} + ${k4} = <strong>${keq.toFixed(2)} N/m</strong></span><br>` +
+    `<span style="color:var(--amber);">④ m = keq/(2πf)² = ${keq.toFixed(2)} / (2π×${freq})² = <strong>${mass.toExponential(4)} kg</strong></span><br>` +
+    `<span style="color:var(--violet);">⑤ T = 1/f = 1/${freq} = <strong>${(period*1000).toFixed(4)} ms</strong></span>`;
+}
+['sl_k1','sl_k2','sl_k3','sl_k4','sl_freq'].forEach(id=>document.getElementById(id).addEventListener('input', drawKeq));
+window.addEventListener('load', ()=>setTimeout(drawKeq, 350));
+window.addEventListener('resize', ()=>setTimeout(drawKeq, 100));
+drawKeq();
+
+/* ══════════════════════════════════════════
+   STUDI KASUS CHECK FUNCTIONS
+   ══════════════════════════════════════════ */
+window.checkStudi1 = function() {
+  const a=parseFloat(document.getElementById('ans_s1a').value);
+  const b=parseFloat(document.getElementById('ans_s1b').value);
+  const c=parseFloat(document.getElementById('ans_s1c').value);
+  const d=parseFloat(document.getElementById('ans_s1d').value);
+  if(!a&&a!==0||!b&&b!==0||!c&&c!==0||!d&&d!==0){showFeedback('fbS1',false,'⚠ Isi semua jawaban.');return;}
+  const ok1=Math.abs(a-490.5)<5, ok2=Math.abs(b-6.278)<0.2, ok3=Math.abs(c-(-12.557))<0.3, ok4=Math.abs(d-40)<1;
+  if(ok1&&ok2&&ok3&&ok4) showFeedback('fbS1',true,'✅ Semua benar! k=490.5 N/m, EP=6.278 J, ΔEPgrav=−12.557 J, Δx₂=40 cm');
+  else {
+    let msg='❌ '; if(!ok1) msg+='k salah. '; if(!ok2) msg+='EP salah. '; if(!ok3) msg+='ΔEPgrav salah (harus negatif). '; if(!ok4) msg+='Δx baru salah. ';
+    showFeedback('fbS1',false,msg);
+  }
+};
+
+window.checkStudi2 = function() {
+  const a=parseFloat(document.getElementById('ans_s2a').value);
+  const b=parseFloat(document.getElementById('ans_s2b').value);
+  const c=parseFloat(document.getElementById('ans_s2c').value);
+  if(!a&&a!==0||!b&&b!==0||!c&&c!==0){showFeedback('fbS2',false,'⚠ Isi semua jawaban.');return;}
+  const ok1=Math.abs(a-1318.18)<10, ok2=(Math.abs(b-0.000371)<0.0001 || Math.abs(b-3.71e-4)<0.0001), ok3=Math.abs(c-0.00333)<0.001;
+  if(ok1&&ok2&&ok3) showFeedback('fbS2',true,'✅ Benar! keq≈1318.18 N/m, m≈3.71×10⁻⁴ kg, T≈3.33 ms');
+  else {
+    let msg='❌ '; if(!ok1) msg+='keq salah. '; if(!ok2) msg+='massa salah. '; if(!ok3) msg+='T salah. ';
+    showFeedback('fbS2',false,msg);
   }
 };
 </script>
