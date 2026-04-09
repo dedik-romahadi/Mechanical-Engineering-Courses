@@ -260,11 +260,6 @@
       </div>
     </div>
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;">
-      <div style="display:flex;gap:1px;background:rgba(255,255,255,.04);">
-        <div style="flex:1;padding:20px 24px;text-align:center;"><div id="statTotal" style="font-weight:800;font-size:2rem;color:#2dd4bf;">—</div><div style="font-size:.75rem;color:#64748b;margin-top:2px;">Total Pengunjung</div></div>
-        <div style="flex:1;padding:20px 24px;text-align:center;border-left:1px solid rgba(255,255,255,.06);border-right:1px solid rgba(255,255,255,.06);"><div id="statMhs" style="font-weight:800;font-size:2rem;color:#a78bfa;">—</div><div style="font-size:.75rem;color:#64748b;margin-top:2px;">Mahasiswa</div></div>
-        <div style="flex:1;padding:20px 24px;text-align:center;"><div id="statDosen" style="font-weight:800;font-size:2rem;color:#fbbf24;">—</div><div style="font-size:.75rem;color:#64748b;margin-top:2px;">Dosen</div></div>
-      </div>
       <div style="display:flex;padding:14px 24px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.08em;">
         <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:0.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
       </div>
@@ -594,6 +589,20 @@ function isValidNim(n){return /^\d+$/.test(n);}
 function escH(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function sanitizeKey(s){return s.replace(/[.#$/\[\]]/g,'_');}
 
+
+let masterStudents = [];
+const NILAI_AKHIR_URL = 'https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Engineering-Mathematics/Attributes/Nilai-Akhir.html';
+function fetchMasterStudents(){
+  return fetch(NILAI_AKHIR_URL).then(r=>r.text()).then(html=>{
+    const m=html.match(/const\s+students\s*=\s*(\[\s*\{[\s\S]*?\]);/);
+    if(m){
+      try{ masterStudents=JSON.parse(m[1].replace(/'/g,'"').replace(/(\w+):/g,'"$1":')); }
+      catch(e){ masterStudents=[]; }
+    }
+  }).catch(()=>{});
+}
+fetchMasterStudents();
+
 function initVisitor(){
   const me = getIdentity();
   if(me && me.nama){
@@ -601,7 +610,7 @@ function initVisitor(){
     document.getElementById('visitorFab').style.display='flex';
     // Bump visit count for returning visitor (1hr cooldown) - skip dosen
     const _isDosen = me.nama.toLowerCase()==='dedik romahadi';
-    if(!_isDosen){
+    if(!_isDosen && (!masterStudents.length || masterStudents.some(s=>s.nim===me.nim && s.nama.toUpperCase()===me.nama.toUpperCase()))){
       const _key = sanitizeKey(`mhs_${me.nim}`);
       get(ref(db,`${DB_PATH}/${_key}`)).then(snap=>{
         if(snap.exists()){
@@ -659,9 +668,14 @@ function submitVisitor(){
   if(!isValidName(nama)){err.textContent='⚠ Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi';err.style.display='block';return;}
   if(!isDosen&&!nim){err.textContent='⚠ NIM wajib diisi.';err.style.display='block';return;}
   if(!isDosen&&!isValidNim(nim)){err.textContent='⚠ NIM harus berupa angka tanpa spasi.';err.style.display='block';return;}
+  if(!isDosen&&!masterStudents.length){err.textContent='⚠ Data mahasiswa sedang dimuat, silakan coba lagi.';err.style.display='block';fetchMasterStudents();return;}
   err.style.display='none';
   if(isDosen){
     saveIdentity({nama, nim:'DOSEN', role:'dosen', timestamp:new Date().toISOString()});
+  } else if(masterStudents.length && !masterStudents.some(s=>s.nim===nim && s.nama.toUpperCase()===nama.toUpperCase())){
+    const nimExists=masterStudents.some(s=>s.nim===nim);
+    if(nimExists){err.textContent='⚠ Nama tidak sesuai dengan NIM yang terdaftar. Pastikan nama sesuai daftar Nilai Akhir.';err.style.display='block';return;}
+    saveIdentity({nama, nim, role:'guest', timestamp:new Date().toISOString()});
   } else {
     const key = sanitizeKey(`mhs_${nim}`);
     const nowISO = new Date().toISOString();
@@ -690,16 +704,12 @@ function submitVisitor(){
 function renderVisitors(visitors){
   visitors.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
   const seen=new Set(),unique=[];
-  for(const v of visitors){if(v.role==="dosen")continue;const id=v.nama+'|'+v.nim;if(!seen.has(id)){seen.add(id);unique.push(v);}}
+  for(const v of visitors){if(v.role==="dosen"||v.role==="guest")continue;const id=v.nama+'|'+v.nim;if(!seen.has(id)){seen.add(id);unique.push(v);}}
   const mc=unique.filter(v=>v.role!=='dosen').length, dc=unique.filter(v=>v.role==='dosen').length;
   const lateCount=unique.filter(v=>v.role!=='dosen'&&isLate(v.timestamp)).length;
 
   document.getElementById('fabCount').textContent=unique.length;
-  document.getElementById('vpBadge').textContent=unique.length+' orang';
-  document.getElementById('statTotal').textContent=unique.length;
-  document.getElementById('statMhs').textContent=mc;
-  document.getElementById('statDosen').textContent=dc;
-  const statLateEl=document.getElementById('statLate');
+  document.getElementById('vpBadge').textContent=unique.length+' orang';  const statLateEl=document.getElementById('statLate');
   if(statLateEl) statLateEl.textContent=lateCount;
 
   const listEl=document.getElementById('vpList'), tableEl=document.getElementById('visitorTableBody');
