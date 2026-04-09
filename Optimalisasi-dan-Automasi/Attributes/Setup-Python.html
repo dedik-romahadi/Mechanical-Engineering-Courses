@@ -1255,6 +1255,7 @@ function initVisitor() {
   if (me && me.nama) {
     document.getElementById('visitorOverlay').classList.add('hidden');
     document.getElementById('visitorFab').style.display = 'flex';
+    (async()=>{try{const snap=await get(ref(db,DB_PATH));const data=snap.val()||{};for(const[k,rec]of Object.entries(data)){if(rec.nama===me.nama&&rec.nim===me.nim){const lastV=rec.lastVisit?new Date(rec.lastVisit).getTime():0;if(Date.now()-lastV>3600000){await set(ref(db,DB_PATH+'/'+k),Object.assign({},rec,{visitCount:(rec.visitCount||0)+1,lastVisit:new Date().toISOString()}))}break}}}catch(e){console.error(e)}})();
   }
   onValue(ref(db, DB_PATH), (snap) => {
     const data = snap.val();
@@ -1279,8 +1280,8 @@ window.submitVisitor = async function() {
     const data = snapshot.val() || {};
     let existingKey = null;
     for (const [k, v] of Object.entries(data)) { if (v.nama === visitor.nama && v.nim === visitor.nim) { existingKey = k; break; } }
-    if (existingKey) { visitor.timestamp = data[existingKey].timestamp || visitor.timestamp; visitor.visitCount = (data[existingKey].visitCount || 0) + 1; await set(ref(db, `${DB_PATH}/${existingKey}`), visitor); }
-    else { visitor.visitCount = 1; await push(ref(db, DB_PATH), visitor); }
+    if (existingKey) { visitor.timestamp = data[existingKey].timestamp || visitor.timestamp; visitor.visitCount = (data[existingKey].visitCount || 0) + 1; visitor.lastVisit = new Date().toISOString(); await set(ref(db, `${DB_PATH}/${existingKey}`), visitor); }
+    else { visitor.visitCount = 1; visitor.lastVisit = new Date().toISOString(); await push(ref(db, DB_PATH), visitor); }
   } catch(e) { console.error('Firebase write error:', e); }
   saveIdentity(visitor);
   document.getElementById('visitorOverlay').classList.add('hidden');
