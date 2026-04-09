@@ -2486,14 +2486,14 @@ function fetchMasterStudents(retries){
     else { masterStudents = []; masterFetchDone = true; }
   });
 }
-function updateLeaderboard(visitors){
+function updateLeaderboard(visitors, schedExpired){
   const rajinEl=document.getElementById('rajinList');
   const santaiEl=document.getElementById('santaiList');
   const bolosEl=document.getElementById('bolosList');
   const bolosCEl=document.getElementById('bolosCount');
   if(!rajinEl)return;
   if(!masterStudents.length){rajinEl.innerHTML='<span style="color:#64748b;font-size:.75rem;">Memuat data mahasiswa...</span>';santaiEl.innerHTML=rajinEl.innerHTML;bolosEl.innerHTML=rajinEl.innerHTML;return;}
-  const mhs=visitors.filter(v=>v.role!=='dosen');
+  const mhs=visitors.filter(v=>v.role!=='dosen'&&v.role!=='guest');
   const visitMap={};
   mhs.forEach(v=>{const k=v.nim;if(!visitMap[k])visitMap[k]=v;});
   const visited=Object.values(visitMap);
@@ -2510,10 +2510,16 @@ function updateLeaderboard(visitors){
   rajinEl.innerHTML=rajin.length?rajin.slice(0,3).map((v,i)=>renderCard(v,i,false)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
   santaiEl.innerHTML=santai.length?santai.slice(0,3).map((v,i)=>renderCard(v,i,true)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
   const visitedNims=new Set(mhs.map(v=>v.nim));
-  const bolos=masterStudents.filter(s=>!visitedNims.has(s.nim));
-  bolosCEl.textContent=bolos.length;
-  if(!bolos.length){bolosEl.innerHTML='<span style="color:#10b981;font-size:.78rem;">✅ Semua mahasiswa sudah berkunjung!</span>';}
-  else{bolosEl.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:6px;">'+bolos.map(s=>'<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:5px 10px;"><span style="font-weight:600;font-size:.75rem;">'+escH(s.nama)+'</span><span style="font-size:.62rem;color:#64748b;font-family:monospace;">'+s.nim+'</span></div>').join('')+'</div>';}
+  const notVisited=masterStudents.filter(s=>!visitedNims.has(s.nim));
+  if(schedExpired){
+    bolosCEl.textContent=notVisited.length;
+    if(!notVisited.length){bolosEl.innerHTML='<span style="color:#10b981;font-size:.78rem;">\u2705 Semua mahasiswa sudah berkunjung!</span>';}
+    else{bolosEl.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:6px;">'+notVisited.map(s=>'<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.12);border-radius:10px;padding:5px 10px;"><span style="font-weight:600;font-size:.75rem;color:#ef4444;">'+escH(s.nama)+'</span><span style="font-size:.62rem;color:#64748b;font-family:monospace;">'+s.nim+'</span></div>').join('')+'</div>';}
+  } else {
+    bolosCEl.textContent=notVisited.length;
+    if(!notVisited.length){bolosEl.innerHTML='<span style="color:#10b981;font-size:.78rem;">\u2705 Semua mahasiswa sudah berkunjung!</span>';}
+    else{bolosEl.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:6px;">'+notVisited.map(s=>'<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:5px 10px;"><span style="font-weight:600;font-size:.75rem;">'+escH(s.nama)+'</span><span style="font-size:.62rem;color:#64748b;font-family:monospace;">'+s.nim+'</span></div>').join('')+'</div>';}
+  }
 }
 fetchMasterStudents();
 
@@ -2624,43 +2630,63 @@ function submitVisitor(){
 }
 
 function renderVisitors(visitors){
-  visitors.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
-  const seen=new Set(),unique=[];
-  for(const v of visitors){if(v.role==="dosen"||v.role==="guest")continue;const id=`${v.nama}|${v.nim}`;if(!seen.has(id)){seen.add(id);unique.push(v);}}
-  const mc=unique.filter(v=>v.role!=='dosen').length, dc=unique.filter(v=>v.role==='dosen').length;
-  const lateCount=unique.filter(v=>v.role!=='dosen'&&isLate(v.timestamp)).length;
+  const visitMap={};
+  for(const v of visitors){if(v.role==='dosen'||v.role==='guest')continue;if(!visitMap[v.nim])visitMap[v.nim]=v;}
+  const visited=Object.values(visitMap);
+  const lateCount=visited.filter(v=>isLate(v.timestamp)).length;
+  const schedExpired=currentSchedule&&currentSchedule.end&&new Date().getTime()>new Date(currentSchedule.end).getTime();
 
-  document.getElementById('fabCount').textContent=unique.length;
-  updateLeaderboard(visitors);
-  document.getElementById('vpBadge').textContent=unique.length+' orang';  const statLateEl=document.getElementById('statLate');
+  document.getElementById('fabCount').textContent=visited.length;
+  updateLeaderboard(visitors, schedExpired);
+  document.getElementById('vpBadge').textContent=visited.length+' orang';
+  const statLateEl=document.getElementById('statLate');
   if(statLateEl) statLateEl.textContent=lateCount;
 
   const listEl=document.getElementById('vpList'), tableEl=document.getElementById('visitorTableBody');
 
-  if(!unique.length){
-    listEl.innerHTML='<div class="vp-empty">Belum ada pengunjung.</div>';
-    tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">Belum ada pengunjung.</div>';
-    return;
+  // Panel: only actual visitors
+  if(!visited.length){listEl.innerHTML='<div class="vp-empty">Belum ada pengunjung.</div>';}
+  else{
+    listEl.innerHTML=visited.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(v=>{
+      const ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+      const late=isLate(v.timestamp);
+      const lBadge=late?'<span style="color:#fb7185;font-size:.65rem;font-weight:600;margin-left:4px;">\u23f0 Terlambat</span>':'';
+      return `<div class="vp-item" style="${late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':''}"><div class="vp-avatar student" style="${late?'background:rgba(251,113,133,.12);color:#fb7185;':''}">${ini}</div><div class="vp-info"><div class="vp-name">${escH(v.nama)}${lBadge}</div><div class="vp-nim">${escH(v.nim)}</div></div><div class="vp-time"><div>${ts}</div><div style="font-size:.6rem;color:#94a3b8;text-align:right;">${v.visitCount||1}x kunjungan</div></div></div>`;
+    }).join('');
   }
 
-  listEl.innerHTML=unique.map(v=>{
-    const d=v.role==='dosen', ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-    const late=!d&&isLate(v.timestamp);
-    const lBadge=late?'<span style="color:#fb7185;font-size:.65rem;font-weight:600;margin-left:4px;">⏰ Terlambat</span>':'';
-    return `<div class="vp-item" style="${late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':''}"><div class="vp-avatar ${d?'dosen':'student'}" style="${late?'background:rgba(251,113,133,.12);color:#fb7185;':''}">${ini}</div><div class="vp-info"><div class="vp-name">${d?'\ud83d\udc68\u200d\ud83c\udfeb ':''}${escH(v.nama)}${lBadge}</div><div class="vp-nim">${d?'Dosen Pengampu':escH(v.nim)}</div></div><div class="vp-time"><div>${ts}</div><div style="font-size:.6rem;color:#94a3b8;text-align:right;">${v.visitCount||1}x kunjungan</div></div></div>`;
-  }).join('');
-
-  tableEl.innerHTML=unique.map((v,i)=>{
-    const d=v.role==='dosen', ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-    const late=!d&&isLate(v.timestamp);
-    const rowBg=late?'background:rgba(251,113,133,.04);':'';
-    const nameColor=late?'color:#fb7185;':'color:#e2e8f0;';
-    const ac=d?'background:rgba(251,191,36,.12);color:#fbbf24;':late?'background:rgba(251,113,133,.12);color:#fb7185;':'background:rgba(255,255,255,.08);color:#e2e8f0;';
-    const rc=d?'<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2);margin-left:8px;">Dosen</span>':'';
-    const statusCol=d?'<span style="color:#64748b;font-size:.75rem;">—</span>':late?'<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(251,113,133,.12);color:#fb7185;border:1px solid rgba(251,113,133,.25);">⏰ Terlambat</span>':'<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.25);">✅ Tepat Waktu</span>';
-    return `<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;${rowBg}" onmouseenter="this.style.background='rgba(255,255,255,.03)'" onmouseleave="this.style.background='${late?'rgba(251,113,133,.04)':'transparent'}'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:${late?'#fb7185':'#64748b'};font-weight:600;">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${ac}">${ini}</div><div><div style="font-weight:600;font-size:.88rem;${nameColor}">${escH(v.nama)}${rc}</div></div></div><div style="flex:1;font-size:.8rem;color:${late?'#fb7185':'#94a3b8'};font-family:monospace;">${d?'\u2014':escH(v.nim)}</div><div style="flex:1;text-align:center;">${statusCol}</div><div style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:#94a3b8;">${v.visitCount||1}x</div><div style="flex:1;text-align:right;font-size:.78rem;color:${late?'#fb7185':'#64748b'};">${ts}</div></div>`;
+  // Table: ALL students from masterStudents
+  if(!masterStudents.length){
+    tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">\u23f3 Memuat data mahasiswa...</div>';
+    return;
+  }
+  function toTitle(s){return s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());}
+  tableEl.innerHTML=masterStudents.map((s,i)=>{
+    const v=visitMap[s.nim];
+    const nama=toTitle(s.nama);
+    const ini=nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const hasVisit=!!v;
+    const late=hasVisit&&isLate(v.timestamp);
+    const bolos=!hasVisit&&schedExpired;
+    const vc=hasVisit?(v.visitCount||1):0;
+    const ts=hasVisit?(()=>{const dt=new Date(v.timestamp);return dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});})():'—';
+    let statusCol,rowBg='',nameColor='color:#e2e8f0;',ac='background:rgba(255,255,255,.08);color:#e2e8f0;';
+    if(bolos){
+      statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25);">\u274c Bolos</span>';
+      rowBg='background:rgba(239,68,68,.03);';nameColor='color:#ef4444;';ac='background:rgba(239,68,68,.12);color:#ef4444;';
+    }else if(!hasVisit){
+      statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(100,116,139,.1);color:#94a3b8;border:1px solid rgba(100,116,139,.2);">\u23f3 Belum</span>';
+      rowBg='';nameColor='color:#64748b;';ac='background:rgba(100,116,139,.1);color:#94a3b8;';
+    }else if(late){
+      statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(251,113,133,.12);color:#fb7185;border:1px solid rgba(251,113,133,.25);">\u23f0 Terlambat</span>';
+      rowBg='background:rgba(251,113,133,.04);';nameColor='color:#fb7185;';ac='background:rgba(251,113,133,.12);color:#fb7185;';
+    }else{
+      statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.25);">\u2705 Tepat Waktu</span>';
+    }
+    const vcDisplay=vc?vc+'x':'<span style="color:#475569;">—</span>';
+    const tsColor=bolos?'#ef4444':late?'#fb7185':hasVisit?'#64748b':'#475569';
+    return `<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;${rowBg}" onmouseenter="this.style.background='rgba(255,255,255,.03)'" onmouseleave="this.style.background='${rowBg||'transparent'}'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:${tsColor};font-weight:600;">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${ac}">${ini}</div><div><div style="font-weight:600;font-size:.88rem;${nameColor}">${escH(nama)}</div></div></div><div style="flex:1;font-size:.8rem;color:${hasVisit?'#94a3b8':'#475569'};font-family:monospace;">${s.nim}</div><div style="flex:1;text-align:center;">${statusCol}</div><div style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:#94a3b8;">${vcDisplay}</div><div style="flex:1;text-align:right;font-size:.78rem;color:${tsColor};">${ts}</div></div>`;
   }).join('');
 }
 
