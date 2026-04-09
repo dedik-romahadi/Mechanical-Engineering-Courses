@@ -2469,15 +2469,34 @@ function sanitizeKey(s){return s.replace(/[.#$/\[\]]/g,'_');}
 
 
 let masterStudents = [];
+let masterFetchDone = false;
 const NILAI_AKHIR_URL = 'https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Engineering-Mathematics/Attributes/Nilai-Akhir.html';
-function fetchMasterStudents(){
-  return fetch(NILAI_AKHIR_URL).then(r=>r.text()).then(html=>{
-    const m=html.match(/const\s+students\s*=\s*(\[\s*\{[\s\S]*?\]);/);
+function fetchMasterStudents(retries){
+  retries = retries || 0;
+  return fetch(NILAI_AKHIR_URL, {cache:'no-store'}).then(r=>{
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.text();
+  }).then(html=>{
+    const m = html.match(/const\s+students\s*=\s*(\[[\s\S]*?\]);/);
     if(m){
-      try{ masterStudents=JSON.parse(m[1].replace(/'/g,'"').replace(/(\w+):/g,'"$1":')); }
-      catch(e){ masterStudents=[]; }
+      try{
+        const raw = m[1].replace(/'/g,'"').replace(/(\w+)\s*:/g,'"$1":');
+        masterStudents = JSON.parse(raw);
+        masterFetchDone = true;
+        console.log('[Visitor] Master students loaded:', masterStudents.length);
+      } catch(e){
+        console.error('[Visitor] Parse error:', e, m[1].substring(0,200));
+        masterStudents = []; masterFetchDone = true;
+      }
+    } else {
+      console.warn('[Visitor] Regex did not match students array');
+      masterStudents = []; masterFetchDone = true;
     }
-  }).catch(()=>{});
+  }).catch(err=>{
+    console.error('[Visitor] Fetch error (attempt '+(retries+1)+'):', err);
+    if(retries < 2){ setTimeout(()=>fetchMasterStudents(retries+1), 1500); }
+    else { masterStudents = []; masterFetchDone = true; }
+  });
 }
 function updateLeaderboard(visitors){
   const rajinEl=document.getElementById('rajinList');
@@ -2517,7 +2536,7 @@ function initVisitor(){
     document.getElementById('visitorFab').style.display='flex';
     // Bump visit count for returning visitor (1hr cooldown) - skip dosen
     const _isDosen = me.nama.toLowerCase()==='dedik romahadi';
-    if(!_isDosen && (!masterStudents.length || masterStudents.some(s=>s.nim===me.nim && s.nama.toUpperCase()===me.nama.toUpperCase()))){
+    if(!_isDosen && (!masterFetchDone || masterStudents.some(s=>s.nim===me.nim && s.nama.toUpperCase()===me.nama.toUpperCase()))){
       const _key = sanitizeKey(`mhs_${me.nim}`);
       get(ref(db,`${DB_PATH}/${_key}`)).then(snap=>{
         if(snap.exists()){
@@ -2583,11 +2602,11 @@ function submitVisitor(){
   if(!isValidName(nama)){err.textContent='⚠ Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi';err.style.display='block';return;}
   if(!isDosen&&!nim){err.textContent='⚠ NIM wajib diisi.';err.style.display='block';return;}
   if(!isDosen&&!isValidNim(nim)){err.textContent='⚠ NIM harus berupa angka tanpa spasi. Contoh: 41522010001';err.style.display='block';return;}
-  if(!isDosen&&!masterStudents.length){err.textContent='⚠ Data mahasiswa sedang dimuat, silakan coba lagi.';err.style.display='block';fetchMasterStudents();return;}
+  if(!isDosen&&!masterFetchDone){err.textContent='⚠ Data mahasiswa sedang dimuat, silakan coba lagi.';err.style.display='block';return;}
   err.style.display='none';
   if(isDosen){
     saveIdentity({nama, nim:'DOSEN', role:'dosen', timestamp:new Date().toISOString()});
-  } else if(masterStudents.length && !masterStudents.some(s=>s.nim===nim && s.nama.toUpperCase()===nama.toUpperCase())){
+  } else if(masterFetchDone && !masterStudents.some(s=>s.nim===nim && s.nama.toUpperCase()===nama.toUpperCase())){
     const nimExists=masterStudents.some(s=>s.nim===nim);
     if(nimExists){err.textContent='⚠ Nama tidak sesuai dengan NIM yang terdaftar. Pastikan nama sesuai daftar Nilai Akhir.';err.style.display='block';return;}
     saveIdentity({nama, nim, role:'guest', timestamp:new Date().toISOString()});
