@@ -1174,7 +1174,9 @@ function sanitizeKey(s){return s.replace(/[.#$/\[\]]/g,'_');}
 
 function initVisitor(){
   const me = getIdentity();
-  if(me && me.nama){document.getElementById('visitorOverlay').classList.add('hidden');document.getElementById('visitorFab').style.display='flex';}
+  if(me && me.nama){document.getElementById('visitorOverlay').classList.add('hidden');document.getElementById('visitorFab').style.display='flex';
+    (async()=>{try{const isDosen=me.nama.toLowerCase()==='dedik romahadi';const key=sanitizeKey(isDosen?'dosen_'+me.nama:'mhs_'+me.nim);const snap=await get(ref(db,DB_PATH+'/'+key));if(snap.exists()){const rec=snap.val();const lastV=rec.lastVisit?new Date(rec.lastVisit).getTime():0;const now=Date.now();if(now-lastV>3600000){await set(ref(db,DB_PATH+'/'+key),Object.assign({},rec,{visitCount:(rec.visitCount||0)+1,lastVisit:new Date().toISOString()}))}}}catch(e){console.error(e)}})();
+  }
 
   // Listen schedule
   onValue(ref(db, SCHEDULE_PATH), (snap) => {
@@ -1264,7 +1266,7 @@ async function submitVisitor(){
   const existing=await get(ref(db,`${DB_PATH}/${key}`));
   const firstTs=existing.exists()&&existing.val().timestamp?existing.val().timestamp:new Date().toISOString();
   const oldCount=existing.exists()&&existing.val().visitCount?existing.val().visitCount:0;
-  const v={nama,nim:isDosen?'DOSEN':nim,role:isDosen?'dosen':'student',timestamp:firstTs,visitCount:oldCount+1};
+  const v={nama,nim:isDosen?'DOSEN':nim,role:isDosen?'dosen':'student',timestamp:firstTs,visitCount:oldCount+1,lastVisit:new Date().toISOString()};
   saveIdentity(v);
   await set(ref(db,`${DB_PATH}/${key}`),v);
   document.getElementById('visitorOverlay').classList.add('hidden');
