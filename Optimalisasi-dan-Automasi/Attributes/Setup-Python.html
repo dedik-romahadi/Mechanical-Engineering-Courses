@@ -1215,7 +1215,7 @@ plt.tight_layout(); plt.show()</pre>
       <div style="flex:1;padding:20px 24px;text-align:center;"><div id="statDosen" style="font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;color:var(--amber,#fbbf24);">—</div><div style="font-size:.75rem;color:var(--s500,#64748b);margin-top:2px;">Dosen</div></div>
     </div>
     <div style="display:flex;padding:14px 24px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;font-weight:600;color:var(--s500,#64748b);text-transform:uppercase;letter-spacing:.08em;">
-      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:right;">Waktu Akses</div>
+      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
     </div>
     <div id="visitorTableBody" style="max-height:420px;overflow-y:auto;"><div style="text-align:center;padding:40px 24px;color:var(--s500,#64748b);font-size:.88rem;">⏳ Memuat data pengunjung...</div></div>
   </div>
@@ -1279,8 +1279,8 @@ window.submitVisitor = async function() {
     const data = snapshot.val() || {};
     let existingKey = null;
     for (const [k, v] of Object.entries(data)) { if (v.nama === visitor.nama && v.nim === visitor.nim) { existingKey = k; break; } }
-    if (existingKey) { visitor.timestamp = data[existingKey].timestamp || visitor.timestamp; await set(ref(db, `${DB_PATH}/${existingKey}`), visitor); }
-    else { await push(ref(db, DB_PATH), visitor); }
+    if (existingKey) { visitor.timestamp = data[existingKey].timestamp || visitor.timestamp; visitor.visitCount = (data[existingKey].visitCount || 0) + 1; await set(ref(db, `${DB_PATH}/${existingKey}`), visitor); }
+    else { visitor.visitCount = 1; await push(ref(db, DB_PATH), visitor); }
   } catch(e) { console.error('Firebase write error:', e); }
   saveIdentity(visitor);
   document.getElementById('visitorOverlay').classList.add('hidden');
@@ -1312,7 +1312,7 @@ function renderVisitorList(visitors) {
     const ini = v.nama.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
     const dt = new Date(v.timestamp);
     const ts = dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'}) + ' ' + dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-    return `<div class="vp-item"><div class="vp-avatar ${d?'dosen':'student'}">${ini}</div><div class="vp-info"><div class="vp-name">${d?'\ud83d\udc68\u200d\ud83c\udfeb ':''}${escH(v.nama)}</div><div class="vp-nim">${d?'Dosen Pengampu':escH(v.nim)}</div></div><div class="vp-time">${ts}</div></div>`;
+    return `<div class="vp-item"><div class="vp-avatar ${d?'dosen':'student'}">${ini}</div><div class="vp-info"><div class="vp-name">${d?'\ud83d\udc68\u200d\ud83c\udfeb ':''}${escH(v.nama)}</div><div class="vp-nim">${d?'Dosen Pengampu':escH(v.nim)}</div></div><div style="font-size:.65rem;font-weight:700;color:var(--sky,#38bdf8);margin-right:4px;">${v.visitCount||1}×</div><div class="vp-time">${ts}</div></div>`;
   }).join('');
   tableEl.innerHTML = unique.map((v, i) => {
     const d = v.role === 'dosen';
@@ -1321,7 +1321,7 @@ function renderVisitorList(visitors) {
     const ts = dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) + ', ' + dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
     const ac = d ? 'background:rgba(251,191,36,.12);color:var(--amber,#fbbf24);' : 'background:rgba(45,212,191,.12);color:var(--teal,#2dd4bf);';
     const rc = d ? '<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(251,191,36,.1);color:var(--amber,#fbbf24);border:1px solid rgba(251,191,36,.2);margin-left:8px;">Dosen</span>' : '';
-    return `<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;" onmouseenter="this.style.background='rgba(255,255,255,.03)'" onmouseleave="this.style.background='transparent'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:var(--s500);font-weight:600;">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${ac}">${ini}</div><div><div style="font-weight:600;font-size:.88rem;color:var(--s200,#e2e8f0);">${escH(v.nama)}${rc}</div></div></div><div style="flex:1;font-size:.8rem;color:var(--s400);font-family:'Courier New',monospace;">${d?'\u2014':escH(v.nim)}</div><div style="flex:1;text-align:right;font-size:.78rem;color:var(--s500);">${ts}</div></div>`;
+    return `<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;" onmouseenter="this.style.background='rgba(255,255,255,.03)'" onmouseleave="this.style.background='transparent'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:var(--s500);font-weight:600;">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${ac}">${ini}</div><div><div style="font-weight:600;font-size:.88rem;color:var(--s200,#e2e8f0);">${escH(v.nama)}${rc}</div></div></div><div style="flex:1;font-size:.8rem;color:var(--s400);font-family:'Courier New',monospace;">${d?'\u2014':escH(v.nim)}</div><div style="flex:.6;text-align:center;font-size:.82rem;font-weight:700;color:var(--sky,#38bdf8);">${v.visitCount||1}×</div><div style="flex:1;text-align:right;font-size:.78rem;color:var(--s500);">${ts}</div></div>`;
   }).join('');
 }
 
