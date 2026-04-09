@@ -677,8 +677,8 @@ function submitVisitor(){
     saveIdentity({nama, nim:'DOSEN', role:'dosen', timestamp:new Date().toISOString()});
   } else if(masterFetchDone && !masterStudents.some(s=>s.nim===nim && s.nama.toUpperCase()===nama.toUpperCase())){
     const nimExists=masterStudents.some(s=>s.nim===nim);
-    if(nimExists){err.textContent='⚠ Nama tidak sesuai dengan NIM yang terdaftar. Pastikan nama sesuai daftar Nilai Akhir.';err.style.display='block';return;}
-    saveIdentity({nama, nim, role:'guest', timestamp:new Date().toISOString()});
+    if(nimExists){err.textContent='⚠ Nama tidak sesuai dengan NIM yang terdaftar. Pastikan nama lengkap sesuai daftar.';err.style.display='block';return;}
+    err.textContent='⚠ NIM tidak terdaftar. Hanya mahasiswa yang terdaftar di kelas ini yang dapat mengakses.';err.style.display='block';return;
   } else {
     const key = sanitizeKey(`mhs_${nim}`);
     const nowISO = new Date().toISOString();
