@@ -2470,28 +2470,16 @@ function sanitizeKey(s){return s.replace(/[.#$/\[\]]/g,'_');}
 
 let masterStudents = [];
 let masterFetchDone = false;
-const NILAI_AKHIR_URL = 'https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Engineering-Mathematics/Attributes/Nilai-Akhir.html';
+const STUDENTS_JSON_URL = 'https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Engineering-Mathematics/Attributes/students.json';
 function fetchMasterStudents(retries){
   retries = retries || 0;
-  return fetch(NILAI_AKHIR_URL, {cache:'no-store'}).then(r=>{
+  return fetch(STUDENTS_JSON_URL, {cache:'no-store'}).then(r=>{
     if(!r.ok) throw new Error('HTTP '+r.status);
-    return r.text();
-  }).then(html=>{
-    const m = html.match(/const\s+students\s*=\s*(\[[\s\S]*?\]);/);
-    if(m){
-      try{
-        const raw = m[1].replace(/'/g,'"').replace(/(\w+)\s*:/g,'"$1":');
-        masterStudents = JSON.parse(raw);
-        masterFetchDone = true;
-        console.log('[Visitor] Master students loaded:', masterStudents.length);
-      } catch(e){
-        console.error('[Visitor] Parse error:', e, m[1].substring(0,200));
-        masterStudents = []; masterFetchDone = true;
-      }
-    } else {
-      console.warn('[Visitor] Regex did not match students array');
-      masterStudents = []; masterFetchDone = true;
-    }
+    return r.json();
+  }).then(data=>{
+    masterStudents = data;
+    masterFetchDone = true;
+    console.log('[Visitor] Master students loaded:', masterStudents.length);
   }).catch(err=>{
     console.error('[Visitor] Fetch error (attempt '+(retries+1)+'):', err);
     if(retries < 2){ setTimeout(()=>fetchMasterStudents(retries+1), 1500); }
