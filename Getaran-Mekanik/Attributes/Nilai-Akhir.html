@@ -242,7 +242,7 @@
       <div>
         <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.3);color:#2dd4bf;padding:5px 14px;border-radius:999px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;">👥 Pengunjung</span>
         <h2 style="font-size:1.6rem;font-weight:800;color:#fff;margin-top:12px;">Daftar Pengunjung</h2>
-        <p style="color:#94a3b8;font-size:.85rem;margin-top:6px;">Mahasiswa dan dosen yang telah mengakses halaman ini.</p>
+        <p style="color:#94a3b8;font-size:.85rem;margin-top:6px;">Mahasiswa yang telah mengakses halaman ini.</p>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button onclick="showResetModal()" style="padding:10px 20px;border-radius:12px;border:1px solid rgba(251,113,133,.3);background:rgba(251,113,133,.08);color:#fb7185;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:6px;" onmouseenter="this.style.background='rgba(251,113,133,.18)'" onmouseleave="this.style.background='rgba(251,113,133,.08)'">🗑 Reset</button>
@@ -282,36 +282,27 @@
 /* ═══════════════════════════════════════════
    DATA MAHASISWA
    ═══════════════════════════════════════════ */
-const students = [
-  { nim:'41320120052', nama:'RAIHAN FAHIDATUL ADE SAPUTRA' },
-  { nim:'41320120080', nama:'CAHYO SUKO PRANOTO' },
-  { nim:'41322110088', nama:'FAJAR NUR NGALIM' },
-  { nim:'41322120003', nama:'WAHYU SETYAWAN' },
-  { nim:'41322120017', nama:'ALVIN MIFTAKHUL KHOIR' },
-  { nim:'41322120022', nama:'ADE ZAKARIA' },
-  { nim:'41323110006', nama:'ANWAR MUTAKIN' },
-  { nim:'41323110022', nama:'TAUFIK NUR HIDAYAT' },
-  { nim:'41323110057', nama:'M. DAVINDRA PRAMUDIAZ' },
-  { nim:'41323120009', nama:'RESPATI MIFTAKHUL HADI' },
-  { nim:'41323120011', nama:'MARCEL LUIS AMSTRONG' },
-  { nim:'41324110040', nama:'MUHAMAD RIFAI' },
-  { nim:'41324110043', nama:'ILHAMUL FAJRI' },
-  { nim:'41324120032', nama:'PANJI EKA ALFIANINDRA' },
-  { nim:'41325110021', nama:'FAIZAL HAKIM MAULANA' },
-  { nim:'41325110030', nama:'ARI TOMPODUNG' },
-];
+let students = [];
+
+const STUDENTS_JSON = 'https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Engineering-Mathematics/Attributes/students.json';
+
+function initStudents(){
+  fetch(STUDENTS_JSON, {cache:'no-store'}).then(r=>r.json()).then(data=>{
+    students = data;
+    students.forEach(s => { s.pre=0; s.tgs=0; s.prak=0; s.uts=0; s.uas=0; });
+    render();
+    console.log('[DPNA] Students loaded:', students.length);
+  }).catch(err=>{
+    console.error('[DPNA] Failed to load students:', err);
+    document.getElementById('gradeBody').innerHTML='<tr><td colspan="12" style="text-align:center;color:#fb7185;padding:24px;">⚠ Gagal memuat data mahasiswa.</td></tr>';
+  });
+}
 
 // Weights: PRE=0%, TGS=51%, PRAK=0%, UTS=25%, UAS=24%
 const W_PRE=0, W_TGS=0.51, W_PRAK=0, W_UTS=0.25, W_UAS=0.24;
 
 // Initialize all scores to 0 (fill in later)
-students.forEach(s => {
-  s.pre  = 0;
-  s.tgs  = 0;
-  s.prak = 0;
-  s.uts  = 0;
-  s.uas  = 0;
-});
+// Score initialization moved to initStudents()
 
 /* ═══════════════════════════════════════════
    CALCULATE & RENDER
@@ -574,7 +565,8 @@ function drawRadarChart() {
 }
 
 /* ═══ INIT ═══ */
-render();
+initStudents();
+window.addEventListener('resize', () => { if(students.length) render(); });
 window.addEventListener('resize', render);
 </script>
 
@@ -591,6 +583,7 @@ const SCHEDULE_PATH = `settings/getaran_mekanik/${PERTEMUAN}/schedule`;
 const LOCAL_IDENTITY = `optoauto_identity_${MODULE_ID}`;
 let panelOpen = false;
 let currentSchedule = null;
+const VISIT_COOLDOWN = 3600000;
 
 const firebaseConfig = {
   apiKey: "AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",
@@ -613,10 +606,46 @@ function isValidNim(n){return /^\d+$/.test(n);}
 function escH(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function sanitizeKey(s){return s.replace(/[.#$/\[\]]/g,'_');}
 
+
+let masterStudents = [];
+let masterFetchDone = false;
+const STUDENTS_JSON_URL = 'https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Engineering-Mathematics/Attributes/students.json';
+function fetchMasterStudents(retries){
+  retries = retries || 0;
+  return fetch(STUDENTS_JSON_URL, {cache:'no-store'}).then(r=>{
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.json();
+  }).then(data=>{
+    masterStudents = data;
+    masterFetchDone = true;
+    console.log('[Visitor] Master students loaded:', masterStudents.length);
+  }).catch(err=>{
+    console.error('[Visitor] Fetch error (attempt '+(retries+1)+'):', err);
+    if(retries < 2){ setTimeout(()=>fetchMasterStudents(retries+1), 1500); }
+    else { masterStudents = []; masterFetchDone = true; }
+  });
+}
+fetchMasterStudents();
+
 function initVisitor(){
   const me = getIdentity();
-  if(me && me.nama){document.getElementById('visitorOverlay').classList.add('hidden');document.getElementById('visitorFab').style.display='flex';
-    (async()=>{try{const isDosen=me.nama.toLowerCase()==='dedik romahadi';const key=sanitizeKey(isDosen?'dosen_'+me.nama:'mhs_'+me.nim);const snap=await get(ref(db,DB_PATH+'/'+key));if(snap.exists()){const rec=snap.val();const lastV=rec.lastVisit?new Date(rec.lastVisit).getTime():0;const now=Date.now();if(now-lastV>3600000){await set(ref(db,DB_PATH+'/'+key),Object.assign({},rec,{visitCount:(rec.visitCount||0)+1,lastVisit:new Date().toISOString()}))}}}catch(e){console.error(e)}})();
+  if(me && me.nama){
+    document.getElementById('visitorOverlay').classList.add('hidden');
+    document.getElementById('visitorFab').style.display='flex';
+    // Bump visit count for returning visitor (1hr cooldown) - skip dosen
+    const _isDosen = me.nama.toLowerCase()==='dedik romahadi';
+    if(!_isDosen && (!masterFetchDone || masterStudents.some(s=>s.nim===me.nim && s.nama.toUpperCase()===me.nama.toUpperCase()))){
+      const _key = sanitizeKey(`mhs_${me.nim}`);
+      get(ref(db,`${DB_PATH}/${_key}`)).then(snap=>{
+        if(snap.exists()){
+          const ex=snap.val();
+          const lastV=new Date(ex.lastVisit||ex.timestamp).getTime();
+          if(Date.now()-lastV>=VISIT_COOLDOWN){
+            set(ref(db,`${DB_PATH}/${_key}`),{...ex,visitCount:(ex.visitCount||1)+1,lastVisit:new Date().toISOString()});
+          }
+        }
+      }).catch(()=>{});
+    }
   }
   onValue(ref(db, SCHEDULE_PATH), (snap) => {
     currentSchedule = snap.val();
@@ -653,7 +682,7 @@ function isLate(timestamp){
   return t < s || t > e;
 }
 
-async function submitVisitor(){
+function submitVisitor(){
   const nama=document.getElementById('vNama').value.trim(), nim=document.getElementById('vNim').value.trim(), err=document.getElementById('vError');
   if(!currentSchedule || !currentSchedule.start || !currentSchedule.end){err.textContent='⚠ Jadwal belum disetel. Silakan atur jadwal terlebih dahulu.';err.style.display='block';return;}
   const now=new Date().getTime(), schedStart=new Date(currentSchedule.start).getTime();
@@ -663,14 +692,35 @@ async function submitVisitor(){
   if(!isValidName(nama)){err.textContent='⚠ Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi';err.style.display='block';return;}
   if(!isDosen&&!nim){err.textContent='⚠ NIM wajib diisi.';err.style.display='block';return;}
   if(!isDosen&&!isValidNim(nim)){err.textContent='⚠ NIM harus berupa angka tanpa spasi.';err.style.display='block';return;}
+  if(!isDosen&&!masterFetchDone){err.textContent='⚠ Data mahasiswa sedang dimuat, silakan coba lagi.';err.style.display='block';return;}
   err.style.display='none';
-  const key=sanitizeKey(isDosen?`dosen_${nama}`:`mhs_${nim}`);
-  const existing=await get(ref(db,`${DB_PATH}/${key}`));
-  const firstTs=existing.exists()&&existing.val().timestamp?existing.val().timestamp:new Date().toISOString();
-  const oldCount=existing.exists()&&existing.val().visitCount?existing.val().visitCount:0;
-  const v={nama,nim:isDosen?'DOSEN':nim,role:isDosen?'dosen':'student',timestamp:firstTs,visitCount:oldCount+1,lastVisit:new Date().toISOString()};
-  saveIdentity(v);
-  await set(ref(db,`${DB_PATH}/${key}`),v);
+  if(isDosen){
+    saveIdentity({nama, nim:'DOSEN', role:'dosen', timestamp:new Date().toISOString()});
+  } else if(masterFetchDone && !masterStudents.some(s=>s.nim===nim && s.nama.toUpperCase()===nama.toUpperCase())){
+    const nimExists=masterStudents.some(s=>s.nim===nim);
+    if(nimExists){err.textContent='⚠ Nama tidak sesuai dengan NIM yang terdaftar. Pastikan nama sesuai daftar Nilai Akhir.';err.style.display='block';return;}
+    saveIdentity({nama, nim, role:'guest', timestamp:new Date().toISOString()});
+  } else {
+    const key = sanitizeKey(`mhs_${nim}`);
+    const nowISO = new Date().toISOString();
+    get(ref(db, `${DB_PATH}/${key}`)).then(snap => {
+      let v;
+      if(snap.exists()){
+        const ex = snap.val();
+        const lastV = new Date(ex.lastVisit || ex.timestamp).getTime();
+        const canBump = (Date.now() - lastV) >= VISIT_COOLDOWN;
+        v = {...ex, visitCount: canBump ? (ex.visitCount||1)+1 : (ex.visitCount||1), lastVisit: canBump ? nowISO : (ex.lastVisit||ex.timestamp)};
+      } else {
+        v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO};
+      }
+      saveIdentity(v);
+      return set(ref(db, `${DB_PATH}/${key}`), v);
+    }).catch(()=>{
+      const v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO};
+      saveIdentity(v);
+      set(ref(db, `${DB_PATH}/${key}`), v);
+    });
+  }
   document.getElementById('visitorOverlay').classList.add('hidden');
   document.getElementById('visitorFab').style.display='flex';
 }
@@ -678,16 +728,12 @@ async function submitVisitor(){
 function renderVisitors(visitors){
   visitors.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
   const seen=new Set(),unique=[];
-  for(const v of visitors){const id=v.nama+'|'+v.nim;if(!seen.has(id)){seen.add(id);unique.push(v);}}
+  for(const v of visitors){if(v.role==="dosen"||v.role==="guest")continue;const id=v.nama+'|'+v.nim;if(!seen.has(id)){seen.add(id);unique.push(v);}}
   const mc=unique.filter(v=>v.role!=='dosen').length, dc=unique.filter(v=>v.role==='dosen').length;
   const lateCount=unique.filter(v=>v.role!=='dosen'&&isLate(v.timestamp)).length;
 
   document.getElementById('fabCount').textContent=unique.length;
-  document.getElementById('vpBadge').textContent=unique.length+' orang';
-  document.getElementById('statTotal').textContent=unique.length;
-  document.getElementById('statMhs').textContent=mc;
-  document.getElementById('statDosen').textContent=dc;
-  const statLateEl=document.getElementById('statLate');
+  document.getElementById('vpBadge').textContent=unique.length+' orang';  const statLateEl=document.getElementById('statLate');
   if(statLateEl) statLateEl.textContent=lateCount;
 
   const listEl=document.getElementById('vpList'), tableEl=document.getElementById('visitorTableBody');
@@ -703,7 +749,7 @@ function renderVisitors(visitors){
     const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
     const late=!d&&isLate(v.timestamp);
     const lBadge=late?'<span style="color:#fb7185;font-size:.65rem;font-weight:600;margin-left:4px;">⏰ Terlambat</span>':'';
-    return '<div class="vp-item" style="'+(late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':'')+'"><div class="vp-avatar '+(d?'dosen':'student')+'" style="'+(late?'background:rgba(251,113,133,.12);color:#fb7185;':'')+'">'+ ini+'</div><div class="vp-info"><div class="vp-name">'+(d?'👨‍🏫 ':'')+escH(v.nama)+lBadge+'</div><div class="vp-nim">'+(d?'Dosen Pengampu':escH(v.nim))+'</div></div><div style="font-size:.65rem;font-weight:700;color:var(--sky,#38bdf8);margin-right:4px;">'+(v.visitCount||1)+'×</div><div class="vp-time">'+ts+'</div></div>';
+    return '<div class="vp-item" style="'+(late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':'')+'"><div class="vp-avatar '+(d?'dosen':'student')+'" style="'+(late?'background:rgba(251,113,133,.12);color:#fb7185;':'')+'">'+ ini+'</div><div class="vp-info"><div class="vp-name">'+(d?'👨‍🏫 ':'')+escH(v.nama)+lBadge+'</div><div class="vp-nim">'+(d?'Dosen Pengampu':escH(v.nim))+'</div></div><div class="vp-time"><div>'+ts+'</div><div style="font-size:.6rem;color:#94a3b8;text-align:right;">'+(v.visitCount||1)+'x kunjungan</div></div></div>';
   }).join('');
 
   tableEl.innerHTML=unique.map((v,i)=>{
@@ -715,7 +761,7 @@ function renderVisitors(visitors){
     const ac=d?'background:rgba(251,191,36,.12);color:#fbbf24;':late?'background:rgba(251,113,133,.12);color:#fb7185;':'background:rgba(45,212,191,.12);color:#2dd4bf;';
     const rc=d?'<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2);margin-left:8px;">Dosen</span>':'';
     const statusCol=d?'<span style="color:#64748b;font-size:.75rem;">—</span>':late?'<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(251,113,133,.12);color:#fb7185;border:1px solid rgba(251,113,133,.25);">⏰ Terlambat</span>':'<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.25);">✅ Tepat Waktu</span>';
-    return '<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);'+rowBg+'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:'+(late?'#fb7185':'#64748b')+';font-weight:600;">'+(i+1)+'</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;'+ac+'">'+ini+'</div><div><div style="font-weight:600;font-size:.88rem;'+nameColor+'">'+escH(v.nama)+rc+'</div></div></div><div style="flex:1;font-size:.8rem;color:'+(late?'#fb7185':'#94a3b8')+';font-family:monospace;">'+(d?'—':escH(v.nim))+'</div><div style="flex:1;text-align:center;">'+statusCol+'</div><div style="flex:.6;text-align:center;font-size:.82rem;font-weight:700;color:var(--sky,#38bdf8);">'+(v.visitCount||1)+'×</div><div style="flex:1;text-align:right;font-size:.78rem;color:'+(late?'#fb7185':'#64748b')+';">'+ts+'</div></div>';
+    return '<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);'+rowBg+'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:'+(late?'#fb7185':'#64748b')+';font-weight:600;">'+(i+1)+'</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;'+ac+'">'+ini+'</div><div><div style="font-weight:600;font-size:.88rem;'+nameColor+'">'+escH(v.nama)+rc+'</div></div></div><div style="flex:1;font-size:.8rem;color:'+(late?'#fb7185':'#94a3b8')+';font-family:monospace;">'+(d?'—':escH(v.nim))+'</div><div style="flex:1;text-align:center;">'+statusCol+'</div><div style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:#94a3b8;">'+(v.visitCount||1)+'x</div><div style="flex:1;text-align:right;font-size:.78rem;color:'+(late?'#fb7185':'#64748b')+';">'+ts+'</div></div>';
   }).join('');
 }
 
