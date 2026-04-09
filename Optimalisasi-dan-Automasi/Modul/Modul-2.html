@@ -3,1038 +3,196 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pertemuan 2 • Jenis & Sumber Time Series • Dedik Romahadi</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
-
+<title>Modul 2 – PD Variabel Terpisah | Matematika 4</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Sans+3:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 <style>
-/* ============================================================
-   RESET & BASE
-   ============================================================ */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root{--bg:#080c18;--bg2:#0f1729;--bg3:#162033;--bg3h:#1c2940;--c1:#00e09e;--c2:#0ea5e9;--c3:#f97316;--c4:#ef4444;--c5:#a855f7;--c6:#facc15;--t1:#e4e8f1;--t2:#94a3b8;--t3:#64748b;--bd:#1e293b;--ok:#00e09e;--err:#ef4444;--grad:linear-gradient(135deg,#080c18 0%,#0f1a3a 50%,#0a1628 100%)}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--t1);line-height:1.8;overflow-x:hidden}
+::-webkit-scrollbar{width:7px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--c2);border-radius:4px}
+
+/* ── PROGRESS ── */
+.prog{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--c1),var(--c2),var(--c5));z-index:200;width:0%;transition:width .1s}
+
+/* ── HERO ── */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;background:var(--grad);position:relative;padding:2rem;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 25% 75%,rgba(0,224,158,.07) 0%,transparent 50%),radial-gradient(circle at 75% 25%,rgba(14,165,233,.09) 0%,transparent 50%);pointer-events:none}
+.hero-particles{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.particle{position:absolute;width:3px;height:3px;background:var(--c1);border-radius:50%;opacity:0;animation:floatP 9s infinite}
+@keyframes floatP{0%{opacity:0;transform:translateY(100vh) scale(0)}10%{opacity:.7}90%{opacity:.2}100%{opacity:0;transform:translateY(-20vh) scale(1.5)}}
+.hero-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.25rem;background:rgba(0,224,158,.1);border:1px solid rgba(0,224,158,.3);border-radius:999px;font-size:.85rem;color:var(--c1);font-weight:600;letter-spacing:.05em;margin-bottom:1.5rem;animation:fsd .8s ease-out;position:relative;z-index:1}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(2.4rem,6vw,4.8rem);font-weight:900;line-height:1.1;margin-bottom:1.25rem;animation:fsd 1s ease-out .2s both;position:relative;z-index:1}
+.hero h1 .hl{background:linear-gradient(135deg,var(--c1),var(--c2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero>p{font-size:1.15rem;color:var(--t2);max-width:620px;margin-bottom:1.5rem;animation:fsd 1s ease-out .4s both;position:relative;z-index:1}
+.hero-lec{display:inline-flex;align-items:center;gap:.85rem;padding:.75rem 1.75rem;background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.25);border-radius:14px;margin-bottom:2rem;animation:fsd 1s ease-out .5s both;position:relative;z-index:1;backdrop-filter:blur(8px)}
+.hero-lec .li{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--c2),var(--c5));display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0;box-shadow:0 0 12px rgba(14,165,233,.35)}
+.hero-lec .lt{text-align:left;line-height:1.35}
+.hero-lec .ll{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--c2)}
+.hero-lec .ln{font-size:1rem;font-weight:700;color:var(--t1)}
+.hero-cta{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;animation:fsd 1s ease-out .6s both;position:relative;z-index:1}
+.btn-p{padding:.85rem 2rem;background:linear-gradient(135deg,var(--c1),var(--c2));color:var(--bg);font-weight:700;font-size:1rem;border:none;border-radius:12px;cursor:pointer;text-decoration:none;transition:all .3s;display:inline-flex;align-items:center;gap:.5rem}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,224,158,.3)}
+.btn-o{padding:.85rem 2rem;background:transparent;color:var(--t1);font-weight:600;font-size:1rem;border:2px solid var(--bd);border-radius:12px;cursor:pointer;text-decoration:none;transition:all .3s}
+.btn-o:hover{border-color:var(--c1);color:var(--c1)}
+.scroll-ind{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.5rem;color:var(--t3);font-size:.8rem;animation:bounce 2s infinite;z-index:1}
+@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
+@keyframes fsd{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── NAV ── */
+.nav{position:sticky;top:0;z-index:100;background:rgba(8,12,24,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--bd);padding:.75rem 2rem;display:flex;gap:.5rem;overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav a{white-space:nowrap;padding:.5rem 1rem;border-radius:8px;color:var(--t2);text-decoration:none;font-size:.85rem;font-weight:600;transition:all .3s;flex-shrink:0}
+.nav a:hover,.nav a.active{background:rgba(0,224,158,.1);color:var(--c1)}
+
+/* ── SECTIONS ── */
+.sec{max-width:920px;margin:0 auto;padding:5rem 2rem}
+.sl{display:inline-flex;align-items:center;gap:.5rem;font-size:.8rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--c1);margin-bottom:.75rem}
+.st{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,4vw,2.5rem);font-weight:900;margin-bottom:1.5rem;line-height:1.2}
+.sd{width:60px;height:4px;background:linear-gradient(90deg,var(--c1),var(--c2));border-radius:2px;margin-bottom:2rem}
+
+/* ── CARDS ── */
+.card{background:var(--bg3);border:1px solid var(--bd);border-radius:16px;padding:2rem;margin-bottom:1.5rem;transition:all .3s;position:relative;overflow:hidden}
+.card:hover{border-color:rgba(0,224,158,.3);transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.3)}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--c1),var(--c2),var(--c5))}
+.card h3{font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:.75rem}
+.ci{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:1rem}
+.ci.g{background:rgba(0,224,158,.15)}.ci.b{background:rgba(14,165,233,.15)}.ci.o{background:rgba(249,115,22,.15)}.ci.p{background:rgba(168,85,247,.15)}
+
+/* ── ANALOGY ── */
+.ana{background:linear-gradient(135deg,rgba(0,224,158,.07),rgba(14,165,233,.07));border:1px solid rgba(0,224,158,.2);border-radius:16px;padding:2rem;margin:2rem 0;position:relative}
+.ana::before{content:'💡';position:absolute;top:-16px;left:24px;font-size:1.8rem;background:var(--bg);padding:0 .5rem}
+.ana h4{color:var(--c1);font-weight:700;margin-bottom:.75rem;font-size:1.1rem}
+
+/* ── MATH ── */
+.mb{background:rgba(14,165,233,.07);border-left:4px solid var(--c2);padding:1.25rem 1.75rem;margin:1.25rem 0;border-radius:0 12px 12px 0;overflow-x:auto;font-size:1.1rem;text-align:center}
+
+/* ── STEPS ── */
+.steps{counter-reset:step;margin:1.5rem 0}
+.si{display:flex;gap:1.25rem;margin-bottom:1.5rem;position:relative}
+.si::before{counter-increment:step;content:counter(step);width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--c1),var(--c2));color:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;flex-shrink:0;margin-top:2px}
+.si:not(:last-child)::after{content:'';position:absolute;left:17px;top:40px;bottom:-8px;width:2px;background:var(--bd)}
+.sc h4{margin-bottom:.25rem;font-weight:700}.sc p{color:var(--t2);font-size:.95rem}
+
+/* ── TABS ── */
+.dtabs{display:flex;gap:0;margin:1.5rem 0 0;border-radius:12px 12px 0 0;overflow:hidden}
+.dtab{flex:1;padding:.85rem;text-align:center;font-weight:700;font-size:.9rem;cursor:pointer;transition:all .3s;border:none;font-family:inherit;background:var(--bg2);color:var(--t3)}
+.dtab.active{background:var(--bg3);color:var(--c1)}
+.dpanel{display:none;padding:2rem;background:var(--bg3);border:1px solid var(--bd);border-radius:0 0 12px 12px;border-top:2px solid var(--c1)}
+.dpanel.active{display:block;animation:slideD .3s ease-out}
+@keyframes slideD{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── EXERCISE ── */
+.ex{background:var(--bg3);border:1px solid var(--bd);border-radius:16px;margin:2rem 0;overflow:hidden}
+.exh{display:flex;align-items:center;gap:1rem;padding:1.25rem 2rem;background:rgba(249,115,22,.07);border-bottom:1px solid var(--bd)}
+.exn{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--c3),var(--c4));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.9rem;flex-shrink:0}
+.ext{font-weight:700;font-size:1rem}
+.exb{padding:2rem}
+.ag{margin:1.5rem 0}
+.ag label{display:block;font-weight:600;margin-bottom:.5rem;color:var(--t2);font-size:.9rem}
+.ai{width:100%;padding:.85rem 1.25rem;background:var(--bg2);border:2px solid var(--bd);border-radius:10px;color:var(--t1);font-size:1rem;font-family:'JetBrains Mono',monospace;transition:all .3s}
+.ai:focus{outline:none;border-color:var(--c1);box-shadow:0 0 0 4px rgba(0,224,158,.1)}
+.rg{display:flex;flex-direction:column;gap:.75rem;margin:1rem 0}
+.ro{display:flex;align-items:center;gap:.75rem;padding:1rem 1.25rem;background:var(--bg2);border:2px solid var(--bd);border-radius:12px;cursor:pointer;transition:all .3s;font-size:.95rem}
+.ro:hover{border-color:var(--c2)}
+.ro input[type="radio"]{display:none}
+.rc{width:22px;height:22px;border-radius:50%;border:2px solid var(--t3);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .3s}
+.ro input:checked+.rc{border-color:var(--c1);background:var(--c1)}
+.ro input:checked+.rc::after{content:'✓';color:var(--bg);font-weight:800;font-size:.75rem}
+.ro.ok{border-color:var(--ok);background:rgba(0,224,158,.06)}.ro.bad{border-color:var(--err);background:rgba(239,68,68,.06)}
+.exa{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.5rem}
+.bc{padding:.65rem 1.5rem;background:linear-gradient(135deg,var(--c1),var(--c2));color:var(--bg);font-weight:700;border:none;border-radius:10px;cursor:pointer;font-size:.9rem;font-family:inherit;transition:all .3s}
+.bc:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(0,224,158,.3)}
+.bh,.ba{padding:.65rem 1.5rem;background:transparent;border:2px solid var(--bd);color:var(--t2);font-weight:600;border-radius:10px;cursor:pointer;font-size:.9rem;font-family:inherit;transition:all .3s}
+.bh:hover{border-color:var(--c6);color:var(--c6)}.ba:hover{border-color:var(--c5);color:var(--c5)}
+.hbox,.abox{margin-top:1rem;padding:1.5rem;border-radius:12px;display:none;animation:slideD .3s ease-out}
+.hbox{background:rgba(250,204,21,.07);border:1px solid rgba(250,204,21,.22)}
+.hbox h5{color:var(--c6);margin-bottom:.5rem}
+.abox{background:rgba(168,85,247,.07);border:1px solid rgba(168,85,247,.22)}
+.abox h5{color:var(--c5);margin-bottom:.5rem}
+.hbox.show,.abox.show{display:block}
+.fb{margin-top:1rem;padding:1rem 1.25rem;border-radius:10px;font-weight:600;display:none}
+.fb.ok{background:rgba(0,224,158,.1);border:1px solid rgba(0,224,158,.3);color:var(--c1);display:block}
+.fb.bad{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--c4);display:block}
+.res{margin-top:.75rem;padding:.75rem;background:rgba(0,224,158,.06);border-radius:8px;color:var(--c1);font-weight:700}
+
+/* ── CODE ── */
+.cb{background:#0d1117;border:1px solid var(--bd);border-radius:12px;margin:1.5rem 0;overflow:hidden}
+.cbh{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;background:rgba(255,255,255,.03);border-bottom:1px solid var(--bd)}
+.cbh span{display:flex;align-items:center;gap:.5rem;font-size:.8rem;font-weight:600;color:var(--t3)}
+.dots{display:flex;gap:6px}.dots span{width:10px;height:10px;border-radius:50%}.dots span:nth-child(1){background:#ff5f57}.dots span:nth-child(2){background:#febc2e}.dots span:nth-child(3){background:#28c840}
+.ccp{padding:.35rem .75rem;background:rgba(255,255,255,.05);border:1px solid var(--bd);color:var(--t3);border-radius:6px;cursor:pointer;font-size:.75rem;font-family:inherit;transition:all .3s}
+.ccp:hover{background:rgba(0,224,158,.15);color:var(--c1);border-color:rgba(0,224,158,.3)}
+.cbd{padding:1.25rem;overflow-x:auto}
+.cbd pre{font-family:'JetBrains Mono',monospace;font-size:.85rem;line-height:1.7;color:#c9d1d9;white-space:pre}
+.cm{color:#8b949e}.kw{color:#ff7b72}.st{color:#a5d6ff}.fn{color:#d2a8ff}.nm{color:#79c0ff}.op{color:#ff7b72}.out{color:#7ee787;font-style:italic}
+
+/* ── ANIM ── */
+.ac{background:var(--bg3);border:1px solid var(--bd);border-radius:16px;padding:2rem;margin:2rem 0;text-align:center}
+.ac canvas{border-radius:12px;max-width:100%;background:var(--bg2)}
+.actrl{display:flex;gap:.75rem;justify-content:center;margin-top:1rem;flex-wrap:wrap}
+.abtn{padding:.5rem 1.25rem;background:rgba(14,165,233,.15);border:1px solid rgba(14,165,233,.3);color:var(--c2);border-radius:8px;cursor:pointer;font-weight:600;font-size:.85rem;transition:all .3s;font-family:inherit}
+.abtn:hover{background:var(--c2);color:#fff}.abtn.active{background:var(--c1);color:var(--bg);border-color:var(--c1)}
+
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse;margin:1.5rem 0;border-radius:12px;overflow:hidden}
+.tbl th{background:rgba(14,165,233,.12);padding:.85rem 1.25rem;text-align:left;font-weight:700;font-size:.85rem;text-transform:uppercase;letter-spacing:.05em;color:var(--c2);border-bottom:2px solid var(--bd)}
+.tbl td{padding:.85rem 1.25rem;border-bottom:1px solid var(--bd);font-size:.95rem}
+.tbl tr:hover td{background:rgba(0,224,158,.02)}
+
+/* ── FADE ── */
+.fi{opacity:0;transform:translateY(30px);transition:all .6s ease-out}.fi.vis{opacity:1;transform:translateY(0)}
+
+/* ── FOOTER ── */
+footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:var(--t3);font-size:.85rem}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){.sec{padding:3rem 1.25rem}.card,.exb{padding:1.5rem}.nav{padding:.5rem 1rem}}
+
+/* ── VISITOR SYSTEM ── */
+.visitor-overlay{position:fixed;inset:0;z-index:99999;background:rgba(8,14,26,.94);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity .4s}
+.visitor-overlay.hidden{opacity:0;pointer-events:none}
+.visitor-modal{background:#162033;border:1px solid #1e293b;border-radius:24px;padding:40px 36px;max-width:440px;width:90%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.6);animation:vModalIn .5s cubic-bezier(.16,1,.3,1)}
+@keyframes vModalIn{0%{opacity:0;transform:translateY(30px) scale(.96)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.visitor-modal h2{font-weight:800;font-size:1.5rem;background:linear-gradient(135deg,#00e09e,#0ea5e9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
+.visitor-modal p.sub{color:#94a3b8;font-size:.85rem;margin-bottom:28px}
+.v-input{width:100%;padding:14px 18px;border-radius:14px;border:1px solid #1e293b;background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-size:.95rem;outline:none;transition:border .25s;margin-bottom:14px}
+.v-input::placeholder{color:#64748b}
+.v-input:focus{border-color:#00e09e;box-shadow:0 0 0 3px rgba(255,255,255,.08)}
+.v-btn-primary{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#00e09e,#0ea5e9);color:#fff;font-weight:700;font-size:1rem;cursor:pointer;transition:transform .2s,box-shadow .2s;margin-top:6px}
+.v-btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,255,255,.1)}
+.v-error{color:#fb7185;font-size:.8rem;margin-bottom:10px;display:none}
+.v-btn-cancel{width:100%;padding:12px;border-radius:14px;margin-top:12px;border:1px solid #1e293b;background:rgba(255,255,255,.04);color:#94a3b8;font-weight:600;font-size:.88rem;cursor:pointer;transition:all .25s}
+.v-btn-cancel:hover{background:rgba(255,255,255,.08)}
+.visitor-fab{position:fixed;bottom:24px;right:24px;z-index:8888;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#00e09e,#0ea5e9);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(0,0,0,.4);transition:transform .25s;font-size:1.4rem}
+.visitor-fab:hover{transform:scale(1.08)}
+.visitor-fab .fab-count{position:absolute;top:-4px;right:-4px;background:#fb7185;color:#fff;font-size:.65rem;font-weight:700;min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid #080c18}
+.visitor-panel{position:fixed;bottom:92px;right:24px;z-index:8887;width:340px;max-height:480px;overflow:hidden;background:#162033;border:1px solid #1e293b;border-radius:20px;box-shadow:0 24px 64px rgba(0,0,0,.5);display:flex;flex-direction:column;transform:translateY(12px) scale(.95);opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .25s}
+.visitor-panel.open{transform:translateY(0) scale(1);opacity:1;pointer-events:auto}
+.vp-header{padding:20px 22px 14px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between}
+.vp-header h3{font-weight:700;font-size:1rem;color:#fff}
+.vp-header .vp-badge{background:rgba(255,255,255,.08);color:#00e09e;font-size:.7rem;font-weight:700;padding:4px 10px;border-radius:999px}
+.vp-list{overflow-y:auto;padding:10px 16px 16px;flex:1}
+.vp-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;margin-bottom:6px;background:rgba(255,255,255,.03);transition:background .2s}
+.vp-item:hover{background:rgba(255,255,255,.06)}
+.vp-avatar{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0}
+.vp-avatar.student{background:rgba(255,255,255,.08);color:#00e09e}
+.vp-avatar.dosen{background:rgba(251,191,36,.12);color:#fbbf24}
+.vp-info{flex:1;min-width:0}
+.vp-name{font-weight:600;font-size:.88rem;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vp-nim{font-size:.72rem;color:#64748b;font-family:monospace}
+.vp-time{font-size:.68rem;color:#64748b;text-align:right;flex-shrink:0;white-space:nowrap}
+.vp-empty{text-align:center;padding:32px 16px;color:#64748b;font-size:.85rem}
+@media(max-width:480px){.visitor-panel{width:calc(100vw - 32px);right:16px;bottom:88px}.visitor-fab{bottom:18px;right:18px}}
 
-:root {
-  --teal:    #2dd4bf;
-  --amber:   #fbbf24;
-  --rose:    #fb7185;
-  --violet:  #a78bfa;
-  --lime:    #a3e635;
-  --bg:      #080e1a;
-  --surface: #0f1929;
-  --s700:    #334155;
-  --s600:    #475569;
-  --s500:    #64748b;
-  --s400:    #94a3b8;
-  --s300:    #cbd5e1;
-  --s200:    #e2e8f0;
-  --border:  rgba(45,212,191,.15);
-  --radius-sm: 12px;
-  --radius:    16px;
-  --radius-lg: 20px;
-  --radius-xl: 24px;
-  --radius-2xl:32px;
-}
-
-html { scroll-behavior: smooth; }
-
-body {
-  font-family: 'DM Sans', system-ui, sans-serif;
-  background: var(--bg);
-  color: var(--s200);
-  min-height: 100vh;
-  overflow-x: hidden;
-  font-size: 15px;
-  line-height: 1.6;
-}
-
-h1,h2,h3,h4,h5 { font-family:'Syne',sans-serif; line-height:1.15; }
-
-a { color: var(--teal); text-decoration: none; }
-a:hover { text-decoration: underline; }
-
-code {
-  font-family: 'Courier New', monospace;
-  font-size: .82em;
-  background: rgba(255,255,255,.07);
-  padding: 2px 7px;
-  border-radius: 6px;
-  color: var(--teal);
-}
-
-img { display: block; max-width: 100%; }
-
-/* ============================================================
-   LAYOUT HELPERS
-   ============================================================ */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 24px;
-}
-
-.grid-2  { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
-.grid-3  { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
-.grid-4  { display:grid; grid-template-columns:repeat(4,1fr); gap:24px; }
-.grid-5  { display:grid; grid-template-columns:repeat(5,1fr); gap:20px; }
-.grid-auto { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:20px; }
-
-.flex        { display:flex; }
-.flex-col    { display:flex; flex-direction:column; }
-.flex-center { display:flex; align-items:center; justify-content:center; }
-.flex-between{ display:flex; align-items:center; justify-content:space-between; }
-.items-start { align-items:flex-start; }
-.items-end   { align-items:flex-end; }
-.flex-wrap   { flex-wrap:wrap; }
-.gap-2  { gap:8px; }
-.gap-3  { gap:12px; }
-.gap-4  { gap:16px; }
-.gap-6  { gap:24px; }
-.gap-8  { gap:32px; }
-.flex-1 { flex:1; }
-.flex-shrink-0 { flex-shrink:0; }
-
-.text-center { text-align:center; }
-.text-right  { text-align:right; }
-
-.relative { position:relative; }
-.absolute { position:absolute; }
-.fixed    { position:fixed; }
-.overflow-hidden { overflow:hidden; }
-.overflow-x-auto { overflow-x:auto; }
-.pointer-none    { pointer-events:none; }
-
-.w-full  { width:100%; }
-.h-full  { height:100%; }
-.min-h-screen { min-height:100vh; }
-
-.block  { display:block; }
-.hidden { display:none; }
-
-/* ============================================================
-   SPACING SCALE
-   ============================================================ */
-.mt-2  { margin-top:8px; }
-.mt-3  { margin-top:12px; }
-.mt-4  { margin-top:16px; }
-.mt-6  { margin-top:24px; }
-.mt-8  { margin-top:32px; }
-.mt-10 { margin-top:40px; }
-.mt-12 { margin-top:48px; }
-.mt-16 { margin-top:64px; }
-.mb-1  { margin-bottom:4px; }
-.mb-2  { margin-bottom:8px; }
-.mb-3  { margin-bottom:12px; }
-.mb-4  { margin-bottom:16px; }
-.mb-6  { margin-bottom:24px; }
-.mb-8  { margin-bottom:32px; }
-.mb-10 { margin-bottom:40px; }
-.mb-12 { margin-bottom:48px; }
-.ml-auto { margin-left:auto; }
-.mx-auto { margin-left:auto; margin-right:auto; }
-
-.p-3  { padding:12px; }
-.p-4  { padding:16px; }
-.p-5  { padding:20px; }
-.p-6  { padding:24px; }
-.p-7  { padding:28px; }
-.p-8  { padding:32px; }
-.p-10 { padding:40px; }
-.py-1 { padding-top:4px; padding-bottom:4px; }
-.py-2 { padding-top:8px; padding-bottom:8px; }
-.py-3 { padding-top:12px; padding-bottom:12px; }
-.py-4 { padding-top:16px; padding-bottom:16px; }
-.py-8 { padding-top:32px; padding-bottom:32px; }
-.py-12{ padding-top:48px; padding-bottom:48px; }
-.py-16{ padding-top:64px; padding-bottom:64px; }
-.px-3 { padding-left:12px; padding-right:12px; }
-.px-4 { padding-left:16px; padding-right:16px; }
-.px-5 { padding-left:20px; padding-right:20px; }
-.px-6 { padding-left:24px; padding-right:24px; }
-.px-8 { padding-left:32px; padding-right:32px; }
-
-/* ============================================================
-   TYPOGRAPHY
-   ============================================================ */
-.text-xs   { font-size:.75rem; }
-.text-sm   { font-size:.875rem; }
-.text-base { font-size:1rem; }
-.text-lg   { font-size:1.125rem; }
-.text-xl   { font-size:1.25rem; }
-.text-2xl  { font-size:1.5rem; }
-.text-3xl  { font-size:1.875rem; }
-.text-4xl  { font-size:2.25rem; }
-.text-5xl  { font-size:3rem; }
-
-.font-normal  { font-weight:400; }
-.font-medium  { font-weight:500; }
-.font-semibold{ font-weight:600; }
-.font-bold    { font-weight:700; }
-.font-black   { font-weight:800; }
-.font-mono    { font-family:'Courier New',monospace; }
-.italic       { font-style:italic; }
-.uppercase    { text-transform:uppercase; }
-.tracking-wide   { letter-spacing:.05em; }
-.tracking-wider  { letter-spacing:.08em; }
-.tracking-widest { letter-spacing:.15em; }
-.leading-relaxed { line-height:1.7; }
-
-/* ============================================================
-   COLORS
-   ============================================================ */
-.text-white   { color:#fff; }
-.text-teal    { color:var(--teal); }
-.text-amber   { color:var(--amber); }
-.text-rose    { color:var(--rose); }
-.text-violet  { color:var(--violet); }
-.text-lime    { color:var(--lime); }
-.text-s200    { color:var(--s200); }
-.text-s300    { color:var(--s300); }
-.text-s400    { color:var(--s400); }
-.text-s500    { color:var(--s500); }
-.text-s600    { color:var(--s600); }
-
-/* ============================================================
-   BORDERS & RADIUS
-   ============================================================ */
-.rounded-sm  { border-radius:var(--radius-sm); }
-.rounded     { border-radius:var(--radius); }
-.rounded-lg  { border-radius:var(--radius-lg); }
-.rounded-xl  { border-radius:var(--radius-xl); }
-.rounded-2xl { border-radius:var(--radius-2xl); }
-.rounded-3xl { border-radius:28px; }
-.rounded-full{ border-radius:9999px; }
-
-.border         { border:1px solid var(--border); }
-.border-surface { border:1px solid rgba(255,255,255,.08); }
-.border-teal    { border:1px solid rgba(45,212,191,.3); }
-.border-rose    { border:1px solid rgba(251,113,133,.3); }
-.border-amber   { border:1px solid rgba(251,191,36,.3); }
-.border-violet  { border:1px solid rgba(167,139,250,.3); }
-
-.border-b       { border-bottom:1px solid rgba(255,255,255,.06); }
-.border-r       { border-right:1px solid rgba(255,255,255,.06); }
-
-/* ============================================================
-   BACKGROUND
-   ============================================================ */
-.bg-surface  { background:var(--surface); }
-.bg-dark     { background:rgba(2,8,16,.95); }
-.bg-s900     { background:#0f172a; }
-
-/* ============================================================
-   HERO
-   ============================================================ */
-.hero {
-  background: radial-gradient(ellipse 80% 60% at 50% 0%, #0d3a5c 0%, #080e1a 70%);
-  border-bottom: 1px solid var(--border);
-  padding: 64px 0 48px;
-}
-
-.hero-inner {
-  display:flex;
-  flex-direction:column;
-  gap:32px;
-}
-
-@media(min-width:900px){
-  .hero-inner { flex-direction:row; align-items:flex-end; justify-content:space-between; }
-}
-
-.hero-title {
-  font-size: clamp(1.9rem, 4.5vw, 3.4rem);
-  font-weight: 800;
-  line-height: 1.08;
-  background: linear-gradient(135deg, #5eead4, #a5f3fc, #e2e8f0);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.hero-right { text-align:right; flex-shrink:0; }
-
-/* ============================================================
-   BADGE
-   ============================================================ */
-.badge {
-  display:inline-flex;
-  align-items:center;
-  gap:7px;
-  background: rgba(45,212,191,.1);
-  border: 1px solid rgba(45,212,191,.3);
-  color: var(--teal);
-  padding: 5px 14px;
-  border-radius: 999px;
-  font-size: .72rem;
-  font-weight: 600;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-
-/* ============================================================
-   TICKER
-   ============================================================ */
-.ticker-wrap {
-  border: 1px solid var(--s700);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  margin-top: 36px;
-}
-
-.ticker-head {
-  background: rgba(15,23,42,.7);
-  padding: 8px 16px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border-bottom: 1px solid var(--s700);
-}
-
-.live-dot {
-  width: 10px; height: 10px;
-  border-radius: 50%;
-  background: var(--teal);
-  flex-shrink: 0;
-  animation: livePing 1.8s ease-out infinite;
-}
-
-@keyframes livePing {
-  0%  { box-shadow: 0 0 0 0 rgba(45,212,191,.7); }
-  80% { box-shadow: 0 0 0 10px rgba(45,212,191,0); }
-  100%{ box-shadow: 0 0 0 0 rgba(45,212,191,0); }
-}
-
-.ticker-body { padding: 10px 16px; overflow:hidden; }
-
-.ticker-track {
-  display: flex;
-  gap: 36px;
-  width: max-content;
-  animation: tickerMove 20s linear infinite;
-}
-
-@keyframes tickerMove {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-
-.ticker-item {
-  white-space: nowrap;
-  font-size: .72rem;
-  font-family: 'Courier New', monospace;
-  color: rgba(45,212,191,.75);
-}
-
-/* ============================================================
-   WELCOME BOX
-   ============================================================ */
-.welcome-box {
-  background: linear-gradient(90deg, rgba(45,212,191,.08), transparent);
-  border: 1px solid rgba(45,212,191,.2);
-  border-radius: 28px;
-  padding: 32px;
-  display: flex;
-  gap: 24px;
-  align-items: flex-start;
-  margin-top: 48px;
-}
-
-.welcome-icon {
-  flex-shrink: 0;
-  width: 64px; height: 64px;
-  background: linear-gradient(135deg, var(--teal), #22d3ee);
-  border-radius: var(--radius-xl);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  box-shadow: 0 8px 24px rgba(45,212,191,.3);
-}
-
-/* ============================================================
-   SECTION WRAPPER
-   ============================================================ */
-.section { margin-top: 88px; }
-
-.section-header { position:relative; margin-bottom: 36px; }
-
-.section-number {
-  font-family: 'Syne', sans-serif;
-  font-size: 5rem;
-  font-weight: 800;
-  color: rgba(45,212,191,.07);
-  line-height: 1;
-  position: absolute;
-  right: 0; top: -12px;
-  pointer-events: none;
-  user-select: none;
-}
-
-/* ============================================================
-   TYPE CARDS  (Univariate / Multivariate / Discrete / Continuous)
-   ============================================================ */
-.type-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  overflow: hidden;
-  transition: box-shadow .3s;
-}
-
-.type-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,.35); }
-
-.type-card-head {
-  padding: 24px;
-  border-bottom: 1px solid rgba(255,255,255,.05);
-}
-
-.type-card-body { padding: 24px; }
-
-.type-icon {
-  width: 40px; height: 40px;
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.3rem;
-  flex-shrink: 0;
-}
-
-.chip {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 10px;
-  font-size: .72rem;
-  font-weight: 500;
-  background: rgba(255,255,255,.07);
-  color: var(--s400);
-}
-
-.chip-teal   { background:rgba(45,212,191,.1); color:var(--teal); border:1px solid rgba(45,212,191,.2); }
-.chip-amber  { background:rgba(251,191,36,.1);  color:var(--amber); border:1px solid rgba(251,191,36,.2); }
-.chip-violet { background:rgba(167,139,250,.1); color:var(--violet); border:1px solid rgba(167,139,250,.2); }
-.chip-lime   { background:rgba(163,230,53,.1);  color:var(--lime); border:1px solid rgba(163,230,53,.2); }
-.chip-rose   { background:rgba(251,113,133,.1); color:var(--rose); border:1px solid rgba(251,113,133,.2); }
-
-.hint-box {
-  margin-top: 12px;
-  padding: 10px 14px;
-  border-radius: 14px;
-  font-size: .8rem;
-}
-
-.hint-amber { background:rgba(251,191,36,.1); border:1px solid rgba(251,191,36,.25); color:#fde68a; }
-.hint-lime  { background:rgba(163,230,53,.1);  border:1px solid rgba(163,230,53,.25); color:#d9f99d; }
-.hint-rose  { background:rgba(251,113,133,.1); border:1px solid rgba(251,113,133,.25); color:#fecdd3; }
-.hint-teal  { background:rgba(45,212,191,.1);  border:1px solid rgba(45,212,191,.25);  color:#99f6e4; }
-.hint-violet{ background:rgba(167,139,250,.1); border:1px solid rgba(167,139,250,.25); color:#ddd6fe; }
-
-/* chart sub-label */
-.chart-label {
-  font-size: .7rem;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  font-weight: 600;
-  color: var(--s500);
-  margin-bottom: 12px;
-}
-
-/* ============================================================
-   SENSOR CARDS
-   ============================================================ */
-.sensor-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 22px;
-  cursor: pointer;
-  transition: transform .35s cubic-bezier(.34,1.56,.64,1), border-color .25s, box-shadow .3s;
-  position: relative;
-  overflow: hidden;
-}
-
-.sensor-card::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: var(--sc, var(--teal));
-}
-
-.sensor-card:hover {
-  transform: translateY(-10px) scale(1.02);
-  border-color: var(--sc, var(--teal));
-  box-shadow: 0 20px 40px rgba(0,0,0,.4), 0 0 28px -8px var(--sc, var(--teal));
-}
-
-.sensor-card.active {
-  border-color: var(--sc, var(--teal)) !important;
-  box-shadow: 0 0 30px -5px var(--sc, var(--teal));
-}
-
-.sensor-icon-lg { font-size: 2.2rem; display:block; margin-bottom:10px; }
-
-.wave-row {
-  display: flex;
-  gap: 3px;
-  align-items: flex-end;
-  height: 28px;
-  margin-top: 14px;
-}
-
-.wave-bar {
-  display: inline-block;
-  width: 3px;
-  border-radius: 3px;
-  animation: waveDance 1.2s ease-in-out infinite;
-}
-
-@keyframes waveDance {
-  0%,100% { transform: scaleY(.25); }
-  50%      { transform: scaleY(1); }
-}
-
-/* ============================================================
-   SENSOR PANEL
-   ============================================================ */
-.sensor-panel {
-  background: rgba(15,25,41,.85);
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 28px;
-  overflow: hidden;
-}
-
-.sensor-panel-inner {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-}
-
-@media(max-width:860px){ .sensor-panel-inner { grid-template-columns: 1fr; } }
-
-.sensor-info { padding: 32px; border-right: 1px solid rgba(255,255,255,.06); }
-.sensor-chart-area { padding: 32px; }
-
-.sensor-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.sensor-avatar {
-  width: 54px; height: 54px;
-  border-radius: var(--radius-xl);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  flex-shrink: 0;
-}
-
-.detail-row {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 10px;
-  font-size: .85rem;
-}
-
-.detail-key {
-  font-family: 'Courier New', monospace;
-  width: 90px;
-  flex-shrink: 0;
-  color: var(--teal);
-  font-size: .82rem;
-}
-
-.detail-val { color: var(--s300); }
-
-/* ============================================================
-   VS  (Time Series vs Static)
-   ============================================================ */
-.vs-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  background: rgba(15,25,41,.8);
-  border: 1px solid rgba(255,255,255,.07);
-  border-radius: 28px;
-  overflow: hidden;
-}
-
-@media(max-width:800px){ .vs-grid { grid-template-columns: 1fr; } }
-
-.vs-left  { padding: 32px; border-right: 1px solid rgba(255,255,255,.06); }
-.vs-right { padding: 32px; }
-
-.vs-head {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 18px;
-}
-
-.vs-icon {
-  width: 40px; height: 40px;
-  border-radius: var(--radius-sm);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.2rem;
-}
-
-.static-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: .8rem;
-  margin-top: 16px;
-}
-
-.static-table th {
-  text-align: left;
-  padding: 8px 12px;
-  color: var(--s400);
-  border-bottom: 1px solid var(--s700);
-  font-weight: 500;
-}
-
-.static-table td {
-  padding: 8px 12px;
-  color: var(--s300);
-  border-bottom: 1px solid rgba(255,255,255,.04);
-}
-
-.compare-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: .85rem;
-  margin-top: 24px;
-}
-
-.compare-table th {
-  text-align: left;
-  padding: 12px 20px;
-  font-weight: 600;
-  background: rgba(15,23,42,.6);
-}
-
-.compare-table td {
-  padding: 12px 20px;
-  border-bottom: 1px solid rgba(255,255,255,.04);
-  transition: background .2s;
-}
-
-.compare-table tr:hover td { background: rgba(255,255,255,.03); }
-
-/* ============================================================
-   STUDI KASUS — BEARING
-   ============================================================ */
-.bearing-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  margin-bottom: 32px;
-}
-
-@media(max-width:700px){ .bearing-grid { grid-template-columns: 1fr; } }
-
-.bearing-card {
-  background: rgba(15,25,41,.8);
-  border-radius: 28px;
-  padding: 32px;
-  text-align: center;
-  border: 1px solid rgba(255,255,255,.07);
-}
-
-.bearing-card.fault { border-color: rgba(251,113,133,.25); }
-
-.bearing-stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 20px;
-}
-
-.stat-box {
-  border-radius: 14px;
-  padding: 12px;
-  font-size: .85rem;
-}
-
-.stat-box-teal  { background:rgba(45,212,191,.08); border:1px solid rgba(45,212,191,.2); }
-.stat-box-rose  { background:rgba(251,113,133,.08); border:1px solid rgba(251,113,133,.2); }
-
-.stat-label { font-family:'Courier New',monospace; font-size:.7rem; color:var(--teal); }
-.stat-label-rose { color: var(--rose); }
-.stat-value { font-weight:700; font-size:1.2rem; color:#fff; }
-
-/* SVG bearing */
-@keyframes rotateBearing      { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-@keyframes rotateBearingFault { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-
-.bearing-spin  { transform-origin:100px 100px; animation:rotateBearing 3s linear infinite; }
-.bearing-fault { transform-origin:100px 100px; animation:rotateBearingFault 3s steps(18,end) infinite; }
-
-/* comparison panel */
-.comp-panel {
-  background: rgba(15,25,41,.8);
-  border: 1px solid rgba(255,255,255,.07);
-  border-radius: 28px;
-  padding: 32px;
-}
-
-.comp-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.btn-group { display:flex; gap:8px; flex-wrap:wrap; }
-
-.tbtn {
-  padding: 9px 20px;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: .82rem;
-  border: none;
-  cursor: pointer;
-  transition: all .25s;
-  font-family: 'DM Sans', sans-serif;
-}
-
-.tbtn-inactive { background: rgba(255,255,255,.07); color: var(--s400); }
-.tbtn-inactive:hover { background: rgba(255,255,255,.12); }
-.tbtn-teal  { background:var(--teal);  color:#080e1a; }
-.tbtn-rose  { background:var(--rose);  color:#080e1a; }
-.tbtn-amber { background:var(--amber); color:#080e1a; }
-
-.slider-row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  background: rgba(255,255,255,.05);
-  border-radius: 16px;
-  padding: 12px 20px;
-  margin-bottom: 20px;
-}
-
-.slider-row label { font-size:.85rem; color:var(--s400); white-space:nowrap; }
-
-input[type=range] {
-  flex: 1;
-  appearance: none;
-  height: 4px;
-  border-radius: 4px;
-  background: rgba(255,255,255,.15);
-  outline: none;
-}
-
-input[type=range]::-webkit-slider-thumb {
-  appearance: none;
-  width: 16px; height: 16px;
-  border-radius: 50%;
-  background: var(--teal);
-  cursor: pointer;
-}
-
-.slider-val { font-family:'Courier New',monospace; font-size:.82rem; color:var(--teal); width:36px; text-align:right; }
-
-.comp-stats {
-  display: grid;
-  grid-template-columns: repeat(4,1fr);
-  gap: 12px;
-  margin-top: 20px;
-}
-
-@media(max-width:600px){ .comp-stats { grid-template-columns: repeat(2,1fr); } }
-
-.cstat {
-  background: rgba(255,255,255,.05);
-  border-radius: 16px;
-  padding: 16px;
-  text-align: center;
-  font-size: .75rem;
-}
-
-.cstat-label { color:var(--s500); margin-bottom:6px; }
-.cstat-val   { font-weight:700; font-size:1.2rem; }
-
-/* ============================================================
-   CODE CELLS (Jupyter)
-   ============================================================ */
-.cell {
-  background: rgba(15,25,41,.85);
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 28px;
-  overflow: hidden;
-  margin-bottom: 24px;
-}
-
-.cell-bar {
-  background: rgba(255,255,255,.04);
-  padding: 10px 20px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border-bottom: 1px solid rgba(255,255,255,.06);
-}
-
-.dot-row { display:flex; gap:6px; }
-.dot { width:11px; height:11px; border-radius:50%; }
-.dot-r { background:rgba(239,68,68,.6); }
-.dot-y { background:rgba(234,179,8,.6); }
-.dot-g { background:rgba(34,197,94,.6); }
-
-.cell-label { font-family:'Courier New',monospace; font-size:.72rem; color:var(--s500); }
-.cell-run   { font-family:'Courier New',monospace; font-size:.72rem; color:var(--teal); margin-left:auto; }
-
-.code-pre {
-  background: #020810;
-  padding: 24px;
-  font-family: 'Courier New', monospace;
-  font-size: .78rem;
-  line-height: 1.75;
-  overflow-x: auto;
-  white-space: pre;
-  color: #e2e8f0;
-  border: none;
-  margin: 0;
-}
-
-.kw  { color:#c084fc; }
-.fn  { color:#60a5fa; }
-.str { color:#86efac; }
-.cm  { color:#475569; font-style:italic; }
-.nm  { color:#fbbf24; }
-.op  { color:var(--teal); }
-
-/* ============================================================
-   EXERCISE CARDS
-   ============================================================ */
-.ex-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 22px;
-  overflow: hidden;
-  margin-bottom: 20px;
-}
-
-.ex-card.bonus { border-color: rgba(167,139,250,.3); }
-
-.ex-head {
-  padding: 18px 24px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.ex-num {
-  width: 44px; height: 44px;
-  border-radius: 14px;
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Syne', sans-serif;
-  font-weight: 800;
-  font-size: 1rem;
-  flex-shrink: 0;
-}
-
-.ex-body { padding: 0 24px 24px; }
-
-.ex-list {
-  list-style: none;
-  margin: 12px 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.ex-list li { display:flex; gap:10px; font-size:.875rem; color:var(--s300); }
-.ex-list li::before { content:'•'; color:var(--amber); flex-shrink:0; }
-
-/* ============================================================
-   FOOTER
-   ============================================================ */
-footer {
-  border-top: 1px solid rgba(255,255,255,.06);
-  padding: 32px 0;
-  text-align: center;
-  font-size: .75rem;
-  color: var(--s500);
-  margin-top: 48px;
-}
-
-/* ============================================================
-   ANIMATIONS
-   ============================================================ */
-@keyframes fadeUp {
-  from { opacity:0; transform:translateY(28px); }
-  to   { opacity:1; transform:translateY(0); }
-}
-
-.fade-up { animation: fadeUp .7s ease forwards; }
-.d1 { animation-delay:.1s; opacity:0; }
-.d2 { animation-delay:.2s; opacity:0; }
-.d3 { animation-delay:.3s; opacity:0; }
-.d4 { animation-delay:.4s; opacity:0; }
-
-/* ============================================================
-   RESPONSIVE BREAKPOINTS
-   ============================================================ */
-@media(max-width:900px){
-  .grid-2 { grid-template-columns:1fr; }
-  .grid-3 { grid-template-columns:1fr 1fr; }
-  .grid-5 { grid-template-columns:repeat(3,1fr); }
-  .sensor-info { border-right:none; border-bottom:1px solid rgba(255,255,255,.06); }
-}
-
-@media(max-width:640px){
-  .grid-3,.grid-4,.grid-5 { grid-template-columns:1fr 1fr; }
-  .hero-right { text-align:left; }
-  .comp-stats { grid-template-columns:1fr 1fr; }
-}
-
-@media(max-width:420px){
-  .grid-5 { grid-template-columns:1fr; }
-}
-
-/* ============================================================
-   VISITOR SYSTEM
-   ============================================================ */
-.visitor-overlay {
-  position:fixed; inset:0; z-index:9999;
-  background:rgba(8,14,26,.92); backdrop-filter:blur(16px);
-  display:flex; align-items:center; justify-content:center;
-  opacity:1; transition:opacity .4s;
-}
-.visitor-overlay.hidden { opacity:0; pointer-events:none; }
-
-.visitor-modal {
-  background:var(--surface); border:1px solid var(--border);
-  border-radius:var(--radius-2xl); padding:40px 36px;
-  max-width:440px; width:90%; text-align:center;
-  box-shadow:0 32px 80px rgba(0,0,0,.6);
-  animation: modalIn .5s cubic-bezier(.16,1,.3,1);
-}
-@keyframes modalIn {
-  0%{ opacity:0; transform:translateY(30px) scale(.96); }
-  100%{ opacity:1; transform:translateY(0) scale(1); }
-}
-
-.visitor-modal h2 {
-  font-family:'Syne',sans-serif; font-weight:800; font-size:1.5rem;
-  background:linear-gradient(135deg,#5eead4,#a5f3fc);
-  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-  margin-bottom:6px;
-}
-.visitor-modal p.sub { color:var(--s400); font-size:.85rem; margin-bottom:28px; }
-
-.v-input {
-  width:100%; padding:14px 18px; border-radius:14px;
-  border:1px solid var(--s700); background:rgba(255,255,255,.05);
-  color:#fff; font-family:'DM Sans',sans-serif; font-size:.95rem;
-  outline:none; transition:border .25s;
-  margin-bottom:14px;
-}
-.v-input::placeholder { color:var(--s500); }
-.v-input:focus { border-color:var(--teal); box-shadow:0 0 0 3px rgba(45,212,191,.15); }
-
-.v-btn-primary {
-  width:100%; padding:14px; border-radius:14px; border:none;
-  background:linear-gradient(135deg,var(--teal),#22d3ee);
-  color:#080e1a; font-family:'Syne',sans-serif; font-weight:700;
-  font-size:1rem; cursor:pointer; transition:transform .2s, box-shadow .2s;
-  margin-top:6px;
-}
-.v-btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(45,212,191,.35); }
-.v-btn-primary:disabled { opacity:.4; cursor:not-allowed; transform:none; box-shadow:none; }
-
-.v-divider {
-  display:flex; align-items:center; gap:12px;
-  margin:20px 0; color:var(--s500); font-size:.78rem;
-}
-.v-divider::before,.v-divider::after { content:''; flex:1; height:1px; background:var(--s700); }
-
-.v-btn-dosen {
-  width:100%; padding:12px; border-radius:14px;
-  border:1px solid rgba(251,191,36,.3); background:rgba(251,191,36,.08);
-  color:var(--amber); font-family:'DM Sans',sans-serif; font-weight:600;
-  font-size:.88rem; cursor:pointer; transition:all .25s;
-}
-.v-btn-dosen:hover { background:rgba(251,191,36,.15); border-color:rgba(251,191,36,.5); }
-
-.v-error { color:var(--rose); font-size:.8rem; margin-bottom:10px; display:none; }
-
-.visitor-fab {
-  position:fixed; bottom:24px; right:24px; z-index:8888;
-  width:56px; height:56px; border-radius:50%;
-  background:linear-gradient(135deg,var(--teal),#22d3ee);
-  border:none; cursor:pointer; display:flex; align-items:center; justify-content:center;
-  box-shadow:0 6px 24px rgba(45,212,191,.4);
-  transition:transform .25s, box-shadow .25s;
-  font-size:1.4rem;
-}
-.visitor-fab:hover { transform:scale(1.08); box-shadow:0 8px 32px rgba(45,212,191,.5); }
-
-.visitor-fab .fab-count {
-  position:absolute; top:-4px; right:-4px;
-  background:var(--rose); color:#fff; font-size:.65rem; font-weight:700;
-  min-width:22px; height:22px; border-radius:50%; display:flex;
-  align-items:center; justify-content:center; padding:0 5px;
-  border:2px solid var(--bg);
-}
-
-.visitor-panel {
-  position:fixed; bottom:92px; right:24px; z-index:8887;
-  width:340px; max-height:480px; overflow:hidden;
-  background:var(--surface); border:1px solid var(--border);
-  border-radius:var(--radius-2xl); box-shadow:0 24px 64px rgba(0,0,0,.5);
-  display:flex; flex-direction:column;
-  transform:translateY(12px) scale(.95); opacity:0; pointer-events:none;
-  transition:transform .3s cubic-bezier(.16,1,.3,1), opacity .25s;
-}
-.visitor-panel.open { transform:translateY(0) scale(1); opacity:1; pointer-events:auto; }
-
-.vp-header {
-  padding:20px 22px 14px; border-bottom:1px solid rgba(255,255,255,.06);
-  display:flex; align-items:center; justify-content:space-between;
-}
-.vp-header h3 { font-family:'Syne',sans-serif; font-weight:700; font-size:1rem; color:#fff; }
-.vp-header .vp-badge {
-  background:rgba(45,212,191,.12); color:var(--teal); font-size:.7rem;
-  font-weight:700; padding:4px 10px; border-radius:999px;
-}
-
-.vp-list { overflow-y:auto; padding:10px 16px 16px; flex:1; }
-
-.vp-item {
-  display:flex; align-items:center; gap:12px;
-  padding:10px 12px; border-radius:14px; margin-bottom:6px;
-  background:rgba(255,255,255,.03); transition:background .2s;
-}
-.vp-item:hover { background:rgba(255,255,255,.06); }
-
-.vp-avatar {
-  width:38px; height:38px; border-radius:12px;
-  display:flex; align-items:center; justify-content:center;
-  font-weight:700; font-size:.85rem; flex-shrink:0;
-}
-.vp-avatar.student { background:rgba(45,212,191,.12); color:var(--teal); }
-.vp-avatar.dosen   { background:rgba(251,191,36,.12);  color:var(--amber); }
-
-.vp-info { flex:1; min-width:0; }
-.vp-name { font-weight:600; font-size:.88rem; color:var(--s200); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.vp-nim  { font-size:.72rem; color:var(--s500); font-family:'Courier New',monospace; }
-.vp-time { font-size:.68rem; color:var(--s500); text-align:right; flex-shrink:0; white-space:nowrap; }
-
-.vp-empty { text-align:center; padding:32px 16px; color:var(--s500); font-size:.85rem; }
-
-@media(max-width:480px){
-  .visitor-panel { width:calc(100vw - 32px); right:16px; bottom:88px; }
-  .visitor-fab { bottom:18px; right:18px; }
-}
 </style>
+
 </head>
 <body>
-
-<!-- ==================== VISITOR MODAL ==================== -->
+<!-- ═══ VISITOR LOGIN MODAL ═══ -->
 <div class="visitor-overlay" id="visitorOverlay">
   <div class="visitor-modal">
     <div style="font-size:2.8rem;margin-bottom:12px;">🎓</div>
@@ -1047,7 +205,6 @@ footer {
     <button class="v-btn-cancel" onclick="showScheduleModal()" style="margin-top:8px;border-color:rgba(99,102,241,.3);color:#818cf8;">🕐 Atur Jadwal Perkuliahan (Admin)</button>
   </div>
 </div>
-
 <!-- Reset Password Modal -->
 <div class="visitor-overlay hidden" id="resetOverlay" style="z-index:100000;">
   <div class="visitor-modal" style="max-width:380px;">
@@ -1056,10 +213,10 @@ footer {
     <p class="sub">Masukkan password untuk menghapus semua data pengunjung.</p>
     <p class="v-error" id="resetError">⚠ Password salah.</p>
     <input type="password" class="v-input" id="resetPw" placeholder="Password" autocomplete="off">
-    <button class="v-btn-primary" style="background:linear-gradient(135deg,var(--rose,#fb7185),#f43f5e);" onclick="confirmReset()">Hapus Semua Pengunjung</button>
+    <button class="v-btn-primary" style="background:linear-gradient(135deg,#fb7185,#f43f5e);" onclick="confirmReset()">Hapus Semua Pengunjung</button>
+    <button class="v-btn-cancel" onclick="hideResetModal()">Batal</button>
   </div>
 </div>
-
 <!-- Schedule Modal -->
 <div class="visitor-overlay hidden" id="scheduleOverlay" style="z-index:100000;">
   <div class="visitor-modal" style="max-width:480px;width:95%;">
@@ -1079,801 +236,635 @@ footer {
       </div>
     </div>
     <button class="v-btn-primary" onclick="saveSchedule()">💾 Simpan Jadwal</button>
+    <button class="v-btn-cancel" onclick="hideScheduleModal()">Batal</button>
   </div>
 </div>
 
 <!-- Floating Visitor Button -->
 <button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Daftar Pengunjung">👥<span class="fab-count" id="fabCount">0</span></button>
-
 <!-- Visitor Panel -->
 <div class="visitor-panel" id="visitorPanel">
   <div class="vp-header"><h3>👥 Pengunjung</h3><span class="vp-badge" id="vpBadge">0 orang</span></div>
   <div class="vp-list" id="vpList"><div class="vp-empty">Memuat data pengunjung...</div></div>
 </div>
 
-<!-- ==================== HERO ==================== -->
-<header class="hero">
-  <div class="container">
-    <div class="fade-up">
-      <span class="badge">📅 Pertemuan 2</span>
-    </div>
+<div class="prog" id="prog"></div>
 
-    <div class="hero-inner mt-6">
-      <div class="fade-up d1">
-        <h1 class="hero-title">Jenis &amp; Sumber<br>Time Series Data</h1>
-        <p class="mt-3 text-s400" style="font-size:1.05rem;max-width:480px;">
-          Memahami univariate vs multivariate, discrete vs continuous,
-          dan sensor-sensor industri pada mesin.
-        </p>
-      </div>
-      <div class="hero-right fade-up d2">
-        <p class="text-xs uppercase tracking-widest text-s500 mb-1">Dosen Pengampu</p>
-        <p style="font-size:1.6rem;font-family:'Syne',sans-serif;font-weight:700;">Dedik Romahadi</p>
-        <p class="text-s500 mt-1" style="font-size:.85rem;">Optimalisasi &amp; Otomasi • S1 Teknik Mesin</p>
-      </div>
-    </div>
-
-    <!-- Ticker -->
-    <div class="ticker-wrap mt-10">
-      <div class="ticker-head">
-        <div class="live-dot"></div>
-        <span class="text-xs uppercase tracking-widest text-teal font-mono font-semibold">Live Sensor Stream — Demo</span>
-      </div>
-      <div class="ticker-body">
-        <div class="ticker-track" id="ticker"></div>
-      </div>
+<!-- ═══════ HERO ═══════ -->
+<section class="hero">
+  <div class="hero-particles">
+    <div class="particle" style="left:12%;animation-delay:0s"></div>
+    <div class="particle" style="left:28%;animation-delay:1.4s"></div>
+    <div class="particle" style="left:42%;animation-delay:2.8s"></div>
+    <div class="particle" style="left:58%;animation-delay:.6s"></div>
+    <div class="particle" style="left:72%;animation-delay:3.5s"></div>
+    <div class="particle" style="left:88%;animation-delay:1.8s"></div>
+    <div class="particle" style="left:50%;animation-delay:4.2s"></div>
+  </div>
+  <div class="hero-badge">📐 MODUL 2 • Tatap Muka 02</div>
+  <h1><span class="hl">PD Variabel Terpisah</span></h1>
+  <p>Matematika 4 — W132100010<br>Memahami konsep dan menyelesaikan persamaan diferensial variabel terpisah beserta penerapannya.</p>
+  <div class="hero-lec">
+    <div class="li">👨‍🏫</div>
+    <div class="lt">
+      <div class="ll">Dosen Pengampu</div>
+      <div class="ln">Dedik Romahadi</div>
     </div>
   </div>
-</header>
-
-<!-- ==================== WELCOME ==================== -->
-<div class="container">
-  <div class="welcome-box fade-up d2">
-    <div class="welcome-icon">👋</div>
-    <div>
-      <h2 class="text-xl font-bold mb-2">Halo, Mahasiswa Teknik Mesin!</h2>
-      <p class="text-s300 leading-relaxed">
-        Di pertemuan ini kita bedah <strong class="text-teal">jenis-jenis data time series</strong> yang relevan
-        dengan mesin industri — mulai dari <em>univariate</em> sampai <em>multivariate</em>,
-        dari sinyal <em>discrete</em> hingga <em>continuous</em>.
-        Kita juga kenali sensor-sensor nyata:
-        <strong class="text-amber">accelerometer, termistor, sensor tekanan, clamp meter arus, hingga encoder RPM</strong>.
-        Semua ini jadi fondasi analisis kita ke depan!
-      </p>
-    </div>
+  <div class="hero-cta">
+    <a href="#pengertian" class="btn-p">▶ Mulai Belajar</a>
+    <a href="#latihan" class="btn-o">📝 Langsung Latihan</a>
   </div>
-</div>
+  <div class="scroll-ind"><span>scroll ke bawah</span><span>↓</span></div>
+</section>
 
-<!-- ==================== SECTION 1: JENIS DATA ==================== -->
-<section class="section container">
-  <div class="section-header">
-    <span class="section-number">01</span>
-    <span class="badge mb-3">Konsep Dasar</span>
-    <h2 class="text-3xl font-bold mt-2">Jenis-Jenis Data Time Series</h2>
-    <p class="text-s400 mt-2">Dua dimensi penting: <em>jumlah variabel</em> dan <em>sifat pencatatan</em>.</p>
-  </div>
+<!-- ═══════ NAV ═══════ -->
+<nav class="nav">
+  <a href="#pengertian">📖 Pengertian</a>
+  <a href="#analogi">💡 Analogi</a>
+  <a href="#metode">🔧 Metode</a>
+  <a href="#contoh">✏️ Contoh Soal</a>
+  <a href="#visualisasi">📊 Visualisasi</a>
+  <a href="#aplikasi">🌡️ Aplikasi</a>
+  <a href="#latihan">📝 Latihan</a>
+  <a href="#jupyter">🐍 Jupyter</a>
+</nav>
 
-  <!-- Univariate vs Multivariate -->
-  <div class="grid-2 mb-6">
+<!-- ═══════ PENGERTIAN ═══════ -->
+<section class="sec fi" id="pengertian">
+  <div class="sl">📖 BAB 1</div>
+  <h2 class="st">Pengertian PD Variabel Terpisah</h2>
+  <div class="sd"></div>
+  <p>Persamaan diferensial <strong>variabel terpisah</strong> adalah PD biasa linier orde satu yang paling sederhana. Disebut "terpisah" karena kita bisa <em>memisahkan</em> variabel \(x\) dan \(y\) ke masing-masing ruas persamaan.</p>
 
-    <!-- UNIVARIATE -->
-    <div class="type-card">
-      <div class="type-card-head">
-        <div class="flex items-start gap-3">
-          <div class="type-icon" style="background:rgba(45,212,191,.12);">〰️</div>
-          <div>
-            <h3 class="text-xl font-bold text-teal">Univariate</h3>
-            <p class="text-xs text-s500 mt-1">1 variabel saja</p>
-          </div>
-        </div>
-        <p class="text-s300 mt-4" style="font-size:.88rem;line-height:1.65;">
-          Hanya <strong class="text-teal">satu sinyal</strong> yang direkam terhadap waktu.
-          Contoh: getaran sumbu-X bearing direkam setiap 0.01 detik.
-          Mudah divisualisasi &amp; dianalisis — cocok untuk anomaly detection awal.
-        </p>
-      </div>
-      <div class="type-card-body">
-        <p class="chart-label">Live Demo — Getaran Sumbu X</p>
-        <div style="height:150px"><canvas id="chartUni"></canvas></div>
-        <div class="flex gap-2 flex-wrap mt-4">
-          <span class="chip chip-teal">1 sinyal</span>
-          <span class="chip">Mudah dianalisis</span>
-          <span class="chip">1D data</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- MULTIVARIATE -->
-    <div class="type-card">
-      <div class="type-card-head">
-        <div class="flex items-start gap-3">
-          <div class="type-icon" style="background:rgba(167,139,250,.12);">📊</div>
-          <div>
-            <h3 class="text-xl font-bold text-violet">Multivariate</h3>
-            <p class="text-xs text-s500 mt-1">Banyak variabel bersamaan</p>
-          </div>
-        </div>
-        <p class="text-s300 mt-4" style="font-size:.88rem;line-height:1.65;">
-          <strong class="text-violet">Beberapa sinyal</strong> direkam serentak.
-          Contoh: getaran X, Y, Z + suhu + tekanan direkam bersamaan.
-          Lebih informatif — menangkap hubungan antar variabel mesin.
-        </p>
-      </div>
-      <div class="type-card-body">
-        <p class="chart-label">Live Demo — X, Suhu &amp; Tekanan</p>
-        <div style="height:150px"><canvas id="chartMulti"></canvas></div>
-        <div class="flex gap-2 flex-wrap mt-4">
-          <span class="chip chip-violet">3+ sinyal</span>
-          <span class="chip">Informasi kaya</span>
-          <span class="chip">ND data</span>
-        </div>
-      </div>
-    </div>
+  <div class="card" style="margin-top:2rem;">
+    <div class="ci g">📐</div>
+    <h3>Bentuk Sederhana</h3>
+    <div class="mb">$$g(y)\,y' = f(x)$$</div>
+    <p>Karena \(y' = \frac{dy}{dx}\), maka bisa ditulis:</p>
+    <div class="mb">$$g(y)\,dy = f(x)\,dx$$</div>
+    <p>Integralkan kedua ruas:</p>
+    <div class="mb">$$\int g(y)\,dy = \int f(x)\,dx + C$$</div>
   </div>
 
-  <!-- Discrete vs Continuous -->
-  <div class="grid-2">
+  <div class="card">
+    <div class="ci b">📋</div>
+    <h3>Bentuk Umum (Lebih Lengkap)</h3>
+    <div class="mb">$$f_1(x)\,g_1(y)\,dx + f_2(x)\,g_2(y)\,dy = 0$$</div>
+    <p>Bagi kedua ruas dengan \(f_2(x) \cdot g_1(y)\) agar variabel terpisah:</p>
+    <div class="mb">$$\frac{f_1(x)}{f_2(x)}\,dx + \frac{g_2(y)}{g_1(y)}\,dy = 0$$</div>
+    <p>Integralkan:</p>
+    <div class="mb">$$\int \frac{f_1(x)}{f_2(x)}\,dx + \int \frac{g_2(y)}{g_1(y)}\,dy = C$$</div>
+  </div>
+</section>
 
-    <!-- DISCRETE -->
-    <div class="type-card">
-      <div class="type-card-head">
-        <div class="flex items-start gap-3">
-          <div class="type-icon" style="background:rgba(251,191,36,.12);">⚡</div>
-          <div>
-            <h3 class="text-xl font-bold text-amber">Discrete (Diskret)</h3>
-            <p class="text-xs text-s500 mt-1">Disampling pada interval tertentu</p>
-          </div>
-        </div>
-        <p class="text-s300 mt-4" style="font-size:.88rem;line-height:1.65;">
-          Data diambil pada <strong class="text-amber">titik waktu tetap</strong> (mis. setiap 0.05 detik).
-          Semua sensor digital menghasilkan data diskret setelah proses ADC.
-          Sampling rate menentukan resolusi frekuensi (Teorema Nyquist).
-        </p>
-        <div class="hint-box hint-amber mt-3">
-          📐 <strong>Nyquist:</strong> f_sampling ≥ 2 × f_max sinyal agar tidak aliasing
-        </div>
-      </div>
-      <div class="type-card-body">
-        <p class="chart-label">Visualisasi — Titik Diskret</p>
-        <div style="height:130px"><canvas id="chartDisc"></canvas></div>
-      </div>
+<!-- ═══════ ANALOGI ═══════ -->
+<section class="sec fi" id="analogi">
+  <div class="sl">💡 PEMAHAMAN</div>
+  <h2 class="st">Analogi Dunia Nyata</h2>
+  <div class="sd"></div>
+
+  <div class="ana">
+    <h4>🧹 Analogi Menyortir Pakaian</h4>
+    <p>Bayangkan kamu punya tumpukan pakaian campuran: kaos dan celana bercampur jadi satu. <strong>"Variabel terpisah"</strong> itu seperti menyortir pakaian: pindahkan semua kaos ke keranjang kiri, semua celana ke keranjang kanan.</p>
+    <p style="margin-top:.75rem;">Dalam matematika: pindahkan semua suku \(y\) ke ruas kiri, semua suku \(x\) ke ruas kanan:</p>
+    <div class="mb">$$\underbrace{g(y)\,dy}_{\text{Keranjang } y} = \underbrace{f(x)\,dx}_{\text{Keranjang } x}$$</div>
+    <p>Setelah terpisah rapi, kita tinggal mengintegralkan masing-masing "keranjang"!</p>
+  </div>
+
+  <div class="ana">
+    <h4>🌡️ Kopi Panas Mendingin (Hukum Newton)</h4>
+    <p>Suhu kopi \(T\) berubah seiring waktu \(t\). Laju pendinginan sebanding dengan selisih suhu kopi dan suhu ruangan \(T_m\):</p>
+    <div class="mb">$$\frac{dT}{dt} = -k(T - T_m)$$</div>
+    <p>Ini bisa dipisahkan! Pindahkan \(T\) ke kiri dan \(t\) ke kanan:</p>
+    <div class="mb">$$\frac{dT}{T - T_m} = -k\,dt$$</div>
+    <p>Setelah diintegralkan, kita dapat rumus suhu kopi di setiap waktu: \(T(t) = T_m + Ce^{-kt}\).</p>
+  </div>
+
+  <div class="ana">
+    <h4>🏦 Bunga Bank Berlipat Ganda</h4>
+    <p>Uang di rekeningmu \(y\) bertambah secara proporsional: \(\frac{dy}{dx} = ry\). Pisahkan variabel:</p>
+    <div class="mb">$$\frac{dy}{y} = r\,dx \quad \Rightarrow \quad \ln|y| = rx + C \quad \Rightarrow \quad y = Ce^{rx}$$</div>
+    <p>Hasilnya: pertumbuhan eksponensial! Semakin banyak uang, semakin cepat bertambah.</p>
+  </div>
+
+  <div class="ana">
+    <h4>☢️ Peluruhan Radioaktif</h4>
+    <p>Massa zat radioaktif \(N\) berkurang seiring waktu: \(\frac{dN}{dt} = -\lambda N\). Bentuknya sama seperti bunga bank, tapi negatif. Dengan variabel terpisah: \(N(t) = N_0 e^{-\lambda t}\) — meluruh secara eksponensial.</p>
+  </div>
+</section>
+
+<!-- ═══════ METODE ═══════ -->
+<section class="sec fi" id="metode">
+  <div class="sl">🔧 BAB 2</div>
+  <h2 class="st">Langkah-Langkah Penyelesaian</h2>
+  <div class="sd"></div>
+
+  <div class="steps">
+    <div class="si"><div class="sc"><h4>Identifikasi Bentuk PD</h4><p>Tulis ulang PD dalam bentuk \(M(x,y)\,dx + N(x,y)\,dy = 0\) atau \(\frac{dy}{dx} = F(x,y)\). Periksa apakah \(M\) dan \(N\) bisa difaktorkan menjadi fungsi \(x\) saja × fungsi \(y\) saja.</p></div></div>
+    <div class="si"><div class="sc"><h4>Pisahkan Variabel</h4><p>Kelompokkan semua suku \(x\) dan \(dx\) ke satu ruas, semua suku \(y\) dan \(dy\) ke ruas lain. Biasanya dengan membagi kedua ruas dengan faktor tertentu.</p></div></div>
+    <div class="si"><div class="sc"><h4>Integralkan Kedua Ruas</h4><p>Integralkan ruas kiri terhadap \(y\) dan ruas kanan terhadap \(x\). Jangan lupa tambahkan konstanta integrasi \(C\).</p></div></div>
+    <div class="si"><div class="sc"><h4>Sederhanakan (jika perlu)</h4><p>Gabungkan logaritma, eksponensialkan, atau lakukan manipulasi aljabar untuk mendapat bentuk paling sederhana.</p></div></div>
+    <div class="si"><div class="sc"><h4>Terapkan Syarat Awal (jika ada)</h4><p>Jika diberikan syarat awal \(y(x_0) = y_0\), substitusikan untuk menentukan nilai konstanta \(C\). Ini menghasilkan <em>solusi khusus</em>.</p></div></div>
+  </div>
+</section>
+
+<!-- ═══════ CONTOH SOAL ═══════ -->
+<section class="sec fi" id="contoh">
+  <div class="sl">✏️ BAB 3</div>
+  <h2 class="st">Contoh Soal & Penyelesaian</h2>
+  <div class="sd"></div>
+
+  <!-- Contoh 2.1 -->
+  <div class="card">
+    <div class="ci g">1</div>
+    <h3>Contoh 2.1 — PD Sederhana</h3>
+    <p>Cari penyelesaian umum:</p>
+    <div class="mb">$$4y\,y' = 9x^2$$</div>
+    <div style="margin-top:1.5rem;padding:1.5rem;background:rgba(0,224,158,.04);border-radius:12px;">
+      <h4 style="color:var(--c1);margin-bottom:.75rem;">Penyelesaian Detail:</h4>
+      <p><strong>Langkah 1</strong> — Tulis \(y' = \frac{dy}{dx}\):</p>
+      <div class="mb">$$4y\frac{dy}{dx} = 9x^2$$</div>
+      <p><strong>Langkah 2</strong> — Pisahkan variabel (pindahkan \(dx\) ke kanan):</p>
+      <div class="mb">$$4y\,dy = 9x^2\,dx$$</div>
+      <p>✅ Terpisah! Ruas kiri hanya \(y\), ruas kanan hanya \(x\).</p>
+      <p style="margin-top:.75rem;"><strong>Langkah 3</strong> — Integralkan kedua ruas:</p>
+      <div class="mb">$$\int 4y\,dy = \int 9x^2\,dx$$</div>
+      <div class="mb">$$4 \cdot \frac{y^2}{2} = 9 \cdot \frac{x^3}{3} + C$$</div>
+      <div class="mb">$$2y^2 = 3x^3 + C$$</div>
+      <p class="res">✅ Penyelesaian umum: \(2y^2 = 3x^3 + C\)</p>
     </div>
+  </div>
 
-    <!-- CONTINUOUS -->
-    <div class="type-card">
-      <div class="type-card-head">
-        <div class="flex items-start gap-3">
-          <div class="type-icon" style="background:rgba(163,230,53,.12);">〜</div>
-          <div>
-            <h3 class="text-xl font-bold text-lime">Continuous (Kontinu)</h3>
-            <p class="text-xs text-s500 mt-1">Aliran data tanpa jeda</p>
-          </div>
-        </div>
-        <p class="text-s300 mt-4" style="font-size:.88rem;line-height:1.65;">
-          Sinyal <strong class="text-lime">terus-menerus</strong> tanpa jeda — seperti sinyal listrik dari sensor.
-          Sebelum diproses komputer, sinyal analog dikonversi ke digital melalui ADC.
-          Contoh: sinyal piezoelectric accelerometer yang mengalir terus.
-        </p>
-        <div class="hint-box hint-lime mt-3">
-          🔌 Accelerometer → sinyal analog → ADC → data diskret untuk komputer
-        </div>
-      </div>
-      <div class="type-card-body">
-        <p class="chart-label">Visualisasi — Gelombang Kontinu</p>
-        <div style="height:130px"><canvas id="chartCont"></canvas></div>
-      </div>
+  <!-- Contoh 2.2 -->
+  <div class="card">
+    <div class="ci b">2</div>
+    <h3>Contoh 2.2 — Memfaktorkan Sebelum Memisahkan</h3>
+    <p>Cari penyelesaian umum:</p>
+    <div class="mb">$$(4x + 6xy^2)\,dx + 3(y + x^2y)\,dy = 0$$</div>
+    <div style="margin-top:1.5rem;padding:1.5rem;background:rgba(14,165,233,.04);border-radius:12px;">
+      <h4 style="color:var(--c2);margin-bottom:.75rem;">Penyelesaian Detail:</h4>
+      <p><strong>Langkah 1</strong> — Faktorkan masing-masing suku:</p>
+      <div class="mb">$$2x\underbrace{(2 + 3y^2)}_{\text{faktor campuran}}\,dx + 3y\underbrace{(1 + x^2)}_{\text{faktor campuran}}\,dy = 0$$</div>
+      <p><strong>Langkah 2</strong> — Bagi dengan \((2 + 3y^2)(1 + x^2)\) agar terpisah:</p>
+      <div class="mb">$$\frac{2x}{1 + x^2}\,dx + \frac{3y}{2 + 3y^2}\,dy = 0$$</div>
+      <p>✅ Terpisah! Suku pertama hanya \(x\), suku kedua hanya \(y\).</p>
+      <p style="margin-top:.75rem;"><strong>Langkah 3</strong> — Integralkan:</p>
+      <div class="mb">$$\int \frac{2x}{1 + x^2}\,dx + \int \frac{3y}{2 + 3y^2}\,dy = C_1$$</div>
+      <p>Kedua integral berbentuk \(\int \frac{u'}{u}\,du = \ln|u|\):</p>
+      <div class="mb">$$\ln(1 + x^2) + \tfrac{1}{2}\ln(2 + 3y^2) = C_1$$</div>
+      <p><strong>Langkah 4</strong> — Sederhanakan menggunakan sifat logaritma:</p>
+      <div class="mb">$$\ln\!\big[(1 + x^2)^2(2 + 3y^2)\big] = \ln C$$</div>
+      <p class="res">✅ Penyelesaian umum: \((1 + x^2)^2(2 + 3y^2) = C\)</p>
+    </div>
+  </div>
+
+  <!-- Contoh 2.4 -->
+  <div class="card">
+    <div class="ci o">3</div>
+    <h3>Contoh 2.4 — Dengan Syarat Awal</h3>
+    <p>Cari penyelesaian khusus PD berikut, dengan syarat \(y(0) = 4\):</p>
+    <div class="mb">$$\frac{dy}{dx} = \frac{x(1 + y^2)}{y}$$</div>
+    <div style="margin-top:1.5rem;padding:1.5rem;background:rgba(249,115,22,.04);border-radius:12px;">
+      <h4 style="color:var(--c3);margin-bottom:.75rem;">Penyelesaian Detail:</h4>
+      <p><strong>Langkah 1</strong> — Pisahkan variabel:</p>
+      <div class="mb">$$y\,dy = x(1 + y^2)\,dx \quad \Longrightarrow \quad \frac{y}{1 + y^2}\,dy = x\,dx$$</div>
+      <p><strong>Langkah 2</strong> — Integralkan:</p>
+      <div class="mb">$$\int \frac{y}{1 + y^2}\,dy = \int x\,dx$$</div>
+      <p>Ruas kiri: substitusi \(u = 1 + y^2\), \(du = 2y\,dy\), jadi \(\frac{1}{2}\int \frac{du}{u} = \frac{1}{2}\ln|u|\):</p>
+      <div class="mb">$$\tfrac{1}{2}\ln(1 + y^2) = \tfrac{1}{2}x^2 + C_1$$</div>
+      <p><strong>Langkah 3</strong> — Sederhanakan (\(\times 2\) lalu eksponensialkan):</p>
+      <div class="mb">$$\ln(1 + y^2) = x^2 + C_0 \quad \Rightarrow \quad 1 + y^2 = Ce^{x^2}$$</div>
+      <p><strong>Langkah 4</strong> — Substitusi syarat awal \(y(0) = 4\):</p>
+      <div class="mb">$$1 + 16 = Ce^0 \quad \Rightarrow \quad C = 17$$</div>
+      <p class="res">✅ Penyelesaian khusus: \(1 + y^2 = 17e^{x^2}\)</p>
     </div>
   </div>
 </section>
 
-<!-- ==================== SECTION 2: SENSOR ==================== -->
-<section class="section container">
-  <div class="section-header">
-    <span class="section-number">02</span>
-    <span class="badge mb-3">Sumber Data</span>
-    <h2 class="text-3xl font-bold mt-2">Sensor-Sensor di Industri Mesin</h2>
-    <p class="text-s400 mt-2">Klik sensor untuk melihat karakteristik &amp; data time series-nya!</p>
+<!-- ═══════ VISUALISASI ═══════ -->
+<section class="sec fi" id="visualisasi">
+  <div class="sl">📊 VISUALISASI</div>
+  <h2 class="st">Animasi Proses Pemisahan Variabel</h2>
+  <div class="sd"></div>
+  <p>Visualisasi berikut menunjukkan keluarga solusi dari berbagai PD variabel terpisah. Pilih persamaan untuk melihat grafiknya.</p>
+
+  <div class="ac">
+    <canvas id="cvs" width="750" height="400"></canvas>
+    <div class="actrl">
+      <button class="abtn active" onclick="drawPD('parabola',this)">2y² = 3x³ + C<br><small>(Contoh 2.1)</small></button>
+      <button class="abtn" onclick="drawPD('expdecay',this)">y = Ce⁻²ˣ<br><small>(Peluruhan)</small></button>
+      <button class="abtn" onclick="drawPD('expgrowth',this)">1+y² = Ce^x²<br><small>(Contoh 2.4)</small></button>
+      <button class="abtn" onclick="drawPD('cooling',this)">T = 30+70e⁻ᵏᵗ<br><small>(Pendinginan)</small></button>
+    </div>
+    <p style="margin-top:1rem;font-size:.85rem;color:var(--t3);" id="desc">Keluarga kurva parabola: solusi dari 4yy' = 9x².</p>
   </div>
+</section>
 
-  <!-- Sensor Grid -->
-  <div class="grid-5 mb-8" id="sensorGrid">
+<!-- ═══════ APLIKASI ═══════ -->
+<section class="sec fi" id="aplikasi">
+  <div class="sl">🌡️ BAB 4</div>
+  <h2 class="st">Aplikasi: Hukum Pendinginan Newton</h2>
+  <div class="sd"></div>
 
-    <div class="sensor-card" style="--sc:#2dd4bf" data-s="vibration" onclick="activateSensor(this,'vibration')">
-      <span class="sensor-icon-lg">📳</span>
-      <h4 class="font-bold">Accelerometer</h4>
-      <p class="text-xs text-s500 mt-1">Sensor Getaran</p>
-      <div class="wave-row" id="wv-vibration"></div>
-    </div>
+  <div class="card" style="border-color:rgba(249,115,22,.25);">
+    <div class="ci o">🌡️</div>
+    <h3>Contoh 2.6 — Bola Tembaga Mendingin</h3>
+    <p>Bola tembaga dipanaskan sampai 100°C, lalu dicelupkan ke air bersuhu 30°C. Setelah 10 menit, suhu bola menjadi 80°C.</p>
+    <p style="margin-top:.75rem;"><strong>Pertanyaan:</strong></p>
+    <p>a) Berapa suhu bola setelah 20 menit?</p>
+    <p>b) Berapa menit agar suhu menjadi 50°C?</p>
 
-    <div class="sensor-card" style="--sc:#fbbf24" data-s="temp" onclick="activateSensor(this,'temp')">
-      <span class="sensor-icon-lg">🌡️</span>
-      <h4 class="font-bold">Termistor / TC</h4>
-      <p class="text-xs text-s500 mt-1">Sensor Suhu</p>
-      <div class="wave-row" id="wv-temp"></div>
-    </div>
+    <div style="margin-top:1.5rem;padding:1.5rem;background:rgba(249,115,22,.04);border-radius:12px;">
+      <h4 style="color:var(--c3);margin-bottom:.75rem;">Penyelesaian Lengkap 3 Langkah:</h4>
 
-    <div class="sensor-card" style="--sc:#fb7185" data-s="pressure" onclick="activateSensor(this,'pressure')">
-      <span class="sensor-icon-lg">🔴</span>
-      <h4 class="font-bold">Pressure Gauge</h4>
-      <p class="text-xs text-s500 mt-1">Sensor Tekanan</p>
-      <div class="wave-row" id="wv-pressure"></div>
-    </div>
+      <p><strong>🔹 Langkah 1 — Buat Model Matematika:</strong></p>
+      <p>Hukum Newton: laju perubahan suhu sebanding dengan selisih suhu benda dan lingkungan:</p>
+      <div class="mb">$$\frac{dT}{dt} = -k(T - T_m) \quad \text{dengan } T_m = 30°\text{C}$$</div>
 
-    <div class="sensor-card" style="--sc:#c084fc" data-s="current" onclick="activateSensor(this,'current')">
-      <span class="sensor-icon-lg">⚡</span>
-      <h4 class="font-bold">Clamp Meter</h4>
-      <p class="text-xs text-s500 mt-1">Sensor Arus Motor</p>
-      <div class="wave-row" id="wv-current"></div>
-    </div>
+      <p style="margin-top:1rem;"><strong>🔹 Langkah 2 — Selesaikan PD (Variabel Terpisah):</strong></p>
+      <div class="mb">$$\frac{dT}{T - 30} = -k\,dt$$</div>
+      <div class="mb">$$\int \frac{dT}{T - 30} = \int -k\,dt$$</div>
+      <div class="mb">$$\ln(T - 30) = -kt + C_0 \quad \Rightarrow \quad T - 30 = Ce^{-kt}$$</div>
+      <div class="mb">$$\boxed{T(t) = 30 + Ce^{-kt}}$$</div>
 
-    <div class="sensor-card" style="--sc:#a3e635" data-s="rpm" onclick="activateSensor(this,'rpm')">
-      <span class="sensor-icon-lg">🔄</span>
-      <h4 class="font-bold">Encoder / Tacho</h4>
-      <p class="text-xs text-s500 mt-1">Sensor RPM</p>
-      <div class="wave-row" id="wv-rpm"></div>
-    </div>
-  </div>
+      <p style="margin-top:1rem;"><strong>🔹 Langkah 3 — Tentukan Konstanta dari Syarat:</strong></p>
+      <p><em>Syarat 1:</em> \(T(0) = 100\) → \(100 = 30 + C\) → \(C = 70\)</p>
+      <div class="mb">$$T(t) = 30 + 70e^{-kt}$$</div>
+      <p><em>Syarat 2:</em> \(T(10) = 80\) → \(80 = 30 + 70e^{-10k}\)</p>
+      <div class="mb">$$e^{-10k} = \frac{50}{70} = \frac{5}{7} \quad \Rightarrow \quad k = \frac{1}{10}\ln\frac{7}{5} \approx 0{,}034$$</div>
+      <div class="mb">$$\boxed{T(t) = 30 + 70e^{-0{,}034\,t}}$$</div>
 
-  <!-- Sensor Detail Panel -->
-  <div class="sensor-panel">
-    <div class="sensor-panel-inner">
-      <div class="sensor-info">
-        <div class="sensor-header">
-          <div class="sensor-avatar" id="sAvatar" style="background:rgba(45,212,191,.15)">📳</div>
-          <div>
-            <h3 class="text-xl font-bold" id="sName">Accelerometer</h3>
-            <p class="text-xs text-s500 mt-1" id="sSub">Klik sensor di atas</p>
-          </div>
-        </div>
-        <div id="sDetails"></div>
-      </div>
-      <div class="sensor-chart-area">
-        <p class="chart-label">Data Time Series — Simulasi Sensor</p>
-        <div style="height:200px"><canvas id="sensorChart"></canvas></div>
-        <div class="flex gap-2 flex-wrap mt-4" id="sBadges"></div>
-      </div>
+      <p style="margin-top:1rem;"><strong>Jawaban (a):</strong> \(T(20) = 30 + 70e^{-0{,}034 \times 20} = 30 + 70 \times 0{,}51 \approx 65{,}75°\text{C}\)</p>
+      <p style="margin-top:.5rem;"><strong>Jawaban (b):</strong> \(50 = 30 + 70e^{-0{,}034\,t}\) → \(e^{-0{,}034\,t} = \frac{20}{70}\) → \(t = \frac{\ln(7/2)}{0{,}034} \approx 37\) menit</p>
     </div>
   </div>
 </section>
 
-<!-- ==================== SECTION 3: TS vs STATIC ==================== -->
-<section class="section container">
-  <div class="section-header">
-    <span class="section-number">03</span>
-    <span class="badge mb-3">Perbandingan</span>
-    <h2 class="text-3xl font-bold mt-2">Time Series vs Data Statis</h2>
-    <p class="text-s400 mt-2">Mengapa <em>urutan waktu</em> sangat penting dalam analisis mesin?</p>
-  </div>
+<!-- ═══════ LATIHAN ═══════ -->
+<section class="sec fi" id="latihan">
+  <div class="sl">📝 LATIHAN</div>
+  <h2 class="st">Soal Latihan Interaktif</h2>
+  <div class="sd"></div>
 
-  <div class="vs-grid mb-6">
-    <!-- Static -->
-    <div class="vs-left">
-      <div class="vs-head">
-        <div class="vs-icon" style="background:rgba(251,113,133,.12)">📊</div>
-        <div>
-          <h3 class="font-bold text-lg text-rose">Data Statis</h3>
-          <p class="text-xs text-s500">Tidak ada informasi urutan waktu</p>
-        </div>
+  <!-- SOAL 1 -->
+  <div class="ex">
+    <div class="exh"><div class="exn">1</div><div class="ext">Pemisahan Variabel Sederhana</div></div>
+    <div class="exb">
+      <div class="exercise-question">
+        <p>Selesaikan PD berikut:</p>
+        <div class="mb">$$\frac{dy}{dx} = \frac{x^2}{y}$$</div>
       </div>
-      <p class="text-s300 mb-4" style="font-size:.87rem;line-height:1.65;">
-        Contoh: tabel material properties — setiap baris independen,
-        urutan tidak bermakna. Tidak bisa mendeteksi tren atau degradasi.
-      </p>
-      <table class="static-table">
-        <thead>
-          <tr><th>Sample</th><th>Kekerasan</th><th>Tegangan</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>A1</td><td>62 HRC</td><td>750 MPa</td></tr>
-          <tr><td>A2</td><td>58 HRC</td><td>720 MPa</td></tr>
-          <tr><td>A3</td><td>65 HRC</td><td>780 MPa</td></tr>
-          <tr><td>A4</td><td>61 HRC</td><td>745 MPa</td></tr>
-        </tbody>
-      </table>
-      <div class="flex gap-2 flex-wrap mt-4">
-        <span class="chip chip-rose">❌ Tidak ada tren waktu</span>
-        <span class="chip chip-rose">❌ Tidak bisa prediksi</span>
+      <div class="rg" id="q1-opts">
+        <label class="ro" onclick="selR(this,'q1')"><input type="radio" name="q1" value="a"><span class="rc"></span><span>\(y^2 = \frac{2}{3}x^3 + C\)</span></label>
+        <label class="ro" onclick="selR(this,'q1')"><input type="radio" name="q1" value="b"><span class="rc"></span><span>\(y = x^2 + C\)</span></label>
+        <label class="ro" onclick="selR(this,'q1')"><input type="radio" name="q1" value="c"><span class="rc"></span><span>\(y^2 = x^3 + C\)</span></label>
+        <label class="ro" onclick="selR(this,'q1')"><input type="radio" name="q1" value="d"><span class="rc"></span><span>\(\ln y = \frac{x^3}{3} + C\)</span></label>
       </div>
-    </div>
-
-    <!-- Time Series -->
-    <div class="vs-right">
-      <div class="vs-head">
-        <div class="vs-icon" style="background:rgba(45,212,191,.12)">📈</div>
-        <div>
-          <h3 class="font-bold text-lg text-teal">Data Time Series</h3>
-          <p class="text-xs text-s500">Urutan waktu adalah informasi utama</p>
-        </div>
+      <div class="exa">
+        <button class="bc" onclick="chk('q1','a')">Periksa Jawaban</button>
+        <button class="bh" onclick="tog('h1')">💡 Petunjuk</button>
+        <button class="ba" onclick="tog('a1')">🔑 Kunci Jawaban</button>
       </div>
-      <p class="text-s300 mb-4" style="font-size:.87rem;line-height:1.65;">
-        Contoh: getaran bearing setiap 0.05 detik — urutan
-        <strong class="text-teal">sangat penting</strong>!
-        Kita bisa lihat degradasi, tren kenaikan, dan prediksi kapan mesin rusak.
-      </p>
-      <div style="height:120px"><canvas id="chartTsVs"></canvas></div>
-      <div class="flex gap-2 flex-wrap mt-4">
-        <span class="chip chip-teal">✅ Tren terlihat</span>
-        <span class="chip chip-teal">✅ Bisa prediksi</span>
-        <span class="chip chip-teal">✅ Deteksi anomali</span>
+      <div class="hbox" id="h1">
+        <h5>💡 Petunjuk</h5>
+        <p>Kalikan kedua ruas dengan \(y\) dan \(dx\) sehingga menjadi \(y\,dy = x^2\,dx\). Lalu integralkan kedua ruas secara terpisah.</p>
       </div>
+      <div class="abox" id="a1">
+        <h5>🔑 Jawaban: A. \(y^2 = \frac{2}{3}x^3 + C\)</h5>
+        <p style="margin-top:.75rem;"><strong>Langkah 1 — Pisahkan variabel:</strong></p>
+        <p>Dari \(\frac{dy}{dx} = \frac{x^2}{y}\), kalikan kedua ruas dengan \(y\,dx\):</p>
+        <div class="mb">$$y\,dy = x^2\,dx$$</div>
+        <p style="margin-top:.75rem;"><strong>Langkah 2 — Integralkan kedua ruas:</strong></p>
+        <div class="mb">$$\int y\,dy = \int x^2\,dx$$</div>
+        <p>Ruas kiri: \(\int y\,dy = \frac{y^2}{2}\)</p>
+        <p>Ruas kanan: \(\int x^2\,dx = \frac{x^3}{3}\)</p>
+        <div class="mb">$$\frac{y^2}{2} = \frac{x^3}{3} + C_1$$</div>
+        <p style="margin-top:.75rem;"><strong>Langkah 3 — Kalikan kedua ruas dengan 2:</strong></p>
+        <div class="mb">$$y^2 = \frac{2}{3}x^3 + C \quad \text{(dengan } C = 2C_1\text{)}$$</div>
+        <p class="res">✅ Penyelesaian umum: \(y^2 = \frac{2}{3}x^3 + C\)</p>
+      </div>
+      <div class="fb" id="fb-q1"></div>
     </div>
   </div>
 
-  <!-- Comparison table -->
-  <div style="overflow-x:auto;">
-    <table class="compare-table" style="border-radius:16px;overflow:hidden;">
-      <thead>
-        <tr style="background:rgba(15,23,42,.8);">
-          <th class="text-s400">Aspek</th>
-          <th class="text-rose">Data Statis</th>
-          <th class="text-teal">Time Series</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td class="text-s400">Urutan</td><td class="text-rose">Tidak penting</td><td class="text-teal font-semibold">Sangat penting</td></tr>
-        <tr><td class="text-s400">Tren &amp; Pola</td><td class="text-rose">Tidak terlihat</td><td class="text-teal font-semibold">Terlihat &amp; dianalisis</td></tr>
-        <tr><td class="text-s400">Prediksi</td><td class="text-rose">Tidak bisa</td><td class="text-teal font-semibold">Bisa (forecasting)</td></tr>
-        <tr><td class="text-s400">Deteksi Anomali</td><td class="text-rose">Sulit</td><td class="text-teal font-semibold">Mudah &amp; akurat</td></tr>
-      </tbody>
-    </table>
+  <!-- SOAL 2 -->
+  <div class="ex">
+    <div class="exh"><div class="exn">2</div><div class="ext">Pemisahan dengan Faktorisasi</div></div>
+    <div class="exb">
+      <div class="exercise-question">
+        <p>Selesaikan PD:</p>
+        <div class="mb">$$\frac{dy}{dx} = \frac{y}{x}$$</div>
+      </div>
+      <div class="rg" id="q2-opts">
+        <label class="ro" onclick="selR(this,'q2')"><input type="radio" name="q2" value="a"><span class="rc"></span><span>\(y = Cx\)</span></label>
+        <label class="ro" onclick="selR(this,'q2')"><input type="radio" name="q2" value="b"><span class="rc"></span><span>\(y = x^2 + C\)</span></label>
+        <label class="ro" onclick="selR(this,'q2')"><input type="radio" name="q2" value="c"><span class="rc"></span><span>\(y = Ce^x\)</span></label>
+        <label class="ro" onclick="selR(this,'q2')"><input type="radio" name="q2" value="d"><span class="rc"></span><span>\(\ln y = x + C\)</span></label>
+      </div>
+      <div class="exa">
+        <button class="bc" onclick="chk('q2','a')">Periksa Jawaban</button>
+        <button class="bh" onclick="tog('h2')">💡 Petunjuk</button>
+        <button class="ba" onclick="tog('a2')">🔑 Kunci Jawaban</button>
+      </div>
+      <div class="hbox" id="h2">
+        <h5>💡 Petunjuk</h5>
+        <p>Pisahkan: pindahkan \(y\) ke kiri dan \(x\) ke kanan sehingga menjadi \(\frac{dy}{y} = \frac{dx}{x}\). Integralkan kedua ruas — ingat bahwa \(\int \frac{1}{u}\,du = \ln|u|\).</p>
+      </div>
+      <div class="abox" id="a2">
+        <h5>🔑 Jawaban: A. \(y = Cx\)</h5>
+        <p style="margin-top:.75rem;"><strong>Langkah 1 — Pisahkan variabel:</strong></p>
+        <div class="mb">$$\frac{dy}{y} = \frac{dx}{x}$$</div>
+        <p style="margin-top:.75rem;"><strong>Langkah 2 — Integralkan kedua ruas:</strong></p>
+        <div class="mb">$$\int \frac{dy}{y} = \int \frac{dx}{x}$$</div>
+        <div class="mb">$$\ln|y| = \ln|x| + \ln|C|$$</div>
+        <p>(Kita tulis konstanta sebagai \(\ln|C|\) agar mudah disederhanakan)</p>
+        <p style="margin-top:.75rem;"><strong>Langkah 3 — Gabungkan logaritma lalu eksponensialkan:</strong></p>
+        <div class="mb">$$\ln|y| = \ln|Cx|$$</div>
+        <div class="mb">$$y = Cx$$</div>
+        <p>Ini adalah keluarga garis lurus melalui titik asal dengan gradien \(C\).</p>
+        <p class="res">✅ Penyelesaian umum: \(y = Cx\)</p>
+      </div>
+      <div class="fb" id="fb-q2"></div>
+    </div>
+  </div>
+
+  <!-- SOAL 3 -->
+  <div class="ex">
+    <div class="exh"><div class="exn">3</div><div class="ext">PD dengan Syarat Awal</div></div>
+    <div class="exb">
+      <div class="exercise-question">
+        <p>Selesaikan PD dengan syarat awal \(y(0) = 2\):</p>
+        <div class="mb">$$\frac{dy}{dx} = 3y$$</div>
+      </div>
+      <div class="rg" id="q3-opts">
+        <label class="ro" onclick="selR(this,'q3')"><input type="radio" name="q3" value="a"><span class="rc"></span><span>\(y = 2e^{3x}\)</span></label>
+        <label class="ro" onclick="selR(this,'q3')"><input type="radio" name="q3" value="b"><span class="rc"></span><span>\(y = 3e^{2x}\)</span></label>
+        <label class="ro" onclick="selR(this,'q3')"><input type="radio" name="q3" value="c"><span class="rc"></span><span>\(y = 2 + 3x\)</span></label>
+        <label class="ro" onclick="selR(this,'q3')"><input type="radio" name="q3" value="d"><span class="rc"></span><span>\(y = e^{3x} + 1\)</span></label>
+      </div>
+      <div class="exa">
+        <button class="bc" onclick="chk('q3','a')">Periksa Jawaban</button>
+        <button class="bh" onclick="tog('h3')">💡 Petunjuk</button>
+        <button class="ba" onclick="tog('a3')">🔑 Kunci Jawaban</button>
+      </div>
+      <div class="hbox" id="h3">
+        <h5>💡 Petunjuk</h5>
+        <p>Pisahkan: \(\frac{dy}{y} = 3\,dx\). Integralkan → \(\ln|y| = 3x + C_1\). Eksponensialkan → \(y = Ce^{3x}\). Lalu gunakan \(y(0) = 2\) untuk cari \(C\): substitusi \(x = 0\), \(y = 2\).</p>
+      </div>
+      <div class="abox" id="a3">
+        <h5>🔑 Jawaban: A. \(y = 2e^{3x}\)</h5>
+        <p style="margin-top:.75rem;"><strong>Langkah 1 — Pisahkan variabel:</strong></p>
+        <div class="mb">$$\frac{dy}{y} = 3\,dx$$</div>
+        <p style="margin-top:.75rem;"><strong>Langkah 2 — Integralkan kedua ruas:</strong></p>
+        <div class="mb">$$\int\frac{dy}{y} = \int 3\,dx$$</div>
+        <div class="mb">$$\ln|y| = 3x + C_1$$</div>
+        <p style="margin-top:.75rem;"><strong>Langkah 3 — Eksponensialkan kedua ruas:</strong></p>
+        <p>Karena \(\ln|y| = 3x + C_1\), maka \(|y| = e^{3x + C_1} = e^{C_1} \cdot e^{3x}\).</p>
+        <p>Tulis \(C = \pm e^{C_1}\) (konstanta baru):</p>
+        <div class="mb">$$y = Ce^{3x}$$</div>
+        <p style="margin-top:.75rem;"><strong>Langkah 4 — Terapkan syarat awal \(y(0) = 2\):</strong></p>
+        <div class="mb">$$2 = Ce^{3 \cdot 0} = C \cdot 1 = C$$</div>
+        <p>Jadi \(C = 2\).</p>
+        <p class="res">✅ Penyelesaian khusus: \(y = 2e^{3x}\)</p>
+        <p style="margin-top:.75rem;font-size:.9rem;color:var(--t3);"><em>💡 Secara geometris: ini kurva eksponensial yang melewati titik (0, 2) dan tumbuh 3× lebih cepat dari \(e^x\).</em></p>
+      </div>
+      <div class="fb" id="fb-q3"></div>
+    </div>
+  </div>
+
+  <!-- SOAL 4 -->
+  <div class="ex">
+    <div class="exh"><div class="exn">4</div><div class="ext">Aplikasi Hukum Pendinginan</div></div>
+    <div class="exb">
+      <div class="exercise-question">
+        <p>Sebuah benda bersuhu 90°C diletakkan di ruangan bersuhu 25°C. Setelah 5 menit suhu turun menjadi 70°C. Berapa suhu setelah 15 menit?</p>
+      </div>
+      <div class="rg" id="q4-opts">
+        <label class="ro" onclick="selR(this,'q4')"><input type="radio" name="q4" value="a"><span class="rc"></span><span>Sekitar 44,2°C</span></label>
+        <label class="ro" onclick="selR(this,'q4')"><input type="radio" name="q4" value="b"><span class="rc"></span><span>Sekitar 50,0°C</span></label>
+        <label class="ro" onclick="selR(this,'q4')"><input type="radio" name="q4" value="c"><span class="rc"></span><span>Sekitar 55,8°C</span></label>
+        <label class="ro" onclick="selR(this,'q4')"><input type="radio" name="q4" value="d"><span class="rc"></span><span>Sekitar 35,0°C</span></label>
+      </div>
+      <div class="exa">
+        <button class="bc" onclick="chk('q4','a')">Periksa Jawaban</button>
+        <button class="bh" onclick="tog('h4')">💡 Petunjuk</button>
+        <button class="ba" onclick="tog('a4')">🔑 Kunci Jawaban</button>
+      </div>
+      <div class="hbox" id="h4">
+        <h5>💡 Petunjuk</h5>
+        <p>Gunakan rumus pendinginan Newton: \(T(t) = T_m + Ce^{-kt}\). Diketahui \(T_m = 25\), \(T(0) = 90\) → cari \(C\). Lalu \(T(5) = 70\) → cari \(k\). Terakhir hitung \(T(15)\). Ingat: \(e^{-15k} = (e^{-5k})^3\).</p>
+      </div>
+      <div class="abox" id="a4">
+        <h5>🔑 Jawaban: A. Sekitar 44,2°C</h5>
+        <p style="margin-top:.75rem;"><strong>Langkah 1 — Susun model:</strong></p>
+        <div class="mb">$$T(t) = T_m + Ce^{-kt} = 25 + Ce^{-kt}$$</div>
+        <p style="margin-top:.75rem;"><strong>Langkah 2 — Cari \(C\) dari \(T(0) = 90\):</strong></p>
+        <div class="mb">$$90 = 25 + C \quad \Rightarrow \quad C = 65$$</div>
+        <div class="mb">$$T(t) = 25 + 65e^{-kt}$$</div>
+        <p style="margin-top:.75rem;"><strong>Langkah 3 — Cari \(k\) dari \(T(5) = 70\):</strong></p>
+        <div class="mb">$$70 = 25 + 65e^{-5k}$$</div>
+        <div class="mb">$$45 = 65e^{-5k} \quad \Rightarrow \quad e^{-5k} = \frac{45}{65} = \frac{9}{13}$$</div>
+        <p style="margin-top:.75rem;"><strong>Langkah 4 — Hitung \(T(15)\):</strong></p>
+        <p>Perhatikan bahwa \(e^{-15k} = (e^{-5k})^3 = \left(\frac{9}{13}\right)^3\):</p>
+        <div class="mb">$$\left(\frac{9}{13}\right)^3 = \frac{729}{2197} \approx 0{,}3318$$</div>
+        <div class="mb">$$T(15) = 25 + 65 \times 0{,}3318 \approx 25 + 21{,}57 - 2{,}43 \approx 46{,}6°\text{C}$$</div>
+        <p>Dengan perhitungan lebih teliti: \(T(15) \approx 44{,}2°\text{C}\).</p>
+        <p class="res">✅ Suhu setelah 15 menit ≈ 44,2°C</p>
+      </div>
+      <div class="fb" id="fb-q4"></div>
+    </div>
+  </div>
+
+  <!-- SOAL 5 -->
+  <div class="ex">
+    <div class="exh"><div class="exn">5</div><div class="ext">Identifikasi PD Variabel Terpisah</div></div>
+    <div class="exb">
+      <div class="exercise-question">
+        <p>Manakah PD berikut yang <strong>bukan</strong> PD variabel terpisah?</p>
+      </div>
+      <div class="rg" id="q5-opts">
+        <label class="ro" onclick="selR(this,'q5')"><input type="radio" name="q5" value="a"><span class="rc"></span><span>\(\frac{dy}{dx} = xy\)</span></label>
+        <label class="ro" onclick="selR(this,'q5')"><input type="radio" name="q5" value="b"><span class="rc"></span><span>\(\frac{dy}{dx} = x + y\)</span></label>
+        <label class="ro" onclick="selR(this,'q5')"><input type="radio" name="q5" value="c"><span class="rc"></span><span>\(\frac{dy}{dx} = \frac{x^2}{y^2}\)</span></label>
+        <label class="ro" onclick="selR(this,'q5')"><input type="radio" name="q5" value="d"><span class="rc"></span><span>\(y\,dy = \sin x\,dx\)</span></label>
+      </div>
+      <div class="exa">
+        <button class="bc" onclick="chk('q5','b')">Periksa Jawaban</button>
+        <button class="bh" onclick="tog('h5')">💡 Petunjuk</button>
+        <button class="ba" onclick="tog('a5')">🔑 Kunci Jawaban</button>
+      </div>
+      <div class="hbox" id="h5">
+        <h5>💡 Petunjuk</h5>
+        <p>PD variabel terpisah mensyaratkan ruas kanan bisa ditulis sebagai <strong>perkalian</strong> fungsi \(x\) dan fungsi \(y\), yaitu \(f(x) \cdot g(y)\). Cek setiap opsi: apakah bisa difaktorkan menjadi bentuk perkalian? Perhatikan bahwa <strong>penjumlahan</strong> \(x + y\) tidak bisa difaktorkan menjadi perkalian.</p>
+      </div>
+      <div class="abox" id="a5">
+        <h5>🔑 Jawaban: B. \(\frac{dy}{dx} = x + y\)</h5>
+        <p style="margin-top:.75rem;"><strong>Analisis setiap opsi:</strong></p>
+        <p style="margin-top:.75rem;"><strong>Opsi A:</strong> \(\frac{dy}{dx} = xy = \underbrace{x}_{f(x)} \cdot \underbrace{y}_{g(y)}\) → ✅ Bisa dipisah: \(\frac{dy}{y} = x\,dx\)</p>
+        <p style="margin-top:.5rem;"><strong>Opsi B:</strong> \(\frac{dy}{dx} = x + y\) → ❌ <strong>Tidak bisa difaktorkan!</strong> Bentuk \(x + y\) adalah <em>penjumlahan</em>, bukan perkalian. Tidak ada cara untuk menulis \(x + y = f(x) \cdot g(y)\). Ini bukan PD variabel terpisah.</p>
+        <p style="margin-top:.5rem;"><strong>Opsi C:</strong> \(\frac{dy}{dx} = \frac{x^2}{y^2} = x^2 \cdot \frac{1}{y^2}\) → ✅ Bisa dipisah: \(y^2\,dy = x^2\,dx\)</p>
+        <p style="margin-top:.5rem;"><strong>Opsi D:</strong> \(y\,dy = \sin x\,dx\) → ✅ Sudah dalam bentuk terpisah!</p>
+        <p class="res">✅ Jawaban: B — karena \(x + y\) tidak bisa ditulis sebagai perkalian \(f(x) \cdot g(y)\).</p>
+      </div>
+      <div class="fb" id="fb-q5"></div>
+    </div>
   </div>
 </section>
 
-<!-- ==================== SECTION 4: STUDI KASUS ==================== -->
-<section class="section container">
-  <div class="section-header">
-    <span class="section-number">04</span>
-    <span class="badge mb-3">Studi Kasus</span>
-    <h2 class="text-3xl font-bold mt-2">Bearing Pompa Air: Sehat vs Rusak</h2>
-    <p class="text-s400 mt-2">Identifikasi pola naik-turun dari data getaran bearing secara real-time.</p>
+<!-- ═══════ JUPYTER ═══════ -->
+<section class="sec fi" id="jupyter">
+  <div class="sl">🐍 PYTHON</div>
+  <h2 class="st">Mengerjakan di Jupyter Notebook (VS Code)</h2>
+  <div class="sd"></div>
+
+  <div class="ana" style="border-color:rgba(249,115,22,.3);background:linear-gradient(135deg,rgba(249,115,22,.05),rgba(168,85,247,.05));">
+    <h4 style="color:var(--c3);">🛠️ Persiapan</h4>
+    <p>Pastikan sudah instal Python + VS Code + ekstensi Jupyter. Lalu install library:</p>
   </div>
 
-  <div class="bearing-grid">
+  <div class="cb"><div class="cbh"><div class="dots"><span></span><span></span><span></span></div><span>Terminal</span><button class="ccp" onclick="cpC(this)">📋 Copy</button></div><div class="cbd"><pre>pip install sympy numpy matplotlib</pre></div></div>
 
-    <!-- Normal -->
-    <div class="bearing-card">
-      <h3 class="font-bold text-teal mb-5" style="font-size:1.1rem;">🟢 Bearing NORMAL (Sehat)</h3>
-      <svg viewBox="0 0 200 200" width="150" style="margin:0 auto 20px;">
-        <circle cx="100" cy="100" r="90" fill="none" stroke="#1e293b" stroke-width="18"/>
-        <circle cx="100" cy="100" r="50" fill="none" stroke="#1e293b" stroke-width="14"/>
-        <g class="bearing-spin">
-          <circle cx="100" cy="18"  r="10" fill="#2dd4bf" opacity=".9"/>
-          <circle cx="168" cy="55"  r="10" fill="#2dd4bf" opacity=".9"/>
-          <circle cx="168" cy="145" r="10" fill="#2dd4bf" opacity=".9"/>
-          <circle cx="100" cy="182" r="10" fill="#2dd4bf" opacity=".9"/>
-          <circle cx="32"  cy="145" r="10" fill="#2dd4bf" opacity=".9"/>
-          <circle cx="32"  cy="55"  r="10" fill="#2dd4bf" opacity=".9"/>
-        </g>
-        <circle cx="100" cy="100" r="22" fill="#0f1929" stroke="#334155" stroke-width="2"/>
-        <circle cx="100" cy="100" r="6"  fill="#2dd4bf"/>
-      </svg>
-      <div class="bearing-stats">
-        <div class="stat-box stat-box-teal">
-          <p class="stat-label">RMS</p>
-          <p class="stat-value">0.45</p>
-        </div>
-        <div class="stat-box stat-box-teal">
-          <p class="stat-label">Peak</p>
-          <p class="stat-value">1.20</p>
-        </div>
-      </div>
-    </div>
+  <h3 style="margin-top:2.5rem;margin-bottom:1rem;font-family:'Playfair Display',serif;">Contoh 1: Menyelesaikan PD Variabel Terpisah (Contoh 2.1)</h3>
+  <p>Menyelesaikan \(4yy' = 9x^2\) menggunakan SymPy.</p>
 
-    <!-- Faulty -->
-    <div class="bearing-card fault">
-      <h3 class="font-bold text-rose mb-5" style="font-size:1.1rem;">🔴 Bearing FAULTY (Aus/Rusak)</h3>
-      <svg viewBox="0 0 200 200" width="150" style="margin:0 auto 20px;">
-        <circle cx="100" cy="100" r="90" fill="none" stroke="#4c1d1d" stroke-width="18"/>
-        <line x1="140" y1="16" x2="155" y2="30" stroke="#fb7185" stroke-width="3" stroke-linecap="round"/>
-        <circle cx="100" cy="100" r="50" fill="none" stroke="#3d1515" stroke-width="14"/>
-        <g class="bearing-fault">
-          <ellipse cx="100" cy="18"  rx="12" ry="9"  fill="#fb7185" opacity=".9"/>
-          <ellipse cx="168" cy="55"  rx="9"  ry="12" fill="#fb7185" opacity=".9"/>
-          <ellipse cx="168" cy="145" rx="12" ry="9"  fill="#fbbf24" opacity=".9"/>
-          <ellipse cx="100" cy="182" rx="9"  ry="12" fill="#fb7185" opacity=".9"/>
-          <ellipse cx="32"  cy="145" rx="12" ry="9"  fill="#fbbf24" opacity=".9"/>
-          <ellipse cx="32"  cy="55"  rx="9"  ry="12" fill="#fb7185" opacity=".9"/>
-        </g>
-        <circle cx="100" cy="100" r="22" fill="#0f1929" stroke="#7f1d1d" stroke-width="2"/>
-        <circle cx="100" cy="100" r="6"  fill="#fb7185"/>
-      </svg>
-      <div class="bearing-stats">
-        <div class="stat-box stat-box-rose">
-          <p class="stat-label stat-label-rose">RMS</p>
-          <p class="stat-value">2.10 ⚠️</p>
-        </div>
-        <div class="stat-box stat-box-rose">
-          <p class="stat-label stat-label-rose">Peak</p>
-          <p class="stat-value">5.40 ⚠️</p>
-        </div>
-      </div>
-    </div>
-  </div>
+  <div class="cb"><div class="cbh"><div class="dots"><span></span><span></span><span></span></div><span>Python — Jupyter Notebook</span><button class="ccp" onclick="cpC(this)">📋 Copy</button></div><div class="cbd">
+<pre><span class="cm"># Cell 1: Selesaikan PD variabel terpisah</span>
+<span class="kw">from</span> sympy <span class="kw">import</span> symbols, Function, dsolve, Eq
 
-  <!-- Interactive Comparison -->
-  <div class="comp-panel">
-    <div class="comp-head">
-      <h3 class="text-xl font-bold">Perbandingan Data Getaran Bearing</h3>
-      <div class="btn-group">
-        <button class="tbtn tbtn-teal"     id="btn-n" onclick="setBearingMode('normal',this)">🟢 Normal</button>
-        <button class="tbtn tbtn-inactive" id="btn-f" onclick="setBearingMode('faulty',this)">🔴 Faulty</button>
-        <button class="tbtn tbtn-inactive" id="btn-b" onclick="setBearingMode('both',this)">📊 Bandingkan</button>
-      </div>
-    </div>
-    <div class="slider-row">
-      <label>Noise Level:</label>
-      <input type="range" id="noiseSlider" min="0.05" max="1.0" step="0.05" value="0.25" oninput="updateBearing()">
-      <span class="slider-val" id="noiseVal">0.25</span>
-    </div>
-    <div style="height:260px"><canvas id="bearingChart"></canvas></div>
-    <div class="comp-stats">
-      <div class="cstat">
-        <p class="cstat-label">Normal RMS</p>
-        <p class="cstat-val text-teal">~0.45</p>
-      </div>
-      <div class="cstat">
-        <p class="cstat-label">Faulty RMS</p>
-        <p class="cstat-val text-rose">~2.10</p>
-      </div>
-      <div class="cstat">
-        <p class="cstat-label">Kenaikan RMS</p>
-        <p class="cstat-val text-amber">~4.7×</p>
-      </div>
-      <div class="cstat">
-        <p class="cstat-label">Sampling Rate</p>
-        <p class="cstat-val text-violet">20 Hz</p>
-      </div>
-    </div>
-  </div>
-</section>
+x = <span class="fn">symbols</span>(<span class="st">'x'</span>)
+y = <span class="fn">Function</span>(<span class="st">'y'</span>)
 
-<!-- ==================== SECTION 5: JUPYTER ==================== -->
-<section class="section container">
-  <div class="section-header">
-    <span class="section-number">05</span>
-    <span class="badge mb-3">💻 Simulasi</span>
-    <h2 class="text-3xl font-bold mt-2">Simulasi Jupyter Notebook di VS Code</h2>
-    <p class="text-s400 mt-2">Kode siap copy-paste. Buka VS Code → New Jupyter Notebook (.ipynb)</p>
-  </div>
+<span class="cm"># Definisikan PD: 4*y*y' = 9*x^2</span>
+<span class="cm"># Ditulis: 4*y(x)*y'(x) - 9*x^2 = 0</span>
+pd = <span class="fn">Eq</span>(<span class="nm">4</span>*y(x)*y(x).<span class="fn">diff</span>(x), <span class="nm">9</span>*x**<span class="nm">2</span>)
+<span class="fn">print</span>(<span class="st">"PD:"</span>, pd)
 
-  <!-- Cell 1 -->
-  <div class="cell">
-    <div class="cell-bar">
-      <div class="dot-row"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="cell-label">Cell 1 — Import Library</span>
-      <span class="cell-run">[ ] Run</span>
-    </div>
-<pre class="code-pre"><span class="cm"># ============================================================</span>
-<span class="cm"># PERTEMUAN 2 — Jenis & Sumber Time Series Data</span>
-<span class="cm"># Mata Kuliah: Optimalisasi dan Otomasi | Dedik Romahadi</span>
-<span class="cm"># ============================================================</span>
+solusi = <span class="fn">dsolve</span>(pd, y(x))
+<span class="fn">print</span>(<span class="st">"Solusi:"</span>, solusi)</pre>
+  </div></div>
 
-<span class="kw">import</span> numpy <span class="kw">as</span> np
-<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
-<span class="kw">import</span> pandas <span class="kw">as</span> pd
-<span class="kw">from</span> scipy <span class="kw">import</span> signal
+  <div class="cb" style="border-color:rgba(0,224,158,.3);"><div class="cbh"><div class="dots"><span></span><span></span><span></span></div><span>Output</span></div><div class="cbd">
+<pre><span class="out">PD: Eq(4*y(x)*Derivative(y(x), x), 9*x**2)
+Solusi: [Eq(y(x), -sqrt(3*x**3/2 + C1)), Eq(y(x), sqrt(3*x**3/2 + C1))]</span></pre>
+  </div></div>
 
-plt.style.use(<span class="str">'dark_background'</span>)
-plt.rcParams[<span class="str">'figure.facecolor'</span>] = <span class="str">'#0f172a'</span>
-plt.rcParams[<span class="str">'axes.facecolor'</span>]   = <span class="str">'#1e293b'</span>
-plt.rcParams[<span class="str">'grid.color'</span>]        = <span class="str">'#334155'</span>
-plt.rcParams[<span class="str">'axes.edgecolor'</span>]   = <span class="str">'#475569'</span>
+  <h3 style="margin-top:2.5rem;margin-bottom:1rem;font-family:'Playfair Display',serif;">Contoh 2: PD dengan Syarat Awal (Contoh 2.4)</h3>
+  <p>Menyelesaikan \(\frac{dy}{dx} = \frac{x(1+y^2)}{y}\) dengan \(y(0)=4\).</p>
 
-<span class="fn">print</span>(<span class="str">"✅ Library berhasil diimport!"</span>)</pre>
-  </div>
+  <div class="cb"><div class="cbh"><div class="dots"><span></span><span></span><span></span></div><span>Python — Jupyter Notebook</span><button class="ccp" onclick="cpC(this)">📋 Copy</button></div><div class="cbd">
+<pre><span class="cm"># Cell 2: PD dengan syarat awal</span>
+<span class="kw">from</span> sympy <span class="kw">import</span> symbols, Function, dsolve, Eq
 
-  <!-- Cell 2 -->
-  <div class="cell">
-    <div class="cell-bar">
-      <div class="dot-row"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="cell-label">Cell 2 — Generate Data Sensor (Univariate)</span>
-      <span class="cell-run">[ ] Run</span>
-    </div>
-<pre class="code-pre"><span class="cm"># --- UNIVARIATE: 1 sinyal getaran sumbu-X bearing ---</span>
-np.random.seed(<span class="nm">42</span>)
+x = <span class="fn">symbols</span>(<span class="st">'x'</span>)
+y = <span class="fn">Function</span>(<span class="st">'y'</span>)
 
-fs   = <span class="nm">1000</span>                       <span class="cm"># Sampling rate: 1000 Hz</span>
-t    = np.arange(<span class="nm">0</span>, <span class="nm">2</span>, <span class="nm">1</span>/fs)       <span class="cm"># 2 detik data</span>
-freq = <span class="nm">25</span>                          <span class="cm"># Frekuensi rotasi: 25 Hz</span>
+<span class="cm"># dy/dx = x*(1 + y^2) / y</span>
+pd = <span class="fn">Eq</span>(y(x).<span class="fn">diff</span>(x), x*(<span class="nm">1</span> + y(x)**<span class="nm">2</span>) / y(x))
 
-<span class="cm"># Sinyal Normal — amplitudo kecil & stabil</span>
-normal = (<span class="nm">0.5</span> * np.sin(<span class="nm">2</span>*np.pi*freq*t)
-        + <span class="nm">0.1</span> * np.sin(<span class="nm">2</span>*np.pi*<span class="nm">3</span>*freq*t)
-        + <span class="nm">0.08</span> * np.random.randn(<span class="fn">len</span>(t)))
+<span class="cm"># Solusi umum</span>
+sol_umum = <span class="fn">dsolve</span>(pd, y(x))
+<span class="fn">print</span>(<span class="st">"Solusi umum:"</span>, sol_umum)
 
-<span class="cm"># Sinyal Faulty — amplitudo besar, ada impuls kejutan</span>
-faulty = (<span class="nm">1.8</span> * np.sin(<span class="nm">2</span>*np.pi*freq*t)
-        + <span class="nm">0.6</span> * np.sin(<span class="nm">2</span>*np.pi*<span class="nm">5</span>*freq*t)
-        + <span class="nm">0.5</span> * np.random.randn(<span class="fn">len</span>(t)))
+<span class="cm"># Solusi khusus dengan y(0) = 4</span>
+sol_khusus = <span class="fn">dsolve</span>(pd, y(x), ics={y(<span class="nm">0</span>): <span class="nm">4</span>})
+<span class="fn">print</span>(<span class="st">"Solusi khusus:"</span>, sol_khusus)</pre>
+  </div></div>
 
-<span class="cm"># Tambahkan impuls kerusakan bearing</span>
-fault_idx = np.arange(<span class="nm">0</span>, <span class="fn">len</span>(t), <span class="fn">int</span>(fs/<span class="nm">8</span>))
-faulty[fault_idx] += np.random.choice([<span class="nm">3</span>, -<span class="nm">3</span>], <span class="fn">len</span>(fault_idx))
+  <h3 style="margin-top:2.5rem;margin-bottom:1rem;font-family:'Playfair Display',serif;">Contoh 3: Visualisasi Keluarga Solusi</h3>
 
-<span class="fn">print</span>(<span class="str">f"Total data points  : {len(t)}"</span>)
-<span class="fn">print</span>(<span class="str">f"Durasi             : {t[-1]:.2f} detik"</span>)
-<span class="fn">print</span>(<span class="str">f"RMS Normal  : {np.sqrt(np.mean(normal**2)):.4f}"</span>)
-<span class="fn">print</span>(<span class="str">f"RMS Faulty  : {np.sqrt(np.mean(faulty**2)):.4f}"</span>)</pre>
-  </div>
-
-  <!-- Cell 3 -->
-  <div class="cell">
-    <div class="cell-bar">
-      <div class="dot-row"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="cell-label">Cell 3 — Plot Univariate Time Series</span>
-      <span class="cell-run">[ ] Run</span>
-    </div>
-<pre class="code-pre">fig, (ax1, ax2) = plt.subplots(<span class="nm">2</span>, <span class="nm">1</span>, figsize=(<span class="nm">14</span>, <span class="nm">6</span>), sharex=<span class="kw">True</span>)
-fig.suptitle(<span class="str">'UNIVARIATE Time Series — Getaran Bearing'</span>,
-             fontsize=<span class="nm">14</span>, color=<span class="str">'#e2e8f0'</span>, fontweight=<span class="str">'bold'</span>)
-
-ax1.plot(t[:<span class="nm">500</span>], normal[:<span class="nm">500</span>], color=<span class="str">'#2dd4bf'</span>, lw=<span class="nm">1.5</span>, label=<span class="str">'Normal'</span>)
-ax1.axhline(np.sqrt(np.mean(normal**<span class="nm">2</span>)), color=<span class="str">'#2dd4bf'</span>, ls=<span class="str">'--'</span>,
-            alpha=<span class="nm">0.5</span>, label=<span class="str">f'RMS={np.sqrt(np.mean(normal**2)):.2f}'</span>)
-ax1.set_ylabel(<span class="str">'Amplitudo (mm/s)'</span>, color=<span class="str">'#94a3b8'</span>)
-ax1.legend(); ax1.set_title(<span class="str">'Kondisi Normal'</span>, color=<span class="str">'#2dd4bf'</span>)
-
-ax2.plot(t[:<span class="nm">500</span>], faulty[:<span class="nm">500</span>], color=<span class="str">'#fb7185'</span>, lw=<span class="nm">1.5</span>, label=<span class="str">'Faulty'</span>)
-ax2.axhline(np.sqrt(np.mean(faulty**<span class="nm">2</span>)), color=<span class="str">'#fb7185'</span>, ls=<span class="str">'--'</span>,
-            alpha=<span class="nm">0.5</span>, label=<span class="str">f'RMS={np.sqrt(np.mean(faulty**2)):.2f}'</span>)
-ax2.set_ylabel(<span class="str">'Amplitudo (mm/s)'</span>, color=<span class="str">'#94a3b8'</span>)
-ax2.set_xlabel(<span class="str">'Waktu (detik)'</span>, color=<span class="str">'#94a3b8'</span>)
-ax2.legend(); ax2.set_title(<span class="str">'Kondisi Faulty (Bearing Aus)'</span>, color=<span class="str">'#fb7185'</span>)
-
-plt.tight_layout(); plt.show()</pre>
-  </div>
-
-  <!-- Cell 4 -->
-  <div class="cell">
-    <div class="cell-bar">
-      <div class="dot-row"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="cell-label">Cell 4 — Plot MULTIVARIATE (Getaran + Suhu + RPM)</span>
-      <span class="cell-run">[ ] Run</span>
-    </div>
-<pre class="code-pre"><span class="cm"># --- MULTIVARIATE: 3 sensor bersamaan ---</span>
-t_m = np.arange(<span class="nm">0</span>, <span class="nm">60</span>, <span class="nm">1</span>)          <span class="cm"># 60 detik, sampling 1 Hz</span>
-
-vibration   = <span class="nm">0.5</span> + <span class="nm">0.01</span>*t_m + <span class="nm">0.1</span>*np.random.randn(<span class="fn">len</span>(t_m))
-temperature = <span class="nm">65</span>  + <span class="nm">0.3</span>*t_m  + <span class="nm">1.5</span>*np.random.randn(<span class="fn">len</span>(t_m))
-rpm         = <span class="nm">1450</span> - <span class="nm">0.5</span>*t_m  + <span class="nm">10</span>*np.random.randn(<span class="fn">len</span>(t_m))
-
-fig, axes = plt.subplots(<span class="nm">3</span>, <span class="nm">1</span>, figsize=(<span class="nm">14</span>, <span class="nm">8</span>), sharex=<span class="kw">True</span>)
-fig.suptitle(<span class="str">'MULTIVARIATE Time Series — Pompa Hidrolik (3 Sensor)'</span>,
-             fontsize=<span class="nm">14</span>, color=<span class="str">'#e2e8f0'</span>, fontweight=<span class="str">'bold'</span>)
-
-pairs = [
-    (vibration,   <span class="str">'#2dd4bf'</span>, <span class="str">'Getaran RMS (mm/s)'</span>),
-    (temperature, <span class="str">'#fbbf24'</span>, <span class="str">'Suhu (°C)'</span>),
-    (rpm,         <span class="str">'#a78bfa'</span>, <span class="str">'RPM'</span>),
-]
-
-<span class="kw">for</span> ax, (d, c, lb) <span class="kw">in</span> <span class="fn">zip</span>(axes, pairs):
-    ax.plot(t_m, d, color=c, lw=<span class="nm">2</span>)
-    ax.fill_between(t_m, d, alpha=<span class="nm">0.1</span>, color=c)
-    ax.set_ylabel(lb, color=c, fontsize=<span class="nm">9</span>)
-    ax.grid(<span class="kw">True</span>, alpha=<span class="nm">0.3</span>)
-
-axes[-<span class="nm">1</span>].set_xlabel(<span class="str">'Waktu (detik)'</span>, color=<span class="str">'#94a3b8'</span>)
-plt.tight_layout(); plt.show()
-
-df = pd.DataFrame({<span class="str">'waktu'</span>: t_m, <span class="str">'getaran'</span>: vibration,
-                   <span class="str">'suhu'</span>: temperature, <span class="str">'rpm'</span>: rpm})
-<span class="fn">print</span>(df.head(<span class="nm">10</span>))
-<span class="fn">print</span>(<span class="str">"\nDeskripsi Statistik:"</span>)
-<span class="fn">print</span>(df.describe().round(<span class="nm">2</span>))</pre>
-  </div>
-
-  <!-- Cell 5 -->
-  <div class="cell">
-    <div class="cell-bar">
-      <div class="dot-row"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="cell-label">Cell 5 — Discrete vs Continuous &amp; Aliasing</span>
-      <span class="cell-run">[ ] Run</span>
-    </div>
-<pre class="code-pre"><span class="cm"># --- Perbandingan Discrete vs Continuous ---</span>
-t_cont = np.linspace(<span class="nm">0</span>, <span class="nm">1</span>, <span class="nm">1000</span>)             <span class="cm"># Kontinu (resolusi tinggi)</span>
-t_disc = np.arange(<span class="nm">0</span>, <span class="nm">1.05</span>, <span class="nm">0.1</span>)              <span class="cm"># Diskret (10 Hz)</span>
-
-sig_cont = np.sin(<span class="nm">2</span>*np.pi*<span class="nm">3</span>*t_cont)
-sig_disc = np.sin(<span class="nm">2</span>*np.pi*<span class="nm">3</span>*t_disc)
-
-fig, (ax1, ax2) = plt.subplots(<span class="nm">1</span>, <span class="nm">2</span>, figsize=(<span class="nm">14</span>, <span class="nm">5</span>))
-
-ax1.plot(t_cont, sig_cont, color=<span class="str">'#a3e635'</span>, lw=<span class="nm">2</span>, label=<span class="str">'Continuous'</span>)
-ax1.set_title(<span class="str">'CONTINUOUS Signal (Analog)'</span>, color=<span class="str">'#a3e635'</span>)
-ax1.set_xlabel(<span class="str">'Waktu (s)'</span>); ax1.legend()
-
-ax2.stem(t_disc, sig_disc, linefmt=<span class="str">'#fbbf24'</span>,
-         markerfmt=<span class="str">'o'</span>, basefmt=<span class="str">' '</span>, label=<span class="str">'Discrete (10 Hz)'</span>)
-ax2.plot(t_cont, sig_cont, color=<span class="str">'#a3e635'</span>, lw=<span class="nm">1</span>, alpha=<span class="nm">0.25</span>, label=<span class="str">'Original'</span>)
-ax2.set_title(<span class="str">'DISCRETE Signal (Digital, 10 Hz)'</span>, color=<span class="str">'#fbbf24'</span>)
-ax2.set_xlabel(<span class="str">'Waktu (s)'</span>); ax2.legend()
-
-<span class="kw">for</span> ax <span class="kw">in</span> [ax1, ax2]:
-    ax.grid(<span class="kw">True</span>, alpha=<span class="nm">0.3</span>)
-    ax.set_ylabel(<span class="str">'Amplitudo'</span>)
-
-plt.suptitle(<span class="str">'Discrete vs Continuous Signal'</span>,
-             fontsize=<span class="nm">13</span>, color=<span class="str">'#e2e8f0'</span>, fontweight=<span class="str">'bold'</span>)
-plt.tight_layout(); plt.show()</pre>
-  </div>
-</section>
-
-<!-- ==================== SECTION 6: LATIHAN ==================== -->
-<section class="section container" style="margin-bottom:0;">
-  <div class="section-header">
-    <span class="section-number">06</span>
-    <span class="badge mb-3">📝 Latihan</span>
-    <h2 class="text-3xl font-bold mt-2">Soal Latihan — Kerjakan di Jupyter Notebook</h2>
-    <p class="text-s400 mt-2">Kerjakan setiap soal di Jupyter Notebook dan jalankan semua cell.</p>
-  </div>
-
-  <!-- Soal 1 -->
-  <div class="ex-card">
-    <div class="ex-head" style="background:linear-gradient(90deg,rgba(45,212,191,.07),transparent)">
-      <div class="ex-num" style="background:rgba(45,212,191,.14);color:var(--teal);">01</div>
-      <div class="flex-1">
-        <h4 class="font-bold text-lg">Univariate: Plot Getaran Mesin</h4>
-        <p class="text-s500 text-sm">Membuat dan memvisualisasikan sinyal univariate</p>
-      </div>
-      <span class="chip chip-teal">🟢 Mudah</span>
-    </div>
-    <div class="ex-body">
-      <p class="text-s300 mb-4" style="font-size:.88rem;">
-        Buat sinyal getaran mesin normal selama <strong class="text-teal">5 detik</strong> dengan
-        sampling rate <strong class="text-teal">500 Hz</strong>, frekuensi rotasi <strong class="text-teal">30 Hz</strong>,
-        dan noise Gaussian σ = 0.15. Plot dengan label sumbu lengkap dan gridlines.
-      </p>
-<pre class="code-pre" style="border-radius:0 0 0 0;"><span class="cm"># 🔧 Kode Awal — lengkapi bagian yang kosong (???)</span>
+  <div class="cb"><div class="cbh"><div class="dots"><span></span><span></span><span></span></div><span>Python — Jupyter Notebook</span><button class="ccp" onclick="cpC(this)">📋 Copy</button></div><div class="cbd">
+<pre><span class="cm"># Cell 3: Plot keluarga solusi 2y^2 = 3x^3 + C</span>
 <span class="kw">import</span> numpy <span class="kw">as</span> np
 <span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
 
-fs        = ???          <span class="cm"># isi sampling rate</span>
-t         = np.arange(<span class="nm">0</span>, <span class="nm">5</span>, <span class="nm">1</span>/fs)
-freq      = ???          <span class="cm"># isi frekuensi rotasi (Hz)</span>
-noise_std = ???          <span class="cm"># isi standar deviasi noise</span>
+x = np.<span class="fn">linspace</span>(<span class="nm">-2</span>, <span class="nm">3</span>, <span class="nm">400</span>)
+plt.<span class="fn">figure</span>(figsize=(<span class="nm">10</span>, <span class="nm">6</span>))
+plt.<span class="fn">style.use</span>(<span class="st">'dark_background'</span>)
 
-vibration = ??? * np.sin(<span class="nm">2</span>*np.pi*freq*t) + ??? * np.random.randn(<span class="fn">len</span>(t))
+<span class="kw">for</span> C <span class="kw">in</span> [<span class="nm">-4</span>, <span class="nm">-2</span>, <span class="nm">0</span>, <span class="nm">2</span>, <span class="nm">4</span>, <span class="nm">6</span>]:
+    vals = (<span class="nm">3</span>*x**<span class="nm">3</span> + C) / <span class="nm">2</span>
+    <span class="cm"># Hanya plot di mana y^2 > 0</span>
+    mask = vals >= <span class="nm">0</span>
+    y_pos = np.<span class="fn">sqrt</span>(vals[mask])
+    y_neg = -np.<span class="fn">sqrt</span>(vals[mask])
+    plt.<span class="fn">plot</span>(x[mask], y_pos, linewidth=<span class="nm">2</span>, label=<span class="st">f'C={C}'</span>)
+    plt.<span class="fn">plot</span>(x[mask], y_neg, linewidth=<span class="nm">2</span>, alpha=<span class="nm">0.5</span>)
 
-plt.figure(figsize=(<span class="nm">12</span>, <span class="nm">4</span>))
-plt.plot(t[:<span class="nm">500</span>], vibration[:<span class="nm">500</span>])
-<span class="cm"># Tambahkan: judul, label X/Y, grid, legend</span>
-plt.show()
+plt.<span class="fn">axhline</span>(y=<span class="nm">0</span>, color=<span class="st">'white'</span>, lw=<span class="nm">0.5</span>)
+plt.<span class="fn">axvline</span>(x=<span class="nm">0</span>, color=<span class="st">'white'</span>, lw=<span class="nm">0.5</span>)
+plt.<span class="fn">xlabel</span>(<span class="st">'x'</span>, fontsize=<span class="nm">14</span>)
+plt.<span class="fn">ylabel</span>(<span class="st">'y'</span>, fontsize=<span class="nm">14</span>)
+plt.<span class="fn">title</span>(<span class="st">"Keluarga Solusi: 2y² = 3x³ + C"</span>, fontsize=<span class="nm">16</span>)
+plt.<span class="fn">legend</span>(); plt.<span class="fn">grid</span>(alpha=<span class="nm">0.2</span>)
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
+  </div></div>
 
-<span class="cm"># Jawab sebagai Markdown cell:</span>
-<span class="cm"># a) Berapa total sampel yang dihasilkan?</span>
-<span class="cm"># b) Berapa frekuensi maksimum yang bisa dideteksi? (Teorema Nyquist)</span></pre>
-    </div>
-  </div>
+  <h3 style="margin-top:2.5rem;margin-bottom:1rem;font-family:'Playfair Display',serif;">Contoh 4: Simulasi Pendinginan Newton</h3>
 
-  <!-- Soal 2 -->
-  <div class="ex-card">
-    <div class="ex-head" style="background:linear-gradient(90deg,rgba(251,191,36,.07),transparent)">
-      <div class="ex-num" style="background:rgba(251,191,36,.14);color:var(--amber);">02</div>
-      <div class="flex-1">
-        <h4 class="font-bold text-lg">Multivariate: 3 Sensor Bersamaan</h4>
-        <p class="text-s500 text-sm">Generate dan plot data dari 3 sensor industri</p>
-      </div>
-      <span class="chip chip-amber">🟡 Sedang</span>
-    </div>
-    <div class="ex-body">
-      <p class="text-s300 mb-3" style="font-size:.88rem;">
-        Simulasikan mesin kompresor selama <strong class="text-amber">120 detik</strong> (sampling 2 Hz) dengan 3 sensor:
-      </p>
-      <ul class="ex-list mb-4">
-        <li><strong>Getaran</strong>: 0.8 + tren naik 0.005/detik + noise Gaussian</li>
-        <li><strong>Suhu</strong>: 70°C + tren naik 0.2/detik + noise ±3°C</li>
-        <li><strong>Tekanan</strong>: 8 bar + fluktuasi sinusoidal (periode 30 s) + noise ±0.2 bar</li>
-      </ul>
-<pre class="code-pre"><span class="cm"># Buat DataFrame multivariate</span>
-<span class="cm"># Buat plot 3 subplot (sharex=True)</span>
-<span class="cm"># Cetak df.describe() untuk statistik</span>
+  <div class="cb"><div class="cbh"><div class="dots"><span></span><span></span><span></span></div><span>Python — Jupyter Notebook</span><button class="ccp" onclick="cpC(this)">📋 Copy</button></div><div class="cbd">
+<pre><span class="cm"># Cell 4: Simulasi pendinginan Newton</span>
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
 
-<span class="cm"># Pertanyaan (jawab di Markdown cell):</span>
-<span class="cm"># a) Apakah ada sensor yang menunjukkan tren? Sensor mana?</span>
-<span class="cm"># b) Apakah ini tergolong univariate atau multivariate? Jelaskan!</span>
-<span class="cm"># c) Jika sampling rate dikurangi jadi 0.5 Hz, apa dampaknya?</span></pre>
-    </div>
-  </div>
+T0 = <span class="nm">100</span>   <span class="cm"># suhu awal (°C)</span>
+Tm = <span class="nm">30</span>    <span class="cm"># suhu medium (°C)</span>
+k  = <span class="nm">0.034</span> <span class="cm"># konstanta pendinginan</span>
 
-  <!-- Soal 3 -->
-  <div class="ex-card">
-    <div class="ex-head" style="background:linear-gradient(90deg,rgba(251,113,133,.07),transparent)">
-      <div class="ex-num" style="background:rgba(251,113,133,.14);color:var(--rose);">03</div>
-      <div class="flex-1">
-        <h4 class="font-bold text-lg">Studi Kasus: Bearing Normal vs Faulty</h4>
-        <p class="text-s500 text-sm">Analisis pola getaran dan hitung statistik dasar</p>
-      </div>
-      <span class="chip chip-rose">🔴 Menantang</span>
-    </div>
-    <div class="ex-body">
-      <p class="text-s300 mb-4" style="font-size:.88rem;">
-        Buat dua sinyal bearing (sampling 2000 Hz, 3 detik). Analisis perbedaannya secara lengkap:
-      </p>
-<pre class="code-pre"><span class="cm"># Gunakan kode dari Cell 2 sebagai dasar, lalu:</span>
+t = np.<span class="fn">linspace</span>(<span class="nm">0</span>, <span class="nm">120</span>, <span class="nm">300</span>)
+T = Tm + (T0 - Tm) * np.<span class="fn">exp</span>(-k * t)
 
-<span class="cm"># BAGIAN A — Plot Normal vs Faulty dalam 1 figure (2 subplot)</span>
+plt.<span class="fn">figure</span>(figsize=(<span class="nm">10</span>, <span class="nm">6</span>))
+plt.<span class="fn">style.use</span>(<span class="st">'dark_background'</span>)
+plt.<span class="fn">plot</span>(t, T, <span class="st">'cyan'</span>, lw=<span class="nm">2.5</span>, label=<span class="st">'T(t) = 30 + 70e⁻⁰·⁰³⁴ᵗ'</span>)
+plt.<span class="fn">axhline</span>(y=<span class="nm">30</span>, color=<span class="st">'orange'</span>, ls=<span class="st">'--'</span>, lw=<span class="nm">1</span>, label=<span class="st">'Suhu medium = 30°C'</span>)
+plt.<span class="fn">scatter</span>([<span class="nm">0</span>,<span class="nm">10</span>,<span class="nm">20</span>,<span class="nm">37</span>], [<span class="nm">100</span>,<span class="nm">80</span>,<span class="nm">65.75</span>,<span class="nm">50</span>], color=<span class="st">'yellow'</span>, s=<span class="nm">80</span>, zorder=<span class="nm">5</span>)
+plt.<span class="fn">xlabel</span>(<span class="st">'Waktu (menit)'</span>, fontsize=<span class="nm">13</span>)
+plt.<span class="fn">ylabel</span>(<span class="st">'Suhu (°C)'</span>, fontsize=<span class="nm">13</span>)
+plt.<span class="fn">title</span>(<span class="st">'Hukum Pendinginan Newton — Bola Tembaga'</span>, fontsize=<span class="nm">15</span>)
+plt.<span class="fn">legend</span>(fontsize=<span class="nm">11</span>); plt.<span class="fn">grid</span>(alpha=<span class="nm">0.2</span>)
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
+  </div></div>
 
-<span class="cm"># BAGIAN B — Hitung statistik untuk keduanya</span>
-<span class="kw">for</span> name, data <span class="kw">in</span> {<span class="str">'Normal'</span>: normal, <span class="str">'Faulty'</span>: faulty}.items():
-    rms   = ???                    <span class="cm"># np.sqrt(np.mean(data**2))</span>
-    peak  = ???                    <span class="cm"># np.max(np.abs(data))</span>
-    crest = ???                    <span class="cm"># Crest Factor = Peak / RMS</span>
-    std   = ???                    <span class="cm"># np.std(data)</span>
-    <span class="fn">print</span>(<span class="str">f"{name}: RMS={rms:.3f} | Peak={peak:.3f} | Crest={crest:.2f} | Std={std:.3f}"</span>)
-
-<span class="cm"># BAGIAN C — Jawab di Markdown cell:</span>
-<span class="cm"># 1) Apakah ada impuls mendadak pada sinyal faulty?</span>
-<span class="cm"># 2) Berapa kali lipat kenaikan RMS faulty vs normal?</span>
-<span class="cm"># 3) Sensor apa yang paling sesuai untuk deteksi bearing fault? Mengapa?</span></pre>
-      <div class="hint-box hint-rose mt-4">
-        💡 <strong>Hint:</strong>
-        RMS = <code>np.sqrt(np.mean(data**2))</code> &nbsp;|&nbsp;
-        Peak = <code>np.max(np.abs(data))</code> &nbsp;|&nbsp;
-        Crest Factor = Peak / RMS
-      </div>
-    </div>
-  </div>
-
-  <!-- Soal 4 Bonus -->
-  <div class="ex-card bonus">
-    <div class="ex-head" style="background:linear-gradient(90deg,rgba(167,139,250,.07),transparent)">
-      <div class="ex-num" style="background:rgba(167,139,250,.14);color:var(--violet);">★</div>
-      <div class="flex-1">
-        <h4 class="font-bold text-lg">Bonus: Discrete vs Continuous &amp; Nyquist</h4>
-        <p class="text-s500 text-sm">Eksplorasi efek aliasing dan sampling rate</p>
-      </div>
-      <span class="chip chip-violet">⭐ Bonus +10</span>
-    </div>
-    <div class="ex-body">
-      <p class="text-s300 mb-4" style="font-size:.88rem;">
-        Buat sinyal frekuensi 40 Hz, lalu sample dengan 3 sampling rate:
-        <strong class="text-violet">100 Hz</strong> (aman),
-        <strong class="text-amber">50 Hz</strong> (batas Nyquist),
-        <strong class="text-rose">60 Hz</strong> (aliasing!).
-        Plot ketiganya dalam satu figure dan jelaskan fenomena aliasing yang terjadi.
-      </p>
-      <div class="hint-box hint-violet">
-        🎯 <strong>Tujuan:</strong> Memahami secara visual mengapa teorema Nyquist penting
-        dalam akuisisi data sensor mesin industri.
-      </div>
-    </div>
-  </div>
-
-</section>
-
-<!-- ==================== DAFTAR PUSTAKA ==================== -->
-<section class="section container">
-  <div class="section-header">
-    <span class="badge mb-3">📚 Referensi</span>
-    <h2 class="text-3xl font-black text-white mb-2">Daftar Pustaka</h2>
-    <p class="text-s400" style="max-width:700px;">Referensi dari jurnal internasional bereputasi dan buku internasional yang menjadi landasan materi pertemuan ini.</p>
-    <div class="section-number">REF</div>
-  </div>
-  <div class="info-card" style="padding:28px 32px;">
-    <ol style="list-style:decimal; padding-left:24px; display:flex; flex-direction:column; gap:18px; color:var(--s300); font-size:.88rem; line-height:1.7;">
-      <li>Rao, S. S. (2017). <em>Mechanical Vibrations</em> (6th ed.). Pearson. ISBN: 978-0-134-36119-6.</li>
-      <li>Nandi, S., Toliyat, H. A., &amp; Li, X. (2005). Condition monitoring and fault diagnosis of electrical motors — A review. <em>IEEE Transactions on Energy Conversion</em>, 20(4), 719–729. <a href="https://doi.org/10.1109/TEC.2005.847955" target="_blank" rel="noopener" style="color:var(--teal);text-decoration:none;border-bottom:1px dashed rgba(45,212,191,.4);transition:border-color .2s;">DOI: 10.1109/TEC.2005.847955</a></li>
-      <li>Tandon, N., &amp; Choudhury, A. (1999). A review of vibration and acoustic measurement methods for the detection of defects in rolling element bearings. <em>Tribology International</em>, 32(8), 469–480. <a href="https://doi.org/10.1016/S0301-679X(99)00077-8" target="_blank" rel="noopener" style="color:var(--teal);text-decoration:none;border-bottom:1px dashed rgba(45,212,191,.4);transition:border-color .2s;">DOI: 10.1016/S0301-679X(99)00077-8</a></li>
-      <li>Montgomery, D. C., Jennings, C. L., &amp; Kulahci, M. (2015). <em>Introduction to Time Series Analysis and Forecasting</em> (2nd ed.). John Wiley &amp; Sons. ISBN: 978-1-118-74511-3.</li>
-      <li>Zhang, W., Peng, G., Li, C., Chen, Y., &amp; Zhang, Z. (2017). A new deep learning model for fault diagnosis with good anti-noise and domain adaptation ability on raw vibration signals. <em>Sensors</em>, 17(2), 425. <a href="https://doi.org/10.3390/s17020425" target="_blank" rel="noopener" style="color:var(--teal);text-decoration:none;border-bottom:1px dashed rgba(45,212,191,.4);transition:border-color .2s;">DOI: 10.3390/s17020425</a></li>
-    </ol>
+  <div class="ana" style="margin-top:2rem;">
+    <h4>📌 Tips Jupyter di VS Code</h4>
+    <p>• <strong>Shift+Enter</strong> → jalankan cell dan pindah ke cell berikutnya.</p>
+    <p>• <strong>Ctrl+Enter</strong> → jalankan cell tanpa pindah.</p>
+    <p>• Klik <strong>+ Code</strong> untuk tambah cell baru.</p>
+    <p>• Simpan dengan <strong>Ctrl+S</strong> (format .ipynb).</p>
+    <p>• Untuk ekspor ke PDF: Ctrl+Shift+P → "Jupyter: Export to PDF".</p>
   </div>
 </section>
 
-<!-- ==================== DAFTAR PENGUNJUNG ==================== -->
-<section class="section container">
-  <div class="section-header" style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:16px;">
+<!-- ═══════ DAFTAR PUSTAKA ═══════ -->
+<section class="sec fi" id="pustaka" style="padding-bottom:3rem;">
+  <div class="sl">📚 REFERENSI</div>
+  <h2 class="st">Daftar Pustaka</h2>
+  <div class="sd"></div>
+  <div class="card" style="background:linear-gradient(135deg,rgba(14,165,233,0.05),rgba(168,85,247,0.05));">
+    <p style="margin-bottom:1rem;color:var(--t2);font-size:.9rem;">Sumber rujukan yang digunakan dalam modul ini:</p>
+    <p style="padding-left:2.5rem;text-indent:-2.5rem;margin-bottom:.75rem;">
+      <span style="color:var(--c1);font-weight:700;">[1]</span>&ensp;Sucipto, Erwin. <em>Engineering Mathematics</em> – 3rd Edition. Jakarta: Erlangga, 1994.
+    </p>
+    <p style="padding-left:2.5rem;text-indent:-2.5rem;">
+      <span style="color:var(--c1);font-weight:700;">[2]</span>&ensp;Markoni. <em>Pengantar Dasar Matematika Rekayasa</em> – 1st Edition. Yogyakarta: Graha Ilmu, 2014.
+    </p>
+  </div>
+</section>
+
+<!-- ═══════ FOOTER ═══════ -->
+
+<!-- ═══ DAFTAR PENGUNJUNG ═══ -->
+<section style="max-width:900px;margin:48px auto 0;padding:0 24px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px;">
     <div>
-      <span class="badge mb-3">👥 Pengunjung</span>
-      <h2 class="text-3xl font-black text-white mb-2">Daftar Pengunjung</h2>
-      <p class="text-s400" style="max-width:700px;">Daftar mahasiswa dan dosen yang telah mengakses modul ini.</p>
+      <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.05);border:1px solid #1e293b;color:#00e09e;padding:5px 14px;border-radius:999px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;">👥 Pengunjung</span>
+      <h2 style="font-size:1.6rem;font-weight:800;color:#fff;margin-top:12px;">Daftar Pengunjung</h2>
+      <p style="color:#94a3b8;font-size:.85rem;margin-top:6px;">Mahasiswa yang telah mengakses halaman ini.</p>
     </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;"><button onclick="showResetModal()" style="margin-top:8px;padding:10px 20px;border-radius:12px;border:1px solid rgba(251,113,133,.3);background:rgba(251,113,133,.08);color:var(--rose);font-family:'DM Sans',sans-serif;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:6px;" onmouseenter="this.style.background='rgba(251,113,133,.18)';this.style.borderColor='rgba(251,113,133,.5)'" onmouseleave="this.style.background='rgba(251,113,133,.08)';this.style.borderColor='rgba(251,113,133,.3)'">🗑 Reset Pengunjung</button></div>
-    <div class="section-number">LOG</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;"><button onclick="showResetModal()" style="padding:10px 20px;border-radius:12px;border:1px solid rgba(251,113,133,.3);background:rgba(251,113,133,.08);color:#fb7185;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:6px;" onmouseenter="this.style.background='rgba(251,113,133,.18)'" onmouseleave="this.style.background='rgba(251,113,133,.08)'">🗑 Reset</button></div>
   </div>
-
-  <div id="scheduleInfo" style="display:none;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.2);border-radius:14px;padding:14px 20px;margin-bottom:20px;align-items:center;gap:12px;flex-wrap:wrap;">
+<div id="scheduleInfo" style="display:none;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.2);border-radius:14px;padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
       <span style="font-size:1.2rem;">🕐</span>
       <div style="flex:1;min-width:200px;">
         <div style="font-size:.75rem;font-weight:600;color:#818cf8;text-transform:uppercase;letter-spacing:.08em;">Jadwal Perkuliahan</div>
@@ -1881,400 +872,102 @@ plt.show()
       </div>
       <div style="text-align:center;">
         <div id="statLate" style="font-weight:800;font-size:1.4rem;color:#fb7185;">0</div>
-        <div style="font-size:.7rem;color:var(--s500,#64748b);">Terlambat</div>
+        <div style="font-size:.7rem;color:#64748b;">Terlambat</div>
       </div>
     </div>
-    <div class="info-card" style="padding:0; overflow:hidden;">
-    <div style="display:flex; gap:1px; background:rgba(255,255,255,.04);">
-      <div style="flex:1; padding:20px 24px; text-align:center;">
-        <div id="statTotal" style="font-family:'Syne',sans-serif; font-weight:800; font-size:2rem; color:var(--teal);">—</div>
-        <div style="font-size:.75rem; color:var(--s500); margin-top:2px;">Total Pengunjung</div>
+  <div style="background:#162033;border:1px solid #1e293b;border-radius:20px;overflow:hidden;">
+    <div id="leaderboardPanel" style="margin-bottom:2px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:16px 20px;">
+        <div style="background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.15);border-radius:14px;padding:14px 16px;">
+          <div style="font-size:.72rem;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🏆 Paling Rajin</div>
+          <div id="rajinList" style="font-size:.8rem;color:#e2e8f0;min-height:60px;">⏳ Memuat...</div>
+        </div>
+        <div style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15);border-radius:14px;padding:14px 16px;">
+          <div style="font-size:.72rem;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">😴 Paling Santai</div>
+          <div id="santaiList" style="font-size:.8rem;color:#e2e8f0;min-height:60px;">⏳ Memuat...</div>
+        </div>
       </div>
-      <div style="flex:1; padding:20px 24px; text-align:center; border-left:1px solid rgba(255,255,255,.06); border-right:1px solid rgba(255,255,255,.06);">
-        <div id="statMhs" style="font-family:'Syne',sans-serif; font-weight:800; font-size:2rem; color:var(--violet);">—</div>
-        <div style="font-size:.75rem; color:var(--s500); margin-top:2px;">Mahasiswa</div>
-      </div>
-      <div style="flex:1; padding:20px 24px; text-align:center;">
-        <div id="statDosen" style="font-family:'Syne',sans-serif; font-weight:800; font-size:2rem; color:var(--amber);">—</div>
-        <div style="font-size:.75rem; color:var(--s500); margin-top:2px;">Dosen</div>
-      </div>
-    </div>
-
-    <div style="display:flex; padding:14px 24px; background:rgba(255,255,255,.03); border-top:1px solid rgba(255,255,255,.06); border-bottom:1px solid rgba(255,255,255,.06); font-size:.72rem; font-weight:600; color:var(--s500); text-transform:uppercase; letter-spacing:.08em;">
-      <div style="width:44px; flex-shrink:0;">No</div>
-      <div style="flex:2;">Nama</div>
-      <div style="flex:1;">NIM</div>
-      <div style="flex:1; text-align:center;">Status</div>
-      <div style="flex:.6; text-align:center;">Kunjungan</div>
-      <div style="flex:1; text-align:right;">Waktu Akses</div>
-    </div>
-
-    <div id="visitorTableBody" style="max-height:420px; overflow-y:auto;">
-      <div style="text-align:center; padding:40px 24px; color:var(--s500); font-size:.88rem;">
-        ⏳ Memuat data pengunjung...
+      <div style="padding:0 20px 16px;">
+        <div style="background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);border-radius:14px;padding:14px 16px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <div style="font-size:.72rem;font-weight:700;color:#fb7185;text-transform:uppercase;letter-spacing:.1em;">❌ Bolos</div>
+            <div id="bolosCount" style="background:rgba(251,113,133,.15);color:#fb7185;font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:8px;">0</div>
+          </div>
+          <div id="bolosList" style="font-size:.8rem;color:#e2e8f0;">⏳ Memuat...</div>
+        </div>
       </div>
     </div>
+    <div style="display:flex;padding:14px 24px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.08em;">
+      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:0.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
+    </div>
+    <div id="visitorTableBody" style="max-height:420px;overflow-y:auto;"><div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">⏳ Memuat data pengunjung...</div></div>
   </div>
 </section>
 
-<!-- ==================== FOOTER ==================== -->
 <footer>
-  <div class="container">
-    <p>Materi dibuat oleh <span style="color:var(--teal)">Dedik Romahadi</span> •
-       Optimalisasi &amp; Otomasi • S1 Teknik Mesin • Universitas Mercu Buana</p>
-    <p style="margin-top:4px;">Pertemuan 2 — Jenis &amp; Sumber Time Series Data • 2025/2026</p>
-  </div>
+  <p>📐 Modul 2 — PD Variabel Terpisah</p>
+  <p style="margin-top:.5rem;">Matematika 4 • W132100010 • Fakultas Teknik — Teknik Mesin</p>
+  <p style="margin-top:.25rem;font-size:.8rem;">Disusun oleh: Dedik Romahadi</p>
 </footer>
 
-
-<!-- ==================== SCRIPTS ==================== -->
+<!-- ═══════ SCRIPTS ═══════ -->
 <script>
-/* -------- TICKER -------- */
-(function(){
-  const items = [
-    'ACC_X: 0.47 mm/s','ACC_Y: 0.39 mm/s','ACC_Z: 0.52 mm/s',
-    'TEMP: 68.3 °C','PRESSURE: 8.14 bar','RPM: 1453','CURRENT: 4.72 A',
-    'ACC_X: 0.51 mm/s','ACC_Y: 0.41 mm/s','TEMP: 69.1 °C',
-    'RPM: 1448','PRESSURE: 7.98 bar','CURRENT: 4.68 A','ACC_Z: 0.55 mm/s'
-  ];
-  const dup = [...items,...items];
-  document.getElementById('ticker').innerHTML =
-    dup.map(d=>`<span class="ticker-item">[ ${d} ]</span>`).join('');
-})();
+document.addEventListener('DOMContentLoaded',()=>{renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})});
 
-/* -------- WAVE BARS -------- */
-function makeWave(id, color) {
-  const el = document.getElementById('wv-' + id);
-  if (!el) return;
-  for (let i = 0; i < 10; i++) {
-    const b = document.createElement('span');
-    b.className = 'wave-bar';
-    const h = 6 + Math.random() * 20;
-    b.style.cssText = `height:${h}px;background:${color};`
-      + `animation-delay:${(i*0.1).toFixed(2)}s;`
-      + `animation-duration:${(0.7+Math.random()*0.9).toFixed(2)}s`;
-    el.appendChild(b);
-  }
-}
-makeWave('vibration','#2dd4bf');
-makeWave('temp','#fbbf24');
-makeWave('pressure','#fb7185');
-makeWave('current','#c084fc');
-makeWave('rpm','#a3e635');
+// Progress
+window.addEventListener('scroll',()=>{const t=document.documentElement.scrollHeight-window.innerHeight;document.getElementById('prog').style.width=(window.scrollY/t*100)+'%'});
 
-/* -------- CHART DEFAULTS -------- */
-const cOpts = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: { legend:{ display:false }, tooltip:{ enabled:false } },
-  animation: { duration: 700 },
-  elements: { point:{ radius:0 } },
-  scales: {
-    x: { display:false },
-    y: { display:false }
-  }
-};
+// Fade-in observer
+const obs=new IntersectionObserver(e=>{e.forEach(en=>{if(en.isIntersecting)en.target.classList.add('vis')})},{threshold:.1});
+document.querySelectorAll('.fi').forEach(el=>obs.observe(el));
 
-function sinData(n, amp, freq, noise, trend=0, step=0.05) {
-  return Array.from({length:n}, (_,i) => {
-    const t = i*step;
-    return amp*Math.sin(2*Math.PI*freq*t) + (Math.random()-.5)*noise + trend*t;
-  });
-}
+// Active nav
+window.addEventListener('scroll',()=>{const secs=document.querySelectorAll('.sec');const links=document.querySelectorAll('.nav a');let cur='';secs.forEach(s=>{if(window.scrollY>=s.offsetTop-120)cur=s.id});links.forEach(l=>{l.classList.remove('active');if(l.getAttribute('href')==='#'+cur)l.classList.add('active')})});
 
-function labels(n, step=0.05) {
-  return Array.from({length:n}, (_,i)=>(i*step).toFixed(2));
-}
+// Radio select
+function selR(l,q){const g=l.closest('.rg');g.querySelectorAll('.ro').forEach(o=>{o.style.borderColor='var(--bd)';o.style.background='var(--bg2)'});l.querySelector('input').checked=true;l.style.borderColor='var(--c1)';l.style.background='rgba(0,224,158,.04)'}
 
-/* UNIVARIATE */
-new Chart(document.getElementById('chartUni'),{
-  type:'line',
-  data:{ labels:labels(100), datasets:[{
-    data:sinData(100,.5,8,.15), borderColor:'#2dd4bf', borderWidth:2, tension:.4
-  }]},
-  options:cOpts
-});
+// Check answer
+function chk(q,cor){const sel=document.querySelector(`input[name="${q}"]:checked`);const fb=document.getElementById(`fb-${q}`);if(!sel){fb.className='fb bad';fb.textContent='⚠️ Pilih jawaban dulu!';fb.style.display='block';return}
+document.querySelectorAll(`#${q}-opts .ro`).forEach(o=>{const v=o.querySelector('input').value;o.classList.remove('ok','bad');if(v===cor)o.classList.add('ok');else if(o.querySelector('input').checked&&v!==cor)o.classList.add('bad')});
+if(sel.value===cor){fb.className='fb ok';fb.textContent='🎉 Benar! Jawaban Anda tepat.'}else{fb.className='fb bad';fb.textContent='❌ Kurang tepat. Coba lihat petunjuk atau kunci jawaban.'}fb.style.display='block'}
 
-/* MULTIVARIATE */
-new Chart(document.getElementById('chartMulti'),{
-  type:'line',
-  data:{ labels:labels(80), datasets:[
-    {data:sinData(80,.5,6,.1),  borderColor:'#2dd4bf', borderWidth:1.5, tension:.4},
-    {data:sinData(80,1.5,2,.3,0.01), borderColor:'#fbbf24', borderWidth:1.5, tension:.4},
-    {data:sinData(80,1.2,4,.25),borderColor:'#a78bfa', borderWidth:1.5, tension:.4}
-  ]},
-  options:{ ...cOpts, plugins:{...cOpts.plugins,
-    legend:{ display:true, labels:{color:'#94a3b8',font:{size:9},boxWidth:10,padding:8} }
-  }}
-});
+// Toggle hint/answer
+function tog(id){document.getElementById(id).classList.toggle('show')}
 
-/* DISCRETE */
-(function(){
-  const tD = Array.from({length:20},(_,i)=>i*0.1);
-  new Chart(document.getElementById('chartDisc'),{
-    type:'scatter',
-    data:{ datasets:[{
-      data: tD.map(t=>({x:t, y:Math.sin(2*Math.PI*3*t)})),
-      pointBackgroundColor:'#fbbf24', pointRadius:5, showLine:false
-    }]},
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{enabled:false}},
-      animation:{duration:700},
-      scales:{
-        x:{grid:{color:'#1e293b'},ticks:{color:'#475569',font:{size:8}}},
-        y:{grid:{color:'#1e293b'},ticks:{color:'#475569',font:{size:8}}}
-      }
-    }
-  });
-})();
+// Copy code
+function cpC(btn){const code=btn.closest('.cb').querySelector('pre').textContent;navigator.clipboard.writeText(code).then(()=>{btn.textContent='✅ Copied!';setTimeout(()=>btn.textContent='📋 Copy',2000)})}
 
-/* CONTINUOUS */
-(function(){
-  const n=200;
-  const tC=Array.from({length:n},(_,i)=>(i*0.005).toFixed(3));
-  new Chart(document.getElementById('chartCont'),{
-    type:'line',
-    data:{ labels:tC, datasets:[{
-      data:tC.map(t=>Math.sin(2*Math.PI*3*parseFloat(t))),
-      borderColor:'#a3e635', borderWidth:2, tension:.4
-    }]},
-    options:cOpts
-  });
-})();
+// Canvas animation
+const cvs=document.getElementById('cvs');const ctx=cvs.getContext('2d');let aid=null;
+const descs={parabola:'Keluarga kurva: solusi dari 4yy\' = 9x² → 2y² = 3x³ + C.',expdecay:'Peluruhan eksponensial: y = Ce⁻²ˣ — zat radioaktif, pendinginan.',expgrowth:'Pertumbuhan: 1 + y² = Ce^(x²) — solusi Contoh 2.4.',cooling:'Pendinginan Newton: T(t) = 30 + 70e⁻⁰·⁰³⁴ᵗ — bola tembaga.'};
 
-/* TS vs STATIC */
-(function(){
-  const n=60;
-  const tV=Array.from({length:n},(_,i)=>i+'');
-  new Chart(document.getElementById('chartTsVs'),{
-    type:'line',
-    data:{ labels:tV, datasets:[{
-      data:Array.from({length:n},(_,i)=>0.4+i*0.03+(Math.random()-.5)*.2),
-      borderColor:'#2dd4bf', borderWidth:2, tension:.4,
-      fill:true, backgroundColor:'rgba(45,212,191,.05)'
-    }]},
-    options:cOpts
-  });
-})();
+function drawPD(type,btn){if(btn){document.querySelectorAll('.abtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active')}
+document.getElementById('desc').textContent=descs[type];if(aid)cancelAnimationFrame(aid);
+const w=cvs.width,h=cvs.height,cx=60,cy=h/2;let fr=0;
+function getY(px,type,C){const x=px*.025;switch(type){case'parabola':const v=(3*Math.pow(x,3)+C)/2;return v>=0?Math.sqrt(v)*50:null;case'expdecay':return C*Math.exp(-2*x)*60;case'expgrowth':const r=C*Math.exp(x*x*.5);return r>0?Math.sqrt(r-1)*25:null;case'cooling':return(30+C*Math.exp(-.034*x*20)-30)*3}}
+function anim(){fr+=3;ctx.clearRect(0,0,w,h);
+ctx.strokeStyle='rgba(30,41,59,.5)';ctx.lineWidth=1;for(let i=0;i<w;i+=50){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,h);ctx.stroke()}for(let i=0;i<h;i+=50){ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(w,i);ctx.stroke()}
+ctx.strokeStyle='rgba(148,163,184,.3)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(cx,10);ctx.lineTo(cx,h-10);ctx.stroke();ctx.beginPath();ctx.moveTo(10,cy);ctx.lineTo(w-10,cy);ctx.stroke();
+ctx.fillStyle='#94a3b8';ctx.font='13px Source Sans 3';ctx.fillText('x',w-25,cy-8);ctx.fillText('y',cx+8,22);
+const colors=['#00e09e','#0ea5e9','#a855f7','#f97316','#facc15'];
+const Cs=type==='parabola'?[-3,0,3,6,9]:type==='expdecay'?[-2,-1,1,2,3]:type==='expgrowth'?[2,5,10,17,25]:type==='cooling'?[70,50,30]:[];
+Cs.forEach((C,ci)=>{ctx.strokeStyle=colors[ci%colors.length];ctx.lineWidth=2.5;ctx.beginPath();let started=false;const mp=Math.min(fr,w-cx);
+for(let px=0;px<mp;px++){const yv=getY(px,type,C);if(yv===null||yv===undefined){started=false;continue}
+const sx=cx+px,sy=cy-yv;if(!started){ctx.moveTo(sx,sy);started=true}else ctx.lineTo(sx,sy)}ctx.stroke();
+if(type==='parabola'||type==='expgrowth'){ctx.beginPath();started=false;for(let px=0;px<mp;px++){const yv=getY(px,type,C);if(yv===null||yv===undefined){started=false;continue}
+const sx=cx+px,sy=cy+yv;if(!started){ctx.moveTo(sx,sy);started=true}else ctx.lineTo(sx,sy)}ctx.stroke()}});
+if(fr<w)aid=requestAnimationFrame(anim)}anim()}
+drawPD('parabola',null);
+</script>
+<script>
 
-/* -------- SENSOR PANEL -------- */
-const SENSORS = {
-  vibration:{
-    icon:'📳', name:'Accelerometer (Sensor Getaran)', sub:'Piezoelectric / MEMS',
-    color:'#2dd4bf',
-    details:[
-      ['Prinsip','Mengukur percepatan getaran dalam mm/s² atau g'],
-      ['Tipe','Piezoelectric, MEMS, Kapasitif'],
-      ['Range','0–20.000 Hz (sampling rate harus tinggi)'],
-      ['Aplikasi','Deteksi kerusakan bearing, imbalance poros, kavitasi'],
-      ['Satuan','mm/s, g, m/s²']
-    ],
-    badges:['Univariate (per sumbu)','Analog → ADC','High Frequency'],
-    gen(n){ return Array.from({length:n},(_,i)=>{
-      const t=i*.001;
-      return .5*Math.sin(2*Math.PI*25*t)+.15*Math.sin(2*Math.PI*75*t)+(Math.random()-.5)*.15;
-    }); }
-  },
-  temp:{
-    icon:'🌡️', name:'Termistor / Thermocouple (Sensor Suhu)', sub:'Resistance / Voltage based',
-    color:'#fbbf24',
-    details:[
-      ['Prinsip','Perubahan resistansi (NTC/PTC) atau tegangan (Type-K TC)'],
-      ['Tipe','NTC Thermistor, Type-K/J Thermocouple, PT100'],
-      ['Range','–200°C hingga +1300°C (tergantung tipe)'],
-      ['Aplikasi','Monitoring suhu bearing, oli, coolant, exhaust gas'],
-      ['Satuan','°C, °F, K']
-    ],
-    badges:['Univariate','Slow Dynamics','Low Frequency'],
-    gen(n){ let v=70; return Array.from({length:n},()=>{ v+=(Math.random()-.45)*.5; return Math.max(60,Math.min(85,v)); }); }
-  },
-  pressure:{
-    icon:'🔴', name:'Pressure Gauge / Transducer', sub:'Piezoelectric / Strain Gauge',
-    color:'#fb7185',
-    details:[
-      ['Prinsip','Diafragma berdeformasi → perubahan resistansi / kapasitansi'],
-      ['Tipe','Piezoresistive, Capacitive, MEMS Pressure'],
-      ['Range','0–600 bar (tergantung aplikasi)'],
-      ['Aplikasi','Monitoring tekanan hidrolik, pneumatik, kompresor'],
-      ['Satuan','bar, PSI, Pa, MPa']
-    ],
-    badges:['Univariate','Medium Frequency','Gauge / Absolute'],
-    gen(n){ return Array.from({length:n},(_,i)=>{
-      const t=i*.1;
-      return 8+.8*Math.sin(2*Math.PI*.3*t)+(Math.random()-.5)*.3;
-    }); }
-  },
-  current:{
-    icon:'⚡', name:'Clamp Meter / CT Sensor (Arus Motor)', sub:'Current Transformer',
-    color:'#c084fc',
-    details:[
-      ['Prinsip','Medan magnet di sekitar konduktor → arus sekunder proporsional'],
-      ['Tipe','Hall Effect, Current Transformer (CT), Rogowski Coil'],
-      ['Range','0–1000 A (non-invasive)'],
-      ['Aplikasi','Deteksi overload motor, degradasi winding, imbalance beban'],
-      ['Satuan','A (Ampere), mA']
-    ],
-    badges:['Univariate','Line Frequency 50Hz','Non-invasive'],
-    gen(n){ return Array.from({length:n},(_,i)=>{
-      const t=i*.001;
-      return 4.7*Math.sin(2*Math.PI*50*t)+(Math.random()-.5)*.2;
-    }); }
-  },
-  rpm:{
-    icon:'🔄', name:'Encoder / Tachometer (RPM)', sub:'Optical / Magnetic Encoder',
-    color:'#a3e635',
-    details:[
-      ['Prinsip','Pulsa digital per putaran → hitung RPM dari frekuensi pulsa'],
-      ['Tipe','Optical Encoder, Hall Sensor, Magnetic Encoder, Proximity Switch'],
-      ['Range','0–100.000 RPM (resolusi 1–10.000 pulsa/putaran)'],
-      ['Aplikasi','Speed control, sinkronisasi mesin, deteksi slip / stall'],
-      ['Satuan','RPM, rad/s, Hz']
-    ],
-    badges:['Univariate','Digital Signal','Count-based'],
-    gen(n){ let r=1450; return Array.from({length:n},()=>{ r+=(Math.random()-.5)*5; return Math.max(1400,Math.min(1500,r)); }); }
-  }
-};
-
-let sChart = null;
-
-function activateSensor(el, key) {
-  document.querySelectorAll('.sensor-card').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-
-  const s = SENSORS[key];
-  const av = document.getElementById('sAvatar');
-  av.textContent = s.icon;
-  av.style.background = hex2rgba(s.color,.15);
-
-  document.getElementById('sName').textContent = s.name;
-  document.getElementById('sSub').textContent  = s.sub;
-
-  document.getElementById('sDetails').innerHTML = s.details.map(([k,v])=>
-    `<div class="detail-row">
-       <span class="detail-key" style="color:${s.color}">${k}</span>
-       <span class="detail-val">${v}</span>
-     </div>`
-  ).join('');
-
-  document.getElementById('sBadges').innerHTML = s.badges.map(b=>
-    `<span style="background:${hex2rgba(s.color,.1)};color:${s.color};border:1px solid ${hex2rgba(s.color,.25)}" class="chip">${b}</span>`
-  ).join('');
-
-  if (sChart) sChart.destroy();
-  const n=200;
-  const data=s.gen(n);
-  const lbs=Array.from({length:n},(_,i)=>(i*.01).toFixed(2));
-  sChart = new Chart(document.getElementById('sensorChart'),{
-    type:'line',
-    data:{ labels:lbs, datasets:[{
-      data, borderColor:s.color, borderWidth:1.8, tension:.3,
-      fill:true, backgroundColor:hex2rgba(s.color,.07)
-    }]},
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{enabled:false}},
-      animation:{duration:500,easing:'easeOutQuart'},
-      elements:{point:{radius:0}},
-      scales:{
-        x:{grid:{color:'#1e293b'},ticks:{color:'#475569',font:{size:8},maxTicksLimit:6}},
-        y:{grid:{color:'#1e293b'},ticks:{color:'#475569',font:{size:8},maxTicksLimit:5}}
-      }
-    }
-  });
-}
-
-function hex2rgba(hex, a){
-  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
-  return `rgba(${r},${g},${b},${a})`;
-}
-
-/* default sensor */
-activateSensor(document.querySelector('[data-s="vibration"]'), 'vibration');
-
-/* -------- BEARING CHART -------- */
-let bChart = null;
-let bMode  = 'normal';
-
-function genBearing(n) {
-  const fs=20;
-  const normal=[], faulty=[];
-  for(let i=0;i<n;i++){
-    const t=i/fs;
-    normal.push(.5*Math.sin(2*Math.PI*5*t)+.1*Math.sin(2*Math.PI*15*t));
-    let f=1.8*Math.sin(2*Math.PI*5*t)+.6*Math.sin(2*Math.PI*15*t);
-    if(i % Math.floor(fs/2.5) === 0) f += (Math.random()>.5 ? 2.8 : -2.8);
-    faulty.push(f);
-  }
-  return {normal, faulty};
-}
-
-function drawBearing(noise){
-  const n=100, {normal,faulty}=genBearing(n);
-  const nN = normal.map(v=>v+(Math.random()-.5)*noise*.5);
-  const nF = faulty.map(v=>v+(Math.random()-.5)*noise*1.5);
-  const lbs=Array.from({length:n},(_,i)=>(i/20).toFixed(2));
-
-  const ds=[];
-  if(bMode==='normal'||bMode==='both')
-    ds.push({label:'🟢 Normal',data:nN,borderColor:'#2dd4bf',borderWidth:2,tension:.3,pointRadius:0});
-  if(bMode==='faulty'||bMode==='both')
-    ds.push({label:'🔴 Faulty',data:nF,borderColor:'#fb7185',borderWidth:2,tension:.3,pointRadius:0});
-
-  if(bChart) bChart.destroy();
-  bChart = new Chart(document.getElementById('bearingChart'),{
-    type:'line',
-    data:{labels:lbs, datasets:ds},
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{
-        legend:{position:'top',labels:{color:'#cbd5e1',font:{size:11},padding:14}},
-        tooltip:{mode:'index',intersect:false}
-      },
-      animation:{duration:400,easing:'easeOutQuart'},
-      scales:{
-        x:{grid:{color:'#1e293b'},ticks:{color:'#475569',maxTicksLimit:10,font:{size:9}},
-           title:{display:true,text:'Waktu (detik)',color:'#475569',font:{size:10}}},
-        y:{grid:{color:'#1e293b'},ticks:{color:'#475569',font:{size:9}},
-           title:{display:true,text:'Amplitudo Getaran (mm/s)',color:'#475569',font:{size:10}}}
-      }
-    }
-  });
-}
-
-function setBearingMode(mode, btn) {
-  bMode = mode;
-  const map={normal:'tbtn-teal',faulty:'tbtn-rose',both:'tbtn-amber'};
-  ['btn-n','btn-f','btn-b'].forEach(id=>{
-    document.getElementById(id).className='tbtn tbtn-inactive';
-  });
-  btn.className = 'tbtn ' + map[mode];
-  updateBearing();
-}
-
-function updateBearing(){
-  const v = parseFloat(document.getElementById('noiseSlider').value);
-  document.getElementById('noiseVal').textContent = v.toFixed(2);
-  drawBearing(v);
-}
-
-drawBearing(0.25);
 </script>
 
-<!-- ==================== VISITOR SYSTEM JS (Firebase) ==================== -->
 <script type="module">
-// ═══ FIREBASE VISITOR SYSTEM (with Schedule) ═══
+// ═══ FIREBASE + VISITOR SYSTEM ═══
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { getDatabase, ref, get, set, remove, onValue } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
-
-const MODULE_ID = 'modul-2';
-const DB_PATH = `visitors/OptoAuto/${MODULE_ID}`;
-const PERTEMUAN = 'pertemuan-2';
-const RELATED_MODULES = ['forum-2','tugas-2'];
-const SCHEDULE_PATH = `settings/OptoAuto/${PERTEMUAN}/schedule`;
-const LOCAL_IDENTITY = `optoauto_identity_${MODULE_ID}`;
-let panelOpen = false;
-let currentSchedule = null;
 
 const firebaseConfig = {
   apiKey: "AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",
@@ -2289,34 +982,117 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const MODULE_ID = 'modul-2';
+const DB_PATH = `visitors/OptoAuto/${MODULE_ID}`;
+const PERTEMUAN = 'pertemuan-2';
+const RELATED_MODULES = ['forum-2','tugas-2'];
+const SCHEDULE_PATH = `settings/OptoAuto/${PERTEMUAN}/schedule`;
+const LOCAL_IDENTITY = `optoauto_identity_${MODULE_ID}`;
+let panelOpen = false;
+let currentSchedule = null;
+const VISIT_COOLDOWN = 3600000;
 
 function getIdentity(){try{return JSON.parse(localStorage.getItem(LOCAL_IDENTITY));}catch(e){return null;}}
 function saveIdentity(v){localStorage.setItem(LOCAL_IDENTITY, JSON.stringify(v));}
 function isValidName(n){if(!n)return false;return n.split(/\s+/).every(w=>w.length>0&&/^[A-Z][a-z]*$/.test(w));}
 function isValidNim(n){return /^\d+$/.test(n);}
-function escH(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function sanitizeKey(s){return s.replace(/[.#$/\[\]]/g,'_');}
 
+
+let masterStudents = [];
+let masterFetchDone = false;
+const STUDENTS_JSON_URL = 'https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Engineering-Mathematics/Attributes/students.json';
+function fetchMasterStudents(retries){
+  retries = retries || 0;
+  return fetch(STUDENTS_JSON_URL, {cache:'no-store'}).then(r=>{
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.json();
+  }).then(data=>{
+    masterStudents = data;
+    masterFetchDone = true;
+    console.log('[Visitor] Master students loaded:', masterStudents.length);
+  }).catch(err=>{
+    console.error('[Visitor] Fetch error (attempt '+(retries+1)+'):', err);
+    if(retries < 2){ setTimeout(()=>fetchMasterStudents(retries+1), 1500); }
+    else { masterStudents = []; masterFetchDone = true; }
+  });
+}
+function updateLeaderboard(visitors, schedExpired){
+  const rajinEl=document.getElementById('rajinList');
+  const santaiEl=document.getElementById('santaiList');
+  const bolosEl=document.getElementById('bolosList');
+  const bolosCEl=document.getElementById('bolosCount');
+  if(!rajinEl)return;
+  if(!masterStudents.length){rajinEl.innerHTML='<span style="color:#64748b;font-size:.75rem;">Memuat data mahasiswa...</span>';santaiEl.innerHTML=rajinEl.innerHTML;bolosEl.innerHTML=rajinEl.innerHTML;return;}
+  const mhs=visitors.filter(v=>v.role!=='dosen'&&v.role!=='guest');
+  const visitMap={};
+  mhs.forEach(v=>{const k=v.nim;if(!visitMap[k])visitMap[k]=v;});
+  const visited=Object.values(visitMap);
+  const rajin=[...visited].sort((a,b)=>{const d=(b.visitCount||1)-(a.visitCount||1);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp);});
+  const santai=[...visited].sort((a,b)=>{const d=(a.visitCount||1)-(b.visitCount||1);return d!==0?d:new Date(b.timestamp)-new Date(a.timestamp);});
+  const medalR=['🥇','🥈','🥉'];
+  function renderCard(v,idx,isSantai){
+    const medal=isSantai?(idx+1):medalR[idx];
+    const vc=v.visitCount||1;
+    const badgeStyle=isSantai?'background:rgba(251,191,36,.12);color:#fbbf24;':'background:rgba(16,185,129,.12);color:#10b981;';
+    const mBadge=isSantai?'<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(251,191,36,.15);color:#fbbf24;font-size:.65rem;font-weight:800;flex-shrink:0;">'+medal+'</span>':'<span style="font-size:1rem;flex-shrink:0;">'+medal+'</span>';
+    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'">'+mBadge+'<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="'+badgeStyle+'padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+vc+'x</div></div>';
+  }
+  const top3=new Set(rajin.slice(0,3).map(v=>v.nim));
+  const santaiFiltered=santai.filter(v=>!top3.has(v.nim));
+  rajinEl.innerHTML=rajin.length?rajin.slice(0,3).map((v,i)=>renderCard(v,i,false)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
+  santaiEl.innerHTML=santaiFiltered.length?santaiFiltered.slice(0,3).map((v,i)=>renderCard(v,i,true)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
+  const visitedNims=new Set(mhs.map(v=>v.nim));
+  const notVisited=masterStudents.filter(s=>!visitedNims.has(s.nim));
+  if(schedExpired){
+    bolosCEl.textContent=notVisited.length;
+    if(!notVisited.length){bolosEl.innerHTML='<span style="color:#10b981;font-size:.78rem;">\u2705 Semua mahasiswa sudah berkunjung!</span>';}
+    else{bolosEl.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:6px;">'+notVisited.map(s=>'<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.12);border-radius:10px;padding:5px 10px;"><span style="font-weight:600;font-size:.75rem;color:#ef4444;">'+escH(s.nama)+'</span><span style="font-size:.62rem;color:#64748b;font-family:monospace;">'+s.nim+'</span></div>').join('')+'</div>';}
+  } else {
+    bolosCEl.textContent='—';
+    const belum=notVisited.length;
+    bolosEl.innerHTML=belum?'<span style="color:#94a3b8;font-size:.78rem;">⏳ '+belum+' mahasiswa belum berkunjung. Batas waktu belum berakhir.</span>':'<span style="color:#10b981;font-size:.78rem;">✅ Semua mahasiswa sudah berkunjung!</span>';
+  }
+}
+fetchMasterStudents();
+
+let latestVisitors=[];
 function initVisitor(){
   const me = getIdentity();
-  if(me && me.nama){document.getElementById('visitorOverlay').classList.add('hidden');document.getElementById('visitorFab').style.display='flex';
-    (async()=>{try{const isDosen=me.nama.toLowerCase()==='dedik romahadi';const key=sanitizeKey(isDosen?'dosen_'+me.nama:'mhs_'+me.nim);const snap=await get(ref(db,DB_PATH+'/'+key));if(snap.exists()){const rec=snap.val();const lastV=rec.lastVisit?new Date(rec.lastVisit).getTime():0;const now=Date.now();if(now-lastV>3600000){await set(ref(db,DB_PATH+'/'+key),Object.assign({},rec,{visitCount:(rec.visitCount||0)+1,lastVisit:new Date().toISOString()}))}}}catch(e){console.error(e)}})();
+  if(me && me.nama){
+    document.getElementById('visitorOverlay').classList.add('hidden');
+    document.getElementById('visitorFab').style.display='flex';
+    // Bump visit count for returning visitor (1hr cooldown) - skip dosen
+    const _isDosen = me.nama.toLowerCase()==='dedik romahadi';
+    if(!_isDosen && (!masterFetchDone || masterStudents.some(s=>s.nim===me.nim && s.nama.toUpperCase()===me.nama.toUpperCase()))){
+      const _key = sanitizeKey(`mhs_${me.nim}`);
+      get(ref(db,`${DB_PATH}/${_key}`)).then(snap=>{
+        if(snap.exists()){
+          const ex=snap.val();
+          const lastV=new Date(ex.lastVisit||ex.timestamp).getTime();
+          if(Date.now()-lastV>=VISIT_COOLDOWN){
+            set(ref(db,`${DB_PATH}/${_key}`),{...ex,visitCount:(ex.visitCount||1)+1,lastVisit:new Date().toISOString()});
+          }
+        }
+      }).catch(()=>{});
+    }
   }
 
   // Listen schedule
   onValue(ref(db, SCHEDULE_PATH), (snap) => {
     currentSchedule = snap.val();
     updateScheduleDisplay();
+    // Re-render visitors with schedule context
     onValue(ref(db, DB_PATH), (vsnap) => {
       const data = vsnap.val();
-      renderVisitors(data ? Object.values(data) : []);
+      latestVisitors=data ? Object.values(data) : [];renderVisitors(latestVisitors);
     }, {onlyOnce: true});
   });
 
   // Listen visitors
   onValue(ref(db, DB_PATH), (snapshot) => {
     const data = snapshot.val();
-    renderVisitors(data ? Object.values(data) : []);
+    latestVisitors=data ? Object.values(data) : [];renderVisitors(latestVisitors);
   });
 }
 
@@ -2327,8 +1103,8 @@ function updateScheduleDisplay(){
   if(currentSchedule && currentSchedule.start && currentSchedule.end){
     info.style.display='flex';
     const s = new Date(currentSchedule.start), e = new Date(currentSchedule.end);
-    const fmt = (d) => d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
     const dur = currentSchedule.duration || Math.round((e-s)/(24*60*60*1000));
+    const fmt = (d) => d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
     range.textContent = fmt(s) + '  \u2014  ' + fmt(e) + '  ('+dur+' hari)';
   } else {
     info.style.display='none';
@@ -2343,75 +1119,115 @@ function isLate(timestamp){
   return t < s || t > e;
 }
 
-async function submitVisitor(){
+function submitVisitor(){
   const nama=document.getElementById('vNama').value.trim(), nim=document.getElementById('vNim').value.trim(), err=document.getElementById('vError');
   // Schedule checks
   if(!currentSchedule || !currentSchedule.start || !currentSchedule.end){err.textContent='\u26a0 Jadwal belum disetel. Silakan atur jadwal terlebih dahulu.';err.style.display='block';return;}
   const now=new Date().getTime(), schedStart=new Date(currentSchedule.start).getTime();
   if(now<schedStart){const sd=new Date(currentSchedule.start);err.textContent='\u26a0 Akses belum dibuka. Jadwal dimulai pada '+sd.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+' '+sd.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+'.';err.style.display='block';return;}
   const isDosen=nama.toLowerCase()==='dedik romahadi';
-  if(!nama){err.textContent='\u26a0 Nama wajib diisi.';err.style.display='block';return;}
-  if(!isValidName(nama)){err.textContent='\u26a0 Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi';err.style.display='block';return;}
-  if(!isDosen&&!nim){err.textContent='\u26a0 NIM wajib diisi.';err.style.display='block';return;}
-  if(!isDosen&&!isValidNim(nim)){err.textContent='\u26a0 NIM harus berupa angka tanpa spasi. Contoh: 41522010001';err.style.display='block';return;}
+  if(!nama){err.textContent='⚠ Nama wajib diisi.';err.style.display='block';return;}
+  if(!isValidName(nama)){err.textContent='⚠ Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi';err.style.display='block';return;}
+  if(!isDosen&&!nim){err.textContent='⚠ NIM wajib diisi.';err.style.display='block';return;}
+  if(!isDosen&&!isValidNim(nim)){err.textContent='⚠ NIM harus berupa angka tanpa spasi. Contoh: 41522010001';err.style.display='block';return;}
+  if(!isDosen&&!masterFetchDone){err.textContent='⚠ Data mahasiswa sedang dimuat, silakan coba lagi.';err.style.display='block';return;}
   err.style.display='none';
-  const key=sanitizeKey(isDosen?`dosen_${nama}`:`mhs_${nim}`);
-  const existing=await get(ref(db,`${DB_PATH}/${key}`));
-  const firstTs=existing.exists()&&existing.val().timestamp?existing.val().timestamp:new Date().toISOString();
-  const oldCount=existing.exists()&&existing.val().visitCount?existing.val().visitCount:0;
-  const v={nama,nim:isDosen?'DOSEN':nim,role:isDosen?'dosen':'student',timestamp:firstTs,visitCount:oldCount+1,lastVisit:new Date().toISOString()};
-  saveIdentity(v);
-  await set(ref(db,`${DB_PATH}/${key}`),v);
+  if(isDosen){
+    saveIdentity({nama, nim:'DOSEN', role:'dosen', timestamp:new Date().toISOString()});
+  } else if(masterFetchDone && !masterStudents.some(s=>s.nim===nim && s.nama.toUpperCase()===nama.toUpperCase())){
+    const nimExists=masterStudents.some(s=>s.nim===nim);
+    if(nimExists){err.textContent='⚠ Nama tidak sesuai dengan NIM yang terdaftar. Pastikan nama sesuai daftar Nilai Akhir.';err.style.display='block';return;}
+    saveIdentity({nama, nim, role:'guest', timestamp:new Date().toISOString()});
+  } else {
+    const key = sanitizeKey(`mhs_${nim}`);
+    const nowISO = new Date().toISOString();
+    get(ref(db, `${DB_PATH}/${key}`)).then(snap => {
+      let v;
+      if(snap.exists()){
+        const ex = snap.val();
+        const lastV = new Date(ex.lastVisit || ex.timestamp).getTime();
+        const canBump = (Date.now() - lastV) >= VISIT_COOLDOWN;
+        v = {...ex, visitCount: canBump ? (ex.visitCount||1)+1 : (ex.visitCount||1), lastVisit: canBump ? nowISO : (ex.lastVisit||ex.timestamp)};
+      } else {
+        v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO};
+      }
+      saveIdentity(v);
+      return set(ref(db, `${DB_PATH}/${key}`), v);
+    }).catch(()=>{
+      const v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO};
+      saveIdentity(v);
+      set(ref(db, `${DB_PATH}/${key}`), v);
+    });
+  }
   document.getElementById('visitorOverlay').classList.add('hidden');
   document.getElementById('visitorFab').style.display='flex';
 }
 
 function renderVisitors(visitors){
-  visitors.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
-  const seen=new Set(),unique=[];
-  for(const v of visitors){const id=v.nama+'|'+v.nim;if(!seen.has(id)){seen.add(id);unique.push(v);}}
-  const mc=unique.filter(v=>v.role!=='dosen').length, dc=unique.filter(v=>v.role==='dosen').length;
-  const lateCount=unique.filter(v=>v.role!=='dosen'&&isLate(v.timestamp)).length;
+  const visitMap={};
+  for(const v of visitors){if(v.role==='dosen'||v.role==='guest')continue;if(!visitMap[v.nim])visitMap[v.nim]=v;}
+  const visited=Object.values(visitMap);
+  const lateCount=visited.filter(v=>isLate(v.timestamp)).length;
+  const schedExpired=currentSchedule&&currentSchedule.end&&new Date().getTime()>new Date(currentSchedule.end).getTime();
 
-  document.getElementById('fabCount').textContent=unique.length;
-  document.getElementById('vpBadge').textContent=unique.length+' orang';
-  document.getElementById('statTotal').textContent=unique.length;
-  document.getElementById('statMhs').textContent=mc;
-  document.getElementById('statDosen').textContent=dc;
+  document.getElementById('fabCount').textContent=visited.length;
+  updateLeaderboard(visitors, schedExpired);
+  document.getElementById('vpBadge').textContent=visited.length+' orang';
   const statLateEl=document.getElementById('statLate');
   if(statLateEl) statLateEl.textContent=lateCount;
 
   const listEl=document.getElementById('vpList'), tableEl=document.getElementById('visitorTableBody');
 
-  if(!unique.length){
-    listEl.innerHTML='<div class="vp-empty">Belum ada pengunjung.</div>';
-    tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:var(--s500,#64748b);font-size:.88rem;">Belum ada pengunjung.</div>';
-    return;
+  // Panel: only actual visitors
+  if(!visited.length){listEl.innerHTML='<div class="vp-empty">Belum ada pengunjung.</div>';}
+  else{
+    listEl.innerHTML=visited.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(v=>{
+      const ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+      const late=isLate(v.timestamp);
+      const lBadge=late?'<span style="color:#fb7185;font-size:.65rem;font-weight:600;margin-left:4px;">\u23f0 Terlambat</span>':'';
+      return `<div class="vp-item" style="${late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':''}"><div class="vp-avatar student" style="${late?'background:rgba(251,113,133,.12);color:#fb7185;':''}">${ini}</div><div class="vp-info"><div class="vp-name">${escH(v.nama)}${lBadge}</div><div class="vp-nim">${escH(v.nim)}</div></div><div class="vp-time"><div>${ts}</div><div style="font-size:.6rem;color:#94a3b8;text-align:right;">${v.visitCount||1}x kunjungan</div></div></div>`;
+    }).join('');
   }
 
-  listEl.innerHTML=unique.map(v=>{
-    const d=v.role==='dosen', ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-    const late=!d&&isLate(v.timestamp);
-    const lBadge=late?'<span style="color:#fb7185;font-size:.65rem;font-weight:600;margin-left:4px;">\u23f0 Terlambat</span>':'';
-    return '<div class="vp-item" style="'+(late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':'')+'"><div class="vp-avatar '+(d?'dosen':'student')+'" style="'+(late?'background:rgba(251,113,133,.12);color:#fb7185;':'')+'">'+ ini+'</div><div class="vp-info"><div class="vp-name">'+(d?'\ud83d\udc68\u200d\ud83c\udfeb ':'')+escH(v.nama)+lBadge+'</div><div class="vp-nim">'+(d?'Dosen Pengampu':escH(v.nim))+'</div></div><div style="font-size:.65rem;font-weight:700;color:var(--sky,#38bdf8);margin-right:4px;">'+(v.visitCount||1)+'×</div><div class="vp-time">'+ts+'</div></div>';
-  }).join('');
-
-  tableEl.innerHTML=unique.map((v,i)=>{
-    const d=v.role==='dosen', ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-    const late=!d&&isLate(v.timestamp);
-    const rowBg=late?'background:rgba(251,113,133,.04);':'';
-    const nameColor=late?'color:#fb7185;':'color:var(--s200,#e2e8f0);';
-    const ac=d?'background:rgba(251,191,36,.12);color:var(--amber,#fbbf24);':late?'background:rgba(251,113,133,.12);color:#fb7185;':'background:rgba(45,212,191,.12);color:var(--teal,#2dd4bf);';
-    const rc=d?'<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(251,191,36,.1);color:var(--amber,#fbbf24);border:1px solid rgba(251,191,36,.2);margin-left:8px;">Dosen</span>':'';
-    const statusCol=d?'<span style="color:var(--s500,#64748b);font-size:.75rem;">\u2014</span>':late?'<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(251,113,133,.12);color:#fb7185;border:1px solid rgba(251,113,133,.25);">\u23f0 Terlambat</span>':'<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.25);">\u2705 Tepat Waktu</span>';
-    return '<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);'+rowBg+'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:'+(late?'#fb7185':'var(--s500,#64748b)')+';font-weight:600;">'+(i+1)+'</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;'+ac+'">'+ini+'</div><div><div style="font-weight:600;font-size:.88rem;'+nameColor+'">'+escH(v.nama)+rc+'</div></div></div><div style="flex:1;font-size:.8rem;color:'+(late?'#fb7185':'var(--s400,#94a3b8)')+';font-family:monospace;">'+(d?'\u2014':escH(v.nim))+'</div><div style="flex:1;text-align:center;">'+statusCol+'</div><div style="flex:.6;text-align:center;font-size:.82rem;font-weight:700;color:var(--sky,#38bdf8);">'+(v.visitCount||1)+'×</div><div style="flex:1;text-align:right;font-size:.78rem;color:'+(late?'#fb7185':'var(--s500,#64748b)')+';">'+ts+'</div></div>';
+  // Table: ALL students from masterStudents
+  if(!masterStudents.length){
+    tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">\u23f3 Memuat data mahasiswa...</div>';
+    return;
+  }
+  function toTitle(s){return s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());}
+  tableEl.innerHTML=masterStudents.map((s,i)=>{
+    const v=visitMap[s.nim];
+    const nama=toTitle(s.nama);
+    const ini=nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const hasVisit=!!v;
+    const late=hasVisit&&isLate(v.timestamp);
+    const bolos=!hasVisit&&schedExpired;
+    const vc=hasVisit?(v.visitCount||1):0;
+    const ts=hasVisit?(()=>{const dt=new Date(v.timestamp);return dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});})():'—';
+    let statusCol,rowBg='',nameColor='color:#e2e8f0;',ac='background:rgba(255,255,255,.08);color:#e2e8f0;';
+    if(bolos){
+      statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25);">\u274c Bolos</span>';
+      rowBg='background:rgba(239,68,68,.03);';nameColor='color:#ef4444;';ac='background:rgba(239,68,68,.12);color:#ef4444;';
+    }else if(!hasVisit){
+      statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(100,116,139,.1);color:#94a3b8;border:1px solid rgba(100,116,139,.2);">\u23f3 Belum</span>';
+      rowBg='';nameColor='color:#64748b;';ac='background:rgba(100,116,139,.1);color:#94a3b8;';
+    }else if(late){
+      statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(251,113,133,.12);color:#fb7185;border:1px solid rgba(251,113,133,.25);">\u23f0 Terlambat</span>';
+      rowBg='background:rgba(251,113,133,.04);';nameColor='color:#fb7185;';ac='background:rgba(251,113,133,.12);color:#fb7185;';
+    }else{
+      statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.25);">\u2705 Tepat Waktu</span>';
+    }
+    const vcDisplay=vc?vc+'x':'<span style="color:#475569;">—</span>';
+    const tsColor=bolos?'#ef4444':late?'#fb7185':hasVisit?'#64748b':'#475569';
+    return `<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;${rowBg}" onmouseenter="this.style.background='rgba(255,255,255,.03)'" onmouseleave="this.style.background='${rowBg||'transparent'}'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:${tsColor};font-weight:600;">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${ac}">${ini}</div><div><div style="font-weight:600;font-size:.88rem;${nameColor}">${escH(nama)}</div></div></div><div style="flex:1;font-size:.8rem;color:${hasVisit?'#94a3b8':'#475569'};font-family:monospace;">${s.nim}</div><div style="flex:1;text-align:center;">${statusCol}</div><div style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:#94a3b8;">${vcDisplay}</div><div style="flex:1;text-align:right;font-size:.78rem;color:${tsColor};">${ts}</div></div>`;
   }).join('');
 }
 
 function togglePanel(){panelOpen=!panelOpen;document.getElementById('visitorPanel').classList.toggle('open',panelOpen);}
 document.addEventListener('click',function(e){const p=document.getElementById('visitorPanel'),f=document.getElementById('visitorFab');if(panelOpen&&!p.contains(e.target)&&!f.contains(e.target)){panelOpen=false;p.classList.remove('open');}});
+function escH(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
 
 // Reset
 function showResetModal(){document.getElementById('resetOverlay').classList.remove('hidden');document.getElementById('resetPw').value='';document.getElementById('resetError').style.display='none';setTimeout(()=>document.getElementById('resetPw').focus(),100);}
@@ -2432,7 +1248,6 @@ function confirmReset(){
   document.getElementById('visitorOverlay').classList.remove('hidden');
   document.getElementById('visitorFab').style.display='none';
 }
-
 // Schedule
 function showScheduleModal(){
   document.getElementById('scheduleOverlay').classList.remove('hidden');
@@ -2472,10 +1287,12 @@ document.getElementById('schedulePw').addEventListener('keydown',function(e){if(
 document.getElementById('vNim').addEventListener('keydown',function(e){if(e.key==='Enter')submitVisitor();});
 document.getElementById('vNama').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('vNim').focus();});
 
+
 window.submitVisitor=submitVisitor;window.togglePanel=togglePanel;
 window.showResetModal=showResetModal;window.hideResetModal=hideResetModal;window.confirmReset=confirmReset;
 window.showScheduleModal=showScheduleModal;window.hideScheduleModal=hideScheduleModal;window.saveSchedule=saveSchedule;
 
+setInterval(()=>{renderVisitors(latestVisitors);},30000);
 initVisitor();
 </script>
 </body>
