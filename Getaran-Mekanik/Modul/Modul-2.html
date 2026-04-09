@@ -1671,7 +1671,7 @@ window.addEventListener('resize',()=>{ setTimeout(drawAllPhase, 100); });
       <div style="flex:1;padding:20px 24px;text-align:center;"><div id="statDosen" style="font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;color:var(--amber,#fbbf24);">—</div><div style="font-size:.75rem;color:var(--s500,#64748b);margin-top:2px;">Dosen</div></div>
     </div>
     <div style="display:flex;padding:14px 24px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;font-weight:600;color:var(--s500,#64748b);text-transform:uppercase;letter-spacing:.08em;">
-      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:1;text-align:right;">Waktu Akses</div>
+      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
     </div>
     <div id="visitorTableBody" style="max-height:420px;overflow-y:auto;"><div style="text-align:center;padding:40px 24px;color:var(--s500,#64748b);font-size:.88rem;">⏳ Memuat data pengunjung...</div></div>
   </div>
@@ -1726,7 +1726,9 @@ function sanitizeKey(s){return s.replace(/[.#$/\[\]]/g,'_');}
 
 function initVisitor(){
   const me = getIdentity();
-  if(me && me.nama){document.getElementById('visitorOverlay').classList.add('hidden');document.getElementById('visitorFab').style.display='flex';}
+  if(me && me.nama){document.getElementById('visitorOverlay').classList.add('hidden');document.getElementById('visitorFab').style.display='flex';
+    (async()=>{try{const isDosen=me.nama.toLowerCase()==='dedik romahadi';const key=sanitizeKey(isDosen?'dosen_'+me.nama:'mhs_'+me.nim);const snap=await get(ref(db,DB_PATH+'/'+key));if(snap.exists()){const rec=snap.val();const lastV=rec.lastVisit?new Date(rec.lastVisit).getTime():0;const now=Date.now();if(now-lastV>3600000){await set(ref(db,DB_PATH+'/'+key),Object.assign({},rec,{visitCount:(rec.visitCount||0)+1,lastVisit:new Date().toISOString()}))}}}catch(e){console.error(e)}})();
+  }
 
   // Listen schedule
   onValue(ref(db, SCHEDULE_PATH), (snap) => {
@@ -1768,7 +1770,7 @@ function isLate(timestamp){
   return t < s || t > e;
 }
 
-function submitVisitor(){
+async function submitVisitor(){
   const nama=document.getElementById('vNama').value.trim(), nim=document.getElementById('vNim').value.trim(), err=document.getElementById('vError');
   // Schedule checks
   if(!currentSchedule || !currentSchedule.start || !currentSchedule.end){err.textContent='\u26a0 Jadwal belum disetel. Silakan atur jadwal terlebih dahulu.';err.style.display='block';return;}
@@ -1780,9 +1782,13 @@ function submitVisitor(){
   if(!isDosen&&!nim){err.textContent='\u26a0 NIM wajib diisi.';err.style.display='block';return;}
   if(!isDosen&&!isValidNim(nim)){err.textContent='\u26a0 NIM harus berupa angka tanpa spasi. Contoh: 41522010001';err.style.display='block';return;}
   err.style.display='none';
-  const v={nama,nim:isDosen?'DOSEN':nim,role:isDosen?'dosen':'student',timestamp:new Date().toISOString()};
+  const key=sanitizeKey(isDosen?`dosen_${nama}`:`mhs_${nim}`);
+  const existing=await get(ref(db,`${DB_PATH}/${key}`));
+  const firstTs=existing.exists()&&existing.val().timestamp?existing.val().timestamp:new Date().toISOString();
+  const oldCount=existing.exists()&&existing.val().visitCount?existing.val().visitCount:0;
+  const v={nama,nim:isDosen?'DOSEN':nim,role:isDosen?'dosen':'student',timestamp:firstTs,visitCount:oldCount+1,lastVisit:new Date().toISOString()};
   saveIdentity(v);
-  set(ref(db, `${DB_PATH}/${sanitizeKey(isDosen?`dosen_${nama}`:`mhs_${nim}`)}`), v);
+  await set(ref(db,`${DB_PATH}/${key}`),v);
   document.getElementById('visitorOverlay').classList.add('hidden');
   document.getElementById('visitorFab').style.display='flex';
 }
@@ -1815,7 +1821,7 @@ function renderVisitors(visitors){
     const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
     const late=!d&&isLate(v.timestamp);
     const lBadge=late?'<span style="color:#fb7185;font-size:.65rem;font-weight:600;margin-left:4px;">\u23f0 Terlambat</span>':'';
-    return '<div class="vp-item" style="'+(late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':'')+'"><div class="vp-avatar '+(d?'dosen':'student')+'" style="'+(late?'background:rgba(251,113,133,.12);color:#fb7185;':'')+'">'+ ini+'</div><div class="vp-info"><div class="vp-name">'+(d?'\ud83d\udc68\u200d\ud83c\udfeb ':'')+escH(v.nama)+lBadge+'</div><div class="vp-nim">'+(d?'Dosen Pengampu':escH(v.nim))+'</div></div><div class="vp-time">'+ts+'</div></div>';
+    return '<div class="vp-item" style="'+(late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':'')+'"><div class="vp-avatar '+(d?'dosen':'student')+'" style="'+(late?'background:rgba(251,113,133,.12);color:#fb7185;':'')+'">'+ ini+'</div><div class="vp-info"><div class="vp-name">'+(d?'\ud83d\udc68\u200d\ud83c\udfeb ':'')+escH(v.nama)+lBadge+'</div><div class="vp-nim">'+(d?'Dosen Pengampu':escH(v.nim))+'</div></div><div style="font-size:.65rem;font-weight:700;color:var(--sky,#38bdf8);margin-right:4px;">'+(v.visitCount||1)+'×</div><div class="vp-time">'+ts+'</div></div>';
   }).join('');
 
   tableEl.innerHTML=unique.map((v,i)=>{
@@ -1827,7 +1833,7 @@ function renderVisitors(visitors){
     const ac=d?'background:rgba(251,191,36,.12);color:var(--amber,#fbbf24);':late?'background:rgba(251,113,133,.12);color:#fb7185;':'background:rgba(45,212,191,.12);color:var(--teal,#2dd4bf);';
     const rc=d?'<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(251,191,36,.1);color:var(--amber,#fbbf24);border:1px solid rgba(251,191,36,.2);margin-left:8px;">Dosen</span>':'';
     const statusCol=d?'<span style="color:var(--s500,#64748b);font-size:.75rem;">\u2014</span>':late?'<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(251,113,133,.12);color:#fb7185;border:1px solid rgba(251,113,133,.25);">\u23f0 Terlambat</span>':'<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.25);">\u2705 Tepat Waktu</span>';
-    return '<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);'+rowBg+'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:'+(late?'#fb7185':'var(--s500,#64748b)')+';font-weight:600;">'+(i+1)+'</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;'+ac+'">'+ini+'</div><div><div style="font-weight:600;font-size:.88rem;'+nameColor+'">'+escH(v.nama)+rc+'</div></div></div><div style="flex:1;font-size:.8rem;color:'+(late?'#fb7185':'var(--s400,#94a3b8)')+';font-family:monospace;">'+(d?'\u2014':escH(v.nim))+'</div><div style="flex:1;text-align:center;">'+statusCol+'</div><div style="flex:1;text-align:right;font-size:.78rem;color:'+(late?'#fb7185':'var(--s500,#64748b)')+';">'+ts+'</div></div>';
+    return '<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);'+rowBg+'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:'+(late?'#fb7185':'var(--s500,#64748b)')+';font-weight:600;">'+(i+1)+'</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;'+ac+'">'+ini+'</div><div><div style="font-weight:600;font-size:.88rem;'+nameColor+'">'+escH(v.nama)+rc+'</div></div></div><div style="flex:1;font-size:.8rem;color:'+(late?'#fb7185':'var(--s400,#94a3b8)')+';font-family:monospace;">'+(d?'\u2014':escH(v.nim))+'</div><div style="flex:1;text-align:center;">'+statusCol+'</div><div style="flex:.6;text-align:center;font-size:.82rem;font-weight:700;color:var(--sky,#38bdf8);">'+(v.visitCount||1)+'×</div><div style="flex:1;text-align:right;font-size:.78rem;color:'+(late?'#fb7185':'var(--s500,#64748b)')+';">'+ts+'</div></div>';
   }).join('');
 }
 
