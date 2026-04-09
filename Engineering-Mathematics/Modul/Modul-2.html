@@ -987,18 +987,20 @@ function initVisitor(){
   if(me && me.nama){
     document.getElementById('visitorOverlay').classList.add('hidden');
     document.getElementById('visitorFab').style.display='flex';
-    // Bump visit count for returning visitor (1hr cooldown)
+    // Bump visit count for returning visitor (1hr cooldown) - skip dosen
     const _isDosen = me.nama.toLowerCase()==='dedik romahadi';
-    const _key = sanitizeKey(_isDosen?`dosen_${me.nama}`:`mhs_${me.nim}`);
-    get(ref(db,`${DB_PATH}/${_key}`)).then(snap=>{
-      if(snap.exists()){
-        const ex=snap.val();
-        const lastV=new Date(ex.lastVisit||ex.timestamp).getTime();
-        if(Date.now()-lastV>=VISIT_COOLDOWN){
-          set(ref(db,`${DB_PATH}/${_key}`),{...ex,visitCount:(ex.visitCount||1)+1,lastVisit:new Date().toISOString()});
+    if(!_isDosen){
+      const _key = sanitizeKey(`mhs_${me.nim}`);
+      get(ref(db,`${DB_PATH}/${_key}`)).then(snap=>{
+        if(snap.exists()){
+          const ex=snap.val();
+          const lastV=new Date(ex.lastVisit||ex.timestamp).getTime();
+          if(Date.now()-lastV>=VISIT_COOLDOWN){
+            set(ref(db,`${DB_PATH}/${_key}`),{...ex,visitCount:(ex.visitCount||1)+1,lastVisit:new Date().toISOString()});
+          }
         }
-      }
-    }).catch(()=>{});
+      }).catch(()=>{});
+    }
   }
 
   // Listen schedule
@@ -1054,25 +1056,29 @@ function submitVisitor(){
   if(!isDosen&&!nim){err.textContent='⚠ NIM wajib diisi.';err.style.display='block';return;}
   if(!isDosen&&!isValidNim(nim)){err.textContent='⚠ NIM harus berupa angka tanpa spasi. Contoh: 41522010001';err.style.display='block';return;}
   err.style.display='none';
-  const key = sanitizeKey(isDosen ? `dosen_${nama}` : `mhs_${nim}`);
-  const nowISO = new Date().toISOString();
-  get(ref(db, `${DB_PATH}/${key}`)).then(snap => {
-    let v;
-    if(snap.exists()){
-      const ex = snap.val();
-      const lastV = new Date(ex.lastVisit || ex.timestamp).getTime();
-      const canBump = (Date.now() - lastV) >= VISIT_COOLDOWN;
-      v = {...ex, visitCount: canBump ? (ex.visitCount||1)+1 : (ex.visitCount||1), lastVisit: canBump ? nowISO : (ex.lastVisit||ex.timestamp)};
-    } else {
-      v = {nama, nim:isDosen?'DOSEN':nim, role:isDosen?'dosen':'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO};
-    }
-    saveIdentity(v);
-    return set(ref(db, `${DB_PATH}/${key}`), v);
-  }).catch(()=>{
-    const v = {nama, nim:isDosen?'DOSEN':nim, role:isDosen?'dosen':'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO};
-    saveIdentity(v);
-    set(ref(db, `${DB_PATH}/${key}`), v);
-  });
+  if(isDosen){
+    saveIdentity({nama, nim:'DOSEN', role:'dosen', timestamp:new Date().toISOString()});
+  } else {
+    const key = sanitizeKey(`mhs_${nim}`);
+    const nowISO = new Date().toISOString();
+    get(ref(db, `${DB_PATH}/${key}`)).then(snap => {
+      let v;
+      if(snap.exists()){
+        const ex = snap.val();
+        const lastV = new Date(ex.lastVisit || ex.timestamp).getTime();
+        const canBump = (Date.now() - lastV) >= VISIT_COOLDOWN;
+        v = {...ex, visitCount: canBump ? (ex.visitCount||1)+1 : (ex.visitCount||1), lastVisit: canBump ? nowISO : (ex.lastVisit||ex.timestamp)};
+      } else {
+        v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO};
+      }
+      saveIdentity(v);
+      return set(ref(db, `${DB_PATH}/${key}`), v);
+    }).catch(()=>{
+      const v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO};
+      saveIdentity(v);
+      set(ref(db, `${DB_PATH}/${key}`), v);
+    });
+  }
   document.getElementById('visitorOverlay').classList.add('hidden');
   document.getElementById('visitorFab').style.display='flex';
 }
@@ -1080,7 +1086,7 @@ function submitVisitor(){
 function renderVisitors(visitors){
   visitors.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
   const seen=new Set(),unique=[];
-  for(const v of visitors){const id=`${v.nama}|${v.nim}`;if(!seen.has(id)){seen.add(id);unique.push(v);}}
+  for(const v of visitors){if(v.role==="dosen")continue;const id=`${v.nama}|${v.nim}`;if(!seen.has(id)){seen.add(id);unique.push(v);}}
   const mc=unique.filter(v=>v.role!=='dosen').length, dc=unique.filter(v=>v.role==='dosen').length;
   const lateCount=unique.filter(v=>v.role!=='dosen'&&isLate(v.timestamp)).length;
 
