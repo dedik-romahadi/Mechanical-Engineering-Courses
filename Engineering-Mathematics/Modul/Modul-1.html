@@ -2516,13 +2516,14 @@ function updateLeaderboard(visitors, schedExpired){
     if(!notVisited.length){bolosEl.innerHTML='<span style="color:#10b981;font-size:.78rem;">\u2705 Semua mahasiswa sudah berkunjung!</span>';}
     else{bolosEl.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:6px;">'+notVisited.map(s=>'<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.12);border-radius:10px;padding:5px 10px;"><span style="font-weight:600;font-size:.75rem;color:#ef4444;">'+escH(s.nama)+'</span><span style="font-size:.62rem;color:#64748b;font-family:monospace;">'+s.nim+'</span></div>').join('')+'</div>';}
   } else {
-    bolosCEl.textContent=notVisited.length;
-    if(!notVisited.length){bolosEl.innerHTML='<span style="color:#10b981;font-size:.78rem;">\u2705 Semua mahasiswa sudah berkunjung!</span>';}
-    else{bolosEl.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:6px;">'+notVisited.map(s=>'<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:5px 10px;"><span style="font-weight:600;font-size:.75rem;">'+escH(s.nama)+'</span><span style="font-size:.62rem;color:#64748b;font-family:monospace;">'+s.nim+'</span></div>').join('')+'</div>';}
+    bolosCEl.textContent='—';
+    const belum=notVisited.length;
+    bolosEl.innerHTML=belum?'<span style="color:#94a3b8;font-size:.78rem;">⏳ '+belum+' mahasiswa belum berkunjung. Batas waktu belum berakhir.</span>':'<span style="color:#10b981;font-size:.78rem;">✅ Semua mahasiswa sudah berkunjung!</span>';
   }
 }
 fetchMasterStudents();
 
+let latestVisitors=[];
 function initVisitor(){
   const me = getIdentity();
   if(me && me.nama){
@@ -2551,14 +2552,14 @@ function initVisitor(){
     // Re-render visitors with schedule context
     onValue(ref(db, DB_PATH), (vsnap) => {
       const data = vsnap.val();
-      renderVisitors(data ? Object.values(data) : []);
+      latestVisitors=data ? Object.values(data) : [];renderVisitors(latestVisitors);
     }, {onlyOnce: true});
   });
 
   // Listen visitors
   onValue(ref(db, DB_PATH), (snapshot) => {
     const data = snapshot.val();
-    renderVisitors(data ? Object.values(data) : []);
+    latestVisitors=data ? Object.values(data) : [];renderVisitors(latestVisitors);
   });
 }
 
@@ -2758,6 +2759,7 @@ window.submitVisitor=submitVisitor;window.togglePanel=togglePanel;
 window.showResetModal=showResetModal;window.hideResetModal=hideResetModal;window.confirmReset=confirmReset;
 window.showScheduleModal=showScheduleModal;window.hideScheduleModal=hideScheduleModal;window.saveSchedule=saveSchedule;
 
+setInterval(()=>{renderVisitors(latestVisitors);},30000);
 initVisitor();
 </script>
 </body>
