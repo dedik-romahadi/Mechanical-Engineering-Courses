@@ -964,7 +964,7 @@ window.addEventListener('scroll', () => {
       <div style="flex:1;padding:20px 24px;text-align:center;"><div id="statDosen" style="font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;color:var(--amber,#fbbf24);">—</div><div style="font-size:.75rem;color:var(--s500,#64748b);margin-top:2px;">Dosen</div></div>
     </div>
     <div style="display:flex;padding:14px 24px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;font-weight:600;color:var(--s500,#64748b);text-transform:uppercase;letter-spacing:.08em;">
-      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:right;">Waktu Akses</div>
+      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
     </div>
     <div id="visitorTableBody" style="max-height:420px;overflow-y:auto;"><div style="text-align:center;padding:40px 24px;color:var(--s500,#64748b);font-size:.88rem;">⏳ Memuat data pengunjung...</div></div>
   </div>
@@ -981,12 +981,9 @@ window.addEventListener('scroll', () => {
 
 
 <script type="module">
-// ═══ FIREBASE VISITOR SYSTEM ═══
+// === VISITOR SYSTEM (Firebase) ===
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getDatabase, ref, set, remove, onValue } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
-
-const MODULE_ID = 'setup_python';
-const IDENTITY_KEY = 'optoauto_identity_' + MODULE_ID;
+import { getDatabase, ref, push, set, get, remove, onValue } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",
@@ -1001,153 +998,117 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-const visitorsRef = ref(db, 'visitors/getaran_mekanik/' + MODULE_ID);
+const MODULE_ID = 'setup-python';
+const DB_PATH = `visitors/getaran_mekanik/${MODULE_ID}`;
+const LOCAL_KEY = `optoauto_identity_${MODULE_ID}`;
+let panelOpen = false;
 
-function getIdentity() {
-  try { return JSON.parse(localStorage.getItem(IDENTITY_KEY)); } catch(e) { return null; }
+function getIdentity() { try { return JSON.parse(localStorage.getItem(LOCAL_KEY)); } catch(e) { return null; } }
+function saveIdentity(v) { localStorage.setItem(LOCAL_KEY, JSON.stringify(v)); }
+function isValidName(n) { if(!n) return false; return n.split(/\s+/).every(w => w.length > 0 && /^[A-Z][a-z]*$/.test(w)); }
+function isValidNim(n) { return /^\d+$/.test(n); }
+function escH(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function initVisitor() {
+  const me = getIdentity();
+  if (me && me.nama) {
+    document.getElementById('visitorOverlay').classList.add('hidden');
+    document.getElementById('visitorFab').style.display = 'flex';
+    (async()=>{try{const snap=await get(ref(db,DB_PATH));const data=snap.val()||{};for(const[k,rec]of Object.entries(data)){if(rec.nama===me.nama&&rec.nim===me.nim){const lastV=rec.lastVisit?new Date(rec.lastVisit).getTime():0;if(Date.now()-lastV>3600000){await set(ref(db,DB_PATH+'/'+k),Object.assign({},rec,{visitCount:(rec.visitCount||0)+1,lastVisit:new Date().toISOString()}))}break}}}catch(e){console.error(e)}})();
+  }
+  onValue(ref(db, DB_PATH), (snap) => {
+    const data = snap.val();
+    const visitors = data ? Object.entries(data).map(([k,v]) => ({...v, _key:k})) : [];
+    renderVisitorList(visitors);
+  });
 }
-function saveIdentity(v) {
-  localStorage.setItem(IDENTITY_KEY, JSON.stringify(v));
-}
-function isValidName(name) {
-  if (!name) return false;
-  return name.split(/\s+/).every(function(w) { return w.length > 0 && /^[A-Z][a-z]*$/.test(w); });
-}
-function isValidNim(nim) { return /^\d+$/.test(nim); }
-function escH(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
-// ── Init ──
-var me = getIdentity();
-if (me && me.nama) {
-  document.getElementById('visitorOverlay').classList.add('hidden');
-  document.getElementById('visitorFab').style.display = 'flex';
-}
-
-// ── Realtime listener ──
-onValue(visitorsRef, function(snap) {
-  var data = snap.val() || {};
-  renderVisitors(Object.values(data));
-});
-
-// ── Submit ──
-document.getElementById('vSubmit').addEventListener('click', function() {
-  var nama = document.getElementById('vNama').value.trim();
-  var nim = document.getElementById('vNim').value.trim();
-  var errEl = document.getElementById('vError');
-  var isDosen = nama.toLowerCase() === 'dedik romahadi';
-
-  if (!nama) { errEl.textContent = '\u26a0 Nama wajib diisi.'; errEl.style.display = 'block'; return; }
-  if (!isValidName(nama)) { errEl.textContent = '\u26a0 Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi'; errEl.style.display = 'block'; return; }
-  if (!isDosen && !nim) { errEl.textContent = '\u26a0 NIM wajib diisi.'; errEl.style.display = 'block'; return; }
-  if (!isDosen && !isValidNim(nim)) { errEl.textContent = '\u26a0 NIM harus berupa angka tanpa spasi. Contoh: 41522010001'; errEl.style.display = 'block'; return; }
-
-  errEl.style.display = 'none';
-  var visitor = { nama: nama, nim: isDosen ? 'DOSEN' : nim, role: isDosen ? 'dosen' : 'student', timestamp: new Date().toISOString() };
+window.submitVisitor = async function() {
+  const nama = document.getElementById('vNama').value.trim();
+  const nim  = document.getElementById('vNim').value.trim();
+  const err  = document.getElementById('vError');
+  const isDosen = nama.toLowerCase() === 'dedik romahadi';
+  if (!nama) { err.textContent = '\u26a0 Nama wajib diisi.'; err.style.display = 'block'; return; }
+  if (!isValidName(nama)) { err.textContent = '\u26a0 Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi'; err.style.display = 'block'; return; }
+  if (!isDosen && !nim) { err.textContent = '\u26a0 NIM wajib diisi.'; err.style.display = 'block'; return; }
+  if (!isDosen && !isValidNim(nim)) { err.textContent = '\u26a0 NIM harus berupa angka tanpa spasi. Contoh: 41522010001'; err.style.display = 'block'; return; }
+  err.style.display = 'none';
+  const visitor = { nama, nim: isDosen ? 'DOSEN' : nim, role: isDosen ? 'dosen' : 'student', timestamp: new Date().toISOString() };
+  try {
+    const snapshot = await get(ref(db, DB_PATH));
+    const data = snapshot.val() || {};
+    let existingKey = null;
+    for (const [k, v] of Object.entries(data)) { if (v.nama === visitor.nama && v.nim === visitor.nim) { existingKey = k; break; } }
+    if (existingKey) { visitor.timestamp = data[existingKey].timestamp || visitor.timestamp; visitor.visitCount = (data[existingKey].visitCount || 0) + 1; visitor.lastVisit = new Date().toISOString(); await set(ref(db, `${DB_PATH}/${existingKey}`), visitor); }
+    else { visitor.visitCount = 1; visitor.lastVisit = new Date().toISOString(); await push(ref(db, DB_PATH), visitor); }
+  } catch(e) { console.error('Firebase write error:', e); }
   saveIdentity(visitor);
-
-  var key = isDosen ? 'dosen_' + nama.replace(/\s+/g, '_').toLowerCase() : 'mhs_' + nim;
-  set(ref(db, 'visitors/getaran_mekanik/' + MODULE_ID + '/' + key), visitor);
-
   document.getElementById('visitorOverlay').classList.add('hidden');
   document.getElementById('visitorFab').style.display = 'flex';
-});
+};
 
-// ── Panel toggle ──
-var panelOpen = false;
-document.getElementById('visitorFab').addEventListener('click', function() {
-  panelOpen = !panelOpen;
-  document.getElementById('visitorPanel').classList.toggle('open', panelOpen);
-});
+function renderVisitorList(visitors) {
+  const listEl = document.getElementById('vpList');
+  const countEl = document.getElementById('fabCount');
+  const badgeEl = document.getElementById('vpBadge');
+  const tableEl = document.getElementById('visitorTableBody');
+  const stT = document.getElementById('statTotal');
+  const stM = document.getElementById('statMhs');
+  const stD = document.getElementById('statDosen');
+  visitors.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  const seen = new Set(), unique = [];
+  for (const v of visitors) { const id = `${v.nama}|${v.nim}`; if (!seen.has(id)) { seen.add(id); unique.push(v); } }
+  const mc = unique.filter(v => v.role !== 'dosen').length;
+  const dc = unique.filter(v => v.role === 'dosen').length;
+  countEl.textContent = unique.length; badgeEl.textContent = unique.length + ' orang';
+  stT.textContent = unique.length; stM.textContent = mc; stD.textContent = dc;
+  if (!unique.length) {
+    listEl.innerHTML = '<div class="vp-empty">Belum ada pengunjung.</div>';
+    tableEl.innerHTML = '<div style="text-align:center;padding:40px 24px;color:var(--s500);font-size:.88rem;">Belum ada pengunjung.</div>';
+    return;
+  }
+  listEl.innerHTML = unique.map(v => {
+    const d = v.role === 'dosen';
+    const ini = v.nama.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    const dt = new Date(v.timestamp);
+    const ts = dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'}) + ' ' + dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    return `<div class="vp-item"><div class="vp-avatar ${d?'dosen':'student'}">${ini}</div><div class="vp-info"><div class="vp-name">${d?'\ud83d\udc68\u200d\ud83c\udfeb ':''}${escH(v.nama)}</div><div class="vp-nim">${d?'Dosen Pengampu':escH(v.nim)}</div></div><div style="font-size:.65rem;font-weight:700;color:var(--sky,#38bdf8);margin-right:4px;">${v.visitCount||1}×</div><div class="vp-time">${ts}</div></div>`;
+  }).join('');
+  tableEl.innerHTML = unique.map((v, i) => {
+    const d = v.role === 'dosen';
+    const ini = v.nama.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    const dt = new Date(v.timestamp);
+    const ts = dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) + ', ' + dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    const ac = d ? 'background:rgba(251,191,36,.12);color:var(--amber,#fbbf24);' : 'background:rgba(45,212,191,.12);color:var(--teal,#2dd4bf);';
+    const rc = d ? '<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(251,191,36,.1);color:var(--amber,#fbbf24);border:1px solid rgba(251,191,36,.2);margin-left:8px;">Dosen</span>' : '';
+    return `<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;" onmouseenter="this.style.background='rgba(255,255,255,.03)'" onmouseleave="this.style.background='transparent'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:var(--s500);font-weight:600;">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${ac}">${ini}</div><div><div style="font-weight:600;font-size:.88rem;color:var(--s200,#e2e8f0);">${escH(v.nama)}${rc}</div></div></div><div style="flex:1;font-size:.8rem;color:var(--s400);font-family:'Courier New',monospace;">${d?'\u2014':escH(v.nim)}</div><div style="flex:.6;text-align:center;font-size:.82rem;font-weight:700;color:var(--sky,#38bdf8);">${v.visitCount||1}×</div><div style="flex:1;text-align:right;font-size:.78rem;color:var(--s500);">${ts}</div></div>`;
+  }).join('');
+}
+
+window.togglePanel = function() { panelOpen = !panelOpen; document.getElementById('visitorPanel').classList.toggle('open', panelOpen); };
 document.addEventListener('click', function(e) {
-  var p = document.getElementById('visitorPanel'), f = document.getElementById('visitorFab');
+  const p = document.getElementById('visitorPanel'), f = document.getElementById('visitorFab');
   if (panelOpen && !p.contains(e.target) && !f.contains(e.target)) { panelOpen = false; p.classList.remove('open'); }
 });
 
-// ── Reset ──
-document.querySelector('[onclick="showResetModal()"]').addEventListener('click', function(e) {
-  e.preventDefault();
-  document.getElementById('resetOverlay').classList.remove('hidden');
-  document.getElementById('resetPw').value = '';
-  document.getElementById('resetError').style.display = 'none';
-  setTimeout(function() { document.getElementById('resetPw').focus(); }, 100);
-});
+window.showResetModal = function() { document.getElementById('resetOverlay').classList.remove('hidden'); document.getElementById('resetPw').value = ''; document.getElementById('resetError').style.display = 'none'; setTimeout(() => document.getElementById('resetPw').focus(), 100); };
+window.hideResetModal = function() { document.getElementById('resetOverlay').classList.add('hidden'); };
 
-function hideResetModal() { document.getElementById('resetOverlay').classList.add('hidden'); }
-
-document.getElementById('resetPw').addEventListener('keydown', function(e) { if (e.key === 'Enter') doReset(); });
-document.getElementById('resetOverlay').addEventListener('click', function(e) { if (e.target === this) hideResetModal(); });
-document.getElementById('vNim').addEventListener('keydown', function(e) { if (e.key === 'Enter') document.getElementById('vSubmit').click(); });
-document.getElementById('vNama').addEventListener('keydown', function(e) { if (e.key === 'Enter') document.getElementById('vNim').focus(); });
-
-// Find and bind the cancel and confirm reset buttons
-document.querySelectorAll('.v-btn-cancel, [onclick="hideResetModal()"]').forEach(function(btn) {
-  btn.addEventListener('click', function(e) { e.preventDefault(); hideResetModal(); });
-});
-
-function doReset() {
+window.confirmReset = async function() {
   if (document.getElementById('resetPw').value !== 'TeknikMesin0602') { document.getElementById('resetError').style.display = 'block'; return; }
-  remove(visitorsRef);
-  localStorage.removeItem(IDENTITY_KEY);
+  try { await remove(ref(db, DB_PATH)); } catch(e) { console.error('Firebase delete error:', e); }
+  localStorage.removeItem(LOCAL_KEY);
   hideResetModal();
   document.getElementById('visitorOverlay').classList.remove('hidden');
   document.getElementById('visitorFab').style.display = 'none';
-}
+};
 
-// Bind confirm reset button
-var resetBtns = document.querySelectorAll('[onclick="confirmReset()"]');
-resetBtns.forEach(function(btn) {
-  btn.addEventListener('click', function(e) { e.preventDefault(); doReset(); });
-});
+document.getElementById('resetPw').addEventListener('keydown', function(e) { if (e.key === 'Enter') confirmReset(); });
+document.getElementById('resetOverlay').addEventListener('click', function(e) { if (e.target === this) hideResetModal(); });
+document.getElementById('vNim').addEventListener('keydown', function(e) { if (e.key === 'Enter') submitVisitor(); });
+document.getElementById('vNama').addEventListener('keydown', function(e) { if (e.key === 'Enter') document.getElementById('vNim').focus(); });
 
-// ── Render ──
-function renderVisitors(visitors) {
-  visitors.sort(function(a, b) { return new Date(b.timestamp) - new Date(a.timestamp); });
-  var seen = {}, unique = [];
-  visitors.forEach(function(v) { var id = v.nama + '|' + v.nim; if (!seen[id]) { seen[id] = true; unique.push(v); } });
-
-  var listEl = document.getElementById('vpList');
-  var countEl = document.getElementById('fabCount');
-  var badgeEl = document.getElementById('vpBadge');
-  var tableEl = document.getElementById('visitorTableBody');
-  var stT = document.getElementById('statTotal');
-  var stM = document.getElementById('statMhs');
-  var stD = document.getElementById('statDosen');
-
-  var mc = unique.filter(function(v) { return v.role !== 'dosen'; }).length;
-  var dc = unique.filter(function(v) { return v.role === 'dosen'; }).length;
-
-  countEl.textContent = unique.length;
-  badgeEl.textContent = unique.length + ' orang';
-  if (stT) stT.textContent = unique.length;
-  if (stM) stM.textContent = mc;
-  if (stD) stD.textContent = dc;
-
-  if (!unique.length) {
-    listEl.innerHTML = '<div class="vp-empty">Belum ada pengunjung.</div>';
-    if (tableEl) tableEl.innerHTML = '<div style="text-align:center;padding:40px 24px;color:var(--s500,#64748b);font-size:.88rem;">Belum ada pengunjung.</div>';
-    return;
-  }
-
-  listEl.innerHTML = unique.map(function(v) {
-    var d = v.role === 'dosen';
-    var ini = v.nama.split(' ').map(function(w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
-    var dt = new Date(v.timestamp);
-    var ts = dt.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) + ' ' + dt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-    return '<div class="vp-item"><div class="vp-avatar ' + (d ? 'dosen' : 'student') + '">' + ini + '</div><div class="vp-info"><div class="vp-name">' + (d ? '\ud83d\udc68\u200d\ud83c\udfeb ' : '') + escH(v.nama) + '</div><div class="vp-nim">' + (d ? 'Dosen Pengampu' : escH(v.nim)) + '</div></div><div class="vp-time">' + ts + '</div></div>';
-  }).join('');
-
-  if (tableEl) {
-    tableEl.innerHTML = unique.map(function(v, i) {
-      var d = v.role === 'dosen';
-      var ini = v.nama.split(' ').map(function(w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
-      var dt = new Date(v.timestamp);
-      var ts = dt.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) + ', ' + dt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-      var ac = d ? 'background:rgba(251,191,36,.12);color:var(--amber,#fbbf24);' : 'background:rgba(45,212,191,.12);color:var(--teal,#2dd4bf);';
-      var rc = d ? '<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(251,191,36,.1);color:var(--amber,#fbbf24);border:1px solid rgba(251,191,36,.2);margin-left:8px;">Dosen</span>' : '';
-      return '<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:var(--s500);font-weight:600;">' + (i + 1) + '</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;' + ac + '">' + ini + '</div><div><div style="font-weight:600;font-size:.88rem;color:var(--s200,#e2e8f0);">' + escH(v.nama) + rc + '</div></div></div><div style="flex:1;font-size:.8rem;color:var(--s400);font-family:monospace;">' + (d ? '\u2014' : escH(v.nim)) + '</div><div style="flex:1;text-align:right;font-size:.78rem;color:var(--s500);">' + ts + '</div></div>';
-    }).join('');
-  }
-}
+initVisitor();
 </script>
 
 </body>
