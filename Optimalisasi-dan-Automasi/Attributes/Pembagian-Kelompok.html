@@ -450,8 +450,8 @@ fetchMasterStudents();
 
 let latestVisitors=[];
 function initVisitor(){
-  const me = getIdentity();
-  if(me && me.nama){
+  let me = getIdentity();
+  if(me && me.role==='guest'){localStorage.removeItem(LOCAL_IDENTITY);me=null;}if(me && me.nama){
     document.getElementById('visitorOverlay').classList.add('hidden');
     document.getElementById('visitorFab').style.display='flex';
     // Bump visit count for returning visitor (1hr cooldown) - skip dosen
@@ -494,7 +494,7 @@ function submitVisitor(){
   } else if(masterFetchDone && !masterStudents.some(s=>s.nim===nim && s.nama.toUpperCase()===nama.toUpperCase())){
     const nimExists=masterStudents.some(s=>s.nim===nim);
     if(nimExists){err.textContent='⚠ Nama tidak sesuai dengan NIM yang terdaftar. Pastikan nama sesuai daftar Nilai Akhir.';err.style.display='block';return;}
-    saveIdentity({nama, nim, role:'guest', timestamp:new Date().toISOString()});
+    err.textContent='⚠ NIM tidak terdaftar. Hanya mahasiswa yang terdaftar yang dapat mengakses halaman ini.';err.style.display='block';return;
   } else {
     const key = sanitizeKey(`mhs_${nim}`);
     const nowISO = new Date().toISOString();
