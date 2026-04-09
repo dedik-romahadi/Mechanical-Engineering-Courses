@@ -3,576 +3,167 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tugas 1 • Optimalisasi & Otomasi • Dedik Romahadi</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
-
+<title>Tugas 2 — Matematika Teknik | Modul 1 & 2</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 <style>
-/* ============================================================
-   RESET & BASE
-   ============================================================ */
-*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+:root{--bg:#070b16;--bg2:#0e1525;--bg3:#151e30;--c1:#00e09e;--c2:#0ea5e9;--c3:#f97316;--c4:#ef4444;--c5:#a855f7;--c6:#facc15;--t1:#e8ecf4;--t2:#94a3b8;--t3:#64748b;--bd:#1e293b;--grad:linear-gradient(135deg,#070b16,#0c1a3a,#0a1424)}
+*{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth}
+body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--t1);line-height:1.8;overflow-x:hidden}
+::-webkit-scrollbar{width:7px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--c2);border-radius:4px}
 
-:root {
-  --teal:    #2dd4bf;
-  --amber:   #fbbf24;
-  --rose:    #fb7185;
-  --violet:  #a78bfa;
-  --lime:    #a3e635;
-  --bg:      #080e1a;
-  --surface: #0f1929;
-  --s700:    #334155;
-  --s600:    #475569;
-  --s500:    #64748b;
-  --s400:    #94a3b8;
-  --s300:    #cbd5e1;
-  --s200:    #e2e8f0;
-  --border:  rgba(45,212,191,.15);
-}
+/* ── HERO ── */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;background:var(--grad);position:relative;padding:2rem;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 20% 80%,rgba(0,224,158,.06),transparent 50%),radial-gradient(circle at 80% 20%,rgba(14,165,233,.08),transparent 50%),radial-gradient(circle at 50% 50%,rgba(249,115,22,.04),transparent 40%);pointer-events:none}
+.particles{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.p{position:absolute;width:3px;height:3px;background:var(--c3);border-radius:50%;opacity:0;animation:fl 9s infinite}
+@keyframes fl{0%{opacity:0;transform:translateY(100vh) scale(0)}10%{opacity:.7}90%{opacity:.2}100%{opacity:0;transform:translateY(-20vh) scale(1.5)}}
+@keyframes fsd{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+.badge{display:inline-flex;align-items:center;gap:.5rem;padding:.6rem 1.5rem;background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.35);border-radius:999px;font-size:.85rem;color:var(--c3);font-weight:700;letter-spacing:.06em;margin-bottom:1.5rem;animation:fsd .8s ease-out;position:relative;z-index:1}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(2.8rem,7vw,5.5rem);font-weight:900;line-height:1.05;margin-bottom:.5rem;animation:fsd 1s ease-out .2s both;z-index:1;position:relative}
+.hero h1 .hl{background:linear-gradient(135deg,var(--c3),var(--c4));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero .sub{font-size:1.1rem;color:var(--t2);max-width:560px;margin-bottom:2rem;animation:fsd 1s ease-out .35s both;z-index:1;position:relative}
 
-html { scroll-behavior:smooth; }
+/* ── COUNTDOWN ── */
+.cd-wrap{animation:fsd 1s ease-out .5s both;z-index:1;position:relative;margin-bottom:2rem}
+.cd-label{font-size:.75rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--c4);margin-bottom:.75rem}
+.cd{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap}
+.cd-box{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:14px;padding:.6rem 1rem;min-width:75px;text-align:center;backdrop-filter:blur(8px)}
+.cd-num{font-family:'JetBrains Mono',monospace;font-size:clamp(1.6rem,4vw,2.2rem);font-weight:800;color:var(--c4);line-height:1.1}
+.cd-unit{font-size:.65rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em}
+.cd-deadline{margin-top:.75rem;font-size:.85rem;color:var(--t3)}
+.cd-expired{color:var(--c4);font-weight:700;font-size:1.1rem;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 
-body {
-  font-family:'DM Sans',system-ui,sans-serif;
-  background:var(--bg);
-  color:var(--s200);
-  min-height:100vh;
-  overflow-x:hidden;
-  font-size:15px;
-  line-height:1.6;
-}
+/* ── LECTURER & META ── */
+.meta-row{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;animation:fsd 1s ease-out .65s both;z-index:1;position:relative;margin-bottom:2rem}
+.meta-chip{display:inline-flex;align-items:center;gap:.6rem;padding:.6rem 1.25rem;background:rgba(14,165,233,.08);border:1px solid rgba(14,165,233,.2);border-radius:12px;font-size:.85rem;font-weight:600;color:var(--t1);backdrop-filter:blur(8px)}
+.meta-chip .ic{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--c2),var(--c5));display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.meta-chip small{color:var(--t3);font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
 
-h1,h2,h3,h4,h5 { font-family:'Syne',sans-serif; line-height:1.15; }
+.hero-cta{animation:fsd 1s ease-out .8s both;z-index:1;position:relative}
+.btn-p{padding:.85rem 2.5rem;background:linear-gradient(135deg,var(--c3),var(--c4));color:#fff;font-weight:700;font-size:1rem;border:none;border-radius:12px;cursor:pointer;text-decoration:none;transition:all .3s;display:inline-flex;align-items:center;gap:.5rem}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(249,115,22,.3)}
 
-code {
-  font-family:'Courier New',monospace;
-  font-size:.82em;
-  background:rgba(255,255,255,.07);
-  padding:2px 7px;
-  border-radius:6px;
-  color:var(--teal);
-}
+/* ── NAV ── */
+.nav{position:sticky;top:0;z-index:100;background:rgba(7,11,22,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--bd);padding:.75rem 2rem;display:flex;gap:.5rem;overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav a{white-space:nowrap;padding:.5rem 1rem;border-radius:8px;color:var(--t2);text-decoration:none;font-size:.85rem;font-weight:600;transition:all .3s;flex-shrink:0}
+.nav a:hover,.nav a.active{background:rgba(249,115,22,.1);color:var(--c3)}
 
-/* ============================================================
-   LAYOUT
-   ============================================================ */
-.container { max-width:1100px; margin:0 auto; padding:0 24px; }
+/* ── SECTIONS ── */
+.sec{max-width:920px;margin:0 auto;padding:4.5rem 2rem}
+.sl{font-size:.8rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--c3);margin-bottom:.75rem}
+.st{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,4vw,2.4rem);font-weight:900;margin-bottom:1.5rem;line-height:1.2}
+.sd{width:60px;height:4px;background:linear-gradient(90deg,var(--c3),var(--c4));border-radius:2px;margin-bottom:2rem}
 
-.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
-.grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+/* ── CARDS ── */
+.card{background:var(--bg3);border:1px solid var(--bd);border-radius:16px;padding:2rem;margin-bottom:1.5rem;transition:all .3s;position:relative;overflow:hidden}
+.card:hover{border-color:rgba(249,115,22,.3);transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.3)}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--c3),var(--c4),var(--c5))}
+.card h3{font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:.75rem}
 
-.flex         { display:flex; }
-.flex-center  { display:flex; align-items:center; justify-content:center; }
-.flex-between { display:flex; align-items:center; justify-content:space-between; }
-.flex-wrap    { flex-wrap:wrap; }
-.items-start  { align-items:flex-start; }
-.gap-2  { gap:8px; }  .gap-3 { gap:12px; } .gap-4 { gap:16px; }
-.gap-6  { gap:24px; } .gap-8 { gap:32px; }
-.flex-1 { flex:1; } .flex-shrink-0 { flex-shrink:0; }
-.ml-auto { margin-left:auto; } .mx-auto { margin-left:auto; margin-right:auto; }
+/* ── GROUP CARDS ── */
+.grp{background:var(--bg3);border:1px solid var(--bd);border-radius:16px;overflow:hidden;transition:all .3s}
+.grp:hover{border-color:rgba(14,165,233,.3);transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,0,0,.3)}
+.grp-head{padding:1.25rem 1.75rem;display:flex;align-items:center;gap:1rem}
+.grp-head.a{background:linear-gradient(135deg,rgba(14,165,233,.12),rgba(0,224,158,.06));border-bottom:2px solid rgba(14,165,233,.3)}
+.grp-head.b{background:linear-gradient(135deg,rgba(168,85,247,.12),rgba(14,165,233,.06));border-bottom:2px solid rgba(168,85,247,.3)}
+.grp-emoji{font-size:2rem}.grp-title{font-weight:800;font-size:1.3rem}.grp-count{font-size:.8rem;color:var(--t3);font-weight:600}
+.grp-list{padding:1rem 1.75rem}
+.grp-item{display:flex;align-items:center;gap:1rem;padding:.75rem .5rem;border-bottom:1px solid rgba(30,41,59,.5);font-size:.95rem;transition:all .3s}
+.grp-item:last-child{border-bottom:none}
+.grp-item:hover{padding-left:1rem;background:rgba(255,255,255,.02);border-radius:8px}
+.grp-nim{font-family:'JetBrains Mono',monospace;font-size:.75rem;padding:.25rem .6rem;border-radius:6px;font-weight:600;flex-shrink:0}
+.grp-head.a+.grp-list .grp-nim{background:rgba(14,165,233,.12);color:var(--c2)}
+.grp-head.b+.grp-list .grp-nim{background:rgba(168,85,247,.12);color:var(--c5)}
 
-.text-center { text-align:center; }
-.relative    { position:relative; }
-.overflow-hidden { overflow:hidden; }
-.w-full { width:100%; }
+/* ── SOAL ── */
+.soal{background:var(--bg3);border:1px solid var(--bd);border-radius:16px;margin:1.75rem 0;overflow:hidden;transition:all .3s}
+.soal:hover{border-color:rgba(249,115,22,.25)}
+.soal-head{display:flex;align-items:center;gap:1rem;padding:1.15rem 1.75rem;background:rgba(249,115,22,.06);border-bottom:1px solid var(--bd)}
+.soal-num{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--c3),var(--c4));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.95rem;flex-shrink:0}
+.soal-tag{font-size:.7rem;padding:.2rem .6rem;border-radius:6px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-left:auto}
+.soal-tag.m1{background:rgba(0,224,158,.12);color:var(--c1)}.soal-tag.m2{background:rgba(14,165,233,.12);color:var(--c2)}
+.soal-body{padding:1.75rem}
+.mb{background:rgba(14,165,233,.06);border-left:4px solid var(--c2);padding:1.1rem 1.5rem;margin:1rem 0;border-radius:0 12px 12px 0;overflow-x:auto;text-align:center;font-size:1.05rem}
 
-/* spacing */
-.mt-2{margin-top:8px}  .mt-3{margin-top:12px} .mt-4{margin-top:16px}
-.mt-6{margin-top:24px} .mt-8{margin-top:32px} .mt-10{margin-top:40px}
-.mt-12{margin-top:48px}
-.mb-2{margin-bottom:8px}  .mb-3{margin-bottom:12px} .mb-4{margin-bottom:16px}
-.mb-6{margin-bottom:24px} .mb-8{margin-bottom:32px}
-.p-4{padding:16px} .p-5{padding:20px} .p-6{padding:24px} .p-8{padding:32px}
-.py-2{padding-top:8px;padding-bottom:8px}
-.py-3{padding-top:12px;padding-bottom:12px}
-.px-4{padding-left:16px;padding-right:16px}
-.px-5{padding-left:20px;padding-right:20px}
-.px-6{padding-left:24px;padding-right:24px}
+/* ── CODE ── */
+.cb{background:#0d1117;border:1px solid var(--bd);border-radius:12px;margin:1.5rem 0;overflow:hidden}
+.cbh{display:flex;align-items:center;justify-content:space-between;padding:.7rem 1.2rem;background:rgba(255,255,255,.03);border-bottom:1px solid var(--bd)}
+.cbh span{font-size:.8rem;font-weight:600;color:var(--t3);display:flex;align-items:center;gap:.5rem}
+.dots{display:flex;gap:6px}.dots span{width:10px;height:10px;border-radius:50%}.dots span:nth-child(1){background:#ff5f57}.dots span:nth-child(2){background:#febc2e}.dots span:nth-child(3){background:#28c840}
+.ccp{padding:.3rem .7rem;background:rgba(255,255,255,.05);border:1px solid var(--bd);color:var(--t3);border-radius:6px;cursor:pointer;font-size:.72rem;font-family:inherit;transition:all .3s}
+.ccp:hover{background:rgba(0,224,158,.15);color:var(--c1);border-color:rgba(0,224,158,.3)}
+.cbd{padding:1.2rem;overflow-x:auto}
+.cbd pre{font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.7;color:#c9d1d9;white-space:pre}
+.cm{color:#8b949e}.kw{color:#ff7b72}.str{color:#a5d6ff}.fn{color:#d2a8ff}.nm{color:#79c0ff}
 
-/* typography */
-.text-xs{font-size:.75rem}  .text-sm{font-size:.875rem}
-.text-lg{font-size:1.125rem}.text-xl{font-size:1.25rem}
-.text-2xl{font-size:1.5rem} .text-3xl{font-size:1.875rem}
-.font-medium{font-weight:500}  .font-semibold{font-weight:600}
-.font-bold{font-weight:700}    .font-black{font-weight:800}
-.font-mono{font-family:'Courier New',monospace}
-.uppercase{text-transform:uppercase}
-.tracking-widest{letter-spacing:.15em}
-.tracking-wide{letter-spacing:.05em}
-.leading-relaxed{line-height:1.7}
-.italic{font-style:italic}
+/* ── INFO BOXES ── */
+.info{border-radius:14px;padding:1.5rem 1.75rem;margin:1.5rem 0}
+.info.warn{background:rgba(250,204,21,.06);border:1px solid rgba(250,204,21,.2)}
+.info.warn h4{color:var(--c6);margin-bottom:.5rem;font-weight:700}
+.info.imp{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2)}
+.info.imp h4{color:var(--c4);margin-bottom:.5rem;font-weight:700}
+.info.ok{background:rgba(0,224,158,.06);border:1px solid rgba(0,224,158,.2)}
+.info.ok h4{color:var(--c1);margin-bottom:.5rem;font-weight:700}
 
-/* colors */
-.text-white{color:#fff}
-.text-teal{color:var(--teal)}   .text-amber{color:var(--amber)}
-.text-rose{color:var(--rose)}   .text-violet{color:var(--violet)}
-.text-lime{color:var(--lime)}
-.text-s300{color:var(--s300)}   .text-s400{color:var(--s400)}
-.text-s500{color:var(--s500)}
+/* ── SUBMIT STEPS ── */
+.steps{counter-reset:s;margin:1.5rem 0}
+.si{display:flex;gap:1.2rem;margin-bottom:1.5rem;position:relative}
+.si::before{counter-increment:s;content:counter(s);width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--c3),var(--c4));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;flex-shrink:0;margin-top:2px}
+.si:not(:last-child)::after{content:'';position:absolute;left:17px;top:40px;bottom:-8px;width:2px;background:var(--bd)}
 
-/* ============================================================
-   BADGE & CHIPS
-   ============================================================ */
-.badge {
-  display:inline-flex; align-items:center; gap:7px;
-  background:rgba(45,212,191,.1); border:1px solid rgba(45,212,191,.3);
-  color:var(--teal); padding:5px 14px; border-radius:999px;
-  font-size:.72rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
-}
+/* ── FADE ── */
+.fi{opacity:0;transform:translateY(30px);transition:all .6s ease-out}.fi.vis{opacity:1;transform:translateY(0)}
 
-.chip {
-  display:inline-block; padding:4px 12px; border-radius:10px;
-  font-size:.72rem; font-weight:500;
-}
-.chip-teal   { background:rgba(45,212,191,.1);  color:var(--teal);   border:1px solid rgba(45,212,191,.2);  }
-.chip-amber  { background:rgba(251,191,36,.1);   color:var(--amber);  border:1px solid rgba(251,191,36,.2);  }
-.chip-rose   { background:rgba(251,113,133,.1);  color:var(--rose);   border:1px solid rgba(251,113,133,.2); }
-.chip-violet { background:rgba(167,139,250,.1);  color:var(--violet); border:1px solid rgba(167,139,250,.2); }
-.chip-lime   { background:rgba(163,230,53,.1);   color:var(--lime);   border:1px solid rgba(163,230,53,.2);  }
+/* ── FOOTER ── */
+footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:var(--t3);font-size:.85rem}
 
-/* ============================================================
-   HERO
-   ============================================================ */
-.hero {
-  background: radial-gradient(ellipse 80% 60% at 50% 0%, #0d3a5c 0%, #080e1a 70%);
-  border-bottom:1px solid var(--border);
-  padding:64px 0 48px;
-}
-
-.hero-inner {
-  display:flex; flex-direction:column; gap:32px;
-}
-@media(min-width:900px){
-  .hero-inner { flex-direction:row; align-items:flex-end; justify-content:space-between; }
-}
-
-.hero-title {
-  font-size:clamp(2rem,5vw,3.6rem);
-  font-weight:800; line-height:1.06;
-  background:linear-gradient(135deg,#5eead4,#a5f3fc,#e2e8f0);
-  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-}
-
-.hero-right { text-align:right; flex-shrink:0; }
-
-/* ============================================================
-   TICKER
-   ============================================================ */
-.ticker-wrap { border:1px solid var(--s700); border-radius:20px; overflow:hidden; margin-top:36px; }
-.ticker-head { background:rgba(15,23,42,.7); padding:8px 16px; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--s700); }
-.live-dot {
-  width:10px; height:10px; border-radius:50%; background:var(--amber); flex-shrink:0;
-  animation:pingAmber 1.8s ease-out infinite;
-}
-@keyframes pingAmber {
-  0%  { box-shadow:0 0 0 0 rgba(251,191,36,.7); }
-  80% { box-shadow:0 0 0 10px rgba(251,191,36,0); }
-  100%{ box-shadow:0 0 0 0 rgba(251,191,36,0); }
-}
-.ticker-body { padding:10px 16px; overflow:hidden; }
-.ticker-track { display:flex; gap:40px; width:max-content; animation:tickMove 22s linear infinite; }
-@keyframes tickMove { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
-.ticker-item { white-space:nowrap; font-size:.72rem; font-family:'Courier New',monospace; color:rgba(251,191,36,.75); }
-
-/* ============================================================
-   SECTION
-   ============================================================ */
-.section { margin-top:80px; }
-.section-header { position:relative; margin-bottom:32px; }
-.section-number {
-  font-family:'Syne',sans-serif; font-size:5rem; font-weight:800;
-  color:rgba(45,212,191,.07); line-height:1;
-  position:absolute; right:0; top:-12px;
-  pointer-events:none; user-select:none;
-}
-
-/* ============================================================
-   WELCOME BOX
-   ============================================================ */
-.welcome-box {
-  background:linear-gradient(90deg,rgba(251,191,36,.07),transparent);
-  border:1px solid rgba(251,191,36,.25); border-radius:28px;
-  padding:32px; display:flex; gap:24px; align-items:flex-start; margin-top:48px;
-}
-.welcome-icon {
-  flex-shrink:0; width:64px; height:64px;
-  background:linear-gradient(135deg,var(--amber),#f59e0b);
-  border-radius:20px; display:flex; align-items:center; justify-content:center;
-  font-size:2rem; box-shadow:0 8px 24px rgba(251,191,36,.3);
-}
-
-/* ============================================================
-   COUNTDOWN
-   ============================================================ */
-.countdown-wrapper {
-  background: linear-gradient(135deg, rgba(251,191,36,.08) 0%, rgba(251,113,133,.06) 100%);
-  border:1px solid rgba(251,191,36,.3);
-  border-radius:28px;
-  padding:40px 32px;
-  text-align:center;
-  position:relative;
-  overflow:hidden;
-}
-
-.countdown-wrapper::before {
-  content:'';
-  position:absolute; inset:0;
-  background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(251,191,36,.07), transparent);
-  pointer-events:none;
-}
-
-.countdown-title {
-  font-size:.75rem; text-transform:uppercase; letter-spacing:.15em;
-  color:var(--amber); font-weight:600; margin-bottom:8px;
-}
-
-.deadline-text {
-  font-family:'Syne',sans-serif; font-size:1.1rem; font-weight:600;
-  color:var(--s300); margin-bottom:32px;
-}
-.deadline-text strong { color:var(--amber); }
-
-.countdown-grid {
-  display:grid; grid-template-columns:repeat(4,1fr); gap:12px;
-  max-width:480px; margin:0 auto 24px;
-}
-
-@media(max-width:480px){ .countdown-grid { grid-template-columns:repeat(2,1fr); } }
-
-.cd-block {
-  background:rgba(0,0,0,.35);
-  border:1px solid rgba(251,191,36,.2);
-  border-radius:20px;
-  padding:20px 8px 14px;
-  position:relative;
-}
-
-.cd-num {
-  font-family:'Syne',sans-serif;
-  font-size:clamp(2rem,6vw,3rem);
-  font-weight:800;
-  line-height:1;
-  color:#fff;
-  display:block;
-  transition:color .3s;
-}
-
-.cd-num.urgent { color:var(--rose); }
-.cd-num.warn   { color:var(--amber); }
-
-.cd-label {
-  font-size:.65rem; text-transform:uppercase; letter-spacing:.1em;
-  color:var(--s500); font-weight:600; margin-top:6px; display:block;
-}
-
-.cd-sep {
-  font-family:'Syne',sans-serif; font-size:2rem; font-weight:800;
-  color:rgba(251,191,36,.35); align-self:center; padding-bottom:16px;
-}
-
-.expired-msg {
-  font-family:'Syne',sans-serif; font-size:1.5rem; font-weight:700;
-  color:var(--rose); display:none;
-}
-
-/* progress bar */
-.cd-progress-wrap {
-  max-width:480px; margin:0 auto;
-}
-.cd-progress-label {
-  display:flex; justify-content:space-between;
-  font-size:.72rem; color:var(--s500); margin-bottom:6px;
-}
-.cd-progress-track {
-  height:6px; background:rgba(255,255,255,.08); border-radius:6px; overflow:hidden;
-}
-.cd-progress-bar {
-  height:100%; border-radius:6px;
-  background:linear-gradient(90deg,var(--amber),var(--rose));
-  transition:width 1s linear;
-}
-
-/* ============================================================
-   TASK OVERVIEW CARDS
-   ============================================================ */
-.overview-card {
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:22px;
-  padding:28px;
-  position:relative;
-  overflow:hidden;
-  transition:transform .3s cubic-bezier(.34,1.56,.64,1), box-shadow .3s;
-}
-.overview-card:hover {
-  transform:translateY(-8px) scale(1.01);
-  box-shadow:0 20px 40px rgba(0,0,0,.35);
-}
-.overview-card::before {
-  content:'';
-  position:absolute; top:0; left:0; right:0; height:2px;
-  background:var(--oc-accent,var(--teal));
-}
-.ov-icon {
-  width:52px; height:52px; border-radius:16px;
-  display:flex; align-items:center; justify-content:center;
-  font-size:1.8rem; margin-bottom:16px;
-}
-.ov-num {
-  position:absolute; top:20px; right:20px;
-  font-family:'Syne',sans-serif; font-size:3.5rem; font-weight:800;
-  color:rgba(255,255,255,.04); line-height:1;
-}
-
-/* ============================================================
-   TASK DETAIL PANELS
-   ============================================================ */
-.detail-panel {
-  background:rgba(15,25,41,.85);
-  border:1px solid rgba(255,255,255,.07);
-  border-radius:28px;
-  overflow:hidden;
-}
-
-.detail-panel-head {
-  padding:24px 28px;
-  border-bottom:1px solid rgba(255,255,255,.06);
-  display:flex; align-items:center; gap:14px;
-}
-
-.mod-badge {
-  display:inline-flex; align-items:center; gap:6px;
-  padding:6px 14px; border-radius:12px;
-  font-size:.75rem; font-weight:700;
-  font-family:'Syne',sans-serif; letter-spacing:.04em;
-  flex-shrink:0;
-}
-
-.detail-body { padding:24px 28px; }
-
-.task-item {
-  display:flex; gap:14px; align-items:flex-start;
-  padding:14px 0;
-  border-bottom:1px solid rgba(255,255,255,.04);
-}
-.task-item:last-child { border-bottom:none; padding-bottom:0; }
-
-.task-bullet {
-  width:28px; height:28px; border-radius:10px;
-  display:flex; align-items:center; justify-content:center;
-  font-size:.75rem; font-weight:800; font-family:'Syne',sans-serif;
-  flex-shrink:0; margin-top:1px;
-}
-
-/* ============================================================
-   WARNING / ATTENTION BOX
-   ============================================================ */
-.attn-box {
-  border-radius:24px;
-  padding:28px 32px;
-  display:flex; gap:20px; align-items:flex-start;
-}
-.attn-amber {
-  background:linear-gradient(90deg,rgba(251,191,36,.1),rgba(251,191,36,.04));
-  border:1px solid rgba(251,191,36,.3);
-}
-.attn-rose {
-  background:linear-gradient(90deg,rgba(251,113,133,.1),rgba(251,113,133,.04));
-  border:1px solid rgba(251,113,133,.3);
-}
-.attn-violet {
-  background:linear-gradient(90deg,rgba(167,139,250,.1),rgba(167,139,250,.04));
-  border:1px solid rgba(167,139,250,.3);
-}
-.attn-teal {
-  background:linear-gradient(90deg,rgba(45,212,191,.1),rgba(45,212,191,.04));
-  border:1px solid rgba(45,212,191,.3);
-}
-
-.attn-icon-wrap {
-  width:48px; height:48px; border-radius:16px;
-  display:flex; align-items:center; justify-content:center;
-  font-size:1.6rem; flex-shrink:0;
-}
-
-/* ============================================================
-   SUBMISSION FORMAT
-   ============================================================ */
-.file-card {
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:20px;
-  padding:24px;
-  display:flex; gap:16px; align-items:flex-start;
-  transition:transform .3s cubic-bezier(.34,1.56,.64,1), border-color .25s, box-shadow .3s;
-}
-.file-card:hover {
-  transform:translateY(-6px);
-  border-color:var(--fc-accent, var(--teal));
-  box-shadow:0 16px 32px rgba(0,0,0,.3), 0 0 20px -8px var(--fc-accent, var(--teal));
-}
-.file-icon {
-  width:52px; height:52px; border-radius:16px;
-  display:flex; align-items:center; justify-content:center;
-  font-size:1.8rem; flex-shrink:0;
-}
-.file-ext {
-  font-family:'Syne',sans-serif; font-weight:800; font-size:1.4rem;
-  display:block; line-height:1;
-}
-
-/* ============================================================
-   GROUP TABLE
-   ============================================================ */
-.group-table-wrap {
-  background:var(--surface); border:1px solid var(--border);
-  border-radius:24px; overflow:hidden;
-}
-.group-tabs {
-  display:flex; border-bottom:1px solid rgba(255,255,255,.06);
-  overflow-x:auto;
-}
-.g-tab {
-  padding:14px 22px; font-size:.82rem; font-weight:600;
-  cursor:pointer; border:none; background:transparent;
-  color:var(--s500); font-family:'DM Sans',sans-serif;
-  transition:all .25s; white-space:nowrap; border-bottom:2px solid transparent;
-  margin-bottom:-1px;
-}
-.g-tab:hover { color:var(--s300); }
-.g-tab.active { color:var(--teal); border-bottom-color:var(--teal); background:rgba(45,212,191,.04); }
-
-.g-panel { display:none; padding:24px 28px; }
-.g-panel.active { display:block; }
-
-.member-row {
-  display:flex; align-items:center; gap:14px;
-  padding:11px 0; border-bottom:1px solid rgba(255,255,255,.04);
-  transition:background .2s; border-radius:8px;
-}
-.member-row:last-child { border-bottom:none; }
-.member-idx {
-  width:28px; height:28px; border-radius:9px;
-  display:flex; align-items:center; justify-content:center;
-  font-size:.7rem; font-weight:800; font-family:'Syne',sans-serif;
-  flex-shrink:0;
-}
-.member-nim { font-family:'Courier New',monospace; font-size:.72rem; color:var(--s500); }
-.member-name { flex:1; font-size:.88rem; color:var(--s300); font-weight:500; }
-
-/* ============================================================
-   CODE CELLS
-   ============================================================ */
-.cell {
-  background:rgba(15,25,41,.85); border:1px solid rgba(255,255,255,.08);
-  border-radius:24px; overflow:hidden; margin-bottom:16px;
-}
-.cell-bar {
-  background:rgba(255,255,255,.04); padding:9px 18px;
-  display:flex; align-items:center; gap:10px;
-  border-bottom:1px solid rgba(255,255,255,.06);
-}
-.dot-row { display:flex; gap:6px; }
-.dot { width:10px; height:10px; border-radius:50%; }
-.dot-r{background:rgba(239,68,68,.6)} .dot-y{background:rgba(234,179,8,.6)} .dot-g{background:rgba(34,197,94,.6)}
-.cell-label { font-family:'Courier New',monospace; font-size:.7rem; color:var(--s500); }
-.code-pre {
-  background:#020810; padding:20px 24px;
-  font-family:'Courier New',monospace; font-size:.78rem;
-  line-height:1.75; overflow-x:auto; white-space:pre; color:#e2e8f0; margin:0;
-}
-.kw{color:#c084fc} .fn{color:#60a5fa} .str{color:#86efac}
-.cm{color:#475569;font-style:italic} .nm{color:#fbbf24} .op{color:var(--teal)}
-
-/* ============================================================
-   HINT BOX
-   ============================================================ */
-.hint-box { padding:12px 16px; border-radius:14px; font-size:.83rem; }
-.hint-teal   { background:rgba(45,212,191,.08);  border:1px solid rgba(45,212,191,.2);  color:#99f6e4; }
-.hint-amber  { background:rgba(251,191,36,.08);  border:1px solid rgba(251,191,36,.2);  color:#fde68a; }
-.hint-rose   { background:rgba(251,113,133,.08); border:1px solid rgba(251,113,133,.2); color:#fecdd3; }
-.hint-violet { background:rgba(167,139,250,.08); border:1px solid rgba(167,139,250,.2); color:#ddd6fe; }
-
-/* ============================================================
-   FOOTER
-   ============================================================ */
-footer {
-  border-top:1px solid rgba(255,255,255,.06);
-  padding:32px 0; text-align:center;
-  font-size:.75rem; color:var(--s500); margin-top:64px;
-}
-
-/* ============================================================
-   ANIMATIONS
-   ============================================================ */
-@keyframes fadeUp {
-  from { opacity:0; transform:translateY(28px); }
-  to   { opacity:1; transform:translateY(0); }
-}
-.fade-up  { animation:fadeUp .7s ease forwards; }
-.d1 { animation-delay:.1s; opacity:0; }
-.d2 { animation-delay:.2s; opacity:0; }
-.d3 { animation-delay:.3s; opacity:0; }
-
-@keyframes pulse-glow {
-  0%,100% { box-shadow:0 0 0 0 rgba(251,191,36,.4); }
-  50%     { box-shadow:0 0 0 12px rgba(251,191,36,0); }
-}
-.pulse-glow { animation:pulse-glow 2.5s ease-in-out infinite; }
-
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
-@media(max-width:800px){
-  .grid-2 { grid-template-columns:1fr; }
-  .grid-3 { grid-template-columns:1fr 1fr; }
-  .hero-right { text-align:left; }
-  .countdown-grid { grid-template-columns:repeat(2,1fr); }
-}
-@media(max-width:500px){
-  .grid-3 { grid-template-columns:1fr; }
-  .detail-panel-head { flex-wrap:wrap; }
-}
+@media(max-width:768px){.sec{padding:3rem 1.25rem}.soal-body,.card{padding:1.5rem}.cd-box{min-width:62px;padding:.5rem .75rem}.grp-grid{grid-template-columns:1fr!important}}
 
 /* ── VISITOR SYSTEM ── */
 .visitor-overlay{position:fixed;inset:0;z-index:99999;background:rgba(8,14,26,.94);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity .4s}
 .visitor-overlay.hidden{opacity:0;pointer-events:none}
-.visitor-modal{background:var(--surface,#0f1929);border:1px solid var(--border,rgba(45,212,191,.15));border-radius:24px;padding:40px 36px;max-width:440px;width:90%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.6);animation:vModalIn .5s cubic-bezier(.16,1,.3,1)}
+.visitor-modal{background:#151e30;border:1px solid #1e293b;border-radius:24px;padding:40px 36px;max-width:440px;width:90%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.6);animation:vModalIn .5s cubic-bezier(.16,1,.3,1)}
 @keyframes vModalIn{0%{opacity:0;transform:translateY(30px) scale(.96)}100%{opacity:1;transform:translateY(0) scale(1)}}
-.visitor-modal h2{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,#5eead4,#a5f3fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
-.visitor-modal p.sub{color:var(--s400,#94a3b8);font-size:.85rem;margin-bottom:28px}
-.v-input{width:100%;padding:14px 18px;border-radius:14px;border:1px solid var(--s700,#334155);background:rgba(255,255,255,.05);color:#fff;font-family:'DM Sans',system-ui,sans-serif;font-size:.95rem;outline:none;transition:border .25s;margin-bottom:14px}
-.v-input::placeholder{color:var(--s500,#64748b)}
-.v-input:focus{border-color:var(--teal,#2dd4bf);box-shadow:0 0 0 3px rgba(45,212,191,.15)}
-.v-btn-primary{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--teal,#2dd4bf),#22d3ee);color:#080e1a;font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;cursor:pointer;transition:transform .2s,box-shadow .2s;margin-top:6px}
-.v-btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(45,212,191,.35)}
-.v-error{color:var(--rose,#fb7185);font-size:.8rem;margin-bottom:10px;display:none}
-.v-btn-cancel{width:100%;padding:12px;border-radius:14px;margin-top:12px;border:1px solid var(--s700,#334155);background:rgba(255,255,255,.04);color:var(--s400,#94a3b8);font-family:'DM Sans',sans-serif;font-weight:600;font-size:.88rem;cursor:pointer;transition:all .25s}
+.visitor-modal h2{font-weight:800;font-size:1.5rem;background:linear-gradient(135deg,#00e09e,#0ea5e9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
+.visitor-modal p.sub{color:#94a3b8;font-size:.85rem;margin-bottom:28px}
+.v-input{width:100%;padding:14px 18px;border-radius:14px;border:1px solid #1e293b;background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-size:.95rem;outline:none;transition:border .25s;margin-bottom:14px}
+.v-input::placeholder{color:#64748b}
+.v-input:focus{border-color:#00e09e;box-shadow:0 0 0 3px rgba(255,255,255,.08)}
+.v-btn-primary{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#00e09e,#0ea5e9);color:#fff;font-weight:700;font-size:1rem;cursor:pointer;transition:transform .2s,box-shadow .2s;margin-top:6px}
+.v-btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,255,255,.1)}
+.v-error{color:#fb7185;font-size:.8rem;margin-bottom:10px;display:none}
+.v-btn-cancel{width:100%;padding:12px;border-radius:14px;margin-top:12px;border:1px solid #1e293b;background:rgba(255,255,255,.04);color:#94a3b8;font-weight:600;font-size:.88rem;cursor:pointer;transition:all .25s}
 .v-btn-cancel:hover{background:rgba(255,255,255,.08)}
-.visitor-fab{position:fixed;bottom:24px;right:24px;z-index:8888;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--teal,#2dd4bf),#22d3ee);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(45,212,191,.4);transition:transform .25s,box-shadow .25s;font-size:1.4rem}
-.visitor-fab:hover{transform:scale(1.08);box-shadow:0 8px 32px rgba(45,212,191,.5)}
-.visitor-fab .fab-count{position:absolute;top:-4px;right:-4px;background:var(--rose,#fb7185);color:#fff;font-size:.65rem;font-weight:700;min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid var(--bg,#080e1a)}
-.visitor-panel{position:fixed;bottom:92px;right:24px;z-index:8887;width:340px;max-height:480px;overflow:hidden;background:var(--surface,#0f1929);border:1px solid var(--border,rgba(45,212,191,.15));border-radius:20px;box-shadow:0 24px 64px rgba(0,0,0,.5);display:flex;flex-direction:column;transform:translateY(12px) scale(.95);opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .25s}
+.visitor-fab{position:fixed;bottom:24px;right:24px;z-index:8888;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#00e09e,#0ea5e9);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(0,0,0,.4);transition:transform .25s;font-size:1.4rem}
+.visitor-fab:hover{transform:scale(1.08)}
+.visitor-fab .fab-count{position:absolute;top:-4px;right:-4px;background:#fb7185;color:#fff;font-size:.65rem;font-weight:700;min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid #070b16}
+.visitor-panel{position:fixed;bottom:92px;right:24px;z-index:8887;width:340px;max-height:480px;overflow:hidden;background:#151e30;border:1px solid #1e293b;border-radius:20px;box-shadow:0 24px 64px rgba(0,0,0,.5);display:flex;flex-direction:column;transform:translateY(12px) scale(.95);opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .25s}
 .visitor-panel.open{transform:translateY(0) scale(1);opacity:1;pointer-events:auto}
 .vp-header{padding:20px 22px 14px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between}
-.vp-header h3{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:#fff}
-.vp-header .vp-badge{background:rgba(45,212,191,.12);color:var(--teal,#2dd4bf);font-size:.7rem;font-weight:700;padding:4px 10px;border-radius:999px}
+.vp-header h3{font-weight:700;font-size:1rem;color:#fff}
+.vp-header .vp-badge{background:rgba(255,255,255,.08);color:#00e09e;font-size:.7rem;font-weight:700;padding:4px 10px;border-radius:999px}
 .vp-list{overflow-y:auto;padding:10px 16px 16px;flex:1}
 .vp-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;margin-bottom:6px;background:rgba(255,255,255,.03);transition:background .2s}
 .vp-item:hover{background:rgba(255,255,255,.06)}
 .vp-avatar{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0}
-.vp-avatar.student{background:rgba(45,212,191,.12);color:var(--teal,#2dd4bf)}
-.vp-avatar.dosen{background:rgba(251,191,36,.12);color:var(--amber,#fbbf24)}
+.vp-avatar.student{background:rgba(255,255,255,.08);color:#00e09e}
+.vp-avatar.dosen{background:rgba(251,191,36,.12);color:#fbbf24}
 .vp-info{flex:1;min-width:0}
-.vp-name{font-weight:600;font-size:.88rem;color:var(--s200,#e2e8f0);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.vp-nim{font-size:.72rem;color:var(--s500,#64748b);font-family:'Courier New',monospace}
-.vp-time{font-size:.68rem;color:var(--s500,#64748b);text-align:right;flex-shrink:0;white-space:nowrap}
-.vp-empty{text-align:center;padding:32px 16px;color:var(--s500,#64748b);font-size:.85rem}
+.vp-name{font-weight:600;font-size:.88rem;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vp-nim{font-size:.72rem;color:#64748b;font-family:monospace}
+.vp-time{font-size:.68rem;color:#64748b;text-align:right;flex-shrink:0;white-space:nowrap}
+.vp-empty{text-align:center;padding:32px 16px;color:#64748b;font-size:.85rem}
 @media(max-width:480px){.visitor-panel{width:calc(100vw - 32px);right:16px;bottom:88px}.visitor-fab{bottom:18px;right:18px}}
 
 </style>
+
 </head>
 <body>
-
 <!-- ═══ VISITOR LOGIN MODAL ═══ -->
 <div class="visitor-overlay" id="visitorOverlay">
   <div class="visitor-modal">
@@ -594,791 +185,319 @@ footer {
   <div class="vp-list" id="vpList"><div class="vp-empty">Memuat data pengunjung...</div></div>
 </div>
 
+<!-- ═══════ HERO ═══════ -->
+<section class="hero">
+  <div class="particles">
+    <div class="p" style="left:10%;animation-delay:0s;background:var(--c3)"></div>
+    <div class="p" style="left:25%;animation-delay:1.5s;background:var(--c4)"></div>
+    <div class="p" style="left:40%;animation-delay:3s;background:var(--c6)"></div>
+    <div class="p" style="left:55%;animation-delay:.7s;background:var(--c3)"></div>
+    <div class="p" style="left:70%;animation-delay:2.2s;background:var(--c4)"></div>
+    <div class="p" style="left:85%;animation-delay:4s;background:var(--c6)"></div>
+  </div>
 
-<!-- ==================== HERO ==================== -->
-<header class="hero">
-  <div class="container">
-    <div class="fade-up">
-      <span class="badge">📋 Tugas 1</span>
+  <div class="badge">📋 TUGAS PERTEMUAN 2</div>
+  <h1><span class="hl">Tugas 2</span><br>Matematika Teknik</h1>
+  <p class="sub">Modul 1 (Persamaan Diferensial) & Modul 2 (PD Variabel Terpisah)<br>10 Soal — Dikerjakan Manual & Jupyter Notebook</p>
+
+  <!-- Countdown -->
+  <div class="cd-wrap">
+    <div class="cd-label">⏰ Waktu Tersisa</div>
+    <div class="cd" id="countdown">
+      <div class="cd-box"><div class="cd-num" id="cd-d">--</div><div class="cd-unit">Hari</div></div>
+      <div class="cd-box"><div class="cd-num" id="cd-h">--</div><div class="cd-unit">Jam</div></div>
+      <div class="cd-box"><div class="cd-num" id="cd-m">--</div><div class="cd-unit">Menit</div></div>
+      <div class="cd-box"><div class="cd-num" id="cd-s">--</div><div class="cd-unit">Detik</div></div>
     </div>
+    <div class="cd-deadline" id="cdDeadline">Deadline: <strong>Menunggu jadwal...</strong></div>
+  </div>
 
-    <div class="hero-inner mt-6">
-      <div class="fade-up d1">
-        <h1 class="hero-title">Tugas Kelompok 1<br>Optimalisasi &amp; Otomasi</h1>
-        <p class="mt-3 text-s400" style="font-size:1.05rem;max-width:520px;">
-          Simulasi Modul 1 &amp; 2 + Soal Latihan Modul 2 •
-          Dikerjakan bersama kelompok, dipahami oleh setiap anggota.
-        </p>
-        <div class="flex flex-wrap gap-3 mt-5">
-          <span class="chip chip-amber">📅 Deadline: 8 April 2026</span>
-          <span class="chip chip-teal">📁 Format: .ipynb &amp; .html</span>
-          <span class="chip chip-violet">👥 Kerja Kelompok</span>
-        </div>
-      </div>
-      <div class="hero-right fade-up d2">
-        <p class="text-xs uppercase tracking-widest text-s500 mb-1">Dosen Pengampu</p>
-        <p style="font-size:1.6rem;font-family:'Syne',sans-serif;font-weight:700;">Dedik Romahadi</p>
-        <p class="text-s500 mt-1" style="font-size:.85rem;">Optimalisasi &amp; Otomasi • S1 Teknik Mesin</p>
-      </div>
-    </div>
+  <!-- Meta -->
+  <div class="meta-row">
+    <div class="meta-chip"><div class="ic">👨‍🏫</div><div><small>Dosen</small><br>Dedik Romahadi</div></div>
+    <div class="meta-chip"><div class="ic">📚</div><div><small>Submit di</small><br>Fast Learning Pert. 2</div></div>
+    <div class="meta-chip"><div class="ic">📄</div><div><small>Format</small><br>.ipynb &amp; .html</div></div>
+  </div>
 
-    
-        <!-- Ticker -->
-    <div class="ticker-wrap mt-10">
-      <div class="ticker-head">
-        <div class="live-dot"></div>
-        <span class="text-xs uppercase tracking-widest font-mono font-semibold" style="color:var(--amber);">Deadline Alert — Tugas 1 • 8 April 2026 • 23:59 WIB</span>
-      </div>
-      <div class="ticker-body">
-        <div class="ticker-track" id="ticker"></div>
-      </div>
+  <div class="hero-cta">
+    <a href="#soal" class="btn-p">📝 Lihat Soal</a>
+  </div>
+</section>
+
+<!-- ═══════ NAV ═══════ -->
+<nav class="nav">
+  <a href="#ketentuan">📋 Ketentuan</a>
+  <a href="#kelompok">👥 Kelompok</a>
+  <a href="#soal">📝 Soal 1–10</a>
+  <a href="#jupyter">🐍 Template Jupyter</a>
+  <a href="#submit">📤 Cara Submit</a>
+</nav>
+
+<!-- ═══════ KETENTUAN ═══════ -->
+<section class="sec fi" id="ketentuan">
+  <div class="sl">📋 KETENTUAN</div>
+  <h2 class="st">Ketentuan Tugas 2</h2>
+  <div class="sd"></div>
+
+  <div class="info warn">
+    <h4>⚠️ Penting — Baca Sebelum Mengerjakan</h4>
+    <p>Tugas dikerjakan <strong>per kelompok</strong>, namun <strong>setiap anggota wajib memahami seluruh jawaban</strong> dan siap menjelaskan di pertemuan TMV (Tatap Muka Virtual) berikutnya. Dosen dapat menunjuk anggota mana saja untuk menjelaskan soal tertentu.</p>
+  </div>
+
+  <div class="card">
+    <h3>📌 Ringkasan Tugas</h3>
+    <table style="width:100%;border-collapse:collapse;margin-top:1rem;">
+      <tr style="border-bottom:1px solid var(--bd)"><td style="padding:.6rem 0;color:var(--t3);width:140px;font-weight:600;font-size:.85rem;">Materi</td><td style="padding:.6rem 0;">Modul 1 (PD Orde Satu) & Modul 2 (PD Variabel Terpisah)</td></tr>
+      <tr style="border-bottom:1px solid var(--bd)"><td style="padding:.6rem 0;color:var(--t3);font-weight:600;font-size:.85rem;">Jumlah Soal</td><td style="padding:.6rem 0;">10 soal</td></tr>
+      <tr style="border-bottom:1px solid var(--bd)"><td style="padding:.6rem 0;color:var(--t3);font-weight:600;font-size:.85rem;">Cara Pengerjaan</td><td style="padding:.6rem 0;">Manual (tulis tangan / ketik) <strong>dan</strong> menggunakan Jupyter Notebook di VS Code</td></tr>
+      <tr style="border-bottom:1px solid var(--bd)"><td style="padding:.6rem 0;color:var(--t3);font-weight:600;font-size:.85rem;">Format Submit</td><td style="padding:.6rem 0;"><code style="background:var(--bg2);padding:.15rem .5rem;border-radius:4px;font-size:.85rem;">.ipynb</code> dan <code style="background:var(--bg2);padding:.15rem .5rem;border-radius:4px;font-size:.85rem;">.html</code></td></tr>
+      <tr style="border-bottom:1px solid var(--bd)"><td style="padding:.6rem 0;color:var(--t3);font-weight:600;font-size:.85rem;">Upload di</td><td style="padding:.6rem 0;">Fast Learning — Pertemuan 2</td></tr>
+      <tr style="border-bottom:1px solid var(--bd)"><td style="padding:.6rem 0;color:var(--t3);font-weight:600;font-size:.85rem;">Deadline</td><td style="padding:.6rem 0;"><strong style="color:var(--c4);">10 April 2026, Pukul 23:59 WIB</strong></td></tr>
+      <tr><td style="padding:.6rem 0;color:var(--t3);font-weight:600;font-size:.85rem;">Pengerjaan</td><td style="padding:.6rem 0;">Per kelompok — setiap anggota wajib paham semua jawaban</td></tr>
+    </table>
+  </div>
+
+  <div class="info imp">
+    <h4>🚨 Catatan Penilaian</h4>
+    <p>Pada pertemuan TMV berikutnya, dosen akan <strong>menunjuk acak</strong> anggota kelompok untuk menjelaskan penyelesaian soal tertentu. Jika tidak bisa menjelaskan, nilai anggota tersebut akan dikurangi. Pastikan semua anggota benar-benar memahami setiap langkah penyelesaian!</p>
+  </div>
+</section>
+
+<!-- ═══════ KELOMPOK ═══════ -->
+<section class="sec fi" id="kelompok">
+  <div class="sl">👥 KELOMPOK</div>
+  <h2 class="st">Pembagian Kelompok</h2>
+  <div class="sd"></div>
+  <p>Lihat pembagian kelompok di halaman <a href="https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Engineering-Mathematics/Attributes/Pembagian-Kelompok.html" target="_blank" style="color:var(--ca);font-weight:700;text-decoration:underline;">📋 Pembagian Kelompok</a>.</p>
+</section>
+
+<!-- ═══════ SOAL ═══════ -->
+<section class="sec fi" id="soal">
+  <div class="sl">📝 SOAL</div>
+  <h2 class="st">Soal Tugas 2 (10 Soal)</h2>
+  <div class="sd"></div>
+  <p style="margin-bottom:1.5rem;">Kerjakan setiap soal secara <strong>manual</strong> (tunjukkan langkah-langkah) dan <strong>verifikasi/selesaikan menggunakan Python (SymPy)</strong> di Jupyter Notebook.</p>
+
+  <!-- SOAL 1 -->
+  <div class="soal">
+    <div class="soal-head"><div class="soal-num">1</div><strong>Klasifikasi PD</strong><span class="soal-tag m1">Modul 1</span></div>
+    <div class="soal-body">
+      <p>Klasifikasikan setiap PD berikut berdasarkan: <strong>Jenis</strong> (Biasa/Parsial), <strong>Kelinieran</strong> (Linier/Non-Linier), <strong>Orde</strong>, dan <strong>Homogenitas</strong> (Homogen/Non-Homogen).</p>
+      <div class="mb">$$\text{a)} \quad y'' + 3y' - 10y = 0$$</div>
+      <div class="mb">$$\text{b)} \quad (y''')^2 + y'' \cdot y' = \sin x$$</div>
+      <div class="mb">$$\text{c)} \quad \frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial t^2} = 0$$</div>
     </div>
   </div>
-</header>
 
-<!-- COUNTDOWN -->
-<div style="max-width:1100px;margin:0 auto;padding:48px 32px 0;">
-  <div class="countdown-wrap">
-    <div class="countdown-label">⏰ Hitung Mundur — Deadline Pengumpulan Tugas 2</div>
-    <div class="countdown-boxes">
-      <div class="cd-box"><div class="cd-num" id="cd-hari">--</div><div class="cd-unit">HARI</div></div>
-      <div class="cd-sep">:</div>
-      <div class="cd-box"><div class="cd-num" id="cd-jam">--</div><div class="cd-unit">JAM</div></div>
-      <div class="cd-sep">:</div>
-      <div class="cd-box"><div class="cd-num" id="cd-menit">--</div><div class="cd-unit">MENIT</div></div>
-      <div class="cd-sep">:</div>
-      <div class="cd-box"><div class="cd-num" id="cd-detik">--</div><div class="cd-unit">DETIK</div></div>
-    </div>
-    <div class="cd-note" id="cdDeadline">Deadline: <strong style="color:var(--teal)">Menunggu jadwal...</strong></div>
-  </div>
-</div>
-
-<!-- ==================== WELCOME ==================== -->
-<div class="container">
-  <div class="welcome-box fade-up d2">
-    <div class="welcome-icon">📌</div>
-    <div>
-      <h2 class="text-xl font-bold mb-2">Narasi Tugas 1</h2>
-      <p class="text-s300 leading-relaxed">
-        Selamat datang di <strong class="text-amber">Tugas Pertama</strong> mata kuliah Optimalisasi dan Otomasi!
-        Tugas ini dirancang agar seluruh anggota kelompok
-        <strong>benar-benar memahami</strong> materi Pertemuan 1 &amp; 2 melalui praktik langsung di Jupyter Notebook.
-        Setiap kelompok mengerjakan seluruh <strong class="text-teal">contoh simulasi pada Modul 1 dan Modul 2</strong>,
-        sekaligus menyelesaikan <strong class="text-lime">soal latihan pada Modul 2</strong>.
-        Ingat — <strong class="text-amber">setiap anggota wajib memahami tugasnya</strong>
-        karena akan diminta menjelaskan di pertemuan TMV selanjutnya!
-      </p>
+  <!-- SOAL 2 -->
+  <div class="soal">
+    <div class="soal-head"><div class="soal-num">2</div><strong>Verifikasi Solusi PD</strong><span class="soal-tag m1">Modul 1</span></div>
+    <div class="soal-body">
+      <p>Selidiki apakah \(y = e^{5x}\) merupakan penyelesaian bagi PD:</p>
+      <div class="mb">$$y'' - 3y' - 10y = 0$$</div>
+      <p>Tunjukkan proses substitusi secara lengkap.</p>
     </div>
   </div>
-</div>
 
-<!-- ==================== COUNTDOWN ==================== -->
-<section class="section container">
-  <div class="countdown-wrapper pulse-glow">
-    <p class="countdown-title">⏳ Waktu Tersisa Hingga Deadline</p>
-    <p class="deadline-text">
-      <strong>Rabu, 8 April 2026 — Pukul 23:59 WIB</strong>
-    </p>
-
-    <div class="countdown-grid" id="cdGrid">
-      <div class="cd-block">
-        <span class="cd-num" id="cdDays">--</span>
-        <span class="cd-label">Hari</span>
-      </div>
-      <div class="cd-block">
-        <span class="cd-num" id="cdHours">--</span>
-        <span class="cd-label">Jam</span>
-      </div>
-      <div class="cd-block">
-        <span class="cd-num" id="cdMins">--</span>
-        <span class="cd-label">Menit</span>
-      </div>
-      <div class="cd-block">
-        <span class="cd-num" id="cdSecs">--</span>
-        <span class="cd-label">Detik</span>
-      </div>
+  <!-- SOAL 3 -->
+  <div class="soal">
+    <div class="soal-head"><div class="soal-num">3</div><strong>Verifikasi Solusi PD (Non-Homogen)</strong><span class="soal-tag m1">Modul 1</span></div>
+    <div class="soal-body">
+      <p>Selidiki apakah \(y = x^2 + e^x\) merupakan penyelesaian bagi PD:</p>
+      <div class="mb">$$y'' - y = 2 - x^2$$</div>
     </div>
+  </div>
 
-    <p class="expired-msg" id="expiredMsg">⛔ Deadline sudah lewat!</p>
+  <!-- SOAL 4 -->
+  <div class="soal">
+    <div class="soal-head"><div class="soal-num">4</div><strong>PD Variabel Terpisah Sederhana</strong><span class="soal-tag m2">Modul 2</span></div>
+    <div class="soal-body">
+      <p>Carilah penyelesaian umum dari PD:</p>
+      <div class="mb">$$6y\,y' = 5x^4$$</div>
+    </div>
+  </div>
 
-    <div class="cd-progress-wrap">
-      <div class="cd-progress-label">
-        <span id="progressLabel">Menghitung…</span>
-        <span id="progressPct">—</span>
-      </div>
-      <div class="cd-progress-track">
-        <div class="cd-progress-bar" id="cdBar" style="width:0%"></div>
-      </div>
+  <!-- SOAL 5 -->
+  <div class="soal">
+    <div class="soal-head"><div class="soal-num">5</div><strong>PD Variabel Terpisah (Faktorisasi)</strong><span class="soal-tag m2">Modul 2</span></div>
+    <div class="soal-body">
+      <p>Carilah penyelesaian umum dari PD:</p>
+      <div class="mb">$$(2x + 4xy^2)\,dx + (3y + 3x^2y)\,dy = 0$$</div>
+      <p><em>Petunjuk: faktorkan setiap suku terlebih dahulu, lalu bagi agar variabel terpisah.</em></p>
+    </div>
+  </div>
+
+  <!-- SOAL 6 -->
+  <div class="soal">
+    <div class="soal-head"><div class="soal-num">6</div><strong>PD Variabel Terpisah dengan Syarat Awal</strong><span class="soal-tag m2">Modul 2</span></div>
+    <div class="soal-body">
+      <p>Carilah penyelesaian khusus PD berikut, dengan syarat \(y(0) = 3\):</p>
+      <div class="mb">$$\frac{dy}{dx} = \frac{2x}{y}$$</div>
+    </div>
+  </div>
+
+  <!-- SOAL 7 -->
+  <div class="soal">
+    <div class="soal-head"><div class="soal-num">7</div><strong>PD Variabel Terpisah (Eksponensial)</strong><span class="soal-tag m2">Modul 2</span></div>
+    <div class="soal-body">
+      <p>Carilah penyelesaian umum dari PD:</p>
+      <div class="mb">$$\frac{dy}{dx} = \frac{e^x}{e^y}$$</div>
+    </div>
+  </div>
+
+  <!-- SOAL 8 -->
+  <div class="soal">
+    <div class="soal-head"><div class="soal-num">8</div><strong>PD Variabel Terpisah dengan Syarat Awal</strong><span class="soal-tag m2">Modul 2</span></div>
+    <div class="soal-body">
+      <p>Carilah penyelesaian khusus PD berikut, dengan syarat \(y(1) = 0\):</p>
+      <div class="mb">$$\frac{dy}{dx} = \frac{x^2 + 1}{y + 1}$$</div>
+    </div>
+  </div>
+
+  <!-- SOAL 9 -->
+  <div class="soal">
+    <div class="soal-head"><div class="soal-num">9</div><strong>Aplikasi: Peluruhan Radioaktif</strong><span class="soal-tag m2">Modul 2</span></div>
+    <div class="soal-body">
+      <p>Suatu zat radioaktif meluruh menurut PD:</p>
+      <div class="mb">$$\frac{dN}{dt} = -\lambda N$$</div>
+      <p>Jika massa awal \(N(0) = 200\) gram dan setelah 5 jam menjadi 120 gram:</p>
+      <p><strong>a)</strong> Tentukan nilai \(\lambda\).</p>
+      <p><strong>b)</strong> Berapa massa zat setelah 12 jam?</p>
+      <p><strong>c)</strong> Berapa waktu paruh (\(t_{1/2}\)) zat tersebut?</p>
+    </div>
+  </div>
+
+  <!-- SOAL 10 -->
+  <div class="soal">
+    <div class="soal-head"><div class="soal-num">10</div><strong>Aplikasi: Hukum Pendinginan Newton</strong><span class="soal-tag m2">Modul 2</span></div>
+    <div class="soal-body">
+      <p>Sebuah benda bersuhu 150°C diletakkan di ruangan bersuhu 25°C. Setelah 10 menit suhu benda turun menjadi 100°C.</p>
+      <p><strong>a)</strong> Tentukan model matematika dan penyelesaian umumnya.</p>
+      <p><strong>b)</strong> Tentukan nilai konstanta \(k\).</p>
+      <p><strong>c)</strong> Berapa suhu benda setelah 30 menit?</p>
+      <p><strong>d)</strong> Berapa waktu yang dibutuhkan agar suhu benda menjadi 40°C?</p>
+      <p><strong>e)</strong> Buat plot grafik \(T(t)\) untuk \(0 \le t \le 120\) menit menggunakan Python.</p>
     </div>
   </div>
 </section>
 
-<!-- ==================== SECTION 1: OVERVIEW ==================== -->
-<section class="section container">
-  <div class="section-header">
-    <span class="section-number">01</span>
-    <span class="badge mb-3">Gambaran Tugas</span>
-    <h2 class="text-3xl font-bold mt-2">Apa yang Harus Dikerjakan?</h2>
-    <p class="text-s400 mt-2">Tiga komponen utama yang wajib diselesaikan setiap kelompok.</p>
+<!-- ═══════ JUPYTER TEMPLATE ═══════ -->
+<section class="sec fi" id="jupyter">
+  <div class="sl">🐍 TEMPLATE</div>
+  <h2 class="st">Template Jupyter Notebook</h2>
+  <div class="sd"></div>
+  <p>Gunakan template berikut sebagai acuan. Buat satu notebook (<code>.ipynb</code>) yang berisi penyelesaian semua 10 soal.</p>
+
+  <div class="cb"><div class="cbh"><div class="dots"><span></span><span></span><span></span></div><span>Python — Cell 1: Setup</span><button class="ccp" onclick="cpC(this)">📋 Copy</button></div><div class="cbd">
+<pre><span class="cm"># ═══ TUGAS PERTEMUAN 2 — MATEMATIKA TEKNIK ═══</span>
+<span class="cm"># Kelompok: [A / B]</span>
+<span class="cm"># Anggota :</span>
+<span class="cm">#   1. [Nama] - [NIM]</span>
+<span class="cm">#   2. [Nama] - [NIM]</span>
+<span class="cm">#   3. [Nama] - [NIM]</span>
+<span class="cm">#   4. [Nama] - [NIM] (jika ada)</span>
+
+<span class="kw">from</span> sympy <span class="kw">import</span> *
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+
+x = <span class="fn">symbols</span>(<span class="str">'x'</span>)
+y = <span class="fn">Function</span>(<span class="str">'y'</span>)
+t, k, C1, lam = <span class="fn">symbols</span>(<span class="str">'t k C1 lambda'</span>, positive=True)
+
+<span class="fn">print</span>(<span class="str">"Setup berhasil! ✅"</span>)</pre>
+  </div></div>
+
+  <div class="cb"><div class="cbh"><div class="dots"><span></span><span></span><span></span></div><span>Python — Cell 2: Contoh Soal 2 (Verifikasi)</span><button class="ccp" onclick="cpC(this)">📋 Copy</button></div><div class="cbd">
+<pre><span class="cm"># ═══ SOAL 2: Verifikasi y = e^(5x) untuk y'' - 3y' - 10y = 0 ═══</span>
+
+x = <span class="fn">symbols</span>(<span class="str">'x'</span>)
+y_func = <span class="fn">exp</span>(<span class="nm">5</span>*x)
+
+y1 = <span class="fn">diff</span>(y_func, x)       <span class="cm"># y'</span>
+y2 = <span class="fn">diff</span>(y_func, x, <span class="nm">2</span>)    <span class="cm"># y''</span>
+
+<span class="fn">print</span>(<span class="str">f"y   = {y_func}"</span>)
+<span class="fn">print</span>(<span class="str">f"y'  = {y1}"</span>)
+<span class="fn">print</span>(<span class="str">f"y'' = {y2}"</span>)
+
+<span class="cm"># Substitusi ke PD: y'' - 3y' - 10y</span>
+hasil = <span class="fn">simplify</span>(y2 - <span class="nm">3</span>*y1 - <span class="nm">10</span>*y_func)
+<span class="fn">print</span>(<span class="str">f"\ny'' - 3y' - 10y = {hasil}"</span>)
+<span class="fn">print</span>(<span class="str">"✅ Penyelesaian!"</span> <span class="kw">if</span> hasil == <span class="nm">0</span> <span class="kw">else</span> <span class="str">"❌ Bukan penyelesaian."</span>)</pre>
+  </div></div>
+
+  <div class="cb"><div class="cbh"><div class="dots"><span></span><span></span><span></span></div><span>Python — Cell 3: Contoh Soal 4 (PD Var. Terpisah)</span><button class="ccp" onclick="cpC(this)">📋 Copy</button></div><div class="cbd">
+<pre><span class="cm"># ═══ SOAL 4: Selesaikan 6y*y' = 5x^4 ═══</span>
+
+x = <span class="fn">symbols</span>(<span class="str">'x'</span>)
+y = <span class="fn">Function</span>(<span class="str">'y'</span>)
+
+pd = <span class="fn">Eq</span>(<span class="nm">6</span>*y(x)*y(x).<span class="fn">diff</span>(x), <span class="nm">5</span>*x**<span class="nm">4</span>)
+sol = <span class="fn">dsolve</span>(pd, y(x))
+<span class="fn">print</span>(<span class="str">"Solusi:"</span>, sol)</pre>
+  </div></div>
+
+  <div class="cb"><div class="cbh"><div class="dots"><span></span><span></span><span></span></div><span>Python — Cell 4: Contoh Soal 10 (Plot Pendinginan)</span><button class="ccp" onclick="cpC(this)">📋 Copy</button></div><div class="cbd">
+<pre><span class="cm"># ═══ SOAL 10: Plot kurva pendinginan Newton ═══</span>
+
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+
+T0 = <span class="nm">150</span>     <span class="cm"># suhu awal</span>
+Tm = <span class="nm">25</span>      <span class="cm"># suhu ruangan</span>
+k  = ...     <span class="cm"># hitung dari syarat T(10) = 100</span>
+
+t = np.<span class="fn">linspace</span>(<span class="nm">0</span>, <span class="nm">120</span>, <span class="nm">500</span>)
+T = Tm + (T0 - Tm) * np.<span class="fn">exp</span>(-k * t)
+
+plt.<span class="fn">figure</span>(figsize=(<span class="nm">10</span>, <span class="nm">6</span>))
+plt.<span class="fn">plot</span>(t, T, <span class="str">'cyan'</span>, lw=<span class="nm">2.5</span>, label=<span class="str">f'T(t) = {Tm} + {T0-Tm}e^(-{k:.4f}t)'</span>)
+plt.<span class="fn">axhline</span>(y=Tm, color=<span class="str">'orange'</span>, ls=<span class="str">'--'</span>, label=<span class="str">f'Suhu ruangan = {Tm}°C'</span>)
+plt.<span class="fn">xlabel</span>(<span class="str">'Waktu (menit)'</span>); plt.<span class="fn">ylabel</span>(<span class="str">'Suhu (°C)'</span>)
+plt.<span class="fn">title</span>(<span class="str">'Hukum Pendinginan Newton'</span>)
+plt.<span class="fn">legend</span>(); plt.<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>)
+plt.<span class="fn">show</span>()</pre>
+  </div></div>
+</section>
+
+<!-- ═══════ SUBMIT ═══════ -->
+<section class="sec fi" id="submit">
+  <div class="sl">📤 SUBMIT</div>
+  <h2 class="st">Cara Submit Tugas</h2>
+  <div class="sd"></div>
+
+  <div class="steps">
+    <div class="si"><div class="sc" style="flex:1"><h4 style="font-weight:700;">Kerjakan semua soal di Jupyter Notebook</h4><p style="color:var(--t2);font-size:.95rem;">Buka VS Code → buat file <code>Tugas2_Kelompok[A/B].ipynb</code>. Kerjakan semua 10 soal dengan langkah-langkah jelas (gunakan Markdown cell untuk penjelasan dan Code cell untuk perhitungan SymPy).</p></div></div>
+    <div class="si"><div class="sc" style="flex:1"><h4 style="font-weight:700;">Ekspor ke HTML</h4><p style="color:var(--t2);font-size:.95rem;">Di VS Code: <code>Ctrl+Shift+P</code> → ketik <strong>"Jupyter: Export to HTML"</strong>. Atau di terminal: <code>jupyter nbconvert --to html Tugas2_KelompokA.ipynb</code></p></div></div>
+    <div class="si"><div class="sc" style="flex:1"><h4 style="font-weight:700;">Upload ke Fast Learning</h4><p style="color:var(--t2);font-size:.95rem;">Masuk ke platform <strong>Fast Learning</strong> → Pertemuan 2 → Upload <strong>dua file</strong>: file <code>.ipynb</code> dan file <code>.html</code>.</p></div></div>
+    <div class="si"><div class="sc" style="flex:1"><h4 style="font-weight:700;">Pastikan semua anggota paham</h4><p style="color:var(--t2);font-size:.95rem;">Diskusikan bersama kelompok. Setiap anggota harus bisa menjelaskan penyelesaian soal yang ditunjuk oleh dosen pada pertemuan TMV berikutnya.</p></div></div>
   </div>
 
-  <div class="grid-3">
-
-    <div class="overview-card" style="--oc-accent:var(--teal)">
-      <span class="ov-num">A</span>
-      <div class="ov-icon" style="background:rgba(45,212,191,.1)">🔬</div>
-      <h3 class="font-bold text-lg text-teal mb-2">Simulasi Modul 1</h3>
-      <p class="text-s400" style="font-size:.87rem;line-height:1.65;">
-        Jalankan <strong class="text-s300">seluruh cell simulasi</strong> pada Modul 1 —
-        mulai dari import library, visualisasi time series normal,
-        dekomposisi karakteristik, hingga perbandingan Normal vs Faulty.
-      </p>
-      <div class="flex flex-wrap gap-2 mt-4">
-        <span class="chip chip-teal">4 Cell</span>
-        <span class="chip chip-teal">Jupyter Notebook</span>
-      </div>
-    </div>
-
-    <div class="overview-card" style="--oc-accent:var(--violet)">
-      <span class="ov-num">B</span>
-      <div class="ov-icon" style="background:rgba(167,139,250,.1)">📡</div>
-      <h3 class="font-bold text-lg text-violet mb-2">Simulasi Modul 2</h3>
-      <p class="text-s400" style="font-size:.87rem;line-height:1.65;">
-        Jalankan <strong class="text-s300">seluruh cell simulasi</strong> pada Modul 2 —
-        univariate &amp; multivariate time series, data sensor industri,
-        discrete vs continuous, hingga perbandingan bearing.
-      </p>
-      <div class="flex flex-wrap gap-2 mt-4">
-        <span class="chip chip-violet">5 Cell</span>
-        <span class="chip chip-violet">Jupyter Notebook</span>
-      </div>
-    </div>
-
-    <div class="overview-card" style="--oc-accent:var(--amber)">
-      <span class="ov-num">C</span>
-      <div class="ov-icon" style="background:rgba(251,191,36,.1)">✏️</div>
-      <h3 class="font-bold text-lg text-amber mb-2">Soal Latihan Modul 2</h3>
-      <p class="text-s400" style="font-size:.87rem;line-height:1.65;">
-        Selesaikan <strong class="text-s300">soal latihan 1, 2, dan 3</strong> pada Modul 2.
-        Lengkapi kode yang kosong, buat plot, hitung statistik,
-        dan jawab pertanyaan di Markdown cell.
-      </p>
-      <div class="flex flex-wrap gap-2 mt-4">
-        <span class="chip chip-amber">3 Soal</span>
-        <span class="chip chip-amber">+ Bonus</span>
-      </div>
-    </div>
-
+  <div class="info ok">
+    <h4>✅ Checklist Sebelum Submit</h4>
+    <p>☐ Semua 10 soal terjawab dengan langkah lengkap</p>
+    <p>☐ Setiap soal memiliki penyelesaian manual (di Markdown cell) DAN kode Python</p>
+    <p>☐ Soal 10 memiliki grafik plot Python</p>
+    <p>☐ File <code>.ipynb</code> sudah di-export ke <code>.html</code></p>
+    <p>☐ Kedua file diupload di Fast Learning Pertemuan 2</p>
+    <p>☐ Semua anggota memahami setiap jawaban</p>
   </div>
 </section>
 
-<!-- ==================== SECTION 2: DETAIL TUGAS ==================== -->
-<section class="section container">
-  <div class="section-header">
-    <span class="section-number">02</span>
-    <span class="badge mb-3">Detail Tugas</span>
-    <h2 class="text-3xl font-bold mt-2">Rincian Setiap Komponen</h2>
-    <p class="text-s400 mt-2">Panduan langkah demi langkah untuk setiap bagian tugas.</p>
-  </div>
-
-  <!-- Modul 1 -->
-  <div class="detail-panel mb-6">
-    <div class="detail-panel-head">
-      <div class="mod-badge" style="background:rgba(45,212,191,.12);color:var(--teal);border:1px solid rgba(45,212,191,.25);">
-        📘 Modul 1
-      </div>
-      <div>
-        <h3 class="font-bold text-xl">Simulasi Pertemuan 1 — Pengantar Time Series</h3>
-        <p class="text-xs text-s500 mt-1">Jalankan semua cell, pastikan output chart muncul</p>
-      </div>
-    </div>
-    <div class="detail-body">
-
-      <div class="task-item">
-        <div class="task-bullet" style="background:rgba(45,212,191,.14);color:var(--teal);">1</div>
-        <div>
-          <p class="font-semibold text-s200" style="font-size:.92rem;">Cell 1 — Import Library</p>
-          <p class="text-s400 mt-1" style="font-size:.85rem;">
-            Import <code>numpy</code> dan <code>matplotlib.pyplot</code>. Set style dark background agar tampilan profesional.
-            Verifikasi semua library berhasil diimport.
-          </p>
-        </div>
-      </div>
-
-      <div class="task-item">
-        <div class="task-bullet" style="background:rgba(45,212,191,.14);color:var(--teal);">2</div>
-        <div>
-          <p class="font-semibold text-s200" style="font-size:.92rem;">Cell 2 — Visualisasi Time Series Normal</p>
-          <p class="text-s400 mt-1" style="font-size:.85rem;">
-            Buat sinyal getaran mesin normal (5 detik, 500 Hz, frekuensi 30 Hz, noise Gaussian σ=0.15).
-            Plot dengan label sumbu lengkap. Jawab pertanyaan di <strong class="text-teal">Markdown cell</strong>:
-            ada tren naik? Berapa perkiraan amplitudo noise? Berapa sampling rate dalam Hz?
-          </p>
-        </div>
-      </div>
-
-      <div class="task-item">
-        <div class="task-bullet" style="background:rgba(45,212,191,.14);color:var(--teal);">3</div>
-        <div>
-          <p class="font-semibold text-s200" style="font-size:.92rem;">Cell 3 — Identifikasi Karakteristik</p>
-          <p class="text-s400 mt-1" style="font-size:.85rem;">
-            Dekomposisi sinyal 60 detik menjadi 5 subplot: sinyal total, tren, musiman (periode 8s),
-            siklik (periode 30s), dan noise. Jawab: komponen mana yang dominan?
-            Apa perbedaan musiman vs siklik dari grafik?
-          </p>
-        </div>
-      </div>
-
-      <div class="task-item">
-        <div class="task-bullet" style="background:rgba(45,212,191,.14);color:var(--teal);">4</div>
-        <div>
-          <p class="font-semibold text-s200" style="font-size:.92rem;">Cell 4 — Normal vs Faulty &amp; Hitung RMS</p>
-          <p class="text-s400 mt-1" style="font-size:.85rem;">
-            Plot Normal dan Faulty dalam satu grafik. Hitung dan print RMS keduanya beserta rasionya.
-            Lanjutkan dengan modifikasi: ubah amplitudo Faulty menjadi 2.5×, hitung RMS, Peak, dan Crest Factor,
-            lalu tulis kesimpulan di Markdown cell.
-          </p>
-        </div>
-      </div>
-
-      <div class="hint-box hint-teal mt-4">
-        💡 <strong>Tips Modul 1:</strong> Pastikan setiap cell dijalankan berurutan dari atas ke bawah.
-        Jika muncul error, cek apakah Cell 1 sudah dijalankan terlebih dahulu.
-      </div>
-    </div>
-  </div>
-
-  <!-- Modul 2 Simulasi -->
-  <div class="detail-panel mb-6">
-    <div class="detail-panel-head">
-      <div class="mod-badge" style="background:rgba(167,139,250,.12);color:var(--violet);border:1px solid rgba(167,139,250,.25);">
-        📗 Modul 2 — Simulasi
-      </div>
-      <div>
-        <h3 class="font-bold text-xl">Simulasi Pertemuan 2 — Jenis &amp; Sumber Time Series</h3>
-        <p class="text-xs text-s500 mt-1">5 cell simulasi, jalankan semua dan pastikan output terlihat</p>
-      </div>
-    </div>
-    <div class="detail-body">
-
-      <div class="task-item">
-        <div class="task-bullet" style="background:rgba(167,139,250,.14);color:var(--violet);">1</div>
-        <div>
-          <p class="font-semibold text-s200" style="font-size:.92rem;">Cell 1 — Import Library</p>
-          <p class="text-s400 mt-1" style="font-size:.85rem;">
-            Import <code>numpy</code>, <code>matplotlib.pyplot</code>, <code>pandas</code>, dan <code>scipy.signal</code>.
-            Verifikasi semua berhasil.
-          </p>
-        </div>
-      </div>
-
-      <div class="task-item">
-        <div class="task-bullet" style="background:rgba(167,139,250,.14);color:var(--violet);">2</div>
-        <div>
-          <p class="font-semibold text-s200" style="font-size:.92rem;">Cell 2 — Generate Data Sensor Univariate</p>
-          <p class="text-s400 mt-1" style="font-size:.85rem;">
-            Buat sinyal Normal (frekuensi 25 Hz, sampling 1000 Hz, 2 detik) dan Faulty
-            dengan impuls kerusakan bearing. Print total data points, durasi, RMS Normal, dan RMS Faulty.
-          </p>
-        </div>
-      </div>
-
-      <div class="task-item">
-        <div class="task-bullet" style="background:rgba(167,139,250,.14);color:var(--violet);">3</div>
-        <div>
-          <p class="font-semibold text-s200" style="font-size:.92rem;">Cell 3 — Plot Univariate Time Series</p>
-          <p class="text-s400 mt-1" style="font-size:.85rem;">
-            Plot dua subplot: kondisi Normal (hijau teal) dan Faulty (merah rose), masing-masing
-            dengan garis RMS sebagai referensi. Berikan judul dan label yang jelas.
-          </p>
-        </div>
-      </div>
-
-      <div class="task-item">
-        <div class="task-bullet" style="background:rgba(167,139,250,.14);color:var(--violet);">4</div>
-        <div>
-          <p class="font-semibold text-s200" style="font-size:.92rem;">Cell 4 — Plot Multivariate (3 Sensor)</p>
-          <p class="text-s400 mt-1" style="font-size:.85rem;">
-            Simulasikan pompa hidrolik 60 detik (1 Hz) dengan 3 sensor bersamaan: getaran, suhu, RPM.
-            Tampilkan 3 subplot dengan <code>sharex=True</code>. Buat DataFrame dan print <code>describe()</code>.
-          </p>
-        </div>
-      </div>
-
-      <div class="task-item">
-        <div class="task-bullet" style="background:rgba(167,139,250,.14);color:var(--violet);">5</div>
-        <div>
-          <p class="font-semibold text-s200" style="font-size:.92rem;">Cell 5 — Discrete vs Continuous &amp; Aliasing</p>
-          <p class="text-s400 mt-1" style="font-size:.85rem;">
-            Bandingkan sinyal kontinu (1000 titik) dengan sinyal diskret (sampling 10 Hz) dalam satu figure dua subplot.
-            Gunakan <code>stem()</code> untuk sinyal diskret.
-          </p>
-        </div>
-      </div>
-
-      <div class="hint-box hint-violet mt-4">
-        💡 <strong>Tips Modul 2:</strong> Untuk Cell 4, pastikan argumen <code>sharex=True</code> aktif
-        agar sumbu waktu semua subplot tersinkronisasi. Untuk Cell 5, perhatikan perbedaan visual
-        antara sinyal kontinu dan diskret — ini penting untuk memahami konsep sampling rate.
-      </div>
-    </div>
-  </div>
-
-  <!-- Modul 2 Latihan -->
-  <div class="detail-panel">
-    <div class="detail-panel-head">
-      <div class="mod-badge" style="background:rgba(251,191,36,.12);color:var(--amber);border:1px solid rgba(251,191,36,.25);">
-        ✏️ Modul 2 — Latihan
-      </div>
-      <div>
-        <h3 class="font-bold text-xl">Soal Latihan Modul 2</h3>
-        <p class="text-xs text-s500 mt-1">Lengkapi kode, buat plot, dan jawab pertanyaan</p>
-      </div>
-    </div>
-    <div class="detail-body">
-
-      <div class="task-item">
-        <div class="task-bullet" style="background:rgba(45,212,191,.14);color:var(--teal);">🟢</div>
-        <div>
-          <p class="font-semibold text-s200" style="font-size:.92rem;">Soal 1 — Univariate: Plot Getaran Mesin <span class="chip chip-teal" style="font-size:.65rem;padding:2px 8px;">Mudah</span></p>
-          <p class="text-s400 mt-1" style="font-size:.85rem;">
-            Lengkapi kode scaffold (isi bagian <code>???</code>): sampling rate 500 Hz, frekuensi 30 Hz,
-            noise Gaussian σ=0.15. Plot 500 sampel pertama dengan label lengkap.
-            Jawab di Markdown cell: total sampel, frekuensi maksimum (Teorema Nyquist).
-          </p>
-        </div>
-      </div>
-
-      <div class="task-item">
-        <div class="task-bullet" style="background:rgba(251,191,36,.14);color:var(--amber);">🟡</div>
-        <div>
-          <p class="font-semibold text-s200" style="font-size:.92rem;">Soal 2 — Multivariate: 3 Sensor Bersamaan <span class="chip chip-amber" style="font-size:.65rem;padding:2px 8px;">Sedang</span></p>
-          <p class="text-s400 mt-1" style="font-size:.85rem;">
-            Simulasikan kompresor 120 detik (2 Hz) dengan 3 sensor: Getaran (tren naik 0.005/detik),
-            Suhu 70°C (tren naik 0.2/detik, noise ±3°C), Tekanan 8 bar (sinusoidal periode 30s, noise ±0.2 bar).
-            Buat DataFrame, 3 subplot, dan <code>describe()</code>.
-            Jawab: sensor mana yang bertren? Apa dampak jika sampling rate dikurangi jadi 0.5 Hz?
-          </p>
-        </div>
-      </div>
-
-      <div class="task-item">
-        <div class="task-bullet" style="background:rgba(251,113,133,.14);color:var(--rose);">🔴</div>
-        <div>
-          <p class="font-semibold text-s200" style="font-size:.92rem;">Soal 3 — Studi Kasus Bearing Normal vs Faulty <span class="chip chip-rose" style="font-size:.65rem;padding:2px 8px;">Menantang</span></p>
-          <p class="text-s400 mt-1" style="font-size:.85rem;">
-            Buat dua sinyal bearing (sampling 2000 Hz, 3 detik). Plot perbandingan (Bagian A).
-            Hitung RMS, Peak, Crest Factor, dan Std untuk Normal dan Faulty (Bagian B).
-            Jawab di Markdown: adakah impuls mendadak? Berapa kali lipat kenaikan RMS?
-            Sensor apa yang paling cocok untuk deteksi bearing fault? (Bagian C)
-          </p>
-        </div>
-      </div>
-
-      <div class="task-item">
-        <div class="task-bullet" style="background:rgba(167,139,250,.14);color:var(--violet);">⭐</div>
-        <div>
-          <p class="font-semibold text-s200" style="font-size:.92rem;">Soal Bonus — Discrete vs Continuous &amp; Nyquist <span class="chip chip-violet" style="font-size:.65rem;padding:2px 8px;">+10 Poin</span></p>
-          <p class="text-s400 mt-1" style="font-size:.85rem;">
-            Buat sinyal frekuensi 40 Hz, sampling dengan 3 rate: 100 Hz (aman), 50 Hz (batas Nyquist),
-            dan 60 Hz (aliasing!). Plot ketiganya dalam satu figure dan jelaskan fenomena aliasing
-            yang terjadi pada sampling 60 Hz.
-          </p>
-        </div>
-      </div>
-
-      <div class="hint-box hint-amber mt-4">
-        💡 <strong>Tips Soal Latihan:</strong>
-        RMS = <code>np.sqrt(np.mean(data**2))</code> &nbsp;|&nbsp;
-        Peak = <code>np.max(np.abs(data))</code> &nbsp;|&nbsp;
-        Crest Factor = <code>Peak / RMS</code> — nilai &gt; 3 biasanya indikasi kerusakan.
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ==================== SECTION 3: PERHATIAN PENTING ==================== -->
-<section class="section container">
-  <div class="section-header">
-    <span class="section-number">03</span>
-    <span class="badge mb-3">⚠️ Perhatian</span>
-    <h2 class="text-3xl font-bold mt-2">Hal-Hal Penting yang Wajib Diperhatikan</h2>
-    <p class="text-s400 mt-2">Baca dengan seksama sebelum mulai mengerjakan.</p>
-  </div>
-
-  <div style="display:flex;flex-direction:column;gap:16px;">
-
-    <div class="attn-box attn-rose">
-      <div class="attn-icon-wrap" style="background:rgba(251,113,133,.12)">⚠️</div>
-      <div>
-        <h4 class="font-bold text-rose text-lg mb-2">Setiap Anggota Wajib Memahami Seluruh Tugas</h4>
-        <p class="text-s300 leading-relaxed" style="font-size:.9rem;">
-          Tugas ini dikerjakan bersama kelompok, namun <strong class="text-rose">setiap anggota kelompok
-          wajib memahami seluruh pekerjaan</strong> — bukan hanya bagian yang ia kerjakan sendiri.
-          Pada pertemuan TMV selanjutnya, <strong>dosen akan meminta setiap anggota menjelaskan
-          hasil tugas secara acak</strong>. Pastikan tidak ada yang sekadar "titip nama"!
-        </p>
-      </div>
-    </div>
-
-    <div class="attn-box attn-amber">
-      <div class="attn-icon-wrap" style="background:rgba(251,191,36,.12)">🕰️</div>
-      <div>
-        <h4 class="font-bold text-amber text-lg mb-2">Diskusi Internal Kelompok adalah Kunci</h4>
-        <p class="text-s300 leading-relaxed" style="font-size:.9rem;">
-          Manfaatkan waktu berdiskusi bersama anggota kelompok.
-          Jelaskan satu sama lain apa yang dipahami dari setiap cell kode dan setiap grafik yang dihasilkan.
-          Gunakan <strong class="text-amber">Grup WhatsApp Kelas</strong> untuk diskusi lintas kelompok
-          jika mengalami kesulitan.
-        </p>
-      </div>
-    </div>
-
-    <div class="attn-box attn-violet">
-      <div class="attn-icon-wrap" style="background:rgba(167,139,250,.12)">🎯</div>
-      <div>
-        <h4 class="font-bold text-violet text-lg mb-2">Fokus pada Pemahaman Konsep, Bukan Sekadar Output</h4>
-        <p class="text-s300 leading-relaxed" style="font-size:.9rem;">
-          Tujuan utama tugas ini bukan hanya menghasilkan grafik yang cantik, tetapi
-          <strong class="text-violet">memahami makna di balik setiap sinyal</strong> —
-          mengapa RMS faulty lebih tinggi? Apa yang menyebabkan impuls pada bearing rusak?
-          Mengapa urutan waktu penting dalam time series?
-          Jawab pertanyaan-pertanyaan ini di <strong>Markdown cell</strong> dengan kalimat sendiri.
-        </p>
-      </div>
-    </div>
-
-    <div class="attn-box attn-teal">
-      <div class="attn-icon-wrap" style="background:rgba(45,212,191,.12)">✅</div>
-      <div>
-        <h4 class="font-bold text-teal text-lg mb-2">Pastikan Semua Cell Sudah Di-Run Sebelum Export</h4>
-        <p class="text-s300 leading-relaxed" style="font-size:.9rem;">
-          Sebelum mengekspor file, jalankan seluruh notebook dari awal menggunakan
-          <code>Kernel → Restart &amp; Run All</code>. Pastikan semua cell menghasilkan output
-          (grafik, teks, atau tabel) yang terlihat. File <code>.ipynb</code> tanpa output
-          yang tampil <strong class="text-rose">tidak akan dinilai</strong>.
-        </p>
-      </div>
-    </div>
-
-  </div>
-</section>
-
-<!-- ==================== SECTION 4: FORMAT PENGUMPULAN ==================== -->
-<section class="section container">
-  <div class="section-header">
-    <span class="section-number">04</span>
-    <span class="badge mb-3">📁 Pengumpulan</span>
-    <h2 class="text-3xl font-bold mt-2">Format &amp; Cara Pengumpulan</h2>
-    <p class="text-s400 mt-2">Setiap kelompok mengumpulkan dua file dengan format penamaan yang benar.</p>
-  </div>
-
-  <div class="grid-2 mb-8">
-
-    <div class="file-card" style="--fc-accent:var(--teal)">
-      <div class="file-icon" style="background:rgba(45,212,191,.1)">📓</div>
-      <div>
-        <span class="file-ext text-teal">.ipynb</span>
-        <p class="font-bold text-s200 mt-2 mb-1">Jupyter Notebook</p>
-        <p class="text-s400" style="font-size:.85rem;line-height:1.6;">
-          File notebook utama berisi seluruh cell kode yang sudah dijalankan beserta outputnya
-          (grafik, tabel, teks). Pastikan output setiap cell sudah tampil.
-        </p>
-        <div class="hint-box hint-teal mt-3" style="font-size:.78rem;">
-          📄 Nama file: <code>Tugas1_Kelompok[N]_NIM_Nama.ipynb</code><br>
-          Contoh: <code>Tugas1_Kelompok1_41321120054_Angga.ipynb</code>
-        </div>
-      </div>
-    </div>
-
-    <div class="file-card" style="--fc-accent:var(--amber)">
-      <div class="file-icon" style="background:rgba(251,191,36,.1)">🌐</div>
-      <div>
-        <span class="file-ext text-amber">.html</span>
-        <p class="font-bold text-s200 mt-2 mb-1">Export HTML dari Notebook</p>
-        <p class="text-s400" style="font-size:.85rem;line-height:1.6;">
-          Export notebook ke format HTML agar mudah dibuka tanpa instalasi Python.
-          Caranya: di VS Code, klik ikon <code>...</code> → <em>Export</em> → <em>HTML</em>.
-        </p>
-        <div class="hint-box hint-amber mt-3" style="font-size:.78rem;">
-          📄 Nama file: <code>Tugas1_Kelompok[N]_NIM_Nama.html</code><br>
-          Contoh: <code>Tugas1_Kelompok1_41321120054_Angga.html</code>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Export steps -->
-  <div class="detail-panel">
-    <div class="detail-panel-head">
-      <div class="mod-badge" style="background:rgba(45,212,191,.1);color:var(--teal);border:1px solid rgba(45,212,191,.2);">
-        💻 Langkah Export
-      </div>
-      <h3 class="font-bold text-lg">Cara Export Notebook ke HTML di VS Code</h3>
-    </div>
-    <div class="detail-body">
-      <div class="grid-2">
-        <div>
-          <p class="font-semibold text-s300 mb-3" style="font-size:.88rem;">Metode 1 — Via VS Code UI</p>
-          <div style="display:flex;flex-direction:column;gap:10px;">
-            <div class="task-item" style="padding:10px 0;">
-              <div class="task-bullet" style="background:rgba(45,212,191,.1);color:var(--teal);font-size:.65rem;">1</div>
-              <p class="text-s400" style="font-size:.85rem;">Buka file <code>.ipynb</code> di VS Code</p>
-            </div>
-            <div class="task-item" style="padding:10px 0;">
-              <div class="task-bullet" style="background:rgba(45,212,191,.1);color:var(--teal);font-size:.65rem;">2</div>
-              <p class="text-s400" style="font-size:.85rem;">Klik <code>Kernel → Restart &amp; Run All</code></p>
-            </div>
-            <div class="task-item" style="padding:10px 0;">
-              <div class="task-bullet" style="background:rgba(45,212,191,.1);color:var(--teal);font-size:.65rem;">3</div>
-              <p class="text-s400" style="font-size:.85rem;">Klik ikon <code>...</code> (pojok kanan atas) → <em>Export</em></p>
-            </div>
-            <div class="task-item" style="padding:10px 0;border-bottom:none;">
-              <div class="task-bullet" style="background:rgba(45,212,191,.1);color:var(--teal);font-size:.65rem;">4</div>
-              <p class="text-s400" style="font-size:.85rem;">Pilih <strong class="text-teal">HTML</strong> → simpan</p>
-            </div>
-          </div>
-        </div>
-        <div>
-          <p class="font-semibold text-s300 mb-3" style="font-size:.88rem;">Metode 2 — Via Terminal</p>
-          <div class="cell">
-            <div class="cell-bar">
-              <div class="dot-row"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-              <span class="cell-label">Terminal / Miniconda Prompt</span>
-            </div>
-<pre class="code-pre"><span class="cm"># Aktifkan environment terlebih dahulu</span>
-conda activate optauto
-
-<span class="cm"># Jalankan perintah nbconvert</span>
-jupyter nbconvert --to html \
-  Tugas1_Kelompok1_NIM_Nama.ipynb
-
-<span class="cm"># File .html akan muncul di folder yang sama</span></pre>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ==================== SECTION 5: DAFTAR KELOMPOK ==================== -->
-<section class="section container">
-  <div class="section-header">
-    <span class="section-number">05</span>
-    <span class="badge mb-3">👥 Kelompok</span>
-    <h2 class="text-3xl font-bold mt-2">Daftar Kelompok</h2>
-    <p class="text-s400 mt-2">Klik tab untuk melihat anggota setiap kelompok.</p>
-  </div>
-
-  <div class="group-table-wrap">
-    <div class="group-tabs">
-      <button class="g-tab active" onclick="switchGroup(this,'g1')">1️⃣ Kelompok 1</button>
-      <button class="g-tab"        onclick="switchGroup(this,'g2')">2️⃣ Kelompok 2</button>
-      <button class="g-tab"        onclick="switchGroup(this,'g3')">3️⃣ Kelompok 3</button>
-      <button class="g-tab"        onclick="switchGroup(this,'g4')">4️⃣ Kelompok 4</button>
-    </div>
-
-    <!-- Kelompok 1 -->
-    <div class="g-panel active" id="g1">
-      <p class="text-xs text-s500 uppercase tracking-wide font-semibold mb-4">7 Anggota</p>
-      <div id="list-g1"></div>
-    </div>
-
-    <!-- Kelompok 2 -->
-    <div class="g-panel" id="g2">
-      <p class="text-xs text-s500 uppercase tracking-wide font-semibold mb-4">7 Anggota</p>
-      <div id="list-g2"></div>
-    </div>
-
-    <!-- Kelompok 3 -->
-    <div class="g-panel" id="g3">
-      <p class="text-xs text-s500 uppercase tracking-wide font-semibold mb-4">7 Anggota</p>
-      <div id="list-g3"></div>
-    </div>
-
-    <!-- Kelompok 4 -->
-    <div class="g-panel" id="g4">
-      <p class="text-xs text-s500 uppercase tracking-wide font-semibold mb-4">6 Anggota</p>
-      <div id="list-g4"></div>
-    </div>
-  </div>
-</section>
-
-<!-- ==================== FOOTER ==================== -->
-<footer>
-  <div class="container">
-    <p>Tugas 1 disusun oleh <span style="color:var(--teal)">Dedik Romahadi</span> •
-       Optimalisasi &amp; Otomasi • S1 Teknik Mesin • Universitas Mercu Buana</p>
-    <p style="margin-top:4px;">Deadline: <strong style="color:var(--amber)">8 April 2026 pukul 23:59 WIB</strong> • Format: .ipynb &amp; .html</p>
-  </div>
-</footer>
-
-
-<!-- ==================== SCRIPTS ==================== -->
-<script>
-/* -------- TICKER -------- */
-(function(){
-  const items = [
-    '📋 Tugas 1 — Deadline 8 April 2026 pukul 23.59 WIB',
-    '📓 Submit format .ipynb dan .html',
-    '👥 Kerja kelompok — setiap anggota wajib memahami',
-    '🔬 Modul 1: 4 cell simulasi time series',
-    '📡 Modul 2: 5 cell simulasi sensor industri',
-    '✏️ Latihan Modul 2: Soal 1, 2, 3 + Bonus',
-    '⚠️ Akan ditanya saat pertemuan TMV selanjutnya!',
-    '💻 Export notebook: Kernel → Restart & Run All → Export → HTML',
-  ];
-  const dup = [...items,...items];
-  document.getElementById('ticker').innerHTML =
-    dup.map(d=>`<span class="ticker-item">[ ${d} ]</span>`).join('');
-})();
-
-/* -------- COUNTDOWN -------- */
-(function(){
-  // Deadline: 8 April 2026, 23:59 WIB (UTC+7 → UTC: 16:59)
-  const deadline = new Date('2026-04-08T23:59:00+07:00').getTime();
-  // Assignment start reference: 2 April 2026 (today)
-  const assignStart = new Date('2026-04-02T00:00:00+07:00').getTime();
-  const totalDuration = deadline - assignStart;
-
-  function pad(n){ return String(n).padStart(2,'0'); }
-
-  function tick(){
-    const now  = Date.now();
-    const left = deadline - now;
-
-    if(left <= 0){
-      document.getElementById('cdGrid').style.display = 'none';
-      document.getElementById('expiredMsg').style.display = 'block';
-      document.getElementById('cdBar').style.width = '100%';
-      document.getElementById('progressLabel').textContent = 'Deadline sudah berakhir';
-      document.getElementById('progressPct').textContent = '100%';
-      return;
-    }
-
-    const d  = Math.floor(left / 86400000);
-    const h  = Math.floor((left % 86400000) / 3600000);
-    const m  = Math.floor((left % 3600000)  / 60000);
-    const s  = Math.floor((left % 60000)    / 1000);
-
-    document.getElementById('cdDays').textContent  = pad(d);
-    document.getElementById('cdHours').textContent = pad(h);
-    document.getElementById('cdMins').textContent  = pad(m);
-    document.getElementById('cdSecs').textContent  = pad(s);
-
-    /* color urgency */
-    const nums = ['cdDays','cdHours','cdMins','cdSecs'].map(id=>document.getElementById(id));
-    nums.forEach(el=>{
-      el.classList.remove('urgent','warn');
-      if(d === 0 && h < 3) el.classList.add('urgent');
-      else if(d === 0) el.classList.add('warn');
-    });
-
-    /* progress bar */
-    const elapsed = now - assignStart;
-    const pct = Math.min(100, Math.max(0, (elapsed / totalDuration) * 100));
-    document.getElementById('cdBar').style.width = pct.toFixed(2) + '%';
-
-    const daysLeft = d + (h/24) + (m/1440);
-    document.getElementById('progressLabel').textContent =
-      d > 0
-        ? `${d} hari ${h} jam tersisa`
-        : h > 0
-          ? `${h} jam ${m} menit tersisa`
-          : `${m} menit ${s} detik tersisa — segera kumpulkan!`;
-    document.getElementById('progressPct').textContent = pct.toFixed(1) + '% waktu terpakai';
-  }
-
-  tick();
-  setInterval(tick, 1000);
-})();
-
-/* -------- GROUP DATA -------- */
-const GROUPS = {
-  g1: {
-    color:'#2dd4bf',
-    members:[
-      ['41321120054','ANGGA HANDIAPUTRA YUDHATAMA'],
-      ['41321120057','MUHAMMAD MAHLIAN HADI MAULANA'],
-      ['41322010021','ARIP TEGUH SUHARTO'],
-      ['41322010029','AHMAD NURDIN SIMATUPANG'],
-      ['41322110039','EKI WIRATAMA PUTRA'],
-      ['41322110067','MOCHAMAD NURCHOLIS'],
-      ['41322110080','SHOLIH FAUZAN'],
-    ]
-  },
-  g2: {
-    color:'#a3e635',
-    members:[
-      ['41322110087','FICKRI DIMAS AL FALLAH'],
-      ['41322110089','MUHAMMAD IBNU FAUZI'],
-      ['41322110093','ADE YULIAN SAPUTRA'],
-      ['41322120018','DEVI KRISTIANTO'],
-      ['41322120038','FAIYUN'],
-      ['41322120039','SUTARI'],
-      ['41323110002','KIANDRY RIDHO WIDODO'],
-    ]
-  },
-  g3: {
-    color:'#a78bfa',
-    members:[
-      ['41323110003','SYAMSUDIN'],
-      ['41323110005','TRESNA SETYA PUTRA'],
-      ['41323110011','EDWIN ANUGRAH EFFENDY'],
-      ['41323110022','TAUFIK NUR HIDAYAT'],
-      ['41323110026','YOYOK KRISTIYONO'],
-      ['41323110040','SAKHA KHAIRUL HAKIM'],
-      ['41323110042','RISKI KRISTANTO'],
-    ]
-  },
-  g4: {
-    color:'#fbbf24',
-    members:[
-      ['41324120004','M. NADHIF AL-RAFID'],
-      ['41324120021','THIMOTIUS BRIANTIKA PERMANA'],
-      ['41324120025','ADITYA RAMADHAN'],
-      ['41324120026','HERA DIPTA NUR PRAPTAMA'],
-      ['41324120032','PANJI EKA ALFIANINDRA'],
-      ['41325110020','SLAMET RAMDHANI'],
-    ]
-  }
-};
-
-function renderGroups(){
-  Object.entries(GROUPS).forEach(([key, grp])=>{
-    const el = document.getElementById('list-' + key);
-    el.innerHTML = grp.members.map(([ nim, name ], i) => `
-      <div class="member-row">
-        <div class="member-idx" style="background:${grp.color}18;color:${grp.color}">${i+1}</div>
-        <span class="member-nim">${nim}</span>
-        <span class="member-name">${name}</span>
-      </div>
-    `).join('');
-  });
-}
-
-function switchGroup(btn, id){
-  document.querySelectorAll('.g-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.g-panel').forEach(p => p.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById(id).classList.add('active');
-}
-
-renderGroups();
-</script>
+<!-- ═══════ FOOTER ═══════ -->
 
 <!-- ═══ DAFTAR PENGUNJUNG ═══ -->
 <section style="max-width:900px;margin:48px auto 0;padding:0 24px;">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px;">
     <div>
-      <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.3);color:var(--teal,#2dd4bf);padding:5px 14px;border-radius:999px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;">👥 Pengunjung</span>
-      <h2 style="font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:#fff;margin-top:12px;">Daftar Pengunjung</h2>
-      <p style="color:var(--s400,#94a3b8);font-size:.85rem;margin-top:6px;">Mahasiswa dan dosen yang telah mengakses halaman ini.</p>
+      <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.05);border:1px solid #1e293b;color:#00e09e;padding:5px 14px;border-radius:999px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;">👥 Pengunjung</span>
+      <h2 style="font-size:1.6rem;font-weight:800;color:#fff;margin-top:12px;">Daftar Pengunjung</h2>
+      <p style="color:#94a3b8;font-size:.85rem;margin-top:6px;">Mahasiswa yang telah mengakses halaman ini.</p>
     </div>
     
   </div>
-  <div id="scheduleInfo" style="display:none;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.2);border-radius:14px;padding:14px 20px;margin-bottom:20px;align-items:center;gap:12px;flex-wrap:wrap;">
+<div id="scheduleInfo" style="display:none;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.2);border-radius:14px;padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
       <span style="font-size:1.2rem;">🕐</span>
       <div style="flex:1;min-width:200px;">
         <div style="font-size:.75rem;font-weight:600;color:#818cf8;text-transform:uppercase;letter-spacing:.08em;">Jadwal Perkuliahan</div>
@@ -1386,34 +505,67 @@ renderGroups();
       </div>
       <div style="text-align:center;">
         <div id="statLate" style="font-weight:800;font-size:1.4rem;color:#fb7185;">0</div>
-        <div style="font-size:.7rem;color:var(--s500,#64748b);">Terlambat</div>
+        <div style="font-size:.7rem;color:#64748b;">Terlambat</div>
       </div>
     </div>
-<div style="background:var(--surface,#0f1929);border:1px solid var(--border,rgba(45,212,191,.15));border-radius:20px;overflow:hidden;">
-    <div style="display:flex;gap:1px;background:rgba(255,255,255,.04);">
-      <div style="flex:1;padding:20px 24px;text-align:center;"><div id="statTotal" style="font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;color:var(--teal,#2dd4bf);">—</div><div style="font-size:.75rem;color:var(--s500,#64748b);margin-top:2px;">Total Pengunjung</div></div>
-      <div style="flex:1;padding:20px 24px;text-align:center;border-left:1px solid rgba(255,255,255,.06);border-right:1px solid rgba(255,255,255,.06);"><div id="statMhs" style="font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;color:var(--violet,#a78bfa);">—</div><div style="font-size:.75rem;color:var(--s500,#64748b);margin-top:2px;">Mahasiswa</div></div>
-      <div style="flex:1;padding:20px 24px;text-align:center;"><div id="statDosen" style="font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;color:var(--amber,#fbbf24);">—</div><div style="font-size:.75rem;color:var(--s500,#64748b);margin-top:2px;">Dosen</div></div>
+  <div style="background:#151e30;border:1px solid #1e293b;border-radius:20px;overflow:hidden;">
+    <div id="leaderboardPanel" style="margin-bottom:2px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:16px 20px;">
+        <div style="background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.15);border-radius:14px;padding:14px 16px;">
+          <div style="font-size:.72rem;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🏆 Paling Rajin</div>
+          <div id="rajinList" style="font-size:.8rem;color:#e2e8f0;min-height:60px;">⏳ Memuat...</div>
+        </div>
+        <div style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15);border-radius:14px;padding:14px 16px;">
+          <div style="font-size:.72rem;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">😴 Paling Santai</div>
+          <div id="santaiList" style="font-size:.8rem;color:#e2e8f0;min-height:60px;">⏳ Memuat...</div>
+        </div>
+      </div>
+      <div style="padding:0 20px 16px;">
+        <div style="background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);border-radius:14px;padding:14px 16px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <div style="font-size:.72rem;font-weight:700;color:#fb7185;text-transform:uppercase;letter-spacing:.1em;">❌ Bolos</div>
+            <div id="bolosCount" style="background:rgba(251,113,133,.15);color:#fb7185;font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:8px;">0</div>
+          </div>
+          <div id="bolosList" style="font-size:.8rem;color:#e2e8f0;">⏳ Memuat...</div>
+        </div>
+      </div>
     </div>
-    <div style="display:flex;padding:14px 24px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;font-weight:600;color:var(--s500,#64748b);text-transform:uppercase;letter-spacing:.08em;">
-      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
+    <div style="display:flex;padding:14px 24px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.08em;">
+      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:0.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
     </div>
-    <div id="visitorTableBody" style="max-height:420px;overflow-y:auto;"><div style="text-align:center;padding:40px 24px;color:var(--s500,#64748b);font-size:.88rem;">⏳ Memuat data pengunjung...</div></div>
+    <div id="visitorTableBody" style="max-height:420px;overflow-y:auto;"><div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">⏳ Memuat data pengunjung...</div></div>
   </div>
 </section>
 
+<footer>
+  <p>📋 Tugas 2 — Matematika Teknik (Modul 1 & 2)</p>
+  <p style="margin-top:.5rem;">W132100010 • Fakultas Teknik — Teknik Mesin</p>
+  <p style="margin-top:.25rem;font-size:.8rem;">Dosen Pengampu: Dedik Romahadi</p>
+</footer>
+
+<!-- ═══════ SCRIPTS ═══════ -->
+<script>
+document.addEventListener('DOMContentLoaded',()=>{renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})});
+
+
+// Fade-in
+const obs=new IntersectionObserver(e=>{e.forEach(en=>{if(en.isIntersecting)en.target.classList.add('vis')})},{threshold:.1});
+document.querySelectorAll('.fi').forEach(el=>obs.observe(el));
+
+// Active nav
+window.addEventListener('scroll',()=>{const secs=document.querySelectorAll('.sec');const links=document.querySelectorAll('.nav a');let cur='';secs.forEach(s=>{if(window.scrollY>=s.offsetTop-120)cur=s.id});links.forEach(l=>{l.classList.remove('active');if(l.getAttribute('href')==='#'+cur)l.classList.add('active')})});
+
+// Copy code
+function cpC(btn){const code=btn.closest('.cb').querySelector('pre').textContent;navigator.clipboard.writeText(code).then(()=>{btn.textContent='✅ Copied!';setTimeout(()=>btn.textContent='📋 Copy',2000)})}
+</script>
+<script>
+
+</script>
+
 <script type="module">
-// ═══ FIREBASE VISITOR SYSTEM (with Schedule) ═══
+// ═══ FIREBASE + VISITOR SYSTEM ═══
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { getDatabase, ref, get, set, remove, onValue } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
-
-const MODULE_ID = 'tugas-2';
-const DB_PATH = `visitors/OptoAuto/${MODULE_ID}`;
-const PERTEMUAN = 'pertemuan-2';
-const SCHEDULE_PATH = `settings/OptoAuto/${PERTEMUAN}/schedule`;
-const LOCAL_IDENTITY = `optoauto_identity_${MODULE_ID}`;
-let panelOpen = false;
-let currentSchedule = null;
 
 const firebaseConfig = {
   apiKey: "AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",
@@ -1428,34 +580,116 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const MODULE_ID = 'tugas-2';
+const DB_PATH = `visitors/OptoAuto/${MODULE_ID}`;
+const PERTEMUAN = 'pertemuan-2';
+const SCHEDULE_PATH = `settings/OptoAuto/${PERTEMUAN}/schedule`;
+const LOCAL_IDENTITY = `optoauto_identity_${MODULE_ID}`;
+let panelOpen = false;
+let currentSchedule = null;
+const VISIT_COOLDOWN = 3600000;
 
 function getIdentity(){try{return JSON.parse(localStorage.getItem(LOCAL_IDENTITY));}catch(e){return null;}}
 function saveIdentity(v){localStorage.setItem(LOCAL_IDENTITY, JSON.stringify(v));}
 function isValidName(n){if(!n)return false;return n.split(/\s+/).every(w=>w.length>0&&/^[A-Z][a-z]*$/.test(w));}
 function isValidNim(n){return /^\d+$/.test(n);}
-function escH(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function sanitizeKey(s){return s.replace(/[.#$/\[\]]/g,'_');}
 
+
+let masterStudents = [];
+let masterFetchDone = false;
+const STUDENTS_JSON_URL = 'https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Engineering-Mathematics/Attributes/students.json';
+function fetchMasterStudents(retries){
+  retries = retries || 0;
+  return fetch(STUDENTS_JSON_URL, {cache:'no-store'}).then(r=>{
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.json();
+  }).then(data=>{
+    masterStudents = data;
+    masterFetchDone = true;
+    console.log('[Visitor] Master students loaded:', masterStudents.length);
+  }).catch(err=>{
+    console.error('[Visitor] Fetch error (attempt '+(retries+1)+'):', err);
+    if(retries < 2){ setTimeout(()=>fetchMasterStudents(retries+1), 1500); }
+    else { masterStudents = []; masterFetchDone = true; }
+  });
+}
+function updateLeaderboard(visitors, schedExpired){
+  const rajinEl=document.getElementById('rajinList');
+  const santaiEl=document.getElementById('santaiList');
+  const bolosEl=document.getElementById('bolosList');
+  const bolosCEl=document.getElementById('bolosCount');
+  if(!rajinEl)return;
+  if(!masterStudents.length){rajinEl.innerHTML='<span style="color:#64748b;font-size:.75rem;">Memuat data mahasiswa...</span>';santaiEl.innerHTML=rajinEl.innerHTML;bolosEl.innerHTML=rajinEl.innerHTML;return;}
+  const mhs=visitors.filter(v=>v.role!=='dosen'&&v.role!=='guest');
+  const visitMap={};
+  mhs.forEach(v=>{const k=v.nim;if(!visitMap[k])visitMap[k]=v;});
+  const visited=Object.values(visitMap);
+  const rajin=[...visited].sort((a,b)=>{const d=(b.visitCount||1)-(a.visitCount||1);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp);});
+  const santai=[...visited].sort((a,b)=>{const d=(a.visitCount||1)-(b.visitCount||1);return d!==0?d:new Date(b.timestamp)-new Date(a.timestamp);});
+  const medalR=['🥇','🥈','🥉'];
+  function renderCard(v,idx,isSantai){
+    const medal=isSantai?(idx+1):medalR[idx];
+    const vc=v.visitCount||1;
+    const badgeStyle=isSantai?'background:rgba(251,191,36,.12);color:#fbbf24;':'background:rgba(16,185,129,.12);color:#10b981;';
+    const mBadge=isSantai?'<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(251,191,36,.15);color:#fbbf24;font-size:.65rem;font-weight:800;flex-shrink:0;">'+medal+'</span>':'<span style="font-size:1rem;flex-shrink:0;">'+medal+'</span>';
+    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'">'+mBadge+'<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="'+badgeStyle+'padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+vc+'x</div></div>';
+  }
+  const top3=new Set(rajin.slice(0,3).map(v=>v.nim));
+  const santaiFiltered=santai.filter(v=>!top3.has(v.nim));
+  rajinEl.innerHTML=rajin.length?rajin.slice(0,3).map((v,i)=>renderCard(v,i,false)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
+  santaiEl.innerHTML=santaiFiltered.length?santaiFiltered.slice(0,3).map((v,i)=>renderCard(v,i,true)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
+  const visitedNims=new Set(mhs.map(v=>v.nim));
+  const notVisited=masterStudents.filter(s=>!visitedNims.has(s.nim));
+  if(schedExpired){
+    bolosCEl.textContent=notVisited.length;
+    if(!notVisited.length){bolosEl.innerHTML='<span style="color:#10b981;font-size:.78rem;">\u2705 Semua mahasiswa sudah berkunjung!</span>';}
+    else{bolosEl.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:6px;">'+notVisited.map(s=>'<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.12);border-radius:10px;padding:5px 10px;"><span style="font-weight:600;font-size:.75rem;color:#ef4444;">'+escH(s.nama)+'</span><span style="font-size:.62rem;color:#64748b;font-family:monospace;">'+s.nim+'</span></div>').join('')+'</div>';}
+  } else {
+    bolosCEl.textContent='—';
+    const belum=notVisited.length;
+    bolosEl.innerHTML=belum?'<span style="color:#94a3b8;font-size:.78rem;">⏳ '+belum+' mahasiswa belum berkunjung. Batas waktu belum berakhir.</span>':'<span style="color:#10b981;font-size:.78rem;">✅ Semua mahasiswa sudah berkunjung!</span>';
+  }
+}
+fetchMasterStudents();
+
+let latestVisitors=[];
 function initVisitor(){
   const me = getIdentity();
-  if(me && me.nama){document.getElementById('visitorOverlay').classList.add('hidden');document.getElementById('visitorFab').style.display='flex';
-    (async()=>{try{const isDosen=me.nama.toLowerCase()==='dedik romahadi';const key=sanitizeKey(isDosen?'dosen_'+me.nama:'mhs_'+me.nim);const snap=await get(ref(db,DB_PATH+'/'+key));if(snap.exists()){const rec=snap.val();const lastV=rec.lastVisit?new Date(rec.lastVisit).getTime():0;const now=Date.now();if(now-lastV>3600000){await set(ref(db,DB_PATH+'/'+key),Object.assign({},rec,{visitCount:(rec.visitCount||0)+1,lastVisit:new Date().toISOString()}))}}}catch(e){console.error(e)}})();
+  if(me && me.nama){
+    document.getElementById('visitorOverlay').classList.add('hidden');
+    document.getElementById('visitorFab').style.display='flex';
+    // Bump visit count for returning visitor (1hr cooldown) - skip dosen
+    const _isDosen = me.nama.toLowerCase()==='dedik romahadi';
+    if(!_isDosen && (!masterFetchDone || masterStudents.some(s=>s.nim===me.nim && s.nama.toUpperCase()===me.nama.toUpperCase()))){
+      const _key = sanitizeKey(`mhs_${me.nim}`);
+      get(ref(db,`${DB_PATH}/${_key}`)).then(snap=>{
+        if(snap.exists()){
+          const ex=snap.val();
+          const lastV=new Date(ex.lastVisit||ex.timestamp).getTime();
+          if(Date.now()-lastV>=VISIT_COOLDOWN){
+            set(ref(db,`${DB_PATH}/${_key}`),{...ex,visitCount:(ex.visitCount||1)+1,lastVisit:new Date().toISOString()});
+          }
+        }
+      }).catch(()=>{});
+    }
   }
 
   // Listen schedule
   onValue(ref(db, SCHEDULE_PATH), (snap) => {
     currentSchedule = snap.val();
     updateScheduleDisplay();
+    // Re-render visitors with schedule context
     onValue(ref(db, DB_PATH), (vsnap) => {
       const data = vsnap.val();
-      renderVisitors(data ? Object.values(data) : []);
+      latestVisitors=data ? Object.values(data) : [];renderVisitors(latestVisitors);
     }, {onlyOnce: true});
   });
 
   // Listen visitors
   onValue(ref(db, DB_PATH), (snapshot) => {
     const data = snapshot.val();
-    renderVisitors(data ? Object.values(data) : []);
+    latestVisitors=data ? Object.values(data) : [];renderVisitors(latestVisitors);
   });
 }
 
@@ -1470,26 +704,28 @@ function updateScheduleDisplay(){
     const dur = currentSchedule.duration || Math.round((e-s)/(24*60*60*1000));
     const fmt = (d) => d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
     range.textContent = fmt(s) + '  \u2014  ' + fmt(e) + '  ('+dur+' hari)';
+    // Start countdown
     startCountdown(e);
   } else {
     info.style.display='none';
   }
 }
 function startCountdown(deadline){
-  const cdNote=document.getElementById('cdDeadline')||document.querySelector('.cd-note');
-  if(cdNote){
+  const dlEl=document.getElementById('cdDeadline');
+  if(dlEl){
     const fmt=deadline.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
     const tm=deadline.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-    cdNote.innerHTML='Deadline: <strong style="color:var(--amber,#ffb300)">'+fmt+' \u00b7 Pukul '+tm+' WIB</strong>';
+    dlEl.innerHTML='Deadline: <strong>'+fmt+', Pukul '+tm+' WIB</strong>';
   }
   if(countdownInterval) clearInterval(countdownInterval);
   function tick(){
     const now=new Date().getTime(), diff=deadline.getTime()-now;
-    const dEl=document.getElementById('cd-hari'), hEl=document.getElementById('cd-jam'), mEl=document.getElementById('cd-menit'), sEl=document.getElementById('cd-detik');
-    if(!dEl) return;
     if(diff<=0){
-      dEl.textContent='00';hEl.textContent='00';mEl.textContent='00';sEl.textContent='00';
-      if(cdNote) cdNote.innerHTML='<span style="color:#fb7185;">\u26a0\ufe0f DEADLINE SUDAH LEWAT!</span>';
+      document.getElementById('cd-d').textContent='00';
+      document.getElementById('cd-h').textContent='00';
+      document.getElementById('cd-m').textContent='00';
+      document.getElementById('cd-s').textContent='00';
+      if(dlEl) dlEl.innerHTML='<span class="cd-expired">\u26a0\ufe0f DEADLINE SUDAH LEWAT!</span>';
       clearInterval(countdownInterval);
       return;
     }
@@ -1497,10 +733,10 @@ function startCountdown(deadline){
     const h=Math.floor((diff%(1000*60*60*24))/(1000*60*60));
     const m=Math.floor((diff%(1000*60*60))/(1000*60));
     const s=Math.floor((diff%(1000*60))/1000);
-    dEl.textContent=String(d).padStart(2,'0');
-    hEl.textContent=String(h).padStart(2,'0');
-    mEl.textContent=String(m).padStart(2,'0');
-    sEl.textContent=String(s).padStart(2,'0');
+    document.getElementById('cd-d').textContent=String(d).padStart(2,'0');
+    document.getElementById('cd-h').textContent=String(h).padStart(2,'0');
+    document.getElementById('cd-m').textContent=String(m).padStart(2,'0');
+    document.getElementById('cd-s').textContent=String(s).padStart(2,'0');
   }
   tick();
   countdownInterval=setInterval(tick,1000);
@@ -1514,85 +750,126 @@ function isLate(timestamp){
   return t < s || t > e;
 }
 
-async function submitVisitor(){
+function submitVisitor(){
   const nama=document.getElementById('vNama').value.trim(), nim=document.getElementById('vNim').value.trim(), err=document.getElementById('vError');
   // Schedule checks
-  if(!currentSchedule || !currentSchedule.start || !currentSchedule.end){err.textContent='\u26a0 Jadwal belum disetel oleh admin di halaman Modul. Hubungi dosen.';err.style.display='block';return;}
+  if(!currentSchedule || !currentSchedule.start || !currentSchedule.end){err.textContent='\u26a0 Jadwal belum disetel. Silakan atur jadwal terlebih dahulu.';err.style.display='block';return;}
   const now=new Date().getTime(), schedStart=new Date(currentSchedule.start).getTime();
   if(now<schedStart){const sd=new Date(currentSchedule.start);err.textContent='\u26a0 Akses belum dibuka. Jadwal dimulai pada '+sd.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+' '+sd.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+'.';err.style.display='block';return;}
   const isDosen=nama.toLowerCase()==='dedik romahadi';
-  if(!nama){err.textContent='\u26a0 Nama wajib diisi.';err.style.display='block';return;}
-  if(!isValidName(nama)){err.textContent='\u26a0 Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi';err.style.display='block';return;}
-  if(!isDosen&&!nim){err.textContent='\u26a0 NIM wajib diisi.';err.style.display='block';return;}
-  if(!isDosen&&!isValidNim(nim)){err.textContent='\u26a0 NIM harus berupa angka tanpa spasi. Contoh: 41522010001';err.style.display='block';return;}
+  if(!nama){err.textContent='⚠ Nama wajib diisi.';err.style.display='block';return;}
+  if(!isValidName(nama)){err.textContent='⚠ Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi';err.style.display='block';return;}
+  if(!isDosen&&!nim){err.textContent='⚠ NIM wajib diisi.';err.style.display='block';return;}
+  if(!isDosen&&!isValidNim(nim)){err.textContent='⚠ NIM harus berupa angka tanpa spasi. Contoh: 41522010001';err.style.display='block';return;}
+  if(!isDosen&&!masterFetchDone){err.textContent='⚠ Data mahasiswa sedang dimuat, silakan coba lagi.';err.style.display='block';return;}
   err.style.display='none';
-  const key=sanitizeKey(isDosen?`dosen_${nama}`:`mhs_${nim}`);
-  const existing=await get(ref(db,`${DB_PATH}/${key}`));
-  const firstTs=existing.exists()&&existing.val().timestamp?existing.val().timestamp:new Date().toISOString();
-  const oldCount=existing.exists()&&existing.val().visitCount?existing.val().visitCount:0;
-  const v={nama,nim:isDosen?'DOSEN':nim,role:isDosen?'dosen':'student',timestamp:firstTs,visitCount:oldCount+1,lastVisit:new Date().toISOString()};
-  saveIdentity(v);
-  await set(ref(db,`${DB_PATH}/${key}`),v);
+  if(isDosen){
+    saveIdentity({nama, nim:'DOSEN', role:'dosen', timestamp:new Date().toISOString()});
+  } else if(masterFetchDone && !masterStudents.some(s=>s.nim===nim && s.nama.toUpperCase()===nama.toUpperCase())){
+    const nimExists=masterStudents.some(s=>s.nim===nim);
+    if(nimExists){err.textContent='⚠ Nama tidak sesuai dengan NIM yang terdaftar. Pastikan nama sesuai daftar Nilai Akhir.';err.style.display='block';return;}
+    saveIdentity({nama, nim, role:'guest', timestamp:new Date().toISOString()});
+  } else {
+    const key = sanitizeKey(`mhs_${nim}`);
+    const nowISO = new Date().toISOString();
+    get(ref(db, `${DB_PATH}/${key}`)).then(snap => {
+      let v;
+      if(snap.exists()){
+        const ex = snap.val();
+        const lastV = new Date(ex.lastVisit || ex.timestamp).getTime();
+        const canBump = (Date.now() - lastV) >= VISIT_COOLDOWN;
+        v = {...ex, visitCount: canBump ? (ex.visitCount||1)+1 : (ex.visitCount||1), lastVisit: canBump ? nowISO : (ex.lastVisit||ex.timestamp)};
+      } else {
+        v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO};
+      }
+      saveIdentity(v);
+      return set(ref(db, `${DB_PATH}/${key}`), v);
+    }).catch(()=>{
+      const v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO};
+      saveIdentity(v);
+      set(ref(db, `${DB_PATH}/${key}`), v);
+    });
+  }
   document.getElementById('visitorOverlay').classList.add('hidden');
   document.getElementById('visitorFab').style.display='flex';
 }
 
 function renderVisitors(visitors){
-  visitors.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
-  const seen=new Set(),unique=[];
-  for(const v of visitors){const id=v.nama+'|'+v.nim;if(!seen.has(id)){seen.add(id);unique.push(v);}}
-  const mc=unique.filter(v=>v.role!=='dosen').length, dc=unique.filter(v=>v.role==='dosen').length;
-  const lateCount=unique.filter(v=>v.role!=='dosen'&&isLate(v.timestamp)).length;
+  const visitMap={};
+  for(const v of visitors){if(v.role==='dosen'||v.role==='guest')continue;if(!visitMap[v.nim])visitMap[v.nim]=v;}
+  const visited=Object.values(visitMap);
+  const lateCount=visited.filter(v=>isLate(v.timestamp)).length;
+  const schedExpired=currentSchedule&&currentSchedule.end&&new Date().getTime()>new Date(currentSchedule.end).getTime();
 
-  document.getElementById('fabCount').textContent=unique.length;
-  document.getElementById('vpBadge').textContent=unique.length+' orang';
-  document.getElementById('statTotal').textContent=unique.length;
-  document.getElementById('statMhs').textContent=mc;
-  document.getElementById('statDosen').textContent=dc;
+  document.getElementById('fabCount').textContent=visited.length;
+  updateLeaderboard(visitors, schedExpired);
+  document.getElementById('vpBadge').textContent=visited.length+' orang';
   const statLateEl=document.getElementById('statLate');
   if(statLateEl) statLateEl.textContent=lateCount;
 
   const listEl=document.getElementById('vpList'), tableEl=document.getElementById('visitorTableBody');
 
-  if(!unique.length){
-    listEl.innerHTML='<div class="vp-empty">Belum ada pengunjung.</div>';
-    tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:var(--s500,#64748b);font-size:.88rem;">Belum ada pengunjung.</div>';
-    return;
+  // Panel: only actual visitors
+  if(!visited.length){listEl.innerHTML='<div class="vp-empty">Belum ada pengunjung.</div>';}
+  else{
+    listEl.innerHTML=visited.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(v=>{
+      const ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+      const late=isLate(v.timestamp);
+      const lBadge=late?'<span style="color:#fb7185;font-size:.65rem;font-weight:600;margin-left:4px;">\u23f0 Terlambat</span>':'';
+      return `<div class="vp-item" style="${late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':''}"><div class="vp-avatar student" style="${late?'background:rgba(251,113,133,.12);color:#fb7185;':''}">${ini}</div><div class="vp-info"><div class="vp-name">${escH(v.nama)}${lBadge}</div><div class="vp-nim">${escH(v.nim)}</div></div><div class="vp-time"><div>${ts}</div><div style="font-size:.6rem;color:#94a3b8;text-align:right;">${v.visitCount||1}x kunjungan</div></div></div>`;
+    }).join('');
   }
 
-  listEl.innerHTML=unique.map(v=>{
-    const d=v.role==='dosen', ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-    const late=!d&&isLate(v.timestamp);
-    const lBadge=late?'<span style="color:#fb7185;font-size:.65rem;font-weight:600;margin-left:4px;">\u23f0 Terlambat</span>':'';
-    return '<div class="vp-item" style="'+(late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':'')+'"><div class="vp-avatar '+(d?'dosen':'student')+'" style="'+(late?'background:rgba(251,113,133,.12);color:#fb7185;':'')+'">'+ ini+'</div><div class="vp-info"><div class="vp-name">'+(d?'\ud83d\udc68\u200d\ud83c\udfeb ':'')+escH(v.nama)+lBadge+'</div><div class="vp-nim">'+(d?'Dosen Pengampu':escH(v.nim))+'</div></div><div style="font-size:.65rem;font-weight:700;color:var(--sky,#38bdf8);margin-right:4px;">'+(v.visitCount||1)+'×</div><div class="vp-time">'+ts+'</div></div>';
-  }).join('');
-
-  tableEl.innerHTML=unique.map((v,i)=>{
-    const d=v.role==='dosen', ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-    const late=!d&&isLate(v.timestamp);
-    const rowBg=late?'background:rgba(251,113,133,.04);':'';
-    const nameColor=late?'color:#fb7185;':'color:var(--s200,#e2e8f0);';
-    const ac=d?'background:rgba(251,191,36,.12);color:var(--amber,#fbbf24);':late?'background:rgba(251,113,133,.12);color:#fb7185;':'background:rgba(45,212,191,.12);color:var(--teal,#2dd4bf);';
-    const rc=d?'<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(251,191,36,.1);color:var(--amber,#fbbf24);border:1px solid rgba(251,191,36,.2);margin-left:8px;">Dosen</span>':'';
-    const statusCol=d?'<span style="color:var(--s500,#64748b);font-size:.75rem;">\u2014</span>':late?'<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(251,113,133,.12);color:#fb7185;border:1px solid rgba(251,113,133,.25);">\u23f0 Terlambat</span>':'<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.25);">\u2705 Tepat Waktu</span>';
-    return '<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);'+rowBg+'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:'+(late?'#fb7185':'var(--s500,#64748b)')+';font-weight:600;">'+(i+1)+'</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;'+ac+'">'+ini+'</div><div><div style="font-weight:600;font-size:.88rem;'+nameColor+'">'+escH(v.nama)+rc+'</div></div></div><div style="flex:1;font-size:.8rem;color:'+(late?'#fb7185':'var(--s400,#94a3b8)')+';font-family:monospace;">'+(d?'\u2014':escH(v.nim))+'</div><div style="flex:1;text-align:center;">'+statusCol+'</div><div style="flex:.6;text-align:center;font-size:.82rem;font-weight:700;color:var(--sky,#38bdf8);">'+(v.visitCount||1)+'×</div><div style="flex:1;text-align:right;font-size:.78rem;color:'+(late?'#fb7185':'var(--s500,#64748b)')+';">'+ts+'</div></div>';
+  // Table: ALL students from masterStudents
+  if(!masterStudents.length){
+    tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">\u23f3 Memuat data mahasiswa...</div>';
+    return;
+  }
+  function toTitle(s){return s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());}
+  tableEl.innerHTML=masterStudents.map((s,i)=>{
+    const v=visitMap[s.nim];
+    const nama=toTitle(s.nama);
+    const ini=nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const hasVisit=!!v;
+    const late=hasVisit&&isLate(v.timestamp);
+    const bolos=!hasVisit&&schedExpired;
+    const vc=hasVisit?(v.visitCount||1):0;
+    const ts=hasVisit?(()=>{const dt=new Date(v.timestamp);return dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});})():'—';
+    let statusCol,rowBg='',nameColor='color:#e2e8f0;',ac='background:rgba(255,255,255,.08);color:#e2e8f0;';
+    if(bolos){
+      statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25);">\u274c Bolos</span>';
+      rowBg='background:rgba(239,68,68,.03);';nameColor='color:#ef4444;';ac='background:rgba(239,68,68,.12);color:#ef4444;';
+    }else if(!hasVisit){
+      statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(100,116,139,.1);color:#94a3b8;border:1px solid rgba(100,116,139,.2);">\u23f3 Belum</span>';
+      rowBg='';nameColor='color:#64748b;';ac='background:rgba(100,116,139,.1);color:#94a3b8;';
+    }else if(late){
+      statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(251,113,133,.12);color:#fb7185;border:1px solid rgba(251,113,133,.25);">\u23f0 Terlambat</span>';
+      rowBg='background:rgba(251,113,133,.04);';nameColor='color:#fb7185;';ac='background:rgba(251,113,133,.12);color:#fb7185;';
+    }else{
+      statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.25);">\u2705 Tepat Waktu</span>';
+    }
+    const vcDisplay=vc?vc+'x':'<span style="color:#475569;">—</span>';
+    const tsColor=bolos?'#ef4444':late?'#fb7185':hasVisit?'#64748b':'#475569';
+    return `<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;${rowBg}" onmouseenter="this.style.background='rgba(255,255,255,.03)'" onmouseleave="this.style.background='${rowBg||'transparent'}'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:${tsColor};font-weight:600;">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${ac}">${ini}</div><div><div style="font-weight:600;font-size:.88rem;${nameColor}">${escH(nama)}</div></div></div><div style="flex:1;font-size:.8rem;color:${hasVisit?'#94a3b8':'#475569'};font-family:monospace;">${s.nim}</div><div style="flex:1;text-align:center;">${statusCol}</div><div style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:#94a3b8;">${vcDisplay}</div><div style="flex:1;text-align:right;font-size:.78rem;color:${tsColor};">${ts}</div></div>`;
   }).join('');
 }
 
 function togglePanel(){panelOpen=!panelOpen;document.getElementById('visitorPanel').classList.toggle('open',panelOpen);}
 document.addEventListener('click',function(e){const p=document.getElementById('visitorPanel'),f=document.getElementById('visitorFab');if(panelOpen&&!p.contains(e.target)&&!f.contains(e.target)){panelOpen=false;p.classList.remove('open');}});
+function escH(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 
 
+// Schedule
 
 document.getElementById('vNim').addEventListener('keydown',function(e){if(e.key==='Enter')submitVisitor();});
 document.getElementById('vNama').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('vNim').focus();});
 
+
 window.submitVisitor=submitVisitor;window.togglePanel=togglePanel;
 
+setInterval(()=>{renderVisitors(latestVisitors);},30000);
 initVisitor();
 </script>
-
 </body>
 </html>
