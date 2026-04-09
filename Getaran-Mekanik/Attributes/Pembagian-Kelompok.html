@@ -514,7 +514,7 @@ function launchConfetti() {
 }
 
 // ── Render Groups from students.json ──
-const STUDENTS_JSON = 'https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Engineering-Mathematics/Attributes/students.json';
+const STUDENTS_JSON = 'https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Getaran-Mekanik/Attributes/students.json';
 function toTitleCase(s){return s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());}
 function renderGroups(){
   fetch(STUDENTS_JSON, {cache:'no-store'}).then(r=>r.json()).then(data=>{
@@ -630,7 +630,7 @@ function sanitizeKey(s){return s.replace(/[.#$/\[\]]/g,'_');}
 
 let masterStudents = [];
 let masterFetchDone = false;
-const STUDENTS_JSON_URL = 'https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Engineering-Mathematics/Attributes/students.json';
+const STUDENTS_JSON_URL = 'https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Getaran-Mekanik/Attributes/students.json';
 function fetchMasterStudents(retries){
   retries = retries || 0;
   return fetch(STUDENTS_JSON_URL, {cache:'no-store'}).then(r=>{
@@ -688,7 +688,7 @@ fetchMasterStudents();
 let latestVisitors=[];
 function initVisitor(){
   const me = getIdentity();
-  if(me && me.nama){
+  if(me && me.nama && me.role!=='guest'){
     document.getElementById('visitorOverlay').classList.add('hidden');
     document.getElementById('visitorFab').style.display='flex';
     // Bump visit count for returning visitor (1hr cooldown) - skip dosen
@@ -731,7 +731,7 @@ function submitVisitor(){
   } else if(masterFetchDone && !masterStudents.some(s=>s.nim===nim && s.nama.toUpperCase()===nama.toUpperCase())){
     const nimExists=masterStudents.some(s=>s.nim===nim);
     if(nimExists){err.textContent='⚠ Nama tidak sesuai dengan NIM yang terdaftar. Pastikan nama sesuai daftar Nilai Akhir.';err.style.display='block';return;}
-    saveIdentity({nama, nim, role:'guest', timestamp:new Date().toISOString()});
+    err.textContent='⚠ NIM tidak terdaftar dalam daftar mahasiswa. Hubungi dosen jika merasa ini kesalahan.';err.style.display='block';return;
   } else {
     const key = sanitizeKey(`mhs_${nim}`);
     const nowISO = new Date().toISOString();
