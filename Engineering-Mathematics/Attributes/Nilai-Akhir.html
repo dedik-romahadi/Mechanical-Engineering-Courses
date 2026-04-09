@@ -242,7 +242,7 @@
       <div>
         <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.3);color:#2dd4bf;padding:5px 14px;border-radius:999px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;">👥 Pengunjung</span>
         <h2 style="font-size:1.6rem;font-weight:800;color:#fff;margin-top:12px;">Daftar Pengunjung</h2>
-        <p style="color:#94a3b8;font-size:.85rem;margin-top:6px;">Mahasiswa dan dosen yang telah mengakses halaman ini.</p>
+        <p style="color:#94a3b8;font-size:.85rem;margin-top:6px;">Mahasiswa yang telah mengakses halaman ini.</p>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button onclick="showResetModal()" style="padding:10px 20px;border-radius:12px;border:1px solid rgba(251,113,133,.3);background:rgba(251,113,133,.08);color:#fb7185;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:6px;" onmouseenter="this.style.background='rgba(251,113,133,.18)'" onmouseleave="this.style.background='rgba(251,113,133,.08)'">🗑 Reset</button>
@@ -277,28 +277,24 @@
 /* ═══════════════════════════════════════════
    DATA MAHASISWA
    ═══════════════════════════════════════════ */
-const students = [
-  { nim:'41324110004', nama:'MARTINUS APRILLA GALUH PRAKOSO' },
-  { nim:'41324110014', nama:'MOCH ANAS MUSTAQIM' },
-  { nim:'41324110035', nama:'AHMAD SABAWI' },
-  { nim:'41324110038', nama:'SHOLA AIRLANGGA KANIANTO' },
-  { nim:'41325120003', nama:'EKA BIMA SAPUTRA' },
-  { nim:'41325120010', nama:'FARHAN GALIH MAHENDRA' },
-  { nim:'41325120014', nama:'RIYO PUJO PRATOMO' },
-  { nim:'41325120019', nama:'BANGKIT PUTRA WARDANA' },
-];
+let students = [];
+
+const STUDENTS_JSON = 'https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Engineering-Mathematics/Attributes/students.json';
 
 // Weights: PRE=0%, TGS=39%, PRAK=0%, UTS=31%, UAS=30%
 const W_PRE=0, W_TGS=0.39, W_PRAK=0, W_UTS=0.31, W_UAS=0.30;
 
-// Initialize all scores to 0 (fill in later)
-students.forEach(s => {
-  s.pre  = 0;
-  s.tgs  = 0;
-  s.prak = 0;
-  s.uts  = 0;
-  s.uas  = 0;
-});
+function initStudents(){
+  fetch(STUDENTS_JSON, {cache:'no-store'}).then(r=>r.json()).then(data=>{
+    students = data;
+    students.forEach(s => { s.pre=0; s.tgs=0; s.prak=0; s.uts=0; s.uas=0; });
+    render();
+    console.log('[DPNA] Students loaded:', students.length);
+  }).catch(err=>{
+    console.error('[DPNA] Failed to load students:', err);
+    document.getElementById('gradeBody').innerHTML='<tr><td colspan="12" style="text-align:center;color:#fb7185;padding:24px;">⚠ Gagal memuat data mahasiswa.</td></tr>';
+  });
+}
 
 /* ═══════════════════════════════════════════
    CALCULATE & RENDER
@@ -549,8 +545,8 @@ function drawRadarChart() {
 }
 
 /* ═══ INIT ═══ */
-render();
-window.addEventListener('resize', render);
+initStudents();
+window.addEventListener('resize', () => { if(students.length) render(); });
 </script>
 
 <script type="module">
@@ -591,15 +587,22 @@ function sanitizeKey(s){return s.replace(/[.#$/\[\]]/g,'_');}
 
 
 let masterStudents = [];
-const NILAI_AKHIR_URL = 'https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Engineering-Mathematics/Attributes/Nilai-Akhir.html';
-function fetchMasterStudents(){
-  return fetch(NILAI_AKHIR_URL).then(r=>r.text()).then(html=>{
-    const m=html.match(/const\s+students\s*=\s*(\[\s*\{[\s\S]*?\]);/);
-    if(m){
-      try{ masterStudents=JSON.parse(m[1].replace(/'/g,'"').replace(/(\w+):/g,'"$1":')); }
-      catch(e){ masterStudents=[]; }
-    }
-  }).catch(()=>{});
+let masterFetchDone = false;
+const STUDENTS_JSON_URL = 'https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Engineering-Mathematics/Attributes/students.json';
+function fetchMasterStudents(retries){
+  retries = retries || 0;
+  return fetch(STUDENTS_JSON_URL, {cache:'no-store'}).then(r=>{
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.json();
+  }).then(data=>{
+    masterStudents = data;
+    masterFetchDone = true;
+    console.log('[Visitor] Master students loaded:', masterStudents.length);
+  }).catch(err=>{
+    console.error('[Visitor] Fetch error (attempt '+(retries+1)+'):', err);
+    if(retries < 2){ setTimeout(()=>fetchMasterStudents(retries+1), 1500); }
+    else { masterStudents = []; masterFetchDone = true; }
+  });
 }
 fetchMasterStudents();
 
@@ -610,7 +613,7 @@ function initVisitor(){
     document.getElementById('visitorFab').style.display='flex';
     // Bump visit count for returning visitor (1hr cooldown) - skip dosen
     const _isDosen = me.nama.toLowerCase()==='dedik romahadi';
-    if(!_isDosen && (!masterStudents.length || masterStudents.some(s=>s.nim===me.nim && s.nama.toUpperCase()===me.nama.toUpperCase()))){
+    if(!_isDosen && (!masterFetchDone || masterStudents.some(s=>s.nim===me.nim && s.nama.toUpperCase()===me.nama.toUpperCase()))){
       const _key = sanitizeKey(`mhs_${me.nim}`);
       get(ref(db,`${DB_PATH}/${_key}`)).then(snap=>{
         if(snap.exists()){
@@ -668,11 +671,11 @@ function submitVisitor(){
   if(!isValidName(nama)){err.textContent='⚠ Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi';err.style.display='block';return;}
   if(!isDosen&&!nim){err.textContent='⚠ NIM wajib diisi.';err.style.display='block';return;}
   if(!isDosen&&!isValidNim(nim)){err.textContent='⚠ NIM harus berupa angka tanpa spasi.';err.style.display='block';return;}
-  if(!isDosen&&!masterStudents.length){err.textContent='⚠ Data mahasiswa sedang dimuat, silakan coba lagi.';err.style.display='block';fetchMasterStudents();return;}
+  if(!isDosen&&!masterFetchDone){err.textContent='⚠ Data mahasiswa sedang dimuat, silakan coba lagi.';err.style.display='block';return;}
   err.style.display='none';
   if(isDosen){
     saveIdentity({nama, nim:'DOSEN', role:'dosen', timestamp:new Date().toISOString()});
-  } else if(masterStudents.length && !masterStudents.some(s=>s.nim===nim && s.nama.toUpperCase()===nama.toUpperCase())){
+  } else if(masterFetchDone && !masterStudents.some(s=>s.nim===nim && s.nama.toUpperCase()===nama.toUpperCase())){
     const nimExists=masterStudents.some(s=>s.nim===nim);
     if(nimExists){err.textContent='⚠ Nama tidak sesuai dengan NIM yang terdaftar. Pastikan nama sesuai daftar Nilai Akhir.';err.style.display='block';return;}
     saveIdentity({nama, nim, role:'guest', timestamp:new Date().toISOString()});
