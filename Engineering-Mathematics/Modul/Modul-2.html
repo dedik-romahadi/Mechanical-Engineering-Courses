@@ -210,10 +210,10 @@ footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:
   <div class="visitor-modal" style="max-width:380px;">
     <div style="font-size:2.4rem;margin-bottom:12px;">🔐</div>
     <h2 style="font-size:1.3rem;">Konfirmasi Reset</h2>
-    <p class="sub">Masukkan password untuk menghapus semua data pengunjung.</p>
+    <p class="sub">Masukkan password untuk menghapus semua data mahasiswa.</p>
     <p class="v-error" id="resetError">⚠ Password salah.</p>
     <input type="password" class="v-input" id="resetPw" placeholder="Password" autocomplete="off">
-    <button class="v-btn-primary" style="background:linear-gradient(135deg,#fb7185,#f43f5e);" onclick="confirmReset()">Hapus Semua Pengunjung</button>
+    <button class="v-btn-primary" style="background:linear-gradient(135deg,#fb7185,#f43f5e);" onclick="confirmReset()">Hapus Semua Data</button>
     <button class="v-btn-cancel" onclick="hideResetModal()">Batal</button>
   </div>
 </div>
@@ -241,11 +241,11 @@ footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:
 </div>
 
 <!-- Floating Visitor Button -->
-<button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Daftar Pengunjung">👥<span class="fab-count" id="fabCount">0</span></button>
+<button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Aktivitas Mahasiswa">👥<span class="fab-count" id="fabCount">0</span></button>
 <!-- Visitor Panel -->
 <div class="visitor-panel" id="visitorPanel">
-  <div class="vp-header"><h3>👥 Pengunjung</h3><span class="vp-badge" id="vpBadge">0 orang</span></div>
-  <div class="vp-list" id="vpList"><div class="vp-empty">Memuat data pengunjung...</div></div>
+  <div class="vp-header"><h3>👥 Mahasiswa</h3><span class="vp-badge" id="vpBadge">0 orang</span></div>
+  <div class="vp-list" id="vpList"><div class="vp-empty">Memuat data mahasiswa...</div></div>
 </div>
 
 <div class="prog" id="prog"></div>
@@ -854,12 +854,12 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
 
 <!-- ═══════ FOOTER ═══════ -->
 
-<!-- ═══ DAFTAR PENGUNJUNG ═══ -->
+<!-- ═══ AKTIVITAS MAHASISWA ═══ -->
 <section style="max-width:900px;margin:48px auto 0;padding:0 24px;">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px;">
     <div>
-      <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.05);border:1px solid #1e293b;color:#00e09e;padding:5px 14px;border-radius:999px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;">👥 Pengunjung</span>
-      <h2 style="font-size:1.6rem;font-weight:800;color:#fff;margin-top:12px;">Daftar Pengunjung</h2>
+      <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.05);border:1px solid #1e293b;color:#00e09e;padding:5px 14px;border-radius:999px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;">👥 Mahasiswa</span>
+      <h2 style="font-size:1.6rem;font-weight:800;color:#fff;margin-top:12px;">Aktivitas Mahasiswa</h2>
       <p style="color:#94a3b8;font-size:.85rem;margin-top:6px;">Mahasiswa yang telah mengakses halaman ini.</p>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;"><button onclick="showResetModal()" style="padding:10px 20px;border-radius:12px;border:1px solid rgba(251,113,133,.3);background:rgba(251,113,133,.08);color:#fb7185;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:6px;" onmouseenter="this.style.background='rgba(251,113,133,.18)'" onmouseleave="this.style.background='rgba(251,113,133,.08)'">🗑 Reset</button></div>
@@ -900,7 +900,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     <div style="display:flex;padding:14px 24px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.08em;">
       <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:0.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
     </div>
-    <div id="visitorTableBody" style="max-height:420px;overflow-y:auto;"><div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">⏳ Memuat data pengunjung...</div></div>
+    <div id="visitorTableBody" style="max-height:420px;overflow-y:auto;"><div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">⏳ Memuat data mahasiswa...</div></div>
   </div>
 </section>
 
@@ -994,7 +994,7 @@ const VISIT_COOLDOWN = 3600000;
 
 function getIdentity(){try{return JSON.parse(localStorage.getItem(LOCAL_IDENTITY));}catch(e){return null;}}
 function saveIdentity(v){localStorage.setItem(LOCAL_IDENTITY, JSON.stringify(v));}
-function isValidName(n){if(!n)return false;return n.split(/\s+/).every(w=>w.length>0&&/^[A-Z][a-z]*$/.test(w));}
+function isValidName(n){if(!n)return false;return n.split(/\s+/).every(w=>w.length>0&&/^[A-Z][a-zA-Z.'\-]*$/.test(w));}
 function isValidNim(n){return /^\d+$/.test(n);}
 function sanitizeKey(s){return s.replace(/[.#$/\[\]]/g,'_');}
 
@@ -1059,6 +1059,7 @@ fetchMasterStudents();
 let latestVisitors=[];
 function initVisitor(){
   const me = getIdentity();
+  if(me && me.role==='guest'){localStorage.removeItem(LOCAL_IDENTITY);location.reload();return;}
   if(me && me.nama){
     document.getElementById('visitorOverlay').classList.add('hidden');
     document.getElementById('visitorFab').style.display='flex';
@@ -1179,7 +1180,7 @@ function renderVisitors(visitors){
   const listEl=document.getElementById('vpList'), tableEl=document.getElementById('visitorTableBody');
 
   // Panel: only actual visitors
-  if(!visited.length){listEl.innerHTML='<div class="vp-empty">Belum ada pengunjung.</div>';}
+  if(!visited.length){listEl.innerHTML='<div class="vp-empty">Belum ada data.</div>';}
   else{
     listEl.innerHTML=visited.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(v=>{
       const ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
@@ -1234,12 +1235,12 @@ function showResetModal(){document.getElementById('resetOverlay').classList.remo
 function hideResetModal(){document.getElementById('resetOverlay').classList.add('hidden');}
 function confirmReset(){
   if(document.getElementById('resetPw').value!=='TeknikMesin0602'){document.getElementById('resetError').style.display='block';return;}
-  // Reset data pengunjung modul ini
+  // Reset data mahasiswa modul ini
   remove(ref(db,DB_PATH));
   localStorage.removeItem(LOCAL_IDENTITY);
   // Reset jadwal
   remove(ref(db,SCHEDULE_PATH));
-  // Reset data pengunjung forum & tugas terkait
+  // Reset data forum & tugas terkait
   RELATED_MODULES.forEach(function(mid){
     remove(ref(db,'visitors/math4/'+mid));
     localStorage.removeItem('optoauto_identity_'+mid);
