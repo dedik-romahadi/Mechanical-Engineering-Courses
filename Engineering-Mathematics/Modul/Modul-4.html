@@ -92,6 +92,8 @@ h2.st{font-family:'Playfair Display',serif;font-size:clamp(1.4rem,3vw,1.8rem);fo
 .cbd pre{font-family:'JetBrains Mono',monospace;font-size:.85rem;line-height:1.7;color:#c9d1d9;white-space:pre}
 .cm{color:#8b949e}.kw{color:#ff7b72}.cs{color:#a5d6ff}.fn{color:#d2a8ff}.nm{color:#79c0ff}.op{color:#ff7b72}.out{color:#7ee787;font-style:italic}
 .fi{opacity:0;transform:translateY(30px);transition:all .6s ease-out}.fi.vis{opacity:1;transform:translateY(0)}
+.abtn{padding:.5rem 1.25rem;background:rgba(14,165,233,.15);border:1px solid rgba(14,165,233,.3);color:var(--c2);border-radius:8px;cursor:pointer;font-weight:600;font-size:.85rem;transition:all .3s;font-family:inherit}
+.abtn:hover{background:var(--c2);color:#fff}.abtn.active{background:var(--c1);color:var(--bg);border-color:var(--c1)}
 footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:var(--t3);font-size:.85rem}
 @keyframes slideD{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:768px){.sec{padding:3rem 1.25rem}.card,.exb{padding:1.5rem}.nav{padding:.5rem 1rem}}
@@ -196,6 +198,7 @@ footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:
   <a href="#contoh-l">✏️ Contoh Linier</a>
   <a href="#bernoulli">🔥 Bernoulli</a>
   <a href="#contoh-b">✏️ Contoh Bernoulli</a>
+  <a href="#visualisasi">📊 Visualisasi</a>
   <a href="#reduksi">⬇️ Reduksi Orde</a>
   <a href="#latihan">📝 Latihan</a>
   <a href="#jupyter">🐍 Jupyter</a>
@@ -565,6 +568,77 @@ footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:
         <div class="mb" style="background:rgba(0,224,158,.1);border-left-color:var(--c1);">$$8y^{-3}\cos^3 x = 8\ln\cos^3 x + 1$$</div>
       </div></div>
     </div>
+  </div>
+</section>
+
+<!-- ═══ VISUALISASI ═══ -->
+<section class="sec fi" id="visualisasi">
+  <div class="sl">📊 VISUALISASI</div>
+  <h2 class="st">Animasi Interaktif</h2>
+  <div class="sd"></div>
+
+  <!-- 1. Family of Solution Curves -->
+  <div style="background:var(--bg3);border:1px solid var(--bd);border-radius:16px;padding:2rem;margin-bottom:2rem;text-align:center;">
+    <h3 style="font-family:'Playfair Display',serif;margin-bottom:.5rem;">Keluarga Kurva Solusi</h3>
+    <p style="color:var(--t2);font-size:.9rem;margin-bottom:1rem;" id="visDesc">PD Linier: \(y' + 3y = e^{2x}\) → \(y = \tfrac{1}{5}e^{2x} + Ce^{-3x}\) untuk berbagai C.</p>
+    <canvas id="cvs" width="700" height="380" style="border-radius:12px;max-width:100%;background:var(--bg2);"></canvas>
+    <div style="display:flex;gap:.75rem;justify-content:center;margin-top:1rem;flex-wrap:wrap;">
+      <button class="abtn active" onclick="drawVis('linier',this)">PD Linier (5.1)</button>
+      <button class="abtn" onclick="drawVis('bernoulli',this)">Bernoulli</button>
+      <button class="abtn" onclick="drawVis('reduksi',this)">Reduksi Orde</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;justify-content:center;margin-top:1rem;">
+      <span style="color:var(--t3);font-size:.85rem;">Geser C:</span>
+      <input type="range" id="cSlider" min="-5" max="5" step="0.5" value="0" style="width:200px;accent-color:var(--c1);" oninput="updateC()">
+      <span id="cVal" style="color:var(--c1);font-weight:700;font-size:.9rem;min-width:50px;">C = 0</span>
+    </div>
+  </div>
+
+  <!-- 2. Interactive Integrating Factor Demo -->
+  <div style="background:var(--bg3);border:1px solid var(--bd);border-radius:16px;padding:2rem;margin-bottom:2rem;">
+    <h3 style="font-family:'Playfair Display',serif;margin-bottom:.75rem;">🔬 Eksperimen: Faktor Integrasi</h3>
+    <p style="color:var(--t2);font-size:.9rem;margin-bottom:1.25rem;">Pilih \(P(x)\) dan lihat bagaimana faktor integrasi dihitung secara otomatis!</p>
+    <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1.25rem;">
+      <button class="abtn active" onclick="pickP(0,this)">P(x) = 2</button>
+      <button class="abtn" onclick="pickP(1,this)">P(x) = 1/x</button>
+      <button class="abtn" onclick="pickP(2,this)">P(x) = −3</button>
+      <button class="abtn" onclick="pickP(3,this)">P(x) = tan x</button>
+    </div>
+    <div id="ifSteps" style="background:var(--bg2);border-radius:12px;padding:1.5rem;font-size:.95rem;line-height:2;"></div>
+  </div>
+
+  <!-- 3. Animated Step-by-Step Solver -->
+  <div style="background:var(--bg3);border:1px solid var(--bd);border-radius:16px;padding:2rem;">
+    <h3 style="font-family:'Playfair Display',serif;margin-bottom:.75rem;">🎬 Animasi Langkah Penyelesaian</h3>
+    <p style="color:var(--t2);font-size:.9rem;margin-bottom:1rem;">Tekan tombol untuk melihat setiap langkah penyelesaian \(y' + 3y = e^{2x}\) secara bertahap.</p>
+    <div id="solverSteps">
+      <div class="solver-step" id="ss0" style="padding:1rem;border-radius:10px;margin-bottom:.75rem;background:rgba(0,224,158,.06);border:1px solid rgba(0,224,158,.2);opacity:1;">
+        <strong style="color:var(--c1);">Soal:</strong> <span>\(y' + 3y = e^{2x}\)</span>
+      </div>
+      <div class="solver-step" id="ss1" style="padding:1rem;border-radius:10px;margin-bottom:.75rem;background:rgba(14,165,233,.06);border:1px solid rgba(14,165,233,.2);opacity:0.2;transition:all .5s;">
+        <strong style="color:var(--c2);">① Identifikasi:</strong> <span>\(P(x) = 3\), \(Q(x) = e^{2x}\)</span>
+      </div>
+      <div class="solver-step" id="ss2" style="padding:1rem;border-radius:10px;margin-bottom:.75rem;background:rgba(14,165,233,.06);border:1px solid rgba(14,165,233,.2);opacity:0.2;transition:all .5s;">
+        <strong style="color:var(--c2);">② Integral P:</strong> <span>\(\int 3\,dx = 3x\)</span>
+      </div>
+      <div class="solver-step" id="ss3" style="padding:1rem;border-radius:10px;margin-bottom:.75rem;background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.2);opacity:0.2;transition:all .5s;">
+        <strong style="color:var(--c5);">③ Faktor Integrasi:</strong> <span>\(u = e^{3x}\)</span>
+      </div>
+      <div class="solver-step" id="ss4" style="padding:1rem;border-radius:10px;margin-bottom:.75rem;background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.2);opacity:0.2;transition:all .5s;">
+        <strong style="color:var(--c5);">④ Kalikan u:</strong> <span>\(ye^{3x} = \int e^{2x} \cdot e^{3x}\,dx + c = \int e^{5x}\,dx + c\)</span>
+      </div>
+      <div class="solver-step" id="ss5" style="padding:1rem;border-radius:10px;margin-bottom:.75rem;background:rgba(249,115,22,.06);border:1px solid rgba(249,115,22,.2);opacity:0.2;transition:all .5s;">
+        <strong style="color:var(--c3);">⑤ Integralkan:</strong> <span>\(ye^{3x} = \frac{1}{5}e^{5x} + c\)</span>
+      </div>
+      <div class="solver-step" id="ss6" style="padding:1rem;border-radius:10px;margin-bottom:.75rem;background:rgba(0,224,158,.1);border:1px solid rgba(0,224,158,.3);opacity:0.2;transition:all .5s;">
+        <strong style="color:var(--c1);">⑥ Solusi:</strong> <span>\(y = \frac{1}{5}e^{2x} + ce^{-3x}\)</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:.75rem;margin-top:1rem;">
+      <button class="abtn" onclick="solverNext()" id="btnNext" style="background:var(--c1);color:var(--bg);border-color:var(--c1);">▶ Langkah Berikutnya</button>
+      <button class="abtn" onclick="solverReset()">↺ Reset</button>
+    </div>
+    <div style="margin-top:.75rem;font-size:.8rem;color:var(--t3);" id="stepCounter">Langkah 0 / 6</div>
   </div>
 </section>
 
@@ -998,6 +1072,110 @@ document.querySelectorAll(`#${q}-opts .ro`).forEach(o=>{const v=o.querySelector(
 if(sel.value===cor){fb.className='fb ok';fb.textContent='🎉 Benar! Jawaban Anda tepat.'}else{fb.className='fb bad';fb.textContent='❌ Kurang tepat. Coba lihat petunjuk atau kunci jawaban.'}fb.style.display='block'}
 function tog(id){document.getElementById(id).classList.toggle('show')}
 function cpC(btn){const code=btn.closest('.cb').querySelector('pre').textContent;navigator.clipboard.writeText(code).then(()=>{btn.textContent='✅ Copied!';setTimeout(()=>btn.textContent='📋 Copy',2000)})}
+
+// ═══ VISUALISASI ═══
+// 1. Canvas: Family of solution curves
+const cvs=document.getElementById('cvs');const ctx=cvs?cvs.getContext('2d'):null;
+let curType='linier';let highlightC=0;let aid=null;
+const visDescs={
+  linier:'PD Linier: y\' + 3y = e^{2x} → y = ⅕e^{2x} + Ce^{-3x} untuk berbagai C.',
+  bernoulli:'Bernoulli: Solusi tipe y^{-2} = Cx² − x²ln²x — kurva implisit.',
+  reduksi:'Reduksi Orde: y = ⅓x³ln x − 4/9 x³ + C₁x² + C₂ untuk berbagai C₁.'
+};
+function drawVis(type,btn){
+  if(btn){document.querySelectorAll('.abtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active')}
+  curType=type;document.getElementById('visDesc').textContent=visDescs[type]||'';
+  if(aid)cancelAnimationFrame(aid);
+  const w=cvs.width,h=cvs.height,cx=w/2,cy=h/2;let fr=0;
+  const colors=['#00e09e','#0ea5e9','#a855f7','#f97316','#facc15','#fb7185','#818cf8'];
+  function anim(){
+    fr+=4;ctx.clearRect(0,0,w,h);
+    ctx.strokeStyle='rgba(30,41,59,.4)';ctx.lineWidth=1;
+    for(let i=0;i<w;i+=50){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,h);ctx.stroke()}
+    for(let i=0;i<h;i+=50){ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(w,i);ctx.stroke()}
+    ctx.strokeStyle='rgba(148,163,184,.4)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(cx,10);ctx.lineTo(cx,h-10);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(10,cy);ctx.lineTo(w-10,cy);ctx.stroke();
+    ctx.fillStyle='#94a3b8';ctx.font='13px Source Sans 3';ctx.fillText('x',w-25,cy-8);ctx.fillText('y',cx+8,22);
+    const Cs=type==='linier'?[-4,-2,-1,0,1,2,4]:type==='bernoulli'?[-3,-1,0,1,3,5]:[-2,-1,0,1,2];
+    const maxPx=Math.min(fr,w);
+    Cs.forEach((C,ci)=>{
+      const isHL=(Math.abs(C-highlightC)<0.3);
+      ctx.strokeStyle=colors[ci%colors.length];ctx.lineWidth=isHL?4:2;ctx.globalAlpha=isHL?1:0.6;
+      ctx.beginPath();let started=false;
+      for(let px=1;px<maxPx;px++){
+        const xv=(px-cx)/50;let yv=null;
+        if(type==='linier'){yv=0.2*Math.exp(2*xv)+C*Math.exp(-3*xv);}
+        else if(type==='bernoulli'){const val=C*xv*xv-xv*xv*Math.pow(Math.log(Math.abs(xv)+0.01),2);if(val>0.01)yv=1/Math.sqrt(val);else yv=null;}
+        else if(type==='reduksi'){yv=(1/3)*Math.pow(xv,3)*Math.log(Math.abs(xv)+0.01)-4/9*Math.pow(xv,3)+C*xv*xv;}
+        if(yv!==null&&isFinite(yv)&&Math.abs(yv)<4){
+          const sy=cy-yv*50;if(!started){ctx.moveTo(px,sy);started=true}else ctx.lineTo(px,sy);
+        }else started=false;
+      }
+      ctx.stroke();ctx.globalAlpha=1;
+    });
+    // Draw highlighted C curve thicker
+    if(highlightC!==null){
+      ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.setLineDash([6,4]);
+      ctx.beginPath();let started=false;
+      for(let px=1;px<maxPx;px++){
+        const xv=(px-cx)/50;let yv=null;
+        if(type==='linier')yv=0.2*Math.exp(2*xv)+highlightC*Math.exp(-3*xv);
+        else if(type==='bernoulli'){const val=highlightC*xv*xv-xv*xv*Math.pow(Math.log(Math.abs(xv)+0.01),2);if(val>0.01)yv=1/Math.sqrt(val);else yv=null;}
+        else if(type==='reduksi')yv=(1/3)*Math.pow(xv,3)*Math.log(Math.abs(xv)+0.01)-4/9*Math.pow(xv,3)+highlightC*xv*xv;
+        if(yv!==null&&isFinite(yv)&&Math.abs(yv)<4){const sy=cy-yv*50;if(!started){ctx.moveTo(px,sy);started=true}else ctx.lineTo(px,sy);}else started=false;
+      }
+      ctx.stroke();ctx.setLineDash([]);
+    }
+    if(fr<w)aid=requestAnimationFrame(anim);
+  }
+  anim();
+}
+function updateC(){
+  highlightC=parseFloat(document.getElementById('cSlider').value);
+  document.getElementById('cVal').textContent='C = '+highlightC;
+  drawVis(curType,null);
+}
+if(cvs)drawVis('linier',null);
+setTimeout(()=>{const pb=document.querySelector('[onclick*="pickP(0"]');if(pb)pickP(0,pb);},100);
+const ifData=[
+  {p:'2',intP:'2x',u:'e^{2x}',steps:'<span style="color:var(--c2);">P(x) = 2</span> (konstanta)<br>→ <span style="color:var(--c5);">∫ P dx = ∫ 2 dx = 2x</span><br>→ <span style="color:var(--c1);">u = e<sup>2x</sup></span><br><br>💡 Jika P(x) konstanta, faktor integrasi selalu berbentuk <em>e<sup>ax</sup></em>. Ini membuat ruas kiri menjadi turunan dari <em>ye<sup>2x</sup></em>.'},
+  {p:'1/x',intP:'ln|x|',u:'x',steps:'<span style="color:var(--c2);">P(x) = 1/x</span><br>→ <span style="color:var(--c5);">∫ P dx = ∫ 1/x dx = ln|x|</span><br>→ <span style="color:var(--c1);">u = e<sup>ln|x|</sup> = x</span><br><br>💡 Ingat sifat: <em>e<sup>ln(sesuatu)</sup> = sesuatu itu sendiri</em>. Jadi e<sup>ln x</sup> = x. Faktor integrasi yang sangat sederhana!'},
+  {p:'−3',intP:'−3x',u:'e^{−3x}',steps:'<span style="color:var(--c2);">P(x) = −3</span> (konstanta negatif)<br>→ <span style="color:var(--c5);">∫ P dx = ∫ (−3) dx = −3x</span><br>→ <span style="color:var(--c1);">u = e<sup>−3x</sup></span><br><br>💡 Tanda negatif di P(x) menghasilkan faktor integrasi <em>e<sup>−3x</sup></em> yang membuat solusi memiliki suku peluruhan eksponensial.'},
+  {p:'tan x',intP:'−ln|cos x|',u:'sec x',steps:'<span style="color:var(--c2);">P(x) = tan x = sin x / cos x</span><br>→ <span style="color:var(--c5);">∫ tan x dx = −ln|cos x|</span><br>&nbsp;&nbsp;(karena d/dx(cos x) = −sin x, jadi ∫ sin x/cos x dx = −ln|cos x|)<br>→ <span style="color:var(--c1);">u = e<sup>−ln|cos x|</sup> = 1/cos x = sec x</span><br><br>💡 Sifat: e<sup>−ln a</sup> = 1/a. Jadi e<sup>−ln cos x</sup> = 1/cos x = sec x.'}
+];
+function pickP(idx,btn){
+  document.querySelectorAll('.abtn').forEach(b=>{if(b.closest('#visualisasi .abtn, [onclick*=pickP]')){}});
+  btn.parentElement.querySelectorAll('.abtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  const d=ifData[idx];const el=document.getElementById('ifSteps');
+  el.innerHTML='';
+  const lines=d.steps.split('<br>');
+  let delay=0;
+  lines.forEach((line,i)=>{
+    const div=document.createElement('div');
+    div.style.cssText='opacity:0;transform:translateX(-10px);transition:all .4s ease-out;padding:4px 0;';
+    div.innerHTML=line;
+    el.appendChild(div);
+    setTimeout(()=>{div.style.opacity='1';div.style.transform='translateX(0)';},delay);
+    delay+=250;
+  });
+}
+// 3. Step-by-step solver animation
+let solverStep=0;
+function solverNext(){
+  if(solverStep>=6)return;
+  solverStep++;
+  const el=document.getElementById('ss'+solverStep);
+  if(el){el.style.opacity='1';el.style.transform='scale(1.02)';setTimeout(()=>el.style.transform='scale(1)',300);}
+  document.getElementById('stepCounter').textContent='Langkah '+solverStep+' / 6';
+  if(solverStep>=6)document.getElementById('btnNext').textContent='✅ Selesai!';
+}
+function solverReset(){
+  solverStep=0;
+  for(let i=1;i<=6;i++){const el=document.getElementById('ss'+i);if(el)el.style.opacity='0.2';}
+  document.getElementById('stepCounter').textContent='Langkah 0 / 6';
+  document.getElementById('btnNext').textContent='▶ Langkah Berikutnya';
+}
 </script>
 
 <script type="module">
