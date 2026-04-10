@@ -1,1 +1,932 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modul 4 – PD Linier Orde N | Matematika 4</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Sans+3:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+:root{--bg:#080c18;--bg2:#0f1729;--bg3:#162033;--bg3h:#1c2940;--c1:#00e09e;--c2:#0ea5e9;--c3:#f97316;--c4:#ef4444;--c5:#a855f7;--c6:#facc15;--t1:#e4e8f1;--t2:#94a3b8;--t3:#64748b;--bd:#1e293b;--ok:#00e09e;--err:#ef4444;--grad:linear-gradient(135deg,#080c18 0%,#0f1a3a 50%,#0a1628 100%)}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--t1);line-height:1.8;overflow-x:hidden}
+::-webkit-scrollbar{width:7px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--c2);border-radius:4px}
+.prog{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--c1),var(--c2),var(--c5));z-index:200;width:0%;transition:width .1s}
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;background:var(--grad);position:relative;padding:2rem;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 25% 75%,rgba(0,224,158,.07) 0%,transparent 50%),radial-gradient(circle at 75% 25%,rgba(14,165,233,.09) 0%,transparent 50%);pointer-events:none}
+.hero-particles{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.particle{position:absolute;width:3px;height:3px;background:var(--c1);border-radius:50%;opacity:0;animation:floatP 9s infinite}
+@keyframes floatP{0%{opacity:0;transform:translateY(100vh) scale(0)}10%{opacity:.7}90%{opacity:.2}100%{opacity:0;transform:translateY(-20vh) scale(1.5)}}
+.hero-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.25rem;background:rgba(0,224,158,.1);border:1px solid rgba(0,224,158,.3);border-radius:999px;font-size:.85rem;color:var(--c1);font-weight:600;letter-spacing:.05em;margin-bottom:1.5rem;animation:fsd .8s ease-out;position:relative;z-index:1}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,4vw,2.8rem);font-weight:900;line-height:1.1;margin-bottom:1.25rem;animation:fsd 1s ease-out .2s both;position:relative;z-index:1}
+.hero h1 .hl{background:linear-gradient(135deg,var(--c1),var(--c2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero>p{font-size:1rem;color:var(--t2);max-width:620px;margin-bottom:1.5rem;animation:fsd 1s ease-out .4s both;position:relative;z-index:1}
+.hero-lec{display:inline-flex;align-items:center;gap:.85rem;padding:.75rem 1.75rem;background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.25);border-radius:14px;margin-bottom:2rem;animation:fsd 1s ease-out .5s both;position:relative;z-index:1;backdrop-filter:blur(8px)}
+.hero-lec .li{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--c2),var(--c5));display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;box-shadow:0 0 12px rgba(14,165,233,.35)}
+.hero-lec .lt{text-align:left;line-height:1.35}.hero-lec .ll{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--c2)}.hero-lec .ln{font-size:1rem;font-weight:700;color:var(--t1)}
+.hero-cta{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;animation:fsd 1s ease-out .6s both;position:relative;z-index:1}
+.btn-p{padding:.85rem 2rem;background:linear-gradient(135deg,var(--c1),var(--c2));color:var(--bg);font-weight:700;font-size:1rem;border:none;border-radius:12px;cursor:pointer;text-decoration:none;transition:all .3s;display:inline-flex;align-items:center;gap:.5rem}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,224,158,.3)}
+.btn-o{padding:.85rem 2rem;background:transparent;color:var(--t1);font-weight:600;font-size:1rem;border:2px solid var(--bd);border-radius:12px;cursor:pointer;text-decoration:none;transition:all .3s}
+.btn-o:hover{border-color:var(--c1);color:var(--c1)}
+.scroll-ind{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.5rem;color:var(--t3);font-size:.8rem;animation:bounce 2s infinite;z-index:1}
+@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
+@keyframes fsd{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+.nav{position:sticky;top:0;z-index:100;background:rgba(8,12,24,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--bd);padding:.75rem 2rem;display:flex;gap:.5rem;overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav a{white-space:nowrap;padding:.5rem 1rem;border-radius:8px;color:var(--t2);text-decoration:none;font-size:.85rem;font-weight:600;transition:all .3s;flex-shrink:0}
+.nav a:hover,.nav a.active{background:rgba(0,224,158,.1);color:var(--c1)}
+.sec{max-width:920px;margin:0 auto;padding:5rem 2rem}
+.sl{display:inline-flex;align-items:center;gap:.5rem;font-size:.8rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--c1);margin-bottom:.75rem}
+h2.st{font-family:'Playfair Display',serif;font-size:clamp(1.4rem,3vw,1.8rem);font-weight:900;margin-bottom:1.5rem;line-height:1.2}
+.sd{width:60px;height:4px;background:linear-gradient(90deg,var(--c1),var(--c2));border-radius:2px;margin-bottom:2rem}
+.card{background:var(--bg3);border:1px solid var(--bd);border-radius:16px;padding:2rem;margin-bottom:1.5rem;transition:all .3s;position:relative;overflow:hidden}
+.card:hover{border-color:rgba(0,224,158,.3);transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.3)}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--c1),var(--c2),var(--c5))}
+.card h3{font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:.75rem}
+.ci{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:.75rem}
+.ci.g{background:rgba(0,224,158,.15)}.ci.b{background:rgba(14,165,233,.15)}.ci.o{background:rgba(249,115,22,.15)}.ci.p{background:rgba(168,85,247,.15)}
+.ana{background:linear-gradient(135deg,rgba(0,224,158,.07),rgba(14,165,233,.07));border:1px solid rgba(0,224,158,.2);border-radius:16px;padding:2rem;margin:2rem 0;position:relative}
+.ana::before{content:'💡';position:absolute;top:-16px;left:24px;font-size:1.3rem;background:var(--bg);padding:0 .5rem}
+.ana h4{color:var(--c1);font-weight:700;margin-bottom:.75rem;font-size:1.05rem}
+.mb{background:rgba(14,165,233,.07);border-left:4px solid var(--c2);padding:1rem 1.5rem;margin:1rem 0;border-radius:0 12px 12px 0;overflow-x:auto;font-size:.95rem;text-align:center}
+.steps{counter-reset:step;margin:1.5rem 0}
+.si{display:flex;gap:1.25rem;margin-bottom:1.5rem;position:relative}
+.si::before{counter-increment:step;content:counter(step);width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--c1),var(--c2));color:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;flex-shrink:0;margin-top:2px}
+.si:not(:last-child)::after{content:'';position:absolute;left:17px;top:40px;bottom:-8px;width:2px;background:var(--bd)}
+.sc h4{margin-bottom:.25rem;font-weight:700}.sc p{color:var(--t2);font-size:.95rem}
+.ex{background:var(--bg3);border:1px solid var(--bd);border-radius:16px;margin:2rem 0;overflow:hidden}
+.exh{display:flex;align-items:center;gap:1rem;padding:1.25rem 2rem;background:rgba(249,115,22,.07);border-bottom:1px solid var(--bd)}
+.exn{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--c3),var(--c4));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.9rem;flex-shrink:0}
+.ext{font-weight:700;font-size:1rem}
+.exb{padding:2rem}
+.rg{display:flex;flex-direction:column;gap:.75rem;margin:1rem 0}
+.ro{display:flex;align-items:center;gap:.75rem;padding:1rem 1.25rem;background:var(--bg2);border:2px solid var(--bd);border-radius:12px;cursor:pointer;transition:all .3s;font-size:.95rem}
+.ro:hover{border-color:var(--c2)}
+.ro input[type="radio"]{display:none}
+.rc{width:22px;height:22px;border-radius:50%;border:2px solid var(--t3);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .3s}
+.ro input:checked+.rc{border-color:var(--c1);background:var(--c1)}.ro input:checked+.rc::after{content:'✓';color:var(--bg);font-weight:800;font-size:.75rem}
+.ro.ok{border-color:var(--ok);background:rgba(0,224,158,.06)}.ro.bad{border-color:var(--err);background:rgba(239,68,68,.06)}
+.exa{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.5rem}
+.bc{padding:.65rem 1.5rem;background:linear-gradient(135deg,var(--c1),var(--c2));color:var(--bg);font-weight:700;border:none;border-radius:10px;cursor:pointer;font-size:.9rem;font-family:inherit;transition:all .3s}
+.bc:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(0,224,158,.3)}
+.bh,.ba{padding:.65rem 1.5rem;background:transparent;border:2px solid var(--bd);color:var(--t2);font-weight:600;border-radius:10px;cursor:pointer;font-size:.9rem;font-family:inherit;transition:all .3s}
+.bh:hover{border-color:var(--c6);color:var(--c6)}.ba:hover{border-color:var(--c5);color:var(--c5)}
+.hbox,.abox{margin-top:1rem;padding:1.5rem;border-radius:12px;display:none;animation:slideD .3s ease-out}
+.hbox{background:rgba(250,204,21,.07);border:1px solid rgba(250,204,21,.22)}.hbox h5{color:var(--c6);margin-bottom:.5rem}
+.abox{background:rgba(168,85,247,.07);border:1px solid rgba(168,85,247,.22)}.abox h5{color:var(--c5);margin-bottom:.5rem}
+.hbox.show,.abox.show{display:block}
+.fb{margin-top:1rem;padding:1rem 1.25rem;border-radius:10px;font-weight:600;display:none}
+.fb.ok{background:rgba(0,224,158,.1);border:1px solid rgba(0,224,158,.3);color:var(--c1);display:block}
+.fb.bad{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--c4);display:block}
+.cb{background:#0d1117;border:1px solid var(--bd);border-radius:12px;margin:1.5rem 0;overflow:hidden}
+.cbh{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;background:rgba(255,255,255,.03);border-bottom:1px solid var(--bd)}
+.cbh span{display:flex;align-items:center;gap:.5rem;font-size:.8rem;font-weight:600;color:var(--t3)}
+.dots{display:flex;gap:6px}.dots span{width:10px;height:10px;border-radius:50%}.dots span:nth-child(1){background:#ff5f57}.dots span:nth-child(2){background:#febc2e}.dots span:nth-child(3){background:#28c840}
+.ccp{padding:.35rem .75rem;background:rgba(255,255,255,.05);border:1px solid var(--bd);color:var(--t3);border-radius:6px;cursor:pointer;font-size:.75rem;font-family:inherit;transition:all .3s}
+.ccp:hover{background:rgba(0,224,158,.15);color:var(--c1);border-color:rgba(0,224,158,.3)}
+.cbd{padding:1.25rem;overflow-x:auto}
+.cbd pre{font-family:'JetBrains Mono',monospace;font-size:.85rem;line-height:1.7;color:#c9d1d9;white-space:pre}
+.cm{color:#8b949e}.kw{color:#ff7b72}.cs{color:#a5d6ff}.fn{color:#d2a8ff}.nm{color:#79c0ff}.op{color:#ff7b72}.out{color:#7ee787;font-style:italic}
+.fi{opacity:0;transform:translateY(30px);transition:all .6s ease-out}.fi.vis{opacity:1;transform:translateY(0)}
+footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:var(--t3);font-size:.85rem}
+@keyframes slideD{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:768px){.sec{padding:3rem 1.25rem}.card,.exb{padding:1.5rem}.nav{padding:.5rem 1rem}}
 
+/* Visitor System */
+.visitor-overlay{position:fixed;inset:0;z-index:99999;background:rgba(8,14,26,.94);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity .4s}
+.visitor-overlay.hidden{opacity:0;pointer-events:none}
+.visitor-modal{background:#162033;border:1px solid #1e293b;border-radius:24px;padding:40px 36px;max-width:440px;width:90%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.6);animation:vModalIn .5s cubic-bezier(.16,1,.3,1)}
+@keyframes vModalIn{0%{opacity:0;transform:translateY(30px) scale(.96)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.visitor-modal h2{font-weight:800;font-size:1.2rem;background:linear-gradient(135deg,#00e09e,#0ea5e9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
+.visitor-modal p.sub{color:#94a3b8;font-size:.85rem;margin-bottom:28px}
+.v-input{width:100%;padding:14px 18px;border-radius:14px;border:1px solid #1e293b;background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-size:.95rem;outline:none;transition:border .25s;margin-bottom:14px}
+.v-input::placeholder{color:#64748b}.v-input:focus{border-color:#00e09e;box-shadow:0 0 0 3px rgba(255,255,255,.08)}
+.v-btn-primary{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#00e09e,#0ea5e9);color:#fff;font-weight:700;font-size:1rem;cursor:pointer;transition:transform .2s,box-shadow .2s;margin-top:6px}
+.v-btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,255,255,.1)}
+.v-error{color:#fb7185;font-size:.8rem;margin-bottom:10px;display:none}
+.v-btn-cancel{width:100%;padding:12px;border-radius:14px;margin-top:12px;border:1px solid #1e293b;background:rgba(255,255,255,.04);color:#94a3b8;font-weight:600;font-size:.88rem;cursor:pointer;transition:all .25s}
+.v-btn-cancel:hover{background:rgba(255,255,255,.08)}
+.visitor-fab{position:fixed;bottom:24px;right:24px;z-index:8888;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#00e09e,#0ea5e9);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(0,0,0,.4);transition:transform .25s;font-size:1.4rem}
+.visitor-fab:hover{transform:scale(1.08)}
+.visitor-fab .fab-count{position:absolute;top:-4px;right:-4px;background:#fb7185;color:#fff;font-size:.65rem;font-weight:700;min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid #080c18}
+.visitor-panel{position:fixed;bottom:92px;right:24px;z-index:8887;width:340px;max-height:480px;overflow:hidden;background:#162033;border:1px solid #1e293b;border-radius:20px;box-shadow:0 24px 64px rgba(0,0,0,.5);display:flex;flex-direction:column;transform:translateY(12px) scale(.95);opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .25s}
+.visitor-panel.open{transform:translateY(0) scale(1);opacity:1;pointer-events:auto}
+.vp-header{padding:20px 22px 14px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between}
+.vp-header h3{font-weight:700;font-size:1rem;color:#fff}
+.vp-header .vp-badge{background:rgba(255,255,255,.08);color:#00e09e;font-size:.7rem;font-weight:700;padding:4px 10px;border-radius:999px}
+.vp-list{overflow-y:auto;padding:10px 16px 16px;flex:1}
+.vp-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;margin-bottom:6px;background:rgba(255,255,255,.03);transition:background .2s}
+.vp-item:hover{background:rgba(255,255,255,.06)}
+.vp-avatar{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0}
+.vp-avatar.student{background:rgba(255,255,255,.08);color:#00e09e}
+.vp-info{flex:1;min-width:0}.vp-name{font-weight:600;font-size:.88rem;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vp-nim{font-size:.72rem;color:#64748b;font-family:monospace}
+.vp-time{font-size:.68rem;color:#64748b;text-align:right;flex-shrink:0;white-space:nowrap}
+.vp-empty{text-align:center;padding:32px 16px;color:#64748b;font-size:.85rem}
+@media(max-width:480px){.visitor-panel{width:calc(100vw - 32px);right:16px;bottom:88px}.visitor-fab{bottom:18px;right:18px}}
+</style>
+</head>
+<body>
+
+<!-- ═══ VISITOR LOGIN ═══ -->
+<div class="visitor-overlay" id="visitorOverlay">
+  <div class="visitor-modal">
+    <div style="font-size:2.8rem;margin-bottom:12px;">🎓</div>
+    <h2>Selamat Datang!</h2>
+    <p class="sub">Silakan masukkan identitas Anda untuk mengakses halaman ini.</p>
+    <p class="v-error" id="vError"></p>
+    <input type="text" class="v-input" id="vNama" placeholder="Nama Lengkap" autocomplete="off">
+    <input type="text" class="v-input" id="vNim" placeholder="NIM (Nomor Induk Mahasiswa)" autocomplete="off">
+    <button class="v-btn-primary" id="vSubmit" onclick="submitVisitor()">Masuk ke Modul 4 →</button>
+    <button class="v-btn-cancel" onclick="showScheduleModal()" style="margin-top:8px;border-color:rgba(99,102,241,.3);color:#818cf8;">🕐 Atur Jadwal Perkuliahan (Admin)</button>
+  </div>
+</div>
+<div class="visitor-overlay hidden" id="resetOverlay" style="z-index:100000;">
+  <div class="visitor-modal" style="max-width:380px;">
+    <div style="font-size:1.8rem;margin-bottom:10px;">🔐</div>
+    <h2 style="font-size:1.3rem;">Konfirmasi Reset</h2>
+    <p class="sub">Masukkan password untuk menghapus semua data mahasiswa.</p>
+    <p class="v-error" id="resetError">⚠ Password salah.</p>
+    <input type="password" class="v-input" id="resetPw" placeholder="Password" autocomplete="off">
+    <button class="v-btn-primary" style="background:linear-gradient(135deg,#fb7185,#f43f5e);" onclick="confirmReset()">Hapus Semua Data</button>
+    <button class="v-btn-cancel" onclick="hideResetModal()">Batal</button>
+  </div>
+</div>
+<div class="visitor-overlay hidden" id="scheduleOverlay" style="z-index:100000;">
+  <div class="visitor-modal" style="max-width:480px;width:95%;">
+    <div style="font-size:1.8rem;margin-bottom:10px;">🕐</div>
+    <h2 style="font-size:1.3rem;">Atur Jadwal Perkuliahan</h2>
+    <p class="sub">Masukkan password, durasi (hari), dan batas waktu akhir.</p>
+    <p class="v-error" id="scheduleError"></p>
+    <input type="password" class="v-input" id="schedulePw" placeholder="Password" autocomplete="off">
+    <div style="display:flex;gap:10px;margin-bottom:14px;">
+      <div style="flex:1;text-align:left;"><label style="font-size:.75rem;color:#94a3b8;font-weight:600;display:block;margin-bottom:4px;">Durasi (hari)</label><input type="number" class="v-input" id="scheduleDuration" min="1" value="7" placeholder="7" style="margin-bottom:0;"></div>
+      <div style="flex:1;text-align:left;"><label style="font-size:.75rem;color:#94a3b8;font-weight:600;display:block;margin-bottom:4px;">Batas Akhir (Due Date)</label><input type="datetime-local" class="v-input" id="scheduleDue" style="margin-bottom:0;"></div>
+    </div>
+    <button class="v-btn-primary" onclick="saveSchedule()">💾 Simpan Jadwal</button>
+    <button class="v-btn-cancel" onclick="hideScheduleModal()">Batal</button>
+  </div>
+</div>
+<button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Aktivitas Mahasiswa">👥<span class="fab-count" id="fabCount">0</span></button>
+<div class="visitor-panel" id="visitorPanel">
+  <div class="vp-header"><h3>👥 Mahasiswa</h3><span class="vp-badge" id="vpBadge">0 orang</span></div>
+  <div class="vp-list" id="vpList"><div class="vp-empty">Memuat data mahasiswa...</div></div>
+</div>
+
+<div class="prog" id="prog"></div>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="hero-particles"><div class="particle" style="left:12%;animation-delay:0s"></div><div class="particle" style="left:28%;animation-delay:1.4s"></div><div class="particle" style="left:42%;animation-delay:2.8s"></div><div class="particle" style="left:58%;animation-delay:.6s"></div><div class="particle" style="left:72%;animation-delay:3.5s"></div><div class="particle" style="left:88%;animation-delay:1.8s"></div><div class="particle" style="left:50%;animation-delay:4.2s"></div></div>
+  <div class="hero-badge">📐 MODUL 4 • Tatap Muka 04</div>
+  <h1>PD Linier <span class="hl">Orde N</span></h1>
+  <p>Matematika 4 — W132100010<br>PD Linier Orde Satu, Persamaan Bernoulli, dan Reduksi Orde.</p>
+  <div class="hero-lec"><div class="li">👨‍🏫</div><div class="lt"><div class="ll">Dosen Pengampu</div><div class="ln">Dedik Romahadi</div></div></div>
+  <div class="hero-cta"><a href="#linier" class="btn-p">▶ Mulai Belajar</a><a href="#latihan" class="btn-o">📝 Langsung Latihan</a></div>
+  <div class="scroll-ind"><span>scroll ke bawah</span><span>↓</span></div>
+</section>
+
+<nav class="nav">
+  <a href="#linier">📖 PD Linier</a>
+  <a href="#analogi">💡 Analogi</a>
+  <a href="#contoh-l">✏️ Contoh Linier</a>
+  <a href="#bernoulli">🔥 Bernoulli</a>
+  <a href="#contoh-b">✏️ Contoh Bernoulli</a>
+  <a href="#reduksi">⬇️ Reduksi Orde</a>
+  <a href="#latihan">📝 Latihan</a>
+  <a href="#jupyter">🐍 Jupyter</a>
+</nav>
+
+<!-- ═══ PD LINIER ORDE SATU ═══ -->
+<section class="sec fi" id="linier">
+  <div class="sl">📖 BAB 1</div>
+  <h2 class="st">PD Linier Orde Satu</h2>
+  <div class="sd"></div>
+
+  <div class="card">
+    <div class="ci g">📐</div>
+    <h3>Bentuk Umum</h3>
+    <p>PD linier orde satu berbentuk:</p>
+    <div class="mb">$$y' + P(x)\,y = Q(x)$$</div>
+    <p>Ciri khasnya: \(y\) dan \(y'\) bersifat <strong>linier</strong> (berpangkat 1), sedangkan \(P\) dan \(Q\) adalah fungsi dari \(x\) saja.</p>
+  </div>
+
+  <div class="card">
+    <div class="ci b">🔑</div>
+    <h3>Faktor Integrasi</h3>
+    <p>Kunci penyelesaiannya adalah <strong>faktor integrasi</strong> \(u(x)\):</p>
+    <div class="mb" style="background:rgba(168,85,247,.1);border-left-color:var(--c5);">$$u(x) = e^{\int P(x)\,dx}$$</div>
+    <p style="margin-top:1rem;">Kalikan seluruh PD dengan \(u\), maka ruas kiri menjadi turunan dari produk:</p>
+    <div class="mb">$$\bigl[y \cdot u\bigr]' = Q(x) \cdot u$$</div>
+    <p>Sehingga penyelesaian umum:</p>
+    <div class="mb" style="background:rgba(0,224,158,.1);border-left-color:var(--c1);">$$y \cdot e^{\int P\,dx} = \int Q(x)\,e^{\int P\,dx}\,dx + c$$</div>
+  </div>
+</section>
+
+<!-- ═══ ANALOGI ═══ -->
+<section class="sec fi" id="analogi">
+  <div class="sl">💡 ANALOGI</div>
+  <h2 class="st">Memahami dengan Analogi</h2>
+  <div class="sd"></div>
+
+  <div class="ana">
+    <h4>💊 Analogi Obat dalam Tubuh: PD Linier</h4>
+    <p>Bayangkan tubuh Anda menerima obat melalui infus (laju masuk \(Q(x)\)) sementara tubuh terus membuang obat secara proporsional dengan konsentrasi (laju keluar \(P(x) \cdot y\)). Persamaan \(y' + P(x)y = Q(x)\) menggambarkan keseimbangan antara obat masuk dan keluar.</p>
+    <p style="margin-top:.75rem;">Faktor integrasi \(e^{\int P\,dx}\) ibarat "kacamata koreksi" — ketika kita kalikan kedua ruas, kita bisa melihat bahwa ruas kiri sebenarnya adalah turunan satu fungsi \([y \cdot u]'\). Jadi tinggal integralkan saja!</p>
+  </div>
+
+  <div class="ana">
+    <h4>🦠 Analogi Virus: Persamaan Bernoulli</h4>
+    <p>Persamaan Bernoulli \(y' + P(x)y = Q(x)y^n\) menambahkan suku non-linier \(y^n\). Bayangkan pertumbuhan virus yang tidak hanya bergantung pada jumlahnya secara linier, tapi juga pada interaksi antar virus (\(y^n\)).</p>
+    <p style="margin-top:.75rem;">Triknya: bagi dengan \(y^n\) dan substitusikan \(z = y^{1-n}\) untuk "melinierkan" persamaan — mengubah masalah rumit menjadi PD linier biasa yang sudah kita kuasai!</p>
+  </div>
+</section>
+
+<!-- ═══ CONTOH PD LINIER ═══ -->
+<section class="sec fi" id="contoh-l">
+  <div class="sl">✏️ CONTOH SOAL</div>
+  <h2 class="st">Contoh PD Linier Orde Satu</h2>
+  <div class="sd"></div>
+
+  <!-- Contoh 5.1 -->
+  <div class="card" style="margin-bottom:2rem;">
+    <div class="ci o">5.1</div>
+    <h3>Contoh 5.1</h3>
+    <p>Carilah penyelesaian umum:</p>
+    <div class="mb">$$xy' + (1 - x)y = 4xe^x \ln x$$</div>
+
+    <div class="steps" style="margin-top:1.5rem;">
+      <div class="si"><div class="sc">
+        <h4>Ubah ke bentuk baku \(y' + P(x)y = Q(x)\)</h4>
+        <p>Persamaan awal: \(xy' + (1-x)y = 4xe^x\ln x\)</p>
+        <p>Bagi <strong>seluruh</strong> persamaan dengan \(x\) agar koefisien \(y'\) menjadi 1:</p>
+        <p>• Suku pertama: \(\frac{xy'}{x} = y'\)</p>
+        <p>• Suku kedua: \(\frac{(1-x)y}{x} = \frac{1-x}{x}\,y\)</p>
+        <p>• Ruas kanan: \(\frac{4xe^x\ln x}{x} = 4e^x\ln x\)</p>
+        <p>Sederhanakan \(P(x)\): \(\frac{1-x}{x} = \frac{1}{x} - \frac{x}{x} = \frac{1}{x} - 1\)</p>
+        <p>Hasil: \(P(x) = \frac{1}{x} - 1\) dan \(Q(x) = 4e^x\ln x\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Hitung \(\int P(x)\,dx\)</h4>
+        <p>\(\int P(x)\,dx = \int\left(\frac{1}{x} - 1\right)dx\)</p>
+        <p>Integralkan suku per suku:</p>
+        <p>• \(\int \frac{1}{x}\,dx = \ln|x|\)</p>
+        <p>• \(\int 1\,dx = x\)</p>
+        <p>Hasil: \(\int P(x)\,dx = \ln x - x\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Tentukan faktor integrasi \(u\)</h4>
+        <p>\(u = e^{\int P(x)\,dx} = e^{\ln x - x}\)</p>
+        <p>Gunakan sifat eksponen \(e^{a+b} = e^a \cdot e^b\):</p>
+        <p>\(u = e^{\ln x} \cdot e^{-x}\)</p>
+        <p>Karena \(e^{\ln x} = x\), maka:</p>
+        <p>\(u = xe^{-x}\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Terapkan rumus: \(y \cdot u = \int Q(x) \cdot u\,dx + c\)</h4>
+        <p>Ruas kiri: \(y \cdot xe^{-x}\)</p>
+        <p>Ruas kanan: \(\int 4e^x\ln x \cdot xe^{-x}\,dx + c\)</p>
+        <p>Sederhanakan integran: \(4e^x \cdot xe^{-x} = 4x \cdot e^{x-x} = 4x \cdot e^0 = 4x\)</p>
+        <p>Jadi: \(yxe^{-x} = 4\int x\ln x\,dx + c\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Hitung \(\int x\ln x\,dx\) dengan integral parsial</h4>
+        <p>Pilih: \(u_1 = \ln x\) → \(du_1 = \frac{1}{x}\,dx\), dan \(dv_1 = x\,dx\) → \(v_1 = \frac{x^2}{2}\)</p>
+        <p>Rumus: \(\int u_1\,dv_1 = u_1 v_1 - \int v_1\,du_1\)</p>
+        <p>\(= \frac{x^2}{2}\ln x - \int \frac{x^2}{2} \cdot \frac{1}{x}\,dx\)</p>
+        <p>\(= \frac{x^2}{2}\ln x - \frac{1}{2}\int x\,dx\)</p>
+        <p>\(= \frac{x^2}{2}\ln x - \frac{x^2}{4}\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Substitusi kembali dan sederhanakan</h4>
+        <p>\(yxe^{-x} = 4\left(\frac{x^2}{2}\ln x - \frac{x^2}{4}\right) + c\)</p>
+        <p>Distribusikan faktor 4:</p>
+        <p>\(= \frac{4x^2}{2}\ln x - \frac{4x^2}{4} + c = 2x^2\ln x - x^2 + c\)</p>
+        <p>Faktorkan \(x^2\):</p>
+        <div class="mb" style="background:rgba(0,224,158,.1);border-left-color:var(--c1);">$$yxe^{-x} = x^2(2\ln x - 1) + c$$</div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- Contoh 5.2 -->
+  <div class="card" style="margin-bottom:2rem;">
+    <div class="ci p">5.2</div>
+    <h3>Contoh 5.2</h3>
+    <p>Carilah penyelesaian umum:</p>
+    <div class="mb">$$\tan x \cdot y' + y = \sin 2x$$</div>
+
+    <div class="steps" style="margin-top:1.5rem;">
+      <div class="si"><div class="sc">
+        <h4>Ubah ke bentuk baku \(y' + P(x)y = Q(x)\)</h4>
+        <p>Persamaan awal: \(\tan x \cdot y' + y = \sin 2x\)</p>
+        <p>Bagi seluruh persamaan dengan \(\tan x\):</p>
+        <p>• Suku pertama: \(\frac{\tan x \cdot y'}{\tan x} = y'\)</p>
+        <p>• Suku kedua: \(\frac{y}{\tan x} = y \cdot \frac{1}{\tan x} = y\cot x\)</p>
+        <p>• Ruas kanan: \(\frac{\sin 2x}{\tan x}\). Gunakan identitas \(\sin 2x = 2\sin x\cos x\) dan \(\tan x = \frac{\sin x}{\cos x}\):</p>
+        <p>&nbsp;&nbsp;\(\frac{2\sin x\cos x}{\sin x / \cos x} = 2\sin x\cos x \cdot \frac{\cos x}{\sin x} = 2\cos^2 x\)</p>
+        <p>Hasil: \(P(x) = \cot x\), \(Q(x) = 2\cos^2 x\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Hitung \(\int P(x)\,dx\) dan faktor integrasi</h4>
+        <p>\(\int P(x)\,dx = \int \cot x\,dx\)</p>
+        <p>Ingat bahwa \(\cot x = \frac{\cos x}{\sin x}\), dan \(\int \frac{\cos x}{\sin x}\,dx = \ln|\sin x|\)</p>
+        <p>(Ini karena \(\frac{d}{dx}(\sin x) = \cos x\), jadi \(\int \frac{\cos x}{\sin x}dx\) berbentuk \(\int \frac{du}{u}\).)</p>
+        <p>Faktor integrasi: \(u = e^{\ln|\sin x|} = \sin x\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Terapkan rumus: \(y \cdot u = \int Q(x) \cdot u\,dx + c\)</h4>
+        <p>Ruas kiri: \(y \cdot \sin x\)</p>
+        <p>Ruas kanan: \(\int 2\cos^2 x \cdot \sin x\,dx + c\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Hitung \(\int 2\cos^2 x \sin x\,dx\) dengan substitusi</h4>
+        <p>Misalkan \(w = \cos x\), maka \(dw = -\sin x\,dx\), atau \(\sin x\,dx = -dw\)</p>
+        <p>\(\int 2\cos^2 x \sin x\,dx = 2\int w^2 \cdot (-dw) = -2\int w^2\,dw\)</p>
+        <p>\(= -2 \cdot \frac{w^3}{3} = -\frac{2}{3}w^3\)</p>
+        <p>Substitusi balik \(w = \cos x\):</p>
+        <p>\(= -\frac{2}{3}\cos^3 x\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Tulis penyelesaian umum</h4>
+        <div class="mb" style="background:rgba(0,224,158,.1);border-left-color:var(--c1);">$$y\sin x = -\frac{2}{3}\cos^3 x + c$$</div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- Contoh 5.3 -->
+  <div class="card">
+    <div class="ci b">5.3</div>
+    <h3>Contoh 5.3 — Penyelesaian Khusus</h3>
+    <p>Carilah penyelesaian khusus:</p>
+    <div class="mb">$$(1 - x)y' + xy = x(x - 1)^2, \quad y(0) = 24$$</div>
+
+    <div class="steps" style="margin-top:1.5rem;">
+      <div class="si"><div class="sc">
+        <h4>Ubah ke bentuk baku \(y' + P(x)y = Q(x)\)</h4>
+        <p>Persamaan awal: \((1-x)y' + xy = x(x-1)^2\)</p>
+        <p>Bagi seluruh persamaan dengan \((1-x)\):</p>
+        <p>• \(y' + \frac{x}{1-x}\,y = \frac{x(x-1)^2}{1-x}\)</p>
+        <p>Sederhanakan \(P(x) = \frac{x}{1-x}\):</p>
+        <p>&nbsp;&nbsp;Tulis pembilang: \(x = 1 - (1-x)\), sehingga \(\frac{x}{1-x} = \frac{1-(1-x)}{1-x} = \frac{1}{1-x} - 1\)</p>
+        <p>Sederhanakan \(Q(x) = \frac{x(x-1)^2}{1-x}\):</p>
+        <p>&nbsp;&nbsp;Karena \((x-1)^2 = (1-x)^2\), maka \(\frac{x(1-x)^2}{1-x} = x(1-x)\)</p>
+        <p>Perhatikan tanda: \(\frac{x(x-1)^2}{1-x} = \frac{x(1-x)^2}{1-x} = x(1-x)\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Hitung \(\int P(x)\,dx\) dan faktor integrasi</h4>
+        <p>\(\int P(x)\,dx = \int\left(\frac{1}{1-x} - 1\right)dx\)</p>
+        <p>• \(\int \frac{1}{1-x}\,dx\): substitusi \(t = 1-x\), \(dt = -dx\), maka \(\int \frac{-dt}{t} = -\ln|t| = -\ln(1-x)\)</p>
+        <p>• \(\int 1\,dx = x\)</p>
+        <p>Hasil: \(\int P\,dx = -\ln(1-x) - x\)</p>
+        <p>Faktor integrasi: \(u = e^{-\ln(1-x)-x}\)</p>
+        <p>Pecah: \(u = e^{-\ln(1-x)} \cdot e^{-x} = \frac{1}{1-x} \cdot e^{-x} = \frac{e^{-x}}{1-x}\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Terapkan rumus: \(y \cdot u = \int Q(x) \cdot u\,dx + c\)</h4>
+        <p>Ruas kiri: \(y \cdot \frac{e^{-x}}{1-x}\)</p>
+        <p>Ruas kanan: \(\int x(1-x) \cdot \frac{e^{-x}}{1-x}\,dx + c\)</p>
+        <p>Sederhanakan integran: \(\frac{x(1-x)}{1-x} \cdot e^{-x} = x \cdot e^{-x}\)</p>
+        <p>Jadi: \(y \cdot \frac{e^{-x}}{1-x} = \int xe^{-x}\,dx + c\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Hitung \(\int xe^{-x}\,dx\) dengan integral parsial</h4>
+        <p>Pilih: \(u_1 = x\) → \(du_1 = dx\), dan \(dv_1 = e^{-x}dx\) → \(v_1 = -e^{-x}\)</p>
+        <p>\(\int xe^{-x}dx = x(-e^{-x}) - \int(-e^{-x})dx = -xe^{-x} + \int e^{-x}dx\)</p>
+        <p>\(= -xe^{-x} + (-e^{-x}) = -xe^{-x} - e^{-x} = -e^{-x}(x+1)\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Tulis penyelesaian umum</h4>
+        <p>\(y \cdot \frac{e^{-x}}{1-x} = -e^{-x}(1+x) + c\)</p>
+        <p>Kalikan kedua ruas dengan \((1-x)\):</p>
+        <p>\(ye^{-x} = (1-x)\bigl[c - e^{-x}(1+x)\bigr]\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Terapkan syarat awal \(y(0) = 24\)</h4>
+        <p>Substitusi \(x = 0\) dan \(y = 24\):</p>
+        <p>\(24 \cdot e^{0} = (1-0)\bigl[c - e^{0}(1+0)\bigr]\)</p>
+        <p>\(24 \cdot 1 = 1 \cdot [c - 1 \cdot 1]\)</p>
+        <p>\(24 = c - 1\) → \(c = 25\)</p>
+        <div class="mb" style="background:rgba(0,224,158,.1);border-left-color:var(--c1);">$$ye^{-x} = (1-x)\bigl[25 - e^{-x}(1+x)\bigr]$$</div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ BERNOULLI ═══ -->
+<section class="sec fi" id="bernoulli">
+  <div class="sl">🔥 BAB 2</div>
+  <h2 class="st">Persamaan Bernoulli</h2>
+  <div class="sd"></div>
+
+  <div class="card">
+    <div class="ci g">📐</div>
+    <h3>Bentuk Umum</h3>
+    <div class="mb" style="background:rgba(168,85,247,.1);border-left-color:var(--c5);">$$y' + P(x)\,y = Q(x)\,y^n \quad (n \neq 0,\; n \neq 1)$$</div>
+    <p>Persamaan Bernoulli mirip PD linier, tapi ada suku \(y^n\) di ruas kanan yang membuatnya <strong>non-linier</strong>.</p>
+  </div>
+
+  <div class="card">
+    <div class="ci b">🔧</div>
+    <h3>Cara Penyelesaian</h3>
+    <div class="steps">
+      <div class="si"><div class="sc">
+        <h4>Bagi seluruh persamaan dengan \(y^n\)</h4>
+        <p>\(y^{-n}y' + P(x)\,y^{1-n} = Q(x)\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Substitusi \(z = y^{1-n}\)</h4>
+        <p>Maka \(z' = (1-n)y^{-n}y'\), sehingga \(y^{-n}y' = \frac{z'}{1-n}\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Diperoleh PD linier dalam \(z\)</h4>
+        <div class="mb">$$z' + (1-n)P(x)\,z = (1-n)Q(x)$$</div>
+        <p>Selesaikan seperti PD linier biasa!</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Substitusi balik \(z = y^{1-n}\)</h4>
+        <p>Faktor integrasi: \(u = e^{\int(1-n)P(x)\,dx}\)</p>
+        <div class="mb" style="background:rgba(0,224,158,.1);border-left-color:var(--c1);">$$y^{1-n} \cdot u = (1-n)\int Q(x)\,u\,dx + c$$</div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CONTOH BERNOULLI ═══ -->
+<section class="sec fi" id="contoh-b">
+  <div class="sl">✏️ CONTOH SOAL</div>
+  <h2 class="st">Contoh Persamaan Bernoulli</h2>
+  <div class="sd"></div>
+
+  <!-- Contoh 5.4 -->
+  <div class="card" style="margin-bottom:2rem;">
+    <div class="ci o">5.4</div>
+    <h3>Contoh 5.4</h3>
+    <p>Carilah penyelesaian umum:</p>
+    <div class="mb">$$xy' + y = y^3 x^2 \ln x$$</div>
+
+    <div class="steps" style="margin-top:1.5rem;">
+      <div class="si"><div class="sc">
+        <h4>Identifikasi: Bernoulli dengan \(n = 3\)</h4>
+        <p>Persamaan awal: \(xy' + y = y^3 x^2\ln x\)</p>
+        <p>Bagi dengan \(x\) untuk bentuk baku: \(y' + \frac{1}{x}y = y^3 \cdot x\ln x\)</p>
+        <p>Bandingkan dengan \(y' + P(x)y = Q(x)y^n\):</p>
+        <p>• \(P(x) = \frac{1}{x}\), \(Q(x) = x\ln x\), \(n = 3\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Bagi seluruh persamaan dengan \(y^3\)</h4>
+        <p>\(\frac{y'}{y^3} + \frac{1}{x} \cdot \frac{y}{y^3} = x\ln x\)</p>
+        <p>\(y^{-3}y' + \frac{1}{x} \cdot y^{-2} = x\ln x\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Substitusi \(z = y^{1-n} = y^{1-3} = y^{-2}\)</h4>
+        <p>Diferensialkan: \(z' = \frac{dz}{dx} = -2y^{-3} \cdot y'\)</p>
+        <p>Maka: \(y^{-3}y' = \frac{z'}{-2} = -\frac{1}{2}z'\)</p>
+        <p>Substitusikan ke persamaan: \(-\frac{1}{2}z' + \frac{1}{x}z = x\ln x\)</p>
+        <p>Kalikan kedua ruas dengan \(-2\) agar koefisien \(z'\) menjadi 1:</p>
+        <p>\(z' - \frac{2}{x}z = -2x\ln x\)</p>
+        <p>Ini adalah PD linier dalam \(z\) dengan \(P_z(x) = -\frac{2}{x}\) dan \(Q_z(x) = -2x\ln x\).</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Hitung faktor integrasi untuk PD linier dalam \(z\)</h4>
+        <p>\(\int P_z\,dx = \int -\frac{2}{x}\,dx = -2\ln x = \ln x^{-2}\)</p>
+        <p>\(u = e^{\ln x^{-2}} = x^{-2} = \frac{1}{x^2}\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Terapkan rumus: \(z \cdot u = \int Q_z \cdot u\,dx + c\)</h4>
+        <p>\(\frac{z}{x^2} = \int (-2x\ln x) \cdot \frac{1}{x^2}\,dx + c\)</p>
+        <p>Sederhanakan integran: \(\frac{-2x\ln x}{x^2} = \frac{-2\ln x}{x}\)</p>
+        <p>\(\frac{z}{x^2} = -2\int \frac{\ln x}{x}\,dx + c\)</p>
+        <p>Untuk \(\int \frac{\ln x}{x}\,dx\): substitusi \(t = \ln x\), \(dt = \frac{1}{x}dx\):</p>
+        <p>\(\int \frac{\ln x}{x}\,dx = \int t\,dt = \frac{t^2}{2} = \frac{(\ln x)^2}{2}\)</p>
+        <p>Jadi: \(\frac{z}{x^2} = -2 \cdot \frac{(\ln x)^2}{2} + c = -(\ln x)^2 + c\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Kalikan \(x^2\) dan substitusi balik \(z = y^{-2}\)</h4>
+        <p>\(z = x^2\bigl[c - (\ln x)^2\bigr] = cx^2 - x^2\ln^2 x\)</p>
+        <p>Karena \(z = y^{-2}\):</p>
+        <div class="mb" style="background:rgba(0,224,158,.1);border-left-color:var(--c1);">$$y^{-2} = cx^2 - x^2\ln^2 x$$</div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- Contoh 5.5 -->
+  <div class="card">
+    <div class="ci p">5.5</div>
+    <h3>Contoh 5.5 — Penyelesaian Khusus</h3>
+    <p>Carilah penyelesaian khusus:</p>
+    <div class="mb">$$y' + y\tan x = y^4 \sin x \sec^4 x, \quad y(0) = 2$$</div>
+
+    <div class="steps" style="margin-top:1.5rem;">
+      <div class="si"><div class="sc">
+        <h4>Identifikasi: Bernoulli dengan \(n = 4\)</h4>
+        <p>Persamaan: \(y' + y\tan x = y^4\sin x\sec^4 x\)</p>
+        <p>\(P(x) = \tan x\), \(Q(x) = \sin x\sec^4 x\), \(n = 4\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Bagi seluruh persamaan dengan \(y^4\)</h4>
+        <p>\(y^{-4}y' + y^{-3}\tan x = \sin x\sec^4 x\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Substitusi \(z = y^{1-4} = y^{-3}\)</h4>
+        <p>Diferensialkan: \(z' = -3y^{-4}y'\), maka \(y^{-4}y' = -\frac{1}{3}z'\)</p>
+        <p>Substitusi: \(-\frac{1}{3}z' + z\tan x = \sin x\sec^4 x\)</p>
+        <p>Kalikan \(-3\): \(z' - 3\tan x \cdot z = -3\sin x\sec^4 x\)</p>
+        <p>PD linier dalam \(z\) dengan \(P_z = -3\tan x\), \(Q_z = -3\sin x\sec^4 x\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Hitung faktor integrasi</h4>
+        <p>\(\int P_z\,dx = \int -3\tan x\,dx\)</p>
+        <p>Ingat \(\int \tan x\,dx = -\ln|\cos x|\), maka:</p>
+        <p>\(\int -3\tan x\,dx = -3 \cdot (-\ln|\cos x|) = 3\ln|\cos x| = \ln(\cos^3 x)\)</p>
+        <p>\(u = e^{\ln(\cos^3 x)} = \cos^3 x\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Terapkan rumus: \(z \cdot u = \int Q_z \cdot u\,dx + c\)</h4>
+        <p>\(z\cos^3 x = \int -3\sin x\sec^4 x \cdot \cos^3 x\,dx + c\)</p>
+        <p>Sederhanakan integran: \(\sec^4 x \cdot \cos^3 x = \frac{1}{\cos^4 x} \cdot \cos^3 x = \frac{1}{\cos x} = \sec x\)</p>
+        <p>Maka: \(= -3\int \sin x \cdot \sec x\,dx + c = -3\int \frac{\sin x}{\cos x}\,dx + c = -3\int \tan x\,dx + c\)</p>
+        <p>\(= -3 \cdot (-\ln|\cos x|) + c = 3\ln|\cos x| + c = \ln(\cos^3 x) + c\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Substitusi balik \(z = y^{-3}\)</h4>
+        <p>\(y^{-3}\cos^3 x = \ln(\cos^3 x) + c\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Terapkan syarat awal \(y(0) = 2\)</h4>
+        <p>Substitusi \(x = 0\), \(y = 2\):</p>
+        <p>\(2^{-3} \cdot \cos^3(0) = \ln(\cos^3(0)) + c\)</p>
+        <p>\(\frac{1}{8} \cdot 1 = \ln(1) + c\)</p>
+        <p>\(\frac{1}{8} = 0 + c\) → \(c = \frac{1}{8}\)</p>
+        <p>Kalikan seluruh persamaan dengan 8:</p>
+        <div class="mb" style="background:rgba(0,224,158,.1);border-left-color:var(--c1);">$$8y^{-3}\cos^3 x = 8\ln\cos^3 x + 1$$</div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ REDUKSI ORDE ═══ -->
+<section class="sec fi" id="reduksi">
+  <div class="sl">⬇️ BAB 3</div>
+  <h2 class="st">Reduksi Orde PD Linier</h2>
+  <div class="sd"></div>
+
+  <div class="card">
+    <div class="ci g">📐</div>
+    <h3>Konsep</h3>
+    <p>PD yang berbentuk:</p>
+    <div class="mb">$$y^{(n)} + P(x)\,y^{(n-1)} = Q(x)$$</div>
+    <p>hanya memuat dua turunan berurutan \(y^{(n)}\) dan \(y^{(n-1)}\), dan <strong>tidak memuat \(y\) secara eksplisit</strong>. Substitusi \(w = y^{(n-1)}\), sehingga \(w' = y^{(n)}\), mengubahnya menjadi PD linier orde satu:</p>
+    <div class="mb">$$w' + P(x)\,w = Q(x)$$</div>
+    <p>Selesaikan untuk \(w\), lalu integralkan \((n-1)\) kali untuk mendapat \(y\).</p>
+  </div>
+
+  <!-- Contoh 5.7 -->
+  <div class="card" style="margin-top:2rem;">
+    <div class="ci o">5.7</div>
+    <h3>Contoh 5.7</h3>
+    <p>Carilah penyelesaian umum:</p>
+    <div class="mb">$$y'' - \frac{1}{x}\,y' = x\ln x$$</div>
+
+    <div class="steps" style="margin-top:1.5rem;">
+      <div class="si"><div class="sc">
+        <h4>Perhatikan bahwa \(y\) tidak muncul secara eksplisit</h4>
+        <p>PD: \(y'' - \frac{1}{x}y' = x\ln x\) hanya memuat \(y''\) dan \(y'\), tanpa \(y\) sendiri.</p>
+        <p>Ini berarti kita bisa mereduksi orde dengan substitusi \(w = y'\).</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Substitusi \(w = y'\), sehingga \(w' = y''\)</h4>
+        <p>Persamaan menjadi: \(w' - \frac{1}{x}w = x\ln x\)</p>
+        <p>Ini adalah PD linier orde satu dalam \(w\) dengan \(P(x) = -\frac{1}{x}\), \(Q(x) = x\ln x\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Hitung faktor integrasi</h4>
+        <p>\(\int P(x)\,dx = \int -\frac{1}{x}\,dx = -\ln x = \ln x^{-1}\)</p>
+        <p>\(u = e^{-\ln x} = e^{\ln(x^{-1})} = \frac{1}{x}\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Terapkan rumus: \(w \cdot u = \int Q \cdot u\,dx + c_1\)</h4>
+        <p>\(\frac{w}{x} = \int x\ln x \cdot \frac{1}{x}\,dx + c_1 = \int \ln x\,dx + c_1\)</p>
+        <p>Hitung \(\int \ln x\,dx\) dengan integral parsial:</p>
+        <p>Pilih \(u_1 = \ln x\) → \(du_1 = \frac{1}{x}dx\), dan \(dv_1 = dx\) → \(v_1 = x\)</p>
+        <p>\(\int \ln x\,dx = x\ln x - \int x \cdot \frac{1}{x}\,dx = x\ln x - \int 1\,dx = x\ln x - x\)</p>
+        <p>Jadi: \(\frac{w}{x} = x\ln x - x + c_1\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Selesaikan untuk \(w = y'\)</h4>
+        <p>Kalikan kedua ruas dengan \(x\):</p>
+        <p>\(w = x(x\ln x - x + c_1) = x^2\ln x - x^2 + c_1 x\)</p>
+        <p>Jadi: \(y' = x^2\ln x - x^2 + c_1 x\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Integralkan \(y'\) untuk mendapat \(y\)</h4>
+        <p>\(y = \int(x^2\ln x - x^2 + c_1 x)\,dx + c_2\)</p>
+        <p>Integralkan suku per suku:</p>
+        <p>• \(\int x^2\ln x\,dx\): integral parsial dengan \(u_1 = \ln x\), \(dv_1 = x^2\,dx\):</p>
+        <p>&nbsp;&nbsp;\(= \frac{x^3}{3}\ln x - \int \frac{x^3}{3} \cdot \frac{1}{x}\,dx = \frac{x^3}{3}\ln x - \frac{1}{3}\int x^2\,dx = \frac{x^3}{3}\ln x - \frac{x^3}{9}\)</p>
+        <p>• \(\int -x^2\,dx = -\frac{x^3}{3}\)</p>
+        <p>• \(\int c_1 x\,dx = c_1 \cdot \frac{x^2}{2}\)</p>
+        <p>Gabungkan: \(y = \frac{x^3}{3}\ln x - \frac{x^3}{9} - \frac{x^3}{3} + c_1\frac{x^2}{2} + c_2\)</p>
+        <p>Sederhanakan suku \(x^3\): \(-\frac{x^3}{9} - \frac{x^3}{3} = -\frac{x^3}{9} - \frac{3x^3}{9} = -\frac{4x^3}{9}\)</p>
+        <p>Ganti \(\frac{c_1}{2}\) dengan konstanta baru \(c_1\):</p>
+        <div class="mb" style="background:rgba(0,224,158,.1);border-left-color:var(--c1);">$$y = \frac{1}{3}x^3\ln x - \frac{4}{9}x^3 + c_1 x^2 + c_2$$</div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ LATIHAN ═══ -->
+<section class="sec fi" id="latihan">
+  <div class="sl">📝 LATIHAN</div>
+  <h2 class="st">Soal Latihan Interaktif</h2>
+  <div class="sd"></div>
+
+  <!-- Soal 1 -->
+  <div class="ex">
+    <div class="exh"><div class="exn">1</div><div class="ext">Identifikasi Faktor Integrasi</div></div>
+    <div class="exb">
+      <p>Diberikan PD: \(y' + 3y = e^{2x}\). Berapakah faktor integrasinya?</p>
+      <div class="rg" id="q1-opts">
+        <label class="ro" onclick="selR(this,'q1')"><input type="radio" name="q1" value="a"><span class="rc"></span>\(u = e^{2x}\)</label>
+        <label class="ro" onclick="selR(this,'q1')"><input type="radio" name="q1" value="b"><span class="rc"></span>\(u = e^{3x}\)</label>
+        <label class="ro" onclick="selR(this,'q1')"><input type="radio" name="q1" value="c"><span class="rc"></span>\(u = e^{-3x}\)</label>
+        <label class="ro" onclick="selR(this,'q1')"><input type="radio" name="q1" value="d"><span class="rc"></span>\(u = 3x\)</label>
+      </div>
+      <div class="exa">
+        <button class="bc" onclick="chk('q1','b')">✅ Cek Jawaban</button>
+        <button class="bh" onclick="tog('h1')">💡 Petunjuk</button>
+        <button class="ba" onclick="tog('a1')">🔑 Kunci Jawaban</button>
+      </div>
+      <div class="fb" id="fb-q1"></div>
+      <div class="hbox" id="h1"><h5>💡 Petunjuk</h5><p>Faktor integrasi \(u = e^{\int P(x)\,dx}\). Di sini \(P(x) = 3\), maka \(\int 3\,dx = 3x\).</p></div>
+      <div class="abox" id="a1"><h5>🔑 Jawaban: B</h5><p>\(P(x) = 3\) → \(\int 3\,dx = 3x\) → \(u = e^{3x}\).</p></div>
+    </div>
+  </div>
+
+  <!-- Soal 2 -->
+  <div class="ex">
+    <div class="exh"><div class="exn">2</div><div class="ext">Identifikasi Tipe PD</div></div>
+    <div class="exb">
+      <p>Persamaan \(y' + 2xy = 3xy^4\) termasuk jenis apa?</p>
+      <div class="rg" id="q2-opts">
+        <label class="ro" onclick="selR(this,'q2')"><input type="radio" name="q2" value="a"><span class="rc"></span>PD Linier Orde Satu</label>
+        <label class="ro" onclick="selR(this,'q2')"><input type="radio" name="q2" value="b"><span class="rc"></span>Persamaan Bernoulli dengan \(n = 4\)</label>
+        <label class="ro" onclick="selR(this,'q2')"><input type="radio" name="q2" value="c"><span class="rc"></span>PD Variabel Terpisah</label>
+        <label class="ro" onclick="selR(this,'q2')"><input type="radio" name="q2" value="d"><span class="rc"></span>PD Eksak</label>
+      </div>
+      <div class="exa">
+        <button class="bc" onclick="chk('q2','b')">✅ Cek Jawaban</button>
+        <button class="bh" onclick="tog('h2')">💡 Petunjuk</button>
+        <button class="ba" onclick="tog('a2')">🔑 Kunci Jawaban</button>
+      </div>
+      <div class="fb" id="fb-q2"></div>
+      <div class="hbox" id="h2"><h5>💡 Petunjuk</h5><p>Bandingkan dengan bentuk \(y' + P(x)y = Q(x)y^n\). Perhatikan suku \(y^4\) di ruas kanan.</p></div>
+      <div class="abox" id="a2"><h5>🔑 Jawaban: B</h5><p>Bentuk \(y' + 2xy = 3xy^4\) cocok dengan Bernoulli: \(P = 2x\), \(Q = 3x\), \(n = 4\).</p></div>
+    </div>
+  </div>
+
+  <!-- Soal 3 -->
+  <div class="ex">
+    <div class="exh"><div class="exn">3</div><div class="ext">Selesaikan PD Linier</div></div>
+    <div class="exb">
+      <p>Carilah penyelesaian umum: \(y' + 3y = e^{2x}\)</p>
+      <div class="rg" id="q3-opts">
+        <label class="ro" onclick="selR(this,'q3')"><input type="radio" name="q3" value="a"><span class="rc"></span>\(y = \frac{1}{5}e^{2x} + ce^{-3x}\)</label>
+        <label class="ro" onclick="selR(this,'q3')"><input type="radio" name="q3" value="b"><span class="rc"></span>\(y = e^{2x} + ce^{3x}\)</label>
+        <label class="ro" onclick="selR(this,'q3')"><input type="radio" name="q3" value="c"><span class="rc"></span>\(y = \frac{1}{5}e^{2x} + ce^{3x}\)</label>
+      </div>
+      <div class="exa">
+        <button class="bc" onclick="chk('q3','a')">✅ Cek Jawaban</button>
+        <button class="bh" onclick="tog('h3')">💡 Petunjuk</button>
+        <button class="ba" onclick="tog('a3')">🔑 Kunci Jawaban</button>
+      </div>
+      <div class="fb" id="fb-q3"></div>
+      <div class="hbox" id="h3"><h5>💡 Petunjuk</h5>
+        <p>1. \(u = e^{3x}\). Kalikan: \(ye^{3x} = \int e^{2x} \cdot e^{3x}\,dx + c = \int e^{5x}\,dx + c\)</p>
+        <p>2. \(ye^{3x} = \frac{1}{5}e^{5x} + c\)</p>
+        <p>3. Bagi \(e^{3x}\): \(y = \frac{1}{5}e^{2x} + ce^{-3x}\)</p>
+      </div>
+      <div class="abox" id="a3"><h5>🔑 Jawaban: A</h5><p>\(y = \frac{1}{5}e^{2x} + ce^{-3x}\)</p></div>
+    </div>
+  </div>
+
+  <!-- Soal 4 -->
+  <div class="ex">
+    <div class="exh"><div class="exn">4</div><div class="ext">Substitusi Bernoulli</div></div>
+    <div class="exb">
+      <p>Untuk persamaan Bernoulli \(y' + y = y^3\), substitusi yang tepat adalah?</p>
+      <div class="rg" id="q4-opts">
+        <label class="ro" onclick="selR(this,'q4')"><input type="radio" name="q4" value="a"><span class="rc"></span>\(z = y^2\)</label>
+        <label class="ro" onclick="selR(this,'q4')"><input type="radio" name="q4" value="b"><span class="rc"></span>\(z = y^{-2}\)</label>
+        <label class="ro" onclick="selR(this,'q4')"><input type="radio" name="q4" value="c"><span class="rc"></span>\(z = y^{-3}\)</label>
+        <label class="ro" onclick="selR(this,'q4')"><input type="radio" name="q4" value="d"><span class="rc"></span>\(z = y^3\)</label>
+      </div>
+      <div class="exa">
+        <button class="bc" onclick="chk('q4','b')">✅ Cek Jawaban</button>
+        <button class="bh" onclick="tog('h4')">💡 Petunjuk</button>
+        <button class="ba" onclick="tog('a4')">🔑 Kunci Jawaban</button>
+      </div>
+      <div class="fb" id="fb-q4"></div>
+      <div class="hbox" id="h4"><h5>💡 Petunjuk</h5><p>Untuk Bernoulli, substitusi \(z = y^{1-n}\). Di sini \(n = 3\), jadi \(z = y^{1-3} = y^{-2}\).</p></div>
+      <div class="abox" id="a4"><h5>🔑 Jawaban: B</h5><p>\(z = y^{1-n} = y^{1-3} = y^{-2}\)</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ JUPYTER ═══ -->
+<section class="sec fi" id="jupyter">
+  <div class="sl">🐍 JUPYTER NOTEBOOK</div>
+  <h2 class="st">Menyelesaikan dengan Python</h2>
+  <div class="sd"></div>
+
+  <h3 style="margin-bottom:1rem;color:var(--c2);">📖 Contoh 5.1: PD Linier Orde Satu</h3>
+  <div class="cb">
+    <div class="cbh"><span><span class="dots"><span></span><span></span><span></span></span>Python — Jupyter Notebook</span><button class="ccp" onclick="cpC(this)">📋 Copy</button></div>
+    <div class="cbd"><pre><span class="cm"># Menyelesaikan PD Linier: xy' + (1-x)y = 4xe^x ln x</span>
+<span class="kw">from</span> sympy <span class="kw">import</span> *
+
+x = symbols(<span class="cs">'x'</span>)
+y = Function(<span class="cs">'y'</span>)
+
+<span class="cm"># Definisikan PD</span>
+ode = Eq(x*y(x).diff(x) + (1-x)*y(x), 4*x*exp(x)*ln(x))
+
+<span class="cm"># Selesaikan</span>
+sol = dsolve(ode, y(x))
+<span class="fn">print</span>(<span class="cs">"Penyelesaian umum:"</span>)
+<span class="fn">print</span>(sol)</pre></div>
+  </div>
+
+  <h3 style="margin:2rem 0 1rem;color:var(--c5);">🔥 Contoh 5.4: Bernoulli</h3>
+  <div class="cb">
+    <div class="cbh"><span><span class="dots"><span></span><span></span><span></span></span>Python — Jupyter Notebook</span><button class="ccp" onclick="cpC(this)">📋 Copy</button></div>
+    <div class="cbd"><pre><span class="cm"># Menyelesaikan Bernoulli: xy' + y = y³ x² ln x</span>
+<span class="kw">from</span> sympy <span class="kw">import</span> *
+
+x = symbols(<span class="cs">'x'</span>)
+y = Function(<span class="cs">'y'</span>)
+
+ode = Eq(x*y(x).diff(x) + y(x), y(x)**3 * x**2 * ln(x))
+sol = dsolve(ode, y(x))
+<span class="fn">print</span>(<span class="cs">"Penyelesaian umum:"</span>)
+<span class="fn">print</span>(sol)</pre></div>
+  </div>
+
+  <h3 style="margin:2rem 0 1rem;color:var(--c3);">⬇️ Contoh 5.7: Reduksi Orde</h3>
+  <div class="cb">
+    <div class="cbh"><span><span class="dots"><span></span><span></span><span></span></span>Python — Jupyter Notebook</span><button class="ccp" onclick="cpC(this)">📋 Copy</button></div>
+    <div class="cbd"><pre><span class="cm"># Reduksi orde: y'' - (1/x)y' = x ln x</span>
+<span class="kw">from</span> sympy <span class="kw">import</span> *
+
+x = symbols(<span class="cs">'x'</span>)
+y = Function(<span class="cs">'y'</span>)
+
+ode = Eq(y(x).diff(x, 2) - y(x).diff(x)/x, x*ln(x))
+sol = dsolve(ode, y(x))
+<span class="fn">print</span>(<span class="cs">"Penyelesaian umum:"</span>)
+<span class="fn">print</span>(simplify(sol))</pre></div>
+  </div>
+
+  <h3 style="margin:2rem 0 1rem;color:var(--c1);">🔧 Tool: Solver PD Linier Generik</h3>
+  <div class="cb">
+    <div class="cbh"><span><span class="dots"><span></span><span></span><span></span></span>Python — Jupyter Notebook</span><button class="ccp" onclick="cpC(this)">📋 Copy</button></div>
+    <div class="cbd"><pre><span class="cm"># Solver generik PD Linier Orde Satu</span>
+<span class="kw">from</span> sympy <span class="kw">import</span> *
+
+<span class="kw">def</span> <span class="fn">solve_linear_ode</span>(P_expr, Q_expr):
+    x = symbols(<span class="cs">'x'</span>)
+    P = sympify(P_expr)
+    Q = sympify(Q_expr)
+    
+    <span class="cm"># Faktor integrasi</span>
+    int_P = integrate(P, x)
+    u = exp(int_P)
+    <span class="fn">print</span>(<span class="cs">f"P(x) = {P}"</span>)
+    <span class="fn">print</span>(<span class="cs">f"Q(x) = {Q}"</span>)
+    <span class="fn">print</span>(<span class="cs">f"∫P dx = {int_P}"</span>)
+    <span class="fn">print</span>(<span class="cs">f"Faktor integrasi u = {simplify(u)}"</span>)
+    
+    <span class="cm"># Penyelesaian</span>
+    rhs = integrate(Q * u, x)
+    C = symbols(<span class="cs">'C'</span>)
+    y_sol = simplify((rhs + C) / u)
+    <span class="fn">print</span>(<span class="cs">f"\n✅ y = {y_sol}"</span>)
+    <span class="kw">return</span> y_sol
+
+<span class="cm"># Contoh: y' + 3y = e^(2x)</span>
+solve_linear_ode(<span class="cs">"3"</span>, <span class="cs">"exp(2*x)"</span>)</pre></div>
+  </div>
+</section>
+
+<!-- ═══ AKTIVITAS ═══ -->
+<section class="sec fi" id="aktivitas">
+  <div class="sl">📊 AKTIVITAS</div>
+  <h2 class="st">Aktivitas Mahasiswa</h2>
+  <div class="sd"></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <button onclick="showResetModal()" style="padding:.5rem 1.25rem;background:rgba(251,113,133,.12);border:1px solid rgba(251,113,133,.3);color:#fb7185;border-radius:8px;cursor:pointer;font-weight:600;font-size:.85rem;font-family:inherit;">🗑 Reset Data</button>
+    </div>
+    <div id="scheduleInfo" style="display:none;align-items:center;gap:8px;padding:8px 14px;background:rgba(129,140,248,.08);border:1px solid rgba(129,140,248,.2);border-radius:10px;">
+      <div style="font-size:.75rem;font-weight:600;color:#818cf8;text-transform:uppercase;letter-spacing:.08em;">Jadwal Perkuliahan</div>
+      <div id="scheduleRange" style="font-size:.88rem;color:#e2e8f0;font-weight:600;margin-top:2px;">—</div>
+    </div>
+    <div style="text-align:center;"><div id="statLate" style="font-weight:800;font-size:1.1rem;color:#fb7185;">0</div><div style="font-size:.7rem;color:#64748b;">Terlambat</div></div>
+  </div>
+  <div style="background:#162033;border:1px solid #1e293b;border-radius:20px;overflow:hidden;">
+    <div id="leaderboardPanel" style="margin-bottom:2px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:16px 20px;">
+        <div style="background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.15);border-radius:14px;padding:14px 16px;">
+          <div style="font-size:.72rem;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🏆 Paling Rajin</div>
+          <div id="rajinList" style="font-size:.8rem;color:#e2e8f0;min-height:60px;">⏳ Memuat...</div>
+        </div>
+        <div style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15);border-radius:14px;padding:14px 16px;">
+          <div style="font-size:.72rem;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">😴 Paling Santai</div>
+          <div id="santaiList" style="font-size:.8rem;color:#e2e8f0;min-height:60px;">⏳ Memuat...</div>
+        </div>
+      </div>
+      <div style="padding:0 20px 16px;">
+        <div style="background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);border-radius:14px;padding:14px 16px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <div style="font-size:.72rem;font-weight:700;color:#fb7185;text-transform:uppercase;letter-spacing:.1em;">❌ Bolos</div>
+            <div id="bolosCount" style="background:rgba(251,113,133,.15);color:#fb7185;font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:8px;">0</div>
+          </div>
+          <div id="bolosList" style="font-size:.8rem;color:#e2e8f0;">⏳ Memuat...</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;padding:14px 24px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.08em;">
+      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:0.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
+    </div>
+    <div id="visitorTableBody" style="max-height:420px;overflow-y:auto;"><div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">⏳ Memuat data mahasiswa...</div></div>
+  </div>
+</section>
+
+<footer>
+  <p>📐 Modul 4 — PD Linier Orde N, Bernoulli & Reduksi Orde</p>
+  <p style="margin-top:.5rem;">Matematika 4 • W132100010 • Fakultas Teknik — Teknik Mesin</p>
+  <p style="margin-top:.25rem;font-size:.8rem;">Disusun oleh: Dedik Romahadi</p>
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded',()=>{renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})});
+window.addEventListener('scroll',()=>{const t=document.documentElement.scrollHeight-window.innerHeight;document.getElementById('prog').style.width=(window.scrollY/t*100)+'%'});
+const obs=new IntersectionObserver(e=>{e.forEach(en=>{if(en.isIntersecting)en.target.classList.add('vis')})},{threshold:.1});
+document.querySelectorAll('.fi').forEach(el=>obs.observe(el));
+window.addEventListener('scroll',()=>{const secs=document.querySelectorAll('.sec');const links=document.querySelectorAll('.nav a');let cur='';secs.forEach(s=>{if(window.scrollY>=s.offsetTop-120)cur=s.id});links.forEach(l=>{l.classList.remove('active');if(l.getAttribute('href')==='#'+cur)l.classList.add('active')})});
+function selR(l,q){const g=l.closest('.rg');g.querySelectorAll('.ro').forEach(o=>{o.style.borderColor='var(--bd)';o.style.background='var(--bg2)'});l.querySelector('input').checked=true;l.style.borderColor='var(--c1)';l.style.background='rgba(0,224,158,.04)'}
+function chk(q,cor){const sel=document.querySelector(`input[name="${q}"]:checked`);const fb=document.getElementById(`fb-${q}`);if(!sel){fb.className='fb bad';fb.textContent='⚠️ Pilih jawaban dulu!';fb.style.display='block';return}
+document.querySelectorAll(`#${q}-opts .ro`).forEach(o=>{const v=o.querySelector('input').value;o.classList.remove('ok','bad');if(v===cor)o.classList.add('ok');else if(o.querySelector('input').checked&&v!==cor)o.classList.add('bad')});
+if(sel.value===cor){fb.className='fb ok';fb.textContent='🎉 Benar! Jawaban Anda tepat.'}else{fb.className='fb bad';fb.textContent='❌ Kurang tepat. Coba lihat petunjuk atau kunci jawaban.'}fb.style.display='block'}
+function tog(id){document.getElementById(id).classList.toggle('show')}
+function cpC(btn){const code=btn.closest('.cb').querySelector('pre').textContent;navigator.clipboard.writeText(code).then(()=>{btn.textContent='✅ Copied!';setTimeout(()=>btn.textContent='📋 Copy',2000)})}
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getDatabase, ref, get, set, remove, onValue } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+const firebaseConfig={apiKey:"AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",authDomain:"getaran-mekanik.firebaseapp.com",databaseURL:"https://getaran-mekanik-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"getaran-mekanik",storageBucket:"getaran-mekanik.firebasestorage.app",messagingSenderId:"430886299733",appId:"1:430886299733:web:0edecd5d4adf73e7440cdc",measurementId:"G-NBMYLXXF18"};
+const app=initializeApp(firebaseConfig);const db=getDatabase(app);
+const MODULE_ID='modul-4';const DB_PATH=`visitors/math4/${MODULE_ID}`;const PERTEMUAN='pertemuan-4';const RELATED_MODULES=['forum-4','tugas-4'];const SCHEDULE_PATH=`settings/math4/${PERTEMUAN}/schedule`;const LOCAL_IDENTITY=`optoauto_identity_${MODULE_ID}`;
+let panelOpen=false;let currentSchedule=null;const VISIT_COOLDOWN=3600000;
+function getIdentity(){try{return JSON.parse(localStorage.getItem(LOCAL_IDENTITY));}catch(e){return null;}}
+function saveIdentity(v){localStorage.setItem(LOCAL_IDENTITY,JSON.stringify(v));}
+function isValidName(n){if(!n)return false;return n.split(/\s+/).every(w=>w.length>0&&/^[A-Z][a-zA-Z.'\-]*$/.test(w));}
+function isValidNim(n){return/^\d+$/.test(n);}
+function sanitizeKey(s){return s.replace(/[.#$/\[\]]/g,'_');}
+let masterStudents=[];let masterFetchDone=false;
+const STUDENTS_JSON_URL='https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Engineering-Mathematics/Attributes/students.json';
+function fetchMasterStudents(retries){retries=retries||0;return fetch(STUDENTS_JSON_URL,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}).then(data=>{masterStudents=data;masterFetchDone=true;}).catch(err=>{if(retries<2)setTimeout(()=>fetchMasterStudents(retries+1),1500);else{masterStudents=[];masterFetchDone=true;}});}
+function updateLeaderboard(visitors,schedExpired){const rajinEl=document.getElementById('rajinList');const santaiEl=document.getElementById('santaiList');const bolosEl=document.getElementById('bolosList');const bolosCEl=document.getElementById('bolosCount');if(!rajinEl)return;if(!masterStudents.length){rajinEl.innerHTML='<span style="color:#64748b;font-size:.75rem;">Memuat...</span>';santaiEl.innerHTML=rajinEl.innerHTML;bolosEl.innerHTML=rajinEl.innerHTML;return;}const mhs=visitors.filter(v=>v.role!=='dosen'&&v.role!=='guest');const visitMap={};mhs.forEach(v=>{if(!visitMap[v.nim])visitMap[v.nim]=v;});const visited=Object.values(visitMap);const rajin=[...visited].sort((a,b)=>{const d=(b.visitCount||1)-(a.visitCount||1);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp);});const santai=[...visited].sort((a,b)=>{const d=(a.visitCount||1)-(b.visitCount||1);return d!==0?d:new Date(b.timestamp)-new Date(a.timestamp);});const medalR=['🥇','🥈','🥉'];function renderCard(v,idx,isSantai){const medal=isSantai?(idx+1):medalR[idx];const vc=v.visitCount||1;const bs=isSantai?'background:rgba(251,191,36,.12);color:#fbbf24;':'background:rgba(16,185,129,.12);color:#10b981;';const mB=isSantai?'<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(251,191,36,.15);color:#fbbf24;font-size:.65rem;font-weight:800;">'+medal+'</span>':'<span style="font-size:1rem;">'+medal+'</span>';return'<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'">'+mB+'<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="'+bs+'padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;">'+vc+'x</div></div>';}const top3=new Set(rajin.slice(0,3).map(v=>v.nim));const santaiF=santai.filter(v=>!top3.has(v.nim));rajinEl.innerHTML=rajin.length?rajin.slice(0,3).map((v,i)=>renderCard(v,i,false)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';santaiEl.innerHTML=santaiF.length?santaiF.slice(0,3).map((v,i)=>renderCard(v,i,true)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';const visitedNims=new Set(mhs.map(v=>v.nim));const notVisited=masterStudents.filter(s=>!visitedNims.has(s.nim));if(schedExpired){bolosCEl.textContent=notVisited.length;if(!notVisited.length)bolosEl.innerHTML='<span style="color:#10b981;font-size:.78rem;">✅ Semua sudah berkunjung!</span>';else bolosEl.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:6px;">'+notVisited.map(s=>'<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.12);border-radius:10px;padding:5px 10px;"><span style="font-weight:600;font-size:.75rem;color:#ef4444;">'+escH(s.nama)+'</span><span style="font-size:.62rem;color:#64748b;font-family:monospace;">'+s.nim+'</span></div>').join('')+'</div>';}else{bolosCEl.textContent='—';const b=notVisited.length;bolosEl.innerHTML=b?'<span style="color:#94a3b8;font-size:.78rem;">⏳ '+b+' mahasiswa belum berkunjung.</span>':'<span style="color:#10b981;font-size:.78rem;">✅ Semua sudah berkunjung!</span>';}}
+fetchMasterStudents();let latestVisitors=[];
+function initVisitor(){const me=getIdentity();if(me&&me.role==='guest'){localStorage.removeItem(LOCAL_IDENTITY);location.reload();return;}if(me&&me.nama){document.getElementById('visitorOverlay').classList.add('hidden');document.getElementById('visitorFab').style.display='flex';const _d=me.nama.toLowerCase()==='dedik romahadi';if(!_d&&(!masterFetchDone||masterStudents.some(s=>s.nim===me.nim&&s.nama.toUpperCase()===me.nama.toUpperCase()))){const _k=sanitizeKey(`mhs_${me.nim}`);get(ref(db,`${DB_PATH}/${_k}`)).then(snap=>{if(snap.exists()){const ex=snap.val();const lv=new Date(ex.lastVisit||ex.timestamp).getTime();if(Date.now()-lv>=VISIT_COOLDOWN)set(ref(db,`${DB_PATH}/${_k}`),{...ex,visitCount:(ex.visitCount||1)+1,lastVisit:new Date().toISOString()});}}).catch(()=>{});}}onValue(ref(db,SCHEDULE_PATH),(snap)=>{currentSchedule=snap.val();updateScheduleDisplay();onValue(ref(db,DB_PATH),(vs)=>{const d=vs.val();latestVisitors=d?Object.values(d):[];renderVisitors(latestVisitors);},{onlyOnce:true});});onValue(ref(db,DB_PATH),(snap)=>{const d=snap.val();latestVisitors=d?Object.values(d):[];renderVisitors(latestVisitors);});}
+function updateScheduleDisplay(){const info=document.getElementById('scheduleInfo');const range=document.getElementById('scheduleRange');if(!info||!range)return;if(currentSchedule&&currentSchedule.start&&currentSchedule.end){info.style.display='flex';const s=new Date(currentSchedule.start),e=new Date(currentSchedule.end);const dur=currentSchedule.duration||Math.round((e-s)/(864e5));const fmt=d=>d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});range.textContent=fmt(s)+'  —  '+fmt(e)+'  ('+dur+' hari)';}else info.style.display='none';}
+function isLate(ts){if(!currentSchedule||!currentSchedule.start||!currentSchedule.end)return false;const t=new Date(ts).getTime(),s=new Date(currentSchedule.start).getTime(),e=new Date(currentSchedule.end).getTime();return t<s||t>e;}
+function submitVisitor(){const nama=document.getElementById('vNama').value.trim(),nim=document.getElementById('vNim').value.trim(),err=document.getElementById('vError');if(!currentSchedule||!currentSchedule.start||!currentSchedule.end){err.textContent='⚠ Jadwal belum disetel.';err.style.display='block';return;}const now=Date.now(),ss=new Date(currentSchedule.start).getTime();if(now<ss){const sd=new Date(currentSchedule.start);err.textContent='⚠ Akses belum dibuka. Dimulai '+sd.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+' '+sd.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});err.style.display='block';return;}const isDosen=nama.toLowerCase()==='dedik romahadi';if(!nama){err.textContent='⚠ Nama wajib diisi.';err.style.display='block';return;}if(!isValidName(nama)){err.textContent='⚠ Format nama salah. Setiap kata diawali huruf kapital.';err.style.display='block';return;}if(!isDosen&&!nim){err.textContent='⚠ NIM wajib diisi.';err.style.display='block';return;}if(!isDosen&&!isValidNim(nim)){err.textContent='⚠ NIM harus berupa angka.';err.style.display='block';return;}if(!isDosen&&!masterFetchDone){err.textContent='⚠ Data mahasiswa sedang dimuat.';err.style.display='block';return;}err.style.display='none';if(isDosen){saveIdentity({nama,nim:'DOSEN',role:'dosen',timestamp:new Date().toISOString()});}else if(masterFetchDone&&!masterStudents.some(s=>s.nim===nim&&s.nama.toUpperCase()===nama.toUpperCase())){const ne=masterStudents.some(s=>s.nim===nim);err.textContent=ne?'⚠ Nama tidak sesuai dengan NIM.':'⚠ NIM tidak terdaftar.';err.style.display='block';return;}else{const key=sanitizeKey(`mhs_${nim}`);const nowISO=new Date().toISOString();get(ref(db,`${DB_PATH}/${key}`)).then(snap=>{let v;if(snap.exists()){const ex=snap.val();const lv=new Date(ex.lastVisit||ex.timestamp).getTime();const cb=(Date.now()-lv)>=VISIT_COOLDOWN;v={...ex,visitCount:cb?(ex.visitCount||1)+1:(ex.visitCount||1),lastVisit:cb?nowISO:(ex.lastVisit||ex.timestamp)};}else v={nama,nim,role:'student',timestamp:nowISO,visitCount:1,lastVisit:nowISO};saveIdentity(v);return set(ref(db,`${DB_PATH}/${key}`),v);}).catch(()=>{const v={nama,nim,role:'student',timestamp:nowISO,visitCount:1,lastVisit:nowISO};saveIdentity(v);set(ref(db,`${DB_PATH}/${key}`),v);});}document.getElementById('visitorOverlay').classList.add('hidden');document.getElementById('visitorFab').style.display='flex';}
+function renderVisitors(visitors){const visitMap={};for(const v of visitors){if(v.role==='dosen'||v.role==='guest')continue;if(!visitMap[v.nim])visitMap[v.nim]=v;}const visited=Object.values(visitMap);const lateCount=visited.filter(v=>isLate(v.timestamp)).length;const schedExpired=currentSchedule&&currentSchedule.end&&Date.now()>new Date(currentSchedule.end).getTime();document.getElementById('fabCount').textContent=visited.length;updateLeaderboard(visitors,schedExpired);document.getElementById('vpBadge').textContent=visited.length+' orang';const sle=document.getElementById('statLate');if(sle)sle.textContent=lateCount;const listEl=document.getElementById('vpList'),tableEl=document.getElementById('visitorTableBody');if(!visited.length)listEl.innerHTML='<div class="vp-empty">Belum ada data.</div>';else listEl.innerHTML=visited.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(v=>{const ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();const dt=new Date(v.timestamp),ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});const late=isLate(v.timestamp);const lb=late?'<span style="color:#fb7185;font-size:.65rem;font-weight:600;margin-left:4px;">⏰ Terlambat</span>':'';return`<div class="vp-item" style="${late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':''}"><div class="vp-avatar student" style="${late?'background:rgba(251,113,133,.12);color:#fb7185;':''}">${ini}</div><div class="vp-info"><div class="vp-name">${escH(v.nama)}${lb}</div><div class="vp-nim">${escH(v.nim)}</div></div><div class="vp-time"><div>${ts}</div><div style="font-size:.6rem;color:#94a3b8;">${v.visitCount||1}x</div></div></div>`;}).join('');if(!masterStudents.length){tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:#64748b;">⏳ Memuat...</div>';return;}function toTitle(s){return s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());}tableEl.innerHTML=masterStudents.map((s,i)=>{const v=visitMap[s.nim];const nama=toTitle(s.nama);const ini=nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();const has=!!v;const late=has&&isLate(v.timestamp);const bolos=!has&&schedExpired;const vc=has?(v.visitCount||1):0;const ts=has?(()=>{const dt=new Date(v.timestamp);return dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});})():'—';let sc,rB='',nC='color:#e2e8f0;',ac='background:rgba(255,255,255,.08);color:#e2e8f0;';if(bolos){sc='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25);">❌ Bolos</span>';rB='background:rgba(239,68,68,.03);';nC='color:#ef4444;';ac='background:rgba(239,68,68,.12);color:#ef4444;';}else if(!has){sc='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(100,116,139,.1);color:#94a3b8;border:1px solid rgba(100,116,139,.2);">⏳ Belum</span>';nC='color:#64748b;';ac='background:rgba(100,116,139,.1);color:#94a3b8;';}else if(late){sc='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(251,113,133,.12);color:#fb7185;border:1px solid rgba(251,113,133,.25);">⏰ Terlambat</span>';rB='background:rgba(251,113,133,.04);';nC='color:#fb7185;';ac='background:rgba(251,113,133,.12);color:#fb7185;';}else sc='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.25);">✅ Tepat Waktu</span>';const vcD=vc?vc+'x':'<span style="color:#475569;">—</span>';const tC=bolos?'#ef4444':late?'#fb7185':has?'#64748b':'#475569';return`<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);${rB}"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:${tC};font-weight:600;">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${ac}">${ini}</div><div><div style="font-weight:600;font-size:.88rem;${nC}">${escH(nama)}</div></div></div><div style="flex:1;font-size:.8rem;color:${has?'#94a3b8':'#475569'};font-family:monospace;">${s.nim}</div><div style="flex:1;text-align:center;">${sc}</div><div style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:#94a3b8;">${vcD}</div><div style="flex:1;text-align:right;font-size:.78rem;color:${tC};">${ts}</div></div>`;}).join('');}
+function togglePanel(){panelOpen=!panelOpen;document.getElementById('visitorPanel').classList.toggle('open',panelOpen);}
+document.addEventListener('click',function(e){const p=document.getElementById('visitorPanel'),f=document.getElementById('visitorFab');if(panelOpen&&!p.contains(e.target)&&!f.contains(e.target)){panelOpen=false;p.classList.remove('open');}});
+function escH(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function showResetModal(){document.getElementById('resetOverlay').classList.remove('hidden');document.getElementById('resetPw').value='';document.getElementById('resetError').style.display='none';setTimeout(()=>document.getElementById('resetPw').focus(),100);}
+function hideResetModal(){document.getElementById('resetOverlay').classList.add('hidden');}
+function confirmReset(){if(document.getElementById('resetPw').value!=='TeknikMesin0602'){document.getElementById('resetError').style.display='block';return;}remove(ref(db,DB_PATH));localStorage.removeItem(LOCAL_IDENTITY);remove(ref(db,SCHEDULE_PATH));RELATED_MODULES.forEach(mid=>{remove(ref(db,'visitors/math4/'+mid));localStorage.removeItem('optoauto_identity_'+mid);});hideResetModal();document.getElementById('visitorOverlay').classList.remove('hidden');document.getElementById('visitorFab').style.display='none';}
+function showScheduleModal(){document.getElementById('scheduleOverlay').classList.remove('hidden');document.getElementById('schedulePw').value='';document.getElementById('scheduleError').textContent='';document.getElementById('scheduleError').style.display='none';if(currentSchedule){document.getElementById('scheduleDuration').value=currentSchedule.duration||'';document.getElementById('scheduleDue').value=currentSchedule.due||'';}else{document.getElementById('scheduleDuration').value='7';var dd=new Date();dd.setDate(dd.getDate()+7);dd.setHours(23,59,0,0);document.getElementById('scheduleDue').value=dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0')+'T23:59';}setTimeout(()=>document.getElementById('schedulePw').focus(),100);}
+function hideScheduleModal(){document.getElementById('scheduleOverlay').classList.add('hidden');}
+function saveSchedule(){const pw=document.getElementById('schedulePw').value;if(pw!=='TeknikMesin0602'){document.getElementById('scheduleError').textContent='⚠ Password salah.';document.getElementById('scheduleError').style.display='block';return;}const dur=parseInt(document.getElementById('scheduleDuration').value),due=document.getElementById('scheduleDue').value;if(!dur||dur<1){document.getElementById('scheduleError').textContent='⚠ Durasi minimal 1 hari.';document.getElementById('scheduleError').style.display='block';return;}if(!due){document.getElementById('scheduleError').textContent='⚠ Batas akhir harus diisi.';document.getElementById('scheduleError').style.display='block';return;}const dueDate=new Date(due);const startDate=new Date(dueDate.getTime()-dur*864e5);remove(ref(db,DB_PATH));localStorage.removeItem(LOCAL_IDENTITY);set(ref(db,SCHEDULE_PATH),{start:startDate.toISOString(),end:dueDate.toISOString(),duration:dur,due:due});hideScheduleModal();document.getElementById('visitorOverlay').classList.remove('hidden');document.getElementById('visitorFab').style.display='none';}
+document.getElementById('resetPw').addEventListener('keydown',function(e){if(e.key==='Enter')confirmReset();});
+document.getElementById('resetOverlay').addEventListener('click',function(e){if(e.target===this)hideResetModal();});
+document.getElementById('scheduleOverlay').addEventListener('click',function(e){if(e.target===this)hideScheduleModal();});
+document.getElementById('schedulePw').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('scheduleDuration').focus();});
+document.getElementById('vNim').addEventListener('keydown',function(e){if(e.key==='Enter')submitVisitor();});
+document.getElementById('vNama').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('vNim').focus();});
+window.submitVisitor=submitVisitor;window.togglePanel=togglePanel;
+window.showResetModal=showResetModal;window.hideResetModal=hideResetModal;window.confirmReset=confirmReset;
+window.showScheduleModal=showScheduleModal;window.hideScheduleModal=hideScheduleModal;window.saveSchedule=saveSchedule;
+setInterval(()=>{renderVisitors(latestVisitors);},30000);
+initVisitor();
+</script>
+</body>
+</html>
