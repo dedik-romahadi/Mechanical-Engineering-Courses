@@ -3,1072 +3,612 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Modul 1 – Persamaan Diferensial | Matematika 4</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Sans+3:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
-<style>
-:root {
-  --bg-primary: #0a0e1a;
-  --bg-secondary: #111827;
-  --bg-card: #1a2332;
-  --bg-card-hover: #1f2b3d;
-  --accent-cyan: #06d6a0;
-  --accent-blue: #118ab2;
-  --accent-orange: #ef8354;
-  --accent-pink: #e63946;
-  --accent-purple: #7b2ff7;
-  --accent-yellow: #ffd166;
-  --text-primary: #e8eaf0;
-  --text-secondary: #9ca3af;
-  --text-muted: #6b7280;
-  --border: #2a3548;
-  --success: #06d6a0;
-  --error: #e63946;
-  --gradient-hero: linear-gradient(135deg, #0a0e1a 0%, #1a1a3e 50%, #0d1b2a 100%);
-}
+<title>Pertemuan 1 • Pengantar Time Series • Dedik Romahadi</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+<style>
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --teal:    #2dd4bf;
+  --amber:   #fbbf24;
+  --rose:    #fb7185;
+  --violet:  #a78bfa;
+  --lime:    #a3e635;
+  --bg:      #080e1a;
+  --surface: #0f1929;
+  --s700:    #334155;
+  --s600:    #475569;
+  --s500:    #64748b;
+  --s400:    #94a3b8;
+  --s300:    #cbd5e1;
+  --s200:    #e2e8f0;
+  --border:  rgba(45,212,191,.15);
+  --radius-sm: 12px;
+  --radius:    16px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+  --radius-2xl:32px;
+}
 
 html { scroll-behavior: smooth; }
 
 body {
-  font-family: 'Source Sans 3', sans-serif;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  line-height: 1.75;
-  overflow-x: hidden;
-}
-
-/* ═══ SCROLLBAR ═══ */
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: var(--bg-primary); }
-::-webkit-scrollbar-thumb { background: var(--accent-blue); border-radius: 4px; }
-
-/* ═══ HERO SECTION ═══ */
-.hero {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--s200);
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  background: var(--gradient-hero);
-  position: relative;
-  padding: 2rem;
-  overflow: hidden;
-}
-
-.hero-lecturer {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.85rem;
-  padding: 0.75rem 1.75rem;
-  background: rgba(17, 138, 178, 0.1);
-  border: 1px solid rgba(17, 138, 178, 0.25);
-  border-radius: 14px;
-  margin-bottom: 2rem;
-  animation: fadeSlideDown 1s ease-out 0.5s both;
-  position: relative;
-  z-index: 1;
-  backdrop-filter: blur(8px);
-}
-
-.hero-lecturer .lecturer-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.15rem;
-  flex-shrink: 0;
-  box-shadow: 0 0 12px rgba(17, 138, 178, 0.35);
-}
-
-.hero-lecturer .lecturer-text {
-  text-align: left;
-  line-height: 1.35;
-}
-
-.hero-lecturer .lecturer-label {
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--accent-blue);
-}
-
-.hero-lecturer .lecturer-name {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 20% 80%, rgba(6, 214, 160, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(17, 138, 178, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, rgba(123, 47, 247, 0.05) 0%, transparent 50%);
-  pointer-events: none;
-}
-
-.hero-particles {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.particle {
-  position: absolute;
-  width: 3px;
-  height: 3px;
-  background: var(--accent-cyan);
-  border-radius: 50%;
-  opacity: 0;
-  animation: floatParticle 8s infinite;
-}
-
-@keyframes floatParticle {
-  0% { opacity: 0; transform: translateY(100vh) scale(0); }
-  10% { opacity: 0.8; }
-  90% { opacity: 0.3; }
-  100% { opacity: 0; transform: translateY(-20vh) scale(1.5); }
-}
-
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1.25rem;
-  background: rgba(6, 214, 160, 0.1);
-  border: 1px solid rgba(6, 214, 160, 0.3);
-  border-radius: 999px;
-  font-size: 0.85rem;
-  color: var(--accent-cyan);
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  margin-bottom: 2rem;
-  animation: fadeSlideDown 0.8s ease-out;
-  position: relative;
-  z-index: 1;
-}
-
-.hero h1 {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(2.5rem, 6vw, 5rem);
-  font-weight: 900;
-  line-height: 1.1;
-  margin-bottom: 1.5rem;
-  animation: fadeSlideDown 1s ease-out 0.2s both;
-  position: relative;
-  z-index: 1;
-}
-
-.hero h1 .highlight {
-  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.hero p {
-  font-size: 1.2rem;
-  color: var(--text-secondary);
-  max-width: 640px;
-  margin-bottom: 2.5rem;
-  animation: fadeSlideDown 1s ease-out 0.4s both;
-  position: relative;
-  z-index: 1;
-}
-
-.hero-cta {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-  justify-content: center;
-  animation: fadeSlideDown 1s ease-out 0.6s both;
-  position: relative;
-  z-index: 1;
-}
-
-.btn-primary {
-  padding: 0.85rem 2rem;
-  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
-  color: var(--bg-primary);
-  font-weight: 700;
-  font-size: 1rem;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  text-decoration: none;
-  transition: all 0.3s;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(6, 214, 160, 0.3); }
-
-.btn-outline {
-  padding: 0.85rem 2rem;
-  background: transparent;
-  color: var(--text-primary);
-  font-weight: 600;
-  font-size: 1rem;
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  cursor: pointer;
-  text-decoration: none;
-  transition: all 0.3s;
-}
-
-.btn-outline:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
-
-/* ═══ SCROLL INDICATOR ═══ */
-.scroll-indicator {
-  position: absolute;
-  bottom: 2rem;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--text-muted);
-  font-size: 0.8rem;
-  animation: bounce 2s infinite;
-  z-index: 1;
-}
-
-@keyframes bounce {
-  0%, 100% { transform: translateX(-50%) translateY(0); }
-  50% { transform: translateX(-50%) translateY(8px); }
-}
-
-/* ═══ NAVIGATION ═══ */
-.nav-sticky {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: rgba(10, 14, 26, 0.9);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
-  padding: 0.75rem 2rem;
-  display: flex;
-  gap: 0.5rem;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.nav-sticky::-webkit-scrollbar { display: none; }
-
-.nav-link {
-  white-space: nowrap;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  color: var(--text-secondary);
-  text-decoration: none;
-  font-size: 0.85rem;
-  font-weight: 600;
-  transition: all 0.3s;
-  flex-shrink: 0;
-}
-
-.nav-link:hover, .nav-link.active {
-  background: rgba(6, 214, 160, 0.1);
-  color: var(--accent-cyan);
-}
-
-/* ═══ SECTIONS ═══ */
-.section {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 5rem 2rem;
-}
-
-.section-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--accent-cyan);
-  margin-bottom: 0.75rem;
-}
-
-.section-title {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(1.8rem, 4vw, 2.5rem);
-  font-weight: 900;
-  margin-bottom: 1.5rem;
-  line-height: 1.2;
-}
-
-.section-divider {
-  width: 60px;
-  height: 4px;
-  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
-  border-radius: 2px;
-  margin-bottom: 2rem;
-}
-
-/* ═══ CARDS ═══ */
-.card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 2rem;
-  margin-bottom: 1.5rem;
-  transition: all 0.3s;
-  position: relative;
-  overflow: hidden;
-}
-
-.card:hover {
-  border-color: rgba(6, 214, 160, 0.3);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-}
-
-.card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue), var(--accent-purple));
-}
-
-.card-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-}
-
-.card-icon.cyan { background: rgba(6, 214, 160, 0.15); }
-.card-icon.blue { background: rgba(17, 138, 178, 0.15); }
-.card-icon.orange { background: rgba(239, 131, 84, 0.15); }
-.card-icon.purple { background: rgba(123, 47, 247, 0.15); }
-
-.card h3 {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.3rem;
-  margin-bottom: 0.75rem;
-}
-
-/* ═══ ANALOGY BOX ═══ */
-.analogy-box {
-  background: linear-gradient(135deg, rgba(6, 214, 160, 0.08), rgba(17, 138, 178, 0.08));
-  border: 1px solid rgba(6, 214, 160, 0.2);
-  border-radius: 16px;
-  padding: 2rem;
-  margin: 2rem 0;
-  position: relative;
-}
-
-.analogy-box::before {
-  content: '💡';
-  position: absolute;
-  top: -16px;
-  left: 24px;
-  font-size: 1.8rem;
-  background: var(--bg-primary);
-  padding: 0 0.5rem;
-}
-
-.analogy-box h4 {
-  color: var(--accent-cyan);
-  font-weight: 700;
-  margin-bottom: 0.75rem;
-  font-size: 1.1rem;
-}
-
-/* ═══ MATH DISPLAY ═══ */
-.math-block {
-  background: rgba(17, 138, 178, 0.08);
-  border-left: 4px solid var(--accent-blue);
-  padding: 1.5rem 2rem;
-  margin: 1.5rem 0;
-  border-radius: 0 12px 12px 0;
-  overflow-x: auto;
-  font-size: 1.1rem;
-  text-align: center;
-}
-
-.math-inline {
-  background: rgba(17, 138, 178, 0.1);
-  padding: 0.15rem 0.5rem;
-  border-radius: 4px;
-}
-
-/* ═══ CLASSIFICATION TREE ═══ */
-.tree-container {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 2rem;
-  margin: 2rem 0;
-  overflow-x: auto;
-}
-
-.tree {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-}
-
-.tree-node {
-  padding: 0.75rem 1.5rem;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 0.9rem;
-  text-align: center;
-  position: relative;
-  transition: all 0.3s;
-  cursor: default;
-  min-width: 140px;
-}
-
-.tree-node:hover { transform: scale(1.05); }
-
-.tree-node.root {
-  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
-  color: var(--bg-primary);
-  font-size: 1rem;
-  padding: 1rem 2rem;
-}
-
-.tree-node.branch {
-  background: rgba(17, 138, 178, 0.15);
-  border: 1px solid rgba(17, 138, 178, 0.3);
-  color: var(--accent-blue);
-}
-
-.tree-node.leaf {
-  background: rgba(6, 214, 160, 0.1);
-  border: 1px solid rgba(6, 214, 160, 0.25);
-  color: var(--accent-cyan);
-  font-size: 0.85rem;
-}
-
-.tree-row {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-  justify-content: center;
-  position: relative;
-}
-
-.tree-connector {
-  width: 2px;
-  height: 24px;
-  background: var(--border);
-  margin: 0 auto;
-}
-
-/* ═══ ANIMATION CANVAS ═══ */
-.anim-container {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 2rem;
-  margin: 2rem 0;
-  text-align: center;
-}
-
-.anim-container canvas {
-  border-radius: 12px;
-  max-width: 100%;
-  background: var(--bg-secondary);
-}
-
-.anim-controls {
-  display: flex;
-  gap: 0.75rem;
-  justify-content: center;
-  margin-top: 1rem;
-  flex-wrap: wrap;
-}
-
-.anim-btn {
-  padding: 0.5rem 1.25rem;
-  background: rgba(17, 138, 178, 0.15);
-  border: 1px solid rgba(17, 138, 178, 0.3);
-  color: var(--accent-blue);
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.85rem;
-  transition: all 0.3s;
-  font-family: inherit;
-}
-
-.anim-btn:hover {
-  background: var(--accent-blue);
-  color: white;
-}
-
-.anim-btn.active {
-  background: var(--accent-cyan);
-  color: var(--bg-primary);
-  border-color: var(--accent-cyan);
-}
-
-/* ═══ EXERCISE SECTION ═══ */
-.exercise {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  margin: 2rem 0;
-  overflow: hidden;
-}
-
-.exercise-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.25rem 2rem;
-  background: rgba(239, 131, 84, 0.08);
-  border-bottom: 1px solid var(--border);
-}
-
-.exercise-number {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--accent-orange), var(--accent-pink));
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 0.9rem;
-  flex-shrink: 0;
-}
-
-.exercise-title {
-  font-weight: 700;
-  font-size: 1rem;
-}
-
-.exercise-body {
-  padding: 2rem;
-}
-
-.exercise-question {
-  margin-bottom: 1.5rem;
-  font-size: 1.05rem;
-}
-
-/* Interactive Input */
-.answer-group {
-  margin: 1.5rem 0;
-}
-
-.answer-group label {
-  display: block;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-}
-
-.answer-input {
-  width: 100%;
-  padding: 0.85rem 1.25rem;
-  background: var(--bg-secondary);
-  border: 2px solid var(--border);
-  border-radius: 10px;
-  color: var(--text-primary);
-  font-size: 1rem;
-  font-family: 'JetBrains Mono', monospace;
-  transition: all 0.3s;
-}
-
-.answer-input:focus {
-  outline: none;
-  border-color: var(--accent-cyan);
-  box-shadow: 0 0 0 4px rgba(6, 214, 160, 0.1);
-}
-
-.answer-input.correct { border-color: var(--success); }
-.answer-input.incorrect { border-color: var(--error); }
-
-.radio-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin: 1rem 0;
-}
-
-.radio-option {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 1.25rem;
-  background: var(--bg-secondary);
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s;
-  font-size: 0.95rem;
-}
-
-.radio-option:hover { border-color: var(--accent-blue); }
-
-.radio-option input[type="radio"] { display: none; }
-
-.radio-option .radio-circle {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  border: 2px solid var(--text-muted);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: all 0.3s;
-}
-
-.radio-option input[type="radio"]:checked + .radio-circle {
-  border-color: var(--accent-cyan);
-  background: var(--accent-cyan);
-}
-
-.radio-option input[type="radio"]:checked + .radio-circle::after {
-  content: '✓';
-  color: var(--bg-primary);
-  font-weight: 800;
-  font-size: 0.75rem;
-}
-
-.radio-option.correct-answer { border-color: var(--success); background: rgba(6, 214, 160, 0.08); }
-.radio-option.wrong-answer { border-color: var(--error); background: rgba(230, 57, 70, 0.08); }
-
-/* Buttons */
-.exercise-actions {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  margin-top: 1.5rem;
-}
-
-.btn-check {
-  padding: 0.65rem 1.5rem;
-  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
-  color: var(--bg-primary);
-  font-weight: 700;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-family: inherit;
-  transition: all 0.3s;
-}
-
-.btn-check:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(6, 214, 160, 0.3); }
-
-.btn-hint, .btn-answer {
-  padding: 0.65rem 1.5rem;
-  background: transparent;
-  border: 2px solid var(--border);
-  color: var(--text-secondary);
-  font-weight: 600;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-family: inherit;
-  transition: all 0.3s;
-}
-
-.btn-hint:hover { border-color: var(--accent-yellow); color: var(--accent-yellow); }
-.btn-answer:hover { border-color: var(--accent-purple); color: var(--accent-purple); }
-
-/* Hint & Answer Boxes */
-.hint-box, .answer-box {
-  margin-top: 1rem;
-  padding: 1.5rem;
-  border-radius: 12px;
-  display: none;
-  animation: slideDown 0.3s ease-out;
-}
-
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.hint-box {
-  background: rgba(255, 209, 102, 0.08);
-  border: 1px solid rgba(255, 209, 102, 0.25);
-}
-
-.hint-box h5 { color: var(--accent-yellow); margin-bottom: 0.5rem; }
-
-.answer-box {
-  background: rgba(123, 47, 247, 0.08);
-  border: 1px solid rgba(123, 47, 247, 0.25);
-}
-
-.answer-box h5 { color: var(--accent-purple); margin-bottom: 0.5rem; }
-
-.hint-box.show, .answer-box.show { display: block; }
-
-.feedback {
-  margin-top: 1rem;
-  padding: 1rem 1.25rem;
-  border-radius: 10px;
-  font-weight: 600;
-  display: none;
-}
-
-.feedback.correct {
-  background: rgba(6, 214, 160, 0.1);
-  border: 1px solid rgba(6, 214, 160, 0.3);
-  color: var(--accent-cyan);
-  display: block;
-}
-
-.feedback.incorrect {
-  background: rgba(230, 57, 70, 0.1);
-  border: 1px solid rgba(230, 57, 70, 0.3);
-  color: var(--accent-pink);
-  display: block;
-}
-
-/* ═══ CODE BLOCK ═══ */
-.code-block {
-  background: #0d1117;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  margin: 1.5rem 0;
-  overflow: hidden;
-}
-
-.code-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1.25rem;
-  background: rgba(255,255,255,0.03);
-  border-bottom: 1px solid var(--border);
-}
-
-.code-header span {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.code-dots {
-  display: flex;
-  gap: 6px;
-}
-
-.code-dots span {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
-
-.code-dots span:nth-child(1) { background: #ff5f57; }
-.code-dots span:nth-child(2) { background: #febc2e; }
-.code-dots span:nth-child(3) { background: #28c840; }
-
-.code-copy {
-  padding: 0.35rem 0.75rem;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
+  overflow-x: hidden;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+h1,h2,h3,h4,h5 { font-family:'Syne',sans-serif; line-height:1.15; }
+code {
+  font-family: 'Courier New', monospace;
+  font-size: .82em;
+  background: rgba(255,255,255,.07);
+  padding: 2px 7px;
   border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.75rem;
-  font-family: inherit;
-  transition: all 0.3s;
+  color: var(--teal);
 }
 
-.code-copy:hover { background: rgba(6, 214, 160, 0.15); color: var(--accent-cyan); border-color: rgba(6, 214, 160, 0.3); }
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.container { max-width:1200px; margin:0 auto; padding:0 24px; }
 
-.code-body {
-  padding: 1.25rem;
-  overflow-x: auto;
+.grid-2    { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+.grid-3    { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+.grid-4    { display:grid; grid-template-columns:repeat(4,1fr); gap:20px; }
+
+.flex          { display:flex; }
+.flex-col      { display:flex; flex-direction:column; }
+.flex-center   { display:flex; align-items:center; justify-content:center; }
+.flex-between  { display:flex; align-items:center; justify-content:space-between; }
+.flex-wrap     { flex-wrap:wrap; }
+.items-start   { align-items:flex-start; }
+.gap-2  { gap:8px; }
+.gap-3  { gap:12px; }
+.gap-4  { gap:16px; }
+.gap-6  { gap:24px; }
+.gap-8  { gap:32px; }
+.flex-1 { flex:1; }
+.flex-shrink-0 { flex-shrink:0; }
+.ml-auto { margin-left:auto; }
+.mx-auto { margin-left:auto; margin-right:auto; }
+
+.text-center { text-align:center; }
+.text-right  { text-align:right; }
+.relative    { position:relative; }
+.overflow-hidden  { overflow:hidden; }
+.overflow-x-auto  { overflow-x:auto; }
+.w-full  { width:100%; }
+
+/* ============================================================
+   SPACING
+   ============================================================ */
+.mt-2  { margin-top:8px;  } .mt-3  { margin-top:12px; }
+.mt-4  { margin-top:16px; } .mt-6  { margin-top:24px; }
+.mt-8  { margin-top:32px; } .mt-10 { margin-top:40px; }
+.mt-12 { margin-top:48px; } .mt-16 { margin-top:64px; }
+.mb-1  { margin-bottom:4px;  } .mb-2  { margin-bottom:8px;  }
+.mb-3  { margin-bottom:12px; } .mb-4  { margin-bottom:16px; }
+.mb-6  { margin-bottom:24px; } .mb-8  { margin-bottom:32px; }
+.mb-10 { margin-bottom:40px; }
+
+.p-3  { padding:12px; } .p-4  { padding:16px; }
+.p-5  { padding:20px; } .p-6  { padding:24px; }
+.p-7  { padding:28px; } .p-8  { padding:32px; }
+.py-2 { padding-top:8px;  padding-bottom:8px;  }
+.py-3 { padding-top:12px; padding-bottom:12px; }
+.py-4 { padding-top:16px; padding-bottom:16px; }
+.px-3 { padding-left:12px; padding-right:12px; }
+.px-4 { padding-left:16px; padding-right:16px; }
+.px-5 { padding-left:20px; padding-right:20px; }
+.px-6 { padding-left:24px; padding-right:24px; }
+
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+.text-xs   { font-size:.75rem;  } .text-sm   { font-size:.875rem; }
+.text-base { font-size:1rem;    } .text-lg   { font-size:1.125rem;}
+.text-xl   { font-size:1.25rem; } .text-2xl  { font-size:1.5rem;  }
+.text-3xl  { font-size:1.875rem;} .text-4xl  { font-size:2.25rem; }
+.font-medium   { font-weight:500; } .font-semibold { font-weight:600; }
+.font-bold     { font-weight:700; } .font-black    { font-weight:800; }
+.font-mono     { font-family:'Courier New',monospace; }
+.uppercase     { text-transform:uppercase; }
+.tracking-wide    { letter-spacing:.05em; }
+.tracking-widest  { letter-spacing:.15em; }
+.leading-relaxed  { line-height:1.7; }
+.italic { font-style:italic; }
+
+/* ============================================================
+   COLORS
+   ============================================================ */
+.text-white  { color:#fff; }
+.text-teal   { color:var(--teal);   } .text-amber  { color:var(--amber);  }
+.text-rose   { color:var(--rose);   } .text-violet { color:var(--violet); }
+.text-lime   { color:var(--lime);   }
+.text-s300   { color:var(--s300);   } .text-s400   { color:var(--s400);   }
+.text-s500   { color:var(--s500);   }
+
+/* ============================================================
+   CHIPS / BADGES
+   ============================================================ */
+.badge {
+  display:inline-flex; align-items:center; gap:7px;
+  background:rgba(45,212,191,.1); border:1px solid rgba(45,212,191,.3);
+  color:var(--teal); padding:5px 14px; border-radius:999px;
+  font-size:.72rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
 }
 
-.code-body pre {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.85rem;
-  line-height: 1.7;
-  color: #c9d1d9;
-  white-space: pre;
+.chip {
+  display:inline-block; padding:4px 12px; border-radius:10px;
+  font-size:.72rem; font-weight:500; background:rgba(255,255,255,.07); color:var(--s400);
 }
+.chip-teal   { background:rgba(45,212,191,.1);  color:var(--teal);   border:1px solid rgba(45,212,191,.2);  }
+.chip-amber  { background:rgba(251,191,36,.1);   color:var(--amber);  border:1px solid rgba(251,191,36,.2);  }
+.chip-violet { background:rgba(167,139,250,.1);  color:var(--violet); border:1px solid rgba(167,139,250,.2); }
+.chip-rose   { background:rgba(251,113,133,.1);  color:var(--rose);   border:1px solid rgba(251,113,133,.2); }
+.chip-lime   { background:rgba(163,230,53,.1);   color:var(--lime);   border:1px solid rgba(163,230,53,.2);  }
 
-.code-body .comment { color: #8b949e; }
-.code-body .keyword { color: #ff7b72; }
-.code-body .string { color: #a5d6ff; }
-.code-body .function { color: #d2a8ff; }
-.code-body .number { color: #79c0ff; }
-.code-body .operator { color: #ff7b72; }
-.code-body .output { color: #7ee787; font-style: italic; }
+.hint-box { margin-top:12px; padding:10px 14px; border-radius:14px; font-size:.8rem; }
+.hint-teal   { background:rgba(45,212,191,.1);  border:1px solid rgba(45,212,191,.25);  color:#99f6e4; }
+.hint-rose   { background:rgba(251,113,133,.1); border:1px solid rgba(251,113,133,.25); color:#fecdd3; }
+.hint-amber  { background:rgba(251,191,36,.1);  border:1px solid rgba(251,191,36,.25);  color:#fde68a; }
+.hint-violet { background:rgba(167,139,250,.1); border:1px solid rgba(167,139,250,.25); color:#ddd6fe; }
 
-/* ═══ STEP LIST ═══ */
-.step-list {
-  counter-reset: step;
-  margin: 1.5rem 0;
-}
-
-.step-item {
-  display: flex;
-  gap: 1.25rem;
-  margin-bottom: 1.5rem;
-  position: relative;
-}
-
-.step-item::before {
-  counter-increment: step;
-  content: counter(step);
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
-  color: var(--bg-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 0.85rem;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.step-item:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  left: 17px;
-  top: 40px;
-  bottom: -8px;
-  width: 2px;
-  background: var(--border);
-}
-
-.step-content h4 { margin-bottom: 0.25rem; font-weight: 700; }
-.step-content p { color: var(--text-secondary); font-size: 0.95rem; }
-
-/* ═══ TABLE ═══ */
-.styled-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 1.5rem 0;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.styled-table th {
-  background: rgba(17, 138, 178, 0.15);
-  padding: 1rem 1.25rem;
-  text-align: left;
-  font-weight: 700;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--accent-blue);
-  border-bottom: 2px solid var(--border);
-}
-
-.styled-table td {
-  padding: 0.85rem 1.25rem;
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero {
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, #0d3a5c 0%, #080e1a 70%);
   border-bottom: 1px solid var(--border);
-  font-size: 0.95rem;
+  padding: 64px 0 48px;
 }
 
-.styled-table tr:hover td { background: rgba(6, 214, 160, 0.03); }
-
-/* ═══ JUPYTER SECTION ═══ */
-.jupyter-card {
-  background: linear-gradient(135deg, rgba(239, 131, 84, 0.06), rgba(123, 47, 247, 0.06));
-  border: 1px solid rgba(239, 131, 84, 0.2);
+.hero-inner {
+  display:flex; flex-direction:column; gap:32px;
+}
+@media(min-width:900px){
+  .hero-inner { flex-direction:row; align-items:flex-end; justify-content:space-between; }
 }
 
-/* ═══ PROGRESS TRACKER ═══ */
-.progress-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue), var(--accent-purple));
-  z-index: 200;
-  transition: width 0.1s;
-  width: 0%;
+.hero-title {
+  font-size: clamp(1.9rem,4.5vw,3.4rem);
+  font-weight: 800; line-height: 1.08;
+  background: linear-gradient(135deg,#5eead4,#a5f3fc,#e2e8f0);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+}
+.hero-right { text-align:right; flex-shrink:0; }
+
+/* ============================================================
+   TICKER
+   ============================================================ */
+.ticker-wrap { border:1px solid var(--s700); border-radius:var(--radius-xl); overflow:hidden; margin-top:36px; }
+.ticker-head { background:rgba(15,23,42,.7); padding:8px 16px; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--s700); }
+.live-dot {
+  width:10px; height:10px; border-radius:50%; background:var(--teal); flex-shrink:0;
+  animation: livePing 1.8s ease-out infinite;
+}
+@keyframes livePing {
+  0%  { box-shadow:0 0 0 0 rgba(45,212,191,.7); }
+  80% { box-shadow:0 0 0 10px rgba(45,212,191,0); }
+  100%{ box-shadow:0 0 0 0 rgba(45,212,191,0); }
+}
+.ticker-body { padding:10px 16px; overflow:hidden; }
+.ticker-track { display:flex; gap:36px; width:max-content; animation:tickerMove 20s linear infinite; }
+@keyframes tickerMove { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+.ticker-item { white-space:nowrap; font-size:.72rem; font-family:'Courier New',monospace; color:rgba(45,212,191,.75); }
+
+/* ============================================================
+   WELCOME BOX
+   ============================================================ */
+.welcome-box {
+  background:linear-gradient(90deg,rgba(45,212,191,.08),transparent);
+  border:1px solid rgba(45,212,191,.2); border-radius:28px;
+  padding:32px; display:flex; gap:24px; align-items:flex-start; margin-top:48px;
+}
+.welcome-icon {
+  flex-shrink:0; width:64px; height:64px;
+  background:linear-gradient(135deg,var(--teal),#22d3ee);
+  border-radius:var(--radius-xl); display:flex; align-items:center; justify-content:center;
+  font-size:2rem; box-shadow:0 8px 24px rgba(45,212,191,.3);
 }
 
-/* ═══ FOOTER ═══ */
-.footer {
-  text-align: center;
-  padding: 3rem 2rem;
-  border-top: 1px solid var(--border);
-  color: var(--text-muted);
-  font-size: 0.85rem;
+/* ============================================================
+   SECTIONS
+   ============================================================ */
+.section { margin-top:88px; }
+
+.section-header { position:relative; margin-bottom:36px; }
+
+.section-number {
+  font-family:'Syne',sans-serif; font-size:5rem; font-weight:800;
+  color:rgba(45,212,191,.07); line-height:1;
+  position:absolute; right:0; top:-12px;
+  pointer-events:none; user-select:none;
 }
 
-/* ═══ ANIMATIONS ═══ */
-@keyframes fadeSlideDown {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
+/* ============================================================
+   SILABUS & PENILAIAN CARDS
+   ============================================================ */
+.info-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-2xl); padding:32px; overflow:hidden;
 }
 
-.fade-in {
-  opacity: 0;
-  transform: translateY(30px);
-  transition: all 0.6s ease-out;
+.syllabus-item {
+  display:flex; gap:16px; padding:14px 0;
+  border-bottom:1px solid rgba(255,255,255,.04);
+}
+.syllabus-item:last-child { border-bottom:none; }
+
+.syl-num {
+  font-family:'Syne',sans-serif; font-weight:800; font-size:1.1rem;
+  color:var(--teal); flex-shrink:0; width:28px; padding-top:2px;
 }
 
-.fade-in.visible {
-  opacity: 1;
-  transform: translateY(0);
+.grade-row {
+  display:flex; align-items:center; justify-content:space-between;
+  background:rgba(255,255,255,.04); border-radius:var(--radius-lg);
+  padding:20px 24px; margin-bottom:14px;
+  transition:transform .3s cubic-bezier(.4,0,.2,1),box-shadow .3s;
+}
+.grade-row:last-child { margin-bottom:0; }
+.grade-row:hover { transform:translateY(-6px); box-shadow:0 16px 32px rgba(0,0,0,.3); }
+
+.grade-icon {
+  width:44px; height:44px; border-radius:14px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.5rem; flex-shrink:0;
 }
 
-/* ═══ RESPONSIVE ═══ */
-@media (max-width: 768px) {
-  .section { padding: 3rem 1.25rem; }
-  .card { padding: 1.5rem; }
-  .exercise-body { padding: 1.5rem; }
-  .tree-row { flex-direction: column; align-items: center; }
-  .nav-sticky { padding: 0.5rem 1rem; }
+.grade-pct {
+  font-family:'Syne',sans-serif; font-weight:800; font-size:2.5rem; line-height:1;
 }
 
-/* ═══ ODE vs PDE Interactive Demo ═══ */
-.demo-tabs {
-  display: flex;
-  gap: 0;
-  margin: 1.5rem 0 0 0;
-  border-radius: 12px 12px 0 0;
-  overflow: hidden;
+/* ============================================================
+   INTERACTIVE CHART PANEL
+   ============================================================ */
+.chart-panel {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-2xl); padding:32px;
 }
 
-.demo-tab {
-  flex: 1;
-  padding: 0.85rem;
-  text-align: center;
-  font-weight: 700;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.3s;
-  border: none;
-  font-family: inherit;
-  background: var(--bg-secondary);
-  color: var(--text-muted);
+.chart-top {
+  display:flex; flex-wrap:wrap; align-items:center;
+  justify-content:space-between; gap:16px; margin-bottom:20px;
 }
 
-.demo-tab.active {
-  background: var(--bg-card);
-  color: var(--accent-cyan);
+.btn-group { display:flex; gap:8px; flex-wrap:wrap; }
+
+.tbtn {
+  padding:9px 20px; border-radius:12px; font-weight:600; font-size:.82rem;
+  border:none; cursor:pointer; transition:all .25s; font-family:'DM Sans',sans-serif;
+}
+.tbtn-inactive { background:rgba(255,255,255,.07); color:var(--s400); }
+.tbtn-inactive:hover { background:rgba(255,255,255,.12); }
+.tbtn-teal  { background:var(--teal);  color:#080e1a; }
+.tbtn-rose  { background:var(--rose);  color:#080e1a; }
+.tbtn-amber { background:var(--amber); color:#080e1a; }
+
+.slider-row {
+  display:flex; align-items:center; gap:16px;
+  background:rgba(255,255,255,.05); border-radius:16px;
+  padding:12px 20px; margin-bottom:20px;
+}
+.slider-row label { font-size:.85rem; color:var(--s400); white-space:nowrap; }
+
+input[type=range] {
+  flex:1; appearance:none; height:4px; border-radius:4px;
+  background:rgba(255,255,255,.15); outline:none;
+}
+input[type=range]::-webkit-slider-thumb {
+  appearance:none; width:16px; height:16px; border-radius:50%;
+  background:var(--teal); cursor:pointer;
 }
 
-.demo-panel {
-  display: none;
-  padding: 2rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 0 0 12px 12px;
-  border-top: 2px solid var(--accent-cyan);
+.slider-val { font-family:'Courier New',monospace; font-size:.82rem; color:var(--teal); width:36px; text-align:right; }
+
+.chart-legend-row {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:24px;
+}
+.legend-box {
+  background:rgba(255,255,255,.04); border-radius:16px;
+  padding:14px; text-align:center; font-size:.82rem;
 }
 
-.demo-panel.active { display: block; animation: slideDown 0.3s ease-out; }
+/* ============================================================
+   KARAKTERISTIK CARDS
+   ============================================================ */
+.char-card {
+  background:var(--surface); border:1px solid rgba(255,255,255,.06);
+  border-radius:var(--radius-2xl); padding:24px;
+  transition:transform .3s cubic-bezier(.4,0,.2,1), box-shadow .3s;
+  position:relative; overflow:hidden;
+}
+.char-card:hover { transform:translateY(-8px) scale(1.02); box-shadow:0 20px 40px rgba(0,0,0,.4); }
 
-/* ═══ Tooltip ═══ */
-.tooltip-trigger {
-  border-bottom: 2px dashed var(--accent-cyan);
-  cursor: help;
-  position: relative;
+.char-bar {
+  height:3px; border-radius:3px;
+  margin-bottom:20px;
 }
 
-.tooltip-trigger:hover::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--bg-card);
-  border: 1px solid var(--accent-cyan);
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  white-space: nowrap;
-  color: var(--text-primary);
-  z-index: 10;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+/* mini spark chart inside char cards */
+.spark-area {
+  height:60px;
+  margin-top:14px;
+  margin-bottom:4px;
 }
 
-/* ═══ Wavy equation animation ═══ */
-.equation-wave {
-  display: inline-block;
-  animation: wave 3s ease-in-out infinite;
+/* ============================================================
+   STUDI KASUS
+   ============================================================ */
+.studi-box {
+  background:linear-gradient(135deg,rgba(15,25,41,.9),rgba(8,14,26,.95));
+  border:1px solid rgba(45,212,191,.2); border-radius:var(--radius-2xl); padding:40px;
 }
 
-@keyframes wave {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+.studi-inner {
+  display:grid; grid-template-columns:2fr 1fr; gap:32px; align-items:center;
+}
+@media(max-width:700px){ .studi-inner { grid-template-columns:1fr; } }
+
+.studi-icon-box {
+  background:rgba(0,0,0,.4); border-radius:var(--radius-xl);
+  display:flex; align-items:center; justify-content:center;
+  font-size:4rem; padding:24px;
 }
 
-/* ── VISITOR SYSTEM ── */
-.visitor-overlay{position:fixed;inset:0;z-index:99999;background:rgba(8,14,26,.94);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity .4s}
-.visitor-overlay.hidden{opacity:0;pointer-events:none}
-.visitor-modal{background:#1a2332;border:1px solid #2a3548;border-radius:24px;padding:40px 36px;max-width:440px;width:90%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.6);animation:vModalIn .5s cubic-bezier(.16,1,.3,1)}
-@keyframes vModalIn{0%{opacity:0;transform:translateY(30px) scale(.96)}100%{opacity:1;transform:translateY(0) scale(1)}}
-.visitor-modal h2{font-weight:800;font-size:1.5rem;background:linear-gradient(135deg,#06d6a0,#118ab2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
-.visitor-modal p.sub{color:#94a3b8;font-size:.85rem;margin-bottom:28px}
-.v-input{width:100%;padding:14px 18px;border-radius:14px;border:1px solid #2a3548;background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-size:.95rem;outline:none;transition:border .25s;margin-bottom:14px}
-.v-input::placeholder{color:#64748b}
-.v-input:focus{border-color:#06d6a0;box-shadow:0 0 0 3px rgba(255,255,255,.08)}
-.v-btn-primary{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#06d6a0,#118ab2);color:#fff;font-weight:700;font-size:1rem;cursor:pointer;transition:transform .2s,box-shadow .2s;margin-top:6px}
-.v-btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,255,255,.1)}
-.v-error{color:#fb7185;font-size:.8rem;margin-bottom:10px;display:none}
-.v-btn-cancel{width:100%;padding:12px;border-radius:14px;margin-top:12px;border:1px solid #2a3548;background:rgba(255,255,255,.04);color:#94a3b8;font-weight:600;font-size:.88rem;cursor:pointer;transition:all .25s}
-.v-btn-cancel:hover{background:rgba(255,255,255,.08)}
-.visitor-fab{position:fixed;bottom:24px;right:24px;z-index:8888;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#06d6a0,#118ab2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(0,0,0,.4);transition:transform .25s;font-size:1.4rem}
-.visitor-fab:hover{transform:scale(1.08)}
-.visitor-fab .fab-count{position:absolute;top:-4px;right:-4px;background:#fb7185;color:#fff;font-size:.65rem;font-weight:700;min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid #0a0e1a}
-.visitor-panel{position:fixed;bottom:92px;right:24px;z-index:8887;width:340px;max-height:480px;overflow:hidden;background:#1a2332;border:1px solid #2a3548;border-radius:20px;box-shadow:0 24px 64px rgba(0,0,0,.5);display:flex;flex-direction:column;transform:translateY(12px) scale(.95);opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .25s}
-.visitor-panel.open{transform:translateY(0) scale(1);opacity:1;pointer-events:auto}
-.vp-header{padding:20px 22px 14px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between}
-.vp-header h3{font-weight:700;font-size:1rem;color:#fff}
-.vp-header .vp-badge{background:rgba(255,255,255,.08);color:#06d6a0;font-size:.7rem;font-weight:700;padding:4px 10px;border-radius:999px}
-.vp-list{overflow-y:auto;padding:10px 16px 16px;flex:1}
-.vp-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;margin-bottom:6px;background:rgba(255,255,255,.03);transition:background .2s}
-.vp-item:hover{background:rgba(255,255,255,.06)}
-.vp-avatar{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0}
-.vp-avatar.student{background:rgba(255,255,255,.08);color:#06d6a0}
-.vp-avatar.dosen{background:rgba(251,191,36,.12);color:#fbbf24}
-.vp-info{flex:1;min-width:0}
-.vp-name{font-weight:600;font-size:.88rem;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.vp-nim{font-size:.72rem;color:#64748b;font-family:monospace}
-.vp-time{font-size:.68rem;color:#64748b;text-align:right;flex-shrink:0;white-space:nowrap}
-.vp-empty{text-align:center;padding:32px 16px;color:#64748b;font-size:.85rem}
-@media(max-width:480px){.visitor-panel{width:calc(100vw - 32px);right:16px;bottom:88px}.visitor-fab{bottom:18px;right:18px}}
+.studi-stat {
+  display:flex; align-items:center; gap:10px;
+  font-size:.88rem; margin-top:10px;
+}
 
+/* ============================================================
+   CODE CELLS
+   ============================================================ */
+.cell {
+  background:rgba(15,25,41,.85); border:1px solid rgba(255,255,255,.08);
+  border-radius:28px; overflow:hidden; margin-bottom:24px;
+}
+.cell-bar {
+  background:rgba(255,255,255,.04); padding:10px 20px;
+  display:flex; align-items:center; gap:10px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.dot-row { display:flex; gap:6px; }
+.dot { width:11px; height:11px; border-radius:50%; }
+.dot-r { background:rgba(239,68,68,.6); }
+.dot-y { background:rgba(234,179,8,.6); }
+.dot-g { background:rgba(34,197,94,.6); }
+.cell-label { font-family:'Courier New',monospace; font-size:.72rem; color:var(--s500); }
+.cell-run   { font-family:'Courier New',monospace; font-size:.72rem; color:var(--teal); margin-left:auto; }
+
+.code-pre {
+  background:#020810; padding:24px;
+  font-family:'Courier New',monospace; font-size:.78rem;
+  line-height:1.75; overflow-x:auto; white-space:pre;
+  color:#e2e8f0; border:none; margin:0;
+}
+.kw  { color:#c084fc; } .fn  { color:#60a5fa; }
+.str { color:#86efac; } .cm  { color:#475569; font-style:italic; }
+.nm  { color:#fbbf24; } .op  { color:var(--teal); }
+
+/* ============================================================
+   EXERCISE CARDS
+   ============================================================ */
+.ex-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:22px; overflow:hidden; margin-bottom:20px;
+}
+.ex-head {
+  padding:18px 24px; display:flex; align-items:center; gap:14px;
+}
+.ex-num {
+  width:44px; height:44px; border-radius:14px;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Syne',sans-serif; font-weight:800; font-size:1rem; flex-shrink:0;
+}
+.ex-body { padding:0 24px 24px; }
+
+.ex-list { list-style:none; margin:12px 0; display:flex; flex-direction:column; gap:8px; }
+.ex-list li { display:flex; gap:10px; font-size:.875rem; color:var(--s300); }
+.ex-list li::before { content:'•'; color:var(--amber); flex-shrink:0; }
+
+/* chart label */
+.chart-label {
+  font-size:.7rem; text-transform:uppercase; letter-spacing:.08em;
+  font-weight:600; color:var(--s500); margin-bottom:12px;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+footer {
+  border-top:1px solid rgba(255,255,255,.06);
+  padding:32px 0; text-align:center;
+  font-size:.75rem; color:var(--s500); margin-top:48px;
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(28px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.fade-up { animation:fadeUp .7s ease forwards; }
+.d1 { animation-delay:.1s; opacity:0; }
+.d2 { animation-delay:.2s; opacity:0; }
+.d3 { animation-delay:.3s; opacity:0; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media(max-width:900px){
+  .grid-2 { grid-template-columns:1fr; }
+  .grid-4 { grid-template-columns:1fr 1fr; }
+}
+@media(max-width:640px){
+  .grid-3 { grid-template-columns:1fr 1fr; }
+  .grid-4 { grid-template-columns:1fr 1fr; }
+  .hero-right { text-align:left; }
+  .chart-legend-row { grid-template-columns:1fr; }
+}
+@media(max-width:440px){
+  .grid-3 { grid-template-columns:1fr; }
+}
+
+/* ============================================================
+   VISITOR SYSTEM
+   ============================================================ */
+.visitor-overlay {
+  position:fixed; inset:0; z-index:9999;
+  background:rgba(8,14,26,.92); backdrop-filter:blur(16px);
+  display:flex; align-items:center; justify-content:center;
+  opacity:1; transition:opacity .4s;
+}
+.visitor-overlay.hidden { opacity:0; pointer-events:none; }
+
+.visitor-modal {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-2xl); padding:40px 36px;
+  max-width:440px; width:90%; text-align:center;
+  box-shadow:0 32px 80px rgba(0,0,0,.6);
+  animation: modalIn .5s cubic-bezier(.16,1,.3,1);
+}
+@keyframes modalIn {
+  0%{ opacity:0; transform:translateY(30px) scale(.96); }
+  100%{ opacity:1; transform:translateY(0) scale(1); }
+}
+
+.visitor-modal h2 {
+  font-family:'Syne',sans-serif; font-weight:800; font-size:1.5rem;
+  background:linear-gradient(135deg,#5eead4,#a5f3fc);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  margin-bottom:6px;
+}
+.visitor-modal p.sub { color:var(--s400); font-size:.85rem; margin-bottom:28px; }
+
+.v-input {
+  width:100%; padding:14px 18px; border-radius:14px;
+  border:1px solid var(--s700); background:rgba(255,255,255,.05);
+  color:#fff; font-family:'DM Sans',sans-serif; font-size:.95rem;
+  outline:none; transition:border .25s;
+  margin-bottom:14px;
+}
+.v-input::placeholder { color:var(--s500); }
+.v-input:focus { border-color:var(--teal); box-shadow:0 0 0 3px rgba(45,212,191,.15); }
+
+.v-btn-primary {
+  width:100%; padding:14px; border-radius:14px; border:none;
+  background:linear-gradient(135deg,var(--teal),#22d3ee);
+  color:#080e1a; font-family:'Syne',sans-serif; font-weight:700;
+  font-size:1rem; cursor:pointer; transition:transform .2s, box-shadow .2s;
+  margin-top:6px;
+}
+.v-btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(45,212,191,.35); }
+.v-btn-primary:disabled { opacity:.4; cursor:not-allowed; transform:none; box-shadow:none; }
+
+.v-divider {
+  display:flex; align-items:center; gap:12px;
+  margin:20px 0; color:var(--s500); font-size:.78rem;
+}
+.v-divider::before,.v-divider::after { content:''; flex:1; height:1px; background:var(--s700); }
+
+.v-btn-dosen {
+  width:100%; padding:12px; border-radius:14px;
+  border:1px solid rgba(251,191,36,.3); background:rgba(251,191,36,.08);
+  color:var(--amber); font-family:'DM Sans',sans-serif; font-weight:600;
+  font-size:.88rem; cursor:pointer; transition:all .25s;
+}
+.v-btn-dosen:hover { background:rgba(251,191,36,.15); border-color:rgba(251,191,36,.5); }
+
+.v-error { color:var(--rose); font-size:.8rem; margin-bottom:10px; display:none; }
+
+/* Floating Visitor Button */
+.visitor-fab {
+  position:fixed; bottom:24px; right:24px; z-index:8888;
+  width:56px; height:56px; border-radius:50%;
+  background:linear-gradient(135deg,var(--teal),#22d3ee);
+  border:none; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  box-shadow:0 6px 24px rgba(45,212,191,.4);
+  transition:transform .25s, box-shadow .25s;
+  font-size:1.4rem;
+}
+.visitor-fab:hover { transform:scale(1.08); box-shadow:0 8px 32px rgba(45,212,191,.5); }
+
+.visitor-fab .fab-count {
+  position:absolute; top:-4px; right:-4px;
+  background:var(--rose); color:#fff; font-size:.65rem; font-weight:700;
+  min-width:22px; height:22px; border-radius:50%; display:flex;
+  align-items:center; justify-content:center; padding:0 5px;
+  border:2px solid var(--bg);
+}
+
+/* Visitor Panel */
+.visitor-panel {
+  position:fixed; bottom:92px; right:24px; z-index:8887;
+  width:340px; max-height:480px; overflow:hidden;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-2xl); box-shadow:0 24px 64px rgba(0,0,0,.5);
+  display:flex; flex-direction:column;
+  transform:translateY(12px) scale(.95); opacity:0; pointer-events:none;
+  transition:transform .3s cubic-bezier(.16,1,.3,1), opacity .25s;
+}
+.visitor-panel.open { transform:translateY(0) scale(1); opacity:1; pointer-events:auto; }
+
+.vp-header {
+  padding:20px 22px 14px; border-bottom:1px solid rgba(255,255,255,.06);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.vp-header h3 { font-family:'Syne',sans-serif; font-weight:700; font-size:1rem; color:#fff; }
+.vp-header .vp-badge {
+  background:rgba(45,212,191,.12); color:var(--teal); font-size:.7rem;
+  font-weight:700; padding:4px 10px; border-radius:999px;
+}
+
+.vp-list { overflow-y:auto; padding:10px 16px 16px; flex:1; }
+
+.vp-item {
+  display:flex; align-items:center; gap:12px;
+  padding:10px 12px; border-radius:14px; margin-bottom:6px;
+  background:rgba(255,255,255,.03); transition:background .2s;
+}
+.vp-item:hover { background:rgba(255,255,255,.06); }
+
+.vp-avatar {
+  width:38px; height:38px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700; font-size:.85rem; flex-shrink:0;
+}
+.vp-avatar.student { background:rgba(45,212,191,.12); color:var(--teal); }
+.vp-avatar.dosen   { background:rgba(251,191,36,.12);  color:var(--amber); }
+
+.vp-info { flex:1; min-width:0; }
+.vp-name { font-weight:600; font-size:.88rem; color:var(--s200); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.vp-nim  { font-size:.72rem; color:var(--s500); font-family:'Courier New',monospace; }
+.vp-time { font-size:.68rem; color:var(--s500); text-align:right; flex-shrink:0; white-space:nowrap; }
+
+.vp-empty { text-align:center; padding:32px 16px; color:var(--s500); font-size:.85rem; }
+
+@media(max-width:480px){
+  .visitor-panel { width:calc(100vw - 32px); right:16px; bottom:88px; }
+  .visitor-fab { bottom:18px; right:18px; }
+}
 </style>
-
 </head>
 <body>
-<!-- ═══ VISITOR LOGIN MODAL ═══ -->
+
+<!-- ==================== VISITOR MODAL ==================== -->
 <div class="visitor-overlay" id="visitorOverlay">
   <div class="visitor-modal">
     <div style="font-size:2.8rem;margin-bottom:12px;">🎓</div>
@@ -1081,18 +621,19 @@ body {
     <button class="v-btn-cancel" onclick="showScheduleModal()" style="margin-top:8px;border-color:rgba(99,102,241,.3);color:#818cf8;">🕐 Atur Jadwal Perkuliahan (Admin)</button>
   </div>
 </div>
+
 <!-- Reset Password Modal -->
 <div class="visitor-overlay hidden" id="resetOverlay" style="z-index:100000;">
   <div class="visitor-modal" style="max-width:380px;">
     <div style="font-size:2.4rem;margin-bottom:12px;">🔐</div>
     <h2 style="font-size:1.3rem;">Konfirmasi Reset</h2>
-    <p class="sub">Masukkan password untuk menghapus semua data pengunjung.</p>
+    <p class="sub">Masukkan password untuk menghapus semua data mahasiswa.</p>
     <p class="v-error" id="resetError">⚠ Password salah.</p>
     <input type="password" class="v-input" id="resetPw" placeholder="Password" autocomplete="off">
-    <button class="v-btn-primary" style="background:linear-gradient(135deg,#fb7185,#f43f5e);" onclick="confirmReset()">Hapus Semua Pengunjung</button>
-    <button class="v-btn-cancel" onclick="hideResetModal()">Batal</button>
+    <button class="v-btn-primary" style="background:linear-gradient(135deg,var(--rose,#fb7185),#f43f5e);" onclick="confirmReset()">Hapus Semua Data</button>
   </div>
 </div>
+
 <!-- Schedule Modal -->
 <div class="visitor-overlay hidden" id="scheduleOverlay" style="z-index:100000;">
   <div class="visitor-modal" style="max-width:480px;width:95%;">
@@ -1112,1047 +653,564 @@ body {
       </div>
     </div>
     <button class="v-btn-primary" onclick="saveSchedule()">💾 Simpan Jadwal</button>
-    <button class="v-btn-cancel" onclick="hideScheduleModal()">Batal</button>
   </div>
 </div>
 
 <!-- Floating Visitor Button -->
-<button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Daftar Pengunjung">👥<span class="fab-count" id="fabCount">0</span></button>
+<button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Aktivitas Mahasiswa">👥<span class="fab-count" id="fabCount">0</span></button>
+
 <!-- Visitor Panel -->
 <div class="visitor-panel" id="visitorPanel">
-  <div class="vp-header"><h3>👥 Pengunjung</h3><span class="vp-badge" id="vpBadge">0 orang</span></div>
-  <div class="vp-list" id="vpList"><div class="vp-empty">Memuat data pengunjung...</div></div>
+  <div class="vp-header"><h3>👥 Mahasiswa</h3><span class="vp-badge" id="vpBadge">0 orang</span></div>
+  <div class="vp-list" id="vpList"><div class="vp-empty">Memuat data mahasiswa...</div></div>
 </div>
 
-<!-- Progress Bar -->
-<div class="progress-bar" id="progressBar"></div>
-
-<!-- ════════════════════ HERO ════════════════════ -->
-<section class="hero">
-  <div class="hero-particles">
-    <div class="particle" style="left:10%;animation-delay:0s"></div>
-    <div class="particle" style="left:20%;animation-delay:1.2s"></div>
-    <div class="particle" style="left:35%;animation-delay:2.5s"></div>
-    <div class="particle" style="left:50%;animation-delay:0.8s"></div>
-    <div class="particle" style="left:65%;animation-delay:3.1s"></div>
-    <div class="particle" style="left:80%;animation-delay:1.7s"></div>
-    <div class="particle" style="left:90%;animation-delay:4s"></div>
-    <div class="particle" style="left:45%;animation-delay:5s"></div>
-    <div class="particle" style="left:75%;animation-delay:2s"></div>
-  </div>
-
-  <div class="hero-badge">📐 MODUL 1 • Tatap Muka 01</div>
-  <h1>
-    <span class="highlight">Persamaan Diferensial</span><br>
-    Orde Satu
-  </h1>
-  <p>Matematika 4 — W132100010<br>
-  Memahami pengertian, klasifikasi, dan penyelesaian persamaan diferensial dengan analogi dunia nyata dan visualisasi interaktif.</p>
-
-  <div class="hero-lecturer">
-    <div class="lecturer-icon">👨‍🏫</div>
-    <div class="lecturer-text">
-      <div class="lecturer-label">Dosen Pengampu</div>
-      <div class="lecturer-name">Dedik Romahadi</div>
+<!-- ==================== HERO ==================== -->
+<header class="hero">
+  <div class="container">
+    <div class="fade-up">
+      <span class="badge">📅 Pertemuan 1</span>
     </div>
-  </div>
 
-  <div class="hero-cta">
-    <a href="#pengertian" class="btn-primary">▶ Mulai Belajar</a>
-    <a href="#latihan" class="btn-outline">📝 Langsung Latihan</a>
-  </div>
-
-  <div class="scroll-indicator">
-    <span>scroll ke bawah</span>
-    <span>↓</span>
-  </div>
-</section>
-
-<!-- ════════════════════ NAV ════════════════════ -->
-<nav class="nav-sticky">
-  <a href="#pengertian" class="nav-link">📖 Pengertian</a>
-  <a href="#analogi" class="nav-link">💡 Analogi</a>
-  <a href="#klasifikasi" class="nav-link">🗂️ Klasifikasi</a>
-  <a href="#visualisasi" class="nav-link">📊 Visualisasi</a>
-  <a href="#penyelesaian" class="nav-link">✏️ Penyelesaian</a>
-  <a href="#latihan" class="nav-link">📝 Latihan Soal</a>
-  <a href="#jupyter" class="nav-link">🐍 Jupyter</a>
-</nav>
-
-<!-- ════════════════════ PENGERTIAN ════════════════════ -->
-<section class="section fade-in" id="pengertian">
-  <div class="section-label">📖 BAB 1</div>
-  <h2 class="section-title">Pengertian Persamaan Diferensial</h2>
-  <div class="section-divider"></div>
-
-  <p>
-    <strong>Persamaan diferensial</strong> adalah suatu persamaan yang melibatkan satu atau lebih 
-    <span class="tooltip-trigger" data-tooltip="Hasil dari proses diferensiasi / penurunan fungsi">turunan</span> 
-    fungsi yang belum diketahui, dan persamaan itu mungkin juga melibatkan fungsi itu sendiri dan konstanta.
-  </p>
-
-  <p style="margin-top:1rem;">
-    Dari turunan yang membentuk dalam persamaan diferensial akan menentukan jenis dan klasifikasi persamaan diferensial itu sendiri.
-  </p>
-
-  <h3 style="margin-top:2rem; margin-bottom:1rem; font-family:'Playfair Display',serif;">Contoh-Contoh Persamaan Diferensial</h3>
-
-  <div class="card">
-    <div class="card-icon cyan">📐</div>
-    <h3>PD Biasa (ODE)</h3>
-    <div class="math-block">$$y' + y = 0$$</div>
-    <div class="math-block">$$\frac{x}{1+x^2}\,dx + \frac{3y}{2+3y^2}\,dy = 0$$</div>
-    <div class="math-block">$$y''' + 4y = 0$$</div>
-  </div>
-
-  <div class="card">
-    <div class="card-icon purple">🌊</div>
-    <h3>PD Parsial (PDE)</h3>
-    <div class="math-block">$$\frac{\partial^2 y}{\partial x^2} = k\,\frac{\partial y}{\partial t}$$</div>
-    <div class="math-block">$$\frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2} = 0$$</div>
-    <div class="math-block">$$\frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2} + \frac{\partial^2 u}{\partial z^2} = 0$$</div>
-  </div>
-</section>
-
-<!-- ════════════════════ ANALOGI ════════════════════ -->
-<section class="section fade-in" id="analogi">
-  <div class="section-label">💡 PEMAHAMAN</div>
-  <h2 class="section-title">Analogi Dunia Nyata</h2>
-  <div class="section-divider"></div>
-
-  <div class="analogy-box">
-    <h4>🚗 Analogi Mobil di Jalan Tol</h4>
-    <p>Bayangkan kamu sedang mengemudi mobil. <strong>Posisi</strong> mobilmu di jalan adalah fungsi \(y(t)\), di mana \(t\) adalah waktu.</p>
-    <p style="margin-top:0.75rem;">
-      ➤ <strong>Kecepatan</strong> mobilmu adalah turunan pertama: \(y'(t) = v(t)\)<br>
-      ➤ <strong>Akselerasi</strong> (percepatan) adalah turunan kedua: \(y''(t) = a(t)\)
-    </p>
-    <p style="margin-top:0.75rem;">
-      Jika ada hukum fisika yang menghubungkan posisi, kecepatan, dan percepatan — misalnya 
-      "percepatan = -kecepatan" (gesekan), maka kita dapatkan:
-    </p>
-    <div class="math-block">$$y'' = -y' \quad \Longrightarrow \quad y'' + y' = 0$$</div>
-    <p>Itulah <strong>persamaan diferensial!</strong> Sebuah persamaan yang menghubungkan fungsi dengan turunannya.</p>
-  </div>
-
-  <div class="analogy-box">
-    <h4>🏦 Analogi Bunga Bank</h4>
-    <p>Uang di rekeningmu = \(y(t)\). Bunga bank membuat uang bertambah proporsional terhadap jumlah uang yang ada:</p>
-    <div class="math-block">$$\frac{dy}{dt} = r \cdot y$$</div>
-    <p>dengan \(r\) = suku bunga. Ini adalah PD orde satu! Solusinya: \(y(t) = y_0 \cdot e^{rt}\) — pertumbuhan eksponensial.</p>
-  </div>
-
-  <div class="analogy-box">
-    <h4>🌡️ Analogi Kopi Panas (Hukum Newton tentang Pendinginan)</h4>
-    <p>Suhu kopi \(T(t)\) berubah sebanding dengan selisih suhu kopi dan suhu ruangan \(T_r\):</p>
-    <div class="math-block">$$\frac{dT}{dt} = -k(T - T_r)$$</div>
-    <p>Makin panas kopinya (selisih besar), makin cepat dinginnya. Ini juga persamaan diferensial orde satu!</p>
-  </div>
-
-  <div class="analogy-box">
-    <h4>🎸 Analogi Senar Gitar (PDE)</h4>
-    <p>Getaran senar gitar bergantung pada <strong>posisi</strong> \(x\) sepanjang senar DAN <strong>waktu</strong> \(t\):</p>
-    <div class="math-block">$$\frac{\partial^2 u}{\partial t^2} = c^2 \frac{\partial^2 u}{\partial x^2}$$</div>
-    <p>Karena melibatkan turunan parsial terhadap dua variabel bebas, ini disebut <strong>PD Parsial</strong> — berbeda dari PD Biasa yang hanya punya satu variabel bebas.</p>
-  </div>
-</section>
-
-<!-- ════════════════════ KLASIFIKASI ════════════════════ -->
-<section class="section fade-in" id="klasifikasi">
-  <div class="section-label">🗂️ BAB 2</div>
-  <h2 class="section-title">Klasifikasi Persamaan Diferensial</h2>
-  <div class="section-divider"></div>
-
-  <p>Persamaan diferensial diklasifikasikan berdasarkan variabel yang terlibat, jenis fungsi turunannya, koefisien persamaan, dan jenis kesamaannya.</p>
-
-  <!-- Interactive Tree -->
-  <div class="tree-container">
-    <div class="tree">
-      <div class="tree-node root">Persamaan Diferensial</div>
-      <div class="tree-connector"></div>
-      <div class="tree-row">
-        <div style="text-align:center;">
-          <div class="tree-node branch">PD Biasa (ODE)</div>
-          <div class="tree-connector"></div>
-          <div class="tree-row">
-            <div style="text-align:center;">
-              <div class="tree-node leaf">Linier</div>
-              <div class="tree-connector"></div>
-              <div class="tree-row">
-                <div class="tree-node leaf" style="font-size:0.75rem;">Homogen</div>
-                <div class="tree-node leaf" style="font-size:0.75rem;">Non-Homogen</div>
-              </div>
-            </div>
-            <div class="tree-node leaf">Non-Linier</div>
-          </div>
-        </div>
-        <div style="text-align:center;">
-          <div class="tree-node branch">PD Parsial (PDE)</div>
-          <div class="tree-connector"></div>
-          <div class="tree-row">
-            <div class="tree-node leaf">Persamaan Panas</div>
-            <div class="tree-node leaf">Persamaan Laplace</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Interactive Tabs -->
-  <h3 style="margin-top:3rem; margin-bottom:0.5rem; font-family:'Playfair Display',serif;">Detail Klasifikasi</h3>
-
-  <div class="demo-tabs">
-    <button class="demo-tab active" onclick="showTab('tab-ode', this)">PD Biasa vs Parsial</button>
-    <button class="demo-tab" onclick="showTab('tab-linier', this)">Linier vs Non-Linier</button>
-    <button class="demo-tab" onclick="showTab('tab-orde', this)">Orde PD</button>
-  </div>
-
-  <div class="demo-panel active" id="tab-ode">
-    <table class="styled-table">
-      <thead>
-        <tr><th>Aspek</th><th>PD Biasa (ODE)</th><th>PD Parsial (PDE)</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><strong>Variabel bebas</strong></td>
-          <td>Satu variabel bebas (misal \(x\))</td>
-          <td>Dua atau lebih variabel bebas (misal \(x, y, t\))</td>
-        </tr>
-        <tr>
-          <td><strong>Turunan</strong></td>
-          <td>Turunan biasa: \(\frac{dy}{dx}\), \(\frac{d^2y}{dx^2}\)</td>
-          <td>Turunan parsial: \(\frac{\partial u}{\partial x}\), \(\frac{\partial^2 u}{\partial x^2}\)</td>
-        </tr>
-        <tr>
-          <td><strong>Contoh</strong></td>
-          <td>\(y' + y = 0\)</td>
-          <td>\(\frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2} = 0\)</td>
-        </tr>
-        <tr>
-          <td><strong>Analogi</strong></td>
-          <td>Kopi mendingin seiring waktu</td>
-          <td>Panas menyebar di plat besi 2D</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="demo-panel" id="tab-linier">
-    <h4 style="margin-bottom:1rem;">PD Biasa Linier</h4>
-    <p>Persamaan memuat satu variabel bebas \(x\), satu variabel tak bebas \(y\), dan <strong>pangkat tertinggi</strong> dari fungsi turunan adalah <strong>satu</strong>.</p>
-
-    <h4 style="margin-top:1.5rem; color:var(--accent-cyan);">✅ Homogen (ruas kanan = 0)</h4>
-    <div class="math-block">$$y' + y = 0$$</div>
-    <div class="math-block">$$y''' + 4y = 0$$</div>
-    <div class="math-block">$$(D^3 - 6D^2 + 11D - 6)y = 0$$</div>
-
-    <h4 style="margin-top:1.5rem; color:var(--accent-orange);">❌ Non-Homogen (ruas kanan ≠ 0)</h4>
-    <div class="math-block">$$y'' + 4y' + 8y = x\sin 2x$$</div>
-    <div class="math-block">$$(D^3 - 6D^2 + 11D - 6)y = e^{2x}\cos x$$</div>
-
-    <h4 style="margin-top:2rem; margin-bottom:1rem;">PD Biasa Non-Linier</h4>
-    <p>Fungsi turunan memiliki pangkat <strong>lebih besar dari satu</strong>, atau ada perkalian antar turunan.</p>
-    <div class="math-block">$$(y''')^2 + 4y = 0$$</div>
-    <div class="math-block">$$(y'')^2 + 2(y')^4 + 8y = x\sin 2x$$</div>
-  </div>
-
-  <div class="demo-panel" id="tab-orde">
-    <p>Orde PD ditentukan oleh <strong>turunan tertinggi</strong> yang muncul dalam persamaan.</p>
-
-    <table class="styled-table">
-      <thead>
-        <tr><th>Orde</th><th>Contoh</th><th>Turunan Tertinggi</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><strong>Orde 1</strong></td>
-          <td>\(xy' + 2y = 0\)</td>
-          <td>\(y'\) (turunan pertama)</td>
-        </tr>
-        <tr>
-          <td><strong>Orde 1</strong></td>
-          <td>\(\frac{dy}{dx} + (1-x)y = 4xe^{2x}\)</td>
-          <td>\(\frac{dy}{dx}\) (turunan pertama)</td>
-        </tr>
-        <tr>
-          <td><strong>Orde 2</strong></td>
-          <td>\(y'' + 5y' + 4y = 0\)</td>
-          <td>\(y''\) (turunan kedua)</td>
-        </tr>
-        <tr>
-          <td><strong>Orde 2</strong></td>
-          <td>\(y'' - 4y' + 4y = 4xe^{2x}\)</td>
-          <td>\(y''\) (turunan kedua)</td>
-        </tr>
-        <tr>
-          <td><strong>Orde n</strong></td>
-          <td>\(y^{(n)} + a_{n-1}y^{(n-1)} + \ldots + a_0 y = 0\)</td>
-          <td>\(y^{(n)}\) (turunan ke-n)</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</section>
-
-<!-- ════════════════════ VISUALISASI ════════════════════ -->
-<section class="section fade-in" id="visualisasi">
-  <div class="section-label">📊 VISUALISASI</div>
-  <h2 class="section-title">Animasi Solusi PD</h2>
-  <div class="section-divider"></div>
-
-  <p>Visualisasi berikut menunjukkan bagaimana solusi persamaan diferensial berperilaku. Pilih jenis PD untuk melihat grafik solusinya.</p>
-
-  <div class="anim-container">
-    <canvas id="pdCanvas" width="750" height="400"></canvas>
-    <div class="anim-controls">
-      <button class="anim-btn active" onclick="drawPD('exp-decay', this)">y' = -y<br><small>(Peluruhan)</small></button>
-      <button class="anim-btn" onclick="drawPD('exp-growth', this)">y' = ry<br><small>(Pertumbuhan)</small></button>
-      <button class="anim-btn" onclick="drawPD('oscillation', this)">y'' + y = 0<br><small>(Osilasi)</small></button>
-      <button class="anim-btn" onclick="drawPD('damped', this)">y'' + y' + y = 0<br><small>(Teredam)</small></button>
-    </div>
-    <p style="margin-top:1rem;font-size:0.85rem;color:var(--text-muted);" id="pdDescription">
-      Peluruhan eksponensial: benda yang kehilangan panas secara bertahap.
-    </p>
-  </div>
-</section>
-
-<!-- ════════════════════ PENYELESAIAN ════════════════════ -->
-<section class="section fade-in" id="penyelesaian">
-  <div class="section-label">✏️ BAB 3</div>
-  <h2 class="section-title">Penyelesaian Persamaan Diferensial</h2>
-  <div class="section-divider"></div>
-
-  <p>Masalah utama persamaan diferensial adalah menentukan suatu fungsi yang bilamana diturunkan, dan disubstitusikan memenuhi persamaan diferensial yang diberikan.</p>
-
-  <div class="analogy-box">
-    <h4>🔑 Cara Memverifikasi Solusi PD</h4>
-    <p>Untuk memeriksa apakah suatu fungsi \(y = F(x)\) merupakan solusi dari PD, lakukan langkah berikut:</p>
-    <div class="step-list">
-      <div class="step-item">
-        <div class="step-content">
-          <h4>Turunkan fungsi</h4>
-          <p>Hitung \(y'\), \(y''\), dst. sesuai orde PD yang diberikan.</p>
-        </div>
-      </div>
-      <div class="step-item">
-        <div class="step-content">
-          <h4>Substitusikan</h4>
-          <p>Masukkan \(y\), \(y'\), \(y''\), dll. ke dalam PD.</p>
-        </div>
-      </div>
-      <div class="step-item">
-        <div class="step-content">
-          <h4>Periksa identitas</h4>
-          <p>Jika menghasilkan kesamaan identitas (misalnya \(0 = 0\)), maka fungsi tersebut adalah solusi.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Contoh 1.1 -->
-  <div class="card">
-    <div class="card-icon cyan">1</div>
-    <h3>Contoh 1.1 — Verifikasi Solusi PD Homogen</h3>
-    <p>Diberikan PD linier koefisien konstan orde dua homogen:</p>
-    <div class="math-block">$$y'' - 4y' + 4y = 0$$</div>
-    <p>Selidiki apakah \(y = e^{2x}\) merupakan penyelesaian.</p>
-
-    <div style="margin-top:1.5rem; padding:1.5rem; background:rgba(6,214,160,0.05); border-radius:12px;">
-      <h4 style="color:var(--accent-cyan); margin-bottom:0.75rem;">Penyelesaian:</h4>
-      <p>Jika \(y = e^{2x}\), maka:</p>
-      <div class="math-block">$$y' = 2e^{2x}, \quad y'' = 4e^{2x}$$</div>
-      <p>Substitusi ke PD:</p>
-      <div class="math-block">$$4e^{2x} - 4(2e^{2x}) + 4(e^{2x}) = 0$$</div>
-      <div class="math-block">$$4e^{2x} - 8e^{2x} + 4e^{2x} = 0$$</div>
-      <div class="math-block">$$0 = 0 \quad \checkmark$$</div>
-      <p style="color:var(--accent-cyan); font-weight:700;">✅ Identitas! Maka \(y = e^{2x}\) adalah penyelesaian.</p>
-    </div>
-  </div>
-
-  <!-- Contoh 1.2 -->
-  <div class="card">
-    <div class="card-icon blue">2</div>
-    <h3>Contoh 1.2 — Verifikasi PD Non-Homogen</h3>
-    <p>Diberikan PD linier koefisien variabel non-homogen:</p>
-    <div class="math-block">$$x^2 y'' - 3xy' + 4y = 2x^2$$</div>
-    <p>Selidiki apakah \(y = x^2 \ln^2 x\) merupakan penyelesaian.</p>
-
-    <div style="margin-top:1.5rem; padding:1.5rem; background:rgba(17,138,178,0.05); border-radius:12px;">
-      <h4 style="color:var(--accent-blue); margin-bottom:0.75rem;">Penyelesaian:</h4>
-      <p>Jika \(y = x^2 \ln^2 x\), maka:</p>
-      <div class="math-block">$$y' = 2x\ln x + 2x\ln^2 x$$</div>
-      <div class="math-block">$$y'' = 2 + 6\ln x + 2\ln^2 x$$</div>
-      <p>Substitusi:</p>
-      <div class="math-block">$$x^2(2 + 6\ln x + 2\ln^2 x) - 3x(2x\ln x + 2x\ln^2 x) + 4(x^2\ln^2 x) = 2x^2$$</div>
-      <div class="math-block">$$2x^2 + 6x^2\ln x + 2x^2\ln^2 x - 6x^2\ln x - 6x^2\ln^2 x + 4x^2\ln^2 x = 2x^2$$</div>
-      <div class="math-block">$$2x^2 = 2x^2 \quad \checkmark$$</div>
-      <p style="color:var(--accent-blue); font-weight:700;">✅ Identitas! Maka \(y = x^2 \ln^2 x\) adalah penyelesaian.</p>
-    </div>
-  </div>
-
-  <!-- Contoh 1.3 -->
-  <div class="card">
-    <div class="card-icon orange">3</div>
-    <h3>Contoh 1.3 — Bukan Solusi</h3>
-    <p>Selidiki apakah \(y = \cos 2x\) merupakan penyelesaian bagi:</p>
-    <div class="math-block">$$y'' + 4y = \cos 2x$$</div>
-
-    <div style="margin-top:1.5rem; padding:1.5rem; background:rgba(239,131,84,0.05); border-radius:12px;">
-      <h4 style="color:var(--accent-orange); margin-bottom:0.75rem;">Penyelesaian:</h4>
-      <p>Jika \(y = \cos 2x\), maka:</p>
-      <div class="math-block">$$y' = -2\sin 2x, \quad y'' = -4\cos 2x$$</div>
-      <p>Substitusi:</p>
-      <div class="math-block">$$-4\cos 2x + 4(\cos 2x) = \cos 2x$$</div>
-      <div class="math-block">$$0 = \cos 2x \quad ???$$</div>
-      <p style="color:var(--accent-orange); font-weight:700;">❌ Bukan identitas! Maka \(y = \cos 2x\) BUKAN penyelesaian.</p>
-    </div>
-  </div>
-</section>
-
-<!-- ════════════════════ LATIHAN SOAL ════════════════════ -->
-<section class="section fade-in" id="latihan">
-  <div class="section-label">📝 LATIHAN</div>
-  <h2 class="section-title">Soal Latihan Interaktif</h2>
-  <div class="section-divider"></div>
-
-  <!-- SOAL 1 -->
-  <div class="exercise">
-    <div class="exercise-header">
-      <div class="exercise-number">1</div>
-      <div class="exercise-title">Klasifikasi Persamaan Diferensial</div>
-    </div>
-    <div class="exercise-body">
-      <div class="exercise-question">
-        <p>Tentukan jenis persamaan diferensial berikut:</p>
-        <div class="math-block">$$y'' + 5y' + 6y = 0$$</div>
-        <p>Persamaan di atas termasuk...</p>
-      </div>
-
-      <div class="radio-group" id="q1-options">
-        <label class="radio-option" onclick="selectRadio(this, 'q1')">
-          <input type="radio" name="q1" value="a">
-          <span class="radio-circle"></span>
-          <span>PD Biasa Linier Orde 2 Homogen</span>
-        </label>
-        <label class="radio-option" onclick="selectRadio(this, 'q1')">
-          <input type="radio" name="q1" value="b">
-          <span class="radio-circle"></span>
-          <span>PD Parsial Linier Orde 2 Homogen</span>
-        </label>
-        <label class="radio-option" onclick="selectRadio(this, 'q1')">
-          <input type="radio" name="q1" value="c">
-          <span class="radio-circle"></span>
-          <span>PD Biasa Non-Linier Orde 2 Non-Homogen</span>
-        </label>
-        <label class="radio-option" onclick="selectRadio(this, 'q1')">
-          <input type="radio" name="q1" value="d">
-          <span class="radio-circle"></span>
-          <span>PD Biasa Linier Orde 1 Homogen</span>
-        </label>
-      </div>
-
-      <div class="exercise-actions">
-        <button class="btn-check" onclick="checkAnswer('q1', 'a')">Periksa Jawaban</button>
-        <button class="btn-hint" onclick="toggleBox('hint-q1')">💡 Petunjuk</button>
-        <button class="btn-answer" onclick="toggleBox('answer-q1')">🔑 Kunci Jawaban</button>
-      </div>
-
-      <div class="hint-box" id="hint-q1">
-        <h5>💡 Petunjuk</h5>
-        <p>Periksa: (1) Apakah ada turunan parsial? Jika tidak → PD Biasa. (2) Apakah pangkat turunan tertinggi = 1? Jika ya → Linier. (3) Turunan tertinggi = \(y''\) → Orde 2. (4) Ruas kanan = 0? Jika ya → Homogen.</p>
-      </div>
-
-      <div class="answer-box" id="answer-q1">
-        <h5>🔑 Jawaban: A. PD Biasa Linier Orde 2 Homogen</h5>
-        <p><strong>Proses Penyelesaian Langkah demi Langkah:</strong></p>
-        <p style="margin-top:0.75rem;"><strong>Langkah 1 — Identifikasi jenis turunan:</strong></p>
-        <p>Perhatikan persamaan \(y'' + 5y' + 6y = 0\). Di sini kita hanya melihat notasi \(y''\) dan \(y'\), yaitu turunan biasa (bukan turunan parsial \(\partial\)). Artinya hanya ada <strong>satu variabel bebas</strong>. Kesimpulan: <strong>PD Biasa (ODE)</strong>.</p>
-        <p style="margin-top:0.75rem;"><strong>Langkah 2 — Periksa kelinieran:</strong></p>
-        <p>Persamaan dikatakan <em>linier</em> jika setiap suku yang mengandung \(y\) dan turunannya berpangkat tepat 1, serta tidak ada perkalian antar turunan (misalnya \(y' \cdot y''\)).</p>
-        <p>• \(y''\) → berpangkat 1 ✅</p>
-        <p>• \(5y'\) → berpangkat 1 ✅</p>
-        <p>• \(6y\) → berpangkat 1 ✅</p>
-        <p>• Tidak ada perkalian antar turunan ✅</p>
-        <p>Kesimpulan: <strong>Linier</strong>.</p>
-        <p style="margin-top:0.75rem;"><strong>Langkah 3 — Tentukan orde:</strong></p>
-        <p>Orde ditentukan oleh turunan <em>tertinggi</em> yang muncul. Di persamaan ini ada \(y''\) (turunan kedua) dan \(y'\) (turunan pertama). Yang tertinggi adalah \(y''\). Kesimpulan: <strong>Orde 2</strong>.</p>
-        <p style="margin-top:0.75rem;"><strong>Langkah 4 — Homogen atau non-homogen?</strong></p>
-        <p>Pindahkan semua suku yang mengandung \(y\) ke ruas kiri. Ruas kanan menjadi: \(0\). Jika ruas kanan = 0, maka PD <strong>Homogen</strong>. Jika ruas kanan mengandung fungsi \(x\) (misal \(\sin x\), \(e^x\), dll.), maka non-homogen.</p>
-        <p>Di sini ruas kanan = 0 → <strong>Homogen</strong>.</p>
-        <p style="margin-top:0.75rem; padding:0.75rem; background:rgba(6,214,160,0.08); border-radius:8px; color:var(--accent-cyan); font-weight:700;">
-          ✅ Jawaban akhir: PD Biasa Linier Orde 2 Homogen
+    <div class="hero-inner mt-6">
+      <div class="fade-up d1">
+        <h1 class="hero-title">Pengantar Time Series<br>Data dalam Teknik Mesin</h1>
+        <p class="mt-3 text-s400" style="font-size:1.05rem;max-width:520px;">
+          Memahami konsep dasar time series, karakteristik utama,
+          dan hubungannya dengan optimalisasi &amp; otomasi mesin industri.
         </p>
       </div>
-
-      <div class="feedback" id="feedback-q1"></div>
+      <div class="hero-right fade-up d2">
+        <p class="text-xs uppercase tracking-widest text-s500 mb-1">Dosen Pengampu</p>
+        <p style="font-size:1.6rem;font-family:'Syne',sans-serif;font-weight:700;">Dedik Romahadi</p>
+        <p class="text-s500 mt-1" style="font-size:.85rem;">Optimalisasi &amp; Otomasi • S1 Teknik Mesin</p>
+      </div>
     </div>
-  </div>
 
-  <!-- SOAL 2 -->
-  <div class="exercise">
-    <div class="exercise-header">
-      <div class="exercise-number">2</div>
-      <div class="exercise-title">Menentukan Orde dan Derajat</div>
-    </div>
-    <div class="exercise-body">
-      <div class="exercise-question">
-        <p>Tentukan orde dari persamaan diferensial berikut:</p>
-        <div class="math-block">$$(y''')^2 + 4y = 0$$</div>
+    <!-- Ticker -->
+    <div class="ticker-wrap mt-10">
+      <div class="ticker-head">
+        <div class="live-dot"></div>
+        <span class="text-xs uppercase tracking-widest text-teal font-mono font-semibold">Live Sensor Stream — Demo</span>
       </div>
-
-      <div class="radio-group" id="q2-options">
-        <label class="radio-option" onclick="selectRadio(this, 'q2')">
-          <input type="radio" name="q2" value="a">
-          <span class="radio-circle"></span>
-          <span>Orde 1</span>
-        </label>
-        <label class="radio-option" onclick="selectRadio(this, 'q2')">
-          <input type="radio" name="q2" value="b">
-          <span class="radio-circle"></span>
-          <span>Orde 2</span>
-        </label>
-        <label class="radio-option" onclick="selectRadio(this, 'q2')">
-          <input type="radio" name="q2" value="c">
-          <span class="radio-circle"></span>
-          <span>Orde 3</span>
-        </label>
-        <label class="radio-option" onclick="selectRadio(this, 'q2')">
-          <input type="radio" name="q2" value="d">
-          <span class="radio-circle"></span>
-          <span>Orde 4</span>
-        </label>
-      </div>
-
-      <div class="exercise-actions">
-        <button class="btn-check" onclick="checkAnswer('q2', 'c')">Periksa Jawaban</button>
-        <button class="btn-hint" onclick="toggleBox('hint-q2')">💡 Petunjuk</button>
-        <button class="btn-answer" onclick="toggleBox('answer-q2')">🔑 Kunci Jawaban</button>
-      </div>
-
-      <div class="hint-box" id="hint-q2">
-        <h5>💡 Petunjuk</h5>
-        <p>Orde ditentukan oleh <strong>turunan tertinggi</strong>, bukan pangkat dari turunan tersebut. \(y'''\) berarti turunan ketiga. Pangkat 2 pada \((y''')^2\) menentukan <em>derajat</em>, bukan orde.</p>
-      </div>
-
-      <div class="answer-box" id="answer-q2">
-        <h5>🔑 Jawaban: C. Orde 3</h5>
-        <p><strong>Proses Penyelesaian Langkah demi Langkah:</strong></p>
-        <p style="margin-top:0.75rem;"><strong>Langkah 1 — Kenali semua turunan yang muncul:</strong></p>
-        <p>Persamaan: \((y''')^2 + 4y = 0\)</p>
-        <p>Turunan yang muncul:</p>
-        <p>• \(y'''\) → ini adalah turunan <strong>ketiga</strong> dari \(y\) terhadap \(x\)</p>
-        <p>• \(y\) → fungsi asli (bukan turunan, orde 0)</p>
-        <p style="margin-top:0.75rem;"><strong>Langkah 2 — Tentukan orde:</strong></p>
-        <p>Orde = turunan <em>tertinggi</em> yang ada. Di sini turunan tertinggi adalah \(y'''\), yaitu turunan ketiga.</p>
-        <p>⚠️ <strong>Jangan keliru!</strong> Angka pangkat 2 pada \((y''')^{\color{red}{2}}\) BUKAN orde. Itu adalah <em>derajat</em>.</p>
-        <p>Kesimpulan: <strong>Orde = 3</strong>.</p>
-        <p style="margin-top:0.75rem;"><strong>Langkah 3 — Bedakan orde dan derajat:</strong></p>
-        <p>Banyak mahasiswa tertukar antara orde dan derajat. Berikut perbedaannya:</p>
-        <p>• <strong>Orde</strong> = berapa kali fungsi diturunkan → \(y'''\) berarti turunan ke-<strong>3</strong> → orde <strong>3</strong></p>
-        <p>• <strong>Derajat</strong> = pangkat dari turunan tertinggi tersebut → \((y''')^2\) → derajat <strong>2</strong></p>
-        <p style="margin-top:0.75rem;"><strong>Langkah 4 — Bonus: Linier atau non-linier?</strong></p>
-        <p>Karena \(y'''\) dipangkatkan 2 (bukan 1), maka persamaan ini <strong>non-linier</strong>. PD linier mensyaratkan semua turunan berpangkat tepat 1.</p>
-        <p style="margin-top:0.75rem; padding:0.75rem; background:rgba(6,214,160,0.08); border-radius:8px; color:var(--accent-cyan); font-weight:700;">
-          ✅ Jawaban akhir: Orde 3 (derajat 2), PD Biasa Non-Linier Homogen
-        </p>
-      </div>
-
-      <div class="feedback" id="feedback-q2"></div>
-    </div>
-  </div>
-
-  <!-- SOAL 3 -->
-  <div class="exercise">
-    <div class="exercise-header">
-      <div class="exercise-number">3</div>
-      <div class="exercise-title">Verifikasi Solusi PD</div>
-    </div>
-    <div class="exercise-body">
-      <div class="exercise-question">
-        <p>Diberikan PD:</p>
-        <div class="math-block">$$y' + 2y = 0$$</div>
-        <p>Apakah \(y = 3e^{-2x}\) merupakan penyelesaian?</p>
-      </div>
-
-      <div class="radio-group" id="q3-options">
-        <label class="radio-option" onclick="selectRadio(this, 'q3')">
-          <input type="radio" name="q3" value="a">
-          <span class="radio-circle"></span>
-          <span>Ya, karena substitusi menghasilkan identitas 0 = 0</span>
-        </label>
-        <label class="radio-option" onclick="selectRadio(this, 'q3')">
-          <input type="radio" name="q3" value="b">
-          <span class="radio-circle"></span>
-          <span>Tidak, karena substitusi tidak menghasilkan identitas</span>
-        </label>
-      </div>
-
-      <div class="exercise-actions">
-        <button class="btn-check" onclick="checkAnswer('q3', 'a')">Periksa Jawaban</button>
-        <button class="btn-hint" onclick="toggleBox('hint-q3')">💡 Petunjuk</button>
-        <button class="btn-answer" onclick="toggleBox('answer-q3')">🔑 Kunci Jawaban</button>
-      </div>
-
-      <div class="hint-box" id="hint-q3">
-        <h5>💡 Petunjuk</h5>
-        <p>Langkah: (1) Hitung \(y' = \frac{d}{dx}[3e^{-2x}]\). (2) Substitusi \(y\) dan \(y'\) ke persamaan \(y' + 2y = 0\). (3) Jika hasilnya \(0 = 0\), maka itu penyelesaian.</p>
-      </div>
-
-      <div class="answer-box" id="answer-q3">
-        <h5>🔑 Jawaban: A. Ya, merupakan penyelesaian</h5>
-        <p><strong>Proses Penyelesaian Langkah demi Langkah:</strong></p>
-        <p style="margin-top:0.75rem;"><strong>Langkah 1 — Tuliskan fungsi yang akan diuji:</strong></p>
-        <div class="math-block">$$y = 3e^{-2x}$$</div>
-        <p style="margin-top:0.75rem;"><strong>Langkah 2 — Hitung turunan pertama \(y'\):</strong></p>
-        <p>Gunakan aturan rantai: \(\frac{d}{dx}[e^{f(x)}] = f'(x) \cdot e^{f(x)}\)</p>
-        <p>Di sini \(f(x) = -2x\), maka \(f'(x) = -2\). Sehingga:</p>
-        <div class="math-block">$$y' = 3 \cdot (-2) \cdot e^{-2x} = -6e^{-2x}$$</div>
-        <p style="margin-top:0.75rem;"><strong>Langkah 3 — Substitusikan \(y\) dan \(y'\) ke dalam PD:</strong></p>
-        <p>PD yang diberikan: \(y' + 2y = 0\)</p>
-        <p>Masukkan nilai \(y' = -6e^{-2x}\) dan \(y = 3e^{-2x}\):</p>
-        <div class="math-block">$$\underbrace{(-6e^{-2x})}_{y'} + 2 \cdot \underbrace{(3e^{-2x})}_{y} = 0$$</div>
-        <p style="margin-top:0.75rem;"><strong>Langkah 4 — Sederhanakan ruas kiri:</strong></p>
-        <div class="math-block">$$-6e^{-2x} + 6e^{-2x} = 0$$</div>
-        <p>Karena \(-6e^{-2x} + 6e^{-2x} = 0\), kita mendapat:</p>
-        <div class="math-block">$$0 = 0 \quad \checkmark$$</div>
-        <p style="margin-top:0.75rem;"><strong>Langkah 5 — Kesimpulan:</strong></p>
-        <p>Substitusi menghasilkan <strong>kesamaan identitas</strong> (ruas kiri = ruas kanan = 0 untuk semua nilai \(x\)).</p>
-        <p style="margin-top:0.75rem; padding:0.75rem; background:rgba(6,214,160,0.08); border-radius:8px; color:var(--accent-cyan); font-weight:700;">
-          ✅ Maka \(y = 3e^{-2x}\) ADALAH penyelesaian bagi PD \(y' + 2y = 0\).
-        </p>
-        <p style="margin-top:0.75rem; font-size:0.9rem; color:var(--text-muted);">
-          💡 <em>Catatan:</em> Angka 3 di depan \(e^{-2x}\) adalah konstanta sembarang. Solusi umumnya adalah \(y = Ce^{-2x}\) untuk sembarang konstanta \(C\). Fungsi \(y = 3e^{-2x}\) adalah satu solusi khusus dengan \(C = 3\).
-        </em></p>
-      </div>
-
-      <div class="feedback" id="feedback-q3"></div>
-    </div>
-  </div>
-
-  <!-- SOAL 4 -->
-  <div class="exercise">
-    <div class="exercise-header">
-      <div class="exercise-number">4</div>
-      <div class="exercise-title">Identifikasi Jenis PD</div>
-    </div>
-    <div class="exercise-body">
-      <div class="exercise-question">
-        <p>Klasifikasikan setiap PD berikut (Biasa/Parsial, Linier/Non-Linier, Orde, Homogen/Non-Homogen):</p>
-      </div>
-
-      <div style="margin:1rem 0;">
-        <p style="font-weight:700; margin-bottom:0.5rem;">a) \(\quad x^2 y'' + 4xy' + 8y = 0\)</p>
-        <div class="answer-group">
-          <label>Jawaban Anda:</label>
-          <input type="text" class="answer-input" id="q4a" placeholder="Contoh: PD Biasa Linier Orde 2 Homogen">
-        </div>
-      </div>
-
-      <div style="margin:1rem 0;">
-        <p style="font-weight:700; margin-bottom:0.5rem;">b) \(\quad (y'')^2 + 2(y')^4 + 8y = x\sin 2x\)</p>
-        <div class="answer-group">
-          <label>Jawaban Anda:</label>
-          <input type="text" class="answer-input" id="q4b" placeholder="Ketik klasifikasinya di sini...">
-        </div>
-      </div>
-
-      <div style="margin:1rem 0;">
-        <p style="font-weight:700; margin-bottom:0.5rem;">c) \(\quad \frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2} = 0\)</p>
-        <div class="answer-group">
-          <label>Jawaban Anda:</label>
-          <input type="text" class="answer-input" id="q4c" placeholder="Ketik klasifikasinya di sini...">
-        </div>
-      </div>
-
-      <div class="exercise-actions">
-        <button class="btn-hint" onclick="toggleBox('hint-q4')">💡 Petunjuk</button>
-        <button class="btn-answer" onclick="toggleBox('answer-q4')">🔑 Kunci Jawaban</button>
-      </div>
-
-      <div class="hint-box" id="hint-q4">
-        <h5>💡 Petunjuk Umum</h5>
-        <p>Untuk setiap persamaan, tanyakan:</p>
-        <p>1. Ada turunan parsial (∂) → PD Parsial. Ada turunan biasa (d/dx, y') → PD Biasa.</p>
-        <p>2. Semua turunan berpangkat 1 dan tidak ada perkalian antar turunan → Linier.</p>
-        <p>3. Turunan tertinggi menentukan orde.</p>
-        <p>4. Ruas kanan = 0 → Homogen. Ruas kanan ≠ 0 → Non-Homogen.</p>
-      </div>
-
-      <div class="answer-box" id="answer-q4">
-        <h5>🔑 Kunci Jawaban:</h5>
-
-        <p style="margin-top:1rem;"><strong>a) \(\quad x^2 y'' + 4xy' + 8y = 0\)</strong></p>
-        <p style="margin-top:0.5rem;"><strong>→ PD Biasa Linier Orde 2 Homogen</strong></p>
-        <p style="margin-top:0.5rem;"><em>Proses analisis detail:</em></p>
-        <p>• <strong>PD Biasa atau Parsial?</strong> — Semua turunan ditulis sebagai \(y''\) dan \(y'\) (turunan biasa terhadap satu variabel \(x\)), bukan turunan parsial \(\partial\). → <strong>PD Biasa</strong>.</p>
-        <p>• <strong>Linier atau Non-Linier?</strong> — Periksa pangkat setiap suku: \(x^2 \cdot y''\) → \(y''\) berpangkat 1 ✅; \(4x \cdot y'\) → \(y'\) berpangkat 1 ✅; \(8y\) → \(y\) berpangkat 1 ✅. Koefisien (\(x^2\), \(4x\), \(8\)) boleh berupa fungsi \(x\), yang penting \(y\) dan turunannya berpangkat 1. → <strong>Linier</strong>.</p>
-        <p>• <strong>Orde?</strong> — Turunan tertinggi = \(y''\) (turunan kedua) → <strong>Orde 2</strong>.</p>
-        <p>• <strong>Homogen/Non-Homogen?</strong> — Ruas kanan = \(0\) → <strong>Homogen</strong>.</p>
-
-        <p style="margin-top:1.5rem;"><strong>b) \(\quad (y'')^2 + 2(y')^4 + 8y = x\sin 2x\)</strong></p>
-        <p style="margin-top:0.5rem;"><strong>→ PD Biasa Non-Linier Orde 2 Non-Homogen</strong></p>
-        <p style="margin-top:0.5rem;"><em>Proses analisis detail:</em></p>
-        <p>• <strong>PD Biasa atau Parsial?</strong> — Hanya ada turunan biasa \(y''\) dan \(y'\) → <strong>PD Biasa</strong>.</p>
-        <p>• <strong>Linier atau Non-Linier?</strong> — Cek pangkat: \((y'')^{\color{red}{2}}\) → pangkat 2 ❌ (harus pangkat 1 untuk linier); \((y')^{\color{red}{4}}\) → pangkat 4 ❌. Cukup satu saja yang melanggar untuk membuat keseluruhan PD non-linier. → <strong>Non-Linier</strong>.</p>
-        <p>• <strong>Orde?</strong> — Turunan tertinggi = \(y''\) → <strong>Orde 2</strong>. (Ingat: pangkat 2 pada \((y'')^2\) menentukan <em>derajat</em>, bukan orde.)</p>
-        <p>• <strong>Homogen/Non-Homogen?</strong> — Ruas kanan = \(x\sin 2x \neq 0\) → <strong>Non-Homogen</strong>.</p>
-
-        <p style="margin-top:1.5rem;"><strong>c) \(\quad \frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2} = 0\)</strong></p>
-        <p style="margin-top:0.5rem;"><strong>→ PD Parsial Linier Orde 2 Homogen (Persamaan Laplace)</strong></p>
-        <p style="margin-top:0.5rem;"><em>Proses analisis detail:</em></p>
-        <p>• <strong>PD Biasa atau Parsial?</strong> — Ada simbol turunan parsial \(\frac{\partial}{\partial x}\) dan \(\frac{\partial}{\partial y}\), artinya ada <strong>dua variabel bebas</strong> (\(x\) dan \(y\)). → <strong>PD Parsial</strong>.</p>
-        <p>• <strong>Linier atau Non-Linier?</strong> — \(\frac{\partial^2 u}{\partial x^2}\) berpangkat 1 ✅; \(\frac{\partial^2 u}{\partial y^2}\) berpangkat 1 ✅ → <strong>Linier</strong>.</p>
-        <p>• <strong>Orde?</strong> — Turunan tertinggi = \(\frac{\partial^2 u}{\partial x^2}\) (turunan kedua) → <strong>Orde 2</strong>.</p>
-        <p>• <strong>Homogen/Non-Homogen?</strong> — Ruas kanan = \(0\) → <strong>Homogen</strong>.</p>
-        <p>• <strong>Nama khusus:</strong> Persamaan ini dikenal sebagai <strong>Persamaan Laplace 2D</strong>, yang sering dijumpai dalam fisika (elektrostatika, aliran fluida, konduksi panas stasioner).</p>
+      <div class="ticker-body">
+        <div class="ticker-track" id="ticker"></div>
       </div>
     </div>
   </div>
+</header>
 
-  <!-- SOAL 5 -->
-  <div class="exercise">
-    <div class="exercise-header">
-      <div class="exercise-number">5</div>
-      <div class="exercise-title">Verifikasi Solusi (Turunan Parsial)</div>
-    </div>
-    <div class="exercise-body">
-      <div class="exercise-question">
-        <p>Diberikan PD:</p>
-        <div class="math-block">$$\frac{dy}{dx} = \frac{2x - 4y}{4x + 3y^2}$$</div>
-        <p>Selidiki apakah \(f(x,y) = x^2 - 4xy - y^3 + c\) merupakan penyelesaian.</p>
-      </div>
-
-      <div class="radio-group" id="q5-options">
-        <label class="radio-option" onclick="selectRadio(this, 'q5')">
-          <input type="radio" name="q5" value="a">
-          <span class="radio-circle"></span>
-          <span>Ya, merupakan penyelesaian</span>
-        </label>
-        <label class="radio-option" onclick="selectRadio(this, 'q5')">
-          <input type="radio" name="q5" value="b">
-          <span class="radio-circle"></span>
-          <span>Tidak, bukan penyelesaian</span>
-        </label>
-      </div>
-
-      <div class="exercise-actions">
-        <button class="btn-check" onclick="checkAnswer('q5', 'a')">Periksa Jawaban</button>
-        <button class="btn-hint" onclick="toggleBox('hint-q5')">💡 Petunjuk</button>
-        <button class="btn-answer" onclick="toggleBox('answer-q5')">🔑 Kunci Jawaban</button>
-      </div>
-
-      <div class="hint-box" id="hint-q5">
-        <h5>💡 Petunjuk</h5>
-        <p>Gunakan konsep diferensial total. Jika \(f(x,y) = C\), maka \(df = 0\):</p>
-        <p>\(df = f_x\,dx + f_y\,dy = 0\)</p>
-        <p>Hitung \(f_x\) dan \(f_y\) dari \(f(x,y) = x^2 - 4xy - y^3 + c\), lalu bentuk \(\frac{dy}{dx} = -\frac{f_x}{f_y}\) dan cocokkan dengan PD yang diberikan.</p>
-      </div>
-
-      <div class="answer-box" id="answer-q5">
-        <h5>🔑 Jawaban: A. Ya, merupakan penyelesaian</h5>
-        <p><strong>Proses Penyelesaian Langkah demi Langkah:</strong></p>
-
-        <p style="margin-top:0.75rem;"><strong>Langkah 1 — Pahami konsep yang digunakan:</strong></p>
-        <p>Soal ini menggunakan konsep <strong>diferensial total</strong>. Jika \(f(x,y) = C\) (konstanta), maka diferensial totalnya \(df = 0\). Artinya:</p>
-        <div class="math-block">$$df = \frac{\partial f}{\partial x}\,dx + \frac{\partial f}{\partial y}\,dy = 0$$</div>
-        <p>atau lebih ringkas: \(f_x\,dx + f_y\,dy = 0\).</p>
-
-        <p style="margin-top:0.75rem;"><strong>Langkah 2 — Hitung turunan parsial \(f_x\) (terhadap \(x\), anggap \(y\) konstan):</strong></p>
-        <p>Diberikan: \(f(x,y) = x^2 - 4xy - y^3 + c\)</p>
-        <p>• \(\frac{\partial}{\partial x}(x^2) = 2x\)</p>
-        <p>• \(\frac{\partial}{\partial x}(-4xy) = -4y\) &nbsp; (karena \(y\) dianggap konstan)</p>
-        <p>• \(\frac{\partial}{\partial x}(-y^3) = 0\) &nbsp; (tidak mengandung \(x\))</p>
-        <div class="math-block">$$f_x = 2x - 4y$$</div>
-
-        <p style="margin-top:0.75rem;"><strong>Langkah 3 — Hitung turunan parsial \(f_y\) (terhadap \(y\), anggap \(x\) konstan):</strong></p>
-        <p>• \(\frac{\partial}{\partial y}(x^2) = 0\)</p>
-        <p>• \(\frac{\partial}{\partial y}(-4xy) = -4x\)</p>
-        <p>• \(\frac{\partial}{\partial y}(-y^3) = -3y^2\)</p>
-        <div class="math-block">$$f_y = -4x - 3y^2$$</div>
-
-        <p style="margin-top:0.75rem;"><strong>Langkah 4 — Susun persamaan diferensial dari \(df = 0\):</strong></p>
-        <div class="math-block">$$f_x\,dx + f_y\,dy = 0$$</div>
-        <div class="math-block">$$(2x - 4y)\,dx + (-4x - 3y^2)\,dy = 0$$</div>
-
-        <p style="margin-top:0.75rem;"><strong>Langkah 5 — Bentuk \(\frac{dy}{dx}\):</strong></p>
-        <p>Pindahkan suku \(dx\) ke ruas kanan:</p>
-        <div class="math-block">$$(-4x - 3y^2)\,dy = -(2x - 4y)\,dx$$</div>
-        <p>Kalikan kedua ruas dengan \(-1\):</p>
-        <div class="math-block">$$(4x + 3y^2)\,dy = (2x - 4y)\,dx$$</div>
-        <p>Bagi kedua ruas dengan \((4x + 3y^2)\,dx\):</p>
-        <div class="math-block">$$\frac{dy}{dx} = \frac{2x - 4y}{4x + 3y^2}$$</div>
-
-        <p style="margin-top:0.75rem;"><strong>Langkah 6 — Bandingkan dengan PD asli:</strong></p>
-        <p>PD yang diberikan: \(\frac{dy}{dx} = \frac{2x - 4y}{4x + 3y^2}\)</p>
-        <p>Hasil dari diferensial total: \(\frac{dy}{dx} = \frac{2x - 4y}{4x + 3y^2}\)</p>
-        <p><strong>Kedua ekspresi sama persis!</strong></p>
-
-        <p style="margin-top:0.75rem; padding:0.75rem; background:rgba(6,214,160,0.08); border-radius:8px; color:var(--accent-cyan); font-weight:700;">
-          ✅ Karena turunan parsial dari \(f(x,y) = x^2 - 4xy - y^3 + c\) menghasilkan PD yang sama, maka fungsi tersebut merupakan penyelesaian.
-        </p>
-      </div>
-
-      <div class="feedback" id="feedback-q5"></div>
-    </div>
-  </div>
-</section>
-
-<!-- ════════════════════ JUPYTER NOTEBOOK ════════════════════ -->
-<section class="section fade-in" id="jupyter">
-  <div class="section-label">🐍 PYTHON</div>
-  <h2 class="section-title">Mengerjakan PD di Jupyter Notebook (VS Code)</h2>
-  <div class="section-divider"></div>
-
-  <div class="analogy-box" style="border-color:rgba(239,131,84,0.3); background:linear-gradient(135deg, rgba(239,131,84,0.06), rgba(123,47,247,0.06));">
-    <h4 style="color:var(--accent-orange);">🛠️ Persiapan</h4>
-    <p>Pastikan sudah menginstal Python, VS Code, dan ekstensi Jupyter. Berikut langkah setup:</p>
-  </div>
-
-  <div class="step-list">
-    <div class="step-item">
-      <div class="step-content">
-        <h4>Install Ekstensi Jupyter di VS Code</h4>
-        <p>Buka VS Code → Klik ikon Extensions (Ctrl+Shift+X) → Cari "Jupyter" → Install.</p>
-      </div>
-    </div>
-    <div class="step-item">
-      <div class="step-content">
-        <h4>Install Library Python</h4>
-        <p>Buka terminal di VS Code (Ctrl+`) dan jalankan:</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="code-block">
-    <div class="code-header">
-      <div class="code-dots"><span></span><span></span><span></span></div>
-      <span>Terminal</span>
-      <button class="code-copy" onclick="copyCode(this)">📋 Copy</button>
-    </div>
-    <div class="code-body">
-<pre>pip install sympy numpy matplotlib</pre>
-    </div>
-  </div>
-
-  <div class="step-list" style="margin-top:1rem;">
-    <div class="step-item">
-      <div class="step-content">
-        <h4>Buat File Notebook Baru</h4>
-        <p>Klik Ctrl+Shift+P → ketik "Jupyter: Create New Notebook" → pilih kernel Python.</p>
-      </div>
-    </div>
-  </div>
-
-  <h3 style="margin-top:3rem; margin-bottom:1rem; font-family:'Playfair Display',serif;">
-    Contoh 1: Verifikasi Solusi PD (Contoh 1.1)
-  </h3>
-  <p>Memverifikasi apakah \(y = e^{2x}\) adalah solusi dari \(y'' - 4y' + 4y = 0\).</p>
-
-  <div class="code-block">
-    <div class="code-header">
-      <div class="code-dots"><span></span><span></span><span></span></div>
-      <span>Python (Jupyter Notebook)</span>
-      <button class="code-copy" onclick="copyCode(this)">📋 Copy</button>
-    </div>
-    <div class="code-body">
-<pre><span class="comment"># Cell 1: Import library</span>
-<span class="keyword">from</span> sympy <span class="keyword">import</span> symbols, exp, diff, simplify, Function, dsolve, Eq
-<span class="keyword">from</span> sympy <span class="keyword">import</span> cos, sin, ln
-
-<span class="comment"># Definisikan variabel</span>
-x = <span class="function">symbols</span>(<span class="string">'x'</span>)
-
-<span class="comment"># Definisikan fungsi y = e^(2x)</span>
-y = <span class="function">exp</span>(<span class="number">2</span>*x)
-
-<span class="comment"># Hitung turunan pertama dan kedua</span>
-y1 = <span class="function">diff</span>(y, x)      <span class="comment"># y'</span>
-y2 = <span class="function">diff</span>(y, x, <span class="number">2</span>)   <span class="comment"># y''</span>
-
-<span class="function">print</span>(<span class="string">f"y   = {y}"</span>)
-<span class="function">print</span>(<span class="string">f"y'  = {y1}"</span>)
-<span class="function">print</span>(<span class="string">f"y'' = {y2}"</span>)
-
-<span class="comment"># Substitusi ke PD: y'' - 4y' + 4y</span>
-hasil = <span class="function">simplify</span>(y2 - <span class="number">4</span>*y1 + <span class="number">4</span>*y)
-<span class="function">print</span>(<span class="string">f"\ny'' - 4y' + 4y = {hasil}"</span>)
-
-<span class="keyword">if</span> hasil == <span class="number">0</span>:
-    <span class="function">print</span>(<span class="string">"✅ y = e^(2x) ADALAH penyelesaian!"</span>)
-<span class="keyword">else</span>:
-    <span class="function">print</span>(<span class="string">"❌ y = e^(2x) BUKAN penyelesaian."</span>)</pre>
-    </div>
-  </div>
-
-  <div class="code-block" style="border-color:rgba(6,214,160,0.3);">
-    <div class="code-header">
-      <div class="code-dots"><span></span><span></span><span></span></div>
-      <span>Output</span>
-    </div>
-    <div class="code-body">
-<pre><span class="output">y   = exp(2*x)
-y'  = 2*exp(2*x)
-y'' = 4*exp(2*x)
-
-y'' - 4y' + 4y = 0
-✅ y = e^(2x) ADALAH penyelesaian!</span></pre>
-    </div>
-  </div>
-
-  <h3 style="margin-top:3rem; margin-bottom:1rem; font-family:'Playfair Display',serif;">
-    Contoh 2: Menyelesaikan PD Orde Satu dengan SymPy
-  </h3>
-  <p>Menyelesaikan \(y' + 2y = 0\) secara simbolik menggunakan <code>dsolve</code>.</p>
-
-  <div class="code-block">
-    <div class="code-header">
-      <div class="code-dots"><span></span><span></span><span></span></div>
-      <span>Python (Jupyter Notebook)</span>
-      <button class="code-copy" onclick="copyCode(this)">📋 Copy</button>
-    </div>
-    <div class="code-body">
-<pre><span class="comment"># Cell 2: Menyelesaikan PD menggunakan dsolve</span>
-<span class="keyword">from</span> sympy <span class="keyword">import</span> symbols, Function, dsolve, Eq
-
-x = <span class="function">symbols</span>(<span class="string">'x'</span>)
-y = <span class="function">Function</span>(<span class="string">'y'</span>)
-
-<span class="comment"># Definisikan PD: y' + 2y = 0</span>
-pd = <span class="function">Eq</span>(y(x).<span class="function">diff</span>(x) + <span class="number">2</span>*y(x), <span class="number">0</span>)
-<span class="function">print</span>(<span class="string">"PD:"</span>, pd)
-
-<span class="comment"># Selesaikan PD</span>
-solusi = <span class="function">dsolve</span>(pd, y(x))
-<span class="function">print</span>(<span class="string">"Solusi:"</span>, solusi)</pre>
-    </div>
-  </div>
-
-  <div class="code-block" style="border-color:rgba(6,214,160,0.3);">
-    <div class="code-header">
-      <div class="code-dots"><span></span><span></span><span></span></div>
-      <span>Output</span>
-    </div>
-    <div class="code-body">
-<pre><span class="output">PD: Eq(2*y(x) + Derivative(y(x), x), 0)
-Solusi: Eq(y(x), C1*exp(-2*x))</span></pre>
-    </div>
-  </div>
-
-  <h3 style="margin-top:3rem; margin-bottom:1rem; font-family:'Playfair Display',serif;">
-    Contoh 3: Visualisasi Solusi PD
-  </h3>
-  <p>Plot grafik solusi \(y = Ce^{-2x}\) untuk beberapa nilai \(C\).</p>
-
-  <div class="code-block">
-    <div class="code-header">
-      <div class="code-dots"><span></span><span></span><span></span></div>
-      <span>Python (Jupyter Notebook)</span>
-      <button class="code-copy" onclick="copyCode(this)">📋 Copy</button>
-    </div>
-    <div class="code-body">
-<pre><span class="comment"># Cell 3: Visualisasi solusi PD</span>
-<span class="keyword">import</span> numpy <span class="keyword">as</span> np
-<span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt
-
-x = np.<span class="function">linspace</span>(<span class="number">0</span>, <span class="number">3</span>, <span class="number">200</span>)
-
-plt.<span class="function">figure</span>(figsize=(<span class="number">10</span>, <span class="number">6</span>))
-plt.<span class="function">style.use</span>(<span class="string">'dark_background'</span>)
-
-<span class="comment"># Plot untuk beberapa konstanta C</span>
-<span class="keyword">for</span> C <span class="keyword">in</span> [<span class="number">-2</span>, <span class="number">-1</span>, <span class="number">0.5</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]:
-    y = C * np.<span class="function">exp</span>(<span class="number">-2</span>*x)
-    plt.<span class="function">plot</span>(x, y, linewidth=<span class="number">2</span>, label=<span class="string">f'C = {C}'</span>)
-
-plt.<span class="function">axhline</span>(y=<span class="number">0</span>, color=<span class="string">'white'</span>, linewidth=<span class="number">0.5</span>)
-plt.<span class="function">xlabel</span>(<span class="string">'x'</span>, fontsize=<span class="number">14</span>)
-plt.<span class="function">ylabel</span>(<span class="string">'y'</span>, fontsize=<span class="number">14</span>)
-plt.<span class="function">title</span>(<span class="string">"Keluarga Solusi: y' + 2y = 0  →  y = Ce⁻²ˣ"</span>, fontsize=<span class="number">16</span>)
-plt.<span class="function">legend</span>(fontsize=<span class="number">11</span>)
-plt.<span class="function">grid</span>(alpha=<span class="number">0.2</span>)
-plt.<span class="function">tight_layout</span>()
-plt.<span class="function">show</span>()</pre>
-    </div>
-  </div>
-
-  <h3 style="margin-top:3rem; margin-bottom:1rem; font-family:'Playfair Display',serif;">
-    Contoh 4: Verifikasi Contoh 1.2 (PD Koefisien Variabel)
-  </h3>
-
-  <div class="code-block">
-    <div class="code-header">
-      <div class="code-dots"><span></span><span></span><span></span></div>
-      <span>Python (Jupyter Notebook)</span>
-      <button class="code-copy" onclick="copyCode(this)">📋 Copy</button>
-    </div>
-    <div class="code-body">
-<pre><span class="comment"># Cell 4: Verifikasi y = x^2 * ln^2(x) untuk x²y'' - 3xy' + 4y = 2x²</span>
-<span class="keyword">from</span> sympy <span class="keyword">import</span> symbols, ln, diff, simplify, expand
-
-x = <span class="function">symbols</span>(<span class="string">'x'</span>, positive=<span class="keyword">True</span>)
-
-<span class="comment"># Definisikan y</span>
-y = x**<span class="number">2</span> * <span class="function">ln</span>(x)**<span class="number">2</span>
-
-<span class="comment"># Hitung turunan</span>
-y1 = <span class="function">diff</span>(y, x)
-y2 = <span class="function">diff</span>(y, x, <span class="number">2</span>)
-
-<span class="function">print</span>(<span class="string">f"y   = {y}"</span>)
-<span class="function">print</span>(<span class="string">f"y'  = {<span class="function">expand</span>(y1)}"</span>)
-<span class="function">print</span>(<span class="string">f"y'' = {<span class="function">expand</span>(y2)}"</span>)
-
-<span class="comment"># Substitusi ke PD: x²y'' - 3xy' + 4y</span>
-hasil = <span class="function">simplify</span>(x**<span class="number">2</span> * y2 - <span class="number">3</span>*x*y1 + <span class="number">4</span>*y)
-<span class="function">print</span>(<span class="string">f"\nx²y'' - 3xy' + 4y = {<span class="function">simplify</span>(hasil)}"</span>)
-<span class="function">print</span>(<span class="string">f"Ruas kanan: 2x² = {<span class="number">2</span>*x**<span class="number">2</span>}"</span>)
-
-<span class="keyword">if</span> <span class="function">simplify</span>(hasil - <span class="number">2</span>*x**<span class="number">2</span>) == <span class="number">0</span>:
-    <span class="function">print</span>(<span class="string">"✅ Penyelesaian terverifikasi!"</span>)
-<span class="keyword">else</span>:
-    <span class="function">print</span>(<span class="string">"❌ Bukan penyelesaian."</span>)</pre>
-    </div>
-  </div>
-
-  <div class="analogy-box" style="margin-top:2rem;">
-    <h4>📌 Tips Menggunakan Jupyter di VS Code</h4>
-    <p>• Gunakan <strong>Shift+Enter</strong> untuk menjalankan cell dan pindah ke cell berikutnya.</p>
-    <p>• Gunakan <strong>Ctrl+Enter</strong> untuk menjalankan cell tanpa pindah.</p>
-    <p>• Klik <strong>+ Code</strong> di toolbar untuk menambah cell baru.</p>
-    <p>• Simpan notebook dengan <strong>Ctrl+S</strong> (format .ipynb).</p>
-    <p>• Untuk melihat semua variabel, install ekstensi <strong>"Jupyter Variables"</strong>.</p>
-  </div>
-</section>
-
-<!-- ════════════════════ DAFTAR PUSTAKA ════════════════════ -->
-<section class="section fade-in" id="pustaka" style="padding-bottom:3rem;">
-  <div class="section-label">📚 REFERENSI</div>
-  <h2 class="section-title">Daftar Pustaka</h2>
-  <div class="section-divider"></div>
-  <div class="card" style="background:linear-gradient(135deg,rgba(17,138,178,0.05),rgba(123,47,247,0.05));">
-    <p style="margin-bottom:1rem; color:var(--text-secondary); font-size:0.9rem;">Sumber rujukan yang digunakan dalam modul ini:</p>
-    <p style="padding-left:2.5rem; text-indent:-2.5rem; margin-bottom:0.75rem;">
-      <span style="color:var(--accent-cyan); font-weight:700;">[1]</span>&ensp;Sucipto, Erwin. <em>Engineering Mathematics</em> – 3rd Edition. Jakarta: Erlangga, 1994.
-    </p>
-    <p style="padding-left:2.5rem; text-indent:-2.5rem;">
-      <span style="color:var(--accent-cyan); font-weight:700;">[2]</span>&ensp;Markoni. <em>Pengantar Dasar Matematika Rekayasa</em> – 1st Edition. Yogyakarta: Graha Ilmu, 2014.
-    </p>
-  </div>
-</section>
-
-<!-- ════════════════════ FOOTER ════════════════════ -->
-
-<!-- ═══ DAFTAR PENGUNJUNG ═══ -->
-<section style="max-width:900px;margin:48px auto 0;padding:0 24px;">
-  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px;">
+<!-- ==================== WELCOME ==================== -->
+<div class="container">
+  <div class="welcome-box fade-up d2">
+    <div class="welcome-icon">👋</div>
     <div>
-      <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.05);border:1px solid #2a3548;color:#06d6a0;padding:5px 14px;border-radius:999px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;">👥 Pengunjung</span>
-      <h2 style="font-size:1.6rem;font-weight:800;color:#fff;margin-top:12px;">Daftar Pengunjung</h2>
-      <p style="color:#94a3b8;font-size:.85rem;margin-top:6px;">Mahasiswa yang telah mengakses halaman ini.</p>
+      <h2 class="text-xl font-bold mb-2">Halo, Mahasiswa Teknik Mesin yang Hebat!</h2>
+      <p class="text-s300 leading-relaxed">
+        Selamat datang di Pertemuan 1 mata kuliah
+        <strong class="text-teal">OPTIMALISASI DAN OTOMASI</strong>.
+        Hari ini kita memahami konsep dasar <strong>Time Series Data</strong>
+        dengan contoh nyata <strong>data getaran mesin</strong>.
+        Materi dirancang interaktif dengan animasi agar kalian langsung paham dan semangat belajar!
+      </p>
     </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;"><button onclick="showResetModal()" style="padding:10px 20px;border-radius:12px;border:1px solid rgba(251,113,133,.3);background:rgba(251,113,133,.08);color:#fb7185;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:6px;" onmouseenter="this.style.background='rgba(251,113,133,.18)'" onmouseleave="this.style.background='rgba(251,113,133,.08)'">🗑 Reset</button></div>
   </div>
-<div id="scheduleInfo" style="display:none;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.2);border-radius:14px;padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+</div>
+
+<!-- ==================== SECTION 1: SILABUS & PENILAIAN ==================== -->
+<section class="section container">
+  <div class="section-header">
+    <span class="section-number">01</span>
+    <span class="badge mb-3">Informasi Mata Kuliah</span>
+    <h2 class="text-3xl font-bold mt-2">Silabus &amp; Sistem Penilaian</h2>
+    <p class="text-s400 mt-2">Gambaran umum mata kuliah dan komponen penilaian semester ini.</p>
+  </div>
+
+  <div class="grid-2">
+
+    <!-- SILABUS -->
+    <div class="info-card">
+      <h3 class="font-bold text-xl text-teal mb-6" style="display:flex;align-items:center;gap:8px;">
+        <span>📋</span> Silabus Mata Kuliah
+      </h3>
+
+      <div class="syllabus-item">
+        <span class="syl-num">01</span>
+        <div>
+          <p class="font-semibold text-s200" style="font-size:.9rem;">Nama Mata Kuliah</p>
+          <p class="text-s300 mt-1">Optimalisasi dan Otomasi</p>
+        </div>
+      </div>
+
+      <div class="syllabus-item">
+        <span class="syl-num">02</span>
+        <div>
+          <p class="font-semibold text-s200" style="font-size:.9rem;">Bobot SKS</p>
+          <p class="text-s300 mt-1">3 SKS</p>
+        </div>
+      </div>
+
+      <div class="syllabus-item">
+        <span class="syl-num">03</span>
+        <div>
+          <p class="font-semibold text-s200" style="font-size:.9rem;">Tujuan Pembelajaran</p>
+          <p class="text-s400 mt-1" style="font-size:.875rem;line-height:1.6;">
+            Mahasiswa mampu mengoptimalkan dan mengotomasi sistem mesin menggunakan
+            data time series (getaran, suhu, tekanan) untuk mengurangi downtime
+            dan meningkatkan efisiensi produksi.
+          </p>
+        </div>
+      </div>
+
+      <div class="syllabus-item">
+        <span class="syl-num">04</span>
+        <div>
+          <p class="font-semibold text-s200" style="font-size:.9rem;">Ruang Lingkup</p>
+          <p class="text-s400 mt-1" style="font-size:.875rem;line-height:1.6;">
+            Time series data, preprocessing, ekstraksi &amp; seleksi fitur,
+            klasifikasi, dan integrasi ke sistem otomasi mesin.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PENILAIAN -->
+    <div class="info-card" style="border-color:rgba(45,212,191,.2);">
+      <h3 class="font-bold text-xl text-teal mb-6" style="display:flex;align-items:center;gap:8px;">
+        <span>📊</span> Penilaian Mata Kuliah
+      </h3>
+
+      <div class="grade-row">
+        <div class="flex items-start gap-4">
+          <div class="grade-icon" style="background:rgba(45,212,191,.1);">📝</div>
+          <div>
+            <p class="font-bold text-s200" style="font-size:1.05rem;">Tugas</p>
+            <p class="text-xs text-s500 mt-1">Analisis data mesin setiap minggu</p>
+          </div>
+        </div>
+        <p class="grade-pct text-teal">60%</p>
+      </div>
+
+      <div class="grade-row">
+        <div class="flex items-start gap-4">
+          <div class="grade-icon" style="background:rgba(251,191,36,.1);">📘</div>
+          <div>
+            <p class="font-bold text-s200" style="font-size:1.05rem;">UTS</p>
+            <p class="text-xs text-s500 mt-1">Teori + studi kasus sederhana</p>
+          </div>
+        </div>
+        <p class="grade-pct text-amber">20%</p>
+      </div>
+
+      <div class="grade-row">
+        <div class="flex items-start gap-4">
+          <div class="grade-icon" style="background:rgba(251,113,133,.1);">📕</div>
+          <div>
+            <p class="font-bold text-s200" style="font-size:1.05rem;">UAS</p>
+            <p class="text-xs text-s500 mt-1">Proyek mini + presentasi</p>
+          </div>
+        </div>
+        <p class="grade-pct text-rose">20%</p>
+      </div>
+
+      <p class="text-xs text-s500 mt-4 text-center">Total = 100% • Kerjakan tugas setiap minggu agar nilai optimal!</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ==================== SECTION 2: APA ITU TIME SERIES ==================== -->
+<section class="section container">
+  <div class="section-header">
+    <span class="section-number">02</span>
+    <span class="badge mb-3">Konsep Dasar</span>
+    <h2 class="text-3xl font-bold mt-2">Apa Itu Time Series Data?</h2>
+    <p class="text-s400 mt-2">
+      Data yang direkam secara berurutan terhadap waktu.
+      Contoh di Teknik Mesin: <strong class="text-teal">getaran mesin</strong> yang diukur setiap 0.05 detik.
+    </p>
+  </div>
+
+  <!-- Interactive Chart -->
+  <div class="chart-panel">
+    <div class="chart-top">
+      <h3 class="font-bold text-xl">Data Getaran Mesin Bearing (Normal vs Faulty)</h3>
+      <div class="btn-group">
+        <button class="tbtn tbtn-teal"     id="btn-n" onclick="setMode('normal',this)">🟢 Normal</button>
+        <button class="tbtn tbtn-inactive" id="btn-f" onclick="setMode('faulty',this)">🔴 Faulty</button>
+        <button class="tbtn tbtn-inactive" id="btn-b" onclick="setMode('both',this)">📊 Bandingkan</button>
+      </div>
+    </div>
+
+    <div class="slider-row">
+      <label>Noise Level:</label>
+      <input type="range" id="noiseSlider" min="0" max="1" step="0.05" value="0.3" oninput="updateChart()">
+      <span class="slider-val" id="noiseVal">0.30</span>
+    </div>
+
+    <div style="height:320px;">
+      <canvas id="vibrationChart"></canvas>
+    </div>
+
+    <div class="chart-legend-row">
+      <div class="legend-box">
+        <p class="font-semibold text-teal mb-1">Normal</p>
+        <p class="text-xs text-s500">Amplitudo stabil • RMS rendah</p>
+      </div>
+      <div class="legend-box">
+        <p class="font-semibold text-amber mb-1">Tren</p>
+        <p class="text-xs text-s500">Getaran pelan-pelan naik</p>
+      </div>
+      <div class="legend-box">
+        <p class="font-semibold text-rose mb-1">Faulty</p>
+        <p class="text-xs text-s500">Amplitudo besar + noise tinggi</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SECTION 3: KARAKTERISTIK ==================== -->
+<section class="section container">
+  <div class="section-header">
+    <span class="section-number">03</span>
+    <span class="badge mb-3">Teori</span>
+    <h2 class="text-3xl font-bold mt-2">Karakteristik Time Series pada Data Getaran Mesin</h2>
+    <p class="text-s400 mt-2">Empat komponen utama yang membentuk sinyal time series di industri.</p>
+  </div>
+
+  <div class="grid-4">
+
+    <!-- TREN -->
+    <div class="char-card">
+      <div class="char-bar" style="background:linear-gradient(90deg,var(--teal),transparent);"></div>
+      <h4 class="font-bold text-teal mb-2">1. Tren (Trend)</h4>
+      <p class="text-s400" style="font-size:.87rem;line-height:1.65;">
+        Perubahan lambat jangka panjang.<br>
+        Contoh: getaran bearing semakin besar seiring waktu karena aus.
+      </p>
+      <div class="spark-area"><canvas id="sparkTren"></canvas></div>
+    </div>
+
+    <!-- MUSIMAN -->
+    <div class="char-card">
+      <div class="char-bar" style="background:linear-gradient(90deg,var(--lime),transparent);"></div>
+      <h4 class="font-bold text-lime mb-2">2. Musiman (Seasonal)</h4>
+      <p class="text-s400" style="font-size:.87rem;line-height:1.65;">
+        Pola berulang dalam periode tetap.<br>
+        Contoh: getaran naik saat shift pagi (beban produksi tinggi).
+      </p>
+      <div class="spark-area"><canvas id="sparkMusim"></canvas></div>
+    </div>
+
+    <!-- SIKLIK -->
+    <div class="char-card">
+      <div class="char-bar" style="background:linear-gradient(90deg,var(--amber),transparent);"></div>
+      <h4 class="font-bold text-amber mb-2">3. Siklik (Cyclical)</h4>
+      <p class="text-s400" style="font-size:.87rem;line-height:1.65;">
+        Pola naik-turun tanpa periode tetap.<br>
+        Contoh: getaran berubah karena suhu lingkungan pabrik.
+      </p>
+      <div class="spark-area"><canvas id="sparkSiklik"></canvas></div>
+    </div>
+
+    <!-- NOISE -->
+    <div class="char-card">
+      <div class="char-bar" style="background:linear-gradient(90deg,var(--rose),transparent);"></div>
+      <h4 class="font-bold text-rose mb-2">4. Noise (Gangguan)</h4>
+      <p class="text-s400" style="font-size:.87rem;line-height:1.65;">
+        Fluktuasi acak tak beraturan.<br>
+        Contoh: getaran kecil karena getaran lantai pabrik.
+      </p>
+      <div class="spark-area"><canvas id="sparkNoise"></canvas></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ==================== SECTION 4: STUDI KASUS ==================== -->
+<section class="section container">
+  <div class="section-header">
+    <span class="section-number">04</span>
+    <span class="badge mb-3">Studi Kasus</span>
+    <h2 class="text-3xl font-bold mt-2">Studi Kasus: Bearing Mesin Pompa Air</h2>
+    <p class="text-s400 mt-2">Pengukuran getaran nyata setiap 0.05 detik selama 10 detik.</p>
+  </div>
+
+  <div class="studi-box">
+    <div class="studi-inner">
+      <div>
+        <p class="text-s300 leading-relaxed" style="font-size:.95rem;">
+          Bayangkan mesin pompa air di pabrik. Kita mengukur getaran setiap
+          <strong class="text-teal">0.05 detik</strong> selama <strong class="text-teal">10 detik</strong>.
+        </p>
+
+        <div style="margin-top:20px;display:flex;flex-direction:column;gap:12px;">
+          <div class="studi-stat">
+            <span class="text-teal font-bold" style="font-size:1.1rem;">✔</span>
+            <span><strong class="text-teal">Normal</strong> — amplitudo kecil &amp; stabil</span>
+            <span class="chip chip-teal ml-auto">RMS ≈ 0.5</span>
+          </div>
+          <div class="studi-stat">
+            <span class="text-rose font-bold" style="font-size:1.1rem;">⚠</span>
+            <span><strong class="text-rose">Faulty</strong> — amplitudo melonjak, bearing aus</span>
+            <span class="chip chip-rose ml-auto">RMS ≈ 2.1</span>
+          </div>
+        </div>
+
+        <div class="hint-box hint-teal mt-6">
+          📌 <strong>Takeaway:</strong> Kenaikan RMS sebesar &gt;4× dari nilai normal merupakan
+          indikator kuat adanya kerusakan pada bearing. Inilah dasar dari
+          <em>predictive maintenance</em> berbasis data time series.
+        </div>
+      </div>
+
+      <div class="studi-icon-box">🛠️</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SECTION 5: JUPYTER ==================== -->
+<section class="section container">
+  <div class="section-header">
+    <span class="section-number">05</span>
+    <span class="badge mb-3">💻 Simulasi</span>
+    <h2 class="text-3xl font-bold mt-2">Simulasi Jupyter Notebook di VS Code</h2>
+    <p class="text-s400 mt-2">Kode siap copy-paste. Buka VS Code → New Jupyter Notebook (.ipynb)</p>
+  </div>
+
+  <!-- Cell 1 -->
+  <div class="cell">
+    <div class="cell-bar">
+      <div class="dot-row"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+      <span class="cell-label">Cell 1 — Import Library</span>
+      <span class="cell-run">[ ] Run</span>
+    </div>
+<pre class="code-pre"><span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+
+plt.style.use(<span class="str">'dark_background'</span>)
+plt.rcParams[<span class="str">'figure.facecolor'</span>] = <span class="str">'#0f172a'</span>
+plt.rcParams[<span class="str">'axes.facecolor'</span>]   = <span class="str">'#1e293b'</span>
+plt.rcParams[<span class="str">'grid.color'</span>]        = <span class="str">'#334155'</span>
+
+<span class="fn">print</span>(<span class="str">"✅ Library siap!"</span>)</pre>
+  </div>
+
+  <!-- Cell 2 -->
+  <div class="cell">
+    <div class="cell-bar">
+      <div class="dot-row"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+      <span class="cell-label">Cell 2 — Latihan 1: Visualisasi Time Series Normal</span>
+      <span class="cell-run">[ ] Run</span>
+    </div>
+<pre class="code-pre"><span class="cm"># Data time series getaran mesin normal</span>
+time      = np.arange(<span class="nm">0</span>, <span class="nm">10.01</span>, <span class="nm">0.05</span>)
+vibration = (<span class="nm">0.5</span> * np.sin(time * <span class="nm">8</span>)
+           + <span class="nm">0.1</span> * (time / <span class="nm">10</span>)
+           + np.random.uniform(-<span class="nm">0.1</span>, <span class="nm">0.1</span>, <span class="fn">len</span>(time)))
+
+plt.figure(figsize=(<span class="nm">10</span>, <span class="nm">5</span>))
+plt.plot(time, vibration, color=<span class="str">'#2dd4bf'</span>, linewidth=<span class="nm">2</span>,
+         label=<span class="str">'Getaran Mesin Normal'</span>)
+plt.title(<span class="str">'Time Series Data Getaran Mesin Bearing - Normal'</span>)
+plt.xlabel(<span class="str">'Waktu (detik)'</span>)
+plt.ylabel(<span class="str">'Amplitudo Getaran (mm/s)'</span>)
+plt.legend()
+plt.grid(<span class="kw">True</span>, alpha=<span class="nm">0.3</span>)
+plt.show()
+
+<span class="cm"># Jawab di Markdown cell:</span>
+<span class="cm"># a) Ada tren naik atau tidak? Jelaskan dari bentuk grafik!</span>
+<span class="cm"># b) Berapa perkiraan amplitudo noise yang terlihat?</span></pre>
+  </div>
+
+  <!-- Cell 3 -->
+  <div class="cell">
+    <div class="cell-bar">
+      <div class="dot-row"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+      <span class="cell-label">Cell 3 — Latihan 2: Identifikasi Karakteristik</span>
+      <span class="cell-run">[ ] Run</span>
+    </div>
+<pre class="code-pre"><span class="cm"># Pisahkan komponen-komponen time series secara manual</span>
+time = np.arange(<span class="nm">0</span>, <span class="nm">60</span>, <span class="nm">0.5</span>)     <span class="cm"># 60 detik, sampling 2 Hz</span>
+
+tren     = <span class="nm">0.01</span> * time                                  <span class="cm"># komponen tren</span>
+musiman  = <span class="nm">0.3</span> * np.sin(<span class="nm">2</span>*np.pi*time/<span class="nm">8</span>)               <span class="cm"># musiman (periode 8 s)</span>
+siklik   = <span class="nm">0.5</span> * np.sin(<span class="nm">2</span>*np.pi*time/<span class="nm">30</span>)              <span class="cm"># siklik (periode 30 s)</span>
+noise    = <span class="nm">0.08</span> * np.random.randn(<span class="fn">len</span>(time))            <span class="cm"># gangguan acak</span>
+sinyal   = tren + musiman + siklik + noise                <span class="cm"># sinyal total</span>
+
+fig, axes = plt.subplots(<span class="nm">5</span>, <span class="nm">1</span>, figsize=(<span class="nm">12</span>, <span class="nm">10</span>), sharex=<span class="kw">True</span>)
+fig.suptitle(<span class="str">'Dekomposisi Karakteristik Time Series'</span>,
+             color=<span class="str">'#e2e8f0'</span>, fontweight=<span class="str">'bold'</span>, fontsize=<span class="nm">13</span>)
+
+pairs = [
+    (sinyal,  <span class="str">'#e2e8f0'</span>, <span class="str">'Sinyal Total'</span>),
+    (tren,    <span class="str">'#2dd4bf'</span>, <span class="str">'Tren'</span>),
+    (musiman, <span class="str">'#a3e635'</span>, <span class="str">'Musiman'</span>),
+    (siklik,  <span class="str">'#fbbf24'</span>, <span class="str">'Siklik'</span>),
+    (noise,   <span class="str">'#fb7185'</span>, <span class="str">'Noise'</span>),
+]
+<span class="kw">for</span> ax, (d, c, lb) <span class="kw">in</span> <span class="fn">zip</span>(axes, pairs):
+    ax.plot(time, d, color=c, lw=<span class="nm">1.5</span>)
+    ax.set_ylabel(lb, color=c, fontsize=<span class="nm">9</span>)
+    ax.grid(<span class="kw">True</span>, alpha=<span class="nm">0.3</span>)
+
+axes[-<span class="nm">1</span>].set_xlabel(<span class="str">'Waktu (detik)'</span>, color=<span class="str">'#94a3b8'</span>)
+plt.tight_layout(); plt.show()</pre>
+  </div>
+
+  <!-- Cell 4 -->
+  <div class="cell">
+    <div class="cell-bar">
+      <div class="dot-row"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+      <span class="cell-label">Cell 4 — Latihan 3: Buat Data Faulty &amp; Bandingkan</span>
+      <span class="cell-run">[ ] Run</span>
+    </div>
+<pre class="code-pre"><span class="cm"># Bandingkan Normal vs Faulty dalam satu grafik</span>
+time   = np.arange(<span class="nm">0</span>, <span class="nm">10.01</span>, <span class="nm">0.05</span>)
+normal = (<span class="nm">0.5</span> * np.sin(time * <span class="nm">8</span>)
+        + <span class="nm">0.1</span> * (time / <span class="nm">10</span>)
+        + np.random.uniform(-<span class="nm">0.1</span>, <span class="nm">0.1</span>, <span class="fn">len</span>(time)))
+
+faulty = (<span class="nm">1.8</span> * np.sin(time * <span class="nm">8</span>)
+        + <span class="nm">0.3</span> * (time / <span class="nm">10</span>)
+        + np.random.uniform(-<span class="nm">0.4</span>, <span class="nm">0.4</span>, <span class="fn">len</span>(time)))
+
+plt.figure(figsize=(<span class="nm">10</span>, <span class="nm">5</span>))
+plt.plot(time, normal, color=<span class="str">'#2dd4bf'</span>, label=<span class="str">'Normal'</span>,       lw=<span class="nm">2</span>)
+plt.plot(time, faulty, color=<span class="str">'#fb7185'</span>, label=<span class="str">'Faulty (Rusak)'</span>, lw=<span class="nm">2</span>)
+plt.title(<span class="str">'Perbandingan Getaran Mesin Normal vs Faulty'</span>)
+plt.xlabel(<span class="str">'Waktu (detik)'</span>)
+plt.ylabel(<span class="str">'Amplitudo Getaran (mm/s)'</span>)
+plt.legend(); plt.grid(<span class="kw">True</span>, alpha=<span class="nm">0.3</span>); plt.show()
+
+<span class="cm"># Hitung RMS keduanya</span>
+rms_n = np.sqrt(np.mean(normal**<span class="nm">2</span>))
+rms_f = np.sqrt(np.mean(faulty**<span class="nm">2</span>))
+<span class="fn">print</span>(<span class="str">f"RMS Normal : {rms_n:.4f}"</span>)
+<span class="fn">print</span>(<span class="str">f"RMS Faulty : {rms_f:.4f}"</span>)
+<span class="fn">print</span>(<span class="str">f"Rasio      : {rms_f/rms_n:.2f}x"</span>)</pre>
+  </div>
+</section>
+
+<!-- ==================== SECTION 6: LATIHAN ==================== -->
+<section class="section container" style="margin-bottom:0;">
+  <div class="section-header">
+    <span class="section-number">06</span>
+    <span class="badge mb-3">📝 Latihan</span>
+    <h2 class="text-3xl font-bold mt-2">Soal Latihan — Kerjakan di Jupyter Notebook</h2>
+    <p class="text-s400 mt-2">Kerjakan setiap soal di Jupyter Notebook dan jalankan semua cell.</p>
+  </div>
+
+  <!-- Soal 1 -->
+  <div class="ex-card">
+    <div class="ex-head" style="background:linear-gradient(90deg,rgba(45,212,191,.07),transparent)">
+      <div class="ex-num" style="background:rgba(45,212,191,.14);color:var(--teal);">01</div>
+      <div class="flex-1">
+        <h4 class="font-bold text-lg">Visualisasi Time Series</h4>
+        <p class="text-s500 text-sm">Plot data getaran mesin normal dan amati karakteristiknya</p>
+      </div>
+      <span class="chip chip-teal">🟢 Mudah</span>
+    </div>
+    <div class="ex-body">
+      <p class="text-s300 mb-4" style="font-size:.88rem;">
+        Buat plot data getaran mesin normal menggunakan kode pada Cell 2.
+        Jalankan di Jupyter dan amati hasilnya, lalu jawab pertanyaan berikut di <strong class="text-teal">Markdown cell</strong>:
+      </p>
+      <ul class="ex-list">
+        <li>Apakah terdapat tren naik pada sinyal? Jelaskan dari bentuk grafik!</li>
+        <li>Berapa perkiraan amplitudo noise yang terlihat?</li>
+        <li>Jika sampling setiap 0.05 detik, berapa sampling rate-nya (Hz)?</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Soal 2 -->
+  <div class="ex-card">
+    <div class="ex-head" style="background:linear-gradient(90deg,rgba(163,230,53,.07),transparent)">
+      <div class="ex-num" style="background:rgba(163,230,53,.14);color:var(--lime);">02</div>
+      <div class="flex-1">
+        <h4 class="font-bold text-lg">Identifikasi Karakteristik Time Series</h4>
+        <p class="text-s500 text-sm">Dekomposisi manual komponen sinyal</p>
+      </div>
+      <span class="chip chip-lime">🟡 Sedang</span>
+    </div>
+    <div class="ex-body">
+      <p class="text-s300 mb-4" style="font-size:.88rem;">
+        Jalankan kode Cell 3 yang mendekomposisi sinyal menjadi 4 komponen.
+        Amati setiap subplot, lalu jawab:
+      </p>
+      <ul class="ex-list">
+        <li>Komponen mana yang paling dominan pada sinyal total?</li>
+        <li>Apa perbedaan antara komponen musiman dan siklik dari grafik?</li>
+        <li>Mengapa noise bisa berbahaya jika tidak dihilangkan sebelum analisis?</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Soal 3 -->
+  <div class="ex-card">
+    <div class="ex-head" style="background:linear-gradient(90deg,rgba(251,113,133,.07),transparent)">
+      <div class="ex-num" style="background:rgba(251,113,133,.14);color:var(--rose);">03</div>
+      <div class="flex-1">
+        <h4 class="font-bold text-lg">Buat Data Faulty &amp; Bandingkan</h4>
+        <p class="text-s500 text-sm">Plot Normal vs Faulty dan hitung statistik dasar</p>
+      </div>
+      <span class="chip chip-rose">🔴 Menantang</span>
+    </div>
+    <div class="ex-body">
+      <p class="text-s300 mb-4" style="font-size:.88rem;">
+        Jalankan Cell 4, lalu lanjutkan dengan modifikasi berikut:
+      </p>
+      <ul class="ex-list mb-4">
+        <li>Ubah amplitudo faulty menjadi <strong>2.5×</strong> (bukan 1.8×) dan noise menjadi ±0.6. Amati perbedaannya.</li>
+        <li>Hitung dan bandingkan: RMS, nilai Peak, dan Crest Factor (<code>Peak / RMS</code>) untuk Normal dan Faulty.</li>
+        <li>Tuliskan kesimpulan: kondisi apa yang paling mudah dideteksi dari grafik time series?</li>
+      </ul>
+      <div class="hint-box hint-rose">
+        💡 <strong>Hint:</strong>
+        Peak = <code>np.max(np.abs(data))</code> &nbsp;|&nbsp;
+        Crest Factor = <code>Peak / RMS</code> &nbsp;|&nbsp;
+        Nilai Crest Factor &gt; 3 biasanya indikasi kerusakan
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ==================== DAFTAR PUSTAKA ==================== -->
+<section class="section container">
+  <div class="section-header">
+    <span class="badge mb-3">📚 Referensi</span>
+    <h2 class="text-3xl font-black text-white mb-2">Daftar Pustaka</h2>
+    <p class="text-s400" style="max-width:700px;">Referensi dari jurnal internasional bereputasi dan buku internasional yang menjadi landasan materi pertemuan ini.</p>
+    <div class="section-number">REF</div>
+  </div>
+  <div class="info-card" style="padding:28px 32px;">
+    <ol style="list-style:decimal; padding-left:24px; display:flex; flex-direction:column; gap:18px; color:var(--s300); font-size:.88rem; line-height:1.7;">
+      <li>Randall, R. B. (2011). <em>Vibration-based Condition Monitoring: Industrial, Aerospace and Automotive Applications</em>. John Wiley &amp; Sons. ISBN: 978-0-470-74785-8.</li>
+      <li>Lei, Y., He, Z., Zi, Y., &amp; Hu, Q. (2007). Fault diagnosis of rotating machinery based on multiple ANFIS combination with GAs. <em>Mechanical Systems and Signal Processing</em>, 21(5), 2280–2294. <a href="https://doi.org/10.1016/j.ymssp.2006.11.003" target="_blank" rel="noopener" style="color:var(--teal);text-decoration:none;border-bottom:1px dashed rgba(45,212,191,.4);transition:border-color .2s;">DOI: 10.1016/j.ymssp.2006.11.003</a></li>
+      <li>Jardine, A. K. S., Lin, D., &amp; Banjevic, D. (2006). A review on machinery diagnostics and prognostics implementing condition-based maintenance. <em>Mechanical Systems and Signal Processing</em>, 20(7), 1483–1510. <a href="https://doi.org/10.1016/j.ymssp.2005.09.012" target="_blank" rel="noopener" style="color:var(--teal);text-decoration:none;border-bottom:1px dashed rgba(45,212,191,.4);transition:border-color .2s;">DOI: 10.1016/j.ymssp.2005.09.012</a></li>
+      <li>Brockwell, P. J., &amp; Davis, R. A. (2016). <em>Introduction to Time Series and Forecasting</em> (3rd ed.). Springer. ISBN: 978-3-319-29852-2.</li>
+      <li>Henao, H., Capolino, G.-A., Fernandez-Cabanas, M., Filippetti, F., Bruzzese, C., Strangas, E., Pusca, R., Estima, J., Riera-Guasp, M., &amp; Hedayati-Kia, S. (2014). Trends in fault diagnosis for electrical machines: A review of diagnostic techniques. <em>IEEE Industrial Electronics Magazine</em>, 8(2), 31–42. <a href="https://doi.org/10.1109/MIE.2013.2287651" target="_blank" rel="noopener" style="color:var(--teal);text-decoration:none;border-bottom:1px dashed rgba(45,212,191,.4);transition:border-color .2s;">DOI: 10.1109/MIE.2013.2287651</a></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ==================== AKTIVITAS MAHASISWA ==================== -->
+<section class="section container">
+  <div class="section-header" style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:16px;">
+    <div>
+      <span class="badge mb-3">👥 Mahasiswa</span>
+      <h2 class="text-3xl font-black text-white mb-2">Aktivitas Mahasiswa</h2>
+      <p class="text-s400" style="max-width:700px;">Daftar mahasiswa dan dosen yang telah mengakses modul ini.</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;"><button onclick="showResetModal()" style="margin-top:8px;padding:10px 20px;border-radius:12px;border:1px solid rgba(251,113,133,.3);background:rgba(251,113,133,.08);color:var(--rose);font-family:'DM Sans',sans-serif;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:6px;" onmouseenter="this.style.background='rgba(251,113,133,.18)';this.style.borderColor='rgba(251,113,133,.5)'" onmouseleave="this.style.background='rgba(251,113,133,.08)';this.style.borderColor='rgba(251,113,133,.3)'">🗑 Reset Data</button></div>
+    <div class="section-number">LOG</div>
+  </div>
+
+  <div id="scheduleInfo" style="display:none;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.2);border-radius:14px;padding:14px 20px;margin-bottom:20px;align-items:center;gap:12px;flex-wrap:wrap;">
       <span style="font-size:1.2rem;">🕐</span>
       <div style="flex:1;min-width:200px;">
         <div style="font-size:.75rem;font-weight:600;color:#818cf8;text-transform:uppercase;letter-spacing:.08em;">Jadwal Perkuliahan</div>
@@ -2160,11 +1218,11 @@ hasil = <span class="function">simplify</span>(x**<span class="number">2</span> 
       </div>
       <div style="text-align:center;">
         <div id="statLate" style="font-weight:800;font-size:1.4rem;color:#fb7185;">0</div>
-        <div style="font-size:.7rem;color:#64748b;">Terlambat</div>
+        <div style="font-size:.7rem;color:var(--s500,#64748b);">Terlambat</div>
       </div>
     </div>
-  <div style="background:#1a2332;border:1px solid #2a3548;border-radius:20px;overflow:hidden;">
-    <div id="leaderboardPanel" style="margin-bottom:2px;">
+    <div class="info-card" style="padding:0; overflow:hidden;">
+<div id="leaderboardPanel" style="margin-bottom:2px;">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:16px 20px;">
         <div style="background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.15);border-radius:14px;padding:14px 16px;">
           <div style="font-size:.72rem;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🏆 Paling Rajin</div>
@@ -2185,254 +1243,172 @@ hasil = <span class="function">simplify</span>(x**<span class="number">2</span> 
         </div>
       </div>
     </div>
-    <div style="display:flex;padding:14px 24px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.08em;">
-      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:0.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
+
+        <!-- Table header -->
+    <div style="display:flex; padding:14px 24px; background:rgba(255,255,255,.03); border-top:1px solid rgba(255,255,255,.06); border-bottom:1px solid rgba(255,255,255,.06); font-size:.72rem; font-weight:600; color:var(--s500); text-transform:uppercase; letter-spacing:.08em;">
+      <div style="width:44px; flex-shrink:0;">No</div>
+      <div style="flex:2;">Nama</div>
+      <div style="flex:1;">NIM</div>
+      <div style="flex:1; text-align:center;">Status</div>
+      <div style="flex:.6; text-align:center;">Kunjungan</div>
+      <div style="flex:1; text-align:right;">Waktu Akses</div>
     </div>
-    <div id="visitorTableBody" style="max-height:420px;overflow-y:auto;"><div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">⏳ Memuat data pengunjung...</div></div>
+
+    <!-- Visitor rows -->
+    <div id="visitorTableBody" style="max-height:420px; overflow-y:auto;">
+      <div style="text-align:center; padding:40px 24px; color:var(--s500); font-size:.88rem;">
+        ⏳ Memuat data mahasiswa...
+      </div>
+    </div>
   </div>
 </section>
 
-<footer class="footer">
-  <p>📐 Modul 1 — Persamaan Diferensial Orde Satu</p>
-  <p style="margin-top:0.5rem;">Matematika 4 • W132100010 • Fakultas Teknik — Teknik Mesin</p>
-  <p style="margin-top:0.25rem; font-size:0.8rem;">Disusun oleh: Dedik Romahadi</p>
+<!-- ==================== FOOTER ==================== -->
+<footer>
+  <div class="container">
+    <p>Materi dibuat oleh <span style="color:var(--teal)">Dedik Romahadi</span> •
+       Optimalisasi &amp; Otomasi • S1 Teknik Mesin • Universitas Mercu Buana</p>
+    <p style="margin-top:4px;">Pertemuan 1 — Pengantar Time Series Data dalam Teknik Mesin • 2025/2026</p>
+  </div>
 </footer>
 
-<!-- ════════════════════ SCRIPTS ════════════════════ -->
+
+<!-- ==================== SCRIPTS ==================== -->
 <script>
-// ═══ KaTeX Rendering ═══
-document.addEventListener('DOMContentLoaded', () => {
-  renderMathInElement(document.body, {
-    delimiters: [
-      {left: '$$', right: '$$', display: true},
-      {left: '\\(', right: '\\)', display: false},
-      {left: '\\[', right: '\\]', display: true}
-    ],
-    throwOnError: false
+/* -------- TICKER -------- */
+(function(){
+  const items = [
+    'BEARING_VIB: 0.47 mm/s', 'TEMP_OIL: 68.3 °C', 'PRESSURE: 8.14 bar',
+    'RPM: 1453', 'CURRENT: 4.72 A', 'BEARING_VIB: 2.31 mm/s ⚠',
+    'TEMP_OIL: 71.1 °C', 'RPM: 1448', 'PRESSURE: 7.98 bar',
+    'BEARING_VIB: 0.51 mm/s', 'CURRENT: 4.68 A', 'TEMP_OIL: 69.5 °C'
+  ];
+  const dup = [...items,...items];
+  document.getElementById('ticker').innerHTML =
+    dup.map(d=>`<span class="ticker-item">[ ${d} ]</span>`).join('');
+})();
+
+/* -------- MAIN VIBRATION CHART -------- */
+const N = 201;
+const baseLabels = [], baseNormal = [], baseFaulty = [];
+for (let i = 0; i < N; i++) {
+  const t = i * 0.05;
+  baseLabels.push(t.toFixed(2));
+  baseNormal.push(0.5 * Math.sin(t * 8) + 0.1 * (t / 10));
+  baseFaulty.push(1.8 * Math.sin(t * 8) + 0.3 * (t / 10));
+}
+
+let vibChart = null;
+let curMode  = 'normal';
+
+function genData(noise) {
+  return {
+    normal: baseNormal.map(v => v + (Math.random() - 0.5) * noise * 0.6),
+    faulty: baseFaulty.map(v => v + (Math.random() - 0.5) * noise * 1.2)
+  };
+}
+
+function drawChart(noise) {
+  const d = genData(noise);
+  const ds = [];
+  if (curMode === 'normal' || curMode === 'both')
+    ds.push({ label:'🟢 Getaran Normal', data:d.normal, borderColor:'#2dd4bf', borderWidth:2, tension:.3, pointRadius:0 });
+  if (curMode === 'faulty' || curMode === 'both')
+    ds.push({ label:'🔴 Getaran Faulty', data:d.faulty, borderColor:'#fb7185', borderWidth:2, tension:.3, pointRadius:0 });
+
+  if (vibChart) vibChart.destroy();
+  vibChart = new Chart(document.getElementById('vibrationChart'), {
+    type: 'line',
+    data: { labels: baseLabels, datasets: ds },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      animation: { duration: 600, easing: 'easeOutQuart' },
+      plugins: {
+        legend: { position:'top', labels:{ color:'#cbd5e1', font:{ size:12 }, padding:16 } },
+        tooltip: { mode:'index', intersect:false }
+      },
+      scales: {
+        x: { grid:{ color:'#1e293b' }, ticks:{ color:'#475569', maxTicksLimit:12, font:{ size:10 } },
+             title:{ display:true, text:'Waktu (detik)', color:'#475569', font:{ size:11 } } },
+        y: { grid:{ color:'#1e293b' }, ticks:{ color:'#475569', font:{ size:10 } },
+             title:{ display:true, text:'Amplitudo Getaran (mm/s)', color:'#475569', font:{ size:11 } } }
+      }
+    }
   });
+}
+
+function setMode(mode, btn) {
+  curMode = mode;
+  const map = { normal:'tbtn-teal', faulty:'tbtn-rose', both:'tbtn-amber' };
+  ['btn-n','btn-f','btn-b'].forEach(id => {
+    document.getElementById(id).className = 'tbtn tbtn-inactive';
+  });
+  btn.className = 'tbtn ' + map[mode];
+  updateChart();
+}
+
+function updateChart() {
+  const v = parseFloat(document.getElementById('noiseSlider').value);
+  document.getElementById('noiseVal').textContent = v.toFixed(2);
+  drawChart(v);
+}
+
+drawChart(0.3);
+
+/* -------- SPARK CHARTS -------- */
+const sparkOpts = (color) => ({
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend:{ display:false }, tooltip:{ enabled:false } },
+  animation: { duration:0 },
+  elements: { point:{ radius:0 } },
+  scales: { x:{ display:false }, y:{ display:false } }
 });
 
-// ═══ Progress Bar ═══
-window.addEventListener('scroll', () => {
-  const total = document.documentElement.scrollHeight - window.innerHeight;
-  const progress = (window.scrollY / total) * 100;
-  document.getElementById('progressBar').style.width = progress + '%';
+function makeArr(n, fn) { return Array.from({ length:n }, (_,i) => fn(i)); }
+const lbs40 = Array.from({length:40},(_,i)=>i+'');
+
+/* Tren */
+new Chart(document.getElementById('sparkTren'), {
+  type:'line',
+  data:{ labels:lbs40, datasets:[{
+    data: makeArr(40, i => 0.2 + i*0.04 + (Math.random()-.5)*.08),
+    borderColor:'#2dd4bf', borderWidth:2, tension:.4, fill:false
+  }]},
+  options: sparkOpts('#2dd4bf')
 });
 
-// ═══ Intersection Observer for Fade-In ═══
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('visible');
-    }
-  });
-}, { threshold: 0.1 });
+/* Musiman */
+new Chart(document.getElementById('sparkMusim'), {
+  type:'line',
+  data:{ labels:lbs40, datasets:[{
+    data: makeArr(40, i => 0.5*Math.sin(2*Math.PI*i/10) + (Math.random()-.5)*.05),
+    borderColor:'#a3e635', borderWidth:2, tension:.4, fill:false
+  }]},
+  options: sparkOpts('#a3e635')
+});
 
-document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+/* Siklik */
+new Chart(document.getElementById('sparkSiklik'), {
+  type:'line',
+  data:{ labels:lbs40, datasets:[{
+    data: makeArr(40, i => 0.6*Math.sin(2*Math.PI*i/28 + 1) + 0.15*Math.sin(2*Math.PI*i/7)),
+    borderColor:'#fbbf24', borderWidth:2, tension:.4, fill:false
+  }]},
+  options: sparkOpts('#fbbf24')
+});
 
-// ═══ Tab Switching ═══
-function showTab(id, btn) {
-  document.querySelectorAll('.demo-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.demo-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  btn.classList.add('active');
-}
-
-// ═══ Radio Selection ═══
-function selectRadio(label, qName) {
-  const group = label.closest('.radio-group');
-  group.querySelectorAll('.radio-option').forEach(opt => {
-    opt.style.borderColor = 'var(--border)';
-    opt.style.background = 'var(--bg-secondary)';
-  });
-  label.querySelector('input').checked = true;
-  label.style.borderColor = 'var(--accent-cyan)';
-  label.style.background = 'rgba(6, 214, 160, 0.05)';
-}
-
-// ═══ Check Answer ═══
-function checkAnswer(qId, correct) {
-  const selected = document.querySelector(`input[name="${qId}"]:checked`);
-  const feedback = document.getElementById(`feedback-${qId}`);
-
-  if (!selected) {
-    feedback.className = 'feedback incorrect';
-    feedback.textContent = '⚠️ Pilih jawaban terlebih dahulu!';
-    feedback.style.display = 'block';
-    return;
-  }
-
-  const options = document.querySelectorAll(`#${qId}-options .radio-option`);
-  options.forEach(opt => {
-    const val = opt.querySelector('input').value;
-    opt.classList.remove('correct-answer', 'wrong-answer');
-    if (val === correct) opt.classList.add('correct-answer');
-    else if (opt.querySelector('input').checked && val !== correct) opt.classList.add('wrong-answer');
-  });
-
-  if (selected.value === correct) {
-    feedback.className = 'feedback correct';
-    feedback.textContent = '🎉 Benar! Jawaban Anda tepat.';
-  } else {
-    feedback.className = 'feedback incorrect';
-    feedback.textContent = '❌ Kurang tepat. Coba lihat petunjuk atau kunci jawaban.';
-  }
-  feedback.style.display = 'block';
-}
-
-// ═══ Toggle Hint / Answer ═══
-function toggleBox(id) {
-  const box = document.getElementById(id);
-  box.classList.toggle('show');
-}
-
-// ═══ Copy Code ═══
-function copyCode(btn) {
-  const code = btn.closest('.code-block').querySelector('pre').textContent;
-  navigator.clipboard.writeText(code).then(() => {
-    btn.textContent = '✅ Copied!';
-    setTimeout(() => btn.textContent = '📋 Copy', 2000);
-  });
-}
-
-// ═══ Canvas Animation: PD Solutions ═══
-const canvas = document.getElementById('pdCanvas');
-const ctx = canvas.getContext('2d');
-let animId = null;
-
-const descriptions = {
-  'exp-decay': 'Peluruhan eksponensial: y = e⁻ˣ — benda yang kehilangan panas, radioaktif meluruh.',
-  'exp-growth': 'Pertumbuhan eksponensial: y = eʳˣ — populasi bakteri, bunga bank.',
-  'oscillation': 'Osilasi harmonik: y = sin(x) — pegas ideal, bandul tanpa gesekan.',
-  'damped': 'Osilasi teredam: y = e⁻⁰·⁵ˣ sin(x) — pegas dengan redaman, suspensi mobil.'
-};
-
-function drawPD(type, btn) {
-  if (btn) {
-    document.querySelectorAll('.anim-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-  }
-
-  document.getElementById('pdDescription').textContent = descriptions[type];
-
-  if (animId) cancelAnimationFrame(animId);
-
-  const w = canvas.width;
-  const h = canvas.height;
-  const cx = 50, cy = h / 2;
-  let frame = 0;
-
-  function getY(x, type) {
-    switch(type) {
-      case 'exp-decay': return Math.exp(-x * 0.5) * 150;
-      case 'exp-growth': return Math.exp(x * 0.3) * 10;
-      case 'oscillation': return Math.sin(x * 1.5) * 140;
-      case 'damped': return Math.exp(-x * 0.25) * Math.sin(x * 1.5) * 140;
-    }
-  }
-
-  function animate() {
-    frame += 2;
-    ctx.clearRect(0, 0, w, h);
-
-    // Grid
-    ctx.strokeStyle = 'rgba(42, 53, 72, 0.5)';
-    ctx.lineWidth = 1;
-    for (let i = 0; i < w; i += 50) {
-      ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, h); ctx.stroke();
-    }
-    for (let i = 0; i < h; i += 50) {
-      ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(w, i); ctx.stroke();
-    }
-
-    // Axes
-    ctx.strokeStyle = 'rgba(156, 163, 175, 0.4)';
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(cx, 10); ctx.lineTo(cx, h - 10); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(10, cy); ctx.lineTo(w - 10, cy); ctx.stroke();
-
-    // Labels
-    ctx.fillStyle = '#9ca3af';
-    ctx.font = '13px Source Sans 3';
-    ctx.fillText('x', w - 25, cy - 8);
-    ctx.fillText('y', cx + 8, 22);
-
-    // Curve
-    const grad = ctx.createLinearGradient(cx, 0, w, 0);
-    grad.addColorStop(0, '#06d6a0');
-    grad.addColorStop(0.5, '#118ab2');
-    grad.addColorStop(1, '#7b2ff7');
-    ctx.strokeStyle = grad;
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-
-    const maxPoints = Math.min(frame, w - cx);
-
-    for (let px = 0; px < maxPoints; px++) {
-      const x = px * 0.02;
-      const yVal = getY(x, type);
-      const screenX = cx + px;
-      const screenY = cy - yVal;
-
-      if (px === 0) ctx.moveTo(screenX, screenY);
-      else ctx.lineTo(screenX, screenY);
-    }
-    ctx.stroke();
-
-    // Glow dot at the end
-    if (maxPoints > 0) {
-      const lastX = (maxPoints - 1) * 0.02;
-      const lastY = getY(lastX, type);
-      const sx = cx + maxPoints - 1;
-      const sy = cy - lastY;
-
-      ctx.beginPath();
-      ctx.arc(sx, sy, 5, 0, Math.PI * 2);
-      ctx.fillStyle = '#06d6a0';
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.arc(sx, sy, 12, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(6, 214, 160, 0.2)';
-      ctx.fill();
-    }
-
-    if (frame < w) {
-      animId = requestAnimationFrame(animate);
-    }
-  }
-
-  animate();
-}
-
-// Initial draw
-drawPD('exp-decay', null);
-
-// ═══ Active Nav Link ═══
-window.addEventListener('scroll', () => {
-  const sections = document.querySelectorAll('.section');
-  const navLinks = document.querySelectorAll('.nav-link');
-  let current = '';
-
-  sections.forEach(section => {
-    const sectionTop = section.offsetTop - 120;
-    if (window.scrollY >= sectionTop) {
-      current = section.getAttribute('id');
-    }
-  });
-
-  navLinks.forEach(link => {
-    link.classList.remove('active');
-    if (link.getAttribute('href') === `#${current}`) {
-      link.classList.add('active');
-    }
-  });
+/* Noise */
+new Chart(document.getElementById('sparkNoise'), {
+  type:'line',
+  data:{ labels:lbs40, datasets:[{
+    data: makeArr(40, () => (Math.random()-.5)*.9),
+    borderColor:'#fb7185', borderWidth:2, tension:.15, fill:false
+  }]},
+  options: sparkOpts('#fb7185')
 });
 </script>
-<script>
 
-</script>
-
+<!-- ==================== VISITOR SYSTEM JS (Firebase) ==================== -->
 <script type="module">
 // ═══ FIREBASE + VISITOR SYSTEM ═══
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
@@ -2648,7 +1624,7 @@ function renderVisitors(visitors){
   const listEl=document.getElementById('vpList'), tableEl=document.getElementById('visitorTableBody');
 
   // Panel: only actual visitors
-  if(!visited.length){listEl.innerHTML='<div class="vp-empty">Belum ada pengunjung.</div>';}
+  if(!visited.length){listEl.innerHTML='<div class="vp-empty">Belum ada data.</div>';}
   else{
     listEl.innerHTML=visited.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(v=>{
       const ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
@@ -2703,12 +1679,12 @@ function showResetModal(){document.getElementById('resetOverlay').classList.remo
 function hideResetModal(){document.getElementById('resetOverlay').classList.add('hidden');}
 function confirmReset(){
   if(document.getElementById('resetPw').value!=='TeknikMesin0602'){document.getElementById('resetError').style.display='block';return;}
-  // Reset data pengunjung modul ini
+  // Reset data mahasiswa modul ini
   remove(ref(db,DB_PATH));
   localStorage.removeItem(LOCAL_IDENTITY);
   // Reset jadwal
   remove(ref(db,SCHEDULE_PATH));
-  // Reset data pengunjung forum & tugas terkait
+  // Reset data mahasiswa forum & tugas terkait
   RELATED_MODULES.forEach(function(mid){
     remove(ref(db,'visitors/OptoAuto/'+mid));
     localStorage.removeItem('optoauto_identity_'+mid);
