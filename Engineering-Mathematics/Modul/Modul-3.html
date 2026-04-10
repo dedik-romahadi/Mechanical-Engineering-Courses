@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modul 3 – PD Homogen & Eksak | Matematika 4</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Sans+3:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+:root{--bg:#080c18;--bg2:#0f1729;--bg3:#162033;--bg3h:#1c2940;--c1:#00e09e;--c2:#0ea5e9;--c3:#f97316;--c4:#ef4444;--c5:#a855f7;--c6:#facc15;--t1:#e4e8f1;--t2:#94a3b8;--t3:#64748b;--bd:#1e293b;--ok:#00e09e;--err:#ef4444;--grad:linear-gradient(135deg,#080c18 0%,#0f1a3a 50%,#0a1628 100%)}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--t1);line-height:1.8;overflow-x:hidden}
+::-webkit-scrollbar{width:7px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--c2);border-radius:4px}
+
+.prog{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--c1),var(--c2),var(--c5));z-index:200;width:0%;transition:width .1s}
+
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;background:var(--grad);position:relative;padding:2rem;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 25% 75%,rgba(0,224,158,.07) 0%,transparent 50%),radial-gradient(circle at 75% 25%,rgba(14,165,233,.09) 0%,transparent 50%);pointer-events:none}
+.hero-particles{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.particle{position:absolute;width:3px;height:3px;background:var(--c1);border-radius:50%;opacity:0;animation:floatP 9s infinite}
+@keyframes floatP{0%{opacity:0;transform:translateY(100vh) scale(0)}10%{opacity:.7}90%{opacity:.2}100%{opacity:0;transform:translateY(-20vh) scale(1.5)}}
+.hero-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.25rem;background:rgba(0,224,158,.1);border:1px solid rgba(0,224,158,.3);border-radius:999px;font-size:.85rem;color:var(--c1);font-weight:600;letter-spacing:.05em;margin-bottom:1.5rem;animation:fsd .8s ease-out;position:relative;z-index:1}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(2.4rem,6vw,4.8rem);font-weight:900;line-height:1.1;margin-bottom:1.25rem;animation:fsd 1s ease-out .2s both;position:relative;z-index:1}
+.hero h1 .hl{background:linear-gradient(135deg,var(--c1),var(--c2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero>p{font-size:1.15rem;color:var(--t2);max-width:620px;margin-bottom:1.5rem;animation:fsd 1s ease-out .4s both;position:relative;z-index:1}
+.hero-lec{display:inline-flex;align-items:center;gap:.85rem;padding:.75rem 1.75rem;background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.25);border-radius:14px;margin-bottom:2rem;animation:fsd 1s ease-out .5s both;position:relative;z-index:1;backdrop-filter:blur(8px)}
+.hero-lec .li{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--c2),var(--c5));display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0;box-shadow:0 0 12px rgba(14,165,233,.35)}
+.hero-lec .lt{text-align:left;line-height:1.35}
+.hero-lec .ll{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--c2)}
+.hero-lec .ln{font-size:1rem;font-weight:700;color:var(--t1)}
+.hero-cta{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;animation:fsd 1s ease-out .6s both;position:relative;z-index:1}
+.btn-p{padding:.85rem 2rem;background:linear-gradient(135deg,var(--c1),var(--c2));color:var(--bg);font-weight:700;font-size:1rem;border:none;border-radius:12px;cursor:pointer;text-decoration:none;transition:all .3s;display:inline-flex;align-items:center;gap:.5rem}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,224,158,.3)}
+.btn-o{padding:.85rem 2rem;background:transparent;color:var(--t1);font-weight:600;font-size:1rem;border:2px solid var(--bd);border-radius:12px;cursor:pointer;text-decoration:none;transition:all .3s}
+.btn-o:hover{border-color:var(--c1);color:var(--c1)}
+.scroll-ind{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.5rem;color:var(--t3);font-size:.8rem;animation:bounce 2s infinite;z-index:1}
+@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
+@keyframes fsd{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+
+.nav{position:sticky;top:0;z-index:100;background:rgba(8,12,24,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--bd);padding:.75rem 2rem;display:flex;gap:.5rem;overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav a{white-space:nowrap;padding:.5rem 1rem;border-radius:8px;color:var(--t2);text-decoration:none;font-size:.85rem;font-weight:600;transition:all .3s;flex-shrink:0}
+.nav a:hover,.nav a.active{background:rgba(0,224,158,.1);color:var(--c1)}
+
+.sec{max-width:920px;margin:0 auto;padding:5rem 2rem}
+.sl{display:inline-flex;align-items:center;gap:.5rem;font-size:.8rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--c1);margin-bottom:.75rem}
+.st{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,4vw,2.5rem);font-weight:900;margin-bottom:1.5rem;line-height:1.2}
+.sd{width:60px;height:4px;background:linear-gradient(90deg,var(--c1),var(--c2));border-radius:2px;margin-bottom:2rem}
+
+.card{background:var(--bg3);border:1px solid var(--bd);border-radius:16px;padding:2rem;margin-bottom:1.5rem;transition:all .3s;position:relative;overflow:hidden}
+.card:hover{border-color:rgba(0,224,158,.3);transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.3)}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--c1),var(--c2),var(--c5))}
+.card h3{font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:.75rem}
+.ci{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:1rem}
+.ci.g{background:rgba(0,224,158,.15)}.ci.b{background:rgba(14,165,233,.15)}.ci.o{background:rgba(249,115,22,.15)}.ci.p{background:rgba(168,85,247,.15)}
+
+.ana{background:linear-gradient(135deg,rgba(0,224,158,.07),rgba(14,165,233,.07));border:1px solid rgba(0,224,158,.2);border-radius:16px;padding:2rem;margin:2rem 0;position:relative}
+.ana::before{content:'💡';position:absolute;top:-16px;left:24px;font-size:1.8rem;background:var(--bg);padding:0 .5rem}
+.ana h4{color:var(--c1);font-weight:700;margin-bottom:.75rem;font-size:1.1rem}
+
+.mb{background:rgba(14,165,233,.07);border-left:4px solid var(--c2);padding:1.25rem 1.75rem;margin:1.25rem 0;border-radius:0 12px 12px 0;overflow-x:auto;font-size:1.1rem;text-align:center}
+
+.steps{counter-reset:step;margin:1.5rem 0}
+.si{display:flex;gap:1.25rem;margin-bottom:1.5rem;position:relative}
+.si::before{counter-increment:step;content:counter(step);width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--c1),var(--c2));color:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;flex-shrink:0;margin-top:2px}
+.si:not(:last-child)::after{content:'';position:absolute;left:17px;top:40px;bottom:-8px;width:2px;background:var(--bd)}
+.sc h4{margin-bottom:.25rem;font-weight:700}.sc p{color:var(--t2);font-size:.95rem}
+
+.dtabs{display:flex;gap:0;margin:1.5rem 0 0;border-radius:12px 12px 0 0;overflow:hidden}
+.dtab{flex:1;padding:.85rem;text-align:center;font-weight:700;font-size:.9rem;cursor:pointer;transition:all .3s;border:none;font-family:inherit;background:var(--bg2);color:var(--t3)}
+.dtab.active{background:var(--bg3);color:var(--c1)}
+.dpanel{display:none;padding:2rem;background:var(--bg3);border:1px solid var(--bd);border-radius:0 0 12px 12px;border-top:2px solid var(--c1)}
+.dpanel.active{display:block;animation:slideD .3s ease-out}
+@keyframes slideD{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+
+.ex{background:var(--bg3);border:1px solid var(--bd);border-radius:16px;margin:2rem 0;overflow:hidden}
+.exh{display:flex;align-items:center;gap:1rem;padding:1.25rem 2rem;background:rgba(249,115,22,.07);border-bottom:1px solid var(--bd)}
+.exn{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--c3),var(--c4));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.9rem;flex-shrink:0}
+.ext{font-weight:700;font-size:1rem}
+.exb{padding:2rem}
+.ag{margin:1.5rem 0}
+.ag label{display:block;font-weight:600;margin-bottom:.5rem;color:var(--t2);font-size:.9rem}
+.ai{width:100%;padding:.85rem 1.25rem;background:var(--bg2);border:2px solid var(--bd);border-radius:10px;color:var(--t1);font-size:1rem;font-family:'JetBrains Mono',monospace;transition:all .3s}
+.ai:focus{outline:none;border-color:var(--c1);box-shadow:0 0 0 4px rgba(0,224,158,.1)}
+.rg{display:flex;flex-direction:column;gap:.75rem;margin:1rem 0}
+.ro{display:flex;align-items:center;gap:.75rem;padding:1rem 1.25rem;background:var(--bg2);border:2px solid var(--bd);border-radius:12px;cursor:pointer;transition:all .3s;font-size:.95rem}
+.ro:hover{border-color:var(--c2)}
+.ro input[type="radio"]{display:none}
+.rc{width:22px;height:22px;border-radius:50%;border:2px solid var(--t3);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .3s}
+.ro input:checked+.rc{border-color:var(--c1);background:var(--c1)}
+.ro input:checked+.rc::after{content:'✓';color:var(--bg);font-weight:800;font-size:.75rem}
+.ro.ok{border-color:var(--ok);background:rgba(0,224,158,.06)}.ro.bad{border-color:var(--err);background:rgba(239,68,68,.06)}
+.exa{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.5rem}
+.bc{padding:.65rem 1.5rem;background:linear-gradient(135deg,var(--c1),var(--c2));color:var(--bg);font-weight:700;border:none;border-radius:10px;cursor:pointer;font-size:.9rem;font-family:inherit;transition:all .3s}
+.bc:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(0,224,158,.3)}
+.bh,.ba{padding:.65rem 1.5rem;background:transparent;border:2px solid var(--bd);color:var(--t2);font-weight:600;border-radius:10px;cursor:pointer;font-size:.9rem;font-family:inherit;transition:all .3s}
+.bh:hover{border-color:var(--c6);color:var(--c6)}.ba:hover{border-color:var(--c5);color:var(--c5)}
+.hbox,.abox{margin-top:1rem;padding:1.5rem;border-radius:12px;display:none;animation:slideD .3s ease-out}
+.hbox{background:rgba(250,204,21,.07);border:1px solid rgba(250,204,21,.22)}
+.hbox h5{color:var(--c6);margin-bottom:.5rem}
+.abox{background:rgba(168,85,247,.07);border:1px solid rgba(168,85,247,.22)}
+.abox h5{color:var(--c5);margin-bottom:.5rem}
+.hbox.show,.abox.show{display:block}
+.fb{margin-top:1rem;padding:1rem 1.25rem;border-radius:10px;font-weight:600;display:none}
+.fb.ok{background:rgba(0,224,158,.1);border:1px solid rgba(0,224,158,.3);color:var(--c1);display:block}
+.fb.bad{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--c4);display:block}
+
+.cb{background:#0d1117;border:1px solid var(--bd);border-radius:12px;margin:1.5rem 0;overflow:hidden}
+.cbh{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;background:rgba(255,255,255,.03);border-bottom:1px solid var(--bd)}
+.cbh span{display:flex;align-items:center;gap:.5rem;font-size:.8rem;font-weight:600;color:var(--t3)}
+.dots{display:flex;gap:6px}.dots span{width:10px;height:10px;border-radius:50%}.dots span:nth-child(1){background:#ff5f57}.dots span:nth-child(2){background:#febc2e}.dots span:nth-child(3){background:#28c840}
+.ccp{padding:.35rem .75rem;background:rgba(255,255,255,.05);border:1px solid var(--bd);color:var(--t3);border-radius:6px;cursor:pointer;font-size:.75rem;font-family:inherit;transition:all .3s}
+.ccp:hover{background:rgba(0,224,158,.15);color:var(--c1);border-color:rgba(0,224,158,.3)}
+.cbd{padding:1.25rem;overflow-x:auto}
+.cbd pre{font-family:'JetBrains Mono',monospace;font-size:.85rem;line-height:1.7;color:#c9d1d9;white-space:pre}
+.cm{color:#8b949e}.kw{color:#ff7b72}.st{color:#a5d6ff}.fn{color:#d2a8ff}.nm{color:#79c0ff}.op{color:#ff7b72}.out{color:#7ee787;font-style:italic}
+
+.ac{background:var(--bg3);border:1px solid var(--bd);border-radius:16px;padding:2rem;margin:2rem 0;text-align:center}
+.ac canvas{border-radius:12px;max-width:100%;background:var(--bg2)}
+.actrl{display:flex;gap:.75rem;justify-content:center;margin-top:1rem;flex-wrap:wrap}
+.abtn{padding:.5rem 1.25rem;background:rgba(14,165,233,.15);border:1px solid rgba(14,165,233,.3);color:var(--c2);border-radius:8px;cursor:pointer;font-weight:600;font-size:.85rem;transition:all .3s;font-family:inherit}
+.abtn:hover{background:var(--c2);color:#fff}.abtn.active{background:var(--c1);color:var(--bg);border-color:var(--c1)}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.5rem 0;border-radius:12px;overflow:hidden}
+.tbl th{background:rgba(14,165,233,.12);padding:.85rem 1.25rem;text-align:left;font-weight:700;font-size:.85rem;text-transform:uppercase;letter-spacing:.05em;color:var(--c2);border-bottom:2px solid var(--bd)}
+.tbl td{padding:.85rem 1.25rem;border-bottom:1px solid var(--bd);font-size:.95rem}
+.tbl tr:hover td{background:rgba(0,224,158,.02)}
+
+.fi{opacity:0;transform:translateY(30px);transition:all .6s ease-out}.fi.vis{opacity:1;transform:translateY(0)}
+footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:var(--t3);font-size:.85rem}
+@media(max-width:768px){.sec{padding:3rem 1.25rem}.card,.exb{padding:1.5rem}.nav{padding:.5rem 1rem}}
+
+/* Interactive homogen checker */
+.homo-checker{background:var(--bg3);border:1px solid var(--bd);border-radius:16px;padding:2rem;margin:2rem 0}
+.homo-checker .input-row{display:flex;gap:1rem;align-items:end;flex-wrap:wrap;margin:1rem 0}
+.homo-checker .input-row input{flex:1;min-width:200px}
+.homo-checker .result-box{padding:1.25rem;border-radius:12px;margin-top:1rem;font-weight:600;display:none}
+.homo-checker .result-box.show{display:block;animation:slideD .3s ease-out}
+
+/* Visitor System */
+.visitor-overlay{position:fixed;inset:0;z-index:99999;background:rgba(8,14,26,.94);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity .4s}
+.visitor-overlay.hidden{opacity:0;pointer-events:none}
+.visitor-modal{background:#162033;border:1px solid #1e293b;border-radius:24px;padding:40px 36px;max-width:440px;width:90%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.6);animation:vModalIn .5s cubic-bezier(.16,1,.3,1)}
+@keyframes vModalIn{0%{opacity:0;transform:translateY(30px) scale(.96)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.visitor-modal h2{font-weight:800;font-size:1.5rem;background:linear-gradient(135deg,#00e09e,#0ea5e9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
+.visitor-modal p.sub{color:#94a3b8;font-size:.85rem;margin-bottom:28px}
+.v-input{width:100%;padding:14px 18px;border-radius:14px;border:1px solid #1e293b;background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-size:.95rem;outline:none;transition:border .25s;margin-bottom:14px}
+.v-input::placeholder{color:#64748b}
+.v-input:focus{border-color:#00e09e;box-shadow:0 0 0 3px rgba(255,255,255,.08)}
+.v-btn-primary{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#00e09e,#0ea5e9);color:#fff;font-weight:700;font-size:1rem;cursor:pointer;transition:transform .2s,box-shadow .2s;margin-top:6px}
+.v-btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,255,255,.1)}
+.v-error{color:#fb7185;font-size:.8rem;margin-bottom:10px;display:none}
+.v-btn-cancel{width:100%;padding:12px;border-radius:14px;margin-top:12px;border:1px solid #1e293b;background:rgba(255,255,255,.04);color:#94a3b8;font-weight:600;font-size:.88rem;cursor:pointer;transition:all .25s}
+.v-btn-cancel:hover{background:rgba(255,255,255,.08)}
+.visitor-fab{position:fixed;bottom:24px;right:24px;z-index:8888;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#00e09e,#0ea5e9);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(0,0,0,.4);transition:transform .25s;font-size:1.4rem}
+.visitor-fab:hover{transform:scale(1.08)}
+.visitor-fab .fab-count{position:absolute;top:-4px;right:-4px;background:#fb7185;color:#fff;font-size:.65rem;font-weight:700;min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid #080c18}
+.visitor-panel{position:fixed;bottom:92px;right:24px;z-index:8887;width:340px;max-height:480px;overflow:hidden;background:#162033;border:1px solid #1e293b;border-radius:20px;box-shadow:0 24px 64px rgba(0,0,0,.5);display:flex;flex-direction:column;transform:translateY(12px) scale(.95);opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .25s}
+.visitor-panel.open{transform:translateY(0) scale(1);opacity:1;pointer-events:auto}
+.vp-header{padding:20px 22px 14px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between}
+.vp-header h3{font-weight:700;font-size:1rem;color:#fff}
+.vp-header .vp-badge{background:rgba(255,255,255,.08);color:#00e09e;font-size:.7rem;font-weight:700;padding:4px 10px;border-radius:999px}
+.vp-list{overflow-y:auto;padding:10px 16px 16px;flex:1}
+.vp-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;margin-bottom:6px;background:rgba(255,255,255,.03);transition:background .2s}
+.vp-item:hover{background:rgba(255,255,255,.06)}
+.vp-avatar{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0}
+.vp-avatar.student{background:rgba(255,255,255,.08);color:#00e09e}
+.vp-avatar.dosen{background:rgba(251,191,36,.12);color:#fbbf24}
+.vp-info{flex:1;min-width:0}
+.vp-name{font-weight:600;font-size:.88rem;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vp-nim{font-size:.72rem;color:#64748b;font-family:monospace}
+.vp-time{font-size:.68rem;color:#64748b;text-align:right;flex-shrink:0;white-space:nowrap}
+.vp-empty{text-align:center;padding:32px 16px;color:#64748b;font-size:.85rem}
+@media(max-width:480px){.visitor-panel{width:calc(100vw - 32px);right:16px;bottom:88px}.visitor-fab{bottom:18px;right:18px}}
+</style>
+</head>
+<body>
+
+<!-- ═══ VISITOR LOGIN MODAL ═══ -->
+<div class="visitor-overlay" id="visitorOverlay">
+  <div class="visitor-modal">
+    <div style="font-size:2.8rem;margin-bottom:12px;">🎓</div>
+    <h2>Selamat Datang!</h2>
+    <p class="sub">Silakan masukkan identitas Anda untuk mengakses halaman ini.</p>
+    <p class="v-error" id="vError"></p>
+    <input type="text" class="v-input" id="vNama" placeholder="Nama Lengkap" autocomplete="off">
+    <input type="text" class="v-input" id="vNim" placeholder="NIM (Nomor Induk Mahasiswa)" autocomplete="off">
+    <button class="v-btn-primary" id="vSubmit" onclick="submitVisitor()">Masuk ke Modul 3 →</button>
+    <button class="v-btn-cancel" onclick="showScheduleModal()" style="margin-top:8px;border-color:rgba(99,102,241,.3);color:#818cf8;">🕐 Atur Jadwal Perkuliahan (Admin)</button>
+  </div>
+</div>
+<!-- Reset Modal -->
+<div class="visitor-overlay hidden" id="resetOverlay" style="z-index:100000;">
+  <div class="visitor-modal" style="max-width:380px;">
+    <div style="font-size:2.4rem;margin-bottom:12px;">🔐</div>
+    <h2 style="font-size:1.3rem;">Konfirmasi Reset</h2>
+    <p class="sub">Masukkan password untuk menghapus semua data mahasiswa.</p>
+    <p class="v-error" id="resetError">⚠ Password salah.</p>
+    <input type="password" class="v-input" id="resetPw" placeholder="Password" autocomplete="off">
+    <button class="v-btn-primary" style="background:linear-gradient(135deg,#fb7185,#f43f5e);" onclick="confirmReset()">Hapus Semua Data</button>
+    <button class="v-btn-cancel" onclick="hideResetModal()">Batal</button>
+  </div>
+</div>
+<!-- Schedule Modal -->
+<div class="visitor-overlay hidden" id="scheduleOverlay" style="z-index:100000;">
+  <div class="visitor-modal" style="max-width:480px;width:95%;">
+    <div style="font-size:2.4rem;margin-bottom:12px;">🕐</div>
+    <h2 style="font-size:1.3rem;">Atur Jadwal Perkuliahan</h2>
+    <p class="sub">Masukkan password, durasi (hari), dan batas waktu akhir.</p>
+    <p class="v-error" id="scheduleError"></p>
+    <input type="password" class="v-input" id="schedulePw" placeholder="Password" autocomplete="off">
+    <div style="display:flex;gap:10px;margin-bottom:14px;">
+      <div style="flex:1;text-align:left;">
+        <label style="font-size:.75rem;color:#94a3b8;font-weight:600;display:block;margin-bottom:4px;">Durasi (hari)</label>
+        <input type="number" class="v-input" id="scheduleDuration" min="1" value="7" placeholder="7" style="margin-bottom:0;">
+      </div>
+      <div style="flex:1;text-align:left;">
+        <label style="font-size:.75rem;color:#94a3b8;font-weight:600;display:block;margin-bottom:4px;">Batas Akhir (Due Date)</label>
+        <input type="datetime-local" class="v-input" id="scheduleDue" style="margin-bottom:0;">
+      </div>
+    </div>
+    <button class="v-btn-primary" onclick="saveSchedule()">💾 Simpan Jadwal</button>
+    <button class="v-btn-cancel" onclick="hideScheduleModal()">Batal</button>
+  </div>
+</div>
+
+<!-- FAB & Panel -->
+<button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Aktivitas Mahasiswa">👥<span class="fab-count" id="fabCount">0</span></button>
+<div class="visitor-panel" id="visitorPanel">
+  <div class="vp-header"><h3>👥 Mahasiswa</h3><span class="vp-badge" id="vpBadge">0 orang</span></div>
+  <div class="vp-list" id="vpList"><div class="vp-empty">Memuat data mahasiswa...</div></div>
+</div>
+
+<div class="prog" id="prog"></div>
+
+<!-- ═══════ HERO ═══════ -->
+<section class="hero">
+  <div class="hero-particles">
+    <div class="particle" style="left:12%;animation-delay:0s"></div>
+    <div class="particle" style="left:28%;animation-delay:1.4s"></div>
+    <div class="particle" style="left:42%;animation-delay:2.8s"></div>
+    <div class="particle" style="left:58%;animation-delay:.6s"></div>
+    <div class="particle" style="left:72%;animation-delay:3.5s"></div>
+    <div class="particle" style="left:88%;animation-delay:1.8s"></div>
+    <div class="particle" style="left:50%;animation-delay:4.2s"></div>
+  </div>
+  <div class="hero-badge">📐 MODUL 3 • Tatap Muka 03</div>
+  <h1>PD <span class="hl">Homogen & Eksak</span></h1>
+  <p>Matematika 4 — W132100010<br>Memahami konsep dan menyelesaikan persamaan diferensial homogen dan eksak.</p>
+  <div class="hero-lec">
+    <div class="li">👨‍🏫</div>
+    <div class="lt">
+      <div class="ll">Dosen Pengampu</div>
+      <div class="ln">Dedik Romahadi</div>
+    </div>
+  </div>
+  <div class="hero-cta">
+    <a href="#homogen" class="btn-p">▶ Mulai Belajar</a>
+    <a href="#latihan" class="btn-o">📝 Langsung Latihan</a>
+  </div>
+  <div class="scroll-ind"><span>scroll ke bawah</span><span>↓</span></div>
+</section>
+
+<!-- ═══════ NAV ═══════ -->
+<nav class="nav">
+  <a href="#homogen">🏠 PD Homogen</a>
+  <a href="#analogi-h">💡 Analogi</a>
+  <a href="#metode-h">🔧 Metode</a>
+  <a href="#contoh-h">✏️ Contoh Homogen</a>
+  <a href="#eksak">⚡ PD Eksak</a>
+  <a href="#contoh-e">✏️ Contoh Eksak</a>
+  <a href="#latihan">📝 Latihan</a>
+  <a href="#jupyter">🐍 Jupyter</a>
+</nav>
+
+<!-- ═══════ PD HOMOGEN ═══════ -->
+<section class="sec fi" id="homogen">
+  <div class="sl">📖 BAB 1</div>
+  <h2 class="st">Persamaan Diferensial Homogen</h2>
+  <div class="sd"></div>
+
+  <p>Sebelum memahami PD homogen, kita perlu tahu dulu apa itu <strong>fungsi homogen</strong>.</p>
+
+  <div class="card" style="margin-top:2rem;">
+    <div class="ci g">📐</div>
+    <h3>Definisi Fungsi Homogen</h3>
+    <p>Fungsi \(f(x,y)\) dikatakan <strong>homogen berderajad \(n\)</strong> jika terdapat \(\alpha\) sedemikian sehingga:</p>
+    <div class="mb">$$f(\alpha x, \alpha y) = \alpha^n f(x,y)$$</div>
+    <p style="margin-top:1rem;"><strong>Contoh:</strong> \(f(x,y) = x^3 - 2xy^2 + y^3\) adalah fungsi homogen berderajad 3, karena:</p>
+    <div class="mb">$$f(\alpha x, \alpha y) = (\alpha x)^3 - 2(\alpha x)(\alpha y)^2 + (\alpha y)^3 = \alpha^3(x^3 - 2xy^2 + y^3) = \alpha^3 f(x,y)$$</div>
+    <p style="margin-top:1rem;color:var(--c4);"><strong>Bukan homogen:</strong> \(f(x,y) = yx^3 - 2x^3y^3 + y^3\) — tidak bisa difaktorkan menjadi \(\alpha^n f(x,y)\) karena suku-sukunya memiliki derajat berbeda.</p>
+  </div>
+
+  <div class="card">
+    <div class="ci b">📋</div>
+    <h3>Definisi PD Homogen</h3>
+    <p>PD biasa orde satu dikatakan <strong>homogen</strong> bila dapat ditulis menjadi:</p>
+    <div class="mb">$$\frac{dy}{dx} = \frac{g(x,y)}{h(x,y)}$$</div>
+    <p>atau dalam bentuk:</p>
+    <div class="mb">$$g(x,y)\,dx + h(x,y)\,dy = 0$$</div>
+    <p>dimana \(g\) dan \(h\) adalah fungsi-fungsi homogen <em>berderajad sama</em>.</p>
+    <p style="margin-top:1rem;"><strong>Contoh:</strong> \((xy + x^2)dx + (2xy + y^2)dy = 0\) — di sini \(g(x,y) = xy + x^2\) dan \(h(x,y) = 2xy + y^2\), keduanya homogen berderajad 2.</p>
+  </div>
+</section>
+
+<!-- ═══════ ANALOGI HOMOGEN ═══════ -->
+<section class="sec fi" id="analogi-h">
+  <div class="sl">💡 ANALOGI</div>
+  <h2 class="st">Memahami PD Homogen dengan Analogi</h2>
+  <div class="sd"></div>
+
+  <div class="ana">
+    <h4>🧁 Analogi Resep Kue: Proporsi yang Konsisten</h4>
+    <p>Bayangkan sebuah resep kue. Jika kamu menggandakan <strong>semua</strong> bahan (tepung, gula, telur) dengan faktor yang sama, maka hasilnya adalah kue yang sama — hanya lebih besar. Itulah esensi fungsi homogen!</p>
+    <p style="margin-top:.75rem;">Jika kamu kalikan \(x\) dan \(y\) dengan faktor \(\alpha\) yang sama, fungsinya hanya berubah ukuran (dikali \(\alpha^n\)), bukan bentuknya. Seperti memperbesar foto — proporsinya tetap.</p>
+  </div>
+
+  <div class="ana">
+    <h4>🔍 Analogi Zoom Kamera: Substitusi y = ux</h4>
+    <p>Menyelesaikan PD homogen dengan substitusi \(y = ux\) itu seperti <strong>zoom out</strong> dari sebuah gambar. Kita mengganti \(y\) dengan \(ux\) (dimana \(u = y/x\)) sehingga kita melihat "rasio" antara \(x\) dan \(y\), bukan nilai absolutnya.</p>
+    <p style="margin-top:.75rem;">Hasilnya? Persamaan yang tadinya rumit berubah menjadi PD variabel terpisah yang sudah kita kuasai dari Modul 2!</p>
+  </div>
+
+  <!-- Interactive Homogeneity Checker -->
+  <div class="homo-checker">
+    <h3 style="font-family:'Playfair Display',serif;margin-bottom:.75rem;">🧪 Cek Interaktif: Apakah Fungsi Ini Homogen?</h3>
+    <p style="color:var(--t2);font-size:.9rem;margin-bottom:1rem;">Pilih fungsi untuk melihat apakah homogen dan berapa derajadnya.</p>
+    <div class="actrl" style="justify-content:flex-start;">
+      <button class="abtn active" onclick="checkHomo(0,this)">x² + xy + y²</button>
+      <button class="abtn" onclick="checkHomo(1,this)">x³ − 2xy² + y³</button>
+      <button class="abtn" onclick="checkHomo(2,this)">x² + y + 1</button>
+      <button class="abtn" onclick="checkHomo(3,this)">xy</button>
+    </div>
+    <div id="homoResult" class="result-box show" style="background:rgba(0,224,158,.08);border:1px solid rgba(0,224,158,.3);color:var(--c1);">
+      ✅ <strong>Homogen berderajad 2.</strong><br>
+      <span style="color:var(--t2);font-size:.9rem;">\(f(\alpha x, \alpha y) = (\alpha x)^2 + (\alpha x)(\alpha y) + (\alpha y)^2 = \alpha^2(x^2 + xy + y^2) = \alpha^2 f(x,y)\)</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ METODE HOMOGEN ═══════ -->
+<section class="sec fi" id="metode-h">
+  <div class="sl">🔧 METODE</div>
+  <h2 class="st">Penyelesaian PD Homogen</h2>
+  <div class="sd"></div>
+
+  <p>PD homogen diselesaikan dengan <strong>substitusi</strong> yang mengubahnya menjadi PD variabel terpisah.</p>
+
+  <!-- Tabs: two methods -->
+  <div class="dtabs">
+    <button class="dtab active" onclick="switchTab(0,this)">📌 Cara 1: y = ux</button>
+    <button class="dtab" onclick="switchTab(1,this)">📌 Cara 2: x = vy</button>
+  </div>
+
+  <div class="dpanel active" id="tab0">
+    <h3 style="color:var(--c1);margin-bottom:1rem;">Substitusi \(y = ux\)</h3>
+    <div class="steps">
+      <div class="si"><div class="sc"><h4>Substitusi \(y = ux\), sehingga \(dy = u\,dx + x\,du\)</h4><p>Ganti semua \(y\) dengan \(ux\) dan \(dy\) dengan \(u\,dx + x\,du\).</p></div></div>
+      <div class="si"><div class="sc"><h4>Masukkan ke PD</h4><p>Diperoleh: \(g(x,ux)\,dx + h(x,ux)[u\,dx + x\,du] = 0\)</p></div></div>
+      <div class="si"><div class="sc"><h4>Faktorkan \(x^n\)</h4><p>Karena \(g\) dan \(h\) homogen berderajad sama \(n\): \(g(x,ux) = x^n g(1,u)\) dan \(h(x,ux) = x^n h(1,u)\)</p></div></div>
+      <div class="si"><div class="sc"><h4>Bagi dengan \(x^n\) → PD variabel terpisah!</h4>
+        <div class="mb">$$\frac{1}{x}\,dx + \frac{h(1,u)}{g(1,u) + u\,h(1,u)}\,du = 0$$</div>
+      </div></div>
+      <div class="si"><div class="sc"><h4>Integralkan</h4>
+        <div class="mb">$$\int \frac{1}{x}\,dx + \int \frac{h(1,u)}{g(1,u) + u\,h(1,u)}\,du = c$$</div>
+        <p>Terakhir, substitusi balik \(u = \frac{y}{x}\).</p>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="dpanel" id="tab1">
+    <h3 style="color:var(--c1);margin-bottom:1rem;">Substitusi \(x = vy\)</h3>
+    <div class="steps">
+      <div class="si"><div class="sc"><h4>Substitusi \(x = vy\), sehingga \(dx = v\,dy + y\,dv\)</h4><p>Metode ini berguna jika substitusi \(y = ux\) menghasilkan integral yang sulit.</p></div></div>
+      <div class="si"><div class="sc"><h4>Masukkan ke PD dan sederhanakan</h4><p>Hasilnya menjadi PD variabel terpisah dalam \(v\) dan \(y\).</p></div></div>
+      <div class="si"><div class="sc"><h4>Integralkan</h4>
+        <div class="mb">$$\int \frac{g(v,1)}{v\,g(v,1) + h(v,1)}\,dv + \int \frac{1}{y}\,dy = c$$</div>
+        <p>Substitusi balik \(v = \frac{x}{y}\).</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ CONTOH HOMOGEN ═══════ -->
+<section class="sec fi" id="contoh-h">
+  <div class="sl">✏️ CONTOH SOAL</div>
+  <h2 class="st">Contoh Penyelesaian PD Homogen</h2>
+  <div class="sd"></div>
+
+  <!-- Contoh 3.1 -->
+  <div class="card" style="margin-bottom:2rem;">
+    <div class="ci o">3.1</div>
+    <h3>Contoh 3.1</h3>
+    <p>Carilah penyelesaian umum:</p>
+    <div class="mb">$$(4x^2 - 3y^2)dx + 4xy\,dy = 0$$</div>
+
+    <div class="steps" style="margin-top:1.5rem;">
+      <div class="si"><div class="sc">
+        <h4>Identifikasi: \(g = 4x^2 - 3y^2\), \(h = 4xy\) → homogen derajad 2</h4>
+        <p>Verifikasi: \(g(\alpha x,\alpha y) = 4\alpha^2 x^2 - 3\alpha^2 y^2 = \alpha^2 g(x,y)\) ✓</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Substitusi \(y = ux\), \(dy = u\,dx + x\,du\)</h4>
+        <p>Maka: \(x^2(4 - 3u^2)dx + x^2 \cdot 4u(u\,dx + x\,du) = 0\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Bagi dengan \(x^2\), sederhanakan</h4>
+        <p>\((4 - 3u^2)dx + 4u(u\,dx + x\,du) = 0\)</p>
+        <p>\((4 + u^2)dx + 4xu\,du = 0\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Pisahkan variabel dan integralkan</h4>
+        <div class="mb">$$\frac{1}{x}\,dx + \frac{4u}{4 + u^2}\,du = 0$$</div>
+        <p>\(\ln x + 2\ln(4 + u^2) = c\) → \(x(4 + u^2)^2 = c\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Substitusi balik \(u = y/x\)</h4>
+        <div class="mb" style="background:rgba(0,224,158,.1);border-left-color:var(--c1);">$$(4x^2 + y^2)^2 = cx^3$$</div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- Contoh 3.2 -->
+  <div class="card">
+    <div class="ci p">3.2</div>
+    <h3>Contoh 3.2</h3>
+    <p>Carilah penyelesaian umum:</p>
+    <div class="mb">$$x^2 y\,dx - (x^3 + y^3)\,dy = 0$$</div>
+
+    <div class="steps" style="margin-top:1.5rem;">
+      <div class="si"><div class="sc">
+        <h4>Identifikasi: \(g = x^2y\), \(h = -(x^3 + y^3)\) → homogen derajad 3</h4>
+        <p>Gunakan <strong>Cara 2</strong>: substitusi \(x = vy\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Substitusi \(x = vy\), \(dx = v\,dy + y\,dv\)</h4>
+        <p>\(y^3 v^2(v\,dy + y\,dv) - y^3(v^3 + 1)\,dy = 0\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Bagi dengan \(y^3\) dan sederhanakan</h4>
+        <p>\(v^2 y\,dv - dy = 0\) → \(v^2\,dv - \frac{1}{y}\,dy = 0\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Integralkan</h4>
+        <p>\(\frac{1}{3}v^3 - \ln y = c_0\) → \(v^3 - 3\ln y = \ln c\) → \(e^{v^3} = cy^3\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Substitusi balik \(v = x/y\)</h4>
+        <div class="mb" style="background:rgba(0,224,158,.1);border-left-color:var(--c1);">$$e^{(x/y)^3} = cy^3$$</div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ VISUALISASI ═══════ -->
+<section class="sec fi" id="visualisasi">
+  <div class="sl">📊 VISUALISASI</div>
+  <h2 class="st">Visualisasi Interaktif</h2>
+  <div class="sd"></div>
+
+  <div class="ac">
+    <h3 style="font-family:'Playfair Display',serif;margin-bottom:.5rem;">Keluarga Kurva Solusi</h3>
+    <p style="color:var(--t2);font-size:.9rem;margin-bottom:1rem;" id="visDesc">Solusi PD Homogen: \((4x^2+y^2)^2 = Cx^3\) untuk berbagai nilai C.</p>
+    <canvas id="cvs" width="700" height="400"></canvas>
+    <div class="actrl">
+      <button class="abtn active" onclick="drawVis('homo1',this)">Contoh 3.1</button>
+      <button class="abtn" onclick="drawVis('homo2',this)">Contoh 3.2</button>
+      <button class="abtn" onclick="drawVis('eksak1',this)">Contoh 4.1 (Eksak)</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ PD EKSAK ═══════ -->
+<section class="sec fi" id="eksak">
+  <div class="sl">⚡ BAB 2</div>
+  <h2 class="st">Persamaan Diferensial Eksak</h2>
+  <div class="sd"></div>
+
+  <div class="ana">
+    <h4>🧩 Analogi Puzzle: Diferensial Total</h4>
+    <p>Bayangkan kamu punya fungsi \(F(x,y) = c\) yang mendefinisikan sebuah kontur/kurva. Diferensial totalnya adalah \(dF = F_x\,dx + F_y\,dy = 0\). PD <strong>eksak</strong> itu ibarat menemukan potongan puzzle yang tepat cocok — jika \(M\,dx + N\,dy\) memang berasal dari satu fungsi \(F\), maka kita bisa merekonstruksi \(F\) itu!</p>
+    <p style="margin-top:.75rem;">Cara ceknya? <strong>Ujian kunci:</strong> Apakah \(\frac{\partial M}{\partial y} = \frac{\partial N}{\partial x}\)? Jika ya — puzzle-nya cocok, PD-nya eksak!</p>
+  </div>
+
+  <div class="card" style="margin-top:2rem;">
+    <div class="ci g">📐</div>
+    <h3>Definisi PD Eksak</h3>
+    <p>PD linier orde satu berbentuk:</p>
+    <div class="mb">$$M(x,y)\,dx + N(x,y)\,dy = 0$$</div>
+    <p>dikatakan <strong>eksak</strong> jika merupakan diferensial total dari \(F(x,y) = c\), yaitu \(dF = F_x\,dx + F_y\,dy\).</p>
+    <p style="margin-top:1rem;"><strong>Syarat eksak:</strong></p>
+    <div class="mb" style="background:rgba(168,85,247,.1);border-left-color:var(--c5);font-size:1.2rem;">$$\frac{\partial M}{\partial y} = \frac{\partial N}{\partial x}$$</div>
+  </div>
+
+  <div class="card">
+    <div class="ci b">🔧</div>
+    <h3>Cara Menyelesaikan PD Eksak</h3>
+    <div class="steps">
+      <div class="si"><div class="sc">
+        <h4>Cek syarat eksak: \(M_y = N_x\)</h4>
+        <p>Hitung turunan parsial \(M\) terhadap \(y\) dan \(N\) terhadap \(x\). Jika sama, lanjut!</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Integralkan \(M\) terhadap \(x\)</h4>
+        <div class="mb">$$F(x,y) = \int M(x,y)\,dx + g(y)$$</div>
+        <p>\(g(y)\) adalah "fungsi integrasi" yang belum diketahui.</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Tentukan \(g(y)\) dari syarat \(F_y = N\)</h4>
+        <p>Diferensialkan \(F\) terhadap \(y\), samakan dengan \(N(x,y)\), cari \(g'(y)\) lalu integralkan.</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Tulis solusi: \(F(x,y) = c\)</h4>
+        <p>Gabungkan semuanya menjadi penyelesaian umum.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ CONTOH EKSAK ═══════ -->
+<section class="sec fi" id="contoh-e">
+  <div class="sl">✏️ CONTOH SOAL</div>
+  <h2 class="st">Contoh Penyelesaian PD Eksak</h2>
+  <div class="sd"></div>
+
+  <!-- Contoh 4.1 -->
+  <div class="card" style="margin-bottom:2rem;">
+    <div class="ci o">4.1</div>
+    <h3>Contoh 4.1</h3>
+    <p>Carilah penyelesaian umum, jika eksak:</p>
+    <div class="mb">$$(3x^2 + 2xy^3)dx + (3x^2y^2 - 2y^3)dy = 0$$</div>
+
+    <div class="steps" style="margin-top:1.5rem;">
+      <div class="si"><div class="sc">
+        <h4>Identifikasi: \(M = 3x^2 + 2xy^3\), \(N = 3x^2y^2 - 2y^3\)</h4>
+        <p>\(M_y = 6xy^2\), \(N_x = 6xy^2\) → \(M_y = N_x\) ✅ Eksak!</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Integralkan \(M\) terhadap \(x\)</h4>
+        <p>\(F = \int(3x^2 + 2xy^3)\,dx = x^3 + x^2y^3 + g(y)\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Cari \(g(y)\): \(F_y = N\)</h4>
+        <p>\(\frac{\partial}{\partial y}(x^3 + x^2y^3) + g'(y) = 3x^2y^2 - 2y^3\)</p>
+        <p>\(3x^2y^2 + g'(y) = 3x^2y^2 - 2y^3\) → \(g'(y) = -2y^3\) → \(g(y) = -\frac{1}{2}y^4\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Penyelesaian umum</h4>
+        <div class="mb" style="background:rgba(0,224,158,.1);border-left-color:var(--c1);">$$x^3 + x^2y^3 - \frac{1}{2}y^4 = c$$</div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- Contoh 4.2 -->
+  <div class="card" style="margin-bottom:2rem;">
+    <div class="ci p">4.2</div>
+    <h3>Contoh 4.2</h3>
+    <p>Diberikan PD:</p>
+    <div class="mb">$$(\cos x + 2x\cos^2 y)dx + (6y^2 - x^2\sin 2y)dy = 0$$</div>
+
+    <div class="steps" style="margin-top:1.5rem;">
+      <div class="si"><div class="sc">
+        <h4>Cek: \(M_y = -2x\sin 2y\), \(N_x = -2x\sin 2y\) → Eksak! ✅</h4>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Integralkan \(N\) terhadap \(y\): \(F = 2y^3 + x^2\cos^2 y + f(x)\)</h4>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Dari \(F_x = M\): \(f'(x) = \cos x\) → \(f(x) = \sin x\)</h4>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Penyelesaian umum</h4>
+        <div class="mb" style="background:rgba(0,224,158,.1);border-left-color:var(--c1);">$$\sin x + 2y^3 + x^2\cos^2 y = c$$</div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- Contoh 4.3 -->
+  <div class="card">
+    <div class="ci b">4.3</div>
+    <h3>Contoh 4.3 — Penyelesaian Khusus</h3>
+    <p>Carilah penyelesaian khusus:</p>
+    <div class="mb">$$(1 + ye^{xy})dx + (xe^{xy} + 2y)dy = 0, \quad y = 2 \text{ bila } x = 0$$</div>
+
+    <div class="steps" style="margin-top:1.5rem;">
+      <div class="si"><div class="sc">
+        <h4>Cek: \(M_y = (1+xy)e^{xy}\), \(N_x = (1+xy)e^{xy}\) → Eksak! ✅</h4>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Integralkan \(M\) terhadap \(x\): \(F = x + e^{xy} + g(y)\)</h4>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Dari \(F_y = N\): \(g'(y) = 2y\) → \(g(y) = y^2\)</h4>
+        <p>Penyelesaian umum: \(x + e^{xy} + y^2 = c\)</p>
+      </div></div>
+      <div class="si"><div class="sc">
+        <h4>Syarat awal: \(x=0, y=2\) → \(0 + e^0 + 4 = c\) → \(c = 5\)</h4>
+        <div class="mb" style="background:rgba(0,224,158,.1);border-left-color:var(--c1);">$$x + e^{xy} + y^2 = 5$$</div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ LATIHAN ═══════ -->
+<section class="sec fi" id="latihan">
+  <div class="sl">📝 LATIHAN</div>
+  <h2 class="st">Soal Latihan Interaktif</h2>
+  <div class="sd"></div>
+
+  <!-- Soal 1: Pilihan Ganda -->
+  <div class="ex">
+    <div class="exh"><div class="exn">1</div><div class="ext">Identifikasi Fungsi Homogen</div></div>
+    <div class="exb">
+      <p>Manakah dari fungsi berikut yang merupakan <strong>fungsi homogen</strong>?</p>
+      <div class="rg" id="q1-opts">
+        <label class="ro" onclick="selR(this,'q1')"><input type="radio" name="q1" value="a"><span class="rc"></span>\(f(x,y) = x^2 + y^2 + 1\)</label>
+        <label class="ro" onclick="selR(this,'q1')"><input type="radio" name="q1" value="b"><span class="rc"></span>\(f(x,y) = x^2 + xy + y^2\)</label>
+        <label class="ro" onclick="selR(this,'q1')"><input type="radio" name="q1" value="c"><span class="rc"></span>\(f(x,y) = \sin(x) + y^2\)</label>
+        <label class="ro" onclick="selR(this,'q1')"><input type="radio" name="q1" value="d"><span class="rc"></span>\(f(x,y) = x^2 + e^y\)</label>
+      </div>
+      <div class="exa">
+        <button class="bc" onclick="chk('q1','b')">✅ Cek Jawaban</button>
+        <button class="bh" onclick="tog('h1')">💡 Petunjuk</button>
+        <button class="ba" onclick="tog('a1')">🔑 Kunci Jawaban</button>
+      </div>
+      <div class="fb" id="fb-q1"></div>
+      <div class="hbox" id="h1"><h5>💡 Petunjuk</h5><p>Cek apakah \(f(\alpha x, \alpha y) = \alpha^n f(x,y)\). Fungsi homogen tidak boleh memiliki konstanta terpisah, eksponensial, atau fungsi trigonometri yang "merusak" derajat.</p></div>
+      <div class="abox" id="a1"><h5>🔑 Jawaban: B</h5><p>\(f(\alpha x, \alpha y) = \alpha^2 x^2 + \alpha^2 xy + \alpha^2 y^2 = \alpha^2(x^2 + xy + y^2)\). Homogen derajad 2.<br>Opsi A salah karena ada konstanta "+1". Opsi C dan D tidak homogen karena ada \(\sin(x)\) dan \(e^y\).</p></div>
+    </div>
+  </div>
+
+  <!-- Soal 2: Identifikasi PD Eksak -->
+  <div class="ex">
+    <div class="exh"><div class="exn">2</div><div class="ext">Cek Apakah Eksak</div></div>
+    <div class="exb">
+      <p>Apakah PD berikut eksak?</p>
+      <div class="mb">$$(2xy + 3)dx + (x^2 - 1)dy = 0$$</div>
+      <div class="rg" id="q2-opts">
+        <label class="ro" onclick="selR(this,'q2')"><input type="radio" name="q2" value="a"><span class="rc"></span>Ya, eksak karena \(M_y = N_x = 2x\)</label>
+        <label class="ro" onclick="selR(this,'q2')"><input type="radio" name="q2" value="b"><span class="rc"></span>Tidak, karena \(M_y \neq N_x\)</label>
+        <label class="ro" onclick="selR(this,'q2')"><input type="radio" name="q2" value="c"><span class="rc"></span>Ya, eksak karena \(M_y = N_x = 2xy\)</label>
+      </div>
+      <div class="exa">
+        <button class="bc" onclick="chk('q2','a')">✅ Cek Jawaban</button>
+        <button class="bh" onclick="tog('h2')">💡 Petunjuk</button>
+        <button class="ba" onclick="tog('a2')">🔑 Kunci Jawaban</button>
+      </div>
+      <div class="fb" id="fb-q2"></div>
+      <div class="hbox" id="h2"><h5>💡 Petunjuk</h5><p>Hitung \(M_y = \frac{\partial}{\partial y}(2xy + 3)\) dan \(N_x = \frac{\partial}{\partial x}(x^2 - 1)\). Bandingkan hasilnya.</p></div>
+      <div class="abox" id="a2"><h5>🔑 Jawaban: A</h5><p>\(M = 2xy + 3\) → \(M_y = 2x\).<br>\(N = x^2 - 1\) → \(N_x = 2x\).<br>Karena \(M_y = N_x = 2x\), maka PD ini <strong>eksak</strong>.</p></div>
+    </div>
+  </div>
+
+  <!-- Soal 3: Selesaikan PD Homogen -->
+  <div class="ex">
+    <div class="exh"><div class="exn">3</div><div class="ext">Selesaikan PD Homogen</div></div>
+    <div class="exb">
+      <p>Tentukan penyelesaian umum dari:</p>
+      <div class="mb">$$(x^2 + y^2)dx - 2xy\,dy = 0$$</div>
+      <div class="rg" id="q3-opts">
+        <label class="ro" onclick="selR(this,'q3')"><input type="radio" name="q3" value="a"><span class="rc"></span>\(x^2 - y^2 = cx\)</label>
+        <label class="ro" onclick="selR(this,'q3')"><input type="radio" name="q3" value="b"><span class="rc"></span>\(x^2 + y^2 = cx\)</label>
+        <label class="ro" onclick="selR(this,'q3')"><input type="radio" name="q3" value="c"><span class="rc"></span>\(y^2 = cx^2 + x\)</label>
+        <label class="ro" onclick="selR(this,'q3')"><input type="radio" name="q3" value="d"><span class="rc"></span>\(x^2 + y^2 = c\)</label>
+      </div>
+      <div class="exa">
+        <button class="bc" onclick="chk('q3','a')">✅ Cek Jawaban</button>
+        <button class="bh" onclick="tog('h3')">💡 Petunjuk</button>
+        <button class="ba" onclick="tog('a3')">🔑 Kunci Jawaban</button>
+      </div>
+      <div class="fb" id="fb-q3"></div>
+      <div class="hbox" id="h3"><h5>💡 Petunjuk</h5>
+        <p><strong>Langkah-langkah detail:</strong></p>
+        <p>1. Substitusi \(y = ux\), \(dy = u\,dx + x\,du\).</p>
+        <p>2. \((x^2 + u^2x^2)dx - 2x(ux)(u\,dx + x\,du) = 0\)</p>
+        <p>3. \(x^2(1 + u^2)dx - 2u x^2(u\,dx + x\,du) = 0\)</p>
+        <p>4. Bagi \(x^2\): \((1 + u^2 - 2u^2)dx - 2ux\,du = 0\)</p>
+        <p>5. \((1 - u^2)dx = 2ux\,du\)</p>
+        <p>6. Pisahkan variabel: \(\frac{dx}{x} = \frac{2u}{1 - u^2}\,du\)</p>
+      </div>
+      <div class="abox" id="a3"><h5>🔑 Jawaban: A</h5>
+        <p>Dari petunjuk, integralkan kedua ruas:</p>
+        <p>\(\ln|x| = -\ln|1 - u^2| + c_0\)</p>
+        <p>\(\ln|x(1 - u^2)| = c_0\) → \(x(1 - u^2) = c\)</p>
+        <p>Substitusi \(u = y/x\):</p>
+        <p>\(x(1 - y^2/x^2) = c\) → \(x - y^2/x = c\) → \(\boxed{x^2 - y^2 = cx}\)</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Soal 4: Selesaikan PD Eksak -->
+  <div class="ex">
+    <div class="exh"><div class="exn">4</div><div class="ext">Selesaikan PD Eksak</div></div>
+    <div class="exb">
+      <p>Carilah penyelesaian umum dari PD eksak:</p>
+      <div class="mb">$$(2xy + 3)dx + (x^2 - 1)dy = 0$$</div>
+      <div class="rg" id="q4-opts">
+        <label class="ro" onclick="selR(this,'q4')"><input type="radio" name="q4" value="a"><span class="rc"></span>\(x^2y + 3x - y = c\)</label>
+        <label class="ro" onclick="selR(this,'q4')"><input type="radio" name="q4" value="b"><span class="rc"></span>\(xy^2 + 3x - y = c\)</label>
+        <label class="ro" onclick="selR(this,'q4')"><input type="radio" name="q4" value="c"><span class="rc"></span>\(x^2y + 3y - x = c\)</label>
+        <label class="ro" onclick="selR(this,'q4')"><input type="radio" name="q4" value="d"><span class="rc"></span>\(x^2 + 3xy - y = c\)</label>
+      </div>
+      <div class="exa">
+        <button class="bc" onclick="chk('q4','a')">✅ Cek Jawaban</button>
+        <button class="bh" onclick="tog('h4')">💡 Petunjuk</button>
+        <button class="ba" onclick="tog('a4')">🔑 Kunci Jawaban</button>
+      </div>
+      <div class="fb" id="fb-q4"></div>
+      <div class="hbox" id="h4"><h5>💡 Petunjuk</h5>
+        <p>1. \(F = \int M\,dx = \int(2xy+3)\,dx = x^2y + 3x + g(y)\)</p>
+        <p>2. \(F_y = x^2 + g'(y) = N = x^2 - 1\)</p>
+        <p>3. Maka \(g'(y) = -1\) → \(g(y) = -y\)</p>
+      </div>
+      <div class="abox" id="a4"><h5>🔑 Jawaban: A</h5>
+        <p>\(F(x,y) = x^2y + 3x + g(y)\)</p>
+        <p>\(F_y = x^2 + g'(y) = x^2 - 1\) → \(g'(y) = -1\) → \(g(y) = -y\)</p>
+        <p>Jadi: \(\boxed{x^2y + 3x - y = c}\)</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Soal 5: Input Langsung -->
+  <div class="ex">
+    <div class="exh"><div class="exn">5</div><div class="ext">Hitung Turunan Parsial</div></div>
+    <div class="exb">
+      <p>Diberikan \(M(x,y) = 3x^2y + y^3\) dan \(N(x,y) = x^3 + 3xy^2\).</p>
+      <p>Hitunglah \(M_y\) dan \(N_x\) untuk menentukan apakah PD ini eksak.</p>
+      <div class="ag">
+        <label>\(M_y = \frac{\partial M}{\partial y} = \)</label>
+        <input type="text" class="ai" id="inp-my" placeholder="Ketik jawaban, misal: 3x^2 + 3y^2">
+      </div>
+      <div class="ag">
+        <label>\(N_x = \frac{\partial N}{\partial x} = \)</label>
+        <input type="text" class="ai" id="inp-nx" placeholder="Ketik jawaban, misal: 3x^2 + 3y^2">
+      </div>
+      <div class="exa">
+        <button class="bc" onclick="chkInput5()">✅ Cek Jawaban</button>
+        <button class="bh" onclick="tog('h5')">💡 Petunjuk</button>
+        <button class="ba" onclick="tog('a5')">🔑 Kunci Jawaban</button>
+      </div>
+      <div class="fb" id="fb-q5"></div>
+      <div class="hbox" id="h5"><h5>💡 Petunjuk</h5><p>Untuk \(M_y\): turunkan \(3x^2y + y^3\) terhadap \(y\). Ingat \(x\) dianggap konstanta.<br>Untuk \(N_x\): turunkan \(x^3 + 3xy^2\) terhadap \(x\). Ingat \(y\) dianggap konstanta.</p></div>
+      <div class="abox" id="a5"><h5>🔑 Jawaban</h5><p>\(M_y = 3x^2 + 3y^2\) dan \(N_x = 3x^2 + 3y^2\).<br>Karena \(M_y = N_x\), PD ini <strong>eksak</strong>. ✅</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ JUPYTER ═══════ -->
+<section class="sec fi" id="jupyter">
+  <div class="sl">🐍 JUPYTER NOTEBOOK</div>
+  <h2 class="st">Menyelesaikan PD dengan Python</h2>
+  <div class="sd"></div>
+
+  <div class="card" style="margin-bottom:2rem;">
+    <div class="ci g">⚙️</div>
+    <h3>Setup di VS Code</h3>
+    <div class="steps">
+      <div class="si"><div class="sc"><h4>Install Ekstensi Python & Jupyter</h4><p>Buka VS Code → Extensions → cari "Python" (Microsoft) dan "Jupyter" → Install.</p></div></div>
+      <div class="si"><div class="sc"><h4>Buat File Notebook Baru</h4><p><kbd>Ctrl+Shift+P</kbd> → ketik "Jupyter: Create New Blank Notebook" → Enter.</p></div></div>
+      <div class="si"><div class="sc"><h4>Install Library SymPy</h4><p>Di terminal VS Code: <code>pip install sympy</code></p></div></div>
+      <div class="si"><div class="sc"><h4>Jalankan Kode</h4><p>Ketik kode di cell, tekan <kbd>Shift+Enter</kbd> untuk menjalankan.</p></div></div>
+    </div>
+  </div>
+
+  <!-- Code: PD Homogen -->
+  <h3 style="margin-bottom:1rem;color:var(--c2);">🏠 Contoh 3.1: PD Homogen</h3>
+  <div class="cb">
+    <div class="cbh"><span><span class="dots"><span></span><span></span><span></span></span>Python — Jupyter Notebook</span><button class="ccp" onclick="cpC(this)">📋 Copy</button></div>
+    <div class="cbd"><pre><span class="cm"># Menyelesaikan PD Homogen: (4x²-3y²)dx + 4xy dy = 0</span>
+<span class="kw">from</span> sympy <span class="kw">import</span> *
+
+x, y = symbols(<span class="st">'x y'</span>)
+f = Function(<span class="st">'f'</span>)
+
+<span class="cm"># Definisikan PD: dy/dx = -(4x² - 3y²)/(4xy)</span>
+<span class="cm"># Atau dalam bentuk: (4x² - 3y²) + 4xy * y' = 0</span>
+ode = Eq(f(x).diff(x), -(4*x**2 - 3*f(x)**2)/(4*x*f(x)))
+
+<span class="cm"># Selesaikan</span>
+sol = dsolve(ode, f(x))
+<span class="fn">print</span>(<span class="st">"Penyelesaian umum:"</span>)
+<span class="fn">print</span>(sol)
+
+<span class="cm"># Verifikasi: apakah homogen?</span>
+M = 4*x**2 - 3*y**2
+N = 4*x*y
+alpha = symbols(<span class="st">'alpha'</span>)
+M_scaled = M.subs([(x, alpha*x), (y, alpha*y)])
+<span class="fn">print</span>(<span class="st">f"\nM(αx,αy) = {simplify(M_scaled)}"</span>)
+<span class="fn">print</span>(<span class="st">f"α²·M(x,y) = {simplify(alpha**2 * M)}"</span>)
+<span class="fn">print</span>(<span class="st">f"Homogen? {simplify(M_scaled - alpha**2 * M) == 0}"</span>)</pre></div>
+  </div>
+
+  <!-- Code: PD Eksak -->
+  <h3 style="margin:2rem 0 1rem;color:var(--c5);">⚡ Contoh 4.1: PD Eksak</h3>
+  <div class="cb">
+    <div class="cbh"><span><span class="dots"><span></span><span></span><span></span></span>Python — Jupyter Notebook</span><button class="ccp" onclick="cpC(this)">📋 Copy</button></div>
+    <div class="cbd"><pre><span class="cm"># Menyelesaikan PD Eksak: (3x²+2xy³)dx + (3x²y²-2y³)dy = 0</span>
+<span class="kw">from</span> sympy <span class="kw">import</span> *
+
+x, y = symbols(<span class="st">'x y'</span>)
+
+M = 3*x**2 + 2*x*y**3
+N = 3*x**2*y**2 - 2*y**3
+
+<span class="cm"># Langkah 1: Cek syarat eksak</span>
+My = diff(M, y)
+Nx = diff(N, x)
+<span class="fn">print</span>(<span class="st">f"∂M/∂y = {My}"</span>)
+<span class="fn">print</span>(<span class="st">f"∂N/∂x = {Nx}"</span>)
+<span class="fn">print</span>(<span class="st">f"Eksak? {simplify(My - Nx) == 0}"</span>)
+
+<span class="cm"># Langkah 2: Integralkan M terhadap x</span>
+F = integrate(M, x)
+<span class="fn">print</span>(<span class="st">f"\n∫M dx = {F} + g(y)"</span>)
+
+<span class="cm"># Langkah 3: Cari g(y)</span>
+Fy = diff(F, y)
+g_prime = simplify(N - Fy)
+<span class="fn">print</span>(<span class="st">f"g'(y) = {g_prime}"</span>)
+g = integrate(g_prime, y)
+<span class="fn">print</span>(<span class="st">f"g(y) = {g}"</span>)
+
+<span class="cm"># Solusi akhir</span>
+F_total = F + g
+<span class="fn">print</span>(<span class="st">f"\n✅ Penyelesaian: {F_total} = C"</span>)</pre></div>
+  </div>
+
+  <!-- Code: Cek Eksak Generic -->
+  <h3 style="margin:2rem 0 1rem;color:var(--c3);">🔧 Tool: Cek Eksak + Selesaikan Otomatis</h3>
+  <div class="cb">
+    <div class="cbh"><span><span class="dots"><span></span><span></span><span></span></span>Python — Jupyter Notebook</span><button class="ccp" onclick="cpC(this)">📋 Copy</button></div>
+    <div class="cbd"><pre><span class="cm"># Fungsi untuk mengecek dan menyelesaikan PD eksak</span>
+<span class="kw">from</span> sympy <span class="kw">import</span> *
+
+<span class="kw">def</span> <span class="fn">solve_exact</span>(M_expr, N_expr):
+    x, y = symbols(<span class="st">'x y'</span>)
+    M = sympify(M_expr)
+    N = sympify(N_expr)
+    
+    My = diff(M, y)
+    Nx = diff(N, x)
+    
+    <span class="fn">print</span>(<span class="st">f"M = {M}"</span>)
+    <span class="fn">print</span>(<span class="st">f"N = {N}"</span>)
+    <span class="fn">print</span>(<span class="st">f"∂M/∂y = {My}"</span>)
+    <span class="fn">print</span>(<span class="st">f"∂N/∂x = {Nx}"</span>)
+    
+    <span class="kw">if</span> simplify(My - Nx) == 0:
+        <span class="fn">print</span>(<span class="st">"✅ PD ini EKSAK!"</span>)
+        F = integrate(M, x)
+        g_prime = simplify(N - diff(F, y))
+        g = integrate(g_prime, y)
+        F_total = simplify(F + g)
+        <span class="fn">print</span>(<span class="st">f"\nSolusi: {F_total} = C"</span>)
+        <span class="kw">return</span> F_total
+    <span class="kw">else</span>:
+        <span class="fn">print</span>(<span class="st">"❌ PD ini TIDAK eksak."</span>)
+        <span class="kw">return</span> None
+
+<span class="cm"># Contoh penggunaan:</span>
+solve_exact(<span class="st">"2*x*y + 3"</span>, <span class="st">"x**2 - 1"</span>)</pre></div>
+  </div>
+</section>
+
+<!-- ═══════ ACTIVITY SECTION ═══════ -->
+<section class="sec fi" id="aktivitas">
+  <div class="sl">📊 AKTIVITAS</div>
+  <h2 class="st">Aktivitas Mahasiswa</h2>
+  <div class="sd"></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <button class="abtn" onclick="showResetModal()" style="background:rgba(251,113,133,.12);border-color:rgba(251,113,133,.3);color:#fb7185;">🗑 Reset Data</button>
+      <button class="abtn" onclick="showScheduleModal()" style="background:rgba(129,140,248,.12);border-color:rgba(129,140,248,.3);color:#818cf8;">🕐 Atur Jadwal</button>
+    </div>
+    <div id="scheduleInfo" style="display:none;align-items:center;gap:8px;padding:8px 14px;background:rgba(129,140,248,.08);border:1px solid rgba(129,140,248,.2);border-radius:10px;">
+      <div style="font-size:.75rem;font-weight:600;color:#818cf8;text-transform:uppercase;letter-spacing:.08em;">Jadwal Perkuliahan</div>
+      <div id="scheduleRange" style="font-size:.88rem;color:#e2e8f0;font-weight:600;margin-top:2px;">—</div>
+    </div>
+    <div style="text-align:center;">
+      <div id="statLate" style="font-weight:800;font-size:1.4rem;color:#fb7185;">0</div>
+      <div style="font-size:.7rem;color:#64748b;">Terlambat</div>
+    </div>
+  </div>
+  <div style="background:#162033;border:1px solid #1e293b;border-radius:20px;overflow:hidden;">
+    <div id="leaderboardPanel" style="margin-bottom:2px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:16px 20px;">
+        <div style="background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.15);border-radius:14px;padding:14px 16px;">
+          <div style="font-size:.72rem;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🏆 Paling Rajin</div>
+          <div id="rajinList" style="font-size:.8rem;color:#e2e8f0;min-height:60px;">⏳ Memuat...</div>
+        </div>
+        <div style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15);border-radius:14px;padding:14px 16px;">
+          <div style="font-size:.72rem;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">😴 Paling Santai</div>
+          <div id="santaiList" style="font-size:.8rem;color:#e2e8f0;min-height:60px;">⏳ Memuat...</div>
+        </div>
+      </div>
+      <div style="padding:0 20px 16px;">
+        <div style="background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);border-radius:14px;padding:14px 16px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <div style="font-size:.72rem;font-weight:700;color:#fb7185;text-transform:uppercase;letter-spacing:.1em;">❌ Bolos</div>
+            <div id="bolosCount" style="background:rgba(251,113,133,.15);color:#fb7185;font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:8px;">0</div>
+          </div>
+          <div id="bolosList" style="font-size:.8rem;color:#e2e8f0;">⏳ Memuat...</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;padding:14px 24px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.08em;">
+      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:0.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
+    </div>
+    <div id="visitorTableBody" style="max-height:420px;overflow-y:auto;"><div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">⏳ Memuat data mahasiswa...</div></div>
+  </div>
+</section>
+
+<footer>
+  <p>📐 Modul 3 — Persamaan Diferensial Homogen & Eksak</p>
+  <p style="margin-top:.5rem;">Matematika 4 • W132100010 • Fakultas Teknik — Teknik Mesin</p>
+  <p style="margin-top:.25rem;font-size:.8rem;">Disusun oleh: Dedik Romahadi</p>
+</footer>
+
+<!-- ═══════ SCRIPTS ═══════ -->
+<script>
+document.addEventListener('DOMContentLoaded',()=>{renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})});
+
+// Progress
+window.addEventListener('scroll',()=>{const t=document.documentElement.scrollHeight-window.innerHeight;document.getElementById('prog').style.width=(window.scrollY/t*100)+'%'});
+
+// Fade-in
+const obs=new IntersectionObserver(e=>{e.forEach(en=>{if(en.isIntersecting)en.target.classList.add('vis')})},{threshold:.1});
+document.querySelectorAll('.fi').forEach(el=>obs.observe(el));
+
+// Active nav
+window.addEventListener('scroll',()=>{const secs=document.querySelectorAll('.sec');const links=document.querySelectorAll('.nav a');let cur='';secs.forEach(s=>{if(window.scrollY>=s.offsetTop-120)cur=s.id});links.forEach(l=>{l.classList.remove('active');if(l.getAttribute('href')==='#'+cur)l.classList.add('active')})});
+
+// Tabs
+function switchTab(idx,btn){document.querySelectorAll('.dtab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.dpanel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById('tab'+idx).classList.add('active');}
+
+// Radio select
+function selR(l,q){const g=l.closest('.rg');g.querySelectorAll('.ro').forEach(o=>{o.style.borderColor='var(--bd)';o.style.background='var(--bg2)'});l.querySelector('input').checked=true;l.style.borderColor='var(--c1)';l.style.background='rgba(0,224,158,.04)'}
+
+// Check MC answer
+function chk(q,cor){const sel=document.querySelector(`input[name="${q}"]:checked`);const fb=document.getElementById(`fb-${q}`);if(!sel){fb.className='fb bad';fb.textContent='⚠️ Pilih jawaban dulu!';fb.style.display='block';return}
+document.querySelectorAll(`#${q}-opts .ro`).forEach(o=>{const v=o.querySelector('input').value;o.classList.remove('ok','bad');if(v===cor)o.classList.add('ok');else if(o.querySelector('input').checked&&v!==cor)o.classList.add('bad')});
+if(sel.value===cor){fb.className='fb ok';fb.textContent='🎉 Benar! Jawaban Anda tepat.'}else{fb.className='fb bad';fb.textContent='❌ Kurang tepat. Coba lihat petunjuk atau kunci jawaban.'}fb.style.display='block'}
+
+// Check input soal 5
+function chkInput5(){
+  const my=document.getElementById('inp-my').value.replace(/\s/g,'').toLowerCase();
+  const nx=document.getElementById('inp-nx').value.replace(/\s/g,'').toLowerCase();
+  const fb=document.getElementById('fb-q5');
+  const correct=['3x^2+3y^2','3x²+3y²','3*x^2+3*y^2','3x**2+3y**2'];
+  const myOk=correct.some(c=>my.includes('3x')&&my.includes('3y'));
+  const nxOk=correct.some(c=>nx.includes('3x')&&nx.includes('3y'));
+  if(myOk&&nxOk){fb.className='fb ok';fb.textContent='🎉 Benar! My = Nx = 3x² + 3y² → PD ini eksak!';}
+  else if(!my&&!nx){fb.className='fb bad';fb.textContent='⚠️ Isi kedua jawaban dulu!';}
+  else{fb.className='fb bad';fb.textContent='❌ Kurang tepat. Coba hitung turunan parsial dengan teliti.';}
+  fb.style.display='block';
+}
+
+// Toggle hint/answer
+function tog(id){document.getElementById(id).classList.toggle('show')}
+
+// Copy code
+function cpC(btn){const code=btn.closest('.cb').querySelector('pre').textContent;navigator.clipboard.writeText(code).then(()=>{btn.textContent='✅ Copied!';setTimeout(()=>btn.textContent='📋 Copy',2000)})}
+
+// Homogeneity checker
+const homoData=[
+  {ok:true,deg:2,html:'✅ <strong>Homogen berderajad 2.</strong><br><span style="color:var(--t2);font-size:.9rem;">\\(f(\\alpha x, \\alpha y) = \\alpha^2 x^2 + \\alpha^2 xy + \\alpha^2 y^2 = \\alpha^2 f(x,y)\\)</span>'},
+  {ok:true,deg:3,html:'✅ <strong>Homogen berderajad 3.</strong><br><span style="color:var(--t2);font-size:.9rem;">\\(f(\\alpha x, \\alpha y) = \\alpha^3 x^3 - 2\\alpha^3 xy^2 + \\alpha^3 y^3 = \\alpha^3 f(x,y)\\)</span>'},
+  {ok:false,html:'❌ <strong>Bukan homogen.</strong><br><span style="color:var(--t2);font-size:.9rem;">Ada konstanta "+1" yang tidak bisa difaktorkan. \\(f(\\alpha x, \\alpha y) = \\alpha^2 x^2 + \\alpha^2 y + 1 \\neq \\alpha^n f(x,y)\\)</span>'},
+  {ok:true,deg:2,html:'✅ <strong>Homogen berderajad 2.</strong><br><span style="color:var(--t2);font-size:.9rem;">\\(f(\\alpha x, \\alpha y) = \\alpha x \\cdot \\alpha y = \\alpha^2 xy = \\alpha^2 f(x,y)\\)</span>'}
+];
+function checkHomo(idx,btn){
+  document.querySelectorAll('.homo-checker .abtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  const d=homoData[idx];const el=document.getElementById('homoResult');
+  el.style.background=d.ok?'rgba(0,224,158,.08)':'rgba(239,68,68,.08)';
+  el.style.borderColor=d.ok?'rgba(0,224,158,.3)':'rgba(239,68,68,.3)';
+  el.style.color=d.ok?'var(--c1)':'var(--c4)';
+  el.innerHTML=d.html;el.className='result-box show';
+  renderMathInElement(el,{delimiters:[{left:'\\(',right:'\\)',display:false}],throwOnError:false});
+}
+
+// Canvas visualization
+const cvs=document.getElementById('cvs');const ctx=cvs.getContext('2d');let aid=null;
+const visDescs={
+  homo1:'Solusi Contoh 3.1: (4x²+y²)² = Cx³ — keluarga kurva untuk berbagai C.',
+  homo2:'Solusi Contoh 3.2: e^{(x/y)³} = Cy³ — keluarga kurva ekspansif.',
+  eksak1:'Solusi Contoh 4.1: x³ + x²y³ − ½y⁴ = C — kontur level.'
+};
+
+function drawVis(type,btn){
+  if(btn){document.querySelectorAll('.actrl .abtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active')}
+  document.getElementById('visDesc').textContent=visDescs[type]||'';
+  if(aid)cancelAnimationFrame(aid);
+  const w=cvs.width,h=cvs.height,cx=w/2,cy=h/2;let fr=0;
+  const colors=['#00e09e','#0ea5e9','#a855f7','#f97316','#facc15'];
+
+  function anim(){
+    fr+=4;ctx.clearRect(0,0,w,h);
+    // Grid
+    ctx.strokeStyle='rgba(30,41,59,.4)';ctx.lineWidth=1;
+    for(let i=0;i<w;i+=50){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,h);ctx.stroke()}
+    for(let i=0;i<h;i+=50){ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(w,i);ctx.stroke()}
+    // Axes
+    ctx.strokeStyle='rgba(148,163,184,.4)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(cx,10);ctx.lineTo(cx,h-10);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(10,cy);ctx.lineTo(w-10,cy);ctx.stroke();
+    ctx.fillStyle='#94a3b8';ctx.font='13px Source Sans 3';ctx.fillText('x',w-25,cy-8);ctx.fillText('y',cx+8,22);
+
+    const Cs=type==='homo1'?[0.5,2,5,10,20]:type==='homo2'?[0.5,1,2,4,8]:type==='eksak1'?[-5,-2,0,2,5]:[];
+    const maxPx=Math.min(fr, w);
+
+    Cs.forEach((C,ci)=>{
+      ctx.strokeStyle=colors[ci%colors.length];ctx.lineWidth=2.5;ctx.beginPath();let started=false;
+      for(let px=1;px<maxPx;px++){
+        const xv=(px-cx)/50;
+        let yv=null;
+        if(type==='homo1'){
+          // (4x²+y²)² = Cx³ → y² = x^(3/2)*sqrt(C) - 4x²  (approx visualization)
+          const val=C*Math.pow(Math.abs(xv),1.5)-4*xv*xv;
+          if(val>=0) yv=Math.sqrt(val);
+        } else if(type==='homo2'){
+          // e^(x/y)^3 = Cy³ → approximate
+          if(C>0){const vy=Math.pow(C,1/3)*Math.exp(xv*0.3);yv=vy>0?vy*0.5:null;}
+        } else if(type==='eksak1'){
+          // x³ + x²y³ - 0.5y⁴ = C (plot y for each x approx)
+          const x3=xv*xv*xv;
+          // Approximate: treat as x³ - C ≈ 0.5y⁴ for small x²y³
+          const val=2*(C-x3);
+          if(val>=0)yv=Math.pow(val,0.25);
+          else yv=null;
+        }
+        if(yv!==null&&isFinite(yv)&&Math.abs(yv)<4){
+          const sy=cy-yv*50;
+          if(!started){ctx.moveTo(px,sy);started=true}else ctx.lineTo(px,sy);
+        }else{started=false;}
+      }
+      ctx.stroke();
+      // Mirror for symmetric
+      if(type==='homo1'||type==='eksak1'){
+        ctx.beginPath();started=false;
+        for(let px=1;px<maxPx;px++){
+          const xv=(px-cx)/50;let yv=null;
+          if(type==='homo1'){const val=C*Math.pow(Math.abs(xv),1.5)-4*xv*xv;if(val>=0)yv=-Math.sqrt(val);}
+          else if(type==='eksak1'){const x3=xv*xv*xv;const val=2*(C-x3);if(val>=0)yv=-Math.pow(val,0.25);}
+          if(yv!==null&&isFinite(yv)&&Math.abs(yv)<4){const sy=cy-yv*50;if(!started){ctx.moveTo(px,sy);started=true}else ctx.lineTo(px,sy)}else{started=false;}
+        }
+        ctx.stroke();
+      }
+    });
+    if(fr<w)aid=requestAnimationFrame(anim);
+  }
+  anim();
+}
+drawVis('homo1',null);
+</script>
+
+<script type="module">
+// ═══ FIREBASE + VISITOR SYSTEM ═══
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getDatabase, ref, get, set, remove, onValue } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",
+  authDomain: "getaran-mekanik.firebaseapp.com",
+  databaseURL: "https://getaran-mekanik-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "getaran-mekanik",
+  storageBucket: "getaran-mekanik.firebasestorage.app",
+  messagingSenderId: "430886299733",
+  appId: "1:430886299733:web:0edecd5d4adf73e7440cdc",
+  measurementId: "G-NBMYLXXF18"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const MODULE_ID = 'modul-3';
+const DB_PATH = `visitors/math4/${MODULE_ID}`;
+const PERTEMUAN = 'pertemuan-3';
+const RELATED_MODULES = ['forum-3','tugas-3'];
+const SCHEDULE_PATH = `settings/math4/${PERTEMUAN}/schedule`;
+const LOCAL_IDENTITY = `optoauto_identity_${MODULE_ID}`;
+let panelOpen = false;
+let currentSchedule = null;
+const VISIT_COOLDOWN = 3600000;
+
+function getIdentity(){try{return JSON.parse(localStorage.getItem(LOCAL_IDENTITY));}catch(e){return null;}}
+function saveIdentity(v){localStorage.setItem(LOCAL_IDENTITY, JSON.stringify(v));}
+function isValidName(n){if(!n)return false;return n.split(/\s+/).every(w=>w.length>0&&/^[A-Z][a-zA-Z.'\-]*$/.test(w));}
+function isValidNim(n){return /^\d+$/.test(n);}
+function sanitizeKey(s){return s.replace(/[.#$/\[\]]/g,'_');}
+
+let masterStudents = [];
+let masterFetchDone = false;
+const STUDENTS_JSON_URL = 'https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Engineering-Mathematics/Attributes/students.json';
+function fetchMasterStudents(retries){
+  retries = retries || 0;
+  return fetch(STUDENTS_JSON_URL, {cache:'no-store'}).then(r=>{
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.json();
+  }).then(data=>{
+    masterStudents = data;
+    masterFetchDone = true;
+    console.log('[Visitor] Master students loaded:', masterStudents.length);
+  }).catch(err=>{
+    console.error('[Visitor] Fetch error (attempt '+(retries+1)+'):', err);
+    if(retries < 2){ setTimeout(()=>fetchMasterStudents(retries+1), 1500); }
+    else { masterStudents = []; masterFetchDone = true; }
+  });
+}
+
+function updateLeaderboard(visitors, schedExpired){
+  const rajinEl=document.getElementById('rajinList');
+  const santaiEl=document.getElementById('santaiList');
+  const bolosEl=document.getElementById('bolosList');
+  const bolosCEl=document.getElementById('bolosCount');
+  if(!rajinEl)return;
+  if(!masterStudents.length){rajinEl.innerHTML='<span style="color:#64748b;font-size:.75rem;">Memuat data mahasiswa...</span>';santaiEl.innerHTML=rajinEl.innerHTML;bolosEl.innerHTML=rajinEl.innerHTML;return;}
+  const mhs=visitors.filter(v=>v.role!=='dosen'&&v.role!=='guest');
+  const visitMap={};
+  mhs.forEach(v=>{const k=v.nim;if(!visitMap[k])visitMap[k]=v;});
+  const visited=Object.values(visitMap);
+  const rajin=[...visited].sort((a,b)=>{const d=(b.visitCount||1)-(a.visitCount||1);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp);});
+  const santai=[...visited].sort((a,b)=>{const d=(a.visitCount||1)-(b.visitCount||1);return d!==0?d:new Date(b.timestamp)-new Date(a.timestamp);});
+  const medalR=['🥇','🥈','🥉'];
+  function renderCard(v,idx,isSantai){
+    const medal=isSantai?(idx+1):medalR[idx];
+    const vc=v.visitCount||1;
+    const badgeStyle=isSantai?'background:rgba(251,191,36,.12);color:#fbbf24;':'background:rgba(16,185,129,.12);color:#10b981;';
+    const mBadge=isSantai?'<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(251,191,36,.15);color:#fbbf24;font-size:.65rem;font-weight:800;flex-shrink:0;">'+medal+'</span>':'<span style="font-size:1rem;flex-shrink:0;">'+medal+'</span>';
+    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'">'+mBadge+'<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="'+badgeStyle+'padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+vc+'x</div></div>';
+  }
+  const top3=new Set(rajin.slice(0,3).map(v=>v.nim));
+  const santaiFiltered=santai.filter(v=>!top3.has(v.nim));
+  rajinEl.innerHTML=rajin.length?rajin.slice(0,3).map((v,i)=>renderCard(v,i,false)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
+  santaiEl.innerHTML=santaiFiltered.length?santaiFiltered.slice(0,3).map((v,i)=>renderCard(v,i,true)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
+  const visitedNims=new Set(mhs.map(v=>v.nim));
+  const notVisited=masterStudents.filter(s=>!visitedNims.has(s.nim));
+  if(schedExpired){
+    bolosCEl.textContent=notVisited.length;
+    if(!notVisited.length){bolosEl.innerHTML='<span style="color:#10b981;font-size:.78rem;">✅ Semua mahasiswa sudah berkunjung!</span>';}
+    else{bolosEl.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:6px;">'+notVisited.map(s=>'<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.12);border-radius:10px;padding:5px 10px;"><span style="font-weight:600;font-size:.75rem;color:#ef4444;">'+escH(s.nama)+'</span><span style="font-size:.62rem;color:#64748b;font-family:monospace;">'+s.nim+'</span></div>').join('')+'</div>';}
+  } else {
+    bolosCEl.textContent='—';
+    const belum=notVisited.length;
+    bolosEl.innerHTML=belum?'<span style="color:#94a3b8;font-size:.78rem;">⏳ '+belum+' mahasiswa belum berkunjung. Batas waktu belum berakhir.</span>':'<span style="color:#10b981;font-size:.78rem;">✅ Semua mahasiswa sudah berkunjung!</span>';
+  }
+}
+fetchMasterStudents();
+
+let latestVisitors=[];
+function initVisitor(){
+  const me = getIdentity();
+  if(me && me.role==='guest'){localStorage.removeItem(LOCAL_IDENTITY);location.reload();return;}
+  if(me && me.nama){
+    document.getElementById('visitorOverlay').classList.add('hidden');
+    document.getElementById('visitorFab').style.display='flex';
+    const _isDosen = me.nama.toLowerCase()==='dedik romahadi';
+    if(!_isDosen && (!masterFetchDone || masterStudents.some(s=>s.nim===me.nim && s.nama.toUpperCase()===me.nama.toUpperCase()))){
+      const _key = sanitizeKey(`mhs_${me.nim}`);
+      get(ref(db,`${DB_PATH}/${_key}`)).then(snap=>{
+        if(snap.exists()){
+          const ex=snap.val();
+          const lastV=new Date(ex.lastVisit||ex.timestamp).getTime();
+          if(Date.now()-lastV>=VISIT_COOLDOWN){
+            set(ref(db,`${DB_PATH}/${_key}`),{...ex,visitCount:(ex.visitCount||1)+1,lastVisit:new Date().toISOString()});
+          }
+        }
+      }).catch(()=>{});
+    }
+  }
+  onValue(ref(db, SCHEDULE_PATH), (snap) => {
+    currentSchedule = snap.val();
+    updateScheduleDisplay();
+    onValue(ref(db, DB_PATH), (vsnap) => {
+      const data = vsnap.val();
+      latestVisitors=data ? Object.values(data) : [];renderVisitors(latestVisitors);
+    }, {onlyOnce: true});
+  });
+  onValue(ref(db, DB_PATH), (snapshot) => {
+    const data = snapshot.val();
+    latestVisitors=data ? Object.values(data) : [];renderVisitors(latestVisitors);
+  });
+}
+
+function updateScheduleDisplay(){
+  const info = document.getElementById('scheduleInfo');
+  const range = document.getElementById('scheduleRange');
+  if(!info || !range) return;
+  if(currentSchedule && currentSchedule.start && currentSchedule.end){
+    info.style.display='flex';
+    const s = new Date(currentSchedule.start), e = new Date(currentSchedule.end);
+    const dur = currentSchedule.duration || Math.round((e-s)/(24*60*60*1000));
+    const fmt = (d) => d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    range.textContent = fmt(s) + '  —  ' + fmt(e) + '  ('+dur+' hari)';
+  } else { info.style.display='none'; }
+}
+
+function isLate(timestamp){
+  if(!currentSchedule || !currentSchedule.start || !currentSchedule.end) return false;
+  const t = new Date(timestamp).getTime();
+  const s = new Date(currentSchedule.start).getTime();
+  const e = new Date(currentSchedule.end).getTime();
+  return t < s || t > e;
+}
+
+function submitVisitor(){
+  const nama=document.getElementById('vNama').value.trim(), nim=document.getElementById('vNim').value.trim(), err=document.getElementById('vError');
+  if(!currentSchedule || !currentSchedule.start || !currentSchedule.end){err.textContent='⚠ Jadwal belum disetel. Silakan atur jadwal terlebih dahulu.';err.style.display='block';return;}
+  const now=new Date().getTime(), schedStart=new Date(currentSchedule.start).getTime();
+  if(now<schedStart){const sd=new Date(currentSchedule.start);err.textContent='⚠ Akses belum dibuka. Jadwal dimulai pada '+sd.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+' '+sd.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+'.';err.style.display='block';return;}
+  const isDosen=nama.toLowerCase()==='dedik romahadi';
+  if(!nama){err.textContent='⚠ Nama wajib diisi.';err.style.display='block';return;}
+  if(!isValidName(nama)){err.textContent='⚠ Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi';err.style.display='block';return;}
+  if(!isDosen&&!nim){err.textContent='⚠ NIM wajib diisi.';err.style.display='block';return;}
+  if(!isDosen&&!isValidNim(nim)){err.textContent='⚠ NIM harus berupa angka tanpa spasi. Contoh: 41522010001';err.style.display='block';return;}
+  if(!isDosen&&!masterFetchDone){err.textContent='⚠ Data mahasiswa sedang dimuat, silakan coba lagi.';err.style.display='block';return;}
+  err.style.display='none';
+  if(isDosen){
+    saveIdentity({nama, nim:'DOSEN', role:'dosen', timestamp:new Date().toISOString()});
+  } else if(masterFetchDone && !masterStudents.some(s=>s.nim===nim && s.nama.toUpperCase()===nama.toUpperCase())){
+    const nimExists=masterStudents.some(s=>s.nim===nim);
+    if(nimExists){err.textContent='⚠ Nama tidak sesuai dengan NIM yang terdaftar. Pastikan nama lengkap sesuai daftar.';err.style.display='block';return;}
+    err.textContent='⚠ NIM tidak terdaftar. Hanya mahasiswa yang terdaftar di kelas ini yang dapat mengakses.';err.style.display='block';return;
+  } else {
+    const key = sanitizeKey(`mhs_${nim}`);
+    const nowISO = new Date().toISOString();
+    get(ref(db, `${DB_PATH}/${key}`)).then(snap => {
+      let v;
+      if(snap.exists()){
+        const ex = snap.val();
+        const lastV = new Date(ex.lastVisit || ex.timestamp).getTime();
+        const canBump = (Date.now() - lastV) >= VISIT_COOLDOWN;
+        v = {...ex, visitCount: canBump ? (ex.visitCount||1)+1 : (ex.visitCount||1), lastVisit: canBump ? nowISO : (ex.lastVisit||ex.timestamp)};
+      } else {
+        v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO};
+      }
+      saveIdentity(v);
+      return set(ref(db, `${DB_PATH}/${key}`), v);
+    }).catch(()=>{
+      const v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO};
+      saveIdentity(v);
+      set(ref(db, `${DB_PATH}/${key}`), v);
+    });
+  }
+  document.getElementById('visitorOverlay').classList.add('hidden');
+  document.getElementById('visitorFab').style.display='flex';
+}
+
+function renderVisitors(visitors){
+  const visitMap={};
+  for(const v of visitors){if(v.role==='dosen'||v.role==='guest')continue;if(!visitMap[v.nim])visitMap[v.nim]=v;}
+  const visited=Object.values(visitMap);
+  const lateCount=visited.filter(v=>isLate(v.timestamp)).length;
+  const schedExpired=currentSchedule&&currentSchedule.end&&new Date().getTime()>new Date(currentSchedule.end).getTime();
+
+  document.getElementById('fabCount').textContent=visited.length;
+  updateLeaderboard(visitors, schedExpired);
+  document.getElementById('vpBadge').textContent=visited.length+' orang';
+  const statLateEl=document.getElementById('statLate');
+  if(statLateEl) statLateEl.textContent=lateCount;
+
+  const listEl=document.getElementById('vpList'), tableEl=document.getElementById('visitorTableBody');
+
+  if(!visited.length){listEl.innerHTML='<div class="vp-empty">Belum ada data.</div>';}
+  else{
+    listEl.innerHTML=visited.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(v=>{
+      const ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+      const late=isLate(v.timestamp);
+      const lBadge=late?'<span style="color:#fb7185;font-size:.65rem;font-weight:600;margin-left:4px;">⏰ Terlambat</span>':'';
+      return `<div class="vp-item" style="${late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':''}"><div class="vp-avatar student" style="${late?'background:rgba(251,113,133,.12);color:#fb7185;':''}">${ini}</div><div class="vp-info"><div class="vp-name">${escH(v.nama)}${lBadge}</div><div class="vp-nim">${escH(v.nim)}</div></div><div class="vp-time"><div>${ts}</div><div style="font-size:.6rem;color:#94a3b8;text-align:right;">${v.visitCount||1}x kunjungan</div></div></div>`;
+    }).join('');
+  }
+
+  if(!masterStudents.length){
+    tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">⏳ Memuat data mahasiswa...</div>';
+    return;
+  }
+  function toTitle(s){return s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());}
+  tableEl.innerHTML=masterStudents.map((s,i)=>{
+    const v=visitMap[s.nim];
+    const nama=toTitle(s.nama);
+    const ini=nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const hasVisit=!!v;
+    const late=hasVisit&&isLate(v.timestamp);
+    const bolos=!hasVisit&&schedExpired;
+    const vc=hasVisit?(v.visitCount||1):0;
+    const ts=hasVisit?(()=>{const dt=new Date(v.timestamp);return dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});})():'—';
+    let statusCol,rowBg='',nameColor='color:#e2e8f0;',ac='background:rgba(255,255,255,.08);color:#e2e8f0;';
+    if(bolos){
+      statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25);">❌ Bolos</span>';
+      rowBg='background:rgba(239,68,68,.03);';nameColor='color:#ef4444;';ac='background:rgba(239,68,68,.12);color:#ef4444;';
+    }else if(!hasVisit){
+      statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(100,116,139,.1);color:#94a3b8;border:1px solid rgba(100,116,139,.2);">⏳ Belum</span>';
+      rowBg='';nameColor='color:#64748b;';ac='background:rgba(100,116,139,.1);color:#94a3b8;';
+    }else if(late){
+      statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(251,113,133,.12);color:#fb7185;border:1px solid rgba(251,113,133,.25);">⏰ Terlambat</span>';
+      rowBg='background:rgba(251,113,133,.04);';nameColor='color:#fb7185;';ac='background:rgba(251,113,133,.12);color:#fb7185;';
+    }else{
+      statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.25);">✅ Tepat Waktu</span>';
+    }
+    const vcDisplay=vc?vc+'x':'<span style="color:#475569;">—</span>';
+    const tsColor=bolos?'#ef4444':late?'#fb7185':hasVisit?'#64748b':'#475569';
+    return `<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;${rowBg}" onmouseenter="this.style.background='rgba(255,255,255,.03)'" onmouseleave="this.style.background='${rowBg||'transparent'}'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:${tsColor};font-weight:600;">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${ac}">${ini}</div><div><div style="font-weight:600;font-size:.88rem;${nameColor}">${escH(nama)}</div></div></div><div style="flex:1;font-size:.8rem;color:${hasVisit?'#94a3b8':'#475569'};font-family:monospace;">${s.nim}</div><div style="flex:1;text-align:center;">${statusCol}</div><div style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:#94a3b8;">${vcDisplay}</div><div style="flex:1;text-align:right;font-size:.78rem;color:${tsColor};">${ts}</div></div>`;
+  }).join('');
+}
+
+function togglePanel(){panelOpen=!panelOpen;document.getElementById('visitorPanel').classList.toggle('open',panelOpen);}
+document.addEventListener('click',function(e){const p=document.getElementById('visitorPanel'),f=document.getElementById('visitorFab');if(panelOpen&&!p.contains(e.target)&&!f.contains(e.target)){panelOpen=false;p.classList.remove('open');}});
+function escH(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+function showResetModal(){document.getElementById('resetOverlay').classList.remove('hidden');document.getElementById('resetPw').value='';document.getElementById('resetError').style.display='none';setTimeout(()=>document.getElementById('resetPw').focus(),100);}
+function hideResetModal(){document.getElementById('resetOverlay').classList.add('hidden');}
+function confirmReset(){
+  if(document.getElementById('resetPw').value!=='TeknikMesin0602'){document.getElementById('resetError').style.display='block';return;}
+  remove(ref(db,DB_PATH));
+  localStorage.removeItem(LOCAL_IDENTITY);
+  remove(ref(db,SCHEDULE_PATH));
+  RELATED_MODULES.forEach(function(mid){
+    remove(ref(db,'visitors/math4/'+mid));
+    localStorage.removeItem('optoauto_identity_'+mid);
+  });
+  hideResetModal();
+  document.getElementById('visitorOverlay').classList.remove('hidden');
+  document.getElementById('visitorFab').style.display='none';
+}
+
+function showScheduleModal(){
+  document.getElementById('scheduleOverlay').classList.remove('hidden');
+  document.getElementById('schedulePw').value='';
+  document.getElementById('scheduleError').textContent='';document.getElementById('scheduleError').style.display='none';
+  if(currentSchedule){
+    document.getElementById('scheduleDuration').value=currentSchedule.duration||'';
+    document.getElementById('scheduleDue').value=currentSchedule.due||'';
+  } else {
+    document.getElementById('scheduleDuration').value='7';var dd=new Date();dd.setDate(dd.getDate()+7);dd.setHours(23,59,0,0);document.getElementById('scheduleDue').value=dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0')+'T23:59';
+  }
+  setTimeout(()=>document.getElementById('schedulePw').focus(),100);
+}
+function hideScheduleModal(){document.getElementById('scheduleOverlay').classList.add('hidden');}
+function saveSchedule(){
+  const pw=document.getElementById('schedulePw').value;
+  if(pw!=='TeknikMesin0602'){document.getElementById('scheduleError').textContent='⚠ Password salah.';document.getElementById('scheduleError').style.display='block';return;}
+  const dur=parseInt(document.getElementById('scheduleDuration').value), due=document.getElementById('scheduleDue').value;
+  if(!dur||dur<1){document.getElementById('scheduleError').textContent='⚠ Durasi harus diisi (minimal 1 hari).';document.getElementById('scheduleError').style.display='block';return;}
+  if(!due){document.getElementById('scheduleError').textContent='⚠ Batas akhir (due date) harus diisi.';document.getElementById('scheduleError').style.display='block';return;}
+  const dueDate=new Date(due);
+  const startDate=new Date(dueDate.getTime()-dur*24*60*60*1000);
+  const s=startDate.toISOString(), e=dueDate.toISOString();
+  remove(ref(db,DB_PATH));
+  localStorage.removeItem(LOCAL_IDENTITY);
+  set(ref(db, SCHEDULE_PATH), {start:s, end:e, duration:dur, due:due});
+  hideScheduleModal();
+  document.getElementById('visitorOverlay').classList.remove('hidden');
+  document.getElementById('visitorFab').style.display='none';
+}
+
+document.getElementById('resetPw').addEventListener('keydown',function(e){if(e.key==='Enter')confirmReset();});
+document.getElementById('resetOverlay').addEventListener('click',function(e){if(e.target===this)hideResetModal();});
+document.getElementById('scheduleOverlay').addEventListener('click',function(e){if(e.target===this)hideScheduleModal();});
+document.getElementById('schedulePw').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('scheduleDuration').focus();});
+document.getElementById('vNim').addEventListener('keydown',function(e){if(e.key==='Enter')submitVisitor();});
+document.getElementById('vNama').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('vNim').focus();});
+
+window.submitVisitor=submitVisitor;window.togglePanel=togglePanel;
+window.showResetModal=showResetModal;window.hideResetModal=hideResetModal;window.confirmReset=confirmReset;
+window.showScheduleModal=showScheduleModal;window.hideScheduleModal=hideScheduleModal;window.saveSchedule=saveSchedule;
+
+setInterval(()=>{renderVisitors(latestVisitors);},30000);
+initVisitor();
+</script>
+</body>
+</html>
