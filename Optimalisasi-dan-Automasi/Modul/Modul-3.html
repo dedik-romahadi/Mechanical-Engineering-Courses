@@ -201,10 +201,10 @@ footer{margin-top:88px;padding:28px 0;border-top:1px solid rgba(255,255,255,.06)
   <div class="visitor-modal" style="max-width:380px;">
     <div style="font-size:2.4rem;margin-bottom:12px;">🔐</div>
     <h2 style="font-size:1.3rem;">Konfirmasi Reset</h2>
-    <p class="sub">Masukkan password untuk menghapus semua data pengunjung.</p>
+    <p class="sub">Masukkan password untuk menghapus semua data mahasiswa.</p>
     <p class="v-error" id="resetError">⚠ Password salah.</p>
     <input type="password" class="v-input" id="resetPw" placeholder="Password" autocomplete="off">
-    <button class="v-btn-primary" style="background:linear-gradient(135deg,var(--rose),#f43f5e);" onclick="confirmReset()">Hapus Semua Pengunjung</button>
+    <button class="v-btn-primary" style="background:linear-gradient(135deg,var(--rose),#f43f5e);" onclick="confirmReset()">Hapus Semua Data</button>
   </div>
 </div>
 
@@ -225,8 +225,8 @@ footer{margin-top:88px;padding:28px 0;border-top:1px solid rgba(255,255,255,.06)
   </div>
 </div>
 
-<button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Daftar Pengunjung">👥<span class="fab-count" id="fabCount">0</span></button>
-<div class="visitor-panel" id="visitorPanel"><div class="vp-header"><h3>👥 Pengunjung</h3><span class="vp-badge" id="vpBadge">0 orang</span></div><div class="vp-list" id="vpList"><div class="vp-empty">Memuat...</div></div></div>
+<button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Aktivitas Mahasiswa">👥<span class="fab-count" id="fabCount">0</span></button>
+<div class="visitor-panel" id="visitorPanel"><div class="vp-header"><h3>👥 Mahasiswa</h3><span class="vp-badge" id="vpBadge">0 orang</span></div><div class="vp-list" id="vpList"><div class="vp-empty">Memuat...</div></div></div>
 
 <!-- HERO -->
 <header class="hero"><div class="container">
@@ -550,9 +550,9 @@ plt.legend(); plt.grid(<span class="kw">True</span>,alpha=<span class="nm">0.3</
   </ol></div>
 </section>
 
-<!-- PENGUNJUNG -->
+<!-- AKTIVITAS MAHASISWA -->
 <section class="section container">
-  <div class="section-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;"><div><span class="badge mb-3">👥 Pengunjung</span><h2 class="text-3xl font-black text-white mb-2">Daftar Pengunjung</h2><p style="color:var(--s500);font-size:.85rem;margin-top:6px;">Mahasiswa yang telah mengakses halaman ini.</p></div>
+  <div class="section-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;"><div><span class="badge mb-3">👥 Mahasiswa</span><h2 class="text-3xl font-black text-white mb-2">Aktivitas Mahasiswa</h2><p style="color:var(--s500);font-size:.85rem;margin-top:6px;">Mahasiswa yang telah mengakses halaman ini.</p></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;"><button onclick="showResetModal()" style="padding:10px 20px;border-radius:12px;border:1px solid rgba(251,113,133,.3);background:rgba(251,113,133,.08);color:var(--rose);font-weight:600;font-size:.82rem;cursor:pointer;">🗑 Reset</button></div>
     <div class="section-number">LOG</div></div>
 
@@ -583,7 +583,7 @@ plt.legend(); plt.grid(<span class="kw">True</span>,alpha=<span class="nm">0.3</
     <div style="display:flex;padding:14px 24px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;font-weight:600;color:var(--s500);text-transform:uppercase;letter-spacing:.08em;">
       <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:0.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
     </div>
-    <div id="visitorTableBody" style="max-height:420px;overflow-y:auto;"><div style="text-align:center;padding:40px 24px;color:var(--s500);font-size:.88rem;">⏳ Memuat data pengunjung...</div></div>
+    <div id="visitorTableBody" style="max-height:420px;overflow-y:auto;"><div style="text-align:center;padding:40px 24px;color:var(--s500);font-size:.88rem;">⏳ Memuat data mahasiswa...</div></div>
   </div>
 </section>
 
@@ -837,7 +837,7 @@ function renderVisitors(visitors){
   const listEl=document.getElementById('vpList'), tableEl=document.getElementById('visitorTableBody');
 
   // Panel: only actual visitors
-  if(!visited.length){listEl.innerHTML='<div class="vp-empty">Belum ada pengunjung.</div>';}
+  if(!visited.length){listEl.innerHTML='<div class="vp-empty">Belum ada data.</div>';}
   else{
     listEl.innerHTML=visited.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(v=>{
       const ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
@@ -892,12 +892,12 @@ function showResetModal(){document.getElementById('resetOverlay').classList.remo
 function hideResetModal(){document.getElementById('resetOverlay').classList.add('hidden');}
 function confirmReset(){
   if(document.getElementById('resetPw').value!=='TeknikMesin0602'){document.getElementById('resetError').style.display='block';return;}
-  // Reset data pengunjung modul ini
+  // Reset data mahasiswa modul ini
   remove(ref(db,DB_PATH));
   localStorage.removeItem(LOCAL_IDENTITY);
   // Reset jadwal
   remove(ref(db,SCHEDULE_PATH));
-  // Reset data pengunjung forum & tugas terkait
+  // Reset data mahasiswa forum & tugas terkait
   RELATED_MODULES.forEach(function(mid){
     remove(ref(db,'visitors/OptoAuto/'+mid));
     localStorage.removeItem('optoauto_identity_'+mid);
