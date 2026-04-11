@@ -1110,10 +1110,13 @@ function isLate(timestamp){
 
 function submitVisitor(){
   const nama=document.getElementById('vNama').value.trim(), nim=document.getElementById('vNim').value.trim(), err=document.getElementById('vError');
+  // Schedule checks
+  if(!currentSchedule || !currentSchedule.start || !currentSchedule.end){err.textContent='⚠ Jadwal belum disetel. Silakan atur jadwal terlebih dahulu.';err.style.display='block';return;}
+  const now=new Date().getTime(), schedStart=new Date(currentSchedule.start).getTime();
+  if(now<schedStart){const sd=new Date(currentSchedule.start);err.textContent='⚠ Akses belum dibuka. Jadwal dimulai pada '+sd.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+' '+sd.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+'.';err.style.display='block';return;}
+  const isDosen=nama.toLowerCase()==='dedik romahadi';
   if(!nama){err.textContent='⚠ Nama wajib diisi.';err.style.display='block';return;}
   if(!isValidName(nama)){err.textContent='⚠ Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi';err.style.display='block';return;}
-  const isDosen = nama.toLowerCase()==='dedik romahadi';
-  if(!isDosen&&!currentSchedule){err.textContent='⚠ Jadwal belum disetel. Hubungi dosen.';err.style.display='block';return;}
   if(!isDosen&&!nim){err.textContent='⚠ NIM wajib diisi.';err.style.display='block';return;}
   if(!isDosen&&!isValidNim(nim)){err.textContent='⚠ NIM harus berupa angka tanpa spasi. Contoh: 41522010001';err.style.display='block';return;}
   if(!isDosen&&!masterFetchDone){err.textContent='⚠ Data mahasiswa sedang dimuat, silakan coba lagi.';err.style.display='block';return;}
@@ -1131,10 +1134,6 @@ function submitVisitor(){
     if(nimExists){err.textContent='⚠ Nama tidak sesuai dengan NIM yang terdaftar. Pastikan nama lengkap sesuai daftar.';err.style.display='block';return;}
     err.textContent='⚠ NIM tidak terdaftar. Hanya mahasiswa yang terdaftar di kelas ini yang dapat mengakses.';err.style.display='block';return;
   }
-
-  const now=new Date();
-  const schedStart=new Date(currentSchedule.start);
-  if(now<schedStart){err.textContent='⚠ Akses belum dibuka. Jadwal dimulai '+schedStart.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+' '+schedStart.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+'.';err.style.display='block';return;}
 
   const key = sanitizeKey(`mhs_${nim}`);
   const nowISO = new Date().toISOString();
