@@ -46,6 +46,36 @@ body {
 ::-webkit-scrollbar-track { background: var(--bg-primary); }
 ::-webkit-scrollbar-thumb { background: var(--accent-blue); border-radius: 4px; }
 
+/* ═══ MATH BACKGROUND ANIMATION ═══ */
+.math-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.math-float {
+  position: absolute;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  color: rgba(6, 214, 160, 0.07);
+  font-weight: 600;
+  white-space: nowrap;
+  animation: mathDrift linear infinite;
+  will-change: transform;
+  user-select: none;
+}
+
+.math-float.alt { color: rgba(17, 138, 178, 0.06); }
+.math-float.purple { color: rgba(123, 47, 247, 0.06); }
+
+@keyframes mathDrift {
+  0% { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+  5% { opacity: 1; }
+  90% { opacity: 0.8; }
+  100% { transform: translateY(-20vh) rotate(25deg); opacity: 0; }
+}
+
 /* ═══ HERO SECTION ═══ */
 .hero {
   min-height: 100vh;
@@ -698,7 +728,8 @@ body {
 }
 
 .btn-hint:hover { border-color: var(--accent-yellow); color: var(--accent-yellow); }
-.btn-answer:hover { border-color: var(--accent-purple); color: var(--accent-purple); }
+.btn-answer:hover:not(.locked) { border-color: var(--accent-purple); color: var(--accent-purple); }
+.btn-answer.locked { opacity: 0.35; pointer-events: none; cursor: not-allowed; }
 
 /* Hint & Answer Boxes */
 .hint-box, .answer-box {
@@ -1078,7 +1109,7 @@ body {
     <input type="text" class="v-input" id="vNama" placeholder="Nama Lengkap" autocomplete="off">
     <input type="text" class="v-input" id="vNim" placeholder="NIM (Nomor Induk Mahasiswa)" autocomplete="off">
     <button class="v-btn-primary" id="vSubmit" onclick="submitVisitor()">Masuk ke Modul 1 →</button>
-    <button class="v-btn-cancel" onclick="showScheduleModal()" style="margin-top:8px;border-color:rgba(99,102,241,.3);color:#818cf8;">🕐 Atur Jadwal Perkuliahan (Admin)</button>
+    <button class="v-btn-cancel" onclick="showScheduleModal()" style="margin-top:8px;border-color:rgba(99,102,241,.3);color:#818cf8;">🕐 Atur Jadwal 🔒</button>
   </div>
 </div>
 <!-- Reset Password Modal -->
@@ -1129,6 +1160,7 @@ body {
 
 <!-- ════════════════════ HERO ════════════════════ -->
 <section class="hero">
+  <div class="math-bg" id="mathBg"></div>
   <div class="hero-particles">
     <div class="particle" style="left:10%;animation-delay:0s"></div>
     <div class="particle" style="left:20%;animation-delay:1.2s"></div>
@@ -1458,14 +1490,37 @@ body {
     <p>Selidiki apakah \(y = e^{2x}\) merupakan penyelesaian.</p>
 
     <div style="margin-top:1.5rem; padding:1.5rem; background:rgba(6,214,160,0.05); border-radius:12px;">
-      <h4 style="color:var(--accent-cyan); margin-bottom:0.75rem;">Penyelesaian:</h4>
-      <p>Jika \(y = e^{2x}\), maka:</p>
-      <div class="math-block">$$y' = 2e^{2x}, \quad y'' = 4e^{2x}$$</div>
-      <p>Substitusi ke PD:</p>
-      <div class="math-block">$$4e^{2x} - 4(2e^{2x}) + 4(e^{2x}) = 0$$</div>
-      <div class="math-block">$$4e^{2x} - 8e^{2x} + 4e^{2x} = 0$$</div>
-      <div class="math-block">$$0 = 0 \quad \checkmark$$</div>
-      <p style="color:var(--accent-cyan); font-weight:700;">✅ Identitas! Maka \(y = e^{2x}\) adalah penyelesaian.</p>
+      <h4 style="color:var(--accent-cyan); margin-bottom:0.75rem;">Penyelesaian Langkah demi Langkah:</h4>
+
+      <p style="margin-top:0.75rem;"><strong>Langkah 1 — Identifikasi apa yang diketahui:</strong></p>
+      <p>Kita diberikan PD: \(y'' - 4y' + 4y = 0\) dan fungsi uji \(y = e^{2x}\).</p>
+      <p>Tugas kita: substitusikan \(y\) beserta turunannya ke dalam PD. Jika menghasilkan \(0 = 0\) (identitas), maka \(y\) adalah solusi.</p>
+
+      <p style="margin-top:1rem;"><strong>Langkah 2 — Hitung turunan pertama \(y'\):</strong></p>
+      <p>Gunakan aturan rantai: jika \(y = e^{f(x)}\), maka \(y' = f'(x) \cdot e^{f(x)}\).</p>
+      <p>Di sini \(f(x) = 2x\), sehingga \(f'(x) = 2\). Maka:</p>
+      <div class="math-block">$$y' = \frac{d}{dx}\left[e^{2x}\right] = 2 \cdot e^{2x} = 2e^{2x}$$</div>
+
+      <p style="margin-top:1rem;"><strong>Langkah 3 — Hitung turunan kedua \(y''\):</strong></p>
+      <p>Turunkan \(y' = 2e^{2x}\) sekali lagi terhadap \(x\). Konstanta \(2\) tetap di depan:</p>
+      <div class="math-block">$$y'' = \frac{d}{dx}\left[2e^{2x}\right] = 2 \cdot 2 \cdot e^{2x} = 4e^{2x}$$</div>
+
+      <p style="margin-top:1rem;"><strong>Langkah 4 — Substitusikan ke PD:</strong></p>
+      <p>Masukkan \(y = e^{2x}\), \(y' = 2e^{2x}\), \(y'' = 4e^{2x}\) ke dalam \(y'' - 4y' + 4y = 0\):</p>
+      <div class="math-block">$$\underbrace{4e^{2x}}_{y''} - 4 \cdot \underbrace{2e^{2x}}_{y'} + 4 \cdot \underbrace{e^{2x}}_{y} = 0$$</div>
+
+      <p style="margin-top:1rem;"><strong>Langkah 5 — Sederhanakan ruas kiri:</strong></p>
+      <p>Hitung koefisien dari \(e^{2x}\) (karena semua suku mengandung \(e^{2x}\)):</p>
+      <div class="math-block">$$4e^{2x} - 8e^{2x} + 4e^{2x} = (4 - 8 + 4)\,e^{2x} = 0 \cdot e^{2x} = 0$$</div>
+
+      <p style="margin-top:1rem;"><strong>Langkah 6 — Kesimpulan:</strong></p>
+      <p>Ruas kiri = \(0\), ruas kanan = \(0\). Diperoleh \(0 = 0\) yang merupakan <strong>kesamaan identitas</strong> — berlaku untuk semua nilai \(x\).</p>
+      <p style="margin-top:0.75rem; padding:0.75rem; background:rgba(6,214,160,0.08); border-radius:8px; color:var(--accent-cyan); font-weight:700;">
+        ✅ Maka \(y = e^{2x}\) adalah penyelesaian dari PD \(y'' - 4y' + 4y = 0\).
+      </p>
+      <p style="margin-top:0.75rem; font-size:0.9rem; color:var(--text-muted);">
+        💡 <em>Catatan:</em> PD ini memiliki persamaan karakteristik \(r^2 - 4r + 4 = (r-2)^2 = 0\), dengan akar kembar \(r = 2\). Solusi umum lengkapnya adalah \(y = (C_1 + C_2 x)\,e^{2x}\), di mana \(e^{2x}\) dan \(xe^{2x}\) keduanya adalah solusi.
+      </p>
     </div>
   </div>
 
@@ -1478,15 +1533,48 @@ body {
     <p>Selidiki apakah \(y = x^2 \ln^2 x\) merupakan penyelesaian.</p>
 
     <div style="margin-top:1.5rem; padding:1.5rem; background:rgba(17,138,178,0.05); border-radius:12px;">
-      <h4 style="color:var(--accent-blue); margin-bottom:0.75rem;">Penyelesaian:</h4>
-      <p>Jika \(y = x^2 \ln^2 x\), maka:</p>
-      <div class="math-block">$$y' = 2x\ln x + 2x\ln^2 x$$</div>
-      <div class="math-block">$$y'' = 2 + 6\ln x + 2\ln^2 x$$</div>
-      <p>Substitusi:</p>
-      <div class="math-block">$$x^2(2 + 6\ln x + 2\ln^2 x) - 3x(2x\ln x + 2x\ln^2 x) + 4(x^2\ln^2 x) = 2x^2$$</div>
-      <div class="math-block">$$2x^2 + 6x^2\ln x + 2x^2\ln^2 x - 6x^2\ln x - 6x^2\ln^2 x + 4x^2\ln^2 x = 2x^2$$</div>
+      <h4 style="color:var(--accent-blue); margin-bottom:0.75rem;">Penyelesaian Langkah demi Langkah:</h4>
+
+      <p style="margin-top:0.75rem;"><strong>Langkah 1 — Identifikasi perbedaan dengan Contoh 1.1:</strong></p>
+      <p>PD ini bersifat <strong>non-homogen</strong> (ruas kanan = \(2x^2 \neq 0\)) dan memiliki <strong>koefisien variabel</strong> (\(x^2\) dan \(3x\)), berbeda dengan koefisien konstan pada Contoh 1.1. Prinsip verifikasi tetap sama: turunkan → substitusi → periksa identitas.</p>
+
+      <p style="margin-top:1rem;"><strong>Langkah 2 — Hitung turunan pertama \(y'\):</strong></p>
+      <p>Karena \(y = x^2 \cdot \ln^2 x\) merupakan perkalian dua fungsi, kita gunakan <strong>aturan perkalian (product rule)</strong>:</p>
+      <p>\((uv)' = u'v + uv'\), dengan \(u = x^2\) dan \(v = \ln^2 x\).</p>
+      <p>• \(u' = 2x\)</p>
+      <p>• \(v' = 2\ln x \cdot \frac{1}{x} = \frac{2\ln x}{x}\) &nbsp; (aturan rantai pada \((\ln x)^2\))</p>
+      <div class="math-block">$$y' = 2x \cdot \ln^2 x + x^2 \cdot \frac{2\ln x}{x} = 2x\ln^2 x + 2x\ln x$$</div>
+
+      <p style="margin-top:1rem;"><strong>Langkah 3 — Hitung turunan kedua \(y''\):</strong></p>
+      <p>Turunkan \(y' = 2x\ln^2 x + 2x\ln x\). Turunkan tiap suku secara terpisah menggunakan product rule:</p>
+      <p>• \(\frac{d}{dx}[2x\ln^2 x] = 2\ln^2 x + 2x \cdot \frac{2\ln x}{x} = 2\ln^2 x + 4\ln x\)</p>
+      <p>• \(\frac{d}{dx}[2x\ln x] = 2\ln x + 2x \cdot \frac{1}{x} = 2\ln x + 2\)</p>
+      <div class="math-block">$$y'' = 2\ln^2 x + 4\ln x + 2\ln x + 2 = 2\ln^2 x + 6\ln x + 2$$</div>
+
+      <p style="margin-top:1rem;"><strong>Langkah 4 — Substitusikan ke PD \(x^2 y'' - 3xy' + 4y\):</strong></p>
+      <p>Hitung setiap suku secara terpisah agar tidak keliru:</p>
+      <div class="math-block">$$x^2 y'' = x^2(2\ln^2 x + 6\ln x + 2) = 2x^2\ln^2 x + 6x^2\ln x + 2x^2$$</div>
+      <div class="math-block">$$3xy' = 3x(2x\ln^2 x + 2x\ln x) = 6x^2\ln^2 x + 6x^2\ln x$$</div>
+      <div class="math-block">$$4y = 4x^2\ln^2 x$$</div>
+
+      <p style="margin-top:1rem;"><strong>Langkah 5 — Gabungkan: \(x^2 y'' - 3xy' + 4y\):</strong></p>
+      <div class="math-block">$$(2x^2\ln^2 x + 6x^2\ln x + 2x^2) - (6x^2\ln^2 x + 6x^2\ln x) + 4x^2\ln^2 x$$</div>
+      <p>Kelompokkan suku-suku sejenis:</p>
+      <p>• Suku \(x^2\ln^2 x\): \(2 - 6 + 4 = 0\) → <strong>habis</strong></p>
+      <p>• Suku \(x^2\ln x\): \(6 - 6 = 0\) → <strong>habis</strong></p>
+      <p>• Suku \(x^2\): \(2\) → <strong>tersisa</strong></p>
+      <div class="math-block">$$x^2 y'' - 3xy' + 4y = 2x^2$$</div>
+
+      <p style="margin-top:1rem;"><strong>Langkah 6 — Bandingkan dengan ruas kanan:</strong></p>
+      <p>Ruas kanan PD = \(2x^2\). Hasil substitusi ruas kiri = \(2x^2\).</p>
       <div class="math-block">$$2x^2 = 2x^2 \quad \checkmark$$</div>
-      <p style="color:var(--accent-blue); font-weight:700;">✅ Identitas! Maka \(y = x^2 \ln^2 x\) adalah penyelesaian.</p>
+
+      <p style="margin-top:0.75rem; padding:0.75rem; background:rgba(17,138,178,0.08); border-radius:8px; color:var(--accent-blue); font-weight:700;">
+        ✅ Identitas! Maka \(y = x^2 \ln^2 x\) adalah penyelesaian dari PD \(x^2 y'' - 3xy' + 4y = 2x^2\).
+      </p>
+      <p style="margin-top:0.75rem; font-size:0.9rem; color:var(--text-muted);">
+        💡 <em>Catatan:</em> PD ini termasuk <strong>PD Euler-Cauchy</strong> (koefisien berbentuk \(x^n\)). Perhatikan bahwa proses turunan fungsi logaritmik cukup panjang — ini wajar untuk PD koefisien variabel, dan menuntut ketelitian pada product rule.
+      </p>
     </div>
   </div>
 
@@ -1498,13 +1586,40 @@ body {
     <div class="math-block">$$y'' + 4y = \cos 2x$$</div>
 
     <div style="margin-top:1.5rem; padding:1.5rem; background:rgba(239,131,84,0.05); border-radius:12px;">
-      <h4 style="color:var(--accent-orange); margin-bottom:0.75rem;">Penyelesaian:</h4>
-      <p>Jika \(y = \cos 2x\), maka:</p>
-      <div class="math-block">$$y' = -2\sin 2x, \quad y'' = -4\cos 2x$$</div>
-      <p>Substitusi:</p>
-      <div class="math-block">$$-4\cos 2x + 4(\cos 2x) = \cos 2x$$</div>
+      <h4 style="color:var(--accent-orange); margin-bottom:0.75rem;">Penyelesaian Langkah demi Langkah:</h4>
+
+      <p style="margin-top:0.75rem;"><strong>Langkah 1 — Tuliskan fungsi uji:</strong></p>
+      <div class="math-block">$$y = \cos 2x$$</div>
+
+      <p style="margin-top:1rem;"><strong>Langkah 2 — Hitung turunan pertama \(y'\):</strong></p>
+      <p>Gunakan aturan rantai: \(\frac{d}{dx}[\cos(f(x))] = -\sin(f(x)) \cdot f'(x)\).</p>
+      <p>Di sini \(f(x) = 2x\), maka \(f'(x) = 2\):</p>
+      <div class="math-block">$$y' = -\sin 2x \cdot 2 = -2\sin 2x$$</div>
+
+      <p style="margin-top:1rem;"><strong>Langkah 3 — Hitung turunan kedua \(y''\):</strong></p>
+      <p>Turunkan \(y' = -2\sin 2x\). Aturan rantai: \(\frac{d}{dx}[\sin(2x)] = \cos(2x) \cdot 2\):</p>
+      <div class="math-block">$$y'' = -2 \cdot \cos 2x \cdot 2 = -4\cos 2x$$</div>
+
+      <p style="margin-top:1rem;"><strong>Langkah 4 — Substitusikan ke PD \(y'' + 4y = \cos 2x\):</strong></p>
+      <div class="math-block">$$\underbrace{(-4\cos 2x)}_{y''} + 4 \cdot \underbrace{(\cos 2x)}_{y} = \cos 2x$$</div>
+
+      <p style="margin-top:1rem;"><strong>Langkah 5 — Sederhanakan ruas kiri:</strong></p>
+      <div class="math-block">$$-4\cos 2x + 4\cos 2x = 0$$</div>
+      <p>Sehingga persamaan menjadi:</p>
       <div class="math-block">$$0 = \cos 2x \quad ???$$</div>
-      <p style="color:var(--accent-orange); font-weight:700;">❌ Bukan identitas! Maka \(y = \cos 2x\) BUKAN penyelesaian.</p>
+
+      <p style="margin-top:1rem;"><strong>Langkah 6 — Analisis hasil:</strong></p>
+      <p>Persamaan \(0 = \cos 2x\) <strong>BUKAN</strong> identitas. Mengapa?</p>
+      <p>• Identitas berarti berlaku untuk <strong>semua</strong> nilai \(x\).</p>
+      <p>• \(\cos 2x = 0\) hanya berlaku di titik-titik tertentu (\(x = \frac{\pi}{4}, \frac{3\pi}{4}, \ldots\)), bukan untuk semua \(x\).</p>
+      <p>• Misalnya, pada \(x = 0\): \(\cos(0) = 1 \neq 0\). Sudah cukup satu kontradiksi untuk menyimpulkan bukan solusi.</p>
+
+      <p style="margin-top:0.75rem; padding:0.75rem; background:rgba(239,131,84,0.08); border-radius:8px; color:var(--accent-orange); font-weight:700;">
+        ❌ Bukan identitas! Maka \(y = \cos 2x\) BUKAN penyelesaian dari PD \(y'' + 4y = \cos 2x\).
+      </p>
+      <p style="margin-top:0.75rem; font-size:0.9rem; color:var(--text-muted);">
+        💡 <em>Insight:</em> Contoh ini menunjukkan bahwa <strong>tidak semua fungsi trigonometri otomatis menjadi solusi</strong> meskipun PD-nya mengandung fungsi trigonometri di ruas kanan. Solusi PD non-homogen harus dicari dengan metode khusus (seperti variasi parameter atau koefisien tak tentu) — topik yang akan dipelajari di modul berikutnya.
+      </p>
     </div>
   </div>
 </section>
@@ -1554,7 +1669,7 @@ body {
       <div class="exercise-actions">
         <button class="btn-check" onclick="checkAnswer('q1', 'a')">Periksa Jawaban</button>
         <button class="btn-hint" onclick="toggleBox('hint-q1')">💡 Petunjuk</button>
-        <button class="btn-answer" onclick="toggleBox('answer-q1')">🔑 Kunci Jawaban</button>
+        <button class="btn-answer locked" id="ansBtn-q1" onclick="toggleBox('answer-q1')">🔑 Kunci Jawaban</button>
       </div>
 
       <div class="hint-box" id="hint-q1">
@@ -1626,7 +1741,7 @@ body {
       <div class="exercise-actions">
         <button class="btn-check" onclick="checkAnswer('q2', 'c')">Periksa Jawaban</button>
         <button class="btn-hint" onclick="toggleBox('hint-q2')">💡 Petunjuk</button>
-        <button class="btn-answer" onclick="toggleBox('answer-q2')">🔑 Kunci Jawaban</button>
+        <button class="btn-answer locked" id="ansBtn-q2" onclick="toggleBox('answer-q2')">🔑 Kunci Jawaban</button>
       </div>
 
       <div class="hint-box" id="hint-q2">
@@ -1690,7 +1805,7 @@ body {
       <div class="exercise-actions">
         <button class="btn-check" onclick="checkAnswer('q3', 'a')">Periksa Jawaban</button>
         <button class="btn-hint" onclick="toggleBox('hint-q3')">💡 Petunjuk</button>
-        <button class="btn-answer" onclick="toggleBox('answer-q3')">🔑 Kunci Jawaban</button>
+        <button class="btn-answer locked" id="ansBtn-q3" onclick="toggleBox('answer-q3')">🔑 Kunci Jawaban</button>
       </div>
 
       <div class="hint-box" id="hint-q3">
@@ -1766,7 +1881,7 @@ body {
 
       <div class="exercise-actions">
         <button class="btn-hint" onclick="toggleBox('hint-q4')">💡 Petunjuk</button>
-        <button class="btn-answer" onclick="toggleBox('answer-q4')">🔑 Kunci Jawaban</button>
+        <button class="btn-answer" id="ansBtn-q4" onclick="toggleBox('answer-q4')">🔑 Kunci Jawaban</button>
       </div>
 
       <div class="hint-box" id="hint-q4">
@@ -1838,7 +1953,7 @@ body {
       <div class="exercise-actions">
         <button class="btn-check" onclick="checkAnswer('q5', 'a')">Periksa Jawaban</button>
         <button class="btn-hint" onclick="toggleBox('hint-q5')">💡 Petunjuk</button>
-        <button class="btn-answer" onclick="toggleBox('answer-q5')">🔑 Kunci Jawaban</button>
+        <button class="btn-answer locked" id="ansBtn-q5" onclick="toggleBox('answer-q5')">🔑 Kunci Jawaban</button>
       </div>
 
       <div class="hint-box" id="hint-q5">
@@ -2212,6 +2327,32 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+// ═══ Math Background Animation ═══
+(function() {
+  const mathItems = [
+    "dy/dx","∫","∂²u/∂x²","e^{2x}","y'' + y = 0","λ","∑","∞","π","√","Δ",
+    "∂f/∂y","cos θ","sin ωt","ln x","d²y/dx²","∇²","α","β","γ",
+    "y' = ky","∫₀^∞","lim","→ 0","f(x)","Σₙ","e^{-kt}","dT/dt",
+    "∂/∂t","∮","≈","≠","≤","≥","∝","⊂","∈","ℝ","ℂ",
+    "y = Ce^{rx}","r²-4r+4=0","y''+5y'+6y=0","x²","3.14",
+    "0","1","2","3","4","5","6","7","8","9",
+    "42","∂²","y'''","2πr","e=2.718","φ=1.618","i²=-1"
+  ];
+  const container = document.getElementById('mathBg');
+  if (!container) return;
+  const count = 30;
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement('div');
+    el.className = 'math-float' + (i%3===1?' alt':'') + (i%3===2?' purple':'');
+    el.textContent = mathItems[Math.floor(Math.random() * mathItems.length)];
+    el.style.left = (Math.random() * 96 + 2) + '%';
+    el.style.fontSize = (0.7 + Math.random() * 1.6) + 'rem';
+    el.style.animationDuration = (12 + Math.random() * 22) + 's';
+    el.style.animationDelay = (Math.random() * 18) + 's';
+    container.appendChild(el);
+  }
+})();
+
 // ═══ Progress Bar ═══
 window.addEventListener('scroll', () => {
   const total = document.documentElement.scrollHeight - window.innerHeight;
@@ -2268,6 +2409,7 @@ function checkAnswer(qId, correct) {
     opt.classList.remove('correct-answer', 'wrong-answer');
     if (val === correct) opt.classList.add('correct-answer');
     else if (opt.querySelector('input').checked && val !== correct) opt.classList.add('wrong-answer');
+    opt.style.pointerEvents = 'none';
   });
 
   if (selected.value === correct) {
@@ -2278,6 +2420,10 @@ function checkAnswer(qId, correct) {
     feedback.textContent = '❌ Kurang tepat. Coba lihat petunjuk atau kunci jawaban.';
   }
   feedback.style.display = 'block';
+
+  // Unlock kunci jawaban button
+  const ansBtn = document.getElementById('ansBtn-' + qId);
+  if (ansBtn) ansBtn.classList.remove('locked');
 }
 
 // ═══ Toggle Hint / Answer ═══
