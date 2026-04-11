@@ -97,7 +97,22 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--t1)
 .code-body .number{color:#79c0ff}
 .code-body .output{color:#7ee787;font-style:italic}
 
-/* PRACTICE */
+/* MCQ Options */
+.mcq-options{display:flex;flex-direction:column;gap:.6rem;margin:1.25rem 0}
+.mcq-opt{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;border:1px solid var(--bd);background:rgba(255,255,255,.03);cursor:pointer;transition:all .25s;font-size:.95rem}
+.mcq-opt:hover{border-color:rgba(168,85,247,.4);background:rgba(168,85,247,.06)}
+.mcq-opt.selected{border-color:var(--c5);background:rgba(168,85,247,.1)}
+.mcq-opt.correct{border-color:var(--c1);background:rgba(0,224,158,.1);color:var(--c1)}
+.mcq-opt.wrong{border-color:var(--c4);background:rgba(239,68,68,.08);color:var(--c4);opacity:.7}
+.mcq-opt.disabled{pointer-events:none}
+.mcq-radio{width:20px;height:20px;border-radius:50%;border:2px solid var(--bd);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .25s}
+.mcq-opt.selected .mcq-radio{border-color:var(--c5);background:var(--c5)}
+.mcq-opt.selected .mcq-radio::after{content:'';width:8px;height:8px;border-radius:50%;background:#fff}
+.mcq-opt.correct .mcq-radio{border-color:var(--c1);background:var(--c1)}
+.mcq-opt.correct .mcq-radio::after{content:'✓';color:#fff;font-size:11px;font-weight:800}
+.mcq-opt.wrong .mcq-radio{border-color:var(--c4);background:var(--c4)}
+.mcq-opt.wrong .mcq-radio::after{content:'✗';color:#fff;font-size:11px;font-weight:800}
+.mcq-label{font-weight:600;color:var(--c5);margin-right:4px}
 .practice-card{background:var(--bg3);border:1px solid var(--bd);border-radius:16px;padding:2rem;margin-bottom:2rem;position:relative;overflow:hidden}
 .practice-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--c3),var(--c6))}
 .practice-num{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--c3),var(--c6));color:var(--bg);font-weight:800;font-size:.9rem;margin-bottom:1rem}
@@ -115,6 +130,8 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--t1)
 .answer-box.open{display:block;animation:slideD .3s ease-out}
 .answer-btn{padding:.6rem 1.5rem;border-radius:10px;border:1px solid rgba(0,224,158,.3);background:rgba(0,224,158,.08);color:var(--c1);font-weight:600;font-size:.85rem;cursor:pointer;transition:all .25s;font-family:inherit;margin-top:.5rem}
 .answer-btn:hover{background:rgba(0,224,158,.15)}
+.answer-btn.locked{opacity:.4;pointer-events:none;cursor:not-allowed}
+.answer-btn.locked{opacity:.4;cursor:not-allowed;pointer-events:none}
 .feedback{padding:.75rem 1rem;border-radius:10px;margin-top:.75rem;font-weight:600;font-size:.9rem;display:none}
 .feedback.correct{display:block;background:rgba(0,224,158,.1);border:1px solid rgba(0,224,158,.3);color:var(--c1)}
 .feedback.wrong{display:block;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--c4)}
@@ -503,13 +520,13 @@ footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:
   </div>
 </section>
 
-<!-- ═══════════════ LATIHAN SOAL ═══════════════ -->
+<!-- ═══════════════ SOAL LATIHAN ═══════════════ -->
 <section class="sec" id="latihan">
   <div class="fi">
     <div class="sec-label">✏️ Bagian 8</div>
-    <h2 class="sec-title">Latihan Soal Interaktif</h2>
+    <h2 class="sec-title">Soal Latihan</h2>
     <div class="sec-divider"></div>
-    <p style="color:var(--t2);margin-bottom:2rem;">Kerjakan soal-soal berikut. Buka petunjuk jika butuh bantuan, dan cek kunci jawaban setelah mencoba!</p>
+    <p style="color:var(--t2);margin-bottom:2rem;">Pilih jawaban yang benar. Buka petunjuk jika butuh bantuan, dan cek kunci jawaban setelah mencoba!</p>
   </div>
 
   <!-- SOAL 1 -->
@@ -517,11 +534,16 @@ footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:
     <div class="practice-num">1</div>
     <h3>Tentukan \(\mathcal{L}\{3t^2 + 5e^{-4t}\}\)</h3>
     <p style="color:var(--t2);margin-top:.5rem;">Gunakan sifat kelinieran dan tabel rumus dasar.</p>
-    <input type="text" class="practice-input" id="ans1" placeholder="Ketik jawaban dalam bentuk pecahan, misal: 6/s^3 + 5/(s+4)">
+    <div class="mcq-options" id="mcq1">
+      <div class="mcq-opt" onclick="selectMCQ(1,'a',this)"><div class="mcq-radio"></div><span><span class="mcq-label">A.</span> \(\dfrac{6}{s^2} + \dfrac{5}{s-4}\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(1,'b',this)"><div class="mcq-radio"></div><span><span class="mcq-label">B.</span> \(\dfrac{6}{s^3} + \dfrac{5}{s+4}\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(1,'c',this)"><div class="mcq-radio"></div><span><span class="mcq-label">C.</span> \(\dfrac{3}{s^3} + \dfrac{5}{s+4}\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(1,'d',this)"><div class="mcq-radio"></div><span><span class="mcq-label">D.</span> \(\dfrac{6}{s^3} + \dfrac{5}{s-4}\)</span></div>
+    </div>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
-      <button class="practice-btn practice-check" onclick="checkAnswer(1)">✅ Cek Jawaban</button>
+      <button class="practice-btn practice-check" onclick="checkMCQ(1)">✅ Cek Jawaban</button>
       <button class="hint-btn" onclick="toggleHint('hint1')">💡 Petunjuk</button>
-      <button class="answer-btn" onclick="toggleAnswer('key1')">🔑 Kunci Jawaban</button>
+      <button class="answer-btn locked" id="ansBtn1" onclick="toggleAnswer('key1')">🔑 Kunci Jawaban</button>
     </div>
     <div id="fb1" class="feedback"></div>
     <div class="hint-content" id="hint1">
@@ -537,7 +559,7 @@ footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:
       <p>\(= 3\mathcal{L}\{t^2\} + 5\mathcal{L}\{e^{-4t}\}\) <em style="color:var(--t3);">(sifat linier)</em></p>
       <p>\(= 3 \cdot \dfrac{2!}{s^3} + 5 \cdot \dfrac{1}{s+4}\)</p>
       <p>\(= \dfrac{6}{s^3} + \dfrac{5}{s+4}\)</p>
-      <p style="margin-top:.75rem;padding:.75rem;background:rgba(0,224,158,.08);border-radius:8px;"><strong>Jawaban: \(\dfrac{6}{s^3} + \dfrac{5}{s+4}\)</strong></p>
+      <p style="margin-top:.75rem;padding:.75rem;background:rgba(0,224,158,.08);border-radius:8px;"><strong>Jawaban: B. \(\dfrac{6}{s^3} + \dfrac{5}{s+4}\)</strong></p>
     </div>
   </div>
 
@@ -546,11 +568,16 @@ footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:
     <div class="practice-num">2</div>
     <h3>Tentukan \(\mathcal{L}\{\sin 3t + 2e^{3t}\}\)</h3>
     <p style="color:var(--t2);margin-top:.5rem;">Gunakan sifat linier dan rumus dasar.</p>
-    <input type="text" class="practice-input" id="ans2" placeholder="Ketik jawaban...">
+    <div class="mcq-options" id="mcq2">
+      <div class="mcq-opt" onclick="selectMCQ(2,'a',this)"><div class="mcq-radio"></div><span><span class="mcq-label">A.</span> \(\dfrac{3}{s^2+9} + \dfrac{2}{s+3}\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(2,'b',this)"><div class="mcq-radio"></div><span><span class="mcq-label">B.</span> \(\dfrac{s}{s^2+9} + \dfrac{2}{s-3}\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(2,'c',this)"><div class="mcq-radio"></div><span><span class="mcq-label">C.</span> \(\dfrac{3}{s^2+9} + \dfrac{2}{s-3}\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(2,'d',this)"><div class="mcq-radio"></div><span><span class="mcq-label">D.</span> \(\dfrac{3}{s^2+3} + \dfrac{2}{s-3}\)</span></div>
+    </div>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
-      <button class="practice-btn practice-check" onclick="checkAnswer(2)">✅ Cek Jawaban</button>
+      <button class="practice-btn practice-check" onclick="checkMCQ(2)">✅ Cek Jawaban</button>
       <button class="hint-btn" onclick="toggleHint('hint2')">💡 Petunjuk</button>
-      <button class="answer-btn" onclick="toggleAnswer('key2')">🔑 Kunci Jawaban</button>
+      <button class="answer-btn locked" id="ansBtn2" onclick="toggleAnswer('key2')">🔑 Kunci Jawaban</button>
     </div>
     <div id="fb2" class="feedback"></div>
     <div class="hint-content" id="hint2">
@@ -565,8 +592,7 @@ footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:
       <p>\(\mathcal{L}\{\sin 3t + 2e^{3t}\}\)</p>
       <p>\(= \mathcal{L}\{\sin 3t\} + 2\mathcal{L}\{e^{3t}\}\)</p>
       <p>\(= \dfrac{3}{s^2+9} + \dfrac{2}{s-3}\)</p>
-      <p>Jika digabung: \(= \dfrac{3(s-3) + 2(s^2+9)}{(s^2+9)(s-3)} = \dfrac{2s^2 + 3s + 9}{(s^2+9)(s-3)}\)</p>
-      <p style="margin-top:.75rem;padding:.75rem;background:rgba(0,224,158,.08);border-radius:8px;"><strong>Jawaban: \(\dfrac{3}{s^2+9} + \dfrac{2}{s-3}\)</strong></p>
+      <p style="margin-top:.75rem;padding:.75rem;background:rgba(0,224,158,.08);border-radius:8px;"><strong>Jawaban: C. \(\dfrac{3}{s^2+9} + \dfrac{2}{s-3}\)</strong></p>
     </div>
   </div>
 
@@ -575,11 +601,16 @@ footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:
     <div class="practice-num">3</div>
     <h3>Tentukan \(\mathcal{L}\{t^4 e^{-3t}\}\)</h3>
     <p style="color:var(--t2);margin-top:.5rem;">Gunakan sifat pergeseran pada sumbu s.</p>
-    <input type="text" class="practice-input" id="ans3" placeholder="Ketik jawaban...">
+    <div class="mcq-options" id="mcq3">
+      <div class="mcq-opt" onclick="selectMCQ(3,'a',this)"><div class="mcq-radio"></div><span><span class="mcq-label">A.</span> \(\dfrac{24}{(s-3)^5}\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(3,'b',this)"><div class="mcq-radio"></div><span><span class="mcq-label">B.</span> \(\dfrac{4}{(s+3)^5}\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(3,'c',this)"><div class="mcq-radio"></div><span><span class="mcq-label">C.</span> \(\dfrac{24}{(s+3)^5}\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(3,'d',this)"><div class="mcq-radio"></div><span><span class="mcq-label">D.</span> \(\dfrac{24}{(s+3)^4}\)</span></div>
+    </div>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
-      <button class="practice-btn practice-check" onclick="checkAnswer(3)">✅ Cek Jawaban</button>
+      <button class="practice-btn practice-check" onclick="checkMCQ(3)">✅ Cek Jawaban</button>
       <button class="hint-btn" onclick="toggleHint('hint3')">💡 Petunjuk</button>
-      <button class="answer-btn" onclick="toggleAnswer('key3')">🔑 Kunci Jawaban</button>
+      <button class="answer-btn locked" id="ansBtn3" onclick="toggleAnswer('key3')">🔑 Kunci Jawaban</button>
     </div>
     <div id="fb3" class="feedback"></div>
     <div class="hint-content" id="hint3">
@@ -594,7 +625,7 @@ footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:
       <p>Diketahui \(f(t) = t^4 e^{-3t}\). Karena \(\mathcal{L}\{t^4\} = \dfrac{4!}{s^5} = \dfrac{24}{s^5}\),</p>
       <p>menurut sifat pergeseran pada sumbu \(s\) dengan \(a = -3\):</p>
       <p>\(\mathcal{L}\{t^4 e^{-3t}\} = \dfrac{24}{(s-(-3))^5} = \dfrac{24}{(s+3)^5}\)</p>
-      <p style="margin-top:.75rem;padding:.75rem;background:rgba(0,224,158,.08);border-radius:8px;"><strong>Jawaban: \(\dfrac{24}{(s+3)^5}\)</strong></p>
+      <p style="margin-top:.75rem;padding:.75rem;background:rgba(0,224,158,.08);border-radius:8px;"><strong>Jawaban: C. \(\dfrac{24}{(s+3)^5}\)</strong></p>
     </div>
   </div>
 
@@ -603,11 +634,16 @@ footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:
     <div class="practice-num">4</div>
     <h3>Tentukan \(\mathcal{L}\{3\cos 3t - 4\sin 3t\}\)</h3>
     <p style="color:var(--t2);margin-top:.5rem;">Gunakan sifat linier dan tabel.</p>
-    <input type="text" class="practice-input" id="ans4" placeholder="Ketik jawaban...">
+    <div class="mcq-options" id="mcq4">
+      <div class="mcq-opt" onclick="selectMCQ(4,'a',this)"><div class="mcq-radio"></div><span><span class="mcq-label">A.</span> \(\dfrac{3s + 12}{s^2+9}\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(4,'b',this)"><div class="mcq-radio"></div><span><span class="mcq-label">B.</span> \(\dfrac{3s - 12}{s^2+9}\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(4,'c',this)"><div class="mcq-radio"></div><span><span class="mcq-label">C.</span> \(\dfrac{3s - 4}{s^2+9}\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(4,'d',this)"><div class="mcq-radio"></div><span><span class="mcq-label">D.</span> \(\dfrac{3s - 12}{s^2+3}\)</span></div>
+    </div>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
-      <button class="practice-btn practice-check" onclick="checkAnswer(4)">✅ Cek Jawaban</button>
+      <button class="practice-btn practice-check" onclick="checkMCQ(4)">✅ Cek Jawaban</button>
       <button class="hint-btn" onclick="toggleHint('hint4')">💡 Petunjuk</button>
-      <button class="answer-btn" onclick="toggleAnswer('key4')">🔑 Kunci Jawaban</button>
+      <button class="answer-btn locked" id="ansBtn4" onclick="toggleAnswer('key4')">🔑 Kunci Jawaban</button>
     </div>
     <div id="fb4" class="feedback"></div>
     <div class="hint-content" id="hint4">
@@ -623,9 +659,8 @@ footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:
       <p>\(\mathcal{L}\{3\cos 3t - 4\sin 3t\}\)</p>
       <p>\(= 3\mathcal{L}\{\cos 3t\} - 4\mathcal{L}\{\sin 3t\}\)</p>
       <p>\(= 3 \cdot \dfrac{s}{s^2+9} - 4 \cdot \dfrac{3}{s^2+9}\)</p>
-      <p>\(= \dfrac{3s}{s^2+9} - \dfrac{12}{s^2+9}\)</p>
-      <p>\(= \dfrac{3s - 12}{s^2+9}\)</p>
-      <p style="margin-top:.75rem;padding:.75rem;background:rgba(0,224,158,.08);border-radius:8px;"><strong>Jawaban: \(\dfrac{3s-12}{s^2+9}\)</strong></p>
+      <p>\(= \dfrac{3s}{s^2+9} - \dfrac{12}{s^2+9} = \dfrac{3s - 12}{s^2+9}\)</p>
+      <p style="margin-top:.75rem;padding:.75rem;background:rgba(0,224,158,.08);border-radius:8px;"><strong>Jawaban: B. \(\dfrac{3s-12}{s^2+9}\)</strong></p>
     </div>
   </div>
 
@@ -634,11 +669,16 @@ footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:
     <div class="practice-num">5</div>
     <h3>Tentukan \(\mathcal{L}\{(2\cos 2t - 3\sin 2t)e^{3t}\}\)</h3>
     <p style="color:var(--t2);margin-top:.5rem;">Gunakan sifat linier DAN pergeseran sumbu s.</p>
-    <input type="text" class="practice-input" id="ans5" placeholder="Ketik jawaban...">
+    <div class="mcq-options" id="mcq5">
+      <div class="mcq-opt" onclick="selectMCQ(5,'a',this)"><div class="mcq-radio"></div><span><span class="mcq-label">A.</span> \(\dfrac{2s - 12}{s^2 + 6s + 13}\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(5,'b',this)"><div class="mcq-radio"></div><span><span class="mcq-label">B.</span> \(\dfrac{2s - 6}{s^2 - 6s + 13}\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(5,'c',this)"><div class="mcq-radio"></div><span><span class="mcq-label">C.</span> \(\dfrac{2s - 12}{s^2 - 6s + 13}\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(5,'d',this)"><div class="mcq-radio"></div><span><span class="mcq-label">D.</span> \(\dfrac{2s - 12}{s^2 - 6s + 4}\)</span></div>
+    </div>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
-      <button class="practice-btn practice-check" onclick="checkAnswer(5)">✅ Cek Jawaban</button>
+      <button class="practice-btn practice-check" onclick="checkMCQ(5)">✅ Cek Jawaban</button>
       <button class="hint-btn" onclick="toggleHint('hint5')">💡 Petunjuk</button>
-      <button class="answer-btn" onclick="toggleAnswer('key5')">🔑 Kunci Jawaban</button>
+      <button class="answer-btn locked" id="ansBtn5" onclick="toggleAnswer('key5')">🔑 Kunci Jawaban</button>
     </div>
     <div id="fb5" class="feedback"></div>
     <div class="hint-content" id="hint5">
@@ -655,7 +695,7 @@ footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:
       <p style="margin-top:.5rem;">Terapkan pergeseran sumbu \(s\) dengan \(a=3\) (ganti \(s\) → \(s-3\)):</p>
       <p>\(\mathcal{L}\{(2\cos 2t - 3\sin 2t)e^{3t}\} = \dfrac{2(s-3) - 6}{(s-3)^2+4}\)</p>
       <p>\(= \dfrac{2s - 6 - 6}{(s-3)^2+4} = \dfrac{2s - 12}{s^2 - 6s + 13}\)</p>
-      <p style="margin-top:.75rem;padding:.75rem;background:rgba(0,224,158,.08);border-radius:8px;"><strong>Jawaban: \(\dfrac{2s - 12}{s^2 - 6s + 13}\)</strong></p>
+      <p style="margin-top:.75rem;padding:.75rem;background:rgba(0,224,158,.08);border-radius:8px;"><strong>Jawaban: C. \(\dfrac{2s - 12}{s^2 - 6s + 13}\)</strong></p>
     </div>
   </div>
 </section>
@@ -953,27 +993,34 @@ drawLaplace('exp',null);
 function toggleHint(id){const el=document.getElementById(id);el.classList.toggle('open');}
 function toggleAnswer(id){const el=document.getElementById(id);el.classList.toggle('open');}
 
-const answers={
-  1:'6/s^3+5/(s+4)',
-  2:'3/(s^2+9)+2/(s-3)',
-  3:'24/(s+3)^5',
-  4:'(3s-12)/(s^2+9)',
-  5:'(2s-12)/(s^2-6s+13)'
-};
+const mcqCorrect={1:'b',2:'c',3:'c',4:'b',5:'c'};
+const mcqSelected={};
 
-function checkAnswer(num){
-  const input=document.getElementById('ans'+num).value.replace(/\s/g,'').toLowerCase();
+function selectMCQ(num,opt,el){
+  if(mcqSelected[num]&&mcqSelected[num].locked)return;
+  document.querySelectorAll('#mcq'+num+' .mcq-opt').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+  mcqSelected[num]={answer:opt,locked:false};
+}
+
+function checkMCQ(num){
   const fb=document.getElementById('fb'+num);
-  if(!input){fb.className='feedback wrong';fb.style.display='block';fb.textContent='⚠ Silakan ketik jawaban terlebih dahulu.';return;}
-  const correct=answers[num].replace(/\s/g,'').toLowerCase();
-  // Simple check - normalize
-  const norm=s=>s.replace(/\s/g,'').replace(/\*/g,'');
-  if(norm(input)===norm(correct)){
-    fb.className='feedback correct';fb.textContent='🎉 Benar! Jawaban kamu tepat.';
-  } else {
-    fb.className='feedback wrong';fb.textContent='❌ Belum tepat. Coba cek kembali atau lihat petunjuk.';
-  }
+  if(!mcqSelected[num]||!mcqSelected[num].answer){fb.className='feedback wrong';fb.style.display='block';fb.textContent='⚠ Silakan pilih jawaban terlebih dahulu.';return;}
+  const sel=mcqSelected[num].answer;
+  const correct=mcqCorrect[num];
+  mcqSelected[num].locked=true;
+  const opts=document.querySelectorAll('#mcq'+num+' .mcq-opt');
+  opts.forEach(o=>o.classList.add('disabled'));
+  const labels='abcd';
+  opts.forEach((o,i)=>{
+    const letter=labels[i];
+    if(letter===correct)o.classList.add('correct');
+    else if(letter===sel&&sel!==correct)o.classList.add('wrong');
+  });
+  if(sel===correct){fb.className='feedback correct';fb.textContent='🎉 Benar! Jawaban kamu tepat.';}
+  else{fb.className='feedback wrong';fb.textContent='❌ Belum tepat. Jawaban yang benar ditandai hijau.';}
   fb.style.display='block';
+  const ab=document.getElementById('ansBtn'+num);if(ab)ab.classList.remove('locked');
 }
 </script>
 
