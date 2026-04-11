@@ -1,1 +1,1131 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modul 14 – Deret Fourier: Fungsi Periodik | Matematika Teknik</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Sans+3:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+:root{--bg:#070b16;--bg2:#0e1525;--bg3:#151e30;--bg3h:#1c2940;--c1:#00e09e;--c2:#0ea5e9;--c3:#f97316;--c4:#ef4444;--c5:#a855f7;--c6:#facc15;--t1:#e4e8f1;--t2:#94a3b8;--t3:#64748b;--bd:#1e293b;--ok:#00e09e;--err:#ef4444;--grad:linear-gradient(135deg,#070b16 0%,#0c1a3a 50%,#0a1424 100%)}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--t1);line-height:1.8;overflow-x:hidden}
+::-webkit-scrollbar{width:7px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--c5);border-radius:4px}
 
+.prog{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--c5),var(--c2),var(--c1));z-index:200;width:0%;transition:width .1s}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;background:var(--grad);position:relative;padding:2rem;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 70%,rgba(168,85,247,.08),transparent 50%),radial-gradient(circle at 70% 30%,rgba(14,165,233,.09),transparent 50%);pointer-events:none}
+.hero-particles{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.particle{position:absolute;width:3px;height:3px;background:var(--c5);border-radius:50%;opacity:0;animation:floatP 9s infinite}
+@keyframes floatP{0%{opacity:0;transform:translateY(100vh) scale(0)}10%{opacity:.7}90%{opacity:.2}100%{opacity:0;transform:translateY(-20vh) scale(1.5)}}
+@keyframes fadeSlideDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeSlideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
+
+.hero-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.25rem;background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.3);border-radius:999px;font-size:.8rem;font-weight:600;color:var(--c5);margin-bottom:1.5rem;animation:fadeSlideDown .8s ease-out .3s both}
+.hero-title{font-family:'Playfair Display',serif;font-size:clamp(2.5rem,6vw,4.5rem);font-weight:900;line-height:1.1;margin-bottom:1rem;animation:fadeSlideDown .8s ease-out .5s both}
+.hero-title .highlight{background:linear-gradient(135deg,var(--c5),var(--c2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:clamp(1rem,2.5vw,1.25rem);color:var(--t2);max-width:700px;margin-bottom:2rem;animation:fadeSlideDown .8s ease-out .7s both}
+.hero-lecturer{display:inline-flex;align-items:center;gap:.85rem;padding:.75rem 1.75rem;background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.25);border-radius:14px;margin-bottom:2rem;animation:fadeSlideDown 1s ease-out .5s both;backdrop-filter:blur(8px)}
+.hero-lecturer .lecturer-icon{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--c2),var(--c5));display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0}
+.hero-lecturer .lecturer-text{text-align:left;line-height:1.35}
+.hero-lecturer .lecturer-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}
+.hero-lecturer .lecturer-name{font-size:.95rem;font-weight:700;color:var(--t1)}
+.hero-cta{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;animation:fadeSlideUp .8s ease-out .9s both}
+.btn-primary{padding:.85rem 2rem;background:linear-gradient(135deg,var(--c5),var(--c2));color:#fff;font-weight:700;font-size:1rem;border:none;border-radius:12px;cursor:pointer;text-decoration:none;transition:all .3s}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(168,85,247,.3)}
+.btn-outline{padding:.85rem 2rem;background:transparent;color:var(--t1);font-weight:600;font-size:1rem;border:2px solid var(--bd);border-radius:12px;cursor:pointer;text-decoration:none;transition:all .3s}
+.btn-outline:hover{border-color:var(--c5);color:var(--c5)}
+.scroll-indicator{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.5rem;color:var(--t3);font-size:.8rem;animation:bounce 2s infinite;z-index:1}
+@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(7,11,22,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--bd);padding:.75rem 2rem;display:flex;gap:.5rem;overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav a{white-space:nowrap;padding:.5rem 1rem;border-radius:8px;color:var(--t2);text-decoration:none;font-size:.85rem;font-weight:600;transition:all .3s;flex-shrink:0}
+.nav a:hover,.nav a.active{background:rgba(168,85,247,.1);color:var(--c5)}
+
+/* SECTIONS */
+.sec{max-width:900px;margin:0 auto;padding:5rem 2rem}
+.sec-label{display:inline-flex;align-items:center;gap:.5rem;font-size:.8rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--c5);margin-bottom:.75rem}
+.sec-title{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,4vw,2.5rem);font-weight:900;margin-bottom:1.5rem;line-height:1.2}
+.sec-divider{width:60px;height:4px;background:linear-gradient(90deg,var(--c5),var(--c2));border-radius:2px;margin-bottom:2rem}
+
+/* CARDS */
+.card{background:var(--bg3);border:1px solid var(--bd);border-radius:16px;padding:2rem;margin-bottom:1.5rem;transition:all .3s;position:relative;overflow:hidden}
+.card:hover{border-color:rgba(168,85,247,.3);transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.3)}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--c5),var(--c2),var(--c1))}
+.card-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:1rem;flex-shrink:0}
+
+/* ANALOGY BOX */
+.analogy{background:linear-gradient(135deg,rgba(168,85,247,.08),rgba(14,165,233,.05));border:1px solid rgba(168,85,247,.2);border-radius:16px;padding:1.75rem;margin:2rem 0;position:relative}
+.analogy::before{content:'💡';position:absolute;top:-14px;left:20px;font-size:1.4rem;background:var(--bg);padding:0 8px}
+.analogy h4{color:var(--c5);font-weight:700;margin-bottom:.5rem}
+
+/* FORMULA BOX */
+.formula-box{background:rgba(0,224,158,.04);border:1px solid rgba(0,224,158,.2);border-radius:14px;padding:1.5rem 2rem;margin:1.5rem 0;text-align:center;font-size:1.15rem}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;margin:1.5rem 0;border-radius:12px;overflow:hidden}
+.tbl th{background:rgba(168,85,247,.12);padding:.85rem 1.25rem;text-align:left;font-weight:700;font-size:.85rem;text-transform:uppercase;letter-spacing:.05em;color:var(--c5);border-bottom:2px solid var(--bd)}
+.tbl td{padding:.85rem 1.25rem;border-bottom:1px solid var(--bd);font-size:.95rem}
+.tbl tr:hover td{background:rgba(168,85,247,.03)}
+
+/* CODE BLOCK */
+.code-block{background:#0d1117;border:1px solid var(--bd);border-radius:12px;margin:1.5rem 0;overflow:hidden}
+.code-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;background:rgba(255,255,255,.03);border-bottom:1px solid var(--bd)}
+.code-header span{display:flex;align-items:center;gap:.5rem;font-size:.8rem;font-weight:600;color:var(--t3)}
+.code-dots{display:flex;gap:6px}
+.code-dots span{width:10px;height:10px;border-radius:50%}
+.code-dots span:nth-child(1){background:#ff5f57}
+.code-dots span:nth-child(2){background:#febc2e}
+.code-dots span:nth-child(3){background:#28c840}
+.code-copy{padding:.35rem .75rem;background:rgba(255,255,255,.05);border:1px solid var(--bd);color:var(--t3);border-radius:6px;cursor:pointer;font-size:.75rem;font-family:inherit;transition:all .3s}
+.code-copy:hover{background:rgba(168,85,247,.15);color:var(--c5);border-color:rgba(168,85,247,.3)}
+.code-body{padding:1.25rem;overflow-x:auto}
+.code-body pre{font-family:'JetBrains Mono',monospace;font-size:.85rem;line-height:1.7;color:#c9d1d9;white-space:pre}
+.code-body .comment{color:#8b949e}
+.code-body .keyword{color:#ff7b72}
+.code-body .string{color:#a5d6ff}
+.code-body .function{color:#d2a8ff}
+.code-body .number{color:#79c0ff}
+.code-body .output{color:#7ee787;font-style:italic}
+
+/* MCQ Options */
+.mcq-options{display:flex;flex-direction:column;gap:.6rem;margin:1.25rem 0}
+.mcq-opt{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;border:1px solid var(--bd);background:rgba(255,255,255,.03);cursor:pointer;transition:all .25s;font-size:.95rem}
+.mcq-opt:hover{border-color:rgba(168,85,247,.4);background:rgba(168,85,247,.06)}
+.mcq-opt.selected{border-color:var(--c5);background:rgba(168,85,247,.1)}
+.mcq-opt.correct{border-color:var(--c1);background:rgba(0,224,158,.1);color:var(--c1)}
+.mcq-opt.wrong{border-color:var(--c4);background:rgba(239,68,68,.08);color:var(--c4);opacity:.7}
+.mcq-opt.disabled{pointer-events:none}
+.mcq-radio{width:20px;height:20px;border-radius:50%;border:2px solid var(--bd);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .25s}
+.mcq-opt.selected .mcq-radio{border-color:var(--c5);background:var(--c5)}
+.mcq-opt.selected .mcq-radio::after{content:'';width:8px;height:8px;border-radius:50%;background:#fff}
+.mcq-opt.correct .mcq-radio{border-color:var(--c1);background:var(--c1)}
+.mcq-opt.correct .mcq-radio::after{content:'✓';color:#fff;font-size:11px;font-weight:800}
+.mcq-opt.wrong .mcq-radio{border-color:var(--c4);background:var(--c4)}
+.mcq-opt.wrong .mcq-radio::after{content:'✗';color:#fff;font-size:11px;font-weight:800}
+.mcq-label{font-weight:600;color:var(--c5);margin-right:4px}
+.practice-card{background:var(--bg3);border:1px solid var(--bd);border-radius:16px;padding:2rem;margin-bottom:2rem;position:relative;overflow:hidden}
+.practice-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--c3),var(--c6))}
+.practice-num{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--c3),var(--c6));color:var(--bg);font-weight:800;font-size:.9rem;margin-bottom:1rem}
+.hint-btn{padding:.6rem 1.5rem;border-radius:10px;border:1px solid var(--bd);background:rgba(255,255,255,.04);color:var(--t2);font-weight:600;font-size:.85rem;cursor:pointer;transition:all .25s;font-family:inherit;margin-top:.5rem}
+.hint-btn:hover{background:rgba(168,85,247,.1);color:var(--c5);border-color:rgba(168,85,247,.3)}
+.hint-content{display:none;background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.15);border-radius:12px;padding:1.25rem;margin-top:1rem;font-size:.9rem;line-height:1.8}
+.hint-content.open{display:block;animation:slideD .3s ease-out}
+@keyframes slideD{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+.answer-box{display:none;background:rgba(0,224,158,.05);border:1px solid rgba(0,224,158,.2);border-radius:12px;padding:1.5rem;margin-top:1rem;line-height:1.9}
+.answer-box.open{display:block;animation:slideD .3s ease-out}
+.answer-btn{padding:.6rem 1.5rem;border-radius:10px;border:1px solid rgba(0,224,158,.3);background:rgba(0,224,158,.08);color:var(--c1);font-weight:600;font-size:.85rem;cursor:pointer;transition:all .25s;font-family:inherit;margin-top:.5rem}
+.answer-btn:hover{background:rgba(0,224,158,.15)}
+.answer-btn.locked{opacity:.4;pointer-events:none;cursor:not-allowed}
+.practice-btn{padding:.6rem 1.5rem;border-radius:10px;border:none;font-weight:700;font-size:.85rem;cursor:pointer;transition:all .3s;font-family:inherit}
+.practice-check{background:linear-gradient(135deg,var(--c5),var(--c2));color:#fff}
+.practice-check:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(168,85,247,.3)}
+.feedback{padding:.75rem 1rem;border-radius:10px;margin-top:.75rem;font-weight:600;font-size:.9rem;display:none}
+.feedback.correct{display:block;background:rgba(0,224,158,.1);border:1px solid rgba(0,224,158,.3);color:var(--c1)}
+.feedback.wrong{display:block;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--c4)}
+
+/* STEP LIST */
+.step-list{counter-reset:step;margin:1.5rem 0}
+.step-item{display:flex;gap:1.25rem;margin-bottom:1.5rem;position:relative}
+.step-item::before{counter-increment:step;content:counter(step);width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--c5),var(--c2));color:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;flex-shrink:0;margin-top:2px}
+.step-item:not(:last-child)::after{content:'';position:absolute;left:17px;top:40px;bottom:-8px;width:2px;background:var(--bd)}
+.step-content h4{margin-bottom:.25rem;font-weight:700}
+.step-content p{color:var(--t2);font-size:.95rem}
+
+/* FADE IN */
+.fi{opacity:0;transform:translateY(30px);transition:all .6s ease-out}.fi.vis{opacity:1;transform:translateY(0)}
+
+/* FOOTER */
+footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:var(--t3);font-size:.85rem}
+
+@media(max-width:768px){.sec{padding:3rem 1.25rem}.card,.practice-card{padding:1.5rem}.nav{padding:.5rem 1rem}}
+
+/* ── VISITOR SYSTEM ── */
+.visitor-overlay{position:fixed;inset:0;z-index:99999;background:rgba(7,11,22,.94);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity .4s}
+.visitor-overlay.hidden{opacity:0;pointer-events:none}
+.visitor-modal{background:#151e30;border:1px solid #1e293b;border-radius:24px;padding:40px 36px;max-width:440px;width:90%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.6);animation:vModalIn .5s cubic-bezier(.16,1,.3,1)}
+@keyframes vModalIn{0%{opacity:0;transform:translateY(30px) scale(.96)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.visitor-modal h2{font-weight:800;font-size:1.5rem;background:linear-gradient(135deg,var(--c5),var(--c2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
+.visitor-modal p.sub{color:#94a3b8;font-size:.85rem;margin-bottom:28px}
+.v-input{width:100%;padding:14px 18px;border-radius:14px;border:1px solid #1e293b;background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-size:.95rem;outline:none;transition:border .25s;margin-bottom:14px}
+.v-input::placeholder{color:#64748b}
+.v-input:focus{border-color:var(--c5);box-shadow:0 0 0 3px rgba(168,85,247,.15)}
+.v-btn-primary{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--c5),var(--c2));color:#fff;font-weight:700;font-size:1rem;cursor:pointer;transition:transform .2s,box-shadow .2s;margin-top:6px}
+.v-btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(168,85,247,.2)}
+.v-error{color:#fb7185;font-size:.8rem;margin-bottom:10px;display:none}
+.v-btn-cancel{width:100%;padding:12px;border-radius:14px;margin-top:12px;border:1px solid #1e293b;background:rgba(255,255,255,.04);color:#94a3b8;font-weight:600;font-size:.88rem;cursor:pointer;transition:all .25s}
+.v-btn-cancel:hover{background:rgba(255,255,255,.08)}
+.visitor-fab{position:fixed;bottom:24px;right:24px;z-index:8888;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--c5),var(--c2));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(0,0,0,.4);transition:transform .25s;font-size:1.4rem}
+.visitor-fab:hover{transform:scale(1.08)}
+.visitor-fab .fab-count{position:absolute;top:-4px;right:-4px;background:#fb7185;color:#fff;font-size:.65rem;font-weight:700;min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid var(--bg)}
+.visitor-panel{position:fixed;bottom:92px;right:24px;z-index:8887;width:340px;max-height:480px;overflow:hidden;background:#151e30;border:1px solid #1e293b;border-radius:20px;box-shadow:0 24px 64px rgba(0,0,0,.5);display:flex;flex-direction:column;transform:translateY(12px) scale(.95);opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .25s}
+.visitor-panel.open{transform:translateY(0) scale(1);opacity:1;pointer-events:auto}
+.vp-header{padding:20px 22px 14px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between}
+.vp-header h3{font-weight:700;font-size:1rem;color:#fff}
+.vp-header .vp-badge{background:rgba(255,255,255,.08);color:var(--c5);font-size:.7rem;font-weight:700;padding:4px 10px;border-radius:999px}
+.vp-list{overflow-y:auto;padding:10px 16px 16px;flex:1}
+.vp-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;margin-bottom:6px;background:rgba(255,255,255,.03);transition:background .2s}
+.vp-item:hover{background:rgba(255,255,255,.06)}
+.vp-avatar{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0}
+.vp-avatar.student{background:rgba(255,255,255,.08);color:var(--c5)}
+.vp-avatar.dosen{background:rgba(251,191,36,.12);color:#fbbf24}
+.vp-info{flex:1;min-width:0}
+.vp-name{font-weight:600;font-size:.88rem;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vp-nim{font-size:.72rem;color:#64748b;font-family:monospace}
+.vp-time{font-size:.68rem;color:#64748b;text-align:right;flex-shrink:0;white-space:nowrap}
+.vp-empty{text-align:center;padding:32px 16px;color:#64748b;font-size:.85rem}
+@media(max-width:480px){.visitor-panel{width:calc(100vw - 32px);right:16px;bottom:88px}.visitor-fab{bottom:18px;right:18px}}
+
+
+</style>
+</head>
+<body>
+
+<!-- PROGRESS BAR -->
+<div class="prog" id="progressBar"></div>
+
+<!-- VISITOR LOGIN MODAL -->
+<div class="visitor-overlay" id="visitorOverlay">
+  <div class="visitor-modal">
+    <div style="font-size:2.8rem;margin-bottom:12px;">🎓</div>
+    <h2>Selamat Datang!</h2>
+    <p class="sub">Silakan masukkan identitas Anda untuk mengakses Modul 14.</p>
+    <p class="v-error" id="vError"></p>
+    <input type="text" class="v-input" id="vNama" placeholder="Nama Lengkap" autocomplete="off">
+    <input type="text" class="v-input" id="vNim" placeholder="NIM (Nomor Induk Mahasiswa)" autocomplete="off">
+    <button class="v-btn-primary" id="vSubmit" onclick="submitVisitor()">Masuk ke Modul 14 →</button>
+    <button class="v-btn-cancel" onclick="showScheduleModal()" style="margin-top:8px;border-color:rgba(99,102,241,.3);color:#818cf8;">🕐 Atur Jadwal 🔒</button>
+  </div>
+</div>
+<!-- Reset Password Modal -->
+<div class="visitor-overlay hidden" id="resetOverlay" style="z-index:100000;">
+  <div class="visitor-modal" style="max-width:380px;">
+    <div style="font-size:2.4rem;margin-bottom:12px;">🔐</div>
+    <h2 style="font-size:1.3rem;">Konfirmasi Reset</h2>
+    <p class="sub">Masukkan password untuk menghapus semua data mahasiswa.</p>
+    <p class="v-error" id="resetError">⚠ Password salah.</p>
+    <input type="password" class="v-input" id="resetPw" placeholder="Password" autocomplete="off">
+    <button class="v-btn-primary" style="background:linear-gradient(135deg,#fb7185,#f43f5e);" onclick="confirmReset()">Hapus Semua Data</button>
+    <button class="v-btn-cancel" onclick="hideResetModal()">Batal</button>
+  </div>
+</div>
+<!-- Schedule Modal -->
+<div class="visitor-overlay hidden" id="scheduleOverlay" style="z-index:100000;">
+  <div class="visitor-modal" style="max-width:480px;width:95%;">
+    <div style="font-size:2.4rem;margin-bottom:12px;">🕐</div>
+    <h2 style="font-size:1.3rem;">Atur Jadwal Perkuliahan</h2>
+    <p class="sub">Masukkan password, durasi (hari), dan batas waktu akhir.</p>
+    <p class="v-error" id="scheduleError"></p>
+    <input type="password" class="v-input" id="schedulePw" placeholder="Password" autocomplete="off">
+    <div style="display:flex;gap:10px;margin-bottom:14px;">
+      <div style="flex:1;text-align:left;">
+        <label style="font-size:.75rem;color:#94a3b8;font-weight:600;display:block;margin-bottom:4px;">Durasi (hari)</label>
+        <input type="number" class="v-input" id="scheduleDuration" min="1" value="7" placeholder="7" style="margin-bottom:0;">
+      </div>
+      <div style="flex:1;text-align:left;">
+        <label style="font-size:.75rem;color:#94a3b8;font-weight:600;display:block;margin-bottom:4px;">Batas Akhir (Due Date)</label>
+        <input type="datetime-local" class="v-input" id="scheduleDue" style="margin-bottom:0;">
+      </div>
+    </div>
+    <button class="v-btn-primary" onclick="saveSchedule()">💾 Simpan Jadwal</button>
+    <button class="v-btn-cancel" onclick="hideScheduleModal()">Batal</button>
+  </div>
+</div>
+
+<!-- Floating Visitor Button -->
+<button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Aktivitas Mahasiswa">👥<span class="fab-count" id="fabCount">0</span></button>
+<!-- Visitor Panel -->
+<div class="visitor-panel" id="visitorPanel">
+  <div class="vp-header"><h3>👥 Mahasiswa</h3><span class="vp-badge" id="vpBadge">0 orang</span></div>
+  <div class="vp-list" id="vpList"><div class="vp-empty">Belum ada data.</div></div>
+</div>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<section class="hero">
+  <div class="hero-particles" id="particles"></div>
+  <div class="hero-lecturer">
+    <div class="lecturer-icon">👩‍🏫</div>
+    <div class="lecturer-text">
+      <div class="lecturer-label">Dosen Pengampu</div>
+      <div class="lecturer-name">Dedik Romahadi</div>
+    </div>
+  </div>
+  <div class="hero-badge">📐 Pertemuan 14 — Matematika Teknik</div>
+  <h1 class="hero-title">Deret Fourier<br><span class="highlight">Fungsi Periodik</span></h1>
+  <p class="hero-sub">Merepresentasikan fungsi periodik sebagai deret tak hingga suku-suku sinus dan cosinus — fondasi analisis sinyal dan getaran.</p>
+  <div class="hero-cta">
+    <a href="#pengertian" class="btn-primary">Mulai Belajar →</a>
+    <a href="#latihan" class="btn-outline">Latihan Soal</a>
+  </div>
+  <div class="scroll-indicator">
+    <span>Scroll ke bawah</span>
+    <span style="font-size:1.2rem;">↓</span>
+  </div>
+</section>
+
+<!-- NAVIGATION -->
+<nav class="nav" id="mainNav">
+  <a href="#pengertian">Fungsi Periodik</a>
+  <a href="#analogi">Analogi</a>
+  <a href="#deret">Deret Fourier</a>
+  <a href="#koefisien">Koefisien Fourier</a>
+  <a href="#contoh">Contoh</a>
+  <a href="#latihan">Latihan</a>
+  <a href="#jupyter">Jupyter</a>
+  <a href="#aktivitas">Aktivitas</a>
+</nav>
+
+<!-- ═══════════════ PENGERTIAN ═══════════════ -->
+<section class="sec" id="pengertian">
+  <div class="fi">
+    <div class="sec-label">📖 Bagian 1</div>
+    <h2 class="sec-title">Fungsi Periodik</h2>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="card fi">
+    <div class="card-icon" style="background:rgba(168,85,247,.1);">🔄</div>
+    <h3 style="margin-bottom:1rem;">Definisi Fungsi Periodik</h3>
+    <p>Fungsi \(f(x)\) dikatakan <strong>periodik</strong> dengan periode \(T = 2L\), jika fungsi \(f\) didefinisikan untuk semua \(x\), dan ada bilangan positif \(T = 2L\) sedemikian sehingga:</p>
+    <div class="formula-box" style="border-color:rgba(168,85,247,.3);background:rgba(168,85,247,.05);">
+      $$f(x + T) = f(x + 2L) = f(x)$$
+    </div>
+    <p style="margin-top:1rem;">Contoh paling dikenal adalah fungsi sinus dan cosinus yang memiliki periode \(T = 2\pi\):</p>
+    <p>\(\sin(x + 2\pi) = \sin x\) dan \(\cos(x + 2\pi) = \cos x\)</p>
+  </div>
+
+  <div class="card fi">
+    <div class="card-icon" style="background:rgba(14,165,233,.1);">📋</div>
+    <h3 style="margin-bottom:1rem;">Contoh 1.1 — Fungsi Periodik Piecewise</h3>
+    <p>Diberikan fungsi segitiga dengan periode \(T = 4\):</p>
+    <div class="formula-box">
+      $$f(x) = \begin{cases} x, & 0 < x < 2 \\ -2, & 2 < x < 4 \end{cases}$$
+    </div>
+    <p style="margin-top:1rem;">Pada interval \(0 < x < 2\), \(f(x) = x\). Nilai ini berulang setiap \(x + 4k\), sehingga \(f(x + 4k) = x\). Demikian pula pada interval \(2 < x < 4\), \(f(x) = -2\) berulang setiap \(x + 4k\).</p>
+  </div>
+
+  <div class="card fi">
+    <div class="card-icon" style="background:rgba(0,224,158,.1);">📋</div>
+    <h3 style="margin-bottom:1rem;">Contoh 1.2 — Fungsi Periodik dengan 3 Bagian</h3>
+    <p>Diberikan fungsi dengan periode \(T = 3\):</p>
+    <div class="formula-box">
+      $$f(x) = \begin{cases} 1-x, & -1 < x < 0 \\ x^2, & 0 < x < 1 \\ 0, & 1 < x < 2 \end{cases}$$
+    </div>
+    <p style="margin-top:1rem;">Masing-masing bagian berulang setiap \(x + 3k\) untuk \(k\) bilangan bulat positif.</p>
+  </div>
+
+  <div class="card fi">
+    <h3 style="margin-bottom:1rem;">📋 Contoh 1.3 — Fungsi Segitiga</h3>
+    <p>Sketsa grafik fungsi dengan periode \(T = 2\pi\):</p>
+    <div class="formula-box">
+      $$f(x) = \begin{cases} \pi + x, & -\pi < x < 0 \\ \pi - x, & 0 < x < \pi \end{cases}$$
+    </div>
+    <p style="margin-top:1rem;">Fungsi ini membentuk pola segitiga "tent function" yang berulang setiap \(2\pi\).</p>
+  </div>
+</section>
+
+<!-- ═══════════════ ANALOGI ═══════════════ -->
+<section class="sec" id="analogi">
+  <div class="fi">
+    <div class="sec-label">💡 Bagian 2</div>
+    <h2 class="sec-title">Analogi: Memahami Deret Fourier</h2>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="analogy fi">
+    <h4>🎵 Analogi Equalizer Musik</h4>
+    <p>Saat mendengar musik, telingamu mendengar satu gelombang suara gabungan. Tapi equalizer di ponselmu memecahnya menjadi <strong>bass, mid, dan treble</strong> — frekuensi-frekuensi dasar. Deret Fourier melakukan hal yang sama: memecah fungsi periodik apa pun menjadi jumlahan <strong>gelombang sinus dan cosinus</strong> dengan frekuensi berbeda!</p>
+  </div>
+
+  <div class="analogy fi">
+    <h4>🌈 Analogi Prisma Cahaya</h4>
+    <p>Cahaya putih terlihat sederhana, tapi saat melewati prisma, ia terurai menjadi <strong>spektrum warna pelangi</strong>. Setiap warna adalah satu frekuensi. Deret Fourier adalah "prisma matematika" — ia menguraikan fungsi periodik menjadi komponen-komponen frekuensi dasarnya.</p>
+  </div>
+</section>
+
+<!-- ═══════════════ DERET FOURIER ═══════════════ -->
+<section class="sec" id="deret">
+  <div class="fi">
+    <div class="sec-label">📐 Bagian 3</div>
+    <h2 class="sec-title">Deret Fourier, Periode \(T = 2\pi\)</h2>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="card fi">
+    <div class="card-icon" style="background:rgba(168,85,247,.1);">〰️</div>
+    <h3 style="margin-bottom:1rem;">Deret Trigonometri</h3>
+    <p>Fungsi-fungsi trigonometri yang memiliki periode \(2\pi\) adalah:</p>
+    <p style="margin:.75rem 0;color:var(--t2);">\(1, \cos x, \sin x, \cos 2x, \sin 2x, \cos 3x, \sin 3x, \ldots, \cos nx, \sin nx\)</p>
+    <p>Dari fungsi-fungsi ini, bilamana dituliskan dalam bentuk deret trigonometri:</p>
+    <div class="formula-box" style="border-color:rgba(168,85,247,.3);background:rgba(168,85,247,.05);">
+      $$a_0 + \sum_{n=1}^{\infty}(a_n \cos nx + b_n \sin nx)$$
+    </div>
+    <p style="margin-top:1rem;">di mana \(a_0, a_n\) dan \(b_n\) disebut <strong>koefisien Fourier</strong>.</p>
+  </div>
+
+  <div class="card fi">
+    <div class="card-icon" style="background:rgba(0,224,158,.1);">📜</div>
+    <h3 style="margin-bottom:1rem;">Ekspansi Deret Fourier</h3>
+    <p>Andaikan \(f(x)\) fungsi periodik dengan periode \(2\pi\) dan terdefinisikan pada interval \(-\pi < x < \pi\). Ekspansi deret Fourier bagi \(f(x)\) adalah:</p>
+    <div class="formula-box" style="border-color:rgba(0,224,158,.3);">
+      $$f(x) = \frac{a_0}{2} + \sum_{n=1}^{\infty}(a_n \cos nx + b_n \sin nx)$$
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ KOEFISIEN FOURIER ═══════════════ -->
+<section class="sec" id="koefisien">
+  <div class="fi">
+    <div class="sec-label">🔢 Bagian 4</div>
+    <h2 class="sec-title">Rumus Euler — Koefisien Fourier</h2>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="card fi">
+    <div class="card-icon" style="background:rgba(249,115,22,.1);">📏</div>
+    <h3 style="margin-bottom:1rem;">Koefisien pada Interval \(-\pi < x < \pi\)</h3>
+    <div class="formula-box">$$a_0 = \frac{1}{\pi}\int_{-\pi}^{\pi} f(x)\,dx$$</div>
+    <div class="formula-box" style="margin-top:.75rem;">$$a_n = \frac{1}{\pi}\int_{-\pi}^{\pi} f(x)\cos nx\,dx$$</div>
+    <div class="formula-box" style="margin-top:.75rem;">$$b_n = \frac{1}{\pi}\int_{-\pi}^{\pi} f(x)\sin nx\,dx$$</div>
+  </div>
+
+  <div class="card fi">
+    <h3 style="margin-bottom:1rem;">Koefisien pada Interval \(0 < x < 2\pi\)</h3>
+    <p>Jika \(f(x)\) terdefinisikan pada interval \(0 < x < 2\pi\), koefisien dihitung:</p>
+    <div class="formula-box">$$a_0 = \frac{1}{\pi}\int_{0}^{2\pi} f(x)\,dx$$</div>
+    <div class="formula-box" style="margin-top:.75rem;">$$a_n = \frac{1}{\pi}\int_{0}^{2\pi} f(x)\cos nx\,dx$$</div>
+    <div class="formula-box" style="margin-top:.75rem;">$$b_n = \frac{1}{\pi}\int_{0}^{2\pi} f(x)\sin nx\,dx$$</div>
+  </div>
+
+  <div class="card fi">
+    <h3 style="margin-bottom:1rem;">Identitas Integral Penting</h3>
+    <p>Beberapa hasil integral ortogonalitas yang digunakan dalam penurunan rumus Euler:</p>
+    <div style="overflow-x:auto;">
+    <table class="tbl">
+      <thead><tr><th>Integral</th><th>Hasil</th></tr></thead>
+      <tbody>
+        <tr><td>\(\displaystyle\int_{-\pi}^{\pi}\cos mx\,\cos nx\,dx\)</td><td>\(= \pi\) jika \(m=n\); \(= 0\) jika \(m \ne n\)</td></tr>
+        <tr><td>\(\displaystyle\int_{-\pi}^{\pi}\sin mx\,\sin nx\,dx\)</td><td>\(= \pi\) jika \(m=n\); \(= 0\) jika \(m \ne n\)</td></tr>
+        <tr><td>\(\displaystyle\int_{-\pi}^{\pi}\cos mx\,\sin nx\,dx\)</td><td>\(= 0\) untuk semua \(m, n\)</td></tr>
+        <tr><td>\(\displaystyle\int_{-\pi}^{\pi}\sin nx\,dx\)</td><td>\(= 0\)</td></tr>
+        <tr><td>\(\displaystyle\int_{-\pi}^{\pi}\cos nx\,dx\)</td><td>\(= 0\) untuk \(n \ge 1\)</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p style="margin-top:1rem;">Sifat <strong>ortogonalitas</strong> inilah yang memungkinkan kita mengisolasi setiap koefisien \(a_n\) dan \(b_n\) secara terpisah.</p>
+  </div>
+
+  <div class="card fi">
+    <h3 style="margin-bottom:1rem;">Pola \(\cos n\pi\) yang Berguna</h3>
+    <p>Dalam menghitung koefisien Fourier, sering muncul pola berikut:</p>
+    <div class="formula-box">$$\cos n\pi = \begin{cases} -1, & n \text{ ganjil} \\ 1, & n \text{ genap} \end{cases} = (-1)^n$$</div>
+    <p style="margin-top:1rem;">Sehingga:</p>
+    <p>\(1 - \cos n\pi = \begin{cases} 2, & n \text{ ganjil} \\ 0, & n \text{ genap} \end{cases}\)</p>
+    <p style="margin-top:.5rem;">\(\cos n\pi - 1 = \begin{cases} -2, & n \text{ ganjil} \\ 0, & n \text{ genap} \end{cases}\)</p>
+  </div>
+</section>
+
+<!-- ═══════════════ CONTOH ═══════════════ -->
+<section class="sec" id="contoh">
+  <div class="fi">
+    <div class="sec-label">📝 Bagian 5</div>
+    <h2 class="sec-title">Contoh Penyelesaian</h2>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="card fi">
+    <h3 style="margin-bottom:1rem;">📝 Contoh 2.1 — Gelombang Kotak (Square Wave)</h3>
+    <p>Diberikan fungsi periodik dengan periode \(2\pi\):</p>
+    <div class="formula-box">$$f(x) = \begin{cases} -k, & -\pi < x < 0 \\ k, & 0 < x < \pi \end{cases}$$</div>
+    <p style="margin-top:1rem;"><strong>Hitung koefisien:</strong></p>
+    <p>\(a_0 = \dfrac{1}{\pi}\left[\displaystyle\int_{-\pi}^{0}-k\,dx + \int_{0}^{\pi}k\,dx\right] = \dfrac{1}{\pi}(-k\pi + k\pi) = 0\)</p>
+    <p style="margin-top:.75rem;">\(a_n = 0\) (karena \(f(x)\) adalah fungsi <strong>ganjil</strong>)</p>
+    <p style="margin-top:.75rem;">\(b_n = \dfrac{2k}{n\pi}(1 - \cos n\pi)\)</p>
+    <p style="margin-top:.75rem;">Karena \(1-\cos n\pi = 2\) untuk \(n\) ganjil dan \(0\) untuk \(n\) genap:</p>
+    <div class="formula-box" style="border-color:rgba(0,224,158,.3);background:rgba(0,224,158,.04);">
+      $$f(x) = \frac{4k}{\pi}\sin x + \frac{4k}{3\pi}\sin 3x + \frac{4k}{5\pi}\sin 5x + \cdots = \frac{4k}{\pi}\sum_{n=1}^{\infty}\frac{1}{n}\sin(2n-1)x$$
+    </div>
+    <p style="margin-top:1rem;"><strong>Hasil menarik:</strong> Substitusi \(x = \pi/2\):</p>
+    <div class="formula-box">$$1 - \frac{1}{3} + \frac{1}{5} - \frac{1}{7} + \cdots = \frac{\pi}{4}$$</div>
+  </div>
+
+  <div class="card fi">
+    <h3 style="margin-bottom:1rem;">📝 Contoh 2.2 — Gelombang Gergaji (Sawtooth)</h3>
+    <p>Diberikan fungsi periodik \(T = 2\pi\):</p>
+    <div class="formula-box">$$f(x) = \begin{cases} 0, & -\pi < x < 0 \\ x, & 0 < x < \pi \end{cases}$$</div>
+    <p style="margin-top:1rem;"><strong>Hitung koefisien:</strong></p>
+    <p>\(a_0 = \dfrac{1}{\pi}\displaystyle\int_0^{\pi}x\,dx = \dfrac{\pi}{2}\)</p>
+    <p style="margin-top:.75rem;">\(a_n = \dfrac{1}{n^2\pi}(\cos n\pi - 1)\)</p>
+    <p style="margin-top:.75rem;">\(b_n = -\dfrac{1}{n}\cos n\pi = \dfrac{(-1)^{n+1}}{n}\)</p>
+    <p style="margin-top:1rem;">Ekspansi deret Fourier:</p>
+    <div class="formula-box" style="border-color:rgba(0,224,158,.3);background:rgba(0,224,158,.04);">
+      $$f(x) = \frac{\pi}{4} - \frac{2}{\pi}\left(\cos x + \frac{1}{3^2}\cos 3x + \frac{1}{5^2}\cos 5x + \cdots\right) + \left(\sin x - \frac{1}{2}\sin 2x + \frac{1}{3}\sin 3x - \cdots\right)$$
+    </div>
+  </div>
+
+  <div class="card fi">
+    <h3 style="margin-bottom:1rem;">📝 Contoh 2.3 — Fungsi \(f(x) = |x|\)</h3>
+    <p>Diberikan fungsi periodik \(T = 2\pi\):</p>
+    <div class="formula-box">$$f(x) = |x| = \begin{cases} -x, & -\pi < x < 0 \\ x, & 0 < x < \pi \end{cases}$$</div>
+    <p style="margin-top:1rem;">Karena \(f(x)\) adalah fungsi <strong>genap</strong>, maka \(b_n = 0\).</p>
+    <p>\(a_0 = \pi\), sehingga \(a_0/2 = \pi/2\)</p>
+    <p>\(a_n = \dfrac{2}{n^2\pi}(\cos n\pi - 1)\)</p>
+    <div class="formula-box" style="border-color:rgba(0,224,158,.3);background:rgba(0,224,158,.04);">
+      $$f(x) = \frac{\pi}{2} - \frac{4}{\pi}\sum_{n=1}^{\infty}\frac{1}{(2n-1)^2}\cos(2n-1)x$$
+    </div>
+    <p style="margin-top:1rem;"><strong>Hasil menarik:</strong> Substitusi \(x = 0\):</p>
+    <div class="formula-box">$$\sum_{n=1}^{\infty}\frac{1}{(2n-1)^2} = 1 + \frac{1}{9} + \frac{1}{25} + \cdots = \frac{\pi^2}{8}$$</div>
+  </div>
+</section>
+
+<!-- ═══════════════ SOAL LATIHAN ═══════════════ -->
+<section class="sec" id="latihan">
+  <div class="fi">
+    <div class="sec-label">✏️ Bagian 6</div>
+    <h2 class="sec-title">Soal Latihan</h2>
+    <div class="sec-divider"></div>
+    <p style="color:var(--t2);margin-bottom:2rem;">Pilih jawaban yang benar. Buka petunjuk jika butuh bantuan!</p>
+  </div>
+
+  <!-- SOAL 1 -->
+  <div class="practice-card fi">
+    <div class="practice-num">1</div>
+    <h3>Berapa periode fungsi \(f(x) = \sin 3x\)?</h3>
+    <div class="mcq-options" id="mcq1">
+      <div class="mcq-opt" onclick="selectMCQ(1,'a',this)"><div class="mcq-radio"></div><span><span class="mcq-label">A.</span> \(\pi\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(1,'b',this)"><div class="mcq-radio"></div><span><span class="mcq-label">B.</span> \(\dfrac{2\pi}{3}\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(1,'c',this)"><div class="mcq-radio"></div><span><span class="mcq-label">C.</span> \(2\pi\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(1,'d',this)"><div class="mcq-radio"></div><span><span class="mcq-label">D.</span> \(\dfrac{\pi}{3}\)</span></div>
+    </div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+      <button class="practice-btn practice-check" onclick="checkMCQ(1)">✅ Cek Jawaban</button>
+      <button class="hint-btn" onclick="toggleHint('hint1')">💡 Petunjuk</button>
+      <button class="answer-btn locked" id="ansBtn1" onclick="toggleAnswer('key1')">🔑 Kunci Jawaban</button>
+    </div>
+    <div id="fb1" class="feedback"></div>
+    <div class="hint-content" id="hint1">
+      <p>Periode \(\sin nx\) adalah \(T = \dfrac{2\pi}{n}\). Substitusi \(n=3\).</p>
+    </div>
+    <div class="answer-box" id="key1">
+      <h4 style="color:var(--c1);margin-bottom:.75rem;">🔑 Penyelesaian</h4>
+      <p>\(T = \dfrac{2\pi}{3}\)</p>
+      <p style="margin-top:.75rem;padding:.75rem;background:rgba(0,224,158,.08);border-radius:8px;"><strong>Jawaban: B.</strong></p>
+    </div>
+  </div>
+
+  <!-- SOAL 2 -->
+  <div class="practice-card fi">
+    <div class="practice-num">2</div>
+    <h3>Untuk fungsi gelombang kotak \(f(x) = \begin{cases} -k, & -\pi<x<0 \\ k, & 0<x<\pi \end{cases}\), berapakah \(a_0\)?</h3>
+    <div class="mcq-options" id="mcq2">
+      <div class="mcq-opt" onclick="selectMCQ(2,'a',this)"><div class="mcq-radio"></div><span><span class="mcq-label">A.</span> \(k\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(2,'b',this)"><div class="mcq-radio"></div><span><span class="mcq-label">B.</span> \(2k\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(2,'c',this)"><div class="mcq-radio"></div><span><span class="mcq-label">C.</span> \(0\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(2,'d',this)"><div class="mcq-radio"></div><span><span class="mcq-label">D.</span> \(\dfrac{k}{2}\)</span></div>
+    </div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+      <button class="practice-btn practice-check" onclick="checkMCQ(2)">✅ Cek Jawaban</button>
+      <button class="hint-btn" onclick="toggleHint('hint2')">💡 Petunjuk</button>
+      <button class="answer-btn locked" id="ansBtn2" onclick="toggleAnswer('key2')">🔑 Kunci Jawaban</button>
+    </div>
+    <div id="fb2" class="feedback"></div>
+    <div class="hint-content" id="hint2">
+      <p>\(a_0 = \frac{1}{\pi}\int_{-\pi}^{\pi}f(x)\,dx\). Hitung integral dua bagian: \(-k\) di \((-\pi,0)\) dan \(k\) di \((0,\pi)\).</p>
+    </div>
+    <div class="answer-box" id="key2">
+      <h4 style="color:var(--c1);margin-bottom:.75rem;">🔑 Penyelesaian</h4>
+      <p>\(a_0 = \frac{1}{\pi}[(-k\pi) + (k\pi)] = 0\)</p>
+      <p>Fungsi ini ganjil, sehingga integralnya atas interval simetris = 0.</p>
+      <p style="margin-top:.75rem;padding:.75rem;background:rgba(0,224,158,.08);border-radius:8px;"><strong>Jawaban: C. \(0\)</strong></p>
+    </div>
+  </div>
+
+  <!-- SOAL 3 -->
+  <div class="practice-card fi">
+    <div class="practice-num">3</div>
+    <h3>Koefisien \(a_n\) deret Fourier dari gelombang kotak (Contoh 2.1) adalah:</h3>
+    <div class="mcq-options" id="mcq3">
+      <div class="mcq-opt" onclick="selectMCQ(3,'a',this)"><div class="mcq-radio"></div><span><span class="mcq-label">A.</span> \(\dfrac{2k}{n\pi}\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(3,'b',this)"><div class="mcq-radio"></div><span><span class="mcq-label">B.</span> \(\dfrac{4k}{n\pi}\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(3,'c',this)"><div class="mcq-radio"></div><span><span class="mcq-label">C.</span> \(0\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(3,'d',this)"><div class="mcq-radio"></div><span><span class="mcq-label">D.</span> \(\dfrac{k}{n}\)</span></div>
+    </div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+      <button class="practice-btn practice-check" onclick="checkMCQ(3)">✅ Cek Jawaban</button>
+      <button class="hint-btn" onclick="toggleHint('hint3')">💡 Petunjuk</button>
+      <button class="answer-btn locked" id="ansBtn3" onclick="toggleAnswer('key3')">🔑 Kunci Jawaban</button>
+    </div>
+    <div id="fb3" class="feedback"></div>
+    <div class="hint-content" id="hint3">
+      <p>Fungsi gelombang kotak adalah fungsi ganjil. Untuk fungsi ganjil, semua koefisien cosinus \(a_n\) bernilai nol.</p>
+    </div>
+    <div class="answer-box" id="key3">
+      <h4 style="color:var(--c1);margin-bottom:.75rem;">🔑 Penyelesaian</h4>
+      <p>Karena \(f(x)\) ganjil (simetri terhadap origin), \(f(x)\cos nx\) adalah fungsi ganjil × genap = ganjil, sehingga integralnya pada interval simetris = 0.</p>
+      <p style="margin-top:.75rem;padding:.75rem;background:rgba(0,224,158,.08);border-radius:8px;"><strong>Jawaban: C. \(0\)</strong></p>
+    </div>
+  </div>
+
+  <!-- SOAL 4 -->
+  <div class="practice-card fi">
+    <div class="practice-num">4</div>
+    <h3>Dari deret Fourier gelombang kotak, jumlah deret \(1 - \frac{1}{3} + \frac{1}{5} - \frac{1}{7} + \cdots\) adalah:</h3>
+    <div class="mcq-options" id="mcq4">
+      <div class="mcq-opt" onclick="selectMCQ(4,'a',this)"><div class="mcq-radio"></div><span><span class="mcq-label">A.</span> \(\dfrac{\pi}{2}\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(4,'b',this)"><div class="mcq-radio"></div><span><span class="mcq-label">B.</span> \(\dfrac{\pi}{4}\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(4,'c',this)"><div class="mcq-radio"></div><span><span class="mcq-label">C.</span> \(\pi\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(4,'d',this)"><div class="mcq-radio"></div><span><span class="mcq-label">D.</span> \(\dfrac{\pi}{8}\)</span></div>
+    </div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+      <button class="practice-btn practice-check" onclick="checkMCQ(4)">✅ Cek Jawaban</button>
+      <button class="hint-btn" onclick="toggleHint('hint4')">💡 Petunjuk</button>
+      <button class="answer-btn locked" id="ansBtn4" onclick="toggleAnswer('key4')">🔑 Kunci Jawaban</button>
+    </div>
+    <div id="fb4" class="feedback"></div>
+    <div class="hint-content" id="hint4">
+      <p>Substitusi \(x = \pi/2\) ke deret Fourier gelombang kotak dan gunakan \(f(\pi/2) = k\).</p>
+    </div>
+    <div class="answer-box" id="key4">
+      <h4 style="color:var(--c1);margin-bottom:.75rem;">🔑 Penyelesaian</h4>
+      <p>\(f(\pi/2) = k = \frac{4k}{\pi}(1 - \frac{1}{3} + \frac{1}{5} - \cdots)\)</p>
+      <p>Maka \(1 - \frac{1}{3} + \frac{1}{5} - \cdots = \frac{\pi}{4}\) (deret Leibniz)</p>
+      <p style="margin-top:.75rem;padding:.75rem;background:rgba(0,224,158,.08);border-radius:8px;"><strong>Jawaban: B. \(\dfrac{\pi}{4}\)</strong></p>
+    </div>
+  </div>
+
+  <!-- SOAL 5 -->
+  <div class="practice-card fi">
+    <div class="practice-num">5</div>
+    <h3>Berapakah \(a_0\) untuk fungsi \(f(x) = \begin{cases} 0, & -\pi<x<0 \\ x, & 0<x<\pi \end{cases}\)?</h3>
+    <div class="mcq-options" id="mcq5">
+      <div class="mcq-opt" onclick="selectMCQ(5,'a',this)"><div class="mcq-radio"></div><span><span class="mcq-label">A.</span> \(\pi\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(5,'b',this)"><div class="mcq-radio"></div><span><span class="mcq-label">B.</span> \(\dfrac{\pi}{2}\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(5,'c',this)"><div class="mcq-radio"></div><span><span class="mcq-label">C.</span> \(\dfrac{\pi^2}{2}\)</span></div>
+      <div class="mcq-opt" onclick="selectMCQ(5,'d',this)"><div class="mcq-radio"></div><span><span class="mcq-label">D.</span> \(0\)</span></div>
+    </div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+      <button class="practice-btn practice-check" onclick="checkMCQ(5)">✅ Cek Jawaban</button>
+      <button class="hint-btn" onclick="toggleHint('hint5')">💡 Petunjuk</button>
+      <button class="answer-btn locked" id="ansBtn5" onclick="toggleAnswer('key5')">🔑 Kunci Jawaban</button>
+    </div>
+    <div id="fb5" class="feedback"></div>
+    <div class="hint-content" id="hint5">
+      <p>\(a_0 = \frac{1}{\pi}\int_{-\pi}^{\pi}f(x)\,dx = \frac{1}{\pi}\int_0^{\pi}x\,dx\)</p>
+    </div>
+    <div class="answer-box" id="key5">
+      <h4 style="color:var(--c1);margin-bottom:.75rem;">🔑 Penyelesaian</h4>
+      <p>\(a_0 = \frac{1}{\pi}\int_0^{\pi}x\,dx = \frac{1}{\pi}\cdot\frac{\pi^2}{2} = \frac{\pi}{2}\)</p>
+      <p style="margin-top:.75rem;padding:.75rem;background:rgba(0,224,158,.08);border-radius:8px;"><strong>Jawaban: B. \(\dfrac{\pi}{2}\)</strong></p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ JUPYTER ═══════════════ -->
+<section class="sec" id="jupyter">
+  <div class="fi">
+    <div class="sec-label">🐍 Bagian 7</div>
+    <h2 class="sec-title">Mengerjakan dengan Jupyter Notebook</h2>
+    <div class="sec-divider"></div>
+    <p style="color:var(--t2);margin-bottom:2rem;">Verifikasi koefisien dan visualisasi deret Fourier menggunakan Python (SymPy).</p>
+  </div>
+
+  <div class="card fi">
+    <h3 style="margin-bottom:1rem;">📝 Hitung Koefisien Fourier</h3>
+    <div class="code-block">
+      <div class="code-header">
+        <span><span class="code-dots"><span></span><span></span><span></span></span>Jupyter Notebook — Cell 1</span>
+        <button class="code-copy" onclick="copyCode(this)">📋 Copy</button>
+      </div>
+      <div class="code-body"><pre><span class="keyword">from</span> sympy <span class="keyword">import</span> *
+
+x, n, k = symbols(<span class="string">'x n k'</span>)
+
+<span class="comment"># Contoh 2.1: Square wave f(x) = -k (-π,0), k (0,π)</span>
+a0 = (1/pi) * (integrate(-k, (x, -pi, 0)) + integrate(k, (x, 0, pi)))
+<span class="function">print</span>(<span class="string">"a0 ="</span>, a0)
+
+an = (1/pi) * (integrate(-k*cos(n*x), (x, -pi, 0)) + integrate(k*cos(n*x), (x, 0, pi)))
+<span class="function">print</span>(<span class="string">"an ="</span>, simplify(an))
+
+bn = (1/pi) * (integrate(-k*sin(n*x), (x, -pi, 0)) + integrate(k*sin(n*x), (x, 0, pi)))
+<span class="function">print</span>(<span class="string">"bn ="</span>, simplify(bn))</pre></div>
+    </div>
+  </div>
+
+  <div class="card fi">
+    <h3 style="margin-bottom:1rem;">📝 Visualisasi Jumlah Parsial Fourier</h3>
+    <div class="code-block">
+      <div class="code-header">
+        <span><span class="code-dots"><span></span><span></span><span></span></span>Jupyter Notebook — Cell 2</span>
+        <button class="code-copy" onclick="copyCode(this)">📋 Copy</button>
+      </div>
+      <div class="code-body"><pre><span class="keyword">import</span> numpy <span class="keyword">as</span> np
+<span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt
+
+x_vals = np.linspace(-np.pi, np.pi, 1000)
+K = 1  <span class="comment"># nilai k</span>
+
+<span class="keyword">for</span> N <span class="keyword">in</span> [1, 3, 5, 15, 50]:
+    S = np.zeros_like(x_vals)
+    <span class="keyword">for</span> n <span class="keyword">in</span> range(1, N+1, 2):
+        S += (4*K/(n*np.pi)) * np.sin(n*x_vals)
+    plt.plot(x_vals, S, label=f<span class="string">'N={N}'</span>)
+
+plt.title(<span class="string">'Fourier: Square Wave'</span>)
+plt.legend(); plt.grid(<span class="keyword">True</span>); plt.show()</pre></div>
+    </div>
+  </div>
+
+  <div class="card fi">
+    <h3 style="margin-bottom:1rem;">📝 Contoh 2.2: Sawtooth Wave</h3>
+    <div class="code-block">
+      <div class="code-header">
+        <span><span class="code-dots"><span></span><span></span><span></span></span>Jupyter Notebook — Cell 3</span>
+        <button class="code-copy" onclick="copyCode(this)">📋 Copy</button>
+      </div>
+      <div class="code-body"><pre><span class="keyword">from</span> sympy <span class="keyword">import</span> *
+
+x, n = symbols(<span class="string">'x n'</span>)
+
+<span class="comment"># f(x) = 0 (-π,0), x (0,π)</span>
+a0 = (1/pi) * integrate(x, (x, 0, pi))
+<span class="function">print</span>(<span class="string">"a0 ="</span>, a0)
+
+an = (1/pi) * integrate(x*cos(n*x), (x, 0, pi))
+<span class="function">print</span>(<span class="string">"an ="</span>, simplify(an))
+
+bn = (1/pi) * integrate(x*sin(n*x), (x, 0, pi))
+<span class="function">print</span>(<span class="string">"bn ="</span>, simplify(bn))</pre></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ AKTIVITAS ═══════════════ -->
+<section style="max-width:1000px;margin:48px auto 0;padding:0 24px;" id="aktivitas">
+  <div style="margin-bottom:24px;">
+      <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.05);border:1px solid var(--bd);color:var(--c5);padding:5px 14px;border-radius:999px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;">👥 Mahasiswa</span>
+      <h2 style="font-size:1.6rem;font-weight:800;color:#fff;margin-top:12px;">Aktivitas Mahasiswa</h2>
+      <p style="color:var(--t2);font-size:.85rem;margin-top:6px;">Mahasiswa yang telah mengakses halaman ini.</p>
+  </div>
+
+  <div style="background:var(--bg3);border:1px solid var(--bd);border-radius:20px;overflow:hidden;" class="fi">
+    <!-- Schedule Info -->
+    <div id="scheduleInfo" style="display:none;padding:16px 24px;background:rgba(168,85,247,.06);border-bottom:1px solid rgba(168,85,247,.15);">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div>
+          <div style="font-size:.72rem;font-weight:700;color:var(--c5);text-transform:uppercase;letter-spacing:.1em;">📅 Jadwal Perkuliahan</div>
+          <div id="scheduleRange" style="font-size:.88rem;color:var(--t1);font-weight:600;margin-top:2px;">—</div>
+        </div>
+        <button onclick="showResetModal()" style="margin-left:auto;padding:8px 16px;border-radius:10px;border:1px solid rgba(251,113,133,.3);background:rgba(251,113,133,.08);color:#fb7185;font-weight:600;font-size:.78rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:5px;white-space:nowrap;" onmouseenter="this.style.background='rgba(251,113,133,.18)'" onmouseleave="this.style.background='rgba(251,113,133,.08)'">🗑 Reset</button>
+      </div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div id="leaderboardPanel" style="margin-bottom:2px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:16px 20px;">
+        <div style="background:rgba(0,224,158,.06);border:1px solid rgba(0,224,158,.15);border-radius:14px;padding:14px 16px;">
+          <div style="font-size:.72rem;font-weight:700;color:var(--c1);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🏆 Paling Rajin</div>
+          <div id="rajinList" style="font-size:.8rem;color:var(--t1);min-height:60px;">⏳ Memuat...</div>
+        </div>
+        <div style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15);border-radius:14px;padding:14px 16px;">
+          <div style="font-size:.72rem;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">😴 Paling Santai</div>
+          <div id="santaiList" style="font-size:.8rem;color:var(--t1);min-height:60px;">⏳ Memuat...</div>
+        </div>
+      </div>
+      <div style="padding:0 20px 16px;">
+        <div style="background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);border-radius:14px;padding:14px 16px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <div style="font-size:.72rem;font-weight:700;color:#fb7185;text-transform:uppercase;letter-spacing:.1em;">❌ Bolos</div>
+            <div id="bolosCount" style="background:rgba(251,113,133,.15);color:#fb7185;font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:8px;">0</div>
+          </div>
+          <div id="bolosList" style="font-size:.8rem;color:var(--t1);">⏳ Memuat...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table Header -->
+    <div style="display:flex;padding:14px 24px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;">
+      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:0.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
+    </div>
+    <div id="visitorTableBody" style="max-height:420px;overflow-y:auto;"><div style="text-align:center;padding:40px 24px;color:var(--t3);font-size:.88rem;">⏳ Memuat data mahasiswa...</div></div>
+  </div>
+</section>
+
+<footer>
+  <p>📐 Modul 14 — Deret Fourier: Fungsi Periodik</p>
+  <p style="margin-top:.5rem;">Matematika Teknik • W132100010 • Fakultas Teknik — Teknik Mesin</p>
+  <p style="margin-top:.25rem;font-size:.8rem;">Disusun oleh: Dedik Romahadi</p>
+</footer>
+
+<!-- ═══════════════ SCRIPTS ═══════════════ -->
+
+<!-- KaTeX Rendering -->
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+  renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});
+});
+</script>
+
+<!-- Progress Bar -->
+<script>
+window.addEventListener('scroll',()=>{const h=document.documentElement.scrollHeight-window.innerHeight;document.getElementById('progressBar').style.width=(window.scrollY/h*100)+'%';});
+</script>
+
+<!-- Particles -->
+<script>
+(function(){const c=document.getElementById('particles');for(let i=0;i<20;i++){const p=document.createElement('div');p.className='particle';p.style.left=Math.random()*100+'%';p.style.animationDelay=Math.random()*9+'s';p.style.animationDuration=(7+Math.random()*6)+'s';const colors=['var(--c5)','var(--c2)','var(--c1)','var(--c6)'];p.style.background=colors[i%4];c.appendChild(p);}})();
+</script>
+
+<!-- Fade-in Observer -->
+<script>
+const obs=new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');obs.unobserve(e.target);}});},{threshold:0.1});
+document.querySelectorAll('.fi').forEach(el=>obs.observe(el));
+</script>
+
+<!-- Active Nav -->
+<script>
+const sections=document.querySelectorAll('.sec[id]');
+const navLinks=document.querySelectorAll('.nav a');
+window.addEventListener('scroll',()=>{let current='';sections.forEach(s=>{if(window.scrollY>=s.offsetTop-200)current=s.id;});navLinks.forEach(l=>{l.classList.remove('active');if(l.getAttribute('href')==='#'+current)l.classList.add('active');});});
+</script>
+
+<!-- Copy Code -->
+<script>
+function copyCode(btn){const pre=btn.closest('.code-block').querySelector('pre');navigator.clipboard.writeText(pre.textContent).then(()=>{btn.textContent='✅ Copied!';setTimeout(()=>btn.textContent='📋 Copy',2000);});}
+</script>
+
+<!-- Practice Functions -->
+<script>
+function toggleHint(id){const el=document.getElementById(id);el.classList.toggle('open');}
+function toggleAnswer(id){const el=document.getElementById(id);el.classList.toggle('open');}
+
+const mcqCorrect={1:'b',2:'c',3:'c',4:'b',5:'b'};
+const mcqSelected={};
+
+function selectMCQ(num,opt,el){
+  if(mcqSelected[num]&&mcqSelected[num].locked)return;
+  document.querySelectorAll('#mcq'+num+' .mcq-opt').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+  mcqSelected[num]={answer:opt,locked:false};
+}
+
+function checkMCQ(num){
+  const fb=document.getElementById('fb'+num);
+  if(!mcqSelected[num]||!mcqSelected[num].answer){fb.className='feedback wrong';fb.style.display='block';fb.textContent='⚠ Silakan pilih jawaban terlebih dahulu.';return;}
+  const sel=mcqSelected[num].answer;
+  const correct=mcqCorrect[num];
+  mcqSelected[num].locked=true;
+  const opts=document.querySelectorAll('#mcq'+num+' .mcq-opt');
+  opts.forEach(o=>o.classList.add('disabled'));
+  const labels='abcd';
+  opts.forEach((o,i)=>{
+    const letter=labels[i];
+    if(letter===correct)o.classList.add('correct');
+    else if(letter===sel&&sel!==correct)o.classList.add('wrong');
+  });
+  if(sel===correct){fb.className='feedback correct';fb.textContent='🎉 Benar! Jawaban kamu tepat.';}
+  else{fb.className='feedback wrong';fb.textContent='❌ Belum tepat. Jawaban yang benar ditandai hijau.';}
+  fb.style.display='block';
+  const ab=document.getElementById('ansBtn'+num);if(ab)ab.classList.remove('locked');
+}
+</script>
+
+<!-- Firebase + Visitor System -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getDatabase, ref, get, set, remove, onValue } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",
+  authDomain: "getaran-mekanik.firebaseapp.com",
+  databaseURL: "https://getaran-mekanik-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "getaran-mekanik",
+  storageBucket: "getaran-mekanik.firebasestorage.app",
+  messagingSenderId: "430886299733",
+  appId: "1:430886299733:web:0edecd5d4adf73e7440cdc",
+  measurementId: "G-NBMYLXXF18"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const MODULE_ID = 'modul-14';
+const DB_PATH = `visitors/math4/${MODULE_ID}`;
+const PERTEMUAN = 'pertemuan-14';
+const RELATED_MODULES = ['forum-14','tugas-14'];
+const SCHEDULE_PATH = `settings/math4/${PERTEMUAN}/schedule`;
+const LOCAL_IDENTITY = `optoauto_identity_${MODULE_ID}`;
+let panelOpen = false;
+let currentSchedule = null;
+const VISIT_COOLDOWN = 3600000;
+
+function getIdentity(){try{return JSON.parse(localStorage.getItem(LOCAL_IDENTITY));}catch(e){return null;}}
+function saveIdentity(v){localStorage.setItem(LOCAL_IDENTITY, JSON.stringify(v));}
+function isValidName(n){if(!n)return false;return n.split(/\s+/).every(w=>w.length>0&&/^[A-Z][a-zA-Z.'\-]*$/.test(w));}
+function isValidNim(n){return /^\d+$/.test(n);}
+function sanitizeKey(s){return s.replace(/[.#$/\[\]]/g,'_');}
+
+let masterStudents = [];
+let masterFetchDone = false;
+const STUDENTS_JSON_URL = 'https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Engineering-Mathematics/Attributes/students.json';
+function fetchMasterStudents(retries){
+  retries = retries || 0;
+  return fetch(STUDENTS_JSON_URL, {cache:'no-store'}).then(r=>{
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.json();
+  }).then(data=>{
+    masterStudents = data;
+    masterFetchDone = true;
+  }).catch(err=>{
+    if(retries < 2) setTimeout(()=>fetchMasterStudents(retries+1), 1500);
+  });
+}
+
+function toTitleCase(s){return s.toLowerCase().replace(/(?:^|\s)\S/g,a=>a.toUpperCase());}
+
+function updateLeaderboard(visitors, schedExpired){
+  const visitMap={};
+  for(const v of visitors){if(v.role==='dosen'||v.role==='guest')continue;if(!visitMap[v.nim])visitMap[v.nim]=v;else if((v.visitCount||1)>(visitMap[v.nim].visitCount||1))visitMap[v.nim]=v;}
+  const visited=Object.values(visitMap);
+
+  const sorted=[...visited].sort((a,b)=>(b.visitCount||1)-(a.visitCount||1)||new Date(a.timestamp)-new Date(b.timestamp));
+  const top3=sorted.slice(0,3);
+  const rajinEl=document.getElementById('rajinList');
+  rajinEl.innerHTML=top3.length?top3.map((v,i)=>{
+    const medal=['🥇','🥈','🥉'][i]||'';
+    return `<div style="margin-bottom:6px;">${medal} <strong>${toTitleCase(v.nama)}</strong> <span style="color:var(--c1);font-size:.75rem;">(${v.visitCount||1}x)</span></div>`;
+  }).join(''):'<span style="color:var(--t3);">Belum ada data.</span>';
+
+  const rest=sorted.filter(v=>!top3.includes(v));
+  const santaiSorted=[...rest].sort((a,b)=>(a.visitCount||1)-(b.visitCount||1)||new Date(b.timestamp)-new Date(a.timestamp));
+  const bot3=santaiSorted.slice(0,3);
+  const santaiEl=document.getElementById('santaiList');
+  santaiEl.innerHTML=bot3.length?bot3.map(v=>`<div style="margin-bottom:6px;">😴 ${toTitleCase(v.nama)} <span style="color:#fbbf24;font-size:.75rem;">(${v.visitCount||1}x)</span></div>`).join(''):'<span style="color:var(--t3);">—</span>';
+
+  const bolosEl=document.getElementById('bolosList');
+  const bolosCountEl=document.getElementById('bolosCount');
+  if(!masterFetchDone||!masterStudents.length){bolosEl.innerHTML='<span style="color:var(--t3);">Memuat data...</span>';return;}
+  const visitedNims=new Set(visited.map(v=>v.nim));
+  const belumArr=masterStudents.filter(s=>!visitedNims.has(s.nim));
+  const belum=belumArr.length;
+  bolosCountEl.textContent=belum;
+  if(schedExpired){
+    bolosEl.innerHTML=belum?belumArr.slice(0,5).map(s=>`<div style="margin-bottom:4px;color:#fb7185;">❌ ${toTitleCase(s.nama)}</div>`).join('')+(belum>5?`<div style="color:var(--t3);font-size:.75rem;">...dan ${belum-5} lainnya</div>`:''):'<span style="color:var(--c1);">✅ Semua sudah berkunjung!</span>';
+  } else {
+    bolosEl.innerHTML=belum?'<span style="color:var(--t2);font-size:.78rem;">⏳ '+belum+' mahasiswa belum berkunjung. Batas waktu belum berakhir.</span>':'<span style="color:var(--c1);font-size:.78rem;">✅ Semua mahasiswa sudah berkunjung!</span>';
+  }
+}
+fetchMasterStudents();
+
+let latestVisitors=[];
+function initVisitor(){
+  const me = getIdentity();
+  if(me && me.role==='guest'){localStorage.removeItem(LOCAL_IDENTITY);location.reload();return;}
+  if(me && me.nama){
+    document.getElementById('visitorOverlay').classList.add('hidden');
+    document.getElementById('visitorFab').style.display='flex';
+    const _isDosen = me.nama.toLowerCase()==='dedik romahadi';
+    if(!_isDosen && (!masterFetchDone || masterStudents.some(s=>s.nim===me.nim && s.nama.toUpperCase()===me.nama.toUpperCase()))){
+      const _key = sanitizeKey(`mhs_${me.nim}`);
+      get(ref(db,`${DB_PATH}/${_key}`)).then(snap=>{
+        if(snap.exists()){
+          const ex=snap.val();
+          const lastV=new Date(ex.lastVisit||ex.timestamp).getTime();
+          if(Date.now()-lastV>=VISIT_COOLDOWN){
+            set(ref(db,`${DB_PATH}/${_key}`),{...ex,visitCount:(ex.visitCount||1)+1,lastVisit:new Date().toISOString()});
+          }
+        }
+      }).catch(()=>{});
+    }
+  }
+  onValue(ref(db, SCHEDULE_PATH), (snap) => {
+    currentSchedule = snap.val();
+    updateScheduleDisplay();
+    onValue(ref(db, DB_PATH), (vsnap) => {
+      const data = vsnap.val();
+      latestVisitors=data ? Object.values(data) : [];renderVisitors(latestVisitors);
+    }, {onlyOnce: true});
+  });
+  onValue(ref(db, DB_PATH), (snapshot) => {
+    const data = snapshot.val();
+    latestVisitors=data ? Object.values(data) : [];renderVisitors(latestVisitors);
+  });
+}
+
+function updateScheduleDisplay(){
+  const info = document.getElementById('scheduleInfo');
+  const range = document.getElementById('scheduleRange');
+  if(!info || !range) return;
+  if(currentSchedule && currentSchedule.start && currentSchedule.end){
+    info.style.display='block';
+    const s = new Date(currentSchedule.start), e = new Date(currentSchedule.end);
+    const dur = currentSchedule.duration || Math.round((e-s)/(24*60*60*1000));
+    const fmt = (d) => d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    range.textContent = fmt(s) + '  —  ' + fmt(e) + '  ('+dur+' hari)';
+  } else { info.style.display='none'; }
+}
+
+function isLate(timestamp){
+  if(!currentSchedule || !currentSchedule.start || !currentSchedule.end) return false;
+  const t = new Date(timestamp).getTime();
+  const e = new Date(currentSchedule.end).getTime();
+  return t > e;
+}
+
+function submitVisitor(){
+  const nama=document.getElementById('vNama').value.trim(), nim=document.getElementById('vNim').value.trim(), err=document.getElementById('vError');
+  if(!currentSchedule || !currentSchedule.start || !currentSchedule.end){err.textContent='⚠ Jadwal belum disetel. Silakan atur jadwal terlebih dahulu.';err.style.display='block';return;}
+  const now=new Date().getTime(), schedStart=new Date(currentSchedule.start).getTime();
+  if(now<schedStart){const sd=new Date(currentSchedule.start);err.textContent='⚠ Akses belum dibuka. Jadwal dimulai pada '+sd.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+' '+sd.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+'.';err.style.display='block';return;}
+  const isDosen=nama.toLowerCase()==='dedik romahadi';
+  if(!nama){err.textContent='⚠ Nama wajib diisi.';err.style.display='block';return;}
+  if(!isValidName(nama)){err.textContent='⚠ Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi';err.style.display='block';return;}
+  if(!isDosen&&!nim){err.textContent='⚠ NIM wajib diisi.';err.style.display='block';return;}
+  if(!isDosen&&!isValidNim(nim)){err.textContent='⚠ NIM harus berupa angka tanpa spasi. Contoh: 41522010001';err.style.display='block';return;}
+  if(!isDosen&&!masterFetchDone){err.textContent='⚠ Data mahasiswa sedang dimuat, silakan coba lagi.';err.style.display='block';return;}
+  err.style.display='none';
+
+  if(isDosen){
+    saveIdentity({nama, nim:'DOSEN', role:'dosen', timestamp:new Date().toISOString()});
+    document.getElementById('visitorOverlay').classList.add('hidden');
+    document.getElementById('visitorFab').style.display='flex';
+    return;
+  }
+
+  if(masterFetchDone && !masterStudents.some(s=>s.nim===nim && s.nama.toUpperCase()===nama.toUpperCase())){
+    const nimExists=masterStudents.some(s=>s.nim===nim);
+    if(nimExists){err.textContent='⚠ Nama tidak sesuai dengan NIM yang terdaftar. Pastikan nama lengkap sesuai daftar.';err.style.display='block';return;}
+    err.textContent='⚠ NIM tidak terdaftar. Hanya mahasiswa yang terdaftar di kelas ini yang dapat mengakses.';err.style.display='block';return;
+  }
+
+  const key = sanitizeKey(`mhs_${nim}`);
+  const nowISO = new Date().toISOString();
+  get(ref(db, `${DB_PATH}/${key}`)).then(snap => {
+    let v;
+    if(snap.exists()){
+      const ex = snap.val();
+      const lastV = new Date(ex.lastVisit || ex.timestamp).getTime();
+      const canBump = (Date.now() - lastV) >= VISIT_COOLDOWN;
+      v = {...ex, visitCount: canBump ? (ex.visitCount||1)+1 : (ex.visitCount||1), lastVisit: canBump ? nowISO : (ex.lastVisit||ex.timestamp)};
+    } else {
+      v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO};
+    }
+    saveIdentity(v);
+    return set(ref(db, `${DB_PATH}/${key}`), v);
+  }).catch(()=>{
+    const v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO};
+    saveIdentity(v);
+    set(ref(db, `${DB_PATH}/${key}`), v);
+  });
+  document.getElementById('visitorOverlay').classList.add('hidden');
+  document.getElementById('visitorFab').style.display='flex';
+}
+
+function renderVisitors(visitors){
+  const visitMap={};
+  for(const v of visitors){if(v.role==='dosen'||v.role==='guest')continue;if(!visitMap[v.nim])visitMap[v.nim]=v;}
+  const visited=Object.values(visitMap);
+  const lateCount=visited.filter(v=>isLate(v.timestamp)).length;
+  const schedExpired=currentSchedule&&currentSchedule.end&&new Date().getTime()>new Date(currentSchedule.end).getTime();
+
+  document.getElementById('fabCount').textContent=visited.length;
+  updateLeaderboard(visitors, schedExpired);
+  document.getElementById('vpBadge').textContent=visited.length+' orang';
+  const statLateEl=document.getElementById('statLate');
+  if(statLateEl) statLateEl.textContent=lateCount;
+
+  const listEl=document.getElementById('vpList'), tableEl=document.getElementById('visitorTableBody');
+
+  if(!visited.length){listEl.innerHTML='<div class="vp-empty">Belum ada data.</div>';}
+  else{
+    listEl.innerHTML=visited.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(v=>{
+      const ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+      const late=isLate(v.timestamp);
+      const vc=v.visitCount||1;
+      return `<div class="vp-item" style="${late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':''}"><div class="vp-avatar student" style="${late?'background:rgba(251,113,133,.12);color:#fb7185;':''}">${ini}</div><div class="vp-info"><div class="vp-name">${toTitleCase(v.nama)}${late?' <span style="color:#fb7185;font-size:.65rem;">⏰</span>':''}</div><div class="vp-nim">${v.nim} · ${vc}x</div></div><div class="vp-time">${ts}</div></div>`;
+    }).join('');
+  }
+
+  if(!masterFetchDone||!masterStudents.length){tableEl.innerHTML='<div style="text-align:center;padding:40px;color:var(--t3);">⏳ Memuat...</div>';return;}
+  tableEl.innerHTML=masterStudents.map((s,i)=>{
+    const v=visitMap[s.nim];
+    const hasVisited=!!v;
+    const late=hasVisited&&isLate(v.timestamp);
+    const bolos=!hasVisited&&schedExpired;
+    let statusCol='<span style="color:var(--t3);">⏳ Belum</span>';
+    if(hasVisited&&!late)statusCol='<span style="color:var(--c1);">✅ Tepat Waktu</span>';
+    if(late)statusCol='<span style="color:#fb7185;">⏰ Terlambat</span>';
+    if(bolos)statusCol='<span style="color:var(--c4);">❌ Bolos</span>';
+    const vcDisplay=hasVisited?(v.visitCount||1)+'x':'—';
+    const dt=hasVisited?new Date(v.timestamp):null;
+    const ts=dt?dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}):'—';
+    const tsColor=late?'#fb7185':hasVisited?'var(--t2)':'var(--t3)';
+    const bg=bolos?'background:rgba(239,68,68,.04);':late?'background:rgba(251,113,133,.04);':!hasVisited?'opacity:.5;':'';
+    return `<div style="display:flex;padding:12px 24px;border-bottom:1px solid rgba(255,255,255,.04);align-items:center;font-size:.88rem;${bg}"><div style="width:44px;flex-shrink:0;color:var(--t3);font-weight:600;">${i+1}</div><div style="flex:2;font-weight:600;">${toTitleCase(s.nama)}</div><div style="flex:1;color:${hasVisited?'var(--t2)':'var(--t3)'};font-family:monospace;">${s.nim}</div><div style="flex:1;text-align:center;">${statusCol}</div><div style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:var(--t2);">${vcDisplay}</div><div style="flex:1;text-align:right;font-size:.78rem;color:${tsColor};">${ts}</div></div>`;
+  }).join('');
+}
+
+function togglePanel(){panelOpen=!panelOpen;document.getElementById('visitorPanel').classList.toggle('open',panelOpen);}
+document.addEventListener('click',function(e){const p=document.getElementById('visitorPanel'),f=document.getElementById('visitorFab');if(panelOpen&&!p.contains(e.target)&&!f.contains(e.target)){panelOpen=false;p.classList.remove('open');}});
+
+// Admin functions
+function showResetModal(){document.getElementById('resetOverlay').classList.remove('hidden');document.getElementById('resetPw').value='';document.getElementById('resetError').style.display='none';setTimeout(()=>document.getElementById('resetPw').focus(),100);}
+function hideResetModal(){document.getElementById('resetOverlay').classList.add('hidden');}
+function confirmReset(){
+  const pw=document.getElementById('resetPw').value;
+  if(pw!=='TeknikMesin0602'){document.getElementById('resetError').textContent='⚠ Password salah.';document.getElementById('resetError').style.display='block';return;}
+  remove(ref(db,DB_PATH));
+  remove(ref(db,SCHEDULE_PATH));
+  RELATED_MODULES.forEach(m=>{remove(ref(db,`visitors/math4/${m}`));});
+  localStorage.removeItem(LOCAL_IDENTITY);
+  hideResetModal();
+  document.getElementById('visitorOverlay').classList.remove('hidden');
+  document.getElementById('visitorFab').style.display='none';
+}
+function showScheduleModal(){document.getElementById('scheduleOverlay').classList.remove('hidden');document.getElementById('schedulePw').value='';document.getElementById('scheduleError').style.display='none';
+  const d=new Date();d.setDate(d.getDate()+6);d.setHours(23,59,0,0);const iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'T23:59';document.getElementById('scheduleDue').value=iso;
+  setTimeout(()=>document.getElementById('schedulePw').focus(),100);}
+function hideScheduleModal(){document.getElementById('scheduleOverlay').classList.add('hidden');}
+function saveSchedule(){
+  const pw=document.getElementById('schedulePw').value;
+  if(pw!=='TeknikMesin0602'){document.getElementById('scheduleError').textContent='⚠ Password salah.';document.getElementById('scheduleError').style.display='block';return;}
+  const dur=parseInt(document.getElementById('scheduleDuration').value), due=document.getElementById('scheduleDue').value;
+  if(!dur||dur<1){document.getElementById('scheduleError').textContent='⚠ Durasi harus diisi (minimal 1 hari).';document.getElementById('scheduleError').style.display='block';return;}
+  if(!due){document.getElementById('scheduleError').textContent='⚠ Batas akhir harus diisi.';document.getElementById('scheduleError').style.display='block';return;}
+  const dueDate=new Date(due);
+  const startDate=new Date(dueDate.getTime()-dur*24*60*60*1000);
+  const s=startDate.toISOString(), e=dueDate.toISOString();
+  remove(ref(db,DB_PATH));
+  RELATED_MODULES.forEach(m=>{remove(ref(db,`visitors/math4/${m}`));});
+  localStorage.removeItem(LOCAL_IDENTITY);
+  set(ref(db, SCHEDULE_PATH), {start:s, end:e, duration:dur, due:due});
+  hideScheduleModal();
+  document.getElementById('visitorOverlay').classList.remove('hidden');
+  document.getElementById('visitorFab').style.display='none';
+}
+
+document.getElementById('resetPw').addEventListener('keydown',function(e){if(e.key==='Enter')confirmReset();});
+document.getElementById('resetOverlay').addEventListener('click',function(e){if(e.target===this)hideResetModal();});
+document.getElementById('scheduleOverlay').addEventListener('click',function(e){if(e.target===this)hideScheduleModal();});
+document.getElementById('schedulePw').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('scheduleDuration').focus();});
+document.getElementById('vNim').addEventListener('keydown',function(e){if(e.key==='Enter')submitVisitor();});
+document.getElementById('vNama').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('vNim').focus();});
+
+window.submitVisitor=submitVisitor;window.togglePanel=togglePanel;
+window.showResetModal=showResetModal;window.hideResetModal=hideResetModal;window.confirmReset=confirmReset;
+window.showScheduleModal=showScheduleModal;window.hideScheduleModal=hideScheduleModal;window.saveSchedule=saveSchedule;
+
+setInterval(()=>{renderVisitors(latestVisitors);},30000);
+initVisitor();
+</script>
+</body>
+</html>
