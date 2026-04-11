@@ -1,1 +1,1278 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modul 10 – Transformasi Laplace | Matematika Teknik</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Sans+3:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+:root{--bg:#070b16;--bg2:#0e1525;--bg3:#151e30;--bg3h:#1c2940;--c1:#00e09e;--c2:#0ea5e9;--c3:#f97316;--c4:#ef4444;--c5:#a855f7;--c6:#facc15;--t1:#e4e8f1;--t2:#94a3b8;--t3:#64748b;--bd:#1e293b;--ok:#00e09e;--err:#ef4444;--grad:linear-gradient(135deg,#070b16 0%,#0c1a3a 50%,#0a1424 100%)}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--t1);line-height:1.8;overflow-x:hidden}
+::-webkit-scrollbar{width:7px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--c5);border-radius:4px}
 
+.prog{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--c5),var(--c2),var(--c1));z-index:200;width:0%;transition:width .1s}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;background:var(--grad);position:relative;padding:2rem;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 70%,rgba(168,85,247,.08),transparent 50%),radial-gradient(circle at 70% 30%,rgba(14,165,233,.09),transparent 50%);pointer-events:none}
+.hero-particles{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.particle{position:absolute;width:3px;height:3px;background:var(--c5);border-radius:50%;opacity:0;animation:floatP 9s infinite}
+@keyframes floatP{0%{opacity:0;transform:translateY(100vh) scale(0)}10%{opacity:.7}90%{opacity:.2}100%{opacity:0;transform:translateY(-20vh) scale(1.5)}}
+@keyframes fadeSlideDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeSlideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
+
+.hero-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.25rem;background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.3);border-radius:999px;font-size:.8rem;font-weight:600;color:var(--c5);margin-bottom:1.5rem;animation:fadeSlideDown .8s ease-out .3s both}
+.hero-title{font-family:'Playfair Display',serif;font-size:clamp(2.5rem,6vw,4.5rem);font-weight:900;line-height:1.1;margin-bottom:1rem;animation:fadeSlideDown .8s ease-out .5s both}
+.hero-title .highlight{background:linear-gradient(135deg,var(--c5),var(--c2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:clamp(1rem,2.5vw,1.25rem);color:var(--t2);max-width:700px;margin-bottom:2rem;animation:fadeSlideDown .8s ease-out .7s both}
+.hero-lecturer{display:inline-flex;align-items:center;gap:.85rem;padding:.75rem 1.75rem;background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.25);border-radius:14px;margin-bottom:2rem;animation:fadeSlideDown 1s ease-out .5s both;backdrop-filter:blur(8px)}
+.hero-lecturer .lecturer-icon{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--c2),var(--c5));display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0}
+.hero-lecturer .lecturer-text{text-align:left;line-height:1.35}
+.hero-lecturer .lecturer-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}
+.hero-lecturer .lecturer-name{font-size:.95rem;font-weight:700;color:var(--t1)}
+.hero-cta{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;animation:fadeSlideUp .8s ease-out .9s both}
+.btn-primary{padding:.85rem 2rem;background:linear-gradient(135deg,var(--c5),var(--c2));color:#fff;font-weight:700;font-size:1rem;border:none;border-radius:12px;cursor:pointer;text-decoration:none;transition:all .3s}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(168,85,247,.3)}
+.btn-outline{padding:.85rem 2rem;background:transparent;color:var(--t1);font-weight:600;font-size:1rem;border:2px solid var(--bd);border-radius:12px;cursor:pointer;text-decoration:none;transition:all .3s}
+.btn-outline:hover{border-color:var(--c5);color:var(--c5)}
+.scroll-indicator{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.5rem;color:var(--t3);font-size:.8rem;animation:bounce 2s infinite;z-index:1}
+@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(7,11,22,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--bd);padding:.75rem 2rem;display:flex;gap:.5rem;overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav a{white-space:nowrap;padding:.5rem 1rem;border-radius:8px;color:var(--t2);text-decoration:none;font-size:.85rem;font-weight:600;transition:all .3s;flex-shrink:0}
+.nav a:hover,.nav a.active{background:rgba(168,85,247,.1);color:var(--c5)}
+
+/* SECTIONS */
+.sec{max-width:900px;margin:0 auto;padding:5rem 2rem}
+.sec-label{display:inline-flex;align-items:center;gap:.5rem;font-size:.8rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--c5);margin-bottom:.75rem}
+.sec-title{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,4vw,2.5rem);font-weight:900;margin-bottom:1.5rem;line-height:1.2}
+.sec-divider{width:60px;height:4px;background:linear-gradient(90deg,var(--c5),var(--c2));border-radius:2px;margin-bottom:2rem}
+
+/* CARDS */
+.card{background:var(--bg3);border:1px solid var(--bd);border-radius:16px;padding:2rem;margin-bottom:1.5rem;transition:all .3s;position:relative;overflow:hidden}
+.card:hover{border-color:rgba(168,85,247,.3);transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.3)}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--c5),var(--c2),var(--c1))}
+.card-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:1rem;flex-shrink:0}
+
+/* ANALOGY BOX */
+.analogy{background:linear-gradient(135deg,rgba(168,85,247,.08),rgba(14,165,233,.05));border:1px solid rgba(168,85,247,.2);border-radius:16px;padding:1.75rem;margin:2rem 0;position:relative}
+.analogy::before{content:'💡';position:absolute;top:-14px;left:20px;font-size:1.4rem;background:var(--bg);padding:0 8px}
+.analogy h4{color:var(--c5);font-weight:700;margin-bottom:.5rem}
+
+/* FORMULA BOX */
+.formula-box{background:rgba(0,224,158,.04);border:1px solid rgba(0,224,158,.2);border-radius:14px;padding:1.5rem 2rem;margin:1.5rem 0;text-align:center;font-size:1.15rem}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;margin:1.5rem 0;border-radius:12px;overflow:hidden}
+.tbl th{background:rgba(168,85,247,.12);padding:.85rem 1.25rem;text-align:left;font-weight:700;font-size:.85rem;text-transform:uppercase;letter-spacing:.05em;color:var(--c5);border-bottom:2px solid var(--bd)}
+.tbl td{padding:.85rem 1.25rem;border-bottom:1px solid var(--bd);font-size:.95rem}
+.tbl tr:hover td{background:rgba(168,85,247,.03)}
+
+/* CODE BLOCK */
+.code-block{background:#0d1117;border:1px solid var(--bd);border-radius:12px;margin:1.5rem 0;overflow:hidden}
+.code-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;background:rgba(255,255,255,.03);border-bottom:1px solid var(--bd)}
+.code-header span{display:flex;align-items:center;gap:.5rem;font-size:.8rem;font-weight:600;color:var(--t3)}
+.code-dots{display:flex;gap:6px}
+.code-dots span{width:10px;height:10px;border-radius:50%}
+.code-dots span:nth-child(1){background:#ff5f57}
+.code-dots span:nth-child(2){background:#febc2e}
+.code-dots span:nth-child(3){background:#28c840}
+.code-copy{padding:.35rem .75rem;background:rgba(255,255,255,.05);border:1px solid var(--bd);color:var(--t3);border-radius:6px;cursor:pointer;font-size:.75rem;font-family:inherit;transition:all .3s}
+.code-copy:hover{background:rgba(168,85,247,.15);color:var(--c5);border-color:rgba(168,85,247,.3)}
+.code-body{padding:1.25rem;overflow-x:auto}
+.code-body pre{font-family:'JetBrains Mono',monospace;font-size:.85rem;line-height:1.7;color:#c9d1d9;white-space:pre}
+.code-body .comment{color:#8b949e}
+.code-body .keyword{color:#ff7b72}
+.code-body .string{color:#a5d6ff}
+.code-body .function{color:#d2a8ff}
+.code-body .number{color:#79c0ff}
+.code-body .output{color:#7ee787;font-style:italic}
+
+/* PRACTICE */
+.practice-card{background:var(--bg3);border:1px solid var(--bd);border-radius:16px;padding:2rem;margin-bottom:2rem;position:relative;overflow:hidden}
+.practice-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--c3),var(--c6))}
+.practice-num{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--c3),var(--c6));color:var(--bg);font-weight:800;font-size:.9rem;margin-bottom:1rem}
+.practice-input{width:100%;padding:14px 18px;border-radius:14px;border:1px solid var(--bd);background:rgba(255,255,255,.05);color:#fff;font-family:'JetBrains Mono',monospace;font-size:.95rem;outline:none;transition:border .25s;margin:1rem 0}
+.practice-input:focus{border-color:var(--c5);box-shadow:0 0 0 3px rgba(168,85,247,.15)}
+.practice-btn{padding:.6rem 1.5rem;border-radius:10px;border:none;font-weight:700;font-size:.85rem;cursor:pointer;transition:all .3s;font-family:inherit}
+.practice-check{background:linear-gradient(135deg,var(--c5),var(--c2));color:#fff}
+.practice-check:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(168,85,247,.3)}
+.hint-btn{padding:.6rem 1.5rem;border-radius:10px;border:1px solid var(--bd);background:rgba(255,255,255,.04);color:var(--t2);font-weight:600;font-size:.85rem;cursor:pointer;transition:all .25s;font-family:inherit;margin-top:.5rem}
+.hint-btn:hover{background:rgba(168,85,247,.1);color:var(--c5);border-color:rgba(168,85,247,.3)}
+.hint-content{display:none;background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.15);border-radius:12px;padding:1.25rem;margin-top:1rem;font-size:.9rem;line-height:1.8}
+.hint-content.open{display:block;animation:slideD .3s ease-out}
+@keyframes slideD{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+.answer-box{display:none;background:rgba(0,224,158,.05);border:1px solid rgba(0,224,158,.2);border-radius:12px;padding:1.5rem;margin-top:1rem;line-height:1.9}
+.answer-box.open{display:block;animation:slideD .3s ease-out}
+.answer-btn{padding:.6rem 1.5rem;border-radius:10px;border:1px solid rgba(0,224,158,.3);background:rgba(0,224,158,.08);color:var(--c1);font-weight:600;font-size:.85rem;cursor:pointer;transition:all .25s;font-family:inherit;margin-top:.5rem}
+.answer-btn:hover{background:rgba(0,224,158,.15)}
+.feedback{padding:.75rem 1rem;border-radius:10px;margin-top:.75rem;font-weight:600;font-size:.9rem;display:none}
+.feedback.correct{display:block;background:rgba(0,224,158,.1);border:1px solid rgba(0,224,158,.3);color:var(--c1)}
+.feedback.wrong{display:block;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--c4)}
+
+/* INTERACTIVE CANVAS */
+.canvas-wrap{background:var(--bg3);border:1px solid var(--bd);border-radius:16px;padding:1.5rem;margin:2rem 0;text-align:center}
+.canvas-wrap canvas{border-radius:10px;max-width:100%;cursor:crosshair}
+.canvas-controls{display:flex;gap:.75rem;flex-wrap:wrap;justify-content:center;margin-top:1rem}
+.canvas-controls button{padding:.5rem 1.2rem;border-radius:8px;border:1px solid var(--bd);background:rgba(255,255,255,.05);color:var(--t2);font-weight:600;font-size:.82rem;cursor:pointer;transition:all .3s;font-family:inherit}
+.canvas-controls button:hover,.canvas-controls button.active{background:var(--c5);color:#fff;border-color:var(--c5)}
+
+/* STEP LIST */
+.step-list{counter-reset:step;margin:1.5rem 0}
+.step-item{display:flex;gap:1.25rem;margin-bottom:1.5rem;position:relative}
+.step-item::before{counter-increment:step;content:counter(step);width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--c5),var(--c2));color:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;flex-shrink:0;margin-top:2px}
+.step-item:not(:last-child)::after{content:'';position:absolute;left:17px;top:40px;bottom:-8px;width:2px;background:var(--bd)}
+.step-content h4{margin-bottom:.25rem;font-weight:700}
+.step-content p{color:var(--t2);font-size:.95rem}
+
+/* FADE IN */
+.fi{opacity:0;transform:translateY(30px);transition:all .6s ease-out}.fi.vis{opacity:1;transform:translateY(0)}
+
+/* FOOTER */
+footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:var(--t3);font-size:.85rem}
+
+@media(max-width:768px){.sec{padding:3rem 1.25rem}.card,.practice-card{padding:1.5rem}.nav{padding:.5rem 1rem}}
+
+/* ── VISITOR SYSTEM ── */
+.visitor-overlay{position:fixed;inset:0;z-index:99999;background:rgba(7,11,22,.94);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity .4s}
+.visitor-overlay.hidden{opacity:0;pointer-events:none}
+.visitor-modal{background:#151e30;border:1px solid #1e293b;border-radius:24px;padding:40px 36px;max-width:440px;width:90%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.6);animation:vModalIn .5s cubic-bezier(.16,1,.3,1)}
+@keyframes vModalIn{0%{opacity:0;transform:translateY(30px) scale(.96)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.visitor-modal h2{font-weight:800;font-size:1.5rem;background:linear-gradient(135deg,var(--c5),var(--c2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
+.visitor-modal p.sub{color:#94a3b8;font-size:.85rem;margin-bottom:28px}
+.v-input{width:100%;padding:14px 18px;border-radius:14px;border:1px solid #1e293b;background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-size:.95rem;outline:none;transition:border .25s;margin-bottom:14px}
+.v-input::placeholder{color:#64748b}
+.v-input:focus{border-color:var(--c5);box-shadow:0 0 0 3px rgba(168,85,247,.15)}
+.v-btn-primary{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--c5),var(--c2));color:#fff;font-weight:700;font-size:1rem;cursor:pointer;transition:transform .2s,box-shadow .2s;margin-top:6px}
+.v-btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(168,85,247,.2)}
+.v-error{color:#fb7185;font-size:.8rem;margin-bottom:10px;display:none}
+.v-btn-cancel{width:100%;padding:12px;border-radius:14px;margin-top:12px;border:1px solid #1e293b;background:rgba(255,255,255,.04);color:#94a3b8;font-weight:600;font-size:.88rem;cursor:pointer;transition:all .25s}
+.v-btn-cancel:hover{background:rgba(255,255,255,.08)}
+.visitor-fab{position:fixed;bottom:24px;right:24px;z-index:8888;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--c5),var(--c2));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(0,0,0,.4);transition:transform .25s;font-size:1.4rem}
+.visitor-fab:hover{transform:scale(1.08)}
+.visitor-fab .fab-count{position:absolute;top:-4px;right:-4px;background:#fb7185;color:#fff;font-size:.65rem;font-weight:700;min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid var(--bg)}
+.visitor-panel{position:fixed;bottom:92px;right:24px;z-index:8887;width:340px;max-height:480px;overflow:hidden;background:#151e30;border:1px solid #1e293b;border-radius:20px;box-shadow:0 24px 64px rgba(0,0,0,.5);display:flex;flex-direction:column;transform:translateY(12px) scale(.95);opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .25s}
+.visitor-panel.open{transform:translateY(0) scale(1);opacity:1;pointer-events:auto}
+.vp-header{padding:20px 22px 14px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between}
+.vp-header h3{font-weight:700;font-size:1rem;color:#fff}
+.vp-header .vp-badge{background:rgba(255,255,255,.08);color:var(--c5);font-size:.7rem;font-weight:700;padding:4px 10px;border-radius:999px}
+.vp-list{overflow-y:auto;padding:10px 16px 16px;flex:1}
+.vp-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;margin-bottom:6px;background:rgba(255,255,255,.03);transition:background .2s}
+.vp-item:hover{background:rgba(255,255,255,.06)}
+.vp-avatar{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0}
+.vp-avatar.student{background:rgba(255,255,255,.08);color:var(--c5)}
+.vp-avatar.dosen{background:rgba(251,191,36,.12);color:#fbbf24}
+.vp-info{flex:1;min-width:0}
+.vp-name{font-weight:600;font-size:.88rem;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vp-nim{font-size:.72rem;color:#64748b;font-family:monospace}
+.vp-time{font-size:.68rem;color:#64748b;text-align:right;flex-shrink:0;white-space:nowrap}
+.vp-empty{text-align:center;padding:32px 16px;color:#64748b;font-size:.85rem}
+@media(max-width:480px){.visitor-panel{width:calc(100vw - 32px);right:16px;bottom:88px}.visitor-fab{bottom:18px;right:18px}}
+
+/* Reset & Schedule Modals */
+.modal-overlay{display:none;position:fixed;inset:0;z-index:99998;background:rgba(7,11,22,.85);backdrop-filter:blur(8px);align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal-box{background:#151e30;border:1px solid #1e293b;border-radius:20px;padding:32px;max-width:420px;width:90%;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.5)}
+.modal-box h3{font-weight:800;font-size:1.2rem;margin-bottom:16px;color:var(--t1)}
+.modal-box input,.modal-box select{width:100%;padding:12px 16px;border-radius:12px;border:1px solid #1e293b;background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-size:.9rem;outline:none;margin-bottom:12px}
+.modal-box input:focus{border-color:var(--c5)}
+.modal-box .modal-error{color:#fb7185;font-size:.8rem;margin-bottom:10px;display:none}
+.modal-box .modal-actions{display:flex;gap:10px;margin-top:8px}
+.modal-box .modal-actions button{flex:1;padding:12px;border-radius:12px;font-weight:700;font-size:.9rem;cursor:pointer;transition:all .2s;font-family:inherit}
+.modal-box .btn-danger{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#fb7185}
+.modal-box .btn-danger:hover{background:rgba(239,68,68,.25)}
+.modal-box .btn-save{background:linear-gradient(135deg,var(--c5),var(--c2));border:none;color:#fff}
+.modal-box .btn-save:hover{transform:translateY(-1px)}
+.modal-box .btn-cancel{background:rgba(255,255,255,.04);border:1px solid #1e293b;color:var(--t2)}
+.modal-box .btn-cancel:hover{background:rgba(255,255,255,.08)}
+</style>
+</head>
+<body>
+
+<!-- PROGRESS BAR -->
+<div class="prog" id="progressBar"></div>
+
+<!-- VISITOR LOGIN MODAL -->
+<div class="visitor-overlay" id="visitorOverlay">
+  <div class="visitor-modal">
+    <div style="font-size:2.8rem;margin-bottom:12px;">🎓</div>
+    <h2>Selamat Datang!</h2>
+    <p class="sub">Silakan masukkan identitas Anda untuk mengakses Modul 10.</p>
+    <p class="v-error" id="vError"></p>
+    <input type="text" class="v-input" id="vNama" placeholder="Nama Lengkap" autocomplete="off">
+    <input type="text" class="v-input" id="vNim" placeholder="NIM (Nomor Induk Mahasiswa)" autocomplete="off">
+    <button class="v-btn-primary" id="vSubmit" onclick="submitVisitor()">Masuk ke Modul 10 →</button>
+    <button class="v-btn-cancel" onclick="showResetModal()">🔒 Admin</button>
+  </div>
+</div>
+
+<!-- VISITOR FAB + PANEL -->
+<button class="visitor-fab" id="visitorFab" style="display:none;" onclick="togglePanel()">👥<span class="fab-count" id="fabCount">0</span></button>
+<div class="visitor-panel" id="visitorPanel">
+  <div class="vp-header"><h3>📋 Pengunjung</h3><span class="vp-badge" id="vpBadge">0 orang</span></div>
+  <div class="vp-list" id="vpList"><div class="vp-empty">Belum ada data.</div></div>
+</div>
+
+<!-- RESET MODAL -->
+<div class="modal-overlay" id="resetOverlay" onclick="if(event.target===this)hideResetModal()">
+  <div class="modal-box">
+    <h3>🗑 Reset Data</h3>
+    <p style="color:var(--t2);font-size:.85rem;margin-bottom:16px;">Masukkan password admin untuk reset data kunjungan.</p>
+    <p class="modal-error" id="resetError"></p>
+    <input type="password" id="resetPw" placeholder="Password Admin" autocomplete="off">
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="hideResetModal()">Batal</button>
+      <button class="btn-danger" onclick="confirmReset()">Reset</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCHEDULE MODAL -->
+<div class="modal-overlay" id="scheduleOverlay" onclick="if(event.target===this)hideScheduleModal()">
+  <div class="modal-box">
+    <h3>📅 Atur Jadwal Perkuliahan</h3>
+    <p style="color:var(--t2);font-size:.85rem;margin-bottom:16px;">Atur batas waktu akses modul.</p>
+    <p class="modal-error" id="scheduleError"></p>
+    <input type="password" id="schedulePw" placeholder="Password Admin" autocomplete="off">
+    <input type="number" id="scheduleDuration" placeholder="Durasi (hari)" min="1" value="7">
+    <input type="datetime-local" id="scheduleDue">
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="hideScheduleModal()">Batal</button>
+      <button class="btn-save" onclick="saveSchedule()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<section class="hero">
+  <div class="hero-particles" id="particles"></div>
+  <div class="hero-lecturer">
+    <div class="lecturer-icon">👩‍🏫</div>
+    <div class="lecturer-text">
+      <div class="lecturer-label">Dosen Pengampu</div>
+      <div class="lecturer-name">Wiwit Suprihatiningsih, M.Si</div>
+    </div>
+  </div>
+  <div class="hero-badge">📐 Pertemuan 10 — Matematika Teknik</div>
+  <h1 class="hero-title">Transformasi<br><span class="highlight">Laplace</span></h1>
+  <p class="hero-sub">Mengubah fungsi waktu menjadi fungsi frekuensi — teknik paling ampuh untuk menyelesaikan persamaan diferensial di dunia teknik.</p>
+  <div class="hero-cta">
+    <a href="#pengertian" class="btn-primary">Mulai Belajar →</a>
+    <a href="#latihan" class="btn-outline">Latihan Soal</a>
+  </div>
+  <div class="scroll-indicator">
+    <span>Scroll ke bawah</span>
+    <span style="font-size:1.2rem;">↓</span>
+  </div>
+</section>
+
+<!-- NAVIGATION -->
+<nav class="nav" id="mainNav">
+  <a href="#pengertian">Pengertian</a>
+  <a href="#analogi">Analogi</a>
+  <a href="#rumus">Rumus Dasar</a>
+  <a href="#linieritas">Sifat Linier</a>
+  <a href="#pergeseran">Pergeseran</a>
+  <a href="#turunan">Turunan</a>
+  <a href="#integral">Integral</a>
+  <a href="#latihan">Latihan</a>
+  <a href="#jupyter">Jupyter</a>
+  <a href="#aktivitas">Aktivitas</a>
+</nav>
+
+<!-- ═══════════════ PENGERTIAN ═══════════════ -->
+<section class="sec" id="pengertian">
+  <div class="fi">
+    <div class="sec-label">📖 Bagian 1</div>
+    <h2 class="sec-title">Apa itu Transformasi Laplace?</h2>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="card fi">
+    <div class="card-icon" style="background:rgba(168,85,247,.1);">🔄</div>
+    <h3 style="margin-bottom:1rem;">Integral Tak Wajar & Definisi</h3>
+    <p>Sebelum memahami Transformasi Laplace, kita perlu mengenal <strong>integral tak wajar</strong> (improper integral). Andaikan fungsi \(f\) terdefinisikan untuk \(t \geq 0\), maka:</p>
+    <div class="formula-box">
+      $$\int_0^{\infty} f(t)\,dt = \lim_{b \to \infty} \int_0^{b} f(t)\,dt$$
+    </div>
+    <p>Jika limit di ruas kanan <strong>ada</strong> (bernilai hingga), integral dikatakan <strong>konvergen</strong>. Jika tidak ada, dikatakan <strong>divergen</strong>.</p>
+    <p style="margin-top:1rem;"><strong>Contoh:</strong> \(\displaystyle\int_0^{\infty} e^{-2t}\,dt = \frac{1}{2}\) — <span style="color:var(--c1);">konvergen ✅</span></p>
+    <p><strong>Contoh:</strong> \(\displaystyle\int_0^{\infty} e^{2t}\,dt\) — <span style="color:var(--c4);">divergen ❌</span> (nilainya menuju tak hingga)</p>
+  </div>
+
+  <div class="card fi">
+    <div class="card-icon" style="background:rgba(14,165,233,.1);">📐</div>
+    <h3 style="margin-bottom:1rem;">Definisi Transformasi Laplace</h3>
+    <p>Andaikan fungsi \(f(t)\) terdefinisikan untuk \(t \geq 0\). <strong>Transformasi Laplace</strong> dari \(f(t)\), dinyatakan dengan \(F(s) = \mathcal{L}\{f\}\), didefinisikan oleh:</p>
+    <div class="formula-box" style="border-color:rgba(168,85,247,.3);background:rgba(168,85,247,.05);">
+      $$F(s) = \mathcal{L}\{f\} = \int_0^{\infty} f(t)\,e^{-st}\,dt$$
+    </div>
+    <p>jika integral tak wajar tersebut ada untuk setiap \(s\).</p>
+    <p style="margin-top:1rem;">Transformasi Laplace mengubah fungsi \(f(t)\) di <strong>domain waktu</strong> menjadi fungsi \(F(s)\) di <strong>domain frekuensi kompleks</strong>.</p>
+  </div>
+
+  <div class="card fi">
+    <div class="card-icon" style="background:rgba(0,224,158,.1);">🔙</div>
+    <h3 style="margin-bottom:1rem;">Invers Transformasi Laplace</h3>
+    <p>Kebalikannya, jika \(F(s) = \mathcal{L}\{f\}\) diketahui, kita bisa menemukan kembali \(f(t)\) dengan <strong>invers transformasi Laplace</strong>:</p>
+    <div class="formula-box" style="border-color:rgba(0,224,158,.3);">
+      $$f(t) = \mathcal{L}^{-1}\{F(s)\}$$
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ ANALOGI ═══════════════ -->
+<section class="sec" id="analogi">
+  <div class="fi">
+    <div class="sec-label">💡 Bagian 2</div>
+    <h2 class="sec-title">Analogi: Memahami Laplace</h2>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="analogy fi">
+    <h4>🌐 Analogi Google Translate</h4>
+    <p>Bayangkan kamu punya kalimat sulit dalam <strong>Bahasa Jepang</strong> (domain waktu). Sulit menyelesaikan soal langsung dalam "bahasa" itu. Jadi kamu <strong>terjemahkan</strong> ke <strong>Bahasa Indonesia</strong> (domain s) — di mana persamaannya jadi aljabar biasa yang mudah. Selesaikan soalnya, lalu <strong>terjemahkan balik</strong> ke Bahasa Jepang.</p>
+    <p style="margin-top:.75rem;">Itulah esensi Transformasi Laplace:</p>
+    <p><strong style="color:var(--c3);">PD Susah (domain t)</strong> → <span style="color:var(--c5);">Laplace</span> → <strong style="color:var(--c1);">Aljabar Mudah (domain s)</strong> → <span style="color:var(--c5);">Invers Laplace</span> → <strong style="color:var(--c2);">Jawaban (domain t)</strong></p>
+  </div>
+
+  <div class="analogy fi">
+    <h4>🎵 Analogi Equalizer Musik</h4>
+    <p>Saat kamu mendengar musik, telingamu mendengar <strong>gelombang suara</strong> (domain waktu). Tapi equalizer di ponselmu menampilkan <strong>bar frekuensi</strong> — bass, mid, treble. Equalizer itu seperti Transformasi Laplace: mengubah sinyal dari waktu ke frekuensi, membuatnya lebih mudah dimanipulasi.</p>
+  </div>
+
+  <!-- Interactive animation: time domain vs s-domain -->
+  <div class="canvas-wrap fi">
+    <h4 style="margin-bottom:.5rem;">🎬 Visualisasi: Domain Waktu → Domain s</h4>
+    <p style="color:var(--t2);font-size:.88rem;margin-bottom:1rem;">Klik fungsi untuk melihat pasangan Laplace-nya!</p>
+    <canvas id="laplaceCanvas" width="800" height="300"></canvas>
+    <div class="canvas-controls">
+      <button class="active" onclick="drawLaplace('exp',this)">e<sup>at</sup></button>
+      <button onclick="drawLaplace('sin',this)">sin bt</button>
+      <button onclick="drawLaplace('cos',this)">cos bt</button>
+      <button onclick="drawLaplace('poly',this)">t<sup>n</sup></button>
+      <button onclick="drawLaplace('unit',this)">1 (unit)</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ RUMUS DASAR ═══════════════ -->
+<section class="sec" id="rumus">
+  <div class="fi">
+    <div class="sec-label">📋 Bagian 3</div>
+    <h2 class="sec-title">Tabel Rumus Dasar</h2>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="card fi">
+    <h3 style="margin-bottom:1rem;">Tabel 4.1 — Transformasi Laplace Fungsi Sederhana</h3>
+    <div style="overflow-x:auto;">
+    <table class="tbl">
+      <thead>
+        <tr><th>\(f(t)\)</th><th>\(F(s) = \mathcal{L}\{f(t)\}\)</th><th>\(F(s)\)</th><th>\(\mathcal{L}^{-1}\{F(s)\}\)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>\(1\)</td><td>\(\dfrac{1}{s}\)</td><td>\(\dfrac{1}{s}\)</td><td>\(1\)</td></tr>
+        <tr><td>\(t\)</td><td>\(\dfrac{1}{s^2}\)</td><td>\(\dfrac{1}{s^2}\)</td><td>\(t\)</td></tr>
+        <tr><td>\(t^n\)</td><td>\(\dfrac{n!}{s^{n+1}}\)</td><td>\(\dfrac{1}{s^n}\)</td><td>\(\dfrac{t^{n-1}}{(n-1)!}\)</td></tr>
+        <tr><td>\(e^{at}\)</td><td>\(\dfrac{1}{s-a}\)</td><td>\(\dfrac{1}{s-a}\)</td><td>\(e^{at}\)</td></tr>
+        <tr><td>\(\cos bt\)</td><td>\(\dfrac{s}{s^2+b^2}\)</td><td>\(\dfrac{s}{s^2+b^2}\)</td><td>\(\cos bt\)</td></tr>
+        <tr><td>\(\sin bt\)</td><td>\(\dfrac{b}{s^2+b^2}\)</td><td>\(\dfrac{1}{s^2+b^2}\)</td><td>\(\dfrac{1}{b}\sin bt\)</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="card fi">
+    <h3 style="margin-bottom:1rem;">Tabel 4.2 — Dengan Pergeseran Sumbu s</h3>
+    <div style="overflow-x:auto;">
+    <table class="tbl">
+      <thead>
+        <tr><th>\(f(t)\)</th><th>\(F(s) = \mathcal{L}\{f(t)\}\)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>\(t^n e^{at}\)</td><td>\(\dfrac{n!}{(s-a)^{n+1}}\)</td></tr>
+        <tr><td>\(e^{at}\cos bt\)</td><td>\(\dfrac{s-a}{(s-a)^2+b^2}\)</td></tr>
+        <tr><td>\(e^{at}\sin bt\)</td><td>\(\dfrac{b}{(s-a)^2+b^2}\)</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="card fi">
+    <h3 style="margin-bottom:1rem;">Fungsi Gamma</h3>
+    <p>Fungsi Gamma membantu menentukan transformasi Laplace, didefinisikan oleh:</p>
+    <div class="formula-box">
+      $$\Gamma(n) = \int_0^{\infty} t^{n-1} e^{-t}\,dt$$
+    </div>
+    <p>Sifat penting: \(\Gamma(n+1) = n \cdot \Gamma(n)\), dan jika \(n\) bilangan bulat positif, maka \(\Gamma(n+1) = n!\)</p>
+  </div>
+</section>
+
+<!-- ═══════════════ SIFAT LINIER ═══════════════ -->
+<section class="sec" id="linieritas">
+  <div class="fi">
+    <div class="sec-label">⚡ Bagian 4</div>
+    <h2 class="sec-title">Sifat Kelinieran</h2>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="card fi">
+    <h3 style="margin-bottom:1rem;">Superposisi: Kekuatan Linier</h3>
+    <p>Sifat linier memungkinkan kita memecah transformasi fungsi kompleks menjadi bagian-bagian sederhana:</p>
+    <div class="formula-box">
+      $$\mathcal{L}\{c_1 f(t) + c_2 g(t)\} = c_1 \mathcal{L}\{f(t)\} + c_2 \mathcal{L}\{g(t)\}$$
+    </div>
+    <p style="margin-top:1rem;"><strong>Contoh:</strong> \(\mathcal{L}\{2t^3 + 3\cos 2t\} = 2 \cdot \dfrac{3!}{s^4} + 3 \cdot \dfrac{s}{s^2+4} = \dfrac{12}{s^4} + \dfrac{3s}{s^2+4}\)</p>
+  </div>
+
+  <div class="analogy fi">
+    <h4>🧩 Analogi LEGO</h4>
+    <p>Sifat linier seperti membangun LEGO — kamu bisa membangun model besar dari potongan-potongan kecil yang sudah kamu kenal. Setiap "potongan" adalah transformasi Laplace dasar dari tabel, dan kamu tinggal merangkainya dengan penjumlahan dan perkalian konstanta.</p>
+  </div>
+</section>
+
+<!-- ═══════════════ PERGESERAN ═══════════════ -->
+<section class="sec" id="pergeseran">
+  <div class="fi">
+    <div class="sec-label">🔀 Bagian 5</div>
+    <h2 class="sec-title">Pergeseran pada Sumbu s</h2>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="card fi">
+    <h3 style="margin-bottom:1rem;">First Shifting Theorem</h3>
+    <p>Jika \(\mathcal{L}\{f(t)\} = F(s)\), maka perkalian dengan \(e^{at}\) menggeser di domain s:</p>
+    <div class="formula-box" style="border-color:rgba(249,115,22,.3);background:rgba(249,115,22,.04);">
+      $$\mathcal{L}\{e^{at} f(t)\} = F(s - a)$$
+    </div>
+    <p style="margin-top:1rem;">Inversnya: \(\mathcal{L}^{-1}\{F(s-a)\} = e^{at} f(t)\)</p>
+    <p style="margin-top:1rem;"><strong>Contoh:</strong> Karena \(\mathcal{L}\{t^4\} = \dfrac{24}{s^5}\), maka \(\mathcal{L}\{t^4 e^{-3t}\} = \dfrac{24}{(s+3)^5}\)</p>
+  </div>
+
+  <div class="analogy fi">
+    <h4>📻 Analogi Radio FM</h4>
+    <p>Bayangkan kamu mendengarkan lagu (fungsi \(f(t)\)) di frekuensi FM tertentu. Mengalikan dengan \(e^{at}\) ibarat <strong>menggeser frekuensi</strong> radio — lagunya sama, tapi diputar di "stasiun" yang berbeda (nilai \(s-a\) daripada \(s\)).</p>
+  </div>
+</section>
+
+<!-- ═══════════════ TURUNAN ═══════════════ -->
+<section class="sec" id="turunan">
+  <div class="fi">
+    <div class="sec-label">📉 Bagian 6</div>
+    <h2 class="sec-title">Transformasi Laplace Turunan</h2>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="card fi">
+    <h3 style="margin-bottom:1rem;">Turunan Pertama & Kedua</h3>
+    <p>Ini yang membuat Laplace sangat berguna untuk PD! Turunan berubah menjadi perkalian:</p>
+    <div class="formula-box">
+      $$\mathcal{L}\{f'(t)\} = s\,\mathcal{L}\{f\} - f(0)$$
+    </div>
+    <div class="formula-box" style="margin-top:.75rem;">
+      $$\mathcal{L}\{f''(t)\} = s^2\,\mathcal{L}\{f\} - s\,f(0) - f'(0)$$
+    </div>
+    <p style="margin-top:1rem;">Secara umum untuk turunan orde-\(n\):</p>
+    <div class="formula-box" style="border-color:rgba(168,85,247,.3);background:rgba(168,85,247,.05);">
+      $$\mathcal{L}\{f^{(n)}(t)\} = s^n \mathcal{L}\{f\} - s^{n-1}f(0) - s^{n-2}f'(0) - \cdots - f^{(n-1)}(0)$$
+    </div>
+  </div>
+
+  <div class="analogy fi">
+    <h4>🏭 Analogi Mesin Pabrik</h4>
+    <p>Di "pabrik Laplace", operasi turunan (yang rumit) diubah menjadi <strong>perkalian dengan s</strong> (yang mudah). Seperti mesin CNC: alih-alih mengukir manual (menyelesaikan PD), kamu tinggal memasukkan kode (aljabar dalam domain s) dan mesin mengerjakannya!</p>
+  </div>
+</section>
+
+<!-- ═══════════════ INTEGRAL ═══════════════ -->
+<section class="sec" id="integral">
+  <div class="fi">
+    <div class="sec-label">∫ Bagian 7</div>
+    <h2 class="sec-title">Transformasi Laplace Integral</h2>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="card fi">
+    <h3 style="margin-bottom:1rem;">Integral Fungsi</h3>
+    <p>Jika \(\mathcal{L}\{f(t)\} = F(s)\), maka transformasi Laplace dari integral fungsi:</p>
+    <div class="formula-box">
+      $$\mathcal{L}\left\{\int_0^t f(u)\,du\right\} = \frac{1}{s}\,F(s)$$
+    </div>
+    <p style="margin-top:1rem;">Inversnya: \(\mathcal{L}^{-1}\left\{\dfrac{1}{s}F(s)\right\} = \displaystyle\int_0^t f(u)\,du\)</p>
+    <p style="margin-top:1rem;">Rumus ini sangat berguna untuk menentukan invers transformasi Laplace bilamana \(F(s)\) memuat suku berbentuk \(\dfrac{1}{s^n}F(s)\).</p>
+  </div>
+</section>
+
+<!-- ═══════════════ LATIHAN SOAL ═══════════════ -->
+<section class="sec" id="latihan">
+  <div class="fi">
+    <div class="sec-label">✏️ Bagian 8</div>
+    <h2 class="sec-title">Latihan Soal Interaktif</h2>
+    <div class="sec-divider"></div>
+    <p style="color:var(--t2);margin-bottom:2rem;">Kerjakan soal-soal berikut. Buka petunjuk jika butuh bantuan, dan cek kunci jawaban setelah mencoba!</p>
+  </div>
+
+  <!-- SOAL 1 -->
+  <div class="practice-card fi">
+    <div class="practice-num">1</div>
+    <h3>Tentukan \(\mathcal{L}\{3t^2 + 5e^{-4t}\}\)</h3>
+    <p style="color:var(--t2);margin-top:.5rem;">Gunakan sifat kelinieran dan tabel rumus dasar.</p>
+    <input type="text" class="practice-input" id="ans1" placeholder="Ketik jawaban dalam bentuk pecahan, misal: 6/s^3 + 5/(s+4)">
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+      <button class="practice-btn practice-check" onclick="checkAnswer(1)">✅ Cek Jawaban</button>
+      <button class="hint-btn" onclick="toggleHint('hint1')">💡 Petunjuk</button>
+      <button class="answer-btn" onclick="toggleAnswer('key1')">🔑 Kunci Jawaban</button>
+    </div>
+    <div id="fb1" class="feedback"></div>
+    <div class="hint-content" id="hint1">
+      <p><strong>Langkah-langkah:</strong></p>
+      <p>1. Gunakan sifat linier: \(\mathcal{L}\{3t^2 + 5e^{-4t}\} = 3\mathcal{L}\{t^2\} + 5\mathcal{L}\{e^{-4t}\}\)</p>
+      <p>2. Dari tabel: \(\mathcal{L}\{t^n\} = \dfrac{n!}{s^{n+1}}\), jadi \(\mathcal{L}\{t^2\} = \dfrac{2!}{s^3} = \dfrac{2}{s^3}\)</p>
+      <p>3. Dari tabel: \(\mathcal{L}\{e^{at}\} = \dfrac{1}{s-a}\), jadi \(\mathcal{L}\{e^{-4t}\} = \dfrac{1}{s-(-4)} = \dfrac{1}{s+4}\)</p>
+      <p>4. Substitusi dan sederhanakan.</p>
+    </div>
+    <div class="answer-box" id="key1">
+      <h4 style="color:var(--c1);margin-bottom:.75rem;">🔑 Penyelesaian Lengkap</h4>
+      <p>\(\mathcal{L}\{3t^2 + 5e^{-4t}\}\)</p>
+      <p>\(= 3\mathcal{L}\{t^2\} + 5\mathcal{L}\{e^{-4t}\}\) <em style="color:var(--t3);">(sifat linier)</em></p>
+      <p>\(= 3 \cdot \dfrac{2!}{s^3} + 5 \cdot \dfrac{1}{s+4}\)</p>
+      <p>\(= \dfrac{6}{s^3} + \dfrac{5}{s+4}\)</p>
+      <p style="margin-top:.75rem;padding:.75rem;background:rgba(0,224,158,.08);border-radius:8px;"><strong>Jawaban: \(\dfrac{6}{s^3} + \dfrac{5}{s+4}\)</strong></p>
+    </div>
+  </div>
+
+  <!-- SOAL 2 -->
+  <div class="practice-card fi">
+    <div class="practice-num">2</div>
+    <h3>Tentukan \(\mathcal{L}\{\sin 3t + 2e^{3t}\}\)</h3>
+    <p style="color:var(--t2);margin-top:.5rem;">Gunakan sifat linier dan rumus dasar.</p>
+    <input type="text" class="practice-input" id="ans2" placeholder="Ketik jawaban...">
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+      <button class="practice-btn practice-check" onclick="checkAnswer(2)">✅ Cek Jawaban</button>
+      <button class="hint-btn" onclick="toggleHint('hint2')">💡 Petunjuk</button>
+      <button class="answer-btn" onclick="toggleAnswer('key2')">🔑 Kunci Jawaban</button>
+    </div>
+    <div id="fb2" class="feedback"></div>
+    <div class="hint-content" id="hint2">
+      <p><strong>Langkah-langkah:</strong></p>
+      <p>1. Pecah: \(\mathcal{L}\{\sin 3t\} + 2\mathcal{L}\{e^{3t}\}\)</p>
+      <p>2. \(\mathcal{L}\{\sin bt\} = \dfrac{b}{s^2 + b^2}\), jadi \(\mathcal{L}\{\sin 3t\} = \dfrac{3}{s^2 + 9}\)</p>
+      <p>3. \(\mathcal{L}\{e^{3t}\} = \dfrac{1}{s-3}\)</p>
+      <p>4. Gabungkan hasilnya.</p>
+    </div>
+    <div class="answer-box" id="key2">
+      <h4 style="color:var(--c1);margin-bottom:.75rem;">🔑 Penyelesaian Lengkap</h4>
+      <p>\(\mathcal{L}\{\sin 3t + 2e^{3t}\}\)</p>
+      <p>\(= \mathcal{L}\{\sin 3t\} + 2\mathcal{L}\{e^{3t}\}\)</p>
+      <p>\(= \dfrac{3}{s^2+9} + \dfrac{2}{s-3}\)</p>
+      <p>Jika digabung: \(= \dfrac{3(s-3) + 2(s^2+9)}{(s^2+9)(s-3)} = \dfrac{2s^2 + 3s + 9}{(s^2+9)(s-3)}\)</p>
+      <p style="margin-top:.75rem;padding:.75rem;background:rgba(0,224,158,.08);border-radius:8px;"><strong>Jawaban: \(\dfrac{3}{s^2+9} + \dfrac{2}{s-3}\)</strong></p>
+    </div>
+  </div>
+
+  <!-- SOAL 3 -->
+  <div class="practice-card fi">
+    <div class="practice-num">3</div>
+    <h3>Tentukan \(\mathcal{L}\{t^4 e^{-3t}\}\)</h3>
+    <p style="color:var(--t2);margin-top:.5rem;">Gunakan sifat pergeseran pada sumbu s.</p>
+    <input type="text" class="practice-input" id="ans3" placeholder="Ketik jawaban...">
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+      <button class="practice-btn practice-check" onclick="checkAnswer(3)">✅ Cek Jawaban</button>
+      <button class="hint-btn" onclick="toggleHint('hint3')">💡 Petunjuk</button>
+      <button class="answer-btn" onclick="toggleAnswer('key3')">🔑 Kunci Jawaban</button>
+    </div>
+    <div id="fb3" class="feedback"></div>
+    <div class="hint-content" id="hint3">
+      <p><strong>Langkah-langkah:</strong></p>
+      <p>1. Identifikasi: \(f(t) = t^4\), \(a = -3\)</p>
+      <p>2. Cari \(\mathcal{L}\{t^4\} = \dfrac{4!}{s^5} = \dfrac{24}{s^5}\)</p>
+      <p>3. Terapkan pergeseran: ganti \(s\) dengan \(s - a = s - (-3) = s + 3\)</p>
+      <p>4. Maka \(\mathcal{L}\{t^4 e^{-3t}\} = \dfrac{24}{(s+3)^5}\)</p>
+    </div>
+    <div class="answer-box" id="key3">
+      <h4 style="color:var(--c1);margin-bottom:.75rem;">🔑 Penyelesaian Lengkap</h4>
+      <p>Diketahui \(f(t) = t^4 e^{-3t}\). Karena \(\mathcal{L}\{t^4\} = \dfrac{4!}{s^5} = \dfrac{24}{s^5}\),</p>
+      <p>menurut sifat pergeseran pada sumbu \(s\) dengan \(a = -3\):</p>
+      <p>\(\mathcal{L}\{t^4 e^{-3t}\} = \dfrac{24}{(s-(-3))^5} = \dfrac{24}{(s+3)^5}\)</p>
+      <p style="margin-top:.75rem;padding:.75rem;background:rgba(0,224,158,.08);border-radius:8px;"><strong>Jawaban: \(\dfrac{24}{(s+3)^5}\)</strong></p>
+    </div>
+  </div>
+
+  <!-- SOAL 4 -->
+  <div class="practice-card fi">
+    <div class="practice-num">4</div>
+    <h3>Tentukan \(\mathcal{L}\{3\cos 3t - 4\sin 3t\}\)</h3>
+    <p style="color:var(--t2);margin-top:.5rem;">Gunakan sifat linier dan tabel.</p>
+    <input type="text" class="practice-input" id="ans4" placeholder="Ketik jawaban...">
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+      <button class="practice-btn practice-check" onclick="checkAnswer(4)">✅ Cek Jawaban</button>
+      <button class="hint-btn" onclick="toggleHint('hint4')">💡 Petunjuk</button>
+      <button class="answer-btn" onclick="toggleAnswer('key4')">🔑 Kunci Jawaban</button>
+    </div>
+    <div id="fb4" class="feedback"></div>
+    <div class="hint-content" id="hint4">
+      <p><strong>Langkah-langkah:</strong></p>
+      <p>1. Pecah: \(3\mathcal{L}\{\cos 3t\} - 4\mathcal{L}\{\sin 3t\}\)</p>
+      <p>2. \(\mathcal{L}\{\cos 3t\} = \dfrac{s}{s^2+9}\)</p>
+      <p>3. \(\mathcal{L}\{\sin 3t\} = \dfrac{3}{s^2+9}\)</p>
+      <p>4. Gabung: \(3 \cdot \dfrac{s}{s^2+9} - 4 \cdot \dfrac{3}{s^2+9}\)</p>
+      <p>5. Penyebutnya sama, jadi gabungkan pembilang.</p>
+    </div>
+    <div class="answer-box" id="key4">
+      <h4 style="color:var(--c1);margin-bottom:.75rem;">🔑 Penyelesaian Lengkap</h4>
+      <p>\(\mathcal{L}\{3\cos 3t - 4\sin 3t\}\)</p>
+      <p>\(= 3\mathcal{L}\{\cos 3t\} - 4\mathcal{L}\{\sin 3t\}\)</p>
+      <p>\(= 3 \cdot \dfrac{s}{s^2+9} - 4 \cdot \dfrac{3}{s^2+9}\)</p>
+      <p>\(= \dfrac{3s}{s^2+9} - \dfrac{12}{s^2+9}\)</p>
+      <p>\(= \dfrac{3s - 12}{s^2+9}\)</p>
+      <p style="margin-top:.75rem;padding:.75rem;background:rgba(0,224,158,.08);border-radius:8px;"><strong>Jawaban: \(\dfrac{3s-12}{s^2+9}\)</strong></p>
+    </div>
+  </div>
+
+  <!-- SOAL 5 -->
+  <div class="practice-card fi">
+    <div class="practice-num">5</div>
+    <h3>Tentukan \(\mathcal{L}\{(2\cos 2t - 3\sin 2t)e^{3t}\}\)</h3>
+    <p style="color:var(--t2);margin-top:.5rem;">Gunakan sifat linier DAN pergeseran sumbu s.</p>
+    <input type="text" class="practice-input" id="ans5" placeholder="Ketik jawaban...">
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+      <button class="practice-btn practice-check" onclick="checkAnswer(5)">✅ Cek Jawaban</button>
+      <button class="hint-btn" onclick="toggleHint('hint5')">💡 Petunjuk</button>
+      <button class="answer-btn" onclick="toggleAnswer('key5')">🔑 Kunci Jawaban</button>
+    </div>
+    <div id="fb5" class="feedback"></div>
+    <div class="hint-content" id="hint5">
+      <p><strong>Langkah-langkah:</strong></p>
+      <p>1. Pertama, cari \(\mathcal{L}\{2\cos 2t - 3\sin 2t\}\) tanpa \(e^{3t}\):</p>
+      <p>&nbsp;&nbsp;&nbsp; \(= 2 \cdot \dfrac{s}{s^2+4} - 3 \cdot \dfrac{2}{s^2+4} = \dfrac{2s-6}{s^2+4}\)</p>
+      <p>2. Lalu terapkan pergeseran \(a = 3\): ganti \(s\) → \(s-3\)</p>
+      <p>3. Substitusi ke hasil di langkah 1.</p>
+    </div>
+    <div class="answer-box" id="key5">
+      <h4 style="color:var(--c1);margin-bottom:.75rem;">🔑 Penyelesaian Lengkap</h4>
+      <p>Pertama cari \(\mathcal{L}\{2\cos 2t - 3\sin 2t\}\):</p>
+      <p>\(= 2 \cdot \dfrac{s}{s^2+4} - 3 \cdot \dfrac{2}{s^2+4} = \dfrac{2s - 6}{s^2+4}\)</p>
+      <p style="margin-top:.5rem;">Terapkan pergeseran sumbu \(s\) dengan \(a=3\) (ganti \(s\) → \(s-3\)):</p>
+      <p>\(\mathcal{L}\{(2\cos 2t - 3\sin 2t)e^{3t}\} = \dfrac{2(s-3) - 6}{(s-3)^2+4}\)</p>
+      <p>\(= \dfrac{2s - 6 - 6}{(s-3)^2+4} = \dfrac{2s - 12}{s^2 - 6s + 13}\)</p>
+      <p style="margin-top:.75rem;padding:.75rem;background:rgba(0,224,158,.08);border-radius:8px;"><strong>Jawaban: \(\dfrac{2s - 12}{s^2 - 6s + 13}\)</strong></p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ JUPYTER ═══════════════ -->
+<section class="sec" id="jupyter">
+  <div class="fi">
+    <div class="sec-label">🐍 Bagian 9</div>
+    <h2 class="sec-title">Mengerjakan dengan Jupyter Notebook</h2>
+    <div class="sec-divider"></div>
+    <p style="color:var(--t2);margin-bottom:2rem;">Berikut cara memverifikasi jawaban Transformasi Laplace menggunakan Python (SymPy) di Jupyter Notebook pada VS Code.</p>
+  </div>
+
+  <div class="card fi">
+    <h3 style="margin-bottom:1rem;">🛠️ Setup Awal</h3>
+    <div class="step-list">
+      <div class="step-item"><div class="step-content"><h4>Buka VS Code</h4><p>Pastikan Python dan ekstensi Jupyter sudah terinstal.</p></div></div>
+      <div class="step-item"><div class="step-content"><h4>Buat file notebook baru</h4><p>Tekan <code>Ctrl+Shift+P</code> → ketik "Jupyter: Create New Blank Notebook" → Enter.</p></div></div>
+      <div class="step-item"><div class="step-content"><h4>Install SymPy</h4><p>Di cell pertama, ketik <code>!pip install sympy</code> lalu jalankan.</p></div></div>
+    </div>
+  </div>
+
+  <div class="card fi">
+    <h3 style="margin-bottom:1rem;">📝 Contoh: Transformasi Laplace Dasar</h3>
+    <div class="code-block">
+      <div class="code-header">
+        <span><span class="code-dots"><span></span><span></span><span></span></span>Jupyter Notebook — Cell 1</span>
+        <button class="code-copy" onclick="copyCode(this)">📋 Copy</button>
+      </div>
+      <div class="code-body"><pre><span class="keyword">from</span> sympy <span class="keyword">import</span> *
+
+<span class="comment"># Definisikan variabel</span>
+t, s = symbols(<span class="string">'t s'</span>)
+
+<span class="comment"># Soal 1: L{3t² + 5e^(-4t)}</span>
+f1 = 3*t**2 + 5*exp(-4*t)
+F1 = laplace_transform(f1, t, s, noconds=<span class="keyword">True</span>)
+<span class="function">print</span>(<span class="string">"Soal 1:"</span>, F1)
+
+<span class="comment"># Soal 2: L{sin(3t) + 2e^(3t)}</span>
+f2 = sin(3*t) + 2*exp(3*t)
+F2 = laplace_transform(f2, t, s, noconds=<span class="keyword">True</span>)
+<span class="function">print</span>(<span class="string">"Soal 2:"</span>, F2)</pre></div>
+    </div>
+  </div>
+
+  <div class="card fi">
+    <h3 style="margin-bottom:1rem;">📝 Contoh: Pergeseran Sumbu s</h3>
+    <div class="code-block">
+      <div class="code-header">
+        <span><span class="code-dots"><span></span><span></span><span></span></span>Jupyter Notebook — Cell 2</span>
+        <button class="code-copy" onclick="copyCode(this)">📋 Copy</button>
+      </div>
+      <div class="code-body"><pre><span class="comment"># Soal 3: L{t⁴ · e^(-3t)}</span>
+f3 = t**4 * exp(-3*t)
+F3 = laplace_transform(f3, t, s, noconds=<span class="keyword">True</span>)
+<span class="function">print</span>(<span class="string">"Soal 3:"</span>, F3)
+
+<span class="comment"># Soal 5: L{(2cos2t - 3sin2t)e^(3t)}</span>
+f5 = (2*cos(2*t) - 3*sin(2*t)) * exp(3*t)
+F5 = laplace_transform(f5, t, s, noconds=<span class="keyword">True</span>)
+<span class="function">print</span>(<span class="string">"Soal 5:"</span>, simplify(F5))</pre></div>
+    </div>
+  </div>
+
+  <div class="card fi">
+    <h3 style="margin-bottom:1rem;">📝 Contoh: Invers Transformasi Laplace</h3>
+    <div class="code-block">
+      <div class="code-header">
+        <span><span class="code-dots"><span></span><span></span><span></span></span>Jupyter Notebook — Cell 3</span>
+        <button class="code-copy" onclick="copyCode(this)">📋 Copy</button>
+      </div>
+      <div class="code-body"><pre><span class="comment"># Invers Laplace: L⁻¹{(3s-12)/(s²+9)}</span>
+F_inv = (3*s - 12) / (s**2 + 9)
+f_inv = inverse_laplace_transform(F_inv, s, t)
+<span class="function">print</span>(<span class="string">"Invers:"</span>, f_inv)
+
+<span class="comment"># Plot fungsi asli vs hasil invers</span>
+<span class="keyword">from</span> sympy.plotting <span class="keyword">import</span> plot
+plot(f_inv, (t, 0, 10), title=<span class="string">"Hasil Invers Laplace"</span>)</pre></div>
+    </div>
+  </div>
+
+  <div class="card fi">
+    <h3 style="margin-bottom:1rem;">📝 Verifikasi Semua Soal Sekaligus</h3>
+    <div class="code-block">
+      <div class="code-header">
+        <span><span class="code-dots"><span></span><span></span><span></span></span>Jupyter Notebook — Cell 4</span>
+        <button class="code-copy" onclick="copyCode(this)">📋 Copy</button>
+      </div>
+      <div class="code-body"><pre><span class="keyword">from</span> sympy <span class="keyword">import</span> *
+t, s = symbols(<span class="string">'t s'</span>)
+
+soal = {
+    <span class="string">"Soal 1: 3t² + 5e^{-4t}"</span>: 3*t**2 + 5*exp(-4*t),
+    <span class="string">"Soal 2: sin3t + 2e^{3t}"</span>: sin(3*t) + 2*exp(3*t),
+    <span class="string">"Soal 3: t⁴e^{-3t}"</span>: t**4*exp(-3*t),
+    <span class="string">"Soal 4: 3cos3t - 4sin3t"</span>: 3*cos(3*t) - 4*sin(3*t),
+    <span class="string">"Soal 5: (2cos2t-3sin2t)e^{3t}"</span>: (2*cos(2*t)-3*sin(2*t))*exp(3*t),
+}
+
+<span class="keyword">for</span> nama, f <span class="keyword">in</span> soal.items():
+    F = laplace_transform(f, t, s, noconds=<span class="keyword">True</span>)
+    <span class="function">print</span>(f<span class="string">"{nama}"</span>)
+    <span class="function">print</span>(f<span class="string">"  L{{f(t)}} = {simplify(F)}"</span>)
+    <span class="function">print</span>()</pre></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ AKTIVITAS ═══════════════ -->
+<section class="sec" id="aktivitas" style="max-width:1000px;">
+  <div class="fi">
+    <div class="sec-label">📊 Aktivitas Mahasiswa</div>
+    <h2 class="sec-title">Data Kunjungan</h2>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div style="background:var(--bg3);border:1px solid var(--bd);border-radius:20px;overflow:hidden;" class="fi">
+    <!-- Schedule Info -->
+    <div id="scheduleInfo" style="display:none;padding:16px 24px;background:rgba(168,85,247,.06);border-bottom:1px solid rgba(168,85,247,.15);">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div>
+          <div style="font-size:.72rem;font-weight:700;color:var(--c5);text-transform:uppercase;letter-spacing:.1em;">📅 Jadwal Perkuliahan</div>
+          <div id="scheduleRange" style="font-size:.88rem;color:var(--t1);font-weight:600;margin-top:2px;">—</div>
+        </div>
+        <div style="text-align:center;">
+          <div id="statLate" style="font-weight:800;font-size:1.4rem;color:#fb7185;">0</div>
+          <div style="font-size:.7rem;color:var(--t3);">Terlambat</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div id="leaderboardPanel" style="margin-bottom:2px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:16px 20px;">
+        <div style="background:rgba(0,224,158,.06);border:1px solid rgba(0,224,158,.15);border-radius:14px;padding:14px 16px;">
+          <div style="font-size:.72rem;font-weight:700;color:var(--c1);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🏆 Paling Rajin</div>
+          <div id="rajinList" style="font-size:.8rem;color:var(--t1);min-height:60px;">⏳ Memuat...</div>
+        </div>
+        <div style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15);border-radius:14px;padding:14px 16px;">
+          <div style="font-size:.72rem;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">😴 Paling Santai</div>
+          <div id="santaiList" style="font-size:.8rem;color:var(--t1);min-height:60px;">⏳ Memuat...</div>
+        </div>
+      </div>
+      <div style="padding:0 20px 16px;">
+        <div style="background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);border-radius:14px;padding:14px 16px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <div style="font-size:.72rem;font-weight:700;color:#fb7185;text-transform:uppercase;letter-spacing:.1em;">❌ Bolos</div>
+            <div id="bolosCount" style="background:rgba(251,113,133,.15);color:#fb7185;font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:8px;">0</div>
+          </div>
+          <div id="bolosList" style="font-size:.8rem;color:var(--t1);">⏳ Memuat...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table Header -->
+    <div style="display:flex;padding:14px 24px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;">
+      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:0.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
+    </div>
+    <div id="visitorTableBody" style="max-height:420px;overflow-y:auto;"><div style="text-align:center;padding:40px 24px;color:var(--t3);font-size:.88rem;">⏳ Memuat data mahasiswa...</div></div>
+  </div>
+</section>
+
+<footer>
+  <p>📐 Modul 10 — Transformasi Laplace</p>
+  <p style="margin-top:.5rem;">Matematika Teknik • W132100010 • Fakultas Teknik — Teknik Mesin</p>
+  <p style="margin-top:.25rem;font-size:.8rem;">Disusun oleh: Wiwit Suprihatiningsih, M.Si</p>
+</footer>
+
+<!-- ═══════════════ SCRIPTS ═══════════════ -->
+
+<!-- KaTeX Rendering -->
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+  renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});
+});
+</script>
+
+<!-- Progress Bar -->
+<script>
+window.addEventListener('scroll',()=>{const h=document.documentElement.scrollHeight-window.innerHeight;document.getElementById('progressBar').style.width=(window.scrollY/h*100)+'%';});
+</script>
+
+<!-- Particles -->
+<script>
+(function(){const c=document.getElementById('particles');for(let i=0;i<20;i++){const p=document.createElement('div');p.className='particle';p.style.left=Math.random()*100+'%';p.style.animationDelay=Math.random()*9+'s';p.style.animationDuration=(7+Math.random()*6)+'s';const colors=['var(--c5)','var(--c2)','var(--c1)','var(--c6)'];p.style.background=colors[i%4];c.appendChild(p);}})();
+</script>
+
+<!-- Fade-in Observer -->
+<script>
+const obs=new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');obs.unobserve(e.target);}});},{threshold:0.1});
+document.querySelectorAll('.fi').forEach(el=>obs.observe(el));
+</script>
+
+<!-- Active Nav -->
+<script>
+const sections=document.querySelectorAll('.sec[id]');
+const navLinks=document.querySelectorAll('.nav a');
+window.addEventListener('scroll',()=>{let current='';sections.forEach(s=>{if(window.scrollY>=s.offsetTop-200)current=s.id;});navLinks.forEach(l=>{l.classList.remove('active');if(l.getAttribute('href')==='#'+current)l.classList.add('active');});});
+</script>
+
+<!-- Copy Code -->
+<script>
+function copyCode(btn){const pre=btn.closest('.code-block').querySelector('pre');navigator.clipboard.writeText(pre.textContent).then(()=>{btn.textContent='✅ Copied!';setTimeout(()=>btn.textContent='📋 Copy',2000);});}
+</script>
+
+<!-- Laplace Canvas Animation -->
+<script>
+function drawLaplace(type, btnEl){
+  if(btnEl){document.querySelectorAll('.canvas-controls button').forEach(b=>b.classList.remove('active'));btnEl.classList.add('active');}
+  const canvas=document.getElementById('laplaceCanvas');
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  const hw=W/2, hh=H/2;
+  let frame=0;
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    frame++;
+    // Left: time domain
+    ctx.fillStyle='rgba(168,85,247,.06)';ctx.fillRect(0,0,hw-10,H);
+    ctx.fillStyle='rgba(14,165,233,.06)';ctx.fillRect(hw+10,0,hw-10,H);
+
+    ctx.font='bold 14px Source Sans 3';ctx.textAlign='center';
+    ctx.fillStyle='#a855f7';ctx.fillText('Domain Waktu  f(t)',hw/2,25);
+    ctx.fillStyle='#0ea5e9';ctx.fillText('Domain s  F(s)',hw+hw/2,25);
+    ctx.fillStyle='#64748b';ctx.font='12px JetBrains Mono';
+
+    // Axes left
+    ctx.strokeStyle='#2a3548';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(40,hh);ctx.lineTo(hw-20,hh);ctx.moveTo(60,40);ctx.lineTo(60,H-20);ctx.stroke();
+    // Axes right
+    ctx.beginPath();ctx.moveTo(hw+40,hh);ctx.lineTo(W-20,hh);ctx.moveTo(hw+60,40);ctx.lineTo(hw+60,H-20);ctx.stroke();
+
+    const maxF=Math.min(frame*3, hw-80);
+    ctx.lineWidth=2.5;
+
+    // Left: f(t)
+    ctx.strokeStyle='#a855f7';ctx.beginPath();
+    for(let px=0;px<maxF;px++){
+      const t=px/30;let y=0;
+      if(type==='exp')y=Math.exp(-t)*80;
+      else if(type==='sin')y=Math.sin(2*t)*60;
+      else if(type==='cos')y=Math.cos(2*t)*60;
+      else if(type==='poly')y=Math.min((t*t)*15,100);
+      else if(type==='unit')y=50;
+      const sx=60+px, sy=hh-y;
+      if(px===0)ctx.moveTo(sx,sy);else ctx.lineTo(sx,sy);
+    }
+    ctx.stroke();
+
+    // Right: F(s)
+    ctx.strokeStyle='#0ea5e9';ctx.beginPath();
+    for(let px=0;px<maxF;px++){
+      const s=px/30+0.2;let y=0;
+      if(type==='exp')y=(1/(s+1))*100;
+      else if(type==='sin')y=(2/(s*s+4))*80;
+      else if(type==='cos')y=(s/(s*s+4))*80;
+      else if(type==='poly')y=(2/(s*s*s))*40;
+      else if(type==='unit')y=(1/s)*60;
+      y=Math.min(y,120);
+      const sx=hw+60+px,sy=hh-y;
+      if(px===0)ctx.moveTo(sx,sy);else ctx.lineTo(sx,sy);
+    }
+    ctx.stroke();
+
+    // Labels
+    ctx.fillStyle='#a855f7';ctx.font='bold 13px JetBrains Mono';ctx.textAlign='left';
+    const labels={exp:['e^{-t}','1/(s+1)'],sin:['sin 2t','2/(s²+4)'],cos:['cos 2t','s/(s²+4)'],poly:['t²','2/s³'],unit:['1','1/s']};
+    ctx.fillText('f(t) = '+labels[type][0],70,H-12);
+    ctx.fillStyle='#0ea5e9';ctx.fillText('F(s) = '+labels[type][1],hw+70,H-12);
+
+    // Arrow
+    const arrowY=hh-10;
+    const ap=Math.min(frame*2,60);
+    ctx.strokeStyle='var(--c1)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(hw-20-ap,arrowY);ctx.lineTo(hw+20+ap,arrowY);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(hw+15+ap,arrowY-6);ctx.lineTo(hw+20+ap,arrowY);ctx.lineTo(hw+15+ap,arrowY+6);ctx.stroke();
+    ctx.fillStyle='var(--c1)';ctx.font='bold 11px Source Sans 3';ctx.textAlign='center';
+    ctx.fillText('ℒ',hw,arrowY-10);
+
+    if(frame<120)requestAnimationFrame(draw);
+  }
+  draw();
+}
+drawLaplace('exp',null);
+</script>
+
+<!-- Practice Functions -->
+<script>
+function toggleHint(id){const el=document.getElementById(id);el.classList.toggle('open');}
+function toggleAnswer(id){const el=document.getElementById(id);el.classList.toggle('open');}
+
+const answers={
+  1:'6/s^3+5/(s+4)',
+  2:'3/(s^2+9)+2/(s-3)',
+  3:'24/(s+3)^5',
+  4:'(3s-12)/(s^2+9)',
+  5:'(2s-12)/(s^2-6s+13)'
+};
+
+function checkAnswer(num){
+  const input=document.getElementById('ans'+num).value.replace(/\s/g,'').toLowerCase();
+  const fb=document.getElementById('fb'+num);
+  if(!input){fb.className='feedback wrong';fb.style.display='block';fb.textContent='⚠ Silakan ketik jawaban terlebih dahulu.';return;}
+  const correct=answers[num].replace(/\s/g,'').toLowerCase();
+  // Simple check - normalize
+  const norm=s=>s.replace(/\s/g,'').replace(/\*/g,'');
+  if(norm(input)===norm(correct)){
+    fb.className='feedback correct';fb.textContent='🎉 Benar! Jawaban kamu tepat.';
+  } else {
+    fb.className='feedback wrong';fb.textContent='❌ Belum tepat. Coba cek kembali atau lihat petunjuk.';
+  }
+  fb.style.display='block';
+}
+</script>
+
+<!-- Firebase + Visitor System -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getDatabase, ref, get, set, remove, onValue } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",
+  authDomain: "getaran-mekanik.firebaseapp.com",
+  databaseURL: "https://getaran-mekanik-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "getaran-mekanik",
+  storageBucket: "getaran-mekanik.firebasestorage.app",
+  messagingSenderId: "430886299733",
+  appId: "1:430886299733:web:0edecd5d4adf73e7440cdc",
+  measurementId: "G-NBMYLXXF18"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const MODULE_ID = 'modul-10';
+const DB_PATH = `visitors/math4/${MODULE_ID}`;
+const PERTEMUAN = 'pertemuan-10';
+const RELATED_MODULES = ['forum-10','tugas-10'];
+const SCHEDULE_PATH = `settings/math4/${PERTEMUAN}/schedule`;
+const LOCAL_IDENTITY = `optoauto_identity_${MODULE_ID}`;
+let panelOpen = false;
+let currentSchedule = null;
+const VISIT_COOLDOWN = 3600000;
+
+function getIdentity(){try{return JSON.parse(localStorage.getItem(LOCAL_IDENTITY));}catch(e){return null;}}
+function saveIdentity(v){localStorage.setItem(LOCAL_IDENTITY, JSON.stringify(v));}
+function isValidName(n){if(!n)return false;return n.split(/\s+/).every(w=>w.length>0&&/^[A-Z][a-zA-Z.'\-]*$/.test(w));}
+function isValidNim(n){return /^\d+$/.test(n);}
+function sanitizeKey(s){return s.replace(/[.#$/\[\]]/g,'_');}
+
+let masterStudents = [];
+let masterFetchDone = false;
+const STUDENTS_JSON_URL = 'https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Engineering-Mathematics/Attributes/students.json';
+function fetchMasterStudents(retries){
+  retries = retries || 0;
+  return fetch(STUDENTS_JSON_URL, {cache:'no-store'}).then(r=>{
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.json();
+  }).then(data=>{
+    masterStudents = data;
+    masterFetchDone = true;
+  }).catch(err=>{
+    if(retries < 2) setTimeout(()=>fetchMasterStudents(retries+1), 1500);
+  });
+}
+
+function toTitleCase(s){return s.toLowerCase().replace(/(?:^|\s)\S/g,a=>a.toUpperCase());}
+
+function updateLeaderboard(visitors, schedExpired){
+  const visitMap={};
+  for(const v of visitors){if(v.role==='dosen'||v.role==='guest')continue;if(!visitMap[v.nim])visitMap[v.nim]=v;else if((v.visitCount||1)>(visitMap[v.nim].visitCount||1))visitMap[v.nim]=v;}
+  const visited=Object.values(visitMap);
+
+  // Rajin: top 3 by visitCount, tiebreak earliest timestamp
+  const sorted=[...visited].sort((a,b)=>(b.visitCount||1)-(a.visitCount||1)||new Date(a.timestamp)-new Date(b.timestamp));
+  const top3=sorted.slice(0,3);
+  const rajinEl=document.getElementById('rajinList');
+  rajinEl.innerHTML=top3.length?top3.map((v,i)=>{
+    const medal=['🥇','🥈','🥉'][i]||'';
+    return `<div style="margin-bottom:6px;">${medal} <strong>${toTitleCase(v.nama)}</strong> <span style="color:var(--c1);font-size:.75rem;">(${v.visitCount||1}x)</span></div>`;
+  }).join(''):'<span style="color:var(--t3);">Belum ada data.</span>';
+
+  // Santai: bottom 3 excluding top3
+  const rest=sorted.filter(v=>!top3.includes(v));
+  const santaiSorted=[...rest].sort((a,b)=>(a.visitCount||1)-(b.visitCount||1)||new Date(b.timestamp)-new Date(a.timestamp));
+  const bot3=santaiSorted.slice(0,3);
+  const santaiEl=document.getElementById('santaiList');
+  santaiEl.innerHTML=bot3.length?bot3.map(v=>`<div style="margin-bottom:6px;">😴 ${toTitleCase(v.nama)} <span style="color:#fbbf24;font-size:.75rem;">(${v.visitCount||1}x)</span></div>`).join(''):'<span style="color:var(--t3);">—</span>';
+
+  // Bolos
+  const bolosEl=document.getElementById('bolosList');
+  const bolosCountEl=document.getElementById('bolosCount');
+  if(!masterFetchDone||!masterStudents.length){bolosEl.innerHTML='<span style="color:var(--t3);">Memuat data...</span>';return;}
+  const visitedNims=new Set(visited.map(v=>v.nim));
+  const belumArr=masterStudents.filter(s=>!visitedNims.has(s.nim));
+  const belum=belumArr.length;
+  bolosCountEl.textContent=belum;
+  if(schedExpired){
+    bolosEl.innerHTML=belum?belumArr.slice(0,5).map(s=>`<div style="margin-bottom:4px;color:#fb7185;">❌ ${toTitleCase(s.nama)}</div>`).join('')+(belum>5?`<div style="color:var(--t3);font-size:.75rem;">...dan ${belum-5} lainnya</div>`:''):'<span style="color:var(--c1);">✅ Semua sudah berkunjung!</span>';
+  } else {
+    bolosEl.innerHTML=belum?'<span style="color:var(--t2);font-size:.78rem;">⏳ '+belum+' mahasiswa belum berkunjung. Batas waktu belum berakhir.</span>':'<span style="color:var(--c1);font-size:.78rem;">✅ Semua mahasiswa sudah berkunjung!</span>';
+  }
+}
+fetchMasterStudents();
+
+let latestVisitors=[];
+function initVisitor(){
+  const me = getIdentity();
+  if(me && me.role==='guest'){localStorage.removeItem(LOCAL_IDENTITY);location.reload();return;}
+  if(me && me.nama){
+    document.getElementById('visitorOverlay').classList.add('hidden');
+    document.getElementById('visitorFab').style.display='flex';
+    const _isDosen = me.nama.toLowerCase()==='dedik romahadi';
+    if(!_isDosen && (!masterFetchDone || masterStudents.some(s=>s.nim===me.nim && s.nama.toUpperCase()===me.nama.toUpperCase()))){
+      const _key = sanitizeKey(`mhs_${me.nim}`);
+      get(ref(db,`${DB_PATH}/${_key}`)).then(snap=>{
+        if(snap.exists()){
+          const ex=snap.val();
+          const lastV=new Date(ex.lastVisit||ex.timestamp).getTime();
+          if(Date.now()-lastV>=VISIT_COOLDOWN){
+            set(ref(db,`${DB_PATH}/${_key}`),{...ex,visitCount:(ex.visitCount||1)+1,lastVisit:new Date().toISOString()});
+          }
+        }
+      }).catch(()=>{});
+    }
+  }
+  onValue(ref(db, SCHEDULE_PATH), (snap) => {
+    currentSchedule = snap.val();
+    updateScheduleDisplay();
+    onValue(ref(db, DB_PATH), (vsnap) => {
+      const data = vsnap.val();
+      latestVisitors=data ? Object.values(data) : [];renderVisitors(latestVisitors);
+    }, {onlyOnce: true});
+  });
+  onValue(ref(db, DB_PATH), (snapshot) => {
+    const data = snapshot.val();
+    latestVisitors=data ? Object.values(data) : [];renderVisitors(latestVisitors);
+  });
+}
+
+function updateScheduleDisplay(){
+  const info = document.getElementById('scheduleInfo');
+  const range = document.getElementById('scheduleRange');
+  if(!info || !range) return;
+  if(currentSchedule && currentSchedule.start && currentSchedule.end){
+    info.style.display='flex';
+    const s = new Date(currentSchedule.start), e = new Date(currentSchedule.end);
+    const dur = currentSchedule.duration || Math.round((e-s)/(24*60*60*1000));
+    const fmt = (d) => d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    range.textContent = fmt(s) + '  —  ' + fmt(e) + '  ('+dur+' hari)';
+  } else { info.style.display='none'; }
+}
+
+function isLate(timestamp){
+  if(!currentSchedule || !currentSchedule.start || !currentSchedule.end) return false;
+  const t = new Date(timestamp).getTime();
+  const e = new Date(currentSchedule.end).getTime();
+  return t > e;
+}
+
+function submitVisitor(){
+  const nama=document.getElementById('vNama').value.trim(), nim=document.getElementById('vNim').value.trim(), err=document.getElementById('vError');
+  if(!currentSchedule || !currentSchedule.start || !currentSchedule.end){err.textContent='⚠ Jadwal belum disetel. Hubungi dosen.';err.style.display='block';return;}
+  if(!masterFetchDone){err.textContent='⚠ Data mahasiswa sedang dimuat. Coba lagi.';err.style.display='block';return;}
+  if(!nama||!isValidName(nama)){err.textContent='⚠ Format nama salah. Setiap kata harus diawali huruf kapital.';err.style.display='block';return;}
+  if(!nim||!isValidNim(nim)){err.textContent='⚠ NIM harus berupa angka.';err.style.display='block';return;}
+  err.style.display='none';
+
+  const isDosen = nama.toLowerCase()==='dedik romahadi';
+  if(isDosen){
+    saveIdentity({nama,nim:'dosen',role:'dosen'});
+    document.getElementById('visitorOverlay').classList.add('hidden');
+    document.getElementById('visitorFab').style.display='flex';
+    return;
+  }
+
+  const found = masterStudents.find(s=>s.nim===nim);
+  if(!found){err.textContent='⚠ NIM tidak terdaftar.';err.style.display='block';return;}
+  if(found.nama.toUpperCase()!==nama.toUpperCase().replace(/\s+/g,' ')){
+    err.textContent='⚠ Nama tidak sesuai dengan NIM yang terdaftar.';err.style.display='block';return;
+  }
+
+  const now=new Date();
+  const schedStart=new Date(currentSchedule.start);
+  if(now<schedStart){err.textContent='⚠ Akses belum dibuka. Jadwal dimulai '+schedStart.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+'.';err.style.display='block';return;}
+
+  const key = sanitizeKey(`mhs_${nim}`);
+  const nowISO = new Date().toISOString();
+  get(ref(db, `${DB_PATH}/${key}`)).then(snap => {
+    let v;
+    if(snap.exists()){
+      const ex = snap.val();
+      const lastV = new Date(ex.lastVisit || ex.timestamp).getTime();
+      const canBump = (Date.now() - lastV) >= VISIT_COOLDOWN;
+      v = {...ex, visitCount: canBump ? (ex.visitCount||1)+1 : (ex.visitCount||1), lastVisit: canBump ? nowISO : (ex.lastVisit||ex.timestamp)};
+    } else {
+      v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO};
+    }
+    saveIdentity(v);
+    return set(ref(db, `${DB_PATH}/${key}`), v);
+  }).catch(()=>{
+    const v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO};
+    saveIdentity(v);
+    set(ref(db, `${DB_PATH}/${key}`), v);
+  });
+  document.getElementById('visitorOverlay').classList.add('hidden');
+  document.getElementById('visitorFab').style.display='flex';
+}
+
+function renderVisitors(visitors){
+  const visitMap={};
+  for(const v of visitors){if(v.role==='dosen'||v.role==='guest')continue;if(!visitMap[v.nim])visitMap[v.nim]=v;}
+  const visited=Object.values(visitMap);
+  const lateCount=visited.filter(v=>isLate(v.timestamp)).length;
+  const schedExpired=currentSchedule&&currentSchedule.end&&new Date().getTime()>new Date(currentSchedule.end).getTime();
+
+  document.getElementById('fabCount').textContent=visited.length;
+  updateLeaderboard(visitors, schedExpired);
+  document.getElementById('vpBadge').textContent=visited.length+' orang';
+  const statLateEl=document.getElementById('statLate');
+  if(statLateEl) statLateEl.textContent=lateCount;
+
+  const listEl=document.getElementById('vpList'), tableEl=document.getElementById('visitorTableBody');
+
+  if(!visited.length){listEl.innerHTML='<div class="vp-empty">Belum ada data.</div>';}
+  else{
+    listEl.innerHTML=visited.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(v=>{
+      const ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+      const late=isLate(v.timestamp);
+      const vc=v.visitCount||1;
+      return `<div class="vp-item" style="${late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':''}"><div class="vp-avatar student" style="${late?'background:rgba(251,113,133,.12);color:#fb7185;':''}">${ini}</div><div class="vp-info"><div class="vp-name">${toTitleCase(v.nama)}${late?' <span style="color:#fb7185;font-size:.65rem;">⏰</span>':''}</div><div class="vp-nim">${v.nim} · ${vc}x</div></div><div class="vp-time">${ts}</div></div>`;
+    }).join('');
+  }
+
+  // Table: all students
+  if(!masterFetchDone||!masterStudents.length){tableEl.innerHTML='<div style="text-align:center;padding:40px;color:var(--t3);">⏳ Memuat...</div>';return;}
+  tableEl.innerHTML=masterStudents.map((s,i)=>{
+    const v=visitMap[s.nim];
+    const hasVisited=!!v;
+    const late=hasVisited&&isLate(v.timestamp);
+    const bolos=!hasVisited&&schedExpired;
+    let statusCol='<span style="color:var(--t3);">⏳ Belum</span>';
+    if(hasVisited&&!late)statusCol='<span style="color:var(--c1);">✅ Tepat Waktu</span>';
+    if(late)statusCol='<span style="color:#fb7185;">⏰ Terlambat</span>';
+    if(bolos)statusCol='<span style="color:var(--c4);">❌ Bolos</span>';
+    const vcDisplay=hasVisited?(v.visitCount||1)+'x':'—';
+    const dt=hasVisited?new Date(v.timestamp):null;
+    const ts=dt?dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}):'—';
+    const tsColor=late?'#fb7185':hasVisited?'var(--t2)':'var(--t3)';
+    const bg=bolos?'background:rgba(239,68,68,.04);':late?'background:rgba(251,113,133,.04);':!hasVisited?'opacity:.5;':'';
+    return `<div style="display:flex;padding:12px 24px;border-bottom:1px solid rgba(255,255,255,.04);align-items:center;font-size:.88rem;${bg}"><div style="width:44px;flex-shrink:0;color:var(--t3);font-weight:600;">${i+1}</div><div style="flex:2;font-weight:600;">${toTitleCase(s.nama)}</div><div style="flex:1;color:${hasVisited?'var(--t2)':'var(--t3)'};font-family:monospace;">${s.nim}</div><div style="flex:1;text-align:center;">${statusCol}</div><div style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:var(--t2);">${vcDisplay}</div><div style="flex:1;text-align:right;font-size:.78rem;color:${tsColor};">${ts}</div></div>`;
+  }).join('');
+}
+
+function togglePanel(){panelOpen=!panelOpen;document.getElementById('visitorPanel').classList.toggle('open',panelOpen);}
+document.addEventListener('click',function(e){const p=document.getElementById('visitorPanel'),f=document.getElementById('visitorFab');if(panelOpen&&!p.contains(e.target)&&!f.contains(e.target)){panelOpen=false;p.classList.remove('open');}});
+
+// Admin functions
+function showResetModal(){document.getElementById('resetOverlay').classList.add('show');document.getElementById('resetPw').value='';document.getElementById('resetError').style.display='none';}
+function hideResetModal(){document.getElementById('resetOverlay').classList.remove('show');}
+function confirmReset(){
+  const pw=document.getElementById('resetPw').value;
+  if(pw!=='TeknikMesin0602'){document.getElementById('resetError').textContent='⚠ Password salah.';document.getElementById('resetError').style.display='block';return;}
+  remove(ref(db,DB_PATH));
+  remove(ref(db,SCHEDULE_PATH));
+  RELATED_MODULES.forEach(m=>{remove(ref(db,`visitors/math4/${m}`));});
+  localStorage.removeItem(LOCAL_IDENTITY);
+  hideResetModal();
+  document.getElementById('visitorOverlay').classList.remove('hidden');
+  document.getElementById('visitorFab').style.display='none';
+}
+function showScheduleModal(){document.getElementById('scheduleOverlay').classList.add('show');document.getElementById('schedulePw').value='';document.getElementById('scheduleError').style.display='none';}
+function hideScheduleModal(){document.getElementById('scheduleOverlay').classList.remove('show');}
+function saveSchedule(){
+  const pw=document.getElementById('schedulePw').value;
+  if(pw!=='TeknikMesin0602'){document.getElementById('scheduleError').textContent='⚠ Password salah.';document.getElementById('scheduleError').style.display='block';return;}
+  const dur=parseInt(document.getElementById('scheduleDuration').value), due=document.getElementById('scheduleDue').value;
+  if(!dur||dur<1){document.getElementById('scheduleError').textContent='⚠ Durasi harus diisi (minimal 1 hari).';document.getElementById('scheduleError').style.display='block';return;}
+  if(!due){document.getElementById('scheduleError').textContent='⚠ Batas akhir harus diisi.';document.getElementById('scheduleError').style.display='block';return;}
+  const dueDate=new Date(due);
+  const startDate=new Date(dueDate.getTime()-dur*24*60*60*1000);
+  const s=startDate.toISOString(), e=dueDate.toISOString();
+  remove(ref(db,DB_PATH));
+  RELATED_MODULES.forEach(m=>{remove(ref(db,`visitors/math4/${m}`));});
+  localStorage.removeItem(LOCAL_IDENTITY);
+  set(ref(db, SCHEDULE_PATH), {start:s, end:e, duration:dur, due:due});
+  hideScheduleModal();
+  document.getElementById('visitorOverlay').classList.remove('hidden');
+  document.getElementById('visitorFab').style.display='none';
+}
+
+document.getElementById('resetPw').addEventListener('keydown',function(e){if(e.key==='Enter')confirmReset();});
+document.getElementById('resetOverlay').addEventListener('click',function(e){if(e.target===this)hideResetModal();});
+document.getElementById('scheduleOverlay').addEventListener('click',function(e){if(e.target===this)hideScheduleModal();});
+document.getElementById('schedulePw').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('scheduleDuration').focus();});
+document.getElementById('vNim').addEventListener('keydown',function(e){if(e.key==='Enter')submitVisitor();});
+document.getElementById('vNama').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('vNim').focus();});
+
+window.submitVisitor=submitVisitor;window.togglePanel=togglePanel;
+window.showResetModal=showResetModal;window.hideResetModal=hideResetModal;window.confirmReset=confirmReset;
+window.showScheduleModal=showScheduleModal;window.hideScheduleModal=hideScheduleModal;window.saveSchedule=saveSchedule;
+
+setInterval(()=>{renderVisitors(latestVisitors);},30000);
+initVisitor();
+</script>
+</body>
+</html>
