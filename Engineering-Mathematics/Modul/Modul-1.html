@@ -2377,26 +2377,17 @@ hasil = <span class="function">simplify</span>(x**<span class="number">2</span> 
     <div id="leaderboardPanel" style="margin-bottom:2px;">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:16px 20px;">
         <div style="background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.15);border-radius:14px;padding:14px 16px;">
-          <div style="font-size:.72rem;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🏆 Paling Rajin</div>
+          <div style="font-size:.72rem;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🏆 Top Skor</div>
           <div id="rajinList" style="font-size:.8rem;color:#e2e8f0;min-height:60px;">⏳ Memuat...</div>
         </div>
         <div style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15);border-radius:14px;padding:14px 16px;">
-          <div style="font-size:.72rem;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">😴 Paling Santai</div>
+          <div style="font-size:.72rem;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🔥 Akses Terbanyak</div>
           <div id="santaiList" style="font-size:.8rem;color:#e2e8f0;min-height:60px;">⏳ Memuat...</div>
-        </div>
-      </div>
-      <div style="padding:0 20px 16px;">
-        <div style="background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);border-radius:14px;padding:14px 16px;">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-            <div style="font-size:.72rem;font-weight:700;color:#fb7185;text-transform:uppercase;letter-spacing:.1em;">❌ Bolos</div>
-            <div id="bolosCount" style="background:rgba(251,113,133,.15);color:#fb7185;font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:8px;">0</div>
-          </div>
-          <div id="bolosList" style="font-size:.8rem;color:#e2e8f0;">⏳ Memuat...</div>
         </div>
       </div>
     </div>
     <div style="display:flex;padding:14px 24px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.08em;">
-      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:0.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
+      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:0.5;text-align:center;">Poin</div><div style="flex:0.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
     </div>
     <div id="visitorTableBody" style="max-height:420px;overflow-y:auto;"><div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">⏳ Memuat data mahasiswa...</div></div>
   </div>
@@ -2498,6 +2489,10 @@ function checkAnswer(qId, correct) {
     return;
   }
 
+  // Check if this is the first attempt (kunci jawaban still locked)
+  const ansBtn = document.getElementById('ansBtn-' + qId);
+  const isFirstAttempt = ansBtn && ansBtn.classList.contains('locked');
+
   const options = document.querySelectorAll(`#${qId}-options .radio-option`);
   options.forEach(opt => {
     const val = opt.querySelector('input').value;
@@ -2510,6 +2505,10 @@ function checkAnswer(qId, correct) {
   if (selected.value === correct) {
     feedback.className = 'feedback correct';
     feedback.textContent = '🎉 Benar! Jawaban Anda tepat.';
+    // Award point if first attempt & correct
+    if (isFirstAttempt && typeof window._awardPoint === 'function') {
+      window._awardPoint(qId);
+    }
   } else {
     feedback.className = 'feedback incorrect';
     feedback.textContent = '❌ Kurang tepat. Coba lihat petunjuk atau kunci jawaban.';
@@ -2517,7 +2516,6 @@ function checkAnswer(qId, correct) {
   feedback.style.display = 'block';
 
   // Unlock kunci jawaban button
-  const ansBtn = document.getElementById('ansBtn-' + qId);
   if (ansBtn) ansBtn.classList.remove('locked');
 }
 
@@ -2730,39 +2728,36 @@ function fetchMasterStudents(retries){
 function updateLeaderboard(visitors, schedExpired){
   const rajinEl=document.getElementById('rajinList');
   const santaiEl=document.getElementById('santaiList');
-  const bolosEl=document.getElementById('bolosList');
-  const bolosCEl=document.getElementById('bolosCount');
   if(!rajinEl)return;
-  if(!masterStudents.length){rajinEl.innerHTML='<span style="color:#64748b;font-size:.75rem;">Memuat data mahasiswa...</span>';santaiEl.innerHTML=rajinEl.innerHTML;bolosEl.innerHTML=rajinEl.innerHTML;return;}
+  if(!masterStudents.length){rajinEl.innerHTML='<span style="color:#64748b;font-size:.75rem;">Memuat data mahasiswa...</span>';santaiEl.innerHTML=rajinEl.innerHTML;return;}
   const mhs=visitors.filter(v=>v.role!=='dosen'&&v.role!=='guest');
   const visitMap={};
   mhs.forEach(v=>{const k=v.nim;if(!visitMap[k])visitMap[k]=v;});
   const visited=Object.values(visitMap);
-  const rajin=[...visited].sort((a,b)=>{const d=(b.visitCount||1)-(a.visitCount||1);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp);});
-  const santai=[...visited].sort((a,b)=>{const d=(a.visitCount||1)-(b.visitCount||1);return d!==0?d:new Date(b.timestamp)-new Date(a.timestamp);});
+
+  // TOP SKOR: sorted by points desc, tiebreak by pointTimestamp asc (earlier = higher)
+  const topSkor=[...visited].filter(v=>(v.points||0)>0).sort((a,b)=>{
+    const d=(b.points||0)-(a.points||0);
+    if(d!==0) return d;
+    const tA=a.pointTimestamp?new Date(a.pointTimestamp).getTime():Infinity;
+    const tB=b.pointTimestamp?new Date(b.pointTimestamp).getTime():Infinity;
+    return tA-tB;
+  });
+
+  // AKSES TERBANYAK: sorted by visitCount desc, tiebreak by timestamp asc (earliest first)
+  const akses=[...visited].sort((a,b)=>{const d=(b.visitCount||1)-(a.visitCount||1);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp);});
+
   const medalR=['🥇','🥈','🥉'];
-  function renderCard(v,idx,isSantai){
-    const medal=isSantai?(idx+1):medalR[idx];
+  function renderCardSkor(v,idx){
+    const pts=v.points||0;
+    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="font-size:1rem;flex-shrink:0;">'+medalR[idx]+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(16,185,129,.12);color:#10b981;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+pts+' poin</div></div>';
+  }
+  function renderCardAkses(v,idx){
     const vc=v.visitCount||1;
-    const badgeStyle=isSantai?'background:rgba(251,191,36,.12);color:#fbbf24;':'background:rgba(16,185,129,.12);color:#10b981;';
-    const mBadge=isSantai?'<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(251,191,36,.15);color:#fbbf24;font-size:.65rem;font-weight:800;flex-shrink:0;">'+medal+'</span>':'<span style="font-size:1rem;flex-shrink:0;">'+medal+'</span>';
-    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'">'+mBadge+'<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="'+badgeStyle+'padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+vc+'x</div></div>';
+    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(251,191,36,.15);color:#fbbf24;font-size:.65rem;font-weight:800;flex-shrink:0;">'+(idx+1)+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(251,191,36,.12);color:#fbbf24;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+vc+'x</div></div>';
   }
-  const top3=new Set(rajin.slice(0,3).map(v=>v.nim));
-  const santaiFiltered=santai.filter(v=>!top3.has(v.nim));
-  rajinEl.innerHTML=rajin.length?rajin.slice(0,3).map((v,i)=>renderCard(v,i,false)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
-  santaiEl.innerHTML=santaiFiltered.length?santaiFiltered.slice(0,3).map((v,i)=>renderCard(v,i,true)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
-  const visitedNims=new Set(mhs.map(v=>v.nim));
-  const notVisited=masterStudents.filter(s=>!visitedNims.has(s.nim));
-  if(schedExpired){
-    bolosCEl.textContent=notVisited.length;
-    if(!notVisited.length){bolosEl.innerHTML='<span style="color:#10b981;font-size:.78rem;">\u2705 Semua mahasiswa sudah berkunjung!</span>';}
-    else{bolosEl.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:6px;">'+notVisited.map(s=>'<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.12);border-radius:10px;padding:5px 10px;"><span style="font-weight:600;font-size:.75rem;color:#ef4444;">'+escH(s.nama)+'</span><span style="font-size:.62rem;color:#64748b;font-family:monospace;">'+s.nim+'</span></div>').join('')+'</div>';}
-  } else {
-    bolosCEl.textContent='—';
-    const belum=notVisited.length;
-    bolosEl.innerHTML=belum?'<span style="color:#94a3b8;font-size:.78rem;">⏳ '+belum+' mahasiswa belum berkunjung. Batas waktu belum berakhir.</span>':'<span style="color:#10b981;font-size:.78rem;">✅ Semua mahasiswa sudah berkunjung!</span>';
-  }
+  rajinEl.innerHTML=topSkor.length?topSkor.slice(0,3).map((v,i)=>renderCardSkor(v,i)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
+  santaiEl.innerHTML=akses.length?akses.slice(0,3).map((v,i)=>renderCardAkses(v,i)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
 }
 fetchMasterStudents();
 
@@ -2773,15 +2768,25 @@ function initVisitor(){
   if(me && me.nama){
     document.getElementById('visitorOverlay').classList.add('hidden');
     document.getElementById('visitorFab').style.display='flex';
-    // Bump visit count for returning visitor (1hr cooldown) - skip dosen
+    // Bump visit count for returning visitor (1hr cooldown) - skip dosen, skip after deadline
     const _isDosen = me.nama.toLowerCase()==='dedik romahadi';
     if(!_isDosen && (!masterFetchDone || masterStudents.some(s=>s.nim===me.nim && s.nama.toUpperCase()===me.nama.toUpperCase()))){
       const _key = sanitizeKey(`mhs_${me.nim}`);
       get(ref(db,`${DB_PATH}/${_key}`)).then(snap=>{
         if(snap.exists()){
           const ex=snap.val();
+          // Load already-scored questions to prevent re-scoring
+          if(ex.scoredQuestions){
+            ex.scoredQuestions.split(',').forEach(q=>_answeredQuestions.add(q));
+            // Also lock the answer buttons for already-scored questions
+            ex.scoredQuestions.split(',').forEach(q=>{
+              const ab=document.getElementById('ansBtn-'+q);
+              if(ab) ab.classList.remove('locked');
+            });
+          }
           const lastV=new Date(ex.lastVisit||ex.timestamp).getTime();
-          if(Date.now()-lastV>=VISIT_COOLDOWN){
+          const expired=isScheduleExpired();
+          if(!expired && Date.now()-lastV>=VISIT_COOLDOWN){
             set(ref(db,`${DB_PATH}/${_key}`),{...ex,visitCount:(ex.visitCount||1)+1,lastVisit:new Date().toISOString()});
           }
         }
@@ -2823,11 +2828,14 @@ function updateScheduleDisplay(){
 }
 
 function isLate(timestamp){
-  if(!currentSchedule || !currentSchedule.start || !currentSchedule.end) return false;
+  if(!currentSchedule || !currentSchedule.end) return false;
   const t = new Date(timestamp).getTime();
-  const s = new Date(currentSchedule.start).getTime();
   const e = new Date(currentSchedule.end).getTime();
-  return t < s || t > e;
+  return t > e;
+}
+
+function isScheduleExpired(){
+  return currentSchedule && currentSchedule.end && Date.now() > new Date(currentSchedule.end).getTime();
 }
 
 function submitVisitor(){
@@ -2852,20 +2860,21 @@ function submitVisitor(){
   } else {
     const key = sanitizeKey(`mhs_${nim}`);
     const nowISO = new Date().toISOString();
+    const expired = isScheduleExpired();
     get(ref(db, `${DB_PATH}/${key}`)).then(snap => {
       let v;
       if(snap.exists()){
         const ex = snap.val();
         const lastV = new Date(ex.lastVisit || ex.timestamp).getTime();
-        const canBump = (Date.now() - lastV) >= VISIT_COOLDOWN;
+        const canBump = !expired && (Date.now() - lastV) >= VISIT_COOLDOWN;
         v = {...ex, visitCount: canBump ? (ex.visitCount||1)+1 : (ex.visitCount||1), lastVisit: canBump ? nowISO : (ex.lastVisit||ex.timestamp)};
       } else {
-        v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO};
+        v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO, points:0};
       }
       saveIdentity(v);
       return set(ref(db, `${DB_PATH}/${key}`), v);
     }).catch(()=>{
-      const v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO};
+      const v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO, points:0};
       saveIdentity(v);
       set(ref(db, `${DB_PATH}/${key}`), v);
     });
@@ -2878,14 +2887,11 @@ function renderVisitors(visitors){
   const visitMap={};
   for(const v of visitors){if(v.role==='dosen'||v.role==='guest')continue;if(!visitMap[v.nim])visitMap[v.nim]=v;}
   const visited=Object.values(visitMap);
-  const lateCount=visited.filter(v=>isLate(v.timestamp)).length;
-  const schedExpired=currentSchedule&&currentSchedule.end&&new Date().getTime()>new Date(currentSchedule.end).getTime();
+  const schedExpired=isScheduleExpired();
 
   document.getElementById('fabCount').textContent=visited.length;
   updateLeaderboard(visitors, schedExpired);
   document.getElementById('vpBadge').textContent=visited.length+' orang';
-  const statLateEl=document.getElementById('statLate');
-  if(statLateEl) statLateEl.textContent=lateCount;
 
   const listEl=document.getElementById('vpList'), tableEl=document.getElementById('visitorTableBody');
 
@@ -2897,7 +2903,7 @@ function renderVisitors(visitors){
       const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
       const late=isLate(v.timestamp);
       const lBadge=late?'<span style="color:#fb7185;font-size:.65rem;font-weight:600;margin-left:4px;">\u23f0 Terlambat</span>':'';
-      return `<div class="vp-item" style="${late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':''}"><div class="vp-avatar student" style="${late?'background:rgba(251,113,133,.12);color:#fb7185;':''}">${ini}</div><div class="vp-info"><div class="vp-name">${escH(v.nama)}${lBadge}</div><div class="vp-nim">${escH(v.nim)}</div></div><div class="vp-time"><div>${ts}</div><div style="font-size:.6rem;color:#94a3b8;text-align:right;">${v.visitCount||1}x kunjungan</div></div></div>`;
+      return `<div class="vp-item" style="${late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':''}"><div class="vp-avatar student" style="${late?'background:rgba(251,113,133,.12);color:#fb7185;':''}">${ini}</div><div class="vp-info"><div class="vp-name">${escH(v.nama)}${lBadge}</div><div class="vp-nim">${escH(v.nim)}</div></div><div class="vp-time"><div>${ts}</div><div style="font-size:.6rem;color:#94a3b8;text-align:right;">${v.visitCount||1}x · ${v.points||0} poin</div></div></div>`;
     }).join('');
   }
 
@@ -2915,6 +2921,7 @@ function renderVisitors(visitors){
     const late=hasVisit&&isLate(v.timestamp);
     const bolos=!hasVisit&&schedExpired;
     const vc=hasVisit?(v.visitCount||1):0;
+    const pts=hasVisit?(v.points||0):0;
     const ts=hasVisit?(()=>{const dt=new Date(v.timestamp);return dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});})():'—';
     let statusCol,rowBg='',nameColor='color:#e2e8f0;',ac='background:rgba(255,255,255,.08);color:#e2e8f0;';
     if(bolos){
@@ -2930,8 +2937,9 @@ function renderVisitors(visitors){
       statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.25);">\u2705 Tepat Waktu</span>';
     }
     const vcDisplay=vc?vc+'x':'<span style="color:#475569;">—</span>';
+    const ptsDisplay=pts?'<span style="color:#10b981;font-weight:800;">'+pts+'</span>':'<span style="color:#475569;">0</span>';
     const tsColor=bolos?'#ef4444':late?'#fb7185':hasVisit?'#64748b':'#475569';
-    return `<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;${rowBg}" onmouseenter="this.style.background='rgba(255,255,255,.03)'" onmouseleave="this.style.background='${rowBg||'transparent'}'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:${tsColor};font-weight:600;">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${ac}">${ini}</div><div><div style="font-weight:600;font-size:.88rem;${nameColor}">${escH(nama)}</div></div></div><div style="flex:1;font-size:.8rem;color:${hasVisit?'#94a3b8':'#475569'};font-family:monospace;">${s.nim}</div><div style="flex:1;text-align:center;">${statusCol}</div><div style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:#94a3b8;">${vcDisplay}</div><div style="flex:1;text-align:right;font-size:.78rem;color:${tsColor};">${ts}</div></div>`;
+    return `<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;${rowBg}" onmouseenter="this.style.background='rgba(255,255,255,.03)'" onmouseleave="this.style.background='${rowBg||'transparent'}'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:${tsColor};font-weight:600;">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${ac}">${ini}</div><div><div style="font-weight:600;font-size:.88rem;${nameColor}">${escH(nama)}</div></div></div><div style="flex:1;font-size:.8rem;color:${hasVisit?'#94a3b8':'#475569'};font-family:monospace;">${s.nim}</div><div style="flex:1;text-align:center;">${statusCol}</div><div style="flex:0.5;text-align:center;font-size:.85rem;">${ptsDisplay}</div><div style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:#94a3b8;">${vcDisplay}</div><div style="flex:1;text-align:right;font-size:.78rem;color:${tsColor};">${ts}</div></div>`;
   }).join('');
 }
 
@@ -2998,6 +3006,36 @@ document.getElementById('schedulePw').addEventListener('keydown',function(e){if(
 document.getElementById('vNim').addEventListener('keydown',function(e){if(e.key==='Enter')submitVisitor();});
 document.getElementById('vNama').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('vNim').focus();});
 
+
+// ═══ POINTS SYSTEM ═══
+const _answeredQuestions = new Set();
+window._awardPoint = function(qId) {
+  // Skip if already awarded for this question, or schedule expired, or dosen
+  if (_answeredQuestions.has(qId)) return;
+  if (isScheduleExpired()) return;
+  const me = getIdentity();
+  if (!me || !me.nim || me.role === 'dosen') return;
+
+  _answeredQuestions.add(qId);
+  const key = sanitizeKey(`mhs_${me.nim}`);
+  get(ref(db, `${DB_PATH}/${key}`)).then(snap => {
+    if (snap.exists()) {
+      const ex = snap.val();
+      // Check if this question was already scored in Firebase
+      const scored = ex.scoredQuestions ? ex.scoredQuestions.split(',') : [];
+      if (scored.includes(qId)) return;
+      scored.push(qId);
+      const newPts = (ex.points || 0) + 1;
+      const nowISO = new Date().toISOString();
+      set(ref(db, `${DB_PATH}/${key}`), {
+        ...ex,
+        points: newPts,
+        pointTimestamp: nowISO,
+        scoredQuestions: scored.join(',')
+      });
+    }
+  }).catch(() => {});
+};
 
 window.submitVisitor=submitVisitor;window.togglePanel=togglePanel;
 window.showResetModal=showResetModal;window.hideResetModal=hideResetModal;window.confirmReset=confirmReset;
