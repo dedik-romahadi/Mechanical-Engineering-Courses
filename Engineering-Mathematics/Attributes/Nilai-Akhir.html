@@ -108,7 +108,6 @@
     <input type="text" class="v-input" id="vNama" placeholder="Nama Lengkap" autocomplete="off">
     <input type="text" class="v-input" id="vNim" placeholder="NIM (Nomor Induk Mahasiswa)" autocomplete="off">
     <button class="v-btn-primary" onclick="submitVisitor()">Masuk ke Nilai Akhir →</button>
-    <button class="v-btn-cancel" onclick="showScheduleModal()" style="margin-top:8px;border-color:rgba(99,102,241,.3);color:#818cf8;">🕐 Atur Jadwal (Admin)</button>
   </div>
 </div>
 
@@ -125,35 +124,14 @@
   </div>
 </div>
 
-<!-- Schedule Modal -->
-<div class="visitor-overlay hidden" id="scheduleOverlay" style="z-index:100000;">
-  <div class="visitor-modal" style="max-width:480px;width:95%;">
-    <div style="font-size:2.4rem;margin-bottom:12px;">🕐</div>
-    <h2 style="font-size:1.3rem;">Atur Jadwal Akses</h2>
-    <p class="sub">Masukkan password, durasi (hari), dan batas waktu akhir.</p>
-    <p class="v-error" id="scheduleError"></p>
-    <input type="password" class="v-input" id="schedulePw" placeholder="Password" autocomplete="off">
-    <div style="display:flex;gap:10px;margin-bottom:14px;">
-      <div style="flex:1;text-align:left;">
-        <label style="font-size:.75rem;color:#94a3b8;font-weight:600;display:block;margin-bottom:4px;">Durasi (hari)</label>
-        <input type="number" class="v-input" id="scheduleDuration" min="1" value="7" placeholder="7" style="margin-bottom:0;">
-      </div>
-      <div style="flex:1;text-align:left;">
-        <label style="font-size:.75rem;color:#94a3b8;font-weight:600;display:block;margin-bottom:4px;">Batas Akhir (Due Date)</label>
-        <input type="datetime-local" class="v-input" id="scheduleDue" style="margin-bottom:0;">
-      </div>
-    </div>
-    <button class="v-btn-primary" onclick="saveSchedule()">💾 Simpan Jadwal</button>
-    <button class="v-btn-cancel" onclick="hideScheduleModal()">Batal</button>
-  </div>
-</div>
+
 
 <!-- Floating Visitor Button -->
-<button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Daftar Pengunjung">👥<span class="fab-count" id="fabCount">0</span></button>
+<button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Performa Mahasiswa">👥<span class="fab-count" id="fabCount">0</span></button>
 
 <!-- Visitor Panel -->
 <div class="visitor-panel" id="visitorPanel">
-  <div class="vp-header"><h3>👥 Pengunjung</h3><span class="vp-badge" id="vpBadge">0 orang</span></div>
+  <div class="vp-header"><h3>👥 Aktivitas</h3><span class="vp-badge" id="vpBadge">0 orang</span></div>
   <div class="vp-list" id="vpList"><div class="vp-empty">Memuat data pengunjung...</div></div>
 </div>
 
@@ -240,25 +218,15 @@
   <section style="max-width:1200px;margin:48px auto 0;padding:0 24px;">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px;">
       <div>
-        <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.3);color:#2dd4bf;padding:5px 14px;border-radius:999px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;">👥 Pengunjung</span>
-        <h2 style="font-size:1.6rem;font-weight:800;color:#fff;margin-top:12px;">Daftar Pengunjung</h2>
+        <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.3);color:#2dd4bf;padding:5px 14px;border-radius:999px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;">👥 Aktivitas</span>
+        <h2 style="font-size:1.6rem;font-weight:800;color:#fff;margin-top:12px;">Performa Mahasiswa</h2>
         <p style="color:#94a3b8;font-size:.85rem;margin-top:6px;">Mahasiswa yang telah mengakses halaman ini.</p>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button onclick="showResetModal()" style="padding:10px 20px;border-radius:12px;border:1px solid rgba(251,113,133,.3);background:rgba(251,113,133,.08);color:#fb7185;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:6px;" onmouseenter="this.style.background='rgba(251,113,133,.18)'" onmouseleave="this.style.background='rgba(251,113,133,.08)'">🗑 Reset</button>
+        <button onclick="showResetModal()" style="margin-left:auto;padding:10px 20px;border-radius:12px;border:1px solid rgba(251,113,133,.3);background:rgba(251,113,133,.08);color:#fb7185;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:6px;" onmouseenter="this.style.background='rgba(251,113,133,.18)'" onmouseleave="this.style.background='rgba(251,113,133,.08)'">🗑 Reset</button>
       </div>
     </div>
-    <div id="scheduleInfo" style="display:none;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.2);border-radius:14px;padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-      <span style="font-size:1.2rem;">🕐</span>
-      <div style="flex:1;min-width:200px;">
-        <div style="font-size:.75rem;font-weight:600;color:#818cf8;text-transform:uppercase;letter-spacing:.08em;">Jadwal Akses</div>
-        <div id="scheduleRange" style="font-size:.88rem;color:#e2e8f0;font-weight:600;margin-top:2px;">—</div>
-      </div>
-      <div style="text-align:center;">
-        <div id="statLate" style="font-weight:800;font-size:1.4rem;color:#fb7185;">0</div>
-        <div style="font-size:.7rem;color:#64748b;">Terlambat</div>
-      </div>
-    </div>
+    
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;">
       <div style="display:flex;padding:14px 24px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.08em;">
         <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:0.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
@@ -558,10 +526,9 @@ const MODULE_ID = 'nilai-akhir';
 const DB_PATH = `visitors/math4/${MODULE_ID}`;
 const PERTEMUAN = 'nilai-akhir';
 const RELATED_MODULES = [];
-const SCHEDULE_PATH = `settings/math4/${PERTEMUAN}/schedule`;
+
 const LOCAL_IDENTITY = `math4_identity_${MODULE_ID}`;
 let panelOpen = false;
-let currentSchedule = null;
 const VISIT_COOLDOWN = 3600000;
 
 const firebaseConfig = {
@@ -626,46 +593,17 @@ function initVisitor(){
       }).catch(()=>{});
     }
   }
-  onValue(ref(db, SCHEDULE_PATH), (snap) => {
-    currentSchedule = snap.val();
-    updateScheduleDisplay();
-    onValue(ref(db, DB_PATH), (vsnap) => {
-      const data = vsnap.val();
-      renderVisitors(data ? Object.values(data) : []);
-    }, {onlyOnce: true});
-  });
+  // Listen for realtime updates
   onValue(ref(db, DB_PATH), (snapshot) => {
     const data = snapshot.val();
     renderVisitors(data ? Object.values(data) : []);
   });
 }
 
-function updateScheduleDisplay(){
-  const info = document.getElementById('scheduleInfo');
-  const range = document.getElementById('scheduleRange');
-  if(!info || !range) return;
-  if(currentSchedule && currentSchedule.start && currentSchedule.end){
-    info.style.display='flex';
-    const s = new Date(currentSchedule.start), e = new Date(currentSchedule.end);
-    const fmt = (d) => d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-    const dur = currentSchedule.duration || Math.round((e-s)/(24*60*60*1000));
-    range.textContent = fmt(s) + '  —  ' + fmt(e) + '  ('+dur+' hari)';
-  } else { info.style.display='none'; }
-}
-
-function isLate(timestamp){
-  if(!currentSchedule || !currentSchedule.start || !currentSchedule.end) return false;
-  const t = new Date(timestamp).getTime();
-  const s = new Date(currentSchedule.start).getTime();
-  const e = new Date(currentSchedule.end).getTime();
-  return t < s || t > e;
-}
+function isLate(){return false}
 
 function submitVisitor(){
   const nama=document.getElementById('vNama').value.trim(), nim=document.getElementById('vNim').value.trim(), err=document.getElementById('vError');
-  if(!currentSchedule || !currentSchedule.start || !currentSchedule.end){err.textContent='⚠ Jadwal belum disetel. Silakan atur jadwal terlebih dahulu.';err.style.display='block';return;}
-  const now=new Date().getTime(), schedStart=new Date(currentSchedule.start).getTime();
-  if(now<schedStart){const sd=new Date(currentSchedule.start);err.textContent='⚠ Akses belum dibuka. Jadwal dimulai pada '+sd.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+' '+sd.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+'.';err.style.display='block';return;}
   const isDosen=nama.toLowerCase()==='dedik romahadi';
   if(!nama){err.textContent='⚠ Nama wajib diisi.';err.style.display='block';return;}
   if(!isValidName(nama)){err.textContent='⚠ Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi';err.style.display='block';return;}
@@ -705,43 +643,17 @@ function submitVisitor(){
 }
 
 function renderVisitors(visitors){
-  visitors.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
-  const seen=new Set(),unique=[];
-  for(const v of visitors){if(v.role==="dosen"||v.role==="guest")continue;const id=v.nama+'|'+v.nim;if(!seen.has(id)){seen.add(id);unique.push(v);}}
-  const mc=unique.filter(v=>v.role!=='dosen').length, dc=unique.filter(v=>v.role==='dosen').length;
-  const lateCount=unique.filter(v=>v.role!=='dosen'&&isLate(v.timestamp)).length;
-
-  document.getElementById('fabCount').textContent=unique.length;
-  document.getElementById('vpBadge').textContent=unique.length+' orang';  const statLateEl=document.getElementById('statLate');
-  if(statLateEl) statLateEl.textContent=lateCount;
-
-  const listEl=document.getElementById('vpList'), tableEl=document.getElementById('visitorTableBody');
-
-  if(!unique.length){
-    listEl.innerHTML='<div class="vp-empty">Belum ada pengunjung.</div>';
-    tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">Belum ada pengunjung.</div>';
-    return;
-  }
-
-  listEl.innerHTML=unique.map(v=>{
-    const d=v.role==='dosen', ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-    const late=!d&&isLate(v.timestamp);
-    const lBadge=late?'<span style="color:#fb7185;font-size:.65rem;font-weight:600;margin-left:4px;">⏰ Terlambat</span>':'';
-    return '<div class="vp-item" style="'+(late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':'')+'"><div class="vp-avatar '+(d?'dosen':'student')+'" style="'+(late?'background:rgba(251,113,133,.12);color:#fb7185;':'')+'">'+ ini+'</div><div class="vp-info"><div class="vp-name">'+(d?'👨‍🏫 ':'')+escH(v.nama)+lBadge+'</div><div class="vp-nim">'+(d?'Dosen Pengampu':escH(v.nim))+'</div></div><div class="vp-time"><div>'+ts+'</div><div style="font-size:.6rem;color:#94a3b8;text-align:right;">'+(v.visitCount||1)+'x kunjungan</div></div></div>';
-  }).join('');
-
-  tableEl.innerHTML=unique.map((v,i)=>{
-    const d=v.role==='dosen', ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-    const late=!d&&isLate(v.timestamp);
-    const rowBg=late?'background:rgba(251,113,133,.04);':'';
-    const nameColor=late?'color:#fb7185;':'color:#e2e8f0;';
-    const ac=d?'background:rgba(251,191,36,.12);color:#fbbf24;':late?'background:rgba(251,113,133,.12);color:#fb7185;':'background:rgba(45,212,191,.12);color:#2dd4bf;';
-    const rc=d?'<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2);margin-left:8px;">Dosen</span>':'';
-    const statusCol=d?'<span style="color:#64748b;font-size:.75rem;">—</span>':late?'<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(251,113,133,.12);color:#fb7185;border:1px solid rgba(251,113,133,.25);">⏰ Terlambat</span>':'<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.25);">✅ Tepat Waktu</span>';
-    return '<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);'+rowBg+'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:'+(late?'#fb7185':'#64748b')+';font-weight:600;">'+(i+1)+'</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;'+ac+'">'+ini+'</div><div><div style="font-weight:600;font-size:.88rem;'+nameColor+'">'+escH(v.nama)+rc+'</div></div></div><div style="flex:1;font-size:.8rem;color:'+(late?'#fb7185':'#94a3b8')+';font-family:monospace;">'+(d?'—':escH(v.nim))+'</div><div style="flex:1;text-align:center;">'+statusCol+'</div><div style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:#94a3b8;">'+(v.visitCount||1)+'x</div><div style="flex:1;text-align:right;font-size:.78rem;color:'+(late?'#fb7185':'#64748b')+';">'+ts+'</div></div>';
-  }).join('');
+  const visitMap={};
+  for(const v of visitors){if(v.role==='dosen'||v.role==='guest')continue;if(!visitMap[v.nim])visitMap[v.nim]=v;}
+  const visited=Object.values(visitMap);
+  document.getElementById('fabCount').textContent=visited.length;
+  document.getElementById('vpBadge').textContent=visited.length+' orang';
+  const listEl=document.getElementById('vpList'),tableEl=document.getElementById('visitorTableBody');
+  if(!visited.length)listEl.innerHTML='<div class="vp-empty">Belum ada data.</div>';
+  else listEl.innerHTML=visited.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(v=>{const ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),dt=new Date(v.timestamp),ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});return'<div class="vp-item"><div class="vp-avatar student">'+ini+'</div><div class="vp-info"><div class="vp-name">'+escH(v.nama)+'</div><div class="vp-nim">'+escH(v.nim)+'</div></div><div class="vp-time"><div>'+ts+'</div><div style="font-size:.6rem;color:#94a3b8;">'+((v.visitCount||1)+'x')+'</div></div></div>'}).join('');
+  if(!masterStudents.length){tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:#64748b;">\u23f3 Memuat...</div>';return}
+  function toTitle(s){return s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase())}
+  tableEl.innerHTML=masterStudents.map((s,i)=>{const v=visitMap[s.nim],nama=toTitle(s.nama),ini=nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),has=!!v,vc=has?(v.visitCount||1):0,ts=has?(()=>{const dt=new Date(v.timestamp);return dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})})():'\u2014';const sc=has?'<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.25);">\u2705 Hadir</span>':'<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.25);">\u274c Absen</span>';const nC=has?'color:#e2e8f0;':'color:#64748b;';const ac=has?'background:rgba(255,255,255,.08);color:#e2e8f0;':'background:rgba(100,116,139,.1);color:#94a3b8;';const tC=has?'#64748b':'#475569';return'<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:'+tC+';font-weight:600;">'+(i+1)+'</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;'+ac+'">'+ini+'</div><div><div style="font-weight:600;font-size:.88rem;'+nC+'">'+escH(nama)+'</div></div></div><div style="flex:1;font-size:.8rem;color:'+(has?'#94a3b8':'#475569')+';font-family:monospace;">'+s.nim+'</div><div style="flex:1;text-align:center;">'+sc+'</div><div style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:#94a3b8;">'+(vc?vc+'x':'<span style="color:#475569;">\u2014</span>')+'</div><div style="flex:1;text-align:right;font-size:.78rem;color:'+tC+';">'+ts+'</div></div>'}).join('')
 }
 
 function togglePanel(){panelOpen=!panelOpen;document.getElementById('visitorPanel').classList.toggle('open',panelOpen);}
@@ -751,41 +663,19 @@ function showResetModal(){document.getElementById('resetOverlay').classList.remo
 function hideResetModal(){document.getElementById('resetOverlay').classList.add('hidden');}
 function confirmReset(){
   if(document.getElementById('resetPw').value!=='TeknikMesin0602'){document.getElementById('resetError').style.display='block';return;}
-  remove(ref(db,DB_PATH));localStorage.removeItem(LOCAL_IDENTITY);remove(ref(db,SCHEDULE_PATH));
+  remove(ref(db,DB_PATH));localStorage.removeItem(LOCAL_IDENTITY);
   RELATED_MODULES.forEach(mid=>{remove(ref(db,'visitors/math4/'+mid));localStorage.removeItem('math4_identity_'+mid);});
   hideResetModal();document.getElementById('visitorOverlay').classList.remove('hidden');document.getElementById('visitorFab').style.display='none';
 }
 
-function showScheduleModal(){
-  document.getElementById('scheduleOverlay').classList.remove('hidden');document.getElementById('schedulePw').value='';
-  document.getElementById('scheduleError').textContent='';document.getElementById('scheduleError').style.display='none';
-  if(currentSchedule){document.getElementById('scheduleDuration').value=currentSchedule.duration||'';document.getElementById('scheduleDue').value=currentSchedule.due||'';}
-  else{document.getElementById('scheduleDuration').value='7';var dd=new Date();dd.setDate(dd.getDate()+7);dd.setHours(23,59,0,0);document.getElementById('scheduleDue').value=dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0')+'T23:59';}
-  setTimeout(()=>document.getElementById('schedulePw').focus(),100);
-}
-function hideScheduleModal(){document.getElementById('scheduleOverlay').classList.add('hidden');}
-function saveSchedule(){
-  const pw=document.getElementById('schedulePw').value;
-  if(pw!=='TeknikMesin0602'){document.getElementById('scheduleError').textContent='⚠ Password salah.';document.getElementById('scheduleError').style.display='block';return;}
-  const dur=parseInt(document.getElementById('scheduleDuration').value), due=document.getElementById('scheduleDue').value;
-  if(!dur||dur<1){document.getElementById('scheduleError').textContent='⚠ Durasi minimal 1 hari.';document.getElementById('scheduleError').style.display='block';return;}
-  if(!due){document.getElementById('scheduleError').textContent='⚠ Batas akhir harus diisi.';document.getElementById('scheduleError').style.display='block';return;}
-  const dueDate=new Date(due),startDate=new Date(dueDate.getTime()-dur*24*60*60*1000);
-  remove(ref(db,DB_PATH));localStorage.removeItem(LOCAL_IDENTITY);
-  set(ref(db,SCHEDULE_PATH),{start:startDate.toISOString(),end:dueDate.toISOString(),duration:dur,due:due});
-  hideScheduleModal();document.getElementById('visitorOverlay').classList.remove('hidden');document.getElementById('visitorFab').style.display='none';
-}
-
 document.getElementById('resetPw').addEventListener('keydown',function(e){if(e.key==='Enter')confirmReset();});
 document.getElementById('resetOverlay').addEventListener('click',function(e){if(e.target===this)hideResetModal();});
-document.getElementById('scheduleOverlay').addEventListener('click',function(e){if(e.target===this)hideScheduleModal();});
-document.getElementById('schedulePw').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('scheduleDuration').focus();});
 document.getElementById('vNim').addEventListener('keydown',function(e){if(e.key==='Enter')submitVisitor();});
 document.getElementById('vNama').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('vNim').focus();});
 
 window.submitVisitor=submitVisitor;window.togglePanel=togglePanel;
 window.showResetModal=showResetModal;window.hideResetModal=hideResetModal;window.confirmReset=confirmReset;
-window.showScheduleModal=showScheduleModal;window.hideScheduleModal=hideScheduleModal;window.saveSchedule=saveSchedule;
+
 
 initVisitor();
 </script>
