@@ -18,6 +18,12 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--t1)
 .prog{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--c5),var(--c2),var(--c1));z-index:200;width:0%;transition:width .1s}
 
 /* HERO */
+/* ── MATH BG ── */
+.math-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.math-float{position:absolute;font-family:'JetBrains Mono','Courier New',monospace;color:rgba(0,224,158,.06);font-weight:600;white-space:nowrap;animation:mathDrift linear infinite;will-change:transform;user-select:none}
+.math-float.alt{color:rgba(14,165,233,.05)}.math-float.purple{color:rgba(168,85,247,.05)}
+@keyframes mathDrift{0%{transform:translateY(110vh) rotate(0deg);opacity:0}5%{opacity:1}90%{opacity:.8}100%{transform:translateY(-20vh) rotate(25deg);opacity:0}}
+
 .hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;background:var(--grad);position:relative;padding:2rem;overflow:hidden}
 .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 70%,rgba(168,85,247,.08),transparent 50%),radial-gradient(circle at 70% 30%,rgba(14,165,233,.09),transparent 50%);pointer-events:none}
 .hero-particles{position:absolute;inset:0;overflow:hidden;pointer-events:none}
@@ -261,6 +267,7 @@ footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:
 
 <!-- ═══════════════ HERO ═══════════════ -->
 <section class="hero">
+  <div class="math-bg" id="mathBg"></div>
   <div class="hero-particles" id="particles"></div>
   <div class="hero-lecturer">
     <div class="lecturer-icon">👩‍🏫</div>
@@ -677,7 +684,7 @@ sol = dsolve(ode, y(t), ics={y(0): 0, y(t).diff(t).subs(t,0): 0})
   <div style="margin-bottom:24px;">
       <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.05);border:1px solid var(--bd);color:var(--c5);padding:5px 14px;border-radius:999px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;">👥 Mahasiswa</span>
       <h2 style="font-size:1.6rem;font-weight:800;color:#fff;margin-top:12px;">Aktivitas Mahasiswa</h2>
-      <p style="color:var(--t2);font-size:.85rem;margin-top:6px;">Mahasiswa yang telah mengakses halaman ini.</p>
+      <p style="color:var(--t2);font-size:.85rem;margin-top:6px;">Mahasiswa yang telah mengakses halaman dan mengerjakan soal latihan.</p>
   </div>
 
   <div style="background:var(--bg3);border:1px solid var(--bd);border-radius:20px;overflow:hidden;" class="fi">
@@ -696,28 +703,20 @@ sol = dsolve(ode, y(t), ics={y(0): 0, y(t).diff(t).subs(t,0): 0})
     <div id="leaderboardPanel" style="margin-bottom:2px;">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:16px 20px;">
         <div style="background:rgba(0,224,158,.06);border:1px solid rgba(0,224,158,.15);border-radius:14px;padding:14px 16px;">
-          <div style="font-size:.72rem;font-weight:700;color:var(--c1);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🏆 Paling Rajin</div>
+          <div style="font-size:.72rem;font-weight:700;color:var(--c1);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🏆 Top Skor</div>
           <div id="rajinList" style="font-size:.8rem;color:var(--t1);min-height:60px;">⏳ Memuat...</div>
         </div>
         <div style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15);border-radius:14px;padding:14px 16px;">
-          <div style="font-size:.72rem;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">😴 Paling Santai</div>
+          <div style="font-size:.72rem;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🔥 Akses Terbanyak</div>
           <div id="santaiList" style="font-size:.8rem;color:var(--t1);min-height:60px;">⏳ Memuat...</div>
         </div>
       </div>
-      <div style="padding:0 20px 16px;">
-        <div style="background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);border-radius:14px;padding:14px 16px;">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-            <div style="font-size:.72rem;font-weight:700;color:#fb7185;text-transform:uppercase;letter-spacing:.1em;">❌ Bolos</div>
-            <div id="bolosCount" style="background:rgba(251,113,133,.15);color:#fb7185;font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:8px;">0</div>
-          </div>
-          <div id="bolosList" style="font-size:.8rem;color:var(--t1);">⏳ Memuat...</div>
-        </div>
-      </div>
+      
     </div>
 
     <!-- Table Header -->
     <div style="display:flex;padding:14px 24px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;">
-      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:0.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
+      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:0.5;text-align:center;">Poin</div><div style="flex:0.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
     </div>
     <div id="visitorTableBody" style="max-height:420px;overflow-y:auto;"><div style="text-align:center;padding:40px 24px;color:var(--t3);font-size:.88rem;">⏳ Memuat data mahasiswa...</div></div>
   </div>
@@ -868,6 +867,7 @@ function checkMCQ(num){
   if(!mcqSelected[num]||!mcqSelected[num].answer){fb.className='feedback wrong';fb.style.display='block';fb.textContent='⚠ Silakan pilih jawaban terlebih dahulu.';return;}
   const sel=mcqSelected[num].answer;
   const correct=mcqCorrect[num];
+  var isFirst=!document.getElementById('res-'+num)||(function(){var ab=document.getElementById('ansBtn'+num);return ab&&ab.classList.contains('locked')})();
   mcqSelected[num].locked=true;
   const opts=document.querySelectorAll('#mcq'+num+' .mcq-opt');
   opts.forEach(o=>o.classList.add('disabled'));
@@ -877,7 +877,7 @@ function checkMCQ(num){
     if(letter===correct)o.classList.add('correct');
     else if(letter===sel&&sel!==correct)o.classList.add('wrong');
   });
-  if(sel===correct){fb.className='feedback correct';fb.textContent='🎉 Benar! Jawaban kamu tepat.';}
+  if(sel===correct){fb.className='feedback correct';fb.textContent='🎉 Benar! Jawaban kamu tepat.';if(isFirst&&typeof window._awardPoint==='function')window._awardPoint('q'+num)}
   else{fb.className='feedback wrong';fb.textContent='❌ Belum tepat. Jawaban yang benar ditandai hijau.';}
   fb.style.display='block';
   const ab=document.getElementById('ansBtn'+num);if(ab)ab.classList.remove('locked');
@@ -885,6 +885,10 @@ function checkMCQ(num){
 </script>
 
 <!-- Firebase + Visitor System -->
+<script>
+// Math Background Animation
+(function(){var items=["dy/dx","\u222b","d\u00b2y/dx\u00b2","e^{2x}","y'=ky","\u03bb","\u03a3","\u221e","\u03c0","\u221a","\u0394","cos \u03b8","sin \u03c9t","ln x","\u03b1","\u03b2","\u03b3","f(x)","e^{-kt}","dT/dt","\u2248","\u2260","\u2264","\u2265","\u2208","y=Ce^{rx}","x\u00b2","3.14","0","1","2","3","4","5","6","7","8","9","42","2\u03c0r","e=2.718"];var c=document.getElementById('mathBg');if(!c)return;for(var i=0;i<30;i++){var el=document.createElement('div');el.className='math-float'+(i%3===1?' alt':'')+(i%3===2?' purple':'');el.textContent=items[Math.floor(Math.random()*items.length)];el.style.left=(Math.random()*96+2)+'%';el.style.fontSize=(.7+Math.random()*1.6)+'rem';el.style.animationDuration=(12+Math.random()*22)+'s';el.style.animationDelay=(Math.random()*18)+'s';c.appendChild(el)}})();
+</script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { getDatabase, ref, get, set, remove, onValue } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
@@ -936,40 +940,18 @@ function fetchMasterStudents(retries){
 
 function toTitleCase(s){return s.toLowerCase().replace(/(?:^|\s)\S/g,a=>a.toUpperCase());}
 
-function updateLeaderboard(visitors, schedExpired){
-  const visitMap={};
-  for(const v of visitors){if(v.role==='dosen'||v.role==='guest')continue;if(!visitMap[v.nim])visitMap[v.nim]=v;else if((v.visitCount||1)>(visitMap[v.nim].visitCount||1))visitMap[v.nim]=v;}
-  const visited=Object.values(visitMap);
-
-  // Rajin: top 3 by visitCount, tiebreak earliest timestamp
-  const sorted=[...visited].sort((a,b)=>(b.visitCount||1)-(a.visitCount||1)||new Date(a.timestamp)-new Date(b.timestamp));
-  const top3=sorted.slice(0,3);
-  const rajinEl=document.getElementById('rajinList');
-  rajinEl.innerHTML=top3.length?top3.map((v,i)=>{
-    const medal=['🥇','🥈','🥉'][i]||'';
-    return `<div style="margin-bottom:6px;">${medal} <strong>${toTitleCase(v.nama)}</strong> <span style="color:var(--c1);font-size:.75rem;">(${v.visitCount||1}x)</span></div>`;
-  }).join(''):'<span style="color:var(--t3);">Belum ada data.</span>';
-
-  // Santai: bottom 3 excluding top3
-  const rest=sorted.filter(v=>!top3.includes(v));
-  const santaiSorted=[...rest].sort((a,b)=>(a.visitCount||1)-(b.visitCount||1)||new Date(b.timestamp)-new Date(a.timestamp));
-  const bot3=santaiSorted.slice(0,3);
-  const santaiEl=document.getElementById('santaiList');
-  santaiEl.innerHTML=bot3.length?bot3.map(v=>`<div style="margin-bottom:6px;">😴 ${toTitleCase(v.nama)} <span style="color:#fbbf24;font-size:.75rem;">(${v.visitCount||1}x)</span></div>`).join(''):'<span style="color:var(--t3);">—</span>';
-
-  // Bolos
-  const bolosEl=document.getElementById('bolosList');
-  const bolosCountEl=document.getElementById('bolosCount');
-  if(!masterFetchDone||!masterStudents.length){bolosEl.innerHTML='<span style="color:var(--t3);">Memuat data...</span>';return;}
-  const visitedNims=new Set(visited.map(v=>v.nim));
-  const belumArr=masterStudents.filter(s=>!visitedNims.has(s.nim));
-  const belum=belumArr.length;
-  bolosCountEl.textContent=belum;
-  if(schedExpired){
-    bolosEl.innerHTML=belum?belumArr.slice(0,5).map(s=>`<div style="margin-bottom:4px;color:#fb7185;">❌ ${toTitleCase(s.nama)}</div>`).join('')+(belum>5?`<div style="color:var(--t3);font-size:.75rem;">...dan ${belum-5} lainnya</div>`:''):'<span style="color:var(--c1);">✅ Semua sudah berkunjung!</span>';
-  } else {
-    bolosEl.innerHTML=belum?'<span style="color:var(--t2);font-size:.78rem;">⏳ '+belum+' mahasiswa belum berkunjung. Batas waktu belum berakhir.</span>':'<span style="color:var(--c1);font-size:.78rem;">✅ Semua mahasiswa sudah berkunjung!</span>';
-  }
+function updateLeaderboard(visitors,schedExpired){
+  var rajinEl=document.getElementById('rajinList'),santaiEl=document.getElementById('santaiList');
+  if(!rajinEl)return;
+  if(!masterStudents.length){rajinEl.innerHTML='<span style="color:#64748b;font-size:.75rem;">Memuat...</span>';santaiEl.innerHTML=rajinEl.innerHTML;return;}
+  var mhs=visitors.filter(function(v){return v.role!=='dosen'&&v.role!=='guest'});var visitMap={};mhs.forEach(function(v){if(!visitMap[v.nim])visitMap[v.nim]=v});var visited=Object.values(visitMap);
+  var topSkor=visited.filter(function(v){return(v.points||0)>0}).sort(function(a,b){var d=(b.points||0)-(a.points||0);if(d!==0)return d;var tA=a.pointTimestamp?new Date(a.pointTimestamp).getTime():Infinity;var tB=b.pointTimestamp?new Date(b.pointTimestamp).getTime():Infinity;return tA-tB});
+  var akses=visited.slice().sort(function(a,b){var d=(b.visitCount||1)-(a.visitCount||1);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp)});
+  var m=['🥇','🥈','🥉'];
+  function cS(v,i){return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(i<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="font-size:1rem;flex-shrink:0;">'+m[i]+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(16,185,129,.12);color:#10b981;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+(v.points||0)+' poin</div></div>'}
+  function cA(v,i){return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(i<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(251,191,36,.15);color:#fbbf24;font-size:.65rem;font-weight:800;flex-shrink:0;">'+(i+1)+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(251,191,36,.12);color:#fbbf24;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+(v.visitCount||1)+'x</div></div>'}
+  rajinEl.innerHTML=topSkor.length?topSkor.slice(0,3).map(function(v,i){return cS(v,i)}).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
+  santaiEl.innerHTML=akses.length?akses.slice(0,3).map(function(v,i){return cA(v,i)}).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
 }
 fetchMasterStudents();
 
@@ -987,7 +969,7 @@ function initVisitor(){
         if(snap.exists()){
           const ex=snap.val();
           const lastV=new Date(ex.lastVisit||ex.timestamp).getTime();
-          if(Date.now()-lastV>=VISIT_COOLDOWN){
+          var expired=isScheduleExpired();if(!expired&&Date.now()-lastV>=VISIT_COOLDOWN){
             set(ref(db,`${DB_PATH}/${_key}`),{...ex,visitCount:(ex.visitCount||1)+1,lastVisit:new Date().toISOString()});
           }
         }
@@ -1062,15 +1044,15 @@ function submitVisitor(){
     if(snap.exists()){
       const ex = snap.val();
       const lastV = new Date(ex.lastVisit || ex.timestamp).getTime();
-      const canBump = (Date.now() - lastV) >= VISIT_COOLDOWN;
+      var canBump=!expired&&(Date.now()-lastV)>=VISIT_COOLDOWN;
       v = {...ex, visitCount: canBump ? (ex.visitCount||1)+1 : (ex.visitCount||1), lastVisit: canBump ? nowISO : (ex.lastVisit||ex.timestamp)};
     } else {
-      v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO};
+      v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1,lastVisit:nowISO,points:0};
     }
     saveIdentity(v);
     return set(ref(db, `${DB_PATH}/${key}`), v);
   }).catch(()=>{
-    const v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO};
+    const v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1,lastVisit:nowISO,points:0};
     saveIdentity(v);
     set(ref(db, `${DB_PATH}/${key}`), v);
   });
@@ -1082,14 +1064,11 @@ function renderVisitors(visitors){
   const visitMap={};
   for(const v of visitors){if(v.role==='dosen'||v.role==='guest')continue;if(!visitMap[v.nim])visitMap[v.nim]=v;}
   const visited=Object.values(visitMap);
-  const lateCount=visited.filter(v=>isLate(v.timestamp)).length;
-  const schedExpired=currentSchedule&&currentSchedule.end&&new Date().getTime()>new Date(currentSchedule.end).getTime();
+  var schedExpired=isScheduleExpired();var graceExpired=isGraceExpired();var graceExpired=isGraceExpired();
 
   document.getElementById('fabCount').textContent=visited.length;
   updateLeaderboard(visitors, schedExpired);
   document.getElementById('vpBadge').textContent=visited.length+' orang';
-  const statLateEl=document.getElementById('statLate');
-  if(statLateEl) statLateEl.textContent=lateCount;
 
   const listEl=document.getElementById('vpList'), tableEl=document.getElementById('visitorTableBody');
 
@@ -1098,7 +1077,7 @@ function renderVisitors(visitors){
     listEl.innerHTML=visited.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(v=>{
       const ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
       const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-      const late=isLate(v.timestamp);
+      var late=isAfterDeadline(v.timestamp);
       const vc=v.visitCount||1;
       return `<div class="vp-item" style="${late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':''}"><div class="vp-avatar student" style="${late?'background:rgba(251,113,133,.12);color:#fb7185;':''}">${ini}</div><div class="vp-info"><div class="vp-name">${toTitleCase(v.nama)}${late?' <span style="color:#fb7185;font-size:.65rem;">⏰</span>':''}</div><div class="vp-nim">${v.nim} · ${vc}x</div></div><div class="vp-time">${ts}</div></div>`;
     }).join('');
@@ -1109,8 +1088,8 @@ function renderVisitors(visitors){
   tableEl.innerHTML=masterStudents.map((s,i)=>{
     const v=visitMap[s.nim];
     const hasVisited=!!v;
-    const late=hasVisited&&isLate(v.timestamp);
-    const bolos=!hasVisited&&schedExpired;
+    var late=hasVisited&&isAfterDeadline(v.timestamp);
+    var bolos=!hasVisited&&graceExpired;
     let statusCol='<span style="color:var(--t3);">⏳ Belum</span>';
     if(hasVisited&&!late)statusCol='<span style="color:var(--c1);">✅ Tepat Waktu</span>';
     if(late)statusCol='<span style="color:#fb7185;">⏰ Terlambat</span>';
@@ -1120,7 +1099,7 @@ function renderVisitors(visitors){
     const ts=dt?dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}):'—';
     const tsColor=late?'#fb7185':hasVisited?'var(--t2)':'var(--t3)';
     const bg=bolos?'background:rgba(239,68,68,.04);':late?'background:rgba(251,113,133,.04);':!hasVisited?'opacity:.5;':'';
-    return `<div style="display:flex;padding:12px 24px;border-bottom:1px solid rgba(255,255,255,.04);align-items:center;font-size:.88rem;${bg}"><div style="width:44px;flex-shrink:0;color:var(--t3);font-weight:600;">${i+1}</div><div style="flex:2;font-weight:600;">${toTitleCase(s.nama)}</div><div style="flex:1;color:${hasVisited?'var(--t2)':'var(--t3)'};font-family:monospace;">${s.nim}</div><div style="flex:1;text-align:center;">${statusCol}</div><div style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:var(--t2);">${vcDisplay}</div><div style="flex:1;text-align:right;font-size:.78rem;color:${tsColor};">${ts}</div></div>`;
+    return `<div style="display:flex;padding:12px 24px;border-bottom:1px solid rgba(255,255,255,.04);align-items:center;font-size:.88rem;${bg}"><div style="width:44px;flex-shrink:0;color:var(--t3);font-weight:600;">${i+1}</div><div style="flex:2;font-weight:600;">${toTitleCase(s.nama)}</div><div style="flex:1;color:${hasVisited?'var(--t2)':'var(--t3)'};font-family:monospace;">${s.nim}</div><div style="flex:1;text-align:center;">${statusCol}</div><div style="flex:0.5;text-align:center;font-size:.85rem;">${ptsDisplay}</div><div style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:var(--t2);">${vcDisplay}</div><div style="flex:1;text-align:right;font-size:.78rem;color:${tsColor};">${ts}</div></div>`;
   }).join('');
 }
 
