@@ -14,6 +14,12 @@
 body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--t1);line-height:1.75;overflow-x:hidden;min-height:100vh}
 
 /* ── HERO ── */
+/* ── MATH BG ── */
+.math-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.math-float{position:absolute;font-family:'JetBrains Mono','Courier New',monospace;color:rgba(56,189,248,.06);font-weight:600;white-space:nowrap;animation:mathDrift linear infinite;will-change:transform;user-select:none}
+.math-float.alt{color:rgba(129,140,248,.05)}.math-float.purple{color:rgba(168,85,247,.05)}
+@keyframes mathDrift{0%{transform:translateY(110vh) rotate(0deg);opacity:0}5%{opacity:1}90%{opacity:.8}100%{transform:translateY(-20vh) rotate(25deg);opacity:0}}
+
 .hero{padding:4rem 2rem 3rem;text-align:center;position:relative;overflow:hidden;background:linear-gradient(170deg,#06090f 0%,#0e1a35 40%,#1a0e2e 70%,#06090f 100%)}
 .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 20%,rgba(56,189,248,.08),transparent 60%),radial-gradient(ellipse at 70% 80%,rgba(129,140,248,.08),transparent 60%);pointer-events:none}
 .hero::after{content:'💬';position:absolute;top:1.5rem;right:2rem;font-size:4rem;opacity:.08;pointer-events:none;animation:floatEmoji 4s ease-in-out infinite}
@@ -175,6 +181,7 @@ footer{text-align:center;padding:2.5rem 2rem;border-top:1px solid var(--bd);colo
 
 <!-- ═══ HERO ═══ -->
 <header class="hero">
+  <div class="math-bg" id="mathBg"></div>
   <div class="badge">💬 FORUM DISKUSI • Pertemuan 2</div>
   <h1><span class="hl">Forum Diskusi</span><br>Modul 1 & 2</h1>
   <p>Jawab pertanyaan-pertanyaan berikut di <strong>Forum Diskusi Fast Learning Pertemuan 2</strong>. Pikirkan baik-baik sebelum menjawab!</p>
@@ -259,8 +266,20 @@ footer{text-align:center;padding:2.5rem 2rem;border-top:1px solid var(--bd);colo
         <div class="math-display">$$y' + y = 0$$</div>
         <p>Seorang teman mengklaim bahwa \(y = 5\sin x\) adalah penyelesaian dari PD di atas.</p>
 
+        <div class="poll">
+          <div class="poll-label">Apakah klaim tersebut benar?</div>
+          <div class="poll-opts" id="p2">
+            <div class="poll-opt" onclick="selPoll(this,'p2')"><div class="poll-dot"></div>Benar, karena turunan sin x menghasilkan cos x yang saling menghilangkan</div>
+            <div class="poll-opt" data-correct onclick="selPoll(this,'p2')"><div class="poll-dot"></div>Salah, karena \(5\cos x + 5\sin x \neq 0\) untuk semua \(x\)</div>
+            <div class="poll-opt" onclick="selPoll(this,'p2')"><div class="poll-dot"></div>Benar, karena \(y = 5\sin x\) memenuhi \(y' = -y\)</div>
+            <div class="poll-opt" onclick="selPoll(this,'p2')"><div class="poll-dot"></div>Salah, karena PD ini hanya memiliki solusi \(y = 0\)</div>
+          </div>
+          <button class="poll-check" onclick="checkPoll('p2')">Cek Jawaban</button>
+          <div class="poll-result" id="res-p2"></div>
+        </div>
+
         <div class="challenge-prompt">
-          <p>📝 <strong>Di forum diskusi, jawab:</strong> Apakah klaim teman tersebut benar atau salah? Buktikan dengan mensubstitusikan \(y = 5\sin x\) ke dalam PD. Tunjukkan langkah perhitungannya!</p>
+          <p>📝 <strong>Di forum diskusi, jelaskan:</strong> Buktikan dengan mensubstitusikan \(y = 5\sin x\) ke dalam PD. Tunjukkan langkah perhitungannya!</p>
         </div>
 
         <div class="reveal-area">
@@ -326,10 +345,22 @@ footer{text-align:center;padding:2.5rem 2rem;border-top:1px solid var(--bd);colo
         <p>Kamu menyeduh kopi dengan suhu 90°C di ruangan bersuhu 22°C. Menurut Hukum Pendinginan Newton:</p>
         <div class="math-display">$$\frac{dT}{dt} = -k(T - 22)$$</div>
 
+        <div class="poll">
+          <div class="poll-label">Apakah kopi pernah benar-benar mencapai suhu ruangan (22°C)?</div>
+          <div class="poll-opts" id="p4">
+            <div class="poll-opt" onclick="selPoll(this,'p4')"><div class="poll-dot"></div>Ya, kopi akan mencapai tepat 22°C setelah waktu yang cukup lama</div>
+            <div class="poll-opt" data-correct onclick="selPoll(this,'p4')"><div class="poll-dot"></div>Tidak, karena \(e^{-kt}\) tidak pernah tepat nol — hanya mendekati</div>
+            <div class="poll-opt" onclick="selPoll(this,'p4')"><div class="poll-dot"></div>Ya, karena solusi \(T(t) = 22 + Ce^{-kt}\) menunjukkan \(T \to 22\)</div>
+            <div class="poll-opt" onclick="selPoll(this,'p4')"><div class="poll-dot"></div>Tidak, karena PD ini bukan variabel terpisah</div>
+          </div>
+          <button class="poll-check" onclick="checkPoll('p4')">Cek Jawaban</button>
+          <div class="poll-result" id="res-p4"></div>
+        </div>
+
         <div class="challenge-prompt">
           <p>📝 <strong>Di forum diskusi, jawab:</strong></p>
           <p>1. Mengapa PD di atas termasuk PD variabel terpisah? Tunjukkan langkah pemisahannya.</p>
-          <p>2. Apakah kopimu pernah <em>benar-benar</em> mencapai suhu ruangan (22°C)? Jelaskan secara matematis mengapa ya/tidak.</p>
+          <p>2. Jelaskan secara matematis mengapa kopi tidak pernah benar-benar mencapai suhu ruangan.</p>
         </div>
 
         <div class="reveal-area">
@@ -358,6 +389,18 @@ footer{text-align:center;padding:2.5rem 2rem;border-top:1px solid var(--bd);colo
       </div>
       <div class="challenge-body">
         <p>Persamaan diferensial banyak digunakan di dunia teknik mesin.</p>
+
+        <div class="poll">
+          <div class="poll-label">Manakah fenomena berikut yang TIDAK melibatkan persamaan diferensial?</div>
+          <div class="poll-opts" id="p5">
+            <div class="poll-opt" onclick="selPoll(this,'p5')"><div class="poll-dot"></div>Getaran pegas pada suspensi kendaraan</div>
+            <div class="poll-opt" onclick="selPoll(this,'p5')"><div class="poll-dot"></div>Pendinginan mesin mobil setelah dimatikan</div>
+            <div class="poll-opt" data-correct onclick="selPoll(this,'p5')"><div class="poll-dot"></div>Menghitung luas persegi panjang</div>
+            <div class="poll-opt" onclick="selPoll(this,'p5')"><div class="poll-dot"></div>Aliran fluida dalam pipa</div>
+          </div>
+          <button class="poll-check" onclick="checkPoll('p5')">Cek Jawaban</button>
+          <div class="poll-result" id="res-p5"></div>
+        </div>
 
         <div class="challenge-prompt">
           <p>📝 <strong>Di forum diskusi, jawab:</strong></p>
@@ -389,45 +432,32 @@ footer{text-align:center;padding:2.5rem 2rem;border-top:1px solid var(--bd);colo
     <div>
       <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.05);border:1px solid #1e293b;color:#38bdf8;padding:5px 14px;border-radius:999px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;">👥 Pengunjung</span>
       <h2 style="font-size:1.6rem;font-weight:800;color:#fff;margin-top:12px;">Daftar Pengunjung</h2>
-      <p style="color:#94a3b8;font-size:.85rem;margin-top:6px;">Mahasiswa yang telah mengakses halaman ini.</p>
+      <p style="color:#94a3b8;font-size:.85rem;margin-top:6px;">Mahasiswa yang telah mengakses halaman dan mengerjakan soal diskusi.</p>
     </div>
     
   </div>
 <div id="scheduleInfo" style="display:none;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.2);border-radius:14px;padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-      <span style="font-size:1.2rem;">🕐</span>
+      <span style="font-size:1.2rem;">📅</span>
       <div style="flex:1;min-width:200px;">
         <div style="font-size:.75rem;font-weight:600;color:#818cf8;text-transform:uppercase;letter-spacing:.08em;">Jadwal Perkuliahan</div>
         <div id="scheduleRange" style="font-size:.88rem;color:#e2e8f0;font-weight:600;margin-top:2px;">—</div>
-      </div>
-      <div style="text-align:center;">
-        <div id="statLate" style="font-weight:800;font-size:1.4rem;color:#fb7185;">0</div>
-        <div style="font-size:.7rem;color:#64748b;">Terlambat</div>
       </div>
     </div>
   <div style="background:#131d2e;border:1px solid #1e293b;border-radius:20px;overflow:hidden;">
     <div id="leaderboardPanel" style="margin-bottom:2px;">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:16px 20px;">
         <div style="background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.15);border-radius:14px;padding:14px 16px;">
-          <div style="font-size:.72rem;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🏆 Paling Rajin</div>
+          <div style="font-size:.72rem;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🏆 Top Skor</div>
           <div id="rajinList" style="font-size:.8rem;color:#e2e8f0;min-height:60px;">⏳ Memuat...</div>
         </div>
         <div style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15);border-radius:14px;padding:14px 16px;">
-          <div style="font-size:.72rem;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">😴 Paling Santai</div>
+          <div style="font-size:.72rem;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🔥 Akses Terbanyak</div>
           <div id="santaiList" style="font-size:.8rem;color:#e2e8f0;min-height:60px;">⏳ Memuat...</div>
-        </div>
-      </div>
-      <div style="padding:0 20px 16px;">
-        <div style="background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);border-radius:14px;padding:14px 16px;">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-            <div style="font-size:.72rem;font-weight:700;color:#fb7185;text-transform:uppercase;letter-spacing:.1em;">❌ Bolos</div>
-            <div id="bolosCount" style="background:rgba(251,113,133,.15);color:#fb7185;font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:8px;">0</div>
-          </div>
-          <div id="bolosList" style="font-size:.8rem;color:#e2e8f0;">⏳ Memuat...</div>
         </div>
       </div>
     </div>
     <div style="display:flex;padding:14px 24px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.08em;">
-      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:0.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
+      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:0.5;text-align:center;">Poin</div><div style="flex:0.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
     </div>
     <div id="visitorTableBody" style="max-height:420px;overflow-y:auto;"><div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">⏳ Memuat data pengunjung...</div></div>
   </div>
@@ -462,14 +492,20 @@ function checkPoll(id){
   const sel=[...opts].find(o=>o.classList.contains('selected'));
   const res=document.getElementById('res-'+id);
   if(!sel){res.className='poll-result no';res.textContent='⚠️ Pilih jawaban dulu!';res.style.display='block';return}
+  const isFirst=!document.getElementById('res-'+id).dataset.checked;
   opts.forEach(o=>{
     o.classList.remove('correct','wrong');
     if(o.hasAttribute('data-correct'))o.classList.add('correct');
     else if(o.classList.contains('selected')&&!o.hasAttribute('data-correct'))o.classList.add('wrong');
+    o.style.pointerEvents='none';
   });
-  if(sel.hasAttribute('data-correct')){res.className='poll-result ok';res.textContent='🎉 Benar! Sekarang jelaskan alasanmu di Forum Diskusi.'}
+  if(sel.hasAttribute('data-correct')){
+    res.className='poll-result ok';res.textContent='🎉 Benar! Sekarang jelaskan alasanmu di Forum Diskusi.';
+    if(isFirst&&typeof window._awardPoint==='function')window._awardPoint(id);
+  }
   else{res.className='poll-result no';res.textContent='❌ Coba pikirkan lagi. Lihat jawaban yang benar (hijau) dan jelaskan di forum mengapa jawaban itu benar.'}
   res.style.display='block';
+  res.dataset.checked='1';
 }
 
 // Reveal toggle
@@ -479,6 +515,9 @@ function toggleReveal(btn){
   btn.textContent=content.classList.contains('open')?'🙈 Sembunyikan Petunjuk':'💡 Lihat Petunjuk';
   if(btn.textContent.includes('Inspirasi'))btn.textContent=content.classList.contains('open')?'🙈 Sembunyikan':'💡 Contoh Inspirasi';
 }
+
+// Math Background Animation
+(function(){const items=["dy/dx","∫","∂²u/∂x²","e^{2x}","y'=ky","λ","∑","∞","π","√","Δ","cos θ","sin ωt","ln x","d²y/dx²","α","β","γ","∫₀^∞","f(x)","e^{-kt}","dT/dt","≈","≠","≤","≥","∈","ℝ","y=Ce^{rx}","x²","3.14","0","1","2","3","4","5","6","7","8","9","42","y'''","2πr","e=2.718","i²=-1"];const c=document.getElementById('mathBg');if(!c)return;for(let i=0;i<30;i++){const el=document.createElement('div');el.className='math-float'+(i%3===1?' alt':'')+(i%3===2?' purple':'');el.textContent=items[Math.floor(Math.random()*items.length)];el.style.left=(Math.random()*96+2)+'%';el.style.fontSize=(.7+Math.random()*1.6)+'rem';el.style.animationDuration=(12+Math.random()*22)+'s';el.style.animationDelay=(Math.random()*18)+'s';c.appendChild(el)}})();
 </script>
 <script>
 
@@ -537,41 +576,17 @@ function fetchMasterStudents(retries){
   });
 }
 function updateLeaderboard(visitors, schedExpired){
-  const rajinEl=document.getElementById('rajinList');
-  const santaiEl=document.getElementById('santaiList');
-  const bolosEl=document.getElementById('bolosList');
-  const bolosCEl=document.getElementById('bolosCount');
+  const rajinEl=document.getElementById('rajinList'),santaiEl=document.getElementById('santaiList');
   if(!rajinEl)return;
-  if(!masterStudents.length){rajinEl.innerHTML='<span style="color:#64748b;font-size:.75rem;">Memuat data mahasiswa...</span>';santaiEl.innerHTML=rajinEl.innerHTML;bolosEl.innerHTML=rajinEl.innerHTML;return;}
-  const mhs=visitors.filter(v=>v.role!=='dosen'&&v.role!=='guest');
-  const visitMap={};
-  mhs.forEach(v=>{const k=v.nim;if(!visitMap[k])visitMap[k]=v;});
-  const visited=Object.values(visitMap);
-  const rajin=[...visited].sort((a,b)=>{const d=(b.visitCount||1)-(a.visitCount||1);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp);});
-  const santai=[...visited].sort((a,b)=>{const d=(a.visitCount||1)-(b.visitCount||1);return d!==0?d:new Date(b.timestamp)-new Date(a.timestamp);});
-  const medalR=['🥇','🥈','🥉'];
-  function renderCard(v,idx,isSantai){
-    const medal=isSantai?(idx+1):medalR[idx];
-    const vc=v.visitCount||1;
-    const badgeStyle=isSantai?'background:rgba(251,191,36,.12);color:#fbbf24;':'background:rgba(16,185,129,.12);color:#10b981;';
-    const mBadge=isSantai?'<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(251,191,36,.15);color:#fbbf24;font-size:.65rem;font-weight:800;flex-shrink:0;">'+medal+'</span>':'<span style="font-size:1rem;flex-shrink:0;">'+medal+'</span>';
-    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'">'+mBadge+'<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="'+badgeStyle+'padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+vc+'x</div></div>';
-  }
-  const top3=new Set(rajin.slice(0,3).map(v=>v.nim));
-  const santaiFiltered=santai.filter(v=>!top3.has(v.nim));
-  rajinEl.innerHTML=rajin.length?rajin.slice(0,3).map((v,i)=>renderCard(v,i,false)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
-  santaiEl.innerHTML=santaiFiltered.length?santaiFiltered.slice(0,3).map((v,i)=>renderCard(v,i,true)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
-  const visitedNims=new Set(mhs.map(v=>v.nim));
-  const notVisited=masterStudents.filter(s=>!visitedNims.has(s.nim));
-  if(schedExpired){
-    bolosCEl.textContent=notVisited.length;
-    if(!notVisited.length){bolosEl.innerHTML='<span style="color:#10b981;font-size:.78rem;">\u2705 Semua mahasiswa sudah berkunjung!</span>';}
-    else{bolosEl.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:6px;">'+notVisited.map(s=>'<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.12);border-radius:10px;padding:5px 10px;"><span style="font-weight:600;font-size:.75rem;color:#ef4444;">'+escH(s.nama)+'</span><span style="font-size:.62rem;color:#64748b;font-family:monospace;">'+s.nim+'</span></div>').join('')+'</div>';}
-  } else {
-    bolosCEl.textContent='—';
-    const belum=notVisited.length;
-    bolosEl.innerHTML=belum?'<span style="color:#94a3b8;font-size:.78rem;">⏳ '+belum+' mahasiswa belum berkunjung. Batas waktu belum berakhir.</span>':'<span style="color:#10b981;font-size:.78rem;">✅ Semua mahasiswa sudah berkunjung!</span>';
-  }
+  if(!masterStudents.length){rajinEl.innerHTML='<span style="color:#64748b;font-size:.75rem;">Memuat...</span>';santaiEl.innerHTML=rajinEl.innerHTML;return;}
+  const mhs=visitors.filter(v=>v.role!=='dosen'&&v.role!=='guest');const visitMap={};mhs.forEach(v=>{if(!visitMap[v.nim])visitMap[v.nim]=v;});const visited=Object.values(visitMap);
+  const topSkor=[...visited].filter(v=>(v.points||0)>0).sort((a,b)=>{const d=(b.points||0)-(a.points||0);if(d!==0)return d;const tA=a.pointTimestamp?new Date(a.pointTimestamp).getTime():Infinity;const tB=b.pointTimestamp?new Date(b.pointTimestamp).getTime():Infinity;return tA-tB});
+  const akses=[...visited].sort((a,b)=>{const d=(b.visitCount||1)-(a.visitCount||1);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp)});
+  const m=['🥇','🥈','🥉'];
+  function cS(v,i){return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(i<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="font-size:1rem;flex-shrink:0;">'+m[i]+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(16,185,129,.12);color:#10b981;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+(v.points||0)+' poin</div></div>'}
+  function cA(v,i){return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(i<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(251,191,36,.15);color:#fbbf24;font-size:.65rem;font-weight:800;flex-shrink:0;">'+(i+1)+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(251,191,36,.12);color:#fbbf24;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+(v.visitCount||1)+'x</div></div>'}
+  rajinEl.innerHTML=topSkor.length?topSkor.slice(0,3).map((v,i)=>cS(v,i)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
+  santaiEl.innerHTML=akses.length?akses.slice(0,3).map((v,i)=>cA(v,i)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
 }
 fetchMasterStudents();
 
@@ -581,15 +596,17 @@ function initVisitor(){
   if(me && me.nama){
     document.getElementById('visitorOverlay').classList.add('hidden');
     document.getElementById('visitorFab').style.display='flex';
-    // Bump visit count for returning visitor (1hr cooldown) - skip dosen
+    // Bump visit count - skip dosen, skip after deadline
     const _isDosen = me.nama.toLowerCase()==='dedik romahadi';
     if(!_isDosen && (!masterFetchDone || masterStudents.some(s=>s.nim===me.nim && s.nama.toUpperCase()===me.nama.toUpperCase()))){
       const _key = sanitizeKey(`mhs_${me.nim}`);
       get(ref(db,`${DB_PATH}/${_key}`)).then(snap=>{
         if(snap.exists()){
           const ex=snap.val();
+          if(ex.scoredQuestions){ex.scoredQuestions.split(',').forEach(q=>{_answeredQuestions.add(q);const r=document.getElementById('res-'+q);if(r)r.dataset.checked='1'})}
           const lastV=new Date(ex.lastVisit||ex.timestamp).getTime();
-          if(Date.now()-lastV>=VISIT_COOLDOWN){
+          const expired=isScheduleExpired();
+          if(!expired && Date.now()-lastV>=VISIT_COOLDOWN){
             set(ref(db,`${DB_PATH}/${_key}`),{...ex,visitCount:(ex.visitCount||1)+1,lastVisit:new Date().toISOString()});
           }
         }
@@ -665,11 +682,22 @@ function startCountdown(deadline){
 }
 
 function isLate(timestamp){
-  if(!currentSchedule || !currentSchedule.start || !currentSchedule.end) return false;
+  if(!currentSchedule || !currentSchedule.end) return false;
   const t = new Date(timestamp).getTime();
-  const s = new Date(currentSchedule.start).getTime();
   const e = new Date(currentSchedule.end).getTime();
-  return t < s || t > e;
+  const grace = e + 7 * 24 * 60 * 60 * 1000;
+  return t > e && t <= grace;
+}
+function isAfterDeadline(timestamp){
+  if(!currentSchedule || !currentSchedule.end) return false;
+  return new Date(timestamp).getTime() > new Date(currentSchedule.end).getTime();
+}
+function isScheduleExpired(){
+  return currentSchedule && currentSchedule.end && Date.now() > new Date(currentSchedule.end).getTime();
+}
+function isGraceExpired(){
+  if(!currentSchedule || !currentSchedule.end) return false;
+  return Date.now() > new Date(currentSchedule.end).getTime() + 7 * 24 * 60 * 60 * 1000;
 }
 
 function submitVisitor(){
@@ -694,20 +722,22 @@ function submitVisitor(){
   } else {
     const key = sanitizeKey(`mhs_${nim}`);
     const nowISO = new Date().toISOString();
+    const expired = isScheduleExpired();
     get(ref(db, `${DB_PATH}/${key}`)).then(snap => {
       let v;
       if(snap.exists()){
         const ex = snap.val();
         const lastV = new Date(ex.lastVisit || ex.timestamp).getTime();
-        const canBump = (Date.now() - lastV) >= VISIT_COOLDOWN;
+        const canBump = !expired && (Date.now() - lastV) >= VISIT_COOLDOWN;
         v = {...ex, visitCount: canBump ? (ex.visitCount||1)+1 : (ex.visitCount||1), lastVisit: canBump ? nowISO : (ex.lastVisit||ex.timestamp)};
+        if(ex.scoredQuestions){ex.scoredQuestions.split(',').forEach(q=>{_answeredQuestions.add(q);const r=document.getElementById('res-'+q);if(r)r.dataset.checked='1'})}
       } else {
-        v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO};
+        v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO, points:0};
       }
       saveIdentity(v);
       return set(ref(db, `${DB_PATH}/${key}`), v);
     }).catch(()=>{
-      const v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO};
+      const v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO, points:0};
       saveIdentity(v);
       set(ref(db, `${DB_PATH}/${key}`), v);
     });
@@ -720,60 +750,38 @@ function renderVisitors(visitors){
   const visitMap={};
   for(const v of visitors){if(v.role==='dosen'||v.role==='guest')continue;if(!visitMap[v.nim])visitMap[v.nim]=v;}
   const visited=Object.values(visitMap);
-  const lateCount=visited.filter(v=>isLate(v.timestamp)).length;
-  const schedExpired=currentSchedule&&currentSchedule.end&&new Date().getTime()>new Date(currentSchedule.end).getTime();
-
+  const schedExpired=isScheduleExpired();
+  const graceExpired=isGraceExpired();
   document.getElementById('fabCount').textContent=visited.length;
   updateLeaderboard(visitors, schedExpired);
   document.getElementById('vpBadge').textContent=visited.length+' orang';
-  const statLateEl=document.getElementById('statLate');
-  if(statLateEl) statLateEl.textContent=lateCount;
-
   const listEl=document.getElementById('vpList'), tableEl=document.getElementById('visitorTableBody');
-
-  // Panel: only actual visitors
-  if(!visited.length){listEl.innerHTML='<div class="vp-empty">Belum ada pengunjung.</div>';}
+  if(!visited.length){listEl.innerHTML='<div class="vp-empty">Belum ada data.</div>';}
   else{
     listEl.innerHTML=visited.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(v=>{
       const ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
       const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-      const late=isLate(v.timestamp);
+      const late=isAfterDeadline(v.timestamp);
       const lBadge=late?'<span style="color:#fb7185;font-size:.65rem;font-weight:600;margin-left:4px;">\u23f0 Terlambat</span>':'';
-      return `<div class="vp-item" style="${late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':''}"><div class="vp-avatar student" style="${late?'background:rgba(251,113,133,.12);color:#fb7185;':''}">${ini}</div><div class="vp-info"><div class="vp-name">${escH(v.nama)}${lBadge}</div><div class="vp-nim">${escH(v.nim)}</div></div><div class="vp-time"><div>${ts}</div><div style="font-size:.6rem;color:#94a3b8;text-align:right;">${v.visitCount||1}x kunjungan</div></div></div>`;
+      return `<div class="vp-item" style="${late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':''}"><div class="vp-avatar student" style="${late?'background:rgba(251,113,133,.12);color:#fb7185;':''}">${ini}</div><div class="vp-info"><div class="vp-name">${escH(v.nama)}${lBadge}</div><div class="vp-nim">${escH(v.nim)}</div></div><div class="vp-time"><div>${ts}</div><div style="font-size:.6rem;color:#94a3b8;text-align:right;">${v.visitCount||1}x · ${v.points||0} poin</div></div></div>`;
     }).join('');
   }
-
-  // Table: ALL students from masterStudents
-  if(!masterStudents.length){
-    tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">\u23f3 Memuat data mahasiswa...</div>';
-    return;
-  }
+  if(!masterStudents.length){tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">\u23f3 Memuat data mahasiswa...</div>';return;}
   function toTitle(s){return s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());}
   tableEl.innerHTML=masterStudents.map((s,i)=>{
-    const v=visitMap[s.nim];
-    const nama=toTitle(s.nama);
-    const ini=nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const hasVisit=!!v;
-    const late=hasVisit&&isLate(v.timestamp);
-    const bolos=!hasVisit&&schedExpired;
-    const vc=hasVisit?(v.visitCount||1):0;
+    const v=visitMap[s.nim];const nama=toTitle(s.nama);const ini=nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const hasVisit=!!v;const late=hasVisit&&isAfterDeadline(v.timestamp);const bolos=!hasVisit&&graceExpired;
+    const vc=hasVisit?(v.visitCount||1):0;const pts=hasVisit?(v.points||0):0;
     const ts=hasVisit?(()=>{const dt=new Date(v.timestamp);return dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});})():'—';
     let statusCol,rowBg='',nameColor='color:#e2e8f0;',ac='background:rgba(255,255,255,.08);color:#e2e8f0;';
-    if(bolos){
-      statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25);">\u274c Bolos</span>';
-      rowBg='background:rgba(239,68,68,.03);';nameColor='color:#ef4444;';ac='background:rgba(239,68,68,.12);color:#ef4444;';
-    }else if(!hasVisit){
-      statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(100,116,139,.1);color:#94a3b8;border:1px solid rgba(100,116,139,.2);">\u23f3 Belum</span>';
-      rowBg='';nameColor='color:#64748b;';ac='background:rgba(100,116,139,.1);color:#94a3b8;';
-    }else if(late){
-      statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(251,113,133,.12);color:#fb7185;border:1px solid rgba(251,113,133,.25);">\u23f0 Terlambat</span>';
-      rowBg='background:rgba(251,113,133,.04);';nameColor='color:#fb7185;';ac='background:rgba(251,113,133,.12);color:#fb7185;';
-    }else{
-      statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.25);">\u2705 Tepat Waktu</span>';
-    }
+    if(bolos){statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25);">\u274c Bolos</span>';rowBg='background:rgba(239,68,68,.03);';nameColor='color:#ef4444;';ac='background:rgba(239,68,68,.12);color:#ef4444;';}
+    else if(!hasVisit){statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(100,116,139,.1);color:#94a3b8;border:1px solid rgba(100,116,139,.2);">\u23f3 Belum</span>';rowBg='';nameColor='color:#64748b;';ac='background:rgba(100,116,139,.1);color:#94a3b8;';}
+    else if(late){statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(251,113,133,.12);color:#fb7185;border:1px solid rgba(251,113,133,.25);">\u23f0 Terlambat</span>';rowBg='background:rgba(251,113,133,.04);';nameColor='color:#fb7185;';ac='background:rgba(251,113,133,.12);color:#fb7185;';}
+    else{statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.25);">\u2705 Tepat Waktu</span>';}
     const vcDisplay=vc?vc+'x':'<span style="color:#475569;">—</span>';
+    const ptsDisplay=pts?'<span style="color:#10b981;font-weight:800;">'+pts+'</span>':'<span style="color:#475569;">0</span>';
     const tsColor=bolos?'#ef4444':late?'#fb7185':hasVisit?'#64748b':'#475569';
-    return `<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;${rowBg}" onmouseenter="this.style.background='rgba(255,255,255,.03)'" onmouseleave="this.style.background='${rowBg||'transparent'}'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:${tsColor};font-weight:600;">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${ac}">${ini}</div><div><div style="font-weight:600;font-size:.88rem;${nameColor}">${escH(nama)}</div></div></div><div style="flex:1;font-size:.8rem;color:${hasVisit?'#94a3b8':'#475569'};font-family:monospace;">${s.nim}</div><div style="flex:1;text-align:center;">${statusCol}</div><div style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:#94a3b8;">${vcDisplay}</div><div style="flex:1;text-align:right;font-size:.78rem;color:${tsColor};">${ts}</div></div>`;
+    return `<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;${rowBg}" onmouseenter="this.style.background='rgba(255,255,255,.03)'" onmouseleave="this.style.background='${rowBg||'transparent'}'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:${tsColor};font-weight:600;">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${ac}">${ini}</div><div><div style="font-weight:600;font-size:.88rem;${nameColor}">${escH(nama)}</div></div></div><div style="flex:1;font-size:.8rem;color:${hasVisit?'#94a3b8':'#475569'};font-family:monospace;">${s.nim}</div><div style="flex:1;text-align:center;">${statusCol}</div><div style="flex:0.5;text-align:center;font-size:.85rem;">${ptsDisplay}</div><div style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:#94a3b8;">${vcDisplay}</div><div style="flex:1;text-align:right;font-size:.78rem;color:${tsColor};">${ts}</div></div>`;
   }).join('');
 }
 
@@ -787,6 +795,26 @@ function escH(s){const d=document.createElement('div');d.textContent=s;return d.
 document.getElementById('vNim').addEventListener('keydown',function(e){if(e.key==='Enter')submitVisitor();});
 document.getElementById('vNama').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('vNim').focus();});
 
+
+// ═══ POINTS SYSTEM ═══
+const _answeredQuestions = new Set();
+window._awardPoint = function(qId) {
+  if (_answeredQuestions.has(qId)) return;
+  if (isScheduleExpired()) return;
+  const me = getIdentity();
+  if (!me || !me.nim || me.role === 'dosen') return;
+  _answeredQuestions.add(qId);
+  const key = sanitizeKey(`mhs_${me.nim}`);
+  get(ref(db, `${DB_PATH}/${key}`)).then(snap => {
+    if (snap.exists()) {
+      const ex = snap.val();
+      const scored = ex.scoredQuestions ? ex.scoredQuestions.split(',') : [];
+      if (scored.includes(qId)) return;
+      scored.push(qId);
+      set(ref(db, `${DB_PATH}/${key}`), {...ex, points: (ex.points||0)+1, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',')});
+    }
+  }).catch(() => {});
+};
 
 window.submitVisitor=submitVisitor;window.togglePanel=togglePanel;
 
