@@ -2831,11 +2831,23 @@ function isLate(timestamp){
   if(!currentSchedule || !currentSchedule.end) return false;
   const t = new Date(timestamp).getTime();
   const e = new Date(currentSchedule.end).getTime();
-  return t > e;
+  const grace = e + 7 * 24 * 60 * 60 * 1000; // 1 minggu setelah batas akhir
+  return t > e && t <= grace;
+}
+
+function isAfterDeadline(timestamp){
+  if(!currentSchedule || !currentSchedule.end) return false;
+  return new Date(timestamp).getTime() > new Date(currentSchedule.end).getTime();
 }
 
 function isScheduleExpired(){
   return currentSchedule && currentSchedule.end && Date.now() > new Date(currentSchedule.end).getTime();
+}
+
+function isGraceExpired(){
+  if(!currentSchedule || !currentSchedule.end) return false;
+  const grace = new Date(currentSchedule.end).getTime() + 7 * 24 * 60 * 60 * 1000;
+  return Date.now() > grace;
 }
 
 function submitVisitor(){
@@ -2896,6 +2908,7 @@ function renderVisitors(visitors){
   for(const v of visitors){if(v.role==='dosen'||v.role==='guest')continue;if(!visitMap[v.nim])visitMap[v.nim]=v;}
   const visited=Object.values(visitMap);
   const schedExpired=isScheduleExpired();
+  const graceExpired=isGraceExpired();
 
   document.getElementById('fabCount').textContent=visited.length;
   updateLeaderboard(visitors, schedExpired);
@@ -2909,7 +2922,7 @@ function renderVisitors(visitors){
     listEl.innerHTML=visited.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(v=>{
       const ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
       const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-      const late=isLate(v.timestamp);
+      const late=isAfterDeadline(v.timestamp);
       const lBadge=late?'<span style="color:#fb7185;font-size:.65rem;font-weight:600;margin-left:4px;">\u23f0 Terlambat</span>':'';
       return `<div class="vp-item" style="${late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':''}"><div class="vp-avatar student" style="${late?'background:rgba(251,113,133,.12);color:#fb7185;':''}">${ini}</div><div class="vp-info"><div class="vp-name">${escH(v.nama)}${lBadge}</div><div class="vp-nim">${escH(v.nim)}</div></div><div class="vp-time"><div>${ts}</div><div style="font-size:.6rem;color:#94a3b8;text-align:right;">${v.visitCount||1}x · ${v.points||0} poin</div></div></div>`;
     }).join('');
@@ -2926,8 +2939,8 @@ function renderVisitors(visitors){
     const nama=toTitle(s.nama);
     const ini=nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     const hasVisit=!!v;
-    const late=hasVisit&&isLate(v.timestamp);
-    const bolos=!hasVisit&&schedExpired;
+    const late=hasVisit&&isAfterDeadline(v.timestamp);
+    const bolos=!hasVisit&&graceExpired;
     const vc=hasVisit?(v.visitCount||1):0;
     const pts=hasVisit?(v.points||0):0;
     const ts=hasVisit?(()=>{const dt=new Date(v.timestamp);return dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});})():'—';
