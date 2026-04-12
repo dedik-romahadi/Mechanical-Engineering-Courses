@@ -2868,6 +2868,14 @@ function submitVisitor(){
         const lastV = new Date(ex.lastVisit || ex.timestamp).getTime();
         const canBump = !expired && (Date.now() - lastV) >= VISIT_COOLDOWN;
         v = {...ex, visitCount: canBump ? (ex.visitCount||1)+1 : (ex.visitCount||1), lastVisit: canBump ? nowISO : (ex.lastVisit||ex.timestamp)};
+        // Sync scored questions to local state (new device login)
+        if(ex.scoredQuestions){
+          ex.scoredQuestions.split(',').forEach(q=>{
+            _answeredQuestions.add(q);
+            const ab=document.getElementById('ansBtn-'+q);
+            if(ab) ab.classList.remove('locked');
+          });
+        }
       } else {
         v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO, points:0};
       }
