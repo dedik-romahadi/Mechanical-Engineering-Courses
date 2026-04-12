@@ -227,6 +227,11 @@
       </div>
     </div>
     
+    <div style="display:flex;gap:1px;background:rgba(255,255,255,.04);border-radius:14px;overflow:hidden;margin-bottom:16px;">
+      <div style="flex:1;padding:16px 20px;text-align:center;"><div id="statTotal" style="font-weight:800;font-size:1.8rem;color:#10b981;">—</div><div style="font-size:.72rem;color:#64748b;margin-top:2px;">Total Hadir</div></div>
+      <div style="flex:1;padding:16px 20px;text-align:center;border-left:1px solid rgba(255,255,255,.06);border-right:1px solid rgba(255,255,255,.06);"><div id="statMhs" style="font-weight:800;font-size:1.8rem;color:#ef4444;">—</div><div style="font-size:.72rem;color:#64748b;margin-top:2px;">Total Absen</div></div>
+      <div style="flex:1;padding:16px 20px;text-align:center;"><div id="statDosen" style="font-weight:800;font-size:1.8rem;color:#fbbf24;">—</div><div style="font-size:.72rem;color:#64748b;margin-top:2px;">Jumlah Mahasiswa</div></div>
+    </div>
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;">
       <div style="display:flex;padding:14px 24px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.08em;">
         <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:0.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
@@ -647,6 +652,7 @@ function renderVisitors(visitors){
   for(const v of visitors){if(v.role==='dosen'||v.role==='guest')continue;if(!visitMap[v.nim])visitMap[v.nim]=v;}
   const visited=Object.values(visitMap);
   document.getElementById('fabCount').textContent=visited.length;
+  var stT=document.getElementById('statTotal'),stM=document.getElementById('statMhs'),stD=document.getElementById('statDosen');if(stT){var absen=masterStudents.length-visited.length;stT.textContent=visited.length;stM.textContent=absen;stD.textContent=masterStudents.length;}
   document.getElementById('vpBadge').textContent=visited.length+' orang';
   const listEl=document.getElementById('vpList'),tableEl=document.getElementById('visitorTableBody');
   if(!visited.length)listEl.innerHTML='<div class="vp-empty">Belum ada data.</div>';
