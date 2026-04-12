@@ -170,10 +170,10 @@ footer{text-align:center;padding:2.5rem 2rem;color:var(--t3);font-size:.8rem}
   </div>
 </div>
 <!-- Floating Visitor Button -->
-<button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Aktivitas Mahasiswa">👥<span class="fab-count" id="fabCount">0</span></button>
+<button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Performa Mahasiswa">👥<span class="fab-count" id="fabCount">0</span></button>
 <!-- Visitor Panel -->
 <div class="visitor-panel" id="visitorPanel">
-  <div class="vp-header"><h3>👥 Mahasiswa</h3><span class="vp-badge" id="vpBadge">0 orang</span></div>
+  <div class="vp-header"><h3>👥 Aktivitas</h3><span class="vp-badge" id="vpBadge">0 orang</span></div>
   <div class="vp-list" id="vpList"><div class="vp-empty">Memuat data mahasiswa...</div></div>
 </div>
 
@@ -236,31 +236,22 @@ footer{text-align:center;padding:2.5rem 2rem;color:var(--t3);font-size:.8rem}
 <section style="max-width:900px;margin:48px auto 0;padding:0 24px;">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px;">
     <div>
-      <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.05);border:1px solid #1c2d40;color:#0ea5e9;padding:5px 14px;border-radius:999px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;">👥 Mahasiswa</span>
-      <h2 style="font-size:1.6rem;font-weight:800;color:#fff;margin-top:12px;">Aktivitas Mahasiswa</h2>
+      <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.05);border:1px solid #1c2d40;color:#0ea5e9;padding:5px 14px;border-radius:999px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;">👥 Aktivitas</span>
+      <h2 style="font-size:1.6rem;font-weight:800;color:#fff;margin-top:12px;">Performa Mahasiswa</h2>
       <p style="color:#94a3b8;font-size:.85rem;margin-top:6px;">Mahasiswa yang telah mengakses halaman ini.</p>
     </div>
-    <button onclick="showResetModal()" style="padding:10px 20px;border-radius:12px;border:1px solid rgba(251,113,133,.3);background:rgba(251,113,133,.08);color:#fb7185;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:6px;" onmouseenter="this.style.background='rgba(251,113,133,.18)'" onmouseleave="this.style.background='rgba(251,113,133,.08)'">🗑 Reset</button>
+    <button onclick="showResetModal()" style="margin-left:auto;padding:10px 20px;border-radius:12px;border:1px solid rgba(251,113,133,.3);background:rgba(251,113,133,.08);color:#fb7185;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:6px;" onmouseenter="this.style.background='rgba(251,113,133,.18)'" onmouseleave="this.style.background='rgba(251,113,133,.08)'">🗑 Reset</button>
   </div>
   <div style="background:#131f32;border:1px solid #1c2d40;border-radius:20px;overflow:hidden;">
     <div id="leaderboardPanel" style="margin-bottom:2px;">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:16px 20px;">
         <div style="background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.15);border-radius:14px;padding:14px 16px;">
-          <div style="font-size:.72rem;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🏆 Paling Rajin</div>
+          <div style="font-size:.72rem;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🏆 Top Skor</div>
           <div id="rajinList" style="font-size:.8rem;color:#e2e8f0;min-height:60px;">⏳ Memuat...</div>
         </div>
         <div style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15);border-radius:14px;padding:14px 16px;">
-          <div style="font-size:.72rem;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">😴 Paling Santai</div>
+          <div style="font-size:.72rem;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🔥 Top Akses</div>
           <div id="santaiList" style="font-size:.8rem;color:#e2e8f0;min-height:60px;">⏳ Memuat...</div>
-        </div>
-      </div>
-      <div style="padding:0 20px 16px;">
-        <div style="background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);border-radius:14px;padding:14px 16px;">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-            <div style="font-size:.72rem;font-weight:700;color:#fb7185;text-transform:uppercase;letter-spacing:.1em;">❌ Bolos</div>
-            <div id="bolosCount" style="background:rgba(251,113,133,.15);color:#fb7185;font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:8px;">0</div>
-          </div>
-          <div id="bolosList" style="font-size:.8rem;color:#e2e8f0;">⏳ Memuat...</div>
         </div>
       </div>
     </div>
@@ -418,10 +409,10 @@ function fetchMasterStudents(retries){
 function updateLeaderboard(visitors, schedExpired){
   const rajinEl=document.getElementById('rajinList');
   const santaiEl=document.getElementById('santaiList');
-  const bolosEl=document.getElementById('bolosList');
-  const bolosCEl=document.getElementById('bolosCount');
+  
+  
   if(!rajinEl)return;
-  if(!masterStudents.length){rajinEl.innerHTML='<span style="color:#64748b;font-size:.75rem;">Memuat data mahasiswa...</span>';santaiEl.innerHTML=rajinEl.innerHTML;bolosEl.innerHTML=rajinEl.innerHTML;return;}
+  if(!masterStudents.length){rajinEl.innerHTML='<span style="color:#64748b;font-size:.75rem;">Memuat data mahasiswa...</span>';santaiEl.innerHTML=rajinEl.innerHTML;return;}
   const mhs=visitors.filter(v=>v.role!=='dosen'&&v.role!=='guest');
   const visitMap={};
   mhs.forEach(v=>{const k=v.nim;if(!visitMap[k])visitMap[k]=v;});
@@ -440,17 +431,6 @@ function updateLeaderboard(visitors, schedExpired){
   const santaiFiltered=santai.filter(v=>!top3.has(v.nim));
   rajinEl.innerHTML=rajin.length?rajin.slice(0,3).map((v,i)=>renderCard(v,i,false)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
   santaiEl.innerHTML=santaiFiltered.length?santaiFiltered.slice(0,3).map((v,i)=>renderCard(v,i,true)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
-  const visitedNims=new Set(mhs.map(v=>v.nim));
-  const notVisited=masterStudents.filter(s=>!visitedNims.has(s.nim));
-  if(schedExpired){
-    bolosCEl.textContent=notVisited.length;
-    if(!notVisited.length){bolosEl.innerHTML='<span style="color:#10b981;font-size:.78rem;">\u2705 Semua mahasiswa sudah berkunjung!</span>';}
-    else{bolosEl.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:6px;">'+notVisited.map(s=>'<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.12);border-radius:10px;padding:5px 10px;"><span style="font-weight:600;font-size:.75rem;color:#ef4444;">'+escH(s.nama)+'</span><span style="font-size:.62rem;color:#64748b;font-family:monospace;">'+s.nim+'</span></div>').join('')+'</div>';}
-  } else {
-    bolosCEl.textContent='—';
-    const belum=notVisited.length;
-    bolosEl.innerHTML=belum?'<span style="color:#94a3b8;font-size:.78rem;">⏳ '+belum+' mahasiswa belum berkunjung. Batas waktu belum berakhir.</span>':'<span style="color:#10b981;font-size:.78rem;">✅ Semua mahasiswa sudah berkunjung!</span>';
-  }
 }
 fetchMasterStudents();
 
@@ -562,7 +542,7 @@ function renderVisitors(visitors){
     const hasVisit=!!v;
     const vc=hasVisit?(v.visitCount||1):0;
     const ts=hasVisit?(()=>{const dt=new Date(v.timestamp);return dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});})():'—';
-    const statusCol=hasVisit?'<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.25);">\u2705 Hadir</span>':'<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(100,116,139,.1);color:#94a3b8;border:1px solid rgba(100,116,139,.2);">\u23f3 Belum</span>';
+    const statusCol=hasVisit?'<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.25);">\u2705 Hadir</span>':'<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(100,116,139,.1);color:#94a3b8;border:1px solid rgba(100,116,139,.2);">\u274c Absen</span>';
     const nameColor=hasVisit?'color:#e2e8f0;':'color:#64748b;';
     const ac=hasVisit?'background:rgba(255,255,255,.08);color:#e2e8f0;':'background:rgba(100,116,139,.1);color:#94a3b8;';
     const vcDisplay=vc?vc+'x':'<span style="color:#475569;">—</span>';
