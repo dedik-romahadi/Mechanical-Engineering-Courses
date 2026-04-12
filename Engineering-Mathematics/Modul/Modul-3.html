@@ -921,28 +921,26 @@ footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:
     </div>
   </div>
 
-  <!-- Soal 5: Input Langsung -->
+  <!-- Soal 5: Pilihan Ganda -->
   <div class="ex">
     <div class="exh"><div class="exn">5</div><div class="ext">Hitung Turunan Parsial</div></div>
     <div class="exb">
       <p>Diberikan \(M(x,y) = 3x^2y + y^3\) dan \(N(x,y) = x^3 + 3xy^2\).</p>
-      <p>Hitunglah \(M_y\) dan \(N_x\) untuk menentukan apakah PD ini eksak.</p>
-      <div class="ag">
-        <label>\(M_y = \frac{\partial M}{\partial y} = \)</label>
-        <input type="text" class="ai" id="inp-my" placeholder="Ketik jawaban, misal: 3x^2 + 3y^2">
-      </div>
-      <div class="ag">
-        <label>\(N_x = \frac{\partial N}{\partial x} = \)</label>
-        <input type="text" class="ai" id="inp-nx" placeholder="Ketik jawaban, misal: 3x^2 + 3y^2">
+      <p>Hitunglah \(M_y\) dan \(N_x\), lalu tentukan apakah PD ini eksak.</p>
+      <div class="rg" id="q5-opts">
+        <label class="ro" onclick="selR(this,'q5')"><input type="radio" name="q5" value="a"><span class="rc"></span>\(M_y = 3x^2 + 3y^2,\;\; N_x = 3x^2 + 3y^2\) → <strong>Eksak</strong></label>
+        <label class="ro" onclick="selR(this,'q5')"><input type="radio" name="q5" value="b"><span class="rc"></span>\(M_y = 6xy + 3y^2,\;\; N_x = 3x^2 + 6xy\) → <strong>Tidak Eksak</strong></label>
+        <label class="ro" onclick="selR(this,'q5')"><input type="radio" name="q5" value="c"><span class="rc"></span>\(M_y = 3x^2 + 3y^2,\;\; N_x = 3x^2 + 3y\) → <strong>Tidak Eksak</strong></label>
+        <label class="ro" onclick="selR(this,'q5')"><input type="radio" name="q5" value="d"><span class="rc"></span>\(M_y = x^2 + y^2,\;\; N_x = x^2 + y^2\) → <strong>Eksak</strong></label>
       </div>
       <div class="exa">
-        <button class="bc" onclick="chkInput5()">✅ Cek Jawaban</button>
+        <button class="bc" onclick="chk('q5','a')">✅ Cek Jawaban</button>
         <button class="bh" onclick="tog('h5')">💡 Petunjuk</button>
         <button class="ba locked" id="ansBtn-q5" onclick="tog('a5')">🔑 Kunci Jawaban</button>
       </div>
       <div class="fb" id="fb-q5"></div>
       <div class="hbox" id="h5"><h5>💡 Petunjuk</h5><p>Untuk \(M_y\): turunkan \(3x^2y + y^3\) terhadap \(y\). Ingat \(x\) dianggap konstanta.<br>Untuk \(N_x\): turunkan \(x^3 + 3xy^2\) terhadap \(x\). Ingat \(y\) dianggap konstanta.</p></div>
-      <div class="abox" id="a5"><h5>🔑 Jawaban: \(M_y = N_x = 3x^2 + 3y^2\) → Eksak</h5>
+      <div class="abox" id="a5"><h5>🔑 Jawaban: A — \(M_y = N_x = 3x^2 + 3y^2\) → Eksak</h5>
         <p><strong>Langkah 1:</strong> Hitung \(M_y = \frac{\partial M}{\partial y}\) dari \(M = 3x^2y + y^3\).</p>
         <p>Turunkan setiap suku terhadap \(y\) (anggap \(x\) konstanta):</p>
         <p>• \(\frac{\partial}{\partial y}(3x^2 y) = 3x^2 \cdot 1 = 3x^2\) (karena \(x^2\) adalah konstanta terhadap \(y\))</p>
@@ -1163,20 +1161,6 @@ var ansBtn=document.getElementById('ansBtn-'+q);var isFirst=ansBtn&&ansBtn.class
 document.querySelectorAll('#'+q+'-opts .ro').forEach(function(o){var v=o.querySelector('input').value;o.classList.remove('ok','bad');if(v===cor)o.classList.add('ok');else if(o.querySelector('input').checked&&v!==cor)o.classList.add('bad');o.style.pointerEvents='none'});
 if(sel.value===cor){fb.className='fb ok';fb.textContent='🎉 Benar!';if(isFirst&&typeof window._awardPoint==='function')window._awardPoint(q)}else{fb.className='fb bad';fb.textContent='❌ Kurang tepat. Lihat kunci jawaban.'}fb.style.display='block';
 if(ansBtn)ansBtn.classList.remove('locked')}
-
-// Check input soal 5
-function chkInput5(){
-  const my=document.getElementById('inp-my').value.replace(/\s/g,'').toLowerCase();
-  const nx=document.getElementById('inp-nx').value.replace(/\s/g,'').toLowerCase();
-  const fb=document.getElementById('fb-q5');
-  const correct=['3x^2+3y^2','3x²+3y²','3*x^2+3*y^2','3x**2+3y**2'];
-  const myOk=correct.some(c=>my.includes('3x')&&my.includes('3y'));
-  const nxOk=correct.some(c=>nx.includes('3x')&&nx.includes('3y'));
-  if(myOk&&nxOk){fb.className='fb ok';fb.textContent='🎉 Benar! My = Nx = 3x² + 3y² → PD ini eksak!';}
-  else if(!my&&!nx){fb.className='fb bad';fb.textContent='⚠️ Isi kedua jawaban dulu!';}
-  else{fb.className='fb bad';fb.textContent='❌ Kurang tepat. Coba hitung turunan parsial dengan teliti.';}
-  fb.style.display='block';
-}
 
 // Toggle hint/answer
 function tog(id){document.getElementById(id).classList.toggle('show')}
