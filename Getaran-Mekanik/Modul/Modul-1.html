@@ -1489,39 +1489,33 @@ function fetchMasterStudents(retries){
 function updateLeaderboard(visitors, schedExpired){
   const rajinEl=document.getElementById('rajinList');
   const santaiEl=document.getElementById('santaiList');
-  
-  
   if(!rajinEl)return;
-  if(!masterStudents.length){rajinEl.innerHTML='<span style="color:#64748b;font-size:.75rem;">Memuat data mahasiswa...</span>';santaiEl.innerHTML=rajinEl.innerHTML;bolosEl.innerHTML=rajinEl.innerHTML;return;}
+  if(!masterStudents.length){rajinEl.innerHTML='<span style="color:#64748b;font-size:.75rem;">Memuat data mahasiswa...</span>';santaiEl.innerHTML=rajinEl.innerHTML;return;}
   const mhs=visitors.filter(v=>v.role!=='dosen'&&v.role!=='guest');
   const visitMap={};
   mhs.forEach(v=>{const k=v.nim;if(!visitMap[k])visitMap[k]=v;});
   const visited=Object.values(visitMap);
-  const rajin=[...visited].sort((a,b)=>{const d=(b.visitCount||1)-(a.visitCount||1);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp);});
-  const santai=[...visited].sort((a,b)=>{const d=(a.visitCount||1)-(b.visitCount||1);return d!==0?d:new Date(b.timestamp)-new Date(a.timestamp);});
+
+  const topSkor=[...visited].filter(v=>(v.points||0)>0).sort((a,b)=>{
+    const d=(b.points||0)-(a.points||0);
+    if(d!==0) return d;
+    const tA=a.pointTimestamp?new Date(a.pointTimestamp).getTime():Infinity;
+    const tB=b.pointTimestamp?new Date(b.pointTimestamp).getTime():Infinity;
+    return tA-tB;
+  });
+  const akses=[...visited].sort((a,b)=>{const d=(b.visitCount||1)-(a.visitCount||1);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp);});
+
   const medalR=['🥇','🥈','🥉'];
-  function renderCard(v,idx,isSantai){
-    const medal=isSantai?(idx+1):medalR[idx];
+  function renderCardSkor(v,idx){
+    const pts=v.points||0;
+    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="font-size:1rem;flex-shrink:0;">'+medalR[idx]+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(16,185,129,.12);color:#10b981;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+pts+' poin</div></div>';
+  }
+  function renderCardAkses(v,idx){
     const vc=v.visitCount||1;
-    const badgeStyle=isSantai?'background:rgba(251,191,36,.12);color:#fbbf24;':'background:rgba(16,185,129,.12);color:#10b981;';
-    const mBadge=isSantai?'<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(251,191,36,.15);color:#fbbf24;font-size:.65rem;font-weight:800;flex-shrink:0;">'+medal+'</span>':'<span style="font-size:1rem;flex-shrink:0;">'+medal+'</span>';
-    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'">'+mBadge+'<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="'+badgeStyle+'padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+vc+'x</div></div>';
+    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(251,191,36,.15);color:#fbbf24;font-size:.65rem;font-weight:800;flex-shrink:0;">'+(idx+1)+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(251,191,36,.12);color:#fbbf24;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+vc+'x</div></div>';
   }
-  const top3=new Set(rajin.slice(0,3).map(v=>v.nim));
-  const santaiFiltered=santai.filter(v=>!top3.has(v.nim));
-  rajinEl.innerHTML=rajin.length?rajin.slice(0,3).map((v,i)=>renderCard(v,i,false)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
-  santaiEl.innerHTML=santaiFiltered.length?santaiFiltered.slice(0,3).map((v,i)=>renderCard(v,i,true)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
-  const visitedNims=new Set(mhs.map(v=>v.nim));
-  const notVisited=masterStudents.filter(s=>!visitedNims.has(s.nim));
-  if(schedExpired){
-    bolosCEl.textContent=notVisited.length;
-    if(!notVisited.length){bolosEl.innerHTML='<span style="color:#10b981;font-size:.78rem;">\u2705 Semua mahasiswa sudah berkunjung!</span>';}
-    else{bolosEl.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:6px;">'+notVisited.map(s=>'<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.12);border-radius:10px;padding:5px 10px;"><span style="font-weight:600;font-size:.75rem;color:#ef4444;">'+escH(s.nama)+'</span><span style="font-size:.62rem;color:#64748b;font-family:monospace;">'+s.nim+'</span></div>').join('')+'</div>';}
-  } else {
-    bolosCEl.textContent='—';
-    const belum=notVisited.length;
-    bolosEl.innerHTML=belum?'<span style="color:#94a3b8;font-size:.78rem;">⏳ '+belum+' mahasiswa belum berkunjung. Batas waktu belum berakhir.</span>':'<span style="color:#10b981;font-size:.78rem;">✅ Semua mahasiswa sudah berkunjung!</span>';
-  }
+  rajinEl.innerHTML=topSkor.length?topSkor.slice(0,3).map((v,i)=>renderCardSkor(v,i)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
+  santaiEl.innerHTML=akses.length?akses.slice(0,3).map((v,i)=>renderCardAkses(v,i)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
 }
 fetchMasterStudents();
 
