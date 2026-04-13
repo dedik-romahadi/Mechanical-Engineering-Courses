@@ -5,9 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Modul 1 — Konsep Dasar Getaran Mesin</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Sans+3:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 <style>
   :root {
     --bg:        #060a10;
@@ -20,9 +17,6 @@
     --violet:    #7c4dff;
     --text:      #cdd6e8;
     --muted:     #4a6080;
-    
-    
-    
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
@@ -34,6 +28,7 @@
     line-height: 1.7;
     overflow-x: hidden;
   }
+
 
   /* ── SCROLL PROGRESS ── */
   #scrollProgress {
@@ -52,7 +47,7 @@
     padding: 0 32px; height: 60px;
     display: flex; align-items: center; justify-content: space-between;
   }
-  .nav-brand { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--cyan); letter-spacing: 2px; display: flex; align-items: center; gap: 10px; }
+  .nav-brand { font-family: 'JetBrains Mono',monospace; font-size: 13px; color: var(--cyan); letter-spacing: 2px; display: flex; align-items: center; gap: 10px; }
   .nav-brand .pulse { width: 8px; height: 8px; background: var(--green); border-radius: 50%; animation: pulse 1.6s ease-in-out infinite; }
   @keyframes pulse { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,230,118,.5)} 50%{opacity:.6;box-shadow:0 0 0 6px rgba(0,230,118,0)} }
   .nav-links  { display: flex; gap: 28px; }
@@ -68,7 +63,7 @@
   .nav-links a:hover { color: var(--cyan); }
   .nav-links a:hover::after { width: 100%; }
   .nav-badge {
-    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    font-family: 'JetBrains Mono',monospace; font-size: 11px;
     background: rgba(0,229,255,0.1); border: 1px solid rgba(0,229,255,0.3);
     color: var(--cyan); padding: 4px 12px; border-radius: 20px;
   }
@@ -83,20 +78,33 @@
     display: flex; align-items: center; justify-content: center;
     padding: 80px 32px 40px;
     position: relative; overflow: hidden; z-index: 1;
+    background: linear-gradient(160deg,#020c1a 0%,#041526 30%,#06222e 60%,#031a20 100%);
   }
-  .hero-grid {
-    position: absolute; inset: 0;
-    background-image:
-      linear-gradient(rgba(0,229,255,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,229,255,0.04) 1px, transparent 1px);
-    background-size: 48px 48px;
-    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black, transparent);
-  }
-  .orb { position: absolute; border-radius: 50%; filter: blur(100px); opacity: .07; pointer-events: none; }
-  .orb-1 { width: 500px; height: 500px; background: var(--violet); top: -120px; right: -80px; animation: orbA 10s ease-in-out infinite; }
-  .orb-2 { width: 400px; height: 400px; background: var(--cyan); bottom: -80px; left: -80px; animation: orbA 12s ease-in-out infinite reverse; }
-  .orb-3 { width: 300px; height: 300px; background: var(--green); top: 40%; left: 60%; animation: orbA 14s ease-in-out infinite 3s; }
-  @keyframes orbA { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(20px,-20px) scale(1.05)} 66%{transform:translate(-15px,15px) scale(.95)} }
+  /* oscilloscope grid overlay */
+  .hero::before{content:'';position:absolute;inset:0;background:
+    repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(0,229,255,.03) 59px,rgba(0,229,255,.03) 60px),
+    repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(0,229,255,.03) 59px,rgba(0,229,255,.03) 60px);
+    pointer-events:none}
+  /* radial glow */
+  .hero::after{content:'';position:absolute;inset:0;background:
+    radial-gradient(ellipse 50% 50% at 50% 55%,rgba(0,229,255,.06),transparent 70%),
+    radial-gradient(ellipse 40% 40% at 25% 70%,rgba(0,230,118,.05),transparent 60%),
+    radial-gradient(ellipse 30% 30% at 80% 30%,rgba(124,77,255,.04),transparent 60%);
+    pointer-events:none}
+  /* animated wave traces */
+  .hero-waves{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+  .hero-waves svg{position:absolute;bottom:0;left:0;width:100%;height:100%}
+  /* floating formulas */
+  .float-formulas{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+  .ff{position:absolute;font-family:'JetBrains Mono',monospace;font-weight:600;opacity:.07;animation:floatFormula var(--dur,16s) linear infinite;animation-delay:var(--del,0s);white-space:nowrap}
+  @keyframes floatFormula{0%{transform:translateY(100vh) rotate(0deg);opacity:0}5%{opacity:.07}90%{opacity:.05}100%{transform:translateY(-20vh) rotate(8deg);opacity:0}}
+  /* spring-mass-damper schematic */
+  .hero-schematic{position:absolute;right:6%;top:50%;transform:translateY(-50%);pointer-events:none;opacity:.12}
+  .hero-schematic svg{width:120px;height:200px}
+  @keyframes oscillate{0%,100%{transform:translateY(0)}25%{transform:translateY(18px)}50%{transform:translateY(0)}75%{transform:translateY(-12px)}}
+  .smd-mass{animation:oscillate 3s ease-in-out infinite}
+  @media(max-width:900px){.hero-schematic{display:none}}
+
   .hero-content { position: relative; text-align: center; max-width: 900px; z-index: 2; }
   .hero-tag {
     display: inline-block;
@@ -134,7 +142,7 @@
   /* ── SECTION ── */
   .section { max-width: 1100px; margin: 0 auto; padding: 80px 32px; position: relative; z-index: 1; }
   .section-label {
-    font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--cyan);
+    font-family: 'JetBrains Mono',monospace; font-size: 11px; color: var(--cyan);
     letter-spacing: 4px; text-transform: uppercase; margin-bottom: 12px;
     display: flex; align-items: center; gap: 10px;
   }
@@ -162,7 +170,7 @@
   .card h3 { font-size: 17px; font-weight: 600; color: #fff; margin-bottom: 8px; }
   .card p  { font-size: 14px; color: var(--muted); }
   .card .formula {
-    margin-top: 12px; font-family: 'JetBrains Mono', monospace; font-size: 15px;
+    margin-top: 12px; font-family: 'JetBrains Mono',monospace; font-size: 15px;
     color: var(--cyan); background: rgba(0,229,255,.07);
     border: 1px solid rgba(0,229,255,.15);
     padding: 8px 14px; border-radius: 8px; display: inline-block;
@@ -188,7 +196,7 @@
     height: 6px; background: var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 6px;
   }
   .param-row .param-fill { height: 100%; border-radius: 10px; transition: width 1.5s ease; }
-  .param-row .param-unit { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; }
+  .param-row .param-unit { font-family: 'JetBrains Mono',monospace; font-size: 12px; font-weight: 700; }
   .param-row p { font-size: 12px; color: var(--muted); margin-top: 4px; }
   .param-note {
     margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);
@@ -217,18 +225,18 @@
   .ctrl-row { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 16px; align-items: center; }
   .ctrl-group { flex: 1; min-width: 160px; }
   .ctrl-group label {
-    font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono',monospace;
     display: block; margin-bottom: 6px;
   }
   .ctrl-group input[type=range] {
     width: 100%; accent-color: var(--cyan); cursor: pointer;
     height: 6px; border-radius: 4px;
   }
-  .ctrl-val { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--cyan); font-weight: 700; }
+  .ctrl-val { font-family: 'JetBrains Mono',monospace; font-size: 13px; color: var(--cyan); font-weight: 700; }
   .btn-anim {
     padding: 10px 24px; border-radius: 10px; border: 1px solid rgba(0,229,255,.4);
     background: rgba(0,229,255,.08); color: var(--cyan);
-    font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700;
+    font-family: 'JetBrains Mono',monospace; font-size: 12px; font-weight: 700;
     cursor: pointer; transition: background .2s, transform .2s, box-shadow .2s; letter-spacing: 1px;
   }
   .btn-anim:hover { background: rgba(0,229,255,.18); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,229,255,.15); }
@@ -246,16 +254,16 @@
     border-bottom: 1px solid var(--border);
     display: flex; align-items: center; justify-content: space-between;
   }
-  .code-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+  .code-label { font-family: 'JetBrains Mono',monospace; font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
   .code-dots { display: flex; gap: 6px; }
   .code-dots span { width: 10px; height: 10px; border-radius: 50%; }
   .code-lang {
-    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    font-family: 'JetBrains Mono',monospace; font-size: 11px;
     background: rgba(0,229,255,.1); color: var(--cyan);
     padding: 2px 10px; border-radius: 20px; border: 1px solid rgba(0,229,255,.2);
   }
   pre {
-    padding: 22px; font-family: 'JetBrains Mono', monospace; font-size: 13px;
+    padding: 22px; font-family: 'JetBrains Mono',monospace; font-size: 13px;
     line-height: 1.8; overflow-x: auto; color: #cdd6e8; white-space: pre;
   }
   .kw  { color: #7c4dff; }
@@ -286,7 +294,7 @@
   footer {
     border-top: 1px solid var(--border); padding: 40px 32px;
     text-align: center; font-size: 13px; color: var(--muted);
-    font-family: 'JetBrains Mono', monospace; position: relative; z-index: 1;
+    font-family: 'JetBrains Mono',monospace; position: relative; z-index: 1;
   }
   footer a { color: var(--cyan); text-decoration: none; }
 
@@ -317,15 +325,15 @@
 .visitor-overlay.hidden{opacity:0;pointer-events:none}
 .visitor-modal{background:var(--surface,#0f1929);border:1px solid var(--border,rgba(255,255,255,.15));border-radius:24px;padding:40px 36px;max-width:440px;width:90%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.6);animation:vModalIn .5s cubic-bezier(.16,1,.3,1)}
 @keyframes vModalIn{0%{opacity:0;transform:translateY(30px) scale(.96)}100%{opacity:1;transform:translateY(0) scale(1)}}
-.visitor-modal h2{font-family:inherit;font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,#06d6a0,#118ab2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
-.visitor-modal p.sub{color:#9ca3af;font-size:.85rem;margin-bottom:28px}
-.v-input{width:100%;padding:14px 18px;border-radius:14px;border:1px solid #2a3548;background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-size:.95rem;outline:none;transition:border .25s;margin-bottom:14px}
+.visitor-modal h2{font-family:inherit;font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,#5eead4,#a5f3fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
+.visitor-modal p.sub{color:#94a3b8;font-size:.85rem;margin-bottom:28px}
+.v-input{width:100%;padding:14px 18px;border-radius:14px;border:1px solid var(--s700,#334155);background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-size:.95rem;outline:none;transition:border .25s;margin-bottom:14px}
 .v-input::placeholder{color:#64748b}
 .v-input:focus{border-color:#06d6a0;box-shadow:0 0 0 3px rgba(255,255,255,.15)}
 .v-btn-primary{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#06d6a0,#22d3ee);color:#080e1a;font-family:inherit;font-weight:700;font-size:1rem;cursor:pointer;transition:transform .2s,box-shadow .2s;margin-top:6px}
 .v-btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,255,255,.35)}
 .v-error{color:#fb7185;font-size:.8rem;margin-bottom:10px;display:none}
-.v-btn-cancel{width:100%;padding:12px;border-radius:14px;margin-top:12px;border:1px solid #2a3548;background:rgba(255,255,255,.04);color:#9ca3af;font-family:inherit;font-weight:600;font-size:.88rem;cursor:pointer;transition:all .25s}
+.v-btn-cancel{width:100%;padding:12px;border-radius:14px;margin-top:12px;border:1px solid var(--s700,#334155);background:rgba(255,255,255,.04);color:#94a3b8;font-family:inherit;font-weight:600;font-size:.88rem;cursor:pointer;transition:all .25s}
 .v-btn-cancel:hover{background:rgba(255,255,255,.08)}
 .visitor-fab{position:fixed;bottom:24px;right:24px;z-index:8888;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#06d6a0,#22d3ee);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(255,255,255,.4);transition:transform .25s,box-shadow .25s;font-size:1.4rem}
 .visitor-fab:hover{transform:scale(1.08);box-shadow:0 8px 32px rgba(255,255,255,.5)}
@@ -347,6 +355,24 @@
 .vp-time{font-size:.68rem;color:#64748b;text-align:right;flex-shrink:0;white-space:nowrap}
 .vp-empty{text-align:center;padding:32px 16px;color:#64748b;font-size:.85rem}
 @media(max-width:480px){.visitor-panel{width:calc(100vw - 32px);right:16px;bottom:88px}.visitor-fab{bottom:18px;right:18px}}
+
+/* ═══ VISITOR TABLE ROWS ═══ */
+.vt-row{display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .3s,border-color .3s;border-left:3px solid transparent;cursor:default}
+.vt-row:hover{background:rgba(6,214,160,.04);border-left-color:#06d6a0}
+.vt-row.absen:hover{background:rgba(230,57,70,.03);border-left-color:#e63946}
+.vt-row .vt-num{width:44px;flex-shrink:0;font-size:.82rem;font-weight:600;transition:color .3s}
+.vt-row:hover .vt-num{color:#06d6a0!important}
+.vt-row.absen:hover .vt-num{color:#e63946!important}
+.vt-row .vt-avatar{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s}
+.vt-row:hover .vt-avatar{transform:scale(1.12);box-shadow:0 4px 14px rgba(6,214,160,.2)}
+.vt-row.absen:hover .vt-avatar{box-shadow:0 4px 14px rgba(230,57,70,.15)}
+.vt-row .vt-name{font-weight:600;font-size:.88rem;transition:color .3s}
+.vt-row:hover .vt-name{color:#fff!important}
+.vt-row .vt-status{transition:transform .3s}
+.vt-row:hover .vt-status{transform:scale(1.08)}
+.vt-row .vt-visit{transition:color .3s}
+.vt-row:hover .vt-visit{color:#06d6a0!important}
+.vt-row.absen:hover .vt-visit{color:#9ca3af!important}
 </style>
 </head>
 <body>
@@ -421,6 +447,7 @@
   <div class="nav-links">
     <a href="#teori">Teori</a>
     <a href="#parameter">Parameter</a>
+    <a href="#analogi">Analogi</a>
     <a href="#animasi">Animasi</a>
     <a href="#jupyter">Jupyter</a>
   </div>
@@ -429,10 +456,52 @@
 
 <!-- ═══════════════════════ HERO ═══════════════════════ -->
 <div class="hero">
-  <div class="hero-grid"></div>
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-  <div class="orb orb-3"></div>
+  <!-- Animated wave traces -->
+  <div class="hero-waves">
+    <svg viewBox="0 0 1440 600" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path class="wave-trace w1" d="" fill="none" stroke="rgba(0,229,255,.12)" stroke-width="1.5"/>
+      <path class="wave-trace w2" d="" fill="none" stroke="rgba(0,230,118,.08)" stroke-width="1"/>
+      <path class="wave-trace w3" d="" fill="none" stroke="rgba(124,77,255,.06)" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <!-- Floating physics formulas -->
+  <div class="float-formulas">
+    <span class="ff" style="left:5%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">mẍ + cẋ + kx = 0</span>
+    <span class="ff" style="left:18%;font-size:.85rem;color:var(--green);--dur:22s;--del:4s">ω_n = √(k/m)</span>
+    <span class="ff" style="left:35%;font-size:.75rem;color:var(--violet);--dur:16s;--del:8s">ζ = c / 2√(km)</span>
+    <span class="ff" style="left:50%;font-size:.9rem;color:var(--amber);--dur:20s;--del:2s">x(t) = Ae^(-ζωt)</span>
+    <span class="ff" style="left:68%;font-size:.8rem;color:var(--cyan);--dur:24s;--del:6s">F(t) = F₀sin(ωt)</span>
+    <span class="ff" style="left:82%;font-size:.7rem;color:var(--green);--dur:17s;--del:10s">ω_d = ω_n√(1-ζ²)</span>
+    <span class="ff" style="left:12%;font-size:.65rem;color:var(--pink);--dur:19s;--del:12s">H(s) = 1/(ms²+cs+k)</span>
+    <span class="ff" style="left:62%;font-size:.7rem;color:var(--green);--dur:21s;--del:14s">det[K - ω²M] = 0</span>
+    <span class="ff" style="left:90%;font-size:.85rem;color:var(--violet);--dur:15s;--del:3s">∫ F·dx</span>
+    <span class="ff" style="left:42%;font-size:.6rem;color:var(--amber);--dur:23s;--del:9s">X/F₀ = 1/√((k-mω²)²+(cω)²)</span>
+  </div>
+
+  <!-- Spring-Mass-Damper schematic -->
+  <div class="hero-schematic">
+    <svg viewBox="0 0 100 200" xmlns="http://www.w3.org/2000/svg">
+      <line x1="10" y1="0" x2="90" y2="0" stroke="rgba(148,163,184,.5)" stroke-width="2"/>
+      <line x1="15" y1="0" x2="10" y2="8" stroke="rgba(148,163,184,.3)" stroke-width="1"/>
+      <line x1="30" y1="0" x2="25" y2="8" stroke="rgba(148,163,184,.3)" stroke-width="1"/>
+      <line x1="45" y1="0" x2="40" y2="8" stroke="rgba(148,163,184,.3)" stroke-width="1"/>
+      <line x1="60" y1="0" x2="55" y2="8" stroke="rgba(148,163,184,.3)" stroke-width="1"/>
+      <line x1="75" y1="0" x2="70" y2="8" stroke="rgba(148,163,184,.3)" stroke-width="1"/>
+      <line x1="90" y1="0" x2="85" y2="8" stroke="rgba(148,163,184,.3)" stroke-width="1"/>
+      <polyline points="35,0 35,18 25,24 45,36 25,48 45,60 25,72 45,84 35,90" fill="none" stroke="rgba(0,229,255,.5)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="smd-mass"/>
+      <line x1="65" y1="0" x2="65" y2="40" stroke="rgba(255,179,0,.4)" stroke-width="1.5"/>
+      <rect x="55" y="40" width="20" height="24" rx="2" fill="none" stroke="rgba(255,179,0,.4)" stroke-width="1.5"/>
+      <line x1="65" y1="64" x2="65" y2="90" stroke="rgba(255,179,0,.4)" stroke-width="1.5" class="smd-mass"/>
+      <g class="smd-mass">
+        <rect x="20" y="90" width="60" height="35" rx="4" fill="rgba(0,229,255,.06)" stroke="rgba(0,229,255,.3)" stroke-width="1.5"/>
+        <text x="50" y="112" text-anchor="middle" fill="rgba(0,229,255,.4)" font-family="JetBrains Mono" font-size="12" font-weight="600">m</text>
+      </g>
+      <text x="24" y="54" fill="rgba(0,229,255,.3)" font-family="JetBrains Mono" font-size="9" font-weight="600">k</text>
+      <text x="78" y="56" fill="rgba(255,179,0,.3)" font-family="JetBrains Mono" font-size="9" font-weight="600">c</text>
+    </svg>
+  </div>
+
   <div class="hero-content">
     <span class="hero-tag">〰️ Modul 1 • Getaran Mekanik</span>
     <h1 class="hero-title">Konsep Dasar<br><em>Getaran Mesin</em></h1>
@@ -509,8 +578,8 @@
     <div>
       <!-- Formula derivasi -->
       <div class="reveal" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:20px;">
-        <div style="font-family:'JetBrains Mono', monospace;font-size:11px;color:var(--cyan);letter-spacing:3px;margin-bottom:16px;">📝 TURUNAN PERSAMAAN GERAK</div>
-        <div style="font-family:'JetBrains Mono', monospace;font-size:14px;line-height:2.4;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);letter-spacing:3px;margin-bottom:16px;">📝 TURUNAN PERSAMAAN GERAK</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:14px;line-height:2.4;">
           <div style="color:#cdd6e8">Posisi:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="color:var(--cyan)">x(t) = A sin(ωt + φ)</span></div>
           <div style="color:#cdd6e8">Kecepatan:&nbsp; <span style="color:var(--green)">ẋ(t) = Aω cos(ωt + φ)</span></div>
           <div style="color:#cdd6e8">Percepatan: <span style="color:var(--pink)">ẍ(t) = −Aω² sin(ωt + φ)</span></div>
@@ -519,7 +588,7 @@
       </div>
       <!-- Jenis Getaran -->
       <div class="reveal" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;">
-        <div style="font-family:'JetBrains Mono', monospace;font-size:11px;color:var(--cyan);letter-spacing:3px;margin-bottom:20px;">📂 JENIS GETARAN</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);letter-spacing:3px;margin-bottom:20px;">📂 JENIS GETARAN</div>
         <div style="display:flex;flex-direction:column;gap:14px;">
           <div class="vib-type-item" style="background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.15);">
             <div style="width:8px;height:40px;background:var(--cyan);border-radius:4px;flex-shrink:0;"></div>
@@ -581,10 +650,70 @@
   </div>
 </div>
 
+<!-- ═══════════════════ ANALOGI ═══════════════════ -->
+<hr class="divider">
+<div class="section" id="analogi">
+  <div class="section-label reveal">Bagian 03</div>
+  <h2 class="section-title reveal">Analogi Getaran<br>dalam Kehidupan Sehari-hari</h2>
+  <p class="section-desc reveal">Memahami konsep getaran melalui fenomena yang sudah familiar, agar prinsip fisika di baliknya lebih mudah diinternalisasi.</p>
+
+  <!-- Analogi 1: Suspensi Mobil -->
+  <div class="reveal" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:20px;border-left:3px solid var(--cyan);">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+      <span style="font-size:2rem;">🚗</span>
+      <div>
+        <div style="font-size:16px;font-weight:700;color:#fff;">Suspensi Mobil = Sistem Massa-Pegas-Peredam</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px;">Spring-Mass-Damper System (1-DoF)</div>
+      </div>
+    </div>
+    <p style="font-size:15px;color:var(--text);margin-bottom:14px;">Saat mobil melewati polisi tidur, bodi kendaraan (<strong style="color:var(--cyan);">massa m</strong>) terlempar ke atas. <strong style="color:var(--cyan);">Per suspensi (spring k)</strong> mengembalikan bodi ke posisi semula, sementara <strong style="color:var(--amber);">shock absorber (damper c)</strong> meredam osilasi agar tidak bergoyang terus-menerus.</p>
+    <p style="font-size:14px;color:var(--text);">Tanpa peredam, mobil akan terus bergetar naik-turun — persis seperti solusi getaran bebas tanpa redaman: <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan);background:rgba(0,229,255,.07);padding:2px 8px;border-radius:4px;">x(t) = A·sin(ω_n·t)</code>. Shock absorber menambahkan faktor eksponensial peluruhan <code style="font-family:'JetBrains Mono',monospace;color:var(--amber);background:rgba(255,179,0,.07);padding:2px 8px;border-radius:4px;">e^(−ζω_n·t)</code> sehingga getaran cepat hilang.</p>
+  </div>
+
+  <!-- Analogi 2: Senar Gitar -->
+  <div class="reveal" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:20px;border-left:3px solid var(--amber);">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+      <span style="font-size:2rem;">🎸</span>
+      <div>
+        <div style="font-size:16px;font-weight:700;color:#fff;">Senar Gitar = Getaran Bebas + Frekuensi Alami</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px;">Free Vibration & Natural Frequency</div>
+      </div>
+    </div>
+    <p style="font-size:15px;color:var(--text);margin-bottom:14px;">Setiap senar gitar memiliki <strong style="color:var(--amber);">frekuensi alami (ω_n)</strong> yang bergantung pada tegangan (≈ kekakuan k), massa senar (m), dan panjangnya. Saat dipetik, senar bergetar pada frekuensi alaminya — menghasilkan nada tertentu.</p>
+    <p style="font-size:14px;color:var(--text);">Mengencangkan senar = menambah kekakuan (k) → frekuensi alami naik → nada lebih tinggi. Ini persis rumus <code style="font-family:'JetBrains Mono',monospace;color:var(--amber);background:rgba(255,179,0,.07);padding:2px 8px;border-radius:4px;">ω_n = √(k/m)</code>. Prinsip yang sama berlaku saat engineer mendesain mesin agar frekuensi alami komponen jauh dari frekuensi operasi.</p>
+  </div>
+
+  <!-- Analogi 3: Ayunan -->
+  <div class="reveal" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:20px;border-left:3px solid var(--pink);">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+      <span style="font-size:2rem;">🎢</span>
+      <div>
+        <div style="font-size:16px;font-weight:700;color:#fff;">Ayunan Taman = Resonansi</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px;">Forced Vibration & Resonance</div>
+      </div>
+    </div>
+    <p style="font-size:15px;color:var(--text);margin-bottom:14px;">Saat mendorong anak di ayunan, Anda secara intuitif mendorong <strong style="color:var(--pink);">tepat saat ayunan di titik tertinggi</strong> — artinya Anda memberikan gaya eksitasi pada frekuensi yang sama dengan frekuensi alami ayunan. Inilah <strong style="color:var(--pink);">resonansi</strong>: amplitudo terus bertambah dengan input energi minimal.</p>
+    <p style="font-size:14px;color:var(--text);">Dalam dunia mesin, resonansi adalah bencana: getaran yang membesar tak terkendali dapat menyebabkan kelelahan material (fatigue) dan kegagalan struktural. Contoh historis: runtuhnya Jembatan Tacoma Narrows (1940) akibat resonansi yang dipicu angin.</p>
+  </div>
+
+  <!-- Analogi 4: Mesin Cuci -->
+  <div class="reveal" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;border-left:3px solid var(--violet);">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+      <span style="font-size:2rem;">🫧</span>
+      <div>
+        <div style="font-size:16px;font-weight:700;color:#fff;">Mesin Cuci = Massa Tak Seimbang + Getaran Paksa</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px;">Unbalanced Rotating Mass & Forced Vibration</div>
+      </div>
+    </div>
+    <p style="font-size:15px;color:var(--text);margin-bottom:14px;">Saat drum berputar dengan beban pakaian yang tidak merata, terjadi gaya sentrifugal tak seimbang <code style="font-family:'JetBrains Mono',monospace;color:var(--violet);background:rgba(124,77,255,.07);padding:2px 8px;border-radius:4px;">F(t) = m·e·ω²·sin(ωt)</code> yang memaksa mesin bergetar. Semakin cepat putaran (ω naik), semakin besar gaya eksitasi.</p>
+    <p style="font-size:14px;color:var(--text);">Pada RPM tertentu, frekuensi putar drum = frekuensi alami mesin → mesin bergoyang hebat (resonansi!). Itulah mengapa mesin cuci modern melewati zona kritis ini dengan cepat dan memiliki sensor ketidakseimbangan otomatis.</p>
+  </div>
+</div>
+
 <!-- ═══════════════════ ANIMASI ═══════════════════ -->
 <hr class="divider">
 <div class="section" id="animasi">
-  <div class="section-label reveal">Bagian 03</div>
+  <div class="section-label reveal">Bagian 04</div>
   <h2 class="section-title reveal">Animasi Interaktif</h2>
   <p class="section-desc reveal">Ubah parameter secara real-time dan amati perilaku sistem getaran. Geser slider untuk menjelajahi efek amplitudo dan frekuensi.</p>
 
@@ -607,8 +736,11 @@
         </div>
         <button class="btn-anim" id="btn_mass" onclick="toggleMass()">⏸ PAUSE</button>
       </div>
-      <div style="margin-top:12px;font-size:12px;color:var(--muted);font-family:'JetBrains Mono', monospace">
-        Pegas (cyan) memanjang/memendek mengikuti posisi massa. Perhatikan hubungan posisi dan kecepatan massa.
+      <div style="margin-top:16px;font-size:13px;color:var(--text);line-height:1.8;background:rgba(0,229,255,.03);border:1px solid rgba(0,229,255,.08);border-radius:10px;padding:16px 20px;">
+        <div style="font-weight:700;color:#fff;margin-bottom:8px;font-size:14px;">📖 Cara Membaca Animasi Ini</div>
+        <p style="margin-bottom:10px;">Visualisasi ini menampilkan <strong style="color:var(--cyan);">sistem pegas-massa 1 derajat kebebasan tanpa redaman</strong>. Massa (kotak) terhubung ke dinding melalui pegas (garis cyan zigzag). Massa bergerak bolak-balik secara periodik mengikuti persamaan <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan);background:rgba(0,229,255,.07);padding:2px 6px;border-radius:4px;">x(t) = A·sin(2πf·t)</code>.</p>
+        <p style="margin-bottom:10px;"><strong>Amplitudo (A)</strong> menentukan seberapa jauh massa bergerak dari posisi setimbang. Semakin besar A, semakin jauh massa terlempar — dalam mesin nyata, ini berarti getaran yang lebih merusak.</p>
+        <p style="margin-bottom:0;"><strong>Frekuensi (f)</strong> menentukan seberapa cepat massa berosilasi. Perhatikan: saat frekuensi tinggi, pegas memanjang-memendek sangat cepat — ini merepresentasikan tegangan dinamis yang berulang dan dapat menyebabkan <em style="color:var(--pink);">kelelahan material (fatigue)</em>.</p>
       </div>
     </div>
   </div>
@@ -632,9 +764,15 @@
         </div>
         <button class="btn-anim" id="btn_wave" onclick="toggleWave()">⏸ PAUSE</button>
       </div>
-      <div style="margin-top:10px;font-size:12px;color:var(--muted);font-family:'JetBrains Mono', monospace">
+      <div style="margin-top:10px;font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace">
         <span style="color:var(--amber)">●</span> Titik oranye = sensor getaran real-time &nbsp;|&nbsp;
         <span style="color:var(--cyan)">──</span> Gelombang simpangan x(t)
+      </div>
+      <div style="margin-top:12px;font-size:13px;color:var(--text);line-height:1.8;background:rgba(255,179,0,.03);border:1px solid rgba(255,179,0,.08);border-radius:10px;padding:16px 20px;">
+        <div style="font-weight:700;color:#fff;margin-bottom:8px;font-size:14px;">📖 Cara Membaca Animasi Ini</div>
+        <p style="margin-bottom:10px;">Animasi ini menampilkan <strong style="color:var(--amber);">gelombang transversal</strong> — representasi visual dari sinyal getaran yang diukur sensor akselerometer pada permukaan mesin. Titik oranye bergerak naik-turun seperti probe sensor yang mendeteksi simpangan permukaan secara real-time.</p>
+        <p style="margin-bottom:10px;"><strong>Amplitudo</strong> merepresentasikan besarnya simpangan getaran dari posisi setimbang. Pada mesin nyata, amplitudo tinggi terdeteksi sensor menandakan masalah: ketidakseimbangan rotor, keausan bearing, atau misalignment poros.</p>
+        <p style="margin-bottom:0;"><strong>Frekuensi</strong> menunjukkan berapa kali gelombang berulang per detik. Teknisi analisis getaran membaca pola frekuensi ini untuk mendiagnosis jenis kerusakan — frekuensi 1× RPM biasanya menandakan unbalance, sedangkan frekuensi tinggi (bearing defect frequency) menandakan kerusakan bearing.</p>
       </div>
     </div>
   </div>
@@ -658,10 +796,17 @@
         </div>
         <button class="btn-anim" id="btn_triple" onclick="toggleTriple()">⏸ PAUSE</button>
       </div>
-      <div style="margin-top:12px;display:flex;gap:24px;font-size:12px;font-family:'JetBrains Mono', monospace">
+      <div style="margin-top:12px;display:flex;gap:24px;font-size:12px;font-family:'JetBrains Mono',monospace">
         <span style="color:var(--cyan)">── x(t) = posisi</span>
         <span style="color:var(--green)">── ẋ(t) = kecepatan</span>
         <span style="color:var(--pink)">── ẍ(t) = percepatan</span>
+      </div>
+      <div style="margin-top:12px;font-size:13px;color:var(--text);line-height:1.8;background:rgba(0,230,118,.03);border:1px solid rgba(0,230,118,.08);border-radius:10px;padding:16px 20px;">
+        <div style="font-weight:700;color:#fff;margin-bottom:8px;font-size:14px;">📖 Cara Membaca Animasi Ini</div>
+        <p style="margin-bottom:10px;">Tiga kurva ini menampilkan <strong style="color:var(--cyan);">posisi x(t)</strong>, <strong style="color:var(--green);">kecepatan ẋ(t)</strong>, dan <strong style="color:var(--pink);">percepatan ẍ(t)</strong> dari getaran harmonik sederhana secara bersamaan. Hubungan ketiganya adalah turunan berurutan: kecepatan = turunan pertama posisi, percepatan = turunan kedua posisi.</p>
+        <p style="margin-bottom:10px;"><strong>Hubungan fase 90°:</strong> Perhatikan bahwa kecepatan (hijau) <em>mendahului</em> posisi (cyan) sebesar 90° — saat posisi di titik nol, kecepatan justru di puncak maksimum. Percepatan (pink) mendahului posisi sebesar 180° — saat posisi di puncak positif, percepatan di puncak negatif (berlawanan arah). Ini karena percepatan selalu mengarah ke posisi setimbang (restoring force).</p>
+        <p style="margin-bottom:10px;"><strong>Efek ωₙ:</strong> Saat Anda menaikkan frekuensi alami (ωₙ), amplitudo kecepatan naik proporsional (×ωₙ) dan amplitudo percepatan naik kuadratik (×ωₙ²). Inilah mengapa mesin berkecepatan tinggi mengalami gaya inersia yang sangat besar.</p>
+        <p style="margin-bottom:0;"><strong>Mengapa ketiganya penting?</strong> Dalam analisis getaran mesin: <em>posisi</em> diukur dengan proximity probe (bearing clearance), <em>kecepatan</em> diukur dengan velocity transducer (standar ISO 10816 untuk severity), dan <em>percepatan</em> diukur dengan akselerometer (deteksi kerusakan bearing frekuensi tinggi).</p>
       </div>
     </div>
   </div>
@@ -670,9 +815,9 @@
 <!-- ═══════════════════ JUPYTER ═══════════════════ -->
 <hr class="divider">
 <div class="section" id="jupyter">
-  <div class="section-label reveal">Bagian 04</div>
+  <div class="section-label reveal">Bagian 05</div>
   <h2 class="section-title reveal">Simulasi Getaran<br>di Jupyter Notebook</h2>
-  <p class="section-desc reveal">Copy-paste kode berikut ke file <code style="font-family:'JetBrains Mono', monospace;color:var(--cyan);background:rgba(0,229,255,.07);padding:2px 8px;border-radius:4px">getaran_dasar.ipynb</code> di VS Code. Pastikan environment <code style="font-family:'JetBrains Mono', monospace;color:var(--amber)">getaran</code> sudah aktif.</p>
+  <p class="section-desc reveal">Copy-paste kode berikut ke file <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan);background:rgba(0,229,255,.07);padding:2px 8px;border-radius:4px">getaran_dasar.ipynb</code> di VS Code. Pastikan environment <code style="font-family:'JetBrains Mono',monospace;color:var(--amber)">getaran</code> sudah aktif.</p>
 
   <!-- CELL 1 -->
   <div class="code-wrap reveal">
@@ -885,7 +1030,7 @@ plt.<span class="fn">show</span>()</pre>
   <div class="run-tip reveal">
     <strong>🚀 Cara Menjalankan di VS Code:</strong><br>
     1. Install extension <em>Python</em> &amp; <em>Jupyter</em> (Microsoft)<br>
-    2. Buat file baru → simpan sebagai <code style="font-family:'JetBrains Mono', monospace">getaran_dasar.ipynb</code><br>
+    2. Buat file baru → simpan sebagai <code style="font-family:'JetBrains Mono',monospace">getaran_dasar.ipynb</code><br>
     3. Pilih kernel <strong>Python (getaran)</strong> dari kanan atas<br>
     4. Jalankan setiap cell dengan <kbd style="background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.2);padding:2px 6px;border-radius:4px;color:var(--cyan)">Shift+Enter</kbd> atau klik tombol ▶<br>
     5. Cell 4 menampilkan animasi interaktif langsung di dalam notebook
@@ -901,24 +1046,24 @@ plt.<span class="fn">show</span>()</pre>
   <div class="reveal" style="display:flex;flex-direction:column;gap:14px;margin-top:8px;">
 
     <div style="display:flex;gap:16px;align-items:flex-start;padding:18px 22px;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--cyan);border-radius:12px;transition:transform .3s;">
-      <span style="font-family:'JetBrains Mono', monospace;font-size:12px;font-weight:700;color:var(--cyan);background:rgba(0,229,255,.08);padding:4px 10px;border-radius:6px;flex-shrink:0;">[1]</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--cyan);background:rgba(0,229,255,.08);padding:4px 10px;border-radius:6px;flex-shrink:0;">[1]</span>
       <div style="font-size:14px;color:var(--text);line-height:1.7;">
         S. S. Rao, <em style="color:#fff;">Mechanical Vibrations</em>, Sixth Edition in SI Units. Pearson, 2018.
       </div>
     </div>
 
     <div style="display:flex;gap:16px;align-items:flex-start;padding:18px 22px;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--amber);border-radius:12px;transition:transform .3s;">
-      <span style="font-family:'JetBrains Mono', monospace;font-size:12px;font-weight:700;color:var(--amber);background:rgba(255,179,0,.08);padding:4px 10px;border-radius:6px;flex-shrink:0;">[2]</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--amber);background:rgba(255,179,0,.08);padding:4px 10px;border-radius:6px;flex-shrink:0;">[2]</span>
       <div style="font-size:14px;color:var(--text);line-height:1.7;">
         A. R. Mohanty, <em style="color:#fff;">Machinery Condition Monitoring: Principles and Practices</em>. CRC Press, 2015.
       </div>
     </div>
 
     <div style="display:flex;gap:16px;align-items:flex-start;padding:18px 22px;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--pink);border-radius:12px;transition:transform .3s;">
-      <span style="font-family:'JetBrains Mono', monospace;font-size:12px;font-weight:700;color:var(--pink);background:rgba(255,64,129,.08);padding:4px 10px;border-radius:6px;flex-shrink:0;">[3]</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--pink);background:rgba(255,64,129,.08);padding:4px 10px;border-radius:6px;flex-shrink:0;">[3]</span>
       <div style="font-size:14px;color:var(--text);line-height:1.7;">
         YouTube Playlist — <em style="color:#fff;">Mechanical Vibrations</em>.<br>
-        <a href="https://www.youtube.com/playlist?list=PLfqwi9TYj9V84uPoS9gJ2Imkw2qLDYv_F" target="_blank" style="color:var(--cyan);text-decoration:none;font-family:'JetBrains Mono', monospace;font-size:12px;border-bottom:1px solid rgba(0,229,255,.3);transition:border-color .2s;">▶ youtube.com/playlist?list=PLfqwi9TYj9V84u...</a>
+        <a href="https://www.youtube.com/playlist?list=PLfqwi9TYj9V84uPoS9gJ2Imkw2qLDYv_F" target="_blank" style="color:var(--cyan);text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:12px;border-bottom:1px solid rgba(0,229,255,.3);transition:border-color .2s;">▶ youtube.com/playlist?list=PLfqwi9TYj9V84u...</a>
       </div>
     </div>
 
@@ -945,6 +1090,33 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
+
+// ═══ HERO WAVE TRACES ═══
+(function(){
+  const waves=[
+    {el:document.querySelector('.w1'),freq:0.012,amp:40,decay:0.0008,speed:0.02,yOff:0.55,phase:0},
+    {el:document.querySelector('.w2'),freq:0.018,amp:28,decay:0.0012,speed:0.015,yOff:0.45,phase:1.5},
+    {el:document.querySelector('.w3'),freq:0.008,amp:22,decay:0.0005,speed:0.025,yOff:0.65,phase:3}
+  ];
+  let t=0;
+  function drawWaves(){
+    const W=1440,H=600;
+    waves.forEach(w=>{
+      if(!w.el)return;
+      let d='M0 '+H;
+      for(let x=0;x<=W;x+=3){
+        const env=Math.exp(-w.decay*x);
+        const y=w.yOff*H+env*w.amp*Math.sin(w.freq*x+t*w.speed+w.phase)
+          +env*w.amp*0.3*Math.sin(w.freq*2.3*x+t*w.speed*0.7+w.phase);
+        d+=' L'+x+' '+y.toFixed(1);
+      }
+      w.el.setAttribute('d',d);
+    });
+    t++;
+    requestAnimationFrame(drawWaves);
+  }
+  drawWaves();
+})();
 
 /* ── SCROLL PROGRESS ── */
 window.addEventListener('scroll', () => {
@@ -1317,36 +1489,39 @@ function fetchMasterStudents(retries){
 function updateLeaderboard(visitors, schedExpired){
   const rajinEl=document.getElementById('rajinList');
   const santaiEl=document.getElementById('santaiList');
+  
+  
   if(!rajinEl)return;
-  if(!masterStudents.length){rajinEl.innerHTML='<span style="color:#64748b;font-size:.75rem;">Memuat data mahasiswa...</span>';santaiEl.innerHTML=rajinEl.innerHTML;return;}
+  if(!masterStudents.length){rajinEl.innerHTML='<span style="color:#64748b;font-size:.75rem;">Memuat data mahasiswa...</span>';santaiEl.innerHTML=rajinEl.innerHTML;bolosEl.innerHTML=rajinEl.innerHTML;return;}
   const mhs=visitors.filter(v=>v.role!=='dosen'&&v.role!=='guest');
   const visitMap={};
   mhs.forEach(v=>{const k=v.nim;if(!visitMap[k])visitMap[k]=v;});
   const visited=Object.values(visitMap);
-
-  // TOP SKOR: sorted by points desc, tiebreak by pointTimestamp asc
-  const topSkor=[...visited].filter(v=>(v.points||0)>0).sort((a,b)=>{
-    const d=(b.points||0)-(a.points||0);
-    if(d!==0) return d;
-    const tA=a.pointTimestamp?new Date(a.pointTimestamp).getTime():Infinity;
-    const tB=b.pointTimestamp?new Date(b.pointTimestamp).getTime():Infinity;
-    return tA-tB;
-  });
-
-  // TOP AKSES: sorted by visitCount desc, tiebreak by timestamp asc
-  const akses=[...visited].sort((a,b)=>{const d=(b.visitCount||1)-(a.visitCount||1);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp);});
-
+  const rajin=[...visited].sort((a,b)=>{const d=(b.visitCount||1)-(a.visitCount||1);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp);});
+  const santai=[...visited].sort((a,b)=>{const d=(a.visitCount||1)-(b.visitCount||1);return d!==0?d:new Date(b.timestamp)-new Date(a.timestamp);});
   const medalR=['🥇','🥈','🥉'];
-  function renderCardSkor(v,idx){
-    const pts=v.points||0;
-    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="font-size:1rem;flex-shrink:0;">'+medalR[idx]+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(16,185,129,.12);color:#10b981;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+pts+' poin</div></div>';
-  }
-  function renderCardAkses(v,idx){
+  function renderCard(v,idx,isSantai){
+    const medal=isSantai?(idx+1):medalR[idx];
     const vc=v.visitCount||1;
-    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(251,191,36,.15);color:#fbbf24;font-size:.65rem;font-weight:800;flex-shrink:0;">'+(idx+1)+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(251,191,36,.12);color:#fbbf24;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+vc+'x</div></div>';
+    const badgeStyle=isSantai?'background:rgba(251,191,36,.12);color:#fbbf24;':'background:rgba(16,185,129,.12);color:#10b981;';
+    const mBadge=isSantai?'<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(251,191,36,.15);color:#fbbf24;font-size:.65rem;font-weight:800;flex-shrink:0;">'+medal+'</span>':'<span style="font-size:1rem;flex-shrink:0;">'+medal+'</span>';
+    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'">'+mBadge+'<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="'+badgeStyle+'padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+vc+'x</div></div>';
   }
-  rajinEl.innerHTML=topSkor.length?topSkor.slice(0,3).map((v,i)=>renderCardSkor(v,i)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
-  santaiEl.innerHTML=akses.length?akses.slice(0,3).map((v,i)=>renderCardAkses(v,i)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
+  const top3=new Set(rajin.slice(0,3).map(v=>v.nim));
+  const santaiFiltered=santai.filter(v=>!top3.has(v.nim));
+  rajinEl.innerHTML=rajin.length?rajin.slice(0,3).map((v,i)=>renderCard(v,i,false)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
+  santaiEl.innerHTML=santaiFiltered.length?santaiFiltered.slice(0,3).map((v,i)=>renderCard(v,i,true)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
+  const visitedNims=new Set(mhs.map(v=>v.nim));
+  const notVisited=masterStudents.filter(s=>!visitedNims.has(s.nim));
+  if(schedExpired){
+    bolosCEl.textContent=notVisited.length;
+    if(!notVisited.length){bolosEl.innerHTML='<span style="color:#10b981;font-size:.78rem;">\u2705 Semua mahasiswa sudah berkunjung!</span>';}
+    else{bolosEl.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:6px;">'+notVisited.map(s=>'<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.12);border-radius:10px;padding:5px 10px;"><span style="font-weight:600;font-size:.75rem;color:#ef4444;">'+escH(s.nama)+'</span><span style="font-size:.62rem;color:#64748b;font-family:monospace;">'+s.nim+'</span></div>').join('')+'</div>';}
+  } else {
+    bolosCEl.textContent='—';
+    const belum=notVisited.length;
+    bolosEl.innerHTML=belum?'<span style="color:#94a3b8;font-size:.78rem;">⏳ '+belum+' mahasiswa belum berkunjung. Batas waktu belum berakhir.</span>':'<span style="color:#10b981;font-size:.78rem;">✅ Semua mahasiswa sudah berkunjung!</span>';
+  }
 }
 fetchMasterStudents();
 
@@ -1405,6 +1580,14 @@ function updateScheduleDisplay(){
   }
 }
 
+function isLate(timestamp){
+  if(!currentSchedule || !currentSchedule.start || !currentSchedule.end) return false;
+  const t = new Date(timestamp).getTime();
+  const s = new Date(currentSchedule.start).getTime();
+  const e = new Date(currentSchedule.end).getTime();
+  return t < s || t > e;
+}
+
 function submitVisitor(){
   const nama=document.getElementById('vNama').value.trim(), nim=document.getElementById('vNim').value.trim(), err=document.getElementById('vError');
   // Schedule checks
@@ -1449,45 +1632,34 @@ function submitVisitor(){
   document.getElementById('visitorFab').style.display='flex';
 }
 
-function isAfterDeadline(timestamp){
-  if(!currentSchedule || !currentSchedule.end) return false;
-  return new Date(timestamp).getTime() > new Date(currentSchedule.end).getTime();
-}
-
-function isScheduleExpired(){
-  return currentSchedule && currentSchedule.end && Date.now() > new Date(currentSchedule.end).getTime();
-}
-
-function isGraceExpired(){
-  if(!currentSchedule || !currentSchedule.end) return false;
-  const grace = new Date(currentSchedule.end).getTime() + 7 * 24 * 60 * 60 * 1000;
-  return Date.now() > grace;
-}
-
 function renderVisitors(visitors){
   const visitMap={};
   for(const v of visitors){if(v.role==='dosen'||v.role==='guest')continue;if(!visitMap[v.nim])visitMap[v.nim]=v;}
   const visited=Object.values(visitMap);
-  const schedExpired=isScheduleExpired();
-  const graceExpired=isGraceExpired();
+  const lateCount=visited.filter(v=>isLate(v.timestamp)).length;
+  const schedExpired=currentSchedule&&currentSchedule.end&&new Date().getTime()>new Date(currentSchedule.end).getTime();
 
   document.getElementById('fabCount').textContent=visited.length;
   updateLeaderboard(visitors, schedExpired);
   document.getElementById('vpBadge').textContent=visited.length+' orang';
+  const statLateEl=document.getElementById('statLate');
+  if(statLateEl) statLateEl.textContent=lateCount;
 
   const listEl=document.getElementById('vpList'), tableEl=document.getElementById('visitorTableBody');
 
+  // Panel: only actual visitors
   if(!visited.length){listEl.innerHTML='<div class="vp-empty">Belum ada data.</div>';}
   else{
     listEl.innerHTML=visited.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(v=>{
       const ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
       const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-      const late=isAfterDeadline(v.timestamp);
+      const late=isLate(v.timestamp);
       const lBadge=late?'<span style="color:#fb7185;font-size:.65rem;font-weight:600;margin-left:4px;">\u23f0 Terlambat</span>':'';
-      return `<div class="vp-item" style="${late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':''}"><div class="vp-avatar student" style="${late?'background:rgba(251,113,133,.12);color:#fb7185;':''}">${ini}</div><div class="vp-info"><div class="vp-name">${escH(v.nama)}${lBadge}</div><div class="vp-nim">${escH(v.nim)}</div></div><div class="vp-time"><div>${ts}</div><div style="font-size:.6rem;color:#94a3b8;text-align:right;">${v.visitCount||1}x · ${v.points||0} poin</div></div></div>`;
+      return `<div class="vp-item" style="${late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':''}"><div class="vp-avatar student" style="${late?'background:rgba(251,113,133,.12);color:#fb7185;':''}">${ini}</div><div class="vp-info"><div class="vp-name">${escH(v.nama)}${lBadge}</div><div class="vp-nim">${escH(v.nim)}</div></div><div class="vp-time"><div>${ts}</div><div style="font-size:.6rem;color:#94a3b8;text-align:right;">${v.visitCount||1}x kunjungan</div></div></div>`;
     }).join('');
   }
 
+  // Table: ALL students from masterStudents
   if(!masterStudents.length){
     tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">\u23f3 Memuat data mahasiswa...</div>';
     return;
@@ -1498,8 +1670,8 @@ function renderVisitors(visitors){
     const nama=toTitle(s.nama);
     const ini=nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     const hasVisit=!!v;
-    const late=hasVisit&&isAfterDeadline(v.timestamp);
-    const bolos=!hasVisit&&graceExpired;
+    const late=hasVisit&&isLate(v.timestamp);
+    const bolos=!hasVisit&&schedExpired;
     const vc=hasVisit?(v.visitCount||1):0;
     const pts=hasVisit?(v.points||0):0;
     const ts=hasVisit?(()=>{const dt=new Date(v.timestamp);return dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});})():'—';
@@ -1519,7 +1691,8 @@ function renderVisitors(visitors){
     const vcDisplay=vc?vc+'x':'<span style="color:#475569;">—</span>';
     const ptsDisplay=pts?'<span style="color:#10b981;font-weight:800;">'+pts+'</span>':'<span style="color:#475569;">0</span>';
     const tsColor=bolos?'#ef4444':late?'#fb7185':hasVisit?'#64748b':'#475569';
-    return `<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;${rowBg}" onmouseenter="this.style.background='rgba(255,255,255,.03)'" onmouseleave="this.style.background='${rowBg||'transparent'}'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:${tsColor};font-weight:600;">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${ac}">${ini}</div><div><div style="font-weight:600;font-size:.88rem;${nameColor}">${escH(nama)}</div></div></div><div style="flex:1;font-size:.8rem;color:${hasVisit?'#94a3b8':'#475569'};font-family:monospace;">${s.nim}</div><div style="flex:1;text-align:center;">${statusCol}</div><div style="flex:0.5;text-align:center;font-size:.85rem;">${ptsDisplay}</div><div style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:#94a3b8;">${vcDisplay}</div><div style="flex:1;text-align:right;font-size:.78rem;color:${tsColor};">${ts}</div></div>`;
+    const absenClass=(!hasVisit||bolos)?' absen':'';
+    return `<div class="vt-row${absenClass}" style="${rowBg}"><div class="vt-num" style="color:${tsColor};">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div class="vt-avatar" style="${ac}">${ini}</div><div><div class="vt-name" style="${nameColor}">${escH(nama)}</div></div></div><div style="flex:1;font-size:.8rem;color:${hasVisit?'#94a3b8':'#475569'};font-family:monospace;">${s.nim}</div><div style="flex:1;text-align:center;"><span class="vt-status">${statusCol}</span></div><div style="flex:0.5;text-align:center;font-size:.85rem;">${ptsDisplay}</div><div class="vt-visit" style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:#94a3b8;">${vcDisplay}</div><div style="flex:1;text-align:right;font-size:.78rem;color:${tsColor};">${ts}</div></div>`;
   }).join('');
 }
 
