@@ -32,8 +32,7 @@
     overflow-x: hidden;
   }
 
-  }
-
+#scrollProgress { position: fixed; top: 60px; left: 0; height: 3px; background: linear-gradient(90deg, var(--cyan), var(--violet), var(--pink)); z-index: 101; width: 0; transition: width .1s; box-shadow: 0 0 12px rgba(0,229,255,.6); }
 
   .reveal { opacity: 0; transform: translateY(28px); transition: opacity .7s ease, transform .7s ease; }
   .reveal.visible { opacity: 1; transform: translateY(0); }
@@ -75,6 +74,12 @@
   .hero {
     min-height: 100vh; display: flex; align-items: center; justify-content: center;
     padding: 80px 32px 40px; position: relative; overflow: hidden; z-index: 1;
+  }
+  .hero-grid {
+    position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(0,229,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,229,255,0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black, transparent);
   }
   .hero-content { position: relative; text-align: center; max-width: 900px; z-index: 2; }
   .hero-tag {
@@ -288,6 +293,7 @@
   .vp-empty{text-align:center;padding:32px 16px;color:#64748b;font-size:.85rem}
   @media(max-width:480px){.visitor-panel{width:calc(100vw - 32px);right:16px;bottom:88px}.visitor-fab{bottom:18px;right:18px}}
   @media(max-width:768px){.nav-links{display:none}}
+
 /* ═══ VISITOR TABLE ROWS ═══ */
 .vt-row{display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .3s,border-color .3s;border-left:3px solid transparent;cursor:default}
 .vt-row:hover{background:rgba(6,214,160,.04);border-left-color:#06d6a0}
@@ -634,8 +640,8 @@
         </div>
       </div>
       <div style="margin-top:12px;display:flex;gap:24px;flex-wrap:wrap;font-size:12px;font-family:'JetBrains Mono', monospace">
-        <span style="color:#00e5ff">── Energi Kinetik (½mẋ²)</span>
-        <span style="color:#00e676">── Energi Potensial (½kx²)</span>
+        <span style="color:#00e5ff">── Energi Kinetik (1/2mẋ²)</span>
+        <span style="color:#00e676">── Energi Potensial (1/2kx²)</span>
         <span style="color:#ffb300">── Energi Total</span>
         <span style="color:#ff4081">── Daya Disipasi (cẋ²)</span>
       </div>
@@ -716,7 +722,7 @@
       <div class="card-icon">⚡</div>
       <h3>Energi Potensial Elastis</h3>
       <p>Energi yang tersimpan dalam pegas saat diregangkan atau ditekan dari posisi alaminya.</p>
-      <span class="formula">EP = ½ k Δx²</span>
+      <span class="formula">EP = 1/2 k Δx²</span>
     </div>
     <div class="card reveal" style="border-left:3px solid var(--amber);">
       <div class="card-icon">🔽</div>
@@ -820,7 +826,7 @@
         <div class="step">Pada kesetimbangan statis: F_pegas = F_gravitasi → k·Δx = m·g</div>
         <div class="step">k = m·g / Δx = (8 × 9.81) / 0.16 = 78.48 / 0.16 = <strong style="color:var(--amber)">490.5 N/m</strong></div>
         <div class="step" style="margin-top:8px;"><strong>b) Energi potensial elastis:</strong></div>
-        <div class="step">EP = ½ k Δx² = ½ × 490.5 × (0.16)² = ½ × 490.5 × 0.0256 = <strong style="color:var(--amber)">6.278 J</strong></div>
+        <div class="step">EP = 1/2 k Δx² = 1/2 × 490.5 × (0.16)² = 1/2 × 490.5 × 0.0256 = <strong style="color:var(--amber)">6.278 J</strong></div>
         <div class="step" style="margin-top:8px;"><strong>c) Perubahan energi potensial gravitasi:</strong></div>
         <div class="step">ΔEP_grav = −m·g·Δx = −8 × 9.81 × 0.16 = <strong style="color:var(--amber)">−12.557 J</strong></div>
         <div class="step">(Negatif karena massa turun → energi potensial gravitasi berkurang)</div>
@@ -1339,18 +1345,18 @@ plt.<span class="fn">show</span>()
 
 <!-- ═══════════════════ JAVASCRIPT ═══════════════════ -->
 <script>
-
-
 // ═══ KaTeX Rendering ═══
 document.addEventListener('DOMContentLoaded', function() {
   if (typeof renderMathInElement !== 'undefined') {
     renderMathInElement(document.body, {
       delimiters: [
         { left: '$$', right: '$$', display: true },
-        { left: '\\(', right: '\\)', display: false },
-        { left: '\\[', right: '\\]', display: true }
+        { left: '\(', right: '\)', display: false },
+        { left: '\[', right: '\]', display: true }
       ],
-      throwOnError: false
+      throwOnError: false,
+      strict: false,
+      ignoredClasses: ['ff','float-formulas']
     });
   }
 });
@@ -1367,20 +1373,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const W=1440,H=600;
     waves.forEach(w=>{
       if(!w.el)return;
-      let d="M0 "+H;
+      let d='M0 '+H;
       for(let x=0;x<=W;x+=3){
         const env=Math.exp(-w.decay*x);
         const y=w.yOff*H+env*w.amp*Math.sin(w.freq*x+t*w.speed+w.phase)
           +env*w.amp*0.3*Math.sin(w.freq*2.3*x+t*w.speed*0.7+w.phase);
-        d+=" L"+x+" "+y.toFixed(1);
+        d+=' L'+x+' '+y.toFixed(1);
       }
-      w.el.setAttribute("d",d);
+      w.el.setAttribute('d',d);
     });
     t++;
     requestAnimationFrame(drawWaves);
   }
   drawWaves();
 })();
+
+
 
 /* ── SCROLL PROGRESS + BACK TO TOP ── */
 window.addEventListener('scroll', () => {
@@ -1984,7 +1992,7 @@ function drawSpring() {
   info.innerHTML =
     `<span style="color:var(--cyan);">k = mg/Δx = ${(m*g).toFixed(2)} / ${dxM.toFixed(4)}</span><br>` +
     `<strong style="color:#fff;font-size:18px;">k = ${k.toFixed(2)} N/m</strong><br><br>` +
-    `<span style="color:var(--green);">EP = ½kΔx² = ½ × ${k.toFixed(1)} × ${dxM.toFixed(4)}²</span><br>` +
+    `<span style="color:var(--green);">EP = 1/2kΔx² = 1/2 × ${k.toFixed(1)} × ${dxM.toFixed(4)}²</span><br>` +
     `<strong style="color:#fff;">EP = ${EP.toFixed(4)} J</strong><br><br>` +
     `<span style="color:var(--pink);">ΔEP_grav = −mgΔx = −${m}×${g}×${dxM.toFixed(2)}</span><br>` +
     `<strong style="color:#fff;">ΔEP_grav = ${dEPgrav.toFixed(4)} J</strong><br><br>` +
