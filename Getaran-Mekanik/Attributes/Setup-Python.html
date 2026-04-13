@@ -122,6 +122,24 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);line-h
 .footer-text p{font-weight:700;font-size:1rem}
 .footer-text small{color:var(--t3);font-size:.85rem}
 
+/* ═══ VISITOR TABLE ROWS ═══ */
+.vt-row{display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .3s,border-color .3s,transform .2s;border-left:3px solid transparent;cursor:default}
+.vt-row:hover{background:rgba(16,185,129,.04);border-left-color:var(--c1)}
+.vt-row.absen:hover{background:rgba(239,68,68,.03);border-left-color:#ef4444}
+.vt-row .vt-num{width:44px;flex-shrink:0;font-size:.82rem;font-weight:600;transition:color .3s}
+.vt-row:hover .vt-num{color:var(--c1)!important}
+.vt-row.absen:hover .vt-num{color:#ef4444!important}
+.vt-row .vt-avatar{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s}
+.vt-row:hover .vt-avatar{transform:scale(1.12);box-shadow:0 4px 14px rgba(16,185,129,.2)}
+.vt-row.absen:hover .vt-avatar{box-shadow:0 4px 14px rgba(239,68,68,.15)}
+.vt-row .vt-name{font-weight:600;font-size:.88rem;transition:color .3s}
+.vt-row:hover .vt-name{color:#fff!important}
+.vt-row .vt-status{transition:transform .3s}
+.vt-row:hover .vt-status{transform:scale(1.08)}
+.vt-row .vt-visit{transition:color .3s}
+.vt-row:hover .vt-visit{color:var(--c2)!important}
+.vt-row.absen:hover .vt-visit{color:#94a3b8!important}
+
 /* ═══ ANIMATIONS ═══ */
 .fade{opacity:0;transform:translateY(30px);transition:all .7s cubic-bezier(.16,1,.3,1)}.fade.vis{opacity:1;transform:translateY(0)}
 
@@ -644,7 +662,7 @@ function renderVisitors(visitors){
   else listEl.innerHTML=visited.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(v=>{const ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),dt=new Date(v.timestamp),ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});return'<div class="vp-item"><div class="vp-avatar student">'+ini+'</div><div class="vp-info"><div class="vp-name">'+escH(v.nama)+'</div><div class="vp-nim">'+escH(v.nim)+'</div></div><div class="vp-time"><div>'+ts+'</div><div style="font-size:.6rem;color:#94a3b8;">'+((v.visitCount||1)+'x')+'</div></div></div>'}).join('');
   if(!masterStudents.length){tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:#64748b;">⏳ Memuat...</div>';return}
   function toTitle(s){return s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase())}
-  tableEl.innerHTML=masterStudents.map((s,i)=>{const v=visitMap[s.nim],nama=toTitle(s.nama),ini=nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),has=!!v,vc=has?(v.visitCount||1):0,ts=has?(()=>{const dt=new Date(v.timestamp);return dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})})():'—';const sc=has?'<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.25);">✅ Hadir</span>':'<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.25);">❌ Absen</span>';const nC=has?'color:#e2e8f0;':'color:#64748b;';const ac=has?'background:rgba(255,255,255,.08);color:#e2e8f0;':'background:rgba(100,116,139,.1);color:#94a3b8;';const tC=has?'#64748b':'#475569';return'<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:'+tC+';font-weight:600;">'+(i+1)+'</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;'+ac+'">'+ini+'</div><div><div style="font-weight:600;font-size:.88rem;'+nC+'">'+escH(nama)+'</div></div></div><div style="flex:1;font-size:.8rem;color:'+(has?'#94a3b8':'#475569')+';font-family:monospace;">'+s.nim+'</div><div style="flex:1;text-align:center;">'+sc+'</div><div style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:#94a3b8;">'+(vc?vc+'x':'<span style="color:#475569;">—</span>')+'</div><div style="flex:1;text-align:right;font-size:.78rem;color:'+tC+';">'+ts+'</div></div>'}).join('')
+  tableEl.innerHTML=masterStudents.map((s,i)=>{const v=visitMap[s.nim],nama=toTitle(s.nama),ini=nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),has=!!v,vc=has?(v.visitCount||1):0,ts=has?(()=>{const dt=new Date(v.timestamp);return dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})})():'—';const sc=has?'<span class="vt-status" style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.25);">✅ Hadir</span>':'<span class="vt-status" style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.25);">❌ Absen</span>';const nC=has?'color:#e2e8f0;':'color:#64748b;';const ac=has?'background:rgba(255,255,255,.08);color:#e2e8f0;':'background:rgba(100,116,139,.1);color:#94a3b8;';const tC=has?'#64748b':'#475569';return'<div class="vt-row'+(has?'':' absen')+'"><div class="vt-num" style="color:'+tC+';">'+(i+1)+'</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div class="vt-avatar" style="'+ac+'">'+ini+'</div><div><div class="vt-name" style="'+nC+'">'+escH(nama)+'</div></div></div><div style="flex:1;font-size:.8rem;color:'+(has?'#94a3b8':'#475569')+';font-family:monospace;">'+s.nim+'</div><div style="flex:1;text-align:center;">'+sc+'</div><div class="vt-visit" style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:#94a3b8;">'+(vc?vc+'x':'<span style="color:#475569;">—</span>')+'</div><div style="flex:1;text-align:right;font-size:.78rem;color:'+tC+';">'+ts+'</div></div>'}).join('')
 }
 
 function togglePanel(){panelOpen=!panelOpen;document.getElementById('visitorPanel').classList.toggle('open',panelOpen);}
