@@ -496,6 +496,22 @@
 .feedback{display:none;margin-top:12px;padding:12px 18px;border-radius:10px;font-weight:700;font-size:14px}
 .feedback.correct{display:block;background:rgba(6,214,160,.08);border:1px solid rgba(6,214,160,.2);color:#06d6a0}
 .feedback.wrong{display:block;background:rgba(230,57,70,.08);border:1px solid rgba(230,57,70,.2);color:#e63946}
+
+/* ═══ INTERACTIVE PROB (input-based) ═══ */
+.answer-input-area { margin-top:16px; }
+.answer-input-area label { display:block; font-size:13px; color:#94a3b8; font-weight:600; margin:12px 0 4px; }
+.answer-input-area input, .answer-input-area select { width:100%; padding:10px 14px; border:1px solid #2a3548; border-radius:10px; background:#111827; color:#e2e8f0; font-family:'JetBrains Mono',monospace; font-size:14px; }
+.answer-input-area input:focus, .answer-input-area select:focus { outline:none; border-color:#06d6a0; box-shadow:0 0 0 3px rgba(6,214,160,.1); }
+.check-btn { padding:10px 22px; border-radius:10px; border:none; background:linear-gradient(135deg,#06d6a0,#118ab2); color:#fff; font-weight:700; font-size:13px; cursor:pointer; transition:transform .2s,box-shadow .2s; margin-right:8px; }
+.check-btn:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(6,214,160,.25); }
+.answer-key-btn { padding:10px 22px; border-radius:10px; border:1px solid rgba(255,179,0,.3); background:rgba(255,179,0,.06); color:#ffd166; font-weight:600; font-size:13px; cursor:pointer; transition:all .2s; }
+.answer-key-btn:hover { background:rgba(255,179,0,.18); transform:translateY(-2px); }
+.answer-key-btn.locked { opacity:.35; pointer-events:none; cursor:not-allowed; }
+.answer-reveal { display:none; margin-top:16px; padding:20px; border-radius:14px; background:rgba(255,179,0,.04); border:1px solid rgba(255,179,0,.12); }
+.answer-reveal.show { display:block; animation:slideDown .4s ease; }
+.answer-reveal h5 { color:#ffd166; font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:2px; margin-bottom:8px; }
+.answer-reveal .step { margin-bottom:6px; font-size:14px; color:#94a3b8; line-height:1.7; }
+.answer-reveal .step strong { color:#00e5ff; }
 </style>
 </head>
 <body>
@@ -577,7 +593,6 @@
     <a href="#fase">Fase</a>
     <a href="#quiz">Quiz</a>
     <a href="#jupyter">Jupyter</a>
-    <a href="#latihan">Latihan</a>
   </div>
   <span class="nav-badge">👨‍🏫 DEDIK ROMAHADI</span>
 </nav>
@@ -794,6 +809,9 @@
         <span style="color:#ffb300">── Critically Damped (ζ=1)</span>
         <span style="color:#ff4081">── Overdamped (ζ=2)</span>
       </div>
+      <div style="margin-top:16px;font-size:13px;color:#94a3b8;line-height:1.8;background:rgba(0,229,255,.03);border:1px solid rgba(0,229,255,.08);border-radius:10px;padding:16px 20px;">
+        Grafik menampilkan respons perpindahan x(t) terhadap waktu untuk <strong style="color:#00e5ff">tiga kondisi redaman</strong> pada sistem 1-DoF. <strong style="color:#00e5ff">Underdamped (ζ=0.1)</strong> — berosilasi dengan amplitudo meluruh eksponensial. <strong style="color:#ffb300">Critically damped (ζ=1)</strong> — kembali ke nol tercepat tanpa osilasi, kondisi batas optimal. <strong style="color:#ff4081">Overdamped (ζ=2)</strong> — kembali ke nol lebih lambat, tanpa osilasi. Geser slider ωₙ dan x₀ — perhatikan bahwa kecepatan peluruhan berubah tetapi pola ketiga kondisi tetap sama.
+      </div>
     </div>
   </div>
 
@@ -826,6 +844,9 @@
       <div id="info_zeta" style="margin-top:8px;font-family:'JetBrains Mono', monospace;font-size:13px;color:var(--green)">
         ζ = 0.10 | ωₙ = 5.00 rad/s | kondisi: UNDERDAMPED
       </div>
+      <div style="margin-top:16px;font-size:13px;color:#94a3b8;line-height:1.8;background:rgba(0,229,255,.03);border:1px solid rgba(0,229,255,.08);border-radius:10px;padding:16px 20px;">
+        Panel kiri menampilkan <strong style="color:#ffb300">model fisik</strong> sistem massa-pegas-peredam: pegas (zigzag cyan) terhubung ke dinding, peredam/dashpot (kotak amber) di bawah, dan massa (kotak putih) bergerak horizontal. Panel kanan menampilkan <strong style="color:#00e5ff">grafik perpindahan x(t)</strong> secara real-time. Geser slider <strong>c</strong> dari kecil ke besar — perhatikan transisi dari osilasi (underdamped) ke tanpa osilasi (critically/overdamped). Info di bawah menampilkan perhitungan ζ dan ωₙ langsung.
+      </div>
     </div>
   </div>
 
@@ -853,6 +874,9 @@
         <button class="btn-anim" id="btn3" onclick="toggleAnim3()">⏸ PAUSE</button>
       </div>
       <div id="info_forced" style="margin-top:8px;font-family:'JetBrains Mono', monospace;font-size:13px;color:var(--pink)"></div>
+      <div style="margin-top:16px;font-size:13px;color:#94a3b8;line-height:1.8;background:rgba(0,229,255,.03);border:1px solid rgba(0,229,255,.08);border-radius:10px;padding:16px 20px;">
+        Grafik menampilkan respons perpindahan x(t) untuk <strong style="color:#ff4081">getaran paksa</strong> — sistem dikenai gaya periodik F₀·cos(ωt). Saat frekuensi eksitasi ω mendekati frekuensi alami ωₙ (rasio r = ω/ωₙ ≈ 1), amplitudo meningkat drastis — inilah <em>resonansi</em>. Geser slider ω mendekati ωₙ — perhatikan amplitudo meledak. <strong style="color:#ffd166">DMF (Dynamic Magnification Factor)</strong> ditampilkan di info bar: semakin dekat r ke 1, semakin besar DMF. Redaman ζ yang kecil membuat puncak resonansi lebih tajam dan berbahaya.
+      </div>
     </div>
   </div>
 </div>
@@ -877,7 +901,7 @@
       </div>
       <div class="anim-body">
         <canvas id="ph1" width="380" height="300"></canvas>
-        <p style="font-size:12px;color:var(--muted);margin-top:8px;font-family:'JetBrains Mono', monospace">Lintasan: Ellips tertutup (energi konstan)</p>
+        <p style="font-size:12px;color:var(--muted);margin-top:8px;font-family:'JetBrains Mono', monospace">Lintasan elips tertutup — energi konstan (EK + EP). Sistem berosilasi selamanya tanpa kehilangan energi. Arah rotasi berlawanan jarum jam.</p>
       </div>
     </div>
     <!-- Phase 2: Underdamped -->
@@ -888,7 +912,7 @@
       </div>
       <div class="anim-body">
         <canvas id="ph2" width="380" height="300"></canvas>
-        <p style="font-size:12px;color:var(--muted);margin-top:8px;font-family:'JetBrains Mono', monospace">Lintasan: Spiral menuju origin (energi berkurang)</p>
+        <p style="font-size:12px;color:var(--muted);margin-top:8px;font-family:'JetBrains Mono', monospace">Lintasan spiral menuju origin — energi terdisipasi oleh redaman. Setiap putaran spiral = 1 siklus osilasi dengan amplitudo menurun.</p>
       </div>
     </div>
     <!-- Phase 3: Critically damped -->
@@ -899,7 +923,7 @@
       </div>
       <div class="anim-body">
         <canvas id="ph3" width="380" height="300"></canvas>
-        <p style="font-size:12px;color:var(--muted);margin-top:8px;font-family:'JetBrains Mono', monospace">Lintasan: Melengkung langsung ke origin</p>
+        <p style="font-size:12px;color:var(--muted);margin-top:8px;font-family:'JetBrains Mono', monospace">Lintasan melengkung langsung ke origin tanpa berputar — jalur tercepat menuju setimbang. Kondisi optimal untuk sistem yang harus kembali cepat tanpa overshoot.</p>
       </div>
     </div>
     <!-- Phase 4: Forced -->
@@ -920,7 +944,7 @@
             <input type="range" id="sl_zp" min="0.01" max="0.5" step="0.01" value="0.1">
           </div>
         </div>
-        <p style="font-size:12px;color:var(--muted);margin-top:6px;font-family:'JetBrains Mono', monospace">Lintasan: Ellips (Lissajous) — steady-state</p>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px;font-family:'JetBrains Mono', monospace">Lintasan elips (Lissajous) pada kondisi steady-state. Geser slider ω/ωₙ mendekati 1 — elips membesar (resonansi). Geser ζ — elips mengecil (redaman menyerap energi).</p>
       </div>
     </div>
   </div>
@@ -1275,65 +1299,163 @@ HTML(ani.<span class="fn">to_jshtml</span>())</pre>
   </div>
 </div>
 
-<!-- ═══════════════════ SOAL LATIHAN ═══════════════════ -->
-<hr class="divider">
-<div class="section" id="latihan">
-  <div class="section-label reveal">Bagian 06</div>
-  <h2 class="section-title reveal">Latihan Soal</h2>
-  <p class="section-desc reveal">Kerjakan soal-soal berikut menggunakan Jupyter Notebook di VS Code. Gunakan library NumPy, SciPy, dan Matplotlib. Sertakan diagram fase, respons waktu, dan analisis hasil.</p>
 
+  <!-- ═══ SOAL INPUT (Hitung Manual) ═══ -->
+  <div style="margin-top:48px;padding-top:32px;border-top:1px solid rgba(255,255,255,.06);">
+    <h3 style="font-size:1.2rem;font-weight:800;color:#fff;margin-bottom:8px;">📝 Soal Hitung Manual</h3>
+    <p style="color:#94a3b8;font-size:.85rem;margin-bottom:24px;">Kerjakan soal-soal berikut langsung di halaman ini. Jawaban <strong style="color:#06d6a0">benar</strong> mendapatkan <strong style="color:#ffd166">+1 poin</strong>. Verifikasi dengan Jupyter Notebook di VS Code.</p>
   <div class="problems">
 
+    <!-- SOAL INPUT 1 -->
     <div class="prob reveal">
-      <div class="prob-num">SOAL 01 — KLASIFIKASI SISTEM</div>
+      <div class="prob-num">SOAL 06 — KLASIFIKASI 3 SISTEM</div>
       <h4>Identifikasi Kondisi Redaman</h4>
-      <p>Sebuah sistem massa-pegas-peredam memiliki parameter berikut. Tentukan: (a) frekuensi alami ωₙ, (b) rasio redaman ζ, (c) klasifikasi sistem (underdamped/critically/overdamped), (d) plot diagram fase dan respons waktu untuk t = 0 sampai 15 detik.</p>
-      <div class="given">
-        Sistem A: m = 2 kg, k = 50 N/m, c = 4 Ns/m, x₀ = 0.5 m, ẋ₀ = 0 m/s
-        Sistem B: m = 2 kg, k = 50 N/m, c = 20 Ns/m, x₀ = 0.5 m, ẋ₀ = 0 m/s
-        Sistem C: m = 2 kg, k = 50 N/m, c = 40 Ns/m, x₀ = 0.5 m, ẋ₀ = 0 m/s
+      <p>Tiga sistem massa-pegas-peredam memiliki parameter: <strong>m = 2 kg, k = 50 N/m</strong>, dengan c berbeda-beda. Hitung ωₙ dan ζ untuk <strong>Sistem A (c = 4 Ns/m)</strong>.</p>
+      <div class="given">m = 2 kg, k = 50 N/m, c = 4 Ns/m
+Rumus: ωₙ = √(k/m), c_cr = 2√(km), ζ = c/c_cr</div>
+      <div class="answer-input-area">
+        <label>ωₙ (rad/s):</label>
+        <input type="number" id="ans1a" step="0.01" placeholder="...">
+        <label>ζ (rasio redaman):</label>
+        <input type="number" id="ans1b" step="0.001" placeholder="...">
+        <label>Tipe Redaman:</label>
+        <select id="ans1c">
+          <option value="">— Pilih —</option>
+          <option value="under">Underdamped (ζ < 1)</option>
+          <option value="crit">Critically Damped (ζ = 1)</option>
+          <option value="over">Overdamped (ζ > 1)</option>
+        </select>
+        <div style="margin-top:10px">
+          <button class="check-btn" onclick="checkSoal1()">✓ CEK JAWABAN</button>
+          <button class="answer-key-btn locked" id="akbSoal1" onclick="toggleKey('key1')">🔑 KUNCI JAWABAN</button>
+        </div>
+        <div class="feedback" id="fb1"></div>
+        <div class="answer-reveal" id="key1">
+          <h5>🔑 KUNCI JAWABAN — SOAL 06</h5>
+          <div class="step"><strong>Langkah 1:</strong> ωₙ = √(k/m) = √(50/2) = √25 = <strong style="color:var(--amber)">5 rad/s</strong></div>
+          <div class="step"><strong>Langkah 2:</strong> c_cr = 2√(km) = 2√(50×2) = 2√100 = <strong style="color:var(--amber)">20 Ns/m</strong></div>
+          <div class="step"><strong>Langkah 3:</strong> ζ = c/c_cr = 4/20 = <strong style="color:var(--amber)">0.2</strong> → <strong style="color:var(--cyan)">UNDERDAMPED</strong></div>
+          <div class="step" style="margin-top:12px;padding:10px 14px;background:rgba(0,229,255,.06);border-radius:8px;font-size:12px;">
+            <strong style="color:var(--cyan)">📓 Jupyter:</strong><br>
+            <code style="color:var(--green)">m, k, c = 2, 50, 4</code><br>
+            <code style="color:var(--green)">wn = np.sqrt(k/m)  # 5.0</code><br>
+            <code style="color:var(--green)">cc = 2*np.sqrt(k*m)  # 20.0</code><br>
+            <code style="color:var(--green)">zeta = c/cc  # 0.2</code>
+          </div>
+        </div>
       </div>
-      <div class="hint">💡 Hint: Hitung cc = 2√(km) → ζ = c/cc. Buat subplot 3×2 (fase + waktu untuk tiap sistem). Tampilkan nilai ζ di judul subplot.</div>
     </div>
 
+    <!-- SOAL INPUT 2 -->
     <div class="prob reveal">
-      <div class="prob-num">SOAL 02 — PENGARUH KONDISI AWAL</div>
-      <h4>Multi-Trajektori pada Diagram Fase</h4>
-      <p>Untuk sistem underdamped (m=1 kg, k=16 N/m, c=0.8 Ns/m), gambarkan diagram fase dengan <strong>6 kondisi awal berbeda</strong> dalam satu plot. Analisis pola yang terbentuk dan identifikasi titik ekuilibrium sistem.</p>
-      <div class="given">
-        Kondisi awal (x₀, ẋ₀):
-        (1.0, 0),  (0, 4.0),  (-1.0, 0),  (0, -4.0),  (0.8, 3.0),  (-0.8, -3.0)
-        Rentang waktu: t = 0 sampai 25 detik
+      <div class="prob-num">SOAL 07 — DMF RESONANSI</div>
+      <h4>Dynamic Magnification Factor</h4>
+      <p>Sistem 1-DoF: m = 1 kg, k = 100 N/m, ζ = 0.05. Hitung DMF pada rasio frekuensi r = 1.0 (resonansi).</p>
+      <div class="given">ωₙ = √(k/m) = 10 rad/s, ζ = 0.05
+DMF = 1 / √[(1−r²)² + (2ζr)²]
+Pada r = 1.0: DMF = 1 / (2ζ)</div>
+      <div class="answer-input-area">
+        <label>DMF pada r = 1.0:</label>
+        <input type="number" id="ans2a" step="0.1" placeholder="...">
+        <label>Frekuensi eksitasi ω saat resonansi (rad/s):</label>
+        <input type="number" id="ans2b" step="0.01" placeholder="...">
+        <div style="margin-top:10px">
+          <button class="check-btn" onclick="checkSoal2()">✓ CEK JAWABAN</button>
+          <button class="answer-key-btn locked" id="akbSoal2" onclick="toggleKey('key2')">🔑 KUNCI JAWABAN</button>
+        </div>
+        <div class="feedback" id="fb2"></div>
+        <div class="answer-reveal" id="key2">
+          <h5>🔑 KUNCI JAWABAN — SOAL 07</h5>
+          <div class="step"><strong>Langkah 1:</strong> Pada r = 1.0 (resonansi): DMF = 1/(2×0.05) = <strong style="color:var(--amber)">10.0</strong></div>
+          <div class="step"><strong>Langkah 2:</strong> ω = r × ωₙ = 1.0 × 10 = <strong style="color:var(--amber)">10 rad/s</strong></div>
+          <div class="step">Artinya amplitudo steady-state = 10× amplitudo statis. Sangat berbahaya di mesin rotasi!</div>
+          <div class="step" style="margin-top:12px;padding:10px 14px;background:rgba(0,229,255,.06);border-radius:8px;font-size:12px;">
+            <strong style="color:var(--cyan)">📓 Jupyter:</strong><br>
+            <code style="color:var(--green)">r = 1.0; zeta = 0.05</code><br>
+            <code style="color:var(--green)">DMF = 1/np.sqrt((1-r**2)**2 + (2*zeta*r)**2)  # 10.0</code>
+          </div>
+        </div>
       </div>
-      <div class="hint">💡 Hint: Gunakan loop untuk setiap kondisi awal. Tandai titik awal dengan scatter plot (*). Beri warna berbeda tiap trajektori. Gambarkan panah arah dengan quiver atau annotate.</div>
     </div>
 
+    <!-- SOAL INPUT 3 -->
     <div class="prob reveal">
-      <div class="prob-num">SOAL 03 — GETARAN PAKSA & RESONANSI</div>
-      <h4>Karakteristik Steady-State Getaran Paksa</h4>
-      <p>Sistem 1-DoF dengan m=1 kg, k=100 N/m, ζ=0.05 dikenai gaya F(t) = 10·cos(ωt) N. Buat: (a) kurva Dynamic Magnification Factor (DMF) vs rasio frekuensi r, (b) diagram fase steady-state untuk r = 0.5, 1.0, 1.5, (c) identifikasi nilai DMF maksimum dan frekuensi resonansinya.</p>
-      <div class="given">
-        ωₙ = √(k/m) = 10 rad/s
-        r = ω/ωₙ, variasikan r dari 0.1 sampai 2.5
-        DMF = 1 / √[(1−r²)² + (2ζr)²]
-        Fase: θ = arctan(2ζr / (1−r²))
+      <div class="prob-num">SOAL 08 — ENERGI SISTEM</div>
+      <h4>Analisis Energi Getaran</h4>
+      <p>Sistem underdamped: m = 1.5 kg, k = 30 N/m, c = 1.5 Ns/m, x₀ = 1.0 m, ẋ₀ = 0. Hitung energi awal dan rasio redaman.</p>
+      <div class="given">m = 1.5 kg, k = 30 N/m, c = 1.5 Ns/m
+E₀ = 1/2 × k × x₀² (energi potensial awal, karena ẋ₀ = 0)
+ζ = c / (2√(km))</div>
+      <div class="answer-input-area">
+        <label>Energi awal E₀ (Joule):</label>
+        <input type="number" id="ans3a" step="0.1" placeholder="...">
+        <label>Rasio redaman ζ:</label>
+        <input type="number" id="ans3b" step="0.001" placeholder="...">
+        <div style="margin-top:10px">
+          <button class="check-btn" onclick="checkSoal3()">✓ CEK JAWABAN</button>
+          <button class="answer-key-btn locked" id="akbSoal3" onclick="toggleKey('key3')">🔑 KUNCI JAWABAN</button>
+        </div>
+        <div class="feedback" id="fb3"></div>
+        <div class="answer-reveal" id="key3">
+          <h5>🔑 KUNCI JAWABAN — SOAL 08</h5>
+          <div class="step"><strong>Langkah 1:</strong> E₀ = 1/2 × 30 × 1² = <strong style="color:var(--amber)">15 Joule</strong></div>
+          <div class="step"><strong>Langkah 2:</strong> c_cr = 2√(30×1.5) = 2√45 = 2×6.708 = 13.416 Ns/m</div>
+          <div class="step"><strong>Langkah 3:</strong> ζ = 1.5/13.416 = <strong style="color:var(--amber)">0.1118</strong> → Underdamped</div>
+          <div class="step" style="margin-top:12px;padding:10px 14px;background:rgba(0,229,255,.06);border-radius:8px;font-size:12px;">
+            <strong style="color:var(--cyan)">📓 Jupyter:</strong><br>
+            <code style="color:var(--green)">m, k, c = 1.5, 30, 1.5</code><br>
+            <code style="color:var(--green)">E0 = 0.5*k*1.0**2  # 15.0 J</code><br>
+            <code style="color:var(--green)">cc = 2*np.sqrt(k*m)  # 13.416</code><br>
+            <code style="color:var(--green)">zeta = c/cc  # 0.1118</code>
+          </div>
+        </div>
       </div>
-      <div class="hint">💡 Hint: Plot DMF vs r dengan vertical line di r=1 (resonansi). Annotate nilai DMF_max = 1/(2ζ√(1−ζ²)). Untuk diagram fase, integrasikan sampai t=100s dan ambil 50% akhir data.</div>
     </div>
 
+    <!-- SOAL INPUT 4 -->
     <div class="prob reveal">
-      <div class="prob-num">SOAL 04 — ENERGI SISTEM GETARAN</div>
-      <h4>Analisis Energi dari Diagram Fase</h4>
-      <p>Untuk sistem underdamped (m=1.5 kg, k=30 N/m, c=1.5 Ns/m), hitung dan plot: (a) energi kinetik EK = ½mẋ², (b) energi potensial EP = ½kx², (c) energi total E = EK + EP terhadap waktu, (d) gambarkan elips energi konstan pada diagram fase, (e) hitung laju disipasi daya P(t) = cẋ².</p>
-      <div class="given">
-        Kondisi awal: x₀ = 1.0 m, ẋ₀ = 0 m/s
-        Energi awal: E₀ = ½kx₀² = ½ × 30 × 1² = 15 Joule
-        Rentang waktu: t = 0 sampai 20 detik
+      <div class="prob-num">SOAL 09 — FREKUENSI TEREDAM</div>
+      <h4>Frekuensi dan Periode Getaran Teredam</h4>
+      <p>Sistem: m = 5 kg, k = 500 N/m, c = 20 Ns/m. Hitung frekuensi alami, rasio redaman, frekuensi teredam, dan periode teredam.</p>
+      <div class="given">m = 5 kg, k = 500 N/m, c = 20 Ns/m
+ωₙ = √(k/m), ζ = c/(2√(km))
+ω_d = ωₙ√(1−ζ²), T_d = 2π/ω_d</div>
+      <div class="answer-input-area">
+        <label>ωₙ (rad/s):</label>
+        <input type="number" id="ans4a" step="0.01" placeholder="...">
+        <label>ζ:</label>
+        <input type="number" id="ans4b" step="0.001" placeholder="...">
+        <label>ω_d (rad/s):</label>
+        <input type="number" id="ans4c" step="0.01" placeholder="...">
+        <label>T_d (detik):</label>
+        <input type="number" id="ans4d" step="0.001" placeholder="...">
+        <div style="margin-top:10px">
+          <button class="check-btn" onclick="checkSoal4()">✓ CEK JAWABAN</button>
+          <button class="answer-key-btn locked" id="akbSoal4" onclick="toggleKey('key4')">🔑 KUNCI JAWABAN</button>
+        </div>
+        <div class="feedback" id="fb4"></div>
+        <div class="answer-reveal" id="key4">
+          <h5>🔑 KUNCI JAWABAN — SOAL 09</h5>
+          <div class="step"><strong>Langkah 1:</strong> ωₙ = √(500/5) = √100 = <strong style="color:var(--amber)">10 rad/s</strong></div>
+          <div class="step"><strong>Langkah 2:</strong> c_cr = 2√(500×5) = 2√2500 = 100 Ns/m</div>
+          <div class="step"><strong>Langkah 3:</strong> ζ = 20/100 = <strong style="color:var(--amber)">0.2</strong></div>
+          <div class="step"><strong>Langkah 4:</strong> ω_d = 10√(1−0.04) = 10×0.9798 = <strong style="color:var(--amber)">9.798 rad/s</strong></div>
+          <div class="step"><strong>Langkah 5:</strong> T_d = 2π/9.798 = <strong style="color:var(--amber)">0.641 detik</strong></div>
+          <div class="step" style="margin-top:12px;padding:10px 14px;background:rgba(0,229,255,.06);border-radius:8px;font-size:12px;">
+            <strong style="color:var(--cyan)">📓 Jupyter:</strong><br>
+            <code style="color:var(--green)">m, k, c = 5, 500, 20</code><br>
+            <code style="color:var(--green)">wn = np.sqrt(k/m)  # 10.0</code><br>
+            <code style="color:var(--green)">zeta = c/(2*np.sqrt(k*m))  # 0.2</code><br>
+            <code style="color:var(--green)">wd = wn*np.sqrt(1-zeta**2)  # 9.798</code><br>
+            <code style="color:var(--green)">Td = 2*np.pi/wd  # 0.641</code>
+          </div>
+        </div>
       </div>
-      <div class="hint">💡 Hint: Buat layout 2×2 subplot. Plot EK, EP, E_total dalam satu axes dengan warna berbeda. Overlay elips E=konstan pada diagram fase. Hitung waktu saat energi berkurang 90% dari E₀.</div>
     </div>
 
   </div>
+  </div>
+
 </div>
 
 <!-- ═══════════════════ DAFTAR PUSTAKA ═══════════════════ -->
@@ -2001,6 +2123,74 @@ window._awardPoint = function(qId) {
 
 <script>
 function cpC(btn){const pre=btn.closest('.code-wrap').querySelector('pre');if(!pre)return;navigator.clipboard.writeText(pre.textContent).then(()=>{btn.textContent='✅ Copied!';setTimeout(()=>btn.textContent='📋 Copy',2000)}).catch(()=>{btn.textContent='❌ Error';});}
+
+// ═══ SOAL INPUT SYSTEM ═══
+function showFeedback(id, correct, msg) {
+  const el = document.getElementById(id);
+  el.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function toggleKey(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('show');
+}
+
+window.checkSoal1 = function() {
+  const a = parseFloat(document.getElementById('ans1a').value);
+  const b = parseFloat(document.getElementById('ans1b').value);
+  const cc = document.getElementById('ans1c').value;
+  if(!a||!b||!cc) { showFeedback('fb1',false,'⚠ Isi semua jawaban.'); return; }
+  const ok1=Math.abs(a-5)<0.1, ok2=Math.abs(b-0.2)<0.02, ok3=cc==='under';
+  const btn=document.getElementById('akbSoal1');if(btn)btn.classList.remove('locked');
+  if(ok1&&ok2&&ok3){showFeedback('fb1',true,'✅ Benar! +1 poin');if(typeof _awardPoint==='function')_awardPoint('soal1');}
+  else {
+    let msg='❌ ';if(!ok1)msg+='ωₙ salah. ';if(!ok2)msg+='ζ salah. ';if(!ok3)msg+='Tipe salah. ';
+    showFeedback('fb1',false,msg);
+  }
+};
+
+window.checkSoal2 = function() {
+  const a = parseFloat(document.getElementById('ans2a').value);
+  const b = parseFloat(document.getElementById('ans2b').value);
+  if(!a||!b) { showFeedback('fb2',false,'⚠ Isi semua jawaban.'); return; }
+  const ok1=Math.abs(a-10)<0.5, ok2=Math.abs(b-10)<0.1;
+  const btn=document.getElementById('akbSoal2');if(btn)btn.classList.remove('locked');
+  if(ok1&&ok2){showFeedback('fb2',true,'✅ Benar! +1 poin');if(typeof _awardPoint==='function')_awardPoint('soal2');}
+  else {
+    let msg='❌ ';if(!ok1)msg+='DMF salah. ';if(!ok2)msg+='ω salah. ';
+    showFeedback('fb2',false,msg);
+  }
+};
+
+window.checkSoal3 = function() {
+  const a = parseFloat(document.getElementById('ans3a').value);
+  const b = parseFloat(document.getElementById('ans3b').value);
+  if(!a||!b) { showFeedback('fb3',false,'⚠ Isi semua jawaban.'); return; }
+  const ok1=Math.abs(a-15)<0.5, ok2=Math.abs(b-0.1118)<0.01;
+  const btn=document.getElementById('akbSoal3');if(btn)btn.classList.remove('locked');
+  if(ok1&&ok2){showFeedback('fb3',true,'✅ Benar! +1 poin');if(typeof _awardPoint==='function')_awardPoint('soal3');}
+  else {
+    let msg='❌ ';if(!ok1)msg+='E₀ salah. ';if(!ok2)msg+='ζ salah. ';
+    showFeedback('fb3',false,msg);
+  }
+};
+
+window.checkSoal4 = function() {
+  const a=parseFloat(document.getElementById('ans4a').value);
+  const b=parseFloat(document.getElementById('ans4b').value);
+  const cc=parseFloat(document.getElementById('ans4c').value);
+  const d=parseFloat(document.getElementById('ans4d').value);
+  if(!a||!b||!cc||!d){showFeedback('fb4',false,'⚠ Isi semua jawaban.');return;}
+  const ok1=Math.abs(a-10)<0.1, ok2=Math.abs(b-0.2)<0.02, ok3=Math.abs(cc-9.798)<0.1, ok4=Math.abs(d-0.641)<0.02;
+  const btn=document.getElementById('akbSoal4');if(btn)btn.classList.remove('locked');
+  if(ok1&&ok2&&ok3&&ok4){showFeedback('fb4',true,'✅ Semua benar! +1 poin');if(typeof _awardPoint==='function')_awardPoint('soal4');}
+  else {
+    let msg='❌ ';if(!ok1)msg+='ωₙ salah. ';if(!ok2)msg+='ζ salah. ';if(!ok3)msg+='ω_d salah. ';if(!ok4)msg+='T_d salah. ';
+    showFeedback('fb4',false,msg);
+  }
+};
+
 </script>
 
 <script type="module">
