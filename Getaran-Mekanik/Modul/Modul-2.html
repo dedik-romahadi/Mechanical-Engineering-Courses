@@ -107,18 +107,28 @@
     min-height: 100vh;
     display: flex; align-items: center; justify-content: center;
     padding: 80px 32px 40px;
-    position: relative;
-    overflow: hidden;
-    z-index: 1;
+    position: relative; overflow: hidden; z-index: 1;
+    background: linear-gradient(160deg,#020c1a 0%,#041526 30%,#06222e 60%,#031a20 100%);
   }
-  .hero-grid {
-    position: absolute; inset: 0;
-    background-image:
-      linear-gradient(rgba(0,229,255,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,229,255,0.04) 1px, transparent 1px);
-    background-size: 48px 48px;
-    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black, transparent);
-  }
+  .hero::before{content:'';position:absolute;inset:0;background:
+    repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(0,229,255,.03) 59px,rgba(0,229,255,.03) 60px),
+    repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(0,229,255,.03) 59px,rgba(0,229,255,.03) 60px);
+    pointer-events:none}
+  .hero::after{content:'';position:absolute;inset:0;background:
+    radial-gradient(ellipse 50% 50% at 50% 55%,rgba(0,229,255,.06),transparent 70%),
+    radial-gradient(ellipse 40% 40% at 25% 70%,rgba(0,230,118,.05),transparent 60%),
+    radial-gradient(ellipse 30% 30% at 80% 30%,rgba(124,77,255,.04),transparent 60%);
+    pointer-events:none}
+  .hero-waves{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+  .hero-waves svg{position:absolute;bottom:0;left:0;width:100%;height:100%}
+  .float-formulas{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+  .ff{position:absolute;font-family:'JetBrains Mono',monospace;font-weight:600;opacity:.07;animation:floatFormula var(--dur,16s) linear infinite;animation-delay:var(--del,0s);white-space:nowrap}
+  @keyframes floatFormula{0%{transform:translateY(100vh) rotate(0deg);opacity:0}5%{opacity:.07}90%{opacity:.05}100%{transform:translateY(-20vh) rotate(8deg);opacity:0}}
+  .hero-schematic{position:absolute;right:6%;top:50%;transform:translateY(-50%);pointer-events:none;opacity:.12}
+  .hero-schematic svg{width:120px;height:200px}
+  @keyframes oscillate{0%,100%{transform:translateY(0)}25%{transform:translateY(18px)}50%{transform:translateY(0)}75%{transform:translateY(-12px)}}
+  .smd-mass{animation:oscillate 3s ease-in-out infinite}
+  @media(max-width:900px){.hero-schematic{display:none}}
   .hero-content { position: relative; text-align: center; max-width: 900px; z-index: 2; }
   .hero-tag {
     display: inline-block;
