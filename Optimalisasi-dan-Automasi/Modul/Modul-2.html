@@ -528,35 +528,37 @@
 <div class="section" id="simulasi">
   <div class="section-label reveal">Bagian 04</div>
   <h2 class="section-title reveal">Simulasi Interaktif</h2>
-  <p class="section-desc reveal">Bandingkan sinyal univariate (1 sensor) vs multivariate (3 sensor) secara visual. Geser slider noise untuk melihat efek gangguan.</p>
+  <p class="section-desc reveal">Jelajahi perbedaan jenis data dan sensor secara visual dan interaktif.</p>
 
+  <!-- PANEL 1: Sensor Selector -->
   <div class="anim-panel reveal">
-    <div class="anim-header"><div class="anim-dot" style="background:var(--cyan)"></div><span class="anim-title">📊 Simulasi — Univariate (Getaran X) vs Multivariate (X + Suhu + Arus)</span></div>
+    <div class="anim-header"><div class="anim-dot" style="background:var(--cyan)"></div><span class="anim-title">📡 Perbandingan 5 Sensor — Klik untuk melihat sinyal masing-masing</span></div>
     <div class="anim-body">
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
-        <button class="btn-anim" id="btn-n" onclick="setMode('normal',this)" style="background:rgba(245,158,11,.25);border-color:#f59e0b;">〰️ Univariate</button>
-        <button class="btn-anim" id="btn-f" onclick="setMode('faulty',this)">📊 Multivariate</button>
-        <button class="btn-anim" id="btn-b" onclick="setMode('both',this)">🔀 Bandingkan</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+        <button class="btn-anim" id="btn-s0" onclick="pickSensor(0,this)" style="background:rgba(245,158,11,.25);border-color:#f59e0b;">📳 Accelerometer</button>
+        <button class="btn-anim" id="btn-s1" onclick="pickSensor(1,this)">🌡️ Termokopel</button>
+        <button class="btn-anim" id="btn-s2" onclick="pickSensor(2,this)">🔴 Pressure</button>
+        <button class="btn-anim" id="btn-s3" onclick="pickSensor(3,this)">⚡ Current</button>
+        <button class="btn-anim" id="btn-s4" onclick="pickSensor(4,this)">🔄 Encoder</button>
       </div>
-      <div class="ctrl-row" style="margin-top:0;margin-bottom:16px;"><div class="ctrl-group"><label>Noise Level — <span class="ctrl-val" id="noiseVal">0.30</span></label><input type="range" id="noiseSlider" min="0" max="1" step="0.05" value="0.3" oninput="updateChart()"></div></div>
-      <div style="height:320px;"><canvas id="vibrationChart"></canvas></div>
-      <div style="margin-top:20px;font-size:13px;color:var(--text);line-height:1.8;background:rgba(245,158,11,.03);border:1px solid rgba(245,158,11,.08);border-radius:10px;padding:16px 20px;">
-        <strong style="color:var(--cyan);">📖 Penjelasan:</strong> <strong>Univariate</strong> hanya menampilkan 1 sinyal getaran (sumbu X) — sederhana tapi terbatas informasi. <strong>Multivariate</strong> menampilkan 3 sinyal bersamaan: getaran (hijau), suhu (amber), dan arus (ungu) — lebih kaya informasi karena menangkap korelasi antar sensor. Perhatikan bahwa saat noise naik, sinyal univariate lebih sulit dibaca dibanding multivariate yang bisa saling mengkonfirmasi anomali.
+      <div style="height:280px;"><canvas id="sensorCompareChart"></canvas></div>
+      <div id="sensorInfo" style="margin-top:16px;font-size:13px;color:var(--text);line-height:1.8;background:rgba(245,158,11,.03);border:1px solid rgba(245,158,11,.08);border-radius:10px;padding:16px 20px;">
+        <strong style="color:var(--cyan);">📳 Accelerometer:</strong> Sampling rate tinggi (1-50 kHz). Menangkap getaran frekuensi tinggi dari impact bearing. Sinyal berupa osilasi cepat — cocok untuk early fault detection. <strong>Jenis data: Univariate</strong> (1 sumbu) atau <strong>Multivariate</strong> (3 sumbu X,Y,Z).
       </div>
     </div>
   </div>
 
+  <!-- PANEL 2: Nyquist/Aliasing Demo -->
   <div class="anim-panel reveal">
-    <div class="anim-header"><div class="anim-dot" style="background:var(--green)"></div><span class="anim-title">📡 Live Stream — Sensor Accelerometer Real-Time</span></div>
+    <div class="anim-header"><div class="anim-dot" style="background:#f43f5e"></div><span class="anim-title">📐 Demo Aliasing — Efek Sampling Rate terhadap Sinyal</span></div>
     <div class="anim-body">
-      <canvas id="cv_stream" class="sim-canvas" height="220"></canvas>
+      <canvas id="cv_nyquist" class="sim-canvas" height="260"></canvas>
       <div class="ctrl-row">
-        <div class="ctrl-group"><label>Amplitudo — <span class="ctrl-val" id="v_amp1">0.5</span> mm/s</label><input type="range" id="sl_amp1" min="0.1" max="2.0" step="0.1" value="0.5"></div>
-        <div class="ctrl-group"><label>Frekuensi — <span class="ctrl-val" id="v_freq1">8.0</span> Hz</label><input type="range" id="sl_freq1" min="1" max="20" step="0.5" value="8"></div>
-        <button class="btn-anim" id="btn_stream" onclick="toggleStream()">⏸ PAUSE</button>
+        <div class="ctrl-group"><label>Frekuensi Sinyal — <span class="ctrl-val" id="v_fsig">10</span> Hz</label><input type="range" id="sl_fsig" min="5" max="40" step="1" value="10"></div>
+        <div class="ctrl-group"><label>Sampling Rate — <span class="ctrl-val" id="v_fsr">50</span> Hz</label><input type="range" id="sl_fsr" min="5" max="100" step="1" value="50"></div>
       </div>
-      <div style="margin-top:16px;font-size:13px;color:var(--text);line-height:1.8;background:rgba(16,185,129,.03);border:1px solid rgba(16,185,129,.08);border-radius:10px;padding:16px 20px;">
-        <strong style="color:var(--green);">📖 Penjelasan:</strong> Simulasi sensor accelerometer yang merekam data secara <strong>discrete</strong> (diskret) — titik demi titik pada interval tetap. Ubah amplitudo untuk simulasikan bearing aus, atau ubah frekuensi untuk RPM berbeda. Dalam industri nyata, sinyal kontinu dari sensor piezoelectric dikonversi ke diskret oleh ADC di DAQ system sebelum masuk komputer.
+      <div id="nyquistInfo" style="margin-top:16px;font-size:13px;color:var(--text);line-height:1.8;background:rgba(16,185,129,.04);border:1px solid rgba(16,185,129,.1);border-radius:10px;padding:16px 20px;">
+        <strong style="color:var(--green);">✅ Aman:</strong> Sampling rate (50 Hz) > 2× frekuensi sinyal (10 Hz). Sinyal terekam dengan benar. Titik-titik diskret mengikuti gelombang asli.
       </div>
     </div>
   </div>
@@ -1001,62 +1003,66 @@ document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 const barIO=new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isIntersecting){e.target.style.width=e.target.dataset.width;barIO.unobserve(e.target);}});},{threshold:0.3});
 document.querySelectorAll('.anim-bar').forEach(el=>barIO.observe(el));
 
-// ═══ CHART.JS: VIBRATION CHART ═══
-const N=201;const baseLabels=[],baseNormal=[],baseFaulty=[];
-for(let i=0;i<N;i++){const t=i*0.05;baseLabels.push(t.toFixed(2));baseNormal.push(0.5*Math.sin(t*8)+0.1*(t/10));baseFaulty.push(1.8*Math.sin(t*8)+0.3*(t/10));}
-let vibChart=null,curMode='normal';
-function genData(noise){return{normal:baseNormal.map(v=>v+(Math.random()-0.5)*noise*0.6),faulty:baseFaulty.map(v=>v+(Math.random()-0.5)*noise*1.2)};}
-function drawChart(noise){
-  const d=genData(noise);const ds=[];
-  if(curMode==='normal'||curMode==='both')ds.push({label:'🟢 Normal',data:d.normal,borderColor:'#10b981',borderWidth:2,tension:.3,pointRadius:0});
-  if(curMode==='faulty'||curMode==='both')ds.push({label:'🔴 Faulty',data:d.faulty,borderColor:'#f43f5e',borderWidth:2,tension:.3,pointRadius:0});
-  if(vibChart)vibChart.destroy();
-  vibChart=new Chart(document.getElementById('vibrationChart'),{type:'line',data:{labels:baseLabels,datasets:ds},options:{responsive:true,maintainAspectRatio:false,animation:{duration:600},plugins:{legend:{position:'top',labels:{color:'#cdd6e8',font:{size:12},padding:16}},tooltip:{mode:'index',intersect:false}},scales:{x:{grid:{color:'#1a2840'},ticks:{color:'#4a6080',maxTicksLimit:12,font:{size:10}},title:{display:true,text:'Waktu (detik)',color:'#4a6080'}},y:{grid:{color:'#1a2840'},ticks:{color:'#4a6080',font:{size:10}},title:{display:true,text:'Amplitudo (mm/s)',color:'#4a6080'}}}}});
+// ═══ SENSOR COMPARISON CHART ═══
+const sensorData = [
+  {name:'Accelerometer',color:'#f59e0b',fs:1000,dur:0.1,fn:(t)=>0.8*Math.sin(2*Math.PI*120*t)+0.3*Math.sin(2*Math.PI*350*t)+0.15*(Math.random()-0.5),yLabel:'Getaran (mm/s²)',info:'<strong style="color:var(--cyan);">📳 Accelerometer:</strong> Sampling rate tinggi (1-50 kHz). Menangkap getaran frekuensi tinggi dari impact bearing. Sinyal berupa osilasi cepat — cocok untuk early fault detection. <strong>Jenis data: Univariate</strong> (1 sumbu) atau <strong>Multivariate</strong> (3 sumbu X,Y,Z).'},
+  {name:'Termokopel',color:'#f97316',fs:1,dur:300,fn:(t)=>70+0.02*t+3*Math.sin(2*Math.PI*t/60)+1.5*(Math.random()-0.5),yLabel:'Suhu (°C)',info:'<strong style="color:#f97316;">🌡️ Termokopel:</strong> Sampling rate rendah (0.1-1 Hz). Perubahan sangat lambat — suhu naik bertahap saat bearing overheating. <strong>Univariate</strong>. Sinyal smooth dengan tren naik perlahan.'},
+  {name:'Pressure',color:'#ef4444',fs:10,dur:30,fn:(t)=>8+0.5*Math.sin(2*Math.PI*t/5)+0.2*(Math.random()-0.5),yLabel:'Tekanan (bar)',info:'<strong style="color:#ef4444;">🔴 Pressure Transducer:</strong> Sampling rate menengah (1-100 Hz). Fluktuasi periodik dari siklus pompa. Deteksi kavitasi dan kebocoran. <strong>Univariate</strong>.'},
+  {name:'Current Clamp',color:'#8b5cf6',fs:50,dur:2,fn:(t)=>4.5+3*Math.sin(2*Math.PI*50*t)+0.8*Math.sin(2*Math.PI*150*t)+0.3*(Math.random()-0.5),yLabel:'Arus (A)',info:'<strong style="color:#8b5cf6;">⚡ Current Clamp:</strong> Sampling rate menengah-tinggi. Sinyal arus motor 50 Hz dengan harmonik. Motor Current Signature Analysis (MCSA) mendeteksi rotor bar crack. <strong>Univariate</strong>.'},
+  {name:'Encoder RPM',color:'#10b981',fs:5,dur:60,fn:(t)=>1480+20*Math.sin(2*Math.PI*t/15)+5*(Math.random()-0.5),yLabel:'RPM',info:'<strong style="color:#10b981;">🔄 Encoder/Tachometer:</strong> Sampling rate rendah-menengah. RPM relatif stabil dengan variasi kecil. Deteksi slip belt atau beban berlebih saat RPM drop. <strong>Univariate</strong>.'}
+];
+let sChart=null,curSensor=0;
+function renderSensorChart(idx){
+  const s=sensorData[idx]; const labels=[],data=[];
+  for(let i=0;i<200;i++){const t=i*(s.dur/200);labels.push(t.toFixed(s.dur<1?4:1));data.push(s.fn(t));}
+  if(sChart)sChart.destroy();
+  sChart=new Chart(document.getElementById('sensorCompareChart'),{type:'line',data:{labels,datasets:[{label:s.name,data,borderColor:s.color,borderWidth:2,tension:.3,pointRadius:0,fill:false}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:500},plugins:{legend:{labels:{color:'#cdd6e8',font:{size:12}}}},scales:{x:{grid:{color:'#1a2840'},ticks:{color:'#4a6080',maxTicksLimit:10},title:{display:true,text:'Waktu',color:'#4a6080'}},y:{grid:{color:'#1a2840'},ticks:{color:'#4a6080'},title:{display:true,text:s.yLabel,color:'#4a6080'}}}}});
+  document.getElementById('sensorInfo').innerHTML=s.info;
 }
-function setMode(mode,btn){curMode=mode;document.querySelectorAll('#btn-n,#btn-f,#btn-b').forEach(b=>{b.style.background='rgba(245,158,11,.08)';b.style.borderColor='rgba(245,158,11,.3)';});btn.style.background='rgba(245,158,11,.25)';btn.style.borderColor='#f59e0b';updateChart();}
-function updateChart(){const v=parseFloat(document.getElementById('noiseSlider').value);document.getElementById('noiseVal').textContent=v.toFixed(2);drawChart(v);}
-drawChart(0.3);
+function pickSensor(idx,btn){curSensor=idx;for(let i=0;i<5;i++){const b=document.getElementById('btn-s'+i);b.style.background='rgba(245,158,11,.08)';b.style.borderColor='rgba(245,158,11,.3)';}btn.style.background='rgba(245,158,11,.25)';btn.style.borderColor='#f59e0b';renderSensorChart(idx);}
+renderSensorChart(0);
 
-// ═══ CANVAS: LIVE STREAM ═══
+// ═══ CANVAS: NYQUIST/ALIASING DEMO ═══
 {
-  const cv=document.getElementById('cv_stream');cv.height=220;
-  let playing=true,t=0;
-  const history=[];
-  function drawStream(){
+  const cv=document.getElementById('cv_nyquist');cv.height=260;
+  function drawNyquist(){
     const W=cv.clientWidth||800;cv.width=W;const H=cv.height;
     const ctx=cv.getContext('2d');
-    const amp=parseFloat(document.getElementById('sl_amp1').value);
-    const freq=parseFloat(document.getElementById('sl_freq1').value);
-    document.getElementById('v_amp1').textContent=amp.toFixed(1);
-    document.getElementById('v_freq1').textContent=freq.toFixed(1);
-    const val=amp*Math.sin(2*Math.PI*freq*t/60)+(Math.random()-0.5)*0.1;
-    history.push(val);if(history.length>W/2)history.shift();
-    t++;
+    const fSig=parseFloat(document.getElementById('sl_fsig').value);
+    const fSr=parseFloat(document.getElementById('sl_fsr').value);
+    document.getElementById('v_fsig').textContent=fSig;
+    document.getElementById('v_fsr').textContent=fSr;
     ctx.fillStyle='#030810';ctx.fillRect(0,0,W,H);
+    // grid
     ctx.strokeStyle='#0d1e33';ctx.lineWidth=1;
-    for(let x=0;x<W;x+=60){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
-    for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
-    const cy=H/2;
-    ctx.strokeStyle='#1a3050';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(0,cy);ctx.lineTo(W,cy);ctx.stroke();
-    ctx.strokeStyle='#f59e0b';ctx.lineWidth=2.5;ctx.shadowColor='#f59e0b';ctx.shadowBlur=12;ctx.beginPath();
-    for(let i=0;i<history.length;i++){
-      const px=W-((history.length-i)*2);const py=cy-history[i]*(H/2-20)/2;
-      if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
-    }
+    for(let x=40;x<W;x+=60){ctx.beginPath();ctx.moveTo(x,20);ctx.lineTo(x,H-30);ctx.stroke();}
+    for(let y=20;y<H-20;y+=40){ctx.beginPath();ctx.moveTo(30,y);ctx.lineTo(W-10,y);ctx.stroke();}
+    const cy=H/2,amp=H/2-40,dur=0.5;
+    // continuous wave (gray)
+    ctx.strokeStyle='#475569';ctx.lineWidth=1.5;ctx.beginPath();
+    for(let px=40;px<W-10;px++){const t=(px-40)/(W-50)*dur;const y=cy-amp*Math.sin(2*Math.PI*fSig*t);if(px===40)ctx.moveTo(px,y);else ctx.lineTo(px,y);}
+    ctx.stroke();
+    // sampled points
+    const isAlias=fSr<2*fSig;const color=isAlias?'#f43f5e':(fSr<2.5*fSig?'#fbbf24':'#10b981');
+    ctx.strokeStyle=color;ctx.lineWidth=2.5;ctx.shadowColor=color;ctx.shadowBlur=8;ctx.beginPath();
+    const nSamples=Math.floor(fSr*dur);const pts=[];
+    for(let i=0;i<=nSamples;i++){const t=i/fSr;const px=40+(t/dur)*(W-50);const y=cy-amp*Math.sin(2*Math.PI*fSig*t);pts.push({x:px,y});if(i===0)ctx.moveTo(px,y);else ctx.lineTo(px,y);}
     ctx.stroke();ctx.shadowBlur=0;
-    if(history.length>0){
-      const lastPx=W-2;const lastPy=cy-history[history.length-1]*(H/2-20)/2;
-      ctx.fillStyle='#ffb300';ctx.shadowColor='#ffb300';ctx.shadowBlur=16;
-      ctx.beginPath();ctx.arc(lastPx,lastPy,7,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
-      ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(lastPx,lastPy,3,0,Math.PI*2);ctx.fill();
-    }
+    // dots
+    pts.forEach(p=>{ctx.fillStyle=color;ctx.beginPath();ctx.arc(p.x,p.y,5,0,Math.PI*2);ctx.fill();});
+    // labels
     ctx.fillStyle='#4a6080';ctx.font='11px JetBrains Mono';
-    ctx.fillText('A='+amp.toFixed(1)+' mm/s | f='+freq.toFixed(1)+' Hz',12,H-12);
-    if(playing)requestAnimationFrame(drawStream);
+    ctx.fillText('f_signal = '+fSig+' Hz',12,H-8);
+    ctx.fillText('f_sampling = '+fSr+' Hz',W/2-60,H-8);
+    ctx.fillText('Nyquist = '+fSr/2+' Hz',W-150,H-8);
+    // status
+    const info=document.getElementById('nyquistInfo');
+    if(isAlias)info.innerHTML='<strong style="color:#f43f5e;">❌ ALIASING!</strong> Sampling rate ('+fSr+' Hz) < 2× frekuensi sinyal ('+fSig+' Hz = Nyquist '+2*fSig+' Hz). Sinyal terekam secara <strong>salah</strong> — frekuensi tinggi menyamar sebagai frekuensi rendah. Diagnosis mesin bisa keliru!';
+    else if(fSr<2.5*fSig)info.innerHTML='<strong style="color:#fbbf24;">⚠️ Batas Nyquist:</strong> Sampling rate ('+fSr+' Hz) tepat di sekitar 2× frekuensi ('+fSig+' Hz). Secara teori cukup, tapi dalam praktik disarankan <strong>2.56× f_max</strong> untuk anti-aliasing yang aman.';
+    else info.innerHTML='<strong style="color:#10b981;">✅ Aman:</strong> Sampling rate ('+fSr+' Hz) > 2× frekuensi sinyal ('+fSig+' Hz). Sinyal terekam dengan benar. Titik-titik diskret mengikuti gelombang asli.';
   }
-  window.toggleStream=function(){playing=!playing;document.getElementById('btn_stream').textContent=playing?'⏸ PAUSE':'▶ PLAY';if(playing)drawStream();};
-  ['sl_amp1','sl_freq1'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{if(!playing)drawStream();}));
-  drawStream();
+  ['sl_fsig','sl_fsr'].forEach(id=>document.getElementById(id).addEventListener('input',drawNyquist));
+  drawNyquist();
 }
 </script>
 
