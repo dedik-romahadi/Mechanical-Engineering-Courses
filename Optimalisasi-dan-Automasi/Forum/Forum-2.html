@@ -4,464 +4,245 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Forum Diskusi • Pertemuan 2 • Optimalisasi & Otomasi</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Sans+3:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
-/* ============================================================
-   RESET & BASE
-   ============================================================ */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:#060a10;--surface:#0d1520;--border:#1a2840;
+    --cyan:#f59e0b;--amber:#6366f1;--green:#10b981;--pink:#f43f5e;--violet:#a78bfa;
+    --text:#cdd6e8;--muted:#4a6080;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text);font-family:'Source Sans 3',sans-serif;font-size:16px;line-height:1.7;overflow-x:hidden}
 
-:root {
-  --teal:   #2dd4bf;
-  --amber:  #fbbf24;
-  --rose:   #fb7185;
-  --violet: #a78bfa;
-  --lime:   #a3e635;
-  --bg:     #080e1a;
-  --surface:#0f1929;
-  --s700:   #334155;
-  --s500:   #64748b;
-  --s400:   #94a3b8;
-  --s300:   #cbd5e1;
-  --s200:   #e2e8f0;
-  --border: rgba(45,212,191,.15);
-}
+  /* ── SCROLL PROGRESS ── */
+  #scrollProgress{display:none}
 
-html { scroll-behavior: smooth; }
+  /* ── NAVBAR ── */
+  nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(6,10,16,0.85);backdrop-filter:blur(20px) saturate(1.3);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between}
+  .nav-brand{font-family:'JetBrains Mono',monospace;font-size:14px;letter-spacing:1px;display:flex;align-items:center;gap:0}
+  .nav-brand .logo-opto{font-weight:700;background:linear-gradient(135deg,#f59e0b,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:2px}
+  .nav-brand .logo-sep{color:#334155;margin:0 6px;font-weight:300;-webkit-text-fill-color:initial}
+  .nav-brand .logo-mod{font-weight:600;color:#94a3b8;letter-spacing:1px}
+  .nav-brand .pulse{width:8px;height:8px;background:#f59e0b;border-radius:50%;animation:pulse 1.6s ease-in-out infinite;margin-right:10px}
+  @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(245,158,11,.5)}50%{opacity:.6;box-shadow:0 0 0 6px rgba(245,158,11,0)}}
+  .nav-links{display:flex;gap:28px}
+  .nav-links a{font-size:12px;font-weight:500;color:var(--muted);text-decoration:none;letter-spacing:1px;text-transform:uppercase;transition:color .2s;position:relative}
+  .nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:2px;background:linear-gradient(90deg,#f59e0b,#f97316);border-radius:2px;transition:width .3s}
+  .nav-links a:hover{color:#f59e0b}
+  .nav-links a:hover::after{width:100%}
+  .nav-badge{font-family:'JetBrains Mono',monospace;font-size:11px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);color:#f59e0b;padding:4px 12px;border-radius:20px}
+  @media(max-width:768px){.nav-links{display:none}nav{padding:0 16px}}
 
-body {
-  font-family: 'DM Sans', system-ui, sans-serif;
-  background: var(--bg);
-  color: var(--s200);
-  min-height: 100vh;
-  overflow-x: hidden;
-  font-size: 15px;
-  line-height: 1.6;
-}
+  /* ── HERO ── */
+  .hero{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:80px 32px 40px;position:relative;overflow:hidden;z-index:1;background:linear-gradient(160deg,#0a0806 0%,#1a1008 30%,#1c1510 50%,#0e0c08 80%,#060a10 100%)}
+  .hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(245,158,11,.025) 59px,rgba(245,158,11,.025) 60px),repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(245,158,11,.025) 59px,rgba(245,158,11,.025) 60px);pointer-events:none}
+  .hero::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 50% 50% at 50% 55%,rgba(245,158,11,.07),transparent 70%),radial-gradient(ellipse 40% 40% at 25% 70%,rgba(249,115,22,.05),transparent 60%),radial-gradient(ellipse 30% 30% at 80% 30%,rgba(99,102,241,.05),transparent 60%);pointer-events:none}
+  .hero-waves{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+  .hero-waves svg{position:absolute;bottom:0;left:0;width:100%;height:100%}
+  .float-formulas{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+  .ff{position:absolute;font-family:'JetBrains Mono',monospace;font-weight:600;opacity:.07;animation:floatFormula var(--dur,16s) linear infinite;animation-delay:var(--del,0s);white-space:nowrap}
+  @keyframes floatFormula{0%{transform:translateY(100vh) rotate(0deg);opacity:0}5%{opacity:.07}90%{opacity:.05}100%{transform:translateY(-20vh) rotate(8deg);opacity:0}}
+  .hero-content{position:relative;text-align:center;max-width:900px;z-index:2}
+  .hero-tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6366f1;border:1px solid rgba(99,102,241,.35);background:rgba(99,102,241,.07);padding:5px 16px;border-radius:20px;letter-spacing:3px;margin-bottom:28px;text-transform:uppercase;animation:fadeDown .8s ease both}
+  @keyframes fadeDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes blinkAlert{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.97)}}
+  h1.hero-title{font-family:'Playfair Display',serif;font-size:clamp(42px,7vw,82px);line-height:1.05;color:#fff;margin-bottom:24px;animation:fadeUp .8s ease .15s both}
+  h1.hero-title em{background:linear-gradient(135deg,#f59e0b,#f97316,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-style:italic}
+  .hero-sub{font-size:18px;color:var(--muted);max-width:560px;margin:0 auto 48px;font-weight:300;animation:fadeUp .8s ease .3s both}
+  .hero-pills{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;animation:fadeUp .8s ease .45s both}
 
-h1,h2,h3,h4 { font-family: 'Syne', sans-serif; line-height: 1.15; }
+  /* ── HERO LECTURER CARD ── */
+  .hero-lecturer{display:inline-flex;align-items:center;gap:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);padding:12px 28px 12px 14px;border-radius:50px;margin-top:40px;animation:fadeUp .8s ease .55s both}
+  .hero-lecturer .lec-icon{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;box-shadow:0 4px 16px rgba(99,102,241,.35)}
+  .hero-lecturer .lec-info .lec-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+  .hero-lecturer .lec-info .lec-name{font-size:16px;font-weight:700;color:#fff;margin-top:1px}
 
-code {
-  font-family: 'Courier New', monospace;
-  font-size: .82em;
-  background: rgba(255,255,255,.08);
-  padding: 2px 8px;
-  border-radius: 6px;
-  color: var(--teal);
-}
+  /* ── HERO CTA BUTTONS ── */
+  .hero-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:28px;animation:fadeUp .8s ease .65s both}
+  .btn-primary{display:inline-flex;align-items:center;gap:8px;padding:14px 32px;border-radius:14px;border:none;background:linear-gradient(135deg,#f59e0b,#10b981);color:#fff;font-family:'Source Sans 3',sans-serif;font-weight:700;font-size:15px;cursor:pointer;text-decoration:none;transition:transform .25s,box-shadow .25s;box-shadow:0 6px 24px rgba(245,158,11,.3)}
+  .btn-primary:hover{transform:translateY(-3px);box-shadow:0 10px 32px rgba(245,158,11,.4);text-decoration:none}
+  .btn-outline{display:inline-flex;align-items:center;gap:8px;padding:14px 32px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:#cdd6e8;font-family:'Source Sans 3',sans-serif;font-weight:700;font-size:15px;cursor:pointer;text-decoration:none;transition:transform .25s,background .25s,border-color .25s}
+  .btn-outline:hover{transform:translateY(-3px);background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);text-decoration:none}
+  .pill{font-size:12px;font-weight:500;padding:7px 18px;border-radius:20px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);transition:border-color .3s,background .3s,transform .3s}
+  .pill:hover{border-color:#f59e0b;background:rgba(245,158,11,.05);transform:translateY(-2px)}
 
-/* ============================================================
-   LAYOUT
-   ============================================================ */
-.container { max-width: 860px; margin: 0 auto; padding: 0 24px; }
+  /* ── SECTION ── */
+  .section{max-width:1100px;margin:0 auto;padding:80px 32px;position:relative;z-index:1}
+  .section-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);letter-spacing:4px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:10px}
+  .section-label::before{content:'';width:28px;height:2px;background:var(--cyan);border-radius:2px}
+  h2.section-title{font-family:'Playfair Display',serif;font-size:clamp(28px,4vw,48px);color:#fff;margin-bottom:16px;line-height:1.15}
+  .section-desc{font-size:16px;color:var(--muted);max-width:640px;margin-bottom:48px}
 
-.flex         { display: flex; }
-.flex-center  { display: flex; align-items: center; justify-content: center; }
-.flex-between { display: flex; align-items: center; justify-content: space-between; }
-.flex-wrap    { flex-wrap: wrap; }
-.gap-2 { gap: 8px; } .gap-3 { gap: 12px; } .gap-4 { gap: 16px; }
-.flex-1 { flex: 1; }
-.flex-shrink-0 { flex-shrink: 0; }
-.ml-auto  { margin-left: auto; }
-.text-center { text-align: center; }
-.relative { position: relative; }
-.overflow-hidden { overflow: hidden; }
+  /* ── CARDS ── */
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;transition:border-color .3s,transform .4s,box-shadow .4s}
+  .card:hover{border-color:var(--cyan);transform:translateY(-6px);box-shadow:0 16px 48px rgba(0,229,255,.08)}
+  .card-icon{font-size:28px;margin-bottom:14px;display:inline-block;animation:float 3s ease-in-out infinite}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+  .card h3{font-size:17px;font-weight:600;color:#fff;margin-bottom:8px}
+  .card p{font-size:14px;color:var(--muted)}
+  .card .formula{margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:15px;color:var(--cyan);background:rgba(0,229,255,.07);border:1px solid rgba(0,229,255,.15);padding:8px 14px;border-radius:8px;display:inline-block;transition:background .3s,box-shadow .3s}
+  .card:hover .formula{background:rgba(0,229,255,.12);box-shadow:0 0 20px rgba(0,229,255,.1)}
 
-.mt-2{margin-top:8px}   .mt-3{margin-top:12px}  .mt-4{margin-top:16px}
-.mt-6{margin-top:24px}  .mt-8{margin-top:32px}
-.mb-2{margin-bottom:8px} .mb-3{margin-bottom:12px} .mb-4{margin-bottom:16px}
-.mb-6{margin-bottom:24px}
+  /* ── PARAM PANEL ── */
+  .param-panel{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:32px;transition:box-shadow .3s}
+  .param-panel:hover{box-shadow:0 12px 40px rgba(0,0,0,.3)}
+  .param-panel h3{font-size:16px;font-weight:600;color:#fff;margin-bottom:28px;display:flex;align-items:center;gap:10px}
+  .param-row{margin-bottom:24px}
+  .param-row .param-name{font-size:14px;color:var(--muted);margin-bottom:6px}
+  .param-row .param-bar{height:6px;background:var(--border);border-radius:10px;overflow:hidden;margin-bottom:6px}
+  .param-row .param-fill{height:100%;border-radius:10px;transition:width 1.5s ease}
+  .param-row .param-unit{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700}
+  .param-row p{font-size:12px;color:var(--muted);margin-top:4px}
+  .param-note{margin-top:24px;padding-top:20px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);line-height:1.6}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  @media(max-width:900px){.two-col{grid-template-columns:1fr}}
+  .vib-type-item{display:flex;gap:14px;align-items:flex-start;padding:16px;border-radius:12px;transition:transform .3s}
+  .vib-type-item:hover{transform:translateX(4px)}
 
-.text-xs{font-size:.75rem}  .text-sm{font-size:.875rem}
-.text-lg{font-size:1.125rem}.text-xl{font-size:1.25rem}
-.text-2xl{font-size:1.5rem}
-.font-medium{font-weight:500}  .font-semibold{font-weight:600}
-.font-bold{font-weight:700}    .font-mono{font-family:'Courier New',monospace}
-.uppercase{text-transform:uppercase}
-.tracking-widest{letter-spacing:.15em}
-.tracking-wide{letter-spacing:.06em}
-.leading-relaxed{line-height:1.7}
+  /* ── DIVIDER ── */
+  .divider{border:none;border-top:1px solid var(--border);margin:0}
 
-.text-teal{color:var(--teal)}   .text-amber{color:var(--amber)}
-.text-rose{color:var(--rose)}   .text-violet{color:var(--violet)}
-.text-lime{color:var(--lime)}
-.text-s300{color:var(--s300)}   .text-s400{color:var(--s400)}
-.text-s500{color:var(--s500)}
+  /* ── ANIMATION / CHART PANELS ── */
+  .anim-panel{background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-bottom:32px;transition:border-color .4s,box-shadow .4s}
+  .anim-panel:hover{border-color:rgba(0,229,255,.25);box-shadow:0 16px 48px rgba(0,0,0,.3)}
+  .anim-header{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+  .anim-dot{width:10px;height:10px;border-radius:50%;animation:pulse 1.6s ease-in-out infinite}
+  .anim-title{font-size:14px;font-weight:600;color:#fff}
+  .anim-body{padding:24px}
+  canvas.sim-canvas{border-radius:10px;background:#030810;display:block;width:100%}
+  .ctrl-row{display:flex;gap:20px;flex-wrap:wrap;margin-top:16px;align-items:center}
+  .ctrl-group{flex:1;min-width:160px}
+  .ctrl-group label{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;display:block;margin-bottom:6px}
+  .ctrl-group input[type=range]{width:100%;accent-color:var(--cyan);cursor:pointer;height:6px;border-radius:4px}
+  .ctrl-val{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan);font-weight:700}
+  .btn-anim{padding:10px 24px;border-radius:10px;border:1px solid rgba(245,158,11,.3);background:rgba(245,158,11,.08);color:#f59e0b;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;transition:background .2s,transform .2s,box-shadow .2s;letter-spacing:1px}
+  .btn-anim:hover{background:rgba(245,158,11,.18);transform:translateY(-2px);box-shadow:0 6px 20px rgba(245,158,11,.15)}
 
-/* ============================================================
-   BADGE & CHIPS
-   ============================================================ */
-.badge {
-  display: inline-flex; align-items: center; gap: 7px;
-  background: rgba(45,212,191,.1); border: 1px solid rgba(45,212,191,.3);
-  color: var(--teal); padding: 5px 14px; border-radius: 999px;
-  font-size: .72rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
-}
+  /* ── CODE BLOCKS ── */
+  .code-wrap{background:#030810;border:1px solid var(--border);border-radius:16px;overflow:hidden;margin:1.5rem 0}
+  .code-header{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;background:rgba(255,255,255,.02);border-bottom:1px solid var(--border)}
+  .code-dots{display:flex;gap:6px}.code-dots span{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .code-label{font-size:12px;font-weight:600;color:var(--muted);margin-left:12px}
+  .code-copy{padding:4px 12px;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer;font-size:11px;font-family:inherit;transition:all .3s}
+  .code-copy:hover{background:rgba(0,229,255,.15);color:var(--cyan);border-color:rgba(0,229,255,.3)}
+  .code-wrap pre{padding:20px 22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.8;color:#cdd6e8;white-space:pre;overflow-x:auto;margin:0}
+  .cm{color:#6e7681}.kw{color:#ff7b72}.st{color:#a5d6ff}.fn{color:#d2a8ff}.gn{color:#7ee787}.nm{color:#ffd166}.op{color:#f59e0b}
 
-.chip {
-  display: inline-block; padding: 4px 12px; border-radius: 10px;
-  font-size: .72rem; font-weight: 500;
-}
-.chip-teal   { background:rgba(45,212,191,.1);  color:var(--teal);   border:1px solid rgba(45,212,191,.2);  }
-.chip-amber  { background:rgba(251,191,36,.1);   color:var(--amber);  border:1px solid rgba(251,191,36,.2);  }
-.chip-violet { background:rgba(167,139,250,.1);  color:var(--violet); border:1px solid rgba(167,139,250,.2); }
-.chip-rose   { background:rgba(251,113,133,.1);  color:var(--rose);   border:1px solid rgba(251,113,133,.2); }
-.chip-lime   { background:rgba(163,230,53,.1);   color:var(--lime);   border:1px solid rgba(163,230,53,.2);  }
+  /* ── INFO BOX ── */
+  .info-box{background:rgba(0,229,255,.04);border:1px solid rgba(0,229,255,.12);border-radius:14px;padding:20px 24px;font-size:15px;color:var(--text);line-height:1.8}
 
-/* ============================================================
-   HERO
-   ============================================================ */
-.hero {
-  background: radial-gradient(ellipse 80% 60% at 50% 0%, #0d3a5c 0%, #080e1a 70%);
-  border-bottom: 1px solid var(--border);
-  padding: 56px 0 44px;
-}
+  /* ── SCROLL REVEAL ── */
+  .reveal{opacity:0;transform:translateY(30px);transition:opacity .6s ease-out,transform .6s ease-out}.reveal.visible{opacity:1;transform:translateY(0)}
 
-.hero-title {
-  font-size: clamp(1.8rem, 4vw, 3rem);
-  font-weight: 800; line-height: 1.08;
-  background: linear-gradient(135deg, #5eead4, #a5f3fc, #e2e8f0);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-}
+  /* ── RUN TIP ── */
+  .run-tip{background:rgba(0,230,118,.05);border:1px solid rgba(0,230,118,.15);border-left:3px solid var(--green);border-radius:12px;padding:18px 24px;font-size:14px;color:var(--text);line-height:1.8;margin-top:32px}
 
-/* ============================================================
-   TICKER
-   ============================================================ */
-.ticker-wrap { border: 1px solid var(--s700); border-radius: 16px; overflow: hidden; margin-top: 28px; }
-.ticker-head { background: rgba(15,23,42,.7); padding: 7px 14px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--s700); }
-.live-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--teal); flex-shrink: 0; animation: ping 1.8s ease-out infinite; }
-@keyframes ping {
-  0%  { box-shadow: 0 0 0 0 rgba(45,212,191,.7); }
-  80% { box-shadow: 0 0 0 8px rgba(45,212,191,0); }
-  100%{ box-shadow: 0 0 0 0 rgba(45,212,191,0); }
-}
-.ticker-body { padding: 9px 14px; overflow: hidden; }
-.ticker-track { display: flex; gap: 40px; width: max-content; animation: tickMove 24s linear infinite; }
-@keyframes tickMove { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
-.ticker-item { white-space: nowrap; font-size: .7rem; font-family: 'Courier New',monospace; color: rgba(45,212,191,.7); }
+  /* ── FOOTER ── */
+  footer{text-align:center;padding:48px 32px;font-size:13px;color:var(--muted);border-top:1px solid var(--border)}
+  footer a{color:var(--cyan);text-decoration:none}
 
-/* ============================================================
-   INTRO BOX
-   ============================================================ */
-.intro-box {
-  background: linear-gradient(90deg, rgba(45,212,191,.07), transparent);
-  border: 1px solid rgba(45,212,191,.2); border-radius: 22px;
-  padding: 26px 28px; display: flex; gap: 18px; align-items: flex-start;
-  margin-top: 40px;
-}
-.intro-icon {
-  flex-shrink: 0; width: 52px; height: 52px;
-  background: linear-gradient(135deg, var(--teal), #22d3ee);
-  border-radius: 16px; display: flex; align-items: center; justify-content: center;
-  font-size: 1.7rem; box-shadow: 0 6px 18px rgba(45,212,191,.25);
-}
-
-/* ============================================================
-   QUESTION CARDS
-   ============================================================ */
-.q-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 26px;
-  overflow: hidden;
-  margin-top: 32px;
-  transition: box-shadow .3s;
-}
-.q-card:hover { box-shadow: 0 12px 40px rgba(0,0,0,.35); }
-
-.q-accent { height: 3px; }
-
-.q-header {
-  padding: 26px 28px 0;
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-}
-
-.q-num {
-  font-family: 'Syne', sans-serif;
-  font-weight: 800;
-  font-size: 2.4rem;
-  line-height: 1;
-  flex-shrink: 0;
-  margin-top: -4px;
-}
-
-.q-label {
-  font-size: .68rem; font-weight: 700; text-transform: uppercase;
-  letter-spacing: .1em; margin-bottom: 6px; display: block;
-}
-
-.q-text {
-  font-size: 1.05rem;
-  font-weight: 600;
-  font-family: 'Syne', sans-serif;
-  line-height: 1.45;
-  color: #fff;
-}
-
-.q-body { padding: 20px 28px 28px; }
-
-.q-visual { margin: 18px 0; }
-
-/* hint toggle */
-.hint-toggle {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: rgba(255,255,255,.05);
-  border: 1px solid rgba(255,255,255,.1);
-  border-radius: 12px;
-  padding: 8px 16px;
-  font-size: .8rem; font-weight: 600; color: var(--s400);
-  cursor: pointer; transition: all .25s;
-  font-family: 'DM Sans', sans-serif;
-  margin-top: 16px;
-  user-select: none;
-}
-.hint-toggle:hover { background: rgba(255,255,255,.09); color: var(--s300); border-color: rgba(255,255,255,.18); }
-.hint-arrow { transition: transform .3s; display: inline-block; font-style: normal; }
-.hint-toggle.open .hint-arrow { transform: rotate(180deg); }
-
-.hint-content {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height .45s cubic-bezier(.4,0,.2,1), opacity .3s;
-  opacity: 0;
-}
-.hint-content.open { max-height: 400px; opacity: 1; }
-
-.hint-inner {
-  margin-top: 12px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  font-size: .84rem;
-  line-height: 1.65;
-}
-.hint-teal   { background: rgba(45,212,191,.07);  border: 1px solid rgba(45,212,191,.2);  color: #a7f3d0; }
-.hint-amber  { background: rgba(251,191,36,.07);  border: 1px solid rgba(251,191,36,.2);  color: #fde68a; }
-.hint-violet { background: rgba(167,139,250,.07); border: 1px solid rgba(167,139,250,.2); color: #ddd6fe; }
-.hint-rose   { background: rgba(251,113,133,.07); border: 1px solid rgba(251,113,133,.2); color: #fecdd3; }
-
-/* ============================================================
-   INTERACTIVE: SENSOR PICKER (Q1)
-   ============================================================ */
-.sensor-pick-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 10px;
-  margin-top: 16px;
-}
-
-.s-pick {
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 16px;
-  padding: 14px 10px;
-  text-align: center;
-  cursor: pointer;
-  transition: all .25s cubic-bezier(.34,1.56,.64,1);
-  user-select: none;
-}
-.s-pick:hover { transform: translateY(-4px); border-color: rgba(45,212,191,.3); background: rgba(45,212,191,.05); }
-.s-pick.selected { border-color: var(--sp-color, var(--teal)); background: rgba(45,212,191,.08); box-shadow: 0 0 16px -4px var(--sp-color, var(--teal)); transform: translateY(-4px) scale(1.04); }
-
-.s-pick-icon { font-size: 1.8rem; display: block; margin-bottom: 6px; }
-.s-pick-name { font-size: .75rem; font-weight: 600; color: var(--s300); }
-.s-pick-sub  { font-size: .65rem; color: var(--s500); margin-top: 3px; }
-
-.pick-result {
-  margin-top: 14px; padding: 14px 18px; border-radius: 16px;
-  font-size: .85rem; line-height: 1.6;
-  display: none; animation: fadeUp .4s ease;
-}
-.pick-result.show { display: block; }
-
-@keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-
-/* ============================================================
-   INTERACTIVE: SAMPLING SLIDER (Q2)
-   ============================================================ */
-.sampling-panel {
-  background: rgba(2,8,16,.7);
-  border: 1px solid rgba(255,255,255,.07);
-  border-radius: 18px;
-  padding: 20px;
-}
-
-.slider-row {
-  display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
-}
-.slider-row label { font-size: .82rem; color: var(--s400); white-space: nowrap; }
-input[type=range] {
-  flex: 1; appearance: none; height: 4px; border-radius: 4px;
-  background: rgba(255,255,255,.15); outline: none;
-}
-input[type=range]::-webkit-slider-thumb {
-  appearance: none; width: 16px; height: 16px; border-radius: 50%;
-  background: var(--teal); cursor: pointer;
-}
-.slider-val { font-family: 'Courier New',monospace; font-size: .82rem; color: var(--teal); width: 52px; text-align: right; }
-
-.nyquist-status {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 14px; border-radius: 12px; font-size: .82rem; font-weight: 600;
-  transition: all .35s;
-  margin-top: 10px;
-}
-
-/* ============================================================
-   INTERACTIVE: DATA TYPE SORTER (Q3)
-   ============================================================ */
-.sort-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  margin-top: 16px;
-}
-
-.sort-zone {
-  background: rgba(2,8,16,.6);
-  border: 1px dashed rgba(255,255,255,.12);
-  border-radius: 16px;
-  padding: 14px;
-  min-height: 80px;
-}
-.sort-zone-label {
-  font-size: .7rem; text-transform: uppercase; letter-spacing: .1em;
-  font-weight: 700; margin-bottom: 10px; display: block;
-}
-
-.sort-items {
-  display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;
-}
-
-.sort-chip {
-  padding: 7px 14px; border-radius: 12px;
-  font-size: .78rem; font-weight: 600;
-  background: rgba(255,255,255,.07);
-  border: 1px solid rgba(255,255,255,.12);
-  cursor: pointer; transition: all .25s;
-  user-select: none;
-}
-.sort-chip:hover { transform: scale(1.05); }
-.sort-chip.placed { opacity: .45; cursor: default; transform: none !important; }
-
-.placed-chip {
-  padding: 6px 12px; border-radius: 10px;
-  font-size: .75rem; font-weight: 600;
-  animation: chipIn .3s cubic-bezier(.34,1.56,.64,1);
-}
-@keyframes chipIn { from{opacity:0;transform:scale(.7)} to{opacity:1;transform:scale(1)} }
-
-.sort-check-btn {
-  margin-top: 14px; padding: 10px 22px; border-radius: 12px;
-  background: rgba(45,212,191,.15); border: 1px solid rgba(45,212,191,.3);
-  color: var(--teal); font-size: .82rem; font-weight: 700;
-  cursor: pointer; transition: all .25s; font-family: 'DM Sans',sans-serif;
-}
-.sort-check-btn:hover { background: rgba(45,212,191,.25); }
-
-.sort-result {
-  margin-top: 12px; font-size: .82rem; line-height: 1.6;
-  padding: 12px 14px; border-radius: 12px; display: none;
-  animation: fadeUp .35s ease;
-}
-.sort-result.show { display: block; }
-
-/* ============================================================
-   INTERACTIVE: SIGNAL COMPARE (Q4)
-   ============================================================ */
-.compare-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
-.cbtn {
-  padding: 8px 18px; border-radius: 12px; border: none;
-  font-weight: 600; font-size: .8rem; cursor: pointer;
-  transition: all .25s; font-family: 'DM Sans',sans-serif;
-}
-.cbtn-inactive { background: rgba(255,255,255,.07); color: var(--s400); }
-.cbtn-inactive:hover { background: rgba(255,255,255,.12); }
-.cbtn-teal  { background: var(--teal);  color: #080e1a; }
-.cbtn-rose  { background: var(--rose);  color: #080e1a; }
-.cbtn-amber { background: var(--amber); color: #080e1a; }
-
-/* ============================================================
-   FOOTER
-   ============================================================ */
-footer {
-  border-top: 1px solid rgba(255,255,255,.06);
-  padding: 28px 0; text-align: center;
-  font-size: .75rem; color: var(--s500); margin-top: 60px;
-}
-
-/* ============================================================
-   ANIMATIONS
-   ============================================================ */
-@keyframes slideIn {
-  from { opacity: 0; transform: translateY(24px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.q-card { animation: slideIn .6s ease both; }
-.q-card:nth-child(2) { animation-delay: .1s; }
-.q-card:nth-child(3) { animation-delay: .2s; }
-.q-card:nth-child(4) { animation-delay: .3s; }
-
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
-@media(max-width:600px){
-  .sort-grid { grid-template-columns: 1fr; }
-  .sensor-pick-grid { grid-template-columns: repeat(3,1fr); }
-  .q-num { font-size: 1.8rem; }
-}
+  /* ── RESPONSIVE ── */
+  @media(max-width:640px){.cards{grid-template-columns:1fr}.hero{padding:100px 20px 40px}}
 
 /* ── VISITOR SYSTEM ── */
-.visitor-overlay{position:fixed;inset:0;z-index:99999;background:rgba(8,14,26,.94);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity .4s}
+.visitor-overlay{position:fixed;inset:0;z-index:99999;background:rgba(6,10,16,.92);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity .4s}
 .visitor-overlay.hidden{opacity:0;pointer-events:none}
-.visitor-modal{background:var(--surface,#0f1929);border:1px solid var(--border,rgba(45,212,191,.15));border-radius:24px;padding:40px 36px;max-width:440px;width:90%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.6);animation:vModalIn .5s cubic-bezier(.16,1,.3,1)}
+.visitor-modal{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:40px 36px;max-width:440px;width:90%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.6);animation:vModalIn .5s cubic-bezier(.16,1,.3,1)}
 @keyframes vModalIn{0%{opacity:0;transform:translateY(30px) scale(.96)}100%{opacity:1;transform:translateY(0) scale(1)}}
-.visitor-modal h2{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,#5eead4,#a5f3fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
-.visitor-modal p.sub{color:var(--s400,#94a3b8);font-size:.85rem;margin-bottom:28px}
-.v-input{width:100%;padding:14px 18px;border-radius:14px;border:1px solid var(--s700,#334155);background:rgba(255,255,255,.05);color:#fff;font-family:'DM Sans',system-ui,sans-serif;font-size:.95rem;outline:none;transition:border .25s;margin-bottom:14px}
-.v-input::placeholder{color:var(--s500,#64748b)}
-.v-input:focus{border-color:var(--teal,#2dd4bf);box-shadow:0 0 0 3px rgba(45,212,191,.15)}
-.v-btn-primary{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--teal,#2dd4bf),#22d3ee);color:#080e1a;font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;cursor:pointer;transition:transform .2s,box-shadow .2s;margin-top:6px}
-.v-btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(45,212,191,.35)}
-.v-error{color:var(--rose,#fb7185);font-size:.8rem;margin-bottom:10px;display:none}
-.v-btn-cancel{width:100%;padding:12px;border-radius:14px;margin-top:12px;border:1px solid var(--s700,#334155);background:rgba(255,255,255,.04);color:var(--s400,#94a3b8);font-family:'DM Sans',sans-serif;font-weight:600;font-size:.88rem;cursor:pointer;transition:all .25s}
+.visitor-modal h2{font-family:'Playfair Display',serif;font-weight:800;font-size:1.5rem;background:linear-gradient(135deg,#f59e0b,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
+.visitor-modal p.sub{color:var(--muted);font-size:.85rem;margin-bottom:28px}
+.v-input{width:100%;padding:14px 18px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-size:.95rem;outline:none;transition:border .25s;margin-bottom:14px}
+.v-input::placeholder{color:var(--muted)}
+.v-input:focus{border-color:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.15)}
+.v-btn-primary{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#f59e0b,#f97316);color:#060a10;font-weight:700;font-size:1rem;cursor:pointer;transition:transform .2s,box-shadow .2s;margin-top:6px}
+.v-btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(245,158,11,.35)}
+.v-error{color:#fb7185;font-size:.8rem;margin-bottom:10px;display:none}
+.v-btn-cancel{width:100%;padding:12px;border-radius:14px;margin-top:12px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--muted);font-family:inherit;font-weight:600;font-size:.88rem;cursor:pointer;transition:all .25s}
 .v-btn-cancel:hover{background:rgba(255,255,255,.08)}
-.visitor-fab{position:fixed;bottom:24px;right:24px;z-index:8888;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--teal,#2dd4bf),#22d3ee);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(45,212,191,.4);transition:transform .25s,box-shadow .25s;font-size:1.4rem}
-.visitor-fab:hover{transform:scale(1.08);box-shadow:0 8px 32px rgba(45,212,191,.5)}
-.visitor-fab .fab-count{position:absolute;top:-4px;right:-4px;background:var(--rose,#fb7185);color:#fff;font-size:.65rem;font-weight:700;min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid var(--bg,#080e1a)}
-.visitor-panel{position:fixed;bottom:92px;right:24px;z-index:8887;width:340px;max-height:480px;overflow:hidden;background:var(--surface,#0f1929);border:1px solid var(--border,rgba(45,212,191,.15));border-radius:20px;box-shadow:0 24px 64px rgba(0,0,0,.5);display:flex;flex-direction:column;transform:translateY(12px) scale(.95);opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .25s}
+.visitor-fab{position:fixed;bottom:24px;right:24px;z-index:8888;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#f97316);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(245,158,11,.4);transition:transform .25s;font-size:1.4rem}
+.visitor-fab:hover{transform:scale(1.08)}
+.visitor-fab .fab-count{position:absolute;top:-4px;right:-4px;background:#fb7185;color:#fff;font-size:.65rem;font-weight:700;min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid var(--bg)}
+.visitor-panel{position:fixed;bottom:92px;right:24px;z-index:8887;width:340px;max-height:480px;overflow:hidden;background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:0 24px 64px rgba(0,0,0,.5);display:flex;flex-direction:column;transform:translateY(12px) scale(.95);opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .25s}
 .visitor-panel.open{transform:translateY(0) scale(1);opacity:1;pointer-events:auto}
 .vp-header{padding:20px 22px 14px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between}
-.vp-header h3{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:#fff}
-.vp-header .vp-badge{background:rgba(45,212,191,.12);color:var(--teal,#2dd4bf);font-size:.7rem;font-weight:700;padding:4px 10px;border-radius:999px}
+.vp-header h3{font-weight:700;font-size:1rem;color:#fff}
+.vp-header .vp-badge{background:rgba(245,158,11,.12);color:#f59e0b;font-size:.7rem;font-weight:700;padding:4px 10px;border-radius:999px}
 .vp-list{overflow-y:auto;padding:10px 16px 16px;flex:1}
 .vp-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;margin-bottom:6px;background:rgba(255,255,255,.03);transition:background .2s}
 .vp-item:hover{background:rgba(255,255,255,.06)}
 .vp-avatar{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0}
-.vp-avatar.student{background:rgba(45,212,191,.12);color:var(--teal,#2dd4bf)}
-.vp-avatar.dosen{background:rgba(251,191,36,.12);color:var(--amber,#fbbf24)}
+.vp-avatar.student{background:rgba(245,158,11,.12);color:#f59e0b}
 .vp-info{flex:1;min-width:0}
-.vp-name{font-weight:600;font-size:.88rem;color:var(--s200,#e2e8f0);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.vp-nim{font-size:.72rem;color:var(--s500,#64748b);font-family:'Courier New',monospace}
-.vp-time{font-size:.68rem;color:var(--s500,#64748b);text-align:right;flex-shrink:0;white-space:nowrap}
-.vp-empty{text-align:center;padding:32px 16px;color:var(--s500,#64748b);font-size:.85rem}
+.vp-name{font-weight:600;font-size:.88rem;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vp-nim{font-size:.72rem;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.vp-time{font-size:.68rem;color:var(--muted);text-align:right;flex-shrink:0;white-space:nowrap}
+.vp-empty{text-align:center;padding:32px 16px;color:var(--muted);font-size:.85rem}
 @media(max-width:480px){.visitor-panel{width:calc(100vw - 32px);right:16px;bottom:88px}.visitor-fab{bottom:18px;right:18px}}
 
+/* ═══ VISITOR TABLE ROWS ═══ */
+.vt-row{display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .3s,border-color .3s;border-left:3px solid transparent;cursor:default}
+.vt-row:hover{background:rgba(245,158,11,.04);border-left-color:#f59e0b}
+.vt-row.absen:hover{background:rgba(230,57,70,.03);border-left-color:#e63946}
+.vt-row .vt-num{width:44px;flex-shrink:0;font-size:.82rem;font-weight:600;transition:color .3s}
+.vt-row:hover .vt-num{color:#f59e0b!important}
+.vt-row.absen:hover .vt-num{color:#e63946!important}
+.vt-row .vt-avatar{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s}
+.vt-row:hover .vt-avatar{transform:scale(1.12);box-shadow:0 4px 14px rgba(245,158,11,.2)}
+.vt-row.absen:hover .vt-avatar{box-shadow:0 4px 14px rgba(230,57,70,.15)}
+.vt-row .vt-name{font-weight:600;font-size:.88rem;transition:color .3s}
+.vt-row:hover .vt-name{color:#fff!important}
+.vt-row .vt-status{transition:transform .3s}
+.vt-row:hover .vt-status{transform:scale(1.08)}
+.vt-row .vt-visit{transition:color .3s}
+.vt-row:hover .vt-visit{color:#f59e0b!important}
+.vt-row.absen:hover .vt-visit{color:#9ca3af!important}
 
-/* COUNTDOWN */
-.countdown-wrap { background:linear-gradient(135deg,rgba(45,212,191,.07),rgba(167,139,250,.05)); border:1px solid rgba(45,212,191,.22); border-radius:20px; padding:36px 40px; text-align:center; position:relative; overflow:hidden; max-width:1100px; margin:0 auto; }
-.countdown-wrap::before { content:''; position:absolute; inset:0; background:repeating-linear-gradient(45deg,transparent,transparent 10px,rgba(45,212,191,.015) 10px,rgba(45,212,191,.015) 11px); }
-.countdown-label { font-family:'Courier New',monospace; font-size:11px; color:var(--teal); letter-spacing:4px; text-transform:uppercase; margin-bottom:24px; position:relative; }
-.countdown-boxes { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; position:relative; }
-.cd-box { background:rgba(0,0,0,.5); border:1px solid rgba(45,212,191,.25); border-radius:14px; padding:18px 26px; min-width:84px; }
-.cd-num { font-family:'Syne',sans-serif; font-size:46px; color:var(--teal); line-height:1; }
-.cd-unit { font-family:'Courier New',monospace; font-size:10px; color:var(--s500); letter-spacing:2px; margin-top:5px; }
-.cd-sep { font-family:'Syne',sans-serif; font-size:38px; color:rgba(45,212,191,.25); align-self:center; }
-.cd-note { margin-top:20px; font-size:13px; color:var(--s500); font-family:'Courier New',monospace; position:relative; }
+/* ═══ EXERCISE / QUIZ (NUMERIC INPUT) ═══ */
+.exercise{background:#1a2332;border:1px solid #2a3548;border-radius:16px;overflow:hidden;margin:1.5rem 0}
+.exercise-header{display:flex;align-items:center;gap:14px;padding:16px 24px;background:rgba(245,158,11,.04);border-bottom:1px solid rgba(245,158,11,.1)}
+.exercise-number{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#f59e0b,#f97316);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;color:#fff;flex-shrink:0}
+.exercise-title{font-weight:700;font-size:15px;color:#fff}
+.exercise-body{padding:24px}
+.exercise-question{margin-bottom:20px;font-size:15px;line-height:1.8}
+.answer-input-row{display:flex;gap:12px;align-items:center;margin-bottom:16px}
+.answer-input{padding:12px 18px;border-radius:12px;border:1px solid #2a3548;background:#111827;color:#fff;font-family:'JetBrains Mono',monospace;font-size:15px;width:200px;outline:none;transition:border-color .3s,box-shadow .3s}
+.answer-input:focus{border-color:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.15)}
+.answer-unit{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted)}
+.exercise-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.btn-check{padding:10px 22px;border-radius:10px;border:none;background:linear-gradient(135deg,#f59e0b,#f97316);color:#fff;font-weight:700;font-size:13px;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.btn-check:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(245,158,11,.25)}
+.btn-hint{padding:10px 22px;border-radius:10px;border:1px solid rgba(255,209,102,.3);background:rgba(255,209,102,.06);color:#ffd166;font-weight:600;font-size:13px;cursor:pointer;transition:all .2s}
+.btn-hint:hover{background:rgba(255,209,102,.12)}
+.btn-answer{padding:10px 22px;border-radius:10px;border:1px solid rgba(124,77,255,.3);background:rgba(124,77,255,.06);color:#7c4dff;font-weight:600;font-size:13px;cursor:pointer;transition:all .2s}
+.btn-answer:hover{background:rgba(124,77,255,.12)}
+.btn-answer.locked{opacity:.35;pointer-events:none;cursor:not-allowed}
+.hint-box{display:none;margin-top:12px;padding:16px 20px;border-radius:12px;background:rgba(255,209,102,.06);border:1px solid rgba(255,209,102,.15);font-size:14px;color:#ffd166;line-height:1.7}
+.hint-box.show{display:block;animation:slideDown .3s ease-out}
+.answer-box{display:none;margin-top:12px;padding:16px 20px;border-radius:12px;background:rgba(124,77,255,.06);border:1px solid rgba(124,77,255,.15);font-size:14px;color:#c4b5fd;line-height:1.7}
+.answer-box.show{display:block;animation:slideDown .3s ease-out}
+@keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+.feedback{display:none;margin-top:12px;padding:12px 18px;border-radius:10px;font-weight:700;font-size:14px}
+.feedback.correct{display:block;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);color:#10b981}
+.feedback.wrong{display:block;background:rgba(230,57,70,.08);border:1px solid rgba(230,57,70,.2);color:#e63946}
 
+/* ═══ RADIO / MULTIPLE CHOICE ═══ */
+.radio-group{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.radio-option{display:flex;align-items:center;gap:14px;padding:14px 18px;border:1px solid #2a3548;border-radius:12px;background:#111827;cursor:pointer;transition:border-color .3s,background .3s}
+.radio-option:hover{border-color:#f59e0b;background:rgba(245,158,11,.03)}
+.radio-option.selected{border-color:#f59e0b;background:rgba(245,158,11,.05)}
+.radio-option.correct{border-color:#10b981!important;background:rgba(16,185,129,.08)!important}
+.radio-option.wrong{border-color:#e63946!important;background:rgba(230,57,70,.08)!important}
+.radio-option input{display:none}
+.radio-circle{width:20px;height:20px;border-radius:50%;border:2px solid #2a3548;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:border-color .3s,background .3s}
+.radio-option.selected .radio-circle{border-color:#f59e0b;background:#f59e0b}
+.radio-option.selected .radio-circle::after{content:'';width:8px;height:8px;border-radius:50%;background:#fff}
+.radio-option.correct .radio-circle{border-color:#10b981;background:#10b981}
+.radio-option.correct .radio-circle::after{content:'✓';color:#fff;font-size:11px;font-weight:700}
+.radio-option.wrong .radio-circle{border-color:#e63946;background:#e63946}
+.radio-option.wrong .radio-circle::after{content:'✗';color:#fff;font-size:11px;font-weight:700}
 </style>
 </head>
 <body>
@@ -469,690 +250,387 @@ footer {
 <!-- ═══ VISITOR LOGIN MODAL ═══ -->
 <div class="visitor-overlay" id="visitorOverlay">
   <div class="visitor-modal">
-    <div style="font-size:2.8rem;margin-bottom:12px;">🎓</div>
+    <div style="font-size:2.8rem;margin-bottom:12px;">📊</div>
     <h2>Selamat Datang!</h2>
     <p class="sub">Silakan masukkan identitas Anda untuk mengakses halaman ini.</p>
     <p class="v-error" id="vError"></p>
     <input type="text" class="v-input" id="vNama" placeholder="Nama Lengkap" autocomplete="off">
     <input type="text" class="v-input" id="vNim" placeholder="NIM (Nomor Induk Mahasiswa)" autocomplete="off">
-    <button class="v-btn-primary" id="vSubmit" onclick="submitVisitor()">Masuk ke Forum 2 →</button>
+    <button class="v-btn-primary" onclick="submitVisitor()">Masuk ke Forum 2 →</button>
   </div>
 </div>
 
 <!-- Floating Visitor Button -->
-<button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Aktivitas Mahasiswa">👥<span class="fab-count" id="fabCount">0</span></button>
+<button class="visitor-fab" id="visitorFab" onclick="togglePanel()" style="display:none;" title="Performa Mahasiswa">👥<span class="fab-count" id="fabCount">0</span></button>
+
 <!-- Visitor Panel -->
 <div class="visitor-panel" id="visitorPanel">
-  <div class="vp-header"><h3>👥 Mahasiswa</h3><span class="vp-badge" id="vpBadge">0 orang</span></div>
-  <div class="vp-list" id="vpList"><div class="vp-empty">Memuat data mahasiswa...</div></div>
+  <div class="vp-header"><h3>👥 Aktivitas</h3><span class="vp-badge" id="vpBadge">0 orang</span></div>
+  <div class="vp-list" id="vpList"><div class="vp-empty">Memuat data pengunjung...</div></div>
 </div>
 
+<!-- Scroll progress bar -->
+<div id="scrollProgress"></div>
 
-<!-- ==================== HERO ==================== -->
-<header class="hero">
-  <div class="container">
-    <span class="badge">💬 Forum Diskusi • Pertemuan 2</span>
-    <div class="mt-6">
-      <h1 class="hero-title">Jenis &amp; Sumber<br>Time Series Data</h1>
-      <p class="mt-3 text-s400" style="max-width:480px;font-size:.97rem;">
-        Eksplorasi pemahamanmu tentang materi Pertemuan 2 melalui
-        empat pertanyaan interaktif di bawah. Tulis jawabanmu di forum diskusi Fast Learning Pertemuan 2!
-      </p>
-      <div class="flex flex-wrap gap-2 mt-5">
-        <span class="chip chip-teal">4 Pertanyaan</span>
-        <span class="chip chip-amber">💡 Klik untuk eksplorasi</span>
-        <span class="chip chip-violet">Jawab di Fast Learning</span>
-      </div>
-    </div>
+<!-- ═══════════ NAVBAR ═══════════ -->
+<nav>
+  <span class="nav-brand"><span class="pulse"></span><span class="logo-opto">OPTOAUTO</span><span class="logo-sep">//</span><span class="logo-mod">FORUM 2</span></span>
+<div class="nav-links"><a href="#tugas">Soal</a><a href="#format">Format</a><a href="#kelompok">Kelompok</a></div>
+  <span class="nav-badge">👨‍🏫 DEDIK ROMAHADI</span>
+</nav>
 
-    <div class="ticker-wrap">
-      <div class="ticker-head">
-        <div class="live-dot"></div>
-        <span class="text-xs uppercase tracking-widest font-mono font-semibold text-teal">Forum Diskusi Aktif • Pertemuan 2 • Optimalisasi &amp; Otomasi</span>
-      </div>
-      <div class="ticker-body">
-        <div class="ticker-track" id="ticker"></div>
-      </div>
-    </div>
+<!-- ═══════════ HERO ═══════════ -->
+<div class="hero" style="min-height:auto;padding:100px 32px 48px;">
+  <div class="hero-waves">
+    <svg viewBox="0 0 1440 600" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path class="wave-trace w1" d="" fill="none" stroke="rgba(245,158,11,.14)" stroke-width="1.5"/>
+      <path class="wave-trace w2" d="" fill="none" stroke="rgba(249,115,22,.09)" stroke-width="1"/>
+      <path class="wave-trace w3" d="" fill="none" stroke="rgba(99,102,241,.07)" stroke-width="1"/>
+    </svg>
   </div>
-</header>
 
-<!-- COUNTDOWN -->
-<div style="max-width:1100px;margin:0 auto;padding:48px 32px 0;">
-  <div class="countdown-wrap">
-    <div class="countdown-label">⏰ Hitung Mundur — Deadline Pengumpulan Forum 2</div>
-    <div class="countdown-boxes">
-      <div class="cd-box"><div class="cd-num" id="cd-hari">--</div><div class="cd-unit">HARI</div></div>
-      <div class="cd-sep">:</div>
-      <div class="cd-box"><div class="cd-num" id="cd-jam">--</div><div class="cd-unit">JAM</div></div>
-      <div class="cd-sep">:</div>
-      <div class="cd-box"><div class="cd-num" id="cd-menit">--</div><div class="cd-unit">MENIT</div></div>
-      <div class="cd-sep">:</div>
-      <div class="cd-box"><div class="cd-num" id="cd-detik">--</div><div class="cd-unit">DETIK</div></div>
-    </div>
-    <div class="cd-note" id="cdDeadline">Deadline: <strong style="color:var(--teal)">Menunggu jadwal...</strong></div>
-  </div>
-</div>
+  <div class="hero-content">
+    <span class="hero-tag">💬 Forum Diskusi • Pertemuan 2</span>
+    <h1 class="hero-title" style="font-size:clamp(32px,6vw,64px);">Jenis &amp; Sumber<br><em>Time Series Data</em></h1>
+    <p class="hero-sub">Eksplorasi setiap soal secara interaktif, lalu tuliskan jawabanmu di forum diskusi Fast Learning.</p>
 
-
-<!-- ==================== INTRO ==================== -->
-<div class="container">
-  <div class="intro-box">
-    <div class="intro-icon">👨‍🏫</div>
-    <div>
-      <h3 class="font-bold text-lg mb-1">Petunjuk Diskusi</h3>
-      <p class="text-s300 leading-relaxed" style="font-size:.9rem;">
-        Eksplorasi setiap soal secara interaktif di halaman ini, lalu tuliskan jawabanmu
-        di <strong class="text-teal">forum diskusi website Fast Learning Pertemuan 2</strong>.
-        Tidak ada jawaban benar atau salah — yang dinilai adalah
-        <strong>kedalaman pemikiranmu</strong> dan kemampuan mengaitkan konsep dengan kondisi nyata mesin industri.
-      </p>
+    <!-- Countdown -->
+    <div style="animation:fadeUp .8s ease .45s both;margin-bottom:24px;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#f43f5e;letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;">⏰ Waktu Tersisa</div>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+        <div style="background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.2);border-radius:12px;padding:10px 16px;min-width:60px;text-align:center;"><div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:#f43f5e;" id="cdDays">00</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px;">Hari</div></div>
+        <div style="background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.2);border-radius:12px;padding:10px 16px;min-width:60px;text-align:center;"><div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:#f43f5e;" id="cdHours">00</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px;">Jam</div></div>
+        <div style="background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.2);border-radius:12px;padding:10px 16px;min-width:60px;text-align:center;"><div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:#f43f5e;" id="cdMins">00</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px;">Menit</div></div>
+        <div style="background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.2);border-radius:12px;padding:10px 16px;min-width:60px;text-align:center;"><div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:#f43f5e;" id="cdSecs">00</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px;">Detik</div></div>
+      </div>
+      <div id="cdExpired" style="display:none;margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#f43f5e;font-weight:700;animation:blinkAlert 1s ease-in-out infinite;text-shadow:0 0 12px rgba(244,63,94,.5);">⚠️ DEADLINE SUDAH LEWAT!</div>
+      <div id="cdDeadline" style="margin-top:10px;font-size:12px;color:var(--muted);">Deadline: <strong style="color:#f59e0b;">Menunggu jadwal...</strong></div>
     </div>
   </div>
 </div>
 
-<!-- ==================== MAIN QUESTIONS ==================== -->
-<div class="container" style="padding-bottom: 8px;">
+<!-- ═══ INSTRUCTION BANNER ═══ -->
+<div style="max-width:740px;margin:-20px auto 24px;padding:0 24px;position:relative;z-index:2;">
+  <div style="background:linear-gradient(135deg,rgba(245,158,11,.06),rgba(249,115,22,.03));border:1px solid rgba(245,158,11,.15);border-radius:16px;padding:20px 24px;position:relative;overflow:hidden;">
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#f59e0b,#f97316,#6366f1);"></div>
+    <h3 style="font-family:'Playfair Display',serif;font-weight:700;color:#f59e0b;margin-bottom:8px;">📢 Cara Menjawab</h3>
+    <p style="font-size:14px;color:var(--text);line-height:1.7;">Baca & pikirkan setiap soal di halaman ini, lalu tuliskan jawaban kamu di <strong style="color:#f59e0b;">Forum Diskusi Fast Learning Pertemuan 2</strong>. Berikan juga tanggapan terhadap jawaban teman-temanmu! Jawaban benar pada poll mendapat <strong style="color:#10b981;">+1 poin</strong>.</p>
+  </div>
+</div>
 
-  <!-- ======================================================
-       SOAL 1 — Sensor Picker
-       ====================================================== -->
-  <div class="q-card">
-    <div class="q-accent" style="background:linear-gradient(90deg,var(--teal),#22d3ee);"></div>
-    <div class="q-header">
-      <span class="q-num text-teal">01</span>
-      <div>
-        <span class="q-label text-teal">Pemilihan Sensor</span>
-        <p class="q-text">
-          Mesin pompa air di pabrik mulai terasa bergetar lebih kuat dari biasanya.
-          Sensor mana yang <em>paling tepat</em> untuk mendeteksi kondisi ini lebih awal,
-          dan mengapa?
-        </p>
-      </div>
+<!-- ═══ CHALLENGE CARDS ═══ -->
+<div style="max-width:740px;margin:0 auto;padding:0 24px 48px;">
+
+  <!-- ━━━ SOAL 1: Pemilihan Sensor ━━━ -->
+  <div class="exercise reveal" style="border-left:3px solid var(--cyan);">
+    <div class="exercise-header" style="background:rgba(245,158,11,.03);">
+      <div class="exercise-number" style="background:linear-gradient(135deg,#f59e0b,#f97316);">🧩</div>
+      <div><div style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;">DISKUSI 1 — MODUL 2</div><div class="exercise-title">Sensor Terbaik untuk Bearing?</div></div>
     </div>
-
-    <div class="q-body">
-      <p class="text-s400 text-sm mb-3">Pilih sensor pilihanmu, lalu jelaskan alasannya di forum:</p>
-
-      <div class="sensor-pick-grid" id="sensorGrid">
-        <div class="s-pick" style="--sp-color:var(--teal)"   data-s="acc"      onclick="pickSensor(this)">
-          <span class="s-pick-icon">📳</span>
-          <span class="s-pick-name">Accelerometer</span>
-          <span class="s-pick-sub">Getaran</span>
-        </div>
-        <div class="s-pick" style="--sp-color:var(--amber)"  data-s="temp"     onclick="pickSensor(this)">
-          <span class="s-pick-icon">🌡️</span>
-          <span class="s-pick-name">Termistor</span>
-          <span class="s-pick-sub">Suhu</span>
-        </div>
-        <div class="s-pick" style="--sp-color:var(--rose)"   data-s="pressure" onclick="pickSensor(this)">
-          <span class="s-pick-icon">🔴</span>
-          <span class="s-pick-name">Pressure Gauge</span>
-          <span class="s-pick-sub">Tekanan</span>
-        </div>
-        <div class="s-pick" style="--sp-color:var(--violet)" data-s="current"  onclick="pickSensor(this)">
-          <span class="s-pick-icon">⚡</span>
-          <span class="s-pick-name">Clamp Meter</span>
-          <span class="s-pick-sub">Arus Motor</span>
-        </div>
-        <div class="s-pick" style="--sp-color:var(--lime)"   data-s="rpm"      onclick="pickSensor(this)">
-          <span class="s-pick-icon">🔄</span>
-          <span class="s-pick-name">Encoder</span>
-          <span class="s-pick-sub">RPM</span>
-        </div>
+    <div class="exercise-body">
+      <p style="font-size:15px;line-height:1.8;margin-bottom:16px;">Mesin pompa air di pabrik mulai terasa bergetar lebih kuat dari biasanya. Sensor mana yang <strong>paling tepat</strong> untuk mendeteksi kondisi ini lebih awal?</p>
+      <div class="radio-group" id="rg-mc1">
+        <div class="radio-option" data-value="A" onclick="selectOption('mc1','A')"><input type="radio" name="mc1"><div class="radio-circle"></div><span><strong>A.</strong> Termistor (sensor suhu)</span></div>
+        <div class="radio-option" data-value="B" onclick="selectOption('mc1','B')"><input type="radio" name="mc1"><div class="radio-circle"></div><span><strong>B.</strong> Accelerometer (sensor getaran)</span></div>
+        <div class="radio-option" data-value="C" onclick="selectOption('mc1','C')"><input type="radio" name="mc1"><div class="radio-circle"></div><span><strong>C.</strong> Pressure gauge (sensor tekanan)</span></div>
+        <div class="radio-option" data-value="D" onclick="selectOption('mc1','D')"><input type="radio" name="mc1"><div class="radio-circle"></div><span><strong>D.</strong> Tachometer (sensor RPM)</span></div>
       </div>
-
-      <div class="pick-result" id="pickResult"></div>
-
-      <button class="hint-toggle" onclick="toggleHint('h1',this)">
-        💡 Petunjuk berpikir <span class="hint-arrow">▾</span>
-      </button>
-      <div class="hint-content" id="h1">
-        <div class="hint-inner hint-teal">
-          Pikirkan: sinyal apa yang <strong>paling langsung berubah</strong> saat kondisi mekanik pompa memburuk?
-          Apakah perubahan tersebut terdeteksi lebih awal dibandingkan gejala lain seperti kenaikan suhu atau penurunan tekanan?
-        </div>
+      <div class="exercise-actions"><button class="btn-check" onclick="checkAnswer('mc1','B')">Cek Jawaban</button><button class="btn-hint" onclick="toggleHint('mc1')">💡 Petunjuk</button></div>
+      <div class="feedback" id="fb-mc1"></div>
+      <div class="hint-box" id="hint-mc1">💡 Pikirkan: sinyal apa yang paling langsung berubah saat kondisi mekanik pompa memburuk? Apakah perubahan tersebut terdeteksi lebih awal dibanding suhu atau tekanan?</div>
+      <div style="margin-top:16px;padding:14px 18px;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.15);border-radius:12px;">
+        <p style="font-size:14px;color:#a78bfa;line-height:1.7;">📝 <strong>Di forum diskusi, jelaskan:</strong> Mengapa sensor pilihanmu paling efektif? Bandingkan dengan sensor lain — seberapa awal masing-masing sensor bisa mendeteksi kerusakan?</p>
       </div>
     </div>
   </div>
 
-  <!-- ======================================================
-       SOAL 2 — Nyquist Slider
-       ====================================================== -->
-  <div class="q-card">
-    <div class="q-accent" style="background:linear-gradient(90deg,var(--violet),#818cf8);"></div>
-    <div class="q-header">
-      <span class="q-num text-violet">02</span>
-      <div>
-        <span class="q-label text-violet">Sampling Rate &amp; Nyquist</span>
-        <p class="q-text">
-          Bearing mesin berputar pada <strong class="text-violet">50 Hz</strong>.
-          Geser slider di bawah — pada sampling rate berapa sinyal mulai terdistorsi?
-          Berapa sampling rate <em>minimum</em> yang aman menurut Teorema Nyquist?
-        </p>
-      </div>
+  <!-- ━━━ SOAL 2: Nyquist ━━━ -->
+  <div class="exercise reveal" style="border-left:3px solid #a78bfa;">
+    <div class="exercise-header" style="background:rgba(167,139,250,.03);">
+      <div class="exercise-number" style="background:linear-gradient(135deg,#8b5cf6,#a78bfa);">📐</div>
+      <div><div style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;">DISKUSI 2 — MODUL 2</div><div class="exercise-title">Kapan Terjadi Aliasing?</div></div>
     </div>
-
-    <div class="q-body">
-      <div class="sampling-panel">
-        <div class="slider-row">
-          <label>Sampling Rate:</label>
-          <input type="range" id="fsSlider" min="10" max="300" step="5" value="60" oninput="updateNyquist()">
-          <span class="slider-val" id="fsVal">60 Hz</span>
-        </div>
-        <div style="height:160px;"><canvas id="nyquistChart"></canvas></div>
-        <div class="nyquist-status" id="nyquistStatus"></div>
+    <div class="exercise-body">
+      <p style="font-size:15px;line-height:1.8;margin-bottom:16px;">Bearing mesin berputar pada <strong style="color:#a78bfa;">50 Hz</strong> dan menghasilkan harmonik hingga <strong style="color:#a78bfa;">150 Hz</strong>. Berapa sampling rate minimum yang aman?</p>
+      <div class="radio-group" id="rg-mc2">
+        <div class="radio-option" data-value="A" onclick="selectOption('mc2','A')"><input type="radio" name="mc2"><div class="radio-circle"></div><span><strong>A.</strong> 50 Hz — cukup karena sama dengan frekuensi bearing</span></div>
+        <div class="radio-option" data-value="B" onclick="selectOption('mc2','B')"><input type="radio" name="mc2"><div class="radio-circle"></div><span><strong>B.</strong> 100 Hz — dua kali frekuensi fundamental</span></div>
+        <div class="radio-option" data-value="C" onclick="selectOption('mc2','C')"><input type="radio" name="mc2"><div class="radio-circle"></div><span><strong>C.</strong> 300 Hz atau lebih — minimal 2× frekuensi tertinggi (150 Hz)</span></div>
+        <div class="radio-option" data-value="D" onclick="selectOption('mc2','D')"><input type="radio" name="mc2"><div class="radio-circle"></div><span><strong>D.</strong> 1000 Hz — semakin tinggi selalu lebih baik</span></div>
       </div>
-
-      <button class="hint-toggle mt-4" onclick="toggleHint('h2',this)">
-        💡 Petunjuk berpikir <span class="hint-arrow">▾</span>
-      </button>
-      <div class="hint-content" id="h2">
-        <div class="hint-inner hint-violet">
-          Teorema Nyquist menyatakan bahwa sampling rate harus <strong>minimal 2×</strong> frekuensi sinyal tertinggi.
-          Apa yang terjadi jika sinyal bearing juga mengandung harmonik pada 150 Hz?
-          Apakah sampling rate yang cukup untuk 50 Hz masih memadai?
-        </div>
+      <div class="exercise-actions"><button class="btn-check" onclick="checkAnswer('mc2','C')">Cek Jawaban</button><button class="btn-hint" onclick="toggleHint('mc2')">💡 Petunjuk</button></div>
+      <div class="feedback" id="fb-mc2"></div>
+      <div class="hint-box" id="hint-mc2">💡 Nyquist: fₛ ≥ 2 × f_max. Yang penting bukan frekuensi fundamental (50 Hz), tapi frekuensi TERTINGGI yang ingin dideteksi. Harmonik ke-3 = 150 Hz.</div>
+      <div style="margin-top:16px;padding:14px 18px;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.15);border-radius:12px;">
+        <p style="font-size:14px;color:#a78bfa;line-height:1.7;">📝 <strong>Di forum diskusi, jelaskan:</strong> Apa yang terjadi jika sampling rate hanya 100 Hz padahal ada harmonik 150 Hz? Gambarkan skenario aliasing yang mungkin terjadi.</p>
       </div>
     </div>
   </div>
 
-  <!-- ======================================================
-       SOAL 3 — Drag & Sort
-       ====================================================== -->
-  <div class="q-card">
-    <div class="q-accent" style="background:linear-gradient(90deg,var(--amber),var(--lime));"></div>
-    <div class="q-header">
-      <span class="q-num text-amber">03</span>
-      <div>
-        <span class="q-label text-amber">Klasifikasi Data</span>
-        <p class="q-text">
-          Kelompokkan data-data di bawah: mana yang termasuk
-          <em>Time Series</em> dan mana yang termasuk <em>Data Statis</em>?
-          Klik data untuk menempatkannya!
-        </p>
-      </div>
+  <!-- ━━━ SOAL 3: Klasifikasi Data ━━━ -->
+  <div class="exercise reveal" style="border-left:3px solid #10b981;">
+    <div class="exercise-header" style="background:rgba(16,185,129,.03);">
+      <div class="exercise-number" style="background:linear-gradient(135deg,#10b981,#34d399);">🔀</div>
+      <div><div style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;">DISKUSI 3 — MODUL 1 &amp; 2</div><div class="exercise-title">Time Series atau Data Statis?</div></div>
     </div>
-
-    <div class="q-body">
-      <!-- Pool of items -->
-      <div class="sort-items" id="sortPool"></div>
-
-      <div class="sort-grid mt-4">
-        <div class="sort-zone" id="zone-ts">
-          <span class="sort-zone-label text-teal">📈 Time Series</span>
-          <div id="placed-ts" style="display:flex;flex-wrap:wrap;gap:6px;min-height:32px;"></div>
-        </div>
-        <div class="sort-zone" id="zone-static">
-          <span class="sort-zone-label text-rose">📊 Data Statis</span>
-          <div id="placed-static" style="display:flex;flex-wrap:wrap;gap:6px;min-height:32px;"></div>
-        </div>
+    <div class="exercise-body">
+      <p style="font-size:15px;line-height:1.8;margin-bottom:16px;">Manakah data berikut yang <strong>bukan</strong> termasuk time series?</p>
+      <div class="radio-group" id="rg-mc3">
+        <div class="radio-option" data-value="A" onclick="selectOption('mc3','A')"><input type="radio" name="mc3"><div class="radio-circle"></div><span><strong>A.</strong> Rekaman getaran bearing setiap 0.01 detik selama 10 detik</span></div>
+        <div class="radio-option" data-value="B" onclick="selectOption('mc3','B')"><input type="radio" name="mc3"><div class="radio-circle"></div><span><strong>B.</strong> Suhu oli mesin dicatat setiap 5 menit selama 24 jam</span></div>
+        <div class="radio-option" data-value="C" onclick="selectOption('mc3','C')"><input type="radio" name="mc3"><div class="radio-circle"></div><span><strong>C.</strong> Tabel spesifikasi material: kekerasan 62 HRC, tegangan 750 MPa</span></div>
+        <div class="radio-option" data-value="D" onclick="selectOption('mc3','D')"><input type="radio" name="mc3"><div class="radio-circle"></div><span><strong>D.</strong> Arus motor direkam setiap siklus operasi selama 1 jam</span></div>
       </div>
-
-      <div class="flex flex-wrap gap-3 mt-3">
-        <button class="sort-check-btn" onclick="checkSort()">✅ Cek Jawaban</button>
-        <button class="sort-check-btn" style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--s400);" onclick="resetSort()">↺ Reset</button>
-      </div>
-      <div class="sort-result" id="sortResult"></div>
-
-      <button class="hint-toggle mt-4" onclick="toggleHint('h3',this)">
-        💡 Petunjuk berpikir <span class="hint-arrow">▾</span>
-      </button>
-      <div class="hint-content" id="h3">
-        <div class="hint-inner hint-amber">
-          Tanya pada dirimu: apakah <strong>urutan waktu</strong> dari data ini penting?
-          Jika kamu mengacak urutan datanya, apakah artinya berubah?
-          Jika ya → Time Series. Jika tidak → Data Statis.
-        </div>
+      <div class="exercise-actions"><button class="btn-check" onclick="checkAnswer('mc3','C')">Cek Jawaban</button><button class="btn-hint" onclick="toggleHint('mc3')">💡 Petunjuk</button></div>
+      <div class="feedback" id="fb-mc3"></div>
+      <div class="hint-box" id="hint-mc3">💡 Time series = data yang berurutan terhadap waktu. Data statis = data yang tidak berubah dan urutan tidak bermakna.</div>
+      <div style="margin-top:16px;padding:14px 18px;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.15);border-radius:12px;">
+        <p style="font-size:14px;color:#a78bfa;line-height:1.7;">📝 <strong>Di forum diskusi, jelaskan:</strong> Mengapa urutan waktu sangat penting di time series tapi tidak penting di data statis? Berikan contoh nyata dari dunia teknik mesin.</p>
       </div>
     </div>
   </div>
 
-  <!-- ======================================================
-       SOAL 4 — Signal Compare
-       ====================================================== -->
-  <div class="q-card">
-    <div class="q-accent" style="background:linear-gradient(90deg,var(--rose),var(--violet));"></div>
-    <div class="q-header">
-      <span class="q-num text-rose">04</span>
-      <div>
-        <span class="q-label text-rose">Analisis Sinyal</span>
-        <p class="q-text">
-          Perhatikan kedua sinyal getaran bearing di bawah. Menurutmu,
-          apa saja <em>perbedaan visual</em> yang membedakan kondisi
-          <strong class="text-teal">Normal</strong> dan <strong class="text-rose">Faulty</strong>?
-          Fitur apa yang paling mencolok?
-        </p>
-      </div>
+  <!-- ━━━ SOAL 4: Univariate vs Multivariate ━━━ -->
+  <div class="exercise reveal" style="border-left:3px solid var(--cyan);">
+    <div class="exercise-header" style="background:rgba(245,158,11,.03);">
+      <div class="exercise-number" style="background:linear-gradient(135deg,#f59e0b,#f97316);">📊</div>
+      <div><div style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;">DISKUSI 4 — MODUL 2</div><div class="exercise-title">Kapan Harus Multivariate?</div></div>
     </div>
-
-    <div class="q-body">
-      <div class="compare-btns">
-        <button class="cbtn cbtn-teal"     id="cbn" onclick="setCompare('normal',this)">🟢 Normal</button>
-        <button class="cbtn cbtn-inactive" id="cbf" onclick="setCompare('faulty',this)">🔴 Faulty</button>
-        <button class="cbtn cbtn-inactive" id="cbb" onclick="setCompare('both',this)">📊 Bandingkan</button>
+    <div class="exercise-body">
+      <p style="font-size:15px;line-height:1.8;margin-bottom:16px;">Mesin kompresor menunjukkan gejala abnormal. Cukupkah hanya menggunakan <strong>1 sensor getaran</strong> (univariate), atau perlu data <strong>multivariate</strong> (getaran + suhu + arus)?</p>
+      <div class="radio-group" id="rg-mc4">
+        <div class="radio-option" data-value="A" onclick="selectOption('mc4','A')"><input type="radio" name="mc4"><div class="radio-circle"></div><span><strong>A.</strong> Univariate cukup — getaran saja sudah bisa mendeteksi semua masalah</span></div>
+        <div class="radio-option" data-value="B" onclick="selectOption('mc4','B')"><input type="radio" name="mc4"><div class="radio-circle"></div><span><strong>B.</strong> Multivariate diperlukan — korelasi antar sensor membuat diagnosis lebih akurat</span></div>
+        <div class="radio-option" data-value="C" onclick="selectOption('mc4','C')"><input type="radio" name="mc4"><div class="radio-circle"></div><span><strong>C.</strong> Tergantung budget — multivariate lebih mahal tapi tidak lebih baik</span></div>
+        <div class="radio-option" data-value="D" onclick="selectOption('mc4','D')"><input type="radio" name="mc4"><div class="radio-circle"></div><span><strong>D.</strong> Gunakan sensor RPM saja karena paling murah</span></div>
       </div>
-
-      <div style="height:200px; background:rgba(2,8,16,.7); border-radius:16px; padding:12px; border:1px solid rgba(255,255,255,.06);">
-        <canvas id="compareChart"></canvas>
-      </div>
-
-      <!-- Feature cards -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;" id="featureCards">
-        <div style="background:rgba(45,212,191,.06);border:1px solid rgba(45,212,191,.2);border-radius:14px;padding:14px;">
-          <p class="text-xs text-teal font-mono font-semibold uppercase tracking-wide mb-2">Normal</p>
-          <div style="display:flex;flex-direction:column;gap:6px;font-size:.8rem;color:var(--s300);">
-            <span>📏 RMS ≈ <strong class="text-teal">0.45</strong></span>
-            <span>⬆️ Peak ≈ <strong class="text-teal">1.2</strong></span>
-            <span>📉 Amplitudo stabil</span>
-            <span>✅ Tidak ada impuls</span>
-          </div>
-        </div>
-        <div style="background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.2);border-radius:14px;padding:14px;">
-          <p class="text-xs text-rose font-mono font-semibold uppercase tracking-wide mb-2">Faulty</p>
-          <div style="display:flex;flex-direction:column;gap:6px;font-size:.8rem;color:var(--s300);">
-            <span>📏 RMS ≈ <strong class="text-rose">2.10</strong></span>
-            <span>⬆️ Peak ≈ <strong class="text-rose">5.4</strong></span>
-            <span>📈 Amplitudo membesar</span>
-            <span>⚠️ Ada impuls mendadak</span>
-          </div>
-        </div>
-      </div>
-
-      <button class="hint-toggle mt-4" onclick="toggleHint('h4',this)">
-        💡 Petunjuk berpikir <span class="hint-arrow">▾</span>
-      </button>
-      <div class="hint-content" id="h4">
-        <div class="hint-inner hint-rose">
-          Selain amplitudo, perhatikan juga <strong>pola kejutan (impuls)</strong> pada sinyal faulty.
-          Mengapa impuls ini terjadi secara periodik? Kaitkan dengan mekanisme fisik bearing yang aus —
-          apa yang terjadi saat bola bearing melewati titik cacat setiap satu putaran?
-        </div>
+      <div class="exercise-actions"><button class="btn-check" onclick="checkAnswer('mc4','B')">Cek Jawaban</button><button class="btn-hint" onclick="toggleHint('mc4')">💡 Petunjuk</button></div>
+      <div class="feedback" id="fb-mc4"></div>
+      <div class="hint-box" id="hint-mc4">💡 Ingat analogi medical check-up: dokter tidak hanya cek tekanan darah, tapi juga gula darah, kolesterol, detak jantung. Kenapa? Karena pola KORELASI antar parameter memberikan informasi yang lebih kaya.</div>
+      <div style="margin-top:16px;padding:14px 18px;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.15);border-radius:12px;">
+        <p style="font-size:14px;color:#a78bfa;line-height:1.7;">📝 <strong>Di forum diskusi, jelaskan:</strong> Berikan contoh skenario di mana getaran naik tapi suhu normal (artinya apa?), dan skenario di mana getaran naik DAN suhu naik (artinya apa yang berbeda?).</p>
       </div>
     </div>
   </div>
 
-</div><!-- /container -->
+  <!-- ━━━ SOAL 5: Refleksi ━━━ -->
+  <div class="exercise reveal" style="border-left:3px solid #f43f5e;">
+    <div class="exercise-header" style="background:rgba(244,63,94,.03);">
+      <div class="exercise-number" style="background:linear-gradient(135deg,#f43f5e,#fb7185);">💡</div>
+      <div><div style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;">DISKUSI 5 — REFLEKSI</div><div class="exercise-title">Sensor Mana yang Mendeteksi Paling Awal?</div></div>
+    </div>
+    <div class="exercise-body">
+      <p style="font-size:15px;line-height:1.8;margin-bottom:16px;">Bearing mesin mulai mengalami kerusakan awal (early-stage fault). Urutkan sensor berikut dari yang <strong>paling cepat</strong> mendeteksi hingga <strong>paling lambat</strong>:</p>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;"><span>📳</span><strong>Accelerometer</strong> — getaran frekuensi tinggi</div>
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;"><span>🌡️</span><strong>Termokopel</strong> — suhu bearing</div>
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;"><span>🔄</span><strong>Encoder RPM</strong> — kecepatan putar</div>
+      </div>
+      <div style="margin-top:16px;padding:14px 18px;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.15);border-radius:12px;">
+        <p style="font-size:14px;color:#a78bfa;line-height:1.7;">📝 <strong>Di forum diskusi:</strong></p>
+        <p style="font-size:14px;color:#a78bfa;line-height:1.7;">1. Tuliskan urutan deteksi dari paling cepat ke paling lambat dan jelaskan alasannya.</p>
+        <p style="font-size:14px;color:#a78bfa;line-height:1.7;">2. Mengapa accelerometer bisa mendeteksi lebih awal daripada sensor suhu?</p>
+        <p style="font-size:14px;color:#a78bfa;line-height:1.7;">3. Pada tahap kerusakan apa RPM baru mulai berubah signifikan?</p>
+      </div>
+      <div class="hint-box show" style="margin-top:16px;">💡 <strong>Petunjuk:</strong> Kerusakan bearing awal → impact pada permukaan cacat → getaran frekuensi tinggi DULU → gesekan meningkat → panas timbul (suhu naik) → kerusakan parah → RPM terpengaruh. Urutannya mengikuti "rantai sebab-akibat".</div>
+    </div>
+  </div>
 
-<!-- ==================== FOOTER ==================== -->
+</div>
+
 <footer>
-  <div class="container">
-    <p>Forum Diskusi • Pertemuan 2 • <span style="color:var(--teal)">Dedik Romahadi</span> •
-       Optimalisasi &amp; Otomasi • S1 Teknik Mesin</p>
-    <p style="margin-top:4px;">Tuliskan jawabanmu di forum diskusi website Fast Learning Pertemuan 2 💬</p>
-  </div>
+  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Optimalisasi &amp; Otomasi · S1 Teknik Mesin · Universitas Mercu Buana</p>
+  <p style="margin-top:8px;color:#2a3850">Forum Diskusi Pertemuan 2 — Optimalisasi & Otomasi • Playfair Display • Source Sans 3 • JetBrains Mono</p>
 </footer>
-
-
-<!-- ==================== SCRIPTS ==================== -->
-<script>
-/* -------- TICKER -------- */
-(function(){
-  const items = [
-    '💬 Soal 1: Sensor mana yang paling tepat mendeteksi getaran berlebih?',
-    '💬 Soal 2: Berapa sampling rate minimum untuk sinyal 50 Hz?',
-    '💬 Soal 3: Bedakan Time Series vs Data Statis dari contoh nyata mesin',
-    '💬 Soal 4: Apa perbedaan visual sinyal Normal vs Faulty bearing?',
-    '📝 Tulis jawabanmu di forum diskusi Fast Learning Pertemuan 2!',
-  ];
-  const dup = [...items,...items];
-  document.getElementById('ticker').innerHTML =
-    dup.map(d=>`<span class="ticker-item">[ ${d} ]</span>`).join('');
-})();
-
-/* -------- HINT TOGGLE -------- */
-function toggleHint(id, btn) {
-  const el = document.getElementById(id);
-  const isOpen = el.classList.toggle('open');
-  btn.classList.toggle('open', isOpen);
-}
-
-/* ============================================================
-   SOAL 1 — SENSOR PICKER
-   ============================================================ */
-const sensorFeedback = {
-  acc: {
-    color: '#2dd4bf', bg: 'rgba(45,212,191,.08)', border: 'rgba(45,212,191,.25)',
-    icon: '📳',
-    text: `<strong style="color:#2dd4bf">Accelerometer — Pilihan Terbaik! ✅</strong><br>
-    Accelerometer langsung mengukur getaran mekanis pada frekuensi tinggi. Kerusakan bearing
-    biasanya muncul <em>pertama kali</em> sebagai perubahan pola getaran — jauh sebelum
-    suhu atau tekanan berubah. Diskusikan: seberapa awal sensor ini bisa mendeteksi kerusakan?`
-  },
-  temp: {
-    color: '#fbbf24', bg: 'rgba(251,191,36,.08)', border: 'rgba(251,191,36,.25)',
-    icon: '🌡️',
-    text: `<strong style="color:#fbbf24">Termistor — Bisa, tapi lambat!</strong><br>
-    Suhu memang naik saat bearing aus karena gesekan meningkat. Namun perubahan suhu biasanya
-    terjadi <em>lebih lambat</em> dibanding perubahan getaran. Diskusikan: kapan sensor suhu
-    menjadi pilihan yang lebih unggul — kondisi apa yang membuatnya lebih relevan?`
-  },
-  pressure: {
-    color: '#fb7185', bg: 'rgba(251,113,133,.08)', border: 'rgba(251,113,133,.25)',
-    icon: '🔴',
-    text: `<strong style="color:#fb7185">Pressure Gauge — Kurang relevan langsung</strong><br>
-    Sensor tekanan mengukur tekanan fluida, bukan kondisi mekanik bearing secara langsung.
-    Tekanan baru berubah jika ada kebocoran atau kavitasi pada pompa.
-    Diskusikan: dalam kondisi apa sensor tekanan menjadi penting untuk pompa?`
-  },
-  current: {
-    color: '#c084fc', bg: 'rgba(192,132,252,.08)', border: 'rgba(192,132,252,.25)',
-    icon: '⚡',
-    text: `<strong style="color:#c084fc">Clamp Meter — Alternatif yang menarik!</strong><br>
-    Saat bearing aus, motor bekerja lebih keras → arus meningkat. Sensor arus bisa mendeteksi
-    ini secara <em>non-invasif</em> tanpa menyentuh mesin. Diskusikan: apa keunggulan dan
-    keterbatasan pendekatan ini dibanding accelerometer?`
-  },
-  rpm: {
-    color: '#a3e635', bg: 'rgba(163,230,53,.08)', border: 'rgba(163,230,53,.25)',
-    icon: '🔄',
-    text: `<strong style="color:#a3e635">Encoder — Tidak langsung</strong><br>
-    RPM bisa menurun jika bearing rusak parah dan menimbulkan hambatan, tetapi ini terjadi
-    pada tahap kerusakan <em>yang sudah lanjut</em>. Diskusikan: apakah perubahan RPM bisa
-    dijadikan indikator awal kerusakan bearing? Mengapa atau mengapa tidak?`
-  }
-};
-
-function pickSensor(el) {
-  document.querySelectorAll('.s-pick').forEach(e => e.classList.remove('selected'));
-  el.classList.add('selected');
-  const key = el.dataset.s;
-  const fb  = sensorFeedback[key];
-  const res = document.getElementById('pickResult');
-  res.style.background = fb.bg;
-  res.style.border     = `1px solid ${fb.border}`;
-  res.style.borderRadius = '14px';
-  res.style.padding    = '14px 16px';
-  res.style.color      = '#e2e8f0';
-  res.style.fontSize   = '.85rem';
-  res.style.lineHeight = '1.65';
-  res.innerHTML = fb.text;
-  res.classList.add('show');
-}
-
-/* ============================================================
-   SOAL 2 — NYQUIST SLIDER
-   ============================================================ */
-const SIGNAL_FREQ = 50;
-let nyqChart = null;
-
-const nyqOpts = {
-  responsive: true, maintainAspectRatio: false,
-  plugins: { legend:{ display:false }, tooltip:{ enabled:false } },
-  animation: { duration: 300 },
-  elements: { point:{ radius:0 } },
-  scales: {
-    x:{ display:false },
-    y:{ grid:{ color:'#1e293b' }, ticks:{ color:'#475569', font:{ size:9 } },
-        title:{ display:true, text:'Amplitudo', color:'#475569', font:{ size:10 } } }
-  }
-};
-
-function buildNyquist(fs) {
-  const N = 120;
-  const orig = [], sampled = [];
-  for(let i=0;i<N;i++){
-    const t = i * (1/300);
-    orig.push({ x:t, y:Math.sin(2*Math.PI*SIGNAL_FREQ*t) });
-    if(i % Math.max(1,Math.round(300/fs)) === 0)
-      sampled.push({ x:t, y:Math.sin(2*Math.PI*SIGNAL_FREQ*t) });
-  }
-  return { orig, sampled };
-}
-
-function updateNyquist(){
-  const fs = parseInt(document.getElementById('fsSlider').value);
-  document.getElementById('fsVal').textContent = fs + ' Hz';
-
-  const { orig, sampled } = buildNyquist(fs);
-  const ok = fs >= 2 * SIGNAL_FREQ;
-
-  if(nyqChart) nyqChart.destroy();
-  nyqChart = new Chart(document.getElementById('nyquistChart'),{
-    type:'line',
-    data:{
-      datasets:[
-        { data:orig,    borderColor:'rgba(45,212,191,.25)', borderWidth:1.5, tension:.4, showLine:true, pointRadius:0 },
-        { data:sampled, borderColor: ok ? '#2dd4bf' : '#fb7185',
-          borderWidth:2, tension:.4, showLine:true,
-          pointRadius:3, pointBackgroundColor: ok ? '#2dd4bf' : '#fb7185' }
-      ]
-    },
-    options:{
-      ...nyqOpts,
-      scales:{
-        ...nyqOpts.scales,
-        x:{ type:'linear', display:true, ticks:{ color:'#475569', font:{ size:8 } }, grid:{ color:'#1e293b' },
-            title:{ display:true, text:'Waktu (s)', color:'#475569', font:{ size:9 } } }
-      }
-    }
-  });
-
-  const status = document.getElementById('nyquistStatus');
-  if(fs < SIGNAL_FREQ){
-    status.style.background='rgba(251,113,133,.1)'; status.style.border='1px solid rgba(251,113,133,.3)'; status.style.color='#fecdd3';
-    status.innerHTML=`⛔ <strong>${fs} Hz</strong> — Aliasing parah! Sinyal terdistorsi total. fs harus ≥ ${2*SIGNAL_FREQ} Hz`;
-  } else if(fs < 2*SIGNAL_FREQ){
-    status.style.background='rgba(251,191,36,.08)'; status.style.border='1px solid rgba(251,191,36,.3)'; status.style.color='#fde68a';
-    status.innerHTML=`⚠️ <strong>${fs} Hz</strong> — Terlalu rendah! Teorema Nyquist: butuh minimal <strong>${2*SIGNAL_FREQ} Hz</strong>`;
-  } else if(fs < 4*SIGNAL_FREQ){
-    status.style.background='rgba(163,230,53,.08)'; status.style.border='1px solid rgba(163,230,53,.3)'; status.style.color='#d9f99d';
-    status.innerHTML=`✅ <strong>${fs} Hz</strong> — Memenuhi Nyquist (${fs/(SIGNAL_FREQ)}× frekuensi sinyal). Dalam praktik industri, disarankan ≥ ${4*SIGNAL_FREQ} Hz`;
-  } else {
-    status.style.background='rgba(45,212,191,.08)'; status.style.border='1px solid rgba(45,212,191,.3)'; status.style.color='#99f6e4';
-    status.innerHTML=`🎯 <strong>${fs} Hz</strong> — Sangat baik! ${fs/(SIGNAL_FREQ)}× frekuensi sinyal — aman untuk analisis presisi`;
-  }
-}
-
-updateNyquist();
-
-/* ============================================================
-   SOAL 3 — SORT GAME
-   ============================================================ */
-const SORT_DATA = [
-  { label:'Getaran bearing setiap 0.01 detik', cat:'ts',     color:'var(--teal)'  },
-  { label:'Kekerasan material baja (HRC)',      cat:'static', color:'var(--rose)'  },
-  { label:'Suhu mesin per detik selama 1 jam',  cat:'ts',     color:'var(--teal)'  },
-  { label:'Tegangan tarik baja 750 MPa',        cat:'static', color:'var(--rose)'  },
-  { label:'RPM motor tiap 0.5 detik',           cat:'ts',     color:'var(--teal)'  },
-  { label:'Komposisi kimia baja (% C, Mn)',      cat:'static', color:'var(--rose)'  },
-];
-
-let sortState = {};
-
-function initSort(){
-  sortState = {};
-  SORT_DATA.forEach((d,i) => { sortState[i] = null; });
-
-  document.getElementById('sortPool').innerHTML = SORT_DATA.map((d,i)=>`
-    <div class="sort-chip" id="sc-${i}" onclick="placeChip(${i},'ts')" oncontextmenu="placeChip(${i},'static');return false;"
-         title="Klik → Time Series | Klik kanan → Data Statis">
-      ${d.label}
-    </div>
-  `).join('');
-
-  document.getElementById('placed-ts').innerHTML     = '';
-  document.getElementById('placed-static').innerHTML = '';
-  const r = document.getElementById('sortResult');
-  r.classList.remove('show'); r.innerHTML = '';
-}
-
-function placeChip(idx, zone){
-  const chip = document.getElementById(`sc-${idx}`);
-  if(chip.classList.contains('placed')) return;
-
-  sortState[idx] = zone;
-  chip.classList.add('placed');
-
-  const d = SORT_DATA[idx];
-  const color = zone === 'ts' ? 'var(--teal)' : 'var(--rose)';
-  const placed = document.createElement('div');
-  placed.className = 'placed-chip';
-  placed.style.background = zone==='ts' ? 'rgba(45,212,191,.12)' : 'rgba(251,113,133,.12)';
-  placed.style.border     = zone==='ts' ? '1px solid rgba(45,212,191,.3)' : '1px solid rgba(251,113,133,.3)';
-  placed.style.color      = zone==='ts' ? 'var(--teal)' : 'var(--rose)';
-  placed.dataset.idx      = idx;
-  placed.title            = 'Klik untuk kembalikan';
-  placed.style.cursor     = 'pointer';
-  placed.textContent      = d.label;
-  placed.onclick          = () => returnChip(idx, zone, placed);
-
-  document.getElementById(`placed-${zone}`).appendChild(placed);
-}
-
-function returnChip(idx, zone, el){
-  sortState[idx] = null;
-  el.remove();
-  const chip = document.getElementById(`sc-${idx}`);
-  chip.classList.remove('placed');
-}
-
-function checkSort(){
-  const answered = Object.values(sortState).filter(v=>v!==null).length;
-  if(answered < SORT_DATA.length){
-    showSortResult('⚠️ Tempatkan semua item terlebih dahulu!','rgba(251,191,36,.08)','rgba(251,191,36,.25)','#fde68a');
-    return;
-  }
-  let correct = 0;
-  SORT_DATA.forEach((d,i)=>{ if(sortState[i]===d.cat) correct++; });
-  const pct = Math.round(correct/SORT_DATA.length*100);
-  if(correct===SORT_DATA.length){
-    showSortResult(`🎉 Sempurna! Semua ${correct}/${SORT_DATA.length} benar (${pct}%).<br>
-      Kunci: urutan waktu adalah pembeda utama. Time Series = data yang bermakna hanya jika kita tahu kapan diambil.`,
-      'rgba(45,212,191,.08)','rgba(45,212,191,.25)','#99f6e4');
-  } else {
-    showSortResult(`${pct >= 50 ? '👍' : '💪'} ${correct}/${SORT_DATA.length} benar (${pct}%). Coba lagi!<br>
-      Ingat: tanya "apakah urutan waktu data ini penting?" — jika iya, itu Time Series.`,
-      'rgba(251,191,36,.08)','rgba(251,191,36,.25)','#fde68a');
-  }
-}
-
-function showSortResult(html,bg,border,color){
-  const r = document.getElementById('sortResult');
-  r.style.background = bg; r.style.border = `1px solid ${border}`; r.style.color = color;
-  r.style.borderRadius = '12px'; r.style.padding = '12px 14px';
-  r.innerHTML = html; r.classList.add('show');
-}
-
-function resetSort(){ initSort(); }
-
-initSort();
-
-// Zone click targets
-document.getElementById('zone-ts').addEventListener('click', e => {
-  // handled per chip
-});
-
-/* ============================================================
-   SOAL 4 — SIGNAL COMPARE
-   ============================================================ */
-let cmpChart = null;
-let cmpMode  = 'normal';
-
-function genBearing(n, fault){
-  return Array.from({length:n},(_,i)=>{
-    const t = i*0.05;
-    let v = 0.5*Math.sin(2*Math.PI*5*t) + 0.1*Math.sin(2*Math.PI*15*t);
-    if(fault){
-      v = 1.8*Math.sin(2*Math.PI*5*t) + 0.6*Math.sin(2*Math.PI*15*t);
-      if(i % 8 === 0) v += Math.random()>0.5 ? 3.2 : -3.2;
-    }
-    return v + (Math.random()-.5)*(fault?0.6:0.15);
-  });
-}
-
-function drawCompare(){
-  const n   = 80;
-  const lbs = Array.from({length:n},(_,i)=>(i*0.05).toFixed(2));
-  const ds  = [];
-
-  if(cmpMode==='normal'||cmpMode==='both')
-    ds.push({ label:'🟢 Normal', data:genBearing(n,false),
-      borderColor:'#2dd4bf', borderWidth:2, tension:.3, pointRadius:0 });
-  if(cmpMode==='faulty'||cmpMode==='both')
-    ds.push({ label:'🔴 Faulty', data:genBearing(n,true),
-      borderColor:'#fb7185', borderWidth:2, tension:.3, pointRadius:0 });
-
-  if(cmpChart) cmpChart.destroy();
-  cmpChart = new Chart(document.getElementById('compareChart'),{
-    type:'line',
-    data:{ labels:lbs, datasets:ds },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ position:'top', labels:{ color:'#cbd5e1', font:{size:11}, padding:14 } },
-        tooltip:{ mode:'index', intersect:false } },
-      animation:{ duration:400, easing:'easeOutQuart' },
-      elements:{ point:{ radius:0 } },
-      scales:{
-        x:{ grid:{color:'#1e293b'}, ticks:{ color:'#475569', maxTicksLimit:8, font:{size:9} },
-            title:{ display:true, text:'Waktu (detik)', color:'#475569', font:{size:9} } },
-        y:{ grid:{color:'#1e293b'}, ticks:{ color:'#475569', font:{size:9} },
-            title:{ display:true, text:'Amplitudo (mm/s)', color:'#475569', font:{size:9} } }
-      }
-    }
-  });
-}
-
-function setCompare(mode, btn){
-  cmpMode = mode;
-  const map = {normal:'cbtn-teal', faulty:'cbtn-rose', both:'cbtn-amber'};
-  ['cbn','cbf','cbb'].forEach(id=>{ document.getElementById(id).className='cbtn cbtn-inactive'; });
-  btn.className = 'cbtn ' + map[mode];
-  drawCompare();
-}
-
-drawCompare();
-</script>
 
 <!-- ═══ AKTIVITAS MAHASISWA ═══ -->
 <section style="max-width:900px;margin:48px auto 0;padding:0 24px;">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px;">
     <div>
-      <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.3);color:var(--teal,#2dd4bf);padding:5px 14px;border-radius:999px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;">👥 Mahasiswa</span>
-      <h2 style="font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:#fff;margin-top:12px;">Aktivitas Mahasiswa</h2>
-      <p style="color:var(--s400,#94a3b8);font-size:.85rem;margin-top:6px;">Mahasiswa yang telah mengakses halaman ini.</p>
+      <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);color:#f59e0b;padding:5px 14px;border-radius:999px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;">👥 Aktivitas</span>
+      <h2 style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:800;color:#fff;margin-top:12px;">Performa Mahasiswa</h2>
+      <p style="color:#94a3b8;font-size:.85rem;margin-top:6px;">Mahasiswa yang telah mengakses halaman dan mengerjakan soal latihan.</p>
     </div>
-    
   </div>
-  <div id="scheduleInfo" style="display:none;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.2);border-radius:14px;padding:14px 20px;margin-bottom:20px;align-items:center;gap:12px;flex-wrap:wrap;">
-      <span style="font-size:1.2rem;">🕐</span>
-      <div style="flex:1;min-width:200px;">
-        <div style="font-size:.75rem;font-weight:600;color:#818cf8;text-transform:uppercase;letter-spacing:.08em;">Jadwal Perkuliahan</div>
-        <div id="scheduleRange" style="font-size:.88rem;color:#e2e8f0;font-weight:600;margin-top:2px;">—</div>
-      </div>
-      <div style="text-align:center;">
-        <div id="statLate" style="font-weight:800;font-size:1.4rem;color:#fb7185;">0</div>
-        <div style="font-size:.7rem;color:var(--s500,#64748b);">Terlambat</div>
-      </div>
+  <div id="scheduleInfo" style="display:none;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.2);border-radius:14px;padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    <span style="font-size:1.2rem;">📅</span>
+    <div style="flex:1;min-width:200px;">
+      <div style="font-size:.75rem;font-weight:600;color:#818cf8;text-transform:uppercase;letter-spacing:.08em;">Jadwal (dari Modul 2)</div>
+      <div id="scheduleRange" style="font-size:.88rem;color:#e2e8f0;font-weight:600;margin-top:2px;">—</div>
     </div>
-<div style="background:var(--surface,#0f1929);border:1px solid var(--border,rgba(45,212,191,.15));border-radius:20px;overflow:hidden;">
-<div id="leaderboardPanel" style="margin-bottom:2px;">
+  </div>
+  <div style="background:#1a2332;border:1px solid #2a3548;border-radius:20px;overflow:hidden;">
+    <div id="leaderboardPanel" style="margin-bottom:2px;">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:16px 20px;">
         <div style="background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.15);border-radius:14px;padding:14px 16px;">
-          <div style="font-size:.72rem;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🏆 Paling Rajin</div>
+          <div style="font-size:.72rem;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🏆 Top Skor</div>
           <div id="rajinList" style="font-size:.8rem;color:#e2e8f0;min-height:60px;">⏳ Memuat...</div>
         </div>
         <div style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15);border-radius:14px;padding:14px 16px;">
-          <div style="font-size:.72rem;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">😴 Paling Santai</div>
+          <div style="font-size:.72rem;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🔥 Top Akses</div>
           <div id="santaiList" style="font-size:.8rem;color:#e2e8f0;min-height:60px;">⏳ Memuat...</div>
         </div>
       </div>
-      <div style="padding:0 20px 16px;">
-        <div style="background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);border-radius:14px;padding:14px 16px;">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-            <div style="font-size:.72rem;font-weight:700;color:#fb7185;text-transform:uppercase;letter-spacing:.1em;">❌ Bolos</div>
-            <div id="bolosCount" style="background:rgba(251,113,133,.15);color:#fb7185;font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:8px;">0</div>
-          </div>
-          <div id="bolosList" style="font-size:.8rem;color:#e2e8f0;">⏳ Memuat...</div>
-        </div>
-      </div>
     </div>
-    <div style="display:flex;padding:14px 24px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;font-weight:600;color:var(--s500,#64748b);text-transform:uppercase;letter-spacing:.08em;">
-      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
+    <div style="display:flex;padding:14px 24px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.08em;">
+      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:0.5;text-align:center;">Poin</div><div style="flex:0.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
     </div>
-    <div id="visitorTableBody" style="max-height:420px;overflow-y:auto;"><div style="text-align:center;padding:40px 24px;color:var(--s500,#64748b);font-size:.88rem;">⏳ Memuat data mahasiswa...</div></div>
+    <div id="visitorTableBody" style="max-height:420px;overflow-y:auto;"><div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">⏳ Memuat data mahasiswa...</div></div>
   </div>
 </section>
+
+<script>
+// ═══ QUIZ SYSTEM (MCQ + NUMERIC INPUT) ═══
+const _answeredQuestions = new Set();
+
+function selectOption(qId, value) {
+  const group = document.getElementById('rg-' + qId);
+  if (!group || group.dataset.locked === 'true') return;
+  group.querySelectorAll('.radio-option').forEach(o => o.classList.remove('selected'));
+  const opt = group.querySelector('[data-value="' + value + '"]');
+  if (opt) { opt.classList.add('selected'); opt.querySelector('input').checked = true; }
+}
+
+function checkAnswer(qId, correct) {
+  const group = document.getElementById('rg-' + qId);
+  if (!group) return;
+  const selected = group.querySelector('.radio-option.selected');
+  const fb = document.getElementById('fb-' + qId);
+  if (!selected) { fb.className = 'feedback wrong'; fb.style.display = 'block'; fb.textContent = '⚠ Pilih jawaban terlebih dahulu.'; return; }
+  const val = selected.dataset.value;
+  group.dataset.locked = 'true';
+  group.querySelectorAll('.radio-option').forEach(o => { o.style.pointerEvents = 'none'; });
+  const correctOpt = group.querySelector('[data-value="' + correct + '"]');
+  const ansBtn = document.querySelector('[data-answer-for="' + qId + '"]');
+  if (ansBtn) ansBtn.classList.remove('locked');
+  if (val === correct) {
+    selected.classList.add('correct');
+    fb.className = 'feedback correct'; fb.style.display = 'block'; fb.innerHTML = '🎉 <strong>Benar!</strong> +1 poin';
+    if (typeof _awardPoint === 'function') _awardPoint(qId);
+  } else {
+    selected.classList.add('wrong');
+    if (correctOpt) correctOpt.classList.add('correct');
+    fb.className = 'feedback wrong'; fb.style.display = 'block'; fb.innerHTML = '❌ <strong>Kurang tepat.</strong> Jawaban yang benar ditandai hijau.';
+  }
+}
+
+function checkNumeric(qId, correct, tolerance) {
+  const inp = document.getElementById('inp-' + qId);
+  const fb = document.getElementById('fb-' + qId);
+  if (!inp || !fb) return;
+  const val = parseFloat(inp.value);
+  if (isNaN(val)) { fb.className = 'feedback wrong'; fb.style.display = 'block'; fb.textContent = '⚠ Masukkan angka terlebih dahulu.'; return; }
+  const ansBtn = document.querySelector('[data-answer-for="' + qId + '"]');
+  if (ansBtn) ansBtn.classList.remove('locked');
+  if (Math.abs(val - correct) <= tolerance) {
+    inp.style.borderColor = '#10b981'; inp.style.background = 'rgba(16,185,129,.08)';
+    fb.className = 'feedback correct'; fb.style.display = 'block'; fb.innerHTML = '🎉 <strong>Benar!</strong> +1 poin';
+    inp.disabled = true;
+    if (typeof _awardPoint === 'function') _awardPoint(qId);
+  } else {
+    inp.style.borderColor = '#e63946'; inp.style.background = 'rgba(230,57,70,.08)';
+    fb.className = 'feedback wrong'; fb.style.display = 'block'; fb.innerHTML = '❌ <strong>Kurang tepat.</strong> Coba hitung ulang di Jupyter Notebook.';
+    setTimeout(() => { inp.style.borderColor = '#2a3548'; inp.style.background = '#111827'; }, 2000);
+  }
+}
+
+function toggleHint(qId) { const el = document.getElementById('hint-' + qId); if (el) el.classList.toggle('show'); }
+function toggleAnswer(qId) { const el = document.getElementById('ans-' + qId); if (el) el.classList.toggle('show'); }
+
+window._awardPoint = function(qId) {
+  if (_answeredQuestions.has(qId)) return;
+  if (typeof isScheduleExpired === 'function' && isScheduleExpired()) return;
+  const me = typeof getIdentity === 'function' ? getIdentity() : null;
+  if (!me || !me.nim || me.role === 'dosen') return;
+  _answeredQuestions.add(qId);
+  const _key = typeof sanitizeKey === 'function' ? sanitizeKey('mhs_' + me.nim) : 'mhs_' + me.nim;
+  if (typeof db !== 'undefined' && typeof DB_PATH !== 'undefined') {
+    const _ref = typeof ref === 'function' ? ref(db, DB_PATH + '/' + _key) : null;
+    if (_ref && typeof get === 'function') {
+      get(_ref).then(function(snap) {
+        if (snap.exists()) {
+          const ex = snap.val();
+          const scored = ex.scoredQuestions ? ex.scoredQuestions.split(',') : [];
+          if (scored.includes(qId)) return;
+          scored.push(qId);
+          const newPts = (ex.points || 0) + 1;
+          if (typeof set === 'function') set(_ref, Object.assign({}, ex, {points: newPts, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',')}));
+        }
+      }).catch(function(){});
+    }
+  }
+};
+
+(function loadScoredQuestions() {
+  const me = typeof getIdentity === 'function' ? getIdentity() : null;
+  if (!me || !me.nim || me.role === 'dosen') return;
+  const _key = typeof sanitizeKey === 'function' ? sanitizeKey('mhs_' + me.nim) : 'mhs_' + me.nim;
+  if (typeof db !== 'undefined' && typeof DB_PATH !== 'undefined' && typeof ref === 'function' && typeof get === 'function') {
+    get(ref(db, DB_PATH + '/' + _key)).then(function(snap) {
+      if (snap.exists() && snap.val().scoredQuestions) {
+        snap.val().scoredQuestions.split(',').forEach(function(q) { _answeredQuestions.add(q); });
+      }
+    }).catch(function(){});
+  }
+})();
+
+// ═══ COPY CODE ═══
+function cpC(btn){const pre=btn.closest('.code-wrap').querySelector('pre');if(!pre)return;navigator.clipboard.writeText(pre.textContent).then(()=>{btn.textContent='✅ Copied!';setTimeout(()=>btn.textContent='📋 Copy',2000)}).catch(()=>{});}
+
+// ═══ HERO WAVE TRACES ═══
+(function(){
+  const waves=[
+    {el:document.querySelector('.w1'),freq:0.012,amp:40,decay:0.0008,speed:0.02,yOff:0.55,phase:0},
+    {el:document.querySelector('.w2'),freq:0.018,amp:28,decay:0.0012,speed:0.015,yOff:0.45,phase:1.5},
+    {el:document.querySelector('.w3'),freq:0.008,amp:22,decay:0.0005,speed:0.025,yOff:0.65,phase:3}
+  ];
+  let t=0;
+  function drawWaves(){
+    const W=1440,H=600;
+    waves.forEach(w=>{
+      if(!w.el)return;
+      let d='M0 '+H;
+      for(let x=0;x<=W;x+=3){
+        const env=Math.exp(-w.decay*x);
+        const y=w.yOff*H+env*w.amp*Math.sin(w.freq*x+t*w.speed+w.phase)+env*w.amp*0.3*Math.sin(w.freq*2.3*x+t*w.speed*0.7+w.phase);
+        d+=' L'+x+' '+y.toFixed(1);
+      }
+      w.el.setAttribute('d',d);
+    });
+    t++;requestAnimationFrame(drawWaves);
+  }
+  drawWaves();
+})();
+
+// ═══ SCROLL PROGRESS ═══
+window.addEventListener('scroll',()=>{const s=document.documentElement.scrollTop;const h=document.documentElement.scrollHeight-window.innerHeight;document.getElementById('scrollProgress').style.width=(s/h*100)+'%';});
+
+// ═══ SCROLL REVEAL ═══
+const io=new IntersectionObserver((entries)=>{entries.forEach((e,i)=>{if(e.isIntersecting){setTimeout(()=>e.target.classList.add('visible'),i*60);io.unobserve(e.target);}});},{threshold:0.08});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+// ═══ ANIMATED PARAM BARS ═══
+const barIO=new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isIntersecting){e.target.style.width=e.target.dataset.width;barIO.unobserve(e.target);}});},{threshold:0.3});
+document.querySelectorAll('.anim-bar').forEach(el=>barIO.observe(el));
+
+// ═══ COUNTDOWN TIMER ═══
+function startCountdown(deadlineISO){
+  if(!deadlineISO)return;
+  const deadline=new Date(deadlineISO);
+  const dlEl=document.getElementById("cdDeadline");
+  if(dlEl)dlEl.innerHTML='Deadline: <strong style="color:#f59e0b">'+deadline.toLocaleDateString("id-ID",{weekday:"long",day:"numeric",month:"long",year:"numeric"})+" "+deadline.toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"})+"</strong>";
+  function tick(){
+    const now=new Date(),diff=deadline-now;
+    if(diff<=0){document.getElementById("cdDays").textContent="00";document.getElementById("cdHours").textContent="00";document.getElementById("cdMins").textContent="00";document.getElementById("cdSecs").textContent="00";const exp=document.getElementById("cdExpired");if(exp)exp.style.display="block";return;}
+    document.getElementById("cdDays").textContent=String(Math.floor(diff/(1000*60*60*24))).padStart(2,"0");
+    document.getElementById("cdHours").textContent=String(Math.floor((diff%(1000*60*60*24))/(1000*60*60))).padStart(2,"0");
+    document.getElementById("cdMins").textContent=String(Math.floor((diff%(1000*60*60))/(1000*60))).padStart(2,"0");
+    document.getElementById("cdSecs").textContent=String(Math.floor((diff%(1000*60))/1000)).padStart(2,"0");
+  }
+  tick();setInterval(tick,1000);
+}
+
+</script>
 
 <script type="module">
 // ═══ FIREBASE + VISITOR SYSTEM ═══
@@ -1175,6 +653,7 @@ const db = getDatabase(app);
 const MODULE_ID = 'forum-2';
 const DB_PATH = `visitors/OptoAuto/${MODULE_ID}`;
 const PERTEMUAN = 'pertemuan-2';
+const RELATED_MODULES = [];
 const SCHEDULE_PATH = `settings/OptoAuto/${PERTEMUAN}/schedule`;
 const LOCAL_IDENTITY = `optoauto_identity_${MODULE_ID}`;
 let panelOpen = false;
@@ -1186,264 +665,124 @@ function saveIdentity(v){localStorage.setItem(LOCAL_IDENTITY, JSON.stringify(v))
 function isValidName(n){if(!n)return false;return n.split(/\s+/).every(w=>w.length>0&&/^[A-Z][a-zA-Z.'\-]*$/.test(w));}
 function isValidNim(n){return /^\d+$/.test(n);}
 function sanitizeKey(s){return s.replace(/[.#$/\[\]]/g,'_');}
+function isScheduleExpired(){return currentSchedule&&currentSchedule.end&&new Date().getTime()>new Date(currentSchedule.end).getTime();}
 
+let masterStudents=[];let masterFetchDone=false;
+const STUDENTS_JSON_URL='https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Optimalisasi-dan-Automasi/Attributes/students.json';
+function fetchMasterStudents(retries){retries=retries||0;return fetch(STUDENTS_JSON_URL,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}).then(data=>{masterStudents=data;masterFetchDone=true}).catch(err=>{if(retries<2)setTimeout(()=>fetchMasterStudents(retries+1),1500);else{masterStudents=[];masterFetchDone=true}})}
 
-let masterStudents = [];
-let masterFetchDone = false;
-const STUDENTS_JSON_URL = 'https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Optimalisasi-dan-Automasi/Attributes/students.json';
-function fetchMasterStudents(retries){
-  retries = retries || 0;
-  return fetch(STUDENTS_JSON_URL, {cache:'no-store'}).then(r=>{
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    return r.json();
-  }).then(data=>{
-    masterStudents = data;
-    masterFetchDone = true;
-    console.log('[Visitor] Master students loaded:', masterStudents.length);
-  }).catch(err=>{
-    console.error('[Visitor] Fetch error (attempt '+(retries+1)+'):', err);
-    if(retries < 2){ setTimeout(()=>fetchMasterStudents(retries+1), 1500); }
-    else { masterStudents = []; masterFetchDone = true; }
-  });
-}
-function updateLeaderboard(visitors, schedExpired){
-  const rajinEl=document.getElementById('rajinList');
-  const santaiEl=document.getElementById('santaiList');
-  const bolosEl=document.getElementById('bolosList');
-  const bolosCEl=document.getElementById('bolosCount');
+function updateLeaderboard(visitors,schedExpired){
+  const rajinEl=document.getElementById('rajinList'),santaiEl=document.getElementById('santaiList');
   if(!rajinEl)return;
-  if(!masterStudents.length){rajinEl.innerHTML='<span style="color:#64748b;font-size:.75rem;">Memuat data mahasiswa...</span>';santaiEl.innerHTML=rajinEl.innerHTML;bolosEl.innerHTML=rajinEl.innerHTML;return;}
+  if(!masterStudents.length){rajinEl.innerHTML='<span style="color:#64748b;font-size:.75rem;">Memuat...</span>';santaiEl.innerHTML=rajinEl.innerHTML;return;}
   const mhs=visitors.filter(v=>v.role!=='dosen'&&v.role!=='guest');
-  const visitMap={};
-  mhs.forEach(v=>{const k=v.nim;if(!visitMap[k])visitMap[k]=v;});
+  const visitMap={};mhs.forEach(v=>{if(!visitMap[v.nim])visitMap[v.nim]=v;});
   const visited=Object.values(visitMap);
-  const rajin=[...visited].sort((a,b)=>{const d=(b.visitCount||1)-(a.visitCount||1);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp);});
-  const santai=[...visited].sort((a,b)=>{const d=(a.visitCount||1)-(b.visitCount||1);return d!==0?d:new Date(b.timestamp)-new Date(a.timestamp);});
+  const topSkor=[...visited].sort((a,b)=>{const d=(b.points||0)-(a.points||0);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp);});
+  const akses=[...visited].sort((a,b)=>(b.visitCount||1)-(a.visitCount||1));
   const medalR=['🥇','🥈','🥉'];
-  function renderCard(v,idx,isSantai){
-    const medal=isSantai?(idx+1):medalR[idx];
+  function renderCardSkor(v,idx){
+    const pts=v.points||0;
+    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="font-size:1rem;flex-shrink:0;">'+medalR[idx]+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(16,185,129,.12);color:#10b981;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+pts+' pts</div></div>';
+  }
+  function renderCardAkses(v,idx){
     const vc=v.visitCount||1;
-    const badgeStyle=isSantai?'background:rgba(251,191,36,.12);color:#fbbf24;':'background:rgba(16,185,129,.12);color:#10b981;';
-    const mBadge=isSantai?'<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(251,191,36,.15);color:#fbbf24;font-size:.65rem;font-weight:800;flex-shrink:0;">'+medal+'</span>':'<span style="font-size:1rem;flex-shrink:0;">'+medal+'</span>';
-    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'">'+mBadge+'<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="'+badgeStyle+'padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+vc+'x</div></div>';
+    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(251,191,36,.15);color:#fbbf24;font-size:.65rem;font-weight:800;flex-shrink:0;">'+(idx+1)+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(251,191,36,.12);color:#fbbf24;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+vc+'x</div></div>';
   }
-  const top3=new Set(rajin.slice(0,3).map(v=>v.nim));
-  const santaiFiltered=santai.filter(v=>!top3.has(v.nim));
-  rajinEl.innerHTML=rajin.length?rajin.slice(0,3).map((v,i)=>renderCard(v,i,false)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
-  santaiEl.innerHTML=santaiFiltered.length?santaiFiltered.slice(0,3).map((v,i)=>renderCard(v,i,true)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
-  const visitedNims=new Set(mhs.map(v=>v.nim));
-  const notVisited=masterStudents.filter(s=>!visitedNims.has(s.nim));
-  if(schedExpired){
-    bolosCEl.textContent=notVisited.length;
-    if(!notVisited.length){bolosEl.innerHTML='<span style="color:#10b981;font-size:.78rem;">\u2705 Semua mahasiswa sudah berkunjung!</span>';}
-    else{bolosEl.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:6px;">'+notVisited.map(s=>'<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.12);border-radius:10px;padding:5px 10px;"><span style="font-weight:600;font-size:.75rem;color:#ef4444;">'+escH(s.nama)+'</span><span style="font-size:.62rem;color:#64748b;font-family:monospace;">'+s.nim+'</span></div>').join('')+'</div>';}
-  } else {
-    bolosCEl.textContent='—';
-    const belum=notVisited.length;
-    bolosEl.innerHTML=belum?'<span style="color:#94a3b8;font-size:.78rem;">⏳ '+belum+' mahasiswa belum berkunjung. Batas waktu belum berakhir.</span>':'<span style="color:#10b981;font-size:.78rem;">✅ Semua mahasiswa sudah berkunjung!</span>';
-  }
+  rajinEl.innerHTML=topSkor.length?topSkor.slice(0,3).map((v,i)=>renderCardSkor(v,i)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
+  santaiEl.innerHTML=akses.length?akses.slice(0,3).map((v,i)=>renderCardAkses(v,i)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
 }
 fetchMasterStudents();
 
 let latestVisitors=[];
 function initVisitor(){
-  let me = getIdentity();
-  if(me && me.role==='guest'){localStorage.removeItem(LOCAL_IDENTITY);me=null;}if(me && me.nama){
+  const me=getIdentity();
+  if(me&&me.nama&&me.role!=='guest'){
     document.getElementById('visitorOverlay').classList.add('hidden');
     document.getElementById('visitorFab').style.display='flex';
-    // Bump visit count for returning visitor (1hr cooldown) - skip dosen
-    const _isDosen = me.nama.toLowerCase()==='dedik romahadi';
-    if(!_isDosen && (!masterFetchDone || masterStudents.some(s=>s.nim===me.nim && s.nama.toUpperCase()===me.nama.toUpperCase()))){
-      const _key = sanitizeKey(`mhs_${me.nim}`);
-      get(ref(db,`${DB_PATH}/${_key}`)).then(snap=>{
-        if(snap.exists()){
-          const ex=snap.val();
-          const lastV=new Date(ex.lastVisit||ex.timestamp).getTime();
-          if(Date.now()-lastV>=VISIT_COOLDOWN){
-            set(ref(db,`${DB_PATH}/${_key}`),{...ex,visitCount:(ex.visitCount||1)+1,lastVisit:new Date().toISOString()});
-          }
-        }
-      }).catch(()=>{});
+    const _isDosen=me.nama.toLowerCase()==='dedik romahadi';
+    if(!_isDosen&&(!masterFetchDone||masterStudents.some(s=>s.nim===me.nim&&s.nama.toUpperCase()===me.nama.toUpperCase()))){
+      const _key=sanitizeKey(`mhs_${me.nim}`);
+      get(ref(db,`${DB_PATH}/${_key}`)).then(snap=>{if(snap.exists()){const ex=snap.val();const lastV=new Date(ex.lastVisit||ex.timestamp).getTime();if(Date.now()-lastV>=VISIT_COOLDOWN){set(ref(db,`${DB_PATH}/${_key}`),{...ex,visitCount:(ex.visitCount||1)+1,lastVisit:new Date().toISOString()});}}}).catch(()=>{});
     }
   }
-
-  // Listen schedule
-  onValue(ref(db, SCHEDULE_PATH), (snap) => {
-    currentSchedule = snap.val();
-    updateScheduleDisplay();
-    // Re-render visitors with schedule context
-    onValue(ref(db, DB_PATH), (vsnap) => {
-      const data = vsnap.val();
-      latestVisitors=data ? Object.values(data) : [];renderVisitors(latestVisitors);
-    }, {onlyOnce: true});
-  });
-
-  // Listen visitors
-  onValue(ref(db, DB_PATH), (snapshot) => {
-    const data = snapshot.val();
-    latestVisitors=data ? Object.values(data) : [];renderVisitors(latestVisitors);
-  });
+  onValue(ref(db,SCHEDULE_PATH),(snap)=>{currentSchedule=snap.val();updateScheduleDisplay();if(currentSchedule&&currentSchedule.end)startCountdown(currentSchedule.end);onValue(ref(db,DB_PATH),(vsnap)=>{const data=vsnap.val();latestVisitors=data?Object.values(data):[];renderVisitors(latestVisitors);},{onlyOnce:true});});
+  onValue(ref(db,DB_PATH),(snapshot)=>{const data=snapshot.val();latestVisitors=data?Object.values(data):[];renderVisitors(latestVisitors);});
 }
 
-let countdownInterval=null;
 function updateScheduleDisplay(){
-  const info = document.getElementById('scheduleInfo');
-  const range = document.getElementById('scheduleRange');
-  if(!info || !range) return;
-  if(currentSchedule && currentSchedule.start && currentSchedule.end){
+  const info=document.getElementById('scheduleInfo'),range=document.getElementById('scheduleRange');
+  if(!info||!range)return;
+  if(currentSchedule&&currentSchedule.start&&currentSchedule.end){
     info.style.display='flex';
-    const s = new Date(currentSchedule.start), e = new Date(currentSchedule.end);
-    const dur = currentSchedule.duration || Math.round((e-s)/(24*60*60*1000));
-    const fmt = (d) => d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-    range.textContent = fmt(s) + '  \u2014  ' + fmt(e) + '  ('+dur+' hari)';
-    // Start countdown
-    startCountdown(e);
-  } else {
-    info.style.display='none';
-  }
-}
-function startCountdown(deadline){
-  const dlEl=document.getElementById('cdDeadline');
-  if(dlEl){
-    const fmt=deadline.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
-    const tm=deadline.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-    dlEl.innerHTML='Deadline: <strong>'+fmt+', Pukul '+tm+' WIB</strong>';
-  }
-  if(countdownInterval) clearInterval(countdownInterval);
-  function tick(){
-    const now=new Date().getTime(), diff=deadline.getTime()-now;
-    if(diff<=0){
-      document.getElementById('cd-d').textContent='00';
-      document.getElementById('cd-h').textContent='00';
-      document.getElementById('cd-m').textContent='00';
-      document.getElementById('cd-s').textContent='00';
-      if(dlEl) dlEl.innerHTML='<span class="cd-expired">\u26a0\ufe0f DEADLINE SUDAH LEWAT!</span>';
-      clearInterval(countdownInterval);
-      return;
-    }
-    const d=Math.floor(diff/(1000*60*60*24));
-    const h=Math.floor((diff%(1000*60*60*24))/(1000*60*60));
-    const m=Math.floor((diff%(1000*60*60))/(1000*60));
-    const s=Math.floor((diff%(1000*60))/1000);
-    document.getElementById('cd-d').textContent=String(d).padStart(2,'0');
-    document.getElementById('cd-h').textContent=String(h).padStart(2,'0');
-    document.getElementById('cd-m').textContent=String(m).padStart(2,'0');
-    document.getElementById('cd-s').textContent=String(s).padStart(2,'0');
-  }
-  tick();
-  countdownInterval=setInterval(tick,1000);
+    const s=new Date(currentSchedule.start),e=new Date(currentSchedule.end);
+    const dur=currentSchedule.duration||Math.round((e-s)/(24*60*60*1000));
+    const fmt=(d)=>d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    range.textContent=fmt(s)+' — '+fmt(e)+' ('+dur+' hari)';
+  }else{info.style.display='none';}
 }
 
 function isLate(timestamp){
-  if(!currentSchedule || !currentSchedule.start || !currentSchedule.end) return false;
-  const t = new Date(timestamp).getTime();
-  const s = new Date(currentSchedule.start).getTime();
-  const e = new Date(currentSchedule.end).getTime();
-  return t < s || t > e;
+  if(!currentSchedule||!currentSchedule.start||!currentSchedule.end)return false;
+  const t=new Date(timestamp).getTime(),s=new Date(currentSchedule.start).getTime(),e=new Date(currentSchedule.end).getTime();
+  return t<s||t>e;
 }
 
 function submitVisitor(){
-  const nama=document.getElementById('vNama').value.trim(), nim=document.getElementById('vNim').value.trim(), err=document.getElementById('vError');
-  // Schedule checks
-  if(!currentSchedule || !currentSchedule.start || !currentSchedule.end){err.textContent='\u26a0 Jadwal belum disetel. Silakan atur jadwal terlebih dahulu.';err.style.display='block';return;}
-  const now=new Date().getTime(), schedStart=new Date(currentSchedule.start).getTime();
-  if(now<schedStart){const sd=new Date(currentSchedule.start);err.textContent='\u26a0 Akses belum dibuka. Jadwal dimulai pada '+sd.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+' '+sd.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+'.';err.style.display='block';return;}
+  const nama=document.getElementById('vNama').value.trim(),nim=document.getElementById('vNim').value.trim(),err=document.getElementById('vError');
+  if(!currentSchedule||!currentSchedule.start||!currentSchedule.end){err.textContent='⚠ Jadwal belum disetel. Silakan atur jadwal terlebih dahulu.';err.style.display='block';return;}
+  const now=new Date().getTime(),schedStart=new Date(currentSchedule.start).getTime();
+  if(now<schedStart){const sd=new Date(currentSchedule.start);err.textContent='⚠ Akses belum dibuka. Jadwal dimulai pada '+sd.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+' '+sd.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+'.';err.style.display='block';return;}
   const isDosen=nama.toLowerCase()==='dedik romahadi';
   if(!nama){err.textContent='⚠ Nama wajib diisi.';err.style.display='block';return;}
-  if(!isValidName(nama)){err.textContent='⚠ Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi';err.style.display='block';return;}
+  if(!isValidName(nama)){err.textContent='⚠ Format nama salah. Setiap kata harus diawali huruf kapital.';err.style.display='block';return;}
   if(!isDosen&&!nim){err.textContent='⚠ NIM wajib diisi.';err.style.display='block';return;}
-  if(!isDosen&&!isValidNim(nim)){err.textContent='⚠ NIM harus berupa angka tanpa spasi. Contoh: 41522010001';err.style.display='block';return;}
+  if(!isDosen&&!isValidNim(nim)){err.textContent='⚠ NIM harus berupa angka tanpa spasi.';err.style.display='block';return;}
   if(!isDosen&&!masterFetchDone){err.textContent='⚠ Data mahasiswa sedang dimuat, silakan coba lagi.';err.style.display='block';return;}
   err.style.display='none';
-  if(isDosen){
-    saveIdentity({nama, nim:'DOSEN', role:'dosen', timestamp:new Date().toISOString()});
-  } else if(masterFetchDone && !masterStudents.some(s=>s.nim===nim && s.nama.toUpperCase()===nama.toUpperCase())){
+  if(isDosen){saveIdentity({nama,nim:'DOSEN',role:'dosen',timestamp:new Date().toISOString()});}
+  else if(masterFetchDone&&!masterStudents.some(s=>s.nim===nim&&s.nama.toUpperCase()===nama.toUpperCase())){
     const nimExists=masterStudents.some(s=>s.nim===nim);
-    if(nimExists){err.textContent='⚠ Nama tidak sesuai dengan NIM yang terdaftar. Pastikan nama sesuai daftar Nilai Akhir.';err.style.display='block';return;}
-    err.textContent='⚠ NIM tidak terdaftar. Hanya mahasiswa yang terdaftar yang dapat mengakses halaman ini.';err.style.display='block';return;
-  } else {
-    const key = sanitizeKey(`mhs_${nim}`);
-    const nowISO = new Date().toISOString();
-    get(ref(db, `${DB_PATH}/${key}`)).then(snap => {
-      let v;
-      if(snap.exists()){
-        const ex = snap.val();
-        const lastV = new Date(ex.lastVisit || ex.timestamp).getTime();
-        const canBump = (Date.now() - lastV) >= VISIT_COOLDOWN;
-        v = {...ex, visitCount: canBump ? (ex.visitCount||1)+1 : (ex.visitCount||1), lastVisit: canBump ? nowISO : (ex.lastVisit||ex.timestamp)};
-      } else {
-        v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO};
-      }
-      saveIdentity(v);
-      return set(ref(db, `${DB_PATH}/${key}`), v);
-    }).catch(()=>{
-      const v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO};
-      saveIdentity(v);
-      set(ref(db, `${DB_PATH}/${key}`), v);
-    });
+    if(nimExists){err.textContent='⚠ Nama tidak sesuai dengan NIM yang terdaftar.';err.style.display='block';return;}
+    err.textContent='⚠ NIM tidak terdaftar.';err.style.display='block';return;
+  }else{
+    const key=sanitizeKey(`mhs_${nim}`),nowISO=new Date().toISOString();
+    get(ref(db,`${DB_PATH}/${key}`)).then(snap=>{let v;if(snap.exists()){const ex=snap.val();const lastV=new Date(ex.lastVisit||ex.timestamp).getTime();const canBump=(Date.now()-lastV)>=VISIT_COOLDOWN;v={...ex,visitCount:canBump?(ex.visitCount||1)+1:(ex.visitCount||1),lastVisit:canBump?nowISO:(ex.lastVisit||ex.timestamp)};}else{v={nama,nim,role:'student',timestamp:nowISO,visitCount:1,lastVisit:nowISO};}saveIdentity(v);return set(ref(db,`${DB_PATH}/${key}`),v);}).catch(()=>{const v={nama,nim,role:'student',timestamp:nowISO,visitCount:1,lastVisit:nowISO};saveIdentity(v);set(ref(db,`${DB_PATH}/${key}`),v);});
   }
   document.getElementById('visitorOverlay').classList.add('hidden');
   document.getElementById('visitorFab').style.display='flex';
 }
 
 function renderVisitors(visitors){
-  const visitMap={};
-  for(const v of visitors){if(v.role==='dosen'||v.role==='guest')continue;if(!visitMap[v.nim])visitMap[v.nim]=v;}
+  const visitMap={};for(const v of visitors){if(v.role==='dosen'||v.role==='guest')continue;if(!visitMap[v.nim])visitMap[v.nim]=v;}
   const visited=Object.values(visitMap);
   const lateCount=visited.filter(v=>isLate(v.timestamp)).length;
   const schedExpired=currentSchedule&&currentSchedule.end&&new Date().getTime()>new Date(currentSchedule.end).getTime();
-
   document.getElementById('fabCount').textContent=visited.length;
-  updateLeaderboard(visitors, schedExpired);
+  updateLeaderboard(visitors,schedExpired);
   document.getElementById('vpBadge').textContent=visited.length+' orang';
-  const statLateEl=document.getElementById('statLate');
-  if(statLateEl) statLateEl.textContent=lateCount;
 
-  const listEl=document.getElementById('vpList'), tableEl=document.getElementById('visitorTableBody');
-
-  // Panel: only actual visitors
+  const listEl=document.getElementById('vpList'),tableEl=document.getElementById('visitorTableBody');
   if(!visited.length){listEl.innerHTML='<div class="vp-empty">Belum ada data.</div>';}
-  else{
-    listEl.innerHTML=visited.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(v=>{
-      const ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-      const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-      const late=isLate(v.timestamp);
-      const lBadge=late?'<span style="color:#fb7185;font-size:.65rem;font-weight:600;margin-left:4px;">\u23f0 Terlambat</span>':'';
-      return `<div class="vp-item" style="${late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':''}"><div class="vp-avatar student" style="${late?'background:rgba(251,113,133,.12);color:#fb7185;':''}">${ini}</div><div class="vp-info"><div class="vp-name">${escH(v.nama)}${lBadge}</div><div class="vp-nim">${escH(v.nim)}</div></div><div class="vp-time"><div>${ts}</div><div style="font-size:.6rem;color:#94a3b8;text-align:right;">${v.visitCount||1}x kunjungan</div></div></div>`;
-    }).join('');
-  }
+  else{listEl.innerHTML=visited.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(v=>{const ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();const dt=new Date(v.timestamp),ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});const late=isLate(v.timestamp);const lBadge=late?'<span style="color:#fb7185;font-size:.65rem;font-weight:600;margin-left:4px;">⏰ Terlambat</span>':'';return'<div class="vp-item" style="'+(late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':'')+'"><div class="vp-avatar student" style="'+(late?'background:rgba(251,113,133,.12);color:#fb7185;':'')+'">'+ini+'</div><div class="vp-info"><div class="vp-name">'+escH(v.nama)+lBadge+'</div><div class="vp-nim">'+escH(v.nim)+'</div></div><div class="vp-time"><div>'+ts+'</div><div style="font-size:.6rem;color:#94a3b8;">'+(v.visitCount||1)+'x</div></div></div>';}).join('');}
 
-  // Table: ALL students from masterStudents
-  if(!masterStudents.length){
-    tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">\u23f3 Memuat data mahasiswa...</div>';
-    return;
-  }
+  if(!masterStudents.length){tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:#64748b;">⏳ Memuat...</div>';return;}
   function toTitle(s){return s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());}
   tableEl.innerHTML=masterStudents.map((s,i)=>{
-    const v=visitMap[s.nim];
-    const nama=toTitle(s.nama);
-    const ini=nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const hasVisit=!!v;
-    const late=hasVisit&&isLate(v.timestamp);
-    const bolos=!hasVisit&&schedExpired;
-    const vc=hasVisit?(v.visitCount||1):0;
+    const v=visitMap[s.nim],nama=toTitle(s.nama),ini=nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const hasVisit=!!v,late=hasVisit&&isLate(v.timestamp),bolos=!hasVisit&&schedExpired;
+    const vc=hasVisit?(v.visitCount||1):0,pts=hasVisit?(v.points||0):0;
     const ts=hasVisit?(()=>{const dt=new Date(v.timestamp);return dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});})():'—';
     let statusCol,rowBg='',nameColor='color:#e2e8f0;',ac='background:rgba(255,255,255,.08);color:#e2e8f0;';
-    if(bolos){
-      statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25);">\u274c Bolos</span>';
-      rowBg='background:rgba(239,68,68,.03);';nameColor='color:#ef4444;';ac='background:rgba(239,68,68,.12);color:#ef4444;';
-    }else if(!hasVisit){
-      statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(100,116,139,.1);color:#94a3b8;border:1px solid rgba(100,116,139,.2);">\u23f3 Belum</span>';
-      rowBg='';nameColor='color:#64748b;';ac='background:rgba(100,116,139,.1);color:#94a3b8;';
-    }else if(late){
-      statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(251,113,133,.12);color:#fb7185;border:1px solid rgba(251,113,133,.25);">\u23f0 Terlambat</span>';
-      rowBg='background:rgba(251,113,133,.04);';nameColor='color:#fb7185;';ac='background:rgba(251,113,133,.12);color:#fb7185;';
-    }else{
-      statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.25);">\u2705 Tepat Waktu</span>';
-    }
+    if(bolos){statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25);">❌ Bolos</span>';rowBg='background:rgba(239,68,68,.03);';nameColor='color:#ef4444;';ac='background:rgba(239,68,68,.12);color:#ef4444;';}
+    else if(!hasVisit){statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(100,116,139,.1);color:#94a3b8;border:1px solid rgba(100,116,139,.2);">⏳ Belum</span>';nameColor='color:#64748b;';ac='background:rgba(100,116,139,.1);color:#94a3b8;';}
+    else if(late){statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(251,113,133,.12);color:#fb7185;border:1px solid rgba(251,113,133,.25);">⏰ Terlambat</span>';rowBg='background:rgba(251,113,133,.04);';nameColor='color:#fb7185;';ac='background:rgba(251,113,133,.12);color:#fb7185;';}
+    else{statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.25);">✅ Tepat Waktu</span>';}
     const vcDisplay=vc?vc+'x':'<span style="color:#475569;">—</span>';
+    const ptsDisplay=pts?'<span style="color:#10b981;font-weight:800;">'+pts+'</span>':'<span style="color:#475569;">0</span>';
     const tsColor=bolos?'#ef4444':late?'#fb7185':hasVisit?'#64748b':'#475569';
-    return `<div style="display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;${rowBg}" onmouseenter="this.style.background='rgba(255,255,255,.03)'" onmouseleave="this.style.background='${rowBg||'transparent'}'"><div style="width:44px;flex-shrink:0;font-size:.82rem;color:${tsColor};font-weight:600;">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;${ac}">${ini}</div><div><div style="font-weight:600;font-size:.88rem;${nameColor}">${escH(nama)}</div></div></div><div style="flex:1;font-size:.8rem;color:${hasVisit?'#94a3b8':'#475569'};font-family:monospace;">${s.nim}</div><div style="flex:1;text-align:center;">${statusCol}</div><div style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:#94a3b8;">${vcDisplay}</div><div style="flex:1;text-align:right;font-size:.78rem;color:${tsColor};">${ts}</div></div>`;
+    const absenClass=(!hasVisit||bolos)?' absen':'';
+    return '<div class="vt-row'+absenClass+'" style="'+rowBg+'"><div class="vt-num" style="color:'+tsColor+';">'+(i+1)+'</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div class="vt-avatar" style="'+ac+'">'+ini+'</div><div><div class="vt-name" style="'+nameColor+'">'+escH(nama)+'</div></div></div><div style="flex:1;font-size:.8rem;color:'+(hasVisit?'#94a3b8':'#475569')+';font-family:monospace;">'+s.nim+'</div><div style="flex:1;text-align:center;"><span class="vt-status">'+statusCol+'</span></div><div style="flex:0.5;text-align:center;font-size:.85rem;">'+ptsDisplay+'</div><div class="vt-visit" style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:#94a3b8;">'+vcDisplay+'</div><div style="flex:1;text-align:right;font-size:.78rem;color:'+tsColor+';">'+ts+'</div></div>';
   }).join('');
 }
 
@@ -1451,14 +790,11 @@ function togglePanel(){panelOpen=!panelOpen;document.getElementById('visitorPane
 document.addEventListener('click',function(e){const p=document.getElementById('visitorPanel'),f=document.getElementById('visitorFab');if(panelOpen&&!p.contains(e.target)&&!f.contains(e.target)){panelOpen=false;p.classList.remove('open');}});
 function escH(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 
-
-// Schedule
-
 document.getElementById('vNim').addEventListener('keydown',function(e){if(e.key==='Enter')submitVisitor();});
 document.getElementById('vNama').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('vNim').focus();});
 
-
 window.submitVisitor=submitVisitor;window.togglePanel=togglePanel;
+window.getIdentity=getIdentity;window.sanitizeKey=sanitizeKey;window.isScheduleExpired=isScheduleExpired;
 
 setInterval(()=>{renderVisitors(latestVisitors);},30000);
 initVisitor();
