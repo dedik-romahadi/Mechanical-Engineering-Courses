@@ -166,6 +166,14 @@ footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:
 .vp-empty{text-align:center;padding:32px 16px;color:#64748b;font-size:.85rem}
 @media(max-width:480px){.visitor-panel{width:calc(100vw - 32px);right:16px;bottom:88px}.visitor-fab{bottom:18px;right:18px}}
 
+/* ── CHECKLIST ── */
+.chk-item{display:flex;align-items:flex-start;gap:.75rem;padding:.55rem .25rem;cursor:pointer;border-radius:8px;transition:background .2s;line-height:1.5;font-size:.95rem}
+.chk-item:hover{background:rgba(0,224,158,.05)}
+.chk-item input[type=checkbox]{appearance:none;-webkit-appearance:none;width:20px;height:20px;border:2px solid rgba(0,224,158,.4);border-radius:6px;flex-shrink:0;margin-top:2px;cursor:pointer;transition:all .2s;position:relative;background:transparent}
+.chk-item input[type=checkbox]:checked{background:linear-gradient(135deg,var(--c1),var(--c2));border-color:transparent}
+.chk-item input[type=checkbox]:checked::after{content:'✓';position:absolute;top:50%;left:50%;transform:translate(-50%,-52%);color:#fff;font-size:.75rem;font-weight:800}
+.chk-item input[type=checkbox]:checked+span{color:var(--t3);text-decoration:line-through;text-decoration-color:rgba(0,224,158,.4)}
+
 </style>
 
 </head>
@@ -491,15 +499,21 @@ plt.<span class="fn">show</span>()</pre>
     <p style="color:var(--t2);font-size:.9rem;line-height:1.7;">File yang tidak bisa diakses (link terproteksi), nama file yang tidak sesuai, atau file yang tidak bisa dijalankan <strong style="color:var(--c4);">tidak akan dinilai</strong>. Selalu cek ulang link Anda menggunakan browser mode incognito/private sebelum submit.</p>
   </div>
 
-  <div class="info ok">
+  <div class="info ok" id="submitChecklist">
     <h4>✅ Checklist Sebelum Submit</h4>
-    <p>☐ Semua 10 soal terjawab dengan langkah lengkap</p>
-    <p>☐ Setiap soal memiliki: soal, proses perhitungan (Markdown), kode Python, dan penjelasan</p>
-    <p>☐ Soal 10 memiliki grafik plot Python</p>
-    <p>☐ File <code>.ipynb</code> sudah di-export ke <code>.html</code></p>
-    <p>☐ Link Google Drive bisa diakses tanpa login (cek di mode incognito)</p>
-    <p>☐ Link sudah di-paste di Fast Learning Pertemuan 2</p>
-    <p>☐ Semua anggota memahami setiap jawaban</p>
+    <label class="chk-item"><input type="checkbox" onchange="updateChecklist()"><span>Semua 10 soal terjawab dengan langkah lengkap</span></label>
+    <label class="chk-item"><input type="checkbox" onchange="updateChecklist()"><span>Setiap soal memiliki: soal, proses perhitungan (Markdown), kode Python, dan penjelasan</span></label>
+    <label class="chk-item"><input type="checkbox" onchange="updateChecklist()"><span>Soal 10 memiliki grafik plot Python</span></label>
+    <label class="chk-item"><input type="checkbox" onchange="updateChecklist()"><span>File <code>.ipynb</code> sudah di-export ke <code>.html</code></span></label>
+    <label class="chk-item"><input type="checkbox" onchange="updateChecklist()"><span>Link Google Drive bisa diakses tanpa login (cek di mode incognito)</span></label>
+    <label class="chk-item"><input type="checkbox" onchange="updateChecklist()"><span>Link sudah di-paste di Fast Learning Pertemuan 2</span></label>
+    <label class="chk-item"><input type="checkbox" onchange="updateChecklist()"><span>Semua anggota memahami setiap jawaban</span></label>
+    <div id="chkProgress" style="margin-top:1rem;display:none;">
+      <div style="height:6px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;">
+        <div id="chkBar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--c1),var(--c2));border-radius:999px;transition:width .4s ease;"></div>
+      </div>
+      <p id="chkLabel" style="font-size:.78rem;color:var(--t3);margin-top:.5rem;text-align:right;"></p>
+    </div>
   </div>
 </section>
 
@@ -530,7 +544,7 @@ plt.<span class="fn">show</span>()</pre>
           <div id="rajinList" style="font-size:.8rem;color:#e2e8f0;min-height:60px;">⏳ Memuat...</div>
         </div>
         <div style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15);border-radius:14px;padding:14px 16px;">
-          <div style="font-size:.72rem;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🔥 Akses Terbanyak</div>
+          <div style="font-size:.72rem;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🔥 Top Akses</div>
           <div id="santaiList" style="font-size:.8rem;color:#e2e8f0;min-height:60px;">⏳ Memuat...</div>
         </div>
       </div>
@@ -551,6 +565,16 @@ plt.<span class="fn">show</span>()</pre>
 <!-- ═══════ SCRIPTS ═══════ -->
 <script>
 document.addEventListener('DOMContentLoaded',()=>{renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})});
+
+function updateChecklist(){
+  const boxes=document.querySelectorAll('#submitChecklist input[type=checkbox]');
+  const total=boxes.length, checked=[...boxes].filter(b=>b.checked).length;
+  const pct=Math.round(checked/total*100);
+  const bar=document.getElementById('chkBar'), label=document.getElementById('chkLabel'), prog=document.getElementById('chkProgress');
+  prog.style.display='block'; bar.style.width=pct+'%';
+  label.textContent=checked===total?'🎉 Semua checklist selesai! Siap submit.':checked+' / '+total+' selesai ('+pct+'%)';
+  label.style.color=checked===total?'var(--c1)':'var(--t3)';
+}
 
 
 // Fade-in
