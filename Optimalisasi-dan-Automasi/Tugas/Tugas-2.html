@@ -595,11 +595,11 @@ const barIO=new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isInte
 document.querySelectorAll('.anim-bar').forEach(el=>barIO.observe(el));
 
 // ═══ COUNTDOWN TIMER ═══
-function startCountdown(){
-  if(!currentSchedule||!currentSchedule.end)return;
-  const deadline=new Date(currentSchedule.end);
+function startCountdown(deadlineISO){
+  if(!deadlineISO)return;
+  const deadline=new Date(deadlineISO);
   const dlEl=document.getElementById("cdDeadline");
-  if(dlEl)dlEl.innerHTML="Deadline: <strong style=\"color:#f59e0b\">"+deadline.toLocaleDateString("id-ID",{weekday:"long",day:"numeric",month:"long",year:"numeric"})+" "+deadline.toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"})+"</strong>";
+  if(dlEl)dlEl.innerHTML='Deadline: <strong style="color:#f59e0b">'+deadline.toLocaleDateString("id-ID",{weekday:"long",day:"numeric",month:"long",year:"numeric"})+" "+deadline.toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"})+"</strong>";
   function tick(){
     const now=new Date(),diff=deadline-now;
     if(diff<=0){document.getElementById("cdDays").textContent="00";document.getElementById("cdHours").textContent="00";document.getElementById("cdMins").textContent="00";document.getElementById("cdSecs").textContent="00";const exp=document.getElementById("cdExpired");if(exp)exp.style.display="block";return;}
@@ -687,7 +687,7 @@ function initVisitor(){
       get(ref(db,`${DB_PATH}/${_key}`)).then(snap=>{if(snap.exists()){const ex=snap.val();const lastV=new Date(ex.lastVisit||ex.timestamp).getTime();if(Date.now()-lastV>=VISIT_COOLDOWN){set(ref(db,`${DB_PATH}/${_key}`),{...ex,visitCount:(ex.visitCount||1)+1,lastVisit:new Date().toISOString()});}}}).catch(()=>{});
     }
   }
-  onValue(ref(db,SCHEDULE_PATH),(snap)=>{currentSchedule=snap.val();updateScheduleDisplay();startCountdown();onValue(ref(db,DB_PATH),(vsnap)=>{const data=vsnap.val();latestVisitors=data?Object.values(data):[];renderVisitors(latestVisitors);},{onlyOnce:true});});
+  onValue(ref(db,SCHEDULE_PATH),(snap)=>{currentSchedule=snap.val();updateScheduleDisplay();if(currentSchedule&&currentSchedule.end)startCountdown(currentSchedule.end);onValue(ref(db,DB_PATH),(vsnap)=>{const data=vsnap.val();latestVisitors=data?Object.values(data):[];renderVisitors(latestVisitors);},{onlyOnce:true});});
   onValue(ref(db,DB_PATH),(snapshot)=>{const data=snapshot.val();latestVisitors=data?Object.values(data):[];renderVisitors(latestVisitors);});
 }
 
