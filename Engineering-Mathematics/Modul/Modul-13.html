@@ -191,7 +191,6 @@ footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:
 .vp-empty{text-align:center;padding:32px 16px;color:#64748b;font-size:.85rem}
 @media(max-width:480px){.visitor-panel{width:calc(100vw - 32px);right:16px;bottom:88px}.visitor-fab{bottom:18px;right:18px}}
 
-
 </style>
 </head>
 <body>
@@ -977,12 +976,7 @@ function initVisitor(){
           var expired=isScheduleExpired();if(!expired&&Date.now()-lastV>=VISIT_COOLDOWN){
             set(ref(db,`${DB_PATH}/${_key}`),{...ex,visitCount:(ex.visitCount||1)+1,lastVisit:new Date().toISOString()});
           }
-        
-          // Load already-scored questions to prevent re-scoring
-          if(ex.scoredQuestions){
-            ex.scoredQuestions.split(',').forEach(function(q){ _answeredQuestions.add(q); });
-          }
-}
+        }
       }).catch(()=>{});
     }
   }
@@ -1055,11 +1049,7 @@ function submitVisitor(){
       const lastV = new Date(ex.lastVisit || ex.timestamp).getTime();
       var canBump=!expired&&(Date.now()-lastV)>=VISIT_COOLDOWN;
       v = {...ex, visitCount: canBump ? (ex.visitCount||1)+1 : (ex.visitCount||1), lastVisit: canBump ? nowISO : (ex.lastVisit||ex.timestamp)};
-            // Sync scored questions to local state (new device login)
-        if(ex.scoredQuestions){
-          ex.scoredQuestions.split(',').forEach(function(q){ _answeredQuestions.add(q); });
-        }
-} else {
+    } else {
       v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1,lastVisit:nowISO,points:0};
     }
     saveIdentity(v);
@@ -1071,6 +1061,8 @@ function submitVisitor(){
   });
   document.getElementById('visitorOverlay').classList.add('hidden');
   document.getElementById('visitorFab').style.display='flex';
+  // Load scored questions setelah login (cegah re-scoring di perangkat/browser baru)
+  setTimeout(function(){ if(typeof window._loadScoredQuestions==='function') window._loadScoredQuestions(); }, 500);
 }
 
 function renderVisitors(visitors){
@@ -1170,9 +1162,34 @@ setInterval(()=>{renderVisitors(latestVisitors);},30000);
 // ═══ POINT SYSTEM (harus di dalam module untuk akses Firebase) ═══
 const _answeredQuestions = new Set();
 
+window._loadScoredQuestions = function() {
+  const me = getIdentity();
+  if (!me || !me.nim || me.role === 'dosen') return;
+  const _key = sanitizeKey('mhs_' + me.nim);
+  get(ref(db, DB_PATH + '/' + _key)).then(function(snap) {
+    if (snap.exists() && snap.val().scoredQuestions) {
+      snap.val().scoredQuestions.split(',').forEach(function(q) {
+        _answeredQuestions.add(q);
+        // Restore MCQ UI (soal yang sudah dijawab → disable radio + tampilkan feedback)
+        const rg = document.getElementById('rg-' + q);
+        if (rg && rg.dataset.locked !== 'true') {
+          rg.dataset.locked = 'true';
+          rg.querySelectorAll('.radio-option').forEach(function(o){ o.style.pointerEvents='none'; o.style.opacity='.6'; });
+          const fb = document.getElementById('fb-' + q);
+          if (fb) { fb.className='feedback correct'; fb.style.display='block'; fb.innerHTML='✅ Sudah dijawab sebelumnya.'; }
+          const ab = document.querySelector('[data-answer-for="'+q+'"]');
+          if (ab) ab.classList.remove('locked');
+        }
+        // Restore poll UI (poll yang sudah dijawab → tandai done)
+        const pw = document.getElementById('p' + q.replace('poll',''));
+        if (pw && !pw.dataset.done) { pw.dataset.done = '1'; }
+      });
+    }
+  }).catch(function(){});
+};
+
 window._awardPoint = function(qId) {
   if (_answeredQuestions.has(qId)) return;
-  if (isScheduleExpired()) return;
   const me = getIdentity();
   if (!me || !me.nim || me.role === 'dosen') return;
   _answeredQuestions.add(qId);
@@ -1194,19 +1211,8 @@ window._awardPoint = function(qId) {
   }).catch(function(e){ console.error('awardPoint error:', e); });
 };
 
-// Load scored questions saat init (cegah duplikat poin setelah reload)
-(function() {
-  const me = getIdentity();
-  if (!me || !me.nim || me.role === 'dosen') return;
-  const _key = sanitizeKey('mhs_' + me.nim);
-  get(ref(db, DB_PATH + '/' + _key)).then(function(snap) {
-    if (snap.exists() && snap.val().scoredQuestions) {
-      snap.val().scoredQuestions.split(',').forEach(function(q) {
-        _answeredQuestions.add(q);
-      });
-    }
-  }).catch(function(){});
-})();
+// Load on init (untuk returning visitor yang sudah punya identity)
+window._loadScoredQuestions();
 
 initVisitor();
 </script>
