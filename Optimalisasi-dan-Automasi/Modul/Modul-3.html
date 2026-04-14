@@ -377,138 +377,125 @@
   </div>
 </div>
 
-<!-- ═══════════ SECTION 01: TEORI DASAR ═══════════ -->
+<!-- ═══════════ SECTION 01: PIPELINE ═══════════ -->
 <hr class="divider">
 <div class="section" id="teori">
   <div class="section-label reveal">Bagian 01</div>
   <h2 class="section-title reveal">Pipeline Akuisisi<br>Data Time Series</h2>
-  <p class="section-desc reveal">5 tahap dari fenomena fisik menjadi data digital yang siap dianalisis: sensing → conditioning → ADC → transmission → storage.</p>
+  <p class="section-desc reveal">5 tahap dari fenomena fisik menjadi data digital yang siap dianalisis dan divisualisasikan.</p>
 
   <div class="cards" style="margin-bottom:40px;">
     <div class="card reveal">
-      <div class="card-icon">📈</div>
-      <h3>Definisi Time Series</h3>
-      <p>Deretan data yang dicatat pada interval waktu tetap (Δt). Setiap titik data merepresentasikan nilai pengukuran pada momen tertentu.</p>
-      <span class="formula">x(t₁), x(t₂), ..., x(tₙ)</span>
+      <div class="card-icon">🔩</div>
+      <h3>1. Fenomena Fisik</h3>
+      <p>Getaran, panas, tekanan — sinyal nyata dari mesin yang perlu diukur. Mesin yang beroperasi menghasilkan berbagai sinyal fisik secara kontinu.</p>
+      <span class="formula">Getaran, Suhu, Tekanan, Arus</span>
     </div>
     <div class="card reveal">
-      <div class="card-icon">🔧</div>
-      <h3>Sampling Rate (fₛ)</h3>
-      <p>Berapa kali data diambil per detik. Semakin tinggi sampling rate, semakin detail sinyal yang tertangkap. Satuan: Hz.</p>
-      <span class="formula">fₛ = 1/Δt (Hz)</span>
+      <div class="card-icon">📡</div>
+      <h3>2. Sensor (Transduser)</h3>
+      <p>Accelerometer, termokopel, pressure transducer — mengubah besaran fisik menjadi sinyal listrik analog yang proporsional.</p>
+      <span class="formula">Fisik → Tegangan (V)</span>
+    </div>
+    <div class="card reveal">
+      <div class="card-icon">⚡</div>
+      <h3>3. ADC & DAQ</h3>
+      <p>Analog-to-Digital Converter mengubah sinyal analog kontinu menjadi data diskret digital. DAQ card mengelola sampling rate dan resolusi bit.</p>
+      <span class="formula">Analog → ADC → Digital</span>
+    </div>
+    <div class="card reveal">
+      <div class="card-icon">💾</div>
+      <h3>4. Penyimpanan Data</h3>
+      <p>Data digital disimpan dalam format CSV, Excel, HDF5, atau database. Pilihan format memengaruhi kecepatan baca dan ukuran file.</p>
+      <span class="formula">.csv | .xlsx | .h5 | DB</span>
     </div>
     <div class="card reveal">
       <div class="card-icon">📊</div>
-      <h3>RMS (Root Mean Square)</h3>
-      <p>Ukuran "energi rata-rata" sinyal. Nilai RMS yang meningkat drastis menandakan potensi kerusakan komponen mesin.</p>
-      <span class="formula">RMS = √(Σxᵢ²/N)</span>
+      <h3>5. Visualisasi & Analisis</h3>
+      <p>Data divisualisasikan menggunakan line plot, subplot, rolling statistics, dan histogram untuk mengidentifikasi tren, anomali, dan pola.</p>
+      <span class="formula">plt.plot() → insight</span>
     </div>
     <div class="card reveal">
-      <div class="card-icon">⚠️</div>
-      <h3>Crest Factor (CF)</h3>
-      <p>Rasio nilai puncak terhadap RMS. CF > 3 biasanya mengindikasikan adanya impulsive events (kerusakan bearing, gear, dll).</p>
-      <span class="formula">CF = Peak / RMS</span>
-    </div>
-    <div class="card reveal">
-      <div class="card-icon">🏭</div>
-      <h3>Predictive Maintenance</h3>
-      <p>Strategi perawatan mesin berbasis data sensor. Dengan menganalisis tren time series, kita bisa mendeteksi kerusakan sebelum terjadi.</p>
+      <div class="card-icon">🔄</div>
+      <h3>Feedback Loop</h3>
+      <p>Hasil analisis digunakan untuk mengambil tindakan (maintenance, adjustment). Ini melengkapi siklus condition monitoring.</p>
       <span class="formula">Detect → Diagnose → Act</span>
-    </div>
-    <div class="card reveal">
-      <div class="card-icon">🎯</div>
-      <h3>Dekomposisi Sinyal</h3>
-      <p>Setiap time series bisa dipecah menjadi 4 komponen: Tren, Musiman, Siklik, dan Noise (gangguan acak).</p>
-      <span class="formula">rolling_mean(w=50)</span>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>⚠️ Penting:</strong> Kenaikan RMS sebesar >4× dari baseline normal merupakan indikator kuat kerusakan bearing. Inilah dasar <strong style="color:var(--cyan);">predictive maintenance</strong> berbasis data time series — mendeteksi masalah SEBELUM mesin berhenti total (unplanned downtime).
+    <strong>⚠️ Penting:</strong> Kualitas analisis sangat bergantung pada kualitas akuisisi. Sensor yang salah kalibrasi, sampling rate terlalu rendah, atau format penyimpanan yang tidak tepat akan menghasilkan <strong style="color:var(--cyan);">garbage in, garbage out</strong> — analisis yang sempurna pun tidak bisa memperbaiki data yang buruk.
   </div>
 </div>
 
-<!-- ═══════════ SECTION 02: KARAKTERISTIK ═══════════ -->
+<!-- ═══════════ SECTION 02: FORMAT & VISUALISASI ═══════════ -->
 <hr class="divider">
 <div class="section" id="karakteristik">
   <div class="section-label reveal">Bagian 02</div>
   <h2 class="section-title reveal">Format Penyimpanan<br>&amp; Teknik Visualisasi</h2>
-  <p class="section-desc reveal">Pilih format penyimpanan yang tepat (CSV, HDF5, Parquet) dan kuasai 4 teknik visualisasi utama untuk membaca data mesin.</p>
+  <p class="section-desc reveal">Pilih format penyimpanan yang tepat dan kuasai 4 teknik visualisasi utama untuk membaca data mesin.</p>
 
   <div class="two-col">
     <div>
-      <!-- Dekomposisi formula -->
       <div class="reveal" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:20px;">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);letter-spacing:3px;margin-bottom:16px;">📝 DEKOMPOSISI TIME SERIES</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:14px;line-height:2.4;">
-          <div style="color:#cdd6e8">Total Sinyal: <span style="color:var(--cyan)">y(t) = T(t) + S(t) + C(t) + ε(t)</span></div>
-          <div style="color:#cdd6e8">Tren:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="color:var(--green)">T(t) — perubahan jangka panjang</span></div>
-          <div style="color:#cdd6e8">Musiman:&nbsp;&nbsp;&nbsp; <span style="color:var(--amber)">S(t) — pola berulang periodik</span></div>
-          <div style="color:#cdd6e8">Siklik:&nbsp;&nbsp;&nbsp;&nbsp; <span style="color:var(--violet)">C(t) — fluktuasi non-periodik</span></div>
-          <div style="color:#cdd6e8">Noise:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="color:var(--pink)">ε(t) — gangguan acak (random)</span></div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);letter-spacing:3px;margin-bottom:16px;">💾 FORMAT PENYIMPANAN</div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div class="vib-type-item" style="background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.15);">
+            <div style="width:8px;height:40px;background:var(--cyan);border-radius:4px;flex-shrink:0;"></div>
+            <div><div style="font-weight:600;color:var(--cyan);margin-bottom:3px;">📄 CSV (Comma-Separated Values)</div><div style="font-size:13px;color:var(--muted)">Format paling universal dan ringan. Bisa dibuka di mana saja. Kode: <code>pd.read_csv()</code> / <code>df.to_csv()</code></div></div>
+          </div>
+          <div class="vib-type-item" style="background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.15);">
+            <div style="width:8px;height:40px;background:#f97316;border-radius:4px;flex-shrink:0;"></div>
+            <div><div style="font-weight:600;color:#f97316;margin-bottom:3px;">📊 Excel (.xlsx)</div><div style="font-size:13px;color:var(--muted)">Multi-sheet, formula, formatting. Cocok sharing. Kode: <code>pd.read_excel()</code> / <code>df.to_excel()</code></div></div>
+          </div>
+          <div class="vib-type-item" style="background:rgba(139,92,246,.05);border:1px solid rgba(139,92,246,.15);">
+            <div style="width:8px;height:40px;background:#8b5cf6;border-radius:4px;flex-shrink:0;"></div>
+            <div><div style="font-weight:600;color:#8b5cf6;margin-bottom:3px;">🐼 Pandas DataFrame</div><div style="font-size:13px;color:var(--muted)">Struktur utama Python. Indexing, filtering, plotting langsung. Kode: <code>pd.DataFrame(data)</code></div></div>
+          </div>
         </div>
       </div>
-      <!-- Jenis komponen -->
       <div class="reveal" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);letter-spacing:3px;margin-bottom:20px;">📂 KOMPONEN TIME SERIES</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);letter-spacing:3px;margin-bottom:20px;">📈 4 TEKNIK VISUALISASI</div>
         <div style="display:flex;flex-direction:column;gap:14px;">
-          <div class="vib-type-item" style="background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.15);">
+          <div class="vib-type-item" style="background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.15);">
+            <div style="width:8px;height:40px;background:#10b981;border-radius:4px;flex-shrink:0;"></div>
+            <div><div style="font-weight:600;color:#10b981;margin-bottom:3px;">📈 Line Plot</div><div style="font-size:13px;color:var(--muted)">Visualisasi paling dasar: x(t) vs waktu. Melihat tren, pola periodik, dan anomali secara langsung.</div></div>
+          </div>
+          <div class="vib-type-item" style="background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.15);">
             <div style="width:8px;height:40px;background:var(--cyan);border-radius:4px;flex-shrink:0;"></div>
-            <div>
-              <div style="font-weight:600;color:var(--cyan);margin-bottom:3px;">📈 Tren (Trend)</div>
-              <div style="font-size:13px;color:var(--muted)">Perubahan lambat jangka panjang. Contoh: getaran bearing semakin besar seiring waktu karena aus.</div>
-            </div>
+            <div><div style="font-weight:600;color:var(--cyan);margin-bottom:3px;">📊 Multi-Subplot</div><div style="font-size:13px;color:var(--muted)">Beberapa sensor ditampilkan tersinkronisasi (sharex). Melihat korelasi antar variabel secara sekilas.</div></div>
           </div>
-          <div class="vib-type-item" style="background:rgba(255,179,0,.05);border:1px solid rgba(255,179,0,.15);">
-            <div style="width:8px;height:40px;background:var(--amber);border-radius:4px;flex-shrink:0;"></div>
-            <div>
-              <div style="font-weight:600;color:var(--amber);margin-bottom:3px;">🔄 Musiman (Seasonal)</div>
-              <div style="font-size:13px;color:var(--muted)">Pola berulang dalam periode tetap. Contoh: getaran naik saat shift pagi (beban produksi tinggi).</div>
-            </div>
+          <div class="vib-type-item" style="background:rgba(244,63,94,.05);border:1px solid rgba(244,63,94,.15);">
+            <div style="width:8px;height:40px;background:#f43f5e;border-radius:4px;flex-shrink:0;"></div>
+            <div><div style="font-weight:600;color:#f43f5e;margin-bottom:3px;">📉 Rolling Statistics</div><div style="font-size:13px;color:var(--muted)">Rolling mean & std dengan window tertentu. Menghaluskan noise dan mendeteksi perubahan tren/anomali.</div></div>
           </div>
-          <div class="vib-type-item" style="background:rgba(124,77,255,.05);border:1px solid rgba(124,77,255,.15);">
-            <div style="width:8px;height:40px;background:var(--violet);border-radius:4px;flex-shrink:0;"></div>
-            <div>
-              <div style="font-weight:600;color:var(--violet);margin-bottom:3px;">🌊 Siklik (Cyclical)</div>
-              <div style="font-size:13px;color:var(--muted)">Pola naik-turun tanpa periode tetap. Contoh: getaran berubah karena suhu lingkungan pabrik berfluktuasi.</div>
-            </div>
-          </div>
-          <div class="vib-type-item" style="background:rgba(255,64,129,.05);border:1px solid rgba(255,64,129,.15);">
-            <div style="width:8px;height:40px;background:var(--pink);border-radius:4px;flex-shrink:0;"></div>
-            <div>
-              <div style="font-weight:600;color:var(--pink);margin-bottom:3px;">🎲 Noise (Gangguan)</div>
-              <div style="font-size:13px;color:var(--muted)">Fluktuasi acak tak beraturan. Contoh: getaran kecil dari lantai pabrik, interferensi sensor.</div>
-            </div>
+          <div class="vib-type-item" style="background:rgba(167,139,250,.05);border:1px solid rgba(167,139,250,.15);">
+            <div style="width:8px;height:40px;background:#a78bfa;border-radius:4px;flex-shrink:0;"></div>
+            <div><div style="font-weight:600;color:#a78bfa;margin-bottom:3px;">📊 Histogram Distribusi</div><div style="font-size:13px;color:var(--muted)">Distribusi nilai sinyal. Normal: simetris (Gaussian). Faulty: skewed atau heavy-tailed (kurtosis tinggi).</div></div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Parameter panel -->
     <div class="param-panel reveal" style="position:sticky;top:80px;">
-      <h3>📊 Statistik Sinyal Penting</h3>
+      <h3>📊 Perbandingan Format</h3>
       <div class="param-row">
-        <div class="param-name">RMS (Root Mean Square) &nbsp;<span class="param-unit" style="color:var(--green)">mm/s</span></div>
-        <div class="param-bar"><div class="param-fill anim-bar" style="width:0%;background:linear-gradient(90deg,#00e676,#00bcd4)" data-width="75%"></div></div>
-        <p>Energi rata-rata sinyal. Indikator utama kesehatan mesin — jika naik drastis, bearing mungkin aus.</p>
+        <div class="param-name">CSV — Kecepatan baca &nbsp;<span class="param-unit" style="color:var(--cyan)">★★★★★</span></div>
+        <div class="param-bar"><div class="param-fill anim-bar" style="width:0%;background:linear-gradient(90deg,#f59e0b,#f97316)" data-width="95%"></div></div>
+        <p>Paling cepat dan ringan. Tidak ada overhead formatting.</p>
       </div>
       <div class="param-row">
-        <div class="param-name">Sampling Rate (fₛ) &nbsp;<span class="param-unit" style="color:var(--amber)">Hz</span></div>
-        <div class="param-bar"><div class="param-fill anim-bar" style="width:0%;background:linear-gradient(90deg,#ffb300,#ff7043)" data-width="50%"></div></div>
-        <p>Berapa kali sensor merekam per detik. Menentukan detail sinyal yang tertangkap.</p>
+        <div class="param-name">Excel — Fitur &nbsp;<span class="param-unit" style="color:#f97316">★★★★</span></div>
+        <div class="param-bar"><div class="param-fill anim-bar" style="width:0%;background:linear-gradient(90deg,#f97316,#fb923c)" data-width="80%"></div></div>
+        <p>Multi-sheet, formula, chart. Cocok untuk sharing dan presentasi.</p>
       </div>
       <div class="param-row">
-        <div class="param-name">Peak Value &nbsp;<span class="param-unit" style="color:var(--pink)">mm/s</span></div>
-        <div class="param-bar"><div class="param-fill anim-bar" style="width:0%;background:linear-gradient(90deg,#ff4081,#e040fb)" data-width="65%"></div></div>
-        <p>Nilai tertinggi absolut. Lonjakan tiba-tiba bisa menandakan impact event (benturan).</p>
-      </div>
-      <div class="param-row">
-        <div class="param-name">Crest Factor (CF) &nbsp;<span class="param-unit" style="color:var(--cyan)">rasio</span></div>
-        <div class="param-bar"><div class="param-fill anim-bar" style="width:0%;background:linear-gradient(90deg,#f59e0b,#fbbf24)" data-width="45%"></div></div>
-        <p>Peak/RMS. CF > 3 → impulsive signal → cek bearing/gear segera!</p>
+        <div class="param-name">DataFrame — Fleksibilitas &nbsp;<span class="param-unit" style="color:#8b5cf6">★★★★★</span></div>
+        <div class="param-bar"><div class="param-fill anim-bar" style="width:0%;background:linear-gradient(90deg,#8b5cf6,#a78bfa)" data-width="98%"></div></div>
+        <p>Paling fleksibel: indexing, slicing, groupby, merge, plot langsung.</p>
       </div>
       <div class="param-note">
-        ⚠️ Jika RMS naik >4× dari baseline → <strong style="color:var(--pink)">POTENSI KERUSAKAN</strong> → lakukan inspeksi segera. Ini prinsip dasar <em>condition-based maintenance</em>.
+        💡 <strong>Rekomendasi workflow:</strong> Akuisisi → simpan ke CSV → load ke DataFrame → analisis & visualisasi → export hasil ke Excel untuk sharing.
       </div>
     </div>
   </div>
@@ -519,56 +506,26 @@
 <div class="section" id="analogi">
   <div class="section-label reveal">Bagian 03</div>
   <h2 class="section-title reveal">Analogi Pipeline Data<br>dalam Kehidupan Sehari-hari</h2>
-  <p class="section-desc reveal">Memahami pipeline pengumpulan dan visualisasi data melalui analogi yang sudah familiar.</p>
+  <p class="section-desc reveal">Memahami pipeline pengumpulan dan visualisasi data melalui analogi yang familiar.</p>
 
-  <!-- Analogi 1: Detak Jantung -->
   <div class="reveal" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:20px;border-left:3px solid var(--cyan);">
-    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
-      <span style="font-size:2rem;">💓</span>
-      <div>
-        <div style="font-size:16px;font-weight:700;color:#fff;">EKG Jantung = Time Series Biologis</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:2px;">Periodic Signal + Anomaly Detection</div>
-      </div>
-    </div>
-    <p style="font-size:15px;color:var(--text);margin-bottom:14px;">EKG merekam aktivitas listrik jantung terhadap waktu — persis seperti sensor merekam getaran mesin. <strong style="color:var(--cyan);">Detak normal</strong> menghasilkan pola PQRST yang berulang (komponen <em>musiman</em>). Dokter mencari <strong style="color:var(--pink);">anomali</strong> (aritmia) dengan cara yang sama engineer mencari kerusakan: membandingkan pola saat ini dengan pola normal baseline.</p>
-    <p style="font-size:14px;color:var(--text);">Prinsipnya identik: <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan);background:rgba(0,229,255,.07);padding:2px 8px;border-radius:4px;">pola normal → deviasi → diagnosis → tindakan</code>. Di dunia mesin, ini disebut <em>condition-based maintenance</em>.</p>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;"><span style="font-size:2rem;">🏥</span><div><div style="font-size:16px;font-weight:700;color:#fff;">Dokter Memeriksa Pasien = Pipeline Akuisisi</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">Sensing → Processing → Recording → Diagnosis</div></div></div>
+    <p style="font-size:15px;color:var(--text);margin-bottom:14px;"><strong style="color:var(--cyan);">Stetoskop</strong> = sensor (menangkap sinyal fisik), <strong>telinga dokter</strong> = ADC (mengubah suara jadi informasi), <strong>catatan medis</strong> = penyimpanan (CSV/database), <strong>grafik EKG</strong> = visualisasi. Tanpa stetoskop yang baik, diagnosis bisa salah — sama seperti sensor yang tidak kalibrasi!</p>
   </div>
 
-  <!-- Analogi 2: Cuaca -->
-  <div class="reveal" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:20px;border-left:3px solid var(--amber);">
-    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
-      <span style="font-size:2rem;">🌤️</span>
-      <div>
-        <div style="font-size:16px;font-weight:700;color:#fff;">Data Suhu Harian = Tren + Musiman + Noise</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:2px;">Decomposition in Daily Life</div>
-      </div>
-    </div>
-    <p style="font-size:15px;color:var(--text);margin-bottom:14px;">Suhu udara sepanjang tahun memiliki <strong style="color:var(--amber);">komponen musiman</strong> (panas di musim kemarau, dingin di musim hujan), <strong style="color:var(--green);">tren</strong> (pemanasan global → suhu rata-rata naik perlahan per dekade), dan <strong style="color:var(--pink);">noise</strong> (fluktuasi harian yang tak terduga).</p>
-    <p style="font-size:14px;color:var(--text);">Persis seperti data getaran mesin: ada pola berulang (musiman dari siklus operasi), tren (keausan bearing naik perlahan), dan noise (getaran acak dari lingkungan).</p>
+  <div class="reveal" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:20px;border-left:3px solid #f97316;">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;"><span style="font-size:2rem;">📝</span><div><div style="font-size:16px;font-weight:700;color:#fff;">Cara Menyimpan Resep = Format Data</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">CSV vs Excel vs DataFrame</div></div></div>
+    <p style="font-size:15px;color:var(--text);"><strong style="color:#f97316;">CSV</strong> = resep ditulis di kertas (sederhana, bisa dibaca siapa saja). <strong style="color:var(--cyan);">Excel</strong> = buku masak mewah dengan tabel nutrisi (lengkap tapi berat). <strong style="color:var(--violet);">DataFrame</strong> = aplikasi resep digital yang bisa dicari, difilter, diedit langsung — paling fleksibel.</p>
   </div>
 
-  <!-- Analogi 3: Saham -->
   <div class="reveal" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:20px;border-left:3px solid var(--green);">
-    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
-      <span style="font-size:2rem;">📉</span>
-      <div>
-        <div style="font-size:16px;font-weight:700;color:#fff;">Grafik Saham = Tren + Siklik + Noise</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:2px;">Trend, Cyclical, & Random Components</div>
-      </div>
-    </div>
-    <p style="font-size:15px;color:var(--text);margin-bottom:14px;">Harga saham memiliki <strong style="color:var(--green);">tren jangka panjang</strong> (naik/turun selama bertahun-tahun), <strong style="color:var(--violet);">komponen siklik</strong> (ekspansi-resesi ekonomi tanpa periode tetap), dan <strong style="color:var(--pink);">noise</strong> (fluktuasi harian). Analis saham menggunakan <em>moving average</em> untuk memisahkan tren dari noise — teknik yang sama digunakan engineer untuk menganalisis data getaran!</p>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;"><span style="font-size:2rem;">📹</span><div><div style="font-size:16px;font-weight:700;color:#fff;">Dashcam Mobil = Line Plot Real-Time</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">Continuous Recording → Playback</div></div></div>
+    <p style="font-size:15px;color:var(--text);">Dashcam merekam video (data) secara kontinu saat berkendara. Jika terjadi kecelakaan, kita bisa <strong style="color:var(--green);">putar ulang</strong> rekaman dan lihat momen tepat kejadian. Ini sama persis dengan <strong>line plot time series</strong>: data sensor direkam, lalu divisualisasikan untuk mencari momen anomali (kapan getaran melonjak, kapan suhu naik tiba-tiba).</p>
   </div>
 
-  <!-- Analogi 4: Mesin Cuci -->
   <div class="reveal" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;border-left:3px solid var(--violet);">
-    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
-      <span style="font-size:2rem;">🫧</span>
-      <div>
-        <div style="font-size:16px;font-weight:700;color:#fff;">Suara Mesin Cuci = Normal vs Abnormal Vibration</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:2px;">Baseline Comparison & Fault Detection</div>
-      </div>
-    </div>
-    <p style="font-size:15px;color:var(--text);margin-bottom:14px;">Mesin cuci normal mengeluarkan suara berdenging halus dan konstan (<strong style="color:var(--cyan);">RMS rendah, stabil</strong>). Tapi saat beban pakaian tidak merata, mesin bergetar hebat dan berisik (<strong style="color:var(--pink);">RMS tinggi, Crest Factor tinggi</strong>). Anda secara intuitif sudah melakukan <em>vibration monitoring</em> — membandingkan suara saat ini dengan suara "normal" yang biasa didengar!</p>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;"><span style="font-size:2rem;">🔍</span><div><div style="font-size:16px;font-weight:700;color:#fff;">Filter Air Keruh = Rolling Mean</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">Smoothing Noise for Clearer Trend</div></div></div>
+    <p style="font-size:15px;color:var(--text);">Air sungai yang keruh (data noisy) sulit dilihat dasarnya. <strong style="color:var(--violet);">Filter air</strong> (rolling mean) menghaluskan kekeruhan sehingga dasar sungai (tren asli) terlihat jelas. Window besar = filter kuat (air jernih tapi lambat). Window kecil = filter ringan (cepat tapi masih agak keruh). Ini trade-off yang sama di rolling statistics!</p>
   </div>
 </div>
 
@@ -577,330 +534,165 @@
 <div class="section" id="simulasi">
   <div class="section-label reveal">Bagian 04</div>
   <h2 class="section-title reveal">Simulasi Interaktif</h2>
-  <p class="section-desc reveal">Ubah parameter secara real-time dan amati perilaku sinyal getaran mesin. Geser slider untuk menjelajahi efek noise pada sinyal normal vs faulty.</p>
+  <p class="section-desc reveal">Visualisasikan data sensor pompa sentrifugal secara real-time. Amati perbedaan sinyal normal vs faulty dan bagaimana noise mempengaruhi visualisasi.</p>
 
-  <!-- Interactive Chart -->
   <div class="anim-panel reveal">
-    <div class="anim-header">
-      <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">📊 Simulasi — Data Getaran Mesin Bearing (Normal vs Faulty)</span>
-    </div>
+    <div class="anim-header"><div class="anim-dot" style="background:var(--cyan)"></div><span class="anim-title">📊 Visualisasi — Sinyal Getaran Pompa (Line Plot + Rolling Mean)</span></div>
     <div class="anim-body">
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
         <button class="btn-anim" id="btn-n" onclick="setMode('normal',this)" style="background:rgba(245,158,11,.25);border-color:#f59e0b;">🟢 Normal</button>
         <button class="btn-anim" id="btn-f" onclick="setMode('faulty',this)">🔴 Faulty</button>
-        <button class="btn-anim" id="btn-b" onclick="setMode('both',this)">📊 Bandingkan</button>
+        <button class="btn-anim" id="btn-b" onclick="setMode('both',this)">📊 Overlay</button>
       </div>
-      <div class="ctrl-row" style="margin-top:0;margin-bottom:16px;">
-        <div class="ctrl-group">
-          <label>Noise Level — <span class="ctrl-val" id="noiseVal">0.30</span></label>
-          <input type="range" id="noiseSlider" min="0" max="1" step="0.05" value="0.3" oninput="updateChart()">
-        </div>
-      </div>
+      <div class="ctrl-row" style="margin-top:0;margin-bottom:16px;"><div class="ctrl-group"><label>Noise Level — <span class="ctrl-val" id="noiseVal">0.30</span></label><input type="range" id="noiseSlider" min="0" max="1" step="0.05" value="0.3" oninput="updateChart()"></div></div>
       <div style="height:320px;"><canvas id="vibrationChart"></canvas></div>
-      <!-- Penjelasan detail grafik -->
-      <div style="margin-top:20px;font-size:13px;color:var(--text);line-height:1.8;background:rgba(0,229,255,.03);border:1px solid rgba(0,229,255,.08);border-radius:10px;padding:16px 20px;">
-        <strong style="color:var(--cyan);">📖 Penjelasan Grafik:</strong> Grafik ini menampilkan sinyal getaran bearing mesin pompa dalam domain waktu (10 detik, sampling 20 Hz = 201 titik data). <strong>Sinyal Normal</strong> (hijau) memiliki amplitudo rendah (~0.5 mm/s) dengan sedikit tren naik. <strong>Sinyal Faulty</strong> (merah) menunjukkan amplitudo 3-4× lebih besar karena bearing aus — cacat permukaan bearing menghasilkan impact berulang. Geser slider noise untuk melihat bagaimana gangguan acak mempersulit deteksi visual — inilah mengapa kita butuh statistik (RMS, CF) untuk diagnosis otomatis.
+      <div style="margin-top:20px;font-size:13px;color:var(--text);line-height:1.8;background:rgba(245,158,11,.03);border:1px solid rgba(245,158,11,.08);border-radius:10px;padding:16px 20px;">
+        <strong style="color:var(--cyan);">📖 Penjelasan:</strong> Grafik ini mendemonstrasikan teknik visualisasi <strong>line plot</strong> dasar — sumbu X adalah waktu, sumbu Y adalah amplitudo getaran. <strong>Normal</strong> (hijau): amplitudo rendah dan stabil. <strong>Faulty</strong> (merah): amplitudo tinggi — bearing aus menyebabkan impact berulang. Geser noise untuk melihat mengapa kita butuh <strong>rolling mean</strong>: saat noise tinggi, tren sulit dilihat dari raw data.
       </div>
     </div>
   </div>
 
-  <!-- Canvas: Time Series Stream -->
   <div class="anim-panel reveal">
-    <div class="anim-header">
-      <div class="anim-dot" style="background:var(--green)"></div>
-      <span class="anim-title">📡 Live Stream — Sensor Getaran Real-Time</span>
-    </div>
+    <div class="anim-header"><div class="anim-dot" style="background:var(--green)"></div><span class="anim-title">📡 Live Stream — Multi-Sensor Dashboard</span></div>
     <div class="anim-body">
       <canvas id="cv_stream" class="sim-canvas" height="220"></canvas>
       <div class="ctrl-row">
-        <div class="ctrl-group">
-          <label>Amplitudo — <span class="ctrl-val" id="v_amp1">0.5</span> mm/s</label>
-          <input type="range" id="sl_amp1" min="0.1" max="2.0" step="0.1" value="0.5">
-        </div>
-        <div class="ctrl-group">
-          <label>Frekuensi — <span class="ctrl-val" id="v_freq1">8.0</span> Hz</label>
-          <input type="range" id="sl_freq1" min="1" max="20" step="0.5" value="8">
-        </div>
+        <div class="ctrl-group"><label>Amplitudo — <span class="ctrl-val" id="v_amp1">0.5</span> mm/s</label><input type="range" id="sl_amp1" min="0.1" max="2.0" step="0.1" value="0.5"></div>
+        <div class="ctrl-group"><label>Frekuensi — <span class="ctrl-val" id="v_freq1">8.0</span> Hz</label><input type="range" id="sl_freq1" min="1" max="20" step="0.5" value="8"></div>
         <button class="btn-anim" id="btn_stream" onclick="toggleStream()">⏸ PAUSE</button>
       </div>
-      <div style="margin-top:16px;font-size:13px;color:var(--text);line-height:1.8;background:rgba(0,230,118,.03);border:1px solid rgba(0,230,118,.08);border-radius:10px;padding:16px 20px;">
-        <strong style="color:var(--green);">📖 Penjelasan Animasi:</strong> Ini mensimulasikan data sensor getaran yang masuk secara real-time. Data mengalir dari kanan ke kiri seperti layar osiloskop. Ubah amplitudo untuk mensimulasikan bearing yang mulai aus (amplitudo naik), atau ubah frekuensi untuk melihat efek RPM mesin yang berbeda. Titik kuning menunjukkan nilai sensor terkini. Dalam industri nyata, data seperti ini masuk ke sistem SCADA/DCS untuk monitoring 24/7.
+      <div style="margin-top:16px;font-size:13px;color:var(--text);line-height:1.8;background:rgba(16,185,129,.03);border:1px solid rgba(16,185,129,.08);border-radius:10px;padding:16px 20px;">
+        <strong style="color:var(--green);">📖 Penjelasan:</strong> Dashboard monitoring real-time seperti layar SCADA di pabrik. Data mengalir dari kanan ke kiri menampilkan <strong>rolling window</strong> terakhir. Ubah amplitudo untuk simulasi degradasi bearing, atau frekuensi untuk RPM berbeda. Dalam industri, data ini disimpan ke <strong>CSV/database</strong> setiap detik untuk analisis historis.
       </div>
     </div>
   </div>
 </div>
 
-<!-- ═══════════ SECTION 05: QUIZ (5 SOAL NUMERIK) ═══════════ -->
+<!-- ═══════════ SECTION 05: QUIZ ═══════════ -->
 <hr class="divider">
 <div class="section" id="quiz">
   <div class="section-label reveal">Bagian 05</div>
   <h2 class="section-title reveal">Latihan Soal</h2>
-  <p class="section-desc reveal">Jawab 10 soal berikut — 5 pilihan ganda dan 5 soal numerik (hitung di Jupyter). Jawaban <strong style="color:#10b981;">benar pada percobaan pertama</strong> mendapatkan <strong style="color:#f59e0b;">+1 poin</strong> yang tercatat di leaderboard.</p>
+  <p class="section-desc reveal">Jawab 10 soal berikut — 5 pilihan ganda dan 5 soal numerik (hitung di Jupyter). Jawaban <strong style="color:#10b981;">benar pada percobaan pertama</strong> mendapatkan <strong style="color:#f59e0b;">+1 poin</strong>.</p>
 
-  <!-- ══ SOAL 1: Pilihan Ganda — Definisi Time Series ══ -->
-  <div class="exercise reveal">
-    <div class="exercise-header">
-      <div class="exercise-number">01</div>
-      <div class="exercise-title">Definisi Time Series Data</div>
+  <div class="exercise reveal"><div class="exercise-header"><div class="exercise-number">01</div><div class="exercise-title">Urutan Pipeline Akuisisi</div></div><div class="exercise-body">
+    <div class="exercise-question">Urutan yang benar dalam pipeline akuisisi data time series dari mesin adalah:</div>
+    <div class="radio-group" id="rg-mc1">
+      <div class="radio-option" data-value="A" onclick="selectOption('mc1','A')"><input type="radio" name="mc1"><div class="radio-circle"></div><span><strong>A.</strong> Visualisasi → Sensor → ADC → Penyimpanan → Analisis</span></div>
+      <div class="radio-option" data-value="B" onclick="selectOption('mc1','B')"><input type="radio" name="mc1"><div class="radio-circle"></div><span><strong>B.</strong> Fenomena Fisik → Sensor → ADC/DAQ → Penyimpanan → Visualisasi</span></div>
+      <div class="radio-option" data-value="C" onclick="selectOption('mc1','C')"><input type="radio" name="mc1"><div class="radio-circle"></div><span><strong>C.</strong> ADC → Sensor → Fenomena → Penyimpanan → Visualisasi</span></div>
+      <div class="radio-option" data-value="D" onclick="selectOption('mc1','D')"><input type="radio" name="mc1"><div class="radio-circle"></div><span><strong>D.</strong> Sensor → Fenomena Fisik → Visualisasi → ADC → Penyimpanan</span></div>
     </div>
-    <div class="exercise-body">
-      <div class="exercise-question">Manakah yang paling tepat menggambarkan <strong>time series data</strong> dalam konteks teknik mesin?</div>
-      <div class="radio-group" id="rg-mc1">
-        <div class="radio-option" data-value="A" onclick="selectOption('mc1','A')"><input type="radio" name="mc1"><div class="radio-circle"></div><span><strong>A.</strong> Kumpulan data acak tanpa urutan tertentu</span></div>
-        <div class="radio-option" data-value="B" onclick="selectOption('mc1','B')"><input type="radio" name="mc1"><div class="radio-circle"></div><span><strong>B.</strong> Data yang direkam secara berurutan pada interval waktu tetap</span></div>
-        <div class="radio-option" data-value="C" onclick="selectOption('mc1','C')"><input type="radio" name="mc1"><div class="radio-circle"></div><span><strong>C.</strong> Tabel data statis berisi spesifikasi komponen mesin</span></div>
-        <div class="radio-option" data-value="D" onclick="selectOption('mc1','D')"><input type="radio" name="mc1"><div class="radio-circle"></div><span><strong>D.</strong> Gambar teknik yang didigitalisasi</span></div>
-      </div>
-      <div class="exercise-actions">
-        <button class="btn-check" onclick="checkAnswer('mc1','B')">✅ Periksa Jawaban</button>
-        <button class="btn-hint" onclick="toggleHint('mc1')">💡 Petunjuk</button>
-        <button class="btn-answer locked" data-answer-for="mc1" onclick="toggleAnswer('mc1')">🔑 Kunci Jawaban</button>
-      </div>
-      <div class="feedback" id="fb-mc1"></div>
-      <div class="hint-box" id="hint-mc1">💡 Kata kunci: "berurutan" dan "waktu". Pikirkan data sensor getaran yang direkam setiap 0.05 detik.</div>
-      <div class="answer-box" id="ans-mc1">🔑 <strong>Jawaban: B.</strong> Time series data adalah deretan pengukuran yang dicatat pada interval waktu tetap (Δt). Contoh: getaran bearing diukur setiap 0.05 detik → menghasilkan urutan x(t₁), x(t₂), ..., x(tₙ).</div>
-    </div>
-  </div>
+    <div class="exercise-actions"><button class="btn-check" onclick="checkAnswer('mc1','B')">✅ Periksa</button><button class="btn-hint" onclick="toggleHint('mc1')">💡 Petunjuk</button><button class="btn-answer locked" data-answer-for="mc1" onclick="toggleAnswer('mc1')">🔑 Jawaban</button></div>
+    <div class="feedback" id="fb-mc1"></div>
+    <div class="hint-box" id="hint-mc1">💡 Mulai dari sumber: mesin menghasilkan fenomena fisik → ditangkap sensor → dikonversi ADC → disimpan → divisualisasi.</div>
+    <div class="answer-box" id="ans-mc1">🔑 <strong>B.</strong> Pipeline: Fenomena Fisik (getaran/panas) → Sensor (ubah ke listrik) → ADC/DAQ (analog→digital) → Penyimpanan (CSV/DB) → Visualisasi (plot).</div>
+  </div></div>
 
-  <!-- ══ SOAL 2: Pilihan Ganda — Komponen Tren ══ -->
-  <div class="exercise reveal">
-    <div class="exercise-header">
-      <div class="exercise-number">02</div>
-      <div class="exercise-title">Komponen Tren pada Data Getaran</div>
+  <div class="exercise reveal"><div class="exercise-header"><div class="exercise-number">02</div><div class="exercise-title">Format CSV</div></div><div class="exercise-body">
+    <div class="exercise-question">Apa keuntungan utama format <strong>CSV</strong> dibanding Excel untuk menyimpan data time series sensor?</div>
+    <div class="radio-group" id="rg-mc2">
+      <div class="radio-option" data-value="A" onclick="selectOption('mc2','A')"><input type="radio" name="mc2"><div class="radio-circle"></div><span><strong>A.</strong> CSV mendukung formula dan chart bawaan</span></div>
+      <div class="radio-option" data-value="B" onclick="selectOption('mc2','B')"><input type="radio" name="mc2"><div class="radio-circle"></div><span><strong>B.</strong> CSV lebih ringan, cepat dibaca, dan universal (text-based)</span></div>
+      <div class="radio-option" data-value="C" onclick="selectOption('mc2','C')"><input type="radio" name="mc2"><div class="radio-circle"></div><span><strong>C.</strong> CSV bisa menyimpan gambar dan grafik</span></div>
+      <div class="radio-option" data-value="D" onclick="selectOption('mc2','D')"><input type="radio" name="mc2"><div class="radio-circle"></div><span><strong>D.</strong> CSV memiliki fitur multi-sheet</span></div>
     </div>
-    <div class="exercise-body">
-      <div class="exercise-question">Getaran bearing mesin pompa menunjukkan amplitudo yang <strong>perlahan meningkat</strong> selama 6 bulan terakhir. Komponen time series apa yang paling menjelaskan fenomena ini?</div>
-      <div class="radio-group" id="rg-mc2">
-        <div class="radio-option" data-value="A" onclick="selectOption('mc2','A')"><input type="radio" name="mc2"><div class="radio-circle"></div><span><strong>A.</strong> Musiman (Seasonal)</span></div>
-        <div class="radio-option" data-value="B" onclick="selectOption('mc2','B')"><input type="radio" name="mc2"><div class="radio-circle"></div><span><strong>B.</strong> Noise (Gangguan acak)</span></div>
-        <div class="radio-option" data-value="C" onclick="selectOption('mc2','C')"><input type="radio" name="mc2"><div class="radio-circle"></div><span><strong>C.</strong> Tren (Trend)</span></div>
-        <div class="radio-option" data-value="D" onclick="selectOption('mc2','D')"><input type="radio" name="mc2"><div class="radio-circle"></div><span><strong>D.</strong> Siklik (Cyclical)</span></div>
-      </div>
-      <div class="exercise-actions">
-        <button class="btn-check" onclick="checkAnswer('mc2','C')">✅ Periksa Jawaban</button>
-        <button class="btn-hint" onclick="toggleHint('mc2')">💡 Petunjuk</button>
-        <button class="btn-answer locked" data-answer-for="mc2" onclick="toggleAnswer('mc2')">🔑 Kunci Jawaban</button>
-      </div>
-      <div class="feedback" id="fb-mc2"></div>
-      <div class="hint-box" id="hint-mc2">💡 Perubahan yang terjadi secara "perlahan" dan "jangka panjang" — bukan berulang secara periodik, bukan acak.</div>
-      <div class="answer-box" id="ans-mc2">🔑 <strong>Jawaban: C.</strong> Tren menggambarkan perubahan lambat jangka panjang. Bearing yang aus secara bertahap menyebabkan amplitudo getaran naik perlahan — ini adalah komponen tren T(t) pada dekomposisi y(t) = T + S + C + ε.</div>
-    </div>
-  </div>
+    <div class="exercise-actions"><button class="btn-check" onclick="checkAnswer('mc2','B')">✅ Periksa</button><button class="btn-hint" onclick="toggleHint('mc2')">💡 Petunjuk</button><button class="btn-answer locked" data-answer-for="mc2" onclick="toggleAnswer('mc2')">🔑 Jawaban</button></div>
+    <div class="feedback" id="fb-mc2"></div>
+    <div class="hint-box" id="hint-mc2">💡 CSV = text file sederhana (comma-separated). Tidak ada formatting, formula, atau overhead. Bisa dibuka dengan notepad sekalipun.</div>
+    <div class="answer-box" id="ans-mc2">🔑 <strong>B.</strong> CSV adalah plain text — ringan, sangat cepat dibaca oleh Python/Pandas, dan bisa dibuka di semua platform. Formula dan multi-sheet adalah fitur Excel, bukan CSV.</div>
+  </div></div>
 
-  <!-- ══ SOAL 3: Pilihan Ganda — RMS ══ -->
-  <div class="exercise reveal">
-    <div class="exercise-header">
-      <div class="exercise-number">03</div>
-      <div class="exercise-title">Interpretasi Nilai RMS</div>
+  <div class="exercise reveal"><div class="exercise-header"><div class="exercise-number">03</div><div class="exercise-title">Fungsi Rolling Mean</div></div><div class="exercise-body">
+    <div class="exercise-question">Apa tujuan utama menerapkan <strong>rolling mean</strong> (moving average) pada data time series getaran?</div>
+    <div class="radio-group" id="rg-mc3">
+      <div class="radio-option" data-value="A" onclick="selectOption('mc3','A')"><input type="radio" name="mc3"><div class="radio-circle"></div><span><strong>A.</strong> Memperbesar amplitudo sinyal agar lebih mudah dilihat</span></div>
+      <div class="radio-option" data-value="B" onclick="selectOption('mc3','B')"><input type="radio" name="mc3"><div class="radio-circle"></div><span><strong>B.</strong> Menghaluskan noise sehingga tren dan perubahan jangka panjang terlihat</span></div>
+      <div class="radio-option" data-value="C" onclick="selectOption('mc3','C')"><input type="radio" name="mc3"><div class="radio-circle"></div><span><strong>C.</strong> Mengubah data dari time domain ke frequency domain</span></div>
+      <div class="radio-option" data-value="D" onclick="selectOption('mc3','D')"><input type="radio" name="mc3"><div class="radio-circle"></div><span><strong>D.</strong> Menghapus semua data outlier secara otomatis</span></div>
     </div>
-    <div class="exercise-body">
-      <div class="exercise-question">Mesin A memiliki RMS getaran <strong>0.5 mm/s</strong> dan Mesin B memiliki RMS <strong>2.1 mm/s</strong>. Apa interpretasi yang paling tepat?</div>
-      <div class="radio-group" id="rg-mc3">
-        <div class="radio-option" data-value="A" onclick="selectOption('mc3','A')"><input type="radio" name="mc3"><div class="radio-circle"></div><span><strong>A.</strong> Mesin A berputar lebih cepat daripada Mesin B</span></div>
-        <div class="radio-option" data-value="B" onclick="selectOption('mc3','B')"><input type="radio" name="mc3"><div class="radio-circle"></div><span><strong>B.</strong> Mesin B memiliki energi getaran rata-rata ~4× lebih besar — berpotensi rusak</span></div>
-        <div class="radio-option" data-value="C" onclick="selectOption('mc3','C')"><input type="radio" name="mc3"><div class="radio-circle"></div><span><strong>C.</strong> Kedua mesin dalam kondisi normal karena RMS di bawah 10</span></div>
-        <div class="radio-option" data-value="D" onclick="selectOption('mc3','D')"><input type="radio" name="mc3"><div class="radio-circle"></div><span><strong>D.</strong> Perbedaan RMS tidak bermakna tanpa data frekuensi</span></div>
-      </div>
-      <div class="exercise-actions">
-        <button class="btn-check" onclick="checkAnswer('mc3','B')">✅ Periksa Jawaban</button>
-        <button class="btn-hint" onclick="toggleHint('mc3')">💡 Petunjuk</button>
-        <button class="btn-answer locked" data-answer-for="mc3" onclick="toggleAnswer('mc3')">🔑 Kunci Jawaban</button>
-      </div>
-      <div class="feedback" id="fb-mc3"></div>
-      <div class="hint-box" id="hint-mc3">💡 RMS mengukur "energi rata-rata" sinyal. Rasio 2.1/0.5 = 4.2×. Pada modul ini disebutkan: kenaikan RMS >4× dari baseline → indikator kerusakan.</div>
-      <div class="answer-box" id="ans-mc3">🔑 <strong>Jawaban: B.</strong> RMS = √(mean(x²)), sehingga merupakan ukuran energi getaran rata-rata. Rasio 2.1/0.5 = 4.2×, melebihi ambang batas 4× yang merupakan indikator kuat kerusakan bearing. Mesin B perlu inspeksi segera.</div>
-    </div>
-  </div>
+    <div class="exercise-actions"><button class="btn-check" onclick="checkAnswer('mc3','B')">✅ Periksa</button><button class="btn-hint" onclick="toggleHint('mc3')">💡 Petunjuk</button><button class="btn-answer locked" data-answer-for="mc3" onclick="toggleAnswer('mc3')">🔑 Jawaban</button></div>
+    <div class="feedback" id="fb-mc3"></div>
+    <div class="hint-box" id="hint-mc3">💡 Ingat analogi: rolling mean = filter air keruh. Tujuannya melihat dasar sungai (tren) yang tertutupi kekeruhan (noise).</div>
+    <div class="answer-box" id="ans-mc3">🔑 <strong>B.</strong> Rolling mean merata-ratakan data dalam window tertentu, menghaluskan fluktuasi acak (noise) sehingga perubahan tren dan anomali jangka panjang menjadi lebih jelas terlihat.</div>
+  </div></div>
 
-  <!-- ══ SOAL 4: Pilihan Ganda — Crest Factor ══ -->
-  <div class="exercise reveal">
-    <div class="exercise-header">
-      <div class="exercise-number">04</div>
-      <div class="exercise-title">Crest Factor dan Deteksi Kerusakan</div>
+  <div class="exercise reveal"><div class="exercise-header"><div class="exercise-number">04</div><div class="exercise-title">Multi-Subplot</div></div><div class="exercise-body">
+    <div class="exercise-question">Mengapa teknik <strong>multi-subplot</strong> (sharex=True) sangat penting untuk visualisasi data multivariate?</div>
+    <div class="radio-group" id="rg-mc4">
+      <div class="radio-option" data-value="A" onclick="selectOption('mc4','A')"><input type="radio" name="mc4"><div class="radio-circle"></div><span><strong>A.</strong> Menghemat ruang layar saja</span></div>
+      <div class="radio-option" data-value="B" onclick="selectOption('mc4','B')"><input type="radio" name="mc4"><div class="radio-circle"></div><span><strong>B.</strong> Memungkinkan melihat korelasi temporal antar sensor secara sekilas</span></div>
+      <div class="radio-option" data-value="C" onclick="selectOption('mc4','C')"><input type="radio" name="mc4"><div class="radio-circle"></div><span><strong>C.</strong> Wajib dilakukan sebelum FFT</span></div>
+      <div class="radio-option" data-value="D" onclick="selectOption('mc4','D')"><input type="radio" name="mc4"><div class="radio-circle"></div><span><strong>D.</strong> Menggabungkan semua sensor menjadi 1 sinyal</span></div>
     </div>
-    <div class="exercise-body">
-      <div class="exercise-question">Sinyal getaran sinusoidal murni memiliki Crest Factor (CF) = √2 ≈ 1.41. Jika CF terukur <strong>naik menjadi 5.2</strong>, apa yang paling mungkin terjadi?</div>
-      <div class="radio-group" id="rg-mc4">
-        <div class="radio-option" data-value="A" onclick="selectOption('mc4','A')"><input type="radio" name="mc4"><div class="radio-circle"></div><span><strong>A.</strong> Mesin beroperasi dalam kondisi normal dengan beban rendah</span></div>
-        <div class="radio-option" data-value="B" onclick="selectOption('mc4','B')"><input type="radio" name="mc4"><div class="radio-circle"></div><span><strong>B.</strong> Ada impulsive events (impact) seperti cacat bearing atau gear</span></div>
-        <div class="radio-option" data-value="C" onclick="selectOption('mc4','C')"><input type="radio" name="mc4"><div class="radio-circle"></div><span><strong>C.</strong> Sensor mengalami interferensi elektromagnetik</span></div>
-        <div class="radio-option" data-value="D" onclick="selectOption('mc4','D')"><input type="radio" name="mc4"><div class="radio-circle"></div><span><strong>D.</strong> Sampling rate sensor terlalu rendah</span></div>
-      </div>
-      <div class="exercise-actions">
-        <button class="btn-check" onclick="checkAnswer('mc4','B')">✅ Periksa Jawaban</button>
-        <button class="btn-hint" onclick="toggleHint('mc4')">💡 Petunjuk</button>
-        <button class="btn-answer locked" data-answer-for="mc4" onclick="toggleAnswer('mc4')">🔑 Kunci Jawaban</button>
-      </div>
-      <div class="feedback" id="fb-mc4"></div>
-      <div class="hint-box" id="hint-mc4">💡 CF = Peak/RMS. CF tinggi berarti ada lonjakan tajam (peak besar) relatif terhadap energi rata-rata. Pada materi disebutkan: CF > 3 → indikasi impulsive events.</div>
-      <div class="answer-box" id="ans-mc4">🔑 <strong>Jawaban: B.</strong> CF = 5.2 >> 3 menandakan sinyal memiliki peak tajam yang jauh lebih besar dari RMS — tipikal impulsive signal. Pada bearing rusak, setiap kali elemen gelinding melewati cacat permukaan, terjadi impact singkat yang menghasilkan peak tinggi namun RMS relatif rendah.</div>
-    </div>
-  </div>
+    <div class="exercise-actions"><button class="btn-check" onclick="checkAnswer('mc4','B')">✅ Periksa</button><button class="btn-hint" onclick="toggleHint('mc4')">💡 Petunjuk</button><button class="btn-answer locked" data-answer-for="mc4" onclick="toggleAnswer('mc4')">🔑 Jawaban</button></div>
+    <div class="feedback" id="fb-mc4"></div>
+    <div class="hint-box" id="hint-mc4">💡 sharex=True berarti semua subplot berbagi sumbu X (waktu) yang sama. Ini memungkinkan kita melihat apa yang terjadi pada SEMUA sensor di momen yang sama.</div>
+    <div class="answer-box" id="ans-mc4">🔑 <strong>B.</strong> Dengan sumbu waktu yang tersinkronisasi, kita bisa langsung melihat: saat getaran naik pada detik ke-30, apakah suhu juga naik? Apakah arus berubah? Korelasi temporal ini kunci diagnosis.</div>
+  </div></div>
 
-  <!-- ══ SOAL 5: Pilihan Ganda — Predictive Maintenance ══ -->
-  <div class="exercise reveal">
-    <div class="exercise-header">
-      <div class="exercise-number">05</div>
-      <div class="exercise-title">Prinsip Predictive Maintenance</div>
+  <div class="exercise reveal"><div class="exercise-header"><div class="exercise-number">05</div><div class="exercise-title">Histogram Distribusi</div></div><div class="exercise-body">
+    <div class="exercise-question">Histogram data getaran bearing faulty biasanya menunjukkan distribusi yang:</div>
+    <div class="radio-group" id="rg-mc5">
+      <div class="radio-option" data-value="A" onclick="selectOption('mc5','A')"><input type="radio" name="mc5"><div class="radio-circle"></div><span><strong>A.</strong> Simetris sempurna (Gaussian) dengan std sangat kecil</span></div>
+      <div class="radio-option" data-value="B" onclick="selectOption('mc5','B')"><input type="radio" name="mc5"><div class="radio-circle"></div><span><strong>B.</strong> Lebih lebar (std besar) dan heavy-tailed (kurtosis tinggi) karena impuls</span></div>
+      <div class="radio-option" data-value="C" onclick="selectOption('mc5','C')"><input type="radio" name="mc5"><div class="radio-circle"></div><span><strong>C.</strong> Uniform (rata) tanpa puncak</span></div>
+      <div class="radio-option" data-value="D" onclick="selectOption('mc5','D')"><input type="radio" name="mc5"><div class="radio-circle"></div><span><strong>D.</strong> Identik dengan distribusi sinyal normal</span></div>
     </div>
-    <div class="exercise-body">
-      <div class="exercise-question">Dalam strategi <strong>predictive maintenance</strong> berbasis time series, langkah mana yang paling tepat dilakukan <em>pertama</em>?</div>
-      <div class="radio-group" id="rg-mc5">
-        <div class="radio-option" data-value="A" onclick="selectOption('mc5','A')"><input type="radio" name="mc5"><div class="radio-circle"></div><span><strong>A.</strong> Langsung mengganti komponen mesin secara berkala</span></div>
-        <div class="radio-option" data-value="B" onclick="selectOption('mc5','B')"><input type="radio" name="mc5"><div class="radio-circle"></div><span><strong>B.</strong> Merekam data baseline kondisi normal sebagai referensi pembanding</span></div>
-        <div class="radio-option" data-value="C" onclick="selectOption('mc5','C')"><input type="radio" name="mc5"><div class="radio-circle"></div><span><strong>C.</strong> Menjalankan FFT pada data tanpa preprocessing</span></div>
-        <div class="radio-option" data-value="D" onclick="selectOption('mc5','D')"><input type="radio" name="mc5"><div class="radio-circle"></div><span><strong>D.</strong> Mematikan mesin dan melakukan inspeksi visual</span></div>
-      </div>
-      <div class="exercise-actions">
-        <button class="btn-check" onclick="checkAnswer('mc5','B')">✅ Periksa Jawaban</button>
-        <button class="btn-hint" onclick="toggleHint('mc5')">💡 Petunjuk</button>
-        <button class="btn-answer locked" data-answer-for="mc5" onclick="toggleAnswer('mc5')">🔑 Kunci Jawaban</button>
-      </div>
-      <div class="feedback" id="fb-mc5"></div>
-      <div class="hint-box" id="hint-mc5">💡 Prinsip dasar: Detect → Diagnose → Act. Untuk mendeteksi anomali, kita perlu tahu dulu seperti apa kondisi "normal". Ingat analogi mesin cuci — Anda membandingkan suara saat ini dengan suara yang biasa didengar.</div>
-      <div class="answer-box" id="ans-mc5">🔑 <strong>Jawaban: B.</strong> Langkah pertama predictive maintenance adalah merekam data baseline saat mesin dalam kondisi sehat. Tanpa baseline, kita tidak bisa membedakan "normal" dari "abnormal". Semua deteksi anomali bekerja dengan prinsip perbandingan terhadap referensi.</div>
-    </div>
-  </div>
+    <div class="exercise-actions"><button class="btn-check" onclick="checkAnswer('mc5','B')">✅ Periksa</button><button class="btn-hint" onclick="toggleHint('mc5')">💡 Petunjuk</button><button class="btn-answer locked" data-answer-for="mc5" onclick="toggleAnswer('mc5')">🔑 Jawaban</button></div>
+    <div class="feedback" id="fb-mc5"></div>
+    <div class="hint-box" id="hint-mc5">💡 Bearing faulty menghasilkan amplitudo besar + impuls. Impuls = nilai ekstrem (ekor distribusi tebal). Std lebih besar karena range amplitudo lebih lebar.</div>
+    <div class="answer-box" id="ans-mc5">🔑 <strong>B.</strong> Sinyal faulty memiliki std lebih besar (range amplitudo lebar) dan kurtosis tinggi (heavy-tailed dari impuls). Kurtosis > 3 sering digunakan sebagai indikator kerusakan bearing.</div>
+  </div></div>
 
   <hr style="border:none;border-top:1px dashed rgba(245,158,11,.2);margin:40px 0;">
   <div class="section-label reveal" style="margin-bottom:20px;">Soal Numerik</div>
-  <p style="font-size:15px;color:var(--muted);margin-bottom:32px;" class="reveal">Hitung menggunakan <strong style="color:#10b981;">Jupyter Notebook</strong>, lalu masukkan hasilnya. Pastikan <code>np.random.seed(42)</code> digunakan agar hasil konsisten.</p>
+  <p style="font-size:15px;color:var(--muted);margin-bottom:32px;" class="reveal">Hitung menggunakan <strong style="color:#10b981;">Jupyter Notebook</strong>, lalu masukkan hasilnya.</p>
 
-  <!-- Soal 6: Sampling Rate -->
-  <div class="exercise reveal">
-    <div class="exercise-header">
-      <div class="exercise-number">06</div>
-      <div class="exercise-title">Sampling Rate & Jumlah Data</div>
-    </div>
-    <div class="exercise-body">
-      <div class="exercise-question">Sensor getaran merekam data setiap <strong>0.05 detik</strong> selama <strong>10 detik</strong>. Berapa <strong>sampling rate</strong> (fₛ) sensor tersebut dalam Hz?<br><em style="color:var(--muted);font-size:13px;">Hitung: fₛ = 1/Δt, lalu verifikasi di Jupyter dengan <code>fs = 1/0.05</code></em></div>
-      <div class="answer-input-row">
-        <input type="number" class="answer-input" id="inp-q1" placeholder="Jawaban..." step="any">
-        <span class="answer-unit">Hz</span>
-      </div>
-      <div class="exercise-actions">
-        <button class="btn-check" onclick="checkNumeric('q1',20,0.1)">✅ Periksa</button>
-        <button class="btn-hint" onclick="toggleHint('q1')">💡 Petunjuk</button>
-        <button class="btn-answer locked" data-answer-for="q1" onclick="toggleAnswer('q1')">🔑 Jawaban</button>
-      </div>
-      <div class="feedback" id="fb-q1"></div>
-      <div class="hint-box" id="hint-q1">💡 Sampling rate = 1 / interval waktu. Jika sensor merekam setiap 0.05 detik, maka fₛ = 1/0.05 = ?</div>
-      <div class="answer-box" id="ans-q1">🔑 <strong>Jawaban: 20 Hz</strong><br>fₛ = 1/Δt = 1/0.05 = <strong>20 Hz</strong>. Artinya sensor mengambil 20 sampel per detik. Jumlah total data = fₛ × durasi = 20 × 10 = 200 titik data (+ 1 titik awal = 201).</div>
-    </div>
-  </div>
+  <div class="exercise reveal"><div class="exercise-header"><div class="exercise-number">06</div><div class="exercise-title">Ukuran File CSV</div></div><div class="exercise-body">
+    <div class="exercise-question">Sensor merekam <strong>3 kolom</strong> (waktu, getaran, suhu) pada <strong>100 Hz</strong> selama <strong>60 detik</strong>. Berapa total baris data (tidak termasuk header)?<br><code style="display:block;margin:8px 0;padding:8px;background:#111827;border-radius:8px;font-size:13px;color:var(--cyan);">rows = fs * duration</code></div>
+    <div class="answer-input-row"><input type="number" class="answer-input" id="inp-q1" placeholder="Jawaban..." step="any"><span class="answer-unit">baris</span></div>
+    <div class="exercise-actions"><button class="btn-check" onclick="checkNumeric('q1',6000,1)">✅ Periksa</button><button class="btn-hint" onclick="toggleHint('q1')">💡 Petunjuk</button><button class="btn-answer locked" data-answer-for="q1" onclick="toggleAnswer('q1')">🔑 Jawaban</button></div>
+    <div class="feedback" id="fb-q1"></div>
+    <div class="hint-box" id="hint-q1">💡 100 sampel/detik × 60 detik = ?</div>
+    <div class="answer-box" id="ans-q1">🔑 <strong>6000 baris</strong>. Setiap baris memiliki 3 kolom, jadi total elemen = 6000 × 3 = 18.000.</div>
+  </div></div>
 
-  <!-- Soal 2: RMS Normal -->
-  <div class="exercise reveal">
-    <div class="exercise-header">
-      <div class="exercise-number">07</div>
-      <div class="exercise-title">Menghitung RMS Sinyal Normal</div>
-    </div>
-    <div class="exercise-body">
-      <div class="exercise-question">Jalankan kode berikut di Jupyter dan masukkan nilai RMS yang diperoleh (bulatkan 2 desimal):<br>
-<code style="display:block;margin:12px 0;padding:12px;background:#111827;border-radius:8px;font-size:13px;color:var(--cyan);white-space:pre;overflow-x:auto;">import numpy as np
-np.random.seed(42)
-t = np.arange(0, 10.01, 0.05)
-x = 0.5*np.sin(t*8) + 0.1*(t/10)
-rms = np.sqrt(np.mean(x**2))
-print(f"RMS = {rms:.2f}")</code></div>
-      <div class="answer-input-row">
-        <input type="number" class="answer-input" id="inp-q2" placeholder="Jawaban..." step="any">
-        <span class="answer-unit">mm/s</span>
-      </div>
-      <div class="exercise-actions">
-        <button class="btn-check" onclick="checkNumeric('q2',0.36,0.02)">✅ Periksa</button>
-        <button class="btn-hint" onclick="toggleHint('q2')">💡 Petunjuk</button>
-        <button class="btn-answer locked" data-answer-for="q2" onclick="toggleAnswer('q2')">🔑 Jawaban</button>
-      </div>
-      <div class="feedback" id="fb-q2"></div>
-      <div class="hint-box" id="hint-q2">💡 Jalankan kode di Jupyter Notebook. RMS dihitung dengan rumus √(mean(x²)). Pastikan seed = 42 agar hasilnya konsisten.</div>
-      <div class="answer-box" id="ans-q2">🔑 <strong>Jawaban: ≈ 0.36 mm/s</strong><br>Dengan seed(42), sinyal sinusoidal murni 0.5*sin(8t) memiliki RMS ≈ 0.5/√2 ≈ 0.354. Ditambah komponen tren kecil 0.1*(t/10), RMS total ≈ <strong>0.36</strong>.</div>
-    </div>
-  </div>
+  <div class="exercise reveal"><div class="exercise-header"><div class="exercise-number">07</div><div class="exercise-title">Rolling Mean Window</div></div><div class="exercise-body">
+    <div class="exercise-question">Data disampling pada <strong>20 Hz</strong>. Jika rolling mean menggunakan window <strong>50 sampel</strong>, berapa detik rentang waktu yang dirata-ratakan?<br><code style="display:block;margin:8px 0;padding:8px;background:#111827;border-radius:8px;font-size:13px;color:var(--cyan);">window_seconds = window_samples / fs</code></div>
+    <div class="answer-input-row"><input type="number" class="answer-input" id="inp-q2" placeholder="Jawaban..." step="any"><span class="answer-unit">detik</span></div>
+    <div class="exercise-actions"><button class="btn-check" onclick="checkNumeric('q2',2.5,0.1)">✅ Periksa</button><button class="btn-hint" onclick="toggleHint('q2')">💡 Petunjuk</button><button class="btn-answer locked" data-answer-for="q2" onclick="toggleAnswer('q2')">🔑 Jawaban</button></div>
+    <div class="feedback" id="fb-q2"></div>
+    <div class="hint-box" id="hint-q2">💡 50 sampel ÷ 20 sampel/detik = ? detik</div>
+    <div class="answer-box" id="ans-q2">🔑 <strong>2.5 detik</strong>. Window 50 sampel pada 20 Hz = 50/20 = 2.5 detik rentang rata-rata.</div>
+  </div></div>
 
-  <!-- Soal 3: RMS Faulty -->
-  <div class="exercise reveal">
-    <div class="exercise-header">
-      <div class="exercise-number">08</div>
-      <div class="exercise-title">Rasio RMS Faulty terhadap Normal</div>
-    </div>
-    <div class="exercise-body">
-      <div class="exercise-question">Hitung RMS sinyal faulty berikut, lalu bagi dengan RMS normal dari Soal 2. Bulatkan rasio ke 1 desimal.<br>
-<code style="display:block;margin:12px 0;padding:12px;background:#111827;border-radius:8px;font-size:13px;color:var(--cyan);white-space:pre;overflow-x:auto;">np.random.seed(42)
-t = np.arange(0, 10.01, 0.05)
-x_f = 1.8*np.sin(t*8) + 0.3*(t/10)
-rms_f = np.sqrt(np.mean(x_f**2))
-print(f"RMS Faulty = {rms_f:.2f}")
-print(f"Rasio = {rms_f/0.36:.1f}")</code></div>
-      <div class="answer-input-row">
-        <input type="number" class="answer-input" id="inp-q3" placeholder="Jawaban rasio..." step="any">
-        <span class="answer-unit">× (kali)</span>
-      </div>
-      <div class="exercise-actions">
-        <button class="btn-check" onclick="checkNumeric('q3',3.5,0.3)">✅ Periksa</button>
-        <button class="btn-hint" onclick="toggleHint('q3')">💡 Petunjuk</button>
-        <button class="btn-answer locked" data-answer-for="q3" onclick="toggleAnswer('q3')">🔑 Jawaban</button>
-      </div>
-      <div class="feedback" id="fb-q3"></div>
-      <div class="hint-box" id="hint-q3">💡 RMS faulty ≈ 1.8/√2 ≈ 1.27. Rasio = RMS_faulty / RMS_normal. Hasilnya sekitar 3-4×.</div>
-      <div class="answer-box" id="ans-q3">🔑 <strong>Jawaban: ≈ 3.5×</strong><br>RMS faulty ≈ 1.28 mm/s. Rasio = 1.28/0.36 ≈ <strong>3.5×</strong>. Kenaikan >4× dari baseline biasanya memerlukan inspeksi segera.</div>
-    </div>
-  </div>
+  <div class="exercise reveal"><div class="exercise-header"><div class="exercise-number">08</div><div class="exercise-title">Jumlah Subplot</div></div><div class="exercise-body">
+    <div class="exercise-question">Mesin CNC dimonitor oleh <strong>4 sensor</strong> (getaran, suhu, feed rate, arus). Jika dibuat multi-subplot dengan <code>plt.subplots(n, 1)</code>, berapa nilai <strong>n</strong>?</div>
+    <div class="answer-input-row"><input type="number" class="answer-input" id="inp-q3" placeholder="Jawaban..." step="any"><span class="answer-unit">subplot</span></div>
+    <div class="exercise-actions"><button class="btn-check" onclick="checkNumeric('q3',4,0)">✅ Periksa</button><button class="btn-hint" onclick="toggleHint('q3')">💡 Petunjuk</button><button class="btn-answer locked" data-answer-for="q3" onclick="toggleAnswer('q3')">🔑 Jawaban</button></div>
+    <div class="feedback" id="fb-q3"></div>
+    <div class="hint-box" id="hint-q3">💡 Setiap sensor mendapat 1 subplot agar sumbu Y independen (skala berbeda).</div>
+    <div class="answer-box" id="ans-q3">🔑 <strong>4</strong>. Satu subplot per sensor → plt.subplots(4, 1, sharex=True).</div>
+  </div></div>
 
-  <!-- Soal 4: Crest Factor -->
-  <div class="exercise reveal">
-    <div class="exercise-header">
-      <div class="exercise-number">09</div>
-      <div class="exercise-title">Crest Factor Sinyal Faulty</div>
-    </div>
-    <div class="exercise-body">
-      <div class="exercise-question">Hitung Crest Factor (CF) sinyal faulty dari Soal 3. CF = Peak / RMS. Bulatkan ke 1 desimal.<br>
-<code style="display:block;margin:12px 0;padding:12px;background:#111827;border-radius:8px;font-size:13px;color:var(--cyan);white-space:pre;overflow-x:auto;">peak = np.max(np.abs(x_f))
-cf = peak / rms_f
-print(f"Peak = {peak:.2f}")
-print(f"CF = {cf:.1f}")</code></div>
-      <div class="answer-input-row">
-        <input type="number" class="answer-input" id="inp-q4" placeholder="Jawaban..." step="any">
-        <span class="answer-unit">(rasio)</span>
-      </div>
-      <div class="exercise-actions">
-        <button class="btn-check" onclick="checkNumeric('q4',1.5,0.3)">✅ Periksa</button>
-        <button class="btn-hint" onclick="toggleHint('q4')">💡 Petunjuk</button>
-        <button class="btn-answer locked" data-answer-for="q4" onclick="toggleAnswer('q4')">🔑 Jawaban</button>
-      </div>
-      <div class="feedback" id="fb-q4"></div>
-      <div class="hint-box" id="hint-q4">💡 Peak = max(|x_f|). Untuk sinusoidal murni, CF = √2 ≈ 1.41. Dengan tren, bisa sedikit lebih tinggi.</div>
-      <div class="answer-box" id="ans-q4">🔑 <strong>Jawaban: ≈ 1.5</strong><br>Peak ≈ 1.83, RMS ≈ 1.28. CF = 1.83/1.28 ≈ <strong>1.5</strong>. Sinusoidal murni memiliki CF = √2 ≈ 1.41. CF mendekati 1.41 menandakan sinyal masih dominan sinusoidal (belum ada impulsive event).</div>
-    </div>
-  </div>
+  <div class="exercise reveal"><div class="exercise-header"><div class="exercise-number">09</div><div class="exercise-title">Rolling Std Anomali</div></div><div class="exercise-body">
+    <div class="exercise-question">Jalankan kode di Jupyter: rolling std (window=100) pada sinyal normal = <strong>0.12</strong>. Pada sinyal faulty = <strong>0.48</strong>. Berapa kali lipat peningkatannya?<br><code style="display:block;margin:8px 0;padding:8px;background:#111827;border-radius:8px;font-size:13px;color:var(--cyan);">rasio = std_faulty / std_normal</code></div>
+    <div class="answer-input-row"><input type="number" class="answer-input" id="inp-q4" placeholder="Jawaban..." step="any"><span class="answer-unit">× (kali)</span></div>
+    <div class="exercise-actions"><button class="btn-check" onclick="checkNumeric('q4',4.0,0.1)">✅ Periksa</button><button class="btn-hint" onclick="toggleHint('q4')">💡 Petunjuk</button><button class="btn-answer locked" data-answer-for="q4" onclick="toggleAnswer('q4')">🔑 Jawaban</button></div>
+    <div class="feedback" id="fb-q4"></div>
+    <div class="hint-box" id="hint-q4">💡 Rasio = 0.48 / 0.12 = ?</div>
+    <div class="answer-box" id="ans-q4">🔑 <strong>4.0×</strong>. Rolling std naik 4× dari normal → indikasi kuat kerusakan. Rolling std sensitif terhadap perubahan variabilitas sinyal.</div>
+  </div></div>
 
-  <!-- Soal 5: Periode Musiman -->
-  <div class="exercise reveal">
-    <div class="exercise-header">
-      <div class="exercise-number">10</div>
-      <div class="exercise-title">Identifikasi Periode Komponen Musiman</div>
-    </div>
-    <div class="exercise-body">
-      <div class="exercise-question">Jalankan kode dekomposisi berikut. Berapa <strong>periode</strong> komponen musiman (dalam detik)?<br>
-<code style="display:block;margin:12px 0;padding:12px;background:#111827;border-radius:8px;font-size:13px;color:var(--cyan);white-space:pre;overflow-x:auto;">t = np.arange(0, 60, 0.5)
-musiman = 0.3*np.sin(2*np.pi*t/8)  # komponen musiman
-# Berapa periode sinyal ini?
-# Petunjuk: sin(2π·t/T) → T = ?</code></div>
-      <div class="answer-input-row">
-        <input type="number" class="answer-input" id="inp-q5" placeholder="Jawaban..." step="any">
-        <span class="answer-unit">detik</span>
-      </div>
-      <div class="exercise-actions">
-        <button class="btn-check" onclick="checkNumeric('q5',8,0.1)">✅ Periksa</button>
-        <button class="btn-hint" onclick="toggleHint('q5')">💡 Petunjuk</button>
-        <button class="btn-answer locked" data-answer-for="q5" onclick="toggleAnswer('q5')">🔑 Jawaban</button>
-      </div>
-      <div class="feedback" id="fb-q5"></div>
-      <div class="hint-box" id="hint-q5">💡 Bentuk umum sinusoidal: sin(2π·t/T). Bandingkan dengan sin(2π·t/8). Nilai T ada di penyebut.</div>
-      <div class="answer-box" id="ans-q5">🔑 <strong>Jawaban: 8 detik</strong><br>Dari sin(2π·t/<strong>8</strong>), periode T = <strong>8 detik</strong>. Artinya pola berulang setiap 8 detik. Frekuensi = 1/T = 0.125 Hz.</div>
-    </div>
-  </div>
+  <div class="exercise reveal"><div class="exercise-header"><div class="exercise-number">10</div><div class="exercise-title">Jumlah Bins Histogram</div></div><div class="exercise-body">
+    <div class="exercise-question">Data getaran memiliki <strong>3000 sampel</strong>. Menggunakan aturan Sturges, berapa jumlah bins yang direkomendasikan?<br><code style="display:block;margin:8px 0;padding:8px;background:#111827;border-radius:8px;font-size:13px;color:var(--cyan);">import numpy as np; bins = int(np.ceil(np.log2(3000) + 1))</code></div>
+    <div class="answer-input-row"><input type="number" class="answer-input" id="inp-q5" placeholder="Jawaban..." step="any"><span class="answer-unit">bins</span></div>
+    <div class="exercise-actions"><button class="btn-check" onclick="checkNumeric('q5',13,1)">✅ Periksa</button><button class="btn-hint" onclick="toggleHint('q5')">💡 Petunjuk</button><button class="btn-answer locked" data-answer-for="q5" onclick="toggleAnswer('q5')">🔑 Jawaban</button></div>
+    <div class="feedback" id="fb-q5"></div>
+    <div class="hint-box" id="hint-q5">💡 Sturges: bins = ceil(log₂(N) + 1). log₂(3000) ≈ 11.55. Ceil(11.55 + 1) = ceil(12.55) = ?</div>
+    <div class="answer-box" id="ans-q5">🔑 <strong>13 bins</strong>. log₂(3000) = 11.55 → 11.55 + 1 = 12.55 → ceil = 13. Dalam praktik, 30-60 bins sering lebih informatif.</div>
+  </div></div>
 </div>
 
 <!-- ═══════════ SECTION 06: JUPYTER NOTEBOOK ═══════════ -->
@@ -908,117 +700,77 @@ musiman = 0.3*np.sin(2*np.pi*t/8)  # komponen musiman
 <div class="section" id="jupyter">
   <div class="section-label reveal">Bagian 06</div>
   <h2 class="section-title reveal">Simulasi Jupyter Notebook</h2>
-  <p class="section-desc reveal">Kode siap copy-paste. Buka VS Code → New Jupyter Notebook (.ipynb) → pilih kernel <strong>Python (optauto)</strong>.</p>
+  <p class="section-desc reveal">Kode siap copy-paste untuk pengumpulan dan visualisasi data time series.</p>
 
-  <!-- CELL 1 -->
   <div class="code-wrap reveal">
-    <div class="code-header">
-      <span class="code-dots"><span style="background:#ef4444"></span><span style="background:#f59e0b"></span><span style="background:#10b981"></span></span><span class="code-label">CELL 1 — Import Library & Setup</span>
-      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-    </div>
+    <div class="code-header"><span class="code-dots"><span style="background:#ef4444"></span><span style="background:#f59e0b"></span><span style="background:#10b981"></span></span><span class="code-label">CELL 1 — Import & Setup</span><button class="code-copy" onclick="cpC(this)">📋 Copy</button></div>
     <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> pandas <span class="kw">as</span> pd
 <span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
-
 plt.style.use(<span class="st">'dark_background'</span>)
 plt.rcParams[<span class="st">'figure.facecolor'</span>] <span class="op">=</span> <span class="st">'#0f172a'</span>
 plt.rcParams[<span class="st">'axes.facecolor'</span>]   <span class="op">=</span> <span class="st">'#1e293b'</span>
-plt.rcParams[<span class="st">'grid.color'</span>]        <span class="op">=</span> <span class="st">'#334155'</span>
-
-<span class="fn">print</span>(<span class="st">"✅ Library siap!"</span>)</pre>
+<span class="fn">print</span>(<span class="st">"✅ Library siap! (numpy + pandas + matplotlib)"</span>)</pre>
   </div>
 
-  <!-- CELL 2 -->
   <div class="code-wrap reveal">
-    <div class="code-header">
-      <span class="code-dots"><span style="background:#ef4444"></span><span style="background:#f59e0b"></span><span style="background:#10b981"></span></span><span class="code-label">CELL 2 — Visualisasi Time Series Normal</span>
-      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-    </div>
-    <pre><span class="cm"># Data time series getaran mesin normal</span>
+    <div class="code-header"><span class="code-dots"><span style="background:#ef4444"></span><span style="background:#f59e0b"></span><span style="background:#10b981"></span></span><span class="code-label">CELL 2 — Generate Data & Simpan ke CSV</span><button class="code-copy" onclick="cpC(this)">📋 Copy</button></div>
+    <pre><span class="cm"># PERTEMUAN 3 — Pengumpulan & Visualisasi</span>
 np.random.seed(<span class="nm">42</span>)
-time      <span class="op">=</span> np.arange(<span class="nm">0</span>, <span class="nm">10.01</span>, <span class="nm">0.05</span>)
-vibration <span class="op">=</span> (<span class="nm">0.5</span> <span class="op">*</span> np.sin(time <span class="op">*</span> <span class="nm">8</span>)
-           <span class="op">+</span> <span class="nm">0.1</span> <span class="op">*</span> (time <span class="op">/</span> <span class="nm">10</span>)
-           <span class="op">+</span> np.random.uniform(<span class="op">-</span><span class="nm">0.1</span>, <span class="nm">0.1</span>, <span class="fn">len</span>(time)))
+fs <span class="op">=</span> <span class="nm">20</span>; dur <span class="op">=</span> <span class="nm">60</span>
+t <span class="op">=</span> np.arange(<span class="nm">0</span>, dur, <span class="nm">1</span><span class="op">/</span>fs)
+vib <span class="op">=</span> <span class="nm">0.5</span><span class="op">*</span>np.sin(<span class="nm">2</span><span class="op">*</span>np.pi<span class="op">*</span><span class="nm">8</span><span class="op">*</span>t) <span class="op">+</span> <span class="nm">0.01</span><span class="op">*</span>t <span class="op">+</span> <span class="nm">0.1</span><span class="op">*</span>np.random.randn(<span class="fn">len</span>(t))
 
-plt.figure(figsize<span class="op">=</span>(<span class="nm">10</span>, <span class="nm">5</span>))
-plt.plot(time, vibration, color<span class="op">=</span><span class="st">'#00e5ff'</span>, linewidth<span class="op">=</span><span class="nm">2</span>,
-         label<span class="op">=</span><span class="st">'Getaran Normal'</span>)
-plt.title(<span class="st">'Time Series Data — Getaran Bearing Normal'</span>)
-plt.xlabel(<span class="st">'Waktu (detik)'</span>)
-plt.ylabel(<span class="st">'Amplitudo (mm/s)'</span>)
-plt.legend(); plt.grid(<span class="kw">True</span>, alpha<span class="op">=</span><span class="nm">0.3</span>); plt.show()
-
-rms <span class="op">=</span> np.sqrt(np.mean(vibration<span class="op">**</span><span class="nm">2</span>))
-<span class="fn">print</span>(<span class="st">f"Sampling Rate = {1/0.05:.0f} Hz"</span>)
-<span class="fn">print</span>(<span class="st">f"Jumlah Data   = {len(time)}"</span>)
-<span class="fn">print</span>(<span class="st">f"RMS Normal    = {rms:.4f} mm/s"</span>)</pre>
+df <span class="op">=</span> pd.DataFrame({<span class="st">'waktu'</span>: t, <span class="st">'getaran'</span>: vib})
+df.to_csv(<span class="st">'pompa_data.csv'</span>, index<span class="op">=</span><span class="kw">False</span>)
+<span class="fn">print</span>(<span class="st">f"✅ Tersimpan: {len(df)} baris × {len(df.columns)} kolom"</span>)
+<span class="fn">print</span>(df.head())</pre>
   </div>
 
-  <!-- CELL 3 -->
   <div class="code-wrap reveal">
-    <div class="code-header">
-      <span class="code-dots"><span style="background:#ef4444"></span><span style="background:#f59e0b"></span><span style="background:#10b981"></span></span><span class="code-label">CELL 3 — Dekomposisi 4 Komponen Time Series</span>
-      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-    </div>
-    <pre><span class="cm"># Pisahkan komponen-komponen time series secara manual</span>
-time <span class="op">=</span> np.arange(<span class="nm">0</span>, <span class="nm">60</span>, <span class="nm">0.5</span>)     <span class="cm"># 60 detik, sampling 2 Hz</span>
+    <div class="code-header"><span class="code-dots"><span style="background:#ef4444"></span><span style="background:#f59e0b"></span><span style="background:#10b981"></span></span><span class="code-label">CELL 3 — Line Plot & Multi-Subplot (3 Sensor)</span><button class="code-copy" onclick="cpC(this)">📋 Copy</button></div>
+    <pre><span class="cm"># Baca CSV + tambah sensor suhu & tekanan</span>
+df <span class="op">=</span> pd.read_csv(<span class="st">'pompa_data.csv'</span>)
+df[<span class="st">'suhu'</span>] <span class="op">=</span> <span class="nm">70</span> <span class="op">+</span> <span class="nm">0.05</span><span class="op">*</span>df[<span class="st">'waktu'</span>] <span class="op">+</span> <span class="nm">2</span><span class="op">*</span>np.random.randn(<span class="fn">len</span>(df))
+df[<span class="st">'tekanan'</span>] <span class="op">=</span> <span class="nm">8</span> <span class="op">+</span> <span class="nm">0.3</span><span class="op">*</span>np.sin(<span class="nm">2</span><span class="op">*</span>np.pi<span class="op">*</span>df[<span class="st">'waktu'</span>]<span class="op">/</span><span class="nm">20</span>) <span class="op">+</span> <span class="nm">0.15</span><span class="op">*</span>np.random.randn(<span class="fn">len</span>(df))
 
-tren     <span class="op">=</span> <span class="nm">0.01</span> <span class="op">*</span> time                                  <span class="cm"># komponen tren</span>
-musiman  <span class="op">=</span> <span class="nm">0.3</span> <span class="op">*</span> np.sin(<span class="nm">2</span><span class="op">*</span>np.pi<span class="op">*</span>time<span class="op">/</span><span class="nm">8</span>)               <span class="cm"># musiman (periode 8 s)</span>
-siklik   <span class="op">=</span> <span class="nm">0.5</span> <span class="op">*</span> np.sin(<span class="nm">2</span><span class="op">*</span>np.pi<span class="op">*</span>time<span class="op">/</span><span class="nm">30</span>)              <span class="cm"># siklik (periode 30 s)</span>
-noise    <span class="op">=</span> <span class="nm">0.08</span> <span class="op">*</span> np.random.randn(<span class="fn">len</span>(time))            <span class="cm"># gangguan acak</span>
-sinyal   <span class="op">=</span> tren <span class="op">+</span> musiman <span class="op">+</span> siklik <span class="op">+</span> noise
-
-fig, axes <span class="op">=</span> plt.subplots(<span class="nm">5</span>, <span class="nm">1</span>, figsize<span class="op">=</span>(<span class="nm">10</span>, <span class="nm">12</span>), sharex<span class="op">=</span><span class="kw">True</span>)
-data   <span class="op">=</span> [sinyal, tren, musiman, siklik, noise]
-labels <span class="op">=</span> [<span class="st">'Total Sinyal'</span>, <span class="st">'Tren'</span>, <span class="st">'Musiman (T=8s)'</span>, <span class="st">'Siklik (T=30s)'</span>, <span class="st">'Noise'</span>]
-colors <span class="op">=</span> [<span class="st">'#00e5ff'</span>, <span class="st">'#00e676'</span>, <span class="st">'#ffb300'</span>, <span class="st">'#7c4dff'</span>, <span class="st">'#ff4081'</span>]
-
-<span class="kw">for</span> ax, d, lbl, col <span class="kw">in</span> <span class="fn">zip</span>(axes, data, labels, colors):
-    ax.plot(time, d, color<span class="op">=</span>col, lw<span class="op">=</span><span class="nm">2</span>)
-    ax.set_ylabel(lbl, color<span class="op">=</span>col, fontsize<span class="op">=</span><span class="nm">10</span>)
-    ax.grid(<span class="kw">True</span>, alpha<span class="op">=</span><span class="nm">0.2</span>)
-axes[<span class="op">-</span><span class="nm">1</span>].set_xlabel(<span class="st">'Waktu (detik)'</span>)
-plt.suptitle(<span class="st">'Dekomposisi Time Series: y(t) = T + S + C + ε'</span>,
-             color<span class="op">=</span><span class="st">'white'</span>, fontsize<span class="op">=</span><span class="nm">13</span>)
+fig, axes <span class="op">=</span> plt.subplots(<span class="nm">3</span>, <span class="nm">1</span>, figsize<span class="op">=</span>(<span class="nm">12</span>, <span class="nm">8</span>), sharex<span class="op">=</span><span class="kw">True</span>)
+<span class="kw">for</span> ax, col, lbl, c <span class="kw">in</span> <span class="fn">zip</span>(axes,
+    [<span class="st">'getaran'</span>,<span class="st">'suhu'</span>,<span class="st">'tekanan'</span>],
+    [<span class="st">'Getaran (mm/s)'</span>,<span class="st">'Suhu (°C)'</span>,<span class="st">'Tekanan (bar)'</span>],
+    [<span class="st">'#10b981'</span>,<span class="st">'#f59e0b'</span>,<span class="st">'#a78bfa'</span>]):
+    ax.plot(df[<span class="st">'waktu'</span>], df[col], color<span class="op">=</span>c, lw<span class="op">=</span><span class="nm">1.5</span>)
+    ax.set_ylabel(lbl, color<span class="op">=</span>c); ax.grid(<span class="kw">True</span>, alpha<span class="op">=</span><span class="nm">0.3</span>)
+axes[<span class="op">-</span><span class="nm">1</span>].set_xlabel(<span class="st">'Waktu (s)'</span>)
+plt.suptitle(<span class="st">'Multi-Subplot: 3 Sensor Pompa Sentrifugal'</span>, color<span class="op">=</span><span class="st">'white'</span>)
 plt.tight_layout(); plt.show()</pre>
   </div>
 
-  <!-- CELL 4 -->
   <div class="code-wrap reveal">
-    <div class="code-header">
-      <span class="code-dots"><span style="background:#ef4444"></span><span style="background:#f59e0b"></span><span style="background:#10b981"></span></span><span class="code-label">CELL 4 — Normal vs Faulty + Statistik</span>
-      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-    </div>
-    <pre><span class="cm"># Bandingkan Normal vs Faulty</span>
-np.random.seed(<span class="nm">42</span>)
-time   <span class="op">=</span> np.arange(<span class="nm">0</span>, <span class="nm">10.01</span>, <span class="nm">0.05</span>)
-normal <span class="op">=</span> <span class="nm">0.5</span><span class="op">*</span>np.sin(time<span class="op">*</span><span class="nm">8</span>) <span class="op">+</span> <span class="nm">0.1</span><span class="op">*</span>(time<span class="op">/</span><span class="nm">10</span>)
-faulty <span class="op">=</span> <span class="nm">1.8</span><span class="op">*</span>np.sin(time<span class="op">*</span><span class="nm">8</span>) <span class="op">+</span> <span class="nm">0.3</span><span class="op">*</span>(time<span class="op">/</span><span class="nm">10</span>)
+    <div class="code-header"><span class="code-dots"><span style="background:#ef4444"></span><span style="background:#f59e0b"></span><span style="background:#10b981"></span></span><span class="code-label">CELL 4 — Rolling Mean/Std & Histogram</span><button class="code-copy" onclick="cpC(this)">📋 Copy</button></div>
+    <pre><span class="cm"># Rolling statistics + Histogram</span>
+fig, (ax1, ax2) <span class="op">=</span> plt.subplots(<span class="nm">1</span>, <span class="nm">2</span>, figsize<span class="op">=</span>(<span class="nm">14</span>, <span class="nm">5</span>))
 
-plt.figure(figsize<span class="op">=</span>(<span class="nm">10</span>, <span class="nm">5</span>))
-plt.plot(time, normal, color<span class="op">=</span><span class="st">'#00e5ff'</span>, label<span class="op">=</span><span class="st">'Normal'</span>, lw<span class="op">=</span><span class="nm">2</span>)
-plt.plot(time, faulty, color<span class="op">=</span><span class="st">'#ff4081'</span>, label<span class="op">=</span><span class="st">'Faulty'</span>, lw<span class="op">=</span><span class="nm">2</span>)
-plt.title(<span class="st">'Perbandingan Getaran Normal vs Faulty'</span>)
-plt.xlabel(<span class="st">'Waktu (detik)'</span>); plt.ylabel(<span class="st">'Amplitudo (mm/s)'</span>)
-plt.legend(); plt.grid(<span class="kw">True</span>, alpha<span class="op">=</span><span class="nm">0.3</span>); plt.show()
+<span class="cm"># Rolling mean & std</span>
+vib <span class="op">=</span> df[<span class="st">'getaran'</span>]
+ax1.plot(df[<span class="st">'waktu'</span>], vib, <span class="st">'#475569'</span>, lw<span class="op">=</span><span class="nm">0.5</span>, alpha<span class="op">=</span><span class="nm">0.4</span>, label<span class="op">=</span><span class="st">'Raw'</span>)
+<span class="kw">for</span> w, c <span class="kw">in</span> <span class="fn">zip</span>([<span class="nm">20</span>,<span class="nm">50</span>,<span class="nm">100</span>], [<span class="st">'#10b981'</span>,<span class="st">'#f59e0b'</span>,<span class="st">'#f43f5e'</span>]):
+    ax1.plot(df[<span class="st">'waktu'</span>], vib.rolling(w).mean(), color<span class="op">=</span>c, lw<span class="op">=</span><span class="nm">2</span>, label<span class="op">=</span><span class="st">f'Mean w={w}'</span>)
+ax1.legend(fontsize<span class="op">=</span><span class="nm">8</span>); ax1.grid(<span class="kw">True</span>, alpha<span class="op">=</span><span class="nm">0.3</span>)
+ax1.set_title(<span class="st">'Rolling Mean (3 Window Sizes)'</span>, color<span class="op">=</span><span class="st">'white'</span>)
+ax1.set_xlabel(<span class="st">'Waktu (s)'</span>)
 
-<span class="cm"># Statistik</span>
-<span class="kw">for</span> name, sig <span class="kw">in</span> [(<span class="st">'Normal'</span>, normal), (<span class="st">'Faulty'</span>, faulty)]:
-    rms  <span class="op">=</span> np.sqrt(np.mean(sig<span class="op">**</span><span class="nm">2</span>))
-    peak <span class="op">=</span> np.max(np.abs(sig))
-    cf   <span class="op">=</span> peak <span class="op">/</span> rms
-    <span class="fn">print</span>(<span class="st">f"{name:7s} | RMS={rms:.4f} | Peak={peak:.4f} | CF={cf:.2f}"</span>)
-<span class="fn">print</span>(<span class="st">f"Rasio RMS = {np.sqrt(np.mean(faulty**2))/np.sqrt(np.mean(normal**2)):.1f}x"</span>)</pre>
+<span class="cm"># Histogram</span>
+ax2.hist(vib, bins<span class="op">=</span><span class="nm">50</span>, alpha<span class="op">=</span><span class="nm">0.7</span>, color<span class="op">=</span><span class="st">'#f59e0b'</span>, edgecolor<span class="op">=</span><span class="st">'#1e293b'</span>)
+ax2.axvline(vib.mean(), color<span class="op">=</span><span class="st">'#10b981'</span>, ls<span class="op">=</span><span class="st">'--'</span>, lw<span class="op">=</span><span class="nm">2</span>, label<span class="op">=</span><span class="st">f'Mean={vib.mean():.3f}'</span>)
+ax2.legend(); ax2.grid(<span class="kw">True</span>, alpha<span class="op">=</span><span class="nm">0.3</span>)
+ax2.set_title(<span class="st">'Histogram Distribusi Getaran'</span>, color<span class="op">=</span><span class="st">'white'</span>)
+plt.tight_layout(); plt.show()
+<span class="fn">print</span>(<span class="st">f"Mean={vib.mean():.3f} | Std={vib.std():.3f} | Bins Sturges={int(np.ceil(np.log2(len(vib))+1))}"</span>)</pre>
   </div>
 
   <div class="run-tip reveal">
-    <strong>🚀 Cara Menjalankan di VS Code:</strong><br>
-    1. Install extension <em>Python</em> &amp; <em>Jupyter</em> (Microsoft)<br>
-    2. Buat file baru → simpan sebagai <code style="font-family:'JetBrains Mono',monospace">timeseries_intro.ipynb</code><br>
-    3. Pilih kernel <strong>Python (optauto)</strong> dari kanan atas<br>
-    4. Jalankan setiap cell dengan <kbd style="background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.2);padding:2px 6px;border-radius:4px;color:var(--cyan)">Shift+Enter</kbd><br>
-    5. Gunakan hasil output untuk menjawab soal Quiz di atas
+    <strong>🚀 Cara Menjalankan:</strong><br>1. Simpan sebagai <code>pengumpulan_visualisasi.ipynb</code><br>2. Jalankan Cell 1-4 berurutan<br>3. File <code>pompa_data.csv</code> akan dibuat otomatis oleh Cell 2<br>4. Gunakan output Cell 3 &amp; 4 untuk menjawab soal Quiz
   </div>
 </div>
 
