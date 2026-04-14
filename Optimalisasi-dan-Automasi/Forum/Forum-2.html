@@ -413,26 +413,46 @@
     </div>
   </div>
 
-  <!-- ━━━ SOAL 5: Refleksi ━━━ -->
+  <!-- ━━━ SOAL 5: Interactive Ordering ━━━ -->
   <div class="exercise reveal" style="border-left:3px solid #f43f5e;">
     <div class="exercise-header" style="background:rgba(244,63,94,.03);">
       <div class="exercise-number" style="background:linear-gradient(135deg,#f43f5e,#fb7185);">💡</div>
       <div><div style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;">DISKUSI 5 — REFLEKSI</div><div class="exercise-title">Sensor Mana yang Mendeteksi Paling Awal?</div></div>
     </div>
     <div class="exercise-body">
-      <p style="font-size:15px;line-height:1.8;margin-bottom:16px;">Bearing mesin mulai mengalami kerusakan awal (early-stage fault). Urutkan sensor berikut dari yang <strong>paling cepat</strong> mendeteksi hingga <strong>paling lambat</strong>:</p>
-      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;"><span>📳</span><strong>Accelerometer</strong> — getaran frekuensi tinggi</div>
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;"><span>🌡️</span><strong>Termokopel</strong> — suhu bearing</div>
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;"><span>🔄</span><strong>Encoder RPM</strong> — kecepatan putar</div>
+      <p style="font-size:15px;line-height:1.8;margin-bottom:8px;">Bearing mesin mulai mengalami kerusakan awal. <strong>Klik sensor</strong> sesuai urutan deteksi dari <strong style="color:#10b981;">paling cepat</strong> ke <strong style="color:#f43f5e;">paling lambat</strong>:</p>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">Klik sensor untuk menentukan urutan 1 → 2 → 3. Klik lagi untuk menghapus.</p>
+
+      <div id="sortArea" style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+        <div class="sort-item" data-key="acc" onclick="toggleOrder(this)" style="display:flex;align-items:center;gap:14px;padding:14px 18px;background:var(--surface);border:2px solid var(--border);border-radius:14px;cursor:pointer;transition:all .3s;user-select:none;">
+          <div class="sort-rank" style="width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;color:var(--muted);flex-shrink:0;transition:all .3s;">—</div>
+          <span style="font-size:1.3rem;">📳</span>
+          <div><div style="font-weight:700;color:#fff;font-size:15px;">Accelerometer</div><div style="font-size:12px;color:var(--muted);">Getaran frekuensi tinggi (1-50 kHz)</div></div>
+        </div>
+        <div class="sort-item" data-key="temp" onclick="toggleOrder(this)" style="display:flex;align-items:center;gap:14px;padding:14px 18px;background:var(--surface);border:2px solid var(--border);border-radius:14px;cursor:pointer;transition:all .3s;user-select:none;">
+          <div class="sort-rank" style="width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;color:var(--muted);flex-shrink:0;transition:all .3s;">—</div>
+          <span style="font-size:1.3rem;">🌡️</span>
+          <div><div style="font-weight:700;color:#fff;font-size:15px;">Termokopel</div><div style="font-size:12px;color:var(--muted);">Suhu bearing (perubahan lambat)</div></div>
+        </div>
+        <div class="sort-item" data-key="rpm" onclick="toggleOrder(this)" style="display:flex;align-items:center;gap:14px;padding:14px 18px;background:var(--surface);border:2px solid var(--border);border-radius:14px;cursor:pointer;transition:all .3s;user-select:none;">
+          <div class="sort-rank" style="width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;color:var(--muted);flex-shrink:0;transition:all .3s;">—</div>
+          <span style="font-size:1.3rem;">🔄</span>
+          <div><div style="font-weight:700;color:#fff;font-size:15px;">Encoder RPM</div><div style="font-size:12px;color:var(--muted);">Kecepatan putar (berubah di tahap lanjut)</div></div>
+        </div>
       </div>
+
+      <div class="exercise-actions">
+        <button class="btn-check" onclick="checkSortOrder()">✅ Cek Urutan</button>
+        <button class="btn-hint" onclick="toggleHint('mc5')">💡 Petunjuk</button>
+      </div>
+      <div class="feedback" id="fb-mc5"></div>
+      <div class="hint-box" id="hint-mc5">💡 Kerusakan bearing awal → impact pada permukaan cacat → <strong>getaran frekuensi tinggi DULU</strong> → gesekan meningkat → <strong>panas timbul</strong> (suhu naik) → kerusakan parah → <strong>RPM terpengaruh</strong>. Urutannya mengikuti "rantai sebab-akibat".</div>
+
       <div style="margin-top:16px;padding:14px 18px;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.15);border-radius:12px;">
-        <p style="font-size:14px;color:#a78bfa;line-height:1.7;">📝 <strong>Di forum diskusi:</strong></p>
-        <p style="font-size:14px;color:#a78bfa;line-height:1.7;">1. Tuliskan urutan deteksi dari paling cepat ke paling lambat dan jelaskan alasannya.</p>
-        <p style="font-size:14px;color:#a78bfa;line-height:1.7;">2. Mengapa accelerometer bisa mendeteksi lebih awal daripada sensor suhu?</p>
-        <p style="font-size:14px;color:#a78bfa;line-height:1.7;">3. Pada tahap kerusakan apa RPM baru mulai berubah signifikan?</p>
+        <p style="font-size:14px;color:#a78bfa;line-height:1.7;">📝 <strong>Di forum diskusi, jelaskan:</strong></p>
+        <p style="font-size:14px;color:#a78bfa;line-height:1.7;">1. Mengapa accelerometer bisa mendeteksi lebih awal daripada sensor suhu?</p>
+        <p style="font-size:14px;color:#a78bfa;line-height:1.7;">2. Pada tahap kerusakan apa RPM baru mulai berubah signifikan?</p>
       </div>
-      <div class="hint-box show" style="margin-top:16px;">💡 <strong>Petunjuk:</strong> Kerusakan bearing awal → impact pada permukaan cacat → getaran frekuensi tinggi DULU → gesekan meningkat → panas timbul (suhu naik) → kerusakan parah → RPM terpengaruh. Urutannya mengikuti "rantai sebab-akibat".</div>
     </div>
   </div>
 
@@ -608,6 +628,58 @@ window.addEventListener('scroll',()=>{const s=document.documentElement.scrollTop
 // ═══ SCROLL REVEAL ═══
 const io=new IntersectionObserver((entries)=>{entries.forEach((e,i)=>{if(e.isIntersecting){setTimeout(()=>e.target.classList.add('visible'),i*60);io.unobserve(e.target);}});},{threshold:0.08});
 document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+// ═══ INTERACTIVE ORDERING (SOAL 5) ═══
+let sortOrder = [];
+function toggleOrder(el) {
+  if (el.closest('.exercise').classList.contains('answered')) return;
+  const key = el.dataset.key;
+  const idx = sortOrder.indexOf(key);
+  if (idx >= 0) {
+    sortOrder.splice(idx, 1);
+  } else if (sortOrder.length < 3) {
+    sortOrder.push(key);
+  }
+  document.querySelectorAll('.sort-item').forEach(function(item) {
+    const k = item.dataset.key;
+    const rank = item.querySelector('.sort-rank');
+    const pos = sortOrder.indexOf(k);
+    if (pos >= 0) {
+      rank.textContent = pos + 1;
+      rank.style.background = pos === 0 ? 'rgba(16,185,129,.2)' : pos === 1 ? 'rgba(245,158,11,.2)' : 'rgba(244,63,94,.2)';
+      rank.style.color = pos === 0 ? '#10b981' : pos === 1 ? '#f59e0b' : '#f43f5e';
+      rank.style.borderColor = pos === 0 ? 'rgba(16,185,129,.4)' : pos === 1 ? 'rgba(245,158,11,.4)' : 'rgba(244,63,94,.4)';
+      item.style.borderColor = pos === 0 ? 'rgba(16,185,129,.3)' : pos === 1 ? 'rgba(245,158,11,.3)' : 'rgba(244,63,94,.3)';
+      item.style.background = pos === 0 ? 'rgba(16,185,129,.04)' : pos === 1 ? 'rgba(245,158,11,.04)' : 'rgba(244,63,94,.04)';
+    } else {
+      rank.textContent = '—';
+      rank.style.background = 'rgba(255,255,255,.05)';
+      rank.style.color = 'var(--muted)';
+      rank.style.borderColor = 'var(--border)';
+      item.style.borderColor = 'var(--border)';
+      item.style.background = 'var(--surface)';
+    }
+  });
+}
+function checkSortOrder() {
+  const fb = document.getElementById('fb-mc5');
+  if (sortOrder.length < 3) {
+    fb.className = 'feedback wrong'; fb.style.display = 'block';
+    fb.textContent = '⚠ Klik ketiga sensor untuk menentukan urutan 1→2→3 terlebih dahulu.';
+    return;
+  }
+  const correct = ['acc', 'temp', 'rpm'];
+  const isCorrect = sortOrder[0] === correct[0] && sortOrder[1] === correct[1] && sortOrder[2] === correct[2];
+  if (isCorrect) {
+    fb.className = 'feedback correct'; fb.style.display = 'block';
+    fb.innerHTML = '🎉 <strong>Benar!</strong> Urutan deteksi: Accelerometer (paling cepat) → Termokopel → Encoder RPM (paling lambat). Getaran terdeteksi pertama karena impact langsung pada permukaan cacat.';
+    document.querySelector('.sort-item[data-key="acc"]').closest('.exercise').classList.add('answered');
+    if (typeof _awardPoint === 'function') _awardPoint('mc5');
+  } else {
+    fb.className = 'feedback wrong'; fb.style.display = 'block';
+    fb.innerHTML = '❌ <strong>Urutan belum tepat.</strong> Pikirkan: kerusakan bearing awal menghasilkan apa dulu? Getaran, panas, atau perubahan RPM?';
+  }
+}
 
 // ═══ ANIMATED PARAM BARS ═══
 const barIO=new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isIntersecting){e.target.style.width=e.target.dataset.width;barIO.unobserve(e.target);}});},{threshold:0.3});
