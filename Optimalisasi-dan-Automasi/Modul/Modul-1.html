@@ -1328,7 +1328,7 @@ function updateLeaderboard(visitors,schedExpired){
   const mhs=visitors.filter(v=>v.role!=='dosen'&&v.role!=='guest');
   const visitMap={};mhs.forEach(v=>{if(!visitMap[v.nim])visitMap[v.nim]=v;});
   const visited=Object.values(visitMap);
-  const topSkor=[...visited].sort((a,b)=>{const d=(b.points||0)-(a.points||0);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp);});
+  const topSkor=[...visited].filter(v=>(v.points||0)>0).sort((a,b)=>{const d=(b.points||0)-(a.points||0);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp);});
   const akses=[...visited].sort((a,b)=>(b.visitCount||1)-(a.visitCount||1));
   const medalR=['🥇','🥈','🥉'];
   function renderCardSkor(v,idx){
