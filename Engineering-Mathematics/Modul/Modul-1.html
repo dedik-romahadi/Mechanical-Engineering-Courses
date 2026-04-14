@@ -2706,7 +2706,6 @@ function isValidName(n){if(!n)return false;return n.split(/\s+/).every(w=>w.leng
 function isValidNim(n){return /^\d+$/.test(n);}
 function sanitizeKey(s){return s.replace(/[.#$/\[\]]/g,'_');}
 
-
 let masterStudents = [];
 let masterFetchDone = false;
 const STUDENTS_JSON_URL = 'https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Engineering-Mathematics/Attributes/students.json';
@@ -2775,15 +2774,6 @@ function initVisitor(){
       get(ref(db,`${DB_PATH}/${_key}`)).then(snap=>{
         if(snap.exists()){
           const ex=snap.val();
-          // Load already-scored questions to prevent re-scoring
-          if(ex.scoredQuestions){
-            ex.scoredQuestions.split(',').forEach(q=>_answeredQuestions.add(q));
-            // Also lock the answer buttons for already-scored questions
-            ex.scoredQuestions.split(',').forEach(q=>{
-              const ab=document.getElementById('ansBtn-'+q);
-              if(ab) ab.classList.remove('locked');
-            });
-          }
           const lastV=new Date(ex.lastVisit||ex.timestamp).getTime();
           const expired=isScheduleExpired();
           if(!expired && Date.now()-lastV>=VISIT_COOLDOWN){
@@ -2880,14 +2870,7 @@ function submitVisitor(){
         const lastV = new Date(ex.lastVisit || ex.timestamp).getTime();
         const canBump = !expired && (Date.now() - lastV) >= VISIT_COOLDOWN;
         v = {...ex, visitCount: canBump ? (ex.visitCount||1)+1 : (ex.visitCount||1), lastVisit: canBump ? nowISO : (ex.lastVisit||ex.timestamp)};
-        // Sync scored questions to local state (new device login)
-        if(ex.scoredQuestions){
-          ex.scoredQuestions.split(',').forEach(q=>{
-            _answeredQuestions.add(q);
-            const ab=document.getElementById('ansBtn-'+q);
-            if(ab) ab.classList.remove('locked');
-          });
-        }
+        
       } else {
         v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO, points:0};
       }
@@ -2901,6 +2884,8 @@ function submitVisitor(){
   }
   document.getElementById('visitorOverlay').classList.add('hidden');
   document.getElementById('visitorFab').style.display='flex';
+  // Load scored questions setelah login (cegah re-scoring di perangkat/browser baru)
+  setTimeout(function(){ if(typeof window._loadScoredQuestions==='function') window._loadScoredQuestions(); }, 500);
 }
 
 function renderVisitors(visitors){
@@ -2968,7 +2953,6 @@ function togglePanel(){panelOpen=!panelOpen;document.getElementById('visitorPane
 document.addEventListener('click',function(e){const p=document.getElementById('visitorPanel'),f=document.getElementById('visitorFab');if(panelOpen&&!p.contains(e.target)&&!f.contains(e.target)){panelOpen=false;p.classList.remove('open');}});
 function escH(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 
-
 // Reset
 function showResetModal(){document.getElementById('resetOverlay').classList.remove('hidden');document.getElementById('resetPw').value='';document.getElementById('resetError').style.display='none';setTimeout(()=>document.getElementById('resetPw').focus(),100);}
 function hideResetModal(){document.getElementById('resetOverlay').classList.add('hidden');}
@@ -3027,42 +3011,67 @@ document.getElementById('schedulePw').addEventListener('keydown',function(e){if(
 document.getElementById('vNim').addEventListener('keydown',function(e){if(e.key==='Enter')submitVisitor();});
 document.getElementById('vNama').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('vNim').focus();});
 
-
-// ═══ POINTS SYSTEM ═══
-const _answeredQuestions = new Set();
-window._awardPoint = function(qId) {
-  // Skip if already awarded for this question, or schedule expired, or dosen
-  if (_answeredQuestions.has(qId)) return;
-  if (isScheduleExpired()) return;
-  const me = getIdentity();
-  if (!me || !me.nim || me.role === 'dosen') return;
-
-  _answeredQuestions.add(qId);
-  const key = sanitizeKey(`mhs_${me.nim}`);
-  get(ref(db, `${DB_PATH}/${key}`)).then(snap => {
-    if (snap.exists()) {
-      const ex = snap.val();
-      // Check if this question was already scored in Firebase
-      const scored = ex.scoredQuestions ? ex.scoredQuestions.split(',') : [];
-      if (scored.includes(qId)) return;
-      scored.push(qId);
-      const newPts = (ex.points || 0) + 1;
-      const nowISO = new Date().toISOString();
-      set(ref(db, `${DB_PATH}/${key}`), {
-        ...ex,
-        points: newPts,
-        pointTimestamp: nowISO,
-        scoredQuestions: scored.join(',')
-      });
-    }
-  }).catch(() => {});
-};
-
 window.submitVisitor=submitVisitor;window.togglePanel=togglePanel;
 window.showResetModal=showResetModal;window.hideResetModal=hideResetModal;window.confirmReset=confirmReset;
 window.showScheduleModal=showScheduleModal;window.hideScheduleModal=hideScheduleModal;window.saveSchedule=saveSchedule;
 
 setInterval(()=>{renderVisitors(latestVisitors);},30000);
+
+// ═══ POINT SYSTEM (harus di dalam module untuk akses Firebase) ═══
+const _answeredQuestions = new Set();
+
+window._loadScoredQuestions = function() {
+  const me = getIdentity();
+  if (!me || !me.nim || me.role === 'dosen') return;
+  const _key = sanitizeKey('mhs_' + me.nim);
+  get(ref(db, DB_PATH + '/' + _key)).then(function(snap) {
+    if (snap.exists() && snap.val().scoredQuestions) {
+      snap.val().scoredQuestions.split(',').forEach(function(q) {
+        _answeredQuestions.add(q);
+        // Restore MCQ UI (soal yang sudah dijawab → disable radio + tampilkan feedback)
+        const rg = document.getElementById('rg-' + q);
+        if (rg && rg.dataset.locked !== 'true') {
+          rg.dataset.locked = 'true';
+          rg.querySelectorAll('.radio-option').forEach(function(o){ o.style.pointerEvents='none'; o.style.opacity='.6'; });
+          const fb = document.getElementById('fb-' + q);
+          if (fb) { fb.className='feedback correct'; fb.style.display='block'; fb.innerHTML='✅ Sudah dijawab sebelumnya.'; }
+          const ab = document.querySelector('[data-answer-for="'+q+'"]');
+          if (ab) ab.classList.remove('locked');
+        }
+        // Restore poll UI (poll yang sudah dijawab → tandai done)
+        const pw = document.getElementById('p' + q.replace('poll',''));
+        if (pw && !pw.dataset.done) { pw.dataset.done = '1'; }
+      });
+    }
+  }).catch(function(){});
+};
+
+window._awardPoint = function(qId) {
+  if (_answeredQuestions.has(qId)) return;
+  const me = getIdentity();
+  if (!me || !me.nim || me.role === 'dosen') return;
+  _answeredQuestions.add(qId);
+  const _key = sanitizeKey('mhs_' + me.nim);
+  const _ref = ref(db, DB_PATH + '/' + _key);
+  get(_ref).then(function(snap) {
+    if (snap.exists()) {
+      const ex = snap.val();
+      const scored = ex.scoredQuestions ? ex.scoredQuestions.split(',') : [];
+      if (scored.includes(qId)) return;
+      scored.push(qId);
+      const newPts = (ex.points || 0) + 1;
+      set(_ref, Object.assign({}, ex, {
+        points: newPts,
+        pointTimestamp: new Date().toISOString(),
+        scoredQuestions: scored.join(',')
+      }));
+    }
+  }).catch(function(e){ console.error('awardPoint error:', e); });
+};
+
+// Load on init (untuk returning visitor yang sudah punya identity)
+window._loadScoredQuestions();
+
 initVisitor();
 </script>
 </body>
