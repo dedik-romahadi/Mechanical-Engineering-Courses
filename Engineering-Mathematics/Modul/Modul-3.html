@@ -1353,7 +1353,12 @@ function initVisitor(){
           var expired=isScheduleExpired();if(!expired&&Date.now()-lastV>=VISIT_COOLDOWN){
             set(ref(db,`${DB_PATH}/${_key}`),{...ex,visitCount:(ex.visitCount||1)+1,lastVisit:new Date().toISOString()});
           }
-        }
+        
+          // Load already-scored questions to prevent re-scoring
+          if(ex.scoredQuestions){
+            ex.scoredQuestions.split(',').forEach(function(q){ _answeredQuestions.add(q); });
+          }
+}
       }).catch(()=>{});
     }
   }
@@ -1417,7 +1422,11 @@ function submitVisitor(){
         const lastV = new Date(ex.lastVisit || ex.timestamp).getTime();
         var canBump=!expired&&(Date.now()-lastV)>=VISIT_COOLDOWN;
         v = {...ex, visitCount: canBump ? (ex.visitCount||1)+1 : (ex.visitCount||1), lastVisit: canBump ? nowISO : (ex.lastVisit||ex.timestamp)};
-      } else {
+              // Sync scored questions to local state (new device login)
+        if(ex.scoredQuestions){
+          ex.scoredQuestions.split(',').forEach(function(q){ _answeredQuestions.add(q); });
+        }
+} else {
         v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1,lastVisit:nowISO,points:0};
       }
       saveIdentity(v);
@@ -1552,6 +1561,48 @@ window.showResetModal=showResetModal;window.hideResetModal=hideResetModal;window
 window.showScheduleModal=showScheduleModal;window.hideScheduleModal=hideScheduleModal;window.saveSchedule=saveSchedule;
 
 setInterval(()=>{renderVisitors(latestVisitors);},30000);
+
+// ═══ POINT SYSTEM (harus di dalam module untuk akses Firebase) ═══
+const _answeredQuestions = new Set();
+
+window._awardPoint = function(qId) {
+  if (_answeredQuestions.has(qId)) return;
+  if (isScheduleExpired()) return;
+  const me = getIdentity();
+  if (!me || !me.nim || me.role === 'dosen') return;
+  _answeredQuestions.add(qId);
+  const _key = sanitizeKey('mhs_' + me.nim);
+  const _ref = ref(db, DB_PATH + '/' + _key);
+  get(_ref).then(function(snap) {
+    if (snap.exists()) {
+      const ex = snap.val();
+      const scored = ex.scoredQuestions ? ex.scoredQuestions.split(',') : [];
+      if (scored.includes(qId)) return;
+      scored.push(qId);
+      const newPts = (ex.points || 0) + 1;
+      set(_ref, Object.assign({}, ex, {
+        points: newPts,
+        pointTimestamp: new Date().toISOString(),
+        scoredQuestions: scored.join(',')
+      }));
+    }
+  }).catch(function(e){ console.error('awardPoint error:', e); });
+};
+
+// Load scored questions saat init (cegah duplikat poin setelah reload)
+(function() {
+  const me = getIdentity();
+  if (!me || !me.nim || me.role === 'dosen') return;
+  const _key = sanitizeKey('mhs_' + me.nim);
+  get(ref(db, DB_PATH + '/' + _key)).then(function(snap) {
+    if (snap.exists() && snap.val().scoredQuestions) {
+      snap.val().scoredQuestions.split(',').forEach(function(q) {
+        _answeredQuestions.add(q);
+      });
+    }
+  }).catch(function(){});
+})();
+
 initVisitor();
 </script>
 </body>
