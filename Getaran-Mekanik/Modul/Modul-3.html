@@ -2399,7 +2399,6 @@ window.checkStudi2 = function() {
 
 <script>
 // ═══ EXERCISE / QUIZ SYSTEM ═══
-const _answeredQuestions = new Set();
 
 function selectOption(qId, value) {
   const group = document.getElementById('rg-' + qId);
@@ -2442,43 +2441,6 @@ function toggleAnswer(qId) {
   if (el) el.classList.toggle('show');
 }
 
-window._awardPoint = function(qId) {
-  if (_answeredQuestions.has(qId)) return;
-  if (typeof isScheduleExpired === 'function' && isScheduleExpired()) return;
-  const me = typeof getIdentity === 'function' ? getIdentity() : null;
-  if (!me || !me.nim || me.role === 'dosen') return;
-  _answeredQuestions.add(qId);
-  const _key = typeof sanitizeKey === 'function' ? sanitizeKey('mhs_' + me.nim) : 'mhs_' + me.nim;
-  if (typeof db !== 'undefined' && typeof DB_PATH !== 'undefined') {
-    const _ref = typeof ref === 'function' ? ref(db, DB_PATH + '/' + _key) : null;
-    if (_ref && typeof get === 'function') {
-      get(_ref).then(function(snap) {
-        if (snap.exists()) {
-          const ex = snap.val();
-          const scored = ex.scoredQuestions ? ex.scoredQuestions.split(',') : [];
-          if (scored.includes(qId)) return;
-          scored.push(qId);
-          const newPts = (ex.points || 0) + 1;
-          if (typeof set === 'function') set(_ref, Object.assign({}, ex, {points: newPts, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',')}));
-        }
-      }).catch(function(){});
-    }
-  }
-};
-
-// Load scored questions on init (prevent re-scoring after reload)
-(function loadScoredQuestions() {
-  const me = typeof getIdentity === 'function' ? getIdentity() : null;
-  if (!me || !me.nim || me.role === 'dosen') return;
-  const _key = typeof sanitizeKey === 'function' ? sanitizeKey('mhs_' + me.nim) : 'mhs_' + me.nim;
-  if (typeof db !== 'undefined' && typeof DB_PATH !== 'undefined' && typeof ref === 'function' && typeof get === 'function') {
-    get(ref(db, DB_PATH + '/' + _key)).then(function(snap) {
-      if (snap.exists() && snap.val().scoredQuestions) {
-        snap.val().scoredQuestions.split(',').forEach(function(q) { _answeredQuestions.add(q); });
-      }
-    }).catch(function(){});
-  }
-})();
 </script>
 
 <script>
@@ -2797,6 +2759,42 @@ window.showResetModal=showResetModal;window.hideResetModal=hideResetModal;window
 window.showScheduleModal=showScheduleModal;window.hideScheduleModal=hideScheduleModal;window.saveSchedule=saveSchedule;
 
 setInterval(()=>{renderVisitors(latestVisitors);},30000);
+
+// ═══ POINT SYSTEM (must be inside module for Firebase access) ═══
+const _answeredQuestions = new Set();
+
+window._awardPoint = function(qId) {
+  if (_answeredQuestions.has(qId)) return;
+  if (typeof isScheduleExpired === 'function' && isScheduleExpired()) return;
+  const me = getIdentity();
+  if (!me || !me.nim || me.role === 'dosen') return;
+  _answeredQuestions.add(qId);
+  const _key = sanitizeKey('mhs_' + me.nim);
+  const _ref = ref(db, DB_PATH + '/' + _key);
+  get(_ref).then(function(snap) {
+    if (snap.exists()) {
+      const ex = snap.val();
+      const scored = ex.scoredQuestions ? ex.scoredQuestions.split(',') : [];
+      if (scored.includes(qId)) return;
+      scored.push(qId);
+      const newPts = (ex.points || 0) + 1;
+      set(_ref, Object.assign({}, ex, {points: newPts, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',')}));
+    }
+  }).catch(function(e){ console.error('awardPoint error:', e); });
+};
+
+// Load scored questions on init
+(function() {
+  const me = getIdentity();
+  if (!me || !me.nim || me.role === 'dosen') return;
+  const _key = sanitizeKey('mhs_' + me.nim);
+  get(ref(db, DB_PATH + '/' + _key)).then(function(snap) {
+    if (snap.exists() && snap.val().scoredQuestions) {
+      snap.val().scoredQuestions.split(',').forEach(function(q) { _answeredQuestions.add(q); });
+    }
+  }).catch(function(){});
+})();
+
 initVisitor();
 </script>
 
