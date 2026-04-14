@@ -695,6 +695,7 @@ function vote(n,el,correct){
   el.classList.add(correct?'right':'wrong');
   const fr=document.getElementById('p'+n+'r'), fw=document.getElementById('p'+n+'w');
   (correct?fr:fw).classList.add('show');
+  if(correct && typeof window._awardPoint==='function') window._awardPoint('poll'+n);
 }
 </script>
 
@@ -1037,6 +1038,40 @@ document.getElementById('vNama').addEventListener('keydown',function(e){if(e.key
 window.submitVisitor=submitVisitor;window.togglePanel=togglePanel;
 
 setInterval(()=>{renderVisitors(latestVisitors);},30000);
+// ═══ POINT SYSTEM ═══
+const _answeredQuestions = new Set();
+
+window._awardPoint = function(qId) {
+  if (_answeredQuestions.has(qId)) return;
+  const me = getIdentity();
+  if (!me || !me.nim || me.role === 'dosen') return;
+  _answeredQuestions.add(qId);
+  const _key = sanitizeKey('mhs_' + me.nim);
+  const _ref = ref(db, DB_PATH + '/' + _key);
+  get(_ref).then(function(snap) {
+    if (snap.exists()) {
+      const ex = snap.val();
+      const scored = ex.scoredQuestions ? ex.scoredQuestions.split(',') : [];
+      if (scored.includes(qId)) return;
+      scored.push(qId);
+      const newPts = (ex.points || 0) + 1;
+      set(_ref, Object.assign({}, ex, {points: newPts, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',')}));
+    }
+  }).catch(function(e){ console.error('awardPoint error:', e); });
+};
+
+// Load scored questions on init
+(function() {
+  const me = getIdentity();
+  if (!me || !me.nim || me.role === 'dosen') return;
+  const _key = sanitizeKey('mhs_' + me.nim);
+  get(ref(db, DB_PATH + '/' + _key)).then(function(snap) {
+    if (snap.exists() && snap.val().scoredQuestions) {
+      snap.val().scoredQuestions.split(',').forEach(function(q) { _answeredQuestions.add(q); });
+    }
+  }).catch(function(){});
+})();
+
 initVisitor();
 </script>
 
