@@ -534,35 +534,36 @@
 <div class="section" id="simulasi">
   <div class="section-label reveal">Bagian 04</div>
   <h2 class="section-title reveal">Simulasi Interaktif</h2>
-  <p class="section-desc reveal">Visualisasikan data sensor pompa sentrifugal secara real-time. Amati perbedaan sinyal normal vs faulty dan bagaimana noise mempengaruhi visualisasi.</p>
+  <p class="section-desc reveal">Jelajahi 4 teknik visualisasi berbeda pada data sensor yang sama. Amati bagaimana setiap teknik mengungkap informasi yang berbeda.</p>
 
+  <!-- PANEL 1: Visualization Technique Switcher -->
   <div class="anim-panel reveal">
-    <div class="anim-header"><div class="anim-dot" style="background:var(--cyan)"></div><span class="anim-title">📊 Visualisasi — Sinyal Getaran Pompa (Line Plot + Rolling Mean)</span></div>
+    <div class="anim-header"><div class="anim-dot" style="background:var(--cyan)"></div><span class="anim-title">📊 4 Teknik Visualisasi — Data Getaran Pompa yang Sama, Tampilan Berbeda</span></div>
     <div class="anim-body">
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
-        <button class="btn-anim" id="btn-n" onclick="setMode('normal',this)" style="background:rgba(245,158,11,.25);border-color:#f59e0b;">🟢 Normal</button>
-        <button class="btn-anim" id="btn-f" onclick="setMode('faulty',this)">🔴 Faulty</button>
-        <button class="btn-anim" id="btn-b" onclick="setMode('both',this)">📊 Overlay</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+        <button class="btn-anim" id="btn-v0" onclick="pickViz(0,this)" style="background:rgba(245,158,11,.25);border-color:#f59e0b;">📈 Line Plot</button>
+        <button class="btn-anim" id="btn-v1" onclick="pickViz(1,this)">📉 Rolling Mean</button>
+        <button class="btn-anim" id="btn-v2" onclick="pickViz(2,this)">📊 Rolling Std</button>
+        <button class="btn-anim" id="btn-v3" onclick="pickViz(3,this)">📊 Histogram</button>
       </div>
-      <div class="ctrl-row" style="margin-top:0;margin-bottom:16px;"><div class="ctrl-group"><label>Noise Level — <span class="ctrl-val" id="noiseVal">0.30</span></label><input type="range" id="noiseSlider" min="0" max="1" step="0.05" value="0.3" oninput="updateChart()"></div></div>
-      <div style="height:320px;"><canvas id="vibrationChart"></canvas></div>
-      <div style="margin-top:20px;font-size:13px;color:var(--text);line-height:1.8;background:rgba(245,158,11,.03);border:1px solid rgba(245,158,11,.08);border-radius:10px;padding:16px 20px;">
-        <strong style="color:var(--cyan);">📖 Penjelasan:</strong> Grafik ini mendemonstrasikan teknik visualisasi <strong>line plot</strong> dasar — sumbu X adalah waktu, sumbu Y adalah amplitudo getaran. <strong>Normal</strong> (hijau): amplitudo rendah dan stabil. <strong>Faulty</strong> (merah): amplitudo tinggi — bearing aus menyebabkan impact berulang. Geser noise untuk melihat mengapa kita butuh <strong>rolling mean</strong>: saat noise tinggi, tren sulit dilihat dari raw data.
+      <div style="height:300px;"><canvas id="vizTechChart"></canvas></div>
+      <div id="vizInfo" style="margin-top:16px;font-size:13px;color:var(--text);line-height:1.8;background:rgba(245,158,11,.03);border:1px solid rgba(245,158,11,.08);border-radius:10px;padding:16px 20px;">
+        <strong style="color:var(--cyan);">📈 Line Plot:</strong> Visualisasi paling dasar — sinyal mentah terhadap waktu. Bisa langsung melihat osilasi, tren naik, dan noise. Tetapi saat noise tinggi, tren sulit dibedakan. Untuk data 1200 sampel (60s × 20Hz), line plot menunjukkan keseluruhan dinamika sinyal.
       </div>
     </div>
   </div>
 
+  <!-- PANEL 2: Rolling Window Explorer -->
   <div class="anim-panel reveal">
-    <div class="anim-header"><div class="anim-dot" style="background:var(--green)"></div><span class="anim-title">📡 Live Stream — Multi-Sensor Dashboard</span></div>
+    <div class="anim-header"><div class="anim-dot" style="background:#f43f5e"></div><span class="anim-title">🔍 Window Size Explorer — Efek Ukuran Window pada Rolling Mean</span></div>
     <div class="anim-body">
-      <canvas id="cv_stream" class="sim-canvas" height="220"></canvas>
+      <canvas id="cv_rolling" class="sim-canvas" height="280"></canvas>
       <div class="ctrl-row">
-        <div class="ctrl-group"><label>Amplitudo — <span class="ctrl-val" id="v_amp1">0.5</span> mm/s</label><input type="range" id="sl_amp1" min="0.1" max="2.0" step="0.1" value="0.5"></div>
-        <div class="ctrl-group"><label>Frekuensi — <span class="ctrl-val" id="v_freq1">8.0</span> Hz</label><input type="range" id="sl_freq1" min="1" max="20" step="0.5" value="8"></div>
-        <button class="btn-anim" id="btn_stream" onclick="toggleStream()">⏸ PAUSE</button>
+        <div class="ctrl-group"><label>Window Size — <span class="ctrl-val" id="v_win">20</span> sampel</label><input type="range" id="sl_win" min="5" max="150" step="5" value="20"></div>
+        <div class="ctrl-group"><label>Noise Level — <span class="ctrl-val" id="v_noise">0.3</span></label><input type="range" id="sl_noise" min="0" max="1" step="0.05" value="0.3"></div>
       </div>
-      <div style="margin-top:16px;font-size:13px;color:var(--text);line-height:1.8;background:rgba(16,185,129,.03);border:1px solid rgba(16,185,129,.08);border-radius:10px;padding:16px 20px;">
-        <strong style="color:var(--green);">📖 Penjelasan:</strong> Dashboard monitoring real-time seperti layar SCADA di pabrik. Data mengalir dari kanan ke kiri menampilkan <strong>rolling window</strong> terakhir. Ubah amplitudo untuk simulasi degradasi bearing, atau frekuensi untuk RPM berbeda. Dalam industri, data ini disimpan ke <strong>CSV/database</strong> setiap detik untuk analisis historis.
+      <div id="rollingInfo" style="margin-top:16px;font-size:13px;color:var(--text);line-height:1.8;background:rgba(244,63,94,.04);border:1px solid rgba(244,63,94,.1);border-radius:10px;padding:16px 20px;">
+        <strong style="color:#f43f5e;">📖 Penjelasan:</strong> <strong style="color:#475569;">Abu-abu</strong> = sinyal mentah (noisy). <strong style="color:#f59e0b;">Kuning</strong> = rolling mean dengan window 20 sampel (= 1.0 detik pada 20 Hz). Window kecil: responsif tapi masih noisy. Window besar: smooth tapi lambat merespons perubahan. Geser slider untuk merasakan trade-off ini!
       </div>
     </div>
   </div>
@@ -975,62 +976,81 @@ document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 const barIO=new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isIntersecting){e.target.style.width=e.target.dataset.width;barIO.unobserve(e.target);}});},{threshold:0.3});
 document.querySelectorAll('.anim-bar').forEach(el=>barIO.observe(el));
 
-// ═══ CHART.JS: VIBRATION CHART ═══
-const N=201;const baseLabels=[],baseNormal=[],baseFaulty=[];
-for(let i=0;i<N;i++){const t=i*0.05;baseLabels.push(t.toFixed(2));baseNormal.push(0.5*Math.sin(t*8)+0.1*(t/10));baseFaulty.push(1.8*Math.sin(t*8)+0.3*(t/10));}
-let vibChart=null,curMode='normal';
-function genData(noise){return{normal:baseNormal.map(v=>v+(Math.random()-0.5)*noise*0.6),faulty:baseFaulty.map(v=>v+(Math.random()-0.5)*noise*1.2)};}
-function drawChart(noise){
-  const d=genData(noise);const ds=[];
-  if(curMode==='normal'||curMode==='both')ds.push({label:'🟢 Normal',data:d.normal,borderColor:'#10b981',borderWidth:2,tension:.3,pointRadius:0});
-  if(curMode==='faulty'||curMode==='both')ds.push({label:'🔴 Faulty',data:d.faulty,borderColor:'#f43f5e',borderWidth:2,tension:.3,pointRadius:0});
-  if(vibChart)vibChart.destroy();
-  vibChart=new Chart(document.getElementById('vibrationChart'),{type:'line',data:{labels:baseLabels,datasets:ds},options:{responsive:true,maintainAspectRatio:false,animation:{duration:600},plugins:{legend:{position:'top',labels:{color:'#cdd6e8',font:{size:12},padding:16}},tooltip:{mode:'index',intersect:false}},scales:{x:{grid:{color:'#1a2840'},ticks:{color:'#4a6080',maxTicksLimit:12,font:{size:10}},title:{display:true,text:'Waktu (detik)',color:'#4a6080'}},y:{grid:{color:'#1a2840'},ticks:{color:'#4a6080',font:{size:10}},title:{display:true,text:'Amplitudo (mm/s)',color:'#4a6080'}}}}});
+// ═══ VISUALIZATION TECHNIQUE CHART ═══
+const VIZ_N=1200;const vizT=[],vizRaw=[];
+for(let i=0;i<VIZ_N;i++){const t=i*0.05;vizT.push(t.toFixed(2));vizRaw.push(0.5*Math.sin(t*8)+0.01*t+0.15*(Math.random()-0.5));}
+function rollingMean(arr,w){const r=[];for(let i=0;i<arr.length;i++){if(i<w-1){r.push(null);}else{let s=0;for(let j=i-w+1;j<=i;j++)s+=arr[j];r.push(s/w);}};return r;}
+function rollingStd(arr,w){const m=rollingMean(arr,w);const r=[];for(let i=0;i<arr.length;i++){if(i<w-1){r.push(null);}else{let s=0;for(let j=i-w+1;j<=i;j++)s+=(arr[j]-m[i])**2;r.push(Math.sqrt(s/w));}};return r;}
+let vChart=null,curViz=0;
+const vizInfoTexts=[
+  '<strong style="color:var(--cyan);">📈 Line Plot:</strong> Visualisasi paling dasar — sinyal mentah terhadap waktu. Bisa langsung melihat osilasi, tren naik, dan noise. Tetapi saat noise tinggi, tren sulit dibedakan. Untuk data 1200 sampel (60s × 20Hz), line plot menunjukkan keseluruhan dinamika sinyal.',
+  '<strong style="color:#f97316;">📉 Rolling Mean (w=50):</strong> Menghaluskan noise dengan merata-ratakan 50 sampel terakhir (= 2.5 detik). Garis orange menunjukkan tren yang <em>tersembunyi</em> di balik noise. Perhatikan tren naik perlahan yang sekarang terlihat jelas — ini indikasi bearing yang mulai aus.',
+  '<strong style="color:#f43f5e;">📊 Rolling Std (w=50):</strong> Mengukur variabilitas sinyal dalam window 50 sampel. Jika rolling std meningkat → sinyal makin "liar" → potensi kerusakan. Teknik ini sangat sensitif terhadap perubahan perilaku sinyal, bahkan sebelum tren RMS naik signifikan.',
+  '<strong style="color:#a78bfa;">📊 Histogram:</strong> Distribusi nilai amplitudo. Sinyal normal: distribusi mendekati Gaussian (simetris). Jika ada outlier/impuls (bearing fault): distribusi melebar dan ekor tebal (heavy-tailed). Kurtosis > 3 = indikasi kerusakan.'
+];
+function renderVizChart(idx){
+  if(vChart)vChart.destroy();const ds=[];
+  if(idx===0){ds.push({label:'Raw Signal',data:vizRaw,borderColor:'#f59e0b',borderWidth:1.5,tension:.2,pointRadius:0,fill:false});}
+  else if(idx===1){ds.push({label:'Raw',data:vizRaw,borderColor:'#475569',borderWidth:0.8,tension:.2,pointRadius:0,fill:false});ds.push({label:'Rolling Mean (w=50)',data:rollingMean(vizRaw,50),borderColor:'#f97316',borderWidth:2.5,tension:.3,pointRadius:0,fill:false});}
+  else if(idx===2){ds.push({label:'Rolling Std (w=50)',data:rollingStd(vizRaw,50),borderColor:'#f43f5e',borderWidth:2,tension:.3,pointRadius:0,fill:{target:'origin',backgroundColor:'rgba(244,63,94,.08)'}});}
+  else if(idx===3){
+    const bins=40,mn=Math.min(...vizRaw),mx=Math.max(...vizRaw),bw=(mx-mn)/bins;
+    const counts=Array(bins).fill(0);const labels=[];
+    vizRaw.forEach(v=>{let b=Math.floor((v-mn)/bw);if(b>=bins)b=bins-1;counts[b]++;});
+    for(let i=0;i<bins;i++)labels.push((mn+i*bw+bw/2).toFixed(2));
+    vChart=new Chart(document.getElementById('vizTechChart'),{type:'bar',data:{labels,datasets:[{label:'Distribusi',data:counts,backgroundColor:'rgba(167,139,250,.6)',borderColor:'#a78bfa',borderWidth:1}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#cdd6e8'}}},scales:{x:{grid:{color:'#1a2840'},ticks:{color:'#4a6080',maxTicksLimit:10},title:{display:true,text:'Amplitudo',color:'#4a6080'}},y:{grid:{color:'#1a2840'},ticks:{color:'#4a6080'},title:{display:true,text:'Frekuensi',color:'#4a6080'}}}}});
+    document.getElementById('vizInfo').innerHTML=vizInfoTexts[idx];return;
+  }
+  vChart=new Chart(document.getElementById('vizTechChart'),{type:'line',data:{labels:vizT,datasets:ds},options:{responsive:true,maintainAspectRatio:false,animation:{duration:400},plugins:{legend:{labels:{color:'#cdd6e8',font:{size:11}}}},scales:{x:{grid:{color:'#1a2840'},ticks:{color:'#4a6080',maxTicksLimit:12},title:{display:true,text:'Waktu (s)',color:'#4a6080'}},y:{grid:{color:'#1a2840'},ticks:{color:'#4a6080'},title:{display:true,text:idx===2?'Std Dev':'Amplitudo (mm/s)',color:'#4a6080'}}}}});
+  document.getElementById('vizInfo').innerHTML=vizInfoTexts[idx];
 }
-function setMode(mode,btn){curMode=mode;document.querySelectorAll('#btn-n,#btn-f,#btn-b').forEach(b=>{b.style.background='rgba(245,158,11,.08)';b.style.borderColor='rgba(245,158,11,.3)';});btn.style.background='rgba(245,158,11,.25)';btn.style.borderColor='#f59e0b';updateChart();}
-function updateChart(){const v=parseFloat(document.getElementById('noiseSlider').value);document.getElementById('noiseVal').textContent=v.toFixed(2);drawChart(v);}
-drawChart(0.3);
+function pickViz(idx,btn){curViz=idx;for(let i=0;i<4;i++){const b=document.getElementById('btn-v'+i);b.style.background='rgba(245,158,11,.08)';b.style.borderColor='rgba(245,158,11,.3)';}btn.style.background='rgba(245,158,11,.25)';btn.style.borderColor='#f59e0b';renderVizChart(idx);}
+renderVizChart(0);
 
-// ═══ CANVAS: LIVE STREAM ═══
+// ═══ CANVAS: ROLLING WINDOW EXPLORER ═══
 {
-  const cv=document.getElementById('cv_stream');cv.height=220;
-  let playing=true,t=0;
-  const history=[];
-  function drawStream(){
+  const cv=document.getElementById('cv_rolling');cv.height=280;
+  function drawRolling(){
     const W=cv.clientWidth||800;cv.width=W;const H=cv.height;
     const ctx=cv.getContext('2d');
-    const amp=parseFloat(document.getElementById('sl_amp1').value);
-    const freq=parseFloat(document.getElementById('sl_freq1').value);
-    document.getElementById('v_amp1').textContent=amp.toFixed(1);
-    document.getElementById('v_freq1').textContent=freq.toFixed(1);
-    const val=amp*Math.sin(2*Math.PI*freq*t/60)+(Math.random()-0.5)*0.1;
-    history.push(val);if(history.length>W/2)history.shift();
-    t++;
+    const win=parseInt(document.getElementById('sl_win').value);
+    const noise=parseFloat(document.getElementById('sl_noise').value);
+    document.getElementById('v_win').textContent=win;
+    document.getElementById('v_noise').textContent=noise.toFixed(2);
+    // generate data
+    const N=400;const raw=[],rm=[];
+    for(let i=0;i<N;i++){const t=i*0.05;raw.push(0.5*Math.sin(t*8)+0.01*t+noise*(Math.random()-0.5)*2);}
+    for(let i=0;i<N;i++){if(i<win){rm.push(null);}else{let s=0;for(let j=i-win+1;j<=i;j++)s+=raw[j];rm.push(s/win);}}
     ctx.fillStyle='#030810';ctx.fillRect(0,0,W,H);
+    // grid
     ctx.strokeStyle='#0d1e33';ctx.lineWidth=1;
-    for(let x=0;x<W;x+=60){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
-    for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
-    const cy=H/2;
-    ctx.strokeStyle='#1a3050';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(0,cy);ctx.lineTo(W,cy);ctx.stroke();
-    ctx.strokeStyle='#f59e0b';ctx.lineWidth=2.5;ctx.shadowColor='#f59e0b';ctx.shadowBlur=12;ctx.beginPath();
-    for(let i=0;i<history.length;i++){
-      const px=W-((history.length-i)*2);const py=cy-history[i]*(H/2-20)/2;
-      if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
-    }
+    for(let x=40;x<W;x+=60){ctx.beginPath();ctx.moveTo(x,10);ctx.lineTo(x,H-30);ctx.stroke();}
+    for(let y=20;y<H-20;y+=40){ctx.beginPath();ctx.moveTo(30,y);ctx.lineTo(W-10,y);ctx.stroke();}
+    const cy=H/2,amp=(H/2-40)/1.5;
+    // raw signal (gray)
+    ctx.strokeStyle='#475569';ctx.lineWidth=1;ctx.globalAlpha=0.5;ctx.beginPath();
+    for(let i=0;i<N;i++){const px=40+(i/N)*(W-50);const py=cy-raw[i]*amp;if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);}
+    ctx.stroke();ctx.globalAlpha=1;
+    // rolling mean (amber)
+    ctx.strokeStyle='#f59e0b';ctx.lineWidth=3;ctx.shadowColor='#f59e0b';ctx.shadowBlur=10;ctx.beginPath();
+    let first=true;
+    for(let i=0;i<N;i++){if(rm[i]===null)continue;const px=40+(i/N)*(W-50);const py=cy-rm[i]*amp;if(first){ctx.moveTo(px,py);first=false;}else ctx.lineTo(px,py);}
     ctx.stroke();ctx.shadowBlur=0;
-    if(history.length>0){
-      const lastPx=W-2;const lastPy=cy-history[history.length-1]*(H/2-20)/2;
-      ctx.fillStyle='#ffb300';ctx.shadowColor='#ffb300';ctx.shadowBlur=16;
-      ctx.beginPath();ctx.arc(lastPx,lastPy,7,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
-      ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(lastPx,lastPy,3,0,Math.PI*2);ctx.fill();
-    }
+    // window highlight box
+    const wStart=40+((N-win)/N)*(W-50),wEnd=40+((N)/N)*(W-50);
+    ctx.fillStyle='rgba(245,158,11,.06)';ctx.fillRect(wStart,10,wEnd-wStart,H-40);
+    ctx.strokeStyle='rgba(245,158,11,.3)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+    ctx.strokeRect(wStart,10,wEnd-wStart,H-40);ctx.setLineDash([]);
+    // labels
+    ctx.fillStyle='#f59e0b';ctx.font='bold 11px JetBrains Mono';
+    ctx.fillText('Window = '+win+' sampel = '+(win*0.05).toFixed(1)+'s',wStart+4,24);
     ctx.fillStyle='#4a6080';ctx.font='11px JetBrains Mono';
-    ctx.fillText('A='+amp.toFixed(1)+' mm/s | f='+freq.toFixed(1)+' Hz',12,H-12);
-    if(playing)requestAnimationFrame(drawStream);
+    ctx.fillText('Rolling Mean (amber) vs Raw (gray)',12,H-8);
+    // update info
+    document.getElementById('rollingInfo').innerHTML='<strong style="color:#f43f5e;">📖 Penjelasan:</strong> <strong style="color:#475569;">Abu-abu</strong> = sinyal mentah (noisy). <strong style="color:#f59e0b;">Kuning</strong> = rolling mean dengan window <strong>'+win+' sampel</strong> (= '+(win*0.05).toFixed(1)+' detik pada 20 Hz). '+(win<30?'Window kecil: <strong>responsif</strong> tapi masih noisy — baik untuk deteksi anomali cepat.':win<80?'Window sedang: <strong>keseimbangan</strong> antara smoothing dan responsivitas.':'Window besar: <strong>sangat smooth</strong> tapi lambat merespons perubahan mendadak — tren jangka panjang terlihat jelas.');
   }
-  window.toggleStream=function(){playing=!playing;document.getElementById('btn_stream').textContent=playing?'⏸ PAUSE':'▶ PLAY';if(playing)drawStream();};
-  ['sl_amp1','sl_freq1'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{if(!playing)drawStream();}));
-  drawStream();
+  ['sl_win','sl_noise'].forEach(id=>document.getElementById(id).addEventListener('input',drawRolling));
+  drawRolling();
 }
 </script>
 
