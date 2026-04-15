@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pertemuan 4 — Getaran Paksa | Getaran Mekanik</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Sans+3:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
@@ -187,6 +188,24 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 .comp-inputs{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
 @media(max-width:640px){.comp-inputs{grid-template-columns:1fr}}
 .comp-answer{margin-top:16px;max-width:400px}
+/* ── Pyodide Python Runner ── */
+.comp-code-wrap{margin-top:16px}
+.code-textarea{width:100%;min-height:130px;background:#030a15;border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#a8c0e0;resize:vertical;transition:border-color .2s;line-height:1.6}
+.code-textarea:focus{outline:none;border-color:rgba(124,77,255,.5);box-shadow:0 0 0 3px rgba(124,77,255,.08)}
+.code-textarea::placeholder{color:#2a3a52;font-size:11px}
+.stdout-box{display:none;margin-top:8px;background:#020810;border:1px solid rgba(0,230,118,.25);border-radius:8px;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#a8c0e0;white-space:pre-wrap;max-height:120px;overflow-y:auto}
+.stdout-box.show{display:block}
+.stdout-box .stdout-label{font-size:10px;color:var(--green);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.stdout-box .stderr-line{color:var(--pink)}
+.run-btn{margin-top:12px;padding:9px 24px;border-radius:10px;border:1px solid rgba(0,229,255,.4);background:rgba(0,229,255,.1);color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
+.run-btn:hover:not(:disabled){background:rgba(0,229,255,.2);box-shadow:0 4px 16px rgba(0,229,255,.15)}
+.run-btn:disabled{opacity:.5;cursor:not-allowed}
+.run-btn.running{animation:btnPulse .8s ease-in-out infinite}
+@keyframes btnPulse{0%,100%{opacity:1}50%{opacity:.5}}
+/* Pyodide status bar */
+#pyodide-status{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:500;background:rgba(13,21,32,.95);border:1px solid rgba(0,229,255,.3);border-radius:12px;padding:10px 20px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--cyan);display:none;align-items:center;gap:10px;backdrop-filter:blur(12px);box-shadow:0 8px 32px rgba(0,0,0,.5)}
+#pyodide-status.show{display:flex}
+#pyodide-dot{width:8px;height:8px;border-radius:50%;background:var(--amber);animation:navPulse 1s ease-in-out infinite}
 .input-col{display:flex;flex-direction:column;gap:8px}
 .input-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.5px;display:flex;align-items:center;gap:8px}
 .input-label .col-badge{padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700}
@@ -486,6 +505,12 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <div class="visitor-panel" id="visitorPanel">
   <div class="vp-header"><h3>👥 Mahasiswa</h3><span class="vp-badge" id="vpBadge">0 orang</span></div>
   <div class="vp-list" id="vpList"><div class="vp-empty">Memuat data mahasiswa...</div></div>
+</div>
+
+<!-- Pyodide Status Bar -->
+<div id="pyodide-status">
+  <div id="pyodide-dot"></div>
+  <span id="pyodide-status-text">Memuat Python (Pyodide)...</span>
 </div>
 
 <!-- ─── NAVBAR ─── -->
@@ -1398,13 +1423,12 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       <div class="comp-hint">
         💡 <code>import numpy as np</code> &nbsp;|&nbsp; <code>omega_n = np.sqrt(k/m)</code> &nbsp;|&nbsp; Jawaban dalam rad/s
       </div>
-      <div class="comp-answer">
-          <div class="input-label"><span class="col-badge col-badge-ans">Jawaban Akhir ωₙ</span></div>
-          <input class="num-input" id="num-c1" type="number" step="0.01" placeholder="0.00">
-          <div class="num-input-unit">rad/s</div>
+      <div class="comp-code-wrap">
+          <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">ωₙ (rad/s)</strong></span></div>
+          <textarea class="code-textarea" id="code-c1" placeholder="# m = 5, k = 2000&#10;import numpy as np&#10;m = 5; k = 2000&#10;omega_n = np.sqrt(k/m)&#10;print(f"omega_n = {omega_n:.4f} rad/s")" oninput="onCodeInput('c1')"></textarea>
+          <div class="stdout-box" id="stdout-c1"></div>
         </div>
-      </div>
-      <button class="comp-submit" id="sub-c1" onclick="checkComp('c1', 20.0, 0.1)">✓ Validasi Jawaban</button>
+        <button class="comp-submit run-btn" id="sub-c1" onclick="runAndCheck('c1', 20.0, 0.1)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c1"></div>
     </div>
 
@@ -1418,13 +1442,12 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       <div class="comp-hint">
         💡 <code>c_c = 2 * np.sqrt(k * m)</code> &nbsp;|&nbsp; <code>zeta = c / c_c</code>
       </div>
-      <div class="comp-answer">
-          <div class="input-label"><span class="col-badge col-badge-ans">Jawaban Akhir ζ</span></div>
-          <input class="num-input" id="num-c2" type="number" step="0.001" placeholder="0.000">
-          <div class="num-input-unit">dimensionless</div>
+      <div class="comp-code-wrap">
+          <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">ζ (dimensionless)</strong></span></div>
+          <textarea class="code-textarea" id="code-c2" placeholder="# c = 40, m = 5, k = 2000&#10;cc = 2*np.sqrt(k*m)&#10;zeta = c/cc&#10;print(f"zeta = {zeta:.4f}")" oninput="onCodeInput('c2')"></textarea>
+          <div class="stdout-box" id="stdout-c2"></div>
         </div>
-      </div>
-      <button class="comp-submit" id="sub-c2" onclick="checkComp('c2', 0.2, 0.005)">✓ Validasi Jawaban</button>
+        <button class="comp-submit run-btn" id="sub-c2" onclick="runAndCheck('c2', 0.2, 0.005)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c2"></div>
     </div>
 
@@ -1438,13 +1461,12 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       <div class="comp-hint">
         💡 <code>r = omega / omega_n</code> &nbsp;|&nbsp; <code>DMF = 1/np.sqrt((1-r**2)**2 + (2*zeta*r)**2)</code>
       </div>
-      <div class="comp-answer">
-          <div class="input-label"><span class="col-badge col-badge-ans">Jawaban Akhir DMF</span></div>
-          <input class="num-input" id="num-c3" type="number" step="0.001" placeholder="0.000">
-          <div class="num-input-unit">dimensionless</div>
+      <div class="comp-code-wrap">
+          <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">DMF (omega=18)</strong></span></div>
+          <textarea class="code-textarea" id="code-c3" placeholder="# omega = 18, omega_n = 20, zeta = 0.2&#10;r = 18/20&#10;DMF = 1/np.sqrt((1-r**2)**2+(2*0.2*r)**2)&#10;print(f"DMF = {DMF:.4f}")" oninput="onCodeInput('c3')"></textarea>
+          <div class="stdout-box" id="stdout-c3"></div>
         </div>
-      </div>
-      <button class="comp-submit" id="sub-c3" onclick="checkComp('c3', 2.456, 0.05)">✓ Validasi Jawaban</button>
+        <button class="comp-submit run-btn" id="sub-c3" onclick="runAndCheck('c3', 2.456, 0.05)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c3"></div>
     </div>
 
@@ -1458,13 +1480,12 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       <div class="comp-hint">
         💡 <code>X_st = F0 / k</code> &nbsp;|&nbsp; <code>X = X_st * DMF</code> &nbsp;|&nbsp; Jawaban dalam meter (3 desimal)
       </div>
-      <div class="comp-answer">
-          <div class="input-label"><span class="col-badge col-badge-ans">Jawaban Akhir X</span></div>
-          <input class="num-input" id="num-c4" type="number" step="0.0001" placeholder="0.0000">
-          <div class="num-input-unit">meter</div>
+      <div class="comp-code-wrap">
+          <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">X (meter)</strong></span></div>
+          <textarea class="code-textarea" id="code-c4" placeholder="# F0=100, k=2000, DMF dari C3&#10;X_st = 100/2000&#10;X = X_st * DMF&#10;print(f"X = {X:.4f} m")" oninput="onCodeInput('c4')"></textarea>
+          <div class="stdout-box" id="stdout-c4"></div>
         </div>
-      </div>
-      <button class="comp-submit" id="sub-c4" onclick="checkComp('c4', 0.1228, 0.003)">✓ Validasi Jawaban</button>
+        <button class="comp-submit run-btn" id="sub-c4" onclick="runAndCheck('c4', 0.1228, 0.003)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c4"></div>
     </div>
 
@@ -1478,13 +1499,12 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       <div class="comp-hint">
         💡 <code>phi_rad = np.arctan2(2*zeta*r, 1-r**2)</code> &nbsp;|&nbsp; <code>phi_deg = np.degrees(phi_rad)</code>
       </div>
-      <div class="comp-answer">
-          <div class="input-label"><span class="col-badge col-badge-ans">Jawaban Akhir φ</span></div>
-          <input class="num-input" id="num-c5" type="number" step="0.1" placeholder="0.0">
-          <div class="num-input-unit">derajat (°)</div>
+      <div class="comp-code-wrap">
+          <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">φ (derajat)</strong></span></div>
+          <textarea class="code-textarea" id="code-c5" placeholder="# r=0.9, zeta=0.2&#10;phi_rad = np.arctan2(2*0.2*0.9, 1-0.9**2)&#10;phi_deg = np.degrees(phi_rad)&#10;print(f"phi = {phi_deg:.2f} deg")" oninput="onCodeInput('c5')"></textarea>
+          <div class="stdout-box" id="stdout-c5"></div>
         </div>
-      </div>
-      <button class="comp-submit" id="sub-c5" onclick="checkComp('c5', 62.2, 1.5)">✓ Validasi Jawaban</button>
+        <button class="comp-submit run-btn" id="sub-c5" onclick="runAndCheck('c5', 62.2, 1.5)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c5"></div>
     </div>
 
@@ -1498,13 +1518,12 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       <div class="comp-hint">
         💡 Saat r = 1: <code>DMF_res = 1 / (2*zeta)</code> &nbsp;|&nbsp; Verifikasi dengan rumus umum DMF juga
       </div>
-      <div class="comp-answer">
-          <div class="input-label"><span class="col-badge col-badge-ans">Jawaban Akhir DMF</span></div>
-          <input class="num-input" id="num-c6" type="number" step="0.01" placeholder="0.00">
-          <div class="num-input-unit">dimensionless</div>
+      <div class="comp-code-wrap">
+          <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">DMF resonansi</strong></span></div>
+          <textarea class="code-textarea" id="code-c6" placeholder="# r=1, zeta=0.2&#10;DMF_res = 1/(2*0.2)&#10;print(f"DMF_resonance = {DMF_res:.4f}")" oninput="onCodeInput('c6')"></textarea>
+          <div class="stdout-box" id="stdout-c6"></div>
         </div>
-      </div>
-      <button class="comp-submit" id="sub-c6" onclick="checkComp('c6', 2.5, 0.05)">✓ Validasi Jawaban</button>
+        <button class="comp-submit run-btn" id="sub-c6" onclick="runAndCheck('c6', 2.5, 0.05)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c6"></div>
     </div>
 
@@ -1518,13 +1537,12 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       <div class="comp-hint">
         💡 <code>r_max = np.sqrt(1 - 2*zeta**2)</code> &nbsp;|&nbsp; <code>DMF_max = 1/(2*zeta*np.sqrt(1-zeta**2))</code>
       </div>
-      <div class="comp-answer">
-          <div class="input-label"><span class="col-badge col-badge-ans">Jawaban Akhir DMF_max</span></div>
-          <input class="num-input" id="num-c7" type="number" step="0.001" placeholder="0.000">
-          <div class="num-input-unit">dimensionless</div>
+      <div class="comp-code-wrap">
+          <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">DMF maksimum</strong></span></div>
+          <textarea class="code-textarea" id="code-c7" placeholder="# zeta=0.2&#10;r_max = np.sqrt(1-2*0.2**2)&#10;DMF_max = 1/(2*0.2*np.sqrt(1-0.2**2))&#10;print(f"DMF_max = {DMF_max:.4f}")" oninput="onCodeInput('c7')"></textarea>
+          <div class="stdout-box" id="stdout-c7"></div>
         </div>
-      </div>
-      <button class="comp-submit" id="sub-c7" onclick="checkComp('c7', 2.552, 0.05)">✓ Validasi Jawaban</button>
+        <button class="comp-submit run-btn" id="sub-c7" onclick="runAndCheck('c7', 2.552, 0.05)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c7"></div>
     </div>
 
@@ -1538,13 +1556,12 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       <div class="comp-hint">
         💡 <code>Tr = np.sqrt(1+(2*zeta*r)**2) / np.sqrt((1-r**2)**2+(2*zeta*r)**2)</code>
       </div>
-      <div class="comp-answer">
-          <div class="input-label"><span class="col-badge col-badge-ans">Jawaban Akhir Tᵣ</span></div>
-          <input class="num-input" id="num-c8" type="number" step="0.001" placeholder="0.000">
-          <div class="num-input-unit">dimensionless</div>
+      <div class="comp-code-wrap">
+          <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">Tr transmissibility</strong></span></div>
+          <textarea class="code-textarea" id="code-c8" placeholder="# r=0.9, zeta=0.2&#10;Tr = np.sqrt(1+(2*0.2*0.9)**2)/np.sqrt((1-0.9**2)**2+(2*0.2*0.9)**2)&#10;print(f"Tr = {Tr:.4f}")" oninput="onCodeInput('c8')"></textarea>
+          <div class="stdout-box" id="stdout-c8"></div>
         </div>
-      </div>
-      <button class="comp-submit" id="sub-c8" onclick="checkComp('c8', 2.611, 0.06)">✓ Validasi Jawaban</button>
+        <button class="comp-submit run-btn" id="sub-c8" onclick="runAndCheck('c8', 2.611, 0.06)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c8"></div>
     </div>
 
@@ -1558,13 +1575,12 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       <div class="comp-hint">
         💡 <code>E_d = np.pi * c * omega * X**2</code> &nbsp;|&nbsp; ω = 18 rad/s, X ≈ 0.1228 m
       </div>
-      <div class="comp-answer">
-          <div class="input-label"><span class="col-badge col-badge-ans">Jawaban Akhir E_d</span></div>
-          <input class="num-input" id="num-c9" type="number" step="0.1" placeholder="0.0">
-          <div class="num-input-unit">Joule (J)</div>
+      <div class="comp-code-wrap">
+          <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">E_d (Joule)</strong></span></div>
+          <textarea class="code-textarea" id="code-c9" placeholder="# omega=18, c=40, X=0.1228&#10;E_d = np.pi * 40 * 18 * 0.1228**2&#10;print(f"E_d = {E_d:.2f} J")" oninput="onCodeInput('c9')"></textarea>
+          <div class="stdout-box" id="stdout-c9"></div>
         </div>
-      </div>
-      <button class="comp-submit" id="sub-c9" onclick="checkComp('c9', 34.1, 0.8)">✓ Validasi Jawaban</button>
+        <button class="comp-submit run-btn" id="sub-c9" onclick="runAndCheck('c9', 34.1, 0.8)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c9"></div>
     </div>
 
@@ -1578,13 +1594,12 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       <div class="comp-hint">
         💡 r = 25/20 = 1.25 → DMF &lt; 1? Bandingkan X dengan X_st. Apa artinya secara fisik?
       </div>
-      <div class="comp-answer">
-          <div class="input-label"><span class="col-badge col-badge-ans">Jawaban Akhir X</span></div>
-          <input class="num-input" id="num-c10" type="number" step="0.0001" placeholder="0.0000">
-          <div class="num-input-unit">meter</div>
+      <div class="comp-code-wrap">
+          <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">X (meter, omega=25)</strong></span></div>
+          <textarea class="code-textarea" id="code-c10" placeholder="# omega=25, m=5, k=2000, c=40, F0=100&#10;omega_n=20; zeta=0.2; r=25/20&#10;DMF=1/np.sqrt((1-r**2)**2+(2*zeta*r)**2)&#10;X=(100/2000)*DMF&#10;print(f"X = {X:.4f} m")" oninput="onCodeInput('c10')"></textarea>
+          <div class="stdout-box" id="stdout-c10"></div>
         </div>
-      </div>
-      <button class="comp-submit" id="sub-c10" onclick="checkComp('c10', 0.0665, 0.003)">✓ Validasi Jawaban</button>
+        <button class="comp-submit run-btn" id="sub-c10" onclick="runAndCheck('c10', 0.0665, 0.003)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c10"></div>
     </div>
 
@@ -1847,6 +1862,10 @@ function switchTab(tab) {
   if (tab === 'modul') {
     setTimeout(() => { drawDMF(); drawTransmissibility(); drawFull(); drawResp(); }, 200);
   }
+  if (tab === 'tugas') {
+    // Pre-warm Pyodide so first run is faster
+    setTimeout(() => getPyodide().catch(() => {}), 500);
+  }
 }
 // Show modul sub-nav on initial load
 document.addEventListener('DOMContentLoaded', () => {
@@ -1962,36 +1981,165 @@ function checkMC(qId) {
 }
 
 // ── COMP LOGIC ──
-let compAnswered = {}, compScores = {};
-function checkComp(qId, correctAns, tol) {
-  const fb = document.getElementById('fb-' + qId);
-  if (compAnswered[qId]) {
-    fb.className = 'feedback correct';
-    fb.textContent = '✅ Sudah dijawab sebelumnya — poin telah tercatat.';
-    document.getElementById('sub-' + qId).disabled = true;
-    return;
+// ═══════════════════════════════════════════════════════
+// PYODIDE — Python-in-Browser Runner
+// ═══════════════════════════════════════════════════════
+let _pyodideInstance = null;
+let _pyodideLoading  = false;
+let _pyodideQueue    = [];
+
+function setPyStatus(msg, ready) {
+  const bar  = document.getElementById('pyodide-status');
+  const dot  = document.getElementById('pyodide-dot');
+  const text = document.getElementById('pyodide-status-text');
+  if (!bar) return;
+  if (msg === null) { bar.classList.remove('show'); return; }
+  bar.classList.add('show');
+  text.textContent = msg;
+  if (dot) dot.style.background = ready ? 'var(--green)' : 'var(--amber)';
+}
+
+async function getPyodide() {
+  if (_pyodideInstance) return _pyodideInstance;
+  if (_pyodideLoading) {
+    return new Promise((res, rej) => _pyodideQueue.push({ res, rej }));
   }
-  const numStr = document.getElementById('num-' + qId).value;
-  if (numStr === '' || isNaN(parseFloat(numStr))) {
-    fb.className = 'feedback warn';
-    fb.textContent = '⚠ Isi jawaban akhir berupa angka.';
-    return;
-  }
-  const ans = parseFloat(numStr);
-  if (Math.abs(ans - correctAns) <= tol) {
-    fb.className = 'feedback correct';
-    fb.textContent = '✅ Benar! +2 poin';
-    compAnswered[qId] = true;
-    compScores[qId] = 2;
-    document.getElementById('sub-' + qId).disabled = true;
-    if (typeof window._awardCompPoint === 'function') window._awardCompPoint(qId);
-    updateScore();
-    checkExportReady();
-  } else {
-    fb.className = 'feedback wrong';
-    fb.textContent = '❌ Jawaban kurang tepat. Periksa kembali perhitungan Anda.';
+  _pyodideLoading = true;
+  setPyStatus('⏳ Memuat Python (Pyodide)... Tunggu sebentar', false);
+  try {
+    const pyodide = await loadPyodide({ indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.25.1/full/' });
+    setPyStatus('📦 Memuat numpy...', false);
+    await pyodide.loadPackage('numpy');
+    // Pre-load sys.stdout redirection
+    await pyodide.runPythonAsync(`
+import sys, io
+class _Capture:
+    def __init__(self): self.buf = io.StringIO()
+    def write(self, s): self.buf.write(s)
+    def flush(self): pass
+    def getvalue(self): return self.buf.getvalue()
+    def reset(self): self.buf = io.StringIO()
+_cap = _Capture()
+`);
+    _pyodideInstance = pyodide;
+    _pyodideQueue.forEach(q => q.res(pyodide));
+    _pyodideQueue = [];
+    setPyStatus('✅ Python siap', true);
+    setTimeout(() => setPyStatus(null), 2000);
+    return pyodide;
+  } catch (e) {
+    _pyodideLoading = false;
+    _pyodideQueue.forEach(q => q.rej(e));
+    _pyodideQueue = [];
+    setPyStatus('❌ Gagal memuat Python', false);
+    throw e;
   }
 }
+
+// Warm-up: load Pyodide as soon as tugas tab is opened
+document.addEventListener('DOMContentLoaded', () => {
+  // Pre-load silently after small delay
+  setTimeout(() => {
+    if (document.getElementById('page-tugas')?.classList.contains('active')) getPyodide();
+  }, 2000);
+});
+
+function onCodeInput(qId) {
+  const btn = document.getElementById('sub-' + qId);
+  if (btn && btn.disabled && !compAnswered[qId]) {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+  }
+  checkExportReady();
+}
+
+// Parse all numbers (including scientific notation) from a string
+function parseNumbers(str) {
+  const matches = str.match(/-?\d+\.?\d*(?:[eE][+-]?\d+)?/g) || [];
+  return matches.map(Number).filter(n => isFinite(n));
+}
+
+let compAnswered = {}, compScores = {};
+
+async function runAndCheck(qId, expectedAns, tol) {
+  if (compAnswered[qId]) {
+    const fb = document.getElementById('fb-' + qId);
+    fb.className = 'feedback correct';
+    fb.textContent = '✅ Sudah dijawab sebelumnya — poin telah tercatat.';
+    return;
+  }
+  const btn    = document.getElementById('sub-' + qId);
+  const fb     = document.getElementById('fb-' + qId);
+  const ta     = document.getElementById('code-' + qId);
+  const stdout = document.getElementById('stdout-' + qId);
+  const code   = ta ? ta.value.trim() : '';
+
+  if (!code) {
+    fb.className = 'feedback warn'; fb.textContent = '⚠ Tulis kode Python terlebih dahulu.'; return;
+  }
+
+  btn.disabled = true; btn.classList.add('running');
+  fb.className = 'feedback warn'; fb.textContent = '⏳ Menjalankan kode...';
+  if (stdout) { stdout.innerHTML = ''; stdout.classList.remove('show'); }
+
+  try {
+    const pyodide = await getPyodide();
+
+    // Reset capture buffer
+    await pyodide.runPythonAsync('_cap.reset(); sys.stdout = _cap');
+
+    let errMsg = null;
+    try {
+      await pyodide.runPythonAsync(code);
+    } catch (runErr) {
+      errMsg = String(runErr.message || runErr).replace(/^PythonError:\s*/, '');
+    }
+
+    // Restore stdout
+    await pyodide.runPythonAsync('sys.stdout = sys.__stdout__');
+    const output = await pyodide.runPythonAsync('_cap.getvalue()');
+
+    // Show stdout in the box
+    if (stdout) {
+      stdout.classList.add('show');
+      if (errMsg) {
+        stdout.innerHTML = `<div class="stdout-label">❌ Error</div><div class="stderr-line">${errMsg.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`;
+        fb.className = 'feedback wrong';
+        fb.textContent = '❌ Kode menghasilkan error. Periksa pesan di atas.';
+        btn.disabled = false; btn.classList.remove('running');
+        return;
+      }
+      const outEsc = (output||'').replace(/</g,'&lt;').replace(/>/g,'&gt;') || '(tidak ada output)';
+      stdout.innerHTML = `<div class="stdout-label">📤 Output</div>${outEsc}`;
+    }
+
+    // Check output
+    const nums = parseNumbers(output || '');
+    const correct = nums.some(n => Math.abs(n - expectedAns) <= tol);
+
+    if (correct) {
+      fb.className = 'feedback correct';
+      fb.textContent = `✅ Kode berjalan tanpa error & output benar! +2 poin`;
+      compAnswered[qId] = true; compScores[qId] = 2;
+      btn.textContent = '✓ Selesai'; btn.classList.remove('running');
+      if (ta) ta.style.borderColor = 'rgba(0,230,118,.5)';
+      if (typeof window._awardCompPoint === 'function') window._awardCompPoint(qId);
+      updateScore(); checkExportReady();
+    } else {
+      fb.className = 'feedback wrong';
+      const outPreview = (output || '(kosong)').trim().slice(0, 120);
+      fb.textContent = `❌ Kode berjalan tapi output tidak mengandung nilai yang benar (≈ ${expectedAns}). Output: "${outPreview}"`;
+      btn.disabled = false; btn.classList.remove('running');
+    }
+  } catch (e) {
+    fb.className = 'feedback wrong';
+    fb.textContent = '❌ Gagal memuat Python: ' + String(e).slice(0, 150);
+    btn.disabled = false; btn.classList.remove('running');
+  }
+}
+
+// Keep checkComp alias for _loadScoredQuestions compatibility
+function checkComp(qId, expectedAns, tol) { runAndCheck(qId, expectedAns, tol); }
 
 // ── SCORE UPDATE ──
 function updateScore() {
@@ -2040,12 +2188,9 @@ function checkExportReady() {
   const btnTop    = document.getElementById('btn-score-export');
   const msgEl     = document.getElementById('export-blocked-msg');
 
-  // Check all num-inputs filled
+  // Check all comp questions answered (via Pyodide run)
   const ids = ['c1','c2','c3','c4','c5','c6','c7','c8','c9','c10'];
-  const emptyNums = ids.filter(id => {
-    const el = document.getElementById('num-' + id);
-    return !el || el.value === '' || isNaN(parseFloat(el.value));
-  });
+  const emptyNums = ids.filter(id => !compAnswered[id]);
 
   // Check MC all answered
   const mcIds = ['mc1','mc2','mc3','mc4','mc5'];
@@ -2119,8 +2264,8 @@ function exportTugasHtml() {
     { id:'c10', label:'X (m, ω=25)', q:'Amplitudo steady-state X untuk ω = 25 rad/s' },
   ];
   const compData = compDefs.map(d => {
-    const el = document.getElementById('num-' + d.id);
-    return { ...d, val: el ? el.value : '', pts: compScores[d.id] || 0 };
+    const ta = document.getElementById('code-' + d.id);
+    return { ...d, code: ta ? ta.value.trim() : '', pts: compScores[d.id] || 0 };
   });
 
   const html = `<!DOCTYPE html>
@@ -2201,12 +2346,12 @@ function exportTugasHtml() {
   <!-- COMP TABLE -->
   <div class="section-head" style="margin-top:2px"><h2>💻 Bagian B — Komputasi (${comp}/20 poin)</h2></div>
   <table>
-    <thead><tr><th style="width:40px">No</th><th>Soal</th><th style="width:130px">Jawaban Akhir</th><th style="width:60px;text-align:center">Poin</th></tr></thead>
+    <thead><tr><th style="width:40px">No</th><th>Soal</th><th>Kode Python</th><th style="width:60px;text-align:center">Poin</th></tr></thead>
     <tbody>
       ${compData.map((d,i) => `<tr>
         <td>C${i+1}</td>
         <td style="font-size:.8rem;color:#475569">${d.q}</td>
-        <td style="font-family:monospace;font-size:.9rem;font-weight:700;color:${d.val?'#1e293b':'#94a3b8'}">${esc(d.val||'—')} <span style="font-size:.7rem;color:#94a3b8">${d.label.includes('(')? '' : '(' + d.label + ')'}</span></td>
+        <td style="font-family:monospace;font-size:.78rem;background:#f8f5ff;padding:6px 8px;border-radius:4px;white-space:pre-wrap;max-width:280px;word-break:break-word">${esc(d.code||'(belum diisi)')}</td>
         <td class="pts" style="color:${d.pts?'#059669':'#dc2626'}">${d.pts}</td>
       </tr>`).join('')}
     </tbody>
@@ -2977,10 +3122,12 @@ window._loadScoredQuestions = function() {
       if (qId.endsWith('_comp')) {
         const baseId = qId.replace('_comp','');
         if (!compAnswered[baseId]) { compAnswered[baseId]=true; compScores[baseId]=2; }
-        const sub=document.getElementById('sub-'+baseId); if(sub) sub.disabled=true;
-        const ta=document.getElementById('code-'+baseId); if(ta) ta.disabled=true;
-        const na=document.getElementById('num-'+baseId); if(na) na.disabled=true;
-        const fb=document.getElementById('fb-'+baseId); if(fb&&!fb.classList.contains('correct')){fb.className='feedback correct';fb.textContent='✅ Sudah dijawab sebelumnya — poin telah tercatat.';}
+        const sub=document.getElementById('sub-'+baseId);
+        if(sub){ sub.disabled=true; sub.textContent='✓ Selesai'; sub.classList.remove('running'); }
+        const ta=document.getElementById('code-'+baseId);
+        if(ta) ta.style.borderColor='rgba(0,230,118,.5)';
+        const fb=document.getElementById('fb-'+baseId);
+        if(fb&&!fb.classList.contains('correct')){fb.className='feedback correct';fb.textContent='✅ Sudah dijawab sebelumnya — poin telah tercatat.';}
       }
     });
     updateScore();
