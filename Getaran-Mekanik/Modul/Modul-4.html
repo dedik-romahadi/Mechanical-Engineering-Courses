@@ -308,30 +308,111 @@ footer a:hover{color:var(--cyan)}
 .vt-row:hover .vt-visit{color:#06d6a0!important}
 .vt-row.absen:hover .vt-visit{color:#9ca3af!important}
 
-/* ── PRINT STYLES ── */
+/* ── MODUL SUB-NAV LINKS ── */
+.nav-links{display:none;gap:20px;align-items:center}
+.nav-links.show{display:flex}
+.nav-links a{font-size:11px;font-weight:500;color:var(--muted);text-decoration:none;letter-spacing:.8px;text-transform:uppercase;transition:color .2s;position:relative;white-space:nowrap}
+.nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:2px;background:var(--violet);border-radius:2px;transition:width .3s}
+.nav-links a:hover{color:var(--violet)}
+.nav-links a:hover::after{width:100%}
+@media(max-width:900px){.nav-links{display:none!important}}
+
+/* ── CODE BLOCKS ── */
+.code-wrap{background:#030810;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:24px;transition:box-shadow .3s}
+.code-wrap:hover{box-shadow:0 0 30px rgba(124,77,255,.05)}
+.code-header{padding:10px 18px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;position:relative}
+.code-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap}
+.code-dots{display:flex;gap:6px}
+.code-dots span{width:10px;height:10px;border-radius:50%}
+.code-copy{margin-left:auto;padding:4px 12px;border-radius:8px;border:1px solid rgba(124,77,255,.2);background:rgba(124,77,255,.06);color:var(--violet);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
+.code-copy:hover{background:rgba(124,77,255,.15);border-color:rgba(124,77,255,.4)}
+.code-lang{font-family:'JetBrains Mono',monospace;font-size:11px;background:rgba(124,77,255,.1);color:var(--violet);padding:2px 10px;border-radius:20px;border:1px solid rgba(124,77,255,.2)}
+pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.8;overflow-x:auto;color:#cdd6e8;white-space:pre}
+.kw{color:#7c4dff}.fn{color:#00e5ff}.st{color:#00e676}.cm{color:#3d5a7c}.nm{color:#ffb300}.op{color:#ff4081}
 @media print{
-  nav,#backToTop,.visitor-fab,.visitor-panel,.visitor-overlay,.overlay-bg,footer,
+  @page{size:A4;margin:18mm 14mm}
+  nav,#backToTop,.visitor-fab,.visitor-panel,.visitor-overlay,
   .page#page-modul,.page#page-forum,.score-bar .btn-export,
-  .float-formulas,.hero-waves,.hero-schematic,#scrollProgress{display:none!important}
-  body{background:#fff;color:#000}
+  .float-formulas,.hero-waves,.hero-schematic,#scrollProgress,
+  .countdown-wrap,.reveal:not(.visible),.mc-submit,.comp-submit,
+  .btn-export,.btn-export-forum,footer{display:none!important}
+  body{background:#fff!important;color:#1e293b!important;font-size:11pt}
   .page#page-tugas{display:block!important}
-  .hero{min-height:auto;padding:24px;background:#fff!important}
-  .hero-title{color:#1a1a2e!important;font-size:28px!important}
-  .hero-sub{color:#444!important}
-  .stat{border-color:#ddd;background:#f8f8f8}
-  .stat-num{color:#5b35d0}
-  .section{padding:24px 16px}
-  .mc-card,.comp-card{border-color:#ddd;background:#f8faff;box-shadow:none;break-inside:avoid}
-  .feedback{display:none!important}
-  .mc-submit,.comp-submit,.btn-export{display:none!important}
-  .code-textarea,.num-input{border:1px solid #ccc;background:#f0f4ff;color:#333}
-  h2.section-title{color:#1a1a2e}
-  .section-label{color:#5b35d0}
-  .section-label::before{background:#5b35d0}
-  .comp-hint{background:#f0f4ff;border-color:#ccc}
-  .info-box{background:#f8f8f8;border-color:#ddd}
-  .countdown-wrap{display:none}
-  .warn-box{background:#fff8f0;border-color:#ffb300}
+
+  /* ── PDF Cover ── */
+  .hero{
+    min-height:auto!important;padding:18px 24px 14px!important;
+    background:linear-gradient(135deg,#1e0a40,#0a1628)!important;
+    color:#fff!important;border-radius:0!important;
+    page-break-after:avoid
+  }
+  .hero-eyebrow{border-color:rgba(167,139,250,.5)!important;color:#a78bfa!important}
+  h1.hero-title{font-size:24pt!important;color:#fff!important;line-height:1.2!important;margin-bottom:8px!important}
+  h1.hero-title em{color:#a78bfa!important;-webkit-text-fill-color:#a78bfa!important}
+  h1.hero-title .hl-amber{color:#fbbf24!important;-webkit-text-fill-color:#fbbf24!important}
+  .hero-sub{color:#94a3b8!important;font-size:10pt!important;margin-bottom:12px!important}
+  .hero-stats{gap:10px!important}
+  .stat{background:#1a1a3e!important;border-color:#3b3a6e!important;padding:10px 16px!important}
+  .stat-num{font-size:24pt!important;color:#a78bfa!important}
+  .stat-lbl{color:#94a3b8!important;font-size:7pt!important}
+
+  /* ── Score Bar ── */
+  .score-bar{
+    position:static!important;background:#f0f4ff!important;border:1px solid #c4b5fd!important;
+    border-radius:10px!important;padding:12px 20px!important;margin:16px 0!important;
+    backdrop-filter:none!important;page-break-inside:avoid
+  }
+  .score-num{color:#5b35d0!important;font-size:28pt!important}
+  .score-fill{background:#5b35d0!important}
+  #scoreMC,#scoreComp{color:#5b35d0!important}
+
+  /* ── Sections ── */
+  .section{padding:14px 16px!important}
+  h2.section-title{color:#1e293b!important;font-size:16pt!important}
+  .section-label{color:#5b35d0!important;font-size:8pt!important}
+  .section-label::before{background:#5b35d0!important}
+  .q-type-badge{page-break-after:avoid}
+
+  /* ── MC Questions ── */
+  .mc-card{
+    border:1px solid #c4b5fd!important;background:#f8f5ff!important;
+    box-shadow:none!important;page-break-inside:avoid;margin-bottom:12px!important
+  }
+  .mc-num{background:#ede9fe!important;border-color:#c4b5fd!important;color:#5b35d0!important}
+  .mc-q{color:#1e293b!important}
+  .mc-pts{background:#ede9fe!important;color:#5b35d0!important}
+  .radio-option{
+    border-color:#e2e8f0!important;background:#fafafa!important;
+    color:#1e293b!important;padding:8px 12px!important;font-size:10pt!important
+  }
+  .radio-option.correct-ans{border-color:#10b981!important;background:#f0fdf4!important;color:#047857!important}
+  .radio-option.wrong-ans{border-color:#ef4444!important;background:#fef2f2!important}
+  .radio-circle{border-color:#cbd5e1!important}
+  .radio-option.correct-ans .radio-circle{background:#10b981!important;border-color:#10b981!important}
+  .feedback.correct{display:block!important;background:#f0fdf4!important;border-color:#86efac!important;color:#166534!important;font-size:9pt!important}
+
+  /* ── Comp Questions ── */
+  .comp-card{
+    border:1px solid #fde68a!important;background:#fffbeb!important;
+    box-shadow:none!important;page-break-inside:avoid;margin-bottom:14px!important
+  }
+  .comp-num{background:#fef9c3!important;border-color:#fde68a!important;color:#92400e!important}
+  .comp-q{color:#1e293b!important}
+  .comp-pts{background:#fef9c3!important;color:#92400e!important}
+  .comp-hint{background:#fff7ed!important;border-color:#fed7aa!important;color:#7c2d12!important;font-size:9pt!important}
+  .comp-inputs{grid-template-columns:1fr 1fr!important;gap:10px!important}
+  .input-label{color:#475569!important}
+  .col-badge-code{background:#ede9fe!important;color:#5b35d0!important}
+  .col-badge-ans{background:#fef9c3!important;color:#92400e!important}
+  /* Originals are hidden — print-visible clones used instead */
+  .code-textarea{display:none!important}
+  .num-input,.num-input-unit{display:none!important}
+  .feedback.correct{display:block!important;background:#f0fdf4!important;color:#166534!important;font-size:9pt!important}
+
+  /* ── Info boxes ── */
+  .info-box{background:#eff6ff!important;border-color:#bfdbfe!important;color:#1e3a5f!important}
+  .warn-box{background:#fff7ed!important;border-color:#fed7aa!important}
+  .warn-icon{color:#92400e!important}
 }
 </style>
 </head>
@@ -402,6 +483,16 @@ footer a:hover{color:var(--cyan)}
 <!-- ─── NAVBAR ─── -->
 <nav>
   <span class="nav-brand"><span class="pulse"></span><span>GETARANMESIN // P4</span></span>
+  <div class="nav-links" id="modulSubnav">
+    <a href="#m-persamaan">Persamaan</a>
+    <a href="#m-solusi">Solusi</a>
+    <a href="#m-dmf">DMF &amp; Fase</a>
+    <a href="#m-resonansi">Resonansi</a>
+    <a href="#m-animasi">Animasi</a>
+    <a href="#m-isolasi">Isolasi</a>
+    <a href="#m-jupyter">Python</a>
+    <a href="#m-aktivitas">Aktivitas</a>
+  </div>
   <div class="nav-tabs">
     <button class="nav-tab active" id="tab-modul" onclick="switchTab('modul')">📖 Modul</button>
     <button class="nav-tab" id="tab-tugas" onclick="switchTab('tugas')">📝 Tugas</button>
@@ -462,12 +553,12 @@ footer a:hover{color:var(--cyan)}
       <em>Paksa</em><br>
       <span class="hl-amber">Harmonis</span>
     </h1>
-    <p class="hero-sub">Respons sistem massa-pegas-peredam terhadap gaya eksitasi harmonik F(t) = F₀ sin(ωt). Memahami DMF, resonansi, sudut fase, dan isolasi getaran.</p>
+    <p class="hero-sub">Respons sistem massa-pegas-peredam terhadap gaya eksitasi harmonik F(t) = F₀ sin(ωt). Pelajari DMF, resonansi, sudut fase, isolasi getaran, dan implementasi Python.</p>
     <div class="hero-stats">
-      <div class="stat"><div class="stat-num">4</div><div class="stat-lbl">Bagian Materi</div></div>
+      <div class="stat"><div class="stat-num">7</div><div class="stat-lbl">Bagian Materi</div></div>
       <div class="stat"><div class="stat-num">4</div><div class="stat-lbl">Animasi</div></div>
-      <div class="stat"><div class="stat-num">15</div><div class="stat-lbl">Soal Tugas</div></div>
-      <div class="stat"><div class="stat-num">25</div><div class="stat-lbl">Total Poin</div></div>
+      <div class="stat"><div class="stat-num">4</div><div class="stat-lbl">Contoh Kode</div></div>
+      <div class="stat"><div class="stat-num">25</div><div class="stat-lbl">Poin Tugas</div></div>
     </div>
   </div>
 </div>
@@ -489,73 +580,121 @@ footer a:hover{color:var(--cyan)}
   </div>
 </div>
 
-<!-- BAGIAN 01 — PERSAMAAN GERAK -->
+<!-- ═══ BAGIAN 01 — PERSAMAAN GERAK ═══ -->
 <hr class="divider" style="margin-top:64px">
 <div class="section" id="m-persamaan">
   <div class="section-label reveal">Bagian 01</div>
   <h2 class="section-title reveal">Persamaan Gerak<br>Getaran Paksa</h2>
-  <p class="section-desc reveal">Sistem satu derajat kebebasan (SDOF) yang dikenai gaya harmonik eksternal menghasilkan respons yang terdiri dari bagian transien dan bagian tunak (steady-state).</p>
+  <p class="section-desc reveal">Getaran paksa terjadi ketika sistem diberi gaya luar yang bervariasi secara periodik. Sistem SDOF (Single Degree of Freedom) merespons dengan dua komponen: bagian transien yang mati karena redaman, dan bagian tunak yang terus bertahan selama gaya bekerja.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Persamaan Gerak</div>
+    <div class="label">Persamaan Diferensial Gerak</div>
     mẍ + cẋ + kx = F₀ sin(ωt)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
       <div class="card-icon">🌊</div>
-      <h3>Gaya Eksitasi</h3>
-      <p>Gaya luar harmonik dengan amplitudo F₀ dan frekuensi sudut ω (rad/s). Gaya ini menjadi "pengemudi" sistem.</p>
+      <h3>Gaya Eksitasi F(t)</h3>
+      <p>Gaya harmonik eksternal dengan amplitudo F₀ (Newton) dan frekuensi sudut ω (rad/s). Gaya ini menjadi "pengemudi" yang memaksa sistem bergetar pada frekuensinya sendiri — bukan pada frekuensi natural sistem.</p>
       <div class="formula">F(t) = F₀ sin(ωt)</div>
     </div>
     <div class="card">
-      <div class="card-icon">🔁</div>
-      <h3>Respons Steady-State</h3>
-      <p>Setelah transien mati (sistem teredam), hanya respons tunak yang tersisa dengan frekuensi sama dengan eksitasi.</p>
-      <div class="formula">x(t) = X sin(ωt − φ)</div>
+      <div class="card-icon">📦</div>
+      <h3>Tiga Gaya yang Berimbang</h3>
+      <p>Persamaan gerak adalah keseimbangan gaya: gaya inersia (mẍ) + gaya redaman (cẋ) + gaya pegas (kx) = gaya eksitasi. Setiap suku mewakili satu elemen fisik sistem.</p>
+      <div class="formula">mẍ + cẋ + kx = F₀sin(ωt)</div>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
-      <h3>Defleksi Statik</h3>
-      <p>Amplitudo yang dihasilkan jika gaya F₀ bekerja secara statik. Menjadi referensi untuk menghitung DMF.</p>
+      <h3>Defleksi Statik X_st</h3>
+      <p>Seberapa jauh pegas tertekan jika gaya F₀ bekerja secara statis (tanpa getaran). Ini menjadi referensi: amplitudo dinamis bisa jauh lebih besar dari X_st di dekat resonansi.</p>
       <div class="formula">X_st = F₀ / k</div>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Solusi Lengkap:</strong> Solusi total = Solusi homogen (transien) + Solusi partikulir (tunak). Karena semua sistem nyata memiliki redaman, bagian transien akan meluruh dan yang tersisa hanya respons steady-state setelah cukup waktu.
+    <strong>Mengapa perlu mempelajari getaran paksa?</strong><br>
+    Hampir semua mesin di industri mengalami getaran paksa: motor listrik berputar menghasilkan gaya sentrifugal, pisau mesin potong mengalami gaya periodik dari material, jembatan bergetar akibat angin. Memahami respons sistem terhadap gaya eksitasi sangat krusial untuk menghindari kerusakan dan resonansi yang berbahaya.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Catatan Penting:</strong> Pada daerah awal (transien), superposi kedua solusi bisa menghasilkan amplitudo yang bahkan lebih besar dari steady-state — inilah yang disebut <em>beat phenomenon</em> atau <em>build-up</em>, berbahaya di dekat resonansi.
+    💡 <strong>Perbedaan Getaran Bebas vs Paksa:</strong> Getaran bebas terjadi setelah gangguan awal dan kemudian meluruh (karena redaman). Getaran paksa terus berlangsung selama gaya luar bekerja — energi yang hilang karena redaman terus diisi ulang oleh gaya eksitasi, sehingga amplitudo bisa stabil dalam kondisi steady-state.
   </div>
 </div>
 
-<!-- BAGIAN 02 — DMF & FASE -->
+<!-- ═══ BAGIAN 02 — SOLUSI LENGKAP ═══ -->
+<hr class="divider">
+<div class="section" id="m-solusi">
+  <div class="section-label reveal">Bagian 02</div>
+  <h2 class="section-title reveal">Solusi Lengkap:<br>Transien + Steady-State</h2>
+  <p class="section-desc reveal">Solusi persamaan diferensial terdiri dari dua bagian: solusi homogen (transien) yang meluruh seiring waktu, dan solusi partikulir (steady-state) yang terus bergetar pada frekuensi eksitasi.</p>
+
+  <div class="formula-block reveal" style="border-color:rgba(0,229,255,.3)">
+    <div class="label" style="color:var(--cyan)">Solusi Total</div>
+    <span style="color:var(--cyan)">x(t) = x_transien(t) + x_steady(t)</span>
+  </div>
+
+  <div class="cards reveal" style="margin-bottom:32px">
+    <div class="card">
+      <div class="card-icon">📉</div>
+      <h3>Bagian Transien</h3>
+      <p>Solusi homogen persamaan — sama dengan respons getaran bebas teredam. Bergantung pada kondisi awal (x₀, ẋ₀) dan meluruh dengan laju e⁻ᶻωₙᵗ. Pada sistem teredam, bagian ini menghilang setelah beberapa siklus.</p>
+      <div class="formula">x_tr = e⁻ᶻωₙᵗ(A cos ωd·t + B sin ωd·t)</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">♾️</div>
+      <h3>Bagian Steady-State</h3>
+      <p>Solusi partikulir — respons yang terus berlangsung selama gaya bekerja. Frekuensinya sama dengan frekuensi eksitasi ω, dengan amplitudo X dan lag fase φ yang bergantung pada r dan ζ.</p>
+      <div class="formula">x_ss = X sin(ωt − φ)</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">⏳</div>
+      <h3>Build-Up Awal</h3>
+      <p>Di awal gerakan, transien + steady-state bersuperposisi dan bisa menghasilkan amplitudo lebih besar dari X steady-state. Ini disebut <em>beating</em> atau <em>build-up</em>, sangat berbahaya di dekat resonansi.</p>
+      <div class="formula">x_max &gt; X_steady saat awal</div>
+    </div>
+  </div>
+
+  <div class="info-box reveal" style="border-left-color:var(--amber)">
+    <strong style="color:var(--amber)">Amplitudo dan Fase Steady-State:</strong>
+    <div style="margin-top:12px;display:flex;gap:12px;flex-wrap:wrap">
+      <div style="background:rgba(255,179,0,.07);border:1px solid rgba(255,179,0,.2);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber);flex:1;min-width:240px">
+        X = (F₀/k) × DMF = X_st / √[(1−r²)² + (2ζr)²]
+      </div>
+      <div style="background:rgba(0,229,255,.07);border:1px solid rgba(0,229,255,.2);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan);flex:1;min-width:240px">
+        φ = arctan[ 2ζr / (1 − r²) ]
+      </div>
+    </div>
+    <div style="margin-top:12px;font-size:14px;color:var(--muted)">Sudut fase φ menyatakan <strong style="color:var(--text)">keterlambatan respons</strong> terhadap gaya eksitasi. Saat r&lt;1: φ kecil (hampir sefase). Saat r=1: φ = 90° (respons tertinggal seperempat siklus). Saat r&gt;1: φ → 180° (respons berlawanan fase).</div>
+  </div>
+</div>
+
+<!-- ═══ BAGIAN 03 — DMF & SUDUT FASE ═══ -->
 <hr class="divider">
 <div class="section" id="m-dmf">
-  <div class="section-label reveal">Bagian 02</div>
+  <div class="section-label reveal">Bagian 03</div>
   <h2 class="section-title reveal">Dynamic Magnification<br>Factor (DMF)</h2>
-  <p class="section-desc reveal">DMF mengukur seberapa besar amplitudo getaran dinamis dibandingkan defleksi statiknya. Nilainya bergantung pada rasio frekuensi r dan rasio redaman ζ.</p>
+  <p class="section-desc reveal">DMF adalah rasio amplitudo dinamis terhadap defleksi statik. Nilainya bergantung pada rasio frekuensi r = ω/ωₙ dan rasio redaman ζ. DMF = 1 berarti amplitudo dinamis sama dengan statik; DMF &gt; 1 berarti getaran diperbesar.</p>
 
-  <div class="formula-block reveal" style="border-color:rgba(0,229,255,.3);">
-    <div class="label" style="color:var(--cyan)">DMF (Amplitudo Tunak)</div>
+  <div class="formula-block reveal" style="border-color:rgba(0,229,255,.3)">
+    <div class="label" style="color:var(--cyan)">Dynamic Magnification Factor</div>
     <span style="color:var(--cyan)">DMF = X / X_st = 1 / √[ (1 − r²)² + (2ζr)² ]</span>
   </div>
-  <div class="formula-block reveal" style="border-color:rgba(255,179,0,.3);">
+  <div class="formula-block reveal" style="border-color:rgba(255,179,0,.3);margin-top:-8px">
     <div class="label" style="color:var(--amber)">Sudut Fase</div>
-    <span style="color:var(--amber)">φ = arctan[ 2ζr / (1 − r²) ]</span>
+    <span style="color:var(--amber)">φ = arctan[ 2ζr / (1 − r²) ] &nbsp;&nbsp;&nbsp; (0 ≤ φ ≤ 180°)</span>
   </div>
 
   <div class="tbl-wrap reveal" style="margin:32px 0">
     <table class="data-table">
-      <thead><tr><th>Kondisi</th><th>r</th><th>DMF</th><th>φ</th><th>Keterangan</th></tr></thead>
+      <thead><tr><th>Kondisi r</th><th>r</th><th>DMF</th><th>φ</th><th>Interpretasi Fisik</th></tr></thead>
       <tbody>
-        <tr><td>Statis</td><td>r → 0</td><td>DMF → 1</td><td>φ → 0°</td><td>Respon = defleksi statik</td></tr>
-        <tr><td>Mendekati resonansi</td><td>r → 1</td><td>DMF → 1/(2ζ) <em>(besar)</em></td><td>φ → 90°</td><td>Amplifikasi maksimal</td></tr>
-        <tr><td>Persis resonansi</td><td>r = 1</td><td>1/(2ζ)</td><td>φ = 90°</td><td>Gaya & kecepatan sefase</td></tr>
-        <tr><td>Di atas resonansi</td><td>r ≫ 1</td><td>DMF → 0</td><td>φ → 180°</td><td>Massa bergerak berlawanan fase</td></tr>
-        <tr><td>DMF Maksimum</td><td>r = √(1−2ζ²)</td><td>1/(2ζ√(1−ζ²))</td><td>—</td><td>Hanya untuk ζ &lt; 1/√2</td></tr>
+        <tr><td style="color:var(--cyan)">Frekuensi sangat rendah</td><td>r → 0</td><td>DMF → 1</td><td>φ → 0°</td><td>Respons = defleksi statik; sistem "mengikuti" gaya secara lambat</td></tr>
+        <tr><td style="color:var(--amber)">Mendekati resonansi</td><td>r → 1</td><td>DMF → 1/(2ζ) <strong>(besar!)</strong></td><td>φ → 90°</td><td>Amplifikasi maksimal; gaya sefase dengan kecepatan</td></tr>
+        <tr><td style="color:var(--pink)">Tepat resonansi</td><td>r = 1</td><td><strong>1/(2ζ)</strong></td><td><strong>φ = 90°</strong></td><td>Energi masuk max; gaya selalu mendorong arah gerakan</td></tr>
+        <tr><td style="color:var(--green)">DMF tertinggi (underdamped)</td><td>r = √(1−2ζ²)</td><td><strong>1/(2ζ√(1−ζ²))</strong></td><td>—</td><td>Puncak kurva DMF; hanya ada jika ζ &lt; 1/√2 ≈ 0.707</td></tr>
+        <tr><td style="color:var(--muted)">Di atas resonansi</td><td>r ≫ 1</td><td>DMF → 0</td><td>φ → 180°</td><td>Massa hampir tidak bergerak; respons berlawanan fase gaya</td></tr>
       </tbody>
     </table>
   </div>
@@ -564,17 +703,56 @@ footer a:hover{color:var(--cyan)}
     <div class="warn-icon">⚠️</div>
     <div>
       <h4>Bahaya Resonansi</h4>
-      <p>Saat r = 1 pada sistem tak teredam (ζ = 0), DMF → ∞ secara teoritis. Dalam praktik, semua sistem nyata memiliki redaman sehingga amplitudo terbatas, namun tetap bisa mencapai puluhan kali defleksi statik dan menyebabkan kegagalan struktur.</p>
+      <p>Pada r = 1 dengan ζ = 0 (tanpa redaman), DMF → ∞ secara teoritis — amplitudo tak terbatas. Sistem nyata selalu memiliki redaman, namun tetap bisa mencapai <strong>10–50× defleksi statik</strong> di dekat resonansi. Ini menyebabkan: fatigue material, kerusakan bearing, kerusakan struktur, bahkan kegagalan katastrofik (Jembatan Tacoma Narrows, 1940).</p>
     </div>
   </div>
 </div>
 
-<!-- ANIMASI 1 — DMF vs r -->
+<!-- ═══ BAGIAN 04 — RESONANSI ═══ -->
+<hr class="divider">
+<div class="section" id="m-resonansi">
+  <div class="section-label reveal">Bagian 04</div>
+  <h2 class="section-title reveal">Resonansi:<br>Kondisi &amp; Penanganan</h2>
+  <p class="section-desc reveal">Resonansi adalah kondisi saat frekuensi eksitasi mendekati atau sama dengan frekuensi natural sistem. Memahami kondisi resonansi sangat penting dalam setiap perancangan dan pemeliharaan mesin.</p>
+
+  <div class="cards reveal" style="margin-bottom:32px">
+    <div class="card">
+      <div class="card-icon">📡</div>
+      <h3>Identifikasi Resonansi</h3>
+      <p>Resonansi terjadi saat r = ω/ωₙ ≈ 1. Gejala: amplitudo getaran naik drastis, suara dengungan kuat, temperature naik, baut-baut mulai longgar. Cara deteksi: sweep frekuensi, analisis FFT sinyal vibrasi.</p>
+      <div class="formula" style="color:var(--pink);border-color:rgba(255,64,129,.2)">ω_eksitasi ≈ ωₙ</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔧</div>
+      <h3>Modifikasi Frekuensi Natural</h3>
+      <p>Cara paling efektif: ubah ωₙ = √(k/m). Tambah massa m (turunkan ωₙ) atau perkuat kekakuan k (naikkan ωₙ) agar r menjauh dari 1. Target: r &lt; 0.7 atau r &gt; 1.4 untuk zona aman.</p>
+      <div class="formula">ωₙ = √(k/m)</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🌊</div>
+      <h3>Tambah Redaman</h3>
+      <p>Meningkatkan ζ mengurangi DMF puncak: DMF_max = 1/(2ζ). Namun redaman tidak mengubah posisi resonansi (r=1), hanya "memperhalus" puncaknya. Efektif untuk sistem yang harus melewati resonansi saat start/stop.</p>
+      <div class="formula">DMF_res = 1/(2ζ)</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚙️</div>
+      <h3>Ubah Kecepatan Operasi</h3>
+      <p>Jika mesin beroperasi mendekati resonansi, pertimbangkan mengubah kecepatan putar motor. Zona aman operasi: jauh dari ωₙ ± 20%. Pada start/stop mesin besar (turbine), lakukan "coast through" resonansi dengan cepat.</p>
+      <div class="formula">ω_op ≠ ωₙ ± 20%</div>
+    </div>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>Kasus Nyata — Jembatan Tacoma Narrows (1940):</strong> Jembatan suspensi sepanjang 853 m runtuh akibat angin 67 km/jam yang menginduksi getaran torsi pada frekuensi mendekati frekuensi natural jembatan. Ini bukan resonansi biasa, melainkan <em>flutter</em> (aeroelastic instability), tapi prinsip amplifikasi dinamisnya sama. Peristiwa ini mengubah cara insinyur merancang struktur fleksibel selamanya.
+  </div>
+</div>
+
+<!-- ═══ BAGIAN 05 — ANIMASI INTERAKTIF ═══ -->
 <hr class="divider">
 <div class="section" id="m-animasi">
-  <div class="section-label reveal">Bagian 03</div>
+  <div class="section-label reveal">Bagian 05</div>
   <h2 class="section-title reveal">Animasi Interaktif<br>Getaran Paksa</h2>
-  <p class="section-desc reveal">Eksplorasi perilaku DMF, sudut fase, dan respons waktu secara interaktif. Amati efek variasi parameter ζ dan r.</p>
+  <p class="section-desc reveal">Eksplorasi perilaku DMF, sudut fase, respons waktu, dan transmissibility secara real-time. Geser slider untuk mengubah parameter dan amati perubahan instan pada grafik.</p>
 
   <!-- Animasi 1: DMF Curve -->
   <div class="anim-panel reveal">
@@ -584,6 +762,7 @@ footer a:hover{color:var(--cyan)}
     </div>
     <div class="anim-body">
       <canvas id="cvDMF" height="280"></canvas>
+
       <div class="ctrl-row">
         <div class="ctrl-group">
           <label>Rasio Redaman ζ₁ — <span class="ctrl-val" id="v_z1">0.05</span></label>
@@ -598,25 +777,30 @@ footer a:hover{color:var(--cyan)}
           <input type="range" id="sl_z3" min="0.02" max="0.8" step="0.01" value="0.50">
         </div>
         <div class="ctrl-group">
-          <label>Titik r saat ini — <span class="ctrl-val" id="v_rmark">0.90</span></label>
+          <label>Tandai titik r — <span class="ctrl-val" id="v_rmark">0.90</span></label>
           <input type="range" id="sl_rmark" min="0.1" max="2.5" step="0.05" value="0.9">
         </div>
       </div>
       <div style="margin-top:12px;display:flex;gap:20px;flex-wrap:wrap;font-size:12px;font-family:'JetBrains Mono',monospace">
-        <span style="color:#00e5ff">── ζ₁ DMF</span>
-        <span style="color:#ffb300">── ζ₂ DMF</span>
-        <span style="color:#ff4081">── ζ₃ DMF</span>
-        <span style="color:rgba(255,255,255,.3)">┄ Fase φ (skala kanan)</span>
+        <span style="color:#00e5ff">── ζ₁ DMF (cyan)</span>
+        <span style="color:#ffb300">── ζ₂ DMF (amber)</span>
+        <span style="color:#ff4081">── ζ₃ DMF (pink)</span>
+        <span style="color:rgba(255,255,255,.3)">┄ Fase φ(ζ₂) — skala kanan 0–180°</span>
       </div>
       <div id="dmfInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca Grafik Ini:</strong> Sumbu X = r (rasio frekuensi ω/ωₙ, dari 0 hingga 2.5). Sumbu Y kiri = DMF (amplifikasi amplitudo). Garis merah putus-putus di r=1 menandai resonansi. Garis hijau di r=√2 menandai batas isolasi transmissibility. <br>
+        Amati: (1) Semakin kecil ζ, puncak DMF semakin tinggi dan tajam. (2) Semua kurva bertemu di DMF=1 saat r=0 (static). (3) Saat r≫1, semua kurva mendekati 0 — massa tidak bergerak mengikuti gaya frekuensi tinggi. (4) Garis putus-putus (fase φ) naik dari 0° ke 180° — laju kenaikkan paling cepat di dekat resonansi.
+      </div>
     </div>
   </div>
 
-  <!-- Animasi 2: Steady-state Response Time Domain -->
+  <!-- Animasi 2: Response Time -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--amber)"></div>
-      <span class="anim-title">Animasi 2 — Respons Waktu: Gaya Eksitasi vs Respons Steady-State</span>
+      <span class="anim-title">Animasi 2 — Gaya Eksitasi vs Respons Steady-State dalam Domain Waktu</span>
     </div>
     <div class="anim-body">
       <canvas id="cvResp" height="240"></canvas>
@@ -633,18 +817,22 @@ footer a:hover{color:var(--cyan)}
       </div>
       <div id="respInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet)"></div>
       <div style="margin-top:10px;display:flex;gap:20px;flex-wrap:wrap;font-size:12px;font-family:'JetBrains Mono',monospace">
-        <span style="color:#00e5ff">── Gaya F(t)/k</span>
-        <span style="color:#ff4081">── Respons x(t)</span>
-        <span style="color:#ffb300">-- Envelope ±X</span>
+        <span style="color:#00e5ff">── Gaya F(t)/k (sinyal referensi)</span>
+        <span style="color:#ff4081">── Respons x(t) (dengan lag fase φ)</span>
+        <span style="color:#ffb300">-- Amplop ±X (batas amplitudo)</span>
+      </div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca Grafik Ini:</strong> Sinyal cyan = gaya eksitasi F(t)/k (sebagai referensi amplitudo). Sinyal merah = respons steady-state x(t). Amplop kuning = batas amplitudo ±X yang dihitung dari DMF. <br>
+        Amati: (1) Ketika r&lt;1, respons hampir sefase dengan gaya. (2) Ketika r=1 (resonansi), respons tertinggal tepat 90° — perhatikan bahwa puncak gaya bertepatan dengan titik tengah (kecepatan maksimum) respons. (3) Ketika r&gt;1, respons hampir berlawanan fase dengan gaya. (4) Geser r mendekati 1 dan perhatikan amplitudo mengembang — inilah resonansi!
       </div>
     </div>
   </div>
 
-  <!-- Animasi 3: Full transient + steady-state -->
+  <!-- Animasi 3: Full Response -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--green)"></div>
-      <span class="anim-title">Animasi 3 — Transien + Steady-State (Respons Lengkap)</span>
+      <span class="anim-title">Animasi 3 — Respons Lengkap: Transien + Steady-State (Simulasi Numerik RK4)</span>
     </div>
     <div class="anim-body">
       <canvas id="cvFull" height="240"></canvas>
@@ -659,8 +847,12 @@ footer a:hover{color:var(--cyan)}
         </div>
       </div>
       <div style="margin-top:10px;display:flex;gap:20px;flex-wrap:wrap;font-size:12px;font-family:'JetBrains Mono',monospace">
-        <span style="color:#00e676">── Respons Total x(t)</span>
-        <span style="color:rgba(255,64,129,.5)">-- Steady-state ±X</span>
+        <span style="color:#00e676">── Respons total x(t) = transien + steady-state</span>
+        <span style="color:rgba(255,64,129,.5)">-- Amplop steady-state ±X</span>
+      </div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca Grafik Ini:</strong> Dihitung menggunakan metode numerik Runge-Kutta orde 4 (RK4) — metode yang sama yang digunakan di Jupyter Notebook. Sumbu X = waktu (0 hingga 30 s). Amplop merah putus-putus = nilai steady-state teoritis ±X. <br>
+        Amati: (1) Di awal (t kecil), respons berosilasi tidak beraturan — ini fase transien. (2) Secara bertahap, amplitudo "menyesuaikan diri" ke nilai steady-state (amplop merah). (3) Semakin kecil ζ, semakin lama transien berlangsung sebelum mencapai steady-state. (4) Saat r mendekati 1 dan ζ kecil, awal respons bisa jauh melampaui amplop steady-state — inilah kondisi berbahaya saat mesin dinyalakan.
       </div>
     </div>
   </div>
@@ -669,7 +861,7 @@ footer a:hover{color:var(--cyan)}
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--pink)"></div>
-      <span class="anim-title">Animasi 4 — Transmissibility (Isolasi Getaran)</span>
+      <span class="anim-title">Animasi 4 — Kurva Transmissibility (Tᵣ) vs r: Efektivitas Isolasi Getaran</span>
     </div>
     <div class="anim-body">
       <canvas id="cvTrans" height="260"></canvas>
@@ -687,42 +879,285 @@ footer a:hover{color:var(--cyan)}
           <input type="range" id="sl_zt3" min="0.01" max="0.7" step="0.01" value="0.50">
         </div>
       </div>
-      <div style="margin-top:10px;font-size:13px;color:var(--muted)">Garis vertikal putus-putus di r = √2 — untuk r > √2, semua isolator meredam getaran. Untuk r < √2, getaran justru diperbesar.</div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca Grafik Ini:</strong> Sumbu Y = Transmissibility Tᵣ (rasio getaran yang diteruskan ke fondasi). Garis putus-putus horizontal = Tᵣ = 1 (batas). Garis hijau vertikal = r = √2 ≈ 1.414. <br>
+        Interpretasi: (1) <strong style="color:var(--pink)">Area kiri r=√2</strong> — Tᵣ &gt; 1, semua isolator justru MEMPERBESAR getaran ke fondasi. (2) <strong style="color:var(--green)">Area kanan r=√2</strong> — Tᵣ &lt; 1, isolasi efektif, getaran berkurang sebelum mencapai fondasi. (3) Di area isolasi (r&gt;√2): kurva dengan ζ LEBIH KECIL memberikan isolasi LEBIH BAIK. Ini berlawanan dengan intuisi — terlalu banyak redaman justru buruk untuk isolasi di frekuensi tinggi. (4) Kesimpulan desain: gunakan isolator lunak (k kecil → ωₙ kecil → r besar) dengan redaman cukup (ζ ≈ 0.1–0.15) untuk mesin berfrekuensi tinggi.
+      </div>
     </div>
   </div>
 </div>
 
-<!-- BAGIAN 04 — ISOLASI GETARAN -->
+<!-- ═══ BAGIAN 06 — ISOLASI GETARAN ═══ -->
 <hr class="divider">
 <div class="section" id="m-isolasi">
-  <div class="section-label reveal">Bagian 04</div>
+  <div class="section-label reveal">Bagian 06</div>
   <h2 class="section-title reveal">Isolasi Getaran &amp;<br>Transmissibility</h2>
-  <p class="section-desc reveal">Transmissibility (Tᵣ) mengukur perbandingan gaya/perpindahan yang diteruskan ke fondasi terhadap gaya/perpindahan eksitasi. Kunci dalam desain isolator getaran.</p>
+  <p class="section-desc reveal">Transmissibility (Tᵣ) mengukur rasio gaya/perpindahan yang diteruskan ke fondasi terhadap gaya/perpindahan eksitasi. Nilai Tᵣ &lt; 1 berarti isolasi berhasil; nilai Tᵣ &gt; 1 berarti isolator justru memperburuk keadaan.</p>
 
   <div class="formula-block reveal" style="border-color:rgba(255,64,129,.3)">
     <div class="label" style="color:var(--pink)">Transmissibility</div>
     <span style="color:var(--pink)">Tᵣ = √[ 1 + (2ζr)² ] / √[ (1−r²)² + (2ζr)² ]</span>
   </div>
 
-  <div class="cards reveal">
+  <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
       <div class="card-icon">✅</div>
-      <h3>Isolasi Efektif</h3>
-      <p>Tᵣ &lt; 1, terjadi saat r &gt; √2 ≈ 1.414. Mesin beroperasi pada frekuensi jauh di atas frekuensi natural isolator.</p>
-      <div class="formula" style="color:var(--green);border-color:rgba(0,230,118,.2)">r &gt; √2 → Tᵣ &lt; 1</div>
+      <h3>Isolasi Efektif (r &gt; √2)</h3>
+      <p>Tᵣ &lt; 1. Mesin beroperasi jauh di atas frekuensi natural isolator. Semakin besar r, semakin efektif isolasi. Target praktis: r ≥ 2–3 untuk Tᵣ ≤ 0.2 (isolasi 80%).</p>
+      <div class="formula" style="color:var(--green);border-color:rgba(0,230,118,.2)">r &gt; √2 → Tᵣ &lt; 1 ✓</div>
     </div>
     <div class="card">
-      <div class="card-icon">⚡</div>
-      <h3>Amplifikasi</h3>
-      <p>Tᵣ &gt; 1, terjadi saat r &lt; √2. Isolator justru memperbesar getaran — kondisi ini harus dihindari.</p>
-      <div class="formula" style="color:var(--pink);border-color:rgba(255,64,129,.2)">r &lt; √2 → Tᵣ &gt; 1</div>
+      <div class="card-icon">⚠️</div>
+      <h3>Zona Amplifikasi (r &lt; √2)</h3>
+      <p>Tᵣ &gt; 1. Isolator justru memperbesar getaran ke fondasi — lebih buruk dari tanpa isolator! Kondisi ini terjadi saat mesin beroperasi terlalu dekat dengan atau di bawah frekuensi natural isolator.</p>
+      <div class="formula" style="color:var(--pink);border-color:rgba(255,64,129,.2)">r &lt; √2 → Tᵣ &gt; 1 ✗</div>
     </div>
     <div class="card">
       <div class="card-icon">🔧</div>
-      <h3>Desain Isolator</h3>
-      <p>Pilih kekakuan k sedemikian sehingga ωₙ = √(k/m) ≪ ω operasi. Lazimnya ωₙ &lt; ω/3 untuk isolasi efektif.</p>
-      <div class="formula">ωₙ ≤ ω / 3</div>
+      <h3>Kaidah Desain Isolator</h3>
+      <p>Pilih kekakuan k (atau karet isolator) sehingga ωₙ_isolator jauh di bawah frekuensi operasi mesin. Aturan praktis: ωₙ &lt; ω/3 atau r &gt; 3 untuk isolasi &gt; 85%.</p>
+      <div class="formula">ωₙ_isolator ≤ ω_mesin / 3</div>
     </div>
+    <div class="card">
+      <div class="card-icon">📱</div>
+      <h3>Contoh Aplikasi</h3>
+      <p>AC split rumah tangga dipasang pada penyangga karet (isolator). Mesin cetak offset menggunakan isolator pneumatik. Lantai laboratorium presisi menggunakan meja berisi pasir atau isolator aktif untuk meredam getaran tanah.</p>
+      <div class="formula" style="color:var(--amber)">Karet → Baja → Pneumatik</div>
+    </div>
+  </div>
+
+  <div class="tbl-wrap reveal">
+    <table class="data-table">
+      <thead><tr><th>r = ω/ωₙ</th><th>Tᵣ (ζ=0.05)</th><th>Tᵣ (ζ=0.15)</th><th>Tᵣ (ζ=0.3)</th><th>Efektivitas Isolasi</th></tr></thead>
+      <tbody>
+        <tr><td>0.5</td><td style="color:var(--pink)">1.33</td><td style="color:var(--pink)">1.16</td><td style="color:var(--pink)">1.06</td><td>Amplifikasi — BURUK</td></tr>
+        <tr><td>1.0 (resonansi)</td><td style="color:var(--pink)">10.0</td><td style="color:var(--pink)">3.33</td><td style="color:var(--pink)">1.67</td><td>Amplifikasi besar — BERBAHAYA</td></tr>
+        <tr><td style="color:var(--amber)">1.414 (= √2)</td><td>1.00</td><td>1.00</td><td>1.00</td><td>Netral — batas</td></tr>
+        <tr><td>2.0</td><td style="color:var(--green)">0.35</td><td style="color:var(--green)">0.45</td><td style="color:var(--green)">0.61</td><td>Isolasi 39–65%</td></tr>
+        <tr><td>3.0</td><td style="color:var(--green)">0.13</td><td style="color:var(--green)">0.19</td><td style="color:var(--green)">0.33</td><td>Isolasi 67–87%</td></tr>
+        <tr><td>5.0</td><td style="color:var(--cyan)">0.04</td><td style="color:var(--cyan)">0.07</td><td style="color:var(--cyan)">0.14</td><td>Isolasi 86–96% ✓✓</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ BAGIAN 07 — CONTOH KODE PYTHON ═══ -->
+<hr class="divider">
+<div class="section" id="m-jupyter">
+  <div class="section-label reveal">Bagian 07</div>
+  <h2 class="section-title reveal">Implementasi Python<br>di Jupyter Notebook</h2>
+  <p class="section-desc reveal">Berikut contoh kode Python yang dapat langsung dijalankan di Jupyter Notebook (VS Code). Setiap Cell dirancang untuk satu konsep spesifik. Salin ke notebook Anda dan eksplorasi!</p>
+
+  <!-- Cell 1 -->
+  <div class="code-wrap reveal">
+    <div class="code-header">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 1 — Setup Parameter &amp; Hitung ωₙ, ζ, r, DMF</span>
+      <span class="code-lang">Python</span>
+      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
+    </div>
+    <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="cm"># ═══ Parameter Sistem Referensi (Pertemuan 4) ═══</span>
+m  = <span class="nm">5</span>       <span class="cm"># massa (kg)</span>
+k  = <span class="nm">2000</span>    <span class="cm"># kekakuan (N/m)</span>
+c  = <span class="nm">40</span>      <span class="cm"># koefisien redaman (Ns/m)</span>
+F0 = <span class="nm">100</span>     <span class="cm"># amplitudo gaya (N)</span>
+
+<span class="cm"># ═══ Perhitungan Parameter Dinamik ═══</span>
+omega_n = np.<span class="fn">sqrt</span>(k / m)           <span class="cm"># frekuensi natural (rad/s)</span>
+c_c     = <span class="nm">2</span> * np.<span class="fn">sqrt</span>(k * m)       <span class="cm"># redaman kritis (Ns/m)</span>
+zeta    = c / c_c                    <span class="cm"># rasio redaman (dimensionless)</span>
+omega_d = omega_n * np.<span class="fn">sqrt</span>(<span class="nm">1</span> - zeta**<span class="nm">2</span>)  <span class="cm"># frek. teredam (rad/s)</span>
+
+<span class="cm"># ═══ Hitung DMF untuk omega = 18 rad/s ═══</span>
+omega = <span class="nm">18</span>
+r     = omega / omega_n
+DMF   = <span class="nm">1</span> / np.<span class="fn">sqrt</span>((<span class="nm">1</span> - r**<span class="nm">2</span>)**<span class="nm">2</span> + (<span class="nm">2</span>*zeta*r)**<span class="nm">2</span>)
+X_st  = F0 / k
+X     = X_st * DMF
+phi   = np.<span class="fn">degrees</span>(np.<span class="fn">arctan2</span>(<span class="nm">2</span>*zeta*r, <span class="nm">1</span>-r**<span class="nm">2</span>))
+
+<span class="fn">print</span>(<span class="st">f"ωₙ = {omega_n:.4f} rad/s"</span>)
+<span class="fn">print</span>(<span class="st">f"ζ  = {zeta:.4f}"</span>)
+<span class="fn">print</span>(<span class="st">f"r  = {r:.4f}"</span>)
+<span class="fn">print</span>(<span class="st">f"DMF= {DMF:.4f}"</span>)
+<span class="fn">print</span>(<span class="st">f"X  = {X:.4f} m"</span>)
+<span class="fn">print</span>(<span class="st">f"φ  = {phi:.2f}°"</span>)</pre>
+  </div>
+
+  <!-- Cell 2 -->
+  <div class="code-wrap reveal">
+    <div class="code-header">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 2 — Plot Kurva DMF vs r (3 Nilai ζ)</span>
+      <span class="code-lang">Python</span>
+      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
+    </div>
+    <pre><span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+r = np.<span class="fn">linspace</span>(<span class="nm">0.01</span>, <span class="nm">2.5</span>, <span class="nm">500</span>)
+
+<span class="kw">def</span> <span class="fn">dmf</span>(r, zeta):
+    <span class="kw">return</span> <span class="nm">1</span> / np.<span class="fn">sqrt</span>((<span class="nm">1</span>-r**<span class="nm">2</span>)**<span class="nm">2</span> + (<span class="nm">2</span>*zeta*r)**<span class="nm">2</span>)
+
+fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="nm">9</span>, <span class="nm">5</span>))
+
+zetas = [<span class="nm">0.05</span>, <span class="nm">0.10</span>, <span class="nm">0.20</span>, <span class="nm">0.30</span>, <span class="nm">0.50</span>]
+colors = [<span class="st">'#00e5ff'</span>, <span class="st">'#7c4dff'</span>, <span class="st">'#ffb300'</span>, <span class="st">'#00e676'</span>, <span class="st">'#ff4081'</span>]
+
+<span class="kw">for</span> z, col <span class="kw">in</span> <span class="fn">zip</span>(zetas, colors):
+    ax.<span class="fn">plot</span>(r, <span class="fn">dmf</span>(r, z), color=col, lw=<span class="nm">2</span>, label=<span class="st">f'ζ = {z}'</span>)
+
+ax.<span class="fn">axvline</span>(x=<span class="nm">1</span>, color=<span class="st">'red'</span>, lw=<span class="nm">1</span>, ls=<span class="st">'--'</span>, alpha=<span class="nm">0.5</span>, label=<span class="st">'r = 1 (resonansi)'</span>)
+ax.<span class="fn">axvline</span>(x=np.<span class="fn">sqrt</span>(<span class="nm">2</span>), color=<span class="st">'lime'</span>, lw=<span class="nm">1</span>, ls=<span class="st">'--'</span>, alpha=<span class="nm">0.5</span>, label=<span class="st">'r = √2 (isolasi)'</span>)
+ax.<span class="fn">axhline</span>(y=<span class="nm">1</span>, color=<span class="st">'white'</span>, lw=<span class="nm">0.5</span>, ls=<span class="st">':'</span>, alpha=<span class="nm">0.3</span>)
+
+ax.<span class="fn">set_xlim</span>(<span class="nm">0</span>, <span class="nm">2.5</span>); ax.<span class="fn">set_ylim</span>(<span class="nm">0</span>, <span class="nm">8</span>)
+ax.<span class="fn">set_xlabel</span>(<span class="st">'Rasio Frekuensi r = ω/ωₙ'</span>)
+ax.<span class="fn">set_ylabel</span>(<span class="st">'DMF'</span>)
+ax.<span class="fn">set_title</span>(<span class="st">'Kurva DMF vs r — Getaran Paksa Harmonik'</span>)
+ax.<span class="fn">legend</span>(); ax.<span class="fn">grid</span>(alpha=<span class="nm">0.2</span>)
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
+  </div>
+
+  <!-- Cell 3 -->
+  <div class="code-wrap reveal">
+    <div class="code-header">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 3 — Simulasi Numerik RK4: Respons Total (Transien + Steady-State)</span>
+      <span class="code-lang">Python</span>
+      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
+    </div>
+    <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+
+m, k, c, F0, omega = <span class="nm">5</span>, <span class="nm">2000</span>, <span class="nm">40</span>, <span class="nm">100</span>, <span class="nm">18</span>
+
+<span class="kw">def</span> <span class="fn">forced_vib</span>(t, y):
+    <span class="st">"""RK4: y = [x, x_dot]"""</span>
+    x, xd = y
+    xdd = (F0*np.<span class="fn">sin</span>(omega*t) - c*xd - k*x) / m
+    <span class="kw">return</span> np.<span class="fn">array</span>([xd, xdd])
+
+dt = <span class="nm">0.001</span>
+t  = np.<span class="fn">arange</span>(<span class="nm">0</span>, <span class="nm">10</span>, dt)
+y  = np.<span class="fn">array</span>([<span class="nm">0.0</span>, <span class="nm">0.0</span>])  <span class="cm"># kondisi awal: x=0, xdot=0</span>
+X_all = []
+
+<span class="kw">for</span> ti <span class="kw">in</span> t:
+    X_all.<span class="fn">append</span>(y[<span class="nm">0</span>])
+    <span class="cm"># RK4</span>
+    k1 = <span class="fn">forced_vib</span>(ti, y)
+    k2 = <span class="fn">forced_vib</span>(ti+dt/<span class="nm">2</span>, y+dt/<span class="nm">2</span>*k1)
+    k3 = <span class="fn">forced_vib</span>(ti+dt/<span class="nm">2</span>, y+dt/<span class="nm">2</span>*k2)
+    k4 = <span class="fn">forced_vib</span>(ti+dt, y+dt*k3)
+    y += dt/<span class="nm">6</span>*(k1+<span class="nm">2</span>*k2+<span class="nm">2</span>*k3+k4)
+
+omega_n = np.<span class="fn">sqrt</span>(k/m); zeta = c/(<span class="nm">2</span>*np.<span class="fn">sqrt</span>(k*m)); r = omega/omega_n
+DMF = <span class="nm">1</span>/np.<span class="fn">sqrt</span>((<span class="nm">1</span>-r**<span class="nm">2</span>)**<span class="nm">2</span>+(<span class="nm">2</span>*zeta*r)**<span class="nm">2</span>)
+X_ss = F0/k * DMF
+
+plt.<span class="fn">figure</span>(figsize=(<span class="nm">10</span>, <span class="nm">4</span>))
+plt.<span class="fn">plot</span>(t, X_all, <span class="st">'#00e676'</span>, lw=<span class="nm">1.5</span>, label=<span class="st">'x(t) numerik (RK4)'</span>)
+plt.<span class="fn">axhline</span>( X_ss, color=<span class="st">'#ff4081'</span>, ls=<span class="st">'--'</span>, alpha=<span class="nm">0.7</span>, label=<span class="st">f'X_ss = {X_ss:.4f} m'</span>)
+plt.<span class="fn">axhline</span>(-X_ss, color=<span class="st">'#ff4081'</span>, ls=<span class="st">'--'</span>, alpha=<span class="nm">0.7</span>)
+plt.<span class="fn">xlabel</span>(<span class="st">'Waktu (s)'</span>); plt.<span class="fn">ylabel</span>(<span class="st">'Perpindahan x (m)'</span>)
+plt.<span class="fn">title</span>(<span class="st">f'Respons Total (transien→steady) | r={r:.2f}, ζ={zeta:.3f}, DMF={DMF:.3f}'</span>)
+plt.<span class="fn">legend</span>(); plt.<span class="fn">grid</span>(alpha=<span class="nm">0.2</span>); plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
+  </div>
+
+  <!-- Cell 4 -->
+  <div class="code-wrap reveal">
+    <div class="code-header">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 4 — Plot Kurva Transmissibility &amp; Energi Disipasi per Siklus</span>
+      <span class="code-lang">Python</span>
+      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
+    </div>
+    <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+
+r = np.<span class="fn">linspace</span>(<span class="nm">0.01</span>, <span class="nm">3.0</span>, <span class="nm">500</span>)
+
+<span class="kw">def</span> <span class="fn">Tr</span>(r, zeta):
+    num = np.<span class="fn">sqrt</span>(<span class="nm">1</span> + (<span class="nm">2</span>*zeta*r)**<span class="nm">2</span>)
+    den = np.<span class="fn">sqrt</span>((<span class="nm">1</span>-r**<span class="nm">2</span>)**<span class="nm">2</span> + (<span class="nm">2</span>*zeta*r)**<span class="nm">2</span>)
+    <span class="kw">return</span> num / den
+
+fig, (ax1, ax2) = plt.<span class="fn">subplots</span>(<span class="nm">1</span>, <span class="nm">2</span>, figsize=(<span class="nm">12</span>, <span class="nm">4</span>))
+
+<span class="cm"># Transmissibility</span>
+<span class="kw">for</span> z, col <span class="kw">in</span> [(<span class="nm">0.05</span>,<span class="st">'#00e5ff'</span>),(<span class="nm">0.15</span>,<span class="st">'#7c4dff'</span>),(<span class="nm">0.30</span>,<span class="st">'#ffb300'</span>),(<span class="nm">0.50</span>,<span class="st">'#ff4081'</span>)]:
+    ax1.<span class="fn">plot</span>(r, <span class="fn">Tr</span>(r, z), color=col, lw=<span class="nm">2</span>, label=<span class="st">f'ζ={z}'</span>)
+ax1.<span class="fn">axvline</span>(np.<span class="fn">sqrt</span>(<span class="nm">2</span>), color=<span class="st">'lime'</span>, ls=<span class="st">'--'</span>, alpha=<span class="nm">0.5</span>, label=<span class="st">'r=√2'</span>)
+ax1.<span class="fn">axhline</span>(<span class="nm">1</span>, color=<span class="st">'white'</span>, ls=<span class="st">':'</span>, alpha=<span class="nm">0.3</span>)
+ax1.<span class="fn">set_ylim</span>(<span class="nm">0</span>, <span class="nm">5</span>); ax1.<span class="fn">set_xlabel</span>(<span class="st">'r'</span>); ax1.<span class="fn">set_ylabel</span>(<span class="st">'Transmissibility Tᵣ'</span>)
+ax1.<span class="fn">set_title</span>(<span class="st">'Transmissibility vs r'</span>); ax1.<span class="fn">legend</span>(); ax1.<span class="fn">grid</span>(alpha=<span class="nm">0.2</span>)
+
+<span class="cm"># Energi disipasi per siklus: E_d = π·c·ω·X²</span>
+m, k, c, F0 = <span class="nm">5</span>, <span class="nm">2000</span>, <span class="nm">40</span>, <span class="nm">100</span>
+omega_n = np.<span class="fn">sqrt</span>(k/m); zeta = c/(<span class="nm">2</span>*np.<span class="fn">sqrt</span>(k*m))
+r_vals = np.<span class="fn">linspace</span>(<span class="nm">0.1</span>, <span class="nm">2.5</span>, <span class="nm">300</span>)
+omega_vals = r_vals * omega_n
+DMF_vals = <span class="nm">1</span>/np.<span class="fn">sqrt</span>((<span class="nm">1</span>-r_vals**<span class="nm">2</span>)**<span class="nm">2</span>+(<span class="nm">2</span>*zeta*r_vals)**<span class="nm">2</span>)
+X_vals = F0/k * DMF_vals
+Ed_vals = np.pi * c * omega_vals * X_vals**<span class="nm">2</span>
+
+ax2.<span class="fn">plot</span>(r_vals, Ed_vals, <span class="st">'#ff4081'</span>, lw=<span class="nm">2</span>)
+ax2.<span class="fn">axvline</span>(x=<span class="nm">1</span>, color=<span class="st">'red'</span>, ls=<span class="st">'--'</span>, alpha=<span class="nm">0.5</span>)
+ax2.<span class="fn">set_xlabel</span>(<span class="st">'r'</span>); ax2.<span class="fn">set_ylabel</span>(<span class="st">'Energi Disipasi per Siklus E_d (J)'</span>)
+ax2.<span class="fn">set_title</span>(<span class="st">'E_d = π·c·ω·X² vs r'</span>); ax2.<span class="fn">grid</span>(alpha=<span class="nm">0.2</span>)
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>📓 Petunjuk Pengerjaan di Jupyter Notebook:</strong><br>
+    1. Buka VS Code → buka terminal → jalankan <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan);background:rgba(0,229,255,.08);padding:2px 6px;border-radius:4px">conda activate getaran</code><br>
+    2. Buat file baru: <code style="font-family:'JetBrains Mono',monospace;color:var(--amber);background:rgba(255,179,0,.08);padding:2px 6px;border-radius:4px">getaran_paksa.ipynb</code><br>
+    3. Salin kode dari Cell 1–4 ke cell masing-masing di notebook<br>
+    4. Klik <strong>Run All</strong> untuk menjalankan seluruh notebook sekaligus<br>
+    5. Pastikan semua grafik tampil — screenshot atau export sebagai HTML untuk pengumpulan
+  </div>
+</div>
+
+<!-- ═══ AKTIVITAS MAHASISWA ═══ -->
+<hr class="divider">
+<div id="m-aktivitas" style="max-width:900px;margin:48px auto 0;padding:0 24px 80px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px;">
+    <div>
+      <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.05);border:1px solid #2a3548;color:#06d6a0;padding:5px 14px;border-radius:999px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;">👥 Aktivitas</span>
+      <h2 style="font-size:1.6rem;font-weight:800;color:#fff;margin-top:12px;">Performa Mahasiswa</h2>
+      <p style="color:#94a3b8;font-size:.85rem;margin-top:6px;">Mahasiswa yang telah mengakses halaman dan mengerjakan soal latihan.</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+  </div>
+  <div id="scheduleInfo" style="display:none;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.2);border-radius:14px;padding:14px 20px;margin-bottom:20px;align-items:center;gap:12px;flex-wrap:wrap;">
+    <span style="font-size:1.2rem;">📅</span>
+    <div style="flex:1;min-width:200px;">
+      <div style="font-size:.75rem;font-weight:600;color:#818cf8;text-transform:uppercase;letter-spacing:.08em;">Jadwal Perkuliahan</div>
+      <div id="scheduleRange" style="font-size:.88rem;color:#e2e8f0;font-weight:600;margin-top:2px;">—</div>
+    </div>
+    <button onclick="showResetModal()" style="padding:8px 18px;border-radius:10px;border:1px solid rgba(251,113,133,.3);background:rgba(251,113,133,.08);color:#fb7185;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:6px;" onmouseenter="this.style.background='rgba(251,113,133,.18)'" onmouseleave="this.style.background='rgba(251,113,133,.08)'">🗑 Reset</button>
+  </div>
+  <div style="background:#1a2332;border:1px solid #2a3548;border-radius:20px;overflow:hidden;">
+    <div id="leaderboardPanel" style="margin-bottom:2px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:16px 20px;">
+        <div style="background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.15);border-radius:14px;padding:14px 16px;">
+          <div style="font-size:.72rem;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🏆 Top Skor</div>
+          <div id="rajinList" style="font-size:.8rem;color:#e2e8f0;min-height:60px;">⏳ Memuat...</div>
+        </div>
+        <div style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15);border-radius:14px;padding:14px 16px;">
+          <div style="font-size:.72rem;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🔥 Top Akses</div>
+          <div id="santaiList" style="font-size:.8rem;color:#e2e8f0;min-height:60px;">⏳ Memuat...</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;padding:14px 24px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.08em;">
+      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:0.5;text-align:center;">Poin</div><div style="flex:0.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
+    </div>
+    <div id="visitorTableBody" style="max-height:420px;overflow-y:auto;"><div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">⏳ Memuat data mahasiswa...</div></div>
   </div>
 </div>
 
@@ -782,6 +1217,14 @@ footer a:hover{color:var(--cyan)}
     <div>
       <h4>Petunjuk Pengerjaan Tugas 4</h4>
       <p>Kerjakan soal komputasi di <strong>Jupyter Notebook (VS Code)</strong>. Kolom Kode: tempel potongan kode relevan (minimal 4 baris). Kolom Jawaban Akhir: isi hasil numerik final. Poin diberikan jika kode ≥ 4 baris DAN jawaban akhir benar.</p>
+    </div>
+  </div>
+
+  <div style="background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.2);border-left:4px solid var(--cyan);border-radius:12px;padding:18px 24px;margin-bottom:32px;display:flex;align-items:flex-start;gap:14px">
+    <span style="font-size:24px;flex-shrink:0">📤</span>
+    <div>
+      <div style="font-weight:700;color:var(--cyan);margin-bottom:4px">Cara Submit Tugas 4</div>
+      <p style="font-size:14px;color:var(--text)">Setelah selesai mengerjakan, klik tombol <strong>📄 Export PDF</strong> di atas untuk mengunduh file PDF berisi soal dan jawaban Anda. Kemudian <strong style="color:var(--cyan)">upload file PDF ke Fast Learning (LMS UMB) di Tugas Pertemuan 4</strong>.</p>
     </div>
   </div>
 
@@ -1302,48 +1745,14 @@ footer a:hover{color:var(--cyan)}
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:32px;margin-top:40px;text-align:center">
     <div style="font-size:40px;margin-bottom:16px">💬</div>
     <h3 style="font-family:'Playfair Display',serif;font-size:22px;color:#fff;margin-bottom:8px">Sampaikan Pendapat Anda!</h3>
-    <p style="color:var(--muted);font-size:14px;margin-bottom:24px">Klik Export untuk mengunduh jawaban forum Anda sebagai file teks, kemudian upload ke LMS kampus.</p>
-    <button class="btn-export-forum" onclick="exportForumTxt()">📄 Export Forum ke Teks (.txt)</button>
+    <p style="color:var(--muted);font-size:14px;margin-bottom:6px">Isi semua jawaban di atas, lalu klik tombol <strong style="color:var(--green)">Export</strong> untuk mengunduh file <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">.txt</code>.</p>
+    <p style="color:var(--muted);font-size:14px;margin-bottom:6px">Buka file tersebut, <strong style="color:var(--text)">salin seluruh isinya</strong>, lalu buka:</p>
+    <p style="color:var(--text);font-size:14px;font-weight:600;margin-bottom:6px">📌 <strong style="color:var(--cyan)">Fast Learning (LMS UMB) → Forum Pertemuan 4</strong></p>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:24px">Di editor forum, klik tombol <strong style="color:var(--amber)">&lt;/&gt; HTML</strong> untuk beralih ke mode HTML, lalu paste kode yang sudah disalin.</p>
+    <button class="btn-export-forum" onclick="exportForumHtml()">📄 Export Forum ke .txt (kode HTML)</button>
   </div>
 
 </div><!-- end section -->
-  <!-- ═══ AKTIVITAS MAHASISWA ═══ -->
-  <section style="max-width:900px;margin:48px auto 0;padding:0 24px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px;">
-      <div>
-        <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.05);border:1px solid #2a3548;color:#06d6a0;padding:5px 14px;border-radius:999px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;">👥 Aktivitas</span>
-        <h2 style="font-size:1.6rem;font-weight:800;color:#fff;margin-top:12px;">Performa Mahasiswa</h2>
-        <p style="color:#94a3b8;font-size:.85rem;margin-top:6px;">Mahasiswa yang telah mengakses halaman dan mengerjakan soal latihan.</p>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;"></div>
-    </div>
-    <div id="scheduleInfo" style="display:none;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.2);border-radius:14px;padding:14px 20px;margin-bottom:20px;align-items:center;gap:12px;flex-wrap:wrap;">
-      <span style="font-size:1.2rem;">📅</span>
-      <div style="flex:1;min-width:200px;">
-        <div style="font-size:.75rem;font-weight:600;color:#818cf8;text-transform:uppercase;letter-spacing:.08em;">Jadwal Perkuliahan</div>
-        <div id="scheduleRange" style="font-size:.88rem;color:#e2e8f0;font-weight:600;margin-top:2px;">—</div>
-      </div>
-      <button onclick="showResetModal()" style="padding:8px 18px;border-radius:10px;border:1px solid rgba(251,113,133,.3);background:rgba(251,113,133,.08);color:#fb7185;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:6px;" onmouseenter="this.style.background='rgba(251,113,133,.18)'" onmouseleave="this.style.background='rgba(251,113,133,.08)'">🗑 Reset</button>
-    </div>
-    <div style="background:#1a2332;border:1px solid #2a3548;border-radius:20px;overflow:hidden;">
-      <div id="leaderboardPanel" style="margin-bottom:2px;">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:16px 20px;">
-          <div style="background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.15);border-radius:14px;padding:14px 16px;">
-            <div style="font-size:.72rem;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🏆 Top Skor</div>
-            <div id="rajinList" style="font-size:.8rem;color:#e2e8f0;min-height:60px;">⏳ Memuat...</div>
-          </div>
-          <div style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15);border-radius:14px;padding:14px 16px;">
-            <div style="font-size:.72rem;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🔥 Top Akses</div>
-            <div id="santaiList" style="font-size:.8rem;color:#e2e8f0;min-height:60px;">⏳ Memuat...</div>
-          </div>
-        </div>
-      </div>
-      <div style="display:flex;padding:14px 24px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.08em;">
-        <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:0.5;text-align:center;">Poin</div><div style="flex:0.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
-      </div>
-      <div id="visitorTableBody" style="max-height:420px;overflow-y:auto;"><div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">⏳ Memuat data mahasiswa...</div></div>
-    </div>
-  </section>
 
 <footer>
   <p>© 2026 · <a href="#">Dedik Romahadi</a> · Forum 4 — Getaran Paksa · Getaran Mekanik</p>
@@ -1390,16 +1799,23 @@ function switchTab(tab) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('page-' + tab).classList.add('active');
   document.getElementById('tab-' + tab).classList.add('active');
+  // Show/hide modul sub-nav
+  const sub = document.getElementById('modulSubnav');
+  if (sub) sub.classList.toggle('show', tab === 'modul');
   window.scrollTo({ top: 0, behavior: 'smooth' });
-  // Re-trigger animations
   document.querySelectorAll('#page-' + tab + ' .reveal').forEach(el => {
     el.classList.remove('visible');
     setTimeout(() => revealObs.observe(el), 50);
   });
   if (tab === 'modul') {
-    setTimeout(() => { drawDMF(); drawTransmissibility(); }, 200);
+    setTimeout(() => { drawDMF(); drawTransmissibility(); drawFull(); drawResp(); }, 200);
   }
 }
+// Show modul sub-nav on initial load
+document.addEventListener('DOMContentLoaded', () => {
+  const sub = document.getElementById('modulSubnav');
+  if (sub) sub.classList.add('show');
+});
 
 // ── WAVE TRACES ──
 (function() {
@@ -1575,68 +1991,192 @@ function voteForum(n, opt, correct) {
 }
 
 // ── EXPORT TUGAS PDF ──
-function exportTugasPDF() {
-  switchTab('tugas');
-  setTimeout(() => window.print(), 400);
+// ── COPY CODE ──
+function cpC(btn){
+  const pre = btn.closest('.code-wrap').querySelector('pre');
+  if(!pre) return;
+  navigator.clipboard.writeText(pre.textContent).then(()=>{
+    btn.textContent='✅ Copied!';
+    setTimeout(()=>btn.textContent='📋 Copy',2000);
+  }).catch(()=>{btn.textContent='❌ Error';});
 }
 
-// ── EXPORT FORUM TXT ──
-function exportForumTxt() {
+// ── EXPORT TUGAS PDF ──
+function exportTugasPDF() {
+  switchTab('tugas');
+
+  // Capture all form values and inject print-visible clones
+  const printClones = [];
+
+  // Handle code textareas — create sibling print-only div
+  document.querySelectorAll('.code-textarea').forEach(ta => {
+    const div = document.createElement('div');
+    div.className = 'print-code-value';
+    div.style.cssText = 'display:none;font-family:monospace;font-size:8pt;background:#f8f5ff;border:1px solid #c4b5fd;border-radius:8px;padding:10px 14px;color:#1e293b;white-space:pre-wrap;line-height:1.5;margin-top:6px';
+    div.textContent = ta.value || '(Belum diisi)';
+    ta.parentNode.insertBefore(div, ta.nextSibling);
+    printClones.push({ el: div, hide: ta });
+  });
+
+  // Handle number inputs — create sibling print-only span
+  document.querySelectorAll('.num-input').forEach(inp => {
+    const unit = inp.nextElementSibling?.className === 'num-input-unit' ? inp.nextElementSibling.textContent : '';
+    const div = document.createElement('div');
+    div.className = 'print-num-value';
+    div.style.cssText = 'display:none;font-family:monospace;font-size:16pt;font-weight:700;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 16px;color:#1e293b;text-align:center;margin-top:6px';
+    div.textContent = (inp.value || '—') + (unit ? ' ' + unit : '');
+    inp.parentNode.insertBefore(div, inp.nextSibling);
+    printClones.push({ el: div, hide: inp });
+  });
+
+  // Inject PDF title header
+  let titleBar = document.getElementById('pdf-title-bar');
+  if (!titleBar) {
+    titleBar = document.createElement('div');
+    titleBar.id = 'pdf-title-bar';
+    titleBar.innerHTML = `
+      <div style="display:none;background:linear-gradient(135deg,#1e0a40,#0a1628);color:#fff;padding:10px 24px;font-family:'Segoe UI',sans-serif;font-size:9pt;align-items:center;justify-content:space-between;gap:16px;border-bottom:3px solid #7c4dff" id="pdf-title-inner">
+        <div>
+          <div style="color:#a78bfa;font-weight:700;font-size:12pt;margin-bottom:2px">📝 Tugas 4 — Getaran Paksa Harmonik</div>
+          <div style="color:#94a3b8;font-size:8pt">Getaran Mekanik · S1 Teknik Mesin · Universitas Mercu Buana · 2025/2026 · Dosen: Dedik Romahadi</div>
+        </div>
+        <div style="text-align:right;font-size:8pt;color:#818cf8;font-family:monospace">Dikerjakan: ${new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}</div>
+      </div>`;
+    document.body.insertBefore(titleBar, document.body.firstChild);
+    printClones.push({ el: titleBar, hide: null });
+  }
+
+  // Apply print CSS to show clones, hide originals
+  const styleEl = document.createElement('style');
+  styleEl.id = 'print-value-style';
+  styleEl.textContent = `
+    @media print {
+      .print-code-value { display:block!important; }
+      .print-num-value  { display:block!important; }
+      .code-textarea    { display:none!important; }
+      .num-input        { display:none!important; }
+      #pdf-title-inner  { display:flex!important; }
+    }`;
+  document.head.appendChild(styleEl);
+
+  setTimeout(() => {
+    window.print();
+    // Cleanup after print dialog closes
+    setTimeout(() => {
+      printClones.forEach(({ el }) => el.remove());
+      const s = document.getElementById('print-value-style');
+      if (s) s.remove();
+    }, 1000);
+  }, 400);
+}
+
+// ── EXPORT FORUM — .txt berisi HTML siap copas ke Fast Learning ──
+function exportForumHtml() {
   const identity = getIdentityLocal();
   const name = identity ? identity.nama : 'Mahasiswa';
-  const nim = identity ? identity.nim : '-';
-  const now = new Date().toLocaleString('id-ID');
+  const nim  = identity ? identity.nim  : '-';
+  const now  = new Date().toLocaleString('id-ID');
 
-  const ans1 = document.getElementById('ans-fq1').value || '(Belum diisi)';
-  const ans2 = document.getElementById('ans-fq2').value || '(Belum diisi)';
-  const ans3 = document.getElementById('ans-fq3').value || '(Belum diisi)';
+  // Escape user input untuk keamanan di dalam HTML
+  function esc(s) {
+    return (s || '(Belum diisi)')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\n/g,'<br>');
+  }
 
-  const content = `FORUM DISKUSI — PERTEMUAN 4: GETARAN PAKSA
-Mata Kuliah  : Getaran Mekanik
-Dosen        : Dedik Romahadi
-Tanggal Export: ${now}
-==========================================
-Nama  : ${name}
-NIM   : ${nim}
-==========================================
+  const ans1 = esc(document.getElementById('ans-fq1').value);
+  const ans2 = esc(document.getElementById('ans-fq2').value);
+  const ans3 = esc(document.getElementById('ans-fq3').value);
 
-SKENARIO: Blower Industri — Sistem Bergetar
-  m = 80 kg | k = 72000 N/m | c = 240 Ns/m | ω_operasi = 28.5 rad/s
+  // HTML siap copas ke forum Fast Learning (tanpa <html>/<head>/<body>)
+  // Menggunakan inline style agar kompatibel dengan editor LMS
+  const htmlCode =
+`<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:720px;margin:0 auto;color:#1e293b;">
 
-------------------------------------------
-PERTANYAAN 1:
-Apakah sistem blower ini berisiko mengalami resonansi?
+  <!-- HEADER -->
+  <div style="background:linear-gradient(135deg,#1e0a40,#0a1628);border-radius:12px 12px 0 0;padding:20px 28px;">
+    <div style="font-size:1.3rem;font-weight:800;color:#a78bfa;margin-bottom:4px;">&#128172; Forum Diskusi &#8212; Pertemuan 4</div>
+    <div style="font-size:.82rem;color:#94a3b8;">Getaran Paksa Harmonik &middot; Getaran Mekanik &middot; S1 Teknik Mesin UMB &middot; 2025/2026</div>
+    <div style="font-size:.8rem;color:#818cf8;margin-top:2px;">Dosen: Dedik Romahadi</div>
+  </div>
 
-JAWABAN:
-${ans1}
+  <!-- IDENTITAS -->
+  <div style="background:#f1f5f9;padding:12px 28px;display:flex;gap:28px;flex-wrap:wrap;border-left:4px solid #7c4dff;">
+    <div style="font-size:.85rem;"><span style="color:#64748b;">Nama&nbsp;&nbsp;: </span><strong style="color:#1e293b;">${name}</strong></div>
+    <div style="font-size:.85rem;"><span style="color:#64748b;">NIM&nbsp;&nbsp;&nbsp;&nbsp;: </span><strong style="color:#1e293b;">${nim}</strong></div>
+    <div style="font-size:.85rem;"><span style="color:#64748b;">Tanggal: </span><strong style="color:#1e293b;">${now}</strong></div>
+  </div>
 
-------------------------------------------
-PERTANYAAN 2:
-Apa yang bisa dilakukan insinyur untuk mengurangi getaran berbahaya ini?
+  <!-- SKENARIO -->
+  <div style="background:#f0f4ff;border-left:4px solid #7c4dff;padding:16px 28px;margin-top:2px;">
+    <div style="font-weight:700;color:#5b35d0;margin-bottom:8px;">&#128203; Skenario: Blower Industri yang Bermasalah</div>
+    <div style="font-size:.88rem;color:#475569;margin-bottom:10px;">Sebuah blower industri di pabrik tekstil mengalami getaran berlebihan. Data sistem:</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <span style="background:#ede9fe;border:1px solid #c4b5fd;color:#5b35d0;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;">m = 80 kg</span>
+      <span style="background:#ede9fe;border:1px solid #c4b5fd;color:#5b35d0;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;">k = 72000 N/m</span>
+      <span style="background:#ede9fe;border:1px solid #c4b5fd;color:#5b35d0;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;">c = 240 Ns/m</span>
+      <span style="background:#fce7f3;border:1px solid #f9a8d4;color:#be185d;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;">&#969;_operasi = 28.5 rad/s</span>
+    </div>
+  </div>
 
-JAWABAN:
-${ans2}
+  <!-- PERTANYAAN 1 -->
+  <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:0;padding:20px 28px;margin-top:8px;">
+    <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;">
+      <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:#7c4dff;color:#fff;font-weight:700;font-size:.8rem;flex-shrink:0;">1</span>
+      <div style="font-size:.95rem;font-weight:700;color:#1e293b;">Apakah sistem blower ini berisiko mengalami resonansi?</div>
+    </div>
+    <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Hitung &#969;&#8345; = &radic;(k/m), &#950; = c/(2&radic;km), r = &#969;/&#969;&#8345;, dan DMF. Bandingkan dengan DMF resonansi (1/2&#950;).</div>
+    <div style="margin-left:40px;">
+      <div style="font-size:.7rem;font-weight:700;color:#7c4dff;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
+      <div style="background:#f8f5ff;border:1px solid #c4b5fd;border-radius:8px;padding:14px 16px;font-size:.88rem;color:#1e293b;line-height:1.75;min-height:48px;">${ans1}</div>
+    </div>
+  </div>
 
-------------------------------------------
-PERTANYAAN 3:
-Jika kita memasang isolator getaran di bawah blower, seberapa efektifkah pada frekuensi operasi ini?
+  <!-- PERTANYAAN 2 -->
+  <div style="background:#ffffff;border:1px solid #e2e8f0;padding:20px 28px;margin-top:4px;">
+    <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;">
+      <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:#0ea5e9;color:#fff;font-weight:700;font-size:.8rem;flex-shrink:0;">2</span>
+      <div style="font-size:.95rem;font-weight:700;color:#1e293b;">Apa yang bisa dilakukan insinyur untuk mengurangi getaran berbahaya ini?</div>
+    </div>
+    <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Minimal 2 rekomendasi teknis mengacu pada m, k, c, atau frekuensi operasi. Hitung efek kuantitatifnya.</div>
+    <div style="margin-left:40px;">
+      <div style="font-size:.7rem;font-weight:700;color:#0ea5e9;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
+      <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:14px 16px;font-size:.88rem;color:#1e293b;line-height:1.75;min-height:48px;">${ans2}</div>
+    </div>
+  </div>
 
-JAWABAN:
-${ans3}
+  <!-- PERTANYAAN 3 -->
+  <div style="background:#ffffff;border:1px solid #e2e8f0;padding:20px 28px;margin-top:4px;">
+    <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;">
+      <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:#10b981;color:#fff;font-weight:700;font-size:.8rem;flex-shrink:0;">3</span>
+      <div style="font-size:.95rem;font-weight:700;color:#1e293b;">Jika kita memasang isolator getaran, seberapa efektifkah pada frekuensi operasi ini?</div>
+    </div>
+    <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Hitung T&#7523; saat r = 0.95 (&#950; = 0.1). Tentukan r yang diperlukan agar T&#7523; &lt; 0.3.</div>
+    <div style="margin-left:40px;">
+      <div style="font-size:.7rem;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
+      <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:14px 16px;font-size:.88rem;color:#1e293b;line-height:1.75;min-height:48px;">${ans3}</div>
+    </div>
+  </div>
 
-==========================================
-[File digenerate otomatis dari halaman Forum Diskusi Pertemuan 4]
-`;
+  <!-- FOOTER -->
+  <div style="background:#f8faff;border:1px solid #e2e8f0;border-radius:0 0 12px 12px;padding:10px 28px;text-align:center;font-size:.72rem;color:#94a3b8;margin-top:4px;">
+    Forum Diskusi Pertemuan 4 &mdash; Getaran Mekanik &middot; S1 Teknik Mesin UMB &middot; 2025/2026
+  </div>
 
-  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'Forum4_' + nim + '_GetaranMekanik.txt';
-  a.click(); URL.revokeObjectURL(url);
+</div>`;
+
+  // Unduh sebagai .txt — isinya adalah kode HTML siap copas ke editor Fast Learning
+  const blob = new Blob([htmlCode], { type: 'text/plain;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = 'Forum4_' + nim + '_GetaranMekanik.txt';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function getIdentityLocal() {
-  try { return JSON.parse(localStorage.getItem('optoauto_identity_modul-4')); } catch(e) { return null; }
+  try { return JSON.parse(localStorage.getItem('optoauto_identity_pertemuan-4')); } catch(e) { return null; }
 }
 
 // ═══════════════════════════════════════
