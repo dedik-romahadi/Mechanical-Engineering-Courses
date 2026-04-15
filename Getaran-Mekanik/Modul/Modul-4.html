@@ -283,10 +283,56 @@ footer a{color:var(--violet);text-decoration:none}
 footer a:hover{color:var(--cyan)}
 
 /* ═══ VISITOR SYSTEM — identik dengan Modul-1 ═══ */
-.visitor-overlay{position:fixed;inset:0;z-index:99999;background:rgba(8,14,26,.94);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity .4s}
+.visitor-overlay{position:fixed;inset:0;z-index:99999;background:rgba(4,8,20,.97);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity .4s;overflow:hidden}
 .visitor-overlay.hidden{opacity:0;pointer-events:none}
-.visitor-modal{background:var(--surface,#0f1929);border:1px solid var(--border,rgba(255,255,255,.15));border-radius:24px;padding:40px 36px;max-width:440px;width:90%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.6);animation:vModalIn .5s cubic-bezier(.16,1,.3,1)}
-@keyframes vModalIn{0%{opacity:0;transform:translateY(30px) scale(.96)}100%{opacity:1;transform:translateY(0) scale(1)}}
+
+/* Canvas wave layer */
+#overlayWaveCanvas{position:absolute;bottom:0;left:0;width:100%;height:55%;pointer-events:none;opacity:.5}
+
+/* Floating particles */
+.ov-particle{position:absolute;border-radius:50%;pointer-events:none;animation:ovFloat linear infinite}
+@keyframes ovFloat{
+  0%  {transform:translateY(100vh) translateX(0);   opacity:0}
+  8%  {opacity:1}
+  92% {opacity:.4}
+  100%{transform:translateY(-60px) translateX(var(--drift)); opacity:0}
+}
+
+/* Floating formula labels */
+.ov-formula{position:absolute;font-family:'JetBrains Mono',monospace;pointer-events:none;white-space:nowrap;animation:ovFormula linear infinite;user-select:none}
+@keyframes ovFormula{
+  0%  {transform:translateY(105vh) rotate(var(--rot));opacity:0}
+  6%  {opacity:.25}
+  94% {opacity:.12}
+  100%{transform:translateY(-80px) rotate(var(--rot));opacity:0}
+}
+
+/* Modal — enhanced entrance + border glow pulse */
+.visitor-modal{
+  background:linear-gradient(160deg,rgba(15,25,41,.98) 0%,rgba(8,14,28,.98) 100%);
+  border:1px solid rgba(6,214,160,.25);
+  border-radius:24px;padding:40px 36px;max-width:440px;width:90%;text-align:center;
+  box-shadow:0 32px 80px rgba(0,0,0,.7), 0 0 0 1px rgba(6,214,160,.08);
+  animation:vModalIn .6s cubic-bezier(.16,1,.3,1);
+  position:relative;z-index:1;
+}
+.visitor-modal::before{
+  content:'';position:absolute;inset:-1px;border-radius:25px;
+  background:linear-gradient(135deg,rgba(6,214,160,.3),rgba(34,211,238,.1),rgba(124,77,255,.2),rgba(6,214,160,.15));
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;
+  padding:1px;animation:borderGlow 4s ease-in-out infinite;pointer-events:none
+}
+@keyframes borderGlow{
+  0%,100%{opacity:.5}
+  50%     {opacity:1}
+}
+
+@keyframes vModalIn{
+  0%  {opacity:0;transform:translateY(40px) scale(.93)}
+  60% {opacity:1;transform:translateY(-6px) scale(1.01)}
+  100%{opacity:1;transform:translateY(0)   scale(1)}
+}
 .visitor-modal h2{font-family:inherit;font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,#5eead4,#a5f3fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
 .visitor-modal p.sub{color:#94a3b8;font-size:.85rem;margin-bottom:28px}
 .v-input{width:100%;padding:14px 18px;border-radius:14px;border:1px solid var(--s700,#334155);background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-size:.95rem;outline:none;transition:border .25s;margin-bottom:14px}
@@ -450,6 +496,11 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
 <!-- ═══ VISITOR LOGIN MODAL ═══ -->
 <div class="visitor-overlay" id="visitorOverlay">
+
+  <!-- Animation layer: waves + particles + formulas -->
+  <canvas id="overlayWaveCanvas"></canvas>
+  <div id="overlayParticles" aria-hidden="true"></div>
+
   <div class="visitor-modal">
     <div style="font-size:2.8rem;margin-bottom:12px;">🎓</div>
     <h2>Selamat Datang!</h2>
@@ -2871,6 +2922,125 @@ setTimeout(drawForumCanvas, 800);
 window.addEventListener('resize', () => {
   drawDMF(); drawTransmissibility(); drawFull(); drawForumCanvas();
 });
+
+// ═══════════════════════════════════════════════════════
+// LOGIN OVERLAY ANIMATION — Sine Waves + Particles + Formulas
+// ═══════════════════════════════════════════════════════
+(function initLoginAnimation() {
+  const canvas = document.getElementById('overlayWaveCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let frame = 0, raf;
+
+  function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = Math.round(window.innerHeight * 0.55);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const waves = [
+    { freq:0.018, amp:38, speed:0.018, col:'rgba(6,214,160,0.4)',   phase:0,              lw:1.8 },
+    { freq:0.013, amp:55, speed:0.013, col:'rgba(34,211,238,0.25)', phase:Math.PI/2.5,    lw:1.4 },
+    { freq:0.025, amp:22, speed:0.026, col:'rgba(124,77,255,0.30)', phase:Math.PI/1.3,    lw:1.2 },
+    { freq:0.010, amp:72, speed:0.009, col:'rgba(6,214,160,0.12)',  phase:Math.PI,        lw:1.0 },
+    { freq:0.032, amp:14, speed:0.038, col:'rgba(255,179,0,0.18)',  phase:Math.PI*0.7,    lw:0.9 },
+  ];
+
+  function drawWaves() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const midY = canvas.height * 0.52;
+    waves.forEach(w => {
+      ctx.beginPath();
+      ctx.strokeStyle = w.col;
+      ctx.lineWidth   = w.lw;
+      ctx.shadowColor = w.col;
+      ctx.shadowBlur  = 10;
+      for (let x = 0; x <= canvas.width; x += 3) {
+        const y = midY + w.amp * Math.sin(w.freq * x + frame * w.speed + w.phase);
+        x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    });
+    ctx.shadowBlur = 0;
+    frame++;
+    raf = requestAnimationFrame(drawWaves);
+  }
+  drawWaves();
+
+  // Pause when overlay hidden to save CPU
+  const overlay = document.getElementById('visitorOverlay');
+  if (overlay) {
+    new MutationObserver(() => {
+      if (overlay.classList.contains('hidden')) cancelAnimationFrame(raf);
+      else { frame = 0; raf = requestAnimationFrame(drawWaves); }
+    }).observe(overlay, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  /* ── Floating particles ── */
+  const container = document.getElementById('overlayParticles');
+  if (!container) return;
+  const pColors = [
+    'rgba(6,214,160,.85)',  'rgba(34,211,238,.75)',
+    'rgba(124,77,255,.65)', 'rgba(6,214,160,.5)',
+    'rgba(255,179,0,.55)',
+  ];
+  for (let i = 0; i < 30; i++) {
+    const p  = document.createElement('div');
+    const sz = 1.5 + Math.random() * 4;
+    const dur= 11 + Math.random() * 16;
+    const col= pColors[i % pColors.length];
+    p.className = 'ov-particle';
+    Object.assign(p.style, {
+      left:    (Math.random() * 100) + '%',
+      width:   sz + 'px',
+      height:  sz + 'px',
+      background: col,
+      boxShadow: `0 0 ${sz * 4}px ${sz}px ${col}`,
+      animationDuration: dur + 's',
+      animationDelay:    -(Math.random() * dur) + 's',
+      '--drift': ((Math.random() - 0.5) * 140) + 'px',
+    });
+    container.appendChild(p);
+  }
+
+  /* ── Floating physics formulas ── */
+  const formulas = [
+    { t: 'mẍ + cẋ + kx = F₀sin(ωt)', s: 11 },
+    { t: 'DMF = 1/√[(1−r²)²+(2ζr)²]', s: 10 },
+    { t: 'ωₙ = √(k/m)',      s: 13 },
+    { t: 'ζ = c / (2√km)',   s: 12 },
+    { t: 'r = ω / ωₙ',       s: 15 },
+    { t: 'X = F₀·DMF/k',     s: 12 },
+    { t: 'φ = arctan(2ζr/(1−r²))', s: 10 },
+    { t: 'Tᵣ = √[1+(2ζr)²] / DMF', s: 9 },
+    { t: 'x(t) = X·sin(ωt−φ)',   s: 11 },
+    { t: 'E_d = πcωX²',      s: 13 },
+    { t: 'ωd = ωₙ√(1−ζ²)',  s: 11 },
+  ];
+  const fCols = [
+    'rgba(6,214,160,.22)', 'rgba(34,211,238,.18)',
+    'rgba(124,77,255,.2)', 'rgba(255,179,0,.15)',
+  ];
+  formulas.forEach((f, i) => {
+    const el  = document.createElement('div');
+    const dur = 22 + Math.random() * 20;
+    const rot = (Math.random() - 0.5) * 20;
+    el.className   = 'ov-formula';
+    el.textContent = f.t;
+    Object.assign(el.style, {
+      left:    (4 + Math.random() * 88) + '%',
+      fontSize: f.s + 'px',
+      color:   fCols[i % fCols.length],
+      animationDuration: dur + 's',
+      animationDelay:    -(Math.random() * dur) + 's',
+      '--rot':  rot + 'deg',
+      letterSpacing: '0.5px',
+      fontWeight: '600',
+    });
+    container.appendChild(el);
+  });
+})();
 </script>
 
 <!-- ── FIREBASE + VISITOR SYSTEM (identik dengan Modul-1) ── -->
