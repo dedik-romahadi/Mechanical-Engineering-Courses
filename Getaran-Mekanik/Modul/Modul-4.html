@@ -333,6 +333,14 @@ footer a:hover{color:var(--cyan)}
   60% {opacity:1;transform:translateY(-6px) scale(1.01)}
   100%{opacity:1;transform:translateY(0)   scale(1)}
 }
+
+/* Loading students dots */
+.loading-students{display:flex;align-items:center;justify-content:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#94a3b8;margin-bottom:20px;min-height:26px;transition:all .3s}
+.loading-dot{width:6px;height:6px;border-radius:50%;animation:ldot .8s ease-in-out infinite;flex-shrink:0}
+.loading-dot:nth-child(1){background:#06d6a0}
+.loading-dot:nth-child(2){background:#fbbf24;animation-delay:.16s}
+.loading-dot:nth-child(3){background:#a78bfa;animation-delay:.32s}
+@keyframes ldot{0%,80%,100%{transform:scale(.55);opacity:.35}40%{transform:scale(1.1);opacity:1}}
 .visitor-modal h2{font-family:inherit;font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,#5eead4,#a5f3fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
 .visitor-modal p.sub{color:#94a3b8;font-size:.85rem;margin-bottom:28px}
 .v-input{width:100%;padding:14px 18px;border-radius:14px;border:1px solid var(--s700,#334155);background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-size:.95rem;outline:none;transition:border .25s;margin-bottom:14px}
@@ -505,10 +513,19 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div style="font-size:2.8rem;margin-bottom:12px;">🎓</div>
     <h2>Selamat Datang!</h2>
     <p class="sub">Silakan masukkan identitas Anda untuk mengakses halaman ini.</p>
+
+    <!-- Loading state indicator -->
+    <div class="loading-students" id="loadingStudents">
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+      <span id="loadingStudentsText">Memuat data mahasiswa...</span>
+    </div>
+
     <p class="v-error" id="vError"></p>
     <input type="text" class="v-input" id="vNama" placeholder="Nama Lengkap" autocomplete="off">
     <input type="text" class="v-input" id="vNim" placeholder="NIM (Nomor Induk Mahasiswa)" autocomplete="off">
-    <button class="v-btn-primary" id="vSubmit" onclick="submitVisitor()">Masuk ke Modul 4 →</button>
+    <button class="v-btn-primary" id="vSubmit" onclick="submitVisitor()" disabled style="opacity:.6;cursor:wait">Masuk ke Modul 4 →</button>
     <button class="v-btn-cancel" onclick="showScheduleModal()" style="margin-top:8px;border-color:rgba(99,102,241,.3);color:#818cf8;">🕐 Atur Jadwal 🔒</button>
   </div>
 </div>
@@ -1332,7 +1349,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
 
   <!-- SCORE BAR -->
   <div class="score-bar">
-    <div class="score-num" id="scoreDisplay">0</div>
+    <div style="text-align:center;min-width:70px">
+      <div class="score-num" id="scoreDisplay" style="font-size:38px;line-height:1">0</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:3px">Nilai (0–100)</div>
+    </div>
     <div class="score-info">
       <div class="score-title">Skor Sementara</div>
       <div style="font-size:13px;color:var(--text);margin-top:2px" id="scoreDetail">0 / 25 poin</div>
@@ -1349,7 +1369,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     <div class="warn-icon">📓</div>
     <div>
       <h4>Petunjuk Pengerjaan Tugas 4</h4>
-      <p>Kerjakan semua soal di <strong>Jupyter Notebook (VS Code)</strong> menggunakan parameter sistem yang diberikan. Setelah selesai, <strong>paste kode dari Jupyter ke kolom yang tersedia</strong>, lalu klik <strong>▶ Run &amp; Validasi</strong> — poin diberikan jika kode berjalan tanpa error dan output mengandung nilai yang benar. Di akhir, tempelkan link Google Drive berisi file <code style="font-family:'JetBrains Mono',monospace">.ipynb</code> jawaban lengkap Anda.</p>
+      <p>Kerjakan semua soal di <strong>Jupyter Notebook (VS Code)</strong> menggunakan parameter sistem yang diberikan. Setelah selesai, <strong>paste kode dari Jupyter ke kolom yang tersedia</strong>, lalu klik <strong>▶ Run &amp; Validasi</strong> — poin diberikan jika kode berjalan tanpa error dan output mengandung nilai yang benar. Di akhir, tempelkan link Google Drive berisi file <code style="font-family:'JetBrains Mono',monospace">.ipynb</code> yang memuat <strong>kode implementasi Python (Bagian 08 Modul)</strong> dan <strong>jawaban lengkap semua soal tugas</strong>.</p>
     </div>
   </div>
 
@@ -1669,7 +1689,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       <span style="font-size:22px">🔗</span>
       <div>
         <div style="font-weight:700;color:var(--green);font-size:15px">Link Google Drive — File Jawaban (.ipynb)</div>
-        <div style="font-size:13px;color:var(--muted);margin-top:2px">Tempel link Google Drive yang berisi file Jupyter Notebook (<code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">.ipynb</code>). Pastikan aksesnya <em>Anyone with the link</em>.</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:2px">Tempel link Google Drive yang berisi file Jupyter Notebook (<code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">.ipynb</code>) — mencakup <strong style="color:var(--text)">kode Python implementasi</strong> seperti yang dijelaskan di Modul (Bagian 08) dan <strong style="color:var(--text)">jawaban lengkap seluruh soal tugas</strong>. Pastikan aksesnya <em>Anyone with the link</em>.</div>
       </div>
     </div>
     <input
@@ -2204,14 +2224,15 @@ function checkComp(qId, expectedAns, tol) { runAndCheck(qId, expectedAns, tol); 
 
 // ── SCORE UPDATE ──
 function updateScore() {
-  const mc = Object.values(mcScores).reduce((a,b) => a+b, 0);
-  const comp = Object.values(compScores).reduce((a,b) => a+b, 0);
+  const mc    = Object.values(mcScores).reduce((a,b) => a+b, 0);
+  const comp  = Object.values(compScores).reduce((a,b) => a+b, 0);
   const total = mc + comp;
-  document.getElementById('scoreDisplay').textContent = total;
-  document.getElementById('scoreDetail').textContent = total + ' / 25 poin';
-  document.getElementById('scoreMC').textContent = mc;
-  document.getElementById('scoreComp').textContent = comp;
-  document.getElementById('scoreFill').style.width = (total / 25 * 100) + '%';
+  const nilai = Math.round(total / 25 * 100);   // skala 0–100
+  document.getElementById('scoreDisplay').textContent = nilai;
+  document.getElementById('scoreDetail').textContent  = total + ' / 25 poin';
+  document.getElementById('scoreMC').textContent      = mc;
+  document.getElementById('scoreComp').textContent    = comp;
+  document.getElementById('scoreFill').style.width    = nilai + '%';
 }
 
 // ── FORUM LOGIC ──
@@ -2329,6 +2350,8 @@ function exportTugasHtml() {
     return { ...d, code: ta ? ta.value.trim() : '', pts: compScores[d.id] || 0 };
   });
 
+  const nilai = Math.round(total / 25 * 100);
+
   const html = `<!DOCTYPE html>
 <html lang="id">
 <head>
@@ -2380,13 +2403,13 @@ function exportTugasHtml() {
   </div>
 
   <div class="score-banner">
-    <div>
-      <div class="score-big">${total}</div>
-      <div class="score-detail" style="margin-top:4px">dari 25 poin</div>
+    <div style="text-align:center;min-width:90px;">
+      <div class="score-big">${nilai}</div>
+      <div class="score-detail" style="margin-top:3px;font-size:.72rem;letter-spacing:.5px;text-transform:uppercase;">Nilai (0–100)</div>
     </div>
     <div style="flex:1">
-      <div class="score-bar-wrap"><div class="score-bar-fill" style="width:${Math.round(total/25*100)}%"></div></div>
-      <div class="score-detail" style="margin-top:6px">PG: ${mc}/5 · Komputasi: ${comp}/20</div>
+      <div class="score-bar-wrap"><div class="score-bar-fill" style="width:${nilai}%"></div></div>
+      <div class="score-detail" style="margin-top:6px">Poin: ${total}/25 &nbsp;·&nbsp; PG: ${mc}/5 &nbsp;·&nbsp; Komputasi: ${comp}/20</div>
     </div>
   </div>
 
@@ -3086,12 +3109,34 @@ function fetchMasterStudents(retries){
     if(!r.ok) throw new Error('HTTP '+r.status);
     return r.json();
   }).then(data=>{
-    masterStudents = data; masterFetchDone = true;
+    masterStudents = data;
+    masterFetchDone = true;
     console.log('[Visitor] Master students loaded:', masterStudents.length);
+    // Update loading indicator → success
+    const ls  = document.getElementById('loadingStudents');
+    const btn = document.getElementById('vSubmit');
+    if (ls) {
+      ls.innerHTML = '<span style="color:#06d6a0;font-size:12px;">✓ ' + data.length + ' mahasiswa terdaftar</span>';
+      setTimeout(() => {
+        ls.style.opacity = '0';
+        setTimeout(() => { ls.style.display = 'none'; }, 400);
+      }, 2200);
+    }
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
   }).catch(err=>{
     console.error('[Visitor] Fetch error (attempt '+(retries+1)+'):', err);
-    if(retries < 2){ setTimeout(()=>fetchMasterStudents(retries+1), 1500); }
-    else { masterStudents = []; masterFetchDone = true; }
+    if(retries < 2){
+      setTimeout(()=>fetchMasterStudents(retries+1), 1500);
+    } else {
+      masterStudents = []; masterFetchDone = true;
+      const ls  = document.getElementById('loadingStudents');
+      const btn = document.getElementById('vSubmit');
+      if (ls) {
+        // Remove dots, show warning
+        ls.innerHTML = '<span style="color:#fbbf24;font-size:11px;line-height:1.5">⚠ Tidak bisa memuat daftar mahasiswa. Dosen tetap bisa masuk.</span>';
+      }
+      if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
+    }
   });
 }
 
@@ -3123,6 +3168,11 @@ function initVisitor(){
   if(me && me.nama && me.role!=='guest'){
     document.getElementById('visitorOverlay').classList.add('hidden');
     document.getElementById('visitorFab').style.display='flex';
+    // Hide loading bar immediately for returning visitors
+    const ls = document.getElementById('loadingStudents');
+    if (ls) ls.style.display = 'none';
+    const btn = document.getElementById('vSubmit');
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
     const _isDosen = me.nama.toLowerCase()==='dedik romahadi';
     if(!_isDosen && (!masterFetchDone || masterStudents.some(s=>s.nim===me.nim && s.nama.toUpperCase()===me.nama.toUpperCase()))){
       const _key = sanitizeKey(`mhs_${me.nim}`);
