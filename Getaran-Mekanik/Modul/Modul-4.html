@@ -2132,8 +2132,10 @@ function checkMC(qId) {
     sel.classList.add('wrong-ans');
     fb.className = 'feedback wrong';
     rg.querySelectorAll('.radio-option').forEach(o => { if(o._correct) o.classList.add('correct-ans'); });
-    fb.textContent = '❌ Kurang tepat. Jawaban yang benar ditandai hijau.';
+    fb.textContent = '🔒 Kurang tepat. Jawaban yang benar ditandai hijau. Soal dikunci.';
     mcScores[qId] = 0;
+    // Record failed attempt to Firebase (same anti-manipulation as comp)
+    if (typeof window._recordMcAttempt === 'function') window._recordMcAttempt(qId);
   }
   updateScore();
   checkExportReady();
@@ -2220,11 +2222,27 @@ function parseNumbers(str) {
 
 let compAnswered = {}, compScores = {};
 
+// ── Lock a comp question permanently (wrong answer or error) ──
+function _lockCompWrong(qId, fbMsg) {
+  compAnswered[qId] = true; compScores[qId] = 0;
+  const btn = document.getElementById('sub-' + qId);
+  if (btn) { btn.disabled = true; btn.textContent = '✗ Terkunci'; btn.style.borderColor = 'rgba(255,64,129,.3)'; btn.style.color = 'var(--pink)'; btn.classList.remove('running'); }
+  const ta = document.getElementById('code-' + qId);
+  if (ta) { ta.disabled = true; ta.style.borderColor = 'rgba(255,64,129,.25)'; ta.style.opacity = '.7'; }
+  const fb = document.getElementById('fb-' + qId);
+  if (fb) { fb.className = 'feedback wrong'; fb.textContent = fbMsg; }
+  // Save attempt to Firebase so it persists across devices/refresh
+  if (typeof window._recordCompAttempt === 'function') window._recordCompAttempt(qId);
+  checkExportReady();
+}
+
 async function runAndCheck(qId, expectedAns, tol) {
   if (compAnswered[qId]) {
     const fb = document.getElementById('fb-' + qId);
-    fb.className = 'feedback correct';
-    fb.textContent = '✅ Sudah dijawab sebelumnya — poin telah tercatat.';
+    if (fb) {
+      if (compScores[qId] > 0) { fb.className = 'feedback correct'; fb.textContent = '✅ Sudah dijawab benar — poin telah tercatat.'; }
+      else                     { fb.className = 'feedback wrong';   fb.textContent = '🔒 Soal ini sudah dikunci — tidak ada kesempatan ulang.'; }
+    }
     return;
   }
   const btn    = document.getElementById('sub-' + qId);
@@ -2243,8 +2261,6 @@ async function runAndCheck(qId, expectedAns, tol) {
 
   try {
     const pyodide = await getPyodide();
-
-    // Reset capture buffer
     await pyodide.runPythonAsync('_cap.reset(); sys.stdout = _cap');
 
     let errMsg = null;
@@ -2254,41 +2270,34 @@ async function runAndCheck(qId, expectedAns, tol) {
       errMsg = String(runErr.message || runErr).replace(/^PythonError:\s*/, '');
     }
 
-    // Restore stdout
     await pyodide.runPythonAsync('sys.stdout = sys.__stdout__');
     const output = await pyodide.runPythonAsync('_cap.getvalue()');
 
-    // Show stdout in the box
     if (stdout) {
       stdout.classList.add('show');
       if (errMsg) {
         stdout.innerHTML = `<div class="stdout-label">❌ Error</div><div class="stderr-line">${errMsg.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`;
-        fb.className = 'feedback wrong';
-        fb.textContent = '❌ Kode menghasilkan error. Periksa pesan di atas.';
-        btn.disabled = false; btn.classList.remove('running');
+        _lockCompWrong(qId, '🔒 Kode error — soal dikunci. Tidak ada kesempatan ulang.');
         return;
       }
       const outEsc = (output||'').replace(/</g,'&lt;').replace(/>/g,'&gt;') || '(tidak ada output)';
       stdout.innerHTML = `<div class="stdout-label">📤 Output</div>${outEsc}`;
     }
 
-    // Check output
     const nums = parseNumbers(output || '');
     const correct = nums.some(n => Math.abs(n - expectedAns) <= tol);
 
     if (correct) {
       fb.className = 'feedback correct';
-      fb.textContent = `✅ Kode berjalan tanpa error & output benar! +2 poin`;
+      fb.textContent = '✅ Kode berjalan tanpa error & output benar! +2 poin';
       compAnswered[qId] = true; compScores[qId] = 2;
-      btn.textContent = '✓ Selesai'; btn.classList.remove('running');
+      btn.disabled = true; btn.textContent = '✓ Selesai'; btn.classList.remove('running');
       if (ta) ta.style.borderColor = 'rgba(0,230,118,.5)';
       if (typeof window._awardCompPoint === 'function') window._awardCompPoint(qId);
       updateScore(); checkExportReady();
     } else {
-      fb.className = 'feedback wrong';
-      const outPreview = (output || '(kosong)').trim().slice(0, 120);
-      fb.textContent = `❌ Kode berjalan tapi output tidak mengandung nilai yang benar (≈ ${expectedAns}). Output: "${outPreview}"`;
-      btn.disabled = false; btn.classList.remove('running');
+      const outPreview = (output || '(kosong)').trim().slice(0, 100);
+      _lockCompWrong(qId, `🔒 Output tidak mengandung nilai yang benar (≈ ${expectedAns}). Output: "${outPreview}" — Soal dikunci.`);
     }
   } catch (e) {
     fb.className = 'feedback wrong';
@@ -3453,6 +3462,40 @@ window._awardCompPoint = function(qId) {
   }).catch(()=>{});
 };
 
+// ── Record a failed MC attempt to Firebase ──
+window._recordMcAttempt = function(qId) {
+  const me = getIdentity();
+  if (!me || !me.nim || me.role === 'dosen') return;
+  const key = sanitizeKey('mhs_' + me.nim);
+  const nodeRef = ref(db, DB_PATH + '/' + key);
+  get(nodeRef).then(snap => {
+    if (!snap.exists()) return;
+    const ex = snap.val();
+    const usedKey = qId + '_mc_used';
+    const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
+    if (scored.includes(usedKey)) return;
+    scored.push(usedKey);
+    set(nodeRef, Object.assign({}, ex, { scoredQuestions: scored.join(',') }));
+  }).catch(() => {});
+};
+
+// ── Record a failed comp attempt to Firebase (anti-manipulation) ──
+window._recordCompAttempt = function(qId) {
+  const me = getIdentity();
+  if (!me || !me.nim || me.role === 'dosen') return;
+  const key = sanitizeKey('mhs_' + me.nim);
+  const nodeRef = ref(db, DB_PATH + '/' + key);
+  get(nodeRef).then(snap => {
+    if (!snap.exists()) return;
+    const ex = snap.val();
+    const usedKey = qId + '_comp_used';
+    const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
+    if (scored.includes(usedKey)) return;   // already recorded
+    scored.push(usedKey);
+    set(nodeRef, Object.assign({}, ex, { scoredQuestions: scored.join(',') }));
+  }).catch(() => {});
+};
+
 window._loadScoredQuestions = function() {
   const me = getIdentity();
   if (!me || !me.nim || me.role === 'dosen') return;
@@ -3463,13 +3506,29 @@ window._loadScoredQuestions = function() {
     if (!scored.length) return;
     scored.forEach(qId => {
       _answeredQ.add(qId);
+
+      // ── Restore MC correct answers ──
       if (/^mc\d+$/.test(qId)) {
         if (!mcAnswered[qId]) { mcAnswered[qId] = true; mcScores[qId] = 1; }
         const rg = document.getElementById('rg-' + qId);
         if (rg) { rg.dataset.locked='true'; rg.querySelectorAll('.radio-option').forEach(o=>{o.style.pointerEvents='none';o.style.opacity='.6';}); }
         const sub = document.getElementById('sub-' + qId); if (sub) sub.disabled = true;
-        const fb = document.getElementById('fb-' + qId); if (fb && !fb.classList.contains('correct')) { fb.className='feedback correct'; fb.textContent='✅ Sudah dijawab sebelumnya — poin telah tercatat.'; }
+        const fb = document.getElementById('fb-' + qId);
+        if (fb && !fb.classList.contains('correct')) { fb.className='feedback correct'; fb.textContent='✅ Sudah dijawab benar — poin telah tercatat.'; }
       }
+
+      // ── Restore MC wrong answers (mc_used suffix) ──
+      if (/^mc\d+_mc_used$/.test(qId)) {
+        const baseId = qId.replace('_mc_used','');
+        if (!mcAnswered[baseId]) { mcAnswered[baseId] = true; mcScores[baseId] = 0; }
+        const rg = document.getElementById('rg-' + baseId);
+        if (rg) { rg.dataset.locked='true'; rg.querySelectorAll('.radio-option').forEach(o=>{o.style.pointerEvents='none';o.style.opacity='.6';}); }
+        const sub = document.getElementById('sub-' + baseId); if (sub) sub.disabled = true;
+        const fb = document.getElementById('fb-' + baseId);
+        if (fb && !fb.classList.contains('correct')) { fb.className='feedback wrong'; fb.textContent='🔒 Sudah dijawab sebelumnya — soal terkunci.'; }
+      }
+
+      // ── Restore comp correct answers ──
       if (qId.endsWith('_comp')) {
         const baseId = qId.replace('_comp','');
         if (!compAnswered[baseId]) { compAnswered[baseId]=true; compScores[baseId]=2; }
@@ -3478,7 +3537,19 @@ window._loadScoredQuestions = function() {
         const ta=document.getElementById('code-'+baseId);
         if(ta) ta.style.borderColor='rgba(0,230,118,.5)';
         const fb=document.getElementById('fb-'+baseId);
-        if(fb&&!fb.classList.contains('correct')){fb.className='feedback correct';fb.textContent='✅ Sudah dijawab sebelumnya — poin telah tercatat.';}
+        if(fb&&!fb.classList.contains('correct')){fb.className='feedback correct';fb.textContent='✅ Sudah dijawab benar — poin telah tercatat.';}
+      }
+
+      // ── Restore comp wrong/error answers (_comp_used suffix) ──
+      if (qId.endsWith('_comp_used')) {
+        const baseId = qId.replace('_comp_used','');
+        if (!compAnswered[baseId]) { compAnswered[baseId]=true; compScores[baseId]=0; }
+        const sub=document.getElementById('sub-'+baseId);
+        if(sub){ sub.disabled=true; sub.textContent='✗ Terkunci'; sub.style.borderColor='rgba(255,64,129,.3)'; sub.style.color='var(--pink)'; sub.classList.remove('running'); }
+        const ta=document.getElementById('code-'+baseId);
+        if(ta){ ta.disabled=true; ta.style.borderColor='rgba(255,64,129,.25)'; ta.style.opacity='.7'; }
+        const fb=document.getElementById('fb-'+baseId);
+        if(fb&&!fb.classList.contains('correct')){fb.className='feedback wrong';fb.textContent='🔒 Sudah dijawab sebelumnya — soal terkunci. Tidak ada kesempatan ulang.';}
       }
     });
     updateScore();
