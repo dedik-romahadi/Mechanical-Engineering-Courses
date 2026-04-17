@@ -1900,12 +1900,19 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
      PAGE: HASIL
 ═══════════════════════════════════════════════════════════ -->
 <div class="page" id="page-hasil">
-<div class="hero" style="min-height:40vh">
+<div class="hero" style="min-height:55vh">
   <div class="hero-waves">
     <svg viewBox="0 0 1440 600" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <path class="wave-trace w1c" d="" fill="none" stroke="rgba(6,214,160,.12)" stroke-width="1.5"/>
-      <path class="wave-trace w2c" d="" fill="none" stroke="rgba(99,102,241,.08)" stroke-width="1"/>
+      <path class="wave-trace w1d" d="" fill="none" stroke="rgba(6,214,160,.12)" stroke-width="1.5"/>
+      <path class="wave-trace w2d" d="" fill="none" stroke="rgba(99,102,241,.08)" stroke-width="1"/>
     </svg>
+  </div>
+  <div class="float-formulas">
+    <span class="ff" style="left:6%;font-size:.9rem;color:var(--green);--dur:22s;--del:0s">✅ Tepat Waktu</span>
+    <span class="ff" style="left:28%;font-size:.75rem;color:var(--cyan);--dur:18s;--del:4s">r = ω/ωₙ</span>
+    <span class="ff" style="left:52%;font-size:.85rem;color:var(--violet);--dur:20s;--del:8s">DMF = 1/(2ζ)</span>
+    <span class="ff" style="left:70%;font-size:.7rem;color:var(--amber);--dur:24s;--del:2s">🏆 Top Skor</span>
+    <span class="ff" style="left:85%;font-size:.8rem;color:var(--green);--dur:16s;--del:11s">ωₙ = √(k/m)</span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot" style="background:#06d6a0"></div>Pertemuan 4 &nbsp;·&nbsp; Hasil &amp; Kehadiran</div>
@@ -2030,7 +2037,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const sets = [
     { sel: ['.w1', '.w2', '.w3'], colors: ['rgba(124,77,255,.12)', 'rgba(0,229,255,.08)', 'rgba(255,179,0,.06)'] },
     { sel: ['.w1b', '.w2b'], colors: ['rgba(255,179,0,.12)', 'rgba(124,77,255,.08)'] },
-    { sel: ['.w1c', '.w2c'], colors: ['rgba(0,230,118,.12)', 'rgba(124,77,255,.08)'] }
+    { sel: ['.w1c', '.w2c'], colors: ['rgba(0,230,118,.12)', 'rgba(124,77,255,.08)'] },
+    { sel: ['.w1d', '.w2d'], colors: ['rgba(6,214,160,.12)', 'rgba(99,102,241,.08)'] }
   ];
   const waveParams = [
     {freq:0.012,amp:40,decay:0.0008,speed:0.02,yOff:0.55,phase:0},
@@ -2042,17 +2050,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const W = 1440, H = 600;
     sets.forEach(s => {
       s.sel.forEach((sel, i) => {
-        const el = document.querySelector(sel);
-        if (!el) return;
-        const p = waveParams[i % waveParams.length];
-        let d = 'M0 ' + H;
-        for (let x = 0; x <= W; x += 4) {
-          const env = Math.exp(-p.decay * x);
-          const y = p.yOff * H + env * p.amp * Math.sin(p.freq * x + t * p.speed + p.phase)
-            + env * p.amp * 0.3 * Math.sin(p.freq * 2.3 * x + t * p.speed * 0.7 + p.phase);
-          d += ' L' + x + ' ' + y.toFixed(1);
-        }
-        el.setAttribute('d', d);
+        document.querySelectorAll(sel).forEach(el => {
+          if (!el) return;
+          const p = waveParams[i % waveParams.length];
+          let d = 'M0 ' + H;
+          for (let x = 0; x <= W; x += 4) {
+            const env = Math.exp(-p.decay * x);
+            const y = p.yOff * H + env * p.amp * Math.sin(p.freq * x + t * p.speed + p.phase)
+              + env * p.amp * 0.3 * Math.sin(p.freq * 2.3 * x + t * p.speed * 0.7 + p.phase);
+            d += ' L' + x + ' ' + y.toFixed(1);
+          }
+          el.setAttribute('d', d);
+        });
       });
     });
     t++;
