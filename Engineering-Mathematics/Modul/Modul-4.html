@@ -63,11 +63,34 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(6,10,16,.92)
 .page.active{display:block}
 
 /* ── HERO ── */
-.hero{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:100px 32px 60px;position:relative;overflow:hidden;z-index:1;background:linear-gradient(160deg,#020c1a 0%,#041526 30%,#06222e 60%,#031a20 100%)}
-.hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(168,85,247,.03) 59px,rgba(168,85,247,.03) 60px),repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(168,85,247,.03) 59px,rgba(168,85,247,.03) 60px);pointer-events:none}
-.hero::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 50% 50% at 50% 55%,rgba(168,85,247,.07),transparent 70%),radial-gradient(ellipse 40% 40% at 25% 70%,rgba(14,165,233,.05),transparent 60%),radial-gradient(ellipse 30% 30% at 80% 30%,rgba(249,115,22,.04),transparent 60%);pointer-events:none}
-.hero-waves{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-.hero-waves svg{position:absolute;bottom:0;left:0;width:100%;height:100%}
+.hero{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:100px 32px 60px;position:relative;overflow:hidden;z-index:1}
+.hero::before{content:'';position:absolute;inset:0;pointer-events:none}
+.hero::after{content:'';position:absolute;inset:0;pointer-events:none}
+
+/* ── TAB THEMES — distinct color palettes per tab ── */
+/* Modul: Violet + Cyan (mathematical / tech — default theme) */
+.hero[data-tab="modul"]{background:linear-gradient(160deg,#0a0418 0%,#08122a 35%,#0e1b3a 70%,#0a0f26 100%)}
+.hero[data-tab="modul"]::before{background:repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(168,85,247,.04) 59px,rgba(168,85,247,.04) 60px),repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(168,85,247,.04) 59px,rgba(168,85,247,.04) 60px)}
+.hero[data-tab="modul"]::after{background:radial-gradient(ellipse 55% 55% at 50% 55%,rgba(168,85,247,.10),transparent 70%),radial-gradient(ellipse 45% 45% at 20% 75%,rgba(14,165,233,.08),transparent 65%),radial-gradient(ellipse 35% 35% at 85% 25%,rgba(249,115,22,.05),transparent 65%)}
+
+/* Tugas: Amber + Pink (warm / active) */
+.hero[data-tab="tugas"]{background:linear-gradient(160deg,#1a0a08 0%,#2a1008 35%,#2e1a0e 70%,#1a0a14 100%)}
+.hero[data-tab="tugas"]::before{background:repeating-linear-gradient(45deg,transparent,transparent 39px,rgba(249,115,22,.04) 39px,rgba(249,115,22,.04) 40px)}
+.hero[data-tab="tugas"]::after{background:radial-gradient(ellipse 55% 55% at 55% 55%,rgba(249,115,22,.12),transparent 70%),radial-gradient(ellipse 45% 40% at 15% 85%,rgba(239,68,68,.10),transparent 65%),radial-gradient(ellipse 35% 35% at 85% 20%,rgba(251,191,36,.06),transparent 65%)}
+
+/* Forum: Green + Teal-Violet (cool / discussion) */
+.hero[data-tab="forum"]{background:linear-gradient(160deg,#02100c 0%,#061e1a 35%,#0a2028 70%,#0a121e 100%)}
+.hero[data-tab="forum"]::before{background:repeating-linear-gradient(-45deg,transparent,transparent 69px,rgba(0,224,158,.035) 69px,rgba(0,224,158,.035) 70px)}
+.hero[data-tab="forum"]::after{background:radial-gradient(ellipse 60% 55% at 50% 60%,rgba(0,224,158,.11),transparent 70%),radial-gradient(ellipse 40% 40% at 25% 80%,rgba(14,165,233,.08),transparent 65%),radial-gradient(ellipse 35% 35% at 85% 20%,rgba(168,85,247,.06),transparent 65%)}
+
+/* Hasil: Indigo + Pink-gold (calm / achievement) */
+.hero[data-tab="hasil"]{background:linear-gradient(160deg,#0a0818 0%,#0f0e2a 35%,#1a1236 70%,#1a0c1e 100%)}
+.hero[data-tab="hasil"]::before{background:radial-gradient(circle at 20% 30%,rgba(168,85,247,.04) 0,transparent 30%),radial-gradient(circle at 70% 70%,rgba(251,191,36,.04) 0,transparent 30%),radial-gradient(circle at 40% 80%,rgba(236,72,153,.04) 0,transparent 30%)}
+.hero[data-tab="hasil"]::after{background:radial-gradient(ellipse 55% 55% at 50% 55%,rgba(99,102,241,.11),transparent 70%),radial-gradient(ellipse 40% 40% at 25% 85%,rgba(251,191,36,.08),transparent 65%),radial-gradient(ellipse 35% 35% at 80% 20%,rgba(236,72,153,.06),transparent 65%)}
+
+/* Hero canvas (replaces old hero-waves SVG) */
+.hero-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.hero-waves{position:absolute;inset:0;pointer-events:none;overflow:hidden;display:none}
 .float-formulas{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .ff{position:absolute;font-family:'JetBrains Mono',monospace;font-weight:600;opacity:.07;animation:floatFormula var(--dur,16s) linear infinite;animation-delay:var(--del,0s);white-space:nowrap}
 @keyframes floatFormula{0%{transform:translateY(100vh) rotate(0deg);opacity:0}5%{opacity:.07}90%{opacity:.05}100%{transform:translateY(-20vh) rotate(8deg);opacity:0}}
@@ -93,22 +116,36 @@ h1.hero-title .hl-amber{color:var(--amber)}
 .stat-num{font-family:'Playfair Display',serif;font-size:42px;color:var(--violet);line-height:1;margin-bottom:4px}
 .stat-lbl{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px}
 
-/* ── COUNTDOWN ── */
-.countdown-wrap{background:linear-gradient(135deg,#1a0f1a 0%,#1f1015 40%,#1a0e18 100%);border:1px solid rgba(239,68,68,.35);border-radius:20px;padding:36px 40px;text-align:center;position:relative;overflow:hidden;max-width:1100px;margin:0 auto;box-shadow:0 8px 32px rgba(239,68,68,.12),inset 0 1px 0 rgba(255,255,255,.04)}
-.countdown-wrap::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(239,68,68,.025) 2px,rgba(239,68,68,.025) 3px);pointer-events:none}
-.countdown-wrap::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 50%,rgba(249,115,22,.08),transparent 70%),radial-gradient(ellipse 30% 40% at 15% 100%,rgba(239,68,68,.12),transparent 60%),radial-gradient(ellipse 30% 40% at 85% 0%,rgba(239,68,68,.10),transparent 60%);pointer-events:none}
-.countdown-label{font-family:'JetBrains Mono',monospace;font-size:12px;background:linear-gradient(90deg,#ef4444,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:5px;text-transform:uppercase;margin-bottom:26px;position:relative;font-weight:700}
-.countdown-boxes{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;position:relative}
-.cd-box{background:linear-gradient(180deg,rgba(0,0,0,.7),rgba(15,5,15,.85));border:1px solid rgba(239,68,68,.3);border-radius:14px;padding:18px 28px;min-width:90px;position:relative;box-shadow:inset 0 0 20px rgba(239,68,68,.06),0 4px 12px rgba(0,0,0,.4)}
-.cd-box::before{content:'';position:absolute;top:0;left:8%;right:8%;height:1px;background:linear-gradient(90deg,transparent,rgba(249,115,22,.5),transparent)}
-.cd-num{font-family:'Playfair Display',serif;font-size:50px;background:linear-gradient(180deg,#fb7185 0%,#ef4444 50%,#f97316 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;font-weight:900;text-shadow:0 0 30px rgba(239,68,68,.3);position:relative}
-.cd-unit{font-family:'JetBrains Mono',monospace;font-size:10px;color:#fb7185;letter-spacing:3px;margin-top:6px;font-weight:600;opacity:.85}
-.cd-sep{font-family:'Playfair Display',serif;font-size:42px;color:rgba(239,68,68,.4);align-self:center;animation:cdSepBlink 1.2s ease-in-out infinite}
-@keyframes cdSepBlink{0%,100%{opacity:.4}50%{opacity:.95}}
-.cd-note{margin-top:22px;font-size:13px;color:#cbd5e1;font-family:'JetBrains Mono',monospace;position:relative;letter-spacing:.5px}
-.cd-note strong{color:#fbbf24;font-weight:700}
-.cd-expired{color:#ef4444;font-weight:700;font-size:13px;animation:cdBlink 1s ease-in-out infinite;text-transform:uppercase;letter-spacing:2px}
-@keyframes cdBlink{0%,100%{opacity:1}50%{opacity:.3}}
+/* ── COUNTDOWN — Circular Progress Rings ── */
+.countdown-wrap{background:radial-gradient(ellipse 90% 110% at 50% 0%,rgba(168,85,247,.10),transparent 60%),linear-gradient(135deg,#0e1428 0%,#120a28 50%,#1a0e2e 100%);border:1px solid rgba(168,85,247,.25);border-radius:22px;padding:32px 36px 34px;text-align:center;position:relative;overflow:hidden;max-width:1100px;margin:0 auto;box-shadow:0 12px 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.04)}
+.countdown-wrap::before{content:'';position:absolute;inset:0;background:conic-gradient(from 0deg at 50% 0%,rgba(168,85,247,.08),rgba(14,165,233,.04) 90deg,rgba(0,224,158,.04) 180deg,rgba(249,115,22,.05) 270deg,rgba(168,85,247,.08) 360deg);opacity:.35;pointer-events:none;mix-blend-mode:screen}
+.countdown-label{font-family:'JetBrains Mono',monospace;font-size:12px;background:linear-gradient(90deg,#a855f7 0%,#0ea5e9 40%,#00e09e 70%,#f97316 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:5px;text-transform:uppercase;margin-bottom:28px;position:relative;font-weight:700}
+.countdown-rings{display:flex;gap:22px;justify-content:center;flex-wrap:wrap;position:relative}
+.cd-ring{position:relative;width:120px;height:120px;display:flex;align-items:center;justify-content:center}
+.cd-ring svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.cd-ring .bg-track{fill:none;stroke:rgba(148,163,184,.08);stroke-width:6}
+.cd-ring .progress{fill:none;stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset .5s ease,stroke .3s ease;filter:drop-shadow(0 0 8px currentColor)}
+.cd-ring.ring-d .progress{stroke:#a855f7;color:#a855f7}
+.cd-ring.ring-h .progress{stroke:#0ea5e9;color:#0ea5e9}
+.cd-ring.ring-m .progress{stroke:#00e09e;color:#00e09e}
+.cd-ring.ring-s .progress{stroke:#f97316;color:#f97316}
+.cd-center{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center}
+.cd-num{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:800;line-height:1;letter-spacing:-.5px}
+.cd-ring.ring-d .cd-num{color:#c084fc}
+.cd-ring.ring-h .cd-num{color:#38bdf8}
+.cd-ring.ring-m .cd-num{color:#34d399}
+.cd-ring.ring-s .cd-num{color:#fb923c}
+.cd-unit{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2.5px;margin-top:6px;font-weight:600;opacity:.75;text-transform:uppercase}
+.cd-ring.ring-d .cd-unit{color:#c084fc}
+.cd-ring.ring-h .cd-unit{color:#38bdf8}
+.cd-ring.ring-m .cd-unit{color:#34d399}
+.cd-ring.ring-s .cd-unit{color:#fb923c}
+.cd-note{margin-top:26px;font-size:12.5px;color:#cbd5e1;font-family:'JetBrains Mono',monospace;position:relative;letter-spacing:.5px}
+.cd-note strong{color:#a855f7;font-weight:700}
+.cd-expired{color:#ef4444;font-weight:800;font-size:14px;animation:cdPulse 1.1s ease-in-out infinite;text-transform:uppercase;letter-spacing:3px}
+@keyframes cdPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(1.05)}}
+.cd-ring.expired .progress{stroke:#ef4444;color:#ef4444;animation:cdRingPulse 1s ease-in-out infinite}
+@keyframes cdRingPulse{0%,100%{opacity:1}50%{opacity:.4}}
 
 /* ── SECTION ── */
 .section{max-width:1100px;margin:0 auto;padding:80px 32px;position:relative;z-index:1}
@@ -619,14 +656,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <div class="page active" id="page-modul">
 
 <!-- HERO -->
-<div class="hero">
-  <div class="hero-waves">
-    <svg viewBox="0 0 1440 600" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <path class="wave-trace w1" d="" fill="none" stroke="rgba(168,85,247,.12)" stroke-width="1.5"/>
-      <path class="wave-trace w2" d="" fill="none" stroke="rgba(14,165,233,.08)" stroke-width="1"/>
-      <path class="wave-trace w3" d="" fill="none" stroke="rgba(249,115,22,.06)" stroke-width="1"/>
-    </svg>
-  </div>
+<div class="hero" data-tab="modul">
+  <canvas class="hero-canvas" id="heroCanvasModul"></canvas>
   <div class="float-formulas">
     <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">y' + P(x)y = Q(x)</span>
     <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">u = e^∫P dx</span>
@@ -680,14 +711,35 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <div style="padding:48px 32px 0">
   <div class="countdown-wrap reveal">
     <div class="countdown-label">⏰ Hitung Mundur — Deadline Pertemuan 4</div>
-    <div class="countdown-boxes">
-      <div class="cd-box"><div class="cd-num" id="cd-d">--</div><div class="cd-unit">HARI</div></div>
-      <div class="cd-sep">:</div>
-      <div class="cd-box"><div class="cd-num" id="cd-h">--</div><div class="cd-unit">JAM</div></div>
-      <div class="cd-sep">:</div>
-      <div class="cd-box"><div class="cd-num" id="cd-m">--</div><div class="cd-unit">MENIT</div></div>
-      <div class="cd-sep">:</div>
-      <div class="cd-box"><div class="cd-num" id="cd-s">--</div><div class="cd-unit">DETIK</div></div>
+    <div class="countdown-rings">
+      <div class="cd-ring ring-d" id="ring-d">
+        <svg viewBox="0 0 120 120">
+          <circle class="bg-track" cx="60" cy="60" r="52"/>
+          <circle class="progress" cx="60" cy="60" r="52" stroke-dasharray="326.73" stroke-dashoffset="326.73"/>
+        </svg>
+        <div class="cd-center"><div class="cd-num" id="cd-d">--</div><div class="cd-unit">Hari</div></div>
+      </div>
+      <div class="cd-ring ring-h" id="ring-h">
+        <svg viewBox="0 0 120 120">
+          <circle class="bg-track" cx="60" cy="60" r="52"/>
+          <circle class="progress" cx="60" cy="60" r="52" stroke-dasharray="326.73" stroke-dashoffset="326.73"/>
+        </svg>
+        <div class="cd-center"><div class="cd-num" id="cd-h">--</div><div class="cd-unit">Jam</div></div>
+      </div>
+      <div class="cd-ring ring-m" id="ring-m">
+        <svg viewBox="0 0 120 120">
+          <circle class="bg-track" cx="60" cy="60" r="52"/>
+          <circle class="progress" cx="60" cy="60" r="52" stroke-dasharray="326.73" stroke-dashoffset="326.73"/>
+        </svg>
+        <div class="cd-center"><div class="cd-num" id="cd-m">--</div><div class="cd-unit">Menit</div></div>
+      </div>
+      <div class="cd-ring ring-s" id="ring-s">
+        <svg viewBox="0 0 120 120">
+          <circle class="bg-track" cx="60" cy="60" r="52"/>
+          <circle class="progress" cx="60" cy="60" r="52" stroke-dasharray="326.73" stroke-dashoffset="326.73"/>
+        </svg>
+        <div class="cd-center"><div class="cd-num" id="cd-s">--</div><div class="cd-unit">Detik</div></div>
+      </div>
     </div>
     <div class="cd-note" id="cdDeadline">Deadline: <strong style="color:var(--violet)">Menunggu jadwal...</strong></div>
   </div>
@@ -1071,100 +1123,180 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <div class="section" id="m-jupyter">
   <div class="section-label reveal">Bagian 08</div>
   <h2 class="section-title reveal">Implementasi Python<br>di Jupyter Notebook</h2>
-  <p class="section-desc reveal">Empat cell Jupyter berikut memperagakan bagaimana Python (SymPy + NumPy) menyelesaikan PD linier, Bernoulli, dan reduksi orde — baik secara simbolik (eksak) maupun numerik (RK4). Salin ke Jupyter Notebook Anda dan jalankan.</p>
+  <p class="section-desc reveal">Berikut empat cell Python yang dapat langsung dijalankan di Jupyter Notebook (VS Code). Setiap cell mencakup satu teknik penyelesaian — PD linier simbolik, plot keluarga kurva, Bernoulli numerik, dan reduksi orde. Jalankan berurutan dan amati hasilnya.</p>
 
-  <!-- Cell 1: PD Linier dengan SymPy -->
-  <h3 style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--cyan);margin:24px 0 12px;letter-spacing:1px">📘 Cell 1 — PD Linier dengan SymPy</h3>
-  <div class="cb">
-    <div class="cbh"><span><span class="dots"><span></span><span></span><span></span></span>Python — Cell 1</span><button class="ccp" onclick="cpC(this)">📋 Copy</button></div>
-    <div class="cbd"><pre><span class="cm"># Contoh 5.1: xy' + (1-x)y = 4xe^x ln x</span>
-<span class="kw">from</span> sympy <span class="kw">import</span> symbols, Function, Eq, dsolve, exp, log, simplify
+  <!-- Cell 1 -->
+  <div class="code-wrap reveal">
+    <div class="code-header">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 1 — PD Linier Simbolik dengan SymPy</span>
+      <span class="code-lang">Python</span>
+      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
+    </div>
+    <pre><span class="cm"># Contoh 5.1: xy' + (1 - x)y = 4x·e^x·ln(x)</span>
+<span class="kw">from</span> sympy <span class="kw">import</span> symbols, Function, Eq, dsolve, exp, log, simplify, diff
 
-x = symbols(<span class="cs">'x'</span>, positive=<span class="kw">True</span>)
-y = Function(<span class="cs">'y'</span>)
+x = symbols(<span class="st">'x'</span>, positive=<span class="kw">True</span>)
+y = Function(<span class="st">'y'</span>)
 
-<span class="cm"># Bentuk PD</span>
-ode = Eq(x*y(x).diff(x) + (1 - x)*y(x), 4*x*exp(x)*log(x))
+<span class="cm"># Bentuk PD: bawa ke bentuk baku terlebih dahulu</span>
+<span class="cm"># xy' + (1-x)y = 4x·e^x·ln(x)  →  y' + ((1-x)/x)y = 4·e^x·ln(x)</span>
+ode = Eq(x*y(x).<span class="fn">diff</span>(x) + (<span class="nm">1</span> - x)*y(x), <span class="nm">4</span>*x*<span class="fn">exp</span>(x)*<span class="fn">log</span>(x))
 
-<span class="cm"># Penyelesaian simbolik</span>
-sol = dsolve(ode, y(x))
-<span class="fn">print</span>(<span class="cs">"Solusi simbolik:"</span>)
-<span class="fn">print</span>(simplify(sol))
+<span class="cm"># Penyelesaian simbolik via dsolve</span>
+sol = <span class="fn">dsolve</span>(ode, y(x))
+<span class="fn">print</span>(<span class="st">"Solusi umum:"</span>)
+<span class="fn">print</span>(<span class="fn">simplify</span>(sol))
 
-<span class="cm"># Verifikasi: y·xe^(-x) = x²(2 ln x − 1) + c</span></pre></div>
+<span class="cm"># Verifikasi manual: faktor integrasi u = x·e^(-x)</span>
+<span class="fn">print</span>(<span class="st">f"\nFaktor integrasi P(x) = (1-x)/x = 1/x - 1"</span>)
+<span class="fn">print</span>(<span class="st">f"Integral P dx = ln(x) - x"</span>)
+<span class="fn">print</span>(<span class="st">f"u(x) = e^(ln(x) - x) = x·e^(-x)"</span>)
+<span class="fn">print</span>(<span class="st">f"Hasil akhir: y·x·e^(-x) = x²·(2ln(x) - 1) + c"</span>)</pre>
   </div>
 
-  <!-- Cell 2: Plot Keluarga Kurva Solusi -->
-  <h3 style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--violet);margin:24px 0 12px;letter-spacing:1px">📗 Cell 2 — Plot Keluarga Kurva Solusi</h3>
-  <div class="cb">
-    <div class="cbh"><span><span class="dots"><span></span><span></span><span></span></span>Python — Cell 2</span><button class="ccp" onclick="cpC(this)">📋 Copy</button></div>
-    <div class="cbd"><pre><span class="cm"># Plot keluarga kurva y = (1/5)e^(2x) + Ce^(-3x) untuk beberapa C</span>
-<span class="kw">import</span> numpy <span class="kw">as</span> np
+  <!-- Cell 2 -->
+  <div class="code-wrap reveal">
+    <div class="code-header">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 2 — Plot Keluarga Kurva Solusi &amp; Direction Field</span>
+      <span class="code-lang">Python</span>
+      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
+    </div>
+    <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
 <span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
 
-x = np.linspace(-1, 2, 400)
-plt.figure(figsize=(8, 5))
-<span class="kw">for</span> C <span class="kw">in</span> [-2, -1, 0, 1, 2]:
-    y = (1/5)*np.exp(2*x) + C*np.exp(-3*x)
-    plt.plot(x, y, label=<span class="cs">f"C = {C}"</span>)
+<span class="cm"># Solusi umum: y = (1/5)e^(2x) + C·e^(-3x) untuk y' + 3y = e^(2x)</span>
+x = np.<span class="fn">linspace</span>(-<span class="nm">1</span>, <span class="nm">2</span>, <span class="nm">400</span>)
+fig, (ax1, ax2) = plt.<span class="fn">subplots</span>(<span class="nm">1</span>, <span class="nm">2</span>, figsize=(<span class="nm">14</span>, <span class="nm">5</span>))
 
-plt.title(<span class="cs">"Keluarga Kurva Solusi: y' + 3y = e^(2x)"</span>)
-plt.xlabel(<span class="cs">"x"</span>); plt.ylabel(<span class="cs">"y"</span>)
-plt.legend(); plt.grid(<span class="kw">True</span>, alpha=0.3)
-plt.ylim(-5, 10)
-plt.show()</pre></div>
+<span class="cm"># Panel 1: Keluarga kurva untuk berbagai C</span>
+colors = [<span class="st">'#ef4444'</span>, <span class="st">'#f97316'</span>, <span class="st">'#facc15'</span>, <span class="st">'#00e09e'</span>, <span class="st">'#0ea5e9'</span>, <span class="st">'#a855f7'</span>]
+<span class="kw">for</span> i, C <span class="kw">in</span> <span class="fn">enumerate</span>([-<span class="nm">2</span>, -<span class="nm">1</span>, <span class="nm">0</span>, <span class="nm">1</span>, <span class="nm">2</span>, <span class="nm">3</span>]):
+    y = (<span class="nm">1</span>/<span class="nm">5</span>)*np.<span class="fn">exp</span>(<span class="nm">2</span>*x) + C*np.<span class="fn">exp</span>(-<span class="nm">3</span>*x)
+    ax1.<span class="fn">plot</span>(x, y, color=colors[i], lw=<span class="nm">1.8</span>, label=<span class="st">f"C = {C}"</span>)
+
+ax1.<span class="fn">set_title</span>(<span class="st">"Keluarga Kurva Solusi: y' + 3y = e^(2x)"</span>)
+ax1.<span class="fn">set_xlabel</span>(<span class="st">"x"</span>); ax1.<span class="fn">set_ylabel</span>(<span class="st">"y"</span>)
+ax1.<span class="fn">legend</span>(loc=<span class="st">'upper left'</span>); ax1.<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>)
+ax1.<span class="fn">set_ylim</span>(-<span class="nm">5</span>, <span class="nm">10</span>)
+
+<span class="cm"># Panel 2: Direction field (slope field) dari PD y' = e^(2x) - 3y</span>
+X, Y = np.<span class="fn">meshgrid</span>(np.<span class="fn">linspace</span>(-<span class="nm">1</span>, <span class="nm">2</span>, <span class="nm">18</span>), np.<span class="fn">linspace</span>(-<span class="nm">4</span>, <span class="nm">8</span>, <span class="nm">16</span>))
+dY = np.<span class="fn">exp</span>(<span class="nm">2</span>*X) - <span class="nm">3</span>*Y
+dX = np.<span class="fn">ones_like</span>(X)
+norm = np.<span class="fn">sqrt</span>(dX**<span class="nm">2</span> + dY**<span class="nm">2</span>)
+ax2.<span class="fn">quiver</span>(X, Y, dX/norm, dY/norm, angles=<span class="st">'xy'</span>, color=<span class="st">'#818cf8'</span>, alpha=<span class="nm">0.6</span>)
+ax2.<span class="fn">plot</span>(x, (<span class="nm">1</span>/<span class="nm">5</span>)*np.<span class="fn">exp</span>(<span class="nm">2</span>*x), color=<span class="st">'#f97316'</span>, lw=<span class="nm">2</span>, label=<span class="st">'Partikular (C=0)'</span>)
+ax2.<span class="fn">set_title</span>(<span class="st">"Direction Field: y' = e^(2x) − 3y"</span>)
+ax2.<span class="fn">set_xlabel</span>(<span class="st">"x"</span>); ax2.<span class="fn">set_ylabel</span>(<span class="st">"y"</span>)
+ax2.<span class="fn">legend</span>(); ax2.<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>)
+
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
+<span class="fn">print</span>(<span class="st">f"Solusi partikular y(0) = {(1/5)*np.exp(0):.4f}"</span>)
+<span class="fn">print</span>(<span class="st">f"Solusi untuk C=2 di x=1:  {(1/5)*np.exp(2) + 2*np.exp(-3):.4f}"</span>)</pre>
   </div>
 
-  <!-- Cell 3: Bernoulli Solver Numerik (RK4) -->
-  <h3 style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--amber);margin:24px 0 12px;letter-spacing:1px">📙 Cell 3 — Bernoulli Numerik (RK4)</h3>
-  <div class="cb">
-    <div class="cbh"><span><span class="dots"><span></span><span></span><span></span></span>Python — Cell 3</span><button class="ccp" onclick="cpC(this)">📋 Copy</button></div>
-    <div class="cbd"><pre><span class="cm"># Contoh 5.4: xy' + y = y³ x² ln x, syarat awal y(1) = 0.5</span>
-<span class="kw">import</span> numpy <span class="kw">as</span> np
+  <!-- Cell 3 -->
+  <div class="code-wrap reveal">
+    <div class="code-header">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 3 — Persamaan Bernoulli (Numerik RK45 &amp; Substitusi)</span>
+      <span class="code-lang">Python</span>
+      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
+    </div>
+    <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
 <span class="kw">from</span> scipy.integrate <span class="kw">import</span> solve_ivp
 <span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
 
-<span class="kw">def</span> <span class="fn">bernoulli</span>(x, y):
-    <span class="kw">return</span> (y**3 * x**2 * np.log(x) - y) / x
+<span class="cm"># Contoh 5.4: xy' + y = y³·x²·ln(x), syarat awal y(1) = 0.5</span>
+<span class="cm"># Bentuk baku: y' = (y³·x²·ln(x) - y) / x</span>
+<span class="kw">def</span> <span class="fn">bernoulli_rhs</span>(x, y):
+    <span class="kw">return</span> (y[<span class="nm">0</span>]**<span class="nm">3</span> * x**<span class="nm">2</span> * np.<span class="fn">log</span>(x) - y[<span class="nm">0</span>]) / x
 
-<span class="cm"># Integrasikan dari x=1 sampai x=3 dengan RK4</span>
-sol = solve_ivp(bernoulli, (1, 3), [0.5], method=<span class="cs">'RK45'</span>, 
-                dense_output=<span class="kw">True</span>, rtol=1e-8)
+<span class="cm"># Solusi numerik dari x=1 sampai x=3</span>
+sol = <span class="fn">solve_ivp</span>(bernoulli_rhs, (<span class="nm">1</span>, <span class="nm">3</span>), [<span class="nm">0.5</span>], 
+                method=<span class="st">'RK45'</span>, dense_output=<span class="kw">True</span>, rtol=<span class="nm">1e-8</span>)
+xs = np.<span class="fn">linspace</span>(<span class="nm">1</span>, <span class="nm">3</span>, <span class="nm">200</span>)
+ys_num = sol.<span class="fn">sol</span>(xs)[<span class="nm">0</span>]
 
-xs = np.linspace(1, 3, 200)
-ys = sol.sol(xs)[0]
+<span class="cm"># Solusi analitis via substitusi Bernoulli z = y^(-2):</span>
+<span class="cm"># z(x)/x² = c - (ln x)²  →  y = 1/sqrt(x²·(c - (ln x)²))</span>
+<span class="cm"># Dari y(1) = 0.5: z(1) = 4 = 1·(c - 0)  →  c = 4</span>
+c_const = <span class="nm">4</span>
+ys_analitis = <span class="nm">1</span> / np.<span class="fn">sqrt</span>(xs**<span class="nm">2</span> * (c_const - np.<span class="fn">log</span>(xs)**<span class="nm">2</span>))
 
-plt.plot(xs, ys, <span class="cs">'b-'</span>, label=<span class="cs">"Numerik y(x)"</span>)
-plt.xlabel(<span class="cs">"x"</span>); plt.ylabel(<span class="cs">"y"</span>); plt.grid(<span class="kw">True</span>, alpha=0.3)
-plt.title(<span class="cs">"Solusi Numerik PD Bernoulli"</span>); plt.legend()
-plt.show()
-<span class="fn">print</span>(<span class="cs">f"y(3) ≈ {ys[-1]:.6f}"</span>)</pre></div>
+<span class="cm"># Plot perbandingan</span>
+fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="nm">10</span>, <span class="nm">5</span>))
+ax.<span class="fn">plot</span>(xs, ys_num, color=<span class="st">'#0ea5e9'</span>, lw=<span class="nm">2.5</span>, label=<span class="st">'Numerik (RK45)'</span>)
+ax.<span class="fn">plot</span>(xs, ys_analitis, <span class="st">'--'</span>, color=<span class="st">'#f97316'</span>, lw=<span class="nm">1.5</span>, label=<span class="st">'Analitis (Substitusi Bernoulli)'</span>)
+ax.<span class="fn">set_xlabel</span>(<span class="st">"x"</span>); ax.<span class="fn">set_ylabel</span>(<span class="st">"y(x)"</span>); ax.<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>)
+ax.<span class="fn">set_title</span>(<span class="st">"PD Bernoulli: Numerik vs Analitis (Substitusi z = y^(-2))"</span>)
+ax.<span class="fn">legend</span>(); plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
+
+<span class="fn">print</span>(<span class="st">f"y(3) Numerik  = {ys_num[-1]:.6f}"</span>)
+<span class="fn">print</span>(<span class="st">f"y(3) Analitis = {ys_analitis[-1]:.6f}"</span>)
+<span class="fn">print</span>(<span class="st">f"Error RMS     = {np.sqrt(np.mean((ys_num - ys_analitis)**2)):.2e}"</span>)</pre>
   </div>
 
-  <!-- Cell 4: Reduksi Orde via Substitusi w=y' -->
-  <h3 style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--green);margin:24px 0 12px;letter-spacing:1px">📕 Cell 4 — Reduksi Orde Otomatis</h3>
-  <div class="cb">
-    <div class="cbh"><span><span class="dots"><span></span><span></span><span></span></span>Python — Cell 4</span><button class="ccp" onclick="cpC(this)">📋 Copy</button></div>
-    <div class="cbd"><pre><span class="cm"># Contoh 5.7: y'' - (1/x)y' = x ln x via SymPy</span>
-<span class="kw">from</span> sympy <span class="kw">import</span> symbols, Function, Eq, dsolve, log, simplify, diff
+  <!-- Cell 4 -->
+  <div class="code-wrap reveal">
+    <div class="code-header">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 4 — Reduksi Orde + Aplikasi Pendinginan Newton</span>
+      <span class="code-lang">Python</span>
+      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
+    </div>
+    <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">from</span> sympy <span class="kw">import</span> symbols, Function, Eq, dsolve, log, simplify
+<span class="kw">from</span> scipy.integrate <span class="kw">import</span> solve_ivp
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
 
-x = symbols(<span class="cs">'x'</span>, positive=<span class="kw">True</span>)
-y = Function(<span class="cs">'y'</span>)
+<span class="cm"># BAGIAN A: Reduksi Orde — Contoh 5.7: y'' - (1/x)y' = x·ln(x)</span>
+x = symbols(<span class="st">'x'</span>, positive=<span class="kw">True</span>)
+y = Function(<span class="st">'y'</span>)
+ode = Eq(y(x).<span class="fn">diff</span>(x, <span class="nm">2</span>) - y(x).<span class="fn">diff</span>(x)/x, x*<span class="fn">log</span>(x))
+sol = <span class="fn">dsolve</span>(ode, y(x))
+<span class="fn">print</span>(<span class="st">"Reduksi Orde — solusi y(x):"</span>)
+<span class="fn">print</span>(<span class="fn">simplify</span>(sol))
 
-<span class="cm"># PD orde dua tanpa y eksplisit</span>
-ode = Eq(y(x).diff(x, 2) - y(x).diff(x)/x, x*log(x))
+<span class="cm"># Verifikasi: reduksi dengan w = y', PD menjadi w' - w/x = x·ln(x)</span>
+w = Function(<span class="st">'w'</span>)
+ode_w = Eq(w(x).<span class="fn">diff</span>(x) - w(x)/x, x*<span class="fn">log</span>(x))
+sol_w = <span class="fn">dsolve</span>(ode_w, w(x))
+<span class="fn">print</span>(<span class="st">"\nPerantara — w(x) = y'(x):"</span>)
+<span class="fn">print</span>(<span class="fn">simplify</span>(sol_w))
 
-<span class="cm"># SymPy dapat langsung selesaikan</span>
-sol = dsolve(ode, y(x))
-<span class="fn">print</span>(<span class="cs">"Solusi langsung:"</span>)
-<span class="fn">print</span>(simplify(sol))
+<span class="cm"># BAGIAN B: Aplikasi Pendinginan Newton T' + kT = kT_inf</span>
+<span class="cm"># T₀ = 450°C, T∞ = 30°C, k = 0.04/menit. Berapa lama T → 80°C?</span>
+T0, Tinf, k = <span class="nm">450</span>, <span class="nm">30</span>, <span class="nm">0.04</span>
+t_target = -np.<span class="fn">log</span>((<span class="nm">80</span> - Tinf) / (T0 - Tinf)) / k
+<span class="fn">print</span>(<span class="st">f"\nPendinginan alami: T mencapai 80°C dalam {t_target:.2f} menit"</span>)
 
-<span class="cm"># Verifikasi manual: substitusi w = y', selesaikan sebagai PD linier</span>
-w = Function(<span class="cs">'w'</span>)
-ode_w = Eq(w(x).diff(x) - w(x)/x, x*log(x))
-sol_w = dsolve(ode_w, w(x))
-<span class="fn">print</span>(<span class="cs">"\nLangkah perantara, w(x):"</span>)
-<span class="fn">print</span>(sol_w)</pre></div>
+<span class="cm"># Simulasi numerik 3 skenario k</span>
+t_span = np.<span class="fn">linspace</span>(<span class="nm">0</span>, <span class="nm">90</span>, <span class="nm">300</span>)
+fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="nm">10</span>, <span class="nm">5</span>))
+<span class="kw">for</span> k_val, color, lbl <span class="kw">in</span> [(<span class="nm">0.04</span>, <span class="st">'#ef4444'</span>, <span class="st">'Alami k=0.04'</span>),
+                          (<span class="nm">0.08</span>, <span class="st">'#f97316'</span>, <span class="st">'Kipas k=0.08'</span>),
+                          (<span class="nm">0.12</span>, <span class="st">'#00e09e'</span>, <span class="st">'Spray k=0.12'</span>)]:
+    T = Tinf + (T0 - Tinf) * np.<span class="fn">exp</span>(-k_val * t_span)
+    ax.<span class="fn">plot</span>(t_span, T, color=color, lw=<span class="nm">2</span>, label=lbl)
+
+ax.<span class="fn">axhline</span>(<span class="nm">80</span>, color=<span class="st">'#a855f7'</span>, ls=<span class="st">'--'</span>, alpha=<span class="nm">0.5</span>, label=<span class="st">'T_aman = 80°C'</span>)
+ax.<span class="fn">axhline</span>(Tinf, color=<span class="st">'#64748b'</span>, ls=<span class="st">':'</span>, alpha=<span class="nm">0.5</span>, label=<span class="st">'T∞ = 30°C'</span>)
+ax.<span class="fn">set_xlabel</span>(<span class="st">"Waktu (menit)"</span>); ax.<span class="fn">set_ylabel</span>(<span class="st">"Suhu (°C)"</span>)
+ax.<span class="fn">set_title</span>(<span class="st">"Pendinginan Coran Aluminium: T(t) = T∞ + (T₀−T∞)·e^(−kt)"</span>)
+ax.<span class="fn">legend</span>(); ax.<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>)
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>📓 Petunjuk Pengerjaan di Jupyter Notebook:</strong><br>
+    1. Buka VS Code → buka terminal → jalankan <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan);background:rgba(14,165,233,.08);padding:2px 6px;border-radius:4px">conda activate matematika4</code><br>
+    2. Buat file baru: <code style="font-family:'JetBrains Mono',monospace;color:var(--amber);background:rgba(249,115,22,.08);padding:2px 6px;border-radius:4px">pd_linier_orde_n.ipynb</code><br>
+    3. Salin kode dari Cell 1–4 ke cell masing-masing di notebook<br>
+    4. Klik <strong>Run All</strong> untuk menjalankan seluruh notebook sekaligus<br>
+    5. Pastikan semua grafik tampil — screenshot atau export sebagai HTML untuk pengumpulan
   </div>
 </div>
 
@@ -1221,18 +1353,13 @@ sol_w = dsolve(ode_w, w(x))
      PAGE: TUGAS
 ═══════════════════════════════════════════════════════════ -->
 <div class="page" id="page-tugas">
-<div class="hero" style="min-height:60vh">
-  <div class="hero-waves">
-    <svg viewBox="0 0 1440 600" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <path class="wave-trace w1b" d="" fill="none" stroke="rgba(249,115,22,.12)" stroke-width="1.5"/>
-      <path class="wave-trace w2b" d="" fill="none" stroke="rgba(168,85,247,.08)" stroke-width="1"/>
-    </svg>
-  </div>
+<div class="hero" data-tab="tugas" style="min-height:60vh">
+  <canvas class="hero-canvas" id="heroCanvasTugas"></canvas>
   <div class="float-formulas">
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--amber);--dur:20s;--del:0s">y' + Py = Q</span>
-    <span class="ff" style="left:35%;font-size:.85rem;color:var(--cyan);--dur:22s;--del:5s">u = e^∫P dx</span>
-    <span class="ff" style="left:55%;font-size:.8rem;color:var(--violet);--dur:18s;--del:5s">z = y^(1−n)</span>
-    <span class="ff" style="left:75%;font-size:.7rem;color:var(--green);--dur:22s;--del:9s">y·u = ∫Q·u dx + c</span>
+    <span class="ff" style="left:35%;font-size:.85rem;color:#fb923c;--dur:22s;--del:5s">u = e^∫P dx</span>
+    <span class="ff" style="left:55%;font-size:.8rem;color:var(--pink);--dur:18s;--del:5s">z = y^(1−n)</span>
+    <span class="ff" style="left:75%;font-size:.7rem;color:#f43f5e;--dur:22s;--del:9s">y·u = ∫Q·u dx + c</span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot" style="background:var(--amber)"></div>Tugas Pertemuan 4 · PD Linier Orde N</div>
@@ -1264,6 +1391,15 @@ sol_w = dsolve(ode_w, w(x))
       <div>Komputasi: <span id="scoreComp" style="color:var(--amber)">0</span>/20 poin</div>
     </div>
     <button class="btn-export" id="btn-score-export" onclick="exportTugasHtml()" disabled style="opacity:.4;cursor:not-allowed;font-size:11px">📄 Export HTML</button>
+  </div>
+
+  <!-- LATE ACCESS BANNER — hidden by default, shown by _updateLateBanner() when schedule closed -->
+  <div id="lateAccessBanner" style="display:none;background:linear-gradient(135deg,rgba(239,68,68,.12),rgba(251,113,133,.08));border:1px solid rgba(239,68,68,.35);border-left:5px solid #ef4444;border-radius:14px;padding:18px 24px;margin-bottom:28px;align-items:flex-start;gap:14px;">
+    <span style="font-size:24px;flex-shrink:0">⏰</span>
+    <div>
+      <div style="font-weight:800;color:#f87171;font-size:15px;margin-bottom:4px;letter-spacing:.5px">Akses di Luar Jadwal Perkuliahan</div>
+      <p style="font-size:13.5px;color:#fecaca;margin:0;line-height:1.65;">Anda dapat tetap membuka dan melihat materi, namun <strong style="color:#fff">poin dan kehadiran tidak akan dicatat</strong>. Pengerjaan soal di halaman ini tidak akan disimpan. Silakan hubungi dosen jika ada kebutuhan khusus.</p>
+    </div>
   </div>
 
   <div class="warn-box">
@@ -1707,17 +1843,12 @@ sol_w = dsolve(ode_w, w(x))
      PAGE: FORUM
 ═══════════════════════════════════════════════════════════ -->
 <div class="page" id="page-forum">
-<div class="hero" style="min-height:55vh">
-  <div class="hero-waves">
-    <svg viewBox="0 0 1440 600" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <path class="wave-trace w1c" d="" fill="none" stroke="rgba(0,224,158,.12)" stroke-width="1.5"/>
-      <path class="wave-trace w2c" d="" fill="none" stroke="rgba(168,85,247,.08)" stroke-width="1"/>
-    </svg>
-  </div>
+<div class="hero" data-tab="forum" style="min-height:55vh">
+  <canvas class="hero-canvas" id="heroCanvasForum"></canvas>
   <div class="float-formulas">
     <span class="ff" style="left:10%;font-size:.9rem;color:var(--green);--dur:20s;--del:0s">T' + kT = kT∞</span>
-    <span class="ff" style="left:40%;font-size:.8rem;color:var(--cyan);--dur:18s;--del:7s">τ = 1/k</span>
-    <span class="ff" style="left:65%;font-size:.75rem;color:var(--amber);--dur:22s;--del:11s">T(t) = T∞ + ΔT·e^(−kt)</span>
+    <span class="ff" style="left:40%;font-size:.8rem;color:#2dd4bf;--dur:18s;--del:7s">τ = 1/k</span>
+    <span class="ff" style="left:65%;font-size:.75rem;color:#34d399;--dur:22s;--del:11s">T(t) = T∞ + ΔT·e^(−kt)</span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--violet);--dur:19s;--del:5s">u = e^(kt)</span>
   </div>
   <div class="hero-content">
@@ -1869,19 +2000,14 @@ sol_w = dsolve(ode_w, w(x))
      PAGE: HASIL
 ═══════════════════════════════════════════════════════════ -->
 <div class="page" id="page-hasil">
-<div class="hero" style="min-height:55vh">
-  <div class="hero-waves">
-    <svg viewBox="0 0 1440 600" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <path class="wave-trace w1d" d="" fill="none" stroke="rgba(6,214,160,.12)" stroke-width="1.5"/>
-      <path class="wave-trace w2d" d="" fill="none" stroke="rgba(249,115,22,.08)" stroke-width="1"/>
-    </svg>
-  </div>
+<div class="hero" data-tab="hasil" style="min-height:55vh">
+  <canvas class="hero-canvas" id="heroCanvasHasil"></canvas>
   <div class="float-formulas">
-    <span class="ff" style="left:6%;font-size:.9rem;color:var(--green);--dur:22s;--del:0s">✅ Tepat Waktu</span>
-    <span class="ff" style="left:28%;font-size:.75rem;color:var(--cyan);--dur:18s;--del:4s">y' + Py = Q</span>
-    <span class="ff" style="left:52%;font-size:.85rem;color:var(--violet);--dur:20s;--del:8s">u = e^∫P dx</span>
-    <span class="ff" style="left:70%;font-size:.7rem;color:var(--amber);--dur:24s;--del:2s">🏆 Top Skor</span>
-    <span class="ff" style="left:85%;font-size:.8rem;color:var(--green);--dur:16s;--del:11s">z = y^(1−n)</span>
+    <span class="ff" style="left:6%;font-size:.9rem;color:#818cf8;--dur:22s;--del:0s">✅ Tepat Waktu</span>
+    <span class="ff" style="left:28%;font-size:.75rem;color:#ec4899;--dur:18s;--del:4s">y' + Py = Q</span>
+    <span class="ff" style="left:52%;font-size:.85rem;color:#fbbf24;--dur:20s;--del:8s">u = e^∫P dx</span>
+    <span class="ff" style="left:70%;font-size:.7rem;color:#f472b6;--dur:24s;--del:2s">🏆 Top Skor</span>
+    <span class="ff" style="left:85%;font-size:.8rem;color:#a78bfa;--dur:16s;--del:11s">z = y^(1−n)</span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot" style="background:#06d6a0"></div>Pertemuan 4 &nbsp;·&nbsp; Hasil &amp; Kehadiran</div>
@@ -1909,7 +2035,7 @@ sol_w = dsolve(ode_w, w(x))
   </div>
   <div style="background:#1a2332;border:1px solid #2a3548;border-radius:20px;overflow:hidden;">
     <div id="leaderboardPanel" style="margin-bottom:2px;">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:16px 20px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:16px 20px 8px;">
         <div style="background:rgba(0,224,158,.06);border:1px solid rgba(0,224,158,.15);border-radius:14px;padding:14px 16px;">
           <div style="font-size:.72rem;font-weight:700;color:#00e09e;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🏆 Top Skor</div>
           <div id="rajinList" style="font-size:.8rem;color:#e2e8f0;min-height:60px;">⏳ Memuat...</div>
@@ -1919,9 +2045,26 @@ sol_w = dsolve(ode_w, w(x))
           <div id="santaiList" style="font-size:.8rem;color:#e2e8f0;min-height:60px;">⏳ Memuat...</div>
         </div>
       </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:6px 20px 16px;">
+        <div style="background:rgba(14,165,233,.06);border:1px solid rgba(14,165,233,.18);border-radius:14px;padding:14px 12px;text-align:center;position:relative;overflow:hidden;">
+          <div style="font-size:1.4rem;margin-bottom:2px;">👥</div>
+          <div id="statTotalMhs" style="font-family:'JetBrains Mono',monospace;font-size:1.6rem;font-weight:800;color:#0ea5e9;line-height:1;">—</div>
+          <div style="font-size:.66rem;font-weight:700;color:#38bdf8;text-transform:uppercase;letter-spacing:.12em;margin-top:6px;">Jumlah Mahasiswa</div>
+        </div>
+        <div style="background:rgba(0,224,158,.06);border:1px solid rgba(0,224,158,.18);border-radius:14px;padding:14px 12px;text-align:center;position:relative;overflow:hidden;">
+          <div style="font-size:1.4rem;margin-bottom:2px;">✅</div>
+          <div id="statHadir" style="font-family:'JetBrains Mono',monospace;font-size:1.6rem;font-weight:800;color:#00e09e;line-height:1;">—</div>
+          <div style="font-size:.66rem;font-weight:700;color:#34d399;text-transform:uppercase;letter-spacing:.12em;margin-top:6px;">Jumlah Kehadiran</div>
+        </div>
+        <div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.18);border-radius:14px;padding:14px 12px;text-align:center;position:relative;overflow:hidden;">
+          <div style="font-size:1.4rem;margin-bottom:2px;">❌</div>
+          <div id="statAbsen" style="font-family:'JetBrains Mono',monospace;font-size:1.6rem;font-weight:800;color:#ef4444;line-height:1;">—</div>
+          <div style="font-size:.66rem;font-weight:700;color:#f87171;text-transform:uppercase;letter-spacing:.12em;margin-top:6px;">Jumlah Absen</div>
+        </div>
+      </div>
     </div>
     <div style="display:flex;padding:14px 24px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.08em;">
-      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:0.5;text-align:center;">Poin</div><div style="flex:0.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
+      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:0.5;text-align:center;">Poin (Nilai)</div><div style="flex:0.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
     </div>
     <div id="visitorTableBody" style="max-height:420px;overflow-y:auto;"><div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">⏳ Memuat data mahasiswa...</div></div>
   </div>
@@ -1938,6 +2081,313 @@ sol_w = dsolve(ode_w, w(x))
      SCRIPTS
 ═══════════════════════════════════════════════════════════ -->
 <script>
+// ── HERO ANIMATIONS — 4 distinct canvases ──
+(function initHeroAnimations(){
+  const animations = {
+    // ═══ MODUL: Direction Field (slope field) + flowing particles ═══
+    // Draws PD slope field arrows for y' = e^(2x) - 3y; particles flow along.
+    modul: {
+      particles: null,
+      step(ctx, W, H, frame){
+        if(!this.particles){
+          this.particles = [];
+          for(let i=0;i<60;i++) this.particles.push({
+            x: Math.random()*W,
+            y: Math.random()*H,
+            life: Math.random()*200
+          });
+        }
+        ctx.clearRect(0,0,W,H);
+
+        // ── Draw slope field (small arrows) ──
+        const gridStep = 72;
+        const scaleX = (W/3.5);  // x domain ≈ -1..2.5
+        const scaleY = (H/16);    // y domain ≈ -6..10
+        const toX = (px) => (px - W*0.3) / scaleX;
+        const toY = (py) => (H/2 - py) / scaleY;
+        const toPx = (x) => W*0.3 + x*scaleX;
+        const toPy = (y) => H/2 - y*scaleY;
+
+        ctx.strokeStyle = 'rgba(168,85,247,.15)';
+        ctx.lineWidth = 1;
+        for(let px=gridStep*0.5; px<W; px+=gridStep){
+          for(let py=gridStep*0.5; py<H; py+=gridStep){
+            const x = toX(px), y = toY(py);
+            const dy = Math.exp(2*x) - 3*y; // slope
+            const theta = Math.atan2(dy, 1);
+            const len = 16;
+            const cos = Math.cos(theta), sin = Math.sin(theta);
+            ctx.beginPath();
+            ctx.moveTo(px - cos*len*0.5, py + sin*len*0.5); // y axis is inverted on canvas
+            ctx.lineTo(px + cos*len*0.5, py - sin*len*0.5);
+            ctx.stroke();
+          }
+        }
+
+        // ── Draw flowing particles ──
+        ctx.fillStyle = 'rgba(14,165,233,.75)';
+        ctx.shadowColor = 'rgba(14,165,233,.6)';
+        ctx.shadowBlur = 8;
+        this.particles.forEach(p => {
+          const x = toX(p.x), y = toY(p.y);
+          const dy = Math.exp(2*x) - 3*y;
+          const mag = Math.sqrt(1 + dy*dy);
+          // Advance along slope (fixed screen speed regardless of magnitude)
+          const speed = 0.8;
+          p.x += (1/mag) * speed * scaleX * 0.01;
+          p.y -= (dy/mag) * speed * scaleY * 0.01;
+          p.life++;
+          // Reset particle if out of bounds or old
+          if(p.x > W+20 || p.x < -20 || p.y > H+20 || p.y < -20 || p.life > 240){
+            p.x = Math.random()*W*0.2;
+            p.y = Math.random()*H;
+            p.life = 0;
+          }
+          const alpha = Math.sin((p.life/240)*Math.PI) * 0.8;
+          ctx.globalAlpha = Math.max(0, alpha);
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 2, 0, Math.PI*2);
+          ctx.fill();
+        });
+        ctx.globalAlpha = 1;
+        ctx.shadowBlur = 0;
+
+        // ── Highlight one integral curve as a glowing trace ──
+        ctx.strokeStyle = 'rgba(249,115,22,.35)';
+        ctx.lineWidth = 2;
+        ctx.shadowColor = 'rgba(249,115,22,.4)';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        // y = 0.2·e^(2x) + C·e^(-3x) with C animating slightly
+        const Canim = 2 + Math.sin(frame*0.008)*0.5;
+        for(let x=-1; x<=2.5; x+=0.02){
+          const y = 0.2*Math.exp(2*x) + Canim*Math.exp(-3*x);
+          const px = toPx(x), py = toPy(y);
+          if(x===-1) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+    },
+
+    // ═══ TUGAS: Orbital / spiral parametric curves ═══
+    // Figure-8 + rotating orbits in amber/pink
+    tugas: {
+      step(ctx, W, H, frame){
+        ctx.clearRect(0,0,W,H);
+        const cx = W*0.5, cy = H*0.5;
+        const t = frame*0.003;
+
+        // Multiple orbits at different radii
+        const orbits = [
+          { a: W*0.38, b: H*0.28, phase: 0,            color:'rgba(249,115,22,.18)', sp: 1.0 },
+          { a: W*0.32, b: H*0.18, phase: Math.PI/3,    color:'rgba(239,68,68,.14)',  sp: 0.7 },
+          { a: W*0.24, b: H*0.34, phase: Math.PI/1.5,  color:'rgba(251,191,36,.10)', sp: 1.3 },
+          { a: W*0.18, b: H*0.12, phase: Math.PI,      color:'rgba(244,63,94,.14)',  sp: 0.5 },
+        ];
+
+        orbits.forEach(o => {
+          ctx.strokeStyle = o.color;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          for(let a=0; a<=Math.PI*2; a+=0.05){
+            const x = cx + o.a * Math.cos(a + o.phase);
+            const y = cy + o.b * Math.sin(2*a + o.phase); // figure-8 style
+            if(a===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+          }
+          ctx.stroke();
+
+          // Orbiting particle
+          const a = t * o.sp;
+          const px = cx + o.a * Math.cos(a + o.phase);
+          const py = cy + o.b * Math.sin(2*a + o.phase);
+          ctx.fillStyle = o.color.replace(/[\d.]+\)/, '0.85)');
+          ctx.shadowColor = o.color;
+          ctx.shadowBlur = 12;
+          ctx.beginPath();
+          ctx.arc(px, py, 4, 0, Math.PI*2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        });
+      }
+    },
+
+    // ═══ FORUM: Exponential decay curves (cooling theme) ═══
+    // Multiple T(t) = T∞ + ΔT·e^(-kt) curves with drifting particles
+    forum: {
+      ripples: null,
+      step(ctx, W, H, frame){
+        if(!this.ripples){
+          this.ripples = [];
+          for(let i=0;i<4;i++) this.ripples.push({phase: i*Math.PI*0.5, k:0.015 + i*0.008});
+        }
+        ctx.clearRect(0,0,W,H);
+
+        // Draw 4 exponential decay curves at different k values
+        const decayCurves = [
+          { k: 0.003, color:'rgba(0,224,158,.25)',  lw:2 },
+          { k: 0.005, color:'rgba(45,212,191,.18)', lw:1.5 },
+          { k: 0.008, color:'rgba(52,211,153,.14)', lw:1.5 },
+          { k: 0.012, color:'rgba(168,85,247,.12)', lw:1 },
+        ];
+
+        decayCurves.forEach((c, idx) => {
+          ctx.strokeStyle = c.color;
+          ctx.lineWidth = c.lw;
+          ctx.beginPath();
+          const yStart = H*0.15 + idx*6;
+          const yEnd = H*0.78;
+          for(let px=0; px<=W; px+=4){
+            const t = px; // time proxy
+            const shift = Math.sin(frame*0.01 + idx)*10;
+            const y = yStart + (yEnd-yStart)*(1 - Math.exp(-c.k*t)) + shift*Math.exp(-c.k*t*0.5);
+            if(px===0) ctx.moveTo(px, y); else ctx.lineTo(px, y);
+          }
+          ctx.stroke();
+        });
+
+        // Horizontal T_infinity line (faded)
+        ctx.strokeStyle = 'rgba(168,85,247,.28)';
+        ctx.setLineDash([6,6]);
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, H*0.78);
+        ctx.lineTo(W, H*0.78);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Drifting "heat" particles rising up and fading
+        ctx.shadowBlur = 8;
+        for(let i=0;i<15;i++){
+          const seed = (i*123.4 + frame*0.5) % W;
+          const py = H*0.78 - ((frame*0.6 + i*47) % (H*0.7));
+          const alpha = 0.35 * (1 - (H*0.78 - py)/(H*0.7));
+          ctx.fillStyle = `rgba(249,115,22,${alpha})`;
+          ctx.shadowColor = `rgba(249,115,22,${alpha})`;
+          ctx.beginPath();
+          ctx.arc(seed, py, 2, 0, Math.PI*2);
+          ctx.fill();
+        }
+        ctx.shadowBlur = 0;
+      }
+    },
+
+    // ═══ HASIL: Constellation network (dots + connecting lines) ═══
+    // Data points connected by fading lines when close
+    hasil: {
+      stars: null,
+      step(ctx, W, H, frame){
+        if(!this.stars){
+          this.stars = [];
+          for(let i=0;i<35;i++) this.stars.push({
+            x: Math.random()*W,
+            y: Math.random()*H,
+            vx: (Math.random()-0.5)*0.3,
+            vy: (Math.random()-0.5)*0.3,
+            r: 1 + Math.random()*1.8,
+            color: ['#818cf8','#ec4899','#fbbf24','#a78bfa','#f472b6'][Math.floor(Math.random()*5)]
+          });
+        }
+        ctx.clearRect(0,0,W,H);
+
+        // Move stars
+        this.stars.forEach(s => {
+          s.x += s.vx; s.y += s.vy;
+          if(s.x<0 || s.x>W) s.vx *= -1;
+          if(s.y<0 || s.y>H) s.vy *= -1;
+        });
+
+        // Draw connections between nearby stars
+        const maxDist = 140;
+        ctx.lineWidth = 1;
+        for(let i=0;i<this.stars.length;i++){
+          for(let j=i+1;j<this.stars.length;j++){
+            const a = this.stars[i], b = this.stars[j];
+            const dx = a.x-b.x, dy = a.y-b.y;
+            const d = Math.sqrt(dx*dx+dy*dy);
+            if(d < maxDist){
+              const alpha = (1 - d/maxDist) * 0.18;
+              ctx.strokeStyle = `rgba(129,140,248,${alpha})`;
+              ctx.beginPath();
+              ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
+              ctx.stroke();
+            }
+          }
+        }
+
+        // Draw stars
+        this.stars.forEach(s => {
+          const pulse = 0.6 + 0.4*Math.sin(frame*0.02 + s.x*0.01);
+          ctx.fillStyle = s.color;
+          ctx.shadowColor = s.color;
+          ctx.shadowBlur = 10*pulse;
+          ctx.globalAlpha = 0.65 + 0.35*pulse;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+          ctx.fill();
+        });
+        ctx.globalAlpha = 1;
+        ctx.shadowBlur = 0;
+      }
+    }
+  };
+
+  const canvases = [
+    { id:'heroCanvasModul', tab:'modul' },
+    { id:'heroCanvasTugas', tab:'tugas' },
+    { id:'heroCanvasForum', tab:'forum' },
+    { id:'heroCanvasHasil', tab:'hasil' },
+  ];
+
+  let frame = 0;
+  const state = [];
+
+  function setup(){
+    canvases.forEach(c => {
+      const cv = document.getElementById(c.id);
+      if(!cv) return;
+      const parent = cv.parentElement;
+      const rect = parent.getBoundingClientRect();
+      cv.width  = Math.max(300, Math.floor(rect.width));
+      cv.height = Math.max(300, Math.floor(rect.height));
+      state.push({ canvas: cv, ctx: cv.getContext('2d'), anim: animations[c.tab] });
+    });
+  }
+
+  function loop(){
+    state.forEach(s => {
+      // Only draw if the hero is actually visible (tab is active or nearly so)
+      const page = s.canvas.closest('.page');
+      if(page && !page.classList.contains('active')) return;
+      const W = s.canvas.width, H = s.canvas.height;
+      if(W < 50 || H < 50) return;
+      s.anim.step(s.ctx, W, H, frame);
+    });
+    frame++;
+    requestAnimationFrame(loop);
+  }
+
+  function onReady(){
+    setup();
+    loop();
+    // Re-size on window resize
+    let rt;
+    window.addEventListener('resize', ()=>{
+      clearTimeout(rt);
+      rt = setTimeout(()=>{
+        state.length = 0;
+        setup();
+      }, 200);
+    });
+  }
+
+  if(document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', onReady);
+  } else {
+    onReady();
+  }
+})();
+
 // ── KaTeX ──
 document.addEventListener('DOMContentLoaded', function() {
   if (typeof renderMathInElement !== 'undefined') {
@@ -1986,6 +2436,7 @@ function switchTab(tab) {
   }
   if (tab === 'tugas') {
     setTimeout(() => getPyodide().catch(() => {}), 500);
+    if (typeof _updateLateBanner === 'function') _updateLateBanner();
   }
   if (tab === 'forum') {
     setTimeout(drawForumCanvas, 100);
@@ -2043,21 +2494,38 @@ document.addEventListener('DOMContentLoaded', () => {
 let scheduleData = null;
 function startCountdown(endISO) {
   const end = new Date(endISO).getTime();
+  const CIRC = 326.73; // 2*pi*52
+  // max for fill — d is dynamic (capped at 30), others fixed
+  const maxOf = { d: 30, h: 24, m: 60, s: 60 };
+  function setRing(key, val, max){
+    const ring = document.getElementById('ring-'+key);
+    if(!ring) return;
+    const prog = ring.querySelector('.progress');
+    if(!prog) return;
+    const frac = Math.max(0, Math.min(1, val / max));
+    prog.setAttribute('stroke-dashoffset', String(CIRC * (1 - frac)));
+  }
   function tick() {
     const now = Date.now();
     const diff = end - now;
     if (diff <= 0) {
-      ['cd-d','cd-h','cd-m','cd-s'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = '<span class="cd-expired">HABIS</span>';
+      ['d','h','m','s'].forEach(k => {
+        const el = document.getElementById('cd-'+k);
+        if (el) el.innerHTML = '<span class="cd-expired">0</span>';
+        const r = document.getElementById('ring-'+k);
+        if (r) r.classList.add('expired');
+        setRing(k, 0, 1);
       });
+      const note = document.getElementById('cdDeadline');
+      if (note) note.innerHTML = '<span class="cd-expired">⏰ Deadline telah berakhir</span>';
       return;
     }
     const d = Math.floor(diff/86400000), h = Math.floor((diff%86400000)/3600000),
           m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
-    [['cd-d',d],['cd-h',h],['cd-m',m],['cd-s',s]].forEach(([id,val]) => {
-      const el = document.getElementById(id);
+    [['d',d],['h',h],['m',m],['s',s]].forEach(([key,val]) => {
+      const el = document.getElementById('cd-'+key);
       if (el) el.textContent = String(val).padStart(2,'0');
+      setRing(key, val, maxOf[key]);
     });
     setTimeout(tick, 1000);
   }
@@ -3402,12 +3870,33 @@ function updateLeaderboard(visitors, schedExpired){
     const tA=a.pointTimestamp?new Date(a.pointTimestamp).getTime():Infinity;
     const tB=b.pointTimestamp?new Date(b.pointTimestamp).getTime():Infinity; return tA-tB;
   });
-  const akses=[...visited].sort((a,b)=>{const d=(b.visitCount||1)-(a.visitCount||1);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp);});
+  // Top Akses — ONLY students with points > 0 qualify, then sort by visitCount desc, then earliest timestamp
+  const akses=[...visited].filter(v=>(v.points||0)>0).sort((a,b)=>{const d=(b.visitCount||1)-(a.visitCount||1);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp);});
   const medalR=['🥇','🥈','🥉'];
-  function renderCardSkor(v,idx){const pts=v.points||0;return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="font-size:1rem;flex-shrink:0;">'+medalR[idx]+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(0,224,158,.12);color:#00e09e;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+pts+' poin</div></div>';}
+  function renderCardSkor(v,idx){const pts=v.points||0;const nilai=Math.round(pts/30*100);return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="font-size:1rem;flex-shrink:0;">'+medalR[idx]+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(0,224,158,.12);color:#00e09e;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;white-space:nowrap;">'+pts+' <span style="opacity:.7;font-weight:600;">('+nilai+')</span></div></div>';}
   function renderCardAkses(v,idx){const vc=v.visitCount||1;return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(251,191,36,.15);color:#fbbf24;font-size:.65rem;font-weight:800;flex-shrink:0;">'+(idx+1)+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(251,191,36,.12);color:#fbbf24;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+vc+'x</div></div>';}
   rajinEl.innerHTML=topSkor.length?topSkor.slice(0,3).map((v,i)=>renderCardSkor(v,i)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
-  santaiEl.innerHTML=akses.length?akses.slice(0,3).map((v,i)=>renderCardAkses(v,i)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
+  santaiEl.innerHTML=akses.length?akses.slice(0,3).map((v,i)=>renderCardAkses(v,i)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada mahasiswa yang memenuhi syarat (akses + poin).</span>';
+
+  // ─── Stats: Total Mahasiswa / Kehadiran / Absen ───
+  const totalMhs = masterStudents.length;
+  // Kehadiran: mahasiswa yang akses tepat waktu DAN punya poin > 0.
+  // (Mahasiswa yang akses terlambat tidak bisa memperoleh poin — diblokir
+  // di sisi penyimpanan. Kedua kondisi efektif ekivalen di sini.)
+  let hadir = 0;
+  for(const s of masterStudents){
+    const v = visitMap[s.nim];
+    if(!v) continue;
+    const onTime = !isLate(v.timestamp || v.lastVisit);
+    const hasPts = (v.points||0) > 0;
+    if(onTime && hasPts) hadir++;
+  }
+  // Absen: mahasiswa yang TIDAK punya poin (baik tidak akses, akses tapi poin=0, atau akses terlambat tanpa poin)
+  const absen = totalMhs - hadir;
+  const setTxt = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = String(val); };
+  setTxt('statTotalMhs', totalMhs);
+  setTxt('statHadir', hadir);
+  setTxt('statAbsen', Math.max(0, absen));
 }
 fetchMasterStudents();
 
@@ -3429,7 +3918,9 @@ function initVisitor(){
         if(snap.exists()){
           const ex=snap.val();
           const lastV=new Date(ex.lastVisit||ex.timestamp).getTime();
-          if(Date.now()-lastV>=VISIT_COOLDOWN){
+          // Bump visit count only if within active schedule; otherwise
+          // returning user can still view content but access is not recorded.
+          if(Date.now()-lastV>=VISIT_COOLDOWN && typeof _isScheduleOpen === 'function' && _isScheduleOpen()){
             set(ref(db,`${DB_PATH}/${_key}`),{...ex,visitCount:(ex.visitCount||1)+1,lastVisit:new Date().toISOString()});
           }
         }
@@ -3464,6 +3955,7 @@ function updateScheduleDisplay(){
     if(cdD) cdD.innerHTML = 'Deadline: <strong style="color:var(--violet)">' + e.toLocaleString('id-ID') + '</strong>';
     startCountdown(currentSchedule.end);
   } else { info.style.display='none'; }
+  if (typeof _updateLateBanner === 'function') _updateLateBanner();
 }
 
 function isLate(timestamp){
@@ -3491,13 +3983,22 @@ function submitVisitor(){
     if(nimExists){err.textContent='⚠ Nama tidak sesuai dengan NIM yang terdaftar. Pastikan nama sesuai daftar Nilai Akhir.';err.style.display='block';return;}
     err.textContent='⚠ NIM tidak terdaftar. Hanya mahasiswa yang terdaftar yang dapat mengakses halaman ini.';err.style.display='block';return;
   } else {
-    const key = sanitizeKey(`mhs_${nim}`), nowISO = new Date().toISOString();
-    get(ref(db, `${DB_PATH}/${key}`)).then(snap => {
-      let v;
-      if(snap.exists()){const ex = snap.val();const lastV = new Date(ex.lastVisit || ex.timestamp).getTime();const canBump = (Date.now() - lastV) >= VISIT_COOLDOWN;v = {...ex, visitCount: canBump ? (ex.visitCount||1)+1 : (ex.visitCount||1), lastVisit: canBump ? nowISO : (ex.lastVisit||ex.timestamp)};}
-      else { v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO}; }
-      saveIdentity(v); return set(ref(db, `${DB_PATH}/${key}`), v);
-    }).catch(()=>{ const v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO}; saveIdentity(v); set(ref(db, `${DB_PATH}/${key}`), v); });
+    const schedOpen = now <= new Date(currentSchedule.end).getTime();
+    if (!schedOpen) {
+      // Akses setelah jadwal berakhir — identitas disimpan lokal, TAPI Firebase
+      // TIDAK diperbarui (tidak ada record visit baru / tidak ada update visitCount).
+      // Mahasiswa tetap dapat melihat konten, namun aksesnya tidak dicatat.
+      const nowISO = new Date().toISOString();
+      saveIdentity({nama, nim, role:'student', timestamp:nowISO});
+    } else {
+      const key = sanitizeKey(`mhs_${nim}`), nowISO = new Date().toISOString();
+      get(ref(db, `${DB_PATH}/${key}`)).then(snap => {
+        let v;
+        if(snap.exists()){const ex = snap.val();const lastV = new Date(ex.lastVisit || ex.timestamp).getTime();const canBump = (Date.now() - lastV) >= VISIT_COOLDOWN;v = {...ex, visitCount: canBump ? (ex.visitCount||1)+1 : (ex.visitCount||1), lastVisit: canBump ? nowISO : (ex.lastVisit||ex.timestamp)};}
+        else { v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO}; }
+        saveIdentity(v); return set(ref(db, `${DB_PATH}/${key}`), v);
+      }).catch(()=>{ const v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO}; saveIdentity(v); set(ref(db, `${DB_PATH}/${key}`), v); });
+    }
   }
   document.getElementById('visitorOverlay').classList.add('hidden');
   document.getElementById('visitorFab').style.display='flex';
@@ -3538,7 +4039,8 @@ function renderVisitors(visitors){
     else if(late){statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(251,113,133,.12);color:#fb7185;border:1px solid rgba(251,113,133,.25);">\u23f0 Terlambat</span>';rowBg='background:rgba(251,113,133,.04);';nameColor='color:#fb7185;';ac='background:rgba(251,113,133,.12);color:#fb7185;';}
     else{statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(0,224,158,.1);color:#00e09e;border:1px solid rgba(0,224,158,.25);">\u2705 Tepat Waktu</span>';}
     const vcDisplay=vc?vc+'x':'<span style="color:#475569;">—</span>';
-    const ptsDisplay=pts?'<span style="color:#00e09e;font-weight:800;">'+pts+'</span>':'<span style="color:#475569;">0</span>';
+    const nilai=Math.round((pts||0)/30*100);
+    const ptsDisplay=pts?'<span style="color:#00e09e;font-weight:800;">'+pts+'</span> <span style="color:#64748b;font-weight:600;font-size:.78rem;">('+nilai+')</span>':'<span style="color:#475569;">0 <span style="font-weight:600;font-size:.78rem;">(0)</span></span>';
     const tsColor=bolos?'#ef4444':late?'#fb7185':hasVisit?'#64748b':'#475569';
     const absenClass=(!hasVisit||bolos)?' absen':'';
     return `<div class="vt-row${absenClass}" style="${rowBg}"><div class="vt-num" style="color:${tsColor};">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div class="vt-avatar" style="${ac}">${ini}</div><div><div class="vt-name" style="${nameColor}">${escH(nama)}</div></div></div><div style="flex:1;font-size:.8rem;color:${hasVisit?'#94a3b8':'#475569'};font-family:monospace;">${s.nim}</div><div style="flex:1;text-align:center;"><span class="vt-status">${statusCol}</span></div><div style="flex:0.5;text-align:center;font-size:.85rem;">${ptsDisplay}</div><div class="vt-visit" style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:#94a3b8;">${vcDisplay}</div><div style="flex:1;text-align:right;font-size:.78rem;color:${tsColor};">${ts}</div></div>`;
@@ -3593,7 +4095,66 @@ setInterval(()=>{renderVisitors(latestVisitors);},30000);
 // ═══ POINT SYSTEM — Anti-Duplication (cross-device & incognito) ═══
 const _answeredQ = new Set();
 
+// ── Schedule gate: returns true only if current time is within
+//    [currentSchedule.start, currentSchedule.end]. Used to block ALL
+//    Firebase writes (visits + points) when access is outside the
+//    active course period. If no schedule is set, returns false (closed).
+function _isScheduleOpen() {
+  try {
+    if (!currentSchedule || !currentSchedule.start || !currentSchedule.end) return false;
+    const now = Date.now();
+    const s = new Date(currentSchedule.start).getTime();
+    const e = new Date(currentSchedule.end).getTime();
+    return now >= s && now <= e;
+  } catch(e) { return false; }
+}
+
+// Show/hide late-access banner on Tugas tab based on schedule state.
+// Student must be logged in (has identity) to see the banner.
+function _updateLateBanner() {
+  try {
+    const banner = document.getElementById('lateAccessBanner');
+    if (!banner) return;
+    const me = (typeof getIdentity === 'function') ? getIdentity() : null;
+    const isStudent = me && me.nim && me.role !== 'dosen';
+    const open = _isScheduleOpen();
+    banner.style.display = (isStudent && !open) ? 'flex' : 'none';
+  } catch(e) {}
+}
+// Re-evaluate banner every 30s (in case schedule expires during session)
+setInterval(_updateLateBanner, 30000);
+
+// ── Consolation point: if ALL 20 questions attempted (10 MC + 10 Comp)
+//    AND student has 0 points (answered all wrong), award +1 bonus.
+//    Called after every scoring update.
+function _checkConsolationPoint(nodeRef, state) {
+  try {
+    const scored = (state.scoredQuestions || '').split(',').filter(Boolean);
+    // Extract distinct question IDs (ignore _used/_comp suffixes)
+    const baseIds = new Set();
+    scored.forEach(tag => {
+      let base = tag;
+      if (/_mc_used$/.test(base)) base = base.replace(/_mc_used$/,'');
+      else if (/_comp_used$/.test(base)) base = base.replace(/_comp_used$/,'');
+      else if (/_comp$/.test(base)) base = base.replace(/_comp$/,'');
+      baseIds.add(base);
+    });
+    // Must have attempted all 20: mc1..mc10 + c1..c10
+    const allAttempted = baseIds.size >= 20;
+    const zeroPoints = (state.points || 0) === 0;
+    const alreadyConsoled = (state.consolationAwarded === true);
+    if (allAttempted && zeroPoints && !alreadyConsoled) {
+      set(nodeRef, Object.assign({}, state, {
+        points: 1,
+        pointTimestamp: new Date().toISOString(),
+        consolationAwarded: true
+      }));
+    }
+  } catch(e) { /* swallow */ }
+}
+
 window._awardPoint = function(qId) {
+  if (!_isScheduleOpen()) return;  // NO point save outside active schedule
   if (_answeredQ.has(qId)) return;
   const me = getIdentity();
   if (!me || !me.nim || me.role === 'dosen') return;
@@ -3605,11 +4166,14 @@ window._awardPoint = function(qId) {
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(qId)) { _answeredQ.add(qId); return; }
     _answeredQ.add(qId); scored.push(qId);
-    set(nodeRef, Object.assign({}, ex, { points: (ex.points||0)+1, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',') }));
+    const updated = Object.assign({}, ex, { points: (ex.points||0)+1, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',') });
+    set(nodeRef, updated);
+    _checkConsolationPoint(nodeRef, updated);
   }).catch(()=>{});
 };
 
 window._awardCompPoint = function(qId) {
+  if (!_isScheduleOpen()) return;  // NO point save outside active schedule
   const compKey = qId + '_comp';
   if (_answeredQ.has(compKey)) return;
   const me = getIdentity();
@@ -3622,12 +4186,15 @@ window._awardCompPoint = function(qId) {
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(compKey)) { _answeredQ.add(compKey); return; }
     _answeredQ.add(compKey); scored.push(compKey);
-    set(nodeRef, Object.assign({}, ex, { points: (ex.points||0)+2, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',') }));
+    const updated = Object.assign({}, ex, { points: (ex.points||0)+2, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',') });
+    set(nodeRef, updated);
+    _checkConsolationPoint(nodeRef, updated);
   }).catch(()=>{});
 };
 
 // ── Record a failed MC attempt to Firebase ──
 window._recordMcAttempt = function(qId) {
+  if (!_isScheduleOpen()) return;  // no record outside active schedule
   const me = getIdentity();
   if (!me || !me.nim || me.role === 'dosen') return;
   const key = sanitizeKey('mhs_' + me.nim);
@@ -3639,12 +4206,15 @@ window._recordMcAttempt = function(qId) {
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(usedKey)) return;
     scored.push(usedKey);
-    set(nodeRef, Object.assign({}, ex, { scoredQuestions: scored.join(',') }));
+    const updated = Object.assign({}, ex, { scoredQuestions: scored.join(',') });
+    set(nodeRef, updated);
+    _checkConsolationPoint(nodeRef, updated);
   }).catch(() => {});
 };
 
 // ── Record a failed comp attempt to Firebase (anti-manipulation) ──
 window._recordCompAttempt = function(qId) {
+  if (!_isScheduleOpen()) return;  // no record outside active schedule
   const me = getIdentity();
   if (!me || !me.nim || me.role === 'dosen') return;
   const key = sanitizeKey('mhs_' + me.nim);
@@ -3656,7 +4226,9 @@ window._recordCompAttempt = function(qId) {
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(usedKey)) return;   // already recorded
     scored.push(usedKey);
-    set(nodeRef, Object.assign({}, ex, { scoredQuestions: scored.join(',') }));
+    const updated = Object.assign({}, ex, { scoredQuestions: scored.join(',') });
+    set(nodeRef, updated);
+    _checkConsolationPoint(nodeRef, updated);
   }).catch(() => {});
 };
 
