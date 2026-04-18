@@ -576,14 +576,55 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
 <!-- Reset Password Modal -->
 <div class="visitor-overlay hidden" id="resetOverlay" style="z-index:100000;">
-  <div class="visitor-modal" style="max-width:380px;">
+  <div class="visitor-modal" style="max-width:440px;">
     <div style="font-size:2.4rem;margin-bottom:12px;">🔐</div>
     <h2 style="font-size:1.3rem;">Konfirmasi Reset</h2>
-    <p class="sub">Masukkan password untuk menghapus semua data mahasiswa.</p>
+    <p class="sub">Masukkan password admin untuk menghapus semua data mahasiswa pada pertemuan ini.</p>
+    <div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:10px 14px;margin:10px 0;font-size:.78rem;color:#fca5a5;line-height:1.6;text-align:left;">
+      ⚠️ <strong>Data yang akan dihapus:</strong>
+      <ul style="margin:6px 0 0 18px;padding:0;">
+        <li>Semua <strong>poin &amp; nilai</strong> mahasiswa</li>
+        <li>Semua <strong>kunjungan</strong> (visitCount, lastVisit)</li>
+        <li>Semua <strong>riwayat jawaban</strong> (scoredQuestions)</li>
+        <li>Semua <strong>PIN mahasiswa</strong> (mereka harus buat PIN baru)</li>
+        <li>Data forum, tugas, dan <strong>jadwal pertemuan</strong></li>
+      </ul>
+    </div>
     <p class="v-error" id="resetError">⚠ Password salah.</p>
-    <input type="password" class="v-input" id="resetPw" placeholder="Password" autocomplete="off">
+    <input type="password" class="v-input" id="resetPw" placeholder="Password admin" autocomplete="off">
     <button class="v-btn-primary" style="background:linear-gradient(135deg,#fb7185,#ef4444);" onclick="confirmReset()">Hapus Semua Data</button>
     <button class="v-btn-cancel" onclick="hideResetModal()">Batal</button>
+  </div>
+</div>
+
+<!-- PIN Setup Modal (first-time login) -->
+<div class="visitor-overlay hidden" id="pinSetupOverlay" style="z-index:100001;">
+  <div class="visitor-modal" style="max-width:420px;">
+    <div style="font-size:2.4rem;margin-bottom:12px;">🔐</div>
+    <h2 style="font-size:1.3rem;">Buat PIN Keamanan</h2>
+    <p class="sub" id="pinSetupSubtitle">Hai <strong id="pinSetupName"></strong>! Buat PIN 6 digit untuk melindungi identitas Anda. PIN ini akan diminta setiap kali Anda login.</p>
+    <p class="v-error" id="pinSetupError"></p>
+    <input type="password" class="v-input" id="pinSetupInput1" placeholder="PIN (6 digit)" inputmode="numeric" maxlength="6" autocomplete="off" style="letter-spacing:8px;text-align:center;font-size:1.2rem;">
+    <input type="password" class="v-input" id="pinSetupInput2" placeholder="Konfirmasi PIN" inputmode="numeric" maxlength="6" autocomplete="off" style="letter-spacing:8px;text-align:center;font-size:1.2rem;">
+    <div style="background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);border-radius:8px;padding:10px 14px;margin:10px 0;font-size:.78rem;color:#fcd34d;line-height:1.5;">
+      💡 <strong>Penting:</strong> Ingat PIN Anda! Jika lupa, hubungi dosen untuk reset. PIN tidak dapat dipulihkan otomatis.
+    </div>
+    <button class="v-btn-primary" id="pinSetupBtn" onclick="submitPinSetup()">Simpan PIN &amp; Masuk</button>
+    <button class="v-btn-cancel" onclick="cancelPinFlow()" style="margin-top:8px;">Batal</button>
+  </div>
+</div>
+
+<!-- PIN Input Modal (returning login) -->
+<div class="visitor-overlay hidden" id="pinInputOverlay" style="z-index:100001;">
+  <div class="visitor-modal" style="max-width:420px;">
+    <div style="font-size:2.4rem;margin-bottom:12px;">🔑</div>
+    <h2 style="font-size:1.3rem;">Masukkan PIN</h2>
+    <p class="sub">Halo <strong id="pinInputName"></strong>, masukkan PIN 6 digit Anda untuk melanjutkan.</p>
+    <p class="v-error" id="pinInputError"></p>
+    <input type="password" class="v-input" id="pinInputField" placeholder="PIN (6 digit)" inputmode="numeric" maxlength="6" autocomplete="off" style="letter-spacing:8px;text-align:center;font-size:1.2rem;">
+    <button class="v-btn-primary" id="pinInputBtn" onclick="submitPinVerify()">Verifikasi &amp; Masuk</button>
+    <button class="v-btn-cancel" onclick="cancelPinFlow()" style="margin-top:8px;">Batal</button>
+    <p style="font-size:.72rem;color:#64748b;margin-top:12px;text-align:center;">Lupa PIN? Hubungi dosen untuk reset.</p>
   </div>
 </div>
 
@@ -1430,10 +1471,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc1">
-        <div class="radio-option" onclick="selectMC('mc1',this,false)"><div class="radio-circle"></div>(A) &nbsp; P(x) = 4 &nbsp; (langsung mengambil koefisien y tanpa membagi)</div>
-        <div class="radio-option" onclick="selectMC('mc1',this,true)"><div class="radio-circle"></div>(B) &nbsp; P(x) = 2/x &nbsp; (bagi seluruh PD dengan 2x, koefisien y menjadi 4/(2x) = 2/x) ✓</div>
-        <div class="radio-option" onclick="selectMC('mc1',this,false)"><div class="radio-circle"></div>(C) &nbsp; P(x) = 2x &nbsp; (membalik posisi pembagi)</div>
-        <div class="radio-option" onclick="selectMC('mc1',this,false)"><div class="radio-circle"></div>(D) &nbsp; P(x) = x² &nbsp; (mengambil Q(x) dari ruas kanan)</div>
+        <div class="radio-option" onclick="selectMC('mc1',this,false)"><div class="radio-circle"></div>(A) &nbsp; P(x) = 4</div>
+        <div class="radio-option" onclick="selectMC('mc1',this,true)"><div class="radio-circle"></div>(B) &nbsp; P(x) = 2/x</div>
+        <div class="radio-option" onclick="selectMC('mc1',this,false)"><div class="radio-circle"></div>(C) &nbsp; P(x) = 2x</div>
+        <div class="radio-option" onclick="selectMC('mc1',this,false)"><div class="radio-circle"></div>(D) &nbsp; P(x) = x²</div>
       </div>
       <button class="mc-submit" id="sub-mc1" onclick="checkMC('mc1')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc1"></div>
@@ -1447,10 +1488,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc2">
-        <div class="radio-option" onclick="selectMC('mc2',this,false)"><div class="radio-circle"></div>(A) &nbsp; u = e^∫Q(x) dx &nbsp; (menggunakan Q, bukan P)</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,true)"><div class="radio-circle"></div>(B) &nbsp; u = e^∫P(x) dx &nbsp; (eksponensial dari integral koefisien y) ✓</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,false)"><div class="radio-circle"></div>(C) &nbsp; u = ∫P(x) dx &nbsp; (tanpa eksponensial)</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,false)"><div class="radio-circle"></div>(D) &nbsp; u = ln(P(x)) &nbsp; (logaritma, bukan eksponensial)</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,false)"><div class="radio-circle"></div>(A) &nbsp; u = e^∫Q(x) dx</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,true)"><div class="radio-circle"></div>(B) &nbsp; u = e^∫P(x) dx</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,false)"><div class="radio-circle"></div>(C) &nbsp; u = ∫P(x) dx</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,false)"><div class="radio-circle"></div>(D) &nbsp; u = ln(P(x))</div>
       </div>
       <button class="mc-submit" id="sub-mc2" onclick="checkMC('mc2')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc2"></div>
@@ -1464,10 +1505,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc3">
-        <div class="radio-option" onclick="selectMC('mc3',this,false)"><div class="radio-circle"></div>(A) &nbsp; PD Linier orde satu &nbsp; (bukan, karena ada y⁴ di ruas kanan)</div>
-        <div class="radio-option" onclick="selectMC('mc3',this,true)"><div class="radio-circle"></div>(B) &nbsp; Persamaan Bernoulli dengan n = 4 &nbsp; (cocok bentuk y' + Py = Qyⁿ) ✓</div>
-        <div class="radio-option" onclick="selectMC('mc3',this,false)"><div class="radio-circle"></div>(C) &nbsp; PD Variabel Terpisah &nbsp; (tidak bisa dipisahkan x dan y)</div>
-        <div class="radio-option" onclick="selectMC('mc3',this,false)"><div class="radio-circle"></div>(D) &nbsp; PD Eksak &nbsp; (bentuknya bukan M dx + N dy = 0)</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,false)"><div class="radio-circle"></div>(A) &nbsp; PD Linier orde satu</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,true)"><div class="radio-circle"></div>(B) &nbsp; Persamaan Bernoulli dengan n = 4</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,false)"><div class="radio-circle"></div>(C) &nbsp; PD Variabel Terpisah</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,false)"><div class="radio-circle"></div>(D) &nbsp; PD Eksak</div>
       </div>
       <button class="mc-submit" id="sub-mc3" onclick="checkMC('mc3')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc3"></div>
@@ -1481,10 +1522,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc4">
-        <div class="radio-option" onclick="selectMC('mc4',this,false)"><div class="radio-circle"></div>(A) &nbsp; z = y² &nbsp; (pangkat positif, tidak melinierkan)</div>
-        <div class="radio-option" onclick="selectMC('mc4',this,true)"><div class="radio-circle"></div>(B) &nbsp; z = y⁻² &nbsp; (sesuai rumus z = y^(1−n), dengan n = 3 → z = y⁻²) ✓</div>
-        <div class="radio-option" onclick="selectMC('mc4',this,false)"><div class="radio-circle"></div>(C) &nbsp; z = y⁻³ &nbsp; (salah: itu y^(−n), bukan y^(1−n))</div>
-        <div class="radio-option" onclick="selectMC('mc4',this,false)"><div class="radio-circle"></div>(D) &nbsp; z = y³ &nbsp; (pangkat sama dengan n, salah arah)</div>
+        <div class="radio-option" onclick="selectMC('mc4',this,false)"><div class="radio-circle"></div>(A) &nbsp; z = y²</div>
+        <div class="radio-option" onclick="selectMC('mc4',this,true)"><div class="radio-circle"></div>(B) &nbsp; z = y⁻²</div>
+        <div class="radio-option" onclick="selectMC('mc4',this,false)"><div class="radio-circle"></div>(C) &nbsp; z = y⁻³</div>
+        <div class="radio-option" onclick="selectMC('mc4',this,false)"><div class="radio-circle"></div>(D) &nbsp; z = y³</div>
       </div>
       <button class="mc-submit" id="sub-mc4" onclick="checkMC('mc4')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc4"></div>
@@ -1498,10 +1539,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc5">
-        <div class="radio-option" onclick="selectMC('mc5',this,true)"><div class="radio-circle"></div>(A) &nbsp; y = (1/5)e^(2x) + Ce^(−3x) &nbsp; (u = e^(3x); ∫e^(5x) dx = e^(5x)/5) ✓</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,false)"><div class="radio-circle"></div>(B) &nbsp; y = e^(2x) + Ce^(3x) &nbsp; (tanpa faktor 1/5, tanda pangkat salah)</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,false)"><div class="radio-circle"></div>(C) &nbsp; y = (1/5)e^(2x) + Ce^(3x) &nbsp; (tanda pangkat C salah)</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,false)"><div class="radio-circle"></div>(D) &nbsp; y = (1/2)e^(2x) + Ce^(−3x) &nbsp; (koefisien partikular salah)</div>
+        <div class="radio-option" onclick="selectMC('mc5',this,true)"><div class="radio-circle"></div>(A) &nbsp; y = (1/5)e^(2x) + Ce^(−3x)</div>
+        <div class="radio-option" onclick="selectMC('mc5',this,false)"><div class="radio-circle"></div>(B) &nbsp; y = e^(2x) + Ce^(3x)</div>
+        <div class="radio-option" onclick="selectMC('mc5',this,false)"><div class="radio-circle"></div>(C) &nbsp; y = (1/5)e^(2x) + Ce^(3x)</div>
+        <div class="radio-option" onclick="selectMC('mc5',this,false)"><div class="radio-circle"></div>(D) &nbsp; y = (1/2)e^(2x) + Ce^(−3x)</div>
       </div>
       <button class="mc-submit" id="sub-mc5" onclick="checkMC('mc5')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc5"></div>
@@ -1516,7 +1557,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       </div>
       <div class="radio-group" id="rg-mc6">
         <div class="radio-option" onclick="selectMC('mc6',this,false)"><div class="radio-circle"></div>(A) &nbsp; Substitusi Bernoulli z = y^(1−n)</div>
-        <div class="radio-option" onclick="selectMC('mc6',this,true)"><div class="radio-circle"></div>(B) &nbsp; Reduksi orde dengan substitusi w = y', sehingga w' = y'' ✓</div>
+        <div class="radio-option" onclick="selectMC('mc6',this,true)"><div class="radio-circle"></div>(B) &nbsp; Reduksi orde dengan substitusi w = y', sehingga w' = y''</div>
         <div class="radio-option" onclick="selectMC('mc6',this,false)"><div class="radio-circle"></div>(C) &nbsp; Cek syarat eksak ∂M/∂y = ∂N/∂x</div>
         <div class="radio-option" onclick="selectMC('mc6',this,false)"><div class="radio-circle"></div>(D) &nbsp; Pisahkan variabel dx dan dy</div>
       </div>
@@ -1532,10 +1573,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc7">
-        <div class="radio-option" onclick="selectMC('mc7',this,false)"><div class="radio-circle"></div>(A) &nbsp; u = e^(1/x) &nbsp; (lupa mengintegralkan dulu)</div>
-        <div class="radio-option" onclick="selectMC('mc7',this,true)"><div class="radio-circle"></div>(B) &nbsp; u = x &nbsp; (∫(1/x)dx = ln x, u = e^(ln x) = x) ✓</div>
-        <div class="radio-option" onclick="selectMC('mc7',this,false)"><div class="radio-circle"></div>(C) &nbsp; u = 1/x &nbsp; (invers, salah)</div>
-        <div class="radio-option" onclick="selectMC('mc7',this,false)"><div class="radio-circle"></div>(D) &nbsp; u = ln x &nbsp; (lupa eksponensial)</div>
+        <div class="radio-option" onclick="selectMC('mc7',this,false)"><div class="radio-circle"></div>(A) &nbsp; u = e^(1/x)</div>
+        <div class="radio-option" onclick="selectMC('mc7',this,true)"><div class="radio-circle"></div>(B) &nbsp; u = x</div>
+        <div class="radio-option" onclick="selectMC('mc7',this,false)"><div class="radio-circle"></div>(C) &nbsp; u = 1/x</div>
+        <div class="radio-option" onclick="selectMC('mc7',this,false)"><div class="radio-circle"></div>(D) &nbsp; u = ln x</div>
       </div>
       <button class="mc-submit" id="sub-mc7" onclick="checkMC('mc7')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc7"></div>
@@ -1550,7 +1591,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       </div>
       <div class="radio-group" id="rg-mc8">
         <div class="radio-option" onclick="selectMC('mc8',this,false)"><div class="radio-circle"></div>(A) &nbsp; Getaran bebas teredam pada sistem massa-pegas</div>
-        <div class="radio-option" onclick="selectMC('mc8',this,true)"><div class="radio-circle"></div>(B) &nbsp; Hukum Pendinginan Newton: benda mendingin menuju suhu lingkungan T∞ ✓</div>
+        <div class="radio-option" onclick="selectMC('mc8',this,true)"><div class="radio-circle"></div>(B) &nbsp; Hukum Pendinginan Newton: benda mendingin menuju suhu lingkungan T∞</div>
         <div class="radio-option" onclick="selectMC('mc8',this,false)"><div class="radio-circle"></div>(C) &nbsp; Peluruhan radioaktif yang tidak bergantung suhu lingkungan</div>
         <div class="radio-option" onclick="selectMC('mc8',this,false)"><div class="radio-circle"></div>(D) &nbsp; Pertumbuhan populasi logistik</div>
       </div>
@@ -1566,10 +1607,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc9">
-        <div class="radio-option" onclick="selectMC('mc9',this,false)"><div class="radio-circle"></div>(A) &nbsp; i<sub>ss</sub> = 0 &nbsp; (arus tidak nol pada steady-state DC)</div>
-        <div class="radio-option" onclick="selectMC('mc9',this,false)"><div class="radio-circle"></div>(B) &nbsp; i<sub>ss</sub> = V<sub>s</sub>/L &nbsp; (menggunakan L, bukan R)</div>
-        <div class="radio-option" onclick="selectMC('mc9',this,true)"><div class="radio-circle"></div>(C) &nbsp; i<sub>ss</sub> = V<sub>s</sub>/R &nbsp; (saat i' = 0: Ri = V_s, maka i = V_s/R) ✓</div>
-        <div class="radio-option" onclick="selectMC('mc9',this,false)"><div class="radio-circle"></div>(D) &nbsp; i<sub>ss</sub> = V<sub>s</sub>·L/R &nbsp; (dimensi tidak konsisten)</div>
+        <div class="radio-option" onclick="selectMC('mc9',this,false)"><div class="radio-circle"></div>(A) &nbsp; i<sub>ss</sub> = 0</div>
+        <div class="radio-option" onclick="selectMC('mc9',this,false)"><div class="radio-circle"></div>(B) &nbsp; i<sub>ss</sub> = V<sub>s</sub>/L</div>
+        <div class="radio-option" onclick="selectMC('mc9',this,true)"><div class="radio-circle"></div>(C) &nbsp; i<sub>ss</sub> = V<sub>s</sub>/R</div>
+        <div class="radio-option" onclick="selectMC('mc9',this,false)"><div class="radio-circle"></div>(D) &nbsp; i<sub>ss</sub> = V<sub>s</sub>·L/R</div>
       </div>
       <button class="mc-submit" id="sub-mc9" onclick="checkMC('mc9')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc9"></div>
@@ -1584,7 +1625,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       </div>
       <div class="radio-group" id="rg-mc10">
         <div class="radio-option" onclick="selectMC('mc10',this,false)"><div class="radio-circle"></div>(A) &nbsp; Langsung substitusi z = y^(1−n) tanpa membagi</div>
-        <div class="radio-option" onclick="selectMC('mc10',this,true)"><div class="radio-circle"></div>(B) &nbsp; Bagi kedua ruas dengan y<sup>n</sup> terlebih dahulu untuk memunculkan y<sup>−n</sup>y' ✓</div>
+        <div class="radio-option" onclick="selectMC('mc10',this,true)"><div class="radio-circle"></div>(B) &nbsp; Bagi kedua ruas dengan y<sup>n</sup> terlebih dahulu untuk memunculkan y<sup>−n</sup>y'</div>
         <div class="radio-option" onclick="selectMC('mc10',this,false)"><div class="radio-circle"></div>(C) &nbsp; Hitung faktor integrasi u = e^∫P dx dulu, lalu kalikan</div>
         <div class="radio-option" onclick="selectMC('mc10',this,false)"><div class="radio-circle"></div>(D) &nbsp; Integralkan langsung kedua ruas terhadap x</div>
       </div>
@@ -2534,6 +2575,51 @@ function startCountdown(endISO) {
 
 // ── MC LOGIC ──
 let mcAnswered = {}, mcScores = {};
+// ── Hint penjelasan jawaban benar untuk setiap soal MC ──
+// Ditampilkan ketika mahasiswa memilih jawaban salah, sebagai panduan belajar.
+const MC_HINTS = {
+  mc1: {
+    answer: 'B',
+    explain: 'Bawa PD ke bentuk baku dengan membagi seluruh persamaan dengan koefisien y\'. Dari <code>2xy\' + 4y = x²</code>, bagi dengan <code>2x</code>: <code>y\' + (4/(2x))y = x/2</code>. Maka <strong>P(x) = 4/(2x) = 2/x</strong>. Kuncinya: identifikasi dulu koefisien y\' agar bisa membaginya.'
+  },
+  mc2: {
+    answer: 'B',
+    explain: 'Faktor integrasi adalah <strong>u(x) = e<sup>∫P(x) dx</sup></strong>. Eksponensial dari integral koefisien y. Tujuannya: mengubah ruas kiri PD menjadi turunan dari produk <code>(y·u)\'</code>, sehingga bisa diintegralkan langsung.'
+  },
+  mc3: {
+    answer: 'B',
+    explain: 'Bentuk umum Bernoulli: <code>y\' + P(x)y = Q(x)·y<sup>n</sup></code>. Di sini <code>y\' + 2xy = 3xy<sup>4</sup></code> cocok dengan <strong>n = 4</strong>. Pembedanya dari PD linier: ada faktor <code>y<sup>n</sup></code> di ruas kanan dengan n ≠ 0, 1.'
+  },
+  mc4: {
+    answer: 'B',
+    explain: 'Untuk Bernoulli, gunakan substitusi <strong>z = y<sup>1−n</sup></strong>. Dengan n = 3: <code>z = y<sup>1−3</sup> = y<sup>−2</sup></code>. Substitusi ini melinierkan PD karena turunan z menghasilkan suku linier dalam z.'
+  },
+  mc5: {
+    answer: 'A',
+    explain: 'PD <code>y\' + 3y = e<sup>2x</sup></code> linier dengan P=3, Q=e<sup>2x</sup>. Faktor integrasi <code>u = e<sup>3x</sup></code>. Kalikan: <code>(y·e<sup>3x</sup>)\' = e<sup>5x</sup></code>. Integralkan: <code>y·e<sup>3x</sup> = e<sup>5x</sup>/5 + C</code>. Bagi dengan <code>e<sup>3x</sup></code>: <strong>y = (1/5)e<sup>2x</sup> + C·e<sup>−3x</sup></strong>.'
+  },
+  mc6: {
+    answer: 'B',
+    explain: 'Karena PD <code>y\'\' − (1/x)y\' = x ln x</code> tidak memuat y secara eksplisit (hanya y\' dan y\'\'), gunakan <strong>reduksi orde dengan substitusi w = y\'</strong>. Maka w\' = y\'\', dan PD orde dua menjadi PD orde satu dalam w: <code>w\' − (1/x)w = x ln x</code> — bisa diselesaikan dengan faktor integrasi.'
+  },
+  mc7: {
+    answer: 'B',
+    explain: 'Faktor integrasi: <code>u = e<sup>∫P(x)dx</sup></code>. Dengan <code>P = 1/x</code>: <code>∫(1/x)dx = ln x</code>. Maka <strong>u = e<sup>ln x</sup> = x</strong>. Properti eksponensial dan logaritma natural saling membatalkan.'
+  },
+  mc8: {
+    answer: 'B',
+    explain: 'Persamaan <code>T\' + kT = kT<sub>∞</sub></code> adalah <strong>Hukum Pendinginan Newton</strong>: laju perubahan suhu sebanding dengan selisih dari suhu lingkungan (T<sub>∞</sub>). Solusinya <code>T(t) = T<sub>∞</sub> + (T<sub>0</sub> − T<sub>∞</sub>)e<sup>−kt</sup></code> — suhu meluruh secara eksponensial menuju suhu lingkungan.'
+  },
+  mc9: {
+    answer: 'C',
+    explain: 'Pada steady-state, arus tidak berubah lagi terhadap waktu, jadi <code>i\' = 0</code>. Substitusi ke <code>L·i\' + Ri = V<sub>s</sub></code>: <code>0 + Ri = V<sub>s</sub></code>. Maka <strong>i<sub>ss</sub> = V<sub>s</sub>/R</strong> — induktor berperilaku seperti kawat (impedansi nol untuk DC).'
+  },
+  mc10: {
+    answer: 'B',
+    explain: 'Untuk Bernoulli <code>y\' + Py = Qy<sup>n</sup></code>, langkah pertama: <strong>bagi kedua ruas dengan y<sup>n</sup></strong> agar muncul bentuk <code>y<sup>−n</sup>y\' + Py<sup>1−n</sup> = Q</code>. Setelah itu baru substitusi <code>z = y<sup>1−n</sup></code> bekerja karena <code>z\' = (1−n)y<sup>−n</sup>y\'</code>.'
+  }
+};
+
 function selectMC(qId, opt, correct) {
   if (mcAnswered[qId]) return;
   const rg = document.getElementById('rg-' + qId);
@@ -2569,7 +2655,12 @@ function checkMC(qId) {
     sel.classList.add('wrong-ans');
     fb.className = 'feedback wrong';
     rg.querySelectorAll('.radio-option').forEach(o => { if(o._correct) o.classList.add('correct-ans'); });
-    fb.textContent = '🔒 Kurang tepat. Jawaban yang benar ditandai hijau. Soal dikunci.';
+    const hint = MC_HINTS[qId];
+    if (hint) {
+      fb.innerHTML = '🔒 <strong>Kurang tepat.</strong> Jawaban yang benar adalah <strong style="color:#00e09e">opsi (' + hint.answer + ')</strong> — ditandai hijau di atas. Soal dikunci.<br><br><div style="background:rgba(168,85,247,.06);border-left:3px solid #a855f7;border-radius:6px;padding:12px 14px;margin-top:8px;font-weight:400;color:#cbd5e1;line-height:1.7;">📘 <strong style="color:#a855f7">Penjelasan:</strong> ' + hint.explain + '</div>';
+    } else {
+      fb.textContent = '🔒 Kurang tepat. Jawaban yang benar ditandai hijau. Soal dikunci.';
+    }
     mcScores[qId] = 0;
     // Record failed attempt to Firebase (same anti-manipulation as comp)
     if (typeof window._recordMcAttempt === 'function') window._recordMcAttempt(qId);
@@ -3975,45 +4066,73 @@ function isLate(timestamp){
   return t >= lateGate;
 }
 
-function submitVisitor(){
+async function submitVisitor(){
   const nama=document.getElementById('vNama').value.trim(), nim=document.getElementById('vNim').value.trim(), err=document.getElementById('vError');
   if(!currentSchedule || !currentSchedule.start || !currentSchedule.end){err.textContent='\u26a0 Jadwal belum diatur. Silakan hubungi dosen.';err.style.display='block';return;}
   const now=new Date().getTime(), schedStart=new Date(currentSchedule.start).getTime();
   if(now<schedStart){const sd=new Date(currentSchedule.start);err.textContent='\u26a0 Akses belum dibuka. Jadwal dimulai pada '+sd.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+' '+sd.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+'.';err.style.display='block';return;}
   const isDosen=nama.toLowerCase()==='dedik romahadi';
-  if(!nama){err.textContent='⚠ Nama wajib diisi.';err.style.display='block';return;}
-  if(!isValidName(nama)){err.textContent='⚠ Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi';err.style.display='block';return;}
-  if(!isDosen&&!nim){err.textContent='⚠ NIM wajib diisi.';err.style.display='block';return;}
-  if(!isDosen&&!isValidNim(nim)){err.textContent='⚠ NIM harus berupa angka tanpa spasi. Contoh: 41522010001';err.style.display='block';return;}
-  if(!isDosen&&!masterFetchDone){err.textContent='⚠ Data mahasiswa sedang dimuat, silakan coba lagi.';err.style.display='block';return;}
-  err.style.display='none';
-  if(isDosen){
-    saveIdentity({nama, nim:'DOSEN', role:'dosen', timestamp:new Date().toISOString()});
-  } else if(masterFetchDone && !masterStudents.some(s=>s.nim===nim && s.nama.toUpperCase()===nama.toUpperCase())){
-    const nimExists=masterStudents.some(s=>s.nim===nim);
-    if(nimExists){err.textContent='⚠ Nama tidak sesuai dengan NIM yang terdaftar di SIA.';err.style.display='block';return;}
-    err.textContent='⚠ NIM tidak terdaftar. Hanya mahasiswa yang terdaftar yang dapat mengakses halaman ini.';err.style.display='block';return;
-  } else {
-    const schedOpen = now <= new Date(currentSchedule.end).getTime();
-    if (!schedOpen) {
-      // Akses setelah jadwal berakhir — identitas disimpan lokal, TAPI Firebase
-      // TIDAK diperbarui (tidak ada record visit baru / tidak ada update visitCount).
-      // Mahasiswa tetap dapat melihat konten, namun aksesnya tidak dicatat.
-      const nowISO = new Date().toISOString();
-      saveIdentity({nama, nim, role:'student', timestamp:nowISO});
-    } else {
-      const key = sanitizeKey(`mhs_${nim}`), nowISO = new Date().toISOString();
-      get(ref(db, `${DB_PATH}/${key}`)).then(snap => {
-        let v;
-        if(snap.exists()){const ex = snap.val();const lastV = new Date(ex.lastVisit || ex.timestamp).getTime();const canBump = (Date.now() - lastV) >= VISIT_COOLDOWN;v = {...ex, visitCount: canBump ? (ex.visitCount||1)+1 : (ex.visitCount||1), lastVisit: canBump ? nowISO : (ex.lastVisit||ex.timestamp)};}
-        else { v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO}; }
-        saveIdentity(v); return set(ref(db, `${DB_PATH}/${key}`), v);
-      }).catch(()=>{ const v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO}; saveIdentity(v); set(ref(db, `${DB_PATH}/${key}`), v); });
+  if(!nama){err.textContent='\u26a0 Nama wajib diisi.';err.style.display='block';return;}
+  if(!isValidName(nama)){err.textContent='\u26a0 Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi';err.style.display='block';return;}
+
+  // ─── DOSEN: Verifikasi password admin (bukan PIN) ───
+  if (isDosen) {
+    const pwInput = prompt('Login sebagai Dosen\n\nMasukkan password admin:');
+    if (pwInput === null) {
+      err.textContent = '\u26a0 Login dibatalkan.'; err.style.display = 'block'; return;
     }
+    if (!pwInput) {
+      err.textContent = '\u26a0 Password wajib diisi.'; err.style.display = 'block'; return;
+    }
+    const ok = await _verifyAdminPw(pwInput);
+    if (!ok) {
+      err.textContent = '\u26a0 Password admin salah.'; err.style.display = 'block'; return;
+    }
+    err.style.display = 'none';
+    saveIdentity({nama, nim:'DOSEN', role:'dosen', timestamp:new Date().toISOString()});
+    document.getElementById('visitorOverlay').classList.add('hidden');
+    document.getElementById('visitorFab').style.display='flex';
+    return;
   }
-  document.getElementById('visitorOverlay').classList.add('hidden');
-  document.getElementById('visitorFab').style.display='flex';
-  setTimeout(function(){ if(typeof window._loadScoredQuestions==='function') window._loadScoredQuestions(); }, 500);
+
+  // ─── MAHASISWA: Validasi identitas + route ke PIN flow ───
+  if(!nim){err.textContent='\u26a0 NIM wajib diisi.';err.style.display='block';return;}
+  if(!isValidNim(nim)){err.textContent='\u26a0 NIM harus berupa angka tanpa spasi. Contoh: 41522010001';err.style.display='block';return;}
+  if(!masterFetchDone){err.textContent='\u26a0 Data mahasiswa sedang dimuat, silakan coba lagi.';err.style.display='block';return;}
+
+  if(!masterStudents.some(s=>s.nim===nim && s.nama.toUpperCase()===nama.toUpperCase())){
+    const nimExists=masterStudents.some(s=>s.nim===nim);
+    if(nimExists){err.textContent='\u26a0 Nama tidak sesuai dengan NIM yang terdaftar di SIA.';err.style.display='block';return;}
+    err.textContent='\u26a0 NIM tidak terdaftar. Hanya mahasiswa yang terdaftar yang dapat mengakses halaman ini.';err.style.display='block';return;
+  }
+  err.style.display='none';
+
+  // Cek Firebase: apakah mahasiswa sudah punya pinHash?
+  const nowISO = new Date().toISOString();
+  const schedOpen = now <= new Date(currentSchedule.end).getTime();
+  const key = sanitizeKey('mhs_' + nim);
+
+  try {
+    const snap = await get(ref(db, DB_PATH + '/' + key));
+    const existing = snap.exists() ? snap.val() : null;
+
+    _pinFlow = { nama, nim, nowISO, existingRecord: existing, schedOpen };
+
+    if (existing && existing.pinHash) {
+      // Sudah punya PIN → minta verifikasi
+      document.getElementById('visitorOverlay').classList.add('hidden');
+      _showPinInput(nama);
+    } else {
+      // Belum punya PIN (first-time) → setup PIN baru
+      document.getElementById('visitorOverlay').classList.add('hidden');
+      _showPinSetup(nama);
+    }
+  } catch(e) {
+    console.error('[Login] Failed to read Firebase:', e);
+    _pinFlow = { nama, nim, nowISO, existingRecord: null, schedOpen };
+    document.getElementById('visitorOverlay').classList.add('hidden');
+    _showPinSetup(nama);
+  }
 }
 
 function renderVisitors(visitors){
@@ -4062,11 +4181,210 @@ function togglePanel(){panelOpen=!panelOpen;document.getElementById('visitorPane
 document.addEventListener('click',function(e){const p=document.getElementById('visitorPanel'),f=document.getElementById('visitorFab');if(panelOpen&&!p.contains(e.target)&&!f.contains(e.target)){panelOpen=false;p.classList.remove('open');}});
 function escH(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 
+// ═══════════════════════════════════════════════════════
+// ADMIN PASSWORD VERIFICATION (hashed, not plaintext)
+// Password admin disimpan sebagai SHA-256 hash. Hash tidak
+// dapat di-reverse menjadi password asli — mahasiswa yang
+// lihat source code hanya melihat string hex yang tidak bermakna.
+// Untuk mengganti password: hitung SHA-256 dari password baru
+// (mis. via https://emn178.github.io/online-tools/sha256.html),
+// ganti string hash di bawah.
+// ═══════════════════════════════════════════════════════
+const ADMIN_PW_HASH = '57ae60d11a0de7b13b9c77c4664dc951afe403952b46c3b4f95a8bc0eb8a0470';
+
+async function _sha256Hex(s) {
+  const buf = new TextEncoder().encode(s);
+  const hash = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hash))
+    .map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function _verifyAdminPw(input) {
+  if (!input) return false;
+  try {
+    const hash = await _sha256Hex(input);
+    return hash === ADMIN_PW_HASH;
+  } catch(e) {
+    console.error('[Auth] SHA-256 failed:', e);
+    return false;
+  }
+}
+// ═══════════════════════════════════════════════════════
+// STUDENT PIN SYSTEM (6-digit, SHA-256 hashed)
+// Mahasiswa wajib menetapkan PIN 6-digit saat login pertama.
+// PIN disimpan di Firebase sebagai SHA-256 hash (field pinHash).
+// PIN lemah (123456, 654321, angka berulang, dll) ditolak saat setup.
+//
+// Cara reset PIN:
+//   (A) Reset semua — klik tombol 'Reset' di login overlay + masukkan
+//       password admin. Semua data (poin, kunjungan, PIN) terhapus.
+//   (B) Reset PIN satu mahasiswa — via Firebase Console: hapus field
+//       'pinHash' dan 'pinSetAt' di node visitors/.../mhs_<NIM>.
+//       Data poin & kehadiran mahasiswa tersebut tetap aman.
+// ═══════════════════════════════════════════════════════
+
+// Daftar PIN lemah yang ditolak
+const WEAK_PINS = new Set([
+  '123456', '654321',
+  '000000', '111111', '222222',
+  '333333', '444444', '555555',
+  '666666', '777777', '888888', '999999',
+  '012345', '098765',
+  '123123', '456456', '789789',
+  '121212', '131313', '212121',
+  '112233', '332211',
+  '102030', '010203'
+]);
+
+// State untuk flow PIN
+let _pinFlow = { nama: null, nim: null, nowISO: null, existingRecord: null, schedOpen: false };
+
+function _isWeakPin(pin) {
+  if (!/^[0-9]{6}$/.test(pin)) return true;
+  if (WEAK_PINS.has(pin)) return true;
+  return false;
+}
+
+function _showPinSetup(nama) {
+  document.getElementById('pinSetupName').textContent = nama;
+  document.getElementById('pinSetupInput1').value = '';
+  document.getElementById('pinSetupInput2').value = '';
+  document.getElementById('pinSetupError').style.display = 'none';
+  document.getElementById('pinSetupOverlay').classList.remove('hidden');
+  setTimeout(() => document.getElementById('pinSetupInput1').focus(), 100);
+}
+
+function _showPinInput(nama) {
+  document.getElementById('pinInputName').textContent = nama;
+  document.getElementById('pinInputField').value = '';
+  document.getElementById('pinInputError').style.display = 'none';
+  document.getElementById('pinInputOverlay').classList.remove('hidden');
+  setTimeout(() => document.getElementById('pinInputField').focus(), 100);
+}
+
+function _hidePinModals() {
+  document.getElementById('pinSetupOverlay').classList.add('hidden');
+  document.getElementById('pinInputOverlay').classList.add('hidden');
+}
+
+function cancelPinFlow() {
+  _hidePinModals();
+  _pinFlow = { nama: null, nim: null, nowISO: null, existingRecord: null, schedOpen: false };
+  document.getElementById('visitorOverlay').classList.remove('hidden');
+}
+
+async function submitPinSetup() {
+  const errEl = document.getElementById('pinSetupError');
+  const p1 = document.getElementById('pinSetupInput1').value.trim();
+  const p2 = document.getElementById('pinSetupInput2').value.trim();
+  const btn = document.getElementById('pinSetupBtn');
+
+  if (!/^[0-9]{6}$/.test(p1)) {
+    errEl.textContent = '\u26a0 PIN harus 6 digit angka.'; errEl.style.display = 'block'; return;
+  }
+  if (p1 !== p2) {
+    errEl.textContent = '\u26a0 Konfirmasi PIN tidak cocok.'; errEl.style.display = 'block'; return;
+  }
+  if (_isWeakPin(p1)) {
+    errEl.textContent = '\u26a0 PIN terlalu mudah ditebak (misalnya 123456, angka berulang, atau pola sederhana). Gunakan kombinasi yang lebih unik.';
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+  btn.disabled = true; btn.style.opacity = '.6'; btn.style.cursor = 'wait'; btn.textContent = 'Menyimpan...';
+
+  try {
+    const pinHash = await _sha256Hex(p1);
+    const { nama, nim, nowISO, schedOpen } = _pinFlow;
+
+    if (!schedOpen) {
+      saveIdentity({ nama, nim, role: 'student', timestamp: nowISO });
+    } else {
+      const key = sanitizeKey('mhs_' + nim);
+      const newRecord = {
+        nama, nim, role: 'student', timestamp: nowISO,
+        visitCount: 1, lastVisit: nowISO,
+        pinHash, pinSetAt: nowISO
+      };
+      saveIdentity(newRecord);
+      await set(ref(db, DB_PATH + '/' + key), newRecord);
+    }
+
+    _hidePinModals();
+    document.getElementById('visitorOverlay').classList.add('hidden');
+    document.getElementById('visitorFab').style.display = 'flex';
+    _pinFlow = { nama: null, nim: null, nowISO: null, existingRecord: null, schedOpen: false };
+    setTimeout(() => { if (typeof window._loadScoredQuestions === 'function') window._loadScoredQuestions(); }, 500);
+  } catch(e) {
+    errEl.textContent = '\u274c Gagal menyimpan PIN: ' + (e && e.message ? e.message : e);
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; btn.textContent = 'Simpan PIN & Masuk';
+    console.error('[PIN Setup] Save failed:', e);
+  }
+}
+
+async function submitPinVerify() {
+  const errEl = document.getElementById('pinInputError');
+  const pin = document.getElementById('pinInputField').value.trim();
+  const btn = document.getElementById('pinInputBtn');
+
+  if (!/^[0-9]{6}$/.test(pin)) {
+    errEl.textContent = '\u26a0 PIN harus 6 digit angka.'; errEl.style.display = 'block'; return;
+  }
+  errEl.style.display = 'none';
+  btn.disabled = true; btn.style.opacity = '.6'; btn.style.cursor = 'wait'; btn.textContent = 'Memverifikasi...';
+
+  try {
+    const inputHash = await _sha256Hex(pin);
+    const { existingRecord, nama, nim, nowISO, schedOpen } = _pinFlow;
+
+    if (inputHash !== existingRecord.pinHash) {
+      errEl.textContent = '\u26a0 PIN salah. Coba lagi atau hubungi dosen jika lupa.';
+      errEl.style.display = 'block';
+      btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; btn.textContent = 'Verifikasi & Masuk';
+      document.getElementById('pinInputField').value = '';
+      document.getElementById('pinInputField').focus();
+      return;
+    }
+
+    if (!schedOpen) {
+      saveIdentity({ nama, nim, role: 'student', timestamp: nowISO });
+    } else {
+      const key = sanitizeKey('mhs_' + nim);
+      const lastV = new Date(existingRecord.lastVisit || existingRecord.timestamp).getTime();
+      const canBump = (Date.now() - lastV) >= VISIT_COOLDOWN;
+      const updated = Object.assign({}, existingRecord, {
+        visitCount: canBump ? (existingRecord.visitCount || 1) + 1 : (existingRecord.visitCount || 1),
+        lastVisit: canBump ? nowISO : (existingRecord.lastVisit || existingRecord.timestamp)
+      });
+      saveIdentity(updated);
+      await set(ref(db, DB_PATH + '/' + key), updated);
+    }
+
+    _hidePinModals();
+    document.getElementById('visitorOverlay').classList.add('hidden');
+    document.getElementById('visitorFab').style.display = 'flex';
+    _pinFlow = { nama: null, nim: null, nowISO: null, existingRecord: null, schedOpen: false };
+    setTimeout(() => { if (typeof window._loadScoredQuestions === 'function') window._loadScoredQuestions(); }, 500);
+  } catch(e) {
+    errEl.textContent = '\u274c Gagal verifikasi PIN: ' + (e && e.message ? e.message : e);
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; btn.textContent = 'Verifikasi & Masuk';
+    console.error('[PIN Verify] Failed:', e);
+  }
+}
+
+window.submitPinSetup = submitPinSetup;
+window.submitPinVerify = submitPinVerify;
+window.cancelPinFlow = cancelPinFlow;
+
+
 function showResetModal(){document.getElementById('resetOverlay').classList.remove('hidden');document.getElementById('resetPw').value='';document.getElementById('resetError').style.display='none';setTimeout(()=>document.getElementById('resetPw').focus(),100);}
 function hideResetModal(){document.getElementById('resetOverlay').classList.add('hidden');}
-function confirmReset(){
+async function confirmReset(){
   const errEl = document.getElementById('resetError');
-  if(document.getElementById('resetPw').value!=='TeknikMesin0602'){errEl.textContent='\u26a0 Password salah.';errEl.style.display='block';return;}
+  const ok = await _verifyAdminPw(document.getElementById('resetPw').value);
+  if(!ok){errEl.textContent='\u26a0 Password salah.';errEl.style.display='block';return;}
   errEl.style.display='none';
   // Disable button to prevent double-click
   const btns = document.querySelectorAll('#resetOverlay button');
@@ -4076,10 +4394,15 @@ function confirmReset(){
     remove(ref(db, SCHEDULE_PATH)),
     ...RELATED_MODULES.map(mid => remove(ref(db, 'visitors/math4/' + mid)))
   ]).then(() => {
+    // Bersihkan localStorage semua modul terkait — termasuk identitas dosen
+    // di device ini (agar setelah reset harus login ulang, bukan auto-login
+    // dengan identitas yang sudah stale).
     localStorage.removeItem(LOCAL_IDENTITY);
     RELATED_MODULES.forEach(mid => localStorage.removeItem('optoauto_identity_' + mid));
     btns.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';});
     hideResetModal();
+    // Tampilkan toast sukses agar dosen tahu reset berjalan sempurna
+    _showResetToast('\u2705 Semua data berhasil dihapus (termasuk PIN). Mahasiswa akan membuat PIN baru saat login berikutnya.');
     document.getElementById('visitorOverlay').classList.remove('hidden');
     document.getElementById('visitorFab').style.display='none';
   }).catch(err => {
@@ -4089,6 +4412,22 @@ function confirmReset(){
     console.error('[Reset] Firebase remove failed:', err);
   });
 }
+
+// Toast kecil di atas layar untuk konfirmasi sukses reset/save
+function _showResetToast(msg) {
+  const existing = document.getElementById('_opAdminToast');
+  if (existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.id = '_opAdminToast';
+  toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,rgba(0,224,158,.95),rgba(52,211,153,.95));color:#042018;padding:14px 22px;border-radius:12px;font-size:.88rem;font-weight:600;z-index:200000;box-shadow:0 12px 40px rgba(0,224,158,.3);max-width:90vw;text-align:center;line-height:1.5;opacity:0;transition:opacity .25s ease;';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => { toast.style.opacity = '1'; });
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 300);
+  }, 4500);
+}
 function showScheduleModal(){
   document.getElementById('scheduleOverlay').classList.remove('hidden'); document.getElementById('schedulePw').value='';
   document.getElementById('scheduleError').textContent=''; document.getElementById('scheduleError').style.display='none';
@@ -4097,10 +4436,11 @@ function showScheduleModal(){
   setTimeout(()=>document.getElementById('schedulePw').focus(),100);
 }
 function hideScheduleModal(){document.getElementById('scheduleOverlay').classList.add('hidden');}
-function saveSchedule(){
+async function saveSchedule(){
   const errEl = document.getElementById('scheduleError');
   const pw=document.getElementById('schedulePw').value;
-  if(pw!=='TeknikMesin0602'){errEl.textContent='\u26a0 Password salah.';errEl.style.display='block';return;}
+  const ok = await _verifyAdminPw(pw);
+  if(!ok){errEl.textContent='\u26a0 Password salah.';errEl.style.display='block';return;}
   const dur=parseInt(document.getElementById('scheduleDuration').value), due=document.getElementById('scheduleDue').value;
   if(!dur||dur<1){errEl.textContent='\u26a0 Durasi harus diisi (minimal 1 hari).';errEl.style.display='block';return;}
   if(!due){errEl.textContent='\u26a0 Batas akhir (due date) harus diisi.';errEl.style.display='block';return;}
@@ -4130,6 +4470,13 @@ document.getElementById('resetOverlay').addEventListener('click',function(e){if(
 document.getElementById('scheduleOverlay').addEventListener('click',function(e){if(e.target===this)hideScheduleModal();});
 document.getElementById('schedulePw').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('scheduleDuration').focus();});
 document.getElementById('vNim').addEventListener('keydown',function(e){if(e.key==='Enter')submitVisitor();});
+document.getElementById('pinSetupInput1').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('pinSetupInput2').focus();});
+document.getElementById('pinSetupInput2').addEventListener('keydown',function(e){if(e.key==='Enter')submitPinSetup();});
+document.getElementById('pinInputField').addEventListener('keydown',function(e){if(e.key==='Enter')submitPinVerify();});
+// Filter: hanya izinkan angka di field PIN
+['pinSetupInput1','pinSetupInput2','pinInputField'].forEach(function(id){
+  document.getElementById(id).addEventListener('input',function(e){this.value=this.value.replace(/[^0-9]/g,'').slice(0,6);});
+});
 document.getElementById('vNama').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('vNim').focus();});
 
 window.submitVisitor=submitVisitor;window.togglePanel=togglePanel;
