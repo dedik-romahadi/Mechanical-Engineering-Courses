@@ -3880,19 +3880,24 @@ function updateLeaderboard(visitors, schedExpired){
 
   // ─── Stats: Total Mahasiswa / Kehadiran / Absen ───
   const totalMhs = masterStudents.length;
-  // Kehadiran: mahasiswa yang akses tepat waktu DAN punya poin > 0.
-  // (Mahasiswa yang akses terlambat tidak bisa memperoleh poin — diblokir
-  // di sisi penyimpanan. Kedua kondisi efektif ekivalen di sini.)
-  let hadir = 0;
+  // Kehadiran : mahasiswa memiliki poin > 0 (baik status "Tepat Waktu"
+  //             maupun "Terlambat"). Selama di dalam jadwal — termasuk 24 jam
+  //             terakhir sebelum deadline (zona Terlambat) — poin disimpan
+  //             normal sehingga kedua kelompok ini dihitung sebagai Hadir.
+  // Absen     : mahasiswa dengan status "Bolos" SAJA (tidak pernah akses
+  //             DAN jadwal sudah berakhir). Status "Belum" (jadwal masih
+  //             aktif, mahasiswa belum akses) serta "Tepat Waktu/Terlambat
+  //             tanpa poin" TIDAK dihitung Absen.
+  const schedEnded = !!schedExpired;
+  let hadir = 0, absen = 0;
   for(const s of masterStudents){
     const v = visitMap[s.nim];
-    if(!v) continue;
-    const onTime = !isLate(v.timestamp || v.lastVisit);
-    const hasPts = (v.points||0) > 0;
-    if(onTime && hasPts) hadir++;
+    if(!v){
+      if(schedEnded) absen++;   // status Bolos
+      continue;
+    }
+    if((v.points||0) > 0) hadir++;
   }
-  // Absen: mahasiswa yang TIDAK punya poin (baik tidak akses, akses tapi poin=0, atau akses terlambat tanpa poin)
-  const absen = totalMhs - hadir;
   const setTxt = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = String(val); };
   setTxt('statTotalMhs', totalMhs);
   setTxt('statHadir', hadir);
@@ -3959,9 +3964,15 @@ function updateScheduleDisplay(){
 }
 
 function isLate(timestamp){
+  // "Terlambat" = timestamp akses jatuh dalam 24 JAM TERAKHIR sebelum deadline.
+  // Selama jendela ini, poin dan akses TETAP dicatat seperti biasa
+  // (sama seperti Tepat Waktu) — hanya label status yang berbeda.
+  // Setelah deadline, penyimpanan apa pun diblokir oleh _isScheduleOpen().
   if(!currentSchedule || !currentSchedule.start || !currentSchedule.end) return false;
-  const t = new Date(timestamp).getTime(), s = new Date(currentSchedule.start).getTime(), e = new Date(currentSchedule.end).getTime();
-  return t < s || t > e;
+  const t = new Date(timestamp).getTime();
+  const e = new Date(currentSchedule.end).getTime();
+  const lateGate = e - 24*60*60*1000;   // 24 jam sebelum deadline
+  return t >= lateGate;
 }
 
 function submitVisitor(){
