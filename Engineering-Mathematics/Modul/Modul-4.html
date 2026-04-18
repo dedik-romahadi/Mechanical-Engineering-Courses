@@ -3835,8 +3835,8 @@ window.addEventListener('resize', () => {
       charges.push({
         x:  Math.random() * W,
         y:  Math.random() * H,
-        vx: (Math.random() - 0.5) * 0.55,
-        vy: (Math.random() - 0.5) * 0.55,
+        vx: (Math.random() - 0.5) * 1.8,
+        vy: (Math.random() - 0.5) * 1.8,
         sign: pos ? 1 : -1,
         r: 16,
         color: pos ? '#fbbf24' : '#60a5fa',   // gold (+) / blue (−)
@@ -3862,32 +3862,17 @@ window.addEventListener('resize', () => {
 
   // Update charge positions — repel each other (same sign) / attract (opposite)
   function updateCharges() {
-    for (let i = 0; i < charges.length; i++) {
-      const c = charges[i];
-      for (let j = 0; j < charges.length; j++) {
-        if (i === j) continue;
-        const o = charges[j];
-        const dx = o.x - c.x, dy = o.y - c.y;
-        const d2 = dx*dx + dy*dy;
-        if (d2 < 40000) {   // hanya dalam radius tertentu
-          const d = Math.sqrt(d2) || 1;
-          const forceSign = (c.sign === o.sign) ? -1 : 1;   // repel same, attract opp
-          const fMag = forceSign * 25 / Math.max(d2, 400);  // softened
-          c.vx += (dx / d) * fMag;
-          c.vy += (dy / d) * fMag;
-        }
-      }
-      // Damping agar tidak lari liar
-      c.vx *= 0.985; c.vy *= 0.985;
-      // Cap velocity
-      const vmag = Math.sqrt(c.vx*c.vx + c.vy*c.vy);
-      if (vmag > 1.2) { c.vx = c.vx/vmag*1.2; c.vy = c.vy/vmag*1.2; }
-      c.x += c.vx; c.y += c.vy;
-      // Bounce dari boundary
-      if (c.x < 30) { c.x = 30; c.vx = Math.abs(c.vx); }
-      if (c.x > W - 30) { c.x = W - 30; c.vx = -Math.abs(c.vx); }
-      if (c.y < 30) { c.y = 30; c.vy = Math.abs(c.vy); }
-      if (c.y > H - 30) { c.y = H - 30; c.vy = -Math.abs(c.vy); }
+    // Muatan bergerak bebas dengan drift sederhana (tanpa gaya tarik-menolak).
+    // Pantul dari tepi layar. Field lines tetap digambar antar pasangan berlawanan
+    // sebagai dekorasi visual, tidak mempengaruhi pergerakan.
+    for (const c of charges) {
+      c.x += c.vx;
+      c.y += c.vy;
+      // Bounce dari boundary (pakai margin 30px agar halo tidak terpotong)
+      if (c.x < 30)       { c.x = 30;     c.vx = Math.abs(c.vx); }
+      if (c.x > W - 30)   { c.x = W - 30; c.vx = -Math.abs(c.vx); }
+      if (c.y < 30)       { c.y = 30;     c.vy = Math.abs(c.vy); }
+      if (c.y > H - 30)   { c.y = H - 30; c.vy = -Math.abs(c.vy); }
     }
   }
 
