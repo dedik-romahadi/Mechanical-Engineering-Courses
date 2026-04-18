@@ -340,7 +340,7 @@ footer a:hover{color:var(--cyan)}
 .visitor-overlay.hidden{opacity:0;pointer-events:none}
 
 /* Canvas wave layer */
-#overlayWaveCanvas{position:absolute;bottom:0;left:0;width:100%;height:55%;pointer-events:none;opacity:.5}
+#overlayWaveCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.85}
 
 /* Floating particles */
 .ov-particle{position:absolute;border-radius:50%;pointer-events:none;animation:ovFloat linear infinite}
@@ -3755,66 +3755,662 @@ window.addEventListener('resize', () => {
 });
 
 // ═══════════════════════════════════════════════════════
-// LOGIN OVERLAY ANIMATION — Sine Waves + Particles + Formulas
+// LOGIN OVERLAY ANIMATION — Constellation + Electric Charges
+// Inspirasi dari hero animation tab Hasil, dengan tambahan:
+//   • Muatan listrik (charges) bergerak membawa simbol + / −
+//   • Garis medan listrik melengkung antar muatan berlawanan
+//   • Busur loncatan (spark arc) sesekali antar node berdekatan
+//   • Palet warna indigo + pink + gold (konsisten dengan tab Hasil)
+//   • Rendering high-DPR agar tajam di layar retina
 // ═══════════════════════════════════════════════════════
 (function initLoginAnimation() {
   const canvas = document.getElementById('overlayWaveCanvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   let frame = 0, raf;
+  let W = 0, H = 0, DPR = 1;
+
+  // Palet warna — indigo / pink / gold / violet (selaras tab Hasil)
+  const NODE_COLORS = ['#818cf8', '#ec4899', '#fbbf24', '#a78bfa', '#f472b6', '#60a5fa'];
+
+  // Constellation nodes
+  const NODE_COUNT = 42;          // lebih banyak dari tab Hasil (yang pakai 35)
+  const LINK_DIST = 160;          // jarak maks koneksi antar node
+  let nodes = [];
+
+  // Muatan listrik — simbol + / − yang bergerak perlahan
+  const CHARGE_COUNT = 8;
+  let charges = [];
+
+  // Spark arcs — loncatan listrik sesekali
+  let sparks = [];
+
+  // ⚡ Lightning blasts — pelepasan listrik dahsyat dari muatan
+  // Setiap blast terdiri dari:
+  //   - branches[]: array cabang lightning fraktal
+  //   - flash: intensitas kilatan radial (fade out)
+  //   - shockwaves[]: ring ekspansi dari titik ledakan
+  //   - sparkPieces[]: partikel percikan berterbangan
+  let blasts = [];
 
   function resize() {
-    canvas.width  = window.innerWidth;
-    canvas.height = Math.round(window.innerHeight * 0.55);
+    DPR = Math.min(window.devicePixelRatio || 1, 2);   // cap 2x untuk perf
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width  = Math.floor(W * DPR);
+    canvas.height = Math.floor(H * DPR);
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   }
   resize();
-  window.addEventListener('resize', resize);
+  window.addEventListener('resize', () => {
+    resize();
+    // Re-scatter nodes saat resize agar tetap tersebar merata
+    nodes.forEach(n => { if(n.x > W) n.x = Math.random()*W; if(n.y > H) n.y = Math.random()*H; });
+    charges.forEach(c => { if(c.x > W) c.x = Math.random()*W; if(c.y > H) c.y = Math.random()*H; });
+  });
 
-  const waves = [
-    { freq:0.018, amp:38, speed:0.018, col:'rgba(6,214,160,0.4)',   phase:0,              lw:1.8 },
-    { freq:0.013, amp:55, speed:0.013, col:'rgba(34,211,238,0.25)', phase:Math.PI/2.5,    lw:1.4 },
-    { freq:0.025, amp:22, speed:0.026, col:'rgba(168,85,247,0.30)', phase:Math.PI/1.3,    lw:1.2 },
-    { freq:0.010, amp:72, speed:0.009, col:'rgba(6,214,160,0.12)',  phase:Math.PI,        lw:1.0 },
-    { freq:0.032, amp:14, speed:0.038, col:'rgba(249,115,22,0.18)',  phase:Math.PI*0.7,    lw:0.9 },
-  ];
+  // Inisialisasi nodes
+  function initNodes() {
+    nodes = [];
+    for (let i = 0; i < NODE_COUNT; i++) {
+      nodes.push({
+        x:  Math.random() * W,
+        y:  Math.random() * H,
+        vx: (Math.random() - 0.5) * 0.35,
+        vy: (Math.random() - 0.5) * 0.35,
+        r:  1.2 + Math.random() * 2.2,
+        color: NODE_COLORS[Math.floor(Math.random() * NODE_COLORS.length)],
+        pulseOff: Math.random() * Math.PI * 2
+      });
+    }
+  }
 
-  function drawWaves() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const midY = canvas.height * 0.52;
-    waves.forEach(w => {
+  // Inisialisasi muatan listrik — setengah positif, setengah negatif
+  function initCharges() {
+    charges = [];
+    for (let i = 0; i < CHARGE_COUNT; i++) {
+      const pos = i < CHARGE_COUNT / 2;   // + atau −
+      charges.push({
+        x:  Math.random() * W,
+        y:  Math.random() * H,
+        vx: (Math.random() - 0.5) * 0.55,
+        vy: (Math.random() - 0.5) * 0.55,
+        sign: pos ? 1 : -1,
+        r: 16,
+        color: pos ? '#fbbf24' : '#60a5fa',   // gold (+) / blue (−)
+        pulseOff: Math.random() * Math.PI * 2,
+        // Blast cooldown: delay awal agar tidak semua blast bersamaan
+        nextBlastAt: 240 + Math.floor(Math.random() * 720),   // frame pertama blast (4–16 s setelah load)
+        blastCharging: false                                   // apakah sedang charging (pre-blast glow)
+      });
+    }
+  }
+
+  initNodes();
+  initCharges();
+
+  // Update node positions + bounce
+  function updateNodes() {
+    nodes.forEach(n => {
+      n.x += n.vx; n.y += n.vy;
+      if (n.x < 0 || n.x > W) n.vx *= -1;
+      if (n.y < 0 || n.y > H) n.vy *= -1;
+    });
+  }
+
+  // Update charge positions — repel each other (same sign) / attract (opposite)
+  function updateCharges() {
+    for (let i = 0; i < charges.length; i++) {
+      const c = charges[i];
+      for (let j = 0; j < charges.length; j++) {
+        if (i === j) continue;
+        const o = charges[j];
+        const dx = o.x - c.x, dy = o.y - c.y;
+        const d2 = dx*dx + dy*dy;
+        if (d2 < 40000) {   // hanya dalam radius tertentu
+          const d = Math.sqrt(d2) || 1;
+          const forceSign = (c.sign === o.sign) ? -1 : 1;   // repel same, attract opp
+          const fMag = forceSign * 25 / Math.max(d2, 400);  // softened
+          c.vx += (dx / d) * fMag;
+          c.vy += (dy / d) * fMag;
+        }
+      }
+      // Damping agar tidak lari liar
+      c.vx *= 0.985; c.vy *= 0.985;
+      // Cap velocity
+      const vmag = Math.sqrt(c.vx*c.vx + c.vy*c.vy);
+      if (vmag > 1.2) { c.vx = c.vx/vmag*1.2; c.vy = c.vy/vmag*1.2; }
+      c.x += c.vx; c.y += c.vy;
+      // Bounce dari boundary
+      if (c.x < 30) { c.x = 30; c.vx = Math.abs(c.vx); }
+      if (c.x > W - 30) { c.x = W - 30; c.vx = -Math.abs(c.vx); }
+      if (c.y < 30) { c.y = 30; c.vy = Math.abs(c.vy); }
+      if (c.y > H - 30) { c.y = H - 30; c.vy = -Math.abs(c.vy); }
+    }
+  }
+
+  // Draw field lines — garis medan listrik melengkung antar muatan berlawanan
+  function drawFieldLines() {
+    ctx.lineWidth = 1;
+    for (let i = 0; i < charges.length; i++) {
+      for (let j = i + 1; j < charges.length; j++) {
+        const a = charges[i], b = charges[j];
+        if (a.sign === b.sign) continue;  // hanya gambar untuk pasangan berlawanan
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const d = Math.sqrt(dx*dx + dy*dy);
+        if (d > 340) continue;            // jarak maksimal untuk gambar
+
+        const alpha = (1 - d/340) * 0.35;
+        // Gradient stroke: gold (from +) → blue (to −)
+        const grad = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
+        const fromCol = a.sign > 0 ? '#fbbf24' : '#60a5fa';
+        const toCol   = b.sign > 0 ? '#fbbf24' : '#60a5fa';
+        grad.addColorStop(0, `rgba(${fromCol === '#fbbf24' ? '251,191,36' : '96,165,250'},${alpha})`);
+        grad.addColorStop(1, `rgba(${toCol === '#fbbf24' ? '251,191,36' : '96,165,250'},${alpha})`);
+        ctx.strokeStyle = grad;
+
+        // Curved Bezier — bow out perpendicular
+        const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+        const nx = -dy / d, ny = dx / d;   // normal
+        const bow = 40 * Math.sin(frame * 0.015 + i + j);
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.quadraticCurveTo(mx + nx * bow, my + ny * bow, b.x, b.y);
+        ctx.stroke();
+      }
+    }
+  }
+
+  // Draw connections between nearby nodes (constellation edges)
+  function drawNodeLinks() {
+    ctx.lineWidth = 1;
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const a = nodes[i], b = nodes[j];
+        const dx = a.x - b.x, dy = a.y - b.y;
+        const d = Math.sqrt(dx*dx + dy*dy);
+        if (d < LINK_DIST) {
+          const alpha = (1 - d/LINK_DIST) * 0.22;
+          ctx.strokeStyle = `rgba(129,140,248,${alpha})`;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  // Draw nodes — glowing dots with pulse
+  function drawNodes() {
+    nodes.forEach(n => {
+      const pulse = 0.55 + 0.45 * Math.sin(frame * 0.025 + n.pulseOff);
+      ctx.fillStyle = n.color;
+      ctx.shadowColor = n.color;
+      ctx.shadowBlur = 12 * pulse;
+      ctx.globalAlpha = 0.55 + 0.45 * pulse;
       ctx.beginPath();
-      ctx.strokeStyle = w.col;
-      ctx.lineWidth   = w.lw;
-      ctx.shadowColor = w.col;
-      ctx.shadowBlur  = 10;
-      for (let x = 0; x <= canvas.width; x += 3) {
-        const y = midY + w.amp * Math.sin(w.freq * x + frame * w.speed + w.phase);
-        x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+  }
+
+  // Draw charges — big + / − symbols with glow + pulse halo
+  function drawCharges() {
+    charges.forEach(c => {
+      const pulse = 0.7 + 0.3 * Math.sin(frame * 0.04 + c.pulseOff);
+
+      // ⚡ Charging effect — saat hampir blast, glow jadi lebih kuat & berkedip
+      let chargingMult = 1;
+      if (c.blastCharging) {
+        const chargeFrac = 1 - (c.nextBlastAt - frame) / 20;   // 0 → 1 saat makin dekat blast
+        const flicker = 0.5 + 0.5 * Math.sin(frame * 0.8);     // rapid flicker
+        chargingMult = 1 + chargeFrac * 2 * (0.5 + flicker * 0.5);
+      }
+
+      // Outer halo ring
+      const haloR = c.r * (1.8 + 0.5 * pulse) * chargingMult;
+      const haloGrad = ctx.createRadialGradient(c.x, c.y, c.r * 0.5, c.x, c.y, haloR);
+      const rgb = c.sign > 0 ? '251,191,36' : '96,165,250';
+      haloGrad.addColorStop(0, `rgba(${rgb},${0.35 * pulse * chargingMult})`);
+      haloGrad.addColorStop(1, `rgba(${rgb},0)`);
+      ctx.fillStyle = haloGrad;
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, haloR, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Charging ring — lingkaran tipis yang menyusut saat mendekati blast
+      if (c.blastCharging) {
+        const chargeFrac = 1 - (c.nextBlastAt - frame) / 20;
+        const ringR = c.r * (3.2 - chargeFrac * 1.2);
+        ctx.strokeStyle = `rgba(255,255,255,${0.4 + chargeFrac * 0.5})`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, ringR, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // Core circle
+      ctx.fillStyle = c.color;
+      ctx.shadowColor = c.color;
+      ctx.shadowBlur = 16 * pulse * chargingMult;
+      ctx.globalAlpha = 0.92;
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+
+      // Sign: + or −
+      ctx.strokeStyle = '#0a0418';
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      const armLen = 7;
+      ctx.beginPath();
+      // Garis horizontal (untuk + dan −)
+      ctx.moveTo(c.x - armLen, c.y);
+      ctx.lineTo(c.x + armLen, c.y);
+      if (c.sign > 0) {
+        // Garis vertikal (hanya untuk +)
+        ctx.moveTo(c.x, c.y - armLen);
+        ctx.lineTo(c.x, c.y + armLen);
       }
       ctx.stroke();
     });
-    ctx.shadowBlur = 0;
-    frame++;
-    raf = requestAnimationFrame(drawWaves);
   }
-  drawWaves();
 
-  // Pause when overlay hidden to save CPU
+  // Spawn spark arc antara dua node yang sangat dekat (random chance)
+  function maybeSpawnSpark() {
+    if (Math.random() > 0.04) return;   // probabilitas rendah per frame
+    const closePairs = [];
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const a = nodes[i], b = nodes[j];
+        const dx = a.x - b.x, dy = a.y - b.y;
+        const d2 = dx*dx + dy*dy;
+        if (d2 < 9000) closePairs.push([a, b]);   // jarak < ~95 px
+      }
+    }
+    if (!closePairs.length) return;
+    const [a, b] = closePairs[Math.floor(Math.random() * closePairs.length)];
+    sparks.push({
+      x1: a.x, y1: a.y, x2: b.x, y2: b.y,
+      life: 14,         // durasi ~14 frames (≈0.23 s)
+      maxLife: 14,
+      seed: Math.random() * 1000
+    });
+  }
+
+  // Draw spark arcs — zigzag lightning dengan glow
+  function drawSparks() {
+    sparks.forEach(s => {
+      const alpha = s.life / s.maxLife;
+      const segs = 6;
+      const pts = [];
+      for (let k = 0; k <= segs; k++) {
+        const t = k / segs;
+        const x = s.x1 + (s.x2 - s.x1) * t;
+        const y = s.y1 + (s.y2 - s.y1) * t;
+        const jitter = (k === 0 || k === segs) ? 0 : (Math.sin(s.seed + k * 7) * 12);
+        const dx = s.x2 - s.x1, dy = s.y2 - s.y1;
+        const d = Math.sqrt(dx*dx + dy*dy) || 1;
+        const nx = -dy / d, ny = dx / d;
+        pts.push({ x: x + nx * jitter, y: y + ny * jitter });
+      }
+      ctx.strokeStyle = `rgba(253,224,71,${alpha})`;
+      ctx.lineWidth = 1.6;
+      ctx.shadowColor = 'rgba(253,224,71,0.9)';
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let k = 1; k < pts.length; k++) ctx.lineTo(pts[k].x, pts[k].y);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    });
+    // Decay
+    sparks = sparks.filter(s => --s.life > 0);
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // ⚡ LIGHTNING BLAST SYSTEM
+  // ═══════════════════════════════════════════════════════
+
+  // Generate 1 cabang lightning fractal dari (x1,y1) ke (x2,y2)
+  // Return array of {x,y} points (zigzag)
+  function genLightningPath(x1, y1, x2, y2, displacement, detail) {
+    let pts = [{x:x1, y:y1}, {x:x2, y:y2}];
+    for (let iter = 0; iter < detail; iter++) {
+      const newPts = [];
+      for (let i = 0; i < pts.length - 1; i++) {
+        const a = pts[i], b = pts[i+1];
+        newPts.push(a);
+        // Midpoint dengan perpendicular displacement
+        const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const d = Math.sqrt(dx*dx + dy*dy) || 1;
+        const nx = -dy / d, ny = dx / d;
+        const off = (Math.random() - 0.5) * displacement;
+        newPts.push({ x: mx + nx * off, y: my + ny * off });
+      }
+      newPts.push(pts[pts.length - 1]);
+      pts = newPts;
+      displacement *= 0.55;   // exponential decay
+    }
+    return pts;
+  }
+
+  // Spawn sebuah blast dari sebuah muatan
+  // Ukuran random: 3 tier (small / medium / massive) dengan distribusi tidak merata
+  function spawnBlast(charge) {
+    // Pilih tier berdasarkan probabilitas: 50% small, 35% medium, 15% massive
+    const roll = Math.random();
+    let size;
+    if (roll < 0.50)      size = 'small';
+    else if (roll < 0.85) size = 'medium';
+    else                  size = 'massive';
+
+    // Parameter per tier — semua ukuran visual skala dari ini
+    const params = {
+      small: {
+        branchCount:   [3, 5],        // 3–5 cabang utama
+        branchLength:  [60, 140],     // panjang 60–140 px
+        fractalDisp:   28,
+        fractalDetail: 4,
+        subBranches:   [0, 2],        // 0–2 sub-cabang per branch
+        subLength:     [20, 55],
+        pieces:        [6, 12],       // partikel percikan
+        pieceSpeed:    [1.5, 3],
+        life:          24,
+        flashLife:     8,
+        flashRadius:   [60, 100],     // radius flash [base, expand]
+        shockwaves: [
+          { r: 0, maxR: 130, life: 22, alpha: 0.40 }
+        ],
+        innerCoreWidth: 1.2,
+        outerGlowWidth: 3.5,
+        globalFlashMult: 0.6
+      },
+      medium: {
+        branchCount:   [6, 9],
+        branchLength:  [150, 300],
+        fractalDisp:   50,
+        fractalDetail: 5,
+        subBranches:   [2, 4],
+        subLength:     [40, 100],
+        pieces:        [14, 24],
+        pieceSpeed:    [2.5, 6.5],
+        life:          32,
+        flashLife:     12,
+        flashRadius:   [120, 200],
+        shockwaves: [
+          { r: 0, maxR: 280, life: 30, alpha: 0.50 },
+          { r: 0, maxR: 420, life: 40, alpha: 0.30 }
+        ],
+        innerCoreWidth: 1.6,
+        outerGlowWidth: 5,
+        globalFlashMult: 1.0
+      },
+      massive: {
+        branchCount:   [10, 14],       // 10–14 cabang utama
+        branchLength:  [280, 520],     // panjang jauh 280–520 px
+        fractalDisp:   85,
+        fractalDetail: 6,              // iterasi fraktal lebih banyak → lebih detail
+        subBranches:   [4, 7],
+        subLength:     [80, 180],
+        pieces:        [28, 45],       // banyak partikel
+        pieceSpeed:    [4, 10],        // lebih cepat terbang
+        life:          44,             // blast bertahan ~0.73 s
+        flashLife:     18,             // flash panjang & kuat
+        flashRadius:   [200, 380],
+        shockwaves: [                  // 3 ring
+          { r: 0, maxR: 460, life: 44, alpha: 0.60 },
+          { r: 0, maxR: 680, life: 54, alpha: 0.40 },
+          { r: 0, maxR: 900, life: 64, alpha: 0.22 }
+        ],
+        innerCoreWidth: 2.4,
+        outerGlowWidth: 8,
+        globalFlashMult: 2.0           // flash layar 2× lebih kuat
+      }
+    }[size];
+
+    // Generate cabang lightning
+    const branches = [];
+    const branchCount = params.branchCount[0] + Math.floor(Math.random() * (params.branchCount[1] - params.branchCount[0] + 1));
+    for (let i = 0; i < branchCount; i++) {
+      const angle = (i / branchCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
+      const length = params.branchLength[0] + Math.random() * (params.branchLength[1] - params.branchLength[0]);
+      const tx = charge.x + Math.cos(angle) * length;
+      const ty = charge.y + Math.sin(angle) * length;
+      const mainPath = genLightningPath(charge.x, charge.y, tx, ty, params.fractalDisp, params.fractalDetail);
+
+      // Sub-branches (cabang fraktal kecil)
+      const subBranches = [];
+      const subCount = params.subBranches[0] + Math.floor(Math.random() * (params.subBranches[1] - params.subBranches[0] + 1));
+      for (let s = 0; s < subCount; s++) {
+        const fromIdx = Math.floor(mainPath.length * (0.3 + Math.random() * 0.5));
+        const from = mainPath[fromIdx];
+        if (!from) continue;
+        const subAngle = angle + (Math.random() - 0.5) * 1.3;
+        const subLen = params.subLength[0] + Math.random() * (params.subLength[1] - params.subLength[0]);
+        const sx = from.x + Math.cos(subAngle) * subLen;
+        const sy = from.y + Math.sin(subAngle) * subLen;
+        subBranches.push(genLightningPath(from.x, from.y, sx, sy, params.fractalDisp * 0.4, params.fractalDetail - 2));
+      }
+      branches.push({ main: mainPath, subs: subBranches });
+    }
+
+    // Spark pieces — partikel percikan
+    const sparkPieces = [];
+    const pieceCount = params.pieces[0] + Math.floor(Math.random() * (params.pieces[1] - params.pieces[0] + 1));
+    const maxLife = 30 + (size === 'massive' ? 30 : size === 'medium' ? 18 : 10);
+    for (let i = 0; i < pieceCount; i++) {
+      const ang = Math.random() * Math.PI * 2;
+      const sp  = params.pieceSpeed[0] + Math.random() * (params.pieceSpeed[1] - params.pieceSpeed[0]);
+      sparkPieces.push({
+        x:  charge.x, y: charge.y,
+        vx: Math.cos(ang) * sp,
+        vy: Math.sin(ang) * sp,
+        life: maxLife - Math.floor(Math.random() * 10),
+        maxLife,
+        size: (size === 'massive' ? 1.5 : 1) + Math.random() * (size === 'massive' ? 2.5 : 2)
+      });
+    }
+
+    blasts.push({
+      cx: charge.x, cy: charge.y,
+      color: charge.color,
+      rgb: charge.sign > 0 ? '251,191,36' : '96,165,250',
+      sign: charge.sign,
+      size,                                 // untuk reference di drawBlasts
+      branches,
+      sparkPieces,
+      life: params.life,
+      maxLife: params.life,
+      flashLife: params.flashLife,
+      maxFlashLife: params.flashLife,
+      flashRadius: params.flashRadius,
+      shockwaves: params.shockwaves.map(sw => ({...sw})),
+      innerCoreWidth: params.innerCoreWidth,
+      outerGlowWidth: params.outerGlowWidth,
+      globalFlashMult: params.globalFlashMult
+    });
+  }
+
+  // Check tiap muatan — apakah saatnya blast?
+  function updateChargeBlasts() {
+    for (const c of charges) {
+      // Charging phase: 20 frame sebelum blast, muatan "bersinar lebih"
+      c.blastCharging = (c.nextBlastAt - frame) <= 20 && (c.nextBlastAt - frame) > 0;
+
+      if (frame >= c.nextBlastAt) {
+        spawnBlast(c);
+        // Jadwal blast berikutnya: 8–18 detik lagi (480–1080 frame @60fps)
+        // Dengan 8 muatan, rata-rata akan ada 1 blast per ~1.6 detik secara agregat
+        // — tetap sering untuk kesan "selalu ada sesuatu", tapi tiap muatan
+        // individu punya cooldown yang cukup panjang agar tidak berulang-ulang.
+        c.nextBlastAt = frame + 480 + Math.floor(Math.random() * 600);
+      }
+    }
+  }
+
+  // Update blast life + shockwaves + spark pieces
+  function updateBlasts() {
+    for (let i = blasts.length - 1; i >= 0; i--) {
+      const b = blasts[i];
+      b.life--;
+      if (b.flashLife > 0) b.flashLife--;
+      // Update shockwaves
+      for (const sw of b.shockwaves) {
+        sw.r += (sw.maxR - sw.r) * 0.08;   // ease-out expansion
+        sw.life--;
+      }
+      // Update spark pieces (physics)
+      for (const p of b.sparkPieces) {
+        p.x += p.vx; p.y += p.vy;
+        p.vx *= 0.94; p.vy *= 0.94;         // friction
+        p.vy += 0.05;                        // gravity sedikit
+        p.life--;
+      }
+      b.sparkPieces = b.sparkPieces.filter(p => p.life > 0);
+      if (b.life <= 0) blasts.splice(i, 1);
+    }
+  }
+
+  // Draw all blasts — dipanggil di beberapa lapisan (lihat loop)
+  function drawBlasts() {
+    for (const b of blasts) {
+      const lifeFrac = b.life / b.maxLife;   // 1 → 0
+
+      // Layer A: Radial flash (besar, fade cepat) — ukuran sesuai tier
+      if (b.flashLife > 0) {
+        const flashFrac = b.flashLife / b.maxFlashLife;
+        const flashR = b.flashRadius[0] + (1 - flashFrac) * (b.flashRadius[1] - b.flashRadius[0]);
+        const flashGrad = ctx.createRadialGradient(b.cx, b.cy, 0, b.cx, b.cy, flashR);
+        flashGrad.addColorStop(0,    `rgba(${b.rgb},${0.6 * flashFrac})`);
+        flashGrad.addColorStop(0.35, `rgba(${b.rgb},${0.25 * flashFrac})`);
+        flashGrad.addColorStop(1,    `rgba(${b.rgb},0)`);
+        ctx.fillStyle = flashGrad;
+        ctx.beginPath();
+        ctx.arc(b.cx, b.cy, flashR, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Layer B: Shockwave rings (ekspansi) — tier punya jumlah & ukuran berbeda
+      for (const sw of b.shockwaves) {
+        if (sw.life <= 0) continue;
+        const swFrac = sw.life / 30;
+        ctx.strokeStyle = `rgba(${b.rgb},${sw.alpha * swFrac})`;
+        ctx.lineWidth = 2 * swFrac + 0.5;
+        ctx.beginPath();
+        ctx.arc(b.cx, b.cy, sw.r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // Layer C: Lightning branches (fractal paths)
+      // Massive blast punya stroke lebih tebal & glow lebih kuat
+      for (const br of b.branches) {
+        // Outer glow
+        ctx.strokeStyle = `rgba(${b.rgb},${0.4 * lifeFrac})`;
+        ctx.lineWidth = b.outerGlowWidth;
+        ctx.shadowColor = b.color;
+        ctx.shadowBlur = b.size === 'massive' ? 28 : b.size === 'medium' ? 18 : 12;
+        ctx.beginPath();
+        ctx.moveTo(br.main[0].x, br.main[0].y);
+        for (let k = 1; k < br.main.length; k++) ctx.lineTo(br.main[k].x, br.main[k].y);
+        ctx.stroke();
+
+        // Inner bright core (hampir putih)
+        ctx.strokeStyle = `rgba(255,255,255,${lifeFrac * 0.95})`;
+        ctx.lineWidth = b.innerCoreWidth;
+        ctx.shadowBlur = b.size === 'massive' ? 14 : 8;
+        ctx.beginPath();
+        ctx.moveTo(br.main[0].x, br.main[0].y);
+        for (let k = 1; k < br.main.length; k++) ctx.lineTo(br.main[k].x, br.main[k].y);
+        ctx.stroke();
+
+        // Sub-branches (tipis, softer)
+        ctx.strokeStyle = `rgba(${b.rgb},${0.55 * lifeFrac})`;
+        ctx.lineWidth = b.size === 'massive' ? 1.6 : 1.2;
+        ctx.shadowBlur = b.size === 'massive' ? 10 : 6;
+        for (const sub of br.subs) {
+          if (!sub || sub.length < 2) continue;
+          ctx.beginPath();
+          ctx.moveTo(sub[0].x, sub[0].y);
+          for (let k = 1; k < sub.length; k++) ctx.lineTo(sub[k].x, sub[k].y);
+          ctx.stroke();
+        }
+      }
+      ctx.shadowBlur = 0;
+
+      // Layer D: Spark pieces (particle burst)
+      for (const p of b.sparkPieces) {
+        const alpha = p.life / p.maxLife;
+        ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+        ctx.shadowColor = b.color;
+        ctx.shadowBlur = b.size === 'massive' ? 12 : 8;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  function loop() {
+    ctx.clearRect(0, 0, W, H);
+
+    updateNodes();
+    updateCharges();
+    updateChargeBlasts();
+    updateBlasts();
+    maybeSpawnSpark();
+
+    // Global flash saat ada blast aktif — efek kilat layar (scaled per ukuran blast)
+    const activeFlash = blasts.reduce((acc, b) => {
+      const mult = b.globalFlashMult || 1;
+      const raw = (b.flashLife / b.maxFlashLife) * mult;
+      return Math.max(acc, raw);
+    }, 0);
+    if (activeFlash > 0) {
+      ctx.fillStyle = `rgba(255,255,255,${Math.min(activeFlash * 0.08, 0.18)})`;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    // Draw order: background layers first, foreground last
+    drawFieldLines();   // curved lines antar muatan — paling belakang
+    drawNodeLinks();    // garis konstelasi antar node
+    drawNodes();        // titik konstelasi
+    drawSparks();       // spark arcs (di atas node)
+    drawBlasts();       // ⚡ lightning blasts (di atas spark, di bawah charges)
+    drawCharges();      // muatan + / − (paling atas)
+
+    frame++;
+    raf = requestAnimationFrame(loop);
+  }
+  loop();
+
+  // Pause saat overlay hidden untuk hemat CPU
   const overlay = document.getElementById('visitorOverlay');
   if (overlay) {
     new MutationObserver(() => {
-      if (overlay.classList.contains('hidden')) cancelAnimationFrame(raf);
-      else { frame = 0; raf = requestAnimationFrame(drawWaves); }
+      if (overlay.classList.contains('hidden')) {
+        cancelAnimationFrame(raf);
+      } else {
+        raf = requestAnimationFrame(loop);
+      }
     }).observe(overlay, { attributes: true, attributeFilter: ['class'] });
   }
 
-  /* ── Floating particles ── */
+  /* ── Floating particles (DOM-based, tetap dipertahankan untuk layer ekstra) ── */
   const container = document.getElementById('overlayParticles');
   if (!container) return;
   const pColors = [
-    'rgba(6,214,160,.85)',  'rgba(34,211,238,.75)',
-    'rgba(168,85,247,.65)', 'rgba(6,214,160,.5)',
-    'rgba(249,115,22,.55)',
+    'rgba(129,140,248,.85)',  'rgba(236,72,153,.75)',
+    'rgba(251,191,36,.65)',   'rgba(168,85,247,.6)',
+    'rgba(244,114,182,.55)',
   ];
   for (let i = 0; i < 30; i++) {
     const p  = document.createElement('div');
@@ -3850,8 +4446,11 @@ window.addEventListener('resize', () => {
     { t: 'i(t) = (Vs/R)(1−e^(−Rt/L))',      s: 10 },
   ];
   const fCols = [
-    'rgba(6,214,160,.22)', 'rgba(34,211,238,.18)',
-    'rgba(168,85,247,.2)', 'rgba(249,115,22,.15)',
+    'rgba(129,140,248,.22)',   // indigo
+    'rgba(236,72,153,.18)',    // pink
+    'rgba(251,191,36,.22)',    // gold
+    'rgba(168,85,247,.2)',     // violet
+    'rgba(96,165,250,.18)',    // blue
   ];
   formulas.forEach((f, i) => {
     const el  = document.createElement('div');
