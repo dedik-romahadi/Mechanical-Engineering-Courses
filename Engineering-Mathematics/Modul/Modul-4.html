@@ -209,6 +209,15 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 .q-type-badge{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;padding:5px 14px;border-radius:20px;margin-bottom:20px;letter-spacing:.5px}
 .badge-mc{background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.25);color:var(--cyan)}
 .badge-comp{background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.25);color:var(--amber)}
+.badge-comp-ez{background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.25);color:var(--amber)}
+.badge-comp-hard{background:rgba(236,72,153,.1);border:1px solid rgba(236,72,153,.28);color:var(--pink)}
+
+/* Komputasi Hard — visual differentiation */
+.comp-card.comp-hard{border-left:4px solid var(--pink);background:linear-gradient(90deg,rgba(236,72,153,.03),var(--surface) 40%)}
+.comp-card.comp-hard:hover{border-color:rgba(236,72,153,.3)}
+.comp-card.comp-hard .comp-num{background:rgba(236,72,153,.12);border-color:rgba(236,72,153,.3);color:var(--pink)}
+.comp-card.comp-hard .comp-pts{background:rgba(236,72,153,.12);border-color:rgba(236,72,153,.3);color:var(--pink);font-weight:700}
+.comp-card.comp-hard .col-badge{background:linear-gradient(135deg,var(--pink),#c026d3)}
 
 /* Multiple Choice */
 .mc-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:20px;transition:border-color .3s}
@@ -1437,12 +1446,13 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     </div>
     <div class="score-info">
       <div class="score-title">Skor Sementara</div>
-      <div style="font-size:13px;color:var(--text);margin-top:2px" id="scoreDetail">0 / 30 poin</div>
+      <div style="font-size:13px;color:var(--text);margin-top:2px" id="scoreDetail">0 / 50 poin</div>
       <div class="score-progress"><div class="score-fill" id="scoreFill"></div></div>
     </div>
-    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);text-align:right;min-width:120px">
-      <div>MC: <span id="scoreMC" style="color:var(--cyan)">0</span>/10 poin</div>
-      <div>Komputasi: <span id="scoreComp" style="color:var(--amber)">0</span>/20 poin</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);text-align:right;min-width:155px">
+      <div>🅐 PG: <span id="scoreMC" style="color:var(--cyan)">0</span>/10 poin</div>
+      <div>🅑 Komp E/M: <span id="scoreCompEz" style="color:var(--amber)">0</span>/20 poin</div>
+      <div>🅒 Komp Hard: <span id="scoreCompHard" style="color:var(--pink)">0</span>/20 poin</div>
     </div>
     <button class="btn-export" id="btn-score-export" onclick="exportTugasHtml()" disabled style="opacity:.4;cursor:not-allowed;font-size:11px">📄 Export HTML</button>
   </div>
@@ -1657,7 +1667,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <p style="font-size:13px;color:var(--muted);margin:0;line-height:1.7">Pastikan kode sudah <strong style="color:var(--text)">dites dan berjalan dengan benar di Jupyter Notebook</strong> terlebih dahulu, kemudian paste ke kolom yang tersedia. Sistem akan menjalankan kode di browser (Python WebAssembly), menangkap output <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">print()</code>, dan mengecek apakah nilai numerik yang dicetak sesuai. Kode harus menyertakan <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">import numpy as np</code> dan <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">import pandas as pd</code> bila diperlukan.</p>
       </div>
     </div>
-    <div class="q-type-badge badge-comp">💻 BAGIAN B — Soal Komputasi · 10 Soal · @2 Poin · Menggunakan Jupyter Notebook</div>
+    <div class="q-type-badge badge-comp-ez">🅑 BAGIAN B — Komputasi Easy–Medium · 10 Soal · @2 Poin · Jupyter Notebook</div>
 
     <div class="info-box" style="margin-bottom:28px">
       <strong>📌 Dataset Referensi:</strong>
@@ -1680,7 +1690,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <textarea class="code-textarea" id="code-c1" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c1')"></textarea>
         <div class="stdout-box" id="stdout-c1"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c1" onclick="runAndCheck('c1', 20.0855, 0.01)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c1" onclick="runAndCheck('c1', 20.0855, 0.01, 'easy')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c1"></div>
     </div>
 
@@ -1699,7 +1709,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <textarea class="code-textarea" id="code-c2" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c2')"></textarea>
         <div class="stdout-box" id="stdout-c2"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c2" onclick="runAndCheck('c2', 0.8, 0.005)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c2" onclick="runAndCheck('c2', 0.8, 0.005, 'easy')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c2"></div>
     </div>
 
@@ -1718,7 +1728,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <textarea class="code-textarea" id="code-c3" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c3')"></textarea>
         <div class="stdout-box" id="stdout-c3"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c3" onclick="runAndCheck('c3', 0.7221, 0.01)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c3" onclick="runAndCheck('c3', 0.7221, 0.01, 'easy')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c3"></div>
     </div>
 
@@ -1737,7 +1747,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <textarea class="code-textarea" id="code-c4" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c4')"></textarea>
         <div class="stdout-box" id="stdout-c4"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c4" onclick="runAndCheck('c4', 20.0, 0.1)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c4" onclick="runAndCheck('c4', 20.0, 0.1, 'easy')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c4"></div>
     </div>
 
@@ -1756,7 +1766,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <textarea class="code-textarea" id="code-c5" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c5')"></textarea>
         <div class="stdout-box" id="stdout-c5"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c5" onclick="runAndCheck('c5', 41.7336, 0.05)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c5" onclick="runAndCheck('c5', 41.7336, 0.05, 'easy')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c5"></div>
     </div>
 
@@ -1775,7 +1785,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <textarea class="code-textarea" id="code-c6" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c6')"></textarea>
         <div class="stdout-box" id="stdout-c6"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c6" onclick="runAndCheck('c6', -4.0, 0.01)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c6" onclick="runAndCheck('c6', -4.0, 0.01, 'easy')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c6"></div>
     </div>
 
@@ -1794,7 +1804,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <textarea class="code-textarea" id="code-c7" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c7')"></textarea>
         <div class="stdout-box" id="stdout-c7"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c7" onclick="runAndCheck('c7', 1.7293, 0.01)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c7" onclick="runAndCheck('c7', 1.7293, 0.01, 'easy')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c7"></div>
     </div>
 
@@ -1813,7 +1823,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <textarea class="code-textarea" id="code-c8" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c8')"></textarea>
         <div class="stdout-box" id="stdout-c8"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c8" onclick="runAndCheck('c8', 63.2121, 0.05)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c8" onclick="runAndCheck('c8', 63.2121, 0.05, 'easy')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c8"></div>
     </div>
 
@@ -1832,7 +1842,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <textarea class="code-textarea" id="code-c9" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c9')"></textarea>
         <div class="stdout-box" id="stdout-c9"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c9" onclick="runAndCheck('c9', 269.9, 1.0)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c9" onclick="runAndCheck('c9', 269.9, 1.0, 'easy')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c9"></div>
     </div>
 
@@ -1851,11 +1861,146 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <textarea class="code-textarea" id="code-c10" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c10')"></textarea>
         <div class="stdout-box" id="stdout-c10"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c10" onclick="runAndCheck('c10', 1.9634, 0.01)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c10" onclick="runAndCheck('c10', 1.9634, 0.01, 'easy')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c10"></div>
     </div>
 
-    </div><!-- end q-section komputasi -->
+    </div><!-- end q-section komputasi easy-medium -->
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- BAGIAN C — KOMPUTASI HARD · 5 SOAL · @4 POIN                        -->
+    <!-- Algoritma lengkap, multiple iterasi, atau sintesis multi-konsep.    -->
+    <!-- Tiap soal butuh 20–50+ baris kode.                                  -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="q-section">
+      <div class="q-type-badge badge-comp-hard">🅒 BAGIAN C — Komputasi Hard · 5 Soal · @4 Poin · Algoritma Lengkap</div>
+
+      <!-- ────────────────── C11 ────────────────── -->
+      <div class="comp-card comp-hard reveal">
+        <div class="comp-header">
+          <div class="comp-num">C11</div>
+          <div class="comp-q">
+            <strong>Implementasi RK4 Manual untuk PD Linier dengan Koefisien Variabel.</strong><br>
+            Tanpa menggunakan <code style="font-family:'JetBrains Mono',monospace">scipy</code> atau <code>sympy</code>, implementasikan metode Runge-Kutta orde-4 dari awal untuk menyelesaikan PD linier:
+            <code style="display:block;margin:8px 0;padding:6px 10px;background:rgba(236,72,153,.06);border-radius:6px;font-family:'JetBrains Mono',monospace;color:#f9a8d4">y' + 2xy = 2x·e^(−x²)</code>
+            dengan syarat awal <strong>y(0) = 1</strong>, step size <strong>h = 0.01</strong>, dari x = 0 sampai x = 2. Print <strong>nilai y(2)</strong> dengan 5 angka desimal.
+            <div style="margin-top:8px;font-size:13px;color:var(--muted)">Solusi analitis: faktor integrasi u = e^(x²) memberi y = (x² + 1)·e^(−x²), sehingga <code>y(2) = 5·e^(−4) ≈ 0.09158</code>.</div>
+          </div>
+          <div class="comp-pts">4 poin</div>
+        </div>
+        <div class="comp-hint">
+          💡 Kerangka: definisikan <code>f(x,y) = -2*x*y + 2*x*np.exp(-x**2)</code>, lalu fungsi <code>rk4_step(f, x, y, h)</code> yang menghitung k1, k2, k3, k4 dan return y_next. Loop dari x=0 sampai x=2 dengan h=0.01 (≈200 iterasi).
+        </div>
+        <div class="comp-code-wrap">
+          <div class="input-label"><span class="col-badge">Python — Hard</span> Kode (20–30 baris) — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">y(2)</strong></span></div>
+          <textarea class="code-textarea" id="code-c11" rows="12" placeholder="Implementasikan RK4 dari awal. Jangan pakai scipy.integrate." oninput="onCodeInput('c11')"></textarea>
+          <div class="stdout-box" id="stdout-c11"></div>
+        </div>
+        <button class="comp-submit run-btn" id="sub-c11" onclick="runAndCheck('c11', 0.09158, 0.005, 'hard')">▶ Run &amp; Validasi</button>
+        <div class="feedback" id="fb-c11"></div>
+      </div>
+
+      <!-- ────────────────── C12 ────────────────── -->
+      <div class="comp-card comp-hard reveal">
+        <div class="comp-header">
+          <div class="comp-num">C12</div>
+          <div class="comp-q">
+            <strong>PD Bernoulli n=3 — Validasi Numerik vs Analitik.</strong><br>
+            Selesaikan PD Bernoulli
+            <code style="display:block;margin:8px 0;padding:6px 10px;background:rgba(236,72,153,.06);border-radius:6px;font-family:'JetBrains Mono',monospace;color:#f9a8d4">y' + (2/x)·y = y³/x²</code>
+            dengan syarat awal <strong>y(1) = 1</strong> pada interval x ∈ [1, 3]. Gunakan <code>scipy.integrate.solve_ivp</code> dengan tolerance rapat (<code>rtol=1e-9</code>), lalu <strong>validasi dengan solusi analitik via substitusi Bernoulli</strong> z = y<sup>−2</sup>. Print <strong>y(3)</strong> hasil numerik dan analitik, keduanya dengan 4 desimal.
+            <div style="margin-top:8px;font-size:13px;color:var(--muted)">Solusi analitik: z = 2/(5x) + (3/5)·x⁴, sehingga <code>y(3) = 1/√z(3) ≈ 0.1432</code>.</div>
+          </div>
+          <div class="comp-pts">4 poin</div>
+        </div>
+        <div class="comp-hint">
+          💡 Step-by-step: (1) numerik dengan <code>solve_ivp(dydx, [1,3], [1.0], rtol=1e-9, max_step=0.01)</code>. (2) analitik: definisikan <code>z(x) = 2/(5*x) + 0.6*x**4</code>, lalu <code>y_ana = 1/np.sqrt(z(3))</code>. (3) print keduanya.
+        </div>
+        <div class="comp-code-wrap">
+          <div class="input-label"><span class="col-badge">Python — Hard</span> Kode (20–30 baris) — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">y(3)</strong> numerik &amp; analitik</span></div>
+          <textarea class="code-textarea" id="code-c12" rows="12" placeholder="Gunakan scipy.integrate.solve_ivp + validasi analitik via substitusi Bernoulli." oninput="onCodeInput('c12')"></textarea>
+          <div class="stdout-box" id="stdout-c12"></div>
+        </div>
+        <button class="comp-submit run-btn" id="sub-c12" onclick="runAndCheck('c12', 0.1432, 0.005, 'hard')">▶ Run &amp; Validasi</button>
+        <div class="feedback" id="fb-c12"></div>
+      </div>
+
+      <!-- ────────────────── C13 ────────────────── -->
+      <div class="comp-card comp-hard reveal">
+        <div class="comp-header">
+          <div class="comp-num">C13</div>
+          <div class="comp-q">
+            <strong>Reduksi Orde — PD Orde-2 Non-linier.</strong><br>
+            Diberikan PD orde-2 <em>tanpa y eksplisit</em>:
+            <code style="display:block;margin:8px 0;padding:6px 10px;background:rgba(236,72,153,.06);border-radius:6px;font-family:'JetBrains Mono',monospace;color:#f9a8d4">y'' + (y')² + y' = 0</code>
+            dengan y(0) = 0 dan y'(0) = 1. Reduksi ke sistem orde-1 dengan substitusi <strong>p = y'</strong>, sehingga terbentuk sistem 2 persamaan untuk [y, p]. Selesaikan dengan <code>solve_ivp</code> dari x = 0 sampai x = 2. Print <strong>y(2)</strong> dan <strong>y'(2)</strong> (keduanya 5 desimal).
+            <div style="margin-top:8px;font-size:13px;color:var(--muted)">Solusi analitis: integrasi manual memberi y(x) = ln|2 − e<sup>−x</sup>|, sehingga <code>y(2) = ln(2 − e⁻²) ≈ 0.62312</code>.</div>
+          </div>
+          <div class="comp-pts">4 poin</div>
+        </div>
+        <div class="comp-hint">
+          💡 Setelah substitusi p = y', sistem: <code>dy/dx = p</code>, <code>dp/dx = −p² − p</code>. State <code>[y, p]</code>, initial <code>[0.0, 1.0]</code>. Pakai <code>solve_ivp(system, [0,2], [0.0, 1.0], rtol=1e-10, max_step=0.005)</code>.
+        </div>
+        <div class="comp-code-wrap">
+          <div class="input-label"><span class="col-badge">Python — Hard</span> Kode (25–35 baris) — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">y(2)</strong> dan <strong style="color:var(--pink)">y'(2)</strong></span></div>
+          <textarea class="code-textarea" id="code-c13" rows="12" placeholder="Reduksi orde: p = y', kemudian sistem [y, p] dengan solve_ivp." oninput="onCodeInput('c13')"></textarea>
+          <div class="stdout-box" id="stdout-c13"></div>
+        </div>
+        <button class="comp-submit run-btn" id="sub-c13" onclick="runAndCheck('c13', 0.62312, 0.005, 'hard')">▶ Run &amp; Validasi</button>
+        <div class="feedback" id="fb-c13"></div>
+      </div>
+
+      <!-- ────────────────── C14 ────────────────── -->
+      <div class="comp-card comp-hard reveal">
+        <div class="comp-header">
+          <div class="comp-num">C14</div>
+          <div class="comp-q">
+            <strong>Tangki Kimia dengan Volume &amp; Koefisien Variabel terhadap Waktu.</strong><br>
+            Sebuah tangki kimia awalnya berisi 5 kg zat terlarut dalam 100 L larutan. Aliran masuk: <strong>3 L/s dengan konsentrasi 0.5 kg/L</strong>. Aliran keluar: <strong>1 L/s</strong> (larutan tercampur sempurna). Volume bertambah karena inflow > outflow: V(t) = 100 + 2t. Massa zat x(t) memenuhi PD linier:
+            <code style="display:block;margin:8px 0;padding:6px 10px;background:rgba(236,72,153,.06);border-radius:6px;font-family:'JetBrains Mono',monospace;color:#f9a8d4">dx/dt + x/(100 + 2t) = 1.5</code>
+            Selesaikan secara <strong>analitik</strong> (faktor integrasi √V) <strong>dan numerik</strong> (<code>solve_ivp</code>) dari t = 0 sampai t = 60 s. Print <strong>x(60)</strong> dalam kg (3 desimal) untuk keduanya.
+            <div style="margin-top:8px;font-size:13px;color:var(--muted)">Solusi analitis: x(t) = 0.5·V(t) + C/√V(t), dengan C = −450 dari IC. Di t = 60, V = 220, <code>x(60) = 110 − 450/√220 ≈ 79.661 kg</code>.</div>
+          </div>
+          <div class="comp-pts">4 poin</div>
+        </div>
+        <div class="comp-hint">
+          💡 Analitik: <code>x_ana = 0.5*V + C/np.sqrt(V)</code> dengan <code>V = 100 + 2*t</code>, <code>C = -450</code>. Numerik: <code>dxdt = lambda t, x: 1.5 - x/(100 + 2*t)</code>, <code>solve_ivp(dxdt, [0,60], [5.0], rtol=1e-9, max_step=0.05)</code>. Print dua angka.
+        </div>
+        <div class="comp-code-wrap">
+          <div class="input-label"><span class="col-badge">Python — Hard</span> Kode (25–35 baris) — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">x(60)</strong> numerik &amp; analitik (kg)</span></div>
+          <textarea class="code-textarea" id="code-c14" rows="12" placeholder="Solve analitik (IF = √V) + numerik, lalu bandingkan." oninput="onCodeInput('c14')"></textarea>
+          <div class="stdout-box" id="stdout-c14"></div>
+        </div>
+        <button class="comp-submit run-btn" id="sub-c14" onclick="runAndCheck('c14', 79.661, 0.5, 'hard')">▶ Run &amp; Validasi</button>
+        <div class="feedback" id="fb-c14"></div>
+      </div>
+
+      <!-- ────────────────── C15 ────────────────── -->
+      <div class="comp-card comp-hard reveal">
+        <div class="comp-header">
+          <div class="comp-num">C15</div>
+          <div class="comp-q">
+            <strong>Getaran Paksa Teredam pada Resonansi — Amplitudo Steady-State.</strong><br>
+            Sistem massa-pegas teredam dengan gaya harmonik:
+            <code style="display:block;margin:8px 0;padding:6px 10px;background:rgba(236,72,153,.06);border-radius:6px;font-family:'JetBrains Mono',monospace;color:#f9a8d4">m·x'' + c·x' + k·x = F₀·sin(ω·t)</code>
+            Parameter: m = 2 kg, c = 0.5 N·s/m, k = 8 N/m, F₀ = 1 N, ω = 2 rad/s. Syarat awal: x(0) = 0, x'(0) = 0. (Catatan: frekuensi natural ω<sub>n</sub> = √(k/m) = 2, sehingga sistem pada kondisi <strong>resonansi</strong>.) Reduksi ke sistem orde-1 [x, v], simulasikan dengan <code>solve_ivp</code> dari t = 0 sampai t = 100 s. Setelah transient mati, laporkan <strong>amplitudo puncak steady-state</strong> dengan mengambil <code>max(|x(t)|)</code> pada 20 detik terakhir (t ∈ [80, 100]).
+            <div style="margin-top:8px;font-size:13px;color:var(--muted)">Solusi analitis (getaran paksa): amplitudo steady-state pada resonansi = F₀/(c·ω) = 1/(0.5·2) = <strong>1.000</strong> m.</div>
+          </div>
+          <div class="comp-pts">4 poin</div>
+        </div>
+        <div class="comp-hint">
+          💡 Sistem: <code>dx/dt = v</code>, <code>dv/dt = (F0*np.sin(ω*t) − c*v − k*x)/m</code>. State <code>[x, v]</code>, initial <code>[0, 0]</code>. Pakai <code>solve_ivp(sys, [0, 100], [0, 0], t_eval=np.linspace(0, 100, 5000), rtol=1e-9)</code>. Lalu filter <code>t &gt;= 80</code> dan hitung <code>max(abs(sol.y[0][mask]))</code>.
+        </div>
+        <div class="comp-code-wrap">
+          <div class="input-label"><span class="col-badge">Python — Hard</span> Kode (25–40 baris) — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">amplitudo steady-state</strong> (m)</span></div>
+          <textarea class="code-textarea" id="code-c15" rows="12" placeholder="Reduksi orde-2 ke sistem [x, v], simulasi long-time, ekstrak max amplitude di steady-state." oninput="onCodeInput('c15')"></textarea>
+          <div class="stdout-box" id="stdout-c15"></div>
+        </div>
+        <button class="comp-submit run-btn" id="sub-c15" onclick="runAndCheck('c15', 1.000, 0.05, 'hard')">▶ Run &amp; Validasi</button>
+        <div class="feedback" id="fb-c15"></div>
+      </div>
+
+    </div><!-- end q-section komputasi hard -->
 
   <!-- GOOGLE DRIVE LINK -->
   <div style="background:var(--surface);border:1px solid rgba(0,224,158,.25);border-radius:16px;padding:24px 28px;margin-top:8px">
@@ -2764,20 +2909,35 @@ function parseNumbers(str) {
 let compAnswered = {}, compScores = {};
 
 // ── Lock a comp question permanently (wrong answer or error) ──
-function _lockCompWrong(qId, fbMsg) {
-  compAnswered[qId] = true; compScores[qId] = 0;
+// partialPoint: opsional, jika > 0 maka mahasiswa dapat poin usaha meskipun
+// jawaban salah (dipakai untuk Comp Hard — reward effort).
+function _lockCompWrong(qId, fbMsg, partialPoint) {
+  partialPoint = partialPoint || 0;
+  compAnswered[qId] = true; compScores[qId] = partialPoint;
   const btn = document.getElementById('sub-' + qId);
-  if (btn) { btn.disabled = true; btn.textContent = '✗ Terkunci'; btn.style.borderColor = 'rgba(239,68,68,.3)'; btn.style.color = 'var(--pink)'; btn.classList.remove('running'); }
+  if (btn) { btn.disabled = true; btn.textContent = partialPoint > 0 ? '△ Usaha' : '✗ Terkunci'; btn.style.borderColor = partialPoint > 0 ? 'rgba(251,191,36,.4)' : 'rgba(239,68,68,.3)'; btn.style.color = partialPoint > 0 ? 'var(--amber)' : 'var(--pink)'; btn.classList.remove('running'); }
   const ta = document.getElementById('code-' + qId);
-  if (ta) { ta.disabled = true; ta.style.borderColor = 'rgba(239,68,68,.25)'; ta.style.opacity = '.7'; }
+  if (ta) { ta.disabled = true; ta.style.borderColor = partialPoint > 0 ? 'rgba(251,191,36,.25)' : 'rgba(239,68,68,.25)'; ta.style.opacity = '.7'; }
   const fb = document.getElementById('fb-' + qId);
-  if (fb) { fb.className = 'feedback wrong'; fb.textContent = fbMsg; }
-  // Save attempt to Firebase so it persists across devices/refresh
-  if (typeof window._recordCompAttempt === 'function') window._recordCompAttempt(qId);
+  if (fb) {
+    fb.className = partialPoint > 0 ? 'feedback warn' : 'feedback wrong';
+    fb.textContent = fbMsg;
+  }
+  // Firebase: partial credit pakai marker '_comp_partial', selain itu '_comp_used'
+  if (partialPoint > 0) {
+    if (typeof window._awardCompPartial === 'function') window._awardCompPartial(qId, partialPoint);
+  } else {
+    if (typeof window._recordCompAttempt === 'function') window._recordCompAttempt(qId);
+  }
+  if (typeof updateScore === 'function') updateScore();
   checkExportReady();
 }
 
-async function runAndCheck(qId, expectedAns, tol) {
+async function runAndCheck(qId, expectedAns, tol, difficulty) {
+  // difficulty: 'easy' (2 poin, default) atau 'hard' (4 poin)
+  const pointAwarded = (difficulty === 'hard')
+    ? SCORE_CONFIG.COMP_HARD_POINT    // 4
+    : SCORE_CONFIG.COMP_EZ_POINT;     // 2
   if (compAnswered[qId]) {
     const fb = document.getElementById('fb-' + qId);
     if (fb) {
@@ -2818,7 +2978,11 @@ async function runAndCheck(qId, expectedAns, tol) {
       stdout.classList.add('show');
       if (errMsg) {
         stdout.innerHTML = `<div class="stdout-label">❌ Error</div><div class="stderr-line">${errMsg.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`;
-        _lockCompWrong(qId, '🔒 Kode error — soal dikunci. Tidak ada kesempatan ulang.');
+        const partial = (difficulty === 'hard') ? 1 : 0;
+        const msg = partial > 0
+          ? `🔒 Kode error — soal dikunci. +${partial} poin untuk upaya Hard.`
+          : '🔒 Kode error — soal dikunci. Tidak ada kesempatan ulang.';
+        _lockCompWrong(qId, msg, partial);
         return;
       }
       const outEsc = (output||'').replace(/</g,'&lt;').replace(/>/g,'&gt;') || '(tidak ada output)';
@@ -2830,15 +2994,19 @@ async function runAndCheck(qId, expectedAns, tol) {
 
     if (correct) {
       fb.className = 'feedback correct';
-      fb.textContent = '✅ Kode berjalan tanpa error & output benar! +2 poin';
-      compAnswered[qId] = true; compScores[qId] = 2;
+      fb.textContent = `✅ Kode berjalan tanpa error & output benar! +${pointAwarded} poin`;
+      compAnswered[qId] = true; compScores[qId] = pointAwarded;
       btn.disabled = true; btn.textContent = '✓ Selesai'; btn.classList.remove('running');
       if (ta) ta.style.borderColor = 'rgba(0,224,158,.5)';
-      if (typeof window._awardCompPoint === 'function') window._awardCompPoint(qId);
+      if (typeof window._awardCompPoint === 'function') window._awardCompPoint(qId, pointAwarded);
       updateScore(); checkExportReady();
     } else {
       const outPreview = (output || '(kosong)').trim().slice(0, 100);
-      _lockCompWrong(qId, `🔒 Output tidak mengandung nilai yang benar (≈ ${expectedAns}). Output: "${outPreview}" — Soal dikunci.`);
+      const partial = (difficulty === 'hard') ? 1 : 0;
+      const msg = partial > 0
+        ? `🔒 Output tidak mengandung nilai yang benar (≈ ${expectedAns}). Output: "${outPreview}" — Soal dikunci. +${partial} poin untuk upaya Hard.`
+        : `🔒 Output tidak mengandung nilai yang benar (≈ ${expectedAns}). Output: "${outPreview}" — Soal dikunci.`;
+      _lockCompWrong(qId, msg, partial);
     }
   } catch (e) {
     fb.className = 'feedback wrong';
@@ -2848,19 +3016,25 @@ async function runAndCheck(qId, expectedAns, tol) {
 }
 
 // Keep checkComp alias for _loadScoredQuestions compatibility
-function checkComp(qId, expectedAns, tol) { runAndCheck(qId, expectedAns, tol); }
+function checkComp(qId, expectedAns, tol, difficulty) { runAndCheck(qId, expectedAns, tol, difficulty); }
 
 // ── SCORE UPDATE ──
 function updateScore() {
-  const mc    = Object.values(mcScores).reduce((a,b) => a+b, 0);
-  const comp  = Object.values(compScores).reduce((a,b) => a+b, 0);
-  const total = mc + comp;
-  const nilai = Math.round(total / 30 * 100);   // skala 0–100
+  const mc        = Object.values(mcScores).reduce((a,b) => a+b, 0);
+  // Split comp by qId suffix — c1..c10 = easy, c11..c15 = hard
+  let compEz = 0, compHard = 0;
+  for (const [qId, pts] of Object.entries(compScores)) {
+    const n = parseInt((qId || '').replace(/\D/g, ''), 10) || 0;
+    if (n >= 11) compHard += pts; else compEz += pts;
+  }
+  const total = mc + compEz + compHard;
+  const nilai = pointsToScore(total);   // skala 0–100
   document.getElementById('scoreDisplay').textContent = nilai;
-  document.getElementById('scoreDetail').textContent  = total + ' / 30 poin';
-  document.getElementById('scoreMC').textContent      = mc;
-  document.getElementById('scoreComp').textContent    = comp;
-  document.getElementById('scoreFill').style.width    = nilai + '%';
+  document.getElementById('scoreDetail').textContent  = total + ' / ' + SCORE_CONFIG.TOTAL + ' poin';
+  document.getElementById('scoreMC').textContent        = mc;
+  document.getElementById('scoreCompEz').textContent    = compEz;
+  document.getElementById('scoreCompHard').textContent  = compHard;
+  document.getElementById('scoreFill').style.width      = nilai + '%';
 }
 
 // ── FORUM LOGIC ──
@@ -2978,7 +3152,7 @@ function exportTugasHtml() {
     return { ...d, code: ta ? ta.value.trim() : '', pts: compScores[d.id] || 0 };
   });
 
-  const nilai = Math.round(total / 30 * 100);
+  const nilai = pointsToScore(total);
 
   const html = `<!DOCTYPE html>
 <html lang="id">
@@ -3264,7 +3438,14 @@ function exportForumHtml() { copyForumHtml(); }
   // Menggunakan inline style agar kompatibel dengan editor LMS
 
 function getIdentityLocal() {
-  try { return JSON.parse(localStorage.getItem('optoauto_identity_pertemuan-4')); } catch(e) { return null; }
+  // Baca identitas dari localStorage. LOCAL_IDENTITY didefinisikan di module
+  // script di bawah dan di-expose sebagai window._LOCAL_IDENTITY_KEY.
+  // Fallback ke pattern generic jika window key belum ter-set (race condition
+  // saat module script belum selesai eval) — tapi ini rare.
+  try {
+    const key = window._LOCAL_IDENTITY_KEY || 'math4_identity_modul-4';
+    return JSON.parse(localStorage.getItem(key));
+  } catch(e) { return null; }
 }
 
 // ═══════════════════════════════════════
@@ -4489,15 +4670,43 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const COURSE_ID = 'math4';                    // ⭐ identifier mata kuliah — harus sama dengan path Firebase
 const MODULE_ID = 'modul-4';
-const DB_PATH = `visitors/math4/${MODULE_ID}`;
+const DB_PATH = `visitors/${COURSE_ID}/${MODULE_ID}`;
 const PERTEMUAN = 'pertemuan-4';
 const RELATED_MODULES = ['forum-4','tugas-4'];
-const SCHEDULE_PATH = `settings/math4/${PERTEMUAN}/schedule`;
-const LOCAL_IDENTITY = `optoauto_identity_${MODULE_ID}`;
+const SCHEDULE_PATH = `settings/${COURSE_ID}/${PERTEMUAN}/schedule`;
+// localStorage key — pakai COURSE_ID sebagai prefix agar 3 mata kuliah
+// (math4, getaran_mekanik, optoauto) punya namespace terpisah di browser.
+// Tanpa ini, login di 1 MK akan menimpa identitas MK lain.
+const LOCAL_IDENTITY = `${COURSE_ID}_identity_${MODULE_ID}`;
+const RELATED_LOCAL_PREFIX = `${COURSE_ID}_identity_`;
+// Expose ke window agar script block lain (non-module, mis. getIdentityLocal)
+// tetap bisa pakai key yang sama tanpa hardcode course ID.
+window._LOCAL_IDENTITY_KEY = LOCAL_IDENTITY;
 let panelOpen = false;
 let currentSchedule = null;
 const VISIT_COOLDOWN = 3600000;
+
+// ═══════════════════════════════════════════════════════════
+// SCORE CONFIG — Universal 50-poin (per Pedoman-Modul.md §15.1)
+// Total 50 poin = 10 MC × 1 + 10 Comp Easy–Medium × 2 + 5 Comp Hard × 4
+// Helper pointsToScore() konversi 0..50 → 0..100 (nilai)
+// ═══════════════════════════════════════════════════════════
+const SCORE_CONFIG = {
+  MC_COUNT:          10,    MC_POINT:         1,
+  COMP_EZ_COUNT:     10,    COMP_EZ_POINT:    2,
+  COMP_HARD_COUNT:    5,    COMP_HARD_POINT:  4,
+  CONSOLATION_THRESHOLD: 20, CONSOLATION_POINT: 1,
+  get MC_TOTAL()        { return this.MC_COUNT       * this.MC_POINT; },        // 10
+  get COMP_EZ_TOTAL()   { return this.COMP_EZ_COUNT  * this.COMP_EZ_POINT; },   // 20
+  get COMP_HARD_TOTAL() { return this.COMP_HARD_COUNT* this.COMP_HARD_POINT; }, // 20
+  get TOTAL()           { return this.MC_TOTAL + this.COMP_EZ_TOTAL + this.COMP_HARD_TOTAL; } // 50
+};
+window.SCORE_CONFIG = SCORE_CONFIG;
+function pointsToScore(pts){ return Math.round((pts || 0) / SCORE_CONFIG.TOTAL * 100); }
+window.pointsToScore = pointsToScore;
+
 
 function getIdentity(){try{return JSON.parse(localStorage.getItem(LOCAL_IDENTITY));}catch(e){return null;}}
 function saveIdentity(v){localStorage.setItem(LOCAL_IDENTITY, JSON.stringify(v));}
@@ -4588,7 +4797,7 @@ function updateLeaderboard(visitors, schedExpired){
   // Top Akses — ONLY students with points > 0 qualify, then sort by visitCount desc, then earliest timestamp
   const akses=[...visited].filter(v=>(v.points||0)>0).sort((a,b)=>{const d=(b.visitCount||1)-(a.visitCount||1);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp);});
   const medalR=['🥇','🥈','🥉'];
-  function renderCardSkor(v,idx){const pts=v.points||0;const nilai=Math.round(pts/30*100);return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="font-size:1rem;flex-shrink:0;">'+medalR[idx]+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(0,224,158,.12);color:#00e09e;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;white-space:nowrap;">'+pts+' <span style="opacity:.7;font-weight:600;">('+nilai+')</span></div></div>';}
+  function renderCardSkor(v,idx){const pts=v.points||0;const nilai=pointsToScore(pts);return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="font-size:1rem;flex-shrink:0;">'+medalR[idx]+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(0,224,158,.12);color:#00e09e;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;white-space:nowrap;">'+pts+' <span style="opacity:.7;font-weight:600;">('+nilai+')</span></div></div>';}
   function renderCardAkses(v,idx){const vc=v.visitCount||1;return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(251,191,36,.15);color:#fbbf24;font-size:.65rem;font-weight:800;flex-shrink:0;">'+(idx+1)+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(251,191,36,.12);color:#fbbf24;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+vc+'x</div></div>';}
   rajinEl.innerHTML=topSkor.length?topSkor.slice(0,3).map((v,i)=>renderCardSkor(v,i)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
   santaiEl.innerHTML=akses.length?akses.slice(0,3).map((v,i)=>renderCardAkses(v,i)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
@@ -4800,7 +5009,7 @@ function renderVisitors(visitors){
     else if(late){statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(251,113,133,.12);color:#fb7185;border:1px solid rgba(251,113,133,.25);">\u23f0 Terlambat</span>';rowBg='background:rgba(251,113,133,.04);';nameColor='color:#fb7185;';ac='background:rgba(251,113,133,.12);color:#fb7185;';}
     else{statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(0,224,158,.1);color:#00e09e;border:1px solid rgba(0,224,158,.25);">\u2705 Tepat Waktu</span>';}
     const vcDisplay=vc?vc+'x':'<span style="color:#475569;">—</span>';
-    const nilai=Math.round((pts||0)/30*100);
+    const nilai=pointsToScore(pts||0);
     const ptsDisplay=pts?'<span style="color:#00e09e;font-weight:800;">'+pts+'</span> <span style="color:#64748b;font-weight:600;font-size:.78rem;">('+nilai+')</span>':'<span style="color:#475569;">0 <span style="font-weight:600;font-size:.78rem;">(0)</span></span>';
     const tsColor=bolos?'#ef4444':late?'#fb7185':hasVisit?'#64748b':'#475569';
     const absenClass=(!hasVisit||bolos)?' absen':'';
@@ -5071,13 +5280,18 @@ async function confirmReset(){
   Promise.all([
     remove(ref(db, DB_PATH)),
     remove(ref(db, SCHEDULE_PATH)),
-    ...RELATED_MODULES.map(mid => remove(ref(db, 'visitors/math4/' + mid)))
+    // Hapus juga data related modules (forum-N, tugas-N) DI MATA KULIAH YANG SAMA.
+    // Pakai COURSE_ID agar portable ke mata kuliah lain (getaran_mekanik, optoauto).
+    ...RELATED_MODULES.map(mid => remove(ref(db, `visitors/${COURSE_ID}/${mid}`)))
   ]).then(() => {
     // Bersihkan localStorage semua modul terkait — termasuk identitas dosen
     // di device ini (agar setelah reset harus login ulang, bukan auto-login
     // dengan identitas yang sudah stale).
     localStorage.removeItem(LOCAL_IDENTITY);
-    RELATED_MODULES.forEach(mid => localStorage.removeItem('optoauto_identity_' + mid));
+    // Hapus juga identitas modul terkait (forum-N, tugas-N) DI MATA KULIAH YANG SAMA.
+    // RELATED_LOCAL_PREFIX sudah menggunakan COURSE_ID, jadi kita TIDAK akan
+    // sengaja menghapus identitas mahasiswa di mata kuliah lain.
+    RELATED_MODULES.forEach(mid => localStorage.removeItem(RELATED_LOCAL_PREFIX + mid));
     btns.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';});
     hideResetModal();
     // Tampilkan toast sukses agar dosen tahu reset berjalan sempurna
@@ -5245,8 +5459,11 @@ window._awardPoint = function(qId) {
   }).catch(()=>{});
 };
 
-window._awardCompPoint = function(qId) {
+window._awardCompPoint = function(qId, point) {
   if (!_isScheduleOpen()) return;  // NO point save outside active schedule
+  // point: explicit value from caller (2 untuk easy, 4 untuk hard).
+  // Jika tidak diberikan, fallback ke 2 untuk kompatibilitas mundur.
+  const pts = (typeof point === 'number' && point > 0) ? point : SCORE_CONFIG.COMP_EZ_POINT;
   const compKey = qId + '_comp';
   if (_answeredQ.has(compKey)) return;
   const me = getIdentity();
@@ -5259,9 +5476,41 @@ window._awardCompPoint = function(qId) {
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(compKey)) { _answeredQ.add(compKey); return; }
     _answeredQ.add(compKey); scored.push(compKey);
-    const updated = Object.assign({}, ex, { points: (ex.points||0)+2, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',') });
+    const newPoints = Math.min((ex.points||0) + pts, SCORE_CONFIG.TOTAL);
+    const updated = Object.assign({}, ex, { points: newPoints, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',') });
     set(nodeRef, updated);
     _checkConsolationPoint(nodeRef, updated);
+  }).catch(()=>{});
+};
+
+// ── Helper: cek apakah soal Comp termasuk Hard (C11–C15) ──
+window._isHardComp = function(qId) {
+  const m = /^c(\d+)$/.exec(qId);
+  return m && parseInt(m[1], 10) >= 11 && parseInt(m[1], 10) <= 15;
+};
+
+// ── Award PARTIAL comp point (untuk Hard yang salah — reward upaya) ──
+// Beda dengan _awardCompPoint: pakai marker '_comp_partial' agar _loadScoredQuestions
+// bisa restore state "locked + partial credit" dengan benar setelah refresh.
+window._awardCompPartial = function(qId, point) {
+  if (!_isScheduleOpen()) return;
+  const pts = (typeof point === 'number' && point > 0) ? point : 1;
+  const partialKey = qId + '_comp_partial';
+  if (_answeredQ.has(partialKey)) return;
+  const me = getIdentity();
+  if (!me || !me.nim || me.role === 'dosen') return;
+  const key = sanitizeKey('mhs_' + me.nim);
+  const nodeRef = ref(db, DB_PATH + '/' + key);
+  get(nodeRef).then(snap => {
+    if (!snap.exists()) return;
+    const ex = snap.val();
+    const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
+    if (scored.includes(partialKey)) { _answeredQ.add(partialKey); return; }
+    _answeredQ.add(partialKey); scored.push(partialKey);
+    const newPoints = Math.min((ex.points||0) + pts, SCORE_CONFIG.TOTAL);
+    const updated = Object.assign({}, ex, { points: newPoints, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',') });
+    set(nodeRef, updated);
+    // Tidak trigger consolation karena poin > 0
   }).catch(()=>{});
 };
 
@@ -5340,13 +5589,29 @@ window._loadScoredQuestions = function() {
       // ── Restore comp correct answers ──
       if (qId.endsWith('_comp')) {
         const baseId = qId.replace('_comp','');
-        if (!compAnswered[baseId]) { compAnswered[baseId]=true; compScores[baseId]=2; }
+        // Hard soal dapat 4 poin, Easy/Medium dapat 2 poin
+        const restoredPts = (typeof window._isHardComp === 'function' && window._isHardComp(baseId))
+          ? SCORE_CONFIG.COMP_HARD_POINT
+          : SCORE_CONFIG.COMP_EZ_POINT;
+        if (!compAnswered[baseId]) { compAnswered[baseId]=true; compScores[baseId]=restoredPts; }
         const sub=document.getElementById('sub-'+baseId);
         if(sub){ sub.disabled=true; sub.textContent='✓ Selesai'; sub.classList.remove('running'); }
         const ta=document.getElementById('code-'+baseId);
         if(ta) ta.style.borderColor='rgba(0,224,158,.5)';
         const fb=document.getElementById('fb-'+baseId);
         if(fb&&!fb.classList.contains('correct')){fb.className='feedback correct';fb.textContent='✅ Sudah dijawab benar — poin telah tercatat.';}
+      }
+
+      // ── Restore comp partial credit (Hard yang salah — dapat +1 poin usaha) ──
+      if (qId.endsWith('_comp_partial')) {
+        const baseId = qId.replace('_comp_partial','');
+        if (!compAnswered[baseId]) { compAnswered[baseId]=true; compScores[baseId]=1; }
+        const sub=document.getElementById('sub-'+baseId);
+        if(sub){ sub.disabled=true; sub.textContent='△ Usaha'; sub.style.borderColor='rgba(251,191,36,.4)'; sub.style.color='var(--amber)'; sub.classList.remove('running'); }
+        const ta=document.getElementById('code-'+baseId);
+        if(ta){ ta.disabled=true; ta.style.borderColor='rgba(251,191,36,.25)'; ta.style.opacity='.7'; }
+        const fb=document.getElementById('fb-'+baseId);
+        if(fb&&!fb.classList.contains('correct')){fb.className='feedback warn';fb.textContent='🔒 Sudah dijawab sebelumnya — soal terkunci. +1 poin untuk upaya Hard sudah tercatat.';}
       }
 
       // ── Restore comp wrong/error answers (_comp_used suffix) ──
