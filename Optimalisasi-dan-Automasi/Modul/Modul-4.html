@@ -567,6 +567,50 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
+<!-- PIN Setup Modal (Pedoman §8 — first-time login) -->
+<div class="visitor-overlay hidden" id="pinSetupOverlay" style="z-index:100001;">
+  <div class="visitor-modal" style="max-width:420px;">
+    <div style="font-size:2.4rem;margin-bottom:12px;">🔐</div>
+    <h2 style="font-size:1.3rem;">Buat PIN Keamanan</h2>
+    <p class="sub" id="pinSetupSubtitle">Hai <strong id="pinSetupName"></strong>! Buat PIN 6 digit untuk melindungi identitas Anda. PIN ini akan diminta setiap kali Anda login.</p>
+    <p class="v-error" id="pinSetupError"></p>
+    <input type="password" class="v-input" id="pinSetupInput1" placeholder="PIN (6 digit)" inputmode="numeric" maxlength="6" autocomplete="off" style="letter-spacing:8px;text-align:center;font-size:1.2rem;">
+    <input type="password" class="v-input" id="pinSetupInput2" placeholder="Konfirmasi PIN" inputmode="numeric" maxlength="6" autocomplete="off" style="letter-spacing:8px;text-align:center;font-size:1.2rem;">
+    <div style="background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);border-radius:8px;padding:10px 14px;margin:10px 0;font-size:.78rem;color:#fcd34d;line-height:1.5;">
+      💡 <strong>Penting:</strong> Ingat PIN Anda! Jika lupa, hubungi dosen untuk reset. PIN tidak dapat dipulihkan otomatis.
+    </div>
+    <button class="v-btn-primary" id="pinSetupBtn" onclick="submitPinSetup()">Simpan PIN &amp; Masuk</button>
+    <button class="v-btn-cancel" onclick="cancelPinFlow()" style="margin-top:8px;">Batal</button>
+  </div>
+</div>
+
+<!-- PIN Input Modal (returning login) -->
+<div class="visitor-overlay hidden" id="pinInputOverlay" style="z-index:100001;">
+  <div class="visitor-modal" style="max-width:420px;">
+    <div style="font-size:2.4rem;margin-bottom:12px;">🔑</div>
+    <h2 style="font-size:1.3rem;">Masukkan PIN</h2>
+    <p class="sub">Halo <strong id="pinInputName"></strong>, masukkan PIN 6 digit Anda untuk melanjutkan.</p>
+    <p class="v-error" id="pinInputError"></p>
+    <input type="password" class="v-input" id="pinInputField" placeholder="PIN (6 digit)" inputmode="numeric" maxlength="6" autocomplete="off" style="letter-spacing:8px;text-align:center;font-size:1.2rem;">
+    <button class="v-btn-primary" id="pinInputBtn" onclick="submitPinVerify()">Verifikasi &amp; Masuk</button>
+    <button class="v-btn-cancel" onclick="cancelPinFlow()" style="margin-top:8px;">Batal</button>
+    <p style="font-size:.72rem;color:#64748b;margin-top:12px;text-align:center;">Lupa PIN? Hubungi dosen untuk reset.</p>
+  </div>
+</div>
+
+<!-- Dosen Login Modal (password admin SHA-256) -->
+<div class="visitor-overlay hidden" id="dosenLoginOverlay" style="z-index:100001;">
+  <div class="visitor-modal" style="max-width:420px;">
+    <div style="font-size:2.4rem;margin-bottom:12px;">👨‍🏫</div>
+    <h2 style="font-size:1.3rem;">Login sebagai Dosen</h2>
+    <p class="sub">Masukkan password admin untuk melanjutkan sebagai dosen.</p>
+    <p class="v-error" id="dosenLoginError"></p>
+    <input type="password" class="v-input" id="dosenLoginPw" placeholder="Password admin" autocomplete="off">
+    <button class="v-btn-primary" id="dosenLoginBtn" onclick="submitDosenLogin()">Masuk sebagai Dosen</button>
+    <button class="v-btn-cancel" onclick="cancelDosenLogin()" style="margin-top:8px;">Batal</button>
+  </div>
+</div>
+
 <!-- Schedule Modal -->
 <div class="visitor-overlay hidden" id="scheduleOverlay" style="z-index:100000;">
   <div class="visitor-modal" style="max-width:480px;width:95%;">
@@ -1483,6 +1527,15 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <button class="btn-export" id="btn-score-export" onclick="exportTugasHtml()" disabled style="opacity:.4;cursor:not-allowed;font-size:11px">📄 Export HTML</button>
   </div>
 
+  <!-- LATE ACCESS BANNER (Pedoman §9.4) — hidden by default, shown by _updateLateBanner() when schedule closed -->
+  <div id="lateAccessBanner" style="display:none;background:linear-gradient(135deg,rgba(239,68,68,.12),rgba(251,113,133,.08));border:1px solid rgba(239,68,68,.35);border-left:5px solid #ef4444;border-radius:14px;padding:18px 24px;margin-bottom:28px;align-items:flex-start;gap:14px;">
+    <span style="font-size:24px;flex-shrink:0">⏰</span>
+    <div>
+      <div style="font-weight:800;color:#f87171;font-size:15px;margin-bottom:4px;letter-spacing:.5px">Akses di Luar Jadwal Perkuliahan</div>
+      <p style="font-size:13.5px;color:#fecaca;margin:0;line-height:1.65;">Anda dapat tetap membuka dan melihat materi, namun <strong style="color:#fff">poin dan kehadiran tidak akan dicatat</strong>. Pengerjaan soal di halaman ini tidak akan disimpan. Silakan hubungi dosen jika ada kebutuhan khusus.</p>
+    </div>
+  </div>
+
   <div class="warn-box">
     <div class="warn-icon">📓</div>
     <div>
@@ -2202,6 +2255,8 @@ function switchTab(tab) {
   }
   if (tab === 'tugas') {
     setTimeout(() => getPyodide().catch(() => {}), 500);
+    // Re-evaluate late access banner (Pedoman §9.4)
+    if (typeof _updateLateBanner === 'function') _updateLateBanner();
   }
   if (tab === 'forum') {
     setTimeout(drawForumCanvas, 100);
@@ -4198,6 +4253,8 @@ function initVisitor(){
   onValue(ref(db, SCHEDULE_PATH), (snap) => {
     currentSchedule = snap.val();
     updateScheduleDisplay();
+    // Re-evaluate late access banner on schedule change (Pedoman §9.4)
+    if (typeof _updateLateBanner === 'function') _updateLateBanner();
     onValue(ref(db, DB_PATH), (vsnap) => {
       const data = vsnap.val();
       latestVisitors=data ? Object.values(data) : [];renderVisitors(latestVisitors);
@@ -4230,7 +4287,7 @@ function isLate(timestamp){
   return t < s || t > e;
 }
 
-function submitVisitor(){
+async function submitVisitor(){
   const nama=document.getElementById('vNama').value.trim(), nim=document.getElementById('vNim').value.trim(), err=document.getElementById('vError');
   if(!currentSchedule || !currentSchedule.start || !currentSchedule.end){err.textContent='\u26a0 Jadwal belum disetel. Silakan atur jadwal terlebih dahulu.';err.style.display='block';return;}
   const now=new Date().getTime(), schedStart=new Date(currentSchedule.start).getTime();
@@ -4238,28 +4295,71 @@ function submitVisitor(){
   const isDosen=nama.toLowerCase()==='dedik romahadi';
   if(!nama){err.textContent='⚠ Nama wajib diisi.';err.style.display='block';return;}
   if(!isValidName(nama)){err.textContent='⚠ Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi';err.style.display='block';return;}
-  if(!isDosen&&!nim){err.textContent='⚠ NIM wajib diisi.';err.style.display='block';return;}
-  if(!isDosen&&!isValidNim(nim)){err.textContent='⚠ NIM harus berupa angka tanpa spasi. Contoh: 41522010001';err.style.display='block';return;}
-  if(!isDosen&&!masterFetchDone){err.textContent='⚠ Data mahasiswa sedang dimuat, silakan coba lagi.';err.style.display='block';return;}
-  err.style.display='none';
-  if(isDosen){
+
+  // ─── DOSEN: Verifikasi password admin via modal (Pedoman §19) ───
+  if (isDosen) {
+    // Sembunyikan overlay login utama selagi dosen modal terbuka
+    document.getElementById('visitorOverlay').classList.add('hidden');
+    const pwInput = await askAdminPassword();
+    if (pwInput === null) {
+      // Dibatalkan
+      document.getElementById('visitorOverlay').classList.remove('hidden');
+      err.textContent = '\u26a0 Login dibatalkan.'; err.style.display = 'block'; return;
+    }
+    if (!pwInput) {
+      document.getElementById('visitorOverlay').classList.remove('hidden');
+      err.textContent = '\u26a0 Password wajib diisi.'; err.style.display = 'block'; return;
+    }
+    const ok = await _verifyAdminPw(pwInput);
+    if (!ok) {
+      document.getElementById('visitorOverlay').classList.remove('hidden');
+      err.textContent = '\u26a0 Password admin salah.'; err.style.display = 'block'; return;
+    }
+    err.style.display = 'none';
     saveIdentity({nama, nim:'DOSEN', role:'dosen', timestamp:new Date().toISOString()});
-  } else if(masterFetchDone && !masterStudents.some(s=>s.nim===nim && s.nama.toUpperCase()===nama.toUpperCase())){
-    const nimExists=masterStudents.some(s=>s.nim===nim);
-    if(nimExists){err.textContent='⚠ Nama tidak sesuai dengan NIM yang terdaftar. Pastikan nama sesuai daftar Nilai Akhir.';err.style.display='block';return;}
-    err.textContent='⚠ NIM tidak terdaftar. Hanya mahasiswa yang terdaftar yang dapat mengakses halaman ini.';err.style.display='block';return;
-  } else {
-    const key = sanitizeKey(`mhs_${nim}`), nowISO = new Date().toISOString();
-    get(ref(db, `${DB_PATH}/${key}`)).then(snap => {
-      let v;
-      if(snap.exists()){const ex = snap.val();const lastV = new Date(ex.lastVisit || ex.timestamp).getTime();const canBump = (Date.now() - lastV) >= VISIT_COOLDOWN;v = {...ex, visitCount: canBump ? (ex.visitCount||1)+1 : (ex.visitCount||1), lastVisit: canBump ? nowISO : (ex.lastVisit||ex.timestamp)};}
-      else { v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO}; }
-      saveIdentity(v); return set(ref(db, `${DB_PATH}/${key}`), v);
-    }).catch(()=>{ const v = {nama, nim, role:'student', timestamp:nowISO, visitCount:1, lastVisit:nowISO}; saveIdentity(v); set(ref(db, `${DB_PATH}/${key}`), v); });
+    document.getElementById('visitorFab').style.display='flex';
+    _applyRoleVisibility();   // tampilkan tombol Atur Jadwal + Reset untuk dosen
+    return;
   }
-  document.getElementById('visitorOverlay').classList.add('hidden');
-  document.getElementById('visitorFab').style.display='flex';
-  setTimeout(function(){ if(typeof window._loadScoredQuestions==='function') window._loadScoredQuestions(); }, 500);
+
+  // ─── MAHASISWA: Validasi identitas + route ke PIN flow ───
+  if(!nim){err.textContent='\u26a0 NIM wajib diisi.';err.style.display='block';return;}
+  if(!isValidNim(nim)){err.textContent='\u26a0 NIM harus berupa angka tanpa spasi. Contoh: 41522010001';err.style.display='block';return;}
+  if(!masterFetchDone){err.textContent='\u26a0 Data mahasiswa sedang dimuat, silakan coba lagi.';err.style.display='block';return;}
+
+  if(!masterStudents.some(s=>s.nim===nim && s.nama.toUpperCase()===nama.toUpperCase())){
+    const nimExists=masterStudents.some(s=>s.nim===nim);
+    if(nimExists){err.textContent='\u26a0 Nama tidak sesuai dengan NIM yang terdaftar. Pastikan nama sesuai daftar Nilai Akhir.';err.style.display='block';return;}
+    err.textContent='\u26a0 NIM tidak terdaftar. Hanya mahasiswa yang terdaftar yang dapat mengakses halaman ini.';err.style.display='block';return;
+  }
+  err.style.display='none';
+
+  // Cek Firebase: apakah mahasiswa sudah punya pinHash?
+  const nowISO = new Date().toISOString();
+  const schedOpen = now <= new Date(currentSchedule.end).getTime();
+  const key = sanitizeKey('mhs_' + nim);
+
+  try {
+    const snap = await get(ref(db, DB_PATH + '/' + key));
+    const existing = snap.exists() ? snap.val() : null;
+
+    _pinFlow = { nama, nim, nowISO, existingRecord: existing, schedOpen };
+
+    if (existing && existing.pinHash) {
+      // Sudah punya PIN → minta verifikasi
+      document.getElementById('visitorOverlay').classList.add('hidden');
+      _showPinInput(nama);
+    } else {
+      // Belum punya PIN (first-time) → setup PIN baru
+      document.getElementById('visitorOverlay').classList.add('hidden');
+      _showPinSetup(nama);
+    }
+  } catch(e) {
+    console.error('[Login] Failed to read Firebase:', e);
+    _pinFlow = { nama, nim, nowISO, existingRecord: null, schedOpen };
+    document.getElementById('visitorOverlay').classList.add('hidden');
+    _showPinSetup(nama);
+  }
 }
 
 function renderVisitors(visitors){
@@ -4309,11 +4409,43 @@ function escH(s){const d=document.createElement('div');d.textContent=s;return d.
 
 function showResetModal(){document.getElementById('resetOverlay').classList.remove('hidden');document.getElementById('resetPw').value='';document.getElementById('resetError').style.display='none';setTimeout(()=>document.getElementById('resetPw').focus(),100);}
 function hideResetModal(){document.getElementById('resetOverlay').classList.add('hidden');}
-function confirmReset(){
-  if(document.getElementById('resetPw').value!=='TeknikMesin0602'){document.getElementById('resetError').style.display='block';return;}
-  remove(ref(db,DB_PATH)); localStorage.removeItem(LOCAL_IDENTITY); remove(ref(db,SCHEDULE_PATH));
-  RELATED_MODULES.forEach(function(mid){remove(ref(db,'visitors/OptoAuto/'+mid));localStorage.removeItem('optoauto_identity_'+mid);});
-  hideResetModal(); document.getElementById('visitorOverlay').classList.remove('hidden'); document.getElementById('visitorFab').style.display='none';
+async function confirmReset(){
+  const errEl = document.getElementById('resetError');
+  const ok = await _verifyAdminPw(document.getElementById('resetPw').value);
+  if(!ok){errEl.textContent='\u26a0 Password salah.';errEl.style.display='block';return;}
+  errEl.style.display='none';
+  const btns = document.querySelectorAll('#resetOverlay button');
+  btns.forEach(b=>{b.disabled=true;b.style.opacity='.5';b.style.cursor='wait';});
+  Promise.all([
+    remove(ref(db, DB_PATH)),
+    remove(ref(db, SCHEDULE_PATH)),
+    ...RELATED_MODULES.map(mid => remove(ref(db, 'visitors/OptoAuto/' + mid)))
+  ]).then(() => {
+    localStorage.removeItem(LOCAL_IDENTITY);
+    RELATED_MODULES.forEach(mid => { localStorage.removeItem('optoauto_identity_' + mid); });
+    btns.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';});
+    hideResetModal();
+    _showResetToast('\u2705 Semua data berhasil dihapus (termasuk PIN). Mahasiswa akan membuat PIN baru saat login berikutnya.');
+    document.getElementById('visitorOverlay').classList.remove('hidden');
+    document.getElementById('visitorFab').style.display='none';
+    _applyRoleVisibility();
+  }).catch(err => {
+    btns.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';});
+    errEl.textContent='\u274c Gagal hapus data: ' + (err && err.message ? err.message : err);
+    errEl.style.display='block';
+    console.error('[Reset] Firebase remove failed:', err);
+  });
+}
+function _showResetToast(msg) {
+  const existing = document.getElementById('_opAdminToast');
+  if (existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.id = '_opAdminToast';
+  toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,rgba(74,222,128,.95),rgba(45,212,191,.95));color:#042018;padding:14px 22px;border-radius:12px;font-size:.88rem;font-weight:600;z-index:200000;box-shadow:0 12px 40px rgba(74,222,128,.3);max-width:90vw;text-align:center;line-height:1.5;opacity:0;transition:opacity .25s ease;';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => { toast.style.opacity = '1'; });
+  setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 4500);
 }
 function showScheduleModal(){
   document.getElementById('scheduleOverlay').classList.remove('hidden'); document.getElementById('schedulePw').value='';
@@ -4323,16 +4455,23 @@ function showScheduleModal(){
   setTimeout(()=>document.getElementById('schedulePw').focus(),100);
 }
 function hideScheduleModal(){document.getElementById('scheduleOverlay').classList.add('hidden');}
-function saveSchedule(){
+async function saveSchedule(){
+  const errEl = document.getElementById('scheduleError');
   const pw=document.getElementById('schedulePw').value;
-  if(pw!=='TeknikMesin0602'){document.getElementById('scheduleError').textContent='\u26a0 Password salah.';document.getElementById('scheduleError').style.display='block';return;}
+  const ok = await _verifyAdminPw(pw);
+  if(!ok){errEl.textContent='\u26a0 Password salah.';errEl.style.display='block';return;}
   const dur=parseInt(document.getElementById('scheduleDuration').value), due=document.getElementById('scheduleDue').value;
-  if(!dur||dur<1){document.getElementById('scheduleError').textContent='\u26a0 Durasi harus diisi (minimal 1 hari).';document.getElementById('scheduleError').style.display='block';return;}
-  if(!due){document.getElementById('scheduleError').textContent='\u26a0 Batas akhir (due date) harus diisi.';document.getElementById('scheduleError').style.display='block';return;}
+  if(!dur||dur<1){errEl.textContent='\u26a0 Durasi harus diisi (minimal 1 hari).';errEl.style.display='block';return;}
+  if(!due){errEl.textContent='\u26a0 Batas akhir (due date) harus diisi.';errEl.style.display='block';return;}
+  errEl.style.display='none';
   const dueDate=new Date(due), startDate=new Date(dueDate.getTime()-dur*24*60*60*1000);
-  remove(ref(db,DB_PATH)); localStorage.removeItem(LOCAL_IDENTITY);
   set(ref(db, SCHEDULE_PATH), {start:startDate.toISOString(), end:dueDate.toISOString(), duration:dur, due:due});
-  hideScheduleModal(); document.getElementById('visitorOverlay').classList.remove('hidden'); document.getElementById('visitorFab').style.display='none';
+  hideScheduleModal();
+  if (!getIdentity()) {
+    document.getElementById('visitorOverlay').classList.remove('hidden');
+    document.getElementById('visitorFab').style.display='none';
+  }
+  _showResetToast('\u2705 Jadwal berhasil disimpan.');
 }
 
 document.getElementById('resetPw').addEventListener('keydown',function(e){if(e.key==='Enter')confirmReset();});
@@ -4351,7 +4490,36 @@ setInterval(()=>{renderVisitors(latestVisitors);},30000);
 // ═══ POINT SYSTEM — Anti-Duplication (cross-device & incognito) ═══
 const _answeredQ = new Set();
 
+// ═══════════════════════════════════════════════════════
+// SCHEDULE GATING (Pedoman §9) — block ALL writes outside active window
+// ═══════════════════════════════════════════════════════
+function _isScheduleOpen() {
+  try {
+    if (!currentSchedule || !currentSchedule.start || !currentSchedule.end) return false;
+    const now = Date.now();
+    const s = new Date(currentSchedule.start).getTime();
+    const e = new Date(currentSchedule.end).getTime();
+    return now >= s && now <= e;
+  } catch(e) { return false; }
+}
+
+// Show/hide late-access banner on Tugas tab based on schedule state.
+// Student must be logged in (has identity) to see the banner.
+function _updateLateBanner() {
+  try {
+    const banner = document.getElementById('lateAccessBanner');
+    if (!banner) return;
+    const me = (typeof getIdentity === 'function') ? getIdentity() : null;
+    const isStudent = me && me.nim && me.role !== 'dosen';
+    const open = _isScheduleOpen();
+    banner.style.display = (isStudent && !open) ? 'flex' : 'none';
+  } catch(e) {}
+}
+// Re-evaluate banner every 30s (in case schedule expires during session)
+setInterval(_updateLateBanner, 30000);
+
 window._awardPoint = function(qId) {
+  if (!_isScheduleOpen()) return;   // ← GATE: no point save outside active schedule (Pedoman §9)
   if (_answeredQ.has(qId)) return;
   const me = getIdentity();
   if (!me || !me.nim || me.role === 'dosen') return;
@@ -4368,6 +4536,7 @@ window._awardPoint = function(qId) {
 };
 
 window._awardCompPoint = function(qId) {
+  if (!_isScheduleOpen()) return;   // ← GATE: no point save outside active schedule (Pedoman §9)
   const compKey = qId + '_comp';
   if (_answeredQ.has(compKey)) return;
   const me = getIdentity();
@@ -4386,6 +4555,7 @@ window._awardCompPoint = function(qId) {
 
 // ── Record a failed MC attempt to Firebase ──
 window._recordMcAttempt = function(qId) {
+  if (!_isScheduleOpen()) return;   // ← GATE: no record outside active schedule (Pedoman §9)
   const me = getIdentity();
   if (!me || !me.nim || me.role === 'dosen') return;
   const key = sanitizeKey('mhs_' + me.nim);
@@ -4403,6 +4573,7 @@ window._recordMcAttempt = function(qId) {
 
 // ── Record a failed comp attempt to Firebase (anti-manipulation) ──
 window._recordCompAttempt = function(qId) {
+  if (!_isScheduleOpen()) return;   // ← GATE: no record outside active schedule (Pedoman §9)
   const me = getIdentity();
   if (!me || !me.nim || me.role === 'dosen') return;
   const key = sanitizeKey('mhs_' + me.nim);
@@ -4478,8 +4649,277 @@ window._loadScoredQuestions = function() {
   }).catch(()=>{});
 };
 
+// ═══════════════════════════════════════════════════════
+// ROLE-BASED UI VISIBILITY (Pedoman §19)
+// Tombol Reset/Admin-only tampil hanya ke identity.role === 'dosen'
+// ═══════════════════════════════════════════════════════
+function _applyRoleVisibility() {
+  const me = (function(){ try { return JSON.parse(localStorage.getItem(LOCAL_IDENTITY) || 'null'); } catch(e){ return null; } })();
+  const isDosen = !!(me && me.role === 'dosen' && me.nama && me.nama.toLowerCase() === 'dedik romahadi');
+  const resetBtn = document.getElementById('resetBtnHasil');
+  if (resetBtn) resetBtn.style.display = isDosen ? 'flex' : 'none';
+}
+window._applyRoleVisibility = _applyRoleVisibility;
+
+// ═══════════════════════════════════════════════════════
+// ADMIN PASSWORD (SHA-256 hashed — Pedoman §19)
+// Password: "TeknikMesin0602" → SHA-256 hash tersimpan sebagai hex
+// Untuk ganti: hitung SHA-256 password baru, ganti string di bawah
+// ═══════════════════════════════════════════════════════
+const ADMIN_PW_HASH = '57ae60d11a0de7b13b9c77c4664dc951afe403952b46c3b4f95a8bc0eb8a0470';
+
+async function _sha256Hex(s) {
+  const buf = new TextEncoder().encode(s);
+  const hash = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hash))
+    .map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function _verifyAdminPw(input) {
+  if (!input) return false;
+  try {
+    const hash = await _sha256Hex(input);
+    return hash === ADMIN_PW_HASH;
+  } catch(e) {
+    console.error('[Auth] SHA-256 failed:', e);
+    return false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// STUDENT PIN SYSTEM (6-digit, SHA-256 hashed — Pedoman §8)
+// Mahasiswa wajib menetapkan PIN 6-digit saat login pertama.
+// PIN disimpan di Firebase sebagai SHA-256 hash (field pinHash).
+// PIN lemah (123456, 654321, angka berulang, dll) ditolak saat setup.
+//
+// Cara reset PIN:
+//   (A) Reset semua — klik tombol 'Reset' di login overlay + masukkan
+//       password admin. Semua data (poin, kunjungan, PIN) terhapus.
+//   (B) Reset PIN satu mahasiswa — via Firebase Console: hapus field
+//       'pinHash' dan 'pinSetAt' di node visitors/OptoAuto/modul-4/mhs_<NIM>.
+//       Data poin & kehadiran mahasiswa tersebut tetap aman.
+// ═══════════════════════════════════════════════════════
+
+// Daftar PIN lemah yang ditolak
+const WEAK_PINS = new Set([
+  '123456', '654321',
+  '000000', '111111', '222222',
+  '333333', '444444', '555555',
+  '666666', '777777', '888888', '999999',
+  '012345', '098765',
+  '123123', '456456', '789789',
+  '121212', '131313', '212121',
+  '112233', '332211',
+  '102030', '010203'
+]);
+
+// State untuk flow PIN
+let _pinFlow = { nama: null, nim: null, nowISO: null, existingRecord: null, schedOpen: false };
+
+function _isWeakPin(pin) {
+  if (!/^[0-9]{6}$/.test(pin)) return true;
+  if (WEAK_PINS.has(pin)) return true;
+  return false;
+}
+
+function _showPinSetup(nama) {
+  document.getElementById('pinSetupName').textContent = nama;
+  document.getElementById('pinSetupInput1').value = '';
+  document.getElementById('pinSetupInput2').value = '';
+  document.getElementById('pinSetupError').style.display = 'none';
+  document.getElementById('pinSetupOverlay').classList.remove('hidden');
+  setTimeout(() => document.getElementById('pinSetupInput1').focus(), 100);
+}
+
+function _showPinInput(nama) {
+  document.getElementById('pinInputName').textContent = nama;
+  document.getElementById('pinInputField').value = '';
+  document.getElementById('pinInputError').style.display = 'none';
+  document.getElementById('pinInputOverlay').classList.remove('hidden');
+  setTimeout(() => document.getElementById('pinInputField').focus(), 100);
+}
+
+function _hidePinModals() {
+  document.getElementById('pinSetupOverlay').classList.add('hidden');
+  document.getElementById('pinInputOverlay').classList.add('hidden');
+}
+
+function cancelPinFlow() {
+  _hidePinModals();
+  _pinFlow = { nama: null, nim: null, nowISO: null, existingRecord: null, schedOpen: false };
+  document.getElementById('visitorOverlay').classList.remove('hidden');
+}
+
+async function submitPinSetup() {
+  const errEl = document.getElementById('pinSetupError');
+  const p1 = document.getElementById('pinSetupInput1').value.trim();
+  const p2 = document.getElementById('pinSetupInput2').value.trim();
+  const btn = document.getElementById('pinSetupBtn');
+
+  if (!/^[0-9]{6}$/.test(p1)) {
+    errEl.textContent = '\u26a0 PIN harus 6 digit angka.'; errEl.style.display = 'block'; return;
+  }
+  if (p1 !== p2) {
+    errEl.textContent = '\u26a0 Konfirmasi PIN tidak cocok.'; errEl.style.display = 'block'; return;
+  }
+  if (_isWeakPin(p1)) {
+    errEl.textContent = '\u26a0 PIN terlalu mudah ditebak (misalnya 123456, angka berulang, atau pola sederhana). Gunakan kombinasi yang lebih unik.';
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+  btn.disabled = true; btn.style.opacity = '.6'; btn.style.cursor = 'wait'; btn.textContent = 'Menyimpan...';
+
+  try {
+    const pinHash = await _sha256Hex(p1);
+    const { nama, nim, nowISO, schedOpen } = _pinFlow;
+
+    if (!schedOpen) {
+      // Di luar jadwal → hanya simpan identitas lokal, tidak tulis ke Firebase
+      saveIdentity({ nama, nim, role: 'student', timestamp: nowISO });
+    } else {
+      const key = sanitizeKey('mhs_' + nim);
+      const newRecord = {
+        nama, nim, role: 'student', timestamp: nowISO,
+        visitCount: 1, lastVisit: nowISO,
+        pinHash, pinSetAt: nowISO
+      };
+      saveIdentity(newRecord);
+      await set(ref(db, DB_PATH + '/' + key), newRecord);
+    }
+
+    _hidePinModals();
+    document.getElementById('visitorOverlay').classList.add('hidden');
+    document.getElementById('visitorFab').style.display = 'flex';
+    _applyRoleVisibility();   // pastikan tombol dosen tersembunyi untuk mahasiswa
+    _pinFlow = { nama: null, nim: null, nowISO: null, existingRecord: null, schedOpen: false };
+    setTimeout(() => { if (typeof window._loadScoredQuestions === 'function') window._loadScoredQuestions(); }, 500);
+    if (typeof _updateLateBanner === 'function') _updateLateBanner();
+  } catch(e) {
+    errEl.textContent = '\u274c Gagal menyimpan PIN: ' + (e && e.message ? e.message : e);
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; btn.textContent = 'Simpan PIN & Masuk';
+    console.error('[PIN Setup] Save failed:', e);
+  }
+}
+
+async function submitPinVerify() {
+  const errEl = document.getElementById('pinInputError');
+  const pin = document.getElementById('pinInputField').value.trim();
+  const btn = document.getElementById('pinInputBtn');
+
+  if (!/^[0-9]{6}$/.test(pin)) {
+    errEl.textContent = '\u26a0 PIN harus 6 digit angka.'; errEl.style.display = 'block'; return;
+  }
+  errEl.style.display = 'none';
+  btn.disabled = true; btn.style.opacity = '.6'; btn.style.cursor = 'wait'; btn.textContent = 'Memverifikasi...';
+
+  try {
+    const inputHash = await _sha256Hex(pin);
+    const { existingRecord, nama, nim, nowISO, schedOpen } = _pinFlow;
+
+    if (inputHash !== existingRecord.pinHash) {
+      errEl.textContent = '\u26a0 PIN salah. Coba lagi atau hubungi dosen jika lupa.';
+      errEl.style.display = 'block';
+      btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; btn.textContent = 'Verifikasi & Masuk';
+      document.getElementById('pinInputField').value = '';
+      document.getElementById('pinInputField').focus();
+      return;
+    }
+
+    if (!schedOpen) {
+      saveIdentity({ nama, nim, role: 'student', timestamp: nowISO });
+    } else {
+      const key = sanitizeKey('mhs_' + nim);
+      const lastV = new Date(existingRecord.lastVisit || existingRecord.timestamp).getTime();
+      const canBump = (Date.now() - lastV) >= VISIT_COOLDOWN;
+      const updated = Object.assign({}, existingRecord, {
+        visitCount: canBump ? (existingRecord.visitCount || 1) + 1 : (existingRecord.visitCount || 1),
+        lastVisit: canBump ? nowISO : (existingRecord.lastVisit || existingRecord.timestamp)
+      });
+      saveIdentity(updated);
+      await set(ref(db, DB_PATH + '/' + key), updated);
+    }
+
+    _hidePinModals();
+    document.getElementById('visitorOverlay').classList.add('hidden');
+    document.getElementById('visitorFab').style.display = 'flex';
+    _applyRoleVisibility();
+    _pinFlow = { nama: null, nim: null, nowISO: null, existingRecord: null, schedOpen: false };
+    setTimeout(() => { if (typeof window._loadScoredQuestions === 'function') window._loadScoredQuestions(); }, 500);
+    if (typeof _updateLateBanner === 'function') _updateLateBanner();
+  } catch(e) {
+    errEl.textContent = '\u274c Gagal verifikasi PIN: ' + (e && e.message ? e.message : e);
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; btn.textContent = 'Verifikasi & Masuk';
+    console.error('[PIN Verify] Failed:', e);
+  }
+}
+
+window.submitPinSetup = submitPinSetup;
+window.submitPinVerify = submitPinVerify;
+window.cancelPinFlow = cancelPinFlow;
+
+// Enter key handlers for PIN inputs
+document.getElementById('pinSetupInput1').addEventListener('keydown', function(e){
+  if (e.key === 'Enter') document.getElementById('pinSetupInput2').focus();
+});
+document.getElementById('pinSetupInput2').addEventListener('keydown', function(e){
+  if (e.key === 'Enter') submitPinSetup();
+});
+document.getElementById('pinInputField').addEventListener('keydown', function(e){
+  if (e.key === 'Enter') submitPinVerify();
+  if (e.key === 'Escape') cancelPinFlow();
+});
+
+// ═══════════════════════════════════════════════════════
+// DOSEN LOGIN MODAL (Pedoman §19 — password dengan masking)
+// Promise-based: askAdminPassword() resolve ke string input atau null (cancel)
+// ═══════════════════════════════════════════════════════
+let _dosenLoginResolver = null;
+
+function askAdminPassword() {
+  return new Promise((resolve) => {
+    _dosenLoginResolver = resolve;
+    const pwEl = document.getElementById('dosenLoginPw');
+    const errEl = document.getElementById('dosenLoginError');
+    pwEl.value = '';
+    errEl.textContent = '';
+    errEl.style.display = 'none';
+    document.getElementById('dosenLoginOverlay').classList.remove('hidden');
+    setTimeout(() => pwEl.focus(), 100);
+  });
+}
+
+function submitDosenLogin() {
+  const pw = document.getElementById('dosenLoginPw').value;
+  document.getElementById('dosenLoginOverlay').classList.add('hidden');
+  if (_dosenLoginResolver) {
+    _dosenLoginResolver(pw);
+    _dosenLoginResolver = null;
+  }
+}
+
+function cancelDosenLogin() {
+  document.getElementById('dosenLoginOverlay').classList.add('hidden');
+  if (_dosenLoginResolver) {
+    _dosenLoginResolver(null);
+    _dosenLoginResolver = null;
+  }
+}
+
+document.getElementById('dosenLoginPw').addEventListener('keydown', function(e){
+  if (e.key === 'Enter') submitDosenLogin();
+  if (e.key === 'Escape') cancelDosenLogin();
+});
+
+window.submitDosenLogin = submitDosenLogin;
+window.cancelDosenLogin = cancelDosenLogin;
+
 initVisitor();
 setTimeout(window._loadScoredQuestions, 1200);
+// Apply role visibility after load — for returning dosen to see Reset button
+setTimeout(_applyRoleVisibility, 300);
 setInterval(()=>{renderVisitors(latestVisitors);},30000);
 </script>
 
