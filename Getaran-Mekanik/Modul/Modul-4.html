@@ -4263,24 +4263,33 @@ function updateLeaderboard(visitors, schedExpired){
   santaiEl.innerHTML=akses.length?akses.slice(0,3).map((v,i)=>renderCardAkses(v,i)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
 
   // ─── Stats: Total Mahasiswa / Kehadiran / Absen ───
+  //
+  // Sesuai Pedoman-Modul §17.2:
+  //   Hadir : mahasiswa memiliki points > 0 (status "Tepat Waktu" atau "Terlambat").
+  //   Absen : mahasiswa dengan status "Bolos" — tidak punya poin DAN jadwal sudah
+  //           berakhir. Mencakup DUA kasus:
+  //             (a) TIDAK pernah akses + jadwal selesai, ATAU
+  //             (b) PERNAH akses tapi points = 0 + jadwal selesai.
+  //   Belum (tidak dihitung Absen) : points = 0 + jadwal masih aktif.
+  //
+  // Rasional perubahan (vs versi lama yang hanya hitung Absen = tidak akses):
+  //   Mahasiswa yang hanya membuka halaman tanpa mengerjakan tugas sampai
+  //   deadline tidak menghasilkan evidence of engagement — secara pedagogis
+  //   setara dengan yang tidak pernah akses. Total = Hadir + Belum + Absen
+  //   (non-overlapping).
   const totalMhs = masterStudents.length;
-  // Kehadiran : mahasiswa memiliki poin > 0 (baik status "Tepat Waktu"
-  //             maupun "Terlambat"). Selama di dalam jadwal — termasuk 24 jam
-  //             terakhir sebelum deadline (zona Terlambat) — poin disimpan
-  //             normal sehingga kedua kelompok ini dihitung sebagai Hadir.
-  // Absen     : mahasiswa dengan status "Bolos" SAJA (tidak pernah akses
-  //             DAN jadwal sudah berakhir). Status "Belum" (jadwal masih
-  //             aktif, mahasiswa belum akses) serta "Tepat Waktu/Terlambat
-  //             tanpa poin" TIDAK dihitung Absen.
   const schedEnded = !!schedExpired;
   let hadir = 0, absen = 0;
   for(const s of masterStudents){
     const v = visitMap[s.nim];
-    if(!v){
-      if(schedEnded) absen++;   // status Bolos
-      continue;
+    const hasP = v && ((v.points || 0) > 0);
+    if(hasP){
+      hadir++;
+    } else if(schedEnded){
+      absen++;   // Bolos: tidak punya poin + jadwal sudah berakhir
+                 //        (mencakup tidak-akses maupun akses-tapi-0-poin)
     }
-    if((v.points||0) > 0) hadir++;
+    // else: Belum (jadwal masih aktif, belum berhasil dapat poin) — tidak dihitung
   }
   const setTxt = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = String(val); };
   setTxt('statTotalMhs', totalMhs);
@@ -4349,10 +4358,17 @@ function updateScheduleDisplay(){
 }
 
 function isLate(timestamp){
-  // "Terlambat" = timestamp akses jatuh dalam 24 JAM TERAKHIR sebelum deadline.
+  // ZONA WAKTU (bukan status label!) — "Terlambat" = timestamp akses jatuh
+  // dalam 24 JAM TERAKHIR sebelum deadline (zona [end-24h, end]).
   // Selama jendela ini, poin dan akses TETAP dicatat seperti biasa
-  // (sama seperti Tepat Waktu) — hanya label status yang berbeda.
+  // (sama seperti zona Tepat Waktu [start, end-24h)).
   // Setelah deadline, penyimpanan apa pun diblokir oleh _isScheduleOpen().
+  //
+  // PENTING — zona ≠ label status: helper ini hanya menentukan zona waktu
+  // timestamp; label status "⏰ Terlambat" hanya diberikan jika mahasiswa
+  // juga memiliki points > 0. Mahasiswa yang akses di zona 24h tapi 0 poin
+  // tetap berstatus "⏳ Belum" (jadwal aktif) atau "❌ Bolos" (jadwal selesai).
+  // Lihat status logic di renderVisitors() untuk aturan label lengkap.
   if(!currentSchedule || !currentSchedule.start || !currentSchedule.end) return false;
   const t = new Date(timestamp).getTime();
   const e = new Date(currentSchedule.end).getTime();
@@ -4439,7 +4455,9 @@ function renderVisitors(visitors){
   const visitMap={};
   for(const v of visitors){if(v.role==='dosen'||v.role==='guest')continue;if(!visitMap[v.nim])visitMap[v.nim]=v;}
   const visited=Object.values(visitMap);
-  const lateCount=visited.filter(v=>isLate(v.timestamp)).length;
+  // Per Pedoman §17.3: label "Terlambat" butuh points > 0 (bukan hanya timestamp di zona 24h).
+  // Mahasiswa yang akses di zona 24h tapi 0 poin statusnya "Belum" (jadwal aktif) atau "Bolos" (selesai).
+  const lateCount=visited.filter(v=>(v.points||0)>0 && isLate(v.timestamp)).length;
   const schedExpired=currentSchedule&&currentSchedule.end&&new Date().getTime()>new Date(currentSchedule.end).getTime();
   document.getElementById('fabCount').textContent=visited.length;
   updateLeaderboard(visitors, schedExpired);
@@ -4451,7 +4469,9 @@ function renderVisitors(visitors){
     listEl.innerHTML=visited.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(v=>{
       const ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
       const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-      const late=isLate(v.timestamp);
+      // Badge "Terlambat" di panel hanya diberikan jika mahasiswa juga sudah dapat poin
+      // (konsisten dengan status label di tab Hasil — lihat §17.3 Pedoman).
+      const late=((v.points||0)>0) && isLate(v.timestamp);
       const lBadge=late?'<span style="color:#fb7185;font-size:.65rem;font-weight:600;margin-left:4px;">\u23f0 Terlambat</span>':'';
       return `<div class="vp-item" style="${late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':''}"><div class="vp-avatar student" style="${late?'background:rgba(251,113,133,.12);color:#fb7185;':''}">${ini}</div><div class="vp-info"><div class="vp-name">${escH(v.nama)}${lBadge}</div><div class="vp-nim">${escH(v.nim)}</div></div><div class="vp-time"><div>${ts}</div><div style="font-size:.6rem;color:#94a3b8;text-align:right;">${v.visitCount||1}x kunjungan</div></div></div>`;
     }).join('');
@@ -4460,19 +4480,32 @@ function renderVisitors(visitors){
   function toTitle(s){return s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());}
   tableEl.innerHTML=masterStudents.map((s,i)=>{
     const v=visitMap[s.nim], nama=toTitle(s.nama), ini=nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const hasVisit=!!v, late=hasVisit&&isLate(v.timestamp), bolos=!hasVisit&&schedExpired;
+    // ─── Status Logic (Pedoman-Modul §17.3) ───
+    // Dua pilar: (1) label "Tepat Waktu"/"Terlambat" BUTUH poin > 0;
+    //           (2) "Bolos" = tidak punya poin + jadwal selesai (termasuk
+    //               yang pernah akses tapi 0 poin).
+    // Matriks:
+    //   hasPoints | schedExpired | late(timestamp) → status
+    //      ✗     |      ✗       |      –           → ⏳ Belum (jadwal aktif, 0 poin)
+    //      ✗     |      ✓       |      –           → ❌ Bolos
+    //      ✓     |      –       |      ✗           → ✅ Tepat Waktu
+    //      ✓     |      –       |      ✓           → ⏰ Terlambat
+    const hasVisit = !!v;
+    const hasPoints = hasVisit && (v.points || 0) > 0;
+    const late  = hasPoints && isLate(v.timestamp);    // butuh poin
+    const bolos = !hasPoints && schedExpired;          // tidak punya poin + jadwal selesai
     const vc=hasVisit?(v.visitCount||1):0, pts=hasVisit?(v.points||0):0;
     const ts=hasVisit?(()=>{const dt=new Date(v.timestamp);return dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});})():'—';
     let statusCol,rowBg='',nameColor='color:#e2e8f0;',ac='background:rgba(255,255,255,.08);color:#e2e8f0;';
     if(bolos){statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25);">\u274c Bolos</span>';rowBg='background:rgba(239,68,68,.03);';nameColor='color:#ef4444;';ac='background:rgba(239,68,68,.12);color:#ef4444;';}
-    else if(!hasVisit){statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(100,116,139,.1);color:#94a3b8;border:1px solid rgba(100,116,139,.2);">\u23f3 Belum</span>';rowBg='';nameColor='color:#64748b;';ac='background:rgba(100,116,139,.1);color:#94a3b8;';}
+    else if(!hasPoints){statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(100,116,139,.1);color:#94a3b8;border:1px solid rgba(100,116,139,.2);">\u23f3 Belum</span>';rowBg='';nameColor='color:#64748b;';ac='background:rgba(100,116,139,.1);color:#94a3b8;';}
     else if(late){statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(251,113,133,.12);color:#fb7185;border:1px solid rgba(251,113,133,.25);">\u23f0 Terlambat</span>';rowBg='background:rgba(251,113,133,.04);';nameColor='color:#fb7185;';ac='background:rgba(251,113,133,.12);color:#fb7185;';}
     else{statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(0,224,158,.1);color:#00e09e;border:1px solid rgba(0,224,158,.25);">\u2705 Tepat Waktu</span>';}
     const vcDisplay=vc?vc+'x':'<span style="color:#475569;">—</span>';
     const nilai=Math.round((pts||0)/25*100);
     const ptsDisplay=pts?'<span style="color:#00e09e;font-weight:800;">'+pts+'</span> <span style="color:#64748b;font-weight:600;font-size:.78rem;">('+nilai+')</span>':'<span style="color:#475569;">0 <span style="font-weight:600;font-size:.78rem;">(0)</span></span>';
-    const tsColor=bolos?'#ef4444':late?'#fb7185':hasVisit?'#64748b':'#475569';
-    const absenClass=(!hasVisit||bolos)?' absen':'';
+    const tsColor=bolos?'#ef4444':late?'#fb7185':hasPoints?'#64748b':(hasVisit?'#94a3b8':'#475569');
+    const absenClass=(!hasPoints)?' absen':'';
     return `<div class="vt-row${absenClass}" style="${rowBg}"><div class="vt-num" style="color:${tsColor};">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div class="vt-avatar" style="${ac}">${ini}</div><div><div class="vt-name" style="${nameColor}">${escH(nama)}</div></div></div><div style="flex:1;font-size:.8rem;color:${hasVisit?'#94a3b8':'#475569'};font-family:monospace;">${s.nim}</div><div style="flex:1;text-align:center;"><span class="vt-status">${statusCol}</span></div><div style="flex:0.5;text-align:center;font-size:.85rem;">${ptsDisplay}</div><div class="vt-visit" style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:#94a3b8;">${vcDisplay}</div><div style="flex:1;text-align:right;font-size:.78rem;color:${tsColor};">${ts}</div></div>`;
   }).join('');
 }
