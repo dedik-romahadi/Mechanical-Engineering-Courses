@@ -2053,551 +2053,607 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
 // ── HERO ANIMATIONS — 4 distinct canvases ──
 (function initHeroAnimations(){
   const animations = {
-    // ═══ MODUL: Flowing Vector Field — layered depth with nodes + particles ═══
-    // Rich violet/cyan/gold mesh with orbital nodes pulsing at resonance
+    // ═══ MODUL: 3D Wireframe Cube with Modal Vibration ═══
+    // Rotating wireframe structure that deforms with vibration modes
     modul: {
+      cube: null,
       particles: null,
-      nodes: null,
       step(ctx, W, H, frame){
-        if(!this.particles){
-          // Background particles (deep layer, slow)
+        if(!this.cube){
+          // Build a 3D wireframe cube grid (6x6x6 lattice)
+          this.cube = { vertices: [], edges: [] };
+          const N = 5;   // grid density per axis (actually N+1 points)
+          const size = 90;
+          for(let i=0; i<=N; i++){
+            for(let j=0; j<=N; j++){
+              for(let k=0; k<=N; k++){
+                // Only keep vertices on the SURFACE of the cube (hollow)
+                if(i===0 || i===N || j===0 || j===N || k===0 || k===N){
+                  this.cube.vertices.push({
+                    x: (i/N - 0.5) * size * 2,
+                    y: (j/N - 0.5) * size * 2,
+                    z: (k/N - 0.5) * size * 2,
+                    gi: i, gj: j, gk: k
+                  });
+                }
+              }
+            }
+          }
+          // Build edges (connect adjacent surface vertices)
+          for(let a=0; a<this.cube.vertices.length; a++){
+            for(let b=a+1; b<this.cube.vertices.length; b++){
+              const va = this.cube.vertices[a], vb = this.cube.vertices[b];
+              const dgi = Math.abs(va.gi-vb.gi) + Math.abs(va.gj-vb.gj) + Math.abs(va.gk-vb.gk);
+              if(dgi === 1){
+                this.cube.edges.push([a, b]);
+              }
+            }
+          }
+          // Orbiting particles
           this.particles = [];
-          for(let i=0;i<90;i++) this.particles.push({
-            x: Math.random()*W,
-            y: Math.random()*H,
-            vx: 0.1 + Math.random()*0.3,
-            life: Math.random()*200,
-            amp: 6 + Math.random()*22,
-            freq: 0.012 + Math.random()*0.02,
-            phase: Math.random()*Math.PI*2,
-            size: 0.6 + Math.random()*1.8,
-            layer: Math.random(),  // 0..1 for parallax depth
-            hue: Math.random()
-          });
-          // Orbital nodes (foreground, slow pulse)
-          this.nodes = [];
-          for(let i=0;i<5;i++) this.nodes.push({
-            cx: W * (0.15 + i*0.18),
-            cy: H * (0.35 + (i%2)*0.3),
-            r: 18 + Math.random()*12,
-            phase: Math.random()*Math.PI*2,
-            color: i%2 === 0 ? [168,85,247] : [14,165,233]
+          for(let i=0;i<40;i++) this.particles.push({
+            theta: Math.random()*Math.PI*2,
+            phi: Math.random()*Math.PI*2,
+            radius: 140 + Math.random()*60,
+            speed: 0.003 + Math.random()*0.008,
+            col: Math.random() < 0.5 ? [168,85,247] : [14,165,233],
+            size: 1 + Math.random()*1.5
           });
         }
         ctx.clearRect(0,0,W,H);
 
-        // ── Layer 1: Subtle background wave field ──
-        const waves = [
-          { y: H*0.25, amp: 18, freq: 0.006, speed: 0.003, col:'rgba(168,85,247,.05)',  thick: 1.4 },
-          { y: H*0.5,  amp: 28, freq: 0.004, speed: 0.0035, col:'rgba(14,165,233,.055)', thick: 1.8 },
-          { y: H*0.72, amp: 14, freq: 0.009, speed: 0.0045, col:'rgba(249,115,22,.04)', thick: 1.2 },
-          { y: H*0.88, amp: 22, freq: 0.005, speed: 0.0025, col:'rgba(168,85,247,.04)', thick: 1.3 }
-        ];
-        waves.forEach(w => {
-          ctx.strokeStyle = w.col;
-          ctx.lineWidth = w.thick;
-          ctx.beginPath();
-          for(let px=0; px<=W; px+=3){
-            const y = w.y + w.amp * Math.sin(w.freq*px + frame*w.speed);
-            if(px===0) ctx.moveTo(px, y); else ctx.lineTo(px, y);
-          }
-          ctx.stroke();
+        const cx = W/2, cy = H/2;
+        // Rotation angles
+        const rotX = frame * 0.004;
+        const rotY = frame * 0.006;
+        const rotZ = frame * 0.002;
+        // Vibration mode deformation (breathing + twist)
+        const vibPhase = frame * 0.02;
+        const vibAmp = 8 + 6*Math.sin(frame*0.008);
+
+        // Helper: project 3D → 2D with perspective
+        function project(x, y, z){
+          // Rotate around X axis
+          let y1 = y * Math.cos(rotX) - z * Math.sin(rotX);
+          let z1 = y * Math.sin(rotX) + z * Math.cos(rotX);
+          // Rotate around Y axis
+          let x2 = x * Math.cos(rotY) + z1 * Math.sin(rotY);
+          let z2 = -x * Math.sin(rotY) + z1 * Math.cos(rotY);
+          // Rotate around Z axis
+          let x3 = x2 * Math.cos(rotZ) - y1 * Math.sin(rotZ);
+          let y3 = x2 * Math.sin(rotZ) + y1 * Math.cos(rotZ);
+          // Perspective projection
+          const fov = 350;
+          const scale = fov / (fov + z2);
+          return { px: cx + x3*scale, py: cy + y3*scale, depth: z2, scale };
+        }
+
+        // Project all vertices (with vibration deformation)
+        const projected = this.cube.vertices.map(v => {
+          // Add modal vibration: radial breathing + torsional
+          const r = Math.sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
+          const modalShape = Math.sin(v.gi*0.7 + vibPhase) * Math.cos(v.gj*0.7 + vibPhase*0.8);
+          const displace = vibAmp * modalShape;
+          const dx = v.x + v.x/r * displace;
+          const dy = v.y + v.y/r * displace;
+          const dz = v.z + v.z/r * displace;
+          return project(dx, dy, dz);
         });
 
-        // ── Layer 2: Flowing particles with parallax depth ──
+        // ── Draw edges (back-to-front for depth) ──
+        const edgeDraws = this.cube.edges.map(([a, b]) => {
+          const pa = projected[a], pb = projected[b];
+          return { pa, pb, depth: (pa.depth + pb.depth)/2 };
+        });
+        edgeDraws.sort((a,b) => a.depth - b.depth);
+
+        edgeDraws.forEach(e => {
+          // Color gradient based on depth (back: purple, front: cyan)
+          const depthNorm = (e.depth + 200) / 400; // 0..1
+          const t = Math.max(0, Math.min(1, depthNorm));
+          const R = Math.round(168 - t*154);  // 168 → 14
+          const G = Math.round(85 + t*80);    // 85 → 165
+          const B = Math.round(247 - t*14);   // 247 → 233
+          const alpha = 0.2 + t*0.55;
+          ctx.strokeStyle = `rgba(${R},${G},${B},${alpha})`;
+          ctx.lineWidth = 0.6 + t*1.2;
+          ctx.shadowColor = `rgba(${R},${G},${B},${alpha*0.5})`;
+          ctx.shadowBlur = 3 + t*4;
+          ctx.beginPath();
+          ctx.moveTo(e.pa.px, e.pa.py);
+          ctx.lineTo(e.pb.px, e.pb.py);
+          ctx.stroke();
+        });
+        ctx.shadowBlur = 0;
+
+        // ── Draw vertices ──
+        projected.forEach(p => {
+          const depthNorm = Math.max(0, Math.min(1, (p.depth + 200)/400));
+          const alpha = 0.4 + depthNorm*0.5;
+          const size = 1.2 + depthNorm*2;
+          ctx.fillStyle = `rgba(255,255,255,${alpha*0.7})`;
+          ctx.shadowColor = `rgba(14,165,233,${alpha*0.6})`;
+          ctx.shadowBlur = 6;
+          ctx.beginPath();
+          ctx.arc(p.px, p.py, size, 0, Math.PI*2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        });
+
+        // ── Orbiting particles (around the cube) ──
         this.particles.forEach(p => {
-          p.x += p.vx * (0.4 + p.layer*0.8);  // parallax: deeper moves slower
-          p.life += 1;
-          if(p.x > W + 20){ p.x = -20; p.y = Math.random()*H; p.life = 0; }
-
-          const waveY = p.y + p.amp * Math.sin(p.freq*p.x + p.phase + frame*0.01);
-
-          // Depth-based fading
-          const baseAlpha = 0.15 + p.layer*0.45;
-          const lifeFade = Math.min(1, p.life/30);
-          const alpha = baseAlpha * lifeFade;
-
-          // Color based on hue
-          let color;
-          if(p.hue < 0.4)      color = `rgba(168,85,247,${alpha})`;
-          else if(p.hue < 0.75) color = `rgba(14,165,233,${alpha})`;
-          else                  color = `rgba(251,191,36,${alpha*0.85})`;
-
-          // Glow for foreground particles only
-          if(p.layer > 0.5){
-            ctx.shadowColor = color;
-            ctx.shadowBlur = 3 + p.layer*4;
-          }
-          ctx.fillStyle = color;
+          p.theta += p.speed;
+          p.phi += p.speed * 0.7;
+          const x = p.radius * Math.sin(p.phi) * Math.cos(p.theta);
+          const y = p.radius * Math.sin(p.phi) * Math.sin(p.theta);
+          const z = p.radius * Math.cos(p.phi);
+          const proj = project(x, y, z);
+          const depthNorm = Math.max(0, Math.min(1, (proj.depth + 200)/400));
+          const alpha = 0.3 + depthNorm*0.5;
+          ctx.fillStyle = `rgba(${p.col[0]},${p.col[1]},${p.col[2]},${alpha})`;
+          ctx.shadowColor = `rgba(${p.col[0]},${p.col[1]},${p.col[2]},${alpha*0.6})`;
+          ctx.shadowBlur = 5;
           ctx.beginPath();
-          ctx.arc(p.x, waveY, p.size * (0.5 + p.layer*0.7), 0, Math.PI*2);
-          ctx.fill();
-          ctx.shadowBlur = 0;
-
-          // Trail (foreground only)
-          if(p.layer > 0.6){
-            ctx.strokeStyle = color.replace(/[\d.]+\)$/, (alpha*0.3).toFixed(2)+')');
-            ctx.lineWidth = 0.8;
-            ctx.beginPath();
-            ctx.moveTo(p.x, waveY);
-            for(let k=2; k<=20; k+=3){
-              const tx = p.x - k;
-              const ty = p.y + p.amp * Math.sin(p.freq*tx + p.phase + frame*0.01);
-              ctx.lineTo(tx, ty);
-            }
-            ctx.stroke();
-          }
-        });
-
-        // ── Layer 3: Orbital nodes (foreground focal points) ──
-        this.nodes.forEach((n, idx) => {
-          const pulse = 0.6 + 0.4*Math.sin(frame*0.02 + n.phase);
-          const r = n.r * (0.85 + pulse*0.35);
-          const [R,G,B] = n.color;
-
-          // Outer glow ring
-          const grad = ctx.createRadialGradient(n.cx, n.cy, 0, n.cx, n.cy, r*2.5);
-          grad.addColorStop(0,   `rgba(${R},${G},${B},${0.25*pulse})`);
-          grad.addColorStop(0.5, `rgba(${R},${G},${B},${0.08*pulse})`);
-          grad.addColorStop(1,   `rgba(${R},${G},${B},0)`);
-          ctx.fillStyle = grad;
-          ctx.beginPath();
-          ctx.arc(n.cx, n.cy, r*2.5, 0, Math.PI*2);
-          ctx.fill();
-
-          // Inner ring stroke
-          ctx.strokeStyle = `rgba(${R},${G},${B},0.4)`;
-          ctx.lineWidth = 1.4;
-          ctx.beginPath();
-          ctx.arc(n.cx, n.cy, r, 0, Math.PI*2);
-          ctx.stroke();
-
-          // Core dot
-          ctx.fillStyle = `rgba(${R},${G},${B},0.85)`;
-          ctx.shadowColor = `rgba(${R},${G},${B},0.6)`;
-          ctx.shadowBlur = 10;
-          ctx.beginPath();
-          ctx.arc(n.cx, n.cy, 3, 0, Math.PI*2);
+          ctx.arc(proj.px, proj.py, p.size * (0.5 + depthNorm*0.8), 0, Math.PI*2);
           ctx.fill();
           ctx.shadowBlur = 0;
         });
+
+        // ── Central pulsing glow ──
+        const pulseGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 60);
+        const pulseA = 0.25 + 0.15*Math.sin(frame*0.03);
+        pulseGrad.addColorStop(0, `rgba(168,85,247,${pulseA})`);
+        pulseGrad.addColorStop(1, 'rgba(168,85,247,0)');
+        ctx.fillStyle = pulseGrad;
+        ctx.fillRect(cx-60, cy-60, 120, 120);
       }
     },
 
-    // ═══ TUGAS: Rotating Mass-Spring System — springs with energy flow ═══
-    // Elegant amber/pink: masses orbit with visible spring coils, energy pulses
+    // ═══ TUGAS: Spring Chain Network — physics sim with energy pulses ═══
+    // Interconnected masses with springs, sparks travel through network
     tugas: {
-      orbits: null,
-      energyPulses: null,
+      nodes: null,
+      sparks: null,
       step(ctx, W, H, frame){
-        if(!this.orbits){
-          this.orbits = [];
-          // Create elegant hub-and-satellite system
-          const hub = { cx: W*0.5, cy: H*0.5 };
-          const config = [
-            { r: 110, speed: 0.006, phase: 0,              col:[249,115,22], size: 4.5 },
-            { r: 80,  speed: -0.009, phase: Math.PI/2,      col:[251,191,36], size: 3.5 },
-            { r: 150, speed: 0.0045, phase: Math.PI,        col:[239,68,68],  size: 5 },
-            { r: 60,  speed: 0.012, phase: Math.PI*0.3,     col:[249,115,22], size: 3 },
-            { r: 180, speed: -0.0035, phase: Math.PI*1.5,   col:[251,113,133],size: 4 },
-          ];
-          config.forEach(c => {
-            this.orbits.push({
-              ...c,
-              cx: hub.cx, cy: hub.cy,
-              trail: []
-            });
+        if(!this.nodes){
+          // Create network: hub + satellite ring + outer ring
+          this.nodes = [];
+          // Center hub
+          this.nodes.push({
+            x: W/2, y: H/2,
+            restX: W/2, restY: H/2,
+            vx: 0, vy: 0,
+            hub: true, radius: 8,
+            col: [251,191,36]  // gold
           });
-          this.hub = hub;
-          this.energyPulses = [];
+          // Inner ring (5 masses)
+          for(let i=0; i<5; i++){
+            const ang = (i/5)*Math.PI*2 + 0.3;
+            this.nodes.push({
+              x: W/2 + 90*Math.cos(ang), y: H/2 + 90*Math.sin(ang),
+              restX: W/2 + 90*Math.cos(ang), restY: H/2 + 90*Math.sin(ang),
+              vx: 0, vy: 0,
+              hub: false, radius: 4.5, ringIdx: 1, angIdx: i,
+              col: [249,115,22]  // amber
+            });
+          }
+          // Outer ring (8 masses)
+          for(let i=0; i<8; i++){
+            const ang = (i/8)*Math.PI*2;
+            this.nodes.push({
+              x: W/2 + 170*Math.cos(ang), y: H/2 + 170*Math.sin(ang),
+              restX: W/2 + 170*Math.cos(ang), restY: H/2 + 170*Math.sin(ang),
+              vx: 0, vy: 0,
+              hub: false, radius: 3.5, ringIdx: 2, angIdx: i,
+              col: [239,68,68]  // pink-red
+            });
+          }
+          // Build spring connections
+          this.springs = [];
+          // Hub to inner ring
+          for(let i=1; i<=5; i++) this.springs.push({a:0, b:i, rest:90, k:0.015});
+          // Inner ring to itself (neighbors)
+          for(let i=1; i<=5; i++) this.springs.push({a:i, b:(i%5)+1, rest:106, k:0.01});
+          // Inner to outer
+          for(let i=1; i<=5; i++){
+            const outerIdx = 6 + Math.floor(((i-1)/5)*8);
+            this.springs.push({a:i, b:outerIdx, rest:95, k:0.012});
+            this.springs.push({a:i, b:6+((outerIdx-6+1)%8), rest:100, k:0.01});
+          }
+          // Outer ring neighbors
+          for(let i=6; i<14; i++){
+            const b = i===13 ? 6 : i+1;
+            this.springs.push({a:i, b:b, rest:130, k:0.008});
+          }
+          this.sparks = [];
         }
         ctx.clearRect(0,0,W,H);
 
-        // ── Background: radial warm glow ──
-        const bgGrad = ctx.createRadialGradient(this.hub.cx, this.hub.cy, 0, this.hub.cx, this.hub.cy, Math.max(W,H)*0.6);
-        bgGrad.addColorStop(0, 'rgba(249,115,22,.08)');
-        bgGrad.addColorStop(0.5, 'rgba(251,113,133,.04)');
+        // ── Excite the system periodically (push a random mass) ──
+        if(frame % 120 === 0){
+          const n = this.nodes[1 + Math.floor(Math.random()*(this.nodes.length-1))];
+          const ang = Math.random()*Math.PI*2;
+          n.vx += Math.cos(ang) * 2.5;
+          n.vy += Math.sin(ang) * 2.5;
+        }
+
+        // ── Physics: spring forces ──
+        const damping = 0.96;
+        this.springs.forEach(sp => {
+          const a = this.nodes[sp.a], b = this.nodes[sp.b];
+          const dx = b.x - a.x, dy = b.y - a.y;
+          const dist = Math.sqrt(dx*dx + dy*dy) || 0.0001;
+          const force = sp.k * (dist - sp.rest);
+          const fx = force * dx/dist, fy = force * dy/dist;
+          if(!a.hub){ a.vx += fx; a.vy += fy; }
+          if(!b.hub){ b.vx -= fx; b.vy -= fy; }
+        });
+        // Return-to-rest (soft anchor to rest position)
+        this.nodes.forEach(n => {
+          if(n.hub) return;
+          n.vx += (n.restX - n.x) * 0.003;
+          n.vy += (n.restY - n.y) * 0.003;
+          n.vx *= damping;
+          n.vy *= damping;
+          n.x += n.vx;
+          n.y += n.vy;
+        });
+
+        // ── Background radial glow ──
+        const bgGrad = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, Math.max(W,H)*0.6);
+        bgGrad.addColorStop(0, 'rgba(249,115,22,.1)');
+        bgGrad.addColorStop(0.5, 'rgba(239,68,68,.04)');
         bgGrad.addColorStop(1, 'rgba(249,115,22,0)');
         ctx.fillStyle = bgGrad;
         ctx.fillRect(0,0,W,H);
 
-        // ── Draw each orbit ──
-        this.orbits.forEach((o, idx) => {
-          const t = frame * o.speed + o.phase;
-          const mx = o.cx + o.r * Math.cos(t);
-          const my = o.cy + o.r * Math.sin(t);
-
-          // Store trail
-          o.trail.push({ x: mx, y: my });
-          if(o.trail.length > 50) o.trail.shift();
-
-          // Faint orbit ring
-          ctx.strokeStyle = `rgba(${o.col[0]},${o.col[1]},${o.col[2]},0.08)`;
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.arc(o.cx, o.cy, o.r, 0, Math.PI*2);
-          ctx.stroke();
-
-          // Trail with fading
-          ctx.lineWidth = 1.8;
-          for(let i=1; i<o.trail.length; i++){
-            const alpha = (i / o.trail.length) * 0.55;
-            ctx.strokeStyle = `rgba(${o.col[0]},${o.col[1]},${o.col[2]},${alpha})`;
-            ctx.beginPath();
-            ctx.moveTo(o.trail[i-1].x, o.trail[i-1].y);
-            ctx.lineTo(o.trail[i].x, o.trail[i].y);
-            ctx.stroke();
-          }
-
-          // Spring coil from center to mass (zigzag)
-          ctx.strokeStyle = `rgba(${o.col[0]},${o.col[1]},${o.col[2]},0.18)`;
-          ctx.lineWidth = 1.2;
-          ctx.beginPath();
-          const coilSteps = 18;
-          const dx = mx - o.cx, dy = my - o.cy;
+        // ── Draw springs (with tension color) ──
+        this.springs.forEach(sp => {
+          const a = this.nodes[sp.a], b = this.nodes[sp.b];
+          const dx = b.x - a.x, dy = b.y - a.y;
           const dist = Math.sqrt(dx*dx + dy*dy);
-          const perpX = -dy/dist, perpY = dx/dist;
-          const coilAmp = 3.5;
-          ctx.moveTo(o.cx, o.cy);
-          for(let k=1; k<=coilSteps; k++){
-            const f = k / coilSteps;
-            const bx = o.cx + dx*f;
-            const by = o.cy + dy*f;
-            const coilPhase = Math.sin(f * Math.PI * 6 + frame*0.05) * coilAmp * Math.sin(f*Math.PI);
-            ctx.lineTo(bx + perpX*coilPhase, by + perpY*coilPhase);
-          }
-          ctx.lineTo(mx, my);
-          ctx.stroke();
+          const stretch = Math.abs(dist - sp.rest) / sp.rest;
 
-          // Mass (with rich glow)
-          ctx.fillStyle = `rgba(${o.col[0]},${o.col[1]},${o.col[2]},0.95)`;
-          ctx.shadowColor = `rgba(${o.col[0]},${o.col[1]},${o.col[2]},0.7)`;
+          // Color: compressed/stretched = warmer
+          const heat = Math.min(1, stretch * 3);
+          const alpha = 0.15 + heat*0.3;
+          const R = Math.round(255);
+          const G = Math.round(160 - heat*80);
+          const B = Math.round(64 - heat*64);
+
+          ctx.strokeStyle = `rgba(${R},${G},${B},${alpha})`;
+          ctx.lineWidth = 0.8 + heat*1;
+
+          // Zigzag spring visual
+          ctx.beginPath();
+          const perpX = -dy/dist, perpY = dx/dist;
+          const coils = 10;
+          const amp = 2 + heat*3;
+          ctx.moveTo(a.x, a.y);
+          for(let k=1; k<coils; k++){
+            const f = k/coils;
+            const mx = a.x + dx*f;
+            const my = a.y + dy*f;
+            const wave = Math.sin(f*Math.PI*8) * amp * Math.sin(f*Math.PI);
+            ctx.lineTo(mx + perpX*wave, my + perpY*wave);
+          }
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        });
+
+        // ── Spawn sparks traveling along random springs ──
+        if(frame % 14 === 0){
+          const sp = this.springs[Math.floor(Math.random()*this.springs.length)];
+          this.sparks.push({
+            sp: sp,
+            progress: 0,
+            speed: 0.02 + Math.random()*0.02,
+            col: this.nodes[sp.a].col
+          });
+        }
+        this.sparks = this.sparks.filter(s => s.progress < 1);
+        this.sparks.forEach(s => {
+          const a = this.nodes[s.sp.a], b = this.nodes[s.sp.b];
+          s.progress += s.speed;
+          const f = s.progress;
+          const x = a.x + (b.x-a.x)*f;
+          const y = a.y + (b.y-a.y)*f;
+          const alpha = Math.sin(f*Math.PI);  // peaks at middle
+          ctx.fillStyle = `rgba(255,220,120,${alpha})`;
+          ctx.shadowColor = 'rgba(255,200,60,.8)';
           ctx.shadowBlur = 14;
           ctx.beginPath();
-          ctx.arc(mx, my, o.size, 0, Math.PI*2);
+          ctx.arc(x, y, 2.5 + alpha*1.5, 0, Math.PI*2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        });
+
+        // ── Draw nodes (masses) ──
+        this.nodes.forEach(n => {
+          // Outer halo
+          const haloGrad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.radius*3);
+          haloGrad.addColorStop(0, `rgba(${n.col[0]},${n.col[1]},${n.col[2]},0.4)`);
+          haloGrad.addColorStop(1, `rgba(${n.col[0]},${n.col[1]},${n.col[2]},0)`);
+          ctx.fillStyle = haloGrad;
+          ctx.beginPath();
+          ctx.arc(n.x, n.y, n.radius*3, 0, Math.PI*2);
+          ctx.fill();
+
+          // Core
+          ctx.fillStyle = `rgba(${n.col[0]},${n.col[1]},${n.col[2]},0.95)`;
+          ctx.shadowColor = `rgba(${n.col[0]},${n.col[1]},${n.col[2]},0.8)`;
+          ctx.shadowBlur = n.hub ? 18 : 10;
+          ctx.beginPath();
+          ctx.arc(n.x, n.y, n.radius, 0, Math.PI*2);
           ctx.fill();
           ctx.shadowBlur = 0;
 
-          // Spawn energy pulse occasionally
-          if(frame % 90 === (idx*17) % 90){
-            this.energyPulses.push({
-              cx: o.cx, cy: o.cy,
-              tx: mx, ty: my,
-              life: 0,
-              maxLife: 30,
-              col: o.col
-            });
+          // Hub extras — 6-ray star
+          if(n.hub){
+            ctx.save();
+            ctx.translate(n.x, n.y);
+            ctx.rotate(frame*0.005);
+            ctx.strokeStyle = 'rgba(255,220,120,.5)';
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            for(let k=0;k<6;k++){
+              const ang = (k/6)*Math.PI*2;
+              ctx.moveTo(0, 0);
+              ctx.lineTo(18*Math.cos(ang), 18*Math.sin(ang));
+            }
+            ctx.stroke();
+            ctx.restore();
           }
         });
-
-        // ── Energy pulses (traveling from hub to mass) ──
-        this.energyPulses = this.energyPulses.filter(p => p.life < p.maxLife);
-        this.energyPulses.forEach(p => {
-          p.life += 1;
-          const f = p.life / p.maxLife;
-          const px = p.cx + (p.tx - p.cx) * f;
-          const py = p.cy + (p.ty - p.cy) * f;
-          const alpha = 0.75 * (1 - f);
-          ctx.fillStyle = `rgba(${p.col[0]},${p.col[1]},${p.col[2]},${alpha})`;
-          ctx.shadowColor = `rgba(${p.col[0]},${p.col[1]},${p.col[2]},${alpha*0.8})`;
-          ctx.shadowBlur = 10;
-          ctx.beginPath();
-          ctx.arc(px, py, 2.5, 0, Math.PI*2);
-          ctx.fill();
-          ctx.shadowBlur = 0;
-        });
-
-        // ── Hub center (rotating star) ──
-        ctx.save();
-        ctx.translate(this.hub.cx, this.hub.cy);
-        ctx.rotate(frame * 0.003);
-        ctx.strokeStyle = 'rgba(251,191,36,.5)';
-        ctx.lineWidth = 1.2;
-        ctx.beginPath();
-        for(let k=0; k<6; k++){
-          const ang = (k/6) * Math.PI*2;
-          ctx.moveTo(0, 0);
-          ctx.lineTo(14*Math.cos(ang), 14*Math.sin(ang));
-        }
-        ctx.stroke();
-        ctx.fillStyle = 'rgba(251,191,36,.9)';
-        ctx.shadowColor = 'rgba(251,191,36,.6)';
-        ctx.shadowBlur = 12;
-        ctx.beginPath();
-        ctx.arc(0, 0, 5, 0, Math.PI*2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-        ctx.restore();
       }
     },
 
-    // ═══ FORUM: Resonance Wave Expansion — concentric rings + DMF curve ═══
-    // Rich green/teal/violet with expanding rings at resonance frequency
+    // ═══ FORUM: Resonance Mandala — rotating circular spectrum + ripples ═══
+    // Multi-layer rotating mandala with radial frequency bars
     forum: {
-      rings: null,
-      particles: null,
+      bars: null,
+      ripples: null,
       step(ctx, W, H, frame){
-        if(!this.rings){
-          this.rings = [];
-          for(let i=0;i<6;i++) this.rings.push({
-            age: i*50,
-            maxAge: 300
-          });
-          // Ambient particles drifting
-          this.particles = [];
-          for(let i=0;i<60;i++) this.particles.push({
-            x: Math.random()*W,
-            y: Math.random()*H,
-            vx: (Math.random()-0.5)*0.2,
-            vy: (Math.random()-0.5)*0.15,
-            size: 0.6 + Math.random()*1.6,
-            phase: Math.random()*Math.PI*2,
-            twinkleSpeed: 0.008 + Math.random()*0.015,
-            col: Math.random() < 0.6 ? [0,224,158] : (Math.random() < 0.5 ? [45,212,191] : [168,85,247])
-          });
+        if(!this.bars){
+          this.bars = [];
+          const N = 48;
+          for(let i=0;i<N;i++){
+            this.bars.push({
+              angle: (i/N) * Math.PI*2,
+              baseLen: 30 + Math.random()*40,
+              phase: Math.random()*Math.PI*2,
+              speed: 0.015 + Math.random()*0.02
+            });
+          }
+          this.ripples = [];
+          for(let i=0;i<5;i++) this.ripples.push({ age: i*60, maxAge: 300 });
         }
         ctx.clearRect(0,0,W,H);
 
-        const cx = W * 0.5;
-        const cy = H * 0.55;
+        const cx = W/2, cy = H/2;
 
-        // ── Background: radial gradient (cool tone) ──
+        // ── Background radial gradient ──
         const bgGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(W,H)*0.7);
-        bgGrad.addColorStop(0, 'rgba(0,224,158,.07)');
-        bgGrad.addColorStop(0.4, 'rgba(45,212,191,.04)');
+        bgGrad.addColorStop(0, 'rgba(0,224,158,.1)');
+        bgGrad.addColorStop(0.4, 'rgba(45,212,191,.05)');
         bgGrad.addColorStop(1, 'rgba(168,85,247,0)');
         ctx.fillStyle = bgGrad;
         ctx.fillRect(0,0,W,H);
 
-        // ── Ambient drifting particles ──
-        this.particles.forEach(p => {
-          p.x += p.vx;
-          p.y += p.vy;
-          p.phase += p.twinkleSpeed;
-          if(p.x < -5) p.x = W+5;
-          if(p.x > W+5) p.x = -5;
-          if(p.y < -5) p.y = H+5;
-          if(p.y > H+5) p.y = -5;
-
-          const twinkle = 0.3 + 0.5*(0.5 + 0.5*Math.sin(p.phase));
-          ctx.fillStyle = `rgba(${p.col[0]},${p.col[1]},${p.col[2]},${twinkle*0.45})`;
-          ctx.shadowColor = `rgba(${p.col[0]},${p.col[1]},${p.col[2]},${twinkle*0.3})`;
-          ctx.shadowBlur = 3;
+        // ── Outer rotating mandala rings (3 layers) ──
+        const rings = [
+          { radius: 180, segments: 16, color: 'rgba(168,85,247,', speed: 0.003, offset: 0 },
+          { radius: 140, segments: 12, color: 'rgba(0,224,158,', speed: -0.005, offset: 0.2 },
+          { radius: 100, segments: 8,  color: 'rgba(45,212,191,', speed: 0.008, offset: 0.4 }
+        ];
+        rings.forEach((ring, ridx) => {
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.rotate(frame * ring.speed);
+          ctx.strokeStyle = ring.color + '0.3)';
+          ctx.lineWidth = 1.2;
           ctx.beginPath();
-          ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
-          ctx.fill();
-          ctx.shadowBlur = 0;
+          ctx.arc(0, 0, ring.radius, 0, Math.PI*2);
+          ctx.stroke();
+          // Segment markers
+          for(let k=0; k<ring.segments; k++){
+            const ang = (k/ring.segments)*Math.PI*2;
+            const x1 = (ring.radius - 6) * Math.cos(ang);
+            const y1 = (ring.radius - 6) * Math.sin(ang);
+            const x2 = (ring.radius + 6) * Math.cos(ang);
+            const y2 = (ring.radius + 6) * Math.sin(ang);
+            ctx.strokeStyle = ring.color + '0.5)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+            ctx.stroke();
+            // Small circles at markers
+            ctx.fillStyle = ring.color + '0.7)';
+            ctx.shadowColor = ring.color + '0.5)';
+            ctx.shadowBlur = 6;
+            ctx.beginPath();
+            ctx.arc(ring.radius*Math.cos(ang), ring.radius*Math.sin(ang), 2, 0, Math.PI*2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+          }
+          ctx.restore();
         });
 
-        // ── Expanding resonance rings from center ──
-        this.rings.forEach(r => {
+        // ── Radial frequency bars (circular spectrum analyzer) ──
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(frame * 0.002);
+        this.bars.forEach((bar, i) => {
+          const amp = 0.7 + 0.3*Math.sin(frame*bar.speed + bar.phase);
+          // DMF-like shape: peak bars near "resonance angles" (e.g. every 45°)
+          const localAng = bar.angle;
+          const resonanceBoost = 1 + 0.8 * Math.abs(Math.sin(localAng*4));
+          const len = bar.baseLen * amp * resonanceBoost;
+
+          const x1 = 55 * Math.cos(bar.angle);
+          const y1 = 55 * Math.sin(bar.angle);
+          const x2 = (55 + len) * Math.cos(bar.angle);
+          const y2 = (55 + len) * Math.sin(bar.angle);
+
+          // Gradient along the bar
+          const grad = ctx.createLinearGradient(x1, y1, x2, y2);
+          const t = amp * resonanceBoost / 1.8;
+          if(t > 0.7){
+            grad.addColorStop(0, 'rgba(0,224,158,.2)');
+            grad.addColorStop(0.5, 'rgba(45,212,191,.7)');
+            grad.addColorStop(1, 'rgba(236,72,153,.9)');
+          } else {
+            grad.addColorStop(0, 'rgba(0,224,158,.2)');
+            grad.addColorStop(0.5, 'rgba(0,224,158,.5)');
+            grad.addColorStop(1, 'rgba(45,212,191,.7)');
+          }
+          ctx.strokeStyle = grad;
+          ctx.lineWidth = 2.5;
+          ctx.shadowColor = t > 0.7 ? 'rgba(236,72,153,.4)' : 'rgba(0,224,158,.4)';
+          ctx.shadowBlur = 5;
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+        });
+        ctx.restore();
+
+        // ── Expanding shockwave ripples ──
+        this.ripples.forEach(r => {
           r.age += 1;
-          if(r.age > r.maxAge){ r.age = 0; }
-
+          if(r.age > r.maxAge) r.age = 0;
           const f = r.age / r.maxAge;
-          const radius = f * Math.max(W,H)*0.55;
-          const alpha = (1 - f) * 0.35;
-
-          // Multi-color ring gradient
+          const radius = 50 + f * Math.max(W,H)*0.45;
+          const alpha = (1 - f) * 0.3;
           ctx.strokeStyle = `rgba(0,224,158,${alpha})`;
           ctx.lineWidth = 1.5;
           ctx.beginPath();
           ctx.arc(cx, cy, radius, 0, Math.PI*2);
           ctx.stroke();
-
-          // Inner accent ring (slightly smaller)
-          if(radius > 15){
-            ctx.strokeStyle = `rgba(45,212,191,${alpha*0.5})`;
-            ctx.lineWidth = 0.8;
-            ctx.beginPath();
-            ctx.arc(cx, cy, radius - 6, 0, Math.PI*2);
-            ctx.stroke();
-          }
         });
 
-        // ── DMF curve prominently displayed at top ──
-        const dmfY = H * 0.22;
-        const dmfH = 60;
-        const zeta = 0.1;
-        ctx.strokeStyle = 'rgba(0,224,158,.45)';
-        ctx.shadowColor = 'rgba(0,224,158,.3)';
-        ctx.shadowBlur = 6;
-        ctx.lineWidth = 1.8;
-        ctx.beginPath();
-        for(let px=W*0.1; px<=W*0.9; px+=3){
-          const r = ((px - W*0.1) / (W*0.8)) * 2.5;
-          const dmf = 1 / Math.sqrt((1-r*r)*(1-r*r) + (2*zeta*r)*(2*zeta*r));
-          const y = dmfY - Math.min(dmfH, dmf*12);
-          if(px <= W*0.1 + 3) ctx.moveTo(px, y); else ctx.lineTo(px, y);
-        }
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-
-        // ── Rotating petals at resonance center (8 blossoming petals) ──
-        const N_PETALS = 8;
-        for(let k=0; k<N_PETALS; k++){
-          const ang = (k/N_PETALS) * Math.PI*2 + frame*0.004;
-          const pulseR = 28 + 18*Math.sin(frame*0.01 + k*0.4);
-          const px = cx + pulseR*Math.cos(ang);
-          const py = cy + pulseR*Math.sin(ang);
-          const alpha = 0.45 * (0.6 + 0.4*Math.sin(frame*0.01 + k*0.8));
-
-          // Petal shape (small ellipse pointing outward)
-          ctx.save();
-          ctx.translate(px, py);
-          ctx.rotate(ang);
-          ctx.fillStyle = `rgba(0,224,158,${alpha})`;
-          ctx.shadowColor = `rgba(0,224,158,${alpha*0.6})`;
-          ctx.shadowBlur = 8;
-          ctx.beginPath();
-          ctx.ellipse(0, 0, 5, 2.5, 0, 0, Math.PI*2);
-          ctx.fill();
-          ctx.shadowBlur = 0;
-          ctx.restore();
-        }
-
-        // ── Core (resonance point) ──
-        const coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 18);
-        coreGrad.addColorStop(0, 'rgba(0,224,158,.9)');
-        coreGrad.addColorStop(0.5, 'rgba(45,212,191,.4)');
-        coreGrad.addColorStop(1, 'rgba(0,224,158,0)');
+        // ── Core (bright central point) ──
+        const coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 45);
+        const corePulse = 0.65 + 0.35*Math.sin(frame*0.04);
+        coreGrad.addColorStop(0,   `rgba(255,255,255,${corePulse})`);
+        coreGrad.addColorStop(0.2, `rgba(0,224,158,${corePulse*0.9})`);
+        coreGrad.addColorStop(0.5, `rgba(45,212,191,${corePulse*0.4})`);
+        coreGrad.addColorStop(1,   'rgba(0,224,158,0)');
         ctx.fillStyle = coreGrad;
         ctx.beginPath();
-        ctx.arc(cx, cy, 18, 0, Math.PI*2);
+        ctx.arc(cx, cy, 45, 0, Math.PI*2);
         ctx.fill();
-
-        ctx.fillStyle = 'rgba(0,224,158,1)';
-        ctx.shadowColor = 'rgba(0,224,158,.8)';
-        ctx.shadowBlur = 14;
-        ctx.beginPath();
-        ctx.arc(cx, cy, 3, 0, Math.PI*2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
       }
     },
 
-    // ═══ HASIL: Cosmic Constellation — richer stars + aurora sweeps ═══
-    // Deep indigo/gold with aurora-like light bands and shooting stars
+    // ═══ HASIL: Hyperspace Tunnel — 3D star tunnel with motion blur ═══
+    // Stars stream toward camera with long trails
     hasil: {
       stars: null,
-      shootingStar: null,
+      nebula: null,
       step(ctx, W, H, frame){
         if(!this.stars){
           this.stars = [];
-          // Richer distribution with 3 size tiers
-          for(let i=0;i<70;i++){
-            const tier = Math.random();
-            this.stars.push({
-              x: Math.random()*W,
-              y: Math.random()*H,
-              r: tier < 0.7 ? (0.5 + Math.random()*1.2) : (tier < 0.95 ? (1.5 + Math.random()*1.5) : (2.5 + Math.random()*2)),
-              twinkle: Math.random()*Math.PI*2,
-              twinkleSpeed: 0.01 + Math.random()*0.025,
-              col: Math.random() < 0.25 ? 'rgba(251,191,36,' : (Math.random() < 0.5 ? 'rgba(236,72,153,' : 'rgba(129,140,248,')
-            });
-          }
-        }
-        ctx.clearRect(0,0,W,H);
-
-        // ── Aurora: horizontal light band sweeping top ──
-        const auroraY = H*0.15 + 20*Math.sin(frame*0.003);
-        const auroraGrad = ctx.createLinearGradient(0, auroraY - 40, 0, auroraY + 60);
-        auroraGrad.addColorStop(0,   'rgba(129,140,248,0)');
-        auroraGrad.addColorStop(0.4, 'rgba(129,140,248,.12)');
-        auroraGrad.addColorStop(0.6, 'rgba(251,191,36,.08)');
-        auroraGrad.addColorStop(1,   'rgba(236,72,153,0)');
-        ctx.fillStyle = auroraGrad;
-        ctx.fillRect(0, auroraY - 40, W, 100);
-
-        // Aurora wavy line accent
-        ctx.strokeStyle = 'rgba(251,191,36,.25)';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        for(let px=0; px<=W; px+=4){
-          const y = auroraY + 8*Math.sin(px*0.01 + frame*0.008);
-          if(px===0) ctx.moveTo(px, y); else ctx.lineTo(px, y);
-        }
-        ctx.stroke();
-
-        // ── Constellation lines (connect nearby stars) ──
-        const maxDist = 120;
-        for(let i=0;i<this.stars.length;i++){
-          for(let j=i+1;j<this.stars.length;j++){
-            const a = this.stars[i], b = this.stars[j];
-            const dx = a.x-b.x, dy = a.y-b.y;
-            const d = Math.sqrt(dx*dx + dy*dy);
-            if(d < maxDist){
-              const alpha = (1 - d/maxDist) * 0.18;
-              ctx.strokeStyle = `rgba(129,140,248,${alpha})`;
-              ctx.lineWidth = 0.6;
-              ctx.beginPath();
-              ctx.moveTo(a.x, a.y);
-              ctx.lineTo(b.x, b.y);
-              ctx.stroke();
-            }
-          }
+          for(let i=0; i<120; i++) this.stars.push(this._newStar(W, H, true));
+          this.nebula = [];
+          for(let i=0; i<8; i++) this.nebula.push({
+            x: Math.random()*W,
+            y: Math.random()*H,
+            r: 80 + Math.random()*120,
+            col: Math.random() < 0.4 ? [129,140,248] : (Math.random() < 0.5 ? [251,191,36] : [236,72,153]),
+            phase: Math.random()*Math.PI*2
+          });
         }
 
-        // ── Stars (twinkling with size tiers) ──
-        this.stars.forEach(s => {
-          s.twinkle += s.twinkleSpeed;
-          const brightness = 0.4 + 0.55 * (0.5 + 0.5*Math.sin(s.twinkle));
+        // ── Background deep space with nebula ──
+        ctx.fillStyle = 'rgba(5,5,15,0.35)';   // motion blur by semi-transparent clear
+        ctx.fillRect(0, 0, W, H);
 
-          // Bigger stars get cross-shaped glare
-          if(s.r > 2){
-            ctx.strokeStyle = s.col + (brightness*0.3) + ')';
-            ctx.lineWidth = 0.8;
-            ctx.beginPath();
-            ctx.moveTo(s.x - s.r*2.5, s.y); ctx.lineTo(s.x + s.r*2.5, s.y);
-            ctx.moveTo(s.x, s.y - s.r*2.5); ctx.lineTo(s.x, s.y + s.r*2.5);
-            ctx.stroke();
-          }
-
-          ctx.fillStyle = s.col + brightness + ')';
-          ctx.shadowColor = s.col + (brightness*0.7) + ')';
-          ctx.shadowBlur = s.r > 1.5 ? 8 : 4;
-          ctx.beginPath();
-          ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
-          ctx.fill();
-          ctx.shadowBlur = 0;
+        // ── Nebula clouds (soft background) ──
+        this.nebula.forEach(n => {
+          n.phase += 0.003;
+          const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r);
+          const pulseA = 0.04 + 0.03*Math.sin(n.phase);
+          grad.addColorStop(0, `rgba(${n.col[0]},${n.col[1]},${n.col[2]},${pulseA})`);
+          grad.addColorStop(1, `rgba(${n.col[0]},${n.col[1]},${n.col[2]},0)`);
+          ctx.fillStyle = grad;
+          ctx.fillRect(n.x - n.r, n.y - n.r, n.r*2, n.r*2);
         });
 
-        // ── Shooting star (periodic) ──
-        if(frame % 200 === 0 || !this.shootingStar){
-          this.shootingStar = {
-            x: Math.random()*W*0.4,
-            y: Math.random()*H*0.3,
-            vx: 3.5 + Math.random()*2,
-            vy: 1.2 + Math.random()*1.5,
-            life: 0,
-            maxLife: 50
-          };
-        }
-        if(this.shootingStar && this.shootingStar.life < this.shootingStar.maxLife){
-          const s = this.shootingStar;
-          s.x += s.vx;
-          s.y += s.vy;
-          s.life += 1;
-          const fade = 1 - s.life/s.maxLife;
-          // Long trail
-          const grad = ctx.createLinearGradient(s.x - s.vx*12, s.y - s.vy*12, s.x, s.y);
-          grad.addColorStop(0, 'rgba(251,191,36,0)');
-          grad.addColorStop(1, `rgba(251,191,36,${fade*0.8})`);
-          ctx.strokeStyle = grad;
-          ctx.lineWidth = 2;
-          ctx.shadowColor = 'rgba(251,191,36,.5)';
-          ctx.shadowBlur = 10;
+        const cx = W/2, cy = H/2;
+
+        // ── Stars with hyperspace streaking ──
+        this.stars.forEach(s => {
+          // Update: move toward z=0 (camera)
+          s.z -= s.speed;
+          if(s.z < 1){
+            Object.assign(s, this._newStar(W, H, false));
+          }
+          // Project with perspective
+          const k = 400 / s.z;
+          const x = cx + s.x * k;
+          const y = cy + s.y * k;
+          // Previous position for trail
+          const kPrev = 400 / (s.z + s.speed * 3);
+          const xPrev = cx + s.x * kPrev;
+          const yPrev = cy + s.y * kPrev;
+
+          if(x < -20 || x > W+20 || y < -20 || y > H+20) return;
+
+          const depthNorm = Math.max(0, Math.min(1, 1 - s.z/400));
+          const alpha = 0.3 + depthNorm*0.7;
+          const size = 0.5 + depthNorm*2.5;
+
+          // Trail
+          const trailGrad = ctx.createLinearGradient(xPrev, yPrev, x, y);
+          trailGrad.addColorStop(0, `rgba(${s.col[0]},${s.col[1]},${s.col[2]},0)`);
+          trailGrad.addColorStop(1, `rgba(${s.col[0]},${s.col[1]},${s.col[2]},${alpha*0.9})`);
+          ctx.strokeStyle = trailGrad;
+          ctx.lineWidth = size * 0.7;
           ctx.beginPath();
-          ctx.moveTo(s.x - s.vx*12, s.y - s.vy*12);
-          ctx.lineTo(s.x, s.y);
+          ctx.moveTo(xPrev, yPrev);
+          ctx.lineTo(x, y);
           ctx.stroke();
-          // Head
-          ctx.fillStyle = `rgba(251,191,36,${fade})`;
+
+          // Star head
+          ctx.fillStyle = `rgba(${s.col[0]},${s.col[1]},${s.col[2]},${alpha})`;
+          ctx.shadowColor = `rgba(${s.col[0]},${s.col[1]},${s.col[2]},${alpha*0.6})`;
+          ctx.shadowBlur = 6 + depthNorm*8;
           ctx.beginPath();
-          ctx.arc(s.x, s.y, 2.5, 0, Math.PI*2);
+          ctx.arc(x, y, size, 0, Math.PI*2);
           ctx.fill();
           ctx.shadowBlur = 0;
-        }
+
+          // Cross-glare for biggest/closest stars
+          if(depthNorm > 0.85){
+            ctx.strokeStyle = `rgba(255,255,255,${alpha*0.6})`;
+            ctx.lineWidth = 0.8;
+            ctx.beginPath();
+            ctx.moveTo(x - size*3, y); ctx.lineTo(x + size*3, y);
+            ctx.moveTo(x, y - size*3); ctx.lineTo(x, y + size*3);
+            ctx.stroke();
+          }
+        });
+
+        // ── Central vanishing point glow ──
+        const centerGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 100);
+        centerGrad.addColorStop(0, 'rgba(129,140,248,.1)');
+        centerGrad.addColorStop(0.5, 'rgba(251,191,36,.05)');
+        centerGrad.addColorStop(1, 'rgba(129,140,248,0)');
+        ctx.fillStyle = centerGrad;
+        ctx.fillRect(cx-100, cy-100, 200, 200);
+      },
+      _newStar(W, H, initial){
+        const ang = Math.random()*Math.PI*2;
+        const r = 0.3 + Math.random()*0.7;
+        return {
+          x: Math.cos(ang)*r * (W*0.4),
+          y: Math.sin(ang)*r * (H*0.4),
+          z: initial ? 100 + Math.random()*300 : 380 + Math.random()*80,
+          speed: 1.5 + Math.random()*2,
+          col: Math.random() < 0.3 ? [251,191,36] : (Math.random() < 0.5 ? [236,72,153] : [255,255,255])
+        };
       }
     }
   };
