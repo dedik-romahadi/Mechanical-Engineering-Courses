@@ -2174,11 +2174,11 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       <div style="font-size:.75rem;font-weight:600;color:#818cf8;text-transform:uppercase;letter-spacing:.08em;">Jadwal Perkuliahan</div>
       <div id="scheduleRange" style="font-size:.88rem;color:#e2e8f0;font-weight:600;margin-top:2px;">—</div>
     </div>
-    <button onclick="showResetModal()" style="padding:8px 18px;border-radius:10px;border:1px solid rgba(251,113,133,.3);background:rgba(251,113,133,.08);color:#fb7185;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:6px;" onmouseenter="this.style.background='rgba(251,113,133,.18)'" onmouseleave="this.style.background='rgba(251,113,133,.08)'">🗑 Reset</button>
+    <button id="resetBtnHasil" onclick="showResetModal()" style="display:none;padding:8px 18px;border-radius:10px;border:1px solid rgba(251,113,133,.3);background:rgba(251,113,133,.08);color:#fb7185;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .25s;align-items:center;gap:6px;" onmouseenter="this.style.background='rgba(251,113,133,.18)'" onmouseleave="this.style.background='rgba(251,113,133,.08)'">🗑 Reset</button>
   </div>
   <div style="background:#1a2332;border:1px solid #2a3548;border-radius:20px;overflow:hidden;">
     <div id="leaderboardPanel" style="margin-bottom:2px;">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:16px 20px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:16px 20px 8px;">
         <div style="background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.15);border-radius:14px;padding:14px 16px;">
           <div style="font-size:.72rem;font-weight:700;color:#4ade80;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🏆 Top Skor</div>
           <div id="rajinList" style="font-size:.8rem;color:#e2e8f0;min-height:60px;">⏳ Memuat...</div>
@@ -2188,16 +2188,33 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
           <div id="santaiList" style="font-size:.8rem;color:#e2e8f0;min-height:60px;">⏳ Memuat...</div>
         </div>
       </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:6px 20px 16px;">
+        <div style="background:rgba(45,212,191,.06);border:1px solid rgba(45,212,191,.18);border-radius:14px;padding:14px 12px;text-align:center;position:relative;overflow:hidden;">
+          <div style="font-size:1.4rem;margin-bottom:2px;">👥</div>
+          <div id="statTotalMhs" style="font-family:'JetBrains Mono',monospace;font-size:1.6rem;font-weight:800;color:#2dd4bf;line-height:1;">—</div>
+          <div style="font-size:.66rem;font-weight:700;color:#5eead4;text-transform:uppercase;letter-spacing:.12em;margin-top:6px;">Jumlah Mahasiswa</div>
+        </div>
+        <div style="background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.18);border-radius:14px;padding:14px 12px;text-align:center;position:relative;overflow:hidden;">
+          <div style="font-size:1.4rem;margin-bottom:2px;">✅</div>
+          <div id="statHadir" style="font-family:'JetBrains Mono',monospace;font-size:1.6rem;font-weight:800;color:#4ade80;line-height:1;">—</div>
+          <div style="font-size:.66rem;font-weight:700;color:#86efac;text-transform:uppercase;letter-spacing:.12em;margin-top:6px;">Jumlah Kehadiran</div>
+        </div>
+        <div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.18);border-radius:14px;padding:14px 12px;text-align:center;position:relative;overflow:hidden;">
+          <div style="font-size:1.4rem;margin-bottom:2px;">❌</div>
+          <div id="statAbsen" style="font-family:'JetBrains Mono',monospace;font-size:1.6rem;font-weight:800;color:#ef4444;line-height:1;">—</div>
+          <div style="font-size:.66rem;font-weight:700;color:#f87171;text-transform:uppercase;letter-spacing:.12em;margin-top:6px;">Jumlah Absen</div>
+        </div>
+      </div>
     </div>
     <div style="display:flex;padding:14px 24px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.08em;">
-      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:0.5;text-align:center;">Poin</div><div style="flex:0.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
+      <div style="width:44px;flex-shrink:0;">No</div><div style="flex:2;">Nama</div><div style="flex:1;">NIM</div><div style="flex:1;text-align:center;">Status</div><div style="flex:0.5;text-align:center;">Poin (Nilai)</div><div style="flex:0.6;text-align:center;">Kunjungan</div><div style="flex:1;text-align:right;">Waktu Akses</div>
     </div>
     <div id="visitorTableBody" style="max-height:420px;overflow-y:auto;"><div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">⏳ Memuat data mahasiswa...</div></div>
   </div>
 </div>
 
 <footer>
-  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Hasil Pertemuan 4 · Getaran Mekanik</p>
+  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Hasil Pertemuan 4 · Optimalisasi &amp; Automasi</p>
 </footer>
 </div><!-- end page-hasil -->
 
@@ -4215,12 +4232,42 @@ function updateLeaderboard(visitors, schedExpired){
     const tA=a.pointTimestamp?new Date(a.pointTimestamp).getTime():Infinity;
     const tB=b.pointTimestamp?new Date(b.pointTimestamp).getTime():Infinity; return tA-tB;
   });
-  const akses=[...visited].sort((a,b)=>{const d=(b.visitCount||1)-(a.visitCount||1);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp);});
+  // Top Akses — hanya mahasiswa dengan points > 0 yang dihitung (konsisten dengan Contoh-Modul §17)
+  const akses=[...visited].filter(v=>(v.points||0)>0).sort((a,b)=>{const d=(b.visitCount||1)-(a.visitCount||1);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp);});
   const medalR=['🥇','🥈','🥉'];
-  function renderCardSkor(v,idx){const pts=v.points||0;return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="font-size:1rem;flex-shrink:0;">'+medalR[idx]+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(74,222,128,.12);color:#4ade80;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+pts+' poin</div></div>';}
+  function renderCardSkor(v,idx){const pts=v.points||0;const nilai=Math.round(pts/30*100);return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="font-size:1rem;flex-shrink:0;">'+medalR[idx]+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(74,222,128,.12);color:#4ade80;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;white-space:nowrap;">'+pts+' <span style="opacity:.7;font-weight:600;">('+nilai+')</span></div></div>';}
   function renderCardAkses(v,idx){const vc=v.visitCount||1;return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(251,191,36,.15);color:#fbbf24;font-size:.65rem;font-weight:800;flex-shrink:0;">'+(idx+1)+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(251,191,36,.12);color:#fbbf24;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+vc+'x</div></div>';}
   rajinEl.innerHTML=topSkor.length?topSkor.slice(0,3).map((v,i)=>renderCardSkor(v,i)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
   santaiEl.innerHTML=akses.length?akses.slice(0,3).map((v,i)=>renderCardAkses(v,i)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
+
+  // ─── Stats: Total Mahasiswa / Kehadiran / Absen (Pedoman §17) ───
+  // Kehadiran : mahasiswa memiliki poin > 0 (baik status "Tepat Waktu" maupun
+  //             "Terlambat"). Selama dalam jadwal — termasuk 24 jam terakhir
+  //             sebelum deadline (zona Terlambat) — poin disimpan normal
+  //             sehingga kedua kelompok ini dihitung sebagai Hadir.
+  // Absen     : mahasiswa dengan status "Bolos" — tidak memiliki poin DAN
+  //             jadwal sudah berakhir. Mencakup dua kasus:
+  //             (1) TIDAK pernah akses + jadwal selesai, dan
+  //             (2) PERNAH akses tapi 0 poin + jadwal selesai.
+  //             Status "Belum" (jadwal masih aktif, belum dapat poin) TIDAK
+  //             dihitung Absen — mahasiswa masih punya kesempatan.
+  const totalMhs = masterStudents.length;
+  const schedEnded = !!schedExpired;
+  let hadir = 0, absen = 0;
+  for(const s of masterStudents){
+    const v = visitMap[s.nim];
+    const hasP = v && ((v.points || 0) > 0);
+    if (hasP) {
+      hadir++;
+    } else if (schedEnded) {
+      absen++;   // status Bolos: !hasPoints + jadwal selesai
+    }
+    // else: Belum (jadwal masih aktif, belum berhasil dapat poin)
+  }
+  const setTxt = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = String(val); };
+  setTxt('statTotalMhs', totalMhs);
+  setTxt('statHadir', hadir);
+  setTxt('statAbsen', Math.max(0, absen));
 }
 fetchMasterStudents();
 
@@ -4281,10 +4328,16 @@ function updateScheduleDisplay(){
   } else { info.style.display='none'; }
 }
 
+// isLate (Pedoman §9.2): "Terlambat" = timestamp akses jatuh dalam 24 JAM TERAKHIR
+// sebelum deadline. Selama jendela ini, poin dan akses TETAP dicatat seperti biasa
+// (sama seperti Tepat Waktu) — hanya label status yang berbeda.
+// Setelah deadline (t > end), penyimpanan apa pun diblokir oleh _isScheduleOpen().
 function isLate(timestamp){
   if(!currentSchedule || !currentSchedule.start || !currentSchedule.end) return false;
-  const t = new Date(timestamp).getTime(), s = new Date(currentSchedule.start).getTime(), e = new Date(currentSchedule.end).getTime();
-  return t < s || t > e;
+  const t = new Date(timestamp).getTime();
+  const e = new Date(currentSchedule.end).getTime();
+  const lateGate = e - 24*60*60*1000;   // 24 jam sebelum deadline
+  return t >= lateGate;
 }
 
 async function submitVisitor(){
@@ -4366,7 +4419,7 @@ function renderVisitors(visitors){
   const visitMap={};
   for(const v of visitors){if(v.role==='dosen'||v.role==='guest')continue;if(!visitMap[v.nim])visitMap[v.nim]=v;}
   const visited=Object.values(visitMap);
-  const lateCount=visited.filter(v=>isLate(v.timestamp)).length;
+  const lateCount=visited.filter(v=>(v.points||0)>0 && isLate(v.timestamp)).length;
   const schedExpired=currentSchedule&&currentSchedule.end&&new Date().getTime()>new Date(currentSchedule.end).getTime();
   document.getElementById('fabCount').textContent=visited.length;
   updateLeaderboard(visitors, schedExpired);
@@ -4378,7 +4431,8 @@ function renderVisitors(visitors){
     listEl.innerHTML=visited.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(v=>{
       const ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
       const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-      const late=isLate(v.timestamp);
+      const hasPoints = (v.points || 0) > 0;
+      const late = hasPoints && isLate(v.timestamp);   // badge "Terlambat" butuh poin
       const lBadge=late?'<span style="color:#fb7185;font-size:.65rem;font-weight:600;margin-left:4px;">\u23f0 Terlambat</span>':'';
       return `<div class="vp-item" style="${late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':''}"><div class="vp-avatar student" style="${late?'background:rgba(251,113,133,.12);color:#fb7185;':''}">${ini}</div><div class="vp-info"><div class="vp-name">${escH(v.nama)}${lBadge}</div><div class="vp-nim">${escH(v.nim)}</div></div><div class="vp-time"><div>${ts}</div><div style="font-size:.6rem;color:#94a3b8;text-align:right;">${v.visitCount||1}x kunjungan</div></div></div>`;
     }).join('');
@@ -4387,18 +4441,29 @@ function renderVisitors(visitors){
   function toTitle(s){return s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());}
   tableEl.innerHTML=masterStudents.map((s,i)=>{
     const v=visitMap[s.nim], nama=toTitle(s.nama), ini=nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const hasVisit=!!v, late=hasVisit&&isLate(v.timestamp), bolos=!hasVisit&&schedExpired;
+    // Status rule (Optoauto custom):
+    //   • Bolos       : tidak punya poin + jadwal sudah berakhir
+    //                   (mencakup: TIDAK akses DAN akses tapi 0 poin)
+    //   • Belum       : tidak punya poin + jadwal masih aktif
+    //                   (mencakup: TIDAK akses DAN akses tapi 0 poin)
+    //   • Terlambat   : akses dalam 24h terakhir + points > 0
+    //   • Tepat Waktu : akses sebelum 24h terakhir + points > 0
+    const hasVisit = !!v;
+    const hasPoints = hasVisit && (v.points || 0) > 0;
+    const late = hasPoints && isLate(v.timestamp);
+    const bolos = !hasPoints && schedExpired;   // ← diperluas: tidak punya poin + jadwal selesai
     const vc=hasVisit?(v.visitCount||1):0, pts=hasVisit?(v.points||0):0;
     const ts=hasVisit?(()=>{const dt=new Date(v.timestamp);return dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});})():'—';
     let statusCol,rowBg='',nameColor='color:#e2e8f0;',ac='background:rgba(255,255,255,.08);color:#e2e8f0;';
     if(bolos){statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25);">\u274c Bolos</span>';rowBg='background:rgba(239,68,68,.03);';nameColor='color:#ef4444;';ac='background:rgba(239,68,68,.12);color:#ef4444;';}
-    else if(!hasVisit){statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(100,116,139,.1);color:#94a3b8;border:1px solid rgba(100,116,139,.2);">\u23f3 Belum</span>';rowBg='';nameColor='color:#64748b;';ac='background:rgba(100,116,139,.1);color:#94a3b8;';}
+    else if(!hasPoints){statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(100,116,139,.1);color:#94a3b8;border:1px solid rgba(100,116,139,.2);">\u23f3 Belum</span>';rowBg='';nameColor='color:#64748b;';ac='background:rgba(100,116,139,.1);color:#94a3b8;';}
     else if(late){statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(251,113,133,.12);color:#fb7185;border:1px solid rgba(251,113,133,.25);">\u23f0 Terlambat</span>';rowBg='background:rgba(251,113,133,.04);';nameColor='color:#fb7185;';ac='background:rgba(251,113,133,.12);color:#fb7185;';}
     else{statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(74,222,128,.1);color:#4ade80;border:1px solid rgba(74,222,128,.25);">\u2705 Tepat Waktu</span>';}
     const vcDisplay=vc?vc+'x':'<span style="color:#475569;">—</span>';
-    const ptsDisplay=pts?'<span style="color:#4ade80;font-weight:800;">'+pts+'</span>':'<span style="color:#475569;">0</span>';
+    const nilai=Math.round((pts||0)/30*100);   // divisor 30 (Optoauto legacy scoring, Pedoman §15.1b)
+    const ptsDisplay=pts?'<span style="color:#4ade80;font-weight:800;">'+pts+'</span> <span style="color:#64748b;font-weight:600;font-size:.78rem;">('+nilai+')</span>':'<span style="color:#475569;">0 <span style="font-weight:600;font-size:.78rem;">(0)</span></span>';
     const tsColor=bolos?'#ef4444':late?'#fb7185':hasVisit?'#64748b':'#475569';
-    const absenClass=(!hasVisit||bolos)?' absen':'';
+    const absenClass=bolos?' absen':'';   // row styling "absen" hanya saat bolos (bukan Belum)
     return `<div class="vt-row${absenClass}" style="${rowBg}"><div class="vt-num" style="color:${tsColor};">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div class="vt-avatar" style="${ac}">${ini}</div><div><div class="vt-name" style="${nameColor}">${escH(nama)}</div></div></div><div style="flex:1;font-size:.8rem;color:${hasVisit?'#94a3b8':'#475569'};font-family:monospace;">${s.nim}</div><div style="flex:1;text-align:center;"><span class="vt-status">${statusCol}</span></div><div style="flex:0.5;text-align:center;font-size:.85rem;">${ptsDisplay}</div><div class="vt-visit" style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:#94a3b8;">${vcDisplay}</div><div style="flex:1;text-align:right;font-size:.78rem;color:${tsColor};">${ts}</div></div>`;
   }).join('');
 }
@@ -4518,6 +4583,38 @@ function _updateLateBanner() {
 // Re-evaluate banner every 30s (in case schedule expires during session)
 setInterval(_updateLateBanner, 30000);
 
+// ═══════════════════════════════════════════════════════
+// CONSOLATION POINT (Pedoman §15.1b — 30-poin Legacy, threshold ≥20)
+// Jika mahasiswa sudah mencoba SEMUA 20 soal (10 MC + 10 Komputasi)
+// tapi memperoleh 0 poin, berikan +1 poin bonus sebagai reward atas
+// upaya. Dicek setelah setiap award/record berhasil disimpan.
+// ═══════════════════════════════════════════════════════
+function _checkConsolationPoint(nodeRef, state) {
+  try {
+    const scored = (state.scoredQuestions || '').split(',').filter(Boolean);
+    // Extract distinct question IDs (ignore _used/_comp suffixes)
+    const baseIds = new Set();
+    scored.forEach(tag => {
+      let base = tag;
+      if (/_mc_used$/.test(base)) base = base.replace(/_mc_used$/,'');
+      else if (/_comp_used$/.test(base)) base = base.replace(/_comp_used$/,'');
+      else if (/_comp$/.test(base)) base = base.replace(/_comp$/,'');
+      baseIds.add(base);
+    });
+    // Threshold 20 = semua soal 30-poin legacy (mc1..mc10 + c1..c10) telah dicoba
+    const allAttempted = baseIds.size >= 20;
+    const zeroPoints = (state.points || 0) === 0;
+    const alreadyConsoled = (state.consolationAwarded === true);
+    if (allAttempted && zeroPoints && !alreadyConsoled) {
+      set(nodeRef, Object.assign({}, state, {
+        points: 1,
+        pointTimestamp: new Date().toISOString(),
+        consolationAwarded: true
+      }));
+    }
+  } catch(e) { /* swallow */ }
+}
+
 window._awardPoint = function(qId) {
   if (!_isScheduleOpen()) return;   // ← GATE: no point save outside active schedule (Pedoman §9)
   if (_answeredQ.has(qId)) return;
@@ -4531,7 +4628,9 @@ window._awardPoint = function(qId) {
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(qId)) { _answeredQ.add(qId); return; }
     _answeredQ.add(qId); scored.push(qId);
-    set(nodeRef, Object.assign({}, ex, { points: (ex.points||0)+1, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',') }));
+    const updated = Object.assign({}, ex, { points: (ex.points||0)+1, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',') });
+    set(nodeRef, updated);
+    _checkConsolationPoint(nodeRef, updated);
   }).catch(()=>{});
 };
 
@@ -4549,7 +4648,9 @@ window._awardCompPoint = function(qId) {
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(compKey)) { _answeredQ.add(compKey); return; }
     _answeredQ.add(compKey); scored.push(compKey);
-    set(nodeRef, Object.assign({}, ex, { points: (ex.points||0)+2, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',') }));
+    const updated = Object.assign({}, ex, { points: (ex.points||0)+2, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',') });
+    set(nodeRef, updated);
+    _checkConsolationPoint(nodeRef, updated);
   }).catch(()=>{});
 };
 
@@ -4567,7 +4668,9 @@ window._recordMcAttempt = function(qId) {
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(usedKey)) return;
     scored.push(usedKey);
-    set(nodeRef, Object.assign({}, ex, { scoredQuestions: scored.join(',') }));
+    const updated = Object.assign({}, ex, { scoredQuestions: scored.join(',') });
+    set(nodeRef, updated);
+    _checkConsolationPoint(nodeRef, updated);
   }).catch(() => {});
 };
 
@@ -4585,7 +4688,9 @@ window._recordCompAttempt = function(qId) {
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(usedKey)) return;   // already recorded
     scored.push(usedKey);
-    set(nodeRef, Object.assign({}, ex, { scoredQuestions: scored.join(',') }));
+    const updated = Object.assign({}, ex, { scoredQuestions: scored.join(',') });
+    set(nodeRef, updated);
+    _checkConsolationPoint(nodeRef, updated);
   }).catch(() => {});
 };
 
