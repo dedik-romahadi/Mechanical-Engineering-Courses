@@ -570,7 +570,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <input type="text" class="v-input" id="vNama" placeholder="Nama Lengkap" autocomplete="off">
     <input type="text" class="v-input" id="vNim" placeholder="NIM (Nomor Induk Mahasiswa)" autocomplete="off">
     <button class="v-btn-primary" id="vSubmit" onclick="submitVisitor()" disabled style="opacity:.6;cursor:wait">Masuk ke Modul 4 →</button>
-    <button class="v-btn-cancel" onclick="showScheduleModal()" style="margin-top:8px;border-color:rgba(249,115,22,.3);color:#a855f7;">🕐 Atur Jadwal 🔒</button>
+    <button class="v-btn-cancel" id="scheduleBtnLogin" onclick="showScheduleModal()" style="display:none;margin-top:8px;border-color:rgba(249,115,22,.3);color:#a855f7;">🕐 Atur Jadwal 🔒</button>
   </div>
 </div>
 
@@ -2085,7 +2085,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       <div style="font-size:.75rem;font-weight:600;color:#a855f7;text-transform:uppercase;letter-spacing:.08em;">Jadwal Perkuliahan</div>
       <div id="scheduleRange" style="font-size:.88rem;color:#e2e8f0;font-weight:600;margin-top:2px;">—</div>
     </div>
-    <button onclick="showResetModal()" style="padding:8px 18px;border-radius:10px;border:1px solid rgba(251,113,133,.3);background:rgba(251,113,133,.08);color:#fb7185;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:6px;" onmouseenter="this.style.background='rgba(251,113,133,.18)'" onmouseleave="this.style.background='rgba(251,113,133,.08)'">🗑 Reset</button>
+    <button id="resetBtnHasil" onclick="showResetModal()" style="display:none;padding:8px 18px;border-radius:10px;border:1px solid rgba(251,113,133,.3);background:rgba(251,113,133,.08);color:#fb7185;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .25s;align-items:center;gap:6px;" onmouseenter="this.style.background='rgba(251,113,133,.18)'" onmouseleave="this.style.background='rgba(251,113,133,.08)'">🗑 Reset</button>
   </div>
   <div style="background:#1a2332;border:1px solid #2a3548;border-radius:20px;overflow:hidden;">
     <div id="leaderboardPanel" style="margin-bottom:2px;">
@@ -4501,6 +4501,30 @@ const VISIT_COOLDOWN = 3600000;
 
 function getIdentity(){try{return JSON.parse(localStorage.getItem(LOCAL_IDENTITY));}catch(e){return null;}}
 function saveIdentity(v){localStorage.setItem(LOCAL_IDENTITY, JSON.stringify(v));}
+
+// ═══════════════════════════════════════════════════════
+// ROLE-BASED UI VISIBILITY
+// Tombol "Atur Jadwal" dan "Reset" hanya terlihat untuk dosen
+// (Dedik Romahadi). Mahasiswa tidak melihat tombol ini sama sekali.
+// Proteksi utama tetap ada di sisi server (password admin hash),
+// tapi menyembunyikan tombol dari mahasiswa adalah praktik UX yang baik.
+//
+// Dipanggil:
+//   - Di initVisitor() (saat halaman load)
+//   - Setelah dosen login berhasil
+//   - Setelah mahasiswa login berhasil (pastikan tombol tersembunyi)
+//   - Setelah reset (kembali ke state unauthenticated)
+// ═══════════════════════════════════════════════════════
+function _applyRoleVisibility() {
+  const me = (function(){ try { return JSON.parse(localStorage.getItem(LOCAL_IDENTITY) || 'null'); } catch(e){ return null; } })();
+  const isDosen = !!(me && me.role === 'dosen' && me.nama && me.nama.toLowerCase() === 'dedik romahadi');
+
+  const schedBtn = document.getElementById('scheduleBtnLogin');
+  const resetBtn = document.getElementById('resetBtnHasil');
+  if (schedBtn) schedBtn.style.display = isDosen ? 'block' : 'none';
+  if (resetBtn) resetBtn.style.display = isDosen ? 'flex'  : 'none';
+}
+window._applyRoleVisibility = _applyRoleVisibility;
 function isValidName(n){if(!n)return false;return n.split(/\s+/).every(w=>w.length>0&&/^[A-Z][a-zA-Z.'\-]*$/.test(w));}
 function isValidNim(n){return /^\d+$/.test(n);}
 function sanitizeKey(s){return s.replace(/[.#$\/\[\]]/g,'_');}
@@ -4599,6 +4623,7 @@ function initVisitor(){
   if(me && me.nama && me.role!=='guest'){
     document.getElementById('visitorOverlay').classList.add('hidden');
     document.getElementById('visitorFab').style.display='flex';
+    _applyRoleVisibility();   // tampilkan tombol dosen-only kalau identity = dosen
     // Hide loading bar immediately for returning visitors
     const ls = document.getElementById('loadingStudents');
     if (ls) ls.style.display = 'none';
@@ -4694,6 +4719,7 @@ async function submitVisitor(){
     err.style.display = 'none';
     saveIdentity({nama, nim:'DOSEN', role:'dosen', timestamp:new Date().toISOString()});
     document.getElementById('visitorFab').style.display='flex';
+    _applyRoleVisibility();   // ⭐ tampilkan tombol Atur Jadwal + Reset untuk dosen
     return;
   }
 
@@ -4915,6 +4941,7 @@ async function submitPinSetup() {
     _hidePinModals();
     document.getElementById('visitorOverlay').classList.add('hidden');
     document.getElementById('visitorFab').style.display = 'flex';
+    _applyRoleVisibility();   // pastikan tombol dosen tersembunyi untuk mahasiswa
     _pinFlow = { nama: null, nim: null, nowISO: null, existingRecord: null, schedOpen: false };
     setTimeout(() => { if (typeof window._loadScoredQuestions === 'function') window._loadScoredQuestions(); }, 500);
   } catch(e) {
@@ -4966,6 +4993,7 @@ async function submitPinVerify() {
     _hidePinModals();
     document.getElementById('visitorOverlay').classList.add('hidden');
     document.getElementById('visitorFab').style.display = 'flex';
+    _applyRoleVisibility();   // pastikan tombol dosen tersembunyi untuk mahasiswa
     _pinFlow = { nama: null, nim: null, nowISO: null, existingRecord: null, schedOpen: false };
     setTimeout(() => { if (typeof window._loadScoredQuestions === 'function') window._loadScoredQuestions(); }, 500);
   } catch(e) {
@@ -5053,6 +5081,7 @@ async function confirmReset(){
     _showResetToast('\u2705 Semua data berhasil dihapus (termasuk PIN). Mahasiswa akan membuat PIN baru saat login berikutnya.');
     document.getElementById('visitorOverlay').classList.remove('hidden');
     document.getElementById('visitorFab').style.display='none';
+    _applyRoleVisibility();   // sembunyikan lagi tombol dosen — identity sudah dihapus
   }).catch(err => {
     btns.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';});
     errEl.textContent='\u274c Gagal hapus data: ' + (err && err.message ? err.message : err) + '. Cek koneksi atau Firebase Security Rules.';
