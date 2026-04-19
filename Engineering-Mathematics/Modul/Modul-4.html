@@ -4803,24 +4803,27 @@ function updateLeaderboard(visitors, schedExpired){
   santaiEl.innerHTML=akses.length?akses.slice(0,3).map((v,i)=>renderCardAkses(v,i)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
 
   // ─── Stats: Total Mahasiswa / Kehadiran / Absen ───
+  // Diperbarui sesuai Pedoman §17.2:
+  //   Hadir : punya poin > 0 (otomatis = akses dalam jadwal)
+  //   Absen : tidak punya poin + jadwal selesai. Mencakup DUA kasus:
+  //           (a) tidak pernah akses + jadwal selesai
+  //           (b) pernah akses tapi 0 poin + jadwal selesai ← BARU
+  //   Belum : tidak punya poin + jadwal masih aktif (tidak dihitung)
+  //   Total = Hadir + Belum + Absen (non-overlapping)
   const totalMhs = masterStudents.length;
-  // Kehadiran : mahasiswa memiliki poin > 0 (baik status "Tepat Waktu"
-  //             maupun "Terlambat"). Selama di dalam jadwal — termasuk 24 jam
-  //             terakhir sebelum deadline (zona Terlambat) — poin disimpan
-  //             normal sehingga kedua kelompok ini dihitung sebagai Hadir.
-  // Absen     : mahasiswa dengan status "Bolos" SAJA (tidak pernah akses
-  //             DAN jadwal sudah berakhir). Status "Belum" (jadwal masih
-  //             aktif, mahasiswa belum akses) serta "Tepat Waktu/Terlambat
-  //             tanpa poin" TIDAK dihitung Absen.
   const schedEnded = !!schedExpired;
   let hadir = 0, absen = 0;
   for(const s of masterStudents){
     const v = visitMap[s.nim];
-    if(!v){
-      if(schedEnded) absen++;   // status Bolos
-      continue;
+    const hasP = v && ((v.points || 0) > 0);
+    if (hasP) {
+      hadir++;
+    } else if (schedEnded) {
+      // Bolos — tidak punya poin DAN jadwal sudah berakhir
+      // (mencakup: TIDAK akses sama sekali, atau akses tapi 0 poin)
+      absen++;
     }
-    if((v.points||0) > 0) hadir++;
+    // else: Belum (jadwal masih aktif, mahasiswa belum dapat poin) — tidak dihitung
   }
   const setTxt = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = String(val); };
   setTxt('statTotalMhs', totalMhs);
@@ -4979,7 +4982,9 @@ function renderVisitors(visitors){
   const visitMap={};
   for(const v of visitors){if(v.role==='dosen'||v.role==='guest')continue;if(!visitMap[v.nim])visitMap[v.nim]=v;}
   const visited=Object.values(visitMap);
-  const lateCount=visited.filter(v=>isLate(v.timestamp)).length;
+  // Late = akses di 24 jam terakhir + punya poin (per Pedoman §17.3).
+  // Visitor tanpa poin tetap di status "Belum", bukan "Terlambat".
+  const lateCount=visited.filter(v=>(v.points||0)>0 && isLate(v.timestamp)).length;
   const schedExpired=currentSchedule&&currentSchedule.end&&new Date().getTime()>new Date(currentSchedule.end).getTime();
   document.getElementById('fabCount').textContent=visited.length;
   updateLeaderboard(visitors, schedExpired);
@@ -4991,7 +4996,7 @@ function renderVisitors(visitors){
     listEl.innerHTML=visited.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(v=>{
       const ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
       const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-      const late=isLate(v.timestamp);
+      const late=(v.points||0)>0 && isLate(v.timestamp);   // butuh poin untuk label Terlambat
       const lBadge=late?'<span style="color:#fb7185;font-size:.65rem;font-weight:600;margin-left:4px;">\u23f0 Terlambat</span>':'';
       return `<div class="vp-item" style="${late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':''}"><div class="vp-avatar student" style="${late?'background:rgba(251,113,133,.12);color:#fb7185;':''}">${ini}</div><div class="vp-info"><div class="vp-name">${escH(v.nama)}${lBadge}</div><div class="vp-nim">${escH(v.nim)}</div></div><div class="vp-time"><div>${ts}</div><div style="font-size:.6rem;color:#94a3b8;text-align:right;">${v.visitCount||1}x kunjungan</div></div></div>`;
     }).join('');
@@ -5000,19 +5005,29 @@ function renderVisitors(visitors){
   function toTitle(s){return s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());}
   tableEl.innerHTML=masterStudents.map((s,i)=>{
     const v=visitMap[s.nim], nama=toTitle(s.nama), ini=nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const hasVisit=!!v, late=hasVisit&&isLate(v.timestamp), bolos=!hasVisit&&schedExpired;
-    const vc=hasVisit?(v.visitCount||1):0, pts=hasVisit?(v.points||0):0;
+    // ─── Status per mahasiswa (Pedoman §17.3) ────────────────────────────
+    // Dua pilar utama:
+    //  1. Tepat Waktu / Terlambat BUTUH punya poin — membuka halaman tanpa
+    //     mengerjakan tugas bukan bukti "hadir" yang cukup.
+    //  2. Bolos = tidak punya poin + jadwal selesai. Mencakup mahasiswa yang
+    //     akses tapi 0 poin (bukan hanya yang tidak pernah akses).
+    const hasVisit = !!v;
+    const pts = hasVisit ? (v.points || 0) : 0;
+    const hasPoints = hasVisit && pts > 0;
+    const late  = hasPoints && isLate(v.timestamp);    // ← butuh poin
+    const bolos = !hasPoints && schedExpired;          // ← !hasPoints (bukan !hasVisit)
+    const vc = hasVisit ? (v.visitCount || 1) : 0;
     const ts=hasVisit?(()=>{const dt=new Date(v.timestamp);return dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});})():'—';
     let statusCol,rowBg='',nameColor='color:#e2e8f0;',ac='background:rgba(255,255,255,.08);color:#e2e8f0;';
     if(bolos){statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25);">\u274c Bolos</span>';rowBg='background:rgba(239,68,68,.03);';nameColor='color:#ef4444;';ac='background:rgba(239,68,68,.12);color:#ef4444;';}
-    else if(!hasVisit){statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(100,116,139,.1);color:#94a3b8;border:1px solid rgba(100,116,139,.2);">\u23f3 Belum</span>';rowBg='';nameColor='color:#64748b;';ac='background:rgba(100,116,139,.1);color:#94a3b8;';}
+    else if(!hasPoints){statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(100,116,139,.1);color:#94a3b8;border:1px solid rgba(100,116,139,.2);">\u23f3 Belum</span>';rowBg='';nameColor='color:#64748b;';ac='background:rgba(100,116,139,.1);color:#94a3b8;';}
     else if(late){statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(251,113,133,.12);color:#fb7185;border:1px solid rgba(251,113,133,.25);">\u23f0 Terlambat</span>';rowBg='background:rgba(251,113,133,.04);';nameColor='color:#fb7185;';ac='background:rgba(251,113,133,.12);color:#fb7185;';}
     else{statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(0,224,158,.1);color:#00e09e;border:1px solid rgba(0,224,158,.25);">\u2705 Tepat Waktu</span>';}
     const vcDisplay=vc?vc+'x':'<span style="color:#475569;">—</span>';
     const nilai=pointsToScore(pts||0);
     const ptsDisplay=pts?'<span style="color:#00e09e;font-weight:800;">'+pts+'</span> <span style="color:#64748b;font-weight:600;font-size:.78rem;">('+nilai+')</span>':'<span style="color:#475569;">0 <span style="font-weight:600;font-size:.78rem;">(0)</span></span>';
     const tsColor=bolos?'#ef4444':late?'#fb7185':hasVisit?'#64748b':'#475569';
-    const absenClass=(!hasVisit||bolos)?' absen':'';
+    const absenClass=(!hasPoints||bolos)?' absen':'';
     return `<div class="vt-row${absenClass}" style="${rowBg}"><div class="vt-num" style="color:${tsColor};">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div class="vt-avatar" style="${ac}">${ini}</div><div><div class="vt-name" style="${nameColor}">${escH(nama)}</div></div></div><div style="flex:1;font-size:.8rem;color:${hasVisit?'#94a3b8':'#475569'};font-family:monospace;">${s.nim}</div><div style="flex:1;text-align:center;"><span class="vt-status">${statusCol}</span></div><div style="flex:0.5;text-align:center;font-size:.85rem;">${ptsDisplay}</div><div class="vt-visit" style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:#94a3b8;">${vcDisplay}</div><div style="flex:1;text-align:right;font-size:.78rem;color:${tsColor};">${ts}</div></div>`;
   }).join('');
 }
