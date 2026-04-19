@@ -2982,7 +2982,7 @@ function exportForumHtml() { copyForumHtml(); }
   // Menggunakan inline style agar kompatibel dengan editor LMS
 
 function getIdentityLocal() {
-  try { return JSON.parse(localStorage.getItem('optoauto_identity_pertemuan-4')); } catch(e) { return null; }
+  try { return JSON.parse(localStorage.getItem('getaran_mekanik_identity_pertemuan-4')); } catch(e) { return null; }
 }
 
 // ═══════════════════════════════════════
@@ -4163,7 +4163,7 @@ const DB_PATH = `visitors/getaran_mekanik/${MODULE_ID}`;
 const PERTEMUAN = 'pertemuan-4';
 const RELATED_MODULES = ['forum-4','tugas-4'];
 const SCHEDULE_PATH = `settings/getaran_mekanik/${PERTEMUAN}/schedule`;
-const LOCAL_IDENTITY = `optoauto_identity_${MODULE_ID}`;
+const LOCAL_IDENTITY = `getaran_mekanik_identity_${MODULE_ID}`;
 let panelOpen = false;
 let currentSchedule = null;
 const VISIT_COOLDOWN = 3600000;
@@ -4746,7 +4746,10 @@ async function confirmReset(){
     // di device ini (agar setelah reset harus login ulang, bukan auto-login
     // dengan identitas yang sudah stale).
     localStorage.removeItem(LOCAL_IDENTITY);
-    RELATED_MODULES.forEach(mid => localStorage.removeItem('optoauto_identity_' + mid));
+    RELATED_MODULES.forEach(mid => {
+      localStorage.removeItem('getaran_mekanik_identity_' + mid);
+      localStorage.removeItem('optoauto_identity_' + mid);   // legacy cleanup (one-time)
+    });
     btns.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';});
     hideResetModal();
     // Tampilkan toast sukses agar dosen tahu reset berjalan sempurna
