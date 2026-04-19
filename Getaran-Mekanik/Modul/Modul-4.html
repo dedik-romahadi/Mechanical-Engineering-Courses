@@ -2053,34 +2053,48 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
 // ── HERO ANIMATIONS — 4 distinct canvases ──
 (function initHeroAnimations(){
   const animations = {
-    // ═══ MODUL: Vibration Wave Field — elegant violet/cyan sine flow ═══
-    // Smooth sine-wave propagation with flowing particles, subtle & readable
+    // ═══ MODUL: Flowing Vector Field — layered depth with nodes + particles ═══
+    // Rich violet/cyan/gold mesh with orbital nodes pulsing at resonance
     modul: {
       particles: null,
+      nodes: null,
       step(ctx, W, H, frame){
         if(!this.particles){
+          // Background particles (deep layer, slow)
           this.particles = [];
-          for(let i=0;i<55;i++) this.particles.push({
+          for(let i=0;i<90;i++) this.particles.push({
             x: Math.random()*W,
             y: Math.random()*H,
-            vx: 0.15 + Math.random()*0.4,
+            vx: 0.1 + Math.random()*0.3,
             life: Math.random()*200,
-            amp: 8 + Math.random()*16,
-            freq: 0.015 + Math.random()*0.02,
+            amp: 6 + Math.random()*22,
+            freq: 0.012 + Math.random()*0.02,
             phase: Math.random()*Math.PI*2,
-            color: Math.random() < 0.5 ? 'rgba(168,85,247,' : 'rgba(14,165,233,'
+            size: 0.6 + Math.random()*1.8,
+            layer: Math.random(),  // 0..1 for parallax depth
+            hue: Math.random()
+          });
+          // Orbital nodes (foreground, slow pulse)
+          this.nodes = [];
+          for(let i=0;i<5;i++) this.nodes.push({
+            cx: W * (0.15 + i*0.18),
+            cy: H * (0.35 + (i%2)*0.3),
+            r: 18 + Math.random()*12,
+            phase: Math.random()*Math.PI*2,
+            color: i%2 === 0 ? [168,85,247] : [14,165,233]
           });
         }
         ctx.clearRect(0,0,W,H);
 
-        // ── Subtle wave field (3 layered sine waves) ──
+        // ── Layer 1: Subtle background wave field ──
         const waves = [
-          { y: H*0.3, amp: 14, freq: 0.008, speed: 0.005, color: 'rgba(168,85,247,.07)', thick: 1.5 },
-          { y: H*0.55, amp: 22, freq: 0.005, speed: 0.004, color: 'rgba(14,165,233,.06)', thick: 1.8 },
-          { y: H*0.8, amp: 10, freq: 0.011, speed: 0.006, color: 'rgba(168,85,247,.05)', thick: 1.2 },
+          { y: H*0.25, amp: 18, freq: 0.006, speed: 0.003, col:'rgba(168,85,247,.05)',  thick: 1.4 },
+          { y: H*0.5,  amp: 28, freq: 0.004, speed: 0.0035, col:'rgba(14,165,233,.055)', thick: 1.8 },
+          { y: H*0.72, amp: 14, freq: 0.009, speed: 0.0045, col:'rgba(249,115,22,.04)', thick: 1.2 },
+          { y: H*0.88, amp: 22, freq: 0.005, speed: 0.0025, col:'rgba(168,85,247,.04)', thick: 1.3 }
         ];
         waves.forEach(w => {
-          ctx.strokeStyle = w.color;
+          ctx.strokeStyle = w.col;
           ctx.lineWidth = w.thick;
           ctx.beginPath();
           for(let px=0; px<=W; px+=3){
@@ -2090,246 +2104,432 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
           ctx.stroke();
         });
 
-        // ── Flowing particles riding the wave ──
+        // ── Layer 2: Flowing particles with parallax depth ──
         this.particles.forEach(p => {
-          p.x += p.vx;
+          p.x += p.vx * (0.4 + p.layer*0.8);  // parallax: deeper moves slower
           p.life += 1;
           if(p.x > W + 20){ p.x = -20; p.y = Math.random()*H; p.life = 0; }
 
-          // Wave-modulated y
-          const waveY = p.y + p.amp * Math.sin(p.freq*p.x + p.phase + frame*0.012);
+          const waveY = p.y + p.amp * Math.sin(p.freq*p.x + p.phase + frame*0.01);
 
-          // Fade in/out based on life
-          const fade = Math.min(1, p.life/40) * Math.max(0, 1 - Math.abs(p.x - W/2)/(W*0.7));
-          const alpha = 0.35 * fade;
+          // Depth-based fading
+          const baseAlpha = 0.15 + p.layer*0.45;
+          const lifeFade = Math.min(1, p.life/30);
+          const alpha = baseAlpha * lifeFade;
 
-          ctx.fillStyle = p.color + alpha + ')';
-          ctx.shadowColor = p.color + (alpha * 0.6) + ')';
-          ctx.shadowBlur = 4;
+          // Color based on hue
+          let color;
+          if(p.hue < 0.4)      color = `rgba(168,85,247,${alpha})`;
+          else if(p.hue < 0.75) color = `rgba(14,165,233,${alpha})`;
+          else                  color = `rgba(251,191,36,${alpha*0.85})`;
+
+          // Glow for foreground particles only
+          if(p.layer > 0.5){
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 3 + p.layer*4;
+          }
+          ctx.fillStyle = color;
           ctx.beginPath();
-          ctx.arc(p.x, waveY, 1.8, 0, Math.PI*2);
+          ctx.arc(p.x, waveY, p.size * (0.5 + p.layer*0.7), 0, Math.PI*2);
           ctx.fill();
           ctx.shadowBlur = 0;
 
-          // Short trail behind particle
-          ctx.strokeStyle = p.color + (alpha * 0.25) + ')';
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(p.x, waveY);
-          const trailLen = 16;
-          for(let k=1; k<=trailLen; k+=2){
-            const tx = p.x - k;
-            const ty = p.y + p.amp * Math.sin(p.freq*tx + p.phase + frame*0.012);
-            ctx.lineTo(tx, ty);
+          // Trail (foreground only)
+          if(p.layer > 0.6){
+            ctx.strokeStyle = color.replace(/[\d.]+\)$/, (alpha*0.3).toFixed(2)+')');
+            ctx.lineWidth = 0.8;
+            ctx.beginPath();
+            ctx.moveTo(p.x, waveY);
+            for(let k=2; k<=20; k+=3){
+              const tx = p.x - k;
+              const ty = p.y + p.amp * Math.sin(p.freq*tx + p.phase + frame*0.01);
+              ctx.lineTo(tx, ty);
+            }
+            ctx.stroke();
           }
+        });
+
+        // ── Layer 3: Orbital nodes (foreground focal points) ──
+        this.nodes.forEach((n, idx) => {
+          const pulse = 0.6 + 0.4*Math.sin(frame*0.02 + n.phase);
+          const r = n.r * (0.85 + pulse*0.35);
+          const [R,G,B] = n.color;
+
+          // Outer glow ring
+          const grad = ctx.createRadialGradient(n.cx, n.cy, 0, n.cx, n.cy, r*2.5);
+          grad.addColorStop(0,   `rgba(${R},${G},${B},${0.25*pulse})`);
+          grad.addColorStop(0.5, `rgba(${R},${G},${B},${0.08*pulse})`);
+          grad.addColorStop(1,   `rgba(${R},${G},${B},0)`);
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(n.cx, n.cy, r*2.5, 0, Math.PI*2);
+          ctx.fill();
+
+          // Inner ring stroke
+          ctx.strokeStyle = `rgba(${R},${G},${B},0.4)`;
+          ctx.lineWidth = 1.4;
+          ctx.beginPath();
+          ctx.arc(n.cx, n.cy, r, 0, Math.PI*2);
           ctx.stroke();
+
+          // Core dot
+          ctx.fillStyle = `rgba(${R},${G},${B},0.85)`;
+          ctx.shadowColor = `rgba(${R},${G},${B},0.6)`;
+          ctx.shadowBlur = 10;
+          ctx.beginPath();
+          ctx.arc(n.cx, n.cy, 3, 0, Math.PI*2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
         });
       }
     },
 
-    // ═══ TUGAS: Mass-Spring Orbit — elegant amber/pink rotating masses ═══
-    // Multiple masses orbiting with elliptical damped paths
+    // ═══ TUGAS: Rotating Mass-Spring System — springs with energy flow ═══
+    // Elegant amber/pink: masses orbit with visible spring coils, energy pulses
     tugas: {
       orbits: null,
+      energyPulses: null,
       step(ctx, W, H, frame){
         if(!this.orbits){
           this.orbits = [];
-          for(let i=0;i<5;i++){
+          // Create elegant hub-and-satellite system
+          const hub = { cx: W*0.5, cy: H*0.5 };
+          const config = [
+            { r: 110, speed: 0.006, phase: 0,              col:[249,115,22], size: 4.5 },
+            { r: 80,  speed: -0.009, phase: Math.PI/2,      col:[251,191,36], size: 3.5 },
+            { r: 150, speed: 0.0045, phase: Math.PI,        col:[239,68,68],  size: 5 },
+            { r: 60,  speed: 0.012, phase: Math.PI*0.3,     col:[249,115,22], size: 3 },
+            { r: 180, speed: -0.0035, phase: Math.PI*1.5,   col:[251,113,133],size: 4 },
+          ];
+          config.forEach(c => {
             this.orbits.push({
-              cx: W*(0.2 + i*0.15),
-              cy: H*(0.3 + (i%2)*0.4),
-              rx: 40 + i*22,
-              ry: 28 + i*14,
-              speed: 0.008 + i*0.0025,
-              phase: i*Math.PI/3,
-              rotation: i*Math.PI/5,
-              color: i%2 === 0 ? 'rgba(249,115,22,' : 'rgba(239,68,68,',
+              ...c,
+              cx: hub.cx, cy: hub.cy,
               trail: []
             });
-          }
+          });
+          this.hub = hub;
+          this.energyPulses = [];
         }
         ctx.clearRect(0,0,W,H);
 
-        this.orbits.forEach(o => {
-          // Ellipse guide (faint)
-          ctx.save();
-          ctx.translate(o.cx, o.cy);
-          ctx.rotate(o.rotation);
-          ctx.strokeStyle = o.color + '0.06)';
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.ellipse(0, 0, o.rx, o.ry, 0, 0, Math.PI*2);
-          ctx.stroke();
-          ctx.restore();
+        // ── Background: radial warm glow ──
+        const bgGrad = ctx.createRadialGradient(this.hub.cx, this.hub.cy, 0, this.hub.cx, this.hub.cy, Math.max(W,H)*0.6);
+        bgGrad.addColorStop(0, 'rgba(249,115,22,.08)');
+        bgGrad.addColorStop(0.5, 'rgba(251,113,133,.04)');
+        bgGrad.addColorStop(1, 'rgba(249,115,22,0)');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0,0,W,H);
 
-          // Compute mass position (damped wobble)
+        // ── Draw each orbit ──
+        this.orbits.forEach((o, idx) => {
           const t = frame * o.speed + o.phase;
-          const ex = o.rx * Math.cos(t);
-          const ey = o.ry * Math.sin(t);
-          // Rotate ellipse frame
-          const mx = o.cx + ex*Math.cos(o.rotation) - ey*Math.sin(o.rotation);
-          const my = o.cy + ex*Math.sin(o.rotation) + ey*Math.cos(o.rotation);
+          const mx = o.cx + o.r * Math.cos(t);
+          const my = o.cy + o.r * Math.sin(t);
 
           // Store trail
           o.trail.push({ x: mx, y: my });
-          if(o.trail.length > 28) o.trail.shift();
+          if(o.trail.length > 50) o.trail.shift();
 
-          // Draw trail with fading
-          ctx.strokeStyle = o.color + '0.18)';
-          ctx.lineWidth = 1.4;
+          // Faint orbit ring
+          ctx.strokeStyle = `rgba(${o.col[0]},${o.col[1]},${o.col[2]},0.08)`;
+          ctx.lineWidth = 1;
           ctx.beginPath();
-          o.trail.forEach((pt, i) => {
-            const alpha = i / o.trail.length;
-            ctx.globalAlpha = alpha * 0.65;
-            if(i === 0) ctx.moveTo(pt.x, pt.y);
-            else ctx.lineTo(pt.x, pt.y);
-          });
+          ctx.arc(o.cx, o.cy, o.r, 0, Math.PI*2);
           ctx.stroke();
-          ctx.globalAlpha = 1;
 
-          // Draw mass (with glow)
-          ctx.fillStyle = o.color + '0.75)';
-          ctx.shadowColor = o.color + '0.4)';
-          ctx.shadowBlur = 8;
+          // Trail with fading
+          ctx.lineWidth = 1.8;
+          for(let i=1; i<o.trail.length; i++){
+            const alpha = (i / o.trail.length) * 0.55;
+            ctx.strokeStyle = `rgba(${o.col[0]},${o.col[1]},${o.col[2]},${alpha})`;
+            ctx.beginPath();
+            ctx.moveTo(o.trail[i-1].x, o.trail[i-1].y);
+            ctx.lineTo(o.trail[i].x, o.trail[i].y);
+            ctx.stroke();
+          }
+
+          // Spring coil from center to mass (zigzag)
+          ctx.strokeStyle = `rgba(${o.col[0]},${o.col[1]},${o.col[2]},0.18)`;
+          ctx.lineWidth = 1.2;
           ctx.beginPath();
-          ctx.arc(mx, my, 3, 0, Math.PI*2);
+          const coilSteps = 18;
+          const dx = mx - o.cx, dy = my - o.cy;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          const perpX = -dy/dist, perpY = dx/dist;
+          const coilAmp = 3.5;
+          ctx.moveTo(o.cx, o.cy);
+          for(let k=1; k<=coilSteps; k++){
+            const f = k / coilSteps;
+            const bx = o.cx + dx*f;
+            const by = o.cy + dy*f;
+            const coilPhase = Math.sin(f * Math.PI * 6 + frame*0.05) * coilAmp * Math.sin(f*Math.PI);
+            ctx.lineTo(bx + perpX*coilPhase, by + perpY*coilPhase);
+          }
+          ctx.lineTo(mx, my);
+          ctx.stroke();
+
+          // Mass (with rich glow)
+          ctx.fillStyle = `rgba(${o.col[0]},${o.col[1]},${o.col[2]},0.95)`;
+          ctx.shadowColor = `rgba(${o.col[0]},${o.col[1]},${o.col[2]},0.7)`;
+          ctx.shadowBlur = 14;
+          ctx.beginPath();
+          ctx.arc(mx, my, o.size, 0, Math.PI*2);
           ctx.fill();
           ctx.shadowBlur = 0;
 
-          // Spring line from center to mass (dashed, faint)
-          ctx.strokeStyle = o.color + '0.12)';
-          ctx.lineWidth = 1;
-          ctx.setLineDash([2,3]);
-          ctx.beginPath();
-          ctx.moveTo(o.cx, o.cy);
-          ctx.lineTo(mx, my);
-          ctx.stroke();
-          ctx.setLineDash([]);
-
-          // Center anchor
-          ctx.fillStyle = o.color + '0.35)';
-          ctx.beginPath();
-          ctx.arc(o.cx, o.cy, 2, 0, Math.PI*2);
-          ctx.fill();
+          // Spawn energy pulse occasionally
+          if(frame % 90 === (idx*17) % 90){
+            this.energyPulses.push({
+              cx: o.cx, cy: o.cy,
+              tx: mx, ty: my,
+              life: 0,
+              maxLife: 30,
+              col: o.col
+            });
+          }
         });
+
+        // ── Energy pulses (traveling from hub to mass) ──
+        this.energyPulses = this.energyPulses.filter(p => p.life < p.maxLife);
+        this.energyPulses.forEach(p => {
+          p.life += 1;
+          const f = p.life / p.maxLife;
+          const px = p.cx + (p.tx - p.cx) * f;
+          const py = p.cy + (p.ty - p.cy) * f;
+          const alpha = 0.75 * (1 - f);
+          ctx.fillStyle = `rgba(${p.col[0]},${p.col[1]},${p.col[2]},${alpha})`;
+          ctx.shadowColor = `rgba(${p.col[0]},${p.col[1]},${p.col[2]},${alpha*0.8})`;
+          ctx.shadowBlur = 10;
+          ctx.beginPath();
+          ctx.arc(px, py, 2.5, 0, Math.PI*2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        });
+
+        // ── Hub center (rotating star) ──
+        ctx.save();
+        ctx.translate(this.hub.cx, this.hub.cy);
+        ctx.rotate(frame * 0.003);
+        ctx.strokeStyle = 'rgba(251,191,36,.5)';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        for(let k=0; k<6; k++){
+          const ang = (k/6) * Math.PI*2;
+          ctx.moveTo(0, 0);
+          ctx.lineTo(14*Math.cos(ang), 14*Math.sin(ang));
+        }
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(251,191,36,.9)';
+        ctx.shadowColor = 'rgba(251,191,36,.6)';
+        ctx.shadowBlur = 12;
+        ctx.beginPath();
+        ctx.arc(0, 0, 5, 0, Math.PI*2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.restore();
       }
     },
 
-    // ═══ FORUM: Resonance Bloom — elegant green/teal DMF curves ═══
-    // Multiple DMF-shaped curves blooming outward in waves
+    // ═══ FORUM: Resonance Wave Expansion — concentric rings + DMF curve ═══
+    // Rich green/teal/violet with expanding rings at resonance frequency
     forum: {
-      blooms: null,
+      rings: null,
+      particles: null,
       step(ctx, W, H, frame){
-        if(!this.blooms){
-          this.blooms = [];
-          for(let i=0;i<4;i++){
-            this.blooms.push({
-              cy: H*0.55,
-              zeta: 0.08 + i*0.05,
-              color: i%2 === 0 ? 'rgba(0,224,158,' : 'rgba(45,212,191,',
-              phase: i*0.15,
-              baseAmp: 0.85 - i*0.12
+        if(!this.rings){
+          this.rings = [];
+          for(let i=0;i<6;i++) this.rings.push({
+            age: i*50,
+            maxAge: 300
+          });
+          // Ambient particles drifting
+          this.particles = [];
+          for(let i=0;i<60;i++) this.particles.push({
+            x: Math.random()*W,
+            y: Math.random()*H,
+            vx: (Math.random()-0.5)*0.2,
+            vy: (Math.random()-0.5)*0.15,
+            size: 0.6 + Math.random()*1.6,
+            phase: Math.random()*Math.PI*2,
+            twinkleSpeed: 0.008 + Math.random()*0.015,
+            col: Math.random() < 0.6 ? [0,224,158] : (Math.random() < 0.5 ? [45,212,191] : [168,85,247])
+          });
+        }
+        ctx.clearRect(0,0,W,H);
+
+        const cx = W * 0.5;
+        const cy = H * 0.55;
+
+        // ── Background: radial gradient (cool tone) ──
+        const bgGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(W,H)*0.7);
+        bgGrad.addColorStop(0, 'rgba(0,224,158,.07)');
+        bgGrad.addColorStop(0.4, 'rgba(45,212,191,.04)');
+        bgGrad.addColorStop(1, 'rgba(168,85,247,0)');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0,0,W,H);
+
+        // ── Ambient drifting particles ──
+        this.particles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.phase += p.twinkleSpeed;
+          if(p.x < -5) p.x = W+5;
+          if(p.x > W+5) p.x = -5;
+          if(p.y < -5) p.y = H+5;
+          if(p.y > H+5) p.y = -5;
+
+          const twinkle = 0.3 + 0.5*(0.5 + 0.5*Math.sin(p.phase));
+          ctx.fillStyle = `rgba(${p.col[0]},${p.col[1]},${p.col[2]},${twinkle*0.45})`;
+          ctx.shadowColor = `rgba(${p.col[0]},${p.col[1]},${p.col[2]},${twinkle*0.3})`;
+          ctx.shadowBlur = 3;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        });
+
+        // ── Expanding resonance rings from center ──
+        this.rings.forEach(r => {
+          r.age += 1;
+          if(r.age > r.maxAge){ r.age = 0; }
+
+          const f = r.age / r.maxAge;
+          const radius = f * Math.max(W,H)*0.55;
+          const alpha = (1 - f) * 0.35;
+
+          // Multi-color ring gradient
+          ctx.strokeStyle = `rgba(0,224,158,${alpha})`;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(cx, cy, radius, 0, Math.PI*2);
+          ctx.stroke();
+
+          // Inner accent ring (slightly smaller)
+          if(radius > 15){
+            ctx.strokeStyle = `rgba(45,212,191,${alpha*0.5})`;
+            ctx.lineWidth = 0.8;
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius - 6, 0, Math.PI*2);
+            ctx.stroke();
+          }
+        });
+
+        // ── DMF curve prominently displayed at top ──
+        const dmfY = H * 0.22;
+        const dmfH = 60;
+        const zeta = 0.1;
+        ctx.strokeStyle = 'rgba(0,224,158,.45)';
+        ctx.shadowColor = 'rgba(0,224,158,.3)';
+        ctx.shadowBlur = 6;
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        for(let px=W*0.1; px<=W*0.9; px+=3){
+          const r = ((px - W*0.1) / (W*0.8)) * 2.5;
+          const dmf = 1 / Math.sqrt((1-r*r)*(1-r*r) + (2*zeta*r)*(2*zeta*r));
+          const y = dmfY - Math.min(dmfH, dmf*12);
+          if(px <= W*0.1 + 3) ctx.moveTo(px, y); else ctx.lineTo(px, y);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // ── Rotating petals at resonance center (8 blossoming petals) ──
+        const N_PETALS = 8;
+        for(let k=0; k<N_PETALS; k++){
+          const ang = (k/N_PETALS) * Math.PI*2 + frame*0.004;
+          const pulseR = 28 + 18*Math.sin(frame*0.01 + k*0.4);
+          const px = cx + pulseR*Math.cos(ang);
+          const py = cy + pulseR*Math.sin(ang);
+          const alpha = 0.45 * (0.6 + 0.4*Math.sin(frame*0.01 + k*0.8));
+
+          // Petal shape (small ellipse pointing outward)
+          ctx.save();
+          ctx.translate(px, py);
+          ctx.rotate(ang);
+          ctx.fillStyle = `rgba(0,224,158,${alpha})`;
+          ctx.shadowColor = `rgba(0,224,158,${alpha*0.6})`;
+          ctx.shadowBlur = 8;
+          ctx.beginPath();
+          ctx.ellipse(0, 0, 5, 2.5, 0, 0, Math.PI*2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+          ctx.restore();
+        }
+
+        // ── Core (resonance point) ──
+        const coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 18);
+        coreGrad.addColorStop(0, 'rgba(0,224,158,.9)');
+        coreGrad.addColorStop(0.5, 'rgba(45,212,191,.4)');
+        coreGrad.addColorStop(1, 'rgba(0,224,158,0)');
+        ctx.fillStyle = coreGrad;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 18, 0, Math.PI*2);
+        ctx.fill();
+
+        ctx.fillStyle = 'rgba(0,224,158,1)';
+        ctx.shadowColor = 'rgba(0,224,158,.8)';
+        ctx.shadowBlur = 14;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 3, 0, Math.PI*2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+    },
+
+    // ═══ HASIL: Cosmic Constellation — richer stars + aurora sweeps ═══
+    // Deep indigo/gold with aurora-like light bands and shooting stars
+    hasil: {
+      stars: null,
+      shootingStar: null,
+      step(ctx, W, H, frame){
+        if(!this.stars){
+          this.stars = [];
+          // Richer distribution with 3 size tiers
+          for(let i=0;i<70;i++){
+            const tier = Math.random();
+            this.stars.push({
+              x: Math.random()*W,
+              y: Math.random()*H,
+              r: tier < 0.7 ? (0.5 + Math.random()*1.2) : (tier < 0.95 ? (1.5 + Math.random()*1.5) : (2.5 + Math.random()*2)),
+              twinkle: Math.random()*Math.PI*2,
+              twinkleSpeed: 0.01 + Math.random()*0.025,
+              col: Math.random() < 0.25 ? 'rgba(251,191,36,' : (Math.random() < 0.5 ? 'rgba(236,72,153,' : 'rgba(129,140,248,')
             });
           }
         }
         ctx.clearRect(0,0,W,H);
 
-        // ── Horizontal reference line (very subtle) ──
-        ctx.strokeStyle = 'rgba(0,224,158,.04)';
+        // ── Aurora: horizontal light band sweeping top ──
+        const auroraY = H*0.15 + 20*Math.sin(frame*0.003);
+        const auroraGrad = ctx.createLinearGradient(0, auroraY - 40, 0, auroraY + 60);
+        auroraGrad.addColorStop(0,   'rgba(129,140,248,0)');
+        auroraGrad.addColorStop(0.4, 'rgba(129,140,248,.12)');
+        auroraGrad.addColorStop(0.6, 'rgba(251,191,36,.08)');
+        auroraGrad.addColorStop(1,   'rgba(236,72,153,0)');
+        ctx.fillStyle = auroraGrad;
+        ctx.fillRect(0, auroraY - 40, W, 100);
+
+        // Aurora wavy line accent
+        ctx.strokeStyle = 'rgba(251,191,36,.25)';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(0, H*0.55);
-        ctx.lineTo(W, H*0.55);
+        for(let px=0; px<=W; px+=4){
+          const y = auroraY + 8*Math.sin(px*0.01 + frame*0.008);
+          if(px===0) ctx.moveTo(px, y); else ctx.lineTo(px, y);
+        }
         ctx.stroke();
 
-        // ── Resonance marker (vertical) at r=1 position ──
-        const rMarkX = W * 0.45;
-        ctx.strokeStyle = 'rgba(168,85,247,.08)';
-        ctx.lineWidth = 1;
-        ctx.setLineDash([4,6]);
-        ctx.beginPath();
-        ctx.moveTo(rMarkX, H*0.15);
-        ctx.lineTo(rMarkX, H*0.9);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        // ── DMF curves blooming ──
-        this.blooms.forEach((b, idx) => {
-          const pulse = 1 + 0.12*Math.sin(frame*0.008 + b.phase);
-          const amp = b.baseAmp * pulse;
-
-          ctx.strokeStyle = b.color + '0.3)';
-          ctx.shadowColor = b.color + '0.2)';
-          ctx.shadowBlur = 4;
-          ctx.lineWidth = 1.6 + idx*0.2;
-          ctx.beginPath();
-
-          for(let px=0; px<=W; px+=3){
-            // Map px to r: r ranges 0 to 3, peak at rMarkX (r=1)
-            const r = (px / rMarkX) * 1.0;
-            const dmf = 1 / Math.sqrt((1-r*r)*(1-r*r) + (2*b.zeta*r)*(2*b.zeta*r));
-            const y = b.cy - (H*0.35) * Math.min(amp * dmf / 6, 0.9);
-            if(px===0) ctx.moveTo(px, y); else ctx.lineTo(px, y);
-          }
-          ctx.stroke();
-          ctx.shadowBlur = 0;
-        });
-
-        // ── Petal/Bloom particles radiating from resonance point ──
-        const N_PETALS = 8;
-        for(let k=0; k<N_PETALS; k++){
-          const ang = (k/N_PETALS) * Math.PI*2 + frame*0.005;
-          const pulseR = 40 + 25*Math.sin(frame*0.012 + k);
-          const px = rMarkX + pulseR*Math.cos(ang);
-          const py = H*0.55 + pulseR*Math.sin(ang);
-          const alpha = 0.3 * (0.5 + 0.5*Math.sin(frame*0.012 + k*0.8));
-          ctx.fillStyle = `rgba(0,224,158,${alpha})`;
-          ctx.shadowColor = `rgba(0,224,158,${alpha*0.5})`;
-          ctx.shadowBlur = 6;
-          ctx.beginPath();
-          ctx.arc(px, py, 2, 0, Math.PI*2);
-          ctx.fill();
-          ctx.shadowBlur = 0;
-        }
-
-        // ── Soft radial glow at resonance peak ──
-        const glowGrad = ctx.createRadialGradient(rMarkX, H*0.2, 0, rMarkX, H*0.2, 60);
-        glowGrad.addColorStop(0, 'rgba(0,224,158,.12)');
-        glowGrad.addColorStop(1, 'rgba(0,224,158,0)');
-        ctx.fillStyle = glowGrad;
-        ctx.fillRect(rMarkX - 60, H*0.2 - 60, 120, 120);
-      }
-    },
-
-    // ═══ HASIL: Constellation — elegant indigo/gold achievement ═══
-    // Star field with connecting lines between nearby points
-    hasil: {
-      stars: null,
-      step(ctx, W, H, frame){
-        if(!this.stars){
-          this.stars = [];
-          for(let i=0;i<45;i++) this.stars.push({
-            x: Math.random()*W,
-            y: Math.random()*H,
-            r: 0.8 + Math.random()*1.8,
-            twinkle: Math.random()*Math.PI*2,
-            twinkleSpeed: 0.015 + Math.random()*0.02,
-            color: Math.random() < 0.35 ? 'rgba(251,191,36,' : 'rgba(129,140,248,'
-          });
-        }
-        ctx.clearRect(0,0,W,H);
-
-        // ── Connect nearby stars with faint lines ──
-        const maxDist = 110;
+        // ── Constellation lines (connect nearby stars) ──
+        const maxDist = 120;
         for(let i=0;i<this.stars.length;i++){
           for(let j=i+1;j<this.stars.length;j++){
             const a = this.stars[i], b = this.stars[j];
             const dx = a.x-b.x, dy = a.y-b.y;
             const d = Math.sqrt(dx*dx + dy*dy);
             if(d < maxDist){
-              const alpha = (1 - d/maxDist) * 0.15;
+              const alpha = (1 - d/maxDist) * 0.18;
               ctx.strokeStyle = `rgba(129,140,248,${alpha})`;
-              ctx.lineWidth = 0.5;
+              ctx.lineWidth = 0.6;
               ctx.beginPath();
               ctx.moveTo(a.x, a.y);
               ctx.lineTo(b.x, b.y);
@@ -2338,28 +2538,39 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
           }
         }
 
-        // ── Twinkling stars ──
+        // ── Stars (twinkling with size tiers) ──
         this.stars.forEach(s => {
           s.twinkle += s.twinkleSpeed;
-          const brightness = 0.4 + 0.5 * (0.5 + 0.5*Math.sin(s.twinkle));
-          ctx.fillStyle = s.color + brightness + ')';
-          ctx.shadowColor = s.color + (brightness*0.6) + ')';
-          ctx.shadowBlur = 4;
+          const brightness = 0.4 + 0.55 * (0.5 + 0.5*Math.sin(s.twinkle));
+
+          // Bigger stars get cross-shaped glare
+          if(s.r > 2){
+            ctx.strokeStyle = s.col + (brightness*0.3) + ')';
+            ctx.lineWidth = 0.8;
+            ctx.beginPath();
+            ctx.moveTo(s.x - s.r*2.5, s.y); ctx.lineTo(s.x + s.r*2.5, s.y);
+            ctx.moveTo(s.x, s.y - s.r*2.5); ctx.lineTo(s.x, s.y + s.r*2.5);
+            ctx.stroke();
+          }
+
+          ctx.fillStyle = s.col + brightness + ')';
+          ctx.shadowColor = s.col + (brightness*0.7) + ')';
+          ctx.shadowBlur = s.r > 1.5 ? 8 : 4;
           ctx.beginPath();
           ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
           ctx.fill();
           ctx.shadowBlur = 0;
         });
 
-        // ── Occasional shooting star ──
-        if(frame % 180 === 0){
+        // ── Shooting star (periodic) ──
+        if(frame % 200 === 0 || !this.shootingStar){
           this.shootingStar = {
-            x: Math.random()*W*0.5,
+            x: Math.random()*W*0.4,
             y: Math.random()*H*0.3,
-            vx: 3 + Math.random()*2,
-            vy: 1 + Math.random()*1.5,
+            vx: 3.5 + Math.random()*2,
+            vy: 1.2 + Math.random()*1.5,
             life: 0,
-            maxLife: 40
+            maxLife: 50
           };
         }
         if(this.shootingStar && this.shootingStar.life < this.shootingStar.maxLife){
@@ -2368,18 +2579,22 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
           s.y += s.vy;
           s.life += 1;
           const fade = 1 - s.life/s.maxLife;
-          // Trail
-          ctx.strokeStyle = `rgba(251,191,36,${fade*0.6})`;
-          ctx.lineWidth = 1.5;
-          ctx.shadowColor = 'rgba(251,191,36,.4)';
-          ctx.shadowBlur = 6;
+          // Long trail
+          const grad = ctx.createLinearGradient(s.x - s.vx*12, s.y - s.vy*12, s.x, s.y);
+          grad.addColorStop(0, 'rgba(251,191,36,0)');
+          grad.addColorStop(1, `rgba(251,191,36,${fade*0.8})`);
+          ctx.strokeStyle = grad;
+          ctx.lineWidth = 2;
+          ctx.shadowColor = 'rgba(251,191,36,.5)';
+          ctx.shadowBlur = 10;
           ctx.beginPath();
-          ctx.moveTo(s.x - s.vx*8, s.y - s.vy*8);
+          ctx.moveTo(s.x - s.vx*12, s.y - s.vy*12);
           ctx.lineTo(s.x, s.y);
           ctx.stroke();
+          // Head
           ctx.fillStyle = `rgba(251,191,36,${fade})`;
           ctx.beginPath();
-          ctx.arc(s.x, s.y, 2, 0, Math.PI*2);
+          ctx.arc(s.x, s.y, 2.5, 0, Math.PI*2);
           ctx.fill();
           ctx.shadowBlur = 0;
         }
@@ -2398,14 +2613,24 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
   const state = [];
 
   function setup(){
+    const dpr = Math.min(window.devicePixelRatio || 1, 2.5);  // cap at 2.5 for perf
     canvases.forEach(c => {
       const cv = document.getElementById(c.id);
       if(!cv) return;
       const parent = cv.parentElement;
       const rect = parent.getBoundingClientRect();
-      cv.width  = Math.max(300, Math.floor(rect.width));
-      cv.height = Math.max(300, Math.floor(rect.height));
-      state.push({ canvas: cv, ctx: cv.getContext('2d'), anim: animations[c.tab] });
+      const cssW = Math.max(300, Math.floor(rect.width));
+      const cssH = Math.max(300, Math.floor(rect.height));
+      // Set CSS size (what user sees)
+      cv.style.width  = cssW + 'px';
+      cv.style.height = cssH + 'px';
+      // Set buffer size (actual pixels rendered)
+      cv.width  = Math.floor(cssW * dpr);
+      cv.height = Math.floor(cssH * dpr);
+      const ctx = cv.getContext('2d');
+      // Scale so drawing uses CSS pixel coords but renders at DPR resolution
+      ctx.scale(dpr, dpr);
+      state.push({ canvas: cv, ctx, anim: animations[c.tab], cssW, cssH });
     });
   }
 
@@ -2414,7 +2639,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       // Only draw if the hero is actually visible (tab is active or nearly so)
       const page = s.canvas.closest('.page');
       if(page && !page.classList.contains('active')) return;
-      const W = s.canvas.width, H = s.canvas.height;
+      const W = s.cssW, H = s.cssH;
       if(W < 50 || H < 50) return;
       s.anim.step(s.ctx, W, H, frame);
     });
