@@ -628,6 +628,19 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
+<!-- Dosen Login Modal (password admin dengan masking) -->
+<div class="visitor-overlay hidden" id="dosenLoginOverlay" style="z-index:100001;">
+  <div class="visitor-modal" style="max-width:420px;">
+    <div style="font-size:2.4rem;margin-bottom:12px;">👨‍🏫</div>
+    <h2 style="font-size:1.3rem;">Login sebagai Dosen</h2>
+    <p class="sub">Masukkan password admin untuk melanjutkan sebagai dosen.</p>
+    <p class="v-error" id="dosenLoginError"></p>
+    <input type="password" class="v-input" id="dosenLoginPw" placeholder="Password admin" autocomplete="off">
+    <button class="v-btn-primary" id="dosenLoginBtn" onclick="submitDosenLogin()">Masuk sebagai Dosen</button>
+    <button class="v-btn-cancel" onclick="cancelDosenLogin()" style="margin-top:8px;">Batal</button>
+  </div>
+</div>
+
 <!-- Schedule Modal -->
 <div class="visitor-overlay hidden" id="scheduleOverlay" style="z-index:100000;">
   <div class="visitor-modal" style="max-width:480px;width:95%;">
@@ -4661,20 +4674,25 @@ async function submitVisitor(){
 
   // ─── DOSEN: Verifikasi password admin (bukan PIN) ───
   if (isDosen) {
-    const pwInput = prompt('Login sebagai Dosen\n\nMasukkan password admin:');
+    // Sembunyikan overlay login utama selagi dosen modal terbuka agar fokus jelas
+    document.getElementById('visitorOverlay').classList.add('hidden');
+    const pwInput = await askAdminPassword();
     if (pwInput === null) {
+      // Dibatalkan — kembalikan overlay login utama
+      document.getElementById('visitorOverlay').classList.remove('hidden');
       err.textContent = '\u26a0 Login dibatalkan.'; err.style.display = 'block'; return;
     }
     if (!pwInput) {
+      document.getElementById('visitorOverlay').classList.remove('hidden');
       err.textContent = '\u26a0 Password wajib diisi.'; err.style.display = 'block'; return;
     }
     const ok = await _verifyAdminPw(pwInput);
     if (!ok) {
+      document.getElementById('visitorOverlay').classList.remove('hidden');
       err.textContent = '\u26a0 Password admin salah.'; err.style.display = 'block'; return;
     }
     err.style.display = 'none';
     saveIdentity({nama, nim:'DOSEN', role:'dosen', timestamp:new Date().toISOString()});
-    document.getElementById('visitorOverlay').classList.add('hidden');
     document.getElementById('visitorFab').style.display='flex';
     return;
   }
@@ -4961,6 +4979,52 @@ async function submitPinVerify() {
 window.submitPinSetup = submitPinSetup;
 window.submitPinVerify = submitPinVerify;
 window.cancelPinFlow = cancelPinFlow;
+
+// ═══════════════════════════════════════════════════════
+// DOSEN LOGIN MODAL — Password dengan masking (•••)
+// Promise-based: askAdminPassword() resolve ke string input atau null (cancel).
+// Menggantikan prompt() native yang menampilkan password plaintext.
+// ═══════════════════════════════════════════════════════
+let _dosenLoginResolver = null;   // disimpan untuk di-panggil dari submit/cancel
+
+function askAdminPassword() {
+  return new Promise((resolve) => {
+    _dosenLoginResolver = resolve;
+    const pwEl = document.getElementById('dosenLoginPw');
+    const errEl = document.getElementById('dosenLoginError');
+    pwEl.value = '';
+    errEl.textContent = '';
+    errEl.style.display = 'none';
+    document.getElementById('dosenLoginOverlay').classList.remove('hidden');
+    setTimeout(() => pwEl.focus(), 100);
+  });
+}
+
+function submitDosenLogin() {
+  const pw = document.getElementById('dosenLoginPw').value;
+  document.getElementById('dosenLoginOverlay').classList.add('hidden');
+  if (_dosenLoginResolver) {
+    _dosenLoginResolver(pw);
+    _dosenLoginResolver = null;
+  }
+}
+
+function cancelDosenLogin() {
+  document.getElementById('dosenLoginOverlay').classList.add('hidden');
+  if (_dosenLoginResolver) {
+    _dosenLoginResolver(null);   // null = cancelled
+    _dosenLoginResolver = null;
+  }
+}
+
+// Enter → submit
+document.getElementById('dosenLoginPw').addEventListener('keydown', function(e){
+  if (e.key === 'Enter') submitDosenLogin();
+  if (e.key === 'Escape') cancelDosenLogin();
+});
+
+window.submitDosenLogin = submitDosenLogin;
+window.cancelDosenLogin = cancelDosenLogin;
 
 
 function showResetModal(){document.getElementById('resetOverlay').classList.remove('hidden');document.getElementById('resetPw').value='';document.getElementById('resetError').style.display='none';setTimeout(()=>document.getElementById('resetPw').focus(),100);}
