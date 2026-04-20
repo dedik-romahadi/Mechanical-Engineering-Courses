@@ -2607,8 +2607,9 @@ function cpC(btn){
   }).catch(()=>{btn.textContent='❌ Error';});
 }
 
-// ── EXPORT TUGAS PDF ──
 // ── CHECK EXPORT READY ──
+// Modul-4 Getaran Mekanik: 5 MC + 10 Komputasi = 25 poin
+// (berbeda dengan template generic 10+10=30; lihat Pedoman-Modul §15.1b legacy variants)
 function checkExportReady() {
   const gdriveVal = (document.getElementById('gdrive-link')?.value || '').trim();
   const gfb = document.getElementById('gdrive-feedback');
@@ -2616,12 +2617,12 @@ function checkExportReady() {
   const btnTop    = document.getElementById('btn-score-export');
   const msgEl     = document.getElementById('export-blocked-msg');
 
-  // Check all comp questions answered (via Pyodide run)
+  // Check all comp questions answered (via Pyodide run) — 10 soal Getaran
   const ids = ['c1','c2','c3','c4','c5','c6','c7','c8','c9','c10'];
   const emptyNums = ids.filter(id => !compAnswered[id]);
 
-  // Check MC all answered
-  const mcIds = ['mc1','mc2','mc3','mc4','mc5','mc6','mc7','mc8','mc9','mc10'];
+  // Check MC all answered — Modul-4 Getaran: HANYA 5 soal MC (mc1..mc5)
+  const mcIds = ['mc1','mc2','mc3','mc4','mc5'];
   const emptyMC = mcIds.filter(id => !mcAnswered[id]);
 
   const gdriveOk = gdriveVal.length > 10 && (gdriveVal.startsWith('https://drive.google.com') || gdriveVal.startsWith('http'));
@@ -2631,8 +2632,8 @@ function checkExportReady() {
   // Update Google Drive field feedback
   if (gfb) {
     if (!gdriveVal) gfb.textContent = '';
-    else if (!gdriveOk) { gfb.style.color = 'var(--amber)'; gfb.textContent = '⚠ Masukkan link Google Drive yang valid (https://drive.google.com/...)'; }
-    else { gfb.style.color = 'var(--green)'; gfb.textContent = '✅ Link valid'; }
+    else if (!gdriveOk) { gfb.style.color = 'var(--amber)'; gfb.textContent = '\u26a0 Masukkan link Google Drive yang valid (https://drive.google.com/...)'; }
+    else { gfb.style.color = 'var(--green)'; gfb.textContent = '\u2705 Link valid'; }
   }
 
   // Enable/disable export buttons
@@ -2648,7 +2649,7 @@ function checkExportReady() {
     if (emptyMC.length)   parts.push(emptyMC.length + ' soal pilihan ganda belum dijawab');
     if (emptyNums.length) parts.push(emptyNums.length + ' soal komputasi belum diisi');
     if (!gdriveOk)        parts.push('Link Google Drive belum diisi');
-    msgEl.textContent = '⚠ ' + parts.join(' · ');
+    msgEl.textContent = '\u26a0 ' + parts.join(' \u00b7 ');
   }
 }
 
@@ -5174,6 +5175,7 @@ window._loadScoredQuestions = function() {
       }
     });
     updateScore();
+    if (typeof checkExportReady === 'function') checkExportReady();
   }).catch(()=>{});
 };
 
