@@ -572,12 +572,12 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="visitor-modal" style="max-width:420px;">
     <div style="font-size:2.4rem;margin-bottom:12px;">🔐</div>
     <h2 style="font-size:1.3rem;">Buat PIN Keamanan</h2>
-    <p class="sub" id="pinSetupSubtitle">Hai <strong id="pinSetupName"></strong>! Buat PIN 6 digit untuk melindungi identitas Anda. PIN ini akan diminta setiap kali Anda login.</p>
+    <p class="sub" id="pinSetupSubtitle">Hai <strong id="pinSetupName"></strong>! Buat PIN 6 digit sebagai kredensial login Anda. <strong>PIN ini berlaku untuk semua mata kuliah dan modul</strong> — cukup setup sekali.</p>
     <p class="v-error" id="pinSetupError"></p>
     <input type="password" class="v-input" id="pinSetupInput1" placeholder="PIN (6 digit)" inputmode="numeric" maxlength="6" autocomplete="off" style="letter-spacing:8px;text-align:center;font-size:1.2rem;">
     <input type="password" class="v-input" id="pinSetupInput2" placeholder="Konfirmasi PIN" inputmode="numeric" maxlength="6" autocomplete="off" style="letter-spacing:8px;text-align:center;font-size:1.2rem;">
     <div style="background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);border-radius:8px;padding:10px 14px;margin:10px 0;font-size:.78rem;color:#fcd34d;line-height:1.5;">
-      💡 <strong>Penting:</strong> Ingat PIN Anda! Jika lupa, hubungi dosen untuk reset. PIN tidak dapat dipulihkan otomatis.
+      💡 <strong>Penting:</strong> Ingat PIN Anda! PIN ini akan digunakan di semua mata kuliah. Jika lupa, hubungi dosen untuk reset global.
     </div>
     <button class="v-btn-primary" id="pinSetupBtn" onclick="submitPinSetup()">Simpan PIN &amp; Masuk</button>
     <button class="v-btn-cancel" onclick="cancelPinFlow()" style="margin-top:8px;">Batal</button>
@@ -4387,29 +4387,39 @@ async function submitVisitor(){
   }
   err.style.display='none';
 
-  // Cek Firebase: apakah mahasiswa sudah punya pinHash?
+  // ═══ GLOBAL PIN FLOW (Pedoman §8 — lintas-course/lintas-module) ═══
+  // 1. Cek pins/mhs_<NIM> node GLOBAL — jika ada → verifikasi
+  // 2. Jika tidak ada di pins/, auto-migrate dari visitor records legacy
+  // 3. Jika tetap tidak ada → setup PIN pertama kali
   const nowISO = new Date().toISOString();
   const schedOpen = now <= new Date(currentSchedule.end).getTime();
   const key = sanitizeKey('mhs_' + nim);
 
   try {
-    const snap = await get(ref(db, DB_PATH + '/' + key));
-    const existing = snap.exists() ? snap.val() : null;
+    // (1) Cek PIN global
+    const pinSnap = await get(ref(db, 'pins/' + key));
+    let existingPin = pinSnap.exists() ? pinSnap.val() : null;
 
-    _pinFlow = { nama, nim, nowISO, existingRecord: existing, schedOpen };
+    // (2) Fallback: auto-migrate dari visitor records legacy (pinHash di visitors/.../mhs_<NIM>)
+    if (!existingPin || !existingPin.pinHash) {
+      existingPin = await _tryMigrateLegacyPin(nim, nama);
+    }
 
-    if (existing && existing.pinHash) {
-      // Sudah punya PIN → minta verifikasi
-      document.getElementById('visitorOverlay').classList.add('hidden');
-      _showPinInput(nama);
+    // (3) Ambil visitor record di course/module CURRENT (untuk points/visitCount)
+    const visSnap = await get(ref(db, DB_PATH + '/' + key));
+    const existingVisitor = visSnap.exists() ? visSnap.val() : null;
+
+    _pinFlow = { nama, nim, nowISO, existingPin, existingVisitor, schedOpen };
+
+    document.getElementById('visitorOverlay').classList.add('hidden');
+    if (existingPin && existingPin.pinHash) {
+      _showPinInput(nama);   // sudah punya PIN global → verifikasi
     } else {
-      // Belum punya PIN (first-time) → setup PIN baru
-      document.getElementById('visitorOverlay').classList.add('hidden');
-      _showPinSetup(nama);
+      _showPinSetup(nama);    // belum punya PIN → setup pertama kali
     }
   } catch(e) {
     console.error('[Login] Failed to read Firebase:', e);
-    _pinFlow = { nama, nim, nowISO, existingRecord: null, schedOpen };
+    _pinFlow = { nama, nim, nowISO, existingPin: null, existingVisitor: null, schedOpen };
     document.getElementById('visitorOverlay').classList.add('hidden');
     _showPinSetup(nama);
   }
@@ -4490,7 +4500,7 @@ async function confirmReset(){
     RELATED_MODULES.forEach(mid => { localStorage.removeItem('optoauto_identity_' + mid); });
     btns.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';});
     hideResetModal();
-    _showResetToast('\u2705 Semua data berhasil dihapus (termasuk PIN). Mahasiswa akan membuat PIN baru saat login berikutnya.');
+    _showResetToast('\u2705 Data modul 4 berhasil dihapus. PIN global mahasiswa tetap aman di node pins/ (tidak ter-reset).');
     document.getElementById('visitorOverlay').classList.remove('hidden');
     document.getElementById('visitorFab').style.display='none';
     _applyRoleVisibility();
@@ -4792,17 +4802,32 @@ async function _verifyAdminPw(input) {
 }
 
 // ═══════════════════════════════════════════════════════
-// STUDENT PIN SYSTEM (6-digit, SHA-256 hashed — Pedoman §8)
-// Mahasiswa wajib menetapkan PIN 6-digit saat login pertama.
-// PIN disimpan di Firebase sebagai SHA-256 hash (field pinHash).
+// STUDENT PIN SYSTEM — GLOBAL LINTAS-COURSE (6-digit, SHA-256 hashed — Pedoman §8)
+// Sejak April 2026, PIN bersifat GLOBAL: satu mahasiswa punya satu PIN yang
+// berlaku di SEMUA mata kuliah (Math4, Getaran Mekanik, Optoauto) dan SEMUA
+// modul/pertemuan. Mahasiswa cukup setup PIN SEKALI, lalu bisa pakai PIN yang
+// sama untuk login di modul apapun.
+//
+// Firebase structure:
+//   pins/mhs_<NIM>/                 ← NODE GLOBAL (lintas-course)
+//     pinHash: string (64 char hex, SHA-256) — IMMUTABLE
+//     pinSetAt: string (ISO timestamp)         — IMMUTABLE
+//     nama: string
+//
+//   visitors/<course>/<module>/     ← Per-modul, TANPA pinHash
+//     mhs_<NIM>/
+//       nama, nim, role, timestamp, lastVisit, visitCount,
+//       points, pointTimestamp, scoredQuestions, consolationAwarded
+//
 // PIN lemah (123456, 654321, angka berulang, dll) ditolak saat setup.
 //
 // Cara reset PIN:
-//   (A) Reset semua — klik tombol 'Reset' di login overlay + masukkan
-//       password admin. Semua data (poin, kunjungan, PIN) terhapus.
-//   (B) Reset PIN satu mahasiswa — via Firebase Console: hapus field
-//       'pinHash' dan 'pinSetAt' di node visitors/OptoAuto/modul-4/mhs_<NIM>.
-//       Data poin & kehadiran mahasiswa tersebut tetap aman.
+//   (A) Reset SEMUA data modul ini — klik tombol 'Reset' + password admin.
+//       Hanya menghapus visitor records & jadwal di modul-4 (PIN global tetap aman
+//       karena disimpan terpisah di pins/).
+//   (B) Reset PIN GLOBAL satu mahasiswa — via Firebase Console: hapus node
+//       `pins/mhs_<NIM>`. Mahasiswa setup PIN baru pada login berikutnya di
+//       modul/course APAPUN. Poin & kehadiran di semua modul tetap aman.
 // ═══════════════════════════════════════════════════════
 
 // Daftar PIN lemah yang ditolak
@@ -4818,8 +4843,58 @@ const WEAK_PINS = new Set([
   '102030', '010203'
 ]);
 
-// State untuk flow PIN
-let _pinFlow = { nama: null, nim: null, nowISO: null, existingRecord: null, schedOpen: false };
+// State untuk flow PIN Global (Pedoman §8 — lintas-course/lintas-module)
+let _pinFlow = {
+  nama: null, nim: null, nowISO: null,
+  existingPin: null,        // data dari pins/mhs_<NIM> (atau null)
+  existingVisitor: null,    // data dari visitors/<course>/<module>/mhs_<NIM> (atau null)
+  schedOpen: false
+};
+
+// ═══════════════════════════════════════════════════════
+// LEGACY PIN MIGRATION (Pedoman §8.9)
+// Sistem lama menyimpan pinHash di visitors/<course>/<module>/mhs_<NIM>/pinHash.
+// Saat rollout sistem global, auto-migrate on first login:
+// cari pinHash DI SEMUA course/module lama → ambil yang PALING LAMA (earliest pinSetAt)
+// → tulis ke pins/<nim> global.
+// Jika tidak ditemukan, return null (user akan setup PIN baru).
+// ═══════════════════════════════════════════════════════
+async function _tryMigrateLegacyPin(nim, nama) {
+  const key = sanitizeKey('mhs_' + nim);
+  const courses = ['math4', 'getaran_mekanik', 'OptoAuto', 'optoauto'];
+  let oldestPin = null;
+  let oldestSetAt = null;
+
+  try {
+    for (const course of courses) {
+      const snap = await get(ref(db, 'visitors/' + course));
+      if (!snap.exists()) continue;
+      const modules = snap.val();
+      for (const moduleId in modules) {
+        const visitor = modules[moduleId] && modules[moduleId][key];
+        if (visitor && visitor.pinHash && visitor.pinSetAt) {
+          if (!oldestSetAt || visitor.pinSetAt < oldestSetAt) {
+            oldestPin = visitor.pinHash;
+            oldestSetAt = visitor.pinSetAt;
+          }
+        }
+      }
+    }
+    if (!oldestPin) return null;
+
+    // Migrate: tulis ke pins/ global
+    await set(ref(db, 'pins/' + key), {
+      pinHash: oldestPin,
+      pinSetAt: oldestSetAt,
+      nama
+    });
+    console.log('[PIN] Auto-migrated legacy PIN to global for', nim);
+    return { pinHash: oldestPin, pinSetAt: oldestSetAt, nama };
+  } catch(e) {
+    console.error('[PIN] Migration failed:', e);
+    return null;
+  }
+}
 
 function _isWeakPin(pin) {
   if (!/^[0-9]{6}$/.test(pin)) return true;
@@ -4851,7 +4926,7 @@ function _hidePinModals() {
 
 function cancelPinFlow() {
   _hidePinModals();
-  _pinFlow = { nama: null, nim: null, nowISO: null, existingRecord: null, schedOpen: false };
+  _pinFlow = { nama: null, nim: null, nowISO: null, existingPin: null, existingVisitor: null, schedOpen: false };
   document.getElementById('visitorOverlay').classList.remove('hidden');
 }
 
@@ -4878,16 +4953,22 @@ async function submitPinSetup() {
   try {
     const pinHash = await _sha256Hex(p1);
     const { nama, nim, nowISO, schedOpen } = _pinFlow;
+    const key = sanitizeKey('mhs_' + nim);
+
+    // ═══ GLOBAL PIN: simpan ke pins/ node GLOBAL (lintas-course) ═══
+    await set(ref(db, 'pins/' + key), {
+      pinHash, pinSetAt: nowISO, nama
+    });
 
     if (!schedOpen) {
-      // Di luar jadwal → hanya simpan identitas lokal, tidak tulis ke Firebase
+      // Di luar jadwal → hanya simpan identitas lokal, tidak tulis visitor record
       saveIdentity({ nama, nim, role: 'student', timestamp: nowISO });
     } else {
-      const key = sanitizeKey('mhs_' + nim);
+      // Simpan visitor record di course/module CURRENT — TANPA pinHash (sekarang di pins/ global)
       const newRecord = {
         nama, nim, role: 'student', timestamp: nowISO,
         visitCount: 1, lastVisit: nowISO,
-        pinHash, pinSetAt: nowISO
+        points: 0
       };
       saveIdentity(newRecord);
       await set(ref(db, DB_PATH + '/' + key), newRecord);
@@ -4897,7 +4978,7 @@ async function submitPinSetup() {
     document.getElementById('visitorOverlay').classList.add('hidden');
     document.getElementById('visitorFab').style.display = 'flex';
     _applyRoleVisibility();   // pastikan tombol dosen tersembunyi untuk mahasiswa
-    _pinFlow = { nama: null, nim: null, nowISO: null, existingRecord: null, schedOpen: false };
+    _pinFlow = { nama: null, nim: null, nowISO: null, existingPin: null, existingVisitor: null, schedOpen: false };
     setTimeout(() => { if (typeof window._loadScoredQuestions === 'function') window._loadScoredQuestions(); }, 500);
     if (typeof _updateLateBanner === 'function') _updateLateBanner();
   } catch(e) {
@@ -4921,9 +5002,10 @@ async function submitPinVerify() {
 
   try {
     const inputHash = await _sha256Hex(pin);
-    const { existingRecord, nama, nim, nowISO, schedOpen } = _pinFlow;
+    const { existingPin, existingVisitor, nama, nim, nowISO, schedOpen } = _pinFlow;
 
-    if (inputHash !== existingRecord.pinHash) {
+    // Verifikasi terhadap PIN GLOBAL (Pedoman §8.3)
+    if (!existingPin || inputHash !== existingPin.pinHash) {
       errEl.textContent = '\u26a0 PIN salah. Coba lagi atau hubungi dosen jika lupa.';
       errEl.style.display = 'block';
       btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; btn.textContent = 'Verifikasi & Masuk';
@@ -4932,25 +5014,40 @@ async function submitPinVerify() {
       return;
     }
 
+    // PIN match → create atau update visitor record di course/module CURRENT
+    const key = sanitizeKey('mhs_' + nim);
+
     if (!schedOpen) {
+      // Di luar jadwal → hanya simpan identitas lokal
       saveIdentity({ nama, nim, role: 'student', timestamp: nowISO });
-    } else {
-      const key = sanitizeKey('mhs_' + nim);
-      const lastV = new Date(existingRecord.lastVisit || existingRecord.timestamp).getTime();
+    } else if (existingVisitor) {
+      // Returning visitor di course/module ini — update lastVisit + bump visitCount (dengan cooldown)
+      const lastV = new Date(existingVisitor.lastVisit || existingVisitor.timestamp).getTime();
       const canBump = (Date.now() - lastV) >= VISIT_COOLDOWN;
-      const updated = Object.assign({}, existingRecord, {
-        visitCount: canBump ? (existingRecord.visitCount || 1) + 1 : (existingRecord.visitCount || 1),
-        lastVisit: canBump ? nowISO : (existingRecord.lastVisit || existingRecord.timestamp)
+      // Strip legacy pinHash/pinSetAt jika masih ada (sekarang di pins/ global)
+      const { pinHash, pinSetAt, ...cleanVisitor } = existingVisitor;
+      const updated = Object.assign({}, cleanVisitor, {
+        visitCount: canBump ? (existingVisitor.visitCount || 1) + 1 : (existingVisitor.visitCount || 1),
+        lastVisit: canBump ? nowISO : (existingVisitor.lastVisit || existingVisitor.timestamp)
       });
       saveIdentity(updated);
       await set(ref(db, DB_PATH + '/' + key), updated);
+    } else {
+      // First visit di course/module ini (tapi sudah punya PIN global dari course/module lain)
+      const newRecord = {
+        nama, nim, role: 'student', timestamp: nowISO,
+        visitCount: 1, lastVisit: nowISO,
+        points: 0
+      };
+      saveIdentity(newRecord);
+      await set(ref(db, DB_PATH + '/' + key), newRecord);
     }
 
     _hidePinModals();
     document.getElementById('visitorOverlay').classList.add('hidden');
     document.getElementById('visitorFab').style.display = 'flex';
     _applyRoleVisibility();
-    _pinFlow = { nama: null, nim: null, nowISO: null, existingRecord: null, schedOpen: false };
+    _pinFlow = { nama: null, nim: null, nowISO: null, existingPin: null, existingVisitor: null, schedOpen: false };
     setTimeout(() => { if (typeof window._loadScoredQuestions === 'function') window._loadScoredQuestions(); }, 500);
     if (typeof _updateLateBanner === 'function') _updateLateBanner();
   } catch(e) {
