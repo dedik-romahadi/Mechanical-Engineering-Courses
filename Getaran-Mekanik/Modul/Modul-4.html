@@ -2236,6 +2236,17 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     </div>
     <button id="resetBtnHasil" onclick="showResetModal()" style="display:none;padding:8px 18px;border-radius:10px;border:1px solid rgba(251,113,133,.3);background:rgba(251,113,133,.08);color:#fb7185;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .25s;align-items:center;gap:6px;" onmouseenter="this.style.background='rgba(251,113,133,.18)'" onmouseleave="this.style.background='rgba(251,113,133,.08)'">🗑 Reset</button>
   </div>
+
+  <!-- PEDOMAN §9.5/§17.6: Banner untuk DOSEN ketika schedule belum diatur -->
+  <div id="scheduleMissingDosen" style="display:none;background:linear-gradient(135deg,rgba(251,191,36,.12),rgba(249,115,22,.08));border:1px solid rgba(251,191,36,.35);border-left:5px solid #f59e0b;border-radius:14px;padding:18px 24px;margin-bottom:18px;align-items:flex-start;gap:14px;">
+    <span style="font-size:24px;flex-shrink:0">⚠️</span>
+    <div style="flex:1;min-width:0">
+      <div style="font-weight:800;color:#fbbf24;font-size:15px;margin-bottom:4px;letter-spacing:.3px">Jadwal Perkuliahan Belum Diatur</div>
+      <p style="font-size:13.5px;color:#fde68a;margin:0 0 12px;line-height:1.6;">Mahasiswa belum dapat mengakses modul karena jadwal belum diatur. Klik tombol di bawah untuk mengatur jadwal sekarang.</p>
+      <button onclick="showScheduleModal()" style="padding:9px 20px;border-radius:10px;border:1px solid rgba(251,191,36,.5);background:rgba(251,191,36,.12);color:#fbbf24;font-weight:700;font-size:.85rem;cursor:pointer;transition:all .25s;display:inline-flex;align-items:center;gap:8px;" onmouseenter="this.style.background='rgba(251,191,36,.22)'" onmouseleave="this.style.background='rgba(251,191,36,.12)'">🕐 Atur Jadwal Sekarang</button>
+    </div>
+  </div>
+
   <div style="background:#1a2332;border:1px solid #2a3548;border-radius:20px;overflow:hidden;">
     <div id="leaderboardPanel" style="margin-bottom:2px;">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:16px 20px 8px;">
@@ -2480,7 +2491,7 @@ const SCORE_CONFIG = {
   COMP_EZ_POINT:  2,
   COMP_HARD_COUNT: 5,
   COMP_HARD_POINT: 4,
-  CONSOLATION_THRESHOLD: 20,   // minimal attempt unik untuk konsolasi
+  CONSOLATION_THRESHOLD: 25,   // 10 MC + 10 Comp E/M + 5 Comp Hard = 25 soal (Pedoman §18.1 Universal 50-poin)
   CONSOLATION_POINT:     1,
   get MC_TOTAL()       { return this.MC_COUNT * this.MC_POINT; },           // 10
   get COMP_EZ_TOTAL()  { return this.COMP_EZ_COUNT * this.COMP_EZ_POINT; }, // 20
@@ -2604,6 +2615,41 @@ let _pyodideInstance = null;
 let _pyodideLoading  = false;
 let _pyodideQueue    = [];
 
+// ── PEDOMAN §15.3b-2: Pyodide lazy-load packages on demand ──
+// numpy sudah di-load di getPyodide(); pandas/scipy/matplotlib/sympy/sklearn
+// di-load saat detect di import statement kode mahasiswa (agar soal tidak ke-lock
+// karena ModuleNotFoundError).
+const _loadedPyPackages = new Set(['numpy']);
+
+async function _ensurePythonPackages(code, fb) {
+  if (!_pyodideInstance || !code) return;
+  const PACKAGE_PATTERNS = [
+    { name: 'pandas',       regex: /^\s*(?:import\s+pandas|from\s+pandas\s+import)/m },
+    { name: 'scipy',        regex: /^\s*(?:import\s+scipy|from\s+scipy[\s.]|import\s+scipy\.)/m },
+    { name: 'matplotlib',   regex: /^\s*(?:import\s+matplotlib|from\s+matplotlib[\s.])/m },
+    { name: 'sympy',        regex: /^\s*(?:import\s+sympy|from\s+sympy\s+import)/m },
+    { name: 'scikit-learn', regex: /^\s*(?:import\s+sklearn|from\s+sklearn[\s.])/m }
+  ];
+  const needed = PACKAGE_PATTERNS
+    .filter(p => p.regex.test(code) && !_loadedPyPackages.has(p.name))
+    .map(p => p.name);
+  if (needed.length === 0) return;
+  if (fb) {
+    fb.className = 'feedback warn';
+    fb.textContent = `📦 Memuat package Python: ${needed.join(', ')}... (5-15 detik, sekali saja)`;
+  }
+  try {
+    await _pyodideInstance.loadPackage(needed);
+    needed.forEach(p => _loadedPyPackages.add(p));
+  } catch (e) {
+    if (fb) {
+      fb.className = 'feedback wrong';
+      fb.textContent = `❌ Gagal memuat package: ${needed.join(', ')}. Cek koneksi atau nama package.`;
+    }
+    throw e;   // re-throw agar runAndCheck tidak lanjut exec
+  }
+}
+
 function setPyStatus(msg, ready) {
   const bar  = document.getElementById('pyodide-status');
   const dot  = document.getElementById('pyodide-dot');
@@ -2660,6 +2706,88 @@ document.addEventListener('DOMContentLoaded', () => {
   }, 2000);
 });
 
+// ═══════════════════════════════════════════════════════
+// PEDOMAN §15.4 — DRAFT PERSISTENCE (localStorage per-NIM)
+// ═══════════════════════════════════════════════════════
+// Menyimpan input yang belum di-submit (gdrive link, forum textareas, 15 code textarea)
+// agar tidak hilang saat mahasiswa reload page / ganti device / browser crash.
+// Firebase hanya simpan MARKER (mc1, c5_comp), bukan TEXT code mahasiswa — draft ini penting.
+
+function _draftKey() {
+  try {
+    // LOCAL_IDENTITY didefinisikan di script type="module" di bawah; saat fungsi ini
+    // di-invoke dari event handler textarea, scope window sudah resolved.
+    const key = (typeof LOCAL_IDENTITY !== 'undefined') ? LOCAL_IDENTITY : 'getaran_mekanik_identity_pertemuan-4';
+    const me = JSON.parse(localStorage.getItem(key) || 'null');
+    if (!me || !me.nim || me.role === 'dosen') return null;
+    const moduleId = (typeof MODULE_ID !== 'undefined') ? MODULE_ID : 'pertemuan-4';
+    return 'getaran_mekanik_draft_' + moduleId + '_' + me.nim;   // per-NIM, course-scoped
+  } catch(e) { return null; }
+}
+
+function _saveDraft() {
+  const key = _draftKey();
+  if (!key) return;
+  try {
+    const draft = {
+      gdrive: (document.getElementById('gdrive-link') || {}).value || '',
+      fq1: (document.getElementById('ans-fq1') || {}).value || '',
+      fq2: (document.getElementById('ans-fq2') || {}).value || '',
+      fq3: (document.getElementById('ans-fq3') || {}).value || '',
+      code: {},
+      savedAt: new Date().toISOString()
+    };
+    // Save all 15 code textarea contents (Pedoman §15.4c — textarea = volatile DOM state)
+    for (let i = 1; i <= 15; i++) {
+      const ta = document.getElementById('code-c' + i);
+      if (ta && ta.value) draft.code['c' + i] = ta.value;
+    }
+    localStorage.setItem(key, JSON.stringify(draft));
+  } catch(e) { /* quota exceeded — silent fail */ }
+}
+
+function _loadDraft() {
+  const key = _draftKey();
+  if (!key) return;
+  try {
+    const draft = JSON.parse(localStorage.getItem(key) || 'null');
+    if (!draft) return;
+    const stringFields = [
+      ['gdrive-link', 'gdrive'],
+      ['ans-fq1', 'fq1'],
+      ['ans-fq2', 'fq2'],
+      ['ans-fq3', 'fq3']
+    ];
+    stringFields.forEach(([id, prop]) => {
+      const el = document.getElementById(id);
+      if (el && !el.value && draft[prop]) el.value = draft[prop];
+    });
+    if (draft.code && typeof draft.code === 'object') {
+      for (let i = 1; i <= 15; i++) {
+        const id = 'c' + i;
+        const ta = document.getElementById('code-' + id);
+        if (ta && !ta.value && draft.code[id]) ta.value = draft.code[id];
+      }
+    }
+    if (typeof checkExportReady === 'function') checkExportReady();
+    if (typeof checkForumReady === 'function') checkForumReady();
+  } catch(e) { /* corrupt JSON — silent fail */ }
+}
+
+window._saveDraft = _saveDraft;
+window._loadDraft = _loadDraft;
+window._draftKey  = _draftKey;
+
+// PEDOMAN §15.4b — Button state helper (replaces fragile cssText.replace regex)
+function _setBtnState(btn, ready) {
+  if (!btn) return;
+  btn.disabled = !ready;
+  btn.style.opacity = ready ? '1' : '.4';
+  btn.style.cursor  = ready ? 'pointer' : 'not-allowed';
+  btn.style.pointerEvents = ready ? 'auto' : 'none';
+}
+window._setBtnState = _setBtnState;
+
 function onCodeInput(qId) {
   const btn = document.getElementById('sub-' + qId);
   if (btn && btn.disabled && !compAnswered[qId]) {
@@ -2667,6 +2795,7 @@ function onCodeInput(qId) {
     btn.style.opacity = '1';
   }
   checkExportReady();
+  _saveDraft();   // PEDOMAN §15.4 — persist code on every keystroke
 }
 
 // Parse all numbers (including scientific notation) from a string
@@ -2825,6 +2954,13 @@ async function runAndCheck(qId, expectedAns, tol, difficulty) {
 
   try {
     const pyodide = await getPyodide();
+    // PEDOMAN §15.3b-2: lazy-load packages dari import statements (scipy/pandas/etc)
+    try {
+      await _ensurePythonPackages(code, fb);
+    } catch (pkgErr) {
+      btn.disabled = false; btn.classList.remove('running');
+      return;
+    }
     await pyodide.runPythonAsync('_cap.reset(); sys.stdout = _cap');
 
     let errMsg = null;
@@ -2963,15 +3099,13 @@ function checkExportReady() {
     else { gfb.style.color = 'var(--green)'; gfb.textContent = '\u2705 Link valid'; }
   }
 
-  // Enable/disable export buttons
-  const styleReady = 'opacity:1;cursor:pointer';
-  const styleDisabled = 'opacity:.4;cursor:not-allowed';
-  if (btnBottom) { btnBottom.disabled = !allDone; btnBottom.style.cssText = btnBottom.style.cssText.replace(/opacity[^;]+;cursor[^;]+/, allDone ? styleReady : styleDisabled); }
-  if (btnTop)    { btnTop.disabled = !allDone;    btnTop.style.cssText    = btnTop.style.cssText.replace(/opacity[^;]+;cursor[^;]+/, allDone ? styleReady : styleDisabled); }
+  // Enable/disable export buttons — Pedoman §15.4b: explicit setters (NOT cssText.replace regex)
+  _setBtnState(btnBottom, allDone);
+  _setBtnState(btnTop,    allDone);
 
   // Message
   if (msgEl) {
-    if (allDone) { msgEl.textContent = ''; return; }
+    if (allDone) { msgEl.textContent = ''; _saveDraft(); return; }
     const parts = [];
     if (emptyMC.length)        parts.push(emptyMC.length + ' soal pilihan ganda belum dijawab');
     if (emptyCompEz.length)    parts.push(emptyCompEz.length + ' soal komputasi belum diisi');
@@ -2979,6 +3113,7 @@ function checkExportReady() {
     if (!gdriveOk)             parts.push('Link Google Drive belum diisi');
     msgEl.textContent = '\u26a0 ' + parts.join(' \u00b7 ');
   }
+  _saveDraft();   // PEDOMAN §15.4 — persist on every state check
 }
 
 // ── EXPORT TUGAS HTML ──
@@ -3224,9 +3359,8 @@ function checkForumReady() {
   });
 
   if (!btn) return;
-  btn.disabled = !allFilled;
-  btn.style.opacity = allFilled ? '1' : '.4';
-  btn.style.cursor  = allFilled ? 'pointer' : 'not-allowed';
+  _setBtnState(btn, allFilled);   // PEDOMAN §15.4b
+  _saveDraft();                    // PEDOMAN §15.4
 }
 
 // ── COPY FORUM HTML TO CLIPBOARD ──
@@ -4588,6 +4722,13 @@ function _applyRoleVisibility() {
 
   const resetBtn = document.getElementById('resetBtnHasil');
   if (resetBtn) resetBtn.style.display = isDosen ? 'flex' : 'none';
+
+  // PEDOMAN §9.5/§17.6 — scheduleMissingDosen banner: dosen sudah login tapi jadwal belum diatur
+  const dosenBanner = document.getElementById('scheduleMissingDosen');
+  if (dosenBanner) {
+    const hasValidSchedule = !!(currentSchedule && currentSchedule.start && currentSchedule.end);
+    dosenBanner.style.display = (isDosen && !hasValidSchedule) ? 'flex' : 'none';
+  }
 }
 window._applyRoleVisibility = _applyRoleVisibility;
 function isValidName(n){if(!n)return false;return n.split(/\s+/).every(w=>w.length>0&&/^[A-Z][a-zA-Z.'\-]*$/.test(w));}
@@ -5474,8 +5615,8 @@ function _updateLateBanner() {
 setInterval(_updateLateBanner, 30000);
 
 // ── Consolation point (Pedoman-Modul §15.3e):
-//    Jika SEMUA ≥20 soal pernah di-attempt DAN poin masih 0 → +1 konsolasi.
-//    Threshold 20 (dari SCORE_CONFIG.CONSOLATION_THRESHOLD), total soal 25 (10 MC + 10 Comp + 5 Hard).
+//    Jika SEMUA ≥25 soal pernah di-attempt DAN poin masih 0 → +1 konsolasi.
+//    Threshold 25 (dari SCORE_CONFIG.CONSOLATION_THRESHOLD = 10 MC + 10 Comp + 5 Hard).
 //    Catatan: jika mahasiswa pernah submit Hard (benar atau salah), poin sudah ≥ 1
 //    karena partial credit — konsolasi otomatis tidak fire.
 function _checkConsolationPoint(nodeRef, state) {
@@ -5491,7 +5632,7 @@ function _checkConsolationPoint(nodeRef, state) {
       else if (/_comp$/.test(base))      base = base.replace(/_comp$/,'');
       baseIds.add(base);
     });
-    const allAttempted    = baseIds.size >= SCORE_CONFIG.CONSOLATION_THRESHOLD;   // ≥20
+    const allAttempted    = baseIds.size >= SCORE_CONFIG.CONSOLATION_THRESHOLD;   // ≥25 (universal)
     const zeroPoints      = (state.points || 0) === 0;
     const alreadyConsoled = (state.consolationAwarded === true);
     if (allAttempted && zeroPoints && !alreadyConsoled) {
@@ -5690,6 +5831,8 @@ window._loadScoredQuestions = function() {
     });
     updateScore();
     if (typeof checkExportReady === 'function') checkExportReady();
+    if (typeof checkForumReady === 'function') checkForumReady();
+    if (typeof _loadDraft === 'function') _loadDraft();   // PEDOMAN §15.4 Restore Order: draft AFTER Firebase restore
   }).catch(()=>{});
 };
 
