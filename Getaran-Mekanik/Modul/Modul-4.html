@@ -559,6 +559,12 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <h2>Selamat Datang!</h2>
     <p class="sub">Silakan masukkan identitas Anda untuk mengakses halaman ini.</p>
 
+    <!-- Schedule-missing warning banner (Pedoman §9.5) — hidden when schedule exists -->
+    <div id="scheduleMissingBanner" style="display:none;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-left:4px solid #ef4444;border-radius:10px;padding:12px 16px;margin:12px 0;font-size:.82rem;color:#fca5a5;line-height:1.6;text-align:left;">
+      <strong style="display:block;margin-bottom:4px;color:#fb7185;">⚠ Jadwal perkuliahan belum diatur</strong>
+      <span id="scheduleMissingMsg">Login tidak tersedia hingga dosen mengatur jadwal pertemuan. Mahasiswa dapat menunggu, dosen dapat klik tombol <strong>"🕐 Atur Jadwal"</strong> di bawah.</span>
+    </div>
+
     <!-- Loading state indicator -->
     <div class="loading-students" id="loadingStudents">
       <div class="loading-dot"></div>
@@ -4687,35 +4693,17 @@ fetchMasterStudents();
 
 let latestVisitors=[];
 function initVisitor(){
-  const me = getIdentity();
-  if(me && me.nama && me.role!=='guest'){
-    document.getElementById('visitorOverlay').classList.add('hidden');
-    document.getElementById('visitorFab').style.display='flex';
-    _applyRoleVisibility();   // tampilkan tombol dosen-only kalau identity = dosen
-    // Hide loading bar immediately for returning visitors
-    const ls = document.getElementById('loadingStudents');
-    if (ls) ls.style.display = 'none';
-    const btn = document.getElementById('vSubmit');
-    if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
-    const _isDosen = me.nama.toLowerCase()==='dedik romahadi';
-    if(!_isDosen && (!masterFetchDone || masterStudents.some(s=>s.nim===me.nim && s.nama.toUpperCase()===me.nama.toUpperCase()))){
-      const _key = sanitizeKey(`mhs_${me.nim}`);
-      get(ref(db,`${DB_PATH}/${_key}`)).then(snap=>{
-        if(snap.exists()){
-          const ex=snap.val();
-          const lastV=new Date(ex.lastVisit||ex.timestamp).getTime();
-          // Bump visit count only if within active schedule; otherwise
-          // returning user can still view content but access is not recorded.
-          if(Date.now()-lastV>=VISIT_COOLDOWN && typeof _isScheduleOpen === 'function' && _isScheduleOpen()){
-            set(ref(db,`${DB_PATH}/${_key}`),{...ex,visitCount:(ex.visitCount||1)+1,lastVisit:new Date().toISOString()});
-          }
-        }
-      }).catch(()=>{});
-    }
-    setTimeout(function(){ if(typeof window._loadScoredQuestions==='function') window._loadScoredQuestions(); }, 500);
-  }
+  // ─── Schedule listener (Pedoman §9.5) — schedule-gated access control ───
+  // Subscribe ke SCHEDULE_PATH dengan onValue (real-time). Setiap perubahan
+  // (termasuk delete) memicu _handleScheduleReady() yang re-evaluasi state:
+  //   - Schedule ADA → boleh auto-login dari localStorage (jika identity valid)
+  //   - Schedule TIDAK ADA → force-logout SEMUA user (hapus localStorage,
+  //     tampilkan overlay + banner warning, sembunyikan FAB)
+  // Auto-login di localStorage TIDAK DIPERCAYA SENDIRI — harus selalu ada
+  // schedule valid sebelum overlay bisa di-hide. Ini gate paling awal.
   onValue(ref(db, SCHEDULE_PATH), (snap) => {
     currentSchedule = snap.val();
+    _handleScheduleReady();
     updateScheduleDisplay();
     onValue(ref(db, DB_PATH), (vsnap) => {
       const data = vsnap.val();
@@ -4726,6 +4714,85 @@ function initVisitor(){
     const data = snapshot.val();
     latestVisitors=data ? Object.values(data) : [];renderVisitors(latestVisitors);
   });
+}
+
+// ─── Schedule-gated access control (Pedoman §9.5) ───
+// Dipanggil oleh schedule listener setiap kali snapshot schedule berubah.
+// Jika schedule ADA → auto-login user yang punya identity di localStorage.
+// Jika schedule HILANG → force-logout: clear identity, tampilkan overlay + banner.
+function _handleScheduleReady() {
+  const hasSchedule = !!(currentSchedule && currentSchedule.start && currentSchedule.end);
+  const banner = document.getElementById('scheduleMissingBanner');
+  const overlay = document.getElementById('visitorOverlay');
+  const fab = document.getElementById('visitorFab');
+  const submitBtn = document.getElementById('vSubmit');
+  const inputName = document.getElementById('vNama');
+  const inputNim  = document.getElementById('vNim');
+  const loadingEl = document.getElementById('loadingStudents');
+
+  if (!hasSchedule) {
+    // ─── Schedule HILANG → force-logout SEMUA user ───
+    // Clear identity SEMUA role (symmetric, tidak ada privilege bypass)
+    try { localStorage.removeItem(LOCAL_IDENTITY); } catch(e) {}
+
+    // Tampilkan overlay (paksa) + banner warning
+    if (overlay) overlay.classList.remove('hidden');
+    if (banner)  banner.style.display = 'block';
+    if (fab)     fab.style.display = 'none';
+
+    // Disable input/submit — tidak ada login tanpa schedule
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.style.opacity = '.4';
+      submitBtn.style.cursor = 'not-allowed';
+    }
+    if (inputName) inputName.disabled = true;
+    if (inputNim)  inputNim.disabled = true;
+    if (loadingEl) loadingEl.style.display = 'none';
+
+    // Hide tombol Reset (tidak relevan tanpa data + schedule)
+    if (typeof _applyRoleVisibility === 'function') _applyRoleVisibility();
+    return;
+  }
+
+  // ─── Schedule ADA → enable login + auto-login jika identity valid ───
+  if (banner) banner.style.display = 'none';
+
+  // Re-enable input/submit
+  if (inputName) inputName.disabled = false;
+  if (inputNim)  inputNim.disabled = false;
+  if (submitBtn && masterFetchDone) {
+    submitBtn.disabled = false;
+    submitBtn.style.opacity = '1';
+    submitBtn.style.cursor = 'pointer';
+  }
+
+  // Auto-login dari localStorage (HANYA jika overlay sedang tampil dan identity ada)
+  if (overlay && !overlay.classList.contains('hidden')) {
+    const me = getIdentity();
+    if (me && me.nama && me.role !== 'guest') {
+      overlay.classList.add('hidden');
+      if (fab) fab.style.display = 'flex';
+      if (loadingEl) loadingEl.style.display = 'none';
+
+      // Bump visitCount untuk returning student (di luar kondisi hide)
+      const _isDosen = me.nama.toLowerCase() === 'dedik romahadi';
+      if (!_isDosen && (!masterFetchDone || masterStudents.some(s=>s.nim===me.nim && s.nama.toUpperCase()===me.nama.toUpperCase()))) {
+        const _key = sanitizeKey(`mhs_${me.nim}`);
+        get(ref(db,`${DB_PATH}/${_key}`)).then(snap=>{
+          if(snap.exists()){
+            const ex=snap.val();
+            const lastV=new Date(ex.lastVisit||ex.timestamp).getTime();
+            if(Date.now()-lastV>=VISIT_COOLDOWN && _isScheduleOpen()){
+              set(ref(db,`${DB_PATH}/${_key}`), _stripLegacyPinFields({...ex,visitCount:(ex.visitCount||1)+1,lastVisit:new Date().toISOString()}));
+            }
+          }
+        }).catch(()=>{});
+      }
+      _applyRoleVisibility();
+      setTimeout(function(){ if(typeof window._loadScoredQuestions==='function') window._loadScoredQuestions(); }, 500);
+    }
+  }
 }
 
 function updateScheduleDisplay(){
