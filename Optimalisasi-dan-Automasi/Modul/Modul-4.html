@@ -5517,6 +5517,54 @@ document.getElementById('dosenLoginPw').addEventListener('keydown', function(e){
 window.submitDosenLogin = submitDosenLogin;
 window.cancelDosenLogin = cancelDosenLogin;
 
+// ═══════════════════════════════════════════════════════════════════
+// shuffleMCOptions — Anti-Pattern-Recognition (Pedoman §16.3)
+// Mengacak KONTEN antar posisi A/B/C/D setiap page load. Label huruf
+// top-to-bottom tetap (A→B→C→D) — yang di-shuffle hanya konten soal.
+// Firebase markers tetap konsisten karena tied ke qId, bukan huruf.
+// ═══════════════════════════════════════════════════════════════════
+function shuffleMCOptions() {
+  const LETTERS = ['A', 'B', 'C', 'D'];
+  document.querySelectorAll('.radio-group').forEach(rg => {
+    const qId = (rg.id || '').replace(/^rg-/, '');
+    if (!qId || !qId.startsWith('mc')) return;
+
+    const opts = Array.from(rg.querySelectorAll('.radio-option'));
+    if (opts.length !== 4) return;
+
+    // Parse setiap option: extract (letter), content, dan boolean correct dari onclick
+    const data = opts.map(opt => {
+      const html = opt.innerHTML;
+      const m = html.match(/^\s*<div class="radio-circle"><\/div>\s*\([A-D]\)\s*(?:&nbsp;)?\s*([\s\S]+?)\s*$/);
+      if (!m) return null;
+      const onclick = opt.getAttribute('onclick') || '';
+      const bm = onclick.match(/selectMC\([^,]+,\s*this\s*,\s*(true|false)\s*\)/);
+      if (!bm) return null;
+      return { content: m[1], isCorrect: bm[1] === 'true' };
+    });
+    if (data.some(d => d === null)) return;   // bail jika ada parse gagal — biarkan markup asli
+
+    // Fisher-Yates shuffle
+    for (let i = data.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [data[i], data[j]] = [data[j], data[i]];
+    }
+
+    // Re-render: labels A/B/C/D tetap top-to-bottom, konten di-acak
+    data.forEach((d, idx) => {
+      const newLetter = LETTERS[idx];
+      opts[idx].innerHTML = '<div class="radio-circle"></div>(' + newLetter + ') &nbsp; ' + d.content;
+      opts[idx].setAttribute('onclick', "selectMC('" + qId + "',this," + d.isCorrect + ")");
+      // Clear any stale session-state classes/props dari previous render
+      opts[idx].classList.remove('selected', 'correct-ans', 'wrong-ans');
+      if (opts[idx]._correct !== undefined) delete opts[idx]._correct;
+    });
+  });
+}
+window.shuffleMCOptions = shuffleMCOptions;
+
+// Init sequence — urutan penting: shuffle DULU, baru init visitor + restore
+if (typeof shuffleMCOptions === 'function') shuffleMCOptions();
 initVisitor();
 setTimeout(window._loadScoredQuestions, 1200);
 // Apply role visibility after load — for returning dosen to see Reset button
