@@ -5128,13 +5128,16 @@ window._awardCompPoint = function(qId) {
   if (!me || !me.nim || me.role === 'dosen') return;
   const key = sanitizeKey('mhs_' + me.nim);
   const nodeRef = ref(db, DB_PATH + '/' + key);
+  // Capture code text from textarea for Firebase persistence (lihat Pedoman §15.4c)
+  const codeText = (document.getElementById('code-' + qId)?.value || '').slice(0, 5000);
   get(nodeRef).then(snap => {
     if (!snap.exists()) return;
     const ex = snap.val();
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(compKey)) { _answeredQ.add(compKey); return; }
     _answeredQ.add(compKey); scored.push(compKey);
-    const updated = Object.assign({}, ex, { points: (ex.points||0)+2, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',') });
+    const codes = Object.assign({}, ex.codes || {}, codeText ? { [qId]: codeText } : {});
+    const updated = Object.assign({}, ex, { points: (ex.points||0)+2, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(','), codes: codes });
     set(nodeRef, updated);
     _checkConsolationPoint(nodeRef, updated);
   }).catch(()=>{});
@@ -5149,13 +5152,16 @@ window._awardCompHardPoint = function(qId) {
   if (!me || !me.nim || me.role === 'dosen') return;
   const key = sanitizeKey('mhs_' + me.nim);
   const nodeRef = ref(db, DB_PATH + '/' + key);
+  // Capture code text from textarea (Pedoman §15.4c)
+  const codeText = (document.getElementById('code-' + qId)?.value || '').slice(0, 5000);
   get(nodeRef).then(snap => {
     if (!snap.exists()) return;
     const ex = snap.val();
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(compKey)) { _answeredQ.add(compKey); return; }
     _answeredQ.add(compKey); scored.push(compKey);
-    const updated = Object.assign({}, ex, { points: (ex.points||0)+4, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',') });
+    const codes = Object.assign({}, ex.codes || {}, codeText ? { [qId]: codeText } : {});
+    const updated = Object.assign({}, ex, { points: (ex.points||0)+4, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(','), codes: codes });
     set(nodeRef, updated);
     _checkConsolationPoint(nodeRef, updated);
   }).catch(()=>{});
@@ -5172,13 +5178,16 @@ window._awardCompPartial = function(qId) {
   if (!me || !me.nim || me.role === 'dosen') return;
   const key = sanitizeKey('mhs_' + me.nim);
   const nodeRef = ref(db, DB_PATH + '/' + key);
+  // Capture code text from textarea (Pedoman §15.4c) — partial tetap simpan code
+  const codeText = (document.getElementById('code-' + qId)?.value || '').slice(0, 5000);
   get(nodeRef).then(snap => {
     if (!snap.exists()) return;
     const ex = snap.val();
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(compKey) || scored.includes(partialKey)) { _answeredQ.add(partialKey); return; }
     _answeredQ.add(partialKey); scored.push(partialKey);
-    const updated = Object.assign({}, ex, { points: (ex.points||0)+1, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',') });
+    const codes = Object.assign({}, ex.codes || {}, codeText ? { [qId]: codeText } : {});
+    const updated = Object.assign({}, ex, { points: (ex.points||0)+1, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(','), codes: codes });
     set(nodeRef, updated);
     _checkConsolationPoint(nodeRef, updated);
   }).catch(()=>{});
@@ -5211,6 +5220,8 @@ window._recordCompAttempt = function(qId) {
   if (!me || !me.nim || me.role === 'dosen') return;
   const key = sanitizeKey('mhs_' + me.nim);
   const nodeRef = ref(db, DB_PATH + '/' + key);
+  // Capture code text — kode yang salah pun tetap disimpan untuk dokumentasi upaya mahasiswa
+  const codeText = (document.getElementById('code-' + qId)?.value || '').slice(0, 5000);
   get(nodeRef).then(snap => {
     if (!snap.exists()) return;
     const ex = snap.val();
@@ -5218,7 +5229,8 @@ window._recordCompAttempt = function(qId) {
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(usedKey)) return;   // already recorded
     scored.push(usedKey);
-    const updated = Object.assign({}, ex, { scoredQuestions: scored.join(',') });
+    const codes = Object.assign({}, ex.codes || {}, codeText ? { [qId]: codeText } : {});
+    const updated = Object.assign({}, ex, { scoredQuestions: scored.join(','), codes: codes });
     set(nodeRef, updated);
     _checkConsolationPoint(nodeRef, updated);
   }).catch(() => {});
@@ -5230,7 +5242,18 @@ window._loadScoredQuestions = function() {
   const key = sanitizeKey('mhs_' + me.nim);
   get(ref(db, DB_PATH + '/' + key)).then(snap => {
     if (!snap.exists()) return;
-    const scored = (snap.val().scoredQuestions || '').split(',').filter(Boolean);
+    const data = snap.val();
+    const scored = (data.scoredQuestions || '').split(',').filter(Boolean);
+    // ── Restore code Komputasi dari Firebase (Pedoman §15.4c — primary storage) ──
+    // Fire FIRST karena textarea state tidak terikat ke scoredQuestions processing
+    if (data.codes && typeof data.codes === 'object') {
+      Object.keys(data.codes).forEach(qId => {
+        const ta = document.getElementById('code-' + qId);
+        if (ta && !ta.value && typeof data.codes[qId] === 'string') {
+          ta.value = data.codes[qId];
+        }
+      });
+    }
     if (!scored.length) return;
     scored.forEach(qId => {
       _answeredQ.add(qId);
