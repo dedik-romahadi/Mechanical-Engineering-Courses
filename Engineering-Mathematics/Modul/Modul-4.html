@@ -2871,6 +2871,7 @@ function shuffleMCOptions() {
   });
 }
 window.shuffleMCOptions = shuffleMCOptions;
+window.MC_HINTS = MC_HINTS;   // Pedoman §15.4a — module script perlu akses untuk restore CSS classes
 
 function checkMC(qId) {
   if (mcAnswered[qId]) {
@@ -2920,6 +2921,9 @@ function checkMC(qId) {
 let _pyodideInstance = null;
 let _pyodideLoading  = false;
 let _pyodideQueue    = [];
+// Cache package yang sudah di-load supaya tidak download ulang.
+// numpy ada karena di-preload di getPyodide().
+const _loadedPyPackages = new Set(['numpy']);
 
 function setPyStatus(msg, ready) {
   const bar  = document.getElementById('pyodide-status');
@@ -2966,6 +2970,46 @@ _cap = _Capture()
     _pyodideQueue = [];
     setPyStatus('❌ Gagal memuat Python', false);
     throw e;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// PYODIDE PACKAGE LAZY LOAD (Pedoman §15.3b-2)
+// Pyodide v0.25.1 hanya bundle numpy di base. Package lain (scipy,
+// pandas, matplotlib, sympy, sklearn) harus di-load on demand via
+// loadPackage() — kalau tidak, soal yang `import scipy` akan gagal
+// dengan ModuleNotFoundError, lockdown logic akan salah-lock soal
+// dengan score 0 padahal kode mahasiswa benar.
+//
+// Soal C12-C15 di Modul-4 pakai scipy.integrate.solve_ivp → wajib
+// trigger lazy load.
+// ═══════════════════════════════════════════════════════════
+async function _ensurePythonPackages(code, fb) {
+  if (!_pyodideInstance) return;
+  const PACKAGE_PATTERNS = [
+    { name: 'pandas',       regex: /^\s*(?:import\s+pandas|from\s+pandas\s+import)/m },
+    { name: 'scipy',        regex: /^\s*(?:import\s+scipy|from\s+scipy[\s.]|import\s+scipy\.)/m },
+    { name: 'matplotlib',   regex: /^\s*(?:import\s+matplotlib|from\s+matplotlib[\s.])/m },
+    { name: 'sympy',        regex: /^\s*(?:import\s+sympy|from\s+sympy\s+import)/m },
+    { name: 'scikit-learn', regex: /^\s*(?:import\s+sklearn|from\s+sklearn[\s.])/m }
+  ];
+  const needed = PACKAGE_PATTERNS
+    .filter(p => p.regex.test(code) && !_loadedPyPackages.has(p.name))
+    .map(p => p.name);
+  if (needed.length === 0) return;
+  if (fb) {
+    fb.className = 'feedback warn';
+    fb.textContent = `📦 Memuat package Python: ${needed.join(', ')}... (5-15 detik, sekali saja)`;
+  }
+  try {
+    await _pyodideInstance.loadPackage(needed);
+    needed.forEach(p => _loadedPyPackages.add(p));
+  } catch (e) {
+    if (fb) {
+      fb.className = 'feedback wrong';
+      fb.textContent = `❌ Gagal memuat package: ${needed.join(', ')}. Cek koneksi internet.`;
+    }
+    throw e;   // re-throw agar runAndCheck tidak lanjut exec dengan package missing
   }
 }
 
@@ -3048,6 +3092,9 @@ async function runAndCheck(qId, expectedAns, tol, difficulty) {
 
   try {
     const pyodide = await getPyodide();
+    // Pedoman §15.3b-2: lazy-load packages dari import statements (scipy, pandas, dll)
+    await _ensurePythonPackages(code, fb);
+    fb.className = 'feedback warn'; fb.textContent = '⏳ Menjalankan kode...';   // restore loading message
     await pyodide.runPythonAsync('_cap.reset(); sys.stdout = _cap');
 
     let errMsg = null;
@@ -3149,6 +3196,86 @@ function cpC(btn){
   }).catch(()=>{btn.textContent='❌ Error';});
 }
 
+// ═══════════════════════════════════════════════════════════
+// DRAFT PERSISTENCE (Pedoman §15.4 + §15.4c)
+// ──────────────────────────────────────────────────────────
+// Mahasiswa sering close tab / refresh / ganti device selama mengerjakan
+// tugas. Firebase simpan SCORE (markers, points), tapi TEXT input
+// (gdrive link, jawaban forum, code Python) tidak. localStorage draft
+// menjamin input tidak hilang saat reload.
+//
+// Two-layer design:
+//   - Firebase (visitors/...)  : skor, scoredQuestions, visitCount  → server-trusted
+//   - localStorage Draft       : gdrive, forum text, code Python    → client-only
+//
+// Key: math4_draft_modul-4_<NIM> — per-NIM, mencegah leak antar mahasiswa
+// di lab komputer shared.
+// ═══════════════════════════════════════════════════════════
+function _draftKey() {
+  // Akses identity via getIdentityLocal (didefinisikan di atas) atau
+  // langsung baca localStorage dengan window._LOCAL_IDENTITY_KEY
+  let me = null;
+  try {
+    if (typeof getIdentityLocal === 'function') me = getIdentityLocal();
+    else {
+      const lk = window._LOCAL_IDENTITY_KEY || 'math4_identity_modul-4';
+      me = JSON.parse(localStorage.getItem(lk));
+    }
+  } catch(e) { return null; }
+  if (!me || !me.nim || me.role === 'dosen') return null;
+  return 'math4_draft_modul-4_' + me.nim;
+}
+
+function _saveDraft() {
+  const key = _draftKey();
+  if (!key) return;
+  try {
+    const draft = {
+      gdrive: document.getElementById('gdrive-link')?.value || '',
+      fq1:    document.getElementById('ans-fq1')?.value || '',
+      fq2:    document.getElementById('ans-fq2')?.value || '',
+      fq3:    document.getElementById('ans-fq3')?.value || '',
+      code:   {},
+      savedAt: new Date().toISOString()
+    };
+    // Pedoman §15.4c — code textarea juga di-save (Firebase only simpan marker)
+    for (let i = 1; i <= 15; i++) {
+      const ta = document.getElementById('code-c' + i);
+      if (ta && ta.value) draft.code['c' + i] = ta.value;
+    }
+    localStorage.setItem(key, JSON.stringify(draft));
+  } catch(e) { /* quota exceeded — silent fail */ }
+}
+
+function _loadDraft() {
+  const key = _draftKey();
+  if (!key) return;
+  try {
+    const draft = JSON.parse(localStorage.getItem(key) || 'null');
+    if (!draft) return;
+    // Restore gdrive + 3 forum textarea (guard: jangan overwrite typing aktif)
+    const els  = ['gdrive-link', 'ans-fq1', 'ans-fq2', 'ans-fq3'];
+    const props = ['gdrive', 'fq1', 'fq2', 'fq3'];
+    els.forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (el && !el.value && draft[props[i]]) el.value = draft[props[i]];
+    });
+    // Restore code textareas (Pedoman §15.4c)
+    if (draft.code && typeof draft.code === 'object') {
+      for (let i = 1; i <= 15; i++) {
+        const id = 'c' + i;
+        const ta = document.getElementById('code-' + id);
+        if (ta && !ta.value && draft.code[id]) ta.value = draft.code[id];
+      }
+    }
+    // Re-evaluate UI states setelah restore
+    if (typeof checkExportReady === 'function') checkExportReady();
+    if (typeof checkForumReady === 'function') checkForumReady();
+  } catch(e) { /* corrupt JSON — silent fail */ }
+}
+window._saveDraft = _saveDraft;
+window._loadDraft = _loadDraft;
+
 // ── EXPORT TUGAS PDF ──
 // ── CHECK EXPORT READY ──
 function checkExportReady() {
@@ -3177,11 +3304,12 @@ function checkExportReady() {
     else { gfb.style.color = 'var(--green)'; gfb.textContent = '✅ Link valid'; }
   }
 
-  // Enable/disable export buttons
-  const styleReady = 'opacity:1;cursor:pointer';
-  const styleDisabled = 'opacity:.4;cursor:not-allowed';
-  if (btnBottom) { btnBottom.disabled = !allDone; btnBottom.style.cssText = btnBottom.style.cssText.replace(/opacity[^;]+;cursor[^;]+/, allDone ? styleReady : styleDisabled); }
-  if (btnTop)    { btnTop.disabled = !allDone;    btnTop.style.cssText    = btnTop.style.cssText.replace(/opacity[^;]+;cursor[^;]+/, allDone ? styleReady : styleDisabled); }
+  // Enable/disable export buttons (Pedoman §15.4b — explicit setters, not cssText.replace)
+  _setBtnState(btnBottom, allDone);
+  _setBtnState(btnTop,    allDone);
+
+  // Pedoman §15.4 — Auto-save draft pada setiap input event (gdrive + code textareas)
+  if (typeof _saveDraft === 'function') _saveDraft();
 
   // Message
   if (msgEl) {
@@ -3192,6 +3320,19 @@ function checkExportReady() {
     if (!gdriveOk)        parts.push('Link Google Drive belum diisi');
     msgEl.textContent = '⚠ ' + parts.join(' · ');
   }
+}
+
+// Pedoman §15.4b — robust button state setter:
+// - explicit property setters (tahan urutan property)
+// - belt-and-suspenders pointerEvents:none mencegah click bahkan jika
+//   `disabled` somehow ter-drop
+// - idempotent: aman di-call berkali-kali
+function _setBtnState(btn, ready) {
+  if (!btn) return;
+  btn.disabled = !ready;
+  btn.style.opacity = ready ? '1' : '.4';
+  btn.style.cursor  = ready ? 'pointer' : 'not-allowed';
+  btn.style.pointerEvents = ready ? 'auto' : 'none';
 }
 
 // ── EXPORT TUGAS HTML ──
@@ -3373,9 +3514,10 @@ function checkForumReady() {
   });
 
   if (!btn) return;
-  btn.disabled = !allFilled;
-  btn.style.opacity = allFilled ? '1' : '.4';
-  btn.style.cursor  = allFilled ? 'pointer' : 'not-allowed';
+  // Pedoman §15.4b — pakai _setBtnState helper (consistent dengan checkExportReady)
+  _setBtnState(btn, allFilled);
+  // Pedoman §15.4 — auto-save draft (gdrive + forum textareas + code)
+  if (typeof _saveDraft === 'function') _saveDraft();
 }
 
 // ── COPY FORUM HTML TO CLIPBOARD ──
@@ -5850,21 +5992,61 @@ window._loadScoredQuestions = function() {
       _answeredQ.add(qId);
 
       // ── Restore MC correct answers ──
+      // Pedoman §15.4a — DOM CSS classes adalah display state, BUKAN data state.
+      // Restore dari Firebase marker harus re-apply class `.correct-ans` ke
+      // opsi yang benar agar export HTML & visual highlight bekerja konsisten.
+      // Identifikasi opsi benar via MC_HINTS[qId].answer (post-shuffle pointer).
       if (/^mc\d+$/.test(qId)) {
         if (!mcAnswered[qId]) { mcAnswered[qId] = true; mcScores[qId] = 1; }
         const rg = document.getElementById('rg-' + qId);
-        if (rg) { rg.dataset.locked='true'; rg.querySelectorAll('.radio-option').forEach(o=>{o.style.pointerEvents='none';o.style.opacity='.6';}); }
+        if (rg) {
+          rg.dataset.locked='true';
+          const expectedLetter = (window.MC_HINTS && window.MC_HINTS[qId])
+            ? window.MC_HINTS[qId].answer : null;
+          rg.querySelectorAll('.radio-option').forEach(o => {
+            o.style.pointerEvents = 'none';
+            o.style.opacity = '.6';
+            // Identify correct option from onclick attribute: selectMC('mc1', this, 'B')
+            const oc = o.getAttribute('onclick') || '';
+            const m = oc.match(/selectMC\('[^']+',\s*this,\s*'([A-D])'\)/);
+            const optLetter = m ? m[1] : null;
+            if (expectedLetter && optLetter === expectedLetter) {
+              o.classList.add('correct-ans');
+              o._correct = true;
+              o.style.opacity = '1';   // un-dim opsi yang benar
+            }
+          });
+        }
         const sub = document.getElementById('sub-' + qId); if (sub) sub.disabled = true;
         const fb = document.getElementById('fb-' + qId);
         if (fb && !fb.classList.contains('correct')) { fb.className='feedback correct'; fb.textContent='✅ Sudah dijawab benar — poin telah tercatat.'; }
       }
 
       // ── Restore MC wrong answers (mc_used suffix) ──
+      // Firebase tidak simpan letter yang dipilih mahasiswa (cuma marker
+      // `mcN_mc_used`). Best-effort: highlight opsi BENAR dengan hijau
+      // untuk tujuan learning, walau mahasiswa pilih opsi lain.
       if (/^mc\d+_mc_used$/.test(qId)) {
         const baseId = qId.replace('_mc_used','');
         if (!mcAnswered[baseId]) { mcAnswered[baseId] = true; mcScores[baseId] = 0; }
         const rg = document.getElementById('rg-' + baseId);
-        if (rg) { rg.dataset.locked='true'; rg.querySelectorAll('.radio-option').forEach(o=>{o.style.pointerEvents='none';o.style.opacity='.6';}); }
+        if (rg) {
+          rg.dataset.locked='true';
+          const expectedLetter = (window.MC_HINTS && window.MC_HINTS[baseId])
+            ? window.MC_HINTS[baseId].answer : null;
+          rg.querySelectorAll('.radio-option').forEach(o => {
+            o.style.pointerEvents = 'none';
+            o.style.opacity = '.6';
+            const oc = o.getAttribute('onclick') || '';
+            const m = oc.match(/selectMC\('[^']+',\s*this,\s*'([A-D])'\)/);
+            const optLetter = m ? m[1] : null;
+            if (expectedLetter && optLetter === expectedLetter) {
+              o.classList.add('correct-ans');   // highlight opsi benar untuk learning
+              o._correct = true;
+              o.style.opacity = '1';
+            }
+          });
+        }
         const sub = document.getElementById('sub-' + baseId); if (sub) sub.disabled = true;
         const fb = document.getElementById('fb-' + baseId);
         if (fb && !fb.classList.contains('correct')) { fb.className='feedback wrong'; fb.textContent='🔒 Sudah dijawab sebelumnya — soal terkunci.'; }
@@ -5911,6 +6093,17 @@ window._loadScoredQuestions = function() {
       }
     });
     updateScore();
+    // Pedoman §15.4 — Restore Order:
+    //   1. Firebase restore (sudah selesai di forEach di atas)
+    //   2. updateScore() (sudah dipanggil)
+    //   3. Re-eval tombol export/forum (memperhitungkan Firebase state baru)
+    //   4. _loadDraft() restore gdrive + forum textarea + code Python
+    //   5. Re-eval LAGI setelah draft restored (button enable kalau lengkap)
+    if (typeof checkExportReady === 'function') checkExportReady();
+    if (typeof checkForumReady === 'function') checkForumReady();
+    if (typeof window._loadDraft === 'function') window._loadDraft();
+    // _loadDraft already calls checkExportReady() + checkForumReady() di akhir,
+    // jadi tombol enable secara otomatis kalau Firebase + draft state lengkap.
   }).catch(()=>{});
 };
 
