@@ -5620,15 +5620,21 @@ async function saveSchedule(){
   const dueDate=new Date(due), startDate=new Date(dueDate.getTime()-dur*24*60*60*1000);
   const btns = document.querySelectorAll('#scheduleOverlay button');
   btns.forEach(b=>{b.disabled=true;b.style.opacity='.5';b.style.cursor='wait';});
-  Promise.all([
-    remove(ref(db, DB_PATH)),
-    set(ref(db, SCHEDULE_PATH), {start:startDate.toISOString(), end:dueDate.toISOString(), duration:dur, due:due})
-  ]).then(() => {
-    localStorage.removeItem(LOCAL_IDENTITY);
+  // SAVE SCHEDULE ONLY — tidak menyentuh visitor data atau identity.
+  // Reset data adalah aksi terpisah via tombol "🗑 Reset" (Pedoman §20.2).
+  // Schedule listener (_handleScheduleReady) akan re-evaluate state login
+  // secara otomatis setelah schedule update diterima.
+  set(ref(db, SCHEDULE_PATH), {
+    start: startDate.toISOString(),
+    end:   dueDate.toISOString(),
+    duration: dur,
+    due: due
+  }).then(() => {
     btns.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';});
     hideScheduleModal();
-    document.getElementById('visitorOverlay').classList.remove('hidden');
-    document.getElementById('visitorFab').style.display='none';
+    // Identity & FAB state DIBIARKAN apa adanya — tidak force-logout.
+    // Kalau dosen sudah login sebelumnya, mereka tetap login setelah save.
+    // Kalau belum login, login overlay tetap tampil seperti sebelumnya.
   }).catch(err => {
     btns.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';});
     errEl.textContent='\u274c Gagal simpan jadwal: ' + (err && err.message ? err.message : err);
