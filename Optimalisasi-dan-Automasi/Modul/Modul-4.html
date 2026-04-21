@@ -2653,6 +2653,48 @@ document.addEventListener('DOMContentLoaded', () => {
   }, 2000);
 });
 
+// ═══════════════════════════════════════════════════════════════════
+// Lazy-load Pyodide packages on demand. Pyodide tidak bundle pandas/scipy
+// di base distribution — harus di-load via pyodide.loadPackage() saat butuh.
+// Detect dari import statement di kode mahasiswa, lalu load yang missing.
+// Cache hasil di set agar tidak re-load berulang kali.
+// ═══════════════════════════════════════════════════════════════════
+const _loadedPyPackages = new Set(['numpy']);   // numpy sudah di-load di getPyodide()
+
+async function _ensurePythonPackages(code, fb) {
+  if (!_pyodideInstance) return;
+  // Detect packages from code: scan import statements
+  const PACKAGE_PATTERNS = [
+    { name: 'pandas',     regex: /^\s*(?:import\s+pandas|from\s+pandas\s+import)/m },
+    { name: 'scipy',      regex: /^\s*(?:import\s+scipy|from\s+scipy[\s.]|import\s+scipy\.)/m },
+    { name: 'matplotlib', regex: /^\s*(?:import\s+matplotlib|from\s+matplotlib[\s.])/m },
+    { name: 'sympy',      regex: /^\s*(?:import\s+sympy|from\s+sympy\s+import)/m },
+    { name: 'scikit-learn', regex: /^\s*(?:import\s+sklearn|from\s+sklearn[\s.])/m }
+  ];
+  const needed = PACKAGE_PATTERNS
+    .filter(p => p.regex.test(code) && !_loadedPyPackages.has(p.name))
+    .map(p => p.name);
+  if (needed.length === 0) return;
+  // Show loading status in feedback
+  const origText = fb ? fb.textContent : '';
+  if (fb) {
+    fb.className = 'feedback warn';
+    fb.textContent = `📦 Memuat package Python: ${needed.join(', ')}... (5-15 detik, sekali saja)`;
+  }
+  try {
+    await _pyodideInstance.loadPackage(needed);
+    needed.forEach(p => _loadedPyPackages.add(p));
+    if (fb) { fb.textContent = origText || '⏳ Menjalankan kode...'; }
+  } catch (e) {
+    console.error('[Pyodide] Failed to load packages:', needed, e);
+    if (fb) {
+      fb.className = 'feedback wrong';
+      fb.textContent = `❌ Gagal memuat package: ${needed.join(', ')}. Cek koneksi internet lalu coba lagi.`;
+    }
+    throw e;   // re-throw agar runAndCheck tahu untuk skip exec
+  }
+}
+
 function onCodeInput(qId) {
   const btn = document.getElementById('sub-' + qId);
   if (btn && btn.disabled && !compAnswered[qId]) {
@@ -2718,6 +2760,9 @@ async function runAndCheck(qId, expectedAns, tol, difficulty) {
 
   try {
     const pyodide = await getPyodide();
+    // Lazy-load packages yang ter-detect di kode mahasiswa (Pyodide tidak bundle pandas/scipy/dll)
+    await _ensurePythonPackages(code, fb);
+
     await pyodide.runPythonAsync('_cap.reset(); sys.stdout = _cap');
 
     let errMsg = null;
