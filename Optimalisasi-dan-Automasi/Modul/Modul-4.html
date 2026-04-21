@@ -4678,8 +4678,9 @@ async function submitVisitor(){
 
   // ─── Pre-start gate (hanya berlaku untuk mahasiswa; dosen bypass karena mereka
   //     mungkin perlu test/preview sebelum schedule resmi mulai) ───
+  const now = new Date().getTime();   // hoisted — dipakai di pre-start check + PIN flow schedOpen
   if (!isDosen) {
-    const now=new Date().getTime(), schedStart=new Date(currentSchedule.start).getTime();
+    const schedStart = new Date(currentSchedule.start).getTime();
     if(now<schedStart){const sd=new Date(currentSchedule.start);err.textContent='\u26a0 Akses belum dibuka. Jadwal dimulai pada '+sd.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+' '+sd.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+'.';err.style.display='block';return;}
   }
 
