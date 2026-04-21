@@ -2897,9 +2897,11 @@ function checkExportReady() {
   const btnTop    = document.getElementById('btn-score-export');
   const msgEl     = document.getElementById('export-blocked-msg');
 
-  // Check all comp questions answered (via Pyodide run)
-  const ids = ['c1','c2','c3','c4','c5','c6','c7','c8','c9','c10'];
-  const emptyNums = ids.filter(id => !compAnswered[id]);
+  // Check ALL comp questions answered (Easy/Medium c1-c10 + Hard c11-c15)
+  const easyIds = ['c1','c2','c3','c4','c5','c6','c7','c8','c9','c10'];
+  const hardIds = ['c11','c12','c13','c14','c15'];
+  const emptyEz   = easyIds.filter(id => !compAnswered[id]);
+  const emptyHard = hardIds.filter(id => !compAnswered[id]);
 
   // Check MC all answered
   const mcIds = ['mc1','mc2','mc3','mc4','mc5','mc6','mc7','mc8','mc9','mc10'];
@@ -2907,7 +2909,7 @@ function checkExportReady() {
 
   const gdriveOk = gdriveVal.length > 10 && (gdriveVal.startsWith('https://drive.google.com') || gdriveVal.startsWith('http'));
 
-  const allDone = emptyNums.length === 0 && emptyMC.length === 0 && gdriveOk;
+  const allDone = emptyEz.length === 0 && emptyHard.length === 0 && emptyMC.length === 0 && gdriveOk;
 
   // Update Google Drive field feedback
   if (gfb) {
@@ -2926,12 +2928,72 @@ function checkExportReady() {
   if (msgEl) {
     if (allDone) { msgEl.textContent = ''; return; }
     const parts = [];
-    if (emptyMC.length)   parts.push(emptyMC.length + ' soal pilihan ganda belum dijawab');
-    if (emptyNums.length) parts.push(emptyNums.length + ' soal komputasi belum diisi');
-    if (!gdriveOk)        parts.push('Link Google Drive belum diisi');
+    if (emptyMC.length)    parts.push(emptyMC.length + ' soal pilihan ganda belum dijawab');
+    if (emptyEz.length)    parts.push(emptyEz.length + ' soal komputasi Easy/Medium belum diisi');
+    if (emptyHard.length)  parts.push(emptyHard.length + ' soal komputasi Hard belum diisi');
+    if (!gdriveOk)         parts.push('Link Google Drive belum diisi');
     msgEl.textContent = '⚠ ' + parts.join(' · ');
   }
+
+  // Persist draft inputs (gdrive link) setiap kali checkExportReady dipanggil
+  _saveDraft();
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// Draft Persistence — gdrive link & forum answers
+// Auto-save to localStorage setiap oninput event. Restore saat page load.
+// Data terikat ke NIM mahasiswa agar tidak bocor antar user di device sama.
+// ═══════════════════════════════════════════════════════════════════
+function _draftKey() {
+  const me = (typeof getIdentity === 'function') ? getIdentity() : null;
+  if (!me || !me.nim || me.role === 'dosen') return null;
+  return 'optoauto_draft_modul-4_' + me.nim;
+}
+
+function _saveDraft() {
+  const key = _draftKey();
+  if (!key) return;
+  try {
+    const draft = {
+      gdrive: document.getElementById('gdrive-link')?.value || '',
+      fq1: document.getElementById('ans-fq1')?.value || '',
+      fq2: document.getElementById('ans-fq2')?.value || '',
+      fq3: document.getElementById('ans-fq3')?.value || '',
+      savedAt: new Date().toISOString()
+    };
+    localStorage.setItem(key, JSON.stringify(draft));
+  } catch(e) { /* quota exceeded etc. — silent fail */ }
+}
+
+function _loadDraft() {
+  const key = _draftKey();
+  if (!key) return;
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return;
+    const draft = JSON.parse(raw);
+    if (!draft) return;
+    const gdriveEl = document.getElementById('gdrive-link');
+    if (gdriveEl && !gdriveEl.value && draft.gdrive) gdriveEl.value = draft.gdrive;
+    const fq1 = document.getElementById('ans-fq1');
+    const fq2 = document.getElementById('ans-fq2');
+    const fq3 = document.getElementById('ans-fq3');
+    if (fq1 && !fq1.value && draft.fq1) fq1.value = draft.fq1;
+    if (fq2 && !fq2.value && draft.fq2) fq2.value = draft.fq2;
+    if (fq3 && !fq3.value && draft.fq3) fq3.value = draft.fq3;
+    // Re-evaluate button states after restore
+    if (typeof checkExportReady === 'function') checkExportReady();
+    if (typeof checkForumReady === 'function') checkForumReady();
+  } catch(e) { /* corrupt JSON etc. — silent fail */ }
+}
+
+function _clearDraft() {
+  const key = _draftKey();
+  if (!key) return;
+  try { localStorage.removeItem(key); } catch(e) {}
+}
+window._loadDraft = _loadDraft;
+window._clearDraft = _clearDraft;
 
 // ── EXPORT TUGAS HTML ──
 function exportTugasHtml() {
@@ -3148,6 +3210,9 @@ function checkForumReady() {
   btn.disabled = !allFilled;
   btn.style.opacity = allFilled ? '1' : '.4';
   btn.style.cursor  = allFilled ? 'pointer' : 'not-allowed';
+
+  // Persist forum draft on every input event
+  if (typeof _saveDraft === 'function') _saveDraft();
 }
 
 // ── COPY FORUM HTML TO CLIPBOARD ──
@@ -3296,7 +3361,15 @@ function exportForumHtml() { copyForumHtml(); }
   // Menggunakan inline style agar kompatibel dengan editor LMS
 
 function getIdentityLocal() {
-  try { return JSON.parse(localStorage.getItem('optoauto_identity_pertemuan-4')); } catch(e) { return null; }
+  // Use the same key as getIdentity()/saveIdentity() — LOCAL_IDENTITY is defined
+  // later in the module scope but also re-computed here for early-access contexts.
+  // MODULE_ID and the key template must match declaration below (line ~4471).
+  try {
+    const key = (typeof LOCAL_IDENTITY !== 'undefined')
+      ? LOCAL_IDENTITY
+      : 'optoauto_identity_modul-4';   // fallback if called before module load
+    return JSON.parse(localStorage.getItem(key));
+  } catch(e) { return null; }
 }
 
 // ═══════════════════════════════════════
@@ -5200,6 +5273,12 @@ window._loadScoredQuestions = function() {
       }
     });
     updateScore();
+    // Re-evaluate UI buttons after Firebase restore — crucial for export/forum buttons
+    // yang bergantung pada state mcAnswered/compAnswered untuk menentukan enabled status
+    if (typeof checkExportReady === 'function') checkExportReady();
+    if (typeof checkForumReady === 'function') checkForumReady();
+    // Restore draft inputs (gdrive link + forum textareas) dari localStorage
+    if (typeof _loadDraft === 'function') _loadDraft();
   }).catch(()=>{});
 };
 
