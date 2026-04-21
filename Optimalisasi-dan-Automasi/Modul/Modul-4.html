@@ -2918,11 +2918,18 @@ function checkExportReady() {
     else { gfb.style.color = 'var(--green)'; gfb.textContent = '✅ Link valid'; }
   }
 
-  // Enable/disable export buttons
-  const styleReady = 'opacity:1;cursor:pointer';
-  const styleDisabled = 'opacity:.4;cursor:not-allowed';
-  if (btnBottom) { btnBottom.disabled = !allDone; btnBottom.style.cssText = btnBottom.style.cssText.replace(/opacity[^;]+;cursor[^;]+/, allDone ? styleReady : styleDisabled); }
-  if (btnTop)    { btnTop.disabled = !allDone;    btnTop.style.cssText    = btnTop.style.cssText.replace(/opacity[^;]+;cursor[^;]+/, allDone ? styleReady : styleDisabled); }
+  // Enable/disable export buttons — set explicit properties (not regex on cssText)
+  // because cssText.replace() bisa silently fail jika pattern tidak match dan
+  // meninggalkan visual state inconsistent dengan disabled property
+  function _setBtnState(btn, ready) {
+    if (!btn) return;
+    btn.disabled = !ready;
+    btn.style.opacity = ready ? '1' : '.4';
+    btn.style.cursor  = ready ? 'pointer' : 'not-allowed';
+    btn.style.pointerEvents = ready ? 'auto' : 'none';   // belt-and-suspenders: prevent click jika disabled
+  }
+  _setBtnState(btnBottom, allDone);
+  _setBtnState(btnTop,    allDone);
 
   // Message
   if (msgEl) {
@@ -2959,8 +2966,15 @@ function _saveDraft() {
       fq1: document.getElementById('ans-fq1')?.value || '',
       fq2: document.getElementById('ans-fq2')?.value || '',
       fq3: document.getElementById('ans-fq3')?.value || '',
+      // Save all 15 code textareas (Comp Easy/Medium c1-c10 + Comp Hard c11-c15)
+      // agar code yang sudah dijalankan bisa dipulihkan untuk export setelah reload
+      code: {},
       savedAt: new Date().toISOString()
     };
+    for (let i = 1; i <= 15; i++) {
+      const ta = document.getElementById('code-c' + i);
+      if (ta && ta.value) draft.code['c' + i] = ta.value;
+    }
     localStorage.setItem(key, JSON.stringify(draft));
   } catch(e) { /* quota exceeded etc. — silent fail */ }
 }
@@ -2981,6 +2995,14 @@ function _loadDraft() {
     if (fq1 && !fq1.value && draft.fq1) fq1.value = draft.fq1;
     if (fq2 && !fq2.value && draft.fq2) fq2.value = draft.fq2;
     if (fq3 && !fq3.value && draft.fq3) fq3.value = draft.fq3;
+    // Restore 15 code textareas — fill HANYA jika kosong agar tidak overwrite typing aktif
+    if (draft.code && typeof draft.code === 'object') {
+      for (let i = 1; i <= 15; i++) {
+        const id = 'c' + i;
+        const ta = document.getElementById('code-' + id);
+        if (ta && !ta.value && draft.code[id]) ta.value = draft.code[id];
+      }
+    }
     // Re-evaluate button states after restore
     if (typeof checkExportReady === 'function') checkExportReady();
     if (typeof checkForumReady === 'function') checkForumReady();
@@ -5217,7 +5239,20 @@ window._loadScoredQuestions = function() {
       if (/^mc\d+$/.test(qId)) {
         if (!mcAnswered[qId]) { mcAnswered[qId] = true; mcScores[qId] = 1; }
         const rg = document.getElementById('rg-' + qId);
-        if (rg) { rg.dataset.locked='true'; rg.querySelectorAll('.radio-option').forEach(o=>{o.style.pointerEvents='none';o.style.opacity='.6';}); }
+        if (rg) {
+          rg.dataset.locked='true';
+          rg.querySelectorAll('.radio-option').forEach(o=>{
+            o.style.pointerEvents='none';
+            o.style.opacity='.6';
+            // Identify correct option from onclick attribute (boolean-based after shuffle)
+            const oc = o.getAttribute('onclick') || '';
+            if (/,\s*true\s*\)/.test(oc)) {
+              o.classList.add('correct-ans');   // highlight + needed for export
+              o._correct = true;
+              o.style.opacity = '1';            // un-dim correct option for visibility
+            }
+          });
+        }
         const sub = document.getElementById('sub-' + qId); if (sub) sub.disabled = true;
         const fb = document.getElementById('fb-' + qId);
         if (fb && !fb.classList.contains('correct')) { fb.className='feedback correct'; fb.textContent='✅ Sudah dijawab benar — poin telah tercatat.'; }
@@ -5228,10 +5263,23 @@ window._loadScoredQuestions = function() {
         const baseId = qId.replace('_mc_used','');
         if (!mcAnswered[baseId]) { mcAnswered[baseId] = true; mcScores[baseId] = 0; }
         const rg = document.getElementById('rg-' + baseId);
-        if (rg) { rg.dataset.locked='true'; rg.querySelectorAll('.radio-option').forEach(o=>{o.style.pointerEvents='none';o.style.opacity='.6';}); }
+        if (rg) {
+          rg.dataset.locked='true';
+          rg.querySelectorAll('.radio-option').forEach(o=>{
+            o.style.pointerEvents='none';
+            o.style.opacity='.6';
+            // Highlight correct answer (un-dim) so user can see what was right
+            const oc = o.getAttribute('onclick') || '';
+            if (/,\s*true\s*\)/.test(oc)) {
+              o.classList.add('correct-ans');   // green border for export & visibility
+              o._correct = true;
+              o.style.opacity = '1';
+            }
+          });
+        }
         const sub = document.getElementById('sub-' + baseId); if (sub) sub.disabled = true;
         const fb = document.getElementById('fb-' + baseId);
-        if (fb && !fb.classList.contains('correct')) { fb.className='feedback wrong'; fb.textContent='🔒 Sudah dijawab sebelumnya — soal terkunci.'; }
+        if (fb && !fb.classList.contains('correct')) { fb.className='feedback wrong'; fb.textContent='🔒 Sudah dijawab sebelumnya — jawaban salah tercatat.'; }
       }
 
       // ── Restore comp correct answers (Easy +2 / Hard +4 — differentiated by _isHardComp) ──
