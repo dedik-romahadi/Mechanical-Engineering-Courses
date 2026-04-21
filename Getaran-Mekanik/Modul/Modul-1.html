@@ -691,11 +691,11 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <nav id="navTop">
   <span class="nav-brand"><span class="pulse"></span><span>GETARANMESIN // P1</span></span>
   <div class="nav-tabs">
+    <button class="nav-tab" id="tab-setup" onclick="switchTab('setup')">🐍 Setup Python</button>
+    <button class="nav-tab" id="tab-kelompok" onclick="switchTab('kelompok')">👥 Pembagian Kelompok</button>
     <button class="nav-tab active" id="tab-modul" onclick="switchTab('modul')">📖 Modul</button>
     <button class="nav-tab" id="tab-tugas" onclick="switchTab('tugas')">📝 Tugas</button>
     <button class="nav-tab" id="tab-forum" onclick="switchTab('forum')">💬 Forum</button>
-    <button class="nav-tab" id="tab-setup" onclick="switchTab('setup')">🐍 Setup Python</button>
-    <button class="nav-tab" id="tab-kelompok" onclick="switchTab('kelompok')">👥 Pembagian Kelompok</button>
     <button class="nav-tab" id="tab-hasil" onclick="switchTab('hasil')">📊 Hasil</button>
   </div>
   <span class="nav-badge">👨‍🏫 DEDIK ROMAHADI</span>
@@ -2587,136 +2587,81 @@ plt.grid(alpha=0.3); plt.tight_layout(); plt.show()</pre></div>
 #page-kelompok .pk-rule h3{color:var(--pk-c3);font-size:1rem;font-weight:800;margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
 #page-kelompok .pk-rule ul{padding-left:1.4rem;color:var(--pk-t2);line-height:1.8;font-size:.92rem}
 #page-kelompok .pk-rule li strong{color:var(--pk-t1)}
+
+/* ── 3-GROUP DYNAMIC CARD SYSTEM (from original Pembagian-Kelompok.html) ── */
+#page-kelompok .pk-header{position:relative;max-width:960px;margin:0 auto;padding:40px 24px 32px;text-align:center;overflow:hidden}
+#page-kelompok .pk-header-tag{display:inline-flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#00d4ff;border:1px solid rgba(0,212,255,.25);background:rgba(0,212,255,.05);padding:8px 22px;border-radius:24px;letter-spacing:3px;text-transform:uppercase;margin-bottom:20px;position:relative;z-index:1}
+#page-kelompok .pk-header h2{font-size:clamp(32px,5vw,52px);font-weight:800;line-height:1.05;color:#eef2f7;margin-bottom:14px;position:relative;z-index:1;letter-spacing:-1.5px}
+#page-kelompok .pk-header h2 em{font-style:normal;background:linear-gradient(90deg,#00d4ff,#10b981,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+#page-kelompok .pk-header p#heroSub{font-size:16px;color:#4a6080;max-width:540px;margin:0 auto;position:relative;z-index:1}
+
+#page-kelompok .groups-container{max-width:1200px;margin:0 auto;padding:16px 24px 40px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+@media (max-width:900px){#page-kelompok .groups-container{grid-template-columns:1fr;max-width:500px}}
+
+#page-kelompok .group-card{border-radius:24px;overflow:hidden;border:1px solid;transition:transform .5s cubic-bezier(.34,1.56,.64,1),box-shadow .5s}
+#page-kelompok .group-card:hover{transform:translateY(-12px) scale(1.02)}
+#page-kelompok .card-blue{background:linear-gradient(160deg,#081e3d,#0a2a52);border-color:rgba(59,130,246,.3)}
+#page-kelompok .card-blue:hover{box-shadow:0 24px 60px rgba(59,130,246,.15)}
+#page-kelompok .card-emerald{background:linear-gradient(160deg,#052e21,#064e36);border-color:rgba(16,185,129,.3)}
+#page-kelompok .card-emerald:hover{box-shadow:0 24px 60px rgba(16,185,129,.15)}
+#page-kelompok .card-violet{background:linear-gradient(160deg,#1a0a3e,#2d1566);border-color:rgba(139,92,246,.3)}
+#page-kelompok .card-violet:hover{box-shadow:0 24px 60px rgba(139,92,246,.15)}
+
+#page-kelompok .card-accent{height:4px}
+#page-kelompok .card-header{padding:28px 24px 20px}
+#page-kelompok .card-icon{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:14px;animation:pkFloat 3s ease-in-out infinite}
+@keyframes pkFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+#page-kelompok .card-header h3{font-size:24px;font-weight:800;color:#eef2f7;margin-bottom:4px}
+#page-kelompok .card-count{font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 14px;border-radius:20px;display:inline-block;margin-top:6px}
+
+#page-kelompok .card-body{padding:0 18px 24px}
+#page-kelompok .member-item{display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:14px;margin-bottom:8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);transition:transform .3s,background .3s,border-color .3s}
+#page-kelompok .member-item:hover{transform:translateX(8px);background:rgba(255,255,255,.06)}
+#page-kelompok .member-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;min-width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+#page-kelompok .member-id{font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 12px;border-radius:10px;flex-shrink:0}
+#page-kelompok .member-name{font-size:14px;font-weight:500;color:#eef2f7;flex:1}
+
+#page-kelompok .dosen-msg{max-width:680px;margin:0 auto 40px;padding:0 24px}
+#page-kelompok .dosen-card{background:linear-gradient(135deg,rgba(0,212,255,.04),rgba(139,92,246,.03));border:1px solid rgba(0,212,255,.15);border-radius:24px;padding:40px 32px;text-align:center;transition:transform .3s,box-shadow .3s}
+#page-kelompok .dosen-card:hover{transform:translateY(-4px);box-shadow:0 16px 48px rgba(0,212,255,.08)}
+#page-kelompok .dosen-avatar{width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,#f59e0b,#ff9800);display:inline-flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:20px;animation:pkFloat 3s ease-in-out infinite}
+#page-kelompok .dosen-card p{font-size:16px;line-height:1.8;color:#c1d0e6;margin-bottom:20px}
+#page-kelompok .dosen-tag{display:inline-flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(255,255,255,.04);border:1px solid #162444;padding:8px 20px;border-radius:20px;color:#c1d0e6}
 </style>
 
 <div class="page" id="page-kelompok">
 
-<section class="pk-hero">
-  <div class="pk-hero-inner">
-    <div class="pk-badge">👥 PEMBAGIAN KELOMPOK · GETARAN MEKANIK</div>
-    <h1 class="pk-h1">Pembagian <em>Kelompok</em><br>Studi Kasus Getaran</h1>
-    <p class="pk-sub">Pembagian kelompok untuk tugas studi kasus getaran mekanik. Setiap kelompok terdiri dari 5–6 mahasiswa dengan satu ketua yang ditunjuk untuk koordinasi.</p>
-  </div>
-</section>
+<!-- HERO: Header with announcement tag -->
+<div class="pk-header">
+  <div class="pk-header-tag">📋 &nbsp;Pengumuman Pembagian Kelompok</div>
+  <h2>PEMBAGIAN KELOMPOK<br><em>Getaran Mekanik</em></h2>
+  <p id="heroSub">Memuat data mahasiswa...</p>
+</div>
 
+<!-- ═══════ 3 GROUP CARDS (populated dynamically from students.json) ═══════ -->
+<div class="groups-container" id="groupsContainer">
+  <div style="grid-column:1/-1;text-align:center;padding:60px 24px;color:#64748b;font-size:.9rem">⏳ Memuat data mahasiswa...</div>
+</div>
+
+<!-- Dosen Message -->
+<div class="dosen-msg">
+  <div class="dosen-card">
+    <div class="dosen-avatar">👨‍🏫</div>
+    <p>Kelompok sudah siap digunakan untuk diskusi dan proyek.<br>Saya harap kalian saling mendukung dan menghasilkan karya terbaik.<br><br>Jika ada pertanyaan, langsung hubungi saya ya! 🚀</p>
+    <div class="dosen-tag">
+      <span style="color:#f59e0b">✦</span>
+      <span>Dosen Pengampu Mata Kuliah — Dedik Romahadi</span>
+      <span style="color:#f59e0b">✦</span>
+    </div>
+  </div>
+</div>
+
+<!-- Aturan & Tata Tertib Kelompok (preserved from prior version) -->
 <div class="pk-wrap">
-  <div class="pk-info">
-    <span class="pk-info-icon">📋</span>
-    <div class="pk-info-text">
-      <strong>Catatan:</strong> Pembagian ini bersifat sementara dan dapat disesuaikan setelah konsultasi dengan dosen. Setiap kelompok wajib menyelesaikan studi kasus getaran yang ditugaskan dan mempresentasikan hasilnya di pertemuan ke-7. Ketua kelompok bertanggung jawab untuk koordinasi internal dan komunikasi dengan dosen melalui platform WhatsApp atau email resmi.
-    </div>
-  </div>
-
-  <div class="pk-grid">
-
-    <!-- KELOMPOK 1 -->
-    <div class="pk-group">
-      <div class="pk-group-bar"></div>
-      <div class="pk-group-head">
-        <div class="pk-group-num">Kelompok 01</div>
-        <div class="pk-group-title">Analisis Getaran Bebas SDOF</div>
-        <div class="pk-group-topic">Studi kasus: ayunan/pendulum + plot peluruhan eksponensial</div>
-      </div>
-      <ul class="pk-members">
-        <li class="pk-member"><span class="pk-member-num">01</span><div class="pk-member-info"><div class="pk-member-name">Anggota 1<span class="pk-leader">KETUA</span></div><div class="pk-member-nim">NIM: TBD</div></div></li>
-        <li class="pk-member"><span class="pk-member-num">02</span><div class="pk-member-info"><div class="pk-member-name">Anggota 2</div><div class="pk-member-nim">NIM: TBD</div></div></li>
-        <li class="pk-member"><span class="pk-member-num">03</span><div class="pk-member-info"><div class="pk-member-name">Anggota 3</div><div class="pk-member-nim">NIM: TBD</div></div></li>
-        <li class="pk-member"><span class="pk-member-num">04</span><div class="pk-member-info"><div class="pk-member-name">Anggota 4</div><div class="pk-member-nim">NIM: TBD</div></div></li>
-        <li class="pk-member"><span class="pk-member-num">05</span><div class="pk-member-info"><div class="pk-member-name">Anggota 5</div><div class="pk-member-nim">NIM: TBD</div></div></li>
-      </ul>
-    </div>
-
-    <!-- KELOMPOK 2 -->
-    <div class="pk-group">
-      <div class="pk-group-bar"></div>
-      <div class="pk-group-head">
-        <div class="pk-group-num">Kelompok 02</div>
-        <div class="pk-group-title">Identifikasi Parameter Sistem</div>
-        <div class="pk-group-topic">Studi kasus: logarithmic decrement → estimasi ζ dari data eksperimen</div>
-      </div>
-      <ul class="pk-members">
-        <li class="pk-member"><span class="pk-member-num">01</span><div class="pk-member-info"><div class="pk-member-name">Anggota 1<span class="pk-leader">KETUA</span></div><div class="pk-member-nim">NIM: TBD</div></div></li>
-        <li class="pk-member"><span class="pk-member-num">02</span><div class="pk-member-info"><div class="pk-member-name">Anggota 2</div><div class="pk-member-nim">NIM: TBD</div></div></li>
-        <li class="pk-member"><span class="pk-member-num">03</span><div class="pk-member-info"><div class="pk-member-name">Anggota 3</div><div class="pk-member-nim">NIM: TBD</div></div></li>
-        <li class="pk-member"><span class="pk-member-num">04</span><div class="pk-member-info"><div class="pk-member-name">Anggota 4</div><div class="pk-member-nim">NIM: TBD</div></div></li>
-        <li class="pk-member"><span class="pk-member-num">05</span><div class="pk-member-info"><div class="pk-member-name">Anggota 5</div><div class="pk-member-nim">NIM: TBD</div></div></li>
-      </ul>
-    </div>
-
-    <!-- KELOMPOK 3 -->
-    <div class="pk-group">
-      <div class="pk-group-bar"></div>
-      <div class="pk-group-head">
-        <div class="pk-group-num">Kelompok 03</div>
-        <div class="pk-group-title">Diagnosa Vibrasi Mesin Rotasi</div>
-        <div class="pk-group-topic">Studi kasus: identifikasi unbalance/misalignment via spektrum FFT</div>
-      </div>
-      <ul class="pk-members">
-        <li class="pk-member"><span class="pk-member-num">01</span><div class="pk-member-info"><div class="pk-member-name">Anggota 1<span class="pk-leader">KETUA</span></div><div class="pk-member-nim">NIM: TBD</div></div></li>
-        <li class="pk-member"><span class="pk-member-num">02</span><div class="pk-member-info"><div class="pk-member-name">Anggota 2</div><div class="pk-member-nim">NIM: TBD</div></div></li>
-        <li class="pk-member"><span class="pk-member-num">03</span><div class="pk-member-info"><div class="pk-member-name">Anggota 3</div><div class="pk-member-nim">NIM: TBD</div></div></li>
-        <li class="pk-member"><span class="pk-member-num">04</span><div class="pk-member-info"><div class="pk-member-name">Anggota 4</div><div class="pk-member-nim">NIM: TBD</div></div></li>
-        <li class="pk-member"><span class="pk-member-num">05</span><div class="pk-member-info"><div class="pk-member-name">Anggota 5</div><div class="pk-member-nim">NIM: TBD</div></div></li>
-      </ul>
-    </div>
-
-    <!-- KELOMPOK 4 -->
-    <div class="pk-group">
-      <div class="pk-group-bar"></div>
-      <div class="pk-group-head">
-        <div class="pk-group-num">Kelompok 04</div>
-        <div class="pk-group-title">Resonansi &amp; Bahaya Strukturnya</div>
-        <div class="pk-group-topic">Studi kasus: simulasi DMF dekat resonansi + analisis Tacoma Narrows</div>
-      </div>
-      <ul class="pk-members">
-        <li class="pk-member"><span class="pk-member-num">01</span><div class="pk-member-info"><div class="pk-member-name">Anggota 1<span class="pk-leader">KETUA</span></div><div class="pk-member-nim">NIM: TBD</div></div></li>
-        <li class="pk-member"><span class="pk-member-num">02</span><div class="pk-member-info"><div class="pk-member-name">Anggota 2</div><div class="pk-member-nim">NIM: TBD</div></div></li>
-        <li class="pk-member"><span class="pk-member-num">03</span><div class="pk-member-info"><div class="pk-member-name">Anggota 3</div><div class="pk-member-nim">NIM: TBD</div></div></li>
-        <li class="pk-member"><span class="pk-member-num">04</span><div class="pk-member-info"><div class="pk-member-name">Anggota 4</div><div class="pk-member-nim">NIM: TBD</div></div></li>
-        <li class="pk-member"><span class="pk-member-num">05</span><div class="pk-member-info"><div class="pk-member-name">Anggota 5</div><div class="pk-member-nim">NIM: TBD</div></div></li>
-      </ul>
-    </div>
-
-    <!-- KELOMPOK 5 -->
-    <div class="pk-group">
-      <div class="pk-group-bar"></div>
-      <div class="pk-group-head">
-        <div class="pk-group-num">Kelompok 05</div>
-        <div class="pk-group-title">Isolasi Getaran &amp; Transmissibility</div>
-        <div class="pk-group-topic">Studi kasus: desain isolator karet untuk mesin industri</div>
-      </div>
-      <ul class="pk-members">
-        <li class="pk-member"><span class="pk-member-num">01</span><div class="pk-member-info"><div class="pk-member-name">Anggota 1<span class="pk-leader">KETUA</span></div><div class="pk-member-nim">NIM: TBD</div></div></li>
-        <li class="pk-member"><span class="pk-member-num">02</span><div class="pk-member-info"><div class="pk-member-name">Anggota 2</div><div class="pk-member-nim">NIM: TBD</div></div></li>
-        <li class="pk-member"><span class="pk-member-num">03</span><div class="pk-member-info"><div class="pk-member-name">Anggota 3</div><div class="pk-member-nim">NIM: TBD</div></div></li>
-        <li class="pk-member"><span class="pk-member-num">04</span><div class="pk-member-info"><div class="pk-member-name">Anggota 4</div><div class="pk-member-nim">NIM: TBD</div></div></li>
-        <li class="pk-member"><span class="pk-member-num">05</span><div class="pk-member-info"><div class="pk-member-name">Anggota 5</div><div class="pk-member-nim">NIM: TBD</div></div></li>
-      </ul>
-    </div>
-
-    <!-- KELOMPOK 6 -->
-    <div class="pk-group">
-      <div class="pk-group-bar"></div>
-      <div class="pk-group-head">
-        <div class="pk-group-num">Kelompok 06</div>
-        <div class="pk-group-title">Analisis Multi-DOF (MDOF)</div>
-        <div class="pk-group-topic">Studi kasus: 2-DOF system → frekuensi natural mode 1 &amp; mode 2</div>
-      </div>
-      <ul class="pk-members">
-        <li class="pk-member"><span class="pk-member-num">01</span><div class="pk-member-info"><div class="pk-member-name">Anggota 1<span class="pk-leader">KETUA</span></div><div class="pk-member-nim">NIM: TBD</div></div></li>
-        <li class="pk-member"><span class="pk-member-num">02</span><div class="pk-member-info"><div class="pk-member-name">Anggota 2</div><div class="pk-member-nim">NIM: TBD</div></div></li>
-        <li class="pk-member"><span class="pk-member-num">03</span><div class="pk-member-info"><div class="pk-member-name">Anggota 3</div><div class="pk-member-nim">NIM: TBD</div></div></li>
-        <li class="pk-member"><span class="pk-member-num">04</span><div class="pk-member-info"><div class="pk-member-name">Anggota 4</div><div class="pk-member-nim">NIM: TBD</div></div></li>
-        <li class="pk-member"><span class="pk-member-num">05</span><div class="pk-member-info"><div class="pk-member-name">Anggota 5</div><div class="pk-member-nim">NIM: TBD</div></div></li>
-      </ul>
-    </div>
-
-  </div>
-
   <div class="pk-rule">
     <h3>📖 Aturan &amp; Tata Tertib Kelompok</h3>
     <ul>
-      <li><strong>Komposisi:</strong> 5–6 anggota dengan 1 ketua yang ditunjuk secara musyawarah di internal kelompok.</li>
+      <li><strong>Komposisi:</strong> Setiap kelompok terdiri dari anggota yang dibagi secara otomatis dari daftar mahasiswa aktif. Satu ketua ditunjuk secara musyawarah di internal kelompok.</li>
       <li><strong>Tugas Ketua:</strong> Koordinasi pembagian kerja, komunikasi dengan dosen, kompilasi laporan akhir.</li>
       <li><strong>Deliverable:</strong> Laporan studi kasus (PDF) + kode Python (Jupyter Notebook .ipynb) + presentasi (slide).</li>
       <li><strong>Deadline:</strong> Submit akhir di Pertemuan ke-7 — keterlambatan akan mengurangi nilai.</li>
@@ -2914,12 +2859,72 @@ function switchTab(tab) {
     // Refresh visitor table when switching to hasil tab
     if (typeof renderVisitors === 'function') setTimeout(() => renderVisitors(latestVisitors), 100);
   }
+  if (tab === 'kelompok') {
+    // Render groups from students.json (cached after first fetch)
+    if (typeof renderGroups === 'function' && !renderGroups._loaded) {
+      renderGroups();
+      renderGroups._loaded = true;
+    }
+  }
 }
 // Show subnav on initial load (modul is default active tab)
 document.addEventListener('DOMContentLoaded', () => {
   const sub = document.getElementById('modulSubnav');
   if (sub) sub.classList.add('show');
 });
+
+// ── RENDER GROUPS FROM students.json (ported from Pembagian-Kelompok.html) ──
+// Fetches mahasiswa list, splits into 3 kelompok dengan tema blue/emerald/violet,
+// renders .group-card dengan .member-item untuk setiap anggota.
+const STUDENTS_JSON = 'https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Getaran-Mekanik/Attributes/students.json';
+function _pkTitleCase(s) { return (s || '').toLowerCase().replace(/\b\w/g, c => c.toUpperCase()); }
+function renderGroups() {
+  fetch(STUDENTS_JSON, { cache: 'no-store' })
+    .then(r => r.json())
+    .then(data => {
+      if (!Array.isArray(data) || data.length === 0) throw new Error('Empty student list');
+      const s1 = Math.ceil(data.length / 3);
+      const s2 = Math.ceil((data.length - s1) / 2);
+      const groups = [
+        { name: 'Kelompok 1', color: '#3b82f6', colorBg: 'rgba(59,130,246,.12)',  colorBorder: 'rgba(59,130,246,.2)',  colorBg2: 'rgba(59,130,246,.08)',  icon: '⚡', theme: 'card-blue',    accent: 'linear-gradient(90deg,#3b82f6,#60a5fa)', members: data.slice(0, s1) },
+        { name: 'Kelompok 2', color: '#10b981', colorBg: 'rgba(16,185,129,.12)',  colorBorder: 'rgba(16,185,129,.2)',  colorBg2: 'rgba(16,185,129,.08)',  icon: '🔥', theme: 'card-emerald', accent: 'linear-gradient(90deg,#10b981,#34d399)', members: data.slice(s1, s1 + s2) },
+        { name: 'Kelompok 3', color: '#8b5cf6', colorBg: 'rgba(139,92,246,.12)',  colorBorder: 'rgba(139,92,246,.2)',  colorBg2: 'rgba(139,92,246,.08)',  icon: '💎', theme: 'card-violet',  accent: 'linear-gradient(90deg,#8b5cf6,#a78bfa)', members: data.slice(s1 + s2) }
+      ];
+      const container = document.getElementById('groupsContainer');
+      if (!container) return;
+      container.innerHTML = groups.map(g => {
+        const membersHTML = g.members.map((s, i) => {
+          const nm = _pkTitleCase(s.nama || '');
+          const nim = s.nim || '-';
+          return '<div class="member-item" style="border-color:' + g.colorBg2 + ';">' +
+                 '<div class="member-num" style="background:' + g.colorBg + ';color:' + g.color + ';">' + (i + 1) + '</div>' +
+                 '<span class="member-id" style="background:' + g.colorBg2 + ';color:' + g.color + ';">' + nim + '</span>' +
+                 '<span class="member-name">' + nm + '</span>' +
+                 '</div>';
+        }).join('');
+        return '<div class="group-card ' + g.theme + '">' +
+               '<div class="card-accent" style="background:' + g.accent + '"></div>' +
+               '<div class="card-header">' +
+                 '<div class="card-icon" style="background:' + g.colorBg + ';border:1px solid ' + g.colorBorder + ';">' + g.icon + '</div>' +
+                 '<h3>' + g.name + '</h3>' +
+                 '<span class="card-count" style="background:' + g.colorBg + ';color:' + g.color + ';border:1px solid ' + g.colorBorder + ';">' + g.members.length + ' Anggota</span>' +
+               '</div>' +
+               '<div class="card-body">' + membersHTML + '</div>' +
+               '</div>';
+      }).join('');
+      const heroSub = document.getElementById('heroSub');
+      if (heroSub) heroSub.textContent = data.length + ' mahasiswa dibagi menjadi 3 kelompok untuk diskusi dan tugas kelompok sepanjang semester.';
+      console.log('[Kelompok] Students loaded:', data.length);
+    })
+    .catch(err => {
+      console.error('[Kelompok] Failed to load students:', err);
+      const c = document.getElementById('groupsContainer');
+      if (c) c.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#fb7185">⚠ Gagal memuat data mahasiswa. Periksa koneksi internet atau coba refresh halaman.</div>';
+      const heroSub = document.getElementById('heroSub');
+      if (heroSub) heroSub.textContent = 'Gagal memuat daftar mahasiswa — coba refresh halaman.';
+      renderGroups._loaded = false; // allow retry on next tab switch
+    });
+}
 
 // ── WAVE TRACES ──
 (function() {
