@@ -2545,7 +2545,20 @@ function startCountdown(endISO) {
 
 // ── MC LOGIC ──
 let mcAnswered = {}, mcScores = {};
+
+// Flag: Firebase state restore complete. Digunakan untuk mencegah user interact
+// dengan soal sebelum _loadScoredQuestions() selesai — bikin soal "bisa dikerjakan
+// ulang" setelah clear cache (UX bug: poin tidak bertambah tapi feedback bilang "+1 poin"
+// karena guard mcAnswered[qId] masih empty saat Firebase async restore).
+// Lihat Pedoman §18.2 Layer 1 (client-side guard)
+let _firebaseStateLoaded = false;
+window._firebaseStateLoaded = () => _firebaseStateLoaded;
 function selectMC(qId, opt, correct) {
+  if (!_firebaseStateLoaded) {
+    const fb = document.getElementById('fb-' + qId);
+    if (fb) { fb.className = 'feedback warn'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
+    return;
+  }
   if (mcAnswered[qId]) return;
   const rg = document.getElementById('rg-' + qId);
   rg.querySelectorAll('.radio-option').forEach(o => o.classList.remove('selected'));
@@ -2554,6 +2567,11 @@ function selectMC(qId, opt, correct) {
   document.getElementById('sub-' + qId).disabled = false;
 }
 function checkMC(qId) {
+  if (!_firebaseStateLoaded) {
+    const fb = document.getElementById('fb-' + qId);
+    if (fb) { fb.className = 'feedback warn'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
+    return;
+  }
   if (mcAnswered[qId]) {
     // Already answered (this session or restored from Firebase) — show feedback
     const fb = document.getElementById('fb-' + qId);
@@ -2730,6 +2748,11 @@ async function runAndCheck(qId, expectedAns, tol, difficulty) {
   // difficulty: 'easy' (default) | 'hard'
   // Easy: correct +2, wrong/error → locked (0 poin)
   // Hard: correct +4, wrong/error → +1 partial (△ Usaha), empty → NOT locked
+  if (!_firebaseStateLoaded) {
+    const fb = document.getElementById('fb-' + qId);
+    if (fb) { fb.className = 'feedback warn'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
+    return;
+  }
   const diff = difficulty || 'easy';
   const isHard = (diff === 'hard');
   const pointsCorrect = isHard ? 4 : 2;
@@ -5238,10 +5261,17 @@ window._recordCompAttempt = function(qId) {
 
 window._loadScoredQuestions = function() {
   const me = getIdentity();
-  if (!me || !me.nim || me.role === 'dosen') return;
+  // Helper to mark state loaded in all exit paths (including early returns)
+  const _markLoaded = () => {
+    _firebaseStateLoaded = true;
+    if (typeof checkExportReady === 'function') checkExportReady();
+    if (typeof checkForumReady === 'function') checkForumReady();
+    if (typeof _loadDraft === 'function') _loadDraft();
+  };
+  if (!me || !me.nim || me.role === 'dosen') { _markLoaded(); return; }
   const key = sanitizeKey('mhs_' + me.nim);
   get(ref(db, DB_PATH + '/' + key)).then(snap => {
-    if (!snap.exists()) return;
+    if (!snap.exists()) { _markLoaded(); return; }
     const data = snap.val();
     const scored = (data.scoredQuestions || '').split(',').filter(Boolean);
     // ── Restore code Komputasi dari Firebase (Pedoman §15.4c — primary storage) ──
@@ -5254,7 +5284,7 @@ window._loadScoredQuestions = function() {
         }
       });
     }
-    if (!scored.length) return;
+    if (!scored.length) { _markLoaded(); return; }
     scored.forEach(qId => {
       _answeredQ.add(qId);
 
@@ -5344,13 +5374,9 @@ window._loadScoredQuestions = function() {
       }
     });
     updateScore();
-    // Re-evaluate UI buttons after Firebase restore — crucial for export/forum buttons
-    // yang bergantung pada state mcAnswered/compAnswered untuk menentukan enabled status
-    if (typeof checkExportReady === 'function') checkExportReady();
-    if (typeof checkForumReady === 'function') checkForumReady();
-    // Restore draft inputs (gdrive link + forum textareas) dari localStorage
-    if (typeof _loadDraft === 'function') _loadDraft();
-  }).catch(()=>{});
+    // Re-evaluate UI buttons + restore draft + unlock soal interaction
+    _markLoaded();
+  }).catch(() => { _markLoaded(); });
 };
 
 // ═══════════════════════════════════════════════════════
@@ -5765,6 +5791,17 @@ initVisitor();
 setTimeout(window._loadScoredQuestions, 1200);
 // Apply role visibility after load — for returning dosen to see Reset button
 setTimeout(_applyRoleVisibility, 300);
+// Safety net: unlock soal interaction setelah 10 detik meskipun Firebase offline/error.
+// Mencegah mahasiswa stuck tidak bisa jawab kalau koneksi lambat atau Firebase down.
+// _loadScoredQuestions sendiri sudah set flag di semua path success/error,
+// tapi ini fallback untuk edge case promise tidak pernah resolve/reject.
+setTimeout(() => {
+  if (!_firebaseStateLoaded) {
+    _firebaseStateLoaded = true;
+    if (typeof checkExportReady === 'function') checkExportReady();
+    if (typeof checkForumReady === 'function') checkForumReady();
+  }
+}, 10000);
 setInterval(()=>{renderVisitors(latestVisitors);},30000);
 </script>
 
