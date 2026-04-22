@@ -728,7 +728,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <button class="vp-chat-send" id="vpChatSend" onclick="sendChat()" disabled title="Kirim pesan">➤</button>
     </div>
     <div class="vp-login-warn" id="vpLoginWarn" style="display:none;">
-      <b>Masuk</b> sebagai mahasiswa untuk mengirim pesan.
+      <b>Masuk</b> untuk mengirim pesan.
     </div>
   </div>
 </div>
@@ -5958,6 +5958,8 @@ async function submitVisitor(){
     saveIdentity({nama, nim:'DOSEN', role:'dosen', timestamp:new Date().toISOString()});
     document.getElementById('visitorFab').style.display='flex';
     _applyRoleVisibility();   // ⭐ tampilkan tombol Atur Jadwal + Reset untuk dosen
+    // Init presence for newly-logged-in dosen
+    if (typeof initPresence === 'function') setTimeout(initPresence, 300);
     return;
   }
 
@@ -6088,9 +6090,27 @@ let _currentPresenceRef = null;
 
 function initPresence() {
   const me = getIdentity();
-  if (!me || !me.nim || me.role !== 'student') return;
-  const nimKey = sanitizeKey('mhs_' + me.nim);
-  _currentPresenceRef = ref(db, PRESENCE_PATH + '/' + nimKey);
+  if (!me || !me.nama) return;
+
+  // ─── Listener: SEMUA user yang login (mahasiswa + dosen) bisa melihat
+  //               siapa yang online. Dosen perlu tahu untuk monitoring.
+  if (!_presenceUnsubscribe) {
+    _presenceUnsubscribe = onValue(ref(db, PRESENCE_PATH), (snap) => {
+      const data = snap.val() || {};
+      const now = Date.now();
+      onlineUsers = Object.entries(data)
+        .map(([key, val]) => ({ key, ...val }))
+        .filter(u => u.lastSeen && (now - u.lastSeen) < ONLINE_THRESHOLD_MS);
+      renderOnlineUsers();
+    });
+  }
+
+  // ─── Writer: HANYA mahasiswa yang menulis presence. Dosen privacy —
+  //             mahasiswa tidak perlu tahu status online/offline dosen.
+  if (me.role !== 'student' || !me.nim) return;
+
+  const userKey = sanitizeKey('mhs_' + me.nim);
+  _currentPresenceRef = ref(db, PRESENCE_PATH + '/' + userKey);
 
   // Setup onDisconnect FIRST (server removes when connection drops)
   onDisconnect(_currentPresenceRef).remove().catch(()=>{});
@@ -6106,30 +6126,20 @@ function initPresence() {
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) _writeHeartbeat();
   });
-
-  // Listen to presence changes
-  if (_presenceUnsubscribe) _presenceUnsubscribe();
-  _presenceUnsubscribe = onValue(ref(db, PRESENCE_PATH), (snap) => {
-    const data = snap.val() || {};
-    const now = Date.now();
-    onlineUsers = Object.entries(data)
-      .map(([key, val]) => ({ key, ...val }))
-      .filter(u => u.lastSeen && (now - u.lastSeen) < ONLINE_THRESHOLD_MS);
-    renderOnlineUsers();
-  });
 }
 
 function _writeHeartbeat() {
   if (!_currentPresenceRef) return;
   const me = getIdentity();
-  if (!me || !me.nim || me.role !== 'student') return;
+  if (!me || me.role !== 'student' || !me.nim) return;
   const activeTab = document.querySelector('.nav-tab.active');
   const tabName = activeTab ? (activeTab.id.replace('tab-','')) : 'modul';
   set(_currentPresenceRef, {
     nama: me.nama.slice(0, 80),
     nim: me.nim,
     lastSeen: Date.now(),
-    tab: tabName
+    tab: tabName,
+    role: 'student'
   }).catch(()=>{});
 }
 
@@ -6191,34 +6201,49 @@ function initChat() {
 function renderChat() {
   const listEl = document.getElementById('vpChatList');
   if (!listEl) return;
-  // Update login warn visibility
   const warnEl = document.getElementById('vpLoginWarn');
   const inputWrap = document.querySelector('.vp-chat-input');
+  const headerEl = document.querySelector('#visitorPanel .vp-header h3');
   const me = getIdentity();
+  // Dosen & mahasiswa sama-sama bisa chat. Hanya guest/tidak login yang ditolak.
+  const canChat = !!(me && (me.role === 'student' || me.role === 'dosen'));
+
+  // Header tetap "Chat Kelas" untuk semua
+  if (headerEl) headerEl.textContent = '💬 Chat Kelas';
+
+  // Update warning + input visibility
   if (warnEl && inputWrap) {
-    if (!me || me.role !== 'student') {
-      warnEl.style.display = 'block';
-      inputWrap.style.display = 'none';
-    } else {
+    if (canChat) {
       warnEl.style.display = 'none';
       inputWrap.style.display = 'flex';
+    } else {
+      inputWrap.style.display = 'none';
+      warnEl.style.display = 'block';
+      warnEl.innerHTML = '<b>Masuk</b> terlebih dahulu untuk mengirim pesan.';
+      warnEl.style.borderTop = '1px solid rgba(255,255,255,.06)';
+      warnEl.style.background = 'rgba(0,0,0,.15)';
     }
   }
+
+  // Empty state
   if (!chatMessages.length) {
-    listEl.innerHTML = '<div class="vp-empty" style="padding:40px 16px;color:#64748b;font-size:.82rem">Belum ada pesan.<br><br><span style="font-size:.72rem;color:#475569">Mulai percakapan dengan teman!</span></div>';
+    const emptyMsg = canChat ?
+      'Belum ada pesan.<br><br><span style="font-size:.72rem;color:#475569">Mulai percakapan!</span>' :
+      'Belum ada pesan.<br><br><span style="font-size:.72rem;color:#475569">Login untuk bergabung.</span>';
+    listEl.innerHTML = `<div class="vp-empty" style="padding:40px 16px;color:#64748b;font-size:.82rem">${emptyMsg}</div>`;
     return;
   }
+
   const myNim = me ? me.nim : null;
   listEl.innerHTML = chatMessages.map(m => {
-    const isMe = m.nim === myNim;
-    const isDosen = m.role === 'dosen';
-    const cls = isMe ? 'own' : (isDosen ? 'dosen-msg' : 'other');
+    const isMe = canChat && m.nim === myNim;
+    const isDosenMsg = m.role === 'dosen';
+    const cls = isMe ? 'own' : (isDosenMsg ? 'dosen-msg' : 'other');
     const dt = m.timestamp ? new Date(m.timestamp) : new Date();
     const timeStr = dt.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
-    const nameLine = isMe ? '' : `<div class="vp-msg-name">${escH(m.nama || '—')}${isDosen ? ' 🧑‍🏫' : ''}</div>`;
+    const nameLine = isMe ? '' : `<div class="vp-msg-name">${escH(m.nama || '—')}${isDosenMsg ? ' 🧑‍🏫' : ''}</div>`;
     return `<div class="vp-msg ${cls}">${nameLine}<div class="vp-msg-text">${escH(m.text||'')}</div><div class="vp-msg-time">${timeStr}</div></div>`;
   }).join('');
-  // Auto-scroll to bottom
   listEl.scrollTop = listEl.scrollHeight;
 }
 
@@ -6228,7 +6253,9 @@ function onChatInput() {
   if (!input || !btn) return;
   const text = input.value.trim();
   const me = getIdentity();
-  btn.disabled = !text || !me || me.role !== 'student';
+  // Dosen & mahasiswa sama-sama bisa chat. Guest/belum login → tombol disabled.
+  const canChat = !!(me && (me.role === 'student' || me.role === 'dosen'));
+  btn.disabled = !text || !canChat;
   // Auto-resize
   input.style.height = 'auto';
   input.style.height = Math.min(80, input.scrollHeight) + 'px';
@@ -6243,7 +6270,8 @@ function onChatKey(e) {
 
 function sendChat() {
   const me = getIdentity();
-  if (!me || !me.nim || me.role !== 'student') return;
+  // Dosen & mahasiswa sama-sama bisa mengirim. Guest ditolak.
+  if (!me || (me.role !== 'student' && me.role !== 'dosen')) return;
   const input = document.getElementById('vpChatInput');
   if (!input) return;
   const text = input.value.trim();
@@ -6254,9 +6282,9 @@ function sendChat() {
   _lastSentAt = now;
 
   const msg = {
-    nim: me.nim,
+    nim: me.nim || 'DOSEN',
     nama: me.nama.slice(0, 80),
-    role: me.role || 'student',
+    role: me.role,
     text: text.slice(0, 500),
     timestamp: now
   };
@@ -7065,7 +7093,7 @@ initChat();
 // Init Presence system after small delay (waits for identity)
 setTimeout(() => {
   const me = getIdentity();
-  if (me && me.role === 'student') initPresence();
+  if (me && (me.role === 'student' || me.role === 'dosen')) initPresence();
 }, 1500);
 setTimeout(window._loadScoredQuestions, 1200);
 // PEDOMAN §18.2 — Safety net: unlock soal interaction setelah 10 detik meskipun Firebase offline/error.
