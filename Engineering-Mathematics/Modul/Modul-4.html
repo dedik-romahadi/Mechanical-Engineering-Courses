@@ -2747,6 +2747,40 @@ function startCountdown(endISO) {
   tick();
 }
 
+// ═══════════════════════════════════════════════════════════
+// FIREBASE STATE LOADED GUARD (Pedoman §18.2 Layer 1)
+// ──────────────────────────────────────────────────────────
+// Flag ini mencegah mahasiswa interact dengan soal (MC, Comp submit)
+// sebelum `_loadScoredQuestions()` selesai restore state dari Firebase.
+// Tanpa guard ini, setelah clear cache / incognito / new device, mahasiswa
+// bisa klik opsi MC dalam window race-condition (1200ms delay + Firebase RTT).
+// Konsekuensi:
+//   - _awardPoint() sudah punya anti-double-award check (scored.includes)
+//   - Tapi UI "✅ Benar! +1 poin" tetap muncul padahal Firebase tidak update
+//   - Mahasiswa kira sistem error → complaint tidak perlu
+// Flag diset true di SEMUA exit paths _loadScoredQuestions + safety timeout 10s.
+let _firebaseStateLoaded = false;
+
+// Helper untuk konsistensi pemanggilan di semua exit paths
+function _markLoaded() {
+  _firebaseStateLoaded = true;
+  // Clear feedback "Memuat..." yang mungkin masih tampil di soal
+  document.querySelectorAll('.feedback.warn').forEach(fb => {
+    if (fb.textContent && fb.textContent.includes('Memuat data jawaban')) {
+      fb.className = 'feedback'; fb.textContent = '';
+    }
+  });
+}
+window._markLoaded = _markLoaded;
+// Accessor supaya module script (scope terpisah) bisa check state flag
+window._isFirebaseStateLoaded = function() { return _firebaseStateLoaded; };
+
+// CATATAN: Safety net 10s dipindah ke akhir module script (line ~6280-an)
+// supaya timing-nya setelah _loadScoredQuestions di-schedule via setTimeout(1200).
+// Sebelumnya safety net di plain script (jalan SEBELUM module script) → kalau
+// module script punya runtime error sebelum define window._loadScoredQuestions,
+// safety net fire warning terus meski sebenarnya tidak ada masalah fundamental.
+
 // ── MC LOGIC ──
 let mcAnswered = {}, mcScores = {};
 // ── Hint penjelasan jawaban benar untuk setiap soal MC ──
@@ -2795,6 +2829,16 @@ const MC_HINTS = {
 };
 
 function selectMC(qId, opt, letter) {
+  // Pedoman §18.2 — race-condition guard: jangan proses input sebelum
+  // Firebase state restore selesai (mencegah UI feedback palsu)
+  if (!_firebaseStateLoaded) {
+    const fb = document.getElementById('fb-' + qId);
+    if (fb) {
+      fb.className = 'feedback warn';
+      fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.';
+    }
+    return;
+  }
   // Pedoman §16.3 — Anti-Answer-Leak:
   // HTML tidak lagi mengandung flag true/false. Kita terima huruf opsi (A-D)
   // yang TIDAK membocorkan informasi karena huruf itu juga tampil di UI.
@@ -2874,6 +2918,15 @@ window.shuffleMCOptions = shuffleMCOptions;
 window.MC_HINTS = MC_HINTS;   // Pedoman §15.4a — module script perlu akses untuk restore CSS classes
 
 function checkMC(qId) {
+  // Pedoman §18.2 — race-condition guard
+  if (!_firebaseStateLoaded) {
+    const fb = document.getElementById('fb-' + qId);
+    if (fb) {
+      fb.className = 'feedback warn';
+      fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.';
+    }
+    return;
+  }
   if (mcAnswered[qId]) {
     // Already answered (this session or restored from Firebase) — show feedback
     const fb = document.getElementById('fb-' + qId);
@@ -3064,6 +3117,15 @@ function _lockCompWrong(qId, fbMsg, partialPoint) {
 }
 
 async function runAndCheck(qId, expectedAns, tol, difficulty) {
+  // Pedoman §18.2 — race-condition guard
+  if (!_firebaseStateLoaded) {
+    const fb = document.getElementById('fb-' + qId);
+    if (fb) {
+      fb.className = 'feedback warn';
+      fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.';
+    }
+    return;
+  }
   // difficulty: 'easy' (2 poin, default) atau 'hard' (4 poin)
   const pointAwarded = (difficulty === 'hard')
     ? SCORE_CONFIG.COMP_HARD_POINT    // 4
@@ -3199,16 +3261,21 @@ function cpC(btn){
 // ═══════════════════════════════════════════════════════════
 // DRAFT PERSISTENCE (Pedoman §15.4 + §15.4c)
 // ──────────────────────────────────────────────────────────
-// Mahasiswa sering close tab / refresh / ganti device selama mengerjakan
-// tugas. Firebase simpan SCORE (markers, points), tapi TEXT input
-// (gdrive link, jawaban forum, code Python) tidak. localStorage draft
-// menjamin input tidak hilang saat reload.
+// Two-layer persistence — Firebase PRIMARY, localStorage COMPLEMENTARY:
 //
-// Two-layer design:
-//   - Firebase (visitors/...)  : skor, scoredQuestions, visitCount  → server-trusted
-//   - localStorage Draft       : gdrive, forum text, code Python    → client-only
+//   Layer 1 (PRIMARY) — Firebase visitors/<course>/<modul>/mhs_<NIM>:
+//     • points, scoredQuestions, visitCount (skor & markers)
+//     • codes/c1..c15 (code Python per soal Komputasi)
+//         → Saved di _awardCompPoint, _awardCompPartial, _recordCompAttempt
+//         → Survive cross-device, incognito, storage clear
+//     • Source of truth; restored via _loadScoredQuestions()
 //
-// Key: math4_draft_modul-4_<NIM> — per-NIM, mencegah leak antar mahasiswa
+//   Layer 2 (COMPLEMENTARY) — localStorage math4_draft_modul-4_<NIM>:
+//     • gdrive link + 3 forum textarea (field yang tidak di-save di Firebase)
+//     • Client-only; hilang kalau ganti device
+//     • Restored via _loadDraft() setelah Firebase restore selesai
+//
+// Key per-NIM (`math4_draft_modul-4_<NIM>`) mencegah leak antar mahasiswa
 // di lab komputer shared.
 // ═══════════════════════════════════════════════════════════
 function _draftKey() {
@@ -3230,19 +3297,17 @@ function _saveDraft() {
   const key = _draftKey();
   if (!key) return;
   try {
+    // Pedoman §15.4c — code Komputasi PRIMARY storage adalah Firebase `codes/`
+    // field (di-save lewat _awardCompPoint/_awardCompPartial/_recordCompAttempt).
+    // localStorage draft HANYA untuk field yang tidak di-save di Firebase:
+    // gdrive link + 3 forum textarea. Code textareas TIDAK disimpan disini lagi.
     const draft = {
       gdrive: document.getElementById('gdrive-link')?.value || '',
       fq1:    document.getElementById('ans-fq1')?.value || '',
       fq2:    document.getElementById('ans-fq2')?.value || '',
       fq3:    document.getElementById('ans-fq3')?.value || '',
-      code:   {},
       savedAt: new Date().toISOString()
     };
-    // Pedoman §15.4c — code textarea juga di-save (Firebase only simpan marker)
-    for (let i = 1; i <= 15; i++) {
-      const ta = document.getElementById('code-c' + i);
-      if (ta && ta.value) draft.code['c' + i] = ta.value;
-    }
     localStorage.setItem(key, JSON.stringify(draft));
   } catch(e) { /* quota exceeded — silent fail */ }
 }
@@ -3253,21 +3318,14 @@ function _loadDraft() {
   try {
     const draft = JSON.parse(localStorage.getItem(key) || 'null');
     if (!draft) return;
-    // Restore gdrive + 3 forum textarea (guard: jangan overwrite typing aktif)
+    // Pedoman §15.4c — restore HANYA gdrive + 3 forum textarea.
+    // Code restored via _loadScoredQuestions dari Firebase (source of truth).
     const els  = ['gdrive-link', 'ans-fq1', 'ans-fq2', 'ans-fq3'];
     const props = ['gdrive', 'fq1', 'fq2', 'fq3'];
     els.forEach((id, i) => {
       const el = document.getElementById(id);
       if (el && !el.value && draft[props[i]]) el.value = draft[props[i]];
     });
-    // Restore code textareas (Pedoman §15.4c)
-    if (draft.code && typeof draft.code === 'object') {
-      for (let i = 1; i <= 15; i++) {
-        const id = 'c' + i;
-        const ta = document.getElementById('code-' + id);
-        if (ta && !ta.value && draft.code[id]) ta.value = draft.code[id];
-      }
-    }
     // Re-evaluate UI states setelah restore
     if (typeof checkExportReady === 'function') checkExportReady();
     if (typeof checkForumReady === 'function') checkForumReady();
@@ -4882,8 +4940,30 @@ window.addEventListener('resize', () => {
 
 <!-- ── FIREBASE + VISITOR SYSTEM (identik dengan Modul-1) ── -->
 <script type="module">
+// ═════ CRITICAL: Define window._loadScoredQuestions EARLY as no-op ═════
+// This GUARANTEES window._loadScoredQuestions is available even if later
+// module code crashes during init. The real implementation OVERWRITES
+// this below — if it doesn't, this no-op is still callable without crashing.
+window._loadScoredQuestions = function() {
+  console.warn('[BOOT] Module init did not complete — calling early no-op');
+  if (typeof window._markLoaded === 'function') window._markLoaded();
+};
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { getDatabase, ref, get, set, remove, onValue } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+
+// Wrap post-import init in try-catch to surface any runtime error that
+// would otherwise silently break module execution.
+// Filter loosened: any uncaught error during page lifetime triggers markLoaded
+// so user isn't locked out by safety net 10s.
+window.addEventListener('error', (e) => {
+  console.error('[BOOT] Runtime error caught:', e.message, 'at', (e.filename||'?') + ':' + e.lineno + ':' + e.colno);
+  if (typeof window._markLoaded === 'function') window._markLoaded();
+});
+window.addEventListener('unhandledrejection', (e) => {
+  console.error('[BOOT] Unhandled promise rejection:', e.reason);
+  if (typeof window._markLoaded === 'function') window._markLoaded();
+});
 
 const firebaseConfig = {
   apiKey: "AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",
@@ -5677,11 +5757,15 @@ function cancelDosenLogin() {
   }
 }
 
-// Enter → submit
-document.getElementById('dosenLoginPw').addEventListener('keydown', function(e){
-  if (e.key === 'Enter') submitDosenLogin();
-  if (e.key === 'Escape') cancelDosenLogin();
-});
+// Enter → submit (defensive — skip binding if element missing)
+(function(){
+  const el = document.getElementById('dosenLoginPw');
+  if (!el) { console.warn('[BindListener] dosenLoginPw not found — skip'); return; }
+  el.addEventListener('keydown', function(e){
+    if (e.key === 'Enter') submitDosenLogin();
+    if (e.key === 'Escape') cancelDosenLogin();
+  });
+})();
 
 window.submitDosenLogin = submitDosenLogin;
 window.cancelDosenLogin = cancelDosenLogin;
@@ -5785,19 +5869,36 @@ async function saveSchedule(){
   });
 }
 
-document.getElementById('resetPw').addEventListener('keydown',function(e){if(e.key==='Enter')confirmReset();});
-document.getElementById('resetOverlay').addEventListener('click',function(e){if(e.target===this)hideResetModal();});
-document.getElementById('scheduleOverlay').addEventListener('click',function(e){if(e.target===this)hideScheduleModal();});
-document.getElementById('schedulePw').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('scheduleDuration').focus();});
-document.getElementById('vNim').addEventListener('keydown',function(e){if(e.key==='Enter')submitVisitor();});
-document.getElementById('pinSetupInput1').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('pinSetupInput2').focus();});
-document.getElementById('pinSetupInput2').addEventListener('keydown',function(e){if(e.key==='Enter')submitPinSetup();});
-document.getElementById('pinInputField').addEventListener('keydown',function(e){if(e.key==='Enter')submitPinVerify();});
+// ═══════════════════════════════════════════════════════════
+// DEFENSIVE DOM BINDING — mencegah module crash kalau 1 element missing
+// ═══════════════════════════════════════════════════════════
+// Jika salah satu element tidak ada di DOM (typo ID, markup berubah),
+// cukup skip binding itu, JANGAN throw TypeError yang halt seluruh module.
+// Previous pattern `document.getElementById(X).addEventListener(...)` akan
+// crash seluruh module kalau X missing, menyebabkan window._loadScoredQuestions
+// tidak pernah terdefinisi → safety net 10s fire terus.
+function _bindListener(elId, event, handler) {
+  const el = document.getElementById(elId);
+  if (!el) {
+    console.warn('[BindListener] Element not found:', elId, '— skipping', event, 'handler');
+    return false;
+  }
+  el.addEventListener(event, handler);
+  return true;
+}
+_bindListener('resetPw',           'keydown', function(e){ if(e.key==='Enter') confirmReset(); });
+_bindListener('resetOverlay',      'click',   function(e){ if(e.target===this) hideResetModal(); });
+_bindListener('scheduleOverlay',   'click',   function(e){ if(e.target===this) hideScheduleModal(); });
+_bindListener('schedulePw',        'keydown', function(e){ if(e.key==='Enter') { const el=document.getElementById('scheduleDuration'); if(el) el.focus(); } });
+_bindListener('vNim',              'keydown', function(e){ if(e.key==='Enter') submitVisitor(); });
+_bindListener('pinSetupInput1',    'keydown', function(e){ if(e.key==='Enter') { const el=document.getElementById('pinSetupInput2'); if(el) el.focus(); } });
+_bindListener('pinSetupInput2',    'keydown', function(e){ if(e.key==='Enter') submitPinSetup(); });
+_bindListener('pinInputField',     'keydown', function(e){ if(e.key==='Enter') submitPinVerify(); });
 // Filter: hanya izinkan angka di field PIN
 ['pinSetupInput1','pinSetupInput2','pinInputField'].forEach(function(id){
-  document.getElementById(id).addEventListener('input',function(e){this.value=this.value.replace(/[^0-9]/g,'').slice(0,6);});
+  _bindListener(id, 'input', function(e){ this.value = this.value.replace(/[^0-9]/g,'').slice(0,6); });
 });
-document.getElementById('vNama').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('vNim').focus();});
+_bindListener('vNama',             'keydown', function(e){ if(e.key==='Enter') { const el=document.getElementById('vNim'); if(el) el.focus(); } });
 
 window.submitVisitor=submitVisitor;window.togglePanel=togglePanel;
 window.showResetModal=showResetModal;window.hideResetModal=hideResetModal;window.confirmReset=confirmReset;
@@ -5896,6 +5997,8 @@ window._awardCompPoint = function(qId, point) {
   if (!me || !me.nim || me.role === 'dosen') return;
   const key = sanitizeKey('mhs_' + me.nim);
   const nodeRef = ref(db, DB_PATH + '/' + key);
+  // Pedoman §15.4c — capture code text SEBELUM async get() (DOM bisa berubah)
+  const codeText = (document.getElementById('code-' + qId)?.value || '').slice(0, 5000);
   get(nodeRef).then(snap => {
     if (!snap.exists()) return;
     const ex = snap.val();
@@ -5903,7 +6006,14 @@ window._awardCompPoint = function(qId, point) {
     if (scored.includes(compKey)) { _answeredQ.add(compKey); return; }
     _answeredQ.add(compKey); scored.push(compKey);
     const newPoints = Math.min((ex.points||0) + pts, SCORE_CONFIG.TOTAL);
-    const updated = Object.assign({}, ex, { points: newPoints, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',') });
+    // Pedoman §15.4c — merge code ke codes object (preserve existing codes)
+    const codes = Object.assign({}, ex.codes || {}, codeText ? { [qId]: codeText } : {});
+    const updated = Object.assign({}, ex, {
+      points: newPoints,
+      pointTimestamp: new Date().toISOString(),
+      scoredQuestions: scored.join(','),
+      codes: codes
+    });
     set(nodeRef, updated);
     _checkConsolationPoint(nodeRef, updated);
   }).catch(()=>{});
@@ -5927,6 +6037,8 @@ window._awardCompPartial = function(qId, point) {
   if (!me || !me.nim || me.role === 'dosen') return;
   const key = sanitizeKey('mhs_' + me.nim);
   const nodeRef = ref(db, DB_PATH + '/' + key);
+  // Pedoman §15.4c — capture code text untuk save ke Firebase
+  const codeText = (document.getElementById('code-' + qId)?.value || '').slice(0, 5000);
   get(nodeRef).then(snap => {
     if (!snap.exists()) return;
     const ex = snap.val();
@@ -5934,7 +6046,14 @@ window._awardCompPartial = function(qId, point) {
     if (scored.includes(partialKey)) { _answeredQ.add(partialKey); return; }
     _answeredQ.add(partialKey); scored.push(partialKey);
     const newPoints = Math.min((ex.points||0) + pts, SCORE_CONFIG.TOTAL);
-    const updated = Object.assign({}, ex, { points: newPoints, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',') });
+    // Pedoman §15.4c — merge code ke codes object
+    const codes = Object.assign({}, ex.codes || {}, codeText ? { [qId]: codeText } : {});
+    const updated = Object.assign({}, ex, {
+      points: newPoints,
+      pointTimestamp: new Date().toISOString(),
+      scoredQuestions: scored.join(','),
+      codes: codes
+    });
     set(nodeRef, updated);
     // Tidak trigger consolation karena poin > 0
   }).catch(()=>{});
@@ -5967,6 +6086,8 @@ window._recordCompAttempt = function(qId) {
   if (!me || !me.nim || me.role === 'dosen') return;
   const key = sanitizeKey('mhs_' + me.nim);
   const nodeRef = ref(db, DB_PATH + '/' + key);
+  // Pedoman §15.4c — capture code untuk dokumentasi upaya (walau 0 poin)
+  const codeText = (document.getElementById('code-' + qId)?.value || '').slice(0, 5000);
   get(nodeRef).then(snap => {
     if (!snap.exists()) return;
     const ex = snap.val();
@@ -5974,7 +6095,12 @@ window._recordCompAttempt = function(qId) {
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(usedKey)) return;   // already recorded
     scored.push(usedKey);
-    const updated = Object.assign({}, ex, { scoredQuestions: scored.join(',') });
+    // Pedoman §15.4c — simpan code walau soal salah (dokumentasi attempt)
+    const codes = Object.assign({}, ex.codes || {}, codeText ? { [qId]: codeText } : {});
+    const updated = Object.assign({}, ex, {
+      scoredQuestions: scored.join(','),
+      codes: codes
+    });
     set(nodeRef, updated);
     _checkConsolationPoint(nodeRef, updated);
   }).catch(() => {});
@@ -5982,12 +6108,43 @@ window._recordCompAttempt = function(qId) {
 
 window._loadScoredQuestions = function() {
   const me = getIdentity();
-  if (!me || !me.nim || me.role === 'dosen') return;
+  // Exit path 1: dosen atau no identity — tetap mark loaded agar dosen bisa
+  // interact dengan UI (meskipun tidak relevan buat submit soal)
+  if (!me || !me.nim || me.role === 'dosen') {
+    if (typeof window._markLoaded === 'function') window._markLoaded();
+    return;
+  }
   const key = sanitizeKey('mhs_' + me.nim);
   get(ref(db, DB_PATH + '/' + key)).then(snap => {
-    if (!snap.exists()) return;
-    const scored = (snap.val().scoredQuestions || '').split(',').filter(Boolean);
-    if (!scored.length) return;
+    // Exit path 2: record belum ada (mahasiswa first login) — mark loaded
+    // karena tidak ada state yang perlu di-restore
+    if (!snap.exists()) {
+      if (typeof window._markLoaded === 'function') window._markLoaded();
+      return;
+    }
+    const data = snap.val();
+    // Pedoman §15.4c — Restore code Komputasi dari Firebase codes/ field (PRIMARY).
+    // Fire FIRST karena textarea state tidak terikat ke scoredQuestions loop.
+    // Firebase adalah source of truth; localStorage draft hanya complementary
+    // untuk gdrive + forum (fields yang tidak disimpan di Firebase).
+    if (data.codes && typeof data.codes === 'object') {
+      Object.keys(data.codes).forEach(qId => {
+        const ta = document.getElementById('code-' + qId);
+        if (ta && !ta.value && typeof data.codes[qId] === 'string') {
+          ta.value = data.codes[qId];
+        }
+      });
+    }
+    const scored = (data.scoredQuestions || '').split(',').filter(Boolean);
+    // Exit path 3: record ada tapi scoredQuestions kosong — mark loaded,
+    // tapi tetap jalankan re-eval tombol karena code textareas mungkin sudah di-restore
+    if (!scored.length) {
+      if (typeof checkExportReady === 'function') checkExportReady();
+      if (typeof checkForumReady === 'function') checkForumReady();
+      if (typeof window._loadDraft === 'function') window._loadDraft();
+      if (typeof window._markLoaded === 'function') window._markLoaded();
+      return;
+    }
     scored.forEach(qId => {
       _answeredQ.add(qId);
 
@@ -6104,7 +6261,13 @@ window._loadScoredQuestions = function() {
     if (typeof window._loadDraft === 'function') window._loadDraft();
     // _loadDraft already calls checkExportReady() + checkForumReady() di akhir,
     // jadi tombol enable secara otomatis kalau Firebase + draft state lengkap.
-  }).catch(()=>{});
+    // Exit path 4 (success): mark loaded setelah restore + re-eval complete
+    if (typeof window._markLoaded === 'function') window._markLoaded();
+  }).catch(err => {
+    // Exit path 5 (error): log dan mark loaded agar mahasiswa tidak stuck
+    console.error('[Firebase] _loadScoredQuestions error:', err);
+    if (typeof window._markLoaded === 'function') window._markLoaded();
+  });
 };
 
 // ═══ MC SHUFFLE — Pedoman §16.3 ═══
@@ -6119,6 +6282,30 @@ if (typeof window.shuffleMCOptions === 'function') {
 
 initVisitor();
 setTimeout(window._loadScoredQuestions, 1200);
+
+// Safety net: unlock soal interaction setelah 10 detik meskipun Firebase offline/error.
+// Mencegah mahasiswa stuck tidak bisa jawab kalau koneksi lambat atau Firebase down.
+// _loadScoredQuestions sendiri sudah set flag di semua path success/error,
+// tapi ini fallback untuk edge case promise tidak pernah resolve/reject.
+// LETAK: di akhir module script, SETELAH setTimeout(window._loadScoredQuestions, 1200)
+// supaya timing-nya deterministic — kalau module script crash sebelum titik ini,
+// setTimeout(10000) juga tidak ter-register, dan warning tidak fire spurious.
+setTimeout(function() {
+  if (typeof window._markLoaded === 'function') {
+    // Check via window flag accessor karena _firebaseStateLoaded di plain script scope
+    // tidak accessible dari module script directly. Gunakan side effect dari _markLoaded
+    // yang idempotent (safe untuk di-call berkali-kali).
+    // Di sini, kita simply call _markLoaded lagi — kalau sudah true, no-op; kalau false, set true.
+    // Untuk detect apakah fire karena real timeout vs sudah resolved, cek warn feedback count
+    // (tapi simple version: just call & hope for best, since idempotent).
+    const wasAlreadyLoaded = window._isFirebaseStateLoaded && window._isFirebaseStateLoaded();
+    if (!wasAlreadyLoaded) {
+      console.warn('[Firebase] State restore timeout — unlocking interaction as fallback');
+    }
+    window._markLoaded();
+  }
+}, 10000);
+
 setInterval(()=>{renderVisitors(latestVisitors);},30000);
 </script>
 
