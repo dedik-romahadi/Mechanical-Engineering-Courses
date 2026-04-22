@@ -3102,7 +3102,20 @@ const MC_HINTS = {
   }
 };
 
+// PEDOMAN §18.2 Layer 1 — Race-condition guard.
+// Mencegah user interact dengan soal sebelum _loadScoredQuestions() selesai restore
+// dari Firebase. Tanpa guard ini, setelah clear cache / incognito / new device,
+// mahasiswa bisa klik opsi MC dalam window 1200ms+ Firebase RTT, dan UI bilang
+// "+1 poin" padahal poin tidak tambah di Firebase (karena anti-double-award check).
+let _firebaseStateLoaded = false;
+window._firebaseStateLoaded = () => _firebaseStateLoaded;
+
 function selectMC(qId, opt, correct) {
+  if (!_firebaseStateLoaded) {
+    const fb = document.getElementById('fb-' + qId);
+    if (fb) { fb.className = 'feedback warn'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
+    return;
+  }
   if (mcAnswered[qId]) return;
   const rg = document.getElementById('rg-' + qId);
   rg.querySelectorAll('.radio-option').forEach(o => o.classList.remove('selected'));
@@ -3111,6 +3124,11 @@ function selectMC(qId, opt, correct) {
   document.getElementById('sub-' + qId).disabled = false;
 }
 function checkMC(qId) {
+  if (!_firebaseStateLoaded) {
+    const fb = document.getElementById('fb-' + qId);
+    if (fb) { fb.className = 'feedback warn'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
+    return;
+  }
   if (mcAnswered[qId]) {
     // Already answered (this session or restored from Firebase) — show feedback
     const fb = document.getElementById('fb-' + qId);
@@ -3474,6 +3492,12 @@ function _lockCompWrong(qId, fbMsg, partialPoint) {
 }
 
 async function runAndCheck(qId, expectedAns, tol, difficulty) {
+  // PEDOMAN §18.2 Layer 1 — race-condition guard
+  if (!_firebaseStateLoaded) {
+    const fb = document.getElementById('fb-' + qId);
+    if (fb) { fb.className = 'feedback warn'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
+    return;
+  }
   const isHard = (difficulty === 'hard');
   const correctPoint = isHard ? SCORE_CONFIG.COMP_HARD_POINT : SCORE_CONFIG.COMP_EZ_POINT;   // 4 atau 2
   const partialOnFail = isHard ? 1 : 0;   // partial credit hanya untuk Hard
@@ -6233,6 +6257,8 @@ window._awardCompPoint = function(qId, point) {
   if (!me || !me.nim || me.role === 'dosen') return;
   const key = sanitizeKey('mhs_' + me.nim);
   const nodeRef = ref(db, DB_PATH + '/' + key);
+  // PEDOMAN §15.4c — Capture code text from textarea for Firebase persistence
+  const codeText = (document.getElementById('code-' + qId)?.value || '').slice(0, 5000);
   get(nodeRef).then(snap => {
     if (!snap.exists()) return;
     const ex = snap.val();
@@ -6240,7 +6266,8 @@ window._awardCompPoint = function(qId, point) {
     if (scored.includes(compKey)) { _answeredQ.add(compKey); return; }
     _answeredQ.add(compKey); scored.push(compKey);
     const newPoints = Math.min((ex.points || 0) + pts, SCORE_CONFIG.TOTAL);
-    const updated = _stripLegacyPinFields(Object.assign({}, ex, { points: newPoints, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',') }));
+    const codes = Object.assign({}, ex.codes || {}, codeText ? { [qId]: codeText } : {});
+    const updated = _stripLegacyPinFields(Object.assign({}, ex, { points: newPoints, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(','), codes: codes }));
     set(nodeRef, updated);
     _checkConsolationPoint(nodeRef, updated);
   }).catch(()=>{});
@@ -6258,6 +6285,8 @@ window._awardCompPartial = function(qId, point) {
   if (!me || !me.nim || me.role === 'dosen') return;
   const key = sanitizeKey('mhs_' + me.nim);
   const nodeRef = ref(db, DB_PATH + '/' + key);
+  // PEDOMAN §15.4c — Capture code text (partial tetap simpan kode upaya mahasiswa)
+  const codeText = (document.getElementById('code-' + qId)?.value || '').slice(0, 5000);
   get(nodeRef).then(snap => {
     if (!snap.exists()) return;
     const ex = snap.val();
@@ -6265,7 +6294,8 @@ window._awardCompPartial = function(qId, point) {
     if (scored.includes(partialKey)) { _answeredQ.add(partialKey); return; }
     _answeredQ.add(partialKey); scored.push(partialKey);
     const newPoints = Math.min((ex.points || 0) + pts, SCORE_CONFIG.TOTAL);
-    const updated = _stripLegacyPinFields(Object.assign({}, ex, { points: newPoints, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',') }));
+    const codes = Object.assign({}, ex.codes || {}, codeText ? { [qId]: codeText } : {});
+    const updated = _stripLegacyPinFields(Object.assign({}, ex, { points: newPoints, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(','), codes: codes }));
     set(nodeRef, updated);
     // Tidak trigger konsolasi — poin sudah > 0
   }).catch(()=>{});
@@ -6298,6 +6328,8 @@ window._recordCompAttempt = function(qId) {
   if (!me || !me.nim || me.role === 'dosen') return;
   const key = sanitizeKey('mhs_' + me.nim);
   const nodeRef = ref(db, DB_PATH + '/' + key);
+  // PEDOMAN §15.4c — Capture code text (kode salah tetap disimpan sebagai dokumentasi upaya)
+  const codeText = (document.getElementById('code-' + qId)?.value || '').slice(0, 5000);
   get(nodeRef).then(snap => {
     if (!snap.exists()) return;
     const ex = snap.val();
@@ -6305,7 +6337,8 @@ window._recordCompAttempt = function(qId) {
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(usedKey)) return;   // already recorded
     scored.push(usedKey);
-    const updated = Object.assign({}, ex, { scoredQuestions: scored.join(',') });
+    const codes = Object.assign({}, ex.codes || {}, codeText ? { [qId]: codeText } : {});
+    const updated = Object.assign({}, ex, { scoredQuestions: scored.join(','), codes: codes });
     set(nodeRef, updated);
     _checkConsolationPoint(nodeRef, updated);
   }).catch(() => {});
@@ -6313,12 +6346,30 @@ window._recordCompAttempt = function(qId) {
 
 window._loadScoredQuestions = function() {
   const me = getIdentity();
-  if (!me || !me.nim || me.role === 'dosen') return;
+  // PEDOMAN §18.2 Layer 1 — Helper to mark state loaded in ALL exit paths
+  const _markLoaded = () => {
+    _firebaseStateLoaded = true;
+    if (typeof checkExportReady === 'function') checkExportReady();
+    if (typeof checkForumReady === 'function') checkForumReady();
+    if (typeof _loadDraft === 'function') _loadDraft();   // PEDOMAN §15.4 draft AFTER Firebase
+  };
+  if (!me || !me.nim || me.role === 'dosen') { _markLoaded(); return; }
   const key = sanitizeKey('mhs_' + me.nim);
   get(ref(db, DB_PATH + '/' + key)).then(snap => {
-    if (!snap.exists()) return;
-    const scored = (snap.val().scoredQuestions || '').split(',').filter(Boolean);
-    if (!scored.length) return;
+    if (!snap.exists()) { _markLoaded(); return; }
+    const data = snap.val();
+    // PEDOMAN §15.4c — Restore code Komputasi dari Firebase codes/ field (primary storage)
+    // Fire FIRST karena textarea state tidak terikat ke scoredQuestions processing
+    if (data.codes && typeof data.codes === 'object') {
+      Object.keys(data.codes).forEach(qId => {
+        const ta = document.getElementById('code-' + qId);
+        if (ta && !ta.value && typeof data.codes[qId] === 'string') {
+          ta.value = data.codes[qId];
+        }
+      });
+    }
+    const scored = (data.scoredQuestions || '').split(',').filter(Boolean);
+    if (!scored.length) { _markLoaded(); return; }
     scored.forEach(qId => {
       _answeredQ.add(qId);
 
@@ -6388,10 +6439,8 @@ window._loadScoredQuestions = function() {
       }
     });
     updateScore();
-    if (typeof checkExportReady === 'function') checkExportReady();
-    if (typeof checkForumReady === 'function') checkForumReady();
-    if (typeof _loadDraft === 'function') _loadDraft();   // PEDOMAN §15.4 Restore Order: draft AFTER Firebase restore
-  }).catch(()=>{});
+    _markLoaded();   // PEDOMAN §18.2 — mark ready + trigger checkExport/checkForum/_loadDraft
+  }).catch(() => { _markLoaded(); });
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -6452,6 +6501,17 @@ window.shuffleMCOptions = shuffleMCOptions;
 if (typeof shuffleMCOptions === 'function') shuffleMCOptions();
 initVisitor();
 setTimeout(window._loadScoredQuestions, 1200);
+// PEDOMAN §18.2 — Safety net: unlock soal interaction setelah 10 detik meskipun Firebase offline/error.
+// Mencegah mahasiswa stuck tidak bisa jawab kalau koneksi lambat atau Firebase down.
+// _loadScoredQuestions sudah set flag di semua path success/error via _markLoaded(),
+// ini fallback untuk edge case promise tidak pernah resolve/reject.
+setTimeout(() => {
+  if (!_firebaseStateLoaded) {
+    _firebaseStateLoaded = true;
+    if (typeof checkExportReady === 'function') checkExportReady();
+    if (typeof checkForumReady === 'function') checkForumReady();
+  }
+}, 10000);
 setInterval(()=>{renderVisitors(latestVisitors);},30000);
 </script>
 
