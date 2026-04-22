@@ -2182,9 +2182,9 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     <p style="margin-top:14px;font-size:14px;color:var(--muted)">Blower berputar pada kecepatan yang menghasilkan gaya eksitasi dengan frekuensi <strong style="color:var(--pink)">ω = 28.5 rad/s</strong>. Model sistem: massa-pegas-peredam SDOF dengan persamaan <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">mẍ + cẋ + kx = F₀sin(ωt)</code>. Forum ini mengajak Anda mengidentifikasi apakah sistem beroperasi di dekat resonansi, kemudian mengusulkan solusi teknis yang menjauhkan \(r\) dari 1 atau menambah isolasi.</p>
   </div>
 
-  <!-- Canvas Animasi Forum -->
-  <canvas id="cvForum" height="180" style="margin-bottom:12px;border-radius:12px"></canvas>
-  <p style="font-size:13px;color:var(--muted);margin-bottom:40px;font-family:'JetBrains Mono',monospace;text-align:center">— Simulasi respons x(t) sistem blower — identifikasi apakah kondisi ini mendekati resonansi (r ≈ 1)</p>
+  <!-- Canvas Animasi Forum — Industrial Vibration Diagnostic Dashboard -->
+  <canvas id="cvForum" height="360" style="margin-bottom:12px;border-radius:12px"></canvas>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:40px;font-family:'JetBrains Mono',monospace;text-align:center">— Dashboard diagnostik vibrasi blower industri (tampilan seperti vibration analyzer pabrik): blower beranimasi, baut kendor progresif, kurva FRF dengan marker operasi, live metrics</p>
 
   <!-- Pertanyaan Diskusi -->
   <div class="section-label reveal">Pertanyaan Diskusi</div>
@@ -4499,88 +4499,355 @@ setTimeout(drawHPB, 800);
 
 
 // ════════════════════════════════════════════════════════════
-// FORUM CANVAS — Respons Blower Industri (Getaran Paksa)
+// FORUM CANVAS — Industrial Vibration Diagnostic Dashboard
 // Parameter: m=80, k=72000, c=240, omega=28.5 → r ≈ 0.95 (dekat resonansi)
-// Plot x(t) RK4 selama 10 detik — amplitudo build-up ke steady-state
+// LAYOUT:
+//   LEFT (40%)  : Animated blower (shaking) + bolts progressively loose + vibration waves
+//   RIGHT (60%) : FRF/Bode plot with current operating point pulsing
+//   BOTTOM      : Live metrics strip (RMS, X, F_transmitted, DMF, bolt status)
 // ════════════════════════════════════════════════════════════
+let _forumAnim = { t: 0, boltLoosen: 0, raf: null };
+
 function drawForumCanvas() {
   const cv = document.getElementById('cvForum'); if (!cv) return;
   const W = cv.clientWidth; cv.width = W; const H = cv.height;
   const ctx = cv.getContext('2d');
 
-  const bg=ctx.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#020812'); bg.addColorStop(1,'#061e1a');
-  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
-
-  const padL=60,padR=20,padT=20,padB=32;
-  const plotW=W-padL-padR, plotH=H-padT-padB;
-  _grid(ctx,padL,padT,plotW,plotH,10,5,'#062018');
+  // Background
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1626');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
   // Blower parameters
   const m=80, k=72000, c=240, F0=500;
-  const omega_n=Math.sqrt(k/m);          // 30 rad/s
-  const zeta=c/(2*Math.sqrt(k*m));        // ≈ 0.05
-  const omega=28.5;                        // operasi
-  const r=omega/omega_n;                   // ≈ 0.95
-  const dmf=1/Math.sqrt((1-r*r)*(1-r*r)+(2*zeta*r)*(2*zeta*r));
-  const X_st=F0/k;
-  const X=X_st*dmf;
+  const omega_n = Math.sqrt(k/m);          // 30 rad/s
+  const zeta = c/(2*Math.sqrt(k*m));        // ≈ 0.0500
+  const omega_op = 28.5;                     // operasi
+  const r = omega_op/omega_n;                // ≈ 0.95
+  const dmf = 1/Math.sqrt((1-r*r)**2 + (2*zeta*r)**2);
+  const phi = Math.atan2(2*zeta*r, 1-r*r);
+  const X_st = F0/k;
+  const X = X_st * dmf;                      // Amplitudo steady-state (m)
+  // Transmitted force
+  const Tr = Math.sqrt(1 + (2*zeta*r)**2) / Math.sqrt((1-r*r)**2 + (2*zeta*r)**2);
+  const F_trans = F0 * Tr;
 
-  // RK4 simulation
-  const dt=0.002, tmax=10;
-  const N=Math.floor(tmax/dt);
-  const xs=new Array(N);
-  let y=[0,0];
-  const f=(t,yy)=>{const xd=yy[1]; const xdd=(F0*Math.sin(omega*t)-c*xd-k*yy[0])/m; return [xd,xdd];};
-  for(let i=0;i<N;i++){
-    xs[i]=y[0];
-    const t=i*dt;
-    const k1=f(t,y);
-    const k2=f(t+dt/2,[y[0]+dt/2*k1[0],y[1]+dt/2*k1[1]]);
-    const k3=f(t+dt/2,[y[0]+dt/2*k2[0],y[1]+dt/2*k2[1]]);
-    const k4=f(t+dt,[y[0]+dt*k3[0],y[1]+dt*k3[1]]);
-    y=[y[0]+dt/6*(k1[0]+2*k2[0]+2*k3[0]+k4[0]), y[1]+dt/6*(k1[1]+2*k2[1]+2*k3[1]+k4[1])];
-  }
-  const maxY=Math.max(Math.abs(Math.min(...xs)),Math.max(...xs),X*1.2);
+  const t = _forumAnim.t;
+  // Animate vibration using simplified harmonic (visual exaggeration)
+  const vibX = Math.sin(omega_op * t - phi);  // Normalized vibration
+  const vibAmp = 6;                              // pixel amplitude for display
 
-  const sx=t=>padL+(t/tmax)*plotW;
-  const sy=v=>padT+plotH/2-v/maxY*(plotH/2-6);
+  // Progressive bolt loosening (cycle every 20 seconds)
+  const cycleSec = 20;
+  const cyclePhase = (t % cycleSec) / cycleSec;   // 0..1
+  const boltLoosenLevel = cyclePhase;             // Loosens over 20s
 
-  // Steady amplitude envelope
-  ctx.strokeStyle='rgba(239,68,68,.5)'; ctx.lineWidth=1; ctx.setLineDash([5,4]);
-  ctx.beginPath(); ctx.moveTo(padL,sy(X)); ctx.lineTo(padL+plotW,sy(X)); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(padL,sy(-X)); ctx.lineTo(padL+plotW,sy(-X)); ctx.stroke();
-  ctx.setLineDash([]);
+  // ════════════ LAYOUT ════════════
+  const leftW = W * 0.4;
+  const rightX = leftW + 10;
+  const rightW = W - rightX - 10;
+  const bottomStripH = 50;
+  const mainH = H - bottomStripH - 10;
 
-  // Zero axis
-  ctx.strokeStyle='rgba(255,255,255,.1)'; ctx.lineWidth=1;
-  ctx.beginPath(); ctx.moveTo(padL,padT+plotH/2); ctx.lineTo(padL+plotW,padT+plotH/2); ctx.stroke();
+  // ══════════════════════════════════════════════════════════
+  // LEFT PANEL — Animated Blower
+  // ══════════════════════════════════════════════════════════
+  // Panel border
+  ctx.strokeStyle = 'rgba(239,68,68,.2)'; ctx.lineWidth = 1;
+  ctx.strokeRect(8, 8, leftW - 8, mainH - 8);
+  ctx.fillStyle = 'rgba(239,68,68,.04)';
+  ctx.fillRect(8, 8, leftW - 8, mainH - 8);
 
-  // Response curve (green)
-  ctx.strokeStyle='#00e09e'; ctx.lineWidth=1.4; ctx.shadowColor='rgba(0,224,158,.5)'; ctx.shadowBlur=4;
-  ctx.beginPath();
-  for(let i=0;i<N;i+=2){
-    const t=i*dt;
-    if(i===0) ctx.moveTo(sx(t),sy(xs[i])); else ctx.lineTo(sx(t),sy(xs[i]));
-  }
+  // Title
+  ctx.fillStyle = '#ef4444'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText('⚠ BLOWER INDUSTRI — LIVE', 18, 24);
+  ctx.fillStyle = '#94a3b8'; ctx.font = '9px JetBrains Mono';
+  ctx.fillText(`ω = 28.5 rad/s (≈ 272 rpm)`, 18, 38);
+
+  const blowerCx = leftW / 2;
+  const blowerCy = 140;
+
+  // Shaking offset
+  const shakeDx = vibAmp * vibX;
+  const shakeDy = vibAmp * 0.3 * Math.sin(omega_op * t * 1.2);
+
+  // Ducting (inlet pipe top)
+  ctx.fillStyle = 'rgba(148,163,184,.15)';
+  ctx.fillRect(blowerCx - 12 + shakeDx*0.5, 60, 24, 25);
+  ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+  ctx.strokeRect(blowerCx - 12 + shakeDx*0.5, 60, 24, 25);
+
+  // Main casing (circle)
+  ctx.save();
+  ctx.translate(blowerCx + shakeDx, blowerCy + shakeDy);
+  // Casing body
+  const caseGrad = ctx.createRadialGradient(0, 0, 10, 0, 0, 45);
+  caseGrad.addColorStop(0, 'rgba(100,116,139,.4)');
+  caseGrad.addColorStop(1, 'rgba(71,85,105,.2)');
+  ctx.fillStyle = caseGrad;
+  ctx.beginPath(); ctx.arc(0, 0, 40, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = 'rgba(148,163,184,.8)'; ctx.lineWidth = 2;
   ctx.stroke();
-  ctx.shadowBlur=0;
+
+  // Rotor (spinning) — shown via rotating blades
+  const spinAngle = omega_op * t;
+  ctx.save();
+  ctx.rotate(spinAngle);
+  // 6-blade impeller
+  ctx.fillStyle = 'rgba(14,165,233,.55)';
+  ctx.strokeStyle = 'rgba(14,165,233,.9)';
+  ctx.lineWidth = 1;
+  for(let i=0; i<6; i++){
+    ctx.save();
+    ctx.rotate(i * Math.PI / 3);
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-3, 6);
+    ctx.lineTo(-6, 28);
+    ctx.lineTo(2, 30);
+    ctx.lineTo(5, 8);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.restore();
+  }
+  // Center hub
+  ctx.fillStyle = '#334155';
+  ctx.beginPath(); ctx.arc(0, 0, 7, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = 'rgba(148,163,184,.8)'; ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.restore();
+  // Outlet duct (right side of casing)
+  ctx.fillStyle = 'rgba(148,163,184,.15)';
+  ctx.fillRect(40, -10, 30, 20);
+  ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+  ctx.strokeRect(40, -10, 30, 20);
+  ctx.restore();
+
+  // Outlet wind flow (amber lines)
+  ctx.strokeStyle = 'rgba(249,115,22,.5)'; ctx.lineWidth = 1;
+  for(let i=0; i<3; i++){
+    const wf = ((t*2 + i*0.5) % 1.5);
+    const wx1 = blowerCx + 55 + wf*15;
+    const wy = blowerCy - 5 + i*5;
+    ctx.globalAlpha = 1 - wf/1.5;
+    ctx.beginPath(); ctx.moveTo(wx1, wy); ctx.lineTo(wx1+8, wy); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+
+  // Base plate (the part that shakes the most)
+  const baseY = blowerCy + 50;
+  const baseW = 110;
+  ctx.fillStyle = 'rgba(100,116,139,.35)';
+  ctx.fillRect(blowerCx - baseW/2 + shakeDx, baseY, baseW, 18);
+  ctx.strokeStyle = 'rgba(148,163,184,.8)'; ctx.lineWidth = 1.5;
+  ctx.strokeRect(blowerCx - baseW/2 + shakeDx, baseY, baseW, 18);
+
+  // Connecting rod from casing to base
+  ctx.strokeStyle = 'rgba(148,163,184,.6)'; ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(blowerCx + shakeDx, blowerCy + 40 + shakeDy);
+  ctx.lineTo(blowerCx + shakeDx, baseY);
+  ctx.stroke();
+
+  // ── BOLTS (4 of them, progressively loosening) ──
+  const boltPos = [-40, -15, 15, 40];
+  boltPos.forEach((bx, idx) => {
+    const worldX = blowerCx + bx + shakeDx;
+    const worldY = baseY + 9;
+    // Bolt loosening animation — rotates based on boltLoosenLevel
+    const loosen = boltLoosenLevel * (1 + idx*0.15);   // Each bolt loosens differently
+    const loosenClamped = Math.min(1, loosen);
+    
+    // Color progression: green → yellow → red as bolt loosens
+    let boltColor;
+    if(loosenClamped < 0.33) boltColor = '#00e09e';
+    else if(loosenClamped < 0.66) boltColor = '#facc15';
+    else boltColor = '#ef4444';
+    
+    // Bolt body (hex nut shape)
+    ctx.save();
+    ctx.translate(worldX, worldY);
+    ctx.rotate(loosenClamped * Math.PI * 1.5);  // rotates as it loosens
+    ctx.fillStyle = boltColor;
+    ctx.strokeStyle = 'rgba(0,0,0,.5)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for(let i=0; i<6; i++){
+      const a = i * Math.PI / 3;
+      const x = 5 * Math.cos(a);
+      const y = 5 * Math.sin(a);
+      if(i===0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    // Center hole
+    ctx.fillStyle = 'rgba(0,0,0,.5)';
+    ctx.beginPath(); ctx.arc(0, 0, 1.5, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+    
+    // "Loose" indicator if very loose
+    if(loosenClamped > 0.75){
+      ctx.fillStyle = '#ef4444'; ctx.font = 'bold 8px JetBrains Mono';
+      ctx.textAlign = 'center';
+      ctx.fillText('!', worldX, worldY - 9);
+      ctx.textAlign = 'left';
+    }
+  });
+
+  // Concrete floor
+  const floorY = baseY + 30;
+  ctx.fillStyle = 'rgba(100,116,139,.25)';
+  ctx.fillRect(18, floorY, leftW - 28, 35);
+  ctx.strokeStyle = 'rgba(148,163,184,.4)'; ctx.lineWidth = 1;
+  ctx.strokeRect(18, floorY, leftW - 28, 35);
+  // Concrete hatching
+  for(let i=0; i<12; i++){
+    ctx.beginPath();
+    ctx.moveTo(22 + i*16, floorY);
+    ctx.lineTo(22 + i*16 + 8, floorY + 10);
+    ctx.stroke();
+  }
+
+  // Vibration waves (expanding rings from base to floor)
+  const waveCount = 3;
+  for(let i=0; i<waveCount; i++){
+    const wavePhase = ((t * 1.5 + i*0.4) % 1.2);
+    const waveRadius = wavePhase * 45;
+    ctx.strokeStyle = `rgba(239,68,68,${(1 - wavePhase/1.2) * 0.4})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(blowerCx, baseY + 18, waveRadius, 0, Math.PI, false);
+    ctx.stroke();
+  }
+
+  // Danger label
+  const pulse = 0.6 + 0.4 * Math.sin(t * 3);
+  ctx.fillStyle = `rgba(239,68,68,${pulse})`;
+  ctx.font = 'bold 11px JetBrains Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('🔴 R = 0.95 → DEKAT RESONANSI!', leftW/2, mainH - 8);
+  ctx.textAlign = 'left';
+
+  // ══════════════════════════════════════════════════════════
+  // RIGHT PANEL — FRF / Bode Plot with Operating Point
+  // ══════════════════════════════════════════════════════════
+  ctx.strokeStyle = 'rgba(14,165,233,.2)'; ctx.lineWidth = 1;
+  ctx.strokeRect(rightX, 8, rightW, mainH - 8);
+  ctx.fillStyle = 'rgba(14,165,233,.04)';
+  ctx.fillRect(rightX, 8, rightW, mainH - 8);
+
+  // Title
+  ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText('📊 SPEKTRUM DMF — FRF ANALYZER', rightX + 10, 24);
+  ctx.fillStyle = '#94a3b8'; ctx.font = '9px JetBrains Mono';
+  ctx.fillText('Amplifikasi dinamis vs rasio frekuensi', rightX + 10, 38);
+
+  // Plot area
+  const fpPadL = 45, fpPadR = 15, fpPadT = 50, fpPadB = 25;
+  const fpPlotX = rightX + fpPadL;
+  const fpPlotY = 8 + fpPadT;
+  const fpPlotW = rightW - fpPadL - fpPadR;
+  const fpPlotH = mainH - 8 - fpPadT - fpPadB;
+
+  _grid(ctx, fpPlotX, fpPlotY, fpPlotW, fpPlotH, 10, 5, '#0d1929');
+
+  const rMin = 0, rMax = 2.5;
+  const dmfMax = 12;
+  const fsx = r => fpPlotX + (r - rMin)/(rMax - rMin) * fpPlotW;
+  const fsy = v => fpPlotY + fpPlotH - (v/dmfMax) * fpPlotH;
 
   // Axis labels
-  ctx.fillStyle='#475569'; ctx.font='9px JetBrains Mono'; ctx.textAlign='center';
-  for(let g=0;g<=5;g++){const v=(tmax*g/5).toFixed(0); ctx.fillText(v+'s',padL+plotW*g/5,padT+plotH+14);}
-  ctx.textAlign='right';
-  ctx.fillStyle='#ef4444'; ctx.fillText(`+X`,padL-4,sy(X)+3); ctx.fillText(`-X`,padL-4,sy(-X)+3);
-  ctx.textAlign='left';
+  ctx.fillStyle = '#475569'; ctx.font = '8px JetBrains Mono';
+  ctx.textAlign = 'right';
+  for(let i=0; i<=4; i++){
+    const v = dmfMax * (1 - i/4);
+    ctx.fillText(v.toFixed(0), fpPlotX - 3, fpPlotY + fpPlotH*i/4 + 3);
+  }
+  ctx.textAlign = 'center';
+  for(let i=0; i<=5; i++){
+    const v = rMin + (rMax-rMin)*i/5;
+    ctx.fillText(v.toFixed(1), fpPlotX + fpPlotW*i/5, fpPlotY + fpPlotH + 12);
+  }
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 9px JetBrains Mono';
+  ctx.fillText('DMF', fpPlotX - 38, fpPlotY + 12);
+  ctx.fillText('r = ω/ωₙ', fpPlotX + fpPlotW - 50, fpPlotY + fpPlotH + 24);
 
-  // Info overlay
-  ctx.fillStyle='rgba(13,21,32,.88)'; ctx.fillRect(padL+6,padT+8,230,70);
-  ctx.strokeStyle='rgba(0,224,158,.2)'; ctx.strokeRect(padL+6,padT+8,230,70);
-  ctx.fillStyle='#34d399'; ctx.font='bold 10px JetBrains Mono'; ctx.fillText('Blower Industri — Respons x(t)',padL+14,padT+22);
-  ctx.fillStyle='#94a3b8'; ctx.font='9px JetBrains Mono';
-  ctx.fillText(`ωₙ = ${omega_n.toFixed(2)} rad/s`,padL+14,padT+36);
-  ctx.fillText(`r = ω/ωₙ = ${r.toFixed(3)}  |  ζ = ${zeta.toFixed(3)}`,padL+14,padT+50);
-  ctx.fillText(`DMF = ${dmf.toFixed(2)}  |  X = ${(X*1000).toFixed(2)} mm`,padL+14,padT+64);
+  // r = 1 marker
+  ctx.strokeStyle = 'rgba(239,68,68,.4)'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(fsx(1), fpPlotY); ctx.lineTo(fsx(1), fpPlotY+fpPlotH); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(239,68,68,.7)'; ctx.font = '9px JetBrains Mono';
+  ctx.fillText('r=1', fsx(1)+2, fpPlotY + 10);
+
+  // Danger zone shading (0.8 < r < 1.2)
+  ctx.fillStyle = 'rgba(239,68,68,.08)';
+  ctx.fillRect(fsx(0.8), fpPlotY, fsx(1.2)-fsx(0.8), fpPlotH);
+
+  // DMF curve
+  ctx.strokeStyle = '#0ea5e9'; ctx.lineWidth = 2;
+  ctx.shadowColor = 'rgba(14,165,233,.5)'; ctx.shadowBlur = 5;
+  ctx.beginPath();
+  for(let i=0; i<=300; i++){
+    const rr = rMin + (rMax - rMin) * i/300;
+    const v = 1/Math.sqrt((1-rr*rr)**2 + (2*zeta*rr)**2);
+    if(i===0) ctx.moveTo(fsx(rr), fsy(Math.min(dmfMax, v)));
+    else ctx.lineTo(fsx(rr), fsy(Math.min(dmfMax, v)));
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Operating point (pulsing red dot)
+  const opPulse = 0.7 + 0.3 * Math.sin(t * 4);
+  ctx.fillStyle = `rgba(239,68,68,${opPulse})`;
+  ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 12;
+  ctx.beginPath(); ctx.arc(fsx(r), fsy(dmf), 6, 0, Math.PI*2); ctx.fill();
+  ctx.shadowBlur = 0;
+  // Operating point label
+  ctx.fillStyle = '#ef4444'; ctx.font = 'bold 10px JetBrains Mono';
+  ctx.fillText(`● r=${r.toFixed(2)}, DMF=${dmf.toFixed(2)}`, fsx(r) + 10, fsy(dmf) - 8);
+
+  // Safe zone markers
+  const safeR = 1.5;  // r > √2 is safe
+  ctx.fillStyle = 'rgba(0,224,158,.15)';
+  ctx.fillRect(fsx(safeR), fpPlotY, fpPlotW - (fsx(safeR) - fpPlotX), fpPlotH);
+  ctx.fillStyle = 'rgba(0,224,158,.6)'; ctx.font = '8px JetBrains Mono';
+  ctx.fillText('ZONA AMAN (r > √2)', fsx(safeR) + 5, fpPlotY + fpPlotH - 5);
+
+  // ══════════════════════════════════════════════════════════
+  // BOTTOM STRIP — Live Metrics (Digital readout style)
+  // ══════════════════════════════════════════════════════════
+  const stripY = mainH + 5;
+  ctx.fillStyle = 'rgba(13,21,32,.9)';
+  ctx.fillRect(8, stripY, W - 16, bottomStripH - 5);
+  ctx.strokeStyle = 'rgba(255,179,0,.3)'; ctx.lineWidth = 1;
+  ctx.strokeRect(8, stripY, W - 16, bottomStripH - 5);
+
+  // Metrics
+  const metricW = (W - 16) / 5;
+  const metrics = [
+    { label: 'Displacement X', value: (X*1000).toFixed(2) + ' mm', color: '#ef4444' },
+    { label: 'DMF', value: dmf.toFixed(2) + '×', color: '#facc15' },
+    { label: 'Transmisibilitas', value: Tr.toFixed(2), color: '#0ea5e9' },
+    { label: 'Gaya ke Lantai', value: F_trans.toFixed(0) + ' N', color: '#a855f7' },
+    { label: 'Status Baut', value: boltLoosenLevel < 0.33 ? '🟢 OK' : (boltLoosenLevel < 0.66 ? '🟡 KENDOR' : '🔴 LEPAS'), color: '#fb923c' },
+  ];
+  metrics.forEach((m, i) => {
+    const mx = 8 + i * metricW + 8;
+    ctx.fillStyle = '#64748b'; ctx.font = '8px JetBrains Mono';
+    ctx.fillText(m.label.toUpperCase(), mx, stripY + 14);
+    ctx.fillStyle = m.color; ctx.font = 'bold 14px JetBrains Mono';
+    ctx.fillText(m.value, mx, stripY + 34);
+  });
 }
+
+// Animation loop for forum canvas
+function _forumTick(){
+  _forumAnim.t += 0.032;
+  drawForumCanvas();
+  _forumAnim.raf = requestAnimationFrame(_forumTick);
+}
+setTimeout(_forumTick, 900);
+
 // Resize handler — redraw all active canvases
 window.addEventListener('resize', () => {
   if(typeof drawPhysics === 'function') drawPhysics();
