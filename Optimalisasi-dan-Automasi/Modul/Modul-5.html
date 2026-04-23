@@ -3896,16 +3896,22 @@ function drawIso(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const d = parseInt(document.getElementById('sl_ri').value);
+  // Read slider (robust against missing element)
+  const slEl = document.getElementById('sl_ri');
+  const d = slEl ? Math.max(0, Math.min(2, parseInt(slEl.value, 10) || 0)) : 1;
   const tOff = _isoAnim.t;
   const N = 140;
   const padX = 40;
 
-  // Generate base series: trend + seasonal + noise
+  // Generate FIXED base series (no scrolling via tOff in data) — deterministic
+  // trend + two seasonal components + small noise, identical every frame
   const base = [];
   for (let i = 0; i < N; i++) {
-    const xt = i + tOff * 6;
-    base.push(1.2 * xt + 20 * Math.sin(xt * 0.25) + 8 * Math.sin(xt * 3.1));
+    const trend    = 1.2 * i;                                         // linear
+    const season1  = 20 * Math.sin(i * 0.25);                         // slow seasonal
+    const season2  =  6 * Math.sin(i * 1.10);                         // fast seasonal
+    const noise    =  3 * Math.sin(i * 3.73) * Math.cos(i * 2.19);    // deterministic pseudo-noise
+    base.push(trend + season1 + season2 + noise);
   }
 
   // Apply differencing d times
@@ -3916,54 +3922,97 @@ function drawIso(){
     arr = next;
   }
 
-  // Top panel: original
+  // Layout
+  const plotW = W - padX - 20;
   const topY = 20, topH = (H - 70) / 2;
-  _grid(ctx, padX, topY, W - padX - 20, topH, 16, 4, '#0d1929');
-  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText(`DERET ASLI (tren terlihat)`, padX, topY - 6);
+  const botY = topY + topH + 30, botH = topH;
 
-  const maxBase = Math.max.apply(null, base.map(Math.abs));
+  // ─── TOP PANEL: original series (always the same) ───
+  _grid(ctx, padX, topY, plotW, topH, 16, 4, '#0d1929');
+  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText('DERET ASLI  y_t  (tren linear + musiman + noise)', padX, topY - 6);
+
+  const baseMax = Math.max.apply(null, base);
+  const baseMin = Math.min.apply(null, base);
+  const baseRange = Math.max(1, baseMax - baseMin);
+  // Tiny scrolling highlight to give a sense of "live" without shifting data
+  const scanX = padX + ((tOff * 30) % plotW);
+  ctx.strokeStyle = 'rgba(168,85,247,.15)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(scanX, topY); ctx.lineTo(scanX, topY + topH); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(scanX, botY); ctx.lineTo(scanX, botY + botH); ctx.stroke();
+
   ctx.strokeStyle = 'rgba(168,85,247,.95)'; ctx.lineWidth = 1.8;
+  ctx.shadowColor = 'rgba(168,85,247,.25)'; ctx.shadowBlur = 3;
   ctx.beginPath();
   for (let i = 0; i < base.length; i++) {
-    const px = padX + (i/(base.length-1)) * (W - padX - 20);
-    const py = topY + topH - ((base[i] - base[0]) / (maxBase * 2)) * topH * 0.8 - topH * 0.1;
-    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-  }
-  ctx.stroke();
-
-  // Bottom panel: differenced
-  const botY = topY + topH + 30, botH = topH;
-  _grid(ctx, padX, botY, W - padX - 20, botH, 16, 4, '#0d1929');
-  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText(`SETELAH ∇${'²'.repeat(Math.max(0,d-1))}y  (d = ${d})`, padX, botY - 6);
-
-  // Zero line
-  const midBot = botY + botH / 2;
-  ctx.strokeStyle = 'rgba(148,163,184,.2)'; ctx.lineWidth = 0.8;
-  ctx.beginPath(); ctx.moveTo(padX, midBot); ctx.lineTo(W - 20, midBot); ctx.stroke();
-
-  const maxDiff = Math.max(1, Math.max.apply(null, arr.map(Math.abs)));
-  ctx.strokeStyle = d === 0 ? 'rgba(168,85,247,.95)' : (d === 1 ? 'rgba(14,165,233,.95)' : 'rgba(249,115,22,.95)');
-  ctx.lineWidth = 1.8;
-  ctx.shadowColor = ctx.strokeStyle.replace('.95','.4'); ctx.shadowBlur = 4;
-  ctx.beginPath();
-  for (let i = 0; i < arr.length; i++) {
-    const px = padX + (i/(arr.length-1)) * (W - padX - 20);
-    const py = midBot - (arr[i] / maxDiff) * botH * 0.45;
+    const px = padX + (i/(base.length-1)) * plotW;
+    const py = topY + topH - 6 - ((base[i] - baseMin) / baseRange) * (topH - 14);
     if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
   }
   ctx.stroke();
   ctx.shadowBlur = 0;
 
-  // Indicator: ADF-style verdict
-  let verdict = 'NON-STASIONER';
-  let vColor = '#ef4444';
-  if (d === 1)      { verdict = 'STASIONER ✓'; vColor = '#00e09e'; }
-  else if (d === 2) { verdict = 'OVER-DIFF (noise↑)'; vColor = '#f97316'; }
-  ctx.fillStyle = vColor; ctx.font = 'bold 12px JetBrains Mono';
-  ctx.fillText(verdict, W - 180, botY + 18);
+  // ─── BOTTOM PANEL: differenced series (changes with slider) ───
+  _grid(ctx, padX, botY, plotW, botH, 16, 4, '#0d1929');
+  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px JetBrains Mono';
+  const labelBot = d === 0 ? 'SETELAH  y_t  (d = 0 — tidak ada differencing)'
+                : d === 1 ? 'SETELAH  ∇y_t = y_t − y_{t−1}  (d = 1)'
+                          : 'SETELAH  ∇²y_t = ∇(∇y_t)  (d = 2 — over-differenced)';
+  ctx.fillText(labelBot, padX, botY - 6);
 
+  // Mid line
+  const midBot = botY + botH / 2;
+  ctx.strokeStyle = 'rgba(148,163,184,.2)'; ctx.lineWidth = 0.8;
+  ctx.beginPath(); ctx.moveTo(padX, midBot); ctx.lineTo(padX + plotW, midBot); ctx.stroke();
+
+  // Scale bottom panel independently
+  const arrMax = Math.max.apply(null, arr);
+  const arrMin = Math.min.apply(null, arr);
+  const arrAbsMax = Math.max(1, Math.max(Math.abs(arrMax), Math.abs(arrMin)));
+
+  // Draw
+  const drawColor = d === 0 ? 'rgba(168,85,247,.95)'
+                  : d === 1 ? 'rgba(14,165,233,.95)'
+                            : 'rgba(249,115,22,.95)';
+  const glowColor = d === 0 ? 'rgba(168,85,247,.25)'
+                  : d === 1 ? 'rgba(14,165,233,.25)'
+                            : 'rgba(249,115,22,.25)';
+  ctx.strokeStyle = drawColor; ctx.lineWidth = 1.8;
+  ctx.shadowColor = glowColor; ctx.shadowBlur = 4;
+  ctx.beginPath();
+  for (let i = 0; i < arr.length; i++) {
+    const px = padX + (i/Math.max(1, arr.length-1)) * plotW;
+    let py;
+    if (d === 0) {
+      // Same data as top, but its own normalization so it mirrors top panel
+      py = botY + botH - 6 - ((arr[i] - arrMin) / Math.max(1, arrMax - arrMin)) * (botH - 14);
+    } else {
+      // Center at midBot with symmetric scaling
+      py = midBot - (arr[i] / arrAbsMax) * botH * 0.42;
+    }
+    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Statistics pill
+  const mean = arr.reduce((a,b)=>a+b,0)/arr.length;
+  const variance = arr.reduce((a,b)=>a+(b-mean)*(b-mean),0)/arr.length;
+  const stdv = Math.sqrt(variance);
+  ctx.fillStyle = 'rgba(15,23,42,.75)';
+  ctx.fillRect(padX + plotW - 200, botY + 8, 192, 22);
+  ctx.fillStyle = '#cbd5e1'; ctx.font = '10px JetBrains Mono';
+  ctx.fillText(`mean=${mean.toFixed(2)}  std=${stdv.toFixed(2)}`, padX + plotW - 192, botY + 23);
+
+  // ADF-style verdict
+  let verdict, vColor;
+  if (d === 0)      { verdict = '⚠ NON-STASIONER (tren)';    vColor = '#ef4444'; }
+  else if (d === 1) { verdict = '✓ STASIONER';               vColor = '#00e09e'; }
+  else              { verdict = '△ OVER-DIFFERENCED (noise↑)'; vColor = '#f97316'; }
+  ctx.fillStyle = vColor; ctx.font = 'bold 12px JetBrains Mono';
+  ctx.fillText(verdict, padX + 8, botY + botH - 10);
+
+  // Update slider label
   const vl = document.getElementById('v_ri'); if(vl) vl.textContent = String(d);
 }
 
