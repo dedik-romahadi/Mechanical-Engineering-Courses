@@ -3879,152 +3879,208 @@ setTimeout(_sweepTick, 600);
 // (Canvas: cvIso, slider: sl_ri; button: btnIso)
 // Atas: deret asli dengan tren. Bawah: hasil differencing orde d
 // ════════════════════════════════════════════════════════════
-let _isoAnim = { t: 0, running: true, raf: null };
+var _isoAnim = { t: 0, running: true, raf: 0, d: 1 };
 
 function toggleIso(){
   _isoAnim.running = !_isoAnim.running;
-  const btn = document.getElementById('btnIso');
-  if (btn) btn.textContent = _isoAnim.running ? '⏸ PAUSE' : '▶ PLAY';
+  var btn = document.getElementById('btnIso');
+  if (btn) btn.textContent = _isoAnim.running ? '\u23F8 PAUSE' : '\u25B6 PLAY';
 }
 
 function drawIso(){
-  const cv = document.getElementById('cvIso'); if(!cv) return;
-  const W = cv.clientWidth; cv.width = W; const H = cv.height;
-  const ctx = cv.getContext('2d');
+  var cv = document.getElementById('cvIso');
+  if (!cv) return;
+  var W = cv.clientWidth | 0;
+  var H = cv.height | 0;
+  if (W < 10 || H < 10) return;        // Guard: canvas not laid out yet
+  if (cv.width !== W) cv.width = W;     // Only resize when needed
+  var ctx = cv.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
 
-  const bg = ctx.createLinearGradient(0,0,0,H);
-  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
-  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+  // Background
+  ctx.fillStyle = '#070e1c';
+  ctx.fillRect(0, 0, W, H);
 
-  // Read slider (robust against missing element)
-  const slEl = document.getElementById('sl_ri');
-  const d = slEl ? Math.max(0, Math.min(2, parseInt(slEl.value, 10) || 0)) : 1;
-  const tOff = _isoAnim.t;
-  const N = 140;
-  const padX = 40;
+  // Sync slider d from element (always current)
+  var slEl = document.getElementById('sl_ri');
+  if (slEl) {
+    var parsed = parseInt(slEl.value, 10);
+    if (!isNaN(parsed)) _isoAnim.d = Math.max(0, Math.min(2, parsed));
+  }
+  var d = _isoAnim.d;
+  var t = _isoAnim.t;
 
-  // Generate FIXED base series (no scrolling via tOff in data) — deterministic
-  // trend + two seasonal components + small noise, identical every frame
-  const base = [];
-  for (let i = 0; i < N; i++) {
-    const trend    = 1.2 * i;                                         // linear
-    const season1  = 20 * Math.sin(i * 0.25);                         // slow seasonal
-    const season2  =  6 * Math.sin(i * 1.10);                         // fast seasonal
-    const noise    =  3 * Math.sin(i * 3.73) * Math.cos(i * 2.19);    // deterministic pseudo-noise
-    base.push(trend + season1 + season2 + noise);
+  // Layout
+  var padL = 44, padR = 20;
+  var plotW = W - padL - padR;
+  if (plotW < 50) return;
+  var topY = 22, topH = (H - 70) / 2;
+  var botY = topY + topH + 30, botH = topH;
+
+  // Shift phase with t so user sees movement
+  var phase = t * 0.8;
+
+  // Generate base series (trend + seasonal + noise) with phase-shifted argument
+  var N = 140;
+  var base = new Array(N);
+  for (var i = 0; i < N; i++) {
+    var x = i + phase;
+    base[i] = 1.2 * x
+            + 20 * Math.sin(x * 0.25)
+            +  6 * Math.sin(x * 1.10)
+            +  3 * Math.sin(x * 3.73) * Math.cos(x * 2.19);
   }
 
   // Apply differencing d times
-  let arr = base.slice();
-  for (let k = 0; k < d; k++) {
-    const next = [];
-    for (let i = 1; i < arr.length; i++) next.push(arr[i] - arr[i-1]);
+  var arr = base;
+  for (var k = 0; k < d; k++) {
+    var next = new Array(arr.length - 1);
+    for (var j = 1; j < arr.length; j++) next[j - 1] = arr[j] - arr[j - 1];
     arr = next;
   }
 
-  // Layout
-  const plotW = W - padX - 20;
-  const topY = 20, topH = (H - 70) / 2;
-  const botY = topY + topH + 30, botH = topH;
+  // ── Grid helper (inline for safety, in case _grid has issues) ──
+  function drawGrid(x0, y0, w, h) {
+    ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+    for (var gi = 0; gi <= 16; gi++) {
+      var gx = x0 + gi * w / 16;
+      ctx.beginPath(); ctx.moveTo(gx, y0); ctx.lineTo(gx, y0 + h); ctx.stroke();
+    }
+    for (var gj = 0; gj <= 4; gj++) {
+      var gy = y0 + gj * h / 4;
+      ctx.beginPath(); ctx.moveTo(x0, gy); ctx.lineTo(x0 + w, gy); ctx.stroke();
+    }
+  }
 
-  // ─── TOP PANEL: original series (always the same) ───
-  _grid(ctx, padX, topY, plotW, topH, 16, 4, '#0d1929');
-  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText('DERET ASLI  y_t  (tren linear + musiman + noise)', padX, topY - 6);
+  // ── TOP PANEL: original series ──
+  drawGrid(padL, topY, plotW, topH);
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = 'bold 11px JetBrains Mono, monospace';
+  ctx.fillText('DERET ASLI  y_t  (tren + musiman + noise)', padL, topY - 6);
 
-  const baseMax = Math.max.apply(null, base);
-  const baseMin = Math.min.apply(null, base);
-  const baseRange = Math.max(1, baseMax - baseMin);
-  // Tiny scrolling highlight to give a sense of "live" without shifting data
-  const scanX = padX + ((tOff * 30) % plotW);
-  ctx.strokeStyle = 'rgba(168,85,247,.15)'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(scanX, topY); ctx.lineTo(scanX, topY + topH); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(scanX, botY); ctx.lineTo(scanX, botY + botH); ctx.stroke();
+  // Top scale — fit to base range
+  var bMin = base[0], bMax = base[0];
+  for (var i2 = 1; i2 < N; i2++) {
+    if (base[i2] < bMin) bMin = base[i2];
+    if (base[i2] > bMax) bMax = base[i2];
+  }
+  var bRange = (bMax - bMin) || 1;
 
-  ctx.strokeStyle = 'rgba(168,85,247,.95)'; ctx.lineWidth = 1.8;
-  ctx.shadowColor = 'rgba(168,85,247,.25)'; ctx.shadowBlur = 3;
+  ctx.strokeStyle = '#a855f7';
+  ctx.lineWidth = 1.8;
   ctx.beginPath();
-  for (let i = 0; i < base.length; i++) {
-    const px = padX + (i/(base.length-1)) * plotW;
-    const py = topY + topH - 6 - ((base[i] - baseMin) / baseRange) * (topH - 14);
-    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+  for (var p = 0; p < N; p++) {
+    var px = padL + (p / (N - 1)) * plotW;
+    var py = topY + topH - 6 - ((base[p] - bMin) / bRange) * (topH - 14);
+    if (p === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
   }
   ctx.stroke();
-  ctx.shadowBlur = 0;
 
-  // ─── BOTTOM PANEL: differenced series (changes with slider) ───
-  _grid(ctx, padX, botY, plotW, botH, 16, 4, '#0d1929');
-  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px JetBrains Mono';
-  const labelBot = d === 0 ? 'SETELAH  y_t  (d = 0 — tidak ada differencing)'
-                : d === 1 ? 'SETELAH  ∇y_t = y_t − y_{t−1}  (d = 1)'
-                          : 'SETELAH  ∇²y_t = ∇(∇y_t)  (d = 2 — over-differenced)';
-  ctx.fillText(labelBot, padX, botY - 6);
+  // ── BOTTOM PANEL: differenced ──
+  drawGrid(padL, botY, plotW, botH);
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = 'bold 11px JetBrains Mono, monospace';
+  var label = d === 0 ? 'SETELAH  y_t  (d = 0 \u2014 tidak ada differencing)'
+            : d === 1 ? 'SETELAH  \u2207y_t = y_t - y_{t-1}   (d = 1)'
+                      : 'SETELAH  \u2207\u00B2y_t = \u2207(\u2207y_t)   (d = 2 \u2014 over-differenced)';
+  ctx.fillText(label, padL, botY - 6);
 
   // Mid line
-  const midBot = botY + botH / 2;
-  ctx.strokeStyle = 'rgba(148,163,184,.2)'; ctx.lineWidth = 0.8;
-  ctx.beginPath(); ctx.moveTo(padX, midBot); ctx.lineTo(padX + plotW, midBot); ctx.stroke();
-
-  // Scale bottom panel independently
-  const arrMax = Math.max.apply(null, arr);
-  const arrMin = Math.min.apply(null, arr);
-  const arrAbsMax = Math.max(1, Math.max(Math.abs(arrMax), Math.abs(arrMin)));
-
-  // Draw
-  const drawColor = d === 0 ? 'rgba(168,85,247,.95)'
-                  : d === 1 ? 'rgba(14,165,233,.95)'
-                            : 'rgba(249,115,22,.95)';
-  const glowColor = d === 0 ? 'rgba(168,85,247,.25)'
-                  : d === 1 ? 'rgba(14,165,233,.25)'
-                            : 'rgba(249,115,22,.25)';
-  ctx.strokeStyle = drawColor; ctx.lineWidth = 1.8;
-  ctx.shadowColor = glowColor; ctx.shadowBlur = 4;
+  var midBot = botY + botH / 2;
+  ctx.strokeStyle = 'rgba(148,163,184,.22)';
+  ctx.lineWidth = 0.8;
   ctx.beginPath();
-  for (let i = 0; i < arr.length; i++) {
-    const px = padX + (i/Math.max(1, arr.length-1)) * plotW;
-    let py;
+  ctx.moveTo(padL, midBot); ctx.lineTo(padL + plotW, midBot); ctx.stroke();
+
+  // Bottom scale
+  var aMin = arr[0], aMax = arr[0];
+  for (var i3 = 1; i3 < arr.length; i3++) {
+    if (arr[i3] < aMin) aMin = arr[i3];
+    if (arr[i3] > aMax) aMax = arr[i3];
+  }
+  var aAbs = Math.max(1, Math.max(Math.abs(aMin), Math.abs(aMax)));
+
+  // Color by d
+  var color = d === 0 ? '#a855f7' : (d === 1 ? '#0ea5e9' : '#f97316');
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.8;
+  ctx.beginPath();
+  for (var q = 0; q < arr.length; q++) {
+    var qx = padL + (q / Math.max(1, arr.length - 1)) * plotW;
+    var qy;
     if (d === 0) {
-      // Same data as top, but its own normalization so it mirrors top panel
-      py = botY + botH - 6 - ((arr[i] - arrMin) / Math.max(1, arrMax - arrMin)) * (botH - 14);
+      var r0 = (aMax - aMin) || 1;
+      qy = botY + botH - 6 - ((arr[q] - aMin) / r0) * (botH - 14);
     } else {
-      // Center at midBot with symmetric scaling
-      py = midBot - (arr[i] / arrAbsMax) * botH * 0.42;
+      qy = midBot - (arr[q] / aAbs) * botH * 0.42;
     }
-    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    if (q === 0) ctx.moveTo(qx, qy); else ctx.lineTo(qx, qy);
   }
   ctx.stroke();
-  ctx.shadowBlur = 0;
 
-  // Statistics pill
-  const mean = arr.reduce((a,b)=>a+b,0)/arr.length;
-  const variance = arr.reduce((a,b)=>a+(b-mean)*(b-mean),0)/arr.length;
-  const stdv = Math.sqrt(variance);
+  // Statistics label (top right of bottom panel)
+  var sum = 0;
+  for (var s1 = 0; s1 < arr.length; s1++) sum += arr[s1];
+  var mean = sum / arr.length;
+  var sqSum = 0;
+  for (var s2 = 0; s2 < arr.length; s2++) { var dx = arr[s2] - mean; sqSum += dx * dx; }
+  var stdv = Math.sqrt(sqSum / arr.length);
   ctx.fillStyle = 'rgba(15,23,42,.75)';
-  ctx.fillRect(padX + plotW - 200, botY + 8, 192, 22);
-  ctx.fillStyle = '#cbd5e1'; ctx.font = '10px JetBrains Mono';
-  ctx.fillText(`mean=${mean.toFixed(2)}  std=${stdv.toFixed(2)}`, padX + plotW - 192, botY + 23);
+  ctx.fillRect(padL + plotW - 200, botY + 8, 192, 22);
+  ctx.fillStyle = '#cbd5e1';
+  ctx.font = '10px JetBrains Mono, monospace';
+  ctx.fillText('mean=' + mean.toFixed(2) + '  std=' + stdv.toFixed(2), padL + plotW - 192, botY + 23);
 
-  // ADF-style verdict
-  let verdict, vColor;
-  if (d === 0)      { verdict = '⚠ NON-STASIONER (tren)';    vColor = '#ef4444'; }
-  else if (d === 1) { verdict = '✓ STASIONER';               vColor = '#00e09e'; }
-  else              { verdict = '△ OVER-DIFFERENCED (noise↑)'; vColor = '#f97316'; }
-  ctx.fillStyle = vColor; ctx.font = 'bold 12px JetBrains Mono';
-  ctx.fillText(verdict, padX + 8, botY + botH - 10);
+  // Verdict
+  var vTxt, vCol;
+  if (d === 0)      { vTxt = '\u26A0 NON-STASIONER (tren)';    vCol = '#ef4444'; }
+  else if (d === 1) { vTxt = '\u2713 STASIONER';               vCol = '#00e09e'; }
+  else              { vTxt = '\u25B3 OVER-DIFF (noise naik)';  vCol = '#f97316'; }
+  ctx.fillStyle = vCol;
+  ctx.font = 'bold 12px JetBrains Mono, monospace';
+  ctx.fillText(vTxt, padL + 8, botY + botH - 10);
 
   // Update slider label
-  const vl = document.getElementById('v_ri'); if(vl) vl.textContent = String(d);
+  var vl = document.getElementById('v_ri');
+  if (vl) vl.textContent = String(d);
 }
 
 function _isoTick(){
-  if (_isoAnim.running) _isoAnim.t += 0.016;
-  drawIso();
+  try {
+    if (_isoAnim.running) _isoAnim.t += 0.08;  // clearly visible scrolling speed
+    drawIso();
+  } catch (e) {
+    // swallow so loop never dies
+  }
   _isoAnim.raf = requestAnimationFrame(_isoTick);
 }
-(function(){
-  ['sl_ri'].forEach(id=>{const s=document.getElementById(id); if(s) s.addEventListener('input', drawIso);});
-})();
+
+// ── Bind slider and button with multiple event types, both at load and via delegation ──
+function _bindIsoControls() {
+  var sl = document.getElementById('sl_ri');
+  if (sl && !sl._isoBound) {
+    sl.addEventListener('input',  function(){ drawIso(); });
+    sl.addEventListener('change', function(){ drawIso(); });
+    sl._isoBound = true;
+  }
+  var bt = document.getElementById('btnIso');
+  if (bt && !bt._isoBound) {
+    bt.addEventListener('click', toggleIso);
+    bt._isoBound = true;
+  }
+}
+
+// Try binding now, and again after DOM settles, and periodically until bound
+_bindIsoControls();
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', _bindIsoControls);
+}
+setTimeout(_bindIsoControls, 200);
+setTimeout(_bindIsoControls, 1000);
+
+// Start animation loop
 setTimeout(_isoTick, 700);
+
 
 
 // ════════════════════════════════════════════════════════════
