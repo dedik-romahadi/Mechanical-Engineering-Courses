@@ -3879,206 +3879,137 @@ setTimeout(_sweepTick, 600);
 // (Canvas: cvIso, slider: sl_ri; button: btnIso)
 // Atas: deret asli dengan tren. Bawah: hasil differencing orde d
 // ════════════════════════════════════════════════════════════
-var _isoAnim = { t: 0, running: true, raf: 0, d: 1 };
+let _isoAnim = { t: 0, running: true, raf: null };
 
 function toggleIso(){
   _isoAnim.running = !_isoAnim.running;
-  var btn = document.getElementById('btnIso');
-  if (btn) btn.textContent = _isoAnim.running ? '\u23F8 PAUSE' : '\u25B6 PLAY';
+  const btn = document.getElementById('btnIso');
+  if (btn) btn.textContent = _isoAnim.running ? '⏸ PAUSE' : '▶ PLAY';
 }
 
 function drawIso(){
-  var cv = document.getElementById('cvIso');
-  if (!cv) return;
-  var W = cv.clientWidth | 0;
-  var H = cv.height | 0;
-  if (W < 10 || H < 10) return;        // Guard: canvas not laid out yet
-  if (cv.width !== W) cv.width = W;     // Only resize when needed
-  var ctx = cv.getContext('2d');
-  ctx.clearRect(0, 0, W, H);
+  const cv = document.getElementById('cvIso'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
 
   // Background
-  ctx.fillStyle = '#070e1c';
-  ctx.fillRect(0, 0, W, H);
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  // Sync slider d from element (always current)
-  var slEl = document.getElementById('sl_ri');
-  if (slEl) {
-    var parsed = parseInt(slEl.value, 10);
-    if (!isNaN(parsed)) _isoAnim.d = Math.max(0, Math.min(2, parsed));
-  }
-  var d = _isoAnim.d;
-  var t = _isoAnim.t;
+  // Params from slider
+  const slEl = document.getElementById('sl_ri');
+  const d = slEl ? Math.max(0, Math.min(2, parseInt(slEl.value, 10) || 0)) : 1;
+  const tOff = _isoAnim.t;
+  const N = 150;
 
-  // Layout
-  var padL = 44, padR = 20;
-  var plotW = W - padL - padR;
-  if (plotW < 50) return;
-  var topY = 22, topH = (H - 70) / 2;
-  var botY = topY + topH + 30, botH = topH;
+  // Top panel layout
+  const x0 = 40, topY = 18, topH = (H - 70) / 2;
+  const botY = topY + topH + 28, botH = topH;
+  const w = W - x0 - 20;
 
-  // Shift phase with t so user sees movement
-  var phase = t * 0.8;
-
-  // Generate base series (trend + seasonal + noise) with phase-shifted argument
-  var N = 140;
-  var base = new Array(N);
-  for (var i = 0; i < N; i++) {
-    var x = i + phase;
-    base[i] = 1.2 * x
-            + 20 * Math.sin(x * 0.25)
-            +  6 * Math.sin(x * 1.10)
-            +  3 * Math.sin(x * 3.73) * Math.cos(x * 2.19);
+  // Generate base series with phase shift for scrolling motion
+  const base = [];
+  for (let i = 0; i < N; i++) {
+    const xt = i + tOff * 10;
+    const trend    = 0.9 * xt;
+    const seasonal = 22 * Math.sin(xt * 0.25);
+    const noise    =  4 * Math.sin(xt * 2.73) * Math.cos(xt * 1.91);
+    base.push(trend + seasonal + noise);
   }
 
   // Apply differencing d times
-  var arr = base;
-  for (var k = 0; k < d; k++) {
-    var next = new Array(arr.length - 1);
-    for (var j = 1; j < arr.length; j++) next[j - 1] = arr[j] - arr[j - 1];
+  let arr = base.slice();
+  for (let k = 0; k < d; k++) {
+    const next = [];
+    for (let i = 1; i < arr.length; i++) next.push(arr[i] - arr[i-1]);
     arr = next;
   }
 
-  // ── Grid helper (inline for safety, in case _grid has issues) ──
-  function drawGrid(x0, y0, w, h) {
-    ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
-    for (var gi = 0; gi <= 16; gi++) {
-      var gx = x0 + gi * w / 16;
-      ctx.beginPath(); ctx.moveTo(gx, y0); ctx.lineTo(gx, y0 + h); ctx.stroke();
-    }
-    for (var gj = 0; gj <= 4; gj++) {
-      var gy = y0 + gj * h / 4;
-      ctx.beginPath(); ctx.moveTo(x0, gy); ctx.lineTo(x0 + w, gy); ctx.stroke();
-    }
-  }
+  // TOP PANEL: original series
+  _grid(ctx, x0, topY, w, topH, 16, 4, '#0d1929');
+  ctx.fillStyle = 'rgba(168,85,247,.9)'; ctx.font = '10px JetBrains Mono';
+  ctx.fillText('● DERET ASLI y_t (tren + musiman + noise)', x0, topY - 4);
 
-  // ── TOP PANEL: original series ──
-  drawGrid(padL, topY, plotW, topH);
-  ctx.fillStyle = '#94a3b8';
-  ctx.font = 'bold 11px JetBrains Mono, monospace';
-  ctx.fillText('DERET ASLI  y_t  (tren + musiman + noise)', padL, topY - 6);
+  // Top scale: fit to range
+  let bMin = base[0], bMax = base[0];
+  for (let i = 1; i < N; i++) { if (base[i] < bMin) bMin = base[i]; if (base[i] > bMax) bMax = base[i]; }
+  const bRange = Math.max(1, bMax - bMin);
 
-  // Top scale — fit to base range
-  var bMin = base[0], bMax = base[0];
-  for (var i2 = 1; i2 < N; i2++) {
-    if (base[i2] < bMin) bMin = base[i2];
-    if (base[i2] > bMax) bMax = base[i2];
-  }
-  var bRange = (bMax - bMin) || 1;
-
-  ctx.strokeStyle = '#a855f7';
-  ctx.lineWidth = 1.8;
+  ctx.strokeStyle = 'rgba(168,85,247,.95)'; ctx.lineWidth = 1.8;
   ctx.beginPath();
-  for (var p = 0; p < N; p++) {
-    var px = padL + (p / (N - 1)) * plotW;
-    var py = topY + topH - 6 - ((base[p] - bMin) / bRange) * (topH - 14);
-    if (p === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+  for (let i = 0; i < N; i++) {
+    const px = x0 + (i/(N-1)) * w;
+    const py = topY + topH - 6 - ((base[i] - bMin) / bRange) * (topH - 14);
+    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
   }
   ctx.stroke();
 
-  // ── BOTTOM PANEL: differenced ──
-  drawGrid(padL, botY, plotW, botH);
-  ctx.fillStyle = '#94a3b8';
-  ctx.font = 'bold 11px JetBrains Mono, monospace';
-  var label = d === 0 ? 'SETELAH  y_t  (d = 0 \u2014 tidak ada differencing)'
-            : d === 1 ? 'SETELAH  \u2207y_t = y_t - y_{t-1}   (d = 1)'
-                      : 'SETELAH  \u2207\u00B2y_t = \u2207(\u2207y_t)   (d = 2 \u2014 over-differenced)';
-  ctx.fillText(label, padL, botY - 6);
+  // BOTTOM PANEL: differenced
+  _grid(ctx, x0, botY, w, botH, 16, 4, '#0d1929');
+  ctx.fillStyle = d === 0 ? 'rgba(168,85,247,.9)' : (d === 1 ? 'rgba(14,165,233,.9)' : 'rgba(249,115,22,.9)');
+  ctx.font = '10px JetBrains Mono';
+  const label = d === 0 ? '● SETELAH y_t (d=0 — tidak ada differencing)'
+              : d === 1 ? '● SETELAH ∇y_t = y_t − y_{t-1} (d=1)'
+                        : '● SETELAH ∇²y_t = ∇(∇y_t) (d=2 — over-differenced)';
+  ctx.fillText(label, x0, botY - 4);
 
   // Mid line
-  var midBot = botY + botH / 2;
-  ctx.strokeStyle = 'rgba(148,163,184,.22)';
-  ctx.lineWidth = 0.8;
-  ctx.beginPath();
-  ctx.moveTo(padL, midBot); ctx.lineTo(padL + plotW, midBot); ctx.stroke();
+  const midBot = botY + botH / 2;
+  ctx.strokeStyle = 'rgba(148,163,184,.2)'; ctx.lineWidth = 0.8;
+  ctx.beginPath(); ctx.moveTo(x0, midBot); ctx.lineTo(x0 + w, midBot); ctx.stroke();
 
   // Bottom scale
-  var aMin = arr[0], aMax = arr[0];
-  for (var i3 = 1; i3 < arr.length; i3++) {
-    if (arr[i3] < aMin) aMin = arr[i3];
-    if (arr[i3] > aMax) aMax = arr[i3];
-  }
-  var aAbs = Math.max(1, Math.max(Math.abs(aMin), Math.abs(aMax)));
+  let aMin = arr[0], aMax = arr[0];
+  for (let i = 1; i < arr.length; i++) { if (arr[i] < aMin) aMin = arr[i]; if (arr[i] > aMax) aMax = arr[i]; }
+  const aAbs = Math.max(1, Math.max(Math.abs(aMin), Math.abs(aMax)));
 
-  // Color by d
-  var color = d === 0 ? '#a855f7' : (d === 1 ? '#0ea5e9' : '#f97316');
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 1.8;
+  const color = d === 0 ? 'rgba(168,85,247,.95)' : (d === 1 ? 'rgba(14,165,233,.95)' : 'rgba(249,115,22,.95)');
+  ctx.strokeStyle = color; ctx.lineWidth = 1.8;
   ctx.beginPath();
-  for (var q = 0; q < arr.length; q++) {
-    var qx = padL + (q / Math.max(1, arr.length - 1)) * plotW;
-    var qy;
+  for (let i = 0; i < arr.length; i++) {
+    const px = x0 + (i/Math.max(1, arr.length-1)) * w;
+    let py;
     if (d === 0) {
-      var r0 = (aMax - aMin) || 1;
-      qy = botY + botH - 6 - ((arr[q] - aMin) / r0) * (botH - 14);
+      const r0 = Math.max(1, aMax - aMin);
+      py = botY + botH - 6 - ((arr[i] - aMin) / r0) * (botH - 14);
     } else {
-      qy = midBot - (arr[q] / aAbs) * botH * 0.42;
+      py = midBot - (arr[i] / aAbs) * botH * 0.42;
     }
-    if (q === 0) ctx.moveTo(qx, qy); else ctx.lineTo(qx, qy);
+    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
   }
   ctx.stroke();
 
-  // Statistics label (top right of bottom panel)
-  var sum = 0;
-  for (var s1 = 0; s1 < arr.length; s1++) sum += arr[s1];
-  var mean = sum / arr.length;
-  var sqSum = 0;
-  for (var s2 = 0; s2 < arr.length; s2++) { var dx = arr[s2] - mean; sqSum += dx * dx; }
-  var stdv = Math.sqrt(sqSum / arr.length);
+  // Stats pill
+  let sum = 0; for (let i = 0; i < arr.length; i++) sum += arr[i];
+  const mean = sum / arr.length;
+  let sq = 0; for (let i = 0; i < arr.length; i++) { const dx = arr[i] - mean; sq += dx * dx; }
+  const stdv = Math.sqrt(sq / arr.length);
   ctx.fillStyle = 'rgba(15,23,42,.75)';
-  ctx.fillRect(padL + plotW - 200, botY + 8, 192, 22);
-  ctx.fillStyle = '#cbd5e1';
-  ctx.font = '10px JetBrains Mono, monospace';
-  ctx.fillText('mean=' + mean.toFixed(2) + '  std=' + stdv.toFixed(2), padL + plotW - 192, botY + 23);
+  ctx.fillRect(x0 + w - 190, botY + 6, 184, 20);
+  ctx.fillStyle = '#cbd5e1'; ctx.font = '10px JetBrains Mono';
+  ctx.fillText('mean=' + mean.toFixed(2) + '  std=' + stdv.toFixed(2), x0 + w - 184, botY + 20);
 
   // Verdict
-  var vTxt, vCol;
-  if (d === 0)      { vTxt = '\u26A0 NON-STASIONER (tren)';    vCol = '#ef4444'; }
-  else if (d === 1) { vTxt = '\u2713 STASIONER';               vCol = '#00e09e'; }
-  else              { vTxt = '\u25B3 OVER-DIFF (noise naik)';  vCol = '#f97316'; }
-  ctx.fillStyle = vCol;
-  ctx.font = 'bold 12px JetBrains Mono, monospace';
-  ctx.fillText(vTxt, padL + 8, botY + botH - 10);
+  let vTxt, vCol;
+  if (d === 0)      { vTxt = '⚠ NON-STASIONER (tren)';   vCol = '#ef4444'; }
+  else if (d === 1) { vTxt = '✓ STASIONER';              vCol = '#00e09e'; }
+  else              { vTxt = '△ OVER-DIFF (noise↑)';      vCol = '#f97316'; }
+  ctx.fillStyle = vCol; ctx.font = 'bold 12px JetBrains Mono';
+  ctx.fillText(vTxt, x0 + 8, botY + botH - 8);
 
   // Update slider label
-  var vl = document.getElementById('v_ri');
-  if (vl) vl.textContent = String(d);
+  const vl = document.getElementById('v_ri'); if(vl) vl.textContent = String(d);
 }
 
 function _isoTick(){
-  try {
-    if (_isoAnim.running) _isoAnim.t += 0.08;  // clearly visible scrolling speed
-    drawIso();
-  } catch (e) {
-    // swallow so loop never dies
-  }
+  if(_isoAnim.running) _isoAnim.t += 0.016;
+  drawIso();
   _isoAnim.raf = requestAnimationFrame(_isoTick);
 }
-
-// ── Bind slider and button with multiple event types, both at load and via delegation ──
-function _bindIsoControls() {
-  var sl = document.getElementById('sl_ri');
-  if (sl && !sl._isoBound) {
-    sl.addEventListener('input',  function(){ drawIso(); });
-    sl.addEventListener('change', function(){ drawIso(); });
-    sl._isoBound = true;
-  }
-  var bt = document.getElementById('btnIso');
-  if (bt && !bt._isoBound) {
-    bt.addEventListener('click', toggleIso);
-    bt._isoBound = true;
-  }
-}
-
-// Try binding now, and again after DOM settles, and periodically until bound
-_bindIsoControls();
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', _bindIsoControls);
-}
-setTimeout(_bindIsoControls, 200);
-setTimeout(_bindIsoControls, 1000);
-
-// Start animation loop
+(function(){
+  ['sl_ri'].forEach(id=>{const s=document.getElementById(id); if(s) s.addEventListener('input', drawIso);});
+})();
 setTimeout(_isoTick, 700);
 
 
