@@ -111,36 +111,225 @@ h1.hero-title .hl-amber{color:var(--amber)}
 .stat-num{font-family:'Playfair Display',serif;font-size:42px;color:var(--violet);line-height:1;margin-bottom:4px}
 .stat-lbl{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px}
 
-/* ── COUNTDOWN — Circular Progress Rings ── */
-.countdown-wrap{background:radial-gradient(ellipse 90% 110% at 50% 0%,rgba(249,115,22,.10),transparent 60%),linear-gradient(135deg,#0e1428 0%,#120a28 50%,#1a0e2e 100%);border:1px solid rgba(249,115,22,.25);border-radius:22px;padding:32px 36px 34px;text-align:center;position:relative;overflow:hidden;max-width:1100px;margin:0 auto;box-shadow:0 12px 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.04)}
-.countdown-wrap::before{content:'';position:absolute;inset:0;background:conic-gradient(from 0deg at 50% 0%,rgba(249,115,22,.08),rgba(249,115,22,.04) 90deg,rgba(0,224,158,.04) 180deg,rgba(249,115,22,.05) 270deg,rgba(249,115,22,.08) 360deg);opacity:.35;pointer-events:none;mix-blend-mode:screen}
-.countdown-label{font-family:'JetBrains Mono',monospace;font-size:12px;background:linear-gradient(90deg,#dc2626 0%,#ea580c 40%,#fbbf24 70%,#f97316 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:5px;text-transform:uppercase;margin-bottom:28px;position:relative;font-weight:700}
-.countdown-rings{display:flex;gap:22px;justify-content:center;flex-wrap:wrap;position:relative}
-.cd-ring{position:relative;width:120px;height:120px;display:flex;align-items:center;justify-content:center}
-.cd-ring svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
-.cd-ring .bg-track{fill:none;stroke:rgba(148,163,184,.08);stroke-width:6}
-.cd-ring .progress{fill:none;stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset .5s ease,stroke .3s ease;filter:drop-shadow(0 0 8px currentColor)}
-.cd-ring.ring-d .progress{stroke:#dc2626;color:#dc2626}
-.cd-ring.ring-h .progress{stroke:#ea580c;color:#ea580c}
-.cd-ring.ring-m .progress{stroke:#fbbf24;color:#fbbf24}
-.cd-ring.ring-s .progress{stroke:#f97316;color:#f97316}
-.cd-center{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center}
-.cd-num{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:800;line-height:1;letter-spacing:-.5px}
-.cd-ring.ring-d .cd-num{color:#f87171}
-.cd-ring.ring-h .cd-num{color:#fb923c}
-.cd-ring.ring-m .cd-num{color:#fde047}
-.cd-ring.ring-s .cd-num{color:#fb923c}
-.cd-unit{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2.5px;margin-top:6px;font-weight:600;opacity:.75;text-transform:uppercase}
-.cd-ring.ring-d .cd-unit{color:#f87171}
-.cd-ring.ring-h .cd-unit{color:#fb923c}
-.cd-ring.ring-m .cd-unit{color:#fde047}
-.cd-ring.ring-s .cd-unit{color:#fb923c}
-.cd-note{margin-top:26px;font-size:12.5px;color:#cbd5e1;font-family:'JetBrains Mono',monospace;position:relative;letter-spacing:.5px}
+/* ═══ COUNTDOWN — Flip Card Design dengan glow & gradient yang dramatic ═══ */
+.countdown-wrap{
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(249,115,22,.18), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(220,38,38,.10), transparent 60%),
+    linear-gradient(135deg,#1a0a05 0%,#2d1004 50%,#1a0604 100%);
+  border:1px solid rgba(249,115,22,.30);
+  border-radius:24px;
+  padding:36px 40px 38px;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+  max-width:1100px;
+  margin:0 auto;
+  box-shadow:
+    0 16px 48px rgba(0,0,0,.6),
+    0 0 60px rgba(249,115,22,.10),
+    inset 0 1px 0 rgba(255,255,255,.06),
+    inset 0 -2px 30px rgba(220,38,38,.08);
+}
+.countdown-wrap::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(circle at 15% 50%, rgba(249,115,22,.08), transparent 25%),
+    radial-gradient(circle at 85% 50%, rgba(251,191,36,.06), transparent 25%),
+    repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(249,115,22,.015) 10px, rgba(249,115,22,.015) 11px);
+  opacity:.6;pointer-events:none;
+}
+.countdown-wrap::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,
+    transparent 0%,
+    rgba(220,38,38,.5) 15%,
+    rgba(249,115,22,.8) 35%,
+    rgba(251,191,36,.9) 50%,
+    rgba(249,115,22,.8) 65%,
+    rgba(220,38,38,.5) 85%,
+    transparent 100%);
+  filter:blur(.5px);
+  animation:cdTopGlow 4s ease-in-out infinite;
+}
+@keyframes cdTopGlow{
+  0%,100%{opacity:.6;transform:scaleX(.9)}
+  50%{opacity:1;transform:scaleX(1.02)}
+}
+.countdown-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px;
+  background:linear-gradient(90deg,#dc2626 0%,#f97316 30%,#fbbf24 50%,#f97316 70%,#dc2626 100%);
+  background-size:200% auto;
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  letter-spacing:6px;
+  text-transform:uppercase;
+  margin-bottom:32px;
+  position:relative;
+  font-weight:800;
+  animation:cdLabelShimmer 6s linear infinite;
+}
+@keyframes cdLabelShimmer{
+  0%{background-position:0% center}
+  100%{background-position:200% center}
+}
+.countdown-rings{
+  display:flex;gap:18px;justify-content:center;flex-wrap:wrap;position:relative;
+}
+/* New cd-card replaces cd-ring */
+.cd-card{
+  position:relative;
+  width:130px;
+  min-height:140px;
+  border-radius:18px;
+  padding:18px 12px 16px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  transition:transform .3s ease;
+  border:1px solid;
+}
+.cd-card::before{
+  content:'';position:absolute;inset:0;
+  border-radius:inherit;
+  background:linear-gradient(135deg,rgba(255,255,255,.08) 0%,transparent 50%);
+  pointer-events:none;
+}
+.cd-card::after{
+  content:'';position:absolute;left:8%;width:var(--progress-w, 0%);bottom:10px;height:3px;
+  border-radius:2px;
+  background:currentColor;
+  box-shadow:0 0 12px currentColor;
+  opacity:.85;
+  transition:width .5s ease;
+}
+.cd-card:hover{transform:translateY(-3px) scale(1.02)}
+
+/* Per-card themes — clearly distinct gradient for each */
+.cd-card.cd-d{
+  background:linear-gradient(160deg,#1a0a05 0%,#3b0d0d 60%,#1a0a05 100%);
+  border-color:rgba(220,38,38,.45);
+  color:#f87171;
+  box-shadow:
+    0 8px 24px rgba(220,38,38,.25),
+    inset 0 1px 0 rgba(248,113,113,.15),
+    inset 0 0 30px rgba(220,38,38,.08);
+}
+.cd-card.cd-h{
+  background:linear-gradient(160deg,#1a0a05 0%,#451a03 60%,#1a0a05 100%);
+  border-color:rgba(234,88,12,.45);
+  color:#fb923c;
+  box-shadow:
+    0 8px 24px rgba(234,88,12,.25),
+    inset 0 1px 0 rgba(251,146,60,.15),
+    inset 0 0 30px rgba(234,88,12,.08);
+}
+.cd-card.cd-m{
+  background:linear-gradient(160deg,#1a0a05 0%,#3a2a04 60%,#1a0a05 100%);
+  border-color:rgba(251,191,36,.45);
+  color:#fbbf24;
+  box-shadow:
+    0 8px 24px rgba(251,191,36,.25),
+    inset 0 1px 0 rgba(253,224,71,.15),
+    inset 0 0 30px rgba(251,191,36,.08);
+}
+.cd-card.cd-s{
+  background:linear-gradient(160deg,#1a0a05 0%,#2d1004 60%,#1a0a05 100%);
+  border-color:rgba(249,115,22,.5);
+  color:#f97316;
+  box-shadow:
+    0 8px 24px rgba(249,115,22,.3),
+    inset 0 1px 0 rgba(251,146,60,.18),
+    inset 0 0 30px rgba(249,115,22,.10);
+  animation:cdSecondPulse 1s ease-in-out infinite;
+}
+@keyframes cdSecondPulse{
+  0%,100%{box-shadow:0 8px 24px rgba(249,115,22,.3),inset 0 1px 0 rgba(251,146,60,.18),inset 0 0 30px rgba(249,115,22,.10)}
+  50%{box-shadow:0 12px 36px rgba(249,115,22,.45),inset 0 1px 0 rgba(251,146,60,.25),inset 0 0 40px rgba(249,115,22,.18)}
+}
+
+/* Decorative corner mark */
+.cd-card .cd-corner{
+  position:absolute;top:8px;right:10px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;
+  letter-spacing:1px;
+  opacity:.4;
+  font-weight:700;
+}
+
+/* The big number */
+.cd-num{
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:46px;
+  font-weight:800;
+  line-height:1;
+  letter-spacing:-1.5px;
+  position:relative;
+  z-index:1;
+  filter:drop-shadow(0 0 12px currentColor);
+  margin-top:6px;
+  /* color inherited from .cd-card variants */
+}
+.cd-num::before{
+  content:'';position:absolute;inset:-4px -8px;
+  background:radial-gradient(ellipse at center, currentColor 0%, transparent 65%);
+  opacity:.12;
+  z-index:-1;
+  filter:blur(8px);
+}
+.cd-unit{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9.5px;
+  letter-spacing:3px;
+  margin-top:10px;
+  font-weight:700;
+  text-transform:uppercase;
+  opacity:.85;
+  position:relative;
+  z-index:1;
+}
+
+/* Separator dot between cards */
+.cd-sep{
+  font-family:'Playfair Display',serif;
+  font-size:34px;
+  color:#f97316;
+  opacity:.5;
+  display:flex;align-items:center;justify-content:center;
+  width:8px;
+  font-weight:700;
+  animation:cdBlink 1.4s ease-in-out infinite;
+  filter:drop-shadow(0 0 6px rgba(249,115,22,.6));
+}
+@keyframes cdBlink{
+  0%,100%{opacity:.3}
+  50%{opacity:.85}
+}
+
+.cd-note{margin-top:30px;font-size:13px;color:#cbd5e1;font-family:'JetBrains Mono',monospace;position:relative;letter-spacing:.5px}
 .cd-note strong{color:#f97316;font-weight:700}
-.cd-expired{color:#ef4444;font-weight:800;font-size:14px;animation:cdPulse 1.1s ease-in-out infinite;text-transform:uppercase;letter-spacing:3px}
+.cd-expired{color:#dc2626;font-weight:800;font-size:14px;animation:cdPulse 1.1s ease-in-out infinite;text-transform:uppercase;letter-spacing:3px}
 @keyframes cdPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(1.05)}}
-.cd-ring.expired .progress{stroke:#ef4444;color:#ef4444;animation:cdRingPulse 1s ease-in-out infinite}
-@keyframes cdRingPulse{0%,100%{opacity:1}50%{opacity:.4}}
+.cd-card.expired{
+  filter:saturate(.4);
+  animation:cdCardExpired 1s ease-in-out infinite;
+}
+@keyframes cdCardExpired{
+  0%,100%{box-shadow:0 8px 24px rgba(220,38,38,.4),inset 0 0 30px rgba(220,38,38,.15)}
+  50%{box-shadow:0 12px 36px rgba(220,38,38,.6),inset 0 0 50px rgba(220,38,38,.25)}
+}
+@media(max-width:600px){
+  .cd-card{width:75px;padding:14px 8px 12px;min-height:115px}
+  .cd-num{font-size:32px}
+  .cd-unit{font-size:8px;letter-spacing:2px}
+  .cd-sep{font-size:24px}
+  .countdown-rings{gap:8px}
+}
 
 /* ── SECTION ── */
 .section{max-width:1100px;margin:0 auto;padding:80px 32px;position:relative;z-index:1}
@@ -851,33 +1040,28 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="countdown-wrap reveal">
     <div class="countdown-label">⏰ Hitung Mundur — Deadline Pertemuan 5</div>
     <div class="countdown-rings">
-      <div class="cd-ring ring-d" id="ring-d">
-        <svg viewBox="0 0 120 120">
-          <circle class="bg-track" cx="60" cy="60" r="52"/>
-          <circle class="progress" cx="60" cy="60" r="52" stroke-dasharray="326.73" stroke-dashoffset="326.73"/>
-        </svg>
-        <div class="cd-center"><div class="cd-num" id="cd-d">--</div><div class="cd-unit">Hari</div></div>
+      <div class="cd-card cd-d" id="ring-d">
+        <span class="cd-corner">D</span>
+        <div class="cd-num" id="cd-d">--</div>
+        <div class="cd-unit">Hari</div>
       </div>
-      <div class="cd-ring ring-h" id="ring-h">
-        <svg viewBox="0 0 120 120">
-          <circle class="bg-track" cx="60" cy="60" r="52"/>
-          <circle class="progress" cx="60" cy="60" r="52" stroke-dasharray="326.73" stroke-dashoffset="326.73"/>
-        </svg>
-        <div class="cd-center"><div class="cd-num" id="cd-h">--</div><div class="cd-unit">Jam</div></div>
+      <div class="cd-sep">:</div>
+      <div class="cd-card cd-h" id="ring-h">
+        <span class="cd-corner">H</span>
+        <div class="cd-num" id="cd-h">--</div>
+        <div class="cd-unit">Jam</div>
       </div>
-      <div class="cd-ring ring-m" id="ring-m">
-        <svg viewBox="0 0 120 120">
-          <circle class="bg-track" cx="60" cy="60" r="52"/>
-          <circle class="progress" cx="60" cy="60" r="52" stroke-dasharray="326.73" stroke-dashoffset="326.73"/>
-        </svg>
-        <div class="cd-center"><div class="cd-num" id="cd-m">--</div><div class="cd-unit">Menit</div></div>
+      <div class="cd-sep">:</div>
+      <div class="cd-card cd-m" id="ring-m">
+        <span class="cd-corner">M</span>
+        <div class="cd-num" id="cd-m">--</div>
+        <div class="cd-unit">Menit</div>
       </div>
-      <div class="cd-ring ring-s" id="ring-s">
-        <svg viewBox="0 0 120 120">
-          <circle class="bg-track" cx="60" cy="60" r="52"/>
-          <circle class="progress" cx="60" cy="60" r="52" stroke-dasharray="326.73" stroke-dashoffset="326.73"/>
-        </svg>
-        <div class="cd-center"><div class="cd-num" id="cd-s">--</div><div class="cd-unit">Detik</div></div>
+      <div class="cd-sep">:</div>
+      <div class="cd-card cd-s" id="ring-s">
+        <span class="cd-corner">S</span>
+        <div class="cd-num" id="cd-s">--</div>
+        <div class="cd-unit">Detik</div>
       </div>
     </div>
     <div class="cd-note" id="cdDeadline">Deadline: <strong style="color:var(--violet)">Menunggu jadwal...</strong></div>
@@ -2523,16 +2707,14 @@ document.addEventListener('DOMContentLoaded', () => {
 let scheduleData = null;
 function startCountdown(endISO) {
   const end = new Date(endISO).getTime();
-  const CIRC = 326.73; // 2*pi*52
   // max for fill — d is dynamic (capped at 30), others fixed
   const maxOf = { d: 30, h: 24, m: 60, s: 60 };
-  function setRing(key, val, max){
-    const ring = document.getElementById('ring-'+key);
-    if(!ring) return;
-    const prog = ring.querySelector('.progress');
-    if(!prog) return;
+  function setProgress(key, val, max){
+    const card = document.getElementById('ring-'+key);
+    if(!card) return;
     const frac = Math.max(0, Math.min(1, val / max));
-    prog.setAttribute('stroke-dashoffset', String(CIRC * (1 - frac)));
+    // Set ::after width via CSS var
+    card.style.setProperty('--progress-w', (frac * 84).toFixed(1) + '%');
   }
   function tick() {
     const now = Date.now();
@@ -2543,7 +2725,7 @@ function startCountdown(endISO) {
         if (el) el.innerHTML = '<span class="cd-expired">0</span>';
         const r = document.getElementById('ring-'+k);
         if (r) r.classList.add('expired');
-        setRing(k, 0, 1);
+        setProgress(k, 0, 1);
       });
       const note = document.getElementById('cdDeadline');
       if (note) note.innerHTML = '<span class="cd-expired">⏰ Deadline telah berakhir</span>';
@@ -2554,7 +2736,7 @@ function startCountdown(endISO) {
     [['d',d],['h',h],['m',m],['s',s]].forEach(([key,val]) => {
       const el = document.getElementById('cd-'+key);
       if (el) el.textContent = String(val).padStart(2,'0');
-      setRing(key, val, maxOf[key]);
+      setProgress(key, val, maxOf[key]);
     });
     setTimeout(tick, 1000);
   }
