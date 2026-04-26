@@ -2578,7 +2578,7 @@ function switchTab(tab) {
     }, 200);
   }
   if (tab === 'tugas') {
-    setTimeout(() => getPyodide().catch(() => {}), 500);
+    setTimeout(() => getPyodide().catch(err => console.warn('[Pyodide] preload failed:', err)), 500);
     if (typeof _updateLateBanner === 'function') _updateLateBanner();
   }
   if (tab === 'forum') {
@@ -3636,20 +3636,78 @@ function copyForumHtml() {
     return;
   }
 
-  const htmlCode = buildForumHtml();
+  let htmlCode;
+  try {
+    htmlCode = buildForumHtml();
+  } catch(err) {
+    console.error('[Forum] buildForumHtml failed:', err);
+    if (msg) { msg.style.color = 'var(--pink)'; msg.textContent = '✗ Gagal membangun HTML. Cek console untuk detail.'; }
+    return;
+  }
 
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(htmlCode).then(() => {
-      btn.textContent = '✅ Tersalin!';
-      btn.style.background = 'rgba(0,224,158,.2)';
-      if (msg) { msg.style.color = 'var(--green)'; msg.textContent = '✅ Kode HTML sudah tersalin. Buka Fast Learning → Forum Pertemuan 5 → klik </> HTML → paste.'; }
-      setTimeout(() => {
-        btn.textContent = '📋 Copy Forum (kode HTML)';
-        btn.style.background = '';
-      }, 3000);
-    }).catch(() => fallbackCopy(htmlCode, btn, msg));
+  const onSuccess = () => {
+    btn.textContent = '✅ Tersalin!';
+    btn.style.background = 'rgba(0,224,158,.2)';
+    if (msg) { msg.style.color = 'var(--green)'; msg.textContent = '✅ Kode HTML sudah tersalin. Buka Fast Learning → Forum Pertemuan 1 → klik </> HTML → paste.'; }
+    setTimeout(() => {
+      btn.textContent = '📋 Copy Forum (kode HTML)';
+      btn.style.background = '';
+    }, 3000);
+  };
+
+  // Pedoman v5 §25.3 — 3-tier fallback for clipboard
+  // Tier 1: navigator.clipboard.writeText (modern, requires secure context)
+  if (window.isSecureContext && navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(htmlCode).then(onSuccess).catch((err) => {
+      console.error('[Forum] navigator.clipboard failed:', err);
+      copyForumTier2(htmlCode, btn, msg, onSuccess);
+    });
   } else {
-    fallbackCopy(htmlCode, btn, msg);
+    copyForumTier2(htmlCode, btn, msg, onSuccess);
+  }
+}
+
+function copyForumTier3(text, btn, msg) {
+  try {
+    const popup = window.open('', '_blank', 'width=720,height=560');
+    if (!popup) {
+      console.error('[Forum] Tier 3: popup blocked');
+      if (msg) { msg.style.color = 'var(--pink)'; msg.textContent = '✗ Popup diblok browser. Aktifkan popup untuk situs ini, lalu coba lagi.'; }
+      return;
+    }
+    const safe = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    popup.document.write(`<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><title>Salin Kode HTML Forum</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#1a0a05;color:#fde68a;margin:0;padding:18px;display:flex;flex-direction:column;height:100vh;box-sizing:border-box}
+.banner{background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.35);border-radius:10px;padding:12px 16px;margin-bottom:12px;color:#fed7aa;font-size:14px;line-height:1.55}
+.banner strong{color:#fb923c}
+.actions{display:flex;gap:8px;margin-bottom:12px}
+button{background:linear-gradient(135deg,#f97316,#fb923c);border:none;color:#1a0a05;padding:10px 18px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px}
+button:hover{filter:brightness(1.1)}
+textarea{flex:1;width:100%;background:#0a0604;color:#fde68a;border:1px solid rgba(251,146,60,.3);border-radius:10px;padding:12px;font-family:'JetBrains Mono',Monaco,monospace;font-size:12px;box-sizing:border-box;resize:none}
+</style></head><body>
+<div class="banner">
+  📋 <strong>Salin manual:</strong> Klik tombol <strong>"Pilih Semua"</strong> di bawah, lalu tekan <strong>Ctrl+C</strong> (Windows/Linux) atau <strong>⌘+C</strong> (Mac) untuk menyalin. Setelah itu paste di Fast Learning → Forum Pertemuan 5 → klik </> HTML.
+</div>
+<div class="actions">
+  <button id="selBtn">📑 Pilih Semua</button>
+  <button id="closeBtn" style="background:rgba(255,255,255,.08);color:#fed7aa">Tutup</button>
+</div>
+<textarea id="content" readonly>${safe}</textarea>
+<script>
+document.getElementById('selBtn').addEventListener('click',function(){
+  const ta=document.getElementById('content');
+  ta.focus();ta.select();ta.setSelectionRange(0,ta.value.length);
+});
+document.getElementById('closeBtn').addEventListener('click',function(){window.close()});
+setTimeout(function(){document.getElementById('content').focus();document.getElementById('content').select()},100);
+</scr` + `ipt>
+</body></html>`);
+    popup.document.close();
+    if (msg) { msg.style.color = 'var(--amber)'; msg.textContent = '⚠ Browser memblok salin otomatis. Window baru terbuka — klik Pilih Semua → Ctrl+C.'; }
+  } catch(err) {
+    console.error('[Forum] Tier 3 popup failed:', err);
+    if (msg) { msg.style.color = 'var(--pink)'; msg.textContent = '✗ Tidak bisa salin otomatis. Buka DevTools console untuk error detail.'; }
   }
 }
 
@@ -3688,10 +3746,10 @@ function buildForumHtml() {
 
   return `<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:720px;margin:0 auto;color:#1e293b;">
 
-  <div style="background:linear-gradient(135deg,#1a0a05,#2d1004);border-radius:12px 12px 0 0;padding:20px 28px;">
-    <div style="font-size:1.3rem;font-weight:800;color:#ea580c;margin-bottom:4px;">&#128172; Forum Diskusi &#8212; Pertemuan 5</div>
-    <div style="font-size:.82rem;color:#94a3b8;">Persamaan Diferensial Linier Orde N &middot; Matematika 4 &middot; S1 Teknik Mesin UMB &middot; 2025/2026</div>
-    <div style="font-size:.8rem;color:#ea580c;margin-top:2px;">Dosen: Dedik Romahadi</div>
+  <div style="background:linear-gradient(135deg,#1a0a05,#1a0a05);border-radius:12px 12px 0 0;padding:20px 28px;">
+    <div style="font-size:1.3rem;font-weight:800;color:#f97316;margin-bottom:4px;">&#128172; Forum Diskusi &#8212; Pertemuan 4</div>
+    <div style="font-size:.82rem;color:#94a3b8;">PD Linier Orde N &middot; Matematika 4 &middot; S1 Teknik Mesin UMB &middot; 2025/2026</div>
+    <div style="font-size:.8rem;color:#f97316;margin-top:2px;">Dosen: Dedik Romahadi</div>
   </div>
 
   <div style="background:#f1f5f9;padding:12px 28px;display:flex;gap:28px;flex-wrap:wrap;border-left:4px solid #f97316;">
@@ -3701,36 +3759,36 @@ function buildForumHtml() {
   </div>
 
   <div style="background:#fff7ed;border-left:4px solid #f97316;padding:16px 28px;margin-top:2px;">
-    <div style="font-weight:700;color:#9a3412;margin-bottom:8px;">&#128203; Skenario: Blower Industri Bermasalah di Pabrik Tekstil</div>
-    <div style="font-size:.88rem;color:#475569;margin-bottom:10px;">Blower industri mengalami getaran berlebihan yang melonggarkan baut penopang setiap minggu. Sistem SDOF: <span style="font-family:monospace;color:#ea580c;">m&uuml;x + c&#729;x + kx = F&#8320;sin(&omega;t)</span>. Parameter lapangan:</div>
+    <div style="font-weight:700;color:#5b35d0;margin-bottom:8px;">&#128203; Skenario: Pendinginan Coran Aluminium pada Proses Quenching</div>
+    <div style="font-size:.88rem;color:#475569;margin-bottom:10px;">Blok silinder aluminium keluar die casting pada suhu 450&deg;C, didinginkan di udara pabrik (30&deg;C) menuju suhu aman 80&deg;C. Hukum Pendinginan Newton: <span style="font-family:monospace;color:#f97316;">T' + kT = kT&infin;</span>. Parameter kunci:</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <span style="background:#fff7ed;border:1px solid #fdba74;color:#c2410c;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;">m = 80 kg</span>
-      <span style="background:#fff7ed;border:1px solid #fdba74;color:#c2410c;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;">k = 72000 N/m</span>
-      <span style="background:#fff7ed;border:1px solid #fdba74;color:#c2410c;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;">c = 240 Ns/m</span>
-      <span style="background:#fce7f3;border:1px solid #f9a8d4;color:#be185d;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;">&omega; = 28.5 rad/s</span>
+      <span style="background:#fce7f3;border:1px solid #f9a8d4;color:#be185d;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;">T&#8320; = 450&deg;C</span>
+      <span style="background:#fef3c7;border:1px solid #fcd34d;color:#92400e;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;">T&infin; = 30&deg;C</span>
+      <span style="background:#d1fae5;border:1px solid #fdba74;color:#9a3412;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;">T_aman = 80&deg;C</span>
+      <span style="background:#ede9fe;border:1px solid #c4b5fd;color:#9a3412;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;">k = 0.04 /menit</span>
     </div>
   </div>
 
   <div style="background:#ffffff;border:1px solid #e2e8f0;padding:20px 28px;margin-top:8px;">
     <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;">
       <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:#f97316;color:#fff;font-weight:700;font-size:.8rem;flex-shrink:0;">1</span>
-      <div style="font-size:.95rem;font-weight:700;color:#1e293b;">Tentukan jenis kasus akar untuk Konfig A, B, dan C suspensi mobil.</div>
+      <div style="font-size:.95rem;font-weight:700;color:#1e293b;">Berapa waktu pendinginan alami (k = 0.04/menit) agar coran mencapai 80&deg;C? Bagaimana jika k dinaikkan ke 0.08/menit dengan kipas?</div>
     </div>
-    <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Hitung diskriminan D = c&sup2; &minus; 4mk untuk tiap konfigurasi. Klasifikasi sebagai overdamped (D&gt;0), critically damped (D=0), atau underdamped (D&lt;0). Tunjukkan perhitungan dan akar persamaan karakteristiknya.</div>
+    <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Gunakan solusi T(t) = T&infin; + (T&#8320; &minus; T&infin;)&middot;e^(&minus;kt). Tentukan t saat T = 80&deg;C untuk kedua skenario.</div>
     <div style="margin-left:40px;">
-      <div style="font-size:.7rem;font-weight:700;color:#ea580c;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
-      <div style="background:#fff7ed;border:1px solid #fdba74;border-radius:8px;padding:14px 16px;font-size:.88rem;color:#1e293b;line-height:1.75;min-height:48px;">${ans1}</div>
+      <div style="font-size:.7rem;font-weight:700;color:#f97316;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
+      <div style="background:#f8f5ff;border:1px solid #c4b5fd;border-radius:8px;padding:14px 16px;font-size:.88rem;color:#1e293b;line-height:1.75;min-height:48px;">${ans1}</div>
     </div>
   </div>
 
   <div style="background:#ffffff;border:1px solid #e2e8f0;padding:20px 28px;margin-top:4px;">
     <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;">
-      <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:#ea580c;color:#fff;font-weight:700;font-size:.8rem;flex-shrink:0;">2</span>
-      <div style="font-size:.95rem;font-weight:700;color:#1e293b;">Konfigurasi mana yang Anda pilih untuk produksi? Jelaskan trade-off comfort vs handling.</div>
+      <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:#f97316;color:#fff;font-weight:700;font-size:.8rem;flex-shrink:0;">2</span>
+      <div style="font-size:.95rem;font-weight:700;color:#1e293b;">Jika spray mist mengubah model menjadi T' = &minus;k(T&minus;T&infin;)^1.2 (non-linier), bagaimana strategi penyelesaiannya?</div>
     </div>
-    <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Pilih konfig (A/B/C) dan justifikasi. Jelaskan: (1) waktu settling, (2) overshoot, (3) trade-off dengan dua konfig lain, (4) kaitan dengan target pengguna (city car / sport / off-road).</div>
+    <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Pertimbangkan: substitusi u = T &minus; T&infin; menjadikan PD terpisah, bukan Bernoulli klasik. Tunjukkan langkah integrasi.</div>
     <div style="margin-left:40px;">
-      <div style="font-size:.7rem;font-weight:700;color:#ea580c;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
+      <div style="font-size:.7rem;font-weight:700;color:#f97316;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
       <div style="background:#fff7ed;border:1px solid #fdba74;border-radius:8px;padding:14px 16px;font-size:.88rem;color:#1e293b;line-height:1.75;min-height:48px;">${ans2}</div>
     </div>
   </div>
@@ -3738,9 +3796,9 @@ function buildForumHtml() {
   <div style="background:#ffffff;border:1px solid #e2e8f0;padding:20px 28px;margin-top:4px;">
     <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;">
       <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:#00e09e;color:#fff;font-weight:700;font-size:.8rem;flex-shrink:0;">3</span>
-      <div style="font-size:.95rem;font-weight:700;color:#1e293b;">Untuk Konfig B (critically damped), tentukan solusi khusus IVP dan hitung waktu mencapai 1% simpangan awal.</div>
+      <div style="font-size:.95rem;font-weight:700;color:#1e293b;">Bagaimana menyeimbangkan kecepatan pendinginan vs risiko thermal shock menggunakan analisis PD linier?</div>
     </div>
-    <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Substitusi y(0)=0.05, y'(0)=0 ke y(t) = (C&#8321; + C&#8322;t)e^(rt) dengan r = &minus;2.5. Hitung t* saat |y(t*)| = 0.0005. Bandingkan pendekatan analitik vs numerik (scipy/numpy).</div>
+    <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Laju awal |dT/dt|&#8320; = k&middot;(T&#8320; &minus; T&infin;). Bandingkan dengan batas aman material (&asymp;30&deg;C/menit), dan usulkan strategi multi-stage.</div>
     <div style="margin-left:40px;">
       <div style="font-size:.7rem;font-weight:700;color:#00e09e;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
       <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:14px 16px;font-size:.88rem;color:#1e293b;line-height:1.75;min-height:48px;">${ans3}</div>
@@ -3748,7 +3806,7 @@ function buildForumHtml() {
   </div>
 
   <div style="background:#f8faff;border:1px solid #e2e8f0;border-radius:0 0 12px 12px;padding:10px 28px;text-align:center;font-size:.72rem;color:#94a3b8;margin-top:4px;">
-    Forum Diskusi Pertemuan 5 &mdash; Persamaan Diferensial Linier Orde N &middot; Matematika 4 &middot; S1 Teknik Mesin UMB &middot; 2025/2026
+    Forum Diskusi Pertemuan 4 &mdash; PD Linier Orde N &middot; Matematika 4 &middot; S1 Teknik Mesin UMB &middot; 2025/2026
   </div>
 
 </div>`;
@@ -6047,6 +6105,15 @@ function fetchMasterStudents(retries){
     masterStudents = data;
     masterFetchDone = true;
     console.log('[Visitor] Master students loaded:', masterStudents.length);
+    // §25.4 — Re-render after master loaded (fix race condition: Firebase listener may have fired before this resolves)
+    try {
+      if (typeof renderVisitors === 'function' && typeof latestVisitors !== 'undefined') {
+        renderVisitors(latestVisitors || []);
+      }
+      if (typeof updateLeaderboard === 'function' && typeof latestVisitors !== 'undefined') {
+        updateLeaderboard(latestVisitors || [], (typeof _scheduleExpired !== 'undefined' && _scheduleExpired) || false);
+      }
+    } catch(e) { console.warn('[Visitor] Re-render after master load failed:', e); }
     // Update loading indicator → success
     const ls  = document.getElementById('loadingStudents');
     const btn = document.getElementById('vSubmit');
@@ -6064,6 +6131,12 @@ function fetchMasterStudents(retries){
       setTimeout(()=>fetchMasterStudents(retries+1), 1500);
     } else {
       masterStudents = []; masterFetchDone = true;
+      // §25.4 — Trigger re-render even on failure (so loading indicator gets replaced with warning)
+      try {
+        if (typeof renderVisitors === 'function' && typeof latestVisitors !== 'undefined') {
+          renderVisitors(latestVisitors || []);
+        }
+      } catch(e) {}
       const ls  = document.getElementById('loadingStudents');
       const btn = document.getElementById('vSubmit');
       if (ls) {
@@ -6228,7 +6301,7 @@ function _handleScheduleReady() {
               set(ref(db,`${DB_PATH}/${_key}`), _stripLegacyPinFields({...ex,visitCount:(ex.visitCount||1)+1,lastVisit:new Date().toISOString()}));
             }
           }
-        }).catch(()=>{});
+        }).catch(err => console.warn('[Visitor] visit count update failed:', err));
       }
       _applyRoleVisibility();
       setTimeout(function(){ if(typeof window._loadScoredQuestions==='function') window._loadScoredQuestions(); }, 500);
@@ -6458,7 +6531,7 @@ function initPresence() {
   _currentPresenceRef = ref(db, PRESENCE_PATH + '/' + userKey);
 
   // Setup onDisconnect FIRST (server removes when connection drops)
-  onDisconnect(_currentPresenceRef).remove().catch(()=>{});
+  onDisconnect(_currentPresenceRef).remove().catch(err => console.warn('[Presence] onDisconnect cleanup failed:', err));
 
   // Write initial presence
   _writeHeartbeat();
@@ -6485,12 +6558,12 @@ function _writeHeartbeat() {
     lastSeen: Date.now(),
     tab: tabName,
     role: 'student'
-  }).catch(()=>{});
+  }).catch(err => console.warn('[Presence] cleanup failed:', err));
 }
 
 function cleanupPresence() {
   if (_heartbeatTimer) { clearInterval(_heartbeatTimer); _heartbeatTimer = null; }
-  if (_currentPresenceRef) { remove(_currentPresenceRef).catch(()=>{}); _currentPresenceRef = null; }
+  if (_currentPresenceRef) { remove(_currentPresenceRef).catch(err => console.warn('[Presence] remove failed:', err)); _currentPresenceRef = null; }
 }
 
 // Tab-close cleanup (best-effort; onDisconnect is the real guarantee)
@@ -6500,7 +6573,7 @@ function renderOnlineUsers() {
   const stripEl = document.getElementById('onlineAvatars');
   if (!stripEl) return;
   const count = onlineUsers.length;
-  document.getElementById('fabCount').textContent = count;
+  const _fabCountEl = document.getElementById('fabCount'); if (_fabCountEl) _fabCountEl.textContent = count;
   document.getElementById('vpBadgeText').textContent = count + ' online';
   document.getElementById('onlineCount').textContent = count;
 
@@ -6660,7 +6733,14 @@ function renderVisitors(visitors){
   const tableEl=document.getElementById('visitorTableBody');
   // NOTE: vpList & vpBadge & fabCount sekarang dikelola oleh presence system (lihat initPresence)
   // renderVisitors() hanya update leaderboard + table Hasil + stats cards
-  if(!masterStudents.length){tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">\u23f3 Memuat data mahasiswa...</div>';return;}
+  if(!masterStudents.length){
+    if (masterFetchDone) {
+      tableEl.innerHTML = '<div style="text-align:center;padding:40px 24px;color:#fbbf24;font-size:.88rem;">\u26a0 Daftar mahasiswa tidak bisa dimuat<br><span style="font-size:.78rem;color:#94a3b8;font-weight:400;">Refresh halaman atau cek koneksi internet.</span></div>';
+    } else {
+      tableEl.innerHTML = '<div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">\u23f3 Memuat data mahasiswa...</div>';
+    }
+    return;
+  }
   function toTitle(s){return s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());}
   tableEl.innerHTML=masterStudents.map((s,i)=>{
     const v=visitMap[s.nim], nama=toTitle(s.nama), ini=nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
@@ -6815,29 +6895,24 @@ async function submitPinSetup() {
     const { nama, nim, nowISO, schedOpen } = _pinFlow;
     const key = sanitizeKey('mhs_' + nim);
 
-    // ─── Arsitektur Global PIN: Write ke 2 tempat terpisah ───
-    // (a) pins/<key> — kredensial PIN GLOBAL (lintas-course, lintas-module)
-    // (b) visitors/<course>/<module>/<key> — visitor record TANPA pinHash
     if (!schedOpen) {
-      // Di luar jadwal: simpan identity local saja, tidak write Firebase
+      // Di luar jadwal — simpan identity lokal saja, tidak tulis ke Firebase
+      // (PIN akan disimpan saat schedule-open write berikutnya; tapi praktis
+      // mahasiswa tidak akan pernah bisa tulis di luar jadwal per schedule gate).
       saveIdentity({ nama, nim, role: 'student', timestamp: nowISO });
     } else {
-      // (a) Global PIN node — permanent, seumur hidup mahasiswa
+      // 1. Tulis PIN ke node GLOBAL (pins/) — satu PIN untuk semua course/module
       await set(ref(db, 'pins/' + key), {
-        pinHash,
-        pinSetAt: nowISO,
-        nama
+        pinHash, pinSetAt: nowISO, nama
       });
 
-      // (b) Visitor record di course/module CURRENT (tanpa pinHash!)
-      const visitorRec = {
-        nama, nim, role: 'student',
-        timestamp: nowISO,
-        lastVisit: nowISO,
-        visitCount: 1
+      // 2. Tulis visitor record di course/module CURRENT (tanpa pinHash)
+      const newVisitor = {
+        nama, nim, role: 'student', timestamp: nowISO,
+        visitCount: 1, lastVisit: nowISO
       };
-      saveIdentity(visitorRec);
-      await set(ref(db, DB_PATH + '/' + key), visitorRec);
+      saveIdentity(newVisitor);
+      await set(ref(db, DB_PATH + '/' + key), newVisitor);
     }
 
     _hidePinModals();
@@ -6845,8 +6920,6 @@ async function submitPinSetup() {
     document.getElementById('visitorFab').style.display = 'flex';
     _applyRoleVisibility();   // pastikan tombol dosen tersembunyi untuk mahasiswa
     _pinFlow = { nama: null, nim: null, nowISO: null, existingPin: null, existingVisitor: null, schedOpen: false };
-    // Init presence for newly logged-in student
-    if (typeof initPresence === 'function') setTimeout(initPresence, 300);
     setTimeout(() => { if (typeof window._loadScoredQuestions === 'function') window._loadScoredQuestions(); }, 500);
   } catch(e) {
     errEl.textContent = '\u274c Gagal menyimpan PIN: ' + (e && e.message ? e.message : e);
@@ -6871,7 +6944,6 @@ async function submitPinVerify() {
     const inputHash = await _sha256Hex(pin);
     const { existingPin, existingVisitor, nama, nim, nowISO, schedOpen } = _pinFlow;
 
-    // ─── Verifikasi PIN dari GLOBAL pins/ ───
     if (!existingPin || inputHash !== existingPin.pinHash) {
       errEl.textContent = '\u26a0 PIN salah. Coba lagi atau hubungi dosen jika lupa.';
       errEl.style.display = 'block';
@@ -6881,36 +6953,32 @@ async function submitPinVerify() {
       return;
     }
 
-    // PIN match → create/update visitor record di course/module CURRENT (TANPA pinHash)
-    const key = sanitizeKey('mhs_' + nim);
-    let visitorRec;
-
-    if (existingVisitor) {
-      // Sudah pernah akses course/module ini → bump visitCount jika > cooldown
-      const lastV = new Date(existingVisitor.lastVisit || existingVisitor.timestamp).getTime();
-      const canBump = (Date.now() - lastV) >= VISIT_COOLDOWN;
-      visitorRec = Object.assign({}, existingVisitor, {
-        visitCount: canBump ? (existingVisitor.visitCount || 1) + 1 : (existingVisitor.visitCount || 1),
-        lastVisit: canBump ? nowISO : (existingVisitor.lastVisit || existingVisitor.timestamp)
-      });
-      // Strip field legacy pinHash/pinSetAt (jika ada dari era sistem lama)
-      visitorRec = _stripLegacyPinFields(visitorRec);
+    // PIN match → create/update visitor record di course/module CURRENT
+    if (!schedOpen) {
+      saveIdentity({ nama, nim, role: 'student', timestamp: nowISO });
     } else {
-      // Pertama kali akses course/module ini (tapi sudah punya PIN global)
-      visitorRec = {
-        nama, nim, role: 'student',
-        timestamp: nowISO,
-        lastVisit: nowISO,
-        visitCount: 1
-      };
-    }
-
-    if (schedOpen) {
-      saveIdentity(visitorRec);
-      await set(ref(db, DB_PATH + '/' + key), visitorRec);
-    } else {
-      // Di luar jadwal: update identity local saja (tidak write Firebase)
-      saveIdentity({ nama, nim, role: 'student', timestamp: existingVisitor ? existingVisitor.timestamp : nowISO });
+      const key = sanitizeKey('mhs_' + nim);
+      let updated;
+      if (existingVisitor) {
+        // Sudah pernah akses course/module ini — update lastVisit + bump visitCount
+        const lastV = new Date(existingVisitor.lastVisit || existingVisitor.timestamp).getTime();
+        const canBump = (Date.now() - lastV) >= VISIT_COOLDOWN;
+        // Bersihkan legacy pinHash/pinSetAt jika ada — sudah tidak dipakai,
+        // dan rules baru akan menolak field tersebut di visitor records.
+        const { pinHash: _legacy1, pinSetAt: _legacy2, ...cleanVisitor } = existingVisitor;
+        updated = Object.assign({}, cleanVisitor, {
+          visitCount: canBump ? (cleanVisitor.visitCount || 1) + 1 : (cleanVisitor.visitCount || 1),
+          lastVisit: canBump ? nowISO : (cleanVisitor.lastVisit || cleanVisitor.timestamp)
+        });
+      } else {
+        // First visit di course/module ini (PIN global sudah ada dari course lain)
+        updated = {
+          nama, nim, role: 'student', timestamp: nowISO,
+          visitCount: 1, lastVisit: nowISO
+        };
+      }
+      saveIdentity(updated);
+      await set(ref(db, DB_PATH + '/' + key), updated);
     }
 
     _hidePinModals();
@@ -6918,8 +6986,6 @@ async function submitPinVerify() {
     document.getElementById('visitorFab').style.display = 'flex';
     _applyRoleVisibility();   // pastikan tombol dosen tersembunyi untuk mahasiswa
     _pinFlow = { nama: null, nim: null, nowISO: null, existingPin: null, existingVisitor: null, schedOpen: false };
-    // Init presence for newly logged-in student
-    if (typeof initPresence === 'function') setTimeout(initPresence, 300);
     setTimeout(() => { if (typeof window._loadScoredQuestions === 'function') window._loadScoredQuestions(); }, 500);
   } catch(e) {
     errEl.textContent = '\u274c Gagal verifikasi PIN: ' + (e && e.message ? e.message : e);
@@ -7175,42 +7241,60 @@ window._awardPoint = function(qId) {
   const key = sanitizeKey('mhs_' + me.nim);
   const nodeRef = ref(db, DB_PATH + '/' + key);
   get(nodeRef).then(snap => {
-    if (!snap.exists()) return;
-    const ex = snap.val();
+    let ex;
+    if (!snap.exists()) {
+      console.warn('[Score] Visitor record missing — creating now');
+      ex = { nama: me.nama || '—', nim: me.nim, role: 'student',
+             timestamp: me.timestamp || new Date().toISOString(),
+             lastVisit: new Date().toISOString(), visitCount: 1,
+             points: 0, scoredQuestions: '' };
+    } else { ex = snap.val(); }
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(qId)) { _answeredQ.add(qId); return; }
     _answeredQ.add(qId); scored.push(qId);
     const updated = Object.assign({}, ex, { points: (ex.points||0)+1, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',') });
     set(nodeRef, updated);
     _checkConsolationPoint(nodeRef, updated);
-  }).catch(()=>{});
+  }).catch(err => console.error('[Score] save failed:', err));
 };
 
 window._awardCompPoint = function(qId, point) {
   if (!_isScheduleOpen()) return;  // NO point save outside active schedule
-  // Fallback for legacy call sites: deteksi dari _isHardComp jika point tidak diberikan.
-  const pts = (typeof point === 'number' && point > 0) ? point
-            : (window._isHardComp(qId) ? SCORE_CONFIG.COMP_HARD_POINT : SCORE_CONFIG.COMP_EZ_POINT);
+  // point: explicit value from caller (2 untuk easy, 4 untuk hard).
+  // Jika tidak diberikan, fallback ke 2 untuk kompatibilitas mundur.
+  const pts = (typeof point === 'number' && point > 0) ? point : SCORE_CONFIG.COMP_EZ_POINT;
   const compKey = qId + '_comp';
   if (_answeredQ.has(compKey)) return;
   const me = getIdentity();
   if (!me || !me.nim || me.role === 'dosen') return;
   const key = sanitizeKey('mhs_' + me.nim);
   const nodeRef = ref(db, DB_PATH + '/' + key);
-  // PEDOMAN §15.4c — Capture code text from textarea for Firebase persistence
+  // Pedoman §15.4c — capture code text SEBELUM async get() (DOM bisa berubah)
   const codeText = (document.getElementById('code-' + qId)?.value || '').slice(0, 5000);
   get(nodeRef).then(snap => {
-    if (!snap.exists()) return;
-    const ex = snap.val();
+    let ex;
+    if (!snap.exists()) {
+      console.warn('[Score] Visitor record missing — creating now');
+      ex = { nama: me.nama || '—', nim: me.nim, role: 'student',
+             timestamp: me.timestamp || new Date().toISOString(),
+             lastVisit: new Date().toISOString(), visitCount: 1,
+             points: 0, scoredQuestions: '' };
+    } else { ex = snap.val(); }
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(compKey)) { _answeredQ.add(compKey); return; }
     _answeredQ.add(compKey); scored.push(compKey);
-    const newPoints = Math.min((ex.points || 0) + pts, SCORE_CONFIG.TOTAL);
+    const newPoints = Math.min((ex.points||0) + pts, SCORE_CONFIG.TOTAL);
+    // Pedoman §15.4c — merge code ke codes object (preserve existing codes)
     const codes = Object.assign({}, ex.codes || {}, codeText ? { [qId]: codeText } : {});
-    const updated = _stripLegacyPinFields(Object.assign({}, ex, { points: newPoints, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(','), codes: codes }));
+    const updated = Object.assign({}, ex, {
+      points: newPoints,
+      pointTimestamp: new Date().toISOString(),
+      scoredQuestions: scored.join(','),
+      codes: codes
+    });
     set(nodeRef, updated);
     _checkConsolationPoint(nodeRef, updated);
-  }).catch(()=>{});
+  }).catch(err => console.error('[Score] save failed:', err));
 };
 
 // ── Partial credit untuk Comp Hard (kode non-kosong tapi output/error salah) ──
@@ -7225,20 +7309,32 @@ window._awardCompPartial = function(qId, point) {
   if (!me || !me.nim || me.role === 'dosen') return;
   const key = sanitizeKey('mhs_' + me.nim);
   const nodeRef = ref(db, DB_PATH + '/' + key);
-  // PEDOMAN §15.4c — Capture code text (partial tetap simpan kode upaya)
+  // Pedoman §15.4c — capture code text untuk save ke Firebase
   const codeText = (document.getElementById('code-' + qId)?.value || '').slice(0, 5000);
   get(nodeRef).then(snap => {
-    if (!snap.exists()) return;
-    const ex = snap.val();
+    let ex;
+    if (!snap.exists()) {
+      console.warn('[Score] Visitor record missing — creating now');
+      ex = { nama: me.nama || '—', nim: me.nim, role: 'student',
+             timestamp: me.timestamp || new Date().toISOString(),
+             lastVisit: new Date().toISOString(), visitCount: 1,
+             points: 0, scoredQuestions: '' };
+    } else { ex = snap.val(); }
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(partialKey)) { _answeredQ.add(partialKey); return; }
     _answeredQ.add(partialKey); scored.push(partialKey);
-    const newPoints = Math.min((ex.points || 0) + pts, SCORE_CONFIG.TOTAL);
+    const newPoints = Math.min((ex.points||0) + pts, SCORE_CONFIG.TOTAL);
+    // Pedoman §15.4c — merge code ke codes object
     const codes = Object.assign({}, ex.codes || {}, codeText ? { [qId]: codeText } : {});
-    const updated = _stripLegacyPinFields(Object.assign({}, ex, { points: newPoints, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(','), codes: codes }));
+    const updated = Object.assign({}, ex, {
+      points: newPoints,
+      pointTimestamp: new Date().toISOString(),
+      scoredQuestions: scored.join(','),
+      codes: codes
+    });
     set(nodeRef, updated);
-    // Tidak trigger konsolasi — poin sudah > 0
-  }).catch(()=>{});
+    // Tidak trigger consolation karena poin > 0
+  }).catch(err => console.error('[Score] save failed:', err));
 };
 
 // ── Record a failed MC attempt to Firebase ──
@@ -7249,8 +7345,14 @@ window._recordMcAttempt = function(qId) {
   const key = sanitizeKey('mhs_' + me.nim);
   const nodeRef = ref(db, DB_PATH + '/' + key);
   get(nodeRef).then(snap => {
-    if (!snap.exists()) return;
-    const ex = snap.val();
+    let ex;
+    if (!snap.exists()) {
+      console.warn('[Score] Visitor record missing — creating now');
+      ex = { nama: me.nama || '—', nim: me.nim, role: 'student',
+             timestamp: me.timestamp || new Date().toISOString(),
+             lastVisit: new Date().toISOString(), visitCount: 1,
+             points: 0, scoredQuestions: '' };
+    } else { ex = snap.val(); }
     const usedKey = qId + '_mc_used';
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(usedKey)) return;
@@ -7258,7 +7360,7 @@ window._recordMcAttempt = function(qId) {
     const updated = Object.assign({}, ex, { scoredQuestions: scored.join(',') });
     set(nodeRef, updated);
     _checkConsolationPoint(nodeRef, updated);
-  }).catch(() => {});
+  }).catch(err => console.error('[Score] save failed:', err));
 };
 
 // ── Record a failed comp attempt to Firebase (anti-manipulation) ──
@@ -7268,20 +7370,30 @@ window._recordCompAttempt = function(qId) {
   if (!me || !me.nim || me.role === 'dosen') return;
   const key = sanitizeKey('mhs_' + me.nim);
   const nodeRef = ref(db, DB_PATH + '/' + key);
-  // PEDOMAN §15.4c — Capture code text (kode salah tetap disimpan sebagai dokumentasi upaya)
+  // Pedoman §15.4c — capture code untuk dokumentasi upaya (walau 0 poin)
   const codeText = (document.getElementById('code-' + qId)?.value || '').slice(0, 5000);
   get(nodeRef).then(snap => {
-    if (!snap.exists()) return;
-    const ex = snap.val();
+    let ex;
+    if (!snap.exists()) {
+      console.warn('[Score] Visitor record missing — creating now');
+      ex = { nama: me.nama || '—', nim: me.nim, role: 'student',
+             timestamp: me.timestamp || new Date().toISOString(),
+             lastVisit: new Date().toISOString(), visitCount: 1,
+             points: 0, scoredQuestions: '' };
+    } else { ex = snap.val(); }
     const usedKey = qId + '_comp_used';
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(usedKey)) return;   // already recorded
     scored.push(usedKey);
+    // Pedoman §15.4c — simpan code walau soal salah (dokumentasi attempt)
     const codes = Object.assign({}, ex.codes || {}, codeText ? { [qId]: codeText } : {});
-    const updated = Object.assign({}, ex, { scoredQuestions: scored.join(','), codes: codes });
+    const updated = Object.assign({}, ex, {
+      scoredQuestions: scored.join(','),
+      codes: codes
+    });
     set(nodeRef, updated);
     _checkConsolationPoint(nodeRef, updated);
-  }).catch(() => {});
+  }).catch(err => console.error('[Score] save failed:', err));
 };
 
 window._loadScoredQuestions = function() {
