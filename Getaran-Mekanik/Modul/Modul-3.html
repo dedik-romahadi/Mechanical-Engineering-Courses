@@ -1198,7 +1198,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       </div>
       <div id="regimesInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi Ini:</strong> Empat sistem identik (m=5 kg, k=2000 N/m) dijatuhkan bersamaan dari x₀=0.05 m, ẋ₀=0. Hanya <strong>ζ yang berbeda</strong>: kuning (ζ=0, tak teredam), cyan (ζ=0.2, underdamped), hijau (ζ=1, critical), violet (ζ=2, overdamped). Lihat masing-masing kembali ke kesetimbangan dengan cara berbeda!<br>
+        <strong>📊 Cara Membaca Animasi Ini:</strong> Empat sistem identik dengan <strong>ωₙ = 4 rad/s</strong> (T ≈ 1.57s) dijatuhkan bersamaan dari x₀=0.05 m, ẋ₀=0. Hanya <strong>ζ yang berbeda</strong>: kuning (ζ=0, tak teredam), cyan (ζ=0.2, underdamped), hijau (ζ=1, critical), violet (ζ=2, overdamped). Lihat masing-masing kembali ke kesetimbangan dengan cara berbeda!<br>
         <strong>Amati:</strong> (1) Kuning <em>tidak pernah berhenti</em> — osilasi abadi. (2) Cyan berosilasi 3-4 siklus sebelum stabil. (3) Hijau merosot ke 0 paling cepat <em>tanpa overshoot</em>. (4) Violet juga monoton tapi LEBIH LAMBAT dari hijau. Kesimpulan: <strong>Critical damping = settling time minimum</strong>.
       </div>
     </div>
@@ -2209,7 +2209,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
 
   <!-- Canvas Animasi Forum — 3-Pendulum Damping Lab -->
   <canvas id="cvForum" height="480" style="margin-bottom:12px;border-radius:12px"></canvas>
-  <p style="font-size:13px;color:var(--muted);margin-bottom:40px;font-family:'JetBrains Mono',monospace;text-align:center">— <strong>3-Pendulum Damping Lab</strong>: Tiga pendulum identik (m=1 kg, L=0.5 m) dilepas serentak dari θ₀=23° dalam <strong style="color:var(--amber)">UDARA</strong> (ζ≈0.05), <strong style="color:var(--cyan)">AIR</strong> (ζ≈0.30), dan <strong style="color:var(--violet)">OLI</strong> (ζ≈1.20). Visualisasi langsung tiga regim redaman untuk membantu pemahaman. Time response θ(t) overlay + metrics live di bawah.</p>
+  <p style="font-size:15px;color:var(--text);margin-bottom:40px;line-height:1.6;text-align:center;max-width:900px;margin-left:auto;margin-right:auto">— <strong>3-Pendulum Damping Lab</strong>: Tiga pendulum identik (m=1 kg, L=0.5 m) dilepas serentak dari θ₀=23° dalam <strong style="color:var(--amber)">UDARA</strong> (ζ≈0.05), <strong style="color:var(--cyan)">AIR</strong> (ζ≈0.30), dan <strong style="color:var(--violet)">OLI</strong> (ζ≈1.20). Visualisasi langsung tiga regim redaman untuk membantu pemahaman. Time response θ(t) overlay + metrics live di bawah.</p>
 
   <!-- Pertanyaan Diskusi -->
   <div class="section-label reveal">Pertanyaan Diskusi</div>
@@ -3756,8 +3756,8 @@ function drawRegimes(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1626');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
   
-  // System parameters
-  const m = 5, k = 2000;
+  // System parameters — visualisasi: ωₙ kecil agar osilasi mudah dilihat
+  const m = 5, k = 80;        // ωₙ = √(80/5) = 4 rad/s, T = π/2 ≈ 1.57s
   const omega_n = Math.sqrt(k/m);
   const x0 = 0.05, v0 = 0;
   const t = _regAnim.t;
@@ -3914,7 +3914,7 @@ function drawRegimes(){
 function _regTick(){
   if (!_regAnim.running) return;
   _regAnim.t += 0.016;
-  if (_regAnim.t > 4) _regAnim.t = 0;   // restart cycle
+  if (_regAnim.t > 6) _regAnim.t = 0;   // restart cycle (6s allows ~3.8 cycles untuk undamped pada ωₙ=4)
   drawRegimes();
   _regAnim.raf = requestAnimationFrame(_regTick);
 }
