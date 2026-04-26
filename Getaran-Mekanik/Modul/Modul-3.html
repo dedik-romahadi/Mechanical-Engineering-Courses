@@ -1184,106 +1184,91 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <h2 class="section-title reveal">Animasi Interaktif<br>Visualisasi Tiga Regim Redaman</h2>
   <p class="section-desc reveal">Empat animasi visual untuk memahami getaran bebas teredam: (1) Mass-spring-damper fisik dengan ζ slider — lihat transisi underdamped → critical → overdamped, (2) Time-domain comparison untuk 3 regim sekaligus, (3) Decay envelope visualization dengan logarithmic decrement live, dan (4) Amplitudo decay rate spectrum. Geser slider, tekan tombol, eksplorasi!</p>
 
-  <!-- Animasi 1: PHYSICAL Mass-Spring-Damper LIVE -->
+  <!-- Animasi 1: 4 REGIM SIDE-BY-SIDE -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi 1 — Simulasi Fisik: Massa-Pegas-Peredam Bergetar (Pengaruh ζ dan ω)</span>
+      <span class="anim-title">Animasi 1 — Empat Regim Side-by-Side: Tak Teredam vs Underdamped vs Critical vs Overdamped</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvPhysics" height="340"></canvas>
+      <canvas id="cvRegimes" height="380"></canvas>
       <div class="ctrl-row">
-        <div class="ctrl-group">
-          <label>Rasio Frekuensi r = ω/ωₙ — <span class="ctrl-val" id="v_rp">0.80</span></label>
-          <input type="range" id="sl_rp" min="0.1" max="2.5" step="0.02" value="0.8">
-        </div>
-        <div class="ctrl-group">
-          <label>Rasio Redaman ζ — <span class="ctrl-val" id="v_zp">0.10</span></label>
-          <input type="range" id="sl_zp" min="0.02" max="0.5" step="0.01" value="0.10">
-        </div>
-        <button class="btn-anim" id="btnPhysics" onclick="togglePhysics()">⏸ PAUSE</button>
+        <button class="btn-anim" id="btnRegimes" onclick="toggleRegimes()">⏸ PAUSE</button>
+        <button class="btn-anim" onclick="restartRegimes()" style="background:rgba(168,85,247,.15);color:var(--violet);border-color:rgba(168,85,247,.3)">↺ DROP AGAIN</button>
       </div>
-      <div id="physicsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div id="regimesInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi Ini:</strong> Massa (kotak ungu) tergantung pada pegas + peredam. Gaya eksitasi F(t)=F₀sin(ωt) ditampilkan sebagai panah oranye yang berubah arah. Bar biru di bawah = amplitudo live.<br>
-        <strong>Coba:</strong> (1) Mulai dengan r=0.5 — massa bergoyang ringan. (2) Geser r ke 1.0 (resonansi) — lihat amplitudo <em>meledak</em>! (3) Geser ke r=2.5 — amplitudo kecil karena inersia dominan. (4) Di r=1, coba ubah ζ dari 0.02 ke 0.3 — lihat betapa redaman mengendalikan puncak resonansi.
+        <strong>📊 Cara Membaca Animasi Ini:</strong> Empat sistem identik (m=5 kg, k=2000 N/m) dijatuhkan bersamaan dari x₀=0.05 m, ẋ₀=0. Hanya <strong>ζ yang berbeda</strong>: kuning (ζ=0, tak teredam), cyan (ζ=0.2, underdamped), hijau (ζ=1, critical), violet (ζ=2, overdamped). Lihat masing-masing kembali ke kesetimbangan dengan cara berbeda!<br>
+        <strong>Amati:</strong> (1) Kuning <em>tidak pernah berhenti</em> — osilasi abadi. (2) Cyan berosilasi 3-4 siklus sebelum stabil. (3) Hijau merosot ke 0 paling cepat <em>tanpa overshoot</em>. (4) Violet juga monoton tapi LEBIH LAMBAT dari hijau. Kesimpulan: <strong>Critical damping = settling time minimum</strong>.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 2: Resonance Sweep Demo (dramatic amplitude vs frequency) -->
+  <!-- Animasi 2: SINGLE MASS DROP — ZETA SLIDER -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--amber)"></div>
-      <span class="anim-title">Animasi 2 — Sweep Frekuensi: Frekuensi Respons Sistem Dibangun Real-Time</span>
+      <span class="anim-title">Animasi 2 — Drop Test Interaktif: Geser ζ untuk Lihat Transisi 3 Regim</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvSweep" height="320"></canvas>
+      <canvas id="cvDropTest" height="360"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Rasio Redaman ζ — <span class="ctrl-val" id="v_zs">0.05</span></label>
-          <input type="range" id="sl_zs" min="0.01" max="0.5" step="0.01" value="0.05">
+          <label>Rasio Redaman ζ — <span class="ctrl-val" id="v_zd">0.20</span></label>
+          <input type="range" id="sl_zd" min="0" max="2.5" step="0.02" value="0.2">
         </div>
-        <button class="btn-anim" id="btnSweep" onclick="runSweep()">▶ START SWEEP</button>
-        <button class="btn-anim" onclick="resetSweep()" style="background:rgba(168,85,247,.15);color:var(--violet);border-color:rgba(168,85,247,.3)">↺ RESET</button>
+        <button class="btn-anim" id="btnDrop" onclick="dropMass()">▶ DROP</button>
+        <button class="btn-anim" onclick="resetDrop()" style="background:rgba(168,85,247,.15);color:var(--violet);border-color:rgba(168,85,247,.3)">↺ RESET</button>
       </div>
-      <div id="sweepInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
+      <div id="dropInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi Ini:</strong> Tekan <strong>▶ START SWEEP</strong> — eksitasi frekuensi akan naik perlahan dari ω=0 ke ω=2.5ωₙ selama 8 detik. Atas: massa bergetar real-time. Bawah: kurva DMF yang sedang "digambar" titik demi titik saat sweep berlangsung.<br>
-        <strong>Amati:</strong> (1) Saat ω mendekati ωₙ (r=1), amplitudo membengkak dramatis — massa bergoyang gila-gilaan. (2) Titik DMF bertambah membentuk puncak yang tajam. (3) Geser ζ lebih tinggi sebelum sweep — puncaknya lebih tumpul + amplitudo max lebih kecil. (4) Tekan ↺ RESET untuk coba lagi dengan ζ berbeda.
+        <strong>📊 Cara Membaca Animasi Ini:</strong> Geser slider <strong>ζ</strong> ke nilai yang Anda mau, lalu tekan <strong>▶ DROP</strong>. Massa akan dilepaskan dari x₀=0.05 m. Atas: massa bergerak vertikal real-time. Bawah: time response x(t) digambar progresif dengan envelope merah.<br>
+        <strong>Coba:</strong> (1) ζ=0 — lihat osilasi abadi tanpa decay. (2) ζ=0.05 — banyak siklus, decay lambat. (3) ζ=0.5 — beberapa siklus, decay cepat. (4) ζ=1 (critical) — TIDAK ADA osilasi, slope mulus. (5) ζ=2 (overdamped) — sangat lambat, massa "ngantuk" turun pelan-pelan. Klasifikasi otomatis muncul di info.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 3: Side-by-Side Isolator Comparison -->
+  <!-- Animasi 3: LOGARITHMIC DECREMENT EXTRACTION LIVE -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--green)"></div>
-      <span class="anim-title">Animasi 3 — Perbandingan: Mesin TANPA Isolator vs DENGAN Isolator (Lihat Transmisi Gaya!)</span>
+      <span class="anim-title">Animasi 3 — Logarithmic Decrement Live: Ekstrak ζ dari Data Eksperimental</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvIso" height="360"></canvas>
+      <canvas id="cvLogDec" height="380"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Rasio Frekuensi r = ω/ωₙ_iso — <span class="ctrl-val" id="v_ri">2.50</span></label>
-          <input type="range" id="sl_ri" min="0.3" max="5" step="0.05" value="2.5">
+          <label>ζ "Sebenarnya" (Sistem Misterius) — <span class="ctrl-val" id="v_zl">0.15</span></label>
+          <input type="range" id="sl_zl" min="0.02" max="0.40" step="0.005" value="0.15">
         </div>
-        <div class="ctrl-group">
-          <label>Redaman Isolator ζ_iso — <span class="ctrl-val" id="v_zi">0.08</span></label>
-          <input type="range" id="sl_zi" min="0.02" max="0.5" step="0.01" value="0.08">
-        </div>
-        <button class="btn-anim" id="btnIso" onclick="toggleIso()">⏸ PAUSE</button>
+        <button class="btn-anim" id="btnLogDec" onclick="toggleLogDec()">⏸ PAUSE</button>
       </div>
-      <div id="isoInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div id="logDecInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi Ini:</strong> Kiri: mesin terbaut langsung ke pondasi — gaya dari mesin 100% diteruskan (Tᵣ=1). Kanan: mesin di atas isolator (pegas+peredam). Bar merah di bawah masing-masing menunjukkan <em>gaya yang diteruskan ke lantai</em>.<br>
-        <strong>Coba:</strong> (1) Mulai dengan r=0.5 (di bawah √2) — lantai kanan justru bergetar lebih parah! Isolator di zona amplifikasi. (2) Geser r=√2≈1.414 — Tᵣ=1 tepat (kedua lantai sama). (3) Geser r=3 — lantai kanan hampir diam, isolasi 90%! (4) Geser ζ lebih tinggi pada r besar → Tᵣ sedikit naik (paradox redaman).
+        <strong>📊 Cara Membaca Animasi Ini:</strong> Bayangkan Anda sedang melakukan vibration measurement di lapangan — sensor mencatat x(t), tetapi Anda tidak tahu nilai ζ sistem (parameter "tersembunyi"). Animasi ini mensimulasikan: kurva x(t) tergambar progresif, setiap puncak positif <strong>otomatis dideteksi dan dimark</strong>. Live: δ = ln(x_peak1/x_peak2) dihitung, lalu dikonversi ke ζ_estimated.<br>
+        <strong>Tujuan:</strong> Verifikasi bahwa metode logarithmic decrement <em>akurat</em>. (1) Geser slider untuk ubah ζ "sebenarnya". (2) Animasi restart dan deteksi puncak otomatis. (3) ζ_estimated harus mendekati ζ "sebenarnya" — error tipikal &lt; 5%. (4) Untuk ζ besar (&gt; 0.3), error meningkat karena aproksimasi.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 4: Frequency Response Spectrum Interactive -->
+  <!-- Animasi 4: SETTLING TIME vs ZETA — Interactive Curve Explorer -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--pink)"></div>
-      <span class="anim-title">Animasi 4 — Spektrum Frekuensi-Respons: Visualisasi |H(ω)|² dan Pengaruh ζ</span>
+      <span class="anim-title">Animasi 4 — Settling Time vs ζ: Eksplorasi Kurva &amp; Live Mini-Simulation</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvHPB" height="320"></canvas>
+      <canvas id="cvSettling" height="380"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Rasio Redaman TRUE ζ — <span class="ctrl-val" id="v_zh">0.08</span></label>
-          <input type="range" id="sl_zh" min="0.02" max="0.30" step="0.005" value="0.08">
-        </div>
-        <div class="ctrl-group">
-          <label>Geser Garis Horizontal — <span class="ctrl-val" id="v_line">0.50</span></label>
-          <input type="range" id="sl_line" min="0.10" max="0.95" step="0.01" value="0.50">
+          <label>Pilih ζ pada Kurva — <span class="ctrl-val" id="v_zs">0.50</span></label>
+          <input type="range" id="sl_zs" min="0.05" max="3.0" step="0.02" value="0.5">
         </div>
       </div>
-      <div id="hpbInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
+      <div id="settlingInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi Ini:</strong> Kurva cyan = |H(ω)|² (amplitudo kuadrat, proxy untuk power). Garis horizontal kuning = <em>half-power line</em> yang bisa Anda geser. Saat Anda menggeser garis tepat di <strong>½ × H²_max</strong>, titik ω₁ dan ω₂ akan dideteksi.<br>
-        <strong>Coba:</strong> (1) Geser slider "Garis Horizontal" perlahan ke 0.50 — lihat garis turun. Saat tepat di 0.50 × H²_max, titik-titik hijau muncul di persimpangan kurva. (2) Δω = ω₂ − ω₁ terlihat jelas. (3) Q = ωₙ/Δω dan ζ_estimated muncul di info. (4) Geser ζ_TRUE — lihat lebar puncak berubah, Q berubah, dan formula ζ ≈ 1/(2Q) terverifikasi.
+        <strong>📊 Cara Membaca Animasi Ini:</strong> Kiri: kurva <strong>t_s vs ζ</strong> (settling time untuk ±2% amplitudo). Marker di kurva mengikuti slider ζ. Kanan: <strong>mini-simulation x(t)</strong> dari sistem dengan ζ yang dipilih — animasi real-time. Garis horizontal hijau = ±2% threshold; perpotongan = settling time visual.<br>
+        <strong>Coba:</strong> (1) Geser ζ dari 0.05 ke 1.0 — t_s turun curam. (2) ζ=1 (critical) memberi t_s minimum untuk underdamped → critical transition. (3) ζ &gt; 1 (overdamped) — t_s justru NAIK kembali karena slow eigenvalue dominan. (4) Catat: t_s tidak monoton — ada nilai optimal di sekitar ζ ≈ 0.7-1.0.
       </div>
     </div>
   </div>
@@ -2197,8 +2182,8 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Forum Diskusi · Pertemuan 3 · Getaran Bebas Teredam</div>
-    <h1 class="hero-title" style="font-size:clamp(36px,5vw,60px)">Shock Absorber<br><em>yang Aus</em></h1>
-    <p class="hero-sub">Analisis kasus suspensi kendaraan setelah pemakaian 2 tahun: shock absorber mulai aus dan ζ menurun. Lakukan drop test, ekstrak ζ via logarithmic decrement, klasifikasi regim redaman, dan tentukan apakah shock absorber harus diganti atau masih dalam batas aman.</p>
+    <h1 class="hero-title" style="font-size:clamp(36px,5vw,60px)">Galvanometer<br><em>yang Berdenyut</em></h1>
+    <p class="hero-sub">Kalibrasi instrumen presisi: galvanometer baru menunjukkan jarum berosilasi 4-5 kali sebelum stabil di pembacaan akhir. Untuk pembacaan akurat, target ζ=1 (critical damping). Diagnosa, ekstrak ζ saat ini via logarithmic decrement, dan tentukan modifikasi yang diperlukan.</p>
   </div>
 </div>
 
@@ -2206,25 +2191,25 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
 
   <!-- SKENARIO -->
   <div class="section-label reveal cyan-label">Skenario</div>
-  <h2 class="section-title reveal">Shock Absorber Aus:<br>Diagnosa via Drop Test</h2>
+  <h2 class="section-title reveal">Kalibrasi Galvanometer:<br>Settling Time yang Tidak Akseptabel</h2>
 
   <div class="forum-scenario reveal">
-    <div class="scenario-label">📋 KASUS INDUSTRI</div>
+    <div class="scenario-label">📋 KASUS LAB INSTRUMENTASI</div>
     <p>
-      Sebuah <strong style="color:var(--amber)">SUV pickup</strong> berusia 2 tahun mengalami keluhan: setelah melewati polisi tidur, kendaraan <em>terus bergoyang 5–6 kali</em> sebelum kembali stabil (sebelumnya hanya 2–3 siklus). Mekanik mencurigai shock absorber depan-kiri sudah aus. Untuk konfirmasi kuantitatif, dilakukan <strong style="color:var(--cyan)">drop test</strong>: kendaraan diangkat ~5 cm di sudut depan-kiri, lalu dilepas. Sensor displacement merekam getaran bebas teredam:
+      Tim kalibrasi laboratorium fisika menerima <strong style="color:var(--amber)">galvanometer analog presisi</strong> baru dari supplier untuk kalibrasi sebelum dipakai mengajar. Setelah memberikan input arus step, tim mengamati: jarum galvanometer <em>berosilasi 4-5 kali</em> sebelum stabil di angka akhir, memerlukan ~2.5 detik untuk pembacaan reliable. Spesifikasi pabrik: jarum harus stabil dalam <strong style="color:var(--cyan)">≤ 0.5 detik tanpa overshoot</strong> (critical damped, ζ=1). Tim merekam respons impulse jarum dari posisi awal θ₀ = 30° dan mendapatkan data:
     </p>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:16px">
-      <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">m_quarter = 400 kg</div>
-      <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">k_pegas = 40000 N/m</div>
-      <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">c_shock = 2000 Ns/m (aus)</div>
-      <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">x₀ = 0.05 m, ẋ₀ = 0</div>
+      <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">J_inertia = 5×10⁻⁶ kg·m²</div>
+      <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">k_torsi = 8×10⁻³ N·m/rad</div>
+      <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">c_damping = 4×10⁻⁵ N·m·s/rad</div>
+      <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">θ₀ = 30° (≈ 0.524 rad)</div>
     </div>
-    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Model: <strong>quarter-car 1-DoF underdamped</strong> dengan EOM <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">mẍ + cẋ + kx = 0</code>. Forum ini mengajak Anda mengaplikasikan konsep Pertemuan 3: hitung ωₙ, ζ, ω_d, klasifikasi regim, ekstrak logarithmic decrement δ, dan rekomendasikan apakah ζ saat ini cukup atau shock absorber harus diganti dengan yang baru (target ζ ≈ 0.4 untuk <em>premium ride feel</em>).</p>
+    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Model: <strong>sistem rotasi 1-DoF underdamped</strong> dengan EOM <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">J·θ̈ + c·θ̇ + k·θ = 0</code>. Galvanometer didesain dengan <em>magnet permanen</em> di sekitar coil — induksi elektromagnetik memberikan redaman viscous. Untuk meningkatkan ζ ke 1, supplier menyarankan menambah <strong>liquid damping ring</strong> berisi oli silikon untuk meningkatkan c. Forum ini mengajak Anda menganalisa kondisi saat ini, ekstrak ζ via dua puncak terukur, lalu tentukan c_baru untuk critical damping.</p>
   </div>
 
-  <!-- Canvas Animasi Forum — Suspension Analysis Dashboard -->
-  <canvas id="cvForum" height="460" style="margin-bottom:12px;border-radius:12px"></canvas>
-  <p style="font-size:13px;color:var(--muted);margin-bottom:40px;font-family:'JetBrains Mono',monospace;text-align:center">— Dashboard drop test analysis (animasi real-time): quarter-car bouncing, time response x(t) dengan envelope decay, dan phase portrait spiral menuju origin (stable focus) — visualisasi langsung underdamped behavior</p>
+  <!-- Canvas Animasi Forum — 3-Pendulum Damping Lab -->
+  <canvas id="cvForum" height="480" style="margin-bottom:12px;border-radius:12px"></canvas>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:40px;font-family:'JetBrains Mono',monospace;text-align:center">— <strong>3-Pendulum Damping Lab</strong>: Tiga pendulum identik (m=1 kg, L=0.5 m) dilepas serentak dari θ₀=23° dalam <strong style="color:var(--amber)">UDARA</strong> (ζ≈0.05), <strong style="color:var(--cyan)">AIR</strong> (ζ≈0.30), dan <strong style="color:var(--violet)">OLI</strong> (ζ≈1.20). Visualisasi langsung tiga regim redaman untuk membantu pemahaman. Time response θ(t) overlay + metrics live di bawah.</p>
 
   <!-- Pertanyaan Diskusi -->
   <div class="section-label reveal">Pertanyaan Diskusi</div>
@@ -2234,31 +2219,31 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   <div class="fq-card reveal" id="fq1">
     <div class="fq-head" onclick="toggleFQ('fq1')">
       <div class="fq-num" style="background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.2);color:var(--cyan)">01</div>
-      <h3>Hitung parameter dinamik dan klasifikasi regim redaman shock absorber saat ini</h3>
+      <h3>Hitung parameter dinamik galvanometer dan klasifikasi regim redaman saat ini</h3>
       <span class="fq-arrow">›</span>
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Dari data drop test (m=400 kg, k=40000 N/m, c=2000 Ns/m), hitung <strong>ωₙ</strong>, <strong>c_c</strong>, <strong>ζ</strong>, <strong>ω_d</strong>, dan <strong>T_d</strong>. Tentukan regim redaman (under/critical/over). Jelaskan mengapa konsumen merasakan "5–6 siklus bouncing" sebelum stabil — apa kaitannya dengan ζ saat ini?</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Dari spec galvanometer (J=5×10⁻⁶ kg·m², k=8×10⁻³ N·m/rad, c=4×10⁻⁵ N·m·s/rad), hitung <strong>ωₙ</strong>, <strong>c_c</strong>, <strong>ζ</strong>, <strong>ω_d</strong>, dan <strong>T_d</strong>. Klasifikasikan regim redaman. Bandingkan dengan target ideal ζ=1 — apakah jauh dari kebutuhan?</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">ωₙ = √(k/m)</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">ζ = c/(2√(km))</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">ω_d = ωₙ√(1−ζ²)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">ωₙ = √(k/J)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">c_c = 2√(k·J)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">ζ = c/c_c</span>
         </div>
 
         <div class="poll">
-          <div class="poll-q">QUICK CHECK — Berapa nilai ζ dan klasifikasinya?</div>
+          <div class="poll-q">QUICK CHECK — Berapa nilai ζ saat ini dan klasifikasinya?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>ζ ≈ 0.50, Critical damped</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>ζ ≈ 0.25, Underdamped — masih ada osilasi 2-3 siklus visible sebelum settling</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>ζ ≈ 1.50, Overdamped</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>ζ = 0, Tak teredam — getaran abadi</div>
+            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>ζ ≈ 1.0, Critical damped — sesuai target</div>
+            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>ζ ≈ 0.10, Underdamped — sangat lemah → osilasi banyak siklus</div>
+            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>ζ ≈ 0.50, Underdamped moderate</div>
+            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>ζ ≈ 2.0, Overdamped</div>
           </div>
-          <div class="p-fb r" id="fp1r">✅ Tepat! ωₙ = √(40000/400) = 10 rad/s. c_c = 2√(40000·400) = 8000 Ns/m. ζ = 2000/8000 = <strong>0.25 (underdamped)</strong>. ω_d = 10·√(1−0.0625) ≈ 9.68 rad/s. T_d ≈ 0.649 s. Settling time ≈ 4/(0.25·10) = 1.6 s ≈ 2.5 siklus. Tapi konsumen melihat 5–6 siklus → <em>artinya sistem belum settling sempurna saat dirasakan</em> atau persepsi pengukuran berbeda.</div>
-          <div class="p-fb w" id="fp1w">❌ Hitung step-by-step: ωₙ=√(k/m), c_c=2√(km), lalu ζ=c/c_c. Bandingkan ζ dengan 1.</div>
+          <div class="p-fb r" id="fp1r">✅ Tepat! ωₙ = √(8×10⁻³/5×10⁻⁶) = √1600 = <strong>40 rad/s</strong>. c_c = 2√(8×10⁻³ · 5×10⁻⁶) = 4×10⁻⁴ N·m·s/rad. ζ = 4×10⁻⁵/4×10⁻⁴ = <strong>0.10 (underdamped)</strong>. ω_d ≈ 39.8 rad/s, T_d ≈ 0.158 s. Settling time ≈ 4/(0.1·40) = 1.0 s — tapi karena observasi adalah ke "stabil" (tidak terlihat osilasi), bisa lebih lama. Konsisten dengan keluhan 4-5 siklus dan ~2.5 detik.</div>
+          <div class="p-fb w" id="fp1w">❌ Hitung step-by-step: ωₙ=√(k/J), c_c=2√(kJ), lalu ζ=c/c_c. Bandingkan dengan 1.</div>
         </div>
 
-        <textarea class="fq-textarea" id="ans-fq1" placeholder="Tulis analisis Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Hitung ωₙ, c_c, ζ, ω_d, T_d step by step. (2) Klasifikasikan regim. (3) Hitung settling time t_s = 4/(ζωₙ). (4) Hubungkan dengan keluhan konsumen — apakah persepsi 5-6 siklus konsisten dengan teori?" oninput="checkForumReady()"></textarea>
+        <textarea class="fq-textarea" id="ans-fq1" placeholder="Tulis analisis Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Hitung ωₙ, c_c, ζ, ω_d, T_d step by step. (2) Klasifikasikan regim. (3) Hitung settling time t_s = 4/(ζωₙ). (4) Bandingkan dengan target ζ=1 — seberapa jauh? (5) Hubungkan dengan keluhan 4-5 siklus." oninput="checkForumReady()"></textarea>
         <div id="wc-fq1" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right;">0 / min 30 kata</div>
       </div>
     </div>
@@ -2268,29 +2253,29 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   <div class="fq-card reveal" id="fq2">
     <div class="fq-head" onclick="toggleFQ('fq2')">
       <div class="fq-num" style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2);color:var(--amber)">02</div>
-      <h3>Logarithmic decrement: ekstrak ζ secara eksperimental dari data dua puncak amplitudo</h3>
+      <h3>Logarithmic decrement: verifikasi ζ dari pengukuran dua puncak terurut</h3>
       <span class="fq-arrow">›</span>
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Dari sensor displacement, dua puncak positif berurutan terbaca: <strong>x₁ = 0.040 m</strong> (puncak pertama) dan <strong>x₂ = 0.012 m</strong> (puncak kedua, satu periode kemudian). Hitung <strong>logarithmic decrement δ</strong> dan estimasi <strong>ζ</strong> dari data ini. Bandingkan dengan ζ teoritis dari Q1 — apakah konsisten?</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Tim mengukur dengan high-speed camera dua puncak amplitudo terurut: <strong>θ₁ = 30°</strong> (puncak awal) dan <strong>θ₂ = 16°</strong> (puncak kedua, satu periode kemudian). Hitung <strong>logarithmic decrement δ</strong> dan estimasi <strong>ζ</strong>. Bandingkan dengan ζ teoritis dari Q1 — apakah konsisten? Apa kemungkinan sumber selisih?</p>
         <div style="background:rgba(249,115,22,.04);border:1px solid rgba(249,115,22,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);margin-bottom:12px">
-          💬 <em>Petunjuk: δ = ln(x₁/x₂). Konversi ke ζ: <code>ζ = δ/√(4π² + δ²)</code> (eksak) atau aproksimasi <code>ζ ≈ δ/(2π)</code> untuk ζ kecil. Diskusikan akurasi metode ini.</em>
+          💬 <em>Rumus: <code>δ = ln(θ₁/θ₂)</code>, lalu <code>ζ = δ/√(4π² + δ²)</code> (eksak) atau <code>ζ ≈ δ/(2π)</code> (aproksimasi untuk ζ kecil). Dua-pengukuran rentan error 5-10%; multi-cycle decrement (n=5+) lebih akurat.</em>
         </div>
 
         <div class="poll">
-          <div class="poll-q">QUICK CHECK — Berapa δ dan ζ yang Anda dapat?</div>
+          <div class="poll-q">QUICK CHECK — Berapa δ dan ζ?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>δ ≈ 0.5, ζ ≈ 0.08</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>δ = ln(0.04/0.012) ≈ 1.20, ζ ≈ 0.19 (mendekati ζ teoritis 0.25)</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>δ ≈ 2.5, ζ ≈ 0.40 (artinya overdamped)</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>δ ≈ 0.012, ζ ≈ 0.002 (negligible damping)</div>
+            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>δ ≈ 0.20, ζ ≈ 0.03</div>
+            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>δ = ln(30/16) ≈ 0.628, ζ ≈ 0.10 (sesuai dengan ζ teoritis dari Q1)</div>
+            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>δ ≈ 1.50, ζ ≈ 0.23</div>
+            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>δ ≈ 14, ζ ≈ 0.91 (artinya hampir critical)</div>
           </div>
-          <div class="p-fb r" id="fp2r">✅ Tepat! δ = ln(0.040/0.012) = ln(3.333) ≈ 1.204. Eksak: ζ = 1.204/√(4π² + 1.204²) = 1.204/√(39.48 + 1.45) = 1.204/6.398 ≈ <strong>0.188</strong>. Aproksimasi: ζ ≈ 1.204/(2π) ≈ 0.192. Kedua nilai mendekati ζ teoritis 0.25 dari Q1 — selisih wajar mengingat error pengukuran (±10%).</div>
-          <div class="p-fb w" id="fp2w">❌ Hitung step-by-step: δ = ln(x₁/x₂). Lalu konversi pakai rumus eksak atau aproksimasi.</div>
+          <div class="p-fb r" id="fp2r">✅ Tepat! δ = ln(30/16) = ln(1.875) ≈ <strong>0.628</strong>. Eksak: ζ = 0.628/√(4π² + 0.628²) = 0.628/6.319 ≈ <strong>0.0994</strong>. Aproksimasi: ζ ≈ 0.628/(2π) ≈ 0.100. Kedua nilai sangat dekat dengan ζ teoritis 0.10 dari Q1 → <em>spesifikasi pabrik akurat</em>. Selisih < 1% — pengukuran kalibrasi reliable.</div>
+          <div class="p-fb w" id="fp2w">❌ Hitung step-by-step: δ = ln(θ₁/θ₂) = ln(30/16). Lalu konversi ke ζ.</div>
         </div>
 
-        <textarea class="fq-textarea" id="ans-fq2" placeholder="Tulis analisis Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Hitung δ = ln(x₁/x₂). (2) Konversi ke ζ pakai rumus eksak DAN aproksimasi. (3) Bandingkan dengan ζ teoritis dari Q1. (4) Diskusikan sumber error: apakah dari sensor, dari aproksimasi, atau dari nilai parameter c_shock yang tidak akurat?" oninput="checkForumReady()"></textarea>
+        <textarea class="fq-textarea" id="ans-fq2" placeholder="Tulis analisis Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Hitung δ = ln(θ₁/θ₂) step by step. (2) Konversi ke ζ pakai eksak DAN aproksimasi. (3) Bandingkan dengan ζ dari Q1 — selisih berapa persen? (4) Diskusikan akurasi metode 2-puncak vs multi-cycle decrement." oninput="checkForumReady()"></textarea>
         <div id="wc-fq2" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right;">0 / min 30 kata</div>
       </div>
     </div>
@@ -2300,22 +2285,22 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   <div class="fq-card reveal" id="fq3">
     <div class="fq-head" onclick="toggleFQ('fq3')">
       <div class="fq-num" style="background:rgba(0,224,158,.1);border:1px solid rgba(0,224,158,.2);color:var(--green)">03</div>
-      <h3>Rekomendasi: harus ganti shock absorber? Hitung c_baru untuk target ζ=0.4</h3>
+      <h3>Modifikasi: hitung c_baru untuk critical damping (ζ=1) dengan liquid damping ring</h3>
       <span class="fq-arrow">›</span>
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Untuk mendapatkan <em>premium ride feel</em>, target ζ = 0.4 (settling time ~25% lebih cepat dari saat ini, lebih responsif). Hitung <strong>c_baru</strong> yang dibutuhkan dengan parameter m dan k yang sama. Berapa <strong>persen kenaikan</strong> dari c lama? Apakah ekonomis hanya mengganti shock absorber, atau lebih baik service overhaul lengkap?</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Untuk mencapai <strong>ζ=1 (critical damping)</strong>, hitung <strong>c_baru</strong> yang dibutuhkan. Berapa <strong>faktor kenaikan</strong> dari c lama? Hitung settling time baru. Tim mempertimbangkan penambahan liquid damping ring dengan oli silikon — apakah penambahan ini mungkin mencapai target, atau ζ&gt;1 (overdamped) lebih aman untuk safety margin?</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">target ζ = 0.4</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">c_baru = 2ζ·√(km)</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">t_s_baru/t_s_lama = ζ_lama/ζ_baru</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">target ζ = 1</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">c_critical = 2√(kJ)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">faktor = c_baru/c_lama</span>
         </div>
         <div style="background:rgba(0,224,158,.04);border:1px solid rgba(0,224,158,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);">
-          💬 <em>Petunjuk: c_baru = 2·0.4·√(40000·400) = 0.8·2000 = 3200 Ns/m. Kenaikan: (3200-2000)/2000 = 60%. Trade-off: ride lebih responsif tapi sedikit lebih kaku saat lewat polisi tidur kecil. Apakah cocok untuk profil pemakaian SUV?</em>
+          💬 <em>Analisa: c_baru = 4×10⁻⁴ N·m·s/rad (= c_c). Faktor kenaikan: 10×. Liquid damping ring umumnya bisa memberikan c sampai 2× target → bisa overshoot ke ζ&gt;1. Pertimbangan: critical damped (ζ=1) optimal untuk minimum settling time, tapi sedikit overdamped (ζ=1.1-1.2) memberi <em>safety margin</em> terhadap variasi temperatur (oli berubah viskositas).</em>
         </div>
 
-        <textarea class="fq-textarea" id="ans-fq3" placeholder="Tulis analisis Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Hitung c_baru = 2ζ·√(km) untuk ζ=0.4. (2) Hitung persen kenaikan dari c lama (2000 Ns/m). (3) Hitung settling time baru dan bandingkan dengan saat ini. (4) Diskusikan trade-off: responsif vs kekakuan. (5) Rekomendasi final + alasan ekonomis." oninput="checkForumReady()"></textarea>
+        <textarea class="fq-textarea" id="ans-fq3" placeholder="Tulis analisis Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Hitung c_baru = 2√(kJ) untuk critical damping. (2) Hitung faktor kenaikan dari c lama. (3) Hitung settling time baru (untuk critical, t_s ≈ 5.83/ωₙ). (4) Diskusikan trade-off: critical (ζ=1) vs slightly overdamped (ζ=1.1-1.2) — mana yang lebih robust untuk laboratorium?" oninput="checkForumReady()"></textarea>
         <div id="wc-fq3" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right;">0 / min 30 kata</div>
       </div>
     </div>
@@ -2525,10 +2510,10 @@ function switchTab(tab) {
   });
   if (tab === 'modul') {
     setTimeout(() => { 
-      if(typeof drawPhysics === 'function') drawPhysics();
-      if(typeof drawSweep === 'function') drawSweep();
-      if(typeof drawIso === 'function') drawIso();
-      if(typeof drawHPB === 'function') drawHPB();
+      if(typeof drawRegimes === 'function') drawRegimes();
+      if(typeof drawDrop === 'function') drawDrop();
+      if(typeof drawLogDec === 'function') drawLogDec();
+      if(typeof drawSettling === 'function') drawSettling();
     }, 200);
   }
   if (tab === 'tugas') {
@@ -3624,22 +3609,22 @@ function buildForumHtml() {
   </div>
 
   <div style="background:#f0f4ff;border-left:4px solid #a855f7;padding:16px 28px;margin-top:2px;">
-    <div style="font-weight:700;color:#5b35d0;margin-bottom:8px;">&#128203; Skenario: Shock Absorber Aus pada SUV Pickup</div>
-    <div style="font-size:.88rem;color:#475569;margin-bottom:10px;">Setelah pemakaian 2 tahun, konsumen mengeluh kendaraan terus bergoyang 5-6 siklus setelah polisi tidur. Drop test mengonfirmasi shock absorber aus: <span style="font-family:monospace;color:#0ea5e9;">m&uuml;x + c&#729;x + kx = 0</span>. Parameter quarter-car saat ini:</div>
+    <div style="font-weight:700;color:#5b35d0;margin-bottom:8px;">&#128203; Skenario: Galvanometer yang Berdenyut — Kalibrasi Lab Instrumentasi</div>
+    <div style="font-size:.88rem;color:#475569;margin-bottom:10px;">Galvanometer baru dari supplier menunjukkan jarum berosilasi 4-5 kali sebelum stabil (~2.5 detik). Spec target: stabil &le; 0.5 detik tanpa overshoot (critical damped, &zeta;=1). EOM rotasi: <span style="font-family:monospace;color:#0ea5e9;">J&middot;&theta;&uuml; + c&middot;&theta;&#729; + k&middot;&theta; = 0</span>. Parameter saat ini:</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <span style="background:#dbeafe;border:1px solid #93c5fd;color:#1d4ed8;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;">m = 400 kg</span>
-      <span style="background:#dbeafe;border:1px solid #93c5fd;color:#1d4ed8;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;">k = 40000 N/m</span>
-      <span style="background:#dbeafe;border:1px solid #93c5fd;color:#1d4ed8;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;">c = 2000 Ns/m</span>
-      <span style="background:#fce7f3;border:1px solid #f9a8d4;color:#be185d;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;">x&#8320; = 0.05 m, &#729;x&#8320; = 0</span>
+      <span style="background:#dbeafe;border:1px solid #93c5fd;color:#1d4ed8;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;">J = 5&times;10&#8315;&#8310; kg&middot;m&#178;</span>
+      <span style="background:#dbeafe;border:1px solid #93c5fd;color:#1d4ed8;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;">k = 8&times;10&#8315;&#179; N&middot;m/rad</span>
+      <span style="background:#dbeafe;border:1px solid #93c5fd;color:#1d4ed8;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;">c = 4&times;10&#8315;&#8309; N&middot;m&middot;s/rad</span>
+      <span style="background:#fce7f3;border:1px solid #f9a8d4;color:#be185d;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;">&theta;&#8320; = 30&deg;</span>
     </div>
   </div>
 
   <div style="background:#ffffff;border:1px solid #e2e8f0;padding:20px 28px;margin-top:8px;">
     <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;">
       <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:#a855f7;color:#fff;font-weight:700;font-size:.8rem;flex-shrink:0;">1</span>
-      <div style="font-size:.95rem;font-weight:700;color:#1e293b;">Hitung parameter dinamik dan klasifikasi regim redaman shock absorber saat ini</div>
+      <div style="font-size:.95rem;font-weight:700;color:#1e293b;">Hitung parameter dinamik galvanometer dan klasifikasi regim redaman saat ini</div>
     </div>
-    <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Hitung &omega;&#8345;, c_c, &zeta;, &omega;_d, T_d. Tentukan regim. Hubungkan dengan keluhan "5-6 siklus bouncing" — apakah konsisten dengan settling time teoritis?</div>
+    <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Hitung &omega;&#8345; = &radic;(k/J), c_c = 2&radic;(kJ), &zeta;, &omega;_d, T_d. Klasifikasikan regim. Bandingkan dengan target &zeta;=1 — seberapa jauh? Hubungkan dengan keluhan 4-5 siklus.</div>
     <div style="margin-left:40px;">
       <div style="font-size:.7rem;font-weight:700;color:#a855f7;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
       <div style="background:#f8f5ff;border:1px solid #c4b5fd;border-radius:8px;padding:14px 16px;font-size:.88rem;color:#1e293b;line-height:1.75;min-height:48px;">${ans1}</div>
@@ -3649,9 +3634,9 @@ function buildForumHtml() {
   <div style="background:#ffffff;border:1px solid #e2e8f0;padding:20px 28px;margin-top:4px;">
     <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;">
       <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:#0ea5e9;color:#fff;font-weight:700;font-size:.8rem;flex-shrink:0;">2</span>
-      <div style="font-size:.95rem;font-weight:700;color:#1e293b;">Logarithmic decrement: ekstrak &zeta; dari data dua puncak amplitudo</div>
+      <div style="font-size:.95rem;font-weight:700;color:#1e293b;">Logarithmic decrement: verifikasi &zeta; dari pengukuran dua puncak terurut</div>
     </div>
-    <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Dari data dua puncak (x&#8321;=0.040 m, x&#8322;=0.012 m), hitung &delta; = ln(x&#8321;/x&#8322;). Konversi ke &zeta; eksak dan aproksimasi. Bandingkan dengan &zeta; teoritis dari Q1.</div>
+    <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Dari high-speed camera (&theta;&#8321;=30&deg;, &theta;&#8322;=16&deg;), hitung &delta; = ln(&theta;&#8321;/&theta;&#8322;) &asymp; 0.628. Konversi ke &zeta; eksak dan aproksimasi. Bandingkan dengan &zeta; teoritis dari Q1.</div>
     <div style="margin-left:40px;">
       <div style="font-size:.7rem;font-weight:700;color:#0ea5e9;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
       <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:14px 16px;font-size:.88rem;color:#1e293b;line-height:1.75;min-height:48px;">${ans2}</div>
@@ -3661,9 +3646,9 @@ function buildForumHtml() {
   <div style="background:#ffffff;border:1px solid #e2e8f0;padding:20px 28px;margin-top:4px;">
     <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;">
       <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:#00e09e;color:#fff;font-weight:700;font-size:.8rem;flex-shrink:0;">3</span>
-      <div style="font-size:.95rem;font-weight:700;color:#1e293b;">Rekomendasi: harus ganti shock absorber? Hitung c_baru untuk target &zeta;=0.4</div>
+      <div style="font-size:.95rem;font-weight:700;color:#1e293b;">Modifikasi: hitung c_baru untuk critical damping (&zeta;=1) dengan liquid damping ring</div>
     </div>
-    <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Hitung c_baru = 2&zeta;&middot;&radic;(km) untuk &zeta;=0.4. Berapa persen kenaikan dari c lama (2000)? Hitung settling time baru. Diskusikan trade-off responsivitas vs kekakuan.</div>
+    <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Hitung c_baru = 2&radic;(kJ) untuk &zeta;=1. Berapa faktor kenaikan dari c lama? Settling time baru? Diskusikan trade-off critical (&zeta;=1) vs slightly overdamped (&zeta;=1.1-1.2) untuk safety margin.</div>
     <div style="margin-left:40px;">
       <div style="font-size:.7rem;font-weight:700;color:#00e09e;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
       <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:14px 16px;font-size:.88rem;color:#1e293b;line-height:1.75;min-height:48px;">${ans3}</div>
@@ -3743,1326 +3728,1383 @@ function _savgol(arr, w){
 }
 
 // ════════════════════════════════════════════════════════════
-// ANIMASI 1 — Simulasi Fisik Mass-Spring-Damper LIVE
-// (Canvas: cvPhysics, slider: sl_rp/sl_zp; button: btnPhysics)
-// Simulasi fisik real-time: massa oscillates with correct amplitude + phase
 // ════════════════════════════════════════════════════════════
-let _physicsAnim = { t: 0, running: true, raf: null };
+// ANIMASI 1 — 4 REGIM SIDE-BY-SIDE (semua dijatuhkan bersamaan)
+// ════════════════════════════════════════════════════════════
+let _regAnim = { t: 0, running: true, raf: null };
 
-function togglePhysics(){
-  _physicsAnim.running = !_physicsAnim.running;
-  const btn = document.getElementById('btnPhysics');
-  if (btn) btn.textContent = _physicsAnim.running ? '⏸ PAUSE' : '▶ PLAY';
+function toggleRegimes(){
+  _regAnim.running = !_regAnim.running;
+  const btn = document.getElementById('btnRegimes'); 
+  if (btn) btn.innerHTML = _regAnim.running ? '⏸ PAUSE' : '▶ PLAY';
+  if (_regAnim.running) _regTick();
 }
 
-function drawPhysics(){
-  const cv = document.getElementById('cvPhysics'); if(!cv) return;
-  const W = cv.clientWidth; cv.width = W; const H = cv.height;
-  const ctx = cv.getContext('2d');
+function restartRegimes(){
+  _regAnim.t = 0;
+  drawRegimes();
+}
 
+function drawRegimes(){
+  const cv = document.getElementById('cvRegimes'); if(!cv) return;
+  const W = cv.clientWidth || 800; cv.width = W; const H = cv.height;
+  if (W < 50) return;
+  const ctx = cv.getContext('2d');
+  
   // Background
   const bg = ctx.createLinearGradient(0,0,0,H);
-  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1626');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
-
-  // Grid
-  _grid(ctx, 0, 0, W, H, 20, 8, '#0d1929');
-
-  // Params
-  const r = parseFloat(document.getElementById('sl_rp').value);
-  const zeta = parseFloat(document.getElementById('sl_zp').value);
-  const t = _physicsAnim.t;
-
-  // DMF & phase
-  const dmf = 1 / Math.sqrt((1-r*r)**2 + (2*zeta*r)**2);
-  const phi = Math.atan2(2*zeta*r, 1-r*r);
-
-  // Position of mass: x(t) = X·sin(ωt − φ), normalized
-  const omega = 4.0; // display angular frequency (not physical)
-  const xpos = dmf * Math.sin(omega*t - phi);   // Normalized displacement
-
-  // Layout
-  const cx = W/2;
-  const wallY = 30;
-  const baseY = H - 80;
-  const massW = 70, massH = 50;
-  const restY = H/2;
-  const maxAmp = 100; // max pixel amplitude
-  const dispY = restY + Math.max(-maxAmp, Math.min(maxAmp, xpos * 50));
-
-  // Wall (top)
-  ctx.fillStyle = 'rgba(148,163,184,.3)';
-  ctx.fillRect(cx-120, wallY-8, 240, 8);
-  // Hatch pattern on wall
-  ctx.strokeStyle = 'rgba(148,163,184,.4)'; ctx.lineWidth = 1;
-  for(let i=0; i<10; i++){
+  
+  // System parameters
+  const m = 5, k = 2000;
+  const omega_n = Math.sqrt(k/m);
+  const x0 = 0.05, v0 = 0;
+  const t = _regAnim.t;
+  
+  // 4 scenarios
+  const scenarios = [
+    { name: 'Tak Teredam', subtitle: 'ζ=0', zeta: 0,   color: '#facc15' },
+    { name: 'Underdamped', subtitle: 'ζ=0.2', zeta: 0.2, color: '#0ea5e9' },
+    { name: 'Critical',    subtitle: 'ζ=1.0', zeta: 1.0, color: '#00e09e' },
+    { name: 'Overdamped',  subtitle: 'ζ=2.0', zeta: 2.0, color: '#a855f7' },
+  ];
+  
+  // Compute x(t) for each ζ
+  function compute_x(zeta) {
+    if (zeta === 0) {
+      return x0 * Math.cos(omega_n * t);
+    } else if (zeta < 1) {
+      const omega_d = omega_n * Math.sqrt(1 - zeta*zeta);
+      const A = x0;
+      const B = (zeta * omega_n * x0) / omega_d;
+      return Math.exp(-zeta*omega_n*t) * (A*Math.cos(omega_d*t) + B*Math.sin(omega_d*t));
+    } else if (zeta === 1) {
+      return (x0 + (omega_n*x0)*t) * Math.exp(-omega_n*t);
+    } else {
+      // overdamped
+      const sq = Math.sqrt(zeta*zeta - 1);
+      const s1 = -omega_n*(zeta - sq);   // slow
+      const s2 = -omega_n*(zeta + sq);   // fast
+      const A = (x0*s2) / (s2 - s1);
+      const B = (x0*-s1) / (s2 - s1);
+      return A * Math.exp(s1*t) + B * Math.exp(s2*t);
+    }
+  }
+  
+  // Layout: 4 columns
+  const colW = W / 4;
+  const padTop = 30;
+  const padBot = 50;
+  const colH = H - padTop - padBot;
+  const restY = padTop + colH * 0.4;        // rest line
+  const maxDispPx = colH * 0.35;             // max pixel displacement
+  
+  // Draw each scenario
+  scenarios.forEach((s, i) => {
+    const cx = colW * i + colW / 2;
+    const x = compute_x(s.zeta);
+    const xPx = (x / x0) * maxDispPx;
+    const massY = restY + xPx;
+    
+    // Header
+    ctx.fillStyle = s.color;
+    ctx.font = 'bold 12px JetBrains Mono';
+    ctx.textAlign = 'center';
+    ctx.fillText(s.name, cx, 18);
+    ctx.font = '10px JetBrains Mono';
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText(s.subtitle, cx, 32);
+    
+    // Top fixed bracket
+    ctx.fillStyle = 'rgba(148,163,184,.3)';
+    ctx.fillRect(cx - 30, padTop + 38, 60, 5);
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1;
+    for (let j = 0; j < 5; j++) {
+      ctx.beginPath();
+      ctx.moveTo(cx - 27 + j*12, padTop + 43);
+      ctx.lineTo(cx - 21 + j*12, padTop + 49);
+      ctx.stroke();
+    }
+    
+    // Spring (zigzag)
+    const spTop = padTop + 43;
+    const spBot = massY;
+    const coils = 10;
+    ctx.strokeStyle = s.color; ctx.globalAlpha = 0.7;
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(cx-116+i*26, wallY-8);
-    ctx.lineTo(cx-104+i*26, wallY);
+    ctx.moveTo(cx, spTop);
+    for (let j = 0; j < coils; j++) {
+      const yy = spTop + (j + 0.5) * (spBot - spTop) / coils;
+      const xx = cx + (j % 2 === 0 ? -8 : 8);
+      ctx.lineTo(xx, yy);
+    }
+    ctx.lineTo(cx, spBot);
     ctx.stroke();
-  }
-
-  // Spring (zigzag pattern) — LEFT
-  const spX = cx - 35;
-  ctx.strokeStyle = 'rgba(168,85,247,.7)'; ctx.lineWidth = 2.5;
-  ctx.shadowColor = 'rgba(168,85,247,.4)'; ctx.shadowBlur = 4;
-  ctx.beginPath();
-  const spLen = dispY - wallY;
-  const coils = 8;
-  ctx.moveTo(spX, wallY);
-  for(let i=0; i<coils; i++){
-    const y1 = wallY + (i+0.5) * spLen / coils;
-    const x1 = spX + (i%2===0 ? -12 : 12);
-    ctx.lineTo(x1, y1);
-  }
-  ctx.lineTo(spX, dispY);
-  ctx.stroke();
-  ctx.shadowBlur = 0;
-
-  // Damper (cylinder) — RIGHT
-  const dpX = cx + 35;
-  ctx.strokeStyle = 'rgba(249,115,22,.7)'; ctx.lineWidth = 2;
-  const dpTop = wallY;
-  const dpBot = dispY;
-  // Piston rod
-  ctx.beginPath(); ctx.moveTo(dpX, dpTop); ctx.lineTo(dpX, dpBot - 20); ctx.stroke();
-  // Cylinder box
-  ctx.fillStyle = 'rgba(249,115,22,.08)';
-  ctx.strokeRect(dpX-10, (dpTop+dpBot)/2-12, 20, 24);
-  ctx.fillRect(dpX-10, (dpTop+dpBot)/2-12, 20, 24);
-  // Piston inside
-  ctx.fillStyle = 'rgba(249,115,22,.4)';
-  ctx.fillRect(dpX-8, (dpTop+dpBot)/2-2, 16, 4);
-
-  // Mass (box)
-  const massX = cx - massW/2;
-  const massY = dispY;
-  const massGrad = ctx.createLinearGradient(massX, massY, massX+massW, massY+massH);
-  massGrad.addColorStop(0, 'rgba(168,85,247,.3)');
-  massGrad.addColorStop(1, 'rgba(124,77,255,.15)');
-  ctx.fillStyle = massGrad;
-  ctx.fillRect(massX, massY, massW, massH);
-  ctx.strokeStyle = 'rgba(168,85,247,.8)'; ctx.lineWidth = 2;
-  ctx.strokeRect(massX, massY, massW, massH);
-  // "m" label
-  ctx.fillStyle = '#fff'; ctx.font = 'bold 18px JetBrains Mono';
-  ctx.textAlign = 'center'; ctx.fillText('m', cx, massY + 32);
-  ctx.textAlign = 'left';
-
-  // Force arrow (below mass)
-  const Fval = Math.sin(omega*t); // F(t) = F₀sin(ωt)
-  const arrowLen = 40 * Fval;
-  if(Math.abs(arrowLen) > 2){
-    ctx.strokeStyle = '#f97316'; ctx.lineWidth = 3;
-    ctx.shadowColor = 'rgba(249,115,22,.6)'; ctx.shadowBlur = 6;
-    const arrY = massY + massH + 25;
+    ctx.globalAlpha = 1;
+    
+    // Mass
+    const massSize = 32;
+    ctx.fillStyle = s.color;
+    ctx.globalAlpha = 0.8;
+    ctx.fillRect(cx - massSize/2, massY, massSize, massSize);
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = s.color; ctx.lineWidth = 2;
+    ctx.strokeRect(cx - massSize/2, massY, massSize, massSize);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 11px JetBrains Mono';
+    ctx.textAlign = 'center';
+    ctx.fillText('m', cx, massY + 20);
+    
+    // Rest line
+    ctx.strokeStyle = 'rgba(255,255,255,.2)';
+    ctx.setLineDash([3, 3]);
     ctx.beginPath();
-    ctx.moveTo(cx, arrY);
-    ctx.lineTo(cx + arrowLen, arrY);
+    ctx.moveTo(cx - 50, restY + massSize/2);
+    ctx.lineTo(cx + 50, restY + massSize/2);
     ctx.stroke();
-    // Arrowhead
-    const sign = arrowLen > 0 ? 1 : -1;
-    ctx.beginPath();
-    ctx.moveTo(cx + arrowLen, arrY);
-    ctx.lineTo(cx + arrowLen - sign*8, arrY - 5);
-    ctx.lineTo(cx + arrowLen - sign*8, arrY + 5);
-    ctx.closePath();
-    ctx.fillStyle = '#f97316'; ctx.fill();
-    ctx.shadowBlur = 0;
-  }
-  // "F(t)" label
-  ctx.fillStyle = '#f97316'; ctx.font = '11px JetBrains Mono';
-  ctx.fillText('F(t) = F₀sin(ωt)', cx - 55, massY + massH + 50);
-
-  // Rest position indicator (dashed line)
-  ctx.strokeStyle = 'rgba(255,255,255,.15)'; ctx.lineWidth = 1; ctx.setLineDash([4,4]);
-  ctx.beginPath(); ctx.moveTo(cx - 90, restY + massH/2); ctx.lineTo(cx + 90, restY + massH/2); ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.font = '10px JetBrains Mono';
-  ctx.fillText('rest (x=0)', cx + 95, restY + massH/2 + 3);
-
-  // Amplitude bar (right side, vertical)
-  const barX = W - 80;
-  const barTop = 60;
-  const barH = H - 140;
-  ctx.strokeStyle = 'rgba(14,165,233,.3)'; ctx.lineWidth = 1;
-  ctx.strokeRect(barX, barTop, 30, barH);
-  ctx.fillStyle = 'rgba(14,165,233,.08)';
-  ctx.fillRect(barX, barTop, 30, barH);
-  // Current amplitude fill
-  const ampRatio = Math.min(1, Math.abs(xpos)/3);  // normalize to [0,1] clipped
-  const fillH = ampRatio * barH;
-  const barGrad = ctx.createLinearGradient(barX, barTop + barH, barX, barTop + barH - fillH);
-  barGrad.addColorStop(0, '#00e5ff'); barGrad.addColorStop(1, '#ef4444');
-  ctx.fillStyle = barGrad;
-  ctx.fillRect(barX, barTop + barH - fillH, 30, fillH);
-  ctx.fillStyle = '#94a3b8'; ctx.font = '9px JetBrains Mono';
-  ctx.fillText('|x(t)|', barX, barTop - 6);
-  ctx.fillText(Math.abs(xpos).toFixed(2), barX, barTop + barH + 14);
-
-  // Info display
-  const info = document.getElementById('physicsInfo');
-  if(info){
-    const dmfStr = dmf > 99 ? '>99' : dmf.toFixed(2);
-    const phiDeg = phi * 180 / Math.PI;
-    let status = '🟢 Normal';
-    if(Math.abs(r-1) < 0.1) status = '🔴 DEKAT RESONANSI — AMPLITUDO MEMBESAR!';
-    else if(r > 1.414) status = '🟢 Zona Isolasi (r > √2)';
-    else if(r < 0.5) status = '🔵 Zona Kaku (r << 1) — respons mengikuti gaya';
-    info.innerHTML = `r=${r.toFixed(2)} · ζ=${zeta.toFixed(3)} · <strong style="color:var(--pink)">DMF=${dmfStr}</strong> · φ=${phiDeg.toFixed(1)}° · ${status}`;
-  }
-
-  // Controls value display
-  document.getElementById('v_rp').textContent = r.toFixed(2);
-  document.getElementById('v_zp').textContent = zeta.toFixed(2);
-}
-
-function _physicsTick(){
-  if(_physicsAnim.running) _physicsAnim.t += 0.016;
-  drawPhysics();
-  _physicsAnim.raf = requestAnimationFrame(_physicsTick);
-}
-(function(){
-  ['sl_rp','sl_zp'].forEach(id=>{const s=document.getElementById(id); if(s) s.addEventListener('input', drawPhysics);});
-})();
-setTimeout(_physicsTick, 500);
-
-// ════════════════════════════════════════════════════════════
-// ANIMASI 2 — Sweep Frekuensi (Dramatic Resonance Demo)
-// (Canvas: cvSweep, slider: sl_zs; buttons: btnSweep, resetSweep)
-// User presses START, frequency sweeps from ω=0 to ω=2.5·ωₙ over 8 seconds
-// Both: physical mass at top, DMF curve being plotted at bottom
-// ════════════════════════════════════════════════════════════
-let _sweepAnim = { running: false, progress: 0, collectedPoints: [], t: 0, raf: null };
-
-function runSweep(){
-  _sweepAnim.running = true;
-  _sweepAnim.progress = 0;
-  _sweepAnim.collectedPoints = [];
-  _sweepAnim.t = 0;
-  const btn = document.getElementById('btnSweep');
-  if(btn) btn.textContent = '⏸ RUNNING...';
-}
-function resetSweep(){
-  _sweepAnim.running = false;
-  _sweepAnim.progress = 0;
-  _sweepAnim.collectedPoints = [];
-  _sweepAnim.t = 0;
-  const btn = document.getElementById('btnSweep');
-  if(btn) btn.textContent = '▶ START SWEEP';
-  drawSweep();
-}
-
-function drawSweep(){
-  const cv = document.getElementById('cvSweep'); if(!cv) return;
-  const W = cv.clientWidth; cv.width = W; const H = cv.height;
-  const ctx = cv.getContext('2d');
-
-  // Background
-  const bg = ctx.createLinearGradient(0,0,0,H);
-  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
-  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
-
-  const zeta = parseFloat(document.getElementById('sl_zs').value);
-  document.getElementById('v_zs').textContent = zeta.toFixed(2);
-
-  // Layout: top = physical mass (1/3), bottom = DMF curve (2/3)
-  const physicsH = 100;
-  const curveTop = physicsH + 10;
-  const curveH = H - curveTop - 20;
-
-  // ───── TOP: Physical mass ─────
-  const rCurrent = _sweepAnim.running ? (_sweepAnim.progress * 2.5) : 
-                   (_sweepAnim.collectedPoints.length > 0 ? 
-                    _sweepAnim.collectedPoints[_sweepAnim.collectedPoints.length-1].r : 0.1);
+    ctx.setLineDash([]);
+    
+    // Bottom: live x value bar
+    const valueY = H - 30;
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '9px JetBrains Mono';
+    ctx.textAlign = 'center';
+    ctx.fillText(`x = ${(x*1000).toFixed(2)} mm`, cx, valueY);
+    
+    // Bar visualization
+    const barY = H - 18;
+    const maxBarLen = colW * 0.3;
+    const barLen = (x / x0) * maxBarLen;
+    ctx.fillStyle = s.color;
+    ctx.globalAlpha = 0.7;
+    if (barLen > 0) {
+      ctx.fillRect(cx, barY, barLen, 6);
+    } else {
+      ctx.fillRect(cx + barLen, barY, -barLen, 6);
+    }
+    ctx.globalAlpha = 1;
+    // center tick
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(cx, barY); ctx.lineTo(cx, barY+6); ctx.stroke();
+  });
   
-  const dmfCurrent = 1 / Math.sqrt((1-rCurrent*rCurrent)**2 + (2*zeta*rCurrent)**2);
-  const phi = Math.atan2(2*zeta*rCurrent, 1-rCurrent*rCurrent);
-  
-  const cx = W/2;
-  const massRestY = physicsH/2 + 5;
-  const massAmp = Math.min(40, dmfCurrent * 8);
-  const omegaDisp = 4 + rCurrent * 2;
-  const massDisp = _sweepAnim.running ? massAmp * Math.sin(omegaDisp * _sweepAnim.t) : 0;
-
-  // Wall (top of physics area)
-  ctx.fillStyle = 'rgba(148,163,184,.25)';
-  ctx.fillRect(cx-70, 5, 140, 4);
-
-  // Spring
-  ctx.strokeStyle = 'rgba(168,85,247,.6)'; ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  const sLen = massRestY + massDisp - 9;
-  ctx.moveTo(cx, 9);
-  for(let i=0; i<6; i++){
-    const y = 9 + (i+0.5) * sLen / 6;
-    const x = cx + (i%2===0 ? -8 : 8);
-    ctx.lineTo(x, y);
-  }
-  ctx.lineTo(cx, massRestY + massDisp);
-  ctx.stroke();
-
-  // Mass
-  const mx = cx - 20, my = massRestY + massDisp;
-  ctx.fillStyle = 'rgba(168,85,247,.3)';
-  ctx.fillRect(mx, my, 40, 28);
-  ctx.strokeStyle = 'rgba(168,85,247,.8)'; ctx.lineWidth = 1.5;
-  ctx.strokeRect(mx, my, 40, 28);
-  ctx.fillStyle = '#fff'; ctx.font = 'bold 12px JetBrains Mono';
-  ctx.textAlign = 'center'; ctx.fillText('m', cx, my + 19);
-  ctx.textAlign = 'left';
-
-  // Label current ω and DMF
-  ctx.fillStyle = '#f97316'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText(`r = ${rCurrent.toFixed(2)}`, 20, 20);
-  ctx.fillStyle = dmfCurrent > 5 ? '#ef4444' : '#00e09e';
-  ctx.fillText(`DMF = ${dmfCurrent > 99 ? '>99' : dmfCurrent.toFixed(2)}`, 20, 38);
-
-  // ───── Divider ─────
-  ctx.strokeStyle = 'rgba(255,255,255,.1)'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(20, physicsH+2); ctx.lineTo(W-20, physicsH+2); ctx.stroke();
-
-  // ───── BOTTOM: DMF curve being built ─────
-  const padL = 45, padR = 20;
-  const plotX = padL, plotY = curveTop + 20;
-  const plotW = W - padL - padR, plotH = curveH - 40;
-  
-  // Grid
-  _grid(ctx, plotX, plotY, plotW, plotH, 10, 5, '#0d1929');
-  
-  // Axes
-  ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(plotX, plotY); ctx.lineTo(plotX, plotY+plotH); ctx.lineTo(plotX+plotW, plotY+plotH); ctx.stroke();
-  
-  const rmax = 2.5;
-  const ymax = Math.max(6, 1/(2*zeta) + 2);
-  const sx = r => plotX + (r/rmax)*plotW;
-  const sy = v => plotY + plotH - (v/ymax)*plotH;
-  
-  // Axis labels
-  ctx.fillStyle = '#475569'; ctx.font = '9px JetBrains Mono';
-  ctx.textAlign = 'right';
-  for(let i=0; i<=5; i++){
-    const v = ymax * (1 - i/5);
-    ctx.fillText(v.toFixed(1), plotX-4, plotY + plotH*i/5 + 3);
-  }
+  // Title at top center
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 11px JetBrains Mono';
   ctx.textAlign = 'center';
-  for(let i=0; i<=5; i++){
-    const v = rmax * i/5;
-    ctx.fillText(v.toFixed(1), plotX + plotW*i/5, plotY+plotH+12);
+  ctx.fillText(`t = ${t.toFixed(2)} s`, W/2, padTop + 60 + colH);
+  
+  // Update info
+  const info = document.getElementById('regimesInfo');
+  if (info) {
+    const x_und = compute_x(0).toFixed(4);
+    const x_under = compute_x(0.2).toFixed(4);
+    const x_crit = compute_x(1.0).toFixed(4);
+    const x_over = compute_x(2.0).toFixed(4);
+    info.innerHTML = `t = ${t.toFixed(2)}s &nbsp;|&nbsp; ` +
+      `<span style="color:#facc15">Tak Teredam: ${x_und} m</span> &nbsp;` +
+      `<span style="color:#0ea5e9">Underdamped: ${x_under} m</span> &nbsp;` +
+      `<span style="color:#00e09e">Critical: ${x_crit} m</span> &nbsp;` +
+      `<span style="color:#a855f7">Overdamped: ${x_over} m</span>`;
   }
+}
+
+function _regTick(){
+  if (!_regAnim.running) return;
+  _regAnim.t += 0.016;
+  if (_regAnim.t > 4) _regAnim.t = 0;   // restart cycle
+  drawRegimes();
+  _regAnim.raf = requestAnimationFrame(_regTick);
+}
+setTimeout(() => { drawRegimes(); _regTick(); }, 700);
+
+
+// ════════════════════════════════════════════════════════════
+// ANIMASI 2 — INTERACTIVE DROP TEST WITH ZETA SLIDER
+// ════════════════════════════════════════════════════════════
+let _dropAnim = { t: 0, running: false, history: [], raf: null };
+
+function dropMass(){
+  _dropAnim.running = true;
+  _dropAnim.t = 0;
+  _dropAnim.history = [];
+  const btn = document.getElementById('btnDrop');
+  if (btn) btn.innerHTML = '⏸ PAUSE';
+  _dropTick();
+}
+
+function resetDrop(){
+  _dropAnim.running = false;
+  _dropAnim.t = 0;
+  _dropAnim.history = [];
+  drawDrop();
+  const btn = document.getElementById('btnDrop');
+  if (btn) btn.innerHTML = '▶ DROP';
+}
+
+function drawDrop(){
+  const cv = document.getElementById('cvDropTest'); if(!cv) return;
+  const W = cv.clientWidth || 800; cv.width = W; const H = cv.height;
+  if (W < 50) return;
+  const ctx = cv.getContext('2d');
+  
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1626');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+  
+  const m = 5, k = 2000;
+  const omega_n = Math.sqrt(k/m);
+  const zeta = parseFloat(document.getElementById('sl_zd').value);
+  const x0 = 0.05;
+  const t = _dropAnim.t;
+  
+  // Update slider display
+  const v_zd = document.getElementById('v_zd');
+  if (v_zd) v_zd.textContent = zeta.toFixed(2);
+  
+  // Compute current x(t)
+  let x = x0;   // default at t=0
+  if (_dropAnim.running) {
+    if (zeta === 0) {
+      x = x0 * Math.cos(omega_n * t);
+    } else if (zeta < 1) {
+      const omega_d = omega_n * Math.sqrt(1 - zeta*zeta);
+      const A = x0;
+      const B = (zeta * omega_n * x0) / omega_d;
+      x = Math.exp(-zeta*omega_n*t) * (A*Math.cos(omega_d*t) + B*Math.sin(omega_d*t));
+    } else if (zeta === 1) {
+      x = (x0 + omega_n*x0*t) * Math.exp(-omega_n*t);
+    } else {
+      const sq = Math.sqrt(zeta*zeta - 1);
+      const s1 = -omega_n*(zeta - sq);
+      const s2 = -omega_n*(zeta + sq);
+      const A = (x0*s2) / (s2 - s1);
+      const B = (x0*-s1) / (s2 - s1);
+      x = A * Math.exp(s1*t) + B * Math.exp(s2*t);
+    }
+    _dropAnim.history.push({t, x});
+    if (_dropAnim.history.length > 600) _dropAnim.history.shift();
+  }
+  
+  // Determine classification
+  let kelas = 'Tak Teredam';
+  let warna = '#facc15';
+  if (zeta === 0) { kelas = 'Tak Teredam'; warna = '#facc15'; }
+  else if (zeta < 1) { kelas = 'Underdamped'; warna = '#0ea5e9'; }
+  else if (Math.abs(zeta - 1) < 0.05) { kelas = 'Critical Damped'; warna = '#00e09e'; }
+  else { kelas = 'Overdamped'; warna = '#a855f7'; }
+  
+  // Layout: left = physical animation, right = time response
+  const leftW = W * 0.35;
+  const rightX = leftW + 8;
+  const rightW = W - rightX - 12;
+  
+  // ── LEFT: Physical mass ──
+  ctx.strokeStyle = 'rgba(168,85,247,.2)'; ctx.lineWidth = 1;
+  ctx.strokeRect(8, 8, leftW - 8, H - 16);
+  
+  ctx.fillStyle = warna;
+  ctx.font = 'bold 12px JetBrains Mono';
   ctx.textAlign = 'left';
-  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText('DMF', plotX - 40, plotY + 12);
-  ctx.fillText('r = ω/ωₙ', plotX + plotW - 60, plotY + plotH + 24);
+  ctx.fillText(kelas, 18, 24);
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '10px JetBrains Mono';
+  ctx.fillText(`ζ = ${zeta.toFixed(2)}, ωₙ = 20 rad/s`, 18, 38);
   
-  // r=1 marker
-  ctx.strokeStyle = 'rgba(239,68,68,.35)'; ctx.lineWidth = 1; ctx.setLineDash([4,3]);
-  ctx.beginPath(); ctx.moveTo(sx(1), plotY); ctx.lineTo(sx(1), plotY+plotH); ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle = 'rgba(239,68,68,.7)'; ctx.font = '9px JetBrains Mono';
-  ctx.fillText('r=1', sx(1)+2, plotY+10);
+  const cx = leftW / 2;
+  const restY = H * 0.5;
+  const maxDispPx = 80;
+  const xPx = (x / x0) * maxDispPx;
+  const massY = restY + xPx;
   
-  // Theoretical full DMF curve (faded reference)
-  ctx.strokeStyle = 'rgba(14,165,233,.25)'; ctx.lineWidth = 1;
+  // Top bracket
+  ctx.fillStyle = 'rgba(148,163,184,.3)';
+  ctx.fillRect(cx - 40, restY - 100, 80, 6);
+  
+  // Spring
+  ctx.strokeStyle = 'rgba(168,85,247,.7)'; ctx.lineWidth = 2.5;
   ctx.beginPath();
-  for(let i=0; i<=200; i++){
-    const r = rmax * i/200;
-    const v = Math.min(ymax, 1/Math.sqrt((1-r*r)**2 + (2*zeta*r)**2));
-    if(i===0) ctx.moveTo(sx(r), sy(v));
-    else ctx.lineTo(sx(r), sy(v));
+  ctx.moveTo(cx, restY - 94);
+  const coils = 10;
+  for (let j = 0; j < coils; j++) {
+    const yy = (restY - 94) + (j + 0.5) * (massY - (restY-94)) / coils;
+    const xx = cx + (j % 2 === 0 ? -10 : 10);
+    ctx.lineTo(xx, yy);
   }
+  ctx.lineTo(cx, massY);
   ctx.stroke();
   
-  // Collected points as filled curve
-  if(_sweepAnim.collectedPoints.length > 1){
-    ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 2.5;
-    ctx.shadowColor = 'rgba(0,229,255,.5)'; ctx.shadowBlur = 6;
+  // Damper indicator (parallel)
+  ctx.strokeStyle = 'rgba(249,115,22,.7)'; ctx.lineWidth = 2;
+  const dpX = cx + 30;
+  ctx.beginPath();
+  ctx.moveTo(dpX, restY - 94); ctx.lineTo(dpX, massY);
+  ctx.stroke();
+  // Damper cylinder visual
+  const dpMid = (restY - 94 + massY) / 2;
+  ctx.strokeRect(dpX - 6, dpMid - 12, 12, 18);
+  ctx.fillStyle = 'rgba(249,115,22,.15)';
+  ctx.fillRect(dpX - 6, dpMid - 12, 12, 18);
+  ctx.fillStyle = 'rgba(249,115,22,.6)';
+  ctx.fillRect(dpX - 5, dpMid - 1, 10, 3);
+  
+  // Mass
+  const mSize = 40;
+  ctx.fillStyle = warna; ctx.globalAlpha = 0.5;
+  ctx.fillRect(cx - mSize/2, massY, mSize, mSize);
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = warna; ctx.lineWidth = 2;
+  ctx.strokeRect(cx - mSize/2, massY, mSize, mSize);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 14px JetBrains Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('m', cx, massY + 25);
+  
+  // Rest line
+  ctx.strokeStyle = 'rgba(255,255,255,.2)';
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath();
+  ctx.moveTo(cx - 60, restY + mSize/2);
+  ctx.lineTo(cx + 60, restY + mSize/2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  
+  ctx.fillStyle = '#facc15'; ctx.textAlign = 'left';
+  ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText(`x = ${(x*1000).toFixed(2)} mm`, 18, H - 18);
+  
+  // ── RIGHT: Time response x(t) ──
+  ctx.strokeStyle = 'rgba(0,224,158,.2)'; ctx.lineWidth = 1;
+  ctx.strokeRect(rightX, 8, rightW, H - 16);
+  
+  ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText('TIME RESPONSE x(t)', rightX + 12, 24);
+  
+  const padL = 40, padR = 12;
+  const tpX = rightX + padL;
+  const tpY = 36;
+  const tpW = rightW - padL - padR;
+  const tpH = H - tpY - 30;
+  const tMax = 3.0;
+  
+  // Grid
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for (let i = 0; i <= 6; i++) {
+    const xg = tpX + i * tpW / 6;
+    ctx.beginPath(); ctx.moveTo(xg, tpY); ctx.lineTo(xg, tpY+tpH); ctx.stroke();
+  }
+  for (let j = 0; j <= 4; j++) {
+    const yg = tpY + j * tpH / 4;
+    ctx.beginPath(); ctx.moveTo(tpX, yg); ctx.lineTo(tpX+tpW, yg); ctx.stroke();
+  }
+  
+  // Zero line
+  ctx.strokeStyle = 'rgba(255,255,255,.3)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(tpX, tpY+tpH/2); ctx.lineTo(tpX+tpW, tpY+tpH/2); ctx.stroke();
+  
+  // Envelope (only if underdamped or critical)
+  if (zeta > 0 && zeta < 1.5) {
+    ctx.strokeStyle = 'rgba(239,68,68,.4)'; ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
     ctx.beginPath();
-    _sweepAnim.collectedPoints.forEach((p, i) => {
-      const v = Math.min(ymax, p.dmf);
-      if(i===0) ctx.moveTo(sx(p.r), sy(v));
-      else ctx.lineTo(sx(p.r), sy(v));
+    for (let i = 0; i <= 100; i++) {
+      const ti = i / 100 * tMax;
+      const env = x0 * Math.exp(-zeta * omega_n * ti);
+      const px = tpX + ti / tMax * tpW;
+      const py = tpY + tpH/2 - (env / x0) * (tpH/2 - 4);
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.beginPath();
+    for (let i = 0; i <= 100; i++) {
+      const ti = i / 100 * tMax;
+      const env = -x0 * Math.exp(-zeta * omega_n * ti);
+      const px = tpX + ti / tMax * tpW;
+      const py = tpY + tpH/2 - (env / x0) * (tpH/2 - 4);
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  
+  // Trajectory
+  if (_dropAnim.history.length > 1) {
+    ctx.strokeStyle = warna; ctx.lineWidth = 2.5;
+    ctx.shadowColor = warna; ctx.shadowBlur = 4;
+    ctx.beginPath();
+    _dropAnim.history.forEach((p, i) => {
+      const px = tpX + p.t / tMax * tpW;
+      const py = tpY + tpH/2 - (p.x / x0) * (tpH/2 - 4);
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
     });
     ctx.stroke();
     ctx.shadowBlur = 0;
   }
   
-  // Current point being collected (moving dot)
-  if(_sweepAnim.running){
-    ctx.fillStyle = '#ef4444';
-    ctx.shadowColor = 'rgba(239,68,68,.8)'; ctx.shadowBlur = 10;
-    ctx.beginPath();
-    ctx.arc(sx(rCurrent), sy(Math.min(ymax, dmfCurrent)), 5, 0, Math.PI*2);
-    ctx.fill();
+  // Current head
+  if (_dropAnim.running && _dropAnim.history.length > 0) {
+    const last = _dropAnim.history[_dropAnim.history.length - 1];
+    const headPulse = 0.7 + 0.3 * Math.sin(_dropAnim.t * 8);
+    ctx.fillStyle = `rgba(239,68,68,${headPulse})`;
+    ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 8;
+    const hx = tpX + last.t / tMax * tpW;
+    const hy = tpY + tpH/2 - (last.x / x0) * (tpH/2 - 4);
+    ctx.beginPath(); ctx.arc(hx, hy, 5, 0, Math.PI*2); ctx.fill();
     ctx.shadowBlur = 0;
   }
-
-  // Info
-  const info = document.getElementById('sweepInfo');
-  if(info){
-    if(_sweepAnim.running){
-      const pct = Math.round(_sweepAnim.progress * 100);
-      info.innerHTML = `🔴 Sweep berlangsung: <strong>${pct}%</strong> · r saat ini = ${rCurrent.toFixed(2)} · DMF = ${dmfCurrent > 99 ? '>99' : dmfCurrent.toFixed(2)}`;
-    } else if(_sweepAnim.collectedPoints.length > 0){
-      const maxPt = _sweepAnim.collectedPoints.reduce((a,b) => b.dmf > a.dmf ? b : a);
-      const rmaxTheory = Math.sqrt(Math.max(0.001, 1 - 2*zeta*zeta));
-      const dmfmaxTheory = 1/(2*zeta*Math.sqrt(1-zeta*zeta));
-      info.innerHTML = `✅ Sweep selesai · Puncak teramati di <strong>r=${maxPt.r.toFixed(2)}, DMF=${maxPt.dmf.toFixed(2)}</strong> · Teoretis: r_max=${rmaxTheory.toFixed(2)}, DMF_max=${dmfmaxTheory.toFixed(2)}`;
-    } else {
-      info.innerHTML = `▶️ Tekan <strong>START SWEEP</strong> untuk memulai. Frekuensi akan naik dari 0 hingga 2.5·ωₙ dalam 8 detik.`;
-    }
-  }
-}
-
-function _sweepTick(){
-  if(_sweepAnim.running){
-    _sweepAnim.t += 0.016;
-    _sweepAnim.progress += 0.016/8;  // 8-second sweep
-    const zeta = parseFloat(document.getElementById('sl_zs').value);
-    const r = _sweepAnim.progress * 2.5;
-    const dmf = 1/Math.sqrt((1-r*r)**2 + (2*zeta*r)**2);
-    _sweepAnim.collectedPoints.push({r, dmf});
-    if(_sweepAnim.progress >= 1){
-      _sweepAnim.running = false;
-      const btn = document.getElementById('btnSweep');
-      if(btn) btn.textContent = '▶ RESTART SWEEP';
-    }
-  }
-  drawSweep();
-  _sweepAnim.raf = requestAnimationFrame(_sweepTick);
-}
-(function(){
-  const s = document.getElementById('sl_zs'); if(s) s.addEventListener('input', drawSweep);
-})();
-setTimeout(_sweepTick, 600);
-
-// ════════════════════════════════════════════════════════════
-// ANIMASI 3 — Isolator Side-by-Side Comparison
-// (Canvas: cvIso, slider: sl_ri/sl_zi; button: btnIso)
-// Left: machine bolted to floor (no isolator, Tr=1)
-// Right: machine on spring-damper isolator
-// Both with same driving force; visualize floor vibration difference
-// ════════════════════════════════════════════════════════════
-let _isoAnim = { t: 0, running: true, raf: null };
-
-function toggleIso(){
-  _isoAnim.running = !_isoAnim.running;
-  const btn = document.getElementById('btnIso');
-  if(btn) btn.textContent = _isoAnim.running ? '⏸ PAUSE' : '▶ PLAY';
-}
-
-function drawIso(){
-  const cv = document.getElementById('cvIso'); if(!cv) return;
-  const W = cv.clientWidth; cv.width = W; const H = cv.height;
-  const ctx = cv.getContext('2d');
-
-  // Background
-  const bg = ctx.createLinearGradient(0,0,0,H);
-  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
-  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
-
-  const r = parseFloat(document.getElementById('sl_ri').value);
-  const zeta = parseFloat(document.getElementById('sl_zi').value);
-  document.getElementById('v_ri').textContent = r.toFixed(2);
-  document.getElementById('v_zi').textContent = zeta.toFixed(2);
-
-  // Tr calculation
-  const Tr = Math.sqrt(1 + (2*zeta*r)**2) / Math.sqrt((1-r*r)**2 + (2*zeta*r)**2);
-
-  const t = _isoAnim.t;
-  const omega = 5.0;
-  const F_amp = 30;
-  const F = F_amp * Math.sin(omega * t);   // F(t) exciting force
-
-  // Layout: 2 panels
-  const panelW = W/2;
-  const floorY = H - 60;
-  const floorH = 30;
-
-  // ───────── LEFT PANEL: NO ISOLATOR (bolted to floor) ─────────
-  const lcx = panelW/2;
   
-  // Label
-  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 12px JetBrains Mono';
-  ctx.textAlign = 'center';
-  ctx.fillText('TANPA ISOLATOR', lcx, 24);
-  ctx.fillStyle = 'rgba(239,68,68,.8)'; ctx.font = '11px JetBrains Mono';
-  ctx.fillText('Tᵣ = 1.00 (100% gaya lolos)', lcx, 42);
-  ctx.textAlign = 'left';
-
-  // Floor vibrates with SAME force as machine (direct bolt)
-  const leftFloorVib = F * 0.7;   // Direct transmission
-  
-  // Draw floor (vibrating)
-  ctx.fillStyle = 'rgba(100,116,139,.3)';
-  ctx.fillRect(20, floorY + leftFloorVib, panelW - 40, floorH);
-  ctx.strokeStyle = 'rgba(239,68,68,.6)';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(20, floorY + leftFloorVib, panelW - 40, floorH);
-  // Floor hatch
-  ctx.strokeStyle = 'rgba(239,68,68,.4)'; ctx.lineWidth = 1;
-  for(let i=0; i<8; i++){
-    ctx.beginPath();
-    ctx.moveTo(30+i*20, floorY+floorH+leftFloorVib);
-    ctx.lineTo(40+i*20, floorY+floorH+15+leftFloorVib);
-    ctx.stroke();
-  }
-
-  // Machine (sits directly on floor)
-  const machY = floorY + leftFloorVib - 60;
-  ctx.fillStyle = 'rgba(168,85,247,.3)';
-  ctx.fillRect(lcx - 40, machY, 80, 60);
-  ctx.strokeStyle = 'rgba(168,85,247,.9)'; ctx.lineWidth = 2;
-  ctx.strokeRect(lcx - 40, machY, 80, 60);
-  ctx.fillStyle = '#fff'; ctx.font = 'bold 13px JetBrains Mono';
-  ctx.textAlign = 'center';
-  ctx.fillText('MESIN', lcx, machY + 35);
-  
-  // Bolts (fixed direct connection)
-  ctx.fillStyle = '#ef4444';
-  ctx.fillRect(lcx - 30, machY + 58, 8, 4);
-  ctx.fillRect(lcx + 22, machY + 58, 8, 4);
-
-  // Force arrow
-  if(Math.abs(F) > 3){
-    ctx.strokeStyle = '#f97316'; ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(lcx, machY + 30);
-    ctx.lineTo(lcx + F, machY + 30);
-    ctx.stroke();
-    const sgn = F > 0 ? 1 : -1;
-    ctx.beginPath();
-    ctx.moveTo(lcx + F, machY + 30);
-    ctx.lineTo(lcx + F - sgn*6, machY + 26);
-    ctx.lineTo(lcx + F - sgn*6, machY + 34);
-    ctx.closePath();
-    ctx.fillStyle = '#f97316'; ctx.fill();
-  }
-
-  // "Force transmitted" indicator bar (below floor)
-  const barY = H - 20;
-  ctx.fillStyle = 'rgba(239,68,68,.1)'; ctx.fillRect(30, barY - 4, panelW - 60, 8);
-  const leftBarW = (panelW - 60) * Math.abs(leftFloorVib)/F_amp;
-  ctx.fillStyle = '#ef4444';
-  ctx.fillRect(30, barY - 4, leftBarW, 8);
-  ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
-  ctx.textAlign = 'left';
-  ctx.fillText('Gaya ke lantai: 100%', 30, barY - 10);
-
-  // ───────── RIGHT PANEL: WITH ISOLATOR ─────────
-  const rcx = panelW + panelW/2;
-  
-  // Label
-  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 12px JetBrains Mono';
-  ctx.textAlign = 'center';
-  ctx.fillText('DENGAN ISOLATOR', rcx, 24);
-  const trColor = Tr < 0.5 ? '#00e09e' : (Tr > 1 ? '#ef4444' : '#facc15');
-  ctx.fillStyle = trColor; ctx.font = '11px JetBrains Mono';
-  ctx.fillText(`Tᵣ = ${Tr.toFixed(3)} (${(Tr*100).toFixed(0)}% gaya lolos)`, rcx, 42);
-  ctx.textAlign = 'left';
-
-  // Isolated floor vibrates less (reduced by Tr)
-  const rightFloorVib = F * 0.7 * Tr;
-  
-  // Floor
-  ctx.fillStyle = 'rgba(100,116,139,.3)';
-  ctx.fillRect(panelW + 20, floorY + rightFloorVib, panelW - 40, floorH);
-  ctx.strokeStyle = trColor;
-  ctx.lineWidth = 2;
-  ctx.strokeRect(panelW + 20, floorY + rightFloorVib, panelW - 40, floorH);
-  // Floor hatch
-  ctx.strokeStyle = trColor; ctx.lineWidth = 1; ctx.globalAlpha = 0.4;
-  for(let i=0; i<8; i++){
-    ctx.beginPath();
-    ctx.moveTo(panelW+30+i*20, floorY+floorH+rightFloorVib);
-    ctx.lineTo(panelW+40+i*20, floorY+floorH+15+rightFloorVib);
-    ctx.stroke();
-  }
-  ctx.globalAlpha = 1;
-
-  // Machine now vibrates MORE than floor due to DMF (since it's on isolator, r > √2 means DMF < 1, but overall Tr gives us the floor amp)
-  // Machine amplitude = X = F/k · DMF, for simplicity visualize with F directly
-  const dmf_iso = 1/Math.sqrt((1-r*r)**2 + (2*zeta*r)**2);
-  const machVib = F * Math.min(2, dmf_iso * 0.7); 
-  const rMachY = floorY + rightFloorVib - 85 - machVib;
-  
-  // Isolator (spring + damper between machine and floor)
-  const isoTop = rMachY + 60;
-  const isoBot = floorY + rightFloorVib;
-  
-  // Spring (left side of isolator pair)
-  ctx.strokeStyle = 'rgba(168,85,247,.7)'; ctx.lineWidth = 2;
-  ctx.beginPath();
-  const iSpX = rcx - 15;
-  const iLen = isoBot - isoTop;
-  ctx.moveTo(iSpX, isoTop);
-  for(let i=0; i<5; i++){
-    const y = isoTop + (i+0.5) * iLen / 5;
-    const x = iSpX + (i%2===0 ? -6 : 6);
-    ctx.lineTo(x, y);
-  }
-  ctx.lineTo(iSpX, isoBot);
-  ctx.stroke();
-  
-  // Damper (right side)
-  const iDpX = rcx + 15;
-  ctx.strokeStyle = 'rgba(249,115,22,.7)'; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.moveTo(iDpX, isoTop); ctx.lineTo(iDpX, isoBot - 8); ctx.stroke();
-  ctx.strokeRect(iDpX - 6, (isoTop+isoBot)/2 - 8, 12, 16);
-  ctx.fillStyle = 'rgba(249,115,22,.3)';
-  ctx.fillRect(iDpX - 5, (isoTop+isoBot)/2, 10, 3);
-
-  // Machine (on top of isolator)
-  ctx.fillStyle = 'rgba(168,85,247,.3)';
-  ctx.fillRect(rcx - 40, rMachY, 80, 60);
-  ctx.strokeStyle = 'rgba(168,85,247,.9)'; ctx.lineWidth = 2;
-  ctx.strokeRect(rcx - 40, rMachY, 80, 60);
-  ctx.fillStyle = '#fff'; ctx.font = 'bold 13px JetBrains Mono';
-  ctx.textAlign = 'center';
-  ctx.fillText('MESIN', rcx, rMachY + 35);
-
-  // Force arrow (same magnitude on right machine)
-  if(Math.abs(F) > 3){
-    ctx.strokeStyle = '#f97316'; ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(rcx, rMachY + 30);
-    ctx.lineTo(rcx + F, rMachY + 30);
-    ctx.stroke();
-    const sgn = F > 0 ? 1 : -1;
-    ctx.beginPath();
-    ctx.moveTo(rcx + F, rMachY + 30);
-    ctx.lineTo(rcx + F - sgn*6, rMachY + 26);
-    ctx.lineTo(rcx + F - sgn*6, rMachY + 34);
-    ctx.closePath();
-    ctx.fillStyle = '#f97316'; ctx.fill();
-  }
-
-  // Transmitted force bar (right)
-  const rightBarW = (panelW - 60) * Math.min(1.5, Math.abs(rightFloorVib)/F_amp);
-  ctx.fillStyle = 'rgba(239,68,68,.1)';
-  ctx.fillRect(panelW + 30, barY - 4, panelW - 60, 8);
-  ctx.fillStyle = trColor;
-  ctx.fillRect(panelW + 30, barY - 4, rightBarW, 8);
-  ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
-  ctx.textAlign = 'left';
-  ctx.fillText(`Gaya ke lantai: ${(Tr*100).toFixed(0)}%`, panelW + 30, barY - 10);
-
-  // Divider
-  ctx.strokeStyle = 'rgba(255,255,255,.1)'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(panelW, 15); ctx.lineTo(panelW, H-15); ctx.stroke();
-
-  // Info
-  const info = document.getElementById('isoInfo');
-  if(info){
-    let interp = '';
-    if(r < 1) interp = '⚠️ r < 1 — Isolator di ZONA KAKU (seperti batu)';
-    else if(r < 1.414) interp = '🔴 r < √2 — ZONA AMPLIFIKASI! Isolator justru memperparah';
-    else if(r < 3) interp = '🟡 r > √2 — Isolasi mulai efektif';
-    else interp = '🟢 r > 3 — ISOLASI EFEKTIF (>80% getaran teredam)';
-    info.innerHTML = `r=${r.toFixed(2)} · ζ=${zeta.toFixed(3)} · <strong>Tᵣ=${Tr.toFixed(3)}</strong> · ${interp}`;
-  }
-}
-
-function _isoTick(){
-  if(_isoAnim.running) _isoAnim.t += 0.016;
-  drawIso();
-  _isoAnim.raf = requestAnimationFrame(_isoTick);
-}
-(function(){
-  ['sl_ri','sl_zi'].forEach(id=>{const s=document.getElementById(id); if(s) s.addEventListener('input', drawIso);});
-})();
-setTimeout(_isoTick, 700);
-
-// ════════════════════════════════════════════════════════════
-// ANIMASI 4 — Frequency Response Spectrum Interactive
-// (Canvas: cvHPB, slider: sl_zh/sl_line)
-// FRF curve with draggable horizontal line to find ω₁, ω₂
-// Displays Q, ζ_estimated vs ζ_true
-// ════════════════════════════════════════════════════════════
-function drawHPB(){
-  const cv = document.getElementById('cvHPB'); if(!cv) return;
-  const W = cv.clientWidth; cv.width = W; const H = cv.height;
-  const ctx = cv.getContext('2d');
-
-  // Background
-  const bg = ctx.createLinearGradient(0,0,0,H);
-  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
-  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
-
-  const zetaTrue = parseFloat(document.getElementById('sl_zh').value);
-  const linePos = parseFloat(document.getElementById('sl_line').value);
-  document.getElementById('v_zh').textContent = zetaTrue.toFixed(3);
-  document.getElementById('v_line').textContent = linePos.toFixed(2);
-
-  // Plot setup
-  const padL = 60, padR = 30, padT = 30, padB = 45;
-  const plotW = W - padL - padR;
-  const plotH = H - padT - padB;
-
-  // Grid
-  _grid(ctx, padL, padT, plotW, plotH, 12, 6, '#0d1929');
-
-  // Compute H²(ω) = DMF² for ω ∈ [0.3·ωₙ, 1.7·ωₙ] — normalized r range
-  const omega_n = 50; // display units
-  const rMin = 0.5, rMax = 1.5;
-  const omegaMin = omega_n * rMin, omegaMax = omega_n * rMax;
-  
-  // H²_max at peak
-  const rPeak = Math.sqrt(Math.max(0.001, 1 - 2*zetaTrue*zetaTrue));
-  const H2max = rPeak > 0 ? 
-    (1/((1-rPeak*rPeak)**2 + (2*zetaTrue*rPeak)**2)) : 
-    (1/(2*zetaTrue*zetaTrue));
-  const yMax = H2max * 1.15;
-
-  const sx = omega => padL + (omega - omegaMin)/(omegaMax - omegaMin) * plotW;
-  const sy = v => padT + plotH - (v/yMax) * plotH;
-
   // Axis labels
-  ctx.fillStyle = '#475569'; ctx.font = '9px JetBrains Mono';
+  ctx.fillStyle = '#475569'; ctx.font = '8px JetBrains Mono';
   ctx.textAlign = 'right';
-  for(let i=0; i<=6; i++){
-    const v = yMax * (1 - i/6);
-    ctx.fillText(v.toFixed(1), padL-4, padT + plotH*i/6 + 3);
-  }
+  ctx.fillText('+0.05', tpX-3, tpY+8);
+  ctx.fillText('0', tpX-3, tpY+tpH/2+3);
+  ctx.fillText('-0.05', tpX-3, tpY+tpH-3);
   ctx.textAlign = 'center';
-  for(let i=0; i<=6; i++){
-    const om = omegaMin + (omegaMax - omegaMin) * i/6;
-    ctx.fillText(om.toFixed(1), padL + plotW*i/6, padT+plotH+14);
-  }
-  ctx.textAlign = 'left';
-  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText('|H(ω)|²', padL - 50, padT - 10);
-  ctx.fillText('ω (rad/s)', padL + plotW/2 - 30, padT + plotH + 32);
-
-  // ωₙ marker (vertical red dashed)
-  ctx.strokeStyle = 'rgba(239,68,68,.4)'; ctx.lineWidth = 1; ctx.setLineDash([4,3]);
-  ctx.beginPath(); ctx.moveTo(sx(omega_n), padT); ctx.lineTo(sx(omega_n), padT+plotH); ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle = 'rgba(239,68,68,.8)'; ctx.font = '9px JetBrains Mono';
-  ctx.fillText(`ωₙ=${omega_n}`, sx(omega_n)+3, padT+10);
-
-  // Draw FRF curve
-  ctx.strokeStyle = '#0ea5e9'; ctx.lineWidth = 2.5;
-  ctx.shadowColor = 'rgba(14,165,233,.5)'; ctx.shadowBlur = 6;
-  ctx.beginPath();
-  for(let i=0; i<=500; i++){
-    const omega = omegaMin + (omegaMax - omegaMin) * i/500;
-    const r = omega/omega_n;
-    const H2 = 1/((1-r*r)**2 + (2*zetaTrue*r)**2);
-    const v = Math.min(yMax, H2);
-    if(i===0) ctx.moveTo(sx(omega), sy(v));
-    else ctx.lineTo(sx(omega), sy(v));
-  }
-  ctx.stroke();
-  ctx.shadowBlur = 0;
-
-  // Peak marker
-  const omegaPeak = omega_n * rPeak;
-  ctx.fillStyle = '#ef4444';
-  ctx.shadowColor = 'rgba(239,68,68,.6)'; ctx.shadowBlur = 8;
-  ctx.beginPath(); ctx.arc(sx(omegaPeak), sy(Math.min(yMax,H2max)), 5, 0, Math.PI*2); ctx.fill();
-  ctx.shadowBlur = 0;
-
-  // Horizontal draggable line
-  const targetY = H2max * linePos;
-  ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2;
-  ctx.setLineDash([8,5]);
-  ctx.beginPath();
-  ctx.moveTo(padL, sy(targetY));
-  ctx.lineTo(padL+plotW, sy(targetY));
-  ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle = '#facc15'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText(`${linePos.toFixed(2)} × H²_max = ${targetY.toFixed(2)}`, padL+plotW-140, sy(targetY)-4);
-
-  // Find ω₁ and ω₂ (intersection of curve with targetY)
-  // Binary search on either side of peak
-  let omega1 = null, omega2 = null;
-  for(let i=0; i<500; i++){
-    const om = omegaMin + (omegaMax - omegaMin) * i/500;
-    const r = om/omega_n;
-    const H2 = 1/((1-r*r)**2 + (2*zetaTrue*r)**2);
-    if(om < omegaPeak && H2 >= targetY && omega1 === null) omega1 = om;
-    if(om > omegaPeak && H2 < targetY && omega2 === null){ omega2 = om; break; }
-  }
-
-  let deltaOmega = null, Q = null, zetaEst = null;
-  if(omega1 !== null && omega2 !== null){
-    // Mark intersection points
-    ctx.fillStyle = '#00e09e';
-    ctx.shadowColor = 'rgba(0,224,158,.8)'; ctx.shadowBlur = 10;
-    ctx.beginPath(); ctx.arc(sx(omega1), sy(targetY), 7, 0, Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(sx(omega2), sy(targetY), 7, 0, Math.PI*2); ctx.fill();
-    ctx.shadowBlur = 0;
-
-    // Vertical drop lines
-    ctx.strokeStyle = 'rgba(0,224,158,.4)'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
-    ctx.beginPath(); ctx.moveTo(sx(omega1), sy(targetY)); ctx.lineTo(sx(omega1), padT+plotH); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(sx(omega2), sy(targetY)); ctx.lineTo(sx(omega2), padT+plotH); ctx.stroke();
-    ctx.setLineDash([]);
-
-    // ω₁, ω₂ labels
-    ctx.fillStyle = '#00e09e'; ctx.font = 'bold 10px JetBrains Mono';
-    ctx.fillText(`ω₁=${omega1.toFixed(2)}`, sx(omega1)-28, padT+plotH+26);
-    ctx.fillText(`ω₂=${omega2.toFixed(2)}`, sx(omega2)-28, padT+plotH+26);
-
-    deltaOmega = omega2 - omega1;
-    // Only valid at half-power (linePos=0.5)
-    if(Math.abs(linePos - 0.5) < 0.02){
-      Q = omegaPeak / deltaOmega;
-      zetaEst = deltaOmega / (2*omegaPeak);
-    }
-  }
-
-  // Info
-  const info = document.getElementById('hpbInfo');
-  if(info){
-    let html = `ζ_TRUE = ${zetaTrue.toFixed(3)} · ω_peak = ${omegaPeak.toFixed(2)} · H²_max = ${H2max.toFixed(2)}<br>`;
-    if(omega1 !== null && omega2 !== null){
-      html += `Δω = ω₂ − ω₁ = <strong>${deltaOmega.toFixed(3)}</strong> rad/s`;
-      if(Math.abs(linePos - 0.5) < 0.02){
-        const err = Math.abs(zetaEst - zetaTrue)/zetaTrue * 100;
-        html += ` · <strong style="color:#00e09e">Q = ${Q.toFixed(2)}</strong> · <strong style="color:#facc15">ζ_estimated = ${zetaEst.toFixed(4)}</strong> (error ${err.toFixed(1)}%)`;
-      } else {
-        html += ` · ⚠️ Geser garis ke <strong>0.50</strong> untuk mengukur ζ secara benar (half-power method)`;
-      }
-    } else {
-      html += `⚠️ Garis terlalu tinggi — tidak ada perpotongan dengan kurva. Turunkan ke bawah puncak.`;
-    }
-    info.innerHTML = html;
+  ctx.fillText('0s', tpX, tpY+tpH+12);
+  ctx.fillText(`${tMax}s`, tpX+tpW, tpY+tpH+12);
+  
+  // Update info
+  const info = document.getElementById('dropInfo');
+  if (info) {
+    const tau = zeta > 0 ? (1 / (zeta * omega_n)).toFixed(3) : '∞';
+    const ts = zeta > 0 ? (4 / (zeta * omega_n)).toFixed(3) : '∞';
+    info.innerHTML = `t = ${t.toFixed(2)}s &nbsp;|&nbsp; ζ = ${zeta.toFixed(2)} &nbsp;|&nbsp; ` +
+      `<strong style="color:${warna}">${kelas}</strong> &nbsp;|&nbsp; ` +
+      `τ = ${tau} s &nbsp;|&nbsp; t_settling ≈ ${ts} s`;
   }
 }
+
+function _dropTick(){
+  if (!_dropAnim.running) return;
+  _dropAnim.t += 0.016;
+  if (_dropAnim.t > 3.0) {
+    _dropAnim.running = false;
+    const btn = document.getElementById('btnDrop');
+    if (btn) btn.innerHTML = '▶ DROP AGAIN';
+    drawDrop();
+    return;
+  }
+  drawDrop();
+  _dropAnim.raf = requestAnimationFrame(_dropTick);
+}
+setTimeout(drawDrop, 700);
 (function(){
-  ['sl_zh','sl_line'].forEach(id=>{const s=document.getElementById(id); if(s) s.addEventListener('input', drawHPB);});
+  const sl = document.getElementById('sl_zd');
+  if (sl) sl.addEventListener('input', drawDrop);
 })();
-setTimeout(drawHPB, 800);
 
 
 // ════════════════════════════════════════════════════════════
-// FORUM CANVAS — Suspension Drop Test Analysis Dashboard (Pertemuan 3) — ANIMATED
-// Parameter quarter-car: m=400 kg, k=40000 N/m, c=2000 Ns/m
-// → omega_n = 10 rad/s, zeta = 0.25 (underdamped), omega_d ≈ 9.6825 rad/s
+// ANIMASI 3 — LOGARITHMIC DECREMENT EXTRACTION LIVE
+// ════════════════════════════════════════════════════════════
+let _logAnim = { t: 0, running: true, peaks: [], history: [], raf: null };
+
+function toggleLogDec(){
+  _logAnim.running = !_logAnim.running;
+  const btn = document.getElementById('btnLogDec');
+  if (btn) btn.innerHTML = _logAnim.running ? '⏸ PAUSE' : '▶ PLAY';
+  if (_logAnim.running) _logTick();
+}
+
+function drawLogDec(){
+  const cv = document.getElementById('cvLogDec'); if(!cv) return;
+  const W = cv.clientWidth || 800; cv.width = W; const H = cv.height;
+  if (W < 50) return;
+  const ctx = cv.getContext('2d');
+  
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1626');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+  
+  const m = 5, k = 2000;
+  const omega_n = Math.sqrt(k/m);
+  const zeta_true = parseFloat(document.getElementById('sl_zl').value);
+  const v_zl = document.getElementById('v_zl');
+  if (v_zl) v_zl.textContent = zeta_true.toFixed(3);
+  
+  const x0 = 0.05;
+  const t = _logAnim.t;
+  const tMax = 4.0;   // 4 seconds total animation
+  
+  // Compute x(t)
+  let x = 0;
+  if (zeta_true < 1) {
+    const omega_d = omega_n * Math.sqrt(1 - zeta_true*zeta_true);
+    const A = x0;
+    const B = (zeta_true * omega_n * x0) / omega_d;
+    x = Math.exp(-zeta_true*omega_n*t) * (A*Math.cos(omega_d*t) + B*Math.sin(omega_d*t));
+  }
+  
+  _logAnim.history.push({t, x});
+  if (_logAnim.history.length > 800) _logAnim.history.shift();
+  
+  // Detect peaks
+  if (_logAnim.history.length >= 5) {
+    const n = _logAnim.history.length;
+    const last5 = _logAnim.history.slice(n-5);
+    const mid = last5[2];
+    if (mid.x > 0 && mid.x > last5[0].x && mid.x > last5[1].x && mid.x > last5[3].x && mid.x > last5[4].x && mid.x > 0.001) {
+      // confirm not duplicate
+      if (_logAnim.peaks.length === 0 || _logAnim.peaks[_logAnim.peaks.length-1].t < mid.t - 0.05) {
+        _logAnim.peaks.push({t: mid.t, x: mid.x});
+      }
+    }
+  }
+  
+  // Layout: full width plot
+  const padL = 50, padR = 20, padT = 50, padB = 90;
+  const tpX = padL;
+  const tpY = padT;
+  const tpW = W - padL - padR;
+  const tpH = H - padT - padB;
+  
+  // Title
+  ctx.fillStyle = '#00e09e'; ctx.font = 'bold 12px JetBrains Mono';
+  ctx.textAlign = 'left';
+  ctx.fillText('🔬 LOGARITHMIC DECREMENT EXTRACTION', 14, 22);
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '10px JetBrains Mono';
+  ctx.fillText(`Sistem: m=5kg, k=2000 N/m, x₀=0.05m | ζ_true = ${zeta_true.toFixed(3)} (rahasia)`, 14, 40);
+  
+  // Grid
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for (let i = 0; i <= 8; i++) {
+    const xg = tpX + i * tpW / 8;
+    ctx.beginPath(); ctx.moveTo(xg, tpY); ctx.lineTo(xg, tpY+tpH); ctx.stroke();
+  }
+  for (let j = 0; j <= 4; j++) {
+    const yg = tpY + j * tpH / 4;
+    ctx.beginPath(); ctx.moveTo(tpX, yg); ctx.lineTo(tpX+tpW, yg); ctx.stroke();
+  }
+  
+  // Zero line
+  ctx.strokeStyle = 'rgba(255,255,255,.3)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(tpX, tpY+tpH/2); ctx.lineTo(tpX+tpW, tpY+tpH/2); ctx.stroke();
+  
+  // Envelope
+  ctx.strokeStyle = 'rgba(239,68,68,.4)'; ctx.lineWidth = 1;
+  ctx.setLineDash([3, 3]);
+  ctx.beginPath();
+  for (let i = 0; i <= 100; i++) {
+    const ti = i / 100 * tMax;
+    const env = x0 * Math.exp(-zeta_true * omega_n * ti);
+    const px = tpX + ti / tMax * tpW;
+    const py = tpY + tpH/2 - (env / x0) * (tpH/2 - 4);
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+  
+  // Trajectory
+  if (_logAnim.history.length > 1) {
+    ctx.strokeStyle = '#0ea5e9'; ctx.lineWidth = 2;
+    ctx.shadowColor = 'rgba(14,165,233,.5)'; ctx.shadowBlur = 4;
+    ctx.beginPath();
+    _logAnim.history.forEach((p, i) => {
+      const px = tpX + p.t / tMax * tpW;
+      const py = tpY + tpH/2 - (p.x / x0) * (tpH/2 - 4);
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    });
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+  
+  // Mark peaks
+  _logAnim.peaks.forEach((p, i) => {
+    const px = tpX + p.t / tMax * tpW;
+    const py = tpY + tpH/2 - (p.x / x0) * (tpH/2 - 4);
+    ctx.fillStyle = '#facc15';
+    ctx.shadowColor = '#facc15'; ctx.shadowBlur = 6;
+    ctx.beginPath(); ctx.arc(px, py, 6, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#000'; ctx.font = 'bold 9px JetBrains Mono';
+    ctx.textAlign = 'center';
+    ctx.fillText(`P${i+1}`, px, py+3);
+  });
+  
+  // Current point
+  if (_logAnim.history.length > 0) {
+    const last = _logAnim.history[_logAnim.history.length - 1];
+    const px = tpX + last.t / tMax * tpW;
+    const py = tpY + tpH/2 - (last.x / x0) * (tpH/2 - 4);
+    const headPulse = 0.7 + 0.3 * Math.sin(t * 6);
+    ctx.fillStyle = `rgba(239,68,68,${headPulse})`;
+    ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 8;
+    ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+  
+  // Axis labels
+  ctx.fillStyle = '#475569'; ctx.font = '8px JetBrains Mono';
+  ctx.textAlign = 'right';
+  ctx.fillText('+0.05', tpX-3, tpY+8);
+  ctx.fillText('0', tpX-3, tpY+tpH/2+3);
+  ctx.fillText('-0.05', tpX-3, tpY+tpH-3);
+  ctx.textAlign = 'center';
+  for (let i = 0; i <= 4; i++) {
+    ctx.fillText(`${(i*tMax/4).toFixed(1)}s`, tpX + i*tpW/4, tpY+tpH+12);
+  }
+  
+  // ─── Bottom: extraction calculation ───
+  const bottomY = H - padB + 20;
+  ctx.fillStyle = 'rgba(0,224,158,.05)';
+  ctx.fillRect(14, bottomY, W - 28, padB - 30);
+  ctx.strokeStyle = 'rgba(0,224,158,.3)'; ctx.lineWidth = 1;
+  ctx.strokeRect(14, bottomY, W - 28, padB - 30);
+  
+  ctx.fillStyle = '#00e09e'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.textAlign = 'left';
+  ctx.fillText('🧮 EKSTRAKSI ζ:', 22, bottomY + 18);
+  
+  if (_logAnim.peaks.length >= 2) {
+    const p1 = _logAnim.peaks[0];
+    const p_last = _logAnim.peaks[_logAnim.peaks.length - 1];
+    const n = _logAnim.peaks.length - 1;
+    const delta = (1/n) * Math.log(p1.x / p_last.x);
+    const zeta_est = delta / Math.sqrt(4*Math.PI*Math.PI + delta*delta);
+    const zeta_approx = delta / (2*Math.PI);
+    const error = Math.abs(zeta_est - zeta_true) / zeta_true * 100;
+    
+    ctx.fillStyle = '#fff'; ctx.font = '11px JetBrains Mono';
+    ctx.fillText(
+      `δ = (1/${n})·ln(${(p1.x*1000).toFixed(2)}/${(p_last.x*1000).toFixed(2)}) = ${delta.toFixed(4)}`,
+      22, bottomY + 36
+    );
+    ctx.fillStyle = '#facc15';
+    ctx.fillText(
+      `ζ_estimasi = δ/√(4π² + δ²) = ${zeta_est.toFixed(4)} | ζ_aproksimasi = δ/2π = ${zeta_approx.toFixed(4)}`,
+      22, bottomY + 52
+    );
+    
+    const errorColor = error < 5 ? '#00e09e' : error < 15 ? '#facc15' : '#ef4444';
+    ctx.fillStyle = errorColor;
+    ctx.font = 'bold 11px JetBrains Mono';
+    ctx.fillText(
+      `vs ζ_true = ${zeta_true.toFixed(4)} | Error = ${error.toFixed(2)}% ${error < 5 ? '✓ Akurat' : ''}`,
+      22, bottomY + 68
+    );
+  } else {
+    ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
+    ctx.fillText('Mendeteksi puncak... tunggu beberapa saat sampai 2+ puncak terdeteksi.', 22, bottomY + 36);
+  }
+  
+  // Update info
+  const info = document.getElementById('logDecInfo');
+  if (info) {
+    info.innerHTML = `t = ${t.toFixed(2)}s | Puncak terdeteksi: <strong>${_logAnim.peaks.length}</strong> | ` +
+      `Animasi: ${_logAnim.running ? 'Running ✓' : 'Paused'}`;
+  }
+}
+
+function _logTick(){
+  if (!_logAnim.running) return;
+  _logAnim.t += 0.016;
+  if (_logAnim.t > 4.0) {
+    // restart cycle
+    _logAnim.t = 0;
+    _logAnim.peaks = [];
+    _logAnim.history = [];
+  }
+  drawLogDec();
+  _logAnim.raf = requestAnimationFrame(_logTick);
+}
+setTimeout(() => { drawLogDec(); _logTick(); }, 800);
+(function(){
+  const sl = document.getElementById('sl_zl');
+  if (sl) sl.addEventListener('input', () => {
+    _logAnim.t = 0;
+    _logAnim.peaks = [];
+    _logAnim.history = [];
+    drawLogDec();
+  });
+})();
+
+
+// ════════════════════════════════════════════════════════════
+// ANIMASI 4 — SETTLING TIME vs ZETA INTERACTIVE EXPLORER
+// ════════════════════════════════════════════════════════════
+let _settAnim = { t: 0, running: true, raf: null };
+
+function drawSettling(){
+  const cv = document.getElementById('cvSettling'); if(!cv) return;
+  const W = cv.clientWidth || 800; cv.width = W; const H = cv.height;
+  if (W < 50) return;
+  const ctx = cv.getContext('2d');
+  
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1626');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+  
+  const m = 5, k = 2000;
+  const omega_n = Math.sqrt(k/m);
+  const zeta_sel = parseFloat(document.getElementById('sl_zs').value);
+  const v_zs = document.getElementById('v_zs');
+  if (v_zs) v_zs.textContent = zeta_sel.toFixed(2);
+  
+  const t = _settAnim.t;
+  
+  // Compute t_settle for given zeta (numerical from envelope)
+  function ts_estimate(zeta) {
+    if (zeta <= 0) return 999;
+    if (zeta < 1) {
+      // 4 / (zeta * omega_n) for envelope to reach 2%
+      return 4 / (zeta * omega_n);
+    } else if (Math.abs(zeta - 1) < 0.01) {
+      // Critical: t_s when |x| < 0.02*x0 with x(t) = (x0)(1 + omega_n*t)*exp(-omega_n*t)
+      // (1+w*t)*exp(-w*t) = 0.02 → t ≈ 5.83/omega_n
+      return 5.83 / omega_n;
+    } else {
+      // Overdamped: dominated by slow root s1 = -omega_n*(zeta - sqrt(zeta^2-1))
+      const sq = Math.sqrt(zeta*zeta - 1);
+      const s1 = omega_n * (zeta - sq);   // |slow|
+      const s2 = omega_n * (zeta + sq);
+      // Approximate: A1 ≈ x0 for big diff
+      // 0.05 * exp(-s1 * t) = 0.001 → t = ln(50)/s1
+      return Math.log(50) / s1;
+    }
+  }
+  
+  // Layout: left = curve, right = mini-sim
+  const leftW = W * 0.55;
+  const rightX = leftW + 8;
+  const rightW = W - rightX - 12;
+  
+  // ── LEFT: t_s vs ζ curve ──
+  ctx.strokeStyle = 'rgba(236,72,153,.25)'; ctx.lineWidth = 1;
+  ctx.strokeRect(8, 8, leftW - 8, H - 16);
+  
+  const padL = 50, padR = 14, padT = 40, padB = 40;
+  const cpX = padL;
+  const cpY = padT;
+  const cpW = leftW - padL - padR - 8;
+  const cpH = H - padT - padB - 16;
+  
+  ctx.fillStyle = '#ec4899'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.textAlign = 'left';
+  ctx.fillText('📈 SETTLING TIME vs ζ', 18, 24);
+  
+  // Compute curve
+  const zetaMin = 0.05, zetaMax = 3.0;
+  const N = 100;
+  const points = [];
+  let tsMax = 0;
+  for (let i = 0; i <= N; i++) {
+    const z = zetaMin + (zetaMax - zetaMin) * i / N;
+    const ts = ts_estimate(z);
+    points.push({z, ts});
+    if (ts > tsMax) tsMax = ts;
+  }
+  tsMax = Math.min(tsMax, 4);   // cap visualization
+  
+  // Grid
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for (let i = 0; i <= 6; i++) {
+    const xg = cpX + i * cpW / 6;
+    ctx.beginPath(); ctx.moveTo(xg, cpY); ctx.lineTo(xg, cpY+cpH); ctx.stroke();
+  }
+  for (let j = 0; j <= 4; j++) {
+    const yg = cpY + j * cpH / 4;
+    ctx.beginPath(); ctx.moveTo(cpX, yg); ctx.lineTo(cpX+cpW, yg); ctx.stroke();
+  }
+  
+  // Plot curve
+  ctx.strokeStyle = '#ec4899'; ctx.lineWidth = 2.5;
+  ctx.shadowColor = 'rgba(236,72,153,.5)'; ctx.shadowBlur = 4;
+  ctx.beginPath();
+  points.forEach((p, i) => {
+    const px = cpX + (p.z - zetaMin) / (zetaMax - zetaMin) * cpW;
+    const py = cpY + cpH - Math.min(p.ts, tsMax) / tsMax * cpH;
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  });
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+  
+  // Critical line at zeta=1
+  const critPx = cpX + (1 - zetaMin) / (zetaMax - zetaMin) * cpW;
+  ctx.strokeStyle = 'rgba(0,224,158,.5)'; ctx.lineWidth = 1;
+  ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(critPx, cpY); ctx.lineTo(critPx, cpY+cpH); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#00e09e'; ctx.font = 'bold 9px JetBrains Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('ζ=1 (critical)', critPx, cpY-3);
+  
+  // Selected zeta marker
+  const ts_at_sel = ts_estimate(zeta_sel);
+  const selPx = cpX + (zeta_sel - zetaMin) / (zetaMax - zetaMin) * cpW;
+  const selPy = cpY + cpH - Math.min(ts_at_sel, tsMax) / tsMax * cpH;
+  
+  // Crosshair
+  ctx.strokeStyle = 'rgba(250,204,21,.7)'; ctx.lineWidth = 1.5;
+  ctx.setLineDash([2,3]);
+  ctx.beginPath(); ctx.moveTo(selPx, cpY); ctx.lineTo(selPx, selPy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cpX, selPy); ctx.lineTo(selPx, selPy); ctx.stroke();
+  ctx.setLineDash([]);
+  
+  // Marker
+  const markerPulse = 0.7 + 0.3 * Math.sin(t * 5);
+  ctx.fillStyle = `rgba(250,204,21,${markerPulse})`;
+  ctx.shadowColor = '#facc15'; ctx.shadowBlur = 8;
+  ctx.beginPath(); ctx.arc(selPx, selPy, 7, 0, Math.PI*2); ctx.fill();
+  ctx.shadowBlur = 0;
+  
+  // Axis labels
+  ctx.fillStyle = '#475569'; ctx.font = '8px JetBrains Mono';
+  ctx.textAlign = 'right';
+  ctx.fillText(`${tsMax.toFixed(1)}s`, cpX-3, cpY+8);
+  ctx.fillText('0', cpX-3, cpY+cpH-3);
+  ctx.textAlign = 'center';
+  for (let i = 0; i <= 6; i++) {
+    const z = zetaMin + (zetaMax - zetaMin) * i / 6;
+    ctx.fillText(z.toFixed(1), cpX + i*cpW/6, cpY+cpH+12);
+  }
+  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 9px JetBrains Mono';
+  ctx.textAlign = 'left';
+  ctx.fillText('t_s (s)', cpX-30, cpY+8);
+  ctx.fillText('ζ', cpX+cpW+5, cpY+cpH+5);
+  
+  // ── RIGHT: Mini-simulation x(t) for selected zeta ──
+  ctx.strokeStyle = 'rgba(168,85,247,.25)'; ctx.lineWidth = 1;
+  ctx.strokeRect(rightX, 8, rightW, H - 16);
+  
+  ctx.fillStyle = '#a855f7'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.textAlign = 'left';
+  ctx.fillText(`🎬 SIMULASI x(t) untuk ζ=${zeta_sel.toFixed(2)}`, rightX + 12, 24);
+  
+  const simPadL = 40, simPadR = 14, simPadT = 40, simPadB = 30;
+  const simX = rightX + simPadL;
+  const simY = simPadT;
+  const simW = rightW - simPadL - simPadR;
+  const simH = H - simPadT - simPadB - 16;
+  
+  // Compute x(t) loop
+  const tSimMax = Math.min(ts_at_sel * 1.3, 3);
+  const x0_sim = 0.05;
+  
+  // Grid
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const xg = simX + i * simW / 4;
+    ctx.beginPath(); ctx.moveTo(xg, simY); ctx.lineTo(xg, simY+simH); ctx.stroke();
+  }
+  
+  // Zero line
+  ctx.strokeStyle = 'rgba(255,255,255,.3)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(simX, simY+simH/2); ctx.lineTo(simX+simW, simY+simH/2); ctx.stroke();
+  
+  // ±2% threshold (settling line)
+  const threshPx = (0.02) * (simH/2 - 4);
+  ctx.strokeStyle = 'rgba(0,224,158,.5)'; ctx.lineWidth = 1;
+  ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(simX, simY+simH/2-threshPx); ctx.lineTo(simX+simW, simY+simH/2-threshPx); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(simX, simY+simH/2+threshPx); ctx.lineTo(simX+simW, simY+simH/2+threshPx); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(0,224,158,.7)'; ctx.font = '8px JetBrains Mono';
+  ctx.textAlign = 'left';
+  ctx.fillText('±2%', simX+3, simY+simH/2-threshPx-3);
+  
+  // Plot x(t) — animated drawing
+  function compute_x_t(zeta_v, tt) {
+    if (zeta_v < 0.01) return x0_sim * Math.cos(omega_n * tt);
+    if (zeta_v < 1) {
+      const omega_d = omega_n * Math.sqrt(1 - zeta_v*zeta_v);
+      const A = x0_sim;
+      const B = (zeta_v * omega_n * x0_sim) / omega_d;
+      return Math.exp(-zeta_v*omega_n*tt) * (A*Math.cos(omega_d*tt) + B*Math.sin(omega_d*tt));
+    } else if (Math.abs(zeta_v - 1) < 0.01) {
+      return (x0_sim + omega_n*x0_sim*tt) * Math.exp(-omega_n*tt);
+    } else {
+      const sq = Math.sqrt(zeta_v*zeta_v - 1);
+      const s1 = -omega_n*(zeta_v - sq);
+      const s2 = -omega_n*(zeta_v + sq);
+      const A = (x0_sim*s2) / (s2 - s1);
+      const B = (x0_sim*-s1) / (s2 - s1);
+      return A * Math.exp(s1*tt) + B * Math.exp(s2*tt);
+    }
+  }
+  
+  // Draw full curve
+  ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 2;
+  ctx.shadowColor = 'rgba(168,85,247,.5)'; ctx.shadowBlur = 3;
+  ctx.beginPath();
+  const N2 = 200;
+  for (let i = 0; i <= N2; i++) {
+    const tt = (i/N2) * tSimMax;
+    const xx = compute_x_t(zeta_sel, tt);
+    const px = simX + tt / tSimMax * simW;
+    const py = simY + simH/2 - (xx / x0_sim) * (simH/2 - 4);
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+  
+  // Animated cursor (sweeping point)
+  const cursorT = (t * 0.7) % tSimMax;
+  const cursorX = compute_x_t(zeta_sel, cursorT);
+  const cpx = simX + cursorT / tSimMax * simW;
+  const cpy = simY + simH/2 - (cursorX / x0_sim) * (simH/2 - 4);
+  const cursorPulse = 0.7 + 0.3 * Math.sin(t * 8);
+  ctx.fillStyle = `rgba(250,204,21,${cursorPulse})`;
+  ctx.shadowColor = '#facc15'; ctx.shadowBlur = 8;
+  ctx.beginPath(); ctx.arc(cpx, cpy, 5, 0, Math.PI*2); ctx.fill();
+  ctx.shadowBlur = 0;
+  
+  // Settling time marker
+  const tsX = simX + Math.min(ts_at_sel, tSimMax) / tSimMax * simW;
+  if (ts_at_sel < tSimMax) {
+    ctx.strokeStyle = 'rgba(0,224,158,.7)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(tsX, simY); ctx.lineTo(tsX, simY+simH); ctx.stroke();
+    ctx.fillStyle = '#00e09e'; ctx.font = 'bold 9px JetBrains Mono';
+    ctx.textAlign = 'center';
+    ctx.fillText(`t_s = ${ts_at_sel.toFixed(2)}s`, tsX, simY-3);
+  }
+  
+  // Axis labels
+  ctx.fillStyle = '#475569'; ctx.font = '8px JetBrains Mono';
+  ctx.textAlign = 'right';
+  ctx.fillText('+x₀', simX-3, simY+8);
+  ctx.fillText('0', simX-3, simY+simH/2+3);
+  ctx.fillText('-x₀', simX-3, simY+simH-3);
+  ctx.textAlign = 'center';
+  ctx.fillText('0s', simX, simY+simH+12);
+  ctx.fillText(`${tSimMax.toFixed(1)}s`, simX+simW, simY+simH+12);
+  
+  // Update info
+  const info = document.getElementById('settlingInfo');
+  if (info) {
+    let kelas = 'Tak Teredam';
+    let warna = '#facc15';
+    if (zeta_sel < 0.01) { kelas = 'Tak Teredam (idealisasi)'; warna = '#facc15'; }
+    else if (zeta_sel < 1) { kelas = 'Underdamped'; warna = '#0ea5e9'; }
+    else if (Math.abs(zeta_sel - 1) < 0.05) { kelas = 'Critical Damped (optimal!)'; warna = '#00e09e'; }
+    else { kelas = 'Overdamped'; warna = '#a855f7'; }
+    info.innerHTML = `ζ = ${zeta_sel.toFixed(2)} &nbsp;|&nbsp; ` +
+      `<strong style="color:${warna}">${kelas}</strong> &nbsp;|&nbsp; ` +
+      `t_s = ${ts_at_sel.toFixed(3)} s &nbsp;|&nbsp; ` +
+      `τ = ${(1/(zeta_sel*omega_n)).toFixed(3)} s`;
+  }
+}
+
+function _settTick(){
+  _settAnim.t += 0.016;
+  drawSettling();
+  _settAnim.raf = requestAnimationFrame(_settTick);
+}
+setTimeout(() => { drawSettling(); _settTick(); }, 800);
+(function(){
+  const sl = document.getElementById('sl_zs');
+  if (sl) sl.addEventListener('input', drawSettling);
+})();
+
+
+
+// ════════════════════════════════════════════════════════════
+// FORUM CANVAS — 3-PENDULUM DAMPING LAB (Pertemuan 3)
+// Tiga pendulum identik (m=1, L=0.5) dilepas serentak dari θ₀=0.4 rad
+// dalam medium berbeda → 3 regim redaman terlihat fisik & langsung:
+//   • Pendulum 1 (UDARA):   ζ ≈ 0.05 → underdamped osilasi panjang
+//   • Pendulum 2 (AIR):     ζ ≈ 0.30 → underdamped peluruhan cepat
+//   • Pendulum 3 (OLI):     ζ ≈ 1.20 → overdamped tanpa osilasi
 // LAYOUT:
-//   LEFT (40%)  : Animated quarter-car bouncing with velocity arrow & shock waves
-//   RIGHT TOP   : Time response x(t) drawn progressively dengan glow trail
-//   RIGHT BOT   : Phase portrait spiral dengan fade trail
-//   BOTTOM      : Live metrics + progress bar
+//   TOP (60%)    : 3 pendulum animation di 3 wadah fluida
+//   MIDDLE (30%) : Time response θ(t) ketiganya overlay dalam 1 plot
+//   BOTTOM (10%) : Live metrics strip
 // ════════════════════════════════════════════════════════════
 let _forumAnim = { 
   t: 0, 
-  history: [],          // { t, x, v }
+  histories: [[], [], []],
   raf: null,
-  shockwaves: []        // active shock-wave rings
+  ripples: [[], [], []]   // ripple effects per pendulum (water/oil splash)
 };
 
 function drawForumCanvas() {
   const cv = document.getElementById('cvForum'); if (!cv) return;
   const W = cv.clientWidth || 800; cv.width = W; const H = cv.height;
-  if (W < 50) return;   // canvas not yet visible
+  if (W < 50) return;
   const ctx = cv.getContext('2d');
 
-  // Background gradient
+  // Background
   const bg = ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1626');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  // Quarter-car suspension parameters
-  const m = 400, k = 40000, c = 2000;
-  const omega_n = Math.sqrt(k/m);            // 10 rad/s
-  const zeta = c / (2 * Math.sqrt(k*m));     // 0.25
-  const omega_d = omega_n * Math.sqrt(1 - zeta*zeta);  // 9.6825 rad/s
-  const T_d = 2 * Math.PI / omega_d;         // ≈ 0.6489 s
-
-  // IC: x0 = 0.05 m, v0 = 0
-  // x(t) = exp(-zeta*omega_n*t) * (A*cos(omega_d*t) + B*sin(omega_d*t))
-  const x0 = 0.05;
-  const A = x0;
-  const B = (zeta * omega_n * x0) / omega_d;
-  
-  // Cycle time — 5 seconds for visible drawing
-  const cycleSec = 5.0;
-  const t_phase = (_forumAnim.t % cycleSec);
-  
-  // Reset at start of new cycle (with brief flash effect)
-  const justReset = t_phase < 0.05 && _forumAnim.history.length > 50;
+  // 3 pendulum scenarios
+  // Linear pendulum: theta_dd + 2*zeta*omega*theta_d + omega^2*theta = 0
+  //   omega = sqrt(g/L), L = 0.5 → omega ≈ 4.43 rad/s
+  const L = 0.5, g = 9.81;
+  const omega_n = Math.sqrt(g/L);  // 4.43 rad/s
+  const theta0 = 0.4;               // ~23 degrees initial
+  const t_phase = (_forumAnim.t % 6.0);
+  const justReset = t_phase < 0.05 && _forumAnim.histories[0].length > 50;
   if (justReset) {
-    _forumAnim.history = [];
-    _forumAnim.shockwaves = [];
+    _forumAnim.histories = [[], [], []];
+    _forumAnim.ripples = [[], [], []];
   }
   
-  // Compute current x(t) and v(t)
-  const decay = Math.exp(-zeta * omega_n * t_phase);
-  const cosTerm = Math.cos(omega_d * t_phase);
-  const sinTerm = Math.sin(omega_d * t_phase);
-  const x = decay * (A * cosTerm + B * sinTerm);
-  const v = decay * ((-zeta*omega_n) * (A*cosTerm + B*sinTerm) + omega_d*(-A*sinTerm + B*cosTerm));
+  const scenarios = [
+    { name: 'UDARA',  fluid: 'air',   zeta: 0.05, color: '#facc15', bgColor: 'rgba(250,204,21,.04)', borderColor: 'rgba(250,204,21,.3)' },
+    { name: 'AIR',    fluid: 'water', zeta: 0.30, color: '#0ea5e9', bgColor: 'rgba(14,165,233,.08)', borderColor: 'rgba(14,165,233,.4)' },
+    { name: 'OLI',    fluid: 'oil',   zeta: 1.20, color: '#a855f7', bgColor: 'rgba(168,85,247,.10)', borderColor: 'rgba(168,85,247,.4)' },
+  ];
   
-  // Add to history
-  _forumAnim.history.push({t: t_phase, x: x, v: v});
-  if (_forumAnim.history.length > 800) _forumAnim.history.shift();
-  
-  // Detect peak displacement events to spawn shock-wave
-  if (_forumAnim.history.length >= 3) {
-    const n = _forumAnim.history.length;
-    const last3 = _forumAnim.history.slice(n-3);
-    if (Math.abs(last3[1].x) > Math.abs(last3[0].x) && Math.abs(last3[1].x) > Math.abs(last3[2].x) && Math.abs(last3[1].x) > 0.005) {
-      _forumAnim.shockwaves.push({age: 0, sign: Math.sign(last3[1].x)});
+  // Compute theta(t) for each scenario
+  function compute_theta(zeta, t) {
+    if (zeta < 1) {
+      const omega_d = omega_n * Math.sqrt(1 - zeta*zeta);
+      const A = theta0;
+      const B = (zeta * omega_n * theta0) / omega_d;
+      return Math.exp(-zeta*omega_n*t) * (A*Math.cos(omega_d*t) + B*Math.sin(omega_d*t));
+    } else {
+      const sq = Math.sqrt(zeta*zeta - 1);
+      const s1 = -omega_n*(zeta - sq);
+      const s2 = -omega_n*(zeta + sq);
+      const A = (theta0*s2) / (s2 - s1);
+      const B = (theta0*-s1) / (s2 - s1);
+      return A * Math.exp(s1*t) + B * Math.exp(s2*t);
     }
   }
-  // Update shockwaves
-  _forumAnim.shockwaves = _forumAnim.shockwaves.filter(sw => {
-    sw.age += 0.025;
-    return sw.age < 0.8;
+  
+  function compute_omega(zeta, t) {
+    // Numerical derivative for simplicity
+    const dt = 0.001;
+    return (compute_theta(zeta, t+dt) - compute_theta(zeta, t-dt)) / (2*dt);
+  }
+  
+  // Update history  
+  scenarios.forEach((s, i) => {
+    const th = compute_theta(s.zeta, t_phase);
+    _forumAnim.histories[i].push({t: t_phase, theta: th});
+    if (_forumAnim.histories[i].length > 600) _forumAnim.histories[i].shift();
   });
   
-  // Energy
-  const T_kinetic = 0.5 * m * v * v;
-  const U_potential = 0.5 * k * x * x;
-  const E_total = T_kinetic + U_potential;
-  const E_initial = 0.5 * k * x0 * x0;       // 50 J
-
-  // ═══ LAYOUT ═══
-  const leftW = W * 0.4;
-  const rightX = leftW + 8;
-  const rightW = W - rightX - 8;
-  const bottomH = 60;
-  const mainH = H - bottomH - 8;
-  const rightTopH = mainH * 0.5;
-  const rightBotY = 8 + rightTopH + 4;
-  const rightBotH = mainH - 8 - rightTopH - 4;
-
-  // ════════════════════════════════════════════════════════════
-  // ═══ LEFT PANEL — Animated Quarter-Car ═══
-  // ════════════════════════════════════════════════════════════
-  ctx.strokeStyle = 'rgba(14,165,233,.2)'; ctx.lineWidth = 1;
-  ctx.strokeRect(8, 8, leftW - 8, mainH - 8);
-  ctx.fillStyle = 'rgba(14,165,233,.04)';
-  ctx.fillRect(8, 8, leftW - 8, mainH - 8);
+  // Layout
+  const headerH = 30;
+  const animH = (H - headerH) * 0.50;     // 50% pendulum animation
+  const plotH = (H - headerH) * 0.32;     // 32% time response
+  const stripH = (H - headerH) * 0.18;    // 18% metrics
   
-  // Title with pulsing dot
-  const titlePulse = 0.6 + 0.4 * Math.sin(_forumAnim.t * 3);
+  // Header banner
+  const titlePulse = 0.6 + 0.4 * Math.sin(_forumAnim.t * 2.5);
   ctx.fillStyle = `rgba(239,68,68,${titlePulse})`;
-  ctx.beginPath(); ctx.arc(20, 20, 4, 0, Math.PI*2); ctx.fill();
-  ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText('LIVE  ·  QUARTER-CAR DROP TEST', 32, 24);
+  ctx.beginPath(); ctx.arc(20, headerH/2, 4, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#ef4444'; ctx.font = 'bold 12px JetBrains Mono';
+  ctx.textAlign = 'left';
+  ctx.fillText('LIVE  ·  3-PENDULUM DAMPING LAB', 32, headerH/2 + 4);
   ctx.fillStyle = '#94a3b8'; ctx.font = '9px JetBrains Mono';
-  ctx.fillText(`m=400kg, k=40kN/m, c=2kNs/m, ζ=0.25`, 18, 38);
-  
-  // Car geometry
-  const cx = leftW / 2;
-  const restY = mainH / 2 + 20;
-  const maxDispPx = 60;
-  const xPx = (x / x0) * maxDispPx;
-  const carY = restY + xPx;
-  
-  // Top fixed bracket
-  ctx.fillStyle = 'rgba(148,163,184,.3)';
-  ctx.fillRect(cx - 50, restY - 90 - maxDispPx - 10, 100, 8);
-  ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1;
-  for (let i = 0; i < 8; i++) {
-    ctx.beginPath();
-    ctx.moveTo(cx - 45 + i * 12, restY - 90 - maxDispPx - 10);
-    ctx.lineTo(cx - 38 + i * 12, restY - 90 - maxDispPx - 2);
-    ctx.stroke();
-  }
-  
-  // Spring (left) — coils with extra coil count when stretched
-  const spX = cx - 25;
-  const spTop = restY - 90 - maxDispPx - 2;
-  const spBot = carY;
-  const spLen = spBot - spTop;
-  const coils = 8;
-  ctx.strokeStyle = 'rgba(168,85,247,.85)'; ctx.lineWidth = 2.5;
-  ctx.beginPath();
-  ctx.moveTo(spX, spTop);
-  for (let i = 0; i < coils; i++) {
-    const y = spTop + (i + 0.5) * spLen / coils;
-    const xC = spX + (i % 2 === 0 ? -10 : 10);
-    ctx.lineTo(xC, y);
-  }
-  ctx.lineTo(spX, spBot);
-  ctx.stroke();
-  
-  // Damper (right) — animated piston
-  const dpX = cx + 25;
-  const dpTop = spTop;
-  const dpBot = spBot;
-  const dpMid = (dpTop + dpBot) / 2;
-  ctx.strokeStyle = 'rgba(249,115,22,.85)'; ctx.lineWidth = 2.5;
-  ctx.beginPath(); ctx.moveTo(dpX, dpTop); ctx.lineTo(dpX, dpMid - 14); ctx.stroke();
-  // cylinder body
-  ctx.fillStyle = 'rgba(249,115,22,.15)';
-  ctx.fillRect(dpX - 10, dpMid - 14, 20, 28);
-  ctx.strokeStyle = 'rgba(249,115,22,.85)';
-  ctx.strokeRect(dpX - 10, dpMid - 14, 20, 28);
-  // piston (position varies with velocity sign for visual feedback)
-  const pistonOffset = Math.sign(v) * Math.min(8, Math.abs(v) * 4);
-  ctx.fillStyle = 'rgba(249,115,22,.7)';
-  ctx.fillRect(dpX - 8, dpMid - 2 + pistonOffset, 16, 5);
-  // rod to bottom
-  ctx.beginPath(); ctx.moveTo(dpX, dpMid + 14); ctx.lineTo(dpX, dpBot); ctx.stroke();
-  
-  // Shock-wave rings emanating from car
-  _forumAnim.shockwaves.forEach(sw => {
-    const radius = sw.age * 80;
-    const alpha = 0.6 * (1 - sw.age / 0.8);
-    ctx.strokeStyle = `rgba(0,224,158,${alpha})`;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(cx, carY + 18, radius, 0, Math.PI*2);
-    ctx.stroke();
-  });
-  
-  // Car body
-  const carW = 120, carH = 40;
-  const carGrad = ctx.createLinearGradient(cx - carW/2, carY, cx + carW/2, carY + carH);
-  carGrad.addColorStop(0, 'rgba(14,165,233,.4)');
-  carGrad.addColorStop(1, 'rgba(14,165,233,.18)');
-  ctx.fillStyle = carGrad;
-  ctx.fillRect(cx - carW/2, carY, carW, carH);
-  ctx.strokeStyle = 'rgba(14,165,233,1)'; ctx.lineWidth = 2;
-  ctx.strokeRect(cx - carW/2, carY, carW, carH);
-  // wheels
-  ctx.fillStyle = '#1e293b';
-  ctx.beginPath(); ctx.arc(cx - 38, carY + carH + 9, 13, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(cx + 38, carY + carH + 9, 13, 0, Math.PI*2); ctx.fill();
-  ctx.strokeStyle = 'rgba(148,163,184,.6)'; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.arc(cx - 38, carY + carH + 9, 13, 0, Math.PI*2); ctx.stroke();
-  ctx.beginPath(); ctx.arc(cx + 38, carY + carH + 9, 13, 0, Math.PI*2); ctx.stroke();
-  // wheel hubs
-  ctx.fillStyle = '#475569';
-  ctx.beginPath(); ctx.arc(cx - 38, carY + carH + 9, 4, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(cx + 38, carY + carH + 9, 4, 0, Math.PI*2); ctx.fill();
-  // mass label
-  ctx.fillStyle = '#fff'; ctx.font = 'bold 14px JetBrains Mono';
-  ctx.textAlign = 'center';
-  ctx.fillText('m = 400 kg', cx, carY + 25);
+  ctx.textAlign = 'right';
+  ctx.fillText(`L=0.5m, ωₙ=4.43 rad/s, θ₀=0.4 rad (23°)`, W-14, headerH/2 + 4);
   ctx.textAlign = 'left';
   
-  // Velocity arrow on car
-  if (Math.abs(v) > 0.05) {
-    const arrowLen = Math.min(35, Math.abs(v) * 25);
-    const arrowDir = Math.sign(v);
-    const ax = cx + carW/2 + 10;
-    const ay = carY + carH/2;
-    ctx.strokeStyle = arrowDir > 0 ? '#ef4444' : '#00e09e';
-    ctx.fillStyle = ctx.strokeStyle;
-    ctx.lineWidth = 2.5;
+  // ════════════════════════════════════════════════════════════
+  // TOP — 3 PENDULUMS
+  // ════════════════════════════════════════════════════════════
+  const colW = W / 3;
+  
+  scenarios.forEach((s, i) => {
+    const cx = colW * i + colW / 2;
+    const cy = headerH + animH * 0.18;     // pivot point
+    const pendL = animH * 0.55;            // pendulum length in pixels
+    const theta = compute_theta(s.zeta, t_phase);
+    const omega_dot = compute_omega(s.zeta, t_phase);
+    
+    // Container/medium box
+    const boxX = colW * i + 8;
+    const boxY = headerH + 4;
+    const boxW = colW - 16;
+    const boxH = animH - 8;
+    ctx.fillStyle = s.bgColor;
+    ctx.fillRect(boxX, boxY, boxW, boxH);
+    ctx.strokeStyle = s.borderColor; ctx.lineWidth = 1.5;
+    ctx.strokeRect(boxX, boxY, boxW, boxH);
+    
+    // Fluid level (bottom 70% filled with fluid pattern)
+    const fluidY = cy + pendL * 0.3;
+    const fluidH = (boxY + boxH) - fluidY;
+    if (s.fluid !== 'air') {
+      // Fill with fluid color
+      const fluidGrad = ctx.createLinearGradient(0, fluidY, 0, fluidY + fluidH);
+      const baseColor = s.fluid === 'water' ? '14,165,233' : '139,69,19';   // blue or oil-brown
+      fluidGrad.addColorStop(0, `rgba(${baseColor},.08)`);
+      fluidGrad.addColorStop(1, `rgba(${baseColor},.20)`);
+      ctx.fillStyle = fluidGrad;
+      ctx.fillRect(boxX + 2, fluidY, boxW - 4, fluidH - 1);
+      
+      // Fluid surface waves (animated)
+      ctx.strokeStyle = `rgba(${baseColor},.6)`; ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      for (let xx = boxX + 2; xx <= boxX + boxW - 2; xx += 4) {
+        const waveY = fluidY + Math.sin((xx + _forumAnim.t * 30) * 0.1) * 1.5;
+        if (xx === boxX + 2) ctx.moveTo(xx, waveY);
+        else ctx.lineTo(xx, waveY);
+      }
+      ctx.stroke();
+    }
+    
+    // Spawn ripples when pendulum bob crosses fluid surface (water/oil only)
+    if (s.fluid !== 'air') {
+      const bobY_now = cy + pendL * Math.cos(theta);
+      const lastIdx = _forumAnim.histories[i].length - 2;
+      if (lastIdx > 0) {
+        const lastTheta = _forumAnim.histories[i][lastIdx].theta;
+        const lastBobY = cy + pendL * Math.cos(lastTheta);
+        // Bob is moving — check if velocity is high enough
+        if (Math.abs(omega_dot) > 0.5 && Math.abs(theta) < 0.05) {
+          // Crossing equilibrium — spawn ripple
+          const bobX_now = cx + pendL * Math.sin(theta);
+          if (_forumAnim.ripples[i].length === 0 || 
+              t_phase - _forumAnim.ripples[i][_forumAnim.ripples[i].length-1].t > 0.2) {
+            _forumAnim.ripples[i].push({age: 0, x: bobX_now, y: bobY_now, t: t_phase});
+          }
+        }
+      }
+    }
+    
+    // Update + draw ripples
+    _forumAnim.ripples[i] = _forumAnim.ripples[i].filter(rip => {
+      rip.age += 0.02;
+      if (rip.age > 0.6) return false;
+      const rad = rip.age * 30;
+      const alpha = 0.7 * (1 - rip.age / 0.6);
+      ctx.strokeStyle = `rgba(${s.fluid === 'water' ? '14,165,233' : '139,69,19'},${alpha})`;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(rip.x, rip.y, rad, 0, Math.PI*2);
+      ctx.stroke();
+      return true;
+    });
+    
+    // Pivot bracket (ceiling)
+    ctx.fillStyle = 'rgba(148,163,184,.5)';
+    ctx.fillRect(cx - 30, boxY + 4, 60, 6);
+    for (let h = 0; h < 5; h++) {
+      ctx.beginPath();
+      ctx.moveTo(cx - 27 + h*12, boxY + 10);
+      ctx.lineTo(cx - 21 + h*12, boxY + 14);
+      ctx.strokeStyle = 'rgba(148,163,184,.4)'; ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+    // Pivot dot
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI*2); ctx.fill();
+    
+    // Pendulum rod
+    const bobX = cx + pendL * Math.sin(theta);
+    const bobY = cy + pendL * Math.cos(theta);
+    ctx.strokeStyle = s.color; ctx.lineWidth = 2.5;
+    ctx.shadowColor = s.color; ctx.shadowBlur = 4;
     ctx.beginPath();
-    ctx.moveTo(ax, ay);
-    ctx.lineTo(ax, ay + arrowLen * arrowDir);
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(bobX, bobY);
     ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(ax, ay + arrowLen * arrowDir);
-    ctx.lineTo(ax - 5, ay + arrowLen * arrowDir - 6 * arrowDir);
-    ctx.lineTo(ax + 5, ay + arrowLen * arrowDir - 6 * arrowDir);
-    ctx.closePath();
-    ctx.fill();
-    ctx.font = 'bold 9px JetBrains Mono';
-    ctx.fillText('ẋ', ax + 8, ay + 4);
-  }
-  
-  // Ground
-  const groundY = mainH - 14;
-  ctx.fillStyle = 'rgba(100,116,139,.3)';
-  ctx.fillRect(18, groundY, leftW - 28, 8);
-  ctx.strokeStyle = 'rgba(148,163,184,.4)'; ctx.lineWidth = 1;
-  for (let i = 0; i < 14; i++) {
-    ctx.beginPath();
-    ctx.moveTo(22 + i*14, groundY + 8);
-    ctx.lineTo(28 + i*14, groundY + 14);
-    ctx.stroke();
-  }
-  
-  // Rest line indicator
-  ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.setLineDash([4,4]); ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(cx - 75, restY + carH/2); ctx.lineTo(cx + 75, restY + carH/2); ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.font = '9px JetBrains Mono';
-  ctx.fillText('rest (x=0)', cx + 80, restY + carH/2 + 3);
-  
-  // Display current x value next to the car
-  ctx.fillStyle = '#facc15';
-  ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText(`x = ${(x*1000).toFixed(2)} mm`, 18, mainH - 30);
+    ctx.shadowBlur = 0;
+    
+    // Pendulum bob
+    const bobR = 12;
+    ctx.fillStyle = s.color;
+    ctx.shadowColor = s.color; ctx.shadowBlur = 8;
+    ctx.beginPath(); ctx.arc(bobX, bobY, bobR, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(bobX, bobY, bobR, 0, Math.PI*2); ctx.stroke();
+    
+    // Reference vertical line (rest position)
+    ctx.strokeStyle = 'rgba(255,255,255,.15)'; ctx.lineWidth = 1;
+    ctx.setLineDash([2, 4]);
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx, cy + pendL); ctx.stroke();
+    ctx.setLineDash([]);
+    
+    // Header label inside box
+    ctx.fillStyle = s.color; ctx.font = 'bold 11px JetBrains Mono';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${s.name}`, cx, boxY + 25);
+    ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.font = '9px JetBrains Mono';
+    ctx.fillText(`ζ = ${s.zeta.toFixed(2)}`, cx, boxY + 38);
+    
+    // Angle indicator
+    ctx.fillStyle = s.color; ctx.font = '9px JetBrains Mono';
+    ctx.fillText(`θ = ${(theta*180/Math.PI).toFixed(1)}°`, cx, boxY + boxH - 6);
+    ctx.textAlign = 'left';
+    
+    // Classification label (top right of each box)
+    let kelas = 'Underdamped';
+    if (s.zeta < 0.1) kelas = 'Underdamped';
+    else if (s.zeta < 1) kelas = 'Underdamped';
+    else if (Math.abs(s.zeta - 1) < 0.05) kelas = 'Critical';
+    else kelas = 'Overdamped';
+    ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.font = '8px JetBrains Mono';
+    ctx.textAlign = 'right';
+    ctx.fillText(kelas, boxX + boxW - 8, boxY + 14);
+    ctx.textAlign = 'left';
+  });
   
   // ════════════════════════════════════════════════════════════
-  // ═══ RIGHT TOP — Time Response x(t) — ANIMATED PROGRESSIVE DRAW ═══
+  // MIDDLE — Time response θ(t) overlay
   // ════════════════════════════════════════════════════════════
-  const padL = 42, padR = 14, padT = 32, padB = 20;
-  const tpX = rightX + padL;
-  const tpY = 8 + padT;
-  const tpW = rightW - padL - padR;
-  const tpH = rightTopH - 8 - padT - padB;
+  const plotY = headerH + animH + 4;
+  const padL = 50, padR = 20;
+  const tpX = padL;
+  const tpY = plotY + 26;
+  const tpW = W - padL - padR;
+  const tpH = plotH - 36;
   
-  ctx.strokeStyle = 'rgba(168,85,247,.25)'; ctx.lineWidth = 1;
-  ctx.strokeRect(rightX, 8, rightW, rightTopH - 8);
-  ctx.fillStyle = 'rgba(168,85,247,.04)';
-  ctx.fillRect(rightX, 8, rightW, rightTopH - 8);
+  // Title
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.textAlign = 'left';
+  ctx.fillText('📊 TIME RESPONSE θ(t) — overlay 3 pendulum', 14, plotY + 18);
   
-  // Title with progress dot
-  ctx.fillStyle = `rgba(168,85,247,${titlePulse})`;
-  ctx.beginPath(); ctx.arc(rightX + 15, 20, 3, 0, Math.PI*2); ctx.fill();
-  ctx.fillStyle = '#a855f7'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText('TIME RESPONSE x(t) — drawing progresif', rightX + 24, 22);
+  // Plot border
+  ctx.strokeStyle = 'rgba(255,255,255,.15)'; ctx.lineWidth = 1;
+  ctx.strokeRect(tpX, tpY, tpW, tpH);
   
   // Grid
   ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
-  for (let i = 0; i <= 10; i++) {
-    const xg = tpX + i * tpW / 10;
-    ctx.beginPath(); ctx.moveTo(xg, tpY); ctx.lineTo(xg, tpY + tpH); ctx.stroke();
+  for (let i = 0; i <= 6; i++) {
+    const xg = tpX + i * tpW / 6;
+    ctx.beginPath(); ctx.moveTo(xg, tpY); ctx.lineTo(xg, tpY+tpH); ctx.stroke();
   }
   for (let j = 0; j <= 4; j++) {
     const yg = tpY + j * tpH / 4;
-    ctx.beginPath(); ctx.moveTo(tpX, yg); ctx.lineTo(tpX + tpW, yg); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(tpX, yg); ctx.lineTo(tpX+tpW, yg); ctx.stroke();
   }
-  
-  // Scaling
-  const sx_t = (t) => tpX + (t / cycleSec) * tpW;
-  const sy_x = (xv) => tpY + tpH/2 - (xv / x0) * (tpH/2 - 4);
   
   // Zero line
+  ctx.strokeStyle = 'rgba(255,255,255,.3)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(tpX, tpY+tpH/2); ctx.lineTo(tpX+tpW, tpY+tpH/2); ctx.stroke();
+  
+  const cycleSec = 6.0;
+  const sx_t = (t) => tpX + (t / cycleSec) * tpW;
+  const sy_th = (theta) => tpY + tpH/2 - (theta / theta0) * (tpH/2 - 4);
+  
+  // Plot trajectories
+  scenarios.forEach((s, i) => {
+    const hist = _forumAnim.histories[i];
+    if (hist.length > 1) {
+      ctx.strokeStyle = s.color; ctx.lineWidth = 2;
+      ctx.shadowColor = s.color; ctx.shadowBlur = 3;
+      ctx.beginPath();
+      hist.forEach((p, j) => {
+        if (j === 0) ctx.moveTo(sx_t(p.t), sy_th(p.theta));
+        else ctx.lineTo(sx_t(p.t), sy_th(p.theta));
+      });
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      
+      // Current head dot
+      const last = hist[hist.length - 1];
+      const headPulse = 0.7 + 0.3 * Math.sin(_forumAnim.t * 8);
+      ctx.fillStyle = s.color;
+      ctx.shadowColor = s.color; ctx.shadowBlur = 6;
+      ctx.beginPath();
+      ctx.arc(sx_t(last.t), sy_th(last.theta), 4, 0, Math.PI*2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+  });
+  
+  // Vertical "now" indicator
   ctx.strokeStyle = 'rgba(255,255,255,.2)'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(tpX, tpY + tpH/2); ctx.lineTo(tpX + tpW, tpY + tpH/2); ctx.stroke();
-  
-  // Envelope — animated dashed (rotating dash offset)
-  const dashOffset = (_forumAnim.t * 30) % 12;
-  ctx.strokeStyle = 'rgba(239,68,68,.45)'; ctx.lineWidth = 1.2;
-  ctx.setLineDash([4, 4]); ctx.lineDashOffset = -dashOffset;
-  ctx.beginPath();
-  for (let i = 0; i <= 100; i++) {
-    const ti = i / 100 * cycleSec;
-    const env = x0 * Math.exp(-zeta * omega_n * ti);
-    if (i === 0) ctx.moveTo(sx_t(ti), sy_x(env));
-    else ctx.lineTo(sx_t(ti), sy_x(env));
-  }
-  ctx.stroke();
-  ctx.beginPath();
-  for (let i = 0; i <= 100; i++) {
-    const ti = i / 100 * cycleSec;
-    const env = -x0 * Math.exp(-zeta * omega_n * ti);
-    if (i === 0) ctx.moveTo(sx_t(ti), sy_x(env));
-    else ctx.lineTo(sx_t(ti), sy_x(env));
-  }
-  ctx.stroke();
-  ctx.setLineDash([]); ctx.lineDashOffset = 0;
-  
-  // x(t) trajectory — gradient line for visual progress
-  if (_forumAnim.history.length > 1) {
-    ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 2.5;
-    ctx.shadowColor = 'rgba(168,85,247,.7)'; ctx.shadowBlur = 6;
-    ctx.beginPath();
-    _forumAnim.history.forEach((p, i) => {
-      if (i === 0) ctx.moveTo(sx_t(p.t), sy_x(p.x));
-      else ctx.lineTo(sx_t(p.t), sy_x(p.x));
-    });
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-  }
-  
-  // Current point (drawing head) — pulsing dot
-  const headPulse = 0.7 + 0.3 * Math.sin(_forumAnim.t * 8);
-  ctx.fillStyle = `rgba(239,68,68,${headPulse})`;
-  ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 12;
-  ctx.beginPath(); ctx.arc(sx_t(t_phase), sy_x(x), 6, 0, Math.PI*2); ctx.fill();
-  ctx.shadowBlur = 0;
-  // Inner bright dot
-  ctx.fillStyle = '#fff';
-  ctx.beginPath(); ctx.arc(sx_t(t_phase), sy_x(x), 2, 0, Math.PI*2); ctx.fill();
-  
-  // Vertical "current time" indicator line
-  ctx.strokeStyle = 'rgba(239,68,68,.3)'; ctx.lineWidth = 1.5;
-  ctx.setLineDash([2, 4]);
-  ctx.beginPath(); 
-  ctx.moveTo(sx_t(t_phase), tpY);
-  ctx.lineTo(sx_t(t_phase), tpY + tpH);
-  ctx.stroke();
+  ctx.setLineDash([2, 3]);
+  ctx.beginPath(); ctx.moveTo(sx_t(t_phase), tpY); ctx.lineTo(sx_t(t_phase), tpY+tpH); ctx.stroke();
   ctx.setLineDash([]);
   
   // Axis labels
   ctx.fillStyle = '#475569'; ctx.font = '8px JetBrains Mono';
-  ctx.textAlign = 'right'; 
-  ctx.fillText('+0.05', tpX - 3, tpY + 8);
-  ctx.fillText('0', tpX - 3, tpY + tpH/2 + 3);
-  ctx.fillText('-0.05', tpX - 3, tpY + tpH - 4);
+  ctx.textAlign = 'right';
+  ctx.fillText('+0.4', tpX-3, tpY+8);
+  ctx.fillText('0', tpX-3, tpY+tpH/2+3);
+  ctx.fillText('-0.4', tpX-3, tpY+tpH-3);
   ctx.textAlign = 'center';
-  ctx.fillText('0s', tpX, tpY + tpH + 12);
-  ctx.fillText(`${cycleSec}s`, tpX + tpW, tpY + tpH + 12);
-  ctx.fillText(`t = ${t_phase.toFixed(2)}s`, sx_t(t_phase), tpY + tpH + 12);
+  ctx.fillText('0s', tpX, tpY+tpH+12);
+  ctx.fillText(`${cycleSec}s`, tpX+tpW, tpY+tpH+12);
+  ctx.fillText(`t = ${t_phase.toFixed(2)}s`, sx_t(t_phase), tpY+tpH+12);
   ctx.textAlign = 'left';
   ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 9px JetBrains Mono';
-  ctx.fillText('x (m)', tpX - 38, tpY + 8);
+  ctx.fillText('θ (rad)', tpX-44, tpY+8);
   
   // ════════════════════════════════════════════════════════════
-  // ═══ RIGHT BOTTOM — Phase Portrait — ANIMATED ═══
+  // BOTTOM — Live metrics strip
   // ════════════════════════════════════════════════════════════
-  const ppX = rightX + padL;
-  const ppY = rightBotY + padT - 10;
-  const ppW = rightW - padL - padR;
-  const ppH = rightBotH - padT + 10 - padB;
-  
-  ctx.strokeStyle = 'rgba(0,224,158,.25)'; ctx.lineWidth = 1;
-  ctx.strokeRect(rightX, rightBotY - 4, rightW, rightBotH);
-  ctx.fillStyle = 'rgba(0,224,158,.04)';
-  ctx.fillRect(rightX, rightBotY - 4, rightW, rightBotH);
-  
-  // Title
-  ctx.fillStyle = `rgba(0,224,158,${titlePulse})`;
-  ctx.beginPath(); ctx.arc(rightX + 15, rightBotY + 6, 3, 0, Math.PI*2); ctx.fill();
-  ctx.fillStyle = '#00e09e'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText('PHASE PORTRAIT (x vs ẋ/ωₙ) — spiral menuju origin', rightX + 24, rightBotY + 8);
-  
-  const ppCx = ppX + ppW / 2;
-  const ppCy = ppY + ppH / 2;
-  const ppScale = Math.min(ppW, ppH) / 2 / (x0 * 1.15);
-  
-  // Concentric energy contour circles (faint)
-  ctx.strokeStyle = 'rgba(0,224,158,.08)'; ctx.lineWidth = 1;
-  for (let r = 0.2; r <= 1; r += 0.2) {
-    ctx.beginPath();
-    ctx.arc(ppCx, ppCy, r * x0 * ppScale, 0, Math.PI*2);
-    ctx.stroke();
-  }
-  
-  // Axes
-  ctx.strokeStyle = 'rgba(255,255,255,.2)'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(ppX, ppCy); ctx.lineTo(ppX + ppW, ppCy); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(ppCx, ppY); ctx.lineTo(ppCx, ppY + ppH); ctx.stroke();
-  
-  // Spiral trajectory — fade trail (older points are more transparent)
-  if (_forumAnim.history.length > 1) {
-    const histLen = _forumAnim.history.length;
-    const SEGMENT = 4;  // draw in segments for fade effect
-    for (let seg = 0; seg < histLen - SEGMENT; seg += SEGMENT) {
-      const ageFactor = seg / histLen;       // 0 = oldest, 1 = newest
-      const alpha = 0.15 + 0.85 * ageFactor;  // newer = more visible
-      ctx.strokeStyle = `rgba(0,224,158,${alpha})`;
-      ctx.lineWidth = 1.2 + ageFactor * 1.3;
-      ctx.beginPath();
-      const p0 = _forumAnim.history[seg];
-      ctx.moveTo(ppCx + p0.x * ppScale, ppCy - (p0.v / omega_n) * ppScale);
-      for (let k = 1; k <= SEGMENT && seg + k < histLen; k++) {
-        const p = _forumAnim.history[seg + k];
-        ctx.lineTo(ppCx + p.x * ppScale, ppCy - (p.v / omega_n) * ppScale);
-      }
-      ctx.stroke();
-    }
-  }
-  
-  // Initial condition marker — pulsing
-  const icPulse = 0.6 + 0.4 * Math.sin(_forumAnim.t * 4);
-  ctx.fillStyle = `rgba(250,204,21,${icPulse})`;
-  ctx.shadowColor = '#facc15'; ctx.shadowBlur = 6;
-  ctx.beginPath(); 
-  ctx.arc(ppCx + x0 * ppScale, ppCy, 5, 0, Math.PI*2);
-  ctx.fill();
-  ctx.shadowBlur = 0;
-  
-  // Origin marker (red plus)
-  ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2.5;
-  ctx.beginPath(); 
-  ctx.moveTo(ppCx - 7, ppCy); ctx.lineTo(ppCx + 7, ppCy);
-  ctx.moveTo(ppCx, ppCy - 7); ctx.lineTo(ppCx, ppCy + 7);
-  ctx.stroke();
-  
-  // Current point — bright pulsing
-  ctx.fillStyle = `rgba(239,68,68,${headPulse})`;
-  ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 14;
-  ctx.beginPath();
-  ctx.arc(ppCx + x * ppScale, ppCy - (v/omega_n) * ppScale, 7, 0, Math.PI*2);
-  ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = '#fff';
-  ctx.beginPath();
-  ctx.arc(ppCx + x * ppScale, ppCy - (v/omega_n) * ppScale, 2.5, 0, Math.PI*2);
-  ctx.fill();
-  
-  // Labels
-  ctx.fillStyle = '#475569'; ctx.font = '8px JetBrains Mono';
-  ctx.textAlign = 'right';
-  ctx.fillText('x (m)', ppX + ppW - 4, ppCy - 4);
-  ctx.textAlign = 'left';
-  ctx.fillText('ẋ/ωₙ', ppCx + 4, ppY + 8);
-  ctx.fillText('IC (x₀)', ppCx + x0 * ppScale + 8, ppCy - 6);
-  ctx.textAlign = 'center';
-  ctx.fillStyle = 'rgba(0,224,158,.7)';
-  ctx.font = 'bold 9px JetBrains Mono';
-  ctx.fillText('STABLE FOCUS — energi terdisipasi', ppCx, ppY + ppH - 4);
-  ctx.textAlign = 'left';
-  
-  // ════════════════════════════════════════════════════════════
-  // ═══ BOTTOM STRIP — Live Metrics + Progress Bar ═══
-  // ════════════════════════════════════════════════════════════
-  const stripY = mainH + 4;
+  const stripY = plotY + plotH + 4;
   ctx.fillStyle = 'rgba(13,21,32,.95)';
-  ctx.fillRect(8, stripY, W - 16, bottomH - 4);
-  ctx.strokeStyle = 'rgba(255,179,0,.35)'; ctx.lineWidth = 1;
-  ctx.strokeRect(8, stripY, W - 16, bottomH - 4);
+  ctx.fillRect(8, stripY, W - 16, stripH - 8);
+  ctx.strokeStyle = 'rgba(168,85,247,.3)'; ctx.lineWidth = 1;
+  ctx.strokeRect(8, stripY, W - 16, stripH - 8);
   
-  // Progress bar (top of strip)
+  // Progress bar at top
   const progY = stripY + 3;
   const progW = (W - 32) * (t_phase / cycleSec);
-  ctx.fillStyle = 'rgba(0,224,158,.15)';
-  ctx.fillRect(16, progY, W - 32, 4);
+  ctx.fillStyle = 'rgba(168,85,247,.15)';
+  ctx.fillRect(16, progY, W - 32, 3);
   const progGrad = ctx.createLinearGradient(16, 0, W - 16, 0);
-  progGrad.addColorStop(0, '#0ea5e9');
-  progGrad.addColorStop(0.5, '#a855f7');
-  progGrad.addColorStop(1, '#ef4444');
+  progGrad.addColorStop(0, '#facc15');
+  progGrad.addColorStop(0.5, '#0ea5e9');
+  progGrad.addColorStop(1, '#a855f7');
   ctx.fillStyle = progGrad;
-  ctx.fillRect(16, progY, progW, 4);
+  ctx.fillRect(16, progY, progW, 3);
   
-  // Metrics (5 columns)
-  const klasifikasi = '🟡 Underdamped';
-  const metrics = [
-    { label: 'Posisi x', value: (x*1000).toFixed(2) + ' mm', color: '#0ea5e9' },
-    { label: 'Kecepatan ẋ', value: v.toFixed(3) + ' m/s', color: '#a855f7' },
-    { label: 'E_total', value: E_total.toFixed(2) + ' J', color: '#facc15' },
-    { label: 'E/E₀', value: (E_total/E_initial*100).toFixed(1) + '%', color: '#f97316' },
-    { label: 'Klasifikasi', value: klasifikasi + ' (ζ=0.25)', color: '#00e09e' },
-  ];
-  const metricW = (W - 16) / metrics.length;
-  metrics.forEach((m, i) => {
-    const mx = 8 + i * metricW + 8;
-    ctx.fillStyle = '#64748b'; ctx.font = '8px JetBrains Mono';
-    ctx.fillText(m.label.toUpperCase(), mx, stripY + 24);
-    ctx.fillStyle = m.color; ctx.font = 'bold 13px JetBrains Mono';
-    ctx.fillText(m.value, mx, stripY + 44);
+  // Metrics for each scenario in 3 columns
+  const colMW = (W - 32) / 3;
+  scenarios.forEach((s, i) => {
+    const mx = 16 + i * colMW + 8;
+    const my0 = stripY + 14;
+    const theta_now = compute_theta(s.zeta, t_phase);
+    const tau = 1 / (s.zeta * omega_n);
+    const ts = s.zeta < 1 ? 4 / (s.zeta * omega_n) : Math.log(50) / (omega_n * (s.zeta - Math.sqrt(s.zeta*s.zeta - 1)));
+    
+    ctx.fillStyle = s.color; ctx.font = 'bold 9px JetBrains Mono';
+    ctx.fillText(s.name, mx, my0);
+    ctx.fillStyle = '#94a3b8'; ctx.font = '8px JetBrains Mono';
+    ctx.fillText(`θ_now = ${(theta_now*180/Math.PI).toFixed(1)}°`, mx, my0 + 14);
+    ctx.fillText(`τ = ${tau.toFixed(2)}s`, mx, my0 + 26);
+    ctx.fillText(`t_s = ${ts.toFixed(2)}s`, mx + 80, my0 + 14);
+    
+    // Classification label
+    let klsTxt = 'Underdamped';
+    let klsColor = s.color;
+    if (s.zeta >= 1) {
+      klsTxt = Math.abs(s.zeta - 1) < 0.05 ? 'Critical' : 'Overdamped';
+    }
+    ctx.fillStyle = klsColor; ctx.font = 'bold 9px JetBrains Mono';
+    ctx.fillText(klsTxt, mx + 80, my0 + 26);
   });
   
-  // Cycle counter (top right of strip)
+  // Cycle indicator (right-most)
   const cycleNum = Math.floor(_forumAnim.t / cycleSec) + 1;
-  ctx.fillStyle = 'rgba(255,179,0,.6)';
-  ctx.font = '9px JetBrains Mono';
+  ctx.fillStyle = 'rgba(255,179,0,.7)';
+  ctx.font = '8px JetBrains Mono';
   ctx.textAlign = 'right';
-  ctx.fillText(`CYCLE ${cycleNum}  ·  t_total = ${_forumAnim.t.toFixed(2)}s`, W - 14, stripY + 14);
+  ctx.fillText(`CYCLE ${cycleNum} · t = ${_forumAnim.t.toFixed(1)}s`, W - 16, stripY + stripH - 14);
   ctx.textAlign = 'left';
 }
 
-// ════════════════════════════════════════════════════════════
-// Animation loop — robust restart even when canvas first becomes visible
-// ════════════════════════════════════════════════════════════
 function _forumTick() {
   _forumAnim.t += 0.025;
   drawForumCanvas();
   _forumAnim.raf = requestAnimationFrame(_forumTick);
 }
 
-// Start animation immediately and re-trigger when forum tab opens
 document.addEventListener('DOMContentLoaded', () => {
   if (!_forumAnim.raf) setTimeout(_forumTick, 500);
 });
-// Also start regardless (DOMContentLoaded may have already fired)
 if (!_forumAnim.raf) setTimeout(_forumTick, 900);
 
 
 
 // Resize handler — redraw all active canvases
 window.addEventListener('resize', () => {
-  if(typeof drawPhysics === 'function') drawPhysics();
-  if(typeof drawSweep === 'function') drawSweep();
-  if(typeof drawIso === 'function') drawIso();
-  if(typeof drawHPB === 'function') drawHPB();
+  if(typeof drawRegimes === 'function') drawRegimes();
+  if(typeof drawDrop === 'function') drawDrop();
+  if(typeof drawLogDec === 'function') drawLogDec();
+  if(typeof drawSettling === 'function') drawSettling();
   if(typeof drawForumCanvas === 'function') drawForumCanvas();
 });
 
