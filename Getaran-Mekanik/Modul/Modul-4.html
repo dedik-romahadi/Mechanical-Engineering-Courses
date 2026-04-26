@@ -5067,6 +5067,16 @@ function fetchMasterStudents(retries){
     masterStudents = data;
     masterFetchDone = true;
     console.log('[Visitor] Master students loaded:', masterStudents.length);
+    // Bug fix (Apr 2026): trigger re-render setelah master list tersedia,
+    // agar tabel tidak stuck di 'Memuat data mahasiswa...' saat Firebase fires sebelum fetch selesai
+    try {
+      if (typeof renderVisitors === 'function' && typeof latestVisitors !== 'undefined') {
+        renderVisitors(latestVisitors || []);
+      }
+      if (typeof updateLeaderboard === 'function' && typeof latestVisitors !== 'undefined') {
+        updateLeaderboard(latestVisitors || [], typeof _scheduleExpired !== 'undefined' ? _scheduleExpired : false);
+      }
+    } catch(e) { console.warn('[Visitor] Re-render after master load failed:', e); }
     // Update loading indicator → success
     const ls  = document.getElementById('loadingStudents');
     const btn = document.getElementById('vSubmit');
@@ -5084,6 +5094,12 @@ function fetchMasterStudents(retries){
       setTimeout(()=>fetchMasterStudents(retries+1), 1500);
     } else {
       masterStudents = []; masterFetchDone = true;
+      // Bug fix: trigger re-render even on fetch failure (akan tampilkan tabel kosong dengan info)
+      try {
+        if (typeof renderVisitors === 'function' && typeof latestVisitors !== 'undefined') {
+          renderVisitors(latestVisitors || []);
+        }
+      } catch(e) { console.warn('[Visitor] Re-render after master fetch fail:', e); }
       const ls  = document.getElementById('loadingStudents');
       const btn = document.getElementById('vSubmit');
       if (ls) {
@@ -5689,7 +5705,15 @@ function renderVisitors(visitors){
       return `<div class="vp-item" style="${late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':''}"><div class="vp-avatar student" style="${late?'background:rgba(251,113,133,.12);color:#fb7185;':''}">${ini}</div><div class="vp-info"><div class="vp-name">${escH(v.nama)}${lBadge}</div><div class="vp-nim">${escH(v.nim)}</div></div><div class="vp-time"><div>${ts}</div><div style="font-size:.6rem;color:#94a3b8;text-align:right;">${v.visitCount||1}x kunjungan</div></div></div>`;
     }).join('');
   }
-  if(!masterStudents.length){tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">\u23f3 Memuat data mahasiswa...</div>';return;}
+  if(!masterStudents.length){
+    if (masterFetchDone) {
+      // Fetch sudah selesai tapi kosong — tampilkan warning, bukan loading
+      tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:#fbbf24;font-size:.88rem;line-height:1.6">\u26a0 Daftar mahasiswa tidak bisa dimuat<br><span style="font-size:.75rem;color:#64748b">Refresh halaman atau cek koneksi internet</span></div>';
+    } else {
+      tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">\u23f3 Memuat data mahasiswa...</div>';
+    }
+    return;
+  }
   function toTitle(s){return s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());}
   tableEl.innerHTML=masterStudents.map((s,i)=>{
     const v=visitMap[s.nim], nama=toTitle(s.nama), ini=nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
