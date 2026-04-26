@@ -2762,17 +2762,29 @@ const MC_HINTS = {
 let _firebaseStateLoaded = false;
 window._firebaseStateLoaded = () => _firebaseStateLoaded;
 
-function selectMC(qId, opt, correct) {
+function selectMC(qId, opt, letter) {
+  // Pedoman §18.2 — race-condition guard: jangan proses input sebelum
+  // Firebase state restore selesai (mencegah UI feedback palsu)
   if (!_firebaseStateLoaded) {
     const fb = document.getElementById('fb-' + qId);
-    if (fb) { fb.className = 'feedback warn'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
+    if (fb) {
+      fb.className = 'feedback warn';
+      fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.';
+    }
     return;
   }
+  // Pedoman §16.3 — Anti-Answer-Leak:
+  // HTML tidak lagi mengandung flag true/false. Kita terima huruf opsi (A-D)
+  // yang TIDAK membocorkan informasi karena huruf itu juga tampil di UI.
+  // Correctness resolved dari MC_HINTS[qId].answer di JS closure.
   if (mcAnswered[qId]) return;
   const rg = document.getElementById('rg-' + qId);
   rg.querySelectorAll('.radio-option').forEach(o => o.classList.remove('selected'));
   opt.classList.add('selected');
-  opt._correct = correct;
+  // Resolve correctness lazily di-scope JS (MC_HINTS didefinisikan di atas fungsi ini)
+  const expected = (typeof MC_HINTS !== 'undefined' && MC_HINTS[qId]) ? MC_HINTS[qId].answer : null;
+  opt._correct = (expected !== null) && (letter === expected);
+  opt._letter  = letter;   // simpan untuk debugging / export
   document.getElementById('sub-' + qId).disabled = false;
 }
 function checkMC(qId) {
