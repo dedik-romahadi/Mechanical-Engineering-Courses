@@ -6067,6 +6067,15 @@ function fetchMasterStudents(retries){
     masterStudents = data;
     masterFetchDone = true;
     console.log('[Visitor] Master students loaded:', masterStudents.length);
+    // §25.4 — Re-render after master loaded (fix race condition: Firebase listener may have fired before this resolves)
+    try {
+      if (typeof renderVisitors === 'function' && typeof latestVisitors !== 'undefined') {
+        renderVisitors(latestVisitors || []);
+      }
+      if (typeof updateLeaderboard === 'function' && typeof latestVisitors !== 'undefined') {
+        updateLeaderboard(latestVisitors || [], (typeof _scheduleExpired !== 'undefined' && _scheduleExpired) || false);
+      }
+    } catch(e) { console.warn('[Visitor] Re-render after master load failed:', e); }
     // Update loading indicator → success
     const ls  = document.getElementById('loadingStudents');
     const btn = document.getElementById('vSubmit');
@@ -6084,6 +6093,12 @@ function fetchMasterStudents(retries){
       setTimeout(()=>fetchMasterStudents(retries+1), 1500);
     } else {
       masterStudents = []; masterFetchDone = true;
+      // §25.4 — Trigger re-render even on failure (so loading indicator gets replaced with warning)
+      try {
+        if (typeof renderVisitors === 'function' && typeof latestVisitors !== 'undefined') {
+          renderVisitors(latestVisitors || []);
+        }
+      } catch(e) {}
       const ls  = document.getElementById('loadingStudents');
       const btn = document.getElementById('vSubmit');
       if (ls) {
@@ -6520,7 +6535,7 @@ function renderOnlineUsers() {
   const stripEl = document.getElementById('onlineAvatars');
   if (!stripEl) return;
   const count = onlineUsers.length;
-  document.getElementById('fabCount').textContent = count;
+  const _fabCountEl = document.getElementById('fabCount'); if (_fabCountEl) _fabCountEl.textContent = count;
   document.getElementById('vpBadgeText').textContent = count + ' online';
   document.getElementById('onlineCount').textContent = count;
 
@@ -6680,7 +6695,14 @@ function renderVisitors(visitors){
   const tableEl=document.getElementById('visitorTableBody');
   // NOTE: vpList & vpBadge & fabCount sekarang dikelola oleh presence system (lihat initPresence)
   // renderVisitors() hanya update leaderboard + table Hasil + stats cards
-  if(!masterStudents.length){tableEl.innerHTML='<div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">\u23f3 Memuat data mahasiswa...</div>';return;}
+  if(!masterStudents.length){
+    if (masterFetchDone) {
+      tableEl.innerHTML = '<div style="text-align:center;padding:40px 24px;color:#fbbf24;font-size:.88rem;">\u26a0 Daftar mahasiswa tidak bisa dimuat<br><span style="font-size:.78rem;color:#94a3b8;font-weight:400;">Refresh halaman atau cek koneksi internet.</span></div>';
+    } else {
+      tableEl.innerHTML = '<div style="text-align:center;padding:40px 24px;color:#64748b;font-size:.88rem;">\u23f3 Memuat data mahasiswa...</div>';
+    }
+    return;
+  }
   function toTitle(s){return s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());}
   tableEl.innerHTML=masterStudents.map((s,i)=>{
     const v=visitMap[s.nim], nama=toTitle(s.nama), ini=nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
