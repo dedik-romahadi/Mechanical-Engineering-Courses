@@ -3463,54 +3463,78 @@ function checkForumReady() {
 function copyForumHtml() {
   const btn = document.getElementById('btn-copy-forum');
   const msg = document.getElementById('copy-forum-msg');
-
-  // Word count validation
   const ids = ['ans-fq1', 'ans-fq2', 'ans-fq3'];
   const labels = ['Pertanyaan 1', 'Pertanyaan 2', 'Pertanyaan 3'];
   const short = ids.map((id, i) => {
     const wc = countWords(document.getElementById(id)?.value || '');
     return wc < FORUM_MIN_WORDS ? `${labels[i]} (${wc}/${FORUM_MIN_WORDS} kata)` : null;
   }).filter(Boolean);
-
   if (short.length) {
-    if (msg) {
-      msg.style.color = 'var(--amber)';
-      msg.textContent = '⚠ Jawaban terlalu singkat: ' + short.join(' · ');
-    }
+    if (msg) { msg.style.color = 'var(--amber)'; msg.textContent = '⚠ Jawaban terlalu singkat: ' + short.join(' · '); }
     return;
   }
-
-  const htmlCode = buildForumHtml();
-
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(htmlCode).then(() => {
-      btn.textContent = '✅ Tersalin!';
-      btn.style.background = 'rgba(0,224,158,.2)';
-      if (msg) { msg.style.color = 'var(--green)'; msg.textContent = '✅ Kode HTML sudah tersalin. Buka Fast Learning → Forum Pertemuan 4 → klik </> HTML → paste.'; }
-      setTimeout(() => {
-        btn.textContent = '📋 Copy Forum (kode HTML)';
-        btn.style.background = '';
-      }, 3000);
-    }).catch(() => fallbackCopy(htmlCode, btn, msg));
+  let htmlCode;
+  try { htmlCode = buildForumHtml(); }
+  catch(err) {
+    console.error('[Forum] buildForumHtml failed:', err);
+    if (msg) { msg.style.color = 'var(--pink, #ef4444)'; msg.textContent = '❌ Gagal generate HTML: ' + (err.message || err); }
+    return;
+  }
+  if (!htmlCode || htmlCode.length < 100) {
+    if (msg) { msg.style.color = 'var(--pink, #ef4444)'; msg.textContent = '❌ HTML kosong atau invalid. Cek console.'; }
+    console.error('[Forum] HTML output too short:', htmlCode);
+    return;
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext) {
+    navigator.clipboard.writeText(htmlCode).then(() => { _showCopySuccess(btn, msg); })
+      .catch((err) => { console.warn('[Forum] Clipboard API failed, trying fallback:', err); fallbackCopy(htmlCode, btn, msg); });
   } else {
     fallbackCopy(htmlCode, btn, msg);
   }
 }
-
+function _showCopySuccess(btn, msg) {
+  if (btn) {
+    btn.textContent = '✅ Tersalin!';
+    btn.style.background = 'rgba(0,224,158,.2)';
+    setTimeout(() => { btn.textContent = 'Copy Forum (kode HTML)'; btn.style.background = ''; }, 3000);
+  }
+  if (msg) { msg.style.color = 'var(--green)'; msg.textContent = '✅ Kode HTML sudah tersalin. Buka Fast Learning → Forum → klik </> HTML → paste.'; }
+}
 function fallbackCopy(text, btn, msg) {
   const ta = document.createElement('textarea');
   ta.value = text;
-  ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
+  ta.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;padding:0;border:0;outline:0;background:transparent;color:transparent;z-index:-1';
+  ta.setAttribute('readonly', '');
   document.body.appendChild(ta);
+  ta.focus();
   ta.select();
-  try {
-    document.execCommand('copy');
-    if (btn) { btn.textContent = '✅ Tersalin!'; setTimeout(() => btn.textContent = '📋 Copy Forum (kode HTML)', 3000); }
-    if (msg) { msg.style.color = 'var(--green)'; msg.textContent = '✅ Kode HTML sudah tersalin. Buka Fast Learning → Forum Pertemuan 4 → klik </> HTML → paste.'; }
-  } catch(e) {
-    if (msg) { msg.style.color = 'var(--amber)'; msg.textContent = '⚠ Salin manual: Ctrl+A lalu Ctrl+C dari file yang dibuka.'; }
-  }
+  ta.setSelectionRange(0, text.length);
+  let copied = false;
+  try { copied = document.execCommand('copy'); }
+  catch(e) { console.warn('[Forum] execCommand copy failed:', e); }
   document.body.removeChild(ta);
+  if (copied) { _showCopySuccess(btn, msg); return; }
+  console.warn('[Forum] All clipboard methods failed — opening manual copy popup');
+  try {
+    const popup = window.open('', '_blank', 'width=900,height=700,scrollbars=yes');
+    if (!popup) throw new Error('Popup blocked');
+    popup.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Copy Forum HTML</title>
+<style>body{font-family:system-ui,-apple-system,sans-serif;padding:20px;background:#f1f5f9;margin:0}
+.banner{background:#0ea5e9;color:#fff;padding:16px 20px;border-radius:10px;margin-bottom:16px;font-size:14px;line-height:1.5}
+.banner b{font-size:16px;display:block;margin-bottom:4px}
+textarea{width:100%;height:calc(100vh - 180px);font-family:'Courier New',monospace;font-size:12px;padding:14px;border:2px solid #cbd5e1;border-radius:8px;resize:vertical;background:#fff}
+button{background:#0ea5e9;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-top:10px}
+button:hover{background:#0284c7}</style></head><body>
+<div class="banner"><b>Copy Manual</b>Browser tidak mengizinkan otomatis copy. Tekan <kbd>Ctrl+A</kbd> lalu <kbd>Ctrl+C</kbd> di textarea bawah, lalu paste di Fast Learning.</div>
+<button onclick="document.querySelector('textarea').select();document.querySelector('textarea').setSelectionRange(0,99999);">Select All</button>
+<textarea readonly>${text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>
+</body></html>`);
+    popup.document.close();
+    if (msg) { msg.style.color = 'var(--amber, #f59e0b)'; msg.textContent = 'Browser blokir auto-copy → window terbuka. Tekan Ctrl+A lalu Ctrl+C di sana.'; }
+  } catch(e) {
+    console.error('[Forum] Popup also blocked:', e);
+    if (msg) { msg.style.color = 'var(--pink, #ef4444)'; msg.innerHTML = '❌ Auto-copy gagal & popup terblokir. <strong>Solusi:</strong> izinkan popup di browser, atau coba di Chrome/Edge desktop.'; }
+  }
 }
 
 // ── BUILD FORUM HTML (shared between copy and legacy export) ──
@@ -4986,7 +5010,13 @@ let currentSchedule = null;
 const VISIT_COOLDOWN = 3600000;
 
 function getIdentity(){try{return JSON.parse(localStorage.getItem(LOCAL_IDENTITY));}catch(e){return null;}}
-function saveIdentity(v){localStorage.setItem(LOCAL_IDENTITY, JSON.stringify(v));}
+function saveIdentity(v){
+  localStorage.setItem(LOCAL_IDENTITY, JSON.stringify(v));
+  // Bug fix: re-render chat UI immediately after identity changes
+  // sehingga input chat ter-enable tanpa perlu refresh halaman
+  try { if (typeof renderChat === 'function') renderChat(); } catch(e) {}
+  try { if (typeof onChatInput === 'function') onChatInput(); } catch(e) {}
+}
 
 // ═══════════════════════════════════════════════════════
 // ROLE-BASED UI VISIBILITY
@@ -5829,11 +5859,14 @@ async function submitPinSetup() {
       });
 
       // (b) Visitor record di course/module CURRENT (tanpa pinHash!)
+      // Bug fix: include points: 0 dari awal (lihat catatan submitPinVerify)
       const visitorRec = {
         nama, nim, role: 'student',
         timestamp: nowISO,
         lastVisit: nowISO,
-        visitCount: 1
+        visitCount: 1,
+        points: 0,
+        scoredQuestions: ''
       };
       saveIdentity(visitorRec);
       await set(ref(db, DB_PATH + '/' + key), visitorRec);
@@ -5897,11 +5930,16 @@ async function submitPinVerify() {
       visitorRec = _stripLegacyPinFields(visitorRec);
     } else {
       // Pertama kali akses course/module ini (tapi sudah punya PIN global)
+      // Bug fix: include points: 0 dari awal agar database rule
+      // (newData.points >= data.points) tidak gagal saat first answer write
+      // (Firebase rules: 1 >= null evaluates to false → write rejected)
       visitorRec = {
         nama, nim, role: 'student',
         timestamp: nowISO,
         lastVisit: nowISO,
-        visitCount: 1
+        visitCount: 1,
+        points: 0,
+        scoredQuestions: ''
       };
     }
 
@@ -6167,26 +6205,70 @@ function _checkConsolationPoint(nodeRef, state) {
 }
 
 window._awardPoint = function(qId) {
-  if (!_isScheduleOpen()) return;  // NO point save outside active schedule
+  if (!_isScheduleOpen()) {
+    console.warn('[Score] Tidak tersimpan: jadwal belum dibuka oleh dosen.');
+    if (!window._scheduleWarnShown) {
+      window._scheduleWarnShown = true;
+      setTimeout(() => { window._scheduleWarnShown = false; }, 30000);
+      const existing = document.getElementById('_opAdminToast');
+      if (existing) existing.remove();
+      const toast = document.createElement('div');
+      toast.id = '_opAdminToast';
+      toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,rgba(239,68,68,.95),rgba(220,38,38,.95));color:#fff;padding:14px 22px;border-radius:12px;font-size:.88rem;font-weight:600;z-index:200000;box-shadow:0 12px 40px rgba(239,68,68,.3);max-width:90vw;text-align:center;line-height:1.5;opacity:0;transition:opacity .25s ease;';
+      toast.textContent = '⚠ Jadwal pertemuan belum diset oleh dosen — jawaban Anda tidak akan tersimpan ke server.';
+      document.body.appendChild(toast);
+      requestAnimationFrame(() => { toast.style.opacity = '1'; });
+      setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 5500);
+    }
+    return;
+  }
   if (_answeredQ.has(qId)) return;
   const me = getIdentity();
   if (!me || !me.nim || me.role === 'dosen') return;
   const key = sanitizeKey('mhs_' + me.nim);
   const nodeRef = ref(db, DB_PATH + '/' + key);
   get(nodeRef).then(snap => {
-    if (!snap.exists()) return;
-    const ex = snap.val();
+    let ex;
+    if (!snap.exists()) {
+      console.warn('[Score] Visitor record missing for ' + me.nim + ' — creating now (MC)');
+      ex = {
+        nama: me.nama || '—', nim: me.nim, role: 'student',
+        timestamp: me.timestamp || new Date().toISOString(),
+        lastVisit: new Date().toISOString(),
+        visitCount: 1,
+        points: 0,
+        scoredQuestions: ''
+      };
+    } else {
+      ex = snap.val();
+    }
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(qId)) { _answeredQ.add(qId); return; }
     _answeredQ.add(qId); scored.push(qId);
     const updated = Object.assign({}, ex, { points: (ex.points||0)+1, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',') });
-    set(nodeRef, updated);
+    set(nodeRef, updated).catch(err => console.error('[Score] _awardPoint write failed:', err));
     _checkConsolationPoint(nodeRef, updated);
-  }).catch(()=>{});
+  }).catch(err => console.error('[Score] _awardPoint failed:', err));
 };
 
 window._awardCompPoint = function(qId, point) {
-  if (!_isScheduleOpen()) return;  // NO point save outside active schedule
+  if (!_isScheduleOpen()) {
+    console.warn('[Score] Tidak tersimpan: jadwal belum dibuka oleh dosen.');
+    if (!window._scheduleWarnShown) {
+      window._scheduleWarnShown = true;
+      setTimeout(() => { window._scheduleWarnShown = false; }, 30000);
+      const existing = document.getElementById('_opAdminToast');
+      if (existing) existing.remove();
+      const toast = document.createElement('div');
+      toast.id = '_opAdminToast';
+      toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,rgba(239,68,68,.95),rgba(220,38,38,.95));color:#fff;padding:14px 22px;border-radius:12px;font-size:.88rem;font-weight:600;z-index:200000;box-shadow:0 12px 40px rgba(239,68,68,.3);max-width:90vw;text-align:center;line-height:1.5;opacity:0;transition:opacity .25s ease;';
+      toast.textContent = '⚠ Jadwal pertemuan belum diset oleh dosen — jawaban Anda tidak akan tersimpan ke server.';
+      document.body.appendChild(toast);
+      requestAnimationFrame(() => { toast.style.opacity = '1'; });
+      setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 5500);
+    }
+    return;
+  }
   // Fallback for legacy call sites: deteksi dari _isHardComp jika point tidak diberikan.
   const pts = (typeof point === 'number' && point > 0) ? point
             : (window._isHardComp(qId) ? SCORE_CONFIG.COMP_HARD_POINT : SCORE_CONFIG.COMP_EZ_POINT);
@@ -6199,24 +6281,39 @@ window._awardCompPoint = function(qId, point) {
   // PEDOMAN §15.4c — Capture code text from textarea for Firebase persistence
   const codeText = (document.getElementById('code-' + qId)?.value || '').slice(0, 5000);
   get(nodeRef).then(snap => {
-    if (!snap.exists()) return;
-    const ex = snap.val();
+    let ex;
+    if (!snap.exists()) {
+      console.warn('[Score] Visitor record missing for ' + me.nim + ' — creating now (Comp)');
+      ex = {
+        nama: me.nama || '—', nim: me.nim, role: 'student',
+        timestamp: me.timestamp || new Date().toISOString(),
+        lastVisit: new Date().toISOString(),
+        visitCount: 1,
+        points: 0,
+        scoredQuestions: ''
+      };
+    } else {
+      ex = snap.val();
+    }
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(compKey)) { _answeredQ.add(compKey); return; }
     _answeredQ.add(compKey); scored.push(compKey);
     const newPoints = Math.min((ex.points || 0) + pts, SCORE_CONFIG.TOTAL);
     const codes = Object.assign({}, ex.codes || {}, codeText ? { [qId]: codeText } : {});
     const updated = _stripLegacyPinFields(Object.assign({}, ex, { points: newPoints, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(','), codes: codes }));
-    set(nodeRef, updated);
+    set(nodeRef, updated).catch(err => console.error('[Score] _awardCompPoint write failed:', err));
     _checkConsolationPoint(nodeRef, updated);
-  }).catch(()=>{});
+  }).catch(err => console.error('[Score] _awardCompPoint failed:', err));
 };
 
 // ── Partial credit untuk Comp Hard (kode non-kosong tapi output/error salah) ──
 // Menulis marker _comp_partial (berbeda dari _comp dan _comp_used) + tambah poin kecil (1).
 // Tidak trigger konsolasi karena points sudah > 0.
 window._awardCompPartial = function(qId, point) {
-  if (!_isScheduleOpen()) return;
+  if (!_isScheduleOpen()) {
+    console.warn('[Score] Partial credit tidak tersimpan: jadwal belum dibuka.');
+    return;
+  }
   const pts = (typeof point === 'number' && point > 0) ? point : 1;
   const partialKey = qId + '_comp_partial';
   if (_answeredQ.has(partialKey)) return;
@@ -6227,42 +6324,72 @@ window._awardCompPartial = function(qId, point) {
   // PEDOMAN §15.4c — Capture code text (partial tetap simpan kode upaya)
   const codeText = (document.getElementById('code-' + qId)?.value || '').slice(0, 5000);
   get(nodeRef).then(snap => {
-    if (!snap.exists()) return;
-    const ex = snap.val();
+    let ex;
+    if (!snap.exists()) {
+      console.warn('[Score] Visitor record missing for ' + me.nim + ' — creating now (Partial)');
+      ex = {
+        nama: me.nama || '—', nim: me.nim, role: 'student',
+        timestamp: me.timestamp || new Date().toISOString(),
+        lastVisit: new Date().toISOString(),
+        visitCount: 1,
+        points: 0,
+        scoredQuestions: ''
+      };
+    } else {
+      ex = snap.val();
+    }
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(partialKey)) { _answeredQ.add(partialKey); return; }
     _answeredQ.add(partialKey); scored.push(partialKey);
     const newPoints = Math.min((ex.points || 0) + pts, SCORE_CONFIG.TOTAL);
     const codes = Object.assign({}, ex.codes || {}, codeText ? { [qId]: codeText } : {});
     const updated = _stripLegacyPinFields(Object.assign({}, ex, { points: newPoints, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(','), codes: codes }));
-    set(nodeRef, updated);
+    set(nodeRef, updated).catch(err => console.error('[Score] _awardCompPartial write failed:', err));
     // Tidak trigger konsolasi — poin sudah > 0
-  }).catch(()=>{});
+  }).catch(err => console.error('[Score] _awardCompPartial failed:', err));
 };
 
 // ── Record a failed MC attempt to Firebase ──
 window._recordMcAttempt = function(qId) {
-  if (!_isScheduleOpen()) return;  // no record outside active schedule
+  if (!_isScheduleOpen()) {
+    console.warn('[Score] MC attempt tidak tersimpan: jadwal belum dibuka.');
+    return;
+  }
   const me = getIdentity();
   if (!me || !me.nim || me.role === 'dosen') return;
   const key = sanitizeKey('mhs_' + me.nim);
   const nodeRef = ref(db, DB_PATH + '/' + key);
   get(nodeRef).then(snap => {
-    if (!snap.exists()) return;
-    const ex = snap.val();
+    let ex;
+    if (!snap.exists()) {
+      console.warn('[Score] Visitor record missing for ' + me.nim + ' — creating now (MC attempt)');
+      ex = {
+        nama: me.nama || '—', nim: me.nim, role: 'student',
+        timestamp: me.timestamp || new Date().toISOString(),
+        lastVisit: new Date().toISOString(),
+        visitCount: 1,
+        points: 0,
+        scoredQuestions: ''
+      };
+    } else {
+      ex = snap.val();
+    }
     const usedKey = qId + '_mc_used';
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(usedKey)) return;
     scored.push(usedKey);
     const updated = Object.assign({}, ex, { scoredQuestions: scored.join(',') });
-    set(nodeRef, updated);
+    set(nodeRef, updated).catch(err => console.error('[Score] _recordMcAttempt write failed:', err));
     _checkConsolationPoint(nodeRef, updated);
-  }).catch(() => {});
+  }).catch(err => console.error('[Score] _recordMcAttempt failed:', err));
 };
 
 // ── Record a failed comp attempt to Firebase (anti-manipulation) ──
 window._recordCompAttempt = function(qId) {
-  if (!_isScheduleOpen()) return;  // no record outside active schedule
+  if (!_isScheduleOpen()) {
+    console.warn('[Score] Comp attempt tidak tersimpan: jadwal belum dibuka.');
+    return;
+  }
   const me = getIdentity();
   if (!me || !me.nim || me.role === 'dosen') return;
   const key = sanitizeKey('mhs_' + me.nim);
@@ -6270,17 +6397,29 @@ window._recordCompAttempt = function(qId) {
   // PEDOMAN §15.4c — Capture code text (kode salah tetap disimpan sebagai dokumentasi upaya)
   const codeText = (document.getElementById('code-' + qId)?.value || '').slice(0, 5000);
   get(nodeRef).then(snap => {
-    if (!snap.exists()) return;
-    const ex = snap.val();
+    let ex;
+    if (!snap.exists()) {
+      console.warn('[Score] Visitor record missing for ' + me.nim + ' — creating now (Comp attempt)');
+      ex = {
+        nama: me.nama || '—', nim: me.nim, role: 'student',
+        timestamp: me.timestamp || new Date().toISOString(),
+        lastVisit: new Date().toISOString(),
+        visitCount: 1,
+        points: 0,
+        scoredQuestions: ''
+      };
+    } else {
+      ex = snap.val();
+    }
     const usedKey = qId + '_comp_used';
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(usedKey)) return;   // already recorded
     scored.push(usedKey);
     const codes = Object.assign({}, ex.codes || {}, codeText ? { [qId]: codeText } : {});
     const updated = Object.assign({}, ex, { scoredQuestions: scored.join(','), codes: codes });
-    set(nodeRef, updated);
+    set(nodeRef, updated).catch(err => console.error('[Score] _recordCompAttempt write failed:', err));
     _checkConsolationPoint(nodeRef, updated);
-  }).catch(() => {});
+  }).catch(err => console.error('[Score] _recordCompAttempt failed:', err));
 };
 
 window._loadScoredQuestions = function() {
