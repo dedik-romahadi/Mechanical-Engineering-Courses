@@ -2208,7 +2208,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   </div>
 
   <!-- Canvas Animasi Forum — 3-Pendulum Damping Lab -->
-  <canvas id="cvForum" height="480" style="margin-bottom:12px;border-radius:12px"></canvas>
+  <canvas id="cvForum" height="540" style="margin-bottom:12px;border-radius:12px"></canvas>
   <p style="font-size:15px;color:var(--text);margin-bottom:40px;line-height:1.6;text-align:center;max-width:900px;margin-left:auto;margin-right:auto">— <strong>3-Pendulum Damping Lab</strong>: Tiga pendulum identik (m=1 kg, L=0.5 m) dilepas serentak dari θ₀=23° dalam <strong style="color:var(--amber)">UDARA</strong> (ζ≈0.05), <strong style="color:var(--cyan)">AIR</strong> (ζ≈0.30), dan <strong style="color:var(--violet)">OLI</strong> (ζ≈1.20). Visualisasi langsung tiga regim redaman untuk membantu pemahaman. Time response θ(t) overlay + metrics live di bawah.</p>
 
   <!-- Pertanyaan Diskusi -->
@@ -4788,9 +4788,9 @@ function drawForumCanvas() {
   
   // Layout
   const headerH = 30;
-  const animH = (H - headerH) * 0.50;     // 50% pendulum animation
-  const plotH = (H - headerH) * 0.32;     // 32% time response
-  const stripH = (H - headerH) * 0.18;    // 18% metrics
+  const animH = (H - headerH) * 0.47;     // 47% pendulum animation
+  const plotH = (H - headerH) * 0.30;     // 30% time response
+  const stripH = (H - headerH) * 0.23;    // 23% metrics (lebih lega untuk teks besar)
   
   // Header banner
   const titlePulse = 0.6 + 0.4 * Math.sin(_forumAnim.t * 2.5);
@@ -4954,10 +4954,10 @@ function drawForumCanvas() {
   const tpX = padL;
   const tpY = plotY + 26;
   const tpW = W - padL - padR;
-  const tpH = plotH - 36;
+  const tpH = plotH - 48;   // extra bottom padding untuk axis labels yang lebih besar
   
   // Title
-  ctx.fillStyle = '#fff'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 13px JetBrains Mono';
   ctx.textAlign = 'left';
   ctx.fillText('📊 TIME RESPONSE θ(t) — overlay 3 pendulum', 14, plotY + 18);
   
@@ -5016,19 +5016,20 @@ function drawForumCanvas() {
   ctx.beginPath(); ctx.moveTo(sx_t(t_phase), tpY); ctx.lineTo(sx_t(t_phase), tpY+tpH); ctx.stroke();
   ctx.setLineDash([]);
   
-  // Axis labels
-  ctx.fillStyle = '#475569'; ctx.font = '8px JetBrains Mono';
+  // Axis labels — perbesar
+  ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono';
   ctx.textAlign = 'right';
-  ctx.fillText('+0.4', tpX-3, tpY+8);
-  ctx.fillText('0', tpX-3, tpY+tpH/2+3);
-  ctx.fillText('-0.4', tpX-3, tpY+tpH-3);
+  ctx.fillText('+0.4', tpX-4, tpY+10);
+  ctx.fillText('0', tpX-4, tpY+tpH/2+4);
+  ctx.fillText('-0.4', tpX-4, tpY+tpH-2);
   ctx.textAlign = 'center';
-  ctx.fillText('0s', tpX, tpY+tpH+12);
-  ctx.fillText(`${cycleSec}s`, tpX+tpW, tpY+tpH+12);
-  ctx.fillText(`t = ${t_phase.toFixed(2)}s`, sx_t(t_phase), tpY+tpH+12);
+  ctx.fillText('0s', tpX, tpY+tpH+15);
+  ctx.fillText(`${cycleSec}s`, tpX+tpW, tpY+tpH+15);
+  ctx.fillStyle = '#facc15'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText(`t = ${t_phase.toFixed(2)}s`, sx_t(t_phase), tpY+tpH+15);
   ctx.textAlign = 'left';
-  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 9px JetBrains Mono';
-  ctx.fillText('θ (rad)', tpX-44, tpY+8);
+  ctx.fillStyle = '#cbd5e1'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText('θ (rad)', tpX-46, tpY+10);
   
   // ════════════════════════════════════════════════════════════
   // BOTTOM — Live metrics strip
@@ -5051,36 +5052,42 @@ function drawForumCanvas() {
   ctx.fillStyle = progGrad;
   ctx.fillRect(16, progY, progW, 3);
   
-  // Metrics for each scenario in 3 columns
+  // Metrics for each scenario in 3 columns — FONT BESAR untuk readability
   const colMW = (W - 32) / 3;
+  const colInnerOffset = colMW * 0.50;   // proportional offset for right-side metrics
   scenarios.forEach((s, i) => {
-    const mx = 16 + i * colMW + 8;
-    const my0 = stripY + 14;
+    const mx = 16 + i * colMW + 12;
+    const my0 = stripY + 22;             // line 1 baseline
     const theta_now = compute_theta(s.zeta, t_phase);
     const tau = 1 / (s.zeta * omega_n);
     const ts = s.zeta < 1 ? 4 / (s.zeta * omega_n) : Math.log(50) / (omega_n * (s.zeta - Math.sqrt(s.zeta*s.zeta - 1)));
     
-    ctx.fillStyle = s.color; ctx.font = 'bold 9px JetBrains Mono';
+    // Header (UDARA/AIR/OLI) — bold besar
+    ctx.fillStyle = s.color; ctx.font = 'bold 14px JetBrains Mono';
     ctx.fillText(s.name, mx, my0);
-    ctx.fillStyle = '#94a3b8'; ctx.font = '8px JetBrains Mono';
-    ctx.fillText(`θ_now = ${(theta_now*180/Math.PI).toFixed(1)}°`, mx, my0 + 14);
-    ctx.fillText(`τ = ${tau.toFixed(2)}s`, mx, my0 + 26);
-    ctx.fillText(`t_s = ${ts.toFixed(2)}s`, mx + 80, my0 + 14);
     
-    // Classification label
+    // Metric values — line 2 (θ_now di kiri, t_s di kanan)
+    ctx.fillStyle = '#cbd5e1'; ctx.font = '12px JetBrains Mono';
+    ctx.fillText(`θ_now = ${(theta_now*180/Math.PI).toFixed(1)}°`, mx, my0 + 22);
+    ctx.fillText(`t_s = ${ts.toFixed(2)}s`, mx + colInnerOffset, my0 + 22);
+    
+    // Metric values — line 3 (τ di kiri, klasifikasi di kanan)
+    ctx.fillText(`τ = ${tau.toFixed(2)}s`, mx, my0 + 42);
+    
+    // Classification label — bold colored
     let klsTxt = 'Underdamped';
     let klsColor = s.color;
     if (s.zeta >= 1) {
       klsTxt = Math.abs(s.zeta - 1) < 0.05 ? 'Critical' : 'Overdamped';
     }
-    ctx.fillStyle = klsColor; ctx.font = 'bold 9px JetBrains Mono';
-    ctx.fillText(klsTxt, mx + 80, my0 + 26);
+    ctx.fillStyle = klsColor; ctx.font = 'bold 12px JetBrains Mono';
+    ctx.fillText(klsTxt, mx + colInnerOffset, my0 + 42);
   });
   
-  // Cycle indicator (right-most)
+  // Cycle indicator (bottom-right) — perbesar
   const cycleNum = Math.floor(_forumAnim.t / cycleSec) + 1;
-  ctx.fillStyle = 'rgba(255,179,0,.7)';
-  ctx.font = '8px JetBrains Mono';
+  ctx.fillStyle = 'rgba(255,179,0,.85)';
+  ctx.font = 'bold 11px JetBrains Mono';
   ctx.textAlign = 'right';
   ctx.fillText(`CYCLE ${cycleNum} · t = ${_forumAnim.t.toFixed(1)}s`, W - 16, stripY + stripH - 14);
   ctx.textAlign = 'left';
