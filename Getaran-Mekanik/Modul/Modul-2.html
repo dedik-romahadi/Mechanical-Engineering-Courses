@@ -2237,8 +2237,8 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
   </div>
 
   <!-- Canvas Animasi Forum — Suspension Analysis Dashboard -->
-  <canvas id="cvForum" height="360" style="margin-bottom:12px;border-radius:12px"></canvas>
-  <p style="font-size:13px;color:var(--muted);margin-bottom:40px;font-family:'JetBrains Mono',monospace;text-align:center">— Dashboard analisis suspensi kendaraan: simulasi quarter-car dengan parameter realistis, time response x(t), dan phase portrait untuk klasifikasi sistem</p>
+  <canvas id="cvForum" height="460" style="margin-bottom:12px;border-radius:12px"></canvas>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:40px;font-family:'JetBrains Mono',monospace;text-align:center">— Dashboard analisis suspensi kendaraan (animasi real-time): simulasi quarter-car drop test, time response x(t) yang digambar progresif, dan phase portrait spiral untuk klasifikasi sistem</p>
 
   <!-- Pertanyaan Diskusi -->
   <div class="section-label reveal">Pertanyaan Diskusi</div>
@@ -4554,23 +4554,29 @@ setTimeout(drawHPB, 800);
 
 
 // ════════════════════════════════════════════════════════════
-// FORUM CANVAS — Suspension Drop Test Analysis Dashboard (Pertemuan 2)
+// FORUM CANVAS — Suspension Drop Test Analysis Dashboard (Pertemuan 2) — ANIMATED
 // Parameter quarter-car: m=400 kg, k=40000 N/m, c=2000 Ns/m
 // → omega_n = 10 rad/s, zeta = 0.25 (underdamped), omega_d ≈ 9.6825 rad/s
 // LAYOUT:
-//   LEFT (40%)  : Animated quarter-car suspension drop (mass bouncing on spring/damper)
-//   RIGHT TOP   : Time response x(t) being drawn live
-//   RIGHT BOT   : Phase portrait spiral (x vs ẋ)
-//   BOTTOM      : Live metrics strip (x, ẋ, E_total, klasifikasi)
+//   LEFT (40%)  : Animated quarter-car bouncing with velocity arrow & shock waves
+//   RIGHT TOP   : Time response x(t) drawn progressively dengan glow trail
+//   RIGHT BOT   : Phase portrait spiral dengan fade trail
+//   BOTTOM      : Live metrics + progress bar
 // ════════════════════════════════════════════════════════════
-let _forumAnim = { t: 0, history_x: [], history_v: [], raf: null };
+let _forumAnim = { 
+  t: 0, 
+  history: [],          // { t, x, v }
+  raf: null,
+  shockwaves: []        // active shock-wave rings
+};
 
 function drawForumCanvas() {
   const cv = document.getElementById('cvForum'); if (!cv) return;
-  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const W = cv.clientWidth || 800; cv.width = W; const H = cv.height;
+  if (W < 50) return;   // canvas not yet visible
   const ctx = cv.getContext('2d');
 
-  // Background
+  // Background gradient
   const bg = ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1626');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
@@ -4582,24 +4588,24 @@ function drawForumCanvas() {
   const omega_d = omega_n * Math.sqrt(1 - zeta*zeta);  // 9.6825 rad/s
   const T_d = 2 * Math.PI / omega_d;         // ≈ 0.6489 s
 
-  // Initial conditions: x0 = 0.05 m, v0 = 0
-  // Solution: x(t) = exp(-zeta*omega_n*t) * (A*cos(omega_d*t) + B*sin(omega_d*t))
-  // A = x0 = 0.05, B = (zeta*omega_n*x0 + v0)/omega_d = 2.5*0.05/9.6825 = 0.01291
+  // IC: x0 = 0.05 m, v0 = 0
+  // x(t) = exp(-zeta*omega_n*t) * (A*cos(omega_d*t) + B*sin(omega_d*t))
   const x0 = 0.05;
   const A = x0;
   const B = (zeta * omega_n * x0) / omega_d;
   
-  // Cycle time — restart every 4 seconds
-  const cycleSec = 4.0;
+  // Cycle time — 5 seconds for visible drawing
+  const cycleSec = 5.0;
   const t_phase = (_forumAnim.t % cycleSec);
   
-  // Reset history when cycle restarts
-  if (t_phase < 0.05 && _forumAnim.history_x.length > 50) {
-    _forumAnim.history_x = [];
-    _forumAnim.history_v = [];
+  // Reset at start of new cycle (with brief flash effect)
+  const justReset = t_phase < 0.05 && _forumAnim.history.length > 50;
+  if (justReset) {
+    _forumAnim.history = [];
+    _forumAnim.shockwaves = [];
   }
   
-  // Compute current x(t) and v(t) analytically
+  // Compute current x(t) and v(t)
   const decay = Math.exp(-zeta * omega_n * t_phase);
   const cosTerm = Math.cos(omega_d * t_phase);
   const sinTerm = Math.sin(omega_d * t_phase);
@@ -4607,10 +4613,24 @@ function drawForumCanvas() {
   const v = decay * ((-zeta*omega_n) * (A*cosTerm + B*sinTerm) + omega_d*(-A*sinTerm + B*cosTerm));
   
   // Add to history
-  _forumAnim.history_x.push({t: t_phase, x: x, v: v});
-  if (_forumAnim.history_x.length > 600) _forumAnim.history_x.shift();
+  _forumAnim.history.push({t: t_phase, x: x, v: v});
+  if (_forumAnim.history.length > 800) _forumAnim.history.shift();
   
-  // Energy calc
+  // Detect peak displacement events to spawn shock-wave
+  if (_forumAnim.history.length >= 3) {
+    const n = _forumAnim.history.length;
+    const last3 = _forumAnim.history.slice(n-3);
+    if (Math.abs(last3[1].x) > Math.abs(last3[0].x) && Math.abs(last3[1].x) > Math.abs(last3[2].x) && Math.abs(last3[1].x) > 0.005) {
+      _forumAnim.shockwaves.push({age: 0, sign: Math.sign(last3[1].x)});
+    }
+  }
+  // Update shockwaves
+  _forumAnim.shockwaves = _forumAnim.shockwaves.filter(sw => {
+    sw.age += 0.025;
+    return sw.age < 0.8;
+  });
+  
+  // Energy
   const T_kinetic = 0.5 * m * v * v;
   const U_potential = 0.5 * k * x * x;
   const E_total = T_kinetic + U_potential;
@@ -4620,51 +4640,54 @@ function drawForumCanvas() {
   const leftW = W * 0.4;
   const rightX = leftW + 8;
   const rightW = W - rightX - 8;
-  const bottomH = 50;
+  const bottomH = 60;
   const mainH = H - bottomH - 8;
-  
-  // Right panel split into two: time response (top), phase portrait (bottom)
   const rightTopH = mainH * 0.5;
   const rightBotY = 8 + rightTopH + 4;
   const rightBotH = mainH - 8 - rightTopH - 4;
 
-  // ═══ LEFT PANEL — Animated Quarter-Car Suspension ═══
+  // ════════════════════════════════════════════════════════════
+  // ═══ LEFT PANEL — Animated Quarter-Car ═══
+  // ════════════════════════════════════════════════════════════
   ctx.strokeStyle = 'rgba(14,165,233,.2)'; ctx.lineWidth = 1;
   ctx.strokeRect(8, 8, leftW - 8, mainH - 8);
   ctx.fillStyle = 'rgba(14,165,233,.04)';
   ctx.fillRect(8, 8, leftW - 8, mainH - 8);
   
-  // Title
+  // Title with pulsing dot
+  const titlePulse = 0.6 + 0.4 * Math.sin(_forumAnim.t * 3);
+  ctx.fillStyle = `rgba(239,68,68,${titlePulse})`;
+  ctx.beginPath(); ctx.arc(20, 20, 4, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText('🚗 QUARTER-CAR DROP TEST', 18, 24);
+  ctx.fillText('LIVE  ·  QUARTER-CAR DROP TEST', 32, 24);
   ctx.fillStyle = '#94a3b8'; ctx.font = '9px JetBrains Mono';
-  ctx.fillText(`m=400kg, k=40kN/m, c=2kNs/m`, 18, 38);
+  ctx.fillText(`m=400kg, k=40kN/m, c=2kNs/m, ζ=0.25`, 18, 38);
   
-  // Center for car body
+  // Car geometry
   const cx = leftW / 2;
-  const restY = mainH / 2 + 5;       // rest position
-  const maxDispPx = 50;               // max pixel displacement
-  const xPx = (x / x0) * maxDispPx;   // scale x to pixels
+  const restY = mainH / 2 + 20;
+  const maxDispPx = 60;
+  const xPx = (x / x0) * maxDispPx;
   const carY = restY + xPx;
   
-  // Top fixed bracket (chassis ref)
+  // Top fixed bracket
   ctx.fillStyle = 'rgba(148,163,184,.3)';
-  ctx.fillRect(cx - 50, restY - 80 - maxDispPx - 10, 100, 8);
+  ctx.fillRect(cx - 50, restY - 90 - maxDispPx - 10, 100, 8);
   ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1;
   for (let i = 0; i < 8; i++) {
     ctx.beginPath();
-    ctx.moveTo(cx - 45 + i * 12, restY - 80 - maxDispPx - 10);
-    ctx.lineTo(cx - 38 + i * 12, restY - 80 - maxDispPx - 2);
+    ctx.moveTo(cx - 45 + i * 12, restY - 90 - maxDispPx - 10);
+    ctx.lineTo(cx - 38 + i * 12, restY - 90 - maxDispPx - 2);
     ctx.stroke();
   }
   
-  // Spring (left)
+  // Spring (left) — coils with extra coil count when stretched
   const spX = cx - 25;
-  const spTop = restY - 80 - maxDispPx - 2;
+  const spTop = restY - 90 - maxDispPx - 2;
   const spBot = carY;
   const spLen = spBot - spTop;
   const coils = 8;
-  ctx.strokeStyle = 'rgba(168,85,247,.7)'; ctx.lineWidth = 2;
+  ctx.strokeStyle = 'rgba(168,85,247,.85)'; ctx.lineWidth = 2.5;
   ctx.beginPath();
   ctx.moveTo(spX, spTop);
   for (let i = 0; i < coils; i++) {
@@ -4675,55 +4698,88 @@ function drawForumCanvas() {
   ctx.lineTo(spX, spBot);
   ctx.stroke();
   
-  // Damper (right) — cylinder + piston
+  // Damper (right) — animated piston
   const dpX = cx + 25;
   const dpTop = spTop;
   const dpBot = spBot;
   const dpMid = (dpTop + dpBot) / 2;
-  ctx.strokeStyle = 'rgba(249,115,22,.7)'; ctx.lineWidth = 2;
-  // rod from top
-  ctx.beginPath();
-  ctx.moveTo(dpX, dpTop);
-  ctx.lineTo(dpX, dpMid - 12);
-  ctx.stroke();
+  ctx.strokeStyle = 'rgba(249,115,22,.85)'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(dpX, dpTop); ctx.lineTo(dpX, dpMid - 14); ctx.stroke();
   // cylinder body
-  ctx.fillStyle = 'rgba(249,115,22,.1)';
-  ctx.fillRect(dpX - 9, dpMid - 12, 18, 24);
-  ctx.strokeRect(dpX - 9, dpMid - 12, 18, 24);
-  // piston
-  ctx.fillStyle = 'rgba(249,115,22,.5)';
-  ctx.fillRect(dpX - 7, dpMid - 2, 14, 4);
+  ctx.fillStyle = 'rgba(249,115,22,.15)';
+  ctx.fillRect(dpX - 10, dpMid - 14, 20, 28);
+  ctx.strokeStyle = 'rgba(249,115,22,.85)';
+  ctx.strokeRect(dpX - 10, dpMid - 14, 20, 28);
+  // piston (position varies with velocity sign for visual feedback)
+  const pistonOffset = Math.sign(v) * Math.min(8, Math.abs(v) * 4);
+  ctx.fillStyle = 'rgba(249,115,22,.7)';
+  ctx.fillRect(dpX - 8, dpMid - 2 + pistonOffset, 16, 5);
   // rod to bottom
-  ctx.beginPath();
-  ctx.moveTo(dpX, dpMid + 12);
-  ctx.lineTo(dpX, dpBot);
-  ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(dpX, dpMid + 14); ctx.lineTo(dpX, dpBot); ctx.stroke();
   
-  // Car body (mass)
-  const carW = 110, carH = 36;
+  // Shock-wave rings emanating from car
+  _forumAnim.shockwaves.forEach(sw => {
+    const radius = sw.age * 80;
+    const alpha = 0.6 * (1 - sw.age / 0.8);
+    ctx.strokeStyle = `rgba(0,224,158,${alpha})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(cx, carY + 18, radius, 0, Math.PI*2);
+    ctx.stroke();
+  });
+  
+  // Car body
+  const carW = 120, carH = 40;
   const carGrad = ctx.createLinearGradient(cx - carW/2, carY, cx + carW/2, carY + carH);
-  carGrad.addColorStop(0, 'rgba(14,165,233,.3)');
-  carGrad.addColorStop(1, 'rgba(14,165,233,.15)');
+  carGrad.addColorStop(0, 'rgba(14,165,233,.4)');
+  carGrad.addColorStop(1, 'rgba(14,165,233,.18)');
   ctx.fillStyle = carGrad;
   ctx.fillRect(cx - carW/2, carY, carW, carH);
-  ctx.strokeStyle = 'rgba(14,165,233,.9)'; ctx.lineWidth = 2;
+  ctx.strokeStyle = 'rgba(14,165,233,1)'; ctx.lineWidth = 2;
   ctx.strokeRect(cx - carW/2, carY, carW, carH);
-  // wheel circles
+  // wheels
   ctx.fillStyle = '#1e293b';
-  ctx.beginPath(); ctx.arc(cx - 35, carY + carH + 8, 12, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(cx + 35, carY + carH + 8, 12, 0, Math.PI*2); ctx.fill();
-  ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.arc(cx - 35, carY + carH + 8, 12, 0, Math.PI*2); ctx.stroke();
-  ctx.beginPath(); ctx.arc(cx + 35, carY + carH + 8, 12, 0, Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx - 38, carY + carH + 9, 13, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx + 38, carY + carH + 9, 13, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = 'rgba(148,163,184,.6)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(cx - 38, carY + carH + 9, 13, 0, Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx + 38, carY + carH + 9, 13, 0, Math.PI*2); ctx.stroke();
+  // wheel hubs
+  ctx.fillStyle = '#475569';
+  ctx.beginPath(); ctx.arc(cx - 38, carY + carH + 9, 4, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx + 38, carY + carH + 9, 4, 0, Math.PI*2); ctx.fill();
   // mass label
-  ctx.fillStyle = '#fff'; ctx.font = 'bold 13px JetBrains Mono';
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 14px JetBrains Mono';
   ctx.textAlign = 'center';
-  ctx.fillText('m', cx, carY + 23);
+  ctx.fillText('m = 400 kg', cx, carY + 25);
   ctx.textAlign = 'left';
   
-  // Ground/road
+  // Velocity arrow on car
+  if (Math.abs(v) > 0.05) {
+    const arrowLen = Math.min(35, Math.abs(v) * 25);
+    const arrowDir = Math.sign(v);
+    const ax = cx + carW/2 + 10;
+    const ay = carY + carH/2;
+    ctx.strokeStyle = arrowDir > 0 ? '#ef4444' : '#00e09e';
+    ctx.fillStyle = ctx.strokeStyle;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(ax, ay);
+    ctx.lineTo(ax, ay + arrowLen * arrowDir);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(ax, ay + arrowLen * arrowDir);
+    ctx.lineTo(ax - 5, ay + arrowLen * arrowDir - 6 * arrowDir);
+    ctx.lineTo(ax + 5, ay + arrowLen * arrowDir - 6 * arrowDir);
+    ctx.closePath();
+    ctx.fill();
+    ctx.font = 'bold 9px JetBrains Mono';
+    ctx.fillText('ẋ', ax + 8, ay + 4);
+  }
+  
+  // Ground
   const groundY = mainH - 14;
-  ctx.fillStyle = 'rgba(100,116,139,.25)';
+  ctx.fillStyle = 'rgba(100,116,139,.3)';
   ctx.fillRect(18, groundY, leftW - 28, 8);
   ctx.strokeStyle = 'rgba(148,163,184,.4)'; ctx.lineWidth = 1;
   for (let i = 0; i < 14; i++) {
@@ -4734,33 +4790,41 @@ function drawForumCanvas() {
   }
   
   // Rest line indicator
-  ctx.strokeStyle = 'rgba(255,255,255,.2)'; ctx.setLineDash([4,4]); ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(cx - 70, restY + carH/2); ctx.lineTo(cx + 70, restY + carH/2); ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.setLineDash([4,4]); ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(cx - 75, restY + carH/2); ctx.lineTo(cx + 75, restY + carH/2); ctx.stroke();
   ctx.setLineDash([]);
-  ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.font = '9px JetBrains Mono';
-  ctx.fillText('rest (x=0)', cx + 75, restY + carH/2 + 3);
+  ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.font = '9px JetBrains Mono';
+  ctx.fillText('rest (x=0)', cx + 80, restY + carH/2 + 3);
   
-  // ═══ RIGHT TOP — Time Response x(t) ═══
-  const padL = 40, padR = 12, padT = 30, padB = 18;
+  // Display current x value next to the car
+  ctx.fillStyle = '#facc15';
+  ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText(`x = ${(x*1000).toFixed(2)} mm`, 18, mainH - 30);
+  
+  // ════════════════════════════════════════════════════════════
+  // ═══ RIGHT TOP — Time Response x(t) — ANIMATED PROGRESSIVE DRAW ═══
+  // ════════════════════════════════════════════════════════════
+  const padL = 42, padR = 14, padT = 32, padB = 20;
   const tpX = rightX + padL;
   const tpY = 8 + padT;
   const tpW = rightW - padL - padR;
   const tpH = rightTopH - 8 - padT - padB;
   
-  // panel border
-  ctx.strokeStyle = 'rgba(168,85,247,.2)'; ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(168,85,247,.25)'; ctx.lineWidth = 1;
   ctx.strokeRect(rightX, 8, rightW, rightTopH - 8);
   ctx.fillStyle = 'rgba(168,85,247,.04)';
   ctx.fillRect(rightX, 8, rightW, rightTopH - 8);
   
-  // title
+  // Title with progress dot
+  ctx.fillStyle = `rgba(168,85,247,${titlePulse})`;
+  ctx.beginPath(); ctx.arc(rightX + 15, 20, 3, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = '#a855f7'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText('📈 TIME RESPONSE x(t)', rightX + 10, 22);
+  ctx.fillText('TIME RESPONSE x(t) — drawing progresif', rightX + 24, 22);
   
-  // grid
+  // Grid
   ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
-  for (let i = 0; i <= 8; i++) {
-    const xg = tpX + i * tpW / 8;
+  for (let i = 0; i <= 10; i++) {
+    const xg = tpX + i * tpW / 10;
     ctx.beginPath(); ctx.moveTo(xg, tpY); ctx.lineTo(xg, tpY + tpH); ctx.stroke();
   }
   for (let j = 0; j <= 4; j++) {
@@ -4768,16 +4832,18 @@ function drawForumCanvas() {
     ctx.beginPath(); ctx.moveTo(tpX, yg); ctx.lineTo(tpX + tpW, yg); ctx.stroke();
   }
   
-  // axes
+  // Scaling
   const sx_t = (t) => tpX + (t / cycleSec) * tpW;
   const sy_x = (xv) => tpY + tpH/2 - (xv / x0) * (tpH/2 - 4);
   
-  // zero line
-  ctx.strokeStyle = 'rgba(255,255,255,.15)'; ctx.lineWidth = 1;
+  // Zero line
+  ctx.strokeStyle = 'rgba(255,255,255,.2)'; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(tpX, tpY + tpH/2); ctx.lineTo(tpX + tpW, tpY + tpH/2); ctx.stroke();
   
-  // envelope (exponential decay) — faded
-  ctx.strokeStyle = 'rgba(239,68,68,.35)'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+  // Envelope — animated dashed (rotating dash offset)
+  const dashOffset = (_forumAnim.t * 30) % 12;
+  ctx.strokeStyle = 'rgba(239,68,68,.45)'; ctx.lineWidth = 1.2;
+  ctx.setLineDash([4, 4]); ctx.lineDashOffset = -dashOffset;
   ctx.beginPath();
   for (let i = 0; i <= 100; i++) {
     const ti = i / 100 * cycleSec;
@@ -4794,14 +4860,14 @@ function drawForumCanvas() {
     else ctx.lineTo(sx_t(ti), sy_x(env));
   }
   ctx.stroke();
-  ctx.setLineDash([]);
+  ctx.setLineDash([]); ctx.lineDashOffset = 0;
   
-  // x(t) trajectory
-  if (_forumAnim.history_x.length > 1) {
-    ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 2;
-    ctx.shadowColor = 'rgba(168,85,247,.5)'; ctx.shadowBlur = 4;
+  // x(t) trajectory — gradient line for visual progress
+  if (_forumAnim.history.length > 1) {
+    ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 2.5;
+    ctx.shadowColor = 'rgba(168,85,247,.7)'; ctx.shadowBlur = 6;
     ctx.beginPath();
-    _forumAnim.history_x.forEach((p, i) => {
+    _forumAnim.history.forEach((p, i) => {
       if (i === 0) ctx.moveTo(sx_t(p.t), sy_x(p.x));
       else ctx.lineTo(sx_t(p.t), sy_x(p.x));
     });
@@ -4809,93 +4875,122 @@ function drawForumCanvas() {
     ctx.shadowBlur = 0;
   }
   
-  // current point
-  ctx.fillStyle = '#ef4444';
-  ctx.shadowColor = 'rgba(239,68,68,.7)'; ctx.shadowBlur = 6;
-  ctx.beginPath(); ctx.arc(sx_t(t_phase), sy_x(x), 4, 0, Math.PI*2); ctx.fill();
+  // Current point (drawing head) — pulsing dot
+  const headPulse = 0.7 + 0.3 * Math.sin(_forumAnim.t * 8);
+  ctx.fillStyle = `rgba(239,68,68,${headPulse})`;
+  ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 12;
+  ctx.beginPath(); ctx.arc(sx_t(t_phase), sy_x(x), 6, 0, Math.PI*2); ctx.fill();
   ctx.shadowBlur = 0;
+  // Inner bright dot
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(sx_t(t_phase), sy_x(x), 2, 0, Math.PI*2); ctx.fill();
   
-  // axis labels
+  // Vertical "current time" indicator line
+  ctx.strokeStyle = 'rgba(239,68,68,.3)'; ctx.lineWidth = 1.5;
+  ctx.setLineDash([2, 4]);
+  ctx.beginPath(); 
+  ctx.moveTo(sx_t(t_phase), tpY);
+  ctx.lineTo(sx_t(t_phase), tpY + tpH);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  
+  // Axis labels
   ctx.fillStyle = '#475569'; ctx.font = '8px JetBrains Mono';
-  ctx.textAlign = 'right'; ctx.fillText('+0.05', tpX - 3, tpY + 8);
+  ctx.textAlign = 'right'; 
+  ctx.fillText('+0.05', tpX - 3, tpY + 8);
   ctx.fillText('0', tpX - 3, tpY + tpH/2 + 3);
   ctx.fillText('-0.05', tpX - 3, tpY + tpH - 4);
   ctx.textAlign = 'center';
   ctx.fillText('0s', tpX, tpY + tpH + 12);
   ctx.fillText(`${cycleSec}s`, tpX + tpW, tpY + tpH + 12);
+  ctx.fillText(`t = ${t_phase.toFixed(2)}s`, sx_t(t_phase), tpY + tpH + 12);
   ctx.textAlign = 'left';
   ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 9px JetBrains Mono';
-  ctx.fillText('x (m)', tpX - 35, tpY + 8);
+  ctx.fillText('x (m)', tpX - 38, tpY + 8);
   
-  // ═══ RIGHT BOTTOM — Phase Portrait ═══
+  // ════════════════════════════════════════════════════════════
+  // ═══ RIGHT BOTTOM — Phase Portrait — ANIMATED ═══
+  // ════════════════════════════════════════════════════════════
   const ppX = rightX + padL;
   const ppY = rightBotY + padT - 10;
   const ppW = rightW - padL - padR;
   const ppH = rightBotH - padT + 10 - padB;
   
-  ctx.strokeStyle = 'rgba(0,224,158,.2)'; ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(0,224,158,.25)'; ctx.lineWidth = 1;
   ctx.strokeRect(rightX, rightBotY - 4, rightW, rightBotH);
   ctx.fillStyle = 'rgba(0,224,158,.04)';
   ctx.fillRect(rightX, rightBotY - 4, rightW, rightBotH);
   
-  // title
+  // Title
+  ctx.fillStyle = `rgba(0,224,158,${titlePulse})`;
+  ctx.beginPath(); ctx.arc(rightX + 15, rightBotY + 6, 3, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = '#00e09e'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText('🌀 PHASE PORTRAIT (x vs ẋ/ωₙ)', rightX + 10, rightBotY + 8);
+  ctx.fillText('PHASE PORTRAIT (x vs ẋ/ωₙ) — spiral menuju origin', rightX + 24, rightBotY + 8);
   
-  // scaling — center is origin
   const ppCx = ppX + ppW / 2;
   const ppCy = ppY + ppH / 2;
-  const ppScale = Math.min(ppW, ppH) / 2 / (x0 * 1.1);
+  const ppScale = Math.min(ppW, ppH) / 2 / (x0 * 1.15);
   
-  // axes
-  ctx.strokeStyle = 'rgba(255,255,255,.2)'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(ppX, ppCy); ctx.lineTo(ppX + ppW, ppCy); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(ppCx, ppY); ctx.lineTo(ppCx, ppY + ppH); ctx.stroke();
-  
-  // grid (concentric circles for energy contours)
-  ctx.strokeStyle = 'rgba(255,255,255,.05)'; ctx.lineWidth = 1;
+  // Concentric energy contour circles (faint)
+  ctx.strokeStyle = 'rgba(0,224,158,.08)'; ctx.lineWidth = 1;
   for (let r = 0.2; r <= 1; r += 0.2) {
     ctx.beginPath();
     ctx.arc(ppCx, ppCy, r * x0 * ppScale, 0, Math.PI*2);
     ctx.stroke();
   }
   
-  // Plot phase trajectory (spiral)
-  if (_forumAnim.history_x.length > 1) {
-    ctx.strokeStyle = '#00e09e'; ctx.lineWidth = 1.5;
-    ctx.shadowColor = 'rgba(0,224,158,.5)'; ctx.shadowBlur = 3;
-    ctx.beginPath();
-    _forumAnim.history_x.forEach((p, i) => {
-      const px = ppCx + p.x * ppScale;
-      const py = ppCy - (p.v / omega_n) * ppScale;
-      if (i === 0) ctx.moveTo(px, py);
-      else ctx.lineTo(px, py);
-    });
-    ctx.stroke();
-    ctx.shadowBlur = 0;
+  // Axes
+  ctx.strokeStyle = 'rgba(255,255,255,.2)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(ppX, ppCy); ctx.lineTo(ppX + ppW, ppCy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ppCx, ppY); ctx.lineTo(ppCx, ppY + ppH); ctx.stroke();
+  
+  // Spiral trajectory — fade trail (older points are more transparent)
+  if (_forumAnim.history.length > 1) {
+    const histLen = _forumAnim.history.length;
+    const SEGMENT = 4;  // draw in segments for fade effect
+    for (let seg = 0; seg < histLen - SEGMENT; seg += SEGMENT) {
+      const ageFactor = seg / histLen;       // 0 = oldest, 1 = newest
+      const alpha = 0.15 + 0.85 * ageFactor;  // newer = more visible
+      ctx.strokeStyle = `rgba(0,224,158,${alpha})`;
+      ctx.lineWidth = 1.2 + ageFactor * 1.3;
+      ctx.beginPath();
+      const p0 = _forumAnim.history[seg];
+      ctx.moveTo(ppCx + p0.x * ppScale, ppCy - (p0.v / omega_n) * ppScale);
+      for (let k = 1; k <= SEGMENT && seg + k < histLen; k++) {
+        const p = _forumAnim.history[seg + k];
+        ctx.lineTo(ppCx + p.x * ppScale, ppCy - (p.v / omega_n) * ppScale);
+      }
+      ctx.stroke();
+    }
   }
   
-  // Initial condition marker
-  ctx.fillStyle = '#facc15';
+  // Initial condition marker — pulsing
+  const icPulse = 0.6 + 0.4 * Math.sin(_forumAnim.t * 4);
+  ctx.fillStyle = `rgba(250,204,21,${icPulse})`;
+  ctx.shadowColor = '#facc15'; ctx.shadowBlur = 6;
   ctx.beginPath(); 
-  ctx.arc(ppCx + x0 * ppScale, ppCy, 4, 0, Math.PI*2);
-  ctx.fill();
-  
-  // Origin marker (red plus)
-  ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2;
-  ctx.beginPath(); 
-  ctx.moveTo(ppCx - 6, ppCy); ctx.lineTo(ppCx + 6, ppCy);
-  ctx.moveTo(ppCx, ppCy - 6); ctx.lineTo(ppCx, ppCy + 6);
-  ctx.stroke();
-  
-  // Current point (pulsing)
-  const pulse = 0.7 + 0.3 * Math.sin(_forumAnim.t * 5);
-  ctx.fillStyle = `rgba(239,68,68,${pulse})`;
-  ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 8;
-  ctx.beginPath();
-  ctx.arc(ppCx + x * ppScale, ppCy - (v/omega_n) * ppScale, 5, 0, Math.PI*2);
+  ctx.arc(ppCx + x0 * ppScale, ppCy, 5, 0, Math.PI*2);
   ctx.fill();
   ctx.shadowBlur = 0;
+  
+  // Origin marker (red plus)
+  ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); 
+  ctx.moveTo(ppCx - 7, ppCy); ctx.lineTo(ppCx + 7, ppCy);
+  ctx.moveTo(ppCx, ppCy - 7); ctx.lineTo(ppCx, ppCy + 7);
+  ctx.stroke();
+  
+  // Current point — bright pulsing
+  ctx.fillStyle = `rgba(239,68,68,${headPulse})`;
+  ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 14;
+  ctx.beginPath();
+  ctx.arc(ppCx + x * ppScale, ppCy - (v/omega_n) * ppScale, 7, 0, Math.PI*2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(ppCx + x * ppScale, ppCy - (v/omega_n) * ppScale, 2.5, 0, Math.PI*2);
+  ctx.fill();
   
   // Labels
   ctx.fillStyle = '#475569'; ctx.font = '8px JetBrains Mono';
@@ -4903,19 +4998,35 @@ function drawForumCanvas() {
   ctx.fillText('x (m)', ppX + ppW - 4, ppCy - 4);
   ctx.textAlign = 'left';
   ctx.fillText('ẋ/ωₙ', ppCx + 4, ppY + 8);
+  ctx.fillText('IC (x₀)', ppCx + x0 * ppScale + 8, ppCy - 6);
   ctx.textAlign = 'center';
   ctx.fillStyle = 'rgba(0,224,158,.7)';
   ctx.font = 'bold 9px JetBrains Mono';
-  ctx.fillText('STABLE FOCUS — spiral menuju origin', ppCx, ppY + ppH - 4);
+  ctx.fillText('STABLE FOCUS — energi terdisipasi', ppCx, ppY + ppH - 4);
   ctx.textAlign = 'left';
   
-  // ═══ BOTTOM STRIP — Live Metrics ═══
+  // ════════════════════════════════════════════════════════════
+  // ═══ BOTTOM STRIP — Live Metrics + Progress Bar ═══
+  // ════════════════════════════════════════════════════════════
   const stripY = mainH + 4;
-  ctx.fillStyle = 'rgba(13,21,32,.9)';
+  ctx.fillStyle = 'rgba(13,21,32,.95)';
   ctx.fillRect(8, stripY, W - 16, bottomH - 4);
-  ctx.strokeStyle = 'rgba(255,179,0,.3)'; ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(255,179,0,.35)'; ctx.lineWidth = 1;
   ctx.strokeRect(8, stripY, W - 16, bottomH - 4);
   
+  // Progress bar (top of strip)
+  const progY = stripY + 3;
+  const progW = (W - 32) * (t_phase / cycleSec);
+  ctx.fillStyle = 'rgba(0,224,158,.15)';
+  ctx.fillRect(16, progY, W - 32, 4);
+  const progGrad = ctx.createLinearGradient(16, 0, W - 16, 0);
+  progGrad.addColorStop(0, '#0ea5e9');
+  progGrad.addColorStop(0.5, '#a855f7');
+  progGrad.addColorStop(1, '#ef4444');
+  ctx.fillStyle = progGrad;
+  ctx.fillRect(16, progY, progW, 4);
+  
+  // Metrics (5 columns)
   const klasifikasi = '🟡 Underdamped';
   const metrics = [
     { label: 'Posisi x', value: (x*1000).toFixed(2) + ' mm', color: '#0ea5e9' },
@@ -4928,19 +5039,36 @@ function drawForumCanvas() {
   metrics.forEach((m, i) => {
     const mx = 8 + i * metricW + 8;
     ctx.fillStyle = '#64748b'; ctx.font = '8px JetBrains Mono';
-    ctx.fillText(m.label.toUpperCase(), mx, stripY + 14);
+    ctx.fillText(m.label.toUpperCase(), mx, stripY + 24);
     ctx.fillStyle = m.color; ctx.font = 'bold 13px JetBrains Mono';
-    ctx.fillText(m.value, mx, stripY + 33);
+    ctx.fillText(m.value, mx, stripY + 44);
   });
+  
+  // Cycle counter (top right of strip)
+  const cycleNum = Math.floor(_forumAnim.t / cycleSec) + 1;
+  ctx.fillStyle = 'rgba(255,179,0,.6)';
+  ctx.font = '9px JetBrains Mono';
+  ctx.textAlign = 'right';
+  ctx.fillText(`CYCLE ${cycleNum}  ·  t_total = ${_forumAnim.t.toFixed(2)}s`, W - 14, stripY + 14);
+  ctx.textAlign = 'left';
 }
 
-// Animation loop
+// ════════════════════════════════════════════════════════════
+// Animation loop — robust restart even when canvas first becomes visible
+// ════════════════════════════════════════════════════════════
 function _forumTick() {
   _forumAnim.t += 0.025;
   drawForumCanvas();
   _forumAnim.raf = requestAnimationFrame(_forumTick);
 }
-setTimeout(_forumTick, 900);
+
+// Start animation immediately and re-trigger when forum tab opens
+document.addEventListener('DOMContentLoaded', () => {
+  if (!_forumAnim.raf) setTimeout(_forumTick, 500);
+});
+// Also start regardless (DOMContentLoaded may have already fired)
+if (!_forumAnim.raf) setTimeout(_forumTick, 900);
+
 
 
 // Resize handler — redraw all active canvases
