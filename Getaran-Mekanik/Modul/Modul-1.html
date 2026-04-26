@@ -3955,54 +3955,78 @@ function checkForumReady() {
 function copyForumHtml() {
   const btn = document.getElementById('btn-copy-forum');
   const msg = document.getElementById('copy-forum-msg');
-
-  // Word count validation
   const ids = ['ans-fq1', 'ans-fq2', 'ans-fq3'];
   const labels = ['Pertanyaan 1', 'Pertanyaan 2', 'Pertanyaan 3'];
   const short = ids.map((id, i) => {
     const wc = countWords(document.getElementById(id)?.value || '');
     return wc < FORUM_MIN_WORDS ? `${labels[i]} (${wc}/${FORUM_MIN_WORDS} kata)` : null;
   }).filter(Boolean);
-
   if (short.length) {
-    if (msg) {
-      msg.style.color = 'var(--amber)';
-      msg.textContent = '⚠ Jawaban terlalu singkat: ' + short.join(' · ');
-    }
+    if (msg) { msg.style.color = 'var(--amber)'; msg.textContent = '⚠ Jawaban terlalu singkat: ' + short.join(' · '); }
     return;
   }
-
-  const htmlCode = buildForumHtml();
-
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(htmlCode).then(() => {
-      btn.textContent = '✅ Tersalin!';
-      btn.style.background = 'rgba(0,224,158,.2)';
-      if (msg) { msg.style.color = 'var(--green)'; msg.textContent = '✅ Kode HTML sudah tersalin. Buka Fast Learning → Forum Pertemuan 1 → klik </> HTML → paste.'; }
-      setTimeout(() => {
-        btn.textContent = '📋 Copy Forum (kode HTML)';
-        btn.style.background = '';
-      }, 3000);
-    }).catch(() => fallbackCopy(htmlCode, btn, msg));
+  let htmlCode;
+  try { htmlCode = buildForumHtml(); }
+  catch(err) {
+    console.error('[Forum] buildForumHtml failed:', err);
+    if (msg) { msg.style.color = 'var(--pink, #ef4444)'; msg.textContent = '❌ Gagal generate HTML: ' + (err.message || err); }
+    return;
+  }
+  if (!htmlCode || htmlCode.length < 100) {
+    if (msg) { msg.style.color = 'var(--pink, #ef4444)'; msg.textContent = '❌ HTML kosong atau invalid. Cek console.'; }
+    console.error('[Forum] HTML output too short:', htmlCode);
+    return;
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext) {
+    navigator.clipboard.writeText(htmlCode).then(() => { _showCopySuccess(btn, msg); })
+      .catch((err) => { console.warn('[Forum] Clipboard API failed, trying fallback:', err); fallbackCopy(htmlCode, btn, msg); });
   } else {
     fallbackCopy(htmlCode, btn, msg);
   }
 }
-
+function _showCopySuccess(btn, msg) {
+  if (btn) {
+    btn.textContent = '✅ Tersalin!';
+    btn.style.background = 'rgba(0,224,158,.2)';
+    setTimeout(() => { btn.textContent = 'Copy Forum (kode HTML)'; btn.style.background = ''; }, 3000);
+  }
+  if (msg) { msg.style.color = 'var(--green)'; msg.textContent = '✅ Kode HTML sudah tersalin. Buka Fast Learning → Forum → klik </> HTML → paste.'; }
+}
 function fallbackCopy(text, btn, msg) {
   const ta = document.createElement('textarea');
   ta.value = text;
-  ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
+  ta.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;padding:0;border:0;outline:0;background:transparent;color:transparent;z-index:-1';
+  ta.setAttribute('readonly', '');
   document.body.appendChild(ta);
+  ta.focus();
   ta.select();
-  try {
-    document.execCommand('copy');
-    if (btn) { btn.textContent = '✅ Tersalin!'; setTimeout(() => btn.textContent = '📋 Copy Forum (kode HTML)', 3000); }
-    if (msg) { msg.style.color = 'var(--green)'; msg.textContent = '✅ Kode HTML sudah tersalin. Buka Fast Learning → Forum Pertemuan 1 → klik </> HTML → paste.'; }
-  } catch(e) {
-    if (msg) { msg.style.color = 'var(--amber)'; msg.textContent = '⚠ Salin manual: Ctrl+A lalu Ctrl+C dari file yang dibuka.'; }
-  }
+  ta.setSelectionRange(0, text.length);
+  let copied = false;
+  try { copied = document.execCommand('copy'); }
+  catch(e) { console.warn('[Forum] execCommand copy failed:', e); }
   document.body.removeChild(ta);
+  if (copied) { _showCopySuccess(btn, msg); return; }
+  console.warn('[Forum] All clipboard methods failed — opening manual copy popup');
+  try {
+    const popup = window.open('', '_blank', 'width=900,height=700,scrollbars=yes');
+    if (!popup) throw new Error('Popup blocked');
+    popup.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Copy Forum HTML</title>
+<style>body{font-family:system-ui,-apple-system,sans-serif;padding:20px;background:#f1f5f9;margin:0}
+.banner{background:#0ea5e9;color:#fff;padding:16px 20px;border-radius:10px;margin-bottom:16px;font-size:14px;line-height:1.5}
+.banner b{font-size:16px;display:block;margin-bottom:4px}
+textarea{width:100%;height:calc(100vh - 180px);font-family:'Courier New',monospace;font-size:12px;padding:14px;border:2px solid #cbd5e1;border-radius:8px;resize:vertical;background:#fff}
+button{background:#0ea5e9;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-top:10px}
+button:hover{background:#0284c7}</style></head><body>
+<div class="banner"><b>Copy Manual</b>Browser tidak mengizinkan otomatis copy. Tekan <kbd>Ctrl+A</kbd> lalu <kbd>Ctrl+C</kbd> di textarea bawah, lalu paste di Fast Learning.</div>
+<button onclick="document.querySelector('textarea').select();document.querySelector('textarea').setSelectionRange(0,99999);">Select All</button>
+<textarea readonly>${text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>
+</body></html>`);
+    popup.document.close();
+    if (msg) { msg.style.color = 'var(--amber, #f59e0b)'; msg.textContent = 'Browser blokir auto-copy → window terbuka. Tekan Ctrl+A lalu Ctrl+C di sana.'; }
+  } catch(e) {
+    console.error('[Forum] Popup also blocked:', e);
+    if (msg) { msg.style.color = 'var(--pink, #ef4444)'; msg.innerHTML = '❌ Auto-copy gagal & popup terblokir. <strong>Solusi:</strong> izinkan popup di browser, atau coba di Chrome/Edge desktop.'; }
+  }
 }
 
 // ── BUILD FORUM HTML (shared between copy and legacy export) ──
@@ -5896,11 +5920,14 @@ async function submitPinSetup() {
       });
 
       // (b) Visitor record di course/module CURRENT (tanpa pinHash!)
+      // Bug fix: include points: 0 dari awal (lihat catatan submitPinVerify)
       const visitorRec = {
         nama, nim, role: 'student',
         timestamp: nowISO,
         lastVisit: nowISO,
-        visitCount: 1
+        visitCount: 1,
+        points: 0,
+        scoredQuestions: ''
       };
       saveIdentity(visitorRec);
       await set(ref(db, DB_PATH + '/' + key), visitorRec);
@@ -5961,11 +5988,16 @@ async function submitPinVerify() {
       visitorRec = _stripLegacyPinFields(visitorRec);
     } else {
       // Pertama kali akses course/module ini (tapi sudah punya PIN global)
+      // Bug fix: include points: 0 dari awal agar database rule
+      // (newData.points >= data.points) tidak gagal saat first answer write
+      // (Firebase rules: 1 >= null evaluates to false → write rejected)
       visitorRec = {
         nama, nim, role: 'student',
         timestamp: nowISO,
         lastVisit: nowISO,
-        visitCount: 1
+        visitCount: 1,
+        points: 0,
+        scoredQuestions: ''
       };
     }
 
