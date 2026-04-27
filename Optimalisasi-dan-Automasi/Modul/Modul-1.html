@@ -621,7 +621,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
         <li>Semua <strong>poin &amp; nilai</strong> mahasiswa</li>
         <li>Semua <strong>kunjungan</strong> (visitCount, lastVisit)</li>
         <li>Semua <strong>riwayat jawaban</strong> (scoredQuestions)</li>
-        <li>Semua <strong>PIN mahasiswa</strong> (mereka harus buat PIN baru)</li>
+        <li>Semua <strong><em>PIN mahasiswa <strong>tidak terhapus</strong></em> — tersimpan global lintas-modul, tidak perlu setup ulang</li>
         <li>Data forum, tugas, dan <strong>jadwal pertemuan</strong></li>
       </ul>
     </div>
@@ -2275,6 +2275,17 @@ x = signal + noise                              # ← Ini deret time series Anda
     <p style="color:var(--muted);font-size:13px;margin-bottom:24px">Di editor forum, klik tombol <strong style="color:var(--amber)">&lt;/&gt; HTML</strong> untuk beralih ke mode HTML, lalu paste kode yang sudah disalin.</p>
     <button class="btn-export-forum" id="btn-copy-forum" onclick="copyForumHtml()" disabled style="opacity:.4;cursor:not-allowed">📋 Copy Forum (kode HTML)</button>
     <div id="copy-forum-msg" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);margin-top:10px"></div>
+    <div id="forum-html-output" style="display:none;margin-top:18px;text-align:left">
+      <div style="background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.3);border-radius:10px;padding:14px 16px;margin-bottom:10px">
+        <div style="font-size:14px;font-weight:700;color:var(--violet);margin-bottom:6px">✅ HTML Siap di Bawah — Salin Manual</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.6">Cara salin: <strong>(1)</strong> Klik "🔍 Pilih Semua" &nbsp;<strong>(2)</strong> Tekan Ctrl+C (Cmd+C di Mac) &nbsp;<strong>(3)</strong> Paste di Fast Learning &gt; mode HTML.<br><span style="color:var(--cyan)">Tombol Copy di atas adalah opsional — jika tidak berfungsi, gunakan cara manual ini.</span></div>
+      </div>
+      <textarea id="forum-html-textarea" readonly style="width:100%;height:140px;font-family:'JetBrains Mono',monospace;font-size:11px;background:#0a1224;color:#e2e8f0;padding:12px 14px;border:1px solid rgba(168,85,247,.2);border-radius:10px;resize:vertical;outline:none"></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px;justify-content:center;flex-wrap:wrap">
+        <button onclick="selectForumHtmlAll()" style="padding:8px 16px;background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.3);color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;border-radius:8px;cursor:pointer">🔍 Pilih Semua</button>
+        <button onclick="copyForumHtmlManual()" style="padding:8px 16px;background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.3);color:var(--violet);font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;border-radius:8px;cursor:pointer">📋 Copy Lagi</button>
+      </div>
+    </div>
   </div>
 
 </div><!-- end section -->
@@ -3145,7 +3156,7 @@ async function runAndCheck(qId, expectedAns, tol, difficulty) {
   const code   = ta ? ta.value.trim() : '';
 
   if (!code) {
-    fb.className = 'feedback warn'; fb.textContent = '⚠ Tulis kode Python terlebih dahulu.'; return;
+    fb.className = 'feedback warn'; fb.style.display = 'block'; fb.textContent = '⚠ Tulis kode Python terlebih dahulu.'; return;
   }
 
   btn.disabled = true; btn.classList.add('running');
@@ -4064,7 +4075,17 @@ function checkForumReady() {
 
   if (!btn) return;
   _setBtnState(btn, allFilled);   // PEDOMAN §15.4b
-  _saveDraft();                    // PEDOMAN §15.4
+  _saveDraft();
+
+  // §16.3 v10: auto-populate textarea sambil user mengetik (button-independent fallback)
+  if (allFilled) {
+    try {
+      const _autoHtml = buildForumHtml();
+      if (_autoHtml && _autoHtml.length > 100 && typeof _populateForumOutput === 'function') {
+        _populateForumOutput(_autoHtml);
+      }
+    } catch(e) { /* identity belum ada / textarea belum ready — silent */ }
+  }                    // PEDOMAN §15.4
 }
 
 // ── COPY FORUM HTML TO CLIPBOARD (PEDOMAN v5 §16.3 — 3-tier fallback) ──
@@ -4091,6 +4112,9 @@ function copyForumHtml() {
   let htmlCode;
   try {
     htmlCode = buildForumHtml();
+
+  // §16.3 v9: ALWAYS populate output area BEFORE clipboard attempt (Tier 3 always-ready)
+  try { if (typeof _populateForumOutput === 'function') _populateForumOutput(htmlCode); } catch(e){}
   } catch(err) {
     console.error('[Forum] buildForumHtml failed:', err);
     if (msg) { msg.style.color = 'var(--pink)'; msg.textContent = '❌ Gagal generate HTML: ' + err.message; }
@@ -5655,6 +5679,40 @@ window.addEventListener('resize', () => {
     container.appendChild(el);
   });
 })();
+
+
+// §16.3 v10: Forum copy helpers (button-independent fallback)
+function _populateForumOutput(htmlCode) {
+  const out = document.getElementById('forum-html-output');
+  const ta  = document.getElementById('forum-html-textarea');
+  if (out && ta) {
+    ta.value = htmlCode;
+    out.style.display = 'block';
+  }
+}
+function selectForumHtmlAll() {
+  const ta = document.getElementById('forum-html-textarea');
+  if (!ta || !ta.value) return;
+  ta.focus();
+  ta.select();
+  ta.setSelectionRange(0, ta.value.length);
+  setTimeout(() => { try { ta.scrollIntoView({behavior:'smooth', block:'nearest'}); } catch(e){} }, 50);
+}
+function copyForumHtmlManual() {
+  const ta = document.getElementById('forum-html-textarea');
+  if (!ta || !ta.value) return;
+  selectForumHtmlAll();
+  if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext) {
+    navigator.clipboard.writeText(ta.value).then(() => {
+      const msg = document.getElementById('copy-forum-msg');
+      if (msg) { msg.style.color = 'var(--green)'; msg.textContent = '✅ Tersalin manual!'; }
+    }).catch(err => { console.warn('[Forum] manual copy failed:', err); });
+  }
+}
+window._populateForumOutput = _populateForumOutput;
+window.selectForumHtmlAll  = selectForumHtmlAll;
+window.copyForumHtmlManual = copyForumHtmlManual;
+
 </script>
 
 <!-- ── FIREBASE + VISITOR SYSTEM (identik dengan Modul-1) ── -->
@@ -5688,6 +5746,7 @@ const HEARTBEAT_MS = 20000; // 20s heartbeat
 const ONLINE_THRESHOLD_MS = 45000; // offline if no heartbeat in 45s
 let panelOpen = false;
 let currentSchedule = null;
+window.currentSchedule = currentSchedule;  // §26.1: expose for cross-script access
 let onlineUsers = [];
 let chatMessages = [];
 let _lastSentAt = 0;
@@ -6733,7 +6792,7 @@ async function confirmReset(){
     btns.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';});
     hideResetModal();
     // Tampilkan toast sukses agar dosen tahu reset berjalan sempurna
-    _showResetToast('\u2705 Semua data berhasil dihapus (termasuk PIN). Mahasiswa akan membuat PIN baru saat login berikutnya.');
+    _showResetToast('\u2705 Semua data berhasil dihapus (poin, jawaban, kunjungan, jadwal). PIN tidak terhapus (global). Mahasiswa akan membuat PIN baru saat login berikutnya.');
     document.getElementById('visitorOverlay').classList.remove('hidden');
     document.getElementById('visitorFab').style.display='none';
     _applyRoleVisibility();   // sembunyikan lagi tombol dosen — identity sudah dihapus
@@ -6831,7 +6890,8 @@ window.showScheduleModal=showScheduleModal;window.hideScheduleModal=hideSchedule
 setInterval(()=>{renderVisitors(latestVisitors);},30000);
 
 // ═══ POINT SYSTEM — Anti-Duplication (cross-device & incognito) ═══
-const _answeredQ = new Set();
+window._answeredQ = window._answeredQ || new Set();
+const _answeredQ = window._answeredQ;
 
 // ── Schedule gate: returns true only if current time is within
 //    [currentSchedule.start, currentSchedule.end]. Used to block ALL
