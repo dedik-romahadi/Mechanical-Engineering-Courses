@@ -1845,14 +1845,18 @@ const UTS_TF = [
   {
     id: 'tf4', modul: 2, parametric: true,
     compute: (N) => {
-      const m = 1 + N * 0.1;          // 1.0 - 10.9 kg
-      const k = 200 + N * 5;           // 200 - 695 N/m
+      // FORMULA EKSPLISIT: m = N+1, k = 1000 (tetap)
+      const m = N + 1;                // langsung dari NIM: m = N+1 kg (range 1-100)
+      const k = 1000;                 // konstan untuk semua mahasiswa
       const T = 2 * Math.PI * Math.sqrt(m / k);
       return {
-        text: `Sebuah sistem getaran SDOF undamped dengan massa <b>m = ${m.toFixed(2)} kg</b> dan kekakuan pegas <b>k = ${k} N/m</b> memiliki periode natural <em>T &gt; 0.5 detik</em>.`,
-        answer: T > 0.5,
-        explain: `T = 2π·√(m/k) = 2π·√(${m.toFixed(2)}/${k}) = <b>${T.toFixed(3)} s</b> ${T > 0.5 ? '> 0.5 → BENAR' : '≤ 0.5 → SALAH'}`,
-        diagram: _diagram('Sistem Pegas-Massa Bebas — cek T = 2π·√(m/k)', _svg.springMass(k, m.toFixed(1)))
+        text: `Sistem getaran SDOF undamped. Berdasarkan NIM Anda, <b>N = ${N}</b> (2 digit terakhir):<br>
+               • <b>m = N + 1 = ${N} + 1 = ${m} kg</b><br>
+               • <b>k = 1000 N/m</b> (tetap, sama untuk semua mahasiswa)<br>
+               Apakah periode natural <em>T &gt; 1.5 detik</em>?`,
+        answer: T > 1.5,
+        explain: `T = 2π·√(m/k) = 2π·√(${m}/1000) = <b>${T.toFixed(3)} s</b> ${T > 1.5 ? '> 1.5 → BENAR' : '≤ 1.5 → SALAH'}`,
+        diagram: _diagram('Sistem Pegas-Massa Bebas — cek T = 2π·√(m/k)', _svg.springMass(k, m))
       };
     }
   },
@@ -1860,17 +1864,22 @@ const UTS_TF = [
   {
     id: 'tf5', modul: 3, parametric: true,
     compute: (N) => {
-      const m = 2 + N * 0.05;          // 2.00 - 6.95 kg
-      const k = 800 + N * 8;           // 800 - 1592 N/m
-      // c dirancang agar crossover ζ=1 terjadi sekitar N=45-50:
-      // di N kecil → underdamped (TRUE), di N besar → overdamped (FALSE)
-      const c = 5 + N * 3.0;           // 5.0 - 302.0 Ns/m
-      const c_crit = 2 * Math.sqrt(m * k);
+      // FORMULA EKSPLISIT: m=5 (tetap), k=125 (tetap), c=N+1 (NIM)
+      // c_crit = 2√(km) = 2√(625) = 50 → ζ = (N+1)/50
+      // Crossover ζ=1 di N=49 → balanced split: 49 underdamped, 51 overdamped
+      const m = 5;                    // tetap
+      const k = 125;                  // tetap → ω_n = √(125/5) = 5 rad/s
+      const c = N + 1;                // langsung dari NIM: c = N+1 Ns/m
+      const c_crit = 2 * Math.sqrt(m * k);  // = 50
       const zeta = c / c_crit;
       return {
-        text: `Sistem dengan parameter <b>m = ${m.toFixed(2)} kg</b>, <b>c = ${c.toFixed(2)} Ns/m</b>, dan <b>k = ${k} N/m</b> berada dalam regim <em>underdamped</em> (ζ &lt; 1).`,
+        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
+               • <b>m = 5 kg</b> (tetap)<br>
+               • <b>k = 125 N/m</b> (tetap)<br>
+               • <b>c = N + 1 = ${N} + 1 = ${c} Ns/m</b><br>
+               Apakah sistem ini berada dalam regim <em>underdamped</em> (ζ &lt; 1)?`,
         answer: zeta < 1,
-        explain: `ζ = c/(2√(km)) = ${c.toFixed(2)}/(2·√(${m.toFixed(2)}·${k})) = ${c.toFixed(2)}/${c_crit.toFixed(2)} = <b>${zeta.toFixed(3)}</b> ${zeta < 1 ? '< 1 → underdamped (BENAR)' : '≥ 1 → bukan underdamped (SALAH)'}`,
+        explain: `c_crit = 2√(km) = 2√(${k}·${m}) = ${c_crit}; ζ = c/c_crit = ${c}/${c_crit} = <b>${zeta.toFixed(3)}</b> ${zeta < 1 ? '< 1 → underdamped (BENAR)' : '≥ 1 → bukan underdamped (SALAH)'}`,
         diagram: _diagram('Tiga Regim Damping — bandingkan respons ζ<1, ζ=1, ζ>1', _svg.threeRegimes(zeta < 1 ? 'under' : (zeta > 1 ? 'over' : 'critical')))
       };
     }
@@ -1893,16 +1902,22 @@ const UTS_TF = [
   {
     id: 'tf8', modul: 4, parametric: true,
     compute: (N) => {
-      const m = 2 + N * 0.05;
-      const k = 800 + N * 8;
+      // FORMULA EKSPLISIT: m=1 (tetap), k=2500 (tetap), ω = N+1 (NIM)
+      // ω_n = √(2500) = 50 rad/s → r = (N+1)/50
+      // Crossover r=1 di N=49 → balanced split
+      const m = 1;                    // tetap
+      const k = 2500;                 // tetap → ω_n = 50 rad/s
+      const omega = N + 1;            // langsung dari NIM: ω = N+1 rad/s
       const wn = Math.sqrt(k / m);
-      // ω dirancang agar untuk sebagian N: r > 1, untuk sebagian: r < 1
-      const omega = 15 + N * 0.4;       // 15.0 - 54.6 rad/s
       const r = omega / wn;
       return {
-        text: `Sistem getaran paksa dengan <b>m = ${m.toFixed(2)} kg</b>, <b>k = ${k} N/m</b>, dieksitasi pada frekuensi <b>ω = ${omega.toFixed(2)} rad/s</b>. Frequency ratio <em>r = ω/ωₙ &gt; 1</em> (sistem berada di rezim high-frequency, di atas resonansi).`,
+        text: `Sistem getaran paksa. Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
+               • <b>m = 1 kg</b> (tetap)<br>
+               • <b>k = 2500 N/m</b> (tetap)<br>
+               • <b>ω = N + 1 = ${N} + 1 = ${omega} rad/s</b> (eksitasi)<br>
+               Apakah frequency ratio <em>r = ω/ωₙ &gt; 1</em> (di atas resonansi)?`,
         answer: r > 1,
-        explain: `ωₙ = √(k/m) = √(${k}/${m.toFixed(2)}) = ${wn.toFixed(2)} rad/s; r = ω/ωₙ = ${omega.toFixed(2)}/${wn.toFixed(2)} = <b>${r.toFixed(3)}</b> ${r > 1 ? '> 1 (BENAR)' : '≤ 1 (SALAH)'}`,
+        explain: `ωₙ = √(k/m) = √(2500/1) = ${wn} rad/s; r = ω/ωₙ = ${omega}/${wn} = <b>${r.toFixed(3)}</b> ${r > 1 ? '> 1 (BENAR)' : '≤ 1 (SALAH)'}`,
         diagram: _diagram('Posisi r mahasiswa pada kurva DMF', _svg.dmfCurve({zetas: [0.1, 0.2], highlightR: r, highlightZeta: 0.1}))
       };
     }
@@ -1918,14 +1933,16 @@ const UTS_TF = [
   {
     id: 'tf10', modul: 5, parametric: true,
     compute: (N) => {
-      // Frekuensi rasio untuk tes apakah isolator efektif
-      // T_R < 1 hanya jika r > √2 ≈ 1.414
-      const r = 1.0 + N * 0.025;        // r dari 1.0 - 3.475
-      // Untuk damping rendah (ζ kecil), T_R ≈ 1/|1-r²| untuk r > √2
-      const zeta = 0.05;
+      // FORMULA EKSPLISIT: r = 0.5 + 0.025·N (langsung dari NIM), ζ = 0.05 tetap
+      // Crossover r=√2 di N≈37 → balanced split
+      const zeta = 0.05;              // tetap
+      const r = 0.5 + 0.025 * N;       // langsung dari NIM
       const TR = Math.sqrt((1 + Math.pow(2*zeta*r, 2)) / (Math.pow(1 - r*r, 2) + Math.pow(2*zeta*r, 2)));
       return {
-        text: `Untuk sistem isolasi dengan damping rendah (ζ = ${zeta}) dan frekuensi rasio <b>r = ${r.toFixed(3)}</b>, transmisibilitas T<sub>R</sub> &lt; 1 (sistem ber-isolasi efektif, gaya yang ditransmit lebih kecil dari gaya input).`,
+        text: `Sistem isolasi getaran. Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
+               • <b>ζ = 0.05</b> (tetap, damping rendah)<br>
+               • <b>r = 0.5 + 0.025·N = 0.5 + 0.025·${N} = ${r.toFixed(3)}</b><br>
+               Apakah transmisibilitas <em>T<sub>R</sub> &lt; 1</em> (isolasi efektif)?`,
         answer: TR < 1,
         explain: `T_R = √((1 + (2ζr)²) / ((1-r²)² + (2ζr)²)) = <b>${TR.toFixed(3)}</b> ${TR < 1 ? '< 1 → ter-isolasi (BENAR)' : '≥ 1 → tidak ter-isolasi (SALAH). Isolasi efektif hanya untuk r > √2 ≈ 1.414.'}`,
         diagram: _diagram('Transmissibility T_R — isolasi hanya jika r > √2', _svg.trCurve({zeta: zeta, target: 1.0}))
@@ -1959,20 +1976,21 @@ const UTS_MC = [
   {
     id: 'mc3', modul: 1, parametric: true,
     compute: (N) => {
-      const rpm = 1200 + N * 25;        // 1200 - 3675 RPM
+      // FORMULA EKSPLISIT: rpm = (N+1)·30 → range 30-3000 RPM
+      const rpm = (N + 1) * 30;        // langsung dari NIM
       const omega = 2 * Math.PI * (rpm / 60);
       const correct = omega;
       const opts = [
         { v: correct, lbl: correct.toFixed(2) },
         { v: rpm / 60, lbl: (rpm / 60).toFixed(2) },        // mistake: lupa 2π
         { v: 2 * rpm, lbl: (2 * rpm).toFixed(2) },          // mistake: lupa /60
-        { v: rpm * Math.PI / 30, lbl: (rpm * Math.PI / 30).toFixed(2) }  // ekuivalen sama, beda penyajian
+        { v: omega / 2, lbl: (omega / 2).toFixed(2) }       // mistake: setengah
       ];
-      // Note: opt 1 dan opt 4 sama secara matematis. Ganti opt 4 jadi distractor lain
-      opts[3] = { v: omega / 2, lbl: (omega / 2).toFixed(2) };
       const shuffled = shuffleSeed(opts, N);
       return {
-        text: `Sebuah motor berputar pada <b>${rpm} RPM</b>. Frekuensi sudut motor (rad/s) adalah:`,
+        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
+               • <b>RPM = (N + 1) × 30 = (${N} + 1) × 30 = ${rpm} RPM</b><br>
+               Frekuensi sudut motor ω (rad/s) adalah:`,
         options: shuffled.map(o => o.lbl + ' rad/s'),
         correctIdx: shuffled.findIndex(o => o.v === correct),
         explain: `ω = 2π·(RPM/60) = 2π·(${rpm}/60) = <b>${correct.toFixed(2)} rad/s</b>`
@@ -1991,8 +2009,9 @@ const UTS_MC = [
   {
     id: 'mc5', modul: 2, parametric: true,
     compute: (N) => {
-      const m = 2 + N * 0.05;
-      const k = 800 + N * 10;
+      // FORMULA EKSPLISIT: m=1 (tetap), k=N+1 langsung dari NIM
+      const m = 1;                    // tetap
+      const k = N + 1;                // langsung dari NIM: k = N+1 N/m (range 1-100)
       const wn = Math.sqrt(k / m);
       const correct = wn;
       const opts = [
@@ -2003,11 +2022,14 @@ const UTS_MC = [
       ];
       const shuffled = shuffleSeed(opts, N + 5);
       return {
-        text: `Untuk sistem dengan <b>m = ${m.toFixed(2)} kg</b> dan <b>k = ${k} N/m</b>, frekuensi natural ωₙ adalah:`,
+        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
+               • <b>m = 1 kg</b> (tetap)<br>
+               • <b>k = N + 1 = ${N} + 1 = ${k} N/m</b><br>
+               Frekuensi natural ωₙ adalah:`,
         options: shuffled.map(o => o.lbl + ' rad/s'),
         correctIdx: shuffled.findIndex(o => o.v === correct),
-        explain: `ωₙ = √(k/m) = √(${k}/${m.toFixed(2)}) = <b>${correct.toFixed(2)} rad/s</b>`,
-        diagram: _diagram('Sistem Pegas-Massa — cari ωₙ = √(k/m)', _svg.springMass(k, m.toFixed(1)))
+        explain: `ωₙ = √(k/m) = √(${k}/1) = √${k} = <b>${correct.toFixed(2)} rad/s</b>`,
+        diagram: _diagram('Sistem Pegas-Massa — cari ωₙ = √(k/m)', _svg.springMass(k, m))
       };
     }
   },
@@ -2021,8 +2043,9 @@ const UTS_MC = [
   {
     id: 'mc7', modul: 2, parametric: true,
     compute: (N) => {
-      const m = 1.5 + N * 0.06;
-      const k = 600 + N * 7;
+      // FORMULA EKSPLISIT: m=N+1 langsung dari NIM, k=1000 (tetap)
+      const m = N + 1;                // langsung dari NIM
+      const k = 1000;                 // tetap
       const T = 2 * Math.PI * Math.sqrt(m / k);
       const correct = T;
       const opts = [
@@ -2033,11 +2056,14 @@ const UTS_MC = [
       ];
       const shuffled = shuffleSeed(opts, N + 7);
       return {
-        text: `Untuk sistem dengan <b>m = ${m.toFixed(2)} kg</b> dan <b>k = ${k} N/m</b>, periode natural T (detik) adalah:`,
+        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
+               • <b>m = N + 1 = ${N} + 1 = ${m} kg</b><br>
+               • <b>k = 1000 N/m</b> (tetap)<br>
+               Periode natural T (detik) adalah:`,
         options: shuffled.map(o => o.lbl + ' s'),
         correctIdx: shuffled.findIndex(o => o.v === correct),
-        explain: `T = 2π·√(m/k) = 2π·√(${m.toFixed(2)}/${k}) = <b>${correct.toFixed(4)} s</b>`,
-        diagram: _diagram('Sistem Pegas-Massa — cari T = 2π·√(m/k)', _svg.springMass(k, m.toFixed(1)))
+        explain: `T = 2π·√(m/k) = 2π·√(${m}/1000) = <b>${correct.toFixed(4)} s</b>`,
+        diagram: _diagram('Sistem Pegas-Massa — cari T = 2π·√(m/k)', _svg.springMass(k, m))
       };
     }
   },
@@ -2061,10 +2087,12 @@ const UTS_MC = [
   {
     id: 'mc10', modul: 3, parametric: true,
     compute: (N) => {
-      const m = 2 + N * 0.05;
-      const c = 8 + N * 0.4;
-      const k = 800 + N * 10;
-      const cc = 2 * Math.sqrt(m * k);
+      // FORMULA EKSPLISIT: m=1 (tetap), k=100 (tetap), c=N+1 langsung dari NIM
+      // c_crit = 2√(km) = 2√100 = 20 → ζ = (N+1)/20
+      const m = 1;                    // tetap
+      const k = 100;                  // tetap
+      const c = N + 1;                // langsung dari NIM
+      const cc = 2 * Math.sqrt(m * k);  // = 20
       const zeta = c / cc;
       const correct = zeta;
       const opts = [
@@ -2075,20 +2103,26 @@ const UTS_MC = [
       ];
       const shuffled = shuffleSeed(opts, N + 10);
       return {
-        text: `Untuk sistem dengan <b>m = ${m.toFixed(2)} kg</b>, <b>c = ${c.toFixed(2)} Ns/m</b>, <b>k = ${k} N/m</b>, rasio redaman ζ adalah:`,
+        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
+               • <b>m = 1 kg</b> (tetap)<br>
+               • <b>k = 100 N/m</b> (tetap)<br>
+               • <b>c = N + 1 = ${N} + 1 = ${c} Ns/m</b><br>
+               Rasio redaman ζ adalah:`,
         options: shuffled.map(o => o.lbl),
         correctIdx: shuffled.findIndex(o => o.v === correct),
-        explain: `ζ = c/(2√(km)) = ${c.toFixed(2)}/(2·√(${m.toFixed(2)}·${k})) = ${c.toFixed(2)}/${cc.toFixed(2)} = <b>${correct.toFixed(4)}</b>`,
-        diagram: _diagram('Sistem Massa-Pegas-Peredam — cari rasio redaman ζ', _svg.springMassDamper(k, m.toFixed(1), c.toFixed(1)))
+        explain: `ζ = c/(2√(km)) = ${c}/(2·√(100·1)) = ${c}/${cc} = <b>${correct.toFixed(4)}</b>`,
+        diagram: _diagram('Sistem Massa-Pegas-Peredam — cari rasio redaman ζ', _svg.springMassDamper(k, m, c))
       };
     }
   },
   {
     id: 'mc11', modul: 3, parametric: true,
     compute: (N) => {
-      const m = 2 + N * 0.05;
-      const c = 4 + N * 0.2;          // pastikan underdamped
-      const k = 800 + N * 10;
+      // FORMULA EKSPLISIT: m=1 (tetap), k=100 (tetap), c=(N+1)/10 langsung dari NIM
+      // ω_n = 10 rad/s, c_crit = 20, ζ = (N+1)/200 — selalu underdamped
+      const m = 1;                    // tetap
+      const k = 100;                  // tetap → ω_n = 10
+      const c = (N + 1) / 10;          // langsung dari NIM (range 0.1 - 10)
       const wn = Math.sqrt(k / m);
       const zeta = c / (2 * Math.sqrt(m * k));
       const wd = wn * Math.sqrt(1 - zeta * zeta);
@@ -2101,10 +2135,14 @@ const UTS_MC = [
       ];
       const shuffled = shuffleSeed(opts, N + 11);
       return {
-        text: `Untuk sistem underdamped (m = ${m.toFixed(2)} kg, c = ${c.toFixed(2)} Ns/m, k = ${k} N/m), <b>frekuensi natural teredam ω_d</b> (rad/s) adalah:`,
+        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
+               • <b>m = 1 kg</b> (tetap)<br>
+               • <b>k = 100 N/m</b> (tetap) → ωₙ = 10 rad/s<br>
+               • <b>c = (N + 1) / 10 = (${N} + 1) / 10 = ${c.toFixed(1)} Ns/m</b><br>
+               Frekuensi natural teredam ω_d (rad/s) adalah:`,
         options: shuffled.map(o => o.lbl + ' rad/s'),
         correctIdx: shuffled.findIndex(o => o.v === correct),
-        explain: `ω_d = ωₙ·√(1-ζ²) = ${wn.toFixed(2)}·√(1-${zeta.toFixed(3)}²) = <b>${correct.toFixed(3)} rad/s</b>`,
+        explain: `ζ = c/(2√(km)) = ${c.toFixed(1)}/20 = ${zeta.toFixed(3)}; ω_d = ωₙ·√(1-ζ²) = 10·√(1-${zeta.toFixed(3)}²) = <b>${correct.toFixed(3)} rad/s</b>`,
         diagram: _diagram('Underdamped Decay — frekuensi ω_d vs envelope', _svg.decay({zeta: zeta, wn: wn}))
       };
     }
@@ -2129,8 +2167,9 @@ const UTS_MC = [
   {
     id: 'mc14', modul: 4, parametric: true,
     compute: (N) => {
-      const r = 0.5 + N * 0.015;        // r dari 0.5 - 1.985
-      const zeta = 0.05 + N * 0.002;    // 0.05 - 0.248
+      // FORMULA EKSPLISIT: r = (N+1)/50 langsung dari NIM, ζ = 0.1 tetap
+      const r = (N + 1) / 50;          // langsung dari NIM (range 0.02 - 2.0)
+      const zeta = 0.1;                // tetap
       const DMF = 1 / Math.sqrt(Math.pow(1 - r * r, 2) + Math.pow(2 * zeta * r, 2));
       const correct = DMF;
       const opts = [
@@ -2141,7 +2180,10 @@ const UTS_MC = [
       ];
       const shuffled = shuffleSeed(opts, N + 14);
       return {
-        text: `Untuk sistem getaran paksa dengan <b>r = ${r.toFixed(3)}</b> dan <b>ζ = ${zeta.toFixed(3)}</b>, nilai Dynamic Magnification Factor (DMF) adalah:`,
+        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
+               • <b>r = (N + 1) / 50 = (${N} + 1) / 50 = ${r.toFixed(3)}</b><br>
+               • <b>ζ = 0.1</b> (tetap)<br>
+               Dynamic Magnification Factor (DMF) adalah:`,
         options: shuffled.map(o => o.lbl),
         correctIdx: shuffled.findIndex(o => o.v === correct),
         explain: `DMF = 1/√((1-r²)² + (2ζr)²) = 1/√((1-${(r*r).toFixed(3)})² + (${(2*zeta*r).toFixed(3)})²) = <b>${correct.toFixed(3)}</b>`,
@@ -2152,12 +2194,12 @@ const UTS_MC = [
   {
     id: 'mc15', modul: 4, parametric: true,
     compute: (N) => {
-      const m = 5 + N * 0.1;
-      const k = 5000 + N * 50;
-      const F0 = 100 + N;
-      const wn = Math.sqrt(k / m);
-      const zeta = 0.1;
-      // Steady-state amplitude pada resonansi (r=1)
+      // FORMULA EKSPLISIT: F0 = (N+1)·10 langsung dari NIM, m=10, k=10000, ζ=0.1 tetap
+      const m = 10;                   // tetap
+      const k = 10000;                // tetap
+      const F0 = (N + 1) * 10;         // langsung dari NIM (range 10-1000 N)
+      const wn = Math.sqrt(k / m);    // = √1000 ≈ 31.62 rad/s
+      const zeta = 0.1;                // tetap
       const X_st = F0 / k;             // static deflection
       const X_res = X_st / (2 * zeta); // amplitude pada resonansi
       const correct = X_res * 1000;    // convert to mm
@@ -2169,11 +2211,14 @@ const UTS_MC = [
       ];
       const shuffled = shuffleSeed(opts, N + 15);
       return {
-        text: `Sistem dengan <b>m = ${m.toFixed(2)} kg</b>, <b>k = ${k} N/m</b>, <b>F₀ = ${F0} N</b>, ζ = 0.1, dieksitasi tepat pada frekuensi natural (resonansi). Amplitudo steady-state X (mm) adalah:`,
+        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
+               • <b>m = 10 kg</b> (tetap), <b>k = 10000 N/m</b> (tetap), <b>ζ = 0.1</b> (tetap)<br>
+               • <b>F₀ = (N + 1) × 10 = (${N} + 1) × 10 = ${F0} N</b><br>
+               Sistem dieksitasi tepat pada frekuensi natural (resonansi). Amplitudo steady-state X (mm) adalah:`,
         options: shuffled.map(o => o.lbl + ' mm'),
         correctIdx: shuffled.findIndex(o => o.v === correct),
-        explain: `Pada resonansi: X = F₀/(2ζk) = ${F0}/(2·0.1·${k}) = ${(X_res).toExponential(3)} m = <b>${correct.toFixed(3)} mm</b>`,
-        diagram: _diagram('Sistem Forced — eksitasi tepat di resonansi', _svg.springMassDamper(k, m.toFixed(1), 'c', {force: 'F₀=' + F0 + 'N'}))
+        explain: `Pada resonansi: X = F₀/(2ζk) = ${F0}/(2·0.1·10000) = ${X_res.toExponential(3)} m = <b>${correct.toFixed(3)} mm</b>`,
+        diagram: _diagram('Sistem Forced — eksitasi tepat di resonansi', _svg.springMassDamper(k, m, 'c', {force: 'F₀=' + F0 + 'N'}))
       };
     }
   },
@@ -2197,7 +2242,8 @@ const UTS_MC = [
   {
     id: 'mc18', modul: 5, parametric: true,
     compute: (N) => {
-      const zeta = 0.02 + N * 0.003;    // 0.02 - 0.317
+      // FORMULA EKSPLISIT: ζ = (N+1)/200 langsung dari NIM (range 0.005 - 0.5)
+      const zeta = (N + 1) / 200;       // langsung dari NIM
       const Q = 1 / (2 * zeta);
       const correct = Q;
       const opts = [
@@ -2208,7 +2254,9 @@ const UTS_MC = [
       ];
       const shuffled = shuffleSeed(opts, N + 18);
       return {
-        text: `Sistem resonansi dengan damping ratio <b>ζ = ${zeta.toFixed(3)}</b>. Quality factor Q adalah:`,
+        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
+               • <b>ζ = (N + 1) / 200 = (${N} + 1) / 200 = ${zeta.toFixed(3)}</b><br>
+               Sistem resonansi dengan damping ratio ζ tersebut. Quality factor Q adalah:`,
         options: shuffled.map(o => o.lbl),
         correctIdx: shuffled.findIndex(o => o.v === correct),
         explain: `Q = 1/(2ζ) = 1/(2·${zeta.toFixed(3)}) = <b>${Q.toFixed(2)}</b>. Q tinggi → puncak resonansi tajam.`,
@@ -2219,9 +2267,9 @@ const UTS_MC = [
   {
     id: 'mc19', modul: 5, parametric: true,
     compute: (N) => {
-      // Transmissibility — cek apakah isolator efektif
-      const r = 1.5 + N * 0.04;         // r dari 1.5 - 5.46 (selalu > √2, jadi T_R < 1)
-      const zeta = 0.05;
+      // FORMULA EKSPLISIT: r = 1.5 + 0.04·N langsung dari NIM (range 1.5-5.46), ζ = 0.05 tetap
+      const r = 1.5 + 0.04 * N;        // langsung dari NIM
+      const zeta = 0.05;                // tetap
       const TR = Math.sqrt((1 + Math.pow(2*zeta*r, 2)) / (Math.pow(1-r*r, 2) + Math.pow(2*zeta*r, 2)));
       const correct = TR;
       const opts = [
@@ -2232,7 +2280,10 @@ const UTS_MC = [
       ];
       const shuffled = shuffleSeed(opts, N + 19);
       return {
-        text: `Untuk isolator dengan <b>r = ${r.toFixed(3)}</b> dan <b>ζ = ${zeta}</b>, nilai transmisibilitas T<sub>R</sub> adalah:`,
+        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
+               • <b>r = 1.5 + 0.04·N = 1.5 + 0.04·${N} = ${r.toFixed(3)}</b><br>
+               • <b>ζ = 0.05</b> (tetap, damping rendah)<br>
+               Untuk isolator getaran tersebut, nilai transmisibilitas T<sub>R</sub> adalah:`,
         options: shuffled.map(o => o.lbl),
         correctIdx: shuffled.findIndex(o => o.v === correct),
         explain: `T_R = √((1+(2ζr)²)/((1-r²)²+(2ζr)²)) = <b>${correct.toFixed(4)}</b>`,
@@ -2260,11 +2311,14 @@ const UTS_COMP_EZ = [
   {
     id: 'c1', modul: 1,
     compute: (N) => {
-      const rpm = 1500 + N * 30;        // 1500 - 4470 RPM
+      // FORMULA EKSPLISIT: rpm = (N+1)·30 langsung dari NIM
+      const rpm = (N + 1) * 30;        // langsung dari NIM (range 30-3000 RPM)
       const omega = 2 * Math.PI * (rpm / 60);
       return {
-        text: `Sebuah motor listrik berputar pada <b>${rpm} RPM</b>. Hitung <b>frekuensi sudut motor ω</b> (rad/s) dengan rumus ω = 2π·(RPM/60).`,
-        hint: `import numpy as np\n# Diketahui: rpm = ${rpm}\n# TODO: hitung omega dengan rumus ω = 2π·(RPM/60)\n# TODO: print(omega)`,
+        text: `Berdasarkan NIM Anda, <b>N = ${N}</b> (2 digit terakhir):<br>
+               • <b>RPM = (N + 1) × 30 = (${N} + 1) × 30 = ${rpm} RPM</b><br>
+               Hitung <b>frekuensi sudut motor ω</b> (rad/s) dengan rumus ω = 2π·(RPM/60).`,
+        hint: `import numpy as np\n# N = ${N} (dari 2 digit terakhir NIM Anda)\nrpm = ${rpm}  # = (N+1) * 30\n# TODO: hitung omega dengan rumus ω = 2π·(RPM/60)\n# TODO: print(omega)`,
         expected: omega,
         tolerance: 0.05
       };
@@ -2274,13 +2328,17 @@ const UTS_COMP_EZ = [
   {
     id: 'c2', modul: 2,
     compute: (N) => {
-      const m = 2 + N * 0.05;           // 2.00 - 6.95 kg
-      const k = 800 + N * 10;           // 800 - 1790 N/m
+      // FORMULA EKSPLISIT: m=1 (tetap), k=(N+1)·10 langsung dari NIM
+      const m = 1;                     // tetap
+      const k = (N + 1) * 10;          // langsung dari NIM (range 10-1000 N/m)
       const wn = Math.sqrt(k / m);
       return {
-        text: `Hitung <b>frekuensi natural ωₙ</b> (rad/s) untuk sistem getaran dengan parameter <b>m = ${m.toFixed(2)} kg</b> dan <b>k = ${k} N/m</b>. Rumus: ωₙ = √(k/m).`,
-        hint: `import numpy as np\n# Diketahui: m = ${m.toFixed(2)}, k = ${k}\n# TODO: hitung wn dengan rumus ωₙ = √(k/m) — gunakan np.sqrt()\n# TODO: print(wn)`,
-        diagram: _diagram('Sistem Pegas-Massa Bebas', _svg.springMass(k, m.toFixed(1))),
+        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
+               • <b>m = 1 kg</b> (tetap)<br>
+               • <b>k = (N + 1) × 10 = (${N} + 1) × 10 = ${k} N/m</b><br>
+               Hitung <b>frekuensi natural ωₙ</b> (rad/s). Rumus: ωₙ = √(k/m).`,
+        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nm = 1            # tetap\nk = ${k}        # = (N+1) * 10\n# TODO: hitung wn dengan rumus ωₙ = √(k/m) — gunakan np.sqrt()\n# TODO: print(wn)`,
+        diagram: _diagram('Sistem Pegas-Massa Bebas', _svg.springMass(k, m)),
         expected: wn,
         tolerance: 0.02
       };
@@ -2290,13 +2348,17 @@ const UTS_COMP_EZ = [
   {
     id: 'c3', modul: 2,
     compute: (N) => {
-      const m = 1 + N * 0.08;           // 1.00 - 8.92 kg
-      const k = 1000 + N * 20;          // 1000 - 2980 N/m
+      // FORMULA EKSPLISIT: m=1 (tetap), k=(N+1)·40 langsung dari NIM
+      const m = 1;                     // tetap
+      const k = (N + 1) * 40;          // langsung dari NIM (range 40-4000 N/m)
       const fn = Math.sqrt(k / m) / (2 * Math.PI);
       return {
-        text: `Hitung <b>frekuensi natural f<sub>n</sub></b> dalam <b>Hz</b> untuk sistem dengan <b>m = ${m.toFixed(2)} kg</b> dan <b>k = ${k} N/m</b>. Rumus: f<sub>n</sub> = (1/2π)·√(k/m).`,
-        hint: `import numpy as np\n# Diketahui: m = ${m.toFixed(2)}, k = ${k}\n# TODO: hitung fn dengan rumus fn = (1/2π)·√(k/m)\n# TODO: print(fn)`,
-        diagram: _diagram('Sistem Pegas-Massa (cari frekuensi natural Hz)', _svg.springMass(k, m.toFixed(1))),
+        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
+               • <b>m = 1 kg</b> (tetap)<br>
+               • <b>k = (N + 1) × 40 = (${N} + 1) × 40 = ${k} N/m</b><br>
+               Hitung <b>frekuensi natural f<sub>n</sub></b> dalam <b>Hz</b>. Rumus: f<sub>n</sub> = (1/2π)·√(k/m).`,
+        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nm = 1            # tetap\nk = ${k}        # = (N+1) * 40\n# TODO: hitung fn dengan rumus fn = (1/2π)·√(k/m)\n# TODO: print(fn)`,
+        diagram: _diagram('Sistem Pegas-Massa (cari frekuensi natural Hz)', _svg.springMass(k, m)),
         expected: fn,
         tolerance: 0.01
       };
@@ -2306,14 +2368,19 @@ const UTS_COMP_EZ = [
   {
     id: 'c4', modul: 3,
     compute: (N) => {
-      const m = 3 + N * 0.05;           // 3.00 - 7.95 kg
-      const c = 8 + N * 0.4;            // 8.0 - 47.6 Ns/m
-      const k = 1200 + N * 15;          // 1200 - 2685 N/m
+      // FORMULA EKSPLISIT: m=1 (tetap), k=100 (tetap), c=N+1 langsung dari NIM
+      const m = 1;                     // tetap
+      const k = 100;                   // tetap → c_crit = 2√(km) = 20
+      const c = N + 1;                 // langsung dari NIM (range 1-100)
       const zeta = c / (2 * Math.sqrt(m * k));
       return {
-        text: `Hitung <b>rasio redaman ζ</b> (dimensionless) untuk sistem dengan <b>m = ${m.toFixed(2)} kg</b>, <b>c = ${c.toFixed(2)} Ns/m</b>, <b>k = ${k} N/m</b>. Rumus: ζ = c/(2√(km)).`,
-        hint: `import numpy as np\n# Diketahui: m = ${m.toFixed(2)}, c = ${c.toFixed(2)}, k = ${k}\n# TODO: hitung zeta dengan rumus ζ = c/(2√(km))\n# TODO: print(zeta)`,
-        diagram: _diagram('Sistem Massa-Pegas-Peredam (cari rasio redaman ζ)', _svg.springMassDamper(k, m.toFixed(1), c.toFixed(1))),
+        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
+               • <b>m = 1 kg</b> (tetap)<br>
+               • <b>k = 100 N/m</b> (tetap)<br>
+               • <b>c = N + 1 = ${N} + 1 = ${c} Ns/m</b><br>
+               Hitung <b>rasio redaman ζ</b> (dimensionless). Rumus: ζ = c/(2√(km)).`,
+        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nm = 1            # tetap\nk = 100          # tetap\nc = ${c}            # = N+1\n# TODO: hitung zeta dengan rumus ζ = c/(2√(km))\n# TODO: print(zeta)`,
+        diagram: _diagram('Sistem Massa-Pegas-Peredam (cari rasio redaman ζ)', _svg.springMassDamper(k, m, c)),
         expected: zeta,
         tolerance: 0.005
       };
@@ -2323,16 +2390,21 @@ const UTS_COMP_EZ = [
   {
     id: 'c5', modul: 3,
     compute: (N) => {
-      const m = 2.5 + N * 0.04;
-      const c = 4 + N * 0.2;            // pastikan underdamped
-      const k = 800 + N * 10;
+      // FORMULA EKSPLISIT: m=1, k=100, c=(N+1)/10 langsung dari NIM
+      // ζ = (N+1)/200 → range 0.005-0.5, selalu underdamped
+      const m = 1;                     // tetap
+      const k = 100;                   // tetap → ω_n = 10
+      const c = (N + 1) / 10;          // langsung dari NIM (range 0.1-10)
       const wn = Math.sqrt(k / m);
       const zeta = c / (2 * Math.sqrt(m * k));
       const wd = wn * Math.sqrt(1 - zeta * zeta);
       return {
-        text: `Hitung <b>frekuensi natural teredam ω<sub>d</sub></b> (rad/s) untuk sistem underdamped dengan <b>m = ${m.toFixed(2)} kg</b>, <b>c = ${c.toFixed(2)} Ns/m</b>, <b>k = ${k} N/m</b>. Rumus: ω<sub>d</sub> = ωₙ·√(1−ζ²).`,
-        hint: `import numpy as np\n# Diketahui: m = ${m.toFixed(2)}, c = ${c.toFixed(2)}, k = ${k}\n# Langkah: (1) hitung wn = √(k/m), (2) hitung zeta = c/(2√(km)), (3) hitung wd = wn·√(1−ζ²)\n# TODO: implement dan print(wd)`,
-        diagram: _diagram('Underdamped — Frekuensi natural teredam ωd < ωn', _svg.decay({zeta: 0.1, wn: 6})),
+        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
+               • <b>m = 1 kg</b> (tetap), <b>k = 100 N/m</b> (tetap) → ωₙ = 10 rad/s<br>
+               • <b>c = (N + 1) / 10 = (${N} + 1) / 10 = ${c.toFixed(1)} Ns/m</b><br>
+               Hitung <b>frekuensi natural teredam ω<sub>d</sub></b> (rad/s). Rumus: ω<sub>d</sub> = ωₙ·√(1−ζ²).`,
+        hint: `import numpy as np\n# N = ${N}\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\n# Langkah: (1) wn = √(k/m), (2) zeta = c/(2√(km)), (3) wd = wn·√(1−ζ²)\n# TODO: implement dan print(wd)`,
+        diagram: _diagram('Underdamped — Frekuensi natural teredam ωd < ωn', _svg.decay({zeta: zeta, wn: wn})),
         expected: wd,
         tolerance: 0.02
       };
@@ -2342,12 +2414,17 @@ const UTS_COMP_EZ = [
   {
     id: 'c6', modul: 3,
     compute: (N) => {
-      const x1 = 0.05 + N * 0.001;      // 0.05 - 0.149 m
-      const x2 = x1 * (0.6 + N * 0.002); // ratio antara 0.6 - 0.798
+      // FORMULA EKSPLISIT: x1=0.1 (tetap), x2 = 0.1·exp(-(N+1)/100) — rasio dari NIM
+      const x1 = 0.1;                  // tetap (m)
+      const ratio = Math.exp(-(N + 1) / 100);  // rasio x2/x1, range 0.367 - 0.990
+      const x2 = x1 * ratio;
       const delta = Math.log(x1 / x2);
       return {
-        text: `Pada eksperimen getaran bebas teredam, dua puncak amplitudo berurutan diukur: <b>x₁ = ${x1.toFixed(4)} m</b> dan <b>x₂ = ${x2.toFixed(4)} m</b>. Hitung <b>logarithmic decrement δ</b>. Rumus: δ = ln(x₁/x₂).`,
-        hint: `import numpy as np\n# Diketahui: x1 = ${x1.toFixed(4)}, x2 = ${x2.toFixed(4)}\n# TODO: hitung delta = ln(x1/x2) — gunakan np.log()\n# TODO: print(delta)`,
+        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>. Pada eksperimen getaran bebas teredam, dua puncak amplitudo berurutan diukur:<br>
+               • <b>x₁ = 0.1 m</b> (tetap)<br>
+               • <b>x₂ = x₁ · exp(−(N+1)/100) = 0.1 · exp(−${N+1}/100) = ${x2.toFixed(4)} m</b><br>
+               Hitung <b>logarithmic decrement δ</b>. Rumus: δ = ln(x₁/x₂).`,
+        hint: `import numpy as np\n# N = ${N}\nx1 = 0.1                       # tetap\nx2 = 0.1 * np.exp(-(${N}+1)/100)  # = ${x2.toFixed(4)}\n# TODO: hitung delta = ln(x1/x2) — gunakan np.log()\n# TODO: print(delta)`,
         diagram: _diagram('Logarithmic Decrement — δ = ln(x₁/x₂)', _svg.decay({zeta: 0.08, wn: 5, markPeaks: 3})),
         expected: delta,
         tolerance: 0.005
@@ -2358,12 +2435,16 @@ const UTS_COMP_EZ = [
   {
     id: 'c7', modul: 4,
     compute: (N) => {
-      const r = 0.7 + N * 0.012;        // 0.70 - 1.888
-      const zeta = 0.05 + N * 0.002;    // 0.05 - 0.248
+      // FORMULA EKSPLISIT: r = (N+1)/50 langsung dari NIM, ζ = 0.1 tetap
+      const r = (N + 1) / 50;          // langsung dari NIM (range 0.02 - 2.0)
+      const zeta = 0.1;                 // tetap
       const DMF = 1 / Math.sqrt(Math.pow(1 - r * r, 2) + Math.pow(2 * zeta * r, 2));
       return {
-        text: `Hitung <b>Dynamic Magnification Factor (DMF)</b> untuk sistem getaran paksa dengan frequency ratio <b>r = ${r.toFixed(3)}</b> dan damping ratio <b>ζ = ${zeta.toFixed(3)}</b>. Rumus: DMF = 1/√((1−r²)² + (2ζr)²).`,
-        hint: `import numpy as np\n# Diketahui: r = ${r.toFixed(3)}, zeta = ${zeta.toFixed(3)}\n# TODO: hitung DMF dengan rumus DMF = 1/√((1−r²)² + (2ζr)²)\n# TODO: print(DMF)`,
+        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
+               • <b>r = (N + 1) / 50 = (${N} + 1) / 50 = ${r.toFixed(3)}</b><br>
+               • <b>ζ = 0.1</b> (tetap)<br>
+               Hitung <b>Dynamic Magnification Factor (DMF)</b>. Rumus: DMF = 1/√((1−r²)² + (2ζr)²).`,
+        hint: `import numpy as np\n# N = ${N}\nr = ${r.toFixed(3)}        # = (N+1)/50\nzeta = 0.1                # tetap\n# TODO: hitung DMF dengan rumus DMF = 1/√((1−r²)² + (2ζr)²)\n# TODO: print(DMF)`,
         diagram: _diagram('Dynamic Magnification Factor — kurva DMF vs r', _svg.dmfCurve({zetas: [zeta, 0.05, 0.2, 0.7], highlightR: r, highlightZeta: zeta})),
         expected: DMF,
         tolerance: 0.01
@@ -2374,18 +2455,22 @@ const UTS_COMP_EZ = [
   {
     id: 'c8', modul: 4,
     compute: (N) => {
-      const m = 5 + N * 0.1;            // 5.0 - 14.9 kg
-      const k = 5000 + N * 50;          // 5000 - 9950 N/m
-      const c = 50 + N * 2;             // 50 - 248 Ns/m
-      const F0 = 100 + N;               // 100 - 199 N
-      const omega = 20 + N * 0.3;       // 20 - 49.7 rad/s
+      // FORMULA EKSPLISIT: F0 = (N+1)·10 langsung dari NIM; m,k,c,ω semua tetap
+      const m = 10;                    // tetap
+      const c = 50;                     // tetap
+      const k = 10000;                  // tetap → ω_n = √1000 ≈ 31.6
+      const F0 = (N + 1) * 10;          // langsung dari NIM (range 10-1000 N)
+      const omega = 20;                 // tetap (off-resonance, r ≈ 0.633)
       const denom = Math.sqrt(Math.pow(k - m * omega * omega, 2) + Math.pow(c * omega, 2));
       const X = F0 / denom;             // amplitudo steady-state (m)
       const X_mm = X * 1000;            // dalam mm
       return {
-        text: `Sistem getaran paksa dengan <b>m = ${m.toFixed(2)} kg</b>, <b>c = ${c.toFixed(2)} Ns/m</b>, <b>k = ${k} N/m</b>, dieksitasi gaya harmonik <b>F(t) = ${F0}·sin(${omega.toFixed(2)}·t) N</b>. Hitung <b>amplitudo steady-state X</b> dalam <b>mm</b>. Rumus: X = F₀/√((k−mω²)² + (cω)²).`,
-        hint: `import numpy as np\n# Diketahui: m = ${m.toFixed(2)}, c = ${c.toFixed(2)}, k = ${k}, F0 = ${F0}, omega = ${omega.toFixed(2)}\n# TODO: hitung X = F0/√((k−mω²)² + (cω)²) dalam METER\n# TODO: konversi ke mm: X_mm = X*1000, lalu print(X_mm)`,
-        diagram: _diagram('Forced Vibration — Cari amplitudo steady-state X', _svg.springMassDamper(k, m.toFixed(1), c.toFixed(1), {force: 'F₀sin(ωt)'})),
+        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
+               • <b>m = 10 kg, c = 50 Ns/m, k = 10000 N/m, ω = 20 rad/s</b> (semua tetap)<br>
+               • <b>F₀ = (N + 1) × 10 = (${N} + 1) × 10 = ${F0} N</b><br>
+               Sistem dieksitasi gaya harmonik F(t) = F₀·sin(ωt). Hitung <b>amplitudo steady-state X</b> dalam <b>mm</b>. Rumus: X = F₀/√((k−mω²)² + (cω)²).`,
+        hint: `import numpy as np\n# N = ${N}\nm = 10           # tetap\nc = 50           # tetap\nk = 10000        # tetap\nF0 = ${F0}         # = (N+1) * 10\nomega = 20       # tetap\n# TODO: hitung X = F0/√((k−mω²)² + (cω)²) dalam METER\n# TODO: konversi ke mm: X_mm = X*1000, lalu print(X_mm)`,
+        diagram: _diagram('Forced Vibration — Cari amplitudo steady-state X', _svg.springMassDamper(k, m, c, {force: 'F₀sin(ωt)'})),
         expected: X_mm,
         tolerance: 0.05
       };
@@ -2395,15 +2480,19 @@ const UTS_COMP_EZ = [
   {
     id: 'c9', modul: 5,
     compute: (N) => {
-      const m = 4 + N * 0.05;
-      const c = 5 + N * 0.3;
-      const k = 1500 + N * 20;
+      // FORMULA EKSPLISIT: m=1 (tetap), k=100 (tetap), c=(N+1)/10 langsung dari NIM
+      const m = 1;                     // tetap
+      const k = 100;                   // tetap → c_crit = 20
+      const c = (N + 1) / 10;          // langsung dari NIM (range 0.1-10)
       const zeta = c / (2 * Math.sqrt(m * k));
       const Q = 1 / (2 * zeta);
       return {
-        text: `Hitung <b>Quality factor Q</b> untuk sistem resonansi dengan <b>m = ${m.toFixed(2)} kg</b>, <b>c = ${c.toFixed(2)} Ns/m</b>, <b>k = ${k} N/m</b>. Rumus: Q = 1/(2ζ), dengan ζ = c/(2√(km)).`,
-        hint: `import numpy as np\n# Diketahui: m = ${m.toFixed(2)}, c = ${c.toFixed(2)}, k = ${k}\n# Langkah: (1) hitung zeta = c/(2√(km)), (2) hitung Q = 1/(2ζ)\n# TODO: implement dan print(Q)`,
-        diagram: _diagram('Q-Factor = nilai DMF di puncak resonansi (r≈1)', _svg.dmfCurve({zetas: [c/(2*Math.sqrt(m*k)), 0.05, 0.2], highlightR: 1.0, highlightZeta: c/(2*Math.sqrt(m*k))})),
+        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
+               • <b>m = 1 kg, k = 100 N/m</b> (tetap)<br>
+               • <b>c = (N + 1) / 10 = (${N} + 1) / 10 = ${c.toFixed(1)} Ns/m</b><br>
+               Hitung <b>Quality factor Q</b>. Rumus: Q = 1/(2ζ), dengan ζ = c/(2√(km)).`,
+        hint: `import numpy as np\n# N = ${N}\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\n# Langkah: (1) zeta = c/(2√(km)), (2) Q = 1/(2ζ)\n# TODO: implement dan print(Q)`,
+        diagram: _diagram('Q-Factor = nilai DMF di puncak resonansi (r≈1)', _svg.dmfCurve({zetas: [zeta, 0.05, 0.2], highlightR: 1.0, highlightZeta: zeta})),
         expected: Q,
         tolerance: 0.05
       };
@@ -2413,12 +2502,16 @@ const UTS_COMP_EZ = [
   {
     id: 'c10', modul: 5,
     compute: (N) => {
-      const r = 1.6 + N * 0.04;         // 1.6 - 5.56 (semua > √2)
-      const zeta = 0.05 + N * 0.002;
+      // FORMULA EKSPLISIT: r = 1.6 + 0.04·N langsung dari NIM (range 1.6-5.56), ζ = 0.05 tetap
+      const r = 1.6 + 0.04 * N;        // langsung dari NIM (semua > √2)
+      const zeta = 0.05;                // tetap
       const TR = Math.sqrt((1 + Math.pow(2*zeta*r, 2)) / (Math.pow(1-r*r, 2) + Math.pow(2*zeta*r, 2)));
       return {
-        text: `Hitung <b>transmisibilitas T<sub>R</sub></b> untuk sistem isolasi dengan frequency ratio <b>r = ${r.toFixed(3)}</b> dan damping ratio <b>ζ = ${zeta.toFixed(3)}</b>. Rumus: T<sub>R</sub> = √((1+(2ζr)²) / ((1−r²)² + (2ζr)²)).`,
-        hint: `import numpy as np\n# Diketahui: r = ${r.toFixed(3)}, zeta = ${zeta.toFixed(3)}\n# TODO: hitung TR dengan rumus T_R = √((1+(2ζr)²) / ((1−r²)² + (2ζr)²))\n# TODO: print(TR)`,
+        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
+               • <b>r = 1.6 + 0.04·N = 1.6 + 0.04·${N} = ${r.toFixed(3)}</b><br>
+               • <b>ζ = 0.05</b> (tetap, damping rendah)<br>
+               Hitung <b>transmisibilitas T<sub>R</sub></b> untuk sistem isolasi tersebut. Rumus: T<sub>R</sub> = √((1+(2ζr)²) / ((1−r²)² + (2ζr)²)).`,
+        hint: `import numpy as np\n# N = ${N}\nr = ${r.toFixed(3)}            # = 1.6 + 0.04*N\nzeta = 0.05            # tetap\n# TODO: hitung TR dengan rumus T_R = √((1+(2ζr)²) / ((1−r²)² + (2ζr)²))\n# TODO: print(TR)`,
         diagram: _diagram('Transmissibility T_R vs r — Isolasi efektif r > √2', _svg.trCurve({zeta: zeta})),
         expected: TR,
         tolerance: 0.005
@@ -2438,12 +2531,11 @@ const UTS_COMP_HARD = [
   {
     id: 'c11', modul: 3,
     compute: (N) => {
-      // Compute expected: peak amplitude of first POSITIVE peak after t=0 crossing 0
-      // Using analytic underdamped solution: x(t) = exp(-zeta*wn*t) * [A·cos(wd·t) + B·sin(wd·t)]
-      // x(0) = A = 0.1, ẋ(0) = -zeta*wn*A + wd*B = 0 → B = zeta*wn*A/wd
-      const m = 2 + N * 0.05;
-      const c = 4 + N * 0.2;            // pastikan underdamped, c kecil
-      const k = 800 + N * 10;
+      // FORMULA EKSPLISIT: m=1 (tetap), k=100 (tetap), c=(N+1)/10 langsung dari NIM
+      // ζ = (N+1)/200 → range 0.005-0.5, selalu underdamped
+      const m = 1;                     // tetap
+      const k = 100;                   // tetap → ω_n = 10 rad/s
+      const c = (N + 1) / 10;          // langsung dari NIM (range 0.1-10 Ns/m)
       const wn = Math.sqrt(k / m);
       const zeta = c / (2 * Math.sqrt(m * k));
       const wd = wn * Math.sqrt(1 - zeta * zeta);
@@ -2494,9 +2586,13 @@ const UTS_COMP_HARD = [
       }
       const expected = firstPositivePeakAfterCross || 0;
       return {
-        text: `Implementasikan integrator <b>Runge-Kutta orde-4 (RK4)</b> untuk menyelesaikan sistem getaran bebas teredam <code>mẍ + cẋ + kx = 0</code> dengan parameter Anda: <b>m = ${m.toFixed(2)} kg, c = ${c.toFixed(2)} Ns/m, k = ${k} N/m</b>. Kondisi awal: <b>x(0) = 0.1 m, ẋ(0) = 0</b>. Step <b>h = 0.001 s</b>, durasi <b>t = 0..3 s</b>. Laporkan <b>nilai puncak amplitudo positif PERTAMA setelah simpangan x melewati nol</b> (yaitu peak positif kedua, dalam meter).`,
-        hint: `Kerangka: state = [x, v]; def rhs(state): return [v, (-c*v - k*x)/m]; def rk4(state, h): ...; loop sampai t=3, deteksi zero crossing dari + ke -, lalu cari peak (v berubah dari + ke ≤0, x > 0). Print nilai x pada peak tersebut.`,
-        diagram: _diagram('Sistem Massa-Pegas-Peredam (free vibration, x₀=0.1)', _svg.springMassDamper(k, m.toFixed(1), c.toFixed(1))),
+        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
+               • <b>m = 1 kg</b> (tetap)<br>
+               • <b>k = 100 N/m</b> (tetap) → ωₙ = 10 rad/s<br>
+               • <b>c = (N + 1) / 10 = (${N} + 1) / 10 = ${c.toFixed(1)} Ns/m</b><br>
+               Implementasikan integrator <b>Runge-Kutta orde-4 (RK4)</b> untuk menyelesaikan sistem getaran bebas teredam <code>mẍ + cẋ + kx = 0</code>. Kondisi awal: <b>x(0) = 0.1 m, ẋ(0) = 0</b>. Step <b>h = 0.001 s</b>, durasi <b>t = 0..3 s</b>. Laporkan <b>nilai puncak amplitudo positif PERTAMA setelah simpangan x melewati nol</b> (yaitu peak positif kedua, dalam meter).`,
+        hint: `# N = ${N} (dari NIM Anda)\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\n# Kerangka: state = [x, v]; def rhs(state): return [v, (-c*v - k*x)/m]; def rk4(state, h): ...; \n# loop sampai t=3, deteksi zero crossing dari + ke -, lalu cari peak (v: + → ≤0, x > 0).\n# Print nilai x pada peak tersebut.`,
+        diagram: _diagram('Sistem Massa-Pegas-Peredam (free vibration, x₀=0.1)', _svg.springMassDamper(k, m, c.toFixed(1))),
         expected: expected,
         tolerance: 0.005
       };
@@ -2506,22 +2602,19 @@ const UTS_COMP_HARD = [
   {
     id: 'c12', modul: 3,
     compute: (N) => {
-      const zeta_true = 0.03 + N * 0.001;       // 0.030 - 0.129
-      const wn = 8 + N * 0.05;                   // 8.0 - 12.95 rad/s
-      // Generate signal x(t) = exp(-zeta*wn*t) * cos(wd*t)
-      // Identify zeta from log decrement of peaks separated by n=5 cycles
+      // FORMULA EKSPLISIT: zeta_true = (N+1)/200 langsung dari NIM, wn = 10 tetap
+      const zeta_true = (N + 1) / 200;          // langsung dari NIM (range 0.005-0.5)
+      const wn = 10;                             // tetap (rad/s)
       const wd = wn * Math.sqrt(1 - zeta_true * zeta_true);
-      // Approx: peak ke-1 di t ~ 0, peak ke-(1+n) di t ~ n*T_d
-      // x_peak(t) ~ exp(-zeta*wn*t) (cos at peak = 1)
-      // delta = (1/n) * ln(x1 / x_(1+n)) = (1/n) * (zeta*wn*n*T_d) = zeta*wn*T_d
-      // T_d = 2π/wd
       const Td = 2 * Math.PI / wd;
       const delta_expected = zeta_true * wn * Td;
-      // ζ_estimated = δ/√(4π² + δ²)
       const zeta_est = delta_expected / Math.sqrt(4 * Math.PI * Math.PI + delta_expected * delta_expected);
       return {
-        text: `Identifikasi <b>rasio redaman ζ</b> dari sinyal getaran bebas underdamped <code>x(t) = exp(-${zeta_true.toFixed(3)}·${wn.toFixed(2)}·t)·cos(${wd.toFixed(3)}·t)</code> untuk t ∈ [0, 8] dengan 4000 sampel. Lakukan <em>peak detection</em>, ambil <b>n = 5 puncak</b>, hitung logarithmic decrement δ = (1/n)·ln(x₁/x_(1+n)), lalu estimasi <b>ζ = δ/√(4π² + δ²)</b>. Laporkan ζ_estimasi.`,
-        hint: `Generate t = np.linspace(0, 8, 4000), x = exp(-zeta_true*wn*t)*cos(wd*t). Pakai scipy.signal.find_peaks untuk cari puncak. Ambil 6 peak pertama (x[0], x[5]). Compute delta = (1/5)*ln(x[0]/x[5]); zeta = delta/sqrt(4*pi**2 + delta**2); print(zeta).`,
+        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
+               • <b>ζ_true = (N + 1) / 200 = (${N} + 1) / 200 = ${zeta_true.toFixed(4)}</b> (rasio redaman sebenarnya)<br>
+               • <b>ωₙ = 10 rad/s</b> (tetap)<br>
+               Identifikasi <b>rasio redaman ζ</b> dari sinyal getaran bebas underdamped <code>x(t) = exp(−ζ_true·ωₙ·t)·cos(ωd·t)</code> untuk t ∈ [0, 8] dengan 4000 sampel. Lakukan <em>peak detection</em>, ambil <b>n = 5 puncak</b>, hitung logarithmic decrement δ = (1/n)·ln(x₁/x_(1+n)), lalu estimasi <b>ζ = δ/√(4π² + δ²)</b>. Laporkan ζ_estimasi (harus mendekati ζ_true).`,
+        hint: `import numpy as np\nfrom scipy.signal import find_peaks\n# N = ${N} (dari NIM Anda)\nzeta_true = (${N}+1)/200    # = ${zeta_true.toFixed(4)}\nwn = 10                    # tetap\nwd = wn * np.sqrt(1 - zeta_true**2)\n\nt = np.linspace(0, 8, 4000)\nx = np.exp(-zeta_true*wn*t) * np.cos(wd*t)\npeaks, _ = find_peaks(x)\n# Ambil 6 peak pertama → delta = (1/5)*ln(x[peaks[0]] / x[peaks[5]])\n# zeta_est = delta / sqrt(4*pi**2 + delta**2)\n# print(zeta_est)`,
         diagram: _diagram('Identifikasi ζ — peak detection pada decay sinyal', _svg.decay({zeta: zeta_true, wn: wn, markPeaks: 5})),
         expected: zeta_est,
         tolerance: 0.005
@@ -2532,18 +2625,20 @@ const UTS_COMP_HARD = [
   {
     id: 'c13', modul: 4,
     compute: (N) => {
-      // Generate signal with 2 frequency components, identify dominant
-      const f1 = 5 + N * 0.1;            // 5.0 - 14.9 Hz (komponen kuat)
-      const f2 = 25 + N * 0.2;           // 25 - 44.8 Hz (komponen lemah)
-      const A1 = 1.0;                     // amplitudo lebih besar
-      const A2 = 0.3;
-      // Dominant frequency = f1 (selalu, karena A1 > A2)
+      // FORMULA EKSPLISIT: f1 = N+1 Hz langsung dari NIM (komponen dominan), f2 = 80 Hz tetap
+      const f1 = N + 1;                  // langsung dari NIM (range 1-100 Hz, dominan)
+      const f2 = 80;                     // tetap (komponen lemah)
+      const A1 = 1.0;                    // amplitudo dominan
+      const A2 = 0.3;                    // amplitudo lemah
       return {
-        text: `Lakukan <b>analisis FFT</b> untuk mengidentifikasi frekuensi dominan dari sinyal getaran <code>x(t) = ${A1}·sin(2π·${f1.toFixed(2)}·t) + ${A2}·sin(2π·${f2.toFixed(2)}·t)</code> untuk <b>t ∈ [0, 4]</b> detik dengan <b>sampling rate 1000 Hz</b>. Hitung FFT dengan <code>numpy.fft.rfft</code>, cari frekuensi dengan magnitudo tertinggi, dan laporkan <b>frekuensi dominan dalam Hz</b>.`,
-        hint: `import numpy as np; fs=1000; t=np.arange(0,4,1/fs); x = A1*np.sin(2*np.pi*f1*t) + A2*np.sin(2*np.pi*f2*t); X = np.fft.rfft(x); freqs = np.fft.rfftfreq(len(t), 1/fs); idx = np.argmax(np.abs(X)); print(freqs[idx]).`,
+        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
+               • <b>f₁ = N + 1 = ${N} + 1 = ${f1} Hz</b> (komponen dominan, A₁ = 1.0)<br>
+               • <b>f₂ = 80 Hz</b> (tetap, komponen lemah, A₂ = 0.3)<br>
+               Lakukan <b>analisis FFT</b> untuk mengidentifikasi frekuensi dominan dari sinyal getaran <code>x(t) = A₁·sin(2π·f₁·t) + A₂·sin(2π·f₂·t)</code> untuk <b>t ∈ [0, 4]</b> detik dengan <b>sampling rate 1000 Hz</b>. Hitung FFT dengan <code>numpy.fft.rfft</code>, cari frekuensi dengan magnitudo tertinggi, dan laporkan <b>frekuensi dominan dalam Hz</b>.`,
+        hint: `import numpy as np\n# N = ${N}\nf1 = ${N}+1            # = ${f1} Hz (dominan)\nf2 = 80              # tetap, lemah\nA1, A2 = 1.0, 0.3\nfs = 1000\nt = np.arange(0, 4, 1/fs)\nx = A1*np.sin(2*np.pi*f1*t) + A2*np.sin(2*np.pi*f2*t)\nX = np.fft.rfft(x)\nfreqs = np.fft.rfftfreq(len(t), 1/fs)\nidx = np.argmax(np.abs(X))\nprint(freqs[idx])`,
         diagram: _diagram('FFT — sinyal time-domain & spektrum frekuensi', _svg.fftSpec(f1, f2)),
         expected: f1,
-        tolerance: 0.5      // resolusi FFT ~0.25 Hz untuk durasi 4 s
+        tolerance: 0.5
       };
     }
   },
@@ -2551,18 +2646,22 @@ const UTS_COMP_HARD = [
   {
     id: 'c14', modul: 4,
     compute: (N) => {
-      const m = 4 + N * 0.05;
-      const c = 6 + N * 0.3;
-      const k = 1500 + N * 15;
+      // FORMULA EKSPLISIT: m=1 (tetap), k=100 (tetap), c=(N+1)/10 langsung dari NIM
+      // ω_n = 10, ζ = (N+1)/200 → ω_peak = 10·√(1−2ζ²)
+      const m = 1;                     // tetap
+      const k = 100;                   // tetap → ω_n = 10 rad/s
+      const c = (N + 1) / 10;          // langsung dari NIM (range 0.1-10)
       const wn = Math.sqrt(k / m);
       const zeta = c / (2 * Math.sqrt(m * k));
-      // r_peak = sqrt(1 - 2*zeta^2), nilai DMF di r_peak
       const r_peak = Math.sqrt(1 - 2 * zeta * zeta);
       const omega_peak = r_peak * wn;
       const DMF_max = 1 / (2 * zeta * Math.sqrt(1 - zeta * zeta));
       return {
-        text: `Cari <b>frekuensi eksitasi yang memberikan amplifikasi MAKSIMUM</b> (resonansi) untuk sistem dengan <b>m = ${m.toFixed(2)} kg</b>, <b>c = ${c.toFixed(2)} Ns/m</b>, <b>k = ${k} N/m</b>. Lakukan sweep ω dari 1 hingga 100 rad/s dengan step 0.01, hitung DMF(ω) untuk setiap ω, lalu laporkan <b>ω_peak (rad/s) di mana DMF mencapai maksimum</b>.`,
-        hint: `import numpy as np; m,c,k=...; wn=np.sqrt(k/m); zeta=c/(2*np.sqrt(m*k)); omegas=np.arange(1,100,0.01); r=omegas/wn; DMF=1/np.sqrt((1-r**2)**2+(2*zeta*r)**2); idx=np.argmax(DMF); print(omegas[idx]).`,
+        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
+               • <b>m = 1 kg, k = 100 N/m</b> (tetap) → ωₙ = 10 rad/s<br>
+               • <b>c = (N + 1) / 10 = (${N} + 1) / 10 = ${c.toFixed(1)} Ns/m</b><br>
+               Cari <b>frekuensi eksitasi yang memberikan amplifikasi MAKSIMUM</b> (resonansi). Lakukan sweep ω dari 1 hingga 100 rad/s dengan step 0.01, hitung DMF(ω) untuk setiap ω, lalu laporkan <b>ω_peak (rad/s) di mana DMF mencapai maksimum</b>.`,
+        hint: `import numpy as np\n# N = ${N}\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\nwn = np.sqrt(k/m)\nzeta = c/(2*np.sqrt(m*k))\nomegas = np.arange(1, 100, 0.01)\nr = omegas/wn\nDMF = 1/np.sqrt((1-r**2)**2 + (2*zeta*r)**2)\nidx = np.argmax(DMF)\nprint(omegas[idx])`,
         diagram: _diagram('Sweep frekuensi — cari ω yang DMF maksimum', _svg.dmfCurve({zetas: [zeta, 0.05, 0.2], highlightR: r_peak, highlightZeta: zeta})),
         expected: omega_peak,
         tolerance: 0.05
@@ -2573,16 +2672,11 @@ const UTS_COMP_HARD = [
   {
     id: 'c15', modul: 5,
     compute: (N) => {
-      // Diketahui m, ω_eksitasi, target T_R. Cari k yang menghasilkan T_R ≤ target
-      const m = 50 + N * 2;             // 50 - 248 kg (mesin)
-      const omega_ex = 30 + N * 0.5;    // 30 - 79.5 rad/s (eksitasi)
-      const TR_target = 0.10;            // target 10% transmisibilitas
-      const zeta = 0.05;
-      // Cari ωₙ sehingga T_R(r=ω/ωₙ) ≤ 0.10
-      // Dengan damping rendah, untuk T_R ≤ target: r ≥ √((1+1/target²)/(1-2ζ²·(1-1/target²)))
-      // Lebih mudah: lakukan sweep ωₙ dari ω_ex/100 sampai ω_ex/1, cari ωₙ terbesar yang memenuhi
-      // Atau analytic: T_R² ≈ (1 + (2ζr)²) / ((1-r²)² + (2ζr)²)
-      // Numerical solution
+      // FORMULA EKSPLISIT: m=50 (tetap), ω_ex = N+1 langsung dari NIM, target T_R=0.10
+      const m = 50;                    // tetap (kg, mesin)
+      const omega_ex = N + 1;          // langsung dari NIM (range 1-100 rad/s)
+      const TR_target = 0.10;          // target 10% transmisibilitas
+      const zeta = 0.05;                // tetap
       let omega_n_max = 0;
       for (let wn_test = 0.01; wn_test < omega_ex; wn_test += 0.01) {
         const r = omega_ex / wn_test;
@@ -2593,11 +2687,15 @@ const UTS_COMP_HARD = [
       }
       const k_max = m * omega_n_max * omega_n_max;
       return {
-        text: `Desain isolator getaran untuk mesin bermassa <b>m = ${m.toFixed(0)} kg</b> yang dieksitasi pada frekuensi <b>ω = ${omega_ex.toFixed(2)} rad/s</b>. Tentukan <b>nilai kekakuan pegas k (N/m) MAKSIMUM</b> yang masih memenuhi syarat transmisibilitas <b>T<sub>R</sub> ≤ 0.10</b> (10%). Asumsi damping ratio ζ = 0.05. Lakukan sweep ωₙ dari 0.01 hingga ω, cari ωₙ maksimum yang memenuhi, lalu hitung k = m·ωₙ².`,
-        hint: `import numpy as np; m=...; omega=...; TR_target=0.10; zeta=0.05; best_wn=0; for wn in np.arange(0.01, omega, 0.01): r=omega/wn; TR=np.sqrt((1+(2*zeta*r)**2)/((1-r**2)**2+(2*zeta*r)**2)); if TR <= TR_target: best_wn=wn; k = m*best_wn**2; print(k).`,
+        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
+               • <b>m = 50 kg</b> (tetap, mesin)<br>
+               • <b>ω_eksitasi = N + 1 = ${N} + 1 = ${omega_ex} rad/s</b><br>
+               • <b>T_R target = 0.10</b> (10%), <b>ζ = 0.05</b> (tetap)<br>
+               Desain isolator getaran. Tentukan <b>nilai kekakuan pegas k (N/m) MAKSIMUM</b> yang masih memenuhi syarat T<sub>R</sub> ≤ 0.10. Lakukan sweep ωₙ dari 0.01 hingga ω_eksitasi, cari ωₙ maksimum yang memenuhi, lalu hitung k = m·ωₙ².`,
+        hint: `import numpy as np\n# N = ${N}\nm = 50           # tetap (mesin)\nomega_ex = ${omega_ex}      # = N+1 (eksitasi)\nTR_target = 0.10\nzeta = 0.05\n\nbest_wn = 0\nfor wn in np.arange(0.01, omega_ex, 0.01):\n    r = omega_ex / wn\n    TR = np.sqrt((1 + (2*zeta*r)**2) / ((1-r**2)**2 + (2*zeta*r)**2))\n    if TR <= TR_target:\n        best_wn = wn\nk = m * best_wn**2\nprint(k)`,
         diagram: _diagram('Desain isolator — cari ωₙ paling besar yang T_R ≤ 0.10', _svg.trCurve({zeta: 0.05, target: TR_target})),
         expected: k_max,
-        tolerance: 50    // toleransi sedikit longgar karena step 0.01
+        tolerance: 50
       };
     }
   },
