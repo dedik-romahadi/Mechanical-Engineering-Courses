@@ -2299,6 +2299,19 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     <p style="color:var(--muted);font-size:13px;margin-bottom:24px">Di editor forum, klik tombol <strong style="color:var(--amber)">&lt;/&gt; HTML</strong> untuk beralih ke mode HTML, lalu paste kode yang sudah disalin.</p>
     <button class="btn-export-forum" id="btn-copy-forum" onclick="copyForumHtml()" disabled style="opacity:.4;cursor:not-allowed">📋 Copy Forum (kode HTML)</button>
     <div id="copy-forum-msg" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);margin-top:10px"></div>
+
+    <!-- Pedoman v9 §16.3 — Tier 3 always-visible inline textarea (replaces popup window) -->
+    <div id="forum-html-output" style="display:none;margin-top:18px;text-align:left">
+      <div style="background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.3);border-radius:10px;padding:12px 16px;margin-bottom:10px;display:flex;flex-wrap:wrap;align-items:center;gap:10px">
+        <span style="font-size:14px;font-weight:700;color:var(--violet);flex:1;min-width:200px">💡 Backup Manual Copy</span>
+        <span style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace">Jika auto-copy gagal: (1) Pilih Semua &nbsp;(2)&nbsp; Ctrl+C &nbsp;(3)&nbsp; Paste di Fast Learning</span>
+      </div>
+      <textarea id="forum-html-textarea" readonly style="width:100%;height:140px;font-family:'JetBrains Mono',monospace;font-size:11px;background:#0a1224;color:#e2e8f0;padding:12px 14px;border:1px solid rgba(168,85,247,.25);border-radius:10px;resize:vertical;line-height:1.5;box-sizing:border-box"></textarea>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        <button onclick="selectForumHtmlAll()" style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;padding:8px 14px;background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.3);border-radius:8px;cursor:pointer;letter-spacing:.5px">🔍 PILIH SEMUA</button>
+        <button onclick="copyForumHtmlManual()" style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;padding:8px 14px;background:rgba(0,224,158,.12);color:#00e676;border:1px solid rgba(0,224,158,.3);border-radius:8px;cursor:pointer;letter-spacing:.5px">📋 COPY LAGI</button>
+      </div>
+    </div>
   </div>
 
 </div><!-- end section -->
@@ -3579,17 +3592,21 @@ function copyForumHtml() {
     return;
   }
 
+  // Pedoman v9 §16.3 — KEY CHANGE: ALWAYS populate output textarea SEBELUM clipboard attempt.
+  // Ini guarantee mahasiswa selalu punya akses ke HTML, bahkan jika auto-copy diam-diam gagal.
+  _populateForumOutput(htmlCode);
+
   const onSuccess = () => {
     btn.textContent = '✅ Tersalin!';
     btn.style.background = 'rgba(0,224,158,.2)';
-    if (msg) { msg.style.color = 'var(--green)'; msg.textContent = '✅ Kode HTML sudah tersalin. Buka Fast Learning → Forum Pertemuan 1 → klik </> HTML → paste.'; }
+    if (msg) { msg.style.color = 'var(--green)'; msg.textContent = '✅ Kode HTML sudah tersalin. Buka Fast Learning → Forum Pertemuan 4 → klik </> HTML → paste.'; }
     setTimeout(() => {
       btn.textContent = '📋 Copy Forum (kode HTML)';
       btn.style.background = '';
     }, 3000);
   };
 
-  // Pedoman v5 §25.3 — 3-tier fallback for clipboard
+  // Pedoman v9 §16.3 — 2-tier auto-copy + always-visible Tier 3 textarea (no popup)
   // Tier 1: navigator.clipboard.writeText (modern, requires secure context)
   if (window.isSecureContext && navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(htmlCode).then(onSuccess).catch((err) => {
@@ -3605,7 +3622,6 @@ function copyForumHtml() {
 function copyForumTier2(text, btn, msg, onSuccess) {
   const ta = document.createElement('textarea');
   ta.value = text;
-  // Important: textarea must be selectable, not display:none
   ta.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;z-index:-1';
   ta.setAttribute('readonly', '');
   document.body.appendChild(ta);
@@ -3622,55 +3638,57 @@ function copyForumTier2(text, btn, msg, onSuccess) {
   if (success) {
     onSuccess();
   } else {
-    console.warn('[Forum] Tier 2 (execCommand) failed — falling back to popup');
-    copyForumTier3(text, btn, msg);
+    // Pedoman v9 §16.3 — Tier 3: NO POPUP. Just show instruction; textarea sudah visible via _populateForumOutput.
+    if (msg) {
+      msg.style.color = 'var(--amber)';
+      msg.textContent = '⚠ Auto-copy diblokir browser. Salin manual dari kotak di bawah (klik 🔍 PILIH SEMUA → Ctrl+C / ⌘+C).';
+    }
   }
 }
 
-// Tier 3: Open popup window with HTML in textarea + Select All button + Ctrl+A/Ctrl+C instructions
-function copyForumTier3(text, btn, msg) {
-  try {
-    const popup = window.open('', '_blank', 'width=720,height=560');
-    if (!popup) {
-      console.error('[Forum] Tier 3: popup blocked');
-      if (msg) { msg.style.color = 'var(--pink)'; msg.textContent = '✗ Popup diblok browser. Aktifkan popup untuk situs ini, lalu coba lagi.'; }
-      return;
-    }
-    const safe = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    popup.document.write(`<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><title>Salin Kode HTML Forum</title>
-<style>
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#1a0a05;color:#fde68a;margin:0;padding:18px;display:flex;flex-direction:column;height:100vh;box-sizing:border-box}
-.banner{background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.35);border-radius:10px;padding:12px 16px;margin-bottom:12px;color:#fed7aa;font-size:14px;line-height:1.55}
-.banner strong{color:#fb923c}
-.actions{display:flex;gap:8px;margin-bottom:12px}
-button{background:linear-gradient(135deg,#f97316,#fb923c);border:none;color:#1a0a05;padding:10px 18px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px}
-button:hover{filter:brightness(1.1)}
-textarea{flex:1;width:100%;background:#0a0604;color:#fde68a;border:1px solid rgba(251,146,60,.3);border-radius:10px;padding:12px;font-family:'JetBrains Mono',Monaco,monospace;font-size:12px;box-sizing:border-box;resize:none}
-</style></head><body>
-<div class="banner">
-  📋 <strong>Salin manual:</strong> Klik tombol <strong>"Pilih Semua"</strong> di bawah, lalu tekan <strong>Ctrl+C</strong> (Windows/Linux) atau <strong>⌘+C</strong> (Mac) untuk menyalin. Setelah itu paste di Fast Learning → Forum Pertemuan 1 → klik </> HTML.
-</div>
-<div class="actions">
-  <button id="selBtn">📑 Pilih Semua</button>
-  <button id="closeBtn" style="background:rgba(255,255,255,.08);color:#fed7aa">Tutup</button>
-</div>
-<textarea id="content" readonly>${safe}</textarea>
-<script>
-document.getElementById('selBtn').addEventListener('click',function(){
-  const ta=document.getElementById('content');
-  ta.focus();ta.select();ta.setSelectionRange(0,ta.value.length);
-});
-document.getElementById('closeBtn').addEventListener('click',function(){window.close()});
-setTimeout(function(){document.getElementById('content').focus();document.getElementById('content').select()},100);
-</scr` + `ipt>
-</body></html>`);
-    popup.document.close();
-    if (msg) { msg.style.color = 'var(--amber)'; msg.textContent = '⚠ Browser memblok salin otomatis. Window baru terbuka — klik Pilih Semua → Ctrl+C.'; }
-  } catch(err) {
-    console.error('[Forum] Tier 3 popup failed:', err);
-    if (msg) { msg.style.color = 'var(--pink)'; msg.textContent = '✗ Tidak bisa salin otomatis. Buka DevTools console untuk error detail.'; }
+// Pedoman v9 §16.3 — Tier 3 NEW: Always-visible inline textarea (replaces popup window)
+// Foolproof manual copy untuk kasus mobile browser / ad-blocker yang block popup
+function _populateForumOutput(htmlCode) {
+  const out = document.getElementById('forum-html-output');
+  const ta  = document.getElementById('forum-html-textarea');
+  if (out && ta) {
+    ta.value = htmlCode;
+    out.style.display = 'block';
+    setTimeout(() => {
+      try { out.scrollIntoView({behavior:'smooth', block:'nearest'}); } catch(e){}
+    }, 100);
   }
 }
+
+function selectForumHtmlAll() {
+  const ta = document.getElementById('forum-html-textarea');
+  if (!ta || !ta.value) return;
+  ta.focus();
+  ta.select();
+  ta.setSelectionRange(0, ta.value.length);
+}
+
+function copyForumHtmlManual() {
+  const ta = document.getElementById('forum-html-textarea');
+  const msg = document.getElementById('copy-forum-msg');
+  if (!ta || !ta.value) return;
+  selectForumHtmlAll();
+  // Try modern API again (sering kerja saat tombol manual diklik karena fresh user gesture)
+  if (window.isSecureContext && navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(ta.value).then(() => {
+      if (msg) { msg.style.color = 'var(--green)'; msg.textContent = '✅ Tersalin via tombol manual!'; }
+    }).catch(() => {
+      if (msg) { msg.style.color = 'var(--amber)'; msg.textContent = '⚠ Klik 🔍 PILIH SEMUA, lalu tekan Ctrl+C (Cmd+C di Mac).'; }
+    });
+  } else {
+    if (msg) { msg.style.color = 'var(--amber)'; msg.textContent = '⚠ Klik 🔍 PILIH SEMUA, lalu tekan Ctrl+C (Cmd+C di Mac).'; }
+  }
+}
+
+// Expose to window untuk inline onclick handlers
+window._populateForumOutput = _populateForumOutput;
+window.selectForumHtmlAll   = selectForumHtmlAll;
+window.copyForumHtmlManual  = copyForumHtmlManual;
 
 
 // ── BUILD FORUM HTML (shared between copy and legacy export) ──
@@ -5243,7 +5261,7 @@ function initVisitor(){
           // Bump visit count only if within active schedule; otherwise
           // returning user can still view content but access is not recorded.
           if(Date.now()-lastV>=VISIT_COOLDOWN && typeof _isScheduleOpen === 'function' && _isScheduleOpen()){
-            set(ref(db,`${DB_PATH}/${_key}`),{...ex,visitCount:(ex.visitCount||1)+1,lastVisit:new Date().toISOString()});
+            set(ref(db,`${DB_PATH}/${_key}`), _stripLegacyPinFields({...ex,visitCount:(ex.visitCount||1)+1,lastVisit:new Date().toISOString()}));
           }
         }
       }).catch(err => console.error('[Score] save failed:', err));
@@ -5653,6 +5671,21 @@ async function _tryMigrateLegacyPin(nim, nama) {
   }
 }
 
+
+
+// ─── Helper: Strip field legacy pinHash/pinSetAt dari visitor record ───
+// Pedoman §8.6: PIN sekarang di pins/ global, BUKAN di visitor record. Helper ini
+// memastikan setiap write ke visitor record tidak menyertakan field legacy. Field
+// existing dari era sistem lama (yang pernah disimpan pinHash di visitor) akan
+// terhapus secara natural saat record di-update.
+function _stripLegacyPinFields(rec) {
+  if (!rec || typeof rec !== 'object') return rec;
+  const clean = Object.assign({}, rec);
+  delete clean.pinHash;
+  delete clean.pinSetAt;
+  return clean;
+}
+
 function cancelPinFlow() {
   _hidePinModals();
   _pinFlow = { nama: null, nim: null, nowISO: null, existingPin: null, existingVisitor: null, schedOpen: false };
@@ -6026,11 +6059,11 @@ function _checkConsolationPoint(nodeRef, state) {
     const zeroPoints = (state.points || 0) === 0;
     const alreadyConsoled = (state.consolationAwarded === true);
     if (allAttempted && zeroPoints && !alreadyConsoled) {
-      set(nodeRef, Object.assign({}, state, {
+      set(nodeRef, _stripLegacyPinFields(Object.assign({}, state, {
         points: 1,
         pointTimestamp: new Date().toISOString(),
         consolationAwarded: true
-      }));
+      })));
     }
   } catch(e) { /* swallow */ }
 }
@@ -6055,7 +6088,7 @@ window._awardPoint = function(qId) {
     if (scored.includes(qId)) { _answeredQ.add(qId); return; }
     _answeredQ.add(qId); scored.push(qId);
     const updated = Object.assign({}, ex, { points: (ex.points||0)+1, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',') });
-    set(nodeRef, updated);
+    set(nodeRef, _stripLegacyPinFields(updated));
     _checkConsolationPoint(nodeRef, updated);
   }).catch(err => console.error('[Score] save failed:', err));
 };
@@ -6094,7 +6127,7 @@ window._awardCompPoint = function(qId, point) {
       scoredQuestions: scored.join(','),
       codes: codes
     });
-    set(nodeRef, updated);
+    set(nodeRef, _stripLegacyPinFields(updated));
     _checkConsolationPoint(nodeRef, updated);
   }).catch(err => console.error('[Score] save failed:', err));
 };
@@ -6140,7 +6173,7 @@ window._awardCompPartial = function(qId, point) {
       scoredQuestions: scored.join(','),
       codes: codes
     });
-    set(nodeRef, updated);
+    set(nodeRef, _stripLegacyPinFields(updated));
     // Tidak trigger consolation karena poin > 0
   }).catch(err => console.error('[Score] save failed:', err));
 };
@@ -6166,7 +6199,7 @@ window._recordMcAttempt = function(qId) {
     if (scored.includes(usedKey)) return;
     scored.push(usedKey);
     const updated = Object.assign({}, ex, { scoredQuestions: scored.join(',') });
-    set(nodeRef, updated);
+    set(nodeRef, _stripLegacyPinFields(updated));
     _checkConsolationPoint(nodeRef, updated);
   }).catch(err => console.error('[Score] save failed:', err));
 };
@@ -6199,7 +6232,7 @@ window._recordCompAttempt = function(qId) {
       scoredQuestions: scored.join(','),
       codes: codes
     });
-    set(nodeRef, updated);
+    set(nodeRef, _stripLegacyPinFields(updated));
     _checkConsolationPoint(nodeRef, updated);
   }).catch(err => console.error('[Score] save failed:', err));
 };
