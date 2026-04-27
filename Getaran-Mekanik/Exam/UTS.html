@@ -923,7 +923,9 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <li>Untuk soal komputasi: tulis &amp; uji kode di Jupyter Notebook menggunakan parameter Anda (sesuai NIM).</li>
       <li>Setelah <code>print()</code> output yang sesuai, salin kode Python dari Jupyter ke kolom soal di halaman ini.</li>
       <li>Klik <strong>▶ Run &amp; Validasi</strong> — sistem akan menjalankan kode di browser (Pyodide) dan memeriksa output numerik.</li>
-      <li>Setelah semua selesai, klik tombol <strong>📄 Export HTML</strong> di score panel atas.</li>
+      <li>Upload file <code>.ipynb</code> Jupyter Notebook (berisi <strong>jawaban lengkap semua soal komputasi</strong>) ke <strong>Google Drive</strong>, set akses <em>Anyone with the link</em>, lalu tempel link-nya di kolom <strong>🔗 Link Google Drive</strong> di akhir Bagian D.</li>
+      <li>Setelah semua selesai &amp; link Google Drive terisi, klik tombol <strong>📄 Export HTML</strong> di score panel atas.</li>
+      <li>Submit file HTML hasil export ke <strong style="color:var(--cyan)">UTS Fast Learning (LMS Universitas Mercu Buana)</strong>.</li>
     </ol>
   </div>
 </div>
@@ -982,6 +984,30 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <h2 class="section-title reveal">Komputasi Hard<br><em style="color:var(--pink)">5 Soal · @4 Poin</em></h2>
   <p class="section-desc reveal">Algoritma lengkap (20–50+ baris): integrasi numerik, identifikasi parameter, FFT, optimasi. <strong>Partial credit +1 poin</strong> jika kode di-submit tapi output salah / error.</p>
   <div id="container-comp-hard" style="margin-top:32px"></div>
+
+  <!-- ═══ GOOGLE DRIVE LINK — JAWABAN LENGKAP KOMPUTASI ═══ -->
+  <div class="reveal" style="background:var(--surface);border:1px solid rgba(0,224,158,.25);border-radius:16px;padding:24px 28px;margin-top:32px">
+    <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px">
+      <span style="font-size:22px;line-height:1">🔗</span>
+      <div>
+        <div style="font-weight:700;color:var(--green);font-size:15px">Link Google Drive — File Jawaban Komputasi (.ipynb)</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.6">
+          Tempel link Google Drive yang berisi file Jupyter Notebook (<code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">.ipynb</code>) — mencakup
+          <strong style="color:var(--text)">jawaban lengkap seluruh soal komputasi</strong>
+          (Bagian C: 10 Komputasi Easy/Medium &amp; Bagian D: 5 Komputasi Hard).
+          Pastikan akses file di-set ke <em>Anyone with the link</em> agar dapat dibuka dosen.
+        </div>
+      </div>
+    </div>
+    <input
+      id="gdrive-link"
+      type="url"
+      placeholder="https://drive.google.com/drive/folders/..."
+      oninput="checkExportReady()"
+      style="width:100%;padding:13px 16px;background:#020a18;border:1px solid rgba(0,224,158,.3);border-radius:10px;color:var(--green);font-family:'JetBrains Mono',monospace;font-size:13px;outline:none;transition:border-color .2s"
+    >
+    <div id="gdrive-feedback" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);margin-top:8px"></div>
+  </div>
 </div>
 
 <!-- ═══ FINISH ═══ -->
@@ -989,14 +1015,15 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <div class="section" id="u-finish">
   <div class="section-label reveal">Selesai</div>
   <h2 class="section-title reveal">Sudah <em>Selesai?</em></h2>
-  <p class="section-desc reveal">Periksa kembali semua jawaban di score panel atas. Pastikan total poin yang Anda peroleh sudah maksimal. Klik <strong>📄 Export HTML</strong> untuk mengunduh laporan resmi UTS yang akan menjadi bukti pengerjaan.</p>
+  <p class="section-desc reveal">Periksa kembali semua jawaban di score panel atas. Pastikan total poin yang Anda peroleh sudah maksimal. Pastikan link Google Drive jawaban komputasi sudah diisi. Klik <strong>📄 Export HTML</strong> untuk mengunduh laporan resmi UTS yang akan menjadi bukti pengerjaan.</p>
   <div class="info-box reveal" style="border-left:4px solid var(--green);background:rgba(0,224,158,.06);margin-top:24px">
     <strong style="color:var(--green);font-size:15px">✅ Setelah Selesai</strong>
     <p style="margin-top:12px;line-height:1.7">
-      1. Klik tombol <strong>📄 Export HTML</strong> di score panel atas (akan aktif jika Anda sudah jawab ≥1 soal).<br>
-      2. Simpan file HTML hasil export.<br>
-      3. Upload file HTML tersebut ke link Google Drive yang sudah disediakan dosen.<br>
-      4. Skor Anda sudah otomatis tersimpan di Firebase — dosen dapat memantau real-time.
+      1. Pastikan <strong>link Google Drive</strong> jawaban komputasi sudah ditempel (di atas).<br>
+      2. Klik tombol <strong>📄 Export HTML</strong> di score panel atas (akan aktif setelah semua soal &amp; link Google Drive terisi).<br>
+      3. Simpan file HTML hasil export.<br>
+      4. Upload file HTML tersebut ke <strong style="color:var(--cyan)">UTS Fast Learning (LMS Universitas Mercu Buana)</strong>.<br>
+      5. Skor Anda sudah otomatis tersimpan di database — dosen dapat memantau real-time.
     </p>
   </div>
 </div>
@@ -3109,10 +3136,10 @@ function cpC(btn){
 // Universal 50-poin: cek 10 MC + 10 Comp E/M + 5 Comp Hard. Generate IDs dari
 // SCORE_CONFIG agar konsisten jika struktur soal berubah di masa depan.
 function checkExportReady() {
-  // UTS: Tidak perlu link Google Drive — export aktif begitu ada minimal 1 jawaban
+  // UTS: Export aktif begitu ada >= 1 jawaban DAN link Google Drive valid
   const btnTop    = document.getElementById('btn-score-export');
-  const btnBottom = document.getElementById('btn-export-tugas');   // mungkin tidak ada di UTS
-  const msgEl     = document.getElementById('export-blocked-msg');  // mungkin tidak ada
+  const btnBottom = document.getElementById('btn-export-tugas');
+  const msgEl     = document.getElementById('export-blocked-msg');
 
   // Build ID lists from SCORE_CONFIG (UTS: 10 TF + 20 MC + 10 Comp E/M + 5 Comp Hard)
   const tfIds       = Array.from({length: SCORE_CONFIG.TF_COUNT},        (_,i)=>'tf'+(i+1));
@@ -3130,17 +3157,40 @@ function checkExportReady() {
                       + (compEzIds.length - emptyCompEz.length)
                       + (compHardIds.length - emptyCompHard.length);
 
-  // UTS: Export aktif begitu ada >= 1 jawaban (lebih permisif untuk laporan progres)
-  // Idealnya semua dijawab, tapi mahasiswa boleh export di tengah-tengah untuk dokumentasi
-  const ready = totalAnswered >= 1;
+  // ── Validasi link Google Drive ──
+  const gdriveVal = (document.getElementById('gdrive-link')?.value || '').trim();
+  const gfb = document.getElementById('gdrive-feedback');
+  const gdriveOk = gdriveVal.length > 10 && (gdriveVal.startsWith('https://drive.google.com') || gdriveVal.startsWith('http'));
+
+  // Update Google Drive field feedback
+  if (gfb) {
+    if (!gdriveVal) {
+      gfb.textContent = '';
+    } else if (!gdriveOk) {
+      gfb.style.color = 'var(--amber)';
+      gfb.textContent = '⚠ Masukkan link Google Drive yang valid (https://drive.google.com/...)';
+    } else {
+      gfb.style.color = 'var(--green)';
+      gfb.textContent = '✅ Link valid';
+    }
+  }
+
+  // Export aktif jika minimal 1 jawaban DAN link Google Drive valid
+  const ready = totalAnswered >= 1 && gdriveOk;
 
   _setBtnState(btnTop,    ready);
   _setBtnState(btnBottom, ready);
 
   if (msgEl) {
-    if (ready && totalAnswered === 45) { msgEl.textContent = '✅ Semua soal terisi. Export siap!'; }
-    else if (ready) { msgEl.textContent = `⚠ ${totalAnswered}/45 soal terjawab — Anda dapat export sekarang atau lanjutkan mengerjakan.`; }
-    else { msgEl.textContent = '⚠ Jawab minimal 1 soal untuk mengaktifkan export.'; }
+    const parts = [];
+    if (totalAnswered === 0) parts.push('Jawab minimal 1 soal');
+    if (!gdriveOk)           parts.push('Link Google Drive belum diisi/valid');
+    if (parts.length === 0) {
+      if (totalAnswered === 45) msgEl.textContent = '✅ Semua soal terisi & link Google Drive valid. Export siap!';
+      else msgEl.textContent = `✅ ${totalAnswered}/45 soal terjawab & link valid — Anda dapat export sekarang atau lanjutkan mengerjakan.`;
+    } else {
+      msgEl.textContent = '⚠ ' + parts.join(' · ');
+    }
   }
 
   if (ready) _saveDraft();
@@ -3163,6 +3213,7 @@ function exportTugasHtml() {
   const nim  = identity ? identity.nim  : '-';
   const N = (typeof window.getN === 'function') ? window.getN() : 0;
   const now  = new Date().toLocaleString('id-ID');
+  const gdriveLink = (document.getElementById('gdrive-link')?.value || '').trim();
 
   // ─── 4 sub-total breakdown ───
   const tf = Object.values(tfScores).reduce((a,b)=>a+b, 0);
@@ -3410,6 +3461,16 @@ function exportTugasHtml() {
       }).join('')}
     </tbody>
   </table>
+
+  <!-- LINK GOOGLE DRIVE — JAWABAN LENGKAP KOMPUTASI -->
+  <div style="margin-top:24px;padding:16px 20px;background:#f0fdf4;border:1px solid #86efac;border-radius:10px">
+    <div style="font-weight:700;color:#15803d;font-size:.92rem;margin-bottom:6px">🔗 Link Google Drive — Jawaban Lengkap Komputasi (.ipynb)</div>
+    <div style="font-size:.78rem;color:#475569;margin-bottom:8px">File Jupyter Notebook berisi jawaban lengkap seluruh soal Bagian C (Komputasi Easy/Medium) &amp; Bagian D (Komputasi Hard).</div>
+    ${gdriveLink
+      ? `<a href="${esc(gdriveLink)}" target="_blank" style="font-family:monospace;font-size:.78rem;color:#1e40af;word-break:break-all;text-decoration:underline">${esc(gdriveLink)}</a>`
+      : '<span style="font-family:monospace;font-size:.78rem;color:#dc2626">(belum diisi — link Google Drive wajib disertakan)</span>'
+    }
+  </div>
 
   <div class="footer">
     UTS Getaran Mekanik · S1 Teknik Mesin · Universitas Mercu Buana · 2025/2026 · Dedik Romahadi, ST., M.Sc<br>
