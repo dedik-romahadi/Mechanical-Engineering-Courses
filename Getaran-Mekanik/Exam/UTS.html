@@ -2274,19 +2274,19 @@ window._firebaseStateLoaded = () => _firebaseStateLoaded;
 function selectMC(qId, opt, correct) {
   if (!_firebaseStateLoaded) {
     const fb = document.getElementById('fb-' + qId);
-    if (fb) { fb.className = 'feedback warn'; fb.style.display='block'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
+    if (fb) { fb.className = 'feedback warn'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
     return;
   }
   // UTS: cek apakah jadwal sudah dimulai
   if (typeof _utsScheduleState === 'function' && _utsScheduleState() === 'before-start') {
     const fb = document.getElementById('fb-' + qId);
-    if (fb) { fb.className = 'feedback warn'; fb.style.display='block'; fb.textContent = '🔒 Akses UTS belum dibuka. Silakan tunggu waktu mulai.'; }
+    if (fb) { fb.className = 'feedback warn'; fb.textContent = '🔒 Akses UTS belum dibuka. Silakan tunggu waktu mulai.'; }
     return;
   }
   // ONE-SHOT: cek state lokal DAN cache Firebase
   if (mcAnswered[qId] || _answeredQ.has(qId) || _answeredQ.has(qId + '_mc_used')) {
     const fb = document.getElementById('fb-' + qId);
-    if (fb) { fb.className = 'feedback wrong'; fb.style.display='block'; fb.textContent = '🔒 Soal sudah dijawab — TIDAK ADA KESEMPATAN ULANG. Soal terkunci permanen.'; }
+    if (fb) { fb.className = 'feedback wrong'; fb.textContent = '🔒 Soal sudah dijawab — TIDAK ADA KESEMPATAN ULANG. Soal terkunci permanen.'; }
     return;
   }
   const rg = document.getElementById('rg-' + qId);
@@ -2302,13 +2302,13 @@ function selectMC(qId, opt, correct) {
 function checkMC(qId) {
   if (!_firebaseStateLoaded) {
     const fb = document.getElementById('fb-' + qId);
-    if (fb) { fb.className = 'feedback warn'; fb.style.display='block'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
+    if (fb) { fb.className = 'feedback warn'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
     return;
   }
   // UTS: cek schedule
   if (typeof _utsScheduleState === 'function' && _utsScheduleState() === 'before-start') {
     const fb = document.getElementById('fb-' + qId);
-    if (fb) { fb.className = 'feedback warn'; fb.style.display='block'; fb.textContent = '🔒 Akses UTS belum dibuka.'; }
+    if (fb) { fb.className = 'feedback warn'; fb.textContent = '🔒 Akses UTS belum dibuka.'; }
     return;
   }
   // ONE-SHOT: cek state lokal DAN cache Firebase
@@ -2316,7 +2316,6 @@ function checkMC(qId) {
     const fb = document.getElementById('fb-' + qId);
     if (fb && fb.textContent.trim() === '') {
       fb.className = 'feedback wrong';
-      fb.style.display='block';
       fb.textContent = '🔒 Sudah dijawab sebelumnya — TIDAK ADA KESEMPATAN ULANG.';
     }
     return;
@@ -2324,14 +2323,13 @@ function checkMC(qId) {
   const rg = document.getElementById('rg-' + qId);
   const sel = rg.querySelector('.radio-option.selected');
   const fb = document.getElementById('fb-' + qId);
-  if (!sel) { fb.className = 'feedback warn'; fb.style.display='block'; fb.textContent = '⚠ Pilih salah satu opsi terlebih dahulu.'; return; }
+  if (!sel) { fb.className = 'feedback warn'; fb.textContent = '⚠ Pilih salah satu opsi terlebih dahulu.'; return; }
   // Mark answered IMMEDIATELY untuk prevent double-click race
   mcAnswered[qId] = true;
   const sub = document.getElementById('sub-' + qId);
   if (sub) { sub.disabled = true; }
   rg.querySelectorAll('.radio-option').forEach(o => o.style.pointerEvents = 'none');
   const selectedIdx = (typeof sel._idx === 'number') ? sel._idx : Array.from(rg.querySelectorAll('.radio-option')).indexOf(sel);
-  fb.style.display='block';
   if (sel._correct) {
     fb.className = 'feedback correct';
     fb.textContent = '✅ Jawaban diterima. +1 poin tercatat. Soal TERKUNCI PERMANEN — tidak ada kesempatan ulang.';
@@ -2355,19 +2353,19 @@ function checkMC(qId) {
 function selectTF(qId, opt, isTrue) {
   if (!_firebaseStateLoaded) {
     const fb = document.getElementById('fb-' + qId);
-    if (fb) { fb.className = 'feedback warn'; fb.style.display='block'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
+    if (fb) { fb.className = 'feedback warn'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
     return;
   }
   // UTS: cek apakah jadwal sudah dimulai
   if (typeof _utsScheduleState === 'function' && _utsScheduleState() === 'before-start') {
     const fb = document.getElementById('fb-' + qId);
-    if (fb) { fb.className = 'feedback warn'; fb.style.display='block'; fb.textContent = '🔒 Akses UTS belum dibuka. Silakan tunggu waktu mulai.'; }
+    if (fb) { fb.className = 'feedback warn'; fb.textContent = '🔒 Akses UTS belum dibuka. Silakan tunggu waktu mulai.'; }
     return;
   }
   // ONE-SHOT: cek state lokal DAN cache Firebase
   if (tfAnswered[qId] || _answeredQ.has(qId) || _answeredQ.has(qId + '_tf_used')) {
     const fb = document.getElementById('fb-' + qId);
-    if (fb) { fb.className = 'feedback wrong'; fb.style.display='block'; fb.textContent = '🔒 Soal sudah dijawab — TIDAK ADA KESEMPATAN ULANG. Soal terkunci permanen.'; }
+    if (fb) { fb.className = 'feedback wrong'; fb.textContent = '🔒 Soal sudah dijawab — TIDAK ADA KESEMPATAN ULANG. Soal terkunci permanen.'; }
     return;
   }
   const opts = document.getElementById('tfopts-' + qId);
@@ -2381,13 +2379,13 @@ function selectTF(qId, opt, isTrue) {
 function checkTF(qId) {
   if (!_firebaseStateLoaded) {
     const fb = document.getElementById('fb-' + qId);
-    if (fb) { fb.className = 'feedback warn'; fb.style.display='block'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
+    if (fb) { fb.className = 'feedback warn'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
     return;
   }
   // UTS: cek schedule
   if (typeof _utsScheduleState === 'function' && _utsScheduleState() === 'before-start') {
     const fb = document.getElementById('fb-' + qId);
-    if (fb) { fb.className = 'feedback warn'; fb.style.display='block'; fb.textContent = '🔒 Akses UTS belum dibuka.'; }
+    if (fb) { fb.className = 'feedback warn'; fb.textContent = '🔒 Akses UTS belum dibuka.'; }
     return;
   }
   // ONE-SHOT: cek state lokal DAN cache Firebase
@@ -2395,7 +2393,6 @@ function checkTF(qId) {
     const fb = document.getElementById('fb-' + qId);
     if (fb && fb.textContent.trim() === '') {
       fb.className = 'feedback wrong';
-      fb.style.display='block';
       fb.textContent = '🔒 Sudah dijawab sebelumnya — TIDAK ADA KESEMPATAN ULANG.';
     }
     return;
@@ -2403,13 +2400,12 @@ function checkTF(qId) {
   const opts = document.getElementById('tfopts-' + qId);
   const sel = opts.querySelector('.tf-option.selected');
   const fb = document.getElementById('fb-' + qId);
-  if (!sel) { fb.className = 'feedback warn'; fb.style.display='block'; fb.textContent = '⚠ Pilih BENAR atau SALAH terlebih dahulu.'; return; }
+  if (!sel) { fb.className = 'feedback warn'; fb.textContent = '⚠ Pilih BENAR atau SALAH terlebih dahulu.'; return; }
 
   // Get correct answer from answer key
   const correctAnswer = window._utsAnswerKeys.tf[qId];
   if (typeof correctAnswer !== 'boolean') {
-    fb.className = 'feedback warn'; fb.style.display='block';
-    fb.textContent = '⚠ Soal belum siap — silakan reload halaman.';
+    fb.className = 'feedback warn'; fb.textContent = '⚠ Soal belum siap — silakan reload halaman.';
     return;
   }
 
@@ -2420,7 +2416,6 @@ function checkTF(qId) {
   opts.querySelectorAll('.tf-option').forEach(o => o.style.pointerEvents = 'none');
 
   const userPick = sel._isTrue;   // boolean: jawaban user
-  fb.style.display='block';
   if (userPick === correctAnswer) {
     fb.className = 'feedback correct';
     fb.textContent = '✅ Jawaban diterima. +1 poin tercatat. Soal TERKUNCI PERMANEN — tidak ada kesempatan ulang.';
@@ -2488,14 +2483,9 @@ function renderUTSQuestions() {
           </div>
         </div>
         <button class="tf-submit" id="sub-${q.id}" onclick="checkTF('${q.id}')" disabled>🔒 Periksa &amp; Kunci Jawaban</button>
-        <div class="feedback" id="fb-${q.id}" style="margin-top:12px;padding:10px 14px;border-radius:8px;font-size:13px;display:none"></div>
+        <div class="feedback" id="fb-${q.id}"></div>
       `;
       tfContainer.appendChild(card);
-    });
-    // Show feedback only when populated
-    document.querySelectorAll('#container-tf .feedback').forEach(fb => {
-      const obs = new MutationObserver(() => { if (fb.textContent.trim()) fb.style.display = 'block'; });
-      obs.observe(fb, { childList: true, subtree: true, characterData: true });
     });
   }
 
@@ -2530,13 +2520,9 @@ function renderUTSQuestions() {
         </div>
         <div class="radio-group" id="rg-${q.id}">${optsHtml}</div>
         <button class="mc-submit" id="sub-${q.id}" onclick="checkMC('${q.id}')" disabled>🔒 Periksa &amp; Kunci Jawaban</button>
-        <div class="feedback" id="fb-${q.id}" style="margin-top:12px;padding:10px 14px;border-radius:8px;font-size:13px;display:none"></div>
+        <div class="feedback" id="fb-${q.id}"></div>
       `;
       mcContainer.appendChild(card);
-    });
-    document.querySelectorAll('#container-mc .feedback').forEach(fb => {
-      const obs = new MutationObserver(() => { if (fb.textContent.trim()) fb.style.display = 'block'; });
-      obs.observe(fb, { childList: true, subtree: true, characterData: true });
     });
   }
 
@@ -2606,7 +2592,7 @@ function _buildCompCard(q, num, data, sectionLetter, isHard) {
     <div class="comp-hint"><strong style="color:var(--violet)">💡 Hint / Kerangka Kode:</strong><br><pre style="margin-top:6px;color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:12px;white-space:pre-wrap;line-height:1.5">${data.hint}</pre></div>
     <textarea class="code-textarea" id="code-${q.id}" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi..."></textarea>
     <button class="comp-submit" id="sub-${q.id}" onclick="runAndCheck('${q.id}', ${data.expected}, ${data.tolerance}${isHard ? ", 'hard'" : ""})">▶ Run &amp; Validasi</button>
-    <div class="feedback" id="fb-${q.id}" style="margin-top:12px;padding:10px 14px;border-radius:8px;font-size:13px;display:none"></div>
+    <div class="feedback" id="fb-${q.id}"></div>
     <div class="stdout-box" id="stdout-${q.id}"></div>
   `;
   return card;
@@ -2895,7 +2881,7 @@ function _lockCompWrong(qId, fbMsg, partialPoint) {
     }
     if (fb) {
       fb.className = 'feedback warn';
-      fb.style.display = 'block';   // CRITICAL: pastikan feedback tampil
+      // CRITICAL: pastikan feedback tampil
       // UTS murni: TIDAK reveal jawaban benar
       fb.textContent = fbMsg;
     }
@@ -2917,7 +2903,7 @@ function _lockCompWrong(qId, fbMsg, partialPoint) {
     }
     if (fb) {
       fb.className = 'feedback wrong';
-      fb.style.display = 'block';   // CRITICAL: pastikan feedback tampil
+      // CRITICAL: pastikan feedback tampil
       // UTS murni: TIDAK reveal jawaban benar
       fb.textContent = fbMsg;
     }
@@ -2932,13 +2918,13 @@ async function runAndCheck(qId, expectedAns, tol, difficulty) {
   // PEDOMAN §18.2 Layer 1 — race-condition guard
   if (!_firebaseStateLoaded) {
     const fb = document.getElementById('fb-' + qId);
-    if (fb) { fb.className = 'feedback warn'; fb.style.display='block'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
+    if (fb) { fb.className = 'feedback warn'; fb.style.display = 'block'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
     return;
   }
   // UTS: cek apakah jadwal sudah dimulai
-  if (typeof _utsScheduleState === 'function' && _utsScheduleState() === 'before-start') {
+  if (typeof window._utsScheduleState === 'function' && window._utsScheduleState() === 'before-start') {
     const fb = document.getElementById('fb-' + qId);
-    if (fb) { fb.className = 'feedback warn'; fb.style.display='block'; fb.textContent = '🔒 Akses UTS belum dibuka. Silakan tunggu waktu mulai.'; }
+    if (fb) { fb.className = 'feedback warn'; fb.style.display = 'block'; fb.textContent = '🔒 Akses UTS belum dibuka. Silakan tunggu waktu mulai.'; }
     return;
   }
   const isHard = (difficulty === 'hard');
@@ -2957,7 +2943,7 @@ async function runAndCheck(qId, expectedAns, tol, difficulty) {
   if (isAlreadyAnswered) {
     const fb = document.getElementById('fb-' + qId);
     if (fb) {
-      fb.style.display='block';
+      fb.style.display = 'block';
       if (compScores[qId] >= correctPoint) {
         fb.className = 'feedback correct';
         fb.textContent = '✅ Sudah dijawab benar — poin telah tercatat. TIDAK ADA KESEMPATAN ULANG.';
@@ -2978,9 +2964,11 @@ async function runAndCheck(qId, expectedAns, tol, difficulty) {
   const code   = ta ? ta.value.trim() : '';
 
   if (!code) {
+    console.log('[UTS] Run & Validasi clicked with empty code, qId=', qId);
     fb.className = 'feedback warn';
-    fb.style.display = 'block';   // CRITICAL: feedback awal display:none, harus tampilkan
-    fb.innerHTML = '⚠ <strong>Kode masih kosong!</strong> Tulis kode Python di kolom isian terlebih dahulu, lalu klik tombol Run &amp; Validasi.<br><span style="font-size:12px;color:var(--muted)">Tip: Anda bisa copy-paste kode dari Jupyter Notebook setelah memastikan output sudah benar di sana.</span>';
+    fb.style.display = 'block';   // belt-and-suspenders (jaga-jaga jika ada inline style)
+    fb.innerHTML = '⚠ <strong>Kode masih kosong!</strong><br>Silakan tulis (atau paste) kode Python di kolom isian terlebih dahulu, lalu klik tombol <strong>▶ Run &amp; Validasi</strong>.<br><span style="display:inline-block;margin-top:6px;font-size:12px;opacity:.85">💡 Tip: Test kode di Jupyter Notebook dulu untuk pastikan output benar, lalu copy-paste ke sini.</span>';
+    fb.scrollIntoView({ behavior: 'smooth', block: 'center' });
     return;
   }
 
@@ -3031,7 +3019,6 @@ async function runAndCheck(qId, expectedAns, tol, difficulty) {
 
     if (correct) {
       fb.className = 'feedback correct';
-      fb.style.display = 'block';
       fb.textContent = '✅ Kode berjalan tanpa error & output benar! +' + correctPoint + ' poin tercatat. Soal TERKUNCI PERMANEN.';
       compAnswered[qId] = true; compScores[qId] = correctPoint;
       btn.disabled = true; btn.textContent = '✓ Selesai · Terkunci'; btn.classList.remove('running');
@@ -3048,7 +3035,6 @@ async function runAndCheck(qId, expectedAns, tol, difficulty) {
     }
   } catch (e) {
     fb.className = 'feedback wrong';
-    fb.style.display = 'block';
     fb.textContent = '❌ Gagal memuat Python: ' + String(e).slice(0, 150);
     btn.disabled = false; btn.classList.remove('running');
   }
@@ -6376,7 +6362,6 @@ function _applyUTSVisualState(data) {
       if (sub) { sub.disabled = true; sub.textContent = '✓ Terjawab'; sub.style.background='rgba(0,224,158,.1)'; sub.style.borderColor='rgba(0,224,158,.4)'; sub.style.color='var(--green)'; }
       const fb = document.getElementById('fb-' + qId);
       if (fb && fb.textContent.trim() === '') {
-        fb.style.display='block';
         fb.className='feedback correct';
         fb.textContent='✅ Sudah dijawab — jawaban &amp; poin telah tercatat. Soal terkunci permanen (tidak ada kesempatan ulang).';
       }
@@ -6392,7 +6377,6 @@ function _applyUTSVisualState(data) {
       if (sub) { sub.disabled = true; sub.textContent = '🔒 Terkunci'; sub.style.background='rgba(239,68,68,.1)'; sub.style.borderColor='rgba(239,68,68,.4)'; sub.style.color='var(--pink)'; }
       const fb = document.getElementById('fb-' + baseId);
       if (fb && fb.textContent.trim() === '') {
-        fb.style.display='block';
         fb.className='feedback wrong';
         fb.textContent='🔒 Sudah dijawab sebelumnya — soal TERKUNCI PERMANEN. Tidak ada kesempatan ulang.';
       }
@@ -6407,7 +6391,6 @@ function _applyUTSVisualState(data) {
       if (sub) { sub.disabled = true; sub.textContent = '✓ Terjawab'; sub.style.background='rgba(0,224,158,.1)'; sub.style.borderColor='rgba(0,224,158,.4)'; sub.style.color='var(--green)'; }
       const fb = document.getElementById('fb-' + qId);
       if (fb && fb.textContent.trim() === '') {
-        fb.style.display='block';
         fb.className='feedback correct';
         fb.textContent='✅ Sudah dijawab — jawaban &amp; poin telah tercatat. Soal terkunci permanen (tidak ada kesempatan ulang).';
       }
@@ -6423,7 +6406,6 @@ function _applyUTSVisualState(data) {
       if (sub) { sub.disabled = true; sub.textContent = '🔒 Terkunci'; sub.style.background='rgba(239,68,68,.1)'; sub.style.borderColor='rgba(239,68,68,.4)'; sub.style.color='var(--pink)'; }
       const fb = document.getElementById('fb-' + baseId);
       if (fb && fb.textContent.trim() === '') {
-        fb.style.display='block';
         fb.className='feedback wrong';
         fb.textContent='🔒 Sudah dijawab sebelumnya — soal TERKUNCI PERMANEN. Tidak ada kesempatan ulang.';
       }
@@ -6443,7 +6425,6 @@ function _applyUTSVisualState(data) {
       if (ta) { ta.disabled=true; ta.style.borderColor='rgba(251,191,36,.3)'; ta.style.opacity='.75'; }
       const fb = document.getElementById('fb-' + baseId);
       if (fb && fb.textContent.trim() === '') {
-        fb.style.display='block';
         fb.className='feedback warn';
         fb.textContent='△ Partial credit tercatat (+1 poin) — soal Hard TERKUNCI PERMANEN. Tidak ada kesempatan ulang.';
       }
@@ -6459,7 +6440,6 @@ function _applyUTSVisualState(data) {
       if(ta){ ta.disabled=true; ta.style.borderColor='rgba(239,68,68,.25)'; ta.style.opacity='.7'; }
       const fb=document.getElementById('fb-'+baseId);
       if (fb && fb.textContent.trim() === '') {
-        fb.style.display='block';
         fb.className='feedback wrong';
         fb.textContent='🔒 Sudah dijawab sebelumnya — soal TERKUNCI PERMANEN. Tidak ada kesempatan ulang.';
       }
@@ -6478,7 +6458,6 @@ function _applyUTSVisualState(data) {
       if(ta){ ta.disabled=true; ta.style.borderColor='rgba(0,224,158,.5)'; ta.style.opacity='.85'; }
       const fb=document.getElementById('fb-'+baseId);
       if (fb && fb.textContent.trim() === '') {
-        fb.style.display='block';
         fb.className='feedback correct';
         fb.textContent='✅ Sudah dijawab benar — kode &amp; poin telah tercatat. Soal terkunci permanen.';
       }
