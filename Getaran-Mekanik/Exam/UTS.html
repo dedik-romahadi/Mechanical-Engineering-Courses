@@ -1318,6 +1318,7 @@ function startCountdown(targetISO, mode) {
     else if (now <= e) { mode = 'in-progress'; targetISO = currentSchedule.end; }
     else { mode = 'expired'; }
   }
+  console.log('[Countdown] startCountdown mode=', mode, 'target=', targetISO, 'currentSchedule=', currentSchedule);
 
   // Update label countdown sesuai mode
   const labelEl = document.querySelector('.countdown-label');
@@ -1894,7 +1895,7 @@ const UTS_COMP_EZ = [
       const omega = 2 * Math.PI * (rpm / 60);
       return {
         text: `Sebuah motor listrik berputar pada <b>${rpm} RPM</b>. Hitung <b>frekuensi sudut motor ω</b> (rad/s) dengan rumus ω = 2π·(RPM/60).`,
-        hint: `import numpy as np\nrpm = ${rpm}\nomega = 2 * np.pi * (rpm / 60)\nprint(omega)`,
+        hint: `import numpy as np\n# Diketahui: rpm = ${rpm}\n# TODO: hitung omega dengan rumus ω = 2π·(RPM/60)\n# TODO: print(omega)`,
         expected: omega,
         tolerance: 0.05
       };
@@ -1909,7 +1910,7 @@ const UTS_COMP_EZ = [
       const wn = Math.sqrt(k / m);
       return {
         text: `Hitung <b>frekuensi natural ωₙ</b> (rad/s) untuk sistem getaran dengan parameter <b>m = ${m.toFixed(2)} kg</b> dan <b>k = ${k} N/m</b>. Rumus: ωₙ = √(k/m).`,
-        hint: `import numpy as np\nm = ${m.toFixed(2)}\nk = ${k}\nwn = np.sqrt(k/m)\nprint(wn)`,
+        hint: `import numpy as np\n# Diketahui: m = ${m.toFixed(2)}, k = ${k}\n# TODO: hitung wn dengan rumus ωₙ = √(k/m) — gunakan np.sqrt()\n# TODO: print(wn)`,
         expected: wn,
         tolerance: 0.02
       };
@@ -1924,7 +1925,7 @@ const UTS_COMP_EZ = [
       const fn = Math.sqrt(k / m) / (2 * Math.PI);
       return {
         text: `Hitung <b>frekuensi natural f<sub>n</sub></b> dalam <b>Hz</b> untuk sistem dengan <b>m = ${m.toFixed(2)} kg</b> dan <b>k = ${k} N/m</b>. Rumus: f<sub>n</sub> = (1/2π)·√(k/m).`,
-        hint: `import numpy as np\nm = ${m.toFixed(2)}\nk = ${k}\nfn = (1/(2*np.pi)) * np.sqrt(k/m)\nprint(fn)`,
+        hint: `import numpy as np\n# Diketahui: m = ${m.toFixed(2)}, k = ${k}\n# TODO: hitung fn dengan rumus fn = (1/2π)·√(k/m)\n# TODO: print(fn)`,
         expected: fn,
         tolerance: 0.01
       };
@@ -1940,7 +1941,7 @@ const UTS_COMP_EZ = [
       const zeta = c / (2 * Math.sqrt(m * k));
       return {
         text: `Hitung <b>rasio redaman ζ</b> (dimensionless) untuk sistem dengan <b>m = ${m.toFixed(2)} kg</b>, <b>c = ${c.toFixed(2)} Ns/m</b>, <b>k = ${k} N/m</b>. Rumus: ζ = c/(2√(km)).`,
-        hint: `import numpy as np\nm = ${m.toFixed(2)}\nc = ${c.toFixed(2)}\nk = ${k}\nzeta = c / (2 * np.sqrt(m*k))\nprint(zeta)`,
+        hint: `import numpy as np\n# Diketahui: m = ${m.toFixed(2)}, c = ${c.toFixed(2)}, k = ${k}\n# TODO: hitung zeta dengan rumus ζ = c/(2√(km))\n# TODO: print(zeta)`,
         expected: zeta,
         tolerance: 0.005
       };
@@ -1958,7 +1959,7 @@ const UTS_COMP_EZ = [
       const wd = wn * Math.sqrt(1 - zeta * zeta);
       return {
         text: `Hitung <b>frekuensi natural teredam ω<sub>d</sub></b> (rad/s) untuk sistem underdamped dengan <b>m = ${m.toFixed(2)} kg</b>, <b>c = ${c.toFixed(2)} Ns/m</b>, <b>k = ${k} N/m</b>. Rumus: ω<sub>d</sub> = ωₙ·√(1−ζ²).`,
-        hint: `import numpy as np\nm = ${m.toFixed(2)}\nc = ${c.toFixed(2)}\nk = ${k}\nwn = np.sqrt(k/m)\nzeta = c / (2*np.sqrt(m*k))\nwd = wn * np.sqrt(1 - zeta**2)\nprint(wd)`,
+        hint: `import numpy as np\n# Diketahui: m = ${m.toFixed(2)}, c = ${c.toFixed(2)}, k = ${k}\n# Langkah: (1) hitung wn = √(k/m), (2) hitung zeta = c/(2√(km)), (3) hitung wd = wn·√(1−ζ²)\n# TODO: implement dan print(wd)`,
         expected: wd,
         tolerance: 0.02
       };
@@ -1973,7 +1974,7 @@ const UTS_COMP_EZ = [
       const delta = Math.log(x1 / x2);
       return {
         text: `Pada eksperimen getaran bebas teredam, dua puncak amplitudo berurutan diukur: <b>x₁ = ${x1.toFixed(4)} m</b> dan <b>x₂ = ${x2.toFixed(4)} m</b>. Hitung <b>logarithmic decrement δ</b>. Rumus: δ = ln(x₁/x₂).`,
-        hint: `import numpy as np\nx1 = ${x1.toFixed(4)}\nx2 = ${x2.toFixed(4)}\ndelta = np.log(x1/x2)\nprint(delta)`,
+        hint: `import numpy as np\n# Diketahui: x1 = ${x1.toFixed(4)}, x2 = ${x2.toFixed(4)}\n# TODO: hitung delta = ln(x1/x2) — gunakan np.log()\n# TODO: print(delta)`,
         expected: delta,
         tolerance: 0.005
       };
@@ -1988,7 +1989,7 @@ const UTS_COMP_EZ = [
       const DMF = 1 / Math.sqrt(Math.pow(1 - r * r, 2) + Math.pow(2 * zeta * r, 2));
       return {
         text: `Hitung <b>Dynamic Magnification Factor (DMF)</b> untuk sistem getaran paksa dengan frequency ratio <b>r = ${r.toFixed(3)}</b> dan damping ratio <b>ζ = ${zeta.toFixed(3)}</b>. Rumus: DMF = 1/√((1−r²)² + (2ζr)²).`,
-        hint: `import numpy as np\nr = ${r.toFixed(3)}\nzeta = ${zeta.toFixed(3)}\nDMF = 1 / np.sqrt((1 - r**2)**2 + (2*zeta*r)**2)\nprint(DMF)`,
+        hint: `import numpy as np\n# Diketahui: r = ${r.toFixed(3)}, zeta = ${zeta.toFixed(3)}\n# TODO: hitung DMF dengan rumus DMF = 1/√((1−r²)² + (2ζr)²)\n# TODO: print(DMF)`,
         expected: DMF,
         tolerance: 0.01
       };
@@ -2008,7 +2009,7 @@ const UTS_COMP_EZ = [
       const X_mm = X * 1000;            // dalam mm
       return {
         text: `Sistem getaran paksa dengan <b>m = ${m.toFixed(2)} kg</b>, <b>c = ${c.toFixed(2)} Ns/m</b>, <b>k = ${k} N/m</b>, dieksitasi gaya harmonik <b>F(t) = ${F0}·sin(${omega.toFixed(2)}·t) N</b>. Hitung <b>amplitudo steady-state X</b> dalam <b>mm</b>. Rumus: X = F₀/√((k−mω²)² + (cω)²).`,
-        hint: `import numpy as np\nm, c, k = ${m.toFixed(2)}, ${c.toFixed(2)}, ${k}\nF0 = ${F0}\nomega = ${omega.toFixed(2)}\nX = F0 / np.sqrt((k - m*omega**2)**2 + (c*omega)**2)\nX_mm = X * 1000\nprint(X_mm)`,
+        hint: `import numpy as np\n# Diketahui: m = ${m.toFixed(2)}, c = ${c.toFixed(2)}, k = ${k}, F0 = ${F0}, omega = ${omega.toFixed(2)}\n# TODO: hitung X = F0/√((k−mω²)² + (cω)²) dalam METER\n# TODO: konversi ke mm: X_mm = X*1000, lalu print(X_mm)`,
         expected: X_mm,
         tolerance: 0.05
       };
@@ -2025,7 +2026,7 @@ const UTS_COMP_EZ = [
       const Q = 1 / (2 * zeta);
       return {
         text: `Hitung <b>Quality factor Q</b> untuk sistem resonansi dengan <b>m = ${m.toFixed(2)} kg</b>, <b>c = ${c.toFixed(2)} Ns/m</b>, <b>k = ${k} N/m</b>. Rumus: Q = 1/(2ζ), dengan ζ = c/(2√(km)).`,
-        hint: `import numpy as np\nm, c, k = ${m.toFixed(2)}, ${c.toFixed(2)}, ${k}\nzeta = c / (2*np.sqrt(m*k))\nQ = 1 / (2*zeta)\nprint(Q)`,
+        hint: `import numpy as np\n# Diketahui: m = ${m.toFixed(2)}, c = ${c.toFixed(2)}, k = ${k}\n# Langkah: (1) hitung zeta = c/(2√(km)), (2) hitung Q = 1/(2ζ)\n# TODO: implement dan print(Q)`,
         expected: Q,
         tolerance: 0.05
       };
@@ -2040,7 +2041,7 @@ const UTS_COMP_EZ = [
       const TR = Math.sqrt((1 + Math.pow(2*zeta*r, 2)) / (Math.pow(1-r*r, 2) + Math.pow(2*zeta*r, 2)));
       return {
         text: `Hitung <b>transmisibilitas T<sub>R</sub></b> untuk sistem isolasi dengan frequency ratio <b>r = ${r.toFixed(3)}</b> dan damping ratio <b>ζ = ${zeta.toFixed(3)}</b>. Rumus: T<sub>R</sub> = √((1+(2ζr)²) / ((1−r²)² + (2ζr)²)).`,
-        hint: `import numpy as np\nr = ${r.toFixed(3)}\nzeta = ${zeta.toFixed(3)}\nnum = 1 + (2*zeta*r)**2\nden = (1 - r**2)**2 + (2*zeta*r)**2\nTR = np.sqrt(num/den)\nprint(TR)`,
+        hint: `import numpy as np\n# Diketahui: r = ${r.toFixed(3)}, zeta = ${zeta.toFixed(3)}\n# TODO: hitung TR dengan rumus T_R = √((1+(2ζr)²) / ((1−r²)² + (2ζr)²))\n# TODO: print(TR)`,
         expected: TR,
         tolerance: 0.005
       };
@@ -2225,6 +2226,7 @@ window.UTS_MC = UTS_MC;
 window.UTS_COMP_EZ = UTS_COMP_EZ;
 window.UTS_COMP_HARD = UTS_COMP_HARD;
 window.shuffleSeed = shuffleSeed;
+
 
 
 // Storage untuk answer key per soal (di-populate saat render dengan N spesifik)
@@ -2577,10 +2579,10 @@ function _buildCompCard(q, num, data, sectionLetter, isHard) {
       <div class="comp-pts">${points} poin${partialNote}</div>
     </div>
     <div class="comp-hint"><strong style="color:var(--violet)">💡 Hint / Kerangka Kode:</strong><br><pre style="margin-top:6px;color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:12px;white-space:pre-wrap;line-height:1.5">${data.hint}</pre></div>
-    <textarea class="comp-input" id="code-${q.id}" placeholder="Tulis kode Python di sini... Pastikan ada print() untuk output numerik."></textarea>
+    <textarea class="code-textarea" id="code-${q.id}" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi..."></textarea>
     <button class="comp-submit" id="sub-${q.id}" onclick="runAndCheck('${q.id}', ${data.expected}, ${data.tolerance}${isHard ? ", 'hard'" : ""})">▶ Run &amp; Validasi</button>
     <div class="feedback" id="fb-${q.id}" style="margin-top:12px;padding:10px 14px;border-radius:8px;font-size:13px;display:none"></div>
-    <pre class="comp-output" id="out-${q.id}" style="display:none;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-top:10px;color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:12px;max-height:200px;overflow-y:auto"></pre>
+    <div class="stdout-box" id="stdout-${q.id}"></div>
   `;
   return card;
 }
@@ -5091,19 +5093,40 @@ function _handleScheduleReady() {
 }
 
 function updateScheduleDisplay(){
+  // CRITICAL: Countdown HARUS jalan terlepas dari ada-tidaknya scheduleInfo (page-hasil).
+  // Sebelumnya: jika scheduleInfo tidak ditemukan, return early → countdown tidak pernah jalan.
+  // Sekarang: countdown jalan dulu, baru update info panel jika ada.
+  console.log('[Schedule] updateScheduleDisplay called, currentSchedule=', currentSchedule);
+
+  // ── BAGIAN 1: Countdown (selalu jalan jika schedule ada) ──
+  if (currentSchedule && currentSchedule.start && currentSchedule.end) {
+    const e = new Date(currentSchedule.end);
+    const cdD = document.getElementById('cdDeadline');
+    if (cdD) cdD.innerHTML = 'Deadline: <strong style="color:var(--violet)">' + e.toLocaleString('id-ID') + '</strong>';
+    startCountdown(currentSchedule.end);   // mode auto-detect dalam fungsi
+  } else {
+    // No schedule yet — reset countdown display
+    ['d','h','m','s'].forEach(k => {
+      const el = document.getElementById('cd-'+k);
+      if (el) el.textContent = '--';
+    });
+    const cdD = document.getElementById('cdDeadline');
+    if (cdD) cdD.innerHTML = 'Deadline: <strong style="color:var(--muted)">Menunggu jadwal...</strong>';
+  }
+
+  // ── BAGIAN 2: Schedule info panel (page-hasil) — opsional, hanya jika element ada ──
   const info = document.getElementById('scheduleInfo'), range = document.getElementById('scheduleRange');
-  if(!info || !range) return;
-  if(currentSchedule && currentSchedule.start && currentSchedule.end){
+  if (info && range && currentSchedule && currentSchedule.start && currentSchedule.end) {
     info.style.display='flex';
     const s = new Date(currentSchedule.start), e = new Date(currentSchedule.end);
     // UTS: durasi dalam MENIT
     const dur = currentSchedule.duration || Math.round((e-s)/(60*1000));
     const fmt = (d) => d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
     range.textContent = fmt(s) + '  \u2014  ' + fmt(e) + '  ('+dur+' menit)';
-    const cdD = document.getElementById('cdDeadline');
-    if(cdD) cdD.innerHTML = 'Deadline: <strong style="color:var(--violet)">' + e.toLocaleString('id-ID') + '</strong>';
-    startCountdown(currentSchedule.end);
-  } else { info.style.display='none'; }
+  } else if (info) {
+    info.style.display='none';
+  }
+
   if (typeof _updateLateBanner === 'function') _updateLateBanner();
   // UTS: re-evaluate access gate setiap kali schedule berubah
   if (typeof _updateUTSAccessGate === 'function') _updateUTSAccessGate();
