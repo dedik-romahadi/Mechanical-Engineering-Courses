@@ -690,13 +690,13 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="visitor-modal" style="max-width:480px;width:95%;">
     <div style="font-size:2.4rem;margin-bottom:12px;">🕐</div>
     <h2 style="font-size:1.3rem;">Atur Jadwal Perkuliahan</h2>
-    <p class="sub">Masukkan password, durasi (hari), dan batas waktu akhir.</p>
+    <p class="sub">Masukkan password, durasi (menit), dan batas waktu akhir.</p>
     <p class="v-error" id="scheduleError"></p>
     <input type="password" class="v-input" id="schedulePw" placeholder="Password" autocomplete="off">
     <div style="display:flex;gap:10px;margin-bottom:14px;">
       <div style="flex:1;text-align:left;">
-        <label style="font-size:.75rem;color:#94a3b8;font-weight:600;display:block;margin-bottom:4px;">Durasi (hari)</label>
-        <input type="number" class="v-input" id="scheduleDuration" min="1" value="7" placeholder="7" style="margin-bottom:0;">
+        <label style="font-size:.75rem;color:#94a3b8;font-weight:600;display:block;margin-bottom:4px;">Durasi (menit)</label>
+        <input type="number" class="v-input" id="scheduleDuration" min="1" value="90" placeholder="90" style="margin-bottom:0;">
       </div>
       <div style="flex:1;text-align:left;">
         <label style="font-size:.75rem;color:#94a3b8;font-weight:600;display:block;margin-bottom:4px;">Batas Akhir (Due Date)</label>
@@ -1027,18 +1027,18 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <span class="ff" style="left:85%;font-size:.8rem;color:var(--cyan);--dur:16s;--del:11s">r = ω/ωₙ</span>
   </div>
   <div class="hero-content">
-    <div class="hero-eyebrow"><div class="pulse-dot"></div>Pertemuan 1 &nbsp;·&nbsp; Hasil &amp; Kehadiran</div>
-    <h1 class="hero-title"><span class="hl-cyan">Performa</span><br><em>Mahasiswa</em></h1>
-    <p class="hero-sub">Rekap kehadiran, poin, dan aktivitas seluruh mahasiswa yang telah mengakses Pertemuan 1.</p>
+    <div class="hero-eyebrow"><div class="pulse-dot"></div>UTS &nbsp;·&nbsp; Hasil &amp; Nilai</div>
+    <h1 class="hero-title"><span class="hl-cyan">Nilai</span><br><em>UTS Anda</em></h1>
+    <p class="hero-sub">Mahasiswa hanya dapat melihat <strong>nilai diri sendiri</strong>. Dosen melihat semua data mahasiswa untuk monitoring &amp; evaluasi UTS Getaran Mekanik.</p>
   </div>
 </div>
 
 <div style="max-width:960px;margin:0 auto;padding:40px 24px 80px;">
 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px;">
     <div>
-      <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.05);border:1px solid #2a3548;color:#06d6a0;padding:5px 14px;border-radius:999px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;">👥 Aktivitas</span>
-      <h2 style="font-size:1.6rem;font-weight:800;color:#fff;margin-top:12px;">Performa Mahasiswa</h2>
-      <p style="color:#94a3b8;font-size:.85rem;margin-top:6px;">Mahasiswa yang telah mengakses halaman dan mengerjakan soal latihan.</p>
+      <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.05);border:1px solid #2a3548;color:#06d6a0;padding:5px 14px;border-radius:999px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;">📊 Hasil UTS</span>
+      <h2 style="font-size:1.6rem;font-weight:800;color:#fff;margin-top:12px;">Nilai &amp; Status Anda</h2>
+      <p style="color:#94a3b8;font-size:.85rem;margin-top:6px;">🔐 Privasi UTS: hanya nilai diri sendiri yang ditampilkan kepada mahasiswa.</p>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;"></div>
   </div>
@@ -1099,7 +1099,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 </div>
 
 <footer>
-  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Hasil Pertemuan 1 · Getaran Mekanik</p>
+  <p>© 2026 · <a href="#">Dedik Romahadi</a> · UTS Getaran Mekanik · S1 Teknik Mesin UMB</p>
 </footer>
 </div><!-- end page-hasil -->
 
@@ -1299,15 +1299,52 @@ function renderGroups() {
 })();
 
 // ── COUNTDOWN ──
+// UTS countdown supports 3 modes:
+//   - 'to-start'    : now < schedule.start → countdown sampai mulai
+//   - 'in-progress' : start <= now <= end  → countdown sisa waktu UTS
+//   - 'expired'     : now > end            → "UTS berakhir"
 let scheduleData = null;
-function startCountdown(endISO) {
-  const end = new Date(endISO).getTime();
+let _countdownTickId = null;     // id timer untuk cancel countdown lama saat re-init
+
+function startCountdown(targetISO, mode) {
+  // Cancel previous tick if any
+  if (_countdownTickId) { clearTimeout(_countdownTickId); _countdownTickId = null; }
+  // Auto-detect mode jika tidak diberikan
+  if (!mode && currentSchedule && currentSchedule.start && currentSchedule.end) {
+    const now = Date.now();
+    const s = new Date(currentSchedule.start).getTime();
+    const e = new Date(currentSchedule.end).getTime();
+    if (now < s) { mode = 'to-start'; targetISO = currentSchedule.start; }
+    else if (now <= e) { mode = 'in-progress'; targetISO = currentSchedule.end; }
+    else { mode = 'expired'; }
+  }
+
+  // Update label countdown sesuai mode
+  const labelEl = document.querySelector('.countdown-label');
+  if (labelEl) {
+    if (mode === 'to-start')        labelEl.textContent = '⏳ Hitung Mundur — UTS Dimulai Dalam';
+    else if (mode === 'in-progress')labelEl.textContent = '⏰ Hitung Mundur — Sisa Waktu UTS';
+    else if (mode === 'expired')    labelEl.textContent = '🔒 UTS Telah Berakhir';
+    else                            labelEl.textContent = '⏰ Hitung Mundur — Deadline UTS';
+  }
+
+  if (mode === 'expired' || !targetISO) {
+    ['d','h','m','s'].forEach(k => {
+      const el = document.getElementById('cd-'+k);
+      if (el) el.innerHTML = '<span class="cd-expired">0</span>';
+      const r = document.getElementById('ring-'+k);
+      if (r) r.classList.add('expired');
+    });
+    return;
+  }
+
+  const target = new Date(targetISO).getTime();
   const CIRC = 326.73; // 2*pi*52
-  // max for fill — d is dynamic (capped at 30), others fixed
   const maxOf = { d: 30, h: 24, m: 60, s: 60 };
   function setRing(key, val, max){
     const ring = document.getElementById('ring-'+key);
     if(!ring) return;
+    ring.classList.remove('expired');
     const prog = ring.querySelector('.progress');
     if(!prog) return;
     const frac = Math.max(0, Math.min(1, val / max));
@@ -1315,7 +1352,7 @@ function startCountdown(endISO) {
   }
   function tick() {
     const now = Date.now();
-    const diff = end - now;
+    const diff = target - now;
     if (diff <= 0) {
       ['d','h','m','s'].forEach(k => {
         const el = document.getElementById('cd-'+k);
@@ -1324,8 +1361,11 @@ function startCountdown(endISO) {
         if (r) r.classList.add('expired');
         setRing(k, 0, 1);
       });
-      const note = document.getElementById('cdDeadline');
-      if (note) note.innerHTML = '<span class="cd-expired">⏰ Deadline telah berakhir</span>';
+      // UTS: auto re-evaluate gate when countdown reaches zero
+      // (dari 'to-start' bisa berubah ke 'in-progress' otomatis)
+      if (typeof _updateUTSAccessGate === 'function') {
+        setTimeout(_updateUTSAccessGate, 100);
+      }
       return;
     }
     const d = Math.floor(diff/86400000), h = Math.floor((diff%86400000)/3600000),
@@ -1335,7 +1375,7 @@ function startCountdown(endISO) {
       if (el) el.textContent = String(val).padStart(2,'0');
       setRing(key, val, maxOf[key]);
     });
-    setTimeout(tick, 1000);
+    _countdownTickId = setTimeout(tick, 1000);
   }
   tick();
 }
@@ -2207,51 +2247,76 @@ window._firebaseStateLoaded = () => _firebaseStateLoaded;
 function selectMC(qId, opt, correct) {
   if (!_firebaseStateLoaded) {
     const fb = document.getElementById('fb-' + qId);
-    if (fb) { fb.className = 'feedback warn'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
+    if (fb) { fb.className = 'feedback warn'; fb.style.display='block'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
     return;
   }
-  if (mcAnswered[qId]) return;
+  // UTS: cek apakah jadwal sudah dimulai
+  if (typeof _utsScheduleState === 'function' && _utsScheduleState() === 'before-start') {
+    const fb = document.getElementById('fb-' + qId);
+    if (fb) { fb.className = 'feedback warn'; fb.style.display='block'; fb.textContent = '🔒 Akses UTS belum dibuka. Silakan tunggu waktu mulai.'; }
+    return;
+  }
+  // ONE-SHOT: cek state lokal DAN cache Firebase
+  if (mcAnswered[qId] || _answeredQ.has(qId) || _answeredQ.has(qId + '_mc_used')) {
+    const fb = document.getElementById('fb-' + qId);
+    if (fb) { fb.className = 'feedback wrong'; fb.style.display='block'; fb.textContent = '🔒 Soal sudah dijawab — TIDAK ADA KESEMPATAN ULANG. Soal terkunci permanen.'; }
+    return;
+  }
   const rg = document.getElementById('rg-' + qId);
   rg.querySelectorAll('.radio-option').forEach(o => o.classList.remove('selected'));
   opt.classList.add('selected');
   opt._correct = correct;
+  // Capture option index untuk Firebase storage
+  const optList = Array.from(rg.querySelectorAll('.radio-option'));
+  const idx = optList.indexOf(opt);
+  opt._idx = idx;
   document.getElementById('sub-' + qId).disabled = false;
 }
 function checkMC(qId) {
   if (!_firebaseStateLoaded) {
     const fb = document.getElementById('fb-' + qId);
-    if (fb) { fb.className = 'feedback warn'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
+    if (fb) { fb.className = 'feedback warn'; fb.style.display='block'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
     return;
   }
-  if (mcAnswered[qId]) {
-    // Already answered (this session or restored from Firebase) — show feedback
+  // UTS: cek schedule
+  if (typeof _utsScheduleState === 'function' && _utsScheduleState() === 'before-start') {
     const fb = document.getElementById('fb-' + qId);
-    if (fb && !fb.classList.contains('correct')) {
-      fb.className = 'feedback correct';
-      fb.textContent = '✅ Sudah dijawab sebelumnya — poin telah tercatat.';
+    if (fb) { fb.className = 'feedback warn'; fb.style.display='block'; fb.textContent = '🔒 Akses UTS belum dibuka.'; }
+    return;
+  }
+  // ONE-SHOT: cek state lokal DAN cache Firebase
+  if (mcAnswered[qId] || _answeredQ.has(qId) || _answeredQ.has(qId + '_mc_used')) {
+    const fb = document.getElementById('fb-' + qId);
+    if (fb && fb.textContent.trim() === '') {
+      fb.className = 'feedback wrong';
+      fb.style.display='block';
+      fb.textContent = '🔒 Sudah dijawab sebelumnya — TIDAK ADA KESEMPATAN ULANG.';
     }
     return;
   }
   const rg = document.getElementById('rg-' + qId);
   const sel = rg.querySelector('.radio-option.selected');
   const fb = document.getElementById('fb-' + qId);
-  if (!sel) { fb.className = 'feedback warn'; fb.textContent = '⚠ Pilih salah satu opsi terlebih dahulu.'; return; }
+  if (!sel) { fb.className = 'feedback warn'; fb.style.display='block'; fb.textContent = '⚠ Pilih salah satu opsi terlebih dahulu.'; return; }
+  // Mark answered IMMEDIATELY untuk prevent double-click race
   mcAnswered[qId] = true;
-  document.getElementById('sub-' + qId).disabled = true;
+  const sub = document.getElementById('sub-' + qId);
+  if (sub) { sub.disabled = true; }
   rg.querySelectorAll('.radio-option').forEach(o => o.style.pointerEvents = 'none');
+  const selectedIdx = (typeof sel._idx === 'number') ? sel._idx : Array.from(rg.querySelectorAll('.radio-option')).indexOf(sel);
+  fb.style.display='block';
   if (sel._correct) {
-    // UTS murni: confirm answered tapi TIDAK highlight correct di hijau
     fb.className = 'feedback correct';
-    fb.textContent = '✅ Jawaban diterima. +1 poin tercatat.';
+    fb.textContent = '✅ Jawaban diterima. +1 poin tercatat. Soal TERKUNCI PERMANEN — tidak ada kesempatan ulang.';
+    if (sub) { sub.textContent = '✓ Terjawab'; sub.style.background='rgba(0,224,158,.1)'; sub.style.borderColor='rgba(0,224,158,.4)'; sub.style.color='var(--green)'; }
     mcScores[qId] = 1;
-    if (typeof window._awardPoint === 'function') window._awardPoint(qId);
+    if (typeof window._awardPoint === 'function') window._awardPoint(qId, selectedIdx);
   } else {
-    // UTS murni: kunci tanpa reveal jawaban benar, tanpa hint
     fb.className = 'feedback wrong';
-    fb.textContent = '🔒 Jawaban telah dikunci. (UTS murni — jawaban benar tidak ditampilkan)';
+    fb.textContent = '🔒 Jawaban telah dikunci. TIDAK ADA KESEMPATAN ULANG. (UTS murni — jawaban benar tidak ditampilkan)';
+    if (sub) { sub.textContent = '🔒 Terkunci'; sub.style.background='rgba(239,68,68,.1)'; sub.style.borderColor='rgba(239,68,68,.4)'; sub.style.color='var(--pink)'; }
     mcScores[qId] = 0;
-    // Record failed attempt to Firebase (same anti-manipulation as comp)
-    if (typeof window._recordMcAttempt === 'function') window._recordMcAttempt(qId);
+    if (typeof window._recordMcAttempt === 'function') window._recordMcAttempt(qId, selectedIdx);
   }
   updateScore();
   checkExportReady();
@@ -2263,10 +2328,21 @@ function checkMC(qId) {
 function selectTF(qId, opt, isTrue) {
   if (!_firebaseStateLoaded) {
     const fb = document.getElementById('fb-' + qId);
-    if (fb) { fb.className = 'feedback warn'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
+    if (fb) { fb.className = 'feedback warn'; fb.style.display='block'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
     return;
   }
-  if (tfAnswered[qId]) return;
+  // UTS: cek apakah jadwal sudah dimulai
+  if (typeof _utsScheduleState === 'function' && _utsScheduleState() === 'before-start') {
+    const fb = document.getElementById('fb-' + qId);
+    if (fb) { fb.className = 'feedback warn'; fb.style.display='block'; fb.textContent = '🔒 Akses UTS belum dibuka. Silakan tunggu waktu mulai.'; }
+    return;
+  }
+  // ONE-SHOT: cek state lokal DAN cache Firebase
+  if (tfAnswered[qId] || _answeredQ.has(qId) || _answeredQ.has(qId + '_tf_used')) {
+    const fb = document.getElementById('fb-' + qId);
+    if (fb) { fb.className = 'feedback wrong'; fb.style.display='block'; fb.textContent = '🔒 Soal sudah dijawab — TIDAK ADA KESEMPATAN ULANG. Soal terkunci permanen.'; }
+    return;
+  }
   const opts = document.getElementById('tfopts-' + qId);
   if (!opts) return;
   opts.querySelectorAll('.tf-option').forEach(o => o.classList.remove('selected'));
@@ -2278,46 +2354,58 @@ function selectTF(qId, opt, isTrue) {
 function checkTF(qId) {
   if (!_firebaseStateLoaded) {
     const fb = document.getElementById('fb-' + qId);
-    if (fb) { fb.className = 'feedback warn'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
+    if (fb) { fb.className = 'feedback warn'; fb.style.display='block'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
     return;
   }
-  if (tfAnswered[qId]) {
+  // UTS: cek schedule
+  if (typeof _utsScheduleState === 'function' && _utsScheduleState() === 'before-start') {
     const fb = document.getElementById('fb-' + qId);
-    if (fb && !fb.classList.contains('correct')) {
-      fb.className = 'feedback correct';
-      fb.textContent = '✅ Sudah dijawab sebelumnya — poin telah tercatat.';
+    if (fb) { fb.className = 'feedback warn'; fb.style.display='block'; fb.textContent = '🔒 Akses UTS belum dibuka.'; }
+    return;
+  }
+  // ONE-SHOT: cek state lokal DAN cache Firebase
+  if (tfAnswered[qId] || _answeredQ.has(qId) || _answeredQ.has(qId + '_tf_used')) {
+    const fb = document.getElementById('fb-' + qId);
+    if (fb && fb.textContent.trim() === '') {
+      fb.className = 'feedback wrong';
+      fb.style.display='block';
+      fb.textContent = '🔒 Sudah dijawab sebelumnya — TIDAK ADA KESEMPATAN ULANG.';
     }
     return;
   }
   const opts = document.getElementById('tfopts-' + qId);
   const sel = opts.querySelector('.tf-option.selected');
   const fb = document.getElementById('fb-' + qId);
-  if (!sel) { fb.className = 'feedback warn'; fb.textContent = '⚠ Pilih BENAR atau SALAH terlebih dahulu.'; return; }
+  if (!sel) { fb.className = 'feedback warn'; fb.style.display='block'; fb.textContent = '⚠ Pilih BENAR atau SALAH terlebih dahulu.'; return; }
 
   // Get correct answer from answer key
   const correctAnswer = window._utsAnswerKeys.tf[qId];
   if (typeof correctAnswer !== 'boolean') {
-    fb.className = 'feedback warn';
+    fb.className = 'feedback warn'; fb.style.display='block';
     fb.textContent = '⚠ Soal belum siap — silakan reload halaman.';
     return;
   }
 
+  // Mark answered IMMEDIATELY untuk prevent double-click race
   tfAnswered[qId] = true;
-  document.getElementById('sub-' + qId).disabled = true;
+  const sub = document.getElementById('sub-' + qId);
+  if (sub) sub.disabled = true;
   opts.querySelectorAll('.tf-option').forEach(o => o.style.pointerEvents = 'none');
 
-  if (sel._isTrue === correctAnswer) {
-    // UTS murni: terima jawaban tanpa highlight green
+  const userPick = sel._isTrue;   // boolean: jawaban user
+  fb.style.display='block';
+  if (userPick === correctAnswer) {
     fb.className = 'feedback correct';
-    fb.textContent = '✅ Jawaban diterima. +1 poin tercatat.';
+    fb.textContent = '✅ Jawaban diterima. +1 poin tercatat. Soal TERKUNCI PERMANEN — tidak ada kesempatan ulang.';
+    if (sub) { sub.textContent = '✓ Terjawab'; sub.style.background='rgba(0,224,158,.1)'; sub.style.borderColor='rgba(0,224,158,.4)'; sub.style.color='var(--green)'; }
     tfScores[qId] = 1;
-    if (typeof window._awardTfPoint === 'function') window._awardTfPoint(qId);
+    if (typeof window._awardTfPoint === 'function') window._awardTfPoint(qId, userPick);
   } else {
-    // UTS murni: kunci tanpa reveal
     fb.className = 'feedback wrong';
-    fb.textContent = '🔒 Jawaban telah dikunci. (UTS murni — jawaban benar tidak ditampilkan)';
+    fb.textContent = '🔒 Jawaban telah dikunci. TIDAK ADA KESEMPATAN ULANG. (UTS murni — jawaban benar tidak ditampilkan)';
+    if (sub) { sub.textContent = '🔒 Terkunci'; sub.style.background='rgba(239,68,68,.1)'; sub.style.borderColor='rgba(239,68,68,.4)'; sub.style.color='var(--pink)'; }
     tfScores[qId] = 0;
-    if (typeof window._recordTfAttempt === 'function') window._recordTfAttempt(qId);
+    if (typeof window._recordTfAttempt === 'function') window._recordTfAttempt(qId, userPick);
   }
   updateScore();
   checkExportReady();
@@ -2457,9 +2545,18 @@ function renderUTSQuestions() {
     document.querySelectorAll('.reveal:not(.visible)').forEach(el => revealObs.observe(el));
   }
 
-  // Re-apply Firebase state restoration jika sudah loaded
-  if (_firebaseStateLoaded && typeof window._restoreUTSStateFromFirebase === 'function') {
-    setTimeout(() => window._restoreUTSStateFromFirebase(), 100);
+  // UTS: Re-evaluate access gate setelah render (mungkin sebelum start time)
+  if (typeof _updateUTSAccessGate === 'function') {
+    setTimeout(_updateUTSAccessGate, 100);
+  }
+
+  // ── KRITIS: Re-apply Firebase state DARI CACHE jika sudah ter-load ──
+  // Skenario: jika _loadScoredQuestions selesai SEBELUM renderUTSQuestions
+  // (e.g., race condition, atau render ditrigger setelah restore selesai),
+  // visual restoration tidak akan apply karena DOM belum ada saat itu.
+  // Sekarang kita re-apply dari cache untuk memastikan visual consistent.
+  if (typeof window._reapplyUTSStateFromCache === 'function') {
+    setTimeout(() => window._reapplyUTSStateFromCache(), 150);
   }
 }
 
@@ -2814,22 +2911,41 @@ async function runAndCheck(qId, expectedAns, tol, difficulty) {
   // PEDOMAN §18.2 Layer 1 — race-condition guard
   if (!_firebaseStateLoaded) {
     const fb = document.getElementById('fb-' + qId);
-    if (fb) { fb.className = 'feedback warn'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
+    if (fb) { fb.className = 'feedback warn'; fb.style.display='block'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
+    return;
+  }
+  // UTS: cek apakah jadwal sudah dimulai
+  if (typeof _utsScheduleState === 'function' && _utsScheduleState() === 'before-start') {
+    const fb = document.getElementById('fb-' + qId);
+    if (fb) { fb.className = 'feedback warn'; fb.style.display='block'; fb.textContent = '🔒 Akses UTS belum dibuka. Silakan tunggu waktu mulai.'; }
     return;
   }
   const isHard = (difficulty === 'hard');
   const correctPoint = isHard ? SCORE_CONFIG.COMP_HARD_POINT : SCORE_CONFIG.COMP_EZ_POINT;   // 4 atau 2
   const partialOnFail = isHard ? 1 : 0;   // partial credit hanya untuk Hard
 
-  if (compAnswered[qId]) {
+  // ONE-SHOT: cek state lokal DAN cache Firebase
+  const compKey = qId + '_comp';
+  const compUsedKey = qId + '_comp_used';
+  const compPartialKey = qId + '_comp_partial';
+  const isAlreadyAnswered = compAnswered[qId]
+    || _answeredQ.has(compKey)
+    || _answeredQ.has(compUsedKey)
+    || _answeredQ.has(compPartialKey);
+
+  if (isAlreadyAnswered) {
     const fb = document.getElementById('fb-' + qId);
     if (fb) {
+      fb.style.display='block';
       if (compScores[qId] >= correctPoint) {
-        fb.className = 'feedback correct'; fb.textContent = '✅ Sudah dijawab benar — poin telah tercatat.';
+        fb.className = 'feedback correct';
+        fb.textContent = '✅ Sudah dijawab benar — poin telah tercatat. TIDAK ADA KESEMPATAN ULANG.';
       } else if (compScores[qId] > 0) {
-        fb.className = 'feedback warn'; fb.textContent = '△ Partial credit sudah tercatat (+' + compScores[qId] + ' poin) — tidak bisa retry.';
+        fb.className = 'feedback warn';
+        fb.textContent = '△ Partial credit sudah tercatat (+' + compScores[qId] + ' poin). TIDAK ADA KESEMPATAN ULANG.';
       } else {
-        fb.className = 'feedback wrong'; fb.textContent = '🔒 Soal ini sudah dikunci — tidak ada kesempatan ulang.';
+        fb.className = 'feedback wrong';
+        fb.textContent = '🔒 Sudah dijawab sebelumnya — soal TERKUNCI PERMANEN. TIDAK ADA KESEMPATAN ULANG.';
       }
     }
     return;
@@ -3039,6 +3155,10 @@ function exportTugasHtml() {
   function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function stripTags(s) { return (s||'').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim(); }
 
+  // Ambil selections dari Firebase cache untuk restore user picks
+  const fbCache = (typeof window._cachedFirebaseData === 'function') ? window._cachedFirebaseData() : null;
+  const fbSelections = (fbCache && fbCache.selections) || {};
+
   // ── Collect TF data ──
   const tfData = (window.UTS_TF || []).map((q, i) => {
     const data = q.parametric ? q.compute(N) : { text: q.text, answer: q.answer };
@@ -3047,10 +3167,14 @@ function exportTugasHtml() {
     const sel = opts?.querySelector('.tf-option.selected');
     let answered = '(Belum dijawab)';
     if (sel) {
+      // Selection masih ada di DOM (current session)
       answered = sel._isTrue ? 'BENAR (TRUE)' : 'SALAH (FALSE)';
+    } else if (typeof fbSelections[id] === 'boolean') {
+      // Restored dari Firebase selections
+      answered = fbSelections[id] ? 'BENAR (TRUE)' : 'SALAH (FALSE)';
     } else if (tfAnswered[id]) {
-      // Restored from Firebase, no DOM selection — derive from score
-      answered = tfScores[id] === 1 ? '(Dijawab benar — pilihan tidak tersimpan)' : '(Dijawab salah — pilihan tidak tersimpan)';
+      // Sudah dijawab tapi selection tidak tersimpan
+      answered = tfScores[id] === 1 ? '(Dijawab — benar)' : '(Dijawab — salah)';
     }
     return {
       no: i+1,
@@ -3071,8 +3195,13 @@ function exportTugasHtml() {
     let answered = '(Belum dijawab)';
     if (sel) {
       answered = stripTags(sel.textContent).slice(0, 80);
+    } else if (typeof fbSelections[id] === 'number') {
+      // Restored dari Firebase selections — show option dengan label A/B/C/D
+      const optIdx = fbSelections[id];
+      const optText = (data.options || [])[optIdx] || '';
+      answered = String.fromCharCode(65 + optIdx) + '. ' + stripTags(optText).slice(0, 70);
     } else if (mcAnswered[id]) {
-      answered = mcScores[id] === 1 ? '(Dijawab benar — pilihan tidak tersimpan)' : '(Dijawab salah — pilihan tidak tersimpan)';
+      answered = mcScores[id] === 1 ? '(Dijawab — benar)' : '(Dijawab — salah)';
     }
     return {
       no: i+1,
@@ -4684,6 +4813,7 @@ function saveIdentity(v){
 function _applyRoleVisibility() {
   const me = (function(){ try { return JSON.parse(localStorage.getItem(LOCAL_IDENTITY) || 'null'); } catch(e){ return null; } })();
   const isDosen = !!(me && me.role === 'dosen' && me.nama && me.nama.toLowerCase() === 'dedik romahadi');
+  const isStudent = !!(me && me.nim && me.role !== 'dosen');
 
   const resetBtn = document.getElementById('resetBtnHasil');
   if (resetBtn) resetBtn.style.display = isDosen ? 'flex' : 'none';
@@ -4693,6 +4823,19 @@ function _applyRoleVisibility() {
   if (dosenBanner) {
     const hasValidSchedule = !!(currentSchedule && currentSchedule.start && currentSchedule.end);
     dosenBanner.style.display = (isDosen && !hasValidSchedule) ? 'flex' : 'none';
+  }
+
+  // UTS PRIVACY: Sembunyikan visitor FAB (panel "Mahasiswa") untuk mahasiswa
+  // Hanya dosen yang dapat melihat panel daftar mahasiswa real-time.
+  const visitorFab = document.getElementById('visitorFab');
+  if (visitorFab) {
+    if (isStudent) {
+      visitorFab.style.display = 'none';
+      visitorFab.style.visibility = 'hidden';
+    } else if (isDosen) {
+      visitorFab.style.visibility = 'visible';
+      // display di-set oleh login flow (flex), tidak override di sini
+    }
   }
 }
 window._applyRoleVisibility = _applyRoleVisibility;
@@ -4893,12 +5036,37 @@ function _handleScheduleReady() {
   if (overlay && !overlay.classList.contains('hidden')) {
     const me = getIdentity();
     if (me && me.nama && me.role !== 'guest') {
+      // ── UTS: Cek schedule sebelum auto-login ──
+      // Jika now < start dan user adalah student, JANGAN auto-login.
+      // Tampilkan pesan di overlay agar user tau akses belum dibuka.
+      const _isDosen = me.nama.toLowerCase() === 'dedik romahadi';
+      if (!_isDosen && currentSchedule && currentSchedule.start) {
+        const _now = Date.now();
+        const _start = new Date(currentSchedule.start).getTime();
+        if (_now < _start) {
+          // Akses belum dibuka — tampilkan overlay dengan pesan + fill identity field
+          if (loadingEl) loadingEl.style.display = 'none';
+          const _vNama = document.getElementById('vNama');
+          const _vNim = document.getElementById('vNim');
+          const _vErr = document.getElementById('vError');
+          if (_vNama) _vNama.value = me.nama;
+          if (_vNim)  _vNim.value  = me.nim;
+          if (_vErr) {
+            const sd = new Date(currentSchedule.start);
+            _vErr.innerHTML = '🔒 <strong>Akses UTS belum dibuka.</strong><br>Jadwal mulai: <strong style="color:var(--cyan)">' +
+              sd.toLocaleString('id-ID', {weekday:'long',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}) +
+              '</strong>.<br>Silakan tunggu sampai waktu mulai untuk mengakses UTS.';
+            _vErr.style.display = 'block';
+          }
+          return;   // STOP auto-login
+        }
+      }
+
       overlay.classList.add('hidden');
       if (fab) fab.style.display = 'flex';
       if (loadingEl) loadingEl.style.display = 'none';
 
       // Bump visitCount untuk returning student (di luar kondisi hide)
-      const _isDosen = me.nama.toLowerCase() === 'dedik romahadi';
       if (!_isDosen && (!masterFetchDone || masterStudents.some(s=>s.nim===me.nim && s.nama.toUpperCase()===me.nama.toUpperCase()))) {
         const _key = sanitizeKey(`mhs_${me.nim}`);
         get(ref(db,`${DB_PATH}/${_key}`)).then(snap=>{
@@ -4928,14 +5096,17 @@ function updateScheduleDisplay(){
   if(currentSchedule && currentSchedule.start && currentSchedule.end){
     info.style.display='flex';
     const s = new Date(currentSchedule.start), e = new Date(currentSchedule.end);
-    const dur = currentSchedule.duration || Math.round((e-s)/(24*60*60*1000));
+    // UTS: durasi dalam MENIT
+    const dur = currentSchedule.duration || Math.round((e-s)/(60*1000));
     const fmt = (d) => d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-    range.textContent = fmt(s) + '  \u2014  ' + fmt(e) + '  ('+dur+' hari)';
+    range.textContent = fmt(s) + '  \u2014  ' + fmt(e) + '  ('+dur+' menit)';
     const cdD = document.getElementById('cdDeadline');
     if(cdD) cdD.innerHTML = 'Deadline: <strong style="color:var(--violet)">' + e.toLocaleString('id-ID') + '</strong>';
     startCountdown(currentSchedule.end);
   } else { info.style.display='none'; }
   if (typeof _updateLateBanner === 'function') _updateLateBanner();
+  // UTS: re-evaluate access gate setiap kali schedule berubah
+  if (typeof _updateUTSAccessGate === 'function') _updateUTSAccessGate();
 }
 
 function isLate(timestamp){
@@ -5109,6 +5280,116 @@ function renderVisitors(visitors){
   const visitMap={};
   for(const v of visitors){if(v.role==='dosen'||v.role==='guest')continue;if(!visitMap[v.nim])visitMap[v.nim]=v;}
   const visited=Object.values(visitMap);
+
+  // ═══════════════════════════════════════════════════════════
+  // UTS PRIVACY: MAHASISWA hanya lihat NILAI DIRI SENDIRI
+  // ═══════════════════════════════════════════════════════════
+  // Dosen: lihat semua data mahasiswa (default behavior)
+  // Mahasiswa: hide leaderboard + visitor panel + table; tampilkan kartu privat
+  const _me = (typeof getIdentity === 'function') ? getIdentity() : null;
+  const _isStudent = _me && _me.nim && _me.role !== 'dosen';
+
+  if (_isStudent) {
+    // === STUDENT VIEW: HANYA NILAI DIRI SENDIRI ===
+    const myNim = _me.nim;
+    const myData = visitMap[myNim] || null;
+
+    // Hide visitor FAB (panel "Mahasiswa")
+    const fab = document.getElementById('visitorFab');
+    if (fab) fab.style.display = 'none';
+
+    // Hide leaderboard panel + stats grid
+    const lb = document.getElementById('leaderboardPanel');
+    if (lb) lb.style.display = 'none';
+
+    // Replace tabel mahasiswa dengan single-card view "Nilai Saya"
+    const tableEl = document.getElementById('visitorTableBody');
+    const tableHeader = tableEl ? tableEl.previousElementSibling : null;
+    if (tableHeader && tableHeader.style && tableHeader.textContent.toUpperCase().includes('STATUS')) {
+      tableHeader.style.display = 'none';
+    }
+    if (tableEl) {
+      if (myData) {
+        const pts  = myData.points || 0;
+        const nilai = pointsToScore(pts);
+        const vc   = myData.visitCount || 1;
+        const dt   = new Date(myData.timestamp);
+        const lastV = myData.lastVisit ? new Date(myData.lastVisit) : dt;
+        const tsStr = dt.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+        const lastVStr = lastV.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+', '+lastV.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+
+        // Status logic (sama seperti view dosen, tapi hanya untuk diri sendiri)
+        const schedExpired = currentSchedule && currentSchedule.end && new Date().getTime() > new Date(currentSchedule.end).getTime();
+        const hasPoints = pts > 0;
+        const late  = hasPoints && isLate(myData.timestamp);
+        const bolos = !hasPoints && schedExpired;
+        let statusBadge, statusColor, statusBg;
+        if (bolos)        { statusBadge = '❌ Bolos'; statusColor = '#ef4444'; statusBg = 'rgba(239,68,68,.12)'; }
+        else if (!hasPoints) { statusBadge = '⏳ Belum Ada Poin'; statusColor = '#94a3b8'; statusBg = 'rgba(100,116,139,.12)'; }
+        else if (late)    { statusBadge = '⏰ Terlambat'; statusColor = '#fb7185'; statusBg = 'rgba(251,113,133,.12)'; }
+        else              { statusBadge = '✅ Tepat Waktu'; statusColor = '#00e09e'; statusBg = 'rgba(0,224,158,.12)'; }
+
+        const ini = (myData.nama||_me.nama||'').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+
+        tableEl.innerHTML = `
+          <div style="padding:32px 28px;display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;">
+            <div style="width:96px;height:96px;border-radius:24px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:800;color:#fff;box-shadow:0 8px 24px rgba(139,92,246,.3)">${escH(ini)}</div>
+            <div>
+              <div style="font-size:.72rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.12em;font-weight:700;margin-bottom:4px">Nilai Anda</div>
+              <h3 style="font-size:1.4rem;font-weight:800;color:#fff;margin-bottom:4px">${escH(myData.nama || _me.nama)}</h3>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:.85rem;color:#64748b;margin-bottom:14px">NIM: ${escH(myData.nim || _me.nim)}</div>
+              <div style="display:inline-block;padding:6px 14px;border-radius:10px;background:${statusBg};color:${statusColor};font-size:.78rem;font-weight:700;border:1px solid ${statusColor}40">${statusBadge}</div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:0 28px 28px;">
+            <div style="background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.25);border-radius:14px;padding:18px;text-align:center">
+              <div style="font-family:'JetBrains Mono',monospace;font-size:2.4rem;font-weight:800;color:#a855f7;line-height:1">${nilai}</div>
+              <div style="font-size:.66rem;font-weight:700;color:#a855f7;text-transform:uppercase;letter-spacing:.12em;margin-top:8px">Nilai (0–100)</div>
+              <div style="font-size:.7rem;color:#94a3b8;margin-top:4px">${pts} / 70 poin</div>
+            </div>
+            <div style="background:rgba(0,224,158,.08);border:1px solid rgba(0,224,158,.25);border-radius:14px;padding:18px;text-align:center">
+              <div style="font-family:'JetBrains Mono',monospace;font-size:2.4rem;font-weight:800;color:#00e09e;line-height:1">${pts}</div>
+              <div style="font-size:.66rem;font-weight:700;color:#00e09e;text-transform:uppercase;letter-spacing:.12em;margin-top:8px">Total Poin</div>
+              <div style="font-size:.7rem;color:#94a3b8;margin-top:4px">dari maks 70</div>
+            </div>
+            <div style="background:rgba(14,165,233,.08);border:1px solid rgba(14,165,233,.25);border-radius:14px;padding:18px;text-align:center">
+              <div style="font-family:'JetBrains Mono',monospace;font-size:2.4rem;font-weight:800;color:#0ea5e9;line-height:1">${vc}</div>
+              <div style="font-size:.66rem;font-weight:700;color:#0ea5e9;text-transform:uppercase;letter-spacing:.12em;margin-top:8px">Kunjungan</div>
+              <div style="font-size:.7rem;color:#94a3b8;margin-top:4px">akses halaman</div>
+            </div>
+          </div>
+          <div style="background:rgba(255,255,255,.02);border-top:1px solid rgba(255,255,255,.05);padding:16px 28px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;font-size:.78rem;color:#94a3b8">
+              <div>
+                <span style="color:#64748b;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:2px">Waktu Akses Pertama</span>
+                <strong style="color:#cbd5e1">${tsStr}</strong>
+              </div>
+              <div>
+                <span style="color:#64748b;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:2px">Akses Terakhir</span>
+                <strong style="color:#cbd5e1">${lastVStr}</strong>
+              </div>
+            </div>
+          </div>
+          <div style="padding:14px 28px;background:rgba(168,85,247,.04);border-top:1px solid rgba(168,85,247,.12);font-size:.74rem;color:#94a3b8;text-align:center;line-height:1.6">
+            🔐 <strong style="color:#a855f7">Privasi UTS:</strong> Anda hanya dapat melihat nilai diri sendiri. Nilai mahasiswa lain hanya dapat dilihat oleh dosen.
+          </div>
+        `;
+      } else {
+        // Belum punya record di Firebase
+        tableEl.innerHTML = `
+          <div style="padding:48px 28px;text-align:center;color:#94a3b8">
+            <div style="font-size:48px;margin-bottom:16px">📊</div>
+            <h3 style="color:#fff;font-size:1.2rem;margin-bottom:8px">Belum Ada Data</h3>
+            <p style="font-size:.85rem;line-height:1.6">Silakan kerjakan soal di tab "📝 Soal Ujian" terlebih dahulu.<br>Nilai akan otomatis tercatat dan ditampilkan di sini.</p>
+          </div>
+        `;
+      }
+    }
+    // Skip rest of dosen-only rendering
+    return;
+  }
+
+  // === DOSEN VIEW: lihat semua (default behavior) ===
   // Per Pedoman §17.3: label "Terlambat" butuh points > 0 (bukan hanya timestamp di zona 24h).
   // Mahasiswa yang akses di zona 24h tapi 0 poin statusnya "Belum" (jadwal aktif) atau "Bolos" (selesai).
   const lateCount=visited.filter(v=>(v.points||0)>0 && isLate(v.timestamp)).length;
@@ -5519,7 +5800,7 @@ function showScheduleModal(){
   document.getElementById('scheduleOverlay').classList.remove('hidden'); document.getElementById('schedulePw').value='';
   document.getElementById('scheduleError').textContent=''; document.getElementById('scheduleError').style.display='none';
   if(currentSchedule){ document.getElementById('scheduleDuration').value=currentSchedule.duration||''; document.getElementById('scheduleDue').value=currentSchedule.due||''; }
-  else { document.getElementById('scheduleDuration').value='7';var dd=new Date();dd.setDate(dd.getDate()+7);dd.setHours(23,59,0,0);document.getElementById('scheduleDue').value=dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0')+'T23:59'; }
+  else { document.getElementById('scheduleDuration').value='90';var dd=new Date();dd.setHours(dd.getHours()+2);dd.setMinutes(0,0,0);document.getElementById('scheduleDue').value=dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0')+'T'+String(dd.getHours()).padStart(2,'0')+':00'; }
   setTimeout(()=>document.getElementById('schedulePw').focus(),100);
 }
 function hideScheduleModal(){document.getElementById('scheduleOverlay').classList.add('hidden');}
@@ -5529,10 +5810,11 @@ async function saveSchedule(){
   const ok = await _verifyAdminPw(pw);
   if(!ok){errEl.textContent='\u26a0 Password salah.';errEl.style.display='block';return;}
   const dur=parseInt(document.getElementById('scheduleDuration').value), due=document.getElementById('scheduleDue').value;
-  if(!dur||dur<1){errEl.textContent='\u26a0 Durasi harus diisi (minimal 1 hari).';errEl.style.display='block';return;}
+  if(!dur||dur<1){errEl.textContent='\u26a0 Durasi harus diisi (minimal 1 menit).';errEl.style.display='block';return;}
   if(!due){errEl.textContent='\u26a0 Batas akhir (due date) harus diisi.';errEl.style.display='block';return;}
   errEl.style.display='none';
-  const dueDate=new Date(due), startDate=new Date(dueDate.getTime()-dur*24*60*60*1000);
+  // UTS: durasi dalam MENIT (bukan hari). startDate = dueDate - dur*60*1000
+  const dueDate=new Date(due), startDate=new Date(dueDate.getTime()-dur*60*1000);
   const btns = document.querySelectorAll('#scheduleOverlay button');
   btns.forEach(b=>{b.disabled=true;b.style.opacity='.5';b.style.cursor='wait';});
 
@@ -5601,6 +5883,142 @@ function _isScheduleOpen() {
   } catch(e) { return false; }
 }
 
+// ── UTS PRE-START LOCK ──
+// Returns one of: 'before-start' | 'in-progress' | 'expired' | 'no-schedule'
+function _utsScheduleState() {
+  if (!currentSchedule || !currentSchedule.start || !currentSchedule.end) return 'no-schedule';
+  const now = Date.now();
+  const s = new Date(currentSchedule.start).getTime();
+  const e = new Date(currentSchedule.end).getTime();
+  if (now < s) return 'before-start';
+  if (now <= e) return 'in-progress';
+  return 'expired';
+}
+window._utsScheduleState = _utsScheduleState;
+
+// Update UTS access gate berdasarkan schedule state.
+// Sebelum start: hide soal, show banner "akses belum dibuka" + countdown.
+// In progress: tampilkan soal normal.
+// Expired: tampilkan banner "UTS berakhir" tapi soal tetap visible (read-only mode).
+function _updateUTSAccessGate() {
+  try {
+    const state = _utsScheduleState();
+    const me = (typeof getIdentity === 'function') ? getIdentity() : null;
+    const isStudent = me && me.nim && me.role !== 'dosen';
+    const isDosen = me && me.role === 'dosen';
+
+    // Containers untuk soal
+    const tfC = document.getElementById('container-tf');
+    const mcC = document.getElementById('container-mc');
+    const ezC = document.getElementById('container-comp-ez');
+    const hardC = document.getElementById('container-comp-hard');
+    const lockBanner = document.getElementById('utsLockBanner');
+
+    // Update or create lock banner di score-bar area
+    _ensureUtsLockBanner();
+    const banner = document.getElementById('utsLockBanner');
+
+    // Dosen ALWAYS bisa lihat (untuk preview/validasi)
+    if (isDosen) {
+      [tfC, mcC, ezC, hardC].forEach(c => { if (c) c.style.display = ''; });
+      if (banner) banner.style.display = 'none';
+      return;
+    }
+
+    if (state === 'before-start' && isStudent) {
+      // Hide semua soal, tampilkan banner countdown
+      [tfC, mcC, ezC, hardC].forEach(c => {
+        if (c) {
+          c.style.display = 'none';
+          // Mark dengan attribute supaya saat akses dibuka kita re-enable
+          c.dataset.utsLocked = 'before-start';
+        }
+      });
+      if (banner) {
+        banner.style.display = 'block';
+        const startDate = new Date(currentSchedule.start);
+        const startStr = startDate.toLocaleString('id-ID', {
+          weekday:'long', day:'numeric', month:'long', year:'numeric',
+          hour:'2-digit', minute:'2-digit'
+        });
+        banner.innerHTML = `
+          <div style="font-size:36px;margin-bottom:12px">🔒</div>
+          <h3 style="font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--amber);margin-bottom:10px">Akses UTS Belum Dibuka</h3>
+          <p style="font-size:14px;color:var(--text);margin-bottom:14px;line-height:1.7">
+            Soal UTS akan tersedia mulai <strong style="color:var(--cyan)">${startStr}</strong>.<br>
+            Lihat hitung mundur di bagian atas halaman untuk mengetahui sisa waktu sebelum UTS dimulai.
+          </p>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);background:rgba(255,179,0,.06);border:1px dashed rgba(255,179,0,.3);border-radius:8px;padding:10px 14px;margin-top:12px;letter-spacing:.5px">
+            🔐 Sistem ini secara otomatis akan mengaktifkan soal saat waktu mulai tiba.<br>
+            Anda dapat menyiapkan environment Python (Jupyter) terlebih dahulu.
+          </div>
+        `;
+      }
+    } else if (state === 'no-schedule' && isStudent) {
+      // Belum ada jadwal — info ke mahasiswa
+      [tfC, mcC, ezC, hardC].forEach(c => {
+        if (c) { c.style.display = 'none'; c.dataset.utsLocked = 'no-schedule'; }
+      });
+      if (banner) {
+        banner.style.display = 'block';
+        banner.innerHTML = `
+          <div style="font-size:36px;margin-bottom:12px">⏳</div>
+          <h3 style="font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--violet);margin-bottom:10px">Menunggu Jadwal UTS</h3>
+          <p style="font-size:14px;color:var(--text);margin-bottom:14px;line-height:1.7">
+            Dosen belum mengatur jadwal UTS. Silakan tunggu pengumuman atau hubungi dosen.
+          </p>
+        `;
+      }
+    } else {
+      // in-progress atau expired: tampilkan soal
+      [tfC, mcC, ezC, hardC].forEach(c => {
+        if (c) {
+          c.style.display = '';
+          delete c.dataset.utsLocked;
+        }
+      });
+      if (banner) {
+        if (state === 'expired' && isStudent) {
+          // Show banner berakhir tapi soal tetap visible (jawaban sudah di-lock oleh schedule check)
+          banner.style.display = 'block';
+          banner.style.background = 'linear-gradient(135deg,rgba(239,68,68,.06),rgba(168,85,247,.04))';
+          banner.style.borderColor = 'rgba(239,68,68,.3)';
+          banner.innerHTML = `
+            <div style="font-size:32px;margin-bottom:8px">🔒</div>
+            <h3 style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--pink);margin-bottom:8px">UTS Telah Berakhir</h3>
+            <p style="font-size:13px;color:var(--text);line-height:1.7">
+              Waktu UTS telah berakhir. Jawaban Anda telah tersimpan. Silakan export laporan via tombol di score panel.
+            </p>
+          `;
+        } else {
+          banner.style.display = 'none';
+        }
+      }
+    }
+  } catch(err) {
+    console.error('[UTS] _updateUTSAccessGate error:', err);
+  }
+}
+window._updateUTSAccessGate = _updateUTSAccessGate;
+
+// Helper: pastikan ada banner element di score-bar area
+function _ensureUtsLockBanner() {
+  if (document.getElementById('utsLockBanner')) return;
+  const tfContainer = document.getElementById('container-tf');
+  if (!tfContainer) return;
+  const banner = document.createElement('div');
+  banner.id = 'utsLockBanner';
+  banner.style.cssText = 'display:none;background:linear-gradient(135deg,rgba(255,179,0,.06),rgba(168,85,247,.04));border:1.5px solid rgba(255,179,0,.3);border-radius:18px;padding:32px 28px;text-align:center;margin:24px 0 32px;box-shadow:0 8px 32px rgba(0,0,0,.3)';
+  // Insert sebelum container-tf
+  tfContainer.parentElement.insertBefore(banner, tfContainer);
+}
+
+// Periodic re-check setiap 10 detik agar UI auto-update saat waktu start tiba
+setInterval(() => {
+  if (typeof _updateUTSAccessGate === 'function') _updateUTSAccessGate();
+}, 10000);
+
+
 // Show/hide late-access banner on Tugas tab based on schedule state.
 // Student must be logged in (has identity) to see the banner.
 function _updateLateBanner() {
@@ -5647,7 +6065,7 @@ function _checkConsolationPoint(nodeRef, state) {
   } catch(e) { /* swallow */ }
 }
 
-window._awardPoint = function(qId) {
+window._awardPoint = function(qId, selectedIdx) {
   if (!_isScheduleOpen()) return;  // NO point save outside active schedule
   if (_answeredQ.has(qId)) return;
   const me = getIdentity();
@@ -5660,7 +6078,15 @@ window._awardPoint = function(qId) {
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(qId)) { _answeredQ.add(qId); return; }
     _answeredQ.add(qId); scored.push(qId);
-    const updated = Object.assign({}, ex, { points: (ex.points||0)+1, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',') });
+    // Simpan user selection (option index 0-3) ke selections/
+    const selections = Object.assign({}, ex.selections || {});
+    if (typeof selectedIdx === 'number') selections[qId] = selectedIdx;
+    const updated = _stripLegacyPinFields(Object.assign({}, ex, {
+      points: (ex.points||0)+1,
+      pointTimestamp: new Date().toISOString(),
+      scoredQuestions: scored.join(','),
+      selections: selections
+    }));
     set(nodeRef, updated);
     _checkConsolationPoint(nodeRef, updated);
   }).catch(()=>{});
@@ -5722,7 +6148,7 @@ window._awardCompPartial = function(qId, point) {
 };
 
 // ── Record a failed MC attempt to Firebase ──
-window._recordMcAttempt = function(qId) {
+window._recordMcAttempt = function(qId, selectedIdx) {
   if (!_isScheduleOpen()) return;  // no record outside active schedule
   const me = getIdentity();
   if (!me || !me.nim || me.role === 'dosen') return;
@@ -5735,14 +6161,20 @@ window._recordMcAttempt = function(qId) {
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(usedKey)) return;
     scored.push(usedKey);
-    const updated = Object.assign({}, ex, { scoredQuestions: scored.join(',') });
+    // Simpan user selection (option index 0-3) ke selections/
+    const selections = Object.assign({}, ex.selections || {});
+    if (typeof selectedIdx === 'number') selections[qId] = selectedIdx;
+    const updated = _stripLegacyPinFields(Object.assign({}, ex, {
+      scoredQuestions: scored.join(','),
+      selections: selections
+    }));
     set(nodeRef, updated);
     _checkConsolationPoint(nodeRef, updated);
   }).catch(() => {});
 };
 
 // ── TF: Award point on correct answer (mirip _awardPoint untuk MC) ──
-window._awardTfPoint = function(qId) {
+window._awardTfPoint = function(qId, selectedValue) {
   if (!_isScheduleOpen()) return;
   if (_answeredQ.has(qId)) return;
   const me = getIdentity();
@@ -5755,14 +6187,22 @@ window._awardTfPoint = function(qId) {
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(qId)) { _answeredQ.add(qId); return; }
     _answeredQ.add(qId); scored.push(qId);
-    const updated = Object.assign({}, ex, { points: (ex.points||0)+1, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',') });
+    // Simpan user selection (true/false) ke selections/
+    const selections = Object.assign({}, ex.selections || {});
+    if (typeof selectedValue === 'boolean') selections[qId] = selectedValue;
+    const updated = _stripLegacyPinFields(Object.assign({}, ex, {
+      points: (ex.points||0)+1,
+      pointTimestamp: new Date().toISOString(),
+      scoredQuestions: scored.join(','),
+      selections: selections
+    }));
     set(nodeRef, updated);
     _checkConsolationPoint(nodeRef, updated);
   }).catch(()=>{});
 };
 
 // ── TF: Record failed attempt ──
-window._recordTfAttempt = function(qId) {
+window._recordTfAttempt = function(qId, selectedValue) {
   if (!_isScheduleOpen()) return;
   const me = getIdentity();
   if (!me || !me.nim || me.role === 'dosen') return;
@@ -5775,7 +6215,13 @@ window._recordTfAttempt = function(qId) {
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(usedKey)) return;
     scored.push(usedKey);
-    const updated = Object.assign({}, ex, { scoredQuestions: scored.join(',') });
+    // Simpan user selection (true/false) ke selections/
+    const selections = Object.assign({}, ex.selections || {});
+    if (typeof selectedValue === 'boolean') selections[qId] = selectedValue;
+    const updated = _stripLegacyPinFields(Object.assign({}, ex, {
+      scoredQuestions: scored.join(','),
+      selections: selections
+    }));
     set(nodeRef, updated);
     _checkConsolationPoint(nodeRef, updated);
   }).catch(() => {});
@@ -5804,6 +6250,202 @@ window._recordCompAttempt = function(qId) {
   }).catch(() => {});
 };
 
+// ═══════════════════════════════════════════════════════════════
+// FIREBASE STATE PERSISTENCE — Cache + Idempotent Visual Apply
+// ═══════════════════════════════════════════════════════════════
+// PROBLEM: render UI dan load Firebase state bisa terjadi dengan urutan
+// berbeda tergantung timing:
+//   - First login: saveIdentity() → render → load (urutan benar)
+//   - Returning user: auto-login → render → load (urutan benar)
+//   - Edge case: load fired sebelum render (e.g., setTimeout fallback)
+//
+// SOLUSI: cache data Firebase + re-applyable visual restoration.
+// `_loadScoredQuestions()` fetch + cache + apply.
+// `_reapplyUTSStateFromCache()` re-apply visual dari cache (dipanggil setelah render).
+// Aman dipanggil multiple times (idempotent karena guard `mcAnswered[qId]` dll).
+
+let _cachedFirebaseData = null;   // {codes: {...}, scoredQuestions: '...', selections: {...}}
+window._cachedFirebaseData = () => _cachedFirebaseData;
+
+// Apply visual state (locks, feedback, code restore, selection restore) dari data Firebase.
+// Idempotent — aman dipanggil berulang.
+function _applyUTSVisualState(data) {
+  if (!data) return;
+  // ── Restore code Komputasi dari Firebase codes/ ──
+  if (data.codes && typeof data.codes === 'object') {
+    Object.keys(data.codes).forEach(qId => {
+      const ta = document.getElementById('code-' + qId);
+      if (ta && !ta.value && typeof data.codes[qId] === 'string') {
+        ta.value = data.codes[qId];
+      }
+    });
+  }
+
+  // ── Restore user selections (TF/MC) jika tersimpan ──
+  // Format: data.selections = { tf1: true, tf2: false, mc1: 2, mc3: 0, ... }
+  if (data.selections && typeof data.selections === 'object') {
+    Object.keys(data.selections).forEach(qId => {
+      const val = data.selections[qId];
+      // TF: val adalah boolean
+      if (/^tf\d+$/.test(qId) && typeof val === 'boolean') {
+        const opts = document.getElementById('tfopts-' + qId);
+        if (opts) {
+          const targetCls = val ? 'tf-true' : 'tf-false';
+          const opt = opts.querySelector('.' + targetCls);
+          if (opt && !opt.classList.contains('selected')) {
+            opt.classList.add('selected');
+            opt._isTrue = val;
+          }
+        }
+      }
+      // MC: val adalah index (0-3)
+      else if (/^mc\d+$/.test(qId) && typeof val === 'number') {
+        const rg = document.getElementById('rg-' + qId);
+        if (rg) {
+          const opts = rg.querySelectorAll('.radio-option');
+          if (opts[val] && !opts[val].classList.contains('selected')) {
+            opts[val].classList.add('selected');
+          }
+        }
+      }
+    });
+  }
+
+  // ── Restore answered state per qId (lock + feedback) ──
+  const scored = (data.scoredQuestions || '').split(',').filter(Boolean);
+  scored.forEach(qId => {
+    _answeredQ.add(qId);
+
+    // ── Restore TF correct answers (UTS Bagian A) ──
+    if (/^tf\d+$/.test(qId)) {
+      if (!tfAnswered[qId]) { tfAnswered[qId] = true; tfScores[qId] = 1; }
+      const opts = document.getElementById('tfopts-' + qId);
+      if (opts) opts.querySelectorAll('.tf-option').forEach(o => { o.style.pointerEvents='none'; o.style.opacity='.6'; });
+      const sub = document.getElementById('sub-' + qId);
+      if (sub) { sub.disabled = true; sub.textContent = '✓ Terjawab'; sub.style.background='rgba(0,224,158,.1)'; sub.style.borderColor='rgba(0,224,158,.4)'; sub.style.color='var(--green)'; }
+      const fb = document.getElementById('fb-' + qId);
+      if (fb && fb.textContent.trim() === '') {
+        fb.style.display='block';
+        fb.className='feedback correct';
+        fb.textContent='✅ Sudah dijawab — jawaban &amp; poin telah tercatat. Soal terkunci permanen (tidak ada kesempatan ulang).';
+      }
+    }
+
+    // ── Restore TF wrong answers (_tf_used suffix) ──
+    else if (/^tf\d+_tf_used$/.test(qId)) {
+      const baseId = qId.replace('_tf_used','');
+      if (!tfAnswered[baseId]) { tfAnswered[baseId] = true; tfScores[baseId] = 0; }
+      const opts = document.getElementById('tfopts-' + baseId);
+      if (opts) opts.querySelectorAll('.tf-option').forEach(o => { o.style.pointerEvents='none'; o.style.opacity='.6'; });
+      const sub = document.getElementById('sub-' + baseId);
+      if (sub) { sub.disabled = true; sub.textContent = '🔒 Terkunci'; sub.style.background='rgba(239,68,68,.1)'; sub.style.borderColor='rgba(239,68,68,.4)'; sub.style.color='var(--pink)'; }
+      const fb = document.getElementById('fb-' + baseId);
+      if (fb && fb.textContent.trim() === '') {
+        fb.style.display='block';
+        fb.className='feedback wrong';
+        fb.textContent='🔒 Sudah dijawab sebelumnya — soal TERKUNCI PERMANEN. Tidak ada kesempatan ulang.';
+      }
+    }
+
+    // ── Restore MC correct answers ──
+    else if (/^mc\d+$/.test(qId)) {
+      if (!mcAnswered[qId]) { mcAnswered[qId] = true; mcScores[qId] = 1; }
+      const rg = document.getElementById('rg-' + qId);
+      if (rg) { rg.dataset.locked='true'; rg.querySelectorAll('.radio-option').forEach(o=>{o.style.pointerEvents='none';o.style.opacity='.6';}); }
+      const sub = document.getElementById('sub-' + qId);
+      if (sub) { sub.disabled = true; sub.textContent = '✓ Terjawab'; sub.style.background='rgba(0,224,158,.1)'; sub.style.borderColor='rgba(0,224,158,.4)'; sub.style.color='var(--green)'; }
+      const fb = document.getElementById('fb-' + qId);
+      if (fb && fb.textContent.trim() === '') {
+        fb.style.display='block';
+        fb.className='feedback correct';
+        fb.textContent='✅ Sudah dijawab — jawaban &amp; poin telah tercatat. Soal terkunci permanen (tidak ada kesempatan ulang).';
+      }
+    }
+
+    // ── Restore MC wrong answers (_mc_used suffix) ──
+    else if (/^mc\d+_mc_used$/.test(qId)) {
+      const baseId = qId.replace('_mc_used','');
+      if (!mcAnswered[baseId]) { mcAnswered[baseId] = true; mcScores[baseId] = 0; }
+      const rg = document.getElementById('rg-' + baseId);
+      if (rg) { rg.dataset.locked='true'; rg.querySelectorAll('.radio-option').forEach(o=>{o.style.pointerEvents='none';o.style.opacity='.6';}); }
+      const sub = document.getElementById('sub-' + baseId);
+      if (sub) { sub.disabled = true; sub.textContent = '🔒 Terkunci'; sub.style.background='rgba(239,68,68,.1)'; sub.style.borderColor='rgba(239,68,68,.4)'; sub.style.color='var(--pink)'; }
+      const fb = document.getElementById('fb-' + baseId);
+      if (fb && fb.textContent.trim() === '') {
+        fb.style.display='block';
+        fb.className='feedback wrong';
+        fb.textContent='🔒 Sudah dijawab sebelumnya — soal TERKUNCI PERMANEN. Tidak ada kesempatan ulang.';
+      }
+    }
+
+    // ── Restore comp PARTIAL (Hard salah, +1 poin) ──
+    // CEK INI DULU sebelum _comp_used/_comp karena suffix lebih spesifik
+    else if (qId.endsWith('_comp_partial')) {
+      const baseId = qId.replace('_comp_partial','');
+      if (!compAnswered[baseId]) {
+        compAnswered[baseId] = true;
+        compScores[baseId]   = 1;   // partial = 1 poin
+      }
+      const sub = document.getElementById('sub-' + baseId);
+      if (sub) { sub.disabled=true; sub.textContent='△ Usaha (+1 poin) · Terkunci'; sub.style.borderColor='rgba(251,191,36,.4)'; sub.style.color='var(--amber)'; sub.classList.remove('running'); }
+      const ta = document.getElementById('code-' + baseId);
+      if (ta) { ta.disabled=true; ta.style.borderColor='rgba(251,191,36,.3)'; ta.style.opacity='.75'; }
+      const fb = document.getElementById('fb-' + baseId);
+      if (fb && fb.textContent.trim() === '') {
+        fb.style.display='block';
+        fb.className='feedback warn';
+        fb.textContent='△ Partial credit tercatat (+1 poin) — soal Hard TERKUNCI PERMANEN. Tidak ada kesempatan ulang.';
+      }
+    }
+
+    // ── Restore comp wrong/error (Easy/Medium 0 poin — _comp_used suffix) ──
+    else if (qId.endsWith('_comp_used')) {
+      const baseId = qId.replace('_comp_used','');
+      if (!compAnswered[baseId]) { compAnswered[baseId]=true; compScores[baseId]=0; }
+      const sub=document.getElementById('sub-'+baseId);
+      if(sub){ sub.disabled=true; sub.textContent='✗ Terkunci'; sub.style.borderColor='rgba(239,68,68,.3)'; sub.style.color='var(--pink)'; sub.classList.remove('running'); }
+      const ta=document.getElementById('code-'+baseId);
+      if(ta){ ta.disabled=true; ta.style.borderColor='rgba(239,68,68,.25)'; ta.style.opacity='.7'; }
+      const fb=document.getElementById('fb-'+baseId);
+      if (fb && fb.textContent.trim() === '') {
+        fb.style.display='block';
+        fb.className='feedback wrong';
+        fb.textContent='🔒 Sudah dijawab sebelumnya — soal TERKUNCI PERMANEN. Tidak ada kesempatan ulang.';
+      }
+    }
+
+    // ── Restore comp correct answers (_comp suffix tanpa _used/_partial) ──
+    else if (qId.endsWith('_comp')) {
+      const baseId = qId.replace(/_comp$/,'');
+      const restoredPts = window._isHardComp(baseId)
+        ? SCORE_CONFIG.COMP_HARD_POINT
+        : SCORE_CONFIG.COMP_EZ_POINT;
+      if (!compAnswered[baseId]) { compAnswered[baseId]=true; compScores[baseId]=restoredPts; }
+      const sub=document.getElementById('sub-'+baseId);
+      if(sub){ sub.disabled=true; sub.textContent='✓ Selesai · Terkunci'; sub.style.background='rgba(0,224,158,.1)'; sub.style.borderColor='rgba(0,224,158,.4)'; sub.style.color='var(--green)'; sub.classList.remove('running'); }
+      const ta=document.getElementById('code-'+baseId);
+      if(ta){ ta.disabled=true; ta.style.borderColor='rgba(0,224,158,.5)'; ta.style.opacity='.85'; }
+      const fb=document.getElementById('fb-'+baseId);
+      if (fb && fb.textContent.trim() === '') {
+        fb.style.display='block';
+        fb.className='feedback correct';
+        fb.textContent='✅ Sudah dijawab benar — kode &amp; poin telah tercatat. Soal terkunci permanen.';
+      }
+    }
+  });
+  updateScore();
+}
+window._applyUTSVisualState = _applyUTSVisualState;
+
+// Re-apply visual state dari cache. Dipanggil saat render terjadi setelah load,
+// atau saat kita curiga visual state perlu refresh (misal setelah late identity load).
+window._reapplyUTSStateFromCache = function() {
+  if (_cachedFirebaseData) {
+    console.log('[UTS] Re-applying visual state from cache');
+    _applyUTSVisualState(_cachedFirebaseData);
+  }
+};
+
 window._loadScoredQuestions = function() {
   const me = getIdentity();
   // PEDOMAN §18.2 Layer 1 — Helper to mark state loaded in ALL exit paths
@@ -5818,110 +6460,13 @@ window._loadScoredQuestions = function() {
   get(ref(db, DB_PATH + '/' + key)).then(snap => {
     if (!snap.exists()) { _markLoaded(); return; }
     const data = snap.val();
-    // PEDOMAN §15.4c — Restore code Komputasi dari Firebase codes/ field (primary storage)
-    // Fire FIRST karena textarea state tidak terikat ke scoredQuestions processing
-    if (data.codes && typeof data.codes === 'object') {
-      Object.keys(data.codes).forEach(qId => {
-        const ta = document.getElementById('code-' + qId);
-        if (ta && !ta.value && typeof data.codes[qId] === 'string') {
-          ta.value = data.codes[qId];
-        }
-      });
-    }
-    const scored = (data.scoredQuestions || '').split(',').filter(Boolean);
-    if (!scored.length) { _markLoaded(); return; }
-    scored.forEach(qId => {
-      _answeredQ.add(qId);
-
-      // ── Restore TF correct answers (UTS Bagian A) ──
-      if (/^tf\d+$/.test(qId)) {
-        if (!tfAnswered[qId]) { tfAnswered[qId] = true; tfScores[qId] = 1; }
-        const opts = document.getElementById('tfopts-' + qId);
-        if (opts) opts.querySelectorAll('.tf-option').forEach(o => { o.style.pointerEvents='none'; o.style.opacity='.6'; });
-        const sub = document.getElementById('sub-' + qId); if (sub) sub.disabled = true;
-        const fb = document.getElementById('fb-' + qId);
-        if (fb && !fb.classList.contains('correct')) { fb.style.display='block'; fb.className='feedback correct'; fb.textContent='\u2705 Sudah dijawab benar — poin telah tercatat.'; }
-      }
-
-      // ── Restore TF wrong answers (_tf_used suffix) ──
-      else if (/^tf\d+_tf_used$/.test(qId)) {
-        const baseId = qId.replace('_tf_used','');
-        if (!tfAnswered[baseId]) { tfAnswered[baseId] = true; tfScores[baseId] = 0; }
-        const opts = document.getElementById('tfopts-' + baseId);
-        if (opts) opts.querySelectorAll('.tf-option').forEach(o => { o.style.pointerEvents='none'; o.style.opacity='.6'; });
-        const sub = document.getElementById('sub-' + baseId); if (sub) sub.disabled = true;
-        const fb = document.getElementById('fb-' + baseId);
-        if (fb && !fb.classList.contains('correct')) { fb.style.display='block'; fb.className='feedback wrong'; fb.textContent='\ud83d\udd12 Sudah dijawab sebelumnya — soal terkunci.'; }
-      }
-
-      // ── Restore MC correct answers ──
-      else if (/^mc\d+$/.test(qId)) {
-        if (!mcAnswered[qId]) { mcAnswered[qId] = true; mcScores[qId] = 1; }
-        const rg = document.getElementById('rg-' + qId);
-        if (rg) { rg.dataset.locked='true'; rg.querySelectorAll('.radio-option').forEach(o=>{o.style.pointerEvents='none';o.style.opacity='.6';}); }
-        const sub = document.getElementById('sub-' + qId); if (sub) sub.disabled = true;
-        const fb = document.getElementById('fb-' + qId);
-        if (fb && !fb.classList.contains('correct')) { fb.style.display='block'; fb.className='feedback correct'; fb.textContent='\u2705 Sudah dijawab benar — poin telah tercatat.'; }
-      }
-
-      // ── Restore MC wrong answers (_mc_used suffix) ──
-      else if (/^mc\d+_mc_used$/.test(qId)) {
-        const baseId = qId.replace('_mc_used','');
-        if (!mcAnswered[baseId]) { mcAnswered[baseId] = true; mcScores[baseId] = 0; }
-        const rg = document.getElementById('rg-' + baseId);
-        if (rg) { rg.dataset.locked='true'; rg.querySelectorAll('.radio-option').forEach(o=>{o.style.pointerEvents='none';o.style.opacity='.6';}); }
-        const sub = document.getElementById('sub-' + baseId); if (sub) sub.disabled = true;
-        const fb = document.getElementById('fb-' + baseId);
-        if (fb && !fb.classList.contains('correct')) { fb.style.display='block'; fb.className='feedback wrong'; fb.textContent='\ud83d\udd12 Sudah dijawab sebelumnya — soal terkunci.'; }
-      }
-
-      // ── Restore comp PARTIAL (Hard salah, +1 poin) ──
-      // CEK INI DULU sebelum _comp_used/_comp karena suffix lebih spesifik
-      else if (qId.endsWith('_comp_partial')) {
-        const baseId = qId.replace('_comp_partial','');
-        if (!compAnswered[baseId]) {
-          compAnswered[baseId] = true;
-          compScores[baseId]   = 1;   // partial = 1 poin
-        }
-        const sub = document.getElementById('sub-' + baseId);
-        if (sub) { sub.disabled=true; sub.textContent='\u25b3 Usaha (+1)'; sub.style.borderColor='rgba(251,191,36,.4)'; sub.style.color='var(--amber)'; sub.classList.remove('running'); }
-        const ta = document.getElementById('code-' + baseId);
-        if (ta) { ta.disabled=true; ta.style.borderColor='rgba(251,191,36,.3)'; ta.style.opacity='.75'; }
-        const fb = document.getElementById('fb-' + baseId);
-        if (fb && !fb.classList.contains('correct')) { fb.className='feedback warn'; fb.textContent='\u25b3 Partial credit tercatat (+1 poin) — soal Hard terkunci.'; }
-      }
-
-      // ── Restore comp wrong/error (Easy/Medium 0 poin — _comp_used suffix) ──
-      else if (qId.endsWith('_comp_used')) {
-        const baseId = qId.replace('_comp_used','');
-        if (!compAnswered[baseId]) { compAnswered[baseId]=true; compScores[baseId]=0; }
-        const sub=document.getElementById('sub-'+baseId);
-        if(sub){ sub.disabled=true; sub.textContent='\u2717 Terkunci'; sub.style.borderColor='rgba(239,68,68,.3)'; sub.style.color='var(--pink)'; sub.classList.remove('running'); }
-        const ta=document.getElementById('code-'+baseId);
-        if(ta){ ta.disabled=true; ta.style.borderColor='rgba(239,68,68,.25)'; ta.style.opacity='.7'; }
-        const fb=document.getElementById('fb-'+baseId);
-        if(fb&&!fb.classList.contains('correct')){fb.className='feedback wrong';fb.textContent='\ud83d\udd12 Sudah dijawab sebelumnya — soal terkunci. Tidak ada kesempatan ulang.';}
-      }
-
-      // ── Restore comp correct answers (_comp suffix tanpa _used/_partial) ──
-      else if (qId.endsWith('_comp')) {
-        const baseId = qId.replace(/_comp$/,'');
-        // Poin tergantung difficulty: Hard (c11..c15) = 4, lainnya = 2
-        const restoredPts = window._isHardComp(baseId)
-          ? SCORE_CONFIG.COMP_HARD_POINT
-          : SCORE_CONFIG.COMP_EZ_POINT;
-        if (!compAnswered[baseId]) { compAnswered[baseId]=true; compScores[baseId]=restoredPts; }
-        const sub=document.getElementById('sub-'+baseId);
-        if(sub){ sub.disabled=true; sub.textContent='\u2713 Selesai'; sub.classList.remove('running'); }
-        const ta=document.getElementById('code-'+baseId);
-        if(ta) ta.style.borderColor='rgba(0,224,158,.5)';
-        const fb=document.getElementById('fb-'+baseId);
-        if(fb&&!fb.classList.contains('correct')){fb.className='feedback correct';fb.textContent='\u2705 Sudah dijawab benar — poin telah tercatat.';}
-      }
-    });
-    updateScore();
-    _markLoaded();   // PEDOMAN §18.2 — mark ready + trigger checkExport/checkForum/_loadDraft
-  }).catch(() => { _markLoaded(); });
+    _cachedFirebaseData = data;   // Cache untuk re-apply
+    _applyUTSVisualState(data);   // Apply visual sekarang
+    _markLoaded();
+  }).catch((err) => {
+    console.error('[UTS] _loadScoredQuestions Firebase error:', err);
+    _markLoaded();
+  });
 };
 
 // ═══════════════════════════════════════════════════════════════
