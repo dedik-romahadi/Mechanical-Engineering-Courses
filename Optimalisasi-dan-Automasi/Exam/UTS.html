@@ -1804,7 +1804,341 @@ const _svg = {
       <text x="${f2x.toFixed(1)}" y="100" fill="#a855f7" font-size="9" text-anchor="middle" font-family="'JetBrains Mono',monospace">f₂=${f2.toFixed(1)}</text>
       <text x="${(xR+xRmax)/2}" y="${H-5}" fill="#fbbf24" font-size="9" text-anchor="middle" font-family="'JetBrains Mono',monospace">f₁ dominan (amplitudo lebih besar)</text>
     </svg>`;
+  },
+
+// ── NEW OptoAuto-specific helpers — Time Series visualization ──
+
+// 1. timeSeriesPlot — generic sinusoidal/signal with rotation freq labels
+// Used for: P1 (RPM → frequency), P3 (RMS), P4 (Crest Factor)
+timeSeriesPlot: (opts) => {
+  opts = opts || {};
+  const A = opts.A || 1.0;            // amplitude (display scaling)
+  const f_label = opts.f_label || '50 Hz';
+  const showCF = opts.showCF || false;
+  const W = 360, H = 180, midY = 90, ampMax = 50;
+  const pts = [];
+  for (let i = 0; i <= 200; i++) {
+    const t = (i/200) * 4;       // 4 cycles
+    const x = 50 + (i/200) * 280;
+    const y = midY - ampMax * Math.sin(2*Math.PI*t);
+    pts.push(`${x.toFixed(1)},${y.toFixed(1)}`);
   }
+  // Peak markers
+  let peakLines = '';
+  if (showCF) {
+    peakLines = `<line x1="50" y1="${midY-ampMax}" x2="${W-10}" y2="${midY-ampMax}" stroke="#f97316" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="${W-12}" y="${midY-ampMax-3}" fill="#f97316" font-size="10" text-anchor="end" font-family="'JetBrains Mono',monospace">peak = A</text>
+      <line x1="50" y1="${midY-ampMax*0.707}" x2="${W-10}" y2="${midY-ampMax*0.707}" stroke="#00e09e" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="${W-12}" y="${midY-ampMax*0.707-3}" fill="#00e09e" font-size="10" text-anchor="end" font-family="'JetBrains Mono',monospace">RMS = A/√2</text>`;
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:380px;height:auto;display:block;margin:0 auto">
+    <line x1="50" y1="${midY}" x2="${W-10}" y2="${midY}" stroke="#475569" stroke-width="1"/>
+    <line x1="50" y1="20" x2="50" y2="${H-20}" stroke="#475569" stroke-width="1"/>
+    <text x="30" y="${midY+4}" fill="#94a3b8" font-size="10" text-anchor="middle" font-family="'JetBrains Mono',monospace">0</text>
+    <text x="${W-12}" y="${midY+18}" fill="#94a3b8" font-size="10" font-family="'JetBrains Mono',monospace">t</text>
+    <text x="${W/2}" y="14" fill="#a855f7" font-size="10" text-anchor="middle" font-family="'JetBrains Mono',monospace">x(t) = A·sin(2π·f·t),&nbsp;&nbsp;f = ${f_label}</text>
+    <polyline points="${pts.join(' ')}" stroke="#a855f7" stroke-width="2" fill="none"/>
+    ${peakLines}
+  </svg>`;
+},
+
+// 2. samplingDiagram — show continuous wave + discrete sample dots
+// Used for: P2 (Nyquist), P12 (aliasing), P21 (sampling rate)
+samplingDiagram: (opts) => {
+  opts = opts || {};
+  const fs_label = opts.fs_label || 'fs';
+  const f_label = opts.f_label || 'f';
+  const aliased = opts.aliased || false;   // jika true, tampilkan alias warning
+  const n_samples = opts.n_samples || 12;  // berapa banyak titik sample
+  const W = 360, H = 200, midY = 100, ampMax = 50;
+  const continuousPts = [];
+  for (let i = 0; i <= 200; i++) {
+    const t = (i/200) * 4;
+    const x = 50 + (i/200) * 280;
+    const y = midY - ampMax * Math.sin(2*Math.PI*t);
+    continuousPts.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+  }
+  // Discrete sample dots
+  let sampleDots = '';
+  for (let i = 0; i < n_samples; i++) {
+    const t = (i/(n_samples-1)) * 4;
+    const x = 50 + (i/(n_samples-1)) * 280;
+    const y = midY - ampMax * Math.sin(2*Math.PI*t);
+    sampleDots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5" fill="#00e09e" stroke="#fff" stroke-width="1"/>
+      <line x1="${x.toFixed(1)}" y1="${y.toFixed(1)}" x2="${x.toFixed(1)}" y2="${midY}" stroke="#00e09e" stroke-width="1" stroke-dasharray="2,2" opacity="0.5"/>`;
+  }
+  let warnText = '';
+  if (aliased) {
+    warnText = `<text x="${W/2}" y="${H-3}" fill="#ef4444" font-size="10" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="600">⚠ fs &lt; 2·f → ALIASING</text>`;
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:380px;height:auto;display:block;margin:0 auto">
+    <line x1="50" y1="${midY}" x2="${W-10}" y2="${midY}" stroke="#475569" stroke-width="1"/>
+    <line x1="50" y1="20" x2="50" y2="${H-30}" stroke="#475569" stroke-width="1"/>
+    <text x="${W/2}" y="14" fill="#a855f7" font-size="10" text-anchor="middle" font-family="'JetBrains Mono',monospace">Continuous: ${f_label} | Sampled @ ${fs_label}</text>
+    <polyline points="${continuousPts.join(' ')}" stroke="#a855f7" stroke-width="1.5" fill="none" opacity="0.6"/>
+    ${sampleDots}
+    <text x="${W-12}" y="${midY+18}" fill="#94a3b8" font-size="10" font-family="'JetBrains Mono',monospace">t</text>
+    ${warnText}
+  </svg>`;
+},
+
+// 3. filterCompare — noisy + smoothed signal overlay
+// Used for: P5 (MA), P6 (EMA), P7 (EMA scratch), P8 (median vs MA), P22 (SG)
+filterCompare: (opts) => {
+  opts = opts || {};
+  const filterName = opts.filter || 'MA';
+  const filterColor = opts.color || '#00e09e';
+  const W = 360, H = 180, midY = 90, ampMax = 45;
+  const noisyPts = [], smoothPts = [];
+  // Noisy signal: sin + noise
+  let prevSmooth = 0;
+  for (let i = 0; i <= 200; i++) {
+    const t = (i/200) * 4;
+    const x = 50 + (i/200) * 280;
+    // Pseudo-random noise (deterministic for repeatable display)
+    const noise = (Math.sin(i*7.91) + Math.sin(i*11.71)) * 12;
+    const yClean = midY - ampMax * Math.sin(2*Math.PI*t);
+    const yNoisy = yClean + noise;
+    noisyPts.push(`${x.toFixed(1)},${yNoisy.toFixed(1)}`);
+    // Smoothed approximation: low-pass / EMA
+    if (i === 0) prevSmooth = yNoisy;
+    else prevSmooth = 0.15 * yNoisy + 0.85 * prevSmooth;
+    smoothPts.push(`${x.toFixed(1)},${prevSmooth.toFixed(1)}`);
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:380px;height:auto;display:block;margin:0 auto">
+    <line x1="50" y1="${midY}" x2="${W-10}" y2="${midY}" stroke="#475569" stroke-width="1"/>
+    <line x1="50" y1="20" x2="50" y2="${H-20}" stroke="#475569" stroke-width="1"/>
+    <text x="${W/2}" y="14" fill="#a855f7" font-size="10" text-anchor="middle" font-family="'JetBrains Mono',monospace">Noisy signal vs ${filterName} smoothed</text>
+    <polyline points="${noisyPts.join(' ')}" stroke="#94a3b8" stroke-width="1" fill="none" opacity="0.5"/>
+    <polyline points="${smoothPts.join(' ')}" stroke="${filterColor}" stroke-width="2.2" fill="none"/>
+    <text x="${W-65}" y="35" fill="#94a3b8" font-size="9" font-family="'JetBrains Mono',monospace">━ noisy</text>
+    <text x="${W-65}" y="48" fill="${filterColor}" font-size="9" font-family="'JetBrains Mono',monospace" font-weight="600">━ ${filterName}</text>
+    <text x="${W-12}" y="${midY+18}" fill="#94a3b8" font-size="10" font-family="'JetBrains Mono',monospace">t</text>
+  </svg>`;
+},
+
+// 4. adcResolution — discrete quantization levels
+// Used for: P9 (Dynamic Range)
+adcResolution: (opts) => {
+  opts = opts || {};
+  const bits = opts.bits || 8;
+  const DR = opts.DR || (6.02 * bits + 1.76);
+  const W = 360, H = 180;
+  // Show staircase quantization
+  const levels = Math.min(16, Math.pow(2, Math.min(4, bits)));   // visual: 16 levels max
+  let stairs = '';
+  for (let i = 0; i < levels; i++) {
+    const y = 30 + (i/(levels-1)) * 120;
+    stairs += `<line x1="50" y1="${y.toFixed(1)}" x2="${W-30}" y2="${y.toFixed(1)}" stroke="#475569" stroke-width="0.5" stroke-dasharray="2,3" opacity="0.5"/>`;
+  }
+  // Continuous + sampled-quantized
+  const contPts = [], quantPts = [];
+  for (let i = 0; i <= 200; i++) {
+    const t = (i/200) * 4;
+    const x = 50 + (i/200) * 280;
+    const yC = 90 - 50 * Math.sin(2*Math.PI*t * 0.5);
+    contPts.push(`${x.toFixed(1)},${yC.toFixed(1)}`);
+    // Quantize
+    const yLevel = Math.round((yC - 30) / 120 * (levels-1));
+    const yQ = 30 + (yLevel/(levels-1)) * 120;
+    quantPts.push(`${x.toFixed(1)},${yQ.toFixed(1)}`);
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:380px;height:auto;display:block;margin:0 auto">
+    <line x1="50" y1="20" x2="50" y2="${H-20}" stroke="#475569" stroke-width="1"/>
+    <line x1="50" y1="${H-20}" x2="${W-10}" y2="${H-20}" stroke="#475569" stroke-width="1"/>
+    <text x="${W/2}" y="14" fill="#a855f7" font-size="10" text-anchor="middle" font-family="'JetBrains Mono',monospace">ADC ${bits}-bit | DR = ${DR.toFixed(1)} dB</text>
+    ${stairs}
+    <polyline points="${contPts.join(' ')}" stroke="#a855f7" stroke-width="1.5" fill="none" opacity="0.5"/>
+    <polyline points="${quantPts.join(' ')}" stroke="#0ea5e9" stroke-width="2" fill="none"/>
+    <text x="${W-65}" y="35" fill="#a855f7" font-size="9" font-family="'JetBrains Mono',monospace">━ continuous</text>
+    <text x="${W-65}" y="48" fill="#0ea5e9" font-size="9" font-family="'JetBrains Mono',monospace" font-weight="600">━ quantized</text>
+    <text x="20" y="100" fill="#94a3b8" font-size="9" text-anchor="middle" transform="rotate(-90 20 100)" font-family="'JetBrains Mono',monospace">amplitude</text>
+    <text x="${W-12}" y="${H-5}" fill="#94a3b8" font-size="10" font-family="'JetBrains Mono',monospace">t</text>
+  </svg>`;
+},
+
+// 5. spectrogramView — frequency vs time with peak marker
+// Used for: P11 (heatmap), P23 (FFT spectrogram), P12 (aliasing detection)
+spectrogramView: (opts) => {
+  opts = opts || {};
+  const peakFreq = opts.peakFreq || 50;     // peak frequency line position
+  const peakLabel = opts.peakLabel || `${peakFreq} Hz`;
+  const aliased = opts.aliased || false;
+  const W = 360, H = 180;
+  const fmax = opts.fmax || 200;            // y-axis range
+  const peakY = (H-30) - ((peakFreq/fmax) * (H-50));
+  // Background heat blobs (visual approx of FFT magnitude)
+  let blobs = '';
+  // primary peak (bright)
+  blobs += `<rect x="50" y="${peakY-3}" width="${W-60}" height="6" fill="#f97316" opacity="0.7"/>`;
+  blobs += `<rect x="50" y="${peakY-1}" width="${W-60}" height="2" fill="#fbbf24" opacity="1"/>`;
+  // background noise blobs
+  for (let i = 0; i < 30; i++) {
+    const x = 50 + Math.random()*(W-60);
+    const y = 30 + Math.random()*(H-50);
+    const r = 5 + Math.random()*15;
+    const op = 0.05 + Math.random()*0.15;
+    blobs += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="#a855f7" opacity="${op.toFixed(2)}"/>`;
+  }
+  let warnText = '';
+  if (aliased) {
+    const realY = (H-30) - ((opts.realFreq||120) / fmax * (H-50));
+    warnText = `<line x1="50" y1="${realY}" x2="${W-10}" y2="${realY}" stroke="#ef4444" stroke-width="1" stroke-dasharray="3,3"/>
+      <text x="${W-12}" y="${realY-3}" fill="#ef4444" font-size="9" text-anchor="end" font-family="'JetBrains Mono',monospace">${opts.realFreq} Hz REAL (above Nyquist)</text>`;
+  }
+  // Y-axis ticks
+  let yTicks = '';
+  for (let f = 0; f <= fmax; f += fmax/5) {
+    const y = (H-30) - (f/fmax) * (H-50);
+    yTicks += `<line x1="48" y1="${y.toFixed(1)}" x2="50" y2="${y.toFixed(1)}" stroke="#94a3b8" stroke-width="1"/>
+      <text x="44" y="${(y+3).toFixed(1)}" fill="#94a3b8" font-size="8" text-anchor="end" font-family="'JetBrains Mono',monospace">${f.toFixed(0)}</text>`;
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:380px;height:auto;display:block;margin:0 auto">
+    <line x1="50" y1="20" x2="50" y2="${H-20}" stroke="#475569" stroke-width="1"/>
+    <line x1="50" y1="${H-20}" x2="${W-10}" y2="${H-20}" stroke="#475569" stroke-width="1"/>
+    <text x="${W/2}" y="14" fill="#a855f7" font-size="10" text-anchor="middle" font-family="'JetBrains Mono',monospace">FFT Spectrum — peak @ ${peakLabel}</text>
+    ${blobs}
+    ${yTicks}
+    ${warnText}
+    <text x="20" y="100" fill="#94a3b8" font-size="9" text-anchor="middle" transform="rotate(-90 20 100)" font-family="'JetBrains Mono',monospace">f (Hz)</text>
+    <text x="${W-12}" y="${H-5}" fill="#94a3b8" font-size="10" font-family="'JetBrains Mono',monospace">t (s)</text>
+    <circle cx="${W/2}" cy="${peakY}" r="5" fill="#fbbf24" stroke="#fff" stroke-width="1.5"/>
+    <text x="${W/2+10}" y="${peakY-5}" fill="#fbbf24" font-size="10" font-family="'JetBrains Mono',monospace" font-weight="600">${peakLabel}</text>
+  </svg>`;
+},
+
+// 6. decomposition — y = T + S + R panels (3 stacked)
+// Used for: P17 (first diff), P18 (decomposition), P20 (ADF)
+decomposition: (opts) => {
+  opts = opts || {};
+  const W = 360, H = 220;
+  const panelH = 60;
+  const showLabels = opts.labels !== false;
+  // Generate trend, seasonal, noise
+  const trendPts = [], seasonalPts = [], residualPts = [], originalPts = [];
+  for (let i = 0; i <= 100; i++) {
+    const t = (i/100) * 6;
+    const x = 50 + (i/100) * 280;
+    const trend = (i/100) * 30;          // linear trend
+    const seasonal = 12 * Math.sin(2*Math.PI*t/2);  // periodic
+    const noise = (Math.sin(i*7.91) + Math.sin(i*11.71)) * 4;
+    // Original = trend + seasonal + noise
+    const yO = 30 - trend*0.3 - seasonal*0.4 - noise*0.3;
+    const yT = 90 - trend*0.6;
+    const yS = 145 - seasonal*0.7;
+    const yR = 200 - noise*0.7;
+    originalPts.push(`${x.toFixed(1)},${yO.toFixed(1)}`);
+    trendPts.push(`${x.toFixed(1)},${yT.toFixed(1)}`);
+    seasonalPts.push(`${x.toFixed(1)},${yS.toFixed(1)}`);
+    residualPts.push(`${x.toFixed(1)},${yR.toFixed(1)}`);
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:380px;height:auto;display:block;margin:0 auto">
+    <text x="${W/2}" y="11" fill="#a855f7" font-size="9" text-anchor="middle" font-family="'JetBrains Mono',monospace">Decomposition: y(t) = Trend + Seasonal + Residual</text>
+    <line x1="50" y1="50" x2="${W-10}" y2="50" stroke="#475569" stroke-width="0.7" stroke-dasharray="2,3"/>
+    <line x1="50" y1="115" x2="${W-10}" y2="115" stroke="#475569" stroke-width="0.7" stroke-dasharray="2,3"/>
+    <line x1="50" y1="170" x2="${W-10}" y2="170" stroke="#475569" stroke-width="0.7" stroke-dasharray="2,3"/>
+    <polyline points="${originalPts.join(' ')}" stroke="#a855f7" stroke-width="1.5" fill="none"/>
+    <polyline points="${trendPts.join(' ')}" stroke="#0ea5e9" stroke-width="1.8" fill="none"/>
+    <polyline points="${seasonalPts.join(' ')}" stroke="#00e09e" stroke-width="1.5" fill="none"/>
+    <polyline points="${residualPts.join(' ')}" stroke="#f97316" stroke-width="1" fill="none"/>
+    ${showLabels ? `
+    <text x="${W-12}" y="25" fill="#a855f7" font-size="8" text-anchor="end" font-family="'JetBrains Mono',monospace">y(t)</text>
+    <text x="${W-12}" y="80" fill="#0ea5e9" font-size="8" text-anchor="end" font-family="'JetBrains Mono',monospace">Trend T(t)</text>
+    <text x="${W-12}" y="135" fill="#00e09e" font-size="8" text-anchor="end" font-family="'JetBrains Mono',monospace">Seasonal S(t)</text>
+    <text x="${W-12}" y="190" fill="#f97316" font-size="8" text-anchor="end" font-family="'JetBrains Mono',monospace">Residual R(t)</text>
+    ` : ''}
+    <line x1="50" y1="${H-15}" x2="${W-10}" y2="${H-15}" stroke="#475569" stroke-width="1"/>
+    <text x="${W-12}" y="${H-2}" fill="#94a3b8" font-size="9" font-family="'JetBrains Mono',monospace">t</text>
+  </svg>`;
+},
+
+// 7. acquisitionPipeline — sensor → ADC → edge → cloud schematic
+// Used for: P9 (DR ADC), P10 (storage), P11 (heatmap)
+acquisitionPipeline: (opts) => {
+  opts = opts || {};
+  const fs_label = opts.fs_label || 'fs';
+  const bits_label = opts.bits || '16';
+  const W = 380, H = 140;
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:400px;height:auto;display:block;margin:0 auto">
+    <text x="${W/2}" y="14" fill="#a855f7" font-size="10" text-anchor="middle" font-family="'JetBrains Mono',monospace">Acquisition Pipeline — fs=${fs_label}, ${bits_label}-bit</text>
+    
+    <!-- Sensor -->
+    <circle cx="40" cy="70" r="22" fill="#1a2332" stroke="#0ea5e9" stroke-width="2"/>
+    <text x="40" y="65" fill="#0ea5e9" font-size="9" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="600">Sensor</text>
+    <text x="40" y="78" fill="#0ea5e9" font-size="8" text-anchor="middle" font-family="'JetBrains Mono',monospace">vibration</text>
+    <text x="40" y="105" fill="#94a3b8" font-size="8" text-anchor="middle" font-family="'JetBrains Mono',monospace">analog</text>
+    
+    <!-- Arrow 1 -->
+    <line x1="65" y1="70" x2="105" y2="70" stroke="#94a3b8" stroke-width="1.5"/>
+    <polygon points="100,66 110,70 100,74" fill="#94a3b8"/>
+    
+    <!-- ADC -->
+    <rect x="115" y="50" width="55" height="40" fill="#1a2332" stroke="#a855f7" stroke-width="2" rx="3"/>
+    <text x="142" y="68" fill="#a855f7" font-size="10" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="600">ADC</text>
+    <text x="142" y="80" fill="#a855f7" font-size="8" text-anchor="middle" font-family="'JetBrains Mono',monospace">${bits_label}-bit</text>
+    <text x="142" y="105" fill="#94a3b8" font-size="8" text-anchor="middle" font-family="'JetBrains Mono',monospace">digital</text>
+    
+    <!-- Arrow 2 -->
+    <line x1="175" y1="70" x2="215" y2="70" stroke="#94a3b8" stroke-width="1.5"/>
+    <polygon points="210,66 220,70 210,74" fill="#94a3b8"/>
+    
+    <!-- Edge -->
+    <rect x="225" y="50" width="60" height="40" fill="#1a2332" stroke="#00e09e" stroke-width="2" rx="3"/>
+    <text x="255" y="68" fill="#00e09e" font-size="10" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="600">Edge</text>
+    <text x="255" y="80" fill="#00e09e" font-size="8" text-anchor="middle" font-family="'JetBrains Mono',monospace">RMS/peak</text>
+    <text x="255" y="105" fill="#94a3b8" font-size="8" text-anchor="middle" font-family="'JetBrains Mono',monospace">features</text>
+    
+    <!-- Arrow 3 -->
+    <line x1="290" y1="70" x2="320" y2="70" stroke="#94a3b8" stroke-width="1.5"/>
+    <polygon points="315,66 325,70 315,74" fill="#94a3b8"/>
+    
+    <!-- Cloud -->
+    <ellipse cx="350" cy="70" rx="22" ry="14" fill="#1a2332" stroke="#f97316" stroke-width="2"/>
+    <text x="350" y="68" fill="#f97316" font-size="9" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="600">Cloud</text>
+    <text x="350" y="78" fill="#f97316" font-size="7" text-anchor="middle" font-family="'JetBrains Mono',monospace">storage</text>
+    <text x="350" y="105" fill="#94a3b8" font-size="8" text-anchor="middle" font-family="'JetBrains Mono',monospace">TSDB</text>
+    
+    <!-- fs label below -->
+    <text x="${W/2}" y="${H-3}" fill="#94a3b8" font-size="9" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-style="italic">sampling: ${fs_label}</text>
+  </svg>`;
+},
+
+// 8. outlierPlot — scatter with outliers highlighted
+// Used for: P13 (3-sigma), P15 (Z-score), P25 (IQR)
+outlierPlot: (opts) => {
+  opts = opts || {};
+  const threshold = opts.threshold || 3.0;
+  const n_outliers = opts.n_outliers || 5;
+  const W = 360, H = 180, midY = 90;
+  // Generate inliers + outliers
+  let dots = '';
+  // Inliers (random in ±2 sigma)
+  for (let i = 0; i < 50; i++) {
+    const x = 50 + (i/49) * 280;
+    const y = midY - (Math.sin(i*1.91) + Math.cos(i*2.71)) * 18;
+    dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.5" fill="#94a3b8" opacity="0.7"/>`;
+  }
+  // Outliers (above 3-sigma)
+  for (let i = 0; i < Math.min(n_outliers, 8); i++) {
+    const x = 60 + i * 28;
+    const y = midY - 60;
+    dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" fill="#ef4444" stroke="#fff" stroke-width="1"/>`;
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:380px;height:auto;display:block;margin:0 auto">
+    <text x="${W/2}" y="14" fill="#a855f7" font-size="10" text-anchor="middle" font-family="'JetBrains Mono',monospace">Outlier Detection — ${n_outliers} outliers (red)</text>
+    <line x1="50" y1="${midY}" x2="${W-10}" y2="${midY}" stroke="#475569" stroke-width="1"/>
+    <line x1="50" y1="20" x2="50" y2="${H-20}" stroke="#475569" stroke-width="1"/>
+    <line x1="50" y1="${midY-50}" x2="${W-10}" y2="${midY-50}" stroke="#ef4444" stroke-width="1" stroke-dasharray="4,3"/>
+    <line x1="50" y1="${midY+50}" x2="${W-10}" y2="${midY+50}" stroke="#ef4444" stroke-width="1" stroke-dasharray="4,3"/>
+    <text x="${W-12}" y="${midY-53}" fill="#ef4444" font-size="9" text-anchor="end" font-family="'JetBrains Mono',monospace">+${threshold}σ</text>
+    <text x="${W-12}" y="${midY+62}" fill="#ef4444" font-size="9" text-anchor="end" font-family="'JetBrains Mono',monospace">−${threshold}σ</text>
+    ${dots}
+    <text x="20" y="${midY+4}" fill="#94a3b8" font-size="10" text-anchor="middle" font-family="'JetBrains Mono',monospace">μ</text>
+    <text x="${W-12}" y="${H-5}" fill="#94a3b8" font-size="10" font-family="'JetBrains Mono',monospace">i</text>
+  </svg>`;
+},
+
+
 };
 
 // Wrapper untuk inject diagram dalam card soal (dengan label)
@@ -1840,7 +2174,8 @@ const UTS_TF = [
                • <b>f<sub>s</sub> = (N + 1) × 100 = (${N} + 1) × 100 = ${fs} Hz</b><br>
                Pernyataan: <em>Sinyal dengan frekuensi 600 Hz dapat direkonstruksi tanpa aliasing dari hasil sampling pada f<sub>s</sub> = ${fs} Hz</em>.`,
         answer: f_nyquist > claim_freq,
-        explain: `f<sub>Nyquist</sub> = f<sub>s</sub>/2 = ${fs}/2 = <b>${f_nyquist} Hz</b>. ${f_nyquist > claim_freq ? `${f_nyquist} > 600 → BENAR` : `${f_nyquist} ≤ 600 → SALAH (aliasing)`}`
+        explain: `f<sub>Nyquist</sub> = f<sub>s</sub>/2 = ${fs}/2 = <b>${f_nyquist} Hz</b>. ${f_nyquist > claim_freq ? `${f_nyquist} > 600 → BENAR` : `${f_nyquist} ≤ 600 → SALAH (aliasing)`}`,
+        diagram: _diagram(`Sampling fs = ${fs} Hz; Nyquist = fs/2 = ${f_nyquist} Hz`, _svg.samplingDiagram({fs_label:`${fs} Hz`, f_label:'600 Hz', aliased: !(f_nyquist > claim_freq), n_samples: Math.min(20, Math.round(fs/100))}))
       };
     }
   },
@@ -1850,7 +2185,8 @@ const UTS_TF = [
     id: 'tf3', modul: 2, parametric: false,
     text: "<b>Median filter</b> lebih efektif daripada Moving Average untuk menghilangkan <em>impulse spike</em> (lonjakan acak singkat) tanpa merusak bentuk sinyal sekitarnya.",
     answer: true,
-    explain: "Pertemuan 2 Bagian 04 — operasi nonlinear median 'menelan' spike sepenuhnya, sedangkan MA hanya mengurangi (menyebar spike ke window)."
+    explain: "Pertemuan 2 Bagian 04 — operasi nonlinear median 'menelan' spike sepenuhnya, sedangkan MA hanya mengurangi (menyebar spike ke window).",
+    diagram: _diagram('Median filter menelan impulse spike (vs MA yang hanya merata-ratakan)', _svg.filterCompare({filter:'Median', color:'#f97316'}))
   },
   {
     id: 'tf4', modul: 2, parametric: true,
@@ -1866,7 +2202,8 @@ const UTS_TF = [
                • <b>α = (N + 1) / 200 = (${N} + 1) / 200 = ${alpha.toFixed(4)}</b><br>
                Pernyataan: <em>EMA dengan α = ${alpha.toFixed(4)} memiliki effective window N<sub>eff</sub> &gt; ${claim} sampel</em> (rumus: N<sub>eff</sub> = 2/α − 1).`,
         answer: N_eff > claim,
-        explain: `N<sub>eff</sub> = 2/α − 1 = 2/${alpha.toFixed(4)} − 1 = <b>${N_eff.toFixed(1)}</b>. ${N_eff > claim ? `${N_eff.toFixed(1)} > ${claim} → BENAR` : `${N_eff.toFixed(1)} ≤ ${claim} → SALAH`}`
+        explain: `N<sub>eff</sub> = 2/α − 1 = 2/${alpha.toFixed(4)} − 1 = <b>${N_eff.toFixed(1)}</b>. ${N_eff > claim ? `${N_eff.toFixed(1)} > ${claim} → BENAR` : `${N_eff.toFixed(1)} ≤ ${claim} → SALAH`}`,
+        diagram: _diagram(`EMA dengan α = ${alpha.toFixed(4)} → N_eff ≈ ${N_eff.toFixed(1)} sampel`, _svg.filterCompare({filter:'EMA', color:'#0ea5e9'}))
       };
     }
   },
@@ -1876,7 +2213,8 @@ const UTS_TF = [
     id: 'tf5', modul: 3, parametric: false,
     text: "Untuk monitoring vibration motor 1500 RPM dengan deteksi bearing fault hingga 5 kHz, sampling rate <b>1 kHz</b> sudah cukup karena di atas frekuensi rotasi nominal.",
     answer: false,
-    explain: "Pertemuan 3 Bagian 02 — Nyquist mensyaratkan f<sub>s</sub> ≥ 2·f<sub>maks</sub> = 10 kHz. Praktik industri pakai oversampling 5-10× → 25-50 kHz. 1 kHz akan menyebabkan aliasing parah."
+    explain: "Pertemuan 3 Bagian 02 — Nyquist mensyaratkan f<sub>s</sub> ≥ 2·f<sub>maks</sub> = 10 kHz. Praktik industri pakai oversampling 5-10× → 25-50 kHz. 1 kHz akan menyebabkan aliasing parah.",
+    diagram: _diagram('1 kHz tidak cukup untuk capture 5 kHz (under-Nyquist → aliasing)', _svg.samplingDiagram({fs_label:'1 kHz', f_label:'5 kHz', aliased:true, n_samples:5}))
   },
   {
     id: 'tf6', modul: 3, parametric: true,
@@ -1892,7 +2230,8 @@ const UTS_TF = [
                Pernyataan: <em>ADC dengan resolusi ${bits}-bit memiliki Dynamic Range &gt; ${claim} dB</em>.<br>
                Rumus: DR = 6.02·N<sub>bits</sub> + 1.76`,
         answer: DR > claim,
-        explain: `DR = 6.02·${bits} + 1.76 = <b>${DR.toFixed(2)} dB</b>. ${DR > claim ? `${DR.toFixed(2)} > ${claim} → BENAR` : `${DR.toFixed(2)} ≤ ${claim} → SALAH`}`
+        explain: `DR = 6.02·${bits} + 1.76 = <b>${DR.toFixed(2)} dB</b>. ${DR > claim ? `${DR.toFixed(2)} > ${claim} → BENAR` : `${DR.toFixed(2)} ≤ ${claim} → SALAH`}`,
+        diagram: _diagram(`ADC ${bits}-bit → DR = ${DR.toFixed(2)} dB`, _svg.adcResolution({bits, DR}))
       };
     }
   },
@@ -1902,7 +2241,8 @@ const UTS_TF = [
     id: 'tf7', modul: 4, parametric: false,
     text: "Outlier detection dengan <b>3-σ rule</b> hanya valid jika distribusi data approximately normal (Gaussian). Untuk distribusi skewed atau heavy-tailed, lebih baik gunakan IQR atau MAD.",
     answer: true,
-    explain: "Pertemuan 4 Bagian 03 — 3σ asumsi Gaussian. Untuk data non-normal, IQR (1.5×IQR) atau MAD (Median Absolute Deviation) lebih robust."
+    explain: "Pertemuan 4 Bagian 03 — 3σ asumsi Gaussian. Untuk data non-normal, IQR (1.5×IQR) atau MAD (Median Absolute Deviation) lebih robust.",
+    diagram: _diagram('Distribusi normal — 3σ rule menangkap ~99.7% data, sisanya outlier', _svg.outlierPlot({threshold:3.0, n_outliers:5}))
   },
   {
     id: 'tf8', modul: 4, parametric: true,
@@ -1925,7 +2265,8 @@ const UTS_TF = [
     id: 'tf9', modul: 5, parametric: false,
     text: "Pada dekomposisi <b>aditif</b> (y = T + S + R), amplitudo komponen seasonal diasumsikan <b>tetap konstan</b> tanpa peduli level tren. Sedangkan dekomposisi <b>multiplikatif</b> (y = T × S × R) seasonal-nya proporsional terhadap tren.",
     answer: true,
-    explain: "Pertemuan 5 Bagian 02 — pilihan aditif vs multiplikatif tergantung apakah amplitudo musiman skala dengan tren (multiplikatif) atau konstan (aditif)."
+    explain: "Pertemuan 5 Bagian 02 — pilihan aditif vs multiplikatif tergantung apakah amplitudo musiman skala dengan tren (multiplikatif) atau konstan (aditif).",
+    diagram: _diagram('Aditif: amplitude seasonal konstan vs Multiplikatif: skala dengan trend', _svg.decomposition({}))
   },
   {
     id: 'tf10', modul: 5, parametric: true,
@@ -1976,7 +2317,8 @@ const UTS_MC = [
       "f<sub>s</sub> = (f<sub>maks</sub>)²"
     ],
     correctIdx: 1,
-    explain: "Pertemuan 1 Bagian 04 — Teorema Nyquist: f<sub>s</sub> ≥ 2·f<sub>maks</sub>. Praktik industri pakai oversampling 5-10× untuk margin anti-aliasing filter."
+    explain: "Pertemuan 1 Bagian 04 — Teorema Nyquist: f<sub>s</sub> ≥ 2·f<sub>maks</sub>. Praktik industri pakai oversampling 5-10× untuk margin anti-aliasing filter.",
+    diagram: _diagram('Sampling rate fs harus minimal 2× frekuensi maksimum sinyal', _svg.samplingDiagram({fs_label:'fs', f_label:'fmax', n_samples:14}))
   },
   {
     id: 'mc3', modul: 1, parametric: true,
@@ -1998,7 +2340,8 @@ const UTS_MC = [
                Frekuensi rotasi <b>f<sub>1×</sub></b> dalam Hz adalah:`,
         options: shuffled.map(o => o.lbl + ' Hz'),
         correctIdx: shuffled.findIndex(o => o.v === correct),
-        explain: `f<sub>1×</sub> = RPM/60 = ${rpm}/60 = <b>${correct.toFixed(2)} Hz</b>`
+        explain: `f<sub>1×</sub> = RPM/60 = ${rpm}/60 = <b>${correct.toFixed(2)} Hz</b>`,
+        diagram: _diagram(`Motor rotasi ${rpm} RPM → frekuensi f1× = ${f_rotational_hz.toFixed(2)} Hz`, _svg.timeSeriesPlot({A:1, f_label: `${f_rotational_hz.toFixed(2)} Hz`}))
       };
     }
   },
@@ -2012,7 +2355,8 @@ const UTS_MC = [
       "Sinyal terlalu lemah untuk dianalisis"
     ],
     correctIdx: 2,
-    explain: "Pertemuan 1 Bagian 03 — CF tinggi mengindikasikan sinyal punya peak yang jauh di atas energi rata-rata, khas pada bearing fault dengan periodic impacts."
+    explain: "Pertemuan 1 Bagian 03 — CF tinggi mengindikasikan sinyal punya peak yang jauh di atas energi rata-rata, khas pada bearing fault dengan periodic impacts.",
+    diagram: _diagram('Crest Factor = peak / RMS (CF = 1.41 untuk sinusoid murni; tinggi → impulsive)', _svg.timeSeriesPlot({showCF:true, f_label:'50 Hz'}))
   },
 
   // ── PERTEMUAN 2: Filter & Smoothing (4 soal) ──
@@ -2026,7 +2370,8 @@ const UTS_MC = [
       "Memerlukan polynomial fitting"
     ],
     correctIdx: 1,
-    explain: "Pertemuan 2 Bagian 02 — trailing MA hanya butuh data masa lalu (causal), tapi output tertinggal di belakang sinyal sejati sebesar setengah window."
+    explain: "Pertemuan 2 Bagian 02 — trailing MA hanya butuh data masa lalu (causal), tapi output tertinggal di belakang sinyal sejati sebesar setengah window.",
+    diagram: _diagram('Trailing MA = causal filter, output tertinggal di belakang sinyal sejati', _svg.filterCompare({filter:'Trailing MA', color:'#00e09e'}))
   },
   {
     id: 'mc6', modul: 2, parametric: true,
@@ -2050,7 +2395,8 @@ const UTS_MC = [
                <b>Effective window N<sub>eff</sub></b> dari EMA dengan α = ${alpha.toFixed(4)} adalah:`,
         options: shuffled.map(o => o.lbl + ' sampel'),
         correctIdx: shuffled.findIndex(o => o.v === correct),
-        explain: `N<sub>eff</sub> = 2/α − 1 = 2/${alpha.toFixed(4)} − 1 = <b>${N_eff.toFixed(1)} sampel</b>`
+        explain: `N<sub>eff</sub> = 2/α − 1 = 2/${alpha.toFixed(4)} − 1 = <b>${N_eff.toFixed(1)} sampel</b>`,
+        diagram: _diagram(`EMA dengan α = ${alpha.toFixed(4)} (responsif tergantung α)`, _svg.filterCompare({filter:'EMA', color:'#0ea5e9'}))
       };
     }
   },
@@ -2064,7 +2410,8 @@ const UTS_MC = [
       "Savitzky-Golay dengan polynomial order tinggi"
     ],
     correctIdx: 2,
-    explain: "Pertemuan 2 Bagian 04 — Median filter operasinya nonlinear (pilih nilai tengah), sehingga spike tunggal akan diabaikan oleh median."
+    explain: "Pertemuan 2 Bagian 04 — Median filter operasinya nonlinear (pilih nilai tengah), sehingga spike tunggal akan diabaikan oleh median.",
+    diagram: _diagram('Median filter (nonlinear) menelan spike, MA hanya merata-ratakan', _svg.filterCompare({filter:'Median', color:'#f97316'}))
   },
   {
     id: 'mc8', modul: 2, parametric: false,
@@ -2076,7 +2423,8 @@ const UTS_MC = [
       "Operasi Python tidak mendukung pipeline tersebut"
     ],
     correctIdx: 1,
-    explain: "Pertemuan 2 Bagian 04 — MA/EMA punya frequency response sinc-like dengan attenuation pada pita rendah; smoothing time-domain akan menumpulkan peak FFT sehingga severity assessment ISO 10816 menjadi tidak akurat."
+    explain: "Pertemuan 2 Bagian 04 — MA/EMA punya frequency response sinc-like dengan attenuation pada pita rendah; smoothing time-domain akan menumpulkan peak FFT sehingga severity assessment ISO 10816 menjadi tidak akurat.",
+    diagram: _diagram('FFT spektrum — peak akan tumpul jika smoothing diterapkan sebelum FFT', _svg.spectrogramView({peakFreq:50, peakLabel:'50 Hz', fmax:200}))
   },
 
   // ── PERTEMUAN 3: Visualisasi & Akuisisi Pipeline (4 soal) ──
@@ -2090,7 +2438,8 @@ const UTS_MC = [
       "ADC → Cloud → Sensor (urutan terbalik)"
     ],
     correctIdx: 1,
-    explain: "Pertemuan 3 Bagian 01 — pipeline standar 5 tahap: sensor → conditioning (gain, anti-aliasing filter) → ADC → edge processing → storage/cloud. Setiap tahap punya potensi memperkenalkan artefak."
+    explain: "Pertemuan 3 Bagian 01 — pipeline standar 5 tahap: sensor → conditioning (gain, anti-aliasing filter) → ADC → edge processing → storage/cloud. Setiap tahap punya potensi memperkenalkan artefak.",
+    diagram: _diagram('Pipeline akuisisi industri: 5 tahap kritis dari sensor ke storage', _svg.acquisitionPipeline({fs_label:'25 kHz', bits:'16'}))
   },
   {
     id: 'mc10', modul: 3, parametric: true,
@@ -2113,7 +2462,8 @@ const UTS_MC = [
                <b>Dynamic Range (dB)</b> dari ADC ${bits}-bit (rumus: DR = 6.02·N<sub>bits</sub> + 1.76):`,
         options: shuffled.map(o => o.lbl + (o.v < 200 ? ' dB' : '')),
         correctIdx: shuffled.findIndex(o => o.v === correct),
-        explain: `DR = 6.02·${bits} + 1.76 = <b>${DR.toFixed(2)} dB</b>`
+        explain: `DR = 6.02·${bits} + 1.76 = <b>${DR.toFixed(2)} dB</b>`,
+        diagram: _diagram(`ADC ${bits}-bit → DR = ${DR.toFixed(2)} dB`, _svg.adcResolution({bits, DR}))
       };
     }
   },
@@ -2153,7 +2503,8 @@ const UTS_MC = [
       "Tidak boleh ada missing values"
     ],
     correctIdx: 1,
-    explain: "Pertemuan 4 Bagian 03 — 3σ menghasilkan ~99.7% coverage hanya untuk distribusi normal. Untuk data skewed/heavy-tailed, gunakan IQR (1.5×IQR) atau MAD (Median Absolute Deviation)."
+    explain: "Pertemuan 4 Bagian 03 — 3σ menghasilkan ~99.7% coverage hanya untuk distribusi normal. Untuk data skewed/heavy-tailed, gunakan IQR (1.5×IQR) atau MAD (Median Absolute Deviation).",
+    diagram: _diagram('3-σ rule valid HANYA untuk distribusi Gaussian (~99.7% coverage)', _svg.outlierPlot({threshold:3.0, n_outliers:5}))
   },
   {
     id: 'mc14', modul: 4, parametric: true,
@@ -2253,7 +2604,8 @@ const UTS_MC = [
       "Hanya bisa dengan ML"
     ],
     correctIdx: 1,
-    explain: "Pertemuan 5 Bagian 02 — centered MA dengan window = periode musiman (mis. 12 untuk monthly seasonality) menghapus seasonal & noise → estimasi smooth trend. Setelah trend ditemukan, S = y/T, lalu rata-ratakan per periode untuk seasonal pattern."
+    explain: "Pertemuan 5 Bagian 02 — centered MA dengan window = periode musiman (mis. 12 untuk monthly seasonality) menghapus seasonal & noise → estimasi smooth trend. Setelah trend ditemukan, S = y/T, lalu rata-ratakan per periode untuk seasonal pattern.",
+    diagram: _diagram('Multiplikatif: amplitude seasonal proporsional dengan trend', _svg.decomposition({}))
   },
   {
     id: 'mc20', modul: 5, parametric: false,
@@ -2265,7 +2617,8 @@ const UTS_MC = [
       "Banyaknya outlier"
     ],
     correctIdx: 1,
-    explain: "Pertemuan 5 Bagian 03 — ADF test, hipotesis null H₀: deret memiliki unit root (non-stationary). Jika p-value &lt; 0.05, tolak H₀ → deret stationary. Stationarity penting untuk modeling ARIMA."
+    explain: "Pertemuan 5 Bagian 03 — ADF test, hipotesis null H₀: deret memiliki unit root (non-stationary). Jika p-value &lt; 0.05, tolak H₀ → deret stationary. Stationarity penting untuk modeling ARIMA.",
+    diagram: _diagram('ADF test: deteksi unit root → stationary atau non-stationary', _svg.decomposition({}))
   }
 ];;
 
@@ -2288,7 +2641,8 @@ const UTS_COMP_EZ = [
                Hitung <b>frekuensi rotasi f<sub>1×</sub></b> dalam <b>Hz</b>. Rumus: f = RPM / 60.`,
         hint: `# N = ${N} (dari 2 digit terakhir NIM Anda)\nrpm = ${rpm}      # = (N+1) * 30\n# TODO: hitung f_rot = rpm / 60\n# TODO: print(f_rot)`,
         expected: f_rot,
-        tolerance: 0.05
+        tolerance: 0.05,
+        diagram: _diagram(`Motor ${rpm} RPM → frekuensi rotasi ${f_rot.toFixed(2)} Hz`, _svg.timeSeriesPlot({f_label: `${f_rot.toFixed(2)} Hz`}))
       };
     }
   },
@@ -2307,7 +2661,8 @@ const UTS_COMP_EZ = [
                Rumus teoretis: RMS<sub>sin</sub> = A / √2.`,
         hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nA = ${A.toFixed(2)}      # = (N+1) / 10\n# TODO: hitung rms = A / np.sqrt(2)\n# TODO: print(rms)`,
         expected: rms,
-        tolerance: 0.01
+        tolerance: 0.01,
+        diagram: _diagram(`Sinusoid amplitudo A = ${A.toFixed(2)}, RMS = A/√2`, _svg.timeSeriesPlot({showCF:true, f_label:'50 Hz'}))
       };
     }
   },
@@ -2345,7 +2700,8 @@ const UTS_COMP_EZ = [
                Hitung <b>effective window N<sub>eff</sub></b> dari EMA. Rumus: N<sub>eff</sub> = 2/α − 1.`,
         hint: `# N = ${N} (dari NIM Anda)\nalpha = ${alpha.toFixed(4)}      # = (N+1) / 200, di-clamp ke [0.01, 0.5]\n# TODO: hitung n_eff = 2/alpha - 1\n# TODO: print(n_eff)`,
         expected: N_eff,
-        tolerance: 0.5
+        tolerance: 0.5,
+        diagram: _diagram(`EMA α = ${alpha.toFixed(4)} → N_eff = ${N_eff.toFixed(1)} sampel`, _svg.filterCompare({filter:'EMA', color:'#0ea5e9'}))
       };
     }
   },
@@ -2368,7 +2724,8 @@ const UTS_COMP_EZ = [
                Rumus: storage = f<sub>s</sub> × (bits/8) × channels × seconds / 1024².`,
         hint: `# N = ${N} (dari NIM Anda)\nfs = ${fs}        # = (N+1) * 100\nbits = 16\nchannels = 1\nseconds = 3600\n# TODO: hitung storage_MB = fs * bits/8 * channels * seconds / 1024**2\n# TODO: print(storage_MB)`,
         expected: storage_MB,
-        tolerance: 0.5
+        tolerance: 0.5,
+        diagram: _diagram(`Pipeline: fs = ${fs} Hz, 16-bit, hitung storage 1 jam`, _svg.acquisitionPipeline({fs_label: `${fs} Hz`, bits:'16'}))
       };
     }
   },
@@ -2388,7 +2745,8 @@ const UTS_COMP_EZ = [
                Rumus: DR = 6.02·N<sub>bits</sub> + 1.76.`,
         hint: `# N = ${N} (dari NIM Anda)\nbits = ${bits}        # = 8 + (N mod 17), di-clamp ke 24\n# TODO: hitung dr = 6.02 * bits + 1.76\n# TODO: print(dr)`,
         expected: DR,
-        tolerance: 0.1
+        tolerance: 0.1,
+        diagram: _diagram(`ADC ${bits}-bit → hitung DR (dB)`, _svg.adcResolution({bits, DR}))
       };
     }
   },
@@ -2429,7 +2787,8 @@ const UTS_COMP_EZ = [
                Hitung <b>Z-score</b> dari x. Rumus: z = (x − μ) / σ.`,
         hint: `# N = ${N} (dari NIM Anda)\nx = ${x}      # = N + 50\nmu = 50\nsigma = 10\n# TODO: hitung z = (x - mu) / sigma\n# TODO: print(z)`,
         expected: z,
-        tolerance: 0.01
+        tolerance: 0.01,
+        diagram: _diagram(`x = ${x}, μ = 50, σ = 10 → hitung z-score`, _svg.outlierPlot({threshold:3.0, n_outliers:1}))
       };
     }
   },
@@ -2470,7 +2829,8 @@ const UTS_COMP_EZ = [
                Hitung <b>first difference Δy<sub>1</sub> = y<sub>1</sub> − y<sub>0</sub></b>.`,
         hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nt = np.arange(10)\ny = (${N} + 1) + 0.5 * t      # y_t = (N+1) + 0.5·t\n# TODO: hitung first_diff = y[1] - y[0]\n# atau pakai np.diff(y)[0]\n# TODO: print(first_diff)`,
         expected: first_diff,
-        tolerance: 0.01
+        tolerance: 0.01,
+        diagram: _diagram('Time series y_t = (N+1) + 0.5·t — first diff = slope konstan', _svg.decomposition({labels:false}))
       };
     }
   }
@@ -2502,7 +2862,8 @@ const UTS_COMP_HARD = [
                Hasil sebaiknya mendekati nilai teoretis A/√2.`,
         hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nA = ${A.toFixed(2)}        # = (N+1) / 10\nfs = 1000      # tetap\nT = 1.0        # tetap (detik)\nf_signal = 50  # tetap (Hz)\n\n# TODO: 1. Generate array waktu t = np.arange(0, T, 1/fs)\n# TODO: 2. Generate sinyal x = A * np.sin(2 * np.pi * f_signal * t)\n# TODO: 3. Hitung rms = np.sqrt(np.mean(x**2))\n# TODO: 4. print(rms)`,
         expected: rms_theoretical,
-        tolerance: 0.01
+        tolerance: 0.01,
+        diagram: _diagram(`Sinusoid A = ${A.toFixed(2)}, fs = 1000 Hz, T = 1s — hitung RMS`, _svg.timeSeriesPlot({showCF:true, f_label:'50 Hz'}))
       };
     }
   },
@@ -2526,7 +2887,8 @@ const UTS_COMP_HARD = [
                Cetak <b>EMA[-1]</b> (nilai terakhir setelah konvergen, yang harus mendekati baseline 5.0).`,
         hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nalpha = ${alpha.toFixed(4)}     # = (N+1)/200, di-clamp ke [0.01, 0.5]\n\nnp.random.seed(42)\nsignal = 5.0 + np.random.randn(100) * 0.1   # baseline 5 + noise σ=0.1\n\nema = np.zeros(100)\nema[0] = signal[0]\n# TODO: loop dari i=1 sampai i=99\n#   ema[i] = alpha * signal[i] + (1 - alpha) * ema[i-1]\n# TODO: print(ema[-1])`,
         expected: 5.0,        // signal stationary around 5.0 → EMA converges
-        tolerance: 0.15        // generous tolerance for noise variation
+        tolerance: 0.15,        // generous tolerance for noise variation
+        diagram: _diagram(`EMA α = ${alpha.toFixed(4)} — implementasi from scratch`, _svg.filterCompare({filter:'EMA scratch', color:'#0ea5e9'}))
       };
     }
   },
@@ -2546,7 +2908,8 @@ const UTS_COMP_HARD = [
                Cetak <b>peak_freq</b> — harus sama dengan f<sub>signal</sub>.`,
         hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nf_signal = ${f_signal}     # = min(200, (N+1)*5)\nfs = 1000          # tetap\nT = 1.0            # tetap\n\nt = np.arange(0, T, 1/fs)\nx = np.sin(2 * np.pi * f_signal * t)\n\n# TODO: 1. Hitung fft_vals = np.fft.rfft(x)\n# TODO: 2. Hitung freqs = np.fft.rfftfreq(len(x), 1/fs)\n# TODO: 3. Cari peak: peak_idx = np.argmax(np.abs(fft_vals))\n# TODO: 4. peak_freq = freqs[peak_idx]\n# TODO: 5. print(peak_freq)`,
         expected: f_signal,
-        tolerance: 1.0
+        tolerance: 1.0,
+        diagram: _diagram(`Sinyal ${f_signal} Hz @ fs=1000 Hz — deteksi peak via FFT`, _svg.spectrogramView({peakFreq: f_signal, peakLabel: `${f_signal} Hz`, fmax: 250}))
       };
     }
   },
@@ -2566,7 +2929,8 @@ const UTS_COMP_HARD = [
                Cetak <b>jumlah titik dengan |x| > 3.0</b> — seharusnya sama persis dengan jumlah outlier yang Anda inject.`,
         hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nn_outliers = ${n_outliers}     # = N + 5\n\nnp.random.seed(42)\nbase = np.random.normal(0, 0.5, 500)\nbase[:n_outliers] = 5.0      # inject outliers di awal array\n\n# TODO: hitung detected = np.sum(np.abs(base) > 3.0)\n# TODO: print(int(detected))`,
         expected: n_outliers,
-        tolerance: 1
+        tolerance: 1,
+        diagram: _diagram(`${n_outliers} outlier injected (|x|=5.0) di base σ=0.5 — threshold |x|>3`, _svg.outlierPlot({threshold:3.0, n_outliers: Math.min(n_outliers, 8)}))
       };
     }
   },
@@ -2590,7 +2954,8 @@ const UTS_COMP_HARD = [
                Karena trend asli adalah 10 + 0.1·t, di t=50 nilai sebenarnya adalah 10 + 5 = 15 (dengan toleransi noise).`,
         hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nnp.random.seed(${N})\nn = 100\nt = np.arange(n)\ny = 10 + 0.1 * t + 2 * np.sin(2 * np.pi * t / 12) + np.random.normal(0, 0.5, n)\n\nwindow = 12\nhalf = window // 2     # = 6\ntrend = np.full(n, np.nan)\n# TODO: loop dari i=half sampai i=n-half\n#   trend[i] = np.mean(y[i-half+1 : i+half+1])  # centered\n# TODO: print(trend[50])`,
         expected: 15.0,        // 10 + 0.1·50 = 15
-        tolerance: 0.5         // generous untuk noise + seasonal residue
+        tolerance: 0.5,         // generous untuk noise + seasonal residue
+        diagram: _diagram('y_t = 10 + 0.1·t + 2·sin(2π·t/12) + noise — extract trend via centered MA', _svg.decomposition({}))
       };
     }
   }
