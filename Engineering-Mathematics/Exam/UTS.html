@@ -3905,6 +3905,19 @@ function checkForumReady() {
   if (!btn) return;
   _setBtnState(btn, allFilled);   // PEDOMAN §15.4b: explicit setters
   _saveDraft();                    // PEDOMAN §15.4: persist forum textareas on every check
+
+  // ── KEY ADDITION v10 (Pedoman §16.3): auto-populate textarea sambil user mengetik ──
+  // Ini menghilangkan dependency pada button click. Walau tombol Copy tidak
+  // responsif (cache / browser quirk / extension), HTML tetap tersedia di
+  // textarea bawah, mahasiswa Ctrl+C manual.
+  if (allFilled) {
+    try {
+      const _autoHtml = buildForumHtml();
+      if (_autoHtml && _autoHtml.length > 100) {
+        _populateForumOutput(_autoHtml);
+      }
+    } catch(e) { /* identity belum ada / textarea belum ready — silent */ }
+  }
 }
 
 // ── COPY FORUM HTML TO CLIPBOARD ──
