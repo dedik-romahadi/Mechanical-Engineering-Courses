@@ -2257,6 +2257,35 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <p style="color:var(--muted);font-size:13px;margin-bottom:24px">Di editor forum, klik tombol <strong style="color:var(--amber)">&lt;/&gt; HTML</strong> untuk beralih ke mode HTML, lalu paste kode yang sudah disalin.</p>
     <button class="btn-export-forum" id="btn-copy-forum" onclick="copyForumHtml()" disabled style="opacity:.4;cursor:not-allowed">📋 Copy Forum (kode HTML)</button>
     <div id="copy-forum-msg" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);margin-top:10px"></div>
+
+    <!-- Always-visible HTML output (foolproof manual copy fallback) -->
+    <div id="forum-html-output" style="display:none;margin-top:18px;text-align:left">
+      <div style="background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.3);border-radius:10px;padding:14px 16px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap">
+          <span style="font-size:14px;font-weight:700;color:var(--violet)">💡 Backup Manual Copy</span>
+          <span style="font-size:11px;color:var(--muted)">Jika auto-copy gagal, salin manual dari kotak di bawah</span>
+        </div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.5">
+          <strong style="color:var(--text)">Langkah:</strong>
+          1) Klik tombol <strong style="color:var(--cyan)">Pilih Semua</strong> di bawah · 
+          2) Tekan <kbd style="background:#1e293b;color:#e2e8f0;padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Ctrl+C</kbd> (atau <kbd style="background:#1e293b;color:#e2e8f0;padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Cmd+C</kbd> di Mac) · 
+          3) Paste di Fast Learning &gt; mode HTML.
+        </div>
+      </div>
+      <textarea id="forum-html-textarea" readonly 
+        style="width:100%;height:140px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.5;padding:12px 14px;background:#0a1224;color:#e2e8f0;border:1px solid var(--border);border-radius:10px;resize:vertical;outline:none;box-sizing:border-box"
+        placeholder="Kode HTML akan muncul di sini setelah Anda klik tombol Copy..."></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <button type="button" onclick="selectForumHtmlAll()" 
+          style="padding:8px 16px;border-radius:8px;border:1px solid rgba(0,229,255,.4);background:rgba(0,229,255,.12);color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;font-weight:600">
+          🔍 Pilih Semua
+        </button>
+        <button type="button" onclick="copyForumHtmlManual()" 
+          style="padding:8px 16px;border-radius:8px;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.12);color:var(--green);font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;font-weight:600">
+          📋 Copy Lagi
+        </button>
+      </div>
+    </div>
   </div>
 
 </div><!-- end section -->
@@ -3496,6 +3525,9 @@ function copyForumHtml() {
     console.error('[Forum] HTML output too short:', htmlCode);
     return;
   }
+  // ALWAYS populate output textarea + show output area FIRST (foolproof manual fallback)
+  _populateForumOutput(htmlCode);
+
   if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext) {
     navigator.clipboard.writeText(htmlCode).then(() => { _showCopySuccess(btn, msg); })
       .catch((err) => { console.warn('[Forum] Clipboard API failed, trying fallback:', err); fallbackCopy(htmlCode, btn, msg); });
@@ -3503,6 +3535,66 @@ function copyForumHtml() {
     fallbackCopy(htmlCode, btn, msg);
   }
 }
+
+// ── ALWAYS-VISIBLE HTML OUTPUT (foolproof manual copy fallback) ──
+function _populateForumOutput(htmlCode) {
+  const out = document.getElementById('forum-html-output');
+  const ta  = document.getElementById('forum-html-textarea');
+  if (out && ta) {
+    ta.value = htmlCode;
+    out.style.display = 'block';
+    setTimeout(() => { 
+      try { out.scrollIntoView({behavior:'smooth', block:'nearest'}); } catch(e){} 
+    }, 100);
+  }
+}
+
+function selectForumHtmlAll() {
+  const ta = document.getElementById('forum-html-textarea');
+  if (!ta || !ta.value) return;
+  ta.focus();
+  ta.select();
+  ta.setSelectionRange(0, ta.value.length);
+}
+
+function copyForumHtmlManual() {
+  const ta = document.getElementById('forum-html-textarea');
+  const msg = document.getElementById('copy-forum-msg');
+  if (!ta || !ta.value) return;
+  
+  selectForumHtmlAll();
+  
+  if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext) {
+    navigator.clipboard.writeText(ta.value).then(() => {
+      if (msg) {
+        msg.style.color = 'var(--green)';
+        msg.textContent = '✅ Tersalin lagi! Paste sekarang di Fast Learning.';
+      }
+    }).catch(() => {
+      _execCopyFallback(ta, msg);
+    });
+  } else {
+    _execCopyFallback(ta, msg);
+  }
+}
+
+function _execCopyFallback(ta, msg) {
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch(e) {}
+  if (msg) {
+    if (ok) {
+      msg.style.color = 'var(--green)';
+      msg.textContent = '✅ Tersalin via fallback! Paste sekarang di Fast Learning.';
+    } else {
+      msg.style.color = 'var(--amber)';
+      msg.textContent = '⚠ Auto-copy diblokir. Gunakan Ctrl+C (Cmd+C di Mac) untuk salin manual.';
+    }
+  }
+}
+
+window._populateForumOutput = _populateForumOutput;
+window.selectForumHtmlAll  = selectForumHtmlAll;
+window.copyForumHtmlManual = copyForumHtmlManual;
 function _showCopySuccess(btn, msg) {
   if (btn) {
     btn.textContent = '✅ Tersalin!';
