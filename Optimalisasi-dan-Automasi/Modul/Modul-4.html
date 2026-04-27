@@ -2685,11 +2685,12 @@ async function _ensurePythonPackages(code, fb) {
   if (!_pyodideInstance) return;
   // Detect packages from code: scan import statements
   const PACKAGE_PATTERNS = [
-    { name: 'pandas',     regex: /^\s*(?:import\s+pandas|from\s+pandas\s+import)/m },
-    { name: 'scipy',      regex: /^\s*(?:import\s+scipy|from\s+scipy[\s.]|import\s+scipy\.)/m },
-    { name: 'matplotlib', regex: /^\s*(?:import\s+matplotlib|from\s+matplotlib[\s.])/m },
-    { name: 'sympy',      regex: /^\s*(?:import\s+sympy|from\s+sympy\s+import)/m },
-    { name: 'scikit-learn', regex: /^\s*(?:import\s+sklearn|from\s+sklearn[\s.])/m }
+    { name: 'pandas',     regex: /(?:^|[\n;])\s*(?:from\s+pandas(?:\s|\.)|import\s+(?:[^\n#]*?,\s*)?pandas(?:\s|,|$))/m },
+    { name: 'scipy',      regex: /(?:^|[\n;])\s*(?:from\s+scipy(?:\s|\.)|import\s+(?:[^\n#]*?,\s*)?scipy(?:\s|,|\.|$))/m },
+    { name: 'matplotlib', regex: /(?:^|[\n;])\s*(?:from\s+matplotlib(?:\s|\.)|import\s+(?:[^\n#]*?,\s*)?matplotlib(?:\s|,|\.|$))/m },
+    { name: 'sympy',      regex: /(?:^|[\n;])\s*(?:from\s+sympy(?:\s|\.)|import\s+(?:[^\n#]*?,\s*)?sympy(?:\s|,|$))/m },
+    { name: 'scikit-learn', regex: /(?:^|[\n;])\s*(?:from\s+sklearn(?:\s|\.)|import\s+(?:[^\n#]*?,\s*)?sklearn(?:\s|,|\.|$))/m },
+    { name: 'statsmodels', regex: /(?:^|[\n;])\s*(?:from\s+statsmodels(?:\s|\.)|import\s+(?:[^\n#]*?,\s*)?statsmodels(?:\s|,|\.|$))/m }
   ];
   const needed = PACKAGE_PATTERNS
     .filter(p => p.regex.test(code) && !_loadedPyPackages.has(p.name))
