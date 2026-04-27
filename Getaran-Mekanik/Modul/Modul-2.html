@@ -2545,7 +2545,7 @@ function switchTab(tab) {
     }, 200);
   }
   if (tab === 'tugas') {
-    setTimeout(() => getPyodide().catch(() => {}), 500);
+    setTimeout(() => getPyodide().catch(err => console.error('[Modul] Pyodide preload failed:', err)), 500);
     if (typeof _updateLateBanner === 'function') _updateLateBanner();
   }
   if (tab === 'forum') {
@@ -2806,12 +2806,20 @@ const _loadedPyPackages = new Set(['numpy']);
 
 async function _ensurePythonPackages(code, fb) {
   if (!_pyodideInstance || !code) return;
+  // PEDOMAN v5 §25.7 — Regex MENANGANI semua variasi import statement:
+  //   - import <pkg>                      (standar)
+  //   - import <pkg> as alias             (dengan alias)
+  //   - import other as o, <pkg> as p     (comma-separated, SANGAT umum di Jupyter)
+  //   - from <pkg> import X
+  //   - from <pkg>.submodule import X
+  // Regex lama gagal di comma-separated → ModuleNotFoundError padahal kode benar.
   const PACKAGE_PATTERNS = [
-    { name: 'pandas',       regex: /^\s*(?:import\s+pandas|from\s+pandas\s+import)/m },
-    { name: 'scipy',        regex: /^\s*(?:import\s+scipy|from\s+scipy[\s.]|import\s+scipy\.)/m },
-    { name: 'matplotlib',   regex: /^\s*(?:import\s+matplotlib|from\s+matplotlib[\s.])/m },
-    { name: 'sympy',        regex: /^\s*(?:import\s+sympy|from\s+sympy\s+import)/m },
-    { name: 'scikit-learn', regex: /^\s*(?:import\s+sklearn|from\s+sklearn[\s.])/m }
+    { name: 'pandas',       regex: /(?:^|[\n;])\s*(?:from\s+pandas(?:\s|\.)|import\s+(?:[^\n#]*?,\s*)?pandas(?:\s|,|$))/m },
+    { name: 'scipy',        regex: /(?:^|[\n;])\s*(?:from\s+scipy(?:\s|\.)|import\s+(?:[^\n#]*?,\s*)?scipy(?:\s|,|\.|$))/m },
+    { name: 'matplotlib',   regex: /(?:^|[\n;])\s*(?:from\s+matplotlib(?:\s|\.)|import\s+(?:[^\n#]*?,\s*)?matplotlib(?:\s|,|\.|$))/m },
+    { name: 'sympy',        regex: /(?:^|[\n;])\s*(?:from\s+sympy(?:\s|\.)|import\s+(?:[^\n#]*?,\s*)?sympy(?:\s|,|$))/m },
+    { name: 'scikit-learn', regex: /(?:^|[\n;])\s*(?:from\s+sklearn(?:\s|\.)|import\s+(?:[^\n#]*?,\s*)?sklearn(?:\s|,|$))/m },
+    { name: 'statsmodels',  regex: /(?:^|[\n;])\s*(?:from\s+statsmodels(?:\s|\.)|import\s+(?:[^\n#]*?,\s*)?statsmodels(?:\s|,|$))/m }
   ];
   const needed = PACKAGE_PATTERNS
     .filter(p => p.regex.test(code) && !_loadedPyPackages.has(p.name))
@@ -2819,6 +2827,7 @@ async function _ensurePythonPackages(code, fb) {
   if (needed.length === 0) return;
   if (fb) {
     fb.className = 'feedback warn';
+    fb.style.display = 'block';
     fb.textContent = `📦 Memuat package Python: ${needed.join(', ')}... (5-15 detik, sekali saja)`;
   }
   try {
@@ -2827,8 +2836,10 @@ async function _ensurePythonPackages(code, fb) {
   } catch (e) {
     if (fb) {
       fb.className = 'feedback wrong';
+      fb.style.display = 'block';
       fb.textContent = `❌ Gagal memuat package: ${needed.join(', ')}. Cek koneksi atau nama package.`;
     }
+    console.error('[Modul] Pyodide loadPackage failed:', e);
     throw e;   // re-throw agar runAndCheck tidak lanjut exec
   }
 }
@@ -6099,7 +6110,7 @@ function _handleScheduleReady() {
               set(ref(db,`${DB_PATH}/${_key}`), _stripLegacyPinFields({...ex,visitCount:(ex.visitCount||1)+1,lastVisit:new Date().toISOString()}));
             }
           }
-        }).catch(()=>{});
+        }).catch(err => console.error("[Modul Firebase] write failed:", err));
       }
       _applyRoleVisibility();
       setTimeout(function(){ if(typeof window._loadScoredQuestions==='function') window._loadScoredQuestions(); }, 500);
@@ -6329,7 +6340,7 @@ function initPresence() {
   _currentPresenceRef = ref(db, PRESENCE_PATH + '/' + userKey);
 
   // Setup onDisconnect FIRST (server removes when connection drops)
-  onDisconnect(_currentPresenceRef).remove().catch(()=>{});
+  onDisconnect(_currentPresenceRef).remove().catch(err => console.error("[Presence] onDisconnect failed:", err));
 
   // Write initial presence
   _writeHeartbeat();
@@ -6356,12 +6367,12 @@ function _writeHeartbeat() {
     lastSeen: Date.now(),
     tab: tabName,
     role: 'student'
-  }).catch(()=>{});
+  }).catch(err => console.error("[Modul Firebase] write failed:", err));
 }
 
 function cleanupPresence() {
   if (_heartbeatTimer) { clearInterval(_heartbeatTimer); _heartbeatTimer = null; }
-  if (_currentPresenceRef) { remove(_currentPresenceRef).catch(()=>{}); _currentPresenceRef = null; }
+  if (_currentPresenceRef) { remove(_currentPresenceRef).catch(err => console.error("[Presence] remove failed:", err)); _currentPresenceRef = null; }
 }
 
 // Tab-close cleanup (best-effort; onDisconnect is the real guarantee)
@@ -6509,7 +6520,7 @@ function sendChat() {
     input.value = '';
     input.style.height = 'auto';
     onChatInput();
-  }).catch(()=>{});
+  }).catch(err => console.error("[Modul Firebase] write failed:", err));
 }
 
 function renderVisitors(visitors){
