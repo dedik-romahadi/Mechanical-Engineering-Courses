@@ -3989,6 +3989,19 @@ function checkForumReady() {
   if (!btn) return;
   _setBtnState(btn, allFilled);   // PEDOMAN §15.4b: explicit setters
   _saveDraft();                    // PEDOMAN §15.4: persist forum textareas on every check
+
+  // FIX v2 (Apr 2026): auto-populate output textarea when forum is ready.
+  // Ini menghilangkan dependency pada button click — mahasiswa tidak perlu
+  // klik tombol Copy untuk mendapat HTML; cukup isi 3 jawaban (≥30 kata),
+  // HTML otomatis muncul di textarea bawah, mahasiswa Ctrl+C manual.
+  if (allFilled) {
+    try {
+      const _autoHtml = buildForumHtml();
+      if (_autoHtml && _autoHtml.length > 100) {
+        _populateForumOutput(_autoHtml);
+      }
+    } catch(e) { /* identity belum ada / textarea belum ready — silent */ }
+  }
 }
 
 // ── COPY FORUM HTML TO CLIPBOARD ──
