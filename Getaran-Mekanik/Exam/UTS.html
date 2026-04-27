@@ -1448,6 +1448,15 @@ let mcAnswered = {}, mcScores = {};
 let tfAnswered = {}, tfScores = {};   // UTS: True/False question state
 let compHardPartial = {};              // UTS: track hard comp partial credit (separate from compScores)
 
+// ═══ POINT SYSTEM — Anti-Duplication (cross-device & incognito) ═══
+// CRITICAL: Set ini di-akses dari BOTH regular script (selectMC, checkMC, selectTF,
+// checkTF, runAndCheck) DAN module script (Firebase _awardPoint, _recordMcAttempt,
+// _awardTfPoint, _awardCompPoint, dll). Pakai window.* agar accessible cross-scope:
+// - Regular script: `window._answeredQ` atau just `_answeredQ` (var hoisted ke window)
+// - Module script: HARUS pakai `window._answeredQ` (let/const di module tidak ke window)
+window._answeredQ = window._answeredQ || new Set();
+var _answeredQ = window._answeredQ;   // alias untuk akses pendek di regular script
+
 // UTS murni — MC_HINTS DIKOSONGKAN (tidak ada reveal jawaban benar setelah submit)
 // Sistem akan menampilkan feedback minimal: "diterima" atau "dikunci".
 const MC_HINTS = {};
@@ -5904,7 +5913,11 @@ window.showScheduleModal=showScheduleModal;window.hideScheduleModal=hideSchedule
 setInterval(()=>{renderVisitors(latestVisitors);},30000);
 
 // ═══ POINT SYSTEM — Anti-Duplication (cross-device & incognito) ═══
-const _answeredQ = new Set();
+// _answeredQ DI-DEKLARASI di regular script sebagai window._answeredQ.
+// Di module script, kita alias supaya bare-name `_answeredQ` tetap resolve
+// ke Set yang SAMA (shared state). Pastikan window._answeredQ sudah ada
+// (regular script sudah load duluan).
+const _answeredQ = window._answeredQ || (window._answeredQ = new Set());
 
 // ── Schedule gate: returns true only if current time is within
 //    [currentSchedule.start, currentSchedule.end]. Used to block ALL
