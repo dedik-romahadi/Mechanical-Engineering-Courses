@@ -1221,7 +1221,7 @@ function switchTab(tab) {
   });
   if (tab === 'uts') {
     // Lazy load Pyodide on UTS tab open
-    setTimeout(() => getPyodide().catch(() => {}), 500);
+    setTimeout(() => getPyodide().catch(err => console.error('[UTS] Pyodide preload failed:', err)), 500);
     if (typeof _updateLateBanner === 'function') _updateLateBanner();
   }
   if (tab === 'hasil') {
@@ -2977,12 +2977,21 @@ const _loadedPyPackages = new Set(['numpy']);
 
 async function _ensurePythonPackages(code, fb) {
   if (!_pyodideInstance || !code) return;
+  // PEDOMAN v5 §25.7 — Regex MENANGANI semua variasi import statement:
+  //   - import <pkg>                      (standar)
+  //   - import <pkg> as alias             (dengan alias)
+  //   - import other as o, <pkg> as p     (comma-separated, SANGAT umum di Jupyter)
+  //   - from <pkg> import X
+  //   - from <pkg>.submodule import X
+  // Regex lama gagal di comma-separated → mahasiswa frustrasi karena
+  // ModuleNotFoundError padahal kodenya benar.
   const PACKAGE_PATTERNS = [
-    { name: 'pandas',       regex: /^\s*(?:import\s+pandas|from\s+pandas\s+import)/m },
-    { name: 'scipy',        regex: /^\s*(?:import\s+scipy|from\s+scipy[\s.]|import\s+scipy\.)/m },
-    { name: 'matplotlib',   regex: /^\s*(?:import\s+matplotlib|from\s+matplotlib[\s.])/m },
-    { name: 'sympy',        regex: /^\s*(?:import\s+sympy|from\s+sympy\s+import)/m },
-    { name: 'scikit-learn', regex: /^\s*(?:import\s+sklearn|from\s+sklearn[\s.])/m }
+    { name: 'pandas',       regex: /(?:^|[\n;])\s*(?:from\s+pandas(?:\s|\.)|import\s+(?:[^\n#]*?,\s*)?pandas(?:\s|,|$))/m },
+    { name: 'scipy',        regex: /(?:^|[\n;])\s*(?:from\s+scipy(?:\s|\.)|import\s+(?:[^\n#]*?,\s*)?scipy(?:\s|,|\.|$))/m },
+    { name: 'matplotlib',   regex: /(?:^|[\n;])\s*(?:from\s+matplotlib(?:\s|\.)|import\s+(?:[^\n#]*?,\s*)?matplotlib(?:\s|,|\.|$))/m },
+    { name: 'sympy',        regex: /(?:^|[\n;])\s*(?:from\s+sympy(?:\s|\.)|import\s+(?:[^\n#]*?,\s*)?sympy(?:\s|,|$))/m },
+    { name: 'scikit-learn', regex: /(?:^|[\n;])\s*(?:from\s+sklearn(?:\s|\.)|import\s+(?:[^\n#]*?,\s*)?sklearn(?:\s|,|$))/m },
+    { name: 'statsmodels',  regex: /(?:^|[\n;])\s*(?:from\s+statsmodels(?:\s|\.)|import\s+(?:[^\n#]*?,\s*)?statsmodels(?:\s|,|$))/m }
   ];
   const needed = PACKAGE_PATTERNS
     .filter(p => p.regex.test(code) && !_loadedPyPackages.has(p.name))
@@ -2990,6 +2999,7 @@ async function _ensurePythonPackages(code, fb) {
   if (needed.length === 0) return;
   if (fb) {
     fb.className = 'feedback warn';
+    fb.style.display = 'block';
     fb.textContent = `📦 Memuat package Python: ${needed.join(', ')}... (5-15 detik, sekali saja)`;
   }
   try {
@@ -2998,8 +3008,10 @@ async function _ensurePythonPackages(code, fb) {
   } catch (e) {
     if (fb) {
       fb.className = 'feedback wrong';
+      fb.style.display = 'block';
       fb.textContent = `❌ Gagal memuat package: ${needed.join(', ')}. Cek koneksi atau nama package.`;
     }
+    console.error('[UTS] Pyodide loadPackage failed:', e);
     throw e;   // re-throw agar runAndCheck tidak lanjut exec
   }
 }
@@ -5490,7 +5502,7 @@ function _handleScheduleReady() {
               set(ref(db,`${DB_PATH}/${_key}`), _stripLegacyPinFields({...ex,visitCount:(ex.visitCount||1)+1,lastVisit:new Date().toISOString()}));
             }
           }
-        }).catch(()=>{});
+        }).catch(err => console.error("[UTS Firebase] write failed:", err));
       }
       _applyRoleVisibility();
       // UTS: Render questions FIRST sebelum _loadScoredQuestions agar DOM ready
@@ -6511,8 +6523,22 @@ window._awardPoint = function(qId, selectedIdx) {
   const key = sanitizeKey('mhs_' + me.nim);
   const nodeRef = ref(db, DB_PATH + '/' + key);
   get(nodeRef).then(snap => {
-    if (!snap.exists()) return;
-    const ex = snap.val();
+    let ex;
+    if (!snap.exists()) {
+      // PEDOMAN v5 §15.4e — Auto-create visitor record (race-condition guard).
+      // Tanpa ini, mahasiswa yang answer terlalu cepat setelah login bisa kehilangan poin.
+      console.warn('[UTS] Visitor record missing — auto-creating with default values');
+      ex = {
+        nama: me.nama || '—', nim: me.nim, role: 'student',
+        timestamp: me.timestamp || new Date().toISOString(),
+        lastVisit: new Date().toISOString(),
+        visitCount: 1,
+        points: 0,           // PEDOMAN §13.4.1 — wajib init (null-comparison trap fix)
+        scoredQuestions: ''  // PEDOMAN §13.4.1 — wajib init
+      };
+    } else {
+      ex = snap.val();
+    }
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(qId)) { _answeredQ.add(qId); return; }
     _answeredQ.add(qId); scored.push(qId);
@@ -6527,7 +6553,7 @@ window._awardPoint = function(qId, selectedIdx) {
     }));
     set(nodeRef, updated);
     _checkConsolationPoint(nodeRef, updated);
-  }).catch(()=>{});
+  }).catch(err => console.error("[UTS Firebase] write failed:", err));
 };
 
 window._awardCompPoint = function(qId, point) {
@@ -6544,8 +6570,22 @@ window._awardCompPoint = function(qId, point) {
   // PEDOMAN §15.4c — Capture code text from textarea for Firebase persistence
   const codeText = (document.getElementById('code-' + qId)?.value || '').slice(0, 5000);
   get(nodeRef).then(snap => {
-    if (!snap.exists()) return;
-    const ex = snap.val();
+    let ex;
+    if (!snap.exists()) {
+      // PEDOMAN v5 §15.4e — Auto-create visitor record (race-condition guard).
+      // Tanpa ini, mahasiswa yang answer terlalu cepat setelah login bisa kehilangan poin.
+      console.warn('[UTS] Visitor record missing — auto-creating with default values');
+      ex = {
+        nama: me.nama || '—', nim: me.nim, role: 'student',
+        timestamp: me.timestamp || new Date().toISOString(),
+        lastVisit: new Date().toISOString(),
+        visitCount: 1,
+        points: 0,           // PEDOMAN §13.4.1 — wajib init (null-comparison trap fix)
+        scoredQuestions: ''  // PEDOMAN §13.4.1 — wajib init
+      };
+    } else {
+      ex = snap.val();
+    }
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(compKey)) { _answeredQ.add(compKey); return; }
     _answeredQ.add(compKey); scored.push(compKey);
@@ -6554,7 +6594,7 @@ window._awardCompPoint = function(qId, point) {
     const updated = _stripLegacyPinFields(Object.assign({}, ex, { points: newPoints, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(','), codes: codes }));
     set(nodeRef, updated);
     _checkConsolationPoint(nodeRef, updated);
-  }).catch(()=>{});
+  }).catch(err => console.error("[UTS Firebase] write failed:", err));
 };
 
 // ── Partial credit untuk Comp Hard (kode non-kosong tapi output/error salah) ──
@@ -6572,8 +6612,22 @@ window._awardCompPartial = function(qId, point) {
   // PEDOMAN §15.4c — Capture code text (partial tetap simpan kode upaya mahasiswa)
   const codeText = (document.getElementById('code-' + qId)?.value || '').slice(0, 5000);
   get(nodeRef).then(snap => {
-    if (!snap.exists()) return;
-    const ex = snap.val();
+    let ex;
+    if (!snap.exists()) {
+      // PEDOMAN v5 §15.4e — Auto-create visitor record (race-condition guard).
+      // Tanpa ini, mahasiswa yang answer terlalu cepat setelah login bisa kehilangan poin.
+      console.warn('[UTS] Visitor record missing — auto-creating with default values');
+      ex = {
+        nama: me.nama || '—', nim: me.nim, role: 'student',
+        timestamp: me.timestamp || new Date().toISOString(),
+        lastVisit: new Date().toISOString(),
+        visitCount: 1,
+        points: 0,           // PEDOMAN §13.4.1 — wajib init (null-comparison trap fix)
+        scoredQuestions: ''  // PEDOMAN §13.4.1 — wajib init
+      };
+    } else {
+      ex = snap.val();
+    }
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(partialKey)) { _answeredQ.add(partialKey); return; }
     _answeredQ.add(partialKey); scored.push(partialKey);
@@ -6582,7 +6636,7 @@ window._awardCompPartial = function(qId, point) {
     const updated = _stripLegacyPinFields(Object.assign({}, ex, { points: newPoints, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(','), codes: codes }));
     set(nodeRef, updated);
     // Tidak trigger konsolasi — poin sudah > 0
-  }).catch(()=>{});
+  }).catch(err => console.error("[UTS Firebase] write failed:", err));
 };
 
 // ── Record a failed MC attempt to Firebase ──
@@ -6593,8 +6647,22 @@ window._recordMcAttempt = function(qId, selectedIdx) {
   const key = sanitizeKey('mhs_' + me.nim);
   const nodeRef = ref(db, DB_PATH + '/' + key);
   get(nodeRef).then(snap => {
-    if (!snap.exists()) return;
-    const ex = snap.val();
+    let ex;
+    if (!snap.exists()) {
+      // PEDOMAN v5 §15.4e — Auto-create visitor record (race-condition guard).
+      // Tanpa ini, mahasiswa yang answer terlalu cepat setelah login bisa kehilangan poin.
+      console.warn('[UTS] Visitor record missing — auto-creating with default values');
+      ex = {
+        nama: me.nama || '—', nim: me.nim, role: 'student',
+        timestamp: me.timestamp || new Date().toISOString(),
+        lastVisit: new Date().toISOString(),
+        visitCount: 1,
+        points: 0,           // PEDOMAN §13.4.1 — wajib init (null-comparison trap fix)
+        scoredQuestions: ''  // PEDOMAN §13.4.1 — wajib init
+      };
+    } else {
+      ex = snap.val();
+    }
     const usedKey = qId + '_mc_used';
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(usedKey)) return;
@@ -6608,7 +6676,7 @@ window._recordMcAttempt = function(qId, selectedIdx) {
     }));
     set(nodeRef, updated);
     _checkConsolationPoint(nodeRef, updated);
-  }).catch(() => {});
+  }).catch(err => console.error("[UTS Firebase] write failed:", err));
 };
 
 // ── TF: Award point on correct answer (mirip _awardPoint untuk MC) ──
@@ -6620,8 +6688,22 @@ window._awardTfPoint = function(qId, selectedValue) {
   const key = sanitizeKey('mhs_' + me.nim);
   const nodeRef = ref(db, DB_PATH + '/' + key);
   get(nodeRef).then(snap => {
-    if (!snap.exists()) return;
-    const ex = snap.val();
+    let ex;
+    if (!snap.exists()) {
+      // PEDOMAN v5 §15.4e — Auto-create visitor record (race-condition guard).
+      // Tanpa ini, mahasiswa yang answer terlalu cepat setelah login bisa kehilangan poin.
+      console.warn('[UTS] Visitor record missing — auto-creating with default values');
+      ex = {
+        nama: me.nama || '—', nim: me.nim, role: 'student',
+        timestamp: me.timestamp || new Date().toISOString(),
+        lastVisit: new Date().toISOString(),
+        visitCount: 1,
+        points: 0,           // PEDOMAN §13.4.1 — wajib init (null-comparison trap fix)
+        scoredQuestions: ''  // PEDOMAN §13.4.1 — wajib init
+      };
+    } else {
+      ex = snap.val();
+    }
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(qId)) { _answeredQ.add(qId); return; }
     _answeredQ.add(qId); scored.push(qId);
@@ -6636,7 +6718,7 @@ window._awardTfPoint = function(qId, selectedValue) {
     }));
     set(nodeRef, updated);
     _checkConsolationPoint(nodeRef, updated);
-  }).catch(()=>{});
+  }).catch(err => console.error("[UTS Firebase] write failed:", err));
 };
 
 // ── TF: Record failed attempt ──
@@ -6647,8 +6729,22 @@ window._recordTfAttempt = function(qId, selectedValue) {
   const key = sanitizeKey('mhs_' + me.nim);
   const nodeRef = ref(db, DB_PATH + '/' + key);
   get(nodeRef).then(snap => {
-    if (!snap.exists()) return;
-    const ex = snap.val();
+    let ex;
+    if (!snap.exists()) {
+      // PEDOMAN v5 §15.4e — Auto-create visitor record (race-condition guard).
+      // Tanpa ini, mahasiswa yang answer terlalu cepat setelah login bisa kehilangan poin.
+      console.warn('[UTS] Visitor record missing — auto-creating with default values');
+      ex = {
+        nama: me.nama || '—', nim: me.nim, role: 'student',
+        timestamp: me.timestamp || new Date().toISOString(),
+        lastVisit: new Date().toISOString(),
+        visitCount: 1,
+        points: 0,           // PEDOMAN §13.4.1 — wajib init (null-comparison trap fix)
+        scoredQuestions: ''  // PEDOMAN §13.4.1 — wajib init
+      };
+    } else {
+      ex = snap.val();
+    }
     const usedKey = qId + '_tf_used';
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(usedKey)) return;
@@ -6662,7 +6758,7 @@ window._recordTfAttempt = function(qId, selectedValue) {
     }));
     set(nodeRef, updated);
     _checkConsolationPoint(nodeRef, updated);
-  }).catch(() => {});
+  }).catch(err => console.error("[UTS Firebase] write failed:", err));
 };
 
 // ── Record a failed comp attempt to Firebase (anti-manipulation) ──
@@ -6675,8 +6771,22 @@ window._recordCompAttempt = function(qId) {
   // PEDOMAN §15.4c — Capture code text (kode salah tetap disimpan sebagai dokumentasi upaya)
   const codeText = (document.getElementById('code-' + qId)?.value || '').slice(0, 5000);
   get(nodeRef).then(snap => {
-    if (!snap.exists()) return;
-    const ex = snap.val();
+    let ex;
+    if (!snap.exists()) {
+      // PEDOMAN v5 §15.4e — Auto-create visitor record (race-condition guard).
+      // Tanpa ini, mahasiswa yang answer terlalu cepat setelah login bisa kehilangan poin.
+      console.warn('[UTS] Visitor record missing — auto-creating with default values');
+      ex = {
+        nama: me.nama || '—', nim: me.nim, role: 'student',
+        timestamp: me.timestamp || new Date().toISOString(),
+        lastVisit: new Date().toISOString(),
+        visitCount: 1,
+        points: 0,           // PEDOMAN §13.4.1 — wajib init (null-comparison trap fix)
+        scoredQuestions: ''  // PEDOMAN §13.4.1 — wajib init
+      };
+    } else {
+      ex = snap.val();
+    }
     const usedKey = qId + '_comp_used';
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(usedKey)) return;   // already recorded
@@ -6685,7 +6795,7 @@ window._recordCompAttempt = function(qId) {
     const updated = Object.assign({}, ex, { scoredQuestions: scored.join(','), codes: codes });
     set(nodeRef, updated);
     _checkConsolationPoint(nodeRef, updated);
-  }).catch(() => {});
+  }).catch(err => console.error("[UTS Firebase] write failed:", err));
 };
 
 // ═══════════════════════════════════════════════════════════════
