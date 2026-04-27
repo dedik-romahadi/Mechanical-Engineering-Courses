@@ -2350,14 +2350,15 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div id="forum-html-output" style="display:none;margin-top:18px;text-align:left">
       <div style="background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.3);border-radius:10px;padding:14px 16px;margin-bottom:10px">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap">
-          <span style="font-size:14px;font-weight:700;color:var(--violet)">💡 Backup Manual Copy</span>
-          <span style="font-size:11px;color:var(--muted)">Jika auto-copy gagal, salin manual dari kotak di bawah</span>
+          <span style="font-size:14px;font-weight:700;color:var(--green)">✅ HTML Siap di Bawah — Salin Manual</span>
+          <span style="font-size:11px;color:var(--muted)">Cara paling reliabel</span>
         </div>
         <div style="font-size:12px;color:var(--muted);line-height:1.5">
-          <strong style="color:var(--text)">Langkah:</strong>
-          1) Klik tombol <strong style="color:var(--cyan)">Pilih Semua</strong> di bawah · 
+          <strong style="color:var(--text)">Cara salin (3 langkah):</strong><br>
+          1) Klik tombol <strong style="color:var(--cyan)">🔍 Pilih Semua</strong> di bawah kotak HTML · 
           2) Tekan <kbd style="background:#1e293b;color:#e2e8f0;padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Ctrl+C</kbd> (atau <kbd style="background:#1e293b;color:#e2e8f0;padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Cmd+C</kbd> di Mac) · 
-          3) Paste di Fast Learning &gt; mode HTML.
+          3) Paste di Fast Learning &gt; mode HTML.<br>
+          <em style="color:var(--violet)">Tombol Copy di atas adalah opsional — jika tidak berfungsi, gunakan cara manual ini.</em>
         </div>
       </div>
       <textarea id="forum-html-textarea" readonly 
@@ -3590,6 +3591,19 @@ function checkForumReady() {
   if (!btn) return;
   _setBtnState(btn, allFilled);   // PEDOMAN §15.4b
   _saveDraft();                    // PEDOMAN §15.4
+
+  // FIX v2 (Apr 2026): auto-populate output textarea when forum is ready.
+  // Ini menghilangkan dependency pada button click — mahasiswa tidak perlu
+  // klik tombol Copy untuk mendapat HTML; cukup isi 3 jawaban (≥30 kata),
+  // HTML otomatis muncul di textarea bawah, mahasiswa Ctrl+C manual.
+  if (allFilled) {
+    try {
+      const _autoHtml = buildForumHtml();
+      if (_autoHtml && _autoHtml.length > 100) {
+        _populateForumOutput(_autoHtml);
+      }
+    } catch(e) { /* identity belum ada / textarea belum ready — silent */ }
+  }
 }
 
 // ── COPY FORUM HTML TO CLIPBOARD ──
