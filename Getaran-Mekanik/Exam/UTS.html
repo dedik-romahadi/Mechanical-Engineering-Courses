@@ -1303,83 +1303,108 @@ function renderGroups() {
 //   - 'to-start'    : now < schedule.start → countdown sampai mulai
 //   - 'in-progress' : start <= now <= end  → countdown sisa waktu UTS
 //   - 'expired'     : now > end            → "UTS berakhir"
+//
+// IMPLEMENTASI: pakai setInterval yang ALWAYS-ON (tiap 1s).
+// Setiap tick membaca currentSchedule fresh dan auto-detect mode.
+// Tidak rely pada chain setTimeout (lebih tahan terhadap race conditions).
 let scheduleData = null;
-let _countdownTickId = null;     // id timer untuk cancel countdown lama saat re-init
+let _countdownInterval = null;     // setInterval id
 
-function startCountdown(targetISO, mode) {
-  // Cancel previous tick if any
-  if (_countdownTickId) { clearTimeout(_countdownTickId); _countdownTickId = null; }
-  // Auto-detect mode jika tidak diberikan
-  if (!mode && currentSchedule && currentSchedule.start && currentSchedule.end) {
+function _countdownTick() {
+  try {
+    // CRITICAL: currentSchedule di-deklarasi di module script (line 4809).
+    // Function ini ada di regular script — TIDAK bisa akses var module-scope langsung.
+    // Module script meng-expose ke window.currentSchedule setelah setiap update.
+    const sched = window.currentSchedule;
+    if (!sched || !sched.start || !sched.end) {
+      // No schedule — show placeholder
+      ['d','h','m','s'].forEach(k => {
+        const el = document.getElementById('cd-'+k);
+        if (el) el.textContent = '--';
+      });
+      return;
+    }
+
     const now = Date.now();
-    const s = new Date(currentSchedule.start).getTime();
-    const e = new Date(currentSchedule.end).getTime();
-    if (now < s) { mode = 'to-start'; targetISO = currentSchedule.start; }
-    else if (now <= e) { mode = 'in-progress'; targetISO = currentSchedule.end; }
-    else { mode = 'expired'; }
-  }
-  console.log('[Countdown] startCountdown mode=', mode, 'target=', targetISO, 'currentSchedule=', currentSchedule);
+    const startMs = new Date(sched.start).getTime();
+    const endMs   = new Date(sched.end).getTime();
 
-  // Update label countdown sesuai mode
-  const labelEl = document.querySelector('.countdown-label');
-  if (labelEl) {
-    if (mode === 'to-start')        labelEl.textContent = '⏳ Hitung Mundur — UTS Dimulai Dalam';
-    else if (mode === 'in-progress')labelEl.textContent = '⏰ Hitung Mundur — Sisa Waktu UTS';
-    else if (mode === 'expired')    labelEl.textContent = '🔒 UTS Telah Berakhir';
-    else                            labelEl.textContent = '⏰ Hitung Mundur — Deadline UTS';
-  }
+    // Determine mode + target
+    let mode, target;
+    if (now < startMs) { mode = 'to-start';    target = startMs; }
+    else if (now <= endMs) { mode = 'in-progress'; target = endMs; }
+    else { mode = 'expired'; target = endMs; }
 
-  if (mode === 'expired' || !targetISO) {
-    ['d','h','m','s'].forEach(k => {
-      const el = document.getElementById('cd-'+k);
-      if (el) el.innerHTML = '<span class="cd-expired">0</span>';
-      const r = document.getElementById('ring-'+k);
-      if (r) r.classList.add('expired');
-    });
-    return;
-  }
+    // Update label
+    const labelEl = document.querySelector('.countdown-label');
+    if (labelEl) {
+      if (mode === 'to-start')        labelEl.textContent = '⏳ Hitung Mundur — UTS Dimulai Dalam';
+      else if (mode === 'in-progress')labelEl.textContent = '⏰ Hitung Mundur — Sisa Waktu UTS';
+      else                            labelEl.textContent = '🔒 UTS Telah Berakhir';
+    }
 
-  const target = new Date(targetISO).getTime();
-  const CIRC = 326.73; // 2*pi*52
-  const maxOf = { d: 30, h: 24, m: 60, s: 60 };
-  function setRing(key, val, max){
-    const ring = document.getElementById('ring-'+key);
-    if(!ring) return;
-    ring.classList.remove('expired');
-    const prog = ring.querySelector('.progress');
-    if(!prog) return;
-    const frac = Math.max(0, Math.min(1, val / max));
-    prog.setAttribute('stroke-dashoffset', String(CIRC * (1 - frac)));
-  }
-  function tick() {
-    const now = Date.now();
-    const diff = target - now;
-    if (diff <= 0) {
+    if (mode === 'expired') {
       ['d','h','m','s'].forEach(k => {
         const el = document.getElementById('cd-'+k);
         if (el) el.innerHTML = '<span class="cd-expired">0</span>';
         const r = document.getElementById('ring-'+k);
         if (r) r.classList.add('expired');
-        setRing(k, 0, 1);
+        const prog = r ? r.querySelector('.progress') : null;
+        if (prog) prog.setAttribute('stroke-dashoffset', '326.73');   // empty ring
       });
-      // UTS: auto re-evaluate gate when countdown reaches zero
-      // (dari 'to-start' bisa berubah ke 'in-progress' otomatis)
-      if (typeof _updateUTSAccessGate === 'function') {
-        setTimeout(_updateUTSAccessGate, 100);
-      }
       return;
     }
-    const d = Math.floor(diff/86400000), h = Math.floor((diff%86400000)/3600000),
-          m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
+
+    // Calculate diff
+    const diff = target - now;
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+
+    // Update each ring
+    const CIRC = 326.73;
+    const maxOf = { d: 30, h: 24, m: 60, s: 60 };
     [['d',d],['h',h],['m',m],['s',s]].forEach(([key,val]) => {
       const el = document.getElementById('cd-'+key);
       if (el) el.textContent = String(val).padStart(2,'0');
-      setRing(key, val, maxOf[key]);
+      const ring = document.getElementById('ring-'+key);
+      if (ring) {
+        ring.classList.remove('expired');
+        const prog = ring.querySelector('.progress');
+        if (prog) {
+          const frac = Math.max(0, Math.min(1, val / maxOf[key]));
+          prog.setAttribute('stroke-dashoffset', String(CIRC * (1 - frac)));
+        }
+      }
     });
-    _countdownTickId = setTimeout(tick, 1000);
+  } catch(err) {
+    console.error('[Countdown] tick error:', err);
   }
-  tick();
 }
+
+// Start countdown sebagai setInterval persisten yang selalu jalan
+function startCountdown(targetISO, mode) {
+  // Kompatibel dengan signature lama (untuk code legacy yang panggil startCountdown(end))
+  // Tapi internal pakai _countdownTick yang baca fresh dari currentSchedule
+  if (!_countdownInterval) {
+    _countdownInterval = setInterval(_countdownTick, 1000);
+    console.log('[Countdown] Interval started (1s polling)');
+  }
+  // Trigger immediate tick (don't wait for first 1s)
+  _countdownTick();
+}
+
+// Make sure countdown starts as soon as DOM ready (bahkan tanpa schedule, akan show '--')
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    if (!_countdownInterval) {
+      _countdownInterval = setInterval(_countdownTick, 1000);
+      console.log('[Countdown] Auto-started after DOMContentLoaded');
+    }
+    _countdownTick();
+  }, 200);
+});
 
 // ── MC LOGIC ──
 // ═══════════════════════════════════════════════════════════════
@@ -2858,7 +2883,7 @@ function _lockCompWrong(qId, fbMsg, partialPoint) {
     // Partial credit state (amber △ Usaha)
     if (btn) {
       btn.disabled = true;
-      btn.textContent = '△ Usaha (+' + pts + ')';
+      btn.textContent = '△ Usaha (+' + pts + ') · Terkunci';
       btn.style.borderColor = 'rgba(251,191,36,.4)';
       btn.style.color = 'var(--amber)';
       btn.classList.remove('running');
@@ -2870,12 +2895,9 @@ function _lockCompWrong(qId, fbMsg, partialPoint) {
     }
     if (fb) {
       fb.className = 'feedback warn';
-      const hint = COMP_HINTS && COMP_HINTS[qId];
-      if (hint) {
-        fb.innerHTML = fbMsg + '<br><br><div style="background:rgba(168,85,247,.06);border-left:3px solid #a855f7;border-radius:6px;padding:12px 14px;margin-top:4px;font-weight:400;color:#cbd5e1;line-height:1.7;">📘 <strong style="color:#a855f7">Jawaban yang benar: ' + hint.answer + '</strong><br>' + hint.explain + '</div>';
-      } else {
-        fb.textContent = fbMsg;
-      }
+      fb.style.display = 'block';   // CRITICAL: pastikan feedback tampil
+      // UTS murni: TIDAK reveal jawaban benar
+      fb.textContent = fbMsg;
     }
     // Firebase: tulis marker _comp_partial + tambah poin
     if (typeof window._awardCompPartial === 'function') window._awardCompPartial(qId, pts);
@@ -2895,12 +2917,9 @@ function _lockCompWrong(qId, fbMsg, partialPoint) {
     }
     if (fb) {
       fb.className = 'feedback wrong';
-      const hint = COMP_HINTS && COMP_HINTS[qId];
-      if (hint) {
-        fb.innerHTML = fbMsg + '<br><br><div style="background:rgba(168,85,247,.06);border-left:3px solid #a855f7;border-radius:6px;padding:12px 14px;margin-top:4px;font-weight:400;color:#cbd5e1;line-height:1.7;">📘 <strong style="color:#a855f7">Jawaban yang benar: ' + hint.answer + '</strong><br>' + hint.explain + '</div>';
-      } else {
-        fb.textContent = fbMsg;
-      }
+      fb.style.display = 'block';   // CRITICAL: pastikan feedback tampil
+      // UTS murni: TIDAK reveal jawaban benar
+      fb.textContent = fbMsg;
     }
     // Firebase: tulis marker _comp_used saja (tanpa poin)
     if (typeof window._recordCompAttempt === 'function') window._recordCompAttempt(qId);
@@ -2959,11 +2978,16 @@ async function runAndCheck(qId, expectedAns, tol, difficulty) {
   const code   = ta ? ta.value.trim() : '';
 
   if (!code) {
-    fb.className = 'feedback warn'; fb.textContent = '⚠ Tulis kode Python terlebih dahulu.'; return;
+    fb.className = 'feedback warn';
+    fb.style.display = 'block';   // CRITICAL: feedback awal display:none, harus tampilkan
+    fb.innerHTML = '⚠ <strong>Kode masih kosong!</strong> Tulis kode Python di kolom isian terlebih dahulu, lalu klik tombol Run &amp; Validasi.<br><span style="font-size:12px;color:var(--muted)">Tip: Anda bisa copy-paste kode dari Jupyter Notebook setelah memastikan output sudah benar di sana.</span>';
+    return;
   }
 
   btn.disabled = true; btn.classList.add('running');
-  fb.className = 'feedback warn'; fb.textContent = '⏳ Menjalankan kode...';
+  fb.className = 'feedback warn';
+  fb.style.display = 'block';
+  fb.textContent = '⏳ Menjalankan kode...';
   if (stdout) { stdout.innerHTML = ''; stdout.classList.remove('show'); }
 
   try {
@@ -3007,21 +3031,24 @@ async function runAndCheck(qId, expectedAns, tol, difficulty) {
 
     if (correct) {
       fb.className = 'feedback correct';
-      fb.textContent = '✅ Kode berjalan tanpa error & output benar! +' + correctPoint + ' poin';
+      fb.style.display = 'block';
+      fb.textContent = '✅ Kode berjalan tanpa error & output benar! +' + correctPoint + ' poin tercatat. Soal TERKUNCI PERMANEN.';
       compAnswered[qId] = true; compScores[qId] = correctPoint;
-      btn.disabled = true; btn.textContent = '✓ Selesai'; btn.classList.remove('running');
-      if (ta) ta.style.borderColor = 'rgba(0,224,158,.5)';
+      btn.disabled = true; btn.textContent = '✓ Selesai · Terkunci'; btn.classList.remove('running');
+      btn.style.background = 'rgba(0,224,158,.1)'; btn.style.borderColor='rgba(0,224,158,.4)'; btn.style.color='var(--green)';
+      if (ta) { ta.disabled = true; ta.style.borderColor = 'rgba(0,224,158,.5)'; ta.style.opacity='.85'; }
       if (typeof window._awardCompPoint === 'function') window._awardCompPoint(qId, correctPoint);
       updateScore(); checkExportReady();
     } else {
       const outPreview = (output || '(kosong)').trim().slice(0, 100);
       const msg = partialOnFail > 0
-        ? `🔒 Output tidak mengandung nilai yang benar (≈ ${expectedAns}). +${partialOnFail} poin untuk upaya Hard. Output: "${outPreview}"`
-        : `🔒 Output tidak mengandung nilai yang benar (≈ ${expectedAns}). Output: "${outPreview}" — Soal dikunci.`;
+        ? `🔒 Output tidak mengandung nilai yang benar (≈ ${expectedAns}). +${partialOnFail} poin untuk upaya Hard. Output: "${outPreview}". TIDAK ADA KESEMPATAN ULANG.`
+        : `🔒 Output tidak mengandung nilai yang benar (≈ ${expectedAns}). Output: "${outPreview}". Soal dikunci. TIDAK ADA KESEMPATAN ULANG.`;
       _lockCompWrong(qId, msg, partialOnFail);
     }
   } catch (e) {
     fb.className = 'feedback wrong';
+    fb.style.display = 'block';
     fb.textContent = '❌ Gagal memuat Python: ' + String(e).slice(0, 150);
     btn.disabled = false; btn.classList.remove('running');
   }
@@ -4970,6 +4997,7 @@ function initVisitor(){
   // schedule valid sebelum overlay bisa di-hide. Ini gate paling awal.
   onValue(ref(db, SCHEDULE_PATH), (snap) => {
     currentSchedule = snap.val();
+    window.currentSchedule = currentSchedule;   // CRITICAL: expose ke regular script (untuk _countdownTick)
     _handleScheduleReady();
     updateScheduleDisplay();
     onValue(ref(db, DB_PATH), (vsnap) => {
