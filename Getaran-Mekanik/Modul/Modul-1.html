@@ -5606,6 +5606,13 @@ function initVisitor(){
 // Jika schedule ADA → auto-login user yang punya identity di localStorage.
 // Jika schedule HILANG → force-logout: clear identity, tampilkan overlay + banner.
 function _handleScheduleReady() {
+  // Guard: jika sedang dalam proses reset, JANGAN force-logout di tengah operasi.
+  // confirmReset() akan handle logout dengan reload page setelah semua remove sukses.
+  // Tanpa guard ini, listener fire saat remove(SCHEDULE_PATH) komplit → ganggu
+  // remove(DB_PATH) yang masih async → permission denied. (Bug Apr 2026)
+  if (window._resetInProgress) {
+    return;
+  }
   const hasSchedule = !!(currentSchedule && currentSchedule.start && currentSchedule.end);
   const banner = document.getElementById('scheduleMissingBanner');
   const overlay = document.getElementById('visitorOverlay');
@@ -6230,32 +6237,69 @@ async function confirmReset(){
   // Disable button to prevent double-click
   const btns = document.querySelectorAll('#resetOverlay button');
   btns.forEach(b=>{b.disabled=true;b.style.opacity='.5';b.style.cursor='wait';});
-  Promise.all([
-    remove(ref(db, DB_PATH)),
-    remove(ref(db, SCHEDULE_PATH)),
-    ...RELATED_MODULES.map(mid => remove(ref(db, 'visitors/getaran_mekanik/' + mid)))
-  ]).then(() => {
-    // Bersihkan localStorage semua modul terkait — termasuk identitas dosen
-    // di device ini (agar setelah reset harus login ulang, bukan auto-login
-    // dengan identitas yang sudah stale).
-    localStorage.removeItem(LOCAL_IDENTITY);
-    RELATED_MODULES.forEach(mid => {
-      localStorage.removeItem('getaran_mekanik_identity_' + mid);
-      localStorage.removeItem('optoauto_identity_' + mid);   // legacy cleanup (one-time)
-    });
+  // ─── Race Condition Fix (Apr 2026) ───
+  // Bug lama: Promise.all parallel + remove(SCHEDULE_PATH) selesai duluan →
+  // onValue listener fire → _handleScheduleReady() force-logout → ganggu
+  // remove(DB_PATH) yang masih berjalan → permission denied di tengah operasi.
+  //
+  // Fix: 1) Set flag _resetInProgress untuk suppress listener side-effects
+  //      2) Sequential remove (DB_PATH + RELATED dulu, SCHEDULE_PATH terakhir)
+  //      3) Clear localStorage SEBELUM schedule listener fire
+  //      4) Hard reload untuk clean state
+  window._resetInProgress = true;
+
+  try {
+    // STEP 1: Hapus visitor data utama child-by-child (deterministic per-record).
+    // Reason: rule .write hanya defined di $visitorKey level. Parent-level remove
+    // bisa ambiguous (rule cascade behavior tidak konsisten saat ada concurrent
+    // writes / listener side-effects). Iterate manual memastikan setiap delete
+    // pakai rule eksplisit !newData.exists() di $visitorKey level — guaranteed allowed.
+    const _mainSnap = await get(ref(db, DB_PATH));
+    const _mainData = _mainSnap.val() || {};
+    if (Object.keys(_mainData).length > 0) {
+      await Promise.all(
+        Object.keys(_mainData).map(k => remove(ref(db, DB_PATH + '/' + k)))
+      );
+    }
+
+    // STEP 2: Hapus related modules child-by-child (sama-sama deterministic)
+    if (RELATED_MODULES && RELATED_MODULES.length > 0) {
+      for (const mid of RELATED_MODULES) {
+        const _relPath = 'visitors/getaran_mekanik/' + mid;
+        const _relSnap = await get(ref(db, _relPath));
+        const _relData = _relSnap.val() || {};
+        if (Object.keys(_relData).length > 0) {
+          await Promise.all(
+            Object.keys(_relData).map(k => remove(ref(db, _relPath + '/' + k)))
+          );
+        }
+      }
+    }
+
+    // STEP 3: Clear localStorage SEBELUM remove schedule (preempt listener side-effect)
+    try {
+      localStorage.removeItem(LOCAL_IDENTITY);
+      RELATED_MODULES.forEach(mid => {
+        localStorage.removeItem('getaran_mekanik_identity_' + mid);
+        localStorage.removeItem('optoauto_identity_' + mid);   // legacy cleanup
+      });
+    } catch(e) { /* localStorage might be unavailable */ }
+
+    // STEP 4: Hapus schedule TERAKHIR
+    await remove(ref(db, SCHEDULE_PATH));
+
+    // STEP 5: Hard reload untuk guarantee clean state
     btns.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';});
     hideResetModal();
-    // Tampilkan toast sukses agar dosen tahu reset berjalan sempurna
-    _showResetToast('\u2705 Data pertemuan berhasil dihapus (poin, jawaban, kunjungan, jadwal). PIN mahasiswa tetap aktif (global lintas-modul).');
-    document.getElementById('visitorOverlay').classList.remove('hidden');
-    document.getElementById('visitorFab').style.display='none';
-    _applyRoleVisibility();   // sembunyikan lagi tombol dosen — identity sudah dihapus
-  }).catch(err => {
+    _showResetToast('\u2705 Data pertemuan berhasil dihapus. Halaman akan di-reload...');
+    setTimeout(() => { window.location.reload(); }, 1500);
+  } catch (err) {
+    window._resetInProgress = false;
     btns.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';});
     errEl.textContent='\u274c Gagal hapus data: ' + (err && err.message ? err.message : err) + '. Cek koneksi atau Firebase Security Rules.';
     errEl.style.display='block';
     console.error('[Reset] Firebase remove failed:', err);
-  });
+  }
 }
 
 // Toast kecil di atas layar untuk konfirmasi sukses reset/save
