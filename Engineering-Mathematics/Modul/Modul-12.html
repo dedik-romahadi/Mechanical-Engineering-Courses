@@ -911,6 +911,20 @@ const PERTEMUAN = 'pertemuan-12';
 const RELATED_MODULES = ['forum-12','tugas-12'];
 const SCHEDULE_PATH = `settings/math4/${PERTEMUAN}/schedule`;
 const LOCAL_IDENTITY = `math4_identity_${MODULE_ID}`;
+// ─── Tier 1 Security (Pedoman §19): SHA-256 admin password ───
+const ADMIN_PW_HASH = '57ae60d11a0de7b13b9c77c4664dc951afe403952b46c3b4f95a8bc0eb8a0470';
+async function _sha256Hex(s) {
+  const buf = new TextEncoder().encode(s);
+  const hash = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hash))
+    .map(b => b.toString(16).padStart(2, '0')).join('');
+}
+async function _verifyAdminPw(input) {
+  if (!input) return false;
+  try { return (await _sha256Hex(input)) === ADMIN_PW_HASH; }
+  catch(e) { console.error('[Auth] SHA-256 failed:', e); return false; }
+}
+
 let panelOpen = false;
 let currentSchedule = null;
 const VISIT_COOLDOWN = 3600000;
@@ -1111,7 +1125,9 @@ document.addEventListener('click',function(e){const p=document.getElementById('v
 function showResetModal(){document.getElementById('resetOverlay').classList.remove('hidden');document.getElementById('resetPw').value='';document.getElementById('resetError').style.display='none';setTimeout(()=>document.getElementById('resetPw').focus(),100);}
 function hideResetModal(){document.getElementById('resetOverlay').classList.add('hidden');}
 async function confirmReset(){
-  if(document.getElementById('resetPw').value!=='TeknikMesin0602'){
+  const _pw = document.getElementById('resetPw').value;
+  if (!(await _verifyAdminPw(_pw))) {
+    document.getElementById('resetError').textContent='\u26a0 Password salah.';
     document.getElementById('resetError').style.display='block';return;
   }
   document.getElementById('resetError').style.display='none';
@@ -1157,9 +1173,12 @@ function showScheduleModal(){document.getElementById('scheduleOverlay').classLis
   const d=new Date();d.setDate(d.getDate()+6);d.setHours(23,59,0,0);const iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'T23:59';document.getElementById('scheduleDue').value=iso;
   setTimeout(()=>document.getElementById('schedulePw').focus(),100);}
 function hideScheduleModal(){document.getElementById('scheduleOverlay').classList.add('hidden');}
-function saveSchedule(){
-  const pw=document.getElementById('schedulePw').value;
-  if(pw!=='TeknikMesin0602'){document.getElementById('scheduleError').textContent='⚠ Password salah.';document.getElementById('scheduleError').style.display='block';return;}
+async function saveSchedule(){
+  const _pw = document.getElementById('schedulePw').value;
+  if (!(await _verifyAdminPw(_pw))) {
+    document.getElementById('scheduleError').textContent='\u26a0 Password salah.';
+    document.getElementById('scheduleError').style.display='block';return;
+  }
   const dur=parseInt(document.getElementById('scheduleDuration').value), due=document.getElementById('scheduleDue').value;
   if(!dur||dur<1){document.getElementById('scheduleError').textContent='⚠ Durasi harus diisi (minimal 1 hari).';document.getElementById('scheduleError').style.display='block';return;}
   if(!due){document.getElementById('scheduleError').textContent='⚠ Batas akhir harus diisi.';document.getElementById('scheduleError').style.display='block';return;}
