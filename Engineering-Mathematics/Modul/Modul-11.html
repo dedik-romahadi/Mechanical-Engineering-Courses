@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Modul 11 – Penerapan Laplace pada PD | Matematika Teknik</title>
+<title>Modul 11 – Penerapan Laplace pada PD | Matematika 4</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Sans+3:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
@@ -275,7 +275,7 @@ footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--bd);color:
       <div class="lecturer-name">Dedik Romahadi</div>
     </div>
   </div>
-  <div class="hero-badge">📐 Pertemuan 11 — Matematika Teknik</div>
+  <div class="hero-badge">📐 Pertemuan 11 — Matematika 4</div>
   <h1 class="hero-title">Penerapan<br><span class="highlight">Laplace pada PD</span></h1>
   <p class="hero-sub">Menyelesaikan persamaan diferensial orde tinggi dengan metode Transformasi Laplace — mengubah PD menjadi aljabar, lalu kembali ke solusi.</p>
   <div class="hero-cta">
@@ -802,7 +802,7 @@ soal = [
 
 <footer>
   <p>📐 Modul 11 — Penerapan Transformasi Laplace pada PD</p>
-  <p style="margin-top:.5rem;">Matematika Teknik • W132100010 • Fakultas Teknik — Teknik Mesin</p>
+  <p style="margin-top:.5rem;">Matematika 4 • W132100010 • Fakultas Teknik — Teknik Mesin</p>
   <p style="margin-top:.25rem;font-size:.8rem;">Disusun oleh: Dedik Romahadi</p>
 </footer>
 
@@ -989,7 +989,7 @@ const DB_PATH = `visitors/math4/${MODULE_ID}`;
 const PERTEMUAN = 'pertemuan-11';
 const RELATED_MODULES = ['forum-11','tugas-11'];
 const SCHEDULE_PATH = `settings/math4/${PERTEMUAN}/schedule`;
-const LOCAL_IDENTITY = `optoauto_identity_${MODULE_ID}`;
+const LOCAL_IDENTITY = `math4_identity_${MODULE_ID}`;
 let panelOpen = false;
 let currentSchedule = null;
 const VISIT_COOLDOWN = 3600000;
@@ -1189,16 +1189,48 @@ document.addEventListener('click',function(e){const p=document.getElementById('v
 // Admin functions
 function showResetModal(){document.getElementById('resetOverlay').classList.remove('hidden');document.getElementById('resetPw').value='';document.getElementById('resetError').style.display='none';setTimeout(()=>document.getElementById('resetPw').focus(),100);}
 function hideResetModal(){document.getElementById('resetOverlay').classList.add('hidden');}
-function confirmReset(){
-  const pw=document.getElementById('resetPw').value;
-  if(pw!=='TeknikMesin0602'){document.getElementById('resetError').textContent='⚠ Password salah.';document.getElementById('resetError').style.display='block';return;}
-  remove(ref(db,DB_PATH));
-  remove(ref(db,SCHEDULE_PATH));
-  RELATED_MODULES.forEach(m=>{remove(ref(db,`visitors/math4/${m}`));});
-  localStorage.removeItem(LOCAL_IDENTITY);
-  hideResetModal();
-  document.getElementById('visitorOverlay').classList.remove('hidden');
-  document.getElementById('visitorFab').style.display='none';
+async function confirmReset(){
+  if(document.getElementById('resetPw').value!=='TeknikMesin0602'){
+    document.getElementById('resetError').style.display='block';return;
+  }
+  document.getElementById('resetError').style.display='none';
+  // ─── Race Condition Fix (Pedoman v11 §20.2): sequential child-iterate ───
+  window._resetInProgress = true;
+  try {
+    // STEP 1: visitor data utama child-by-child
+    const _mainSnap = await get(ref(db, DB_PATH));
+    const _mainData = _mainSnap.val() || {};
+    if (Object.keys(_mainData).length > 0) {
+      await Promise.all(Object.keys(_mainData).map(k => remove(ref(db, DB_PATH + '/' + k))));
+    }
+    // STEP 2: related modules child-by-child
+    for (const mid of RELATED_MODULES) {
+      const _relPath = 'visitors/math4/' + mid;
+      const _relSnap = await get(ref(db, _relPath));
+      const _relData = _relSnap.val() || {};
+      if (Object.keys(_relData).length > 0) {
+        await Promise.all(Object.keys(_relData).map(k => remove(ref(db, _relPath + '/' + k))));
+      }
+    }
+    // STEP 3: clear localStorage SEBELUM remove schedule
+    localStorage.removeItem(LOCAL_IDENTITY);
+    RELATED_MODULES.forEach(mid => {
+      localStorage.removeItem('math4_identity_' + mid);
+      localStorage.removeItem('optoauto_identity_' + mid);   // legacy cleanup
+    });
+    // STEP 4: hapus schedule TERAKHIR
+    await remove(ref(db, SCHEDULE_PATH));
+    // STEP 5: hard reload untuk clean state
+    hideResetModal();
+    document.getElementById('visitorOverlay').classList.remove('hidden');
+    document.getElementById('visitorFab').style.display='none';
+    setTimeout(() => { window.location.reload(); }, 500);
+  } catch (err) {
+    window._resetInProgress = false;
+    console.error('[Reset] Firebase remove failed:', err);
+    const errEl = document.getElementById('resetError');
+    if (errEl) { errEl.textContent = '\u274c Gagal: ' + (err && err.message ? err.message : err); errEl.style.display='block'; }
+  }
 }
 function showScheduleModal(){document.getElementById('scheduleOverlay').classList.remove('hidden');document.getElementById('schedulePw').value='';document.getElementById('scheduleError').style.display='none';
   const d=new Date();d.setDate(d.getDate()+6);d.setHours(23,59,0,0);const iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'T23:59';document.getElementById('scheduleDue').value=iso;
