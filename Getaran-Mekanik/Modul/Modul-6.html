@@ -1174,20 +1174,20 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 06</div>
   <h2 class="section-title reveal">Animasi Interaktif<br>Base Motion &amp; Rotating Unbalance</h2>
-  <p class="section-desc reveal">Empat animasi visual untuk memahami <strong>Pertemuan 6</strong> secara intuitif: (1) Mass-spring-damper fisik bergetar (universal SDOF — menggambarkan respons base motion atau rotating unbalance), (2) sweep frekuensi untuk melihat puncak resonansi dramatis, (3) perbandingan <em>dengan</em> vs <em>tanpa</em> isolator (force-transmissibility identik dengan displacement-transmissibility T<sub>d</sub>), dan (4) half-power bandwidth untuk ekstraksi ζ. Geser slider, eksplorasi r &lt; 1, r = 1, dan r &gt; √2!</p>
+  <p class="section-desc reveal">Empat animasi visual khusus untuk topik <strong>Pertemuan 6</strong>: (1) <strong>Base motion live</strong> — pondasi y(t)=Y·sin(ωt) bergerak, massa merespon dengan amplitudo X = T<sub>d</sub>·Y; (2) <strong>Rotating unbalance live</strong> — rotor dengan massa eksentrik m₀ berputar, frame bergetar akibat gaya sentrifugal m₀·e·ω²; (3) <strong>Sweep T<sub>d</sub>(r,ζ)</strong> — bangun kurva transmissibility base motion dan lihat crossover di r=√2; (4) <strong>Kurva R(r,ζ) rotating unbalance</strong> — lihat asymptote unik R→1 saat r→∞. Geser slider, eksplorasi perbedaan kedua jenis eksitasi!</p>
 
-  <!-- Animasi 1: PHYSICAL Mass-Spring-Damper LIVE -->
+  <!-- Animasi 1: BASE MOTION LIVE -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi 1 — Mass-Spring-Damper SDOF (Universal: Base Motion / Rotating Unbalance)</span>
+      <span class="anim-title">Animasi 1 — Base Motion Live: Pondasi Bergerak y(t) Menggerakkan Massa</span>
     </div>
     <div class="anim-body">
       <canvas id="cvPhysics" height="340"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
           <label>Rasio Frekuensi r = ω/ωₙ — <span class="ctrl-val" id="v_rp">0.80</span></label>
-          <input type="range" id="sl_rp" min="0.1" max="2.5" step="0.02" value="0.8">
+          <input type="range" id="sl_rp" min="0.1" max="3.5" step="0.02" value="0.8">
         </div>
         <div class="ctrl-group">
           <label>Rasio Redaman ζ — <span class="ctrl-val" id="v_zp">0.10</span></label>
@@ -1197,85 +1197,85 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       </div>
       <div id="physicsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi Ini:</strong> Massa (kotak ungu) tergantung pada pegas + peredam. Gaya eksitasi F(t)=F₀sin(ωt) ditampilkan sebagai panah oranye yang berubah arah. Bar biru di bawah = amplitudo live.<br>
-        <strong>Coba:</strong> (1) Mulai dengan r=0.5 — massa bergoyang ringan. (2) Geser r ke 1.0 (resonansi) — lihat amplitudo <em>meledak</em>! (3) Geser ke r=2.5 — amplitudo kecil karena inersia dominan. (4) Di r=1, coba ubah ζ dari 0.02 ke 0.3 — lihat betapa redaman mengendalikan puncak resonansi.
+        <strong>📊 Cara Membaca Animasi Ini:</strong> Pondasi (kotak abu-abu di bawah) bergerak harmonik <strong>y(t) = Y·sin(ωt)</strong>. Pegas + peredam menghubungkan pondasi ke massa M. Massa merespon dengan x(t) = X·sin(ωt − φ), dengan <strong>X = T<sub>d</sub>·Y</strong>. Bar cyan: amplitudo pondasi Y. Bar ungu: amplitudo massa X.<br>
+        <strong>Coba:</strong> (1) <strong>r = 0.5</strong> — massa "ikut" pondasi (X ≈ Y, T<sub>d</sub> ≈ 1, rigid coupling). (2) <strong>r = 1</strong> (resonansi) — massa bergerak <em>jauh lebih banyak</em> dari pondasi! (3) <strong>r = √2 ≈ 1.41</strong> — crossover, T<sub>d</sub> = 1 untuk semua ζ. (4) <strong>r = 3</strong> — massa hampir diam relatif lantai (T<sub>d</sub> &lt; 0.2, isolasi efektif!).
       </div>
     </div>
   </div>
 
-  <!-- Animasi 2: Resonance Sweep Demo (dramatic amplitude vs frequency) -->
+  <!-- Animasi 2: ROTATING UNBALANCE LIVE -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--amber)"></div>
-      <span class="anim-title">Animasi 2 — Sweep Frekuensi: Lihat Puncak Resonansi Dibangun Real-Time</span>
+      <span class="anim-title">Animasi 2 — Rotating Unbalance Live: Rotor Eksentrik &amp; Gaya Sentrifugal</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvSweep" height="320"></canvas>
+      <canvas id="cvSweep" height="340"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Rasio Redaman ζ — <span class="ctrl-val" id="v_zs">0.05</span></label>
-          <input type="range" id="sl_zs" min="0.01" max="0.5" step="0.01" value="0.05">
+          <label>Rasio Frekuensi r = ω/ωₙ — <span class="ctrl-val" id="v_zs">1.00</span></label>
+          <input type="range" id="sl_zs" min="0.1" max="3.5" step="0.02" value="1.00">
         </div>
-        <button class="btn-anim" id="btnSweep" onclick="runSweep()">▶ START SWEEP</button>
-        <button class="btn-anim" onclick="resetSweep()" style="background:rgba(168,85,247,.15);color:var(--violet);border-color:rgba(168,85,247,.3)">↺ RESET</button>
+        <div class="ctrl-group">
+          <label>Rasio Redaman ζ — <span class="ctrl-val" id="v_zsd">0.10</span></label>
+          <input type="range" id="sl_zsd" min="0.02" max="0.5" step="0.01" value="0.10">
+        </div>
+        <button class="btn-anim" id="btnSweep" onclick="toggleRotor()">⏸ PAUSE</button>
       </div>
       <div id="sweepInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi Ini:</strong> Tekan <strong>▶ START SWEEP</strong> — eksitasi frekuensi akan naik perlahan dari ω=0 ke ω=2.5ωₙ selama 8 detik. Atas: massa bergetar real-time. Bawah: kurva DMF yang sedang "digambar" titik demi titik saat sweep berlangsung.<br>
-        <strong>Amati:</strong> (1) Saat ω mendekati ωₙ (r=1), amplitudo membengkak dramatis — massa bergoyang gila-gilaan. (2) Titik DMF bertambah membentuk puncak yang tajam. (3) Geser ζ lebih tinggi sebelum sweep — puncaknya lebih tumpul + amplitudo max lebih kecil. (4) Tekan ↺ RESET untuk coba lagi dengan ζ berbeda.
+        <strong>📊 Cara Membaca Animasi Ini:</strong> Rotor (lingkaran biru) berputar pada kecepatan ω. Massa eksentrik <strong>m₀</strong> (titik merah) di radius e dari pusat menghasilkan gaya sentrifugal <strong>F = m₀·e·ω²</strong>. Frame mesin (kotak ungu) merespon dengan amplitudo <strong>X = R · m₀e/M</strong>, dengan R = r²/√[(1−r²)²+(2ζr)²].<br>
+        <strong>Amati:</strong> (1) <strong>r → 0</strong> — rotor lambat, F kecil, mesin hampir diam (R → 0). (2) <strong>r = 1</strong> (resonansi) — R = 1/(2ζ), getaran ekstrem! (3) <strong>r ≫ 1</strong> — meski F = m₀·e·ω² besar, mesin "diam" pada amplitudo asimptotik <strong>X = m₀e/M</strong> (R → 1). Inilah strategi <em>supercritical operation</em> untuk turbin.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 3: Side-by-Side Isolator Comparison -->
+  <!-- Animasi 3: T_d Sweep — Build Curve Transmissibility -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--green)"></div>
-      <span class="anim-title">Animasi 3 — Perbandingan: Alat TANPA vs DENGAN Isolator Base Motion (Lihat T<sub>d</sub>!)</span>
+      <span class="anim-title">Animasi 3 — Sweep T<sub>d</sub>(r,ζ): Bangun Kurva Transmissibility &amp; Lihat Crossover r=√2</span>
     </div>
     <div class="anim-body">
       <canvas id="cvIso" height="360"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Rasio Frekuensi r = ω/ωₙ_iso — <span class="ctrl-val" id="v_ri">2.50</span></label>
-          <input type="range" id="sl_ri" min="0.3" max="5" step="0.05" value="2.5">
+          <label>Rasio Redaman ζ — <span class="ctrl-val" id="v_ri">0.10</span></label>
+          <input type="range" id="sl_ri" min="0.02" max="0.5" step="0.01" value="0.10">
         </div>
-        <div class="ctrl-group">
-          <label>Redaman Isolator ζ_iso — <span class="ctrl-val" id="v_zi">0.08</span></label>
-          <input type="range" id="sl_zi" min="0.02" max="0.5" step="0.01" value="0.08">
-        </div>
-        <button class="btn-anim" id="btnIso" onclick="toggleIso()">⏸ PAUSE</button>
+        <button class="btn-anim" id="btnIso" onclick="runTdSweep()">▶ START SWEEP</button>
+        <button class="btn-anim" onclick="resetTdSweep()" style="background:rgba(168,85,247,.15);color:var(--violet);border-color:rgba(168,85,247,.3)">↺ RESET</button>
       </div>
       <div id="isoInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi Ini:</strong> Kiri: mesin terbaut langsung ke pondasi — gaya dari mesin 100% diteruskan (Tᵣ=1). Kanan: mesin di atas isolator (pegas+peredam). Bar merah di bawah masing-masing menunjukkan <em>gaya yang diteruskan ke lantai</em>.<br>
-        <strong>Coba:</strong> (1) Mulai dengan r=0.5 (di bawah √2) — lantai kanan justru bergetar lebih parah! Isolator di zona amplifikasi. (2) Geser r=√2≈1.414 — Tᵣ=1 tepat (kedua lantai sama). (3) Geser r=3 — lantai kanan hampir diam, isolasi 90%! (4) Geser ζ lebih tinggi pada r besar → Tᵣ sedikit naik (paradox redaman).
+        <strong>📊 Cara Membaca Animasi Ini:</strong> Tekan <strong>▶ START SWEEP</strong> — frekuensi naik dari r=0 ke r=4 dalam 10 detik. Atas: visualisasi pondasi & massa real-time. Bawah: kurva T<sub>d</sub>(r) yang sedang dibangun titik demi titik.<br>
+        <strong>Amati:</strong> (1) Saat r mendekati 1, T<sub>d</sub> melonjak ke ~1/(2ζ). (2) Pada <strong>r = √2 ≈ 1.414</strong>, T<sub>d</sub> turun tepat ke 1 (titik crossover marker hijau) — <em>untuk semua nilai ζ</em>. (3) Untuk r &gt; √2, T<sub>d</sub> &lt; 1: massa bergerak lebih sedikit dari pondasi. (4) Coba ζ rendah (0.05) lalu ζ tinggi (0.3): puncak resonansi turun, tapi penurunan setelah crossover lebih lambat (paradox redaman).
       </div>
     </div>
   </div>
 
-  <!-- Animasi 4: Half-Power Bandwidth Interactive -->
+  <!-- Animasi 4: R(r,ζ) Curve — Rotating Unbalance Magnification Factor -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--pink)"></div>
-      <span class="anim-title">Animasi 4 — Half-Power Bandwidth: Ekstrak ζ dan Q dari Kurva FRF secara Visual</span>
+      <span class="anim-title">Animasi 4 — Faktor Pembesaran R(r,ζ) Rotating Unbalance — Asymptote R→1</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvHPB" height="320"></canvas>
+      <canvas id="cvHPB" height="340"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Rasio Redaman TRUE ζ — <span class="ctrl-val" id="v_zh">0.08</span></label>
-          <input type="range" id="sl_zh" min="0.02" max="0.30" step="0.005" value="0.08">
+          <label>Geser Operasi r = ω/ωₙ — <span class="ctrl-val" id="v_zh">1.00</span></label>
+          <input type="range" id="sl_zh" min="0.1" max="4.0" step="0.02" value="1.00">
         </div>
         <div class="ctrl-group">
-          <label>Geser Garis Horizontal — <span class="ctrl-val" id="v_line">0.50</span></label>
-          <input type="range" id="sl_line" min="0.10" max="0.95" step="0.01" value="0.50">
+          <label>Rasio Redaman ζ — <span class="ctrl-val" id="v_line">0.10</span></label>
+          <input type="range" id="sl_line" min="0.02" max="0.5" step="0.01" value="0.10">
         </div>
       </div>
       <div id="hpbInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi Ini:</strong> Kurva cyan = |H(ω)|² (amplitudo kuadrat, proxy untuk power). Garis horizontal kuning = <em>half-power line</em> yang bisa Anda geser. Saat Anda menggeser garis tepat di <strong>½ × H²_max</strong>, titik ω₁ dan ω₂ akan dideteksi.<br>
-        <strong>Coba:</strong> (1) Geser slider "Garis Horizontal" perlahan ke 0.50 — lihat garis turun. Saat tepat di 0.50 × H²_max, titik-titik hijau muncul di persimpangan kurva. (2) Δω = ω₂ − ω₁ terlihat jelas. (3) Q = ωₙ/Δω dan ζ_estimated muncul di info. (4) Geser ζ_TRUE — lihat lebar puncak berubah, Q berubah, dan formula ζ ≈ 1/(2Q) terverifikasi.
+        <strong>📊 Cara Membaca Animasi Ini:</strong> Plot menampilkan <strong>R(r,ζ) = X·M/(m₀·e)</strong> — faktor pembesaran rotating unbalance untuk 4 nilai ζ berbeda. Garis hijau putus-putus = asymptote <strong>R = 1</strong> (limit fundamental saat r→∞).<br>
+        <strong>Amati:</strong> (1) <strong>r → 0</strong>: R → 0 (gaya sentrifugal kecil). (2) Puncak R berada di <strong>r = 1/√(1−2ζ²)</strong> — sedikit <em>di atas</em> 1 (kebalikan dari DMF biasa!). (3) Saat r → ∞, semua kurva ζ konvergen ke R = 1, artinya X → m₀e/M tidak peduli ζ. (4) Geser slider r untuk lihat operating point berpindah; perhatikan bagaimana <em>menambah ζ</em> hanya berguna di sekitar r=1 — di r besar tidak banyak berbeda.
       </div>
     </div>
   </div>
@@ -3979,9 +3979,10 @@ function _savgol(arr, w){
 }
 
 // ════════════════════════════════════════════════════════════
-// ANIMASI 1 — Simulasi Fisik Mass-Spring-Damper LIVE
+// ANIMASI 1 — BASE MOTION LIVE
 // (Canvas: cvPhysics, slider: sl_rp/sl_zp; button: btnPhysics)
-// Simulasi fisik real-time: massa oscillates with correct amplitude + phase
+// Pondasi y(t) = Y·sin(ωt) bergerak, massa M merespon dgn x(t) = X·sin(ωt−φ)
+// dengan X = T_d · Y. T_d = √(1+(2ζr)²) / √((1−r²)² + (2ζr)²)
 // ════════════════════════════════════════════════════════════
 let _physicsAnim = { t: 0, running: true, raf: null };
 
@@ -3996,159 +3997,167 @@ function drawPhysics(){
   const W = cv.clientWidth; cv.width = W; const H = cv.height;
   const ctx = cv.getContext('2d');
 
-  // Background
   const bg = ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
-
-  // Grid
   _grid(ctx, 0, 0, W, H, 20, 8, '#0d1929');
 
-  // Params
   const r = parseFloat(document.getElementById('sl_rp').value);
   const zeta = parseFloat(document.getElementById('sl_zp').value);
   const t = _physicsAnim.t;
 
-  // DMF & phase
-  const dmf = 1 / Math.sqrt((1-r*r)**2 + (2*zeta*r)**2);
-  const phi = Math.atan2(2*zeta*r, 1-r*r);
+  // Displacement transmissibility T_d for base motion
+  const num_Td = Math.sqrt(1 + (2*zeta*r)**2);
+  const den_Td = Math.sqrt((1-r*r)**2 + (2*zeta*r)**2);
+  const Td = num_Td / den_Td;
+  const phi = Math.atan2(2*zeta*r*r*r, 1 - r*r + (2*zeta*r)**2);
 
-  // Position of mass: x(t) = X·sin(ωt − φ), normalized
-  const omega = 4.0; // display angular frequency (not physical)
-  const xpos = dmf * Math.sin(omega*t - phi);   // Normalized displacement
+  const omega = 3.5;
+  const Y_pix = 30;
+  const X_pix_max = 130;
+  const X_pix = Math.min(X_pix_max, Td * Y_pix);
 
-  // Layout
+  const y_t = Y_pix * Math.sin(omega*t);
+  const x_t = X_pix * Math.sin(omega*t - phi);
+
   const cx = W/2;
-  const wallY = 30;
-  const baseY = H - 80;
-  const massW = 70, massH = 50;
-  const restY = H/2;
-  const maxAmp = 100; // max pixel amplitude
-  const dispY = restY + Math.max(-maxAmp, Math.min(maxAmp, xpos * 50));
+  const massRestY = 130;
+  const baseRestY = 270;
+  const massW = 90, massH = 50;
+  const baseW = 220, baseH_rect = 28;
 
-  // Wall (top)
-  ctx.fillStyle = 'rgba(148,163,184,.3)';
-  ctx.fillRect(cx-120, wallY-8, 240, 8);
-  // Hatch pattern on wall
-  ctx.strokeStyle = 'rgba(148,163,184,.4)'; ctx.lineWidth = 1;
-  for(let i=0; i<10; i++){
-    ctx.beginPath();
-    ctx.moveTo(cx-116+i*26, wallY-8);
-    ctx.lineTo(cx-104+i*26, wallY);
-    ctx.stroke();
-  }
+  const massY = massRestY + x_t;
+  const baseY = baseRestY + y_t;
 
-  // Spring (zigzag pattern) — LEFT
-  const spX = cx - 35;
-  ctx.strokeStyle = 'rgba(168,85,247,.7)'; ctx.lineWidth = 2.5;
-  ctx.shadowColor = 'rgba(168,85,247,.4)'; ctx.shadowBlur = 4;
-  ctx.beginPath();
-  const spLen = dispY - wallY;
-  const coils = 8;
-  ctx.moveTo(spX, wallY);
-  for(let i=0; i<coils; i++){
-    const y1 = wallY + (i+0.5) * spLen / coils;
-    const x1 = spX + (i%2===0 ? -12 : 12);
-    ctx.lineTo(x1, y1);
-  }
-  ctx.lineTo(spX, dispY);
-  ctx.stroke();
-  ctx.shadowBlur = 0;
-
-  // Damper (cylinder) — RIGHT
-  const dpX = cx + 35;
-  ctx.strokeStyle = 'rgba(249,115,22,.7)'; ctx.lineWidth = 2;
-  const dpTop = wallY;
-  const dpBot = dispY;
-  // Piston rod
-  ctx.beginPath(); ctx.moveTo(dpX, dpTop); ctx.lineTo(dpX, dpBot - 20); ctx.stroke();
-  // Cylinder box
-  ctx.fillStyle = 'rgba(249,115,22,.08)';
-  ctx.strokeRect(dpX-10, (dpTop+dpBot)/2-12, 20, 24);
-  ctx.fillRect(dpX-10, (dpTop+dpBot)/2-12, 20, 24);
-  // Piston inside
-  ctx.fillStyle = 'rgba(249,115,22,.4)';
-  ctx.fillRect(dpX-8, (dpTop+dpBot)/2-2, 16, 4);
-
-  // Mass (box)
-  const massX = cx - massW/2;
-  const massY = dispY;
-  const massGrad = ctx.createLinearGradient(massX, massY, massX+massW, massY+massH);
-  massGrad.addColorStop(0, 'rgba(168,85,247,.3)');
-  massGrad.addColorStop(1, 'rgba(124,77,255,.15)');
-  ctx.fillStyle = massGrad;
-  ctx.fillRect(massX, massY, massW, massH);
-  ctx.strokeStyle = 'rgba(168,85,247,.8)'; ctx.lineWidth = 2;
-  ctx.strokeRect(massX, massY, massW, massH);
-  // "m" label
-  ctx.fillStyle = '#fff'; ctx.font = 'bold 18px JetBrains Mono';
-  ctx.textAlign = 'center'; ctx.fillText('m', cx, massY + 32);
+  // Pondasi (moving floor)
+  const baseGrad = ctx.createLinearGradient(cx-baseW/2, baseY, cx-baseW/2, baseY+baseH_rect);
+  baseGrad.addColorStop(0, 'rgba(14,165,233,.55)');
+  baseGrad.addColorStop(1, 'rgba(14,165,233,.18)');
+  ctx.fillStyle = baseGrad;
+  ctx.fillRect(cx-baseW/2, baseY, baseW, baseH_rect);
+  ctx.strokeStyle = 'rgba(14,165,233,.95)'; ctx.lineWidth = 2;
+  ctx.strokeRect(cx-baseW/2, baseY, baseW, baseH_rect);
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 12px JetBrains Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('PONDASI y(t)', cx, baseY + baseH_rect/2 + 4);
   ctx.textAlign = 'left';
 
-  // Force arrow (below mass)
-  const Fval = Math.sin(omega*t); // F(t) = F₀sin(ωt)
-  const arrowLen = 40 * Fval;
-  if(Math.abs(arrowLen) > 2){
-    ctx.strokeStyle = '#f97316'; ctx.lineWidth = 3;
-    ctx.shadowColor = 'rgba(249,115,22,.6)'; ctx.shadowBlur = 6;
-    const arrY = massY + massH + 25;
+  // Ground hatching below
+  ctx.strokeStyle = 'rgba(148,163,184,.35)'; ctx.lineWidth = 1;
+  for(let i=0; i<14; i++){
     ctx.beginPath();
-    ctx.moveTo(cx, arrY);
-    ctx.lineTo(cx + arrowLen, arrY);
+    ctx.moveTo(cx-baseW/2+i*16, H-15);
+    ctx.lineTo(cx-baseW/2+i*16+10, H-3);
     ctx.stroke();
-    // Arrowhead
-    const sign = arrowLen > 0 ? 1 : -1;
-    ctx.beginPath();
-    ctx.moveTo(cx + arrowLen, arrY);
-    ctx.lineTo(cx + arrowLen - sign*8, arrY - 5);
-    ctx.lineTo(cx + arrowLen - sign*8, arrY + 5);
-    ctx.closePath();
-    ctx.fillStyle = '#f97316'; ctx.fill();
-    ctx.shadowBlur = 0;
   }
-  // "F(t)" label
-  ctx.fillStyle = '#f97316'; ctx.font = '11px JetBrains Mono';
-  ctx.fillText('F(t) = F₀sin(ωt)', cx - 55, massY + massH + 50);
 
-  // Rest position indicator (dashed line)
-  ctx.strokeStyle = 'rgba(255,255,255,.15)'; ctx.lineWidth = 1; ctx.setLineDash([4,4]);
-  ctx.beginPath(); ctx.moveTo(cx - 90, restY + massH/2); ctx.lineTo(cx + 90, restY + massH/2); ctx.stroke();
+  // Spring k between mass-bottom and pondasi-top
+  const spX = cx - 30;
+  const spTop = massY + massH;
+  const spBot = baseY;
+  ctx.strokeStyle = 'rgba(168,85,247,.78)'; ctx.lineWidth = 2.5;
+  ctx.shadowColor = 'rgba(168,85,247,.4)'; ctx.shadowBlur = 4;
+  ctx.beginPath();
+  const spLen = spBot - spTop;
+  const coils = Math.max(5, Math.min(12, Math.floor(spLen / 14)));
+  ctx.moveTo(spX, spTop);
+  for(let i=0; i<coils; i++){
+    const yi = spTop + (i+0.5) * spLen / coils;
+    const xi = spX + (i%2===0 ? -10 : 10);
+    ctx.lineTo(xi, yi);
+  }
+  ctx.lineTo(spX, spBot);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = 'rgba(168,85,247,.95)'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText('k', spX - 22, (spTop+spBot)/2 + 4);
+
+  // Damper c (parallel to spring)
+  const dpX = cx + 30;
+  ctx.strokeStyle = 'rgba(249,115,22,.78)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(dpX, spTop); ctx.lineTo(dpX, (spTop+spBot)/2 - 8); ctx.stroke();
+  ctx.fillStyle = 'rgba(249,115,22,.08)';
+  ctx.strokeRect(dpX-9, (spTop+spBot)/2 - 8, 18, 16);
+  ctx.fillRect(dpX-9, (spTop+spBot)/2 - 8, 18, 16);
+  ctx.fillStyle = 'rgba(249,115,22,.5)';
+  ctx.fillRect(dpX-7, (spTop+spBot)/2 - 1, 14, 3);
+  ctx.beginPath(); ctx.moveTo(dpX, (spTop+spBot)/2 + 8); ctx.lineTo(dpX, spBot); ctx.stroke();
+  ctx.fillStyle = 'rgba(249,115,22,.95)'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText('c', dpX + 16, (spTop+spBot)/2 + 4);
+
+  // Mass M
+  const massX = cx - massW/2;
+  const mGrad = ctx.createLinearGradient(massX, massY, massX+massW, massY+massH);
+  mGrad.addColorStop(0, 'rgba(168,85,247,.42)');
+  mGrad.addColorStop(1, 'rgba(124,77,255,.18)');
+  ctx.fillStyle = mGrad;
+  ctx.fillRect(massX, massY, massW, massH);
+  ctx.strokeStyle = 'rgba(168,85,247,.95)'; ctx.lineWidth = 2;
+  ctx.strokeRect(massX, massY, massW, massH);
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 18px JetBrains Mono';
+  ctx.textAlign = 'center'; ctx.fillText('M', cx, massY + 32);
+  ctx.textAlign = 'left';
+
+  // Rest position dashed indicators
+  ctx.strokeStyle = 'rgba(255,255,255,.18)'; ctx.lineWidth = 1; ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(cx - 130, massRestY + massH/2); ctx.lineTo(cx + 130, massRestY + massH/2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx - 130, baseRestY + baseH_rect/2); ctx.lineTo(cx + 130, baseRestY + baseH_rect/2); ctx.stroke();
   ctx.setLineDash([]);
-  ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.font = '10px JetBrains Mono';
-  ctx.fillText('rest (x=0)', cx + 95, restY + massH/2 + 3);
 
-  // Amplitude bar (right side, vertical)
-  const barX = W - 80;
-  const barTop = 60;
-  const barH = H - 140;
-  ctx.strokeStyle = 'rgba(14,165,233,.3)'; ctx.lineWidth = 1;
-  ctx.strokeRect(barX, barTop, 30, barH);
-  ctx.fillStyle = 'rgba(14,165,233,.08)';
-  ctx.fillRect(barX, barTop, 30, barH);
-  // Current amplitude fill
-  const ampRatio = Math.min(1, Math.abs(xpos)/3);  // normalize to [0,1] clipped
-  const fillH = ampRatio * barH;
-  const barGrad = ctx.createLinearGradient(barX, barTop + barH, barX, barTop + barH - fillH);
-  barGrad.addColorStop(0, '#00e5ff'); barGrad.addColorStop(1, '#ef4444');
-  ctx.fillStyle = barGrad;
-  ctx.fillRect(barX, barTop + barH - fillH, 30, fillH);
+  // Amplitude bars
+  const barH = 90;
+  const barTop = 110;
+  // Y bar (cyan)
+  const yBarX = 30;
+  ctx.strokeStyle = 'rgba(14,165,233,.4)';
+  ctx.strokeRect(yBarX, barTop, 22, barH);
+  ctx.fillStyle = 'rgba(14,165,233,.1)';
+  ctx.fillRect(yBarX, barTop, 22, barH);
+  const yBarRatio = Math.abs(y_t)/Y_pix;
+  ctx.fillStyle = '#0ea5e9';
+  ctx.fillRect(yBarX, barTop + barH - yBarRatio*barH, 22, yBarRatio*barH);
   ctx.fillStyle = '#94a3b8'; ctx.font = '9px JetBrains Mono';
-  ctx.fillText('|x(t)|', barX, barTop - 6);
-  ctx.fillText(Math.abs(xpos).toFixed(2), barX, barTop + barH + 14);
+  ctx.textAlign = 'center';
+  ctx.fillText('|y(t)|', yBarX+11, barTop - 6);
+  ctx.fillText('Y', yBarX+11, barTop + barH + 14);
+  // X bar (violet)
+  const xBarX = W - 50;
+  ctx.strokeStyle = 'rgba(168,85,247,.4)';
+  ctx.strokeRect(xBarX, barTop, 22, barH);
+  ctx.fillStyle = 'rgba(168,85,247,.1)';
+  ctx.fillRect(xBarX, barTop, 22, barH);
+  const xRatio = Math.min(1, Math.abs(x_t) / Y_pix / Math.max(1, Td));
+  // Better: show actual |x|/X_pix_max scale
+  const xRatioDisplay = Math.min(1, Math.abs(x_t)/X_pix_max);
+  const xBarColor = Td > 1.5 ? '#ef4444' : (Td < 0.5 ? '#00e09e' : '#a855f7');
+  ctx.fillStyle = xBarColor;
+  ctx.fillRect(xBarX, barTop + barH - xRatioDisplay*barH, 22, xRatioDisplay*barH);
+  ctx.fillStyle = '#94a3b8'; ctx.font = '9px JetBrains Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('|x(t)|', xBarX+11, barTop - 6);
+  ctx.fillText('X', xBarX+11, barTop + barH + 14);
+  ctx.textAlign = 'left';
 
-  // Info display
+  // Equation overlay
+  ctx.fillStyle = 'rgba(14,165,233,.9)'; ctx.font = '11px JetBrains Mono';
+  ctx.fillText('y(t) = Y·sin(ωt)  ←  BASE MOTION', 65, 30);
+  ctx.fillStyle = 'rgba(168,85,247,.9)';
+  ctx.fillText('x(t) = T_d·Y·sin(ωt − φ)  →  RESPON MASSA', 65, 50);
+
+  // Info
   const info = document.getElementById('physicsInfo');
   if(info){
-    const dmfStr = dmf > 99 ? '>99' : dmf.toFixed(2);
+    const TdStr = Td > 99 ? '>99' : Td.toFixed(2);
     const phiDeg = phi * 180 / Math.PI;
-    let status = '🟢 Normal';
-    if(Math.abs(r-1) < 0.1) status = '🔴 DEKAT RESONANSI — AMPLITUDO MEMBESAR!';
-    else if(r > 1.414) status = '🟢 Zona Isolasi (r > √2)';
-    else if(r < 0.5) status = '🔵 Zona Kaku (r << 1) — respons mengikuti gaya';
-    info.innerHTML = `r=${r.toFixed(2)} · ζ=${zeta.toFixed(3)} · <strong style="color:var(--pink)">DMF=${dmfStr}</strong> · φ=${phiDeg.toFixed(1)}° · ${status}`;
+    let status = '';
+    if(Math.abs(r-1) < 0.08) status = '🔴 RESONANSI — X melonjak ≫ Y!';
+    else if(Math.abs(r-1.414) < 0.08) status = '🟡 Crossover r=√2 — T_d=1 (∀ζ)';
+    else if(r > 1.414) status = '🟢 Zona Isolasi (r > √2) — X < Y';
+    else if(r < 0.5) status = '🔵 Zona Kaku — X ≈ Y, ikut pondasi';
+    else status = '🟡 Zona Amplifikasi (r < √2) — X > Y';
+    info.innerHTML = `r=${r.toFixed(2)} · ζ=${zeta.toFixed(3)} · <strong style="color:var(--cyan)">T_d=${TdStr}</strong> · φ=${phiDeg.toFixed(1)}° · ${status}`;
   }
 
-  // Controls value display
   document.getElementById('v_rp').textContent = r.toFixed(2);
   document.getElementById('v_zp').textContent = zeta.toFixed(2);
 }
@@ -4164,29 +4173,18 @@ function _physicsTick(){
 setTimeout(_physicsTick, 500);
 
 // ════════════════════════════════════════════════════════════
-// ANIMASI 2 — Sweep Frekuensi (Dramatic Resonance Demo)
-// (Canvas: cvSweep, slider: sl_zs; buttons: btnSweep, resetSweep)
-// User presses START, frequency sweeps from ω=0 to ω=2.5·ωₙ over 8 seconds
-// Both: physical mass at top, DMF curve being plotted at bottom
+// ANIMASI 2 — ROTATING UNBALANCE LIVE
+// (Canvas: cvSweep, slider: sl_zs/sl_zsd; button: btnSweep)
+// Rotor with eccentric mass m₀ at radius e spins at ω.
+// Centrifugal force F = m₀·e·ω²·sin(ωt) shakes frame M.
+// X = R · m₀·e/M, R = r²/√[(1−r²)² + (2ζr)²]
 // ════════════════════════════════════════════════════════════
-let _sweepAnim = { running: false, progress: 0, collectedPoints: [], t: 0, raf: null };
+let _rotorAnim = { t: 0, running: true, raf: null };
 
-function runSweep(){
-  _sweepAnim.running = true;
-  _sweepAnim.progress = 0;
-  _sweepAnim.collectedPoints = [];
-  _sweepAnim.t = 0;
+function toggleRotor(){
+  _rotorAnim.running = !_rotorAnim.running;
   const btn = document.getElementById('btnSweep');
-  if(btn) btn.textContent = '⏸ RUNNING...';
-}
-function resetSweep(){
-  _sweepAnim.running = false;
-  _sweepAnim.progress = 0;
-  _sweepAnim.collectedPoints = [];
-  _sweepAnim.t = 0;
-  const btn = document.getElementById('btnSweep');
-  if(btn) btn.textContent = '▶ START SWEEP';
-  drawSweep();
+  if(btn) btn.textContent = _rotorAnim.running ? '⏸ PAUSE' : '▶ PLAY';
 }
 
 function drawSweep(){
@@ -4194,87 +4192,333 @@ function drawSweep(){
   const W = cv.clientWidth; cv.width = W; const H = cv.height;
   const ctx = cv.getContext('2d');
 
-  // Background
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+  _grid(ctx, 0, 0, W, H, 20, 8, '#0d1929');
+
+  const r = parseFloat(document.getElementById('sl_zs').value);
+  const zeta = parseFloat(document.getElementById('sl_zsd').value);
+  const t = _rotorAnim.t;
+
+  // R(r,ζ) for rotating unbalance
+  const R = r*r / Math.sqrt((1-r*r)**2 + (2*zeta*r)**2);
+  // Phase
+  const phi = Math.atan2(2*zeta*r, 1-r*r);
+
+  // Display angular frequency
+  const omega = 1.5 + r * 1.8;     // visual rotor speed
+  const spinAngle = omega * t;
+
+  // Frame oscillation (vertical, normalized)
+  const X_pix_max = 110;
+  const X_pix = Math.min(X_pix_max, R * 22);     // 22 px = X_inf scale
+  const x_t = X_pix * Math.sin(omega*t - phi);
+
+  const cx = W/2;
+  const frameRestY = 165;
+  const frameW = 200, frameH = 130;
+  const frameY = frameRestY + x_t;
+
+  // ────── Wall above (fixed) ──────
+  ctx.fillStyle = 'rgba(148,163,184,.3)';
+  ctx.fillRect(cx-110, 18, 220, 6);
+  ctx.strokeStyle = 'rgba(148,163,184,.4)'; ctx.lineWidth = 1;
+  for(let i=0; i<11; i++){
+    ctx.beginPath();
+    ctx.moveTo(cx-105+i*22, 18);
+    ctx.lineTo(cx-95+i*22, 26);
+    ctx.stroke();
+  }
+
+  // ────── Springs (left, right) connecting wall to frame ──────
+  const sp1X = cx - 80, sp2X = cx + 80;
+  [sp1X, sp2X].forEach(spX => {
+    ctx.strokeStyle = 'rgba(168,85,247,.7)'; ctx.lineWidth = 2;
+    ctx.shadowColor = 'rgba(168,85,247,.4)'; ctx.shadowBlur = 3;
+    ctx.beginPath();
+    const spLen = frameY - 24;
+    const coils = Math.max(5, Math.min(10, Math.floor(spLen / 12)));
+    ctx.moveTo(spX, 24);
+    for(let i=0; i<coils; i++){
+      const yi = 24 + (i+0.5) * spLen / coils;
+      const xi = spX + (i%2===0 ? -8 : 8);
+      ctx.lineTo(xi, yi);
+    }
+    ctx.lineTo(spX, frameY);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  });
+
+  // ────── Frame (mesin housing — vibrating) ──────
+  const frX = cx - frameW/2;
+  const fGrad = ctx.createLinearGradient(frX, frameY, frX+frameW, frameY+frameH);
+  fGrad.addColorStop(0, 'rgba(168,85,247,.32)');
+  fGrad.addColorStop(1, 'rgba(124,77,255,.14)');
+  ctx.fillStyle = fGrad;
+  ctx.fillRect(frX, frameY, frameW, frameH);
+  ctx.strokeStyle = 'rgba(168,85,247,.95)'; ctx.lineWidth = 2;
+  ctx.strokeRect(frX, frameY, frameW, frameH);
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 12px JetBrains Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('FRAME M', cx, frameY + 18);
+  ctx.textAlign = 'left';
+
+  // ────── Rotor inside frame ──────
+  const rotCx = cx;
+  const rotCy = frameY + frameH/2 + 5;
+  const rotR = 38;
+  // Disk
+  const rotGrad = ctx.createRadialGradient(rotCx, rotCy, 5, rotCx, rotCy, rotR);
+  rotGrad.addColorStop(0, 'rgba(14,165,233,.55)');
+  rotGrad.addColorStop(1, 'rgba(14,165,233,.18)');
+  ctx.fillStyle = rotGrad;
+  ctx.beginPath(); ctx.arc(rotCx, rotCy, rotR, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = 'rgba(14,165,233,.95)'; ctx.lineWidth = 2;
+  ctx.stroke();
+  // Spin marker (line)
+  ctx.save();
+  ctx.translate(rotCx, rotCy);
+  ctx.rotate(spinAngle);
+  ctx.strokeStyle = 'rgba(14,165,233,.5)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(-rotR+4, 0); ctx.lineTo(rotR-4, 0); ctx.stroke();
+  ctx.restore();
+  // Center hub
+  ctx.fillStyle = '#1e293b';
+  ctx.beginPath(); ctx.arc(rotCx, rotCy, 4, 0, Math.PI*2); ctx.fill();
+
+  // ────── Eccentric mass m₀ at radius e ──────
+  const ecc_e = rotR - 8;
+  const m0X = rotCx + ecc_e * Math.cos(spinAngle);
+  const m0Y = rotCy + ecc_e * Math.sin(spinAngle);
+  // Glow halo
+  ctx.fillStyle = 'rgba(239,68,68,.25)';
+  ctx.beginPath(); ctx.arc(m0X, m0Y, 14, 0, Math.PI*2); ctx.fill();
+  // Mass dot
+  ctx.fillStyle = '#ef4444';
+  ctx.shadowColor = 'rgba(239,68,68,.8)'; ctx.shadowBlur = 8;
+  ctx.beginPath(); ctx.arc(m0X, m0Y, 7, 0, Math.PI*2); ctx.fill();
+  ctx.shadowBlur = 0;
+  // m0 label
+  ctx.fillStyle = '#ef4444'; ctx.font = 'bold 9px JetBrains Mono';
+  ctx.fillText('m₀', m0X+10, m0Y-6);
+  // Eccentricity arrow
+  ctx.strokeStyle = 'rgba(239,68,68,.5)'; ctx.lineWidth = 1; ctx.setLineDash([3,2]);
+  ctx.beginPath(); ctx.moveTo(rotCx, rotCy); ctx.lineTo(m0X, m0Y); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // ────── Centrifugal force vector (visual, scaled) ──────
+  const Fmag = Math.min(50, r*r * 30);
+  const FxArrow = Fmag * Math.cos(spinAngle);
+  const FyArrow = Fmag * Math.sin(spinAngle);
+  ctx.strokeStyle = '#f97316'; ctx.lineWidth = 2.5;
+  ctx.shadowColor = 'rgba(249,115,22,.6)'; ctx.shadowBlur = 5;
+  ctx.beginPath();
+  ctx.moveTo(rotCx, rotCy);
+  ctx.lineTo(rotCx + FxArrow*1.5, rotCy + FyArrow*1.5);
+  ctx.stroke();
+  // Arrowhead
+  const angF = Math.atan2(FyArrow, FxArrow);
+  const tipX = rotCx + FxArrow*1.5;
+  const tipY = rotCy + FyArrow*1.5;
+  ctx.beginPath();
+  ctx.moveTo(tipX, tipY);
+  ctx.lineTo(tipX - 8*Math.cos(angF - 0.4), tipY - 8*Math.sin(angF - 0.4));
+  ctx.lineTo(tipX - 8*Math.cos(angF + 0.4), tipY - 8*Math.sin(angF + 0.4));
+  ctx.closePath();
+  ctx.fillStyle = '#f97316'; ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Rest position dashed
+  ctx.strokeStyle = 'rgba(255,255,255,.18)'; ctx.lineWidth = 1; ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(cx - 130, frameRestY + frameH/2); ctx.lineTo(cx + 130, frameRestY + frameH/2); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // ────── X amplitude bar (right) ──────
+  const xBarX = W - 50;
+  const xBarTop = 50;
+  const xBarH = 110;
+  ctx.strokeStyle = 'rgba(168,85,247,.4)';
+  ctx.strokeRect(xBarX, xBarTop, 22, xBarH);
+  ctx.fillStyle = 'rgba(168,85,247,.1)';
+  ctx.fillRect(xBarX, xBarTop, 22, xBarH);
+  const xBarRatio = Math.min(1, Math.abs(x_t) / X_pix_max);
+  const xBarColor = R > 3 ? '#ef4444' : (R < 0.5 ? '#00e09e' : '#a855f7');
+  ctx.fillStyle = xBarColor;
+  ctx.fillRect(xBarX, xBarTop + xBarH - xBarRatio*xBarH, 22, xBarRatio*xBarH);
+  ctx.fillStyle = '#94a3b8'; ctx.font = '9px JetBrains Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('|X|', xBarX+11, xBarTop - 6);
+  ctx.fillText('frame', xBarX+11, xBarTop + xBarH + 14);
+  ctx.textAlign = 'left';
+
+  // ────── F amplitude bar (left) ──────
+  const fBarX = 30;
+  ctx.strokeStyle = 'rgba(249,115,22,.4)';
+  ctx.strokeRect(fBarX, xBarTop, 22, xBarH);
+  ctx.fillStyle = 'rgba(249,115,22,.1)';
+  ctx.fillRect(fBarX, xBarTop, 22, xBarH);
+  const fRatio = Math.min(1, r*r / 9);    // F ∝ ω², normalize r² to max 9 (r=3)
+  ctx.fillStyle = '#f97316';
+  ctx.fillRect(fBarX, xBarTop + xBarH - fRatio*xBarH, 22, fRatio*xBarH);
+  ctx.fillStyle = '#94a3b8'; ctx.font = '9px JetBrains Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('|F|', fBarX+11, xBarTop - 6);
+  ctx.fillText('m₀eω²', fBarX+11, xBarTop + xBarH + 14);
+  ctx.textAlign = 'left';
+
+  // ────── Equation overlay ──────
+  ctx.fillStyle = 'rgba(249,115,22,.9)'; ctx.font = '11px JetBrains Mono';
+  ctx.fillText('F(t) = m₀·e·ω²·sin(ωt)', 65, 28);
+  ctx.fillStyle = 'rgba(168,85,247,.9)';
+  ctx.fillText('X = R · m₀e/M  → R(r→∞) = 1', 65, 46);
+
+  // ────── Info ──────
+  const info = document.getElementById('sweepInfo');
+  if(info){
+    const RStr = R > 99 ? '>99' : R.toFixed(2);
+    let status = '';
+    if(Math.abs(r-1) < 0.08) status = '🔴 RESONANSI — R = 1/(2ζ), getaran ekstrem!';
+    else if(r > 2.5) status = '🟢 Supercritical — X mendekati asymptote m₀e/M (R→1)';
+    else if(r > 1.414) status = '🟢 r > √2 — beroperasi di atas resonansi';
+    else if(r < 0.4) status = '🔵 r << 1 — getaran kecil (F = m₀eω² rendah)';
+    else status = '🟡 Mendekati resonansi';
+    const F_norm = (r*r).toFixed(2);
+    info.innerHTML = `r=${r.toFixed(2)} · ζ=${zeta.toFixed(3)} · <strong style="color:var(--amber)">R=${RStr}</strong> · F∝ω² (${F_norm}× nominal) · ${status}`;
+  }
+
+  document.getElementById('v_zs').textContent = r.toFixed(2);
+  document.getElementById('v_zsd').textContent = zeta.toFixed(2);
+}
+
+function _sweepTick(){
+  if(_rotorAnim.running) _rotorAnim.t += 0.016;
+  drawSweep();
+  _rotorAnim.raf = requestAnimationFrame(_sweepTick);
+}
+(function(){
+  ['sl_zs','sl_zsd'].forEach(id=>{const s=document.getElementById(id); if(s) s.addEventListener('input', drawSweep);});
+})();
+setTimeout(_sweepTick, 600);
+
+// ════════════════════════════════════════════════════════════
+// ANIMASI 3 — T_d SWEEP (Build Transmissibility Curve)
+// (Canvas: cvIso, slider: sl_ri; buttons: btnIso/runTdSweep, resetTdSweep)
+// Sweep r from 0 to 4 over 10 seconds, building T_d(r) curve point by point.
+// Highlight crossover at r=√2 where T_d=1.
+// ════════════════════════════════════════════════════════════
+let _tdSweepAnim = { running: false, progress: 0, points: [], t: 0, raf: null };
+
+function runTdSweep(){
+  _tdSweepAnim.running = true;
+  _tdSweepAnim.progress = 0;
+  _tdSweepAnim.points = [];
+  _tdSweepAnim.t = 0;
+  const btn = document.getElementById('btnIso');
+  if(btn) btn.textContent = '⏸ RUNNING...';
+}
+function resetTdSweep(){
+  _tdSweepAnim.running = false;
+  _tdSweepAnim.progress = 0;
+  _tdSweepAnim.points = [];
+  _tdSweepAnim.t = 0;
+  const btn = document.getElementById('btnIso');
+  if(btn) btn.textContent = '▶ START SWEEP';
+  drawIso();
+}
+
+function drawIso(){
+  const cv = document.getElementById('cvIso'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+
   const bg = ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const zeta = parseFloat(document.getElementById('sl_zs').value);
-  document.getElementById('v_zs').textContent = zeta.toFixed(2);
+  const zeta = parseFloat(document.getElementById('sl_ri').value);
+  document.getElementById('v_ri').textContent = zeta.toFixed(2);
 
-  // Layout: top = physical mass (1/3), bottom = DMF curve (2/3)
-  const physicsH = 100;
+  // Layout: top 1/3 = physical (mass + moving base), bottom 2/3 = T_d curve
+  const physicsH = 110;
   const curveTop = physicsH + 10;
-  const curveH = H - curveTop - 20;
+  const curveH = H - curveTop - 25;
 
-  // ───── TOP: Physical mass ─────
-  const rCurrent = _sweepAnim.running ? (_sweepAnim.progress * 2.5) : 
-                   (_sweepAnim.collectedPoints.length > 0 ? 
-                    _sweepAnim.collectedPoints[_sweepAnim.collectedPoints.length-1].r : 0.1);
-  
-  const dmfCurrent = 1 / Math.sqrt((1-rCurrent*rCurrent)**2 + (2*zeta*rCurrent)**2);
-  const phi = Math.atan2(2*zeta*rCurrent, 1-rCurrent*rCurrent);
-  
+  // ───── TOP: Physical mass + moving base preview ─────
+  const rCurrent = _tdSweepAnim.running ? (_tdSweepAnim.progress * 4.0) :
+                   (_tdSweepAnim.points.length > 0 ?
+                    _tdSweepAnim.points[_tdSweepAnim.points.length-1].r : 0.1);
+  const TdCurrent = Math.sqrt(1+(2*zeta*rCurrent)**2) / Math.sqrt((1-rCurrent*rCurrent)**2 + (2*zeta*rCurrent)**2);
+  const phiCurrent = Math.atan2(2*zeta*rCurrent*rCurrent*rCurrent, 1 - rCurrent*rCurrent + (2*zeta*rCurrent)**2);
+
   const cx = W/2;
-  const massRestY = physicsH/2 + 5;
-  const massAmp = Math.min(40, dmfCurrent * 8);
-  const omegaDisp = 4 + rCurrent * 2;
-  const massDisp = _sweepAnim.running ? massAmp * Math.sin(omegaDisp * _sweepAnim.t) : 0;
+  const omega = 4 + rCurrent;
+  const Y_pix_top = 15;
+  const X_pix_top = Math.min(50, TdCurrent * Y_pix_top);
+  const y_t_top = _tdSweepAnim.running ? Y_pix_top * Math.sin(omega * _tdSweepAnim.t) : 0;
+  const x_t_top = _tdSweepAnim.running ? X_pix_top * Math.sin(omega * _tdSweepAnim.t - phiCurrent) : 0;
 
-  // Wall (top of physics area)
-  ctx.fillStyle = 'rgba(148,163,184,.25)';
-  ctx.fillRect(cx-70, 5, 140, 4);
-
-  // Spring
-  ctx.strokeStyle = 'rgba(168,85,247,.6)'; ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  const sLen = massRestY + massDisp - 9;
-  ctx.moveTo(cx, 9);
-  for(let i=0; i<6; i++){
-    const y = 9 + (i+0.5) * sLen / 6;
-    const x = cx + (i%2===0 ? -8 : 8);
-    ctx.lineTo(x, y);
-  }
-  ctx.lineTo(cx, massRestY + massDisp);
-  ctx.stroke();
-
-  // Mass
-  const mx = cx - 20, my = massRestY + massDisp;
-  ctx.fillStyle = 'rgba(168,85,247,.3)';
-  ctx.fillRect(mx, my, 40, 28);
-  ctx.strokeStyle = 'rgba(168,85,247,.8)'; ctx.lineWidth = 1.5;
-  ctx.strokeRect(mx, my, 40, 28);
-  ctx.fillStyle = '#fff'; ctx.font = 'bold 12px JetBrains Mono';
-  ctx.textAlign = 'center'; ctx.fillText('m', cx, my + 19);
+  const massCY = 38, baseCY = 88;
+  // Mass block
+  ctx.fillStyle = 'rgba(168,85,247,.32)';
+  ctx.fillRect(cx-22, massCY + x_t_top - 14, 44, 28);
+  ctx.strokeStyle = 'rgba(168,85,247,.9)'; ctx.lineWidth = 1.5;
+  ctx.strokeRect(cx-22, massCY + x_t_top - 14, 44, 28);
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.textAlign = 'center'; ctx.fillText('M', cx, massCY + x_t_top + 4);
   ctx.textAlign = 'left';
 
-  // Label current ω and DMF
-  ctx.fillStyle = '#f97316'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText(`r = ${rCurrent.toFixed(2)}`, 20, 20);
-  ctx.fillStyle = dmfCurrent > 5 ? '#ef4444' : '#00e09e';
-  ctx.fillText(`DMF = ${dmfCurrent > 99 ? '>99' : dmfCurrent.toFixed(2)}`, 20, 38);
+  // Spring + damper between mass and base
+  const spTopY = massCY + x_t_top + 14;
+  const spBotY = baseCY + y_t_top - 8;
+  ctx.strokeStyle = 'rgba(168,85,247,.65)'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  const sLen = spBotY - spTopY;
+  ctx.moveTo(cx-10, spTopY);
+  for(let i=0; i<5; i++){
+    const yi = spTopY + (i+0.5) * sLen / 5;
+    const xi = cx - 10 + (i%2===0 ? -5 : 5);
+    ctx.lineTo(xi, yi);
+  }
+  ctx.lineTo(cx-10, spBotY);
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(249,115,22,.65)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(cx+10, spTopY); ctx.lineTo(cx+10, spBotY); ctx.stroke();
 
-  // ───── Divider ─────
+  // Moving base
+  ctx.fillStyle = 'rgba(14,165,233,.4)';
+  ctx.fillRect(cx-50, baseCY + y_t_top - 8, 100, 16);
+  ctx.strokeStyle = 'rgba(14,165,233,.9)'; ctx.lineWidth = 1.5;
+  ctx.strokeRect(cx-50, baseCY + y_t_top - 8, 100, 16);
+  ctx.fillStyle = '#fff'; ctx.font = '9px JetBrains Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('PONDASI', cx, baseCY + y_t_top + 4);
+  ctx.textAlign = 'left';
+
+  // r and T_d label (top-left)
+  ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText(`r = ${rCurrent.toFixed(2)}`, 18, 22);
+  ctx.fillStyle = TdCurrent > 1.2 ? '#ef4444' : (TdCurrent < 0.5 ? '#00e09e' : '#facc15');
+  ctx.fillText(`T_d = ${TdCurrent > 99 ? '>99' : TdCurrent.toFixed(2)}`, 18, 40);
+
+  // Divider
   ctx.strokeStyle = 'rgba(255,255,255,.1)'; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(20, physicsH+2); ctx.lineTo(W-20, physicsH+2); ctx.stroke();
 
-  // ───── BOTTOM: DMF curve being built ─────
-  const padL = 45, padR = 20;
-  const plotX = padL, plotY = curveTop + 20;
-  const plotW = W - padL - padR, plotH = curveH - 40;
-  
-  // Grid
-  _grid(ctx, plotX, plotY, plotW, plotH, 10, 5, '#0d1929');
-  
-  // Axes
+  // ───── BOTTOM: T_d curve being built ─────
+  const padL = 50, padR = 25;
+  const plotX = padL, plotY = curveTop + 18;
+  const plotW = W - padL - padR, plotH = curveH - 38;
+  _grid(ctx, plotX, plotY, plotW, plotH, 8, 5, '#0d1929');
+
   ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(plotX, plotY); ctx.lineTo(plotX, plotY+plotH); ctx.lineTo(plotX+plotW, plotY+plotH); ctx.stroke();
-  
-  const rmax = 2.5;
-  const ymax = Math.max(6, 1/(2*zeta) + 2);
+
+  const rmax = 4.0;
+  const ymax = Math.max(5, 1/(2*zeta) + 1);
   const sx = r => plotX + (r/rmax)*plotW;
-  const sy = v => plotY + plotH - (v/ymax)*plotH;
-  
+  const sy = v => plotY + plotH - Math.min(plotH, (v/ymax)*plotH);
+
   // Axis labels
   ctx.fillStyle = '#475569'; ctx.font = '9px JetBrains Mono';
   ctx.textAlign = 'right';
@@ -4283,376 +4527,142 @@ function drawSweep(){
     ctx.fillText(v.toFixed(1), plotX-4, plotY + plotH*i/5 + 3);
   }
   ctx.textAlign = 'center';
-  for(let i=0; i<=5; i++){
-    const v = rmax * i/5;
-    ctx.fillText(v.toFixed(1), plotX + plotW*i/5, plotY+plotH+12);
+  for(let i=0; i<=8; i++){
+    const v = rmax * i/8;
+    ctx.fillText(v.toFixed(1), plotX + plotW*i/8, plotY+plotH+12);
   }
   ctx.textAlign = 'left';
   ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText('DMF', plotX - 40, plotY + 12);
+  ctx.fillText('T_d', plotX - 38, plotY + 12);
   ctx.fillText('r = ω/ωₙ', plotX + plotW - 60, plotY + plotH + 24);
-  
-  // r=1 marker
-  ctx.strokeStyle = 'rgba(239,68,68,.35)'; ctx.lineWidth = 1; ctx.setLineDash([4,3]);
-  ctx.beginPath(); ctx.moveTo(sx(1), plotY); ctx.lineTo(sx(1), plotY+plotH); ctx.stroke();
+
+  // T_d = 1 horizontal line
+  ctx.strokeStyle = 'rgba(255,255,255,.3)'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(plotX, sy(1)); ctx.lineTo(plotX+plotW, sy(1)); ctx.stroke();
   ctx.setLineDash([]);
-  ctx.fillStyle = 'rgba(239,68,68,.7)'; ctx.font = '9px JetBrains Mono';
+
+  // r=1 marker
+  ctx.strokeStyle = 'rgba(239,68,68,.4)'; ctx.lineWidth = 1; ctx.setLineDash([4,3]);
+  ctx.beginPath(); ctx.moveTo(sx(1), plotY); ctx.lineTo(sx(1), plotY+plotH); ctx.stroke();
+  ctx.fillStyle = 'rgba(239,68,68,.8)'; ctx.font = '9px JetBrains Mono';
   ctx.fillText('r=1', sx(1)+2, plotY+10);
-  
-  // Theoretical full DMF curve (faded reference)
-  ctx.strokeStyle = 'rgba(14,165,233,.25)'; ctx.lineWidth = 1;
+
+  // r=√2 crossover marker
+  ctx.strokeStyle = 'rgba(0,224,158,.6)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(sx(Math.sqrt(2)), plotY); ctx.lineTo(sx(Math.sqrt(2)), plotY+plotH); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#00e09e'; ctx.font = '9px JetBrains Mono';
+  ctx.fillText('r=√2', sx(Math.sqrt(2))+3, plotY+10);
+  // Crossover dot
+  ctx.fillStyle = '#00e09e';
+  ctx.shadowColor = 'rgba(0,224,158,.6)'; ctx.shadowBlur = 6;
+  ctx.beginPath(); ctx.arc(sx(Math.sqrt(2)), sy(1), 5, 0, Math.PI*2); ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Theoretical full T_d curve (faded reference)
+  ctx.strokeStyle = 'rgba(0,229,255,.2)'; ctx.lineWidth = 1;
   ctx.beginPath();
-  for(let i=0; i<=200; i++){
-    const r = rmax * i/200;
-    const v = Math.min(ymax, 1/Math.sqrt((1-r*r)**2 + (2*zeta*r)**2));
+  for(let i=0; i<=240; i++){
+    const r = rmax * i/240;
+    const v = Math.sqrt(1+(2*zeta*r)**2) / Math.sqrt((1-r*r)**2 + (2*zeta*r)**2);
     if(i===0) ctx.moveTo(sx(r), sy(v));
     else ctx.lineTo(sx(r), sy(v));
   }
   ctx.stroke();
-  
-  // Collected points as filled curve
-  if(_sweepAnim.collectedPoints.length > 1){
+
+  // Collected points (filled curve)
+  if(_tdSweepAnim.points.length > 1){
     ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 2.5;
     ctx.shadowColor = 'rgba(0,229,255,.5)'; ctx.shadowBlur = 6;
     ctx.beginPath();
-    _sweepAnim.collectedPoints.forEach((p, i) => {
-      const v = Math.min(ymax, p.dmf);
-      if(i===0) ctx.moveTo(sx(p.r), sy(v));
-      else ctx.lineTo(sx(p.r), sy(v));
+    _tdSweepAnim.points.forEach((p, i) => {
+      if(i===0) ctx.moveTo(sx(p.r), sy(p.Td));
+      else ctx.lineTo(sx(p.r), sy(p.Td));
     });
     ctx.stroke();
     ctx.shadowBlur = 0;
   }
-  
-  // Current point being collected (moving dot)
-  if(_sweepAnim.running){
+
+  // Current point dot
+  if(_tdSweepAnim.running){
     ctx.fillStyle = '#ef4444';
     ctx.shadowColor = 'rgba(239,68,68,.8)'; ctx.shadowBlur = 10;
     ctx.beginPath();
-    ctx.arc(sx(rCurrent), sy(Math.min(ymax, dmfCurrent)), 5, 0, Math.PI*2);
+    ctx.arc(sx(rCurrent), sy(TdCurrent), 5, 0, Math.PI*2);
     ctx.fill();
     ctx.shadowBlur = 0;
   }
 
   // Info
-  const info = document.getElementById('sweepInfo');
-  if(info){
-    if(_sweepAnim.running){
-      const pct = Math.round(_sweepAnim.progress * 100);
-      info.innerHTML = `🔴 Sweep berlangsung: <strong>${pct}%</strong> · r saat ini = ${rCurrent.toFixed(2)} · DMF = ${dmfCurrent > 99 ? '>99' : dmfCurrent.toFixed(2)}`;
-    } else if(_sweepAnim.collectedPoints.length > 0){
-      const maxPt = _sweepAnim.collectedPoints.reduce((a,b) => b.dmf > a.dmf ? b : a);
-      const rmaxTheory = Math.sqrt(Math.max(0.001, 1 - 2*zeta*zeta));
-      const dmfmaxTheory = 1/(2*zeta*Math.sqrt(1-zeta*zeta));
-      info.innerHTML = `✅ Sweep selesai · Puncak teramati di <strong>r=${maxPt.r.toFixed(2)}, DMF=${maxPt.dmf.toFixed(2)}</strong> · Teoretis: r_max=${rmaxTheory.toFixed(2)}, DMF_max=${dmfmaxTheory.toFixed(2)}`;
-    } else {
-      info.innerHTML = `▶️ Tekan <strong>START SWEEP</strong> untuk memulai. Frekuensi akan naik dari 0 hingga 2.5·ωₙ dalam 8 detik.`;
-    }
-  }
-}
-
-function _sweepTick(){
-  if(_sweepAnim.running){
-    _sweepAnim.t += 0.016;
-    _sweepAnim.progress += 0.016/8;  // 8-second sweep
-    const zeta = parseFloat(document.getElementById('sl_zs').value);
-    const r = _sweepAnim.progress * 2.5;
-    const dmf = 1/Math.sqrt((1-r*r)**2 + (2*zeta*r)**2);
-    _sweepAnim.collectedPoints.push({r, dmf});
-    if(_sweepAnim.progress >= 1){
-      _sweepAnim.running = false;
-      const btn = document.getElementById('btnSweep');
-      if(btn) btn.textContent = '▶ RESTART SWEEP';
-    }
-  }
-  drawSweep();
-  _sweepAnim.raf = requestAnimationFrame(_sweepTick);
-}
-(function(){
-  const s = document.getElementById('sl_zs'); if(s) s.addEventListener('input', drawSweep);
-})();
-setTimeout(_sweepTick, 600);
-
-// ════════════════════════════════════════════════════════════
-// ANIMASI 3 — Isolator Side-by-Side Comparison
-// (Canvas: cvIso, slider: sl_ri/sl_zi; button: btnIso)
-// Left: machine bolted to floor (no isolator, Tr=1)
-// Right: machine on spring-damper isolator
-// Both with same driving force; visualize floor vibration difference
-// ════════════════════════════════════════════════════════════
-let _isoAnim = { t: 0, running: true, raf: null };
-
-function toggleIso(){
-  _isoAnim.running = !_isoAnim.running;
-  const btn = document.getElementById('btnIso');
-  if(btn) btn.textContent = _isoAnim.running ? '⏸ PAUSE' : '▶ PLAY';
-}
-
-function drawIso(){
-  const cv = document.getElementById('cvIso'); if(!cv) return;
-  const W = cv.clientWidth; cv.width = W; const H = cv.height;
-  const ctx = cv.getContext('2d');
-
-  // Background
-  const bg = ctx.createLinearGradient(0,0,0,H);
-  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
-  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
-
-  const r = parseFloat(document.getElementById('sl_ri').value);
-  const zeta = parseFloat(document.getElementById('sl_zi').value);
-  document.getElementById('v_ri').textContent = r.toFixed(2);
-  document.getElementById('v_zi').textContent = zeta.toFixed(2);
-
-  // Tr calculation
-  const Tr = Math.sqrt(1 + (2*zeta*r)**2) / Math.sqrt((1-r*r)**2 + (2*zeta*r)**2);
-
-  const t = _isoAnim.t;
-  const omega = 5.0;
-  const F_amp = 30;
-  const F = F_amp * Math.sin(omega * t);   // F(t) exciting force
-
-  // Layout: 2 panels
-  const panelW = W/2;
-  const floorY = H - 60;
-  const floorH = 30;
-
-  // ───────── LEFT PANEL: NO ISOLATOR (bolted to floor) ─────────
-  const lcx = panelW/2;
-  
-  // Label
-  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 12px JetBrains Mono';
-  ctx.textAlign = 'center';
-  ctx.fillText('TANPA ISOLATOR', lcx, 24);
-  ctx.fillStyle = 'rgba(239,68,68,.8)'; ctx.font = '11px JetBrains Mono';
-  ctx.fillText('Tᵣ = 1.00 (100% gaya lolos)', lcx, 42);
-  ctx.textAlign = 'left';
-
-  // Floor vibrates with SAME force as machine (direct bolt)
-  const leftFloorVib = F * 0.7;   // Direct transmission
-  
-  // Draw floor (vibrating)
-  ctx.fillStyle = 'rgba(100,116,139,.3)';
-  ctx.fillRect(20, floorY + leftFloorVib, panelW - 40, floorH);
-  ctx.strokeStyle = 'rgba(239,68,68,.6)';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(20, floorY + leftFloorVib, panelW - 40, floorH);
-  // Floor hatch
-  ctx.strokeStyle = 'rgba(239,68,68,.4)'; ctx.lineWidth = 1;
-  for(let i=0; i<8; i++){
-    ctx.beginPath();
-    ctx.moveTo(30+i*20, floorY+floorH+leftFloorVib);
-    ctx.lineTo(40+i*20, floorY+floorH+15+leftFloorVib);
-    ctx.stroke();
-  }
-
-  // Machine (sits directly on floor)
-  const machY = floorY + leftFloorVib - 60;
-  ctx.fillStyle = 'rgba(168,85,247,.3)';
-  ctx.fillRect(lcx - 40, machY, 80, 60);
-  ctx.strokeStyle = 'rgba(168,85,247,.9)'; ctx.lineWidth = 2;
-  ctx.strokeRect(lcx - 40, machY, 80, 60);
-  ctx.fillStyle = '#fff'; ctx.font = 'bold 13px JetBrains Mono';
-  ctx.textAlign = 'center';
-  ctx.fillText('MESIN', lcx, machY + 35);
-  
-  // Bolts (fixed direct connection)
-  ctx.fillStyle = '#ef4444';
-  ctx.fillRect(lcx - 30, machY + 58, 8, 4);
-  ctx.fillRect(lcx + 22, machY + 58, 8, 4);
-
-  // Force arrow
-  if(Math.abs(F) > 3){
-    ctx.strokeStyle = '#f97316'; ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(lcx, machY + 30);
-    ctx.lineTo(lcx + F, machY + 30);
-    ctx.stroke();
-    const sgn = F > 0 ? 1 : -1;
-    ctx.beginPath();
-    ctx.moveTo(lcx + F, machY + 30);
-    ctx.lineTo(lcx + F - sgn*6, machY + 26);
-    ctx.lineTo(lcx + F - sgn*6, machY + 34);
-    ctx.closePath();
-    ctx.fillStyle = '#f97316'; ctx.fill();
-  }
-
-  // "Force transmitted" indicator bar (below floor)
-  const barY = H - 20;
-  ctx.fillStyle = 'rgba(239,68,68,.1)'; ctx.fillRect(30, barY - 4, panelW - 60, 8);
-  const leftBarW = (panelW - 60) * Math.abs(leftFloorVib)/F_amp;
-  ctx.fillStyle = '#ef4444';
-  ctx.fillRect(30, barY - 4, leftBarW, 8);
-  ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
-  ctx.textAlign = 'left';
-  ctx.fillText('Gaya ke lantai: 100%', 30, barY - 10);
-
-  // ───────── RIGHT PANEL: WITH ISOLATOR ─────────
-  const rcx = panelW + panelW/2;
-  
-  // Label
-  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 12px JetBrains Mono';
-  ctx.textAlign = 'center';
-  ctx.fillText('DENGAN ISOLATOR', rcx, 24);
-  const trColor = Tr < 0.5 ? '#00e09e' : (Tr > 1 ? '#ef4444' : '#facc15');
-  ctx.fillStyle = trColor; ctx.font = '11px JetBrains Mono';
-  ctx.fillText(`Tᵣ = ${Tr.toFixed(3)} (${(Tr*100).toFixed(0)}% gaya lolos)`, rcx, 42);
-  ctx.textAlign = 'left';
-
-  // Isolated floor vibrates less (reduced by Tr)
-  const rightFloorVib = F * 0.7 * Tr;
-  
-  // Floor
-  ctx.fillStyle = 'rgba(100,116,139,.3)';
-  ctx.fillRect(panelW + 20, floorY + rightFloorVib, panelW - 40, floorH);
-  ctx.strokeStyle = trColor;
-  ctx.lineWidth = 2;
-  ctx.strokeRect(panelW + 20, floorY + rightFloorVib, panelW - 40, floorH);
-  // Floor hatch
-  ctx.strokeStyle = trColor; ctx.lineWidth = 1; ctx.globalAlpha = 0.4;
-  for(let i=0; i<8; i++){
-    ctx.beginPath();
-    ctx.moveTo(panelW+30+i*20, floorY+floorH+rightFloorVib);
-    ctx.lineTo(panelW+40+i*20, floorY+floorH+15+rightFloorVib);
-    ctx.stroke();
-  }
-  ctx.globalAlpha = 1;
-
-  // Machine now vibrates MORE than floor due to DMF (since it's on isolator, r > √2 means DMF < 1, but overall Tr gives us the floor amp)
-  // Machine amplitude = X = F/k · DMF, for simplicity visualize with F directly
-  const dmf_iso = 1/Math.sqrt((1-r*r)**2 + (2*zeta*r)**2);
-  const machVib = F * Math.min(2, dmf_iso * 0.7); 
-  const rMachY = floorY + rightFloorVib - 85 - machVib;
-  
-  // Isolator (spring + damper between machine and floor)
-  const isoTop = rMachY + 60;
-  const isoBot = floorY + rightFloorVib;
-  
-  // Spring (left side of isolator pair)
-  ctx.strokeStyle = 'rgba(168,85,247,.7)'; ctx.lineWidth = 2;
-  ctx.beginPath();
-  const iSpX = rcx - 15;
-  const iLen = isoBot - isoTop;
-  ctx.moveTo(iSpX, isoTop);
-  for(let i=0; i<5; i++){
-    const y = isoTop + (i+0.5) * iLen / 5;
-    const x = iSpX + (i%2===0 ? -6 : 6);
-    ctx.lineTo(x, y);
-  }
-  ctx.lineTo(iSpX, isoBot);
-  ctx.stroke();
-  
-  // Damper (right side)
-  const iDpX = rcx + 15;
-  ctx.strokeStyle = 'rgba(249,115,22,.7)'; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.moveTo(iDpX, isoTop); ctx.lineTo(iDpX, isoBot - 8); ctx.stroke();
-  ctx.strokeRect(iDpX - 6, (isoTop+isoBot)/2 - 8, 12, 16);
-  ctx.fillStyle = 'rgba(249,115,22,.3)';
-  ctx.fillRect(iDpX - 5, (isoTop+isoBot)/2, 10, 3);
-
-  // Machine (on top of isolator)
-  ctx.fillStyle = 'rgba(168,85,247,.3)';
-  ctx.fillRect(rcx - 40, rMachY, 80, 60);
-  ctx.strokeStyle = 'rgba(168,85,247,.9)'; ctx.lineWidth = 2;
-  ctx.strokeRect(rcx - 40, rMachY, 80, 60);
-  ctx.fillStyle = '#fff'; ctx.font = 'bold 13px JetBrains Mono';
-  ctx.textAlign = 'center';
-  ctx.fillText('MESIN', rcx, rMachY + 35);
-
-  // Force arrow (same magnitude on right machine)
-  if(Math.abs(F) > 3){
-    ctx.strokeStyle = '#f97316'; ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(rcx, rMachY + 30);
-    ctx.lineTo(rcx + F, rMachY + 30);
-    ctx.stroke();
-    const sgn = F > 0 ? 1 : -1;
-    ctx.beginPath();
-    ctx.moveTo(rcx + F, rMachY + 30);
-    ctx.lineTo(rcx + F - sgn*6, rMachY + 26);
-    ctx.lineTo(rcx + F - sgn*6, rMachY + 34);
-    ctx.closePath();
-    ctx.fillStyle = '#f97316'; ctx.fill();
-  }
-
-  // Transmitted force bar (right)
-  const rightBarW = (panelW - 60) * Math.min(1.5, Math.abs(rightFloorVib)/F_amp);
-  ctx.fillStyle = 'rgba(239,68,68,.1)';
-  ctx.fillRect(panelW + 30, barY - 4, panelW - 60, 8);
-  ctx.fillStyle = trColor;
-  ctx.fillRect(panelW + 30, barY - 4, rightBarW, 8);
-  ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
-  ctx.textAlign = 'left';
-  ctx.fillText(`Gaya ke lantai: ${(Tr*100).toFixed(0)}%`, panelW + 30, barY - 10);
-
-  // Divider
-  ctx.strokeStyle = 'rgba(255,255,255,.1)'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(panelW, 15); ctx.lineTo(panelW, H-15); ctx.stroke();
-
-  // Info
   const info = document.getElementById('isoInfo');
   if(info){
-    let interp = '';
-    if(r < 1) interp = '⚠️ r < 1 — Isolator di ZONA KAKU (seperti batu)';
-    else if(r < 1.414) interp = '🔴 r < √2 — ZONA AMPLIFIKASI! Isolator justru memperparah';
-    else if(r < 3) interp = '🟡 r > √2 — Isolasi mulai efektif';
-    else interp = '🟢 r > 3 — ISOLASI EFEKTIF (>80% getaran teredam)';
-    info.innerHTML = `r=${r.toFixed(2)} · ζ=${zeta.toFixed(3)} · <strong>Tᵣ=${Tr.toFixed(3)}</strong> · ${interp}`;
+    if(_tdSweepAnim.running){
+      const pct = Math.round(_tdSweepAnim.progress * 100);
+      info.innerHTML = `🔴 Sweep berlangsung: <strong>${pct}%</strong> · r = ${rCurrent.toFixed(2)} · T_d = ${TdCurrent > 99 ? '>99' : TdCurrent.toFixed(2)}`;
+    } else if(_tdSweepAnim.points.length > 0){
+      const maxPt = _tdSweepAnim.points.reduce((a,b) => b.Td > a.Td ? b : a);
+      const TdCross = _tdSweepAnim.points.find(p => Math.abs(p.r - Math.sqrt(2)) < 0.05);
+      info.innerHTML = `✅ Sweep selesai · Puncak <strong>r=${maxPt.r.toFixed(2)}, T_d=${maxPt.Td.toFixed(2)}</strong> · Crossover r=√2: T_d=${TdCross ? TdCross.Td.toFixed(2) : '~1.00'} (∀ζ)`;
+    } else {
+      info.innerHTML = `▶️ Tekan <strong>START SWEEP</strong>. Frekuensi naik dari r=0 ke r=4 dalam 10 detik. Perhatikan T_d=1 saat r=√2.`;
+    }
   }
 }
 
 function _isoTick(){
-  if(_isoAnim.running) _isoAnim.t += 0.016;
+  if(_tdSweepAnim.running){
+    _tdSweepAnim.t += 0.016;
+    _tdSweepAnim.progress += 0.016/10;
+    const zeta = parseFloat(document.getElementById('sl_ri').value);
+    const r = _tdSweepAnim.progress * 4.0;
+    const Td = Math.sqrt(1+(2*zeta*r)**2) / Math.sqrt((1-r*r)**2 + (2*zeta*r)**2);
+    _tdSweepAnim.points.push({r, Td});
+    if(_tdSweepAnim.progress >= 1){
+      _tdSweepAnim.running = false;
+      const btn = document.getElementById('btnIso');
+      if(btn) btn.textContent = '▶ RESTART SWEEP';
+    }
+  }
   drawIso();
-  _isoAnim.raf = requestAnimationFrame(_isoTick);
+  _tdSweepAnim.raf = requestAnimationFrame(_isoTick);
 }
 (function(){
-  ['sl_ri','sl_zi'].forEach(id=>{const s=document.getElementById(id); if(s) s.addEventListener('input', drawIso);});
+  const s = document.getElementById('sl_ri'); if(s) s.addEventListener('input', drawIso);
 })();
 setTimeout(_isoTick, 700);
 
 // ════════════════════════════════════════════════════════════
-// ANIMASI 4 — Half-Power Bandwidth Interactive
+// ANIMASI 4 — R(r,ζ) ROTATING UNBALANCE MAGNIFICATION FACTOR
 // (Canvas: cvHPB, slider: sl_zh/sl_line)
-// FRF curve with draggable horizontal line to find ω₁, ω₂
-// Displays Q, ζ_estimated vs ζ_true
+// Plot R(r,ζ) curves for 4 ζ values + asymptote R=1 + movable r operating point
+// R = r² / √[(1−r²)² + (2ζr)²]; R(r→∞) → 1
 // ════════════════════════════════════════════════════════════
 function drawHPB(){
   const cv = document.getElementById('cvHPB'); if(!cv) return;
   const W = cv.clientWidth; cv.width = W; const H = cv.height;
   const ctx = cv.getContext('2d');
 
-  // Background
   const bg = ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const zetaTrue = parseFloat(document.getElementById('sl_zh').value);
-  const linePos = parseFloat(document.getElementById('sl_line').value);
-  document.getElementById('v_zh').textContent = zetaTrue.toFixed(3);
-  document.getElementById('v_line').textContent = linePos.toFixed(2);
+  const r_op = parseFloat(document.getElementById('sl_zh').value);
+  const zetaUser = parseFloat(document.getElementById('sl_line').value);
+  document.getElementById('v_zh').textContent = r_op.toFixed(2);
+  document.getElementById('v_line').textContent = zetaUser.toFixed(2);
 
-  // Plot setup
-  const padL = 60, padR = 30, padT = 30, padB = 45;
+  const padL = 55, padR = 25, padT = 30, padB = 40;
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
+  _grid(ctx, padL, padT, plotW, plotH, 10, 6, '#0d1929');
 
-  // Grid
-  _grid(ctx, padL, padT, plotW, plotH, 12, 6, '#0d1929');
+  const rMin = 0, rMax = 4.0;
+  const yMax = Math.max(5, 1/(2*zetaUser) + 1);
+  const sx = r => padL + (r - rMin)/(rMax - rMin) * plotW;
+  const sy = v => padT + plotH - Math.min(plotH, (v/yMax) * plotH);
 
-  // Compute H²(ω) = DMF² for ω ∈ [0.3·ωₙ, 1.7·ωₙ] — normalized r range
-  const omega_n = 50; // display units
-  const rMin = 0.5, rMax = 1.5;
-  const omegaMin = omega_n * rMin, omegaMax = omega_n * rMax;
-  
-  // H²_max at peak
-  const rPeak = Math.sqrt(Math.max(0.001, 1 - 2*zetaTrue*zetaTrue));
-  const H2max = rPeak > 0 ? 
-    (1/((1-rPeak*rPeak)**2 + (2*zetaTrue*rPeak)**2)) : 
-    (1/(2*zetaTrue*zetaTrue));
-  const yMax = H2max * 1.15;
-
-  const sx = omega => padL + (omega - omegaMin)/(omegaMax - omegaMin) * plotW;
-  const sy = v => padT + plotH - (v/yMax) * plotH;
+  // R formula
+  const R_func = (r, z) => r*r / Math.sqrt((1-r*r)**2 + (2*z*r)**2);
 
   // Axis labels
   ctx.fillStyle = '#475569'; ctx.font = '9px JetBrains Mono';
@@ -4662,111 +4672,109 @@ function drawHPB(){
     ctx.fillText(v.toFixed(1), padL-4, padT + plotH*i/6 + 3);
   }
   ctx.textAlign = 'center';
-  for(let i=0; i<=6; i++){
-    const om = omegaMin + (omegaMax - omegaMin) * i/6;
-    ctx.fillText(om.toFixed(1), padL + plotW*i/6, padT+plotH+14);
+  for(let i=0; i<=8; i++){
+    const v = rMin + (rMax-rMin) * i/8;
+    ctx.fillText(v.toFixed(1), padL + plotW*i/8, padT+plotH+14);
   }
   ctx.textAlign = 'left';
   ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText('|H(ω)|²', padL - 50, padT - 10);
-  ctx.fillText('ω (rad/s)', padL + plotW/2 - 30, padT + plotH + 32);
+  ctx.fillText('R = X·M/(m₀·e)', padL - 50, padT - 12);
+  ctx.fillText('r = ω/ωₙ', padL + plotW - 60, padT + plotH + 28);
 
-  // ωₙ marker (vertical red dashed)
+  // R = 1 asymptote line (green dashed)
+  ctx.strokeStyle = 'rgba(0,224,158,.6)'; ctx.lineWidth = 2; ctx.setLineDash([6,4]);
+  ctx.beginPath(); ctx.moveTo(padL, sy(1)); ctx.lineTo(padL+plotW, sy(1)); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#00e09e'; ctx.font = 'bold 10px JetBrains Mono';
+  ctx.fillText('R = 1 (asymptote, X = m₀e/M)', padL + plotW - 215, sy(1) - 6);
+
+  // r=1 marker
   ctx.strokeStyle = 'rgba(239,68,68,.4)'; ctx.lineWidth = 1; ctx.setLineDash([4,3]);
-  ctx.beginPath(); ctx.moveTo(sx(omega_n), padT); ctx.lineTo(sx(omega_n), padT+plotH); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(sx(1), padT); ctx.lineTo(sx(1), padT+plotH); ctx.stroke();
   ctx.setLineDash([]);
   ctx.fillStyle = 'rgba(239,68,68,.8)'; ctx.font = '9px JetBrains Mono';
-  ctx.fillText(`ωₙ=${omega_n}`, sx(omega_n)+3, padT+10);
+  ctx.fillText('r=1', sx(1)+3, padT+10);
 
-  // Draw FRF curve
-  ctx.strokeStyle = '#0ea5e9'; ctx.lineWidth = 2.5;
-  ctx.shadowColor = 'rgba(14,165,233,.5)'; ctx.shadowBlur = 6;
-  ctx.beginPath();
-  for(let i=0; i<=500; i++){
-    const omega = omegaMin + (omegaMax - omegaMin) * i/500;
-    const r = omega/omega_n;
-    const H2 = 1/((1-r*r)**2 + (2*zetaTrue*r)**2);
-    const v = Math.min(yMax, H2);
-    if(i===0) ctx.moveTo(sx(omega), sy(v));
-    else ctx.lineTo(sx(omega), sy(v));
-  }
-  ctx.stroke();
-  ctx.shadowBlur = 0;
-
-  // Peak marker
-  const omegaPeak = omega_n * rPeak;
-  ctx.fillStyle = '#ef4444';
-  ctx.shadowColor = 'rgba(239,68,68,.6)'; ctx.shadowBlur = 8;
-  ctx.beginPath(); ctx.arc(sx(omegaPeak), sy(Math.min(yMax,H2max)), 5, 0, Math.PI*2); ctx.fill();
-  ctx.shadowBlur = 0;
-
-  // Horizontal draggable line
-  const targetY = H2max * linePos;
-  ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2;
-  ctx.setLineDash([8,5]);
-  ctx.beginPath();
-  ctx.moveTo(padL, sy(targetY));
-  ctx.lineTo(padL+plotW, sy(targetY));
-  ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle = '#facc15'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText(`${linePos.toFixed(2)} × H²_max = ${targetY.toFixed(2)}`, padL+plotW-140, sy(targetY)-4);
-
-  // Find ω₁ and ω₂ (intersection of curve with targetY)
-  // Binary search on either side of peak
-  let omega1 = null, omega2 = null;
-  for(let i=0; i<500; i++){
-    const om = omegaMin + (omegaMax - omegaMin) * i/500;
-    const r = om/omega_n;
-    const H2 = 1/((1-r*r)**2 + (2*zetaTrue*r)**2);
-    if(om < omegaPeak && H2 >= targetY && omega1 === null) omega1 = om;
-    if(om > omegaPeak && H2 < targetY && omega2 === null){ omega2 = om; break; }
-  }
-
-  let deltaOmega = null, Q = null, zetaEst = null;
-  if(omega1 !== null && omega2 !== null){
-    // Mark intersection points
-    ctx.fillStyle = '#00e09e';
-    ctx.shadowColor = 'rgba(0,224,158,.8)'; ctx.shadowBlur = 10;
-    ctx.beginPath(); ctx.arc(sx(omega1), sy(targetY), 7, 0, Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(sx(omega2), sy(targetY), 7, 0, Math.PI*2); ctx.fill();
-    ctx.shadowBlur = 0;
-
-    // Vertical drop lines
-    ctx.strokeStyle = 'rgba(0,224,158,.4)'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
-    ctx.beginPath(); ctx.moveTo(sx(omega1), sy(targetY)); ctx.lineTo(sx(omega1), padT+plotH); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(sx(omega2), sy(targetY)); ctx.lineTo(sx(omega2), padT+plotH); ctx.stroke();
-    ctx.setLineDash([]);
-
-    // ω₁, ω₂ labels
-    ctx.fillStyle = '#00e09e'; ctx.font = 'bold 10px JetBrains Mono';
-    ctx.fillText(`ω₁=${omega1.toFixed(2)}`, sx(omega1)-28, padT+plotH+26);
-    ctx.fillText(`ω₂=${omega2.toFixed(2)}`, sx(omega2)-28, padT+plotH+26);
-
-    deltaOmega = omega2 - omega1;
-    // Only valid at half-power (linePos=0.5)
-    if(Math.abs(linePos - 0.5) < 0.02){
-      Q = omegaPeak / deltaOmega;
-      zetaEst = deltaOmega / (2*omegaPeak);
+  // Reference curves for 4 ζ values
+  const refZetas = [0.05, 0.10, 0.20, 0.40];
+  const refColors = ['#0ea5e9', '#a855f7', '#f97316', '#fb7185'];
+  refZetas.forEach((z, idx) => {
+    ctx.strokeStyle = refColors[idx];
+    ctx.globalAlpha = Math.abs(z - zetaUser) < 0.005 ? 1 : 0.4;
+    ctx.lineWidth = Math.abs(z - zetaUser) < 0.005 ? 2.8 : 1.5;
+    ctx.beginPath();
+    for(let i=0; i<=240; i++){
+      const r = rMin + (rMax - rMin) * i/240;
+      const v = R_func(r, z);
+      if(i===0) ctx.moveTo(sx(r), sy(v));
+      else ctx.lineTo(sx(r), sy(v));
     }
+    ctx.stroke();
+  });
+  ctx.globalAlpha = 1;
+
+  // User-selected ζ curve (highlighted in white)
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.8;
+  ctx.shadowColor = 'rgba(255,255,255,.5)'; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for(let i=0; i<=240; i++){
+    const r = rMin + (rMax - rMin) * i/240;
+    const v = R_func(r, zetaUser);
+    if(i===0) ctx.moveTo(sx(r), sy(v));
+    else ctx.lineTo(sx(r), sy(v));
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Operating point (pulsing dot at r_op on user-zeta curve)
+  const R_at_op = R_func(r_op, zetaUser);
+  const X_inf_norm = 1.0;     // m₀e/M = 1 (normalized)
+  ctx.fillStyle = '#ef4444';
+  ctx.shadowColor = 'rgba(239,68,68,.8)'; ctx.shadowBlur = 12;
+  ctx.beginPath(); ctx.arc(sx(r_op), sy(Math.min(yMax, R_at_op)), 7, 0, Math.PI*2); ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Vertical drop line for operating point
+  ctx.strokeStyle = 'rgba(239,68,68,.4)'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(sx(r_op), sy(Math.min(yMax, R_at_op))); ctx.lineTo(sx(r_op), padT+plotH); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Legend
+  const legX = padL + plotW - 75;
+  const legY = padT + 8;
+  ctx.fillStyle = 'rgba(13,21,32,.85)';
+  ctx.fillRect(legX-4, legY-4, 75, 70);
+  ctx.strokeStyle = 'rgba(255,255,255,.15)'; ctx.lineWidth = 1;
+  ctx.strokeRect(legX-4, legY-4, 75, 70);
+  refZetas.forEach((z, idx) => {
+    ctx.fillStyle = refColors[idx];
+    ctx.fillRect(legX, legY + idx*14 + 2, 12, 2);
+    ctx.fillStyle = Math.abs(z - zetaUser) < 0.005 ? '#fff' : '#94a3b8';
+    ctx.font = Math.abs(z - zetaUser) < 0.005 ? 'bold 9px JetBrains Mono' : '9px JetBrains Mono';
+    ctx.fillText(`ζ=${z.toFixed(2)}`, legX+18, legY + idx*14 + 6);
+  });
+
+  // r_max analytic
+  const rMaxAnalytic = zetaUser < 0.7 ? 1/Math.sqrt(Math.max(0.001, 1 - 2*zetaUser*zetaUser)) : null;
+  if(rMaxAnalytic !== null && rMaxAnalytic <= rMax){
+    const Rmax_val = R_func(rMaxAnalytic, zetaUser);
+    ctx.fillStyle = '#facc15';
+    ctx.beginPath(); ctx.arc(sx(rMaxAnalytic), sy(Math.min(yMax,Rmax_val)), 4, 0, Math.PI*2); ctx.fill();
   }
 
   // Info
   const info = document.getElementById('hpbInfo');
   if(info){
-    let html = `ζ_TRUE = ${zetaTrue.toFixed(3)} · ω_peak = ${omegaPeak.toFixed(2)} · H²_max = ${H2max.toFixed(2)}<br>`;
-    if(omega1 !== null && omega2 !== null){
-      html += `Δω = ω₂ − ω₁ = <strong>${deltaOmega.toFixed(3)}</strong> rad/s`;
-      if(Math.abs(linePos - 0.5) < 0.02){
-        const err = Math.abs(zetaEst - zetaTrue)/zetaTrue * 100;
-        html += ` · <strong style="color:#00e09e">Q = ${Q.toFixed(2)}</strong> · <strong style="color:#facc15">ζ_estimated = ${zetaEst.toFixed(4)}</strong> (error ${err.toFixed(1)}%)`;
-      } else {
-        html += ` · ⚠️ Geser garis ke <strong>0.50</strong> untuk mengukur ζ secara benar (half-power method)`;
-      }
-    } else {
-      html += `⚠️ Garis terlalu tinggi — tidak ada perpotongan dengan kurva. Turunkan ke bawah puncak.`;
-    }
-    info.innerHTML = html;
+    const Rstr = R_at_op > 99 ? '>99' : R_at_op.toFixed(2);
+    let zone = '';
+    if(r_op < 0.5) zone = '🔵 r << 1 — F kecil, X mendekati 0';
+    else if(Math.abs(r_op - 1) < 0.1) zone = '🔴 RESONANSI — R puncak ≈ 1/(2ζ)';
+    else if(r_op > 2.5) zone = '🟢 Supercritical — R → 1, X → m₀e/M';
+    else if(r_op > Math.sqrt(2)) zone = '🟢 r > √2 — di atas resonansi';
+    else zone = '🟡 Mendekati resonansi';
+    let rmaxStr = '';
+    if(rMaxAnalytic !== null) rmaxStr = ` · r_max(R) = 1/√(1−2ζ²) = ${rMaxAnalytic.toFixed(3)}`;
+    info.innerHTML = `r=${r_op.toFixed(2)} · ζ=${zetaUser.toFixed(3)} · <strong style="color:var(--pink)">R=${Rstr}</strong>${rmaxStr} · ${zone}`;
   }
 }
 (function(){
@@ -4776,337 +4784,304 @@ setTimeout(drawHPB, 800);
 
 
 // ════════════════════════════════════════════════════════════
-// FORUM CANVAS — Industrial Vibration Diagnostic Dashboard
-// Parameter: m=80, k=72000, c=240, omega=28.5 → r ≈ 0.95 (dekat resonansi)
+// FORUM CANVAS — Pump Diagnostic Dashboard (Pertemuan 6)
+// Parameter: M=150, m₀·e=0.12, k=540000, ζ=0.10, ω=60 → r=1.00 (resonansi tepat)
 // LAYOUT:
-//   LEFT (40%)  : Animated blower (shaking) + bolts progressively loose + vibration waves
-//   RIGHT (60%) : FRF/Bode plot with current operating point pulsing
-//   BOTTOM      : Live metrics strip (RMS, X, F_transmitted, DMF, bolt status)
+//   LEFT (40%)  : Animated centrifugal pump rotor with eccentric mass m₀,
+//                 frame vibrating, force vector rotating
+//   RIGHT (60%) : R(r,ζ) curve with operating point pulsing at r=1
+//   BOTTOM      : Live metrics (X, R, F_unbalance, status)
 // ════════════════════════════════════════════════════════════
-let _forumAnim = { t: 0, boltLoosen: 0, raf: null };
+let _forumAnim = { t: 0, raf: null };
 
 function drawForumCanvas() {
   const cv = document.getElementById('cvForum'); if (!cv) return;
   const W = cv.clientWidth; cv.width = W; const H = cv.height;
   const ctx = cv.getContext('2d');
 
-  // Background
   const bg = ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1626');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  // Blower parameters
-  const m=80, k=72000, c=240, F0=500;
-  const omega_n = Math.sqrt(k/m);          // 30 rad/s
-  const zeta = c/(2*Math.sqrt(k*m));        // ≈ 0.0500
-  const omega_op = 28.5;                     // operasi
-  const r = omega_op/omega_n;                // ≈ 0.95
-  const dmf = 1/Math.sqrt((1-r*r)**2 + (2*zeta*r)**2);
-  const phi = Math.atan2(2*zeta*r, 1-r*r);
-  const X_st = F0/k;
-  const X = X_st * dmf;                      // Amplitudo steady-state (m)
-  // Transmitted force
-  const Tr = Math.sqrt(1 + (2*zeta*r)**2) / Math.sqrt((1-r*r)**2 + (2*zeta*r)**2);
-  const F_trans = F0 * Tr;
+  // Pump parameters (forum scenario)
+  const M = 150, m0e = 0.12, k = 540000, zeta = 0.10;
+  const omega_n = Math.sqrt(k/M);     // 60
+  const omega_op = 60;                 // r = 1 (resonansi)
+  const r = omega_op / omega_n;
+  const Rval = r*r / Math.sqrt((1-r*r)**2 + (2*zeta*r)**2);
+  const X_inf = m0e / M;               // 0.0008 m = 0.8 mm asymptote
+  const X = Rval * X_inf;              // current displacement
+  const F_unb = m0e * omega_op * omega_op;   // gaya unbalance
 
   const t = _forumAnim.t;
-  // Animate vibration using simplified harmonic (visual exaggeration)
-  const vibX = Math.sin(omega_op * t - phi);  // Normalized vibration
-  const vibAmp = 6;                              // pixel amplitude for display
+  const phi = Math.atan2(2*zeta*r, 1-r*r);
+  const vibPx = 8 * Math.sin(omega_op * t * 0.05 - phi); // visual amplitude
 
-  // Progressive bolt loosening (cycle every 20 seconds)
-  const cycleSec = 20;
-  const cyclePhase = (t % cycleSec) / cycleSec;   // 0..1
-  const boltLoosenLevel = cyclePhase;             // Loosens over 20s
-
-  // ════════════ LAYOUT ════════════
   const leftW = W * 0.4;
   const rightX = leftW + 10;
   const rightW = W - rightX - 10;
   const bottomStripH = 50;
   const mainH = H - bottomStripH - 10;
 
-  // ══════════════════════════════════════════════════════════
-  // LEFT PANEL — Animated Blower
-  // ══════════════════════════════════════════════════════════
-  // Panel border
+  // ══════════════ LEFT PANEL — Pump rotor + eccentric mass ══════════════
   ctx.strokeStyle = 'rgba(239,68,68,.2)'; ctx.lineWidth = 1;
   ctx.strokeRect(8, 8, leftW - 8, mainH - 8);
   ctx.fillStyle = 'rgba(239,68,68,.04)';
   ctx.fillRect(8, 8, leftW - 8, mainH - 8);
 
-  // Title
   ctx.fillStyle = '#ef4444'; ctx.font = 'bold 11px JetBrains Mono';
   ctx.fillText('⚠ POMPA SENTRIFUGAL — LIVE', 18, 24);
   ctx.fillStyle = '#94a3b8'; ctx.font = '9px JetBrains Mono';
-  ctx.fillText(`ω = 28.5 rad/s (≈ 272 rpm)`, 18, 38);
+  ctx.fillText(`ω = ${omega_op} rad/s | ωₙ = ${omega_n.toFixed(0)} rad/s | r = ${r.toFixed(2)}`, 18, 38);
 
-  const blowerCx = leftW / 2;
-  const blowerCy = 140;
+  const pumpCx = leftW / 2;
+  const pumpCy = 145;
 
-  // Shaking offset
-  const shakeDx = vibAmp * vibX;
-  const shakeDy = vibAmp * 0.3 * Math.sin(omega_op * t * 1.2);
+  // Frame (mesin housing) — vibrates
+  const frameW_ = 130, frameH_ = 90;
+  const frX = pumpCx - frameW_/2;
+  const frY = pumpCy - frameH_/2 + vibPx;
+  const fGrad = ctx.createLinearGradient(frX, frY, frX+frameW_, frY+frameH_);
+  fGrad.addColorStop(0, 'rgba(168,85,247,.28)');
+  fGrad.addColorStop(1, 'rgba(124,77,255,.12)');
+  ctx.fillStyle = fGrad;
+  ctx.fillRect(frX, frY, frameW_, frameH_);
+  ctx.strokeStyle = 'rgba(168,85,247,.85)'; ctx.lineWidth = 2;
+  ctx.strokeRect(frX, frY, frameW_, frameH_);
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 9px JetBrains Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('FRAME M=150 kg', pumpCx, frY + 12);
+  ctx.textAlign = 'left';
 
-  // Ducting (inlet pipe top)
-  ctx.fillStyle = 'rgba(148,163,184,.15)';
-  ctx.fillRect(blowerCx - 12 + shakeDx*0.5, 60, 24, 25);
-  ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
-  ctx.strokeRect(blowerCx - 12 + shakeDx*0.5, 60, 24, 25);
+  // Inlet pipe top
+  ctx.fillStyle = 'rgba(148,163,184,.18)';
+  ctx.fillRect(pumpCx - 12, frY - 22, 24, 22);
+  ctx.strokeStyle = 'rgba(148,163,184,.55)'; ctx.lineWidth = 1.5;
+  ctx.strokeRect(pumpCx - 12, frY - 22, 24, 22);
 
-  // Main casing (circle)
-  ctx.save();
-  ctx.translate(blowerCx + shakeDx, blowerCy + shakeDy);
-  // Casing body
-  const caseGrad = ctx.createRadialGradient(0, 0, 10, 0, 0, 45);
-  caseGrad.addColorStop(0, 'rgba(100,116,139,.4)');
-  caseGrad.addColorStop(1, 'rgba(71,85,105,.2)');
-  ctx.fillStyle = caseGrad;
-  ctx.beginPath(); ctx.arc(0, 0, 40, 0, Math.PI*2); ctx.fill();
-  ctx.strokeStyle = 'rgba(148,163,184,.8)'; ctx.lineWidth = 2;
+  // Outlet (right)
+  ctx.fillStyle = 'rgba(148,163,184,.18)';
+  ctx.fillRect(frX + frameW_, frY + frameH_/2 - 10, 22, 20);
+  ctx.strokeRect(frX + frameW_, frY + frameH_/2 - 10, 22, 20);
+
+  // Rotor disk inside frame
+  const rotCx = pumpCx;
+  const rotCy = frY + frameH_/2 + 8;
+  const rotR = 30;
+  const rotGrad = ctx.createRadialGradient(rotCx, rotCy, 4, rotCx, rotCy, rotR);
+  rotGrad.addColorStop(0, 'rgba(14,165,233,.55)');
+  rotGrad.addColorStop(1, 'rgba(14,165,233,.18)');
+  ctx.fillStyle = rotGrad;
+  ctx.beginPath(); ctx.arc(rotCx, rotCy, rotR, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = 'rgba(14,165,233,.95)'; ctx.lineWidth = 2;
   ctx.stroke();
 
-  // Rotor (spinning) — shown via rotating blades
-  const spinAngle = omega_op * t;
+  // Spinning impeller blades (6)
+  const spinAngle = t * 1.8;
   ctx.save();
+  ctx.translate(rotCx, rotCy);
   ctx.rotate(spinAngle);
-  // 6-blade impeller
-  ctx.fillStyle = 'rgba(14,165,233,.55)';
-  ctx.strokeStyle = 'rgba(14,165,233,.9)';
+  ctx.fillStyle = 'rgba(14,165,233,.4)';
+  ctx.strokeStyle = 'rgba(14,165,233,.85)';
   ctx.lineWidth = 1;
   for(let i=0; i<6; i++){
     ctx.save();
     ctx.rotate(i * Math.PI / 3);
     ctx.beginPath();
     ctx.moveTo(0, 0);
-    ctx.lineTo(-3, 6);
-    ctx.lineTo(-6, 28);
-    ctx.lineTo(2, 30);
-    ctx.lineTo(5, 8);
+    ctx.lineTo(-2, 4);
+    ctx.lineTo(-5, rotR-4);
+    ctx.lineTo(2, rotR-2);
+    ctx.lineTo(4, 6);
     ctx.closePath();
     ctx.fill(); ctx.stroke();
     ctx.restore();
   }
   // Center hub
-  ctx.fillStyle = '#334155';
-  ctx.beginPath(); ctx.arc(0, 0, 7, 0, Math.PI*2); ctx.fill();
-  ctx.strokeStyle = 'rgba(148,163,184,.8)'; ctx.lineWidth = 1;
+  ctx.fillStyle = '#1e293b';
+  ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = 'rgba(148,163,184,.9)'; ctx.lineWidth = 1;
   ctx.stroke();
   ctx.restore();
-  // Outlet duct (right side of casing)
-  ctx.fillStyle = 'rgba(148,163,184,.15)';
-  ctx.fillRect(40, -10, 30, 20);
-  ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
-  ctx.strokeRect(40, -10, 30, 20);
-  ctx.restore();
 
-  // Outlet wind flow (amber lines)
-  ctx.strokeStyle = 'rgba(249,115,22,.5)'; ctx.lineWidth = 1;
-  for(let i=0; i<3; i++){
-    const wf = ((t*2 + i*0.5) % 1.5);
-    const wx1 = blowerCx + 55 + wf*15;
-    const wy = blowerCy - 5 + i*5;
-    ctx.globalAlpha = 1 - wf/1.5;
-    ctx.beginPath(); ctx.moveTo(wx1, wy); ctx.lineTo(wx1+8, wy); ctx.stroke();
-  }
-  ctx.globalAlpha = 1;
+  // Eccentric mass m₀ on rotor
+  const ecc = rotR - 7;
+  const m0X = rotCx + ecc * Math.cos(spinAngle);
+  const m0Y = rotCy + ecc * Math.sin(spinAngle);
+  ctx.fillStyle = 'rgba(239,68,68,.3)';
+  ctx.beginPath(); ctx.arc(m0X, m0Y, 11, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#ef4444';
+  ctx.shadowColor = 'rgba(239,68,68,.8)'; ctx.shadowBlur = 6;
+  ctx.beginPath(); ctx.arc(m0X, m0Y, 5, 0, Math.PI*2); ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#ef4444'; ctx.font = 'bold 8px JetBrains Mono';
+  ctx.fillText('m₀', m0X+8, m0Y-5);
 
-  // Base plate (the part that shakes the most)
-  const baseY = blowerCy + 50;
-  const baseW = 110;
-  ctx.fillStyle = 'rgba(100,116,139,.35)';
-  ctx.fillRect(blowerCx - baseW/2 + shakeDx, baseY, baseW, 18);
-  ctx.strokeStyle = 'rgba(148,163,184,.8)'; ctx.lineWidth = 1.5;
-  ctx.strokeRect(blowerCx - baseW/2 + shakeDx, baseY, baseW, 18);
-
-  // Connecting rod from casing to base
-  ctx.strokeStyle = 'rgba(148,163,184,.6)'; ctx.lineWidth = 3;
+  // Centrifugal force vector from rotor center
+  const Fdraw = 32 * (r*r);     // visual scale
+  const tipX = rotCx + Fdraw * Math.cos(spinAngle);
+  const tipY = rotCy + Fdraw * Math.sin(spinAngle);
+  ctx.strokeStyle = '#f97316'; ctx.lineWidth = 2.5;
+  ctx.shadowColor = 'rgba(249,115,22,.6)'; ctx.shadowBlur = 5;
+  ctx.beginPath(); ctx.moveTo(rotCx, rotCy); ctx.lineTo(tipX, tipY); ctx.stroke();
+  const aF = Math.atan2(tipY - rotCy, tipX - rotCx);
   ctx.beginPath();
-  ctx.moveTo(blowerCx + shakeDx, blowerCy + 40 + shakeDy);
-  ctx.lineTo(blowerCx + shakeDx, baseY);
-  ctx.stroke();
+  ctx.moveTo(tipX, tipY);
+  ctx.lineTo(tipX - 7*Math.cos(aF - 0.4), tipY - 7*Math.sin(aF - 0.4));
+  ctx.lineTo(tipX - 7*Math.cos(aF + 0.4), tipY - 7*Math.sin(aF + 0.4));
+  ctx.closePath();
+  ctx.fillStyle = '#f97316'; ctx.fill();
+  ctx.shadowBlur = 0;
 
-  // ── BOLTS (4 of them, progressively loosening) ──
-  const boltPos = [-40, -15, 15, 40];
-  boltPos.forEach((bx, idx) => {
-    const worldX = blowerCx + bx + shakeDx;
-    const worldY = baseY + 9;
-    // Bolt loosening animation — rotates based on boltLoosenLevel
-    const loosen = boltLoosenLevel * (1 + idx*0.15);   // Each bolt loosens differently
-    const loosenClamped = Math.min(1, loosen);
-    
-    // Color progression: green → yellow → red as bolt loosens
-    let boltColor;
-    if(loosenClamped < 0.33) boltColor = '#00e09e';
-    else if(loosenClamped < 0.66) boltColor = '#facc15';
-    else boltColor = '#ef4444';
-    
-    // Bolt body (hex nut shape)
-    ctx.save();
-    ctx.translate(worldX, worldY);
-    ctx.rotate(loosenClamped * Math.PI * 1.5);  // rotates as it loosens
-    ctx.fillStyle = boltColor;
-    ctx.strokeStyle = 'rgba(0,0,0,.5)';
-    ctx.lineWidth = 1;
+  // Springs left/right (mounting to floor)
+  const sp1X_p = pumpCx - 50, sp2X_p = pumpCx + 50;
+  const spTopY = frY + frameH_;
+  const floorY = spTopY + 40;
+  [sp1X_p, sp2X_p].forEach(spX => {
+    ctx.strokeStyle = 'rgba(168,85,247,.65)'; ctx.lineWidth = 1.8;
     ctx.beginPath();
-    for(let i=0; i<6; i++){
-      const a = i * Math.PI / 3;
-      const x = 5 * Math.cos(a);
-      const y = 5 * Math.sin(a);
-      if(i===0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    ctx.moveTo(spX, spTopY);
+    for(let i=0; i<5; i++){
+      const yi = spTopY + (i+0.5) * (floorY - spTopY) / 5;
+      const xi = spX + (i%2===0 ? -6 : 6);
+      ctx.lineTo(xi, yi);
     }
-    ctx.closePath(); ctx.fill(); ctx.stroke();
-    // Center hole
-    ctx.fillStyle = 'rgba(0,0,0,.5)';
-    ctx.beginPath(); ctx.arc(0, 0, 1.5, 0, Math.PI*2); ctx.fill();
-    ctx.restore();
-    
-    // "Loose" indicator if very loose
-    if(loosenClamped > 0.75){
-      ctx.fillStyle = '#ef4444'; ctx.font = 'bold 8px JetBrains Mono';
-      ctx.textAlign = 'center';
-      ctx.fillText('!', worldX, worldY - 9);
-      ctx.textAlign = 'left';
-    }
+    ctx.lineTo(spX, floorY);
+    ctx.stroke();
   });
 
   // Concrete floor
-  const floorY = baseY + 30;
-  ctx.fillStyle = 'rgba(100,116,139,.25)';
-  ctx.fillRect(18, floorY, leftW - 28, 35);
-  ctx.strokeStyle = 'rgba(148,163,184,.4)'; ctx.lineWidth = 1;
-  ctx.strokeRect(18, floorY, leftW - 28, 35);
-  // Concrete hatching
-  for(let i=0; i<12; i++){
+  ctx.fillStyle = 'rgba(100,116,139,.3)';
+  ctx.fillRect(18, floorY, leftW - 28, 22);
+  ctx.strokeStyle = 'rgba(148,163,184,.45)'; ctx.lineWidth = 1;
+  ctx.strokeRect(18, floorY, leftW - 28, 22);
+  for(let i=0; i<10; i++){
     ctx.beginPath();
-    ctx.moveTo(22 + i*16, floorY);
-    ctx.lineTo(22 + i*16 + 8, floorY + 10);
+    ctx.moveTo(22 + i*18, floorY);
+    ctx.lineTo(22 + i*18 + 8, floorY + 8);
     ctx.stroke();
   }
 
-  // Vibration waves (expanding rings from base to floor)
-  const waveCount = 3;
-  for(let i=0; i<waveCount; i++){
-    const wavePhase = ((t * 1.5 + i*0.4) % 1.2);
-    const waveRadius = wavePhase * 45;
+  // Vibration waves emanating from frame to floor
+  for(let i=0; i<3; i++){
+    const wavePhase = ((t * 1.4 + i*0.4) % 1.2);
+    const waveR = wavePhase * 40;
     ctx.strokeStyle = `rgba(239,68,68,${(1 - wavePhase/1.2) * 0.4})`;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(blowerCx, baseY + 18, waveRadius, 0, Math.PI, false);
+    ctx.arc(pumpCx, floorY, waveR, 0, Math.PI, false);
     ctx.stroke();
   }
 
-  // Danger label
+  // Pulsing danger label
   const pulse = 0.6 + 0.4 * Math.sin(t * 3);
   ctx.fillStyle = `rgba(239,68,68,${pulse})`;
   ctx.font = 'bold 11px JetBrains Mono';
   ctx.textAlign = 'center';
-  ctx.fillText('🔴 R = 0.95 → DEKAT RESONANSI!', leftW/2, mainH - 8);
+  ctx.fillText('🔴 r = 1.00 → RESONANSI!', leftW/2, mainH - 8);
   ctx.textAlign = 'left';
 
-  // ══════════════════════════════════════════════════════════
-  // RIGHT PANEL — FRF / Bode Plot with Operating Point
-  // ══════════════════════════════════════════════════════════
+  // ══════════════ RIGHT PANEL — R(r,ζ) curve ══════════════
   ctx.strokeStyle = 'rgba(14,165,233,.2)'; ctx.lineWidth = 1;
   ctx.strokeRect(rightX, 8, rightW, mainH - 8);
   ctx.fillStyle = 'rgba(14,165,233,.04)';
   ctx.fillRect(rightX, 8, rightW, mainH - 8);
 
-  // Title
   ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText('📊 SPEKTRUM DMF — FRF ANALYZER', rightX + 10, 24);
+  ctx.fillText('📊 KURVA R(r,ζ) — ROTATING UNBALANCE', rightX + 10, 24);
   ctx.fillStyle = '#94a3b8'; ctx.font = '9px JetBrains Mono';
-  ctx.fillText('Amplifikasi dinamis vs rasio frekuensi', rightX + 10, 38);
+  ctx.fillText('Faktor pembesaran X·M / (m₀·e) vs r', rightX + 10, 38);
 
-  // Plot area
   const fpPadL = 45, fpPadR = 15, fpPadT = 50, fpPadB = 25;
   const fpPlotX = rightX + fpPadL;
   const fpPlotY = 8 + fpPadT;
   const fpPlotW = rightW - fpPadL - fpPadR;
   const fpPlotH = mainH - 8 - fpPadT - fpPadB;
-
   _grid(ctx, fpPlotX, fpPlotY, fpPlotW, fpPlotH, 10, 5, '#0d1929');
 
-  const rMin = 0, rMax = 2.5;
-  const dmfMax = 12;
-  const fsx = r => fpPlotX + (r - rMin)/(rMax - rMin) * fpPlotW;
-  const fsy = v => fpPlotY + fpPlotH - (v/dmfMax) * fpPlotH;
+  const rMin = 0, rMaxF = 4.0;
+  const Rmax = 6;
+  const fsx = rr => fpPlotX + (rr - rMin)/(rMaxF - rMin) * fpPlotW;
+  const fsy = v => fpPlotY + fpPlotH - Math.min(fpPlotH, (v/Rmax) * fpPlotH);
 
   // Axis labels
   ctx.fillStyle = '#475569'; ctx.font = '8px JetBrains Mono';
   ctx.textAlign = 'right';
-  for(let i=0; i<=4; i++){
-    const v = dmfMax * (1 - i/4);
-    ctx.fillText(v.toFixed(0), fpPlotX - 3, fpPlotY + fpPlotH*i/4 + 3);
+  for(let i=0; i<=5; i++){
+    const v = Rmax * (1 - i/5);
+    ctx.fillText(v.toFixed(0), fpPlotX - 3, fpPlotY + fpPlotH*i/5 + 3);
   }
   ctx.textAlign = 'center';
-  for(let i=0; i<=5; i++){
-    const v = rMin + (rMax-rMin)*i/5;
-    ctx.fillText(v.toFixed(1), fpPlotX + fpPlotW*i/5, fpPlotY + fpPlotH + 12);
+  for(let i=0; i<=8; i++){
+    const v = rMin + (rMaxF-rMin)*i/8;
+    ctx.fillText(v.toFixed(1), fpPlotX + fpPlotW*i/8, fpPlotY + fpPlotH + 12);
   }
   ctx.textAlign = 'left';
   ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 9px JetBrains Mono';
-  ctx.fillText('DMF', fpPlotX - 38, fpPlotY + 12);
-  ctx.fillText('r = ω/ωₙ', fpPlotX + fpPlotW - 50, fpPlotY + fpPlotH + 24);
+  ctx.fillText('R', fpPlotX - 28, fpPlotY + 12);
+  ctx.fillText('r = ω/ωₙ', fpPlotX + fpPlotW - 50, fpPlotY + fpPlotH + 22);
 
-  // r = 1 marker
+  // R = 1 asymptote
+  ctx.strokeStyle = 'rgba(0,224,158,.6)'; ctx.lineWidth = 1.5; ctx.setLineDash([5,3]);
+  ctx.beginPath(); ctx.moveTo(fpPlotX, fsy(1)); ctx.lineTo(fpPlotX+fpPlotW, fsy(1)); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#00e09e'; ctx.font = '8px JetBrains Mono';
+  ctx.fillText('R=1 (m₀e/M)', fpPlotX + fpPlotW - 80, fsy(1) - 4);
+
+  // r=1 marker
   ctx.strokeStyle = 'rgba(239,68,68,.4)'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
   ctx.beginPath(); ctx.moveTo(fsx(1), fpPlotY); ctx.lineTo(fsx(1), fpPlotY+fpPlotH); ctx.stroke();
   ctx.setLineDash([]);
   ctx.fillStyle = 'rgba(239,68,68,.7)'; ctx.font = '9px JetBrains Mono';
   ctx.fillText('r=1', fsx(1)+2, fpPlotY + 10);
 
-  // Danger zone shading (0.8 < r < 1.2)
+  // Danger zone (r ≈ 1)
   ctx.fillStyle = 'rgba(239,68,68,.08)';
-  ctx.fillRect(fsx(0.8), fpPlotY, fsx(1.2)-fsx(0.8), fpPlotH);
+  ctx.fillRect(fsx(0.85), fpPlotY, fsx(1.15)-fsx(0.85), fpPlotH);
 
-  // DMF curve
+  // R(r,ζ=0.10) curve
   ctx.strokeStyle = '#0ea5e9'; ctx.lineWidth = 2;
   ctx.shadowColor = 'rgba(14,165,233,.5)'; ctx.shadowBlur = 5;
   ctx.beginPath();
-  for(let i=0; i<=300; i++){
-    const rr = rMin + (rMax - rMin) * i/300;
-    const v = 1/Math.sqrt((1-rr*rr)**2 + (2*zeta*rr)**2);
-    if(i===0) ctx.moveTo(fsx(rr), fsy(Math.min(dmfMax, v)));
-    else ctx.lineTo(fsx(rr), fsy(Math.min(dmfMax, v)));
+  for(let i=0; i<=240; i++){
+    const rr = rMin + (rMaxF - rMin) * i/240;
+    const v = rr*rr / Math.sqrt((1-rr*rr)**2 + (2*zeta*rr)**2);
+    if(i===0) ctx.moveTo(fsx(rr), fsy(Math.min(Rmax, v)));
+    else ctx.lineTo(fsx(rr), fsy(Math.min(Rmax, v)));
   }
   ctx.stroke();
   ctx.shadowBlur = 0;
 
-  // Operating point (pulsing red dot)
+  // Operating point pulsing
   const opPulse = 0.7 + 0.3 * Math.sin(t * 4);
   ctx.fillStyle = `rgba(239,68,68,${opPulse})`;
   ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 12;
-  ctx.beginPath(); ctx.arc(fsx(r), fsy(dmf), 6, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(fsx(r), fsy(Math.min(Rmax, Rval)), 6, 0, Math.PI*2); ctx.fill();
   ctx.shadowBlur = 0;
-  // Operating point label
   ctx.fillStyle = '#ef4444'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText(`● r=${r.toFixed(2)}, DMF=${dmf.toFixed(2)}`, fsx(r) + 10, fsy(dmf) - 8);
+  ctx.fillText(`● r=${r.toFixed(2)}, R=${Rval.toFixed(2)}`, fsx(r) + 10, fsy(Math.min(Rmax,Rval)) - 8);
 
-  // Safe zone markers
-  const safeR = 1.5;  // r > √2 is safe
-  ctx.fillStyle = 'rgba(0,224,158,.15)';
+  // Supercritical safe zone
+  const safeR = 2.5;
+  ctx.fillStyle = 'rgba(0,224,158,.12)';
   ctx.fillRect(fsx(safeR), fpPlotY, fpPlotW - (fsx(safeR) - fpPlotX), fpPlotH);
   ctx.fillStyle = 'rgba(0,224,158,.6)'; ctx.font = '8px JetBrains Mono';
-  ctx.fillText('ZONA AMAN (r > √2)', fsx(safeR) + 5, fpPlotY + fpPlotH - 5);
+  ctx.fillText('SUPERCRITICAL (R→1)', fsx(safeR) + 5, fpPlotY + fpPlotH - 5);
 
-  // ══════════════════════════════════════════════════════════
-  // BOTTOM STRIP — Live Metrics (Digital readout style)
-  // ══════════════════════════════════════════════════════════
+  // ══════════════ BOTTOM STRIP — Live Metrics ══════════════
   const stripY = mainH + 5;
   ctx.fillStyle = 'rgba(13,21,32,.9)';
   ctx.fillRect(8, stripY, W - 16, bottomStripH - 5);
   ctx.strokeStyle = 'rgba(255,179,0,.3)'; ctx.lineWidth = 1;
   ctx.strokeRect(8, stripY, W - 16, bottomStripH - 5);
 
-  // Metrics
   const metricW = (W - 16) / 5;
   const metrics = [
-    { label: 'Displacement X', value: (X*1000).toFixed(2) + ' mm', color: '#ef4444' },
-    { label: 'DMF', value: dmf.toFixed(2) + '×', color: '#facc15' },
-    { label: 'Transmisibilitas', value: Tr.toFixed(2), color: '#0ea5e9' },
-    { label: 'Gaya ke Lantai', value: F_trans.toFixed(0) + ' N', color: '#a855f7' },
-    { label: 'Status Baut', value: boltLoosenLevel < 0.33 ? '🟢 OK' : (boltLoosenLevel < 0.66 ? '🟡 KENDOR' : '🔴 LEPAS'), color: '#fb923c' },
+    { label: 'Amplitudo X', value: (X*1000).toFixed(2) + ' mm', color: '#ef4444' },
+    { label: 'Faktor R', value: Rval.toFixed(2) + '×', color: '#facc15' },
+    { label: 'F unbalance', value: F_unb.toFixed(0) + ' N', color: '#0ea5e9' },
+    { label: 'X asymptote', value: (X_inf*1000).toFixed(2) + ' mm', color: '#00e09e' },
+    { label: 'Status', value: '🔴 RESONANSI', color: '#fb923c' },
   ];
   metrics.forEach((m, i) => {
     const mx = 8 + i * metricW + 8;
