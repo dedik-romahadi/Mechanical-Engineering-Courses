@@ -1,0 +1,131 @@
+<!--
+  BANNER PERTEMUAN 12 — Transformasi Fourier: Teori & Implementasi FFT
+  Getaran Mekanik
+  LMS-Compatible: 100% inline styles
+-->
+<div style="background:#080e1a;font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;padding:0;border-radius:22px;overflow:hidden;border:1px solid rgba(255,255,255,.06);">
+
+  <div style="height:4px;background:linear-gradient(90deg,#7c4dff,#a78bfa,#00e5ff,#fbbf24);"></div>
+
+  <div style="padding:36px 40px 38px;position:relative;overflow:hidden;">
+
+    <div style="position:absolute;top:0;right:0;width:260px;height:100%;opacity:.06;background-image:radial-gradient(circle,#fff 1px,transparent 1px);background-size:20px 20px;pointer-events:none;"></div>
+
+    <!-- Spectrum bars deco -->
+    <div style="position:absolute;bottom:0;left:0;right:0;height:60px;opacity:.05;pointer-events:none;overflow:hidden;">
+      <svg viewBox="0 0 900 60" preserveAspectRatio="none" style="width:100%;height:100%;">
+        <!-- Time signal -->
+        <path d="M0,15 Q60,5 120,15 T240,15 T360,15 T480,15 T600,15 T720,15 T840,15 T900,15" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
+        <!-- FFT spectrum bars -->
+        <rect x="20" y="42" width="6" height="14" fill="#00e5ff" opacity=".7"/>
+        <rect x="80" y="38" width="6" height="18" fill="#fbbf24" opacity=".8"/>
+        <rect x="200" y="30" width="6" height="26" fill="#fb7185" opacity=".7"/>
+        <rect x="380" y="40" width="6" height="16" fill="#00e5ff" opacity=".6"/>
+        <rect x="500" y="35" width="6" height="21" fill="#a78bfa" opacity=".7"/>
+        <rect x="620" y="44" width="6" height="12" fill="#fbbf24" opacity=".6"/>
+        <rect x="740" y="38" width="6" height="18" fill="#00e5ff" opacity=".7"/>
+        <line x1="0" y1="56" x2="900" y2="56" stroke="rgba(255,255,255,.18)" stroke-width="0.5"/>
+      </svg>
+    </div>
+
+    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td valign="middle" style="padding-right:28px;">
+
+          <div style="margin-bottom:14px;">
+            <span style="display:inline-block;background:rgba(124,77,255,.15);border:1px solid rgba(124,77,255,.35);padding:5px 14px;border-radius:8px;font-size:12px;font-weight:800;color:#a78bfa;letter-spacing:2px;text-transform:uppercase;font-family:monospace;">ONLINE</span>
+            <span style="display:inline-block;margin-left:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);padding:5px 12px;border-radius:8px;font-size:11px;font-weight:600;color:#64748b;letter-spacing:1px;text-transform:uppercase;">Pertemuan 12 — Kelas Daring</span>
+          </div>
+
+          <h2 style="font-size:26px;font-weight:800;line-height:1.2;color:#f1f5f9;margin:0 0 10px 0;letter-spacing:-.5px;">
+            Transformasi Fourier —<br>
+            <span style="color:#a78bfa;">Teori &amp; Implementasi FFT</span>
+          </h2>
+
+          <p style="font-size:14px;color:#94a3b8;line-height:1.7;margin:0 0 18px 0;max-width:520px;">
+            Mengubah sinyal vibrasi dari domain waktu ke frekuensi via
+            <code style="font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#a78bfa">X(ω) = ∫x(t)·e<sup>−jωt</sup> dt</code>.
+            Pelajari DFT, algoritma Cooley-Tukey FFT, sampling rate Nyquist, leakage, dan windowing
+            untuk analisis spektrum.
+          </p>
+
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px;">
+            <span style="display:inline-block;padding:5px 12px;border-radius:8px;font-size:11px;font-weight:600;background:rgba(124,77,255,.1);color:#a78bfa;border:1px solid rgba(124,77,255,.2);">📊 DFT &amp; FFT</span>
+            <span style="display:inline-block;padding:5px 12px;border-radius:8px;font-size:11px;font-weight:600;background:rgba(0,229,255,.08);color:#00e5ff;border:1px solid rgba(0,229,255,.18);">⚡ Cooley-Tukey</span>
+            <span style="display:inline-block;padding:5px 12px;border-radius:8px;font-size:11px;font-weight:600;background:rgba(251,191,36,.08);color:#fbbf24;border:1px solid rgba(251,191,36,.18);">📐 Nyquist Rate</span>
+            <span style="display:inline-block;padding:5px 12px;border-radius:8px;font-size:11px;font-weight:600;background:rgba(251,113,133,.08);color:#fb7185;border:1px solid rgba(251,113,133,.18);">🪟 Windowing</span>
+          </div>
+
+        </td>
+
+        <td width="240" valign="middle" style="text-align:center;vertical-align:middle;">
+
+          <div style="width:168px;height:160px;background:radial-gradient(circle at 30% 30%,rgba(124,77,255,.12),rgba(0,229,255,.05),transparent);border:1px solid rgba(124,77,255,.18);border-radius:24px;display:inline-flex;align-items:center;justify-content:center;position:relative;">
+            <svg width="136" height="120" viewBox="0 0 136 120" style="overflow:visible;">
+
+              <!-- Top: time signal x(t) -->
+              <text x="2" y="10" fill="#a78bfa" font-size="6" font-family="monospace" font-weight="700">x(t)</text>
+              <line x1="6" y1="22" x2="130" y2="22" stroke="rgba(255,255,255,.12)" stroke-width="0.4"/>
+              <path d="M6,22 Q14,12 22,22 T38,22 T54,22 T70,22 T86,22 T102,22 T118,22 T130,22" fill="none" stroke="#a78bfa" stroke-width="1.4"/>
+              <!-- Add transient -->
+              <line x1="38" y1="22" x2="38" y2="14" stroke="#fb7185" stroke-width="1.2"/>
+              <line x1="86" y1="22" x2="86" y2="13" stroke="#fb7185" stroke-width="1.2"/>
+
+              <!-- FFT arrow with formula -->
+              <line x1="68" y1="44" x2="68" y2="58" stroke="rgba(255,255,255,.3)" stroke-width="1.3"/>
+              <polygon points="64,56 68,62 72,56" fill="rgba(255,255,255,.3)"/>
+              <text x="2" y="54" fill="#94a3b8" font-size="6" font-family="monospace" font-style="italic">FFT</text>
+              <text x="78" y="54" fill="#94a3b8" font-size="6" font-family="monospace" font-style="italic">O(N log N)</text>
+
+              <!-- Bottom: frequency spectrum |X(f)| -->
+              <text x="2" y="72" fill="#00e5ff" font-size="6" font-family="monospace" font-weight="700">|X(f)|</text>
+              <line x1="6" y1="108" x2="130" y2="108" stroke="rgba(255,255,255,.18)" stroke-width="0.5"/>
+
+              <!-- Frequency bars -->
+              <rect x="14" y="98" width="6" height="10" fill="#a78bfa"/>
+              <rect x="24" y="92" width="6" height="16" fill="#00e5ff"/>
+              <text x="27" y="89" text-anchor="middle" fill="#00e5ff" font-size="5" font-family="monospace" font-weight="700">f₁</text>
+              <rect x="34" y="100" width="6" height="8" fill="#fbbf24"/>
+              <rect x="44" y="80" width="6" height="28" fill="#fb7185"/>
+              <text x="47" y="77" text-anchor="middle" fill="#fb7185" font-size="5" font-family="monospace" font-weight="700">f₂</text>
+              <rect x="54" y="96" width="6" height="12" fill="#a78bfa"/>
+              <rect x="64" y="88" width="6" height="20" fill="#00e5ff"/>
+              <rect x="74" y="100" width="6" height="8" fill="#fbbf24"/>
+              <rect x="84" y="84" width="6" height="24" fill="#a78bfa"/>
+              <text x="87" y="81" text-anchor="middle" fill="#a78bfa" font-size="5" font-family="monospace" font-weight="700">f₃</text>
+              <rect x="94" y="98" width="6" height="10" fill="#00e5ff"/>
+              <rect x="104" y="102" width="6" height="6" fill="#fbbf24"/>
+              <rect x="114" y="100" width="6" height="8" fill="#a78bfa"/>
+              <rect x="124" y="104" width="6" height="4" fill="#00e5ff"/>
+
+              <text x="68" y="118" text-anchor="middle" fill="#64748b" font-size="6" font-family="monospace">f →</text>
+
+            </svg>
+            <div style="position:absolute;top:10px;right:12px;font-size:9px;font-weight:700;color:rgba(124,77,255,.55);font-family:monospace;letter-spacing:1px;text-align:right;line-height:1.1;">FFT<br>SPEC</div>
+          </div>
+
+          <p style="margin-top:12px;margin-bottom:14px;font-size:10px;color:#475569;font-family:monospace;letter-spacing:.5px;">
+            DFT • FFT • Nyquist
+          </p>
+
+          <a href="https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Getaran-Mekanik/Modul/Modul-12.html" target="_blank"
+             style="display:inline-flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#7c4dff,#9c6bff);color:#fff;font-weight:700;font-size:11px;padding:12px 10px;border-radius:10px;text-decoration:none;box-shadow:0 4px 16px rgba(124,77,255,.35);letter-spacing:.3px;text-align:center;width:100%;">
+            📖 Buka Modul, Tugas, dan Forum — 12
+          </a>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <div style="background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);padding:12px 40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+      <span style="font-size:11px;color:#64748b;">🧑‍🏫 <span style="color:#94a3b8;font-weight:600;">Dedik Romahadi</span></span>
+      <span style="font-size:11px;color:#334155;">|</span>
+      <span style="font-size:11px;color:#64748b;">〰️ Getaran Mekanik</span>
+      <span style="font-size:11px;color:#334155;">|</span>
+      <span style="font-size:11px;color:#64748b;">🏛️ S1 Teknik Mesin — Universitas Mercu Buana</span>
+    </div>
+    <span style="font-size:10px;color:#334155;font-family:monospace;">2025/2026</span>
+  </div>
+
+</div>
