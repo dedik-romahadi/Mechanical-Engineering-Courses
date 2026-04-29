@@ -3289,16 +3289,32 @@ function exportTugasHtml() {
   ];
 
   // Collect MC answers — 10 soal
+  // Sumber kebenaran: .radio-option.selected (pilihan asli user, dipertahankan
+  // baik saat benar maupun salah). Jika hilang (mis. setelah reload + restore
+  // dari Firebase), fallback ke mcAnswered/mcScores + opsi correct-ans.
   const mcData = Array.from({length: SCORE_CONFIG.MC_COUNT}, (_, i) => {
     const id = 'mc' + (i+1);
     const rg = document.getElementById('rg-' + id);
-    const correctEl  = rg?.querySelector('.radio-option.correct-ans');
-    const selected   = rg?.querySelector('.radio-option.selected, .radio-option.correct-ans, .radio-option.wrong-ans');
+    const sel        = rg?.querySelector('.radio-option.selected');
+    const correctOpt = rg?.querySelector('.radio-option.correct-ans');
+    let selectedText, isCorrect;
+    if (sel) {
+      selectedText = sel.textContent.trim();
+      isCorrect    = sel.classList.contains('correct-ans');
+    } else if (mcAnswered[id]) {
+      isCorrect    = (mcScores[id] || 0) > 0;
+      selectedText = isCorrect && correctOpt
+        ? correctOpt.textContent.trim()
+        : '(Sudah dijawab — pilihan salah)';
+    } else {
+      selectedText = '(Belum dijawab)';
+      isCorrect    = false;
+    }
     return {
       no: i+1,
       title: MC_QUESTIONS[i] || ('Soal ' + (i+1)),
-      selected: selected ? selected.textContent.trim() : '(Belum dijawab)',
-      correct: !!correctEl,
+      selected: selectedText,
+      correct: isCorrect,
       pts: mcScores[id] || 0
     };
   });
