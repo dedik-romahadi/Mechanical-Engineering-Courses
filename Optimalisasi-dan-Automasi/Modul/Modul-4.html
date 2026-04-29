@@ -3087,14 +3087,30 @@ function exportTugasHtml() {
   function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
   // Collect MC answers
+  // Sumber kebenaran: .radio-option.selected (pilihan asli user, dipertahankan
+  // baik saat benar maupun salah). Jika hilang (mis. setelah reload + restore
+  // dari Firebase), fallback ke mcAnswered/mcScores + opsi correct-ans.
   const mcData = ['mc1','mc2','mc3','mc4','mc5','mc6','mc7','mc8','mc9','mc10'].map((id, i) => {
     const rg = document.getElementById('rg-' + id);
-    const correct = rg?.querySelector('.radio-option.correct-ans');
-    const selected = rg?.querySelector('.radio-option.selected, .radio-option.correct-ans, .radio-option.wrong-ans');
+    const sel        = rg?.querySelector('.radio-option.selected');
+    const correctOpt = rg?.querySelector('.radio-option.correct-ans');
+    let selectedText, isCorrect;
+    if (sel) {
+      selectedText = sel.textContent.trim();
+      isCorrect    = sel.classList.contains('correct-ans');
+    } else if (mcAnswered[id]) {
+      isCorrect    = (mcScores[id] || 0) > 0;
+      selectedText = isCorrect && correctOpt
+        ? correctOpt.textContent.trim()
+        : '(Sudah dijawab — pilihan salah)';
+    } else {
+      selectedText = '(Belum dijawab)';
+      isCorrect    = false;
+    }
     return {
       no: i+1,
-      selected: selected ? selected.textContent.trim() : '(Belum dijawab)',
-      correct: !!correct,
+      selected: selectedText,
+      correct: isCorrect,
       pts: mcScores[id] || 0
     };
   });
