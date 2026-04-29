@@ -751,14 +751,14 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">mẍ + cẋ + kx = F₀sin(ωt)</span>
+    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">mẍ + cẋ + kx = 0</span>
     <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">ωₙ = √(k/m)</span>
     <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">ζ = c/(2√(km))</span>
-    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">DMF = 1/√((1−r²)²+(2ζr)²)</span>
-    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">r = ω/ωₙ</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">φ = arctan(2ζr/(1−r²))</span>
-    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">X = F₀·DMF/k</span>
-    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">Tᵣ = √(1+(2ζr)²)/√((1−r²)²+(2ζr)²)</span>
+    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">x(t) = A·cos(ωₙt + φ)</span>
+    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">T = 2π/ωₙ</span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">v = ẋ, a = ẍ</span>
+    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">|v|max = A·ω, |a|max = A·ω²</span>
+    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">E = ½·k·x² + ½·m·v²</span>
   </div>
   <div class="hero-schematic">
     <svg viewBox="0 0 100 220" xmlns="http://www.w3.org/2000/svg">
@@ -1092,133 +1092,127 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <hr class="divider">
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 06</div>
-  <h2 class="section-title reveal">Animasi Interaktif<br>Konsep Getaran</h2>
-  <p class="section-desc reveal">Eksplorasi konsep-konsep kunci yang sudah dipelajari secara visual dan real-time. Geser slider untuk mengubah parameter dan amati perubahan instan pada grafik. Animasi di bawah memvisualisasikan rasio redaman, respons waktu, dan fenomena resonansi — konsep fundamental yang akan terus digunakan di pertemuan-pertemuan berikutnya.</p>
+  <h2 class="section-title reveal">Animasi Interaktif<br>Konsep Dasar Getaran</h2>
+  <p class="section-desc reveal">Eksplorasi konsep-konsep fundamental getaran yang sudah dipelajari di Bagian 01–05 secara visual dan real-time. Geser slider untuk mengubah parameter dan amati perubahan instan pada animasi mass-spring, hubungan tiga parameter (perpindahan, kecepatan, percepatan), pengaruh massa &amp; kekakuan terhadap frekuensi natural, dan perbandingan empat jenis getaran. Konsep-konsep ini akan terus digunakan di pertemuan-pertemuan berikutnya.</p>
 
-  <!-- Animasi 1: DMF Curve -->
+  <!-- Animasi 1: Simple Harmonic Motion (SHM) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi 1 — Kurva DMF dan Sudut Fase vs Rasio Frekuensi r</span>
+      <span class="anim-title">Animasi 1 — Simple Harmonic Motion: Mass-Spring Oscillation x(t) = A·cos(ωₙt)</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvDMF" height="280"></canvas>
+      <canvas id="cvSHM" height="280"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Rasio Redaman ζ₁ — <span class="ctrl-val" id="v_z1">0.05</span></label>
-          <input type="range" id="sl_z1" min="0.02" max="0.8" step="0.01" value="0.05">
+          <label>Massa m (kg) — <span class="ctrl-val" id="v_shm_m">5.0</span></label>
+          <input type="range" id="sl_shm_m" min="1" max="20" step="0.5" value="5">
         </div>
         <div class="ctrl-group">
-          <label>Rasio Redaman ζ₂ — <span class="ctrl-val" id="v_z2">0.20</span></label>
-          <input type="range" id="sl_z2" min="0.02" max="0.8" step="0.01" value="0.20">
+          <label>Kekakuan k (N/m) — <span class="ctrl-val" id="v_shm_k">2000</span></label>
+          <input type="range" id="sl_shm_k" min="200" max="5000" step="100" value="2000">
         </div>
         <div class="ctrl-group">
-          <label>Rasio Redaman ζ₃ — <span class="ctrl-val" id="v_z3">0.50</span></label>
-          <input type="range" id="sl_z3" min="0.02" max="0.8" step="0.01" value="0.50">
+          <label>Amplitudo A (m) — <span class="ctrl-val" id="v_shm_A">0.10</span></label>
+          <input type="range" id="sl_shm_A" min="0.02" max="0.30" step="0.01" value="0.10">
         </div>
-        <div class="ctrl-group">
-          <label>Tandai titik r — <span class="ctrl-val" id="v_rmark">0.90</span></label>
-          <input type="range" id="sl_rmark" min="0.1" max="2.5" step="0.05" value="0.9">
-        </div>
+        <button class="btn-anim" id="btnSHM" onclick="toggleSHM()">⏸ PAUSE</button>
       </div>
-      <div style="margin-top:12px;display:flex;gap:20px;flex-wrap:wrap;font-size:12px;font-family:'JetBrains Mono',monospace">
-        <span style="color:#0ea5e9">── ζ₁ DMF (cyan)</span>
-        <span style="color:#f97316">── ζ₂ DMF (amber)</span>
-        <span style="color:#ef4444">── ζ₃ DMF (pink)</span>
-        <span style="color:rgba(255,255,255,.35)">┄ Fase φ(ζ₂) — skala kanan 0–180°</span>
-      </div>
-      <div id="dmfInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div id="shmInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Grafik Ini:</strong> Sumbu X = \(r\) (rasio frekuensi \(\omega/\omega_n\), dari 0 hingga 2.5). Sumbu Y kiri = DMF (amplifikasi amplitudo). Garis merah putus-putus di \(r=1\) menandai resonansi. Garis hijau di \(r=\sqrt{2}\) menandai batas isolasi transmissibility.<br>
-        Amati: (1) Semakin kecil \(\zeta\), puncak DMF semakin tinggi dan tajam. (2) Semua kurva bertemu di DMF=1 saat \(r=0\) (statis). (3) Saat \(r \gg 1\), semua kurva mendekati 0 — massa tidak bergerak mengikuti gaya frekuensi tinggi. (4) Garis putus-putus (fase \(\varphi\)) naik dari 0° ke 180° — laju kenaikan paling cepat di dekat resonansi.
+        <strong>📊 Cara Membaca Animasi Ini:</strong> Sisi kiri menampilkan sistem mass-spring yang berosilasi — massa bergerak bolak-balik di sekitar posisi kesetimbangan. Sisi kanan menampilkan grafik <em>x(t)</em> sebagai fungsi waktu (sinusoidal murni).<br>
+        Amati: (1) <strong style="color:var(--cyan)">Frekuensi natural</strong> <code>ωₙ = √(k/m)</code> — semakin besar k atau semakin kecil m, semakin cepat osilasi. (2) <strong style="color:var(--amber)">Periode</strong> <code>T = 2π/ωₙ</code> — waktu untuk satu siklus penuh. (3) Amplitudo A tidak memengaruhi periode (sifat unik SHM linier). (4) Posisi maksimum di puncak/lembah grafik = saat kecepatan = 0; posisi 0 di garis tengah = saat kecepatan maksimum.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 2: Response Time -->
+  <!-- Animasi 2: Phase Relationship Disp/Vel/Acc -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--amber)"></div>
-      <span class="anim-title">Animasi 2 — Gaya Eksitasi vs Respons Steady-State dalam Domain Waktu</span>
+      <span class="anim-title">Animasi 2 — Hubungan Fase: Perpindahan x(t), Kecepatan v(t), Percepatan a(t)</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvResp" height="240"></canvas>
+      <canvas id="cvPhase" height="240"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Rasio frekuensi r = ω/ωₙ — <span class="ctrl-val" id="v_r">0.80</span></label>
-          <input type="range" id="sl_r" min="0.1" max="2.0" step="0.05" value="0.8">
+          <label>Frekuensi ω (rad/s) — <span class="ctrl-val" id="v_ph_w">5.0</span></label>
+          <input type="range" id="sl_ph_w" min="1" max="15" step="0.2" value="5">
         </div>
         <div class="ctrl-group">
-          <label>Rasio Redaman ζ — <span class="ctrl-val" id="v_zr">0.15</span></label>
-          <input type="range" id="sl_zr" min="0.01" max="0.7" step="0.01" value="0.15">
+          <label>Amplitudo A (m) — <span class="ctrl-val" id="v_ph_A">0.10</span></label>
+          <input type="range" id="sl_ph_A" min="0.02" max="0.30" step="0.01" value="0.10">
         </div>
-        <button class="btn-anim" id="btnResp" onclick="toggleResp()">⏸ PAUSE</button>
+        <button class="btn-anim" id="btnPhase" onclick="togglePhase()">⏸ PAUSE</button>
       </div>
       <div style="margin-top:10px;display:flex;gap:20px;flex-wrap:wrap;font-size:12px;font-family:'JetBrains Mono',monospace">
-        <span style="color:#f97316">── Gaya eksitasi F(t) = F₀sin(ωt)</span>
-        <span style="color:#0ea5e9">── Respons steady-state x(t) = X sin(ωt−φ)</span>
+        <span style="color:#0ea5e9">── x(t) = A·cos(ωt) [perpindahan, m]</span>
+        <span style="color:#f97316">── v(t) = −A·ω·sin(ωt) [kecepatan, m/s]</span>
+        <span style="color:#ef4444">── a(t) = −A·ω²·cos(ωt) [percepatan, m/s²]</span>
       </div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Grafik Ini:</strong> Kurva amber = gaya eksitasi \(F(t)\) (normalisasi); kurva cyan = respons perpindahan \(x(t)\) steady-state. Perhatikan pergeseran fase: respons tertinggal \(\varphi\) dari eksitasi.<br>
-        Amati: (1) Saat \(r \to 0\): \(\varphi \approx 0°\) — dua kurva hampir sefase, amplitudo respons ≈ \(X_{st}\). (2) Saat \(r = 1\): \(\varphi = 90°\) — respons tertinggal seperempat siklus, amplitudo besar. (3) Saat \(r \gg 1\): \(\varphi \to 180°\) — respons berlawanan fase, amplitudo kecil.
+        <strong>📊 Cara Membaca Grafik Ini:</strong> Tiga kurva sinusoidal yang menunjukkan parameter getaran sebagai fungsi waktu, dinormalisasi agar terlihat dalam satu skala.<br>
+        Amati: (1) <strong>Pergeseran fase 90° antar kurva</strong> — saat x maksimum (puncak cyan), v = 0 (lewat nol amber). Saat v maksimum (puncak amber), a = 0 (lewat nol pink). (2) <strong>a(t) berlawanan fase dengan x(t)</strong> — pergeseran 180°, karena <code>a = −ω²·x</code> (ciri sistem SHM linier). (3) <strong>Magnitudo</strong>: |v_max| = A·ω, |a_max| = A·ω². Frekuensi tinggi membuat percepatan jauh lebih besar dari perpindahan — alasan accelerometer adalah sensor pilihan untuk vibrasi frekuensi tinggi.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 3: Transien + Steady build-up -->
+  <!-- Animasi 3: Frekuensi Natural ωₙ = √(k/m) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--green)"></div>
-      <span class="anim-title">Animasi 3 — Build-Up Respons (Transien + Steady-State) dengan RK4</span>
+      <span class="anim-title">Animasi 3 — Frekuensi Natural ωₙ = √(k/m): Pengaruh Massa &amp; Kekakuan</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvBuild" height="260"></canvas>
+      <canvas id="cvNatFreq" height="260"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Rasio frekuensi r — <span class="ctrl-val" id="v_rb">0.95</span></label>
-          <input type="range" id="sl_rb" min="0.3" max="1.8" step="0.02" value="0.95">
+          <label>Sistem A: m_A (kg) — <span class="ctrl-val" id="v_nf_mA">5.0</span></label>
+          <input type="range" id="sl_nf_mA" min="1" max="20" step="0.5" value="5">
         </div>
         <div class="ctrl-group">
-          <label>Rasio Redaman ζ — <span class="ctrl-val" id="v_zb">0.08</span></label>
-          <input type="range" id="sl_zb" min="0.02" max="0.5" step="0.01" value="0.08">
+          <label>Sistem A: k_A (N/m) — <span class="ctrl-val" id="v_nf_kA">2000</span></label>
+          <input type="range" id="sl_nf_kA" min="200" max="5000" step="100" value="2000">
+        </div>
+        <div class="ctrl-group">
+          <label>Sistem B: m_B (kg) — <span class="ctrl-val" id="v_nf_mB">10.0</span></label>
+          <input type="range" id="sl_nf_mB" min="1" max="20" step="0.5" value="10">
+        </div>
+        <div class="ctrl-group">
+          <label>Sistem B: k_B (N/m) — <span class="ctrl-val" id="v_nf_kB">2000</span></label>
+          <input type="range" id="sl_nf_kB" min="200" max="5000" step="100" value="2000">
         </div>
       </div>
-      <div style="margin-top:10px;display:flex;gap:20px;flex-wrap:wrap;font-size:12px;font-family:'JetBrains Mono',monospace">
-        <span style="color:#00e09e">── Respons total x(t) = transien + steady-state</span>
-        <span style="color:rgba(239,68,68,.55)">-- Amplop steady-state ±X</span>
-      </div>
+      <div id="nfInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Grafik Ini:</strong> Dihitung dengan metode numerik Runge-Kutta orde 4 (RK4) — metode yang sama yang digunakan di Jupyter Notebook (lihat Bagian 08 Cell 3). Sumbu X = waktu (0 hingga 30 s). Amplop merah putus-putus = nilai steady-state teoritis \(\pm X\).<br>
-        Amati: (1) Di awal (\(t\) kecil), respons berosilasi tidak beraturan — ini fase transien. (2) Secara bertahap, amplitudo "menyesuaikan diri" ke nilai steady-state (amplop merah). (3) Semakin kecil \(\zeta\), semakin lama transien berlangsung sebelum mencapai steady-state. (4) Saat \(r \approx 1\) dan \(\zeta\) kecil, awal respons bisa jauh melampaui amplop steady-state — inilah kondisi berbahaya saat mesin dinyalakan.
+        <strong>📊 Cara Membaca Animasi Ini:</strong> Dua sistem mass-spring berosilasi simultan — atas (Sistem A) dan bawah (Sistem B). Tiap sistem berosilasi pada frekuensi naturalnya sendiri <code>ωₙ = √(k/m)</code>.<br>
+        Eksperimen: (1) <strong>Tambahkan massa</strong> (geser m naik) → osilasi <em>melambat</em> (T besar). (2) <strong>Tambahkan kekakuan k</strong> → osilasi <em>cepat</em> (T kecil). (3) <strong>Buat m_A = m_B dan k_A = k_B</strong> → kedua sistem identik, osilasi sefase. (4) <strong>m_A &lt; m_B dengan k sama</strong> → Sistem A lebih cepat. Implikasi engineering: untuk menghindari resonansi, atur m atau k agar ωₙ jauh dari frekuensi eksitasi.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 4: Transmissibility -->
+  <!-- Animasi 4: Klasifikasi Jenis Getaran -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--pink)"></div>
-      <span class="anim-title">Animasi 4 — Kurva Transmissibility (Tᵣ) vs r: Efektivitas Isolasi Getaran</span>
+      <span class="anim-title">Animasi 4 — Klasifikasi Jenis Getaran: Bebas/Paksa, Teredam/Tak Teredam, Deterministik/Acak</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvTrans" height="260"></canvas>
+      <canvas id="cvVibTypes" height="320"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>ζ₁ (isolator A) — <span class="ctrl-val" id="v_zt1">0.05</span></label>
-          <input type="range" id="sl_zt1" min="0.01" max="0.7" step="0.01" value="0.05">
+          <label>Rasio redaman ζ (untuk free damped) — <span class="ctrl-val" id="v_vt_z">0.10</span></label>
+          <input type="range" id="sl_vt_z" min="0.02" max="0.5" step="0.01" value="0.10">
         </div>
         <div class="ctrl-group">
-          <label>ζ₂ (isolator B) — <span class="ctrl-val" id="v_zt2">0.20</span></label>
-          <input type="range" id="sl_zt2" min="0.01" max="0.7" step="0.01" value="0.20">
+          <label>Frekuensi ω (rad/s) — <span class="ctrl-val" id="v_vt_w">4.0</span></label>
+          <input type="range" id="sl_vt_w" min="1" max="10" step="0.2" value="4">
         </div>
-        <div class="ctrl-group">
-          <label>ζ₃ (isolator C) — <span class="ctrl-val" id="v_zt3">0.50</span></label>
-          <input type="range" id="sl_zt3" min="0.01" max="0.7" step="0.01" value="0.50">
-        </div>
+        <button class="btn-anim" id="btnVT" onclick="toggleVT()">⏸ PAUSE</button>
       </div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Grafik Ini:</strong> Sumbu Y = Transmissibility \(T_r\) (rasio getaran yang diteruskan ke fondasi). Garis putus-putus horizontal = \(T_r = 1\) (batas). Garis hijau vertikal = \(r = \sqrt{2} \approx 1.414\).<br>
-        Interpretasi: (1) <strong style="color:var(--pink)">Area kiri \(r=\sqrt{2}\)</strong> — \(T_r &gt; 1\), semua isolator justru MEMPERBESAR getaran ke fondasi. (2) <strong style="color:var(--green)">Area kanan \(r=\sqrt{2}\)</strong> — \(T_r &lt; 1\), isolasi efektif, getaran berkurang sebelum mencapai fondasi. (3) Di area isolasi (\(r&gt;\sqrt{2}\)): kurva dengan \(\zeta\) LEBIH KECIL memberikan isolasi LEBIH BAIK. Ini berlawanan dengan intuisi — terlalu banyak redaman justru buruk untuk isolasi di frekuensi tinggi. (4) Kesimpulan desain: gunakan isolator lunak (\(k\) kecil → \(\omega_n\) kecil → \(r\) besar) dengan redaman cukup (\(\zeta \approx 0.1–0.15\)) untuk mesin berfrekuensi tinggi.
+        <strong>📊 Cara Membaca 4 Subplot:</strong> Empat panel menampilkan empat jenis getaran fundamental — masing-masing dengan signature yang khas di domain waktu.<br>
+        (1) <strong style="color:var(--cyan)">Bebas Tak Teredam</strong> (kiri-atas): <code>x = A·cos(ωₙt)</code> — sinusoidal murni, amplitudo konstan selamanya. Idealisasi (real systems selalu punya redaman). (2) <strong style="color:var(--amber)">Bebas Teredam</strong> (kanan-atas): <code>x = A·e<sup>−ζωₙt</sup>·cos(ω_d·t)</code> — amplitudo meluruh eksponensial menuju 0. (3) <strong style="color:var(--green)">Paksa Steady-State</strong> (kiri-bawah): <code>x = X·cos(ω·t − φ)</code> — osilasi pada frekuensi gaya, amplitudo konstan. (4) <strong style="color:var(--pink)">Acak/Random</strong> (kanan-bawah): sinyal stokastik tanpa pola periodik tetap — contoh: getaran dari turbulensi angin, jalan tidak rata, gempa bumi. Klasifikasi ini fundamental untuk memilih metode analisis yang tepat di pertemuan berikutnya.
       </div>
     </div>
   </div>
@@ -2721,9 +2715,9 @@ plt.grid(alpha=0.3); plt.tight_layout(); plt.show()</pre></div>
   <div class="float-formulas">
     <span class="ff" style="left:6%;font-size:.9rem;color:var(--violet);--dur:22s;--del:0s">✅ Tepat Waktu</span>
     <span class="ff" style="left:28%;font-size:.75rem;color:var(--pink);--dur:18s;--del:4s">ωₙ = √(k/m)</span>
-    <span class="ff" style="left:52%;font-size:.85rem;color:var(--amber);--dur:20s;--del:8s">DMF = 1/(2ζ)</span>
+    <span class="ff" style="left:52%;font-size:.85rem;color:var(--amber);--dur:20s;--del:8s">T = 2π/ωₙ</span>
     <span class="ff" style="left:70%;font-size:.7rem;color:var(--pink);--dur:24s;--del:2s">🏆 Top Skor</span>
-    <span class="ff" style="left:85%;font-size:.8rem;color:var(--cyan);--dur:16s;--del:11s">r = ω/ωₙ</span>
+    <span class="ff" style="left:85%;font-size:.8rem;color:var(--cyan);--dur:16s;--del:11s">x(t) = A·cos(ωₙt+φ)</span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Pertemuan 1 &nbsp;·&nbsp; Hasil &amp; Kehadiran</div>
@@ -2890,7 +2884,7 @@ function switchTab(tab) {
     setTimeout(() => revealObs.observe(el), 50);
   });
   if (tab === 'modul') {
-    setTimeout(() => { drawDMF(); drawResp(); drawBuild(); drawTrans(); }, 200);
+    setTimeout(() => { drawSHM(); drawPhase(); drawNatFreq(); drawVibTypes(); }, 200);
   }
   if (tab === 'tugas') {
     setTimeout(() => getPyodide().catch(err => console.error('[Modul] Pyodide preload failed:', err)), 500);
@@ -4296,312 +4290,389 @@ function _savgol(arr, w){
 }
 
 // ════════════════════════════════════════════════════════════
-// ANIMASI 1 — Kurva DMF dan Sudut Fase vs r
-// (Canvas: cvDMF, slider: sl_z1/z2/z3/rmark)
+// ANIMASI 1 — Simple Harmonic Motion (mass-spring + x(t) trace)
+// (Canvas: cvSHM, slider: sl_shm_m/k/A; button: btnSHM)
 // ════════════════════════════════════════════════════════════
-function drawDMF(){
-  const cv=document.getElementById('cvDMF'); if(!cv) return;
+let _shmPaused=false, _shmFrame=0;
+function toggleSHM(){_shmPaused=!_shmPaused;const b=document.getElementById('btnSHM');if(b)b.textContent=_shmPaused?'▶ PLAY':'⏸ PAUSE';if(!_shmPaused) drawSHM();}
+window.toggleSHM=toggleSHM;
+
+function drawSHM(){
+  const cv=document.getElementById('cvSHM'); if(!cv) return;
   const W=cv.clientWidth; cv.width=W; const H=cv.height;
   const ctx=cv.getContext('2d');
-  const z1=parseFloat(document.getElementById('sl_z1')?.value||0.05);
-  const z2=parseFloat(document.getElementById('sl_z2')?.value||0.20);
-  const z3=parseFloat(document.getElementById('sl_z3')?.value||0.50);
-  const rmk=parseFloat(document.getElementById('sl_rmark')?.value||0.9);
-  const e=id=>document.getElementById(id); if(e('v_z1')) e('v_z1').textContent=z1.toFixed(2);
-  if(e('v_z2')) e('v_z2').textContent=z2.toFixed(2); if(e('v_z3')) e('v_z3').textContent=z3.toFixed(2);
-  if(e('v_rmark')) e('v_rmark').textContent=rmk.toFixed(2);
+  const m=parseFloat(document.getElementById('sl_shm_m')?.value||5);
+  const k=parseFloat(document.getElementById('sl_shm_k')?.value||2000);
+  const A=parseFloat(document.getElementById('sl_shm_A')?.value||0.10);
+  const e=id=>document.getElementById(id);
+  if(e('v_shm_m')) e('v_shm_m').textContent=m.toFixed(1);
+  if(e('v_shm_k')) e('v_shm_k').textContent=k.toFixed(0);
+  if(e('v_shm_A')) e('v_shm_A').textContent=A.toFixed(2);
 
   const bg=ctx.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#020812'); bg.addColorStop(1,'#080c18');
   ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
 
-  const padL=50,padR=50,padT=16,padB=36;
-  const plotW=W-padL-padR, plotH=H-padT-padB;
-  _grid(ctx,padL,padT,plotW,plotH,10,6,'#0a1830');
+  const omega_n=Math.sqrt(k/m);
+  const fn=omega_n/(2*Math.PI), Tn=2*Math.PI/omega_n;
+  const t=_shmFrame*0.025;
+  const x=A*Math.cos(omega_n*t);
+  const v=-A*omega_n*Math.sin(omega_n*t);
+  const a=-A*omega_n*omega_n*Math.cos(omega_n*t);
 
-  const rmin=0, rmax=2.5, ymin=0, ymax=8;
-  const sx=r=>padL+(r-rmin)/(rmax-rmin)*plotW;
-  const sy=y=>padT+plotH-(y-ymin)/(ymax-ymin)*plotH;
-
-  // Axis labels
-  ctx.fillStyle='#475569'; ctx.font='9px JetBrains Mono'; ctx.textAlign='right';
-  for(let g=0;g<=6;g++){const v=ymax-(ymax-ymin)*g/6; ctx.fillText(v.toFixed(1),padL-6,padT+plotH*g/6+3);}
-  ctx.textAlign='left';
-  for(let g=0;g<=6;g++){const v=180-180*g/6; ctx.fillText(v.toFixed(0)+'°',padL+plotW+6,padT+plotH*g/6+3);}
-  ctx.textAlign='center';
-  for(let g=0;g<=5;g++){const v=rmin+(rmax-rmin)*g/5; ctx.fillText(v.toFixed(1),padL+plotW*g/5,padT+plotH+14);}
-  ctx.textAlign='left';
-
-  // r=1 and r=sqrt(2) reference lines
-  ctx.strokeStyle='rgba(239,68,68,.4)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
-  ctx.beginPath(); ctx.moveTo(sx(1),padT); ctx.lineTo(sx(1),padT+plotH); ctx.stroke();
-  ctx.strokeStyle='rgba(0,224,158,.4)';
-  ctx.beginPath(); ctx.moveTo(sx(Math.SQRT2),padT); ctx.lineTo(sx(Math.SQRT2),padT+plotH); ctx.stroke();
+  // Split: Left = mass-spring viz, Right = x(t) trace
+  const splitX=Math.max(220,W*0.42);
+  // ── LEFT: mass-spring system
+  const cy=H/2;
+  // Wall (left edge)
+  ctx.fillStyle='#1e293b'; ctx.fillRect(20,cy-50,8,100);
+  for(let i=0;i<=8;i++){
+    ctx.strokeStyle='rgba(148,163,184,.3)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(28,cy-50+i*12.5); ctx.lineTo(36,cy-58+i*12.5); ctx.stroke();
+  }
+  // Equilibrium line
+  const eqX=splitX-100;
+  ctx.strokeStyle='rgba(148,163,184,.3)'; ctx.lineWidth=1; ctx.setLineDash([3,4]);
+  ctx.beginPath(); ctx.moveTo(eqX,cy-55); ctx.lineTo(eqX,cy+60); ctx.stroke();
   ctx.setLineDash([]);
-  ctx.fillStyle='rgba(239,68,68,.6)'; ctx.font='9px JetBrains Mono'; ctx.fillText('r=1',sx(1)+4,padT+14);
-  ctx.fillStyle='rgba(0,224,158,.6)'; ctx.fillText('r=√2',sx(Math.SQRT2)+4,padT+14);
-
-  const dmf=(r,z)=>1/Math.sqrt((1-r*r)*(1-r*r) + (2*z*r)*(2*z*r));
-
-  // Draw phase curve for ζ₂ (dashed white, scale 0-180 to 0-8)
-  ctx.strokeStyle='rgba(255,255,255,.35)'; ctx.lineWidth=1.3; ctx.setLineDash([3,3]);
+  ctx.fillStyle='rgba(148,163,184,.6)'; ctx.font='9px JetBrains Mono'; ctx.textAlign='center';
+  ctx.fillText('eq',eqX,cy+72);
+  // Floor
+  ctx.strokeStyle='rgba(148,163,184,.4)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(20,cy+58); ctx.lineTo(splitX-10,cy+58); ctx.stroke();
+  // Spring (zigzag) — from wall to mass
+  const massX=eqX + x*350;
+  const massSize=Math.max(30,Math.min(50,20+m*1.5));
+  const springX0=28, springEnd=massX-massSize/2;
+  ctx.strokeStyle='#fbbf24'; ctx.lineWidth=2;
   ctx.beginPath();
-  for(let i=0;i<=200;i++){
-    const r=rmin+(rmax-rmin)*i/200;
-    if(r<0.001) continue;
-    const phiDeg=Math.atan2(2*z2*r, 1-r*r)*180/Math.PI;
-    const phiAdj = phiDeg<0 ? phiDeg+180 : phiDeg;
-    const yEq = phiAdj/180*ymax;
-    if(i===0) ctx.moveTo(sx(r),sy(yEq)); else ctx.lineTo(sx(r),sy(yEq));
+  ctx.moveTo(springX0,cy);
+  const turns=10;
+  for(let i=1;i<turns;i++){
+    const xs=springX0+(springEnd-springX0)*i/turns;
+    const ys=cy+(i%2===0?6:-6);
+    ctx.lineTo(xs,ys);
+  }
+  ctx.lineTo(springEnd,cy);
+  ctx.stroke();
+  // Mass block
+  ctx.fillStyle='rgba(14,165,233,.18)'; ctx.fillRect(massX-massSize/2,cy-massSize/2,massSize,massSize);
+  ctx.strokeStyle='#0ea5e9'; ctx.lineWidth=2; ctx.strokeRect(massX-massSize/2,cy-massSize/2,massSize,massSize);
+  ctx.fillStyle='#0ea5e9'; ctx.font='bold 13px JetBrains Mono'; ctx.textAlign='center';
+  ctx.fillText('m',massX,cy+5);
+  // Section label
+  ctx.fillStyle='rgba(148,163,184,.6)'; ctx.font='10px JetBrains Mono';
+  ctx.fillText('Sistem Mass-Spring',(splitX-10)/2,20);
+
+  // ── RIGHT: x(t) trace
+  const padR=20, padTR=20, padBR=30;
+  const plotX0=splitX+10, plotW=W-plotX0-padR, plotH=H-padTR-padBR, plotY0=padTR;
+  ctx.strokeStyle='rgba(255,255,255,.06)'; ctx.lineWidth=1;
+  ctx.strokeRect(plotX0,plotY0,plotW,plotH);
+  // Zero line
+  ctx.strokeStyle='rgba(148,163,184,.2)';
+  ctx.beginPath(); ctx.moveTo(plotX0,plotY0+plotH/2); ctx.lineTo(plotX0+plotW,plotY0+plotH/2); ctx.stroke();
+  const tmax=Math.max(2,Math.min(6,3*Tn));
+  const sxR=tt=>plotX0+(tt/tmax)*plotW;
+  const syR=xx=>plotY0+plotH/2-xx/A*(plotH/2-10);
+  // x(t) curve — show last tmax seconds with current at t=0
+  ctx.strokeStyle='#0ea5e9'; ctx.lineWidth=2.2; ctx.shadowColor='rgba(14,165,233,.5)'; ctx.shadowBlur=4;
+  ctx.beginPath();
+  for(let i=0;i<=300;i++){
+    const tt=tmax*i/300;
+    const xx=A*Math.cos(omega_n*(t-tmax+tt));
+    if(i===0) ctx.moveTo(sxR(tt),syR(xx)); else ctx.lineTo(sxR(tt),syR(xx));
   }
   ctx.stroke();
-  ctx.setLineDash([]);
-
-  // Draw DMF curves
-  const zetas=[[z1,'#0ea5e9'],[z2,'#f97316'],[z3,'#ef4444']];
-  zetas.forEach(([z,col])=>{
-    ctx.strokeStyle=col; ctx.lineWidth=2.2; ctx.shadowColor=col; ctx.shadowBlur=5;
-    ctx.beginPath();
-    for(let i=0;i<=300;i++){
-      const r=rmin+(rmax-rmin)*i/300;
-      const v=Math.min(ymax,dmf(r,z));
-      if(i===0) ctx.moveTo(sx(r),sy(v)); else ctx.lineTo(sx(r),sy(v));
-    }
-    ctx.stroke();
-    ctx.shadowBlur=0;
-  });
-
-  // Mark rmk point on ζ₂ curve
-  const dmfRmk=dmf(rmk,z2);
-  ctx.fillStyle='#fbbf24'; ctx.shadowColor='#fbbf24'; ctx.shadowBlur=8;
-  ctx.beginPath(); ctx.arc(sx(rmk),sy(Math.min(ymax,dmfRmk)),5,0,Math.PI*2); ctx.fill();
   ctx.shadowBlur=0;
+  // Time cursor at right edge (current time)
+  ctx.strokeStyle='rgba(251,191,36,.7)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(sxR(tmax),plotY0); ctx.lineTo(sxR(tmax),plotY0+plotH); ctx.stroke();
+  ctx.fillStyle='#fbbf24'; ctx.shadowColor='#fbbf24'; ctx.shadowBlur=8;
+  ctx.beginPath(); ctx.arc(sxR(tmax),syR(x),5,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur=0;
+  // Labels
+  ctx.fillStyle='#475569'; ctx.font='9px JetBrains Mono'; ctx.textAlign='center';
+  for(let g=0;g<=4;g++) ctx.fillText('-'+(tmax-tmax*g/4).toFixed(1)+'s',plotX0+plotW*g/4,plotY0+plotH+14);
+  ctx.textAlign='right'; ctx.fillStyle='#94a3b8';
+  ctx.fillText('+A',plotX0-4,plotY0+10);
+  ctx.fillText('0',plotX0-4,plotY0+plotH/2+3);
+  ctx.fillText('−A',plotX0-4,plotY0+plotH-4);
+  ctx.textAlign='left';
+  ctx.fillStyle='#0ea5e9'; ctx.font='10px JetBrains Mono';
+  ctx.fillText('x(t) [m]',plotX0+6,plotY0+12);
 
-  const info=document.getElementById('dmfInfo');
-  if(info) info.textContent=`r=${rmk.toFixed(2)} → DMF(ζ=${z2.toFixed(2)})=${dmfRmk.toFixed(3)} | φ=${(Math.atan2(2*z2*rmk,1-rmk*rmk)*180/Math.PI).toFixed(1)}°`;
+  const info=document.getElementById('shmInfo');
+  if(info) info.textContent=`ωₙ = ${omega_n.toFixed(2)} rad/s | fₙ = ${fn.toFixed(2)} Hz | T = ${Tn.toFixed(3)} s | x = ${x.toFixed(3)} m | v = ${v.toFixed(2)} m/s | a = ${a.toFixed(1)} m/s²`;
+
+  if(!_shmPaused){_shmFrame++; requestAnimationFrame(drawSHM);}
 }
-(function(){['sl_z1','sl_z2','sl_z3','sl_rmark'].forEach(id=>{const s=document.getElementById(id); if(s) s.addEventListener('input',drawDMF);});})();
-setTimeout(drawDMF,400);
+(function(){['sl_shm_m','sl_shm_k','sl_shm_A'].forEach(id=>{const s=document.getElementById(id); if(s) s.addEventListener('input',()=>{if(_shmPaused) drawSHM();});});})();
+setTimeout(drawSHM,400);
 
 // ════════════════════════════════════════════════════════════
-// ANIMASI 2 — Gaya Eksitasi vs Respons Steady-State (Time Domain)
-// (Canvas: cvResp, slider: sl_r/sl_zr; button: btnResp — toggle play/pause)
+// ANIMASI 2 — Hubungan Fase x(t), v(t), a(t)
+// (Canvas: cvPhase, slider: sl_ph_w/A; button: btnPhase)
 // ════════════════════════════════════════════════════════════
-let _respPaused=false, _respFrame=0;
-function toggleResp(){
-  _respPaused=!_respPaused;
-  const btn=document.getElementById('btnResp');
-  if(btn) btn.textContent=_respPaused?'▶ PLAY':'⏸ PAUSE';
-}
-window.toggleResp=toggleResp;
+let _phasePaused=false, _phaseFrame=0;
+function togglePhase(){_phasePaused=!_phasePaused;const b=document.getElementById('btnPhase');if(b)b.textContent=_phasePaused?'▶ PLAY':'⏸ PAUSE';if(!_phasePaused) drawPhase();}
+window.togglePhase=togglePhase;
 
-function drawResp(){
-  const cv=document.getElementById('cvResp'); if(!cv) return;
+function drawPhase(){
+  const cv=document.getElementById('cvPhase'); if(!cv) return;
   const W=cv.clientWidth; cv.width=W; const H=cv.height;
   const ctx=cv.getContext('2d');
-  const r=parseFloat(document.getElementById('sl_r')?.value||0.8);
-  const z=parseFloat(document.getElementById('sl_zr')?.value||0.15);
+  const w=parseFloat(document.getElementById('sl_ph_w')?.value||5);
+  const A=parseFloat(document.getElementById('sl_ph_A')?.value||0.10);
   const e=id=>document.getElementById(id);
-  if(e('v_r')) e('v_r').textContent=r.toFixed(2);
-  if(e('v_zr')) e('v_zr').textContent=z.toFixed(2);
+  if(e('v_ph_w')) e('v_ph_w').textContent=w.toFixed(1);
+  if(e('v_ph_A')) e('v_ph_A').textContent=A.toFixed(2);
 
   const bg=ctx.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#020812'); bg.addColorStop(1,'#080c18');
   ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
 
-  const padL=40,padR=20,padT=16,padB=28;
+  const padL=50,padR=20,padT=16,padB=28;
   const plotW=W-padL-padR, plotH=H-padT-padB;
   _grid(ctx,padL,padT,plotW,plotH,8,4,'#0a1830');
-
-  // Axes
+  // Zero line
   ctx.strokeStyle='rgba(255,255,255,.12)'; ctx.lineWidth=1;
   ctx.beginPath(); ctx.moveTo(padL,padT+plotH/2); ctx.lineTo(padL+plotW,padT+plotH/2); ctx.stroke();
 
-  const dmf=1/Math.sqrt((1-r*r)*(1-r*r)+(2*z*r)*(2*z*r));
-  const phi=Math.atan2(2*z*r,1-r*r);
-  const X=Math.min(3,dmf); // scaled for display
-  const Tcyc=2*Math.PI/r; // in (omega*t) units; display 3 cycles
-  const tmax=3*Tcyc;
+  const tmax=Math.max(2,4*Math.PI/w);
+  const t0=_phaseFrame*0.025;
+  // Normalize all 3 to ±1 by dividing by their magnitudes
+  // x_max = A, v_max = A*w, a_max = A*w*w
+  const sx=tt=>padL+(tt/tmax)*plotW;
+  const sy=yy=>padT+plotH/2-yy*(plotH/2-10);
 
-  const sx=t=>padL+(t/tmax)*plotW;
-  const sy=y=>padT+plotH/2-(y/3)*(plotH/2-6);
-
-  // Force curve (amber)
-  ctx.strokeStyle='#f97316'; ctx.lineWidth=1.8; ctx.shadowColor='rgba(249,115,22,.5)'; ctx.shadowBlur=4;
-  ctx.beginPath();
-  const offset=_respPaused?0:_respFrame*0.02;
-  for(let i=0;i<=300;i++){
-    const t=tmax*i/300;
-    const f=Math.sin(r*t+offset);
-    if(i===0) ctx.moveTo(sx(t),sy(f*1.0)); else ctx.lineTo(sx(t),sy(f*1.0));
-  }
-  ctx.stroke();
-
-  // Response curve (cyan)
-  ctx.strokeStyle='#0ea5e9'; ctx.lineWidth=2.2; ctx.shadowColor='rgba(14,165,233,.6)'; ctx.shadowBlur=5;
-  ctx.beginPath();
-  for(let i=0;i<=300;i++){
-    const t=tmax*i/300;
-    const x=X*Math.sin(r*t+offset-phi);
-    if(i===0) ctx.moveTo(sx(t),sy(x)); else ctx.lineTo(sx(t),sy(x));
-  }
-  ctx.stroke();
-  ctx.shadowBlur=0;
-
-  // Info overlay
-  ctx.fillStyle='rgba(13,21,32,.88)'; ctx.fillRect(padL+plotW-170,padT+6,164,42);
-  ctx.strokeStyle='rgba(255,255,255,.12)'; ctx.strokeRect(padL+plotW-170,padT+6,164,42);
-  ctx.fillStyle='#94a3b8'; ctx.font='9px JetBrains Mono';
-  ctx.fillText(`DMF = ${dmf.toFixed(3)}`,padL+plotW-164,padT+20);
-  ctx.fillText(`φ   = ${(phi*180/Math.PI).toFixed(1)}°`,padL+plotW-164,padT+34);
-
-  if(!_respPaused){ _respFrame++; requestAnimationFrame(drawResp); }
-}
-(function(){['sl_r','sl_zr'].forEach(id=>{const s=document.getElementById(id); if(s) s.addEventListener('input',()=>{if(_respPaused) drawResp();});});})();
-setTimeout(drawResp,500);
-
-// ════════════════════════════════════════════════════════════
-// ANIMASI 3 — Build-Up Respons (Transien + Steady-State) RK4
-// (Canvas: cvBuild, slider: sl_rb/sl_zb)
-// ════════════════════════════════════════════════════════════
-function drawBuild(){
-  const cv=document.getElementById('cvBuild'); if(!cv) return;
-  const W=cv.clientWidth; cv.width=W; const H=cv.height;
-  const ctx=cv.getContext('2d');
-  const r=parseFloat(document.getElementById('sl_rb')?.value||0.95);
-  const z=parseFloat(document.getElementById('sl_zb')?.value||0.08);
-  const e=id=>document.getElementById(id);
-  if(e('v_rb')) e('v_rb').textContent=r.toFixed(2);
-  if(e('v_zb')) e('v_zb').textContent=z.toFixed(2);
-
-  const bg=ctx.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#020812'); bg.addColorStop(1,'#080c18');
-  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
-
-  const padL=50,padR=20,padT=16,padB=32;
-  const plotW=W-padL-padR, plotH=H-padT-padB;
-  _grid(ctx,padL,padT,plotW,plotH,10,6,'#0a1830');
-
-  // Use ref system: m=5, k=2000, c=2*zeta*sqrt(km), omega=r*omega_n
-  const m=5, k=2000, omega_n=Math.sqrt(k/m), c=2*z*Math.sqrt(k*m);
-  const omega=r*omega_n, F0=100;
-  const dmf=1/Math.sqrt((1-r*r)*(1-r*r)+(2*z*r)*(2*z*r));
-  const X=(F0/k)*dmf;
-
-  // RK4 simulate
-  const dt=0.005, tmax=30;
-  const N=Math.floor(tmax/dt);
-  const xs=new Array(N);
-  let y=[0,0];
-  const f=(t,yy)=>{const xd=yy[1]; const xdd=(F0*Math.sin(omega*t)-c*xd-k*yy[0])/m; return [xd,xdd];};
-  for(let i=0;i<N;i++){
-    xs[i]=y[0];
-    const t=i*dt;
-    const k1=f(t,y);
-    const k2=f(t+dt/2,[y[0]+dt/2*k1[0],y[1]+dt/2*k1[1]]);
-    const k3=f(t+dt/2,[y[0]+dt/2*k2[0],y[1]+dt/2*k2[1]]);
-    const k4=f(t+dt,[y[0]+dt*k3[0],y[1]+dt*k3[1]]);
-    y=[y[0]+dt/6*(k1[0]+2*k2[0]+2*k3[0]+k4[0]), y[1]+dt/6*(k1[1]+2*k2[1]+2*k3[1]+k4[1])];
-  }
-  const maxY=Math.max(Math.abs(Math.min(...xs)),Math.max(...xs),X*1.1);
-  const sx=t=>padL+(t/tmax)*plotW;
-  const sy=yv=>padT+plotH/2-yv/maxY*(plotH/2-6);
-
-  // Steady amplitude lines
-  ctx.strokeStyle='rgba(239,68,68,.55)'; ctx.lineWidth=1; ctx.setLineDash([5,4]);
-  ctx.beginPath(); ctx.moveTo(padL,sy(X)); ctx.lineTo(padL+plotW,sy(X)); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(padL,sy(-X)); ctx.lineTo(padL+plotW,sy(-X)); ctx.stroke();
-  ctx.setLineDash([]);
-
-  // Zero line
-  ctx.strokeStyle='rgba(255,255,255,.1)'; ctx.lineWidth=1;
-  ctx.beginPath(); ctx.moveTo(padL,padT+plotH/2); ctx.lineTo(padL+plotW,padT+plotH/2); ctx.stroke();
-
-  // Total response curve
-  ctx.strokeStyle='#00e09e'; ctx.lineWidth=1.4; ctx.shadowColor='rgba(0,224,158,.5)'; ctx.shadowBlur=4;
-  ctx.beginPath();
-  for(let i=0;i<N;i+=2){
-    const t=i*dt;
-    if(i===0) ctx.moveTo(sx(t),sy(xs[i])); else ctx.lineTo(sx(t),sy(xs[i]));
-  }
-  ctx.stroke();
-  ctx.shadowBlur=0;
-
-  // Axis labels
-  ctx.fillStyle='#475569'; ctx.font='9px JetBrains Mono'; ctx.textAlign='center';
-  for(let g=0;g<=6;g++){const v=(tmax*g/6).toFixed(0); ctx.fillText(v+'s',padL+plotW*g/6,padT+plotH+14);}
-  ctx.textAlign='right';
-  ctx.fillStyle='#ef4444'; ctx.fillText(`X=${X.toFixed(4)}m`,padL-4,sy(X)+3);
-  ctx.textAlign='left';
-}
-(function(){['sl_rb','sl_zb'].forEach(id=>{const s=document.getElementById(id); if(s) s.addEventListener('input',drawBuild);});})();
-setTimeout(drawBuild,600);
-
-// ════════════════════════════════════════════════════════════
-// ANIMASI 4 — Kurva Transmissibility Tr vs r untuk 3 ζ
-// (Canvas: cvTrans, slider: sl_zt1/zt2/zt3)
-// ════════════════════════════════════════════════════════════
-function drawTrans(){
-  const cv=document.getElementById('cvTrans'); if(!cv) return;
-  const W=cv.clientWidth; cv.width=W; const H=cv.height;
-  const ctx=cv.getContext('2d');
-  const z1=parseFloat(document.getElementById('sl_zt1')?.value||0.05);
-  const z2=parseFloat(document.getElementById('sl_zt2')?.value||0.20);
-  const z3=parseFloat(document.getElementById('sl_zt3')?.value||0.50);
-  const e=id=>document.getElementById(id);
-  if(e('v_zt1')) e('v_zt1').textContent=z1.toFixed(2);
-  if(e('v_zt2')) e('v_zt2').textContent=z2.toFixed(2);
-  if(e('v_zt3')) e('v_zt3').textContent=z3.toFixed(2);
-
-  const bg=ctx.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#020812'); bg.addColorStop(1,'#080c18');
-  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
-
-  const padL=50,padR=20,padT=16,padB=36;
-  const plotW=W-padL-padR, plotH=H-padT-padB;
-  _grid(ctx,padL,padT,plotW,plotH,10,6,'#0a1830');
-
-  const rmin=0,rmax=4,ymin=0,ymax=4;
-  const sx=r=>padL+(r-rmin)/(rmax-rmin)*plotW;
-  const sy=y=>padT+plotH-(y-ymin)/(ymax-ymin)*plotH;
-
-  const Tr=(r,z)=>Math.sqrt(1+(2*z*r)*(2*z*r))/Math.sqrt((1-r*r)*(1-r*r)+(2*z*r)*(2*z*r));
-
-  // Axis
-  ctx.fillStyle='#475569'; ctx.font='9px JetBrains Mono'; ctx.textAlign='right';
-  for(let g=0;g<=6;g++){const v=ymax-(ymax-ymin)*g/6; ctx.fillText(v.toFixed(1),padL-6,padT+plotH*g/6+3);}
-  ctx.textAlign='center';
-  for(let g=0;g<=8;g++){const v=rmin+(rmax-rmin)*g/8; ctx.fillText(v.toFixed(1),padL+plotW*g/8,padT+plotH+14);}
-  ctx.textAlign='left';
-
-  // Reference lines
-  ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
-  ctx.beginPath(); ctx.moveTo(padL,sy(1)); ctx.lineTo(padL+plotW,sy(1)); ctx.stroke();
-  ctx.strokeStyle='rgba(0,224,158,.5)';
-  ctx.beginPath(); ctx.moveTo(sx(Math.SQRT2),padT); ctx.lineTo(sx(Math.SQRT2),padT+plotH); ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle='rgba(0,224,158,.7)'; ctx.font='9px JetBrains Mono'; ctx.fillText('r=√2',sx(Math.SQRT2)+4,padT+14);
-  ctx.fillStyle='rgba(255,255,255,.4)'; ctx.fillText('Tr=1',padL+4,sy(1)-4);
-
-  // Curves
-  const zetas=[[z1,'#0ea5e9'],[z2,'#f97316'],[z3,'#ef4444']];
-  zetas.forEach(([z,col])=>{
-    ctx.strokeStyle=col; ctx.lineWidth=2.2; ctx.shadowColor=col; ctx.shadowBlur=5;
+  // Curves: x (cyan), v (amber), a (pink) — normalized to ±1
+  const series=[
+    {color:'#0ea5e9', shadow:'rgba(14,165,233,.5)', label:'x(t)/A', fn:tt=>Math.cos(w*(tt-tmax+t0))},
+    {color:'#f97316', shadow:'rgba(249,115,22,.5)', label:'v(t)/(Aω)', fn:tt=>-Math.sin(w*(tt-tmax+t0))},
+    {color:'#ef4444', shadow:'rgba(239,68,68,.5)', label:'a(t)/(Aω²)', fn:tt=>-Math.cos(w*(tt-tmax+t0))}
+  ];
+  series.forEach(s=>{
+    ctx.strokeStyle=s.color; ctx.lineWidth=2.0; ctx.shadowColor=s.shadow; ctx.shadowBlur=4;
     ctx.beginPath();
-    for(let i=0;i<=400;i++){
-      const r=rmin+(rmax-rmin)*i/400;
-      const v=Math.min(ymax,Tr(r,z));
-      if(i===0) ctx.moveTo(sx(r),sy(v)); else ctx.lineTo(sx(r),sy(v));
+    for(let i=0;i<=300;i++){
+      const tt=tmax*i/300;
+      const yy=s.fn(tt);
+      if(i===0) ctx.moveTo(sx(tt),sy(yy)); else ctx.lineTo(sx(tt),sy(yy));
     }
     ctx.stroke();
     ctx.shadowBlur=0;
   });
 
-  // Legend
-  ctx.fillStyle='rgba(13,21,32,.88)'; ctx.fillRect(padL+plotW-160,padT+8,154,56);
-  ctx.strokeStyle='rgba(255,255,255,.12)'; ctx.strokeRect(padL+plotW-160,padT+8,154,56);
-  ctx.fillStyle='#0ea5e9'; ctx.font='9px JetBrains Mono'; ctx.fillText(`━ ζ₁ = ${z1.toFixed(2)}`,padL+plotW-154,padT+22);
-  ctx.fillStyle='#f97316'; ctx.fillText(`━ ζ₂ = ${z2.toFixed(2)}`,padL+plotW-154,padT+36);
-  ctx.fillStyle='#ef4444'; ctx.fillText(`━ ζ₃ = ${z3.toFixed(2)}`,padL+plotW-154,padT+50);
+  // Time cursor at right edge
+  ctx.strokeStyle='rgba(251,191,36,.6)'; ctx.lineWidth=1.5; ctx.setLineDash([3,4]);
+  ctx.beginPath(); ctx.moveTo(sx(tmax),padT); ctx.lineTo(sx(tmax),padT+plotH); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Labels axis
+  ctx.fillStyle='#475569'; ctx.font='9px JetBrains Mono'; ctx.textAlign='center';
+  for(let g=0;g<=4;g++) ctx.fillText('-'+(tmax-tmax*g/4).toFixed(2)+'s',padL+plotW*g/4,padT+plotH+14);
+  ctx.textAlign='right'; ctx.fillStyle='#94a3b8';
+  ctx.fillText('+1',padL-4,padT+10);
+  ctx.fillText('0',padL-4,padT+plotH/2+3);
+  ctx.fillText('−1',padL-4,padT+plotH-4);
+  ctx.textAlign='left';
+
+  // Info overlay with magnitudes
+  const xmax=A, vmax=A*w, amax=A*w*w;
+  ctx.fillStyle='rgba(13,21,32,.88)'; ctx.fillRect(padL+plotW-180,padT+6,174,42);
+  ctx.strokeStyle='rgba(255,255,255,.12)'; ctx.strokeRect(padL+plotW-180,padT+6,174,42);
+  ctx.fillStyle='#94a3b8'; ctx.font='9px JetBrains Mono';
+  ctx.fillText(`|x|max = ${xmax.toFixed(3)} m`,padL+plotW-174,padT+20);
+  ctx.fillText(`|v|max = ${vmax.toFixed(2)} m/s`,padL+plotW-174,padT+30);
+  ctx.fillText(`|a|max = ${amax.toFixed(1)} m/s²`,padL+plotW-174,padT+40);
+
+  if(!_phasePaused){_phaseFrame++; requestAnimationFrame(drawPhase);}
 }
-(function(){['sl_zt1','sl_zt2','sl_zt3'].forEach(id=>{const s=document.getElementById(id); if(s) s.addEventListener('input',drawTrans);});})();
-setTimeout(drawTrans,700);
+(function(){['sl_ph_w','sl_ph_A'].forEach(id=>{const s=document.getElementById(id); if(s) s.addEventListener('input',()=>{if(_phasePaused) drawPhase();});});})();
+setTimeout(drawPhase,500);
+
+// ════════════════════════════════════════════════════════════
+// ANIMASI 3 — Frekuensi Natural ωₙ = √(k/m): 2 sistem komparasi
+// (Canvas: cvNatFreq, slider: sl_nf_mA/kA/mB/kB)
+// ════════════════════════════════════════════════════════════
+let _nfFrame=0;
+function drawNatFreq(){
+  const cv=document.getElementById('cvNatFreq'); if(!cv) return;
+  const W=cv.clientWidth; cv.width=W; const H=cv.height;
+  const ctx=cv.getContext('2d');
+  const mA=parseFloat(document.getElementById('sl_nf_mA')?.value||5);
+  const kA=parseFloat(document.getElementById('sl_nf_kA')?.value||2000);
+  const mB=parseFloat(document.getElementById('sl_nf_mB')?.value||10);
+  const kB=parseFloat(document.getElementById('sl_nf_kB')?.value||2000);
+  const e=id=>document.getElementById(id);
+  if(e('v_nf_mA')) e('v_nf_mA').textContent=mA.toFixed(1);
+  if(e('v_nf_kA')) e('v_nf_kA').textContent=kA.toFixed(0);
+  if(e('v_nf_mB')) e('v_nf_mB').textContent=mB.toFixed(1);
+  if(e('v_nf_kB')) e('v_nf_kB').textContent=kB.toFixed(0);
+
+  const bg=ctx.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#020812'); bg.addColorStop(1,'#080c18');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+
+  const wnA=Math.sqrt(kA/mA), wnB=Math.sqrt(kB/mB);
+  const TA=2*Math.PI/wnA, TB=2*Math.PI/wnB;
+  const t=_nfFrame*0.025;
+  const A=0.08;
+  const xA=A*Math.cos(wnA*t), xB=A*Math.cos(wnB*t);
+
+  // Two horizontal lanes: top = System A, bottom = System B
+  const laneH=H/2;
+  const drawSystem=(yC,m,k,xDisp,wn,T,col,label)=>{
+    // Wall
+    ctx.fillStyle='#1e293b'; ctx.fillRect(20,yC-30,7,60);
+    // Floor
+    ctx.strokeStyle='rgba(148,163,184,.3)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(20,yC+34); ctx.lineTo(W-20,yC+34); ctx.stroke();
+    // Equilibrium
+    const eqX=W*0.45;
+    ctx.strokeStyle='rgba(148,163,184,.2)'; ctx.setLineDash([2,3]);
+    ctx.beginPath(); ctx.moveTo(eqX,yC-30); ctx.lineTo(eqX,yC+34); ctx.stroke();
+    ctx.setLineDash([]);
+    // Spring + mass
+    const massSize=Math.max(24,Math.min(40,16+m));
+    const massX=eqX + xDisp*300;
+    ctx.strokeStyle=col; ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(27,yC);
+    const turns=8, springEnd=massX-massSize/2;
+    for(let i=1;i<turns;i++){
+      const xs=27+(springEnd-27)*i/turns;
+      const ys=yC+(i%2===0?5:-5);
+      ctx.lineTo(xs,ys);
+    }
+    ctx.lineTo(springEnd,yC);
+    ctx.stroke();
+    // Mass
+    ctx.fillStyle=col.replace(')',',.18)').replace('rgb','rgba');
+    ctx.fillRect(massX-massSize/2,yC-massSize/2,massSize,massSize);
+    ctx.strokeStyle=col; ctx.lineWidth=2; ctx.strokeRect(massX-massSize/2,yC-massSize/2,massSize,massSize);
+    ctx.fillStyle=col; ctx.font='bold 11px JetBrains Mono'; ctx.textAlign='center';
+    ctx.fillText('m',massX,yC+4);
+    // Side label
+    ctx.fillStyle=col; ctx.font='bold 11px JetBrains Mono'; ctx.textAlign='left';
+    ctx.fillText(label,W-160,yC-15);
+    ctx.fillStyle='#94a3b8'; ctx.font='10px JetBrains Mono';
+    ctx.fillText(`m = ${m.toFixed(1)} kg`,W-160,yC);
+    ctx.fillText(`k = ${k.toFixed(0)} N/m`,W-160,yC+13);
+    ctx.fillStyle='#fbbf24';
+    ctx.fillText(`ωₙ = ${wn.toFixed(2)} rad/s`,W-160,yC+26);
+  };
+
+  drawSystem(laneH/2,mA,kA,xA,wnA,TA,'#0ea5e9','Sistem A');
+  drawSystem(laneH+laneH/2,mB,kB,xB,wnB,TB,'#ec4899','Sistem B');
+
+  // Divider
+  ctx.strokeStyle='rgba(148,163,184,.15)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(0,laneH); ctx.lineTo(W,laneH); ctx.stroke();
+
+  // Comparison info
+  const ratio=wnA/wnB;
+  const info=document.getElementById('nfInfo');
+  if(info) info.textContent=`Sistem A: ωₙ=${wnA.toFixed(2)} rad/s, T=${TA.toFixed(3)} s | Sistem B: ωₙ=${wnB.toFixed(2)} rad/s, T=${TB.toFixed(3)} s | rasio ωₙA/ωₙB = ${ratio.toFixed(2)}`;
+
+  _nfFrame++; requestAnimationFrame(drawNatFreq);
+}
+(function(){['sl_nf_mA','sl_nf_kA','sl_nf_mB','sl_nf_kB'].forEach(id=>{const s=document.getElementById(id); if(s) s.addEventListener('input',()=>{});});})();
+setTimeout(drawNatFreq,600);
+
+// ════════════════════════════════════════════════════════════
+// ANIMASI 4 — Klasifikasi Jenis Getaran (4 subplot comparison)
+// (Canvas: cvVibTypes, slider: sl_vt_z/sl_vt_w; button: btnVT)
+// ════════════════════════════════════════════════════════════
+let _vtPaused=false, _vtFrame=0, _vtRand=null;
+function toggleVT(){_vtPaused=!_vtPaused;const b=document.getElementById('btnVT');if(b)b.textContent=_vtPaused?'▶ PLAY':'⏸ PAUSE';if(!_vtPaused) drawVibTypes();}
+window.toggleVT=toggleVT;
+
+function drawVibTypes(){
+  const cv=document.getElementById('cvVibTypes'); if(!cv) return;
+  const W=cv.clientWidth; cv.width=W; const H=cv.height;
+  const ctx=cv.getContext('2d');
+  const z=parseFloat(document.getElementById('sl_vt_z')?.value||0.10);
+  const w=parseFloat(document.getElementById('sl_vt_w')?.value||4);
+  const e=id=>document.getElementById(id);
+  if(e('v_vt_z')) e('v_vt_z').textContent=z.toFixed(2);
+  if(e('v_vt_w')) e('v_vt_w').textContent=w.toFixed(1);
+
+  const bg=ctx.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#020812'); bg.addColorStop(1,'#080c18');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+
+  // 2x2 grid
+  const padOut=14, gapX=18, gapY=18;
+  const cellW=(W-2*padOut-gapX)/2, cellH=(H-2*padOut-gapY)/2;
+  const cells=[
+    {x:padOut,             y:padOut,             title:'1. Bebas Tak Teredam', col:'#0ea5e9'},
+    {x:padOut+cellW+gapX,  y:padOut,             title:'2. Bebas Teredam',     col:'#fb923c'},
+    {x:padOut,             y:padOut+cellH+gapY,  title:'3. Paksa Steady-State',col:'#10b981'},
+    {x:padOut+cellW+gapX,  y:padOut+cellH+gapY,  title:'4. Acak / Random',     col:'#ec4899'}
+  ];
+
+  const t0=_vtPaused?0:_vtFrame*0.04;
+  const tmax=Math.max(2,6*Math.PI/w);
+
+  // Generate random series only once
+  if(!_vtRand) _vtRand=Array.from({length:400},()=>Math.random()*2-1);
+  // Shift random samples slowly
+  const shift=Math.floor(t0*8) % 200;
+
+  cells.forEach((c,idx)=>{
+    // Cell background + border
+    ctx.fillStyle='rgba(13,21,32,.55)'; ctx.fillRect(c.x,c.y,cellW,cellH);
+    ctx.strokeStyle='rgba(255,255,255,.06)'; ctx.lineWidth=1; ctx.strokeRect(c.x,c.y,cellW,cellH);
+    // Title
+    ctx.fillStyle=c.col; ctx.font='bold 10px JetBrains Mono'; ctx.textAlign='left';
+    ctx.fillText(c.title,c.x+8,c.y+14);
+    // Plot area
+    const padIn=18, plotW=cellW-padIn-8, plotH=cellH-padIn-12;
+    const px0=c.x+padIn, py0=c.y+padIn+2;
+    // Zero line
+    ctx.strokeStyle='rgba(255,255,255,.1)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(px0,py0+plotH/2); ctx.lineTo(px0+plotW,py0+plotH/2); ctx.stroke();
+    const sx=tt=>px0+(tt/tmax)*plotW;
+    const sy=yy=>py0+plotH/2-yy*(plotH/2-4);
+    // Curve generators
+    let gen;
+    const wd=w*Math.sqrt(Math.max(0.001,1-z*z));
+    if(idx===0) gen=tt=>Math.cos(w*(tt-tmax+t0));
+    else if(idx===1) gen=tt=>Math.exp(-z*w*(tt+t0))*Math.cos(wd*(tt+t0));
+    else if(idx===2) gen=tt=>0.7*Math.cos(w*(tt-tmax+t0)-Math.PI/4);
+    else gen=tt=>{const ix=Math.floor(tt/tmax*200)+shift; return _vtRand[ix%_vtRand.length]*0.7;};
+    ctx.strokeStyle=c.col; ctx.lineWidth=1.6; ctx.shadowColor=c.col; ctx.shadowBlur=3;
+    ctx.beginPath();
+    const steps=idx===3?200:300;
+    for(let i=0;i<=steps;i++){
+      const tt=tmax*i/steps;
+      const yy=Math.max(-1,Math.min(1,gen(tt)));
+      if(i===0) ctx.moveTo(sx(tt),sy(yy)); else ctx.lineTo(sx(tt),sy(yy));
+    }
+    ctx.stroke();
+    ctx.shadowBlur=0;
+    // Decay envelope for damped (idx 1)
+    if(idx===1){
+      ctx.strokeStyle='rgba(251,191,36,.5)'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+      ctx.beginPath();
+      for(let i=0;i<=80;i++){
+        const tt=tmax*i/80, env=Math.exp(-z*w*(tt+t0));
+        if(i===0) ctx.moveTo(sx(tt),sy(env)); else ctx.lineTo(sx(tt),sy(env));
+      }
+      ctx.stroke();
+      ctx.beginPath();
+      for(let i=0;i<=80;i++){
+        const tt=tmax*i/80, env=Math.exp(-z*w*(tt+t0));
+        if(i===0) ctx.moveTo(sx(tt),sy(-env)); else ctx.lineTo(sx(tt),sy(-env));
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  });
+
+  if(!_vtPaused){_vtFrame++; requestAnimationFrame(drawVibTypes);}
+}
+(function(){['sl_vt_z','sl_vt_w'].forEach(id=>{const s=document.getElementById(id); if(s) s.addEventListener('input',()=>{if(_vtPaused) drawVibTypes();});});})();
+setTimeout(drawVibTypes,700);
+
 
 // ════════════════════════════════════════════════════════════
 // FORUM CANVAS — Visualisasi waveform getaran Pompa Sentrifugal (Pertemuan 1)
@@ -4682,7 +4753,7 @@ function drawForumCanvas() {
 }
 // Resize handler — redraw all active canvases
 window.addEventListener('resize', () => {
-  drawDMF(); drawResp(); drawBuild(); drawTrans(); drawForumCanvas();
+  drawSHM(); drawPhase(); drawNatFreq(); drawVibTypes(); drawForumCanvas();
 });
 
 // ═══════════════════════════════════════════════════════
@@ -5349,17 +5420,17 @@ window.addEventListener('resize', () => {
 
   /* ── Floating physics formulas (Konsep Dasar Getaran) ── */
   const formulas = [
-    { t: 'mẍ + cẋ + kx = F₀sin(ωt)', s: 11 },
-    { t: 'ωₙ = √(k/m)',               s: 14 },
-    { t: 'ζ = c/(2√(km))',             s: 13 },
-    { t: 'DMF = 1/√((1−r²)²+(2ζr)²)', s: 10 },
-    { t: 'r = ω/ωₙ',                   s: 14 },
-    { t: 'φ = arctan(2ζr/(1−r²))',     s: 11 },
-    { t: 'X = F₀·DMF/k',                s: 12 },
-    { t: 'DMF_res = 1/(2ζ)',           s: 13 },
-    { t: 'Tᵣ = √(1+(2ζr)²)/√((1−r²)²+(2ζr)²)', s: 9 },
-    { t: 'x(t) = x_transien + x_steady', s: 11 },
-    { t: 'E_d = π·c·ω·X²',             s: 12 },
+    { t: 'mẍ + cẋ + kx = 0',           s: 11 },
+    { t: 'ωₙ = √(k/m)',                 s: 14 },
+    { t: 'ζ = c/(2√(km))',              s: 13 },
+    { t: 'T = 2π/ωₙ',                   s: 14 },
+    { t: 'fₙ = ωₙ/(2π)',                s: 13 },
+    { t: 'x(t) = A·cos(ωₙt + φ)',       s: 11 },
+    { t: 'v(t) = ẋ(t) = −A·ωₙ·sin(ωₙt+φ)', s: 10 },
+    { t: 'a(t) = ẍ(t) = −A·ωₙ²·cos(ωₙt+φ)', s: 10 },
+    { t: '|v|max = A·ωₙ',               s: 13 },
+    { t: '|a|max = A·ωₙ²',              s: 12 },
+    { t: 'E = ½·k·x² + ½·m·v² (konstan)', s: 11 },
   ];
   const fCols = [
     'rgba(129,140,248,.22)',   // indigo
