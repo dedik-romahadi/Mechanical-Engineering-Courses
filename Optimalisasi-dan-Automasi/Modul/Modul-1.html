@@ -7212,7 +7212,14 @@ window._loadScoredQuestions = function() {
       if (/^mc\d+$/.test(qId)) {
         if (!mcAnswered[qId]) { mcAnswered[qId] = true; mcScores[qId] = 1; }
         const rg = document.getElementById('rg-' + qId);
-        if (rg) { rg.dataset.locked='true'; rg.querySelectorAll('.radio-option').forEach(o=>{o.style.pointerEvents='none';o.style.opacity='.6';}); }
+        if (rg) {
+          rg.dataset.locked='true';
+          rg.querySelectorAll('.radio-option').forEach(o=>{o.style.pointerEvents='none';o.style.opacity='.6';});
+          // v12.1 — mark correct option visually so export build (§25.10) menemukan .selected/.correct-ans
+          const _correctOpt = Array.from(rg.querySelectorAll('.radio-option'))
+            .find(o => /,\s*this\s*,\s*true\s*\)/.test(o.getAttribute('onclick') || ''));
+          if (_correctOpt) _correctOpt.classList.add('selected', 'correct-ans');
+        }
         const sub = document.getElementById('sub-' + qId); if (sub) sub.disabled = true;
         const fb = document.getElementById('fb-' + qId);
         if (fb && !fb.classList.contains('correct')) { fb.className='feedback correct'; fb.textContent='\u2705 Sudah dijawab benar — poin telah tercatat.'; }
@@ -7223,7 +7230,14 @@ window._loadScoredQuestions = function() {
         const baseId = qId.replace('_mc_used','');
         if (!mcAnswered[baseId]) { mcAnswered[baseId] = true; mcScores[baseId] = 0; }
         const rg = document.getElementById('rg-' + baseId);
-        if (rg) { rg.dataset.locked='true'; rg.querySelectorAll('.radio-option').forEach(o=>{o.style.pointerEvents='none';o.style.opacity='.6';}); }
+        if (rg) {
+          rg.dataset.locked='true';
+          rg.querySelectorAll('.radio-option').forEach(o=>{o.style.pointerEvents='none';o.style.opacity='.6';});
+          // v12.1 — mark opsi benar agar fallback export (§25.11) bisa menampilkan teks soal yang correct
+          const _correctOpt = Array.from(rg.querySelectorAll('.radio-option'))
+            .find(o => /,\s*this\s*,\s*true\s*\)/.test(o.getAttribute('onclick') || ''));
+          if (_correctOpt) _correctOpt.classList.add('correct-ans');
+        }
         const sub = document.getElementById('sub-' + baseId); if (sub) sub.disabled = true;
         const fb = document.getElementById('fb-' + baseId);
         if (fb && !fb.classList.contains('correct')) { fb.className='feedback wrong'; fb.textContent='\ud83d\udd12 Sudah dijawab sebelumnya — soal terkunci.'; }
