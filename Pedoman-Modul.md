@@ -8,6 +8,8 @@
 >
 > **Diperbarui:** April 2026 (v7) — mencerminkan refactor Modul-4 (countdown circular, palet per-tab, hero animation per-tab, scoring rule lengkap, Firebase Security Rules, blokir akses di luar jadwal, **sistem PIN 6-digit untuk mahasiswa**, **password admin ter-hash SHA-256**, **animasi login constellation + electric charges + lightning blasts**, **Dosen Login Modal dengan password masking**, **role-based visibility untuk tombol Reset** — tombol Atur Jadwal tetap visible sebagai bootstrap action, **scoring universal 50 poin** dengan 5 soal Komputasi Hard @4 poin, **partial credit +1 poin** untuk Hard yang salah, **status label butuh poin** — Tepat Waktu/Terlambat hanya diberikan jika mahasiswa memperoleh poin > 0 (akses tanpa poin = Belum), **Bolos diperluas** — mencakup juga mahasiswa yang akses tapi 0 poin saat jadwal sudah berakhir, **PIN global lintas-course** — satu PIN per mahasiswa yang berlaku di SEMUA mata kuliah dan modul, disimpan di node `pins/mhs_<NIM>` terpisah dari visitor records sehingga reset modul tidak menghapus PIN).
 >
+> **v12 (April 2026, late-month) — Export Tugas consolidation + MC export bug fix:** Konsolidasi tombol Export tugas dari 2 panel (atas + bawah) menjadi satu tombol di score-bar (sticky), dengan baris kedua memuat petunjuk submit dan indikator soal yang belum diisi (`#export-blocked-msg`, center-aligned). Perbaiki 2 bug critical di export PG: (1) selektor multi-class `'.selected, .correct-ans, .wrong-ans'` mengembalikan opsi correct (urutan DOM) sebagai pilihan user — fix dengan `.radio-option.selected` saja + cek `classList.contains('correct-ans')`; (2) restore Firebase tidak re-apply `.selected`, sehingga export pasca-reload tampil "Belum dijawab" — fix dengan fallback ke `mcAnswered`/`mcScores`. Tambah konvensi subtitle cover dan filename download (`Tugas{N}_{NIM}_{CourseSlug}.html`) untuk mencegah leakage course asal saat copy modul. Pattern lengkap di §15.1c, §15.3d, §25.10, §25.11. Applied ke 26 modul (Optoauto 1–6, Getaran 1–6, Math 1–14).
+>
 > **v7 (April 2026, late-month) — NIM-Direct Variable Pattern release:** Redesign menyeluruh atas 28 soal parametric di UTS Getaran Mekanik (4 TF + 9 MC + 15 Comp) untuk membuat hubungan NIM ↔ variabel **transparan**. Setiap soal parametric kini menampilkan formula eksplisit di question text (`var = formula = computed_value`) dengan setidaknya 1 variabel langsung dari N (atau N+1). Mahasiswa bisa verifikasi parameter mereka sendiri tanpa tebak-tebakan. Pattern lengkap + anti-pattern + migration guide didokumentasikan di **§32 (BARU)**. Math correctness terverifikasi di 140 boundary cases (28 soal × N=0,25,50,75,99). Audit checklist v7 di §31 tambah section "NIM-Direct Variable Pattern".
 > 
 > **v6 (April 2026, post-UTS build) — Architecture & pattern release:** Mendokumentasikan arsitektur halaman UTS yang berbeda signifikan dari Modul reguler — skoring 70-poin (TF + MC + Comp E/M + Hard), tipe soal True/False (BARU), NIM-based parametric questions, dynamic render system, schedule duration MENIT (bukan hari), multi-mode countdown ('to-start'/'in-progress'/'expired'), UTS-murni (no answer reveal), one-shot 3-layer enforcement. Plus 5 bug pattern baru (§26): **Cross-script scope trap** (CRITICAL — let/const di module script tidak akses-able dari regular script — applicable to ALL modul), inline `display:none` override CSS class, countdown setTimeout chain fragility, startCountdown early-return blocks tick, **Reset modal misleading PIN messaging** (PIN tidak terhapus karena global, tapi pesan UI bilang sebaliknya — fixed di v6). BARU: §28 inline SVG diagram pattern (`_svg` namespace + `_diagram` wrapper, parametric per-NIM), §29 selection persistence + cache restore (idempotent visual restore via `_cachedFirebaseData`), §30 Google Drive link submission validation. Audit checklist v6 di §31.
@@ -2230,12 +2232,15 @@ Modul yang sudah di-deploy dengan skema lama **tidak perlu di-refactor** — mer
 
 > **⚠ Firebase Rules adjustment:** Firebase `points.validate` perlu dinaikkan ke **`<= 50`** untuk mendukung skema baru. Jika masih ada modul legacy 25/30-poin aktif di DB yang sama, pakai `<= 50` saja — itu tetap valid untuk total yang lebih rendah.
 
-### 15.1c Score Bar — Label Dinamis
+### 15.1c Score Bar — Layout Konsolidasi (Tombol Export Tunggal)
 
-Score bar di atas soal harus menampilkan **tiga sub-total** agar mahasiswa tahu breakdown:
+> **Update v12 (April 2026):** Panel tombol Export di bagian bawah halaman Tugas dihapus. Hanya satu tombol Export tersisa di score-bar (sticky) bersama informasi cara submit + indikator soal kosong (`#export-blocked-msg`). Sebelumnya ada dua tombol (`btn-score-export` di atas + `btn-export-tugas` di bawah) yang membingungkan dan membuat indikator soal kosong tidak terlihat sebelum mahasiswa scroll ke paling bawah.
+
+Score bar harus menampilkan **tiga sub-total** breakdown dan **satu tombol Export HTML**. Baris kedua (full-width) berisi petunjuk submit + indikator kelengkapan agar selalu terlihat saat sticky.
 
 ```html
 <div class="score-bar">
+  <!-- Baris 1: nilai + breakdown + tombol export -->
   <div class="score-num" id="scoreDisplay">0</div>
   <div class="score-info">
     <div class="score-title">Skor Sementara</div>
@@ -2247,11 +2252,40 @@ Score bar di atas soal harus menampilkan **tiga sub-total** agar mahasiswa tahu 
     <div>Komp E/M: <span id="scoreCompEz" style="color:var(--amber)">0</span>/20 poin</div>
     <div>Komp Hard: <span id="scoreCompHard" style="color:var(--pink)">0</span>/20 poin</div>
   </div>
-  <button class="btn-export" id="btn-score-export" onclick="exportTugasHtml()" disabled>📄 Export HTML</button>
+  <button class="btn-export" id="btn-score-export"
+          onclick="exportTugasHtml()" disabled
+          style="opacity:.4;cursor:not-allowed;font-size:11px">📄 Export HTML</button>
+
+  <!-- Baris 2: petunjuk submit + indikator soal kosong (full-width) -->
+  <div style="flex-basis:100%;border-top:1px solid var(--border);padding-top:14px;margin-top:4px;display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
+    <span style="font-size:18px;flex-shrink:0;line-height:1.4">📤</span>
+    <div style="flex:1;min-width:240px;font-size:13px;color:var(--muted);line-height:1.55">
+      Isi semua jawaban dan link Google Drive, lalu klik
+      <strong style="color:var(--violet)">📄 Export HTML</strong> di atas
+      untuk mengunduh file HTML pengumpulan tugas.
+    </div>
+    <div id="export-blocked-msg"
+         style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--amber);text-align:center;flex-basis:100%"></div>
+  </div>
 </div>
 ```
 
-Update denominator `/50` di-substitusikan dari `SCORE_CONFIG.TOTAL` agar konsisten jika di masa depan struktur berubah.
+**Aturan:**
+- Hanya satu tombol Export di seluruh halaman Tugas. **Jangan** buat panel tombol Export terpisah di bagian bawah halaman.
+- `#export-blocked-msg` harus berada di dalam score-bar (bukan di section lain) agar selalu terlihat — score-bar bersifat sticky.
+- `text-align:center` untuk pesan indikator agar simetris ketika menampilkan list soal yang belum diisi.
+- Update denominator `/50` di-substitusikan dari `SCORE_CONFIG.TOTAL` agar konsisten jika di masa depan struktur berubah.
+
+**`checkExportReady()` — referensi tombol tunggal:**
+```javascript
+function checkExportReady() {
+  const btnTop = document.getElementById('btn-score-export');
+  const msgEl  = document.getElementById('export-blocked-msg');
+  // ... validasi semua jawaban + link ...
+  _setBtnState(btnTop, allDone);   // hanya 1 tombol — JANGAN add btnBottom
+  // ...
+}
+```
 
 ### 15.2 Soal Pilihan Ganda (MC) — 1 poin
 
@@ -2476,6 +2510,37 @@ function exportTugasHtml(){
   </div>`;
   downloadHtml(html, `Tugas-${MODULE_LABEL}-${me.nim}.html`);
 }
+```
+
+#### Konvensi Nama Mata Kuliah di Export HTML (BARU v12)
+
+> **Lesson learned (April 2026):** Saat membuat modul baru dengan menyalin file modul dari mata kuliah lain (mis. Optoauto-Modul-5 disalin dari Getaran-Mekanik-Modul-5), seringkali subtitle cover dan filename download tidak ikut diupdate, sehingga export HTML mahasiswa Optoauto bertuliskan `Getaran Mekanik` di subtitle dan filename `Tugas4_<NIM>_GetaranMekanik.html` (juga nomor tugas-nya salah, "Tugas4" untuk semua modul). Bug ini ditemukan di 5 modul Optoauto.
+
+**Aturan:**
+1. **Subtitle cover** (`<p class="sub">...`) harus pakai nama mata kuliah modul itu sendiri — bukan nama course asal saat copy:
+   ```html
+   <!-- Optimalisasi & Automasi -->
+   <p class="sub">Optimalisasi &amp; Automasi · S1 Teknik Mesin · Universitas Mercu Buana · 2025/2026 · Dosen: Dedik Romahadi</p>
+   <!-- Getaran Mekanik -->
+   <p class="sub">Getaran Mekanik · S1 Teknik Mesin · Universitas Mercu Buana · 2025/2026 · Dosen: Dedik Romahadi</p>
+   <!-- Matematika 4 / Engineering Mathematics -->
+   <p class="sub">Matematika 4 · S1 Teknik Mesin · Universitas Mercu Buana · 2025/2026 · Dosen: Dedik Romahadi</p>
+   ```
+
+2. **Filename download** harus konsisten format: `Tugas{N}_{NIM}_{CourseSlug}.html`
+   - `{N}` = nomor modul aktual (jangan hardcoded `Tugas4` untuk semua modul)
+   - `{CourseSlug}` (PascalCase tanpa spasi):
+     - Optimalisasi & Automasi → `OptimalisasiAutomasi`
+     - Getaran Mekanik → `GetaranMekanik`
+     - Matematika 4 → `Matematika4`
+   ```javascript
+   a.download = 'Tugas' + MODULE_NUMBER + '_' + nim + '_' + COURSE_SLUG + '.html';
+   ```
+
+**Audit cara cepat saat membuat modul baru dengan copy-paste:**
+```bash
+grep -n 'class="sub">\|a.download\b' Modul-N.html
+# Pastikan hasilnya sesuai dengan course + nomor modul saat ini, bukan course asal.
 ```
 
 ### 15.3e Partial Credit — Comp Hard Salah Dapat +1 Poin
@@ -4239,6 +4304,74 @@ Pattern serupa diterapkan untuk `scipy`, `matplotlib`, `sympy`, `scikit-learn` (
 
 Tambahkan unit test JavaScript ini di console saat develop fitur Pyodide auto-load.
 
+### 25.10 Bug Apr 2026 — Export PG Selalu Menampilkan Opsi Benar (Critical)
+
+**Gejala yang dilaporkan:**
+- Mahasiswa export HTML hasil tugas, lalu lapor "kenapa jawaban PG saya selalu ditandai ✓ padahal saya jawab salah?"
+- Bahkan saat skor banner menunjukkan PG: 3/10 (tujuh salah), tabel di file export menampilkan ke-10 jawaban sebagai opsi yang benar dan ditandai ✓.
+
+**Root cause:** Selektor multi-class di build `mcData` mengembalikan elemen pertama dalam **urutan DOM**, bukan pilihan sebenarnya:
+```javascript
+// ❌ BUGGY — selalu return first DOM-order match
+const correctEl = rg?.querySelector('.radio-option.correct-ans');
+const selected  = rg?.querySelector('.radio-option.selected, .radio-option.correct-ans, .radio-option.wrong-ans');
+return { selected: selected?.textContent.trim(), correct: !!correctEl, ... };
+```
+
+Saat user salah, opsi BENAR (yang tidak dipilih) di-mark `.correct-ans`. Karena CSS selector list mengembalikan **first match in document order**, dan opsi benar sering muncul lebih awal di DOM daripada opsi salah yang user pilih, querySelector mengembalikan **opsi benar** sebagai "pilihan user". `correctEl` juga selalu non-null → `correct: true`. Bug menampilkan opsi benar + ✓ untuk semua soal yang sudah disubmit.
+
+**Pattern benar:** Pilihan asli user **selalu** memiliki kelas `.selected` (selectMC men-set `.selected`, dan checkMC tidak pernah men-remove-nya — hanya menambah `.correct-ans` atau `.wrong-ans` di atas `.selected`):
+```javascript
+// ✅ CORRECT — sumber kebenaran tunggal
+const sel        = rg?.querySelector('.radio-option.selected');
+const correctOpt = rg?.querySelector('.radio-option.correct-ans');
+let selectedText, isCorrect;
+if (sel) {
+  selectedText = sel.textContent.trim();
+  isCorrect    = sel.classList.contains('correct-ans');   // benar bila yang dipilih juga correct-ans
+} else if (mcAnswered[id]) {
+  // FALLBACK §25.11 — pasca-restore dari Firebase, .selected hilang
+  isCorrect    = (mcScores[id] || 0) > 0;
+  selectedText = isCorrect && correctOpt
+    ? correctOpt.textContent.trim()
+    : '(Sudah dijawab — pilihan salah)';
+} else {
+  selectedText = '(Belum dijawab)';
+  isCorrect    = false;
+}
+```
+
+**Anti-recurrence:** Jangan pernah pakai `querySelector` dengan **selector list multi-class** untuk mendeteksi state spesifik. CSS selector list = **OR logic**, return first match in DOM order — tidak ada konsep "prefer .selected over .correct-ans". Pakai selector tunggal yang spesifik untuk state yang ingin diidentifikasi.
+
+### 25.11 Bug Apr 2026 — Export PG Setelah Reload Tampil "Belum Dijawab" (Critical)
+
+**Gejala yang dilaporkan:**
+- Mahasiswa kemarin sudah jawab semua PG (skor banner show 8/10), reload halaman keesokan harinya untuk export.
+- Score banner masih menampilkan 8/10 (Firebase restore berhasil), TAPI export HTML menampilkan ke-10 jawaban sebagai `(Belum dijawab)`.
+
+**Root cause:** `_loadScoredQuestions()` saat restore dari Firebase **hanya** men-set `mcAnswered[qId] = true` + lock radio group + ubah feedback message. Handler **tidak** menambahkan kelas `.selected` / `.correct-ans` ke opsi mana pun. Akibatnya:
+- DOM tidak punya `.radio-option.selected` setelah reload.
+- `querySelector('.radio-option.selected')` di build `mcData` return `null`.
+- Logic export menulis `(Belum dijawab)` walau `mcScores[qId] = 1`.
+
+**Anti-pattern (jangan):**
+```javascript
+// ❌ Hanya tergantung DOM class yang tidak di-restore
+const sel = rg?.querySelector('.radio-option.selected');
+return { selected: sel?.textContent.trim() || '(Belum dijawab)', ... };
+```
+
+**Pattern benar:** Selalu sediakan **fallback ke state in-memory** (`mcAnswered` + `mcScores`) saat DOM class tidak ada — pola full-nya ada di §25.10 di atas (cabang `else if (mcAnswered[id])`).
+
+**Catatan teknis:** Kita tidak menyimpan **opsi mana yang dipilih** di Firebase (anti-cheat: hanya `mc<N>` untuk benar atau `mc<N>_mc_used` untuk salah). Karena itu fallback hanya bisa menampilkan teks opsi correct (untuk kasus benar) dan placeholder `(Sudah dijawab — pilihan salah)` untuk kasus salah. Ini trade-off yang disengaja — anti-cheat lebih penting daripada full reproducibility.
+
+**Audit cepat:**
+```bash
+# Cari pattern buggy di seluruh repo
+grep -rn "querySelector('.radio-option.selected, .radio-option.correct-ans, .radio-option.wrong-ans')" .
+# Harus 0 hasil. Kalau ada, ganti dengan pattern §25.10.
+```
+
 ### 25.8 Audit Checklist — Wajib Sebelum Deploy Modul Baru
 
 Untuk mencegah ketiga bug di atas terulang, jalankan checklist berikut sebelum push modul baru ke produksi:
@@ -4268,6 +4401,20 @@ Untuk mencegah ketiga bug di atas terulang, jalankan checklist berikut sebelum p
 - [ ] Hard `window.location.reload()` setelah success (1.5s delay) — guarantee clean state
 - [ ] Firebase imports include `get` (untuk read snapshot sebelum iterate delete)
 - [ ] Lihat §20.2 untuk implementasi lengkap + §20.7 untuk lesson learned anti-pattern
+
+#### Tab Tugas — Export HTML (BARU v12)
+- [ ] **Hanya satu tombol Export** di halaman Tugas (id `btn-score-export` di score-bar). Verifikasi: `grep -c 'btn-export-tugas' Modul-N.html` harus 0
+- [ ] Score-bar memuat baris kedua dengan `#export-blocked-msg` (text-align center) — verifikasi struktur sesuai §15.1c
+- [ ] `checkExportReady()` HANYA mereferensikan `btnTop` (bukan `btnBottom`). Verifikasi: `grep -c 'btnBottom' Modul-N.html` harus 0
+- [ ] **Subtitle cover export** sesuai mata kuliah modul (lihat §15.3d). `grep -n 'class="sub">' Modul-N.html`
+- [ ] **Filename download** = `Tugas{N}_{NIM}_{CourseSlug}.html` dengan N = nomor modul aktual. `grep -n 'a.download =' Modul-N.html`
+- [ ] **Build `mcData` di export** pakai pattern `.radio-option.selected` + fallback `mcAnswered`/`mcScores` (lihat §25.10–§25.11). Verifikasi NO multi-class selector list:
+  ```bash
+  grep -c "querySelector('.radio-option.selected, .radio-option.correct-ans, .radio-option.wrong-ans')" Modul-N.html
+  # harus 0
+  ```
+- [ ] Test manual: jawab 1 PG benar + 1 PG salah → export → buka file → verifikasi opsi yang ditampilkan = pilihan asli user, bukan opsi correct
+- [ ] Test reload: jawab semua PG → reload halaman → export → verifikasi semua tetap muncul (bukan "Belum dijawab")
 
 #### Forum Copy (UPDATED v10 — Apr 2026 akhir bulan)
 - [ ] `copyForumHtml()` punya 3-tier fallback: `navigator.clipboard` → `execCommand` → **always-visible inline textarea** (bukan popup window — popup sering di-block mobile/ad-blocker)
@@ -5781,6 +5928,9 @@ Untuk implementasi automasi, gunakan stack berikut:
 **Reference implementation:** Lihat `rebuild_v8.py` (Getaran Mekanik) sebagai contoh end-to-end script yang load asesmen JSON, generate diagrams, build vMerge tabel, set header, replace Catatan Tambahan, validate, pack, dan convert ke PDF dalam single execution.
 
 ---
+
+*Pedoman v12 — April 2026 (akhir bulan, post-Export Tugas consolidation + MC export bug fix).*
+*Update v12: §15.1c — score-bar layout konsolidasi (1 tombol Export, baris kedua dengan `#export-blocked-msg` center). §15.3d — konvensi nama mata kuliah di subtitle cover export + filename download (`Tugas{N}_{NIM}_{CourseSlug}.html`) untuk mencegah leakage course asal saat copy modul. §25.10 BARU — bug export PG selalu menampilkan opsi benar (selektor multi-class salah urut) + pattern benar pakai `.radio-option.selected`. §25.11 BARU — bug export PG setelah reload tampil "Belum dijawab" (Firebase restore tidak re-apply `.selected`) + pola fallback ke `mcAnswered`/`mcScores`. §25.8 audit checklist tambah section "Tab Tugas — Export HTML" 8 items. Applied ke 26 modul (Optoauto 1–6, Getaran 1–6, Math 1–14).*
 
 *Pedoman v11 — April 2026 (akhir bulan, post-Reset child-iterate fix).*
 *Update v11: §20.2 implementasi reset di-rewrite total dengan pattern child-by-child iteration + reset guard + sequential ordering + hard reload (deterministic, tanpa ambiguitas rule cascade). §20.7 BARU — lesson learned: 2× diagnosa salah sebelum sampai ke fix yang work, documented anti-pattern Promise.all parent-remove + prinsip umum "pilih DETERMINISTIC over singkat-tapi-ambiguous untuk operasi destruktif". §25 BARU — checklist Reset Operations 11 items. Applied ke 6 file (UTS + Modul-1 s/d Modul-5).*
