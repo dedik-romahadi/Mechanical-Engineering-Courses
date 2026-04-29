@@ -4361,15 +4361,37 @@ const sel = rg?.querySelector('.radio-option.selected');
 return { selected: sel?.textContent.trim() || '(Belum dijawab)', ... };
 ```
 
-**Pattern benar:** Selalu sediakan **fallback ke state in-memory** (`mcAnswered` + `mcScores`) saat DOM class tidak ada — pola full-nya ada di §25.10 di atas (cabang `else if (mcAnswered[id])`).
+**Pattern benar (2 lapis):**
+1. **Restore handler menandai opsi benar di DOM** (BARU v12.1) — gunakan `onclick` attribute (`selectMC(...,this,true)`) untuk identifikasi opsi yang correct, bukan kelas yang sudah hilang. Pattern ini survives `shuffleMCOptions` karena onclick attribute di-update saat shuffle.
+   ```javascript
+   // Di _loadScoredQuestions, dalam handler restore mc<N>:
+   const _correctOpt = Array.from(rg.querySelectorAll('.radio-option'))
+     .find(o => /,\s*this\s*,\s*true\s*\)/.test(o.getAttribute('onclick') || ''));
+   if (_correctOpt) _correctOpt.classList.add('selected', 'correct-ans');
+   //                                          ^^^^^^^^^   ^^^^^^^^^^^
+   //                                          (selected = pilihan user; correct-ans = visual hijau)
 
-**Catatan teknis:** Kita tidak menyimpan **opsi mana yang dipilih** di Firebase (anti-cheat: hanya `mc<N>` untuk benar atau `mc<N>_mc_used` untuk salah). Karena itu fallback hanya bisa menampilkan teks opsi correct (untuk kasus benar) dan placeholder `(Sudah dijawab — pilihan salah)` untuk kasus salah. Ini trade-off yang disengaja — anti-cheat lebih penting daripada full reproducibility.
+   // Untuk mc<N>_mc_used (salah): tambah .correct-ans saja (kita tidak tahu opsi yang dipilih user)
+   if (_correctOpt) _correctOpt.classList.add('correct-ans');
+   ```
+
+2. **Fallback `mcAnswered`/`mcScores` di build `mcData`** — sebagai safety net jika restore handler bermasalah. Lihat §25.10 cabang `else if (mcAnswered[id])`.
+
+**⚠ Trap:** Hanya menyediakan fallback (lapis 2) **tidak cukup** kalau `correctOpt` belum di-set di DOM — fallback `isCorrect && correctOpt` jatuh ke string `(Sudah dijawab — pilihan salah)` walau `isCorrect=true`. Akibatnya export menampilkan teks "pilihan salah" tapi bersamaan dengan ✓ hijau (inkonsisten visual). Restore handler **wajib** menandai opsi benar.
+
+**Catatan teknis:** Kita tidak menyimpan **opsi mana yang dipilih** di Firebase (anti-cheat: hanya `mc<N>` untuk benar atau `mc<N>_mc_used` untuk salah). Untuk kasus benar, kita aman menambahkan `.selected` ke opsi correct karena memang itu yang user pilih. Untuk kasus salah, kita hanya menandai opsi correct (`.correct-ans`) tanpa `.selected` karena kita memang tidak tahu pilihan user.
 
 **Audit cepat:**
 ```bash
 # Cari pattern buggy di seluruh repo
 grep -rn "querySelector('.radio-option.selected, .radio-option.correct-ans, .radio-option.wrong-ans')" .
-# Harus 0 hasil. Kalau ada, ganti dengan pattern §25.10.
+# Harus 0 hasil.
+
+# Verifikasi restore handler menandai opsi benar
+grep -c "v12.1 — mark correct option visually" Modul-N.html
+# Atau cari pattern onclick parsing di handler restore mc:
+grep -n ",\\\\s\\*this\\\\s\\*,\\\\s\\*true" Modul-N.html
+# Harus muncul di blok _loadScoredQuestions untuk mc<N> dan mc<N>_mc_used.
 ```
 
 ### 25.8 Audit Checklist — Wajib Sebelum Deploy Modul Baru
@@ -5928,6 +5950,9 @@ Untuk implementasi automasi, gunakan stack berikut:
 **Reference implementation:** Lihat `rebuild_v8.py` (Getaran Mekanik) sebagai contoh end-to-end script yang load asesmen JSON, generate diagrams, build vMerge tabel, set header, replace Catatan Tambahan, validate, pack, dan convert ke PDF dalam single execution.
 
 ---
+
+*Pedoman v12.1 — April 2026 (akhir bulan, hotfix restore handler tidak menandai opsi benar).*
+*Update v12.1: §25.11 di-revisi — fallback `mcAnswered`/`mcScores` saja TIDAK CUKUP. Restore handler `_loadScoredQuestions` wajib menandai opsi benar via parsing `onclick` attribute (`selectMC(...,this,true)`) supaya `correctOpt` tersedia di build `mcData`. Tanpa ini, export menampilkan "(Sudah dijawab — pilihan salah)" walau ✓ hijau (inkonsisten visual). Applied ke 24 modul (Modul-4 sudah punya pattern ini sejak awal).*
 
 *Pedoman v12 — April 2026 (akhir bulan, post-Export Tugas consolidation + MC export bug fix).*
 *Update v12: §15.1c — score-bar layout konsolidasi (1 tombol Export, baris kedua dengan `#export-blocked-msg` center). §15.3d — konvensi nama mata kuliah di subtitle cover export + filename download (`Tugas{N}_{NIM}_{CourseSlug}.html`) untuk mencegah leakage course asal saat copy modul. §25.10 BARU — bug export PG selalu menampilkan opsi benar (selektor multi-class salah urut) + pattern benar pakai `.radio-option.selected`. §25.11 BARU — bug export PG setelah reload tampil "Belum dijawab" (Firebase restore tidak re-apply `.selected`) + pola fallback ke `mcAnswered`/`mcScores`. §25.8 audit checklist tambah section "Tab Tugas — Export HTML" 8 items. Applied ke 26 modul (Optoauto 1–6, Getaran 1–6, Math 1–14).*
