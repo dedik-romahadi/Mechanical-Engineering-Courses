@@ -1384,92 +1384,90 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   <div class="code-wrap reveal">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 2 — Statistik Orde 1 &amp; 2: Mean, Std, RMS</span>
+      <span class="code-label">Cell 2 — FFT Magnitude Spectrum + Welch PSD (Window Hann) + Peak Detection</span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
-    <pre><span class="cm"># Tiga fitur fundamental — bedakan sinyal sehat vs rusak</span>
-<span class="kw">def</span> <span class="fn">basic_stats</span>(x):
-    mean_val = np.<span class="fn">mean</span>(x)
-    std_val  = np.<span class="fn">std</span>(x, ddof=<span class="nm">0</span>)
-    rms_val  = np.<span class="fn">sqrt</span>(np.<span class="fn">mean</span>(x**<span class="nm">2</span>))
-    <span class="kw">return</span> mean_val, std_val, rms_val
+    <pre><span class="kw">from</span> scipy.fft <span class="kw">import</span> rfft, rfftfreq
+<span class="kw">from</span> scipy.signal <span class="kw">import</span> welch, find_peaks
 
-m_h, s_h, r_h = <span class="fn">basic_stats</span>(sig_healthy)
-m_f, s_f, r_f = <span class="fn">basic_stats</span>(sig_faulty)
+<span class="cm"># --- FFT magnitude spectrum (one-sided, scaling 2/N) ---</span>
+X      = <span class="fn">rfft</span>(sig)
+freqs  = <span class="fn">rfftfreq</span>(N, d=<span class="nm">1</span>/fs)
+mag    = (<span class="nm">2.0</span>/N) * np.<span class="fn">abs</span>(X)              <span class="cm"># amplitudo single-sided</span>
+df     = freqs[<span class="nm">1</span>] - freqs[<span class="nm">0</span>]                <span class="cm"># resolusi frekuensi Δf = fs/N</span>
 
-<span class="fn">print</span>(<span class="st">"═══ Statistik Orde 1 &amp; 2 ═══"</span>)
-<span class="fn">print</span>(<span class="st">f"{'Metric':10s} {'HEALTHY':>10s} {'FAULTY':>10s} {'Δ %':>10s}"</span>)
-<span class="fn">print</span>(<span class="st">"-"</span>*<span class="nm">42</span>)
-<span class="fn">print</span>(<span class="st">f"{'Mean':10s} {m_h:10.5f} {m_f:10.5f} {(m_f-m_h)/abs(m_h+1e-9)*100:9.1f}%"</span>)
-<span class="fn">print</span>(<span class="st">f"{'Std':10s} {s_h:10.5f} {s_f:10.5f} {(s_f-s_h)/s_h*100:9.1f}%"</span>)
-<span class="fn">print</span>(<span class="st">f"{'RMS':10s} {r_h:10.5f} {r_f:10.5f} {(r_f-r_h)/r_h*100:9.1f}%"</span>)
+<span class="fn">print</span>(<span class="st">f"Δf = {df:.4f} Hz   |   f_Nyquist = {fs/2} Hz   |   N_bins = {len(freqs)}"</span>)
 
-<span class="cm"># Verifikasi identitas: RMS² = mean² + std²</span>
-<span class="fn">print</span>(<span class="st">f"\nVerifikasi RMS² = μ² + σ²:"</span>)
-<span class="fn">print</span>(<span class="st">f"  Healthy: RMS² = {r_h**2:.5f}, μ² + σ² = {m_h**2 + s_h**2:.5f}"</span>)
+<span class="cm"># --- Welch PSD dengan window Hann (lebih robust thdp variansi) ---</span>
+f_w, Pxx = <span class="fn">welch</span>(sig, fs=fs, window=<span class="st">'hann'</span>, nperseg=<span class="nm">4096</span>,
+                  noverlap=<span class="nm">2048</span>, scaling=<span class="st">'density'</span>)
 
-<span class="cm"># Visualisasi RMS as horizontal lines</span>
-fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="nm">11</span>, <span class="nm">4</span>))
-ax.<span class="fn">plot</span>(t[:<span class="nm">5000</span>], sig_faulty[:<span class="nm">5000</span>], color=<span class="st">'#94a3b8'</span>, lw=<span class="nm">0.4</span>, label=<span class="st">'Sinyal Faulty'</span>)
-ax.<span class="fn">axhline</span>(+r_f, color=<span class="st">'#ef4444'</span>, ls=<span class="st">'--'</span>, label=<span class="st">f'+RMS = {r_f:.3f}'</span>)
-ax.<span class="fn">axhline</span>(-r_f, color=<span class="st">'#ef4444'</span>, ls=<span class="st">'--'</span>)
-ax.<span class="fn">axhline</span>(+s_f, color=<span class="st">'#0ea5e9'</span>, ls=<span class="st">':'</span>,  label=<span class="st">f'+σ = {s_f:.3f}'</span>)
-ax.<span class="fn">axhline</span>(-s_f, color=<span class="st">'#0ea5e9'</span>, ls=<span class="st">':'</span>)
-ax.<span class="fn">set_title</span>(<span class="st">'Sinyal Faulty dengan ±RMS dan ±σ overlay'</span>)
-ax.<span class="fn">legend</span>(); ax.<span class="fn">grid</span>(alpha=<span class="nm">0.2</span>); plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
+<span class="cm"># Deteksi peak otomatis di FFT spectrum (di bawah 500 Hz untuk fokus low-freq)</span>
+mask_lf  = freqs &lt; <span class="nm">500</span>
+peaks, _ = <span class="fn">find_peaks</span>(mag[mask_lf], height=<span class="nm">0.05</span>, distance=<span class="nm">10</span>)
+<span class="fn">print</span>(<span class="st">"Peak terdeteksi (Hz, amplitudo):"</span>)
+<span class="kw">for</span> p <span class="kw">in</span> peaks[:<span class="nm">8</span>]:
+    <span class="fn">print</span>(<span class="st">f"  f = {freqs[p]:7.2f} Hz   |X| = {mag[p]:.4f}"</span>)
+
+<span class="cm"># --- Plot dual: FFT magnitude + Welch PSD ---</span>
+fig, axes = plt.<span class="fn">subplots</span>(<span class="nm">2</span>, <span class="nm">1</span>, figsize=(<span class="nm">11</span>, <span class="nm">7</span>))
+axes[<span class="nm">0</span>].<span class="fn">plot</span>(freqs[mask_lf], mag[mask_lf], color=<span class="st">'#0ea5e9'</span>, lw=<span class="nm">0.8</span>)
+axes[<span class="nm">0</span>].<span class="fn">plot</span>(freqs[mask_lf][peaks], mag[mask_lf][peaks], <span class="st">'rv'</span>, ms=<span class="nm">7</span>, label=<span class="st">'Peaks'</span>)
+axes[<span class="nm">0</span>].<span class="fn">set_title</span>(<span class="st">'FFT Magnitude Spectrum (one-sided, scaling 2/N)'</span>)
+axes[<span class="nm">0</span>].<span class="fn">set_xlabel</span>(<span class="st">'Frekuensi (Hz)'</span>); axes[<span class="nm">0</span>].<span class="fn">set_ylabel</span>(<span class="st">'|X(f)| (g)'</span>)
+axes[<span class="nm">0</span>].<span class="fn">legend</span>(); axes[<span class="nm">0</span>].<span class="fn">grid</span>(alpha=<span class="nm">0.2</span>)
+
+axes[<span class="nm">1</span>].<span class="fn">semilogy</span>(f_w[f_w&lt;<span class="nm">500</span>], Pxx[f_w&lt;<span class="nm">500</span>], color=<span class="st">'#a855f7'</span>, lw=<span class="nm">1.0</span>)
+axes[<span class="nm">1</span>].<span class="fn">set_title</span>(<span class="st">'Welch PSD — Hann window, nperseg=4096, 50% overlap'</span>)
+axes[<span class="nm">1</span>].<span class="fn">set_xlabel</span>(<span class="st">'Frekuensi (Hz)'</span>); axes[<span class="nm">1</span>].<span class="fn">set_ylabel</span>(<span class="st">'PSD (g²/Hz)'</span>)
+axes[<span class="nm">1</span>].<span class="fn">grid</span>(alpha=<span class="nm">0.2</span>, which=<span class="st">'both'</span>)
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
   </div>
 
   <!-- Cell 3 -->
   <div class="code-wrap reveal">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 3 — Fitur Orde Tinggi: Peak, PP, Crest Factor, Kurtosis, Skewness, IF, SF</span>
+      <span class="code-label">Cell 3 — Frekuensi Fault Bearing 6205 (BPFO/BPFI/BSF/FTF) + Overlay Spectrum</span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
-    <pre><span class="kw">from</span> scipy.stats <span class="kw">import</span> kurtosis, skew
+    <pre><span class="cm"># Geometri bearing 6205 (deep groove ball bearing)</span>
+n_balls = <span class="nm">9</span>          <span class="cm"># jumlah bola</span>
+d_ball  = <span class="nm">7.94</span>       <span class="cm"># diameter bola (mm)</span>
+D_pitch = <span class="nm">39.04</span>      <span class="cm"># pitch diameter (mm)</span>
+alpha   = <span class="nm">0.0</span>        <span class="cm"># contact angle (rad) — deep groove ≈ 0</span>
+ratio   = d_ball / D_pitch                 <span class="cm"># ≈ 0.2034</span>
 
-<span class="kw">def</span> <span class="fn">advanced_features</span>(x):
-    rms      = np.<span class="fn">sqrt</span>(np.<span class="fn">mean</span>(x**<span class="nm">2</span>))
-    peak     = np.<span class="fn">max</span>(np.<span class="fn">abs</span>(x))
-    pp       = np.<span class="fn">max</span>(x) - np.<span class="fn">min</span>(x)
-    abs_avg  = np.<span class="fn">mean</span>(np.<span class="fn">abs</span>(x))
-    cf       = peak / rms                              <span class="cm"># Crest Factor</span>
-    sf       = rms / abs_avg                            <span class="cm"># Shape Factor</span>
-    if_      = peak / abs_avg                           <span class="cm"># Impulse Factor</span>
-    kurt     = <span class="fn">kurtosis</span>(x, fisher=<span class="kw">False</span>)             <span class="cm"># plain kurtosis (Gaussian = 3)</span>
-    sk       = <span class="fn">skew</span>(x)
-    <span class="kw">return</span> {
-        <span class="st">'peak'</span>: peak, <span class="st">'pp'</span>: pp, <span class="st">'rms'</span>: rms,
-        <span class="st">'crest_factor'</span>: cf, <span class="st">'shape_factor'</span>: sf, <span class="st">'impulse_factor'</span>: if_,
-        <span class="st">'kurtosis'</span>: kurt, <span class="st">'skewness'</span>: sk
-    }
+<span class="cm"># Frekuensi rotasi shaft (fr) — disesuaikan ke sinyal Cell 1: 30 Hz (1800 rpm)</span>
+fr = <span class="nm">30.0</span>
 
-f_h = <span class="fn">advanced_features</span>(sig_healthy)
-f_f = <span class="fn">advanced_features</span>(sig_faulty)
+<span class="cm"># Formula klasik (Harris, Rolling Bearing Analysis)</span>
+BPFO = (n_balls/<span class="nm">2</span>) * fr * (<span class="nm">1</span> - ratio*np.<span class="fn">cos</span>(alpha))   <span class="cm"># Outer race</span>
+BPFI = (n_balls/<span class="nm">2</span>) * fr * (<span class="nm">1</span> + ratio*np.<span class="fn">cos</span>(alpha))   <span class="cm"># Inner race</span>
+FTF  = (fr/<span class="nm">2</span>)      * (<span class="nm">1</span> - ratio*np.<span class="fn">cos</span>(alpha))   <span class="cm"># Fundamental Train (cage)</span>
+BSF  = (D_pitch/(<span class="nm">2</span>*d_ball)) * fr * (<span class="nm">1</span> - (ratio*np.<span class="fn">cos</span>(alpha))**<span class="nm">2</span>)  <span class="cm"># Ball Spin</span>
 
-<span class="fn">print</span>(<span class="st">"═══ Fitur Orde Tinggi ═══"</span>)
-<span class="fn">print</span>(<span class="st">f"{'Feature':18s} {'HEALTHY':>10s} {'FAULTY':>10s} {'Verdict':>20s}"</span>)
-<span class="fn">print</span>(<span class="st">"-"</span>*<span class="nm">62</span>)
-<span class="kw">for</span> key <span class="kw">in</span> f_h:
-    h, f = f_h[key], f_f[key]
-    delta = (f - h) / <span class="fn">abs</span>(h + <span class="nm">1e-9</span>) * <span class="nm">100</span>
-    flag = <span class="st">"⚠ SIGNIFICANT UP"</span> <span class="kw">if</span> delta &gt; <span class="nm">30</span> <span class="kw">else</span> (<span class="st">"⚠ SIGNIFICANT DN"</span> <span class="kw">if</span> delta &lt; -<span class="nm">30</span> <span class="kw">else</span> <span class="st">"--"</span>)
-    <span class="fn">print</span>(<span class="st">f"{key:18s} {h:10.4f} {f:10.4f} {flag:>20s}"</span>)
+<span class="fn">print</span>(<span class="st">f"Bearing 6205 @ {fr:.0f} Hz shaft (rasio d/D = {ratio:.4f})"</span>)
+<span class="fn">print</span>(<span class="st">f"  BPFO = {BPFO:7.2f} Hz   ({BPFO/fr:.3f} × fr)"</span>)
+<span class="fn">print</span>(<span class="st">f"  BPFI = {BPFI:7.2f} Hz   ({BPFI/fr:.3f} × fr)"</span>)
+<span class="fn">print</span>(<span class="st">f"  FTF  = {FTF:7.2f} Hz   ({FTF/fr:.3f} × fr)"</span>)
+<span class="fn">print</span>(<span class="st">f"  BSF  = {BSF:7.2f} Hz   ({BSF/fr:.3f} × fr)"</span>)
 
-<span class="cm"># Plot fitur paling diagnostik: kurtosis dan crest factor</span>
-fig, axes = plt.<span class="fn">subplots</span>(<span class="nm">1</span>, <span class="nm">2</span>, figsize=(<span class="nm">11</span>, <span class="nm">4</span>))
-labels = [<span class="st">'Healthy'</span>, <span class="st">'Faulty'</span>]
-colors = [<span class="st">'#00e09e'</span>, <span class="st">'#ef4444'</span>]
+<span class="cm"># Overlay frekuensi fault pada spectrum dari Cell 2</span>
+fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="nm">11</span>, <span class="nm">5</span>))
+ax.<span class="fn">plot</span>(freqs[mask_lf], mag[mask_lf], color=<span class="st">'#0ea5e9'</span>, lw=<span class="nm">0.8</span>, label=<span class="st">'|X(f)|'</span>)
 
-axes[<span class="nm">0</span>].<span class="fn">bar</span>(labels, [f_h[<span class="st">'kurtosis'</span>], f_f[<span class="st">'kurtosis'</span>]], color=colors)
-axes[<span class="nm">0</span>].<span class="fn">axhline</span>(<span class="nm">3</span>, color=<span class="st">'white'</span>, ls=<span class="st">'--'</span>, alpha=<span class="nm">0.6</span>, label=<span class="st">'Kurt = 3 (Gaussian)'</span>)
-axes[<span class="nm">0</span>].<span class="fn">set_title</span>(<span class="st">'Kurtosis'</span>); axes[<span class="nm">0</span>].<span class="fn">legend</span>()
+ff_lines = {<span class="st">'fr'</span>: (fr, <span class="st">'#00e09e'</span>), <span class="st">'BPFO'</span>: (BPFO, <span class="st">'#ef4444'</span>),
+            <span class="st">'BPFI'</span>: (BPFI, <span class="st">'#f97316'</span>), <span class="st">'FTF'</span>: (FTF, <span class="st">'#a855f7'</span>),
+            <span class="st">'BSF'</span>: (BSF, <span class="st">'#eab308'</span>)}
+<span class="kw">for</span> name, (f0, col) <span class="kw">in</span> ff_lines.<span class="fn">items</span>():
+    ax.<span class="fn">axvline</span>(f0, color=col, ls=<span class="st">'--'</span>, alpha=<span class="nm">0.7</span>, label=<span class="st">f'{name} = {f0:.1f} Hz'</span>)
 
-axes[<span class="nm">1</span>].<span class="fn">bar</span>(labels, [f_h[<span class="st">'crest_factor'</span>], f_f[<span class="st">'crest_factor'</span>]], color=colors)
-axes[<span class="nm">1</span>].<span class="fn">axhline</span>(<span class="nm">3</span>, color=<span class="st">'white'</span>, ls=<span class="st">'--'</span>, alpha=<span class="nm">0.6</span>, label=<span class="st">'CF ~ 3 (Gaussian noise)'</span>)
-axes[<span class="nm">1</span>].<span class="fn">set_title</span>(<span class="st">'Crest Factor'</span>); axes[<span class="nm">1</span>].<span class="fn">legend</span>()
+ax.<span class="fn">set_title</span>(<span class="st">'FFT Spectrum + Frekuensi Fault Bearing 6205 (Overlay)'</span>)
+ax.<span class="fn">set_xlabel</span>(<span class="st">'Frekuensi (Hz)'</span>); ax.<span class="fn">set_ylabel</span>(<span class="st">'|X(f)| (g)'</span>)
+ax.<span class="fn">legend</span>(loc=<span class="st">'upper right'</span>, fontsize=<span class="nm">9</span>); ax.<span class="fn">grid</span>(alpha=<span class="nm">0.2</span>)
 plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
   </div>
 
@@ -1477,67 +1475,76 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   <div class="code-wrap reveal">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 4 — Fungsi extract_features() Reusable + Trajectory Degradasi Bearing</span>
+      <span class="code-label">Cell 4 — Fungsi extract_features_freq() + Envelope Analysis (Bandpass + Hilbert + FFT)</span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
-    <pre><span class="kw">def</span> <span class="fn">extract_features</span>(x):
+    <pre><span class="kw">from</span> scipy.signal <span class="kw">import</span> butter, sosfiltfilt, hilbert
+<span class="kw">from</span> scipy.stats <span class="kw">import</span> entropy <span class="kw">as</span> sp_entropy
+
+<span class="kw">def</span> <span class="fn">extract_features_freq</span>(x, fs):
     <span class="st">"""Ekstrak 12 fitur domain frekuensi dari sinyal x. Return dict."""</span>
-    rms     = np.<span class="fn">sqrt</span>(np.<span class="fn">mean</span>(x**<span class="nm">2</span>))
-    peak    = np.<span class="fn">max</span>(np.<span class="fn">abs</span>(x))
-    abs_avg = np.<span class="fn">mean</span>(np.<span class="fn">abs</span>(x))
+    N      = <span class="fn">len</span>(x)
+    X      = <span class="fn">rfft</span>(x)
+    f      = <span class="fn">rfftfreq</span>(N, d=<span class="nm">1</span>/fs)
+    P      = (np.<span class="fn">abs</span>(X)**<span class="nm">2</span>) / N         <span class="cm"># power spectrum</span>
+    Psum   = P.<span class="fn">sum</span>() + <span class="nm">1e-12</span>
+    p_norm = P / Psum                  <span class="cm"># prob distribution di freq</span>
+
+    peak_freq = f[np.<span class="fn">argmax</span>(P)]                    <span class="cm"># dominant frequency</span>
+    mean_freq = np.<span class="fn">sum</span>(f * p_norm)                  <span class="cm"># spectral centroid</span>
+    var_freq  = np.<span class="fn">sum</span>((f - mean_freq)**<span class="nm">2</span> * p_norm)   <span class="cm"># spectral variance</span>
+    sk_spec   = np.<span class="fn">sum</span>((f - mean_freq)**<span class="nm">3</span> * p_norm) / (var_freq**<span class="nm">1.5</span> + <span class="nm">1e-12</span>)
+    ku_spec   = np.<span class="fn">sum</span>((f - mean_freq)**<span class="nm">4</span> * p_norm) / (var_freq**<span class="nm">2</span> + <span class="nm">1e-12</span>)
+    sp_ent    = <span class="fn">sp_entropy</span>(p_norm + <span class="nm">1e-12</span>)             <span class="cm"># Shannon entropy spektral</span>
+
+    <span class="cm"># Band powers: low (0–200), mid (200–1000), high (1000–5000)</span>
+    bp_low  = P[(f &gt;= <span class="nm">0</span>)    &amp; (f &lt; <span class="nm">200</span>)].<span class="fn">sum</span>()
+    bp_mid  = P[(f &gt;= <span class="nm">200</span>)  &amp; (f &lt; <span class="nm">1000</span>)].<span class="fn">sum</span>()
+    bp_high = P[(f &gt;= <span class="nm">1000</span>) &amp; (f &lt; <span class="nm">5000</span>)].<span class="fn">sum</span>()
+
     <span class="kw">return</span> {
-        <span class="st">'mean'</span>: np.<span class="fn">mean</span>(x), <span class="st">'std'</span>: np.<span class="fn">std</span>(x), <span class="st">'rms'</span>: rms,
-        <span class="st">'peak'</span>: peak, <span class="st">'pp'</span>: np.<span class="fn">max</span>(x) - np.<span class="fn">min</span>(x),
-        <span class="st">'abs_mean'</span>: abs_avg, <span class="st">'square_mean'</span>: np.<span class="fn">mean</span>(x**<span class="nm">2</span>),
-        <span class="st">'crest_factor'</span>: peak / rms,
-        <span class="st">'shape_factor'</span>: rms / abs_avg,
-        <span class="st">'impulse_factor'</span>: peak / abs_avg,
-        <span class="st">'kurtosis'</span>: <span class="fn">kurtosis</span>(x, fisher=<span class="kw">False</span>),
-        <span class="st">'skewness'</span>: <span class="fn">skew</span>(x),
+        <span class="st">'peak_freq'</span>: peak_freq, <span class="st">'mean_freq'</span>: mean_freq,
+        <span class="st">'rms_freq'</span>: np.<span class="fn">sqrt</span>(var_freq),
+        <span class="st">'spectral_skewness'</span>: sk_spec,
+        <span class="st">'spectral_kurtosis'</span>: ku_spec,
+        <span class="st">'spectral_entropy'</span>: sp_ent,
+        <span class="st">'total_power'</span>: Psum,
+        <span class="st">'band_power_low'</span>: bp_low,
+        <span class="st">'band_power_mid'</span>: bp_mid,
+        <span class="st">'band_power_high'</span>: bp_high,
+        <span class="st">'ratio_high_to_low'</span>: bp_high / (bp_low + <span class="nm">1e-12</span>),
+        <span class="st">'parseval_check'</span>: Psum,                 <span class="cm"># ≈ N · mean(x²)</span>
     }
 
-<span class="cm"># Simulasi degradasi bearing — 50 segmen sepanjang lifetime</span>
-<span class="cm"># progress 0 = baru, progress 1 = severe fault</span>
-<span class="kw">def</span> <span class="fn">simulate_segment</span>(progress):
-    sig = <span class="nm">1.0</span>*np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*<span class="nm">30</span>*t) + <span class="nm">0.3</span>*np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*<span class="nm">60</span>*t)
-    sig += <span class="nm">0.4</span>*(<span class="nm">1</span>+<span class="nm">2</span>*progress)*np.random.<span class="fn">randn</span>(N)   <span class="cm"># noise naik</span>
-    <span class="cm"># Impak: jarang awal, banyak akhir</span>
-    n_impacts = <span class="fn">int</span>(<span class="nm">100</span>*progress)
-    <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(n_impacts):
-        idx = np.random.<span class="fn">randint</span>(<span class="nm">0</span>, N-<span class="nm">200</span>)
-        decay = np.<span class="fn">exp</span>(-np.<span class="fn">arange</span>(<span class="nm">200</span>)/<span class="nm">30</span>)
-        sig[idx:idx+<span class="nm">200</span>] += (<span class="nm">2</span>+<span class="nm">3</span>*progress)*decay*np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*<span class="nm">2000</span>*np.<span class="fn">arange</span>(<span class="nm">200</span>)/fs)
-    <span class="kw">return</span> sig
+feat = <span class="fn">extract_features_freq</span>(sig, fs)
+<span class="fn">print</span>(<span class="st">"═══ 12 Fitur Domain Frekuensi ═══"</span>)
+<span class="kw">for</span> k, v <span class="kw">in</span> feat.<span class="fn">items</span>():
+    <span class="fn">print</span>(<span class="st">f"  {k:22s} = {v:12.4f}"</span>)
 
-progresses = np.<span class="fn">linspace</span>(<span class="nm">0</span>, <span class="nm">1</span>, <span class="nm">50</span>)
-features_history = []
-<span class="kw">for</span> p <span class="kw">in</span> progresses:
-    sig_seg = <span class="fn">simulate_segment</span>(p)
-    features_history.<span class="fn">append</span>(<span class="fn">extract_features</span>(sig_seg))
+<span class="cm"># --- ENVELOPE ANALYSIS: bandpass [2500–3500] Hz → Hilbert → FFT envelope ---</span>
+sos     = <span class="fn">butter</span>(<span class="nm">4</span>, [<span class="nm">2500</span>, <span class="nm">3500</span>], btype=<span class="st">'bandpass'</span>, fs=fs, output=<span class="st">'sos'</span>)
+sig_bp  = <span class="fn">sosfiltfilt</span>(sos, sig)                <span class="cm"># isolasi resonansi bearing housing</span>
+env     = np.<span class="fn">abs</span>(<span class="fn">hilbert</span>(sig_bp))              <span class="cm"># envelope (instantaneous amplitude)</span>
+env    -= env.<span class="fn">mean</span>()                          <span class="cm"># DC removal sebelum FFT</span>
+Env_f   = (<span class="nm">2.0</span>/N) * np.<span class="fn">abs</span>(<span class="fn">rfft</span>(env))
+freqs_e = <span class="fn">rfftfreq</span>(N, d=<span class="nm">1</span>/fs)
+mask_e  = freqs_e &lt; <span class="nm">300</span>
 
-<span class="cm"># Plot trajectory: RMS vs CF vs Kurtosis sepanjang lifetime</span>
-rms_traj  = [f[<span class="st">'rms'</span>]          <span class="kw">for</span> f <span class="kw">in</span> features_history]
-cf_traj   = [f[<span class="st">'crest_factor'</span>] <span class="kw">for</span> f <span class="kw">in</span> features_history]
-kurt_traj = [f[<span class="st">'kurtosis'</span>]     <span class="kw">for</span> f <span class="kw">in</span> features_history]
+<span class="cm"># Frekuensi fault bearing untuk overlay (dari Cell 3)</span>
+fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="nm">11</span>, <span class="nm">5</span>))
+ax.<span class="fn">plot</span>(freqs_e[mask_e], Env_f[mask_e], color=<span class="st">'#ef4444'</span>, lw=<span class="nm">0.9</span>, label=<span class="st">'Envelope spectrum'</span>)
+ax.<span class="fn">axvline</span>(BPFO, color=<span class="st">'#00e09e'</span>, ls=<span class="st">'--'</span>, label=<span class="st">f'BPFO = {BPFO:.1f} Hz'</span>)
+ax.<span class="fn">axvline</span>(<span class="nm">2</span>*BPFO, color=<span class="st">'#00e09e'</span>, ls=<span class="st">':'</span>,  alpha=<span class="nm">0.6</span>, label=<span class="st">'2× BPFO'</span>)
+ax.<span class="fn">axvline</span>(BPFI, color=<span class="st">'#f97316'</span>, ls=<span class="st">'--'</span>, alpha=<span class="nm">0.6</span>, label=<span class="st">f'BPFI = {BPFI:.1f} Hz'</span>)
+ax.<span class="fn">set_title</span>(<span class="st">'Envelope Spectrum — peak di BPFO mengkonfirmasi outer-race defect'</span>)
+ax.<span class="fn">set_xlabel</span>(<span class="st">'Frekuensi (Hz)'</span>); ax.<span class="fn">set_ylabel</span>(<span class="st">'|Env(f)|'</span>)
+ax.<span class="fn">legend</span>(); ax.<span class="fn">grid</span>(alpha=<span class="nm">0.2</span>); plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
 
-fig, ax1 = plt.<span class="fn">subplots</span>(figsize=(<span class="nm">11</span>, <span class="nm">5</span>))
-ax1.<span class="fn">plot</span>(progresses, rms_traj, color=<span class="st">'#0ea5e9'</span>, lw=<span class="nm">2</span>, label=<span class="st">'RMS'</span>)
-ax1.<span class="fn">set_xlabel</span>(<span class="st">'Lifetime Progress (0=baru, 1=rusak)'</span>); ax1.<span class="fn">set_ylabel</span>(<span class="st">'RMS'</span>, color=<span class="st">'#0ea5e9'</span>)
-
-ax2 = ax1.<span class="fn">twinx</span>()
-ax2.<span class="fn">plot</span>(progresses, cf_traj,   color=<span class="st">'#f97316'</span>, lw=<span class="nm">2</span>, label=<span class="st">'Crest Factor'</span>)
-ax2.<span class="fn">plot</span>(progresses, kurt_traj, color=<span class="st">'#a855f7'</span>, lw=<span class="nm">2</span>, label=<span class="st">'Kurtosis'</span>)
-ax2.<span class="fn">set_ylabel</span>(<span class="st">'CF / Kurtosis'</span>)
-
-ax1.<span class="fn">legend</span>(loc=<span class="st">'upper left'</span>); ax2.<span class="fn">legend</span>(loc=<span class="st">'upper right'</span>)
-ax1.<span class="fn">grid</span>(alpha=<span class="nm">0.2</span>)
-ax1.<span class="fn">set_title</span>(<span class="st">'Trajectory Lifetime Bearing — RMS naik monoton, CF/Kurt U-shaped'</span>)
-plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
-
-<span class="fn">print</span>(<span class="st">f"Healthy (p=0)  : RMS={rms_traj[0]:.3f}, CF={cf_traj[0]:.2f}, Kurt={kurt_traj[0]:.2f}"</span>)
-<span class="fn">print</span>(<span class="st">f"Mid    (p=0.4): RMS={rms_traj[20]:.3f}, CF={cf_traj[20]:.2f}, Kurt={kurt_traj[20]:.2f}"</span>)
-<span class="fn">print</span>(<span class="st">f"Severe (p=1.0): RMS={rms_traj[-1]:.3f}, CF={cf_traj[-1]:.2f}, Kurt={kurt_traj[-1]:.2f}"</span>)</pre>
+<span class="cm"># Validasi: peak envelope spectrum harus ≈ BPFO (107.7 Hz)</span>
+peak_env = freqs_e[mask_e][np.<span class="fn">argmax</span>(Env_f[mask_e])]
+<span class="fn">print</span>(<span class="st">f"\nPeak envelope spectrum = {peak_env:.2f} Hz   (target BPFO = {BPFO:.2f} Hz)"</span>)
+<span class="fn">print</span>(<span class="st">f"Verifikasi Parseval: Σ|X|²/N = {feat['total_power']:.4f}, N·mean(x²) = {N*np.mean(sig**2):.4f}"</span>)</pre>
   </div>
 </div>
 
@@ -1546,44 +1553,50 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
 <div class="section" id="m-pustaka">
   <div class="section-label reveal">Referensi</div>
   <h2 class="section-title reveal">Daftar Pustaka</h2>
-  <p class="section-desc reveal">Lima referensi kunci untuk pendalaman — mulai dari textbook signal processing klasik hingga panduan implementasi Python modern untuk feature engineering vibrasi industri.</p>
+  <p class="section-desc reveal">Enam referensi kunci untuk pendalaman frequency-domain analysis — mulai dari textbook FFT klasik hingga paper seminal envelope analysis bearing fault dan dokumentasi SciPy untuk implementasi modern.</p>
 
   <div class="reveal" style="display:flex;flex-direction:column;gap:12px;margin-top:24px">
     <div style="display:flex;gap:16px;padding:18px 22px;background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-left:3px solid var(--cyan);border-radius:10px;align-items:flex-start">
       <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--cyan);flex-shrink:0;min-width:32px">[1]</span>
       <div style="font-size:14px;line-height:1.7">
-        A. R. Mohanty. <em style="color:#fff">Machinery Condition Monitoring: Principles and Practices</em>. CRC Press, 2015.
-        <br><span style="color:var(--muted);font-size:13px">Bab 4 — Frequency Domain Vibration Signal Analysis. Pembahasan komprehensif RMS, peak, kurtosis, crest factor untuk diagnosa bearing/gear.</span>
+        R. B. Randall. <em style="color:#fff">Vibration-based Condition Monitoring: Industrial, Aerospace and Automotive Applications</em>. Wiley, 2011.
+        <br><span style="color:var(--muted);font-size:13px">Bab 5 &amp; 6 — Frequency Analysis &amp; Envelope Analysis. Referensi paling otoritatif untuk diagnosa bearing/gear via FFT, PSD, cepstrum, dan demodulasi.</span>
       </div>
     </div>
     <div style="display:flex;gap:16px;padding:18px 22px;background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.15);border-left:3px solid var(--violet);border-radius:10px;align-items:flex-start">
       <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--violet);flex-shrink:0;min-width:32px">[2]</span>
       <div style="font-size:14px;line-height:1.7">
-        ISO 10816-3:2009 — <em style="color:#fff">Mechanical vibration — Evaluation of machine vibration by measurements on non-rotating parts</em>. International Organization for Standardization, 2009.
-        <br><span style="color:var(--muted);font-size:13px">Standar internasional batas RMS velocity (mm/s) untuk klasifikasi kondisi mesin: good/satisfactory/unsatisfactory/unacceptable.</span>
+        E. O. Brigham. <em style="color:#fff">The Fast Fourier Transform and Its Applications</em>. Prentice-Hall, 1988.
+        <br><span style="color:var(--muted);font-size:13px">Klasik. Penjelasan mendalam algoritma Cooley–Tukey, window function, spectral leakage, aliasing, serta scaling one-sided spectrum.</span>
       </div>
     </div>
     <div style="display:flex;gap:16px;padding:18px 22px;background:rgba(255,64,129,.05);border:1px solid rgba(255,64,129,.15);border-left:3px solid var(--amber);border-radius:10px;align-items:flex-start">
       <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--amber);flex-shrink:0;min-width:32px">[3]</span>
       <div style="font-size:14px;line-height:1.7">
-        R. B. Randall. <em style="color:#fff">Vibration-based Condition Monitoring: Industrial, Aerospace and Automotive Applications</em>. Wiley, 2011.
-        <br><span style="color:var(--muted);font-size:13px">Bab 3 — Vibration Signals and their Statistics. Pembahasan mendalam crest factor, kurtosis, dan trajectory mereka sepanjang lifetime bearing.</span>
+        P. D. McFadden &amp; J. D. Smith. <em style="color:#fff">The vibration produced by single point defects in a rolling element bearing</em>. Journal of Sound and Vibration, 96(1), 69–82, 1984.
+        <br><span style="color:var(--muted);font-size:13px">Paper seminal yang merumuskan model impulse-train + resonance carrier untuk bearing fault — dasar teoretis envelope analysis.</span>
       </div>
     </div>
     <div style="display:flex;gap:16px;padding:18px 22px;background:rgba(0,224,158,.05);border:1px solid rgba(0,224,158,.15);border-left:3px solid var(--green);border-radius:10px;align-items:flex-start">
       <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--green);flex-shrink:0;min-width:32px">[4]</span>
       <div style="font-size:14px;line-height:1.7">
-        Case Western Reserve University. <em style="color:#fff">Bearing Data Center — CWRB Dataset</em>. Cleveland: CWRU.
-        <br><span style="color:var(--muted);font-size:13px">Dataset benchmark publik untuk vibration bearing fault classification — 4 jenis kondisi (normal, IR fault, OR fault, ball fault) di berbagai beban.</span>
-        <br><a href="https://engineering.case.edu/bearingdatacenter" target="_blank" style="color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:12px">▶ engineering.case.edu/bearingdatacenter</a>
+        D. Ho &amp; R. B. Randall. <em style="color:#fff">Optimisation of bearing diagnostic techniques using simulated and actual bearing fault signals</em>. Mechanical Systems and Signal Processing, 14(5), 763–788, 2000.
+        <br><span style="color:var(--muted);font-size:13px">Studi komparatif teknik demodulasi (squared envelope, kurtogram, SK) — basis pemilihan band frekuensi optimal untuk envelope analysis.</span>
       </div>
     </div>
     <div style="display:flex;gap:16px;padding:18px 22px;background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-left:3px solid var(--pink);border-radius:10px;align-items:flex-start">
       <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--pink);flex-shrink:0;min-width:32px">[5]</span>
       <div style="font-size:14px;line-height:1.7">
-        SciPy &amp; NumPy documentation — <em style="color:#fff">Statistical functions (scipy.stats)</em>.
-        <br><a href="https://docs.scipy.org/doc/scipy/reference/stats.html" target="_blank" style="color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:12px">▶ docs.scipy.org/doc/scipy/reference/stats.html</a>
-        <br><a href="https://numpy.org/doc/stable/reference/routines.statistics.html" target="_blank" style="color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:12px">▶ numpy.org/doc/stable/reference/routines.statistics</a>
+        ISO 10816-3:2009 — <em style="color:#fff">Mechanical vibration — Evaluation of machine vibration by measurements on non-rotating parts</em>. International Organization for Standardization, 2009.
+        <br><span style="color:var(--muted);font-size:13px">Standar internasional batas RMS velocity (mm/s) — sering dipakai bersama spectral analysis untuk klasifikasi severity mesin industri.</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:16px;padding:18px 22px;background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-left:3px solid var(--cyan);border-radius:10px;align-items:flex-start">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--cyan);flex-shrink:0;min-width:32px">[6]</span>
+      <div style="font-size:14px;line-height:1.7">
+        SciPy documentation — <em style="color:#fff">scipy.signal &amp; scipy.fft modules</em>.
+        <br><a href="https://docs.scipy.org/doc/scipy/reference/signal.html" target="_blank" style="color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:12px">▶ docs.scipy.org/doc/scipy/reference/signal.html</a>
+        <br><a href="https://docs.scipy.org/doc/scipy/reference/fft.html" target="_blank" style="color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:12px">▶ docs.scipy.org/doc/scipy/reference/fft.html</a>
       </div>
     </div>
   </div>
@@ -1604,15 +1617,15 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:8%;font-size:.9rem;color:var(--amber);--dur:20s;--del:0s">RMS = √(1/N · Σx²)</span>
-    <span class="ff" style="left:35%;font-size:.85rem;color:var(--cyan);--dur:22s;--del:5s">Crest = x_peak / RMS</span>
-    <span class="ff" style="left:55%;font-size:.8rem;color:var(--pink);--dur:18s;--del:5s">Kurt = E[(x−μ)⁴]/σ⁴</span>
-    <span class="ff" style="left:75%;font-size:.7rem;color:var(--violet);--dur:22s;--del:9s">Skew = E[(x−μ)³]/σ³</span>
+    <span class="ff" style="left:8%;font-size:.9rem;color:var(--amber);--dur:20s;--del:0s">Δf = fs / N</span>
+    <span class="ff" style="left:35%;font-size:.85rem;color:var(--cyan);--dur:22s;--del:5s">BPFO = (n/2)·fr·(1−(d/D)cosα)</span>
+    <span class="ff" style="left:55%;font-size:.8rem;color:var(--pink);--dur:18s;--del:5s">|X(f)| · 2/N</span>
+    <span class="ff" style="left:75%;font-size:.7rem;color:var(--violet);--dur:22s;--del:9s">env = |Hilbert(x)|</span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Tugas Pertemuan 7 · Ekstraksi Fitur Domain Frekuensi</div>
     <h1 class="hero-title"><span class="hl-amber">Tugas 7</span><br><em>Frequency Domain</em><br>Features</h1>
-    <p class="hero-sub">10 pilihan ganda + 10 komputasi Easy/Medium + 5 komputasi Hard (Jupyter Notebook) seputar mean, std, RMS, peak, peak-to-peak, crest factor, kurtosis, skewness, shape factor, impulse factor, dan aplikasi pada bearing condition monitoring. Total <strong>50 poin</strong>.</p>
+    <p class="hero-sub">10 pilihan ganda + 10 komputasi Easy/Medium + 5 komputasi Hard (Jupyter Notebook) seputar DFT/FFT, resolusi frekuensi, window function, Welch PSD, frekuensi fault bearing (BPFO/BPFI/FTF/BSF), envelope analysis, sideband motor induksi, gear mesh frequency, spectral kurtosis, dan order tracking. Total <strong>50 poin</strong>.</p>
     <div class="hero-stats">
       <div class="stat"><div class="stat-num">10</div><div class="stat-lbl">Pilihan Ganda</div></div>
       <div class="stat"><div class="stat-num">15</div><div class="stat-lbl">Komputasi</div></div>
@@ -1680,14 +1693,14 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">01</div>
-        <div class="mc-q">Formula <strong>RMS (Root Mean Square)</strong> untuk N sampel sinyal x₁…x_N adalah...</div>
+        <div class="mc-q">Pernyataan yang BENAR mengenai <strong>DFT vs FFT</strong> adalah...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc1">
-        <div class="radio-option" onclick="selectMC('mc1',this,false)"><div class="radio-circle"></div>(A) &nbsp; (1/N) Σ |x_i|</div>
-        <div class="radio-option" onclick="selectMC('mc1',this,true)"><div class="radio-circle"></div>(B) &nbsp; √[(1/N) Σ x_i²]</div>
-        <div class="radio-option" onclick="selectMC('mc1',this,false)"><div class="radio-circle"></div>(C) &nbsp; max|x_i| − min|x_i|</div>
-        <div class="radio-option" onclick="selectMC('mc1',this,false)"><div class="radio-circle"></div>(D) &nbsp; (1/N) Σ x_i</div>
+        <div class="radio-option" onclick="selectMC('mc1',this,false)"><div class="radio-circle"></div>(A) &nbsp; DFT dan FFT memberi hasil numerik yang berbeda</div>
+        <div class="radio-option" onclick="selectMC('mc1',this,true)"><div class="radio-circle"></div>(B) &nbsp; FFT adalah algoritma efisien yang menghitung DFT — kompleksitas turun dari O(N²) ke O(N·logN)</div>
+        <div class="radio-option" onclick="selectMC('mc1',this,false)"><div class="radio-circle"></div>(C) &nbsp; FFT hanya bekerja untuk sinyal sinusoidal murni</div>
+        <div class="radio-option" onclick="selectMC('mc1',this,false)"><div class="radio-circle"></div>(D) &nbsp; DFT lebih cepat dari FFT karena tidak butuh padding</div>
       </div>
       <button class="mc-submit" id="sub-mc1" onclick="checkMC('mc1')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc1"></div>
@@ -1697,14 +1710,14 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">02</div>
-        <div class="mc-q">Untuk sinyal <strong>AC-coupled</strong> (mean ≈ 0), hubungan antara RMS dan standar deviasi adalah...</div>
+        <div class="mc-q"><strong>Resolusi frekuensi</strong> Δf dari spektrum FFT ditentukan oleh...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc2">
-        <div class="radio-option" onclick="selectMC('mc2',this,false)"><div class="radio-circle"></div>(A) &nbsp; RMS &gt; σ (selalu)</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,true)"><div class="radio-circle"></div>(B) &nbsp; RMS ≈ σ (karena RMS² = μ² + σ² dan μ ≈ 0)</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,false)"><div class="radio-circle"></div>(C) &nbsp; RMS = 2σ</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,false)"><div class="radio-circle"></div>(D) &nbsp; RMS dan σ tidak terkait sama sekali</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,false)"><div class="radio-circle"></div>(A) &nbsp; Δf = fs · N (semakin tinggi sampling, semakin jelek resolusi)</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,true)"><div class="radio-circle"></div>(B) &nbsp; Δf = fs / N — diperbaiki dengan menambah durasi rekaman (T = N/fs)</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,false)"><div class="radio-circle"></div>(C) &nbsp; Δf hanya tergantung window function, tidak fs/N</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,false)"><div class="radio-circle"></div>(D) &nbsp; Δf = 1 Hz selalu, terlepas dari fs dan N</div>
       </div>
       <button class="mc-submit" id="sub-mc2" onclick="checkMC('mc2')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc2"></div>
@@ -1714,14 +1727,14 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">03</div>
-        <div class="mc-q"><strong>Crest Factor</strong> didefinisikan sebagai...</div>
+        <div class="mc-q">Tujuan utama menerapkan <strong>window function</strong> (Hann, Hamming, Blackman) sebelum FFT adalah...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc3">
-        <div class="radio-option" onclick="selectMC('mc3',this,false)"><div class="radio-circle"></div>(A) &nbsp; Peak-to-peak / Mean</div>
-        <div class="radio-option" onclick="selectMC('mc3',this,true)"><div class="radio-circle"></div>(B) &nbsp; Peak (|x|_max) / RMS</div>
-        <div class="radio-option" onclick="selectMC('mc3',this,false)"><div class="radio-circle"></div>(C) &nbsp; RMS / Standard deviation</div>
-        <div class="radio-option" onclick="selectMC('mc3',this,false)"><div class="radio-circle"></div>(D) &nbsp; Variance / Mean²</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,false)"><div class="radio-circle"></div>(A) &nbsp; Mempercepat algoritma FFT</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,true)"><div class="radio-circle"></div>(B) &nbsp; Mengurangi <em>spectral leakage</em> akibat truncation sinyal non-periodik di batas segmen</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,false)"><div class="radio-circle"></div>(C) &nbsp; Menambahkan harmonik palsu agar peak lebih jelas</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,false)"><div class="radio-circle"></div>(D) &nbsp; Menghilangkan komponen DC otomatis</div>
       </div>
       <button class="mc-submit" id="sub-mc3" onclick="checkMC('mc3')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc3"></div>
@@ -1731,14 +1744,14 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">04</div>
-        <div class="mc-q">Untuk sinyal <strong>sinusoidal murni</strong>, nilai crest factor secara teoretis adalah...</div>
+        <div class="mc-q">Untuk mendapatkan <strong>amplitudo fisik</strong> yang benar dari spektrum <em>one-sided</em> (rfft), faktor skala yang dipakai pada |X(k)| adalah...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc4">
-        <div class="radio-option" onclick="selectMC('mc4',this,false)"><div class="radio-circle"></div>(A) &nbsp; 1.0</div>
-        <div class="radio-option" onclick="selectMC('mc4',this,true)"><div class="radio-circle"></div>(B) &nbsp; √2 ≈ 1.414</div>
-        <div class="radio-option" onclick="selectMC('mc4',this,false)"><div class="radio-circle"></div>(C) &nbsp; 3.0</div>
-        <div class="radio-option" onclick="selectMC('mc4',this,false)"><div class="radio-circle"></div>(D) &nbsp; π</div>
+        <div class="radio-option" onclick="selectMC('mc4',this,false)"><div class="radio-circle"></div>(A) &nbsp; 1/N</div>
+        <div class="radio-option" onclick="selectMC('mc4',this,true)"><div class="radio-circle"></div>(B) &nbsp; 2/N (untuk bin di antara DC dan Nyquist)</div>
+        <div class="radio-option" onclick="selectMC('mc4',this,false)"><div class="radio-circle"></div>(C) &nbsp; 1/√N</div>
+        <div class="radio-option" onclick="selectMC('mc4',this,false)"><div class="radio-circle"></div>(D) &nbsp; N/2 (memperbesar dengan jumlah sample)</div>
       </div>
       <button class="mc-submit" id="sub-mc4" onclick="checkMC('mc4')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc4"></div>
@@ -1748,14 +1761,14 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">05</div>
-        <div class="mc-q"><strong>Kurtosis</strong> sebuah sinyal noise Gaussian murni (tanpa impak) bernilai sekitar...</div>
+        <div class="mc-q">Trade-off antara <strong>periodogram raw</strong> dan <strong>Welch method</strong> adalah...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc5">
-        <div class="radio-option" onclick="selectMC('mc5',this,false)"><div class="radio-circle"></div>(A) &nbsp; 0 (selalu nol untuk Gaussian)</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,false)"><div class="radio-circle"></div>(B) &nbsp; 1.5</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,true)"><div class="radio-circle"></div>(C) &nbsp; 3 (definisi plain kurtosis Gaussian)</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,false)"><div class="radio-circle"></div>(D) &nbsp; 10 (Gaussian itu tinggi kurtosis-nya)</div>
+        <div class="radio-option" onclick="selectMC('mc5',this,false)"><div class="radio-circle"></div>(A) &nbsp; Welch sama persis dengan periodogram tetapi lebih lambat</div>
+        <div class="radio-option" onclick="selectMC('mc5',this,true)"><div class="radio-circle"></div>(B) &nbsp; Welch <em>menurunkan variansi estimasi PSD</em> dengan cost <em>menurunkan resolusi frekuensi</em> (segmenting + averaging)</div>
+        <div class="radio-option" onclick="selectMC('mc5',this,false)"><div class="radio-circle"></div>(C) &nbsp; Periodogram tidak perlu window, Welch wajib pakai Blackman saja</div>
+        <div class="radio-option" onclick="selectMC('mc5',this,false)"><div class="radio-circle"></div>(D) &nbsp; Welch hanya bisa untuk sinyal stasioner Gaussian</div>
       </div>
       <button class="mc-submit" id="sub-mc5" onclick="checkMC('mc5')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc5"></div>
@@ -1765,14 +1778,14 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">06</div>
-        <div class="mc-q">Saat bearing mengalami <strong>defect awal</strong> (early-stage spalling), fitur yang paling cepat <em>melonjak</em> adalah...</div>
+        <div class="mc-q">Untuk geometri bearing yang sama dan kecepatan shaft tetap, hubungan antara <strong>BPFI dan BPFO</strong> adalah...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc6">
-        <div class="radio-option" onclick="selectMC('mc6',this,false)"><div class="radio-circle"></div>(A) &nbsp; Mean — naik karena ada DC offset baru</div>
-        <div class="radio-option" onclick="selectMC('mc6',this,false)"><div class="radio-circle"></div>(B) &nbsp; RMS — naik dramatic seketika</div>
-        <div class="radio-option" onclick="selectMC('mc6',this,true)"><div class="radio-circle"></div>(C) &nbsp; Crest Factor &amp; Kurtosis — sensitif terhadap impak transient</div>
-        <div class="radio-option" onclick="selectMC('mc6',this,false)"><div class="radio-circle"></div>(D) &nbsp; Skewness — selalu turun di kerusakan awal</div>
+        <div class="radio-option" onclick="selectMC('mc6',this,false)"><div class="radio-circle"></div>(A) &nbsp; BPFI = BPFO selalu (geometri tidak berpengaruh)</div>
+        <div class="radio-option" onclick="selectMC('mc6',this,true)"><div class="radio-circle"></div>(B) &nbsp; BPFI &gt; BPFO karena formula BPFI memakai (1 + (d/D)cosα) sedangkan BPFO memakai (1 − (d/D)cosα)</div>
+        <div class="radio-option" onclick="selectMC('mc6',this,false)"><div class="radio-circle"></div>(C) &nbsp; BPFI &lt; BPFO karena inner race lebih kecil</div>
+        <div class="radio-option" onclick="selectMC('mc6',this,false)"><div class="radio-circle"></div>(D) &nbsp; BPFI = 2 × BPFO selalu (rasio konstan)</div>
       </div>
       <button class="mc-submit" id="sub-mc6" onclick="checkMC('mc6')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc6"></div>
@@ -1782,14 +1795,14 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">07</div>
-        <div class="mc-q">Pada <strong>severe bearing fault</strong> (kerusakan parah, impak tidak lagi singkat-singkat tapi konstan), kurva crest factor &amp; kurtosis cenderung...</div>
+        <div class="mc-q">Pipeline <strong>envelope analysis</strong> standar untuk diagnosa bearing fault adalah...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc7">
-        <div class="radio-option" onclick="selectMC('mc7',this,false)"><div class="radio-circle"></div>(A) &nbsp; Terus naik tanpa batas</div>
-        <div class="radio-option" onclick="selectMC('mc7',this,true)"><div class="radio-circle"></div>(B) &nbsp; Turun lagi (U-shape) — RMS naik proportional dengan peak</div>
-        <div class="radio-option" onclick="selectMC('mc7',this,false)"><div class="radio-circle"></div>(C) &nbsp; Tetap di level early-fault</div>
-        <div class="radio-option" onclick="selectMC('mc7',this,false)"><div class="radio-circle"></div>(D) &nbsp; Naik turun secara acak tanpa pola</div>
+        <div class="radio-option" onclick="selectMC('mc7',this,false)"><div class="radio-circle"></div>(A) &nbsp; FFT raw → low-pass filter → cari peak BPFO langsung</div>
+        <div class="radio-option" onclick="selectMC('mc7',this,true)"><div class="radio-circle"></div>(B) &nbsp; Bandpass filter (band resonansi) → Hilbert transform (envelope) → FFT envelope → cari peak BPFO/BPFI</div>
+        <div class="radio-option" onclick="selectMC('mc7',this,false)"><div class="radio-circle"></div>(C) &nbsp; Squaring sinyal saja, lalu plot time-domain</div>
+        <div class="radio-option" onclick="selectMC('mc7',this,false)"><div class="radio-circle"></div>(D) &nbsp; STFT → ambil maximum spectrogram → langsung jadi diagnosis</div>
       </div>
       <button class="mc-submit" id="sub-mc7" onclick="checkMC('mc7')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc7"></div>
@@ -1799,14 +1812,14 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">08</div>
-        <div class="mc-q">Standar internasional <strong>ISO 10816</strong> menggunakan ukuran apa untuk klasifikasi vibration severity mesin?</div>
+        <div class="mc-q">Kriteria <strong>Nyquist–Shannon</strong> menyatakan bahwa untuk merekonstruksi sinyal dengan komponen frekuensi maksimum f<sub>max</sub>, sampling rate fs harus...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc8">
-        <div class="radio-option" onclick="selectMC('mc8',this,false)"><div class="radio-circle"></div>(A) &nbsp; Peak velocity (mm/s)</div>
-        <div class="radio-option" onclick="selectMC('mc8',this,false)"><div class="radio-circle"></div>(B) &nbsp; Peak-to-peak displacement (µm PP)</div>
-        <div class="radio-option" onclick="selectMC('mc8',this,true)"><div class="radio-circle"></div>(C) &nbsp; RMS velocity (mm/s) — tahan spike noise</div>
-        <div class="radio-option" onclick="selectMC('mc8',this,false)"><div class="radio-circle"></div>(D) &nbsp; Maximum kurtosis</div>
+        <div class="radio-option" onclick="selectMC('mc8',this,false)"><div class="radio-circle"></div>(A) &nbsp; fs = f<sub>max</sub> (sama persis)</div>
+        <div class="radio-option" onclick="selectMC('mc8',this,true)"><div class="radio-circle"></div>(B) &nbsp; fs &gt; 2·f<sub>max</sub>; jika tidak akan terjadi <em>aliasing</em> (frekuensi tinggi muncul palsu di low-band)</div>
+        <div class="radio-option" onclick="selectMC('mc8',this,false)"><div class="radio-circle"></div>(C) &nbsp; fs = f<sub>max</sub>/2 (Nyquist =setengah)</div>
+        <div class="radio-option" onclick="selectMC('mc8',this,false)"><div class="radio-circle"></div>(D) &nbsp; fs bebas, aliasing tidak pernah terjadi</div>
       </div>
       <button class="mc-submit" id="sub-mc8" onclick="checkMC('mc8')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc8"></div>
@@ -1816,14 +1829,14 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">09</div>
-        <div class="mc-q">Sebuah sinyal memiliki distribusi sample yang <strong>asimetris</strong> dengan ekor lebih panjang ke kanan (positif). Nilai skewness-nya...</div>
+        <div class="mc-q"><strong>Teorema Parseval</strong> untuk DFT menyatakan bahwa...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc9">
-        <div class="radio-option" onclick="selectMC('mc9',this,false)"><div class="radio-circle"></div>(A) &nbsp; Negatif (skewness selalu berlawanan arah ekor)</div>
-        <div class="radio-option" onclick="selectMC('mc9',this,true)"><div class="radio-circle"></div>(B) &nbsp; Positif (ekor kanan = skew positif)</div>
-        <div class="radio-option" onclick="selectMC('mc9',this,false)"><div class="radio-circle"></div>(C) &nbsp; Tepat 0 — skewness tidak peduli arah</div>
-        <div class="radio-option" onclick="selectMC('mc9',this,false)"><div class="radio-circle"></div>(D) &nbsp; Selalu &gt; 3</div>
+        <div class="radio-option" onclick="selectMC('mc9',this,false)"><div class="radio-circle"></div>(A) &nbsp; Σ|x_n|² selalu = 1 (normalisasi otomatis)</div>
+        <div class="radio-option" onclick="selectMC('mc9',this,true)"><div class="radio-circle"></div>(B) &nbsp; Energi total domain waktu = energi total domain frekuensi: Σ|x_n|² = (1/N) Σ|X_k|²</div>
+        <div class="radio-option" onclick="selectMC('mc9',this,false)"><div class="radio-circle"></div>(C) &nbsp; Hanya berlaku untuk sinyal sinusoidal murni</div>
+        <div class="radio-option" onclick="selectMC('mc9',this,false)"><div class="radio-circle"></div>(D) &nbsp; Hubungan antara amplitudo dan fase saja</div>
       </div>
       <button class="mc-submit" id="sub-mc9" onclick="checkMC('mc9')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc9"></div>
@@ -1833,14 +1846,14 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">10</div>
-        <div class="mc-q">Mengapa praktik industri menggabungkan <strong>banyak fitur sekaligus</strong> (RMS + CF + Kurtosis + Skewness + ...) untuk monitoring bearing?</div>
+        <div class="mc-q">Saat motor mengalami <strong>run-up</strong> (kecepatan berubah dari 0 → 1500 rpm), tool analisis frekuensi yang paling tepat adalah...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc10">
-        <div class="radio-option" onclick="selectMC('mc10',this,false)"><div class="radio-circle"></div>(A) &nbsp; Lebih banyak fitur otomatis bikin model lebih akurat</div>
-        <div class="radio-option" onclick="selectMC('mc10',this,true)"><div class="radio-circle"></div>(B) &nbsp; Tiap fitur sensitif terhadap jenis kerusakan berbeda; satu fitur saja tidak cukup karena fenomena U-shape (CF/Kurt naik lalu turun)</div>
-        <div class="radio-option" onclick="selectMC('mc10',this,false)"><div class="radio-circle"></div>(C) &nbsp; Untuk membuang fitur orde rendah yang tidak akurat</div>
-        <div class="radio-option" onclick="selectMC('mc10',this,false)"><div class="radio-circle"></div>(D) &nbsp; Karena tidak ada satu fitur pun yang berfungsi</div>
+        <div class="radio-option" onclick="selectMC('mc10',this,false)"><div class="radio-circle"></div>(A) &nbsp; FFT tunggal pada seluruh segmen — peak akan jelas</div>
+        <div class="radio-option" onclick="selectMC('mc10',this,true)"><div class="radio-circle"></div>(B) &nbsp; <em>Spectrogram</em> (STFT) atau <em>order tracking</em> — karena sinyal non-stasioner, frekuensi berubah seiring waktu</div>
+        <div class="radio-option" onclick="selectMC('mc10',this,false)"><div class="radio-circle"></div>(C) &nbsp; Welch PSD averaging — variansi rendah cukup</div>
+        <div class="radio-option" onclick="selectMC('mc10',this,false)"><div class="radio-circle"></div>(D) &nbsp; Hilbert envelope saja sudah cukup</div>
       </div>
       <button class="mc-submit" id="sub-mc10" onclick="checkMC('mc10')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc10"></div>
@@ -1860,31 +1873,34 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="q-type-badge badge-comp">💻 BAGIAN B — Soal Komputasi · 10 Soal · @2 Poin · Menggunakan Jupyter Notebook</div>
 
     <div class="info-box" style="margin-bottom:28px">
-      <strong>📌 Dataset Referensi (dipakai di seluruh C1–C10):</strong><br>
-      <span style="font-size:13px;color:var(--muted);margin-top:6px;display:block">Sinyal vibrasi sintetis deterministik (sinusoidal + alternating component) sehingga jawaban semua mahasiswa <em>identik</em> untuk auto-grading.</span>
+      <strong>📌 Konstanta &amp; Bearing Geometri (dipakai di C1–C15):</strong><br>
+      <span style="font-size:13px;color:var(--muted);margin-top:6px;display:block">Bearing 6205 (deep-groove ball): n = 9 bola, d = 7.94 mm, D = 39.04 mm, α = 0°. Rasio d/D ≈ 0.2034. Gunakan formula klasik bearing-fault. Jawaban deterministik untuk auto-grading.</span>
       <pre style="margin-top:10px;background:#020a18;border:1px solid #1a2840;border-radius:8px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#cbd5e1;overflow-x:auto">import numpy as np
-N = 1000
-i = np.arange(N)
-x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
-# Komponen 1: sinusoidal periode 100, amplitudo 1 → RMS = 1/√2 ≈ 0.707
-# Komponen 2: alternating ±0.5 → seperti noise high-freq, std = 0.5
-# Total: mean ≈ 0, std ≈ 0.866, peak = 1.5</pre>
+# Geometri bearing 6205
+n_balls, d, D, alpha = 9, 7.94, 39.04, 0.0
+ratio = d / D                                    # ≈ 0.2034
+
+# Formula bearing fault frequency
+# BPFO = (n/2) * fr * (1 - (d/D)*cos(α))
+# BPFI = (n/2) * fr * (1 + (d/D)*cos(α))
+# FTF  = (fr/2)  * (1 - (d/D)*cos(α))
+# BSF  = (D/(2d))* fr * (1 - ((d/D)*cos(α))**2)</pre>
     </div>
 
     <!-- COMP 1 -->
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C1</div>
-        <div class="comp-q">Hitung <strong>mean</strong> sinyal <code>x</code> dari dataset referensi. Untuk vibrasi AC-coupled, ekspektasi mean ≈ 0.</div>
+        <div class="comp-q">Hitung <strong>resolusi frekuensi Δf</strong> untuk fs = 10000 Hz dan N = 8192 sample. Formula: Δf = fs / N. Print nilainya (Hz, presisi 4 desimal).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>mean_val = np.mean(x)</code> — hasil ≈ 0 (sinusoidal + alternating, keduanya sum to zero atas N=1000).</div>
+      <div class="comp-hint">💡 <code>df = 10000 / 8192</code> ≈ <strong>1.2207 Hz</strong>. Resolusi semakin halus dengan menambah durasi rekaman (N besar untuk fs tetap).</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">mean(x)</strong></span></div>
-        <textarea class="code-textarea" id="code-c1" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi&#10;&#10;Contoh:&#10;import numpy as np&#10;N = 1000; i = np.arange(N)&#10;x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)&#10;print(f'{np.mean(x):.6f}')" oninput="onCodeInput('c1')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">Δf</strong></span></div>
+        <textarea class="code-textarea" id="code-c1" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi&#10;&#10;Contoh:&#10;fs, N = 10000, 8192&#10;df = fs / N&#10;print(f'{df:.4f}')" oninput="onCodeInput('c1')"></textarea>
         <div class="stdout-box" id="stdout-c1"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c1" onclick="runAndCheck('c1', 0.0, 0.005)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c1" onclick="runAndCheck('c1', 1.2207, 0.005)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c1"></div>
     </div>
 
@@ -1892,16 +1908,16 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C2</div>
-        <div class="comp-q">Hitung <strong>standar deviasi populasi</strong> (ddof=0) sinyal <code>x</code>. Pakai <code>np.std(x, ddof=0)</code> atau ekuivalen.</div>
+        <div class="comp-q">Generate sinyal sinusoidal murni 60 Hz: <code>fs=2000, N=4000, t=np.arange(N)/fs, x=np.sin(2*np.pi*60*t)</code>. Hitung <strong>peak frequency</strong> dengan <code>scipy.fft.rfft</code> + <code>rfftfreq</code>. Print nilainya (Hz).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>std_val = np.std(x, ddof=0)</code> — hasil ≈ 0.866 (= √(0.5 + 0.25) = √0.75).</div>
+      <div class="comp-hint">💡 <code>X = rfft(x); f = rfftfreq(N, 1/fs); peak = f[np.argmax(np.abs(X))]</code>. Karena 60 Hz tepat hit di bin (N=4000, fs=2000 → Δf=0.5 Hz, bin 120 = 60 Hz), peak = <strong>60.00</strong>.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">std(x)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">peak frequency (Hz)</strong></span></div>
         <textarea class="code-textarea" id="code-c2" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c2')"></textarea>
         <div class="stdout-box" id="stdout-c2"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c2" onclick="runAndCheck('c2', 0.866, 0.005)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c2" onclick="runAndCheck('c2', 60.0, 0.5)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c2"></div>
     </div>
 
@@ -1909,16 +1925,16 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C3</div>
-        <div class="comp-q">Hitung <strong>RMS</strong> sinyal <code>x</code> menggunakan formula <code>√[(1/N)Σx_i²]</code>. Untuk sinyal AC-coupled (mean ≈ 0), RMS harus ≈ std.</div>
+        <div class="comp-q">Hitung <strong>BPFO (Ball Pass Frequency Outer race)</strong> untuk bearing 6205 (n=9, d=7.94, D=39.04, α=0°) pada shaft 1480 rpm. Formula: BPFO = (n/2)·fr·(1 − (d/D)·cosα). Print dalam Hz.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>rms = np.sqrt(np.mean(x**2))</code> — hasil ≈ 0.866 (sama dengan std karena μ ≈ 0).</div>
+      <div class="comp-hint">💡 fr = 1480/60 ≈ 24.667 Hz. <code>BPFO = (9/2) * 24.667 * (1 - 7.94/39.04 * 1) = 4.5 * 24.667 * 0.7966</code> ≈ <strong>88.42 Hz</strong>. Rasio BPFO/fr ≈ 3.585.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">RMS(x)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">BPFO (Hz)</strong></span></div>
         <textarea class="code-textarea" id="code-c3" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c3')"></textarea>
         <div class="stdout-box" id="stdout-c3"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c3" onclick="runAndCheck('c3', 0.866, 0.005)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c3" onclick="runAndCheck('c3', 88.42, 0.3)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c3"></div>
     </div>
 
@@ -1926,16 +1942,16 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C4</div>
-        <div class="comp-q">Hitung <strong>peak (|x|<sub>max</sub>)</strong> sinyal <code>x</code>. Karena puncak sinusoidal = 1.0 dan alternating = 0.5, peak total = 1.5.</div>
+        <div class="comp-q">Untuk parameter sama dengan C3 (6205, 1480 rpm), hitung <strong>BPFI (Ball Pass Frequency Inner race)</strong>. Formula: BPFI = (n/2)·fr·(1 + (d/D)·cosα). Print dalam Hz.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>peak = np.max(np.abs(x))</code> — hasil = 1.5.</div>
+      <div class="comp-hint">💡 <code>BPFI = 4.5 * 24.667 * (1 + 0.2034) = 4.5 * 24.667 * 1.2034</code> ≈ <strong>133.58 Hz</strong>. Selalu BPFI &gt; BPFO untuk bearing yang sama. Rasio BPFI/fr ≈ 5.415.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">peak</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">BPFI (Hz)</strong></span></div>
         <textarea class="code-textarea" id="code-c4" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c4')"></textarea>
         <div class="stdout-box" id="stdout-c4"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c4" onclick="runAndCheck('c4', 1.5, 0.005)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c4" onclick="runAndCheck('c4', 133.58, 0.3)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c4"></div>
     </div>
 
@@ -1943,16 +1959,16 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C5</div>
-        <div class="comp-q">Hitung <strong>peak-to-peak (PP)</strong> sinyal <code>x</code>: <code>PP = max(x) − min(x)</code>.</div>
+        <div class="comp-q">Untuk bearing 6205 di 1480 rpm, hitung <strong>FTF (Fundamental Train Frequency / cage frequency)</strong>. Formula: FTF = (fr/2)·(1 − (d/D)·cosα). Print dalam Hz.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>pp = np.max(x) - np.min(x)</code> — hasil ≈ 3.0 (max ≈ +1.5, min ≈ −1.5).</div>
+      <div class="comp-hint">💡 <code>FTF = (24.667/2) * (1 - 0.2034) = 12.333 * 0.7966</code> ≈ <strong>9.82 Hz</strong>. FTF selalu paling rendah di antara fault frequencies. Rasio FTF/fr ≈ 0.398.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">peak-to-peak</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">FTF (Hz)</strong></span></div>
         <textarea class="code-textarea" id="code-c5" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c5')"></textarea>
         <div class="stdout-box" id="stdout-c5"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c5" onclick="runAndCheck('c5', 3.0, 0.01)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c5" onclick="runAndCheck('c5', 9.82, 0.05)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c5"></div>
     </div>
 
@@ -1960,16 +1976,16 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C6</div>
-        <div class="comp-q">Hitung <strong>Crest Factor</strong> sinyal <code>x</code>: <code>CF = peak / RMS</code>. Untuk sinyal ini hasil ≈ 1.5/0.866 ≈ 1.73.</div>
+        <div class="comp-q"><strong>Verifikasi Parseval</strong>: untuk <code>fs=1000, N=1024, t=np.arange(N)/fs, x=2.0*np.sin(2*np.pi*50*t)</code>, hitung <code>N · np.mean(x**2)</code> (energi domain waktu). Print hasilnya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>cf = np.max(np.abs(x)) / np.sqrt(np.mean(x**2))</code> — hasil ≈ 1.732.</div>
+      <div class="comp-hint">💡 RMS sinusoidal amplitudo 2: RMS² = 2²/2 = 2. Jadi N·mean(x²) = 1024·2 = <strong>2048</strong>. Ini juga = (1/N)·Σ|X_k|² (Parseval).</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">Crest Factor</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">N·mean(x²)</strong></span></div>
         <textarea class="code-textarea" id="code-c6" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c6')"></textarea>
         <div class="stdout-box" id="stdout-c6"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c6" onclick="runAndCheck('c6', 1.732, 0.01)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c6" onclick="runAndCheck('c6', 2048.0, 5.0)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c6"></div>
     </div>
 
@@ -1977,16 +1993,16 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C7</div>
-        <div class="comp-q">Hitung <strong>Mean Absolute</strong> sinyal <code>x</code>: <code>|x|<sub>avg</sub> = (1/N)Σ|x_i|</code>.</div>
+        <div class="comp-q">Hitung <strong>spectral centroid (mean frequency)</strong> untuk dua-peak power: <code>P[100 Hz] = 0.6, P[400 Hz] = 0.4</code>, sisanya nol. Formula: f̄ = Σ(f·P) / Σ(P). Print Hz.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>abs_avg = np.mean(np.abs(x))</code> — hasil ≈ 0.718.</div>
+      <div class="comp-hint">💡 <code>f_bar = (0.6*100 + 0.4*400) / (0.6 + 0.4) = (60 + 160) / 1.0 = <strong>220 Hz</strong></code>. Spectral centroid = "pusat massa" PSD; geser ke kanan saat high-freq impak muncul.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">|x|_avg</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">spectral centroid (Hz)</strong></span></div>
         <textarea class="code-textarea" id="code-c7" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c7')"></textarea>
         <div class="stdout-box" id="stdout-c7"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c7" onclick="runAndCheck('c7', 0.718, 0.01)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c7" onclick="runAndCheck('c7', 220.0, 0.5)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c7"></div>
     </div>
 
@@ -1994,16 +2010,16 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C8</div>
-        <div class="comp-q">Hitung <strong>Shape Factor</strong> sinyal <code>x</code>: <code>SF = RMS / |x|<sub>avg</sub></code>.</div>
+        <div class="comp-q">Berapa <strong>N minimum</strong> agar peak 50 Hz bisa dipisahkan dari 53 Hz pada fs = 10000 Hz? Δf harus ≤ (53−50) = 3 Hz. Cari N integer terkecil. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>sf = np.sqrt(np.mean(x**2)) / np.mean(np.abs(x))</code> — hasil ≈ 1.206.</div>
+      <div class="comp-hint">💡 <code>N_min = ceil(fs / Δf_max) = ceil(10000 / 3) = <strong>3334</strong></code>. Praktik: pakai pangkat 2 terdekat (4096) untuk FFT efisien.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">Shape Factor</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">N minimum</strong></span></div>
         <textarea class="code-textarea" id="code-c8" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c8')"></textarea>
         <div class="stdout-box" id="stdout-c8"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c8" onclick="runAndCheck('c8', 1.206, 0.01)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c8" onclick="runAndCheck('c8', 3334.0, 1.0)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c8"></div>
     </div>
 
@@ -2011,16 +2027,16 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C9</div>
-        <div class="comp-q">Hitung <strong>Skewness</strong> (asimetri distribusi) sinyal <code>x</code>: <code>Skew = E[(x−μ)³]/σ³</code>. Karena sinyal ini simetris, skewness ≈ 0.</div>
+        <div class="comp-q">Power peak A = 0.50 (g²/Hz), peak B = 0.05. Hitung <strong>rasio dB</strong> antara A dan B: <code>dB = 10·log10(P_A / P_B)</code>. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Bisa pakai <code>from scipy.stats import skew; print(skew(x))</code> atau hitung manual <code>np.mean((x - x.mean())**3) / x.std(ddof=0)**3</code>.</div>
+      <div class="comp-hint">💡 <code>10*np.log10(0.50/0.05) = 10*log10(10) = <strong>10.0 dB</strong></code>. Skala dB dipakai untuk merentang dynamic range besar pada PSD bearing (rasio peak ke noise floor bisa 40+ dB).</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">skewness</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">dB ratio</strong></span></div>
         <textarea class="code-textarea" id="code-c9" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c9')"></textarea>
         <div class="stdout-box" id="stdout-c9"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c9" onclick="runAndCheck('c9', 0.0, 0.005)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c9" onclick="runAndCheck('c9', 10.0, 0.05)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c9"></div>
     </div>
 
@@ -2028,16 +2044,16 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C10</div>
-        <div class="comp-q">Hitung <strong>Kurtosis (plain, fisher=False)</strong> sinyal <code>x</code>: <code>Kurt = E[(x−μ)⁴]/σ⁴</code>. Untuk sinyal Gaussian = 3; untuk sinyal ini sedikit di bawah karena mix sinusoidal+alternating bersifat platykurtic.</div>
+        <div class="comp-q">Hitung <strong>frekuensi Nyquist</strong> untuk sampling rate fs = 25000 Hz. Formula: f_Nyq = fs/2. Print dalam Hz.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>from scipy.stats import kurtosis; print(kurtosis(x, fisher=False))</code> — hasil ≈ 2.111.</div>
+      <div class="comp-hint">💡 <code>f_Nyq = 25000 / 2 = <strong>12500 Hz</strong></code>. Komponen di atas 12.5 kHz akan ter-alias ke band &lt;12.5 kHz; pakai anti-alias low-pass filter sebelum ADC.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">kurtosis (plain)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">f_Nyquist (Hz)</strong></span></div>
         <textarea class="code-textarea" id="code-c10" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c10')"></textarea>
         <div class="stdout-box" id="stdout-c10"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c10" onclick="runAndCheck('c10', 2.111, 0.05)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c10" onclick="runAndCheck('c10', 12500.0, 1.0)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c10"></div>
     </div>
 
@@ -2055,16 +2071,16 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C11</div>
-        <div class="comp-q">Implementasikan <strong>fungsi extract_features(x) reusable</strong> yang mengembalikan dictionary berisi 12 fitur domain frekuensi: mean, std, rms, peak, pp, abs_mean, square_mean, crest_factor, shape_factor, impulse_factor, kurtosis, skewness. Pakai <code>scipy.stats.kurtosis(x, fisher=False)</code> dan <code>scipy.stats.skew(x)</code>. Terapkan pada dataset referensi. Laporkan <strong>nilai impulse_factor</strong>.</div>
+        <div class="comp-q">Hitung <strong>sideband frequency atas (f_sb,upper)</strong> untuk diagnosa <em>broken rotor bar</em> motor induksi. Diketahui frekuensi supply f_s = 50 Hz dan slip s = 0.03 (3%). Sideband muncul pada f_s · (1 ± 2s). Print nilai sideband UPPER (f_s + 2·s·f_s).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Kerangka fungsi: <code>def extract_features(x): return {'mean': np.mean(x), 'std': np.std(x, ddof=0), 'rms': np.sqrt(np.mean(x**2)), ..., 'impulse_factor': np.max(np.abs(x))/np.mean(np.abs(x))}</code>. Untuk dataset ini IF = 1.5/0.718 ≈ 2.089.</div>
+      <div class="comp-hint">💡 <code>f_sb_upper = 50 * (1 + 2*0.03) = 50 * 1.06 = <strong>53.0 Hz</strong></code>. Sideband lower = 50·(1−0.06) = 47 Hz. Pasangan ±2sf_s adalah signature broken rotor bar yang khas pada motor squirrel-cage.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">impulse_factor</strong></span></div>
-        <textarea class="code-textarea" id="code-c11" rows="12" placeholder="Paste kode fungsi extract_features() lengkap + invocation, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c11')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">f_sb upper (Hz)</strong></span></div>
+        <textarea class="code-textarea" id="code-c11" rows="12" placeholder="Paste kode lengkap, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c11')"></textarea>
         <div class="stdout-box" id="stdout-c11"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c11" onclick="runAndCheck('c11', 2.089, 0.02, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c11" onclick="runAndCheck('c11', 53.0, 0.1, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c11"></div>
     </div>
 
@@ -2072,16 +2088,16 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C12</div>
-        <div class="comp-q">Implementasikan <strong>simulasi degradasi bearing</strong>: untuk progress p ∈ {0.0, 0.5, 1.0}, generate sinyal <code>sig = sin(2π*30*t) + 0.4*(1+2p)*np.random.randn(N)</code> dengan tambahan <code>int(100*p)</code> impak transient (decay × sin(2π·2000·t)) di lokasi acak. Pakai <code>np.random.seed(42)</code>, fs = 25600, N = fs*1, T = 1 detik. Hitung <strong>RMS pada p = 1.0</strong> (severe).</div>
+        <div class="comp-q">Hitung <strong>Gear Mesh Frequency (GMF)</strong> untuk pinion 25 gigi pada input shaft 1800 rpm. Formula: GMF = N_teeth · fr_pinion. Print nilainya (Hz).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Loop simulasi: untuk tiap p, build signal lengkap → hitung RMS dengan <code>np.sqrt(np.mean(sig**2))</code>. Untuk p=1.0 dengan banyak impak besar, RMS akan signifikan lebih tinggi dari healthy. Hasil bergantung impak random tetapi dengan seed=42 deterministic ≈ 1.5–2.5.</div>
+      <div class="comp-hint">💡 fr_pinion = 1800/60 = 30 Hz. <code>GMF = 25 × 30 = <strong>750 Hz</strong></code>. Diagnosa gear: lihat amplitudo GMF + sideband ±fr (eccentric) atau ±fr_gear (broken tooth).</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">RMS pada p=1.0</strong></span></div>
-        <textarea class="code-textarea" id="code-c12" rows="12" placeholder="Paste kode simulasi degradasi bearing lengkap, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c12')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">GMF (Hz)</strong></span></div>
+        <textarea class="code-textarea" id="code-c12" rows="12" placeholder="Paste kode GMF, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c12')"></textarea>
         <div class="stdout-box" id="stdout-c12"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c12" onclick="runAndCheck('c12', 2.0, 1.5, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c12" onclick="runAndCheck('c12', 750.0, 1.0, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c12"></div>
     </div>
 
@@ -2089,16 +2105,16 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C13</div>
-        <div class="comp-q">Implementasikan <strong>U-shape detection algorithm</strong>: dari trajectory crest factor sepanjang lifetime bearing (50 segmen), deteksi indeks puncak (early-fault) dan akhir trajectory (severe). Generate trajectory dengan formula CF(p) = 3 + 8·p·exp(−4p) + noise(0,0.2), p ∈ linspace(0,1,50), seed=42. Laporkan <strong>indeks segmen dengan CF puncak</strong> (argmax dari trajectory).</div>
+        <div class="comp-q">Hitung <strong>spectral kurtosis (SK)</strong> untuk lima nilai PSD dalam satu band: <code>P = [1, 2, 3, 4, 5]</code>. Normalisasi P jadi probabilitas, hitung mean &amp; var atas index k = [0,1,2,3,4], lalu SK = E[(k−μ)⁴]/var² (plain kurtosis, fisher=False). Print nilainya.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Trajectory: <code>p = np.linspace(0, 1, 50); cf = 3 + 8*p*np.exp(-4*p) + np.random.normal(0, 0.2, 50)</code>. Cari argmax. Puncak teoretis di p* = 1/4 = 0.25 → indeks ~12 (50·0.25). Hasil: <code>peak_idx = np.argmax(cf)</code>.</div>
+      <div class="comp-hint">💡 <code>p = np.array([1,2,3,4,5]) / 15; k = np.arange(5); mu = (k*p).sum(); var = ((k-mu)**2 * p).sum(); m4 = ((k-mu)**4 * p).sum(); SK = m4 / var**2</code>. μ ≈ 2.667, var ≈ 1.556, m4 ≈ 4.69 → SK ≈ <strong>1.94</strong>. Bisa pakai <code>scipy.stats.kurtosis(np.repeat(k, [1,2,3,4,5]), fisher=False)</code>.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">argmax indeks</strong></span></div>
-        <textarea class="code-textarea" id="code-c13" rows="10" placeholder="Paste kode U-shape detection lengkap, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c13')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">spectral kurtosis</strong></span></div>
+        <textarea class="code-textarea" id="code-c13" rows="10" placeholder="Paste kode spectral kurtosis, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c13')"></textarea>
         <div class="stdout-box" id="stdout-c13"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c13" onclick="runAndCheck('c13', 12.0, 4.0, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c13" onclick="runAndCheck('c13', 1.94, 0.1, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c13"></div>
     </div>
 
@@ -2106,16 +2122,16 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C14</div>
-        <div class="comp-q">Implementasikan <strong>klasifikasi healthy vs faulty berbasis threshold</strong>: untuk dataset referensi, injeksikan 5 impak besar di indeks [100, 250, 400, 600, 850] dengan amplitudo +5.0 (single sample) menjadi <code>x_faulty</code>. Hitung kurtosis x dan x_faulty. Laporkan <strong>selisih kurtosis</strong> (faulty − healthy) — harus positif besar karena impak menambah ekor distribusi.</div>
+        <div class="comp-q">Untuk Welch PSD pada fs = 12800 Hz, hitung <strong>nperseg minimum berupa pangkat 2</strong> agar Δf ≤ 0.5 Hz. Δf_welch = fs / nperseg → nperseg ≥ fs/Δf. Print pangkat 2 terkecil yang ≥ 25600.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>x_faulty = x.copy(); x_faulty[[100,250,400,600,850]] += 5.0</code>. Hitung <code>kurt_diff = kurtosis(x_faulty, fisher=False) - kurtosis(x, fisher=False)</code>. Untuk 5 spike besar: kurtosis x_faulty meningkat drastis (>5 vs 2.111 baseline). Selisih ≈ 5–10.</div>
+      <div class="comp-hint">💡 <code>min_n = ceil(12800/0.5) = 25600</code>. Pangkat 2 terkecil ≥ 25600 adalah 2¹⁵ = <strong>32768</strong>. Implementasi: <code>nperseg = 1 &lt;&lt; int(np.ceil(np.log2(25600)))</code> atau <code>2**int(np.ceil(np.log2(fs/df)))</code>.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">Δ kurtosis</strong></span></div>
-        <textarea class="code-textarea" id="code-c14" rows="12" placeholder="Paste kode klasifikasi threshold-based, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c14')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">nperseg (pangkat 2)</strong></span></div>
+        <textarea class="code-textarea" id="code-c14" rows="12" placeholder="Paste kode optimal nperseg, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c14')"></textarea>
         <div class="stdout-box" id="stdout-c14"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c14" onclick="runAndCheck('c14', 6.0, 4.0, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c14" onclick="runAndCheck('c14', 32768.0, 1.0, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c14"></div>
     </div>
 
@@ -2123,16 +2139,16 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C15</div>
-        <div class="comp-q">Implementasikan <strong>feature pipeline lengkap untuk segmen multi-channel</strong>: simulasikan 3 sensor (acc_x, acc_y, acc_z) dari dataset referensi tetapi acc_y = x*1.2, acc_z = x*0.8 (faktor channel). Untuk setiap channel hitung 12 fitur. Buat <strong>feature matrix</strong> dengan shape (3, 12). Laporkan <strong>jumlah total semua RMS</strong> dari 3 channel: <code>rms_total = sum(rms_channel for each)</code>.</div>
+        <div class="comp-q"><strong>Order tracking</strong>: shaft berputar 60 Hz, bearing 6205 (n=9, d/D=0.2034, α=0°). Hitung <strong>order BPFO = BPFO/fr</strong> — invariant terhadap kecepatan shaft, dipakai untuk variable-speed monitoring. Print nilainya (3 desimal).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 RMS scales linearly: RMS(α·x) = α·RMS(x). Jadi total = 1.0·RMS(x) + 1.2·RMS(x) + 0.8·RMS(x) = 3·RMS(x) ≈ 3·0.866 = 2.598. Implementasikan secara umum dengan loop atau matrix.</div>
+      <div class="comp-hint">💡 BPFO/fr = (n/2)·(1 − (d/D)·cosα) = 4.5·(1 − 0.2034) = 4.5·0.7966 = <strong>3.585</strong>. Order tracking pakai rasio frekuensi/fr, sehingga peak BPFO selalu di order 3.585 berapapun rpm shaft — sangat berguna untuk run-up/coast-down test.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">total RMS 3 channel</strong></span></div>
-        <textarea class="code-textarea" id="code-c15" rows="12" placeholder="Paste kode pipeline multi-channel feature extraction, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c15')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">order BPFO</strong></span></div>
+        <textarea class="code-textarea" id="code-c15" rows="12" placeholder="Paste kode order tracking, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c15')"></textarea>
         <div class="stdout-box" id="stdout-c15"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c15" onclick="runAndCheck('c15', 2.598, 0.05, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c15" onclick="runAndCheck('c15', 3.585, 0.01, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c15"></div>
     </div>
 
@@ -2177,15 +2193,15 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:10%;font-size:.9rem;color:var(--green);--dur:20s;--del:0s">RMS = √(1/N · Σx²)</span>
-    <span class="ff" style="left:40%;font-size:.8rem;color:var(--cyan);--dur:18s;--del:7s">CF = peak/RMS</span>
-    <span class="ff" style="left:65%;font-size:.75rem;color:var(--green);--dur:22s;--del:11s">Kurt &gt; 5 → impak</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--violet);--dur:19s;--del:5s">ISO 10816 alert</span>
+    <span class="ff" style="left:10%;font-size:.9rem;color:var(--green);--dur:20s;--del:0s">Δf = fs / N</span>
+    <span class="ff" style="left:40%;font-size:.8rem;color:var(--cyan);--dur:18s;--del:7s">BPFO = (n/2)·fr·(1−(d/D)cosα)</span>
+    <span class="ff" style="left:65%;font-size:.75rem;color:var(--green);--dur:22s;--del:11s">Envelope = |Hilbert(x_bp)|</span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--violet);--dur:19s;--del:5s">Nyquist = fs/2</span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Forum Diskusi · Pertemuan 7 · Frequency Domain Features</div>
-    <h1 class="hero-title" style="font-size:clamp(36px,5vw,60px)">Bearing Konveyor<br><em>yang Mulai Berisik</em></h1>
-    <p class="hero-sub">Analisis kasus pabrik kemasan yang memantau bearing konveyor dengan akselerometer 25 kHz. Tim mendapat anomali samar di sinyal vibrasi — apakah <em>impak transient awal</em> (early bearing fault) atau hanya noise mekanikal? Terapkan ekstraksi fitur domain frekuensi (RMS, CF, Kurtosis) untuk diagnosis kuantitatif sebelum failure terjadi.</p>
+    <h1 class="hero-title" style="font-size:clamp(36px,5vw,60px)">Spektrum Pompa<br><em>Peak Misterius di 88 Hz</em></h1>
+    <p class="hero-sub">Analisis kasus pabrik petrokimia: pompa sentrifugal motor 1480 rpm dengan bearing 6205 menunjukkan peak menonjol di 88 Hz pada FFT spectrum. Apakah ini <em>BPFO outer-race defect</em> atau peak elektrikal/struktural lain? Terapkan envelope analysis untuk konfirmasi diagnosa dan rekomendasikan tindakan sebelum bearing failure.</p>
   </div>
 </div>
 
@@ -2193,22 +2209,22 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
 
   <!-- SKENARIO -->
   <div class="section-label reveal cyan-label">Skenario</div>
-  <h2 class="section-title reveal">Bearing Konveyor<br>Stadium Awal Defect?</h2>
+  <h2 class="section-title reveal">Pompa Sentrifugal —<br>Peak BPFO di Spektrum</h2>
 
   <div class="forum-scenario reveal">
     <div class="scenario-label">📋 KASUS INDUSTRI</div>
     <p>
-      Seorang reliability engineer di pabrik <strong style="color:var(--amber)">kemasan minuman</strong> mendapat laporan operator: konveyor utama "terdengar berbeda" dalam 2 minggu terakhir — ada bunyi tick-tick samar yang tidak ada sebelumnya. Sensor akselerometer di bearing housing motor (25 kHz, 1 detik segmen) menunjukkan data berikut, dibandingkan dengan baseline 6 bulan lalu (kondisi healthy):
+      Seorang reliability engineer di pabrik <strong style="color:var(--amber)">petrokimia</strong> menjalankan analisa rutin pada pompa sentrifugal kritikal (motor induksi 1480 rpm, bearing housing 6205 di drive-end). Akselerometer (fs = 25.6 kHz, T = 4 detik) merekam sinyal vibrasi. FFT spectrum &amp; envelope spectrum menunjukkan pola berikut, dibandingkan dengan baseline 3 bulan lalu (kondisi healthy):
     </p>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:16px">
-      <div style="background:rgba(0,224,158,.05);border:1px solid rgba(0,224,158,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)">RMS: 0.85 → 0.95 (baseline)</div>
-      <div style="background:rgba(255,64,129,.05);border:1px solid rgba(255,64,129,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)">RMS: 0.95 → 1.12 (saat ini, +18%)</div>
-      <div style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet)">Crest Factor: 3.2 → 5.8 (+81%)</div>
-      <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">Kurtosis: 3.1 → 7.4 (+139%)</div>
-      <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">Skewness: 0.05 → 0.12 (~stabil)</div>
-      <div style="background:rgba(0,224,158,.05);border:1px solid rgba(0,224,158,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)">Peak: 2.7 → 6.5 (+141%)</div>
+      <div style="background:rgba(0,224,158,.05);border:1px solid rgba(0,224,158,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)">fr (shaft) = 24.67 Hz, peak stabil</div>
+      <div style="background:rgba(255,64,129,.05);border:1px solid rgba(255,64,129,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)">FFT raw: peak baru di 88.4 Hz (+12 dB)</div>
+      <div style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet)">Envelope spectrum: peak 88 Hz + harmonik 2× &amp; 3×</div>
+      <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">Sideband ±fr di 63 dan 113 Hz: lemah</div>
+      <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">Spectral kurtosis (band 2–4 kHz): naik dari 3.1 → 8.5</div>
+      <div style="background:rgba(0,224,158,.05);border:1px solid rgba(0,224,158,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)">RMS broadband: hanya naik +9% (masih in-spec)</div>
     </div>
-    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Pertanyaan kritis: Apakah ini <strong style="color:var(--cyan)">early bearing fault yang harus di-replace dalam minggu ini</strong>, atau cukup <em>monitoring intensif saja</em>? Mengapa RMS naik moderat (+18%) tapi <em>crest factor dan kurtosis</em> melonjak dramatis (+81% dan +139%)? Manakah pola fitur yang paling sesuai dengan <em>U-shape trajectory</em> bearing yang Anda pelajari? Jawabannya menentukan apakah pabrik harus shutdown line untuk replace bearing (cost: 4 jam downtime, ~Rp 50 juta) atau cukup tunggu jadwal maintenance reguler 2 minggu lagi.</p>
+    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Pertanyaan kritis: peak 88 Hz adalah <strong style="color:var(--cyan)">BPFO bearing 6205</strong> yang teoretisnya 88.4 Hz untuk shaft 1480 rpm — pas sekali. Tetapi apakah ini benar-benar outer-race defect, atau peak struktural/blade-pass pompa? Bagaimana envelope spectrum dengan harmonik BPFO &amp; spectral kurtosis tinggi mengkonfirmasi diagnosis? Jika ini benar early outer-race spalling, harus shutdown line untuk replace bearing (cost: 6 jam downtime, ~Rp 80 juta) atau cukup tunggu jadwal maintenance reguler 1 bulan lagi?</p>
   </div>
 
   <!-- Canvas Animasi Forum — Frequency Domain Feature Dashboard -->
@@ -2223,31 +2239,31 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
   <div class="fq-card reveal" id="fq1">
     <div class="fq-head" onclick="toggleFQ('fq1')">
       <div class="fq-num" style="background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.2);color:var(--cyan)">01</div>
-      <h3>Diagnosis: Apakah pola fitur menunjukkan early bearing fault, severe fault, atau noise mekanikal biasa?</h3>
+      <h3>Diagnosis: Apakah peak 88 Hz pada spektrum + envelope spectrum mengkonfirmasi outer-race defect?</h3>
       <span class="fq-arrow">›</span>
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Berdasarkan data fitur (RMS +18%, CF +81%, Kurtosis +139%, Peak +141%), klasifikasikan kondisi bearing. Jelaskan dengan teori <em>U-shape trajectory</em>: di stadium mana posisi bearing ini? Bandingkan pola fitur dengan tabel referensi (lihat Bagian 04 — Healthy: Kurt~3, CF~3; Early fault: Kurt 5–10, CF 4–6; Severe: Kurt &amp; CF turun lagi).</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Berdasarkan data: peak FFT 88.4 Hz cocok dengan BPFO bearing 6205 di 1480 rpm (≈88.42 Hz hasil C3). Envelope spectrum menunjukkan peak BPFO + harmonik 2× (≈177 Hz) dan 3× (≈265 Hz). Spectral kurtosis di band resonansi 2–4 kHz naik signifikan (3.1 → 8.5). Klasifikasikan kondisi bearing berdasarkan sinyatur ini.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">Kurt 7.4 = early fault zone</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">CF 5.8 = above healthy 3-4</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">RMS naik moderat</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">peak FFT @ BPFO teoretis</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">envelope: BPFO + harmonik 2×, 3×</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">SK band 2–4 kHz naik</span>
         </div>
 
         <div class="poll">
-          <div class="poll-q">QUICK CHECK — Berdasarkan pola fitur, bearing ini ada di stadium...</div>
+          <div class="poll-q">QUICK CHECK — Diagnosis paling tepat untuk pola spektrum ini adalah...</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Healthy — kenaikan terlalu kecil untuk dikhawatirkan</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>Early bearing fault — Kurt &amp; CF naik dramatis tapi RMS masih moderat (klasik U-shape rising phase)</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Severe fault — perlu shutdown SEKARANG</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Sensor faulty — bukan bearing</div>
+            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Peak struktural pompa (blade-pass) — abaikan saja</div>
+            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>Outer-race defect (BPFO) — peak FFT, harmonik di envelope, dan SK tinggi di band resonansi adalah signature lengkap</div>
+            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Misalignment shaft — biasanya muncul di 2× fr</div>
+            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Imbalance rotor — peak utama pasti di 1× fr</div>
           </div>
-          <div class="p-fb r" id="fp1r">✅ Tepat! Pola <strong>Kurt 7.4 + CF 5.8 dengan RMS hanya naik moderat (+18%)</strong> adalah <em>signature klasik early bearing fault</em>. Impak transient singkat menaikkan peak (dan dengan itu CF dan Kurt) tetapi belum cukup banyak untuk mengangkat RMS dramatis. Posisi di trajectory: <em>rising phase dari U-shape</em>. Bila dibiarkan, kerusakan akan progresif: Kurt &amp; CF akan terus naik beberapa minggu, lalu turun lagi saat severe (di mana RMS akan melonjak naik). <strong>Action: monitoring intensif + plan replacement dalam 1-2 minggu</strong> — tidak perlu shutdown emergency, tapi jangan tunggu jadwal reguler 2 bulan.</div>
-          <div class="p-fb w" id="fp1w">❌ Pelajari kembali tabel U-shape di Bagian 04. Healthy: Kurt~3, CF~3 (tidak match data). Severe: Kurt &amp; CF justru turun (juga tidak match). Pola data ini paling cocok dengan early fault zone. Kenaikan +139% pada kurtosis sangat signifikan — bukan noise mekanikal biasa.</div>
+          <div class="p-fb r" id="fp1r">✅ Tepat! Tiga indikator sekaligus mengarah ke outer-race defect: (1) <strong>peak FFT raw 88.4 Hz</strong> persis BPFO 6205 di 1480 rpm (selisih &lt;0.3 Hz dari teori); (2) <strong>envelope spectrum</strong> menunjukkan BPFO + harmonik 2× dan 3× — pola periodik impak yang khas; (3) <strong>spectral kurtosis</strong> di band resonansi 2–4 kHz naik dramatic (3 → 8.5), menunjukkan impak transient pada band tersebut. Outer-race defect adalah jenis bearing fault paling umum (~80% kasus) dan sideband ±fr lemah cocok dengan posisi defect di outer race (tidak ter-modulasi load zone). <strong>Action: plan replacement dalam 2–4 minggu</strong> — masih ada waktu, tapi monitoring weekly dengan trend envelope amplitude.</div>
+          <div class="p-fb w" id="fp1w">❌ Periksa kembali. Blade-pass biasanya kelipatan jumlah blade × fr (misal 6 blade × 24.67 = 148 Hz, bukan 88 Hz). Misalignment dominan di 2·fr ≈ 49 Hz. Imbalance dominan di 1·fr ≈ 24.67 Hz. Hanya BPFO yang predict 88 Hz untuk geometri 6205 dan rpm 1480 — apalagi diperkuat envelope spectrum dengan harmonik dan spectral kurtosis tinggi.</div>
         </div>
 
-        <textarea class="fq-textarea" id="ans-fq1" placeholder="Tulis diagnosis Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Sebutkan stadium bearing (healthy/early/severe). (2) Jelaskan reasoning: pola fitur mana yang konsisten dengan teori U-shape, mana yang tidak. (3) Rekomendasi action: monitoring? plan replacement? emergency shutdown? Dengan justifikasi cost-benefit (downtime vs risiko failure)." oninput="checkForumReady()"></textarea>
+        <textarea class="fq-textarea" id="ans-fq1" placeholder="Tulis diagnosis Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Konfirmasi peak 88 Hz dengan formula BPFO. (2) Mengapa envelope spectrum + harmonik adalah bukti kuat. (3) Mengapa spectral kurtosis tinggi di band resonansi mendukung diagnosa. (4) Rekomendasi action: replacement schedule + monitoring strategy dengan justifikasi cost-benefit." oninput="checkForumReady()"></textarea>
         <div id="wc-fq1" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right;">0 / min 30 kata</div>
       </div>
     </div>
@@ -2257,29 +2273,29 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
   <div class="fq-card reveal" id="fq2">
     <div class="fq-head" onclick="toggleFQ('fq2')">
       <div class="fq-num" style="background:rgba(255,64,129,.1);border:1px solid rgba(255,64,129,.2);color:var(--amber)">02</div>
-      <h3>Mengapa RMS, CF, dan Kurtosis berubah dengan rasio yang berbeda? Apa implikasinya untuk monitoring strategy?</h3>
+      <h3>Mengapa envelope analysis lebih sensitif untuk early bearing fault dibanding FFT raw? Jelaskan dari sudut pandang signal processing.</h3>
       <span class="fq-arrow">›</span>
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">RMS naik +18%, sementara CF naik +81% dan Kurtosis +139%. Mengapa kurtosis lebih sensitif dari RMS? Jelaskan secara matematis (gunakan sifat orde momen) dan secara fisik (apa yang sedang terjadi di bearing). Lalu rancang strategi monitoring multi-fitur yang memanfaatkan sensitivitas berbeda.</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Pada early bearing fault, peak BPFO seringkali tertutupi oleh komponen dominan low-frequency (1×fr, 2×fr, blade-pass, dll). Envelope analysis (bandpass band resonansi 2–4 kHz → Hilbert transform → FFT envelope) men-demodulasi <em>impulse train</em> yang terkubur di band high-frequency. Jelaskan secara matematis dan visual mengapa pendekatan ini superior.</p>
         <div style="background:rgba(255,64,129,.04);border:1px solid rgba(255,64,129,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);margin-bottom:12px">
-          💬 <em>Petunjuk matematis: RMS = √(orde 2), Kurtosis = orde 4 ternormalisasi. Pangkat lebih tinggi → lebih responsif terhadap nilai ekstrem. Single spike amplitudo 5× rata-rata: kontribusi ke RMS² ~25, kontribusi ke moment-4 ~625. Inilah mengapa kurtosis "melonjak" pertama saat ada impak transient kecil.</em>
+          💬 <em>Petunjuk: bearing impak menghasilkan model "impulse train × resonance carrier" — energi periodik di rate BPFO termodulasi pada frekuensi resonansi housing (~beberapa kHz). FFT raw melihat resonansi sebagai broadband bump yang sulit di-isolasi. Bandpass + Hilbert mengekstrak amplitudo termodulasi (envelope), dan FFT envelope mengembalikan rate BPFO sebagai peak tajam.</em>
         </div>
 
         <div class="poll">
-          <div class="poll-q">QUICK CHECK — Strategi monitoring yang paling efektif?</div>
+          <div class="poll-q">QUICK CHECK — Pendekatan terbaik untuk identifikasi early bearing fault adalah...</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Pakai RMS saja — simple dan sesuai ISO 10816</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Pakai Kurtosis saja — paling sensitif, jadi paling cepat alert</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>Multi-fitur tier alarm: Kurtosis untuk early warning, RMS untuk severity, CF untuk konfirmasi U-shape</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Tidak perlu monitoring — biar model ML otomatis</div>
+            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>FFT raw saja — cari peak tertinggi langsung</div>
+            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Time-domain features (RMS, kurtosis) — paling cepat &amp; murah</div>
+            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>Envelope analysis (bandpass + Hilbert + FFT) di band resonansi yang dipilih via kurtogram</div>
+            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Pakai sinyal raw mentah, biar AI yang belajar</div>
           </div>
-          <div class="p-fb r" id="fp2r">✅ Tepat! <strong>Kombinasi multi-fitur</strong> adalah praktik industri standard. Tier 1 (early warning, monitor lebih sering): <em>Kurtosis &gt; 5 atau CF &gt; 4</em>. Tier 2 (alert, plan replacement): <em>Kurt &gt; 8 dan RMS naik &gt; 30%</em>. Tier 3 (critical, immediate action): <em>RMS &gt; ISO 10816 unsatisfactory threshold</em>. Pakai Kurtosis saja akan trigger banyak false positive saat operasi normal yang impulsif (gear engagement, belt slap). Pakai RMS saja terlambat — bearing sudah severe sebelum alert. Multi-fitur memberi <em>signal-to-noise ratio terbaik</em>.</div>
-          <div class="p-fb w" id="fp2w">❌ ISO 10816 RMS-only adalah baseline minimum, bukan optimal. Single-feature monitoring rentan: terlalu sensitif (pakai kurtosis saja) atau terlalu telat (pakai RMS saja). "Biar ML belajar" tanpa engineered features butuh data labeled berlimpah yang jarang tersedia di industri. Multi-fitur engineering features tetap juara untuk monitoring praktis.</div>
+          <div class="p-fb r" id="fp2r">✅ Tepat! <strong>Envelope analysis</strong> adalah gold standard untuk diagnosa bearing (Randall &amp; Antoni, 2011). Pipeline: (1) <em>Kurtogram</em> untuk pilih band resonansi optimal (band dengan spectral kurtosis tertinggi); (2) <em>Bandpass</em> filter untuk isolasi resonansi yang dimodulasi; (3) <em>Hilbert transform</em> untuk ekstrak envelope (amplitudo instantan); (4) <em>FFT envelope</em> untuk reveal rate impak (BPFO/BPFI/FTF). FFT raw saja sering miss early fault karena energi BPFO masih kecil dibanding fr/2fr/3fr. Time-domain features (RMS, kurtosis) memberi sinyal "ada masalah" tetapi tidak bisa <em>identifikasi tipe defect</em> — envelope spectrum bisa: peak BPFO → outer race, peak BPFI + sideband ±fr → inner race, peak FTF → cage.</div>
+          <div class="p-fb w" id="fp2w">❌ FFT raw rentan terhadap dominansi komponen low-frequency (fr, blade-pass, line frequency); peak BPFO sering tenggelam. Time-domain features tidak bisa membedakan jenis defect. ML "blackbox" tanpa preprocessing yang tepat butuh ribuan label data — tidak realistis untuk most industrial setting. Envelope analysis tetap juara karena memanfaatkan struktur fisik fenomena bearing fault.</div>
         </div>
 
-        <textarea class="fq-textarea" id="ans-fq2" placeholder="Tulis penjelasan dan strategi Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Penjelasan matematis: hubungkan momen orde tinggi dengan sensitivitas. (2) Penjelasan fisik: apa yang terjadi di bearing yang membuat sinyal impulsif. (3) Rancang tier alarm: threshold konkret untuk Tier 1 (warning), Tier 2 (alert), Tier 3 (critical). (4) Mengapa multi-fitur lebih baik daripada single-fitur." oninput="checkForumReady()"></textarea>
+        <textarea class="fq-textarea" id="ans-fq2" placeholder="Tulis penjelasan Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Model fisik: impak bearing → impulse train × resonance carrier. (2) Mengapa FFT raw sulit lihat early defect (energi BPFO terkubur). (3) Mengapa bandpass + Hilbert + FFT envelope bekerja: demodulasi sinyal AM. (4) Bagaimana kurtogram membantu pilih band optimal." oninput="checkForumReady()"></textarea>
         <div id="wc-fq2" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right;">0 / min 30 kata</div>
       </div>
     </div>
@@ -2289,22 +2305,22 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
   <div class="fq-card reveal" id="fq3">
     <div class="fq-head" onclick="toggleFQ('fq3')">
       <div class="fq-num" style="background:rgba(0,224,158,.1);border:1px solid rgba(0,224,158,.2);color:var(--green)">03</div>
-      <h3>Rancang fungsi extract_features() yang akan dijalankan di edge device 24/7 — kompromi apa yang Anda buat?</h3>
+      <h3>Rancang pipeline edge-computing untuk monitoring spektrum + envelope + alert threshold otomatis — kompromi apa yang Anda buat?</h3>
       <span class="fq-arrow">›</span>
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Pabrik akan deploy monitoring system di <strong>edge device</strong> (ESP32 atau Raspberry Pi Zero) — komputasi terbatas, tidak boleh terlalu sering kirim data ke cloud (cost bandwidth). Rancang fungsi <code>extract_features(x)</code>: 12 fitur mana yang Anda hitung, frekuensi sampling berapa, window berapa detik, kapan kirim alarm vs kirim summary biasa, kompromi yang ada.</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Pabrik akan deploy bearing monitoring di <strong>edge device</strong> (Raspberry Pi 4 atau industrial gateway) — komputasi terbatas, tidak boleh terlalu sering kirim data ke cloud. Rancang pipeline: sampling rate &amp; window length, FFT/Welch parameter (nperseg, window), apakah envelope analysis dilakukan di edge atau cloud, fitur frekuensi mana yang dikirim, alert threshold otomatis untuk peak BPFO/BPFI.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">fs = 25 kHz</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">window 1 detik</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">bandwidth budget 2 KB/menit</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">fs = 25.6 kHz (oversample 10× BPFO max)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">snapshot 4 detik per 5 menit</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">bandwidth budget 5 KB/menit</span>
         </div>
         <div style="background:rgba(0,224,158,.04);border:1px solid rgba(0,224,158,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);">
-          💬 <em>Tidak ada jawaban tunggal — yang dinilai adalah pemahaman trade-off engineering. Pertimbangan: (1) komputasi: square mean (cheap) vs kurtosis (mahal momen-4). (2) bandwidth: kirim tiap 60 detik dengan 12 angka (~96 byte) bisa, kirim raw signal tidak. (3) alarm policy: kirim instan saat threshold breach, sampling biasa per menit untuk normal. (4) edge cache: simpan 1 jam terakhir untuk forensic saat fault detected.</em>
+          💬 <em>Tidak ada jawaban tunggal — yang dinilai adalah pemahaman trade-off engineering. Pertimbangan: (1) komputasi edge: FFT 4096-pt cepat (~ms di Pi 4), envelope analysis (bandpass + Hilbert + FFT) lebih berat tetapi feasible. (2) bandwidth: kirim 12 frequency-domain features (~96 byte) + amplitudo top-5 peaks (~40 byte) tiap snapshot, raw signal hanya saat alert. (3) alert: peak amplitudo BPFO/BPFI/FTF di envelope spectrum &gt; baseline·3σ, kirim segera ke cloud + simpan 30 detik raw untuk forensic. (4) order tracking jika kecepatan variable. (5) baseline learning: 2 minggu pertama sebagai healthy reference.</em>
         </div>
 
-        <textarea class="fq-textarea" id="ans-fq3" placeholder="Tulis rancangan extract_features() Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) 12 fitur dipilih: mengapa? (atau hanya subset jika resource terbatas?). (2) Frekuensi pengiriman: per detik, per menit, per jam? (3) Alarm policy: instant push untuk apa? (4) Edge caching strategy. (5) Trade-off bandwidth vs latency vs accuracy yang Anda pilih." oninput="checkForumReady()"></textarea>
+        <textarea class="fq-textarea" id="ans-fq3" placeholder="Tulis rancangan pipeline Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Sampling rate &amp; durasi snapshot: kenapa? (2) FFT vs Welch: parameter dan tradeoff. (3) Envelope analysis: di edge atau cloud? (4) Fitur yang dikirim ke cloud: kenapa subset itu cukup. (5) Threshold otomatis: bagaimana adaptasi terhadap baseline mesin spesifik. (6) Trade-off bandwidth vs latency vs accuracy yang Anda pilih." oninput="checkForumReady()"></textarea>
         <div id="wc-fq3" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right;">0 / min 30 kata</div>
       </div>
     </div>
@@ -2354,7 +2370,7 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
 </div><!-- end section -->
 
 <footer>
-  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Forum 6 — Ekstraksi Fitur Domain Frekuensi · Optimalisasi & Automasi · S1 Teknik Mesin · Universitas Mercu Buana</p>
+  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Forum 7 — Ekstraksi Fitur Domain Frekuensi · Optimalisasi & Automasi · S1 Teknik Mesin · Universitas Mercu Buana</p>
 </footer>
 </div><!-- end page-forum -->
 
@@ -2371,10 +2387,10 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
   </div>
   <div class="float-formulas">
     <span class="ff" style="left:6%;font-size:.9rem;color:var(--violet);--dur:22s;--del:0s">✅ Tepat Waktu</span>
-    <span class="ff" style="left:28%;font-size:.75rem;color:var(--pink);--dur:18s;--del:4s">RMS = √(Σx²/N)</span>
-    <span class="ff" style="left:52%;font-size:.85rem;color:var(--amber);--dur:20s;--del:8s">CF = peak/RMS</span>
+    <span class="ff" style="left:28%;font-size:.75rem;color:var(--pink);--dur:18s;--del:4s">Δf = fs / N</span>
+    <span class="ff" style="left:52%;font-size:.85rem;color:var(--amber);--dur:20s;--del:8s">BPFO/fr ≈ 3.59</span>
     <span class="ff" style="left:70%;font-size:.7rem;color:var(--pink);--dur:24s;--del:2s">🏆 Top Skor</span>
-    <span class="ff" style="left:85%;font-size:.8rem;color:var(--cyan);--dur:16s;--del:11s">Kurt &gt; 3 → impulsif</span>
+    <span class="ff" style="left:85%;font-size:.8rem;color:var(--cyan);--dur:16s;--del:11s">env = |Hilbert(x)|</span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Pertemuan 7 &nbsp;·&nbsp; Hasil &amp; Kehadiran</div>
@@ -2687,43 +2703,43 @@ let mcAnswered = {}, mcScores = {};
 const MC_HINTS = {
   mc1: {
     answer: 'B',
-    explain: 'Definisi <strong>RMS</strong>: <code>RMS = √[(1/N) Σ x<sub>i</sub>²]</code>. Operasinya adalah <em>square → mean → square root</em>. Pilihan (A) adalah <em>mean absolute</em>, (C) adalah <em>peak-to-peak</em>, dan (D) adalah <em>arithmetic mean</em>. RMS mewakili <strong>akar dari energi rata-rata</strong> sinyal — proxy paling stabil untuk amplitudo getaran karena tahan terhadap spike (kuadrat memberi bobot besar pada nilai besar, lalu akar mengembalikan satuan).'
+    explain: '<strong>FFT</strong> (Fast Fourier Transform) bukan transformasi yang berbeda dari DFT — keduanya menghitung koefisien Fourier diskrit yang sama. FFT adalah <em>algoritma efisien</em> (Cooley–Tukey, 1965) yang mengeksploitasi simetri akar-akar unity untuk men-factorize komputasi: <code>O(N²) → O(N·log N)</code>. Untuk N = 8192, ini speedup ~600×. (A) salah karena hasil sama persis. (C) salah karena DFT/FFT bekerja untuk sinyal apapun. (D) salah secara fundamental.'
   },
   mc2: {
     answer: 'B',
-    explain: 'Hubungan eksak: <code>RMS² = μ² + σ²</code>. Untuk sinyal AC-coupled (μ ≈ 0), suku μ² hilang → <code>RMS ≈ σ</code>. Inilah sebabnya banyak vendor menyebut "RMS" dan "σ" secara bergantian untuk vibrasi accelerometer yang DC-blocked. Pilihan (A) salah karena RMS ≥ σ dengan kesetaraan saat μ = 0. Untuk DC-coupled signal dengan offset besar, RMS bisa jauh lebih besar dari σ.'
+    explain: 'Resolusi frekuensi: <code>Δf = fs / N = 1/T</code> dengan T durasi rekaman. Untuk fs = 10000 Hz dan N = 8192, Δf ≈ 1.22 Hz. Untuk membedakan dua peak yang berdekatan (kriteria Rayleigh), Δf harus &lt; selisihnya. Cara memperhalus: tambah <em>durasi rekaman</em> (N besar untuk fs tetap), BUKAN zero-padding (yang hanya interpolasi visual). Trade-off: T panjang berarti latensi diagnosis lebih lama dan asumsi stasioneritas mungkin gagal.'
   },
   mc3: {
     answer: 'B',
-    explain: 'Definisi <strong>Crest Factor</strong>: <code>CF = peak / RMS = max|x<sub>i</sub>| / RMS</code>. Dimensionless — rasio amplitudo puncak terhadap energi efektif. Pilihan (A) adalah PP/Mean (tidak ada nama), (C) adalah ratio yang ≈ 1 untuk AC-coupled, (D) tidak punya makna fisis. CF tinggi → sinyal punya impak transient (peak >> RMS); CF ≈ 1.41 → sinusoidal murni; CF ≈ 1 → square wave.'
+    explain: '<strong>Spectral leakage</strong> terjadi ketika sinyal sinusoidal tidak periodik dalam window FFT — DFT memperlakukan window sebagai 1 periode dan jump diskon­tinu di batas akan menyebar energi ke seluruh bin (skirt). Window function (Hann, Hamming, Blackman, Flat-top) memodulasi sinyal dengan amplitudo nol di tepi, sehingga discontinuity hilang dan leakage berkurang dramatis. Trade-off: main-lobe melebar (resolusi turun sedikit), tetapi side-lobe attenuation jauh lebih baik.'
   },
   mc4: {
     answer: 'B',
-    explain: 'Untuk sinusoidal murni <code>x(t) = A·sin(ωt)</code>: peak = A, RMS = A/√2. Maka <code>CF = A / (A/√2) = √2 ≈ 1.414</code>. Nilai ini adalah <em>baseline universal</em> — jika sinyal terukur memiliki CF jauh di atas √2 (misal 4–7), itu sinyal indikator kuat ada impak transient (defect bearing, gear cracking, dll). CF = 1 (A) hanya untuk square wave, π (D) untuk distribusi tertentu yang tidak relevan di sini.'
+    explain: 'rfft mengembalikan N/2+1 bin (DC sampai Nyquist). Karena energi simetris untuk sinyal real, energi pada bin negatif "dilipat" ke positif — faktor <strong>2/N</strong> mengembalikan amplitudo fisik untuk semua bin <em>kecuali</em> DC dan Nyquist (yang punya hanya 1 sisi, jadi tetap 1/N). Tanpa scaling 2/N, amplitudo sinusoidal A·sin(2πf·t) akan tampak sebagai A/2 di spectrum — kesalahan klasik pemula.'
   },
   mc5: {
-    answer: 'C',
-    explain: 'Definisi plain (non-excess) <strong>kurtosis</strong>: <code>K = E[(x−μ)⁴] / σ⁴</code>. Untuk distribusi Gaussian, <code>K = 3</code> secara eksak. Banyak library (numpy <code>scipy.stats.kurtosis</code> default) memakai <em>excess kurtosis</em> = K − 3, sehingga Gaussian → 0 — pastikan baca dokumentasi! Pilihan (A) benar hanya untuk excess. Sinyal vibrasi dengan K ≈ 3 menunjukkan distribusi mendekati Gaussian (sehat); K &gt; 3 → impulsif; K &lt; 3 → bounded/clipped.'
+    answer: 'B',
+    explain: '<strong>Periodogram</strong> = |FFT|²/N, satu segmen → variansi tinggi (estimator tidak konsisten meski N→∞). <strong>Welch method</strong> membagi sinyal jadi K segmen overlap, average periodogram-nya: <code>variansi turun ~1/K</code>. Trade-off: tiap segmen lebih pendek → Δf = fs/nperseg lebih kasar. Praktik: nperseg = 2¹⁰–2¹⁴, overlap 50% (Hann window), 5–10 segmen rata-rata. (A) salah, (C) salah karena Welch bisa pakai window apapun, (D) tidak benar.'
   },
   mc6: {
-    answer: 'C',
-    explain: '<strong>Crest Factor &amp; Kurtosis</strong> mendeteksi kerusakan bearing <em>jauh lebih dini</em> dari RMS. Mengapa? Defect awal hanya menambah <em>impak transient pendek</em> — peak naik tajam tetapi durasinya singkat, sehingga RMS (energi rata-rata) <em>belum berubah</em>. CF = peak/RMS → naik karena pembilang naik tetapi penyebut tetap. Kurtosis (orde 4) menangkap "ekor" distribusi yang baru muncul. Mean (A) tidak relevan untuk AC-coupled. RMS (B) baru naik di stadium lanjut. Skewness (D) tidak monoton terhadap stadium kerusakan.'
+    answer: 'B',
+    explain: 'Formula bearing fault (Harris): <code>BPFI = (n/2)·fr·(1 + (d/D)·cosα)</code>, <code>BPFO = (n/2)·fr·(1 − (d/D)·cosα)</code>. Untuk α &lt; 90° (selalu), suku (1 + ratio) &gt; (1 − ratio) → <strong>BPFI &gt; BPFO</strong>. Catatan: BPFI + BPFO = n·fr (sum constant). Untuk 6205 dengan d/D ≈ 0.2034: BPFI/fr ≈ 5.41, BPFO/fr ≈ 3.59 — selisihnya 2·(d/D)·(n/2) = 1.83.'
   },
   mc7: {
     answer: 'B',
-    explain: 'Fenomena <strong>U-shape</strong>: pada kerusakan parah, impak terjadi <em>setiap saat</em> — bukan lagi spike singkat-singkat. Akibatnya peak dan RMS <em>naik bersamaan</em> proporsional, sehingga <code>CF = peak/RMS</code> kembali turun. Distribusi sinyal kembali mendekati Gaussian → kurtosis turun ke ≈3. Ini sebabnya CF/Kurt saja tidak cukup — engineer harus memantau RMS bersamaan: CF turun + RMS naik = severe (tidak healthy seperti CF rendah awal).'
+    explain: 'Pipeline klasik <strong>envelope analysis</strong> untuk diagnosa bearing (Randall &amp; Antoni, 2011): (1) <strong>Bandpass filter</strong> di band resonansi housing (~2–10 kHz) — isolasi modulasi impak; (2) <strong>Hilbert transform</strong> untuk extract envelope (amplitudo instantan = |x_analytic|); (3) <strong>FFT envelope</strong> untuk tampilkan rate impak (BPFO/BPFI/FTF/BSF). Optimal band dipilih via kurtogram (band dengan spectral kurtosis tertinggi). FFT raw (A) sering gagal karena energi rate impak tertimpa low-freq dominan.'
   },
   mc8: {
-    answer: 'C',
-    explain: 'Standar <strong>ISO 10816</strong> mendefinisikan zona kondisi mesin (A: good, B: acceptable, C: unsatisfactory, D: damage) berdasarkan <strong>RMS velocity (mm/s)</strong> di band 10–1000 Hz. RMS dipilih karena <em>tahan spike noise</em> (1 sample anomali tidak banyak merubah RMS), <em>repeatable</em> antar instrumen, dan <em>terkorelasi langsung</em> dengan energi getaran. Peak (A) terlalu sensitif noise listrik. Displacement (B) cocok hanya untuk mesin lambat. Kurtosis (D) bukan bagian standar ISO 10816 — meski berguna sebagai feature ML.'
+    answer: 'B',
+    explain: 'Teorema <strong>Nyquist–Shannon</strong>: untuk merekonstruksi sinyal yang berisi komponen hingga f_max, sampling rate fs harus &gt; 2·f_max (Nyquist rate). Praktik bearing monitoring: oversample 5–10× BPFO/BPFI maksimum atau bandwidth resonansi yang dipakai untuk envelope analysis. Jika tidak: aliasing — frekuensi di atas fs/2 ter-fold ke band &lt;fs/2 dan muncul sebagai peak palsu. Solusi: anti-alias low-pass filter analog sebelum ADC.'
   },
   mc9: {
     answer: 'B',
-    explain: 'Definisi <strong>skewness</strong>: <code>γ₁ = E[(x−μ)³]/σ³</code>. Tanda mengikuti arah ekor distribusi — ekor di kanan (positif) → momen ke-3 dominan oleh nilai besar positif → skewness <strong>positif</strong>. Aturan praktis: |skew| &lt; 0.5 ≈ simetris, 0.5–1 moderat asimetris, &gt; 1 sangat asimetris. Pada strain gauge blade turbin angin yang mengalami icing asimetris, skewness drift positif/negatif menjadi indikator dini pergeseran load.'
+    explain: '<strong>Teorema Parseval</strong> (versi diskrit): <code>Σ|x_n|² = (1/N) Σ|X_k|²</code>. Energi total domain waktu = energi total domain frekuensi (modulo faktor normalisasi). Konsekuensi: total power dari PSD harus = N·mean(x²) — verifikasi numerik penting untuk debugging implementasi FFT/PSD. Berlaku untuk sinyal apapun (tidak hanya sinusoidal). (A), (C), (D) salah secara fundamental.'
   },
   mc10: {
     answer: 'B',
-    explain: 'Tidak ada satu fitur pun yang monoton terhadap stadium kerusakan — fenomena <strong>U-shape CF/Kurt</strong> contohnya. RMS lambat di defect awal, tetapi naik andal di stadium parah. CF/Kurt sensitif di defect dini tetapi turun lagi di stadium severe. Skewness mendeteksi asimetri load. <strong>Kombinasi multi-fitur</strong> mendisambiguasi stadium dan jenis kerusakan — fitur saling melengkapi. Pilihan (A) salah karena curse of dimensionality nyata. (C) salah karena fitur orde rendah (mean, std) justru fundamental. (D) salah karena banyak fitur memang berfungsi, hanya tidak universal.'
+    explain: 'FFT mengasumsikan sinyal <strong>stasioner</strong> di window analisa. Saat motor run-up (kecepatan berubah dari 0 → 1500 rpm), frekuensi shaft (fr) dan harmoniknya berubah seiring waktu — peak akan "smeared" di FFT tunggal. <strong>Spectrogram (STFT)</strong> menampilkan frekuensi vs waktu (membagi sinyal jadi window pendek). <strong>Order tracking</strong> me-resample sinyal pada interval sudut konstan (bukan waktu konstan) → spectrum dalam unit "order" (kelipatan fr) yang invariant terhadap kecepatan. Welch (C) sama-sama asumsi stasioner.'
   }
 };
 
@@ -3000,64 +3016,64 @@ let compAnswered = {}, compScores = {};
 // Ditampilkan saat soal dikunci karena kode salah/error, sebagai panduan belajar.
 const COMP_HINTS = {
   c1: {
-    answer: '≈ 0.000',
-    explain: 'Sinyal <code>x = sin(2π·i/100) + 0.5·(−1)<sup>i</sup></code> untuk i = 0..999. Komponen sinusoidal periode 100 rapi melengkapi N=1000 (10 siklus penuh) → mean = 0. Komponen alternating ±0.5: N genap → +0.5 dan −0.5 muncul masing-masing 500 kali → mean = 0. Total: <code>np.mean(x) = <strong>0.0</strong></code> (eksak). Ini sinyal <em>AC-coupled</em> ideal — tidak ada DC offset.'
+    answer: '≈ 1.2207 Hz',
+    explain: 'Resolusi frekuensi: <code>Δf = fs / N = 10000 / 8192 ≈ <strong>1.2207 Hz</strong></code>. Untuk membedakan dua peak pada frekuensi berdekatan, Δf harus lebih kecil dari selisihnya (kriteria Rayleigh). Memperhalus Δf dilakukan dengan menambah durasi rekaman T = N/fs, BUKAN dengan zero-padding (zero-padding hanya interpolasi, tidak menambah resolusi sejati).'
   },
   c2: {
-    answer: '≈ 0.866',
-    explain: 'Karena μ = 0, varians = E[x²]. Komponen sinusoidal kontribusi <code>1/2 = 0.5</code> ke E[x²], komponen alternating kontribusi <code>0.5² = 0.25</code>, cross term rata-rata 0. Total <code>E[x²] = 0.75</code> → <code>std = √0.75 ≈ <strong>0.866</strong></code>. Ini ekuivalen <code>np.std(x, ddof=0)</code>. Dengan <code>ddof=1</code> hasilnya sedikit lebih besar (faktor √(N/(N−1)) ≈ 1.0005).'
+    answer: '= 60.00 Hz',
+    explain: 'Sinyal sinusoidal murni 60 Hz dengan fs=2000 Hz dan N=4000 menghasilkan Δf = 0.5 Hz. Bin 60 Hz tepat hit di indeks k = 60/0.5 = 120 → tidak ada spectral leakage. <code>peak_freq = f[np.argmax(np.abs(rfft(x)))] = <strong>60.00 Hz</strong></code>. Jika frekuensi sinyal tidak tepat di bin (mis. 60.3 Hz), spectral leakage akan menyebar energi ke bin tetangga.'
   },
   c3: {
-    answer: '≈ 0.866',
-    explain: 'Hubungan <code>RMS² = μ² + σ²</code>. Karena μ = 0, RMS = σ = <strong>0.866</strong>. Implementasi: <code>np.sqrt(np.mean(x**2))</code>. Konfirmasi numerik: jangan gunakan <code>x.var()</code> dengan default ddof=1 jika ingin nilai populasi murni. RMS dipakai sebagai indikator energi rata-rata sinyal — basis ISO 10816 untuk vibration severity.'
+    answer: '≈ 88.42 Hz',
+    explain: 'fr = 1480/60 ≈ 24.667 Hz. <code>BPFO = (n/2)·fr·(1 − (d/D)·cosα) = 4.5 × 24.667 × (1 − 0.2034) = 4.5 × 24.667 × 0.7966 ≈ <strong>88.42 Hz</strong></code>. BPFO adalah frekuensi karakteristik untuk outer-race defect — peak di sini (atau harmoniknya) adalah signature spalling pada outer race. Bandingkan dengan BPFO/fr ≈ 3.585 (rasio invariant kecepatan).'
   },
   c4: {
-    answer: '= 1.5',
-    explain: '<code>peak = max|x<sub>i</sub>|</code>. Untuk i di mana sin(2π·i/100) = +1, kontribusi dari (−1)<sup>i</sup>·0.5 maksimal jika i juga genap (−1)<sup>i</sup>=+1, atau jika alternating sign sama dengan tanda sinusoidal. i=25: sin(π/2)=1, (−1)²⁵=−1 → x=0.5. i=125: sin(5π/2)=1, (−1)¹²⁵=−1 → x=0.5. Cek i=24: sin=0.951, (−1)²⁴=+1 → x=1.451. i=50: sin=0, (−1)⁵⁰=+1 → x=0.5. Maksimum global: <code>np.max(np.abs(x)) = <strong>1.5</strong></code> tercapai saat sin=+1 dan alternating=+0.5 (atau cermin negatif). Untuk i dengan sinusoidal=+1 di lokasi yang tepat (titik puncak yang juga genap).'
+    answer: '≈ 133.58 Hz',
+    explain: '<code>BPFI = (n/2)·fr·(1 + (d/D)·cosα) = 4.5 × 24.667 × 1.2034 ≈ <strong>133.58 Hz</strong></code>. Karena rumus BPFI memakai (1+), nilainya selalu LEBIH BESAR dari BPFO untuk geometri yang sama. Inner-race defect biasanya juga menghasilkan sideband ±fr (modulasi load zone saat shaft berputar). BPFI/fr ≈ 5.415.'
   },
   c5: {
-    answer: '≈ 3.0',
-    explain: 'Peak-to-peak: <code>PP = max(x) − min(x)</code>. Karena sinyal simetris terhadap 0, max(x) ≈ +1.5 dan min(x) ≈ −1.5 → <code>PP = <strong>3.0</strong></code>. Dipakai industri untuk monitor vibrasi <em>displacement</em> mesin lambat. Sangat sensitif terhadap single spike — pre-filter median sebelum hitung PP.'
+    answer: '≈ 9.82 Hz',
+    explain: '<code>FTF = (fr/2)·(1 − (d/D)·cosα) = (24.667/2) × 0.7966 = 12.333 × 0.7966 ≈ <strong>9.82 Hz</strong></code>. FTF (cage frequency) adalah yang paling rendah di antara fault frequencies. Defect pada cage jarang muncul sebagai single peak besar — biasanya muncul sebagai modulasi pada BPFO/BPFI. FTF/fr ≈ 0.398 (di bawah 0.5).'
   },
   c6: {
-    answer: '≈ 1.732',
-    explain: '<code>CF = peak/RMS = 1.5/0.866 = √3 ≈ <strong>1.732</strong></code>. Bandingkan: sinusoidal murni CF = √2 ≈ 1.414, square wave CF = 1.0. Sinyal kita CF lebih tinggi dari sinusoidal saja karena alternating component menambah peak relatif terhadap RMS. CF baseline ≈ 3 untuk bearing healthy → CF kita 1.732 menunjukkan tidak ada impak transient (sinyal smooth, tidak impulsif).'
+    answer: '= 2048',
+    explain: 'Untuk x = 2·sin(2π·50·t) dengan amplitudo A=2: RMS = A/√2 = √2, jadi RMS² = 2. <code>N · mean(x²) = 1024 × 2 = <strong>2048</strong></code>. Teorema Parseval: <code>Σ|x_n|² = (1/N)·Σ|X_k|²</code>. Kedua sisi merepresentasikan energi total — sangat berguna untuk verifikasi numerik implementasi FFT.'
   },
   c7: {
-    answer: '≈ 0.718',
-    explain: 'Mean absolute: <code>|x|<sub>avg</sub> = (1/N) Σ |x<sub>i</sub>|</code>. Untuk sinusoidal murni, <code>|sin|<sub>avg</sub> = 2/π ≈ 0.637</code>. Plus kontribusi alternating ±0.5 (selalu kontribusi 0.5 ke |x|) yang meng-shift naik. Dengan kombinasi: <code>np.mean(np.abs(x)) ≈ <strong>0.718</strong></code>. Pakai sebagai input untuk Shape Factor dan Impulse Factor.'
+    answer: '= 220.00 Hz',
+    explain: 'Spectral centroid (mean frequency) = pusat massa PSD: <code>f̄ = Σ(f·P) / Σ(P) = (0.6·100 + 0.4·400) / (0.6 + 0.4) = (60 + 160)/1.0 = <strong>220 Hz</strong></code>. Centroid bergeser ke high-frequency saat impak/resonansi muncul — fitur penting untuk menangkap perubahan distribusi energi spektral tanpa harus track tiap peak individual.'
   },
   c8: {
-    answer: '≈ 1.206',
-    explain: 'Shape Factor: <code>SF = RMS / |x|<sub>avg</sub> = 0.866/0.718 ≈ <strong>1.206</strong></code>. Untuk sinusoidal murni SF = (1/√2)/(2/π) = π/(2√2) ≈ 1.111. Sinyal lebih impulsif → SF naik. Pakai SF saat membutuhkan ukuran "peakedness" yang invariant terhadap nilai RMS absolut. Berguna untuk membandingkan bentuk sinyal antar mesin dengan amplitudo berbeda.'
+    answer: '= 3334',
+    explain: 'Untuk membedakan 50 Hz dan 53 Hz: Δf ≤ 3 Hz. <code>N_min = ceil(fs / Δf) = ceil(10000/3) = <strong>3334</strong></code>. Praktik nyata: pakai pangkat 2 terdekat (4096) agar FFT lebih efisien. Catatan: kriteria Rayleigh (Δf = 1/T) adalah batas teoretis — untuk peak yang dekat dengan amplitudo berbeda, sering perlu Δf lebih halus 2–4× dari kriteria.'
   },
   c9: {
-    answer: '≈ 0.000',
-    explain: 'Skewness: <code>γ₁ = E[(x−μ)³]/σ³</code>. Karena μ = 0 dan kedua komponen (sinusoidal dan alternating) <em>simetris</em> terhadap 0, distribusi sinyal juga simetris → momen ke-3 = 0 → <code>skew ≈ <strong>0.0</strong></code>. Konfirmasi dengan <code>scipy.stats.skew(x)</code>. Sinyal asimetris (icing blade turbin, korosi tidak merata) menghasilkan skewness ≠ 0.'
+    answer: '= 10.00 dB',
+    explain: '<code>dB = 10·log10(P_A / P_B) = 10·log10(0.50/0.05) = 10·log10(10) = <strong>10.0 dB</strong></code>. Skala dB merentangkan dynamic range besar — typical bearing PSD memiliki rasio peak vs noise floor 30–50 dB. Mengingat 3 dB ≈ 2× power, 10 dB = 10× power, 20 dB = 100× power.'
   },
   c10: {
-    answer: '≈ 2.111',
-    explain: 'Kurtosis plain (non-excess): <code>K = E[(x−μ)⁴]/σ⁴</code>. Sinyal kita adalah mixture sinusoidal (K_sin = 1.5) dan alternating square (K_sq = 1.0) — keduanya <em>platykurtic</em>. Hasil terkomputasi: <code>kurtosis(x, fisher=False) ≈ <strong>2.111</strong></code>. Bandingkan: Gaussian K = 3, bearing healthy ≈ 3, early fault 5–8, severe fault turun lagi. Kita di bawah 3 karena sinyal sintetis sangat bounded (tidak ada ekor berat).'
+    answer: '= 12500 Hz',
+    explain: '<code>f_Nyquist = fs / 2 = 25000 / 2 = <strong>12500 Hz</strong></code>. Nyquist–Shannon: untuk merekonstruksi sinyal yang berisi komponen hingga f_max, fs harus &gt; 2·f_max. Jika ada energi di atas f_Nyquist tanpa anti-alias filter, frekuensi akan ter-fold ke band &lt;12.5 kHz dan muncul sebagai peak palsu — sering merusak diagnosa bearing.'
   },
   c11: {
-    answer: '≈ 2.089',
-    explain: 'Impulse Factor: <code>IF = peak / |x|<sub>avg</sub> = 1.5/0.718 ≈ <strong>2.089</strong></code>. Implementasi <code>extract_features()</code> idealnya return dictionary 12 fitur sehingga reusable untuk channel berbeda. IF mirip CF tapi pakai mean absolute (bukan RMS). Sensitif untuk impak yang frekuensinya rendah (peak besar, RMS belum naik banyak). Untuk bearing healthy IF ≈ 4–5; sinyal sintetis kita rendah karena tidak impulsif.'
+    answer: '≈ 53.0 Hz',
+    explain: 'Broken rotor bar pada motor induksi menghasilkan sideband di sekitar frekuensi supply: <code>f_sb = f_s·(1 ± 2s)</code>. Untuk f_s = 50 Hz dan s = 0.03: lower = 50·0.94 = 47 Hz, <code>upper = 50·1.06 = <strong>53.0 Hz</strong></code>. Pasangan sideband ±2sf_s dengan amplitudo &gt; 50 dB di bawah frekuensi supply adalah kriteria deteksi standar (NEMA / ABB MCSA guidelines).'
   },
   c12: {
-    answer: '≈ 2.0 (toleransi luas)',
-    explain: 'Simulasi degradasi: pada p=1.0, sinyal = sin(60π·t) [amplitudo 1, RMS 1/√2 ≈ 0.707] + noise σ=1.2 [variansi 1.44] + 100 impak transient. Total RMS ≈ √(0.5 + 1.44 + impak_contribution) ≈ <strong>2.0</strong> (range 1–3 tergantung lokasi acak impak). Toleransi besar karena kontribusi impak sensitif terhadap distribusi acak. Latihan ini menunjukkan <em>RMS naik dramatis di severe fault</em> — confirmando bagian RMS dari U-shape.'
+    answer: '= 750.0 Hz',
+    explain: 'Gear Mesh Frequency: <code>GMF = N_teeth · fr_pinion = 25 · (1800/60) = 25 · 30 = <strong>750 Hz</strong></code>. GMF dari kedua gear pasti sama (kekal kontak gigi per detik). Diagnosa: amplitudo GMF + harmonik (2·GMF, 3·GMF) untuk severity gear wear; sideband ±fr_gear untuk eccentric/broken tooth lokal.'
   },
   c13: {
-    answer: '≈ 12',
-    explain: 'CF(p) = 3 + 8·p·exp(−4·p) + noise. Turunan analitis: f(p) = p·exp(−4p), f\'(p) = exp(−4p)·(1 − 4p), f\'(p) = 0 di <code>p* = 1/4 = 0.25</code>. Pada array <code>linspace(0,1,50)</code>, indeks p* ≈ <code>0.25/(1/49) ≈ 12.25</code> → <strong>indeks 12</strong> (dengan noise bisa bergeser ±2). Ini latihan klasik <em>argmax detection</em> untuk identifikasi puncak U-shape — krusial untuk menentukan apakah bearing sudah lewat fase early atau masih di rising phase.'
+    answer: '≈ 1.94',
+    explain: 'Normalisasi: <code>p = [1,2,3,4,5]/15</code>. Mean indeks: <code>μ = Σk·p = (0+2+6+12+20)/15 = 40/15 ≈ 2.667</code>. Variansi: <code>σ² = Σ(k−μ)²·p ≈ 1.556</code>. Momen-4: <code>m₄ = Σ(k−μ)⁴·p ≈ 4.69</code>. SK = m₄/σ⁴ ≈ <strong>1.94</strong>. Spectral kurtosis di band tertentu mendeteksi impulsivitas non-Gaussian — band dengan SK tertinggi (<em>kurtogram</em>) optimal untuk envelope analysis bearing.'
   },
   c14: {
-    answer: '≈ 6 (toleransi luas)',
-    explain: 'Spike single sample +5.0 punya kontribusi orde 4 sangat besar: x⁴ = 625 untuk satu sample, sedangkan baseline x⁴ ≈ 1 → kurtosis numerator naik drastis. Dengan 5 spike di antara 1000 sample baseline, <code>K(x_faulty) ≈ 8–12</code> vs <code>K(x) ≈ 2.111</code> → <strong>Δ ≈ 6–10</strong>. Toleransi besar karena lokasi spike dan interaksi dengan baseline mempengaruhi normalisasi (σ⁴ di denominator juga naik). Demonstrasi konkret <em>kurtosis sebagai detektor impak transient</em>.'
+    answer: '= 32768 (2^15)',
+    explain: '<code>nperseg ≥ fs/Δf = 12800/0.5 = 25600</code>. Pangkat 2 terkecil ≥ 25600 adalah <code>2^15 = <strong>32768</strong></code>. Implementasi: <code>nperseg = 2**int(np.ceil(np.log2(25600))) = 2**15 = 32768</code>. Welch averaging perlu beberapa segmen → total durasi rekaman minimal 3–5 × nperseg/fs ≈ 8–13 detik untuk variansi yang baik.'
   },
   c15: {
-    answer: '≈ 2.598',
-    explain: 'RMS skala linear: <code>RMS(α·x) = |α|·RMS(x)</code>. Total = (1.0 + 1.2 + 0.8) · RMS(x) = 3.0 · 0.866 = <strong>2.598</strong>. Pipeline multi-channel adalah pola standar industri untuk monitoring poros 3-axis (radial X, radial Y, axial Z) di bearing. Feature matrix shape (n_channels, n_features) langsung jadi input model ML — tiap channel sumber informasi berbeda tentang arah dominan kerusakan.'
+    answer: '≈ 3.585',
+    explain: 'Order BPFO = BPFO/fr = (n/2)·(1 − (d/D)·cosα) = 4.5·(1 − 0.2034·1) = 4.5 · 0.7966 ≈ <strong>3.585</strong>. Order tracking sangat penting untuk variable-speed monitoring (motor frekuensi VFD, run-up turbin, coast-down test): peak BPFO selalu berada pada order yang sama (3.585) berapapun rpm shaft, sehingga diagnosa konsisten meski kecepatan berubah.'
   }
 };
 
@@ -3354,16 +3370,16 @@ function exportTugasHtml() {
 
   // MC question titles (10 total)
   const MC_QUESTIONS = [
-    'Formula RMS untuk N sampel',
-    'RMS vs σ pada sinyal AC-coupled',
-    'Definisi Crest Factor',
-    'Crest Factor sinusoidal murni',
-    'Kurtosis Gaussian noise',
-    'Fitur tercepat naik di defect awal bearing',
-    'Perilaku CF & Kurtosis di severe fault (U-shape)',
-    'Ukuran ISO 10816 untuk vibration severity',
-    'Skewness pada distribusi ekor kanan',
-    'Mengapa monitoring multi-fitur'
+    'DFT vs FFT — kompleksitas algoritma',
+    'Resolusi frekuensi Δf = fs/N',
+    'Tujuan window function (spectral leakage)',
+    'Scaling 2/N untuk one-sided FFT',
+    'Periodogram vs Welch (variansi vs resolusi)',
+    'BPFI vs BPFO untuk geometri yang sama',
+    'Pipeline envelope analysis (bandpass+Hilbert+FFT)',
+    'Kriteria Nyquist–Shannon dan aliasing',
+    'Teorema Parseval domain waktu vs frekuensi',
+    'Spectrogram untuk sinyal non-stasioner (run-up)'
   ];
 
   // Collect MC answers — 10 soal
@@ -3399,16 +3415,16 @@ function exportTugasHtml() {
 
   // Comp E/M definitions (c1..c10)
   const compEzDefs = [
-    { id:'c1',  label:'Mean sinyal x',                  q:'np.mean(x) — sinyal AC-coupled, hasil ≈ 0.0' },
-    { id:'c2',  label:'Std populasi sinyal x',          q:'np.std(x, ddof=0) ≈ 0.866 (= √0.75)' },
-    { id:'c3',  label:'RMS sinyal x',                   q:'np.sqrt(np.mean(x**2)) ≈ 0.866 (= σ saat μ=0)' },
-    { id:'c4',  label:'Peak (|x|_max)',                 q:'np.max(np.abs(x)) = 1.5' },
-    { id:'c5',  label:'Peak-to-peak',                   q:'np.max(x) − np.min(x) ≈ 3.0' },
-    { id:'c6',  label:'Crest Factor',                   q:'peak/RMS ≈ 1.732 (= √3)' },
-    { id:'c7',  label:'Mean absolute |x|_avg',          q:'np.mean(np.abs(x)) ≈ 0.718' },
-    { id:'c8',  label:'Shape Factor',                   q:'RMS/|x|_avg ≈ 1.206' },
-    { id:'c9',  label:'Skewness',                       q:'scipy.stats.skew(x) ≈ 0.0 (sinyal simetris)' },
-    { id:'c10', label:'Kurtosis (plain)',               q:'scipy.stats.kurtosis(x, fisher=False) ≈ 2.111' }
+    { id:'c1',  label:'Resolusi frekuensi Δf',          q:'fs/N untuk fs=10000, N=8192 ≈ 1.2207 Hz' },
+    { id:'c2',  label:'Peak frequency sinusoidal 60 Hz', q:'argmax FFT untuk x = sin(2π·60·t), hasil = 60.00 Hz' },
+    { id:'c3',  label:'BPFO bearing 6205 @ 1480 rpm',   q:'(n/2)·fr·(1−(d/D)cosα) ≈ 88.42 Hz' },
+    { id:'c4',  label:'BPFI bearing 6205 @ 1480 rpm',   q:'(n/2)·fr·(1+(d/D)cosα) ≈ 133.58 Hz' },
+    { id:'c5',  label:'FTF bearing 6205 @ 1480 rpm',    q:'(fr/2)·(1−(d/D)cosα) ≈ 9.82 Hz' },
+    { id:'c6',  label:'Total power Parseval',           q:'N·mean(x²) untuk x = 2·sin(2π·50·t), hasil = 2048' },
+    { id:'c7',  label:'Spectral centroid',              q:'Σ(f·P)/Σ(P) = (60+160)/1.0 = 220 Hz' },
+    { id:'c8',  label:'N minimum untuk Δf ≤ 3 Hz',      q:'ceil(fs/Δf) = ceil(10000/3) = 3334' },
+    { id:'c9',  label:'Rasio dB antara dua peak',       q:'10·log10(0.50/0.05) = 10.0 dB' },
+    { id:'c10', label:'Frekuensi Nyquist',              q:'fs/2 untuk fs=25000 = 12500 Hz' }
   ];
   const compEzData = compEzDefs.map(d => {
     const ta = document.getElementById('code-' + d.id);
@@ -3417,11 +3433,11 @@ function exportTugasHtml() {
 
   // Comp Hard definitions (c11..c15)
   const compHardDefs = [
-    { id:'c11', label:'extract_features() reusable',     q:'12 fitur domain frekuensi sebagai dict; lapor impulse_factor ≈ 2.089' },
-    { id:'c12', label:'Simulasi degradasi bearing',      q:'Generate sinyal healthy→severe (impak transient injection); lapor RMS pada p=1.0' },
-    { id:'c13', label:'U-shape detection (argmax CF)',   q:'Trajectory CF(p)=3+8p·exp(−4p)+noise; cari indeks puncak (~12)' },
-    { id:'c14', label:'Δ kurtosis healthy→faulty',       q:'Inject 5 spike +5.0; lapor selisih kurtosis (faulty − healthy)' },
-    { id:'c15', label:'Pipeline multi-channel features', q:'3 channel acc dengan faktor [1.0, 1.2, 0.8]; lapor total RMS ≈ 2.598' }
+    { id:'c11', label:'Sideband broken rotor bar',       q:'f_s·(1+2s) untuk f_s=50, s=0.03 → 53.0 Hz' },
+    { id:'c12', label:'Gear Mesh Frequency',             q:'N_teeth · fr_pinion = 25·30 = 750 Hz' },
+    { id:'c13', label:'Spectral kurtosis dari PSD',      q:'P=[1,2,3,4,5] → SK ≈ 1.94' },
+    { id:'c14', label:'nperseg optimal Welch',           q:'pangkat 2 ≥ fs/Δf untuk Δf=0.5, fs=12800 → 32768' },
+    { id:'c15', label:'Order tracking BPFO/fr',          q:'Bearing 6205: BPFO/fr = 4.5·(1−0.2034) ≈ 3.585' }
   ];
   const compHardData = compHardDefs.map(d => {
     const ta = document.getElementById('code-' + d.id);
@@ -3783,22 +3799,22 @@ function buildForumHtml() {
   </div>
 
   <div style="background:#f0f4ff;border-left:4px solid #a855f7;padding:16px 28px;margin-top:2px;">
-    <div style="font-weight:700;color:#5b35d0;margin-bottom:8px;">&#128203; Skenario: Bearing Konveyor Stadium Awal Defect?</div>
-    <div style="font-size:.88rem;color:#475569;margin-bottom:10px;">Reliability engineer di pabrik kemasan minuman mendapat laporan operator: konveyor utama "terdengar berbeda" 2 minggu terakhir &mdash; ada bunyi tick-tick samar. Sensor akselerometer di bearing housing motor (25 kHz, 1 detik segmen) menunjukkan perubahan fitur domain frekuensi vs baseline 6 bulan lalu:</div>
+    <div style="font-weight:700;color:#5b35d0;margin-bottom:8px;">&#128203; Skenario: Spektrum Pompa Sentrifugal &mdash; Peak Misterius di 88 Hz</div>
+    <div style="font-size:.88rem;color:#475569;margin-bottom:10px;">Reliability engineer pabrik petrokimia menjalankan analisa rutin pada pompa sentrifugal kritikal (motor 1480 rpm, bearing 6205 di drive-end). Akselerometer (fs = 25.6 kHz, T = 4 detik) merekam sinyal vibrasi. FFT &amp; envelope spectrum menunjukkan pola berikut vs baseline 3 bulan lalu:</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <span style="background:#dbeafe;border:1px solid #93c5fd;color:#1d4ed8;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;">RMS +18%</span>
-      <span style="background:#fef3c7;border:1px solid #fde68a;color:#92400e;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;">Crest Factor +81%</span>
-      <span style="background:#fce7f3;border:1px solid #f9a8d4;color:#be185d;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;">Kurtosis +139%</span>
-      <span style="background:#ede9fe;border:1px solid #c4b5fd;color:#5b35d0;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;">Peak +141%</span>
+      <span style="background:#dbeafe;border:1px solid #93c5fd;color:#1d4ed8;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;">FFT peak baru @ 88.4 Hz (+12 dB)</span>
+      <span style="background:#fef3c7;border:1px solid #fde68a;color:#92400e;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;">Envelope: BPFO + 2&times;,3&times; harmonik</span>
+      <span style="background:#fce7f3;border:1px solid #f9a8d4;color:#be185d;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;">SK band 2&ndash;4 kHz: 3.1 &rarr; 8.5</span>
+      <span style="background:#ede9fe;border:1px solid #c4b5fd;color:#5b35d0;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;">RMS broadband +9% (still in-spec)</span>
     </div>
   </div>
 
   <div style="background:#ffffff;border:1px solid #e2e8f0;padding:20px 28px;margin-top:8px;">
     <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;">
       <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:#a855f7;color:#fff;font-weight:700;font-size:.8rem;flex-shrink:0;">1</span>
-      <div style="font-size:.95rem;font-weight:700;color:#1e293b;">Diagnosis: apakah pola fitur menunjukkan early bearing fault, severe fault, atau noise mekanikal biasa?</div>
+      <div style="font-size:.95rem;font-weight:700;color:#1e293b;">Diagnosis: apakah peak 88 Hz pada spektrum + envelope spectrum mengkonfirmasi outer-race defect?</div>
     </div>
-    <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Klasifikasikan stadium bearing menggunakan teori U-shape trajectory. Bandingkan dengan tabel referensi (healthy: Kurt~3, CF~3; early: Kurt 5&ndash;10, CF 4&ndash;6; severe: Kurt &amp; CF turun lagi). Rekomendasikan action.</div>
+    <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Konfirmasi peak 88 Hz dengan formula BPFO 6205 di 1480 rpm. Jelaskan mengapa envelope spectrum dengan harmonik &amp; spectral kurtosis tinggi mendukung diagnosa outer-race defect. Rekomendasikan replacement schedule + monitoring strategy.</div>
     <div style="margin-left:40px;">
       <div style="font-size:.7rem;font-weight:700;color:#a855f7;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
       <div style="background:#f8f5ff;border:1px solid #c4b5fd;border-radius:8px;padding:14px 16px;font-size:.88rem;color:#1e293b;line-height:1.75;min-height:48px;">${ans1}</div>
@@ -3808,9 +3824,9 @@ function buildForumHtml() {
   <div style="background:#ffffff;border:1px solid #e2e8f0;padding:20px 28px;margin-top:4px;">
     <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;">
       <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:#0ea5e9;color:#fff;font-weight:700;font-size:.8rem;flex-shrink:0;">2</span>
-      <div style="font-size:.95rem;font-weight:700;color:#1e293b;">Mengapa RMS, CF, dan Kurtosis berubah dengan rasio yang berbeda? Bagaimana implikasinya untuk monitoring strategy?</div>
+      <div style="font-size:.95rem;font-weight:700;color:#1e293b;">Mengapa envelope analysis (bandpass + Hilbert + FFT) lebih sensitif untuk early bearing fault dibanding FFT raw?</div>
     </div>
-    <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Penjelasan matematis: kaitkan momen orde tinggi dengan sensitivitas. Penjelasan fisik: apa yang terjadi di bearing. Rancang tier alarm multi-fitur (warning/alert/critical) dengan threshold konkret.</div>
+    <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Model fisik: impak bearing &rarr; impulse train &times; resonance carrier. Mengapa FFT raw sulit lihat early defect (energi BPFO terkubur). Mengapa demodulasi via bandpass + Hilbert mengembalikan rate impak. Bagaimana kurtogram membantu pilih band optimal.</div>
     <div style="margin-left:40px;">
       <div style="font-size:.7rem;font-weight:700;color:#0ea5e9;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
       <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:14px 16px;font-size:.88rem;color:#1e293b;line-height:1.75;min-height:48px;">${ans2}</div>
@@ -3820,9 +3836,9 @@ function buildForumHtml() {
   <div style="background:#ffffff;border:1px solid #e2e8f0;padding:20px 28px;margin-top:4px;">
     <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;">
       <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:#00e09e;color:#fff;font-weight:700;font-size:.8rem;flex-shrink:0;">3</span>
-      <div style="font-size:.95rem;font-weight:700;color:#1e293b;">Rancang fungsi extract_features() untuk edge device 24/7 &mdash; kompromi apa yang Anda buat?</div>
+      <div style="font-size:.95rem;font-weight:700;color:#1e293b;">Rancang pipeline edge-computing untuk monitoring spektrum + envelope + alert threshold otomatis &mdash; kompromi apa yang Anda buat?</div>
     </div>
-    <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Edge device (ESP32 / RPi Zero), fs = 25 kHz, window 1 detik, bandwidth 2 KB/menit. Tentukan: 12 fitur mana yang dihitung, frekuensi pengiriman, alarm policy (instant push vs sampling), edge caching, trade-off bandwidth/latency/accuracy.</div>
+    <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Edge device (RPi 4 / industrial gateway), fs = 25.6 kHz, snapshot 4 detik per 5 menit, bandwidth 5 KB/menit. Tentukan: parameter FFT/Welch, envelope di edge atau cloud, fitur yang dikirim, threshold otomatis untuk peak BPFO/BPFI, trade-off bandwidth/latency/accuracy.</div>
     <div style="margin-left:40px;">
       <div style="font-size:.7rem;font-weight:700;color:#00e09e;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
       <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:14px 16px;font-size:.88rem;color:#1e293b;line-height:1.75;min-height:48px;">${ans3}</div>
@@ -5359,19 +5375,19 @@ window.addEventListener('resize', () => {
     container.appendChild(p);
   }
 
-  /* ── Floating frequency-domain feature formulas ── */
+  /* ── Floating frequency-domain formulas ── */
   const formulas = [
-    { t: 'RMS = √[(1/N) Σ x_i²]',              s: 11 },
-    { t: 'CF = peak / RMS',                    s: 14 },
-    { t: 'PP = max(x) − min(x)',               s: 13 },
-    { t: 'K = E[(x−μ)⁴] / σ⁴',                 s: 10 },
-    { t: 'γ₁ = E[(x−μ)³] / σ³',                s: 14 },
-    { t: 'SF = RMS / |x|_avg',                 s: 11 },
-    { t: 'IF = peak / |x|_avg',                s: 12 },
-    { t: '|x|_avg = (1/N) Σ |x_i|',            s: 13 },
-    { t: 'CF_sin = √2 ≈ 1.414',                s: 9 },
-    { t: 'K_gauss = 3',                        s: 11 },
-    { t: 'ISO 10816 → RMS velocity',           s: 12 },
+    { t: 'Δf = fs / N',                        s: 11 },
+    { t: 'X(k) = Σ x_n · e^(−j2π·kn/N)',       s: 14 },
+    { t: 'BPFO = (n/2)·fr·(1−(d/D)cosα)',     s: 13 },
+    { t: 'BPFI = (n/2)·fr·(1+(d/D)cosα)',     s: 10 },
+    { t: 'FTF = (fr/2)·(1−(d/D)cosα)',        s: 14 },
+    { t: '|X|·(2/N) — one-sided amp',          s: 11 },
+    { t: 'env(t) = |x(t) + j·H{x}|',           s: 12 },
+    { t: 'Σ|x_n|² = (1/N) Σ|X_k|²',            s: 13 },
+    { t: 'f_Nyq = fs / 2',                     s: 9 },
+    { t: 'BPFO/fr ≈ 3.59 (6205)',              s: 11 },
+    { t: 'GMF = N_teeth · fr',                 s: 12 },
   ];
   const fCols = [
     'rgba(129,140,248,.22)',   // indigo
