@@ -2511,6 +2511,7 @@ plt.<span class="fn">show</span>()
         <div>Q1: <span id="forumQ1Stat" style="color:var(--cyan)">0</span>/30 kata</div>
         <div>Q2: <span id="forumQ2Stat" style="color:var(--amber)">0</span>/30 kata</div>
         <div>Q3: <span id="forumQ3Stat" style="color:var(--pink)">0</span>/30 kata</div>
+        <div>PG: <span id="forumPGStat" style="color:var(--violet)">0</span>/<span id="forumPGTotal">0</span> dipilih</div>
       </div>
       <div id="forum-blocked-msg" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--amber);text-align:center;flex-basis:100%"></div>
     </div>
@@ -3587,6 +3588,7 @@ function voteForum(n, opt, correct) {
   opt.style.borderColor = correct ? 'var(--green)' : 'var(--pink)';
   opt.querySelector('.p-circle').style.background = correct ? 'var(--green)' : 'var(--pink)';
   document.getElementById('fp' + n + (correct ? 'r' : 'w')).classList.add('show');
+  if (typeof checkForumReady === 'function') checkForumReady();
 }
 
 // ── EXPORT TUGAS PDF ──
@@ -3914,6 +3916,18 @@ function checkForumReady() {
     if (!ok) allFilled = false;
   });
 
+  // Forum pilihan ganda (PG) status — count answered polls
+  const pollEls = document.querySelectorAll('.poll-opts[id^="fp"]');
+  const totalPolls = pollEls.length;
+  let pollsDone = 0;
+  pollEls.forEach(p => { if (p.dataset.done) pollsDone++; });
+  const pgStatEl = document.getElementById('forumPGStat');
+  if (pgStatEl) pgStatEl.textContent = pollsDone;
+  const pgTotalEl = document.getElementById('forumPGTotal');
+  if (pgTotalEl) pgTotalEl.textContent = totalPolls;
+  const pgRemaining = Math.max(0, totalPolls - pollsDone);
+  if (pgRemaining > 0) allFilled = false;
+
   // Update forum status panel (mirrors the Tugas score-bar)
   const minTotal = FORUM_MIN_WORDS * ids.length;
   const totEl = document.getElementById('forumWordTotal');
@@ -3931,6 +3945,7 @@ function checkForumReady() {
       ids.forEach((_, i) => {
         if (wcs[i] < FORUM_MIN_WORDS) parts.push('Q' + (i + 1) + ' kurang ' + (FORUM_MIN_WORDS - wcs[i]) + ' kata');
       });
+      if (pgRemaining > 0) parts.push(pgRemaining + ' pilihan ganda belum dipilih');
       blockedEl.textContent = '\u26a0 ' + parts.join(' \u00b7 ');
     }
   }
