@@ -8,6 +8,8 @@
 >
 > **Diperbarui:** April 2026 (v7) — mencerminkan refactor Modul-4 (countdown circular, palet per-tab, hero animation per-tab, scoring rule lengkap, Firebase Security Rules, blokir akses di luar jadwal, **sistem PIN 6-digit untuk mahasiswa**, **password admin ter-hash SHA-256**, **animasi login constellation + electric charges + lightning blasts**, **Dosen Login Modal dengan password masking**, **role-based visibility untuk tombol Reset** — tombol Atur Jadwal tetap visible sebagai bootstrap action, **scoring universal 50 poin** dengan 5 soal Komputasi Hard @4 poin, **partial credit +1 poin** untuk Hard yang salah, **status label butuh poin** — Tepat Waktu/Terlambat hanya diberikan jika mahasiswa memperoleh poin > 0 (akses tanpa poin = Belum), **Bolos diperluas** — mencakup juga mahasiswa yang akses tapi 0 poin saat jadwal sudah berakhir, **PIN global lintas-course** — satu PIN per mahasiswa yang berlaku di SEMUA mata kuliah dan modul, disimpan di node `pins/mhs_<NIM>` terpisah dari visitor records sehingga reset modul tidak menghapus PIN).
 >
+> **v13 (April 2026, late-month) — Vibrant Countdown redesign:** Redesain panel hitung mundur deadline (Section §10) menjadi lebih colorful & menarik. Tambahan: aurora konik berputar, gradient border 4-warna via mask compositing, label sweep animation, ring 130px (dari 120px) dengan halo radial pulsing, double drop-shadow glow neon, hover scale-up, gradient-text angka 32px font-weight 900, ring detik dengan tick animation, note deadline sebagai pill glassmorphism. Bug fix: `overflow:visible` pada `.cd-ring svg` untuk mencegah glow drop-shadow ter-clip menjadi bayang kotak di tepi viewport SVG. Applied ke seluruh modul Optimalisasi & Automasi (6) dan Getaran-Mekanik (7). Pedoman lengkap di §10.4.
+>
 > **v12 (April 2026, late-month) — Export Tugas consolidation + MC export bug fix:** Konsolidasi tombol Export tugas dari 2 panel (atas + bawah) menjadi satu tombol di score-bar (sticky), dengan baris kedua memuat petunjuk submit dan indikator soal yang belum diisi (`#export-blocked-msg`, center-aligned). Perbaiki 2 bug critical di export PG: (1) selektor multi-class `'.selected, .correct-ans, .wrong-ans'` mengembalikan opsi correct (urutan DOM) sebagai pilihan user — fix dengan `.radio-option.selected` saja + cek `classList.contains('correct-ans')`; (2) restore Firebase tidak re-apply `.selected`, sehingga export pasca-reload tampil "Belum dijawab" — fix dengan fallback ke `mcAnswered`/`mcScores`. Tambah konvensi subtitle cover dan filename download (`Tugas{N}_{NIM}_{CourseSlug}.html`) untuk mencegah leakage course asal saat copy modul. Pattern lengkap di §15.1c, §15.3d, §25.10, §25.11. Applied ke 26 modul (Optoauto 1–6, Getaran 1–6, Math 1–14).
 >
 > **v7 (April 2026, late-month) — NIM-Direct Variable Pattern release:** Redesign menyeluruh atas 28 soal parametric di UTS Getaran Mekanik (4 TF + 9 MC + 15 Comp) untuk membuat hubungan NIM ↔ variabel **transparan**. Setiap soal parametric kini menampilkan formula eksplisit di question text (`var = formula = computed_value`) dengan setidaknya 1 variabel langsung dari N (atau N+1). Mahasiswa bisa verifikasi parameter mereka sendiri tanpa tebak-tebakan. Pattern lengkap + anti-pattern + migration guide didokumentasikan di **§32 (BARU)**. Math correctness terverifikasi di 140 boundary cases (28 soal × N=0,25,50,75,99). Audit checklist v7 di §31 tambah section "NIM-Direct Variable Pattern".
@@ -346,7 +348,7 @@ Hero menampilkan formula floating dengan warna sesuai tema tab:
 | Body text | `body` | `16px`, line-height 1.7 |
 | Card heading | `h3` | `18–20px` |
 | Monospace label | JetBrains Mono | `10–12px` |
-| Countdown number | `.cd-num` | `28px`, JetBrains Mono, weight 800 |
+| Countdown number | `.cd-num` | `32px`, JetBrains Mono, weight 900, gradient-text light→saturated (v13) |
 | Formula inline | KaTeX / pre | `13–14px` |
 
 ---
@@ -1149,14 +1151,16 @@ Diaktifkan oleh `_updateLateBanner()` yang dipanggil:
 
 ### 10.1 Desain
 
-4 ring SVG melingkar — **bukan box+separator**. Tiap unit waktu punya warna distinct:
+4 ring SVG melingkar — **bukan box+separator**. Tiap unit waktu punya warna distinct. Palette berbeda per mata kuliah / modul:
 
-| Unit | Warna | Class |
-|------|-------|-------|
-| Hari | Violet (`#a855f7`) | `.ring-d` |
-| Jam | Cyan (`#0ea5e9`) | `.ring-h` |
-| Menit | Green (`#00e09e`) | `.ring-m` |
-| Detik | Orange (`#f97316`) | `.ring-s` |
+| Unit | Class | Getaran-Mekanik | Optimalisasi std (M1,2,3,5,6) | Optimalisasi M4 |
+|------|-------|-----------------|-------------------------------|-----------------|
+| Hari | `.ring-d` | `#a855f7` (violet) | `#a855f7` (violet) | `#7c4dff` (indigo-violet) |
+| Jam | `.ring-h` | `#0ea5e9` (sky) | `#0ea5e9` (sky) | `#00e5ff` (cyan) |
+| Menit | `.ring-m` | `#00e09e` (green) | `#00e09e` (green) | `#00e676` (green) |
+| Detik | `.ring-s` | `#f97316` (orange) | `#ff4081` (pink) | `#ffb300` (amber) |
+
+> **v13 update:** Palette di-pertahankan, namun visual treatment di-upgrade signifikan. Lihat **§10.4 Vibrant Visual Treatment**.
 
 ### 10.2 Struktur HTML
 
@@ -1221,6 +1225,67 @@ function startCountdown(endISO) {
   tick();
 }
 ```
+
+### 10.4 Vibrant Visual Treatment (v13)
+
+Mulai v13, panel countdown mendapat upgrade visual signifikan. Struktur HTML & ID **tetap sama** (kompatibel dengan `startCountdown()` di §10.3) — hanya CSS yang berubah. Tujuannya menghilangkan kesan "panel datar" dan memberi nuansa hidup berwarna-warni tanpa mengganggu keterbacaan angka.
+
+#### 10.4.1 Komponen Visual Baru
+
+| Komponen | Mekanisme | Tujuan |
+|----------|-----------|--------|
+| **Multi-radial background** | 3 ellipse `radial-gradient` (kiri-atas / kanan-atas / bawah-tengah) overlayed pada gradient diagonal dasar | Memberi kedalaman & nuansa berwarna sebelum animasi |
+| **Aurora konik** | `::after` `inset:-50%` + `conic-gradient` 4-warna + `filter:blur(40px)` + `animation:cdAurora 18s linear infinite` | Glow hidup yang berputar pelan di belakang ring |
+| **Gradient border** | `::before` `padding:1.5px` + `linear-gradient` 4-warna + mask-composite trick | Tepi panel berwarna-warni (bukan border solid 1 warna) |
+| **Label sweep** | `background-size:200% 100%` + `cdLabelSweep 6s linear infinite` | Teks judul ber-shimmer multi-warna |
+| **Ring halo** | `.cd-ring::before` radial gradient `currentColor` + `blur(10px)` + `cdHaloPulse 3s` | Aura warna mengikuti palette per-ring, berdenyut lembut |
+| **Hover scale** | `.cd-ring:hover{transform:scale(1.05)}` + halo ke `opacity:.42` | Interaktivitas + emphasizes ring |
+| **Drop-shadow ganda** | `filter:drop-shadow(0 0 10px) drop-shadow(0 0 4px)` pada `.progress` | Glow neon stroke (inner-tight + outer-soft) |
+| **Gradient-text angka** | `background:linear-gradient(180deg, light, saturated)` + `background-clip:text` per ring | Angka tampil 3-dimensi, tidak datar 1 warna |
+| **Tick detik** | `.ring-s .cd-num { animation: cdSecondTick 1s }` (scale 1 → 1.14 → 1) | Angka detik berdetak ringan setiap detik |
+| **Pill glassmorphism** | `.cd-note` jadi inline-block dengan `border-radius:999px` + `backdrop-filter:blur(8px)` + `border:1px solid rgba(...,.25)` | Note deadline tampil seperti chip premium |
+
+#### 10.4.2 Bug pattern: SVG drop-shadow ter-clip jadi kotak
+
+**Gejala:** Glow `drop-shadow` di tepi ring tampak terpotong tegas dengan tepi rectangular — terlihat seperti "bayang kotak" mengelilingi lingkaran.
+
+**Root cause:** SVG memiliki **default `overflow:hidden`** pada viewport-nya. Ketika `filter:drop-shadow` diterapkan ke `.progress`, output filter (stroke + glow) memiliki bounding box yang lebih besar dari stroke aslinya. Bagian glow yang melewati viewBox SVG (130×130 pada `.cd-ring`) akan ter-clip dengan tepi kotak SVG.
+
+**Fix wajib:**
+```css
+.cd-ring svg{
+  position:absolute;inset:0;width:100%;height:100%;
+  transform:rotate(-90deg);
+  z-index:1;
+  overflow:visible;  /* ← WAJIB. Tanpa ini glow ter-clip jadi kotak */
+}
+```
+
+> **Lesson:** Ketika menerapkan `filter:drop-shadow` / `filter:blur` pada elemen di dalam SVG dengan glow yang melebar, **selalu** set `overflow:visible` pada SVG agar filter output tidak ter-clip.
+
+#### 10.4.3 Ukuran & Konstanta
+
+| Konstanta | Nilai lama | Nilai v13 |
+|-----------|------------|-----------|
+| Ring size | 120×120 px | 130×130 px |
+| Stroke width | 6 px | 7 px |
+| `.cd-num` font-size | 28px | 32px |
+| `.cd-num` font-weight | 800 | 900 |
+| Drop-shadow glow | `drop-shadow(0 0 8px)` | `drop-shadow(0 0 10px) drop-shadow(0 0 4px)` |
+
+> **Catatan SVG `<circle>`:** Atribut `cx="60" cy="60" r="52"` dan `stroke-dasharray="326.73"` **tidak berubah** karena viewBox tetap `0 0 120 120`. Konstanta `CIRC = 326.73` di JS juga tidak berubah.
+
+#### 10.4.4 Audit Checklist
+
+Ketika menambah modul baru atau migrasi countdown ke versi vibrant:
+
+- [ ] CSS countdown menggunakan template v13 (multi-radial bg + aurora + gradient border + halo)
+- [ ] `.cd-ring svg` memiliki `overflow:visible`
+- [ ] Palette `.ring-d/.ring-h/.ring-m/.ring-s` sesuai dengan course (lihat tabel §10.1)
+- [ ] Aurora `::after` & gradient border `::before` warna sesuai palette
+- [ ] `.cd-note` tampil sebagai pill (bukan plain text)
+- [ ] Buka di browser → verifikasi tidak ada bayang kotak di sekitar ring
+- [ ] Verifikasi tick detik pulsing tetap halus (tidak menggangu angka)
 
 ---
 
