@@ -1136,7 +1136,26 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <div class="section" id="m-anim">
   <div class="section-label reveal">Bagian 06</div>
   <h2 class="section-title reveal">Visualisasi Interaktif<br>Mode 1 vs Mode 2</h2>
-  <p class="section-desc reveal">Tabel di bawah membandingkan Mode 1 dan Mode 2 sistem referensi (m₁=m₂=1 kg, k=100 N/m). Bayangkan kedua massa berosilasi sesuai mode pada frekuensi pribadinya — gunakan ini sebagai "mental animation".</p>
+  <p class="section-desc reveal">Klik tombol di bawah untuk mengganti mode. Animasi memperlihatkan dua massa (m₁=m₂=1 kg) terhubung tiga pegas (k=100 N/m) berosilasi pada frekuensi pribadinya. Perhatikan: pada Mode 1 kedua massa <strong style="color:var(--green)">searah</strong> dan pegas tengah diam; pada Mode 2 kedua massa <strong style="color:var(--amber)">berlawanan</strong> dan pegas tengah ditekan/diregang dua kali lipat.</p>
+
+  <div class="reveal" style="background:#020812;border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px">
+    <canvas id="cv2dof" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+    <div style="display:flex;gap:14px;justify-content:center;margin-top:18px;flex-wrap:wrap">
+      <button id="btn-mode1" onclick="set2DofMode(1)" class="mode-btn mode-btn-active"
+        style="padding:10px 22px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(0,224,158,.5);background:rgba(0,224,158,.18);color:var(--green);transition:all .2s">
+        ▶ Mode 1 (ω₁ = 10 rad/s) — In-Phase
+      </button>
+      <button id="btn-mode2" onclick="set2DofMode(2)" class="mode-btn"
+        style="padding:10px 22px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(249,115,22,.4);background:rgba(249,115,22,.08);color:var(--amber);transition:all .2s">
+        ▶ Mode 2 (ω₂ ≈ 17.32 rad/s) — Anti-Phase
+      </button>
+    </div>
+    <div id="mode2dof-info" style="text-align:center;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">
+      Mode 1 aktif · X₁ = X₂ = cos(10·t) · pegas tengah tidak terdeformasi
+    </div>
+  </div>
+
+  <p class="section-desc reveal" style="margin-top:24px">Tabel berikut merangkum perbedaan kedua mode untuk referensi cepat:</p>
 
   <div class="reveal" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:24px;overflow-x:auto">
     <table style="width:100%;border-collapse:collapse;font-size:14px">
@@ -1193,7 +1212,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Tip Visualisasi:</strong> Buka Bagian 08 (Python) → jalankan Cell 4 (animasi mode) di Jupyter Notebook Anda — ada plot interaktif <code>animate_mode(omega, mode_shape)</code> yang menggambarkan kedua mode dengan slider waktu. Output langsung memvalidasi tabel di atas.
+    💡 <strong>Tip:</strong> Klik bolak-balik antara Mode 1 dan Mode 2 untuk merasakan perbedaan tempo dan pola gerak. Untuk visualisasi lanjutan, buka Bagian 08 (Python) → jalankan Cell 4 di Jupyter Notebook untuk plot superposisi kedua mode (free vibration response).
   </div>
 </div>
 
@@ -2009,9 +2028,16 @@ print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x
     <p style="margin-top:14px;font-size:14px;color:var(--muted)">Persamaan gerak: <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">M·ẍ + K·x = 0</code>. Persamaan karakteristik: <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">det(K − ω²M) = 0</code>. Forum mengajak Anda mengidentifikasi: (1) mengapa eksitasi pada frekuensi spesifik ini menyebabkan amplitudo besar, (2) bagaimana mode shape menjelaskan pola gerak yang diamati, (3) bagaimana mendesain vibration absorber praktis untuk meredam getaran berbahaya.</p>
   </div>
 
-  <!-- Canvas Animasi Forum — Industrial Vibration Diagnostic Dashboard -->
-  <canvas id="cvForum" height="360" style="margin-bottom:12px;border-radius:12px"></canvas>
-  <p style="font-size:13px;color:var(--muted);margin-bottom:40px;font-family:'JetBrains Mono',monospace;text-align:center">— Dashboard diagnostik platform 2-tingkat: dua massa beranimasi pada Mode 1 vs Mode 2, kurva amplitudo vs frekuensi, peak resonansi di ω₁ dan ω₂</p>
+  <!-- Canvas Forum di-hide karena animasi 2-DoF interaktif tersedia di Materi Bagian 06.
+       Mahasiswa diarahkan ke sana untuk visualisasi mode shape. -->
+  <canvas id="cvForum" height="0" style="display:none"></canvas>
+  <div style="background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.2);border-left:4px solid var(--violet);border-radius:12px;padding:16px 22px;margin-bottom:32px;display:flex;align-items:flex-start;gap:12px">
+    <span style="font-size:20px;flex-shrink:0">🎬</span>
+    <div>
+      <div style="font-weight:700;color:var(--violet);margin-bottom:4px;font-size:14px">Visualisasi Mode 1 vs Mode 2</div>
+      <p style="font-size:13px;color:var(--muted);margin:0;line-height:1.7">Untuk membantu menjawab pertanyaan diskusi, buka tab <strong style="color:var(--text)">Modul → Bagian 06 (Visualisasi Interaktif)</strong> — tersedia animasi canvas dua massa terhubung tiga pegas yang dapat di-switch antara Mode 1 (in-phase, ω₁=10) dan Mode 2 (anti-phase, ω₂≈17.32). Perhatikan secara visual mengapa pegas tengah pecah saat eksitasi Mode 2.</p>
+    </div>
+  </div>
 
   <!-- Pertanyaan Diskusi -->
   <div class="section-label reveal">Pertanyaan Diskusi</div>
@@ -3710,6 +3736,215 @@ function togglePhysics(){
   const btn = document.getElementById('btnPhysics');
   if (btn) btn.textContent = _physicsAnim.running ? '⏸ PAUSE' : '▶ PLAY';
 }
+
+// ═══════════════════════════════════════════════════════════════
+// 2-DOF MODE ANIMATION (Bagian 06) — m₁=m₂=1, k=100, ω₁=10, ω₂=√300
+// ═══════════════════════════════════════════════════════════════
+let _2dofMode = 1;
+let _2dofT = 0;
+let _2dofRaf = null;
+
+function set2DofMode(m) {
+  _2dofMode = m;
+  const b1 = document.getElementById('btn-mode1');
+  const b2 = document.getElementById('btn-mode2');
+  if (b1) {
+    b1.style.background = m===1 ? 'rgba(0,224,158,.18)' : 'rgba(0,224,158,.04)';
+    b1.style.borderColor = m===1 ? 'rgba(0,224,158,.5)' : 'rgba(0,224,158,.2)';
+  }
+  if (b2) {
+    b2.style.background = m===2 ? 'rgba(249,115,22,.18)' : 'rgba(249,115,22,.04)';
+    b2.style.borderColor = m===2 ? 'rgba(249,115,22,.5)' : 'rgba(249,115,22,.2)';
+  }
+  const info = document.getElementById('mode2dof-info');
+  if (info) {
+    if (m===1) info.innerHTML = 'Mode 1 aktif · X₁ = X₂ = cos(10·t) · pegas tengah <strong style="color:var(--green)">tidak terdeformasi</strong>';
+    else        info.innerHTML = 'Mode 2 aktif · X₁ = −X₂ = cos(17.32·t) · pegas tengah <strong style="color:var(--amber)">ditekan/diregang 2× lipat</strong>';
+  }
+}
+
+function _drawSpring2dof(ctx, x1, x2, y, color) {
+  const len = x2 - x1;
+  if (len < 8) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x1, y);
+    ctx.lineTo(x2, y);
+    ctx.stroke();
+    return;
+  }
+  const coils = 12;
+  const dx = len / (coils * 2);
+  const amp = 8;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(x1, y);
+  ctx.lineTo(x1 + dx*0.5, y);
+  for (let i = 1; i <= coils*2 - 1; i++) {
+    const yo = (i % 2 === 1) ? -amp : amp;
+    ctx.lineTo(x1 + (i + 0.5) * dx, y + yo);
+  }
+  ctx.lineTo(x2 - dx*0.5, y);
+  ctx.lineTo(x2, y);
+  ctx.stroke();
+}
+
+function _draw2DofFrame() {
+  const cv = document.getElementById('cv2dof');
+  if (!cv) return;
+  const W = cv.clientWidth;
+  cv.width = W;
+  const H = cv.height;
+  const ctx = cv.getContext('2d');
+
+  // Background gradient
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#050a16');
+  bg.addColorStop(1, '#0a1424');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Subtle grid
+  ctx.strokeStyle = '#0d1929';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < W; x += 20) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+  }
+  for (let y = 0; y < H; y += 20) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+
+  const omega = (_2dofMode === 1) ? 10 : Math.sqrt(300);
+  const A = Math.min(W * 0.04, 35);   // amplitude pixel
+  const phase = Math.cos(omega * _2dofT);
+  const dx1 = A * phase;
+  const dx2 = (_2dofMode === 1) ? A * phase : -A * phase;
+
+  const y = H / 2;
+  const wallL = 30;
+  const wallR = W - 30;
+  const massSize = 50;
+  const x1Eq = W * 0.32;
+  const x2Eq = W * 0.68;
+  const x1 = x1Eq + dx1;
+  const x2 = x2Eq + dx2;
+
+  // Floor / ceiling lines (light)
+  ctx.strokeStyle = 'rgba(148, 163, 184, 0.15)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, y + massSize/2 + 2);
+  ctx.lineTo(W, y + massSize/2 + 2);
+  ctx.stroke();
+
+  // Walls
+  ctx.fillStyle = '#475569';
+  ctx.fillRect(wallL - 6, y - 60, 6, 120);
+  ctx.fillRect(wallR, y - 60, 6, 120);
+  // Hatching
+  ctx.strokeStyle = '#64748b';
+  ctx.lineWidth = 1;
+  for (let i = -55; i <= 55; i += 8) {
+    ctx.beginPath();
+    ctx.moveTo(wallL - 6, y + i);
+    ctx.lineTo(wallL - 14, y + i + 6);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(wallR + 6, y + i);
+    ctx.lineTo(wallR + 14, y + i + 6);
+    ctx.stroke();
+  }
+
+  // Springs (3): wall-m1, m1-m2, m2-wall
+  const springColor = '#a855f7';
+  _drawSpring2dof(ctx, wallL, x1 - massSize/2, y, springColor);
+  // Pegas tengah — beri warna beda saat Mode 2 (sedang bekerja keras)
+  const middleColor = (_2dofMode === 2) ? '#f59e0b' : '#a855f733';
+  _drawSpring2dof(ctx, x1 + massSize/2, x2 - massSize/2, y, middleColor);
+  _drawSpring2dof(ctx, x2 + massSize/2, wallR, y, springColor);
+
+  // Masses
+  const m1Color = (_2dofMode === 1) ? '#0ea5e9' : '#0ea5e9';
+  const m2Color = (_2dofMode === 1) ? '#0ea5e9' : '#f59e0b';
+  // Mass 1
+  ctx.fillStyle = m1Color;
+  ctx.fillRect(x1 - massSize/2, y - massSize/2, massSize, massSize);
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(x1 - massSize/2, y - massSize/2, massSize, massSize);
+  // Mass 2
+  ctx.fillStyle = m2Color;
+  ctx.fillRect(x2 - massSize/2, y - massSize/2, massSize, massSize);
+  ctx.strokeRect(x2 - massSize/2, y - massSize/2, massSize, massSize);
+
+  // Labels
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 16px "JetBrains Mono", monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('m₁', x1, y);
+  ctx.fillText('m₂', x2, y);
+
+  // Equilibrium markers (vertical dashed lines)
+  ctx.strokeStyle = 'rgba(168, 85, 247, 0.25)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath();
+  ctx.moveTo(x1Eq, y - 65);
+  ctx.lineTo(x1Eq, y + 65);
+  ctx.moveTo(x2Eq, y - 65);
+  ctx.lineTo(x2Eq, y + 65);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Header text
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '12px "JetBrains Mono", monospace';
+  ctx.fillText(`Mode ${_2dofMode}  ·  ω = ${omega.toFixed(3)} rad/s  ·  T = ${(2*Math.PI/omega).toFixed(3)} s`, 30, 20);
+  ctx.fillStyle = (_2dofMode === 1) ? '#00e09e' : '#f59e0b';
+  ctx.fillText(_2dofMode === 1 ? 'IN-PHASE — kedua massa searah' : 'ANTI-PHASE — kedua massa berlawanan', 30, 38);
+
+  // Pegas labels
+  ctx.fillStyle = '#a855f7';
+  ctx.font = '11px "JetBrains Mono", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('k₁', (wallL + x1Eq - massSize/2) / 2, y - 25);
+  ctx.fillStyle = (_2dofMode === 2) ? '#f59e0b' : '#a855f7';
+  ctx.fillText('k₂' + (_2dofMode === 2 ? ' ⚠ kerja!' : ' (diam)'), (x1Eq + x2Eq) / 2, y - 25);
+  ctx.fillStyle = '#a855f7';
+  ctx.fillText('k₃', (x2Eq + massSize/2 + wallR) / 2, y - 25);
+
+  // Position values
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#64748b';
+  ctx.font = '11px "JetBrains Mono", monospace';
+  ctx.fillText(`x₁(t) = ${dx1.toFixed(1)} px   x₂(t) = ${dx2.toFixed(1)} px`, W - 20, 20);
+}
+
+function _2dofTick() {
+  _2dofT += 0.016;
+  _draw2DofFrame();
+  _2dofRaf = requestAnimationFrame(_2dofTick);
+}
+
+function _start2DofAnim() {
+  if (_2dofRaf !== null) return;
+  const cv = document.getElementById('cv2dof');
+  if (!cv) return;
+  _2dofTick();
+}
+
+// Auto-start when DOM ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', _start2DofAnim);
+} else {
+  setTimeout(_start2DofAnim, 100);
+}
+window.addEventListener('resize', () => { if (typeof _draw2DofFrame === 'function') _draw2DofFrame(); });
 
 function drawPhysics(){
   const cv = document.getElementById('cvPhysics'); if(!cv) return;
