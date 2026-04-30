@@ -1326,7 +1326,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <div class="section" id="m-jupyter">
   <div class="section-label reveal">Bagian 08</div>
   <h2 class="section-title reveal">Implementasi Python<br>di Jupyter Notebook</h2>
-  <p class="section-desc reveal">Empat cell berikut menerapkan teori di atas pada sinyal vibrasi sintetis yang meniru bearing condition monitoring: Cell 1 men-generate sinyal dengan injeksi impak, Cell 2 menghitung statistik orde 1–2 (mean, std, RMS), Cell 3 menghitung fitur orde tinggi (peak, PP, CF, kurtosis, skewness, IF, SF), Cell 4 menggabungkan keduanya menjadi <strong>fungsi <code>extract_features(x)</code></strong> reusable + plot trajectory simulasi degradasi bearing.</p>
+  <p class="section-desc reveal">Empat cell berikut menerapkan teori frequency-domain pada sinyal vibrasi sintetis bearing 6205: Cell 1 men-generate sinyal sinusoidal+noise dengan injeksi impak periodik dan plot raw signal, Cell 2 menghitung FFT magnitude spectrum + Welch PSD dengan window Hann lalu mendeteksi peak, Cell 3 menghitung frekuensi fault bearing (BPFO/BPFI/BSF/FTF) dan overlay pada spektrum, Cell 4 mendefinisikan <strong>fungsi <code>extract_features_freq(x, fs)</code></strong> + envelope analysis (bandpass + Hilbert + FFT) untuk diagnosis early bearing fault.</p>
 
   <div class="info-box reveal">
     <strong>📓 Petunjuk Pengerjaan di Jupyter Notebook:</strong><br>
@@ -1341,7 +1341,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="code-wrap reveal">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 1 — Generate Sinyal Vibrasi Bearing (Healthy + Faulty dengan Impak Periodik)</span>
+      <span class="code-label">Cell 1 — Generate Sinyal Vibrasi Bearing (Sinusoidal + Noise + Impak BPFO Periodik)</span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
@@ -1349,33 +1349,34 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
 
 np.random.<span class="fn">seed</span>(<span class="nm">42</span>)
-fs = <span class="nm">25600</span>                                <span class="cm"># sampling 25.6 kHz (industri)</span>
-T  = <span class="nm">1.0</span>                                  <span class="cm"># 1 detik segmen</span>
+fs = <span class="nm">25600</span>                                <span class="cm"># sampling 25.6 kHz (oversampling >10× freq tertinggi)</span>
+T  = <span class="nm">1.0</span>                                  <span class="cm"># 1 detik segmen → Δf = 1 Hz</span>
 N  = <span class="fn">int</span>(fs * T)
 t  = np.<span class="fn">arange</span>(N) / fs
 
-<span class="cm"># Komponen sinyal: rotasi 30 Hz + harmonik + noise</span>
-f_rot = <span class="nm">30</span>                                <span class="cm"># Hz, ~1800 rpm</span>
-sig_healthy = <span class="nm">1.0</span>*np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*f_rot*t) + <span class="nm">0.3</span>*np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*<span class="nm">2</span>*f_rot*t)
-sig_healthy += <span class="nm">0.4</span>*np.random.<span class="fn">randn</span>(N)         <span class="cm"># noise Gaussian</span>
+<span class="cm"># Komponen utama: rotasi shaft 30 Hz (1800 rpm) + harmonik 2× &amp; 3×</span>
+f_rot = <span class="nm">30</span>                                <span class="cm"># Hz</span>
+sig = (<span class="nm">1.0</span>*np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*f_rot*t)
+       + <span class="nm">0.4</span>*np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*<span class="nm">2</span>*f_rot*t)
+       + <span class="nm">0.2</span>*np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*<span class="nm">3</span>*f_rot*t))
+sig += <span class="nm">0.3</span>*np.random.<span class="fn">randn</span>(N)               <span class="cm"># background noise</span>
 
-<span class="cm"># Faulty: tambah impak periodik (BPFO bearing fault, ~104 Hz)</span>
-sig_faulty = sig_healthy.<span class="fn">copy</span>()
-f_impact = <span class="nm">104</span>                              <span class="cm"># Ball Pass Frequency Outer race</span>
-period_samples = <span class="fn">int</span>(fs / f_impact)
-<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">10</span>, N, period_samples):
-    decay = np.<span class="fn">exp</span>(-np.<span class="fn">arange</span>(<span class="nm">200</span>) / <span class="nm">30</span>)         <span class="cm"># exponential decay impak</span>
-    impact_len = <span class="fn">min</span>(<span class="nm">200</span>, N - i)
-    sig_faulty[i:i+impact_len] += <span class="nm">3.5</span> * decay[:impact_len] * np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*<span class="nm">2000</span>*np.<span class="fn">arange</span>(impact_len)/fs)
+<span class="cm"># Injeksi impak BPFO (Ball Pass Frequency Outer race) ~ 107.7 Hz untuk 6205 di 30 Hz shaft</span>
+<span class="cm"># Setiap impak: damped sinusoid carrier ~3 kHz (resonansi housing bearing)</span>
+f_bpfo = <span class="nm">107.7</span>
+period_samples = <span class="fn">int</span>(fs / f_bpfo)
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">15</span>, N, period_samples):
+    L = <span class="fn">min</span>(<span class="nm">300</span>, N - i)
+    decay = np.<span class="fn">exp</span>(-np.<span class="fn">arange</span>(L) / <span class="nm">25</span>)         <span class="cm"># exponential decay τ ≈ 1 ms</span>
+    sig[i:i+L] += <span class="nm">2.5</span> * decay * np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*<span class="nm">3000</span>*np.<span class="fn">arange</span>(L)/fs)
 
-<span class="fn">print</span>(<span class="st">f"Healthy: μ={sig_healthy.mean():.4f}, σ={sig_healthy.std():.4f}, max={np.abs(sig_healthy).max():.3f}"</span>)
-<span class="fn">print</span>(<span class="st">f"Faulty : μ={sig_faulty.mean():.4f}, σ={sig_faulty.std():.4f}, max={np.abs(sig_faulty).max():.3f}"</span>)
+<span class="fn">print</span>(<span class="st">f"fs = {fs} Hz, N = {N}, Δf teoretis = {fs/N:.4f} Hz"</span>)
+<span class="fn">print</span>(<span class="st">f"Sinyal: μ={sig.mean():.4f}, σ={sig.std():.4f}, peak={np.abs(sig).max():.3f}"</span>)
 
-fig, axes = plt.<span class="fn">subplots</span>(<span class="nm">2</span>, <span class="nm">1</span>, figsize=(<span class="nm">11</span>, <span class="nm">5</span>), sharex=<span class="kw">True</span>)
-axes[<span class="nm">0</span>].<span class="fn">plot</span>(t, sig_healthy, color=<span class="st">'#00e09e'</span>, lw=<span class="nm">0.6</span>); axes[<span class="nm">0</span>].<span class="fn">set_title</span>(<span class="st">'Bearing HEALTHY (smooth, Gaussian-like)'</span>)
-axes[<span class="nm">1</span>].<span class="fn">plot</span>(t, sig_faulty,  color=<span class="st">'#ef4444'</span>, lw=<span class="nm">0.6</span>); axes[<span class="nm">1</span>].<span class="fn">set_title</span>(<span class="st">'Bearing FAULTY (impak periodik 104 Hz tampak)'</span>)
-<span class="kw">for</span> ax <span class="kw">in</span> axes: ax.<span class="fn">grid</span>(alpha=<span class="nm">0.2</span>); ax.<span class="fn">set_ylabel</span>(<span class="st">'g'</span>)
-axes[<span class="nm">1</span>].<span class="fn">set_xlabel</span>(<span class="st">'Waktu (s)'</span>)
+fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="nm">11</span>, <span class="nm">4</span>))
+ax.<span class="fn">plot</span>(t[:<span class="nm">5000</span>], sig[:<span class="nm">5000</span>], color=<span class="st">'#0ea5e9'</span>, lw=<span class="nm">0.6</span>)
+ax.<span class="fn">set_title</span>(<span class="st">'Sinyal Vibrasi Bearing — 30 Hz shaft + harmonik + impak BPFO 107.7 Hz'</span>)
+ax.<span class="fn">set_xlabel</span>(<span class="st">'Waktu (s)'</span>); ax.<span class="fn">set_ylabel</span>(<span class="st">'Amplitudo (g)'</span>); ax.<span class="fn">grid</span>(alpha=<span class="nm">0.2</span>)
 plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
   </div>
 
