@@ -2168,6 +2168,23 @@ plt.<span class="fn">show</span>()</pre>
     <p style="color:var(--muted);font-size:14px;margin-bottom:6px">Kode HTML otomatis tersalin ke clipboard. Buka:</p>
     <p style="color:var(--text);font-size:14px;font-weight:600;margin-bottom:6px">📌 <strong style="color:var(--cyan)">Fast Learning (LMS UMB) → Forum Pertemuan 2</strong></p>
     <p style="color:var(--muted);font-size:13px;margin-bottom:24px">Di editor forum, klik tombol <strong style="color:var(--amber)">&lt;/&gt; HTML</strong> untuk beralih ke mode HTML, lalu paste kode yang sudah disalin.</p>
+    <div class="forum-status" style="background:rgba(0,224,158,.06);border:1px solid rgba(0,224,158,.25);border-radius:14px;padding:16px 18px;margin:8px 0 22px;text-align:left;display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+      <div style="text-align:center;min-width:70px">
+        <div id="forumWordTotal" style="font-size:28px;font-weight:700;color:var(--green);font-family:'JetBrains Mono',monospace;line-height:1">0</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:3px">Total Kata</div>
+      </div>
+      <div style="flex:1;min-width:180px;text-align:left">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Status Forum</div>
+        <div style="font-size:13px;color:var(--text)" id="forumWordDetail">0 / 90 kata · 0 / 3 jawaban lengkap</div>
+        <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:8px"><div id="forumWordFill" style="height:100%;background:linear-gradient(90deg,#00e09e,#00bf85);border-radius:3px;transition:width .5s ease;width:0%"></div></div>
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);text-align:right;min-width:160px;line-height:1.7">
+        <div>Q1: <span id="forumQ1Stat" style="color:var(--cyan)">0</span>/30 kata</div>
+        <div>Q2: <span id="forumQ2Stat" style="color:var(--amber)">0</span>/30 kata</div>
+        <div>Q3: <span id="forumQ3Stat" style="color:var(--pink)">0</span>/30 kata</div>
+      </div>
+      <div id="forum-blocked-msg" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--amber);text-align:center;flex-basis:100%"></div>
+    </div>
     <button class="btn-export-forum" id="btn-copy-forum" onclick="copyForumHtml()" disabled style="opacity:.4;cursor:not-allowed">📋 Copy Forum (kode HTML)</button>
     <div id="copy-forum-msg" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);margin-top:10px"></div>
 
@@ -2915,7 +2932,9 @@ function _setBtnState(btn, ready) {
   btn.disabled = !ready;
   btn.style.opacity = ready ? '1' : '.4';
   btn.style.cursor  = ready ? 'pointer' : 'not-allowed';
-  btn.style.pointerEvents = ready ? 'auto' : 'none';
+  // pointer-events tetap auto agar cursor not-allowed tampil saat hover (disabled
+  // attribute sudah cukup mencegah klik).
+  btn.style.pointerEvents = 'auto';
 }
 window._setBtnState = _setBtnState;
 
@@ -3472,17 +3491,45 @@ function checkForumReady() {
   const btn = document.getElementById('btn-copy-forum');
 
   let allFilled = true;
+  let totalWords = 0, doneCount = 0;
+  const wcs = [];
   ids.forEach((id, i) => {
     const el  = document.getElementById(id);
     const wc  = countWords(el ? el.value : '');
     const ok  = wc >= FORUM_MIN_WORDS;
+    wcs.push(wc);
+    totalWords += wc;
+    if (ok) doneCount++;
     const ind = document.getElementById('wc-fq' + (i + 1));
     if (ind) {
       ind.textContent = wc + ' / min ' + FORUM_MIN_WORDS + ' kata';
       ind.style.color = ok ? 'var(--green)' : (wc > 0 ? 'var(--amber)' : 'var(--muted)');
     }
+    const stat = document.getElementById('forumQ' + (i + 1) + 'Stat');
+    if (stat) stat.textContent = wc;
     if (!ok) allFilled = false;
   });
+
+  // Update forum status panel (mirrors the Tugas score-bar)
+  const minTotal = FORUM_MIN_WORDS * ids.length;
+  const totEl = document.getElementById('forumWordTotal');
+  if (totEl) totEl.textContent = totalWords;
+  const detEl = document.getElementById('forumWordDetail');
+  if (detEl) detEl.textContent = totalWords + ' / ' + minTotal + ' kata · ' + doneCount + ' / ' + ids.length + ' jawaban lengkap';
+  const fillEl = document.getElementById('forumWordFill');
+  if (fillEl) fillEl.style.width = Math.min(100, (totalWords / minTotal) * 100) + '%';
+  const blockedEl = document.getElementById('forum-blocked-msg');
+  if (blockedEl) {
+    if (allFilled) {
+      blockedEl.textContent = '';
+    } else {
+      const parts = [];
+      ids.forEach((_, i) => {
+        if (wcs[i] < FORUM_MIN_WORDS) parts.push('Q' + (i + 1) + ' kurang ' + (FORUM_MIN_WORDS - wcs[i]) + ' kata');
+      });
+      blockedEl.textContent = '\u26a0 ' + parts.join(' \u00b7 ');
+    }
+  }
 
   if (!btn) return;
   _setBtnState(btn, allFilled);   // PEDOMAN §15.4b
