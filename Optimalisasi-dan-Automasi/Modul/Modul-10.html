@@ -879,48 +879,48 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <hr class="divider" style="margin-top:64px">
 <div class="section" id="m-persamaan">
   <div class="section-label reveal">Bagian 01</div>
-  <h2 class="section-title reveal">Mengapa Metaheuristik:<br>Saat Gradient Tidak Tersedia atau Lokal Optimum Banyak</h2>
-  <p class="section-desc reveal">Pertemuan 10 (NLP) sangat efektif untuk fungsi <em>smooth dan diketahui formulanya</em> — gradient bisa dihitung analitik atau finite difference. Tetapi banyak masalah engineering nyata menyalahi asumsi tersebut: <em>simulasi blackbox</em> (FEM crash test, CFD turbin) di mana kita tidak tahu formula f(x); <em>variabel diskrit</em> (jumlah blade, jumlah lilitan, on/off binary); <em>multi-modal landscape</em> dengan ratusan lokal minimum (parameter neural network, desain crashworthy car). Untuk kasus-kasus ini, gradient-based stuck di lokal optimum. Jawabannya: <strong>metaheuristik</strong> — keluarga algoritma <em>terinspirasi dari alam</em> yang gradient-free, population-based, dan mampu eksplor seluruh search space. <strong style="color:var(--cyan)">Genetic Algorithm (GA)</strong> meniru evolusi (Holland 1975); <strong style="color:var(--cyan)">Particle Swarm Optimization (PSO)</strong> meniru kawanan burung (Kennedy &amp; Eberhart 1995).</p>
+  <h2 class="section-title reveal">Mengapa ANOVA:<br>Saat Optimasi Harus Dibuktikan Lewat Eksperimen Berisik</h2>
+  <p class="section-desc reveal">Optimasi engineering yang melibatkan <em>eksperimen fisik</em> (bukan simulasi formula tertutup) berhadapan dengan <strong>noise pengukuran</strong> dan <strong>biaya tinggi per trial</strong>. Memilih <em>cutting speed</em> CNC 80, 100, atau 120 m/min untuk surface roughness terbaik — tiap setting butuh setup mesin, run real, ukur. Hasil ber-noise: 5 ulangan saja sudah memberi distribusi. Pertanyaan kritis bukan "berapa nilai f optimum?" tapi <strong>"apakah perbedaan rata-rata antar level signifikan, atau hanya noise?"</strong> Inilah pertanyaan klasik <em>statistika inferensial</em>. Jawabannya: <strong>ANOVA (Analysis of Variance)</strong> — diciptakan oleh <strong style="color:var(--cyan)">Ronald A. Fisher (1925)</strong> di Rothamsted Experimental Station — partisi total varians data menjadi <em>varians antar-grup</em> (efek faktor) dan <em>varians dalam-grup</em> (noise). Rasio keduanya = <strong>statistik F</strong>. Kalau F besar (p &lt; 0.05), faktor signifikan → ada level optimum yang bisa dipilih dengan keyakinan statistik.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Lima Karakteristik Metaheuristik</div>
-    Population-based &nbsp;·&nbsp; Gradient-free (blackbox) &nbsp;·&nbsp; Stochastic exploration &nbsp;·&nbsp; Eksplorasi vs eksploitasi (trade-off) &nbsp;·&nbsp; Tidak menjamin global, tapi sering "good-enough"
+    <div class="label">Lima Karakteristik ANOVA sebagai Metode Optimasi</div>
+    Berbasis eksperimen (tidak butuh formula f) &nbsp;·&nbsp; Memberi <em>p-value</em> untuk pengambilan keputusan &nbsp;·&nbsp; Ekonomis (sample size kecil) &nbsp;·&nbsp; Tangani noise pengukuran secara eksplisit &nbsp;·&nbsp; Skala terbatas (faktor sedikit, level diskrit)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">🧬</div>
-      <h3>Gradient-Free — Blackbox Friendly</h3>
-      <p>Banyak fungsi objektif engineering hanya bisa dievaluasi via simulasi: FEM crash analysis (LS-DYNA), CFD aerodynamics (ANSYS Fluent), Monte Carlo reliability. Tidak ada <code>∇f(x)</code> analitik; finite difference juga tidak akurat (numerical noise dari simulator). <strong style="color:var(--cyan)">Metaheuristik hanya butuh nilai f(x)</strong> di tiap kandidat — black-box-friendly. Pakai untuk apapun yang bisa Anda evaluasi.</p>
-      <div class="formula">x → SIMULATOR → f(x)</div>
+      <div class="card-icon">📊</div>
+      <h3>Berbasis Bukti Statistik (p-value)</h3>
+      <p>Berbeda dari gradient/metaheuristik yang melaporkan "x* = nilai", ANOVA melaporkan <strong>"perbedaan signifikan secara statistik"</strong> dengan <em>p-value</em>. Insinyur dapat klaim "cutting speed 100 m/min memberi roughness terendah dengan p &lt; 0.01" — kuat untuk justifikasi engineering decision di hadapan manajemen / quality assurance. Standar <em>scientific evidence</em> di mechanical, manufacturing, biomedical engineering.</p>
+      <div class="formula">F = MS_b / MS_w → p-value</div>
     </div>
     <div class="card">
-      <div class="card-icon">👥</div>
-      <h3>Population-Based — Eksplorasi Paralel</h3>
-      <p>Berbeda dari gradient descent (1 titik dilacak), metaheuristik mempertahankan <strong>populasi</strong> N kandidat solusi (typically 30–100). Tiap iterasi mengupdate seluruh populasi secara stokastik. Konsekuensi: (1) eksplorasi <em>multi-region</em> simultaneous, mampu menghindari lokal minimum tunggal; (2) <em>parallelizable</em> trivial — distribusikan evaluasi populasi ke banyak CPU/GPU.</p>
-      <div class="formula">P = {x₁, x₂, …, xₙ}</div>
+      <div class="card-icon">🧪</div>
+      <h3>Tangani Noise Pengukuran Eksplisit</h3>
+      <p>Setiap trial eksperimen punya noise (variasi alat ukur, fluktuasi material, manusia operator). ANOVA secara eksplisit memodelkan noise sebagai <em>varians dalam-grup (within)</em> dan membandingkan dengan <em>varians antar-grup (between)</em>. Kalau efek faktor lebih besar dari noise → signifikan. Tidak butuh asumsi gradient/smoothness — hanya butuh <strong>data eksperimen di tiap level faktor</strong>.</p>
+      <div class="formula">SS_total = SS_b + SS_w</div>
     </div>
     <div class="card">
-      <div class="card-icon">🎲</div>
-      <h3>Stochastic — Eksplorasi vs Eksploitasi</h3>
-      <p>Tiap update melibatkan <em>random component</em> (mutation, crossover, velocity perturbation). Trade-off klasik: terlalu banyak <strong>eksplorasi</strong> (random) → konvergensi lambat; terlalu banyak <strong>eksploitasi</strong> (greedy) → stuck di lokal optimum. Hyperparameter seperti mutation rate, crossover rate, inertia weight dipakai untuk menyeimbangkan. <strong style="color:var(--green)">Tuning hyperparameter sendiri sebuah meta-problem</strong> (kadang pakai meta-meta-heuristic).</p>
-      <div class="formula">explore + exploit balance</div>
+      <div class="card-icon">💰</div>
+      <h3>Ekonomis: Sample Size Kecil Cukup</h3>
+      <p>Untuk problem 1 faktor × 3 level dengan 5 ulangan tiap level = total 15 eksperimen. Cukup untuk dapat power statistik 80% (deteksi efek sedang). Bandingkan GA/PSO yang butuh ratusan-ribuan evaluasi. Untuk eksperimen mahal (CNC machining, welding, heat treatment), ANOVA jauh lebih hemat. <strong style="color:var(--cyan)">Sweet spot</strong>: 2–5 faktor, 2–4 level/faktor, &lt; 100 total trial.</p>
+      <div class="formula">N_trial = k_levels × n_replicates</div>
     </div>
     <div class="card">
       <div class="card-icon">🐍</div>
-      <h3>Implementasi: DEAP, pyswarm, scikit-opt</h3>
-      <p>Python ekosistem: <strong>DEAP</strong> (Distributed Evolutionary Algorithms, framework GA fleksibel), <strong>pyswarm</strong> &amp; <strong>pyswarms</strong> (PSO ready-to-use), <strong>scikit-opt</strong> (Genetic, PSO, Simulated Annealing, Ant Colony di satu lib). Untuk simple use case scipy juga ada: <code>scipy.optimize.differential_evolution</code> (gradient-free metaheuristik populer). Scale up: <strong>Optuna</strong>, <strong>Hyperopt</strong> untuk hyperparameter tuning ML.</p>
-      <div class="formula">DEAP / pyswarms / scikit-opt</div>
+      <h3>Implementasi: scipy.stats &amp; statsmodels</h3>
+      <p>Python ekosistem: <strong>scipy.stats.f_oneway</strong> (one-way ANOVA cepat), <strong>statsmodels</strong> (full ANOVA table dengan formula API: <code>ols('y ~ C(faktor)', data).fit() → anova_lm</code>), <strong>pingouin</strong> (effect size, post-hoc Tukey HSD), <strong>pyDOE2</strong> (orthogonal arrays untuk Taguchi method). Visualisasi: <strong>seaborn.boxplot</strong> + <strong>seaborn.pointplot</strong> untuk effect plots; <strong>statsmodels.graphics.factorplots</strong> untuk interaction plot.</p>
+      <div class="formula">scipy.stats / statsmodels</div>
     </div>
   </div>
 
   <div class="info-box reveal">
     <strong>Posisi Pertemuan 11 dalam Alur Mata Kuliah:</strong><br>
-    <strong>P1–P7</strong> (analisis sinyal) → <strong>UTS</strong> → <strong>P9</strong> (LP) → <strong>P10</strong> (NLP gradient-based) → <strong>P11 (Anda di sini — Metaheuristik GA &amp; PSO)</strong> → <strong>P12</strong> (Otomatisasi Monitoring rule-based) → <strong>P13</strong> (Otomatisasi Predictive ML) → <strong>P14–P15</strong> (Proyek akhir). Metaheuristik melengkapi toolbox optimasi: kalau LP/NLP gradient-based mentok di non-konveks atau blackbox, GA/PSO ambil alih. <em>Tidak menggantikan gradient-based</em> — keduanya saling melengkapi tergantung struktur masalah.
+    <strong>P1–P7</strong> (analisis sinyal) → <strong>UTS</strong> → <strong>P9</strong> (LP) → <strong>P10</strong> (NLP gradient-based) → <strong>P11 (Anda di sini — Optimasi Eksperimental ANOVA)</strong> → <strong>P12</strong> (Otomatisasi Monitoring rule-based) → <strong>P13</strong> (Otomatisasi Predictive ML) → <strong>P14–P15</strong> (Proyek akhir). ANOVA melengkapi toolbox optimasi: kalau LP/NLP butuh formula matematis dan metaheuristik butuh banyak evaluasi murah, ANOVA cocok untuk <em>eksperimen fisik mahal</em> dengan faktor diskrit. Kombinasi ANOVA + Taguchi method = standar industri untuk parameter optimization di manufacturing &amp; quality engineering (Six Sigma).
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Prinsip Utama:</strong> Sebelum pakai metaheuristik: (1) <em>Coba gradient-based dulu</em> kalau f smooth — jauh lebih cepat &amp; deterministic. (2) <em>Skalakan variabel ke [0,1] atau [-1,1]</em> agar mutation/crossover seimbang antar dimensi. (3) <em>Set seed</em> untuk reproducibility (<code>random.seed(42)</code>). (4) <em>Multiple runs</em> (5–10×) — metaheuristik stokastik, ambil rata-rata untuk evaluasi yang fair. (5) <em>Bandingkan dengan baseline</em>: random search atau grid search — metaheuristik harus secara nyata lebih baik. (6) Untuk <strong style="color:var(--green)">small-scale</strong> (n &lt; 10), GA/PSO mungkin overkill — <code>differential_evolution</code> sudah cukup.
+    💡 <strong>Prinsip Utama:</strong> Sebelum pakai ANOVA: (1) <em>Cek asumsi</em> — normality (Shapiro-Wilk test), homoscedasticity / equal variance (Levene's test), independence antar-trial. (2) <em>Replicate</em> — minimal n=3 ulangan per kombinasi level untuk estimasi noise. (3) <em>Randomize</em> urutan eksperimen untuk hindari bias temporal (alat memanas, operator lelah). (4) <em>Set α</em> di awal (biasanya 0.05) — jangan ubah setelah lihat data (p-hacking). (5) Kalau ANOVA signifikan, lakukan <strong>post-hoc test</strong> (Tukey HSD) untuk mengidentifikasi level mana yang berbeda. (6) Untuk faktor <em>banyak (≥ 5)</em>, pakai <strong>fractional factorial</strong> atau <strong>Taguchi orthogonal arrays</strong> agar jumlah trial tetap manageable.
   </div>
 </div>
 
