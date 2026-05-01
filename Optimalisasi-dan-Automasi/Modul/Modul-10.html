@@ -2070,13 +2070,13 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C1</div>
-        <div class="comp-q">Selesaikan unconstrained NLP <strong>min f(x) = (x − 4)²</strong> dengan <code>scipy.optimize.minimize</code> method <code>'BFGS'</code>, x0 = 0. Print nilai <strong>x optimal</strong>.</div>
+        <div class="comp-q">Hitung <strong>fitness Rastrigin 1D</strong> di x = 2.0. Formula: <code>f(x) = 10·n + Σ(xᵢ² − 10·cos(2π·xᵢ))</code>, n = 1. Print nilai f(2.0).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Solusi analitik: <code>f'(x) = 2(x−4) = 0 → x* = 4</code>. <code>res = minimize(lambda x: (x[0]−4)**2, x0=[0], method='BFGS'); print(res.x[0])</code>. Output: <strong>4.0</strong>.</div>
+      <div class="comp-hint">💡 Untuk x = 2.0, n = 1: <code>f(2) = 10·1 + (2² − 10·cos(4π)) = 10 + (4 − 10·1) = 10 − 6 = <strong>4.0</strong></code>. (cos(4π) = cos(0) = 1 karena periodicity 2π.)</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">x optimal</strong></span></div>
-        <textarea class="code-textarea" id="code-c1" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi&#10;&#10;Contoh:&#10;from scipy.optimize import minimize&#10;def f(x): return (x[0] - 4)**2&#10;res = minimize(f, x0=[0], method='BFGS')&#10;print(f'{res.x[0]:.4f}')" oninput="onCodeInput('c1')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">f(2.0)</strong></span></div>
+        <textarea class="code-textarea" id="code-c1" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi&#10;&#10;Contoh:&#10;import numpy as np&#10;x = 2.0&#10;f = 10 + x**2 - 10*np.cos(2*np.pi*x)&#10;print(f'{f:.4f}')" oninput="onCodeInput('c1')"></textarea>
         <div class="stdout-box" id="stdout-c1"></div>
       </div>
       <button class="comp-submit run-btn" id="sub-c1" onclick="runAndCheck('c1', 4.0, 0.01)">▶ Run &amp; Validasi</button>
@@ -2087,16 +2087,16 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C2</div>
-        <div class="comp-q">Untuk fungsi quadratic 2D <strong>f(x,y) = (x−3)² + 2(y−2)²</strong>, hitung <strong>nilai gradient di titik (1, 1)</strong> sebagai vektor norma. <code>‖∇f(1,1)‖ = √(∇f_x² + ∇f_y²)</code>. Print nilainya.</div>
+        <div class="comp-q">Pada GA, populasi N = 50 individuals dengan <strong>elite size k_elite = 5</strong>. Berapa <strong>banyak offspring</strong> baru yang harus di-generate per generasi?</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>∇f = (2(x−3), 4(y−2))</code> di (1,1) = (−4, −4). Norma = <code>√(16+16) = √32 ≈ <strong>5.6569</strong></code>. Print <code>np.sqrt(32)</code> atau hitung manual.</div>
+      <div class="comp-hint">💡 Setiap generasi populasi tetap N = 50. <em>k_elite</em> = 5 individu di-copy langsung tanpa modifikasi (elitism). Sisanya = <code>N − k_elite = 50 − 5 = <strong>45</strong></code> harus di-generate via crossover + mutation. Print <code>50 - 5</code>.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">‖∇f(1,1)‖</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() jumlah <strong style="color:var(--amber)">offspring</strong></span></div>
         <textarea class="code-textarea" id="code-c2" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c2')"></textarea>
         <div class="stdout-box" id="stdout-c2"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c2" onclick="runAndCheck('c2', 5.6569, 0.01)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c2" onclick="runAndCheck('c2', 45.0, 0.5)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c2"></div>
     </div>
 
@@ -2104,16 +2104,16 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C3</div>
-        <div class="comp-q">Selesaikan <strong>min f(x,y) = x² + 2y²</strong> dengan <code>scipy.minimize</code> method BFGS, x0 = [3, 2]. Print <strong>nilai f optimal</strong> (f(x*)).</div>
+        <div class="comp-q">PSO dengan velocity update <code>v = w·v + c₁r₁(p − x) + c₂r₂(g − x)</code>. Diketahui <strong>w = 0.7, c₁ = c₂ = 1.5, v_old = 1.0, p − x = 2.0, g − x = 3.0, r₁ = r₂ = 1.0</strong>. Hitung <strong>v_new</strong>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Solusi: x* = (0, 0), f* = <strong>0</strong>. Code: <code>res = minimize(lambda x: x[0]**2 + 2*x[1]**2, x0=[3,2], method='BFGS'); print(res.fun)</code>. Output ≈ 0 (mungkin sangat kecil ~1e−10 karena floating point).</div>
+      <div class="comp-hint">💡 Substitusi: <code>v_new = 0.7·1.0 + 1.5·1.0·2.0 + 1.5·1.0·3.0 = 0.7 + 3.0 + 4.5 = <strong>8.2</strong></code>. Print <code>0.7*1 + 1.5*1*2 + 1.5*1*3</code>.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">f optimal</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">v_new</strong></span></div>
         <textarea class="code-textarea" id="code-c3" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c3')"></textarea>
         <div class="stdout-box" id="stdout-c3"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c3" onclick="runAndCheck('c3', 0.0, 0.001)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c3" onclick="runAndCheck('c3', 8.2, 0.01)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c3"></div>
     </div>
 
@@ -2121,16 +2121,16 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C4</div>
-        <div class="comp-q">Selesaikan NLP berkendala <strong>min f(x,y) = x² + y²</strong> s.t. <code>x + y = 4</code>. Pakai <code>method='SLSQP'</code> dengan <code>constraints={'type':'eq', 'fun': lambda x: x[0]+x[1]-4}</code>. Print <strong>x optimal</strong> (x[0]).</div>
+        <div class="comp-q">Selesaikan unconstrained <strong>min f(x) = (x − 3)²</strong> dengan <code>scipy.optimize.differential_evolution</code>, bounds = [(−10, 10)], seed = 42. Print <strong>nilai x optimal</strong>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Solusi via Lagrange: f minimum di <code>x = y = 2</code> (sumbu simetri). Output <code>res.x[0]</code> = <strong>2.0</strong>. Sediakan x0 feasible misal [1, 3].</div>
+      <div class="comp-hint">💡 Solusi: x* = 3.0. Code: <code>from scipy.optimize import differential_evolution; res = differential_evolution(lambda x: (x[0]−3)**2, bounds=[(−10,10)], seed=42); print(res.x[0])</code>. Output sangat dekat dengan <strong>3.0</strong> (bisa 2.99...).</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">x optimal</strong></span></div>
         <textarea class="code-textarea" id="code-c4" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c4')"></textarea>
         <div class="stdout-box" id="stdout-c4"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c4" onclick="runAndCheck('c4', 2.0, 0.01)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c4" onclick="runAndCheck('c4', 3.0, 0.05)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c4"></div>
     </div>
 
@@ -2138,16 +2138,16 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C5</div>
-        <div class="comp-q">Untuk masalah C4 (min x²+y² s.t. x+y=4), hitung <strong>multiplier λ</strong> dari Lagrangian L = x² + y² + λ(x+y−4). Solusi: <code>∂L/∂x = 2x + λ = 0, ∂L/∂y = 2y + λ = 0</code>. Print <strong>nilai λ</strong>.</div>
+        <div class="comp-q">Pada GA dengan <strong>tournament size k = 3</strong>, probabilitas individu <em>terburuk</em> di populasi N=10 untuk dipilih sebagai parent (per turnamen) adalah... Hitung <strong>P(worst dipilih)</strong> dalam %.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Dari ∂L/∂x = 0: λ = −2x. Karena x = 2: <strong>λ = −4</strong>. Atau ekstrak via SLSQP: <code>res = minimize(...); λ = -res.<strong>multipliers</strong></code> (untuk SLSQP tidak langsung, gunakan trust-constr). Atau hitung manual: print <code>-2*2.0</code> = −4.</div>
+      <div class="comp-hint">💡 Tournament: pilih k=3 individu random, ambil yang terbaik. Untuk individu terburuk dipilih: harus terpilih di k=3 (probability k/N) DAN tidak ada yang lebih buruk darinya di tournament. Karena semua N−1 = 9 individu lebih baik dari worst, kondisi kedua hampir tidak mungkin. <strong>P ≈ k/N · 1/(C(N-1,k-1)/C(N,k))</strong>. Untuk worst individu, P = 1/C(N,k) = 1/C(10,3) = 1/120 ≈ <strong>0.83%</strong>. Print <code>1/120 * 100</code> = 0.833.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">λ (Lagrange multiplier)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">P(worst) (%)</strong></span></div>
         <textarea class="code-textarea" id="code-c5" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c5')"></textarea>
         <div class="stdout-box" id="stdout-c5"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c5" onclick="runAndCheck('c5', -4.0, 0.01)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c5" onclick="runAndCheck('c5', 0.833, 0.05)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c5"></div>
     </div>
 
