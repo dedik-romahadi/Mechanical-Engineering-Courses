@@ -1011,16 +1011,16 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 03 — KLASIFIKASI: RANDOM FOREST & SVM ═══ -->
+<!-- ═══ BAGIAN 03 — LOGISTIC REGRESSION DETAIL ═══ -->
 <hr class="divider">
 <div class="section" id="m-dmf">
   <div class="section-label reveal">Bagian 03</div>
-  <h2 class="section-title reveal">Algoritma Klasifikasi:<br>Logistic Regression, Random Forest, &amp; SVM</h2>
-  <p class="section-desc reveal">Tiga algoritma klasifikasi paling sering dipakai di engineering: <strong>Logistic Regression</strong> (linier, baseline interpretable), <strong>Random Forest</strong> (ensemble decision tree, robust + feature importance), <strong>Support Vector Machine (SVM)</strong> (margin maximization + kernel trick untuk non-linear). Tiap algoritma punya assumption, kekuatan, &amp; kelemahan berbeda. <em>Best practice</em>: coba ketiganya dengan default hyperparameter, pilih yang terbaik di test set, lalu tune hyperparameter top model. Jangan pilih algoritma berdasarkan popularitas — pilih berdasarkan struktur data Anda. Plus <strong>Gradient Boosting</strong> (XGBoost, LightGBM) sebagai state-of-the-art untuk tabular data — tetapi default RF/SVM cukup untuk baseline solid.</p>
+  <h2 class="section-title reveal">Logistic Regression:<br>Linear Baseline Classifier untuk Healthy/Fault Detection</h2>
+  <p class="section-desc reveal"><strong>Logistic Regression (LR)</strong> adalah algoritma klasifikasi paling fundamental di ML — meski namanya "regression", LR sebenarnya untuk klasifikasi. Inti idenya: gabungkan fitur secara linear dengan bobot, lalu transform jadi probability via <em>sigmoid function</em>: <code>P(y=1 | x) = σ(wᵀx + b)</code> dengan σ(z) = 1/(1+e^(−z)). Decision boundary linear: predict class 1 kalau P &gt; 0.5, class 0 kalau P ≤ 0.5. Loss function: <em>cross-entropy (log-loss)</em>. Optimasi: <em>gradient descent</em> (atau Newton-Raphson IRLS). LR jadi <strong>baseline wajib</strong> di setiap ML project karena: (a) <em>cepat</em> training + inference (linear, tidak ada tree traversal), (b) <em>interpretable</em> — koefisien w[i] = log-odds contribution per fitur (bisa di-rank), (c) <em>probabilistic output</em> langsung (bukan post-hoc Platt scaling), (d) <em>robust</em> di linearly separable problem, (e) <em>regularization</em> built-in (L1 lasso, L2 ridge) via parameter <code>C</code>. Algoritma lanjutan (Random Forest tree ensemble + SVM kernel trick) di Pertemuan 14.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Tiga Algoritma Klasifikasi Inti + Pilihan Lanjutan</div>
-    Logistic Regression (linear) &nbsp;·&nbsp; Random Forest (tree ensemble) &nbsp;·&nbsp; SVM (margin + kernel) &nbsp;·&nbsp; Gradient Boosting (advanced)
+    <div class="label">Enam Konsep Inti Logistic Regression</div>
+    Sigmoid σ(z) &nbsp;·&nbsp; Linear combiner wᵀx+b &nbsp;·&nbsp; Cross-entropy loss &nbsp;·&nbsp; Gradient descent &nbsp;·&nbsp; L1 / L2 regularization &nbsp;·&nbsp; Coefficient interpretation (log-odds)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
@@ -1103,16 +1103,16 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 04 — STATE MACHINE & DEBOUNCING ═══ -->
+<!-- ═══ BAGIAN 04 — EVALUASI DASAR (CONFUSION MATRIX + F1) ═══ -->
 <hr class="divider">
 <div class="section" id="m-resonashi">
   <div class="section-label reveal">Bagian 04</div>
-  <h2 class="section-title reveal">Evaluasi Model:<br>Confusion Matrix, F1-Score, ROC-AUC &amp; Cross-Validation</h2>
-  <p class="section-desc reveal">Setelah model di-fit, pertanyaan kritis: <strong>seberapa bagus performance-nya?</strong> Bukan cuma accuracy — banyak metrik penting tergantung use case. <em>Confusion matrix</em> menunjukkan TP/FP/TN/FN. <em>Precision</em> = "dari yang di-predict fault, berapa benar?" — relevan untuk minimize false alarm. <em>Recall</em> = "dari semua fault sebenarnya, berapa kena?" — relevan untuk safety (jangan miss fault). <em>F1</em> = harmonic mean (balance). <em>ROC-AUC</em> = threshold-independent performance summary. Plus <strong>cross-validation</strong> untuk estimate true generalization (single train/test split bisa lucky/unlucky). Pakai <em>k-fold CV</em> (typically k=5 atau 10) sebagai gold standard. <em>Stratified k-fold</em> untuk imbalanced class.</p>
+  <h2 class="section-title reveal">Evaluasi Dasar:<br>Confusion Matrix, Accuracy, Precision, Recall &amp; F1-Score</h2>
+  <p class="section-desc reveal">Setelah Logistic Regression di-fit, pertanyaan kritis: <strong>seberapa bagus performance-nya?</strong> Untuk klasifikasi binary (healthy vs fault), 5 metrik dasar wajib dipahami: (1) <strong>Confusion Matrix 2×2</strong> dengan TP/FP/TN/FN — fondasi semua metrik lain. (2) <strong>Accuracy</strong> = (TP+TN)/total — proporsi prediksi benar. <em>Hati-hati</em>: misleading untuk imbalanced data (1% fault → naive accuracy 99% tetapi recall 0%). (3) <strong>Precision</strong> = TP/(TP+FP) — "dari yang di-predict fault, berapa benar?" Penting untuk minimize false alarm. (4) <strong>Recall (Sensitivity)</strong> = TP/(TP+FN) — "dari semua fault aktual, berapa terdeteksi?" Penting untuk safety (jangan miss fault). (5) <strong>F1-Score</strong> = harmonic mean precision &amp; recall = 2PR/(P+R) — single metric balance. Plus <em>imbalanced data handling</em>: <code>class_weight='balanced'</code>, threshold tuning (default 0.5 belum tentu optimal). Metrik lanjutan (ROC-AUC threshold-independent, k-fold cross-validation, GridSearchCV) dibahas di Pertemuan 14 (ML Part 2).</p>
 
   <div class="formula-block reveal">
-    <div class="label">Enam Konsep Inti Evaluasi Model</div>
-    Confusion matrix (TP/FP/TN/FN) &nbsp;·&nbsp; Precision, Recall, F1 &nbsp;·&nbsp; ROC curve &amp; AUC &nbsp;·&nbsp; Cross-validation (k-fold) &nbsp;·&nbsp; Imbalanced class handling &nbsp;·&nbsp; Overfit detection
+    <div class="label">Lima Konsep Inti Evaluasi Dasar</div>
+    Confusion matrix 2×2 &nbsp;·&nbsp; Accuracy = (TP+TN)/N &nbsp;·&nbsp; Precision = TP/(TP+FP) &nbsp;·&nbsp; Recall = TP/(TP+FN) &nbsp;·&nbsp; F1 = harmonic mean P&amp;R
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
