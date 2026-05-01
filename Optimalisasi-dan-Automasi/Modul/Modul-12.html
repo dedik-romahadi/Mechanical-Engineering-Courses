@@ -1651,129 +1651,91 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   <div class="code-wrap reveal">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 4 — run_monitoring_pipeline() Reusable: End-to-End Pipeline (FSM + dashboard)</span>
+      <span class="code-label">Cell 4 — 5-Fold Cross-Validation + GridSearchCV Hyperparameter Tuning (Random Forest)</span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
-    <pre><span class="kw">def</span> <span class="fn">run_monitoring_pipeline</span>(rms_signal, timestamps=<span class="kw">None</span>,
-                            thresholds=(<span class="nm">1.4</span>, <span class="nm">2.8</span>, <span class="nm">4.5</span>),
-                            hysteresis=<span class="nm">0.2</span>, debounce_n=<span class="nm">3</span>,
-                            plot=<span class="kw">True</span>):
-    <span class="st">"""</span>
-<span class="st">    End-to-end rule-based monitoring pipeline.</span>
-<span class="st">    </span>
-<span class="st">    Steps:</span>
-<span class="st">      1. Apply ISO 10816 zone classification</span>
-<span class="st">      2. Apply hysteresis-aware FSM with debouncing</span>
-<span class="st">      3. Generate audit log (timestamp, transitions)</span>
-<span class="st">      4. Compute statistics (% time per state, mean RMS, max RMS)</span>
-<span class="st">      5. Plot dashboard: signal + thresholds + state trajectory + alert events</span>
-<span class="st">    </span>
-<span class="st">    Parameters</span>
-<span class="st">    ----------</span>
-<span class="st">    rms_signal  : array-like, RMS velocity time series (mm/s)</span>
-<span class="st">    timestamps  : list of datetime, optional</span>
-<span class="st">    thresholds  : tuple (T_warn, T_alert, T_crit), default ISO 10816 Group 2</span>
-<span class="st">    hysteresis  : float, margin antara T_on dan T_off</span>
-<span class="st">    debounce_n  : int, jumlah consecutive samples untuk transition</span>
-<span class="st">    plot        : bool, generate dashboard plot</span>
-<span class="st">    </span>
-<span class="st">    Return: dict dengan state_history, audit_log, stats, fsm</span>
-<span class="st">    """</span>
-    rms = np.<span class="fn">asarray</span>(rms_signal)
-    n = <span class="fn">len</span>(rms)
-    <span class="kw">if</span> timestamps <span class="kw">is</span> <span class="kw">None</span>:
-        ts_start = datetime(<span class="nm">2025</span>, <span class="nm">11</span>, <span class="nm">15</span>, <span class="nm">8</span>, <span class="nm">0</span>)
-        timestamps = [ts_start + <span class="fn">timedelta</span>(seconds=<span class="nm">30</span> * i) <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n)]
+    <pre><span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> cross_val_score, GridSearchCV
+<span class="kw">from</span> sklearn.ensemble <span class="kw">import</span> RandomForestClassifier
 
-    <span class="cm"># Setup FSM dengan custom thresholds</span>
-    fsm = <span class="fn">MonitoringFSM</span>()
-    fsm.THRESHOLDS = {<span class="st">'WARNING'</span>: thresholds[<span class="nm">0</span>], <span class="st">'ALERT'</span>: thresholds[<span class="nm">1</span>], <span class="st">'CRITICAL'</span>: thresholds[<span class="nm">2</span>]}
-    fsm.HYSTERESIS = hysteresis
-    fsm.DEBOUNCE_N = debounce_n
+<span class="cm"># ═══════════════════════════════════════════════════════════════════</span>
+<span class="cm"># 5-Fold Cross-Validation + GridSearchCV untuk hyperparameter tuning.</span>
+<span class="cm">#   CV: estimasi reliable performance (mean ± std).</span>
+<span class="cm">#   GridSearch: cari kombinasi hyperparameter terbaik.</span>
+<span class="cm"># ═══════════════════════════════════════════════════════════════════</span>
 
-    <span class="cm"># Run FSM</span>
-    state_history = []
-    <span class="kw">for</span> r, ts <span class="kw">in</span> <span class="fn">zip</span>(rms, timestamps):
-        state_history.<span class="fn">append</span>(fsm.<span class="fn">update</span>(r, ts))
+<span class="cm"># ═══════════════ STEP 1 — Cross-validation baseline ═══════════════</span>
+rf_default = <span class="fn">RandomForestClassifier</span>(n_estimators=<span class="nm">100</span>, random_state=<span class="nm">42</span>, n_jobs=-<span class="nm">1</span>)
+cv_scores = <span class="fn">cross_val_score</span>(rf_default, X_train, y_train, cv=<span class="nm">5</span>, scoring=<span class="st">'f1_macro'</span>, n_jobs=-<span class="nm">1</span>)
 
-    <span class="cm"># Statistics</span>
-    <span class="kw">from</span> collections <span class="kw">import</span> Counter
-    state_count = <span class="fn">Counter</span>(state_history)
-    stats_dict = {
-        <span class="st">'n_samples'</span>: n,
-        <span class="st">'duration_hours'</span>: (timestamps[-<span class="nm">1</span>] - timestamps[<span class="nm">0</span>]).<span class="fn">total_seconds</span>() / <span class="nm">3600</span>,
-        <span class="st">'mean_rms'</span>: <span class="fn">float</span>(rms.<span class="fn">mean</span>()),
-        <span class="st">'max_rms'</span>: <span class="fn">float</span>(rms.<span class="fn">max</span>()),
-        <span class="st">'pct_per_state'</span>: {s: <span class="fn">round</span>(<span class="nm">100</span> * state_count[s] / n, <span class="nm">2</span>) <span class="kw">for</span> s <span class="kw">in</span> fsm.STATES},
-        <span class="st">'n_transitions'</span>: <span class="fn">len</span>(fsm.audit_log),
-    }
+<span class="fn">print</span>(<span class="st">f"═══ 5-FOLD CROSS-VALIDATION (RF default) ═══"</span>)
+<span class="fn">print</span>(<span class="st">f"F1 macro per fold: {[f'{s:.3f}' for s in cv_scores]}"</span>)
+<span class="fn">print</span>(<span class="st">f"Mean ± Std       : {cv_scores.mean():.4f} ± {cv_scores.std():.4f}"</span>)
+<span class="fn">print</span>(<span class="st">f"Konsisten?         {'YA' if cv_scores.std() &lt; 0.05 else 'TIDAK (variance tinggi)'}"</span>)
 
-    <span class="cm"># Reporting</span>
-    <span class="fn">print</span>(<span class="st">"═══ MONITORING PIPELINE REPORT ═══"</span>)
-    <span class="fn">print</span>(<span class="st">f"  Duration : {stats_dict['duration_hours']:.1f} jam ({stats_dict['n_samples']} samples)"</span>)
-    <span class="fn">print</span>(<span class="st">f"  Mean RMS : {stats_dict['mean_rms']:.3f} mm/s"</span>)
-    <span class="fn">print</span>(<span class="st">f"  Max RMS  : {stats_dict['max_rms']:.3f} mm/s"</span>)
-    <span class="fn">print</span>(<span class="st">f"  Transitions: {stats_dict['n_transitions']}"</span>)
-    <span class="fn">print</span>(<span class="st">f"\n  % time per state:"</span>)
-    <span class="kw">for</span> s, pct <span class="kw">in</span> stats_dict[<span class="st">'pct_per_state'</span>].<span class="fn">items</span>():
-        <span class="fn">print</span>(<span class="st">f"    {s:10s}: {pct:5.1f}%"</span>)
+<span class="cm"># ═══════════════ STEP 2 — GridSearchCV ═══════════════</span>
+param_grid = {
+    <span class="st">'n_estimators'</span>: [<span class="nm">50</span>, <span class="nm">100</span>, <span class="nm">200</span>],
+    <span class="st">'max_depth'</span>: [<span class="kw">None</span>, <span class="nm">5</span>, <span class="nm">10</span>, <span class="nm">20</span>],
+    <span class="st">'min_samples_leaf'</span>: [<span class="nm">1</span>, <span class="nm">2</span>, <span class="nm">5</span>],
+}
 
-    <span class="cm"># Audit log</span>
-    audit_df = pd.<span class="fn">DataFrame</span>(fsm.audit_log)
+grid_search = <span class="fn">GridSearchCV</span>(
+    estimator=<span class="fn">RandomForestClassifier</span>(random_state=<span class="nm">42</span>, n_jobs=-<span class="nm">1</span>),
+    param_grid=param_grid,
+    cv=<span class="nm">5</span>,
+    scoring=<span class="st">'f1_macro'</span>,
+    n_jobs=-<span class="nm">1</span>,
+    verbose=<span class="nm">1</span>
+)
+<span class="fn">print</span>(<span class="st">f"\n═══ GRID SEARCH (5-fold CV, f1_macro) ═══"</span>)
+<span class="fn">print</span>(<span class="st">f"Total kombinasi: {3 * 4 * 3} = 36 candidates × 5 folds = 180 fits"</span>)
+grid_search.<span class="fn">fit</span>(X_train, y_train)
 
-    <span class="cm"># Dashboard plot</span>
-    <span class="kw">if</span> plot:
-        fig, axes = plt.<span class="fn">subplots</span>(<span class="nm">3</span>, <span class="nm">1</span>, figsize=(<span class="nm">14</span>, <span class="nm">9</span>),
-                                 gridspec_kw={<span class="st">'height_ratios'</span>: [<span class="nm">3</span>, <span class="nm">1</span>, <span class="nm">2</span>]})
+<span class="fn">print</span>(<span class="st">f"\nBest params      : {grid_search.best_params_}"</span>)
+<span class="fn">print</span>(<span class="st">f"Best CV F1 macro : {grid_search.best_score_:.4f}"</span>)
 
-        <span class="cm"># Top: signal + thresholds + zone bands</span>
-        zone_colors = {<span class="st">'A'</span>: <span class="st">'#22c55e'</span>, <span class="st">'B'</span>: <span class="st">'#06b6d4'</span>, <span class="st">'C'</span>: <span class="st">'#f59e0b'</span>, <span class="st">'D'</span>: <span class="st">'#ec4899'</span>}
-        axes[<span class="nm">0</span>].<span class="fn">axhspan</span>(<span class="nm">0</span>, thresholds[<span class="nm">0</span>], color=<span class="st">'#22c55e'</span>, alpha=<span class="nm">0.1</span>)
-        axes[<span class="nm">0</span>].<span class="fn">axhspan</span>(thresholds[<span class="nm">0</span>], thresholds[<span class="nm">1</span>], color=<span class="st">'#06b6d4'</span>, alpha=<span class="nm">0.1</span>)
-        axes[<span class="nm">0</span>].<span class="fn">axhspan</span>(thresholds[<span class="nm">1</span>], thresholds[<span class="nm">2</span>], color=<span class="st">'#f59e0b'</span>, alpha=<span class="nm">0.1</span>)
-        axes[<span class="nm">0</span>].<span class="fn">axhspan</span>(thresholds[<span class="nm">2</span>], rms.<span class="fn">max</span>()*<span class="nm">1.1</span>, color=<span class="st">'#ec4899'</span>, alpha=<span class="nm">0.1</span>)
-        axes[<span class="nm">0</span>].<span class="fn">plot</span>(<span class="fn">range</span>(n), rms, color=<span class="st">'#1f2937'</span>, lw=<span class="nm">0.8</span>, alpha=<span class="nm">0.8</span>)
-        <span class="kw">for</span> t, c, lbl <span class="kw">in</span> <span class="fn">zip</span>(thresholds, [<span class="st">'#06b6d4'</span>, <span class="st">'#f59e0b'</span>, <span class="st">'#ec4899'</span>], [<span class="st">'WARN'</span>, <span class="st">'ALERT'</span>, <span class="st">'CRIT'</span>]):
-            axes[<span class="nm">0</span>].<span class="fn">axhline</span>(t, color=c, linestyle=<span class="st">'--'</span>, lw=<span class="nm">1</span>, label=<span class="st">f'{lbl}={t}'</span>)
-        axes[<span class="nm">0</span>].<span class="fn">set_ylabel</span>(<span class="st">'RMS (mm/s)'</span>); axes[<span class="nm">0</span>].<span class="fn">legend</span>(loc=<span class="st">'upper left'</span>)
-        axes[<span class="nm">0</span>].<span class="fn">set_title</span>(<span class="st">f'Monitoring Dashboard | duration {stats_dict["duration_hours"]:.1f} jam | {stats_dict["n_transitions"]} transitions'</span>)
-        axes[<span class="nm">0</span>].<span class="fn">grid</span>(alpha=<span class="nm">0.25</span>)
+<span class="cm"># ═══════════════ STEP 3 — Evaluate best model on test ═══════════════</span>
+best_rf = grid_search.best_estimator_
+y_pred_best = best_rf.<span class="fn">predict</span>(X_test)
+acc = <span class="fn">accuracy_score</span>(y_test, y_pred_best)
+f1 = <span class="fn">f1_score</span>(y_test, y_pred_best)
+<span class="fn">print</span>(<span class="st">f"\n═══ BEST MODEL ON TEST SET ═══"</span>)
+<span class="fn">print</span>(<span class="st">f"Test Accuracy: {acc:.4f}"</span>)
+<span class="fn">print</span>(<span class="st">f"Test F1 Score: {f1:.4f}"</span>)
+<span class="fn">print</span>(<span class="fn">classification_report</span>(y_test, y_pred_best, target_names=[<span class="st">'healthy'</span>, <span class="st">'fault'</span>]))
 
-        <span class="cm"># Mid: state trajectory</span>
-        state_idx = [fsm.STATES.<span class="fn">index</span>(s) <span class="kw">if</span> s <span class="kw">in</span> fsm.STATES <span class="kw">else</span> <span class="nm">0</span> <span class="kw">for</span> s <span class="kw">in</span> state_history]
-        colors_state = [<span class="st">'#22c55e'</span>, <span class="st">'#06b6d4'</span>, <span class="st">'#f59e0b'</span>, <span class="st">'#ec4899'</span>, <span class="st">'#a855f7'</span>]
-        axes[<span class="nm">1</span>].<span class="fn">scatter</span>(<span class="fn">range</span>(n), state_idx, c=[colors_state[i] <span class="kw">for</span> i <span class="kw">in</span> state_idx], s=<span class="nm">3</span>)
-        axes[<span class="nm">1</span>].<span class="fn">set_yticks</span>(<span class="fn">range</span>(<span class="fn">len</span>(fsm.STATES))); axes[<span class="nm">1</span>].<span class="fn">set_yticklabels</span>(fsm.STATES)
-        axes[<span class="nm">1</span>].<span class="fn">set_ylabel</span>(<span class="st">'State'</span>); axes[<span class="nm">1</span>].<span class="fn">grid</span>(alpha=<span class="nm">0.25</span>)
+<span class="cm"># ═══════════════ PLOT ═══════════════</span>
+fig, axes = plt.<span class="fn">subplots</span>(<span class="nm">1</span>, <span class="nm">2</span>, figsize=(<span class="nm">13</span>, <span class="nm">5</span>))
 
-        <span class="cm"># Bottom: % time per state (bar)</span>
-        states_present = [s <span class="kw">for</span> s <span class="kw">in</span> fsm.STATES <span class="kw">if</span> stats_dict[<span class="st">'pct_per_state'</span>][s] &gt; <span class="nm">0</span>]
-        pcts = [stats_dict[<span class="st">'pct_per_state'</span>][s] <span class="kw">for</span> s <span class="kw">in</span> states_present]
-        bar_colors = [colors_state[fsm.STATES.<span class="fn">index</span>(s)] <span class="kw">for</span> s <span class="kw">in</span> states_present]
-        axes[<span class="nm">2</span>].<span class="fn">barh</span>(states_present, pcts, color=bar_colors)
-        <span class="kw">for</span> i, p <span class="kw">in</span> <span class="fn">enumerate</span>(pcts):
-            axes[<span class="nm">2</span>].<span class="fn">text</span>(p + <span class="nm">0.5</span>, i, <span class="st">f'{p:.1f}%'</span>, va=<span class="st">'center'</span>, fontweight=<span class="st">'bold'</span>)
-        axes[<span class="nm">2</span>].<span class="fn">set_xlabel</span>(<span class="st">'% time'</span>); axes[<span class="nm">2</span>].<span class="fn">set_xlim</span>(<span class="nm">0</span>, <span class="nm">105</span>)
-        axes[<span class="nm">2</span>].<span class="fn">set_title</span>(<span class="st">'Time Distribution per State'</span>); axes[<span class="nm">2</span>].<span class="fn">grid</span>(axis=<span class="st">'x'</span>, alpha=<span class="nm">0.25</span>)
+<span class="cm"># Plot 1: CV scores box plot</span>
+axes[<span class="nm">0</span>].<span class="fn">boxplot</span>(cv_scores, vert=<span class="kw">True</span>, patch_artist=<span class="kw">True</span>,
+                 boxprops={<span class="st">'facecolor'</span>: <span class="st">'#a855f7'</span>, <span class="st">'alpha'</span>: <span class="nm">0.5</span>})
+axes[<span class="nm">0</span>].<span class="fn">scatter</span>([<span class="nm">1</span>] * <span class="fn">len</span>(cv_scores), cv_scores, color=<span class="st">'#1f2937'</span>, s=<span class="nm">40</span>, zorder=<span class="nm">3</span>)
+axes[<span class="nm">0</span>].<span class="fn">set_ylabel</span>(<span class="st">'F1 macro score'</span>)
+axes[<span class="nm">0</span>].<span class="fn">set_xticks</span>([<span class="nm">1</span>]); axes[<span class="nm">0</span>].<span class="fn">set_xticklabels</span>([<span class="st">'5-fold CV'</span>])
+axes[<span class="nm">0</span>].<span class="fn">set_title</span>(<span class="st">f'CV Scores (mean={cv_scores.mean():.3f} ± {cv_scores.std():.3f})'</span>)
+axes[<span class="nm">0</span>].<span class="fn">grid</span>(axis=<span class="st">'y'</span>, alpha=<span class="nm">0.25</span>)
 
-        plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
+<span class="cm"># Plot 2: top-5 grid search results</span>
+results_df = pd.<span class="fn">DataFrame</span>(grid_search.cv_results_)
+top5 = results_df.<span class="fn">nlargest</span>(<span class="nm">5</span>, <span class="st">'mean_test_score'</span>)[[<span class="st">'mean_test_score'</span>, <span class="st">'std_test_score'</span>, <span class="st">'params'</span>]]
+labels = [<span class="st">f"#{i+1}"</span> <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(top5))]
+axes[<span class="nm">1</span>].<span class="fn">barh</span>(labels, top5[<span class="st">'mean_test_score'</span>], xerr=top5[<span class="st">'std_test_score'</span>],
+                color=[<span class="st">'#10b981'</span>] + [<span class="st">'#06b6d4'</span>] * <span class="nm">4</span>, alpha=<span class="nm">0.7</span>, capsize=<span class="nm">5</span>)
+<span class="kw">for</span> i, (score, params) <span class="kw">in</span> <span class="fn">enumerate</span>(<span class="fn">zip</span>(top5[<span class="st">'mean_test_score'</span>], top5[<span class="st">'params'</span>])):
+    axes[<span class="nm">1</span>].<span class="fn">text</span>(score + <span class="nm">0.005</span>, i, <span class="st">f"{score:.3f}"</span>, va=<span class="st">'center'</span>, fontsize=<span class="nm">10</span>)
+axes[<span class="nm">1</span>].<span class="fn">set_xlabel</span>(<span class="st">'Mean F1 macro (CV)'</span>)
+axes[<span class="nm">1</span>].<span class="fn">set_title</span>(<span class="st">'Top-5 Hyperparameter Combinations'</span>)
+axes[<span class="nm">1</span>].<span class="fn">invert_yaxis</span>()
+axes[<span class="nm">1</span>].<span class="fn">grid</span>(axis=<span class="st">'x'</span>, alpha=<span class="nm">0.25</span>)
 
-    <span class="kw">return</span> {<span class="st">'state_history'</span>: state_history, <span class="st">'audit_log'</span>: audit_df,
-            <span class="st">'stats'</span>: stats_dict, <span class="st">'fsm'</span>: fsm}
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
 
-<span class="cm"># ─── DEMO: 24-jam monitoring pump dengan degradasi bertahap ───</span>
-np.random.<span class="fn">seed</span>(<span class="nm">42</span>)
-n_demo = <span class="nm">2880</span>            <span class="cm"># 24 jam × 120 sample/jam (1 sample / 30 detik)</span>
-ts_demo = [datetime(<span class="nm">2025</span>, <span class="nm">11</span>, <span class="nm">15</span>, <span class="nm">8</span>, <span class="nm">0</span>) + <span class="fn">timedelta</span>(seconds=<span class="nm">30</span> * i) <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n_demo)]
-rms_demo = <span class="nm">0.7</span> + np.<span class="fn">linspace</span>(<span class="nm">0</span>, <span class="nm">3.5</span>, n_demo) + <span class="nm">0.2</span> * np.random.<span class="fn">randn</span>(n_demo)
-rms_demo = np.<span class="fn">clip</span>(rms_demo, <span class="nm">0.1</span>, <span class="kw">None</span>)
-
-result = <span class="fn">run_monitoring_pipeline</span>(rms_demo, timestamps=ts_demo, plot=<span class="kw">True</span>)
-
-<span class="fn">print</span>(<span class="st">f"\n💡 Lesson: pipeline ini reusable untuk machine apapun."</span>)
-<span class="fn">print</span>(<span class="st">f"   Pakai untuk pompa, motor, fan, kompressor, gearbox — selama ada sensor RMS."</span>)
-<span class="fn">print</span>(<span class="st">f"   Production: tambahkan MQTT client, database TimescaleDB, dashboard Streamlit/Grafana."</span>)</pre>
+<span class="fn">print</span>(<span class="st">f"\n💡 Lesson: GridSearchCV menemukan best hyperparams via cross-validation."</span>)
+<span class="fn">print</span>(<span class="st">f"   Untuk dataset besar, pakai RandomizedSearchCV (random sampling lebih efisien)"</span>)
+<span class="fn">print</span>(<span class="st">f"   atau Bayesian optimization (Optuna, scikit-optimize)."</span>)
+<span class="fn">print</span>(<span class="st">f"   Production: save model dengan joblib.dump(best_rf, 'fault_detector.pkl')"</span>)</pre>
   </div>
 </div>
 
