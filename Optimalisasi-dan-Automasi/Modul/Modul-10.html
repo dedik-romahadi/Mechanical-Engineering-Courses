@@ -1072,81 +1072,80 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 04 — VARIANT METAHEURISTIK & HYPERPARAMETER TUNING ═══ -->
+<!-- ═══ BAGIAN 04 — TWO-WAY ANOVA & FAKTORIAL DESIGN ═══ -->
 <hr class="divider">
 <div class="section" id="m-resonashi">
   <div class="section-label reveal">Bagian 04</div>
-  <h2 class="section-title reveal">Variant Metaheuristik &amp; Hyperparameter Tuning:<br>Memilih Algoritma yang Cocok dengan Karakteristik Masalah</h2>
-  <p class="section-desc reveal">GA dan PSO adalah dua keluarga metaheuristik paling populer, tetapi <em>jauh dari satu-satunya</em>. Tiap variant punya karakteristik berbeda: <strong>Differential Evolution (DE)</strong> sangat robust untuk continuous, <strong>Simulated Annealing (SA)</strong> bagus untuk single-solution dengan budget kecil, <strong>Ant Colony Optimization (ACO)</strong> spesialis pathfinding, <strong>CMA-ES</strong> state-of-the-art untuk noisy/expensive blackbox. Memilih yang tepat = memahami struktur masalah Anda. Selain itu, hyperparameter tiap algoritma harus di-tune — tetapi tuning manual jelek; pakai meta-tools seperti <strong>Optuna</strong> atau <strong>Hyperopt</strong> yang menjalankan optimization-of-optimization.</p>
+  <h2 class="section-title reveal">Two-Way ANOVA &amp; Faktorial Design:<br>Dua Faktor, Efek Utama &amp; Interaksi</h2>
+  <p class="section-desc reveal">Real engineering biasanya melibatkan <strong>lebih dari satu faktor</strong>. Surface roughness CNC ditentukan oleh <em>cutting speed</em> &amp; <em>feed rate</em>; tensile strength weld ditentukan oleh <em>arus</em> &amp; <em>voltage</em>. <strong>Two-way ANOVA</strong> menguji efek dua faktor sekaligus dengan dua jenis pertanyaan: <em>main effect</em> (apakah faktor A signifikan? faktor B?) dan <em>interaction effect</em> (apakah efek A bergantung pada level B?). <strong style="color:var(--cyan)">Interaction</strong> = fitur kunci yang tidak terdeteksi oleh dua one-way ANOVA terpisah. Faktorial <em>full factorial</em> (semua kombinasi) memberi info lengkap tetapi mahal saat faktor banyak; <strong>fractional factorial</strong> &amp; <strong>orthogonal arrays Taguchi</strong> mengurangi trial dengan trade-off informasi.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Empat Algoritma Metaheuristik Penting Selain GA/PSO</div>
-    Differential Evolution (DE) &nbsp;·&nbsp; Simulated Annealing (SA) &nbsp;·&nbsp; Ant Colony Optimization (ACO) &nbsp;·&nbsp; CMA-ES (Covariance Matrix Adaptation)
+    <div class="label">Lima Konsep Utama Two-Way ANOVA</div>
+    Main Effect A &nbsp;·&nbsp; Main Effect B &nbsp;·&nbsp; Interaction A×B &nbsp;·&nbsp; Full Factorial (k₁·k₂·n) &nbsp;·&nbsp; Taguchi Orthogonal Arrays
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">🌋</div>
-      <h3>Differential Evolution (DE)</h3>
-      <p>Storn &amp; Price (1995) — population-based untuk continuous. Update partikel: <code>v = a + F·(b − c)</code> dengan a, b, c random parents (mutation), lalu crossover dengan target individual. Selection: greedy (anak menggantikan parent kalau lebih baik). <strong style="color:var(--cyan)">Sangat robust</strong> — banyak dianggap "default" untuk continuous blackbox optimization. SciPy: <code>scipy.optimize.differential_evolution</code> built-in. Hyperparameter sedikit: F (mutation factor 0.5–0.9), CR (crossover rate 0.7–0.9).</p>
-      <div class="formula">v = a + F·(b − c)</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">🔥</div>
-      <h3>Simulated Annealing (SA)</h3>
-      <p>Kirkpatrick et al. (1983) — meniru proses pendinginan logam. <strong>Single-solution</strong> (bukan population). Tiap iterasi: perturb solusi, terima dengan probabilitas <code>P = exp(−ΔE/T)</code>; T menurun bertahap (cooling schedule). Saat T tinggi → terima solusi worse (eksplor); T rendah → hanya terima yang lebih baik (eksploit). Cocok untuk <strong style="color:var(--amber)">budget kecil</strong> atau ketika populasi tidak feasible (mis. fitness evaluation sangat mahal). SciPy: <code>scipy.optimize.dual_annealing</code>.</p>
-      <div class="formula">P_accept = exp(−ΔE/T)</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">🐜</div>
-      <h3>Ant Colony Optimization (ACO)</h3>
-      <p>Marco Dorigo (1992) — meniru semut yang meninggalkan pheromone di jalur. Spesialis untuk masalah <strong>combinatorial</strong> seperti TSP, vehicle routing, scheduling. Tiap "semut" konstruksi solusi step-by-step berdasarkan probabilitas pheromone × heuristik. Pheromone menguap tiap iterasi (untuk diversitas) dan diperkuat di jalur sukses. Sangat efektif untuk graph-based problems. Library: <code>pyaco</code>, atau implementasi manual ringkas (~50 baris).</p>
-      <div class="formula">P(j) ∝ τᵢⱼ^α · ηᵢⱼ^β</div>
-    </div>
-    <div class="card">
       <div class="card-icon">📊</div>
-      <h3>CMA-ES (Covariance Matrix Adaptation)</h3>
-      <p>Hansen &amp; Ostermeier (2001) — state-of-the-art untuk <em>noisy/expensive blackbox</em>. Sample dari distribusi normal multivariat <code>N(m, σ²C)</code>; update mean m, step size σ, dan covariance matrix C berdasarkan ranking sampel terbaik. Otomatis adapt ke landscape geometry — tidak butuh tuning manual. Slightly slower per iter dibanding DE/PSO tetapi sample-efficient (butuh evaluasi sedikit). Library: <code>cma</code> (PyPI: <code>pip install cma</code>).</p>
-      <div class="formula">x ~ N(m, σ²·C)</div>
+      <h3>Model Aditif: y = μ + αᵢ + βⱼ + (αβ)ᵢⱼ + ε</h3>
+      <p>Two-way ANOVA mengasumsikan respons yᵢⱼₖ = grand mean + efek faktor A level i + efek faktor B level j + interaksi level (i,j) + noise. <strong>SS_total = SS_A + SS_B + SS_AB + SS_error</strong>. Tiap term punya df sendiri: df_A = a−1, df_B = b−1, df_AB = (a−1)(b−1), df_error = ab(n−1). Tabel ANOVA punya 4 baris: A, B, AB interaction, error. <strong style="color:var(--cyan)">Tiga F-test independen</strong>.</p>
+      <div class="formula">y = μ + αᵢ + βⱼ + (αβ)ᵢⱼ + ε</div>
     </div>
     <div class="card">
-      <div class="card-icon">🎯</div>
-      <h3>Hybrid Methods (Memetic Algorithms)</h3>
-      <p>Kombinasi: <strong>metaheuristik global</strong> (GA/PSO) untuk eksplorasi + <strong>local search</strong> (gradient descent, Nelder-Mead) untuk eksploitasi fine-tuning. Disebut <em>memetic algorithm</em>. Strategi: tiap k generasi, ambil top individuals → run local search → replace di populasi. Best of both worlds: GA melarikan diri dari lokal optimum, gradient menyempurnakan di lokal terbaik. Implementasi DEAP support natural via <code>algorithms.varAnd</code> custom.</p>
-      <div class="formula">global + local search</div>
+      <div class="card-icon">🅰️</div>
+      <h3>Main Effect — Pengaruh Tunggal Faktor</h3>
+      <p>Main effect faktor A: <code>F_A = MS_A / MS_error</code>. Menjawab "apakah rata-rata respons berbeda antar level A, <em>marjinal</em> atas B?" Mean A_i = rata-rata semua observasi di level A=i (semua level B). Kalau F_A signifikan (p &lt; α), faktor A berpengaruh secara overall. Sama untuk main effect B. <strong style="color:var(--green)">Hati-hati</strong>: main effect bisa misleading kalau ada interaksi kuat — selalu cek interaction dulu.</p>
+      <div class="formula">F_A = MS_A / MS_error</div>
     </div>
     <div class="card">
-      <div class="card-icon">🔧</div>
-      <h3>Hyperparameter Auto-Tuning</h3>
-      <p>Hyperparameter metaheuristik (Pc, Pm, w, c₁, c₂, …) sendiri masalah optimasi <em>nested</em>. Manual tuning tidak scalable. <strong>Optuna</strong> (Akiba et al. 2019) &amp; <strong>Hyperopt</strong> (Bergstra 2013) menjalankan <em>Bayesian Optimization</em> di hyperparameter space — sample-efficient. Define-by-run API: <code>def objective(trial): pop = trial.suggest_int(…); pc = trial.suggest_float(…); …; return run_GA(…); study.optimize(objective, n_trials=100)</code>.</p>
-      <div class="formula">Bayesian Opt of hyperparams</div>
+      <div class="card-icon">🔗</div>
+      <h3>Interaction Effect A × B</h3>
+      <p>Interaksi: efek faktor A <em>berbeda</em> tergantung level B. Contoh: arus 200 A bagus saat voltage rendah tapi buruk saat voltage tinggi. <strong>F_AB = MS_AB / MS_error</strong>. Visualisasi: <em>interaction plot</em> — plot mean(y) vs A untuk tiap level B; <strong>garis tidak paralel = ada interaksi</strong>. Kalau interaksi signifikan, efek A &amp; B harus dipelajari bersama-sama, tidak terpisah. Reporting: <em>"interaction A×B: F(2, 12) = 4.5, p = 0.04"</em>.</p>
+      <div class="formula">F_AB → garis tidak paralel</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📐</div>
+      <h3>Full Factorial — Lengkap tetapi Mahal</h3>
+      <p>Full factorial 2² = 4 trial dasar (n replikasi → 4n total). 3³ = 27 trial. 5⁴ = 625 trial. <strong>Cost grow exponential</strong>. Untuk faktor banyak (≥ 4 level @ 3+), full factorial tidak praktis. Solusi: <em>fractional factorial</em> 2^(k-p) — pilih subset trial yang menjaga main effects tetap teridentifikasi tapi sacrifice higher-order interactions. <strong>Resolution III/IV/V</strong> menentukan apa yang tidak teridentifikasi.</p>
+      <div class="formula">Full: k₁·k₂·…·k_p</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🇯🇵</div>
+      <h3>Taguchi Orthogonal Arrays</h3>
+      <p>Genichi Taguchi (1986) — pilih <em>orthogonal array</em> standar (L4, L8, L9, L16, L18, L27) untuk eksperimen efisien. Contoh L9: 4 faktor × 3 level → hanya 9 trial (vs 81 full factorial). Properti: tiap kombinasi level pasangan faktor muncul dengan frekuensi sama → <em>balance &amp; orthogonal</em>. Tujuan: identifikasi level optimum dengan minimal trial. Kelemahan: tidak menangani interaksi tinggi tanpa modifikasi. Library: <strong>pyDOE2</strong>, <strong>OAPackage</strong>.</p>
+      <div class="formula">L9: 4 faktor × 3 level → 9 trial</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📈</div>
+      <h3>Signal-to-Noise (S/N) Ratio</h3>
+      <p>Taguchi memperkenalkan <em>S/N ratio</em> untuk robust design. Tiga jenis: <strong>Larger-the-better</strong> S/N = −10·log₁₀(Σ(1/yᵢ²)/n) (untuk strength, yield); <strong>Smaller-the-better</strong> S/N = −10·log₁₀(Σ(yᵢ²)/n) (untuk roughness, defect rate); <strong>Nominal-the-best</strong> S/N = 10·log₁₀(ȳ²/s²) (untuk dimensi target). Lakukan ANOVA pada <em>S/N ratio</em> sebagai respons → identifikasi level yang <strong>maksimumkan S/N</strong> = robust optimal.</p>
+      <div class="formula">S/N = −10·log₁₀(MSD)</div>
     </div>
   </div>
 
   <div class="tbl-wrap reveal" style="margin:32px 0">
     <table class="data-table">
-      <thead><tr><th>Algoritma</th><th>Cocok Tipe Variabel</th><th>Sample Efficiency</th><th>Library Python</th></tr></thead>
+      <thead><tr><th>Sumber</th><th>SS</th><th>df</th><th>MS</th><th>F</th></tr></thead>
       <tbody>
-        <tr><td style="color:var(--cyan)">GA (binary/real)</td><td>Diskrit + continuous</td><td>Sedang</td><td>DEAP, scikit-opt, PyGAD</td></tr>
-        <tr><td style="color:var(--green)">PSO (continuous)</td><td>Continuous</td><td>Tinggi</td><td>pyswarms, scikit-opt</td></tr>
-        <tr><td style="color:var(--amber)">DE</td><td>Continuous</td><td>Tinggi</td><td>scipy.optimize.differential_evolution</td></tr>
-        <tr><td style="color:var(--violet)">SA</td><td>Diskrit + continuous</td><td>Rendah (single solution)</td><td>scipy.optimize.dual_annealing</td></tr>
-        <tr><td style="color:var(--pink)">ACO</td><td>Diskrit/graph</td><td>Sedang</td><td>pyaco, manual implementation</td></tr>
-        <tr><td style="color:var(--cyan)">CMA-ES</td><td>Continuous (noisy)</td><td>Sangat Tinggi</td><td><code>cma</code> (PyPI)</td></tr>
+        <tr><td style="color:var(--cyan)">Faktor A (main)</td><td>SS_A</td><td>a−1</td><td>SS_A/(a−1)</td><td>MS_A/MS_e</td></tr>
+        <tr><td style="color:var(--green)">Faktor B (main)</td><td>SS_B</td><td>b−1</td><td>SS_B/(b−1)</td><td>MS_B/MS_e</td></tr>
+        <tr><td style="color:var(--amber)">Interaksi A×B</td><td>SS_AB</td><td>(a−1)(b−1)</td><td>SS_AB/df_AB</td><td>MS_AB/MS_e</td></tr>
+        <tr><td style="color:var(--violet)">Error (within)</td><td>SS_e</td><td>ab(n−1)</td><td>MS_e</td><td>—</td></tr>
+        <tr><td style="color:var(--pink)">Total</td><td>SS_t = SS_A+SS_B+SS_AB+SS_e</td><td>abn−1</td><td>—</td><td>—</td></tr>
       </tbody>
     </table>
   </div>
 
   <div class="info-box reveal">
-    <strong>Decision Tree — Algoritma Mana yang Dipilih?</strong><br>
-    (1) <strong>Continuous &amp; smooth</strong> → coba <em>gradient-based dulu</em> (BFGS, SLSQP — Pertemuan 10). (2) <strong>Continuous, blackbox, smooth-ish</strong> → DE (default), atau CMA-ES kalau noisy. (3) <strong>Mixed integer/continuous</strong> → GA real-coded atau scikit-opt. (4) <strong>Pure discrete (TSP, scheduling)</strong> → GA permutation atau ACO. (5) <strong>Single-solution, budget kecil</strong> → SA. (6) <strong>Graph/network problem</strong> → ACO. (7) <strong>Hyperparameter tuning ML</strong> → Optuna (Bayesian Opt). (8) <strong>Sangat ekspensif blackbox</strong> (≤ 100 evaluasi total) → Bayesian Optimization (scikit-optimize), bukan metaheuristik klasik.
+    <strong>Contoh Konkret — Injection Molding (Tekanan × Suhu):</strong><br>
+    Faktor A: tekanan injeksi (3 level: 80, 100, 120 MPa). Faktor B: suhu mold (3 level: 50, 70, 90 °C). Respons: defect rate (%). Replikasi n=2 per kombinasi (full factorial 3×3×2 = 18 trial). Hasil ANOVA: <strong>F_A = 28.4, p_A &lt; 0.001 (signifikan); F_B = 12.1, p_B = 0.003 (signifikan); F_AB = 5.8, p_AB = 0.012 (signifikan!)</strong>. Karena <em>interaksi signifikan</em>, kita tidak bisa interpretasi A &amp; B terpisah. Plot interaksi menunjukkan: tekanan 100 MPa optimum saat suhu 70°C (defect ≈ 1.2%); tetapi 120 MPa optimum saat suhu 90°C (defect ≈ 0.9%). <strong>Keputusan: pilih kombinasi (120 MPa, 90 °C)</strong> — tidak bisa dicapai oleh dua one-way ANOVA terpisah!
   </div>
 
   <div class="warn-box reveal">
     <div class="warn-icon">⚠️</div>
     <div>
-      <h4>Trap Metaheuristik yang Sering Diabaikan</h4>
-      <p>(1) <strong>No Free Lunch (NFL) Theorem</strong> — Wolpert &amp; Macready (1997): tidak ada algoritma yang universal terbaik. Algoritma A bagus di problem class X tapi buruk di Y. Pilih berdasarkan struktur masalah Anda, bukan berdasarkan popularitas. (2) <strong>Single run tidak cukup</strong> — metaheuristik stokastik. Lakukan ≥ 5 run dengan seed berbeda, laporkan mean ± std. (3) <strong>Compare against baseline</strong> — random search atau grid search. Kalau metaheuristik tidak secara nyata lebih baik, mungkin masalahnya tidak butuh metaheuristik. (4) <strong>Hyperparameter tuning</strong> — jangan pakai default tanpa cek; default seringkali bias dataset paper. (5) <strong>Premature convergence</strong> — populasi terkonsentrasi di 1 region, hilang diversitas. Solusi: niching, restart strategy, atau increase mutation. (6) <strong>Computational budget</strong> — set max_evaluations sebagai budget, bukan max_iterations (lebih honest comparison antar algoritma).</p>
+      <h4>Trap ANOVA yang Sering Diabaikan</h4>
+      <p>(1) <strong>Multiple comparisons</strong> — saat banyak ANOVA dijalankan paralel, family-wise error rate naik. Bonferroni atau Tukey HSD wajib. (2) <strong>Asumsi normality runtuh</strong> — solusi: transformasi (log, Box-Cox) atau Kruskal-Wallis non-parametric. (3) <strong>Asumsi equal variance runtuh</strong> — pakai Welch's ANOVA atau Games-Howell post-hoc. (4) <strong>Sample size tidak balance</strong> — ANOVA Type I/II/III SS bisa beda hasil; rule: balanced design hindari masalah. (5) <strong>p-value ≠ effect size</strong> — p kecil tapi η² kecil (mis. 0.01) artinya signifikan tapi tidak praktis. Reporting WAJIB menyertakan effect size. (6) <strong>Korelasi antar trial</strong> — kalau urutan trial berkorelasi (mis. operator lelah), independence runtuh; pakai randomized block design atau repeated-measures ANOVA. (7) <strong>Faktor terabaikan (lurking variable)</strong> — contoh: humiditas tidak dikontrol, mempengaruhi hasil. Catat semua kondisi.</p>
     </div>
   </div>
 </div>
