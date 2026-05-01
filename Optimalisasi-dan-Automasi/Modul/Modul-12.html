@@ -1189,51 +1189,51 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 05 — ANALOGI RULE-BASED MONITORING ═══ -->
+<!-- ═══ BAGIAN 05 — ANALOGI MACHINE LEARNING ═══ -->
 <hr class="divider">
 <div class="section" id="m-analogi">
   <div class="section-label reveal">Bagian 05</div>
-  <h2 class="section-title reveal">Analogi<br>Rule-Based Monitoring di Sehari-hari</h2>
-  <p class="section-desc reveal">Threshold + hysteresis + state machine bukan konsep eksotik — kita berinteraksi dengan rule-based system setiap hari. Termostat AC, indikator bensin mobil, alarm asap, smartwatch alarm detak jantung — semua adalah <em>rule-based monitoring</em> dengan threshold dan kadang hysteresis. Enam analogi berikut menunjukkan bagaimana <strong>rule-based logic</strong> muncul di skenario sehari-hari, dari yang paling sederhana sampai industrial-grade.</p>
+  <h2 class="section-title reveal">Analogi<br>Machine Learning di Sehari-hari</h2>
+  <p class="section-desc reveal">Machine learning bukan magic — kita interaksi dengan ML setiap hari tanpa sadar. Email spam filter, rekomendasi YouTube, deteksi wajah di kamera HP, autocomplete keyboard, prediksi cuaca, pemberian kredit bank — semua adalah <em>klasifikasi/regresi supervised learning</em>. Enam analogi berikut menunjukkan bagaimana <strong>ML pattern</strong> muncul di skenario sehari-hari, dari yang paling sederhana sampai industrial-grade predictive maintenance.</p>
 
   <!-- Analogi 1 -->
   <div class="analogy-box reveal">
-    <span class="analogy-label">🌡️ Analogi 1 — Termostat AC (Hysteresis Klasik)</span>
-    AC di rumah Anda set ke 24°C. Kalau threshold tunggal: AC nyala saat suhu = 24.01°C, mati saat 23.99°C → flicker on/off setiap detik (chattering, kompressor cepat rusak). Solusi: <strong>hysteresis 1°C</strong> — AC nyala saat suhu &gt; 25°C, mati saat suhu &lt; 23°C. Margin 2°C jauh &gt; noise sensor. Hasil: AC siklus tiap 5–10 menit, awet, suhu rata-rata stabil di 24°C. Termostat = <em>Schmitt trigger fisik</em> sejak 1885 (Albert Butz, Honeywell pendiri). Engineering wisdom yang sama persis dipakai di industrial monitoring.
+    <span class="analogy-label">📧 Analogi 1 — Email Spam Filter (Binary Classification)</span>
+    Gmail filter spam dengan akurasi &gt; 99.9% — Anda hampir tidak pernah lihat spam masuk inbox utama. Bagaimana? <strong>Binary classification</strong>: tiap email di-extract fitur (kata kunci "free money", jumlah link, sender reputation, kapital ratio, keberadaan attachment), lalu predict P(spam | x). Threshold 0.5: di atas → folder Spam. Training data: jutaan email manually labeled "spam"/"ham" oleh user. Re-train periodik (concept drift: spammer evolve tactics). Model: dulu Naive Bayes (1990s), sekarang ensemble + deep learning. Persis pattern P13: feature engineering → classifier → predict.
   </div>
 
   <!-- Analogi 2 -->
   <div class="analogy-box reveal" style="border-left-color:var(--amber);background:linear-gradient(135deg,rgba(255,64,129,.07),rgba(14,165,233,.03))">
-    <span class="analogy-label" style="color:var(--amber)">⛽ Analogi 2 — Indikator Bensin Mobil (Tier Alarm)</span>
-    Dashboard mobil punya 3 level alarm: <em>jarum di 1/4 tangki</em> (warning ringan, sudah waktunya cari SPBU), <em>jarum di garis E</em> + <em>icon pump kuning</em> (alert serius, ~10 km lagi), <em>buzzer + lampu merah</em> (critical, mungkin sudah cuma 5 km). Persis tier alarm: warning → alert → critical, eskalasi gradual sesuai tingkat keparahan. Plus debouncing: kalau jalan goyang membuat sensor flicker, dashboard tidak panik. Plus heartbeat: kalau sensor mati total, "---" muncul. Mobil modern (Tesla, BMW iDrive) implement FSM lengkap untuk tank monitoring.
+    <span class="analogy-label" style="color:var(--amber)">🎬 Analogi 2 — Rekomendasi YouTube (Multi-Class + Regression)</span>
+    YouTube punya 500+ jam video diunggah per menit. Algoritma rekomendasi memilih ~10 video untuk Anda dari miliaran. Pakai <em>collaborative filtering</em> + <em>content-based</em> + deep neural network. Fitur: history tonton, like, watch time, channel, topic. Output: ranked list (regresi: predicted watch time per video). Trained pada data engagement jutaan user. ML jauh lebih efektif dari rule-based ("rekomendasi video yang sama topik") — captures non-linear interactions. Sama dengan predictive maintenance: data-driven recommendation lebih powerful dari hand-crafted rule.
   </div>
 
   <!-- Analogi 3 -->
   <div class="analogy-box reveal" style="border-left-color:var(--green);background:linear-gradient(135deg,rgba(0,224,158,.07),rgba(14,165,233,.03))">
-    <span class="analogy-label" style="color:var(--green)">🚨 Analogi 3 — Alarm Asap di Rumah (Debouncing)</span>
-    Smoke detector standar UL 217 / EN 14604 didesain untuk <em>tidak alarm</em> dari uap mandi atau asap rokok sesaat. Bagaimana? <strong>Debouncing</strong>: alarm hanya trigger jika konsentrasi smoke particle &gt; threshold selama <em>≥ 30 detik kontinyu</em> (N consecutive samples). Single peak (mis. orang lewat dengan kompor portabel sebentar) tidak trigger. Tetapi kalau persist (kebakaran genuine), buzzer 85 dB nyala. Plus low-battery beep tiap 30 detik (heartbeat / sensor health). Ini rule-based system yang menyelamatkan ribuan nyawa per tahun.
+    <span class="analogy-label" style="color:var(--green)">📷 Analogi 3 — Face Detection di Kamera (Computer Vision Classification)</span>
+    Kamera HP modern detect &amp; focus muka otomatis dalam &lt; 100 ms. Algoritma awal: <strong>Viola-Jones (2001)</strong> — Haar cascade + AdaBoost classifier (mirip Random Forest). Fitur: pola intensitas pixel di sliding window. Modern: <strong>CNN deep learning</strong> (Convolutional Neural Network) — feature extraction otomatis. Training data: ImageNet, 1.5 juta foto labeled. Persis pipeline P13: <em>raw input</em> → <em>feature extraction</em> (manual atau learned) → <em>classifier</em> → <em>output</em>. Insight: vibrasi waveform analog dengan image — keduanya butuh feature engineering atau end-to-end deep learning.
   </div>
 
   <!-- Analogi 4 -->
   <div class="analogy-box reveal" style="border-left-color:var(--cyan);background:linear-gradient(135deg,rgba(14,165,233,.07),rgba(168,85,247,.03))">
-    <span class="analogy-label" style="color:var(--cyan)">🔋 Analogi 4 — Smartwatch Heart Rate Alarm (Multi-Threshold)</span>
-    Apple Watch dan Fitbit memantau detak jantung 24/7. Alarm rule: <em>HR &gt; 120 bpm saat tidak olahraga selama 10 menit</em> (high), <em>HR &lt; 40 bpm selama 10 menit</em> (low). Tier: notification (warning) → call emergency contact (alert) → 911 (critical). Persis FSM medis: NORMAL → ABNORMAL → AFib detected → emergency. Multi-feature: HR + ECG + activity context. FDA approval (Apple Watch ECG 2018) wajib FSM yang validated dengan low false-positive rate (Apple claim &lt; 0.5%). Saved-life stories sering muncul di media setiap tahun.
+    <span class="analogy-label" style="color:var(--cyan)">💳 Analogi 4 — Bank Credit Scoring (Logistic Regression Klasik)</span>
+    Bank approve/reject pinjaman dalam hitungan detik. Pakai <strong>logistic regression</strong> dengan fitur: pendapatan, debt-to-income ratio, credit history, employment, age. Output: P(default | x). FICO score di US berbasis logistic regression yang regulated (Fair Lending Act). <strong>Interpretability wajib</strong> — bank harus bisa jelaskan kenapa application di-reject ("debt-to-income ratio terlalu tinggi"). Random forest atau deep learning kadang dipakai tetapi butuh post-hoc explainability (SHAP). Sama tantangan di industrial: rule-based + ML hybrid untuk audit + accuracy balance.
   </div>
 
   <!-- Analogi 5 -->
   <div class="analogy-box reveal" style="border-left-color:var(--pink);background:linear-gradient(135deg,rgba(239,68,68,.07),rgba(168,85,247,.03))">
-    <span class="analogy-label" style="color:var(--pink)">🚦 Analogi 5 — Lampu Lalu Lintas (FSM Klasik)</span>
-    Lampu lalu lintas adalah <strong>finite state machine</strong> sempurna: 3 state (Hijau, Kuning, Merah) dengan transisi deterministik (Hijau → Kuning setelah 30s; Kuning → Merah setelah 5s; Merah → Hijau setelah 30s). Pintar: cross-direction interlock (Hijau utara-selatan IMPLIES Merah timur-barat). Adaptif modern: FSM + sensor (induksi loop deteksi mobil) + timer adaptif (lebih banyak mobil → fase Hijau lebih panjang). FSM yang sama logic di-embedded ke Arduino sederhana. Pelajari FSM dengan benar, Anda bisa bangun apa saja dari traffic light sampai mesin industri.
+    <span class="analogy-label" style="color:var(--pink)">🩺 Analogi 5 — Diagnosis Medis ML (Decision Tree + Ensemble)</span>
+    IBM Watson Health, Google DeepMind Health classify diagnosis dari medical record + lab result. Fitur: blood test values, imaging, demographics, symptoms. Model: gradient boosting (XGBoost) + deep learning ensemble. Achieved superhuman accuracy untuk beberapa task (diabetic retinopathy, breast cancer screening). Tetapi <strong>FDA approval slow</strong> karena risk: false negative bisa fatal. Sama dengan predictive maintenance turbomachinery: missed fault = catastrophic. Wajib hybrid rule-based safety net + ML early-warning.
   </div>
 
   <!-- Analogi 6 -->
   <div class="analogy-box reveal" style="border-left-color:var(--violet);background:linear-gradient(135deg,rgba(168,85,247,.08),rgba(255,64,129,.03))">
-    <span class="analogy-label">📊 Analogi 6 — DevOps Server Monitoring (Production-Grade)</span>
-    Tim DevOps Netflix, Google, AWS memantau jutaan server real-time. Rule-based system: <em>CPU &gt; 80% selama 5 menit</em> → warning (PagerDuty Slack); <em>CPU &gt; 95% selama 2 menit</em> → alert (page on-call engineer); <em>response time &gt; 5s</em> → critical (auto-failover). Hysteresis 5–10% untuk hindari flapping alert. Tools: <strong>Prometheus + Alertmanager</strong>, <strong>Grafana</strong>, <strong>Datadog</strong>, <strong>New Relic</strong>. Sama persis dengan industrial monitoring di pabrik — hanya beda domain (CPU/latency vs vibrasi/temperatur). Lulusan Teknik Mesin yang paham rule-based monitoring sangat valuable di SRE/DevOps roles juga.
+    <span class="analogy-label">🚗 Analogi 6 — Self-Driving Car Object Detection (Real-Time ML)</span>
+    Tesla Autopilot, Waymo, Mobileye detect cars/pedestrians/lane markings &gt; 30 fps real-time. Stack: 8 kamera, radar, ultrasonic + GPU edge inference. Model: YOLO / SSD object detection (CNN). Output: bounding box + class + confidence. Decision: brake/accelerate/turn. Latency budget &lt; 100 ms (life-critical). Sama dengan industrial real-time inference: edge GPU (NVIDIA Jetson) untuk on-machine ML. Trade-off: cloud accuracy tinggi tetapi latency 200ms+; edge accuracy lebih rendah tetapi &lt; 50ms — pilih tergantung use case. Predictive maintenance sering tolerate lebih banyak latency (1-10 detik OK) → bisa cloud.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Pola yang Sama di Semua Analogi:</strong> Rule-based monitoring bekerja karena <em>kombinasi 3 elemen</em>: (1) <strong>threshold dengan referensi jelas</strong> (suhu setpoint, fuel level, smoke ppm, HR bpm, CPU%, RMS vibrasi); (2) <strong>noise filtering</strong> (hysteresis untuk thermostats, debouncing untuk smoke alarm, minimum duration untuk medical alarm); (3) <strong>graceful escalation</strong> (multi-tier dari informasi → urgent → critical). Insight bagi engineer: <em>setiap monitoring system yang sukses pasti punya 3 elemen ini</em>. Kalau Anda merancang monitoring tanpa hysteresis, tanpa debouncing, tanpa tier — siap-siap operator complaint dengan alarm flood. Tetapi <strong>rule-based punya batas</strong>: jika ada 50 fitur dan 100 mode kegagalan, manual rule tidak scalable. Saatnya pindah ke ML (Pertemuan 13) — tetapi <em>baseline rule-based</em> selalu layak dipertahankan sebagai safety net.
+    💡 <strong>Pola yang Sama di Semua Analogi:</strong> Setiap aplikasi ML sukses punya <em>3 elemen kunci</em>: (1) <strong>data labeled berkualitas</strong> (jutaan email spam/ham, foto wajah ImageNet, credit history bank); (2) <strong>feature engineering yang relevan</strong> (kata kunci email, pattern pixel wajah, debt-to-income ratio, RMS+kurtosis vibrasi); (3) <strong>model yang sesuai kompleksitas masalah</strong> (logistic regression untuk linear, RF/SVM untuk non-linear, deep learning untuk perceptual). Insight bagi engineer: <em>data quality &gt;&gt; algorithm choice</em>. Garbage in → garbage out. Investasi waktu di data collection + labeling + feature engineering biasanya lebih impactful dari hyperparameter tuning. Tetapi <strong>ML punya tanggung jawab khusus</strong>: explainability untuk regulated industries (bank, medical, aviation), monitoring concept drift, re-training periodik, dan <em>fallback ke rule-based</em> sebagai safety net. ML bukan magic bullet — selalu kombinasi: <em>rule-based core + ML adaptive layer</em>.
   </div>
 </div>
 
