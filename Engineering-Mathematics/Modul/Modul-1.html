@@ -72,17 +72,23 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(6,10,16,.92)
 .hero[data-tab="modul"],
 .hero[data-tab="tugas"],
 .hero[data-tab="forum"],
-.hero[data-tab="hasil"]{background:linear-gradient(160deg,#100604 0%,#1a0a05 30%,#1d0a04 60%,#150804 100%)}
+.hero[data-tab="hasil"],
+.hero[data-tab="setup"],
+.hero[data-tab="kelompok"]{background:linear-gradient(160deg,#100604 0%,#1a0a05 30%,#1d0a04 60%,#150804 100%)}
 
 .hero[data-tab="modul"]::before,
 .hero[data-tab="tugas"]::before,
 .hero[data-tab="forum"]::before,
-.hero[data-tab="hasil"]::before{background:repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(234,88,12,.03) 59px,rgba(234,88,12,.03) 60px),repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(234,88,12,.03) 59px,rgba(234,88,12,.03) 60px)}
+.hero[data-tab="hasil"]::before,
+.hero[data-tab="setup"]::before,
+.hero[data-tab="kelompok"]::before{background:repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(234,88,12,.03) 59px,rgba(234,88,12,.03) 60px),repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(234,88,12,.03) 59px,rgba(234,88,12,.03) 60px)}
 
 .hero[data-tab="modul"]::after,
 .hero[data-tab="tugas"]::after,
 .hero[data-tab="forum"]::after,
-.hero[data-tab="hasil"]::after{background:radial-gradient(ellipse 50% 50% at 50% 55%,rgba(249,115,22,.10),transparent 70%),radial-gradient(ellipse 40% 40% at 25% 70%,rgba(220,60,20,.07),transparent 60%),radial-gradient(ellipse 30% 30% at 80% 30%,rgba(255,179,0,.06),transparent 60%)}
+.hero[data-tab="hasil"]::after,
+.hero[data-tab="setup"]::after,
+.hero[data-tab="kelompok"]::after{background:radial-gradient(ellipse 50% 50% at 50% 55%,rgba(249,115,22,.10),transparent 70%),radial-gradient(ellipse 40% 40% at 25% 70%,rgba(220,60,20,.07),transparent 60%),radial-gradient(ellipse 30% 30% at 80% 30%,rgba(255,179,0,.06),transparent 60%)}
 
 /* Hero decorations — SVG waves */
 .hero-orbits{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.85;z-index:0}
@@ -859,6 +865,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <nav id="navTop">
   <span class="nav-brand"><span class="pulse"></span><span>MATEMATIKA4 // M1</span></span>
   <div class="nav-tabs">
+    <button class="nav-tab" id="tab-setup" onclick="switchTab('setup')">🐍 Setup</button>
+    <button class="nav-tab" id="tab-kelompok" onclick="switchTab('kelompok')">👥 Kelompok</button>
     <button class="nav-tab active" id="tab-modul" onclick="switchTab('modul')">📖 Modul</button>
     <button class="nav-tab" id="tab-tugas" onclick="switchTab('tugas')">📝 Tugas</button>
     <button class="nav-tab" id="tab-forum" onclick="switchTab('forum')">💬 Forum</button>
@@ -2275,6 +2283,440 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
 
 
 <!-- ═══════════════════════════════════════════════════════════
+     PAGE: SETUP PYTHON
+     CSS scoped via #page-setup prefix
+═══════════════════════════════════════════════════════════ -->
+<style>
+#page-setup {
+  --sp-bg:#0d0604; --sp-bg2:#150a06; --sp-card:#1a0f08;
+  --sp-c1:#f97316; --sp-c2:#fb923c; --sp-c3:#fbbf24;
+  --sp-c4:#22d3ee; --sp-c5:#a78bfa; --sp-c6:#f472b6;
+  --sp-t1:#f5e8da; --sp-t2:#a08471; --sp-t3:#6b5847;
+  --sp-bd:#2a1a10;
+}
+#page-setup .sp-wrap{max-width:880px;margin:0 auto;padding:0 2rem}
+#page-setup .sp-timeline{position:relative;padding:3rem 0}
+#page-setup .sp-timeline::before{content:'';position:absolute;left:28px;top:0;bottom:0;width:3px;background:linear-gradient(to bottom,var(--sp-c1),var(--sp-c2),var(--sp-c5),var(--sp-c6));border-radius:2px;opacity:.3}
+#page-setup .sp-step{position:relative;padding-left:76px;margin-bottom:3rem}
+#page-setup .sp-dot{position:absolute;left:14px;top:6px;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.85rem;color:#fff;z-index:2;box-shadow:0 0 20px rgba(249,115,22,.3)}
+#page-setup .sp-dot.s1{background:linear-gradient(135deg,#f97316,#ea580c)}
+#page-setup .sp-dot.s2{background:linear-gradient(135deg,#22d3ee,#0891b2)}
+#page-setup .sp-dot.s3{background:linear-gradient(135deg,#a78bfa,#7c3aed)}
+#page-setup .sp-dot.s4{background:linear-gradient(135deg,#fbbf24,#d97706)}
+#page-setup .sp-dot.s5{background:linear-gradient(135deg,#f472b6,#ec4899)}
+#page-setup .sp-card{background:var(--sp-card);border:1px solid var(--sp-bd);border-radius:18px;overflow:hidden;transition:all .4s cubic-bezier(.34,1.56,.64,1)}
+#page-setup .sp-card:hover{transform:translateY(-4px) translateX(4px);border-color:rgba(249,115,22,.3);box-shadow:0 12px 40px rgba(0,0,0,.4)}
+#page-setup .sp-bar{height:3px}
+#page-setup .sp-bar.s1{background:linear-gradient(90deg,#f97316,#fb923c)}
+#page-setup .sp-bar.s2{background:linear-gradient(90deg,#22d3ee,#06b6d4)}
+#page-setup .sp-bar.s3{background:linear-gradient(90deg,#a78bfa,#7c3aed)}
+#page-setup .sp-bar.s4{background:linear-gradient(90deg,#fbbf24,#d97706)}
+#page-setup .sp-bar.s5{background:linear-gradient(90deg,#f472b6,#ec4899)}
+#page-setup .sp-head{padding:1.5rem 2rem .5rem;display:flex;align-items:center;gap:1rem}
+#page-setup .sp-icon{font-size:2rem}
+#page-setup .sp-label{font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--sp-t3)}
+#page-setup .sp-title{font-size:1.25rem;font-weight:800;color:var(--sp-t1)}
+#page-setup .sp-body{padding:.5rem 2rem 2rem;color:var(--sp-t2);line-height:1.75}
+#page-setup .sp-body strong{color:var(--sp-t1)}
+#page-setup .sp-body a{color:var(--sp-c2);font-weight:600;text-decoration:none;border-bottom:1px dashed var(--sp-c2)}
+#page-setup .sp-body code{background:var(--sp-bg2);padding:.15rem .5rem;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:.85rem;color:var(--sp-t1)}
+#page-setup .sp-cb{background:#0a0604;border:1px solid var(--sp-bd);border-radius:14px;margin:1rem 0;overflow:hidden}
+#page-setup .sp-cbh{display:flex;align-items:center;justify-content:space-between;padding:.6rem 1.2rem;background:rgba(255,255,255,.02);border-bottom:1px solid var(--sp-bd)}
+#page-setup .sp-cbh-left{display:flex;align-items:center;gap:.5rem}
+#page-setup .sp-cbh-dots{display:flex;gap:5px}
+#page-setup .sp-cbh-dots span{width:9px;height:9px;border-radius:50%}
+#page-setup .sp-cbh-dots span:nth-child(1){background:#ff5f57}
+#page-setup .sp-cbh-dots span:nth-child(2){background:#febc2e}
+#page-setup .sp-cbh-dots span:nth-child(3){background:#28c840}
+#page-setup .sp-cbh-title{font-size:.75rem;font-weight:600;color:var(--sp-t3)}
+#page-setup .sp-cbh-copy{padding:.3rem .7rem;background:rgba(255,255,255,.05);border:1px solid var(--sp-bd);color:var(--sp-t3);border-radius:6px;cursor:pointer;font-size:.7rem;font-family:inherit;transition:all .3s}
+#page-setup .sp-cbh-copy:hover{background:rgba(249,115,22,.15);color:var(--sp-c2);border-color:rgba(249,115,22,.3)}
+#page-setup .sp-cbd{padding:1.2rem 1.4rem;overflow-x:auto}
+#page-setup .sp-cbd pre{font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.8;color:#c9d1d9;white-space:pre;margin:0}
+#page-setup .sp-cm{color:#6e7681}#page-setup .sp-kw{color:#ff7b72}#page-setup .sp-str{color:#a5d6ff}#page-setup .sp-fn{color:#d2a8ff}#page-setup .sp-gn{color:#7ee787}
+#page-setup .sp-ext-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.75rem;margin-top:1rem}
+#page-setup .sp-ext-item{display:flex;align-items:center;gap:.75rem;padding:.85rem 1.1rem;background:var(--sp-bg2);border:1px solid var(--sp-bd);border-radius:12px;transition:all .3s}
+#page-setup .sp-ext-item:hover{border-color:rgba(249,115,22,.3);background:rgba(249,115,22,.04);transform:translateX(4px)}
+#page-setup .sp-ext-check{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--sp-c1),var(--sp-c4));display:flex;align-items:center;justify-content:center;font-size:.7rem;color:#fff;font-weight:800;flex-shrink:0}
+#page-setup .sp-ext-name{font-weight:700;font-size:.9rem;color:var(--sp-t1)}
+#page-setup .sp-ext-by{font-size:.7rem;color:var(--sp-t3)}
+#page-setup .sp-test-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-top:2rem}
+@media(max-width:700px){#page-setup .sp-test-grid{grid-template-columns:1fr}}
+#page-setup .sp-test-card{background:var(--sp-card);border:1px solid var(--sp-bd);border-radius:16px;overflow:hidden;transition:all .3s}
+#page-setup .sp-test-card:hover{border-color:rgba(251,191,36,.3);transform:translateY(-3px);box-shadow:0 8px 25px rgba(0,0,0,.3)}
+#page-setup .sp-test-bar{height:3px}
+#page-setup .sp-test-head{padding:1.25rem 1.5rem .5rem;display:flex;align-items:center;gap:.75rem}
+#page-setup .sp-test-icon{font-size:1.5rem}
+#page-setup .sp-test-title{font-weight:800;font-size:1.05rem;color:var(--sp-t1)}
+#page-setup .sp-test-body{padding:.25rem 1.5rem 1.5rem}
+</style>
+
+<div class="page" id="page-setup">
+
+<!-- HERO -->
+<div class="hero" data-tab="setup" style="min-height:55vh">
+  <canvas class="hero-orbits" data-hero-id="setup"></canvas>
+  <div class="float-formulas">
+    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:20s;--del:0s">conda create -n math4</span>
+    <span class="ff" style="left:30%;font-size:.85rem;color:var(--violet);--dur:22s;--del:5s">import sympy as sp</span>
+    <span class="ff" style="left:52%;font-size:.8rem;color:var(--pink);--dur:18s;--del:5s">solve_ivp · dsolve</span>
+    <span class="ff" style="left:74%;font-size:.7rem;color:var(--amber);--dur:22s;--del:9s">VS Code + Jupyter</span>
+  </div>
+  <div class="hero-content">
+    <div class="hero-eyebrow"><div class="pulse-dot"></div>Setup Python &nbsp;·&nbsp; Jupyter Notebook untuk Matematika 4</div>
+    <h1 class="hero-title">
+      <span class="hl-cyan">Setup</span><br>
+      <em>Jupyter Notebook</em><br>
+      <span class="hl-amber">untuk Matematika 4</span>
+    </h1>
+    <p class="hero-sub">Panduan lengkap instalasi Python + Jupyter di VS Code menggunakan Miniconda — dari nol sampai siap pakai. Cocok untuk persamaan diferensial, metode numerik, transformasi integral, dan visualisasi solusi matematika teknik.</p>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num">5</div><div class="stat-lbl">Langkah</div></div>
+      <div class="stat"><div class="stat-num">~10</div><div class="stat-lbl">Menit</div></div>
+      <div class="stat"><div class="stat-num">7</div><div class="stat-lbl">Library</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="sp-wrap">
+  <div class="sp-timeline">
+
+    <!-- ── PESAN DOSEN ── -->
+    <div class="sp-step reveal">
+      <div class="sp-dot s1">👋</div>
+      <div class="sp-card">
+        <div class="sp-bar s1"></div>
+        <div class="sp-head">
+          <div class="sp-icon">👨‍🏫</div>
+          <div><div class="sp-label">Pesan Dosen</div><div class="sp-title">Halo Mahasiswa Matematika 4!</div></div>
+        </div>
+        <div class="sp-body">
+          <p>Setup ini saya susun khusus untuk mendukung pembelajaran <strong>Matematika 4</strong>. Kalian akan banyak berhadapan dengan persamaan diferensial, metode numerik, transformasi integral, serta aplikasi matematika pada masalah teknik dan fisika. Dengan Jupyter di VS Code, kalian bisa langsung menyelesaikan secara simbolik, numerik, memvisualisasikan, dan menganalisis secara interaktif.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 1: MINICONDA ── -->
+    <div class="sp-step reveal">
+      <div class="sp-dot s1">1</div>
+      <div class="sp-card">
+        <div class="sp-bar s1"></div>
+        <div class="sp-head">
+          <div class="sp-icon">📦</div>
+          <div><div class="sp-label">Langkah 1</div><div class="sp-title">Instal Miniconda</div></div>
+        </div>
+        <div class="sp-body">
+          <p style="margin-bottom:1rem;">Miniconda adalah manajer environment Python yang ringan dan andal.</p>
+          <ol style="padding-left:1.5rem;line-height:2">
+            <li>Buka → <a href="https://docs.conda.io/en/latest/miniconda.html" target="_blank" rel="noopener">docs.conda.io/miniconda</a></li>
+            <li>Pilih <strong>Miniconda3</strong> terbaru (Python 3.x) sesuai OS — pilih <strong>64-bit</strong></li>
+            <li>Jalankan installer → <strong style="color:var(--sp-c3)">Centang "Add Miniconda3 to my PATH"</strong></li>
+            <li>Verifikasi — buka terminal baru lalu ketik: <code>conda --version</code></li>
+          </ol>
+          <div class="sp-cb" style="margin-top:1rem;">
+            <div class="sp-cbh">
+              <div class="sp-cbh-left"><div class="sp-cbh-dots"><span></span><span></span><span></span></div><span class="sp-cbh-title">Terminal</span></div>
+              <button class="sp-cbh-copy" onclick="cpC(this)">📋 Copy</button>
+            </div>
+            <div class="sp-cbd"><pre><span class="sp-cm"># Verifikasi Miniconda berhasil diinstal</span>
+conda --version
+<span class="sp-cm"># Output contoh: conda 24.x.x</span></pre></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 2: ENVIRONMENT ── -->
+    <div class="sp-step reveal">
+      <div class="sp-dot s2">2</div>
+      <div class="sp-card">
+        <div class="sp-bar s2"></div>
+        <div class="sp-head">
+          <div class="sp-icon">⚙️</div>
+          <div><div class="sp-label">Langkah 2</div><div class="sp-title">Buat Environment <code>math4</code></div></div>
+        </div>
+        <div class="sp-body">
+          <p style="margin-bottom:.75rem;">Buka <strong>Miniconda Prompt</strong> (Windows) atau <strong>Terminal</strong> (macOS/Linux), lalu jalankan:</p>
+          <div class="sp-cb">
+            <div class="sp-cbh">
+              <div class="sp-cbh-left"><div class="sp-cbh-dots"><span></span><span></span><span></span></div><span class="sp-cbh-title">Terminal</span></div>
+              <button class="sp-cbh-copy" onclick="cpC(this)">📋 Copy</button>
+            </div>
+            <div class="sp-cbd"><pre><span class="sp-cm"># Buat environment baru</span>
+conda create -n math4 python -y
+conda activate math4
+
+<span class="sp-cm"># Install paket utama Matematika 4</span>
+conda install -c conda-forge jupyter numpy scipy matplotlib sympy pandas mpmath control -y
+
+<span class="sp-cm"># Opsional: interaktif plot &amp; widget</span>
+conda install -c conda-forge ipympl jupyterlab_widgets -y
+
+<span class="sp-cm"># Daftarkan kernel agar muncul di VS Code</span>
+python -m ipykernel install --user --name math4 --display-name <span class="sp-str">"Python (math4)"</span></pre></div>
+          </div>
+          <p style="margin-top:1rem;font-size:.85rem;color:var(--sp-t3)"><strong style="color:var(--sp-c3)">⚠ Penting:</strong> Setiap kali membuka terminal baru, jangan lupa <code>conda activate math4</code> sebelum mengerjakan tugas.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 3: VS CODE ── -->
+    <div class="sp-step reveal">
+      <div class="sp-dot s3">3</div>
+      <div class="sp-card">
+        <div class="sp-bar s3"></div>
+        <div class="sp-head">
+          <div class="sp-icon">💻</div>
+          <div><div class="sp-label">Langkah 3</div><div class="sp-title">Setup Visual Studio Code</div></div>
+        </div>
+        <div class="sp-body">
+          <p style="margin-bottom:1rem;">Download dan instal VS Code dari <a href="https://code.visualstudio.com/" target="_blank" rel="noopener">code.visualstudio.com</a></p>
+          <p style="font-weight:700;margin-bottom:.5rem;color:var(--sp-t1)">Install Extension berikut:</p>
+          <div class="sp-ext-grid">
+            <div class="sp-ext-item"><div class="sp-ext-check">✓</div><div><div class="sp-ext-name">Python</div><div class="sp-ext-by">Microsoft</div></div></div>
+            <div class="sp-ext-item"><div class="sp-ext-check">✓</div><div><div class="sp-ext-name">Jupyter</div><div class="sp-ext-by">Microsoft</div></div></div>
+            <div class="sp-ext-item"><div class="sp-ext-check">✓</div><div><div class="sp-ext-name">Jupyter Keymap</div><div class="sp-ext-by">Microsoft</div></div></div>
+            <div class="sp-ext-item"><div class="sp-ext-check">✓</div><div><div class="sp-ext-name">Pylance</div><div class="sp-ext-by">Microsoft</div></div></div>
+          </div>
+          <p style="font-weight:700;margin-top:1.5rem;margin-bottom:.5rem;color:var(--sp-t1)">Pilih Interpreter &amp; Kernel:</p>
+          <div class="sp-cb">
+            <div class="sp-cbh"><div class="sp-cbh-left"><div class="sp-cbh-dots"><span></span><span></span><span></span></div><span class="sp-cbh-title">VS Code</span></div></div>
+            <div class="sp-cbd"><pre><span class="sp-cm">Tekan</span> <span class="sp-kw">Ctrl + Shift + P</span>
+<span class="sp-cm">Ketik:</span> <span class="sp-fn">Python: Select Interpreter</span>
+<span class="sp-cm">Pilih:</span> <span class="sp-gn">Python (math4)</span>
+
+<span class="sp-cm">Di file .ipynb → klik kernel di pojok kanan atas</span>
+<span class="sp-cm">Pilih:</span> <span class="sp-gn">Python (math4)</span></pre></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 4: TEST ── -->
+    <div class="sp-step reveal">
+      <div class="sp-dot s4">4</div>
+      <div class="sp-card">
+        <div class="sp-bar s4"></div>
+        <div class="sp-head">
+          <div class="sp-icon">🧪</div>
+          <div><div class="sp-label">Langkah 4</div><div class="sp-title">Tes Instalasi</div></div>
+        </div>
+        <div class="sp-body">
+          <p style="margin-bottom:.75rem;">Buat file <code>test_math4.ipynb</code> baru di VS Code, pastikan kernel <strong>Python (math4)</strong> dipilih, lalu jalankan:</p>
+          <div class="sp-cb">
+            <div class="sp-cbh">
+              <div class="sp-cbh-left"><div class="sp-cbh-dots"><span></span><span></span><span></span></div><span class="sp-cbh-title">Python — test_math4.ipynb</span></div>
+              <button class="sp-cbh-copy" onclick="cpC(this)">📋 Copy</button>
+            </div>
+            <div class="sp-cbd"><pre><span class="sp-kw">import</span> numpy <span class="sp-kw">as</span> np
+<span class="sp-kw">import</span> sympy <span class="sp-kw">as</span> sp
+<span class="sp-kw">from</span> scipy.integrate <span class="sp-kw">import</span> solve_ivp
+<span class="sp-kw">import</span> matplotlib.pyplot <span class="sp-kw">as</span> plt
+
+<span class="sp-fn">print</span>(<span class="sp-str">"NumPy  :"</span>, np.__version__)
+<span class="sp-fn">print</span>(<span class="sp-str">"SymPy  :"</span>, sp.__version__)
+<span class="sp-fn">print</span>(<span class="sp-str">"─"</span> * <span class="sp-str">30</span>)
+<span class="sp-fn">print</span>(<span class="sp-gn">"✅ Semua paket Matematika 4 siap!"</span>)</pre></div>
+          </div>
+          <p style="margin-top:.75rem;font-size:.9rem">Jika muncul <strong style="color:var(--sp-c2)">✅ Semua paket Matematika 4 siap!</strong> berarti instalasi berhasil.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 5: CONTOH ── -->
+    <div class="sp-step reveal">
+      <div class="sp-dot s5">5</div>
+      <div class="sp-card">
+        <div class="sp-bar s5"></div>
+        <div class="sp-head">
+          <div class="sp-icon">🚀</div>
+          <div><div class="sp-label">Bonus</div><div class="sp-title">Contoh Kode Matematika 4</div></div>
+        </div>
+        <div class="sp-body">
+          <div class="sp-test-grid">
+            <div class="sp-test-card">
+              <div class="sp-test-bar" style="background:linear-gradient(90deg,var(--sp-c1),var(--sp-c4))"></div>
+              <div class="sp-test-head"><div class="sp-test-icon">🧮</div><div class="sp-test-title">Solusi PD Simbolik</div></div>
+              <div class="sp-test-body">
+                <div class="sp-cb" style="margin-top:0;">
+                  <div class="sp-cbh"><div class="sp-cbh-left"><div class="sp-cbh-dots"><span></span><span></span><span></span></div><span class="sp-cbh-title">SymPy</span></div><button class="sp-cbh-copy" onclick="cpC(this)">📋 Copy</button></div>
+                  <div class="sp-cbd"><pre><span class="sp-kw">from</span> sympy <span class="sp-kw">import</span> *
+x = <span class="sp-fn">symbols</span>(<span class="sp-str">'x'</span>)
+y = <span class="sp-fn">Function</span>(<span class="sp-str">'y'</span>)
+
+<span class="sp-cm"># Selesaikan y' + 2y = 0</span>
+sol = <span class="sp-fn">dsolve</span>(
+  <span class="sp-fn">Eq</span>(y(x).<span class="sp-fn">diff</span>(x) + 2*y(x), 0)
+)
+<span class="sp-fn">print</span>(sol)</pre></div>
+                </div>
+              </div>
+            </div>
+            <div class="sp-test-card">
+              <div class="sp-test-bar" style="background:linear-gradient(90deg,var(--sp-c6),var(--sp-c3))"></div>
+              <div class="sp-test-head"><div class="sp-test-icon">📈</div><div class="sp-test-title">Osilator Teredam</div></div>
+              <div class="sp-test-body">
+                <div class="sp-cb" style="margin-top:0;">
+                  <div class="sp-cbh"><div class="sp-cbh-left"><div class="sp-cbh-dots"><span></span><span></span><span></span></div><span class="sp-cbh-title">SciPy + Matplotlib</span></div><button class="sp-cbh-copy" onclick="cpC(this)">📋 Copy</button></div>
+                  <div class="sp-cbd"><pre><span class="sp-kw">import</span> numpy <span class="sp-kw">as</span> np
+<span class="sp-kw">from</span> scipy.integrate <span class="sp-kw">import</span> solve_ivp
+<span class="sp-kw">import</span> matplotlib.pyplot <span class="sp-kw">as</span> plt
+
+<span class="sp-kw">def</span> <span class="sp-fn">osc</span>(t, y):
+    <span class="sp-kw">return</span> [y[1], -0.6*y[1] - 25*y[0]]
+
+s = <span class="sp-fn">solve_ivp</span>(osc, [0,10], [1,0],
+    t_eval=np.<span class="sp-fn">linspace</span>(0,10,400))
+
+plt.<span class="sp-fn">plot</span>(s.t, s.y[0], <span class="sp-str">'orange'</span>)
+plt.<span class="sp-fn">title</span>(<span class="sp-str">'Osilator Teredam'</span>)
+plt.<span class="sp-fn">grid</span>(); plt.<span class="sp-fn">show</span>()</pre></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /sp-timeline -->
+</div><!-- /sp-wrap -->
+
+<footer>
+  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Setup Python — Jupyter Notebook untuk Matematika 4 · S1 Teknik Mesin · Universitas Mercu Buana</p>
+</footer>
+
+</div><!-- end page-setup -->
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     PAGE: PEMBAGIAN KELOMPOK
+     CSS scoped via #page-kelompok prefix
+═══════════════════════════════════════════════════════════ -->
+<style>
+#page-kelompok {
+  --pk-bg:#0d0604; --pk-card:#1a0f08;
+  --pk-c1:#f97316; --pk-c2:#fbbf24; --pk-c3:#22d3ee; --pk-c4:#a78bfa;
+  --pk-t1:#f5e8da; --pk-t2:#a08471; --pk-t3:#6b5847;
+  --pk-bd:#2a1a10;
+}
+#page-kelompok .pk-wrap{max-width:900px;margin:0 auto;padding:3rem 2rem 2rem}
+#page-kelompok .groups-container{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+@media(max-width:700px){#page-kelompok .groups-container{grid-template-columns:1fr}}
+#page-kelompok .grp{background:var(--pk-card);border:1px solid var(--pk-bd);border-radius:20px;overflow:hidden;transition:all .5s cubic-bezier(.34,1.56,.64,1);position:relative}
+#page-kelompok .grp:hover{transform:translateY(-8px);box-shadow:0 20px 50px rgba(0,0,0,.4)}
+#page-kelompok .grp.a:hover{border-color:rgba(249,115,22,.35);box-shadow:0 20px 50px rgba(249,115,22,.1)}
+#page-kelompok .grp.b:hover{border-color:rgba(251,191,36,.35);box-shadow:0 20px 50px rgba(251,191,36,.1)}
+#page-kelompok .grp-bar{height:4px}
+#page-kelompok .grp.a .grp-bar{background:linear-gradient(90deg,#f97316,#fb923c,#ea580c)}
+#page-kelompok .grp.b .grp-bar{background:linear-gradient(90deg,#fbbf24,#f59e0b,#d97706)}
+#page-kelompok .grp-head{padding:2rem 2rem 1.25rem;display:flex;align-items:center;gap:1.25rem;position:relative}
+#page-kelompok .grp-icon{width:64px;height:64px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:2rem;flex-shrink:0}
+#page-kelompok .grp.a .grp-icon{background:rgba(249,115,22,.12);box-shadow:0 0 30px rgba(249,115,22,.08)}
+#page-kelompok .grp.b .grp-icon{background:rgba(251,191,36,.12);box-shadow:0 0 30px rgba(251,191,36,.08)}
+#page-kelompok .grp-name{font-size:1.6rem;font-weight:900;line-height:1.2}
+#page-kelompok .grp.a .grp-name{color:#fb923c}
+#page-kelompok .grp.b .grp-name{color:#fbbf24}
+#page-kelompok .grp-count{font-size:.78rem;font-weight:600;color:var(--pk-t3);margin-top:2px}
+#page-kelompok .grp-badge{position:absolute;top:1.5rem;right:1.5rem;padding:.3rem .8rem;border-radius:8px;font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+#page-kelompok .grp.a .grp-badge{background:rgba(249,115,22,.1);color:var(--pk-c1);border:1px solid rgba(249,115,22,.2)}
+#page-kelompok .grp.b .grp-badge{background:rgba(251,191,36,.1);color:var(--pk-c2);border:1px solid rgba(251,191,36,.2)}
+#page-kelompok .grp-list{padding:.5rem 1.5rem 1.75rem}
+#page-kelompok .member{display:flex;align-items:center;gap:1rem;padding:.9rem 1rem;margin-bottom:.5rem;border-radius:14px;background:rgba(255,255,255,.02);border:1px solid transparent;transition:all .35s}
+#page-kelompok .member:last-child{margin-bottom:0}
+#page-kelompok .member:hover{background:rgba(255,255,255,.04);transform:translateX(6px)}
+#page-kelompok .grp.a .member:hover{border-color:rgba(249,115,22,.15)}
+#page-kelompok .grp.b .member:hover{border-color:rgba(251,191,36,.15)}
+#page-kelompok .member-avatar{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:800;color:#fff;flex-shrink:0}
+#page-kelompok .grp.a .member-avatar{background:linear-gradient(135deg,#f97316,#ea580c)}
+#page-kelompok .grp.b .member-avatar{background:linear-gradient(135deg,#fbbf24,#d97706)}
+#page-kelompok .member-info{flex:1;min-width:0}
+#page-kelompok .member-name{font-weight:700;font-size:.92rem;color:var(--pk-t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#page-kelompok .member-nim{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--pk-t3);font-weight:600;margin-top:1px}
+#page-kelompok .pk-msg{margin-top:3rem;background:var(--pk-card);border:1px solid var(--pk-bd);border-radius:20px;padding:2.5rem;text-align:center;position:relative;overflow:hidden}
+#page-kelompok .pk-msg::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--pk-c1),var(--pk-c2),var(--pk-c1))}
+#page-kelompok .pk-msg-icon{font-size:3.5rem;margin-bottom:1rem}
+#page-kelompok .pk-msg p{font-size:1.05rem;color:var(--pk-t2);line-height:1.8;max-width:520px;margin:0 auto}
+#page-kelompok .pk-msg strong{color:var(--pk-t1)}
+#page-kelompok .pk-msg-sign{display:inline-flex;align-items:center;gap:.75rem;margin-top:1.5rem;padding:.6rem 1.5rem;background:rgba(255,255,255,.03);border:1px solid var(--pk-bd);border-radius:12px;font-size:.85rem;font-weight:700;color:var(--pk-t1)}
+#page-kelompok .pk-msg-sign .dot{color:var(--pk-c2)}
+#page-kelompok .pk-rule{margin-top:2rem;background:linear-gradient(135deg,rgba(251,191,36,.06),rgba(249,115,22,.04));border:1px solid rgba(251,191,36,.18);border-radius:16px;padding:1.5rem 2rem}
+#page-kelompok .pk-rule h3{color:var(--pk-c2);font-size:1rem;font-weight:800;margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
+#page-kelompok .pk-rule ul{padding-left:1.4rem;color:var(--pk-t2);line-height:1.8;font-size:.92rem}
+#page-kelompok .pk-rule li strong{color:var(--pk-t1)}
+</style>
+
+<div class="page" id="page-kelompok">
+
+<!-- HERO -->
+<div class="hero" data-tab="kelompok" style="min-height:55vh">
+  <canvas class="hero-orbits" data-hero-id="kelompok"></canvas>
+  <div class="float-formulas">
+    <span class="ff" style="left:6%;font-size:.9rem;color:var(--cyan);--dur:20s;--del:0s">tim · diskusi</span>
+    <span class="ff" style="left:28%;font-size:.85rem;color:var(--violet);--dur:22s;--del:5s">studi kasus</span>
+    <span class="ff" style="left:50%;font-size:.8rem;color:var(--green);--dur:18s;--del:5s">2 kelompok</span>
+    <span class="ff" style="left:72%;font-size:.7rem;color:var(--amber);--dur:22s;--del:9s">presentasi P7</span>
+  </div>
+  <div class="hero-content">
+    <div class="hero-eyebrow"><div class="pulse-dot"></div>Pembagian Kelompok &nbsp;·&nbsp; Diskusi &amp; Studi Kasus</div>
+    <h1 class="hero-title">
+      <span class="hl-cyan">Pembagian</span><br>
+      <em>Kelompok</em><br>
+      <span class="hl-amber">Matematika 4</span>
+    </h1>
+    <p class="hero-sub" id="heroSubKelompok">Memuat data mahasiswa...</p>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num" id="kelompok-stat-total">-</div><div class="stat-lbl">Mahasiswa</div></div>
+      <div class="stat"><div class="stat-num">2</div><div class="stat-lbl">Kelompok</div></div>
+      <div class="stat"><div class="stat-num">P7</div><div class="stat-lbl">Deadline</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="pk-wrap">
+
+  <!-- ═══════ 2 GROUP CARDS (populated dynamically from students.json) ═══════ -->
+  <div class="groups-container" id="groupsContainer">
+    <div style="grid-column:1/-1;text-align:center;padding:60px 24px;color:#6b5847;font-size:.9rem">⏳ Memuat data mahasiswa...</div>
+  </div>
+
+  <!-- ═══════ DOSEN MESSAGE ═══════ -->
+  <div class="pk-msg reveal">
+    <div class="pk-msg-icon">👨‍🏫</div>
+    <p>Kelompok sudah siap untuk <strong>diskusi dan tugas kelompok</strong> sepanjang semester. Saya harap kalian <strong>saling mendukung</strong> dan menghasilkan karya terbaik. Jika ada pertanyaan, langsung hubungi saya ya! 🚀</p>
+    <div class="pk-msg-sign">
+      <span class="dot">✦</span>
+      <span>Dedik Romahadi — Dosen Matematika 4</span>
+      <span class="dot">✦</span>
+    </div>
+  </div>
+
+  <!-- ═══════ ATURAN KELOMPOK ═══════ -->
+  <div class="pk-rule reveal">
+    <h3>📖 Aturan &amp; Tata Tertib Kelompok</h3>
+    <ul>
+      <li><strong>Komposisi:</strong> Setiap kelompok terdiri dari anggota yang dibagi otomatis dari daftar mahasiswa aktif. Satu ketua ditunjuk secara musyawarah di internal kelompok.</li>
+      <li><strong>Tugas Ketua:</strong> Koordinasi pembagian kerja, komunikasi dengan dosen, kompilasi laporan akhir.</li>
+      <li><strong>Deliverable:</strong> Laporan studi kasus (PDF) + kode Python (Jupyter Notebook .ipynb) + presentasi (slide).</li>
+      <li><strong>Deadline:</strong> Submit akhir di Pertemuan ke-7 — keterlambatan akan mengurangi nilai.</li>
+      <li><strong>Penilaian:</strong> 40% pemahaman konsep, 30% implementasi numerik, 20% presentasi, 10% kerja sama tim.</li>
+      <li><strong>Konflik internal:</strong> Diselesaikan musyawarah; jika tidak resolve, lapor ke dosen untuk mediasi.</li>
+    </ul>
+  </div>
+
+</div>
+
+<footer>
+  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Pembagian Kelompok Matematika 4 · S1 Teknik Mesin · Universitas Mercu Buana</p>
+</footer>
+
+</div><!-- end page-kelompok -->
+
+</content>
+</invoke>
+
+
+<!-- ═══════════════════════════════════════════════════════════
      SCRIPTS
 ═══════════════════════════════════════════════════════════ -->
 <script>
@@ -2513,7 +2955,66 @@ function switchTab(tab) {
     // Refresh visitor table when switching to hasil tab
     if (typeof renderVisitors === 'function') setTimeout(() => renderVisitors(latestVisitors), 100);
   }
+  if (tab === 'kelompok') {
+    // Render groups from students.json (cached after first fetch)
+    if (typeof renderGroups === 'function' && !renderGroups._loaded) {
+      renderGroups();
+      renderGroups._loaded = true;
+    }
+  }
 }
+
+// ── RENDER GROUPS FROM students.json (mengacu pada Pembagian-Kelompok.html standalone: 2 kelompok TEAM A/B) ──
+const STUDENTS_JSON_KELOMPOK = 'https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Engineering-Mathematics/Attributes/students.json';
+function _kTitleCase(s) { return (s || '').toLowerCase().replace(/\b\w/g, c => c.toUpperCase()); }
+function renderGroups() {
+  fetch(STUDENTS_JSON_KELOMPOK, { cache: 'no-store' })
+    .then(r => r.json())
+    .then(data => {
+      if (!Array.isArray(data) || data.length === 0) throw new Error('Empty student list');
+      // 2-group split (matching Pembagian-Kelompok.html standalone): TEAM A / TEAM B
+      const half = Math.ceil(data.length / 2);
+      const groupDefs = [
+        { name: 'Kelompok A', cls: 'a', icon: '🚀', tag: 'TEAM A', members: data.slice(0, half) },
+        { name: 'Kelompok B', cls: 'b', icon: '⚡', tag: 'TEAM B', members: data.slice(half) }
+      ];
+      const container = document.getElementById('groupsContainer');
+      if (!container) return;
+      container.innerHTML = groupDefs.map(g => {
+        const memberHTML = g.members.map(s => {
+          const nm = _kTitleCase(s.nama || '');
+          const ini = nm.charAt(0).toUpperCase();
+          const nim = s.nim || '-';
+          return '<div class="member"><div class="member-avatar">' + ini + '</div>' +
+                 '<div class="member-info"><div class="member-name">' + nm + '</div>' +
+                 '<div class="member-nim">' + nim + '</div></div></div>';
+        }).join('');
+        return '<div class="grp ' + g.cls + ' reveal">' +
+               '<div class="grp-bar"></div>' +
+               '<div class="grp-head">' +
+                 '<div class="grp-icon">' + g.icon + '</div>' +
+                 '<div><div class="grp-name">' + g.name + '</div>' +
+                 '<div class="grp-count">' + g.members.length + ' Anggota</div></div>' +
+                 '<span class="grp-badge">' + g.tag + '</span>' +
+               '</div>' +
+               '<div class="grp-list">' + memberHTML + '</div>' +
+               '</div>';
+      }).join('');
+      const heroSub = document.getElementById('heroSubKelompok');
+      if (heroSub) heroSub.textContent = data.length + ' mahasiswa dibagi menjadi 2 kelompok untuk diskusi dan tugas kelompok sepanjang semester.';
+      const statTotal = document.getElementById('kelompok-stat-total');
+      if (statTotal) statTotal.textContent = data.length;
+      // Re-trigger reveal observer untuk elemen yang baru di-inject
+      container.querySelectorAll('.reveal').forEach(el => { try { revealObs.observe(el); } catch(e){} });
+      console.log('[Kelompok] Students loaded:', data.length, '-> 2 groups');
+    })
+    .catch(err => {
+      console.error('[Kelompok] Failed to load students:', err);
+      const c = document.getElementById('groupsContainer');
+      if (c) c.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#fb7185">⚠ Gagal memuat data mahasiswa. Periksa koneksi internet atau coba refresh halaman.</div>';
+    });
+}
+
 // Show subnav on initial load (modul is default active tab)
 document.addEventListener('DOMContentLoaded', () => {
   const sub = document.getElementById('modulSubnav');
