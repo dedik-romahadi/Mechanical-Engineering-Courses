@@ -4339,9 +4339,10 @@ setTimeout(_sweepTick, 600);
 
 
 // ════════════════════════════════════════════════════════════
-// ANIMASI 3 — Histogram Distribusi: Skewness & Kurtosis Bekerja
-// (Canvas: cvIso, slider: sl_ri/sl_zi; button: btnIso)
-// Generate sample dengan target skewness & kurtosis, render histogram
+// ANIMASI 3 — Sensitivity Analysis: Z(b₁) Piecewise Linear (LP)
+// (Canvas: cvIso, slider: sl_ri = b₁, sl_zi = c₂)
+// Plot Z* vs b₁ — piecewise linear; slope = shadow price
+// Problem: max 40·x_A + c₂·x_B s.t. 2x_A+x_B ≤ b₁, x_A+3x_B ≤ 80
 // ════════════════════════════════════════════════════════════
 let _isoAnim = { t: 0, running: true, raf: null };
 
@@ -4351,123 +4352,152 @@ function toggleIso(){
   if (btn) btn.textContent = _isoAnim.running ? '⏸ PAUSE' : '▶ PLAY';
 }
 
+// Solve LP for given b1, c2 (returns optimal Z and shadow price wrt b1)
+function _solveLPforSensitivity(b1, c2){
+  const c1 = 40, b2 = 80;
+  const candidates = [
+    [0, 0],
+    [Math.min(b1/2, b2), 0],
+    [0, Math.min(b1, b2/3)],
+    [(3*b1 - b2)/5, (2*b2 - b1)/5]
+  ];
+  const isFeas = (x, y) => x >= -0.001 && y >= -0.001 && (2*x + y) <= b1+0.001 && (x + 3*y) <= b2+0.001;
+  let zMax = 0, optV = [0, 0];
+  candidates.forEach(([x, y]) => {
+    if (isFeas(x, y)) {
+      const z = c1*x + c2*y;
+      if (z > zMax) { zMax = z; optV = [x, y]; }
+    }
+  });
+  return { z: zMax, x: optV[0], y: optV[1] };
+}
+
 function drawIso(){
   const cv = document.getElementById('cvIso'); if(!cv) return;
   const W = cv.clientWidth; cv.width = W; const H = cv.height;
   const ctx = cv.getContext('2d');
 
+  // Background
   const bg = ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const skewTarget = parseFloat(document.getElementById('sl_ri').value);
-  const kurtTarget = parseFloat(document.getElementById('sl_zi').value);
-  const tOff = _isoAnim.t;
+  // Read sliders
+  const b1 = parseFloat(document.getElementById('sl_ri').value);
+  const c2 = parseFloat(document.getElementById('sl_zi').value);
 
-  // Plot area
-  const x0 = 50, y0 = 30, w = W - x0 - 30, h = H - 70;
-  const baseY = y0 + h;
+  // Plot Z(b1) for b1 in [10, 130]
+  const b1Min = 10, b1Max = 130;
+  const padL = 60, padR = 30, padT = 30, padB = 50;
+  const wPx = W - padL - padR, hPx = H - padT - padB;
 
-  // Generate samples: mix of Gaussian + skewed exponential + heavy-tail Cauchy-ish
-  // Simple approach: warp a deterministic sin-based sample
-  const N = 800;
+  // Sample Z values for the curve
   const samples = [];
-  for (let i = 0; i < N; i++) {
-    const xt = (i + tOff * 8) * 0.1;
-    // Multiple harmonics ~ Gaussian shape
-    let v = Math.sin(xt) + Math.sin(xt * 1.7) * 0.6 + Math.sin(xt * 2.3) * 0.4 + Math.sin(xt * 3.1) * 0.3;
-    v *= 0.5;   // baseline std around 0.7
-    // Apply skew warp: shift mean, asymmetric scaling
-    if (skewTarget > 0) v = v + skewTarget * 0.5 * (v > 0 ? v*v : 0);
-    else if (skewTarget < 0) v = v + skewTarget * 0.5 * (v < 0 ? v*v : 0);
-    // Apply kurtosis warp: amplify extremes
-    const kurtScale = (kurtTarget - 3) * 0.15;
-    if (kurtScale > 0) v = v + Math.sign(v) * kurtScale * v*v;
-    samples.push(v);
+  for(let b = b1Min; b <= b1Max; b += 1){
+    const sol = _solveLPforSensitivity(b, c2);
+    samples.push({ b, z: sol.z });
   }
+  const zMaxAll = Math.max(...samples.map(s => s.z), 1);
+  const zMinAll = 0;
 
-  // Compute stats
-  let sum = 0, sumSq = 0;
-  for (const v of samples) { sum += v; sumSq += v*v; }
-  const mean = sum / N;
-  const variance = sumSq / N - mean*mean;
-  const std = Math.sqrt(Math.max(variance, 1e-9));
-
-  // Skewness & Kurtosis (plain)
-  let m3 = 0, m4 = 0;
-  for (const v of samples) {
-    const d = v - mean;
-    m3 += d*d*d;
-    m4 += d*d*d*d;
-  }
-  m3 /= N; m4 /= N;
-  const skew = m3 / Math.pow(std, 3);
-  const kurt = m4 / Math.pow(std, 4);
-
-  // Build histogram (40 bins)
-  const minV = -4, maxV = 4;
-  const nBins = 40;
-  const binWidth = (maxV - minV) / nBins;
-  const bins = new Array(nBins).fill(0);
-  for (const v of samples) {
-    if (v < minV || v > maxV) continue;
-    const idx = Math.min(nBins-1, Math.floor((v - minV) / binWidth));
-    bins[idx]++;
-  }
-  const maxBin = Math.max(...bins);
+  const PX = (b) => padL + ((b - b1Min) / (b1Max - b1Min)) * wPx;
+  const PY = (z) => H - padB - ((z - zMinAll) / (zMaxAll - zMinAll)) * hPx;
 
   // Grid
-  _grid(ctx, x0, y0, w, h, 8, 5, '#0d1929');
-
-  // Draw histogram bars
-  const barW = w / nBins;
-  for (let i = 0; i < nBins; i++) {
-    const bh = (bins[i] / Math.max(maxBin, 1)) * (h - 10);
-    const px = x0 + i * barW;
-    const py = baseY - bh;
-    const grad = ctx.createLinearGradient(px, py, px, baseY);
-    grad.addColorStop(0, 'rgba(168,85,247,.95)');
-    grad.addColorStop(1, 'rgba(168,85,247,.4)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(px+0.5, py, barW-1, bh);
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let b = b1Min; b <= b1Max; b += 20){
+    ctx.beginPath(); ctx.moveTo(PX(b), PY(zMinAll)); ctx.lineTo(PX(b), PY(zMaxAll)); ctx.stroke();
+  }
+  for(let z = 0; z <= zMaxAll; z += 200){
+    ctx.beginPath(); ctx.moveTo(PX(b1Min), PY(z)); ctx.lineTo(PX(b1Max), PY(z)); ctx.stroke();
   }
 
-  // Mean line (yellow)
-  const meanX = x0 + ((mean - minV) / (maxV - minV)) * w;
-  ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2; ctx.setLineDash([6,4]);
-  ctx.beginPath(); ctx.moveTo(meanX, y0); ctx.lineTo(meanX, baseY); ctx.stroke();
-  ctx.fillStyle = '#facc15'; ctx.font = '10px JetBrains Mono';
-  ctx.fillText('μ', meanX + 3, y0 + 12);
+  // Draw Z(b1) curve
+  ctx.strokeStyle = 'rgba(168,85,247,.9)'; ctx.lineWidth = 2.4;
+  ctx.shadowColor = 'rgba(168,85,247,.3)'; ctx.shadowBlur = 4;
+  ctx.beginPath();
+  samples.forEach((s, i) => {
+    if (i === 0) ctx.moveTo(PX(s.b), PY(s.z));
+    else ctx.lineTo(PX(s.b), PY(s.z));
+  });
+  ctx.stroke();
+  ctx.shadowBlur = 0;
 
-  // ±σ lines (red)
-  ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 1.5;
-  const sigP = x0 + ((mean + std - minV) / (maxV - minV)) * w;
-  const sigN = x0 + ((mean - std - minV) / (maxV - minV)) * w;
-  ctx.beginPath(); ctx.moveTo(sigP, y0); ctx.lineTo(sigP, baseY); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(sigN, y0); ctx.lineTo(sigN, baseY); ctx.stroke();
+  // Detect breakpoints (slope changes)
+  const breakpoints = [];
+  let prevSlope = null;
+  for(let i = 1; i < samples.length; i++){
+    const dz = samples[i].z - samples[i-1].z;
+    const slope = dz; // since db = 1
+    if (prevSlope !== null && Math.abs(slope - prevSlope) > 0.5) {
+      breakpoints.push({ b: samples[i].b, z: samples[i].z, slope });
+    }
+    prevSlope = slope;
+  }
+  // Plot breakpoint markers
+  breakpoints.forEach(bp => {
+    ctx.fillStyle = '#fbbf24';
+    ctx.beginPath(); ctx.arc(PX(bp.b), PY(bp.z), 5, 0, 2*Math.PI); ctx.fill();
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.fillStyle = 'rgba(251,191,36,.85)'; ctx.font = '9px JetBrains Mono';
+    ctx.fillText(`b=${bp.b}`, PX(bp.b)-12, PY(bp.z)-10);
+  });
+
+  // Current b1 vertical line
+  ctx.strokeStyle = 'rgba(168,85,247,.95)'; ctx.lineWidth = 2; ctx.setLineDash([5,4]);
+  ctx.beginPath(); ctx.moveTo(PX(b1), PY(zMinAll)); ctx.lineTo(PX(b1), PY(zMaxAll)); ctx.stroke();
   ctx.setLineDash([]);
-  ctx.fillStyle = '#ef4444';
-  ctx.fillText('+σ', sigP + 3, y0 + 12);
-  ctx.fillText('−σ', sigN - 25, y0 + 12);
 
-  // Axis labels
-  ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
-  ctx.fillText('Histogram Sample (N=' + N + ')', x0, y0 - 8);
+  // Compute shadow price (slope) at current b1 by finite difference
+  const dB = 0.5;
+  const sLow = _solveLPforSensitivity(b1 - dB, c2).z;
+  const sHigh = _solveLPforSensitivity(b1 + dB, c2).z;
+  const shadowPrice = (sHigh - sLow) / (2 * dB);
+  const Zcur = _solveLPforSensitivity(b1, c2).z;
 
-  // Sliders display
-  document.getElementById('v_ri').textContent = skewTarget.toFixed(2);
-  document.getElementById('v_zi').textContent = kurtTarget.toFixed(2);
+  // Marker at current Z
+  ctx.fillStyle = '#fbbf24';
+  ctx.beginPath(); ctx.arc(PX(b1), PY(Zcur), 7, 0, 2*Math.PI); ctx.fill();
+  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.4; ctx.stroke();
 
-  // Info
+  // Tangent line at current point (showing slope = shadow price)
+  ctx.strokeStyle = 'rgba(251,191,36,.85)'; ctx.lineWidth = 1.5; ctx.setLineDash([3,3]);
+  const tLen = 30;
+  ctx.beginPath();
+  ctx.moveTo(PX(b1 - tLen/2), PY(Zcur - shadowPrice * tLen/2));
+  ctx.lineTo(PX(b1 + tLen/2), PY(Zcur + shadowPrice * tLen/2));
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Axes
+  ctx.strokeStyle = 'rgba(255,255,255,.45)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(PX(b1Min), PY(zMinAll)); ctx.lineTo(PX(b1Max), PY(zMinAll)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(PX(b1Min), PY(zMinAll)); ctx.lineTo(PX(b1Min), PY(zMaxAll)); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '11px JetBrains Mono';
+  ctx.fillText('b₁ (CNC)', PX(b1Max)-50, PY(zMinAll)+24);
+  ctx.fillText('Z*', PX(b1Min)-26, PY(zMaxAll)+12);
+
+  // Tick labels
+  ctx.font = '9px JetBrains Mono'; ctx.fillStyle = 'rgba(255,255,255,.5)';
+  for(let b = b1Min; b <= b1Max; b += 20) ctx.fillText(b, PX(b)-8, PY(zMinAll)+14);
+  for(let z = 0; z <= zMaxAll; z += 400) ctx.fillText(z.toFixed(0), PX(b1Min)-30, PY(z)+4);
+
+  // Title
+  ctx.fillStyle = 'rgba(168,85,247,.95)'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText(`Z*(b₁) — c₂=${c2.toFixed(0)}, slope = shadow price`, PX(b1Min), PY(zMaxAll)-4);
+
+  // Slider displays
+  document.getElementById('v_ri').textContent = b1.toFixed(0);
+  document.getElementById('v_zi').textContent = c2.toFixed(0);
+
+  // Info panel
   const info = document.getElementById('isoInfo');
   if (info) {
-    let interp;
-    if (Math.abs(skew) < 0.3 && Math.abs(kurt - 3) < 0.5) interp = '🔵 Distribusi Gaussian-like';
-    else if (kurt > 5) interp = '🔴 Leptokurtic (ekor tebal — banyak event ekstrem)';
-    else if (kurt < 2.5) interp = '🟡 Platykurtic (datar — distribusi seragam)';
-    else if (Math.abs(skew) > 1) interp = '🟠 Asimetris (skew ' + (skew > 0 ? '+' : '') + skew.toFixed(2) + ')';
-    else interp = '🟢 Mirip normal';
-    info.innerHTML = `μ=<strong>${mean.toFixed(2)}</strong> · σ=<strong>${std.toFixed(2)}</strong> · <strong>Skew=${skew.toFixed(2)}</strong> · <strong>Kurt=${kurt.toFixed(2)}</strong> · ${interp}`;
+    const numBkpt = breakpoints.length;
+    let regime = 'CNC binding';
+    if (b1 >= 80) regime = 'Welding binding (CNC slack)';
+    else if (b1 < 20) regime = 'CNC sangat agresif';
+    info.innerHTML = `b₁=<strong>${b1.toFixed(0)}</strong>, c₂=<strong>${c2.toFixed(0)}</strong> · Z*=<strong>${Zcur.toFixed(1)}</strong> · Shadow price = <strong>${shadowPrice.toFixed(2)}</strong> Rp/unit · Breakpoints: ${numBkpt} · Regime: <em>${regime}</em>`;
   }
 }
 
