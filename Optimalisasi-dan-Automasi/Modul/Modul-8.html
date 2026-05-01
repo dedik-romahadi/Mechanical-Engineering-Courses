@@ -1168,106 +1168,106 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <h2 class="section-title reveal">Animasi Interaktif<br>Visualisasi Konsep Linear Programming</h2>
   <p class="section-desc reveal">Empat animasi yang memvisualisasikan <strong>konsep dasar LP</strong> melalui sinyal-sinyal time series yang serupa dengan profil <em>variabel keputusan dan kendala</em>: (1) sinyal komposit yang merefleksikan kombinasi linier <code>cᵀx</code> dari beberapa sumber — analog dengan fungsi objektif gabungan, (2) injeksi impak yang menyimulasikan <em>vertex jumping</em> di Simpleks — perubahan diskrit dari satu solusi ke solusi tetangga, (3) distribusi statistik yang menunjukkan trade-off antara nilai objektif dan probabilitas feasibility — dasar <em>Stochastic LP</em>, (4) trajectory degradasi kapasitas mesin yang memicu re-optimasi LP saat kendala berubah seiring waktu. Tujuannya: membangun intuisi geometris LP melalui visualisasi.</p>
 
-  <!-- Animasi 1: RMS / Peak / PP Live -->
+  <!-- Animasi 1: Daerah Feasibel & Iso-Profit Lines -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi 1 — Sinyal Vibrasi Live: Hitung RMS, Peak, Peak-to-Peak</span>
+      <span class="anim-title">Animasi 1 — Daerah Feasibel 2D &amp; Iso-Profit Lines: Cari Vertex Optimal</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvPhysics" height="300"></canvas>
+      <canvas id="cvPhysics" height="340"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Amplitudo Sinusoidal — <span class="ctrl-val" id="v_rp">1.00</span></label>
-          <input type="range" id="sl_rp" min="0" max="2" step="0.05" value="1.0">
+          <label>Profit Bracket A (c₁) — <span class="ctrl-val" id="v_rp">40</span></label>
+          <input type="range" id="sl_rp" min="10" max="80" step="2" value="40">
         </div>
         <div class="ctrl-group">
-          <label>Level Noise Gaussian — <span class="ctrl-val" id="v_zp">0.30</span></label>
-          <input type="range" id="sl_zp" min="0" max="1.5" step="0.05" value="0.3">
+          <label>Kapasitas CNC (b₁) — <span class="ctrl-val" id="v_zp">60</span></label>
+          <input type="range" id="sl_zp" min="20" max="100" step="2" value="60">
         </div>
         <button class="btn-anim" id="btnPhysics" onclick="togglePhysics()">⏸ PAUSE</button>
       </div>
       <div id="physicsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi:</strong> Garis ungu = sinyal vibrasi (sinusoidal + noise). Garis cyan horizontal = ±RMS, garis amber = ±peak, garis pink = peak-to-peak window. Info panel menampilkan nilai numerik saat ini.<br>
-        <strong>Coba:</strong> (1) Amplitudo = 1.0, Noise = 0 → sinyal sinusoidal murni, CF = √2 ≈ 1.41. (2) Tambah noise → CF naik bertahap (mendekati 3 untuk Gaussian). (3) Amplitudo = 0, Noise tinggi → noise saja, CF ~3. Perhatikan: <em>RMS ≈ Std saat μ ≈ 0</em>, sesuai identitas RMS² = μ² + σ².
+        <strong>📊 Cara Membaca Animasi:</strong> Bidang ungu = <em>daerah feasibel</em> hasil irisan kendala (CNC: 2x_A+x_B ≤ b₁; Welding: x_A+3x_B ≤ 80; x ≥ 0). Garis cyan putus-putus = kendala CNC, garis amber putus-putus = kendala Welding. Garis ungu solid bergerak = <em>iso-profit line</em> (cᵀx = Z) yang bergeser ke arah maksimum. Bintang kuning = vertex optimal x*.<br>
+        <strong>Coba:</strong> (1) c₁ = 40 → vertex optimal di (20, 20) dengan Z = 1400. (2) Naikkan c₁ ke 60 → vertex optimal bergeser ke (30, 0). (3) Turunkan kapasitas CNC b₁ → daerah feasibel mengecil, optimum berkurang. Inilah esensi metode grafis LP: <em>iso-profit menggeser hingga menyentuh vertex terjauh</em>.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 2: Impak Transient → Crest Factor & Kurtosis -->
+  <!-- Animasi 2: Algoritma Simpleks — Vertex Pivot -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--amber)"></div>
-      <span class="anim-title">Animasi 2 — Injeksi Impak: Lihat Crest Factor &amp; Kurtosis Melonjak</span>
+      <span class="anim-title">Animasi 2 — Algoritma Simpleks: Vertex Jumping Iteratif</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvSweep" height="300"></canvas>
+      <canvas id="cvSweep" height="340"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Frekuensi Impak (per detik) — <span class="ctrl-val" id="v_rs">2.00</span></label>
-          <input type="range" id="sl_rs" min="0" max="10" step="0.5" value="2.0">
+          <label>Iterasi Simpleks — <span class="ctrl-val" id="v_rs">2</span></label>
+          <input type="range" id="sl_rs" min="0" max="3" step="1" value="2">
         </div>
         <div class="ctrl-group">
-          <label>Amplitudo Impak — <span class="ctrl-val" id="v_zs">3.00</span></label>
-          <input type="range" id="sl_zs" min="0" max="8" step="0.2" value="3.0">
+          <label>Highlight Pivot — <span class="ctrl-val" id="v_zs">on</span></label>
+          <input type="range" id="sl_zs" min="0" max="1" step="1" value="1">
         </div>
         <button class="btn-anim" id="btnSweep" onclick="toggleSweep()">⏸ PAUSE</button>
       </div>
       <div id="sweepInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Sinyal latar = noise Gaussian (sinyal sehat). Spike ungu pendek = impak transient (early bearing fault). Info panel menampilkan CF dan kurtosis live.<br>
-        <strong>Coba:</strong> (1) Frekuensi = 0 → noise murni, CF ~3, Kurt ~3 (Gaussian). (2) Frekuensi rendah, amplitudo tinggi → impak jarang tapi besar — <em>CF dan Kurt melonjak</em>. (3) Frekuensi sangat tinggi → impak menjadi konstan, CF dan Kurt turun lagi (kasus severe fault). Inilah <strong>U-shape</strong> klasik kurva CF/Kurt sepanjang lifetime bearing.
+        <strong>📊 Cara Membaca:</strong> Daerah ungu = feasibel polygon LP (max 40x_A+30x_B s.t. CNC≤60, Welding≤80). Bulatan amber = vertex feasibel. Garis amber solid = trajectory Simpleks dari vertex ke vertex (iterasi 0 → optimal). Bintang kuning = vertex Simpleks pada iterasi saat ini. Panel info menunjukkan iterasi #, vertex koordinat, nilai Z, dan reduced cost dari NBV terbaik.<br>
+        <strong>Coba:</strong> (1) Iterasi 0 = origin (0,0), Z = 0 — semua slack basic. (2) Iter 1 = pivot ke vertex tetangga dengan reduced cost terbesar (Dantzig rule). (3) Iter 2 = lanjut hingga semua reduced cost ≤ 0 (optimal di (20,20), Z=1400). <em>Setiap iterasi Z monoton naik</em> — itulah teorema fundamental Simpleks.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 3: Distribusi & Skewness/Kurtosis -->
+  <!-- Animasi 3: Sensitivity Analysis & Shadow Price -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--violet)"></div>
-      <span class="anim-title">Animasi 3 — Histogram Distribusi: Skewness &amp; Kurtosis Bekerja</span>
+      <span class="anim-title">Animasi 3 — Sensitivity Analysis: Z(b) vs Shadow Price</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvIso" height="300"></canvas>
+      <canvas id="cvIso" height="320"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Skewness Target — <span class="ctrl-val" id="v_ri">0.00</span></label>
-          <input type="range" id="sl_ri" min="-2" max="2" step="0.1" value="0.0">
+          <label>Kapasitas CNC b₁ — <span class="ctrl-val" id="v_ri">60</span></label>
+          <input type="range" id="sl_ri" min="20" max="120" step="2" value="60">
         </div>
         <div class="ctrl-group">
-          <label>Kurtosis Target — <span class="ctrl-val" id="v_zi">3.00</span></label>
-          <input type="range" id="sl_zi" min="1.5" max="10" step="0.1" value="3.0">
+          <label>Profit B (c₂) — <span class="ctrl-val" id="v_zi">30</span></label>
+          <input type="range" id="sl_zi" min="10" max="60" step="2" value="30">
         </div>
         <button class="btn-anim" id="btnIso" onclick="toggleIso()">⏸ PAUSE</button>
       </div>
       <div id="isoInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Histogram menunjukkan distribusi sample sinyal yang di-generate dengan target skewness &amp; kurtosis. Garis kuning = mean μ, garis merah = ±σ. Info panel mencetak nilai aktual yang dihitung dari sample.<br>
-        <strong>Coba:</strong> (1) Skew = 0, Kurt = 3 → bell curve simetris klasik (Gaussian). (2) Skew = +1.5 → ekor kanan panjang. (3) Skew = −1.5 → ekor kiri panjang. (4) Kurt = 8 → puncak runcing dengan ekor tebal (leptokurtic — banyak event ekstrem). (5) Kurt = 1.5 → distribusi datar (platykurtic).
+        <strong>📊 Cara Membaca:</strong> Kurva ungu = Z optimum sebagai fungsi b₁ (kapasitas CNC). <em>Slope</em> kurva = <strong>shadow price</strong>! Garis ungu vertikal = posisi b₁ saat ini. Slope kurva PIECEWISE LINEAR — slope berubah saat basis optimal berubah (kendala lain mulai binding). Info panel menampilkan Z, shadow price (slope), dan range sensitivity yang preserve basis.<br>
+        <strong>Coba:</strong> (1) Geser b₁ kecil → Z naik linier dengan slope tertentu (shadow_CNC). (2) b₁ terlalu besar → kendala lain (Welding) jadi binding, slope berubah! (3) Geser c₂ → kemiringan iso-profit berubah, vertex optimal bergeser, shadow price ikut berubah. Inilah <em>strong duality</em> dan <em>sensitivity range</em>.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 4: Bearing Lifetime Trajectory -->
+  <!-- Animasi 4: Constraint Binding & Slack Variables -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--green)"></div>
-      <span class="anim-title">Animasi 4 — Lifetime Bearing: U-Shape Crest Factor Sepanjang Umur</span>
+      <span class="anim-title">Animasi 4 — Slack Variables: Kendala Binding vs Idle</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvHPB" height="340"></canvas>
+      <canvas id="cvHPB" height="380"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Posisi Lifetime (0 = baru, 1 = rusak) — <span class="ctrl-val" id="v_rh">0.40</span></label>
-          <input type="range" id="sl_rh" min="0" max="1" step="0.02" value="0.40">
+          <label>Kapasitas Welding (b₂) — <span class="ctrl-val" id="v_rh">80</span></label>
+          <input type="range" id="sl_rh" min="20" max="180" step="2" value="80">
         </div>
         <button class="btn-anim" id="btnHPB" onclick="toggleHPB()">⏸ PAUSE</button>
       </div>
       <div id="hpbInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Atas = sinyal vibrasi pada posisi lifetime tertentu (slider). Bawah = trajectory 4 fitur: <strong>RMS</strong> (cyan, monoton naik), <strong>Crest Factor</strong> (amber, U-shape!), <strong>Kurtosis</strong> (violet, U-shape!), <strong>Peak</strong> (pink, naik). Marker bergeser sesuai slider.<br>
-        <strong>Coba:</strong> (1) Posisi 0.0 (baru) → sinyal smooth, RMS rendah, CF ~3. (2) Posisi 0.4 (early fault) → impak singkat muncul, <em>CF dan Kurt melonjak</em> tapi RMS belum naik banyak. (3) Posisi 0.8 (severe) → impak berisik konstan, CF dan Kurt <em>turun lagi</em>, tapi RMS tinggi. Inilah pelajaran kunci: <strong>satu fitur saja tidak cukup; gunakan kombinasi.</strong>
+        <strong>📊 Cara Membaca:</strong> Atas = daerah feasibel + vertex optimal x* (slider menggeser kendala Welding). Bawah = bar chart slack variables tiap kendala (s = b − Ax). Bar pink = <strong>BINDING</strong> (slack ≈ 0), bar cyan = <strong>idle</strong> (slack &gt; 0, sumber daya berlebih).<br>
+        <strong>Coba:</strong> (1) b₂ = 80 → kedua kendala binding (slack semua 0), Z = 1400. (2) b₂ besar (150+) → CNC binding tapi Welding idle (slack besar), Z capped oleh CNC saja. (3) b₂ kecil (30) → Welding binding agresif, x* mengecil. Pelajaran: <em>kendala binding adalah bottleneck</em>; investasi tambah kapasitas di sana memberi ROI.
       </div>
     </div>
   </div>
@@ -3953,9 +3953,9 @@ function _savgol(arr, w){
 }
 
 // ════════════════════════════════════════════════════════════
-// ANIMASI 1 — Sinyal Vibrasi Live: Hitung RMS, Peak, Peak-to-Peak
-// (Canvas: cvPhysics, slider: sl_rp/sl_zp; button: btnPhysics)
-// Generate sinyal sinusoidal + noise live, overlay ±RMS dan ±peak
+// ANIMASI 1 — Daerah Feasibel 2D & Iso-Profit Lines (LP)
+// (Canvas: cvPhysics, slider: sl_rp = c1 profit; sl_zp = b1 capacity)
+// Plot constraint lines, feasible polygon, animated iso-profit, optimum vertex
 // ════════════════════════════════════════════════════════════
 let _physicsAnim = { t: 0, running: true, raf: null };
 
@@ -3963,6 +3963,17 @@ function togglePhysics(){
   _physicsAnim.running = !_physicsAnim.running;
   const btn = document.getElementById('btnPhysics');
   if (btn) btn.textContent = _physicsAnim.running ? '⏸ PAUSE' : '▶ PLAY';
+}
+
+// Helper: draw star marker
+function _drawStar(ctx, cx, cy, spikes, outerR, innerR){
+  let rot = -Math.PI/2; const step = Math.PI/spikes;
+  ctx.beginPath();
+  for(let i=0;i<spikes;i++){
+    ctx.lineTo(cx+Math.cos(rot)*outerR, cy+Math.sin(rot)*outerR); rot+=step;
+    ctx.lineTo(cx+Math.cos(rot)*innerR, cy+Math.sin(rot)*innerR); rot+=step;
+  }
+  ctx.closePath();
 }
 
 function drawPhysics(){
@@ -3975,80 +3986,166 @@ function drawPhysics(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
+  // Read sliders: c1 (profit Bracket A), b1 (kapasitas CNC); fixed: c2=30, b2=80
+  const c1 = parseFloat(document.getElementById('sl_rp').value);
+  const b1 = parseFloat(document.getElementById('sl_zp').value);
+  const c2 = 30, b2 = 80;
+
+  // Plot region — coord (x_A, x_B) ∈ [0, 50] × [0, 50]
+  const padL = 50, padR = 30, padT = 25, padB = 40;
+  const xMax = 50, yMax = 50;
+  const wPx = W - padL - padR, hPx = H - padT - padB;
+  const sx = wPx / xMax, sy = hPx / yMax;
+  const PX = (x) => padL + x * sx;
+  const PY = (y) => H - padB - y * sy;
+
   // Grid
-  _grid(ctx, 40, 20, W-60, H-60, 20, 6, '#0d1929');
-
-  // Params from sliders: amplitudo sinusoidal & level noise
-  const sinAmp   = parseFloat(document.getElementById('sl_rp').value);
-  const noiseLvl = parseFloat(document.getElementById('sl_zp').value);
-  const tOff = _physicsAnim.t;
-
-  // Plot area
-  const x0 = 40, y0 = 20, w = W - 60, h = H - 60;
-  const N = 200;
-  const mid = y0 + h/2;
-  const yScale = 50;   // pixels per unit
-
-  // Generate signal samples (deterministic pseudo-noise)
-  const signal = [];
-  for (let i = 0; i < N; i++) {
-    const xt = i + tOff * 10;
-    const sinPart = sinAmp * Math.sin(2*Math.PI*xt/35);
-    const noisePart = noiseLvl * (Math.sin(xt*2.73) * Math.cos(xt*1.91) + Math.sin(xt*5.13)*0.5);
-    signal.push(sinPart + noisePart);
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let i=0;i<=xMax;i+=5){
+    ctx.beginPath(); ctx.moveTo(PX(i), PY(0)); ctx.lineTo(PX(i), PY(yMax)); ctx.stroke();
+  }
+  for(let j=0;j<=yMax;j+=5){
+    ctx.beginPath(); ctx.moveTo(PX(0), PY(j)); ctx.lineTo(PX(xMax), PY(j)); ctx.stroke();
   }
 
-  // Compute frequency-domain features
-  let sumSq = 0, sumAbs = 0, peak = 0, mn = Infinity, mx = -Infinity;
-  for (let i = 0; i < N; i++) {
-    const v = signal[i];
-    sumSq += v*v; sumAbs += Math.abs(v);
-    if (Math.abs(v) > peak) peak = Math.abs(v);
-    if (v < mn) mn = v;
-    if (v > mx) mx = v;
+  // Compute vertices of feasible polygon
+  // Constraints: 2x_A + x_B ≤ b1 (CNC), x_A + 3x_B ≤ b2 (Welding), x ≥ 0
+  const candidates = [
+    [0, 0],
+    [Math.min(b1/2, b2), 0],                       // x_B = 0, hit by tighter constraint
+    [0, Math.min(b1, b2/3)],                       // x_A = 0
+    [(3*b1 - b2)/5, (2*b2 - b1)/5]                 // intersection of CNC & Welding
+  ];
+  const isFeas = (x, y) => x >= -0.001 && y >= -0.001 && (2*x + y) <= b1+0.001 && (x + 3*y) <= b2+0.001;
+  const verts = [];
+  candidates.forEach(([x, y]) => {
+    if (isFeas(x, y)) verts.push([x, y]);
+  });
+  // Order vertices CCW around centroid
+  if (verts.length >= 3) {
+    const cx = verts.reduce((s, v) => s + v[0], 0) / verts.length;
+    const cy = verts.reduce((s, v) => s + v[1], 0) / verts.length;
+    verts.sort((a, b) => Math.atan2(a[1]-cy, a[0]-cx) - Math.atan2(b[1]-cy, b[0]-cx));
   }
-  const rms = Math.sqrt(sumSq / N);
-  const absAvg = sumAbs / N;
-  const pp = mx - mn;
-  const cf = peak / Math.max(rms, 1e-9);
 
-  // Draw signal
-  ctx.strokeStyle = 'rgba(168,85,247,.95)'; ctx.lineWidth = 1.6;
-  ctx.shadowColor = 'rgba(168,85,247,.3)'; ctx.shadowBlur = 4;
+  // Draw feasible region (filled polygon)
+  if (verts.length >= 3) {
+    ctx.fillStyle = 'rgba(168,85,247,.18)';
+    ctx.strokeStyle = 'rgba(168,85,247,.7)'; ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    verts.forEach(([x, y], i) => {
+      if (i === 0) ctx.moveTo(PX(x), PY(y));
+      else ctx.lineTo(PX(x), PY(y));
+    });
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+  }
+
+  // Draw constraint lines (full extent)
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([6,4]);
+  // CNC: 2x_A + x_B = b1 → between (0, b1) and (b1/2, 0)
+  ctx.strokeStyle = 'rgba(14,165,233,.85)';
   ctx.beginPath();
-  for (let i = 0; i < N; i++) {
-    const px = x0 + (i/(N-1)) * w;
-    const py = mid - signal[i] * yScale;
-    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+  ctx.moveTo(PX(0), PY(Math.min(b1, yMax)));
+  if (b1/2 <= xMax) ctx.lineTo(PX(b1/2), PY(0));
+  else ctx.lineTo(PX(xMax), PY(b1 - 2*xMax));
+  ctx.stroke();
+  // Welding: x_A + 3x_B = b2 → between (0, b2/3) and (b2, 0)
+  ctx.strokeStyle = 'rgba(249,115,22,.85)';
+  ctx.beginPath();
+  ctx.moveTo(PX(0), PY(Math.min(b2/3, yMax)));
+  if (b2 <= xMax) ctx.lineTo(PX(b2), PY(0));
+  else ctx.lineTo(PX(xMax), PY((b2 - xMax)/3));
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Find optimal vertex
+  let zMax = -Infinity, optV = null;
+  verts.forEach(([x, y]) => {
+    const z = c1*x + c2*y;
+    if (z > zMax) { zMax = z; optV = [x, y]; }
+  });
+
+  // Animated iso-profit line: cᵀx = Z, sweeping from 0 to Zmax then loop
+  const phase = (Math.sin(_physicsAnim.t * 0.4) + 1) / 2;  // 0..1
+  const Zcur = phase * zMax;
+  // y = (Zcur - c1*x) / c2
+  ctx.strokeStyle = 'rgba(168,85,247,.95)'; ctx.lineWidth = 2.2;
+  ctx.shadowColor = 'rgba(168,85,247,.4)'; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  let started = false;
+  for(let xi=0; xi<=xMax; xi+=0.5){
+    const yi = (Zcur - c1*xi) / c2;
+    if (yi >= 0 && yi <= yMax) {
+      if (!started) { ctx.moveTo(PX(xi), PY(yi)); started = true; }
+      else ctx.lineTo(PX(xi), PY(yi));
+    }
   }
   ctx.stroke();
   ctx.shadowBlur = 0;
 
-  // Overlay ±RMS (cyan dashed)
-  ctx.strokeStyle = 'rgba(14,165,233,.85)'; ctx.lineWidth = 1.5; ctx.setLineDash([6,4]);
-  ctx.beginPath(); ctx.moveTo(x0, mid - rms*yScale); ctx.lineTo(x0+w, mid - rms*yScale); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x0, mid + rms*yScale); ctx.lineTo(x0+w, mid + rms*yScale); ctx.stroke();
-
-  // Overlay ±peak (amber)
-  ctx.strokeStyle = 'rgba(249,115,22,.7)'; ctx.lineWidth = 1.2; ctx.setLineDash([3,3]);
-  ctx.beginPath(); ctx.moveTo(x0, mid - peak*yScale); ctx.lineTo(x0+w, mid - peak*yScale); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x0, mid + peak*yScale); ctx.lineTo(x0+w, mid + peak*yScale); ctx.stroke();
-  ctx.setLineDash([]);
-
-  // Legend labels
+  // Gradient direction arrow (∇Z = c)
+  const cMag = Math.sqrt(c1*c1 + c2*c2);
+  const arrowLen = 60;
+  const ax = padL + 25, ay = padT + 25;
+  const adx = c1/cMag * arrowLen, ady = -c2/cMag * arrowLen;
+  ctx.strokeStyle = 'rgba(168,85,247,.85)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ax+adx, ay+ady); ctx.stroke();
+  // Arrow head
+  ctx.fillStyle = 'rgba(168,85,247,.85)';
+  ctx.beginPath();
+  ctx.moveTo(ax+adx, ay+ady);
+  ctx.lineTo(ax+adx - 8*c1/cMag - 4*c2/cMag, ay+ady + 8*c2/cMag - 4*c1/cMag);
+  ctx.lineTo(ax+adx - 8*c1/cMag + 4*c2/cMag, ay+ady + 8*c2/cMag + 4*c1/cMag);
+  ctx.closePath(); ctx.fill();
   ctx.font = '10px JetBrains Mono';
-  ctx.fillStyle = 'rgba(168,85,247,.95)'; ctx.fillText('● Sinyal vibrasi', x0, y0 - 6);
-  ctx.fillStyle = 'rgba(14,165,233,.95)'; ctx.fillText('--- ±RMS', x0 + 130, y0 - 6);
-  ctx.fillStyle = 'rgba(249,115,22,.85)'; ctx.fillText('··· ±peak', x0 + 200, y0 - 6);
+  ctx.fillText('∇Z = c', ax+adx+5, ay+ady+3);
 
-  // Update slider display
-  const v1 = document.getElementById('v_rp'); if(v1) v1.textContent = sinAmp.toFixed(2);
-  const v2 = document.getElementById('v_zp'); if(v2) v2.textContent = noiseLvl.toFixed(2);
+  // Axes
+  ctx.strokeStyle = 'rgba(255,255,255,.45)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(PX(0), PY(0)); ctx.lineTo(PX(xMax), PY(0)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(PX(0), PY(0)); ctx.lineTo(PX(0), PY(yMax)); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '11px JetBrains Mono';
+  ctx.fillText('x_A', PX(xMax)+5, PY(0)+4);
+  ctx.fillText('x_B', PX(0)-22, PY(yMax)+10);
+  // Tick labels
+  ctx.font = '9px JetBrains Mono'; ctx.fillStyle = 'rgba(255,255,255,.5)';
+  for(let i=10;i<=xMax;i+=10) ctx.fillText(i, PX(i)-6, PY(0)+14);
+  for(let j=10;j<=yMax;j+=10) ctx.fillText(j, PX(0)-22, PY(j)+4);
 
-  // Info panel: numeric features
+  // Vertex circles
+  verts.forEach(([x, y]) => {
+    ctx.fillStyle = 'rgba(168,85,247,.95)';
+    ctx.beginPath(); ctx.arc(PX(x), PY(y), 4, 0, 2*Math.PI); ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
+  });
+
+  // Optimal vertex marker (star)
+  if (optV) {
+    ctx.fillStyle = '#fbbf24';
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 1.2;
+    _drawStar(ctx, PX(optV[0]), PY(optV[1]), 5, 11, 5);
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 11px JetBrains Mono';
+    ctx.fillText(`x* = (${optV[0].toFixed(1)}, ${optV[1].toFixed(1)})`, PX(optV[0])+14, PY(optV[1])-10);
+  }
+
+  // Legend
+  ctx.font = '10px JetBrains Mono';
+  ctx.fillStyle = 'rgba(14,165,233,.95)'; ctx.fillText('--- CNC: 2x_A+x_B ≤ '+b1, PX(2), PY(yMax)+12);
+  ctx.fillStyle = 'rgba(249,115,22,.95)'; ctx.fillText('--- Welding: x_A+3x_B ≤ '+b2, PX(2), PY(yMax)+24);
+  ctx.fillStyle = 'rgba(168,85,247,.95)'; ctx.fillText('— Iso-profit Z='+Zcur.toFixed(0), PX(2), PY(yMax)+36);
+
+  // Slider display
+  const v1 = document.getElementById('v_rp'); if(v1) v1.textContent = c1.toFixed(0);
+  const v2 = document.getElementById('v_zp'); if(v2) v2.textContent = b1.toFixed(0);
+
+  // Info panel
   const info = document.getElementById('physicsInfo');
   if (info) {
-    info.innerHTML = `RMS=<strong>${rms.toFixed(3)}</strong> &nbsp;·&nbsp; Peak=<strong>${peak.toFixed(3)}</strong> &nbsp;·&nbsp; PP=<strong>${pp.toFixed(3)}</strong> &nbsp;·&nbsp; |x|<sub>avg</sub>=${absAvg.toFixed(3)} &nbsp;·&nbsp; CF=<strong>${cf.toFixed(2)}</strong>`;
+    info.innerHTML = optV
+      ? `Vertex optimal: <strong>(${optV[0].toFixed(2)}, ${optV[1].toFixed(2)})</strong> &nbsp;·&nbsp; Z* = ${c1}·${optV[0].toFixed(1)} + ${c2}·${optV[1].toFixed(1)} = <strong>${zMax.toFixed(1)}</strong> &nbsp;·&nbsp; Iso-profit Z=${Zcur.toFixed(1)} (sweeping)`
+      : `⚠ Daerah feasibel kosong — coba naikkan b₁`;
   }
 }
 
@@ -4064,10 +4161,11 @@ setTimeout(_physicsTick, 500);
 
 
 // ════════════════════════════════════════════════════════════
-// ANIMASI 2 — Injeksi Impak: CF & Kurtosis Melonjak
-// (Canvas: cvSweep, slider: sl_rs/sl_zs; button: btnSweep)
-// Sinyal noise Gaussian dengan impak transient periodik
-// Hitung CF dan Kurtosis live, tampilkan di info panel
+// ANIMASI 2 — Algoritma Simpleks: Vertex Jumping (LP)
+// (Canvas: cvSweep, slider: sl_rs = iterasi 0..3; sl_zs = highlight on/off)
+// Visualisasikan trajectory simplex di feasible polygon
+// Problem: max 40x_A+30x_B s.t. 2x_A+x_B≤60, x_A+3x_B≤80, x≥0
+// Path: (0,0) → (30,0) → (20,20) optimal, atau (0,0) → (0,80/3) → (20,20)
 // ════════════════════════════════════════════════════════════
 let _sweepAnim = { t: 0, running: true, raf: null };
 
@@ -4082,95 +4180,150 @@ function drawSweep(){
   const W = cv.clientWidth; cv.width = W; const H = cv.height;
   const ctx = cv.getContext('2d');
 
+  // Background
   const bg = ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const impactFreq = parseFloat(document.getElementById('sl_rs').value);   // 0..10 per detik
-  const impactAmp  = parseFloat(document.getElementById('sl_zs').value);   // 0..8
-  const tOff = _sweepAnim.t;
+  // Read sliders
+  const iter = Math.round(parseFloat(document.getElementById('sl_rs').value));    // 0..3
+  const highlight = parseFloat(document.getElementById('sl_zs').value);             // 0 or 1
 
-  // Plot area
-  const x0 = 40, y0 = 30, w = W - 60, h = H - 60;
-  const mid = y0 + h/2;
-  const N = 300;
-  const yScale = 25;
+  // Fixed problem: max 40x_A + 30x_B s.t. 2x_A+x_B≤60, x_A+3x_B≤80
+  const c1 = 40, c2 = 30, b1 = 60, b2 = 80;
 
-  // Generate signal: noise + periodic impacts
-  const signal = [];
-  const period = impactFreq > 0.01 ? Math.floor(N / impactFreq) : N + 1;
-  for (let i = 0; i < N; i++) {
-    const xt = i + tOff * 12;
-    // Gaussian-like noise (deterministic from sin combos)
-    let noise = 0.6 * (Math.sin(xt * 2.71) + Math.sin(xt * 1.13) * 0.7 + Math.sin(xt * 4.31) * 0.4);
-    // Periodic impact: spike + decay
-    const phase = Math.floor(i + tOff * 12) % Math.max(period, 1);
-    let impact = 0;
-    if (phase < 6 && impactFreq > 0.01) {
-      impact = impactAmp * Math.exp(-phase * 0.4) * Math.sin(phase * 1.2);
-    }
-    signal.push(noise + impact);
-  }
-
-  // Compute features
-  let sumSq = 0, sumAbs = 0, peak = 0, sum = 0;
-  for (let i = 0; i < N; i++) {
-    const v = signal[i];
-    sumSq += v*v; sumAbs += Math.abs(v); sum += v;
-    if (Math.abs(v) > peak) peak = Math.abs(v);
-  }
-  const mean = sum / N;
-  const rms = Math.sqrt(sumSq / N);
-  // Kurtosis (plain, fisher=False)
-  let m4 = 0, m2 = 0;
-  for (let i = 0; i < N; i++) {
-    const d = signal[i] - mean;
-    m2 += d*d;
-    m4 += d*d*d*d;
-  }
-  m2 /= N; m4 /= N;
-  const kurt = m2 > 1e-9 ? m4 / (m2*m2) : 0;
-  const cf = peak / Math.max(rms, 1e-9);
+  // Plot region [0, 35] × [0, 35]
+  const padL = 50, padR = 30, padT = 25, padB = 40;
+  const xMax = 35, yMax = 35;
+  const wPx = W - padL - padR, hPx = H - padT - padB;
+  const sx = wPx / xMax, sy = hPx / yMax;
+  const PX = (x) => padL + x * sx;
+  const PY = (y) => H - padB - y * sy;
 
   // Grid
-  _grid(ctx, x0, y0, w, h, 20, 6, '#0d1929');
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let i=0;i<=xMax;i+=5){ ctx.beginPath(); ctx.moveTo(PX(i), PY(0)); ctx.lineTo(PX(i), PY(yMax)); ctx.stroke(); }
+  for(let j=0;j<=yMax;j+=5){ ctx.beginPath(); ctx.moveTo(PX(0), PY(j)); ctx.lineTo(PX(xMax), PY(j)); ctx.stroke(); }
 
-  // Draw signal
-  ctx.strokeStyle = 'rgba(168,85,247,.9)'; ctx.lineWidth = 1.4;
+  // Feasible polygon: (0,0), (30,0), (20,20), (0, 80/3)
+  const verts = [[0,0], [30,0], [20,20], [0, 80/3]];
+  ctx.fillStyle = 'rgba(168,85,247,.15)';
+  ctx.strokeStyle = 'rgba(168,85,247,.6)'; ctx.lineWidth = 1.6;
   ctx.beginPath();
-  for (let i = 0; i < N; i++) {
-    const px = x0 + (i/(N-1)) * w;
-    const py = mid - signal[i] * yScale;
-    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-  }
-  ctx.stroke();
+  verts.forEach(([x,y], i) => { if(i===0) ctx.moveTo(PX(x), PY(y)); else ctx.lineTo(PX(x), PY(y)); });
+  ctx.closePath(); ctx.fill(); ctx.stroke();
 
-  // Mark zero line + ±RMS
-  ctx.strokeStyle = 'rgba(148,163,184,.3)'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
-  ctx.beginPath(); ctx.moveTo(x0, mid); ctx.lineTo(x0+w, mid); ctx.stroke();
-  ctx.strokeStyle = 'rgba(14,165,233,.6)';
-  ctx.beginPath(); ctx.moveTo(x0, mid - rms*yScale); ctx.lineTo(x0+w, mid - rms*yScale); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x0, mid + rms*yScale); ctx.lineTo(x0+w, mid + rms*yScale); ctx.stroke();
+  // Constraint lines
+  ctx.lineWidth = 1.3; ctx.setLineDash([6,4]);
+  ctx.strokeStyle = 'rgba(14,165,233,.8)';
+  ctx.beginPath(); ctx.moveTo(PX(0), PY(b1)); ctx.lineTo(PX(b1/2), PY(0)); ctx.stroke();
+  ctx.strokeStyle = 'rgba(249,115,22,.8)';
+  ctx.beginPath(); ctx.moveTo(PX(0), PY(b2/3)); ctx.lineTo(PX(Math.min(b2,xMax)), PY(Math.max(0,(b2-xMax)/3))); ctx.stroke();
   ctx.setLineDash([]);
 
-  // Labels
-  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText(`Impak: ${impactFreq.toFixed(1)}/det × A=${impactAmp.toFixed(1)}`, x0, y0 - 8);
+  // Simplex trajectory: select path based on Dantzig pricing
+  // Iter 0: (0,0), basis {s1, s2}, all NBV {x_A, x_B}
+  //   reduced cost x_A: c_A - 0 = 40 (most positive — Dantzig picks x_A)
+  //   reduced cost x_B: c_B - 0 = 30
+  // Pick x_A → ratio test: min(60/2, 80/1) = min(30, 80) = 30 → x_A enters, s1 exits
+  // Iter 1: (30, 0), basis {x_A, s2}, NBV {x_B, s1}
+  //   reduced cost x_B: c_B - c_A·(1/2) = 30 - 20 = 10 (positive — continue)
+  //   reduced cost s1: -c_A·(1/2) = -20 (negative)
+  //   Pick x_B → ratio test: x_A row: (60-2·30)/1 = 0... wait, basis row for x_B:
+  //   Actually: s2 row coefficient on x_B = 3 - 1·(1/2) = 5/2, RHS = 80 - 30 = 50, so 50/(5/2)=20
+  //   x_A row: coef on x_B = 1/2, RHS = 30, so 30/(1/2)=60
+  //   min(20, 60) = 20 → s2 exits, x_B enters at 20
+  // Iter 2: (20, 20), basis {x_A, x_B}, NBV {s1, s2}
+  //   reduced cost s1: dual y1 in basis... at optimal, reduced cost both ≤ 0
+  //   Optimal: Z = 40·20 + 30·20 = 1400
+  // Path: (0,0) → (30,0) → (20,20)
+
+  const path = [[0,0], [30,0], [20,20], [20,20]];  // iter 0, 1, 2, 3 (steady at 2)
+  const reducedCosts = [
+    {label: 'r_A=40, r_B=30', enter: 'x_A', exit: 's₁'},
+    {label: 'r_B=10, r_s1=-20', enter: 'x_B', exit: 's₂'},
+    {label: 'r_s1=-18, r_s2=-4', enter: '— optimal', exit: '—'},
+    {label: 'OPTIMAL: r ≤ 0 ∀ NBV', enter: '—', exit: '—'}
+  ];
+  const Zat = path.map(([x,y]) => c1*x + c2*y);
+
+  // Draw path so far
+  ctx.strokeStyle = 'rgba(249,115,22,.9)'; ctx.lineWidth = 2.4;
+  ctx.shadowColor = 'rgba(249,115,22,.3)'; ctx.shadowBlur = 4;
+  ctx.beginPath();
+  for(let i=0; i<=Math.min(iter, path.length-1); i++){
+    const [x,y] = path[i];
+    if (i === 0) ctx.moveTo(PX(x), PY(y));
+    else ctx.lineTo(PX(x), PY(y));
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Vertex circles (all)
+  verts.forEach(([x,y]) => {
+    ctx.fillStyle = 'rgba(249,115,22,.9)';
+    ctx.beginPath(); ctx.arc(PX(x), PY(y), 5, 0, 2*Math.PI); ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
+  });
+
+  // Current vertex (star, pulse)
+  const [cx, cy] = path[Math.min(iter, path.length-1)];
+  const pulse = 1 + 0.15 * Math.sin(_sweepAnim.t * 4);
+  ctx.fillStyle = '#fbbf24';
+  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.2;
+  _drawStar(ctx, PX(cx), PY(cy), 5, 12*pulse, 5*pulse);
+  ctx.fill(); ctx.stroke();
+
+  // Highlight pivot move arrow (between current and previous)
+  if (iter > 0 && iter < path.length && highlight > 0.5) {
+    const [px, py] = path[iter-1];
+    const [nx, ny] = path[iter];
+    if (px !== nx || py !== ny) {
+      ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 2.5;
+      const angle = Math.atan2(PY(ny)-PY(py), PX(nx)-PX(px));
+      const headLen = 10;
+      ctx.beginPath();
+      ctx.moveTo(PX(nx)-Math.cos(angle)*headLen*1.5, PY(ny)-Math.sin(angle)*headLen*1.5);
+      ctx.lineTo(PX(nx)-Math.cos(angle-0.4)*headLen, PY(ny)-Math.sin(angle-0.4)*headLen);
+      ctx.lineTo(PX(nx)-Math.cos(angle+0.4)*headLen, PY(ny)-Math.sin(angle+0.4)*headLen);
+      ctx.closePath(); ctx.fillStyle = '#fbbf24'; ctx.fill();
+    }
+  }
+
+  // Vertex labels with Z values
+  verts.forEach(([x,y], i) => {
+    const Z = c1*x + c2*y;
+    ctx.fillStyle = '#fff'; ctx.font = '10px JetBrains Mono';
+    const dx = (i === 0) ? -32 : (x === 30 ? 6 : (x === 20 ? 6 : -42));
+    const dy = (i === 0) ? -8 : (y === 0 ? 18 : (y === 20 ? -6 : 4));
+    ctx.fillText(`(${x},${y.toFixed(1)})  Z=${Z.toFixed(0)}`, PX(x)+dx, PY(y)+dy);
+  });
+
+  // Axes
+  ctx.strokeStyle = 'rgba(255,255,255,.45)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(PX(0), PY(0)); ctx.lineTo(PX(xMax), PY(0)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(PX(0), PY(0)); ctx.lineTo(PX(0), PY(yMax)); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '11px JetBrains Mono';
+  ctx.fillText('x_A', PX(xMax)+5, PY(0)+4);
+  ctx.fillText('x_B', PX(0)-22, PY(yMax)+10);
+  ctx.font = '9px JetBrains Mono'; ctx.fillStyle = 'rgba(255,255,255,.5)';
+  for(let i=10;i<=xMax;i+=10) ctx.fillText(i, PX(i)-6, PY(0)+14);
+  for(let j=10;j<=yMax;j+=10) ctx.fillText(j, PX(0)-22, PY(j)+4);
+
+  // Iteration label top-left
+  ctx.fillStyle = 'rgba(249,115,22,.95)'; ctx.font = 'bold 12px JetBrains Mono';
+  ctx.fillText(`Iterasi #${iter}`, PX(2), PY(yMax)+8);
 
   // Update slider displays
-  const v1 = document.getElementById('v_rs'); if(v1) v1.textContent = impactFreq.toFixed(2);
-  const v2 = document.getElementById('v_zs'); if(v2) v2.textContent = impactAmp.toFixed(2);
+  document.getElementById('v_rs').textContent = iter;
+  document.getElementById('v_zs').textContent = highlight > 0.5 ? 'on' : 'off';
 
-  // Info: CF & Kurtosis with color coding
+  // Info panel
   const info = document.getElementById('sweepInfo');
   if (info) {
-    const kurtCol = kurt > 5 ? '#ef4444' : (kurt > 4 ? '#f97316' : '#0ea5e9');
-    const cfCol   = cf > 5 ? '#ef4444' : (cf > 4 ? '#f97316' : '#0ea5e9');
-    let verdict;
-    if (kurt > 5 || cf > 5) verdict = '🔴 EARLY FAULT — impak transient terdeteksi';
-    else if (kurt > 4 || cf > 4) verdict = '🟡 WARNING — impulsivitas naik';
-    else verdict = '🟢 NORMAL — Gaussian noise dominan';
-    info.innerHTML = `RMS=<strong>${rms.toFixed(2)}</strong> · Peak=<strong>${peak.toFixed(2)}</strong> · <strong style="color:${cfCol}">CF=${cf.toFixed(2)}</strong> · <strong style="color:${kurtCol}">Kurt=${kurt.toFixed(2)}</strong> · ${verdict}`;
+    const rc = reducedCosts[Math.min(iter, reducedCosts.length-1)];
+    const status = iter >= 2 ? '✅ OPTIMAL — semua reduced cost ≤ 0' : `→ Pivot: <strong>${rc.enter}</strong> masuk basis, <strong>${rc.exit}</strong> keluar`;
+    info.innerHTML = `Iter #${iter} · Vertex (<strong>${cx}</strong>, <strong>${cy.toFixed(2)}</strong>) · Z = <strong>${Zat[Math.min(iter,3)].toFixed(0)}</strong> · ${rc.label} · ${status}`;
   }
 }
 
@@ -4186,9 +4339,10 @@ setTimeout(_sweepTick, 600);
 
 
 // ════════════════════════════════════════════════════════════
-// ANIMASI 3 — Histogram Distribusi: Skewness & Kurtosis Bekerja
-// (Canvas: cvIso, slider: sl_ri/sl_zi; button: btnIso)
-// Generate sample dengan target skewness & kurtosis, render histogram
+// ANIMASI 3 — Sensitivity Analysis: Z(b₁) Piecewise Linear (LP)
+// (Canvas: cvIso, slider: sl_ri = b₁, sl_zi = c₂)
+// Plot Z* vs b₁ — piecewise linear; slope = shadow price
+// Problem: max 40·x_A + c₂·x_B s.t. 2x_A+x_B ≤ b₁, x_A+3x_B ≤ 80
 // ════════════════════════════════════════════════════════════
 let _isoAnim = { t: 0, running: true, raf: null };
 
@@ -4198,123 +4352,152 @@ function toggleIso(){
   if (btn) btn.textContent = _isoAnim.running ? '⏸ PAUSE' : '▶ PLAY';
 }
 
+// Solve LP for given b1, c2 (returns optimal Z and shadow price wrt b1)
+function _solveLPforSensitivity(b1, c2){
+  const c1 = 40, b2 = 80;
+  const candidates = [
+    [0, 0],
+    [Math.min(b1/2, b2), 0],
+    [0, Math.min(b1, b2/3)],
+    [(3*b1 - b2)/5, (2*b2 - b1)/5]
+  ];
+  const isFeas = (x, y) => x >= -0.001 && y >= -0.001 && (2*x + y) <= b1+0.001 && (x + 3*y) <= b2+0.001;
+  let zMax = 0, optV = [0, 0];
+  candidates.forEach(([x, y]) => {
+    if (isFeas(x, y)) {
+      const z = c1*x + c2*y;
+      if (z > zMax) { zMax = z; optV = [x, y]; }
+    }
+  });
+  return { z: zMax, x: optV[0], y: optV[1] };
+}
+
 function drawIso(){
   const cv = document.getElementById('cvIso'); if(!cv) return;
   const W = cv.clientWidth; cv.width = W; const H = cv.height;
   const ctx = cv.getContext('2d');
 
+  // Background
   const bg = ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const skewTarget = parseFloat(document.getElementById('sl_ri').value);
-  const kurtTarget = parseFloat(document.getElementById('sl_zi').value);
-  const tOff = _isoAnim.t;
+  // Read sliders
+  const b1 = parseFloat(document.getElementById('sl_ri').value);
+  const c2 = parseFloat(document.getElementById('sl_zi').value);
 
-  // Plot area
-  const x0 = 50, y0 = 30, w = W - x0 - 30, h = H - 70;
-  const baseY = y0 + h;
+  // Plot Z(b1) for b1 in [10, 130]
+  const b1Min = 10, b1Max = 130;
+  const padL = 60, padR = 30, padT = 30, padB = 50;
+  const wPx = W - padL - padR, hPx = H - padT - padB;
 
-  // Generate samples: mix of Gaussian + skewed exponential + heavy-tail Cauchy-ish
-  // Simple approach: warp a deterministic sin-based sample
-  const N = 800;
+  // Sample Z values for the curve
   const samples = [];
-  for (let i = 0; i < N; i++) {
-    const xt = (i + tOff * 8) * 0.1;
-    // Multiple harmonics ~ Gaussian shape
-    let v = Math.sin(xt) + Math.sin(xt * 1.7) * 0.6 + Math.sin(xt * 2.3) * 0.4 + Math.sin(xt * 3.1) * 0.3;
-    v *= 0.5;   // baseline std around 0.7
-    // Apply skew warp: shift mean, asymmetric scaling
-    if (skewTarget > 0) v = v + skewTarget * 0.5 * (v > 0 ? v*v : 0);
-    else if (skewTarget < 0) v = v + skewTarget * 0.5 * (v < 0 ? v*v : 0);
-    // Apply kurtosis warp: amplify extremes
-    const kurtScale = (kurtTarget - 3) * 0.15;
-    if (kurtScale > 0) v = v + Math.sign(v) * kurtScale * v*v;
-    samples.push(v);
+  for(let b = b1Min; b <= b1Max; b += 1){
+    const sol = _solveLPforSensitivity(b, c2);
+    samples.push({ b, z: sol.z });
   }
+  const zMaxAll = Math.max(...samples.map(s => s.z), 1);
+  const zMinAll = 0;
 
-  // Compute stats
-  let sum = 0, sumSq = 0;
-  for (const v of samples) { sum += v; sumSq += v*v; }
-  const mean = sum / N;
-  const variance = sumSq / N - mean*mean;
-  const std = Math.sqrt(Math.max(variance, 1e-9));
-
-  // Skewness & Kurtosis (plain)
-  let m3 = 0, m4 = 0;
-  for (const v of samples) {
-    const d = v - mean;
-    m3 += d*d*d;
-    m4 += d*d*d*d;
-  }
-  m3 /= N; m4 /= N;
-  const skew = m3 / Math.pow(std, 3);
-  const kurt = m4 / Math.pow(std, 4);
-
-  // Build histogram (40 bins)
-  const minV = -4, maxV = 4;
-  const nBins = 40;
-  const binWidth = (maxV - minV) / nBins;
-  const bins = new Array(nBins).fill(0);
-  for (const v of samples) {
-    if (v < minV || v > maxV) continue;
-    const idx = Math.min(nBins-1, Math.floor((v - minV) / binWidth));
-    bins[idx]++;
-  }
-  const maxBin = Math.max(...bins);
+  const PX = (b) => padL + ((b - b1Min) / (b1Max - b1Min)) * wPx;
+  const PY = (z) => H - padB - ((z - zMinAll) / (zMaxAll - zMinAll)) * hPx;
 
   // Grid
-  _grid(ctx, x0, y0, w, h, 8, 5, '#0d1929');
-
-  // Draw histogram bars
-  const barW = w / nBins;
-  for (let i = 0; i < nBins; i++) {
-    const bh = (bins[i] / Math.max(maxBin, 1)) * (h - 10);
-    const px = x0 + i * barW;
-    const py = baseY - bh;
-    const grad = ctx.createLinearGradient(px, py, px, baseY);
-    grad.addColorStop(0, 'rgba(168,85,247,.95)');
-    grad.addColorStop(1, 'rgba(168,85,247,.4)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(px+0.5, py, barW-1, bh);
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let b = b1Min; b <= b1Max; b += 20){
+    ctx.beginPath(); ctx.moveTo(PX(b), PY(zMinAll)); ctx.lineTo(PX(b), PY(zMaxAll)); ctx.stroke();
+  }
+  for(let z = 0; z <= zMaxAll; z += 200){
+    ctx.beginPath(); ctx.moveTo(PX(b1Min), PY(z)); ctx.lineTo(PX(b1Max), PY(z)); ctx.stroke();
   }
 
-  // Mean line (yellow)
-  const meanX = x0 + ((mean - minV) / (maxV - minV)) * w;
-  ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2; ctx.setLineDash([6,4]);
-  ctx.beginPath(); ctx.moveTo(meanX, y0); ctx.lineTo(meanX, baseY); ctx.stroke();
-  ctx.fillStyle = '#facc15'; ctx.font = '10px JetBrains Mono';
-  ctx.fillText('μ', meanX + 3, y0 + 12);
+  // Draw Z(b1) curve
+  ctx.strokeStyle = 'rgba(168,85,247,.9)'; ctx.lineWidth = 2.4;
+  ctx.shadowColor = 'rgba(168,85,247,.3)'; ctx.shadowBlur = 4;
+  ctx.beginPath();
+  samples.forEach((s, i) => {
+    if (i === 0) ctx.moveTo(PX(s.b), PY(s.z));
+    else ctx.lineTo(PX(s.b), PY(s.z));
+  });
+  ctx.stroke();
+  ctx.shadowBlur = 0;
 
-  // ±σ lines (red)
-  ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 1.5;
-  const sigP = x0 + ((mean + std - minV) / (maxV - minV)) * w;
-  const sigN = x0 + ((mean - std - minV) / (maxV - minV)) * w;
-  ctx.beginPath(); ctx.moveTo(sigP, y0); ctx.lineTo(sigP, baseY); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(sigN, y0); ctx.lineTo(sigN, baseY); ctx.stroke();
+  // Detect breakpoints (slope changes)
+  const breakpoints = [];
+  let prevSlope = null;
+  for(let i = 1; i < samples.length; i++){
+    const dz = samples[i].z - samples[i-1].z;
+    const slope = dz; // since db = 1
+    if (prevSlope !== null && Math.abs(slope - prevSlope) > 0.5) {
+      breakpoints.push({ b: samples[i].b, z: samples[i].z, slope });
+    }
+    prevSlope = slope;
+  }
+  // Plot breakpoint markers
+  breakpoints.forEach(bp => {
+    ctx.fillStyle = '#fbbf24';
+    ctx.beginPath(); ctx.arc(PX(bp.b), PY(bp.z), 5, 0, 2*Math.PI); ctx.fill();
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.fillStyle = 'rgba(251,191,36,.85)'; ctx.font = '9px JetBrains Mono';
+    ctx.fillText(`b=${bp.b}`, PX(bp.b)-12, PY(bp.z)-10);
+  });
+
+  // Current b1 vertical line
+  ctx.strokeStyle = 'rgba(168,85,247,.95)'; ctx.lineWidth = 2; ctx.setLineDash([5,4]);
+  ctx.beginPath(); ctx.moveTo(PX(b1), PY(zMinAll)); ctx.lineTo(PX(b1), PY(zMaxAll)); ctx.stroke();
   ctx.setLineDash([]);
-  ctx.fillStyle = '#ef4444';
-  ctx.fillText('+σ', sigP + 3, y0 + 12);
-  ctx.fillText('−σ', sigN - 25, y0 + 12);
 
-  // Axis labels
-  ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
-  ctx.fillText('Histogram Sample (N=' + N + ')', x0, y0 - 8);
+  // Compute shadow price (slope) at current b1 by finite difference
+  const dB = 0.5;
+  const sLow = _solveLPforSensitivity(b1 - dB, c2).z;
+  const sHigh = _solveLPforSensitivity(b1 + dB, c2).z;
+  const shadowPrice = (sHigh - sLow) / (2 * dB);
+  const Zcur = _solveLPforSensitivity(b1, c2).z;
 
-  // Sliders display
-  document.getElementById('v_ri').textContent = skewTarget.toFixed(2);
-  document.getElementById('v_zi').textContent = kurtTarget.toFixed(2);
+  // Marker at current Z
+  ctx.fillStyle = '#fbbf24';
+  ctx.beginPath(); ctx.arc(PX(b1), PY(Zcur), 7, 0, 2*Math.PI); ctx.fill();
+  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.4; ctx.stroke();
 
-  // Info
+  // Tangent line at current point (showing slope = shadow price)
+  ctx.strokeStyle = 'rgba(251,191,36,.85)'; ctx.lineWidth = 1.5; ctx.setLineDash([3,3]);
+  const tLen = 30;
+  ctx.beginPath();
+  ctx.moveTo(PX(b1 - tLen/2), PY(Zcur - shadowPrice * tLen/2));
+  ctx.lineTo(PX(b1 + tLen/2), PY(Zcur + shadowPrice * tLen/2));
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Axes
+  ctx.strokeStyle = 'rgba(255,255,255,.45)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(PX(b1Min), PY(zMinAll)); ctx.lineTo(PX(b1Max), PY(zMinAll)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(PX(b1Min), PY(zMinAll)); ctx.lineTo(PX(b1Min), PY(zMaxAll)); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '11px JetBrains Mono';
+  ctx.fillText('b₁ (CNC)', PX(b1Max)-50, PY(zMinAll)+24);
+  ctx.fillText('Z*', PX(b1Min)-26, PY(zMaxAll)+12);
+
+  // Tick labels
+  ctx.font = '9px JetBrains Mono'; ctx.fillStyle = 'rgba(255,255,255,.5)';
+  for(let b = b1Min; b <= b1Max; b += 20) ctx.fillText(b, PX(b)-8, PY(zMinAll)+14);
+  for(let z = 0; z <= zMaxAll; z += 400) ctx.fillText(z.toFixed(0), PX(b1Min)-30, PY(z)+4);
+
+  // Title
+  ctx.fillStyle = 'rgba(168,85,247,.95)'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText(`Z*(b₁) — c₂=${c2.toFixed(0)}, slope = shadow price`, PX(b1Min), PY(zMaxAll)-4);
+
+  // Slider displays
+  document.getElementById('v_ri').textContent = b1.toFixed(0);
+  document.getElementById('v_zi').textContent = c2.toFixed(0);
+
+  // Info panel
   const info = document.getElementById('isoInfo');
   if (info) {
-    let interp;
-    if (Math.abs(skew) < 0.3 && Math.abs(kurt - 3) < 0.5) interp = '🔵 Distribusi Gaussian-like';
-    else if (kurt > 5) interp = '🔴 Leptokurtic (ekor tebal — banyak event ekstrem)';
-    else if (kurt < 2.5) interp = '🟡 Platykurtic (datar — distribusi seragam)';
-    else if (Math.abs(skew) > 1) interp = '🟠 Asimetris (skew ' + (skew > 0 ? '+' : '') + skew.toFixed(2) + ')';
-    else interp = '🟢 Mirip normal';
-    info.innerHTML = `μ=<strong>${mean.toFixed(2)}</strong> · σ=<strong>${std.toFixed(2)}</strong> · <strong>Skew=${skew.toFixed(2)}</strong> · <strong>Kurt=${kurt.toFixed(2)}</strong> · ${interp}`;
+    const numBkpt = breakpoints.length;
+    let regime = 'CNC binding';
+    if (b1 >= 80) regime = 'Welding binding (CNC slack)';
+    else if (b1 < 20) regime = 'CNC sangat agresif';
+    info.innerHTML = `b₁=<strong>${b1.toFixed(0)}</strong>, c₂=<strong>${c2.toFixed(0)}</strong> · Z*=<strong>${Zcur.toFixed(1)}</strong> · Shadow price = <strong>${shadowPrice.toFixed(2)}</strong> Rp/unit · Breakpoints: ${numBkpt} · Regime: <em>${regime}</em>`;
   }
 }
 
@@ -4331,10 +4514,10 @@ setTimeout(_isoTick, 700);
 
 
 // ════════════════════════════════════════════════════════════
-// ANIMASI 4 — Bearing Lifetime Trajectory: U-shape Crest Factor & Kurtosis
-// (Canvas: cvHPB, slider: sl_rh; button: btnHPB)
-// Atas: sinyal vibrasi pada posisi lifetime tertentu (slider)
-// Bawah: trajectory RMS (cyan, monotonic), CF (amber, U-shape), Kurt (violet, U-shape), Peak (pink)
+// ANIMASI 4 — Slack Variables & Constraint Binding (LP)
+// (Canvas: cvHPB, slider: sl_rh = b₂ kapasitas Welding)
+// Atas: feasible polygon + vertex optimal (slider menggeser kendala Welding)
+// Bawah: bar chart slack tiap kendala — pink jika binding, cyan jika idle
 // ════════════════════════════════════════════════════════════
 let _hpbAnim = { t: 0, running: true, raf: null };
 
@@ -4349,166 +4532,161 @@ function drawHPB(){
   const W = cv.clientWidth; cv.width = W; const H = cv.height;
   const ctx = cv.getContext('2d');
 
+  // Background
   const bg = ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const tOff = _hpbAnim.t;
-  const padX = 50;
-  const slLP = document.getElementById('sl_rh');
-  const lifeProgress = slLP ? parseFloat(slLP.value) : 0.4;
+  // Read slider: b2 (Welding capacity); fixed: c1=40, c2=30, b1=60
+  const b2 = parseFloat(document.getElementById('sl_rh').value);
+  const c1 = 40, c2 = 30, b1 = 60;
 
-  // Layout: top panel (vibration signal), bottom panel (trajectory plot)
-  const topH = (H - 60) * 0.4;
-  const botH = (H - 60) * 0.6;
-  const topY = 20;
-  const botY = topY + topH + 20;
-  const plotW = W - padX - 30;
+  // Layout: top = polygon, bottom = bar chart
+  const topY = 25, topH = H * 0.55;
+  const botY = topY + topH + 30, botH = H - botY - 30;
 
-  // Generate signal at current life progress
-  const N = 250;
-  const noiseLvl = 0.4 * (1 + 2 * lifeProgress);
-  // Number and amplitude of impacts grows with progress
-  const nImpacts = Math.floor(50 * lifeProgress);
-  const impactAmp = 1.5 + 3 * lifeProgress;
+  // === TOP: Feasible polygon ===
+  const padL = 50, padR = W * 0.55, padT = 0;
+  const xMax = 50, yMax = 50;
+  const polyW = W - padL - padR, polyH = topH;
+  const sx = polyW / xMax, sy = polyH / yMax;
+  const PX = (x) => padL + x * sx;
+  const PY = (y) => topY + topH - y * sy;
 
-  const sig = [];
-  for (let i = 0; i < N; i++) {
-    const xt = i + tOff * 8;
-    let v = 1.0 * Math.sin(xt * 0.4) + 0.3 * Math.sin(xt * 0.8);
-    v += noiseLvl * (Math.sin(xt * 2.71) + Math.sin(xt * 4.13) * 0.6);
-    sig.push(v);
-  }
-  // Inject impacts at deterministic positions (based on lifeProgress)
-  for (let k = 0; k < nImpacts; k++) {
-    const idx = Math.floor((k * 7919) % (N - 6));
-    const decayMag = impactAmp * (0.5 + 0.5 * Math.sin(k * 1.7));
-    for (let j = 0; j < 6; j++) {
-      if (idx + j < N) sig[idx + j] += decayMag * Math.exp(-j * 0.5) * Math.sin(j * 1.2);
-    }
-  }
+  // Grid
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let i=0;i<=xMax;i+=10){ ctx.beginPath(); ctx.moveTo(PX(i), PY(0)); ctx.lineTo(PX(i), PY(yMax)); ctx.stroke(); }
+  for(let j=0;j<=yMax;j+=10){ ctx.beginPath(); ctx.moveTo(PX(0), PY(j)); ctx.lineTo(PX(xMax), PY(j)); ctx.stroke(); }
 
-  // Compute features
-  let sumSq = 0, peak = 0, sum = 0;
-  for (let i = 0; i < N; i++) {
-    sumSq += sig[i] * sig[i];
-    if (Math.abs(sig[i]) > peak) peak = Math.abs(sig[i]);
-    sum += sig[i];
-  }
-  const mean = sum / N;
-  const rms = Math.sqrt(sumSq / N);
-  let m4 = 0, m2 = 0;
-  for (let i = 0; i < N; i++) {
-    const d = sig[i] - mean;
-    m2 += d*d; m4 += d*d*d*d;
-  }
-  m2 /= N; m4 /= N;
-  const kurt = m2 > 1e-9 ? m4 / (m2*m2) : 0;
-  const cf = peak / Math.max(rms, 1e-9);
-
-  // TOP: signal plot
-  _grid(ctx, padX, topY, plotW, topH, 20, 4, '#0d1929');
-  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText(`Sinyal Vibrasi @ Lifetime ${(lifeProgress*100).toFixed(0)}%`, padX, topY - 4);
-  const sigYScale = topH * 0.35 / Math.max(peak, 1);
-  ctx.strokeStyle = 'rgba(168,85,247,.9)'; ctx.lineWidth = 1.2;
-  ctx.beginPath();
-  for (let i = 0; i < N; i++) {
-    const px = padX + (i/(N-1)) * plotW;
-    const py = topY + topH/2 - sig[i] * sigYScale;
-    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-  }
-  ctx.stroke();
-
-  // BOTTOM: trajectory plot — RMS, CF, Kurtosis, Peak across lifetime [0..1]
-  _grid(ctx, padX, botY, plotW, botH, 10, 4, '#0d1929');
-  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText('Trajectory Lifetime: RMS, CF, Kurtosis, Peak', padX, botY - 4);
-
-  // Compute trajectory across lifetime points
-  const nPoints = 50;
-  const traj_rms = [], traj_cf = [], traj_kurt = [], traj_peak = [];
-  for (let p = 0; p < nPoints; p++) {
-    const prog = p / (nPoints - 1);
-    const noi = 0.4 * (1 + 2 * prog);
-    const nImp = Math.floor(50 * prog);
-    const ampImp = 1.5 + 3 * prog;
-    let lsumSq = 0, lpeak = 0, lsum = 0;
-    const lsig = new Array(N);
-    for (let i = 0; i < N; i++) {
-      let v = 1.0 * Math.sin(i * 0.4) + 0.3 * Math.sin(i * 0.8);
-      v += noi * (Math.sin(i * 2.71) + Math.sin(i * 4.13) * 0.6);
-      lsig[i] = v;
-    }
-    for (let k = 0; k < nImp; k++) {
-      const idx = Math.floor((k * 7919) % (N - 6));
-      const decayMag = ampImp * (0.5 + 0.5 * Math.sin(k * 1.7));
-      for (let j = 0; j < 6; j++) {
-        if (idx + j < N) lsig[idx + j] += decayMag * Math.exp(-j * 0.5) * Math.sin(j * 1.2);
-      }
-    }
-    for (let i = 0; i < N; i++) {
-      lsumSq += lsig[i] * lsig[i];
-      if (Math.abs(lsig[i]) > lpeak) lpeak = Math.abs(lsig[i]);
-      lsum += lsig[i];
-    }
-    const lmean = lsum / N;
-    const lrms = Math.sqrt(lsumSq / N);
-    let lm2 = 0, lm4 = 0;
-    for (let i = 0; i < N; i++) {
-      const d = lsig[i] - lmean;
-      lm2 += d*d; lm4 += d*d*d*d;
-    }
-    lm2 /= N; lm4 /= N;
-    const lkurt = lm2 > 1e-9 ? lm4/(lm2*lm2) : 0;
-    const lcf = lpeak / Math.max(lrms, 1e-9);
-    traj_rms.push(lrms);
-    traj_cf.push(lcf);
-    traj_kurt.push(lkurt);
-    traj_peak.push(lpeak);
+  // Find feasible vertices
+  const candidates = [
+    [0, 0],
+    [Math.min(b1/2, b2), 0],
+    [0, Math.min(b1, b2/3)],
+    [(3*b1 - b2)/5, (2*b2 - b1)/5]
+  ];
+  const isFeas = (x, y) => x >= -0.001 && y >= -0.001 && (2*x + y) <= b1+0.001 && (x + 3*y) <= b2+0.001;
+  const verts = candidates.filter(([x,y]) => isFeas(x, y));
+  if (verts.length >= 3) {
+    const ccx = verts.reduce((s,v) => s+v[0], 0)/verts.length;
+    const ccy = verts.reduce((s,v) => s+v[1], 0)/verts.length;
+    verts.sort((a,b) => Math.atan2(a[1]-ccy, a[0]-ccx) - Math.atan2(b[1]-ccy, b[0]-ccx));
   }
 
-  // Plot trajectory: multi-line with normalization to fit panel
-  const maxRMS = Math.max(...traj_rms);
-  const maxCF = Math.max(...traj_cf);
-  const maxKurt = Math.max(...traj_kurt);
-  const maxPeak = Math.max(...traj_peak);
-
-  function drawTraj(data, maxV, color, label, yOff) {
-    ctx.strokeStyle = color; ctx.lineWidth = 1.8;
+  // Draw feasible polygon
+  if (verts.length >= 3) {
+    ctx.fillStyle = 'rgba(168,85,247,.16)';
+    ctx.strokeStyle = 'rgba(168,85,247,.7)'; ctx.lineWidth = 1.6;
     ctx.beginPath();
-    for (let i = 0; i < data.length; i++) {
-      const px = padX + (i/(data.length-1)) * plotW;
-      const py = botY + botH - 20 - (data[i] / maxV) * (botH - 30);
-      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-    }
-    ctx.stroke();
-    // Label dots
-    ctx.fillStyle = color; ctx.font = '9px JetBrains Mono';
-    ctx.fillText(label, padX + plotW + 5, botY + 10 + yOff * 12);
+    verts.forEach(([x,y], i) => { if(i===0) ctx.moveTo(PX(x), PY(y)); else ctx.lineTo(PX(x), PY(y)); });
+    ctx.closePath(); ctx.fill(); ctx.stroke();
   }
-  drawTraj(traj_rms, maxRMS, 'rgba(14,165,233,.95)', '— RMS', 0);
-  drawTraj(traj_cf, maxCF, 'rgba(249,115,22,.95)', '— CF', 1);
-  drawTraj(traj_kurt, maxKurt, 'rgba(168,85,247,.95)', '— Kurt', 2);
-  drawTraj(traj_peak, maxPeak, 'rgba(255,64,129,.95)', '— Peak', 3);
 
-  // Marker at current life progress
-  const markerX = padX + lifeProgress * plotW;
-  ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2; ctx.setLineDash([5,3]);
-  ctx.beginPath(); ctx.moveTo(markerX, botY); ctx.lineTo(markerX, botY + botH); ctx.stroke();
+  // Constraint lines
+  ctx.lineWidth = 1.4; ctx.setLineDash([6,4]);
+  ctx.strokeStyle = 'rgba(14,165,233,.85)';   // CNC
+  ctx.beginPath();
+  ctx.moveTo(PX(0), PY(Math.min(b1, yMax)));
+  if (b1/2 <= xMax) ctx.lineTo(PX(b1/2), PY(0));
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(249,115,22,.85)';   // Welding
+  ctx.beginPath();
+  ctx.moveTo(PX(0), PY(Math.min(b2/3, yMax)));
+  if (b2 <= xMax) ctx.lineTo(PX(b2), PY(0));
+  else ctx.lineTo(PX(xMax), PY((b2-xMax)/3));
+  ctx.stroke();
   ctx.setLineDash([]);
 
-  // Slider display
-  const vl = document.getElementById('v_rh'); if(vl) vl.textContent = lifeProgress.toFixed(2);
+  // Find optimal vertex
+  let zMax = -Infinity, optV = null;
+  verts.forEach(([x,y]) => {
+    const z = c1*x + c2*y;
+    if (z > zMax) { zMax = z; optV = [x, y]; }
+  });
+
+  // Optimal star
+  if (optV) {
+    ctx.fillStyle = '#fbbf24';
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 1.2;
+    _drawStar(ctx, PX(optV[0]), PY(optV[1]), 5, 11, 5);
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 10px JetBrains Mono';
+    ctx.fillText(`x*=(${optV[0].toFixed(1)},${optV[1].toFixed(1)})`, PX(optV[0])+12, PY(optV[1])-8);
+  }
+
+  // Axes
+  ctx.strokeStyle = 'rgba(255,255,255,.45)'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(PX(0), PY(0)); ctx.lineTo(PX(xMax), PY(0)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(PX(0), PY(0)); ctx.lineTo(PX(0), PY(yMax)); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '10px JetBrains Mono';
+  ctx.fillText('x_A', PX(xMax)+5, PY(0)+4);
+  ctx.fillText('x_B', PX(0)-22, PY(yMax)+10);
+
+  // Title
+  ctx.fillStyle = 'rgba(168,85,247,.95)'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText('Feasible Polygon (Welding b₂ = ' + b2.toFixed(0) + ')', PX(0), topY-6);
+
+  // === BOTTOM: Slack bar chart ===
+  const slacks = optV ? {
+    CNC:     b1 - (2*optV[0] + optV[1]),
+    Welding: b2 - (optV[0] + 3*optV[1]),
+    'x_A≥0': optV[0],
+    'x_B≥0': optV[1]
+  } : { CNC: b1, Welding: b2, 'x_A≥0': 0, 'x_B≥0': 0 };
+
+  const labels = Object.keys(slacks);
+  const values = Object.values(slacks);
+  const maxSlack = Math.max(...values, 10);
+
+  const barAreaX = 30, barAreaW = W - 60;
+  const barW = (barAreaW / labels.length) * 0.7;
+  const barGap = (barAreaW / labels.length) * 0.3;
+
+  ctx.fillStyle = 'rgba(168,85,247,.95)'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText('Slack Variables (s = b − Ax)', barAreaX, botY - 8);
+
+  labels.forEach((lbl, i) => {
+    const v = values[i];
+    const isBinding = Math.abs(v) < 0.5;
+    const color = isBinding ? 'rgba(255,64,129,.85)' : 'rgba(14,165,233,.85)';
+    const fillCol = isBinding ? 'rgba(255,64,129,.4)' : 'rgba(14,165,233,.4)';
+    const bx = barAreaX + i * (barW + barGap) + barGap/2;
+    const bh = (Math.max(v, 0.001) / maxSlack) * (botH - 30);
+    const by = botY + botH - 20 - bh;
+    // Bar
+    ctx.fillStyle = fillCol;
+    ctx.fillRect(bx, by, barW, bh);
+    ctx.strokeStyle = color; ctx.lineWidth = 1.5;
+    ctx.strokeRect(bx, by, barW, bh);
+    // Value above bar
+    ctx.fillStyle = color; ctx.font = 'bold 10px JetBrains Mono';
+    ctx.fillText(v.toFixed(2), bx + barW/2 - 12, by - 4);
+    // BINDING label if active
+    if (isBinding) {
+      ctx.fillStyle = '#ff4081'; ctx.font = 'bold 9px JetBrains Mono';
+      ctx.fillText('BINDING', bx + barW/2 - 22, by + bh + 14);
+    } else {
+      ctx.fillStyle = 'rgba(14,165,233,.7)'; ctx.font = '9px JetBrains Mono';
+      ctx.fillText('idle', bx + barW/2 - 9, by + bh + 14);
+    }
+    // Constraint label
+    ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
+    ctx.fillText(lbl, bx + barW/2 - lbl.length*3, botY + botH - 4);
+  });
+
+  // Update slider display
+  document.getElementById('v_rh').textContent = b2.toFixed(0);
 
   // Info
   const info = document.getElementById('hpbInfo');
   if (info) {
-    let stage;
-    if (lifeProgress < 0.2) stage = '🟢 HEALTHY';
-    else if (lifeProgress < 0.6) stage = '🟡 EARLY FAULT (CF/Kurt naik dramatis)';
-    else stage = '🔴 SEVERE (RMS tinggi, CF/Kurt menurun lagi → U-shape)';
-    info.innerHTML = `RMS=<strong>${rms.toFixed(2)}</strong> · Peak=<strong>${peak.toFixed(2)}</strong> · CF=<strong>${cf.toFixed(2)}</strong> · Kurt=<strong>${kurt.toFixed(2)}</strong> · ${stage}`;
+    if (!optV) {
+      info.innerHTML = '⚠ Daerah feasibel kosong';
+    } else {
+      const bindingNames = labels.filter((l, i) => Math.abs(values[i]) < 0.5);
+      const Z = c1*optV[0] + c2*optV[1];
+      info.innerHTML = `Vertex optimal (${optV[0].toFixed(2)}, ${optV[1].toFixed(2)}) · Z=<strong>${Z.toFixed(0)}</strong> · Kendala BINDING: <strong style="color:#ff4081">${bindingNames.join(', ') || '—'}</strong> · Sisanya idle (sumber daya berlebih)`;
+    }
   }
 }
 
