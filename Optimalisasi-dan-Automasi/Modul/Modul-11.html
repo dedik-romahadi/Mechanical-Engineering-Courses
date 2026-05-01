@@ -1371,111 +1371,113 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 08 — PYTHON ANOVA ═══ -->
+<!-- ═══ BAGIAN 08 — PYTHON RULE-BASED MONITORING ═══ -->
 <hr class="divider">
 <div class="section" id="m-jupyter">
   <div class="section-label reveal">Bagian 08</div>
-  <h2 class="section-title reveal">Implementasi Python<br>ANOVA &amp; Faktorial Design di Jupyter Notebook</h2>
-  <p class="section-desc reveal">Empat cell berikut menerapkan ANOVA pada eksperimen engineering: Cell 1 implementasi <strong>One-Way ANOVA dari scratch</strong> (manual SS_b, SS_w, F, p) + verifikasi dengan <code>scipy.stats.f_oneway</code> pada data CNC cutting speed → roughness. Cell 2 menggunakan <strong>statsmodels.formula.api</strong> untuk Two-Way ANOVA (arus × voltage welding) dengan tabel ANOVA lengkap + interaction plot. Cell 3 menjalankan <strong>Tukey HSD post-hoc</strong> + cek asumsi (Shapiro-Wilk normality, Levene homoscedasticity) di data injection molding. Cell 4 mendefinisikan <strong>fungsi <code>run_anova_workflow()</code></strong> reusable end-to-end: input data, output ANOVA table + post-hoc + effect size + visualisasi.</p>
+  <h2 class="section-title reveal">Implementasi Python<br>Rule-Based Monitoring di Jupyter Notebook</h2>
+  <p class="section-desc reveal">Empat cell berikut membangun sistem rule-based monitoring lengkap: Cell 1 implementasi <strong>ISO 10816 zone classification</strong> + threshold check pada streaming sinyal RMS sintetis. Cell 2 implementasi <strong>HysteresisAlarm class</strong> dengan dual threshold (T_on/T_off) dan demonstrasi anti-chattering. Cell 3 implementasi <strong>finite state machine (FSM)</strong> lengkap dengan debouncing N consecutive samples, tier alarm (warning/alert/critical), audit log CSV. Cell 4 mendefinisikan <strong>fungsi <code>run_monitoring_pipeline()</code></strong> reusable end-to-end: input sinyal time series, output state history + alert events + dashboard visualization (matplotlib).</p>
 
   <div class="info-box reveal">
     <strong>📓 Petunjuk Pengerjaan di Jupyter Notebook:</strong><br>
     1. Buka VS Code → terminal → <code>conda activate optoauto</code><br>
-    2. Buat file: <code>p11_anova.ipynb</code><br>
+    2. Buat file: <code>p12_monitoring.ipynb</code><br>
     3. Salin Cell 1–4 ke notebook (satu cell per cell, jangan digabung)<br>
     4. Klik <strong>Run All</strong> — pastikan tidak ada error<br>
-    5. Package yang diperlukan: <code>numpy</code>, <code>pandas</code>, <code>scipy</code>, <code>statsmodels</code>, <code>matplotlib</code>, <code>seaborn</code>
+    5. Package yang diperlukan: <code>numpy</code>, <code>pandas</code>, <code>matplotlib</code>
   </div>
 
   <!-- Cell 1 -->
   <div class="code-wrap reveal">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 1 — One-Way ANOVA dari Scratch + Verifikasi scipy.stats.f_oneway (CNC Cutting Speed)</span>
+      <span class="code-label">Cell 1 — ISO 10816-3 Zone Classification + Threshold Check pada Streaming RMS</span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
     <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
 <span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
-<span class="kw">from</span> scipy <span class="kw">import</span> stats
 
 np.random.<span class="fn">seed</span>(<span class="nm">42</span>)
 
 <span class="cm"># ═══════════════════════════════════════════════════════════════════</span>
-<span class="cm"># EKSPERIMEN: CNC Cutting Speed vs Surface Roughness Ra (μm)</span>
-<span class="cm">#   Faktor: cutting speed (3 level: 80, 100, 120 m/min)</span>
-<span class="cm">#   Replikasi: n = 5 specimen per level → total N = 15</span>
-<span class="cm">#   H0: μ_80 = μ_100 = μ_120</span>
-<span class="cm">#   H1: paling tidak satu mean berbeda</span>
-<span class="cm">#   α = 0.05</span>
+<span class="cm"># SCENARIO: Pump sentrifugal 50 kW (Class II, rigid foundation)</span>
+<span class="cm">#   Pakai ISO 10816-3 Group 2 thresholds:</span>
+<span class="cm">#     A (Good)        : RMS ≤ 1.4 mm/s</span>
+<span class="cm">#     B (Acceptable)  : 1.4 < RMS ≤ 2.8 mm/s</span>
+<span class="cm">#     C (Unsatisfactory): 2.8 < RMS ≤ 4.5 mm/s</span>
+<span class="cm">#     D (Danger)      : RMS > 4.5 mm/s</span>
+<span class="cm">#   Simulasi: 30 hari operational, RMS naik perlahan dari 0.9 → 5.5</span>
 <span class="cm"># ═══════════════════════════════════════════════════════════════════</span>
 
-<span class="cm"># Data Ra (μm) tiap level cutting speed</span>
-group_80  = np.<span class="fn">array</span>([<span class="nm">2.5</span>, <span class="nm">2.4</span>, <span class="nm">2.6</span>, <span class="nm">2.3</span>, <span class="nm">2.2</span>])
-group_100 = np.<span class="fn">array</span>([<span class="nm">1.8</span>, <span class="nm">1.7</span>, <span class="nm">1.9</span>, <span class="nm">1.8</span>, <span class="nm">1.6</span>])
-group_120 = np.<span class="fn">array</span>([<span class="nm">2.0</span>, <span class="nm">2.2</span>, <span class="nm">2.1</span>, <span class="nm">2.3</span>, <span class="nm">1.9</span>])
-groups = [group_80, group_100, group_120]
-labels = [<span class="st">'80 m/min'</span>, <span class="st">'100 m/min'</span>, <span class="st">'120 m/min'</span>]
+<span class="kw">def</span> <span class="fn">iso10816_zone</span>(rms_mm_s):
+    <span class="st">"""Classify RMS velocity ke zone ISO 10816-3 Group 2."""</span>
+    <span class="kw">if</span> rms_mm_s &lt;= <span class="nm">1.4</span>:
+        <span class="kw">return</span> <span class="st">'A'</span>, <span class="st">'GOOD'</span>, <span class="st">'#22c55e'</span>
+    <span class="kw">elif</span> rms_mm_s &lt;= <span class="nm">2.8</span>:
+        <span class="kw">return</span> <span class="st">'B'</span>, <span class="st">'ACCEPTABLE'</span>, <span class="st">'#06b6d4'</span>
+    <span class="kw">elif</span> rms_mm_s &lt;= <span class="nm">4.5</span>:
+        <span class="kw">return</span> <span class="st">'C'</span>, <span class="st">'UNSATISFACTORY'</span>, <span class="st">'#f59e0b'</span>
+    <span class="kw">else</span>:
+        <span class="kw">return</span> <span class="st">'D'</span>, <span class="st">'DANGER'</span>, <span class="st">'#ec4899'</span>
 
-<span class="cm"># ═══════════════ MANUAL ANOVA (DARI SCRATCH) ═══════════════</span>
-k = <span class="fn">len</span>(groups)                              <span class="cm"># jumlah grup</span>
-n_per = <span class="fn">len</span>(group_80)                         <span class="cm"># jumlah replikasi (balanced)</span>
-N_total = <span class="fn">sum</span>(<span class="fn">len</span>(g) <span class="kw">for</span> g <span class="kw">in</span> groups)         <span class="cm"># total observasi</span>
+<span class="cm"># Generate sinyal RMS sintetis: degradasi linear + noise</span>
+n_days = <span class="nm">30</span>
+samples_per_day = <span class="nm">96</span>          <span class="cm"># 1 sample / 15 menit</span>
+n_total = n_days * samples_per_day
+t = np.<span class="fn">linspace</span>(<span class="nm">0</span>, n_days, n_total)
 
-<span class="cm"># Grand mean dan mean tiap grup</span>
-all_data = np.<span class="fn">concatenate</span>(groups)
-grand_mean = all_data.<span class="fn">mean</span>()
-group_means = np.<span class="fn">array</span>([g.<span class="fn">mean</span>() <span class="kw">for</span> g <span class="kw">in</span> groups])
+<span class="cm"># Linear degradation: 0.9 → 5.5 mm/s</span>
+rms_clean = <span class="nm">0.9</span> + (t / n_days) * (<span class="nm">5.5</span> - <span class="nm">0.9</span>)
+rms_signal = rms_clean + np.random.<span class="fn">normal</span>(<span class="nm">0</span>, <span class="nm">0.15</span>, n_total)
+rms_signal = np.<span class="fn">clip</span>(rms_signal, <span class="nm">0.1</span>, <span class="kw">None</span>)
 
-<span class="cm"># Sum of Squares</span>
-SS_between = <span class="fn">sum</span>(<span class="fn">len</span>(g) * (g.<span class="fn">mean</span>() - grand_mean)**<span class="nm">2</span> <span class="kw">for</span> g <span class="kw">in</span> groups)
-SS_within  = <span class="fn">sum</span>(((g - g.<span class="fn">mean</span>())**<span class="nm">2</span>).<span class="fn">sum</span>() <span class="kw">for</span> g <span class="kw">in</span> groups)
-SS_total   = ((all_data - grand_mean)**<span class="nm">2</span>).<span class="fn">sum</span>()
+<span class="cm"># Apply zone classification</span>
+zones = [<span class="fn">iso10816_zone</span>(r) <span class="kw">for</span> r <span class="kw">in</span> rms_signal]
+zone_codes = [z[<span class="nm">0</span>] <span class="kw">for</span> z <span class="kw">in</span> zones]
+zone_colors = [z[<span class="nm">2</span>] <span class="kw">for</span> z <span class="kw">in</span> zones]
 
-<span class="cm"># Degrees of Freedom</span>
-df_b = k - <span class="nm">1</span>
-df_w = N_total - k
-df_t = N_total - <span class="nm">1</span>
+<span class="cm"># Hitung jumlah hari di tiap zone</span>
+<span class="kw">from</span> collections <span class="kw">import</span> Counter
+zone_count = <span class="fn">Counter</span>(zone_codes)
+<span class="fn">print</span>(<span class="st">"═══ ZONE DISTRIBUTION (30 hari) ═══"</span>)
+<span class="kw">for</span> z <span class="kw">in</span> [<span class="st">'A'</span>, <span class="st">'B'</span>, <span class="st">'C'</span>, <span class="st">'D'</span>]:
+    pct = <span class="nm">100</span> * zone_count[z] / n_total
+    <span class="fn">print</span>(<span class="st">f"  Zone {z}: {zone_count[z]:5d} samples ({pct:5.1f}%)"</span>)
 
-<span class="cm"># Mean Squares dan F-statistic</span>
-MS_b = SS_between / df_b
-MS_w = SS_within / df_w
-F_stat = MS_b / MS_w
+<span class="cm"># First crossing: kapan masuk Zone B, C, D?</span>
+<span class="kw">def</span> <span class="fn">first_cross</span>(rms, threshold):
+    idx = np.<span class="fn">argmax</span>(rms &gt; threshold)
+    <span class="kw">return</span> idx <span class="kw">if</span> idx &gt; <span class="nm">0</span> <span class="kw">else</span> -<span class="nm">1</span>
 
-<span class="cm"># p-value dari F-distribution</span>
-p_value = <span class="nm">1</span> - stats.f.<span class="fn">cdf</span>(F_stat, df_b, df_w)
-
-<span class="cm"># Effect size (eta squared)</span>
-eta_sq = SS_between / SS_total
-
-<span class="fn">print</span>(<span class="st">f"═══ ANOVA TABLE (Manual) ═══"</span>)
-<span class="fn">print</span>(<span class="st">f"  Source        SS         df    MS         F        p"</span>)
-<span class="fn">print</span>(<span class="st">f"  Between (A) {SS_between:8.4f}  {df_b:3d}   {MS_b:7.4f}  {F_stat:6.3f}  {p_value:.4f}"</span>)
-<span class="fn">print</span>(<span class="st">f"  Within (E)  {SS_within:8.4f}  {df_w:3d}   {MS_w:7.4f}"</span>)
-<span class="fn">print</span>(<span class="st">f"  Total       {SS_total:8.4f}  {df_t:3d}"</span>)
-<span class="fn">print</span>(<span class="st">f"\n  Effect size η² = {eta_sq:.4f}"</span>)
-<span class="fn">print</span>(<span class="st">f"  Keputusan: {'TOLAK H0 (signifikan)' if p_value &lt; 0.05 else 'GAGAL TOLAK H0 (tidak signifikan)'}"</span>)
-
-<span class="cm"># ═══════════════ VERIFIKASI dengan scipy.stats.f_oneway ═══════════════</span>
-F_scipy, p_scipy = stats.<span class="fn">f_oneway</span>(group_80, group_100, group_120)
-<span class="fn">print</span>(<span class="st">f"\n═══ Verifikasi scipy.stats.f_oneway ═══"</span>)
-<span class="fn">print</span>(<span class="st">f"  F = {F_scipy:.4f}, p = {p_scipy:.4f}"</span>)
-<span class="fn">print</span>(<span class="st">f"  ✓ Cocok dengan manual ANOVA"</span> <span class="kw">if</span> <span class="fn">abs</span>(F_stat - F_scipy) &lt; <span class="nm">0.001</span> <span class="kw">else</span> <span class="st">"  ✗ Tidak cocok!"</span>)
+<span class="fn">print</span>(<span class="st">"\n═══ FIRST THRESHOLD CROSSING ═══"</span>)
+<span class="kw">for</span> thr, lbl <span class="kw">in</span> [(<span class="nm">1.4</span>, <span class="st">'A→B'</span>), (<span class="nm">2.8</span>, <span class="st">'B→C'</span>), (<span class="nm">4.5</span>, <span class="st">'C→D'</span>)]:
+    idx = <span class="fn">first_cross</span>(rms_signal, thr)
+    day = t[idx] <span class="kw">if</span> idx &gt; <span class="nm">0</span> <span class="kw">else</span> -<span class="nm">1</span>
+    <span class="fn">print</span>(<span class="st">f"  Threshold {thr} mm/s ({lbl}): hari ke-{day:.1f}"</span>)
 
 <span class="cm"># ═══════════════ PLOT ═══════════════</span>
-fig, axes = plt.<span class="fn">subplots</span>(<span class="nm">1</span>, <span class="nm">2</span>, figsize=(<span class="nm">12</span>, <span class="nm">4.5</span>))
-axes[<span class="nm">0</span>].<span class="fn">boxplot</span>(groups, labels=labels, patch_artist=<span class="kw">True</span>,
-                 boxprops={<span class="st">'facecolor'</span>:<span class="st">'#a855f7'</span>, <span class="st">'alpha'</span>:<span class="nm">0.4</span>})
-axes[<span class="nm">0</span>].<span class="fn">set_ylabel</span>(<span class="st">'Surface Roughness Ra (μm)'</span>)
-axes[<span class="nm">0</span>].<span class="fn">set_title</span>(<span class="st">f'Boxplot per Level (F={F_stat:.2f}, p={p_value:.4f})'</span>)
-axes[<span class="nm">0</span>].<span class="fn">grid</span>(axis=<span class="st">'y'</span>, alpha=<span class="nm">0.25</span>)
+fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="nm">14</span>, <span class="nm">5</span>))
 
-<span class="cm"># Main effect plot dengan SE</span>
-sems = np.<span class="fn">array</span>([g.<span class="fn">std</span>(ddof=<span class="nm">1</span>)/np.<span class="fn">sqrt</span>(<span class="fn">len</span>(g)) <span class="kw">for</span> g <span class="kw">in</span> groups])
-axes[<span class="nm">1</span>].<span class="fn">errorbar</span>(<span class="fn">range</span>(k), group_means, yerr=sems, fmt=<span class="st">'o-'</span>, color=<span class="st">'#fbbf24'</span>, lw=<span class="nm">2</span>, capsize=<span class="nm">5</span>)
-axes[<span class="nm">1</span>].<span class="fn">set_xticks</span>(<span class="fn">range</span>(k)); axes[<span class="nm">1</span>].<span class="fn">set_xticklabels</span>(labels)
-axes[<span class="nm">1</span>].<span class="fn">set_ylabel</span>(<span class="st">'Mean Ra (μm) ± SE'</span>); axes[<span class="nm">1</span>].<span class="fn">set_title</span>(<span class="st">'Main Effect Plot'</span>)
-axes[<span class="nm">1</span>].<span class="fn">grid</span>(alpha=<span class="nm">0.25</span>)
+<span class="cm"># Background bands per zone</span>
+ax.<span class="fn">axhspan</span>(<span class="nm">0</span>, <span class="nm">1.4</span>, color=<span class="st">'#22c55e'</span>, alpha=<span class="nm">0.15</span>, label=<span class="st">'Zone A (Good)'</span>)
+ax.<span class="fn">axhspan</span>(<span class="nm">1.4</span>, <span class="nm">2.8</span>, color=<span class="st">'#06b6d4'</span>, alpha=<span class="nm">0.15</span>, label=<span class="st">'Zone B (Acceptable)'</span>)
+ax.<span class="fn">axhspan</span>(<span class="nm">2.8</span>, <span class="nm">4.5</span>, color=<span class="st">'#f59e0b'</span>, alpha=<span class="nm">0.15</span>, label=<span class="st">'Zone C (Unsatisfactory)'</span>)
+ax.<span class="fn">axhspan</span>(<span class="nm">4.5</span>, <span class="nm">7</span>, color=<span class="st">'#ec4899'</span>, alpha=<span class="nm">0.15</span>, label=<span class="st">'Zone D (Danger)'</span>)
+
+<span class="cm"># Sinyal RMS</span>
+ax.<span class="fn">plot</span>(t, rms_signal, color=<span class="st">'#1f2937'</span>, lw=<span class="nm">0.8</span>, alpha=<span class="nm">0.7</span>)
+
+<span class="cm"># Threshold lines</span>
+<span class="kw">for</span> thr, c <span class="kw">in</span> [(<span class="nm">1.4</span>, <span class="st">'#22c55e'</span>), (<span class="nm">2.8</span>, <span class="st">'#f59e0b'</span>), (<span class="nm">4.5</span>, <span class="st">'#ec4899'</span>)]:
+    ax.<span class="fn">axhline</span>(thr, color=c, linestyle=<span class="st">'--'</span>, lw=<span class="nm">1</span>, alpha=<span class="nm">0.6</span>)
+
+ax.<span class="fn">set_xlabel</span>(<span class="st">'Hari operasional'</span>)
+ax.<span class="fn">set_ylabel</span>(<span class="st">'RMS Velocity (mm/s)'</span>)
+ax.<span class="fn">set_title</span>(<span class="st">'ISO 10816-3 Zone Classification — Pump 50 kW (30 hari operasional)'</span>)
+ax.<span class="fn">set_ylim</span>(<span class="nm">0</span>, <span class="nm">6.5</span>)
+ax.<span class="fn">legend</span>(loc=<span class="st">'upper left'</span>)
+ax.<span class="fn">grid</span>(alpha=<span class="nm">0.25</span>)
 plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
   </div>
 
