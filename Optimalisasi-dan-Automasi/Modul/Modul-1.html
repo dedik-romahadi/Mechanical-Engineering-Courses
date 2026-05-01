@@ -2746,7 +2746,8 @@ plt.grid(alpha=0.3); plt.tight_layout(); plt.show()</pre></div>
 #page-kelompok .pk-header h2 em{font-style:normal;background:linear-gradient(90deg,#00d4ff,#10b981,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 #page-kelompok .pk-header p#heroSub{font-size:16px;color:#4a6080;max-width:540px;margin:0 auto;position:relative;z-index:1}
 
-#page-kelompok .groups-container{max-width:1200px;margin:0 auto;padding:16px 24px 40px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+#page-kelompok .groups-container{max-width:1400px;margin:0 auto;padding:16px 24px 40px;display:grid;grid-template-columns:repeat(2,1fr);gap:24px}
+@media (min-width:1300px){#page-kelompok .groups-container{grid-template-columns:repeat(4,1fr)}}
 @media (max-width:900px){#page-kelompok .groups-container{grid-template-columns:1fr;max-width:500px}}
 
 #page-kelompok .group-card{border-radius:24px;overflow:hidden;border:1px solid;transition:transform .5s cubic-bezier(.34,1.56,.64,1),box-shadow .5s}
@@ -2757,6 +2758,8 @@ plt.grid(alpha=0.3); plt.tight_layout(); plt.show()</pre></div>
 #page-kelompok .card-emerald:hover{box-shadow:0 24px 60px rgba(16,185,129,.15)}
 #page-kelompok .card-violet{background:linear-gradient(160deg,#1a0a3e,#2d1566);border-color:rgba(139,92,246,.3)}
 #page-kelompok .card-violet:hover{box-shadow:0 24px 60px rgba(139,92,246,.15)}
+#page-kelompok .card-amber{background:linear-gradient(160deg,#3a2007,#5a3308);border-color:rgba(245,158,11,.3)}
+#page-kelompok .card-amber:hover{box-shadow:0 24px 60px rgba(245,158,11,.15)}
 
 #page-kelompok .card-accent{height:4px}
 #page-kelompok .card-header{padding:28px 24px 20px}
@@ -2793,7 +2796,7 @@ plt.grid(alpha=0.3); plt.tight_layout(); plt.show()</pre></div>
   <div class="float-formulas">
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:20s;--del:0s">tim · diskusi</span>
     <span class="ff" style="left:35%;font-size:.85rem;color:var(--violet);--dur:22s;--del:5s">studi kasus</span>
-    <span class="ff" style="left:55%;font-size:.8rem;color:var(--green);--dur:18s;--del:5s">3 kelompok</span>
+    <span class="ff" style="left:55%;font-size:.8rem;color:var(--green);--dur:18s;--del:5s">4 kelompok</span>
     <span class="ff" style="left:75%;font-size:.7rem;color:var(--amber);--dur:22s;--del:9s">presentasi P7</span>
   </div>
   <div class="hero-content">
@@ -2806,7 +2809,7 @@ plt.grid(alpha=0.3); plt.tight_layout(); plt.show()</pre></div>
     <p class="hero-sub" id="heroSub">Memuat data mahasiswa...</p>
     <div class="hero-stats">
       <div class="stat"><div class="stat-num" id="stat-total">-</div><div class="stat-lbl">Mahasiswa</div></div>
-      <div class="stat"><div class="stat-num">3</div><div class="stat-lbl">Kelompok</div></div>
+      <div class="stat"><div class="stat-num">4</div><div class="stat-lbl">Kelompok</div></div>
       <div class="stat"><div class="stat-num">P7</div><div class="stat-lbl">Deadline</div></div>
     </div>
   </div>
@@ -2976,12 +2979,13 @@ function renderGroups() {
     .then(r => r.json())
     .then(data => {
       if (!Array.isArray(data) || data.length === 0) throw new Error('Empty student list');
-      const s1 = Math.ceil(data.length / 3);
-      const s2 = Math.ceil((data.length - s1) / 2);
+      // 4-group split (matching Pembagian-Kelompok.html standalone): 7+7+7+rest
+      const sz = Math.ceil(data.length / 4);
       const groups = [
-        { name: 'Kelompok 1', color: '#3b82f6', colorBg: 'rgba(59,130,246,.12)',  colorBorder: 'rgba(59,130,246,.2)',  colorBg2: 'rgba(59,130,246,.08)',  icon: '⚡', theme: 'card-blue',    accent: 'linear-gradient(90deg,#3b82f6,#60a5fa)', members: data.slice(0, s1) },
-        { name: 'Kelompok 2', color: '#10b981', colorBg: 'rgba(16,185,129,.12)',  colorBorder: 'rgba(16,185,129,.2)',  colorBg2: 'rgba(16,185,129,.08)',  icon: '🔥', theme: 'card-emerald', accent: 'linear-gradient(90deg,#10b981,#34d399)', members: data.slice(s1, s1 + s2) },
-        { name: 'Kelompok 3', color: '#8b5cf6', colorBg: 'rgba(139,92,246,.12)',  colorBorder: 'rgba(139,92,246,.2)',  colorBg2: 'rgba(139,92,246,.08)',  icon: '💎', theme: 'card-violet',  accent: 'linear-gradient(90deg,#8b5cf6,#a78bfa)', members: data.slice(s1 + s2) }
+        { name: 'Kelompok 1', color: '#3b82f6', colorBg: 'rgba(59,130,246,.12)',  colorBorder: 'rgba(59,130,246,.2)',  colorBg2: 'rgba(59,130,246,.08)',  icon: '🚀', theme: 'card-blue',    accent: 'linear-gradient(90deg,#3b82f6,#60a5fa)', members: data.slice(0, sz) },
+        { name: 'Kelompok 2', color: '#10b981', colorBg: 'rgba(16,185,129,.12)',  colorBorder: 'rgba(16,185,129,.2)',  colorBg2: 'rgba(16,185,129,.08)',  icon: '⚡', theme: 'card-emerald', accent: 'linear-gradient(90deg,#10b981,#34d399)', members: data.slice(sz, sz * 2) },
+        { name: 'Kelompok 3', color: '#8b5cf6', colorBg: 'rgba(139,92,246,.12)',  colorBorder: 'rgba(139,92,246,.2)',  colorBg2: 'rgba(139,92,246,.08)',  icon: '⭐', theme: 'card-violet',  accent: 'linear-gradient(90deg,#8b5cf6,#a78bfa)', members: data.slice(sz * 2, sz * 3) },
+        { name: 'Kelompok 4', color: '#f59e0b', colorBg: 'rgba(245,158,11,.12)',  colorBorder: 'rgba(245,158,11,.2)',  colorBg2: 'rgba(245,158,11,.08)',  icon: '💎', theme: 'card-amber',   accent: 'linear-gradient(90deg,#f59e0b,#fbbf24)', members: data.slice(sz * 3) }
       ];
       const container = document.getElementById('groupsContainer');
       if (!container) return;
@@ -3006,7 +3010,7 @@ function renderGroups() {
                '</div>';
       }).join('');
       const heroSub = document.getElementById('heroSub');
-      if (heroSub) heroSub.textContent = data.length + ' mahasiswa dibagi menjadi 3 kelompok untuk diskusi dan tugas kelompok sepanjang semester.';
+      if (heroSub) heroSub.textContent = data.length + ' mahasiswa dibagi menjadi 4 kelompok untuk diskusi dan tugas kelompok sepanjang semester.';
       const statTotal = document.getElementById('stat-total');
       if (statTotal) statTotal.textContent = data.length;
       console.log('[Kelompok] Students loaded:', data.length);
