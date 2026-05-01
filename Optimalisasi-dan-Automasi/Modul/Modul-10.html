@@ -924,52 +924,78 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 02 — GRADIENT DESCENT & LINE SEARCH ═══ -->
+<!-- ═══ BAGIAN 02 — GENETIC ALGORITHM ═══ -->
 <hr class="divider">
 <div class="section" id="m-solusi">
   <div class="section-label reveal">Bagian 02</div>
-  <h2 class="section-title reveal">Gradient Descent &amp; Line Search:<br>Iterasi Turun Mengikuti Slope Negatif</h2>
-  <p class="section-desc reveal">Algoritma paling fundamental NLP unconstrained: <strong>steepest descent</strong> Cauchy (1847). Idenya intuitif: di tiap titik, gradient <code>∇f(x)</code> menunjuk arah <em>peningkatan</em> tercepat — jadi <strong>−∇f(x)</strong> menunjuk arah <em>penurunan</em> tercepat. Pilih step size α yang tepat (tidak terlalu besar agar tidak overshoot, tidak terlalu kecil agar konvergen cepat) lewat <em>line search</em>, update <code>x_{k+1} = x_k − α·∇f(x_k)</code>, ulangi hingga gradient mendekati nol. Konvergensi linier — sederhana &amp; robust untuk fungsi konveks, tetapi lambat untuk masalah ill-conditioned (rasio eigenvalue Hessian besar → zigzag).</p>
+  <h2 class="section-title reveal">Genetic Algorithm:<br>Evolusi Biologis sebagai Mesin Optimasi</h2>
+  <p class="section-desc reveal">Diciptakan oleh <strong>John Holland (Univ Michigan, 1975)</strong>, <em>Genetic Algorithm (GA)</em> meniru proses seleksi alam Darwin: <strong>populasi</strong> kandidat solusi (kromosom) berevolusi dari generasi ke generasi melalui <em>seleksi fitness</em>, <em>crossover</em> (rekombinasi gen dari dua parent), dan <em>mutasi</em> (perubahan acak gen). Yang fittest survive, yang lemah eliminated. Setelah ratusan generasi, populasi konvergen ke region optimum — biasanya cukup mendekati global. <strong style="color:var(--cyan)">Tidak butuh gradient</strong>, dan secara natural menangani <em>variabel diskrit</em> (kromosom binary atau integer). Aplikasi: routing TSP, neural architecture search, parameter tuning, antenna design (NASA ST5).</p>
 
   <div class="formula-block reveal">
-    <div class="label">Empat Komponen Iterasi Descent</div>
-    Initial guess x₀ &nbsp;·&nbsp; Direction d_k = −∇f(x_k) &nbsp;·&nbsp; Step size α_k (line search) &nbsp;·&nbsp; Stopping criterion ‖∇f‖ &lt; ε
+    <div class="label">Lima Operator Genetic Algorithm</div>
+    Encoding (binary/real) &nbsp;·&nbsp; Selection (tournament, roulette, rank) &nbsp;·&nbsp; Crossover (1-point, 2-point, uniform) &nbsp;·&nbsp; Mutation (bit-flip, gaussian) &nbsp;·&nbsp; Elitism (preserve best k)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">📉</div>
-      <h3>Steepest Descent — Algoritma Klasik</h3>
-      <p>Untuk <code>f(x₁,x₂) = x₁² + 2x₂²</code> dengan x₀ = (3, 2): <code>∇f = (2x₁, 4x₂) = (6, 8)</code>. Pakai α = 0.1: <code>x₁ = (3,2) − 0.1·(6,8) = (2.4, 1.2)</code>. Iterasi terus → konvergen ke (0,0). <strong style="color:var(--cyan)">Fungsi konveks → minimum global</strong>. Untuk fungsi quadratic <code>½xᵀAx − bᵀx</code>, optimal step <code>α = (∇fᵀ∇f)/(∇fᵀA∇f)</code>.</p>
-      <div class="formula">x_{k+1} = x_k − α∇f(x_k)</div>
+      <div class="card-icon">🧬</div>
+      <h3>Encoding — Representasi Kromosom</h3>
+      <p>Tiap kandidat solusi (individual) di-<em>encode</em> sebagai vektor: <strong>binary</strong> (0/1 string, klasik Holland — cocok untuk variabel diskrit/kombinatorial), <strong>real-coded</strong> (vektor float — cocok untuk continuous engineering parameter), <strong>permutation</strong> (urutan integer — cocok untuk TSP/scheduling), atau <strong>tree</strong> (Genetic Programming — evolve struktur expression tree). <strong style="color:var(--cyan)">Encoding yang baik</strong> → algoritma efisien; encoding salah → konvergensi lambat.</p>
+      <div class="formula">x = [g₁, g₂, …, gₙ]</div>
     </div>
     <div class="card">
-      <div class="card-icon">🔍</div>
-      <h3>Backtracking Line Search (Armijo Rule)</h3>
-      <p>Step size α terlalu besar → overshoot &amp; divergen; terlalu kecil → konvergen lambat. <strong>Armijo backtracking</strong>: mulai dengan α=1, sampai kondisi <code>f(x_k + αd_k) ≤ f(x_k) + c·α·∇fᵀd_k</code> (c≈10⁻⁴), kalau gagal kalikan α dengan ρ=0.5 dan ulangi. Menjamin <em>sufficient decrease</em>. Adaptif &amp; aman tanpa hyperparameter tuning manual.</p>
-      <div class="formula">α: f(x+αd) ≤ f(x) + c·α·∇fᵀd</div>
+      <div class="card-icon">🏆</div>
+      <h3>Selection — Pilih Parents Berbasis Fitness</h3>
+      <p>Tiap generasi, pilih M parents dari populasi N (M ≤ N) dengan probabilitas proporsional fitness. <strong>Tournament selection</strong> (most popular): pilih k random kandidat, ambil yang fitness tertinggi → repeat M kali. <strong>Roulette wheel</strong>: probabilitas pilih ∝ fitness (rentan dominated). <strong>Rank-based</strong>: probabilitas ∝ rank (lebih stabil). Tournament k=3 dengan elitism = standard kombinasi yang robust.</p>
+      <div class="formula">P(pick xᵢ) = fᵢ / Σfⱼ</div>
     </div>
     <div class="card">
-      <div class="card-icon">🌊</div>
-      <h3>Conjugate Gradient — Lebih Cepat dari SD</h3>
-      <p>Steepest descent zigzag pada fungsi quadratic ill-conditioned (κ = λ_max/λ_min besar). <strong>Conjugate Gradient (CG)</strong> Hestenes-Stiefel (1952): pilih arah descent yang <em>conjugate</em> terhadap arah sebelumnya (lewat A-norm), bukan ortogonal. Untuk f quadratik, konvergen <strong style="color:var(--green)">dalam ≤ n iterasi</strong> (n = jumlah variabel). Implementasi: Polak–Ribière, Fletcher–Reeves. SciPy: <code>method='CG'</code>.</p>
-      <div class="formula">d_{k+1} = −∇f + β·d_k</div>
+      <div class="card-icon">🔀</div>
+      <h3>Crossover — Rekombinasi Gen</h3>
+      <p>Dua parent (x_a, x_b) menghasilkan offspring dengan menukar segmen gen. <strong>1-point</strong>: pilih titik potong c, anak = [x_a[:c], x_b[c:]] dan sebaliknya. <strong>2-point</strong>: dua titik potong → tukar segmen tengah. <strong>Uniform</strong>: tiap gen probabilitas 0.5 dari salah satu parent. Untuk real-coded: <strong>BLX-α</strong> (blend) atau <strong>SBX</strong> (simulated binary crossover). Crossover rate (Pc) typical 0.7–0.9.</p>
+      <div class="formula">offspring = crossover(x_a, x_b)</div>
     </div>
     <div class="card">
-      <div class="card-icon">⚡</div>
-      <h3>Momentum &amp; Adam (Modern Variants)</h3>
-      <p>Inspirasi dari deep learning — <strong>momentum</strong> akumulasi gradient masa lalu untuk <em>melewati lembah dangkal</em>: <code>v_{k+1} = γ·v_k − α·∇f, x_{k+1} = x_k + v_{k+1}</code>. <strong>Adam</strong> (Kingma 2014) tambahan: adaptive learning rate per dimensi. Standar untuk training neural network &amp; banyak NLP non-konveks. Tidak diimplementasikan di scipy.minimize, tapi tersedia di <code>torch.optim</code>, <code>jax.optimizers</code>.</p>
-      <div class="formula">v ← γv − α∇f; x ← x + v</div>
+      <div class="card-icon">🎲</div>
+      <h3>Mutation — Eksplorasi Random Lokal</h3>
+      <p>Tiap gen punya probabilitas kecil (Pm ≈ 1/n, n = panjang kromosom) untuk berubah random. <strong>Bit-flip</strong> untuk binary; <strong>Gaussian mutation</strong> <code>g_i ← g_i + N(0, σ²)</code> untuk real-coded. Tujuan: <em>menjaga diversitas</em> populasi agar tidak premature convergence ke lokal optimum. Mutation terlalu tinggi → algoritma jadi random search; terlalu rendah → stuck. Rule of thumb: <strong style="color:var(--green)">Pm ≈ 1/n</strong>.</p>
+      <div class="formula">g_i ← g_i + N(0, σ²)</div>
     </div>
+    <div class="card">
+      <div class="card-icon">👑</div>
+      <h3>Elitism — Pertahankan yang Terbaik</h3>
+      <p>Tanpa elitism, individu terbaik di generasi G bisa <em>hilang</em> di generasi G+1 karena crossover/mutation merusak. <strong>Elitism</strong>: copy k individu terbaik (k=1–5% populasi) langsung ke generasi berikutnya tanpa modifikasi. <em>Garansi</em> fitness terbaik monoton meningkat sepanjang generasi. Standar wajib di GA modern. Trade-off: elitism terlalu agresif (k besar) → premature convergence.</p>
+      <div class="formula">P_{t+1} = elite_k ∪ offspring</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🛑</div>
+      <h3>Stopping Criteria</h3>
+      <p>GA tidak punya kondisi optimal absolut (gradient ≠ 0 tidak applicable). Pakai kombinasi: (1) <em>max generations</em> (mis. 200), (2) <em>fitness plateau</em> — tidak ada improvement di k generasi terakhir, (3) <em>target fitness reached</em> jika diketahui (e.g. f &lt; ε), (4) <em>computational budget</em> habis. Practical: monitor <strong>best fitness</strong> dan <strong>average fitness</strong> per generasi — kalau gap mengecil + plateau → konvergen.</p>
+      <div class="formula">stop: gen &gt; G_max ∨ Δf &lt; ε</div>
+    </div>
+  </div>
+
+  <div class="tbl-wrap reveal" style="margin:32px 0">
+    <table class="data-table">
+      <thead><tr><th>Hyperparameter</th><th>Range Tipikal</th><th>Efek Terlalu Kecil</th><th>Efek Terlalu Besar</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--cyan)">Population size N</td><td>30–100</td><td>Eksplorasi terbatas, mudah stuck</td><td>Komputasi mahal per generasi</td></tr>
+        <tr><td style="color:var(--green)">Crossover rate Pc</td><td>0.7–0.9</td><td>Kurang rekombinasi → konvergensi lambat</td><td>Disrupsi terlalu agresif</td></tr>
+        <tr><td style="color:var(--amber)">Mutation rate Pm</td><td>0.01–0.05 (≈1/n)</td><td>Stuck di lokal optimum (premature)</td><td>Mendekati random search</td></tr>
+        <tr><td style="color:var(--violet)">Tournament size k</td><td>2–5</td><td>Selection pressure rendah</td><td>Diversitas hilang cepat</td></tr>
+        <tr><td style="color:var(--pink)">Elite size k_elite</td><td>1–3 (1–5% N)</td><td>Best solution bisa hilang</td><td>Premature convergence</td></tr>
+        <tr><td style="color:var(--cyan)">Generations G_max</td><td>100–1000</td><td>Tidak konvergen</td><td>Buang waktu komputasi</td></tr>
+      </tbody>
+    </table>
   </div>
 
   <div class="info-box reveal">
-    <strong>Contoh Konkret — Optimasi Tinggi Antena:</strong><br>
-    Insinyur ingin mencari tinggi antena h yang meminimumkan biaya total: <code>f(h) = 1000/h + 50h²</code> (biaya komunikasi turun dengan tinggi, biaya konstruksi naik kuadratik). Gradient: <code>f'(h) = −1000/h² + 100h</code>. Set <code>f'(h*) = 0</code>: <code>100h³ = 1000 → h* = 10^(1/3) ≈ 2.154 m</code>. Atau via gradient descent dari h₀=5 m: turun cepat ke 2.15 m dalam ~10 iterasi. Validasi konveksitas: <code>f''(h) = 2000/h³ + 100 &gt; 0</code> ∀h&gt;0 ✓.
+    <strong>Contoh Konkret — Optimasi Truss Structure (10 batang):</strong><br>
+    Cari diameter d_i tiap batang truss (10 dimensi continuous, d ∈ [5, 50] mm) yang minimumkan massa total dengan kendala stress σ ≤ σ_y dan defleksi δ ≤ δ_max. Fungsi objektif blackbox (panggil FEM). GA setting: N=50 (real-coded), Pc=0.8 (SBX), Pm=0.1 (Gaussian σ=2 mm), tournament k=3, elite k=2, G_max=200. Hasil: setelah ~80 generasi, mass best mencapai plateau ~38 kg (dari random init ~120 kg). Total ~10000 evaluasi FEM (50 × 200) — feasible kalau FEM cepat (~1 detik per call).
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Tips Praktis Gradient Descent:</strong> (1) <strong>Skalakan variabel</strong> (z-score atau min-max) agar Hessian well-conditioned — gradient descent sensitif terhadap skala. (2) <strong>Mulai dari titik wajar</strong> — heuristik domain knowledge atau LP relaxation. (3) <strong>Plot trajectory</strong> di space variabel + nilai f(x) per iterasi untuk debug konvergensi. (4) <strong>Stopping criterion</strong>: kombinasi <code>‖∇f‖ &lt; ε</code> AND <code>|f_{k+1} − f_k| &lt; δ</code> agar tidak premature stop. (5) Untuk NLP <strong>non-konveks</strong>: multi-start dengan x₀ acak, ambil hasil terbaik (tidak menjamin global, tapi sering cukup untuk engineering).
+    💡 <strong>Implementasi DEAP (Distributed Evolutionary Algorithms in Python):</strong> Library Python paling fleksibel untuk GA. Cara pakai: (1) define <code>creator</code> untuk Individual class, (2) register operators di <code>toolbox</code> (mate, mutate, select, evaluate), (3) jalankan <code>algorithms.eaSimple(pop, toolbox, cxpb=0.8, mutpb=0.1, ngen=200)</code>. Sangat customizable — bisa override apa saja. Alternatif: <strong>scikit-opt</strong> (lebih simple API), <strong>PyGAD</strong> (untuk neural network co-evolution), <strong>scipy.optimize.differential_evolution</strong> (variant DE, fitting untuk continuous problems).
   </div>
 </div>
 
