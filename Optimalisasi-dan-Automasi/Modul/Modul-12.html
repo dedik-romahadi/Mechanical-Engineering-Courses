@@ -2069,36 +2069,39 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="q-type-badge badge-comp">💻 BAGIAN B — Soal Komputasi · 10 Soal · @2 Poin · Menggunakan Jupyter Notebook</div>
 
     <div class="info-box" style="margin-bottom:28px">
-      <strong>📌 Pengingat Konstanta Rule-Based Monitoring (dipakai di C1–C15):</strong><br>
-      <span style="font-size:13px;color:var(--muted);margin-top:6px;display:block">Soal komputasi rule-based monitoring: gunakan ISO 10816-3 thresholds untuk Group 2 mesin 15–300 kW (rigid foundation).</span>
+      <strong>📌 Pengingat Konstanta ML Klasifikasi (dipakai di C1–C15):</strong><br>
+      <span style="font-size:13px;color:var(--muted);margin-top:6px;display:block">Soal komputasi ML klasifikasi: gunakan scikit-learn standar API <code>fit / predict / predict_proba</code>.</span>
       <pre style="margin-top:10px;background:#020a18;border:1px solid #1a2840;border-radius:8px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#cbd5e1;overflow-x:auto">import numpy as np
 import pandas as pd
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, confusion_matrix
 
-# ISO 10816-3 Group 2 (rigid foundation) thresholds:
-#   Zone A (Good)          : RMS &lt;= 1.4 mm/s
-#   Zone B (Acceptable)    : 1.4 &lt; RMS &lt;= 2.8 mm/s
-#   Zone C (Unsatisfactory): 2.8 &lt; RMS &lt;= 4.5 mm/s
-#   Zone D (Danger)        : RMS &gt; 4.5 mm/s
+# Standard split:
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
-# Hysteresis pattern: T_off = T_on - margin (margin 5-15% setpoint)
-# Tier alarm: WARNING &lt; ALERT &lt; CRITICAL (eskalasi gradual)
-# Debouncing: butuh N consecutive samples untuk transition (filter noise)</pre>
+# Confusion matrix 2x2: [[TN, FP], [FN, TP]]
+# F1 = 2 * (P * R) / (P + R)
+# AUC range: 0.5 (random) - 1.0 (perfect)</pre>
     </div>
 
     <!-- COMP 1 -->
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C1</div>
-        <div class="comp-q">Klasifikasi <strong>ISO 10816-3 zone</strong> untuk RMS = 3.2 mm/s. Print integer kode zone: 0=A, 1=B, 2=C, 3=D.</div>
+        <div class="comp-q">Hitung <strong>accuracy</strong> dari confusion matrix: TP=80, FP=10, TN=85, FN=5. Formula: <code>(TP+TN) / (TP+FP+TN+FN)</code>. Print persentase desimal (mis. 91.67).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Threshold: A ≤ 1.4, B ≤ 2.8, C ≤ 4.5, D &gt; 4.5. RMS = 3.2 → di antara 2.8 dan 4.5 → Zone <strong>C</strong> → kode <strong>2</strong>. Code: <code>def zone(r): return 0 if r&lt;=1.4 else 1 if r&lt;=2.8 else 2 if r&lt;=4.5 else 3</code>.</div>
+      <div class="comp-hint">💡 <code>acc = (80+85)/(80+10+85+5) = 165/180 ≈ 0.9167 → 91.67%</code>. Total = 180 sample, 165 predicted correctly.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() kode <strong style="color:var(--amber)">zone (0-3)</strong></span></div>
-        <textarea class="code-textarea" id="code-c1" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi&#10;&#10;Contoh:&#10;rms = 3.2&#10;zone = 0 if rms&lt;=1.4 else 1 if rms&lt;=2.8 else 2 if rms&lt;=4.5 else 3&#10;print(zone)" oninput="onCodeInput('c1')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">accuracy (%)</strong></span></div>
+        <textarea class="code-textarea" id="code-c1" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi&#10;&#10;Contoh:&#10;TP, FP, TN, FN = 80, 10, 85, 5&#10;acc = (TP+TN) / (TP+FP+TN+FN) * 100&#10;print(f'{acc:.2f}')" oninput="onCodeInput('c1')"></textarea>
         <div class="stdout-box" id="stdout-c1"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c1" onclick="runAndCheck('c1', 2.0, 0.5)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c1" onclick="runAndCheck('c1', 91.67, 0.1)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c1"></div>
     </div>
 
@@ -2106,16 +2109,16 @@ import pandas as pd
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C2</div>
-        <div class="comp-q">Untuk threshold T_on = 2.8 dan margin hysteresis 0.2, hitung <strong>T_off</strong> (threshold untuk transition kembali ke OFF). Formula: <code>T_off = T_on - margin</code>. Print nilainya.</div>
+        <div class="comp-q">Hitung <strong>precision</strong> dari confusion matrix: TP=80, FP=10. Formula: <code>TP / (TP + FP)</code>. Print desimal (3 digit).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>T_off = 2.8 − 0.2 = <strong>2.6</strong></code>. Sinyal harus turun di bawah 2.6 untuk pindah dari ALERT kembali ke NORMAL — mencegah chattering kalau sinyal goyang di sekitar 2.8.</div>
+      <div class="comp-hint">💡 <code>P = 80 / (80+10) = 80/90 ≈ <strong>0.889</strong></code>. Dari 90 sample yang predicted "fault", 80 benar fault → 88.9% precision. Tinggi = sedikit false alarm.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">T_off</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">precision</strong></span></div>
         <textarea class="code-textarea" id="code-c2" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c2')"></textarea>
         <div class="stdout-box" id="stdout-c2"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c2" onclick="runAndCheck('c2', 2.6, 0.01)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c2" onclick="runAndCheck('c2', 0.889, 0.005)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c2"></div>
     </div>
 
@@ -2123,16 +2126,16 @@ import pandas as pd
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C3</div>
-        <div class="comp-q">Hitung <strong>jumlah sample</strong> per jam untuk sensor dengan sampling period <strong>30 detik</strong>. Print integer.</div>
+        <div class="comp-q">Hitung <strong>recall (sensitivity)</strong>: TP=80, FN=5. Formula: <code>TP / (TP + FN)</code>. Print desimal (3 digit).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>3600 detik / jam ÷ 30 detik / sample = <strong>120</strong> sample / jam</code>. Sampling rate ini umum untuk monitoring kondisi mesin (vibrasi RMS) — lebih dari cukup untuk capture trend mingguan.</div>
+      <div class="comp-hint">💡 <code>R = 80 / (80+5) = 80/85 ≈ <strong>0.941</strong></code>. Dari 85 sample yang actual "fault", 80 terdeteksi → 94.1% recall. Tinggi = sedikit missed fault, critical untuk safety.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() jumlah <strong style="color:var(--amber)">sample/jam</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">recall</strong></span></div>
         <textarea class="code-textarea" id="code-c3" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c3')"></textarea>
         <div class="stdout-box" id="stdout-c3"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c3" onclick="runAndCheck('c3', 120.0, 0.5)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c3" onclick="runAndCheck('c3', 0.941, 0.005)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c3"></div>
     </div>
 
@@ -2140,16 +2143,16 @@ import pandas as pd
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C4</div>
-        <div class="comp-q">Untuk <strong>debounce N = 5 consecutive samples</strong> dengan sampling period 1 detik, hitung minimum <strong>latency deteksi</strong> (detik) sebelum transition state. Print nilainya.</div>
+        <div class="comp-q">Hitung <strong>F1-score</strong> dari precision = 0.889 dan recall = 0.941. Formula: <code>2·P·R / (P+R)</code>. Print desimal (3 digit).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Latency = N × T_sample = <code>5 × 1 = <strong>5 detik</strong></code>. Trade-off: N besar → robust noise, latency tinggi; N kecil → cepat respond, false alarm naik. Untuk critical alarm pakai N ≤ 2 (low latency); untuk warning N = 5–10.</div>
+      <div class="comp-hint">💡 <code>F1 = 2·0.889·0.941 / (0.889+0.941) = 1.673 / 1.830 ≈ <strong>0.914</strong></code>. Harmonic mean penalize jika P atau R rendah. F1 dekat 1 = excellent.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">latency (detik)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">F1-score</strong></span></div>
         <textarea class="code-textarea" id="code-c4" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c4')"></textarea>
         <div class="stdout-box" id="stdout-c4"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c4" onclick="runAndCheck('c4', 5.0, 0.1)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c4" onclick="runAndCheck('c4', 0.914, 0.005)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c4"></div>
     </div>
 
@@ -2157,16 +2160,16 @@ import pandas as pd
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C5</div>
-        <div class="comp-q">ANSI/ISA 18.2 menetapkan max <strong>1 alarm / 10 menit</strong> per operator. Hitung max <strong>alarm/jam</strong> (steady state) yang masih compliant. Print nilainya.</div>
+        <div class="comp-q">Untuk dataset N=1000 sample dengan <code>test_size=0.2</code>, berapa sample di <strong>training set</strong>? Print integer.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>60 menit / 10 menit/alarm = <strong>6 alarm/jam</strong></code>. Lebih dari ini = alarm flood, operator alarm fatigue, terjadi pengabaian alarm penting. Critical untuk safety.</div>
+      <div class="comp-hint">💡 <code>train = 1000 × (1 - 0.2) = 1000 × 0.8 = <strong>800 sample</strong></code>. Test set = 200 sample.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() max <strong style="color:var(--amber)">alarm/jam</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">train size</strong></span></div>
         <textarea class="code-textarea" id="code-c5" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c5')"></textarea>
         <div class="stdout-box" id="stdout-c5"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c5" onclick="runAndCheck('c5', 6.0, 0.1)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c5" onclick="runAndCheck('c5', 800.0, 0.5)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c5"></div>
     </div>
 
@@ -2174,16 +2177,16 @@ import pandas as pd
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C6</div>
-        <div class="comp-q">Untuk RMS = [1.0, 1.5, 2.0, 2.9, 3.5, 4.2, 4.7, 5.0], hitung <strong>jumlah sample yang masuk Zone D (Danger, &gt; 4.5)</strong>. Print integer.</div>
+        <div class="comp-q"><strong>5-fold Cross-Validation</strong>: untuk dataset 800 sample, berapa sample di tiap fold sebagai test? Print integer.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Sample &gt; 4.5: 4.7, 5.0 → <strong>2 sample</strong>. Code: <code>rms = np.array([1.0, 1.5, 2.0, 2.9, 3.5, 4.2, 4.7, 5.0]); print((rms &gt; 4.5).sum())</code>.</div>
+      <div class="comp-hint">💡 <code>800 / 5 = <strong>160 sample</strong></code> per fold (test); train per fold = 640 sample. 5 iterasi total, masing-masing model dievaluasi sekali.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() jumlah <strong style="color:var(--amber)">sample Zone D</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">test per fold</strong></span></div>
         <textarea class="code-textarea" id="code-c6" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c6')"></textarea>
         <div class="stdout-box" id="stdout-c6"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c6" onclick="runAndCheck('c6', 2.0, 0.5)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c6" onclick="runAndCheck('c6', 160.0, 0.5)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c6"></div>
     </div>
 
@@ -2191,16 +2194,16 @@ import pandas as pd
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C7</div>
-        <div class="comp-q">Hitung <strong>persentase uptime</strong> (% time di Zone A "Good") dari 1000 sample dimana 850 sample punya RMS ≤ 1.4. Print persentase desimal (mis. 85.0).</div>
+        <div class="comp-q">Untuk Random Forest dengan <code>n_estimators=100</code> dan <code>max_features='sqrt'</code> pada dataset dengan 16 features, berapa <strong>features dipertimbangkan per split</strong>? Print integer (round).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>uptime = (850 / 1000) × 100 = <strong>85.0%</strong></code>. Metrik kunci untuk SLA monitoring industrial. Target umumnya ≥ 95% (best practice), tergantung kritikalitas mesin.</div>
+      <div class="comp-hint">💡 <code>sqrt(16) = <strong>4 features</strong></code> dipertimbangkan per split (default RF classifier). Random feature selection di tiap split = sumber utama "decorrelation" antar trees → reduce variance.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">uptime (%)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">features per split</strong></span></div>
         <textarea class="code-textarea" id="code-c7" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c7')"></textarea>
         <div class="stdout-box" id="stdout-c7"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c7" onclick="runAndCheck('c7', 85.0, 0.1)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c7" onclick="runAndCheck('c7', 4.0, 0.5)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c7"></div>
     </div>
 
@@ -2208,16 +2211,16 @@ import pandas as pd
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C8</div>
-        <div class="comp-q">Untuk monitoring <strong>24 jam dengan sampling period 15 detik</strong>, hitung <strong>total sample</strong>. Print integer.</div>
+        <div class="comp-q"><strong>StandardScaler</strong>: untuk fitur dengan mean=5.0, std=2.0, hitung <strong>scaled value</strong> dari raw=8.0. Formula: <code>z = (x - mean) / std</code>. Print desimal.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>24 jam × 3600 detik/jam ÷ 15 detik/sample = 86400 / 15 = <strong>5760</strong> sample</code>. Untuk capacity planning storage time-series database (mis. TimescaleDB) di pabrik dengan 100 sensor → 576,000 row/hari.</div>
+      <div class="comp-hint">💡 <code>z = (8.0 − 5.0) / 2.0 = 3.0/2.0 = <strong>1.5</strong></code>. Z-score standardization: zero mean, unit variance. Wajib untuk SVM, logistic regression, neural network. Tidak perlu untuk tree-based (RF, XGBoost).</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">total sample</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">scaled value</strong></span></div>
         <textarea class="code-textarea" id="code-c8" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c8')"></textarea>
         <div class="stdout-box" id="stdout-c8"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c8" onclick="runAndCheck('c8', 5760.0, 0.5)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c8" onclick="runAndCheck('c8', 1.5, 0.01)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c8"></div>
     </div>
 
@@ -2225,16 +2228,16 @@ import pandas as pd
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C9</div>
-        <div class="comp-q"><strong>Hysteresis state simulation</strong>: dengan T_on = 2.8 dan T_off = 2.6, RMS sequence = [2.5, 2.7, 2.9, 2.7, 2.5, 2.7, 2.9]. Awal state OFF. Hitung <strong>jumlah transitions</strong> total. Print integer.</div>
+        <div class="comp-q"><strong>GridSearchCV</strong>: untuk param_grid dengan <code>n_estimators: [50, 100, 200]</code> dan <code>max_depth: [None, 5, 10, 20]</code>, berapa <strong>total kombinasi</strong> hyperparameter? Print integer.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Trace: 2.5(OFF)→2.7(OFF, &lt; 2.8)→2.9(ON, &gt; 2.8, +1)→2.7(ON, &gt; 2.6 hold)→2.5(OFF, &lt; 2.6, +1)→2.7(OFF hold)→2.9(ON, +1). Total transitions = <strong>3</strong>.</div>
+      <div class="comp-hint">💡 <code>3 × 4 = <strong>12 kombinasi</strong></code>. Dengan 5-fold CV per kombinasi → 60 fits total. GridSearch lengkap exhaustively explore. Untuk grid besar, RandomizedSearchCV lebih efisien.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jumlah transitions</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">total kombinasi</strong></span></div>
         <textarea class="code-textarea" id="code-c9" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c9')"></textarea>
         <div class="stdout-box" id="stdout-c9"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c9" onclick="runAndCheck('c9', 3.0, 0.5)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c9" onclick="runAndCheck('c9', 12.0, 0.5)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c9"></div>
     </div>
 
@@ -2242,16 +2245,16 @@ import pandas as pd
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C10</div>
-        <div class="comp-q">Hitung <strong>MTTR improvement (%)</strong> kalau MTTR sebelum monitoring = 8 jam, setelah monitoring = 5.6 jam. Formula: <code>(MTTR_before − MTTR_after) / MTTR_before × 100</code>. Print persentase.</div>
+        <div class="comp-q">Hitung <strong>FNR (False Negative Rate)</strong> = missed fault rate, dari TP=80, FN=5. Formula: <code>FN / (TP + FN)</code>. Print persentase desimal.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>(8 − 5.6) / 8 × 100 = 2.4/8 × 100 = <strong>30.0%</strong></code>. Vestas wind turbine laporkan reduction 30% MTTR via early-warning rule-based monitoring (SCADA + ISO 10816-21). ROI nyata.</div>
+      <div class="comp-hint">💡 <code>FNR = 5 / (80+5) × 100 = 5/85 × 100 ≈ <strong>5.88%</strong></code>. 5.88% fault terlewatkan oleh model. Untuk safety-critical, target FNR &lt; 1%. Komplemen recall: FNR = 1 − Recall.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">improvement (%)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">FNR (%)</strong></span></div>
         <textarea class="code-textarea" id="code-c10" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c10')"></textarea>
         <div class="stdout-box" id="stdout-c10"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c10" onclick="runAndCheck('c10', 30.0, 0.1)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c10" onclick="runAndCheck('c10', 5.88, 0.05)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c10"></div>
     </div>
 
