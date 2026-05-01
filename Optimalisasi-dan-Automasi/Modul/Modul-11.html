@@ -1213,8 +1213,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <hr class="divider">
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 06</div>
-  <h2 class="section-title reveal">Animasi Interaktif<br>Visualisasi Konsep Threshold, Hysteresis &amp; FSM</h2>
-  <p class="section-desc reveal">Empat animasi yang memvisualisasikan <strong>konsep inti rule-based monitoring</strong>: (1) threshold sederhana vs hysteresis — tunjukkan chattering dan cara menghindari, (2) ISO 10816 zone classification real-time pada sinyal RMS yang berkembang, (3) tier alarm escalation dengan timer persistence, (4) finite state machine dengan debouncing dan transition trace. Tujuannya: membangun intuisi visual sebelum implementasi Python <code>HysteresisAlarm</code>, <code>FSM</code>, dan dashboard real-time.</p>
+  <h2 class="section-title reveal">Animasi Interaktif<br>Visualisasi Sensor, Sampling, ISO 10816 &amp; Hysteresis</h2>
+  <p class="section-desc reveal">Empat animasi yang memvisualisasikan <strong>fondasi monitoring</strong>: (1) <em>Threshold + Hysteresis Schmitt Trigger</em> — chattering vs stable dengan dual-threshold T_on/T_off. (2) <em>ISO 10816 Zone Classification</em> — RMS velocity berkembang sepanjang lifetime mesin lewat zona A/B/C/D. (3) <em>Sensor Sampling &amp; Nyquist</em> — efek sampling rate ke kualitas signal recovery (under-sampling = aliasing, over-sampling = waste storage). (4) <em>Multi-Sensor Trace + DAQ Pipeline</em> — vibrasi + temperatur + arus motor di-akuisisi simultan, ditampilkan paralel sebagai input ke threshold detector. Tier alarm escalation dan FSM dibahas di animasi modul Pertemuan 12. Tujuan: membangun intuisi sebelum coding hardware setup &amp; threshold detector di Bagian 08.</p>
 
   <!-- Animasi 1: Threshold vs Hysteresis (Chattering Demo) -->
   <div class="anim-panel reveal">
@@ -1274,7 +1274,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--violet)"></div>
-      <span class="anim-title">Animasi 3 — Tier Alarm Escalation: Persistence Timer (warn→alert→critical)</span>
+      <span class="anim-title">Animasi 3 — Sensor Sampling &amp; Nyquist: f_s vs f_max Signal Recovery</span>
     </div>
     <div class="anim-body">
       <canvas id="cvIso" height="320"></canvas>
@@ -1291,8 +1291,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       </div>
       <div id="isoInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Top = sinyal RMS over time. Mid = current tier (Normal / Warning / Alert / Critical) dengan color-coded bar. Bottom = persistence timer per tier — counter naik saat di tier tersebut, reset saat keluar.<br>
-        <strong>Coba:</strong> (1) Persistence = 5s → eskalasi cepat, mungkin terlalu sensitif. (2) Persistence = 30s → balance, tidak panic dari spike sesaat. (3) Persistence = 90s → konservatif, lambat respond tapi sangat reliable. (4) Geser seed → pattern sinyal berbeda, observasi tier transitions. Pelajaran: <strong>persistence = trade-off latency vs false-alarm rate</strong>.
+        <strong>📊 Cara Membaca:</strong> Top = sinyal asli (continuous, ground truth). Mid = sample digital (titik diskrit) pada sampling rate f_s tertentu. Bottom = sinyal hasil reconstruct dari sample. Slider kontrol sampling frequency f_s relatif terhadap f_max sinyal.<br>
+        <strong>Coba:</strong> (1) f_s &lt; f_max → <em>aliasing</em>: sample tidak cukup, sinyal recovered punya frekuensi salah (lipat balik). (2) f_s = 2 × f_max → <strong>Nyquist limit</strong>, batas teoritis recovery. (3) f_s = 5 × f_max → <em>oversampling</em>, recovery sempurna, margin aman terhadap noise. Pelajaran: <strong>aturan emas f_s ≥ 2.5–5 × f_max</strong> + anti-aliasing filter analog sebelum ADC. Untuk ISO 10816 (10 Hz – 1 kHz), pakai f_s = 2500–5000 Hz.
       </div>
     </div>
   </div>
@@ -1301,7 +1301,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--green)"></div>
-      <span class="anim-title">Animasi 4 — Finite State Machine + Debouncing: Transition Trace</span>
+      <span class="anim-title">Animasi 4 — Multi-Sensor DAQ: Vibrasi + Temperatur + Arus Motor</span>
     </div>
     <div class="anim-body">
       <canvas id="cvHPB" height="380"></canvas>
@@ -1314,8 +1314,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       </div>
       <div id="hpbInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Atas = sinyal sensor (bisa spike sesaat dari noise). Tengah = state diagram (NORMAL / WARNING / ALERT / CRITICAL / FAULT) dengan node aktif yang highlighted. Bawah = audit log timestamp transitions (CSV format).<br>
-        <strong>Coba:</strong> (1) Debounce N = 0 → setiap spike trigger transition (false alarm fest). (2) N = 3 → balance, butuh 3 sample berturut. (3) N = 10 → very robust, tetapi lambat respond. (4) Spike sesaat di sinyal: dengan N rendah → false transition; dengan N tinggi → ignored, FSM stabil. Pelajaran: <strong>debouncing = filter noise di domain waktu</strong>; trade-off N vs latency.
+        <strong>📊 Cara Membaca:</strong> Tiga trace paralel time-aligned: <em>Vibrasi</em> (cyan, mm/s dari accelerometer IEPE 1 Hz–30 kHz), <em>Temperatur</em> (amber, °C dari RTD Pt100 response slow), <em>Arus motor</em> (pink, A dari current transformer 50 Hz fundamental). Vertical line = current time pointer untuk multi-sensor synchronization. Indicator panel = ISO 10816 zone berdasarkan vibrasi.<br>
+        <strong>Coba:</strong> (1) Mesin healthy → ketiga sensor stable di baseline. (2) Bearing fault progressing → vibrasi naik bertahap, temperatur naik (friction increase), arus motor naik (load increase) — <em>multi-modal signature</em>. (3) Sensor failure → satu trace flat / NaN, dua lainnya normal. Pelajaran: <strong>multi-sensor fusion</strong> lebih reliable dari single-sensor. Tier alarm escalation berdasarkan kombinasi multi-sensor: bahas detail di animasi modul Pertemuan 12.
       </div>
     </div>
   </div>
