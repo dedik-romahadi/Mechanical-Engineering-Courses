@@ -1215,109 +1215,109 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <hr class="divider">
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 06</div>
-  <h2 class="section-title reveal">Animasi Interaktif<br>Visualisasi Konsep ANOVA &amp; F-Distribution</h2>
-  <p class="section-desc reveal">Empat animasi yang memvisualisasikan <strong>konsep inti ANOVA</strong>: (1) partisi varians (between vs within) di scatter data 3 grup — tunjukkan bagaimana SS_b dan SS_w terhitung, (2) F-distribution dan critical region — visualisasi area p-value, (3) main effect plot &amp; pengaruh sample size pada power, (4) interaction plot two-way ANOVA — garis paralel vs tidak paralel sebagai tanda ada/tidak interaksi. Tujuannya: membangun intuisi visual sebelum implementasi <code>scipy.stats.f_oneway</code> &amp; <code>statsmodels.anova_lm</code>.</p>
+  <h2 class="section-title reveal">Animasi Interaktif<br>Visualisasi Konsep Threshold, Hysteresis &amp; FSM</h2>
+  <p class="section-desc reveal">Empat animasi yang memvisualisasikan <strong>konsep inti rule-based monitoring</strong>: (1) threshold sederhana vs hysteresis — tunjukkan chattering dan cara menghindari, (2) ISO 10816 zone classification real-time pada sinyal RMS yang berkembang, (3) tier alarm escalation dengan timer persistence, (4) finite state machine dengan debouncing dan transition trace. Tujuannya: membangun intuisi visual sebelum implementasi Python <code>HysteresisAlarm</code>, <code>FSM</code>, dan dashboard real-time.</p>
 
-  <!-- Animasi 1: Variance Partition -->
+  <!-- Animasi 1: Threshold vs Hysteresis (Chattering Demo) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi 1 — Variance Partition: SS_between vs SS_within</span>
+      <span class="anim-title">Animasi 1 — Threshold vs Hysteresis: Chattering Comparison</span>
     </div>
     <div class="anim-body">
       <canvas id="cvPhysics" height="340"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Effect Size (jarak antar mean) — <span class="ctrl-val" id="v_rp">0.10</span></label>
+          <label>Hysteresis Margin (T_on − T_off) — <span class="ctrl-val" id="v_rp">0.10</span></label>
           <input type="range" id="sl_rp" min="0.01" max="0.5" step="0.01" value="0.10">
         </div>
         <div class="ctrl-group">
-          <label>Sample Size per Grup (n) — <span class="ctrl-val" id="v_zp">30</span></label>
+          <label>Noise Amplitude — <span class="ctrl-val" id="v_zp">30</span></label>
           <input type="range" id="sl_zp" min="10" max="100" step="5" value="30">
         </div>
         <button class="btn-anim" id="btnPhysics" onclick="togglePhysics()">⏸ PAUSE</button>
       </div>
       <div id="physicsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Scatter = data 3 grup berbeda warna (level faktor 1, 2, 3). Garis horizontal terang = mean tiap grup; garis putus = grand mean. Jarak vertikal data ke mean grup-nya = SS_within (noise); jarak mean grup ke grand mean = SS_between (efek faktor).<br>
-        <strong>Coba:</strong> (1) Effect size kecil (0.05) → mean grup berdekatan, SS_b kecil, F kecil, p tidak signifikan. (2) Effect size besar (0.4) → mean grup terpisah jelas, SS_b besar, F &gt;&gt; 1, p &lt; 0.05. (3) Sample size kecil (n=10) → estimasi noisy, susah deteksi efek. (4) Sample size besar (n=100) → bahkan efek kecil terdeteksi (statistical power tinggi). Pelajaran: <strong>p-value bergantung pada effect size DAN sample size</strong>.
+        <strong>📊 Cara Membaca:</strong> Kurva atas = sinyal noisy mendekati threshold. Kurva bawah dual-state: top track simple threshold (chattering), bottom track hysteresis (stable). Vertical bars merah/hijau = transitions ON/OFF.<br>
+        <strong>Coba:</strong> (1) Hysteresis margin = 0.01 → margin terlalu kecil, hysteresis ikut chattering. (2) Margin = 0.10 → balance bagus, no chattering selama noise &lt; margin. (3) Margin = 0.5 → over-conservative, response lambat ke perubahan genuine. (4) Noise amplitude tinggi → margin harus lebih besar. Pelajaran: <strong>margin = 2–3× noise std</strong> untuk margin aman.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 2: F-Distribution & p-value -->
+  <!-- Animasi 2: ISO 10816 Zone Classification Real-Time -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--amber)"></div>
-      <span class="anim-title">Animasi 2 — F-Distribution &amp; Critical Region (p-value Visualisasi)</span>
+      <span class="anim-title">Animasi 2 — ISO 10816 Zone Classification: A | B | C | D</span>
     </div>
     <div class="anim-body">
       <canvas id="cvSweep" height="340"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>F observed — <span class="ctrl-val" id="v_rs">0.7</span></label>
+          <label>RMS Velocity (mm/s) — <span class="ctrl-val" id="v_rs">0.7</span></label>
           <input type="range" id="sl_rs" min="0.1" max="10.0" step="0.1" value="0.7">
         </div>
         <div class="ctrl-group">
-          <label>α (significance level) — <span class="ctrl-val" id="v_zs">1.5</span></label>
+          <label>Trend Slope (degradasi/jam) — <span class="ctrl-val" id="v_zs">1.5</span></label>
           <input type="range" id="sl_zs" min="0.01" max="0.20" step="0.01" value="0.05">
         </div>
         <button class="btn-anim" id="btnSweep" onclick="toggleSweep()">⏸ PAUSE</button>
       </div>
       <div id="sweepInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Kurva = <strong>F-distribution</strong> dengan parameter (df_b, df_w). Area ungu = p-value (probabilitas F ≥ F_obs jika H₀ benar). Garis vertikal merah = F_critical untuk α tertentu. Kalau F_obs jatuh di kanan F_crit (area ≤ α), tolak H₀.<br>
-        <strong>Coba:</strong> (1) F_obs = 0.5 → di area "no effect", p &gt;&gt; α, gagal tolak H₀. (2) F_obs = 4 dengan α = 0.05 → di critical region, p &lt; α, tolak H₀. (3) Geser α dari 0.05 ke 0.01 → critical region menyempit (lebih konservatif). (4) F_obs = 9 → p &lt;&lt; 0.001, sangat signifikan. Pelajaran: <strong>F besar = bukti kuat efek faktor</strong>; pemilihan α harus a priori.
+        <strong>📊 Cara Membaca:</strong> Y-axis = RMS velocity (mm/s) dengan zone bands warna (A hijau, B cyan, C amber, D pink). Trace = simulasi RMS yang berkembang sepanjang waktu. Indicator ke kanan = current zone. Counter di top = jumlah hari di tiap zone.<br>
+        <strong>Coba:</strong> (1) RMS = 1.0 → Zone A (Good), no alert. (2) RMS = 2.5 → Zone B (Acceptable), warning email. (3) RMS = 4.0 → Zone C (Unsatisfactory), schedule maintenance. (4) RMS = 6.0 → Zone D (Danger), shutdown. (5) Slope tinggi → cepat naik zone, simulasi degradasi cepat. Pelajaran: <strong>monitoring trend</strong> selain absolute value.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 3: Main Effect Plot vs Sample Size -->
+  <!-- Animasi 3: Tier Alarm Escalation with Timer -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--violet)"></div>
-      <span class="anim-title">Animasi 3 — Main Effect Plot &amp; Statistical Power vs Sample Size</span>
+      <span class="anim-title">Animasi 3 — Tier Alarm Escalation: Persistence Timer (warn→alert→critical)</span>
     </div>
     <div class="anim-body">
       <canvas id="cvIso" height="320"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Sample Size n per Level — <span class="ctrl-val" id="v_ri">50</span></label>
+          <label>Persistence Threshold (detik) — <span class="ctrl-val" id="v_ri">50</span></label>
           <input type="range" id="sl_ri" min="3" max="100" step="1" value="50">
         </div>
         <div class="ctrl-group">
-          <label>Random Seed — <span class="ctrl-val" id="v_zi">42</span></label>
+          <label>Random Seed Sinyal — <span class="ctrl-val" id="v_zi">42</span></label>
           <input type="range" id="sl_zi" min="1" max="100" step="1" value="42">
         </div>
         <button class="btn-anim" id="btnIso" onclick="toggleIso()">⏸ PAUSE</button>
       </div>
       <div id="isoInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Kurva cyan = <strong>main effect plot</strong> — mean respons vs level faktor dengan error bar (95% CI). Kurva amber = <strong>statistical power</strong> kontra n. X-axis = level faktor (3–4 level diskrit); Y-axis = mean ± SE.<br>
-        <strong>Coba:</strong> (1) n = 5 → CI lebar, power rendah, sulit deteksi efek sedang. (2) n = 30 → CI sempit, power 0.80 untuk efek sedang (rule of thumb Cohen). (3) n = 100 → bahkan efek kecil terdeteksi tetapi mungkin tidak praktis. (4) Geser seed → variasi sample berbeda, perhatikan stabilitas CI. Pelajaran: <strong>power analysis sebelum eksperimen</strong> wajib — gunakan <code>statsmodels.stats.power.FTestAnovaPower</code>.
+        <strong>📊 Cara Membaca:</strong> Top = sinyal RMS over time. Mid = current tier (Normal / Warning / Alert / Critical) dengan color-coded bar. Bottom = persistence timer per tier — counter naik saat di tier tersebut, reset saat keluar.<br>
+        <strong>Coba:</strong> (1) Persistence = 5s → eskalasi cepat, mungkin terlalu sensitif. (2) Persistence = 30s → balance, tidak panic dari spike sesaat. (3) Persistence = 90s → konservatif, lambat respond tapi sangat reliable. (4) Geser seed → pattern sinyal berbeda, observasi tier transitions. Pelajaran: <strong>persistence = trade-off latency vs false-alarm rate</strong>.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 4: Interaction Plot Two-Way ANOVA -->
+  <!-- Animasi 4: FSM with Debouncing -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--green)"></div>
-      <span class="anim-title">Animasi 4 — Interaction Plot: Garis Paralel vs Tidak Paralel (Two-Way ANOVA)</span>
+      <span class="anim-title">Animasi 4 — Finite State Machine + Debouncing: Transition Trace</span>
     </div>
     <div class="anim-body">
       <canvas id="cvHPB" height="380"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Interaction Strength — <span class="ctrl-val" id="v_rh">3</span></label>
+          <label>Debounce N (consecutive samples) — <span class="ctrl-val" id="v_rh">3</span></label>
           <input type="range" id="sl_rh" min="0" max="10" step="1" value="3">
         </div>
         <button class="btn-anim" id="btnHPB" onclick="toggleHPB()">⏸ PAUSE</button>
       </div>
       <div id="hpbInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Atas = <em>interaction plot</em> dengan dua faktor (A: 3 level di X-axis; B: 2 level di line). Tiap titik = mean respons untuk kombinasi (A_i, B_j). Bawah = tabel ANOVA dinamis menampilkan F &amp; p untuk main A, main B, dan interaksi A×B.<br>
-        <strong>Coba:</strong> (1) Interaction = 0 → garis B1 dan B2 paralel — tidak ada interaksi (F_AB tidak signifikan). (2) Interaction = 5 → garis menyilang sebagian — interaksi sedang. (3) Interaction = 10 → garis menyilang tajam — interaksi kuat (F_AB signifikan), efek A bergantung pada level B! Pelajaran: <strong>interaction plot WAJIB</strong> sebelum interpretasi main effect. Garis tidak paralel = main effect bisa misleading.
+        <strong>📊 Cara Membaca:</strong> Atas = sinyal sensor (bisa spike sesaat dari noise). Tengah = state diagram (NORMAL / WARNING / ALERT / CRITICAL / FAULT) dengan node aktif yang highlighted. Bawah = audit log timestamp transitions (CSV format).<br>
+        <strong>Coba:</strong> (1) Debounce N = 0 → setiap spike trigger transition (false alarm fest). (2) N = 3 → balance, butuh 3 sample berturut. (3) N = 10 → very robust, tetapi lambat respond. (4) Spike sesaat di sinyal: dengan N rendah → false transition; dengan N tinggi → ignored, FSM stabil. Pelajaran: <strong>debouncing = filter noise di domain waktu</strong>; trade-off N vs latency.
       </div>
     </div>
   </div>
