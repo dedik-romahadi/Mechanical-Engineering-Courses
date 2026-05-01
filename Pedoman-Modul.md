@@ -1188,6 +1188,113 @@ Diaktifkan oleh `_updateLateBanner()` yang dipanggil:
 
 ---
 
+## 9.5 Aturan Khusus Exam (UTS / UAS) — v8.1
+
+> **Penting — beda dari modul.** Aturan terlambat di file `Exam/UTS.html` dan `Exam/UAS.html` **berbeda** dari modul. Mahasiswa **TIDAK BISA** lagi mengerjakan ujian setelah `end + extension`. Modul tetap pakai aturan v8 (mahasiswa terlambat bisa submit indefinitely dengan penalty 20%).
+
+### 9.5.1 Tiga Zona Waktu Exam
+
+| Zona | Waktu | Submit Allowed | Status Label |
+|------|-------|:--------------:|--------------|
+| **Sebelum mulai** | `now < start` | ❌ Diblokir | — |
+| **Tepat Waktu** | `[start, end]` | ✅ Disimpan, poin 100% | ✅ Tepat Waktu |
+| **Sesi Perpanjangan** | `(end, end+extension]` | ✅ Disimpan, poin **80%** | ⏰ Terlambat |
+| **Habis Total** | `> end+extension` | ❌ Diblokir | — |
+
+Jika dosen tidak set `extension`, default `0` menit → setelah `end`, langsung **diblokir** (tidak ada window terlambat).
+
+### 9.5.2 Schedule Modal — Field Tambahan
+
+Modal "Atur Jadwal Perkuliahan" di Exam memiliki 4 input (sebelumnya 3):
+
+| Field | Tipe | Wajib | Keterangan |
+|-------|------|:-----:|-----------|
+| Password | password | ✓ | Auth dosen |
+| Durasi | number (menit) | ✓ | Lama ujian dari start ke end |
+| Batas Akhir | datetime-local | ✓ | Due date (= end) |
+| **Perpanjangan** | **number (menit)** | — | **Default 0**, opsional. Window terlambat setelah end |
+
+```html
+<div style="text-align:left;margin-bottom:14px;">
+  <label>Perpanjangan (menit) — opsional</label>
+  <input type="number" id="scheduleExtension" min="0" value="0" placeholder="0 (tanpa perpanjangan)">
+  <p>Mahasiswa yang mengerjakan di sesi perpanjangan tercatat ⏰ Terlambat dengan poin dikurangi 20%. Setelah perpanjangan habis, submit diblokir.</p>
+</div>
+```
+
+`saveSchedule()` menulis field `extension` ke Firebase:
+```javascript
+set(ref(db, SCHEDULE_PATH), {
+  start, end, duration, due,
+  extension: ext   // menit, default 0
+});
+```
+
+### 9.5.3 Helper Functions Override (Exam-only)
+
+```javascript
+function _isScheduleOpen() {
+  // Exam: gate write di [start, end+extension]. Setelah extension habis,
+  // submit DIBLOKIR (beda dari modul yang allow indefinitely).
+  if (!currentSchedule || !currentSchedule.start || !currentSchedule.end) return false;
+  const now = Date.now();
+  const s = new Date(currentSchedule.start).getTime();
+  const e = new Date(currentSchedule.end).getTime();
+  const ext = (currentSchedule.extension || 0) * 60 * 1000;
+  return now >= s && now <= (e + ext);
+}
+
+function isLate(timestamp) {
+  // Exam: terlambat HANYA jika dalam window perpanjangan (end, end+extension].
+  if (!currentSchedule || !currentSchedule.end) return false;
+  const t = new Date(timestamp).getTime();
+  const e = new Date(currentSchedule.end).getTime();
+  const ext = (currentSchedule.extension || 0) * 60 * 1000;
+  return t > e && t <= (e + ext);
+}
+
+function _isPastDeadline() {
+  // Exam: untuk multiplier purpose — true saat dalam window extension.
+  // Setelah extension habis, _isScheduleOpen() = false jadi award functions
+  // tidak akan dipanggil (multiplier tidak relevant).
+  if (!currentSchedule || !currentSchedule.end) return false;
+  const now = Date.now();
+  const e = new Date(currentSchedule.end).getTime();
+  const ext = (currentSchedule.extension || 0) * 60 * 1000;
+  return now > e && now <= (e + ext);
+}
+```
+
+### 9.5.4 Banner — 3 State
+
+`_updateLateBanner()` di Exam menampilkan 3 state berbeda:
+
+| State | Kondisi | Title | Pesan |
+|-------|---------|-------|-------|
+| Belum mulai | `now < start` | "Ujian Belum Dibuka" | Tunggu jadwal, akses tidak disimpan |
+| Sesi perpanjangan | `(end, end+ext]` | "⏰ Sesi Perpanjangan — Status Terlambat" | Sisa N menit, status terlambat, poin -20% |
+| Habis total | `> end+ext` | "⏱ Waktu Ujian Sudah Habis" | Submit tidak lagi disimpan |
+
+Dalam zona tepat waktu `[start, end]`, banner di-hide.
+
+### 9.5.5 Konsekuensi Award Functions
+
+Karena `_isScheduleOpen()` di Exam return `false` saat `now > end+extension`, semua award functions (`_awardPoint`, `_awardCompPoint`, `_awardCompPartial`) otomatis abort di gate awal — **tidak perlu modifikasi tambahan**. Multiplier 0.8 dari `_getLateMultiplier()` tetap berlaku selama `now in (end, end+ext]` (sesi perpanjangan).
+
+### 9.5.6 Mata Kuliah & File Berlaku
+
+Aturan §9.5 berlaku untuk:
+- `Engineering-Mathematics/Exam/UTS.html`
+- `Engineering-Mathematics/Exam/UAS.html` (saat dibuat)
+- `Optimalisasi-dan-Automasi/Exam/UTS.html`
+- `Optimalisasi-dan-Automasi/Exam/UAS.html` (saat dibuat)
+- `Getaran-Mekanik/Exam/UTS.html`
+- `Getaran-Mekanik/Exam/UAS.html` (saat dibuat)
+
+File modul (`Modul-N.html`), forum, dan tugas regular **tidak** terpengaruh — tetap pakai v8.
+
+---
+
 ## 10. Countdown Circular Rings
 
 ### 10.1 Desain
