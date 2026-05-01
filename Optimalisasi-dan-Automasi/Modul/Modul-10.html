@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pertemuan 11 — Metaheuristik: Genetic Algorithm & PSO | Optimalisasi &amp; Automasi</title>
+<title>Pertemuan 11 — Metaheuristik: Simulated Annealing | Optimalisasi &amp; Automasi</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Sans+3:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
@@ -767,8 +767,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <!-- ─── SUBNAV (only visible when Modul tab is active) ─── -->
 <div id="modulSubnav" class="subnav-bar show">
   <a href="#m-persamaan">Mengapa Metaheuristik</a>
-  <a href="#m-solusi">Genetic Algorithm</a>
-  <a href="#m-dmf">PSO</a>
+  <a href="#m-solusi">SA Core</a>
+  <a href="#m-dmf">Cooling Schedule</a>
   <a href="#m-resonashi">Variant &amp; Tuning</a>
   <a href="#m-analogi">Analogi</a>
   <a href="#m-animasi">Animasi</a>
@@ -811,23 +811,23 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">population P = {x₁, x₂, …, xₙ}</span>
-    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">crossover + mutation</span>
-    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">v_i = w·v_i + c₁r₁(p_i − x_i) + c₂r₂(g − x_i)</span>
-    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">fitness(x) = f(x)</span>
-    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">selection: tournament/roulette</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">x_{t+1} = x_t + v_{t+1}</span>
-    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">elitism: keep best k</span>
-    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">DEAP / pyswarm / scikit-opt</span>
+    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">P_accept = exp(−ΔE / T)</span>
+    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">T(k+1) = α·T(k), α ∈ (0, 1)</span>
+    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">x' = x + 𝒩(0, σ²)</span>
+    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">ΔE = f(x') − f(x)</span>
+    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">if u &lt; P_accept: x ← x'</span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">T(0) → T_min</span>
+    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">cooling: linear, geometric, log</span>
+    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">scipy.optimize.dual_annealing</span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Pertemuan 11 &nbsp;·&nbsp; Optimalisasi &amp; Automasi &nbsp;·&nbsp; 2025/2026</div>
     <h1 class="hero-title">
       <span class="hl-cyan">Metaheuristik —</span><br>
-      <em>Genetic Algorithm &amp; PSO</em><br>
+      <em>Simulated Annealing</em><br>
       <span class="hl-amber">Optimasi Non-Konveks Tanpa Gradient</span>
     </h1>
-    <p class="hero-sub">Pertemuan 9 (LP) dan Pertemuan 10 (NLP) menggunakan informasi <em>gradient</em> untuk menemukan optimum. Tetapi banyak masalah engineering nyata <strong>tidak punya gradient</strong> (simulasi blackbox FEM/CFD), <strong>diskrit</strong> (pilih jumlah blade integer), atau <strong>multi-modal</strong> dengan ribuan lokal optimum (desain crashworthy, neural network). <strong>Metaheuristik</strong> adalah keluarga algoritma yang terinspirasi dari fenomena alam: <em>Genetic Algorithm (GA)</em> meniru evolusi biologis (selection, crossover, mutation) dan <em>Particle Swarm Optimization (PSO)</em> meniru kawanan burung/ikan. Keduanya gradient-free, parallel population-based, dan mampu eksplor seluruh search space — <em>menukar</em> garansi konvergensi global dengan ekspektasi probabilistik solusi mendekati global. Standar industri untuk parameter tuning desain mesin, controller robust, scheduling kompleks.</p>
+    <p class="hero-sub">Pertemuan 9 (LP) dan Pertemuan 10 (NLP) menggunakan informasi <em>gradient</em> untuk menemukan optimum. Tetapi banyak masalah engineering nyata <strong>tidak punya gradient</strong> (simulasi blackbox FEM/CFD), <strong>diskrit</strong> (TSP / scheduling), atau <strong>multi-modal</strong> dengan ribuan lokal optimum (desain crashworthy, parameter neural network). <strong>Metaheuristik</strong> adalah keluarga algoritma stokastik yang terinspirasi dari fenomena alam. Yang paling sederhana &amp; klasik: <em>Simulated Annealing (SA)</em> — meniru proses <strong>penempaan logam</strong> di mana logam dipanaskan tinggi lalu didinginkan perlahan agar atom-atomnya menemukan susunan kristal energi-minimum. Hanya 1 partikel, 1 parameter (temperature T), dan 1 formula penerimaan probabilistik (Boltzmann). Cukup ringkas untuk diimplementasi 20 baris kode, tetapi cukup kuat untuk menyelesaikan <em>traveling salesman problem</em>, VLSI placement, dan parameter tuning blackbox.</p>
     <div class="hero-stats">
       <div class="stat"><div class="stat-num">8</div><div class="stat-lbl">Bagian Materi</div></div>
       <div class="stat"><div class="stat-num">4</div><div class="stat-lbl">Animasi</div></div>
@@ -840,7 +840,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <!-- COUNTDOWN -->
 <div style="padding:48px 32px 0">
   <div class="countdown-wrap reveal">
-    <div class="countdown-label">⏰ Hitung Mundur — Deadline Pertemuan 11</div>
+    <div class="countdown-label">⏰ Hitung Mundur — Deadline Pertemuan 11 (Simulated Annealing)</div>
     <div class="countdown-rings">
       <div class="cd-ring ring-d" id="ring-d">
         <svg viewBox="0 0 120 120">
