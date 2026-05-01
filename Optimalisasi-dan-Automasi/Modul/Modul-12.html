@@ -1215,14 +1215,14 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <hr class="divider">
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 06</div>
-  <h2 class="section-title reveal">Animasi Interaktif<br>Visualisasi Konsep Threshold, Hysteresis &amp; FSM</h2>
-  <p class="section-desc reveal">Empat animasi yang memvisualisasikan <strong>konsep inti rule-based monitoring</strong>: (1) threshold sederhana vs hysteresis — tunjukkan chattering dan cara menghindari, (2) ISO 10816 zone classification real-time pada sinyal RMS yang berkembang, (3) tier alarm escalation dengan timer persistence, (4) finite state machine dengan debouncing dan transition trace. Tujuannya: membangun intuisi visual sebelum implementasi Python <code>HysteresisAlarm</code>, <code>FSM</code>, dan dashboard real-time.</p>
+  <h2 class="section-title reveal">Animasi Interaktif<br>Tier Alarm, FSM, Debouncing &amp; ANSI/ISA 18.2 Alarm Flood</h2>
+  <p class="section-desc reveal">Empat animasi yang memvisualisasikan <strong>konsep inti production-grade alarm management</strong>: (1) <em>Debouncing N consecutive samples</em> — filter noise transient yang bisa cross threshold sesaat lalu kembali normal. (2) <em>ANSI/ISA 18.2 Alarm Flood Visualization</em> — apa yang terjadi saat plant trip dan ratusan alarm meledak bersama vs setelah alarm rationalization. (3) <em>Tier Alarm Escalation dengan Persistence Timer</em> — Normal→Warning→Alert→Critical dengan auto-escalation kalau persist &gt; 5 menit. (4) <em>Finite State Machine + Debouncing Transition Trace</em> — visualisasi 5-state FSM (NORMAL/WARNING/ALERT/CRITICAL/FAULT) dengan transition logic + audit log. Threshold dasar &amp; hysteresis Schmitt trigger sudah dibahas di animasi modul Pertemuan 11 (Monitoring Part 1). Tujuan: build intuisi sebelum implementasi Python FSM + alarm management dashboard di Bagian 08.</p>
 
   <!-- Animasi 1: Threshold vs Hysteresis (Chattering Demo) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi 1 — Threshold vs Hysteresis: Chattering Comparison</span>
+      <span class="anim-title">Animasi 1 — Debouncing N Consecutive Samples: Filter Noise Transient</span>
     </div>
     <div class="anim-body">
       <canvas id="cvPhysics" height="340"></canvas>
@@ -1239,8 +1239,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       </div>
       <div id="physicsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Kurva atas = sinyal noisy mendekati threshold. Kurva bawah dual-state: top track simple threshold (chattering), bottom track hysteresis (stable). Vertical bars merah/hijau = transitions ON/OFF.<br>
-        <strong>Coba:</strong> (1) Hysteresis margin = 0.01 → margin terlalu kecil, hysteresis ikut chattering. (2) Margin = 0.10 → balance bagus, no chattering selama noise &lt; margin. (3) Margin = 0.5 → over-conservative, response lambat ke perubahan genuine. (4) Noise amplitude tinggi → margin harus lebih besar. Pelajaran: <strong>margin = 2–3× noise std</strong> untuk margin aman.
+        <strong>📊 Cara Membaca:</strong> Top trace = sinyal sensor noisy dengan spike transient sesekali (cross threshold sesaat). Mid = simple instant trigger (alert ON tiap kali cross). Bottom = debounced trigger (require N consecutive samples sebelum trigger). Slider kontrol N (1–10).<br>
+        <strong>Coba:</strong> (1) N=1 → equivalent simple threshold, semua spike trigger alarm (alarm flood). (2) N=3 → balance bagus, single spike di-ignore tetapi sustained breach trigger. (3) N=10 → very robust, butuh 10 sample berturut → latency naik 10×. (4) Sustained breach (kondisi genuine fault) tetap detected dengan delay = N × T_sample. Pelajaran: <strong>debounce = trade-off latency vs false-alarm rate</strong>. Untuk critical alarm (safety): N≤2 (low latency). Untuk warning: N=5–10 (filter noise). Implementasi: counter increment kalau condition true, reset kalau false; trigger saat counter ≥ N.
       </div>
     </div>
   </div>
@@ -1249,7 +1249,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--amber)"></div>
-      <span class="anim-title">Animasi 2 — ISO 10816 Zone Classification: A | B | C | D</span>
+      <span class="anim-title">Animasi 2 — ANSI/ISA 18.2 Alarm Flood: Before vs After Rationalization</span>
     </div>
     <div class="anim-body">
       <canvas id="cvSweep" height="340"></canvas>
@@ -1266,8 +1266,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       </div>
       <div id="sweepInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Y-axis = RMS velocity (mm/s) dengan zone bands warna (A hijau, B cyan, C amber, D pink). Trace = simulasi RMS yang berkembang sepanjang waktu. Indicator ke kanan = current zone. Counter di top = jumlah hari di tiap zone.<br>
-        <strong>Coba:</strong> (1) RMS = 1.0 → Zone A (Good), no alert. (2) RMS = 2.5 → Zone B (Acceptable), warning email. (3) RMS = 4.0 → Zone C (Unsatisfactory), schedule maintenance. (4) RMS = 6.0 → Zone D (Danger), shutdown. (5) Slope tinggi → cepat naik zone, simulasi degradasi cepat. Pelajaran: <strong>monitoring trend</strong> selain absolute value.
+        <strong>📊 Cara Membaca:</strong> Top half = scenario "before alarm rationalization" — saat plant disturbance, ratusan alarm meledak dalam 10 menit (operator overwhelmed, alarm fatigue, ignore alarm penting → safety risk). Bottom half = scenario "after rationalization" sesuai ANSI/ISA 18.2 — alarm di-prioritize, suppression rules aktif (parent alarm suppress child correlated), result: ≤ 1 alarm/10 min steady, ≤ 10 alarm/10 min post-disturbance. Slider kontrol jumlah simultaneous alarms saat trip event.<br>
+        <strong>Coba:</strong> (1) Slider rendah (no rationalization) → alarm rate 100+/10 min, operator screen flood penuh, safety hazard nyata. (2) Slider tinggi (full rationalization) → ≤ 10 alarm/10 min, semua actionable, operator response time bagus. <strong>Real case</strong>: Insiden Texas City BP 2005 (15 fatalities) sebagian disebabkan alarm flood — 7 alarm dalam 5 menit, operator tidak bisa identify root cause. ANSI/ISA 18.2 (2009) jadi standar wajib post-incident. <em>7 lifecycle phases</em>: identification → rationalization → documentation → implementation → operation → maintenance → monitoring.
       </div>
     </div>
   </div>

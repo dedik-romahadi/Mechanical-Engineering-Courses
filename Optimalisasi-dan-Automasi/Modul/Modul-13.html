@@ -1241,14 +1241,14 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <hr class="divider">
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 06</div>
-  <h2 class="section-title reveal">Animasi Interaktif<br>Visualisasi Konsep Decision Boundary, Confusion Matrix &amp; ROC</h2>
-  <p class="section-desc reveal">Empat animasi yang memvisualisasikan <strong>konsep inti machine learning klasifikasi</strong>: (1) decision boundary 2D — bagaimana Logistic vs RF vs SVM membagi feature space, (2) train/test split &amp; overfitting curve — train accuracy vs test accuracy berdasarkan model complexity, (3) confusion matrix interaktif — TP/FP/TN/FN dengan threshold geser, (4) ROC curve &amp; AUC — visualize trade-off precision vs recall di semua threshold. Tujuannya: membangun intuisi visual sebelum implementasi Python <code>scikit-learn</code> classifier.</p>
+  <h2 class="section-title reveal">Animasi Interaktif<br>Visualisasi Logistic Regression, Train/Test Split &amp; Confusion Matrix</h2>
+  <p class="section-desc reveal">Empat animasi yang memvisualisasikan <strong>fondasi supervised learning</strong>: (1) <em>Sigmoid &amp; Linear Decision Boundary</em> — visualisasi cara Logistic Regression bagi feature space dengan hyperplane linear, sigmoid mengkonversi linear combiner ke probability. (2) <em>Train/Test Split + Stratified Sampling</em> — visualisasi 80/20 split dan kenapa stratify wajib untuk imbalanced data. (3) <em>Confusion Matrix Interaktif</em> — TP/FP/TN/FN dengan threshold geser, lihat precision, recall, F1 berubah live. (4) <em>Precision-Recall Trade-Off Curve</em> — bagaimana threshold tuning berdampak ke metric pasangan. Algoritma lanjut (Random Forest, SVM, ROC-AUC threshold-independent, k-fold CV) ditampilkan di animasi modul Pertemuan 14. Tujuan: build intuisi sebelum implementasi <code>LogisticRegression()</code> + <code>classification_report()</code> di Bagian 08.</p>
 
   <!-- Animasi 1: Decision Boundary 2D -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi 1 — Decision Boundary 2D: Logistic vs RF vs SVM</span>
+      <span class="anim-title">Animasi 1 — Sigmoid &amp; Linear Decision Boundary: Logistic Regression</span>
     </div>
     <div class="anim-body">
       <canvas id="cvPhysics" height="340"></canvas>
@@ -1265,8 +1265,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       </div>
       <div id="physicsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Scatter 2D feature space dengan dua kelas (healthy/fault). Kurva = decision boundary tiap algoritma: <em>Logistic</em> (linear), <em>Random Forest</em> (zigzag, axis-aligned), <em>SVM RBF</em> (smooth non-linear).<br>
-        <strong>Coba:</strong> (1) Noise rendah, separability tinggi → semua algoritma akurasi tinggi, boundary linear cukup. (2) Noise tinggi → SVM RBF lebih robust dari Logistic. (3) Pattern non-linear (XOR-like) → Logistic gagal, RF/SVM bisa. Pelajaran: <strong>algorithm choice tergantung struktur data</strong>; visualize sebelum pilih.
+        <strong>📊 Cara Membaca:</strong> Scatter 2D feature space dengan dua kelas (healthy biru / fault merah). Garis = <em>linear decision boundary</em> Logistic Regression: <code>w₁x₁ + w₂x₂ + b = 0</code>. Kurva sigmoid di samping = <code>σ(z) = 1/(1+e^(−z))</code>: input z = wᵀx+b, output P(y=1|x). Slider kontrol noise level &amp; class separability.<br>
+        <strong>Coba:</strong> (1) Separability tinggi, noise rendah → boundary linear sempurna, sigmoid steep. (2) Separability rendah, noise tinggi → boundary linear masih ditarik tetapi banyak misclassification, sigmoid landai. (3) Pattern non-linear (XOR/spiral) → LogReg <em>gagal</em>, butuh RF/SVM (lihat animasi modul P14). Pelajaran: <strong>LogReg = baseline cepat &amp; interpretable untuk linearly separable problem</strong>. Coefficient w[i] = log-odds contribution per fitur (built-in feature importance).
       </div>
     </div>
   </div>
@@ -1275,7 +1275,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--amber)"></div>
-      <span class="anim-title">Animasi 2 — Overfitting Curve: Train Accuracy vs Test Accuracy</span>
+      <span class="anim-title">Animasi 2 — Train/Test Split + Stratified Sampling: Anti Class Bias</span>
     </div>
     <div class="anim-body">
       <canvas id="cvSweep" height="340"></canvas>
@@ -1292,8 +1292,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       </div>
       <div id="sweepInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> X-axis = model complexity (mis. max_depth tree). Y-axis = accuracy. Kurva cyan = train accuracy (selalu naik dengan complexity). Kurva amber = test accuracy (naik lalu turun = overfitting).<br>
-        <strong>Coba:</strong> (1) Complexity rendah → underfit (train &amp; test sama-sama rendah). (2) Sweet spot di tengah → max test accuracy. (3) Complexity terlalu tinggi → overfit (train tinggi, test turun). (4) Naikkan training size → kurva test naik, gap mengecil. Pelajaran: <strong>more data &gt;&gt; more complex model</strong> untuk reduce overfit.
+        <strong>📊 Cara Membaca:</strong> Dataset visual dengan total 100 sample (kotak). Slider kontrol class imbalance ratio (1–50% positive class). Top section = random split TANPA stratify (test set bisa kebetulan 0% positive!). Bottom = split DENGAN <code>stratify=y</code> (test set guaranteed punya proporsi positive sama dengan original).<br>
+        <strong>Coba:</strong> (1) Balanced (50% positive) → random vs stratify hasil mirip, stratify tidak kritis. (2) Imbalanced (5% positive) → random split bisa kebetulan test set 0% positive (test metric meaningless), stratify guarantee 5% positive juga di test. (3) Severe imbalance (1% positive) → random split sering bermasalah, stratify wajib. <strong>Pelajaran</strong>: untuk imbalanced ML predictive maintenance (typical 1–5% fault), <code>train_test_split(X, y, stratify=y, random_state=42)</code> wajib. Pair dengan <code>StratifiedKFold</code> untuk cross-validation (lihat animasi modul P14).
       </div>
     </div>
   </div>
@@ -1329,7 +1329,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--green)"></div>
-      <span class="anim-title">Animasi 4 — ROC Curve &amp; AUC: Bandingkan Performance Tiga Model</span>
+      <span class="anim-title">Animasi 4 — Precision-Recall Trade-Off Curve: Threshold vs P/R/F1</span>
     </div>
     <div class="anim-body">
       <canvas id="cvHPB" height="380"></canvas>
@@ -1342,8 +1342,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       </div>
       <div id="hpbInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Atas = ROC curve untuk 3 model (Logistic cyan, RF amber, SVM violet). X-axis = FPR, Y-axis = TPR. Diagonal abu = random predictor (AUC=0.5). Bawah = AUC bar chart per model.<br>
-        <strong>Coba:</strong> (1) Quality rendah → kurva dekat diagonal, AUC ≈ 0.5–0.7 (poor). (2) Quality tinggi → kurva menempel pojok kiri-atas, AUC ≈ 0.95+. (3) Beda model = beda kurva — pilih yang AUC tertinggi. (4) AUC = 1.0 = perfect (rare di real data, mungkin overfit). Pelajaran: <strong>ROC-AUC = single threshold-independent metric</strong> untuk model comparison.
+        <strong>📊 Cara Membaca:</strong> Top = Precision-Recall curve (X = recall, Y = precision). Tiap point di kurva = (recall, precision) pada threshold berbeda. Bottom = bar chart precision (cyan), recall (amber), F1 (violet) untuk threshold saat ini. Slider kontrol threshold (0.1–0.9).<br>
+        <strong>Coba:</strong> (1) Threshold rendah (0.2) → recall tinggi (catch banyak fault) tetapi precision rendah (banyak false alarm). (2) Threshold tinggi (0.8) → precision tinggi (sedikit false alarm) tetapi recall rendah (miss banyak fault). (3) Threshold default 0.5 = balance mid-curve, sering BUKAN optimal untuk imbalanced. (4) Pilih threshold di "knee" kurva untuk maximize F1. <strong>Pelajaran</strong>: untuk safety-critical PdM (FN cost ≫ FP cost), pilih threshold rendah supaya recall tinggi. Untuk operator-friendly (avoid alarm fatigue), threshold tinggi supaya precision tinggi. ROC-AUC threshold-independent ranking metric ditampilkan di animasi modul P14.
       </div>
     </div>
   </div>
