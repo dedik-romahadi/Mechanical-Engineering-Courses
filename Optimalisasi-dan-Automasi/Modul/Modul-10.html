@@ -924,78 +924,75 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 02 — GENETIC ALGORITHM ═══ -->
+<!-- ═══ BAGIAN 02 — ANOVA CORE (F-TEST, SUM OF SQUARES) ═══ -->
 <hr class="divider">
 <div class="section" id="m-solusi">
   <div class="section-label reveal">Bagian 02</div>
-  <h2 class="section-title reveal">Genetic Algorithm:<br>Evolusi Biologis sebagai Mesin Optimasi</h2>
-  <p class="section-desc reveal">Diciptakan oleh <strong>John Holland (Univ Michigan, 1975)</strong>, <em>Genetic Algorithm (GA)</em> meniru proses seleksi alam Darwin: <strong>populasi</strong> kandidat solusi (kromosom) berevolusi dari generasi ke generasi melalui <em>seleksi fitness</em>, <em>crossover</em> (rekombinasi gen dari dua parent), dan <em>mutasi</em> (perubahan acak gen). Yang fittest survive, yang lemah eliminated. Setelah ratusan generasi, populasi konvergen ke region optimum — biasanya cukup mendekati global. <strong style="color:var(--cyan)">Tidak butuh gradient</strong>, dan secara natural menangani <em>variabel diskrit</em> (kromosom binary atau integer). Aplikasi: routing TSP, neural architecture search, parameter tuning, antenna design (NASA ST5).</p>
+  <h2 class="section-title reveal">ANOVA Core:<br>Partisi Varians, F-Statistic &amp; p-Value</h2>
+  <p class="section-desc reveal">Inti ANOVA adalah <strong>memecah total varians data menjadi dua sumber</strong>: (1) <em>varians antar-grup</em> (between-group / between-treatment) — perbedaan rata-rata tiap level faktor, dan (2) <em>varians dalam-grup</em> (within-group / residual / error) — fluktuasi noise di sekitar rata-rata tiap level. Logika: kalau efek faktor benar nyata, varians antar-grup harus jauh lebih besar dari varians dalam-grup. Rasio keduanya = <strong style="color:var(--cyan)">statistik F</strong>. Distribusi F (Fisher-Snedecor) memungkinkan kita menghitung <em>p-value</em>: probabilitas mengamati F sebesar ini (atau lebih besar) <em>jika hipotesis nol benar</em> (semua mean grup sama). Kalau p &lt; α (typical 0.05), kita tolak H₀ → faktor signifikan.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Lima Operator Genetic Algorithm</div>
-    Encoding (binary/real) &nbsp;·&nbsp; Selection (tournament, roulette, rank) &nbsp;·&nbsp; Crossover (1-point, 2-point, uniform) &nbsp;·&nbsp; Mutation (bit-flip, gaussian) &nbsp;·&nbsp; Elitism (preserve best k)
+    <div class="label">Enam Komponen Inti One-Way ANOVA</div>
+    Hipotesis (H₀ &amp; H₁) &nbsp;·&nbsp; Sum of Squares (SS_total, SS_between, SS_within) &nbsp;·&nbsp; Degrees of Freedom (df_b, df_w) &nbsp;·&nbsp; Mean Squares (MS_b, MS_w) &nbsp;·&nbsp; F-statistic &nbsp;·&nbsp; p-value &amp; keputusan
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">🧬</div>
-      <h3>Encoding — Representasi Kromosom</h3>
-      <p>Tiap kandidat solusi (individual) di-<em>encode</em> sebagai vektor: <strong>binary</strong> (0/1 string, klasik Holland — cocok untuk variabel diskrit/kombinatorial), <strong>real-coded</strong> (vektor float — cocok untuk continuous engineering parameter), <strong>permutation</strong> (urutan integer — cocok untuk TSP/scheduling), atau <strong>tree</strong> (Genetic Programming — evolve struktur expression tree). <strong style="color:var(--cyan)">Encoding yang baik</strong> → algoritma efisien; encoding salah → konvergensi lambat.</p>
-      <div class="formula">x = [g₁, g₂, …, gₙ]</div>
+      <div class="card-icon">📋</div>
+      <h3>Hipotesis: H₀ vs H₁</h3>
+      <p>One-way ANOVA membandingkan rata-rata respons di k level faktor. <strong>H₀ (null)</strong>: <code>μ₁ = μ₂ = … = μₖ</code> — semua level sama (tidak ada efek faktor). <strong>H₁ (alternative)</strong>: paling tidak satu pasangan μᵢ ≠ μⱼ. <em>Catatan</em>: ANOVA tidak memberitahu pasangan mana yang berbeda — itu tugas <em>post-hoc test</em> (Tukey HSD). ANOVA hanya menjawab "ada efek atau tidak". Tetapkan α (significance level, biasanya 0.05) sebelum lihat data.</p>
+      <div class="formula">H₀: μ₁ = μ₂ = … = μₖ</div>
     </div>
     <div class="card">
-      <div class="card-icon">🏆</div>
-      <h3>Selection — Pilih Parents Berbasis Fitness</h3>
-      <p>Tiap generasi, pilih M parents dari populasi N (M ≤ N) dengan probabilitas proporsional fitness. <strong>Tournament selection</strong> (most popular): pilih k random kandidat, ambil yang fitness tertinggi → repeat M kali. <strong>Roulette wheel</strong>: probabilitas pilih ∝ fitness (rentan dominated). <strong>Rank-based</strong>: probabilitas ∝ rank (lebih stabil). Tournament k=3 dengan elitism = standard kombinasi yang robust.</p>
-      <div class="formula">P(pick xᵢ) = fᵢ / Σfⱼ</div>
+      <div class="card-icon">🧮</div>
+      <h3>Sum of Squares (SS) — Partisi Varians</h3>
+      <p>Total variability data dipecah menjadi dua sumber. <strong>SS_total</strong> = Σ (yᵢⱼ − ȳ)² (jumlah kuadrat deviasi dari grand mean). <strong>SS_between</strong> = Σⱼ nⱼ·(ȳⱼ − ȳ)² (deviasi mean grup dari grand mean — efek faktor). <strong>SS_within</strong> = ΣⱼΣᵢ (yᵢⱼ − ȳⱼ)² (deviasi data dari mean grup — noise). Identitas fundamental: <strong style="color:var(--cyan)">SS_total = SS_between + SS_within</strong>. Inilah dasar "<em>analysis of variance</em>".</p>
+      <div class="formula">SS_t = SS_b + SS_w</div>
     </div>
     <div class="card">
-      <div class="card-icon">🔀</div>
-      <h3>Crossover — Rekombinasi Gen</h3>
-      <p>Dua parent (x_a, x_b) menghasilkan offspring dengan menukar segmen gen. <strong>1-point</strong>: pilih titik potong c, anak = [x_a[:c], x_b[c:]] dan sebaliknya. <strong>2-point</strong>: dua titik potong → tukar segmen tengah. <strong>Uniform</strong>: tiap gen probabilitas 0.5 dari salah satu parent. Untuk real-coded: <strong>BLX-α</strong> (blend) atau <strong>SBX</strong> (simulated binary crossover). Crossover rate (Pc) typical 0.7–0.9.</p>
-      <div class="formula">offspring = crossover(x_a, x_b)</div>
+      <div class="card-icon">📐</div>
+      <h3>Degrees of Freedom (df)</h3>
+      <p>Tiap SS punya degrees of freedom (jumlah informasi independent). Untuk k grup, total N data: <strong>df_between</strong> = k − 1 (k mean grup, dikurangi 1 karena grand mean tetap). <strong>df_within</strong> = N − k (tiap grup punya nⱼ − 1 dof, dijumlahkan). <strong>df_total</strong> = N − 1 = df_b + df_w. Dof penting karena <em>Mean Square = SS/df</em> — normalisasi yang membuat F-statistic bisa dibandingkan ke distribusi teoretis.</p>
+      <div class="formula">df_b = k−1, df_w = N−k</div>
     </div>
     <div class="card">
-      <div class="card-icon">🎲</div>
-      <h3>Mutation — Eksplorasi Random Lokal</h3>
-      <p>Tiap gen punya probabilitas kecil (Pm ≈ 1/n, n = panjang kromosom) untuk berubah random. <strong>Bit-flip</strong> untuk binary; <strong>Gaussian mutation</strong> <code>g_i ← g_i + N(0, σ²)</code> untuk real-coded. Tujuan: <em>menjaga diversitas</em> populasi agar tidak premature convergence ke lokal optimum. Mutation terlalu tinggi → algoritma jadi random search; terlalu rendah → stuck. Rule of thumb: <strong style="color:var(--green)">Pm ≈ 1/n</strong>.</p>
-      <div class="formula">g_i ← g_i + N(0, σ²)</div>
+      <div class="card-icon">⚖️</div>
+      <h3>Mean Squares — Estimasi Varians</h3>
+      <p>Mean Square = SS/df, estimasi varians populasi. <strong>MS_between</strong> = SS_b / df_b → estimasi varians yang mencakup <em>efek faktor + noise</em>. <strong>MS_within</strong> = SS_w / df_w → estimasi varians <em>noise saja</em>. Kalau H₀ benar (tidak ada efek), MS_b ≈ MS_w karena keduanya sama-sama noise. Kalau H₁ benar, MS_b &gt; MS_w (efek faktor menambah varians antar-grup). MS_w juga disebut <em>MSE</em> (Mean Squared Error) atau <em>residual variance</em>.</p>
+      <div class="formula">MS_b = SS_b / df_b</div>
     </div>
     <div class="card">
-      <div class="card-icon">👑</div>
-      <h3>Elitism — Pertahankan yang Terbaik</h3>
-      <p>Tanpa elitism, individu terbaik di generasi G bisa <em>hilang</em> di generasi G+1 karena crossover/mutation merusak. <strong>Elitism</strong>: copy k individu terbaik (k=1–5% populasi) langsung ke generasi berikutnya tanpa modifikasi. <em>Garansi</em> fitness terbaik monoton meningkat sepanjang generasi. Standar wajib di GA modern. Trade-off: elitism terlalu agresif (k besar) → premature convergence.</p>
-      <div class="formula">P_{t+1} = elite_k ∪ offspring</div>
+      <div class="card-icon">🎯</div>
+      <h3>F-Statistic = MS_b / MS_w</h3>
+      <p>Rasio dua estimasi varians. Mengikuti <strong>F-distribution</strong> dengan parameter (df_b, df_w) <em>jika H₀ benar</em>. Distribusi F asimetris, miring ke kanan, hanya nilai positif. F = 1 berarti MS_b = MS_w (no effect). F &gt;&gt; 1 berarti efek faktor besar relatif noise. Untuk α = 0.05 dan (df_b=2, df_w=12), <em>F_critical ≈ 3.89</em> — F observed &gt; F_crit → tolak H₀. Modern workflow: hitung <strong>p-value</strong> langsung lebih informatif dari "F &gt; F_crit".</p>
+      <div class="formula">F = MS_b / MS_w</div>
     </div>
     <div class="card">
-      <div class="card-icon">🛑</div>
-      <h3>Stopping Criteria</h3>
-      <p>GA tidak punya kondisi optimal absolut (gradient ≠ 0 tidak applicable). Pakai kombinasi: (1) <em>max generations</em> (mis. 200), (2) <em>fitness plateau</em> — tidak ada improvement di k generasi terakhir, (3) <em>target fitness reached</em> jika diketahui (e.g. f &lt; ε), (4) <em>computational budget</em> habis. Practical: monitor <strong>best fitness</strong> dan <strong>average fitness</strong> per generasi — kalau gap mengecil + plateau → konvergen.</p>
-      <div class="formula">stop: gen &gt; G_max ∨ Δf &lt; ε</div>
+      <div class="card-icon">📈</div>
+      <h3>p-Value &amp; Keputusan</h3>
+      <p>p-value = P(F_observed ≥ F_data | H₀) — probabilitas mengamati F sebesar ini (atau lebih ekstrem) jika H₀ benar. <strong>p &lt; α</strong> (typical 0.05): tolak H₀ → ada efek faktor signifikan. <strong>p ≥ α</strong>: tidak cukup bukti tolak H₀ → bukan berarti tidak ada efek (mungkin sample size kecil, low power). Reporting standar: <em>"F(2, 12) = 8.45, p = 0.005, η² = 0.58"</em> — F-statistic, df, p, dan effect size η² (proportion of variance explained).</p>
+      <div class="formula">p &lt; α → tolak H₀</div>
     </div>
   </div>
 
   <div class="tbl-wrap reveal" style="margin:32px 0">
     <table class="data-table">
-      <thead><tr><th>Hyperparameter</th><th>Range Tipikal</th><th>Efek Terlalu Kecil</th><th>Efek Terlalu Besar</th></tr></thead>
+      <thead><tr><th>Sumber Variasi</th><th>SS</th><th>df</th><th>MS = SS/df</th><th>F</th><th>p-value</th></tr></thead>
       <tbody>
-        <tr><td style="color:var(--cyan)">Population size N</td><td>30–100</td><td>Eksplorasi terbatas, mudah stuck</td><td>Komputasi mahal per generasi</td></tr>
-        <tr><td style="color:var(--green)">Crossover rate Pc</td><td>0.7–0.9</td><td>Kurang rekombinasi → konvergensi lambat</td><td>Disrupsi terlalu agresif</td></tr>
-        <tr><td style="color:var(--amber)">Mutation rate Pm</td><td>0.01–0.05 (≈1/n)</td><td>Stuck di lokal optimum (premature)</td><td>Mendekati random search</td></tr>
-        <tr><td style="color:var(--violet)">Tournament size k</td><td>2–5</td><td>Selection pressure rendah</td><td>Diversitas hilang cepat</td></tr>
-        <tr><td style="color:var(--pink)">Elite size k_elite</td><td>1–3 (1–5% N)</td><td>Best solution bisa hilang</td><td>Premature convergence</td></tr>
-        <tr><td style="color:var(--cyan)">Generations G_max</td><td>100–1000</td><td>Tidak konvergen</td><td>Buang waktu komputasi</td></tr>
+        <tr><td style="color:var(--cyan)">Antar Grup (faktor)</td><td>SS_b</td><td>k − 1</td><td>MS_b</td><td>MS_b / MS_w</td><td>P(F ≥ F_obs)</td></tr>
+        <tr><td style="color:var(--green)">Dalam Grup (error)</td><td>SS_w</td><td>N − k</td><td>MS_w</td><td>—</td><td>—</td></tr>
+        <tr><td style="color:var(--amber)">Total</td><td>SS_t = SS_b + SS_w</td><td>N − 1</td><td>—</td><td>—</td><td>—</td></tr>
       </tbody>
     </table>
   </div>
 
   <div class="info-box reveal">
-    <strong>Contoh Konkret — Optimasi Truss Structure (10 batang):</strong><br>
-    Cari diameter d_i tiap batang truss (10 dimensi continuous, d ∈ [5, 50] mm) yang minimumkan massa total dengan kendala stress σ ≤ σ_y dan defleksi δ ≤ δ_max. Fungsi objektif blackbox (panggil FEM). GA setting: N=50 (real-coded), Pc=0.8 (SBX), Pm=0.1 (Gaussian σ=2 mm), tournament k=3, elite k=2, G_max=200. Hasil: setelah ~80 generasi, mass best mencapai plateau ~38 kg (dari random init ~120 kg). Total ~10000 evaluasi FEM (50 × 200) — feasible kalau FEM cepat (~1 detik per call).
+    <strong>Contoh Konkret — Cutting Speed CNC vs Surface Roughness:</strong><br>
+    Eksperimen 3 level cutting speed (80, 100, 120 m/min), masing-masing 5 ulangan independent (total N = 15 trial). Data Ra (μm): level 80 → mean 2.4; level 100 → mean 1.8; level 120 → mean 2.1. SS_between = 0.96, SS_within = 0.64, df_b = 2, df_w = 12. <strong>MS_b = 0.48, MS_w = 0.053, F = 9.0, p = 0.004</strong>. Karena p &lt; 0.05 → tolak H₀: cutting speed signifikan mempengaruhi roughness. Post-hoc Tukey: level 100 berbeda signifikan dari 80 (p = 0.003); level 120 vs 80 tidak signifikan (p = 0.21). <strong>Keputusan engineering: pilih cutting speed 100 m/min</strong>.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Implementasi DEAP (Distributed Evolutionary Algorithms in Python):</strong> Library Python paling fleksibel untuk GA. Cara pakai: (1) define <code>creator</code> untuk Individual class, (2) register operators di <code>toolbox</code> (mate, mutate, select, evaluate), (3) jalankan <code>algorithms.eaSimple(pop, toolbox, cxpb=0.8, mutpb=0.1, ngen=200)</code>. Sangat customizable — bisa override apa saja. Alternatif: <strong>scikit-opt</strong> (lebih simple API), <strong>PyGAD</strong> (untuk neural network co-evolution), <strong>scipy.optimize.differential_evolution</strong> (variant DE, fitting untuk continuous problems).
+    💡 <strong>Implementasi scipy.stats.f_oneway:</strong> One-liner dalam Python: <code>from scipy.stats import f_oneway; F, p = f_oneway(group1, group2, group3)</code>. <strong>statsmodels</strong> memberikan tabel ANOVA lengkap: <code>import statsmodels.api as sm; from statsmodels.formula.api import ols; model = ols('y ~ C(faktor)', data=df).fit(); table = sm.stats.anova_lm(model, typ=2); print(table)</code>. Untuk effect size dan power analysis: <strong>pingouin</strong> (<code>pg.anova</code> + <code>pg.power_anova</code>). Visualisasi efek: <strong>seaborn.pointplot(x='faktor', y='y', data=df)</strong> + boxplot.
   </div>
 </div>
 
