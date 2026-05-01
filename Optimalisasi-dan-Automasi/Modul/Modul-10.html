@@ -1470,72 +1470,88 @@ ax.<span class="fn">legend</span>(); ax.<span class="fn">grid</span>(alpha=<span
   <div class="code-wrap reveal">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 2 — Constrained NLP: Desain Pegas Coil — Min Mass dengan SLSQP</span>
+      <span class="code-label">Cell 2 — DE vs PSO Benchmark di Rastrigin 10D + Convergence Comparison</span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
-    <pre><span class="cm"># ═══════════════════════════════════════════════════════════════════</span>
-<span class="cm"># PROBLEM: Desain pegas coil suspensi mobil — min massa dengan kendala</span>
-<span class="cm">#   Variabel: d (diameter wire, mm), N (jumlah lilitan), L (free length, mm)</span>
-<span class="cm">#   Objektif: m = ρ·π·(d²/4)·(πD)·N  (massa, ρ steel = 7.85e-6 kg/mm³)</span>
-<span class="cm">#   Kendala (non-linier):</span>
-<span class="cm">#     τ_max = 8FD/(πd³) ≤ τ_y  (tegangan torsion ≤ yield)</span>
-<span class="cm">#     δ = 8FD³N/(Gd⁴) ≥ δ_target  (deflection cukup untuk ride)</span>
-<span class="cm">#     L ≥ N·d  (avoid solid length, cukup spacing)</span>
+    <pre><span class="kw">from</span> scipy.optimize <span class="kw">import</span> differential_evolution
+
+np.random.<span class="fn">seed</span>(<span class="nm">42</span>)
+
+<span class="cm"># ═══════════════════════════════════════════════════════════════════</span>
+<span class="cm"># BENCHMARK: Rastrigin 10D — challenge non-konveks dimensi tinggi</span>
+<span class="cm">#   Bandingkan DE (scipy bawaan) vs PSO (manual implementation)</span>
+<span class="cm">#   Untuk fairness: budget evaluasi sama (~6000 fevals)</span>
 <span class="cm"># ═══════════════════════════════════════════════════════════════════</span>
 
-<span class="cm"># Konstanta material &amp; loading</span>
-rho = <span class="nm">7.85e-6</span>          <span class="cm"># density steel kg/mm³</span>
-G   = <span class="nm">79.3e3</span>            <span class="cm"># shear modulus (MPa = N/mm²)</span>
-tau_y = <span class="nm">600</span>             <span class="cm"># yield shear (MPa)</span>
-F   = <span class="nm">500</span>               <span class="cm"># load (N)</span>
-D   = <span class="nm">50</span>                <span class="cm"># mean coil diameter (mm) — fixed</span>
-delta_target = <span class="nm">25</span>      <span class="cm"># minimum deflection (mm)</span>
+DIM = <span class="nm">10</span>
+LB, UB = -<span class="nm">5.12</span>, <span class="nm">5.12</span>
 
-<span class="kw">def</span> <span class="fn">mass</span>(x):
-    d, N, L = x
-    <span class="kw">return</span> rho * np.pi * (d**<span class="nm">2</span>/<span class="nm">4</span>) * (np.pi * D) * N
+<span class="kw">def</span> <span class="fn">rastrigin_10d</span>(x):
+    x = np.<span class="fn">asarray</span>(x)
+    <span class="kw">return</span> <span class="nm">10</span> * <span class="fn">len</span>(x) + np.<span class="fn">sum</span>(x**<span class="nm">2</span> - <span class="nm">10</span> * np.<span class="fn">cos</span>(<span class="nm">2</span> * np.pi * x))
 
-<span class="kw">def</span> <span class="fn">stress_constraint</span>(x):
-    <span class="cm"># τ_y − τ_max ≥ 0  (kendala ≥ untuk SLSQP)</span>
-    d, N, L = x
-    tau_max = <span class="nm">8</span> * F * D / (np.pi * d**<span class="nm">3</span>)
-    <span class="kw">return</span> tau_y - tau_max
+<span class="cm"># ═══════════════ DIFFERENTIAL EVOLUTION (scipy) ═══════════════</span>
+de_history = []
+<span class="kw">def</span> <span class="fn">de_callback</span>(xk, convergence):
+    de_history.<span class="fn">append</span>(<span class="fn">rastrigin_10d</span>(xk))
 
-<span class="kw">def</span> <span class="fn">deflection_constraint</span>(x):
-    d, N, L = x
-    delta = <span class="nm">8</span> * F * D**<span class="nm">3</span> * N / (G * d**<span class="nm">4</span>)
-    <span class="kw">return</span> delta - delta_target           <span class="cm"># δ − δ_target ≥ 0</span>
+bounds = [(LB, UB)] * DIM
+de_res = <span class="fn">differential_evolution</span>(
+    rastrigin_10d, bounds,
+    maxiter=<span class="nm">100</span>, popsize=<span class="nm">15</span>,        <span class="cm"># 15·10 = 150 ind/gen × 100 gen = 15000 fevals</span>
+    seed=<span class="nm">42</span>, tol=<span class="nm">1e-8</span>, callback=de_callback
+)
 
-<span class="kw">def</span> <span class="fn">spacing_constraint</span>(x):
-    d, N, L = x
-    <span class="kw">return</span> L - N * d                       <span class="cm"># L ≥ N·d</span>
+<span class="fn">print</span>(<span class="st">f"DE: best fitness = {de_res.fun:.6f}"</span>)
+<span class="fn">print</span>(<span class="st">f"DE: x* = {np.round(de_res.x, 3)}"</span>)
+<span class="fn">print</span>(<span class="st">f"DE: nfev = {de_res.nfev}, success = {de_res.success}"</span>)
 
-constraints = [
-    {<span class="st">'type'</span>: <span class="st">'ineq'</span>, <span class="st">'fun'</span>: stress_constraint},
-    {<span class="st">'type'</span>: <span class="st">'ineq'</span>, <span class="st">'fun'</span>: deflection_constraint},
-    {<span class="st">'type'</span>: <span class="st">'ineq'</span>, <span class="st">'fun'</span>: spacing_constraint},
-]
-bounds = [(<span class="nm">2</span>, <span class="nm">15</span>), (<span class="nm">5</span>, <span class="nm">30</span>), (<span class="nm">50</span>, <span class="nm">200</span>)]   <span class="cm"># d ∈ [2,15], N ∈ [5,30], L ∈ [50,200]</span>
+<span class="cm"># ═══════════════ PSO (manual implementation) ═══════════════</span>
+N_part   = <span class="nm">30</span>          <span class="cm"># swarm size</span>
+T_max    = <span class="nm">200</span>         <span class="cm"># 30 × 200 = 6000 fevals</span>
+w_init, w_end = <span class="nm">0.9</span>, <span class="nm">0.4</span>   <span class="cm"># linearly decreasing inertia</span>
+c1, c2   = <span class="nm">1.5</span>, <span class="nm">1.5</span>      <span class="cm"># cognitive & social coefficients</span>
+v_max    = <span class="nm">0.2</span> * (UB - LB)
 
-<span class="cm"># Initial guess (feasible)</span>
-x0 = [<span class="nm">8</span>, <span class="nm">12</span>, <span class="nm">120</span>]
-res = <span class="fn">minimize</span>(mass, x0=x0, method=<span class="st">'SLSQP'</span>,
-               bounds=bounds, constraints=constraints,
-               options={<span class="st">'disp'</span>: <span class="kw">True</span>, <span class="st">'ftol'</span>: <span class="nm">1e-8</span>})
+<span class="cm"># Init swarm</span>
+pos = np.random.<span class="fn">uniform</span>(LB, UB, (N_part, DIM))
+vel = np.random.<span class="fn">uniform</span>(-v_max, v_max, (N_part, DIM))
+pbest = pos.<span class="fn">copy</span>()
+pbest_fit = np.<span class="fn">array</span>([<span class="fn">rastrigin_10d</span>(x) <span class="kw">for</span> x <span class="kw">in</span> pos])
+gbest = pbest[np.<span class="fn">argmin</span>(pbest_fit)].<span class="fn">copy</span>()
+gbest_fit = pbest_fit.<span class="fn">min</span>()
 
-d_opt, N_opt, L_opt = res.x
-<span class="fn">print</span>(<span class="st">f"\n═══ DESAIN OPTIMAL PEGAS ═══"</span>)
-<span class="fn">print</span>(<span class="st">f"  d (wire diameter) = {d_opt:6.3f} mm"</span>)
-<span class="fn">print</span>(<span class="st">f"  N (jumlah lilitan)= {N_opt:6.3f}"</span>)
-<span class="fn">print</span>(<span class="st">f"  L (free length)   = {L_opt:6.3f} mm"</span>)
-<span class="fn">print</span>(<span class="st">f"  Mass minimum      = {res.fun*1000:6.3f} g"</span>)
+pso_history = [gbest_fit]
+<span class="kw">for</span> t <span class="kw">in</span> <span class="fn">range</span>(T_max):
+    w = w_init + (w_end - w_init) * t / T_max     <span class="cm"># linear decay</span>
+    r1, r2 = np.random.<span class="fn">rand</span>(N_part, DIM), np.random.<span class="fn">rand</span>(N_part, DIM)
+    vel = w*vel + c1*r1*(pbest - pos) + c2*r2*(gbest - pos)
+    vel = np.<span class="fn">clip</span>(vel, -v_max, v_max)
+    pos = np.<span class="fn">clip</span>(pos + vel, LB, UB)
+    fit = np.<span class="fn">array</span>([<span class="fn">rastrigin_10d</span>(x) <span class="kw">for</span> x <span class="kw">in</span> pos])
+    <span class="cm"># update pbest</span>
+    mask = fit &lt; pbest_fit
+    pbest[mask] = pos[mask]
+    pbest_fit[mask] = fit[mask]
+    <span class="cm"># update gbest</span>
+    <span class="kw">if</span> pbest_fit.<span class="fn">min</span>() &lt; gbest_fit:
+        gbest = pbest[np.<span class="fn">argmin</span>(pbest_fit)].<span class="fn">copy</span>()
+        gbest_fit = pbest_fit.<span class="fn">min</span>()
+    pso_history.<span class="fn">append</span>(gbest_fit)
 
-<span class="cm"># Cek kendala aktif</span>
-<span class="fn">print</span>(<span class="st">f"\n═══ KENDALA AKTIF (g(x) ≈ 0 = binding) ═══"</span>)
-<span class="fn">print</span>(<span class="st">f"  Stress: τ_y − τ_max = {stress_constraint(res.x):8.3f}  ({'BINDING' if abs(stress_constraint(res.x))&lt;1 else 'slack'})"</span>)
-<span class="fn">print</span>(<span class="st">f"  Defl  : δ − δ_target = {deflection_constraint(res.x):8.3f}  ({'BINDING' if abs(deflection_constraint(res.x))&lt;0.01 else 'slack'})"</span>)
-<span class="fn">print</span>(<span class="st">f"  Spacing: L − N·d    = {spacing_constraint(res.x):8.3f}  ({'BINDING' if abs(spacing_constraint(res.x))&lt;0.01 else 'slack'})"</span>)</pre>
+<span class="fn">print</span>(<span class="st">f"\nPSO: best fitness = {gbest_fit:.6f}"</span>)
+<span class="fn">print</span>(<span class="st">f"PSO: x* = {np.round(gbest, 3)}"</span>)
+
+<span class="cm"># ═══════════════ COMPARISON PLOT ═══════════════</span>
+fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="nm">11</span>, <span class="nm">5</span>))
+ax.<span class="fn">plot</span>(de_history, color=<span class="st">'#a855f7'</span>, lw=<span class="nm">1.6</span>, label=<span class="st">f'DE (final f={de_res.fun:.3f})'</span>)
+ax.<span class="fn">plot</span>(pso_history, color=<span class="st">'#f97316'</span>, lw=<span class="nm">1.6</span>, label=<span class="st">f'PSO (final f={gbest_fit:.3f})'</span>)
+ax.<span class="fn">axhline</span>(<span class="nm">0</span>, color=<span class="st">'#fbbf24'</span>, ls=<span class="st">'--'</span>, label=<span class="st">'Global min f*=0'</span>)
+ax.<span class="fn">set_xlabel</span>(<span class="st">'Iteration / Generation'</span>); ax.<span class="fn">set_ylabel</span>(<span class="st">'Best fitness (log)'</span>)
+ax.<span class="fn">set_yscale</span>(<span class="st">'log'</span>)
+ax.<span class="fn">set_title</span>(<span class="st">f'DE vs PSO pada Rastrigin {DIM}D'</span>)
+ax.<span class="fn">legend</span>(); ax.<span class="fn">grid</span>(alpha=<span class="nm">0.25</span>); plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
   </div>
 
   <!-- Cell 3 -->
