@@ -875,52 +875,52 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 01 — MENGAPA METAHEURISTIK ═══ -->
+<!-- ═══ BAGIAN 01 — MENGAPA RULE-BASED MONITORING ═══ -->
 <hr class="divider" style="margin-top:64px">
 <div class="section" id="m-persamaan">
   <div class="section-label reveal">Bagian 01</div>
-  <h2 class="section-title reveal">Mengapa ANOVA:<br>Saat Optimasi Harus Dibuktikan Lewat Eksperimen Berisik</h2>
-  <p class="section-desc reveal">Optimasi engineering yang melibatkan <em>eksperimen fisik</em> (bukan simulasi formula tertutup) berhadapan dengan <strong>noise pengukuran</strong> dan <strong>biaya tinggi per trial</strong>. Memilih <em>cutting speed</em> CNC 80, 100, atau 120 m/min untuk surface roughness terbaik — tiap setting butuh setup mesin, run real, ukur. Hasil ber-noise: 5 ulangan saja sudah memberi distribusi. Pertanyaan kritis bukan "berapa nilai f optimum?" tapi <strong>"apakah perbedaan rata-rata antar level signifikan, atau hanya noise?"</strong> Inilah pertanyaan klasik <em>statistika inferensial</em>. Jawabannya: <strong>ANOVA (Analysis of Variance)</strong> — diciptakan oleh <strong style="color:var(--cyan)">Ronald A. Fisher (1925)</strong> di Rothamsted Experimental Station — partisi total varians data menjadi <em>varians antar-grup</em> (efek faktor) dan <em>varians dalam-grup</em> (noise). Rasio keduanya = <strong>statistik F</strong>. Kalau F besar (p &lt; 0.05), faktor signifikan → ada level optimum yang bisa dipilih dengan keyakinan statistik.</p>
+  <h2 class="section-title reveal">Mengapa Rule-Based:<br>Monitoring Real-Time yang Sederhana, Transparan &amp; Reliable</h2>
+  <p class="section-desc reveal">Setelah mesin dioptimasi (P9–P11) dan dipasang di lini produksi, pertanyaan beralih dari "<em>parameter mana yang terbaik?</em>" ke "<em>apakah mesin masih sehat saat ini?</em>". Inilah problem <strong>kondisi mesin (machine health)</strong>: detect anomali sebelum failure, kirim alert ke operator, log riwayat untuk trend analysis. Ada banyak pendekatan: (1) <em>rule-based</em> (threshold sederhana, IF-THEN), (2) <em>machine learning</em> (anomaly detection, classifier), (3) <em>deep learning</em> (autoencoder, LSTM forecasting), (4) <em>fisika-based</em> (digital twin). Yang paling banyak dipakai di industri: <strong>rule-based</strong> — <em>tidak glamour</em>, tetapi <em>reliable, transparan, dan mudah audit</em>. ISO 10816 (vibrasi), ISO 13373 (vibration condition monitoring), API 670 (turbomachinery) — semua menetapkan threshold rule-based. Dipakai oleh ABB, Siemens, GE, Honeywell sebagai <em>baseline</em> sebelum upgrade ke ML/DL. Pelajari rule-based dengan benar = bekal kuat untuk seluruh karier QC/maintenance engineering.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Lima Karakteristik ANOVA sebagai Metode Optimasi</div>
-    Berbasis eksperimen (tidak butuh formula f) &nbsp;·&nbsp; Memberi <em>p-value</em> untuk pengambilan keputusan &nbsp;·&nbsp; Ekonomis (sample size kecil) &nbsp;·&nbsp; Tangani noise pengukuran secara eksplisit &nbsp;·&nbsp; Skala terbatas (faktor sedikit, level diskrit)
+    <div class="label">Lima Karakteristik Rule-Based Alerting</div>
+    Transparan (auditable) &nbsp;·&nbsp; Deterministik (reproducible) &nbsp;·&nbsp; Real-time (latency &lt; 1 detik) &nbsp;·&nbsp; Compliance-ready (ISO/API) &nbsp;·&nbsp; Compute murah (microcontroller-friendly)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">📊</div>
-      <h3>Berbasis Bukti Statistik (p-value)</h3>
-      <p>Berbeda dari gradient/metaheuristik yang melaporkan "x* = nilai", ANOVA melaporkan <strong>"perbedaan signifikan secara statistik"</strong> dengan <em>p-value</em>. Insinyur dapat klaim "cutting speed 100 m/min memberi roughness terendah dengan p &lt; 0.01" — kuat untuk justifikasi engineering decision di hadapan manajemen / quality assurance. Standar <em>scientific evidence</em> di mechanical, manufacturing, biomedical engineering.</p>
-      <div class="formula">F = MS_b / MS_w → p-value</div>
+      <div class="card-icon">🔍</div>
+      <h3>Transparan &amp; Auditable</h3>
+      <p>Setiap keputusan alert bisa dijelaskan: "<em>karena rms = 8.2 mm/s &gt; threshold 7.1 mm/s, status = DANGER</em>". Auditor ISO/API hanya butuh review tabel rule. Bandingkan ML black-box (random forest, neural network) yang butuh SHAP/LIME untuk explainability. Untuk industri regulated (nuclear, aviation, medical), rule-based wajib karena <strong style="color:var(--cyan)">root-cause traceability</strong> 100% tanpa ambiguitas.</p>
+      <div class="formula">IF condition THEN action</div>
     </div>
     <div class="card">
-      <div class="card-icon">🧪</div>
-      <h3>Tangani Noise Pengukuran Eksplisit</h3>
-      <p>Setiap trial eksperimen punya noise (variasi alat ukur, fluktuasi material, manusia operator). ANOVA secara eksplisit memodelkan noise sebagai <em>varians dalam-grup (within)</em> dan membandingkan dengan <em>varians antar-grup (between)</em>. Kalau efek faktor lebih besar dari noise → signifikan. Tidak butuh asumsi gradient/smoothness — hanya butuh <strong>data eksperimen di tiap level faktor</strong>.</p>
-      <div class="formula">SS_total = SS_b + SS_w</div>
+      <div class="card-icon">🎯</div>
+      <h3>Deterministik &amp; Reproducible</h3>
+      <p>Untuk input yang sama, output selalu sama — tidak ada randomness. Berbeda dari ML yang punya noise pelatihan + inference. Konsekuensi positif: bug mudah direproduksi (input X selalu trigger alert; jika tidak, ada bug). Konsekuensi negatif: tidak adaptif terhadap drift (perlu re-tune threshold manual). Modern best practice: <em>rule-based core</em> + <em>ML adaptive layer</em> (Pertemuan 13).</p>
+      <div class="formula">f(x_t) = const → repeatable</div>
     </div>
     <div class="card">
-      <div class="card-icon">💰</div>
-      <h3>Ekonomis: Sample Size Kecil Cukup</h3>
-      <p>Untuk problem 1 faktor × 3 level dengan 5 ulangan tiap level = total 15 eksperimen. Cukup untuk dapat power statistik 80% (deteksi efek sedang). Bandingkan GA/PSO yang butuh ratusan-ribuan evaluasi. Untuk eksperimen mahal (CNC machining, welding, heat treatment), ANOVA jauh lebih hemat. <strong style="color:var(--cyan)">Sweet spot</strong>: 2–5 faktor, 2–4 level/faktor, &lt; 100 total trial.</p>
-      <div class="formula">N_trial = k_levels × n_replicates</div>
+      <div class="card-icon">⚡</div>
+      <h3>Real-Time &amp; Edge-Friendly</h3>
+      <p>Threshold check = 1 instruksi CPU (nanodetik). Bisa berjalan di <strong>edge device</strong>: PLC, Raspberry Pi, ESP32, microcontroller 8-bit. Tidak butuh GPU, internet, atau cloud. Latency end-to-end (sensor → alert) &lt; 100 ms. Bandingkan ML inference yang biasanya butuh 10–100 ms hanya untuk forward pass + butuh memory lebih besar. Untuk safety-critical (turbine over-speed), rule-based di hardware-level (ASIC) wajib.</p>
+      <div class="formula">latency &lt; 100 ms (edge)</div>
     </div>
     <div class="card">
-      <div class="card-icon">🐍</div>
-      <h3>Implementasi: scipy.stats &amp; statsmodels</h3>
-      <p>Python ekosistem: <strong>scipy.stats.f_oneway</strong> (one-way ANOVA cepat), <strong>statsmodels</strong> (full ANOVA table dengan formula API: <code>ols('y ~ C(faktor)', data).fit() → anova_lm</code>), <strong>pingouin</strong> (effect size, post-hoc Tukey HSD), <strong>pyDOE2</strong> (orthogonal arrays untuk Taguchi method). Visualisasi: <strong>seaborn.boxplot</strong> + <strong>seaborn.pointplot</strong> untuk effect plots; <strong>statsmodels.graphics.factorplots</strong> untuk interaction plot.</p>
-      <div class="formula">scipy.stats / statsmodels</div>
+      <div class="card-icon">📜</div>
+      <h3>Compliance-Ready (ISO/API)</h3>
+      <p>Standar industri sudah <em>menetapkan</em> threshold:<br>• <strong>ISO 10816-3</strong>: vibrasi 4 zona (A: good ≤ 1.4 mm/s, B: acceptable, C: unsatisfactory, D: danger ≥ 7.1 mm/s) untuk mesin 15–300 kW.<br>• <strong>API 670</strong>: turbomachinery vibrasi alert 6.4 mm/s, danger 12.7 mm/s.<br>• <strong>ISO 13373-3</strong>: bearing severity (kurtosis, crest factor) thresholds. Compliance audit hanya butuh tunjukkan implementation match standard.</p>
+      <div class="formula">ISO 10816-3 zone A | B | C | D</div>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Posisi Pertemuan 11 dalam Alur Mata Kuliah:</strong><br>
-    <strong>P1–P7</strong> (analisis sinyal) → <strong>UTS</strong> → <strong>P9</strong> (LP) → <strong>P10</strong> (NLP gradient-based) → <strong>P11 (Anda di sini — Optimasi Eksperimental ANOVA)</strong> → <strong>P12</strong> (Otomatisasi Monitoring rule-based) → <strong>P13</strong> (Otomatisasi Predictive ML) → <strong>P14–P15</strong> (Proyek akhir). ANOVA melengkapi toolbox optimasi: kalau LP/NLP butuh formula matematis dan metaheuristik butuh banyak evaluasi murah, ANOVA cocok untuk <em>eksperimen fisik mahal</em> dengan faktor diskrit. Kombinasi ANOVA + Taguchi method = standar industri untuk parameter optimization di manufacturing &amp; quality engineering (Six Sigma).
+    <strong>Posisi Pertemuan 12 dalam Alur Mata Kuliah:</strong><br>
+    <strong>P1–P7</strong> (analisis sinyal: RMS, peak, FFT, kurtosis, MFCC) → <strong>UTS</strong> → <strong>P9</strong> (LP) → <strong>P10</strong> (NLP) → <strong>P11</strong> (ANOVA) → <strong>P12 (Anda di sini — Otomatisasi Monitoring Rule-Based)</strong> → <strong>P13</strong> (Otomatisasi Predictive ML) → <strong>P14–P15</strong> (Proyek akhir). Rule-based menyatukan ekstraksi fitur (P1–P7) dengan keputusan otomasi: feature → threshold → alert. Ini <em>baseline</em> sebelum P13 (ML predictive) — selalu mulai rule-based, baru upgrade jika perlu.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Prinsip Utama:</strong> Sebelum pakai ANOVA: (1) <em>Cek asumsi</em> — normality (Shapiro-Wilk test), homoscedasticity / equal variance (Levene's test), independence antar-trial. (2) <em>Replicate</em> — minimal n=3 ulangan per kombinasi level untuk estimasi noise. (3) <em>Randomize</em> urutan eksperimen untuk hindari bias temporal (alat memanas, operator lelah). (4) <em>Set α</em> di awal (biasanya 0.05) — jangan ubah setelah lihat data (p-hacking). (5) Kalau ANOVA signifikan, lakukan <strong>post-hoc test</strong> (Tukey HSD) untuk mengidentifikasi level mana yang berbeda. (6) Untuk faktor <em>banyak (≥ 5)</em>, pakai <strong>fractional factorial</strong> atau <strong>Taguchi orthogonal arrays</strong> agar jumlah trial tetap manageable.
+    💡 <strong>Prinsip Utama:</strong> Sebelum bangun rule-based system: (1) <em>Definisikan threshold dengan referensi</em> (ISO/API/datasheet vendor) — jangan tebak. (2) <em>Pakai hysteresis</em> untuk hindari chattering saat sinyal di sekitar threshold. (3) <em>Tier alarm</em> (warning &lt; alert &lt; critical) untuk gradual escalation, bukan binary OK/FAIL. (4) <em>Debounce</em> (N consecutive samples) filter false alarm dari noise transient. (5) <em>Log semua transition state</em> untuk audit + trend analysis. (6) <em>Test edge cases</em>: sinyal exactly = threshold (boundary), sinyal naik-turun cepat (chattering test), sinyal mati total (sensor failure). (7) Setelah operasional, <em>monitor false-positive rate</em> dan <em>missed-detection rate</em>; tune threshold jika ada drift sistematik.
   </div>
 </div>
 
