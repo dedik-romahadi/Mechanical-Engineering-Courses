@@ -703,6 +703,11 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
         <input type="datetime-local" class="v-input" id="scheduleDue" style="margin-bottom:0;color-scheme:dark">
       </div>
     </div>
+    <div style="text-align:left;margin-bottom:14px;">
+      <label style="font-size:.75rem;color:#94a3b8;font-weight:600;display:block;margin-bottom:4px;">Perpanjangan (menit) — opsional</label>
+      <input type="number" class="v-input" id="scheduleExtension" min="0" value="0" placeholder="0 (tanpa perpanjangan)" style="margin-bottom:0;">
+      <p style="font-size:.7rem;color:#64748b;margin:4px 0 0;line-height:1.4;">Mahasiswa yang mengerjakan di sesi perpanjangan tercatat <strong style="color:#fb7185">⏰ Terlambat</strong> dengan poin dikurangi 20%. Setelah perpanjangan habis, submit diblokir.</p>
+    </div>
     <button class="v-btn-primary" onclick="saveSchedule()">💾 Simpan Jadwal</button>
     <button class="v-btn-cancel" onclick="hideScheduleModal()">Batal</button>
   </div>
@@ -5622,14 +5627,15 @@ function updateScheduleDisplay(){
 }
 
 function isLate(timestamp){
-  // v8 (Mei 2026): Terlambat = timestamp akses jatuh SETELAH deadline.
-  // Mahasiswa terlambat tetap bisa mengerjakan tugas; poin per soal
-  // dikurangi 20%, Comp Hard tidak dapat partial credit, dan tidak
-  // masuk Top Skor / Top Akses. Lihat Pedoman §9.1, §9.2, §15.4, §17.3.
+  // Exam (UTS/UAS): Terlambat HANYA jika timestamp dalam window perpanjangan
+  // (end, end+extension]. Setelah extension habis, submit diblokir oleh
+  // _isScheduleOpen() — tidak ada lagi label terlambat untuk submission baru.
+  // Lihat Pedoman §9.5 untuk aturan Exam-specific.
   if(!currentSchedule || !currentSchedule.end) return false;
   const t = new Date(timestamp).getTime();
   const e = new Date(currentSchedule.end).getTime();
-  return t > e;
+  const ext = (currentSchedule.extension || 0) * 60 * 1000;
+  return t > e && t <= (e + ext);
 }
 
 async function submitVisitor(){
@@ -6347,8 +6353,8 @@ function _showResetToast(msg) {
 function showScheduleModal(){
   document.getElementById('scheduleOverlay').classList.remove('hidden'); document.getElementById('schedulePw').value='';
   document.getElementById('scheduleError').textContent=''; document.getElementById('scheduleError').style.display='none';
-  if(currentSchedule){ document.getElementById('scheduleDuration').value=currentSchedule.duration||''; document.getElementById('scheduleDue').value=currentSchedule.due||''; }
-  else { document.getElementById('scheduleDuration').value='90';var dd=new Date();dd.setHours(dd.getHours()+2);dd.setMinutes(0,0,0);document.getElementById('scheduleDue').value=dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0')+'T'+String(dd.getHours()).padStart(2,'0')+':00'; }
+  if(currentSchedule){ document.getElementById('scheduleDuration').value=currentSchedule.duration||''; document.getElementById('scheduleDue').value=currentSchedule.due||''; document.getElementById('scheduleExtension').value=currentSchedule.extension||0; }
+  else { document.getElementById('scheduleDuration').value='90';var dd=new Date();dd.setHours(dd.getHours()+2);dd.setMinutes(0,0,0);document.getElementById('scheduleDue').value=dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0')+'T'+String(dd.getHours()).padStart(2,'0')+':00';document.getElementById('scheduleExtension').value=0; }
   setTimeout(()=>document.getElementById('schedulePw').focus(),100);
 }
 function hideScheduleModal(){document.getElementById('scheduleOverlay').classList.add('hidden');}
@@ -6358,8 +6364,10 @@ async function saveSchedule(){
   const ok = await _verifyAdminPw(pw);
   if(!ok){errEl.textContent='\u26a0 Password salah.';errEl.style.display='block';return;}
   const dur=parseInt(document.getElementById('scheduleDuration').value), due=document.getElementById('scheduleDue').value;
+  const ext=parseInt(document.getElementById('scheduleExtension').value)||0;
   if(!dur||dur<1){errEl.textContent='\u26a0 Durasi harus diisi (minimal 1 menit).';errEl.style.display='block';return;}
   if(!due){errEl.textContent='\u26a0 Batas akhir (due date) harus diisi.';errEl.style.display='block';return;}
+  if(ext<0){errEl.textContent='\u26a0 Perpanjangan tidak boleh negatif.';errEl.style.display='block';return;}
   errEl.style.display='none';
   // UTS: durasi dalam MENIT (bukan hari). startDate = dueDate - dur*60*1000
   const dueDate=new Date(due), startDate=new Date(dueDate.getTime()-dur*60*1000);
@@ -6376,7 +6384,8 @@ async function saveSchedule(){
     start: startDate.toISOString(),
     end:   dueDate.toISOString(),
     duration: dur,
-    due: due
+    due: due,
+    extension: ext
   }).then(() => {
     btns.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';});
     hideScheduleModal();
@@ -6431,14 +6440,23 @@ function _isScheduleOpen() {
     const now = Date.now();
     const s = new Date(currentSchedule.start).getTime();
     const e = new Date(currentSchedule.end).getTime();
-    return now >= s;   // v8: dropped upper bound — terlambat tetap bisa submit
+    const ext = (currentSchedule.extension || 0) * 60 * 1000;   // menit -> ms
+    // Exam: gate write di [start, end+extension]. Setelah perpanjangan habis,
+    // submit DIBLOKIR (beda dari modul yang allow indefinitely).
+    return now >= s && now <= (e + ext);
   } catch(e) { return false; }
 }
 
 // ─── v8 Late submission helpers (Pedoman §9.2, §15.4) ───────────────
 function _isPastDeadline() {
+  // Exam: "past deadline" (untuk late multiplier 0.8) hanya saat dalam
+  // window perpanjangan (now in (end, end+extension]). Setelah extension habis,
+  // _isScheduleOpen() = false jadi award functions tidak akan dipanggil.
   if (!currentSchedule || !currentSchedule.end) return false;
-  return Date.now() > new Date(currentSchedule.end).getTime();
+  const now = Date.now();
+  const e = new Date(currentSchedule.end).getTime();
+  const ext = (currentSchedule.extension || 0) * 60 * 1000;
+  return now > e && now <= (e + ext);
 }
 function _getLateMultiplier() {
   return _isPastDeadline() ? 0.8 : 1.0;
@@ -6586,27 +6604,41 @@ setInterval(() => {
 // Show/hide late-access banner on Tugas tab based on schedule state.
 // Student must be logged in (has identity) to see the banner.
 function _updateLateBanner() {
+  // Exam: 3 state (belum-mulai / sesi-perpanjangan / habis-total).
+  // Pedoman §9.5 — untuk modul, lihat _updateLateBanner versi modul.
   try {
     const banner = document.getElementById('lateAccessBanner');
     if (!banner) return;
     const me = (typeof getIdentity === 'function') ? getIdentity() : null;
     const isStudent = me && me.nim && me.role !== 'dosen';
-    const open = _isScheduleOpen();
-    const past = (typeof _isPastDeadline === 'function') ? _isPastDeadline() : false;
-    // v8: show banner if before-start (open=false & past=false) OR after-deadline (past=true)
-    if (!isStudent || (open && !past)) {
+    if (!isStudent || !currentSchedule || !currentSchedule.start || !currentSchedule.end) {
       banner.style.display = 'none';
       return;
     }
-    // Update banner content based on state
+    const now = Date.now();
+    const s = new Date(currentSchedule.start).getTime();
+    const e = new Date(currentSchedule.end).getTime();
+    const ext = (currentSchedule.extension || 0) * 60 * 1000;
+    // Hide jika dalam ujian aktif (tepat waktu)
+    if (now >= s && now <= e) {
+      banner.style.display = 'none';
+      return;
+    }
     const titleEl = banner.querySelector('div[style*="font-weight:800"]');
     const msgEl = banner.querySelector('p');
-    if (past) {
-      if (titleEl) titleEl.textContent = 'Akses Setelah Deadline — Status Terlambat';
-      if (msgEl) msgEl.innerHTML = 'Anda <strong style="color:#fff">tetap dapat mengerjakan tugas</strong>, namun status akan tercatat <strong style="color:#fff">⏰ Terlambat</strong> dengan ketentuan: <strong style="color:#fff">poin per soal dikurangi 20%</strong>, <strong style="color:#fff">tidak masuk Top Skor / Top Akses</strong>, dan <strong style="color:#fff">Comp Hard tidak dapat poin partial</strong> jika jawaban salah.';
+    if (now < s) {
+      // State 1: Belum mulai
+      if (titleEl) titleEl.textContent = 'Ujian Belum Dibuka';
+      if (msgEl) msgEl.innerHTML = 'Ujian belum dimulai. Tunggu hingga jadwal dibuka oleh dosen. <strong style="color:#fff">Pengerjaan soal di luar jadwal tidak akan disimpan.</strong>';
+    } else if (now <= e + ext) {
+      // State 2: Sesi perpanjangan (terlambat tapi masih bisa submit)
+      const sisaMnt = Math.max(1, Math.ceil((e + ext - now) / 60000));
+      if (titleEl) titleEl.textContent = '⏰ Sesi Perpanjangan — Status Terlambat';
+      if (msgEl) msgEl.innerHTML = 'Anda berada di <strong style="color:#fff">sesi perpanjangan ujian</strong> (sisa ' + sisaMnt + ' menit). Status tercatat <strong style="color:#fff">⏰ Terlambat</strong>: <strong style="color:#fff">poin per soal dikurangi 20%</strong>, <strong style="color:#fff">tidak masuk Top Skor / Top Akses</strong>, dan <strong style="color:#fff">Comp Hard tidak dapat partial credit</strong>. Setelah perpanjangan habis, submit akan diblokir.';
     } else {
-      if (titleEl) titleEl.textContent = 'Akses di Luar Jadwal Perkuliahan';
-      if (msgEl) msgEl.innerHTML = 'Pertemuan belum dibuka. Anda dapat tetap melihat materi, namun <strong style="color:#fff">poin dan kehadiran tidak akan dicatat</strong>. Pengerjaan soal di halaman ini tidak akan disimpan.';
+      // State 3: Habis total
+      if (titleEl) titleEl.textContent = '⏱ Waktu Ujian Sudah Habis';
+      if (msgEl) msgEl.innerHTML = 'Waktu pengerjaan ujian (termasuk perpanjangan) sudah berakhir. <strong style="color:#fff">Submit jawaban tidak lagi disimpan</strong>. Hubungi dosen jika ada kebutuhan khusus.';
     }
     banner.style.display = 'flex';
   } catch(e) {}
