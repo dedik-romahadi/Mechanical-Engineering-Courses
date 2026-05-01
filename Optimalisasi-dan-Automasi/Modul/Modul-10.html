@@ -2155,16 +2155,16 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C6</div>
-        <div class="comp-q">Lakukan <strong>1 iterasi gradient descent</strong> untuk f(x) = x² mulai dari x₀ = 5 dengan step size α = 0.3. Formula: <code>x₁ = x₀ − α·f'(x₀)</code>. Print <strong>x₁</strong>.</div>
+        <div class="comp-q"><strong>GA arithmetic crossover</strong>: parent P₁ = [4, 7, 2, 5] dan P₂ = [2, 9, 6, 3]. Hitung anak <code>child = α·P₁ + (1−α)·P₂</code> dengan α = 0.5. Print <strong>jumlah elemen child</strong> (sum).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>f'(x) = 2x</code>. Di x₀=5: <code>f'(5) = 10</code>. Update: <code>x₁ = 5 − 0.3·10 = 5 − 3 = <strong>2.0</strong></code>. Iterasi konvergen ke 0.</div>
+      <div class="comp-hint">💡 <code>child = 0.5·[4,7,2,5] + 0.5·[2,9,6,3] = [3, 8, 4, 4]</code>. Sum = 3+8+4+4 = <strong>19</strong>. Arithmetic crossover banyak dipakai pada GA real-coded (kontinu) untuk menjamin offspring tetap di dalam convex hull parent.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">x setelah 1 iter</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">sum(child)</strong></span></div>
         <textarea class="code-textarea" id="code-c6" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c6')"></textarea>
         <div class="stdout-box" id="stdout-c6"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c6" onclick="runAndCheck('c6', 2.0, 0.01)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c6" onclick="runAndCheck('c6', 19.0, 0.05)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c6"></div>
     </div>
 
@@ -2172,16 +2172,16 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C7</div>
-        <div class="comp-q">Untuk fungsi <strong>f(x) = x⁴ − 4x² + 5</strong>, hitung 1 step <strong>Newton's method</strong> mulai dari x₀ = 3 dengan formula <code>x₁ = x₀ − f'(x₀)/f''(x₀)</code>. Print <strong>x₁</strong>.</div>
+        <div class="comp-q"><strong>PSO linear inertia decay</strong>: <code>w(t) = w_max − (w_max − w_min)·(t/t_max)</code>. Untuk <code>w_max = 0.9</code>, <code>w_min = 0.4</code>, <code>t = 40</code>, <code>t_max = 100</code>, hitung <strong>w(40)</strong>. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>f'(x) = 4x³ − 8x</code>, <code>f''(x) = 12x² − 8</code>. Di x₀ = 3: f'(3) = 108 − 24 = 84; f''(3) = 108 − 8 = 100. <code>x₁ = 3 − 84/100 = 3 − 0.84 = <strong>2.16</strong></code>. (Catatan: function ini non-konveks dengan minimum di x = ±√2; Newton bisa konvergen lokal).</div>
+      <div class="comp-hint">💡 <code>w(40) = 0.9 − (0.9 − 0.4)·(40/100) = 0.9 − 0.5·0.4 = 0.9 − 0.2 = <strong>0.7</strong></code>. Linear decay membantu PSO bertransisi dari <em>eksplorasi</em> (w tinggi → momentum besar) ke <em>eksploitasi</em> (w rendah → fokus refining).</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">x setelah 1 Newton step</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">w(40)</strong></span></div>
         <textarea class="code-textarea" id="code-c7" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c7')"></textarea>
         <div class="stdout-box" id="stdout-c7"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c7" onclick="runAndCheck('c7', 2.16, 0.01)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c7" onclick="runAndCheck('c7', 0.7, 0.005)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c7"></div>
     </div>
 
@@ -2189,16 +2189,16 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C8</div>
-        <div class="comp-q">Validasi konveksitas <strong>f(x) = x⁴ + 2x² + 1</strong> di x = 1 via Hessian (2nd derivative). Hitung <code>f''(1)</code>. Print nilainya. Jika <code>f''(x) ≥ 0</code> di seluruh domain → konveks.</div>
+        <div class="comp-q"><strong>Roulette wheel selection</strong>: 4 individu dengan fitness [5, 15, 30, 50]. Hitung <strong>probabilitas individu dengan fitness 30</strong> terpilih (P = fᵢ / Σf). Print nilainya (desimal).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>f'(x) = 4x³ + 4x</code>, <code>f''(x) = 12x² + 4</code>. Di x = 1: <code>f''(1) = 12 + 4 = <strong>16</strong></code>. Karena f''(x) = 12x² + 4 ≥ 4 &gt; 0 untuk semua x, fungsi ini <em>strictly convex</em> — sembarang minimum lokal = global.</div>
+      <div class="comp-hint">💡 Σf = 5 + 15 + 30 + 50 = 100. <code>P(f=30) = 30/100 = <strong>0.30</strong></code>. Roulette wheel = "fitness-proportionate" selection: makin tinggi fitness, makin besar slice di "rolet". Alternatif: tournament selection (tidak peka skala fitness).</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">f''(1)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">probabilitas (desimal)</strong></span></div>
         <textarea class="code-textarea" id="code-c8" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c8')"></textarea>
         <div class="stdout-box" id="stdout-c8"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c8" onclick="runAndCheck('c8', 16.0, 0.01)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c8" onclick="runAndCheck('c8', 0.30, 0.005)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c8"></div>
     </div>
 
@@ -2206,16 +2206,16 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C9</div>
-        <div class="comp-q">Selesaikan NLP berkendala dengan bounds: <strong>min f(x,y) = (x−2)² + (y−3)²</strong> s.t. <code>0 ≤ x ≤ 1</code>, <code>0 ≤ y ≤ 5</code>. Pakai <code>method='L-BFGS-B'</code>, x0 = [0.5, 0.5]. Print <strong>x optimal</strong>.</div>
+        <div class="comp-q"><strong>DE mutation vector</strong>: formula DE/rand/1: <code>v = x_r1 + F·(x_r2 − x_r3)</code>. Untuk <code>F = 0.6</code>, <code>x_r1 = [2, 3]</code>, <code>x_r2 = [5, 1]</code>, <code>x_r3 = [1, 2]</code>, hitung mutant vector v. Print <strong>sum(v)</strong>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Tanpa kendala, optimum di (2, 3). Tapi karena x ≤ 1, projection ke boundary: x = 1 (binding upper bound), y = 3 (interior). Print <code>res.x[0]</code> = <strong>1.0</strong>.</div>
+      <div class="comp-hint">💡 <code>x_r2 − x_r3 = [4, −1]</code>. <code>F·(x_r2 − x_r3) = [2.4, −0.6]</code>. <code>v = [2, 3] + [2.4, −0.6] = [4.4, 2.4]</code>. <code>sum(v) = 4.4 + 2.4 = <strong>6.8</strong></code>. F (scaling factor) tipikal 0.5–0.9; F kecil → eksploitasi, F besar → eksplorasi.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">x optimal (x[0])</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">sum(v)</strong></span></div>
         <textarea class="code-textarea" id="code-c9" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c9')"></textarea>
         <div class="stdout-box" id="stdout-c9"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c9" onclick="runAndCheck('c9', 1.0, 0.01)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c9" onclick="runAndCheck('c9', 6.8, 0.01)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c9"></div>
     </div>
 
@@ -2223,16 +2223,16 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C10</div>
-        <div class="comp-q"><strong>Penalty method</strong>: untuk min f(x) = x² s.t. x ≥ 2, formulasi penalty: <code>F(x) = x² + ρ·max(0, 2−x)²</code>. Hitung <strong>F(1.5)</strong> dengan ρ = 100. Print nilainya.</div>
+        <div class="comp-q"><strong>Total fitness evaluations PSO</strong>: untuk swarm <code>N = 20</code> partikel dijalankan selama <code>T = 50</code> iterasi (termasuk evaluasi posisi awal). Total evaluasi = <code>N·(T + 1)</code>. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Di x = 1.5: <code>x² = 2.25</code>, <code>max(0, 2−1.5) = 0.5</code>, penalty = <code>100·(0.5)² = 25</code>. Total: <code>F(1.5) = 2.25 + 25 = <strong>27.25</strong></code>. Saat ρ → ∞, solusi minimum mendekati x = 2 (constraint binding).</div>
+      <div class="comp-hint">💡 <code>N·(T+1) = 20·51 = <strong>1020</strong></code>. Setiap partikel dievaluasi sekali pada inisialisasi (gen 0) plus 1× per iterasi. Compute budget = #fungsi evaluasi → kunci membandingkan algoritma; <em>not</em> wall-clock yang variable per mesin.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">F(1.5)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">total evaluasi</strong></span></div>
         <textarea class="code-textarea" id="code-c10" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c10')"></textarea>
         <div class="stdout-box" id="stdout-c10"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c10" onclick="runAndCheck('c10', 27.25, 0.05)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c10" onclick="runAndCheck('c10', 1020, 0.5)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c10"></div>
     </div>
 
