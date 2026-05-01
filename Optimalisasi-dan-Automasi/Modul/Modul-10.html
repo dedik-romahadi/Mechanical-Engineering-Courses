@@ -766,10 +766,10 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
 <!-- ─── SUBNAV (only visible when Modul tab is active) ─── -->
 <div id="modulSubnav" class="subnav-bar show">
-  <a href="#m-persamaan">Mengapa NLP</a>
-  <a href="#m-solusi">Gradient Descent</a>
-  <a href="#m-dmf">Newton's Method</a>
-  <a href="#m-resonashi">KKT &amp; Constraints</a>
+  <a href="#m-persamaan">Mengapa Metaheuristik</a>
+  <a href="#m-solusi">Genetic Algorithm</a>
+  <a href="#m-dmf">PSO</a>
+  <a href="#m-resonashi">Variant &amp; Tuning</a>
   <a href="#m-analogi">Analogi</a>
   <a href="#m-animasi">Animasi</a>
   <a href="#m-isolasi">Aplikasi</a>
@@ -811,23 +811,23 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">min f(x), x ∈ ℝⁿ</span>
-    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">∇f(x*) = 0</span>
-    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">x_{k+1} = x_k − α∇f(x_k)</span>
-    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">∇²f(x) ≻ 0</span>
-    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">L(x,λ,μ) = f + λᵀh + μᵀg</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">μᵢ·gᵢ(x) = 0</span>
-    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">Newton: H·d = −∇f</span>
-    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">scipy.optimize.minimize</span>
+    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">population P = {x₁, x₂, …, xₙ}</span>
+    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">crossover + mutation</span>
+    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">v_i = w·v_i + c₁r₁(p_i − x_i) + c₂r₂(g − x_i)</span>
+    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">fitness(x) = f(x)</span>
+    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">selection: tournament/roulette</span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">x_{t+1} = x_t + v_{t+1}</span>
+    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">elitism: keep best k</span>
+    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">DEAP / pyswarm / scikit-opt</span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Pertemuan 11 &nbsp;·&nbsp; Optimalisasi &amp; Automasi &nbsp;·&nbsp; 2025/2026</div>
     <h1 class="hero-title">
-      <span class="hl-cyan">Optimasi Non-Linear —</span><br>
-      <em>Gradient &amp; Constraint Handling</em><br>
-      <span class="hl-amber">Mendaki Bukit Fungsi Konveks dengan KKT</span>
+      <span class="hl-cyan">Metaheuristik —</span><br>
+      <em>Genetic Algorithm &amp; PSO</em><br>
+      <span class="hl-amber">Optimasi Non-Konveks Tanpa Gradient</span>
     </h1>
-    <p class="hero-sub">Setelah Pertemuan 9 mengupas LP yang asumsi linieritas-nya cantik, dunia teknik mesin penuh dengan masalah <strong>non-linier</strong>: gaya gesek kuadratik, drag aerodinamis sebanding v², deformasi besar dengan stiffness non-linier, biaya energi yang naik eksponensial saat overload. <strong>Non-Linear Programming (NLP)</strong> menyelesaikan <code>min f(x)</code> di mana f dan/atau kendala g, h berupa fungsi non-linier. Pelajari <em>gradient descent</em> &amp; line search untuk turun mengikuti slope, <em>Newton's method</em> untuk konvergensi kuadratik, kondisi optimalitas <strong style="color:var(--cyan)">KKT</strong> untuk masalah berkendala, dan teknik <em>penalty</em>/<em>Lagrangian</em> untuk transformasi kendala — semua siap dieksekusi via <code>scipy.optimize.minimize</code>.</p>
+    <p class="hero-sub">Pertemuan 9 (LP) dan Pertemuan 10 (NLP) menggunakan informasi <em>gradient</em> untuk menemukan optimum. Tetapi banyak masalah engineering nyata <strong>tidak punya gradient</strong> (simulasi blackbox FEM/CFD), <strong>diskrit</strong> (pilih jumlah blade integer), atau <strong>multi-modal</strong> dengan ribuan lokal optimum (desain crashworthy, neural network). <strong>Metaheuristik</strong> adalah keluarga algoritma yang terinspirasi dari fenomena alam: <em>Genetic Algorithm (GA)</em> meniru evolusi biologis (selection, crossover, mutation) dan <em>Particle Swarm Optimization (PSO)</em> meniru kawanan burung/ikan. Keduanya gradient-free, parallel population-based, dan mampu eksplor seluruh search space — <em>menukar</em> garansi konvergensi global dengan ekspektasi probabilistik solusi mendekati global. Standar industri untuk parameter tuning desain mesin, controller robust, scheduling kompleks.</p>
     <div class="hero-stats">
       <div class="stat"><div class="stat-num">8</div><div class="stat-lbl">Bagian Materi</div></div>
       <div class="stat"><div class="stat-num">4</div><div class="stat-lbl">Animasi</div></div>
