@@ -1397,113 +1397,109 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 08 — PYTHON RULE-BASED MONITORING ═══ -->
+<!-- ═══ BAGIAN 08 — PYTHON ML KLASIFIKASI ═══ -->
 <hr class="divider">
 <div class="section" id="m-jupyter">
   <div class="section-label reveal">Bagian 08</div>
-  <h2 class="section-title reveal">Implementasi Python<br>Rule-Based Monitoring di Jupyter Notebook</h2>
-  <p class="section-desc reveal">Empat cell berikut membangun sistem rule-based monitoring lengkap: Cell 1 implementasi <strong>ISO 10816 zone classification</strong> + threshold check pada streaming sinyal RMS sintetis. Cell 2 implementasi <strong>HysteresisAlarm class</strong> dengan dual threshold (T_on/T_off) dan demonstrasi anti-chattering. Cell 3 implementasi <strong>finite state machine (FSM)</strong> lengkap dengan debouncing N consecutive samples, tier alarm (warning/alert/critical), audit log CSV. Cell 4 mendefinisikan <strong>fungsi <code>run_monitoring_pipeline()</code></strong> reusable end-to-end: input sinyal time series, output state history + alert events + dashboard visualization (matplotlib).</p>
+  <h2 class="section-title reveal">Implementasi Python<br>Machine Learning Klasifikasi di Jupyter Notebook</h2>
+  <p class="section-desc reveal">Empat cell berikut membangun pipeline ML klasifikasi lengkap untuk fault detection: Cell 1 generate <strong>synthetic dataset</strong> (3 fitur RMS, peak, kurt; 2 kelas healthy/fault) + train/test split + Logistic Regression baseline. Cell 2 implementasi <strong>Random Forest Classifier</strong> dengan feature importance + confusion matrix + classification report. Cell 3 <strong>SVM dengan kernel RBF</strong> + standardize via Pipeline + ROC curve + AUC visualization. Cell 4 <strong>5-fold cross-validation</strong> + GridSearchCV hyperparameter tuning untuk optimasi Random Forest.</p>
 
   <div class="info-box reveal">
     <strong>📓 Petunjuk Pengerjaan di Jupyter Notebook:</strong><br>
     1. Buka VS Code → terminal → <code>conda activate optoauto</code><br>
-    2. Buat file: <code>p12_monitoring.ipynb</code><br>
+    2. Buat file: <code>p13_ml_classification.ipynb</code><br>
     3. Salin Cell 1–4 ke notebook (satu cell per cell, jangan digabung)<br>
     4. Klik <strong>Run All</strong> — pastikan tidak ada error<br>
-    5. Package yang diperlukan: <code>numpy</code>, <code>pandas</code>, <code>matplotlib</code>
+    5. Package yang diperlukan: <code>numpy</code>, <code>pandas</code>, <code>matplotlib</code>, <code>scikit-learn</code>
   </div>
 
   <!-- Cell 1 -->
   <div class="code-wrap reveal">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 1 — ISO 10816-3 Zone Classification + Threshold Check pada Streaming RMS</span>
+      <span class="code-label">Cell 1 — Synthetic Bearing Fault Dataset + Logistic Regression Baseline</span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
     <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> pandas <span class="kw">as</span> pd
 <span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+<span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> train_test_split
+<span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> StandardScaler
+<span class="kw">from</span> sklearn.linear_model <span class="kw">import</span> LogisticRegression
+<span class="kw">from</span> sklearn.metrics <span class="kw">import</span> classification_report, confusion_matrix, accuracy_score, f1_score
 
 np.random.<span class="fn">seed</span>(<span class="nm">42</span>)
 
 <span class="cm"># ═══════════════════════════════════════════════════════════════════</span>
-<span class="cm"># SCENARIO: Pump sentrifugal 50 kW (Class II, rigid foundation)</span>
-<span class="cm">#   Pakai ISO 10816-3 Group 2 thresholds:</span>
-<span class="cm">#     A (Good)        : RMS ≤ 1.4 mm/s</span>
-<span class="cm">#     B (Acceptable)  : 1.4 < RMS ≤ 2.8 mm/s</span>
-<span class="cm">#     C (Unsatisfactory): 2.8 < RMS ≤ 4.5 mm/s</span>
-<span class="cm">#     D (Danger)      : RMS > 4.5 mm/s</span>
-<span class="cm">#   Simulasi: 30 hari operational, RMS naik perlahan dari 0.9 → 5.5</span>
+<span class="cm"># DATASET: Synthetic bearing fault classification</span>
+<span class="cm">#   Features: RMS, peak, kurtosis (3 features)</span>
+<span class="cm">#   Classes : 0=healthy, 1=fault (binary)</span>
+<span class="cm">#   N = 1000 samples (500 healthy + 500 fault, balanced)</span>
 <span class="cm"># ═══════════════════════════════════════════════════════════════════</span>
 
-<span class="kw">def</span> <span class="fn">iso10816_zone</span>(rms_mm_s):
-    <span class="st">"""Classify RMS velocity ke zone ISO 10816-3 Group 2."""</span>
-    <span class="kw">if</span> rms_mm_s &lt;= <span class="nm">1.4</span>:
-        <span class="kw">return</span> <span class="st">'A'</span>, <span class="st">'GOOD'</span>, <span class="st">'#22c55e'</span>
-    <span class="kw">elif</span> rms_mm_s &lt;= <span class="nm">2.8</span>:
-        <span class="kw">return</span> <span class="st">'B'</span>, <span class="st">'ACCEPTABLE'</span>, <span class="st">'#06b6d4'</span>
-    <span class="kw">elif</span> rms_mm_s &lt;= <span class="nm">4.5</span>:
-        <span class="kw">return</span> <span class="st">'C'</span>, <span class="st">'UNSATISFACTORY'</span>, <span class="st">'#f59e0b'</span>
-    <span class="kw">else</span>:
-        <span class="kw">return</span> <span class="st">'D'</span>, <span class="st">'DANGER'</span>, <span class="st">'#ec4899'</span>
+n_per_class = <span class="nm">500</span>
 
-<span class="cm"># Generate sinyal RMS sintetis: degradasi linear + noise</span>
-n_days = <span class="nm">30</span>
-samples_per_day = <span class="nm">96</span>          <span class="cm"># 1 sample / 15 menit</span>
-n_total = n_days * samples_per_day
-t = np.<span class="fn">linspace</span>(<span class="nm">0</span>, n_days, n_total)
+<span class="cm"># Healthy: lower RMS, lower peak, kurtosis ~3 (Gaussian-like)</span>
+rms_h  = np.random.<span class="fn">normal</span>(<span class="nm">1.0</span>, <span class="nm">0.2</span>, n_per_class)
+peak_h = np.random.<span class="fn">normal</span>(<span class="nm">3.5</span>, <span class="nm">0.6</span>, n_per_class)
+kurt_h = np.random.<span class="fn">normal</span>(<span class="nm">3.0</span>, <span class="nm">0.4</span>, n_per_class)
 
-<span class="cm"># Linear degradation: 0.9 → 5.5 mm/s</span>
-rms_clean = <span class="nm">0.9</span> + (t / n_days) * (<span class="nm">5.5</span> - <span class="nm">0.9</span>)
-rms_signal = rms_clean + np.random.<span class="fn">normal</span>(<span class="nm">0</span>, <span class="nm">0.15</span>, n_total)
-rms_signal = np.<span class="fn">clip</span>(rms_signal, <span class="nm">0.1</span>, <span class="kw">None</span>)
+<span class="cm"># Fault: higher RMS, higher peak, kurtosis &gt; 4 (heavy-tailed impacts)</span>
+rms_f  = np.random.<span class="fn">normal</span>(<span class="nm">2.5</span>, <span class="nm">0.5</span>, n_per_class)
+peak_f = np.random.<span class="fn">normal</span>(<span class="nm">8.0</span>, <span class="nm">1.5</span>, n_per_class)
+kurt_f = np.random.<span class="fn">normal</span>(<span class="nm">5.5</span>, <span class="nm">0.8</span>, n_per_class)
 
-<span class="cm"># Apply zone classification</span>
-zones = [<span class="fn">iso10816_zone</span>(r) <span class="kw">for</span> r <span class="kw">in</span> rms_signal]
-zone_codes = [z[<span class="nm">0</span>] <span class="kw">for</span> z <span class="kw">in</span> zones]
-zone_colors = [z[<span class="nm">2</span>] <span class="kw">for</span> z <span class="kw">in</span> zones]
+<span class="cm"># Combine + add label</span>
+X = np.<span class="fn">column_stack</span>([
+    np.<span class="fn">concatenate</span>([rms_h, rms_f]),
+    np.<span class="fn">concatenate</span>([peak_h, peak_f]),
+    np.<span class="fn">concatenate</span>([kurt_h, kurt_f]),
+])
+y = np.<span class="fn">concatenate</span>([np.<span class="fn">zeros</span>(n_per_class), np.<span class="fn">ones</span>(n_per_class)]).<span class="fn">astype</span>(<span class="kw">int</span>)
+feature_names = [<span class="st">'RMS'</span>, <span class="st">'Peak'</span>, <span class="st">'Kurtosis'</span>]
 
-<span class="cm"># Hitung jumlah hari di tiap zone</span>
-<span class="kw">from</span> collections <span class="kw">import</span> Counter
-zone_count = <span class="fn">Counter</span>(zone_codes)
-<span class="fn">print</span>(<span class="st">"═══ ZONE DISTRIBUTION (30 hari) ═══"</span>)
-<span class="kw">for</span> z <span class="kw">in</span> [<span class="st">'A'</span>, <span class="st">'B'</span>, <span class="st">'C'</span>, <span class="st">'D'</span>]:
-    pct = <span class="nm">100</span> * zone_count[z] / n_total
-    <span class="fn">print</span>(<span class="st">f"  Zone {z}: {zone_count[z]:5d} samples ({pct:5.1f}%)"</span>)
+<span class="fn">print</span>(<span class="st">f"Dataset: X shape = {X.shape}, y shape = {y.shape}"</span>)
+<span class="fn">print</span>(<span class="st">f"Class distribution: healthy={sum(y==0)}, fault={sum(y==1)}"</span>)
 
-<span class="cm"># First crossing: kapan masuk Zone B, C, D?</span>
-<span class="kw">def</span> <span class="fn">first_cross</span>(rms, threshold):
-    idx = np.<span class="fn">argmax</span>(rms &gt; threshold)
-    <span class="kw">return</span> idx <span class="kw">if</span> idx &gt; <span class="nm">0</span> <span class="kw">else</span> -<span class="nm">1</span>
+<span class="cm"># ═══════════════ TRAIN/TEST SPLIT ═══════════════</span>
+X_train, X_test, y_train, y_test = <span class="fn">train_test_split</span>(
+    X, y, test_size=<span class="nm">0.2</span>, random_state=<span class="nm">42</span>, stratify=y
+)
+<span class="fn">print</span>(<span class="st">f"\nTrain: {X_train.shape[0]} samples, Test: {X_test.shape[0]} samples"</span>)
 
-<span class="fn">print</span>(<span class="st">"\n═══ FIRST THRESHOLD CROSSING ═══"</span>)
-<span class="kw">for</span> thr, lbl <span class="kw">in</span> [(<span class="nm">1.4</span>, <span class="st">'A→B'</span>), (<span class="nm">2.8</span>, <span class="st">'B→C'</span>), (<span class="nm">4.5</span>, <span class="st">'C→D'</span>)]:
-    idx = <span class="fn">first_cross</span>(rms_signal, thr)
-    day = t[idx] <span class="kw">if</span> idx &gt; <span class="nm">0</span> <span class="kw">else</span> -<span class="nm">1</span>
-    <span class="fn">print</span>(<span class="st">f"  Threshold {thr} mm/s ({lbl}): hari ke-{day:.1f}"</span>)
+<span class="cm"># ═══════════════ LOGISTIC REGRESSION BASELINE ═══════════════</span>
+<span class="cm"># Standardize features (penting untuk LogReg)</span>
+scaler = <span class="fn">StandardScaler</span>()
+X_train_scaled = scaler.<span class="fn">fit_transform</span>(X_train)
+X_test_scaled  = scaler.<span class="fn">transform</span>(X_test)
 
-<span class="cm"># ═══════════════ PLOT ═══════════════</span>
-fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="nm">14</span>, <span class="nm">5</span>))
+model = <span class="fn">LogisticRegression</span>(max_iter=<span class="nm">1000</span>, random_state=<span class="nm">42</span>)
+model.<span class="fn">fit</span>(X_train_scaled, y_train)
+y_pred = model.<span class="fn">predict</span>(X_test_scaled)
 
-<span class="cm"># Background bands per zone</span>
-ax.<span class="fn">axhspan</span>(<span class="nm">0</span>, <span class="nm">1.4</span>, color=<span class="st">'#22c55e'</span>, alpha=<span class="nm">0.15</span>, label=<span class="st">'Zone A (Good)'</span>)
-ax.<span class="fn">axhspan</span>(<span class="nm">1.4</span>, <span class="nm">2.8</span>, color=<span class="st">'#06b6d4'</span>, alpha=<span class="nm">0.15</span>, label=<span class="st">'Zone B (Acceptable)'</span>)
-ax.<span class="fn">axhspan</span>(<span class="nm">2.8</span>, <span class="nm">4.5</span>, color=<span class="st">'#f59e0b'</span>, alpha=<span class="nm">0.15</span>, label=<span class="st">'Zone C (Unsatisfactory)'</span>)
-ax.<span class="fn">axhspan</span>(<span class="nm">4.5</span>, <span class="nm">7</span>, color=<span class="st">'#ec4899'</span>, alpha=<span class="nm">0.15</span>, label=<span class="st">'Zone D (Danger)'</span>)
+acc = <span class="fn">accuracy_score</span>(y_test, y_pred)
+f1 = <span class="fn">f1_score</span>(y_test, y_pred)
+<span class="fn">print</span>(<span class="st">f"\n═══ LOGISTIC REGRESSION RESULTS ═══"</span>)
+<span class="fn">print</span>(<span class="st">f"Accuracy: {acc:.4f}"</span>)
+<span class="fn">print</span>(<span class="st">f"F1 Score: {f1:.4f}"</span>)
+<span class="fn">print</span>(<span class="st">f"\nClassification Report:"</span>)
+<span class="fn">print</span>(<span class="fn">classification_report</span>(y_test, y_pred, target_names=[<span class="st">'healthy'</span>, <span class="st">'fault'</span>]))
 
-<span class="cm"># Sinyal RMS</span>
-ax.<span class="fn">plot</span>(t, rms_signal, color=<span class="st">'#1f2937'</span>, lw=<span class="nm">0.8</span>, alpha=<span class="nm">0.7</span>)
+<span class="cm"># Coefficients (feature importance for linear model)</span>
+<span class="fn">print</span>(<span class="st">f"\n═══ COEFFICIENTS (log-odds per feature) ═══"</span>)
+<span class="kw">for</span> name, coef <span class="kw">in</span> <span class="fn">zip</span>(feature_names, model.coef_[<span class="nm">0</span>]):
+    <span class="fn">print</span>(<span class="st">f"  {name:10s}: {coef:+.4f}"</span>)
+<span class="fn">print</span>(<span class="st">f"  Intercept : {model.intercept_[0]:+.4f}"</span>)
 
-<span class="cm"># Threshold lines</span>
-<span class="kw">for</span> thr, c <span class="kw">in</span> [(<span class="nm">1.4</span>, <span class="st">'#22c55e'</span>), (<span class="nm">2.8</span>, <span class="st">'#f59e0b'</span>), (<span class="nm">4.5</span>, <span class="st">'#ec4899'</span>)]:
-    ax.<span class="fn">axhline</span>(thr, color=c, linestyle=<span class="st">'--'</span>, lw=<span class="nm">1</span>, alpha=<span class="nm">0.6</span>)
-
-ax.<span class="fn">set_xlabel</span>(<span class="st">'Hari operasional'</span>)
-ax.<span class="fn">set_ylabel</span>(<span class="st">'RMS Velocity (mm/s)'</span>)
-ax.<span class="fn">set_title</span>(<span class="st">'ISO 10816-3 Zone Classification — Pump 50 kW (30 hari operasional)'</span>)
-ax.<span class="fn">set_ylim</span>(<span class="nm">0</span>, <span class="nm">6.5</span>)
-ax.<span class="fn">legend</span>(loc=<span class="st">'upper left'</span>)
-ax.<span class="fn">grid</span>(alpha=<span class="nm">0.25</span>)
+<span class="cm"># ═══════════════ PLOT FEATURE DISTRIBUTIONS ═══════════════</span>
+fig, axes = plt.<span class="fn">subplots</span>(<span class="nm">1</span>, <span class="nm">3</span>, figsize=(<span class="nm">14</span>, <span class="nm">4</span>))
+<span class="kw">for</span> i, name <span class="kw">in</span> <span class="fn">enumerate</span>(feature_names):
+    axes[i].<span class="fn">hist</span>(X[y==<span class="nm">0</span>, i], bins=<span class="nm">30</span>, alpha=<span class="nm">0.5</span>, label=<span class="st">'healthy'</span>, color=<span class="st">'#10b981'</span>)
+    axes[i].<span class="fn">hist</span>(X[y==<span class="nm">1</span>, i], bins=<span class="nm">30</span>, alpha=<span class="nm">0.5</span>, label=<span class="st">'fault'</span>, color=<span class="st">'#ef4444'</span>)
+    axes[i].<span class="fn">set_xlabel</span>(name); axes[i].<span class="fn">set_ylabel</span>(<span class="st">'Count'</span>)
+    axes[i].<span class="fn">set_title</span>(<span class="st">f'Distribution: {name}'</span>); axes[i].<span class="fn">legend</span>()
+    axes[i].<span class="fn">grid</span>(alpha=<span class="nm">0.25</span>)
 plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
   </div>
 
