@@ -3570,16 +3570,16 @@ function exportTugasHtml() {
 
   // MC question titles (10 total)
   const MC_QUESTIONS = [
-    'Syarat orde-pertama: ∇f(x*) = 0',
-    'Step size α dalam gradient descent',
-    'Newton vs steepest descent',
-    'Method BFGS — quasi-Newton',
-    'Lagrangian function untuk NLP berkendala',
-    'Complementary slackness (KKT)',
-    'Penalty method — soft constraint',
-    'Method untuk NLP berkendala (SLSQP/trust-constr)',
-    'Konveksitas: local = global',
-    'Strategi multi-start untuk non-konveks'
+    'Hipotesis nol H₀ untuk one-way ANOVA',
+    'Identitas partition of variance (SS_total)',
+    'Degrees of freedom untuk k=4, N=24',
+    'Definisi F-statistic',
+    'Keputusan saat p &lt; α',
+    'Tiga asumsi utama ANOVA',
+    'Tukey HSD post-hoc test',
+    'Interaction effect A×B di two-way ANOVA',
+    'Reporting standar ANOVA (F, df, p, η²)',
+    'Taguchi orthogonal arrays L9'
   ];
 
   // Collect MC answers — 10 soal
@@ -3615,16 +3615,16 @@ function exportTugasHtml() {
 
   // Comp E/M definitions (c1..c10)
   const compEzDefs = [
-    { id:'c1',  label:'BFGS unconstrained — min (x−4)²',         q:'x* = 4 via scipy.minimize BFGS' },
-    { id:'c2',  label:'Norm gradient di titik (1,1)',           q:'‖∇f(1,1)‖ = √32 ≈ 5.6569' },
-    { id:'c3',  label:'BFGS — min x²+2y² dari [3,2]',            q:'f* ≈ 0 di (0,0)' },
-    { id:'c4',  label:'NLP equality constraint via SLSQP',       q:'min x²+y² s.t. x+y=4 → x = 2' },
-    { id:'c5',  label:'Lagrange multiplier λ',                   q:'L = x²+y²+λ(x+y−4) → λ = −4' },
-    { id:'c6',  label:'1 iter gradient descent f=x², α=0.3',     q:'x₁ = 5 − 0.3·10 = 2.0' },
-    { id:'c7',  label:'1 step Newton method untuk x⁴−4x²+5',     q:'x₁ = 3 − 84/100 = 2.16' },
-    { id:'c8',  label:'Cek konveksitas via f"(x)',                q:'f"(1) = 12·1²+4 = 16 ≻ 0 → konveks' },
-    { id:'c9',  label:'Bounds via L-BFGS-B',                     q:'min(x−2)²+(y−3)² s.t. x ≤ 1 → x* = 1' },
-    { id:'c10', label:'Penalty method evaluasi F(1.5)',          q:'F = x² + 100·max(0,2−x)² = 27.25' }
+    { id:'c1',  label:'SS_total dari 3 grup',                    q:'Σ(yᵢⱼ − ȳ)² = 60' },
+    { id:'c2',  label:'SS_between dari 3 grup',                  q:'Σ nⱼ·(ȳⱼ − ȳ)² = 54' },
+    { id:'c3',  label:'SS_within dari 3 grup',                   q:'ΣⱼΣᵢ(yᵢⱼ − ȳⱼ)² = 6' },
+    { id:'c4',  label:'F-statistic = MS_b / MS_w',               q:'F = (54/2)/(6/6) = 27' },
+    { id:'c5',  label:'df_total untuk k=4, n=5/level',           q:'df_total = N−1 = 19' },
+    { id:'c6',  label:'scipy.stats.f_oneway 3 grup',             q:'F = 27.0 (sama dgn manual)' },
+    { id:'c7',  label:'Effect size η² = SS_b / SS_total',         q:'54/60 = 0.90 (large effect)' },
+    { id:'c8',  label:'F-critical via scipy.stats.f.ppf',        q:'F_crit(0.95, 2, 12) ≈ 3.885' },
+    { id:'c9',  label:'Shapiro-Wilk normality W-statistic',      q:'W ≈ 0.987 untuk data normal' },
+    { id:'c10', label:'Reduction ratio Taguchi L9 vs full',      q:'(81−9)/81·100 ≈ 88.89%' }
   ];
   const compEzData = compEzDefs.map(d => {
     const ta = document.getElementById('code-' + d.id);
@@ -3633,11 +3633,11 @@ function exportTugasHtml() {
 
   // Comp Hard definitions (c11..c15)
   const compHardDefs = [
-    { id:'c11', label:'Rosenbrock benchmark NLP',          q:'min (1−x)²+100(y−x²)² → x*+y* = 2' },
-    { id:'c12', label:'Tangki Silinder Volume Tetap',      q:'min 2πR²+2πRH s.t. πR²H=1 → R* ≈ 0.5419' },
-    { id:'c13', label:'Penalty Method ρ=100',              q:'F = x²+100·max(0,2−x)² → x* ≈ 1.9802' },
-    { id:'c14', label:'Multi-Start Non-Konveks',           q:'f = x⁴−8x²+5 → global min = −11' },
-    { id:'c15', label:'Pegas Coil Engineering Design',     q:'min mass s.t. stress, defl, spacing → ≈ 41 g' }
+    { id:'c11', label:'One-Way ANOVA scratch CNC roughness',  q:'F manual ≈ 30 (verifikasi scipy)' },
+    { id:'c12', label:'Two-Way ANOVA welding statsmodels',    q:'p_arus &lt; 0.001 (signifikan)' },
+    { id:'c13', label:'Tukey HSD heat treatment + asumsi',    q:'≈ 5 dari 6 pasangan signifikan' },
+    { id:'c14', label:'Power analysis: n per grup',           q:'effect=0.4, k=4, power=0.80 → n ≈ 19' },
+    { id:'c15', label:'Two-Way ANOVA injection molding',      q:'F_interaction A×B ≈ 10' }
   ];
   const compHardData = compHardDefs.map(d => {
     const ta = document.getElementById('code-' + d.id);
