@@ -1168,106 +1168,106 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <h2 class="section-title reveal">Animasi Interaktif<br>Visualisasi Konsep Linear Programming</h2>
   <p class="section-desc reveal">Empat animasi yang memvisualisasikan <strong>konsep dasar LP</strong> melalui sinyal-sinyal time series yang serupa dengan profil <em>variabel keputusan dan kendala</em>: (1) sinyal komposit yang merefleksikan kombinasi linier <code>cᵀx</code> dari beberapa sumber — analog dengan fungsi objektif gabungan, (2) injeksi impak yang menyimulasikan <em>vertex jumping</em> di Simpleks — perubahan diskrit dari satu solusi ke solusi tetangga, (3) distribusi statistik yang menunjukkan trade-off antara nilai objektif dan probabilitas feasibility — dasar <em>Stochastic LP</em>, (4) trajectory degradasi kapasitas mesin yang memicu re-optimasi LP saat kendala berubah seiring waktu. Tujuannya: membangun intuisi geometris LP melalui visualisasi.</p>
 
-  <!-- Animasi 1: RMS / Peak / PP Live -->
+  <!-- Animasi 1: Daerah Feasibel & Iso-Profit Lines -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi 1 — Sinyal Vibrasi Live: Hitung RMS, Peak, Peak-to-Peak</span>
+      <span class="anim-title">Animasi 1 — Daerah Feasibel 2D &amp; Iso-Profit Lines: Cari Vertex Optimal</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvPhysics" height="300"></canvas>
+      <canvas id="cvPhysics" height="340"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Amplitudo Sinusoidal — <span class="ctrl-val" id="v_rp">1.00</span></label>
-          <input type="range" id="sl_rp" min="0" max="2" step="0.05" value="1.0">
+          <label>Profit Bracket A (c₁) — <span class="ctrl-val" id="v_rp">40</span></label>
+          <input type="range" id="sl_rp" min="10" max="80" step="2" value="40">
         </div>
         <div class="ctrl-group">
-          <label>Level Noise Gaussian — <span class="ctrl-val" id="v_zp">0.30</span></label>
-          <input type="range" id="sl_zp" min="0" max="1.5" step="0.05" value="0.3">
+          <label>Kapasitas CNC (b₁) — <span class="ctrl-val" id="v_zp">60</span></label>
+          <input type="range" id="sl_zp" min="20" max="100" step="2" value="60">
         </div>
         <button class="btn-anim" id="btnPhysics" onclick="togglePhysics()">⏸ PAUSE</button>
       </div>
       <div id="physicsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi:</strong> Garis ungu = sinyal vibrasi (sinusoidal + noise). Garis cyan horizontal = ±RMS, garis amber = ±peak, garis pink = peak-to-peak window. Info panel menampilkan nilai numerik saat ini.<br>
-        <strong>Coba:</strong> (1) Amplitudo = 1.0, Noise = 0 → sinyal sinusoidal murni, CF = √2 ≈ 1.41. (2) Tambah noise → CF naik bertahap (mendekati 3 untuk Gaussian). (3) Amplitudo = 0, Noise tinggi → noise saja, CF ~3. Perhatikan: <em>RMS ≈ Std saat μ ≈ 0</em>, sesuai identitas RMS² = μ² + σ².
+        <strong>📊 Cara Membaca Animasi:</strong> Bidang ungu = <em>daerah feasibel</em> hasil irisan kendala (CNC: 2x_A+x_B ≤ b₁; Welding: x_A+3x_B ≤ 80; x ≥ 0). Garis cyan putus-putus = kendala CNC, garis amber putus-putus = kendala Welding. Garis ungu solid bergerak = <em>iso-profit line</em> (cᵀx = Z) yang bergeser ke arah maksimum. Bintang kuning = vertex optimal x*.<br>
+        <strong>Coba:</strong> (1) c₁ = 40 → vertex optimal di (20, 20) dengan Z = 1400. (2) Naikkan c₁ ke 60 → vertex optimal bergeser ke (30, 0). (3) Turunkan kapasitas CNC b₁ → daerah feasibel mengecil, optimum berkurang. Inilah esensi metode grafis LP: <em>iso-profit menggeser hingga menyentuh vertex terjauh</em>.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 2: Impak Transient → Crest Factor & Kurtosis -->
+  <!-- Animasi 2: Algoritma Simpleks — Vertex Pivot -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--amber)"></div>
-      <span class="anim-title">Animasi 2 — Injeksi Impak: Lihat Crest Factor &amp; Kurtosis Melonjak</span>
+      <span class="anim-title">Animasi 2 — Algoritma Simpleks: Vertex Jumping Iteratif</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvSweep" height="300"></canvas>
+      <canvas id="cvSweep" height="340"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Frekuensi Impak (per detik) — <span class="ctrl-val" id="v_rs">2.00</span></label>
-          <input type="range" id="sl_rs" min="0" max="10" step="0.5" value="2.0">
+          <label>Iterasi Simpleks — <span class="ctrl-val" id="v_rs">2</span></label>
+          <input type="range" id="sl_rs" min="0" max="3" step="1" value="2">
         </div>
         <div class="ctrl-group">
-          <label>Amplitudo Impak — <span class="ctrl-val" id="v_zs">3.00</span></label>
-          <input type="range" id="sl_zs" min="0" max="8" step="0.2" value="3.0">
+          <label>Highlight Pivot — <span class="ctrl-val" id="v_zs">on</span></label>
+          <input type="range" id="sl_zs" min="0" max="1" step="1" value="1">
         </div>
         <button class="btn-anim" id="btnSweep" onclick="toggleSweep()">⏸ PAUSE</button>
       </div>
       <div id="sweepInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Sinyal latar = noise Gaussian (sinyal sehat). Spike ungu pendek = impak transient (early bearing fault). Info panel menampilkan CF dan kurtosis live.<br>
-        <strong>Coba:</strong> (1) Frekuensi = 0 → noise murni, CF ~3, Kurt ~3 (Gaussian). (2) Frekuensi rendah, amplitudo tinggi → impak jarang tapi besar — <em>CF dan Kurt melonjak</em>. (3) Frekuensi sangat tinggi → impak menjadi konstan, CF dan Kurt turun lagi (kasus severe fault). Inilah <strong>U-shape</strong> klasik kurva CF/Kurt sepanjang lifetime bearing.
+        <strong>📊 Cara Membaca:</strong> Daerah ungu = feasibel polygon LP (max 40x_A+30x_B s.t. CNC≤60, Welding≤80). Bulatan amber = vertex feasibel. Garis amber solid = trajectory Simpleks dari vertex ke vertex (iterasi 0 → optimal). Bintang kuning = vertex Simpleks pada iterasi saat ini. Panel info menunjukkan iterasi #, vertex koordinat, nilai Z, dan reduced cost dari NBV terbaik.<br>
+        <strong>Coba:</strong> (1) Iterasi 0 = origin (0,0), Z = 0 — semua slack basic. (2) Iter 1 = pivot ke vertex tetangga dengan reduced cost terbesar (Dantzig rule). (3) Iter 2 = lanjut hingga semua reduced cost ≤ 0 (optimal di (20,20), Z=1400). <em>Setiap iterasi Z monoton naik</em> — itulah teorema fundamental Simpleks.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 3: Distribusi & Skewness/Kurtosis -->
+  <!-- Animasi 3: Sensitivity Analysis & Shadow Price -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--violet)"></div>
-      <span class="anim-title">Animasi 3 — Histogram Distribusi: Skewness &amp; Kurtosis Bekerja</span>
+      <span class="anim-title">Animasi 3 — Sensitivity Analysis: Z(b) vs Shadow Price</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvIso" height="300"></canvas>
+      <canvas id="cvIso" height="320"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Skewness Target — <span class="ctrl-val" id="v_ri">0.00</span></label>
-          <input type="range" id="sl_ri" min="-2" max="2" step="0.1" value="0.0">
+          <label>Kapasitas CNC b₁ — <span class="ctrl-val" id="v_ri">60</span></label>
+          <input type="range" id="sl_ri" min="20" max="120" step="2" value="60">
         </div>
         <div class="ctrl-group">
-          <label>Kurtosis Target — <span class="ctrl-val" id="v_zi">3.00</span></label>
-          <input type="range" id="sl_zi" min="1.5" max="10" step="0.1" value="3.0">
+          <label>Profit B (c₂) — <span class="ctrl-val" id="v_zi">30</span></label>
+          <input type="range" id="sl_zi" min="10" max="60" step="2" value="30">
         </div>
         <button class="btn-anim" id="btnIso" onclick="toggleIso()">⏸ PAUSE</button>
       </div>
       <div id="isoInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Histogram menunjukkan distribusi sample sinyal yang di-generate dengan target skewness &amp; kurtosis. Garis kuning = mean μ, garis merah = ±σ. Info panel mencetak nilai aktual yang dihitung dari sample.<br>
-        <strong>Coba:</strong> (1) Skew = 0, Kurt = 3 → bell curve simetris klasik (Gaussian). (2) Skew = +1.5 → ekor kanan panjang. (3) Skew = −1.5 → ekor kiri panjang. (4) Kurt = 8 → puncak runcing dengan ekor tebal (leptokurtic — banyak event ekstrem). (5) Kurt = 1.5 → distribusi datar (platykurtic).
+        <strong>📊 Cara Membaca:</strong> Kurva ungu = Z optimum sebagai fungsi b₁ (kapasitas CNC). <em>Slope</em> kurva = <strong>shadow price</strong>! Garis ungu vertikal = posisi b₁ saat ini. Slope kurva PIECEWISE LINEAR — slope berubah saat basis optimal berubah (kendala lain mulai binding). Info panel menampilkan Z, shadow price (slope), dan range sensitivity yang preserve basis.<br>
+        <strong>Coba:</strong> (1) Geser b₁ kecil → Z naik linier dengan slope tertentu (shadow_CNC). (2) b₁ terlalu besar → kendala lain (Welding) jadi binding, slope berubah! (3) Geser c₂ → kemiringan iso-profit berubah, vertex optimal bergeser, shadow price ikut berubah. Inilah <em>strong duality</em> dan <em>sensitivity range</em>.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 4: Bearing Lifetime Trajectory -->
+  <!-- Animasi 4: Constraint Binding & Slack Variables -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--green)"></div>
-      <span class="anim-title">Animasi 4 — Lifetime Bearing: U-Shape Crest Factor Sepanjang Umur</span>
+      <span class="anim-title">Animasi 4 — Slack Variables: Kendala Binding vs Idle</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvHPB" height="340"></canvas>
+      <canvas id="cvHPB" height="380"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Posisi Lifetime (0 = baru, 1 = rusak) — <span class="ctrl-val" id="v_rh">0.40</span></label>
-          <input type="range" id="sl_rh" min="0" max="1" step="0.02" value="0.40">
+          <label>Kapasitas Welding (b₂) — <span class="ctrl-val" id="v_rh">80</span></label>
+          <input type="range" id="sl_rh" min="20" max="180" step="2" value="80">
         </div>
         <button class="btn-anim" id="btnHPB" onclick="toggleHPB()">⏸ PAUSE</button>
       </div>
       <div id="hpbInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Atas = sinyal vibrasi pada posisi lifetime tertentu (slider). Bawah = trajectory 4 fitur: <strong>RMS</strong> (cyan, monoton naik), <strong>Crest Factor</strong> (amber, U-shape!), <strong>Kurtosis</strong> (violet, U-shape!), <strong>Peak</strong> (pink, naik). Marker bergeser sesuai slider.<br>
-        <strong>Coba:</strong> (1) Posisi 0.0 (baru) → sinyal smooth, RMS rendah, CF ~3. (2) Posisi 0.4 (early fault) → impak singkat muncul, <em>CF dan Kurt melonjak</em> tapi RMS belum naik banyak. (3) Posisi 0.8 (severe) → impak berisik konstan, CF dan Kurt <em>turun lagi</em>, tapi RMS tinggi. Inilah pelajaran kunci: <strong>satu fitur saja tidak cukup; gunakan kombinasi.</strong>
+        <strong>📊 Cara Membaca:</strong> Atas = daerah feasibel + vertex optimal x* (slider menggeser kendala Welding). Bawah = bar chart slack variables tiap kendala (s = b − Ax). Bar pink = <strong>BINDING</strong> (slack ≈ 0), bar cyan = <strong>idle</strong> (slack &gt; 0, sumber daya berlebih).<br>
+        <strong>Coba:</strong> (1) b₂ = 80 → kedua kendala binding (slack semua 0), Z = 1400. (2) b₂ besar (150+) → CNC binding tapi Welding idle (slack besar), Z capped oleh CNC saja. (3) b₂ kecil (30) → Welding binding agresif, x* mengecil. Pelajaran: <em>kendala binding adalah bottleneck</em>; investasi tambah kapasitas di sana memberi ROI.
       </div>
     </div>
   </div>
