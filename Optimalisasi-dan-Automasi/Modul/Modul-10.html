@@ -1206,109 +1206,109 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <hr class="divider">
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 06</div>
-  <h2 class="section-title reveal">Animasi Interaktif<br>Visualisasi Konsep Non-Linear Programming</h2>
-  <p class="section-desc reveal">Empat animasi yang memvisualisasikan <strong>konsep dasar NLP</strong> melalui sinyal-sinyal time series yang merepresentasikan dinamika optimasi non-linier: (1) sinyal komposit menggambarkan <em>landscape fungsi objektif</em> dengan banyak lembah — visualisasi non-konveksitas, (2) impulse train sebagai <em>iterasi gradient descent</em> dengan step size berbeda — terlalu besar overshoot, terlalu kecil lambat, (3) distribusi statistik menampilkan <em>convergence rate</em>: gradient descent (linier) vs Newton (kuadratik), (4) trajectory degradasi kapasitas yang memicu <em>warm-start re-optimasi</em> saat constraint berubah dinamik. Tujuannya: membangun intuisi visual sebelum dive ke formula matematis.</p>
+  <h2 class="section-title reveal">Animasi Interaktif<br>Visualisasi Konsep Metaheuristik (GA &amp; PSO)</h2>
+  <p class="section-desc reveal">Empat animasi yang memvisualisasikan <strong>konsep dasar metaheuristik</strong>: (1) populasi GA berevolusi sepanjang generasi pada fitness landscape multi-modal — selection + crossover + mutation, (2) PSO swarm partikel terbang menuju gbest dengan velocity update — komunikasi sosial, (3) GA vs PSO benchmark side-by-side di fungsi Rastrigin (multi-modal klasik), (4) eksplorasi vs eksploitasi trade-off — variasi mutation rate / inertia weight dan dampaknya terhadap diversitas populasi. Tujuannya: membangun intuisi visual algoritma stokastik sebelum implementasi DEAP/pyswarms.</p>
 
-  <!-- Animasi 1: Gradient Descent on Contour -->
+  <!-- Animasi 1: GA Evolution on Fitness Landscape -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi 1 — Gradient Descent: Trajectory di Contour 2D</span>
+      <span class="anim-title">Animasi 1 — GA Evolution: Populasi Berevolusi pada Fitness Landscape</span>
     </div>
     <div class="anim-body">
       <canvas id="cvPhysics" height="340"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Step Size α — <span class="ctrl-val" id="v_rp">0.10</span></label>
+          <label>Mutation Rate Pm — <span class="ctrl-val" id="v_rp">0.10</span></label>
           <input type="range" id="sl_rp" min="0.01" max="0.5" step="0.01" value="0.10">
         </div>
         <div class="ctrl-group">
-          <label>Initial x₀ — <span class="ctrl-val" id="v_zp">−1.5</span></label>
-          <input type="range" id="sl_zp" min="-2.5" max="2.5" step="0.1" value="-1.5">
+          <label>Population Size N — <span class="ctrl-val" id="v_zp">30</span></label>
+          <input type="range" id="sl_zp" min="10" max="100" step="5" value="30">
         </div>
         <button class="btn-anim" id="btnPhysics" onclick="togglePhysics()">⏸ PAUSE</button>
       </div>
       <div id="physicsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi:</strong> Kontur ungu = level sets fungsi konveks <code>f(x,y) = (x−1)² + 2(y−0.5)²</code>. Bintang kuning = optimum global di (1, 0.5). Trajectory cyan = iterasi gradient descent <code>x_{k+1} = x_k − α∇f</code>, dimulai dari (x₀, 0). Bulatan = posisi tiap iterasi.<br>
-        <strong>Coba:</strong> (1) α kecil (0.05) → trajectory smooth tapi konvergen lambat. (2) α moderate (0.15) → konvergen efisien. (3) α terlalu besar (0.4) → overshoot/zigzag/divergent. (4) Geser x₀ jauh dari optimum → lihat trajectory descent menuju (1, 0.5). Pelajaran: <em>step size kontrol konvergensi</em> — line search adaptif (Armijo) memilih α optimal otomatis.
+        <strong>📊 Cara Membaca Animasi:</strong> Kontur landscape = fungsi multi-modal (mis. Rastrigin variant). Bulatan-bulatan = <em>populasi GA</em> sepanjang generasi (semua tampak simultan dengan fade per generation). Bintang kuning = best individual saat ini. Trajectory ungu = perpindahan best individual sepanjang generasi.<br>
+        <strong>Coba:</strong> (1) Pm = 0.01 → eksploitasi tinggi, populasi cepat konvergen tetapi rentan stuck di lokal min. (2) Pm = 0.10 → balance bagus, eksplorasi + eksploitasi. (3) Pm = 0.4 → terlalu eksploratif, mendekati random search. (4) N kecil (15) → diversitas terbatas, mudah premature. (5) N besar (80) → eksplorasi luas, lebih mahal komputasi. Pelajaran: <em>Pm ≈ 1/n</em> rule of thumb, N proporsional dengan dimensi.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 2: Newton vs Steepest Descent -->
+  <!-- Animasi 2: PSO Swarm Convergence -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--amber)"></div>
-      <span class="anim-title">Animasi 2 — Newton vs Steepest Descent: Konvergensi Kuadratik vs Linier</span>
+      <span class="anim-title">Animasi 2 — PSO Swarm: Partikel Terbang Mengikuti gbest</span>
     </div>
     <div class="anim-body">
       <canvas id="cvSweep" height="340"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Condition Number κ — <span class="ctrl-val" id="v_rs">5</span></label>
-          <input type="range" id="sl_rs" min="1" max="20" step="0.5" value="5">
+          <label>Inertia w — <span class="ctrl-val" id="v_rs">0.7</span></label>
+          <input type="range" id="sl_rs" min="0.1" max="1.0" step="0.05" value="0.7">
         </div>
         <div class="ctrl-group">
-          <label>Iterasi Max — <span class="ctrl-val" id="v_zs">15</span></label>
-          <input type="range" id="sl_zs" min="3" max="30" step="1" value="15">
+          <label>c₁ = c₂ — <span class="ctrl-val" id="v_zs">1.5</span></label>
+          <input type="range" id="sl_zs" min="0.5" max="2.5" step="0.1" value="1.5">
         </div>
         <button class="btn-anim" id="btnSweep" onclick="toggleSweep()">⏸ PAUSE</button>
       </div>
       <div id="sweepInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Kontur elipsoidal = fungsi quadratic ill-conditioned <code>f(x,y) = x² + κ·y²</code> dengan κ = condition number. Trajectory amber = <strong>Steepest Descent</strong> (zigzag karena gradient ortogonal di axis-aligned ellipses). Trajectory pink = <strong>Newton</strong> (langsung ke optimum di 1 langkah karena f quadratic). Bintang = optimum (0,0).<br>
-        <strong>Coba:</strong> (1) κ = 1 → contour lingkaran, SD &amp; Newton sama efisien. (2) κ = 5 → SD mulai zigzag, Newton tetap 1 step. (3) κ = 20 → SD <em>sangat lambat</em> (banyak iter), Newton instant. Pelajaran: <strong>Newton's quadratic convergence</strong> kalahkan steepest descent untuk masalah ill-conditioned. BFGS aproksimasi Newton dengan O(n²) per iter.
+        <strong>📊 Cara Membaca:</strong> Bulatan amber = <em>partikel</em> dengan velocity (panah pendek). Bintang kuning = <strong>gbest</strong> (posisi terbaik global yang ditemukan swarm). Bulatan ungu kecil = <strong>pbest</strong> tiap partikel (posisi terbaik personal). Update velocity: <code>v ← w·v + c₁r₁(p − x) + c₂r₂(g − x)</code>.<br>
+        <strong>Coba:</strong> (1) w = 0.9, c = 1.5 → swarm eksploratif, lambat konvergen. (2) w = 0.4, c = 2.0 → eksploitatif, cepat konvergen ke gbest. (3) w = 0.1, c = 2.5 → terlalu greedy, bisa premature stuck. (4) c₁ &gt; c₂ → cognitive dominan (partikel ikuti pbest). Pelajaran: <strong>linearly decreasing inertia</strong> (w 0.9→0.4) standar; c₁ + c₂ &lt; 4.1 untuk stabilitas (Clerc 2002).
       </div>
     </div>
   </div>
 
-  <!-- Animasi 3: Multi-Modal Landscape -->
+  <!-- Animasi 3: GA vs PSO Benchmark -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--violet)"></div>
-      <span class="anim-title">Animasi 3 — Multi-Modal Landscape: Lokal vs Global Minimum</span>
+      <span class="anim-title">Animasi 3 — GA vs PSO Benchmark: Convergence Curve di Fungsi Rastrigin</span>
     </div>
     <div class="anim-body">
       <canvas id="cvIso" height="320"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Initial x₀ — <span class="ctrl-val" id="v_ri">−2.0</span></label>
-          <input type="range" id="sl_ri" min="-4" max="4" step="0.1" value="-2.0">
+          <label>Iterasi/Generasi — <span class="ctrl-val" id="v_ri">50</span></label>
+          <input type="range" id="sl_ri" min="10" max="200" step="5" value="50">
         </div>
         <div class="ctrl-group">
-          <label>Step Size α — <span class="ctrl-val" id="v_zi">0.05</span></label>
-          <input type="range" id="sl_zi" min="0.01" max="0.2" step="0.01" value="0.05">
+          <label>Random Seed — <span class="ctrl-val" id="v_zi">42</span></label>
+          <input type="range" id="sl_zi" min="1" max="100" step="1" value="42">
         </div>
         <button class="btn-anim" id="btnIso" onclick="toggleIso()">⏸ PAUSE</button>
       </div>
       <div id="isoInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Kurva ungu = fungsi non-konveks 1D <code>f(x) = x⁴ − 8x² + 5</code> dengan 2 minimum global di x = ±2 (f = −11) dan 1 maksimum lokal di x = 0 (f = 5). Bulatan kuning = posisi gradient descent saat ini. Bintang kuning = global minimum terdekat dari x₀.<br>
-        <strong>Coba:</strong> (1) x₀ = −2 → konvergen ke x = −2 (global min kiri). (2) x₀ = +2 → konvergen ke x = +2 (global min kanan). (3) x₀ = 0.1 atau −0.1 → bisa konvergen ke salah satu — sensitif terhadap x₀! Pelajaran: <strong>multi-start</strong> wajib untuk non-konveks NLP — coba banyak titik awal random, ambil hasil terbaik. Atau pakai metaheuristik (GA/PSO) di Pertemuan 11.
+        <strong>📊 Cara Membaca:</strong> Kurva cyan = <strong>GA best fitness</strong> per generasi. Kurva amber = <strong>PSO best fitness</strong> per iterasi. X-axis = iterasi/generasi; Y-axis = best f(x) found so far (lower better). Fungsi: Rastrigin <code>f(x) = 10n + Σ(xᵢ² − 10cos(2πxᵢ))</code>, 2D, banyak lokal min, global min di (0,0) dengan f = 0.<br>
+        <strong>Coba:</strong> (1) Iterasi 50 → biasanya PSO lebih cepat plateau (~0.5–2.0), GA lebih lambat tapi steady. (2) Iterasi 200 → keduanya konvergen mendekati global min. (3) Geser seed → variasi run berbeda, ada run yang stuck di lokal min, ada yang dapat global. Pelajaran: <strong>stokastik = banyak run wajib</strong>; laporkan mean ± std dari minimum 5 run.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 4: KKT Visualization & Lagrange Multipliers -->
+  <!-- Animasi 4: Exploration vs Exploitation Trade-off -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--green)"></div>
-      <span class="anim-title">Animasi 4 — KKT Conditions: Constraint Binding &amp; Lagrange Multipliers</span>
+      <span class="anim-title">Animasi 4 — Eksplorasi vs Eksploitasi: Diversitas Populasi vs Konvergensi</span>
     </div>
     <div class="anim-body">
       <canvas id="cvHPB" height="380"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Constraint Radius r — <span class="ctrl-val" id="v_rh">1.5</span></label>
-          <input type="range" id="sl_rh" min="0.5" max="3" step="0.05" value="1.5">
+          <label>Selection Pressure (k_tournament) — <span class="ctrl-val" id="v_rh">3</span></label>
+          <input type="range" id="sl_rh" min="2" max="10" step="1" value="3">
         </div>
         <button class="btn-anim" id="btnHPB" onclick="toggleHPB()">⏸ PAUSE</button>
       </div>
       <div id="hpbInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Atas = NLP berkendala <code>min f(x,y) = (x−2)² + (y−1.5)² s.t. x² + y² ≤ r²</code>. Kontur biru = level sets f. Lingkaran amber = boundary kendala (g(x,y) = x²+y²−r² = 0). Bintang kuning = optimum constrained x*. Panah ungu = ∇f, panah amber = ∇g. <strong>KKT condition</strong>: ∇f + μ∇g = 0 → kedua gradient PARALEL di x*. Bawah = bar chart Lagrange multiplier μ (dual variable).<br>
-        <strong>Coba:</strong> (1) r besar (≥ √(2²+1.5²)≈2.5) → constraint INACTIVE (μ = 0), x* = unconstrained optimum (2, 1.5). (2) r kecil (1.0) → constraint ACTIVE (μ &gt; 0), x* di boundary. (3) Pelajaran: μ = sensitivity Z* terhadap r — investasi tambah r 1 unit menurunkan f sebesar μ.
+        <strong>📊 Cara Membaca:</strong> Atas = scatter populasi GA pada landscape multi-modal sepanjang generasi (warna fade dari ungu = old → cyan = new). Bawah = grafik dual: <em>population diversity</em> (variance posisi populasi, cyan) vs <em>best fitness</em> (amber) per generasi. Tournament size k controls <strong>selection pressure</strong>.<br>
+        <strong>Coba:</strong> (1) k = 2 → low pressure, diversitas tinggi, eksplorasi luas, konvergensi lambat. (2) k = 5 → balance — populasi konvergen sambil tetap diverse. (3) k = 10 → high pressure, populasi rapat ke best, premature convergence (diversitas drop cepat ke 0). Pelajaran: <strong>diversitas vs fitness</strong> trade-off fundamental — kalau diversity 0 sebelum global min ditemukan, algoritma stuck. Restart strategy atau adaptive Pm bisa membantu.
       </div>
     </div>
   </div>
