@@ -2203,36 +2203,36 @@ result = <span class="fn">run_monitoring_pipeline</span>(rms_demo, timestamps=ts
         <div class="q-type-badge badge-comp">💻 BAGIAN B — Soal Komputasi · 10 Soal · @2 Poin · Menggunakan Jupyter Notebook</div>
 
     <div class="info-box" style="margin-bottom:28px">
-      <strong>📌 Pengingat Formulasi ANOVA (dipakai di C1–C15):</strong><br>
-      <span style="font-size:13px;color:var(--muted);margin-top:6px;display:block">Soal komputasi ANOVA: gunakan <code>scipy.stats.f_oneway</code> untuk one-way ANOVA cepat, <code>statsmodels.formula.api.ols</code> + <code>anova_lm</code> untuk multi-way ANOVA, <code>statsmodels.stats.multicomp.pairwise_tukeyhsd</code> untuk post-hoc.</span>
+      <strong>📌 Pengingat Konstanta Rule-Based Monitoring (dipakai di C1–C15):</strong><br>
+      <span style="font-size:13px;color:var(--muted);margin-top:6px;display:block">Soal komputasi rule-based monitoring: gunakan ISO 10816-3 thresholds untuk Group 2 mesin 15–300 kW (rigid foundation).</span>
       <pre style="margin-top:10px;background:#020a18;border:1px solid #1a2840;border-radius:8px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#cbd5e1;overflow-x:auto">import numpy as np
 import pandas as pd
-from scipy import stats
 
-# One-way ANOVA cepat:
-F, p = stats.f_oneway(group1, group2, group3)
+# ISO 10816-3 Group 2 (rigid foundation) thresholds:
+#   Zone A (Good)          : RMS &lt;= 1.4 mm/s
+#   Zone B (Acceptable)    : 1.4 &lt; RMS &lt;= 2.8 mm/s
+#   Zone C (Unsatisfactory): 2.8 &lt; RMS &lt;= 4.5 mm/s
+#   Zone D (Danger)        : RMS &gt; 4.5 mm/s
 
-# Identitas fundamental:
-# SS_total = SS_between + SS_within
-# F = MS_between / MS_within = (SS_b/df_b) / (SS_w/df_w)
-# eta^2 = SS_between / SS_total  (effect size)
-# df_b = k - 1, df_w = N - k, df_total = N - 1</pre>
+# Hysteresis pattern: T_off = T_on - margin (margin 5-15% setpoint)
+# Tier alarm: WARNING &lt; ALERT &lt; CRITICAL (eskalasi gradual)
+# Debouncing: butuh N consecutive samples untuk transition (filter noise)</pre>
     </div>
 
     <!-- COMP 1 -->
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C1</div>
-        <div class="comp-q">Hitung <strong>SS_total</strong> (total sum of squares) untuk dataset 3 grup: A = [5, 6, 7], B = [8, 9, 10], C = [11, 12, 13]. Formula: <code>SS_total = Σ(yᵢⱼ − ȳ)²</code> di mana ȳ = grand mean. Print nilainya.</div>
+        <div class="comp-q">Klasifikasi <strong>ISO 10816-3 zone</strong> untuk RMS = 3.2 mm/s. Print integer kode zone: 0=A, 1=B, 2=C, 3=D.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Grand mean ȳ = (5+6+...+13)/9 = 81/9 = 9. SS_total = (5−9)²+(6−9)²+(7−9)²+(8−9)²+(9−9)²+(10−9)²+(11−9)²+(12−9)²+(13−9)² = 16+9+4+1+0+1+4+9+16 = <strong>60</strong>. Code: <code>data = np.array([5,6,7,8,9,10,11,12,13]); print(((data - data.mean())**2).sum())</code>.</div>
+      <div class="comp-hint">💡 Threshold: A ≤ 1.4, B ≤ 2.8, C ≤ 4.5, D &gt; 4.5. RMS = 3.2 → di antara 2.8 dan 4.5 → Zone <strong>C</strong> → kode <strong>2</strong>. Code: <code>def zone(r): return 0 if r&lt;=1.4 else 1 if r&lt;=2.8 else 2 if r&lt;=4.5 else 3</code>.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">SS_total</strong></span></div>
-        <textarea class="code-textarea" id="code-c1" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi&#10;&#10;Contoh:&#10;import numpy as np&#10;data = np.array([5,6,7,8,9,10,11,12,13])&#10;ss_total = ((data - data.mean())**2).sum()&#10;print(f'{ss_total:.4f}')" oninput="onCodeInput('c1')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() kode <strong style="color:var(--amber)">zone (0-3)</strong></span></div>
+        <textarea class="code-textarea" id="code-c1" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi&#10;&#10;Contoh:&#10;rms = 3.2&#10;zone = 0 if rms&lt;=1.4 else 1 if rms&lt;=2.8 else 2 if rms&lt;=4.5 else 3&#10;print(zone)" oninput="onCodeInput('c1')"></textarea>
         <div class="stdout-box" id="stdout-c1"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c1" onclick="runAndCheck('c1', 60.0, 0.5)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c1" onclick="runAndCheck('c1', 2.0, 0.5)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c1"></div>
     </div>
 
@@ -2240,16 +2240,16 @@ F, p = stats.f_oneway(group1, group2, group3)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C2</div>
-        <div class="comp-q">Untuk dataset di C1 (A = [5, 6, 7], B = [8, 9, 10], C = [11, 12, 13]), hitung <strong>SS_between</strong> = <code>Σ nⱼ·(ȳⱼ − ȳ)²</code>. Print nilainya.</div>
+        <div class="comp-q">Untuk threshold T_on = 2.8 dan margin hysteresis 0.2, hitung <strong>T_off</strong> (threshold untuk transition kembali ke OFF). Formula: <code>T_off = T_on - margin</code>. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Mean grup: ȳ_A = 6, ȳ_B = 9, ȳ_C = 12. Grand mean ȳ = 9. n=3 tiap grup. <code>SS_b = 3·(6−9)² + 3·(9−9)² + 3·(12−9)² = 3·9 + 0 + 3·9 = <strong>54</strong></code>. SS_between mengukur efek faktor (variasi antar mean grup).</div>
+      <div class="comp-hint">💡 <code>T_off = 2.8 − 0.2 = <strong>2.6</strong></code>. Sinyal harus turun di bawah 2.6 untuk pindah dari ALERT kembali ke NORMAL — mencegah chattering kalau sinyal goyang di sekitar 2.8.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">SS_between</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">T_off</strong></span></div>
         <textarea class="code-textarea" id="code-c2" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c2')"></textarea>
         <div class="stdout-box" id="stdout-c2"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c2" onclick="runAndCheck('c2', 54.0, 0.5)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c2" onclick="runAndCheck('c2', 2.6, 0.01)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c2"></div>
     </div>
 
@@ -2257,16 +2257,16 @@ F, p = stats.f_oneway(group1, group2, group3)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C3</div>
-        <div class="comp-q">Untuk dataset di C1, hitung <strong>SS_within</strong> = <code>ΣⱼΣᵢ (yᵢⱼ − ȳⱼ)²</code> (deviasi data dari mean grup-nya, jumlah semua grup). Print nilainya.</div>
+        <div class="comp-q">Hitung <strong>jumlah sample</strong> per jam untuk sensor dengan sampling period <strong>30 detik</strong>. Print integer.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Grup A: (5−6)²+(6−6)²+(7−6)² = 1+0+1 = 2. Grup B: (8−9)²+(9−9)²+(10−9)² = 2. Grup C: (11−12)²+(12−12)²+(13−12)² = 2. <code>SS_within = 2 + 2 + 2 = <strong>6</strong></code>. Verifikasi: SS_b + SS_w = 54 + 6 = 60 = SS_total ✓.</div>
+      <div class="comp-hint">💡 <code>3600 detik / jam ÷ 30 detik / sample = <strong>120</strong> sample / jam</code>. Sampling rate ini umum untuk monitoring kondisi mesin (vibrasi RMS) — lebih dari cukup untuk capture trend mingguan.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">SS_within</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() jumlah <strong style="color:var(--amber)">sample/jam</strong></span></div>
         <textarea class="code-textarea" id="code-c3" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c3')"></textarea>
         <div class="stdout-box" id="stdout-c3"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c3" onclick="runAndCheck('c3', 6.0, 0.5)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c3" onclick="runAndCheck('c3', 120.0, 0.5)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c3"></div>
     </div>
 
@@ -2274,16 +2274,16 @@ F, p = stats.f_oneway(group1, group2, group3)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C4</div>
-        <div class="comp-q">Diketahui <strong>SS_between = 54</strong>, <strong>SS_within = 6</strong>, <strong>df_b = 2</strong>, <strong>df_w = 6</strong>. Hitung statistik <strong>F</strong> = <code>(SS_b/df_b) / (SS_w/df_w)</code>. Print nilainya.</div>
+        <div class="comp-q">Untuk <strong>debounce N = 5 consecutive samples</strong> dengan sampling period 1 detik, hitung minimum <strong>latency deteksi</strong> (detik) sebelum transition state. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>MS_b = 54/2 = 27</code>, <code>MS_w = 6/6 = 1</code>, <code>F = 27/1 = <strong>27</strong></code>. F sangat besar → bukti kuat efek faktor signifikan. p-value akan sangat kecil (&lt;&lt; 0.05).</div>
+      <div class="comp-hint">💡 Latency = N × T_sample = <code>5 × 1 = <strong>5 detik</strong></code>. Trade-off: N besar → robust noise, latency tinggi; N kecil → cepat respond, false alarm naik. Untuk critical alarm pakai N ≤ 2 (low latency); untuk warning N = 5–10.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">F-statistic</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">latency (detik)</strong></span></div>
         <textarea class="code-textarea" id="code-c4" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c4')"></textarea>
         <div class="stdout-box" id="stdout-c4"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c4" onclick="runAndCheck('c4', 27.0, 0.5)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c4" onclick="runAndCheck('c4', 5.0, 0.1)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c4"></div>
     </div>
 
@@ -2291,16 +2291,16 @@ F, p = stats.f_oneway(group1, group2, group3)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C5</div>
-        <div class="comp-q">Untuk one-way ANOVA dengan <strong>k = 4 level</strong> dan <strong>n = 5 replikasi</strong> per level, hitung <strong>df_total</strong> (degrees of freedom total). Formula: <code>df_total = N − 1</code> dengan <code>N = k·n</code>. Print nilainya.</div>
+        <div class="comp-q">ANSI/ISA 18.2 menetapkan max <strong>1 alarm / 10 menit</strong> per operator. Hitung max <strong>alarm/jam</strong> (steady state) yang masih compliant. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 N = 4·5 = 20. <code>df_total = 20 − 1 = <strong>19</strong></code>. Verifikasi: df_b = k−1 = 3, df_w = N−k = 16; df_b + df_w = 3+16 = 19 ✓.</div>
+      <div class="comp-hint">💡 <code>60 menit / 10 menit/alarm = <strong>6 alarm/jam</strong></code>. Lebih dari ini = alarm flood, operator alarm fatigue, terjadi pengabaian alarm penting. Critical untuk safety.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">df_total</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() max <strong style="color:var(--amber)">alarm/jam</strong></span></div>
         <textarea class="code-textarea" id="code-c5" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c5')"></textarea>
         <div class="stdout-box" id="stdout-c5"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c5" onclick="runAndCheck('c5', 19.0, 0.5)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c5" onclick="runAndCheck('c5', 6.0, 0.1)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c5"></div>
     </div>
 
@@ -2308,16 +2308,16 @@ F, p = stats.f_oneway(group1, group2, group3)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C6</div>
-        <div class="comp-q">Gunakan <code>scipy.stats.f_oneway</code> pada 3 grup A = [5, 6, 7], B = [8, 9, 10], C = [11, 12, 13]. Print nilai <strong>F-statistic</strong> hasil scipy.</div>
+        <div class="comp-q">Untuk RMS = [1.0, 1.5, 2.0, 2.9, 3.5, 4.2, 4.7, 5.0], hitung <strong>jumlah sample yang masuk Zone D (Danger, &gt; 4.5)</strong>. Print integer.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>from scipy.stats import f_oneway; F, p = f_oneway([5,6,7], [8,9,10], [11,12,13]); print(F)</code>. Hasil = <strong>27.0</strong> (sama dengan manual hitung di C4). p-value = 0.001 → tolak H₀.</div>
+      <div class="comp-hint">💡 Sample &gt; 4.5: 4.7, 5.0 → <strong>2 sample</strong>. Code: <code>rms = np.array([1.0, 1.5, 2.0, 2.9, 3.5, 4.2, 4.7, 5.0]); print((rms &gt; 4.5).sum())</code>.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">F (scipy)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() jumlah <strong style="color:var(--amber)">sample Zone D</strong></span></div>
         <textarea class="code-textarea" id="code-c6" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c6')"></textarea>
         <div class="stdout-box" id="stdout-c6"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c6" onclick="runAndCheck('c6', 27.0, 0.5)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c6" onclick="runAndCheck('c6', 2.0, 0.5)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c6"></div>
     </div>
 
@@ -2325,16 +2325,16 @@ F, p = stats.f_oneway(group1, group2, group3)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C7</div>
-        <div class="comp-q"><strong>Effect size η²</strong>: untuk SS_between = 54 dan SS_total = 60, hitung <code>η² = SS_b / SS_total</code>. Print nilainya (desimal).</div>
+        <div class="comp-q">Hitung <strong>persentase uptime</strong> (% time di Zone A "Good") dari 1000 sample dimana 850 sample punya RMS ≤ 1.4. Print persentase desimal (mis. 85.0).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>η² = 54/60 = <strong>0.90</strong></code>. Artinya 90% varians data dijelaskan oleh faktor → <em>large effect</em> menurut Cohen (η² ≥ 0.14 = large). Effect size penting untuk interpretasi praktis: efek besar &amp; signifikan = layak action, efek kecil &amp; signifikan = mungkin tidak praktis.</div>
+      <div class="comp-hint">💡 <code>uptime = (850 / 1000) × 100 = <strong>85.0%</strong></code>. Metrik kunci untuk SLA monitoring industrial. Target umumnya ≥ 95% (best practice), tergantung kritikalitas mesin.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">η²</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">uptime (%)</strong></span></div>
         <textarea class="code-textarea" id="code-c7" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c7')"></textarea>
         <div class="stdout-box" id="stdout-c7"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c7" onclick="runAndCheck('c7', 0.90, 0.005)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c7" onclick="runAndCheck('c7', 85.0, 0.1)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c7"></div>
     </div>
 
@@ -2342,16 +2342,16 @@ F, p = stats.f_oneway(group1, group2, group3)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C8</div>
-        <div class="comp-q"><strong>F-critical value</strong>: untuk α = 0.05, df_b = 2, df_w = 12, hitung <code>F_crit</code> menggunakan <code>scipy.stats.f.ppf(0.95, dfn=2, dfd=12)</code>. Print nilainya.</div>
+        <div class="comp-q">Untuk monitoring <strong>24 jam dengan sampling period 15 detik</strong>, hitung <strong>total sample</strong>. Print integer.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Hasil: <code>F_crit ≈ <strong>3.885</strong></code>. Kalau F_observed &gt; 3.885, tolak H₀ pada α = 0.05. Untuk df berbeda (lebih banyak data), F_crit akan turun (lebih sensitif terhadap efek). Contoh: dfd = 30 → F_crit ≈ 3.32.</div>
+      <div class="comp-hint">💡 <code>24 jam × 3600 detik/jam ÷ 15 detik/sample = 86400 / 15 = <strong>5760</strong> sample</code>. Untuk capacity planning storage time-series database (mis. TimescaleDB) di pabrik dengan 100 sensor → 576,000 row/hari.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">F_critical</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">total sample</strong></span></div>
         <textarea class="code-textarea" id="code-c8" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c8')"></textarea>
         <div class="stdout-box" id="stdout-c8"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c8" onclick="runAndCheck('c8', 3.885, 0.05)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c8" onclick="runAndCheck('c8', 5760.0, 0.5)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c8"></div>
     </div>
 
@@ -2359,16 +2359,16 @@ F, p = stats.f_oneway(group1, group2, group3)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C9</div>
-        <div class="comp-q"><strong>Shapiro-Wilk normality test</strong>: untuk grup data <code>[2.5, 2.4, 2.6, 2.3, 2.2]</code>, gunakan <code>scipy.stats.shapiro</code> untuk dapat W-statistic. Print nilai <strong>W</strong> (statistik pertama dari output, bukan p-value).</div>
+        <div class="comp-q"><strong>Hysteresis state simulation</strong>: dengan T_on = 2.8 dan T_off = 2.6, RMS sequence = [2.5, 2.7, 2.9, 2.7, 2.5, 2.7, 2.9]. Awal state OFF. Hitung <strong>jumlah transitions</strong> total. Print integer.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>from scipy.stats import shapiro; W, p = shapiro([2.5, 2.4, 2.6, 2.3, 2.2]); print(W)</code>. Hasil ≈ <strong>0.987</strong>. W mendekati 1 = sangat normal (W = 1 untuk normal sempurna). p &gt; 0.05 → tidak tolak H₀ "data normal" → asumsi normality OK.</div>
+      <div class="comp-hint">💡 Trace: 2.5(OFF)→2.7(OFF, &lt; 2.8)→2.9(ON, &gt; 2.8, +1)→2.7(ON, &gt; 2.6 hold)→2.5(OFF, &lt; 2.6, +1)→2.7(OFF hold)→2.9(ON, +1). Total transitions = <strong>3</strong>.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">W (Shapiro)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jumlah transitions</strong></span></div>
         <textarea class="code-textarea" id="code-c9" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c9')"></textarea>
         <div class="stdout-box" id="stdout-c9"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c9" onclick="runAndCheck('c9', 0.987, 0.02)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c9" onclick="runAndCheck('c9', 3.0, 0.5)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c9"></div>
     </div>
 
@@ -2376,16 +2376,16 @@ F, p = stats.f_oneway(group1, group2, group3)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C10</div>
-        <div class="comp-q"><strong>Total trial Taguchi L9</strong>: orthogonal array L9 mengakomodasi 4 faktor × 3 level dengan hanya 9 baris (vs full factorial 3⁴ = 81). Hitung <strong>reduction ratio</strong> = <code>(81 − 9) / 81 × 100</code> (% pengurangan trial). Print nilainya.</div>
+        <div class="comp-q">Hitung <strong>MTTR improvement (%)</strong> kalau MTTR sebelum monitoring = 8 jam, setelah monitoring = 5.6 jam. Formula: <code>(MTTR_before − MTTR_after) / MTTR_before × 100</code>. Print persentase.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>(81 − 9) / 81 · 100 = 72/81 · 100 ≈ <strong>88.89%</strong></code>. L9 menghemat ~89% trial dibanding full factorial — sangat bermanfaat untuk eksperimen mahal di engineering. Trade-off: tidak bisa estimasi interaksi tinggi (only main effects).</div>
+      <div class="comp-hint">💡 <code>(8 − 5.6) / 8 × 100 = 2.4/8 × 100 = <strong>30.0%</strong></code>. Vestas wind turbine laporkan reduction 30% MTTR via early-warning rule-based monitoring (SCADA + ISO 10816-21). ROI nyata.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">reduction (%)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">improvement (%)</strong></span></div>
         <textarea class="code-textarea" id="code-c10" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c10')"></textarea>
         <div class="stdout-box" id="stdout-c10"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c10" onclick="runAndCheck('c10', 88.89, 0.5)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c10" onclick="runAndCheck('c10', 30.0, 0.1)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c10"></div>
     </div>
 
