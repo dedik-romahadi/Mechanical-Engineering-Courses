@@ -2272,16 +2272,16 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C11</div>
-        <div class="comp-q"><strong>HysteresisAlarm Class — Anti-Chattering Demo</strong>: implementasi class HysteresisAlarm dengan T_on=2.8, T_off=2.6. Generate sinyal RMS noisy: <code>np.random.seed(42); rms = 2.7 + 0.15 * np.random.randn(500)</code>. Apply class ke seluruh sinyal. Print <strong>jumlah transitions</strong> (state change). Target untuk HysteresisAlarm: rendah (≤ 5).</div>
+        <div class="comp-q"><strong>Logistic Regression Baseline — Synthetic Bearing Dataset</strong>: generate dataset 2-class healthy vs fault dengan separasi clear. <code>np.random.seed(42); n=500; X_h=np.random.randn(n,3); X_f=np.random.randn(n,3)+2.0; X=np.vstack([X_h,X_f]); y=np.concatenate([np.zeros(n),np.ones(n)])</code>. Split 80/20 stratified, train <code>LogisticRegression</code>, print <strong>test accuracy</strong> (3 desimal).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Tanpa hysteresis: ratusan transitions (chattering). Dengan hysteresis margin 0.2 mm/s &gt; noise std 0.15 mm/s, transitions jauh berkurang. Hasil tipikal: 0–4 transitions (sometimes none, depending on whether noise crosses both T_on dan T_off in sequence). Tolerance ± 4 sample.</div>
+      <div class="comp-hint">💡 Separasi mean = 2.0 di 3 dimensi → linearly separable hampir sempurna. Logistic Regression cukup baik (linear decision boundary). Hasil tipikal: <strong>0.95 ± 0.03</strong>. Steps: <code>X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.2,random_state=42,stratify=y); clf=LogisticRegression(max_iter=1000); clf.fit(X_train,y_train); print(f"{clf.score(X_test,y_test):.3f}")</code>. Tolerance ± 0.04.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">jumlah transitions</strong></span></div>
-        <textarea class="code-textarea" id="code-c11" rows="14" placeholder="Paste kode HysteresisAlarm, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c11')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">test accuracy</strong></span></div>
+        <textarea class="code-textarea" id="code-c11" rows="14" placeholder="Paste kode Logistic Regression pipeline, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c11')"></textarea>
         <div class="stdout-box" id="stdout-c11"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c11" onclick="runAndCheck('c11', 2.0, 4.0, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c11" onclick="runAndCheck('c11', 0.95, 0.04, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c11"></div>
     </div>
 
@@ -2289,16 +2289,16 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C12</div>
-        <div class="comp-q"><strong>FSM Monitoring Pipeline — RMS Streaming dengan Tier Alarm</strong>: bangun FSM dengan 4 state (NORMAL, WARNING, ALERT, CRITICAL), thresholds (1.4, 2.8, 4.5), debounce N=3. Apply ke sinyal RMS sintetis: <code>np.random.seed(42); rms = 0.7 + np.linspace(0, 4.0, 1000) + 0.2 * np.random.randn(1000)</code>. Print <strong>jumlah state transitions</strong> total.</div>
+        <div class="comp-q"><strong>Random Forest + 5-Fold Cross-Validation</strong>: generate dataset healthy vs fault. <code>np.random.seed(42); n=300; X_h=np.random.randn(n,4); X_f=np.random.randn(n,4)+2.0; X=np.vstack([X_h,X_f]); y=np.concatenate([np.zeros(n),np.ones(n)])</code>. Train <code>RandomForestClassifier(n_estimators=100, random_state=42)</code> dengan 5-fold CV, print <strong>mean accuracy</strong> (3 desimal).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Sinyal naik dari ~0.7 ke ~4.7 selama 1000 sample → akan cross threshold WARNING (1.4), ALERT (2.8), CRITICAL (4.5). Dengan debounce N=3, hanya genuine elevations yang trigger transition. Tipikal ≈ 3 transitions (NORMAL → WARNING → ALERT → CRITICAL). Tolerance ± 1.</div>
+      <div class="comp-hint">💡 Dataset balanced 300/300, 4 fitur, separasi 2.0 → RF excellent. <code>cross_val_score(RandomForestClassifier(n_estimators=100,random_state=42), X, y, cv=5, scoring='accuracy').mean()</code>. Cross-val memberi estimasi unbiased karena setiap sample digunakan exactly once sebagai test. Hasil tipikal: <strong>0.97 ± 0.02</strong>. Tolerance ± 0.03.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">jumlah transitions</strong></span></div>
-        <textarea class="code-textarea" id="code-c12" rows="16" placeholder="Paste kode FSM tier alarm, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c12')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">mean CV accuracy</strong></span></div>
+        <textarea class="code-textarea" id="code-c12" rows="16" placeholder="Paste kode Random Forest + cross_val_score, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c12')"></textarea>
         <div class="stdout-box" id="stdout-c12"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c12" onclick="runAndCheck('c12', 3.0, 1.0, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c12" onclick="runAndCheck('c12', 0.97, 0.03, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c12"></div>
     </div>
 
@@ -2306,16 +2306,16 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C13</div>
-        <div class="comp-q"><strong>Multi-Feature Threshold Combination</strong>: 100 sample dengan fitur RMS, peak, kurtosis. Generate: <code>np.random.seed(42); rms = np.random.uniform(0.5, 4.0, 100); peak = rms*3 + np.random.randn(100); kurt = 3 + np.random.uniform(-1, 4, 100)</code>. Hitung <strong>jumlah sample yang trigger ALERT</strong> dengan rule: <code>(rms &gt; 2.8) OR (peak &gt; 8) OR (kurt &gt; 4)</code>. Print integer.</div>
+        <div class="comp-q"><strong>SVM RBF Pipeline + StandardScaler</strong>: dataset multi-skala (butuh scaling sebelum SVM). <code>np.random.seed(42); n=250; X_h=np.random.randn(n,5)*10; X_f=np.random.randn(n,5)*10+5; X=np.vstack([X_h,X_f]); y=np.concatenate([np.zeros(n),np.ones(n)])</code>. Bangun <code>Pipeline([('scl',StandardScaler()),('svm',SVC(kernel='rbf',C=1.0,gamma='scale',random_state=42))])</code>. Split 75/25 stratified, train, print <strong>test accuracy</strong> (3 desimal).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 OR logic: tiap sample yang melanggar setidaknya satu threshold akan trigger. <code>n_alert = ((rms &gt; 2.8) | (peak &gt; 8) | (kurt &gt; 4)).sum()</code>. Multi-feature lebih sensitif dari single-feature; tetapi rentan false-positive. Hasil tipikal ≈ 75 ± 10. Tolerance ± 10.</div>
+      <div class="comp-hint">💡 SVM RBF sensitive terhadap feature scale → wajib StandardScaler dulu (di Pipeline mencegah data leakage). Pipeline auto-applies scaler.fit_transform pada train, scaler.transform pada test. Hasil tipikal: <strong>0.92 ± 0.04</strong>. Tolerance ± 0.05.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">jumlah ALERT</strong></span></div>
-        <textarea class="code-textarea" id="code-c13" rows="16" placeholder="Paste kode multi-feature threshold, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c13')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">test accuracy</strong></span></div>
+        <textarea class="code-textarea" id="code-c13" rows="16" placeholder="Paste kode SVM Pipeline, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c13')"></textarea>
         <div class="stdout-box" id="stdout-c13"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c13" onclick="runAndCheck('c13', 75.0, 10.0, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c13" onclick="runAndCheck('c13', 0.92, 0.05, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c13"></div>
     </div>
 
@@ -2323,16 +2323,16 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C14</div>
-        <div class="comp-q"><strong>Persistence Timer / Escalation Logic</strong>: untuk sinyal yang tetap di Zone B selama 12 menit (sample period 30 detik), dengan eskalasi rule "Warning persist &gt; 5 menit → Alert", hitung <strong>kapan eskalasi ke ALERT terjadi</strong> (sample index ke berapa). Print integer.</div>
+        <div class="comp-q"><strong>GridSearchCV — Hyperparameter Tuning RandomForest</strong>: dataset 4 fitur. <code>np.random.seed(42); n=250; X_h=np.random.randn(n,4); X_f=np.random.randn(n,4)+2.0; X=np.vstack([X_h,X_f]); y=np.concatenate([np.zeros(n),np.ones(n)])</code>. Tune <code>n_estimators=[50,100]</code>, <code>max_depth=[3,5,None]</code> dengan <code>GridSearchCV(cv=3, scoring='accuracy')</code>. Print <strong>best_score_</strong> (3 desimal).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 5 menit = 300 detik. Sample period 30 detik → escalation pada sample <code>300 / 30 = <strong>10</strong></code>. Sample 0 = masuk Warning, sample 10 = sudah persist 5 menit (5×60/30=10 sample), trigger eskalasi. Tolerance ± 1.</div>
+      <div class="comp-hint">💡 Total kombinasi = 2 × 3 = 6 kandidat × 3 fold = 18 model dilatih. <code>gs = GridSearchCV(RandomForestClassifier(random_state=42), {'n_estimators':[50,100], 'max_depth':[3,5,None]}, cv=3, scoring='accuracy'); gs.fit(X,y); print(f"{gs.best_score_:.3f}")</code>. Hasil tipikal: <strong>0.97 ± 0.02</strong>. Tolerance ± 0.04.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">sample escalation</strong></span></div>
-        <textarea class="code-textarea" id="code-c14" rows="14" placeholder="Paste kode persistence timer, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c14')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">best_score_</strong></span></div>
+        <textarea class="code-textarea" id="code-c14" rows="14" placeholder="Paste kode GridSearchCV, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c14')"></textarea>
         <div class="stdout-box" id="stdout-c14"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c14" onclick="runAndCheck('c14', 10.0, 1.0, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c14" onclick="runAndCheck('c14', 0.97, 0.04, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c14"></div>
     </div>
 
@@ -2340,16 +2340,16 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C15</div>
-        <div class="comp-q"><strong>Engineering Pipeline — End-to-End Monitoring 24 jam</strong>: simulasi 24 jam (sampling 30 detik), generate sinyal RMS dengan <code>np.random.seed(42); n=2880; rms = 0.7 + np.linspace(0, 3.5, n) + 0.2 * np.random.randn(n)</code>. Apply ISO 10816 zone classification + FSM tier alarm. Print <strong>persentase waktu di Zone D (Danger)</strong>.</div>
+        <div class="comp-q"><strong>Engineering Pipeline — End-to-End ML Comparison (3 model)</strong>: dataset bearing fault. <code>np.random.seed(42); n=300; X_h=np.random.randn(n,5); X_f=np.random.randn(n,5)+1.8; X=np.vstack([X_h,X_f]); y=np.concatenate([np.zeros(n),np.ones(n)])</code>. Split 80/20 stratified. Train 3 model: <strong>LogReg</strong>, <strong>RandomForest(n=100)</strong>, <strong>SVM-RBF Pipeline (Scaler+SVC probability=True)</strong>. Print <strong>best ROC-AUC</strong> dari 3 model di test set (3 desimal).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Sinyal berkembang 0.7 → 4.2 mm/s. Menjelang akhir mencapai threshold D (4.5)? Kebanyakan sample di bawah 4.5, sebagian kecil di atas. Tipikal % di Zone D rendah (&lt; 5%). Code: <code>zones = [iso10816_zone(r)[0] for r in rms]; pct_d = 100 * sum(z=='D' for z in zones) / len(zones)</code>. Tolerance ± 3%.</div>
+      <div class="comp-hint">💡 ROC-AUC threshold-independent ranking — pakai <code>predict_proba(X_test)[:,1]</code> lalu <code>roc_auc_score(y_test, proba)</code>. Loop 3 model, simpan best AUC. SVM butuh <code>probability=True</code> untuk predict_proba. Dengan separasi 1.8 di 5D, expected best ≈ <strong>0.98 ± 0.02</strong>. Tolerance ± 0.03.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">% Zone D</strong></span></div>
-        <textarea class="code-textarea" id="code-c15" rows="20" placeholder="Paste kode end-to-end monitoring, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c15')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">best ROC-AUC</strong></span></div>
+        <textarea class="code-textarea" id="code-c15" rows="20" placeholder="Paste kode end-to-end ML comparison, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c15')"></textarea>
         <div class="stdout-box" id="stdout-c15"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c15" onclick="runAndCheck('c15', 0.0, 5.0, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c15" onclick="runAndCheck('c15', 0.98, 0.03, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c15"></div>
     </div>
 
