@@ -1107,76 +1107,84 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <hr class="divider">
 <div class="section" id="m-resonashi">
   <div class="section-label reveal">Bagian 04</div>
-  <h2 class="section-title reveal">Finite State Machine &amp; Debouncing:<br>Track Health History dengan Transition Logic</h2>
-  <p class="section-desc reveal">Threshold + hysteresis + tier alarm sudah cukup untuk basic monitoring. Tetapi sistem real butuh <strong>memori</strong> — track <em>riwayat state</em> (kapan masuk warning, berapa lama di alert, urutan transisi). Inilah <strong>finite state machine (FSM)</strong> — model formal dengan: <em>states</em> (NORMAL, WARNING, ALERT, CRITICAL, FAULT), <em>transitions</em> (kondisi pindah antar state), <em>actions</em> (apa yang dilakukan saat enter/exit state). Plus, <strong>debouncing</strong> — filter sinyal yang noisy dengan persyaratan "<em>N consecutive samples</em>" sebelum pindah state. FSM = backbone setiap monitoring system production-grade. Implementasi 30 baris Python tetapi memberikan <em>traceability sempurna</em>: setiap event ada timestamp, dari state mana ke state mana, kenapa.</p>
+  <h2 class="section-title reveal">Evaluasi Model:<br>Confusion Matrix, F1-Score, ROC-AUC &amp; Cross-Validation</h2>
+  <p class="section-desc reveal">Setelah model di-fit, pertanyaan kritis: <strong>seberapa bagus performance-nya?</strong> Bukan cuma accuracy — banyak metrik penting tergantung use case. <em>Confusion matrix</em> menunjukkan TP/FP/TN/FN. <em>Precision</em> = "dari yang di-predict fault, berapa benar?" — relevan untuk minimize false alarm. <em>Recall</em> = "dari semua fault sebenarnya, berapa kena?" — relevan untuk safety (jangan miss fault). <em>F1</em> = harmonic mean (balance). <em>ROC-AUC</em> = threshold-independent performance summary. Plus <strong>cross-validation</strong> untuk estimate true generalization (single train/test split bisa lucky/unlucky). Pakai <em>k-fold CV</em> (typically k=5 atau 10) sebagai gold standard. <em>Stratified k-fold</em> untuk imbalanced class.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Enam Konsep Inti FSM &amp; Debouncing</div>
-    States &amp; transitions &nbsp;·&nbsp; Mealy vs Moore machine &nbsp;·&nbsp; Entry/exit actions &nbsp;·&nbsp; Debouncing (N consecutive) &nbsp;·&nbsp; Heartbeat &amp; timeout &nbsp;·&nbsp; Event sourcing &amp; audit log
+    <div class="label">Enam Konsep Inti Evaluasi Model</div>
+    Confusion matrix (TP/FP/TN/FN) &nbsp;·&nbsp; Precision, Recall, F1 &nbsp;·&nbsp; ROC curve &amp; AUC &nbsp;·&nbsp; Cross-validation (k-fold) &nbsp;·&nbsp; Imbalanced class handling &nbsp;·&nbsp; Overfit detection
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
+      <div class="card-icon">📊</div>
+      <h3>Confusion Matrix (2×2 Binary)</h3>
+      <p>Matriks 2×2 untuk binary classification: <strong>TP</strong> (predict fault, actual fault) — correct alarm; <strong>FP</strong> (predict fault, actual healthy) — false alarm; <strong>TN</strong> (predict healthy, actual healthy) — correct normal; <strong>FN</strong> (predict healthy, actual fault) — <em>missed fault</em> = paling berbahaya untuk safety. Untuk multi-class (k=4): k×k matrix. Code: <code>from sklearn.metrics import confusion_matrix; cm = confusion_matrix(y_test, y_pred)</code>. Visualisasi: <code>seaborn.heatmap(cm, annot=True)</code>. Insight engineering: <em>FN cost &gt;&gt; FP cost</em> — biasanya prefer recall tinggi.</p>
+      <div class="formula">[[TN, FP], [FN, TP]]</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📏</div>
+      <h3>Precision, Recall, F1-Score</h3>
+      <p><strong>Precision</strong> = <code>TP / (TP + FP)</code> — dari yang di-flag fault, berapa benar? Tinggi = sedikit false alarm. <strong>Recall (Sensitivity)</strong> = <code>TP / (TP + FN)</code> — dari semua fault, berapa terdeteksi? Tinggi = sedikit miss. <strong>F1</strong> = <code>2·P·R / (P+R)</code> — harmonic mean, single metric balance. Untuk safety-critical: prioritize <em>recall</em> (jangan miss fault); untuk operator-friendly: prioritize <em>precision</em> (jangan banyak false alarm). API: <code>precision_score, recall_score, f1_score</code> dari <code>sklearn.metrics</code>.</p>
+      <div class="formula">F1 = 2PR/(P+R)</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📈</div>
+      <h3>ROC Curve &amp; AUC</h3>
+      <p><strong>ROC</strong> (Receiver Operating Characteristic) plot: TPR (recall) vs FPR (false positive rate) untuk semua threshold. Kurva mendekati pojok kiri-atas = model excellent. <strong>AUC</strong> (Area Under Curve) = single number 0–1 summary. AUC = 0.5 random; AUC = 1.0 perfect; AUC ≥ 0.9 excellent; AUC 0.7–0.9 good; AUC &lt; 0.6 poor. Threshold-independent — bandingkan model dengan satu metrik. API: <code>from sklearn.metrics import roc_curve, roc_auc_score; auc = roc_auc_score(y_test, y_proba)</code>. Plot: <code>fpr, tpr, _ = roc_curve(y_test, y_proba); plt.plot(fpr, tpr)</code>.</p>
+      <div class="formula">AUC ≥ 0.9 = excellent</div>
+    </div>
+    <div class="card">
       <div class="card-icon">🔄</div>
-      <h3>States &amp; Transitions</h3>
-      <p>FSM didefinisikan oleh <strong>5-tuple</strong>: (S, s₀, Σ, δ, F) — set states S, initial state s₀, input alphabet Σ, transition function δ: S × Σ → S, final states F. Untuk monitoring: S = {NORMAL, WARNING, ALERT, CRITICAL, FAULT}; s₀ = NORMAL; Σ = {sensor reading + timer event}; δ = rules (mis. NORMAL → WARNING jika rms &gt; T_warn). Visualisasi via <strong>state diagram</strong> (lingkaran = state, panah = transition). Tools: <code>graphviz</code>, <code>state_machine</code> Python lib.</p>
-      <div class="formula">δ: S × Σ → S</div>
+      <h3>k-Fold Cross-Validation</h3>
+      <p>Single train/test split bisa lucky atau unlucky — variance estimate accuracy tinggi. Solusi: <strong>k-fold CV</strong> — split data ke k bagian, train di k-1, test di 1, ulangi k kali. Hasil: <em>mean ± std</em> dari k metrics. Standar k=5 atau 10. <strong>Stratified k-fold</strong> untuk imbalanced (proporsi class di tiap fold sama). API: <code>from sklearn.model_selection import cross_val_score; scores = cross_val_score(model, X, y, cv=5, scoring='f1_macro'); print(f"{scores.mean():.3f} ± {scores.std():.3f}")</code>. Pakai untuk: model selection, hyperparameter tuning, performance estimate.</p>
+      <div class="formula">CV: mean ± std over k folds</div>
     </div>
     <div class="card">
-      <div class="card-icon">🅼</div>
-      <h3>Mealy vs Moore Machine</h3>
-      <p>Dua varian FSM: <strong>Moore</strong> — output hanya bergantung pada <em>state saat ini</em> (mis. di state ALERT, selalu nyalakan lampu oranye, terlepas dari input). <strong>Mealy</strong> — output bergantung pada <em>state + input</em> (mis. transisi ALERT → CRITICAL kirim SMS; tetapi NORMAL → CRITICAL juga kirim SMS dengan pesan berbeda). Mealy lebih ekspresif tetapi rumit. Untuk monitoring sederhana, Moore cukup.</p>
-      <div class="formula">Moore: f(s); Mealy: f(s, σ)</div>
+      <div class="card-icon">⚖️</div>
+      <h3>Imbalanced Class Handling</h3>
+      <p>Predictive maintenance sering imbalanced: 1% fault, 99% healthy. Naive accuracy = 99% kalau predict semua "healthy" — useless. Solusi: (1) <strong>Class weighting</strong>: <code>RandomForestClassifier(class_weight='balanced')</code> — weight inverse proporsional class frequency. (2) <strong>Resampling</strong>: SMOTE (oversample minority), undersample majority — pakai <code>imblearn</code> library. (3) <strong>Metrics</strong>: jangan accuracy; pakai precision-recall-F1 (per class), macro-F1, ROC-AUC, atau PR-AUC (lebih robust untuk severe imbalance). (4) <strong>Custom threshold</strong>: dari predict_proba, set threshold optimal berdasarkan business cost FP vs FN.</p>
+      <div class="formula">class_weight='balanced'</div>
     </div>
     <div class="card">
-      <div class="card-icon">🚪</div>
-      <h3>Entry / Exit Actions</h3>
-      <p>Tiap state punya 2 hook: <strong>on_entry</strong> (jalankan saat state baru di-enter) dan <strong>on_exit</strong> (jalankan saat state ditinggalkan). Contoh: <em>on_entry(ALERT)</em> = log timestamp + send SMS supervisor. <em>on_exit(ALERT)</em> = log durasi + cancel SMS escalation timer. Pola ini memisahkan <em>logic transisi</em> dari <em>side effects</em> (notifikasi, logging). Pattern populer: <strong>state pattern</strong> (Gang of Four), implementation di Python <code>statemachine</code> library.</p>
-      <div class="formula">on_entry / on_exit hooks</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">⏳</div>
-      <h3>Debouncing (N Consecutive Samples)</h3>
-      <p>Sinyal sensor noisy bisa cross threshold sesaat lalu kembali normal. Solusi: <strong>require N consecutive samples</strong> di kondisi alert sebelum pindah state. Contoh: untuk pindah dari NORMAL ke WARNING, butuh 5 sample berturut-turut dengan rms &gt; T_warn. Implementasi: counter di-increment kalau kondisi true, reset ke 0 kalau false. Ketika counter &gt;= N, eksekusi transisi. <em>Trade-off</em>: N besar → lebih robust noise, tetapi delay deteksi (latency) makin lama. Tipikal: N = 3–10 (≈ 100–500 ms pada 50 Hz sampling).</p>
-      <div class="formula">if count &gt;= N: transition</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">💓</div>
-      <h3>Heartbeat &amp; Sensor Timeout</h3>
-      <p>Sensor bisa mati / disconnect tanpa warning — output frozen di nilai terakhir. Untuk detect, FSM butuh <strong>heartbeat</strong>: harapkan sample baru tiap T detik. Kalau tidak ada sample selama 2·T (atau N·T), pindah ke state FAULT (sensor failure). Implementasi: timer yang reset tiap kali ada sample masuk; expired timer trigger transisi. Pattern: <em>watchdog timer</em>, dipakai di mikrokontroller (STM32 IWDG, AVR WDT) untuk detect software hang juga.</p>
-      <div class="formula">if Δt &gt; timeout: FAULT</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">📜</div>
-      <h3>Event Sourcing &amp; Audit Log</h3>
-      <p>Tiap transition state harus <strong>di-log</strong> dengan: timestamp, old_state, new_state, trigger value, sample data. Format JSON / CSV / database (SQLite, InfluxDB, TimescaleDB). Audit log = <em>source of truth</em> untuk: (a) post-mortem analysis (kenapa shutdown?), (b) compliance audit (ISO/API), (c) trend analysis (frequency of warnings naik = degradasi mesin), (d) ML training data (P13). Pattern: <strong>event sourcing</strong> — replay log untuk reconstruct state apapun di waktu lalu.</p>
-      <div class="formula">log: ts, s_old, s_new, trigger</div>
+      <div class="card-icon">🚨</div>
+      <h3>Overfit Detection</h3>
+      <p><strong>Overfit</strong> = train accuracy &gt;&gt; test accuracy. Misalnya: train 99%, test 75% → memorize, tidak generalize. <strong>Diagnostik</strong>: (1) Compare train vs test score; gap besar = overfit. (2) <em>Learning curve</em>: plot accuracy vs training set size. Gap melebar = overfit; gap mengecil dengan data lebih = lack of data. (3) Validation curve: plot accuracy vs hyperparameter complexity (max_depth, C). <strong>Mitigasi</strong>: regularize (smaller max_depth, larger min_samples_leaf, smaller C), more data, simpler model, ensemble (RF averaging reduce overfit), early stopping (XGBoost). API: <code>sklearn.model_selection.learning_curve, validation_curve</code>.</p>
+      <div class="formula">train_acc &gt;&gt; test_acc → overfit</div>
     </div>
   </div>
 
   <div class="tbl-wrap reveal" style="margin:32px 0">
     <table class="data-table">
-      <thead><tr><th>Transition</th><th>Trigger Condition</th><th>Action (on_entry)</th><th>Debounce N</th></tr></thead>
+      <thead><tr><th>Metric</th><th>Formula</th><th>Range</th><th>Use Case</th></tr></thead>
       <tbody>
-        <tr><td style="color:var(--green)">NORMAL → WARNING</td><td>rms &gt; T_warn (1.4)</td><td>Log + email</td><td>5 samples</td></tr>
-        <tr><td style="color:var(--cyan)">WARNING → ALERT</td><td>rms &gt; T_alert (2.8) OR persist &gt; 5 min</td><td>SMS supervisor</td><td>3 samples</td></tr>
-        <tr><td style="color:var(--amber)">ALERT → CRITICAL</td><td>rms &gt; T_crit (4.5) OR persist &gt; 10 min</td><td>Auto-shutdown + page</td><td>2 samples</td></tr>
-        <tr><td style="color:var(--pink)">CRITICAL → FAULT</td><td>sensor timeout &gt; 30 s</td><td>Mark sensor as faulty</td><td>1 timeout</td></tr>
-        <tr><td style="color:var(--violet)">Any → NORMAL</td><td>rms &lt; T_off (hysteresis) AND persist &gt; 1 min</td><td>Log recovery</td><td>10 samples</td></tr>
+        <tr><td style="color:var(--cyan)">Accuracy</td><td>(TP+TN) / N</td><td>0–1</td><td>Balanced classes only</td></tr>
+        <tr><td style="color:var(--green)">Precision</td><td>TP / (TP+FP)</td><td>0–1</td><td>Minimize false alarm</td></tr>
+        <tr><td style="color:var(--amber)">Recall</td><td>TP / (TP+FN)</td><td>0–1</td><td>Minimize missed fault</td></tr>
+        <tr><td style="color:var(--violet)">F1-score</td><td>2·P·R / (P+R)</td><td>0–1</td><td>Balanced P/R, imbalanced data</td></tr>
+        <tr><td style="color:var(--pink)">ROC-AUC</td><td>area under ROC curve</td><td>0.5–1</td><td>Threshold-independent</td></tr>
+        <tr><td style="color:var(--cyan)">PR-AUC</td><td>area under PR curve</td><td>0–1</td><td>Severe imbalance</td></tr>
       </tbody>
     </table>
   </div>
 
   <div class="info-box reveal">
-    <strong>Contoh Konkret — FSM untuk Monitoring Pump Sentrifugal:</strong><br>
-    State NORMAL (rms = 0.9 mm/s). Mendadak ada spike single-sample ke 4.2 mm/s. Tanpa debouncing, langsung ke ALERT. Dengan debouncing N=3, FSM increment counter tetapi sample berikutnya kembali ke 1.0 mm/s — counter reset, tetap di NORMAL. Bagus, false alarm dihindari. Setelah 1 jam, RMS naik perlahan: 1.5, 1.8, 2.1, 2.5, 2.9, 3.0, 3.1 (5 sample berturut &gt; 1.4) → transisi NORMAL → WARNING (log + email). Persist 6 menit di WARNING (3 sample &gt; 2.8 setelah 5 menit) → escalate ke ALERT (SMS supervisor). Operator inspect, ketemu coupling misalignment → fix → RMS turun 0.8 → 10 sample &lt; T_off (1.2) selama 1 menit → ALERT → NORMAL (log recovery). Total event log = 4 entries — audit trail lengkap.
+    <strong>Contoh Konkret — Bearing Fault (Imbalanced 5% positive):</strong><br>
+    Dataset: 9500 healthy + 500 fault (5% positive). Naive predict-all-healthy: accuracy 95%, recall 0% — useless. Random Forest dengan <code>class_weight='balanced'</code>:<br>
+    • Confusion matrix: [[9300, 200], [50, 450]] (TN=9300, FP=200, FN=50, TP=450)<br>
+    • Precision = 450/(450+200) = <strong>0.69</strong><br>
+    • Recall = 450/(450+50) = <strong>0.90</strong> — catch 90% fault<br>
+    • F1 = 2·0.69·0.90 / (0.69+0.90) = <strong>0.78</strong><br>
+    • Accuracy = 9750/10000 = 97.5% — meningkat dari naive tetapi BUKAN metrik utama<br>
+    • ROC-AUC = 0.96 — excellent<br>
+    Engineering decision: 50 missed fault (10%) costly — naikkan recall via threshold rendah (e.g. predict_proba &gt; 0.3 instead of 0.5), accept lebih banyak false alarm.
   </div>
 
   <div class="warn-box reveal">
     <div class="warn-icon">⚠️</div>
     <div>
-      <h4>Trap FSM &amp; Debouncing yang Sering Diabaikan</h4>
-      <p>(1) <strong>State explosion</strong> — kombinasi state dengan banyak feature (mis. RMS × peak × kurt × suhu) cepat tidak terkelola. Solusi: <em>composite state</em> atau hierarchical FSM (HFSM). (2) <strong>Race condition</strong> — sample baru tiba saat transition belum selesai. Pakai mutex / atomic update. (3) <strong>Stuck state</strong> — kalau exit condition tidak pernah tercapai (mis. T_off terlalu rendah), state stuck selamanya. Tambah escape route via timeout. (4) <strong>Debounce N terlalu besar</strong> — latency deteksi naik, alarm critical bisa terlambat. Trade-off: low N untuk critical (≤ 2), high N untuk warning (5–10). (5) <strong>Lupa heartbeat</strong> — sensor mati silent → output frozen → FSM tetap "NORMAL". Watchdog timer wajib. (6) <strong>Audit log overflow</strong> — high-frequency transitions bisa fill disk. Pakai log rotation, ringkasan (N events/min), atau database time-series (InfluxDB) yang punya retention policy. (7) <strong>State machine tanpa diagram</strong> — kode lama tanpa visualisasi sulit di-debug. Selalu maintain state diagram (graphviz) yang sinkron dengan code.</p>
+      <h4>Trap Evaluasi yang Sering Diabaikan</h4>
+      <p>(1) <strong>Accuracy untuk imbalanced</strong> — 99% accuracy bisa berarti naive predictor; pakai F1, AUC. (2) <strong>Single train/test split</strong> — variance tinggi. Pakai 5-fold CV untuk estimasi reliable. (3) <strong>Data leakage</strong> — feature scaling/imputation yang fit di full data sebelum split → contaminate test set. <strong>Wajib pakai Pipeline</strong> dengan fit hanya di train. (4) <strong>Test set re-used</strong> — pakai test set berkali-kali untuk select model = overfit ke test set ("test set leakage"). Solusi: train/val/test 60/20/20; tune di val, evaluate sekali di test (reserved). (5) <strong>Mismatched train/deploy distribution</strong> — train data dari mesin sehat di lab, deploy di mesin lapangan dengan kondisi berbeda. Concept drift. Re-train periodik wajib. (6) <strong>Threshold default 0.5</strong> — tidak optimal untuk imbalanced atau cost-sensitive. Plot precision-recall curve, pick threshold optimal. (7) <strong>Compare di metric salah</strong> — misalnya report "accuracy 95%" di paper tetapi tidak mention class balance — misleading. Selalu report multi-metric.</p>
     </div>
   </div>
 </div>
