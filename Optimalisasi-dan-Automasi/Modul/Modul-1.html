@@ -2418,6 +2418,412 @@ x = signal + noise                              # ← Ini deret time series Anda
 </div><!-- end page-hasil -->
 
 
+<style>
+/* CSS variables scoped untuk Setup Python tab */
+#page-setup {
+  --sp-bg:#050a0e; --sp-bg2:#0a1018; --sp-card:#131f30;
+  --sp-c1:#10b981; --sp-c2:#34d399; --sp-c3:#06b6d4;
+  --sp-c4:#f59e0b; --sp-c5:#8b5cf6; --sp-c6:#f472b6;
+  --sp-t1:#e8ecf4; --sp-t2:#94a3b8; --sp-t3:#64748b;
+  --sp-bd:#1e2d3d;
+}
+#page-setup .sp-hero{min-height:60vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:4rem 2rem;position:relative;overflow:hidden;background:linear-gradient(160deg,#020c1a 0%,#041526 30%,#06222e 60%,#031a20 100%);border-radius:0 0 32px 32px}
+#page-setup .sp-hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(6,182,212,.04) 59px,rgba(6,182,212,.04) 60px),repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(6,182,212,.04) 59px,rgba(6,182,212,.04) 60px);pointer-events:none}
+#page-setup .sp-hero::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 50% 50% at 50% 55%,rgba(6,182,212,.08),transparent 70%),radial-gradient(ellipse 40% 40% at 25% 70%,rgba(16,185,129,.06),transparent 60%),radial-gradient(ellipse 30% 30% at 80% 30%,rgba(139,92,246,.05),transparent 60%);pointer-events:none}
+#page-setup .sp-hero-inner{position:relative;z-index:1;max-width:700px}
+#page-setup .sp-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.25rem;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);border-radius:999px;font-size:.8rem;color:var(--sp-c2);font-weight:700;letter-spacing:.08em;margin-bottom:1.5rem}
+#page-setup .sp-h1{font-size:clamp(2.4rem,6vw,3.8rem);font-weight:900;line-height:1.1;margin-bottom:.75rem;color:var(--sp-t1)}
+#page-setup .sp-h1 .hl{background:linear-gradient(135deg,var(--sp-c2),var(--sp-c3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+#page-setup .sp-sub{font-size:1.1rem;color:var(--sp-t2);max-width:580px;margin:0 auto 2rem}
+#page-setup .sp-chips{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap}
+#page-setup .sp-chip{display:inline-flex;align-items:center;gap:.7rem;padding:.4rem 1rem;background:rgba(255,255,255,.05);border:1px solid var(--sp-bd);border-radius:10px;font-size:.8rem;font-weight:600;color:var(--sp-t1)}
+#page-setup .sp-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--sp-c2)}
+
+#page-setup .sp-wrap{max-width:800px;margin:0 auto;padding:0 2rem}
+#page-setup .sp-timeline{position:relative;padding:3rem 0}
+#page-setup .sp-timeline::before{content:'';position:absolute;left:28px;top:0;bottom:0;width:3px;background:linear-gradient(to bottom,var(--sp-c1),var(--sp-c3),var(--sp-c5),var(--sp-c6));border-radius:2px;opacity:.3}
+#page-setup .sp-step{position:relative;padding-left:76px;margin-bottom:3rem}
+#page-setup .sp-dot{position:absolute;left:14px;top:6px;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.85rem;color:#fff;z-index:2;box-shadow:0 0 20px rgba(16,185,129,.3)}
+#page-setup .sp-dot.s1{background:linear-gradient(135deg,#10b981,#059669)}
+#page-setup .sp-dot.s2{background:linear-gradient(135deg,#06b6d4,#0891b2)}
+#page-setup .sp-dot.s3{background:linear-gradient(135deg,#8b5cf6,#7c3aed)}
+#page-setup .sp-dot.s4{background:linear-gradient(135deg,#f59e0b,#d97706)}
+#page-setup .sp-dot.s5{background:linear-gradient(135deg,#f472b6,#ec4899)}
+#page-setup .sp-card{background:var(--sp-card);border:1px solid var(--sp-bd);border-radius:18px;overflow:hidden;transition:all .4s cubic-bezier(.34,1.56,.64,1)}
+#page-setup .sp-card:hover{transform:translateY(-4px) translateX(4px);border-color:rgba(16,185,129,.3);box-shadow:0 12px 40px rgba(0,0,0,.4)}
+#page-setup .sp-bar{height:3px}
+#page-setup .sp-bar.s1{background:linear-gradient(90deg,#10b981,#34d399)}
+#page-setup .sp-bar.s2{background:linear-gradient(90deg,#06b6d4,#22d3ee)}
+#page-setup .sp-bar.s3{background:linear-gradient(90deg,#8b5cf6,#a78bfa)}
+#page-setup .sp-bar.s4{background:linear-gradient(90deg,#f59e0b,#fbbf24)}
+#page-setup .sp-bar.s5{background:linear-gradient(90deg,#f472b6,#f9a8d4)}
+#page-setup .sp-head{padding:1.5rem 2rem .5rem;display:flex;align-items:center;gap:1rem}
+#page-setup .sp-icon{font-size:2rem}
+#page-setup .sp-label{font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--sp-t3)}
+#page-setup .sp-title{font-size:1.25rem;font-weight:800;color:var(--sp-t1)}
+#page-setup .sp-body{padding:.5rem 2rem 2rem}
+#page-setup .sp-body p{color:var(--sp-t2);line-height:1.75}
+#page-setup .sp-body strong{color:var(--sp-t1)}
+#page-setup .sp-body a{color:var(--sp-c2);font-weight:600;text-decoration:none;border-bottom:1px dashed var(--sp-c2)}
+#page-setup .sp-body code{background:var(--sp-bg2);padding:.15rem .5rem;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:.85rem;color:var(--sp-t1)}
+
+#page-setup .sp-cb{background:#080e18;border:1px solid var(--sp-bd);border-radius:14px;margin:1rem 0;overflow:hidden}
+#page-setup .sp-cbh{display:flex;align-items:center;justify-content:space-between;padding:.6rem 1.2rem;background:rgba(255,255,255,.02);border-bottom:1px solid var(--sp-bd)}
+#page-setup .sp-cbh-left{display:flex;align-items:center;gap:.5rem}
+#page-setup .sp-cbh-dots{display:flex;gap:5px}
+#page-setup .sp-cbh-dots span{width:9px;height:9px;border-radius:50%}
+#page-setup .sp-cbh-dots span:nth-child(1){background:#ff5f57}
+#page-setup .sp-cbh-dots span:nth-child(2){background:#febc2e}
+#page-setup .sp-cbh-dots span:nth-child(3){background:#28c840}
+#page-setup .sp-cbh-title{font-size:.75rem;font-weight:600;color:var(--sp-t3)}
+#page-setup .sp-cbh-copy{padding:.3rem .7rem;background:rgba(255,255,255,.05);border:1px solid var(--sp-bd);color:var(--sp-t3);border-radius:6px;cursor:pointer;font-size:.7rem;font-family:inherit;transition:all .3s}
+#page-setup .sp-cbh-copy:hover{background:rgba(16,185,129,.15);color:var(--sp-c2);border-color:rgba(16,185,129,.3)}
+#page-setup .sp-cbd{padding:1.2rem 1.4rem;overflow-x:auto}
+#page-setup .sp-cbd pre{font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.8;color:#c9d1d9;white-space:pre;margin:0}
+#page-setup .sp-cm{color:#6e7681}#page-setup .sp-kw{color:#ff7b72}#page-setup .sp-str{color:#a5d6ff}
+</style>
+
+<div class="page" id="page-setup">
+
+<section class="sp-hero">
+  <div class="sp-hero-inner">
+    <div class="sp-badge">🐍 SETUP GUIDE · OPTIMALISASI &amp; AUTOMASI</div>
+    <h1 class="sp-h1">Setup <span class="hl">Jupyter Notebook</span><br>untuk Optimalisasi &amp; Automasi</h1>
+    <p class="sp-sub">Setup lengkap dari nol menggunakan Miniconda + VS Code untuk analisis time series sensor, preprocessing data, ekstraksi fitur waktu/frekuensi, dan visualisasi sinyal industri.</p>
+    <div class="sp-chips">
+      <div class="sp-chip"><span class="dot"></span>Windows / macOS / Linux</div>
+      <div class="sp-chip"><span class="dot"></span>~10 menit</div>
+      <div class="sp-chip"><span class="dot"></span>NumPy · SciPy · SymPy · control</div>
+    </div>
+  </div>
+</section>
+
+<div class="sp-wrap">
+  <div class="sp-timeline">
+
+    <!-- ── PESAN DOSEN ── -->
+    <div class="sp-step">
+      <div class="sp-dot s1">👋</div>
+      <div class="sp-card">
+        <div class="sp-bar s1"></div>
+        <div class="sp-head">
+          <div class="sp-icon">👨‍🏫</div>
+          <div><div class="sp-label">Pesan Dosen</div><div class="sp-title">Halo Mahasiswa Optimalisasi &amp; Automasi!</div></div>
+        </div>
+        <div class="sp-body">
+          <p>Setup ini disusun khusus agar kalian bisa langsung mengerjakan simulasi getaran, menyelesaikan persamaan diferensial getaran, menganalisis respons sistem dalam domain waktu &amp; frekuensi, serta membuat animasi getaran. Semua berjalan nyaman di <strong>VS Code + Jupyter Notebook</strong>.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 1: MINICONDA ── -->
+    <div class="sp-step">
+      <div class="sp-dot s1">1</div>
+      <div class="sp-card">
+        <div class="sp-bar s1"></div>
+        <div class="sp-head">
+          <div class="sp-icon">📦</div>
+          <div><div class="sp-label">Langkah 1</div><div class="sp-title">Instal Miniconda</div></div>
+        </div>
+        <div class="sp-body">
+          <p style="margin-bottom:1rem;">Miniconda adalah manajer environment Python yang ringan dan andal.</p>
+          <ol style="padding-left:1.5rem;color:var(--sp-t2);line-height:2">
+            <li>Buka → <a href="https://docs.conda.io/en/latest/miniconda.html" target="_blank" rel="noopener">docs.conda.io/miniconda</a></li>
+            <li>Pilih <strong>Miniconda3</strong> terbaru (Python 3.x) sesuai OS — pilih <strong>64-bit</strong></li>
+            <li>Jalankan installer → <strong style="color:var(--sp-c4)">Centang "Add Miniconda3 to my PATH"</strong></li>
+            <li>Verifikasi — buka terminal baru lalu ketik: <code>conda --version</code></li>
+          </ol>
+          <div class="sp-cb" style="margin-top:1rem;">
+            <div class="sp-cbh">
+              <div class="sp-cbh-left"><div class="sp-cbh-dots"><span></span><span></span><span></span></div><span class="sp-cbh-title">Terminal</span></div>
+              <button class="sp-cbh-copy" onclick="cpC(this)">📋 Copy</button>
+            </div>
+            <div class="sp-cbd"><pre><span class="sp-cm"># Verifikasi Miniconda berhasil diinstal</span>
+conda --version
+<span class="sp-cm"># Output contoh: conda 24.x.x</span></pre></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 2: ENVIRONMENT ── -->
+    <div class="sp-step">
+      <div class="sp-dot s2">2</div>
+      <div class="sp-card">
+        <div class="sp-bar s2"></div>
+        <div class="sp-head">
+          <div class="sp-icon">🌐</div>
+          <div><div class="sp-label">Langkah 2</div><div class="sp-title">Buat Environment Khusus</div></div>
+        </div>
+        <div class="sp-body">
+          <p style="margin-bottom:1rem;">Buat environment terpisah <code>optoauto</code> dengan Python 3.11 agar tidak konflik dengan project lain.</p>
+          <div class="sp-cb">
+            <div class="sp-cbh">
+              <div class="sp-cbh-left"><div class="sp-cbh-dots"><span></span><span></span><span></span></div><span class="sp-cbh-title">Terminal</span></div>
+              <button class="sp-cbh-copy" onclick="cpC(this)">📋 Copy</button>
+            </div>
+            <div class="sp-cbd"><pre><span class="sp-cm"># Buat environment baru dengan Python 3.11</span>
+conda create -n optoauto python=3.11 -y
+
+<span class="sp-cm"># Aktivasi environment</span>
+conda activate optoauto
+
+<span class="sp-cm"># Verifikasi versi Python</span>
+python --version</pre></div>
+          </div>
+          <p style="margin-top:1rem;font-size:.85rem;color:var(--sp-t3)"><strong style="color:var(--sp-c4)">⚠ Penting:</strong> Setiap kali membuka terminal baru, jangan lupa <code>conda activate optoauto</code> sebelum mengerjakan tugas.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 3: LIBRARIES ── -->
+    <div class="sp-step">
+      <div class="sp-dot s3">3</div>
+      <div class="sp-card">
+        <div class="sp-bar s3"></div>
+        <div class="sp-head">
+          <div class="sp-icon">📚</div>
+          <div><div class="sp-label">Langkah 3</div><div class="sp-title">Instal Library Getaran</div></div>
+        </div>
+        <div class="sp-body">
+          <p style="margin-bottom:1rem;">Library inti untuk komputasi getaran: NumPy (array), SciPy (ODE & FFT), SymPy (analitik), Matplotlib (plot), pandas (data), Jupyter (notebook), control (sistem dinamik).</p>
+          <div class="sp-cb">
+            <div class="sp-cbh">
+              <div class="sp-cbh-left"><div class="sp-cbh-dots"><span></span><span></span><span></span></div><span class="sp-cbh-title">Terminal — optoauto environment</span></div>
+              <button class="sp-cbh-copy" onclick="cpC(this)">📋 Copy</button>
+            </div>
+            <div class="sp-cbd"><pre><span class="sp-cm"># Library numerik & visualisasi</span>
+pip install numpy scipy sympy matplotlib pandas
+
+<span class="sp-cm"># Jupyter Notebook & IPython kernel</span>
+pip install jupyter ipykernel
+
+<span class="sp-cm"># Library kontrol sistem (untuk analisis MDOF / state-space)</span>
+pip install control
+
+<span class="sp-cm"># Daftarkan kernel Jupyter (agar VS Code bisa pilih env ini)</span>
+python -m ipykernel install --user --name optoauto --display-name "Python (Optimalisasi &amp; Automasi)"</pre></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 4: VS CODE ── -->
+    <div class="sp-step">
+      <div class="sp-dot s4">4</div>
+      <div class="sp-card">
+        <div class="sp-bar s4"></div>
+        <div class="sp-head">
+          <div class="sp-icon">💻</div>
+          <div><div class="sp-label">Langkah 4</div><div class="sp-title">Instal VS Code &amp; Extensions</div></div>
+        </div>
+        <div class="sp-body">
+          <ol style="padding-left:1.5rem;color:var(--sp-t2);line-height:2">
+            <li>Download VS Code: <a href="https://code.visualstudio.com/" target="_blank" rel="noopener">code.visualstudio.com</a></li>
+            <li>Install lalu buka VS Code → tab <strong>Extensions</strong> (Ctrl+Shift+X)</li>
+            <li>Install extensions berikut (cari nama persisnya):
+              <ul style="margin-top:.5rem;padding-left:1.2rem">
+                <li><strong>Python</strong> by Microsoft</li>
+                <li><strong>Jupyter</strong> by Microsoft</li>
+                <li><strong>Pylance</strong> by Microsoft (auto-installed bersama Python)</li>
+                <li><strong>Jupyter Notebook Renderers</strong> by Microsoft</li>
+              </ul>
+            </li>
+            <li>Restart VS Code setelah instalasi extensions</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 5: TEST ── -->
+    <div class="sp-step">
+      <div class="sp-dot s5">5</div>
+      <div class="sp-card">
+        <div class="sp-bar s5"></div>
+        <div class="sp-head">
+          <div class="sp-icon">✅</div>
+          <div><div class="sp-label">Langkah 5</div><div class="sp-title">Test Setup — Hello Vibration!</div></div>
+        </div>
+        <div class="sp-body">
+          <p style="margin-bottom:1rem;">Buat file baru <code>test_setup.ipynb</code> di VS Code, pastikan kernel <strong>Python (Optimalisasi &amp; Automasi)</strong> dipilih, lalu paste &amp; run cell di bawah:</p>
+          <div class="sp-cb">
+            <div class="sp-cbh">
+              <div class="sp-cbh-left"><div class="sp-cbh-dots"><span></span><span></span><span></span></div><span class="sp-cbh-title">test_setup.ipynb — Cell 1</span></div>
+              <button class="sp-cbh-copy" onclick="cpC(this)">📋 Copy</button>
+            </div>
+            <div class="sp-cbd"><pre><span class="sp-kw">import</span> numpy <span class="sp-kw">as</span> np
+<span class="sp-kw">import</span> matplotlib.pyplot <span class="sp-kw">as</span> plt
+
+<span class="sp-cm"># Sistem getaran bebas: m·ẍ + k·x = 0  →  ωₙ = √(k/m)</span>
+m, k = 1.0, 100.0
+omega_n = np.sqrt(k/m)
+
+t = np.linspace(0, 2, 500)
+x = 0.1 * np.cos(omega_n * t)
+
+plt.figure(figsize=(8, 3))
+plt.plot(t, x, color=<span class="sp-str">'#10b981'</span>, linewidth=2)
+plt.title(<span class="sp-str">f'Hello Vibration! ωₙ = {omega_n:.2f} rad/s'</span>)
+plt.xlabel(<span class="sp-str">'Waktu (s)'</span>); plt.ylabel(<span class="sp-str">'x(t) [m]'</span>)
+plt.grid(alpha=0.3); plt.tight_layout(); plt.show()</pre></div>
+          </div>
+          <p style="margin-top:1rem;font-size:.9rem;">✅ Jika muncul grafik sinusoidal yang halus → setup Anda <strong style="color:var(--sp-c2)">SUKSES</strong>! Sekarang siap mengerjakan tugas getaran.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Setup Python — Jupyter Notebook untuk Optimalisasi &amp; Automasi · S1 Teknik Mesin · Universitas Mercu Buana</p>
+</footer>
+
+</div><!-- end page-setup -->
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     PAGE: PEMBAGIAN KELOMPOK
+     CSS scoped via #page-kelompok prefix to avoid collision
+═══════════════════════════════════════════════════════════ -->
+<style>
+#page-kelompok {
+  --pk-bg:#0a0e1a; --pk-card:#131b2e;
+  --pk-c1:#06b6d4; --pk-c2:#8b5cf6; --pk-c3:#f59e0b; --pk-c4:#10b981; --pk-c5:#f472b6;
+  --pk-t1:#e8ecf4; --pk-t2:#94a3b8; --pk-t3:#64748b;
+  --pk-bd:#1e2945;
+}
+#page-kelompok .pk-hero{padding:4rem 2rem;text-align:center;background:linear-gradient(160deg,#0a1628 0%,#1a1238 50%,#0a1628 100%);border-radius:0 0 32px 32px;position:relative;overflow:hidden}
+#page-kelompok .pk-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,rgba(6,182,212,.08),transparent 60%),radial-gradient(circle at 70% 70%,rgba(139,92,246,.08),transparent 60%);pointer-events:none}
+#page-kelompok .pk-hero-inner{position:relative;z-index:1;max-width:800px;margin:0 auto}
+#page-kelompok .pk-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.25rem;background:rgba(6,182,212,.12);border:1px solid rgba(6,182,212,.3);border-radius:999px;font-size:.8rem;color:var(--pk-c1);font-weight:700;letter-spacing:.08em;margin-bottom:1.5rem}
+#page-kelompok .pk-h1{font-size:clamp(2.2rem,5vw,3.4rem);font-weight:900;line-height:1.1;margin-bottom:.75rem;color:var(--pk-t1)}
+#page-kelompok .pk-h1 em{font-style:italic;background:linear-gradient(135deg,var(--pk-c1),var(--pk-c2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+#page-kelompok .pk-sub{font-size:1.05rem;color:var(--pk-t2);max-width:620px;margin:0 auto}
+
+#page-kelompok .pk-wrap{max-width:1100px;margin:0 auto;padding:3rem 2rem}
+#page-kelompok .pk-info{background:var(--pk-card);border:1px solid var(--pk-bd);border-radius:18px;padding:1.5rem 2rem;margin-bottom:2rem;display:flex;align-items:flex-start;gap:1rem}
+#page-kelompok .pk-info-icon{font-size:1.8rem;flex-shrink:0}
+#page-kelompok .pk-info-text{color:var(--pk-t2);line-height:1.7;font-size:.95rem}
+#page-kelompok .pk-info-text strong{color:var(--pk-t1)}
+
+#page-kelompok .pk-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.5rem}
+#page-kelompok .pk-group{background:var(--pk-card);border:1px solid var(--pk-bd);border-radius:18px;overflow:hidden;transition:all .35s cubic-bezier(.34,1.56,.64,1);position:relative}
+#page-kelompok .pk-group:hover{transform:translateY(-4px);border-color:rgba(6,182,212,.3);box-shadow:0 12px 35px rgba(0,0,0,.4)}
+#page-kelompok .pk-group-bar{height:4px;background:linear-gradient(90deg,var(--pk-c1),var(--pk-c2))}
+#page-kelompok .pk-group:nth-child(2) .pk-group-bar{background:linear-gradient(90deg,var(--pk-c2),var(--pk-c3))}
+#page-kelompok .pk-group:nth-child(3) .pk-group-bar{background:linear-gradient(90deg,var(--pk-c3),var(--pk-c4))}
+#page-kelompok .pk-group:nth-child(4) .pk-group-bar{background:linear-gradient(90deg,var(--pk-c4),var(--pk-c5))}
+#page-kelompok .pk-group:nth-child(5) .pk-group-bar{background:linear-gradient(90deg,var(--pk-c5),var(--pk-c1))}
+#page-kelompok .pk-group:nth-child(6) .pk-group-bar{background:linear-gradient(90deg,var(--pk-c1),var(--pk-c4))}
+
+#page-kelompok .pk-group-head{padding:1.5rem 1.75rem 1rem;border-bottom:1px solid var(--pk-bd)}
+#page-kelompok .pk-group-num{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:700;letter-spacing:.15em;color:var(--pk-c1);text-transform:uppercase;margin-bottom:.4rem}
+#page-kelompok .pk-group-title{font-size:1.15rem;font-weight:800;color:var(--pk-t1);line-height:1.3}
+#page-kelompok .pk-group-topic{font-size:.85rem;color:var(--pk-t3);margin-top:.4rem;font-style:italic}
+
+#page-kelompok .pk-members{padding:.5rem 1.75rem 1.5rem;list-style:none}
+#page-kelompok .pk-member{display:flex;align-items:center;gap:.7rem;padding:.55rem 0;border-bottom:1px dashed rgba(148,163,184,.08)}
+#page-kelompok .pk-member:last-child{border-bottom:none}
+#page-kelompok .pk-member-num{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--pk-t3);min-width:22px;font-weight:600}
+#page-kelompok .pk-member-info{flex:1;min-width:0}
+#page-kelompok .pk-member-name{font-size:.9rem;color:var(--pk-t1);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#page-kelompok .pk-member-nim{font-size:.72rem;color:var(--pk-t3);font-family:'JetBrains Mono',monospace;margin-top:.1rem}
+#page-kelompok .pk-leader{display:inline-block;font-size:.6rem;background:rgba(6,182,212,.15);border:1px solid rgba(6,182,212,.3);color:var(--pk-c1);padding:.1rem .45rem;border-radius:6px;margin-left:.4rem;font-weight:700;letter-spacing:.05em}
+
+#page-kelompok .pk-rule{background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(139,92,246,.05));border:1px solid rgba(245,158,11,.2);border-radius:16px;padding:1.5rem 2rem;margin-top:2rem}
+#page-kelompok .pk-rule h3{color:var(--pk-c3);font-size:1rem;font-weight:800;margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
+#page-kelompok .pk-rule ul{padding-left:1.4rem;color:var(--pk-t2);line-height:1.8;font-size:.92rem}
+#page-kelompok .pk-rule li strong{color:var(--pk-t1)}
+
+/* ── 3-GROUP DYNAMIC CARD SYSTEM (from original Pembagian-Kelompok.html) ── */
+#page-kelompok .pk-header{position:relative;max-width:960px;margin:0 auto;padding:40px 24px 32px;text-align:center;overflow:hidden}
+#page-kelompok .pk-header-tag{display:inline-flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#00d4ff;border:1px solid rgba(0,212,255,.25);background:rgba(0,212,255,.05);padding:8px 22px;border-radius:24px;letter-spacing:3px;text-transform:uppercase;margin-bottom:20px;position:relative;z-index:1}
+#page-kelompok .pk-header h2{font-size:clamp(32px,5vw,52px);font-weight:800;line-height:1.05;color:#eef2f7;margin-bottom:14px;position:relative;z-index:1;letter-spacing:-1.5px}
+#page-kelompok .pk-header h2 em{font-style:normal;background:linear-gradient(90deg,#00d4ff,#10b981,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+#page-kelompok .pk-header p#heroSub{font-size:16px;color:#4a6080;max-width:540px;margin:0 auto;position:relative;z-index:1}
+
+#page-kelompok .groups-container{max-width:1200px;margin:0 auto;padding:16px 24px 40px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+@media (max-width:900px){#page-kelompok .groups-container{grid-template-columns:1fr;max-width:500px}}
+
+#page-kelompok .group-card{border-radius:24px;overflow:hidden;border:1px solid;transition:transform .5s cubic-bezier(.34,1.56,.64,1),box-shadow .5s}
+#page-kelompok .group-card:hover{transform:translateY(-12px) scale(1.02)}
+#page-kelompok .card-blue{background:linear-gradient(160deg,#081e3d,#0a2a52);border-color:rgba(59,130,246,.3)}
+#page-kelompok .card-blue:hover{box-shadow:0 24px 60px rgba(59,130,246,.15)}
+#page-kelompok .card-emerald{background:linear-gradient(160deg,#052e21,#064e36);border-color:rgba(16,185,129,.3)}
+#page-kelompok .card-emerald:hover{box-shadow:0 24px 60px rgba(16,185,129,.15)}
+#page-kelompok .card-violet{background:linear-gradient(160deg,#1a0a3e,#2d1566);border-color:rgba(139,92,246,.3)}
+#page-kelompok .card-violet:hover{box-shadow:0 24px 60px rgba(139,92,246,.15)}
+
+#page-kelompok .card-accent{height:4px}
+#page-kelompok .card-header{padding:28px 24px 20px}
+#page-kelompok .card-icon{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:14px;animation:pkFloat 3s ease-in-out infinite}
+@keyframes pkFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+#page-kelompok .card-header h3{font-size:24px;font-weight:800;color:#eef2f7;margin-bottom:4px}
+#page-kelompok .card-count{font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 14px;border-radius:20px;display:inline-block;margin-top:6px}
+
+#page-kelompok .card-body{padding:0 18px 24px}
+#page-kelompok .member-item{display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:14px;margin-bottom:8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);transition:transform .3s,background .3s,border-color .3s}
+#page-kelompok .member-item:hover{transform:translateX(8px);background:rgba(255,255,255,.06)}
+#page-kelompok .member-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;min-width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+#page-kelompok .member-id{font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 12px;border-radius:10px;flex-shrink:0}
+#page-kelompok .member-name{font-size:14px;font-weight:500;color:#eef2f7;flex:1}
+
+#page-kelompok .dosen-msg{max-width:680px;margin:0 auto 40px;padding:0 24px}
+#page-kelompok .dosen-card{background:linear-gradient(135deg,rgba(0,212,255,.04),rgba(139,92,246,.03));border:1px solid rgba(0,212,255,.15);border-radius:24px;padding:40px 32px;text-align:center;transition:transform .3s,box-shadow .3s}
+#page-kelompok .dosen-card:hover{transform:translateY(-4px);box-shadow:0 16px 48px rgba(0,212,255,.08)}
+#page-kelompok .dosen-avatar{width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,#f59e0b,#ff9800);display:inline-flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:20px;animation:pkFloat 3s ease-in-out infinite}
+#page-kelompok .dosen-card p{font-size:16px;line-height:1.8;color:#c1d0e6;margin-bottom:20px}
+#page-kelompok .dosen-tag{display:inline-flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(255,255,255,.04);border:1px solid #162444;padding:8px 20px;border-radius:20px;color:#c1d0e6}
+</style>
+
+<div class="page" id="page-kelompok">
+
+<!-- HERO: Header with announcement tag -->
+<div class="pk-header">
+  <div class="pk-header-tag">📋 &nbsp;Pengumuman Pembagian Kelompok</div>
+  <h2>PEMBAGIAN KELOMPOK<br><em>Optimalisasi &amp; Automasi</em></h2>
+  <p id="heroSub">Memuat data mahasiswa...</p>
+</div>
+
+<!-- ═══════ 3 GROUP CARDS (populated dynamically from students.json) ═══════ -->
+<div class="groups-container" id="groupsContainer">
+  <div style="grid-column:1/-1;text-align:center;padding:60px 24px;color:#64748b;font-size:.9rem">⏳ Memuat data mahasiswa...</div>
+</div>
+
+<!-- Dosen Message -->
+<div class="dosen-msg">
+  <div class="dosen-card">
+    <div class="dosen-avatar">👨‍🏫</div>
+    <p>Kelompok sudah siap digunakan untuk diskusi dan proyek.<br>Saya harap kalian saling mendukung dan menghasilkan karya terbaik.<br><br>Jika ada pertanyaan, langsung hubungi saya ya! 🚀</p>
+    <div class="dosen-tag">
+      <span style="color:#f59e0b">✦</span>
+      <span>Dosen Pengampu Mata Kuliah — Dedik Romahadi</span>
+      <span style="color:#f59e0b">✦</span>
+    </div>
+  </div>
+</div>
+
+<!-- Aturan & Tata Tertib Kelompok (preserved from prior version) -->
+<div class="pk-wrap">
+  <div class="pk-rule">
+    <h3>📖 Aturan &amp; Tata Tertib Kelompok</h3>
+    <ul>
+      <li><strong>Komposisi:</strong> Setiap kelompok terdiri dari anggota yang dibagi secara otomatis dari daftar mahasiswa aktif. Satu ketua ditunjuk secara musyawarah di internal kelompok.</li>
+      <li><strong>Tugas Ketua:</strong> Koordinasi pembagian kerja, komunikasi dengan dosen, kompilasi laporan akhir.</li>
+      <li><strong>Deliverable:</strong> Laporan studi kasus (PDF) + kode Python (Jupyter Notebook .ipynb) + presentasi (slide).</li>
+      <li><strong>Deadline:</strong> Submit akhir di Pertemuan ke-7 — keterlambatan akan mengurangi nilai.</li>
+      <li><strong>Penilaian:</strong> 40% pemahaman konsep, 30% implementasi numerik, 20% presentasi, 10% kerja sama tim.</li>
+      <li><strong>Konflik internal:</strong> Diselesaikan musyawarah; jika tidak resolve, lapor ke dosen untuk mediasi.</li>
+    </ul>
+  </div>
+</div>
+
+</div><!-- end page-kelompok -->
+
+
+
+
 
 <!-- ═══════════════════════════════════════════════════════════
      SCRIPTS
@@ -3580,510 +3986,6 @@ function exportTugasHtml() {
     Tugas 1 — Pengantar Time Series & Dekomposisi · Optimalisasi & Automasi · S1 Teknik Mesin UMB 2025/2026
   </div>
 </div>
-
-
-<style>
-/* CSS variables scoped untuk Setup Python tab */
-#page-setup {
-  --sp-bg:#050a0e; --sp-bg2:#0a1018; --sp-card:#131f30;
-  --sp-c1:#10b981; --sp-c2:#34d399; --sp-c3:#06b6d4;
-  --sp-c4:#f59e0b; --sp-c5:#8b5cf6; --sp-c6:#f472b6;
-  --sp-t1:#e8ecf4; --sp-t2:#94a3b8; --sp-t3:#64748b;
-  --sp-bd:#1e2d3d;
-}
-#page-setup .sp-hero{min-height:60vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:4rem 2rem;position:relative;overflow:hidden;background:linear-gradient(160deg,#020c1a 0%,#041526 30%,#06222e 60%,#031a20 100%);border-radius:0 0 32px 32px}
-#page-setup .sp-hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(6,182,212,.04) 59px,rgba(6,182,212,.04) 60px),repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(6,182,212,.04) 59px,rgba(6,182,212,.04) 60px);pointer-events:none}
-#page-setup .sp-hero::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 50% 50% at 50% 55%,rgba(6,182,212,.08),transparent 70%),radial-gradient(ellipse 40% 40% at 25% 70%,rgba(16,185,129,.06),transparent 60%),radial-gradient(ellipse 30% 30% at 80% 30%,rgba(139,92,246,.05),transparent 60%);pointer-events:none}
-#page-setup .sp-hero-inner{position:relative;z-index:1;max-width:700px}
-#page-setup .sp-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.25rem;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);border-radius:999px;font-size:.8rem;color:var(--sp-c2);font-weight:700;letter-spacing:.08em;margin-bottom:1.5rem}
-#page-setup .sp-h1{font-size:clamp(2.4rem,6vw,3.8rem);font-weight:900;line-height:1.1;margin-bottom:.75rem;color:var(--sp-t1)}
-#page-setup .sp-h1 .hl{background:linear-gradient(135deg,var(--sp-c2),var(--sp-c3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-#page-setup .sp-sub{font-size:1.1rem;color:var(--sp-t2);max-width:580px;margin:0 auto 2rem}
-#page-setup .sp-chips{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap}
-#page-setup .sp-chip{display:inline-flex;align-items:center;gap:.7rem;padding:.4rem 1rem;background:rgba(255,255,255,.05);border:1px solid var(--sp-bd);border-radius:10px;font-size:.8rem;font-weight:600;color:var(--sp-t1)}
-#page-setup .sp-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--sp-c2)}
-
-#page-setup .sp-wrap{max-width:800px;margin:0 auto;padding:0 2rem}
-#page-setup .sp-timeline{position:relative;padding:3rem 0}
-#page-setup .sp-timeline::before{content:'';position:absolute;left:28px;top:0;bottom:0;width:3px;background:linear-gradient(to bottom,var(--sp-c1),var(--sp-c3),var(--sp-c5),var(--sp-c6));border-radius:2px;opacity:.3}
-#page-setup .sp-step{position:relative;padding-left:76px;margin-bottom:3rem}
-#page-setup .sp-dot{position:absolute;left:14px;top:6px;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.85rem;color:#fff;z-index:2;box-shadow:0 0 20px rgba(16,185,129,.3)}
-#page-setup .sp-dot.s1{background:linear-gradient(135deg,#10b981,#059669)}
-#page-setup .sp-dot.s2{background:linear-gradient(135deg,#06b6d4,#0891b2)}
-#page-setup .sp-dot.s3{background:linear-gradient(135deg,#8b5cf6,#7c3aed)}
-#page-setup .sp-dot.s4{background:linear-gradient(135deg,#f59e0b,#d97706)}
-#page-setup .sp-dot.s5{background:linear-gradient(135deg,#f472b6,#ec4899)}
-#page-setup .sp-card{background:var(--sp-card);border:1px solid var(--sp-bd);border-radius:18px;overflow:hidden;transition:all .4s cubic-bezier(.34,1.56,.64,1)}
-#page-setup .sp-card:hover{transform:translateY(-4px) translateX(4px);border-color:rgba(16,185,129,.3);box-shadow:0 12px 40px rgba(0,0,0,.4)}
-#page-setup .sp-bar{height:3px}
-#page-setup .sp-bar.s1{background:linear-gradient(90deg,#10b981,#34d399)}
-#page-setup .sp-bar.s2{background:linear-gradient(90deg,#06b6d4,#22d3ee)}
-#page-setup .sp-bar.s3{background:linear-gradient(90deg,#8b5cf6,#a78bfa)}
-#page-setup .sp-bar.s4{background:linear-gradient(90deg,#f59e0b,#fbbf24)}
-#page-setup .sp-bar.s5{background:linear-gradient(90deg,#f472b6,#f9a8d4)}
-#page-setup .sp-head{padding:1.5rem 2rem .5rem;display:flex;align-items:center;gap:1rem}
-#page-setup .sp-icon{font-size:2rem}
-#page-setup .sp-label{font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--sp-t3)}
-#page-setup .sp-title{font-size:1.25rem;font-weight:800;color:var(--sp-t1)}
-#page-setup .sp-body{padding:.5rem 2rem 2rem}
-#page-setup .sp-body p{color:var(--sp-t2);line-height:1.75}
-#page-setup .sp-body strong{color:var(--sp-t1)}
-#page-setup .sp-body a{color:var(--sp-c2);font-weight:600;text-decoration:none;border-bottom:1px dashed var(--sp-c2)}
-#page-setup .sp-body code{background:var(--sp-bg2);padding:.15rem .5rem;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:.85rem;color:var(--sp-t1)}
-
-#page-setup .sp-cb{background:#080e18;border:1px solid var(--sp-bd);border-radius:14px;margin:1rem 0;overflow:hidden}
-#page-setup .sp-cbh{display:flex;align-items:center;justify-content:space-between;padding:.6rem 1.2rem;background:rgba(255,255,255,.02);border-bottom:1px solid var(--sp-bd)}
-#page-setup .sp-cbh-left{display:flex;align-items:center;gap:.5rem}
-#page-setup .sp-cbh-dots{display:flex;gap:5px}
-#page-setup .sp-cbh-dots span{width:9px;height:9px;border-radius:50%}
-#page-setup .sp-cbh-dots span:nth-child(1){background:#ff5f57}
-#page-setup .sp-cbh-dots span:nth-child(2){background:#febc2e}
-#page-setup .sp-cbh-dots span:nth-child(3){background:#28c840}
-#page-setup .sp-cbh-title{font-size:.75rem;font-weight:600;color:var(--sp-t3)}
-#page-setup .sp-cbh-copy{padding:.3rem .7rem;background:rgba(255,255,255,.05);border:1px solid var(--sp-bd);color:var(--sp-t3);border-radius:6px;cursor:pointer;font-size:.7rem;font-family:inherit;transition:all .3s}
-#page-setup .sp-cbh-copy:hover{background:rgba(16,185,129,.15);color:var(--sp-c2);border-color:rgba(16,185,129,.3)}
-#page-setup .sp-cbd{padding:1.2rem 1.4rem;overflow-x:auto}
-#page-setup .sp-cbd pre{font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.8;color:#c9d1d9;white-space:pre;margin:0}
-#page-setup .sp-cm{color:#6e7681}#page-setup .sp-kw{color:#ff7b72}#page-setup .sp-str{color:#a5d6ff}
-</style>
-
-<div class="page" id="page-setup">
-
-<section class="sp-hero">
-  <div class="sp-hero-inner">
-    <div class="sp-badge">🐍 SETUP GUIDE · OPTIMALISASI &amp; AUTOMASI</div>
-    <h1 class="sp-h1">Setup <span class="hl">Jupyter Notebook</span><br>untuk Optimalisasi &amp; Automasi</h1>
-    <p class="sp-sub">Setup lengkap dari nol menggunakan Miniconda + VS Code untuk analisis time series sensor, preprocessing data, ekstraksi fitur waktu/frekuensi, dan visualisasi sinyal industri.</p>
-    <div class="sp-chips">
-      <div class="sp-chip"><span class="dot"></span>Windows / macOS / Linux</div>
-      <div class="sp-chip"><span class="dot"></span>~10 menit</div>
-      <div class="sp-chip"><span class="dot"></span>NumPy · SciPy · SymPy · control</div>
-    </div>
-  </div>
-</section>
-
-<div class="sp-wrap">
-  <div class="sp-timeline">
-
-    <!-- ── PESAN DOSEN ── -->
-    <div class="sp-step">
-      <div class="sp-dot s1">👋</div>
-      <div class="sp-card">
-        <div class="sp-bar s1"></div>
-        <div class="sp-head">
-          <div class="sp-icon">👨‍🏫</div>
-          <div><div class="sp-label">Pesan Dosen</div><div class="sp-title">Halo Mahasiswa Optimalisasi &amp; Automasi!</div></div>
-        </div>
-        <div class="sp-body">
-          <p>Setup ini disusun khusus agar kalian bisa langsung mengerjakan simulasi getaran, menyelesaikan persamaan diferensial getaran, menganalisis respons sistem dalam domain waktu &amp; frekuensi, serta membuat animasi getaran. Semua berjalan nyaman di <strong>VS Code + Jupyter Notebook</strong>.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── STEP 1: MINICONDA ── -->
-    <div class="sp-step">
-      <div class="sp-dot s1">1</div>
-      <div class="sp-card">
-        <div class="sp-bar s1"></div>
-        <div class="sp-head">
-          <div class="sp-icon">📦</div>
-          <div><div class="sp-label">Langkah 1</div><div class="sp-title">Instal Miniconda</div></div>
-        </div>
-        <div class="sp-body">
-          <p style="margin-bottom:1rem;">Miniconda adalah manajer environment Python yang ringan dan andal.</p>
-          <ol style="padding-left:1.5rem;color:var(--sp-t2);line-height:2">
-            <li>Buka → <a href="https://docs.conda.io/en/latest/miniconda.html" target="_blank" rel="noopener">docs.conda.io/miniconda</a></li>
-            <li>Pilih <strong>Miniconda3</strong> terbaru (Python 3.x) sesuai OS — pilih <strong>64-bit</strong></li>
-            <li>Jalankan installer → <strong style="color:var(--sp-c4)">Centang "Add Miniconda3 to my PATH"</strong></li>
-            <li>Verifikasi — buka terminal baru lalu ketik: <code>conda --version</code></li>
-          </ol>
-          <div class="sp-cb" style="margin-top:1rem;">
-            <div class="sp-cbh">
-              <div class="sp-cbh-left"><div class="sp-cbh-dots"><span></span><span></span><span></span></div><span class="sp-cbh-title">Terminal</span></div>
-              <button class="sp-cbh-copy" onclick="cpC(this)">📋 Copy</button>
-            </div>
-            <div class="sp-cbd"><pre><span class="sp-cm"># Verifikasi Miniconda berhasil diinstal</span>
-conda --version
-<span class="sp-cm"># Output contoh: conda 24.x.x</span></pre></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── STEP 2: ENVIRONMENT ── -->
-    <div class="sp-step">
-      <div class="sp-dot s2">2</div>
-      <div class="sp-card">
-        <div class="sp-bar s2"></div>
-        <div class="sp-head">
-          <div class="sp-icon">🌐</div>
-          <div><div class="sp-label">Langkah 2</div><div class="sp-title">Buat Environment Khusus</div></div>
-        </div>
-        <div class="sp-body">
-          <p style="margin-bottom:1rem;">Buat environment terpisah <code>optoauto</code> dengan Python 3.11 agar tidak konflik dengan project lain.</p>
-          <div class="sp-cb">
-            <div class="sp-cbh">
-              <div class="sp-cbh-left"><div class="sp-cbh-dots"><span></span><span></span><span></span></div><span class="sp-cbh-title">Terminal</span></div>
-              <button class="sp-cbh-copy" onclick="cpC(this)">📋 Copy</button>
-            </div>
-            <div class="sp-cbd"><pre><span class="sp-cm"># Buat environment baru dengan Python 3.11</span>
-conda create -n optoauto python=3.11 -y
-
-<span class="sp-cm"># Aktivasi environment</span>
-conda activate optoauto
-
-<span class="sp-cm"># Verifikasi versi Python</span>
-python --version</pre></div>
-          </div>
-          <p style="margin-top:1rem;font-size:.85rem;color:var(--sp-t3)"><strong style="color:var(--sp-c4)">⚠ Penting:</strong> Setiap kali membuka terminal baru, jangan lupa <code>conda activate optoauto</code> sebelum mengerjakan tugas.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── STEP 3: LIBRARIES ── -->
-    <div class="sp-step">
-      <div class="sp-dot s3">3</div>
-      <div class="sp-card">
-        <div class="sp-bar s3"></div>
-        <div class="sp-head">
-          <div class="sp-icon">📚</div>
-          <div><div class="sp-label">Langkah 3</div><div class="sp-title">Instal Library Getaran</div></div>
-        </div>
-        <div class="sp-body">
-          <p style="margin-bottom:1rem;">Library inti untuk komputasi getaran: NumPy (array), SciPy (ODE & FFT), SymPy (analitik), Matplotlib (plot), pandas (data), Jupyter (notebook), control (sistem dinamik).</p>
-          <div class="sp-cb">
-            <div class="sp-cbh">
-              <div class="sp-cbh-left"><div class="sp-cbh-dots"><span></span><span></span><span></span></div><span class="sp-cbh-title">Terminal — optoauto environment</span></div>
-              <button class="sp-cbh-copy" onclick="cpC(this)">📋 Copy</button>
-            </div>
-            <div class="sp-cbd"><pre><span class="sp-cm"># Library numerik & visualisasi</span>
-pip install numpy scipy sympy matplotlib pandas
-
-<span class="sp-cm"># Jupyter Notebook & IPython kernel</span>
-pip install jupyter ipykernel
-
-<span class="sp-cm"># Library kontrol sistem (untuk analisis MDOF / state-space)</span>
-pip install control
-
-<span class="sp-cm"># Daftarkan kernel Jupyter (agar VS Code bisa pilih env ini)</span>
-python -m ipykernel install --user --name optoauto --display-name "Python (Optimalisasi &amp; Automasi)"</pre></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── STEP 4: VS CODE ── -->
-    <div class="sp-step">
-      <div class="sp-dot s4">4</div>
-      <div class="sp-card">
-        <div class="sp-bar s4"></div>
-        <div class="sp-head">
-          <div class="sp-icon">💻</div>
-          <div><div class="sp-label">Langkah 4</div><div class="sp-title">Instal VS Code &amp; Extensions</div></div>
-        </div>
-        <div class="sp-body">
-          <ol style="padding-left:1.5rem;color:var(--sp-t2);line-height:2">
-            <li>Download VS Code: <a href="https://code.visualstudio.com/" target="_blank" rel="noopener">code.visualstudio.com</a></li>
-            <li>Install lalu buka VS Code → tab <strong>Extensions</strong> (Ctrl+Shift+X)</li>
-            <li>Install extensions berikut (cari nama persisnya):
-              <ul style="margin-top:.5rem;padding-left:1.2rem">
-                <li><strong>Python</strong> by Microsoft</li>
-                <li><strong>Jupyter</strong> by Microsoft</li>
-                <li><strong>Pylance</strong> by Microsoft (auto-installed bersama Python)</li>
-                <li><strong>Jupyter Notebook Renderers</strong> by Microsoft</li>
-              </ul>
-            </li>
-            <li>Restart VS Code setelah instalasi extensions</li>
-          </ol>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── STEP 5: TEST ── -->
-    <div class="sp-step">
-      <div class="sp-dot s5">5</div>
-      <div class="sp-card">
-        <div class="sp-bar s5"></div>
-        <div class="sp-head">
-          <div class="sp-icon">✅</div>
-          <div><div class="sp-label">Langkah 5</div><div class="sp-title">Test Setup — Hello Vibration!</div></div>
-        </div>
-        <div class="sp-body">
-          <p style="margin-bottom:1rem;">Buat file baru <code>test_setup.ipynb</code> di VS Code, pastikan kernel <strong>Python (Optimalisasi &amp; Automasi)</strong> dipilih, lalu paste &amp; run cell di bawah:</p>
-          <div class="sp-cb">
-            <div class="sp-cbh">
-              <div class="sp-cbh-left"><div class="sp-cbh-dots"><span></span><span></span><span></span></div><span class="sp-cbh-title">test_setup.ipynb — Cell 1</span></div>
-              <button class="sp-cbh-copy" onclick="cpC(this)">📋 Copy</button>
-            </div>
-            <div class="sp-cbd"><pre><span class="sp-kw">import</span> numpy <span class="sp-kw">as</span> np
-<span class="sp-kw">import</span> matplotlib.pyplot <span class="sp-kw">as</span> plt
-
-<span class="sp-cm"># Sistem getaran bebas: m·ẍ + k·x = 0  →  ωₙ = √(k/m)</span>
-m, k = 1.0, 100.0
-omega_n = np.sqrt(k/m)
-
-t = np.linspace(0, 2, 500)
-x = 0.1 * np.cos(omega_n * t)
-
-plt.figure(figsize=(8, 3))
-plt.plot(t, x, color=<span class="sp-str">'#10b981'</span>, linewidth=2)
-plt.title(<span class="sp-str">f'Hello Vibration! ωₙ = {omega_n:.2f} rad/s'</span>)
-plt.xlabel(<span class="sp-str">'Waktu (s)'</span>); plt.ylabel(<span class="sp-str">'x(t) [m]'</span>)
-plt.grid(alpha=0.3); plt.tight_layout(); plt.show()</pre></div>
-          </div>
-          <p style="margin-top:1rem;font-size:.9rem;">✅ Jika muncul grafik sinusoidal yang halus → setup Anda <strong style="color:var(--sp-c2)">SUKSES</strong>! Sekarang siap mengerjakan tugas getaran.</p>
-        </div>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<footer>
-  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Setup Python — Jupyter Notebook untuk Optimalisasi &amp; Automasi · S1 Teknik Mesin · Universitas Mercu Buana</p>
-</footer>
-
-</div><!-- end page-setup -->
-
-
-<!-- ═══════════════════════════════════════════════════════════
-     PAGE: PEMBAGIAN KELOMPOK
-     CSS scoped via #page-kelompok prefix to avoid collision
-═══════════════════════════════════════════════════════════ -->
-<style>
-#page-kelompok {
-  --pk-bg:#0a0e1a; --pk-card:#131b2e;
-  --pk-c1:#06b6d4; --pk-c2:#8b5cf6; --pk-c3:#f59e0b; --pk-c4:#10b981; --pk-c5:#f472b6;
-  --pk-t1:#e8ecf4; --pk-t2:#94a3b8; --pk-t3:#64748b;
-  --pk-bd:#1e2945;
-}
-#page-kelompok .pk-hero{padding:4rem 2rem;text-align:center;background:linear-gradient(160deg,#0a1628 0%,#1a1238 50%,#0a1628 100%);border-radius:0 0 32px 32px;position:relative;overflow:hidden}
-#page-kelompok .pk-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,rgba(6,182,212,.08),transparent 60%),radial-gradient(circle at 70% 70%,rgba(139,92,246,.08),transparent 60%);pointer-events:none}
-#page-kelompok .pk-hero-inner{position:relative;z-index:1;max-width:800px;margin:0 auto}
-#page-kelompok .pk-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.25rem;background:rgba(6,182,212,.12);border:1px solid rgba(6,182,212,.3);border-radius:999px;font-size:.8rem;color:var(--pk-c1);font-weight:700;letter-spacing:.08em;margin-bottom:1.5rem}
-#page-kelompok .pk-h1{font-size:clamp(2.2rem,5vw,3.4rem);font-weight:900;line-height:1.1;margin-bottom:.75rem;color:var(--pk-t1)}
-#page-kelompok .pk-h1 em{font-style:italic;background:linear-gradient(135deg,var(--pk-c1),var(--pk-c2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-#page-kelompok .pk-sub{font-size:1.05rem;color:var(--pk-t2);max-width:620px;margin:0 auto}
-
-#page-kelompok .pk-wrap{max-width:1100px;margin:0 auto;padding:3rem 2rem}
-#page-kelompok .pk-info{background:var(--pk-card);border:1px solid var(--pk-bd);border-radius:18px;padding:1.5rem 2rem;margin-bottom:2rem;display:flex;align-items:flex-start;gap:1rem}
-#page-kelompok .pk-info-icon{font-size:1.8rem;flex-shrink:0}
-#page-kelompok .pk-info-text{color:var(--pk-t2);line-height:1.7;font-size:.95rem}
-#page-kelompok .pk-info-text strong{color:var(--pk-t1)}
-
-#page-kelompok .pk-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.5rem}
-#page-kelompok .pk-group{background:var(--pk-card);border:1px solid var(--pk-bd);border-radius:18px;overflow:hidden;transition:all .35s cubic-bezier(.34,1.56,.64,1);position:relative}
-#page-kelompok .pk-group:hover{transform:translateY(-4px);border-color:rgba(6,182,212,.3);box-shadow:0 12px 35px rgba(0,0,0,.4)}
-#page-kelompok .pk-group-bar{height:4px;background:linear-gradient(90deg,var(--pk-c1),var(--pk-c2))}
-#page-kelompok .pk-group:nth-child(2) .pk-group-bar{background:linear-gradient(90deg,var(--pk-c2),var(--pk-c3))}
-#page-kelompok .pk-group:nth-child(3) .pk-group-bar{background:linear-gradient(90deg,var(--pk-c3),var(--pk-c4))}
-#page-kelompok .pk-group:nth-child(4) .pk-group-bar{background:linear-gradient(90deg,var(--pk-c4),var(--pk-c5))}
-#page-kelompok .pk-group:nth-child(5) .pk-group-bar{background:linear-gradient(90deg,var(--pk-c5),var(--pk-c1))}
-#page-kelompok .pk-group:nth-child(6) .pk-group-bar{background:linear-gradient(90deg,var(--pk-c1),var(--pk-c4))}
-
-#page-kelompok .pk-group-head{padding:1.5rem 1.75rem 1rem;border-bottom:1px solid var(--pk-bd)}
-#page-kelompok .pk-group-num{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:700;letter-spacing:.15em;color:var(--pk-c1);text-transform:uppercase;margin-bottom:.4rem}
-#page-kelompok .pk-group-title{font-size:1.15rem;font-weight:800;color:var(--pk-t1);line-height:1.3}
-#page-kelompok .pk-group-topic{font-size:.85rem;color:var(--pk-t3);margin-top:.4rem;font-style:italic}
-
-#page-kelompok .pk-members{padding:.5rem 1.75rem 1.5rem;list-style:none}
-#page-kelompok .pk-member{display:flex;align-items:center;gap:.7rem;padding:.55rem 0;border-bottom:1px dashed rgba(148,163,184,.08)}
-#page-kelompok .pk-member:last-child{border-bottom:none}
-#page-kelompok .pk-member-num{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--pk-t3);min-width:22px;font-weight:600}
-#page-kelompok .pk-member-info{flex:1;min-width:0}
-#page-kelompok .pk-member-name{font-size:.9rem;color:var(--pk-t1);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#page-kelompok .pk-member-nim{font-size:.72rem;color:var(--pk-t3);font-family:'JetBrains Mono',monospace;margin-top:.1rem}
-#page-kelompok .pk-leader{display:inline-block;font-size:.6rem;background:rgba(6,182,212,.15);border:1px solid rgba(6,182,212,.3);color:var(--pk-c1);padding:.1rem .45rem;border-radius:6px;margin-left:.4rem;font-weight:700;letter-spacing:.05em}
-
-#page-kelompok .pk-rule{background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(139,92,246,.05));border:1px solid rgba(245,158,11,.2);border-radius:16px;padding:1.5rem 2rem;margin-top:2rem}
-#page-kelompok .pk-rule h3{color:var(--pk-c3);font-size:1rem;font-weight:800;margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
-#page-kelompok .pk-rule ul{padding-left:1.4rem;color:var(--pk-t2);line-height:1.8;font-size:.92rem}
-#page-kelompok .pk-rule li strong{color:var(--pk-t1)}
-
-/* ── 3-GROUP DYNAMIC CARD SYSTEM (from original Pembagian-Kelompok.html) ── */
-#page-kelompok .pk-header{position:relative;max-width:960px;margin:0 auto;padding:40px 24px 32px;text-align:center;overflow:hidden}
-#page-kelompok .pk-header-tag{display:inline-flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#00d4ff;border:1px solid rgba(0,212,255,.25);background:rgba(0,212,255,.05);padding:8px 22px;border-radius:24px;letter-spacing:3px;text-transform:uppercase;margin-bottom:20px;position:relative;z-index:1}
-#page-kelompok .pk-header h2{font-size:clamp(32px,5vw,52px);font-weight:800;line-height:1.05;color:#eef2f7;margin-bottom:14px;position:relative;z-index:1;letter-spacing:-1.5px}
-#page-kelompok .pk-header h2 em{font-style:normal;background:linear-gradient(90deg,#00d4ff,#10b981,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-#page-kelompok .pk-header p#heroSub{font-size:16px;color:#4a6080;max-width:540px;margin:0 auto;position:relative;z-index:1}
-
-#page-kelompok .groups-container{max-width:1200px;margin:0 auto;padding:16px 24px 40px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
-@media (max-width:900px){#page-kelompok .groups-container{grid-template-columns:1fr;max-width:500px}}
-
-#page-kelompok .group-card{border-radius:24px;overflow:hidden;border:1px solid;transition:transform .5s cubic-bezier(.34,1.56,.64,1),box-shadow .5s}
-#page-kelompok .group-card:hover{transform:translateY(-12px) scale(1.02)}
-#page-kelompok .card-blue{background:linear-gradient(160deg,#081e3d,#0a2a52);border-color:rgba(59,130,246,.3)}
-#page-kelompok .card-blue:hover{box-shadow:0 24px 60px rgba(59,130,246,.15)}
-#page-kelompok .card-emerald{background:linear-gradient(160deg,#052e21,#064e36);border-color:rgba(16,185,129,.3)}
-#page-kelompok .card-emerald:hover{box-shadow:0 24px 60px rgba(16,185,129,.15)}
-#page-kelompok .card-violet{background:linear-gradient(160deg,#1a0a3e,#2d1566);border-color:rgba(139,92,246,.3)}
-#page-kelompok .card-violet:hover{box-shadow:0 24px 60px rgba(139,92,246,.15)}
-
-#page-kelompok .card-accent{height:4px}
-#page-kelompok .card-header{padding:28px 24px 20px}
-#page-kelompok .card-icon{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:14px;animation:pkFloat 3s ease-in-out infinite}
-@keyframes pkFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
-#page-kelompok .card-header h3{font-size:24px;font-weight:800;color:#eef2f7;margin-bottom:4px}
-#page-kelompok .card-count{font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 14px;border-radius:20px;display:inline-block;margin-top:6px}
-
-#page-kelompok .card-body{padding:0 18px 24px}
-#page-kelompok .member-item{display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:14px;margin-bottom:8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);transition:transform .3s,background .3s,border-color .3s}
-#page-kelompok .member-item:hover{transform:translateX(8px);background:rgba(255,255,255,.06)}
-#page-kelompok .member-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;min-width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-#page-kelompok .member-id{font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 12px;border-radius:10px;flex-shrink:0}
-#page-kelompok .member-name{font-size:14px;font-weight:500;color:#eef2f7;flex:1}
-
-#page-kelompok .dosen-msg{max-width:680px;margin:0 auto 40px;padding:0 24px}
-#page-kelompok .dosen-card{background:linear-gradient(135deg,rgba(0,212,255,.04),rgba(139,92,246,.03));border:1px solid rgba(0,212,255,.15);border-radius:24px;padding:40px 32px;text-align:center;transition:transform .3s,box-shadow .3s}
-#page-kelompok .dosen-card:hover{transform:translateY(-4px);box-shadow:0 16px 48px rgba(0,212,255,.08)}
-#page-kelompok .dosen-avatar{width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,#f59e0b,#ff9800);display:inline-flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:20px;animation:pkFloat 3s ease-in-out infinite}
-#page-kelompok .dosen-card p{font-size:16px;line-height:1.8;color:#c1d0e6;margin-bottom:20px}
-#page-kelompok .dosen-tag{display:inline-flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(255,255,255,.04);border:1px solid #162444;padding:8px 20px;border-radius:20px;color:#c1d0e6}
-</style>
-
-
-
-<style>
-#page-kelompok {
-  --pk-bg:#0a0e1a; --pk-card:#131b2e;
-  --pk-c1:#06b6d4; --pk-c2:#8b5cf6; --pk-c3:#f59e0b; --pk-c4:#10b981; --pk-c5:#f472b6;
-  --pk-t1:#e8ecf4; --pk-t2:#94a3b8; --pk-t3:#64748b;
-  --pk-bd:#1e2945;
-}
-#page-kelompok .pk-hero{padding:4rem 2rem;text-align:center;background:linear-gradient(160deg,#0a1628 0%,#1a1238 50%,#0a1628 100%);border-radius:0 0 32px 32px;position:relative;overflow:hidden}
-#page-kelompok .pk-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,rgba(6,182,212,.08),transparent 60%),radial-gradient(circle at 70% 70%,rgba(139,92,246,.08),transparent 60%);pointer-events:none}
-#page-kelompok .pk-hero-inner{position:relative;z-index:1;max-width:800px;margin:0 auto}
-#page-kelompok .pk-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.25rem;background:rgba(6,182,212,.12);border:1px solid rgba(6,182,212,.3);border-radius:999px;font-size:.8rem;color:var(--pk-c1);font-weight:700;letter-spacing:.08em;margin-bottom:1.5rem}
-#page-kelompok .pk-h1{font-size:clamp(2.2rem,5vw,3.4rem);font-weight:900;line-height:1.1;margin-bottom:.75rem;color:var(--pk-t1)}
-#page-kelompok .pk-h1 em{font-style:italic;background:linear-gradient(135deg,var(--pk-c1),var(--pk-c2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-#page-kelompok .pk-sub{font-size:1.05rem;color:var(--pk-t2);max-width:620px;margin:0 auto}
-
-#page-kelompok .pk-wrap{max-width:1100px;margin:0 auto;padding:3rem 2rem}
-#page-kelompok .pk-info{background:var(--pk-card);border:1px solid var(--pk-bd);border-radius:18px;padding:1.5rem 2rem;margin-bottom:2rem;display:flex;align-items:flex-start;gap:1rem}
-#page-kelompok .pk-info-icon{font-size:1.8rem;flex-shrink:0}
-#page-kelompok .pk-info-text{color:var(--pk-t2);line-height:1.7;font-size:.95rem}
-#page-kelompok .pk-info-text strong{color:var(--pk-t1)}
-
-#page-kelompok .pk-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.5rem}
-#page-kelompok .pk-group{background:var(--pk-card);border:1px solid var(--pk-bd);border-radius:18px;overflow:hidden;transition:all .35s cubic-bezier(.34,1.56,.64,1);position:relative}
-#page-kelompok .pk-group:hover{transform:translateY(-4px);border-color:rgba(6,182,212,.3);box-shadow:0 12px 35px rgba(0,0,0,.4)}
-#page-kelompok .pk-group-bar{height:4px;background:linear-gradient(90deg,var(--pk-c1),var(--pk-c2))}
-#page-kelompok .pk-group:nth-child(2) .pk-group-bar{background:linear-gradient(90deg,var(--pk-c2),var(--pk-c3))}
-#page-kelompok .pk-group:nth-child(3) .pk-group-bar{background:linear-gradient(90deg,var(--pk-c3),var(--pk-c4))}
-#page-kelompok .pk-group:nth-child(4) .pk-group-bar{background:linear-gradient(90deg,var(--pk-c4),var(--pk-c5))}
-#page-kelompok .pk-group:nth-child(5) .pk-group-bar{background:linear-gradient(90deg,var(--pk-c5),var(--pk-c1))}
-#page-kelompok .pk-group:nth-child(6) .pk-group-bar{background:linear-gradient(90deg,var(--pk-c1),var(--pk-c4))}
-
-#page-kelompok .pk-group-head{padding:1.5rem 1.75rem 1rem;border-bottom:1px solid var(--pk-bd)}
-#page-kelompok .pk-group-num{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:700;letter-spacing:.15em;color:var(--pk-c1);text-transform:uppercase;margin-bottom:.4rem}
-#page-kelompok .pk-group-title{font-size:1.15rem;font-weight:800;color:var(--pk-t1);line-height:1.3}
-#page-kelompok .pk-group-topic{font-size:.85rem;color:var(--pk-t3);margin-top:.4rem;font-style:italic}
-
-#page-kelompok .pk-members{padding:.5rem 1.75rem 1.5rem;list-style:none}
-#page-kelompok .pk-member{display:flex;align-items:center;gap:.7rem;padding:.55rem 0;border-bottom:1px dashed rgba(148,163,184,.08)}
-#page-kelompok .pk-member:last-child{border-bottom:none}
-#page-kelompok .pk-member-num{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--pk-t3);min-width:22px;font-weight:600}
-#page-kelompok .pk-member-info{flex:1;min-width:0}
-#page-kelompok .pk-member-name{font-size:.9rem;color:var(--pk-t1);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#page-kelompok .pk-member-nim{font-size:.72rem;color:var(--pk-t3);font-family:'JetBrains Mono',monospace;margin-top:.1rem}
-#page-kelompok .pk-leader{display:inline-block;font-size:.6rem;background:rgba(6,182,212,.15);border:1px solid rgba(6,182,212,.3);color:var(--pk-c1);padding:.1rem .45rem;border-radius:6px;margin-left:.4rem;font-weight:700;letter-spacing:.05em}
-
-#page-kelompok .pk-rule{background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(139,92,246,.05));border:1px solid rgba(245,158,11,.2);border-radius:16px;padding:1.5rem 2rem;margin-top:2rem}
-#page-kelompok .pk-rule h3{color:var(--pk-c3);font-size:1rem;font-weight:800;margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
-#page-kelompok .pk-rule ul{padding-left:1.4rem;color:var(--pk-t2);line-height:1.8;font-size:.92rem}
-#page-kelompok .pk-rule li strong{color:var(--pk-t1)}
-
-/* ── 3-GROUP DYNAMIC CARD SYSTEM (from original Pembagian-Kelompok.html) ── */
-#page-kelompok .pk-header{position:relative;max-width:960px;margin:0 auto;padding:40px 24px 32px;text-align:center;overflow:hidden}
-#page-kelompok .pk-header-tag{display:inline-flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#00d4ff;border:1px solid rgba(0,212,255,.25);background:rgba(0,212,255,.05);padding:8px 22px;border-radius:24px;letter-spacing:3px;text-transform:uppercase;margin-bottom:20px;position:relative;z-index:1}
-#page-kelompok .pk-header h2{font-size:clamp(32px,5vw,52px);font-weight:800;line-height:1.05;color:#eef2f7;margin-bottom:14px;position:relative;z-index:1;letter-spacing:-1.5px}
-#page-kelompok .pk-header h2 em{font-style:normal;background:linear-gradient(90deg,#00d4ff,#10b981,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-#page-kelompok .pk-header p#heroSub{font-size:16px;color:#4a6080;max-width:540px;margin:0 auto;position:relative;z-index:1}
-
-#page-kelompok .groups-container{max-width:1200px;margin:0 auto;padding:16px 24px 40px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
-@media (max-width:900px){#page-kelompok .groups-container{grid-template-columns:1fr;max-width:500px}}
-
-#page-kelompok .group-card{border-radius:24px;overflow:hidden;border:1px solid;transition:transform .5s cubic-bezier(.34,1.56,.64,1),box-shadow .5s}
-#page-kelompok .group-card:hover{transform:translateY(-12px) scale(1.02)}
-#page-kelompok .card-blue{background:linear-gradient(160deg,#081e3d,#0a2a52);border-color:rgba(59,130,246,.3)}
-#page-kelompok .card-blue:hover{box-shadow:0 24px 60px rgba(59,130,246,.15)}
-#page-kelompok .card-emerald{background:linear-gradient(160deg,#052e21,#064e36);border-color:rgba(16,185,129,.3)}
-#page-kelompok .card-emerald:hover{box-shadow:0 24px 60px rgba(16,185,129,.15)}
-#page-kelompok .card-violet{background:linear-gradient(160deg,#1a0a3e,#2d1566);border-color:rgba(139,92,246,.3)}
-#page-kelompok .card-violet:hover{box-shadow:0 24px 60px rgba(139,92,246,.15)}
-
-#page-kelompok .card-accent{height:4px}
-#page-kelompok .card-header{padding:28px 24px 20px}
-#page-kelompok .card-icon{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:14px;animation:pkFloat 3s ease-in-out infinite}
-@keyframes pkFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
-#page-kelompok .card-header h3{font-size:24px;font-weight:800;color:#eef2f7;margin-bottom:4px}
-#page-kelompok .card-count{font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 14px;border-radius:20px;display:inline-block;margin-top:6px}
-
-#page-kelompok .card-body{padding:0 18px 24px}
-#page-kelompok .member-item{display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:14px;margin-bottom:8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);transition:transform .3s,background .3s,border-color .3s}
-#page-kelompok .member-item:hover{transform:translateX(8px);background:rgba(255,255,255,.06)}
-#page-kelompok .member-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;min-width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-#page-kelompok .member-id{font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 12px;border-radius:10px;flex-shrink:0}
-#page-kelompok .member-name{font-size:14px;font-weight:500;color:#eef2f7;flex:1}
-
-#page-kelompok .dosen-msg{max-width:680px;margin:0 auto 40px;padding:0 24px}
-#page-kelompok .dosen-card{background:linear-gradient(135deg,rgba(0,212,255,.04),rgba(139,92,246,.03));border:1px solid rgba(0,212,255,.15);border-radius:24px;padding:40px 32px;text-align:center;transition:transform .3s,box-shadow .3s}
-#page-kelompok .dosen-card:hover{transform:translateY(-4px);box-shadow:0 16px 48px rgba(0,212,255,.08)}
-#page-kelompok .dosen-avatar{width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,#f59e0b,#ff9800);display:inline-flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:20px;animation:pkFloat 3s ease-in-out infinite}
-#page-kelompok .dosen-card p{font-size:16px;line-height:1.8;color:#c1d0e6;margin-bottom:20px}
-#page-kelompok .dosen-tag{display:inline-flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(255,255,255,.04);border:1px solid #162444;padding:8px 20px;border-radius:20px;color:#c1d0e6}
-</style>
-
-<div class="page" id="page-kelompok">
-
-<!-- HERO: Header with announcement tag -->
-<div class="pk-header">
-  <div class="pk-header-tag">📋 &nbsp;Pengumuman Pembagian Kelompok</div>
-  <h2>PEMBAGIAN KELOMPOK<br><em>Optimalisasi &amp; Automasi</em></h2>
-  <p id="heroSub">Memuat data mahasiswa...</p>
-</div>
-
-<!-- ═══════ 3 GROUP CARDS (populated dynamically from students.json) ═══════ -->
-<div class="groups-container" id="groupsContainer">
-  <div style="grid-column:1/-1;text-align:center;padding:60px 24px;color:#64748b;font-size:.9rem">⏳ Memuat data mahasiswa...</div>
-</div>
-
-<!-- Dosen Message -->
-<div class="dosen-msg">
-  <div class="dosen-card">
-    <div class="dosen-avatar">👨‍🏫</div>
-    <p>Kelompok sudah siap digunakan untuk diskusi dan proyek.<br>Saya harap kalian saling mendukung dan menghasilkan karya terbaik.<br><br>Jika ada pertanyaan, langsung hubungi saya ya! 🚀</p>
-    <div class="dosen-tag">
-      <span style="color:#f59e0b">✦</span>
-      <span>Dosen Pengampu Mata Kuliah — Dedik Romahadi</span>
-      <span style="color:#f59e0b">✦</span>
-    </div>
-  </div>
-</div>
-
-<!-- Aturan & Tata Tertib Kelompok (preserved from prior version) -->
-<div class="pk-wrap">
-  <div class="pk-rule">
-    <h3>📖 Aturan &amp; Tata Tertib Kelompok</h3>
-    <ul>
-      <li><strong>Komposisi:</strong> Setiap kelompok terdiri dari anggota yang dibagi secara otomatis dari daftar mahasiswa aktif. Satu ketua ditunjuk secara musyawarah di internal kelompok.</li>
-      <li><strong>Tugas Ketua:</strong> Koordinasi pembagian kerja, komunikasi dengan dosen, kompilasi laporan akhir.</li>
-      <li><strong>Deliverable:</strong> Laporan studi kasus (PDF) + kode Python (Jupyter Notebook .ipynb) + presentasi (slide).</li>
-      <li><strong>Deadline:</strong> Submit akhir di Pertemuan ke-7 — keterlambatan akan mengurangi nilai.</li>
-      <li><strong>Penilaian:</strong> 40% pemahaman konsep, 30% implementasi numerik, 20% presentasi, 10% kerja sama tim.</li>
-      <li><strong>Konflik internal:</strong> Diselesaikan musyawarah; jika tidak resolve, lapor ke dosen untuk mediasi.</li>
-    </ul>
-  </div>
-</div>
-
-</div><!-- end page-kelompok -->
-
-
-<!-- ═══════════════════════════════════════════════════════════
-     PAGE: HASIL
-═══════════════════════════════════════════════════════════ -->
-
-
 </body></html>`;
 
   const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
