@@ -8,6 +8,8 @@
 >
 > **Diperbarui:** April 2026 (v7) — mencerminkan refactor Modul-4 (countdown circular, palet per-tab, hero animation per-tab, scoring rule lengkap, Firebase Security Rules, blokir akses di luar jadwal, **sistem PIN 6-digit untuk mahasiswa**, **password admin ter-hash SHA-256**, **animasi login constellation + electric charges + lightning blasts**, **Dosen Login Modal dengan password masking**, **role-based visibility untuk tombol Reset** — tombol Atur Jadwal tetap visible sebagai bootstrap action, **scoring universal 50 poin** dengan 5 soal Komputasi Hard @4 poin, **partial credit +1 poin** untuk Hard yang salah, **status label butuh poin** — Tepat Waktu/Terlambat hanya diberikan jika mahasiswa memperoleh poin > 0 (akses tanpa poin = Belum), **Bolos diperluas** — mencakup juga mahasiswa yang akses tapi 0 poin saat jadwal sudah berakhir, **PIN global lintas-course** — satu PIN per mahasiswa yang berlaku di SEMUA mata kuliah dan modul, disimpan di node `pins/mhs_<NIM>` terpisah dari visitor records sehingga reset modul tidak menghapus PIN).
 >
+> **v14 (April 2026, akhir bulan) — Animation Topic-Alignment + API Timeout Mitigation:** Dokumentasi formal aturan **animasi canvas WAJIB sesuai topik modul** untuk mencegah bug pedagogis "judul HTML LP tapi canvas masih FFT" yang muncul saat copy template (§14.1.1). Mapping animasi reference per topik (FFT → LP → NLP → metaheuristik) di §14.1.2 dengan slot konvensi `drawPhysics/Sweep/Iso/HPB`. Strategi audit pre-merge dengan tabel checklist 6-layer (HTML title, slider, canvas drawing, tip-box, info panel, float formulas) di §14.1.3. **§34 BARU — Strategi mitigasi `API Stream Idle Timeout`** dengan chunked commit pattern (per-animasi commit, HTML-then-JS layered, write+splice escape hatch); recovery procedure (revert vs commit-as-wip); pre-flight checklist refactor besar; lessons learned dari Modul-8 LP & Modul-9 NLP animation refactor (8 animasi, 1700+ baris JS, zero work loss dengan strategi chunked). Pattern ini sekarang **standar wajib** untuk pekerjaan replacement > 500 baris atau > 30KB.
+>
 > **v13 (April 2026, late-month) — Vibrant Countdown redesign:** Redesain panel hitung mundur deadline (Section §10) menjadi lebih colorful & menarik. Tambahan: aurora konik berputar, gradient border 4-warna via mask compositing, label sweep animation, ring 130px (dari 120px) dengan halo radial pulsing, double drop-shadow glow neon, hover scale-up, gradient-text angka 32px font-weight 900, ring detik dengan tick animation, note deadline sebagai pill glassmorphism. Bug fix: `overflow:visible` pada `.cd-ring svg` untuk mencegah glow drop-shadow ter-clip menjadi bayang kotak di tepi viewport SVG. Applied ke seluruh modul Optimalisasi & Automasi (6) dan Getaran-Mekanik (7). Pedoman lengkap di §10.4.
 >
 > **v12 (April 2026, late-month) — Export Tugas consolidation + MC export bug fix:** Konsolidasi tombol Export tugas dari 2 panel (atas + bawah) menjadi satu tombol di score-bar (sticky), dengan baris kedua memuat petunjuk submit dan indikator soal yang belum diisi (`#export-blocked-msg`, center-aligned). Perbaiki 2 bug critical di export PG: (1) selektor multi-class `'.selected, .correct-ans, .wrong-ans'` mengembalikan opsi correct (urutan DOM) sebagai pilihan user — fix dengan `.radio-option.selected` saja + cek `classList.contains('correct-ans')`; (2) restore Firebase tidak re-apply `.selected`, sehingga export pasca-reload tampil "Belum dijawab" — fix dengan fallback ke `mcAnswered`/`mcScores`. Tambah konvensi subtitle cover dan filename download (`Tugas{N}_{NIM}_{CourseSlug}.html`) untuk mencegah leakage course asal saat copy modul. Pattern lengkap di §15.1c, §15.3d, §25.10, §25.11. Applied ke 26 modul (Optoauto 1–6, Getaran 1–6, Math 1–14).
@@ -55,6 +57,7 @@
 31. [Audit Checklist v7 (Update dari §25.8 dan v6)](#31-audit-checklist-v7-update-dari-258-dan-v6)
 32. [NIM-Direct Variable Pattern — Transparent NIM-to-Variable Mapping (BARU di v7)](#32-nim-direct-variable-pattern--transparent-nim-to-variable-mapping-baru-di-v7)
 33. [Prosedur Pengisian Lembar UTS dengan Acuan Asesmen JSON (BARU di v8)](#33-prosedur-pengisian-lembar-uts-dengan-acuan-asesmen-json-baru-di-v8)
+34. [Strategi Mitigasi API Stream Idle Timeout (BARU di v14)](#34-strategi-mitigasi-api-stream-idle-timeout-baru-di-v14)
 
 ---
 
@@ -2156,7 +2159,7 @@ Tab Modul dibagi menjadi **8 Bagian** + Daftar Pustaka. Konsisten lintas mata ku
 
 ### 14.1 Bagian 06 — Canvas Animasi
 
-Per topik, buat 1 canvas dengan slider interaktif:
+Per topik, buat 4 canvas dengan slider interaktif (konvensi: `cvPhysics`, `cvSweep`, `cvIso`, `cvHPB` dengan fungsi draw `drawPhysics/Sweep/Iso/HPB`):
 
 ```html
 <div class="anim-block reveal">
@@ -2171,6 +2174,68 @@ Per topik, buat 1 canvas dengan slider interaktif:
   </div>
 </div>
 ```
+
+#### 14.1.1 ⚠ ATURAN WAJIB — Animasi HARUS Sesuai Topik Modul
+
+**Animasi adalah inti pedagogis modul, bukan dekorasi.** Setiap canvas harus memvisualisasikan konsep yang dibahas di pertemuan terkait. **Animasi yang tidak relevan dengan topik = bug pedagogis serius** dan harus diperbaiki sebelum publish.
+
+**Anti-pattern yang sudah pernah terjadi:**
+
+Saat membuat modul baru dengan cara <em>copy template</em> dari modul lain (mis. Modul-8 LP dibuat dengan copy Modul-7 FFT, Modul-9 NLP dengan copy Modul-8 LP), seringkali **HTML deskripsi panel diupdate ke topik baru tetapi JS canvas drawing tetap menggambar topik lama**. Hasilnya:
+- Judul HTML: "Animasi 1 — Daerah Feasibel & Iso-Profit Lines (LP)"
+- Canvas yang tergambar: sinyal vibrasi RMS/Peak (dari Modul-7 FFT)
+- → Mahasiswa bingung total. **Mismatch ini sangat menyesatkan**.
+
+**Checklist Konsistensi Animasi (WAJIB sebelum merge PR):**
+
+| Layer | Yang Harus Dicek | Modul-8 LP (contoh) | Modul-9 NLP (contoh) |
+|-------|------------------|---------------------|----------------------|
+| **HTML judul** `<span class="anim-title">` | Sebut konsep modul | "Daerah Feasibel & Iso-Profit Lines" | "Gradient Descent on Contour" |
+| **Slider label** `<label>` | Parameter relevan | c₁ profit, b₁ kapasitas | α step size, x₀ |
+| **Canvas drawing** `drawPhysics()` etc. | Render visual yang cocok | Polygon konveks + iso-profit line | Contour + trajectory descent |
+| **Tip-box** `<div class="tip-box">` | Petunjuk "Coba" cocok | "(1) c₁=40 → vertex (20,20)…" | "(1) α kecil → konvergen lambat…" |
+| **Info panel** innerHTML | Output sesuai konsep | "Vertex optimal: (x_A, x_B), Z=…" | "Iter: N, ‖∇f‖=…, status: konvergen" |
+| **Float formulas** di `formulas[]` array | Notasi modul | `max cᵀx`, `Ax ≤ b` | `min f(x)`, `∇f=0`, `KKT` |
+
+#### 14.1.2 Mapping Animasi ke Topik per Modul (Reference Implementation)
+
+Berikut pemetaan empat slot animasi (`drawPhysics`, `drawSweep`, `drawIso`, `drawHPB`) untuk topik Optimalisasi & Otomasi sebagai pola referensi. Modul lain mengikuti prinsip yang sama: **tiap animasi harus menjelaskan konsep spesifik yang ada di Bagian 01–07 modul**.
+
+| Slot | Modul-7 FFT (P7) | Modul-8 LP (P9) | Modul-9 NLP (P10) | Modul-10+ |
+|------|------------------|------------------|--------------------|-----------|
+| **drawPhysics** (cvPhysics) | Sinyal vibrasi RMS/Peak | Daerah Feasibel + Iso-profit | Gradient Descent on contour | Sesuai topik |
+| **drawSweep** (cvSweep) | Impak transient → CF/Kurt | Simpleks vertex pivot | Newton vs Steepest Descent | Sesuai topik |
+| **drawIso** (cvIso) | Histogram skewness/kurtosis | Sensitivity Z(b) piecewise | Multi-modal landscape (lokal vs global) | Sesuai topik |
+| **drawHPB** (cvHPB) | Bearing lifetime trajectory | Slack variables bar chart | KKT: gradients paralel + μ bar | Sesuai topik |
+
+**Prinsip pemilihan animasi:**
+
+1. **Ambil 4 konsep paling fundamental dari Bagian 01–04 modul** (yang menjadi judul Bagian Materi)
+2. **Tiap animasi harus interaktif** — minimal 1 slider yang mengubah perilaku visual signifikan
+3. **Tiap animasi harus computable di browser** — pakai canvas 2D + JavaScript murni, hindari WebGL/Three.js
+4. **Tiap animasi punya tip-box "Coba (1)…(2)…(3)…"** dengan minimal 3 skenario eksperimen yang menunjukkan trade-off konsep
+
+#### 14.1.3 Strategi Implementasi: Audit Sebelum Copy-Paste
+
+Saat membuat modul baru dengan template copy-paste:
+
+**Langkah wajib (urutan kritis):**
+
+1. **Copy file** `Modul-N.html` → `Modul-(N+1).html`
+2. **Update HTML panel animasi** (judul, slider label, tip-box) ke topik baru
+3. **JANGAN STOP DI SINI** — JS canvas drawing masih menggambar topik lama!
+4. **Tulis ulang 4 fungsi JS canvas** (`drawPhysics`, `drawSweep`, `drawIso`, `drawHPB`) dengan visual yang cocok dengan topik baru
+5. **Tulis ulang `formulas[]` array** di hero overlay agar formula yang melayang sesuai topik
+6. **Test di browser**: buka modul, geser tiap slider, pastikan visual canvas berubah secara bermakna sesuai deskripsi tip-box
+7. **Cross-check**: bandingkan judul HTML dengan output canvas — kalau tidak cocok, **REVERT atau perbaiki sebelum merge**
+
+**Indikator merah di code review:**
+- HTML mention "Daerah Feasibel" tapi `drawPhysics()` body masih ada `Math.sin()` untuk sinyal periodik → **MISMATCH**
+- HTML mention "Gradient Descent" tapi canvas tidak menggambar contour atau trajectory → **MISMATCH**
+- Function name masih `drawSignalVibrasi` di modul LP → **dead-code naming, refactor**
+- Variabel internal masih `_physicsAnim.t` untuk akumulasi waktu sinyal padahal dipakai untuk fase iso-profit → boleh tetap (nama generik), tapi komentar header function harus diupdate
+
+**Lihat juga §34 untuk strategi commit incremental yang melindungi pekerjaan animasi besar dari API timeout.**
 
 ### 14.2 Bagian 08 — Code Wrap Format
 
@@ -6015,6 +6080,175 @@ Untuk implementasi automasi, gunakan stack berikut:
 **Reference implementation:** Lihat `rebuild_v8.py` (Getaran Mekanik) sebagai contoh end-to-end script yang load asesmen JSON, generate diagrams, build vMerge tabel, set header, replace Catatan Tambahan, validate, pack, dan convert ke PDF dalam single execution.
 
 ---
+
+## 34. Strategi Mitigasi `API Stream Idle Timeout` (BARU di v14)
+
+### 34.1 Konteks
+
+Saat AI assistant (Claude Code) melakukan refactor besar pada satu modul HTML/JS (mis. menulis ulang 4 fungsi animasi canvas atau mengganti 1500+ baris JS), seringkali muncul error:
+
+```
+API Error: Stream idle timeout - partial response received
+```
+
+Penyebab: koneksi streaming antara client (Claude Code) dan API Anthropic terputus karena (1) respons terlalu panjang tanpa jeda token, (2) tool call dengan parameter Edit/Write berukuran besar (50KB+) yang butuh waktu lama untuk di-format, (3) latency jaringan atau congestion server. **Akibatnya:** generasi respons cut off di tengah jalan, tool call yang sedang diformat tetapi belum selesai dieksekusi **hilang seluruhnya**, kerja terbuang.
+
+### 34.2 Symptom Umum (Indikator Masalah)
+
+| Symptom | Diagnosa | Severity |
+|---------|----------|----------|
+| Error muncul setelah Edit besar (>50KB) | Tool call timeout selama formatting | 🔴 High — tool call hilang total |
+| Error muncul saat replace block 500+ baris | Stream idle (server tidak menerima delta cukup cepat) | 🔴 High |
+| Error muncul random di operasi kecil | Network blip / congestion | 🟡 Medium — retry biasanya berhasil |
+| Working tree dirty tanpa progress di file | Edit tidak ter-apply, perlu retry | 🔴 High — hook stop-git-check trigger |
+| File ter-update tapi commit hilang | Edit sukses tapi commit message timeout | 🟡 Medium — tinggal commit ulang |
+
+### 34.3 Strategi Mitigasi — Chunked Commit Pattern
+
+**Prinsip utama:** *Pecah pekerjaan besar menjadi unit-unit kecil yang masing-masing bisa di-commit dalam waktu singkat.* Setiap commit yang berhasil push ke remote = checkpoint yang aman dari timeout.
+
+#### Pattern 1: Per-Animasi Commit (Refactor Canvas)
+
+Untuk pekerjaan refactor 4–8 fungsi canvas drawing seperti yang dilakukan di Modul-8 LP & Modul-9 NLP:
+
+```
+Commit 1: HTML panel updates (deskripsi, slider, tip-box) untuk seluruh modul
+Commit 2: JS drawPhysics rewrite (Animasi 1)
+Commit 3: JS drawSweep rewrite (Animasi 2)
+Commit 4: JS drawIso rewrite (Animasi 3)
+Commit 5: JS drawHPB rewrite (Animasi 4)
+```
+
+**Keuntungan:**
+- Setiap commit ~150–250 baris JS = aman dari timeout (Edit ≤30KB)
+- Jika timeout di tengah commit 3, commit 1 & 2 sudah aman di remote — tinggal lanjut
+- Code review per-commit lebih mudah, granular history
+- Kalau ada bug di satu animasi, tidak revert seluruh refactor
+
+**Push setelah tiap commit?** Tidak wajib per commit, tetapi WAJIB push setelah selesai semua atau setiap 3–5 commit. Stop-git-check hook akan trigger jika `git status` dirty.
+
+#### Pattern 2: HTML Then JS (Tier-Layered Edit)
+
+Untuk modul yang dibangun dari template (mis. copy Modul-8 → Modul-9):
+
+```
+Commit 1: HTML title, brand, MODULE_ID, RELATED_MODULES configs (sed-based, ringan)
+Commit 2: Hero section HTML (baru, replace block ≤200 baris)
+Commit 3: Bagian 01 HTML
+Commit 4: Bagian 02 HTML
+... (lanjut per Bagian)
+Commit N: Tugas section MC
+Commit N+1: Tugas section Comp
+Commit N+2: Forum section
+Commit N+3: JS animations (lebih besar — pecah lagi jika perlu)
+```
+
+**Trade-off:** lebih banyak commit history, tetapi tahan timeout. Squash dengan `git reset --soft HEAD~K` di akhir kalau ingin ringkas history.
+
+#### Pattern 3: Write File + Bash Splice (Untuk Edit Sangat Besar)
+
+Untuk replacement blok > 1000 baris JS yang sering timeout sebagai single Edit:
+
+```bash
+# 1. Tulis kode baru ke file terpisah (lebih cepat dari Edit besar)
+Write: /tmp/new-anim-block.js  ← 1500 lines
+
+# 2. Splice via Bash dengan sed/python
+python3 -c "
+with open('Modul-N.html') as f: lines = f.readlines()
+start = next(i for i,l in enumerate(lines) if 'ANIMASI 1 START' in l)
+end   = next(i for i,l in enumerate(lines) if 'ANIMASI 4 END' in l)
+with open('/tmp/new-anim-block.js') as f: new = f.readlines()
+lines[start:end+1] = new
+with open('Modul-N.html', 'w') as f: f.writelines(lines)
+"
+```
+
+**Catatan:** kurang elegan tapi sangat efektif untuk Edit yang konsisten timeout. Pilih ini sebagai escape hatch terakhir.
+
+### 34.4 Pencegahan Proaktif
+
+**Sebelum mulai pekerjaan besar, deteksi dini:**
+
+1. **Estimasi size** — kalau replacement > 500 baris atau > 30KB, langsung pecah jadi 3+ chunks
+2. **Sediakan `claude/<task-name>` branch terpisah** — jangan kerja langsung di `main` agar revert mudah
+3. **Set TodoWrite dengan granularitas commit** — tiap todo = 1 commit (bukan 1 fungsi besar)
+4. **Push `git push -u origin <branch>` setelah commit pertama** — establish remote tracking lebih awal
+
+**Saat mengetik prompt panjang ke Claude Code, hindari:**
+- ❌ "Write 4 animations: gradient descent, Newton, multi-modal, KKT — all in one go"
+- ✅ "Write Animasi 1 only: gradient descent on contour. Setelah selesai, kita commit lalu lanjut animasi 2."
+
+### 34.5 Recovery Procedure (Setelah Timeout)
+
+Jika terjadi timeout di tengah kerja:
+
+```bash
+# 1. Cek status — apakah edit ter-apply atau hilang
+git status
+git diff --stat
+
+# 2. Kalau working tree dirty dengan partial change yang inconsistent
+#    (mis. HTML mention LP tapi JS masih FFT) → REVERT supaya tree bersih
+git restore <file>
+
+# 3. Atau kalau partial change sudah konsisten internal (mis. cuma 1 animasi
+#    selesai dari 4) → COMMIT dulu agar tidak hilang
+git add -A && git commit -m "wip: partial Animasi 1 (incomplete refactor)"
+git push -u origin <branch>
+
+# 4. Lalu lanjut dari titik commit terakhir
+```
+
+**Aturan emas:** **JANGAN BIARKAN WORKING TREE DIRTY > 10 MENIT.** Stop-hook akan firing terus, dan kalau tiba-tiba laptop hibernate / battery die, semua perubahan in-memory hilang.
+
+### 34.6 Anti-Pattern: Yang HARUS Dihindari
+
+| Anti-Pattern | Risiko | Solusi |
+|--------------|--------|--------|
+| Single Edit dengan 2000+ baris old_string + 2000+ new_string | 90%+ timeout rate | Pecah jadi 4–8 Edit kecil |
+| Refactor 4 animasi sekaligus dalam 1 Edit | Kalau timeout, semua hilang | 1 commit per animasi |
+| Tidak push setelah 5+ commit lokal | Risk hilang kalau git error | Push tiap 3–5 commit |
+| Edit file 100KB+ tanpa branch terpisah | Sulit revert kalau ada masalah | Selalu branch `claude/*` |
+| Lupa update TodoWrite saat commit incremental | Lost progress tracking | Update tiap todo selesai |
+| Ignore stop-hook warning | Hook trigger berulang, working tree polluted | Commit/push/revert sesuai konteks |
+
+### 34.7 Checklist Pre-Flight (Sebelum Refactor Besar)
+
+Sebelum mulai refactor JS canvas atau replacement blok besar:
+
+- [ ] **Branch terpisah** sudah dibuat (`git checkout -b claude/<task>`)
+- [ ] **TodoWrite** sudah di-set dengan 1 todo per chunk planned
+- [ ] **Estimasi size** sudah dihitung — < 30KB per Edit?
+- [ ] **Push** awal `git push -u origin <branch>` sudah dilakukan untuk establish tracking
+- [ ] Mengetahui **point-of-no-return**: kalau Edit ke-3 dari 5 timeout, apakah commit 1–2 sudah aman? (harus: ya)
+- [ ] **Test plan** sudah dipikirkan sebelum mulai (apa yang dicek setelah selesai)
+
+### 34.8 Lessons Learned: Modul-8 LP & Modul-9 NLP Animation Refactor
+
+**Kasus:** Refactor 8 fungsi canvas animation (4 di Modul-8, 4 di Modul-9) — total ~1700 baris JS baru, masing-masing 200–400 baris.
+
+**Yang berhasil:**
+- ✅ Branch terpisah `claude/fix-animations` dari awal
+- ✅ HTML panel update sebagai commit pertama (ringan, ≤ 7KB)
+- ✅ 1 commit per animasi (8 commit kerja inti)
+- ✅ Push tiap 4 commit sebagai checkpoint
+- ✅ Final squash via PR merge (history main bersih)
+
+**Yang gagal (versi pertama, sebelum strategi chunked):**
+- ❌ Coba single Edit untuk 4 animasi sekaligus → timeout ~70% rate
+- ❌ Tidak ada branch terpisah → revert susah
+- ❌ Working tree dirty 30+ menit → stop-hook trigger berulang
+
+**Output:** Strategi chunked commit menyelamatkan ~12 jam kerja dari kemungkinan hilang akibat timeout. **Pattern ini sekarang menjadi standar.**
+
+---
+
+*Pedoman v14 — April 2026 (akhir bulan, post-Animasi-Topic-Alignment + API Timeout Mitigation).*
+*Update v14: §14.1.1 BARU — aturan WAJIB animasi canvas harus sesuai topik modul (anti copy-template-mismatch); §14.1.2 reference mapping animasi per topik (FFT/LP/NLP); §14.1.3 strategi audit pre-merge. §34 BARU — strategi mitigasi `API Stream Idle Timeout` dengan chunked commit pattern (per-animasi commit, HTML-then-JS layered, write+splice escape hatch); recovery procedure setelah timeout; checklist pre-flight refactor besar; lessons learned dari Modul-8 LP & Modul-9 NLP animation refactor (8 animasi, 1700+ baris JS, zero work loss dengan strategi chunked).*
+
+*Pedoman v13 — April 2026 (akhir bulan, late-month Vibrant Countdown redesign).*
+*Update v13: §10.4 BARU — Vibrant Visual Treatment countdown (aurora konik berputar, gradient border 4-warna, ring 130px halo radial pulsing, gradient-text angka, neon glow). Applied ke 13 modul.*
 
 *Pedoman v12.1 — April 2026 (akhir bulan, hotfix restore handler tidak menandai opsi benar).*
 *Update v12.1: §25.11 di-revisi — fallback `mcAnswered`/`mcScores` saja TIDAK CUKUP. Restore handler `_loadScoredQuestions` wajib menandai opsi benar via parsing `onclick` attribute (`selectMC(...,this,true)`) supaya `correctOpt` tersedia di build `mcData`. Tanpa ini, export menampilkan "(Sudah dijawab — pilihan salah)" walau ✓ hijau (inkonsisten visual). Applied ke 24 modul (Modul-4 sudah punya pattern ini sejak awal).*
