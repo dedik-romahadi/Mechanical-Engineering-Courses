@@ -2375,7 +2375,7 @@ F, p = stats.f_oneway(group1, group2, group3)
 </div><!-- end section -->
 
 <footer>
-  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Tugas 11 — Metaheuristik: Genetic Algorithm &amp; PSO · Optimalisasi & Automasi · S1 Teknik Mesin · Universitas Mercu Buana</p>
+  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Tugas 11 — Optimasi Eksperimental ANOVA · Optimalisasi & Automasi · S1 Teknik Mesin · Universitas Mercu Buana</p>
 </footer>
 </div><!-- end page-tugas -->
 
@@ -2570,7 +2570,7 @@ F, p = stats.f_oneway(group1, group2, group3)
 </div><!-- end section -->
 
 <footer>
-  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Forum 7 — Metaheuristik: Genetic Algorithm &amp; PSO · Optimalisasi & Automasi · S1 Teknik Mesin · Universitas Mercu Buana</p>
+  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Forum 7 — Optimasi Eksperimental ANOVA · Optimalisasi & Automasi · S1 Teknik Mesin · Universitas Mercu Buana</p>
 </footer>
 </div><!-- end page-forum -->
 
@@ -2903,43 +2903,43 @@ let mcAnswered = {}, mcScores = {};
 const MC_HINTS = {
   mc1: {
     answer: 'B',
-    explain: '<strong>Syarat orde-pertama (necessary condition)</strong> bagi local minimum: <code>∇f(x*) = 0</code> — disebut <em>titik stasioner</em>. Ini perlu <em>tetapi tidak cukup</em>: titik stasioner bisa berupa minimum, maksimum, atau saddle point. Untuk konfirmasi minimum, cek <em>second-order condition</em>: <code>∇²f(x*) ⪰ 0</code> (Hessian semi-definit positif). (A) salah — nilai f(x*) bisa apa saja. (C) salah — Hessian semi-definit, bukan nol. (D) salah — variabel x bisa apa saja.'
+    explain: '<strong>One-way ANOVA H₀</strong>: <code>μ₁ = μ₂ = … = μₖ</code> — semua mean grup sama (faktor tidak berpengaruh). H₁: paling tidak satu pasangan berbeda. ANOVA membuktikan <em>ada efek atau tidak</em>, bukan pasangan mana yang berbeda — tugas itu untuk post-hoc test (Tukey HSD). (A) salah — itu kondisi extreme yang tidak realistis untuk H₀. (C) tidak relevan — itu hipotesis Levene\'s test untuk asumsi equal variance. (D) salah — F = 0 hanya hasil tertentu, bukan hipotesis.'
   },
   mc2: {
     answer: 'B',
-    explain: '<strong>Step size α</strong> menentukan jarak langkah ke arah negative gradient: <code>x_{k+1} = x_k − α·∇f(x_k)</code>. Terlalu besar → overshoot/oscillation/divergen; terlalu kecil → konvergen sangat lambat. <em>Backtracking line search</em> (Armijo rule) menyesuaikan α adaptif: cari α terbesar yang memenuhi <em>sufficient decrease</em>. (A) salah — dimensi ditentukan x. (C) salah — penalty berbeda dari step size. (D) salah — α=1 tidak universal.'
+    explain: '<strong>Identitas fundamental ANOVA</strong>: <code>SS_total = SS_between + SS_within</code> — total varians data dipecah menjadi (a) varians antar mean grup (efek faktor) + (b) varians data dari mean grup-nya (noise/error). Inilah dasar "<em>analysis of variance</em>". Dapat dibuktikan secara aljabar dengan ekspansi <code>(yᵢⱼ − ȳ) = (yᵢⱼ − ȳⱼ) + (ȳⱼ − ȳ)</code>. (A) salah — perkalian tidak masuk akal dimensionally. (C) salah — pengurangan, varians selalu non-negative. (D) salah — Pythagoras tidak applicable di sini.'
   },
   mc3: {
     answer: 'B',
-    explain: '<strong>Newton\'s method</strong> menggunakan informasi orde-2 (Hessian) untuk model lokal kuadratik: <code>f(x_k+d) ≈ f(x_k) + ∇fᵀd + ½dᵀHd</code>. Set turunan d = 0: <code>Hd = −∇f → d = −H⁻¹·∇f</code>. <em>Konvergensi kuadratik</em>: error berkurang sebagai kuadrat tiap iterasi (jauh lebih cepat dari linier steepest descent). (A) salah — Newton butuh ∇f dan H. (C) salah — Newton untuk fungsi smooth umum. (D) salah — Newton konvergen dalam region attraction yang baik.'
+    explain: '<strong>Degrees of freedom one-way ANOVA</strong>: <code>df_between = k − 1</code> (k mean grup, kurangi 1 karena grand mean tetap), <code>df_within = N − k</code> (tiap grup punya nⱼ − 1 dof, jumlahkan), <code>df_total = N − 1 = df_b + df_w</code>. Untuk k=4, N=24: df_b=3, df_w=20, df_t=23. df penting karena <em>Mean Square = SS/df</em> — normalisasi yang membuat F-statistic bisa dibandingkan ke distribusi teoretis. (A) salah — campur aduk. (C) salah — terbalik. (D) salah — itu df untuk t-test, bukan ANOVA.'
   },
   mc4: {
     answer: 'B',
-    explain: '<strong>BFGS</strong> (Broyden-Fletcher-Goldfarb-Shanno, 1970) adalah <em>quasi-Newton</em> yang mengaproksimasi Hessian dari pasangan (s, y) = (Δx, Δ∇f). Konvergensi super-linier dengan biaya O(n²) per iterasi (vs Newton O(n³)). Default <code>scipy.optimize.minimize</code> untuk unconstrained. Robust dan sangat cepat untuk n ≤ 1000. (A) salah — BFGS butuh gradient. (C) salah — bukan steepest descent. (D) salah — BFGS untuk NLP, bukan LP simpleks.'
+    explain: '<strong>F-statistic</strong> = rasio dua estimasi varians: <code>F = MS_between / MS_within</code>. Dibawah H₀ (tidak ada efek), MS_b ≈ MS_w (keduanya estimasi varians populasi) → F ≈ 1. Saat H₁ benar, MS_b membesar (dapat efek faktor) → F &gt;&gt; 1. Distribusi F (Fisher-Snedecor) memungkinkan hitung p-value: P(F ≥ F_obs | H₀). (A) salah — pengurangan tidak normal. (C) salah — itu coefficient of variation. (D) salah — itu df_within bukan F.'
   },
   mc5: {
     answer: 'B',
-    explain: '<strong>Lagrangian function</strong>: <code>L(x, λ, μ) = f(x) + λᵀ·h(x) + μᵀ·g(x)</code> dengan <code>λ ∈ ℝ</code> (multiplier untuk equality), <code>μ ≥ 0</code> (untuk inequality). Stationarity: <code>∇_x L(x*, λ*, μ*) = 0</code> di optimum. Multiplier mewakili <em>shadow price</em> — sensitivity Z optimum terhadap perubahan RHS kendala. (A) salah — tanda harus penjumlahan. (C) tidak masuk akal — Lagrangian aditif. (D) salah — multiplier krusial.'
+    explain: 'Untuk <strong>p &lt; α (e.g. 0.003 &lt; 0.05)</strong>, tolak H₀: ada bukti statistik bahwa paling tidak satu pasangan mean berbeda secara signifikan. Selanjutnya: lakukan <em>post-hoc test</em> (Tukey HSD) untuk identifikasi pasangan mana yang berbeda. (A) salah — p kecil = tolak H₀, bukan terima. (C) salah — bukti CUKUP untuk keputusan. (D) salah — jangan ubah α post-hoc (p-hacking).'
   },
   mc6: {
     answer: 'B',
-    explain: '<strong>Complementary slackness</strong>: <code>μⱼ · gⱼ(x*) = 0</code> ∀j. Konsekuensi: kendala <em>aktif</em> (binding, gⱼ = 0) bisa punya μⱼ &gt; 0; kendala <em>tidak aktif</em> (gⱼ &lt; 0) harus punya μⱼ = 0. Ini cara natural KKT mengklasifikasi mana kendala "binding" tanpa menebak — multiplier μ memberi info itu langsung dari hasil solver. (A) salah — penjumlahan tidak nol. (C) salah — μ ≠ g. (D) salah — μ tidak harus &gt; g.'
+    explain: '<strong>Tiga asumsi ANOVA</strong>: (1) <em>Normality</em> residual — uji Shapiro-Wilk per grup; kalau runtuh, transformasi (log, Box-Cox) atau Kruskal-Wallis non-parametric. (2) <em>Homoscedasticity</em> (varians sama antar grup) — uji Levene\'s test; kalau runtuh, Welch\'s ANOVA. (3) <em>Independence</em> antar trial — dijamin oleh randomisasi urutan eksperimen. (A) salah — itu asumsi regresi linear. (C) salah — itu asumsi gradient methods. (D) salah — itu komponen ANOVA, bukan asumsi.'
   },
   mc7: {
     answer: 'B',
-    explain: '<strong>Penalty method</strong> mengkonversi kendala jadi penalty di objektif: <code>F_ρ(x) = f(x) + ρ·Σ max(0, gⱼ(x))²</code>. Saat ρ kecil, kendala bisa dilanggar; saat ρ → ∞, solusi unconstrained dipaksa mendekati feasible. <em>Trade-off</em>: ρ kecil → solusi tidak akurat; ρ besar → ill-conditioning. Variant: <em>quadratic penalty</em>, <em>augmented Lagrangian</em> (lebih stabil). (A) salah — kendala diolah, bukan dihapus. (C) tidak masuk akal — log transform untuk barrier method. (D) salah — penalty universal untuk LP/NLP.'
+    explain: '<strong>Tukey HSD (Honest Significant Difference)</strong> — bandingkan semua pasangan mean grup dengan kontrol <em>family-wise error rate</em>. Output: tabel pairwise dengan p-adjusted; pasangan dengan p_adj &lt; α adalah signifikan. Tanpa post-hoc: hanya tahu "ada efek" tetapi tidak tahu pasangan mana yang berbeda. Library: <code>statsmodels.stats.multicomp.pairwise_tukeyhsd</code>. (A) salah — F rendah berarti tidak signifikan, tidak butuh post-hoc. (C) tidak masuk akal — tidak menambah sample. (D) salah — α tidak berubah.'
   },
   mc8: {
     answer: 'B',
-    explain: '<strong>SLSQP</strong> (Sequential Quadratic Programming) dan <strong>trust-constr</strong> adalah default scipy untuk NLP berkendala umum. SLSQP cocok untuk n &lt; 100; trust-constr lebih robust untuk masalah besar &amp; non-konveks. Keduanya support equality, inequality, bounds. (A) salah — BFGS hanya unconstrained. (C) salah — Nelder-Mead derivative-free, tidak handle constraints langsung di scipy.minimize. (D) salah — CG hanya unconstrained.'
+    explain: '<strong>Interaction effect A × B</strong> signifikan saat F_AB &gt; F_critical (p &lt; α) — efek faktor A <em>bergantung pada level B</em>. Visualisasi: <em>interaction plot</em> dengan garis tidak paralel atau menyilang. Konsekuensi penting: <strong>main effect tidak boleh diinterpretasi terpisah</strong> — harus pakai cell-mean optimum dari kombinasi spesifik (A_i, B_j). (A) salah — paralel = NO interaksi. (C) tidak relevan — sample size tidak terkait interaksi. (D) salah — F_A vs F_B tidak terkait interaksi.'
   },
   mc9: {
     answer: 'B',
-    explain: '<strong>Konveksitas</strong> garansi: untuk fungsi konveks, sembarang local minimum = global minimum. Ini sifat fundamental yang membuat NLP konveks <em>tractable</em>. Cek konveksitas: Hessian <code>∇²f(x) ⪰ 0</code> ∀x ∈ domain (semi-definit positif). LP, QP konveks, NLP dengan f &amp; g convex semua punya garansi ini. Untuk non-konveks, gradient bisa stuck di local min — multi-start atau metaheuristik (Pertemuan 11) diperlukan. (A) salah — saddle terjadi di non-konveks. (C) salah — minimum bukan maksimum. (D) salah — ada hubungan kuat untuk konveks.'
+    explain: '<strong>Reporting standar ANOVA</strong>: <em>F(df_b, df_w) = X.XX, p = X.XXX, η² = X.XX</em>. Komponen wajib: F-statistic, kedua df, p-value, dan <strong>effect size</strong> (η², ω², atau Cohen\'s d). Effect size krusial karena <em>p-value bergantung pada sample size</em> — efek kecil dengan N besar bisa signifikan tapi tidak praktis. (A) salah — p saja tidak cukup info. (C) salah — manipulasi α = p-hacking, unethical. (D) salah — grand mean tidak menjawab pertanyaan ANOVA.'
   },
   mc10: {
     answer: 'B',
-    explain: 'Untuk <em>non-konveks NLP</em> dengan banyak local minimum, gradient-based dari satu titik awal tidak menjamin global. <strong>Multi-start</strong>: jalankan minimize dari banyak x₀ random, ambil hasil terbaik — sederhana, scalable, tidak menjamin tetapi sering cukup di praktik. <strong>Metaheuristik</strong> (GA, PSO, Differential Evolution): population-based, eksplor seluruh space, tetapi lebih lambat. SciPy: <code>scipy.optimize.basinhopping</code>, <code>differential_evolution</code>. (A) salah — BFGS sekali tidak menjamin. (C) tidak masuk akal — formulasi non-konveks tidak bisa dilineralisasi sembarangan. (D) salah — gradient descent stuck di lokal optimum.'
+    explain: '<strong>Taguchi orthogonal arrays</strong> (Genichi Taguchi 1986): tabel pra-desain (L4, L8, L9, L16, L18, L27) untuk eksperimen efisien. Contoh L9: 4 faktor × 3 level → hanya 9 trial (vs full factorial 81). Properti orthogonal: tiap pasangan level antar faktor muncul frekuensi sama → identifikasi level optimum dengan minimal trial. Kelemahan: tidak menangkap interaksi tinggi tanpa modifikasi. Library: <strong>pyDOE2</strong>. (A) salah — Taguchi pakai ANOVA + S/N ratio bersamaan. (C) salah — justru mengurangi. (D) salah — minimum 2 faktor.'
   }
 };
 
@@ -3689,7 +3689,7 @@ function exportTugasHtml() {
 <div class="wrap">
 
   <div class="cover">
-    <h1>📝 Tugas 11 — Metaheuristik: Genetic Algorithm &amp; PSO</h1>
+    <h1>📝 Tugas 11 — Optimasi Eksperimental: ANOVA</h1>
     <p class="sub">Optimalisasi &amp; Automasi · S1 Teknik Mesin · Universitas Mercu Buana · 2025/2026 · Dosen: Dedik Romahadi</p>
   </div>
 
@@ -3769,7 +3769,7 @@ function exportTugasHtml() {
   </div>
 
   <div class="footer">
-    Tugas 11 — Metaheuristik: Genetic Algorithm &amp; PSO · Optimalisasi & Automasi · S1 Teknik Mesin UMB 2025/2026
+    Tugas 11 — Optimasi Eksperimental: ANOVA · Optimalisasi & Automasi · S1 Teknik Mesin UMB 2025/2026
   </div>
 </div>
 </body></html>`;
@@ -3988,7 +3988,7 @@ function buildForumHtml() {
 
   <div style="background:linear-gradient(135deg,#1e0a40,#0a1628);border-radius:12px 12px 0 0;padding:20px 28px;">
     <div style="font-size:1.3rem;font-weight:800;color:#a855f7;margin-bottom:4px;">&#128172; Forum Diskusi &#8212; Pertemuan 11</div>
-    <div style="font-size:.82rem;color:#94a3b8;">Metaheuristik: Genetic Algorithm &amp; PSO &middot; Optimalisasi &amp; Automasi &middot; S1 Teknik Mesin UMB &middot; 2025/2026</div>
+    <div style="font-size:.82rem;color:#94a3b8;">Optimasi Eksperimental: ANOVA &middot; Optimalisasi &amp; Automasi &middot; S1 Teknik Mesin UMB &middot; 2025/2026</div>
     <div style="font-size:.8rem;color:#a855f7;margin-top:2px;">Dosen: Dedik Romahadi</div>
   </div>
 
@@ -4026,7 +4026,7 @@ function buildForumHtml() {
       <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:#0ea5e9;color:#fff;font-weight:700;font-size:.8rem;flex-shrink:0;">2</span>
       <div style="font-size:.95rem;font-weight:700;color:#1e293b;">Konveksitas &amp; Multi-Start: apakah desain pegas ini masalah konveks? Apakah satu kali SLSQP cukup, atau perlu multi-start?</div>
     </div>
-    <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Cek konveksitas (f atau g non-linier &rarr; non-konveks). Pendekatan validasi: multi-start, basinhopping, differential_evolution. Kapan multi-start cukup, kapan butuh metaheuristik (Pertemuan 11). Trade-off cost komputasi vs jaminan global.</div>
+    <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Bandingkan Taguchi L9 vs full factorial vs fractional factorial. Sequential DoE: screening &rarr; validation &rarr; RSM. Kapan pakai mana berdasarkan jumlah faktor &amp; budget eksperimen. Bagaimana validasi tidak ada interaksi yang missed di Taguchi.</div>
     <div style="margin-left:40px;">
       <div style="font-size:.7rem;font-weight:700;color:#0ea5e9;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
       <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:14px 16px;font-size:.88rem;color:#1e293b;line-height:1.75;min-height:48px;">${ans2}</div>
@@ -4046,7 +4046,7 @@ function buildForumHtml() {
   </div>
 
   <div style="background:#f8faff;border:1px solid #e2e8f0;border-radius:0 0 12px 12px;padding:10px 28px;text-align:center;font-size:.72rem;color:#94a3b8;margin-top:4px;">
-    Forum Diskusi Pertemuan 11 &mdash; Metaheuristik: Genetic Algorithm &amp; PSO &middot; Optimalisasi &amp; Automasi &middot; S1 Teknik Mesin UMB &middot; 2025/2026
+    Forum Diskusi Pertemuan 11 &mdash; Optimasi Eksperimental: ANOVA &middot; Optimalisasi &amp; Automasi &middot; S1 Teknik Mesin UMB &middot; 2025/2026
   </div>
 
 </div>`;
