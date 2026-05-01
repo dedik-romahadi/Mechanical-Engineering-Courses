@@ -2525,15 +2525,15 @@ import pandas as pd
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:10%;font-size:.9rem;color:var(--green);--dur:20s;--del:0s">F = MS_b / MS_w</span>
-    <span class="ff" style="left:40%;font-size:.8rem;color:var(--cyan);--dur:18s;--del:7s">H₀: μ₁ = μ₂ = … = μₖ</span>
-    <span class="ff" style="left:65%;font-size:.75rem;color:var(--green);--dur:22s;--del:11s">p &lt; α → tolak H₀</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--violet);--dur:19s;--del:5s">η² = SS_b / SS_t</span>
+    <span class="ff" style="left:10%;font-size:.9rem;color:var(--green);--dur:20s;--del:0s">if x &gt; T: ALERT</span>
+    <span class="ff" style="left:40%;font-size:.8rem;color:var(--cyan);--dur:18s;--del:7s">ISO 10816 zones</span>
+    <span class="ff" style="left:65%;font-size:.75rem;color:var(--green);--dur:22s;--del:11s">tier: warn / alert / crit</span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--violet);--dur:19s;--del:5s">FSM + debounce</span>
   </div>
   <div class="hero-content">
-    <div class="hero-eyebrow"><div class="pulse-dot"></div>Forum Diskusi · Pertemuan 11 · ANOVA</div>
-    <h1 class="hero-title" style="font-size:clamp(36px,5vw,60px)">Tuning Parameter CNC Machining —<br><em>ANOVA &amp; Taguchi di Pabrik Sandvik</em></h1>
-    <p class="hero-sub">Studi kasus <strong>Sandvik Coromant (Swedia)</strong>: tim engineering harus tuning parameter machining (cutting speed, feed rate, depth of cut) untuk surface roughness &amp; tool life optimal pada baja AISI 4340. Manual tuning trial-and-error menghabiskan 3 minggu &amp; 80 spesimen. Tim QC pakai <strong>Taguchi L9 + ANOVA</strong> — 9 trial × 3 replikasi = 27 spesimen, 4 hari, identifikasi level optimum dengan p &lt; 0.001. Diskusi: kapan ANOVA <em>menang</em> atas trial-and-error, dan bagaimana validasi statistik mendukung engineering decision?</p>
+    <div class="hero-eyebrow"><div class="pulse-dot"></div>Forum Diskusi · Pertemuan 12 · Rule-Based Monitoring</div>
+    <h1 class="hero-title" style="font-size:clamp(36px,5vw,60px)">Monitoring Pompa Sentrifugal —<br><em>Rule-Based di Kilang Pertamina Cilacap</em></h1>
+    <p class="hero-sub">Studi kasus <strong>Pertamina RU IV Cilacap</strong>: kilang minyak terbesar di Indonesia (348 ribu barel/hari). 200+ pompa sentrifugal di unit Crude Distillation. Tim reliability engineering harus monitoring vibrasi 24/7 dengan ISO 10816 zone classification + tier alarm untuk minimize unplanned shutdown. Diskusi: bagaimana threshold yang ketat (zona ISO) berinteraksi dengan kondisi operasi kilang yang dinamis (start-up, partial load, change-over crude type), dan kapan rule-based mentok &amp; perlu upgrade ke ML predictive (Pertemuan 13)?</p>
   </div>
 </div>
 
@@ -2541,27 +2541,27 @@ import pandas as pd
 
   <!-- SKENARIO -->
   <div class="section-label reveal cyan-label">Skenario</div>
-  <h2 class="section-title reveal">Tuning CNC Machining Parameters —<br>ANOVA + Taguchi di Lini Produksi Sandvik</h2>
+  <h2 class="section-title reveal">Monitoring 200+ Pompa Sentrifugal —<br>Rule-Based + State Machine di Pertamina Cilacap</h2>
 
   <div class="forum-scenario reveal">
-    <div class="scenario-label">📋 KASUS SANDVIK COROMANT — INDUSTRI MANUFAKTUR</div>
+    <div class="scenario-label">📋 KASUS PERTAMINA RU IV CILACAP — INDUSTRI MIGAS</div>
     <p>
-      Pabrik <strong style="color:var(--amber)">Sandvik Coromant</strong> di Sandviken, Swedia, memproduksi tool insert untuk machining baja paduan AISI 4340. Customer (sektor otomotif &amp; aerospace) minta surface roughness Ra ≤ 1.6 μm dan tool life ≥ 45 menit per insert. Tim QC harus tuning <em>3 parameter machining</em>: <strong>cutting speed</strong> (3 level: 150, 200, 250 m/min), <strong>feed rate</strong> (3 level: 0.10, 0.15, 0.20 mm/rev), dan <strong>depth of cut</strong> (3 level: 0.5, 1.0, 1.5 mm). Total kombinasi = 27 (full factorial). Mereka pilih <strong>Taguchi L9</strong> (9 trial saja) × 3 replikasi = 27 spesimen total, randomized.
+      Kilang <strong style="color:var(--amber)">Pertamina RU IV Cilacap</strong> mengoperasikan ~200 pompa sentrifugal di unit Crude Distillation Unit (CDU), Hydrotreating, dan Catalytic Reformer. Tiap pompa kritis untuk feed/discharge crude oil &amp; intermediate streams. Unplanned shutdown 1 pompa = production loss Rp 50–500 juta/jam tergantung lokasi loop. Tim reliability pakai <strong>SAP PM + Bently Nevada vibration monitoring system</strong> dengan rule-based logic ISO 10816-3 + tier alarm escalation. 30 sensor accelerometer per zona, sampling 1 Hz, total ~6000 sample/jam streaming ke SCADA control room.
     </p>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:16px">
-      <div style="background:rgba(0,224,158,.05);border:1px solid rgba(0,224,158,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)">Faktor: V (m/min), f (mm/rev), d (mm)</div>
-      <div style="background:rgba(255,64,129,.05);border:1px solid rgba(255,64,129,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)">Level: 3 per faktor → Taguchi L9</div>
-      <div style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet)">Respons: surface roughness Ra (μm)</div>
-      <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">ANOVA: F_V = 28, F_f = 12, F_d = 1.2</div>
-      <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">η²: V = 0.62, f = 0.24, d = 0.05</div>
-      <div style="background:rgba(0,224,158,.05);border:1px solid rgba(0,224,158,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)">Optimum: V=200, f=0.15, d=any → Ra ↓ 35%</div>
+      <div style="background:rgba(0,224,158,.05);border:1px solid rgba(0,224,158,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)">200+ pompa, 30 sensor RMS/zona</div>
+      <div style="background:rgba(255,64,129,.05);border:1px solid rgba(255,64,129,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)">ISO 10816-3: A/B/C/D thresholds</div>
+      <div style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet)">Tier: warn (B), alert (C), crit (D)</div>
+      <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">Hysteresis 0.2 mm/s, debounce N=5</div>
+      <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">SCADA latency &lt; 500 ms end-to-end</div>
+      <div style="background:rgba(0,224,158,.05);border:1px solid rgba(0,224,158,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)">Result: MTTR -25%, false alarm -60%</div>
     </div>
-    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Hasil ANOVA: <strong>cutting speed paling berpengaruh</strong> (F = 28, p &lt; 0.001, η² = 0.62 — large effect). <em>Feed rate</em> signifikan moderat (F = 12, p = 0.003, η² = 0.24). <em>Depth of cut</em> tidak signifikan (F = 1.2, p = 0.32, η² = 0.05). Tukey HSD: V=200 berbeda signifikan dari V=150 (p = 0.002) DAN V=250 (p = 0.04); f=0.15 lebih baik dari f=0.10 (p = 0.01) tapi tidak berbeda dari f=0.20 (p = 0.18). Pertanyaan kritis: (a) <strong>Mengapa depth of cut tidak signifikan</strong>? Apakah berarti boleh diabaikan dalam desain proses? (b) Hyperparameter Taguchi (L9 vs L18, full vs fractional factorial) — kapan pilih yang mana? (c) Trade-off Taguchi (9 trial efisien tapi tidak menangkap interaksi) vs full factorial (27 trial, lengkap tapi mahal). (d) Validasi: apakah hasil ini transferable ke material lain (mis. Inconel) atau mesin lain? Diskusikan workflow <strong>statistical process control + Six Sigma</strong> dalam manufaktur modern.</p>
+    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Hasil 12 bulan: <strong>MTTR turun 25%</strong> (dari 8 jam ke 6 jam), <strong>false alarm rate turun 60%</strong> (dari 50/hari ke 20/hari setelah hysteresis + debouncing diaktifkan), <strong>2 catastrophic failure dihindari</strong> (ditangkap di Zone C sebelum eskalasi ke D). Pertanyaan kritis: (a) Threshold ISO 10816 didasarkan pada steady-state operasi — bagaimana <em>menangani transient</em> seperti start-up (RMS spike normal), shutdown, atau change-over crude type? (b) Beberapa pompa "lifestyle" (cycling on/off) sering trigger alarm karena cycle naik-turun — bagaimana <em>tune persistence timer</em> tanpa kehilangan early-warning? (c) Setelah 12 bulan, ada <em>concept drift</em> — pompa aging, mean RMS naik perlahan dari 1.0 ke 1.6 mm/s. Kapan harus tune ulang threshold? Bagaimana automated re-tuning vs manual? (d) Rule-based punya batas — saat ada 5 pompa simultan masuk Zone B (mungkin signature root cause yang sama), bagaimana <em>alarm correlation</em> &amp; <em>root cause analysis</em>? Apakah ini sinyal untuk upgrade ke ML (Pertemuan 13)?</p>
   </div>
 
   <!-- Canvas Animasi Forum -->
   <canvas id="cvForum" height="360" style="margin-bottom:12px;border-radius:12px"></canvas>
-  <p style="font-size:13px;color:var(--muted);margin-bottom:40px;font-family:'JetBrains Mono',monospace;text-align:center">— Visualisasi konsep ANOVA: scatter sebagai data 3 grup, garis horizontal sebagai mean grup &amp; grand mean, area sebagai partisi varians antar/dalam grup</p>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:40px;font-family:'JetBrains Mono',monospace;text-align:center">— Visualisasi konsep monitoring real-time: trace RMS vs threshold bands, indicator state, alert events</p>
 
   <!-- Pertanyaan Diskusi -->
   <div class="section-label reveal">Pertanyaan Diskusi</div>
@@ -2571,31 +2571,31 @@ import pandas as pd
   <div class="fq-card reveal" id="fq1">
     <div class="fq-head" onclick="toggleFQ('fq1')">
       <div class="fq-num" style="background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.2);color:var(--cyan)">01</div>
-      <h3>Interpretasi Statistik: <strong>cutting speed signifikan, depth of cut tidak</strong> — apakah berarti depth of cut boleh diabaikan dalam desain proses?</h3>
+      <h3>Transient Handling: bagaimana <strong>rule-based threshold ISO 10816 menangani start-up &amp; change-over crude type</strong> tanpa false alarm flood?</h3>
       <span class="fq-arrow">›</span>
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Hasil ANOVA: cutting speed F = 28 (p &lt; 0.001), feed rate F = 12 (p = 0.003), depth of cut F = 1.2 (p = 0.32). Effect size η²: V = 0.62, f = 0.24, d = 0.05. Insinyur novice mungkin simpulkan "depth tidak penting, set di nilai apa saja". Tetapi pertanyaan kritis: apakah ini interpretasi yang benar? Apa konsekuensi praktis kalau depth ditetapkan random tanpa validasi tambahan?</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">ISO 10816-3 thresholds didasarkan pada <em>steady-state operasi</em>. Tetapi pompa kilang sering start-up (RMS bisa 3× normal sesaat), shutdown, atau change-over crude type (transient unbalance). Tanpa handling khusus, satu start-up bisa trigger 5+ alarm Zone D di kontrol room. Bagaimana arsitektur monitoring yang bijak?</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">p_d = 0.32 &gt; 0.05</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">η²_d = 0.05 (small)</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">power_d ≈ 0.30 (low)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">Start-up: RMS spike 3×</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">Crude change-over: 30 min transient</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">Steady-state: ISO threshold OK</span>
         </div>
 
         <div class="poll">
-          <div class="poll-q">QUICK CHECK — Cara terbaik menginterpretasi "depth of cut tidak signifikan"?</div>
+          <div class="poll-q">QUICK CHECK — Cara terbaik menangani transient di rule-based monitoring?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Set depth of cut bebas — sudah terbukti tidak berpengaruh, abaikan saja</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>"Tidak signifikan" ≠ "tidak berpengaruh" — bisa karena (a) effect size memang kecil di ranah yang diuji, (b) sample size kurang (low power), (c) range level tidak cukup luas. Validasi dengan power analysis &amp; pertimbangkan efek pada respons lain (mis. tool life, MRR), bukan hanya Ra</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Tolak hasil ANOVA — pasti ada kesalahan, depth pasti penting</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Pilih depth = 1.5 mm karena yang tertinggi pasti optimal</div>
+            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Naikkan threshold permanently 3× supaya tidak alarm di start-up</div>
+            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>Pakai <em>operating mode tag</em> dari DCS (start-up, steady, shutdown) — disable alarm atau pakai threshold lebih longgar saat mode bukan steady-state. Plus debounce N tinggi (10–30) saat mode non-steady. Re-enable alarm normal saat mode kembali ke steady setelah grace period (mis. 15 menit)</div>
+            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Matikan semua alarm selama jam kerja</div>
+            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Pakai threshold tunggal &amp; abaikan transient</div>
           </div>
-          <div class="p-fb r" id="fp1r">✅ Tepat! <strong>Statistical insignificance ≠ practical irrelevance</strong>. Untuk depth of cut: (1) Pada ranah 0.5–1.5 mm (yang diuji), efek terhadap Ra memang kecil (η² = 0.05). Tapi di luar range itu (mis. depth 3 mm), efek bisa berbeda. (2) <strong>Power analysis</strong>: dengan 27 trial, power untuk deteksi efek kecil (f = 0.10 Cohen) hanya ~0.30 — kurang dari 0.80 standar. Bisa jadi ada efek tetapi tidak terdeteksi (Type II error). (3) Depth mempengaruhi <em>Material Removal Rate (MRR) = V·f·d</em> — meski Ra tidak berbeda, productivity sangat berbeda. Pilih depth tertinggi yang feasibel. (4) Engineering decision: gunakan ANOVA untuk identifikasi <em>pengaruh utama</em> (V, f), tapi pertimbangkan respons lain (tool life, vibration, chip formation, productivity) untuk faktor "tidak signifikan". <strong>Action</strong>: set V=200, f=0.15 (dari ANOVA), depth = 1.5 mm (untuk MRR maksimum, sesuai kapasitas mesin).</div>
-          <div class="p-fb w" id="fp1w">❌ Periksa kembali. Statistik signifikansi adalah tentang <em>bukti</em>, bukan absolute truth. p &gt; α berarti "tidak cukup bukti untuk klaim efek" — bisa jadi efek ada tetapi sample kecil. Power analysis &amp; multi-respons consideration adalah praktik wajib di industrial QC.</div>
+          <div class="p-fb r" id="fp1r">✅ Tepat! <strong>Operating Mode-Aware Alarm Logic</strong> adalah praktik industrial standar. Implementasi: (1) <strong>State machine multi-mode</strong>: tambah dimension "operating mode" ke FSM. Tiap mode punya threshold sendiri (mode = STARTUP → T_alert × 1.5, debounce N=20; mode = STEADY → ISO standard). (2) <strong>Mode detection</strong>: bisa dari DCS PLC tag (operator manual signal), atau auto-detect dari rate-of-change RMS (start-up = RMS naik &gt; 1 mm/s/min). (3) <strong>Grace period</strong>: setelah transition mode → steady, tunggu 5–15 menit sebelum apply ISO threshold ketat. (4) <strong>Alarm shelving</strong>: ANSI/ISA 18.2 allow operator silence specific alarm selama window terbatas (1–8 jam) — useful saat known maintenance. <strong>Action di Pertamina</strong>: integrasi DCS Honeywell Experion + rule engine custom Python via OPC UA → match ke sistem reality. (5) Logging: tetap log RMS &amp; mode; transient yang abnormal (mis. start-up &gt; 5 menit) tetap raise warning untuk maintenance.</div>
+          <div class="p-fb w" id="fp1w">❌ Periksa kembali. Naikkan threshold permanent = lose sensitivity di steady-state (rentan miss genuine danger). Disable alarm 100% = blind ops. Operating-mode-aware alarm logic adalah jawaban yang mature.</div>
         </div>
 
-        <textarea class="fq-textarea" id="ans-fq1" placeholder="Tulis interpretasi statistik Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Bedakan 'tidak signifikan' vs 'tidak berpengaruh'. (2) Sebut peran power analysis untuk validasi. (3) Implikasi engineering: pilih depth berdasarkan apa kalau ANOVA-nya tidak menentukan? (4) Jelaskan pentingnya cek respons multipel (Ra, tool life, MRR) sebelum decision." oninput="checkForumReady()"></textarea>
+        <textarea class="fq-textarea" id="ans-fq1" placeholder="Tulis analisis transient handling Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Identifikasi minimal 3 jenis transient di kilang (start-up, shutdown, change-over). (2) Bahas operating mode-aware threshold + state machine multi-mode. (3) Implementasi: bagaimana detect mode (DCS tag vs auto-detect rate-of-change). (4) Grace period &amp; alarm shelving (ANSI 18.2). (5) Bagaimana validasi tuning di production." oninput="checkForumReady()"></textarea>
         <div id="wc-fq1" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right;">0 / min 30 kata</div>
       </div>
     </div>
@@ -2605,29 +2605,29 @@ import pandas as pd
   <div class="fq-card reveal" id="fq2">
     <div class="fq-head" onclick="toggleFQ('fq2')">
       <div class="fq-num" style="background:rgba(255,64,129,.1);border:1px solid rgba(255,64,129,.2);color:var(--amber)">02</div>
-      <h3>Pilihan Desain Eksperimen: <strong>Taguchi L9 vs Full Factorial 27</strong> — kapan pilih yang mana, dan apa trade-off-nya?</h3>
+      <h3>Concept Drift: setelah <strong>12 bulan operasional</strong>, mean RMS pompa naik dari 1.0 ke 1.6 mm/s. Kapan harus <strong>tune ulang threshold</strong>, dan bagaimana automated re-tuning vs manual?</h3>
       <span class="fq-arrow">›</span>
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Sandvik memilih Taguchi L9 (9 trial dasar × 3 replikasi = 27 spesimen) dibanding full factorial 3³ = 27 trial dasar × 3 replikasi = 81 spesimen. Penghematan ~67% trial. Tetapi <strong>Taguchi tidak menangkap interaksi</strong> antar faktor (mis. cutting speed × feed rate). Pertanyaan: apakah keputusan ini bijak? Kapan Taguchi cukup, kapan harus full factorial? Bagaimana validasi tidak ada interaksi yang missed?</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Aging fenomena natural: bearing wear, foundation settle, foulant buildup → mean RMS gradually naik dari 1.0 ke 1.6 mm/s (masih Zone B). Tetapi distribusi alarm shift juga: dulu Zone A 90% / B 10%, sekarang Zone B 60% / C 30%. Operator complaint alarm fatigue. Pertanyaan: kapan tune ulang threshold? Bagaimana balance antara "track health degradation honestly" vs "reduce alarm spam"?</p>
         <div style="background:rgba(255,64,129,.04);border:1px solid rgba(255,64,129,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);margin-bottom:12px">
-          💬 <em>Petunjuk: Taguchi orthogonal arrays = "main effects only" desain — assume interaksi minor. Realita machining: cutting speed × feed rate <strong>memang punya interaksi</strong> (high V + high f → catastrophic tool failure). Strategi: (1) Pilot Taguchi L9 untuk screening main effects, (2) follow-up dengan focused full factorial pada 2 faktor utama untuk capture interaksi, (3) Optional: Response Surface Methodology (CCD, Box-Behnken) untuk model surface kontinu.</em>
+          💬 <em>Petunjuk: ISO 10816-3 thresholds adalah <strong>fixed standard</strong> — bukan untuk diubah individual. Tetapi <em>secondary thresholds</em> (warning) bisa adaptive ke baseline operator. Modern best practice: kombinasi fixed (ISO) + adaptive (rolling 30-day baseline). Concept drift ditangani via <strong>moving average / exponential smoothing</strong> baseline + alert pada <strong>deviasi dari baseline</strong> bukan absolute value.</em>
         </div>
 
         <div class="poll">
-          <div class="poll-q">QUICK CHECK — Strategi DoE paling realistis untuk Sandvik?</div>
+          <div class="poll-q">QUICK CHECK — Strategi paling matang untuk handle concept drift?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Selalu pakai full factorial — interaksi pasti penting</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>Sequential approach: Taguchi L9 untuk screening (identifikasi faktor dominan), kemudian fractional factorial atau full factorial fokus pada 2 faktor utama (V, f) untuk validasi interaksi. Kalau interaksi signifikan, lanjut RSM untuk surface optimum. Best of both worlds: efisien + lengkap</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Cukup Taguchi L9 — interaksi tidak penting di machining</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>One-factor-at-a-time (OFAT): bagus untuk eksperimen industri</div>
+            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Naikkan threshold ISO supaya tidak banyak alarm — abaikan standar</div>
+            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>Hybrid: pertahankan ISO 10816 fixed sebagai <em>safety threshold</em> (compliance + insurance). Tambah <em>adaptive secondary alert</em> berbasis rolling 30-day baseline (mis. alert kalau current RMS &gt; baseline + 2σ atau &gt; 1.3× baseline). Plus alarm rationalization review setiap 6 bulan. Best practice + ML adaptive di P13</div>
+            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Disable semua warning, hanya keep critical</div>
+            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Tune threshold tiap minggu manual oleh operator</div>
           </div>
-          <div class="p-fb r" id="fp2r">✅ Tepat! <strong>Sequential DoE</strong> adalah praktik industrial standar. Workflow: <strong>Stage 1 — Screening</strong> (Taguchi L8/L16/L18, fractional factorial 2^(k-p) resolution III): 8–18 trial untuk identifikasi 2–3 faktor paling dominan dari 5–8 faktor kandidat. <strong>Stage 2 — Validation &amp; Interaction</strong> (full factorial 2² atau 3² pada faktor terpilih): 4–9 trial untuk capture interaksi 2-arah. <strong>Stage 3 — Optimization</strong> (Response Surface Methodology, Central Composite Design): 12–27 trial untuk model surface respons (orde 2: linear + interaksi + quadratic). Industri otomotif (Toyota, Ford), aerospace (Boeing, GE), &amp; biotech (Pfizer) standar pakai 3-stage workflow ini. Tools: <em>Minitab, JMP, Design-Expert, Python pyDOE2</em>. <strong>Caveat penting</strong>: Taguchi sendiri kontroversial di komunitas statistisi — kritik utama dari Box (1988) "<em>Taguchi's contributions, evaluated</em>": orthogonal array bukan inovasi (sudah ada di Plackett-Burman 1946), S/N ratio metodologi questionable. Tetapi pragmatically Taguchi sangat efektif untuk industrial screening. Modern best practice: kombinasi.</div>
-          <div class="p-fb w" id="fp2w">❌ Periksa kembali. Full factorial mahal kalau faktor banyak. Taguchi sendiri tidak menangkap interaksi — risky. OFAT (one-factor-at-a-time) jauh lebih buruk: tidak randomized, missed interaksi, biased. Sequential approach kombinasi screening + validation adalah jawaban mature.</div>
+          <div class="p-fb r" id="fp2r">✅ Tepat! <strong>Hybrid Fixed + Adaptive Threshold</strong> adalah pola production-grade. (1) <strong>Fixed ISO threshold</strong>: untuk compliance (insurance, PSM regulation OSHA, audit ISO 55000), legal protection — jangan diubah. Acts sebagai safety net. (2) <strong>Adaptive secondary baseline</strong>: rolling 30-day mean μ_30d &amp; std σ_30d. Alert saat RMS &gt; μ_30d + 2σ (deviasi statistik dari "normal recent") atau &gt; 1.3× μ_30d (relative threshold). Sensitif terhadap perubahan trend tanpa over-alert pada absolute value yang naik perlahan. (3) <strong>Alarm rationalization</strong>: review periodik (6–12 bulan) — alarm yang trigger &gt; 100×/tahun tetapi tidak pernah actionable harus dihapus atau dinaikkan threshold. (4) <strong>Concept drift detection</strong>: monitor metric "alarm rate per bulan" dan "% time in Zone B/C/D". Kalau naik konsisten, indikasi (a) genuine degradation (need maintenance) atau (b) baseline drift (need re-tune). Disambiguate via inspection. (5) <strong>Automated re-tuning</strong>: dilarang tanpa human review (risiko hide genuine degradation). Tetapi <em>recommendation engine</em> bisa propose new thresholds based on baseline data → human approve. Inilah jembatan ke ML predictive (P13).</div>
+          <div class="p-fb w" id="fp2w">❌ Periksa kembali. Disable warning hilangkan early-warning. Manual tuning tiap minggu tidak scalable untuk 200 pompa. Naikkan threshold ISO violate compliance. Hybrid fixed + adaptive baseline adalah jawaban mature.</div>
         </div>
 
-        <textarea class="fq-textarea" id="ans-fq2" placeholder="Tulis analisis pilihan DoE Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Bandingkan Taguchi L9, full factorial, fractional factorial — pros &amp; cons. (2) Sebut workflow sequential DoE (screening → validation → optimization). (3) Kapan pakai mana berdasarkan jumlah faktor &amp; budget eksperimen? (4) Bagaimana validasi tidak ada interaksi yang missed dalam Taguchi?" oninput="checkForumReady()"></textarea>
+        <textarea class="fq-textarea" id="ans-fq2" placeholder="Tulis analisis concept drift Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Bedakan fixed ISO threshold vs adaptive baseline. (2) Strategi rolling 30-day mean/std. (3) Alarm rationalization process. (4) Genuine degradation vs baseline drift — bagaimana disambiguate. (5) Automated vs manual re-tuning — siapa decision maker." oninput="checkForumReady()"></textarea>
         <div id="wc-fq2" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right;">0 / min 30 kata</div>
       </div>
     </div>
@@ -2637,23 +2637,23 @@ import pandas as pd
   <div class="fq-card reveal" id="fq3">
     <div class="fq-head" onclick="toggleFQ('fq3')">
       <div class="fq-num" style="background:rgba(0,224,158,.1);border:1px solid rgba(0,224,158,.2);color:var(--green)">03</div>
-      <h3>Validasi Asumsi &amp; Transferability: kapan hasil ANOVA "rusak" di realita produksi, dan bagaimana mengantisipasinya?</h3>
+      <h3>Batas Rule-Based: kapan rule-based <strong>mentok</strong>, dan kapan harus upgrade ke ML predictive (Pertemuan 13)?</h3>
       <span class="fq-arrow">›</span>
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Hasil ANOVA Sandvik di lab (kondisi terkontrol, baja AISI 4340 specific batch, tool baru). Realita produksi: material spec berubah antar batch, tool wear, suhu workshop fluktuasi, operator beda shift, getaran mesin akumulasi. Apakah parameter optimum (V=200, f=0.15) <em>masih</em> optimum di production line? Bagaimana validasi &amp; transferability ke material lain (Inconel, Titanium)?</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Rule-based ISO 10816 sudah cukup untuk basic vibrasi monitoring. Tetapi 5 pompa simultan masuk Zone B (signature root cause yang sama) — bagaimana <em>alarm correlation</em>? Atau pattern kompleks (RMS naik PLUS kurtosis spike PLUS temperatur naik) yang tidak terbentuk satu rule? Atau predict failure 7 hari sebelum terjadi? Inilah ranah ML/AI. Pertanyaan: kapan investasi ke ML worthwhile, dan bagaimana migration path dari rule-based ke ML hybrid?</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">Asumsi normality?</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">Asumsi equal variance?</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">Material variation?</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">Tool wear &amp; SPC</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">Multi-feature correlation</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">Failure prediction (7 hari)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">Anomaly detection</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">Root cause analysis</span>
         </div>
         <div style="background:rgba(0,224,158,.04);border:1px solid rgba(0,224,158,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);">
-          💬 <em>Tidak ada jawaban tunggal — yang dinilai pemahaman batasan model. Pertimbangan: (1) Cek asumsi: Shapiro-Wilk normality, Levene equal variance, residual plot. Kalau runtuh: transformasi (log, Box-Cox) atau Welch's ANOVA / Kruskal-Wallis. (2) <strong>Confirmation runs</strong>: 5–10 spesimen di parameter optimum → validate hasil ANOVA. (3) <strong>SPC monitoring</strong>: continuous control chart (X-bar, R) untuk Ra di production. Trigger re-tuning kalau out-of-control. (4) <strong>Robust design (Taguchi)</strong>: minimize variance terhadap noise factor (suhu, batch material). Inner array (control) × outer array (noise) → S/N ratio maksimum. (5) <strong>Transferability</strong>: parameter optimum AISI 4340 ≠ Inconel 718 (cutting force 3× lebih tinggi). Run new ANOVA per material; tetapi <em>methodology transferable</em>. (6) <strong>Multi-response optimization</strong>: real production peduli Ra + tool life + MRR + cost simultan. Pakai desirability function (Derringer) atau response surface methodology multi-response.</em>
+          💬 <em>Tidak ada jawaban tunggal — yang dinilai pemahaman batasan model. Pertimbangan: (1) <strong>Kapan ML worthwhile</strong>: (a) banyak fitur (≥ 5) dengan interaksi kompleks, (b) butuh predict failure (bukan hanya detect), (c) ada labeled historical data ≥ 6 bulan dengan ≥ 10 failure events, (d) ROI: cost ML development &lt; cost annual unplanned shutdown. (2) <strong>Migration path</strong>: NEVER replace rule-based — selalu ML <em>di atas</em> rule-based. Rule-based = safety net (compliance, must-pass). ML = early-warning + diagnosis. (3) <strong>Stack arsitektur</strong>: sensor → rule-based core (ISO 10816 + FSM tier alarm, SLA &lt; 100ms) → ML layer (anomaly detection IsolationForest, classification XGBoost, forecasting LSTM, SLA &lt; 1s). (4) <strong>ML output → tetap rule-based</strong>: ML score → tier alarm. Operator melihat unified dashboard, transparan, auditable. (5) <strong>Pertemuan 13</strong> akan ngajarin ini — tetapi prerequisite: harus paham rule-based dulu. (6) <strong>Real Pertamina story</strong>: GE SmartSignal Predictive Analytics installed 2018 di RU IV Cilacap. Hybrid rule-based + ML. ROI 3 tahun: avoided 8 unplanned shutdown, savings &gt; Rp 50M.</em>
         </div>
 
-        <textarea class="fq-textarea" id="ans-fq3" placeholder="Tulis analisis validasi asumsi Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Identifikasi minimal 3 asumsi ANOVA yang mungkin runtuh di produksi. (2) Untuk tiap asumsi, jelaskan dampak ke parameter optimum (mis. variance naik X%, signifikansi runtuh). (3) Tools alternatif: confirmation runs, SPC, robust design Taguchi, multi-response optimization. (4) Workflow rekomendasi: lab DoE → confirmation → production SPC → continuous improvement. (5) Strategi transferability ke material baru?" oninput="checkForumReady()"></textarea>
+        <textarea class="fq-textarea" id="ans-fq3" placeholder="Tulis analisis upgrade path Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Identifikasi minimal 3 limitasi rule-based (multi-feature correlation, failure prediction, dll). (2) Kapan investasi ML worthwhile (ROI calculation). (3) Migration path: rule-based + ML hybrid (jangan replace). (4) Stack arsitektur edge-to-cloud. (5) Bagaimana ML output integrate ke rule-based dashboard." oninput="checkForumReady()"></textarea>
         <div id="wc-fq3" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right;">0 / min 30 kata</div>
       </div>
     </div>
@@ -2665,7 +2665,7 @@ import pandas as pd
     <h3 style="font-family:'Playfair Display',serif;font-size:22px;color:#fff;margin-bottom:8px">Sampaikan Pendapat Anda!</h3>
     <p style="color:var(--muted);font-size:14px;margin-bottom:6px">Isi semua pertanyaan diskusi (minimal 30 kata per jawaban), lalu klik tombol <strong style="color:var(--green)">Copy</strong>.</p>
     <p style="color:var(--muted);font-size:14px;margin-bottom:6px">Kode HTML otomatis tersalin ke clipboard. Buka:</p>
-    <p style="color:var(--text);font-size:14px;font-weight:600;margin-bottom:6px">📌 <strong style="color:var(--cyan)">Fast Learning (LMS UMB) → Forum Pertemuan 11</strong></p>
+    <p style="color:var(--text);font-size:14px;font-weight:600;margin-bottom:6px">📌 <strong style="color:var(--cyan)">Fast Learning (LMS UMB) → Forum Pertemuan 12</strong></p>
     <p style="color:var(--muted);font-size:13px;margin-bottom:24px">Di editor forum, klik tombol <strong style="color:var(--amber)">&lt;/&gt; HTML</strong> untuk beralih ke mode HTML, lalu paste kode yang sudah disalin.</p>
     <div class="forum-status" style="background:rgba(0,224,158,.06);border:1px solid rgba(0,224,158,.25);border-radius:14px;padding:16px 18px;margin:8px 0 22px;text-align:left;display:flex;align-items:center;gap:18px;flex-wrap:wrap">
       <div style="text-align:center;min-width:70px">
