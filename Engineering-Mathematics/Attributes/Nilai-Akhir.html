@@ -605,7 +605,12 @@ function initVisitor(){
   });
 }
 
-function isLate(){return false}
+function isLate(timestamp){
+  if(!currentSchedule || !currentSchedule.end) return false;
+  const t = new Date(timestamp).getTime();
+  const e = new Date(currentSchedule.end).getTime();
+  return t > e;
+}
 
 function submitVisitor(){
   const nama=document.getElementById('vNama').value.trim(), nim=document.getElementById('vNim').value.trim(), err=document.getElementById('vError');

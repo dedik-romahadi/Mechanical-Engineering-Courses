@@ -1061,40 +1061,61 @@ Modal ini muncul untuk mahasiswa yang sudah punya PIN global (termasuk pertama k
 
 ## 9. Sistem Jadwal & Zona Waktu
 
-### 9.1 Tiga Zona Waktu
+### 9.1 Tiga Zona Waktu (v8 — Mei 2026)
 
 Berdasarkan `currentSchedule.start` dan `currentSchedule.end`, ada **3 zona** dengan perilaku berbeda:
 
-| Zona | Waktu | Gating Write Firebase |
-|------|-------|----------------------|
-| **Tepat Waktu** | `[start, end − 24jam)` | ✅ Disimpan normal |
-| **Terlambat** | `[end − 24jam, end]` | ✅ Disimpan normal (perlakuan sama dengan Tepat Waktu) |
-| **Di Luar Jadwal** | `< start` atau `> end` | ❌ TIDAK disimpan (diblokir `_isScheduleOpen()`) |
+| Zona | Waktu | Gating Write Firebase | Poin |
+|------|-------|----------------------|------|
+| **Sebelum Jadwal** | `< start` | ❌ TIDAK disimpan (diblokir `_isScheduleOpen()`) | — |
+| **Tepat Waktu** | `[start, end]` | ✅ Disimpan normal | 100% |
+| **Terlambat** | `> end` | ✅ Tetap disimpan | **80%** (−20%) |
 
-> **Catatan penting — zona ≠ status label.** Zona di atas hanya menentukan APAKAH poin tersimpan ke Firebase, bukan label status yang ditampilkan di tab Hasil. Label status final juga bergantung pada apakah mahasiswa memperoleh `points > 0`. Lihat §17.3 untuk aturan label lengkap.
+> **Perubahan v8 (Mei 2026) — Aturan terlambat berubah signifikan.** Sebelumnya, mahasiswa yang akses di **24 jam terakhir** sebelum deadline tercatat **Terlambat**. Sekarang, mahasiswa yang akses **dalam rentang aktif** (kapanpun antara start dan end) tetap **Tepat Waktu**. Status **Terlambat** hanya diberikan jika akses **setelah** deadline.
 >
-> Ringkasan singkat:
-> - **⏰ Terlambat** diberikan hanya jika mahasiswa akses di zona `[end−24jam, end]` **DAN** punya poin.
-> - **❌ Bolos** diberikan jika mahasiswa tidak punya poin **DAN** jadwal sudah berakhir (mencakup: tidak akses sama sekali, atau akses tapi 0 poin).
-> - **⏳ Belum** diberikan jika mahasiswa belum punya poin **DAN** jadwal masih aktif.
-> - **✅ Tepat Waktu** diberikan jika mahasiswa akses di zona `[start, end−24jam)` **DAN** punya poin.
+> **Konsekuensi aturan terlambat baru:**
+> - ✅ Mahasiswa terlambat **TETAP BISA** mengerjakan tugas (poin tersimpan)
+> - ⚠ Poin per soal dikurangi **20%** (multiplier 0.8)
+> - ⚠ Comp Hard **TIDAK** dapat partial credit `+1` jika jawaban salah
+> - ⚠ **TIDAK** masuk Top Skor / Top Akses
+> - ⚠ Status badge di leaderboard: ⏰ Terlambat
+>
+> **Catatan penting — zona ≠ status label.** Zona di atas menentukan APAKAH poin tersimpan + multiplier-nya, bukan label status yang ditampilkan. Label status final juga bergantung pada apakah mahasiswa memperoleh `points > 0`. Lihat §17.3 untuk aturan label lengkap.
+>
+> Ringkasan label status:
+> - **⏰ Terlambat** — akses **setelah** deadline (`t > end`) **DAN** punya poin
+> - **❌ Bolos** — tidak punya poin **DAN** jadwal sudah berakhir
+> - **⏳ Belum** — belum punya poin **DAN** jadwal masih aktif
+> - **✅ Tepat Waktu** — akses **dalam** rentang aktif `[start, end]` **DAN** punya poin
 
-### 9.2 Helper Function
+### 9.2 Helper Function (v8)
 
 ```javascript
 function _isScheduleOpen() {
+  // v8: dropped upper bound — mahasiswa terlambat tetap bisa submit (dengan penalty 20%).
   if (!currentSchedule || !currentSchedule.start || !currentSchedule.end) return false;
   const now = Date.now();
   const s = new Date(currentSchedule.start).getTime();
-  const e = new Date(currentSchedule.end).getTime();
-  return now >= s && now <= e;
+  return now >= s;   // ← v8: tidak lagi cek upper bound
+}
+
+function _isPastDeadline() {
+  // v8 NEW: cek apakah saat ini SUDAH melewati deadline.
+  if (!currentSchedule || !currentSchedule.end) return false;
+  return Date.now() > new Date(currentSchedule.end).getTime();
+}
+
+function _getLateMultiplier() {
+  // v8 NEW: return 0.8 jika terlambat, 1.0 jika tepat waktu.
+  return _isPastDeadline() ? 0.8 : 1.0;
 }
 
 function isLate(timestamp) {
-  if (!currentSchedule || !currentSchedule.start || !currentSchedule.end) return false;
+  // v8: terlambat = timestamp SETELAH deadline (bukan 24 jam sebelum).
+  if (!currentSchedule || !currentSchedule.end) return false;
   const t = new Date(timestamp).getTime();
   const e = new Date(currentSchedule.end).getTime();
-  return t >= (e - 24*60*60*1000);   // 24 jam terakhir = zona Terlambat
+  return t > e;
 }
 ```
 
@@ -1126,19 +1147,34 @@ window._recordCompAttempt = function(qId) {
 
 `submitVisitor()` dan visit-bump di `initVisitor()` juga gated dengan cara yang sama.
 
-### 9.4 Banner Akses Terlambat
+### 9.4 Banner Akses Terlambat (v8 — 2 state)
 
-Tab Tugas menampilkan banner merah otomatis saat akses di luar jadwal:
+Tab Tugas menampilkan banner berbeda sesuai zona:
 
+**State A — Sebelum Jadwal (`now < start`):**
 ```html
 <div id="lateAccessBanner" style="display:none;...">
   <span>⏰</span>
   <div>
     <div>Akses di Luar Jadwal Perkuliahan</div>
-    <p>Anda dapat tetap membuka dan melihat materi, namun
+    <p>Pertemuan belum dibuka. Anda dapat tetap melihat materi, namun
        <strong>poin dan kehadiran tidak akan dicatat</strong>.
-       Pengerjaan soal di halaman ini tidak akan disimpan.
-       Silakan hubungi dosen jika ada kebutuhan khusus.</p>
+       Pengerjaan soal di halaman ini tidak akan disimpan.</p>
+  </div>
+</div>
+```
+
+**State B — Setelah Deadline (`now > end`):** ← v8 BARU
+```html
+<div id="lateAccessBanner" style="display:none;...">
+  <span>⏰</span>
+  <div>
+    <div>Akses Setelah Deadline — Status Terlambat</div>
+    <p>Anda <strong>tetap dapat mengerjakan tugas</strong>, namun status akan tercatat
+       <strong>⏰ Terlambat</strong> dengan ketentuan:
+       <strong>poin per soal dikurangi 20%</strong>,
+       <strong>tidak masuk Top Skor / Top Akses</strong>, dan
+       <strong>Comp Hard tidak dapat poin partial</strong> jika jawaban salah.</p>
   </div>
 </div>
 ```
@@ -1147,6 +1183,8 @@ Diaktifkan oleh `_updateLateBanner()` yang dipanggil:
 - Saat tab switch ke Tugas
 - Saat schedule berubah (Firebase listener)
 - Setiap 30 detik (untuk kasus jadwal expire mid-session)
+
+`_updateLateBanner()` harus deteksi state berdasarkan `_isPastDeadline()` dan render text yang sesuai.
 
 ---
 
@@ -2487,6 +2525,8 @@ Ditulis dengan class `.comp-card.comp-hard`. Hint **lebih minimal** — mahasisw
 
 **Anti-gaming:** 1 poin hanya 2% dari nilai total (50 poin). Tidak sepadan dengan submit trivial kode seperti `print(0)`. Mahasiswa tetap terdorong untuk mencari jawaban benar untuk mendapat full +4 poin.
 
+> **v8 — Pengecualian Terlambat:** Mahasiswa **terlambat** (akses setelah deadline) **TIDAK** mendapat partial credit `+1` untuk Comp Hard yang salah. Implementasinya: `_awardCompPartial()` abort di awal jika `_isPastDeadline()` true. Kode yang benar tetap dapat poin penuh (×0.8 = 3.2). Lihat §15.4 untuk aturan late multiplier lengkap.
+
 **HTML structure:**
 
 ```html
@@ -2757,7 +2797,74 @@ window._awardCompPartial = function(qId, point) {
 };
 ```
 
-### 15.4d Schedule Warning Toast (Pedoman v5)
+### 15.4 Late Submission Penalty (v8 — Mei 2026)
+
+Mahasiswa yang akses & submit jawaban **setelah deadline** mendapat penalti otomatis. Implementasi terdistribusi di 4 titik:
+
+#### 15.4a Multiplier 0.8 di `_awardPoint` & `_awardCompPoint`
+
+```javascript
+// Helper di setiap modul (v8)
+function _isPastDeadline() {
+  if (!currentSchedule || !currentSchedule.end) return false;
+  return Date.now() > new Date(currentSchedule.end).getTime();
+}
+
+function _getLateMultiplier() {
+  return _isPastDeadline() ? 0.8 : 1.0;
+}
+
+// MC (1 poin)
+const updated = Object.assign({}, ex, {
+  points: (ex.points || 0) + (1 * _getLateMultiplier()),  // ← v8: 0.8 jika terlambat
+  pointTimestamp: new Date().toISOString(),
+  scoredQuestions: scored.join(',')
+});
+
+// Comp E/M (2 poin) atau Comp Hard (4 poin)
+const newPoints = Math.min(
+  (ex.points || 0) + (pts * _getLateMultiplier()),  // ← v8: pts × 0.8 jika terlambat
+  SCORE_CONFIG.TOTAL
+);
+```
+
+**Hasil per soal jika terlambat:**
+
+| Tipe Soal | Base Points | Late Multiplier | Awarded Points |
+|-----------|:-----------:|:---------------:|:--------------:|
+| MC benar | 1 | 0.8 | **0.8** |
+| Comp E/M benar | 2 | 0.8 | **1.6** |
+| Comp Hard benar | 4 | 0.8 | **3.2** |
+| Comp Hard salah (partial) | 1 | — | **0** ← lihat §15.4b |
+| Konsolasi | 1 | — | **1** ← tidak terkena multiplier |
+
+**Total maksimal mahasiswa terlambat (semua benar):** 50 × 0.8 = **40 poin** (= nilai 80).
+
+#### 15.4b Comp Hard — Tidak Ada Partial untuk Terlambat
+
+```javascript
+window._awardCompPartial = function(qId, point) {
+  if (!_isScheduleOpen()) return;
+  // v8: mahasiswa terlambat TIDAK dapat partial credit untuk Comp Hard
+  if (_isPastDeadline()) return;
+  // ... lanjut existing logic
+};
+```
+
+Rasional: Partial credit `+1` adalah penghargaan untuk **upaya menulis kode**. Mahasiswa terlambat sudah dapat pengurangan 20% dari poin penuh; tambahan partial dianggap berlebihan untuk kategori ini.
+
+#### 15.4c Top Skor / Top Akses — Eksklusi Terlambat
+
+Lihat §17.4. Filter `(v.points || 0) > 0 && !isLate(v.timestamp)`.
+
+#### 15.4d Storage: Float Points
+
+Sebagai konsekuensi multiplier 0.8, field `points` di Firebase sekarang dapat berisi **nilai float** (misal 0.8, 1.6, 3.2, 8.4). Ini fine karena:
+- `Math.round((pts || 0) / SCORE_CONFIG.TOTAL * 100)` di `pointsToScore()` tetap menghasilkan integer nilai 0–100
+- Display di leaderboard pakai `Math.round(pts)` atau `pts.toFixed(1)` agar UI rapih
+- Firebase rule `points <= 50` tetap valid (40 ≤ 50)
+
+#### 15.4e Schedule Warning Toast (Pedoman v5)
 
 Saat `_isScheduleOpen()` returns false di `_awardPoint`/`_awardCompPoint`, mahasiswa harus dapat **visible feedback** kenapa jawaban tidak tersimpan — jangan silent fail. Gunakan toast merah dengan **dedupe 30 detik** agar tidak spam:
 
@@ -2773,7 +2880,7 @@ if (!_isScheduleOpen()) {
 }
 ```
 
-### 15.4e Auto-create Record on Missing Snapshot (Pedoman v5)
+#### 15.4f Auto-create Record on Missing Snapshot (Pedoman v5)
 
 `if (!snap.exists()) return;` di `_awardPoint` dst adalah **silent failure** yang menyebabkan poin hilang saat race condition (login → answer terlalu cepat sebelum visitor record committed). 
 
@@ -3100,27 +3207,28 @@ for (const s of masterStudents) {
 >
 > Mahasiswa "Belum" (jadwal masih aktif, belum berhasil dapat poin) TIDAK dihitung Absen — mereka masih punya kesempatan. Jadi `Total = Hadir + Belum + Absen`, non-overlapping.
 
-### 17.3 Status Logic
+### 17.3 Status Logic (v8)
 
 Status label ditentukan oleh kombinasi **akses + poin + zona waktu + jadwal selesai**. Dua pilar utamanya:
 
 1. **Harus punya poin** untuk label "Tepat Waktu" atau "Terlambat". Jika tidak ada poin (poin = 0), status = "Belum" (jadwal masih aktif) atau "Bolos" (jadwal selesai).
 2. **Jadwal selesai + tidak punya poin** = Bolos, tidak peduli apakah sempat akses atau tidak.
+3. **v8:** Terlambat = akses **setelah** deadline (`t > end`), bukan dalam 24 jam terakhir.
 
 ```javascript
 const hasVisit = !!v;
 const hasPoints = hasVisit && (v.points || 0) > 0;
-const late     = hasPoints && isLate(v.timestamp);   // butuh poin
+const late     = hasPoints && isLate(v.timestamp);   // v8: t > end
 const bolos    = !hasPoints && schedExpired;         // tidak punya poin + jadwal selesai
 
 let statusCol;
 if      (bolos)       statusCol = '❌ Bolos';
 else if (!hasPoints)  statusCol = '⏳ Belum';        // jadwal masih aktif, belum punya poin
-else if (late)        statusCol = '⏰ Terlambat';   // punya poin + akses di 24h terakhir
-else                  statusCol = '✅ Tepat Waktu'; // punya poin + akses sebelum 24h terakhir
+else if (late)        statusCol = '⏰ Terlambat';   // v8: punya poin + akses SETELAH deadline
+else                  statusCol = '✅ Tepat Waktu'; // punya poin + akses dalam rentang aktif
 ```
 
-**Matriks lengkap — 4 status vs 2 variabel kondisi:**
+**Matriks lengkap — 4 status vs 2 variabel kondisi (v8):**
 
 | Kondisi Mahasiswa | `hasPoints` | `schedExpired` | `isLate(timestamp)` | **Status Label** | Counted In |
 |-------------------|:-----------:|:--------------:|:-------------------:|------------------|:----------:|
@@ -3128,25 +3236,42 @@ else                  statusCol = '✅ Tepat Waktu'; // punya poin + akses sebel
 | Belum akses, jadwal selesai | ✗ | ✓ | – | ❌ Bolos | Absen |
 | Akses, 0 poin, jadwal aktif | ✗ | ✗ | – | ⏳ Belum | — |
 | Akses, 0 poin, jadwal selesai | ✗ | ✓ | – | ❌ Bolos | Absen |
-| Akses + poin, sebelum 24h akhir | ✓ | – | ✗ | ✅ Tepat Waktu | Hadir |
-| Akses + poin, dalam 24h akhir | ✓ | – | ✓ | ⏰ Terlambat | Hadir |
+| Akses + poin, dalam rentang aktif `[start, end]` | ✓ | – | ✗ | ✅ Tepat Waktu | Hadir |
+| Akses + poin, **setelah** deadline (`t > end`) | ✓ | ✓ | ✓ | ⏰ Terlambat | Hadir |
 
 > **Rasionalisasi butuh poin untuk Tepat Waktu/Terlambat:** label ini mengklaim mahasiswa telah "hadir" dan mengerjakan tugas. Membuka halaman tanpa mengerjakan soal bukanlah bukti engagement yang cukup untuk status positif. Mahasiswa "hanya akses" tetap di zona netral "⏳ Belum" sampai mereka berhasil memperoleh poin.
 >
 > **Rasionalisasi Bolos mencakup akses tanpa poin:** setelah deadline, mahasiswa yang tidak punya poin — baik tidak pernah akses maupun sempat akses tapi tidak mengerjakan — sama-sama tidak menghasilkan bukti pengerjaan. Membedakan keduanya akan memberi "privilege" status pada yang sekadar membuka halaman, yang pedagogis tidak adil bagi mahasiswa yang benar-benar mengerjakan.
 
-### 17.4 Top Akses Filter
+### 17.4 Top Akses & Top Skor Filter (v8)
 
-Hanya mahasiswa **dengan poin > 0** yang muncul di Top Akses (sort by `visitCount` desc, tie-break by earliest timestamp):
+Hanya mahasiswa yang memenuhi **DUA syarat** muncul di Top Akses / Top Skor:
+1. **Punya poin > 0** (`(v.points || 0) > 0`)
+2. **TIDAK terlambat** (`!isLate(v.timestamp)`) ← v8 NEW
+
+Mahasiswa terlambat **tidak boleh** masuk ke leaderboard apa pun walaupun poinnya tinggi.
 
 ```javascript
-const akses = [...visited]
-  .filter(v => (v.points || 0) > 0)
+// v8: filter eksklusi terlambat
+const topAkses = [...visited]
+  .filter(v => (v.points || 0) > 0 && !isLate(v.timestamp))
   .sort((a, b) => {
     const d = (b.visitCount || 1) - (a.visitCount || 1);
     return d !== 0 ? d : new Date(a.timestamp) - new Date(b.timestamp);
   });
+
+const topSkor = [...visited]
+  .filter(v => (v.points || 0) > 0 && !isLate(v.timestamp))
+  .sort((a, b) => {
+    const d = (b.points || 0) - (a.points || 0);
+    if (d !== 0) return d;
+    const tA = a.pointTimestamp ? new Date(a.pointTimestamp).getTime() : Infinity;
+    const tB = b.pointTimestamp ? new Date(b.pointTimestamp).getTime() : Infinity;
+    return tA - tB;
+  });
 ```
+
+> **Rasionalisasi exclude terlambat dari Top:** Top Skor / Top Akses adalah penghargaan untuk mahasiswa paling aktif & berprestasi. Mahasiswa yang baru mengerjakan setelah deadline berbeda kategorinya — mereka tetap dihargai dengan 80% poin, namun tidak dapat penghargaan top.
 
 ### 17.5 Format Tampilan Poin
 
