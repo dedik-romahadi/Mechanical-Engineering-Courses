@@ -875,52 +875,52 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 01 — MENGAPA NON-LINEAR PROGRAMMING ═══ -->
+<!-- ═══ BAGIAN 01 — MENGAPA METAHEURISTIK ═══ -->
 <hr class="divider" style="margin-top:64px">
 <div class="section" id="m-persamaan">
   <div class="section-label reveal">Bagian 01</div>
-  <h2 class="section-title reveal">Mengapa Non-Linear Programming:<br>Saat Realita Tidak Patuh pada Asumsi Linier</h2>
-  <p class="section-desc reveal">LP (Pertemuan 9) memberi solusi terbukti optimal selama asumsi linieritas dipenuhi. Tetapi mesin nyata penuh dengan fenomena <em>non-linier</em>: drag aerodinamis <code>F_d = ½ρCdAv²</code>, gaya gesek viskos kuadratik, deformasi besar dengan stiffness yang menurun, biaya energi melonjak eksponensial saat motor mendekati overload, efisiensi pompa berbentuk parabolik. Ketika fungsi objektif <strong>f(x)</strong> dan/atau kendala <strong>g(x), h(x)</strong> non-linier, kita masuk ranah <strong>Non-Linear Programming (NLP)</strong>. Tools-nya: turunan (gradient ∇f), kondisi orde-pertama <code>∇f(x*) = 0</code>, iterasi descent, dan <strong style="color:var(--cyan)">Karush–Kuhn–Tucker (KKT) conditions</strong> untuk masalah berkendala.</p>
+  <h2 class="section-title reveal">Mengapa Metaheuristik:<br>Saat Gradient Tidak Tersedia atau Lokal Optimum Banyak</h2>
+  <p class="section-desc reveal">Pertemuan 10 (NLP) sangat efektif untuk fungsi <em>smooth dan diketahui formulanya</em> — gradient bisa dihitung analitik atau finite difference. Tetapi banyak masalah engineering nyata menyalahi asumsi tersebut: <em>simulasi blackbox</em> (FEM crash test, CFD turbin) di mana kita tidak tahu formula f(x); <em>variabel diskrit</em> (jumlah blade, jumlah lilitan, on/off binary); <em>multi-modal landscape</em> dengan ratusan lokal minimum (parameter neural network, desain crashworthy car). Untuk kasus-kasus ini, gradient-based stuck di lokal optimum. Jawabannya: <strong>metaheuristik</strong> — keluarga algoritma <em>terinspirasi dari alam</em> yang gradient-free, population-based, dan mampu eksplor seluruh search space. <strong style="color:var(--cyan)">Genetic Algorithm (GA)</strong> meniru evolusi (Holland 1975); <strong style="color:var(--cyan)">Particle Swarm Optimization (PSO)</strong> meniru kawanan burung (Kennedy &amp; Eberhart 1995).</p>
 
   <div class="formula-block reveal">
-    <div class="label">Lima Konsep Inti Non-Linear Programming</div>
-    Gradient ∇f(x) &nbsp;·&nbsp; Hessian ∇²f(x) &nbsp;·&nbsp; Konveksitas &nbsp;·&nbsp; Iterasi descent x_{k+1} = x_k + α·d_k &nbsp;·&nbsp; KKT conditions (kendala)
+    <div class="label">Lima Karakteristik Metaheuristik</div>
+    Population-based &nbsp;·&nbsp; Gradient-free (blackbox) &nbsp;·&nbsp; Stochastic exploration &nbsp;·&nbsp; Eksplorasi vs eksploitasi (trade-off) &nbsp;·&nbsp; Tidak menjamin global, tapi sering "good-enough"
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">📈</div>
-      <h3>Non-Linearitas — Wajah Asli Engineering</h3>
-      <p>Sebagian besar masalah teknik mesin <em>tidak</em> linier: drag <code>F_d = ½·ρ·Cd·A·v²</code>, energi kinetik <code>E = ½mv²</code>, daya pompa berbentuk parabolik, biaya rugi gesek tergantung kuadrat kecepatan. Kalau dipaksa LP, hasilnya akan <strong style="color:var(--cyan)">overestimate atau underestimate</strong> ekstrim saat skala besar. NLP menerima fungsi non-linier apapun selama bisa dievaluasi numerik (dan ideally turunan tersedia analitik).</p>
-      <div class="formula">f: ℝⁿ → ℝ, non-linier</div>
+      <div class="card-icon">🧬</div>
+      <h3>Gradient-Free — Blackbox Friendly</h3>
+      <p>Banyak fungsi objektif engineering hanya bisa dievaluasi via simulasi: FEM crash analysis (LS-DYNA), CFD aerodynamics (ANSYS Fluent), Monte Carlo reliability. Tidak ada <code>∇f(x)</code> analitik; finite difference juga tidak akurat (numerical noise dari simulator). <strong style="color:var(--cyan)">Metaheuristik hanya butuh nilai f(x)</strong> di tiap kandidat — black-box-friendly. Pakai untuk apapun yang bisa Anda evaluasi.</p>
+      <div class="formula">x → SIMULATOR → f(x)</div>
     </div>
     <div class="card">
-      <div class="card-icon">🎯</div>
-      <h3>Optimum Lokal vs Global</h3>
-      <p>Untuk fungsi <strong>konveks</strong>, sembarang minimum lokal = global minimum (sifat seperti LP). Untuk fungsi <em>non-konveks</em> (multi-modal, banyak lembah), iterasi gradient bisa <strong style="color:var(--pink)">terjebak di lokal minimum</strong>. Solusi: (1) start dari banyak titik awal, (2) gunakan metaheuristik (GA, PSO — Pertemuan 11), (3) cek konveksitas dengan Hessian semi-definit positif <code>∇²f ⪰ 0</code>.</p>
-      <div class="formula">∇²f(x*) ≻ 0 → strict min</div>
+      <div class="card-icon">👥</div>
+      <h3>Population-Based — Eksplorasi Paralel</h3>
+      <p>Berbeda dari gradient descent (1 titik dilacak), metaheuristik mempertahankan <strong>populasi</strong> N kandidat solusi (typically 30–100). Tiap iterasi mengupdate seluruh populasi secara stokastik. Konsekuensi: (1) eksplorasi <em>multi-region</em> simultaneous, mampu menghindari lokal minimum tunggal; (2) <em>parallelizable</em> trivial — distribusikan evaluasi populasi ke banyak CPU/GPU.</p>
+      <div class="formula">P = {x₁, x₂, …, xₙ}</div>
     </div>
     <div class="card">
-      <div class="card-icon">🔻</div>
-      <h3>Iterasi Descent — Loncat Mengikuti Slope</h3>
-      <p>Tidak ada <em>closed-form solution</em> umum untuk NLP. Strategi: mulai dari titik awal x₀, hitung gradient ∇f, ambil arah descent <code>d = −∇f</code> (steepest descent) atau <code>d = −H⁻¹·∇f</code> (Newton), pilih step size α dengan <em>line search</em>, update <code>x_{k+1} = x_k + α·d</code>. Stop saat <code>‖∇f‖ &lt; ε</code>. Konvergensi: gradient descent linier, Newton kuadratik (jauh lebih cepat).</p>
-      <div class="formula">x_{k+1} = x_k − α·∇f(x_k)</div>
+      <div class="card-icon">🎲</div>
+      <h3>Stochastic — Eksplorasi vs Eksploitasi</h3>
+      <p>Tiap update melibatkan <em>random component</em> (mutation, crossover, velocity perturbation). Trade-off klasik: terlalu banyak <strong>eksplorasi</strong> (random) → konvergensi lambat; terlalu banyak <strong>eksploitasi</strong> (greedy) → stuck di lokal optimum. Hyperparameter seperti mutation rate, crossover rate, inertia weight dipakai untuk menyeimbangkan. <strong style="color:var(--green)">Tuning hyperparameter sendiri sebuah meta-problem</strong> (kadang pakai meta-meta-heuristic).</p>
+      <div class="formula">explore + exploit balance</div>
     </div>
     <div class="card">
       <div class="card-icon">🐍</div>
-      <h3>Implementasi: scipy.optimize.minimize</h3>
-      <p>Python via <code>scipy.optimize.minimize(fun, x0, method=...)</code>. Method tersedia: <code>'BFGS'</code> (default unconstrained, quasi-Newton), <code>'Newton-CG'</code>, <code>'L-BFGS-B'</code> (bounds), <code>'SLSQP'</code> (kendala umum), <code>'trust-constr'</code> (modern, robust). Bila gradient analitik tersedia, <strong style="color:var(--amber)">selalu sediakan via <code>jac=...</code></strong> — 5–50× lebih cepat &amp; akurat daripada finite difference.</p>
-      <div class="formula">minimize(f, x0, jac=∇f)</div>
+      <h3>Implementasi: DEAP, pyswarm, scikit-opt</h3>
+      <p>Python ekosistem: <strong>DEAP</strong> (Distributed Evolutionary Algorithms, framework GA fleksibel), <strong>pyswarm</strong> &amp; <strong>pyswarms</strong> (PSO ready-to-use), <strong>scikit-opt</strong> (Genetic, PSO, Simulated Annealing, Ant Colony di satu lib). Untuk simple use case scipy juga ada: <code>scipy.optimize.differential_evolution</code> (gradient-free metaheuristik populer). Scale up: <strong>Optuna</strong>, <strong>Hyperopt</strong> untuk hyperparameter tuning ML.</p>
+      <div class="formula">DEAP / pyswarms / scikit-opt</div>
     </div>
   </div>
 
   <div class="info-box reveal">
     <strong>Posisi Pertemuan 11 dalam Alur Mata Kuliah:</strong><br>
-    <strong>P1–P7</strong> (analisis sinyal) → <strong>UTS</strong> → <strong>P9</strong> (Linear Programming) → <strong>P10 (Anda di sini — Non-Linear Programming)</strong> → <strong>P11</strong> (Metaheuristik GA &amp; PSO untuk masalah non-konveks) → <strong>P12–P13</strong> (otomatisasi monitoring &amp; ML) → <strong>P14–P15</strong> (proyek akhir). NLP adalah tools paling banyak dipakai di engineering optimization — design parameter tuning, controller PID tuning, parameter identification model fisik, optimal trajectory planning.
+    <strong>P1–P7</strong> (analisis sinyal) → <strong>UTS</strong> → <strong>P9</strong> (LP) → <strong>P10</strong> (NLP gradient-based) → <strong>P11 (Anda di sini — Metaheuristik GA &amp; PSO)</strong> → <strong>P12</strong> (Otomatisasi Monitoring rule-based) → <strong>P13</strong> (Otomatisasi Predictive ML) → <strong>P14–P15</strong> (Proyek akhir). Metaheuristik melengkapi toolbox optimasi: kalau LP/NLP gradient-based mentok di non-konveks atau blackbox, GA/PSO ambil alih. <em>Tidak menggantikan gradient-based</em> — keduanya saling melengkapi tergantung struktur masalah.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Prinsip Utama:</strong> Sebelum solve NLP: (1) <em>cek konveksitas</em> — kalau f cembung &amp; daerah feasibel cembung, solusi unik &amp; mudah; kalau tidak, hati-hati lokal optimum. (2) <em>Sediakan gradient analitik</em> bila memungkinkan — finite difference rentan numerical noise. (3) <em>Skalakan variabel</em> agar besarannya seragam (gradient descent sangat sensitif terhadap kondisional number Hessian). (4) <em>Mulai dari titik feasible</em>, atau gunakan teknik penalty/log-barrier untuk handle kendala. Formulasi yang baik &gt; solver yang canggih.
+    💡 <strong>Prinsip Utama:</strong> Sebelum pakai metaheuristik: (1) <em>Coba gradient-based dulu</em> kalau f smooth — jauh lebih cepat &amp; deterministic. (2) <em>Skalakan variabel ke [0,1] atau [-1,1]</em> agar mutation/crossover seimbang antar dimensi. (3) <em>Set seed</em> untuk reproducibility (<code>random.seed(42)</code>). (4) <em>Multiple runs</em> (5–10×) — metaheuristik stokastik, ambil rata-rata untuk evaluasi yang fair. (5) <em>Bandingkan dengan baseline</em>: random search atau grid search — metaheuristik harus secara nyata lebih baik. (6) Untuk <strong style="color:var(--green)">small-scale</strong> (n &lt; 10), GA/PSO mungkin overkill — <code>differential_evolution</code> sudah cukup.
   </div>
 </div>
 
