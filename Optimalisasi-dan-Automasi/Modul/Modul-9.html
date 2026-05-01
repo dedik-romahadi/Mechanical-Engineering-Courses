@@ -4041,9 +4041,9 @@ function _savgol(arr, w){
 }
 
 // ════════════════════════════════════════════════════════════
-// ANIMASI 1 — Sinyal Vibrasi Live: Hitung RMS, Peak, Peak-to-Peak
-// (Canvas: cvPhysics, slider: sl_rp/sl_zp; button: btnPhysics)
-// Generate sinyal sinusoidal + noise live, overlay ±RMS dan ±peak
+// ANIMASI 1 — Gradient Descent: Trajectory di Contour 2D (NLP)
+// (Canvas: cvPhysics, slider: sl_rp = α step size, sl_zp = x0)
+// f(x,y) = (x − 1)² + 2(y − 0.5)²  — strictly convex, optimum (1, 0.5)
 // ════════════════════════════════════════════════════════════
 let _physicsAnim = { t: 0, running: true, raf: null };
 
@@ -4051,6 +4051,17 @@ function togglePhysics(){
   _physicsAnim.running = !_physicsAnim.running;
   const btn = document.getElementById('btnPhysics');
   if (btn) btn.textContent = _physicsAnim.running ? '⏸ PAUSE' : '▶ PLAY';
+}
+
+// Helper: draw star marker (defined here for first usage)
+function _drawStarN(ctx, cx, cy, spikes, outerR, innerR){
+  let rot = -Math.PI/2; const step = Math.PI/spikes;
+  ctx.beginPath();
+  for(let i=0;i<spikes;i++){
+    ctx.lineTo(cx+Math.cos(rot)*outerR, cy+Math.sin(rot)*outerR); rot+=step;
+    ctx.lineTo(cx+Math.cos(rot)*innerR, cy+Math.sin(rot)*innerR); rot+=step;
+  }
+  ctx.closePath();
 }
 
 function drawPhysics(){
@@ -4063,80 +4074,111 @@ function drawPhysics(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  // Grid
-  _grid(ctx, 40, 20, W-60, H-60, 20, 6, '#0d1929');
+  // Read sliders
+  const alpha = parseFloat(document.getElementById('sl_rp').value);
+  const x0 = parseFloat(document.getElementById('sl_zp').value);
 
-  // Params from sliders: amplitudo sinusoidal & level noise
-  const sinAmp   = parseFloat(document.getElementById('sl_rp').value);
-  const noiseLvl = parseFloat(document.getElementById('sl_zp').value);
-  const tOff = _physicsAnim.t;
+  // Plot region
+  const padL = 50, padR = 30, padT = 25, padB = 40;
+  const xMin = -3, xMax = 3, yMin = -2, yMax = 2;
+  const wPx = W - padL - padR, hPx = H - padT - padB;
+  const PX = (x) => padL + ((x - xMin) / (xMax - xMin)) * wPx;
+  const PY = (y) => H - padB - ((y - yMin) / (yMax - yMin)) * hPx;
 
-  // Plot area
-  const x0 = 40, y0 = 20, w = W - 60, h = H - 60;
-  const N = 200;
-  const mid = y0 + h/2;
-  const yScale = 50;   // pixels per unit
+  // f(x,y) = (x − 1)² + 2(y − 0.5)²; ∇f = (2(x−1), 4(y−0.5))
+  const f = (x, y) => (x-1)*(x-1) + 2*(y-0.5)*(y-0.5);
+  const grad = (x, y) => [2*(x-1), 4*(y-0.5)];
 
-  // Generate signal samples (deterministic pseudo-noise)
-  const signal = [];
-  for (let i = 0; i < N; i++) {
-    const xt = i + tOff * 10;
-    const sinPart = sinAmp * Math.sin(2*Math.PI*xt/35);
-    const noisePart = noiseLvl * (Math.sin(xt*2.73) * Math.cos(xt*1.91) + Math.sin(xt*5.13)*0.5);
-    signal.push(sinPart + noisePart);
+  // Draw contour lines
+  const levels = [0.2, 0.5, 1.0, 2.0, 4.0, 8.0];
+  ctx.strokeStyle = 'rgba(168,85,247,.5)'; ctx.lineWidth = 1.3;
+  levels.forEach(L => {
+    // Ellipse: (x-1)² + 2(y-0.5)² = L → semi-axis a = √L, b = √(L/2)
+    const a = Math.sqrt(L), b = Math.sqrt(L/2);
+    ctx.beginPath();
+    for(let theta=0; theta<=2*Math.PI+0.01; theta+=0.05){
+      const px = 1 + a*Math.cos(theta);
+      const py = 0.5 + b*Math.sin(theta);
+      if(theta === 0) ctx.moveTo(PX(px), PY(py));
+      else ctx.lineTo(PX(px), PY(py));
+    }
+    ctx.stroke();
+    // Level label
+    ctx.fillStyle = 'rgba(168,85,247,.6)'; ctx.font = '9px JetBrains Mono';
+    ctx.fillText(L.toFixed(1), PX(1+a), PY(0.5));
+  });
+
+  // Run gradient descent from (x0, 0)
+  let xk = x0, yk = 0;
+  const trajectory = [[xk, yk]];
+  for(let k=0; k<60; k++){
+    const [gx, gy] = grad(xk, yk);
+    if (Math.sqrt(gx*gx + gy*gy) < 1e-4) break;
+    xk = xk - alpha * gx;
+    yk = yk - alpha * gy;
+    if (Math.abs(xk) > 5 || Math.abs(yk) > 5) break;  // diverged
+    trajectory.push([xk, yk]);
   }
 
-  // Compute frequency-domain features
-  let sumSq = 0, sumAbs = 0, peak = 0, mn = Infinity, mx = -Infinity;
-  for (let i = 0; i < N; i++) {
-    const v = signal[i];
-    sumSq += v*v; sumAbs += Math.abs(v);
-    if (Math.abs(v) > peak) peak = Math.abs(v);
-    if (v < mn) mn = v;
-    if (v > mx) mx = v;
-  }
-  const rms = Math.sqrt(sumSq / N);
-  const absAvg = sumAbs / N;
-  const pp = mx - mn;
-  const cf = peak / Math.max(rms, 1e-9);
-
-  // Draw signal
-  ctx.strokeStyle = 'rgba(168,85,247,.95)'; ctx.lineWidth = 1.6;
-  ctx.shadowColor = 'rgba(168,85,247,.3)'; ctx.shadowBlur = 4;
+  // Draw trajectory
+  ctx.strokeStyle = 'rgba(14,165,233,.95)'; ctx.lineWidth = 1.8;
+  ctx.shadowColor = 'rgba(14,165,233,.4)'; ctx.shadowBlur = 4;
   ctx.beginPath();
-  for (let i = 0; i < N; i++) {
-    const px = x0 + (i/(N-1)) * w;
-    const py = mid - signal[i] * yScale;
-    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-  }
+  trajectory.forEach(([x,y], i) => {
+    if (i === 0) ctx.moveTo(PX(x), PY(y));
+    else ctx.lineTo(PX(x), PY(y));
+  });
   ctx.stroke();
   ctx.shadowBlur = 0;
 
-  // Overlay ±RMS (cyan dashed)
-  ctx.strokeStyle = 'rgba(14,165,233,.85)'; ctx.lineWidth = 1.5; ctx.setLineDash([6,4]);
-  ctx.beginPath(); ctx.moveTo(x0, mid - rms*yScale); ctx.lineTo(x0+w, mid - rms*yScale); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x0, mid + rms*yScale); ctx.lineTo(x0+w, mid + rms*yScale); ctx.stroke();
+  // Draw iteration markers (small dots)
+  trajectory.forEach(([x,y], i) => {
+    ctx.fillStyle = 'rgba(14,165,233,.9)';
+    const r = (i === 0) ? 6 : 3;
+    ctx.beginPath(); ctx.arc(PX(x), PY(y), r, 0, 2*Math.PI); ctx.fill();
+  });
+  // Label initial
+  ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 10px JetBrains Mono';
+  ctx.fillText('x₀', PX(x0)+8, PY(0)+4);
 
-  // Overlay ±peak (amber)
-  ctx.strokeStyle = 'rgba(249,115,22,.7)'; ctx.lineWidth = 1.2; ctx.setLineDash([3,3]);
-  ctx.beginPath(); ctx.moveTo(x0, mid - peak*yScale); ctx.lineTo(x0+w, mid - peak*yScale); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x0, mid + peak*yScale); ctx.lineTo(x0+w, mid + peak*yScale); ctx.stroke();
-  ctx.setLineDash([]);
+  // Optimum (star)
+  ctx.fillStyle = '#fbbf24';
+  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.2;
+  _drawStarN(ctx, PX(1), PY(0.5), 5, 11, 5);
+  ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 10px JetBrains Mono';
+  ctx.fillText('x* = (1, 0.5)', PX(1)+12, PY(0.5)-10);
 
-  // Legend labels
-  ctx.font = '10px JetBrains Mono';
-  ctx.fillStyle = 'rgba(168,85,247,.95)'; ctx.fillText('● Sinyal vibrasi', x0, y0 - 6);
-  ctx.fillStyle = 'rgba(14,165,233,.95)'; ctx.fillText('--- ±RMS', x0 + 130, y0 - 6);
-  ctx.fillStyle = 'rgba(249,115,22,.85)'; ctx.fillText('··· ±peak', x0 + 200, y0 - 6);
+  // Axes
+  ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(PX(xMin), PY(0)); ctx.lineTo(PX(xMax), PY(0)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(PX(0), PY(yMin)); ctx.lineTo(PX(0), PY(yMax)); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '11px JetBrains Mono';
+  ctx.fillText('x', PX(xMax)+5, PY(0)+4);
+  ctx.fillText('y', PX(0)-15, PY(yMax)+10);
 
-  // Update slider display
-  const v1 = document.getElementById('v_rp'); if(v1) v1.textContent = sinAmp.toFixed(2);
-  const v2 = document.getElementById('v_zp'); if(v2) v2.textContent = noiseLvl.toFixed(2);
+  // Title
+  ctx.fillStyle = 'rgba(14,165,233,.95)'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText('f(x,y) = (x−1)² + 2(y−0.5)²  · α=' + alpha.toFixed(2) + ', x₀=' + x0.toFixed(1), padL, padT-8);
 
-  // Info panel: numeric features
+  // Update slider displays
+  document.getElementById('v_rp').textContent = alpha.toFixed(2);
+  document.getElementById('v_zp').textContent = x0.toFixed(1);
+
+  // Info panel
+  const finalPt = trajectory[trajectory.length-1];
+  const fFinal = f(finalPt[0], finalPt[1]);
+  const [gx, gy] = grad(finalPt[0], finalPt[1]);
+  const gradNorm = Math.sqrt(gx*gx + gy*gy);
+  const converged = gradNorm < 0.05;
+  const diverged = Math.abs(finalPt[0]) > 4 || Math.abs(finalPt[1]) > 4;
   const info = document.getElementById('physicsInfo');
   if (info) {
-    info.innerHTML = `RMS=<strong>${rms.toFixed(3)}</strong> &nbsp;·&nbsp; Peak=<strong>${peak.toFixed(3)}</strong> &nbsp;·&nbsp; PP=<strong>${pp.toFixed(3)}</strong> &nbsp;·&nbsp; |x|<sub>avg</sub>=${absAvg.toFixed(3)} &nbsp;·&nbsp; CF=<strong>${cf.toFixed(2)}</strong>`;
+    let status;
+    if (diverged) status = '🔴 DIVERGEN — α terlalu besar, kurangi step size!';
+    else if (converged) status = `🟢 KONVERGEN dalam ${trajectory.length-1} iter`;
+    else status = `🟡 Belum konvergen (60 iter limit, ‖∇f‖=${gradNorm.toFixed(3)})`;
+    info.innerHTML = `Iter: <strong>${trajectory.length-1}</strong> · x_final = (${finalPt[0].toFixed(3)}, ${finalPt[1].toFixed(3)}) · f = <strong>${fFinal.toFixed(4)}</strong> · ‖∇f‖ = ${gradNorm.toFixed(3)} · ${status}`;
   }
 }
 
