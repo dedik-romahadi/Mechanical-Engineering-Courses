@@ -6727,13 +6727,18 @@ async function saveSchedule(){
   // (confirmReset()) yang merupakan operasi destructive terpisah.
   // Atur Jadwal harus aman digunakan untuk extend deadline tanpa kehilangan
   // poin mahasiswa yang sudah mengerjakan soal.
-  set(ref(db, SCHEDULE_PATH), {
+  // v8.1 fix: conditional write extension field. Firebase rules existing
+  // punya `$other: false` validator yang reject field unknown. Kalau ext=0
+  // (default, tanpa perpanjangan), omit field-nya — write akan kompatibel
+  // dengan rules lama. Kalau ext>0, dosen wajib update rules manual.
+  const _schedulePayload = {
     start: startDate.toISOString(),
     end:   dueDate.toISOString(),
     duration: dur,
-    due: due,
-    extension: ext
-  }).then(() => {
+    due: due
+  };
+  if (ext > 0) _schedulePayload.extension = ext;
+  set(ref(db, SCHEDULE_PATH), _schedulePayload).then(() => {
     btns.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';});
     hideScheduleModal();
     // Jangan touch localStorage atau overlay/FAB state — schedule listener
