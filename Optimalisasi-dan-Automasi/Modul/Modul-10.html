@@ -1310,50 +1310,50 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 07 — APLIKASI METAHEURISTIK DI TEKNIK MESIN ═══ -->
+<!-- ═══ BAGIAN 07 — APLIKASI ANOVA DI TEKNIK MESIN ═══ -->
 <hr class="divider">
 <div class="section" id="m-isolasi">
   <div class="section-label reveal">Bagian 07</div>
-  <h2 class="section-title reveal">Aplikasi Metaheuristik di<br>Teknik Mesin &amp; Industri 4.0</h2>
-  <p class="section-desc reveal">Empat studi kasus engineering yang langsung menggunakan GA/PSO/DE dari modul ini. Bukan teori — ini metode yang dipakai di kantor R&amp;D NASA (antenna design), pabrik EV (battery thermal management), studio computational architecture (struktur generative), dan robotics (gait optimization quadruped). Metaheuristik mengisi celah ketika gradient-based gagal: blackbox FEM/CFD, mixed-integer, atau multi-modal landscape.</p>
+  <h2 class="section-title reveal">Aplikasi ANOVA di<br>Teknik Mesin &amp; Manufaktur</h2>
+  <p class="section-desc reveal">Empat studi kasus engineering yang langsung menggunakan ANOVA &amp; DoE. Bukan teori — ini metode yang dipakai di lini produksi mobil (Toyota, Ford), QC di pabrik turbin (GE, Siemens), tuning machining (Sandvik, Mitsubishi), dan validasi material additive manufacturing (GE Aviation, Boeing). ANOVA mengisi celah ketika optimasi berbasis gradient/metaheuristik tidak feasible karena evaluasi mahal &amp; ber-noise — kita gantikan dengan eksperimen terdesain &amp; F-test.</p>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">📡</div>
-      <h3>Antenna Design (NASA ST5 Mission)</h3>
-      <p>Antenna spacecraft NASA ST5 (terbang 2006) didesain via <strong>GA</strong> bukan oleh manusia. Variabel: 5 parameter geometri wire bent. Objektif: gain pattern yang memenuhi spek mission. Constraint: ukuran physical, weight. GA mengeksplor configuration space yang manusia <em>tidak bisa intuisi</em> dan menghasilkan bentuk "weird-looking" — tetapi <em>terbukti</em> 27% lebih baik dari desain konvensional di simulasi maupun in-flight. Pattern ini sekarang standar untuk: antenna phased-array, photonic crystal design, RF circuit topology. Tools: <code>NEC2</code> (electromagnetic simulator) + GA wrapper.</p>
-      <div class="formula">GA: 5 params → optimal antenna</div>
+      <div class="card-icon">⚙️</div>
+      <h3>Tuning Parameter CNC Machining (Sandvik)</h3>
+      <p>Sandvik Coromant (Swedia) memakai <strong>L9 Taguchi orthogonal array + ANOVA</strong> untuk tuning parameter machining: cutting speed (3 level), feed rate (3 level), depth of cut (3 level). Respons: surface roughness Ra (μm) &amp; tool life (menit). Hanya 9 trial × 3 replikasi = 27 eksperimen (vs full factorial 27 × 3 = 81). ANOVA mengidentifikasi: <em>cutting speed paling berpengaruh (η² = 0.62)</em>, feed rate sedang (η² = 0.24), depth tidak signifikan (η² = 0.05). Optimal: V = 200 m/min, f = 0.15 mm/rev, d = 1.0 mm → Ra ↓ 35%, tool life ↑ 50%. Tools: <code>statsmodels.formula.api</code> + Minitab.</p>
+      <div class="formula">L9 → 9 trial → ANOVA</div>
     </div>
     <div class="card">
-      <div class="card-icon">🔋</div>
-      <h3>Battery Thermal Management EV (PSO)</h3>
-      <p>EV manufacturers (Tesla, BYD, Hyundai) mengoptimasi <em>cooling channel layout</em> di battery pack agar temperature distribution merata (max-min ≤ 5°C) dengan pump power minimum. Variabel: posisi inlet/outlet, jumlah cabang, diameter channel (10–20 dimensi continuous + integer). Fungsi objektif blackbox CFD (~1 jam per evaluasi). <strong>PSO + multi-start</strong> populer di sini. Total ~2000 simulasi (40 partikel × 50 iter) = 2000 jam compute → run di cluster 100 nodes paralel = 1 hari wall-time. Hasil: 40% reduksi gradient temperature vs initial design. Tools: ANSYS Fluent + Python scripting + pyswarms.</p>
-      <div class="formula">PSO: pos+diameter → uniform T</div>
+      <div class="card-icon">🔧</div>
+      <h3>Welding Parameter Optimization (Lincoln Electric)</h3>
+      <p>Lincoln Electric (USA) memakai <strong>Two-way ANOVA</strong> untuk optimasi MIG/MAG welding pada baja struktural. Faktor: <em>arus las (3 level)</em> &amp; <em>voltage (3 level)</em>, total 9 kombinasi × 5 specimen = 45 spesimen. Respons: tensile strength sambungan (MPa). ANOVA: <em>arus signifikan (F = 28, p &lt; 0.001), voltage signifikan (F = 12, p = 0.003)</em>, interaksi <em>tidak signifikan (p = 0.18)</em> — main effect cukup interpretasi terpisah. Pilih arus 200 A + voltage 28 V (tertinggi dengan nyaman). Quality control: ANOVA jadi protokol wajib di ISO 3834-1 untuk welder qualification.</p>
+      <div class="formula">2-way: arus × voltage → strength</div>
     </div>
     <div class="card">
-      <div class="card-icon">🏛️</div>
-      <h3>Generative Structural Design (Architecture)</h3>
-      <p>Frank Gehry, Zaha Hadid, Bjarke Ingels Group menggunakan <strong>GA + topology optimization hybrid</strong> untuk desain struktur arsitektur dengan curvature kompleks. Variabel: control points NURBS surface (50–200), thickness panel, support locations. Objektif multi-criteria: <em>min mass</em> + <em>min displacement</em> + <em>aesthetic score</em>. GA-NSGA-II (multi-objective variant) menghasilkan <em>Pareto front</em> — engineer pilih trade-off. Heydar Aliyev Center (Baku, Hadid 2012) didesain pakai GA-driven generative design. Tools: Grasshopper + Galapagos (Rhino plugin) atau Karamba3D + Octopus.</p>
-      <div class="formula">multi-obj NSGA-II → Pareto</div>
+      <div class="card-icon">🏭</div>
+      <h3>Quality Control Pabrik Turbin (GE Aviation)</h3>
+      <p>GE Aviation memantau toleransi blade turbine via <strong>Statistical Process Control (SPC) + ANOVA</strong>. Tiap shift (3 shift, 100 blade per shift) diukur diameter, panjang, twist angle. ANOVA: shift × hari × machine. Kalau F_shift signifikan → operator/proses shift ada bias; F_machine signifikan → mesin tertentu butuh kalibrasi. Six Sigma DMAIC: <em>Define-Measure-Analyze-Improve-Control</em>. Tahap "Analyze" = ANOVA + regression untuk identifikasi sumber variasi. GE laporkan defect rate turun dari 850 ke 12 ppm (parts per million) lewat ANOVA-driven QC. Tools: Minitab, JMP, Python pingouin.</p>
+      <div class="formula">SPC: shift × machine → defect</div>
     </div>
     <div class="card">
-      <div class="card-icon">🐕</div>
-      <h3>Quadruped Robot Gait Optimization (DE/PSO)</h3>
-      <p>Boston Dynamics Spot, Unitree Go2, ANYmal — semua robot quadruped punya <em>gait pattern</em> (urutan langkah kaki) yang dioptimasi via metaheuristik. Variabel: 20–50 parameter trajectory generator (CPG: Central Pattern Generator) seperti frequency, phase offset per kaki, swing height. Objektif: max forward velocity dengan stability margin (ZMP) + min energy. Reward function dievaluasi via <strong>simulasi MuJoCo / IsaacGym</strong>. <strong>DE atau PSO</strong> robust untuk masalah ini karena fitness landscape sangat non-konveks (banyak gait pattern stable, hanya satu yang fastest). Boston Dynamics dilaporkan pakai <em>Bayesian Optimization + DE hybrid</em>.</p>
-      <div class="formula">DE: gait params → max v_forward</div>
+      <div class="card-icon">🛠️</div>
+      <h3>Additive Manufacturing Parameter Validation (GE Additive)</h3>
+      <p>GE Additive memakai <strong>full factorial ANOVA</strong> untuk validasi parameter SLM (Selective Laser Melting) untuk paduan Inconel 718. Faktor: laser power (3 level), scan speed (3 level), hatch spacing (3 level), preheat temp (2 level) = 54 kombinasi × 3 replikasi = 162 spesimen, ditest porositas, density, tensile strength. <strong>Three-way ANOVA + interaksi 2-arah</strong>. Hasil: laser power × scan speed punya interaksi kuat (F = 18, p &lt; 0.001) — kombinasi spesifik (300 W × 1000 mm/s) memberi density 99.5%. Hatch spacing signifikan tetapi independent. Preheat tidak signifikan untuk respons utama. Standar wajib ASTM F3301 untuk AM qualification.</p>
+      <div class="formula">3-way ANOVA → AM optimal</div>
     </div>
   </div>
 
   <div class="info-box reveal">
     <strong>Kaitan ke Pertemuan Berikutnya:</strong><br>
-    Pertemuan 11 menutup trilogi optimasi (LP → NLP → Metaheuristik). Sekarang Anda punya toolbox lengkap: pilih algoritma sesuai struktur masalah. Pertemuan berikutnya bergeser ke <em>otomasi sistem mekanik</em>: <strong>Pertemuan 12</strong> mengupas <em>otomasi monitoring rule-based</em> — sistem yang memantau mesin via sensor IoT dan trigger action saat threshold dilanggar (low-tech tetapi sangat reliable, dipakai 90% pabrik). <strong>Pertemuan 13</strong> melangkah ke <em>otomasi prediktif berbasis ML</em> — predict failure 7 hari sebelum terjadi via fitur dari Pertemuan 6–7 + classifier. <strong>Pertemuan 14–15</strong>: proyek akhir mengintegrasikan optimasi (LP/NLP/Metaheuristik) + monitoring (rule-based/ML) untuk masalah end-to-end engineering: closed-loop optimization sistem mekanik real.
+    Pertemuan 11 menutup keempat dari paradigma optimasi: LP (P9) → NLP (P10) → ANOVA (P11). Sekarang Anda punya toolbox lengkap: <em>LP/NLP</em> untuk masalah dengan formula matematis, <em>ANOVA/DoE</em> untuk eksperimen fisik dengan faktor terbatas. Pertemuan berikutnya bergeser ke <em>otomasi sistem mekanik</em>: <strong>Pertemuan 12</strong> mengupas <em>otomasi monitoring rule-based</em> — sistem yang memantau mesin via sensor IoT dan trigger action saat threshold dilanggar (cocok dengan output ANOVA: threshold dipilih lewat statistical control limits). <strong>Pertemuan 13</strong> melangkah ke <em>otomasi prediktif berbasis ML</em> — predict failure 7 hari sebelum terjadi via fitur dari Pertemuan 6–7 + classifier. <strong>Pertemuan 14–15</strong>: proyek akhir mengintegrasikan optimasi (LP/NLP/ANOVA) + monitoring (rule-based/ML) untuk masalah end-to-end engineering.
   </div>
 
   <div class="warn-box reveal">
     <div class="warn-icon">⚠️</div>
     <div>
-      <h4>Jebakan Praktis Pakai Metaheuristik</h4>
-      <p>(1) <strong>Lupa baseline comparison</strong> — selalu bandingkan dengan random search atau grid search. Kalau metaheuristik tidak nyata lebih baik, mungkin masalah Anda terlalu mudah / terlalu kecil. (2) <strong>Single run reporting</strong> — metaheuristik stokastik. Run minimal 5× dengan seed berbeda, laporkan mean ± std. Hasil 1× tidak fair. (3) <strong>No Free Lunch ignored</strong> — algoritma yang bagus di paper sering bias ke benchmark testing functions (Rastrigin, Schwefel). Untuk masalah Anda, mungkin algoritma berbeda. (4) <strong>Hyperparameter default</strong> — paper authors tune untuk dataset mereka. Coba 2–3 setting berbeda untuk masalah Anda. (5) <strong>Computation budget</strong> — metaheuristik mahal komputasi (1000+ evaluasi). Kalau 1 evaluasi = 1 jam (FEM/CFD), total = 1000 jam. Pikirkan: paralelisasi (40 evaluasi simultaneous), surrogate model (Kriging), atau Bayesian Optimization (sample-efficient). (6) <strong>Constraint handling</strong> — metaheuristik klasik tidak native support kendala. Pakai penalty function (mahal) atau repair strategy (lebih efisien tapi problem-specific). (7) <strong>Premature convergence</strong> — populasi kolaps ke 1 region sebelum eksplorasi cukup. Tanda: diversity drops to 0 quickly. Solusi: tambahkan restart, niching, atau adaptive mutation.</p>
+      <h4>Jebakan Praktis Pakai ANOVA</h4>
+      <p>(1) <strong>p-hacking</strong> — jangan ubah α atau hipotesis setelah lihat data. Pre-register protokol eksperimen + analisis sebelum data collection. (2) <strong>Asumsi runtuh tetap dipakai</strong> — kalau Shapiro p &lt; 0.05 (tidak normal), pakai Kruskal-Wallis non-parametric atau transformasi data (log, Box-Cox). Kalau Levene p &lt; 0.05 (variance tidak sama), pakai Welch's ANOVA. (3) <strong>Lupa post-hoc</strong> — ANOVA hanya bilang "ada efek"; tanpa Tukey HSD/Bonferroni, Anda tidak tahu pasangan mana yang berbeda. (4) <strong>Mengabaikan effect size</strong> — p-value bergantung pada sample size; effect kecil dengan n besar bisa signifikan tapi tidak praktis. Selalu laporkan η² atau ω². (5) <strong>Lurking variables</strong> — faktor tidak terukur (humiditas, suhu ruang, operator) bisa confound hasil. Catat semua kondisi eksperimen. (6) <strong>Tidak randomize</strong> — urutan trial sequential bisa terkontaminasi temporal effect (mesin memanas, operator lelah). Pakai random permutation. (7) <strong>Sample size kurang</strong> — power analysis sebelum eksperimen wajib. Untuk efek sedang (Cohen's d = 0.5), one-way ANOVA k=3 butuh n ≈ 28/grup untuk power 0.80.</p>
     </div>
   </div>
 </div>
