@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pertemuan 13 — Otomatisasi Prediktif: Machine Learning Dasar | Optimalisasi &amp; Automasi</title>
+<title>Pertemuan 14 — Otomatisasi Prediktif: Random Forest, SVM &amp; Hyperparameter Tuning | Optimalisasi &amp; Automasi</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Sans+3:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
@@ -617,7 +617,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <p class="v-error" id="vError"></p>
     <input type="text" class="v-input" id="vNama" placeholder="Nama Lengkap" autocomplete="off">
     <input type="text" class="v-input" id="vNim" placeholder="NIM (Nomor Induk Mahasiswa)" autocomplete="off">
-    <button class="v-btn-primary" id="vSubmit" onclick="submitVisitor()" disabled style="opacity:.6;cursor:wait">Masuk ke Pertemuan 13 →</button>
+    <button class="v-btn-primary" id="vSubmit" onclick="submitVisitor()" disabled style="opacity:.6;cursor:wait">Masuk ke Pertemuan 14 →</button>
     <button class="v-btn-cancel" id="scheduleBtnLogin" onclick="showScheduleModal()" style="margin-top:8px;border-color:rgba(255,64,129,.3);color:#a855f7;">🕐 Atur Jadwal 🔒</button>
   </div>
 </div>
@@ -754,7 +754,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
 <!-- ─── NAVBAR TOP BAR (always fixed) ─── -->
 <nav id="navTop">
-  <span class="nav-brand"><span class="pulse"></span><span>OPTOAUTO // P11</span></span>
+  <span class="nav-brand"><span class="pulse"></span><span>OPTOAUTO // P14</span></span>
   <div class="nav-tabs">
     <button class="nav-tab active" id="tab-modul" onclick="switchTab('modul')">📖 Modul</button>
     <button class="nav-tab" id="tab-tugas" onclick="switchTab('tugas')">📝 Tugas</button>
@@ -766,10 +766,10 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
 <!-- ─── SUBNAV (only visible when Modul tab is active) ─── -->
 <div id="modulSubnav" class="subnav-bar show">
-  <a href="#m-persamaan">Mengapa ML</a>
-  <a href="#m-solusi">Supervised Learning</a>
-  <a href="#m-dmf">Klasifikasi (RF &amp; SVM)</a>
-  <a href="#m-resonashi">Evaluasi Model</a>
+  <a href="#m-persamaan">Mengapa Algoritma Lanjut</a>
+  <a href="#m-solusi">Random Forest</a>
+  <a href="#m-dmf">SVM &amp; Pipeline</a>
+  <a href="#m-resonashi">ROC-AUC &amp; GridSearchCV</a>
   <a href="#m-analogi">Analogi</a>
   <a href="#m-animasi">Animasi</a>
   <a href="#m-isolasi">Aplikasi</a>
@@ -821,13 +821,13 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">scikit-learn · pipeline</span>
   </div>
   <div class="hero-content">
-    <div class="hero-eyebrow"><div class="pulse-dot"></div>Pertemuan 13 &nbsp;·&nbsp; Optimalisasi &amp; Automasi &nbsp;·&nbsp; 2025/2026</div>
+    <div class="hero-eyebrow"><div class="pulse-dot"></div>Pertemuan 14 &nbsp;·&nbsp; Optimalisasi &amp; Automasi &nbsp;·&nbsp; 2025/2026</div>
     <h1 class="hero-title">
       <span class="hl-cyan">Otomatisasi Prediktif —</span><br>
-      <em>Machine Learning Dasar</em><br>
-      <span class="hl-amber">Klasifikasi Healthy / Fault dengan Supervised Learning</span>
+      <em>Random Forest, SVM &amp; Hyperparameter Tuning</em><br>
+      <span class="hl-amber">Algoritma Lanjut, Pipeline, ROC-AUC &amp; GridSearchCV</span>
     </h1>
-    <p class="hero-sub">Pertemuan 12 mengajarkan <em>rule-based monitoring</em> — transparan dan reliable, tetapi terbatas pada threshold sederhana. Saat sinyal mesin punya <strong>banyak fitur (RMS + peak + kurtosis + temperatur + arus motor)</strong> dengan <em>interaksi kompleks</em>, manual rule tidak scalable. Inilah ranah <strong>machine learning</strong>: biarkan algoritma <em>belajar</em> pola dari data historis (labeled: healthy vs fault) lalu klasifikasi sample baru otomatis. Pertemuan 13 fokus pada <strong>supervised learning klasifikasi</strong> — workflow lengkap: ekstraksi fitur (Pertemuan 6–7) → train/test split → train classifier (Logistic Regression, Random Forest, SVM) → evaluasi (akurasi, precision, recall, F1, confusion matrix, ROC-AUC) → deploy untuk predictive maintenance. Implementasi 100% dengan <code>scikit-learn</code>, framework ML paling banyak dipakai di industri Python. ML bukan pengganti rule-based — keduanya saling melengkapi (rule-based = safety net + compliance, ML = early-warning + diagnosis multi-feature).</p>
+    <p class="hero-sub">Pertemuan 13 mengajarkan <em>fondasi ML</em>: supervised learning workflow + Logistic Regression baseline + evaluasi dasar. Tetapi Logistic Regression linear tidak cukup untuk data non-linear, dan accuracy/F1 saja tidak cukup untuk imbalanced data. Pertemuan 14 fokus pada <strong>algoritma lanjut</strong>: <strong>Random Forest</strong> (ensemble decision tree dengan bootstrap aggregation + random feature selection + majority voting + <code>feature_importances_</code> built-in), <strong>Support Vector Machine</strong> (margin maximization + <em>kernel trick</em> RBF untuk non-linear decision boundary), <strong>Pipeline + StandardScaler</strong> (modularize + anti data leakage), <strong>ROC-AUC</strong> (threshold-independent ranking metric, area under ROC curve), <strong>k-fold cross-validation</strong> (mean ± std untuk variance reduction), dan <strong>GridSearchCV</strong> (exhaustive hyperparameter tuning). Plus <em>imbalanced data handling</em> (<code>class_weight='balanced'</code>, SMOTE), <em>cost-sensitive threshold tuning</em>, dan <em>bias-variance trade-off</em> diagnosis. Implementasi <code>scikit-learn</code> production-grade. Modul terakhir — setelah ini Anda siap untuk capstone project end-to-end.</p>
     <div class="hero-stats">
       <div class="stat"><div class="stat-num">8</div><div class="stat-lbl">Bagian Materi</div></div>
       <div class="stat"><div class="stat-num">4</div><div class="stat-lbl">Animasi</div></div>
@@ -840,7 +840,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <!-- COUNTDOWN -->
 <div style="padding:48px 32px 0">
   <div class="countdown-wrap reveal">
-    <div class="countdown-label">⏰ Hitung Mundur — Deadline Pertemuan 13 (Machine Learning Dasar)</div>
+    <div class="countdown-label">⏰ Hitung Mundur — Deadline Pertemuan 14 (Random Forest, SVM &amp; GridSearchCV)</div>
     <div class="countdown-rings">
       <div class="cd-ring ring-d" id="ring-d">
         <svg viewBox="0 0 120 120">
@@ -3123,10 +3123,10 @@ function _draftKey() {
   try {
     // LOCAL_IDENTITY didefinisikan di script type="module" di bawah; saat fungsi ini
     // di-invoke dari event handler textarea, scope window sudah resolved.
-    const key = (typeof LOCAL_IDENTITY !== 'undefined') ? LOCAL_IDENTITY : 'optoauto_identity_pertemuan-13';
+    const key = (typeof LOCAL_IDENTITY !== 'undefined') ? LOCAL_IDENTITY : 'optoauto_identity_pertemuan-14';
     const me = JSON.parse(localStorage.getItem(key) || 'null');
     if (!me || !me.nim || me.role === 'dosen') return null;
-    const moduleId = (typeof MODULE_ID !== 'undefined') ? MODULE_ID : 'pertemuan-13';
+    const moduleId = (typeof MODULE_ID !== 'undefined') ? MODULE_ID : 'pertemuan-14';
     return 'optoauto_draft_' + moduleId + '_' + me.nim;   // per-NIM, course-scoped
   } catch(e) { return null; }
 }
@@ -4061,7 +4061,7 @@ function exportForumHtml() { copyForumHtml(); }
   // Menggunakan inline style agar kompatibel dengan editor LMS
 
 function getIdentityLocal() {
-  try { return JSON.parse(localStorage.getItem('optoauto_identity_pertemuan-13')); } catch(e) { return null; }
+  try { return JSON.parse(localStorage.getItem('optoauto_identity_pertemuan-14')); } catch(e) { return null; }
 }
 
 // ═══════════════════════════════════════
@@ -5810,10 +5810,10 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-const MODULE_ID = 'pertemuan-13';
+const MODULE_ID = 'pertemuan-14';
 const DB_PATH = `visitors/optoauto/${MODULE_ID}`;
-const PERTEMUAN = 'pertemuan-13';
-const RELATED_MODULES = ['forum-13','tugas-13'];
+const PERTEMUAN = 'pertemuan-14';
+const RELATED_MODULES = ['forum-14','tugas-14'];
 const SCHEDULE_PATH = `settings/optoauto/${PERTEMUAN}/schedule`;
 const LOCAL_IDENTITY = `optoauto_identity_${MODULE_ID}`;
 const PRESENCE_PATH = `presence/optoauto/${MODULE_ID}`;
