@@ -4514,10 +4514,10 @@ setTimeout(_isoTick, 700);
 
 
 // ════════════════════════════════════════════════════════════
-// ANIMASI 4 — Bearing Lifetime Trajectory: U-shape Crest Factor & Kurtosis
-// (Canvas: cvHPB, slider: sl_rh; button: btnHPB)
-// Atas: sinyal vibrasi pada posisi lifetime tertentu (slider)
-// Bawah: trajectory RMS (cyan, monotonic), CF (amber, U-shape), Kurt (violet, U-shape), Peak (pink)
+// ANIMASI 4 — Slack Variables & Constraint Binding (LP)
+// (Canvas: cvHPB, slider: sl_rh = b₂ kapasitas Welding)
+// Atas: feasible polygon + vertex optimal (slider menggeser kendala Welding)
+// Bawah: bar chart slack tiap kendala — pink jika binding, cyan jika idle
 // ════════════════════════════════════════════════════════════
 let _hpbAnim = { t: 0, running: true, raf: null };
 
@@ -4532,166 +4532,161 @@ function drawHPB(){
   const W = cv.clientWidth; cv.width = W; const H = cv.height;
   const ctx = cv.getContext('2d');
 
+  // Background
   const bg = ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const tOff = _hpbAnim.t;
-  const padX = 50;
-  const slLP = document.getElementById('sl_rh');
-  const lifeProgress = slLP ? parseFloat(slLP.value) : 0.4;
+  // Read slider: b2 (Welding capacity); fixed: c1=40, c2=30, b1=60
+  const b2 = parseFloat(document.getElementById('sl_rh').value);
+  const c1 = 40, c2 = 30, b1 = 60;
 
-  // Layout: top panel (vibration signal), bottom panel (trajectory plot)
-  const topH = (H - 60) * 0.4;
-  const botH = (H - 60) * 0.6;
-  const topY = 20;
-  const botY = topY + topH + 20;
-  const plotW = W - padX - 30;
+  // Layout: top = polygon, bottom = bar chart
+  const topY = 25, topH = H * 0.55;
+  const botY = topY + topH + 30, botH = H - botY - 30;
 
-  // Generate signal at current life progress
-  const N = 250;
-  const noiseLvl = 0.4 * (1 + 2 * lifeProgress);
-  // Number and amplitude of impacts grows with progress
-  const nImpacts = Math.floor(50 * lifeProgress);
-  const impactAmp = 1.5 + 3 * lifeProgress;
+  // === TOP: Feasible polygon ===
+  const padL = 50, padR = W * 0.55, padT = 0;
+  const xMax = 50, yMax = 50;
+  const polyW = W - padL - padR, polyH = topH;
+  const sx = polyW / xMax, sy = polyH / yMax;
+  const PX = (x) => padL + x * sx;
+  const PY = (y) => topY + topH - y * sy;
 
-  const sig = [];
-  for (let i = 0; i < N; i++) {
-    const xt = i + tOff * 8;
-    let v = 1.0 * Math.sin(xt * 0.4) + 0.3 * Math.sin(xt * 0.8);
-    v += noiseLvl * (Math.sin(xt * 2.71) + Math.sin(xt * 4.13) * 0.6);
-    sig.push(v);
-  }
-  // Inject impacts at deterministic positions (based on lifeProgress)
-  for (let k = 0; k < nImpacts; k++) {
-    const idx = Math.floor((k * 7919) % (N - 6));
-    const decayMag = impactAmp * (0.5 + 0.5 * Math.sin(k * 1.7));
-    for (let j = 0; j < 6; j++) {
-      if (idx + j < N) sig[idx + j] += decayMag * Math.exp(-j * 0.5) * Math.sin(j * 1.2);
-    }
-  }
+  // Grid
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let i=0;i<=xMax;i+=10){ ctx.beginPath(); ctx.moveTo(PX(i), PY(0)); ctx.lineTo(PX(i), PY(yMax)); ctx.stroke(); }
+  for(let j=0;j<=yMax;j+=10){ ctx.beginPath(); ctx.moveTo(PX(0), PY(j)); ctx.lineTo(PX(xMax), PY(j)); ctx.stroke(); }
 
-  // Compute features
-  let sumSq = 0, peak = 0, sum = 0;
-  for (let i = 0; i < N; i++) {
-    sumSq += sig[i] * sig[i];
-    if (Math.abs(sig[i]) > peak) peak = Math.abs(sig[i]);
-    sum += sig[i];
-  }
-  const mean = sum / N;
-  const rms = Math.sqrt(sumSq / N);
-  let m4 = 0, m2 = 0;
-  for (let i = 0; i < N; i++) {
-    const d = sig[i] - mean;
-    m2 += d*d; m4 += d*d*d*d;
-  }
-  m2 /= N; m4 /= N;
-  const kurt = m2 > 1e-9 ? m4 / (m2*m2) : 0;
-  const cf = peak / Math.max(rms, 1e-9);
-
-  // TOP: signal plot
-  _grid(ctx, padX, topY, plotW, topH, 20, 4, '#0d1929');
-  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText(`Sinyal Vibrasi @ Lifetime ${(lifeProgress*100).toFixed(0)}%`, padX, topY - 4);
-  const sigYScale = topH * 0.35 / Math.max(peak, 1);
-  ctx.strokeStyle = 'rgba(168,85,247,.9)'; ctx.lineWidth = 1.2;
-  ctx.beginPath();
-  for (let i = 0; i < N; i++) {
-    const px = padX + (i/(N-1)) * plotW;
-    const py = topY + topH/2 - sig[i] * sigYScale;
-    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-  }
-  ctx.stroke();
-
-  // BOTTOM: trajectory plot — RMS, CF, Kurtosis, Peak across lifetime [0..1]
-  _grid(ctx, padX, botY, plotW, botH, 10, 4, '#0d1929');
-  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText('Trajectory Lifetime: RMS, CF, Kurtosis, Peak', padX, botY - 4);
-
-  // Compute trajectory across lifetime points
-  const nPoints = 50;
-  const traj_rms = [], traj_cf = [], traj_kurt = [], traj_peak = [];
-  for (let p = 0; p < nPoints; p++) {
-    const prog = p / (nPoints - 1);
-    const noi = 0.4 * (1 + 2 * prog);
-    const nImp = Math.floor(50 * prog);
-    const ampImp = 1.5 + 3 * prog;
-    let lsumSq = 0, lpeak = 0, lsum = 0;
-    const lsig = new Array(N);
-    for (let i = 0; i < N; i++) {
-      let v = 1.0 * Math.sin(i * 0.4) + 0.3 * Math.sin(i * 0.8);
-      v += noi * (Math.sin(i * 2.71) + Math.sin(i * 4.13) * 0.6);
-      lsig[i] = v;
-    }
-    for (let k = 0; k < nImp; k++) {
-      const idx = Math.floor((k * 7919) % (N - 6));
-      const decayMag = ampImp * (0.5 + 0.5 * Math.sin(k * 1.7));
-      for (let j = 0; j < 6; j++) {
-        if (idx + j < N) lsig[idx + j] += decayMag * Math.exp(-j * 0.5) * Math.sin(j * 1.2);
-      }
-    }
-    for (let i = 0; i < N; i++) {
-      lsumSq += lsig[i] * lsig[i];
-      if (Math.abs(lsig[i]) > lpeak) lpeak = Math.abs(lsig[i]);
-      lsum += lsig[i];
-    }
-    const lmean = lsum / N;
-    const lrms = Math.sqrt(lsumSq / N);
-    let lm2 = 0, lm4 = 0;
-    for (let i = 0; i < N; i++) {
-      const d = lsig[i] - lmean;
-      lm2 += d*d; lm4 += d*d*d*d;
-    }
-    lm2 /= N; lm4 /= N;
-    const lkurt = lm2 > 1e-9 ? lm4/(lm2*lm2) : 0;
-    const lcf = lpeak / Math.max(lrms, 1e-9);
-    traj_rms.push(lrms);
-    traj_cf.push(lcf);
-    traj_kurt.push(lkurt);
-    traj_peak.push(lpeak);
+  // Find feasible vertices
+  const candidates = [
+    [0, 0],
+    [Math.min(b1/2, b2), 0],
+    [0, Math.min(b1, b2/3)],
+    [(3*b1 - b2)/5, (2*b2 - b1)/5]
+  ];
+  const isFeas = (x, y) => x >= -0.001 && y >= -0.001 && (2*x + y) <= b1+0.001 && (x + 3*y) <= b2+0.001;
+  const verts = candidates.filter(([x,y]) => isFeas(x, y));
+  if (verts.length >= 3) {
+    const ccx = verts.reduce((s,v) => s+v[0], 0)/verts.length;
+    const ccy = verts.reduce((s,v) => s+v[1], 0)/verts.length;
+    verts.sort((a,b) => Math.atan2(a[1]-ccy, a[0]-ccx) - Math.atan2(b[1]-ccy, b[0]-ccx));
   }
 
-  // Plot trajectory: multi-line with normalization to fit panel
-  const maxRMS = Math.max(...traj_rms);
-  const maxCF = Math.max(...traj_cf);
-  const maxKurt = Math.max(...traj_kurt);
-  const maxPeak = Math.max(...traj_peak);
-
-  function drawTraj(data, maxV, color, label, yOff) {
-    ctx.strokeStyle = color; ctx.lineWidth = 1.8;
+  // Draw feasible polygon
+  if (verts.length >= 3) {
+    ctx.fillStyle = 'rgba(168,85,247,.16)';
+    ctx.strokeStyle = 'rgba(168,85,247,.7)'; ctx.lineWidth = 1.6;
     ctx.beginPath();
-    for (let i = 0; i < data.length; i++) {
-      const px = padX + (i/(data.length-1)) * plotW;
-      const py = botY + botH - 20 - (data[i] / maxV) * (botH - 30);
-      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-    }
-    ctx.stroke();
-    // Label dots
-    ctx.fillStyle = color; ctx.font = '9px JetBrains Mono';
-    ctx.fillText(label, padX + plotW + 5, botY + 10 + yOff * 12);
+    verts.forEach(([x,y], i) => { if(i===0) ctx.moveTo(PX(x), PY(y)); else ctx.lineTo(PX(x), PY(y)); });
+    ctx.closePath(); ctx.fill(); ctx.stroke();
   }
-  drawTraj(traj_rms, maxRMS, 'rgba(14,165,233,.95)', '— RMS', 0);
-  drawTraj(traj_cf, maxCF, 'rgba(249,115,22,.95)', '— CF', 1);
-  drawTraj(traj_kurt, maxKurt, 'rgba(168,85,247,.95)', '— Kurt', 2);
-  drawTraj(traj_peak, maxPeak, 'rgba(255,64,129,.95)', '— Peak', 3);
 
-  // Marker at current life progress
-  const markerX = padX + lifeProgress * plotW;
-  ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2; ctx.setLineDash([5,3]);
-  ctx.beginPath(); ctx.moveTo(markerX, botY); ctx.lineTo(markerX, botY + botH); ctx.stroke();
+  // Constraint lines
+  ctx.lineWidth = 1.4; ctx.setLineDash([6,4]);
+  ctx.strokeStyle = 'rgba(14,165,233,.85)';   // CNC
+  ctx.beginPath();
+  ctx.moveTo(PX(0), PY(Math.min(b1, yMax)));
+  if (b1/2 <= xMax) ctx.lineTo(PX(b1/2), PY(0));
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(249,115,22,.85)';   // Welding
+  ctx.beginPath();
+  ctx.moveTo(PX(0), PY(Math.min(b2/3, yMax)));
+  if (b2 <= xMax) ctx.lineTo(PX(b2), PY(0));
+  else ctx.lineTo(PX(xMax), PY((b2-xMax)/3));
+  ctx.stroke();
   ctx.setLineDash([]);
 
-  // Slider display
-  const vl = document.getElementById('v_rh'); if(vl) vl.textContent = lifeProgress.toFixed(2);
+  // Find optimal vertex
+  let zMax = -Infinity, optV = null;
+  verts.forEach(([x,y]) => {
+    const z = c1*x + c2*y;
+    if (z > zMax) { zMax = z; optV = [x, y]; }
+  });
+
+  // Optimal star
+  if (optV) {
+    ctx.fillStyle = '#fbbf24';
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 1.2;
+    _drawStar(ctx, PX(optV[0]), PY(optV[1]), 5, 11, 5);
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 10px JetBrains Mono';
+    ctx.fillText(`x*=(${optV[0].toFixed(1)},${optV[1].toFixed(1)})`, PX(optV[0])+12, PY(optV[1])-8);
+  }
+
+  // Axes
+  ctx.strokeStyle = 'rgba(255,255,255,.45)'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(PX(0), PY(0)); ctx.lineTo(PX(xMax), PY(0)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(PX(0), PY(0)); ctx.lineTo(PX(0), PY(yMax)); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '10px JetBrains Mono';
+  ctx.fillText('x_A', PX(xMax)+5, PY(0)+4);
+  ctx.fillText('x_B', PX(0)-22, PY(yMax)+10);
+
+  // Title
+  ctx.fillStyle = 'rgba(168,85,247,.95)'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText('Feasible Polygon (Welding b₂ = ' + b2.toFixed(0) + ')', PX(0), topY-6);
+
+  // === BOTTOM: Slack bar chart ===
+  const slacks = optV ? {
+    CNC:     b1 - (2*optV[0] + optV[1]),
+    Welding: b2 - (optV[0] + 3*optV[1]),
+    'x_A≥0': optV[0],
+    'x_B≥0': optV[1]
+  } : { CNC: b1, Welding: b2, 'x_A≥0': 0, 'x_B≥0': 0 };
+
+  const labels = Object.keys(slacks);
+  const values = Object.values(slacks);
+  const maxSlack = Math.max(...values, 10);
+
+  const barAreaX = 30, barAreaW = W - 60;
+  const barW = (barAreaW / labels.length) * 0.7;
+  const barGap = (barAreaW / labels.length) * 0.3;
+
+  ctx.fillStyle = 'rgba(168,85,247,.95)'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText('Slack Variables (s = b − Ax)', barAreaX, botY - 8);
+
+  labels.forEach((lbl, i) => {
+    const v = values[i];
+    const isBinding = Math.abs(v) < 0.5;
+    const color = isBinding ? 'rgba(255,64,129,.85)' : 'rgba(14,165,233,.85)';
+    const fillCol = isBinding ? 'rgba(255,64,129,.4)' : 'rgba(14,165,233,.4)';
+    const bx = barAreaX + i * (barW + barGap) + barGap/2;
+    const bh = (Math.max(v, 0.001) / maxSlack) * (botH - 30);
+    const by = botY + botH - 20 - bh;
+    // Bar
+    ctx.fillStyle = fillCol;
+    ctx.fillRect(bx, by, barW, bh);
+    ctx.strokeStyle = color; ctx.lineWidth = 1.5;
+    ctx.strokeRect(bx, by, barW, bh);
+    // Value above bar
+    ctx.fillStyle = color; ctx.font = 'bold 10px JetBrains Mono';
+    ctx.fillText(v.toFixed(2), bx + barW/2 - 12, by - 4);
+    // BINDING label if active
+    if (isBinding) {
+      ctx.fillStyle = '#ff4081'; ctx.font = 'bold 9px JetBrains Mono';
+      ctx.fillText('BINDING', bx + barW/2 - 22, by + bh + 14);
+    } else {
+      ctx.fillStyle = 'rgba(14,165,233,.7)'; ctx.font = '9px JetBrains Mono';
+      ctx.fillText('idle', bx + barW/2 - 9, by + bh + 14);
+    }
+    // Constraint label
+    ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
+    ctx.fillText(lbl, bx + barW/2 - lbl.length*3, botY + botH - 4);
+  });
+
+  // Update slider display
+  document.getElementById('v_rh').textContent = b2.toFixed(0);
 
   // Info
   const info = document.getElementById('hpbInfo');
   if (info) {
-    let stage;
-    if (lifeProgress < 0.2) stage = '🟢 HEALTHY';
-    else if (lifeProgress < 0.6) stage = '🟡 EARLY FAULT (CF/Kurt naik dramatis)';
-    else stage = '🔴 SEVERE (RMS tinggi, CF/Kurt menurun lagi → U-shape)';
-    info.innerHTML = `RMS=<strong>${rms.toFixed(2)}</strong> · Peak=<strong>${peak.toFixed(2)}</strong> · CF=<strong>${cf.toFixed(2)}</strong> · Kurt=<strong>${kurt.toFixed(2)}</strong> · ${stage}`;
+    if (!optV) {
+      info.innerHTML = '⚠ Daerah feasibel kosong';
+    } else {
+      const bindingNames = labels.filter((l, i) => Math.abs(values[i]) < 0.5);
+      const Z = c1*optV[0] + c2*optV[1];
+      info.innerHTML = `Vertex optimal (${optV[0].toFixed(2)}, ${optV[1].toFixed(2)}) · Z=<strong>${Z.toFixed(0)}</strong> · Kendala BINDING: <strong style="color:#ff4081">${bindingNames.join(', ') || '—'}</strong> · Sisanya idle (sumber daya berlebih)`;
+    }
   }
 }
 
