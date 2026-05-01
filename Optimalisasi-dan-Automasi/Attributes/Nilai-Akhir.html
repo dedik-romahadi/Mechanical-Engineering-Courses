@@ -677,11 +677,14 @@ function updateScheduleDisplay(){
 }
 
 function isLate(timestamp){
-  if(!currentSchedule || !currentSchedule.start || !currentSchedule.end) return false;
+  // v8 (Mei 2026): Terlambat = timestamp akses jatuh SETELAH deadline.
+  // Mahasiswa terlambat tetap bisa mengerjakan tugas; poin per soal
+  // dikurangi 20%, Comp Hard tidak dapat partial credit, dan tidak
+  // masuk Top Skor / Top Akses. Lihat Pedoman §9.1, §9.2, §15.4, §17.3.
+  if(!currentSchedule || !currentSchedule.end) return false;
   const t = new Date(timestamp).getTime();
-  const s = new Date(currentSchedule.start).getTime();
   const e = new Date(currentSchedule.end).getTime();
-  return t < s || t > e;
+  return t > e;
 }
 
 function submitVisitor(){

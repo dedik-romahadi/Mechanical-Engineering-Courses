@@ -747,7 +747,7 @@ function updateLeaderboard(visitors,schedExpired){
   const mhs=visitors.filter(v=>v.role!=='dosen'&&v.role!=='guest');
   const visitMap={};mhs.forEach(v=>{if(!visitMap[v.nim])visitMap[v.nim]=v;});
   const visited=Object.values(visitMap);
-  const topSkor=[...visited].filter(v=>(v.points||0)>0).sort((a,b)=>{const d=(b.points||0)-(a.points||0);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp);});
+  const topSkor=[...visited].filter(v=>(v.points||0)>0&&!isLate(v.timestamp)).sort((a,b)=>{const d=(b.points||0)-(a.points||0);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp);});
   const akses=[...visited].sort((a,b)=>(b.visitCount||1)-(a.visitCount||1));
   const medalR=['🥇','🥈','🥉'];
   function renderCardSkor(v,idx){
@@ -792,9 +792,14 @@ function updateScheduleDisplay(){
 }
 
 function isLate(timestamp){
-  if(!currentSchedule||!currentSchedule.start||!currentSchedule.end)return false;
-  const t=new Date(timestamp).getTime(),s=new Date(currentSchedule.start).getTime(),e=new Date(currentSchedule.end).getTime();
-  return t<s||t>e;
+  // v8 (Mei 2026): Terlambat = timestamp akses jatuh SETELAH deadline.
+  // Mahasiswa terlambat tetap bisa mengerjakan tugas; poin per soal
+  // dikurangi 20%, Comp Hard tidak dapat partial credit, dan tidak
+  // masuk Top Skor / Top Akses. Lihat Pedoman §9.1, §9.2, §15.4, §17.3.
+  if(!currentSchedule || !currentSchedule.end) return false;
+  const t = new Date(timestamp).getTime();
+  const e = new Date(currentSchedule.end).getTime();
+  return t > e;
 }
 
 function submitVisitor(){
@@ -872,7 +877,6 @@ const _answeredQuestions = new Set();
 
 window._awardPoint = function(qId) {
   if (_answeredQuestions.has(qId)) return;
-  if (typeof isScheduleExpired === 'function' && isScheduleExpired()) return;
   const me = getIdentity();
   if (!me || !me.nim || me.role === 'dosen') return;
   _answeredQuestions.add(qId);
@@ -884,7 +888,8 @@ window._awardPoint = function(qId) {
       const scored = ex.scoredQuestions ? ex.scoredQuestions.split(',') : [];
       if (scored.includes(qId)) return;
       scored.push(qId);
-      const newPts = (ex.points || 0) + 1;
+      const _lateMult = (typeof isScheduleExpired === 'function' && isScheduleExpired()) ? 0.8 : 1.0;
+      const newPts = (ex.points || 0) + (1 * _lateMult);
       set(_ref, Object.assign({}, ex, {
         points: newPts,
         pointTimestamp: new Date().toISOString(),

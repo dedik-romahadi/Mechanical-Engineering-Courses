@@ -577,7 +577,7 @@ function updateLeaderboard(visitors, schedExpired){
   if(!rajinEl)return;
   if(!masterStudents.length){rajinEl.innerHTML='<span style="color:#64748b;font-size:.75rem;">Memuat...</span>';santaiEl.innerHTML=rajinEl.innerHTML;return;}
   const mhs=visitors.filter(v=>v.role!=='dosen'&&v.role!=='guest');const visitMap={};mhs.forEach(v=>{if(!visitMap[v.nim])visitMap[v.nim]=v;});const visited=Object.values(visitMap);
-  const topSkor=[...visited].filter(v=>(v.points||0)>0).sort((a,b)=>{const d=(b.points||0)-(a.points||0);if(d!==0)return d;const tA=a.pointTimestamp?new Date(a.pointTimestamp).getTime():Infinity;const tB=b.pointTimestamp?new Date(b.pointTimestamp).getTime():Infinity;return tA-tB});
+  const topSkor=[...visited].filter(v=>(v.points||0)>0&&!isLate(v.timestamp)).sort((a,b)=>{const d=(b.points||0)-(a.points||0);if(d!==0)return d;const tA=a.pointTimestamp?new Date(a.pointTimestamp).getTime():Infinity;const tB=b.pointTimestamp?new Date(b.pointTimestamp).getTime():Infinity;return tA-tB});
   const akses=[...visited].sort((a,b)=>{const d=(b.visitCount||1)-(a.visitCount||1);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp)});
   const m=['🥇','🥈','🥉'];
   function cS(v,i){return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(i<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="font-size:1rem;flex-shrink:0;">'+m[i]+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(16,185,129,.12);color:#10b981;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+(v.points||0)+' poin</div></div>'}
@@ -678,11 +678,14 @@ function startCountdown(deadline){
 }
 
 function isLate(timestamp){
+  // v8 (Mei 2026): Terlambat = timestamp akses jatuh SETELAH deadline.
+  // Mahasiswa terlambat tetap bisa mengerjakan tugas; poin per soal
+  // dikurangi 20%, Comp Hard tidak dapat partial credit, dan tidak
+  // masuk Top Skor / Top Akses. Lihat Pedoman §9.1, §9.2, §15.4, §17.3.
   if(!currentSchedule || !currentSchedule.end) return false;
   const t = new Date(timestamp).getTime();
   const e = new Date(currentSchedule.end).getTime();
-  const grace = e + 7 * 24 * 60 * 60 * 1000;
-  return t > e && t <= grace;
+  return t > e;
 }
 function isAfterDeadline(timestamp){
   if(!currentSchedule || !currentSchedule.end) return false;
@@ -837,7 +840,8 @@ window._awardPoint = function(qId) {
       const scored = ex.scoredQuestions ? ex.scoredQuestions.split(',') : [];
       if (scored.includes(qId)) return;
       scored.push(qId);
-      const newPts = (ex.points || 0) + 1;
+      const _lateMult = (typeof isScheduleExpired === 'function' && isScheduleExpired()) ? 0.8 : 1.0;
+      const newPts = (ex.points || 0) + (1 * _lateMult);
       set(_ref, Object.assign({}, ex, {
         points: newPts,
         pointTimestamp: new Date().toISOString(),
