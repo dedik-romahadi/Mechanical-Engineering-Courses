@@ -2403,16 +2403,16 @@ import pandas as pd
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C11</div>
-        <div class="comp-q"><strong>One-Way ANOVA dari scratch — CNC Cutting Speed → Surface Roughness</strong>: gunakan data 3 grup A=[2.5, 2.4, 2.6, 2.3, 2.2], B=[1.8, 1.7, 1.9, 1.8, 1.6], C=[2.0, 2.2, 2.1, 2.3, 1.9] (Ra μm pada speed 80, 100, 120 m/min). Hitung <strong>F-statistic</strong> manual via SS_between, SS_within, df, MS — tanpa <code>scipy.stats.f_oneway</code>. Print F.</div>
+        <div class="comp-q"><strong>HysteresisAlarm Class — Anti-Chattering Demo</strong>: implementasi class HysteresisAlarm dengan T_on=2.8, T_off=2.6. Generate sinyal RMS noisy: <code>np.random.seed(42); rms = 2.7 + 0.15 * np.random.randn(500)</code>. Apply class ke seluruh sinyal. Print <strong>jumlah transitions</strong> (state change). Target untuk HysteresisAlarm: rendah (≤ 5).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Mean A=2.4, B=1.76, C=2.1, grand=2.087. SS_b = 5·((2.4−2.087)²+(1.76−2.087)²+(2.1−2.087)²) ≈ 1.05. SS_w = sum kuadrat deviasi data ke mean grup-nya ≈ 0.21. F = (1.05/2)/(0.21/12) ≈ <strong>30</strong>. Tolerance ± 5 (manual rounding). Verifikasi dengan scipy: F should match.</div>
+      <div class="comp-hint">💡 Tanpa hysteresis: ratusan transitions (chattering). Dengan hysteresis margin 0.2 mm/s &gt; noise std 0.15 mm/s, transitions jauh berkurang. Hasil tipikal: 0–4 transitions (sometimes none, depending on whether noise crosses both T_on dan T_off in sequence). Tolerance ± 4 sample.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">F-statistic</strong></span></div>
-        <textarea class="code-textarea" id="code-c11" rows="14" placeholder="Paste kode One-Way ANOVA scratch, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c11')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">jumlah transitions</strong></span></div>
+        <textarea class="code-textarea" id="code-c11" rows="14" placeholder="Paste kode HysteresisAlarm, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c11')"></textarea>
         <div class="stdout-box" id="stdout-c11"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c11" onclick="runAndCheck('c11', 30.0, 5.0, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c11" onclick="runAndCheck('c11', 2.0, 4.0, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c11"></div>
     </div>
 
@@ -2420,16 +2420,16 @@ import pandas as pd
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C12</div>
-        <div class="comp-q"><strong>Two-Way ANOVA Welding (statsmodels)</strong>: dataset arus × voltage. Generate via seed=42, 3 level arus (100, 150, 200 A), 3 level voltage (22, 26, 30 V), 3 replikasi/cell. Mean cell: arus_idx·25 + volt_idx·10 + arus·volt·3 + N(0,8). Pakai <code>ols('strength ~ C(arus)*C(voltage)', df).fit()</code> + <code>anova_lm</code>. Print <strong>p-value untuk faktor arus (main effect)</strong>. Target &lt; 0.001.</div>
+        <div class="comp-q"><strong>FSM Monitoring Pipeline — RMS Streaming dengan Tier Alarm</strong>: bangun FSM dengan 4 state (NORMAL, WARNING, ALERT, CRITICAL), thresholds (1.4, 2.8, 4.5), debounce N=3. Apply ke sinyal RMS sintetis: <code>np.random.seed(42); rms = 0.7 + np.linspace(0, 4.0, 1000) + 0.2 * np.random.randn(1000)</code>. Print <strong>jumlah state transitions</strong> total.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Pakai pandas DataFrame dengan kolom arus, voltage, strength. Set np.random.seed(42), generate 27 data points. ANOVA via <code>sm.stats.anova_lm(model, typ=2)</code>. p_arus = anova_table.loc['C(arus)', 'PR(&gt;F)']. Karena efek arus sangat dominan (25 unit/level vs noise 8), p sangat kecil (~1e-7). Print p_arus &lt; 0.001 (target 0 dengan toleransi 0.001).</div>
+      <div class="comp-hint">💡 Sinyal naik dari ~0.7 ke ~4.7 selama 1000 sample → akan cross threshold WARNING (1.4), ALERT (2.8), CRITICAL (4.5). Dengan debounce N=3, hanya genuine elevations yang trigger transition. Tipikal ≈ 3 transitions (NORMAL → WARNING → ALERT → CRITICAL). Tolerance ± 1.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">p_arus</strong></span></div>
-        <textarea class="code-textarea" id="code-c12" rows="16" placeholder="Paste kode Two-Way ANOVA statsmodels, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c12')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">jumlah transitions</strong></span></div>
+        <textarea class="code-textarea" id="code-c12" rows="16" placeholder="Paste kode FSM tier alarm, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c12')"></textarea>
         <div class="stdout-box" id="stdout-c12"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c12" onclick="runAndCheck('c12', 0.0, 0.001, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c12" onclick="runAndCheck('c12', 3.0, 1.0, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c12"></div>
     </div>
 
@@ -2437,16 +2437,16 @@ import pandas as pd
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C13</div>
-        <div class="comp-q"><strong>Tukey HSD Post-Hoc + Asumsi Check — Heat Treatment</strong>: 4 level temperatur (450, 500, 550, 600 °C), 5 spesimen/level, target HRC: {450:52, 500:58, 550:62, 600:55} ± 2. seed=42. (1) Cek normality (Shapiro per grup), (2) cek equal variance (Levene), (3) Run ANOVA, (4) Run <code>pairwise_tukeyhsd</code>. Print <strong>jumlah pasangan signifikan</strong> (reject column = True) dari Tukey HSD.</div>
+        <div class="comp-q"><strong>Multi-Feature Threshold Combination</strong>: 100 sample dengan fitur RMS, peak, kurtosis. Generate: <code>np.random.seed(42); rms = np.random.uniform(0.5, 4.0, 100); peak = rms*3 + np.random.randn(100); kurt = 3 + np.random.uniform(-1, 4, 100)</code>. Hitung <strong>jumlah sample yang trigger ALERT</strong> dengan rule: <code>(rms &gt; 2.8) OR (peak &gt; 8) OR (kurt &gt; 4)</code>. Print integer.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 4 level → C(4,2) = 6 pasangan. Karena efek besar (mean diff sd 2-10), kebanyakan pasangan signifikan kecuali yang dekat (mis. 450 vs 600 keduanya rendah). Output Tukey punya kolom 'reject'; count yang True. Hasil ≈ <strong>5</strong> dari 6 pasangan signifikan. Toleransi ±1.</div>
+      <div class="comp-hint">💡 OR logic: tiap sample yang melanggar setidaknya satu threshold akan trigger. <code>n_alert = ((rms &gt; 2.8) | (peak &gt; 8) | (kurt &gt; 4)).sum()</code>. Multi-feature lebih sensitif dari single-feature; tetapi rentan false-positive. Hasil tipikal ≈ 75 ± 10. Tolerance ± 10.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() jumlah <strong style="color:var(--pink)">pasangan signifikan</strong></span></div>
-        <textarea class="code-textarea" id="code-c13" rows="16" placeholder="Paste kode Tukey HSD + asumsi, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c13')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">jumlah ALERT</strong></span></div>
+        <textarea class="code-textarea" id="code-c13" rows="16" placeholder="Paste kode multi-feature threshold, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c13')"></textarea>
         <div class="stdout-box" id="stdout-c13"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c13" onclick="runAndCheck('c13', 5.0, 1.0, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c13" onclick="runAndCheck('c13', 75.0, 10.0, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c13"></div>
     </div>
 
@@ -2454,16 +2454,16 @@ import pandas as pd
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C14</div>
-        <div class="comp-q"><strong>Power Analysis ANOVA</strong>: gunakan <code>statsmodels.stats.power.FTestAnovaPower</code> untuk hitung sample size <em>per grup</em> yang dibutuhkan untuk deteksi effect size <code>f = 0.4 (large effect by Cohen)</code> dengan k=4 grup, α=0.05, power=0.80. <code>solve_power(effect_size=0.4, alpha=0.05, power=0.80, k_groups=4)</code>. Print <strong>n per grup</strong> (round ke int).</div>
+        <div class="comp-q"><strong>Persistence Timer / Escalation Logic</strong>: untuk sinyal yang tetap di Zone B selama 12 menit (sample period 30 detik), dengan eskalasi rule "Warning persist &gt; 5 menit → Alert", hitung <strong>kapan eskalasi ke ALERT terjadi</strong> (sample index ke berapa). Print integer.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>from statsmodels.stats.power import FTestAnovaPower; n = FTestAnovaPower().solve_power(effect_size=0.4, alpha=0.05, power=0.80, k_groups=4); print(int(np.ceil(n)))</code>. Hasil ≈ <strong>19</strong> per grup (total N = 76). Untuk effect size sedang (f=0.25), n meningkat ke ~45/grup. Power analysis WAJIB sebelum eksperimen agar sample cukup.</div>
+      <div class="comp-hint">💡 5 menit = 300 detik. Sample period 30 detik → escalation pada sample <code>300 / 30 = <strong>10</strong></code>. Sample 0 = masuk Warning, sample 10 = sudah persist 5 menit (5×60/30=10 sample), trigger eskalasi. Tolerance ± 1.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">n per grup</strong></span></div>
-        <textarea class="code-textarea" id="code-c14" rows="14" placeholder="Paste kode Power Analysis, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c14')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">sample escalation</strong></span></div>
+        <textarea class="code-textarea" id="code-c14" rows="14" placeholder="Paste kode persistence timer, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c14')"></textarea>
         <div class="stdout-box" id="stdout-c14"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c14" onclick="runAndCheck('c14', 19.0, 2.0, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c14" onclick="runAndCheck('c14', 10.0, 1.0, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c14"></div>
     </div>
 
@@ -2471,16 +2471,16 @@ import pandas as pd
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C15</div>
-        <div class="comp-q"><strong>Engineering ANOVA Workflow — Injection Molding 2-Faktor</strong>: faktor A=tekanan (3 level: 80, 100, 120 MPa), B=suhu mold (3 level: 50, 70, 90 °C), 3 replikasi/cell. Mean cell: defect[%] = 4 − 0.02·A − 0.01·B + 0.001·A·B + N(0, 0.3). Total 27 trial, seed=42. Two-way ANOVA. Print <strong>F-statistic untuk interaction effect (A×B)</strong>.</div>
+        <div class="comp-q"><strong>Engineering Pipeline — End-to-End Monitoring 24 jam</strong>: simulasi 24 jam (sampling 30 detik), generate sinyal RMS dengan <code>np.random.seed(42); n=2880; rms = 0.7 + np.linspace(0, 3.5, n) + 0.2 * np.random.randn(n)</code>. Apply ISO 10816 zone classification + FSM tier alarm. Print <strong>persentase waktu di Zone D (Danger)</strong>.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Generate data dengan model bilinear A·B → akan ada interaksi signifikan. <code>ols('defect ~ C(A) * C(B)', df).fit()</code>; ambil F dari <code>anova_lm</code> baris <code>'C(A):C(B)'</code>. F interaction tipikal 5–15 untuk effect bilinear ini. Hasil ≈ <strong>10</strong> ± 5 (variasi seed). Engineering decision: kalau F_AB signifikan → main effect tidak boleh diinterpretasi terpisah, harus pakai cell-mean optimum.</div>
+      <div class="comp-hint">💡 Sinyal berkembang 0.7 → 4.2 mm/s. Menjelang akhir mencapai threshold D (4.5)? Kebanyakan sample di bawah 4.5, sebagian kecil di atas. Tipikal % di Zone D rendah (&lt; 5%). Code: <code>zones = [iso10816_zone(r)[0] for r in rms]; pct_d = 100 * sum(z=='D' for z in zones) / len(zones)</code>. Tolerance ± 3%.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">F_interaction</strong></span></div>
-        <textarea class="code-textarea" id="code-c15" rows="20" placeholder="Paste kode Two-Way ANOVA injection molding, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c15')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">% Zone D</strong></span></div>
+        <textarea class="code-textarea" id="code-c15" rows="20" placeholder="Paste kode end-to-end monitoring, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c15')"></textarea>
         <div class="stdout-box" id="stdout-c15"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c15" onclick="runAndCheck('c15', 10.0, 5.0, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c15" onclick="runAndCheck('c15', 0.0, 5.0, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c15"></div>
     </div>
 
