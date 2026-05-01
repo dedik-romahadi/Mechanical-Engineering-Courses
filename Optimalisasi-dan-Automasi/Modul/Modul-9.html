@@ -1168,106 +1168,106 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <h2 class="section-title reveal">Animasi Interaktif<br>Visualisasi Konsep Non-Linear Programming</h2>
   <p class="section-desc reveal">Empat animasi yang memvisualisasikan <strong>konsep dasar NLP</strong> melalui sinyal-sinyal time series yang merepresentasikan dinamika optimasi non-linier: (1) sinyal komposit menggambarkan <em>landscape fungsi objektif</em> dengan banyak lembah — visualisasi non-konveksitas, (2) impulse train sebagai <em>iterasi gradient descent</em> dengan step size berbeda — terlalu besar overshoot, terlalu kecil lambat, (3) distribusi statistik menampilkan <em>convergence rate</em>: gradient descent (linier) vs Newton (kuadratik), (4) trajectory degradasi kapasitas yang memicu <em>warm-start re-optimasi</em> saat constraint berubah dinamik. Tujuannya: membangun intuisi visual sebelum dive ke formula matematis.</p>
 
-  <!-- Animasi 1: RMS / Peak / PP Live -->
+  <!-- Animasi 1: Gradient Descent on Contour -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi 1 — Sinyal Vibrasi Live: Hitung RMS, Peak, Peak-to-Peak</span>
+      <span class="anim-title">Animasi 1 — Gradient Descent: Trajectory di Contour 2D</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvPhysics" height="300"></canvas>
+      <canvas id="cvPhysics" height="340"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Amplitudo Sinusoidal — <span class="ctrl-val" id="v_rp">1.00</span></label>
-          <input type="range" id="sl_rp" min="0" max="2" step="0.05" value="1.0">
+          <label>Step Size α — <span class="ctrl-val" id="v_rp">0.10</span></label>
+          <input type="range" id="sl_rp" min="0.01" max="0.5" step="0.01" value="0.10">
         </div>
         <div class="ctrl-group">
-          <label>Level Noise Gaussian — <span class="ctrl-val" id="v_zp">0.30</span></label>
-          <input type="range" id="sl_zp" min="0" max="1.5" step="0.05" value="0.3">
+          <label>Initial x₀ — <span class="ctrl-val" id="v_zp">−1.5</span></label>
+          <input type="range" id="sl_zp" min="-2.5" max="2.5" step="0.1" value="-1.5">
         </div>
         <button class="btn-anim" id="btnPhysics" onclick="togglePhysics()">⏸ PAUSE</button>
       </div>
       <div id="physicsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi:</strong> Garis ungu = sinyal vibrasi (sinusoidal + noise). Garis cyan horizontal = ±RMS, garis amber = ±peak, garis pink = peak-to-peak window. Info panel menampilkan nilai numerik saat ini.<br>
-        <strong>Coba:</strong> (1) Amplitudo = 1.0, Noise = 0 → sinyal sinusoidal murni, CF = √2 ≈ 1.41. (2) Tambah noise → CF naik bertahap (mendekati 3 untuk Gaussian). (3) Amplitudo = 0, Noise tinggi → noise saja, CF ~3. Perhatikan: <em>RMS ≈ Std saat μ ≈ 0</em>, sesuai identitas RMS² = μ² + σ².
+        <strong>📊 Cara Membaca Animasi:</strong> Kontur ungu = level sets fungsi konveks <code>f(x,y) = (x−1)² + 2(y−0.5)²</code>. Bintang kuning = optimum global di (1, 0.5). Trajectory cyan = iterasi gradient descent <code>x_{k+1} = x_k − α∇f</code>, dimulai dari (x₀, 0). Bulatan = posisi tiap iterasi.<br>
+        <strong>Coba:</strong> (1) α kecil (0.05) → trajectory smooth tapi konvergen lambat. (2) α moderate (0.15) → konvergen efisien. (3) α terlalu besar (0.4) → overshoot/zigzag/divergent. (4) Geser x₀ jauh dari optimum → lihat trajectory descent menuju (1, 0.5). Pelajaran: <em>step size kontrol konvergensi</em> — line search adaptif (Armijo) memilih α optimal otomatis.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 2: Impak Transient → Crest Factor & Kurtosis -->
+  <!-- Animasi 2: Newton vs Steepest Descent -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--amber)"></div>
-      <span class="anim-title">Animasi 2 — Injeksi Impak: Lihat Crest Factor &amp; Kurtosis Melonjak</span>
+      <span class="anim-title">Animasi 2 — Newton vs Steepest Descent: Konvergensi Kuadratik vs Linier</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvSweep" height="300"></canvas>
+      <canvas id="cvSweep" height="340"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Frekuensi Impak (per detik) — <span class="ctrl-val" id="v_rs">2.00</span></label>
-          <input type="range" id="sl_rs" min="0" max="10" step="0.5" value="2.0">
+          <label>Condition Number κ — <span class="ctrl-val" id="v_rs">5</span></label>
+          <input type="range" id="sl_rs" min="1" max="20" step="0.5" value="5">
         </div>
         <div class="ctrl-group">
-          <label>Amplitudo Impak — <span class="ctrl-val" id="v_zs">3.00</span></label>
-          <input type="range" id="sl_zs" min="0" max="8" step="0.2" value="3.0">
+          <label>Iterasi Max — <span class="ctrl-val" id="v_zs">15</span></label>
+          <input type="range" id="sl_zs" min="3" max="30" step="1" value="15">
         </div>
         <button class="btn-anim" id="btnSweep" onclick="toggleSweep()">⏸ PAUSE</button>
       </div>
       <div id="sweepInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Sinyal latar = noise Gaussian (sinyal sehat). Spike ungu pendek = impak transient (early bearing fault). Info panel menampilkan CF dan kurtosis live.<br>
-        <strong>Coba:</strong> (1) Frekuensi = 0 → noise murni, CF ~3, Kurt ~3 (Gaussian). (2) Frekuensi rendah, amplitudo tinggi → impak jarang tapi besar — <em>CF dan Kurt melonjak</em>. (3) Frekuensi sangat tinggi → impak menjadi konstan, CF dan Kurt turun lagi (kasus severe fault). Inilah <strong>U-shape</strong> klasik kurva CF/Kurt sepanjang lifetime bearing.
+        <strong>📊 Cara Membaca:</strong> Kontur elipsoidal = fungsi quadratic ill-conditioned <code>f(x,y) = x² + κ·y²</code> dengan κ = condition number. Trajectory amber = <strong>Steepest Descent</strong> (zigzag karena gradient ortogonal di axis-aligned ellipses). Trajectory pink = <strong>Newton</strong> (langsung ke optimum di 1 langkah karena f quadratic). Bintang = optimum (0,0).<br>
+        <strong>Coba:</strong> (1) κ = 1 → contour lingkaran, SD &amp; Newton sama efisien. (2) κ = 5 → SD mulai zigzag, Newton tetap 1 step. (3) κ = 20 → SD <em>sangat lambat</em> (banyak iter), Newton instant. Pelajaran: <strong>Newton's quadratic convergence</strong> kalahkan steepest descent untuk masalah ill-conditioned. BFGS aproksimasi Newton dengan O(n²) per iter.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 3: Distribusi & Skewness/Kurtosis -->
+  <!-- Animasi 3: Multi-Modal Landscape -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--violet)"></div>
-      <span class="anim-title">Animasi 3 — Histogram Distribusi: Skewness &amp; Kurtosis Bekerja</span>
+      <span class="anim-title">Animasi 3 — Multi-Modal Landscape: Lokal vs Global Minimum</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvIso" height="300"></canvas>
+      <canvas id="cvIso" height="320"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Skewness Target — <span class="ctrl-val" id="v_ri">0.00</span></label>
-          <input type="range" id="sl_ri" min="-2" max="2" step="0.1" value="0.0">
+          <label>Initial x₀ — <span class="ctrl-val" id="v_ri">−2.0</span></label>
+          <input type="range" id="sl_ri" min="-4" max="4" step="0.1" value="-2.0">
         </div>
         <div class="ctrl-group">
-          <label>Kurtosis Target — <span class="ctrl-val" id="v_zi">3.00</span></label>
-          <input type="range" id="sl_zi" min="1.5" max="10" step="0.1" value="3.0">
+          <label>Step Size α — <span class="ctrl-val" id="v_zi">0.05</span></label>
+          <input type="range" id="sl_zi" min="0.01" max="0.2" step="0.01" value="0.05">
         </div>
         <button class="btn-anim" id="btnIso" onclick="toggleIso()">⏸ PAUSE</button>
       </div>
       <div id="isoInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Histogram menunjukkan distribusi sample sinyal yang di-generate dengan target skewness &amp; kurtosis. Garis kuning = mean μ, garis merah = ±σ. Info panel mencetak nilai aktual yang dihitung dari sample.<br>
-        <strong>Coba:</strong> (1) Skew = 0, Kurt = 3 → bell curve simetris klasik (Gaussian). (2) Skew = +1.5 → ekor kanan panjang. (3) Skew = −1.5 → ekor kiri panjang. (4) Kurt = 8 → puncak runcing dengan ekor tebal (leptokurtic — banyak event ekstrem). (5) Kurt = 1.5 → distribusi datar (platykurtic).
+        <strong>📊 Cara Membaca:</strong> Kurva ungu = fungsi non-konveks 1D <code>f(x) = x⁴ − 8x² + 5</code> dengan 2 minimum global di x = ±2 (f = −11) dan 1 maksimum lokal di x = 0 (f = 5). Bulatan kuning = posisi gradient descent saat ini. Bintang kuning = global minimum terdekat dari x₀.<br>
+        <strong>Coba:</strong> (1) x₀ = −2 → konvergen ke x = −2 (global min kiri). (2) x₀ = +2 → konvergen ke x = +2 (global min kanan). (3) x₀ = 0.1 atau −0.1 → bisa konvergen ke salah satu — sensitif terhadap x₀! Pelajaran: <strong>multi-start</strong> wajib untuk non-konveks NLP — coba banyak titik awal random, ambil hasil terbaik. Atau pakai metaheuristik (GA/PSO) di Pertemuan 11.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 4: Bearing Lifetime Trajectory -->
+  <!-- Animasi 4: KKT Visualization & Lagrange Multipliers -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--green)"></div>
-      <span class="anim-title">Animasi 4 — Lifetime Bearing: U-Shape Crest Factor Sepanjang Umur</span>
+      <span class="anim-title">Animasi 4 — KKT Conditions: Constraint Binding &amp; Lagrange Multipliers</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvHPB" height="340"></canvas>
+      <canvas id="cvHPB" height="380"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Posisi Lifetime (0 = baru, 1 = rusak) — <span class="ctrl-val" id="v_rh">0.40</span></label>
-          <input type="range" id="sl_rh" min="0" max="1" step="0.02" value="0.40">
+          <label>Constraint Radius r — <span class="ctrl-val" id="v_rh">1.5</span></label>
+          <input type="range" id="sl_rh" min="0.5" max="3" step="0.05" value="1.5">
         </div>
         <button class="btn-anim" id="btnHPB" onclick="toggleHPB()">⏸ PAUSE</button>
       </div>
       <div id="hpbInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Atas = sinyal vibrasi pada posisi lifetime tertentu (slider). Bawah = trajectory 4 fitur: <strong>RMS</strong> (cyan, monoton naik), <strong>Crest Factor</strong> (amber, U-shape!), <strong>Kurtosis</strong> (violet, U-shape!), <strong>Peak</strong> (pink, naik). Marker bergeser sesuai slider.<br>
-        <strong>Coba:</strong> (1) Posisi 0.0 (baru) → sinyal smooth, RMS rendah, CF ~3. (2) Posisi 0.4 (early fault) → impak singkat muncul, <em>CF dan Kurt melonjak</em> tapi RMS belum naik banyak. (3) Posisi 0.8 (severe) → impak berisik konstan, CF dan Kurt <em>turun lagi</em>, tapi RMS tinggi. Inilah pelajaran kunci: <strong>satu fitur saja tidak cukup; gunakan kombinasi.</strong>
+        <strong>📊 Cara Membaca:</strong> Atas = NLP berkendala <code>min f(x,y) = (x−2)² + (y−1.5)² s.t. x² + y² ≤ r²</code>. Kontur biru = level sets f. Lingkaran amber = boundary kendala (g(x,y) = x²+y²−r² = 0). Bintang kuning = optimum constrained x*. Panah ungu = ∇f, panah amber = ∇g. <strong>KKT condition</strong>: ∇f + μ∇g = 0 → kedua gradient PARALEL di x*. Bawah = bar chart Lagrange multiplier μ (dual variable).<br>
+        <strong>Coba:</strong> (1) r besar (≥ √(2²+1.5²)≈2.5) → constraint INACTIVE (μ = 0), x* = unconstrained optimum (2, 1.5). (2) r kecil (1.0) → constraint ACTIVE (μ &gt; 0), x* di boundary. (3) Pelajaran: μ = sensitivity Z* terhadap r — investasi tambah r 1 unit menurunkan f sebesar μ.
       </div>
     </div>
   </div>
@@ -4041,9 +4041,9 @@ function _savgol(arr, w){
 }
 
 // ════════════════════════════════════════════════════════════
-// ANIMASI 1 — Sinyal Vibrasi Live: Hitung RMS, Peak, Peak-to-Peak
-// (Canvas: cvPhysics, slider: sl_rp/sl_zp; button: btnPhysics)
-// Generate sinyal sinusoidal + noise live, overlay ±RMS dan ±peak
+// ANIMASI 1 — Gradient Descent: Trajectory di Contour 2D (NLP)
+// (Canvas: cvPhysics, slider: sl_rp = α step size, sl_zp = x0)
+// f(x,y) = (x − 1)² + 2(y − 0.5)²  — strictly convex, optimum (1, 0.5)
 // ════════════════════════════════════════════════════════════
 let _physicsAnim = { t: 0, running: true, raf: null };
 
@@ -4051,6 +4051,17 @@ function togglePhysics(){
   _physicsAnim.running = !_physicsAnim.running;
   const btn = document.getElementById('btnPhysics');
   if (btn) btn.textContent = _physicsAnim.running ? '⏸ PAUSE' : '▶ PLAY';
+}
+
+// Helper: draw star marker (defined here for first usage)
+function _drawStarN(ctx, cx, cy, spikes, outerR, innerR){
+  let rot = -Math.PI/2; const step = Math.PI/spikes;
+  ctx.beginPath();
+  for(let i=0;i<spikes;i++){
+    ctx.lineTo(cx+Math.cos(rot)*outerR, cy+Math.sin(rot)*outerR); rot+=step;
+    ctx.lineTo(cx+Math.cos(rot)*innerR, cy+Math.sin(rot)*innerR); rot+=step;
+  }
+  ctx.closePath();
 }
 
 function drawPhysics(){
@@ -4063,80 +4074,111 @@ function drawPhysics(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  // Grid
-  _grid(ctx, 40, 20, W-60, H-60, 20, 6, '#0d1929');
+  // Read sliders
+  const alpha = parseFloat(document.getElementById('sl_rp').value);
+  const x0 = parseFloat(document.getElementById('sl_zp').value);
 
-  // Params from sliders: amplitudo sinusoidal & level noise
-  const sinAmp   = parseFloat(document.getElementById('sl_rp').value);
-  const noiseLvl = parseFloat(document.getElementById('sl_zp').value);
-  const tOff = _physicsAnim.t;
+  // Plot region
+  const padL = 50, padR = 30, padT = 25, padB = 40;
+  const xMin = -3, xMax = 3, yMin = -2, yMax = 2;
+  const wPx = W - padL - padR, hPx = H - padT - padB;
+  const PX = (x) => padL + ((x - xMin) / (xMax - xMin)) * wPx;
+  const PY = (y) => H - padB - ((y - yMin) / (yMax - yMin)) * hPx;
 
-  // Plot area
-  const x0 = 40, y0 = 20, w = W - 60, h = H - 60;
-  const N = 200;
-  const mid = y0 + h/2;
-  const yScale = 50;   // pixels per unit
+  // f(x,y) = (x − 1)² + 2(y − 0.5)²; ∇f = (2(x−1), 4(y−0.5))
+  const f = (x, y) => (x-1)*(x-1) + 2*(y-0.5)*(y-0.5);
+  const grad = (x, y) => [2*(x-1), 4*(y-0.5)];
 
-  // Generate signal samples (deterministic pseudo-noise)
-  const signal = [];
-  for (let i = 0; i < N; i++) {
-    const xt = i + tOff * 10;
-    const sinPart = sinAmp * Math.sin(2*Math.PI*xt/35);
-    const noisePart = noiseLvl * (Math.sin(xt*2.73) * Math.cos(xt*1.91) + Math.sin(xt*5.13)*0.5);
-    signal.push(sinPart + noisePart);
+  // Draw contour lines
+  const levels = [0.2, 0.5, 1.0, 2.0, 4.0, 8.0];
+  ctx.strokeStyle = 'rgba(168,85,247,.5)'; ctx.lineWidth = 1.3;
+  levels.forEach(L => {
+    // Ellipse: (x-1)² + 2(y-0.5)² = L → semi-axis a = √L, b = √(L/2)
+    const a = Math.sqrt(L), b = Math.sqrt(L/2);
+    ctx.beginPath();
+    for(let theta=0; theta<=2*Math.PI+0.01; theta+=0.05){
+      const px = 1 + a*Math.cos(theta);
+      const py = 0.5 + b*Math.sin(theta);
+      if(theta === 0) ctx.moveTo(PX(px), PY(py));
+      else ctx.lineTo(PX(px), PY(py));
+    }
+    ctx.stroke();
+    // Level label
+    ctx.fillStyle = 'rgba(168,85,247,.6)'; ctx.font = '9px JetBrains Mono';
+    ctx.fillText(L.toFixed(1), PX(1+a), PY(0.5));
+  });
+
+  // Run gradient descent from (x0, 0)
+  let xk = x0, yk = 0;
+  const trajectory = [[xk, yk]];
+  for(let k=0; k<60; k++){
+    const [gx, gy] = grad(xk, yk);
+    if (Math.sqrt(gx*gx + gy*gy) < 1e-4) break;
+    xk = xk - alpha * gx;
+    yk = yk - alpha * gy;
+    if (Math.abs(xk) > 5 || Math.abs(yk) > 5) break;  // diverged
+    trajectory.push([xk, yk]);
   }
 
-  // Compute frequency-domain features
-  let sumSq = 0, sumAbs = 0, peak = 0, mn = Infinity, mx = -Infinity;
-  for (let i = 0; i < N; i++) {
-    const v = signal[i];
-    sumSq += v*v; sumAbs += Math.abs(v);
-    if (Math.abs(v) > peak) peak = Math.abs(v);
-    if (v < mn) mn = v;
-    if (v > mx) mx = v;
-  }
-  const rms = Math.sqrt(sumSq / N);
-  const absAvg = sumAbs / N;
-  const pp = mx - mn;
-  const cf = peak / Math.max(rms, 1e-9);
-
-  // Draw signal
-  ctx.strokeStyle = 'rgba(168,85,247,.95)'; ctx.lineWidth = 1.6;
-  ctx.shadowColor = 'rgba(168,85,247,.3)'; ctx.shadowBlur = 4;
+  // Draw trajectory
+  ctx.strokeStyle = 'rgba(14,165,233,.95)'; ctx.lineWidth = 1.8;
+  ctx.shadowColor = 'rgba(14,165,233,.4)'; ctx.shadowBlur = 4;
   ctx.beginPath();
-  for (let i = 0; i < N; i++) {
-    const px = x0 + (i/(N-1)) * w;
-    const py = mid - signal[i] * yScale;
-    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-  }
+  trajectory.forEach(([x,y], i) => {
+    if (i === 0) ctx.moveTo(PX(x), PY(y));
+    else ctx.lineTo(PX(x), PY(y));
+  });
   ctx.stroke();
   ctx.shadowBlur = 0;
 
-  // Overlay ±RMS (cyan dashed)
-  ctx.strokeStyle = 'rgba(14,165,233,.85)'; ctx.lineWidth = 1.5; ctx.setLineDash([6,4]);
-  ctx.beginPath(); ctx.moveTo(x0, mid - rms*yScale); ctx.lineTo(x0+w, mid - rms*yScale); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x0, mid + rms*yScale); ctx.lineTo(x0+w, mid + rms*yScale); ctx.stroke();
+  // Draw iteration markers (small dots)
+  trajectory.forEach(([x,y], i) => {
+    ctx.fillStyle = 'rgba(14,165,233,.9)';
+    const r = (i === 0) ? 6 : 3;
+    ctx.beginPath(); ctx.arc(PX(x), PY(y), r, 0, 2*Math.PI); ctx.fill();
+  });
+  // Label initial
+  ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 10px JetBrains Mono';
+  ctx.fillText('x₀', PX(x0)+8, PY(0)+4);
 
-  // Overlay ±peak (amber)
-  ctx.strokeStyle = 'rgba(249,115,22,.7)'; ctx.lineWidth = 1.2; ctx.setLineDash([3,3]);
-  ctx.beginPath(); ctx.moveTo(x0, mid - peak*yScale); ctx.lineTo(x0+w, mid - peak*yScale); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x0, mid + peak*yScale); ctx.lineTo(x0+w, mid + peak*yScale); ctx.stroke();
-  ctx.setLineDash([]);
+  // Optimum (star)
+  ctx.fillStyle = '#fbbf24';
+  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.2;
+  _drawStarN(ctx, PX(1), PY(0.5), 5, 11, 5);
+  ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 10px JetBrains Mono';
+  ctx.fillText('x* = (1, 0.5)', PX(1)+12, PY(0.5)-10);
 
-  // Legend labels
-  ctx.font = '10px JetBrains Mono';
-  ctx.fillStyle = 'rgba(168,85,247,.95)'; ctx.fillText('● Sinyal vibrasi', x0, y0 - 6);
-  ctx.fillStyle = 'rgba(14,165,233,.95)'; ctx.fillText('--- ±RMS', x0 + 130, y0 - 6);
-  ctx.fillStyle = 'rgba(249,115,22,.85)'; ctx.fillText('··· ±peak', x0 + 200, y0 - 6);
+  // Axes
+  ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(PX(xMin), PY(0)); ctx.lineTo(PX(xMax), PY(0)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(PX(0), PY(yMin)); ctx.lineTo(PX(0), PY(yMax)); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '11px JetBrains Mono';
+  ctx.fillText('x', PX(xMax)+5, PY(0)+4);
+  ctx.fillText('y', PX(0)-15, PY(yMax)+10);
 
-  // Update slider display
-  const v1 = document.getElementById('v_rp'); if(v1) v1.textContent = sinAmp.toFixed(2);
-  const v2 = document.getElementById('v_zp'); if(v2) v2.textContent = noiseLvl.toFixed(2);
+  // Title
+  ctx.fillStyle = 'rgba(14,165,233,.95)'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText('f(x,y) = (x−1)² + 2(y−0.5)²  · α=' + alpha.toFixed(2) + ', x₀=' + x0.toFixed(1), padL, padT-8);
 
-  // Info panel: numeric features
+  // Update slider displays
+  document.getElementById('v_rp').textContent = alpha.toFixed(2);
+  document.getElementById('v_zp').textContent = x0.toFixed(1);
+
+  // Info panel
+  const finalPt = trajectory[trajectory.length-1];
+  const fFinal = f(finalPt[0], finalPt[1]);
+  const [gx, gy] = grad(finalPt[0], finalPt[1]);
+  const gradNorm = Math.sqrt(gx*gx + gy*gy);
+  const converged = gradNorm < 0.05;
+  const diverged = Math.abs(finalPt[0]) > 4 || Math.abs(finalPt[1]) > 4;
   const info = document.getElementById('physicsInfo');
   if (info) {
-    info.innerHTML = `RMS=<strong>${rms.toFixed(3)}</strong> &nbsp;·&nbsp; Peak=<strong>${peak.toFixed(3)}</strong> &nbsp;·&nbsp; PP=<strong>${pp.toFixed(3)}</strong> &nbsp;·&nbsp; |x|<sub>avg</sub>=${absAvg.toFixed(3)} &nbsp;·&nbsp; CF=<strong>${cf.toFixed(2)}</strong>`;
+    let status;
+    if (diverged) status = '🔴 DIVERGEN — α terlalu besar, kurangi step size!';
+    else if (converged) status = `🟢 KONVERGEN dalam ${trajectory.length-1} iter`;
+    else status = `🟡 Belum konvergen (60 iter limit, ‖∇f‖=${gradNorm.toFixed(3)})`;
+    info.innerHTML = `Iter: <strong>${trajectory.length-1}</strong> · x_final = (${finalPt[0].toFixed(3)}, ${finalPt[1].toFixed(3)}) · f = <strong>${fFinal.toFixed(4)}</strong> · ‖∇f‖ = ${gradNorm.toFixed(3)} · ${status}`;
   }
 }
 
@@ -4152,10 +4194,10 @@ setTimeout(_physicsTick, 500);
 
 
 // ════════════════════════════════════════════════════════════
-// ANIMASI 2 — Injeksi Impak: CF & Kurtosis Melonjak
-// (Canvas: cvSweep, slider: sl_rs/sl_zs; button: btnSweep)
-// Sinyal noise Gaussian dengan impak transient periodik
-// Hitung CF dan Kurtosis live, tampilkan di info panel
+// ANIMASI 2 — Newton vs Steepest Descent (NLP)
+// (Canvas: cvSweep, slider: sl_rs = condition number κ, sl_zs = max iter)
+// f(x,y) = x² + κ·y²  — quadratic, optimum (0, 0)
+// SD = zigzag pada elongated ellipses; Newton = 1 langkah ke optimum
 // ════════════════════════════════════════════════════════════
 let _sweepAnim = { t: 0, running: true, raf: null };
 
@@ -4170,95 +4212,141 @@ function drawSweep(){
   const W = cv.clientWidth; cv.width = W; const H = cv.height;
   const ctx = cv.getContext('2d');
 
+  // Background
   const bg = ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const impactFreq = parseFloat(document.getElementById('sl_rs').value);   // 0..10 per detik
-  const impactAmp  = parseFloat(document.getElementById('sl_zs').value);   // 0..8
-  const tOff = _sweepAnim.t;
+  // Read sliders
+  const kappa = parseFloat(document.getElementById('sl_rs').value);
+  const maxIter = Math.round(parseFloat(document.getElementById('sl_zs').value));
 
-  // Plot area
-  const x0 = 40, y0 = 30, w = W - 60, h = H - 60;
-  const mid = y0 + h/2;
-  const N = 300;
-  const yScale = 25;
+  // Plot region
+  const padL = 50, padR = 30, padT = 25, padB = 40;
+  const xMin = -2.5, xMax = 2.5, yMin = -1.5, yMax = 1.5;
+  const wPx = W - padL - padR, hPx = H - padT - padB;
+  const PX = (x) => padL + ((x - xMin) / (xMax - xMin)) * wPx;
+  const PY = (y) => H - padB - ((y - yMin) / (yMax - yMin)) * hPx;
 
-  // Generate signal: noise + periodic impacts
-  const signal = [];
-  const period = impactFreq > 0.01 ? Math.floor(N / impactFreq) : N + 1;
-  for (let i = 0; i < N; i++) {
-    const xt = i + tOff * 12;
-    // Gaussian-like noise (deterministic from sin combos)
-    let noise = 0.6 * (Math.sin(xt * 2.71) + Math.sin(xt * 1.13) * 0.7 + Math.sin(xt * 4.31) * 0.4);
-    // Periodic impact: spike + decay
-    const phase = Math.floor(i + tOff * 12) % Math.max(period, 1);
-    let impact = 0;
-    if (phase < 6 && impactFreq > 0.01) {
-      impact = impactAmp * Math.exp(-phase * 0.4) * Math.sin(phase * 1.2);
+  // f(x,y) = x² + κy²; ∇f = (2x, 2κy); H = diag(2, 2κ)
+  const f = (x, y) => x*x + kappa*y*y;
+  const grad = (x, y) => [2*x, 2*kappa*y];
+  // Optimal step size for SD: α* = (gᵀg)/(gᵀHg) — exact line search
+
+  // Draw contour lines (axis-aligned ellipses)
+  const levels = [0.05, 0.2, 0.5, 1.0, 2.0, 4.0];
+  ctx.strokeStyle = 'rgba(168,85,247,.4)'; ctx.lineWidth = 1.2;
+  levels.forEach(L => {
+    const a = Math.sqrt(L), b = Math.sqrt(L/kappa);
+    ctx.beginPath();
+    for(let theta=0; theta<=2*Math.PI+0.01; theta+=0.04){
+      const px = a*Math.cos(theta);
+      const py = b*Math.sin(theta);
+      if(theta === 0) ctx.moveTo(PX(px), PY(py));
+      else ctx.lineTo(PX(px), PY(py));
     }
-    signal.push(noise + impact);
+    ctx.stroke();
+  });
+
+  // Initial point: start far on long axis (worst case for SD)
+  const startX = 2, startY = 1;
+
+  // === Steepest Descent with exact line search ===
+  let x_sd = startX, y_sd = startY;
+  const traj_sd = [[x_sd, y_sd]];
+  for(let k=0; k<maxIter; k++){
+    const [gx, gy] = grad(x_sd, y_sd);
+    const gNorm = Math.sqrt(gx*gx + gy*gy);
+    if (gNorm < 1e-5) break;
+    // Exact line search: α* = (gᵀg) / (gᵀHg) where H = diag(2, 2κ)
+    // g·g = gx² + gy²; g·H·g = 2gx² + 2κgy²
+    const num = gx*gx + gy*gy;
+    const den = 2*gx*gx + 2*kappa*gy*gy;
+    const alpha = num / Math.max(den, 1e-9);
+    x_sd = x_sd - alpha * gx;
+    y_sd = y_sd - alpha * gy;
+    traj_sd.push([x_sd, y_sd]);
+    if (Math.abs(x_sd) < 1e-4 && Math.abs(y_sd) < 1e-4) break;
   }
 
-  // Compute features
-  let sumSq = 0, sumAbs = 0, peak = 0, sum = 0;
-  for (let i = 0; i < N; i++) {
-    const v = signal[i];
-    sumSq += v*v; sumAbs += Math.abs(v); sum += v;
-    if (Math.abs(v) > peak) peak = Math.abs(v);
+  // === Newton's Method ===
+  let x_nt = startX, y_nt = startY;
+  const traj_nt = [[x_nt, y_nt]];
+  for(let k=0; k<maxIter; k++){
+    const [gx, gy] = grad(x_nt, y_nt);
+    if (Math.sqrt(gx*gx + gy*gy) < 1e-5) break;
+    // Newton: d = -H^{-1} g, with H = diag(2, 2κ): d = -(gx/2, gy/(2κ))
+    x_nt = x_nt - gx / 2;
+    y_nt = y_nt - gy / (2 * kappa);
+    traj_nt.push([x_nt, y_nt]);
   }
-  const mean = sum / N;
-  const rms = Math.sqrt(sumSq / N);
-  // Kurtosis (plain, fisher=False)
-  let m4 = 0, m2 = 0;
-  for (let i = 0; i < N; i++) {
-    const d = signal[i] - mean;
-    m2 += d*d;
-    m4 += d*d*d*d;
-  }
-  m2 /= N; m4 /= N;
-  const kurt = m2 > 1e-9 ? m4 / (m2*m2) : 0;
-  const cf = peak / Math.max(rms, 1e-9);
 
-  // Grid
-  _grid(ctx, x0, y0, w, h, 20, 6, '#0d1929');
-
-  // Draw signal
-  ctx.strokeStyle = 'rgba(168,85,247,.9)'; ctx.lineWidth = 1.4;
+  // Draw SD trajectory (amber, zigzag)
+  ctx.strokeStyle = 'rgba(249,115,22,.9)'; ctx.lineWidth = 1.8;
+  ctx.shadowColor = 'rgba(249,115,22,.4)'; ctx.shadowBlur = 4;
   ctx.beginPath();
-  for (let i = 0; i < N; i++) {
-    const px = x0 + (i/(N-1)) * w;
-    const py = mid - signal[i] * yScale;
-    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-  }
+  traj_sd.forEach(([x,y], i) => {
+    if (i === 0) ctx.moveTo(PX(x), PY(y));
+    else ctx.lineTo(PX(x), PY(y));
+  });
   ctx.stroke();
+  ctx.shadowBlur = 0;
+  // SD markers
+  traj_sd.forEach(([x,y], i) => {
+    ctx.fillStyle = 'rgba(249,115,22,.85)';
+    ctx.beginPath(); ctx.arc(PX(x), PY(y), i === 0 ? 5 : 2.5, 0, 2*Math.PI); ctx.fill();
+  });
 
-  // Mark zero line + ±RMS
-  ctx.strokeStyle = 'rgba(148,163,184,.3)'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
-  ctx.beginPath(); ctx.moveTo(x0, mid); ctx.lineTo(x0+w, mid); ctx.stroke();
-  ctx.strokeStyle = 'rgba(14,165,233,.6)';
-  ctx.beginPath(); ctx.moveTo(x0, mid - rms*yScale); ctx.lineTo(x0+w, mid - rms*yScale); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x0, mid + rms*yScale); ctx.lineTo(x0+w, mid + rms*yScale); ctx.stroke();
-  ctx.setLineDash([]);
+  // Draw Newton trajectory (pink, direct)
+  ctx.strokeStyle = 'rgba(255,64,129,.95)'; ctx.lineWidth = 2.2;
+  ctx.shadowColor = 'rgba(255,64,129,.5)'; ctx.shadowBlur = 5;
+  ctx.beginPath();
+  traj_nt.forEach(([x,y], i) => {
+    if (i === 0) ctx.moveTo(PX(x), PY(y));
+    else ctx.lineTo(PX(x), PY(y));
+  });
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+  // Newton markers
+  traj_nt.forEach(([x,y], i) => {
+    ctx.fillStyle = 'rgba(255,64,129,.9)';
+    ctx.beginPath(); ctx.arc(PX(x), PY(y), i === 0 ? 5 : 4, 0, 2*Math.PI); ctx.fill();
+  });
 
-  // Labels
-  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText(`Impak: ${impactFreq.toFixed(1)}/det × A=${impactAmp.toFixed(1)}`, x0, y0 - 8);
+  // Optimum (star)
+  ctx.fillStyle = '#fbbf24';
+  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.2;
+  _drawStarN(ctx, PX(0), PY(0), 5, 11, 5);
+  ctx.fill(); ctx.stroke();
+
+  // Axes
+  ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(PX(xMin), PY(0)); ctx.lineTo(PX(xMax), PY(0)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(PX(0), PY(yMin)); ctx.lineTo(PX(0), PY(yMax)); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '11px JetBrains Mono';
+  ctx.fillText('x', PX(xMax)+5, PY(0)+4);
+  ctx.fillText('y', PX(0)-15, PY(yMax)+10);
+
+  // Title
+  ctx.fillStyle = 'rgba(249,115,22,.95)'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText(`f(x,y) = x² + ${kappa.toFixed(1)}·y²  (κ = ${kappa.toFixed(1)})`, padL, padT-8);
+
+  // Legend
+  ctx.font = '10px JetBrains Mono';
+  ctx.fillStyle = 'rgba(249,115,22,.95)'; ctx.fillText(`● SD: ${traj_sd.length-1} iter`, PX(xMin)+5, PY(yMax)+22);
+  ctx.fillStyle = 'rgba(255,64,129,.95)'; ctx.fillText(`● Newton: ${traj_nt.length-1} iter`, PX(xMin)+5, PY(yMax)+34);
 
   // Update slider displays
-  const v1 = document.getElementById('v_rs'); if(v1) v1.textContent = impactFreq.toFixed(2);
-  const v2 = document.getElementById('v_zs'); if(v2) v2.textContent = impactAmp.toFixed(2);
+  document.getElementById('v_rs').textContent = kappa.toFixed(1);
+  document.getElementById('v_zs').textContent = maxIter;
 
-  // Info: CF & Kurtosis with color coding
+  // Info panel
   const info = document.getElementById('sweepInfo');
   if (info) {
-    const kurtCol = kurt > 5 ? '#ef4444' : (kurt > 4 ? '#f97316' : '#0ea5e9');
-    const cfCol   = cf > 5 ? '#ef4444' : (cf > 4 ? '#f97316' : '#0ea5e9');
-    let verdict;
-    if (kurt > 5 || cf > 5) verdict = '🔴 EARLY FAULT — impak transient terdeteksi';
-    else if (kurt > 4 || cf > 4) verdict = '🟡 WARNING — impulsivitas naik';
-    else verdict = '🟢 NORMAL — Gaussian noise dominan';
-    info.innerHTML = `RMS=<strong>${rms.toFixed(2)}</strong> · Peak=<strong>${peak.toFixed(2)}</strong> · <strong style="color:${cfCol}">CF=${cf.toFixed(2)}</strong> · <strong style="color:${kurtCol}">Kurt=${kurt.toFixed(2)}</strong> · ${verdict}`;
+    const speedup = traj_nt.length > 1 ? ((traj_sd.length-1) / Math.max(traj_nt.length-1, 1)).toFixed(1) : '∞';
+    const conv_sd = Math.sqrt(x_sd*x_sd + y_sd*y_sd);
+    const conv_nt = Math.sqrt(x_nt*x_nt + y_nt*y_nt);
+    info.innerHTML = `κ=<strong>${kappa.toFixed(1)}</strong> · SD: <strong>${traj_sd.length-1}</strong> iter (final ‖x‖=${conv_sd.toExponential(2)}) · Newton: <strong>${traj_nt.length-1}</strong> iter (‖x‖=${conv_nt.toExponential(2)}) · Speedup Newton: <strong>${speedup}×</strong>`;
   }
 }
 
@@ -4274,9 +4362,9 @@ setTimeout(_sweepTick, 600);
 
 
 // ════════════════════════════════════════════════════════════
-// ANIMASI 3 — Histogram Distribusi: Skewness & Kurtosis Bekerja
-// (Canvas: cvIso, slider: sl_ri/sl_zi; button: btnIso)
-// Generate sample dengan target skewness & kurtosis, render histogram
+// ANIMASI 3 — Multi-Modal Landscape: Lokal vs Global Min (NLP)
+// (Canvas: cvIso, slider: sl_ri = x0, sl_zi = α step size)
+// f(x) = x⁴ − 8x² + 5  — non-konveks, dual minima di x = ±2 (f = -11)
 // ════════════════════════════════════════════════════════════
 let _isoAnim = { t: 0, running: true, raf: null };
 
@@ -4291,118 +4379,140 @@ function drawIso(){
   const W = cv.clientWidth; cv.width = W; const H = cv.height;
   const ctx = cv.getContext('2d');
 
+  // Background
   const bg = ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const skewTarget = parseFloat(document.getElementById('sl_ri').value);
-  const kurtTarget = parseFloat(document.getElementById('sl_zi').value);
-  const tOff = _isoAnim.t;
+  // Read sliders
+  const x0 = parseFloat(document.getElementById('sl_ri').value);
+  const alpha = parseFloat(document.getElementById('sl_zi').value);
 
-  // Plot area
-  const x0 = 50, y0 = 30, w = W - x0 - 30, h = H - 70;
-  const baseY = y0 + h;
+  // Plot region
+  const padL = 60, padR = 40, padT = 30, padB = 50;
+  const xMin = -3.5, xMax = 3.5, yMin = -15, yMax = 25;
+  const wPx = W - padL - padR, hPx = H - padT - padB;
+  const PX = (x) => padL + ((x - xMin) / (xMax - xMin)) * wPx;
+  const PY = (y) => H - padB - ((y - yMin) / (yMax - yMin)) * hPx;
 
-  // Generate samples: mix of Gaussian + skewed exponential + heavy-tail Cauchy-ish
-  // Simple approach: warp a deterministic sin-based sample
-  const N = 800;
-  const samples = [];
-  for (let i = 0; i < N; i++) {
-    const xt = (i + tOff * 8) * 0.1;
-    // Multiple harmonics ~ Gaussian shape
-    let v = Math.sin(xt) + Math.sin(xt * 1.7) * 0.6 + Math.sin(xt * 2.3) * 0.4 + Math.sin(xt * 3.1) * 0.3;
-    v *= 0.5;   // baseline std around 0.7
-    // Apply skew warp: shift mean, asymmetric scaling
-    if (skewTarget > 0) v = v + skewTarget * 0.5 * (v > 0 ? v*v : 0);
-    else if (skewTarget < 0) v = v + skewTarget * 0.5 * (v < 0 ? v*v : 0);
-    // Apply kurtosis warp: amplify extremes
-    const kurtScale = (kurtTarget - 3) * 0.15;
-    if (kurtScale > 0) v = v + Math.sign(v) * kurtScale * v*v;
-    samples.push(v);
-  }
-
-  // Compute stats
-  let sum = 0, sumSq = 0;
-  for (const v of samples) { sum += v; sumSq += v*v; }
-  const mean = sum / N;
-  const variance = sumSq / N - mean*mean;
-  const std = Math.sqrt(Math.max(variance, 1e-9));
-
-  // Skewness & Kurtosis (plain)
-  let m3 = 0, m4 = 0;
-  for (const v of samples) {
-    const d = v - mean;
-    m3 += d*d*d;
-    m4 += d*d*d*d;
-  }
-  m3 /= N; m4 /= N;
-  const skew = m3 / Math.pow(std, 3);
-  const kurt = m4 / Math.pow(std, 4);
-
-  // Build histogram (40 bins)
-  const minV = -4, maxV = 4;
-  const nBins = 40;
-  const binWidth = (maxV - minV) / nBins;
-  const bins = new Array(nBins).fill(0);
-  for (const v of samples) {
-    if (v < minV || v > maxV) continue;
-    const idx = Math.min(nBins-1, Math.floor((v - minV) / binWidth));
-    bins[idx]++;
-  }
-  const maxBin = Math.max(...bins);
+  // f(x) = x^4 − 8x² + 5; f'(x) = 4x³ − 16x = 4x(x² − 4)
+  const f = (x) => x*x*x*x - 8*x*x + 5;
+  const fp = (x) => 4*x*x*x - 16*x;
 
   // Grid
-  _grid(ctx, x0, y0, w, h, 8, 5, '#0d1929');
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let x = -3; x <= 3; x++){ ctx.beginPath(); ctx.moveTo(PX(x), PY(yMin)); ctx.lineTo(PX(x), PY(yMax)); ctx.stroke(); }
+  for(let y = -10; y <= 25; y += 5){ ctx.beginPath(); ctx.moveTo(PX(xMin), PY(y)); ctx.lineTo(PX(xMax), PY(y)); ctx.stroke(); }
 
-  // Draw histogram bars
-  const barW = w / nBins;
-  for (let i = 0; i < nBins; i++) {
-    const bh = (bins[i] / Math.max(maxBin, 1)) * (h - 10);
-    const px = x0 + i * barW;
-    const py = baseY - bh;
-    const grad = ctx.createLinearGradient(px, py, px, baseY);
-    grad.addColorStop(0, 'rgba(168,85,247,.95)');
-    grad.addColorStop(1, 'rgba(168,85,247,.4)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(px+0.5, py, barW-1, bh);
+  // Draw f(x) curve
+  ctx.strokeStyle = 'rgba(168,85,247,.95)'; ctx.lineWidth = 2.4;
+  ctx.shadowColor = 'rgba(168,85,247,.3)'; ctx.shadowBlur = 4;
+  ctx.beginPath();
+  for(let xi = xMin; xi <= xMax; xi += 0.05){
+    const yi = f(xi);
+    if (xi === xMin) ctx.moveTo(PX(xi), PY(yi));
+    else ctx.lineTo(PX(xi), PY(yi));
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Mark optimum points: x = ±2 (global minima), x = 0 (local max)
+  const optima = [
+    { x: -2, label: 'global min (left)', isGlobal: true },
+    { x: 2, label: 'global min (right)', isGlobal: true },
+    { x: 0, label: 'local MAX', isGlobal: false }
+  ];
+  optima.forEach(o => {
+    const yo = f(o.x);
+    if (o.isGlobal) {
+      ctx.fillStyle = '#fbbf24';
+      ctx.strokeStyle = '#000'; ctx.lineWidth = 1.2;
+      _drawStarN(ctx, PX(o.x), PY(yo), 5, 10, 5);
+      ctx.fill(); ctx.stroke();
+    } else {
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath(); ctx.arc(PX(o.x), PY(yo), 5, 0, 2*Math.PI); ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
+    }
+    ctx.fillStyle = o.isGlobal ? '#fbbf24' : '#ef4444';
+    ctx.font = 'bold 9px JetBrains Mono';
+    ctx.fillText(`x=${o.x}, f=${yo.toFixed(0)}`, PX(o.x)+8, PY(yo)+(o.isGlobal ? 14 : -10));
+  });
+
+  // Run gradient descent from x0
+  let xk = x0;
+  const trajectory = [xk];
+  for(let k=0; k<80; k++){
+    const g = fp(xk);
+    if (Math.abs(g) < 1e-4) break;
+    xk = xk - alpha * g;
+    if (Math.abs(xk) > 4) break;
+    trajectory.push(xk);
   }
 
-  // Mean line (yellow)
-  const meanX = x0 + ((mean - minV) / (maxV - minV)) * w;
-  ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2; ctx.setLineDash([6,4]);
-  ctx.beginPath(); ctx.moveTo(meanX, y0); ctx.lineTo(meanX, baseY); ctx.stroke();
-  ctx.fillStyle = '#facc15'; ctx.font = '10px JetBrains Mono';
-  ctx.fillText('μ', meanX + 3, y0 + 12);
+  // Draw trajectory: vertical bars descending
+  const animPhase = Math.min(1, _isoAnim.t * 0.3 / Math.max(trajectory.length, 1));
+  const showSteps = Math.floor(animPhase * trajectory.length);
 
-  // ±σ lines (red)
-  ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 1.5;
-  const sigP = x0 + ((mean + std - minV) / (maxV - minV)) * w;
-  const sigN = x0 + ((mean - std - minV) / (maxV - minV)) * w;
-  ctx.beginPath(); ctx.moveTo(sigP, y0); ctx.lineTo(sigP, baseY); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(sigN, y0); ctx.lineTo(sigN, baseY); ctx.stroke();
+  // Connect trajectory points with gradient descent path
+  ctx.strokeStyle = 'rgba(14,165,233,.85)'; ctx.lineWidth = 1.6; ctx.setLineDash([4,3]);
+  ctx.beginPath();
+  trajectory.slice(0, Math.max(showSteps, 1)).forEach((xi, i) => {
+    if (i === 0) ctx.moveTo(PX(xi), PY(f(xi)));
+    else ctx.lineTo(PX(xi), PY(f(xi)));
+  });
+  ctx.stroke();
   ctx.setLineDash([]);
-  ctx.fillStyle = '#ef4444';
-  ctx.fillText('+σ', sigP + 3, y0 + 12);
-  ctx.fillText('−σ', sigN - 25, y0 + 12);
 
-  // Axis labels
-  ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
-  ctx.fillText('Histogram Sample (N=' + N + ')', x0, y0 - 8);
+  // Markers along trajectory
+  trajectory.slice(0, Math.max(showSteps, 1)).forEach((xi, i) => {
+    const yi = f(xi);
+    ctx.fillStyle = i === 0 ? '#0ea5e9' : 'rgba(14,165,233,.7)';
+    const r = i === 0 ? 6 : 3;
+    ctx.beginPath(); ctx.arc(PX(xi), PY(yi), r, 0, 2*Math.PI); ctx.fill();
+  });
+  // Initial label
+  ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 10px JetBrains Mono';
+  ctx.fillText('x₀', PX(x0)+8, PY(f(x0))-6);
 
-  // Sliders display
-  document.getElementById('v_ri').textContent = skewTarget.toFixed(2);
-  document.getElementById('v_zi').textContent = kurtTarget.toFixed(2);
+  // Current marker (pulse)
+  const finalX = trajectory[Math.max(showSteps-1, 0)];
+  const pulse = 1 + 0.2*Math.sin(_isoAnim.t * 4);
+  ctx.fillStyle = '#fbbf24';
+  ctx.beginPath(); ctx.arc(PX(finalX), PY(f(finalX)), 6*pulse, 0, 2*Math.PI); ctx.fill();
+  ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.stroke();
 
-  // Info
+  // Axes
+  ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(PX(xMin), PY(0)); ctx.lineTo(PX(xMax), PY(0)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(PX(0), PY(yMin)); ctx.lineTo(PX(0), PY(yMax)); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '11px JetBrains Mono';
+  ctx.fillText('x', PX(xMax)+5, PY(0)+4);
+  ctx.fillText('f(x)', PX(0)-30, PY(yMax)+10);
+
+  // Tick labels
+  ctx.font = '9px JetBrains Mono'; ctx.fillStyle = 'rgba(255,255,255,.5)';
+  for(let x = -3; x <= 3; x++) if (x !== 0) ctx.fillText(x, PX(x)-5, PY(0)+14);
+  for(let y = -10; y <= 25; y += 10) if (y !== 0) ctx.fillText(y, PX(0)-22, PY(y)+4);
+
+  // Title
+  ctx.fillStyle = 'rgba(168,85,247,.95)'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText('f(x) = x⁴ − 8x² + 5  (non-konveks)', padL, padT-10);
+
+  // Update slider displays
+  document.getElementById('v_ri').textContent = x0.toFixed(1);
+  document.getElementById('v_zi').textContent = alpha.toFixed(2);
+
+  // Info panel
   const info = document.getElementById('isoInfo');
   if (info) {
-    let interp;
-    if (Math.abs(skew) < 0.3 && Math.abs(kurt - 3) < 0.5) interp = '🔵 Distribusi Gaussian-like';
-    else if (kurt > 5) interp = '🔴 Leptokurtic (ekor tebal — banyak event ekstrem)';
-    else if (kurt < 2.5) interp = '🟡 Platykurtic (datar — distribusi seragam)';
-    else if (Math.abs(skew) > 1) interp = '🟠 Asimetris (skew ' + (skew > 0 ? '+' : '') + skew.toFixed(2) + ')';
-    else interp = '🟢 Mirip normal';
-    info.innerHTML = `μ=<strong>${mean.toFixed(2)}</strong> · σ=<strong>${std.toFixed(2)}</strong> · <strong>Skew=${skew.toFixed(2)}</strong> · <strong>Kurt=${kurt.toFixed(2)}</strong> · ${interp}`;
+    const finalF = f(finalX);
+    let conv;
+    if (Math.abs(finalX - 2) < 0.1) conv = '🟢 Global min KANAN (x = 2, f = -11)';
+    else if (Math.abs(finalX + 2) < 0.1) conv = '🟢 Global min KIRI (x = -2, f = -11)';
+    else if (Math.abs(finalX) < 0.1) conv = '🔴 STUCK di local MAX (saddle-like)!';
+    else conv = `🟡 Belum konvergen (x=${finalX.toFixed(2)})`;
+    info.innerHTML = `x₀=<strong>${x0.toFixed(1)}</strong>, α=${alpha.toFixed(2)} · ${trajectory.length-1} iter · x_final=<strong>${finalX.toFixed(3)}</strong>, f=<strong>${finalF.toFixed(2)}</strong> · ${conv}`;
   }
 }
 
@@ -4412,17 +4522,18 @@ function _isoTick(){
   _isoAnim.raf = requestAnimationFrame(_isoTick);
 }
 (function(){
-  ['sl_ri','sl_zi'].forEach(id=>{const s=document.getElementById(id); if(s) s.addEventListener('input', drawIso);});
+  ['sl_ri','sl_zi'].forEach(id=>{const s=document.getElementById(id); if(s) s.addEventListener('input', () => { _isoAnim.t = 0; drawIso(); });});
 })();
 setTimeout(_isoTick, 700);
 
 
 
 // ════════════════════════════════════════════════════════════
-// ANIMASI 4 — Bearing Lifetime Trajectory: U-shape Crest Factor & Kurtosis
-// (Canvas: cvHPB, slider: sl_rh; button: btnHPB)
-// Atas: sinyal vibrasi pada posisi lifetime tertentu (slider)
-// Bawah: trajectory RMS (cyan, monotonic), CF (amber, U-shape), Kurt (violet, U-shape), Peak (pink)
+// ANIMASI 4 — KKT Conditions: Constraint Binding & Lagrange Multipliers (NLP)
+// (Canvas: cvHPB, slider: sl_rh = constraint radius r)
+// min f(x,y) = (x−2)² + (y−1.5)²  s.t. g(x,y) = x² + y² − r² ≤ 0
+// Atas: contour f + circle constraint, gradient ∇f & ∇g paralel di x*
+// Bawah: bar chart Lagrange multiplier μ
 // ════════════════════════════════════════════════════════════
 let _hpbAnim = { t: 0, running: true, raf: null };
 
@@ -4437,166 +4548,194 @@ function drawHPB(){
   const W = cv.clientWidth; cv.width = W; const H = cv.height;
   const ctx = cv.getContext('2d');
 
+  // Background
   const bg = ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const tOff = _hpbAnim.t;
-  const padX = 50;
-  const slLP = document.getElementById('sl_rh');
-  const lifeProgress = slLP ? parseFloat(slLP.value) : 0.4;
+  // Read slider
+  const r = parseFloat(document.getElementById('sl_rh').value);
 
-  // Layout: top panel (vibration signal), bottom panel (trajectory plot)
-  const topH = (H - 60) * 0.4;
-  const botH = (H - 60) * 0.6;
-  const topY = 20;
-  const botY = topY + topH + 20;
-  const plotW = W - padX - 30;
+  // Layout: top = contour + constraint, bottom = multiplier bar
+  const topY = 25, topH = H * 0.7;
+  const botY = topY + topH + 20, botH = H - botY - 30;
 
-  // Generate signal at current life progress
-  const N = 250;
-  const noiseLvl = 0.4 * (1 + 2 * lifeProgress);
-  // Number and amplitude of impacts grows with progress
-  const nImpacts = Math.floor(50 * lifeProgress);
-  const impactAmp = 1.5 + 3 * lifeProgress;
+  // === TOP: 2D contour + constraint ===
+  const padL = 50, padR = 30, padT = 0;
+  const xMin = -3, xMax = 4, yMin = -2.5, yMax = 3;
+  const wPx = W - padL - padR, plotH = topH;
+  const PX = (x) => padL + ((x - xMin) / (xMax - xMin)) * wPx;
+  const PY = (y) => topY + plotH - ((y - yMin) / (yMax - yMin)) * plotH;
 
-  const sig = [];
-  for (let i = 0; i < N; i++) {
-    const xt = i + tOff * 8;
-    let v = 1.0 * Math.sin(xt * 0.4) + 0.3 * Math.sin(xt * 0.8);
-    v += noiseLvl * (Math.sin(xt * 2.71) + Math.sin(xt * 4.13) * 0.6);
-    sig.push(v);
-  }
-  // Inject impacts at deterministic positions (based on lifeProgress)
-  for (let k = 0; k < nImpacts; k++) {
-    const idx = Math.floor((k * 7919) % (N - 6));
-    const decayMag = impactAmp * (0.5 + 0.5 * Math.sin(k * 1.7));
-    for (let j = 0; j < 6; j++) {
-      if (idx + j < N) sig[idx + j] += decayMag * Math.exp(-j * 0.5) * Math.sin(j * 1.2);
-    }
+  // f(x,y) = (x−2)² + (y−1.5)²; ∇f = (2(x−2), 2(y−1.5))
+  // g(x,y) = x²+y² − r² ≤ 0; ∇g = (2x, 2y)
+  // KKT: ∇f + μ∇g = 0 → at optimum, gradients parallel
+
+  // Find optimum (analytic — projection of (2, 1.5) onto disk of radius r)
+  const u_unconstr = [2, 1.5];
+  const u_norm = Math.sqrt(u_unconstr[0]*u_unconstr[0] + u_unconstr[1]*u_unconstr[1]);
+  let optV, mu;
+  if (u_norm <= r) {
+    // Constraint inactive: optimum at unconstrained point
+    optV = u_unconstr.slice();
+    mu = 0;
+  } else {
+    // Constraint active: project to boundary
+    optV = [u_unconstr[0] / u_norm * r, u_unconstr[1] / u_norm * r];
+    // From KKT: ∇f = −μ·∇g → 2(x*−2) = −μ·2x* → μ = (2 − x*)/x*
+    mu = (u_unconstr[0] - optV[0]) / optV[0];
   }
 
-  // Compute features
-  let sumSq = 0, peak = 0, sum = 0;
-  for (let i = 0; i < N; i++) {
-    sumSq += sig[i] * sig[i];
-    if (Math.abs(sig[i]) > peak) peak = Math.abs(sig[i]);
-    sum += sig[i];
-  }
-  const mean = sum / N;
-  const rms = Math.sqrt(sumSq / N);
-  let m4 = 0, m2 = 0;
-  for (let i = 0; i < N; i++) {
-    const d = sig[i] - mean;
-    m2 += d*d; m4 += d*d*d*d;
-  }
-  m2 /= N; m4 /= N;
-  const kurt = m2 > 1e-9 ? m4 / (m2*m2) : 0;
-  const cf = peak / Math.max(rms, 1e-9);
-
-  // TOP: signal plot
-  _grid(ctx, padX, topY, plotW, topH, 20, 4, '#0d1929');
-  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText(`Sinyal Vibrasi @ Lifetime ${(lifeProgress*100).toFixed(0)}%`, padX, topY - 4);
-  const sigYScale = topH * 0.35 / Math.max(peak, 1);
-  ctx.strokeStyle = 'rgba(168,85,247,.9)'; ctx.lineWidth = 1.2;
-  ctx.beginPath();
-  for (let i = 0; i < N; i++) {
-    const px = padX + (i/(N-1)) * plotW;
-    const py = topY + topH/2 - sig[i] * sigYScale;
-    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-  }
-  ctx.stroke();
-
-  // BOTTOM: trajectory plot — RMS, CF, Kurtosis, Peak across lifetime [0..1]
-  _grid(ctx, padX, botY, plotW, botH, 10, 4, '#0d1929');
-  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText('Trajectory Lifetime: RMS, CF, Kurtosis, Peak', padX, botY - 4);
-
-  // Compute trajectory across lifetime points
-  const nPoints = 50;
-  const traj_rms = [], traj_cf = [], traj_kurt = [], traj_peak = [];
-  for (let p = 0; p < nPoints; p++) {
-    const prog = p / (nPoints - 1);
-    const noi = 0.4 * (1 + 2 * prog);
-    const nImp = Math.floor(50 * prog);
-    const ampImp = 1.5 + 3 * prog;
-    let lsumSq = 0, lpeak = 0, lsum = 0;
-    const lsig = new Array(N);
-    for (let i = 0; i < N; i++) {
-      let v = 1.0 * Math.sin(i * 0.4) + 0.3 * Math.sin(i * 0.8);
-      v += noi * (Math.sin(i * 2.71) + Math.sin(i * 4.13) * 0.6);
-      lsig[i] = v;
-    }
-    for (let k = 0; k < nImp; k++) {
-      const idx = Math.floor((k * 7919) % (N - 6));
-      const decayMag = ampImp * (0.5 + 0.5 * Math.sin(k * 1.7));
-      for (let j = 0; j < 6; j++) {
-        if (idx + j < N) lsig[idx + j] += decayMag * Math.exp(-j * 0.5) * Math.sin(j * 1.2);
-      }
-    }
-    for (let i = 0; i < N; i++) {
-      lsumSq += lsig[i] * lsig[i];
-      if (Math.abs(lsig[i]) > lpeak) lpeak = Math.abs(lsig[i]);
-      lsum += lsig[i];
-    }
-    const lmean = lsum / N;
-    const lrms = Math.sqrt(lsumSq / N);
-    let lm2 = 0, lm4 = 0;
-    for (let i = 0; i < N; i++) {
-      const d = lsig[i] - lmean;
-      lm2 += d*d; lm4 += d*d*d*d;
-    }
-    lm2 /= N; lm4 /= N;
-    const lkurt = lm2 > 1e-9 ? lm4/(lm2*lm2) : 0;
-    const lcf = lpeak / Math.max(lrms, 1e-9);
-    traj_rms.push(lrms);
-    traj_cf.push(lcf);
-    traj_kurt.push(lkurt);
-    traj_peak.push(lpeak);
-  }
-
-  // Plot trajectory: multi-line with normalization to fit panel
-  const maxRMS = Math.max(...traj_rms);
-  const maxCF = Math.max(...traj_cf);
-  const maxKurt = Math.max(...traj_kurt);
-  const maxPeak = Math.max(...traj_peak);
-
-  function drawTraj(data, maxV, color, label, yOff) {
-    ctx.strokeStyle = color; ctx.lineWidth = 1.8;
+  // Draw contour lines of f
+  const levels = [0.2, 0.5, 1.0, 2.0, 4.0, 8.0];
+  ctx.strokeStyle = 'rgba(14,165,233,.45)'; ctx.lineWidth = 1.2;
+  levels.forEach(L => {
+    const a = Math.sqrt(L);
     ctx.beginPath();
-    for (let i = 0; i < data.length; i++) {
-      const px = padX + (i/(data.length-1)) * plotW;
-      const py = botY + botH - 20 - (data[i] / maxV) * (botH - 30);
-      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    for(let theta=0; theta<=2*Math.PI+0.01; theta+=0.04){
+      const px = u_unconstr[0] + a*Math.cos(theta);
+      const py = u_unconstr[1] + a*Math.sin(theta);
+      if(theta === 0) ctx.moveTo(PX(px), PY(py));
+      else ctx.lineTo(PX(px), PY(py));
     }
     ctx.stroke();
-    // Label dots
-    ctx.fillStyle = color; ctx.font = '9px JetBrains Mono';
-    ctx.fillText(label, padX + plotW + 5, botY + 10 + yOff * 12);
+  });
+
+  // Draw constraint disk (filled — feasible region)
+  ctx.fillStyle = 'rgba(168,85,247,.12)';
+  ctx.beginPath();
+  ctx.arc(PX(0), PY(0), r * (PX(1) - PX(0)), 0, 2*Math.PI);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(249,115,22,.85)'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(PX(0), PY(0), r * (PX(1) - PX(0)), 0, 2*Math.PI);
+  ctx.stroke();
+
+  // Unconstrained optimum (cross marker if not inside)
+  if (mu > 0) {
+    ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 1.2; ctx.setLineDash([3,3]);
+    ctx.beginPath();
+    ctx.moveTo(PX(u_unconstr[0])-7, PY(u_unconstr[1]));
+    ctx.lineTo(PX(u_unconstr[0])+7, PY(u_unconstr[1]));
+    ctx.moveTo(PX(u_unconstr[0]), PY(u_unconstr[1])-7);
+    ctx.lineTo(PX(u_unconstr[0]), PY(u_unconstr[1])+7);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.font = '9px JetBrains Mono';
+    ctx.fillText('unconstrained', PX(u_unconstr[0])+10, PY(u_unconstr[1])-6);
   }
-  drawTraj(traj_rms, maxRMS, 'rgba(14,165,233,.95)', '— RMS', 0);
-  drawTraj(traj_cf, maxCF, 'rgba(249,115,22,.95)', '— CF', 1);
-  drawTraj(traj_kurt, maxKurt, 'rgba(168,85,247,.95)', '— Kurt', 2);
-  drawTraj(traj_peak, maxPeak, 'rgba(255,64,129,.95)', '— Peak', 3);
 
-  // Marker at current life progress
-  const markerX = padX + lifeProgress * plotW;
-  ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2; ctx.setLineDash([5,3]);
-  ctx.beginPath(); ctx.moveTo(markerX, botY); ctx.lineTo(markerX, botY + botH); ctx.stroke();
-  ctx.setLineDash([]);
+  // Constrained optimum (star)
+  ctx.fillStyle = '#fbbf24';
+  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.2;
+  _drawStarN(ctx, PX(optV[0]), PY(optV[1]), 5, 12, 5);
+  ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 10px JetBrains Mono';
+  ctx.fillText(`x* = (${optV[0].toFixed(2)}, ${optV[1].toFixed(2)})`, PX(optV[0])+15, PY(optV[1])-10);
 
-  // Slider display
-  const vl = document.getElementById('v_rh'); if(vl) vl.textContent = lifeProgress.toFixed(2);
+  // Draw gradients at optimum (∇f purple, ∇g amber)
+  if (mu > 0) {
+    const gradF = [2*(optV[0]-2), 2*(optV[1]-1.5)];
+    const gradG = [2*optV[0], 2*optV[1]];
+    const fNorm = Math.sqrt(gradF[0]**2 + gradF[1]**2);
+    const gNorm = Math.sqrt(gradG[0]**2 + gradG[1]**2);
+    const arrLen = 60;
+    // ∇f (purple)
+    ctx.strokeStyle = 'rgba(168,85,247,.9)'; ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.moveTo(PX(optV[0]), PY(optV[1]));
+    const fdx = gradF[0]/fNorm * arrLen, fdy = -gradF[1]/fNorm * arrLen;
+    ctx.lineTo(PX(optV[0]) + fdx, PY(optV[1]) + fdy);
+    ctx.stroke();
+    // Arrow head
+    ctx.fillStyle = 'rgba(168,85,247,.9)';
+    const fAng = Math.atan2(fdy, fdx);
+    ctx.beginPath();
+    ctx.moveTo(PX(optV[0])+fdx, PY(optV[1])+fdy);
+    ctx.lineTo(PX(optV[0])+fdx - 10*Math.cos(fAng-0.4), PY(optV[1])+fdy - 10*Math.sin(fAng-0.4));
+    ctx.lineTo(PX(optV[0])+fdx - 10*Math.cos(fAng+0.4), PY(optV[1])+fdy - 10*Math.sin(fAng+0.4));
+    ctx.closePath(); ctx.fill();
+    ctx.font = '11px JetBrains Mono';
+    ctx.fillText('∇f', PX(optV[0])+fdx+5, PY(optV[1])+fdy+4);
 
-  // Info
+    // ∇g (amber)
+    ctx.strokeStyle = 'rgba(249,115,22,.9)'; ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.moveTo(PX(optV[0]), PY(optV[1]));
+    const gdx = gradG[0]/gNorm * arrLen, gdy = -gradG[1]/gNorm * arrLen;
+    ctx.lineTo(PX(optV[0]) + gdx, PY(optV[1]) + gdy);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(249,115,22,.9)';
+    const gAng = Math.atan2(gdy, gdx);
+    ctx.beginPath();
+    ctx.moveTo(PX(optV[0])+gdx, PY(optV[1])+gdy);
+    ctx.lineTo(PX(optV[0])+gdx - 10*Math.cos(gAng-0.4), PY(optV[1])+gdy - 10*Math.sin(gAng-0.4));
+    ctx.lineTo(PX(optV[0])+gdx - 10*Math.cos(gAng+0.4), PY(optV[1])+gdy - 10*Math.sin(gAng+0.4));
+    ctx.closePath(); ctx.fill();
+    ctx.fillText('∇g', PX(optV[0])+gdx+5, PY(optV[1])+gdy+4);
+  }
+
+  // Origin & axes
+  ctx.fillStyle = 'rgba(255,255,255,.4)';
+  ctx.beginPath(); ctx.arc(PX(0), PY(0), 2, 0, 2*Math.PI); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(PX(xMin), PY(0)); ctx.lineTo(PX(xMax), PY(0)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(PX(0), PY(yMin)); ctx.lineTo(PX(0), PY(yMax)); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '11px JetBrains Mono';
+  ctx.fillText('x', PX(xMax)+5, PY(0)+4);
+  ctx.fillText('y', PX(0)-15, PY(yMax)+10);
+
+  // Title
+  ctx.fillStyle = 'rgba(168,85,247,.95)'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText(`min (x−2)²+(y−1.5)² s.t. x²+y² ≤ r²  · r=${r.toFixed(2)}`, padL, topY-8);
+
+  // === BOTTOM: μ bar chart ===
+  const barAreaX = padL, barAreaW = W - padL - padR;
+  ctx.fillStyle = 'rgba(168,85,247,.95)'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText('Lagrange Multiplier μ (≥ 0)', barAreaX, botY - 8);
+
+  // Single bar for μ
+  const barX = barAreaX + 20;
+  const barW = 160;
+  const muMax = 3;  // Y-axis max
+  const bh = (Math.min(mu, muMax) / muMax) * (botH - 30);
+  const by = botY + botH - 18 - bh;
+
+  const isBinding = mu > 0.01;
+  const color = isBinding ? 'rgba(255,64,129,.9)' : 'rgba(14,165,233,.7)';
+  const fillCol = isBinding ? 'rgba(255,64,129,.4)' : 'rgba(14,165,233,.3)';
+
+  ctx.fillStyle = fillCol;
+  ctx.fillRect(barX, by, barW, bh);
+  ctx.strokeStyle = color; ctx.lineWidth = 2;
+  ctx.strokeRect(barX, by, barW, bh);
+  ctx.fillStyle = color; ctx.font = 'bold 13px JetBrains Mono';
+  ctx.fillText(`μ = ${mu.toFixed(3)}`, barX + barW/2 - 35, by - 6);
+
+  // Status label
+  ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillStyle = isBinding ? '#ff4081' : '#0ea5e9';
+  ctx.fillText(isBinding ? 'CONSTRAINT ACTIVE (binding)' : 'CONSTRAINT INACTIVE (slack)', barX + barW + 20, by + bh/2 + 5);
+
+  // Complementary slackness equation
+  ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
+  const gValue = optV[0]*optV[0] + optV[1]*optV[1] - r*r;
+  ctx.fillText(`Complementary slackness: μ · g(x*) = ${mu.toFixed(3)} × ${gValue.toFixed(3)} = ${(mu * gValue).toFixed(3)} ≈ 0 ✓`, barX, botY + botH + 4);
+
+  // Update slider display
+  document.getElementById('v_rh').textContent = r.toFixed(2);
+
+  // Info panel
   const info = document.getElementById('hpbInfo');
   if (info) {
-    let stage;
-    if (lifeProgress < 0.2) stage = '🟢 HEALTHY';
-    else if (lifeProgress < 0.6) stage = '🟡 EARLY FAULT (CF/Kurt naik dramatis)';
-    else stage = '🔴 SEVERE (RMS tinggi, CF/Kurt menurun lagi → U-shape)';
-    info.innerHTML = `RMS=<strong>${rms.toFixed(2)}</strong> · Peak=<strong>${peak.toFixed(2)}</strong> · CF=<strong>${cf.toFixed(2)}</strong> · Kurt=<strong>${kurt.toFixed(2)}</strong> · ${stage}`;
+    const fStar = (optV[0]-2)*(optV[0]-2) + (optV[1]-1.5)*(optV[1]-1.5);
+    let kktStatus;
+    if (mu === 0) {
+      kktStatus = `🔵 Constraint INACTIVE → unconstrained optimum (μ = 0). r ≥ ${u_norm.toFixed(2)} cukup.`;
+    } else {
+      kktStatus = `🔴 Constraint ACTIVE → x* di boundary, ∇f & ∇g paralel (μ = ${mu.toFixed(2)} &gt; 0)`;
+    }
+    info.innerHTML = `r=<strong>${r.toFixed(2)}</strong> · x*=(${optV[0].toFixed(2)}, ${optV[1].toFixed(2)}) · f*=<strong>${fStar.toFixed(3)}</strong> · μ=<strong>${mu.toFixed(3)}</strong> · ${kktStatus}`;
   }
 }
 
