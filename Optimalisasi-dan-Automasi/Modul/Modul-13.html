@@ -1314,50 +1314,54 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 07 — APLIKASI ML PREDICTIVE MAINTENANCE ═══ -->
+<!-- ═══ BAGIAN 07 — CONTOH PROYEK INSPIRASI ═══ -->
 <hr class="divider">
 <div class="section" id="m-isolasi">
   <div class="section-label reveal">Bagian 07</div>
-  <h2 class="section-title reveal">Aplikasi ML Predictive Maintenance di<br>Industri 4.0 &amp; Smart Manufacturing</h2>
-  <p class="section-desc reveal">Empat studi kasus engineering yang langsung mengaplikasikan ML klasifikasi untuk predictive maintenance. Bukan demo teori — ini sistem deployed di pembangkit listrik (Siemens, GE), pabrik otomotif (Tesla, Toyota), penerbangan (Pratt &amp; Whitney, Rolls-Royce), dan kereta cepat (CRRC, Siemens Mobility). ML diintegrasikan sebagai <em>layer di atas rule-based</em> (P12) — bukan pengganti, tetapi enhancement untuk early-warning + diagnosis multi-feature.</p>
+  <h2 class="section-title reveal">Contoh Proyek Inspirasi:<br>Empat Sample untuk Mahasiswa S1 Mesin</h2>
+  <p class="section-desc reveal">Empat <strong>contoh konkret</strong> proyek akhir dengan scope realistis untuk mahasiswa S1 Teknik Mesin (waktu 2 minggu, hardware/software accessible, jelas integrasi materi P1–P13). Tiap contoh menyertakan <em>problem</em>, <em>dataset/sumber</em>, <em>algoritma</em>, dan <em>expected output</em>. Anda boleh adopsi, modifikasi, atau buat sendiri inspirasi dari sini. Pesannya: capstone project tidak harus revolutionary — cukup <strong>complete dan well-executed</strong> integrasi 3+ modul materi.</p>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">✈️</div>
-      <h3>Pratt &amp; Whitney Engine Health Management</h3>
-      <p>Pratt &amp; Whitney (USA) deploy ML predictive maintenance untuk turbin pesawat (PW1100G di Airbus A320neo). 5000+ engine in-service, tiap engine 1000+ sensor (vibration, EGT, fuel flow, pressure, oil debris). Stack: <strong>edge ETL</strong> (extract features per flight) → <strong>cloud ML</strong> (Random Forest + XGBoost ensemble untuk fault classification, LSTM untuk RUL prediction). Detected 80% failure 30+ hari sebelum unscheduled removal. Saving: $5–10M per avoided AOG (Aircraft On Ground). Stack: AWS + custom MLOps. Standar: <strong>FAA Part 25</strong>, <strong>EASA CS-25</strong>.</p>
-      <div class="formula">RUL: 30+ hari early warning</div>
+      <div class="card-icon">🌀</div>
+      <h3>Contoh 1 — CWRU Bearing Fault Multi-Class</h3>
+      <p><strong>Problem</strong>: klasifikasi 4 kelas bearing condition (healthy, inner-race fault, outer-race fault, ball fault) dari raw vibration. <strong>Dataset</strong>: CWRU public benchmark (~10K sample/class, 12k Hz sampling). <strong>Pipeline</strong>: load .mat → window 1024-sample → ekstraksi 21 fitur (RMS, peak, kurtosis, FFT band energies) → train Random Forest + XGBoost → comparison. <strong>Modul integrasi</strong>: P1–P3 (time-domain), P4–P5 (FFT), P13 (ML). <strong>Expected output</strong>: F1 ≥ 0.95, confusion matrix heatmap, feature importance plot. <strong>Effort</strong>: 25 jam. <strong>Difficulty</strong>: ⭐⭐ — proven dataset, banyak tutorial online untuk reference.</p>
+      <div class="formula">CWRU: 4-class F1 ≥ 0.95</div>
     </div>
     <div class="card">
-      <div class="card-icon">🚄</div>
-      <h3>Siemens Mobility ICE/Velaro Train Predictive</h3>
-      <p>Kereta cepat ICE (Jerman) &amp; Velaro (China, Spain) operasi 300+ km/h. Komponen kritis: bogie wheelset, traction motor, gearbox, brake. Sistem: <strong>Railigent</strong> — Siemens IoT platform. ML stack: feature extraction dari accelerometer + temperature + current + GPS, klasifikasi fault dengan Random Forest. Deteksi awal: bearing degradation 2–4 minggu sebelum failure → schedule maintenance saat di depot, bukan emergency. Hasil DB Cargo (Deutsche Bahn): availability naik 15%, MTBF +30%. Sistem proven di 600+ trainset.</p>
-      <div class="formula">2–4 minggu early warning bearing</div>
+      <div class="card-icon">⚙️</div>
+      <h3>Contoh 2 — CNC Cutting Parameter Optimization</h3>
+      <p><strong>Problem</strong>: optimasi parameter cutting CNC milling (depth × feed × speed) untuk min cycle time, kendala surface roughness Ra ≤ 1.6 μm. <strong>Dataset</strong>: data eksperimen lab (3-factor Box-Behnken design 17 run) atau public dataset UCI machining. <strong>Pipeline</strong>: data eksperimen → fit response surface (regresi polynomial) → optimasi NLP (<code>scipy.optimize.minimize</code>) atau GA (<code>pymoo</code>). <strong>Modul integrasi</strong>: P11 (ANOVA factorial), P9 (NLP), P10 (GA). <strong>Expected output</strong>: optimal parameter + reduction % vs baseline + Pareto front kalau multi-objective. <strong>Effort</strong>: 20 jam. <strong>Difficulty</strong>: ⭐⭐⭐ — butuh data eksperimen atau dataset realistis.</p>
+      <div class="formula">min t s.t. Ra ≤ 1.6 μm</div>
     </div>
     <div class="card">
-      <div class="card-icon">⚡</div>
-      <h3>GE Predix APM (Asset Performance Management)</h3>
-      <p>GE Digital memimpin platform Industrial IoT untuk 50,000+ aset terhubung di power generation, oil &amp; gas, aviation. <strong>Predix Asset Performance Management</strong> menggabungkan rule-based (P12) + ML (P13). Model digital twin per asset; ML detect anomali di multivariate sensor data. Use case: combined-cycle gas turbine, RUL prediction untuk hot gas path components (max 24,000 jam life). Saving: 5–15% reduction unplanned downtime. Tools: Predix Studio, AWS SageMaker Industrial. Predecessor: Smart Signal di Cilacap (Pertamina).</p>
-      <div class="formula">Predix APM: rule + ML hybrid</div>
+      <div class="card-icon">📡</div>
+      <h3>Contoh 3 — Lab Fan Imbalance Detection (Hardware)</h3>
+      <p><strong>Problem</strong>: deteksi imbalance pada fan/blower lab (binary: balanced vs imbalanced) menggunakan IMU sensor. <strong>Dataset</strong>: self-collected — install MPU6050 (Rp 30K) di motor fan, sampling 100 Hz × 60 detik × 2 kondisi (balanced + tape coin). <strong>Pipeline</strong>: Arduino → CSV → Python preprocessing → ekstraksi 8 fitur → train Logistic Regression baseline + Random Forest. <strong>Modul integrasi</strong>: P1–P3 (signal), P12 (rule threshold), P13 (ML). <strong>Expected output</strong>: F1 ≥ 0.85, video demo hardware. <strong>Effort</strong>: 30 jam (termasuk hardware setup). <strong>Difficulty</strong>: ⭐⭐⭐⭐ — effort tinggi tetapi most impactful (real-world data, video demo bagus untuk portfolio).</p>
+      <div class="formula">MPU6050 → ML → live</div>
     </div>
     <div class="card">
-      <div class="card-icon">🚗</div>
-      <h3>Tesla Battery Management ML</h3>
-      <p>Tesla Model 3/Y/S/X memantau 7104+ cell baterai per car (4680/2170 cells × ~96 modules). Real-time ML: classify cell health (healthy/aging/degraded) berbasis voltage curve, internal resistance, temperature gradient. Predict <em>capacity fade</em> &amp; <em>charge efficiency drop</em>. Algoritma: gradient boosting + neural network. Deployed via OTA (Over-The-Air): model update mingguan. Hasil: warranty 8 tahun / 240k km dengan &lt; 30% capacity loss. Data scale: 5+ million cars × terabytes/car/tahun. Pemimpin di battery analytics + ML.</p>
-      <div class="formula">7104 cells × ML per car</div>
+      <div class="card-icon">🌡️</div>
+      <h3>Contoh 4 — HVAC Schedule Optimization</h3>
+      <p><strong>Problem</strong>: optimasi jadwal kerja AC building 24 jam (on/off/varying load tiap jam) untuk minimize energy + maintain comfort 22–25°C. <strong>Dataset</strong>: public ASHRAE benchmark atau synthetic + occupancy schedule kampus. <strong>Pipeline</strong>: data → cost function (energy + discomfort penalty) → LP formulation → solve dengan <code>scipy.optimize.linprog</code> atau <code>pulp</code>. Plus rule-based monitoring sensor temp untuk safety. <strong>Modul integrasi</strong>: P8 (LP), P12 (rule monitoring), opsional P13 (ML untuk predict occupancy). <strong>Expected output</strong>: 15–25% energy reduction + Streamlit dashboard schedule visualizer. <strong>Effort</strong>: 25 jam. <strong>Difficulty</strong>: ⭐⭐⭐.</p>
+      <div class="formula">min Σ E_t s.t. T_min ≤ T ≤ T_max</div>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Kaitan ke Pertemuan Berikutnya:</strong><br>
-    Pertemuan 13 mengajarkan <strong>ML klasifikasi dasar</strong> untuk fault detection. Pertemuan akhir mata kuliah: <strong>Pertemuan 14–15 (Proyek Akhir)</strong> — integrasi end-to-end semua materi: <em>signal processing</em> (P1–P7: ekstraksi RMS, FFT, kurtosis dari raw vibration data) + <em>optimasi</em> (P9–P11: LP/NLP/ANOVA untuk parameter tuning) + <em>monitoring rule-based</em> (P12: ISO 10816 + FSM) + <em>ML predictive</em> (P13: Random Forest classifier). Proyek skala kecil: lab fan/blower dengan IMU sensor → Python pipeline → Streamlit dashboard. Topik real-world ML lanjutan untuk eksplorasi sendiri: <em>deep learning</em> (CNN untuk vibration spectrogram), <em>anomaly detection</em> (Autoencoder, Isolation Forest), <em>RUL prediction</em> (LSTM regression), <em>MLOps</em> (model deployment, monitoring drift).
+    <strong>Tips Memilih Contoh untuk Diadopsi (atau Modifikasi):</strong><br>
+    • <strong>Hardware tersedia</strong> (Arduino + IMU di lab) → <em>Contoh 3</em> (Fan Imbalance) — paling impactful, real data + video demo.<br>
+    • <strong>Solo work, time-limited (2 minggu strict)</strong> → <em>Contoh 1</em> (CWRU) — dataset proven, banyak tutorial sklearn.<br>
+    • <strong>Background optimasi/operations research kuat</strong> → <em>Contoh 2 atau 4</em> (CNC atau HVAC) — fokus pada formulation + algorithm.<br>
+    • <strong>Tertarik kombinasi maksimal modul</strong> → <em>Contoh 3</em> + ML predictive layer di atas hardware data — gabungan signal + rule + ML.<br>
+    Modifikasi yang menambah nilai: (a) Compare 3+ algoritma, (b) Streamlit dashboard, (c) deep learning extension, (d) real-time hardware demo, (e) write detailed analysis dengan SHAP. Modifikasi yang tidak menambah nilai: (a) ganti dataset tanpa alasan, (b) tambah library tanpa value, (c) over-engineer untuk show off.
   </div>
 
   <div class="warn-box reveal">
     <div class="warn-icon">⚠️</div>
     <div>
-      <h4>Jebakan Praktis ML Predictive Maintenance di Industri</h4>
-      <p>(1) <strong>Insufficient labeled data</strong> — fault adalah event langka (1% data); butuh ribuan failure untuk model robust. Solusi: synthetic data, transfer learning, semi-supervised. (2) <strong>Class imbalance ignored</strong> — 99% healthy, 1% fault. Naive classifier: 99% accuracy tetapi 0% recall fault — useless. Wajib: <code>class_weight='balanced'</code>, SMOTE, F1-score (bukan accuracy). (3) <strong>Concept drift</strong> — mesin aging, operating condition berubah, sensor recalibrated. Model trained 6 bulan lalu sudah obsolete. Re-train periodik wajib (tiap 1–3 bulan). (4) <strong>Data leakage di feature engineering</strong> — fitur yang dihitung dari full dataset (mis. global mean) sebelum train/test split → contaminate test. Fit hanya di train. (5) <strong>Black box deployment</strong> — operator skeptis "kenapa alarm trigger?". Pakai SHAP/LIME untuk feature importance per-prediction. (6) <strong>Tidak ada A/B test</strong> — deploy ML model tanpa comparison vs baseline rule-based. Wajib parallel run 1–3 bulan, compare metrics. (7) <strong>MLOps tidak diperhatikan</strong> — model di Jupyter notebook ≠ production. Butuh: model versioning (MLflow), CI/CD pipeline, monitoring drift, rollback strategy. (8) <strong>ML menggantikan rule-based</strong> — dangerous. ML = early-warning + diagnosis, rule-based = safety net + compliance. Selalu hybrid.</p>
+      <h4>Jebakan Klasik Proyek Akhir — Hindari!</h4>
+      <p>(1) <strong>Scope creep</strong> — start dengan "saya akan bangun deep learning + IoT + cloud + dashboard mobile + AR overlay". Realistic: select 1 angle dan execute well. (2) <strong>Tutorial copy-paste</strong> — clone Kaggle notebook line-by-line tanpa modifikasi → reviewer detect, nilai turun. <strong>Wajib</strong>: substansial original work + cite original kalau ada inspiration. (3) <strong>Stuck di tahap 1</strong> — terlalu banyak waktu di data acquisition, hardware setup, lupa coding pipeline. <strong>Time-box</strong>: data setup max 4 jam, pivot kalau lebih lama. (4) <strong>Tidak ada baseline</strong> — model "terbaik" Anda accuracy 92% — bagus atau jelek? Dibandingkan random predictor (50%) bagus, dibandingkan published SOTA (98%) jelek. <strong>Wajib</strong>: report baseline + SOTA reference. (5) <strong>Deadline panic</strong> — submit notebook 5 menit sebelum deadline tanpa Restart &amp; Run All → cells unranged → reviewer marah. (6) <strong>Tidak diuji di environment baru</strong> — works at "saya laptop" tetapi fail at "reviewer laptop". Wajib test di virtualenv terpisah. (7) <strong>Cuma fokus akurasi</strong> — accuracy 99% tetapi laporan amburadul = nilai C. Reviewer nilai end-to-end execution, bukan single number. (8) <strong>Plagiat dari classmate</strong> — duplicate detection sangat mudah. Original work always > copy.</p>
     </div>
   </div>
 </div>
