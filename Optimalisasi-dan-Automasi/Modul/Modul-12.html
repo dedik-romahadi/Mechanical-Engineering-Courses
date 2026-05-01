@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pertemuan 12 — Otomatisasi Monitoring Mesin: Rule-Based Alerting | Optimalisasi &amp; Automasi</title>
+<title>Pertemuan 12 — Otomatisasi Monitoring: Tier Alarm, FSM &amp; ANSI/ISA 18.2 | Optimalisasi &amp; Automasi</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Sans+3:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
@@ -766,10 +766,10 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
 <!-- ─── SUBNAV (only visible when Modul tab is active) ─── -->
 <div id="modulSubnav" class="subnav-bar show">
-  <a href="#m-persamaan">Mengapa Rule-Based</a>
-  <a href="#m-solusi">Threshold &amp; ISO 10816</a>
-  <a href="#m-dmf">Hysteresis &amp; Tier Alarm</a>
-  <a href="#m-resonashi">State Machine</a>
+  <a href="#m-persamaan">Mengapa Tier Alarm</a>
+  <a href="#m-solusi">Tier Alarm Architecture</a>
+  <a href="#m-dmf">Finite State Machine</a>
+  <a href="#m-resonashi">Debouncing &amp; ANSI/ISA 18.2</a>
   <a href="#m-analogi">Analogi</a>
   <a href="#m-animasi">Animasi</a>
   <a href="#m-isolasi">Aplikasi</a>
@@ -824,10 +824,10 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Pertemuan 12 &nbsp;·&nbsp; Optimalisasi &amp; Automasi &nbsp;·&nbsp; 2025/2026</div>
     <h1 class="hero-title">
       <span class="hl-cyan">Otomatisasi Monitoring —</span><br>
-      <em>Rule-Based Alerting</em><br>
-      <span class="hl-amber">Threshold, ISO 10816 &amp; State Machine</span>
+      <em>Tier Alarm, FSM &amp; ANSI/ISA 18.2</em><br>
+      <span class="hl-amber">Alarm Management &amp; State Machine Production-Grade</span>
     </h1>
-    <p class="hero-sub">Pertemuan 9–11 mengajarkan <em>optimasi</em>: bagaimana memilih parameter terbaik. Tetapi setelah mesin beroperasi, pertanyaan berubah: <strong>"apakah mesin ini masih sehat saat ini juga?"</strong> Inilah ranah <em>otomatisasi monitoring</em> — sistem yang memantau sensor (vibrasi, suhu, arus, tekanan) secara real-time dan memicu <em>alert</em> saat threshold dilanggar. Pendekatan paling sederhana, paling reliable, dan dipakai 90% pabrik di dunia: <strong>rule-based alerting</strong>. Tidak ada machine learning, tidak ada model probabilistik — hanya <em>aturan IF-THEN</em> yang transparan: <code>IF rms &gt; 7.1 mm/s THEN status = "DANGER"</code>. Tetapi rule-based yang baik bukan hanya threshold sederhana — butuh <strong>ISO 10816 zone classification</strong> (A–D), <strong>hysteresis</strong> untuk hindari chattering, <strong>tier alarm</strong> (warning/alert/critical), <strong>debouncing</strong> untuk filter noise, dan <strong>finite state machine (FSM)</strong> untuk track health history. Pertemuan ini mengajarkan setiap komponen + implementasi Python lengkap dengan dashboard real-time.</p>
+    <p class="hero-sub">Pertemuan 11 sudah ngajarin <em>fondasi</em>: sensor + DAQ + ISO 10816 + threshold + hysteresis. Tetapi sistem industrial-grade butuh lebih: <strong>tier alarm escalation</strong> (Normal → Warning → Alert → Critical, gradual + actionable), <strong>finite state machine (FSM)</strong> dengan transition logic + memory + audit log, <strong>debouncing N consecutive samples</strong> untuk filter noise transient, <strong>persistence timer</strong> untuk auto-escalate kalau warning persist &gt; 5 menit, dan compliance dengan <strong>ANSI/ISA 18.2 Alarm Management Standard</strong> (≤ 1 alarm/10 menit per operator, alarm rationalization, shelving, suppression). Pertemuan 12 fokus pada arsitektur lengkap dari basic threshold (P11) menjadi <em>production-grade alarm management system</em> yang dipakai di kilang Pertamina, pabrik amonia Pupuk Kaltim, atau pembangkit listrik PLN. Implementasi Python dengan <code>statemachine</code> library + dashboard real-time. Lanjutan: ML predictive monitoring di P13–P14.</p>
     <div class="hero-stats">
       <div class="stat"><div class="stat-num">8</div><div class="stat-lbl">Bagian Materi</div></div>
       <div class="stat"><div class="stat-num">4</div><div class="stat-lbl">Animasi</div></div>
@@ -840,7 +840,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <!-- COUNTDOWN -->
 <div style="padding:48px 32px 0">
   <div class="countdown-wrap reveal">
-    <div class="countdown-label">⏰ Hitung Mundur — Deadline Pertemuan 12 (Rule-Based Monitoring)</div>
+    <div class="countdown-label">⏰ Hitung Mundur — Deadline Pertemuan 12 (Tier Alarm &amp; FSM)</div>
     <div class="countdown-rings">
       <div class="cd-ring ring-d" id="ring-d">
         <svg viewBox="0 0 120 120">
