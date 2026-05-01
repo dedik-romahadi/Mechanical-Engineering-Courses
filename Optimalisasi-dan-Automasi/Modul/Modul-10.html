@@ -1634,117 +1634,92 @@ g4 = (D_opt + d_opt)/<span class="nm">1.5</span> - <span class="nm">1</span>
   <div class="code-wrap reveal">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 4 — solve_design_nlp() Reusable: Multi-Start + Gradient Validation untuk Non-Konveks</span>
+      <span class="code-label">Cell 4 — multistart_metaheuristic() Reusable: Multi-Run dengan Statistik Mean/Std/Best</span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
-    <pre><span class="kw">from</span> scipy.optimize <span class="kw">import</span> minimize, check_grad
+    <pre><span class="kw">from</span> scipy.optimize <span class="kw">import</span> differential_evolution
 <span class="kw">import</span> pandas <span class="kw">as</span> pd
 
-<span class="kw">def</span> <span class="fn">solve_design_nlp</span>(f, x0, jac=<span class="kw">None</span>, bounds=<span class="kw">None</span>, constraints=(),
-                     n_start=<span class="nm">5</span>, method=<span class="st">'SLSQP'</span>, validate_grad=<span class="kw">True</span>):
+<span class="kw">def</span> <span class="fn">multistart_metaheuristic</span>(f, bounds, n_runs=<span class="nm">10</span>, maxiter=<span class="nm">200</span>, popsize=<span class="nm">15</span>):
     <span class="st">"""</span>
-<span class="st">    Solver NLP reusable dengan multi-start untuk masalah non-konveks.</span>
+<span class="st">    Run DE multiple times dengan seed berbeda; kumpulkan statistik.</span>
+<span class="st">    </span>
+<span class="st">    Critical practice untuk metaheuristik stokastik: 1 run TIDAK cukup.</span>
+<span class="st">    Laporan harus include mean ± std minimum N=5 run untuk fairness.</span>
 <span class="st">    </span>
 <span class="st">    Parameters</span>
 <span class="st">    ----------</span>
-<span class="st">    f          : callable f(x) → float (fungsi objektif)</span>
-<span class="st">    x0         : initial guess (akan di-perturbasi untuk multi-start)</span>
-<span class="st">    jac        : callable ∇f(x) → array (gradient analitik, optional)</span>
-<span class="st">    bounds     : list [(lb, ub), ...]</span>
-<span class="st">    constraints: list of dict {'type': 'eq'/'ineq', 'fun': callable}</span>
-<span class="st">    n_start    : jumlah random restart untuk eskap lokal optimum</span>
-<span class="st">    method     : 'SLSQP' (default), 'trust-constr', 'L-BFGS-B'</span>
+<span class="st">    f         : callable, fungsi objektif</span>
+<span class="st">    bounds    : list of (lb, ub) tuples</span>
+<span class="st">    n_runs    : jumlah run independent dengan seed berbeda</span>
+<span class="st">    maxiter   : iterasi DE per run</span>
+<span class="st">    popsize   : popsize multiplier (DE: actual pop = popsize * dim)</span>
 <span class="st">    </span>
-<span class="st">    Return DataFrame berisi semua hasil + best solution.</span>
+<span class="st">    Return DataFrame statistik + plot box-plot.</span>
 <span class="st">    """</span>
-    x0 = np.<span class="fn">array</span>(x0, dtype=<span class="fn">float</span>)
-    n = <span class="fn">len</span>(x0)
-
-    <span class="cm"># ── Validasi gradient sebelum solve ──</span>
-    <span class="kw">if</span> validate_grad <span class="kw">and</span> jac <span class="kw">is</span> <span class="kw">not</span> <span class="kw">None</span>:
-        err = <span class="fn">check_grad</span>(f, jac, x0)
-        <span class="kw">if</span> err &gt; <span class="nm">1e-4</span>:
-            <span class="fn">print</span>(<span class="st">f"⚠ check_grad error = {err:.2e} — gradient mungkin salah!"</span>)
-        <span class="kw">else</span>:
-            <span class="fn">print</span>(<span class="st">f"✓ Gradient validated: check_grad = {err:.2e}"</span>)
-
-    <span class="cm"># ── Multi-start untuk non-konveks ──</span>
-    np.random.<span class="fn">seed</span>(<span class="nm">42</span>)
     results = []
-
-    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n_start):
-        <span class="cm"># Perturb x0 secara random dalam bounds</span>
-        <span class="kw">if</span> bounds <span class="kw">is</span> <span class="kw">not</span> <span class="kw">None</span>:
-            x_start = np.<span class="fn">array</span>([
-                np.random.<span class="fn">uniform</span>(b[<span class="nm">0</span>] <span class="kw">if</span> b[<span class="nm">0</span>] <span class="kw">is</span> <span class="kw">not</span> <span class="kw">None</span> <span class="kw">else</span> -<span class="nm">10</span>,
-                                  b[<span class="nm">1</span>] <span class="kw">if</span> b[<span class="nm">1</span>] <span class="kw">is</span> <span class="kw">not</span> <span class="kw">None</span> <span class="kw">else</span> <span class="nm">10</span>)
-                <span class="kw">for</span> b <span class="kw">in</span> bounds
-            ]) <span class="kw">if</span> i &gt; <span class="nm">0</span> <span class="kw">else</span> x0
-        <span class="kw">else</span>:
-            x_start = x0 + (np.random.<span class="fn">randn</span>(n) * <span class="nm">2.0</span> <span class="kw">if</span> i &gt; <span class="nm">0</span> <span class="kw">else</span> <span class="nm">0</span>)
-
-        <span class="kw">try</span>:
-            res = <span class="fn">minimize</span>(f, x0=x_start, jac=jac, method=method,
-                           bounds=bounds, constraints=constraints,
-                           options={<span class="st">'ftol'</span>: <span class="nm">1e-9</span>, <span class="st">'maxiter'</span>: <span class="nm">200</span>})
-            results.<span class="fn">append</span>({
-                <span class="st">'start_idx'</span>: i,
-                <span class="st">'x*'</span>: res.x,
-                <span class="st">'f(x*)'</span>: res.fun,
-                <span class="st">'success'</span>: res.success,
-                <span class="st">'iter'</span>: res.nit <span class="kw">if</span> <span class="fn">hasattr</span>(res, <span class="st">'nit'</span>) <span class="kw">else</span> <span class="kw">None</span>,
-            })
-        <span class="kw">except</span> <span class="kw">Exception</span> <span class="kw">as</span> e:
-            results.<span class="fn">append</span>({<span class="st">'start_idx'</span>: i, <span class="st">'x*'</span>: <span class="kw">None</span>, <span class="st">'f(x*)'</span>: np.inf, <span class="st">'success'</span>: <span class="kw">False</span>})
-
+    <span class="kw">for</span> run <span class="kw">in</span> <span class="fn">range</span>(n_runs):
+        seed = run * <span class="nm">7</span> + <span class="nm">11</span>      <span class="cm"># reproducible per-run seeds</span>
+        res = <span class="fn">differential_evolution</span>(
+            f, bounds,
+            maxiter=maxiter, popsize=popsize,
+            seed=seed, tol=<span class="nm">1e-8</span>
+        )
+        results.<span class="fn">append</span>({
+            <span class="st">'run'</span>: run,
+            <span class="st">'seed'</span>: seed,
+            <span class="st">'x*'</span>: np.<span class="fn">round</span>(res.x, <span class="nm">4</span>).<span class="fn">tolist</span>(),
+            <span class="st">'f(x*)'</span>: res.fun,
+            <span class="st">'nfev'</span>: res.nfev,
+            <span class="st">'success'</span>: res.success,
+        })
     df = pd.<span class="fn">DataFrame</span>(results)
-    df_ok = df[df[<span class="st">'success'</span>]].<span class="fn">sort_values</span>(<span class="st">'f(x*)'</span>)
-    best = df_ok.<span class="fn">iloc</span>[<span class="nm">0</span>] <span class="kw">if</span> <span class="fn">len</span>(df_ok) &gt; <span class="nm">0</span> <span class="kw">else</span> <span class="kw">None</span>
-    <span class="kw">return</span> df, best
+    <span class="kw">return</span> df
 
-<span class="cm"># ─── Demo: Pegas Coil dari Cell 2 dengan multi-start ───</span>
-rho = <span class="nm">7.85e-6</span>; G = <span class="nm">79.3e3</span>; tau_y = <span class="nm">600</span>; F = <span class="nm">500</span>; D = <span class="nm">50</span>; delta_target = <span class="nm">25</span>
+<span class="cm"># ─── Demo: Multistart pada Rastrigin 5D ───</span>
+DIM = <span class="nm">5</span>
+LB, UB = -<span class="nm">5.12</span>, <span class="nm">5.12</span>
+<span class="kw">def</span> <span class="fn">rastrigin</span>(x):
+    x = np.<span class="fn">asarray</span>(x)
+    <span class="kw">return</span> <span class="nm">10</span>*<span class="fn">len</span>(x) + np.<span class="fn">sum</span>(x**<span class="nm">2</span> - <span class="nm">10</span>*np.<span class="fn">cos</span>(<span class="nm">2</span>*np.pi*x))
 
-<span class="kw">def</span> <span class="fn">mass</span>(x):
-    <span class="kw">return</span> rho * np.pi * (x[<span class="nm">0</span>]**<span class="nm">2</span>/<span class="nm">4</span>) * (np.pi * D) * x[<span class="nm">1</span>]
+bounds_r = [(LB, UB)] * DIM
 
-cons = [
-    {<span class="st">'type'</span>: <span class="st">'ineq'</span>, <span class="st">'fun'</span>: <span class="kw">lambda</span> x: tau_y - <span class="nm">8</span>*F*D/(np.pi*x[<span class="nm">0</span>]**<span class="nm">3</span>)},
-    {<span class="st">'type'</span>: <span class="st">'ineq'</span>, <span class="st">'fun'</span>: <span class="kw">lambda</span> x: <span class="nm">8</span>*F*D**<span class="nm">3</span>*x[<span class="nm">1</span>]/(G*x[<span class="nm">0</span>]**<span class="nm">4</span>) - delta_target},
-    {<span class="st">'type'</span>: <span class="st">'ineq'</span>, <span class="st">'fun'</span>: <span class="kw">lambda</span> x: x[<span class="nm">2</span>] - x[<span class="nm">1</span>] * x[<span class="nm">0</span>]},
-]
+df = <span class="fn">multistart_metaheuristic</span>(rastrigin, bounds_r, n_runs=<span class="nm">10</span>, maxiter=<span class="nm">100</span>, popsize=<span class="nm">15</span>)
 
-df, best = <span class="fn">solve_design_nlp</span>(
-    f=mass,
-    x0=[<span class="nm">8</span>, <span class="nm">12</span>, <span class="nm">120</span>],
-    bounds=[(<span class="nm">2</span>, <span class="nm">15</span>), (<span class="nm">5</span>, <span class="nm">30</span>), (<span class="nm">50</span>, <span class="nm">200</span>)],
-    constraints=cons,
-    n_start=<span class="nm">10</span>,
-    method=<span class="st">'SLSQP'</span>,
-    validate_grad=<span class="kw">False</span>,    <span class="cm"># gradient tidak disediakan analitik</span>
-)
+<span class="fn">print</span>(<span class="st">"═══ MULTI-RUN RESULTS (Rastrigin 5D, 10 runs) ═══"</span>)
+<span class="fn">print</span>(df[[<span class="st">'run'</span>, <span class="st">'seed'</span>, <span class="st">'f(x*)'</span>, <span class="st">'nfev'</span>, <span class="st">'success'</span>]].<span class="fn">to_string</span>(index=<span class="kw">False</span>))
 
-<span class="fn">print</span>(<span class="st">f"\n═══ MULTI-START RESULTS ({len(df)} starts) ═══"</span>)
-df_show = df.<span class="fn">copy</span>()
-df_show[<span class="st">'x*'</span>] = df_show[<span class="st">'x*'</span>].<span class="fn">apply</span>(<span class="kw">lambda</span> x: np.<span class="fn">round</span>(x, <span class="nm">3</span>) <span class="kw">if</span> x <span class="kw">is</span> <span class="kw">not</span> <span class="kw">None</span> <span class="kw">else</span> <span class="kw">None</span>)
-<span class="fn">print</span>(df_show.<span class="fn">round</span>(<span class="nm">4</span>).<span class="fn">to_string</span>(index=<span class="kw">False</span>))
+<span class="fn">print</span>(<span class="st">f"\n═══ STATISTIK ═══"</span>)
+<span class="fn">print</span>(<span class="st">f"  Best f(x*)  = {df['f(x*)'].min():.6f}"</span>)
+<span class="fn">print</span>(<span class="st">f"  Worst f(x*) = {df['f(x*)'].max():.6f}"</span>)
+<span class="fn">print</span>(<span class="st">f"  Mean ± Std  = {df['f(x*)'].mean():.6f} ± {df['f(x*)'].std():.6f}"</span>)
+<span class="fn">print</span>(<span class="st">f"  Median      = {df['f(x*)'].median():.6f}"</span>)
+<span class="fn">print</span>(<span class="st">f"  Success rate (f &lt; 1e-3) = {(df['f(x*)'] &lt; 1e-3).sum()}/{len(df)} = {(df['f(x*)'] &lt; 1e-3).mean()*100:.0f}%"</span>)
 
-<span class="kw">if</span> best <span class="kw">is</span> <span class="kw">not</span> <span class="kw">None</span>:
-    <span class="fn">print</span>(<span class="st">f"\n═══ BEST SOLUTION ═══"</span>)
-    <span class="fn">print</span>(<span class="st">f"  x* = {best['x*']}"</span>)
-    <span class="fn">print</span>(<span class="st">f"  f(x*) = {best['f(x*)']*1000:.4f} g (mass minimum)"</span>)
-    <span class="fn">print</span>(<span class="st">f"  Started from index {best['start_idx']}"</span>)
+<span class="cm"># Plot: distribusi run vs box plot</span>
+fig, axes = plt.<span class="fn">subplots</span>(<span class="nm">1</span>, <span class="nm">2</span>, figsize=(<span class="nm">12</span>, <span class="nm">4.5</span>))
 
-<span class="cm"># Plot konvergensi distribusi nilai f(x*)</span>
-fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="nm">10</span>, <span class="nm">4</span>))
-df_ok = df[df[<span class="st">'success'</span>]].<span class="fn">sort_values</span>(<span class="st">'f(x*)'</span>)
-ax.<span class="fn">bar</span>(<span class="fn">range</span>(<span class="fn">len</span>(df_ok)), df_ok[<span class="st">'f(x*)'</span>].values * <span class="nm">1000</span>,
-       color=[<span class="st">'#fbbf24'</span> <span class="kw">if</span> i==<span class="nm">0</span> <span class="kw">else</span> <span class="st">'#a855f7'</span> <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(df_ok))])
-ax.<span class="fn">set_xlabel</span>(<span class="st">'Run (sorted by f)'</span>); ax.<span class="fn">set_ylabel</span>(<span class="st">'f(x*) — mass (g)'</span>)
-ax.<span class="fn">set_title</span>(<span class="st">'Multi-start NLP — Distribusi Lokal Optima'</span>)
-ax.<span class="fn">grid</span>(axis=<span class="st">'y'</span>, alpha=<span class="nm">0.25</span>)
-plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
+<span class="cm"># Bar chart: f per run</span>
+df_sorted = df.<span class="fn">sort_values</span>(<span class="st">'f(x*)'</span>)
+axes[<span class="nm">0</span>].<span class="fn">bar</span>(<span class="fn">range</span>(<span class="fn">len</span>(df)), df_sorted[<span class="st">'f(x*)'</span>],
+            color=[<span class="st">'#fbbf24'</span> <span class="kw">if</span> i==<span class="nm">0</span> <span class="kw">else</span> <span class="st">'#a855f7'</span> <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(df))])
+axes[<span class="nm">0</span>].<span class="fn">set_xlabel</span>(<span class="st">'Run (sorted)'</span>); axes[<span class="nm">0</span>].<span class="fn">set_ylabel</span>(<span class="st">'f(x*)'</span>)
+axes[<span class="nm">0</span>].<span class="fn">set_title</span>(<span class="st">f'10 Independent DE Runs pada Rastrigin {DIM}D'</span>)
+axes[<span class="nm">0</span>].<span class="fn">grid</span>(axis=<span class="st">'y'</span>, alpha=<span class="nm">0.25</span>)
+
+<span class="cm"># Box plot: distribusi</span>
+axes[<span class="nm">1</span>].<span class="fn">boxplot</span>(df[<span class="st">'f(x*)'</span>], showmeans=<span class="kw">True</span>, patch_artist=<span class="kw">True</span>,
+                 boxprops={<span class="st">'facecolor'</span>: <span class="st">'#a855f7'</span>, <span class="st">'alpha'</span>: <span class="nm">0.4</span>})
+axes[<span class="nm">1</span>].<span class="fn">set_ylabel</span>(<span class="st">'f(x*)'</span>); axes[<span class="nm">1</span>].<span class="fn">set_xticklabels</span>([<span class="st">f'DE on Rastrigin {DIM}D'</span>])
+axes[<span class="nm">1</span>].<span class="fn">set_title</span>(<span class="st">f'Distribusi (mean={df["f(x*)"].mean():.3f} ± {df["f(x*)"].std():.3f})'</span>)
+axes[<span class="nm">1</span>].<span class="fn">grid</span>(axis=<span class="st">'y'</span>, alpha=<span class="nm">0.25</span>)
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
+
+<span class="cm"># Lesson penting: stokastik = laporkan mean ± std, bukan single best!</span>
+<span class="fn">print</span>(<span class="st">"\n💡 Lesson: laporkan 'mean ± std' di paper/laporan, bukan 'best' saja."</span>)
+<span class="fn">print</span>(<span class="st">"   Best dari 1 run = misleading; berbeda kalau seed berbeda."</span>)</pre>
   </div>
 </div>
 
