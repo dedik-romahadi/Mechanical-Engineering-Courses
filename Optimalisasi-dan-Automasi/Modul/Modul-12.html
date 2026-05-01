@@ -1011,85 +1011,95 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 03 — HYSTERESIS & TIER ALARM ═══ -->
+<!-- ═══ BAGIAN 03 — KLASIFIKASI: RANDOM FOREST & SVM ═══ -->
 <hr class="divider">
 <div class="section" id="m-dmf">
   <div class="section-label reveal">Bagian 03</div>
-  <h2 class="section-title reveal">Hysteresis &amp; Tier Alarm:<br>Hindari Chattering, Atur Eskalasi Bertingkat</h2>
-  <p class="section-desc reveal">Threshold sederhana (<code>x &gt; T → ALERT</code>) punya 2 masalah serius di sistem real: (1) <strong>chattering</strong> — saat sinyal di sekitar threshold (T ± noise), state berkedip cepat ON/OFF/ON/OFF (alert spam ke operator); (2) <strong>binary harshness</strong> — tidak ada nuansa antara "OK" dan "DANGER", padahal antara keduanya ada area "warning" yang harus diperhatikan. Solusi: <strong>hysteresis</strong> (dua threshold: T_on &gt; T_off, perlu cross threshold besar untuk turn ON, threshold kecil untuk turn OFF) dan <strong>tier alarm</strong> (multi-level: warning &lt; alert &lt; critical, gradual escalation). Kombinasi keduanya = sistem alerting matang yang mengikuti standar industri (ANSI/ISA 18.2 Alarm Management).</p>
+  <h2 class="section-title reveal">Algoritma Klasifikasi:<br>Logistic Regression, Random Forest, &amp; SVM</h2>
+  <p class="section-desc reveal">Tiga algoritma klasifikasi paling sering dipakai di engineering: <strong>Logistic Regression</strong> (linier, baseline interpretable), <strong>Random Forest</strong> (ensemble decision tree, robust + feature importance), <strong>Support Vector Machine (SVM)</strong> (margin maximization + kernel trick untuk non-linear). Tiap algoritma punya assumption, kekuatan, &amp; kelemahan berbeda. <em>Best practice</em>: coba ketiganya dengan default hyperparameter, pilih yang terbaik di test set, lalu tune hyperparameter top model. Jangan pilih algoritma berdasarkan popularitas — pilih berdasarkan struktur data Anda. Plus <strong>Gradient Boosting</strong> (XGBoost, LightGBM) sebagai state-of-the-art untuk tabular data — tetapi default RF/SVM cukup untuk baseline solid.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Lima Konsep Inti Hysteresis &amp; Tier Alarm</div>
-    Hysteresis (T_on &gt; T_off) &nbsp;·&nbsp; Schmitt trigger analogy &nbsp;·&nbsp; Tier alarm (3 level) &nbsp;·&nbsp; Escalation timer &nbsp;·&nbsp; Alarm flood prevention (ANSI/ISA 18.2)
+    <div class="label">Tiga Algoritma Klasifikasi Inti + Pilihan Lanjutan</div>
+    Logistic Regression (linear) &nbsp;·&nbsp; Random Forest (tree ensemble) &nbsp;·&nbsp; SVM (margin + kernel) &nbsp;·&nbsp; Gradient Boosting (advanced)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">↔️</div>
-      <h3>Hysteresis: T_on &gt; T_off</h3>
-      <p>Definisi: dua threshold berbeda untuk transition ke "ON" vs ke "OFF". Saat status OFF, perlu sinyal &gt; T_on untuk pindah ke ON. Saat status ON, sinyal harus turun di bawah T_off untuk kembali ke OFF. Tipikal: T_off = T_on − margin (mis. T_on=70, T_off=65). Margin 5–15% biasanya cukup. Tanpa hysteresis, sinyal di sekitar threshold ber-flip-flop sangat cepat (chattering).</p>
-      <div class="formula">T_on = 70, T_off = 65 (margin 5)</div>
+      <div class="card-icon">📐</div>
+      <h3>Logistic Regression — Linear Baseline</h3>
+      <p>Model probabilistik: <code>P(y=1 | x) = σ(wᵀx + b)</code> dengan σ = sigmoid. Loss: cross-entropy. Optimasi: gradient descent (atau IRLS). <strong>Kekuatan</strong>: cepat (linear), sangat interpretable (koefisien w[i] = log-odds contribution fitur i), probabilistic output natural, robust untuk data linearly separable. <strong>Kelemahan</strong>: hanya batas linear; butuh feature engineering untuk non-linear (polynomial, interaction terms). API: <code>from sklearn.linear_model import LogisticRegression; model = LogisticRegression(C=1.0, max_iter=1000)</code>. Hyperparam <em>C</em>: regularization (smaller C = more regularization).</p>
+      <div class="formula">P(y=1|x) = σ(wᵀx + b)</div>
     </div>
     <div class="card">
-      <div class="card-icon">⚡</div>
-      <h3>Schmitt Trigger Analogy</h3>
-      <p>Konsep hysteresis dipakai di rangkaian elektronik <strong>Schmitt trigger</strong> (Otto Schmitt 1934) — comparator dengan dua threshold. Awalnya untuk filter noise di radar WWII, sekarang dipakai di setiap microcontroller (Arduino, STM32) untuk debouncing button input. Algoritma yang sama persis bisa diterapkan untuk threshold-based monitoring di software. <strong style="color:var(--cyan)">Insight</strong>: setiap masalah noise-induced chattering punya solusi hysteresis yang elegan.</p>
-      <div class="formula">analog Schmitt trigger</div>
+      <div class="card-icon">🌳</div>
+      <h3>Random Forest — Ensemble of Trees</h3>
+      <p>Kombinasi N decision trees (typically 100), tiap tree dilatih di bootstrap sample + random subset features. Prediksi via <strong>majority voting</strong> (klasifikasi) atau <em>averaging</em> (regresi). <strong>Kekuatan</strong>: robust (low variance via averaging), capture non-linear pattern, feature importance built-in (<code>.feature_importances_</code>), tidak sensitif scaling, handle mixed feature types. <strong>Kelemahan</strong>: lebih lambat dari linear, kurang interpretable per-prediction (tetapi feature importance OK aggregat). API: <code>from sklearn.ensemble import RandomForestClassifier; model = RandomForestClassifier(n_estimators=100, max_depth=None, random_state=42)</code>. Default sangat sering bagus.</p>
+      <div class="formula">RF: majority vote of N trees</div>
     </div>
     <div class="card">
-      <div class="card-icon">🎚️</div>
-      <h3>Tier Alarm — Tiga Level Eskalasi</h3>
-      <p>Bukan binary OK/FAIL, tetapi <em>gradient</em> 3+ level: <strong>WARNING</strong> (yellow, perhatikan) → <strong>ALERT</strong> (orange, action segera) → <strong>CRITICAL</strong> (red, shutdown). Tiap tier punya threshold sendiri: T_warn &lt; T_alert &lt; T_critical. Aksi berbeda: warning → log + notification email; alert → SMS ke supervisor; critical → auto-shutdown + page on-call engineer. Memetakan ke ISO 10816: A (no alarm), B (warning), C (alert), D (critical).</p>
-      <div class="formula">T_warn &lt; T_alert &lt; T_crit</div>
+      <div class="card-icon">🎯</div>
+      <h3>Support Vector Machine — Margin + Kernel</h3>
+      <p>Find <em>hyperplane</em> yang memaksimalkan margin antara dua kelas. Untuk non-linear: <strong>kernel trick</strong> — implicit map ke space dimensi tinggi via kernel (RBF, polynomial). <strong>Kekuatan</strong>: efektif untuk small-to-medium dataset (≤ 10K sample), kuat di high-dim feature space, kernel flexible. <strong>Kelemahan</strong>: lambat untuk dataset besar (kompleksitas O(n²) atau O(n³)), tidak natural probabilistic (butuh Platt scaling), sangat sensitif scaling. API: <code>from sklearn.svm import SVC; model = SVC(C=1.0, kernel='rbf', gamma='scale', probability=True)</code>. Standardize fitur wajib!</p>
+      <div class="formula">SVM: max margin via kernel</div>
     </div>
     <div class="card">
-      <div class="card-icon">⏱️</div>
-      <h3>Escalation Timer (Persistence)</h3>
-      <p>Beberapa anomali muncul sesaat (transient noise) dan menghilang sendiri — tidak perlu eskalasi. Tetapi kalau anomali persist &gt; T detik, tier perlu naik. Contoh: <em>warning persist 5 menit → eskalasi ke alert; alert persist 10 menit → eskalasi ke critical</em>. Timer reset ketika sinyal kembali normal (atau hysteresis turun). Implementasi: state machine dengan timer per state.</p>
-      <div class="formula">if t_in_state &gt; Δt: escalate</div>
+      <div class="card-icon">🚀</div>
+      <h3>Gradient Boosting (XGBoost / LightGBM)</h3>
+      <p>State-of-the-art untuk tabular data — sering juara di Kaggle competitions. Iteratif: build tree baru untuk koreksi error tree sebelumnya. Hyperparam banyak (learning rate, max_depth, n_estimators, subsample, dll) → butuh tuning lebih extensive. API: <code>from xgboost import XGBClassifier; model = XGBClassifier(n_estimators=200, learning_rate=0.1, max_depth=5)</code>. Atau <code>lightgbm.LGBMClassifier</code> (faster, memory-efficient). Trade-off: marginal accuracy gain (~1-3%) vs RF, lebih lambat train, lebih rentan overfit kalau tidak hati-hati.</p>
+      <div class="formula">GB: stage-wise additive trees</div>
     </div>
     <div class="card">
-      <div class="card-icon">🔇</div>
-      <h3>Alarm Flood Prevention (ANSI/ISA 18.2)</h3>
-      <p>Bahaya nyata: <strong>alarm flood</strong> — saat 1 root cause memicu cascade puluhan alarm sekaligus, operator overwhelmed. ANSI/ISA 18.2 (Alarm Management) menetapkan <em>limit</em>: ≤ 1 alarm/10 menit per operator (steady state); ≤ 10 alarm dalam 10 menit pertama post-disturbance. Solusi: <strong>alarm grouping</strong> (suppress child alarm jika parent sudah on), <strong>shelving</strong> (operator bisa silence alarm selama window terbatas), <strong>alarm rationalization</strong> (review periodik untuk delete alarm yang tidak actionable).</p>
-      <div class="formula">≤ 1 alarm / 10 min</div>
+      <div class="card-icon">⚖️</div>
+      <h3>Bias-Variance Trade-off</h3>
+      <p><strong>High bias</strong> (underfit): model terlalu sederhana, miss pola — accuracy train &amp; test sama-sama rendah. <strong>High variance</strong> (overfit): model terlalu kompleks, memorize train data — accuracy train tinggi, test rendah. <em>Logistic regression</em>: high bias kalau data non-linear. <em>RF max_depth tak terbatas</em>: high variance. <em>SVM C besar</em>: low bias, high variance. <strong>Diagnostik</strong>: kalau test &lt;&lt; train accuracy → overfit (regularize: kurangi max_depth, naikkan C atau alpha). Kalau train low → underfit (model lebih kompleks atau feature engineering).</p>
+      <div class="formula">err = bias² + variance + noise</div>
     </div>
     <div class="card">
-      <div class="card-icon">🎨</div>
-      <h3>HMI Color Convention</h3>
-      <p>Standar industri (ABB 800xA, Siemens PCS 7, Honeywell Experion) untuk warna alarm: <strong style="color:var(--green)">hijau</strong> (running normal), <strong style="color:var(--cyan)">cyan/biru</strong> (info / state change), <strong style="color:var(--amber)">kuning</strong> (warning), <strong style="color:var(--pink)">orange/oranye</strong> (alert), <strong style="color:#ef4444">merah</strong> (critical), <strong style="color:#a855f7">ungu</strong> (failure / no signal). Konsistensi warna penting untuk operator yang shift-rotate antar mesin/pabrik. Gunakan ikon (✓ ⚠ ✗) di samping warna untuk accessibility (color-blind operators).</p>
-      <div class="formula">green/yellow/orange/red</div>
+      <div class="card-icon">📋</div>
+      <h3>Algorithm Selection Guideline</h3>
+      <p><strong>Decision tree</strong> untuk pilih algoritma: (1) Data &lt; 1000 sample → Logistic Regression, SVM. (2) Data 1K–100K, mixed feature → <strong>Random Forest</strong> (default best). (3) Data &gt; 100K, performance critical → <strong>LightGBM</strong>. (4) Butuh interpretability tinggi → Logistic + feature importance, atau Decision Tree single. (5) Imbalanced class (1% positive) → <code>class_weight='balanced'</code> di RF/Logistic. (6) Real-time inference (&lt; 1ms) → Logistic atau small RF. <strong>Always start simple</strong>: Logistic baseline, then RF, then advanced.</p>
+      <div class="formula">simple → complex iteratif</div>
     </div>
   </div>
 
   <div class="tbl-wrap reveal" style="margin:32px 0">
     <table class="data-table">
-      <thead><tr><th>Tier</th><th>Threshold (RMS mm/s)</th><th>Color (HMI)</th><th>Action Operator</th><th>Eskalasi (Persist)</th></tr></thead>
+      <thead><tr><th>Algoritma</th><th>Train Speed</th><th>Predict Speed</th><th>Interpretability</th><th>Cocok Data</th></tr></thead>
       <tbody>
-        <tr><td style="color:var(--green)">Normal</td><td>≤ 1.4 (Zone A)</td><td>Hijau</td><td>None</td><td>—</td></tr>
-        <tr><td style="color:var(--cyan)">Warning</td><td>1.4 – 2.8 (Zone B)</td><td>Kuning</td><td>Log + email</td><td>5 min → Alert</td></tr>
-        <tr><td style="color:var(--amber)">Alert</td><td>2.8 – 4.5 (Zone C)</td><td>Oranye</td><td>SMS supervisor</td><td>10 min → Critical</td></tr>
-        <tr><td style="color:var(--pink)">Critical</td><td>&gt; 4.5 (Zone D)</td><td>Merah</td><td>Auto-shutdown + page</td><td>Immediate</td></tr>
+        <tr><td style="color:var(--cyan)">Logistic Regression</td><td>Sangat cepat</td><td>Sangat cepat</td><td>Tinggi (koefisien w)</td><td>Linear separable, &lt;100K</td></tr>
+        <tr><td style="color:var(--green)">Random Forest</td><td>Sedang</td><td>Cepat</td><td>Sedang (feature_imp)</td><td>Mixed, &lt;1M, baseline best</td></tr>
+        <tr><td style="color:var(--amber)">SVM (RBF)</td><td>Lambat O(n²)</td><td>Sedang</td><td>Rendah</td><td>Small-medium, high-dim</td></tr>
+        <tr><td style="color:var(--violet)">XGBoost / LightGBM</td><td>Sedang</td><td>Cepat</td><td>Sedang (SHAP)</td><td>Large tabular, Kaggle-grade</td></tr>
       </tbody>
     </table>
   </div>
 
   <div class="info-box reveal">
-    <strong>Contoh Konkret — Hysteresis Mencegah Chattering:</strong><br>
-    Mesin dengan RMS = 2.79 mm/s (di sekitar T_warn = 2.8). Tanpa hysteresis: noise ±0.05 mm/s membuat status flicker Zone A ↔ B setiap 100 ms — 600 alert/menit, operator gila. Dengan hysteresis (T_warn_on = 2.8, T_warn_off = 2.6): status pindah ke "warning" hanya jika RMS &gt; 2.8, dan kembali ke "normal" hanya jika RMS turun &lt; 2.6. Margin 0.2 mm/s &gt;&gt; noise 0.05 → tidak ada chattering. Hasil: alert hanya pada transition genuine, bukan noise.
+    <strong>Contoh Konkret — Bearing Fault Classification (CWRU):</strong><br>
+    Dataset 4 kelas (healthy, IR fault, OR fault, ball fault), 21 fitur, 8000 sample train + 2000 test. Hasil benchmark:<br>
+    • <strong>Logistic Regression</strong>: accuracy 86%, F1 0.84 — linear miss beberapa pattern non-linear<br>
+    • <strong>Random Forest (default)</strong>: accuracy 98.5%, F1 0.97 — sweet spot, no tuning<br>
+    • <strong>SVM RBF (C=10, gamma='scale')</strong>: accuracy 97.2%, F1 0.96 — close to RF, butuh standardize<br>
+    • <strong>XGBoost (default)</strong>: accuracy 98.8%, F1 0.98 — marginal improvement, slower train<br>
+    Kesimpulan: untuk data tabular dengan engineered features, <strong>Random Forest default</strong> adalah baseline yang sulit dikalahkan. Investasi tuning marginal kecuali masalah sangat kompetitif.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Implementasi Hysteresis di Python (state machine sederhana):</strong><br>
-    <code>class HysteresisAlarm:</code><br>
-    <code>&nbsp;&nbsp;&nbsp;&nbsp;def __init__(self, t_on, t_off):</code><br>
-    <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.t_on, self.t_off = t_on, t_off</code><br>
-    <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.state = False</code><br>
-    <code>&nbsp;&nbsp;&nbsp;&nbsp;def update(self, x):</code><br>
-    <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if not self.state and x &gt; self.t_on: self.state = True</code><br>
-    <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elif self.state and x &lt; self.t_off: self.state = False</code><br>
-    <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return self.state</code><br>
-    Untuk tier alarm, extend ke 3 instance (warn/alert/crit) atau 1 class dengan list threshold. Frameworks production: <strong>OpenSCADA</strong>, <strong>Ignition</strong>, <strong>WinCC</strong>.
+    💡 <strong>Quick Comparison di scikit-learn:</strong><br>
+    <code>from sklearn.linear_model import LogisticRegression</code><br>
+    <code>from sklearn.ensemble import RandomForestClassifier</code><br>
+    <code>from sklearn.svm import SVC</code><br>
+    <code>from sklearn.metrics import accuracy_score, f1_score</code><br><br>
+    <code>models = {</code><br>
+    <code>&nbsp;&nbsp;&nbsp;&nbsp;'LogReg': LogisticRegression(max_iter=1000),</code><br>
+    <code>&nbsp;&nbsp;&nbsp;&nbsp;'RF': RandomForestClassifier(n_estimators=100, random_state=42),</code><br>
+    <code>&nbsp;&nbsp;&nbsp;&nbsp;'SVM': SVC(kernel='rbf', probability=True, random_state=42)</code><br>
+    <code>}</code><br>
+    <code>for name, model in models.items():</code><br>
+    <code>&nbsp;&nbsp;&nbsp;&nbsp;model.fit(X_train, y_train)</code><br>
+    <code>&nbsp;&nbsp;&nbsp;&nbsp;y_pred = model.predict(X_test)</code><br>
+    <code>&nbsp;&nbsp;&nbsp;&nbsp;print(f"{name}: acc={accuracy_score(y_test,y_pred):.3f}, F1={f1_score(y_test,y_pred,average='macro'):.3f}")</code><br>
+    Pilih top 1–2, lalu tune hyperparameter dengan <code>GridSearchCV</code>.
   </div>
 </div>
 
