@@ -875,52 +875,52 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 01 — MENGAPA RULE-BASED MONITORING ═══ -->
+<!-- ═══ BAGIAN 01 — MENGAPA MACHINE LEARNING ═══ -->
 <hr class="divider" style="margin-top:64px">
 <div class="section" id="m-persamaan">
   <div class="section-label reveal">Bagian 01</div>
-  <h2 class="section-title reveal">Mengapa Rule-Based:<br>Monitoring Real-Time yang Sederhana, Transparan &amp; Reliable</h2>
-  <p class="section-desc reveal">Setelah mesin dioptimasi (P9–P11) dan dipasang di lini produksi, pertanyaan beralih dari "<em>parameter mana yang terbaik?</em>" ke "<em>apakah mesin masih sehat saat ini?</em>". Inilah problem <strong>kondisi mesin (machine health)</strong>: detect anomali sebelum failure, kirim alert ke operator, log riwayat untuk trend analysis. Ada banyak pendekatan: (1) <em>rule-based</em> (threshold sederhana, IF-THEN), (2) <em>machine learning</em> (anomaly detection, classifier), (3) <em>deep learning</em> (autoencoder, LSTM forecasting), (4) <em>fisika-based</em> (digital twin). Yang paling banyak dipakai di industri: <strong>rule-based</strong> — <em>tidak glamour</em>, tetapi <em>reliable, transparan, dan mudah audit</em>. ISO 10816 (vibrasi), ISO 13373 (vibration condition monitoring), API 670 (turbomachinery) — semua menetapkan threshold rule-based. Dipakai oleh ABB, Siemens, GE, Honeywell sebagai <em>baseline</em> sebelum upgrade ke ML/DL. Pelajari rule-based dengan benar = bekal kuat untuk seluruh karier QC/maintenance engineering.</p>
+  <h2 class="section-title reveal">Mengapa Machine Learning:<br>Saat Rule-Based Tidak Cukup untuk Pola Multi-Fitur Kompleks</h2>
+  <p class="section-desc reveal">Pertemuan 12 (rule-based monitoring) bagus untuk <em>satu fitur</em> dengan <em>threshold tunggal</em> seperti ISO 10816 RMS velocity. Tetapi mesin nyata punya <strong>banyak fitur</strong>: RMS + peak + crest factor + kurtosis (P1–P7) + temperatur bearing + arus motor + flow rate + pressure. Pola fault tertentu hanya muncul dari <em>kombinasi fitur</em>: <em>"RMS naik 20% PLUS kurtosis &gt; 4 PLUS suhu bearing naik 5°C selama 2 jam"</em> = early-stage bearing pitting. Manual rule untuk semua kombinasi: tidak scalable, berkembang jadi alarm flood, susah maintain. Solusi: <strong>machine learning</strong> — biarkan algoritma <em>belajar pola</em> dari data historis (labeled: healthy/fault), kemudian klasifikasi sample baru. Inilah <strong>predictive maintenance</strong> modern: detect fault <em>sebelum</em> failure (7–30 hari lebih awal), kurangi unplanned shutdown, optimasi schedule perawatan. Ditemukan di Industri 4.0 setiap pabrik smart manufacturing. Library standar: <code>scikit-learn</code> (Python), digunakan oleh GE Predix, Siemens MindSphere, IBM Maximo APM.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Lima Karakteristik Rule-Based Alerting</div>
-    Transparan (auditable) &nbsp;·&nbsp; Deterministik (reproducible) &nbsp;·&nbsp; Real-time (latency &lt; 1 detik) &nbsp;·&nbsp; Compliance-ready (ISO/API) &nbsp;·&nbsp; Compute murah (microcontroller-friendly)
+    <div class="label">Lima Karakteristik Machine Learning untuk Predictive Maintenance</div>
+    Multi-feature pattern recognition &nbsp;·&nbsp; Belajar dari data historis (labeled) &nbsp;·&nbsp; Generalisasi ke sample baru &nbsp;·&nbsp; Probabilistik (confidence score) &nbsp;·&nbsp; Adaptive (re-train periodik)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">🔍</div>
-      <h3>Transparan &amp; Auditable</h3>
-      <p>Setiap keputusan alert bisa dijelaskan: "<em>karena rms = 8.2 mm/s &gt; threshold 7.1 mm/s, status = DANGER</em>". Auditor ISO/API hanya butuh review tabel rule. Bandingkan ML black-box (random forest, neural network) yang butuh SHAP/LIME untuk explainability. Untuk industri regulated (nuclear, aviation, medical), rule-based wajib karena <strong style="color:var(--cyan)">root-cause traceability</strong> 100% tanpa ambiguitas.</p>
-      <div class="formula">IF condition THEN action</div>
+      <div class="card-icon">🧠</div>
+      <h3>Pattern Recognition Multi-Feature</h3>
+      <p>ML mempelajari <em>relasi non-linear</em> antara banyak fitur sekaligus. Contoh: bearing fault punya signature RMS naik moderat + kurtosis spike tajam + suhu naik perlahan — tidak ada single threshold yang menangkap semua. Random Forest atau SVM bisa belajar pola gabungan ini dari data fault historis. Bandingkan rule-based: tiap kombinasi butuh manual rule, eksplosi kombinatorial.</p>
+      <div class="formula">y = f(x₁, x₂, …, x_d)</div>
     </div>
     <div class="card">
-      <div class="card-icon">🎯</div>
-      <h3>Deterministik &amp; Reproducible</h3>
-      <p>Untuk input yang sama, output selalu sama — tidak ada randomness. Berbeda dari ML yang punya noise pelatihan + inference. Konsekuensi positif: bug mudah direproduksi (input X selalu trigger alert; jika tidak, ada bug). Konsekuensi negatif: tidak adaptif terhadap drift (perlu re-tune threshold manual). Modern best practice: <em>rule-based core</em> + <em>ML adaptive layer</em> (Pertemuan 13).</p>
-      <div class="formula">f(x_t) = const → repeatable</div>
+      <div class="card-icon">📚</div>
+      <h3>Belajar dari Data Historis</h3>
+      <p>Workflow supervised learning: kumpulkan data <strong>labeled</strong> (X = fitur, y = healthy/fault). <em>Train</em>: algoritma optimasi parameter model untuk minimize error pada data train. <em>Test</em>: evaluate accuracy pada data test (yang model belum lihat). <em>Deploy</em>: prediksi untuk data baru real-time. Kebutuhan minimum: ~100 sample per kelas, idealnya ribuan. Sumber data: maintenance history + vibration logger + operator log book.</p>
+      <div class="formula">Train ⊆ Test ⊆ Deploy</div>
     </div>
     <div class="card">
-      <div class="card-icon">⚡</div>
-      <h3>Real-Time &amp; Edge-Friendly</h3>
-      <p>Threshold check = 1 instruksi CPU (nanodetik). Bisa berjalan di <strong>edge device</strong>: PLC, Raspberry Pi, ESP32, microcontroller 8-bit. Tidak butuh GPU, internet, atau cloud. Latency end-to-end (sensor → alert) &lt; 100 ms. Bandingkan ML inference yang biasanya butuh 10–100 ms hanya untuk forward pass + butuh memory lebih besar. Untuk safety-critical (turbine over-speed), rule-based di hardware-level (ASIC) wajib.</p>
-      <div class="formula">latency &lt; 100 ms (edge)</div>
+      <div class="card-icon">🎲</div>
+      <h3>Probabilistik (Confidence Score)</h3>
+      <p>Berbeda rule-based (binary OK/FAIL), ML output <em>probability</em>: <code>P(fault | x) = 0.87</code>. Engineer bisa pakai threshold custom: alert kalau P &gt; 0.5 (sensitif), atau P &gt; 0.9 (konservatif). Trade-off jelas: <strong>sensitivity vs specificity</strong> via ROC curve. Untuk safety-critical, set threshold rendah (catch semua fault, accept beberapa false alarm); untuk operator-friendly, threshold tinggi.</p>
+      <div class="formula">P(y | x) ∈ [0, 1]</div>
     </div>
     <div class="card">
-      <div class="card-icon">📜</div>
-      <h3>Compliance-Ready (ISO/API)</h3>
-      <p>Standar industri sudah <em>menetapkan</em> threshold:<br>• <strong>ISO 10816-3</strong>: vibrasi 4 zona (A: good ≤ 1.4 mm/s, B: acceptable, C: unsatisfactory, D: danger ≥ 7.1 mm/s) untuk mesin 15–300 kW.<br>• <strong>API 670</strong>: turbomachinery vibrasi alert 6.4 mm/s, danger 12.7 mm/s.<br>• <strong>ISO 13373-3</strong>: bearing severity (kurtosis, crest factor) thresholds. Compliance audit hanya butuh tunjukkan implementation match standard.</p>
-      <div class="formula">ISO 10816-3 zone A | B | C | D</div>
+      <div class="card-icon">🐍</div>
+      <h3>Implementasi: scikit-learn</h3>
+      <p>Library Python ML paling populer (50K+ stars di GitHub). API konsisten: <code>model.fit(X_train, y_train)</code> → <code>model.predict(X_test)</code>. Algoritma lengkap: <strong>Logistic Regression</strong> (linear, interpretable), <strong>Random Forest</strong> (ensemble tree, robust, feature importance), <strong>SVM</strong> (kernel trick, batas non-linear), <strong>Gradient Boosting</strong> (XGBoost, LightGBM — state-of-the-art tabular). Plus tools: <code>train_test_split</code>, <code>cross_val_score</code>, <code>classification_report</code>, <code>confusion_matrix</code>, <code>Pipeline</code>, <code>StandardScaler</code>.</p>
+      <div class="formula">scikit-learn API</div>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Posisi Pertemuan 12 dalam Alur Mata Kuliah:</strong><br>
-    <strong>P1–P7</strong> (analisis sinyal: RMS, peak, FFT, kurtosis, MFCC) → <strong>UTS</strong> → <strong>P9</strong> (LP) → <strong>P10</strong> (NLP) → <strong>P11</strong> (ANOVA) → <strong>P12 (Anda di sini — Otomatisasi Monitoring Rule-Based)</strong> → <strong>P13</strong> (Otomatisasi Predictive ML) → <strong>P14–P15</strong> (Proyek akhir). Rule-based menyatukan ekstraksi fitur (P1–P7) dengan keputusan otomasi: feature → threshold → alert. Ini <em>baseline</em> sebelum P13 (ML predictive) — selalu mulai rule-based, baru upgrade jika perlu.
+    <strong>Posisi Pertemuan 13 dalam Alur Mata Kuliah:</strong><br>
+    <strong>P1–P7</strong> (analisis sinyal: RMS, peak, FFT, kurtosis, MFCC = <em>fitur</em>) → <strong>UTS</strong> → <strong>P9–P11</strong> (optimasi LP/NLP/ANOVA) → <strong>P12</strong> (rule-based monitoring) → <strong>P13 (Anda di sini — ML Predictive)</strong> → <strong>P14–P15</strong> (proyek akhir). ML menggabungkan ekstraksi fitur (P1–P7) dengan keputusan otomasi multi-feature: <em>X (matrix fitur)</em> + <em>y (label)</em> → <em>model</em> → <em>prediksi otomatis</em>. Stack lengkap: <strong>Rule-Based (P12) sebagai safety net + compliance</strong> + <strong>ML (P13) sebagai early-warning + diagnosis</strong>. Bukan saling menggantikan.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Prinsip Utama:</strong> Sebelum bangun rule-based system: (1) <em>Definisikan threshold dengan referensi</em> (ISO/API/datasheet vendor) — jangan tebak. (2) <em>Pakai hysteresis</em> untuk hindari chattering saat sinyal di sekitar threshold. (3) <em>Tier alarm</em> (warning &lt; alert &lt; critical) untuk gradual escalation, bukan binary OK/FAIL. (4) <em>Debounce</em> (N consecutive samples) filter false alarm dari noise transient. (5) <em>Log semua transition state</em> untuk audit + trend analysis. (6) <em>Test edge cases</em>: sinyal exactly = threshold (boundary), sinyal naik-turun cepat (chattering test), sinyal mati total (sensor failure). (7) Setelah operasional, <em>monitor false-positive rate</em> dan <em>missed-detection rate</em>; tune threshold jika ada drift sistematik.
+    💡 <strong>Prinsip Utama:</strong> Sebelum bangun ML model: (1) <em>Pastikan data cukup</em> — minimal 100 sample/kelas (lebih bagus 1000+). (2) <em>Cek class balance</em> — kalau hanya 1% fault dari total data, accuracy jadi misleading; pakai precision/recall/F1. (3) <em>Train/test split</em> dengan <code>random_state=42</code> untuk reproducibility. (4) <em>Standardize fitur</em> (<code>StandardScaler</code>) — penting untuk SVM dan logistic regression. (5) <em>Jangan info leakage</em> — feature engineering harus <em>fit hanya pada train</em>, baru <em>transform pada test</em>. (6) <em>Cross-validation</em> 5-fold untuk estimate true performance, bukan single split. (7) <em>Pakai Pipeline</em> untuk hindari leakage saat preprocessing. (8) <em>Compare baseline</em>: random predictor atau majority class — model harus secara nyata lebih baik. (9) <em>Feature importance</em>: Random Forest punya <code>.feature_importances_</code> built-in untuk interpretability.
   </div>
 </div>
 
