@@ -994,91 +994,84 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <hr class="divider">
 <div class="section" id="m-dmf">
   <div class="section-label reveal">Bagian 03</div>
-  <h2 class="section-title reveal">Algoritma Klasifikasi:<br>Logistic Regression, Random Forest, &amp; SVM</h2>
-  <p class="section-desc reveal">Tiga algoritma klasifikasi paling sering dipakai di engineering: <strong>Logistic Regression</strong> (linier, baseline interpretable), <strong>Random Forest</strong> (ensemble decision tree, robust + feature importance), <strong>Support Vector Machine (SVM)</strong> (margin maximization + kernel trick untuk non-linear). Tiap algoritma punya assumption, kekuatan, &amp; kelemahan berbeda. <em>Best practice</em>: coba ketiganya dengan default hyperparameter, pilih yang terbaik di test set, lalu tune hyperparameter top model. Jangan pilih algoritma berdasarkan popularitas — pilih berdasarkan struktur data Anda. Plus <strong>Gradient Boosting</strong> (XGBoost, LightGBM) sebagai state-of-the-art untuk tabular data — tetapi default RF/SVM cukup untuk baseline solid.</p>
+  <h2 class="section-title reveal">Pipeline Architecture:<br>Tahapan End-to-End dari Raw Data sampai Output</h2>
+  <p class="section-desc reveal">Setiap proyek akhir <em>harus</em> mengikuti arsitektur 5-tahap: <strong>Acquisition → Preprocessing → Feature Engineering → Model (Optimasi/ML) → Output (Monitor/Deploy)</strong>. Tiap tahap punya input/output yang well-defined, dengan boundary modular (bisa diganti). Anggap pipeline seperti <em>assembly line</em> di pabrik: tiap stasiun melakukan satu tugas spesifik, lalu pass artifact ke stasiun berikutnya. Keuntungan modular: (a) <em>debug per-tahap</em> kalau error, (b) <em>iterate per-tahap</em> tanpa rebuild semua, (c) <em>swap algoritma</em> di satu tahap tanpa pengaruh tahap lain. Praktik standar: gunakan <code>sklearn.pipeline.Pipeline</code> untuk modularize, <code>joblib.dump/load</code> untuk persistence model, dan <em>versioning artifact</em> (model_v1.pkl, model_v2.pkl) untuk track changes. Pipeline yang baik = clean separation of concerns.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Tiga Algoritma Klasifikasi Inti + Pilihan Lanjutan</div>
-    Logistic Regression (linear) &nbsp;·&nbsp; Random Forest (tree ensemble) &nbsp;·&nbsp; SVM (margin + kernel) &nbsp;·&nbsp; Gradient Boosting (advanced)
+    <div class="label">Lima Tahap Pipeline End-to-End</div>
+    Data Acquisition &nbsp;·&nbsp; Preprocessing &nbsp;·&nbsp; Feature Engineering &nbsp;·&nbsp; Model (Opt/ML) &nbsp;·&nbsp; Output / Deploy
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">📐</div>
-      <h3>Logistic Regression — Linear Baseline</h3>
-      <p>Model probabilistik: <code>P(y=1 | x) = σ(wᵀx + b)</code> dengan σ = sigmoid. Loss: cross-entropy. Optimasi: gradient descent (atau IRLS). <strong>Kekuatan</strong>: cepat (linear), sangat interpretable (koefisien w[i] = log-odds contribution fitur i), probabilistic output natural, robust untuk data linearly separable. <strong>Kelemahan</strong>: hanya batas linear; butuh feature engineering untuk non-linear (polynomial, interaction terms). API: <code>from sklearn.linear_model import LogisticRegression; model = LogisticRegression(C=1.0, max_iter=1000)</code>. Hyperparam <em>C</em>: regularization (smaller C = more regularization).</p>
-      <div class="formula">P(y=1|x) = σ(wᵀx + b)</div>
+      <div class="card-icon">📡</div>
+      <h3>Tahap 1 — Data Acquisition</h3>
+      <p>Tahap mengumpulkan data mentah. <strong>Sumber</strong>: (a) sensor on-site (DAQ NI USB-6009 / Arduino + IMU MPU6050 / Raspberry Pi) → save .csv. (b) database existing (CMMS / SCADA historian → query SQL). (c) dataset publik download (CWRU, NASA, UCI). <strong>Output</strong>: file raw <code>data_raw.csv</code> dengan timestamp + sensor reading. <strong>Best practice</strong>: dokumentasikan metadata (sensor type, sampling rate, kondisi operasi, tanggal). Save juga README sumber data. <em>Anti-pattern</em>: skip dokumentasi → 2 bulan kemudian lupa data dari mana.</p>
+      <div class="formula">sensor → data_raw.csv</div>
     </div>
     <div class="card">
-      <div class="card-icon">🌳</div>
-      <h3>Random Forest — Ensemble of Trees</h3>
-      <p>Kombinasi N decision trees (typically 100), tiap tree dilatih di bootstrap sample + random subset features. Prediksi via <strong>majority voting</strong> (klasifikasi) atau <em>averaging</em> (regresi). <strong>Kekuatan</strong>: robust (low variance via averaging), capture non-linear pattern, feature importance built-in (<code>.feature_importances_</code>), tidak sensitif scaling, handle mixed feature types. <strong>Kelemahan</strong>: lebih lambat dari linear, kurang interpretable per-prediction (tetapi feature importance OK aggregat). API: <code>from sklearn.ensemble import RandomForestClassifier; model = RandomForestClassifier(n_estimators=100, max_depth=None, random_state=42)</code>. Default sangat sering bagus.</p>
-      <div class="formula">RF: majority vote of N trees</div>
+      <div class="card-icon">🧹</div>
+      <h3>Tahap 2 — Preprocessing</h3>
+      <p>Clean data sebelum analisis. <strong>Operasi standar</strong>: (a) handle missing value (drop / impute mean/median / forward-fill time-series). (b) detect outlier (IQR rule / Z-score / isolation forest). (c) normalize / standardize (<code>StandardScaler</code> z-score, <code>MinMaxScaler</code> [0,1]). (d) handle imbalanced class (oversampling SMOTE, undersampling, atau class_weight). (e) windowing time-series (segment continuous signal jadi window 1 detik atau 1024-sample). <strong>Output</strong>: <code>data_clean.csv</code>. <strong>Wajib</strong>: fit scaler hanya di train (avoid leakage).</p>
+      <div class="formula">raw → cleaned + windowed</div>
     </div>
     <div class="card">
-      <div class="card-icon">🎯</div>
-      <h3>Support Vector Machine — Margin + Kernel</h3>
-      <p>Find <em>hyperplane</em> yang memaksimalkan margin antara dua kelas. Untuk non-linear: <strong>kernel trick</strong> — implicit map ke space dimensi tinggi via kernel (RBF, polynomial). <strong>Kekuatan</strong>: efektif untuk small-to-medium dataset (≤ 10K sample), kuat di high-dim feature space, kernel flexible. <strong>Kelemahan</strong>: lambat untuk dataset besar (kompleksitas O(n²) atau O(n³)), tidak natural probabilistic (butuh Platt scaling), sangat sensitif scaling. API: <code>from sklearn.svm import SVC; model = SVC(C=1.0, kernel='rbf', gamma='scale', probability=True)</code>. Standardize fitur wajib!</p>
-      <div class="formula">SVM: max margin via kernel</div>
+      <div class="card-icon">🔬</div>
+      <h3>Tahap 3 — Feature Engineering</h3>
+      <p>Extract fitur informatif dari data preprocessed. <strong>Time-domain</strong>: RMS, peak, peak-to-peak, mean, std, kurtosis, skewness, crest factor (P1–P3 materi). <strong>Frequency-domain</strong>: dominant frequency (FFT peak), spectral entropy, band energy 0–500 Hz / 500–1000 Hz / 1K–2K Hz (P4–P5 materi). <strong>Time-frequency</strong>: STFT band energy, wavelet (P6–P7 materi). <strong>Output</strong>: <code>features.csv</code> dengan ~10–30 kolom fitur per sample. Quality &gt; quantity — 10 fitur informatif &gt; 100 fitur noise.</p>
+      <div class="formula">signal → 20 features</div>
     </div>
     <div class="card">
-      <div class="card-icon">🚀</div>
-      <h3>Gradient Boosting (XGBoost / LightGBM)</h3>
-      <p>State-of-the-art untuk tabular data — sering juara di Kaggle competitions. Iteratif: build tree baru untuk koreksi error tree sebelumnya. Hyperparam banyak (learning rate, max_depth, n_estimators, subsample, dll) → butuh tuning lebih extensive. API: <code>from xgboost import XGBClassifier; model = XGBClassifier(n_estimators=200, learning_rate=0.1, max_depth=5)</code>. Atau <code>lightgbm.LGBMClassifier</code> (faster, memory-efficient). Trade-off: marginal accuracy gain (~1-3%) vs RF, lebih lambat train, lebih rentan overfit kalau tidak hati-hati.</p>
-      <div class="formula">GB: stage-wise additive trees</div>
+      <div class="card-icon">🧠</div>
+      <h3>Tahap 4 — Model (Optimasi atau ML)</h3>
+      <p>Inti pipeline. <strong>Pilihan A — Optimasi</strong>: pakai <code>scipy.optimize.linprog</code> (LP), <code>scipy.optimize.minimize</code> (NLP), <code>pymoo</code>/<code>deap</code> (GA) untuk find optimal parameter. <strong>Pilihan B — ML klasifikasi</strong>: pakai <code>sklearn</code> Random Forest / SVM / XGBoost. <strong>Workflow</strong>: train_test_split → fit → evaluate (CV mean ± std) → tune hyperparameter (GridSearchCV) → save best model (<code>joblib.dump</code>). <strong>Output</strong>: <code>model.pkl</code> + metric report (F1, accuracy, ROC-AUC, atau optimization solution). Reproducibility: <code>random_state=42</code> selalu.</p>
+      <div class="formula">model.fit() → model.pkl</div>
     </div>
     <div class="card">
-      <div class="card-icon">⚖️</div>
-      <h3>Bias-Variance Trade-off</h3>
-      <p><strong>High bias</strong> (underfit): model terlalu sederhana, miss pola — accuracy train &amp; test sama-sama rendah. <strong>High variance</strong> (overfit): model terlalu kompleks, memorize train data — accuracy train tinggi, test rendah. <em>Logistic regression</em>: high bias kalau data non-linear. <em>RF max_depth tak terbatas</em>: high variance. <em>SVM C besar</em>: low bias, high variance. <strong>Diagnostik</strong>: kalau test &lt;&lt; train accuracy → overfit (regularize: kurangi max_depth, naikkan C atau alpha). Kalau train low → underfit (model lebih kompleks atau feature engineering).</p>
-      <div class="formula">err = bias² + variance + noise</div>
+      <div class="card-icon">📺</div>
+      <h3>Tahap 5 — Output / Deploy</h3>
+      <p>Tahap akhir: convert model ke <em>actionable output</em> untuk operator. <strong>Opsi sederhana</strong>: notebook visualisasi (matplotlib / seaborn), confusion matrix heatmap, ROC curve, decision boundary plot. <strong>Opsi menengah</strong>: HTML report (Jupyter nbconvert) atau PDF auto-generated. <strong>Opsi advanced</strong>: <strong>Streamlit dashboard</strong> — upload CSV, real-time inference, deploy ke Streamlit Cloud (free tier). Atau Flask/FastAPI REST endpoint. <strong>Output</strong>: alert system, recommendation, atau decision support dashboard yang bisa dipakai end-user (operator / engineer / manager).</p>
+      <div class="formula">model → dashboard</div>
     </div>
     <div class="card">
-      <div class="card-icon">📋</div>
-      <h3>Algorithm Selection Guideline</h3>
-      <p><strong>Decision tree</strong> untuk pilih algoritma: (1) Data &lt; 1000 sample → Logistic Regression, SVM. (2) Data 1K–100K, mixed feature → <strong>Random Forest</strong> (default best). (3) Data &gt; 100K, performance critical → <strong>LightGBM</strong>. (4) Butuh interpretability tinggi → Logistic + feature importance, atau Decision Tree single. (5) Imbalanced class (1% positive) → <code>class_weight='balanced'</code> di RF/Logistic. (6) Real-time inference (&lt; 1ms) → Logistic atau small RF. <strong>Always start simple</strong>: Logistic baseline, then RF, then advanced.</p>
-      <div class="formula">simple → complex iteratif</div>
+      <div class="card-icon">🔄</div>
+      <h3>Pipeline Object (sklearn)</h3>
+      <p>Modularize dengan <code>sklearn.pipeline.Pipeline</code>: <code>Pipeline([('scaler', StandardScaler()), ('clf', RandomForestClassifier())])</code>. <strong>Kelebihan</strong>: (a) auto-apply scaler.fit_transform di train, scaler.transform di test (avoid leakage). (b) cross_val_score &amp; GridSearchCV langsung work dengan pipeline. (c) deploy = save full pipeline (<code>joblib.dump(pipe, 'pipe.pkl')</code>) → reload untuk inference (<code>joblib.load(...)</code>) tanpa worry urutan. (d) chain banyak step: imputer → scaler → feature_selection → classifier. Pipeline = professional standard.</p>
+      <div class="formula">Pipeline([(&apos;scl&apos;, ...), (&apos;clf&apos;, ...)])</div>
     </div>
   </div>
 
   <div class="tbl-wrap reveal" style="margin:32px 0">
     <table class="data-table">
-      <thead><tr><th>Algoritma</th><th>Train Speed</th><th>Predict Speed</th><th>Interpretability</th><th>Cocok Data</th></tr></thead>
+      <thead><tr><th>Tahap</th><th>Input</th><th>Output</th><th>Library / Tool</th><th>Modul Sumber</th></tr></thead>
       <tbody>
-        <tr><td style="color:var(--cyan)">Logistic Regression</td><td>Sangat cepat</td><td>Sangat cepat</td><td>Tinggi (koefisien w)</td><td>Linear separable, &lt;100K</td></tr>
-        <tr><td style="color:var(--green)">Random Forest</td><td>Sedang</td><td>Cepat</td><td>Sedang (feature_imp)</td><td>Mixed, &lt;1M, baseline best</td></tr>
-        <tr><td style="color:var(--amber)">SVM (RBF)</td><td>Lambat O(n²)</td><td>Sedang</td><td>Rendah</td><td>Small-medium, high-dim</td></tr>
-        <tr><td style="color:var(--violet)">XGBoost / LightGBM</td><td>Sedang</td><td>Cepat</td><td>Sedang (SHAP)</td><td>Large tabular, Kaggle-grade</td></tr>
+        <tr><td style="color:var(--cyan)">1. Acquisition</td><td>Sensor / DB / Public</td><td>data_raw.csv</td><td><code>pandas, NI-DAQmx</code></td><td>Setup hardware</td></tr>
+        <tr><td style="color:var(--green)">2. Preprocess</td><td>data_raw.csv</td><td>data_clean.csv</td><td><code>pandas, sklearn.preprocessing</code></td><td>Pertemuan umum</td></tr>
+        <tr><td style="color:var(--amber)">3. Features</td><td>data_clean.csv</td><td>features.csv</td><td><code>numpy, scipy.signal, scipy.fft</code></td><td>P1–P7</td></tr>
+        <tr><td style="color:var(--violet)">4a. Optimize</td><td>features + cost fn</td><td>optimal_params</td><td><code>scipy.optimize, pymoo</code></td><td>P8–P10</td></tr>
+        <tr><td style="color:var(--pink)">4b. ML Classify</td><td>features + labels</td><td>model.pkl + F1 score</td><td><code>sklearn, xgboost</code></td><td>P11–P13</td></tr>
+        <tr><td style="color:var(--cyan)">5. Deploy</td><td>model + new data</td><td>predictions / alerts</td><td><code>streamlit, flask</code></td><td>P12 (rule-based)</td></tr>
       </tbody>
     </table>
   </div>
 
   <div class="info-box reveal">
-    <strong>Contoh Konkret — Bearing Fault Classification (CWRU):</strong><br>
-    Dataset 4 kelas (healthy, IR fault, OR fault, ball fault), 21 fitur, 8000 sample train + 2000 test. Hasil benchmark:<br>
-    • <strong>Logistic Regression</strong>: accuracy 86%, F1 0.84 — linear miss beberapa pattern non-linear<br>
-    • <strong>Random Forest (default)</strong>: accuracy 98.5%, F1 0.97 — sweet spot, no tuning<br>
-    • <strong>SVM RBF (C=10, gamma='scale')</strong>: accuracy 97.2%, F1 0.96 — close to RF, butuh standardize<br>
-    • <strong>XGBoost (default)</strong>: accuracy 98.8%, F1 0.98 — marginal improvement, slower train<br>
-    Kesimpulan: untuk data tabular dengan engineered features, <strong>Random Forest default</strong> adalah baseline yang sulit dikalahkan. Investasi tuning marginal kecuali masalah sangat kompetitif.
+    <strong>Contoh Konkret — Pipeline untuk Bearing Fault Detection (CWRU):</strong><br>
+    <em>Tahap 1</em>: download CWRU dataset (.mat files) → convert ke CSV. <em>Tahap 2</em>: window signal jadi 1024-sample chunk, normalize. <em>Tahap 3</em>: ekstrak 21 fitur per chunk (RMS, kurtosis, FFT band energies). <em>Tahap 4</em>: train RandomForest 100 trees, 5-fold CV, GridSearch tune. <em>Tahap 5</em>: matplotlib confusion matrix + classification_report + ROC, opsional Streamlit upload-and-classify dashboard. <strong>Total kode</strong>: ~300 baris Python (tanpa hyper-tuning), ~500 baris dengan dashboard. Waktu: ~1 minggu untuk mahasiswa rajin, 2 minggu kalau santai.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Quick Comparison di scikit-learn:</strong><br>
-    <code>from sklearn.linear_model import LogisticRegression</code><br>
-    <code>from sklearn.ensemble import RandomForestClassifier</code><br>
-    <code>from sklearn.svm import SVC</code><br>
-    <code>from sklearn.metrics import accuracy_score, f1_score</code><br><br>
-    <code>models = {</code><br>
-    <code>&nbsp;&nbsp;&nbsp;&nbsp;'LogReg': LogisticRegression(max_iter=1000),</code><br>
-    <code>&nbsp;&nbsp;&nbsp;&nbsp;'RF': RandomForestClassifier(n_estimators=100, random_state=42),</code><br>
-    <code>&nbsp;&nbsp;&nbsp;&nbsp;'SVM': SVC(kernel='rbf', probability=True, random_state=42)</code><br>
-    <code>}</code><br>
-    <code>for name, model in models.items():</code><br>
-    <code>&nbsp;&nbsp;&nbsp;&nbsp;model.fit(X_train, y_train)</code><br>
-    <code>&nbsp;&nbsp;&nbsp;&nbsp;y_pred = model.predict(X_test)</code><br>
-    <code>&nbsp;&nbsp;&nbsp;&nbsp;print(f"{name}: acc={accuracy_score(y_test,y_pred):.3f}, F1={f1_score(y_test,y_pred,average='macro'):.3f}")</code><br>
-    Pilih top 1–2, lalu tune hyperparameter dengan <code>GridSearchCV</code>.
+    💡 <strong>Folder Structure Standar untuk Project (Best Practice):</strong><br>
+    <code>my_project/</code><br>
+    <code>├── data/ (raw, processed, external — gitignore yang besar)</code><br>
+    <code>├── notebooks/ (01_eda.ipynb, 02_features.ipynb, 03_model.ipynb)</code><br>
+    <code>├── src/ (utility functions: feature_extraction.py, model.py)</code><br>
+    <code>├── models/ (model.pkl artifacts)</code><br>
+    <code>├── reports/ (figures PNG, laporan PDF)</code><br>
+    <code>├── requirements.txt (pinned versions)</code><br>
+    <code>├── README.md (cara jalan, hasil, kontak)</code><br>
+    <code>└── .gitignore (data/raw/*.csv jika &gt; 100MB)</code><br>
+    Konvensi nama: <em>snake_case</em> untuk file Python, <em>numbered prefix</em> untuk notebook (urutan jelas). Versi git semua kecuali data raw besar.
   </div>
 </div>
 
