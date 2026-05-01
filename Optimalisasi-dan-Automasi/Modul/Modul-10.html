@@ -1362,12 +1362,12 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 08 — PYTHON NLP ═══ -->
+<!-- ═══ BAGIAN 08 — PYTHON METAHEURISTIK ═══ -->
 <hr class="divider">
 <div class="section" id="m-jupyter">
   <div class="section-label reveal">Bagian 08</div>
-  <h2 class="section-title reveal">Implementasi Python<br>Non-Linear Programming di Jupyter Notebook</h2>
-  <p class="section-desc reveal">Empat cell berikut menerapkan NLP pada masalah engineering: Cell 1 menyelesaikan unconstrained NLP <code>min f(x,y) = (x−3)² + (y−2)²·(x²+1)</code> via gradient descent manual + <code>scipy.minimize</code> dengan BFGS, plot trajectory iterasi. Cell 2 mengekstraksi optimum desain pegas (mass minimum dengan tegangan ≤ allowable) menggunakan SLSQP. Cell 3 mengilustrasikan KKT &amp; Lagrangian secara analitik untuk masalah tangki silinder volume tetap. Cell 4 mendefinisikan <strong>fungsi <code>solve_design_nlp()</code></strong> reusable yang menerima fungsi objektif &amp; kendala arbitrer + auto-validation gradient + multi-start untuk masalah non-konveks.</p>
+  <h2 class="section-title reveal">Implementasi Python<br>Genetic Algorithm &amp; PSO di Jupyter Notebook</h2>
+  <p class="section-desc reveal">Empat cell berikut menerapkan metaheuristik pada masalah engineering: Cell 1 implementasi <strong>Genetic Algorithm dari scratch</strong> untuk fungsi Rastrigin 2D (multi-modal benchmark) — dengan tournament selection, BLX-α crossover, Gaussian mutation, elitism. Cell 2 menggunakan <code>scipy.optimize.differential_evolution</code> + <strong>pyswarms PSO</strong> untuk benchmark side-by-side di Rastrigin (10 dimensi) dengan visualisasi convergence curve. Cell 3 mengaplikasikan <strong>DE</strong> ke masalah engineering riil: <em>spring weight optimization</em> (3 variabel, 4 nonlinear constraints). Cell 4 mendefinisikan <strong>fungsi <code>multistart_metaheuristic()</code></strong> reusable yang menjalankan multi-run dengan seed berbeda + statistik mean/std/best.</p>
 
   <div class="info-box reveal">
     <strong>📓 Petunjuk Pengerjaan di Jupyter Notebook:</strong><br>
@@ -1382,58 +1382,87 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="code-wrap reveal">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 1 — Gradient Descent Manual + scipy.minimize BFGS untuk min f(x,y) Non-Linier</span>
+      <span class="code-label">Cell 1 — Genetic Algorithm dari Scratch untuk Fungsi Rastrigin (Multi-Modal Benchmark)</span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
     <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
 <span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
-<span class="kw">from</span> scipy.optimize <span class="kw">import</span> minimize
+
+np.random.<span class="fn">seed</span>(<span class="nm">42</span>)
 
 <span class="cm"># ═══════════════════════════════════════════════════════════════════</span>
-<span class="cm"># PROBLEM: minimize f(x,y) = (x−3)² + 2·(y−2)²  (paraboloid shifted)</span>
-<span class="cm"># Solusi analitik: x* = 3, y* = 2, f* = 0</span>
-<span class="cm"># Kita verifikasi dengan (a) gradient descent manual, (b) scipy BFGS</span>
+<span class="cm"># BENCHMARK: Rastrigin function 2D — multi-modal, banyak lokal min</span>
+<span class="cm">#   f(x) = 10·n + Σ[xᵢ² − 10·cos(2π·xᵢ)],  n=2</span>
+<span class="cm">#   Global minimum di x* = (0, 0), f* = 0</span>
+<span class="cm">#   Domain: xᵢ ∈ [−5.12, 5.12]</span>
 <span class="cm"># ═══════════════════════════════════════════════════════════════════</span>
 
-<span class="kw">def</span> <span class="fn">f</span>(x):                              <span class="cm"># fungsi objektif</span>
-    <span class="kw">return</span> (x[<span class="nm">0</span>] - <span class="nm">3</span>)**<span class="nm">2</span> + <span class="nm">2</span>*(x[<span class="nm">1</span>] - <span class="nm">2</span>)**<span class="nm">2</span>
+<span class="kw">def</span> <span class="fn">rastrigin</span>(x):
+    <span class="kw">return</span> <span class="nm">10</span> * <span class="fn">len</span>(x) + np.<span class="fn">sum</span>(x**<span class="nm">2</span> - <span class="nm">10</span> * np.<span class="fn">cos</span>(<span class="nm">2</span> * np.pi * x))
 
-<span class="kw">def</span> <span class="fn">grad_f</span>(x):                         <span class="cm"># gradient analitik</span>
-    <span class="kw">return</span> np.<span class="fn">array</span>([<span class="nm">2</span>*(x[<span class="nm">0</span>] - <span class="nm">3</span>), <span class="nm">4</span>*(x[<span class="nm">1</span>] - <span class="nm">2</span>)])
+<span class="cm"># ═══════════════ GA HYPERPARAMETERS ═══════════════</span>
+N        = <span class="nm">30</span>           <span class="cm"># population size</span>
+DIM      = <span class="nm">2</span>            <span class="cm"># dimensionality</span>
+G_max    = <span class="nm">100</span>          <span class="cm"># max generations</span>
+Pc       = <span class="nm">0.8</span>          <span class="cm"># crossover rate</span>
+Pm       = <span class="nm">0.1</span>          <span class="cm"># mutation rate</span>
+sigma    = <span class="nm">0.3</span>          <span class="cm"># Gaussian mutation std</span>
+k_tour   = <span class="nm">3</span>            <span class="cm"># tournament size</span>
+k_elite  = <span class="nm">2</span>            <span class="cm"># elite preserve count</span>
+LB, UB   = -<span class="nm">5.12</span>, <span class="nm">5.12</span>  <span class="cm"># bounds</span>
 
-<span class="cm"># ───── (a) Gradient Descent Manual ─────</span>
-x = np.<span class="fn">array</span>([<span class="nm">0.0</span>, <span class="nm">0.0</span>])             <span class="cm"># initial guess</span>
-alpha = <span class="nm">0.1</span>                            <span class="cm"># step size</span>
-trajectory = [x.<span class="fn">copy</span>()]
-<span class="kw">for</span> k <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">50</span>):
-    g = <span class="fn">grad_f</span>(x)
-    <span class="kw">if</span> np.<span class="fn">linalg</span>.<span class="fn">norm</span>(g) &lt; <span class="nm">1e-6</span>:
-        <span class="kw">break</span>
-    x = x - alpha * g                  <span class="cm"># x_{k+1} = x_k − α∇f</span>
-    trajectory.<span class="fn">append</span>(x.<span class="fn">copy</span>())
+<span class="cm"># ═══════════════ INIT POPULATION ═══════════════</span>
+pop = np.random.<span class="fn">uniform</span>(LB, UB, (N, DIM))
+fitness = np.<span class="fn">array</span>([<span class="fn">rastrigin</span>(x) <span class="kw">for</span> x <span class="kw">in</span> pop])
 
-trajectory = np.<span class="fn">array</span>(trajectory)
-<span class="fn">print</span>(<span class="st">f"Gradient Descent: konvergen di {len(trajectory)-1} iterasi"</span>)
-<span class="fn">print</span>(<span class="st">f"  x* ≈ {x}, f(x*) ≈ {f(x):.6e}"</span>)
+best_history = []
 
-<span class="cm"># ───── (b) scipy.minimize dengan BFGS ─────</span>
-res = <span class="fn">minimize</span>(f, x0=[<span class="nm">0</span>, <span class="nm">0</span>], jac=grad_f, method=<span class="st">'BFGS'</span>)
-<span class="fn">print</span>(<span class="st">f"\nscipy BFGS: {res.message}"</span>)
-<span class="fn">print</span>(<span class="st">f"  x* = {res.x}, f(x*) = {res.fun:.6e}"</span>)
-<span class="fn">print</span>(<span class="st">f"  iterations: {res.nit}, fevals: {res.nfev}"</span>)
+<span class="cm"># ═══════════════ EVOLUTION LOOP ═══════════════</span>
+<span class="kw">for</span> gen <span class="kw">in</span> <span class="fn">range</span>(G_max):
 
-<span class="cm"># ───── Plot contour + trajectory ─────</span>
-xx, yy = np.<span class="fn">meshgrid</span>(np.<span class="fn">linspace</span>(-<span class="nm">1</span>, <span class="nm">5</span>, <span class="nm">100</span>), np.<span class="fn">linspace</span>(-<span class="nm">1</span>, <span class="nm">4</span>, <span class="nm">100</span>))
-zz = (xx - <span class="nm">3</span>)**<span class="nm">2</span> + <span class="nm">2</span>*(yy - <span class="nm">2</span>)**<span class="nm">2</span>
+    <span class="cm"># Tournament selection</span>
+    <span class="kw">def</span> <span class="fn">tournament</span>():
+        idx = np.random.<span class="fn">choice</span>(N, k_tour, replace=<span class="kw">False</span>)
+        <span class="kw">return</span> pop[idx[np.<span class="fn">argmin</span>(fitness[idx])]].<span class="fn">copy</span>()
 
-fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="nm">9</span>, <span class="nm">7</span>))
-cs = ax.<span class="fn">contour</span>(xx, yy, zz, levels=<span class="nm">15</span>, colors=<span class="st">'#94a3b8'</span>, linewidths=<span class="nm">0.6</span>)
-ax.<span class="fn">clabel</span>(cs, inline=<span class="kw">True</span>, fontsize=<span class="nm">8</span>)
-ax.<span class="fn">plot</span>(trajectory[:, <span class="nm">0</span>], trajectory[:, <span class="nm">1</span>], <span class="st">'o-'</span>, color=<span class="st">'#a855f7'</span>, ms=<span class="nm">5</span>, lw=<span class="nm">1.5</span>, label=<span class="st">'Gradient Descent'</span>)
-ax.<span class="fn">plot</span>(<span class="nm">3</span>, <span class="nm">2</span>, <span class="st">'*'</span>, color=<span class="st">'#fbbf24'</span>, ms=<span class="nm">22</span>, mec=<span class="st">'#000'</span>, mew=<span class="nm">1</span>, label=<span class="st">'Optimal x*'</span>, zorder=<span class="nm">5</span>)
-ax.<span class="fn">set_xlabel</span>(<span class="st">'x'</span>); ax.<span class="fn">set_ylabel</span>(<span class="st">'y'</span>)
-ax.<span class="fn">set_title</span>(<span class="st">'Gradient Descent Trajectory pada f(x,y) = (x−3)² + 2(y−2)²'</span>)
+    new_pop = []
+    <span class="cm"># Elitism: simpan k_elite individual terbaik</span>
+    elite_idx = np.<span class="fn">argsort</span>(fitness)[:k_elite]
+    <span class="kw">for</span> i <span class="kw">in</span> elite_idx:
+        new_pop.<span class="fn">append</span>(pop[i].<span class="fn">copy</span>())
+
+    <span class="cm"># Generate offspring</span>
+    <span class="kw">while</span> <span class="fn">len</span>(new_pop) &lt; N:
+        p1, p2 = <span class="fn">tournament</span>(), <span class="fn">tournament</span>()
+        <span class="cm"># BLX-α crossover (real-coded)</span>
+        <span class="kw">if</span> np.random.<span class="fn">rand</span>() &lt; Pc:
+            alpha = <span class="nm">0.5</span>
+            child = alpha * p1 + (<span class="nm">1</span> - alpha) * p2
+        <span class="kw">else</span>:
+            child = p1.<span class="fn">copy</span>()
+        <span class="cm"># Gaussian mutation</span>
+        <span class="kw">if</span> np.random.<span class="fn">rand</span>() &lt; Pm:
+            child += np.random.<span class="fn">randn</span>(DIM) * sigma
+        <span class="cm"># Bounds clamping</span>
+        child = np.<span class="fn">clip</span>(child, LB, UB)
+        new_pop.<span class="fn">append</span>(child)
+
+    pop = np.<span class="fn">array</span>(new_pop)
+    fitness = np.<span class="fn">array</span>([<span class="fn">rastrigin</span>(x) <span class="kw">for</span> x <span class="kw">in</span> pop])
+    best_history.<span class="fn">append</span>(fitness.<span class="fn">min</span>())
+
+<span class="fn">print</span>(<span class="st">f"GA: best fitness = {min(best_history):.6f}"</span>)
+<span class="fn">print</span>(<span class="st">f"GA: best individual = {pop[np.argmin(fitness)]}"</span>)
+<span class="fn">print</span>(<span class="st">f"GA: target global min f* = 0 di x = (0,0)"</span>)
+
+<span class="cm"># ═══════════════ PLOT CONVERGENCE ═══════════════</span>
+fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="nm">10</span>, <span class="nm">5</span>))
+ax.<span class="fn">plot</span>(best_history, color=<span class="st">'#a855f7'</span>, lw=<span class="nm">1.6</span>, label=<span class="st">'GA best fitness'</span>)
+ax.<span class="fn">axhline</span>(<span class="nm">0</span>, color=<span class="st">'#fbbf24'</span>, ls=<span class="st">'--'</span>, label=<span class="st">'Global minimum f*=0'</span>)
+ax.<span class="fn">set_xlabel</span>(<span class="st">'Generation'</span>); ax.<span class="fn">set_ylabel</span>(<span class="st">'Best fitness'</span>)
+ax.<span class="fn">set_title</span>(<span class="st">f'GA Convergence pada Rastrigin {DIM}D (N={N}, Pc={Pc}, Pm={Pm})'</span>)
+ax.<span class="fn">set_yscale</span>(<span class="st">'log'</span>)
 ax.<span class="fn">legend</span>(); ax.<span class="fn">grid</span>(alpha=<span class="nm">0.25</span>); plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
   </div>
 
