@@ -1241,14 +1241,14 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <hr class="divider">
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 06</div>
-  <h2 class="section-title reveal">Animasi Interaktif<br>Visualisasi Konsep Decision Boundary, Confusion Matrix &amp; ROC</h2>
-  <p class="section-desc reveal">Empat animasi yang memvisualisasikan <strong>konsep inti machine learning klasifikasi</strong>: (1) decision boundary 2D — bagaimana Logistic vs RF vs SVM membagi feature space, (2) train/test split &amp; overfitting curve — train accuracy vs test accuracy berdasarkan model complexity, (3) confusion matrix interaktif — TP/FP/TN/FN dengan threshold geser, (4) ROC curve &amp; AUC — visualize trade-off precision vs recall di semua threshold. Tujuannya: membangun intuisi visual sebelum implementasi Python <code>scikit-learn</code> classifier.</p>
+  <h2 class="section-title reveal">Animasi Interaktif<br>Random Forest, SVM Kernel, Overfitting &amp; ROC-AUC</h2>
+  <p class="section-desc reveal">Empat animasi untuk <strong>algoritma ML lanjut</strong>: (1) <em>Decision Boundary Random Forest vs SVM RBF</em> — bandingkan boundary axis-aligned (RF) vs smooth non-linear (SVM kernel trick) pada pattern non-linear (XOR, donut, spiral). (2) <em>Overfitting Curve: Train vs Test Accuracy</em> — bagaimana model complexity (max_depth tree) bikin overfit; demo bias-variance trade-off. (3) <em>GridSearchCV Heatmap</em> — visualisasi exhaustive search di hyperparameter grid (n_estimators × max_depth) dengan CV mean accuracy per cell. (4) <em>ROC Curve &amp; AUC Comparison</em> — bandingkan 3 model (LogReg/RF/SVM) di satu plot, threshold-independent ranking. Konsep dasar (sigmoid, train/test split, confusion matrix) sudah dibahas di animasi modul Pertemuan 13. Tujuan: build intuisi sebelum implementasi <code>RandomForestClassifier</code> + <code>SVC(kernel='rbf')</code> + <code>GridSearchCV</code> di Bagian 08.</p>
 
   <!-- Animasi 1: Decision Boundary 2D -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi 1 — Decision Boundary 2D: Logistic vs RF vs SVM</span>
+      <span class="anim-title">Animasi 1 — Decision Boundary: Random Forest (axis-aligned) vs SVM RBF (smooth)</span>
     </div>
     <div class="anim-body">
       <canvas id="cvPhysics" height="340"></canvas>
@@ -1265,8 +1265,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       </div>
       <div id="physicsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Scatter 2D feature space dengan dua kelas (healthy/fault). Kurva = decision boundary tiap algoritma: <em>Logistic</em> (linear), <em>Random Forest</em> (zigzag, axis-aligned), <em>SVM RBF</em> (smooth non-linear).<br>
-        <strong>Coba:</strong> (1) Noise rendah, separability tinggi → semua algoritma akurasi tinggi, boundary linear cukup. (2) Noise tinggi → SVM RBF lebih robust dari Logistic. (3) Pattern non-linear (XOR-like) → Logistic gagal, RF/SVM bisa. Pelajaran: <strong>algorithm choice tergantung struktur data</strong>; visualize sebelum pilih.
+        <strong>📊 Cara Membaca:</strong> Scatter 2D feature space dengan dua kelas. Boundary <em>Random Forest</em> (amber) = zigzag axis-aligned (sum of axis-aligned tree splits, ensemble averaged smooth-ish). Boundary <em>SVM RBF</em> (violet) = smooth circular/curved (RBF kernel = Gaussian, infinite-dim implicit mapping). Boundary <em>Logistic</em> (cyan, reference baseline) = single straight line.<br>
+        <strong>Coba:</strong> (1) Pattern linearly separable → all 3 OK, LogReg paling fast. (2) Pattern non-linear curve → SVM RBF paling smooth fit, RF jagged tetapi OK, LogReg fails (linear cannot bend). (3) Noise tinggi → RF lebih robust dari SVM (averaging cancel noise; SVM bisa overfit ke noise). (4) High dimensions / sparse data → SVM lebih kuat. Pelajaran: <strong>RF default winner untuk tabular mixed feature</strong>; <strong>SVM RBF untuk small-medium dataset dengan strong non-linear pattern</strong>; <strong>Logistic untuk linearly separable + butuh interpretability</strong>. Always start LogReg baseline → upgrade kalau perlu.
       </div>
     </div>
   </div>
@@ -1302,7 +1302,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--violet)"></div>
-      <span class="anim-title">Animasi 3 — Confusion Matrix Interaktif: Threshold vs Precision/Recall</span>
+      <span class="anim-title">Animasi 3 — GridSearchCV Heatmap: Hyperparameter Tuning n_estimators × max_depth</span>
     </div>
     <div class="anim-body">
       <canvas id="cvIso" height="320"></canvas>
@@ -1319,8 +1319,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       </div>
       <div id="isoInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Top = scatter test sample dengan probability score. Mid = confusion matrix 2×2 yang berubah saat threshold geser. Bottom = bar chart precision, recall, F1 untuk threshold saat ini.<br>
-        <strong>Coba:</strong> (1) Threshold 0.5 (default) → balance. (2) Threshold 0.3 → recall naik (catch lebih banyak fault), precision turun (lebih false alarm). (3) Threshold 0.8 → precision naik, recall turun (miss fault). (4) Imbalance tinggi (1% positive) → accuracy misleading. Pelajaran: <strong>threshold tuning</strong> kritis untuk imbalanced data + cost-sensitive use case.
+        <strong>📊 Cara Membaca:</strong> Heatmap 2D grid hyperparameter Random Forest: rows = <code>n_estimators</code> {50, 100, 200, 500}, columns = <code>max_depth</code> {3, 5, 10, None}. Tiap cell = mean F1-score dari 5-fold cross-validation pada kombinasi (n_estimators, max_depth) tersebut. Color: hijau gelap = high F1, kuning = mid, merah = low. Slider kontrol seed dataset / data noise level.<br>
+        <strong>Coba:</strong> (1) Heatmap dengan clear hot region di n_estimators=200, max_depth=10 → best params. <code>gs.best_params_</code> di sklearn akan return ini. (2) Plateau heatmap (no clear winner) → hyperparameter tidak sensitif untuk dataset Anda, default cukup. (3) Edge wins (max_depth=None or n_estimators=500 max) → coba expand grid karena optimum mungkin di luar grid. <strong>GridSearchCV total fits</strong>: 4 × 4 × 5-fold = 80 model dilatih (slow). Alternative: <code>RandomizedSearchCV</code> sample N kombinasi acak (faster). <code>HalvingGridSearchCV</code> (sklearn ≥ 0.24): exponential successive halving (super-fast). Pelajaran: <strong>tune hyperparameter empirically, jangan tebak</strong>.
       </div>
     </div>
   </div>

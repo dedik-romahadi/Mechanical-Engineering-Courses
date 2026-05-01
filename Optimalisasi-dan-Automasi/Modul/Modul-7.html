@@ -1165,14 +1165,14 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <hr class="divider">
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 06</div>
-  <h2 class="section-title reveal">Animasi Interaktif<br>Sinyal &amp; Statistik untuk Analisis Frekuensi</h2>
-  <p class="section-desc reveal">Empat animasi yang memvisualisasikan <strong>komponen-komponen sinyal</strong> yang akan menjadi <em>input</em> bagi analisis FFT dan envelope di Pertemuan 7: (1) komposisi sinyal (sinusoidal + noise) — sumber peak diskrit di spektrum, (2) injeksi impak transient yang akan tampak sebagai energi broadband di FFT, (3) distribusi sinyal — terkait dengan asumsi stasioneritas yang diperlukan FFT, (4) trajectory degradasi bearing yang akan memunculkan peak BPFO/BPFI di stadium tertentu. Memahami sinyal di domain waktu adalah <strong>prasyarat</strong> untuk membaca spektrum dengan benar.</p>
+  <h2 class="section-title reveal">Animasi Interaktif<br>Visualisasi FFT, Spektrum &amp; Bearing Fault Frequencies</h2>
+  <p class="section-desc reveal">Empat animasi yang memvisualisasikan <strong>konsep inti domain frekuensi</strong>: (1) <em>FFT Spectrum Builder</em> — bagaimana sinyal multi-komponen di domain waktu ter-decompose jadi peak diskrit di spektrum frekuensi (sinusoidal pure → 1 peak; multi-tone → multiple peaks; noise → flat spectrum). (2) <em>Bearing Fault Frequencies</em> — visualisasi BPFO, BPFI, BSF, FTF yang muncul sebagai peak spesifik di spectrum tergantung jenis fault. (3) <em>Magnitude Spectrum vs PSD</em> — perbedaan amplitude (mm/s) vs power density (mm²/s²/Hz) dan kapan pakai mana. (4) <em>Envelope Spectrum / Spectrogram</em> — teknik lanjut untuk modulated signal seperti bearing fault yang signature-nya hidden di carrier frequency. Setelah animasi ini, Anda siap implementasi <code>numpy.fft</code> dan <code>scipy.signal</code> di Bagian 08.</p>
 
   <!-- Animasi 1: RMS / Peak / PP Live -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi 1 — Sinyal Vibrasi Live: Hitung RMS, Peak, Peak-to-Peak</span>
+      <span class="anim-title">Animasi 1 — FFT Spectrum Builder: Decompose Sinyal jadi Peak Frekuensi</span>
     </div>
     <div class="anim-body">
       <canvas id="cvPhysics" height="300"></canvas>
@@ -1189,8 +1189,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       </div>
       <div id="physicsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi:</strong> Garis ungu = sinyal vibrasi (sinusoidal + noise). Garis cyan horizontal = ±RMS, garis amber = ±peak, garis pink = peak-to-peak window. Info panel menampilkan nilai numerik saat ini.<br>
-        <strong>Coba:</strong> (1) Amplitudo = 1.0, Noise = 0 → sinyal sinusoidal murni, CF = √2 ≈ 1.41. (2) Tambah noise → CF naik bertahap (mendekati 3 untuk Gaussian). (3) Amplitudo = 0, Noise tinggi → noise saja, CF ~3. Perhatikan: <em>RMS ≈ Std saat μ ≈ 0</em>, sesuai identitas RMS² = μ² + σ².
+        <strong>📊 Cara Membaca:</strong> Atas = sinyal di domain waktu (sinusoidal pada frekuensi tertentu + noise). Bawah = magnitude spectrum hasil FFT — peak diskrit pada frekuensi sinyal, latar flat dari noise. Slider kontrol amplitude sinyal &amp; level noise.<br>
+        <strong>Coba:</strong> (1) Amplitudo = 1.0, Noise = 0 → 1 peak sharp di frekuensi sinyal di spektrum. (2) Tambah noise → peak masih ada tetapi <em>noise floor naik</em>. (3) Amplitudo = 0, Noise tinggi → spektrum flat (white noise = energi merata di semua frekuensi). Pelajaran: FFT bagus untuk identifikasi frekuensi diskrit, tetapi peak bisa tertutup noise floor. Pakai <em>windowing (Hann)</em> dan <em>averaging</em> untuk reduce noise floor.
       </div>
     </div>
   </div>
@@ -1199,7 +1199,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--amber)"></div>
-      <span class="anim-title">Animasi 2 — Injeksi Impak: Lihat Crest Factor &amp; Kurtosis Melonjak</span>
+      <span class="anim-title">Animasi 2 — Bearing Fault Frequencies: BPFO, BPFI, BSF, FTF di Spektrum</span>
     </div>
     <div class="anim-body">
       <canvas id="cvSweep" height="300"></canvas>
@@ -1216,8 +1216,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       </div>
       <div id="sweepInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Sinyal latar = noise Gaussian (sinyal sehat). Spike ungu pendek = impak transient (early bearing fault). Info panel menampilkan CF dan kurtosis live.<br>
-        <strong>Coba:</strong> (1) Frekuensi = 0 → noise murni, CF ~3, Kurt ~3 (Gaussian). (2) Frekuensi rendah, amplitudo tinggi → impak jarang tapi besar — <em>CF dan Kurt melonjak</em>. (3) Frekuensi sangat tinggi → impak menjadi konstan, CF dan Kurt turun lagi (kasus severe fault). Inilah <strong>U-shape</strong> klasik kurva CF/Kurt sepanjang lifetime bearing.
+        <strong>📊 Cara Membaca:</strong> Atas = sinyal vibrasi bearing dengan injeksi periodic impulses (impak periodic dari fault). Bawah = magnitude spectrum dengan peak pada <em>frekuensi karakteristik</em>: BPFO (Ball Pass Frequency Outer), BPFI (inner race), BSF (ball spin), FTF (fundamental train). Tiap fault punya signature peak berbeda.<br>
+        <strong>Coba:</strong> (1) Frekuensi impak rendah (~mendekati BPFO ~3.6× shaft RPM) → peak di posisi BPFO. (2) Tambah amplitudo impak → peak height naik &amp; harmonik (2×, 3× BPFO) muncul. (3) Frekuensi mendekati BPFI (~5.4× RPM) → peak shift, sidebands muncul (modulasi shaft RPM). Pelajaran: <strong>frekuensi peak posisi = jenis fault</strong>; harmonik &amp; sidebands = severity. Wajib hitung BPFO/BPFI dari geometri bearing (datasheet SKF/FAG) sebelum interpretasi spektrum.
       </div>
     </div>
   </div>
@@ -1226,7 +1226,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--violet)"></div>
-      <span class="anim-title">Animasi 3 — Histogram Distribusi: Skewness &amp; Kurtosis Bekerja</span>
+      <span class="anim-title">Animasi 3 — Magnitude Spectrum vs PSD: Linear vs Power Density</span>
     </div>
     <div class="anim-body">
       <canvas id="cvIso" height="300"></canvas>
@@ -1243,8 +1243,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       </div>
       <div id="isoInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Histogram menunjukkan distribusi sample sinyal yang di-generate dengan target skewness &amp; kurtosis. Garis kuning = mean μ, garis merah = ±σ. Info panel mencetak nilai aktual yang dihitung dari sample.<br>
-        <strong>Coba:</strong> (1) Skew = 0, Kurt = 3 → bell curve simetris klasik (Gaussian). (2) Skew = +1.5 → ekor kanan panjang. (3) Skew = −1.5 → ekor kiri panjang. (4) Kurt = 8 → puncak runcing dengan ekor tebal (leptokurtic — banyak event ekstrem). (5) Kurt = 1.5 → distribusi datar (platykurtic).
+        <strong>📊 Cara Membaca:</strong> Atas = magnitude spectrum (linear amplitude mm/s vs frekuensi Hz). Bawah = Power Spectral Density / PSD (power per Hz, mm²/s²/Hz vs Hz). Slider kontrol jumlah peak frekuensi &amp; level noise. PSD memperlihatkan <em>distribusi energi</em>, magnitude spectrum memperlihatkan <em>amplitudo komponen</em>.<br>
+        <strong>Coba:</strong> (1) Single peak → magnitude amplitude tinggi, PSD menunjukkan power di band sempit. (2) Multi peak → magnitude menampilkan tiap peak, PSD menampilkan sebagai delta function thin. (3) Pure noise → magnitude flat tetapi noisy, PSD smooth karena averaging. <em>Kapan pakai mana</em>: <strong>Magnitude</strong> untuk identifikasi peak frekuensi (BPFO, harmonics). <strong>PSD</strong> untuk band energy comparison (energi 0–500 Hz vs 500–1000 Hz), random vibration analysis, dan compliance test (MIL-STD 810, IEC 61373).
       </div>
     </div>
   </div>
@@ -1253,7 +1253,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--green)"></div>
-      <span class="anim-title">Animasi 4 — Lifetime Bearing: U-Shape Crest Factor Sepanjang Umur</span>
+      <span class="anim-title">Animasi 4 — Spectrogram (STFT): Time-Frequency Map untuk Sinyal Non-Stationary</span>
     </div>
     <div class="anim-body">
       <canvas id="cvHPB" height="340"></canvas>
@@ -1266,8 +1266,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       </div>
       <div id="hpbInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Atas = sinyal vibrasi pada posisi lifetime tertentu (slider). Bawah = trajectory 4 fitur: <strong>RMS</strong> (cyan, monoton naik), <strong>Crest Factor</strong> (amber, U-shape!), <strong>Kurtosis</strong> (violet, U-shape!), <strong>Peak</strong> (pink, naik). Marker bergeser sesuai slider.<br>
-        <strong>Coba:</strong> (1) Posisi 0.0 (baru) → sinyal smooth, RMS rendah, CF ~3. (2) Posisi 0.4 (early fault) → impak singkat muncul, <em>CF dan Kurt melonjak</em> tapi RMS belum naik banyak. (3) Posisi 0.8 (severe) → impak berisik konstan, CF dan Kurt <em>turun lagi</em>, tapi RMS tinggi. Inilah pelajaran kunci: <strong>satu fitur saja tidak cukup; gunakan kombinasi.</strong>
+        <strong>📊 Cara Membaca:</strong> Spectrogram = STFT (Short-Time Fourier Transform) — series FFT di window sliding di sinyal. Sumbu X = waktu, Y = frekuensi, warna = amplitude. Visualisasi <em>bagaimana spektrum berubah seiring waktu</em>. FFT klasik asumsikan sinyal stasioner (statistik konstan). Untuk sinyal non-stationary (run-up/run-down turbine, impak transient, frequency sweep), spectrogram membuka informasi yang FFT global tidak bisa kasih.<br>
+        <strong>Coba:</strong> (1) Slider posisi waktu rendah (early lifetime) → spectrogram menampilkan peak di shaft frequency saja. (2) Slider tengah (early fault) → peak baru muncul di BPFO + harmonik. (3) Slider akhir (severe fault) → spectrogram chaos dengan banyak peak + harmonik + broadband. Tools: <code>scipy.signal.spectrogram(x, fs, nperseg=256)</code>. <strong>Wavelet transform</strong> = alternative untuk analisis time-frequency dengan resolusi adaptif (lebih detail di transient pendek).
       </div>
     </div>
   </div>
