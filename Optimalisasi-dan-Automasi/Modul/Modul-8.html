@@ -4161,10 +4161,11 @@ setTimeout(_physicsTick, 500);
 
 
 // ════════════════════════════════════════════════════════════
-// ANIMASI 2 — Injeksi Impak: CF & Kurtosis Melonjak
-// (Canvas: cvSweep, slider: sl_rs/sl_zs; button: btnSweep)
-// Sinyal noise Gaussian dengan impak transient periodik
-// Hitung CF dan Kurtosis live, tampilkan di info panel
+// ANIMASI 2 — Algoritma Simpleks: Vertex Jumping (LP)
+// (Canvas: cvSweep, slider: sl_rs = iterasi 0..3; sl_zs = highlight on/off)
+// Visualisasikan trajectory simplex di feasible polygon
+// Problem: max 40x_A+30x_B s.t. 2x_A+x_B≤60, x_A+3x_B≤80, x≥0
+// Path: (0,0) → (30,0) → (20,20) optimal, atau (0,0) → (0,80/3) → (20,20)
 // ════════════════════════════════════════════════════════════
 let _sweepAnim = { t: 0, running: true, raf: null };
 
@@ -4179,95 +4180,150 @@ function drawSweep(){
   const W = cv.clientWidth; cv.width = W; const H = cv.height;
   const ctx = cv.getContext('2d');
 
+  // Background
   const bg = ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const impactFreq = parseFloat(document.getElementById('sl_rs').value);   // 0..10 per detik
-  const impactAmp  = parseFloat(document.getElementById('sl_zs').value);   // 0..8
-  const tOff = _sweepAnim.t;
+  // Read sliders
+  const iter = Math.round(parseFloat(document.getElementById('sl_rs').value));    // 0..3
+  const highlight = parseFloat(document.getElementById('sl_zs').value);             // 0 or 1
 
-  // Plot area
-  const x0 = 40, y0 = 30, w = W - 60, h = H - 60;
-  const mid = y0 + h/2;
-  const N = 300;
-  const yScale = 25;
+  // Fixed problem: max 40x_A + 30x_B s.t. 2x_A+x_B≤60, x_A+3x_B≤80
+  const c1 = 40, c2 = 30, b1 = 60, b2 = 80;
 
-  // Generate signal: noise + periodic impacts
-  const signal = [];
-  const period = impactFreq > 0.01 ? Math.floor(N / impactFreq) : N + 1;
-  for (let i = 0; i < N; i++) {
-    const xt = i + tOff * 12;
-    // Gaussian-like noise (deterministic from sin combos)
-    let noise = 0.6 * (Math.sin(xt * 2.71) + Math.sin(xt * 1.13) * 0.7 + Math.sin(xt * 4.31) * 0.4);
-    // Periodic impact: spike + decay
-    const phase = Math.floor(i + tOff * 12) % Math.max(period, 1);
-    let impact = 0;
-    if (phase < 6 && impactFreq > 0.01) {
-      impact = impactAmp * Math.exp(-phase * 0.4) * Math.sin(phase * 1.2);
-    }
-    signal.push(noise + impact);
-  }
-
-  // Compute features
-  let sumSq = 0, sumAbs = 0, peak = 0, sum = 0;
-  for (let i = 0; i < N; i++) {
-    const v = signal[i];
-    sumSq += v*v; sumAbs += Math.abs(v); sum += v;
-    if (Math.abs(v) > peak) peak = Math.abs(v);
-  }
-  const mean = sum / N;
-  const rms = Math.sqrt(sumSq / N);
-  // Kurtosis (plain, fisher=False)
-  let m4 = 0, m2 = 0;
-  for (let i = 0; i < N; i++) {
-    const d = signal[i] - mean;
-    m2 += d*d;
-    m4 += d*d*d*d;
-  }
-  m2 /= N; m4 /= N;
-  const kurt = m2 > 1e-9 ? m4 / (m2*m2) : 0;
-  const cf = peak / Math.max(rms, 1e-9);
+  // Plot region [0, 35] × [0, 35]
+  const padL = 50, padR = 30, padT = 25, padB = 40;
+  const xMax = 35, yMax = 35;
+  const wPx = W - padL - padR, hPx = H - padT - padB;
+  const sx = wPx / xMax, sy = hPx / yMax;
+  const PX = (x) => padL + x * sx;
+  const PY = (y) => H - padB - y * sy;
 
   // Grid
-  _grid(ctx, x0, y0, w, h, 20, 6, '#0d1929');
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let i=0;i<=xMax;i+=5){ ctx.beginPath(); ctx.moveTo(PX(i), PY(0)); ctx.lineTo(PX(i), PY(yMax)); ctx.stroke(); }
+  for(let j=0;j<=yMax;j+=5){ ctx.beginPath(); ctx.moveTo(PX(0), PY(j)); ctx.lineTo(PX(xMax), PY(j)); ctx.stroke(); }
 
-  // Draw signal
-  ctx.strokeStyle = 'rgba(168,85,247,.9)'; ctx.lineWidth = 1.4;
+  // Feasible polygon: (0,0), (30,0), (20,20), (0, 80/3)
+  const verts = [[0,0], [30,0], [20,20], [0, 80/3]];
+  ctx.fillStyle = 'rgba(168,85,247,.15)';
+  ctx.strokeStyle = 'rgba(168,85,247,.6)'; ctx.lineWidth = 1.6;
   ctx.beginPath();
-  for (let i = 0; i < N; i++) {
-    const px = x0 + (i/(N-1)) * w;
-    const py = mid - signal[i] * yScale;
-    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-  }
-  ctx.stroke();
+  verts.forEach(([x,y], i) => { if(i===0) ctx.moveTo(PX(x), PY(y)); else ctx.lineTo(PX(x), PY(y)); });
+  ctx.closePath(); ctx.fill(); ctx.stroke();
 
-  // Mark zero line + ±RMS
-  ctx.strokeStyle = 'rgba(148,163,184,.3)'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
-  ctx.beginPath(); ctx.moveTo(x0, mid); ctx.lineTo(x0+w, mid); ctx.stroke();
-  ctx.strokeStyle = 'rgba(14,165,233,.6)';
-  ctx.beginPath(); ctx.moveTo(x0, mid - rms*yScale); ctx.lineTo(x0+w, mid - rms*yScale); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x0, mid + rms*yScale); ctx.lineTo(x0+w, mid + rms*yScale); ctx.stroke();
+  // Constraint lines
+  ctx.lineWidth = 1.3; ctx.setLineDash([6,4]);
+  ctx.strokeStyle = 'rgba(14,165,233,.8)';
+  ctx.beginPath(); ctx.moveTo(PX(0), PY(b1)); ctx.lineTo(PX(b1/2), PY(0)); ctx.stroke();
+  ctx.strokeStyle = 'rgba(249,115,22,.8)';
+  ctx.beginPath(); ctx.moveTo(PX(0), PY(b2/3)); ctx.lineTo(PX(Math.min(b2,xMax)), PY(Math.max(0,(b2-xMax)/3))); ctx.stroke();
   ctx.setLineDash([]);
 
-  // Labels
-  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText(`Impak: ${impactFreq.toFixed(1)}/det × A=${impactAmp.toFixed(1)}`, x0, y0 - 8);
+  // Simplex trajectory: select path based on Dantzig pricing
+  // Iter 0: (0,0), basis {s1, s2}, all NBV {x_A, x_B}
+  //   reduced cost x_A: c_A - 0 = 40 (most positive — Dantzig picks x_A)
+  //   reduced cost x_B: c_B - 0 = 30
+  // Pick x_A → ratio test: min(60/2, 80/1) = min(30, 80) = 30 → x_A enters, s1 exits
+  // Iter 1: (30, 0), basis {x_A, s2}, NBV {x_B, s1}
+  //   reduced cost x_B: c_B - c_A·(1/2) = 30 - 20 = 10 (positive — continue)
+  //   reduced cost s1: -c_A·(1/2) = -20 (negative)
+  //   Pick x_B → ratio test: x_A row: (60-2·30)/1 = 0... wait, basis row for x_B:
+  //   Actually: s2 row coefficient on x_B = 3 - 1·(1/2) = 5/2, RHS = 80 - 30 = 50, so 50/(5/2)=20
+  //   x_A row: coef on x_B = 1/2, RHS = 30, so 30/(1/2)=60
+  //   min(20, 60) = 20 → s2 exits, x_B enters at 20
+  // Iter 2: (20, 20), basis {x_A, x_B}, NBV {s1, s2}
+  //   reduced cost s1: dual y1 in basis... at optimal, reduced cost both ≤ 0
+  //   Optimal: Z = 40·20 + 30·20 = 1400
+  // Path: (0,0) → (30,0) → (20,20)
+
+  const path = [[0,0], [30,0], [20,20], [20,20]];  // iter 0, 1, 2, 3 (steady at 2)
+  const reducedCosts = [
+    {label: 'r_A=40, r_B=30', enter: 'x_A', exit: 's₁'},
+    {label: 'r_B=10, r_s1=-20', enter: 'x_B', exit: 's₂'},
+    {label: 'r_s1=-18, r_s2=-4', enter: '— optimal', exit: '—'},
+    {label: 'OPTIMAL: r ≤ 0 ∀ NBV', enter: '—', exit: '—'}
+  ];
+  const Zat = path.map(([x,y]) => c1*x + c2*y);
+
+  // Draw path so far
+  ctx.strokeStyle = 'rgba(249,115,22,.9)'; ctx.lineWidth = 2.4;
+  ctx.shadowColor = 'rgba(249,115,22,.3)'; ctx.shadowBlur = 4;
+  ctx.beginPath();
+  for(let i=0; i<=Math.min(iter, path.length-1); i++){
+    const [x,y] = path[i];
+    if (i === 0) ctx.moveTo(PX(x), PY(y));
+    else ctx.lineTo(PX(x), PY(y));
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Vertex circles (all)
+  verts.forEach(([x,y]) => {
+    ctx.fillStyle = 'rgba(249,115,22,.9)';
+    ctx.beginPath(); ctx.arc(PX(x), PY(y), 5, 0, 2*Math.PI); ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
+  });
+
+  // Current vertex (star, pulse)
+  const [cx, cy] = path[Math.min(iter, path.length-1)];
+  const pulse = 1 + 0.15 * Math.sin(_sweepAnim.t * 4);
+  ctx.fillStyle = '#fbbf24';
+  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.2;
+  _drawStar(ctx, PX(cx), PY(cy), 5, 12*pulse, 5*pulse);
+  ctx.fill(); ctx.stroke();
+
+  // Highlight pivot move arrow (between current and previous)
+  if (iter > 0 && iter < path.length && highlight > 0.5) {
+    const [px, py] = path[iter-1];
+    const [nx, ny] = path[iter];
+    if (px !== nx || py !== ny) {
+      ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 2.5;
+      const angle = Math.atan2(PY(ny)-PY(py), PX(nx)-PX(px));
+      const headLen = 10;
+      ctx.beginPath();
+      ctx.moveTo(PX(nx)-Math.cos(angle)*headLen*1.5, PY(ny)-Math.sin(angle)*headLen*1.5);
+      ctx.lineTo(PX(nx)-Math.cos(angle-0.4)*headLen, PY(ny)-Math.sin(angle-0.4)*headLen);
+      ctx.lineTo(PX(nx)-Math.cos(angle+0.4)*headLen, PY(ny)-Math.sin(angle+0.4)*headLen);
+      ctx.closePath(); ctx.fillStyle = '#fbbf24'; ctx.fill();
+    }
+  }
+
+  // Vertex labels with Z values
+  verts.forEach(([x,y], i) => {
+    const Z = c1*x + c2*y;
+    ctx.fillStyle = '#fff'; ctx.font = '10px JetBrains Mono';
+    const dx = (i === 0) ? -32 : (x === 30 ? 6 : (x === 20 ? 6 : -42));
+    const dy = (i === 0) ? -8 : (y === 0 ? 18 : (y === 20 ? -6 : 4));
+    ctx.fillText(`(${x},${y.toFixed(1)})  Z=${Z.toFixed(0)}`, PX(x)+dx, PY(y)+dy);
+  });
+
+  // Axes
+  ctx.strokeStyle = 'rgba(255,255,255,.45)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(PX(0), PY(0)); ctx.lineTo(PX(xMax), PY(0)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(PX(0), PY(0)); ctx.lineTo(PX(0), PY(yMax)); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '11px JetBrains Mono';
+  ctx.fillText('x_A', PX(xMax)+5, PY(0)+4);
+  ctx.fillText('x_B', PX(0)-22, PY(yMax)+10);
+  ctx.font = '9px JetBrains Mono'; ctx.fillStyle = 'rgba(255,255,255,.5)';
+  for(let i=10;i<=xMax;i+=10) ctx.fillText(i, PX(i)-6, PY(0)+14);
+  for(let j=10;j<=yMax;j+=10) ctx.fillText(j, PX(0)-22, PY(j)+4);
+
+  // Iteration label top-left
+  ctx.fillStyle = 'rgba(249,115,22,.95)'; ctx.font = 'bold 12px JetBrains Mono';
+  ctx.fillText(`Iterasi #${iter}`, PX(2), PY(yMax)+8);
 
   // Update slider displays
-  const v1 = document.getElementById('v_rs'); if(v1) v1.textContent = impactFreq.toFixed(2);
-  const v2 = document.getElementById('v_zs'); if(v2) v2.textContent = impactAmp.toFixed(2);
+  document.getElementById('v_rs').textContent = iter;
+  document.getElementById('v_zs').textContent = highlight > 0.5 ? 'on' : 'off';
 
-  // Info: CF & Kurtosis with color coding
+  // Info panel
   const info = document.getElementById('sweepInfo');
   if (info) {
-    const kurtCol = kurt > 5 ? '#ef4444' : (kurt > 4 ? '#f97316' : '#0ea5e9');
-    const cfCol   = cf > 5 ? '#ef4444' : (cf > 4 ? '#f97316' : '#0ea5e9');
-    let verdict;
-    if (kurt > 5 || cf > 5) verdict = '🔴 EARLY FAULT — impak transient terdeteksi';
-    else if (kurt > 4 || cf > 4) verdict = '🟡 WARNING — impulsivitas naik';
-    else verdict = '🟢 NORMAL — Gaussian noise dominan';
-    info.innerHTML = `RMS=<strong>${rms.toFixed(2)}</strong> · Peak=<strong>${peak.toFixed(2)}</strong> · <strong style="color:${cfCol}">CF=${cf.toFixed(2)}</strong> · <strong style="color:${kurtCol}">Kurt=${kurt.toFixed(2)}</strong> · ${verdict}`;
+    const rc = reducedCosts[Math.min(iter, reducedCosts.length-1)];
+    const status = iter >= 2 ? '✅ OPTIMAL — semua reduced cost ≤ 0' : `→ Pivot: <strong>${rc.enter}</strong> masuk basis, <strong>${rc.exit}</strong> keluar`;
+    info.innerHTML = `Iter #${iter} · Vertex (<strong>${cx}</strong>, <strong>${cy.toFixed(2)}</strong>) · Z = <strong>${Zat[Math.min(iter,3)].toFixed(0)}</strong> · ${rc.label} · ${status}`;
   }
 }
 
