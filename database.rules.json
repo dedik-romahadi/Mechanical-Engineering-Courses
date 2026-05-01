@@ -1,0 +1,187 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "pins": {
+      ".read": true,
+      "$visitorKey": {
+        ".validate": "$visitorKey.matches(/^mhs_[0-9A-Z]{1,20}$/)",
+        ".read": true,
+        ".write": "!data.exists() || (newData.exists() && newData.child('pinHash').val() === data.child('pinHash').val() && newData.child('pinSetAt').val() === data.child('pinSetAt').val())",
+        "pinHash": {
+          ".validate": "newData.isString() && newData.val().length === 64 && newData.val().matches(/^[0-9a-f]+$/)"
+        },
+        "pinSetAt": {
+          ".validate": "newData.isString() && newData.val().length >= 10 && newData.val().length <= 40"
+        },
+        "nama": {
+          ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 80"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+    "visitors": {
+      "$course": {
+        ".validate": "$course === 'math4' || $course === 'getaran_mekanik' || $course === 'optoauto'",
+        ".read": true,
+        "$module": {
+          ".validate": "$module.matches(/^[a-z0-9_-]{1,40}$/)",
+          ".read": true,
+          "$visitorKey": {
+            ".validate": "$visitorKey.matches(/^mhs_[0-9A-Z]{1,20}$/) || $visitorKey === 'dosen'",
+            ".read": true,
+            ".write": "!data.exists() || !newData.exists() || (newData.child('nim').val() === data.child('nim').val() && newData.child('nama').val() === data.child('nama').val() && newData.child('role').val() === data.child('role').val() && newData.child('timestamp').val() === data.child('timestamp').val() && (!newData.hasChild('points') || !data.hasChild('points') || (newData.child('points').val() >= data.child('points').val() && newData.child('points').val() <= data.child('points').val() + 4)) && (!newData.hasChild('visitCount') || !data.hasChild('visitCount') || (newData.child('visitCount').val() >= data.child('visitCount').val() && newData.child('visitCount').val() <= data.child('visitCount').val() + 1)))",
+            "nama": {
+              ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 80"
+            },
+            "nim": {
+              ".validate": "newData.isString() && (newData.val().matches(/^[0-9]{1,20}$/) || newData.val() === 'DOSEN')"
+            },
+            "role": {
+              ".validate": "newData.isString() && (newData.val() === 'student' || newData.val() === 'dosen' || newData.val() === 'guest')"
+            },
+            "timestamp": {
+              ".validate": "newData.isString() && newData.val().length >= 10 && newData.val().length <= 40"
+            },
+            "lastVisit": {
+              ".validate": "newData.isString() && newData.val().length >= 10 && newData.val().length <= 40"
+            },
+            "visitCount": {
+              ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 500"
+            },
+            "points": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50"
+            },
+            "pointTimestamp": {
+              ".validate": "newData.isString() && newData.val().length >= 10 && newData.val().length <= 40"
+            },
+            "scoredQuestions": {
+              ".validate": "newData.isString() && newData.val().length <= 2000"
+            },
+            "codes": {
+              ".validate": "newData.hasChildren() || !newData.exists()",
+              "$codeId": {
+                ".validate": "$codeId.matches(/^c[0-9]{1,2}$/) && newData.isString() && newData.val().length <= 5000"
+              }
+            },
+            "consolationAwarded": {
+              ".validate": "newData.isBoolean() && (!data.exists() || data.val() === false || data.val() === newData.val())"
+            },
+            "pinHash": {
+              ".validate": "newData.isString() && newData.val().length === 64 && newData.val().matches(/^[0-9a-f]+$/)"
+            },
+            "pinSetAt": {
+              ".validate": "newData.isString() && newData.val().length >= 10 && newData.val().length <= 40"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        }
+      }
+    },
+    "settings": {
+      "$course": {
+        ".validate": "$course === 'math4' || $course === 'getaran_mekanik' || $course === 'optoauto'",
+        ".read": true,
+        "$pertemuan": {
+          ".validate": "$pertemuan.matches(/^[a-z0-9_-]{1,40}$/)",
+          "schedule": {
+            ".write": true,
+            "start": {
+              ".validate": "newData.isString() && newData.val().length >= 10 && newData.val().length <= 40"
+            },
+            "end": {
+              ".validate": "newData.isString() && newData.val().length >= 10 && newData.val().length <= 40"
+            },
+            "duration": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 365"
+            },
+            "due": {
+              ".validate": "newData.isString() && newData.val().length <= 40"
+            },
+            "extension": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1440"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        }
+      }
+    },
+    "presence": {
+      "$course": {
+        ".validate": "$course === 'math4' || $course === 'getaran_mekanik' || $course === 'optoauto'",
+        ".read": true,
+        "$module": {
+          ".validate": "$module.matches(/^[a-z0-9_-]{1,40}$/)",
+          ".read": true,
+          "$userKey": {
+            ".validate": "$userKey.matches(/^mhs_[0-9A-Z]{1,20}$/)",
+            ".read": true,
+            ".write": "!newData.exists() || (newData.hasChildren(['nama','nim','lastSeen']) && newData.child('lastSeen').val() <= now + 60000)",
+            "nama": {
+              ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 80"
+            },
+            "nim": {
+              ".validate": "newData.isString() && newData.val().matches(/^[0-9]{1,20}$/)"
+            },
+            "lastSeen": {
+              ".validate": "newData.isNumber() && newData.val() >= 0"
+            },
+            "tab": {
+              ".validate": "newData.isString() && newData.val().length <= 20"
+            },
+            "role": {
+              ".validate": "newData.isString() && newData.val() === 'student'"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        }
+      }
+    },
+    "chat": {
+      "$course": {
+        ".validate": "$course === 'math4' || $course === 'getaran_mekanik' || $course === 'optoauto'",
+        ".read": true,
+        "$module": {
+          ".validate": "$module.matches(/^[a-z0-9_-]{1,40}$/)",
+          ".read": true,
+          "messages": {
+            ".read": true,
+            ".indexOn": [
+              "timestamp"
+            ],
+            "$msgId": {
+              ".validate": "newData.hasChildren(['nim','nama','text','timestamp'])",
+              ".write": "!data.exists() && newData.child('timestamp').val() <= now + 60000 && newData.child('timestamp').val() >= now - 300000",
+              "nim": {
+                ".validate": "newData.isString() && (newData.val().matches(/^[0-9]{1,20}$/) || newData.val() === 'DOSEN')"
+              },
+              "nama": {
+                ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 80"
+              },
+              "role": {
+                ".validate": "newData.isString() && (newData.val() === 'student' || newData.val() === 'dosen')"
+              },
+              "text": {
+                ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 500"
+              },
+              "timestamp": {
+                ".validate": "newData.isNumber() && newData.val() > 0"
+              },
+              "$other": {
+                ".validate": false
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
