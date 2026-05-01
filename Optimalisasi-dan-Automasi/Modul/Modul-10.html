@@ -1358,108 +1358,112 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 08 — PYTHON METAHEURISTIK ═══ -->
+<!-- ═══ BAGIAN 08 — PYTHON ANOVA ═══ -->
 <hr class="divider">
 <div class="section" id="m-jupyter">
   <div class="section-label reveal">Bagian 08</div>
-  <h2 class="section-title reveal">Implementasi Python<br>Genetic Algorithm &amp; PSO di Jupyter Notebook</h2>
-  <p class="section-desc reveal">Empat cell berikut menerapkan metaheuristik pada masalah engineering: Cell 1 implementasi <strong>Genetic Algorithm dari scratch</strong> untuk fungsi Rastrigin 2D (multi-modal benchmark) — dengan tournament selection, BLX-α crossover, Gaussian mutation, elitism. Cell 2 menggunakan <code>scipy.optimize.differential_evolution</code> + <strong>pyswarms PSO</strong> untuk benchmark side-by-side di Rastrigin (10 dimensi) dengan visualisasi convergence curve. Cell 3 mengaplikasikan <strong>DE</strong> ke masalah engineering riil: <em>spring weight optimization</em> (3 variabel, 4 nonlinear constraints). Cell 4 mendefinisikan <strong>fungsi <code>multistart_metaheuristic()</code></strong> reusable yang menjalankan multi-run dengan seed berbeda + statistik mean/std/best.</p>
+  <h2 class="section-title reveal">Implementasi Python<br>ANOVA &amp; Faktorial Design di Jupyter Notebook</h2>
+  <p class="section-desc reveal">Empat cell berikut menerapkan ANOVA pada eksperimen engineering: Cell 1 implementasi <strong>One-Way ANOVA dari scratch</strong> (manual SS_b, SS_w, F, p) + verifikasi dengan <code>scipy.stats.f_oneway</code> pada data CNC cutting speed → roughness. Cell 2 menggunakan <strong>statsmodels.formula.api</strong> untuk Two-Way ANOVA (arus × voltage welding) dengan tabel ANOVA lengkap + interaction plot. Cell 3 menjalankan <strong>Tukey HSD post-hoc</strong> + cek asumsi (Shapiro-Wilk normality, Levene homoscedasticity) di data injection molding. Cell 4 mendefinisikan <strong>fungsi <code>run_anova_workflow()</code></strong> reusable end-to-end: input data, output ANOVA table + post-hoc + effect size + visualisasi.</p>
 
   <div class="info-box reveal">
     <strong>📓 Petunjuk Pengerjaan di Jupyter Notebook:</strong><br>
     1. Buka VS Code → terminal → <code>conda activate optoauto</code><br>
-    2. Buat file: <code>p11_metaheuristics.ipynb</code><br>
+    2. Buat file: <code>p11_anova.ipynb</code><br>
     3. Salin Cell 1–4 ke notebook (satu cell per cell, jangan digabung)<br>
     4. Klik <strong>Run All</strong> — pastikan tidak ada error<br>
-    5. Package yang diperlukan: <code>numpy</code>, <code>scipy</code>, <code>matplotlib</code>, <code>pandas</code>
+    5. Package yang diperlukan: <code>numpy</code>, <code>pandas</code>, <code>scipy</code>, <code>statsmodels</code>, <code>matplotlib</code>, <code>seaborn</code>
   </div>
 
   <!-- Cell 1 -->
   <div class="code-wrap reveal">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 1 — Genetic Algorithm dari Scratch untuk Fungsi Rastrigin (Multi-Modal Benchmark)</span>
+      <span class="code-label">Cell 1 — One-Way ANOVA dari Scratch + Verifikasi scipy.stats.f_oneway (CNC Cutting Speed)</span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
     <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
 <span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+<span class="kw">from</span> scipy <span class="kw">import</span> stats
 
 np.random.<span class="fn">seed</span>(<span class="nm">42</span>)
 
 <span class="cm"># ═══════════════════════════════════════════════════════════════════</span>
-<span class="cm"># BENCHMARK: Rastrigin function 2D — multi-modal, banyak lokal min</span>
-<span class="cm">#   f(x) = 10·n + Σ[xᵢ² − 10·cos(2π·xᵢ)],  n=2</span>
-<span class="cm">#   Global minimum di x* = (0, 0), f* = 0</span>
-<span class="cm">#   Domain: xᵢ ∈ [−5.12, 5.12]</span>
+<span class="cm"># EKSPERIMEN: CNC Cutting Speed vs Surface Roughness Ra (μm)</span>
+<span class="cm">#   Faktor: cutting speed (3 level: 80, 100, 120 m/min)</span>
+<span class="cm">#   Replikasi: n = 5 specimen per level → total N = 15</span>
+<span class="cm">#   H0: μ_80 = μ_100 = μ_120</span>
+<span class="cm">#   H1: paling tidak satu mean berbeda</span>
+<span class="cm">#   α = 0.05</span>
 <span class="cm"># ═══════════════════════════════════════════════════════════════════</span>
 
-<span class="kw">def</span> <span class="fn">rastrigin</span>(x):
-    <span class="kw">return</span> <span class="nm">10</span> * <span class="fn">len</span>(x) + np.<span class="fn">sum</span>(x**<span class="nm">2</span> - <span class="nm">10</span> * np.<span class="fn">cos</span>(<span class="nm">2</span> * np.pi * x))
+<span class="cm"># Data Ra (μm) tiap level cutting speed</span>
+group_80  = np.<span class="fn">array</span>([<span class="nm">2.5</span>, <span class="nm">2.4</span>, <span class="nm">2.6</span>, <span class="nm">2.3</span>, <span class="nm">2.2</span>])
+group_100 = np.<span class="fn">array</span>([<span class="nm">1.8</span>, <span class="nm">1.7</span>, <span class="nm">1.9</span>, <span class="nm">1.8</span>, <span class="nm">1.6</span>])
+group_120 = np.<span class="fn">array</span>([<span class="nm">2.0</span>, <span class="nm">2.2</span>, <span class="nm">2.1</span>, <span class="nm">2.3</span>, <span class="nm">1.9</span>])
+groups = [group_80, group_100, group_120]
+labels = [<span class="st">'80 m/min'</span>, <span class="st">'100 m/min'</span>, <span class="st">'120 m/min'</span>]
 
-<span class="cm"># ═══════════════ GA HYPERPARAMETERS ═══════════════</span>
-N        = <span class="nm">30</span>           <span class="cm"># population size</span>
-DIM      = <span class="nm">2</span>            <span class="cm"># dimensionality</span>
-G_max    = <span class="nm">100</span>          <span class="cm"># max generations</span>
-Pc       = <span class="nm">0.8</span>          <span class="cm"># crossover rate</span>
-Pm       = <span class="nm">0.1</span>          <span class="cm"># mutation rate</span>
-sigma    = <span class="nm">0.3</span>          <span class="cm"># Gaussian mutation std</span>
-k_tour   = <span class="nm">3</span>            <span class="cm"># tournament size</span>
-k_elite  = <span class="nm">2</span>            <span class="cm"># elite preserve count</span>
-LB, UB   = -<span class="nm">5.12</span>, <span class="nm">5.12</span>  <span class="cm"># bounds</span>
+<span class="cm"># ═══════════════ MANUAL ANOVA (DARI SCRATCH) ═══════════════</span>
+k = <span class="fn">len</span>(groups)                              <span class="cm"># jumlah grup</span>
+n_per = <span class="fn">len</span>(group_80)                         <span class="cm"># jumlah replikasi (balanced)</span>
+N_total = <span class="fn">sum</span>(<span class="fn">len</span>(g) <span class="kw">for</span> g <span class="kw">in</span> groups)         <span class="cm"># total observasi</span>
 
-<span class="cm"># ═══════════════ INIT POPULATION ═══════════════</span>
-pop = np.random.<span class="fn">uniform</span>(LB, UB, (N, DIM))
-fitness = np.<span class="fn">array</span>([<span class="fn">rastrigin</span>(x) <span class="kw">for</span> x <span class="kw">in</span> pop])
+<span class="cm"># Grand mean dan mean tiap grup</span>
+all_data = np.<span class="fn">concatenate</span>(groups)
+grand_mean = all_data.<span class="fn">mean</span>()
+group_means = np.<span class="fn">array</span>([g.<span class="fn">mean</span>() <span class="kw">for</span> g <span class="kw">in</span> groups])
 
-best_history = []
+<span class="cm"># Sum of Squares</span>
+SS_between = <span class="fn">sum</span>(<span class="fn">len</span>(g) * (g.<span class="fn">mean</span>() - grand_mean)**<span class="nm">2</span> <span class="kw">for</span> g <span class="kw">in</span> groups)
+SS_within  = <span class="fn">sum</span>(((g - g.<span class="fn">mean</span>())**<span class="nm">2</span>).<span class="fn">sum</span>() <span class="kw">for</span> g <span class="kw">in</span> groups)
+SS_total   = ((all_data - grand_mean)**<span class="nm">2</span>).<span class="fn">sum</span>()
 
-<span class="cm"># ═══════════════ EVOLUTION LOOP ═══════════════</span>
-<span class="kw">for</span> gen <span class="kw">in</span> <span class="fn">range</span>(G_max):
+<span class="cm"># Degrees of Freedom</span>
+df_b = k - <span class="nm">1</span>
+df_w = N_total - k
+df_t = N_total - <span class="nm">1</span>
 
-    <span class="cm"># Tournament selection</span>
-    <span class="kw">def</span> <span class="fn">tournament</span>():
-        idx = np.random.<span class="fn">choice</span>(N, k_tour, replace=<span class="kw">False</span>)
-        <span class="kw">return</span> pop[idx[np.<span class="fn">argmin</span>(fitness[idx])]].<span class="fn">copy</span>()
+<span class="cm"># Mean Squares dan F-statistic</span>
+MS_b = SS_between / df_b
+MS_w = SS_within / df_w
+F_stat = MS_b / MS_w
 
-    new_pop = []
-    <span class="cm"># Elitism: simpan k_elite individual terbaik</span>
-    elite_idx = np.<span class="fn">argsort</span>(fitness)[:k_elite]
-    <span class="kw">for</span> i <span class="kw">in</span> elite_idx:
-        new_pop.<span class="fn">append</span>(pop[i].<span class="fn">copy</span>())
+<span class="cm"># p-value dari F-distribution</span>
+p_value = <span class="nm">1</span> - stats.f.<span class="fn">cdf</span>(F_stat, df_b, df_w)
 
-    <span class="cm"># Generate offspring</span>
-    <span class="kw">while</span> <span class="fn">len</span>(new_pop) &lt; N:
-        p1, p2 = <span class="fn">tournament</span>(), <span class="fn">tournament</span>()
-        <span class="cm"># BLX-α crossover (real-coded)</span>
-        <span class="kw">if</span> np.random.<span class="fn">rand</span>() &lt; Pc:
-            alpha = <span class="nm">0.5</span>
-            child = alpha * p1 + (<span class="nm">1</span> - alpha) * p2
-        <span class="kw">else</span>:
-            child = p1.<span class="fn">copy</span>()
-        <span class="cm"># Gaussian mutation</span>
-        <span class="kw">if</span> np.random.<span class="fn">rand</span>() &lt; Pm:
-            child += np.random.<span class="fn">randn</span>(DIM) * sigma
-        <span class="cm"># Bounds clamping</span>
-        child = np.<span class="fn">clip</span>(child, LB, UB)
-        new_pop.<span class="fn">append</span>(child)
+<span class="cm"># Effect size (eta squared)</span>
+eta_sq = SS_between / SS_total
 
-    pop = np.<span class="fn">array</span>(new_pop)
-    fitness = np.<span class="fn">array</span>([<span class="fn">rastrigin</span>(x) <span class="kw">for</span> x <span class="kw">in</span> pop])
-    best_history.<span class="fn">append</span>(fitness.<span class="fn">min</span>())
+<span class="fn">print</span>(<span class="st">f"═══ ANOVA TABLE (Manual) ═══"</span>)
+<span class="fn">print</span>(<span class="st">f"  Source        SS         df    MS         F        p"</span>)
+<span class="fn">print</span>(<span class="st">f"  Between (A) {SS_between:8.4f}  {df_b:3d}   {MS_b:7.4f}  {F_stat:6.3f}  {p_value:.4f}"</span>)
+<span class="fn">print</span>(<span class="st">f"  Within (E)  {SS_within:8.4f}  {df_w:3d}   {MS_w:7.4f}"</span>)
+<span class="fn">print</span>(<span class="st">f"  Total       {SS_total:8.4f}  {df_t:3d}"</span>)
+<span class="fn">print</span>(<span class="st">f"\n  Effect size η² = {eta_sq:.4f}"</span>)
+<span class="fn">print</span>(<span class="st">f"  Keputusan: {'TOLAK H0 (signifikan)' if p_value &lt; 0.05 else 'GAGAL TOLAK H0 (tidak signifikan)'}"</span>)
 
-<span class="fn">print</span>(<span class="st">f"GA: best fitness = {min(best_history):.6f}"</span>)
-<span class="fn">print</span>(<span class="st">f"GA: best individual = {pop[np.argmin(fitness)]}"</span>)
-<span class="fn">print</span>(<span class="st">f"GA: target global min f* = 0 di x = (0,0)"</span>)
+<span class="cm"># ═══════════════ VERIFIKASI dengan scipy.stats.f_oneway ═══════════════</span>
+F_scipy, p_scipy = stats.<span class="fn">f_oneway</span>(group_80, group_100, group_120)
+<span class="fn">print</span>(<span class="st">f"\n═══ Verifikasi scipy.stats.f_oneway ═══"</span>)
+<span class="fn">print</span>(<span class="st">f"  F = {F_scipy:.4f}, p = {p_scipy:.4f}"</span>)
+<span class="fn">print</span>(<span class="st">f"  ✓ Cocok dengan manual ANOVA"</span> <span class="kw">if</span> <span class="fn">abs</span>(F_stat - F_scipy) &lt; <span class="nm">0.001</span> <span class="kw">else</span> <span class="st">"  ✗ Tidak cocok!"</span>)
 
-<span class="cm"># ═══════════════ PLOT CONVERGENCE ═══════════════</span>
-fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="nm">10</span>, <span class="nm">5</span>))
-ax.<span class="fn">plot</span>(best_history, color=<span class="st">'#a855f7'</span>, lw=<span class="nm">1.6</span>, label=<span class="st">'GA best fitness'</span>)
-ax.<span class="fn">axhline</span>(<span class="nm">0</span>, color=<span class="st">'#fbbf24'</span>, ls=<span class="st">'--'</span>, label=<span class="st">'Global minimum f*=0'</span>)
-ax.<span class="fn">set_xlabel</span>(<span class="st">'Generation'</span>); ax.<span class="fn">set_ylabel</span>(<span class="st">'Best fitness'</span>)
-ax.<span class="fn">set_title</span>(<span class="st">f'GA Convergence pada Rastrigin {DIM}D (N={N}, Pc={Pc}, Pm={Pm})'</span>)
-ax.<span class="fn">set_yscale</span>(<span class="st">'log'</span>)
-ax.<span class="fn">legend</span>(); ax.<span class="fn">grid</span>(alpha=<span class="nm">0.25</span>); plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
+<span class="cm"># ═══════════════ PLOT ═══════════════</span>
+fig, axes = plt.<span class="fn">subplots</span>(<span class="nm">1</span>, <span class="nm">2</span>, figsize=(<span class="nm">12</span>, <span class="nm">4.5</span>))
+axes[<span class="nm">0</span>].<span class="fn">boxplot</span>(groups, labels=labels, patch_artist=<span class="kw">True</span>,
+                 boxprops={<span class="st">'facecolor'</span>:<span class="st">'#a855f7'</span>, <span class="st">'alpha'</span>:<span class="nm">0.4</span>})
+axes[<span class="nm">0</span>].<span class="fn">set_ylabel</span>(<span class="st">'Surface Roughness Ra (μm)'</span>)
+axes[<span class="nm">0</span>].<span class="fn">set_title</span>(<span class="st">f'Boxplot per Level (F={F_stat:.2f}, p={p_value:.4f})'</span>)
+axes[<span class="nm">0</span>].<span class="fn">grid</span>(axis=<span class="st">'y'</span>, alpha=<span class="nm">0.25</span>)
+
+<span class="cm"># Main effect plot dengan SE</span>
+sems = np.<span class="fn">array</span>([g.<span class="fn">std</span>(ddof=<span class="nm">1</span>)/np.<span class="fn">sqrt</span>(<span class="fn">len</span>(g)) <span class="kw">for</span> g <span class="kw">in</span> groups])
+axes[<span class="nm">1</span>].<span class="fn">errorbar</span>(<span class="fn">range</span>(k), group_means, yerr=sems, fmt=<span class="st">'o-'</span>, color=<span class="st">'#fbbf24'</span>, lw=<span class="nm">2</span>, capsize=<span class="nm">5</span>)
+axes[<span class="nm">1</span>].<span class="fn">set_xticks</span>(<span class="fn">range</span>(k)); axes[<span class="nm">1</span>].<span class="fn">set_xticklabels</span>(labels)
+axes[<span class="nm">1</span>].<span class="fn">set_ylabel</span>(<span class="st">'Mean Ra (μm) ± SE'</span>); axes[<span class="nm">1</span>].<span class="fn">set_title</span>(<span class="st">'Main Effect Plot'</span>)
+axes[<span class="nm">1</span>].<span class="fn">grid</span>(alpha=<span class="nm">0.25</span>)
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
   </div>
 
   <!-- Cell 2 -->
