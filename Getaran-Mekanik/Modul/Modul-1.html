@@ -72,17 +72,20 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(6,10,16,.92)
 .hero[data-tab="modul"],
 .hero[data-tab="tugas"],
 .hero[data-tab="forum"],
-.hero[data-tab="hasil"]{background:linear-gradient(160deg,#020c1a 0%,#041526 30%,#06222e 60%,#031a20 100%)}
+.hero[data-tab="hasil"],
+.hero[data-tab="kelompok"]{background:linear-gradient(160deg,#020c1a 0%,#041526 30%,#06222e 60%,#031a20 100%)}
 
 .hero[data-tab="modul"]::before,
 .hero[data-tab="tugas"]::before,
 .hero[data-tab="forum"]::before,
-.hero[data-tab="hasil"]::before{background:repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(124,77,255,.03) 59px,rgba(124,77,255,.03) 60px),repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(124,77,255,.03) 59px,rgba(124,77,255,.03) 60px)}
+.hero[data-tab="hasil"]::before,
+.hero[data-tab="kelompok"]::before{background:repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(124,77,255,.03) 59px,rgba(124,77,255,.03) 60px),repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(124,77,255,.03) 59px,rgba(124,77,255,.03) 60px)}
 
 .hero[data-tab="modul"]::after,
 .hero[data-tab="tugas"]::after,
 .hero[data-tab="forum"]::after,
-.hero[data-tab="hasil"]::after{background:radial-gradient(ellipse 50% 50% at 50% 55%,rgba(124,77,255,.07),transparent 70%),radial-gradient(ellipse 40% 40% at 25% 70%,rgba(0,229,255,.05),transparent 60%),radial-gradient(ellipse 30% 30% at 80% 30%,rgba(255,179,0,.04),transparent 60%)}
+.hero[data-tab="hasil"]::after,
+.hero[data-tab="kelompok"]::after{background:radial-gradient(ellipse 50% 50% at 50% 55%,rgba(124,77,255,.07),transparent 70%),radial-gradient(ellipse 40% 40% at 25% 70%,rgba(0,229,255,.05),transparent 60%),radial-gradient(ellipse 30% 30% at 80% 30%,rgba(255,179,0,.04),transparent 60%)}
 
 /* Hero decorations — SVG waves + spring-mass-damper schematic (match Modul-Getaran.html) */
 .hero-waves{position:absolute;inset:0;pointer-events:none;overflow:hidden}
@@ -2685,11 +2688,34 @@ plt.grid(alpha=0.3); plt.tight_layout(); plt.show()</pre></div>
 
 <div class="page" id="page-kelompok">
 
-<!-- HERO: Header with announcement tag -->
-<div class="pk-header">
-  <div class="pk-header-tag">📋 &nbsp;Pengumuman Pembagian Kelompok</div>
-  <h2>PEMBAGIAN KELOMPOK<br><em>Getaran Mekanik</em></h2>
-  <p id="heroSub">Memuat data mahasiswa...</p>
+<!-- HERO: Standard hero matching other tabs -->
+<div class="hero" data-tab="kelompok" style="min-height:55vh">
+  <div class="hero-waves">
+    <svg viewBox="0 0 1440 600" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path class="wave-trace w1c" d="" fill="none" stroke="rgba(0,229,255,.12)" stroke-width="1.5"/>
+      <path class="wave-trace w2c" d="" fill="none" stroke="rgba(124,77,255,.08)" stroke-width="1"/>
+    </svg>
+  </div>
+  <div class="float-formulas">
+    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:20s;--del:0s">tim · diskusi</span>
+    <span class="ff" style="left:35%;font-size:.85rem;color:var(--violet);--dur:22s;--del:5s">studi kasus</span>
+    <span class="ff" style="left:55%;font-size:.8rem;color:var(--green);--dur:18s;--del:5s">3 kelompok</span>
+    <span class="ff" style="left:75%;font-size:.7rem;color:var(--amber);--dur:22s;--del:9s">presentasi P7</span>
+  </div>
+  <div class="hero-content">
+    <div class="hero-eyebrow"><div class="pulse-dot"></div>Pembagian Kelompok &nbsp;·&nbsp; Diskusi &amp; Studi Kasus</div>
+    <h1 class="hero-title">
+      <span class="hl-cyan">Pembagian</span><br>
+      <em>Kelompok</em><br>
+      <span class="hl-amber">Getaran Mekanik</span>
+    </h1>
+    <p class="hero-sub" id="heroSub">Memuat data mahasiswa...</p>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num" id="stat-total">-</div><div class="stat-lbl">Mahasiswa</div></div>
+      <div class="stat"><div class="stat-num">3</div><div class="stat-lbl">Kelompok</div></div>
+      <div class="stat"><div class="stat-num">P7</div><div class="stat-lbl">Deadline</div></div>
+    </div>
+  </div>
 </div>
 
 <!-- ═══════ 3 GROUP CARDS (populated dynamically from students.json) ═══════ -->
@@ -2979,6 +3005,8 @@ function renderGroups() {
       }).join('');
       const heroSub = document.getElementById('heroSub');
       if (heroSub) heroSub.textContent = data.length + ' mahasiswa dibagi menjadi 3 kelompok untuk diskusi dan tugas kelompok sepanjang semester.';
+      const statTotal = document.getElementById('stat-total');
+      if (statTotal) statTotal.textContent = data.length;
       console.log('[Kelompok] Students loaded:', data.length);
     })
     .catch(err => {
