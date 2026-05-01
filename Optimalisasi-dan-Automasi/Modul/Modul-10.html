@@ -2270,16 +2270,16 @@ F, p = stats.f_oneway(group1, group2, group3)
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C11</div>
-        <div class="comp-q"><strong>GA from-scratch — Rastrigin 1D</strong>: implementasi simple GA (real-coded). <code>f(x) = 10 + x² − 10·cos(2πx)</code>, bounds [−5.12, 5.12]. Pop = 30, generations = 100, mutation σ = 0.3, tournament size = 3, elitism = 1. <code>np.random.seed(42)</code>. Print <strong>fitness terbaik</strong>. Target ≈ 0 (global min di x = 0).</div>
+        <div class="comp-q"><strong>One-Way ANOVA dari scratch — CNC Cutting Speed → Surface Roughness</strong>: gunakan data 3 grup A=[2.5, 2.4, 2.6, 2.3, 2.2], B=[1.8, 1.7, 1.9, 1.8, 1.6], C=[2.0, 2.2, 2.1, 2.3, 1.9] (Ra μm pada speed 80, 100, 120 m/min). Hitung <strong>F-statistic</strong> manual via SS_between, SS_within, df, MS — tanpa <code>scipy.stats.f_oneway</code>. Print F.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Rastrigin punya ~10 minima lokal di [-5,5] — gradient method mudah terjebak; GA lolos via populasi. Loop: (1) eval pop, (2) sort + simpan elit, (3) tournament select, (4) Gaussian mutation x'=x+σ·randn(), (5) clip bounds. Setelah 100 gen, best ≈ 0 (toleransi ±1.0). Stochastic — selalu seed!</div>
+      <div class="comp-hint">💡 Mean A=2.4, B=1.76, C=2.1, grand=2.087. SS_b = 5·((2.4−2.087)²+(1.76−2.087)²+(2.1−2.087)²) ≈ 1.05. SS_w = sum kuadrat deviasi data ke mean grup-nya ≈ 0.21. F = (1.05/2)/(0.21/12) ≈ <strong>30</strong>. Tolerance ± 5 (manual rounding). Verifikasi dengan scipy: F should match.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">best fitness</strong></span></div>
-        <textarea class="code-textarea" id="code-c11" rows="14" placeholder="Paste kode GA from-scratch Rastrigin, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c11')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">F-statistic</strong></span></div>
+        <textarea class="code-textarea" id="code-c11" rows="14" placeholder="Paste kode One-Way ANOVA scratch, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c11')"></textarea>
         <div class="stdout-box" id="stdout-c11"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c11" onclick="runAndCheck('c11', 0.0, 1.0, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c11" onclick="runAndCheck('c11', 30.0, 5.0, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c11"></div>
     </div>
 
@@ -2287,16 +2287,16 @@ F, p = stats.f_oneway(group1, group2, group3)
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C12</div>
-        <div class="comp-q"><strong>scipy differential_evolution — Rastrigin 5D</strong>: gunakan <code>scipy.optimize.differential_evolution</code> untuk minimize Rastrigin 5D <code>f(x) = 10·n + Σ(xᵢ² − 10·cos(2πxᵢ))</code>, bounds <code>[(−5.12, 5.12)]·5</code>, <code>seed=42</code>, default strategy. Print <strong>res.fun</strong> (nilai f optimal). Target ≈ 0.</div>
+        <div class="comp-q"><strong>Two-Way ANOVA Welding (statsmodels)</strong>: dataset arus × voltage. Generate via seed=42, 3 level arus (100, 150, 200 A), 3 level voltage (22, 26, 30 V), 3 replikasi/cell. Mean cell: arus_idx·25 + volt_idx·10 + arus·volt·3 + N(0,8). Pakai <code>ols('strength ~ C(arus)*C(voltage)', df).fit()</code> + <code>anova_lm</code>. Print <strong>p-value untuk faktor arus (main effect)</strong>. Target &lt; 0.001.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Rastrigin 5D punya ~10⁵ ≈ 100k minima lokal — gradient method mati di dimensi tinggi, DE konvergen rapi. <code>from scipy.optimize import differential_evolution</code>; <code>def rastrigin(x): return 10*len(x) + sum(xᵢ² − 10·cos(2π·xᵢ))</code>; <code>res = differential_evolution(rastrigin, [(-5.12,5.12)]*5, seed=42)</code>. Hasil <code>res.fun</code> ≈ 0 (toleransi 0.01).</div>
+      <div class="comp-hint">💡 Pakai pandas DataFrame dengan kolom arus, voltage, strength. Set np.random.seed(42), generate 27 data points. ANOVA via <code>sm.stats.anova_lm(model, typ=2)</code>. p_arus = anova_table.loc['C(arus)', 'PR(&gt;F)']. Karena efek arus sangat dominan (25 unit/level vs noise 8), p sangat kecil (~1e-7). Print p_arus &lt; 0.001 (target 0 dengan toleransi 0.001).</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">res.fun</strong></span></div>
-        <textarea class="code-textarea" id="code-c12" rows="14" placeholder="Paste kode differential_evolution Rastrigin 5D, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c12')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">p_arus</strong></span></div>
+        <textarea class="code-textarea" id="code-c12" rows="16" placeholder="Paste kode Two-Way ANOVA statsmodels, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c12')"></textarea>
         <div class="stdout-box" id="stdout-c12"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c12" onclick="runAndCheck('c12', 0.0, 0.01, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c12" onclick="runAndCheck('c12', 0.0, 0.001, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c12"></div>
     </div>
 
@@ -2304,16 +2304,16 @@ F, p = stats.f_oneway(group1, group2, group3)
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C13</div>
-        <div class="comp-q"><strong>PSO from-scratch — Sphere 2D</strong>: implementasi PSO. <code>f(x,y) = x² + y²</code>, bounds <code>[−5, 5]²</code>. Swarm = 20, iter = 100, w = 0.7, c₁ = c₂ = 1.5. <code>np.random.seed(42)</code>. Update: <code>v = w·v + c₁·r₁·(pbest−x) + c₂·r₂·(gbest−x)</code>; <code>x = x + v</code>. Print <strong>fitness gbest</strong>. Target ≈ 0.</div>
+        <div class="comp-q"><strong>Tukey HSD Post-Hoc + Asumsi Check — Heat Treatment</strong>: 4 level temperatur (450, 500, 550, 600 °C), 5 spesimen/level, target HRC: {450:52, 500:58, 550:62, 600:55} ± 2. seed=42. (1) Cek normality (Shapiro per grup), (2) cek equal variance (Levene), (3) Run ANOVA, (4) Run <code>pairwise_tukeyhsd</code>. Print <strong>jumlah pasangan signifikan</strong> (reject column = True) dari Tukey HSD.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Sphere = unimodal konveks — PSO seharusnya konvergen rapat ke origin. Init: x ~ U(−5,5)², v ~ U(−1,1)². Loop 100 iter: eval, update pbest jika lebih baik, update gbest, hitung v_new dan x_new (clip ke bounds). Setelah 100 iter, fitness gbest ≈ 0 (toleransi 0.05).</div>
+      <div class="comp-hint">💡 4 level → C(4,2) = 6 pasangan. Karena efek besar (mean diff sd 2-10), kebanyakan pasangan signifikan kecuali yang dekat (mis. 450 vs 600 keduanya rendah). Output Tukey punya kolom 'reject'; count yang True. Hasil ≈ <strong>5</strong> dari 6 pasangan signifikan. Toleransi ±1.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">fitness gbest</strong></span></div>
-        <textarea class="code-textarea" id="code-c13" rows="16" placeholder="Paste kode PSO from-scratch sphere, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c13')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() jumlah <strong style="color:var(--pink)">pasangan signifikan</strong></span></div>
+        <textarea class="code-textarea" id="code-c13" rows="16" placeholder="Paste kode Tukey HSD + asumsi, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c13')"></textarea>
         <div class="stdout-box" id="stdout-c13"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c13" onclick="runAndCheck('c13', 0.0, 0.05, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c13" onclick="runAndCheck('c13', 5.0, 1.0, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c13"></div>
     </div>
 
@@ -2321,16 +2321,16 @@ F, p = stats.f_oneway(group1, group2, group3)
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C14</div>
-        <div class="comp-q"><strong>Hybrid DE + L-BFGS-B refining — Rosenbrock 2D</strong>: pakai <code>differential_evolution</code> sebagai global stage (bounds [(−5, 5), (−5, 5)], seed=42), kemudian refine dengan <code>scipy.minimize</code> method <code>'L-BFGS-B'</code> dari titik <code>res.x</code>. Print <strong>x* + y*</strong> hasil refinement. Target ≈ 2.0.</div>
+        <div class="comp-q"><strong>Power Analysis ANOVA</strong>: gunakan <code>statsmodels.stats.power.FTestAnovaPower</code> untuk hitung sample size <em>per grup</em> yang dibutuhkan untuk deteksi effect size <code>f = 0.4 (large effect by Cohen)</code> dengan k=4 grup, α=0.05, power=0.80. <code>solve_power(effect_size=0.4, alpha=0.05, power=0.80, k_groups=4)</code>. Print <strong>n per grup</strong> (round ke int).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Pola industri: metaheuristik untuk eksplorasi global → gradient method untuk presisi akhir. Rosenbrock <code>f(x,y) = (1−x)² + 100(y−x²)²</code>, optimum di (1, 1). DE alone agak lambat di lembah pisang; refinement BFGS pinpoint ke akurasi tinggi. <code>res_de = differential_evolution(rosen, bounds, seed=42); res_lbfgs = minimize(rosen, res_de.x, method='L-BFGS-B'); print(res_lbfgs.x.sum())</code> → 2.0.</div>
+      <div class="comp-hint">💡 <code>from statsmodels.stats.power import FTestAnovaPower; n = FTestAnovaPower().solve_power(effect_size=0.4, alpha=0.05, power=0.80, k_groups=4); print(int(np.ceil(n)))</code>. Hasil ≈ <strong>19</strong> per grup (total N = 76). Untuk effect size sedang (f=0.25), n meningkat ke ~45/grup. Power analysis WAJIB sebelum eksperimen agar sample cukup.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">x* + y* (refined)</strong></span></div>
-        <textarea class="code-textarea" id="code-c14" rows="16" placeholder="Paste kode hybrid DE+BFGS Rosenbrock, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c14')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">n per grup</strong></span></div>
+        <textarea class="code-textarea" id="code-c14" rows="14" placeholder="Paste kode Power Analysis, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c14')"></textarea>
         <div class="stdout-box" id="stdout-c14"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c14" onclick="runAndCheck('c14', 2.0, 0.01, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c14" onclick="runAndCheck('c14', 19.0, 2.0, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c14"></div>
     </div>
 
@@ -2338,16 +2338,16 @@ F, p = stats.f_oneway(group1, group2, group3)
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C15</div>
-        <div class="comp-q"><strong>DE Engineering — Pegas Coil Massa Minimum</strong>: pakai <code>differential_evolution</code> dengan penalty untuk min mass <code>m = ρ·π·(d²/4)·(πD)·N</code> (ρ = 7.85e−6 kg/mm³, D = 50 mm, F = 500 N). Kendala: <code>τ ≤ 600 MPa</code>, <code>δ ≥ 25 mm</code> (G = 79300 MPa), <code>L ≥ N·d</code>. Bounds: d ∈ [2, 15], N ∈ [5, 30], L ∈ [50, 200]. seed=42. Print <strong>massa minimum (g)</strong>. Target ≈ 41.</div>
+        <div class="comp-q"><strong>Engineering ANOVA Workflow — Injection Molding 2-Faktor</strong>: faktor A=tekanan (3 level: 80, 100, 120 MPa), B=suhu mold (3 level: 50, 70, 90 °C), 3 replikasi/cell. Mean cell: defect[%] = 4 − 0.02·A − 0.01·B + 0.001·A·B + N(0, 0.3). Total 27 trial, seed=42. Two-way ANOVA. Print <strong>F-statistic untuk interaction effect (A×B)</strong>.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 DE handles non-konveks dan constraints via penalty. Formulasi: <code>F(x) = mass(x) + ρ_pen·Σ max(0, gᵢ(x))²</code> dengan ρ_pen = 1e6. Hasil ≈ 41 g (sama dgn SLSQP klasik karena permasalahan deterministik). Code: <code>def obj(x): d,N,L=x; m=7.85e-6*np.pi*(d²/4)*np.pi*50*N*1000; tau_v=8*500*50/(np.pi*d³)−600; delta_v=25−8*500*50³*N/(79300*d⁴); spc=N*d−L; return m + 1e6·(max(0,tau_v)² + max(0,delta_v)² + max(0,spc)²)</code>; <code>res = differential_evolution(obj, bounds=[(2,15),(5,30),(50,200)], seed=42)</code>.</div>
+      <div class="comp-hint">💡 Generate data dengan model bilinear A·B → akan ada interaksi signifikan. <code>ols('defect ~ C(A) * C(B)', df).fit()</code>; ambil F dari <code>anova_lm</code> baris <code>'C(A):C(B)'</code>. F interaction tipikal 5–15 untuk effect bilinear ini. Hasil ≈ <strong>10</strong> ± 5 (variasi seed). Engineering decision: kalau F_AB signifikan → main effect tidak boleh diinterpretasi terpisah, harus pakai cell-mean optimum.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">massa minimum (g)</strong></span></div>
-        <textarea class="code-textarea" id="code-c15" rows="20" placeholder="Paste kode DE pegas optimization, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c15')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">F_interaction</strong></span></div>
+        <textarea class="code-textarea" id="code-c15" rows="20" placeholder="Paste kode Two-Way ANOVA injection molding, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c15')"></textarea>
         <div class="stdout-box" id="stdout-c15"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c15" onclick="runAndCheck('c15', 41.0, 8.0, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c15" onclick="runAndCheck('c15', 10.0, 5.0, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c15"></div>
     </div>
 
