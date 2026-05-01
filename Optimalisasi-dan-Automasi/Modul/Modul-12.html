@@ -1583,160 +1583,67 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   <div class="code-wrap reveal">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 3 — Finite State Machine + Debouncing + Tier Alarm + Audit Log</span>
+      <span class="code-label">Cell 3 — SVM RBF + Pipeline (StandardScaler) + ROC Curve &amp; AUC</span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
-    <pre><span class="kw">import</span> pandas <span class="kw">as</span> pd
-<span class="kw">from</span> datetime <span class="kw">import</span> datetime, timedelta
-
-np.random.<span class="fn">seed</span>(<span class="nm">42</span>)
+    <pre><span class="kw">from</span> sklearn.svm <span class="kw">import</span> SVC
+<span class="kw">from</span> sklearn.pipeline <span class="kw">import</span> Pipeline
+<span class="kw">from</span> sklearn.metrics <span class="kw">import</span> roc_curve, roc_auc_score, classification_report
 
 <span class="cm"># ═══════════════════════════════════════════════════════════════════</span>
-<span class="cm"># SCENARIO: Pump monitoring 12 jam, 1 sample / 30 detik = 1440 samples</span>
-<span class="cm">#   FSM dengan 5 state: NORMAL → WARNING → ALERT → CRITICAL + FAULT</span>
-<span class="cm">#   Debouncing: butuh N=3 consecutive samples untuk transition</span>
-<span class="cm">#   Tier thresholds: T_warn=1.4, T_alert=2.8, T_crit=4.5 (ISO 10816)</span>
-<span class="cm">#   Hysteresis: T_off = T_on - 0.2</span>
-<span class="cm">#   Audit log: timestamp, old_state, new_state, trigger_value</span>
+<span class="cm"># SVM dengan kernel RBF (Radial Basis Function) — non-linear boundary.</span>
+<span class="cm">#   Wajib standardize: SVM sangat sensitif scaling.</span>
+<span class="cm">#   Pakai Pipeline: hindari data leakage (fit scaler hanya di train).</span>
 <span class="cm"># ═══════════════════════════════════════════════════════════════════</span>
 
-<span class="kw">class</span> <span class="fn">MonitoringFSM</span>:
-    <span class="st">"""Finite State Machine untuk monitoring tier alarm dengan debouncing."""</span>
+svm_pipe = <span class="fn">Pipeline</span>([
+    (<span class="st">'scaler'</span>, <span class="fn">StandardScaler</span>()),
+    (<span class="st">'svm'</span>, <span class="fn">SVC</span>(C=<span class="nm">1.0</span>, kernel=<span class="st">'rbf'</span>, gamma=<span class="st">'scale'</span>,
+                  probability=<span class="kw">True</span>, random_state=<span class="nm">42</span>))
+])
+svm_pipe.<span class="fn">fit</span>(X_train, y_train)
+y_pred_svm = svm_pipe.<span class="fn">predict</span>(X_test)
+y_proba_svm = svm_pipe.<span class="fn">predict_proba</span>(X_test)[:, <span class="nm">1</span>]
 
-    STATES = [<span class="st">'NORMAL'</span>, <span class="st">'WARNING'</span>, <span class="st">'ALERT'</span>, <span class="st">'CRITICAL'</span>, <span class="st">'FAULT'</span>]
-    THRESHOLDS = {<span class="st">'WARNING'</span>: <span class="nm">1.4</span>, <span class="st">'ALERT'</span>: <span class="nm">2.8</span>, <span class="st">'CRITICAL'</span>: <span class="nm">4.5</span>}
-    HYSTERESIS = <span class="nm">0.2</span>
-    DEBOUNCE_N = <span class="nm">3</span>
+<span class="fn">print</span>(<span class="st">f"═══ SVM (RBF) RESULTS ═══"</span>)
+<span class="fn">print</span>(<span class="st">f"Accuracy: {accuracy_score(y_test, y_pred_svm):.4f}"</span>)
+<span class="fn">print</span>(<span class="st">f"F1 Score: {f1_score(y_test, y_pred_svm):.4f}"</span>)
+<span class="fn">print</span>(<span class="st">f"\nClassification Report:"</span>)
+<span class="fn">print</span>(<span class="fn">classification_report</span>(y_test, y_pred_svm, target_names=[<span class="st">'healthy'</span>, <span class="st">'fault'</span>]))
 
-    <span class="kw">def</span> <span class="fn">__init__</span>(self):
-        self.state = <span class="st">'NORMAL'</span>
-        self.up_counter = <span class="nm">0</span>           <span class="cm"># consecutive samples above threshold</span>
-        self.down_counter = <span class="nm">0</span>         <span class="cm"># consecutive samples below threshold</span>
-        self.audit_log = []
-        self.last_sample_time = <span class="kw">None</span>
+<span class="cm"># ═══════════════ ROC CURVE COMPARISON ═══════════════</span>
+<span class="cm"># Bandingkan ROC ketiga model: Logistic, RF, SVM</span>
+y_proba_lr = model.<span class="fn">predict_proba</span>(X_test_scaled)[:, <span class="nm">1</span>]   <span class="cm"># Logistic dari Cell 1</span>
 
-    <span class="kw">def</span> <span class="fn">_target_state</span>(self, x):
-        <span class="st">"""Tentukan state target berdasarkan threshold (tanpa hysteresis)."""</span>
-        <span class="kw">if</span> x &gt;= self.THRESHOLDS[<span class="st">'CRITICAL'</span>]:
-            <span class="kw">return</span> <span class="st">'CRITICAL'</span>
-        <span class="kw">elif</span> x &gt;= self.THRESHOLDS[<span class="st">'ALERT'</span>]:
-            <span class="kw">return</span> <span class="st">'ALERT'</span>
-        <span class="kw">elif</span> x &gt;= self.THRESHOLDS[<span class="st">'WARNING'</span>]:
-            <span class="kw">return</span> <span class="st">'WARNING'</span>
-        <span class="kw">else</span>:
-            <span class="kw">return</span> <span class="st">'NORMAL'</span>
+models_proba = {
+    <span class="st">'Logistic Regression'</span>: (y_proba_lr, <span class="st">'#06b6d4'</span>),
+    <span class="st">'Random Forest'</span>: (y_proba_rf, <span class="st">'#a855f7'</span>),
+    <span class="st">'SVM (RBF)'</span>: (y_proba_svm, <span class="st">'#f59e0b'</span>),
+}
 
-    <span class="kw">def</span> <span class="fn">update</span>(self, x, ts=<span class="kw">None</span>):
-        <span class="st">"""Process satu sample, return current state."""</span>
-        <span class="kw">if</span> ts <span class="kw">is</span> <span class="kw">None</span>:
-            ts = datetime.<span class="fn">now</span>()
-        self.last_sample_time = ts
+<span class="fn">print</span>(<span class="st">f"\n═══ ROC-AUC COMPARISON ═══"</span>)
+<span class="kw">for</span> name, (proba, _) <span class="kw">in</span> models_proba.<span class="fn">items</span>():
+    auc = <span class="fn">roc_auc_score</span>(y_test, proba)
+    <span class="fn">print</span>(<span class="st">f"  {name:25s}: AUC = {auc:.4f}"</span>)
 
-        <span class="cm"># Sensor health: kalau reading tidak masuk akal → FAULT</span>
-        <span class="kw">if</span> x &lt; <span class="nm">0</span> <span class="kw">or</span> x &gt; <span class="nm">50</span>:
-            self.<span class="fn">_transition</span>(<span class="st">'FAULT'</span>, x, ts, reason=<span class="st">'Out-of-range sensor'</span>)
-            <span class="kw">return</span> self.state
+<span class="cm"># ═══════════════ PLOT ROC CURVES ═══════════════</span>
+fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="nm">9</span>, <span class="nm">7</span>))
+<span class="kw">for</span> name, (proba, color) <span class="kw">in</span> models_proba.<span class="fn">items</span>():
+    fpr, tpr, _ = <span class="fn">roc_curve</span>(y_test, proba)
+    auc = <span class="fn">roc_auc_score</span>(y_test, proba)
+    ax.<span class="fn">plot</span>(fpr, tpr, color=color, lw=<span class="nm">2</span>,
+            label=<span class="st">f'{name} (AUC={auc:.3f})'</span>)
 
-        target = self.<span class="fn">_target_state</span>(x)
-        target_idx = self.STATES.<span class="fn">index</span>(target)
-        current_idx = self.STATES.<span class="fn">index</span>(self.state) <span class="kw">if</span> self.state != <span class="st">'FAULT'</span> <span class="kw">else</span> <span class="nm">0</span>
+<span class="cm"># Reference: random predictor</span>
+ax.<span class="fn">plot</span>([<span class="nm">0</span>, <span class="nm">1</span>], [<span class="nm">0</span>, <span class="nm">1</span>], <span class="st">'k--'</span>, lw=<span class="nm">1</span>, alpha=<span class="nm">0.4</span>, label=<span class="st">'Random (AUC=0.5)'</span>)
 
-        <span class="cm"># Debouncing: increment counter only if direction consistent</span>
-        <span class="kw">if</span> target_idx &gt; current_idx:
-            self.up_counter += <span class="nm">1</span>
-            self.down_counter = <span class="nm">0</span>
-            <span class="kw">if</span> self.up_counter &gt;= self.DEBOUNCE_N:
-                self.<span class="fn">_transition</span>(target, x, ts, reason=<span class="st">'Escalation'</span>)
-                self.up_counter = <span class="nm">0</span>
-        <span class="kw">elif</span> target_idx &lt; current_idx:
-            <span class="cm"># Apply hysteresis: turun state hanya kalau x &lt; T - hysteresis</span>
-            below_off = self.<span class="fn">_below_off_threshold</span>(x, current_idx)
-            <span class="kw">if</span> below_off:
-                self.down_counter += <span class="nm">1</span>
-                self.up_counter = <span class="nm">0</span>
-                <span class="kw">if</span> self.down_counter &gt;= self.DEBOUNCE_N:
-                    self.<span class="fn">_transition</span>(target, x, ts, reason=<span class="st">'Recovery'</span>)
-                    self.down_counter = <span class="nm">0</span>
-        <span class="kw">else</span>:
-            self.up_counter = <span class="nm">0</span>
-            self.down_counter = <span class="nm">0</span>
-
-        <span class="kw">return</span> self.state
-
-    <span class="kw">def</span> <span class="fn">_below_off_threshold</span>(self, x, current_idx):
-        <span class="st">"""Cek apakah x di bawah T_off (T - hysteresis) dari state saat ini."""</span>
-        <span class="kw">if</span> current_idx == <span class="nm">0</span>:
-            <span class="kw">return</span> <span class="kw">False</span>          <span class="cm"># Already at NORMAL</span>
-        current_name = self.STATES[current_idx]
-        t_off = self.THRESHOLDS[current_name] - self.HYSTERESIS
-        <span class="kw">return</span> x &lt; t_off
-
-    <span class="kw">def</span> <span class="fn">_transition</span>(self, new_state, trigger, ts, reason=<span class="st">''</span>):
-        <span class="st">"""Eksekusi state transition + log."""</span>
-        old_state = self.state
-        self.state = new_state
-        self.audit_log.<span class="fn">append</span>({
-            <span class="st">'timestamp'</span>: ts,
-            <span class="st">'old_state'</span>: old_state,
-            <span class="st">'new_state'</span>: new_state,
-            <span class="st">'trigger_value'</span>: <span class="fn">round</span>(trigger, <span class="nm">3</span>),
-            <span class="st">'reason'</span>: reason,
-        })
-
-<span class="cm"># Generate sinyal: gradient meningkat dengan random spike</span>
-n_samples = <span class="nm">1440</span>             <span class="cm"># 12 jam × 120 sample/jam</span>
-ts_start = datetime(<span class="nm">2025</span>, <span class="nm">11</span>, <span class="nm">15</span>, <span class="nm">8</span>, <span class="nm">0</span>)
-times = [ts_start + <span class="fn">timedelta</span>(seconds=<span class="nm">30</span> * i) <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n_samples)]
-
-base = <span class="nm">0.8</span> + np.<span class="fn">linspace</span>(<span class="nm">0</span>, <span class="nm">5.0</span>, n_samples)        <span class="cm"># Linear degradation 0.8 → 5.8</span>
-noise = <span class="nm">0.15</span> * np.random.<span class="fn">randn</span>(n_samples)
-<span class="cm"># Add 3 random spike yang sesaat (transient noise)</span>
-spike_idx = [<span class="nm">200</span>, <span class="nm">600</span>, <span class="nm">900</span>]
-<span class="kw">for</span> idx <span class="kw">in</span> spike_idx:
-    noise[idx] += <span class="nm">2.0</span>
-rms_signal = base + noise
-
-<span class="cm"># Run FSM</span>
-fsm = <span class="fn">MonitoringFSM</span>()
-state_history = []
-<span class="kw">for</span> r, ts <span class="kw">in</span> <span class="fn">zip</span>(rms_signal, times):
-    state_history.<span class="fn">append</span>(fsm.<span class="fn">update</span>(r, ts))
-
-<span class="cm"># Convert audit log to DataFrame</span>
-audit_df = pd.<span class="fn">DataFrame</span>(fsm.audit_log)
-<span class="fn">print</span>(<span class="st">"═══ AUDIT LOG (state transitions) ═══"</span>)
-<span class="kw">if</span> <span class="fn">len</span>(audit_df) &gt; <span class="nm">0</span>:
-    <span class="fn">print</span>(audit_df.<span class="fn">to_string</span>(index=<span class="kw">False</span>))
-<span class="kw">else</span>:
-    <span class="fn">print</span>(<span class="st">"  (No transitions)"</span>)
-
-<span class="fn">print</span>(<span class="st">f"\nTotal transitions: {len(audit_df)}"</span>)
-<span class="fn">print</span>(<span class="st">f"Spike di sample {spike_idx} → tidak trigger transition (debouncing N=3 efektif!)"</span>)
-
-<span class="cm"># ═══════════════ PLOT ═══════════════</span>
-fig, axes = plt.<span class="fn">subplots</span>(<span class="nm">2</span>, <span class="nm">1</span>, figsize=(<span class="nm">14</span>, <span class="nm">7</span>), sharex=<span class="kw">True</span>)
-
-<span class="cm"># Top: sinyal + thresholds</span>
-axes[<span class="nm">0</span>].<span class="fn">plot</span>(<span class="fn">range</span>(n_samples), rms_signal, color=<span class="st">'#1f2937'</span>, lw=<span class="nm">0.7</span>, alpha=<span class="nm">0.7</span>)
-axes[<span class="nm">0</span>].<span class="fn">axhline</span>(<span class="nm">1.4</span>, color=<span class="st">'#06b6d4'</span>, linestyle=<span class="st">'--'</span>, lw=<span class="nm">1</span>, label=<span class="st">'WARNING (1.4)'</span>)
-axes[<span class="nm">0</span>].<span class="fn">axhline</span>(<span class="nm">2.8</span>, color=<span class="st">'#f59e0b'</span>, linestyle=<span class="st">'--'</span>, lw=<span class="nm">1</span>, label=<span class="st">'ALERT (2.8)'</span>)
-axes[<span class="nm">0</span>].<span class="fn">axhline</span>(<span class="nm">4.5</span>, color=<span class="st">'#ec4899'</span>, linestyle=<span class="st">'--'</span>, lw=<span class="nm">1</span>, label=<span class="st">'CRITICAL (4.5)'</span>)
-<span class="kw">for</span> idx <span class="kw">in</span> spike_idx:
-    axes[<span class="nm">0</span>].<span class="fn">axvline</span>(idx, color=<span class="st">'#a855f7'</span>, alpha=<span class="nm">0.4</span>, lw=<span class="nm">0.8</span>)
-axes[<span class="nm">0</span>].<span class="fn">set_ylabel</span>(<span class="st">'RMS (mm/s)'</span>); axes[<span class="nm">0</span>].<span class="fn">legend</span>(loc=<span class="st">'upper left'</span>)
-axes[<span class="nm">0</span>].<span class="fn">set_title</span>(<span class="st">'FSM Monitoring: Spikes (purple lines) di-FILTER oleh debouncing N=3'</span>)
-axes[<span class="nm">0</span>].<span class="fn">grid</span>(alpha=<span class="nm">0.25</span>)
-
-<span class="cm"># Bottom: state trajectory</span>
-state_idx = [fsm.STATES.<span class="fn">index</span>(s) <span class="kw">if</span> s <span class="kw">in</span> fsm.STATES <span class="kw">else</span> <span class="nm">0</span> <span class="kw">for</span> s <span class="kw">in</span> state_history]
-colors = [<span class="st">'#22c55e'</span>, <span class="st">'#06b6d4'</span>, <span class="st">'#f59e0b'</span>, <span class="st">'#ec4899'</span>, <span class="st">'#a855f7'</span>]
-axes[<span class="nm">1</span>].<span class="fn">scatter</span>(<span class="fn">range</span>(n_samples), state_idx, c=[colors[i] <span class="kw">for</span> i <span class="kw">in</span> state_idx], s=<span class="nm">3</span>)
-axes[<span class="nm">1</span>].<span class="fn">set_yticks</span>(<span class="fn">range</span>(<span class="fn">len</span>(fsm.STATES))); axes[<span class="nm">1</span>].<span class="fn">set_yticklabels</span>(fsm.STATES)
-axes[<span class="nm">1</span>].<span class="fn">set_xlabel</span>(<span class="st">'Sample index'</span>); axes[<span class="nm">1</span>].<span class="fn">set_ylabel</span>(<span class="st">'State'</span>)
-axes[<span class="nm">1</span>].<span class="fn">set_title</span>(<span class="st">f'State Trajectory ({len(audit_df)} transitions)'</span>)
-axes[<span class="nm">1</span>].<span class="fn">grid</span>(axis=<span class="st">'y'</span>, alpha=<span class="nm">0.25</span>)
-
+ax.<span class="fn">set_xlabel</span>(<span class="st">'False Positive Rate (FPR)'</span>)
+ax.<span class="fn">set_ylabel</span>(<span class="st">'True Positive Rate (TPR / Recall)'</span>)
+ax.<span class="fn">set_title</span>(<span class="st">'ROC Curve Comparison: Logistic vs Random Forest vs SVM'</span>)
+ax.<span class="fn">legend</span>(loc=<span class="st">'lower right'</span>)
+ax.<span class="fn">grid</span>(alpha=<span class="nm">0.25</span>)
+ax.<span class="fn">set_xlim</span>(-<span class="nm">0.02</span>, <span class="nm">1</span>); ax.<span class="fn">set_ylim</span>(<span class="nm">0</span>, <span class="nm">1.02</span>)
 plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
   </div>
 
