@@ -1085,80 +1085,80 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 04 — TWO-WAY ANOVA & FAKTORIAL DESIGN ═══ -->
+<!-- ═══ BAGIAN 04 — STATE MACHINE & DEBOUNCING ═══ -->
 <hr class="divider">
 <div class="section" id="m-resonashi">
   <div class="section-label reveal">Bagian 04</div>
-  <h2 class="section-title reveal">Two-Way ANOVA &amp; Faktorial Design:<br>Dua Faktor, Efek Utama &amp; Interaksi</h2>
-  <p class="section-desc reveal">Real engineering biasanya melibatkan <strong>lebih dari satu faktor</strong>. Surface roughness CNC ditentukan oleh <em>cutting speed</em> &amp; <em>feed rate</em>; tensile strength weld ditentukan oleh <em>arus</em> &amp; <em>voltage</em>. <strong>Two-way ANOVA</strong> menguji efek dua faktor sekaligus dengan dua jenis pertanyaan: <em>main effect</em> (apakah faktor A signifikan? faktor B?) dan <em>interaction effect</em> (apakah efek A bergantung pada level B?). <strong style="color:var(--cyan)">Interaction</strong> = fitur kunci yang tidak terdeteksi oleh dua one-way ANOVA terpisah. Faktorial <em>full factorial</em> (semua kombinasi) memberi info lengkap tetapi mahal saat faktor banyak; <strong>fractional factorial</strong> &amp; <strong>orthogonal arrays Taguchi</strong> mengurangi trial dengan trade-off informasi.</p>
+  <h2 class="section-title reveal">Finite State Machine &amp; Debouncing:<br>Track Health History dengan Transition Logic</h2>
+  <p class="section-desc reveal">Threshold + hysteresis + tier alarm sudah cukup untuk basic monitoring. Tetapi sistem real butuh <strong>memori</strong> — track <em>riwayat state</em> (kapan masuk warning, berapa lama di alert, urutan transisi). Inilah <strong>finite state machine (FSM)</strong> — model formal dengan: <em>states</em> (NORMAL, WARNING, ALERT, CRITICAL, FAULT), <em>transitions</em> (kondisi pindah antar state), <em>actions</em> (apa yang dilakukan saat enter/exit state). Plus, <strong>debouncing</strong> — filter sinyal yang noisy dengan persyaratan "<em>N consecutive samples</em>" sebelum pindah state. FSM = backbone setiap monitoring system production-grade. Implementasi 30 baris Python tetapi memberikan <em>traceability sempurna</em>: setiap event ada timestamp, dari state mana ke state mana, kenapa.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Lima Konsep Utama Two-Way ANOVA</div>
-    Main Effect A &nbsp;·&nbsp; Main Effect B &nbsp;·&nbsp; Interaction A×B &nbsp;·&nbsp; Full Factorial (k₁·k₂·n) &nbsp;·&nbsp; Taguchi Orthogonal Arrays
+    <div class="label">Enam Konsep Inti FSM &amp; Debouncing</div>
+    States &amp; transitions &nbsp;·&nbsp; Mealy vs Moore machine &nbsp;·&nbsp; Entry/exit actions &nbsp;·&nbsp; Debouncing (N consecutive) &nbsp;·&nbsp; Heartbeat &amp; timeout &nbsp;·&nbsp; Event sourcing &amp; audit log
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">📊</div>
-      <h3>Model Aditif: y = μ + αᵢ + βⱼ + (αβ)ᵢⱼ + ε</h3>
-      <p>Two-way ANOVA mengasumsikan respons yᵢⱼₖ = grand mean + efek faktor A level i + efek faktor B level j + interaksi level (i,j) + noise. <strong>SS_total = SS_A + SS_B + SS_AB + SS_error</strong>. Tiap term punya df sendiri: df_A = a−1, df_B = b−1, df_AB = (a−1)(b−1), df_error = ab(n−1). Tabel ANOVA punya 4 baris: A, B, AB interaction, error. <strong style="color:var(--cyan)">Tiga F-test independen</strong>.</p>
-      <div class="formula">y = μ + αᵢ + βⱼ + (αβ)ᵢⱼ + ε</div>
+      <div class="card-icon">🔄</div>
+      <h3>States &amp; Transitions</h3>
+      <p>FSM didefinisikan oleh <strong>5-tuple</strong>: (S, s₀, Σ, δ, F) — set states S, initial state s₀, input alphabet Σ, transition function δ: S × Σ → S, final states F. Untuk monitoring: S = {NORMAL, WARNING, ALERT, CRITICAL, FAULT}; s₀ = NORMAL; Σ = {sensor reading + timer event}; δ = rules (mis. NORMAL → WARNING jika rms &gt; T_warn). Visualisasi via <strong>state diagram</strong> (lingkaran = state, panah = transition). Tools: <code>graphviz</code>, <code>state_machine</code> Python lib.</p>
+      <div class="formula">δ: S × Σ → S</div>
     </div>
     <div class="card">
-      <div class="card-icon">🅰️</div>
-      <h3>Main Effect — Pengaruh Tunggal Faktor</h3>
-      <p>Main effect faktor A: <code>F_A = MS_A / MS_error</code>. Menjawab "apakah rata-rata respons berbeda antar level A, <em>marjinal</em> atas B?" Mean A_i = rata-rata semua observasi di level A=i (semua level B). Kalau F_A signifikan (p &lt; α), faktor A berpengaruh secara overall. Sama untuk main effect B. <strong style="color:var(--green)">Hati-hati</strong>: main effect bisa misleading kalau ada interaksi kuat — selalu cek interaction dulu.</p>
-      <div class="formula">F_A = MS_A / MS_error</div>
+      <div class="card-icon">🅼</div>
+      <h3>Mealy vs Moore Machine</h3>
+      <p>Dua varian FSM: <strong>Moore</strong> — output hanya bergantung pada <em>state saat ini</em> (mis. di state ALERT, selalu nyalakan lampu oranye, terlepas dari input). <strong>Mealy</strong> — output bergantung pada <em>state + input</em> (mis. transisi ALERT → CRITICAL kirim SMS; tetapi NORMAL → CRITICAL juga kirim SMS dengan pesan berbeda). Mealy lebih ekspresif tetapi rumit. Untuk monitoring sederhana, Moore cukup.</p>
+      <div class="formula">Moore: f(s); Mealy: f(s, σ)</div>
     </div>
     <div class="card">
-      <div class="card-icon">🔗</div>
-      <h3>Interaction Effect A × B</h3>
-      <p>Interaksi: efek faktor A <em>berbeda</em> tergantung level B. Contoh: arus 200 A bagus saat voltage rendah tapi buruk saat voltage tinggi. <strong>F_AB = MS_AB / MS_error</strong>. Visualisasi: <em>interaction plot</em> — plot mean(y) vs A untuk tiap level B; <strong>garis tidak paralel = ada interaksi</strong>. Kalau interaksi signifikan, efek A &amp; B harus dipelajari bersama-sama, tidak terpisah. Reporting: <em>"interaction A×B: F(2, 12) = 4.5, p = 0.04"</em>.</p>
-      <div class="formula">F_AB → garis tidak paralel</div>
+      <div class="card-icon">🚪</div>
+      <h3>Entry / Exit Actions</h3>
+      <p>Tiap state punya 2 hook: <strong>on_entry</strong> (jalankan saat state baru di-enter) dan <strong>on_exit</strong> (jalankan saat state ditinggalkan). Contoh: <em>on_entry(ALERT)</em> = log timestamp + send SMS supervisor. <em>on_exit(ALERT)</em> = log durasi + cancel SMS escalation timer. Pola ini memisahkan <em>logic transisi</em> dari <em>side effects</em> (notifikasi, logging). Pattern populer: <strong>state pattern</strong> (Gang of Four), implementation di Python <code>statemachine</code> library.</p>
+      <div class="formula">on_entry / on_exit hooks</div>
     </div>
     <div class="card">
-      <div class="card-icon">📐</div>
-      <h3>Full Factorial — Lengkap tetapi Mahal</h3>
-      <p>Full factorial 2² = 4 trial dasar (n replikasi → 4n total). 3³ = 27 trial. 5⁴ = 625 trial. <strong>Cost grow exponential</strong>. Untuk faktor banyak (≥ 4 level @ 3+), full factorial tidak praktis. Solusi: <em>fractional factorial</em> 2^(k-p) — pilih subset trial yang menjaga main effects tetap teridentifikasi tapi sacrifice higher-order interactions. <strong>Resolution III/IV/V</strong> menentukan apa yang tidak teridentifikasi.</p>
-      <div class="formula">Full: k₁·k₂·…·k_p</div>
+      <div class="card-icon">⏳</div>
+      <h3>Debouncing (N Consecutive Samples)</h3>
+      <p>Sinyal sensor noisy bisa cross threshold sesaat lalu kembali normal. Solusi: <strong>require N consecutive samples</strong> di kondisi alert sebelum pindah state. Contoh: untuk pindah dari NORMAL ke WARNING, butuh 5 sample berturut-turut dengan rms &gt; T_warn. Implementasi: counter di-increment kalau kondisi true, reset ke 0 kalau false. Ketika counter &gt;= N, eksekusi transisi. <em>Trade-off</em>: N besar → lebih robust noise, tetapi delay deteksi (latency) makin lama. Tipikal: N = 3–10 (≈ 100–500 ms pada 50 Hz sampling).</p>
+      <div class="formula">if count &gt;= N: transition</div>
     </div>
     <div class="card">
-      <div class="card-icon">🇯🇵</div>
-      <h3>Taguchi Orthogonal Arrays</h3>
-      <p>Genichi Taguchi (1986) — pilih <em>orthogonal array</em> standar (L4, L8, L9, L16, L18, L27) untuk eksperimen efisien. Contoh L9: 4 faktor × 3 level → hanya 9 trial (vs 81 full factorial). Properti: tiap kombinasi level pasangan faktor muncul dengan frekuensi sama → <em>balance &amp; orthogonal</em>. Tujuan: identifikasi level optimum dengan minimal trial. Kelemahan: tidak menangani interaksi tinggi tanpa modifikasi. Library: <strong>pyDOE2</strong>, <strong>OAPackage</strong>.</p>
-      <div class="formula">L9: 4 faktor × 3 level → 9 trial</div>
+      <div class="card-icon">💓</div>
+      <h3>Heartbeat &amp; Sensor Timeout</h3>
+      <p>Sensor bisa mati / disconnect tanpa warning — output frozen di nilai terakhir. Untuk detect, FSM butuh <strong>heartbeat</strong>: harapkan sample baru tiap T detik. Kalau tidak ada sample selama 2·T (atau N·T), pindah ke state FAULT (sensor failure). Implementasi: timer yang reset tiap kali ada sample masuk; expired timer trigger transisi. Pattern: <em>watchdog timer</em>, dipakai di mikrokontroller (STM32 IWDG, AVR WDT) untuk detect software hang juga.</p>
+      <div class="formula">if Δt &gt; timeout: FAULT</div>
     </div>
     <div class="card">
-      <div class="card-icon">📈</div>
-      <h3>Signal-to-Noise (S/N) Ratio</h3>
-      <p>Taguchi memperkenalkan <em>S/N ratio</em> untuk robust design. Tiga jenis: <strong>Larger-the-better</strong> S/N = −10·log₁₀(Σ(1/yᵢ²)/n) (untuk strength, yield); <strong>Smaller-the-better</strong> S/N = −10·log₁₀(Σ(yᵢ²)/n) (untuk roughness, defect rate); <strong>Nominal-the-best</strong> S/N = 10·log₁₀(ȳ²/s²) (untuk dimensi target). Lakukan ANOVA pada <em>S/N ratio</em> sebagai respons → identifikasi level yang <strong>maksimumkan S/N</strong> = robust optimal.</p>
-      <div class="formula">S/N = −10·log₁₀(MSD)</div>
+      <div class="card-icon">📜</div>
+      <h3>Event Sourcing &amp; Audit Log</h3>
+      <p>Tiap transition state harus <strong>di-log</strong> dengan: timestamp, old_state, new_state, trigger value, sample data. Format JSON / CSV / database (SQLite, InfluxDB, TimescaleDB). Audit log = <em>source of truth</em> untuk: (a) post-mortem analysis (kenapa shutdown?), (b) compliance audit (ISO/API), (c) trend analysis (frequency of warnings naik = degradasi mesin), (d) ML training data (P13). Pattern: <strong>event sourcing</strong> — replay log untuk reconstruct state apapun di waktu lalu.</p>
+      <div class="formula">log: ts, s_old, s_new, trigger</div>
     </div>
   </div>
 
   <div class="tbl-wrap reveal" style="margin:32px 0">
     <table class="data-table">
-      <thead><tr><th>Sumber</th><th>SS</th><th>df</th><th>MS</th><th>F</th></tr></thead>
+      <thead><tr><th>Transition</th><th>Trigger Condition</th><th>Action (on_entry)</th><th>Debounce N</th></tr></thead>
       <tbody>
-        <tr><td style="color:var(--cyan)">Faktor A (main)</td><td>SS_A</td><td>a−1</td><td>SS_A/(a−1)</td><td>MS_A/MS_e</td></tr>
-        <tr><td style="color:var(--green)">Faktor B (main)</td><td>SS_B</td><td>b−1</td><td>SS_B/(b−1)</td><td>MS_B/MS_e</td></tr>
-        <tr><td style="color:var(--amber)">Interaksi A×B</td><td>SS_AB</td><td>(a−1)(b−1)</td><td>SS_AB/df_AB</td><td>MS_AB/MS_e</td></tr>
-        <tr><td style="color:var(--violet)">Error (within)</td><td>SS_e</td><td>ab(n−1)</td><td>MS_e</td><td>—</td></tr>
-        <tr><td style="color:var(--pink)">Total</td><td>SS_t = SS_A+SS_B+SS_AB+SS_e</td><td>abn−1</td><td>—</td><td>—</td></tr>
+        <tr><td style="color:var(--green)">NORMAL → WARNING</td><td>rms &gt; T_warn (1.4)</td><td>Log + email</td><td>5 samples</td></tr>
+        <tr><td style="color:var(--cyan)">WARNING → ALERT</td><td>rms &gt; T_alert (2.8) OR persist &gt; 5 min</td><td>SMS supervisor</td><td>3 samples</td></tr>
+        <tr><td style="color:var(--amber)">ALERT → CRITICAL</td><td>rms &gt; T_crit (4.5) OR persist &gt; 10 min</td><td>Auto-shutdown + page</td><td>2 samples</td></tr>
+        <tr><td style="color:var(--pink)">CRITICAL → FAULT</td><td>sensor timeout &gt; 30 s</td><td>Mark sensor as faulty</td><td>1 timeout</td></tr>
+        <tr><td style="color:var(--violet)">Any → NORMAL</td><td>rms &lt; T_off (hysteresis) AND persist &gt; 1 min</td><td>Log recovery</td><td>10 samples</td></tr>
       </tbody>
     </table>
   </div>
 
   <div class="info-box reveal">
-    <strong>Contoh Konkret — Injection Molding (Tekanan × Suhu):</strong><br>
-    Faktor A: tekanan injeksi (3 level: 80, 100, 120 MPa). Faktor B: suhu mold (3 level: 50, 70, 90 °C). Respons: defect rate (%). Replikasi n=2 per kombinasi (full factorial 3×3×2 = 18 trial). Hasil ANOVA: <strong>F_A = 28.4, p_A &lt; 0.001 (signifikan); F_B = 12.1, p_B = 0.003 (signifikan); F_AB = 5.8, p_AB = 0.012 (signifikan!)</strong>. Karena <em>interaksi signifikan</em>, kita tidak bisa interpretasi A &amp; B terpisah. Plot interaksi menunjukkan: tekanan 100 MPa optimum saat suhu 70°C (defect ≈ 1.2%); tetapi 120 MPa optimum saat suhu 90°C (defect ≈ 0.9%). <strong>Keputusan: pilih kombinasi (120 MPa, 90 °C)</strong> — tidak bisa dicapai oleh dua one-way ANOVA terpisah!
+    <strong>Contoh Konkret — FSM untuk Monitoring Pump Sentrifugal:</strong><br>
+    State NORMAL (rms = 0.9 mm/s). Mendadak ada spike single-sample ke 4.2 mm/s. Tanpa debouncing, langsung ke ALERT. Dengan debouncing N=3, FSM increment counter tetapi sample berikutnya kembali ke 1.0 mm/s — counter reset, tetap di NORMAL. Bagus, false alarm dihindari. Setelah 1 jam, RMS naik perlahan: 1.5, 1.8, 2.1, 2.5, 2.9, 3.0, 3.1 (5 sample berturut &gt; 1.4) → transisi NORMAL → WARNING (log + email). Persist 6 menit di WARNING (3 sample &gt; 2.8 setelah 5 menit) → escalate ke ALERT (SMS supervisor). Operator inspect, ketemu coupling misalignment → fix → RMS turun 0.8 → 10 sample &lt; T_off (1.2) selama 1 menit → ALERT → NORMAL (log recovery). Total event log = 4 entries — audit trail lengkap.
   </div>
 
   <div class="warn-box reveal">
     <div class="warn-icon">⚠️</div>
     <div>
-      <h4>Trap ANOVA yang Sering Diabaikan</h4>
-      <p>(1) <strong>Multiple comparisons</strong> — saat banyak ANOVA dijalankan paralel, family-wise error rate naik. Bonferroni atau Tukey HSD wajib. (2) <strong>Asumsi normality runtuh</strong> — solusi: transformasi (log, Box-Cox) atau Kruskal-Wallis non-parametric. (3) <strong>Asumsi equal variance runtuh</strong> — pakai Welch's ANOVA atau Games-Howell post-hoc. (4) <strong>Sample size tidak balance</strong> — ANOVA Type I/II/III SS bisa beda hasil; rule: balanced design hindari masalah. (5) <strong>p-value ≠ effect size</strong> — p kecil tapi η² kecil (mis. 0.01) artinya signifikan tapi tidak praktis. Reporting WAJIB menyertakan effect size. (6) <strong>Korelasi antar trial</strong> — kalau urutan trial berkorelasi (mis. operator lelah), independence runtuh; pakai randomized block design atau repeated-measures ANOVA. (7) <strong>Faktor terabaikan (lurking variable)</strong> — contoh: humiditas tidak dikontrol, mempengaruhi hasil. Catat semua kondisi.</p>
+      <h4>Trap FSM &amp; Debouncing yang Sering Diabaikan</h4>
+      <p>(1) <strong>State explosion</strong> — kombinasi state dengan banyak feature (mis. RMS × peak × kurt × suhu) cepat tidak terkelola. Solusi: <em>composite state</em> atau hierarchical FSM (HFSM). (2) <strong>Race condition</strong> — sample baru tiba saat transition belum selesai. Pakai mutex / atomic update. (3) <strong>Stuck state</strong> — kalau exit condition tidak pernah tercapai (mis. T_off terlalu rendah), state stuck selamanya. Tambah escape route via timeout. (4) <strong>Debounce N terlalu besar</strong> — latency deteksi naik, alarm critical bisa terlambat. Trade-off: low N untuk critical (≤ 2), high N untuk warning (5–10). (5) <strong>Lupa heartbeat</strong> — sensor mati silent → output frozen → FSM tetap "NORMAL". Watchdog timer wajib. (6) <strong>Audit log overflow</strong> — high-frequency transitions bisa fill disk. Pakai log rotation, ringkasan (N events/min), atau database time-series (InfluxDB) yang punya retention policy. (7) <strong>State machine tanpa diagram</strong> — kode lama tanpa visualisasi sulit di-debug. Selalu maintain state diagram (graphviz) yang sinkron dengan code.</p>
     </div>
   </div>
 </div>
