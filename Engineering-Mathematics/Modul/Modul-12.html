@@ -6426,13 +6426,13 @@ function updateLeaderboard(visitors, schedExpired){
   const visitMap={};
   mhs.forEach(v=>{const k=v.nim;if(!visitMap[k])visitMap[k]=v;});
   const visited=Object.values(visitMap);
-  const topSkor=[...visited].filter(v=>(v.points||0)>0).sort((a,b)=>{
+  const topSkor=[...visited].filter(v=>(v.points||0)>0&&!isLate(v.timestamp)).sort((a,b)=>{
     const d=(b.points||0)-(a.points||0); if(d!==0) return d;
     const tA=a.pointTimestamp?new Date(a.pointTimestamp).getTime():Infinity;
     const tB=b.pointTimestamp?new Date(b.pointTimestamp).getTime():Infinity; return tA-tB;
   });
   // Top Akses — ONLY students with points > 0 qualify, then sort by visitCount desc, then earliest timestamp
-  const akses=[...visited].filter(v=>(v.points||0)>0).sort((a,b)=>{const d=(b.visitCount||1)-(a.visitCount||1);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp);});
+  const akses=[...visited].filter(v=>(v.points||0)>0&&!isLate(v.timestamp)).sort((a,b)=>{const d=(b.visitCount||1)-(a.visitCount||1);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp);});
   const medalR=['🥇','🥈','🥉'];
   function renderCardSkor(v,idx){const pts=v.points||0;const nilai=pointsToScore(pts);return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="font-size:1rem;flex-shrink:0;">'+medalR[idx]+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(0,224,158,.12);color:#00e09e;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;white-space:nowrap;">'+pts+' <span style="opacity:.7;font-weight:600;">('+nilai+')</span></div></div>';}
   function renderCardAkses(v,idx){const vc=v.visitCount||1;return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(251,191,36,.15);color:#fbbf24;font-size:.65rem;font-weight:800;flex-shrink:0;">'+(idx+1)+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(251,191,36,.12);color:#fbbf24;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+vc+'x</div></div>';}
@@ -6596,22 +6596,14 @@ function updateScheduleDisplay(){
 }
 
 function isLate(timestamp){
-  // ZONA WAKTU (bukan status label!) — "Terlambat" = timestamp akses jatuh
-  // dalam 24 JAM TERAKHIR sebelum deadline (zona [end-24h, end]).
-  // Selama jendela ini, poin dan akses TETAP dicatat seperti biasa
-  // (sama seperti zona Tepat Waktu [start, end-24h)).
-  // Setelah deadline, penyimpanan apa pun diblokir oleh _isScheduleOpen().
-  //
-  // PENTING — zona ≠ label status: helper ini hanya menentukan zona waktu
-  // timestamp; label status "⏰ Terlambat" hanya diberikan jika mahasiswa
-  // juga memiliki points > 0. Mahasiswa yang akses di zona 24h tapi 0 poin
-  // tetap berstatus "⏳ Belum" (jadwal aktif) atau "❌ Bolos" (jadwal selesai).
-  // Lihat status logic di renderVisitors() untuk aturan label lengkap.
-  if(!currentSchedule || !currentSchedule.start || !currentSchedule.end) return false;
+  // v8 (Mei 2026): Terlambat = timestamp akses jatuh SETELAH deadline.
+  // Mahasiswa terlambat tetap bisa mengerjakan tugas; poin per soal
+  // dikurangi 20%, Comp Hard tidak dapat partial credit, dan tidak
+  // masuk Top Skor / Top Akses. Lihat Pedoman §9.1, §9.2, §15.4, §17.3.
+  if(!currentSchedule || !currentSchedule.end) return false;
   const t = new Date(timestamp).getTime();
   const e = new Date(currentSchedule.end).getTime();
-  const lateGate = e - 24*60*60*1000;   // 24 jam sebelum deadline
-  return t >= lateGate;
+  return t > e;
 }
 
 async function submitVisitor(){
@@ -7490,9 +7482,21 @@ function _isScheduleOpen() {
     const now = Date.now();
     const s = new Date(currentSchedule.start).getTime();
     const e = new Date(currentSchedule.end).getTime();
-    return now >= s && now <= e;
+    return now >= s;   // v8: dropped upper bound — terlambat tetap bisa submit
   } catch(e) { return false; }
 }
+
+// ─── v8 Late submission helpers (Pedoman §9.2, §15.4) ───────────────
+function _isPastDeadline() {
+  if (!currentSchedule || !currentSchedule.end) return false;
+  return Date.now() > new Date(currentSchedule.end).getTime();
+}
+function _getLateMultiplier() {
+  return _isPastDeadline() ? 0.8 : 1.0;
+}
+window._isPastDeadline    = _isPastDeadline;
+window._getLateMultiplier = _getLateMultiplier;
+
 
 // Show/hide late-access banner on Tugas tab based on schedule state.
 // Student must be logged in (has identity) to see the banner.
@@ -7503,7 +7507,23 @@ function _updateLateBanner() {
     const me = (typeof getIdentity === 'function') ? getIdentity() : null;
     const isStudent = me && me.nim && me.role !== 'dosen';
     const open = _isScheduleOpen();
-    banner.style.display = (isStudent && !open) ? 'flex' : 'none';
+    const past = (typeof _isPastDeadline === 'function') ? _isPastDeadline() : false;
+    // v8: show banner if before-start (open=false & past=false) OR after-deadline (past=true)
+    if (!isStudent || (open && !past)) {
+      banner.style.display = 'none';
+      return;
+    }
+    // Update banner content based on state
+    const titleEl = banner.querySelector('div[style*="font-weight:800"]');
+    const msgEl = banner.querySelector('p');
+    if (past) {
+      if (titleEl) titleEl.textContent = 'Akses Setelah Deadline — Status Terlambat';
+      if (msgEl) msgEl.innerHTML = 'Anda <strong style="color:#fff">tetap dapat mengerjakan tugas</strong>, namun status akan tercatat <strong style="color:#fff">⏰ Terlambat</strong> dengan ketentuan: <strong style="color:#fff">poin per soal dikurangi 20%</strong>, <strong style="color:#fff">tidak masuk Top Skor / Top Akses</strong>, dan <strong style="color:#fff">Comp Hard tidak dapat poin partial</strong> jika jawaban salah.';
+    } else {
+      if (titleEl) titleEl.textContent = 'Akses di Luar Jadwal Perkuliahan';
+      if (msgEl) msgEl.innerHTML = 'Pertemuan belum dibuka. Anda dapat tetap melihat materi, namun <strong style="color:#fff">poin dan kehadiran tidak akan dicatat</strong>. Pengerjaan soal di halaman ini tidak akan disimpan.';
+    }
+    banner.style.display = 'flex';
   } catch(e) {}
 }
 // Re-evaluate banner every 30s (in case schedule expires during session)
@@ -7559,7 +7579,7 @@ window._awardPoint = function(qId) {
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(qId)) { _answeredQ.add(qId); return; }
     _answeredQ.add(qId); scored.push(qId);
-    const updated = Object.assign({}, ex, { points: (ex.points||0)+1, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',') });
+    const updated = Object.assign({}, ex, { points: (ex.points||0)+(1*_getLateMultiplier()), pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',') });
     set(nodeRef, _stripLegacyPinFields(updated));
     _checkConsolationPoint(nodeRef, updated);
   }).catch(err => console.error('[Score] save failed:', err));
@@ -7590,7 +7610,7 @@ window._awardCompPoint = function(qId, point) {
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(compKey)) { _answeredQ.add(compKey); return; }
     _answeredQ.add(compKey); scored.push(compKey);
-    const newPoints = Math.min((ex.points||0) + pts, SCORE_CONFIG.TOTAL);
+    const newPoints = Math.min((ex.points||0) + (pts * _getLateMultiplier()), SCORE_CONFIG.TOTAL);
     // Pedoman §15.4c — merge code ke codes object (preserve existing codes)
     const codes = Object.assign({}, ex.codes || {}, codeText ? { [qId]: codeText } : {});
     const updated = Object.assign({}, ex, {
@@ -7609,6 +7629,7 @@ window._awardCompPoint = function(qId, point) {
 // Tidak trigger konsolasi karena points sudah > 0.
 window._awardCompPartial = function(qId, point) {
   if (!_isScheduleOpen()) return;
+  if (_isPastDeadline()) return;   // v8: terlambat tidak dapat partial credit Hard
   const pts = (typeof point === 'number' && point > 0) ? point : 1;
   const partialKey = qId + '_comp_partial';
   if (_answeredQ.has(partialKey)) return;
@@ -7630,7 +7651,7 @@ window._awardCompPartial = function(qId, point) {
     const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
     if (scored.includes(partialKey)) { _answeredQ.add(partialKey); return; }
     _answeredQ.add(partialKey); scored.push(partialKey);
-    const newPoints = Math.min((ex.points||0) + pts, SCORE_CONFIG.TOTAL);
+    const newPoints = Math.min((ex.points||0) + (pts * _getLateMultiplier()), SCORE_CONFIG.TOTAL);
     // Pedoman §15.4c — merge code ke codes object
     const codes = Object.assign({}, ex.codes || {}, codeText ? { [qId]: codeText } : {});
     const updated = Object.assign({}, ex, {
