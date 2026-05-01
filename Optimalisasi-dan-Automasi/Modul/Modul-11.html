@@ -924,75 +924,82 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 02 — ANOVA CORE (F-TEST, SUM OF SQUARES) ═══ -->
+<!-- ═══ BAGIAN 02 — THRESHOLD & ISO 10816 ZONES ═══ -->
 <hr class="divider">
 <div class="section" id="m-solusi">
   <div class="section-label reveal">Bagian 02</div>
-  <h2 class="section-title reveal">ANOVA Core:<br>Partisi Varians, F-Statistic &amp; p-Value</h2>
-  <p class="section-desc reveal">Inti ANOVA adalah <strong>memecah total varians data menjadi dua sumber</strong>: (1) <em>varians antar-grup</em> (between-group / between-treatment) — perbedaan rata-rata tiap level faktor, dan (2) <em>varians dalam-grup</em> (within-group / residual / error) — fluktuasi noise di sekitar rata-rata tiap level. Logika: kalau efek faktor benar nyata, varians antar-grup harus jauh lebih besar dari varians dalam-grup. Rasio keduanya = <strong style="color:var(--cyan)">statistik F</strong>. Distribusi F (Fisher-Snedecor) memungkinkan kita menghitung <em>p-value</em>: probabilitas mengamati F sebesar ini (atau lebih besar) <em>jika hipotesis nol benar</em> (semua mean grup sama). Kalau p &lt; α (typical 0.05), kita tolak H₀ → faktor signifikan.</p>
+  <h2 class="section-title reveal">Threshold &amp; ISO 10816 Zone Classification:<br>Standar Industri untuk Vibrasi Mesin</h2>
+  <p class="section-desc reveal">Threshold adalah <strong>nilai batas</strong> yang memisahkan "OK" dari "anomali". Pertanyaan kunci: <em>berapa nilainya?</em> Jangan tebak. Ada 3 sumber threshold: (1) <em>Standar internasional</em> — ISO 10816 (vibrasi), API 670 (turbomachinery), AGMA (gear), ANSI/HI (pump). (2) <em>Datasheet vendor</em> — bearing manufacturer (SKF, FAG) menetapkan limits. (3) <em>Empirical baseline</em> — ukur mesin sehat selama 30 hari, ambil μ + 3σ. Yang paling banyak dipakai untuk vibrasi mesin rotasi: <strong>ISO 10816-3</strong> (rotating machines 15 kW – 50 MW). Memetakan amplitude RMS velocity (mm/s) ke 4 zona (A: good, B: acceptable, C: unsatisfactory, D: danger) berdasarkan kelas mesin (small/medium/large) &amp; foundation (rigid/flexible). Implementasi rule-based ISO 10816 = standar minimum untuk monitoring.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Enam Komponen Inti One-Way ANOVA</div>
-    Hipotesis (H₀ &amp; H₁) &nbsp;·&nbsp; Sum of Squares (SS_total, SS_between, SS_within) &nbsp;·&nbsp; Degrees of Freedom (df_b, df_w) &nbsp;·&nbsp; Mean Squares (MS_b, MS_w) &nbsp;·&nbsp; F-statistic &nbsp;·&nbsp; p-value &amp; keputusan
+    <div class="label">Enam Konsep Inti Threshold &amp; Zone Classification</div>
+    Threshold absolut &nbsp;·&nbsp; ISO 10816-3 Zona A/B/C/D &nbsp;·&nbsp; Class I–IV (mesin) &nbsp;·&nbsp; Rigid vs Flexible foundation &nbsp;·&nbsp; RMS velocity 10 Hz – 1 kHz &nbsp;·&nbsp; Multi-feature threshold (RMS + peak + kurtosis)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">📋</div>
-      <h3>Hipotesis: H₀ vs H₁</h3>
-      <p>One-way ANOVA membandingkan rata-rata respons di k level faktor. <strong>H₀ (null)</strong>: <code>μ₁ = μ₂ = … = μₖ</code> — semua level sama (tidak ada efek faktor). <strong>H₁ (alternative)</strong>: paling tidak satu pasangan μᵢ ≠ μⱼ. <em>Catatan</em>: ANOVA tidak memberitahu pasangan mana yang berbeda — itu tugas <em>post-hoc test</em> (Tukey HSD). ANOVA hanya menjawab "ada efek atau tidak". Tetapkan α (significance level, biasanya 0.05) sebelum lihat data.</p>
-      <div class="formula">H₀: μ₁ = μ₂ = … = μₖ</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">🧮</div>
-      <h3>Sum of Squares (SS) — Partisi Varians</h3>
-      <p>Total variability data dipecah menjadi dua sumber. <strong>SS_total</strong> = Σ (yᵢⱼ − ȳ)² (jumlah kuadrat deviasi dari grand mean). <strong>SS_between</strong> = Σⱼ nⱼ·(ȳⱼ − ȳ)² (deviasi mean grup dari grand mean — efek faktor). <strong>SS_within</strong> = ΣⱼΣᵢ (yᵢⱼ − ȳⱼ)² (deviasi data dari mean grup — noise). Identitas fundamental: <strong style="color:var(--cyan)">SS_total = SS_between + SS_within</strong>. Inilah dasar "<em>analysis of variance</em>".</p>
-      <div class="formula">SS_t = SS_b + SS_w</div>
-    </div>
-    <div class="card">
       <div class="card-icon">📐</div>
-      <h3>Degrees of Freedom (df)</h3>
-      <p>Tiap SS punya degrees of freedom (jumlah informasi independent). Untuk k grup, total N data: <strong>df_between</strong> = k − 1 (k mean grup, dikurangi 1 karena grand mean tetap). <strong>df_within</strong> = N − k (tiap grup punya nⱼ − 1 dof, dijumlahkan). <strong>df_total</strong> = N − 1 = df_b + df_w. Dof penting karena <em>Mean Square = SS/df</em> — normalisasi yang membuat F-statistic bisa dibandingkan ke distribusi teoretis.</p>
-      <div class="formula">df_b = k−1, df_w = N−k</div>
+      <h3>Threshold Absolut: T_low &amp; T_high</h3>
+      <p>Bentuk paling sederhana: <code>IF rms &gt; T_high THEN ALERT</code>. Untuk fitur dua-arah (mis. tekanan oli yang tidak boleh terlalu rendah dan terlalu tinggi): <code>IF p &lt; T_low OR p &gt; T_high THEN ALERT</code>. Threshold harus <em>physical-meaningful</em>: didasarkan pada batas mekanis (yield stress, bearing fatigue limit), standar industri, atau baseline operasi normal. <strong>Hindari threshold ditebak</strong> — selalu dokumentasikan sumbernya.</p>
+      <div class="formula">if x &gt; T_high: alert</div>
     </div>
     <div class="card">
-      <div class="card-icon">⚖️</div>
-      <h3>Mean Squares — Estimasi Varians</h3>
-      <p>Mean Square = SS/df, estimasi varians populasi. <strong>MS_between</strong> = SS_b / df_b → estimasi varians yang mencakup <em>efek faktor + noise</em>. <strong>MS_within</strong> = SS_w / df_w → estimasi varians <em>noise saja</em>. Kalau H₀ benar (tidak ada efek), MS_b ≈ MS_w karena keduanya sama-sama noise. Kalau H₁ benar, MS_b &gt; MS_w (efek faktor menambah varians antar-grup). MS_w juga disebut <em>MSE</em> (Mean Squared Error) atau <em>residual variance</em>.</p>
-      <div class="formula">MS_b = SS_b / df_b</div>
+      <div class="card-icon">🏛️</div>
+      <h3>ISO 10816-3 — Zone A/B/C/D</h3>
+      <p>Standar internasional untuk vibrasi mesin rotasi. Pakai <strong>RMS velocity (mm/s)</strong> di band 10 Hz–1 kHz. Untuk Group 2 (medium 15–300 kW, rigid foundation): <em>A (Good) ≤ 1.4</em>, <em>B (Acceptable) 1.4–2.8</em>, <em>C (Unsatisfactory) 2.8–4.5</em>, <em>D (Danger) &gt; 4.5</em>. Mesin di zona D harus <strong>shutdown atau diperbaiki segera</strong>. Klasifikasi otomatis = lookup table sederhana di Python: <code>if rms ≤ 1.4: 'A' elif rms ≤ 2.8: 'B' elif rms ≤ 4.5: 'C' else: 'D'</code>.</p>
+      <div class="formula">A | B | C | D zones</div>
     </div>
     <div class="card">
-      <div class="card-icon">🎯</div>
-      <h3>F-Statistic = MS_b / MS_w</h3>
-      <p>Rasio dua estimasi varians. Mengikuti <strong>F-distribution</strong> dengan parameter (df_b, df_w) <em>jika H₀ benar</em>. Distribusi F asimetris, miring ke kanan, hanya nilai positif. F = 1 berarti MS_b = MS_w (no effect). F &gt;&gt; 1 berarti efek faktor besar relatif noise. Untuk α = 0.05 dan (df_b=2, df_w=12), <em>F_critical ≈ 3.89</em> — F observed &gt; F_crit → tolak H₀. Modern workflow: hitung <strong>p-value</strong> langsung lebih informatif dari "F &gt; F_crit".</p>
-      <div class="formula">F = MS_b / MS_w</div>
+      <div class="card-icon">🔧</div>
+      <h3>Class I–IV (Group Mesin)</h3>
+      <p>Threshold ISO 10816-3 berbeda per kelas: <em>Class I</em> (small &lt; 15 kW: motor pump kecil), <em>Class II</em> (medium 15–75 kW: blower, kompresor kecil), <em>Class III</em> (large machines on rigid foundations: turbin uap), <em>Class IV</em> (large machines on flexible foundations: paper machine, large compressor). Mesin yang sama bisa "OK" di Class IV (toleransi besar) tetapi "DANGER" di Class I (toleransi ketat). <strong style="color:var(--cyan)">Selalu cek kelas mesin sebelum pilih threshold</strong>.</p>
+      <div class="formula">Class I (small) → IV (large flex)</div>
     </div>
     <div class="card">
-      <div class="card-icon">📈</div>
-      <h3>p-Value &amp; Keputusan</h3>
-      <p>p-value = P(F_observed ≥ F_data | H₀) — probabilitas mengamati F sebesar ini (atau lebih ekstrem) jika H₀ benar. <strong>p &lt; α</strong> (typical 0.05): tolak H₀ → ada efek faktor signifikan. <strong>p ≥ α</strong>: tidak cukup bukti tolak H₀ → bukan berarti tidak ada efek (mungkin sample size kecil, low power). Reporting standar: <em>"F(2, 12) = 8.45, p = 0.005, η² = 0.58"</em> — F-statistic, df, p, dan effect size η² (proportion of variance explained).</p>
-      <div class="formula">p &lt; α → tolak H₀</div>
+      <div class="card-icon">🏗️</div>
+      <h3>Rigid vs Flexible Foundation</h3>
+      <p>Foundation = pondasi mesin. <strong>Rigid</strong> (concrete masif, baseplate steel tebal): vibrasi yang ditransmit kecil → threshold lebih ketat. <strong>Flexible</strong> (skid mounting, isolator karet, struktural baja): foundation menyerap vibrasi → threshold lebih longgar. ISO 10816 punya tabel terpisah untuk keduanya. <em>Rule of thumb</em>: kalau natural frequency foundation &gt; 25% frequency mesin, considered rigid; kalau di bawah, flexible.</p>
+      <div class="formula">f_n_found vs f_machine</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📡</div>
+      <h3>RMS Velocity 10 Hz – 1 kHz</h3>
+      <p>ISO 10816 spesifik mengukur <strong>RMS velocity (bukan acceleration atau displacement)</strong> di band <em>10 Hz – 1 kHz</em>. Pilihan ini berdasarkan: (1) velocity berkorelasi dengan energi kinetik vibrasi (≈ kerusakan), (2) band 10 Hz–1 kHz cover frekuensi mekanis dominan (running speed, gear meshing, bearing characteristic). Untuk mesin di luar range ini (mis. high-speed turbomachinery di 5–10 kHz), pakai standar lain (API 670: acceleration band &gt; 5 kHz).</p>
+      <div class="formula">RMS_v = √(mean(v²)) di 10 Hz–1 kHz</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔬</div>
+      <h3>Multi-Feature Threshold (RMS + Peak + Kurtosis)</h3>
+      <p>Threshold tunggal (RMS) bisa miss anomali tertentu. Kombinasi multi-feature lebih sensitif: <strong>RMS</strong> deteksi unbalance/misalignment; <strong>peak amplitude</strong> deteksi impact (bearing pitting); <strong>kurtosis &gt; 4</strong> deteksi distribusi non-Gaussian (early bearing fault). Rule kombinasi: <code>IF rms &gt; T1 OR peak &gt; T2 OR kurt &gt; T3 THEN ALERT</code>. Tools: P1–P7 (extract fitur) lalu P12 (apply rule). Kompleksitas grow → next step: ML (P13).</p>
+      <div class="formula">multi-rule OR/AND combo</div>
     </div>
   </div>
 
   <div class="tbl-wrap reveal" style="margin:32px 0">
     <table class="data-table">
-      <thead><tr><th>Sumber Variasi</th><th>SS</th><th>df</th><th>MS = SS/df</th><th>F</th><th>p-value</th></tr></thead>
+      <thead><tr><th>ISO 10816-3 Group 2 (15–300 kW, rigid)</th><th>RMS Velocity (mm/s)</th><th>Zone</th><th>Action</th></tr></thead>
       <tbody>
-        <tr><td style="color:var(--cyan)">Antar Grup (faktor)</td><td>SS_b</td><td>k − 1</td><td>MS_b</td><td>MS_b / MS_w</td><td>P(F ≥ F_obs)</td></tr>
-        <tr><td style="color:var(--green)">Dalam Grup (error)</td><td>SS_w</td><td>N − k</td><td>MS_w</td><td>—</td><td>—</td></tr>
-        <tr><td style="color:var(--amber)">Total</td><td>SS_t = SS_b + SS_w</td><td>N − 1</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td style="color:var(--green)">Newly commissioned, healthy</td><td>≤ 1.4</td><td><strong style="color:var(--green)">A — Good</strong></td><td>Continuous operation OK</td></tr>
+        <tr><td style="color:var(--cyan)">Acceptable for long-term</td><td>1.4 – 2.8</td><td><strong style="color:var(--cyan)">B — Acceptable</strong></td><td>Operate, monitor</td></tr>
+        <tr><td style="color:var(--amber)">Suitable for short-term only</td><td>2.8 – 4.5</td><td><strong style="color:var(--amber)">C — Unsatisfactory</strong></td><td>Plan repair within weeks</td></tr>
+        <tr><td style="color:var(--pink)">Damage occurring</td><td>&gt; 4.5</td><td><strong style="color:var(--pink)">D — Danger</strong></td><td>Shutdown / immediate repair</td></tr>
       </tbody>
     </table>
   </div>
 
   <div class="info-box reveal">
-    <strong>Contoh Konkret — Cutting Speed CNC vs Surface Roughness:</strong><br>
-    Eksperimen 3 level cutting speed (80, 100, 120 m/min), masing-masing 5 ulangan independent (total N = 15 trial). Data Ra (μm): level 80 → mean 2.4; level 100 → mean 1.8; level 120 → mean 2.1. SS_between = 0.96, SS_within = 0.64, df_b = 2, df_w = 12. <strong>MS_b = 0.48, MS_w = 0.053, F = 9.0, p = 0.004</strong>. Karena p &lt; 0.05 → tolak H₀: cutting speed signifikan mempengaruhi roughness. Post-hoc Tukey: level 100 berbeda signifikan dari 80 (p = 0.003); level 120 vs 80 tidak signifikan (p = 0.21). <strong>Keputusan engineering: pilih cutting speed 100 m/min</strong>.
+    <strong>Contoh Konkret — Pump Sentrifugal 50 kW (Class II, rigid):</strong><br>
+    Pump baru commissioning: RMS velocity di bearing housing = 0.9 mm/s → <strong>Zone A (Good)</strong>. Setelah 6 bulan operasi, RMS naik perlahan ke 2.1 mm/s → <strong>Zone B (Acceptable)</strong> — masih OK tetapi perlu plan inspection. Setelah 8 bulan: 3.4 mm/s → <strong>Zone C (Unsatisfactory)</strong> — schedule preventive maintenance dalam 2 minggu. Bulan ke-9, suddenly jump ke 5.2 mm/s → <strong>Zone D (Danger)</strong> — shutdown immediately. Investigasi ketemu bearing inner race spalling. Tanpa rule-based ISO 10816, mungkin baru ketahuan saat catastrophic failure.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Implementasi scipy.stats.f_oneway:</strong> One-liner dalam Python: <code>from scipy.stats import f_oneway; F, p = f_oneway(group1, group2, group3)</code>. <strong>statsmodels</strong> memberikan tabel ANOVA lengkap: <code>import statsmodels.api as sm; from statsmodels.formula.api import ols; model = ols('y ~ C(faktor)', data=df).fit(); table = sm.stats.anova_lm(model, typ=2); print(table)</code>. Untuk effect size dan power analysis: <strong>pingouin</strong> (<code>pg.anova</code> + <code>pg.power_anova</code>). Visualisasi efek: <strong>seaborn.pointplot(x='faktor', y='y', data=df)</strong> + boxplot.
+    💡 <strong>Implementasi Threshold di Python:</strong> Gunakan <code>numpy</code> untuk lookup table ISO zone:<br>
+    <code>def iso10816_zone(rms_mm_s):</code><br>
+    <code>&nbsp;&nbsp;&nbsp;&nbsp;if rms_mm_s &lt;= 1.4: return 'A', 'green'</code><br>
+    <code>&nbsp;&nbsp;&nbsp;&nbsp;elif rms_mm_s &lt;= 2.8: return 'B', 'cyan'</code><br>
+    <code>&nbsp;&nbsp;&nbsp;&nbsp;elif rms_mm_s &lt;= 4.5: return 'C', 'amber'</code><br>
+    <code>&nbsp;&nbsp;&nbsp;&nbsp;else: return 'D', 'pink'</code><br>
+    Untuk multi-feature alert: <code>pandas.DataFrame</code> dengan kolom rms, peak, kurt, lalu <code>df['alert'] = (df.rms &gt; 2.8) | (df.peak &gt; 8) | (df.kurt &gt; 4)</code>. Library lengkap: <strong>vibration-toolbox</strong>, <strong>tslearn</strong> (time series), <strong>OpenIndustrial</strong> (industrial monitoring framework).
   </div>
 </div>
 
