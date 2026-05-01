@@ -924,16 +924,16 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 02 — THRESHOLD & ISO 10816 ZONES ═══ -->
+<!-- ═══ BAGIAN 02 — TIER ALARM ARCHITECTURE ═══ -->
 <hr class="divider">
 <div class="section" id="m-solusi">
   <div class="section-label reveal">Bagian 02</div>
-  <h2 class="section-title reveal">Threshold &amp; ISO 10816 Zone Classification:<br>Standar Industri untuk Vibrasi Mesin</h2>
-  <p class="section-desc reveal">Threshold adalah <strong>nilai batas</strong> yang memisahkan "OK" dari "anomali". Pertanyaan kunci: <em>berapa nilainya?</em> Jangan tebak. Ada 3 sumber threshold: (1) <em>Standar internasional</em> — ISO 10816 (vibrasi), API 670 (turbomachinery), AGMA (gear), ANSI/HI (pump). (2) <em>Datasheet vendor</em> — bearing manufacturer (SKF, FAG) menetapkan limits. (3) <em>Empirical baseline</em> — ukur mesin sehat selama 30 hari, ambil μ + 3σ. Yang paling banyak dipakai untuk vibrasi mesin rotasi: <strong>ISO 10816-3</strong> (rotating machines 15 kW – 50 MW). Memetakan amplitude RMS velocity (mm/s) ke 4 zona (A: good, B: acceptable, C: unsatisfactory, D: danger) berdasarkan kelas mesin (small/medium/large) &amp; foundation (rigid/flexible). Implementasi rule-based ISO 10816 = standar minimum untuk monitoring.</p>
+  <h2 class="section-title reveal">Tier Alarm Architecture:<br>4-Level Escalation dari Normal hingga Critical</h2>
+  <p class="section-desc reveal">Tier alarm adalah <strong>arsitektur escalation gradual</strong> dari kondisi normal hingga critical, dengan <em>action berbeda per tier</em>. Bukan binary OK/FAIL — ada nuansa Warning + Alert sebelum Critical. Standar industri (ISA-18.2, EEMUA 191): <strong>4 tier</strong> dengan severity meningkat dan response time menurun: (1) <strong>Normal</strong> — operasional sehat, no action. (2) <strong>Warning (Low Priority)</strong> — kondisi marginal, log + email engineer, monitor trend. (3) <strong>Alert (Medium Priority)</strong> — perlu intervensi, SMS supervisor + create work order. (4) <strong>Critical (High Priority)</strong> — bahaya immediate, auto-shutdown + page operator + escalate ke management. Setiap tier punya <em>visual color coding</em> (green/yellow/orange/red), <em>response time SLA</em> (none/4 hr/30 min/immediate), dan <em>persistence rules</em> (Warning &gt; 5 min auto-escalate, Critical no recovery without manual ack).</p>
 
   <div class="formula-block reveal">
-    <div class="label">Enam Konsep Inti Threshold &amp; Zone Classification</div>
-    Threshold absolut &nbsp;·&nbsp; ISO 10816-3 Zona A/B/C/D &nbsp;·&nbsp; Class I–IV (mesin) &nbsp;·&nbsp; Rigid vs Flexible foundation &nbsp;·&nbsp; RMS velocity 10 Hz – 1 kHz &nbsp;·&nbsp; Multi-feature threshold (RMS + peak + kurtosis)
+    <div class="label">Enam Komponen Tier Alarm System</div>
+    4 tier (N/W/A/C) &nbsp;·&nbsp; Visual color &amp; sound &nbsp;·&nbsp; Response SLA per tier &nbsp;·&nbsp; Auto-escalation rules &nbsp;·&nbsp; Acknowledge workflow &nbsp;·&nbsp; Audit log dengan timestamp
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
@@ -1003,16 +1003,16 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 03 — HYSTERESIS & TIER ALARM ═══ -->
+<!-- ═══ BAGIAN 03 — FINITE STATE MACHINE ═══ -->
 <hr class="divider">
 <div class="section" id="m-dmf">
   <div class="section-label reveal">Bagian 03</div>
-  <h2 class="section-title reveal">Hysteresis &amp; Tier Alarm:<br>Hindari Chattering, Atur Eskalasi Bertingkat</h2>
-  <p class="section-desc reveal">Threshold sederhana (<code>x &gt; T → ALERT</code>) punya 2 masalah serius di sistem real: (1) <strong>chattering</strong> — saat sinyal di sekitar threshold (T ± noise), state berkedip cepat ON/OFF/ON/OFF (alert spam ke operator); (2) <strong>binary harshness</strong> — tidak ada nuansa antara "OK" dan "DANGER", padahal antara keduanya ada area "warning" yang harus diperhatikan. Solusi: <strong>hysteresis</strong> (dua threshold: T_on &gt; T_off, perlu cross threshold besar untuk turn ON, threshold kecil untuk turn OFF) dan <strong>tier alarm</strong> (multi-level: warning &lt; alert &lt; critical, gradual escalation). Kombinasi keduanya = sistem alerting matang yang mengikuti standar industri (ANSI/ISA 18.2 Alarm Management).</p>
+  <h2 class="section-title reveal">Finite State Machine (FSM):<br>Memory + Transition Logic untuk Production Monitoring</h2>
+  <p class="section-desc reveal"><strong>Finite State Machine</strong> adalah model matematis formal yang sangat kuat untuk sistem stateful: didefinisikan oleh <em>5-tuple (S, s₀, Σ, δ, F)</em> — set states S, initial state s₀, input alphabet Σ, transition function δ: S × Σ → S, dan final states F. Untuk monitoring tier alarm: S = {NORMAL, WARNING, ALERT, CRITICAL, FAULT}; s₀ = NORMAL; Σ = sensor reading + timer event; δ = transition rules dengan threshold + persistence + debounce. Dua varian: <strong>Moore machine</strong> (output bergantung HANYA pada state, lebih sederhana, predictable) vs <strong>Mealy machine</strong> (output bergantung state + input, lebih ekspresif tetapi kompleks). Untuk monitoring umum, Moore cukup. FSM memberikan: (1) <em>memory</em> — sistem ingat berapa lama di state, (2) <em>transition logic</em> — pindah antar tier dengan rules eksplisit, (3) <em>audit trail</em> — log setiap transition dengan timestamp untuk compliance + post-mortem. Implementasi: <code>statemachine</code> Python library (≤ 30 baris kode), atau pattern manual dengan dictionary state map.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Lima Konsep Inti Hysteresis &amp; Tier Alarm</div>
-    Hysteresis (T_on &gt; T_off) &nbsp;·&nbsp; Schmitt trigger analogy &nbsp;·&nbsp; Tier alarm (3 level) &nbsp;·&nbsp; Escalation timer &nbsp;·&nbsp; Alarm flood prevention (ANSI/ISA 18.2)
+    <div class="label">Enam Konsep Inti Finite State Machine</div>
+    States &amp; transitions &nbsp;·&nbsp; Mealy vs Moore &nbsp;·&nbsp; on_entry / on_exit hooks &nbsp;·&nbsp; Transition guards &nbsp;·&nbsp; Heartbeat / watchdog timer &nbsp;·&nbsp; Event sourcing audit log
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
@@ -1085,16 +1085,16 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 04 — STATE MACHINE & DEBOUNCING ═══ -->
+<!-- ═══ BAGIAN 04 — DEBOUNCING + PERSISTENCE + ANSI/ISA 18.2 ═══ -->
 <hr class="divider">
 <div class="section" id="m-resonashi">
   <div class="section-label reveal">Bagian 04</div>
-  <h2 class="section-title reveal">Finite State Machine &amp; Debouncing:<br>Track Health History dengan Transition Logic</h2>
-  <p class="section-desc reveal">Threshold + hysteresis + tier alarm sudah cukup untuk basic monitoring. Tetapi sistem real butuh <strong>memori</strong> — track <em>riwayat state</em> (kapan masuk warning, berapa lama di alert, urutan transisi). Inilah <strong>finite state machine (FSM)</strong> — model formal dengan: <em>states</em> (NORMAL, WARNING, ALERT, CRITICAL, FAULT), <em>transitions</em> (kondisi pindah antar state), <em>actions</em> (apa yang dilakukan saat enter/exit state). Plus, <strong>debouncing</strong> — filter sinyal yang noisy dengan persyaratan "<em>N consecutive samples</em>" sebelum pindah state. FSM = backbone setiap monitoring system production-grade. Implementasi 30 baris Python tetapi memberikan <em>traceability sempurna</em>: setiap event ada timestamp, dari state mana ke state mana, kenapa.</p>
+  <h2 class="section-title reveal">Debouncing, Persistence &amp; ANSI/ISA 18.2:<br>Filter Noise &amp; Industrial Alarm Management Standard</h2>
+  <p class="section-desc reveal">Tier alarm + FSM butuh <em>filtering</em> tambahan supaya tidak chattering atau alarm flood. Dua mekanisme utama: <strong>debouncing</strong> (require N consecutive samples sebelum transition — filter noise transient yang bisa cross threshold sesaat lalu kembali normal) dan <strong>persistence timer</strong> (auto-escalate kalau warning persist &gt; X menit, atau auto-recover kalau normal persist &gt; Y menit). Plus, semua alarm management harus comply dengan <strong>ANSI/ISA 18.2 (2009)</strong> — standar industri global yang mengatur lifecycle alarm: identification → rationalization → documentation → implementation → operation → maintenance → monitoring &amp; assessment. Target operational: <em>≤ 1 alarm per 10 menit per operator</em> di steady state. Lebih = alarm flood = operator alarm fatigue = ignore alarm penting = safety hazard. Insiden Texas City Refinery (BP, 2005) — 15 fatalities, partly attributed to alarm flood. Kompliance ANSI/ISA 18.2 sekarang wajib di petrochemical, power, pharma di banyak negara.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Enam Konsep Inti FSM &amp; Debouncing</div>
-    States &amp; transitions &nbsp;·&nbsp; Mealy vs Moore machine &nbsp;·&nbsp; Entry/exit actions &nbsp;·&nbsp; Debouncing (N consecutive) &nbsp;·&nbsp; Heartbeat &amp; timeout &nbsp;·&nbsp; Event sourcing &amp; audit log
+    <div class="label">Enam Konsep Inti Debouncing + Persistence + ANSI/ISA 18.2</div>
+    Debounce N consecutive &nbsp;·&nbsp; Persistence timer auto-escalate &nbsp;·&nbsp; Alarm rationalization &nbsp;·&nbsp; Alarm shelving (silence window) &nbsp;·&nbsp; Suppression rules (parent-child) &nbsp;·&nbsp; Lifecycle 7 phases (ANSI/ISA 18.2)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
