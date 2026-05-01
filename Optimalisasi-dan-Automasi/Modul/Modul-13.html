@@ -924,90 +924,69 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 02 — SUPERVISED LEARNING FOUNDATIONS ═══ -->
+<!-- ═══ BAGIAN 02 — PEMILIHAN TOPIK PROYEK ═══ -->
 <hr class="divider">
 <div class="section" id="m-solusi">
   <div class="section-label reveal">Bagian 02</div>
-  <h2 class="section-title reveal">Supervised Learning Foundations:<br>Dataset, Features, Labels &amp; Training Workflow</h2>
-  <p class="section-desc reveal"><strong>Supervised learning</strong> = belajar dari contoh ber-label. Diberikan dataset <code>D = {(x₁, y₁), (x₂, y₂), …, (xₙ, yₙ)}</code> dengan <em>x</em> = feature vector (mis. [RMS, peak, kurt, suhu, arus]) dan <em>y</em> = label (mis. healthy=0, fault=1), tujuan <em>train</em> sebuah model <code>f: X → Y</code> yang generalisasi ke sample baru. Proses lengkap: (1) <em>kumpulkan data labeled</em>, (2) <em>preprocessing</em> (standardize, encode categorical, handle missing), (3) <em>split train/test</em>, (4) <em>fit model di train</em>, (5) <em>evaluate di test</em>, (6) <em>deploy</em>. Tipe problem: <strong>klasifikasi</strong> (y diskrit: healthy/fault) atau <strong>regresi</strong> (y kontinu: RUL — remaining useful life dalam jam). P13 fokus pada klasifikasi (yang paling umum di predictive maintenance).</p>
+  <h2 class="section-title reveal">Pemilihan Topik:<br>Memilih Sistem Mekanik &amp; Dataset yang Realistis</h2>
+  <p class="section-desc reveal">Topik proyek menentukan 50% kesuksesan. Topik <em>terlalu ambisius</em> (mis. "deep learning untuk diagnosa pesawat tempur") = setengah jalan dan stress. Topik <em>terlalu trivial</em> (mis. "linear regression untuk dataset Iris") = tidak menonjolkan integrasi materi. Sweet spot: <strong>sistem mekanik konkret</strong> dengan <em>data realistis (atau dataset publik high-quality)</em>, <em>scope problem terdefinisi jelas</em>, dan <em>peluang menggabungkan minimal 3 modul materi</em> (signal + optimasi + ML, atau signal + monitoring + ML). Anda boleh pilih: <strong>(A)</strong> data lab (fan/blower/motor + IMU sensor di lab kampus), <strong>(B)</strong> dataset publik benchmark (CWRU bearing, NASA C-MAPSS, MIMII machine sound, PRONOSTIA bearing degradation, IMS bearing), atau <strong>(C)</strong> data simulasi terkalibrasi (synthetic data dengan physics-informed noise). Pilih sesuai akses sumber daya — yang penting <em>cerita engineering yang kuat</em>.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Enam Komponen Inti Supervised Learning Workflow</div>
-    Dataset (X, y) &nbsp;·&nbsp; Feature engineering &nbsp;·&nbsp; Train/Test split &nbsp;·&nbsp; Model fitting &nbsp;·&nbsp; Evaluation metrics &nbsp;·&nbsp; Hyperparameter tuning
+    <div class="label">Empat Kategori Topik yang Direkomendasikan</div>
+    Predictive Maintenance &nbsp;·&nbsp; Process Optimization &nbsp;·&nbsp; Quality Monitoring &nbsp;·&nbsp; Anomaly Detection
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">📊</div>
-      <h3>Dataset Structure: X (matrix) &amp; y (vector)</h3>
-      <p>Format standar tabular: matrix <code>X ∈ ℝ^(n×d)</code> dengan n = sample count, d = feature count; vector <code>y ∈ ℝ^n</code> (regresi) atau <code>y ∈ {0, 1, …, K-1}^n</code> (klasifikasi K-kelas). Contoh: 1000 sample × 8 fitur = X shape (1000, 8). Pandas DataFrame format: <code>df = pd.DataFrame(X, columns=feature_names); df['label'] = y</code>. Format CSV/Parquet untuk persistence. <strong>Label binary</strong> (healthy=0, fault=1) untuk binary classification; <strong>multi-class</strong> (healthy/bearing/imbalance/looseness) untuk diagnostik tipe fault.</p>
-      <div class="formula">X[n, d], y[n]</div>
-    </div>
-    <div class="card">
       <div class="card-icon">🔧</div>
-      <h3>Feature Engineering</h3>
-      <p>Fitur mentah dari sensor (waveform vibrasi 50000 sample) terlalu high-dim untuk ML klasik. Solusi: <strong>extract domain features</strong> dari P1–P7. <em>Time-domain</em>: RMS, peak, peak-to-peak, crest factor, kurtosis, skewness (6 fitur). <em>Frequency-domain</em>: dominant frequency, spectral entropy, band energy 0–500 Hz / 500–1000 Hz / 1000–2000 Hz (5 fitur). <em>Time-frequency</em>: STFT band energies (10 fitur). Total 21 fitur per sensor — tractable untuk ML. <strong>Standardize</strong>: <code>StandardScaler</code> (zero mean, unit variance) sebelum SVM/logistic.</p>
-      <div class="formula">raw signal → 20+ features</div>
+      <h3>A. Predictive Maintenance</h3>
+      <p>Klasifikasi healthy / fault (atau multi-class diagnostik bearing/imbalance/looseness) untuk komponen mekanik berputar. <strong>Pipeline</strong>: data vibrasi → ekstraksi fitur (P1–P7) → ML klasifikasi (P13) → alert system. <strong>Dataset</strong>: CWRU Bearing (10K sample/class, 4 kondisi), MFPT (Machinery Failure Prevention Technology), atau lab fan/blower dengan IMU (mis. MPU6050). <strong>Algoritma rekomendasi</strong>: Random Forest (interpretable, baseline kuat) atau XGBoost (state-of-the-art tabular). <strong>Output</strong>: F1 ≥ 0.85 di test set, confusion matrix, ROC-AUC.</p>
+      <div class="formula">vibrasi → fault label</div>
     </div>
     <div class="card">
-      <div class="card-icon">✂️</div>
-      <h3>Train/Test Split (80/20)</h3>
-      <p>Separasi data ke <em>train set</em> (untuk fit model) dan <em>test set</em> (untuk evaluate). Standard split 80/20 atau 70/30. <code>from sklearn.model_selection import train_test_split; X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)</code>. <strong>stratify=y</strong> wajib untuk imbalanced classes — jaga proporsi healthy/fault sama di train &amp; test. <em>random_state=42</em> untuk reproducibility. <strong>Hindari leakage</strong>: jangan fit scaler di full data → fit hanya di train.</p>
-      <div class="formula">train_test_split(X, y, 0.2)</div>
+      <div class="card-icon">⚙️</div>
+      <h3>B. Process Optimization</h3>
+      <p>Optimalkan parameter operasi sistem mekanik untuk minimize cost atau maximize throughput. <strong>Pipeline</strong>: data proses → constraint formulation → optimasi (P8: LP / P9: NLP / P10: GA). <strong>Contoh</strong>: optimasi cutting parameter CNC (depth × feed × speed → min waktu, kendala surface roughness), HVAC scheduling untuk min energy + comfort, atau scheduling shift maintenance. <strong>Algoritma rekomendasi</strong>: <code>scipy.optimize.linprog</code> (LP), <code>scipy.optimize.minimize</code> (NLP), atau <code>pymoo</code> / <code>deap</code> (GA multi-objective). <strong>Output</strong>: improvement % vs baseline.</p>
+      <div class="formula">min f(x) s.t. g(x) ≤ 0</div>
     </div>
     <div class="card">
-      <div class="card-icon">📈</div>
-      <h3>Model Fitting (.fit / .predict)</h3>
-      <p>API scikit-learn konsisten: <code>from sklearn.ensemble import RandomForestClassifier; model = RandomForestClassifier(n_estimators=100, random_state=42); model.fit(X_train, y_train); y_pred = model.predict(X_test); y_proba = model.predict_proba(X_test)[:, 1]</code>. <em>fit</em>: optimasi parameter dari training data. <em>predict</em>: hard label (0 atau 1). <em>predict_proba</em>: probability score (untuk threshold custom + ROC analysis). Model diff: Logistic Reg simple (linear); RF/SVM kompleks.</p>
-      <div class="formula">model.fit(X, y).predict(X')</div>
+      <div class="card-icon">📊</div>
+      <h3>C. Quality Monitoring</h3>
+      <p>Monitoring real-time kualitas output (mis. dimensi part, surface finish, weld quality) dengan rule-based + ML. <strong>Pipeline</strong>: sensor data → feature extraction → rule check (P12 ISO threshold) + ML scoring (P13) → dashboard alert. <strong>Contoh</strong>: SPC (Statistical Process Control) chart untuk dimensi shaft di lathe, vision-based welding seam classification, atau temperatur monitoring induction furnace. <strong>Algoritma rekomendasi</strong>: rule + Logistic Regression baseline, escalate ke RF jika perlu. <strong>Output</strong>: alert log + recommend action.</p>
+      <div class="formula">sensor → SPC → alert</div>
     </div>
     <div class="card">
-      <div class="card-icon">📏</div>
-      <h3>Evaluation Metrics</h3>
-      <p>Accuracy alone tidak cukup untuk imbalanced data. Wajib pakai: <strong>precision</strong> = TP/(TP+FP) (dari yang di-predict fault, berapa benar?), <strong>recall</strong> = TP/(TP+FN) (dari semua fault sebenarnya, berapa kena?), <strong>F1-score</strong> = harmonic mean precision+recall. <strong>Confusion matrix</strong> 2×2 untuk binary atau k×k untuk multi-class. <strong>ROC-AUC</strong> untuk threshold-independent performance. Pakai <code>classification_report</code> + <code>confusion_matrix</code> + <code>roc_auc_score</code> dari <code>sklearn.metrics</code>.</p>
-      <div class="formula">precision, recall, F1, AUC</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">🎛️</div>
-      <h3>Hyperparameter Tuning</h3>
-      <p>Algoritma punya hyperparameter (bukan dipelajari dari data, harus di-set). <em>Random Forest</em>: <code>n_estimators</code> (jumlah trees, default 100), <code>max_depth</code> (kedalaman tree, None=tak terbatas), <code>min_samples_split</code>. <em>SVM</em>: <code>C</code> (regularization, default 1.0), <code>kernel</code> ('rbf', 'linear', 'poly'), <code>gamma</code> (kernel coefficient). <strong>Tuning</strong> dengan <code>GridSearchCV</code> atau <code>RandomizedSearchCV</code> + cross-validation. Default biasanya OK untuk baseline; tuning untuk improvement marginal.</p>
-      <div class="formula">GridSearchCV → best params</div>
+      <div class="card-icon">🚨</div>
+      <h3>D. Anomaly Detection (Unsupervised)</h3>
+      <p>Untuk problem tanpa labeled fault (data fault sangat jarang atau belum ada). <strong>Pipeline</strong>: collect data normal → train Isolation Forest / Autoencoder / One-Class SVM → score sample baru → flag outlier. <strong>Contoh</strong>: monitoring vibrasi pump baru install (belum ada history fault), gas leak detection di refinery. <strong>Algoritma rekomendasi</strong>: <code>sklearn.ensemble.IsolationForest</code> (cepat, robust) atau <code>One-Class SVM</code>. <strong>Output</strong>: anomaly score + threshold tuning + visual analysis. <em>Catatan</em>: tidak perlu labeled data, tetapi evaluasi lebih sulit (perlu domain expert validasi).</p>
+      <div class="formula">P(x is anomaly) ≥ τ</div>
     </div>
   </div>
 
   <div class="tbl-wrap reveal" style="margin:32px 0">
     <table class="data-table">
-      <thead><tr><th>Tahap Workflow</th><th>Aksi</th><th>scikit-learn API</th><th>Output</th></tr></thead>
+      <thead><tr><th>Dataset / Sumber</th><th>Domain</th><th>Ukuran</th><th>Difficulty</th><th>Link Sumber</th></tr></thead>
       <tbody>
-        <tr><td style="color:var(--cyan)">1. Load data</td><td>Read CSV/Parquet → DataFrame</td><td><code>pd.read_csv()</code></td><td>X, y arrays</td></tr>
-        <tr><td style="color:var(--green)">2. Preprocess</td><td>Standardize, encode, impute</td><td><code>StandardScaler, OneHotEncoder</code></td><td>X_scaled</td></tr>
-        <tr><td style="color:var(--amber)">3. Split</td><td>Train/test 80/20 stratified</td><td><code>train_test_split(stratify=y)</code></td><td>X_train, X_test, y_train, y_test</td></tr>
-        <tr><td style="color:var(--violet)">4. Train</td><td>Fit model di train</td><td><code>model.fit(X_train, y_train)</code></td><td>Trained model object</td></tr>
-        <tr><td style="color:var(--pink)">5. Evaluate</td><td>Predict + metrics di test</td><td><code>classification_report</code></td><td>Accuracy, F1, confusion matrix</td></tr>
-        <tr><td style="color:var(--cyan)">6. Tune</td><td>Grid search hyperparams</td><td><code>GridSearchCV(cv=5)</code></td><td>Best model + params</td></tr>
-        <tr><td style="color:var(--green)">7. Deploy</td><td>Save model, integrate API</td><td><code>joblib.dump(model)</code></td><td>.pkl file untuk production</td></tr>
+        <tr><td style="color:var(--cyan)">CWRU Bearing</td><td>Vibrasi bearing fault</td><td>~40K sample × 4 class</td><td>⭐⭐ Mudah</td><td>engineering.case.edu</td></tr>
+        <tr><td style="color:var(--green)">MFPT Bearing</td><td>Outer race fault</td><td>~15K sample × 3 class</td><td>⭐⭐ Mudah</td><td>mfpt.org/fault-data-sets</td></tr>
+        <tr><td style="color:var(--amber)">PRONOSTIA</td><td>Bearing run-to-failure</td><td>17 bearing, 35Hz</td><td>⭐⭐⭐ Sedang</td><td>data.ieee.org</td></tr>
+        <tr><td style="color:var(--violet)">NASA C-MAPSS</td><td>Turbofan engine RUL</td><td>~20K cycle × 4 set</td><td>⭐⭐⭐ Sedang</td><td>nasa.gov/prognostic-data</td></tr>
+        <tr><td style="color:var(--pink)">MIMII Sound</td><td>Industrial machine audio</td><td>~10 GB audio</td><td>⭐⭐⭐⭐ Susah</td><td>zenodo.org/record/3384388</td></tr>
+        <tr><td style="color:var(--cyan)">Lab Custom</td><td>Fan/blower + IMU MPU6050</td><td>~self-collected</td><td>⭐⭐⭐⭐⭐ Effort</td><td>setup hardware sendiri</td></tr>
+        <tr><td style="color:var(--green)">UCI ML Repo</td><td>Multi domain</td><td>varies</td><td>⭐⭐ Mudah</td><td>archive.ics.uci.edu</td></tr>
       </tbody>
     </table>
   </div>
 
   <div class="info-box reveal">
-    <strong>Contoh Konkret — Bearing Fault Detection (CWRU Dataset):</strong><br>
-    Case Western Reserve University (CWRU) Bearing Dataset adalah benchmark publik. 4 kondisi: <em>healthy</em>, <em>inner race fault</em>, <em>outer race fault</em>, <em>ball fault</em>. ~10000 sample per kondisi, 50000-point waveform tiap sample. Extract 21 fitur (RMS, peak, kurt, FFT band energies). Train Random Forest 100 trees. Hasil: <strong>accuracy 98.5%, F1 = 0.97 macro-average</strong>. Bandingkan rule-based threshold tunggal: ~75% accuracy. ML gain ~24 percentage point. Tetapi: untuk safety-critical, rule-based + ML hybrid (rule = guaranteed safety net, ML = early-warning).
+    <strong>Topik yang Direkomendasikan untuk Mahasiswa S1 Mesin (Tingkat Kesulitan Realistis):</strong><br>
+    <strong>Tier 1 (Recommended)</strong>: (a) <em>CWRU Bearing Fault Classification</em> — RF + XGBoost comparison, F1 target 0.95+. (b) <em>HVAC Schedule Optimization</em> — LP scheduling shift compressor (8 jam vs 24 jam vs varying load) untuk min energy. (c) <em>Lab Fan Imbalance Detection</em> — install MPU6050 di motor fan, label "balanced" vs "with weight" → klasifikasi.<br>
+    <strong>Tier 2 (Lebih Menantang)</strong>: (d) <em>NASA C-MAPSS RUL Prediction</em> — regresi (bukan klasifikasi), gunakan Random Forest Regressor. (e) <em>CNC Cutting Parameter Optimization</em> — multi-objective GA dengan pymoo (min waktu × max surface quality).<br>
+    <strong>Tier 3 (Untuk yang Ambisius)</strong>: (f) <em>End-to-end Streamlit Dashboard</em> — deploy ke Streamlit Cloud, real-time inference dari uploaded CSV.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Workflow Lengkap di scikit-learn (template umum):</strong><br>
-    <code>from sklearn.pipeline import Pipeline</code><br>
-    <code>from sklearn.preprocessing import StandardScaler</code><br>
-    <code>from sklearn.ensemble import RandomForestClassifier</code><br>
-    <code>from sklearn.model_selection import train_test_split, cross_val_score</code><br>
-    <code>from sklearn.metrics import classification_report, confusion_matrix</code><br><br>
-    <code>X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)</code><br>
-    <code>pipe = Pipeline([('scaler', StandardScaler()), ('clf', RandomForestClassifier(n_estimators=100, random_state=42))])</code><br>
-    <code>pipe.fit(X_train, y_train)</code><br>
-    <code>print(classification_report(y_test, pipe.predict(X_test)))</code><br>
-    <code>scores = cross_val_score(pipe, X_train, y_train, cv=5, scoring='f1_macro')</code><br>
-    <code>print(f"5-fold CV F1: {scores.mean():.3f} ± {scores.std():.3f}")</code>
+    💡 <strong>Checklist Pemilihan Topik (sebelum start coding):</strong> (1) <em>Apakah datasetnya accessible?</em> Sudah download / akses lab → confirm sebelum start. (2) <em>Apakah scope realistis dalam 2 minggu?</em> Tier 1 = aman, Tier 3 = butuh komitmen tinggi. (3) <em>Apakah punya 2+ algoritma untuk dibandingkan?</em> Single algorithm = laporan tipis. (4) <em>Apakah ada metric evaluasi yang jelas?</em> F1 / accuracy / RMSE — bukan vague "model bagus". (5) <em>Apakah ada baseline trivial?</em> Random predictor / majority class — model harus beat ini. (6) <em>Apakah hasilnya bisa di-visualisasi?</em> Confusion matrix, learning curve, feature importance, ROC. (7) <em>Apakah ada storytelling potential?</em> "Industri X spend Rp Y/tahun untuk problem Z, kita reduce 30%" — jauh lebih impactful dari "F1 = 0.92". (8) <em>Apakah saya tertarik?</em> 2 minggu kerja menyenangkan vs 2 minggu siksaan = beda kualitas output.
   </div>
 </div>
 
