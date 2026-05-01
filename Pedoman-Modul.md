@@ -1277,11 +1277,59 @@ function _isPastDeadline() {
 
 Dalam zona tepat waktu `[start, end]`, banner di-hide.
 
-### 9.5.5 Konsekuensi Award Functions
+### 9.5.5 Konsekuensi Award Functions — Penalty 20% di Sesi Perpanjangan
 
-Karena `_isScheduleOpen()` di Exam return `false` saat `now > end+extension`, semua award functions (`_awardPoint`, `_awardCompPoint`, `_awardCompPartial`) otomatis abort di gate awal — **tidak perlu modifikasi tambahan**. Multiplier 0.8 dari `_getLateMultiplier()` tetap berlaku selama `now in (end, end+ext]` (sesi perpanjangan).
+Karena `_isScheduleOpen()` di Exam return `false` saat `now > end+extension`, semua award functions (`_awardPoint`, `_awardCompPoint`, `_awardCompPartial`) otomatis abort di gate awal — **tidak perlu modifikasi tambahan**.
 
-### 9.5.6 Mata Kuliah & File Berlaku
+**Penalty 20% otomatis berlaku** selama `now in (end, end+ext]` (sesi perpanjangan):
+- `_isPastDeadline()` return `true` di window ini
+- `_getLateMultiplier()` return `0.8`
+- Award functions: `(ex.points || 0) + (pts * _getLateMultiplier())` → poin ×0.8
+- `_awardCompPartial()` abort jika `_isPastDeadline()` → tidak ada partial credit Hard
+
+**Total max poin mahasiswa di sesi perpanjangan exam:** 50 × 0.8 = **40 poin** (sama seperti modul). Setelah perpanjangan habis, tidak bisa submit sama sekali.
+
+### 9.5.6 Friction Layer (anti-AI deterrent)
+
+Semua file Exam memiliki **friction layer** untuk membatasi mahasiswa pakai AI saat ujian. Bersifat **deterrent**, bukan proteksi total. Aktif **hanya untuk role student** (dosen bypass).
+
+**Komponen:**
+
+| # | Layer | Mechanism |
+|---|-------|-----------|
+| 1 | Disable text selection | CSS `user-select:none` di body, allow di textarea/input |
+| 2 | Watermark NIM+Nama | SVG repeating diagonal, opacity 0.08, mix-blend-mode:difference |
+| 3 | Notice indicator | Pill "🔒 Mode Ujian Aktif" top-right corner |
+| 4 | Disable klik kanan | `contextmenu` preventDefault + toast warning |
+| 5 | Disable shortcuts | F12, Ctrl+Shift+I/J/C, Ctrl+U/P/S, PrintScreen detect |
+| 6 | Tab visibility tracking | `visibilitychange` count + warning toast saat kembali |
+| 7 | Screen capture detect | Proxy `navigator.mediaDevices.getDisplayMedia` |
+| 8 | Print blocked | `@media print` hide body + replace text |
+
+**Implementasi:**
+- CSS friction injected di main `<style>` block (sebelum `</style>` setelah `.warn-icon` rule)
+- JS module self-contained sebagai `<script>` block sebelum `</body>`
+- LK key per course: `<course>_identity_uts` (misal `optoauto_identity_uts`, `math4_identity_uts`, `getaran_mekanik_identity_uts`)
+- Detection: localStorage polling 1.5s + `storage` event (cross-tab + same-tab)
+
+**Eksklusi penting (textarea/input):** Ctrl+A/C/V tetap bekerja di area input agar mahasiswa bisa edit kode normal. Klik kanan di textarea juga di-allow untuk paste support.
+
+**Trade-off eksplisit:**
+
+✅ Yang dicegah:
+- Copy soal text via mouse selection / Ctrl+C
+- Klik kanan → "Copy text"
+- View source / DevTools shortcut
+- Print to PDF
+- Screen recording browser-based (warned)
+
+❌ Yang TIDAK dicegah:
+- Foto layar dengan kamera HP/tablet (watermark deter via NIM visible di foto)
+- Screenshot OS-level (PrintScreen di sebagian besar OS tidak bisa di-block JS)
+- Tools eksternal (Snipping Tool, dst)
+- Mahasiswa pakai 2 device
+
+### 9.5.7 Mata Kuliah & File Berlaku
 
 Aturan §9.5 berlaku untuk:
 - `Engineering-Mathematics/Exam/UTS.html`
