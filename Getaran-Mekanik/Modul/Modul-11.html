@@ -900,423 +900,399 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 01 — APA ITU SISTEM 2 DoF? ═══ -->
+<!-- ═══ BAGIAN 01 — DOMAIN WAKTU vs DOMAIN FREKUENSI ═══ -->
 <hr class="divider" style="margin-top:64px">
 <div class="section" id="m-pengantar">
   <div class="section-label reveal">Bagian 01</div>
-  <h2 class="section-title reveal">Apa Itu Sistem 2 DoF?<br>Saat Satu Massa Saja Tidak Cukup</h2>
-  <p class="section-desc reveal">Pada Pertemuan 1–6, kita selalu menganalisis <strong>satu massa</strong> bergetar (1 DoF — derajat kebebasan). Tetapi mesin nyata jarang sesederhana itu. Mobil punya bodi <em>dan</em> roda. Gedung punya banyak lantai. Turbin punya rotor <em>dan</em> casing. Setiap bagian bisa bergerak independen — sehingga butuh <strong>≥ 2 koordinat</strong> untuk menjelaskan posisi sistem secara lengkap. Itulah <strong>sistem 2 DoF</strong>.</p>
+  <h2 class="section-title reveal">Domain Waktu vs Domain Frekuensi:<br>Dua Sisi Sinyal yang Sama</h2>
+  <p class="section-desc reveal">Sinyal getaran mesin direkam sebagai <strong>x(t)</strong> — amplitudo terhadap waktu. Tetapi mata kita susah membaca komposisi frekuensi dari waveform mentah, terutama saat banyak komponen tercampur. <strong>Transformasi Fourier</strong> mengurai sinyal time-domain menjadi <strong>spektrum frekuensi</strong> — peta yang menunjukkan amplitudo masing-masing komponen sinusoidal penyusun sinyal. Inilah dasar diagnosis getaran mesin modern.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Definisi Sederhana</div>
-    Derajat kebebasan = jumlah koordinat independen yang diperlukan untuk mendeskripsikan posisi sistem pada saat tertentu.
+    <div class="label">Insight Kunci</div>
+    Setiap sinyal periodik (atau hampir periodik) bisa dipecah menjadi <em>jumlah sinusoidal</em> dengan amplitudo &amp; fase tertentu — itulah teorema Fourier.
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">🚗</div>
-      <h3>Suspensi Mobil</h3>
-      <p>Bodi mobil bergerak naik-turun (x₁), sekaligus roda juga bergerak naik-turun (x₂) saat melewati jalan bergelombang. Dua koordinat → 2 DoF.</p>
-      <div class="formula">x₁ (bodi) &nbsp;|&nbsp; x₂ (roda)</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">🏢</div>
-      <h3>Gedung 2 Lantai</h3>
-      <p>Lantai 1 bergeser horizontal sebesar x₁ saat angin/gempa, lantai 2 bergeser sebesar x₂. Dua lantai = 2 DoF.</p>
-      <div class="formula">x₁ (lantai 1) &nbsp;|&nbsp; x₂ (lantai 2)</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">⚙️</div>
-      <h3>Dua Massa Terkait Pegas</h3>
-      <p>Sistem klasik 2 DoF: dua massa m₁ dan m₂ dihubungkan oleh tiga pegas k₁, k₂, k₃ (dua pegas ke dinding, satu di tengah). Inilah model referensi modul ini.</p>
-      <div class="formula">m₁=m₂=1 kg, k=100 N/m</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">🎵</div>
-      <h3>Speaker Gitar</h3>
-      <p>Membran speaker (m₁) terhubung ke kotak (m₂) lewat pegas. Saat dimainkan, keduanya bergetar — itulah kenapa kotak speaker ikut "menggetar".</p>
-      <div class="formula">2 mode getaran utama</div>
-    </div>
-  </div>
-
-  <div class="info-box reveal">
-    <strong>Mengapa 2 DoF Begitu Penting?</strong><br>
-    Sistem 1 DoF hanya punya <strong>satu</strong> frekuensi pribadi ωₙ. Tetapi sistem 2 DoF punya <strong>dua</strong> frekuensi pribadi (ω₁ dan ω₂) — masing-masing dengan <strong>pola gerak (mode shape)</strong>-nya sendiri. Memahami ini adalah jembatan menuju multi-DoF (gedung 10 lantai, mesin pesawat, dll). Konsepnya sama, hanya jumlah-nya bertambah.
-  </div>
-
-  <div class="tip-box reveal">
-    💡 <strong>Aturan Mudah:</strong> Banyaknya frekuensi pribadi sebuah sistem getaran = banyaknya derajat kebebasannya. 1 DoF → 1 ω. 2 DoF → 2 ω (ω₁ &lt; ω₂). N DoF → N ω. Pertemuan 12 fokus pada N=2 sebagai pintu masuk paling intuitif.
-  </div>
-</div>
-
-<!-- ═══ BAGIAN 02 — PERSAMAAN GERAK MATRIKS ═══ -->
-<hr class="divider">
-<div class="section" id="m-eom">
-  <div class="section-label reveal">Bagian 02</div>
-  <h2 class="section-title reveal">Persamaan Gerak Matriks:<br>Bahasa Universal Sistem 2 DoF</h2>
-  <p class="section-desc reveal">Untuk sistem 1 DoF, persamaan geraknya: <strong>m·ẍ + k·x = 0</strong>. Untuk 2 DoF, kita punya <strong>dua</strong> persamaan — satu untuk tiap massa. Lebih praktis menulisnya dalam <strong>bentuk matriks</strong>: <strong>M·ẍ + K·x = 0</strong>, dengan M = matriks massa, K = matriks kekakuan, x = vektor [x₁, x₂].</p>
-
-  <div class="formula-block reveal">
-    <div class="label">Sistem Referensi Modul Ini — Dua Massa, Tiga Pegas</div>
-    Massa: m₁ = m₂ = 1 kg &nbsp;·&nbsp; Pegas: k₁ = k₂ = k₃ = 100 N/m
-  </div>
-
-  <div class="cards reveal" style="margin-bottom:32px">
-    <div class="card">
-      <div class="card-icon">📐</div>
-      <h3>Free-Body Diagram Massa 1</h3>
-      <p>Massa 1 ditarik pegas k₁ ke kiri dengan gaya <code>−k₁·x₁</code> dan ditarik/ditolak oleh pegas tengah k₂ dengan gaya <code>−k₂·(x₁−x₂)</code>. Hukum Newton:</p>
-      <div class="formula">m₁·ẍ₁ = −k₁·x₁ − k₂·(x₁ − x₂)</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">📐</div>
-      <h3>Free-Body Diagram Massa 2</h3>
-      <p>Massa 2 ditarik pegas tengah k₂ dengan gaya <code>−k₂·(x₂−x₁)</code> dan pegas k₃ ke kanan dengan gaya <code>−k₃·x₂</code>:</p>
-      <div class="formula">m₂·ẍ₂ = −k₂·(x₂ − x₁) − k₃·x₂</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">🔢</div>
-      <h3>Bentuk Matriks (Singkat)</h3>
-      <p>Kedua persamaan dirapikan: <code>m₁·ẍ₁ + (k₁+k₂)x₁ − k₂·x₂ = 0</code> dan <code>m₂·ẍ₂ − k₂·x₁ + (k₂+k₃)x₂ = 0</code>. Dalam matriks:</p>
-      <div class="formula">M·ẍ + K·x = 0</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">✅</div>
-      <h3>Substitusi Angka Referensi</h3>
-      <p>Dengan m₁=m₂=1 dan k₁=k₂=k₃=100, kita peroleh M = identitas dan K simetris dengan diagonal 200, off-diagonal −100:</p>
-      <div class="formula">M = [[1,0],[0,1]] &nbsp;·&nbsp; K = [[200,−100],[−100,200]]</div>
-    </div>
-  </div>
-
-  <div class="info-box reveal">
-    <strong>Kenali Pola Matriks Kekakuan K</strong><br>
-    Diagonal K(i,i) = jumlah semua kekakuan yang menempel ke massa-i. Off-diagonal K(i,j) = <strong>negatif</strong> kekakuan pegas yang menghubungkan massa-i dan massa-j. K selalu <strong>simetris</strong> (K(i,j) = K(j,i)). Pola ini berlaku universal untuk N DoF — kita tidak perlu menurunkan ulang dari Hukum Newton tiap kali.
-  </div>
-
-  <div class="tip-box reveal">
-    💡 <strong>Cek cepat:</strong> Untuk sistem referensi kita, matriks K = [[200, −100], [−100, 200]]. Trace(K) = 200+200 = 400. Det(K) = 200·200 − (−100)·(−100) = 40000 − 10000 = 30000. Kedua angka ini akan muncul lagi saat kita cari frekuensi pribadi di Bagian 03 — sama seperti Vieta's formula untuk akar polinomial.
-  </div>
-</div>
-
-<!-- ═══ BAGIAN 03 — EIGENVALUE PROBLEM ═══ -->
-<hr class="divider">
-<div class="section" id="m-eigen">
-  <div class="section-label reveal">Bagian 03</div>
-  <h2 class="section-title reveal">Eigenvalue Problem:<br>Mencari Dua Frekuensi Pribadi ω₁ & ω₂</h2>
-  <p class="section-desc reveal">Kita tebak solusi harmonik: tiap massa bergerak dengan frekuensi yang sama ω, tetapi dengan amplitudo berbeda. <code>x(t) = X·sin(ωt)</code> dengan X = vektor [X₁, X₂]. Substitusi ke <code>M·ẍ + K·x = 0</code> menghasilkan <strong>(K − ω²M)·X = 0</strong> — yang dikenal sebagai <strong>eigenvalue problem</strong>.</p>
-
-  <div class="formula-block reveal">
-    <div class="label">Persamaan Karakteristik (Cara Mencari ω)</div>
-    det(K − ω²·M) = 0
-  </div>
-
-  <div class="cards reveal" style="margin-bottom:32px">
-    <div class="card">
-      <div class="card-icon">🔍</div>
-      <h3>Langkah 1 — Tulis Determinan</h3>
-      <p>Dengan parameter referensi: <code>K − ω²M = [[200−ω², −100], [−100, 200−ω²]]</code>. Determinan = (200−ω²)² − (−100)(−100) = (200−ω²)² − 10000.</p>
-      <div class="formula">(200 − ω²)² − 10000 = 0</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">🧮</div>
-      <h3>Langkah 2 — Selesaikan untuk ω²</h3>
-      <p>Akar kuadrat kedua sisi: <code>200 − ω² = ±100</code>. Sehingga ω² = 200 − 100 = 100 (akar pertama, kecil) dan ω² = 200 + 100 = 300 (akar kedua, besar).</p>
-      <div class="formula">ω₁² = 100 &nbsp;·&nbsp; ω₂² = 300</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">✨</div>
-      <h3>Langkah 3 — Akar Frekuensi</h3>
-      <p>Ambil akar kuadrat: <code>ω₁ = √100 = 10 rad/s</code> dan <code>ω₂ = √300 ≈ 17.32 rad/s</code>. Selalu pilih ω &gt; 0; konvensi: ω₁ &lt; ω₂.</p>
-      <div class="formula">ω₁ = 10 rad/s &nbsp;·&nbsp; ω₂ ≈ 17.32 rad/s</div>
+      <div class="card-icon">⏱️</div>
+      <h3>Domain Waktu (Time Domain)</h3>
+      <p>Plot <code>x(t)</code> vs <code>t</code> — apa yang diukur sensor accelerometer/proximity langsung. Bagus untuk melihat <em>shock</em>, transient, perubahan amplitudo terhadap waktu. Tapi sulit baca komposisi frekuensi.</p>
+      <div class="formula">x(t) = A₁sin(ω₁t) + A₂sin(ω₂t) + ...</div>
     </div>
     <div class="card">
       <div class="card-icon">📊</div>
-      <h3>Konversi ke Hertz & Periode</h3>
-      <p>f = ω/(2π), T = 2π/ω. Hasilnya: f₁ ≈ 1.59 Hz (T₁ ≈ 0.63 s), f₂ ≈ 2.76 Hz (T₂ ≈ 0.36 s). Mode 2 lebih cepat daripada Mode 1.</p>
-      <div class="formula">f₁ ≈ 1.59 Hz, f₂ ≈ 2.76 Hz</div>
+      <h3>Domain Frekuensi (Frequency Domain)</h3>
+      <p>Plot magnitude |X(f)| vs <code>f</code> — peta amplitudo per komponen frekuensi. Setiap puncak = satu komponen sinusoidal. Bagus untuk diagnosis: bearing fault, gear mesh, unbalance punya frekuensi karakteristik.</p>
+      <div class="formula">|X(f)| pada f₁, f₂, ...</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔄</div>
+      <h3>Transformasi Bolak-Balik</h3>
+      <p>Fourier Transform (FT) mengubah time → frequency. Inverse Fourier Transform (IFT) mengubah balik frequency → time. Kedua representasi <strong>setara</strong> (mengandung informasi sama), hanya perspektif berbeda.</p>
+      <div class="formula">x(t) ⇌ X(f)</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔬</div>
+      <h3>Mengapa Penting di Getaran Mesin?</h3>
+      <p>Bearing rusak menghasilkan frekuensi karakteristik (BPFO, BPFI, BSF). Gear mesh muncul di N×rpm. Unbalance di 1×rpm. Misalignment di 2×rpm. Tanpa Fourier, semua bercampur di waveform — tidak diagnosable.</p>
+      <div class="formula">Frekuensi = Sidik Jari Kerusakan</div>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Cara Cepat: Pakai numpy.linalg.eig</strong><br>
-    Untuk sistem &gt; 2 DoF, menyelesaikan determinan tangan jadi rumit. Pakai komputer:
-    <code style="display:block;background:#020a18;padding:10px 14px;border-radius:8px;margin-top:8px;color:var(--cyan)">A = np.linalg.inv(M) @ K  &nbsp;&nbsp;# matriks dinamis<br>w_squared, modes = np.linalg.eig(A)<br>omegas = np.sqrt(w_squared)</code>
-    Pyodide di browser sudah punya numpy — kode di atas bisa langsung dijalankan di tab Tugas.
+    <strong>Analogi: Lagu vs Partitur</strong><br>
+    Sinyal time-domain seperti <em>rekaman lagu</em> — kita dengar suara campur. Spektrum frequency-domain seperti <em>partitur musik</em> — kita lihat not-not penyusun. Mendiagnosis kerusakan mesin tanpa FFT seperti membaca lagu hanya dari rekaman waveform tanpa partitur.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Cek dengan Trace & Determinan:</strong> Untuk sistem 2 DoF dengan M = identitas, ada identitas Vieta sederhana: <code>ω₁² + ω₂² = trace(K)</code> dan <code>ω₁²·ω₂² = det(K)</code>. Verifikasi: 100 + 300 = 400 ✓ (= trace K), dan 100 × 300 = 30000 ✓ (= det K). Cocok!
+    💡 <strong>Aturan Mudah:</strong> Sinyal sederhana (1 frekuensi) bisa dikenali dari time-domain saja. Sinyal kompleks (2+ frekuensi) hampir selalu butuh frequency-domain (FFT) untuk dianalisis. Industri vibration analysis 90% kerjanya di frequency-domain.
   </div>
 </div>
 
-<!-- ═══ BAGIAN 04 — MODE SHAPES ═══ -->
+<!-- ═══ BAGIAN 02 — FOURIER SERIES UNTUK SINYAL PERIODIK ═══ -->
 <hr class="divider">
-<div class="section" id="m-modes">
-  <div class="section-label reveal">Bagian 04</div>
-  <h2 class="section-title reveal">Mode Shapes:<br>Setiap Frekuensi Punya "Tarian"-Nya Sendiri</h2>
-  <p class="section-desc reveal">Setiap frekuensi pribadi ω<sub>i</sub> tidak hanya angka — ia punya <strong>pola gerak</strong> spesifik yang menjelaskan <em>bagaimana</em> kedua massa bergerak relatif satu sama lain saat bergetar di frekuensi itu. Pola ini disebut <strong>mode shape</strong> (vektor eigenvalue). Untuk sistem referensi, kita akan temukan dua mode yang sangat intuitif.</p>
+<div class="section" id="m-eom">
+  <div class="section-label reveal">Bagian 02</div>
+  <h2 class="section-title reveal">Fourier Series:<br>Setiap Sinyal Periodik = Jumlah Sinusoidal</h2>
+  <p class="section-desc reveal">Joseph Fourier (1822) menemukan: <strong>setiap sinyal periodik</strong> dengan periode <code>T</code> bisa dinyatakan sebagai jumlah tak hingga sinusoidal dengan frekuensi <strong>kelipatan</strong> frekuensi dasar <code>f₀ = 1/T</code>. Inilah Fourier Series — fondasi semua transformasi Fourier modern.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Cara Menghitung Mode Shape</div>
-    Untuk tiap ω<sub>i</sub>, substitusi balik ke <code>(K − ω<sub>i</sub>²M)·X = 0</code>, lalu cari rasio X₁ : X₂.
+    <div class="label">Fourier Series (Bentuk Trigonometrik)</div>
+    x(t) = a₀/2 + Σ [aₙ·cos(2πnf₀t) + bₙ·sin(2πnf₀t)]   n = 1, 2, 3, ...
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">⚖️</div>
-      <h3>Mode 1 (ω₁ = 10) — In-Phase</h3>
-      <p>Substitusi ω₁²=100: <code>(K − 100·I) = [[100,−100],[−100,100]]</code>. Baris pertama: <code>100·X₁ − 100·X₂ = 0 → X₁ = X₂</code>. Mode 1 = <strong>[1, 1]</strong> — kedua massa bergerak <strong>searah dan sama besar</strong>.</p>
-      <div class="formula">Mode 1: X₁ = X₂ = 1 (in-phase)</div>
+      <div class="card-icon">📐</div>
+      <h3>Frekuensi Dasar f₀</h3>
+      <p><code>f₀ = 1/T</code> — frekuensi terendah dalam dekomposisi. Komponen lain selalu kelipatan integer: <code>f₀, 2f₀, 3f₀, ...</code> Ini disebut <strong>harmonik</strong>: f₀ = harmonik 1, 2f₀ = harmonik 2, dst.</p>
+      <div class="formula">f₀ = fundamental frequency</div>
     </div>
     <div class="card">
-      <div class="card-icon">↔️</div>
-      <h3>Mode 2 (ω₂ ≈ 17.32) — Anti-Phase</h3>
-      <p>Substitusi ω₂²=300: <code>(K − 300·I) = [[−100,−100],[−100,−100]]</code>. Baris pertama: <code>−100·X₁ − 100·X₂ = 0 → X₁ = −X₂</code>. Mode 2 = <strong>[1, −1]</strong> — kedua massa bergerak <strong>berlawanan</strong>.</p>
-      <div class="formula">Mode 2: X₁ = −X₂ (anti-phase)</div>
+      <div class="card-icon">📊</div>
+      <h3>Koefisien Fourier aₙ &amp; bₙ</h3>
+      <p>Aturan integrasi atas satu periode T: <code>aₙ = (2/T)∫x(t)cos(2πnf₀t)dt</code> dan <code>bₙ = (2/T)∫x(t)sin(2πnf₀t)dt</code>. Nilai aₙ + bₙ menentukan amplitudo komponen ke-n.</p>
+      <div class="formula">Aₙ = √(aₙ² + bₙ²)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌊</div>
-      <h3>Mengapa Mode 1 Lebih Lambat?</h3>
-      <p>Pada Mode 1, kedua massa bergerak bersama → pegas tengah <strong>tidak tertekan/ditarik</strong> sama sekali. Sistem efektif hanya pakai pegas k₁ dan k₃. Lebih sedikit kekakuan = ω lebih kecil.</p>
-      <div class="formula">ω₁_efektif = √((k₁+k₃)/m) = 10 rad/s ✓</div>
+      <h3>Square Wave Decomposition</h3>
+      <p>Square wave klasik = jumlah ganjil-only harmonik: <code>x(t) = (4/π)[sin(ω₀t) + sin(3ω₀t)/3 + sin(5ω₀t)/5 + ...]</code>. Semakin banyak harmonik, semakin tajam corner-nya — itulah Gibbs phenomenon.</p>
+      <div class="formula">Square = ganjil harmonik dengan amplitudo ∝ 1/n</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔢</div>
+      <h3>Bentuk Eksponensial Kompleks</h3>
+      <p>Lebih elegan: <code>x(t) = Σ Cₙ·e^(j2πnf₀t)</code> dengan <code>Cₙ = (1/T)∫x(t)e^(−j2πnf₀t)dt</code>. Memakai bilangan kompleks Cₙ menggabung amplitudo + fase dalam satu nilai. Inilah formulasi yang digeneralisasi ke FT &amp; FFT.</p>
+      <div class="formula">Cₙ ∈ ℂ : magnitude + phase</div>
+    </div>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>Spektrum Diskrit (Line Spectrum)</strong><br>
+    Spektrum sinyal periodik selalu <strong>diskrit</strong> — hanya ada nilai non-zero pada frekuensi kelipatan f₀. Ini berbeda dengan sinyal aperiodik (Bagian 03) yang spektrumnya kontinyu. Ciri khas spektrum mesin steady-state: garis-garis tajam pada f₀ dan harmoniknya — ini "tanda" mesin sehat dengan pattern teratur.
+  </div>
+
+  <div class="tip-box reveal">
+    💡 <strong>Identifikasi Cepat:</strong> Sinyal getaran mesin steady-state (rotor berputar konstan) selalu periodik dengan periode = 1 putaran shaft. f₀ = rpm/60. Harmonik 2× sering = misalignment. Harmonik 3× &amp; lebih tinggi = looseness atau impulsive defect. Sebelum bicara FFT, mahasiswa harus paham Fourier Series sebagai konsep awalnya.
+  </div>
+</div>
+
+<!-- ═══ BAGIAN 03 — CONTINUOUS FOURIER TRANSFORM ═══ -->
+<hr class="divider">
+<div class="section" id="m-eigen">
+  <div class="section-label reveal">Bagian 03</div>
+  <h2 class="section-title reveal">Continuous Fourier Transform:<br>Generalisasi ke Sinyal Aperiodik</h2>
+  <p class="section-desc reveal">Fourier Series hanya untuk sinyal <strong>periodik</strong>. Bagaimana untuk sinyal yang <strong>aperiodik</strong> (transient, single pulse, sinyal terbatas waktu)? Jawabannya: ambil limit <code>T → ∞</code> dari Fourier Series. Hasilnya: <strong>Continuous Fourier Transform (CFT)</strong> — integral kontinyu yang menghasilkan spektrum frekuensi <em>kontinyu</em> (bukan garis diskrit lagi).</p>
+
+  <div class="formula-block reveal">
+    <div class="label">Pasangan Continuous Fourier Transform</div>
+    Forward: X(f) = ∫₋∞^∞ x(t)·e^(−j2πft) dt &nbsp;·&nbsp; Inverse: x(t) = ∫₋∞^∞ X(f)·e^(+j2πft) df
+  </div>
+
+  <div class="cards reveal" style="margin-bottom:32px">
+    <div class="card">
+      <div class="card-icon">🌐</div>
+      <h3>Spektrum Kontinyu</h3>
+      <p>Tidak lagi diskrit di kelipatan f₀ — sekarang kontinyu di seluruh axis frekuensi. <code>X(f)</code> didefinisikan untuk semua f real (positif dan negatif). Magnitudo |X(f)| menunjukkan "density" energi spektral di frekuensi f.</p>
+      <div class="formula">X(f) ∈ ℂ untuk semua f</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
-      <h3>Mengapa Mode 2 Lebih Cepat?</h3>
-      <p>Pada Mode 2, kedua massa berlawanan arah → pegas tengah <strong>diregang/ditekan dua kali</strong> setiap setengah siklus. Kekakuan efektif lebih besar = ω lebih besar.</p>
-      <div class="formula">ω₂_efektif = √((k₁ + 2k₂)/m) ≈ 17.32 ✓</div>
+      <h3>Pulse → Spectrum Lebar</h3>
+      <p>Pulse waktu pendek (sharp spike) memiliki spektrum yang <strong>lebar</strong> — energi tersebar ke banyak frekuensi. Sebaliknya: pulse panjang lebih sempit di spektrum. Inilah <strong>uncertainty principle</strong>: Δt × Δf ≥ konstanta.</p>
+      <div class="formula">Sempit di t ⇌ Lebar di f</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📈</div>
+      <h3>Sin/Cos Murni → Delta Function</h3>
+      <p><code>x(t) = sin(2πf₀t)</code> memiliki <code>X(f) = (j/2)[δ(f+f₀) − δ(f−f₀)]</code>. Spektrum jadi 2 spike di ±f₀. Inilah pondasi: setiap "frekuensi tunggal" muncul sebagai spike di spektrum FT.</p>
+      <div class="formula">Sin/Cos ⇌ Spike di ±f₀</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔁</div>
+      <h3>Sifat Linearitas</h3>
+      <p><code>FT[a·x(t) + b·y(t)] = a·X(f) + b·Y(f)</code>. Sehingga spektrum sinyal gabungan = jumlah spektrum komponen. Ini mengapa diagnosis getaran bekerja — kita bisa <strong>identifikasi tiap kerusakan secara terpisah</strong> di spektrum walaupun semua bercampur di waveform.</p>
+      <div class="formula">FT linear → komponen terpisah</div>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Sifat Penting Mode Shape — Orthogonality</strong><br>
-    Dua mode shape selalu <strong>orthogonal terhadap matriks massa</strong>: u₁ᵀ·M·u₂ = 0. Untuk kasus kita: [1,1]·[[1,0],[0,1]]·[1,−1]ᵀ = 1·1 + 1·(−1) = 0 ✓. Sifat ini sangat penting: ia memungkinkan kita memecah getaran kompleks menjadi kombinasi mode-mode yang independen (modal analysis).
+    <strong>Magnitude vs Phase Spectrum</strong><br>
+    Karena X(f) bilangan kompleks, ada dua plot: <strong>magnitude |X(f)|</strong> (yang umumnya kita lihat) dan <strong>phase ∠X(f)</strong> (sering diabaikan). Magnitude saja sudah cukup untuk identifikasi frekuensi karakteristik. Phase berguna untuk balancing &amp; tracking phasor mesin (akan dibahas di Pertemuan 14).
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Mode shape adalah RASIO, bukan amplitudo absolut.</strong> Mode 1 = [1, 1] dan Mode 1 = [3, 3] adalah <em>mode yang sama</em> — keduanya berkata "kedua massa bergerak searah dengan amplitudo yang sama". Yang penting hanya rasio X₁/X₂. Konvensi normalisasi: biasanya X₁ = 1, atau ‖X‖ = 1.
+    💡 <strong>Catatan Praktis:</strong> CFT adalah definisi <em>matematis</em>. Komputer tidak bisa menghitung integral dari −∞ ke +∞. Untuk implementasi nyata, kita pakai Discrete Fourier Transform (DFT) di Bagian 04 — versi diskrit yang bekerja pada sinyal sampled/discrete-time.
   </div>
 </div>
 
-<!-- ═══ BAGIAN 05 — ANALOGI SEHARI-HARI ═══ -->
+<!-- ═══ BAGIAN 04 — DISCRETE FOURIER TRANSFORM ═══ -->
+<hr class="divider">
+<div class="section" id="m-modes">
+  <div class="section-label reveal">Bagian 04</div>
+  <h2 class="section-title reveal">Discrete Fourier Transform:<br>Versi Komputer dari Fourier Transform</h2>
+  <p class="section-desc reveal">Sensor accelerometer mengeluarkan sample diskrit: <code>x[n] = x(n·Δt)</code> untuk n = 0, 1, ..., N−1. Komputer hanya bisa proses sinyal diskrit. <strong>Discrete Fourier Transform (DFT)</strong> adalah versi diskrit FT yang mentransformasi N sample time-domain menjadi N nilai frequency-domain.</p>
+
+  <div class="formula-block reveal">
+    <div class="label">Definisi DFT</div>
+    X[k] = Σ x[n]·e^(−j2πkn/N)   untuk k = 0, 1, ..., N−1
+  </div>
+
+  <div class="cards reveal" style="margin-bottom:32px">
+    <div class="card">
+      <div class="card-icon">🔢</div>
+      <h3>Indeks k = Frequency Bin</h3>
+      <p>Setiap nilai DFT <code>X[k]</code> berkaitan dengan frekuensi <code>f[k] = k·fs/N</code>, dimana <code>fs = 1/Δt</code> adalah sample rate. Resolusi frekuensi: <code>Δf = fs/N</code>. Lebih banyak sample N → resolusi lebih halus.</p>
+      <div class="formula">f[k] = k·fs/N</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚖️</div>
+      <h3>Symmetry untuk Sinyal Real</h3>
+      <p>Bila x[n] real (umumnya iya untuk sinyal getaran), maka <code>X[N−k] = X*[k]</code> (conjugate). Akibatnya: hanya N/2+1 nilai yang independen — sisanya redundant. Plot magnitude FFT biasanya hanya 0 sampai N/2.</p>
+      <div class="formula">|X[k]| simetris di sekitar N/2</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">⏱️</div>
+      <h3>Kompleksitas O(N²) — Lambat!</h3>
+      <p>DFT naive: untuk tiap k, hitung N perkalian. Total: <code>N × N = N²</code> operasi. Untuk N = 1024, sudah 1 juta. Untuk N = 65536, 4 milyar — beberapa detik. Inilah motivasi <strong>FFT</strong> di Bagian 05.</p>
+      <div class="formula">O(N²) operasi</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔄</div>
+      <h3>Inverse DFT (IDFT)</h3>
+      <p>Mengembalikan time-domain dari frequency-domain: <code>x[n] = (1/N) Σ X[k]·e^(+j2πkn/N)</code>. Kunci: tanda exponent <strong>+</strong> (bukan −) dan faktor 1/N. IDFT ↔ DFT membentuk pasangan invertible.</p>
+      <div class="formula">x[n] = IDFT(X[k])</div>
+    </div>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>DFT Bin Width &amp; Frekuensi Maksimum</strong><br>
+    Untuk sample rate fs = 25600 Hz dan N = 4096 sample (1 buffer):<br>
+    • Bin width Δf = 25600/4096 = <strong>6.25 Hz</strong> per bin<br>
+    • Frekuensi maksimum yang bisa direkam = fs/2 = <strong>12800 Hz</strong> (Nyquist limit)<br>
+    • Total bins = 4096; bin 0 = DC, bin 4096 = mirror of bin 0, bin 1-2048 = positive frequencies<br>
+    Kalau ingin resolusi lebih halus (mis. 1 Hz), perpanjang waktu rekam atau perbesar N (akan butuh memori lebih banyak).
+  </div>
+
+  <div class="tip-box reveal">
+    💡 <strong>Trade-off Klasik:</strong> Resolusi frekuensi (Δf) ↔ resolusi waktu (Δt). Δf · T = 1, dimana T = N·Δt = waktu total rekaman. Kalau ingin resolusi 1 Hz, butuh rekam 1 detik. Kalau ingin 0.1 Hz, butuh 10 detik. Tidak bisa "cheat" — itu uncertainty principle.
+  </div>
+</div>
+
+<!-- ═══ BAGIAN 05 — FAST FOURIER TRANSFORM ═══ -->
 <hr class="divider">
 <div class="section" id="m-analogi">
   <div class="section-label reveal">Bagian 05</div>
-  <h2 class="section-title reveal">Analogi Kehidupan<br>Sehari-Hari</h2>
-  <p class="section-desc reveal">Sistem 2 DoF ada di sekitar kita. Inilah analogi untuk menanamkan intuisi mode 1 vs mode 2.</p>
+  <h2 class="section-title reveal">Fast Fourier Transform:<br>Algoritma Cooley-Tukey yang Mengubah Dunia</h2>
+  <p class="section-desc reveal">Tahun 1965, Cooley &amp; Tukey mempublikasi algoritma yang mempercepat DFT dari <code>O(N²)</code> menjadi <code>O(N log N)</code> — disebut <strong>Fast Fourier Transform (FFT)</strong>. Untuk N = 1024, dari 1 juta operasi turun ke 10 ribu — 100× lebih cepat. Untuk N besar, perbedaannya astronomis. FFT membuka era pemrosesan sinyal real-time, MP3, JPEG, vibration analyzer modern.</p>
+
+  <div class="formula-block reveal">
+    <div class="label">Kompleksitas: DFT vs FFT</div>
+    DFT: O(N²) &nbsp;·&nbsp; FFT: O(N·log₂N) &nbsp;·&nbsp; Speedup: N/log₂N (~1000× untuk N = 65536)
+  </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">🎢</div>
-      <h3>Dua Anak di Ayunan Berdampingan</h3>
-      <p>Dua ayunan diikat kayu di tengah — bisa ayun bareng (Mode 1, lambat) atau berlawanan (Mode 2, cepat). Anak-anak intuitif tahu cara "mengunci" mode dengan kayuhan.</p>
+      <div class="card-icon">🧬</div>
+      <h3>Divide-and-Conquer</h3>
+      <p>FFT membagi N-point DFT menjadi <strong>dua</strong> N/2-point DFT (sample genap dan ganjil), lalu menggabungnya dengan twiddle factors. Diulang rekursif sampai DFT ukuran 2. Total layer: log₂N.</p>
+      <div class="formula">DFT_N = combine(DFT_{N/2}_even, DFT_{N/2}_odd)</div>
     </div>
     <div class="card">
-      <div class="card-icon">🚗</div>
-      <h3>Mobil di Polisi Tidur</h3>
-      <p>Mobil melewati polisi tidur perlahan: depan-belakang naik bareng (Mode 1, "bouncing"). Lewat lebih cepat: depan naik saat belakang turun (Mode 2, "pitching"). Suspensi mobil dirancang agar kedua mode tidak resonansi dengan jalan biasa.</p>
+      <div class="card-icon">⚡</div>
+      <h3>Twiddle Factor</h3>
+      <p>Faktor rotasi <code>W_N^k = e^(−j2πk/N)</code> yang menggabungkan dua sub-DFT. Pre-compute sekali, simpan di tabel. Strategi memori-vs-CPU klasik. Algoritma butterfly yang efisien.</p>
+      <div class="formula">W_N^k → "butterfly" operation</div>
     </div>
     <div class="card">
-      <div class="card-icon">🏢</div>
-      <h3>Gedung 2 Lantai Saat Gempa</h3>
-      <p>Mode 1: kedua lantai bergeser searah (bayangkan gedung "membungkuk"). Mode 2: lantai 1 dan 2 bergeser berlawanan (gedung "mencangkul"). Kerusakan parah biasanya di Mode 2 karena percepatan lebih besar.</p>
+      <div class="card-icon">📏</div>
+      <h3>Syarat: N = 2^k</h3>
+      <p>Cooley-Tukey radix-2 paling efisien saat N = 2^k (256, 512, 1024, ...). Untuk N lain, ada algoritma Bluestein, Rader, mixed-radix — implementasi <code>numpy.fft</code> &amp; <code>scipy.fft</code> menanganinya otomatis.</p>
+      <div class="formula">Best: N = 2, 4, 8, 16, ..., 2^k</div>
     </div>
     <div class="card">
-      <div class="card-icon">🎸</div>
-      <h3>Senar Gitar + Body Resonator</h3>
-      <p>Senar bergetar → bodi gitar ikut bergetar. Body kayu + senar membentuk sistem 2 DoF kuat: itulah kenapa gitar akustik bersuara lebih kaya dibanding senar tunggal.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🛀</div>
-      <h3>Air di Bak Mandi</h3>
-      <p>Goyangkan bak: air membentuk gelombang berdiri. Bisa naik di kiri-turun di kanan (Mode 1) atau pola yang lebih kompleks (Mode 2+). Sama seperti 2 DoF, tapi dengan kontinuum.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🏗️</div>
-      <h3>Tuned Mass Damper (Taipei 101)</h3>
-      <p>Bola raksasa 660 ton di puncak Taipei 101 = sistem 2 DoF buatan. Ditambah <em>sengaja</em> agar gedung punya 2 frekuensi pribadi yang menjauhkan dari frekuensi gempa/angin. Aplikasi praktis konsep mode shape.</p>
+      <div class="card-icon">🌍</div>
+      <h3>Dampak Industri</h3>
+      <p>Tanpa FFT: tidak ada vibration analyzer real-time, tidak ada MP3/AAC (audio compression), tidak ada JPEG (image compression yang pakai DCT — kerabat FFT), tidak ada 4G/5G (OFDM modulation), tidak ada MRI (k-space reconstruction).</p>
+      <div class="formula">FFT = enabler of modern signal processing</div>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Aturan Intuisi Mode</strong><br>
-    Untuk sistem dua massa simetris (massa sama, pegas simetris): <strong>Mode 1 selalu in-phase</strong> (massa bergerak bareng) dan <strong>Mode 2 selalu anti-phase</strong> (berlawanan). Mode 1 frekuensinya selalu lebih rendah karena pegas penghubung tidak ikut "kerja". Mode 2 frekuensinya lebih tinggi karena pegas penghubung "kerja dua kali lipat".
+    <strong>Implementasi Praktis</strong><br>
+    Mahasiswa <em>tidak perlu</em> menulis FFT dari nol — sudah ada library matang:<br>
+    • <code>numpy.fft.fft(x)</code> — return array kompleks, full spectrum (positive + negative)<br>
+    • <code>numpy.fft.rfft(x)</code> — real input only, return setengah spektrum (lebih efisien)<br>
+    • <code>scipy.fft.fft(x)</code> — versi scipy, sedikit lebih cepat untuk array besar<br>
+    Yang <em>perlu dipahami</em>: bagaimana interpretasi output, frequency bins, magnitudo vs raw output.
+  </div>
+
+  <div class="tip-box reveal">
+    💡 <strong>Konversi Output FFT:</strong> Output <code>X = np.fft.fft(x)</code> berisi N nilai kompleks. Magnitude per bin: <code>mag = np.abs(X) / N</code> (normalisasi 1/N untuk dapat satuan amplitudo asli). Frekuensi per bin: <code>f = np.fft.fftfreq(N, d=1/fs)</code>. Untuk plot, pakai <code>f[:N//2]</code> dan <code>mag[:N//2]</code> — abaikan mirror.
   </div>
 </div>
 
-<!-- ═══ BAGIAN 06 — VISUALISASI INTERAKTIF ═══ -->
+<!-- ═══ BAGIAN 06 — SAMPLE RATE, NYQUIST & ALIASING ═══ -->
 <hr class="divider">
 <div class="section" id="m-anim">
   <div class="section-label reveal">Bagian 06</div>
-  <h2 class="section-title reveal">Visualisasi Interaktif<br>Mode 1 vs Mode 2</h2>
-  <p class="section-desc reveal">Klik tombol di bawah untuk mengganti mode. Animasi memperlihatkan dua massa (m₁=m₂=1 kg) terhubung tiga pegas (k=100 N/m) berosilasi pada frekuensi pribadinya. Perhatikan: pada Mode 1 kedua massa <strong style="color:var(--green)">searah</strong> dan pegas tengah diam; pada Mode 2 kedua massa <strong style="color:var(--amber)">berlawanan</strong> dan pegas tengah ditekan/diregang dua kali lipat.</p>
-
-  <div class="reveal" style="background:#020812;border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px">
-    <canvas id="cv2dof" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
-    <div style="display:flex;gap:14px;justify-content:center;margin-top:18px;flex-wrap:wrap">
-      <button id="btn-mode1" onclick="set2DofMode(1)" class="mode-btn mode-btn-active"
-        style="padding:10px 22px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(0,224,158,.5);background:rgba(0,224,158,.18);color:var(--green);transition:all .2s">
-        ▶ Mode 1 (ω₁ = 10 rad/s) — In-Phase
-      </button>
-      <button id="btn-mode2" onclick="set2DofMode(2)" class="mode-btn"
-        style="padding:10px 22px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(249,115,22,.4);background:rgba(249,115,22,.08);color:var(--amber);transition:all .2s">
-        ▶ Mode 2 (ω₂ ≈ 17.32 rad/s) — Anti-Phase
-      </button>
-    </div>
-    <div id="mode2dof-info" style="text-align:center;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">
-      Mode 1 aktif · X₁ = X₂ = cos(10·t) · pegas tengah tidak terdeformasi
-    </div>
-  </div>
-
-  <p class="section-desc reveal" style="margin-top:24px">Tabel berikut merangkum perbedaan kedua mode untuk referensi cepat:</p>
-
-  <div class="reveal" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:24px;overflow-x:auto">
-    <table style="width:100%;border-collapse:collapse;font-size:14px">
-      <thead>
-        <tr style="border-bottom:2px solid var(--border)">
-          <th style="text-align:left;padding:12px;color:var(--cyan)">Karakteristik</th>
-          <th style="text-align:center;padding:12px;color:var(--green)">Mode 1 (Lambat)</th>
-          <th style="text-align:center;padding:12px;color:var(--amber)">Mode 2 (Cepat)</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Frekuensi pribadi ω</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green);font-family:monospace">10 rad/s</td>
-          <td style="text-align:center;padding:10px;color:var(--amber);font-family:monospace">17.32 rad/s</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Frekuensi f (Hz)</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green);font-family:monospace">1.59 Hz</td>
-          <td style="text-align:center;padding:10px;color:var(--amber);font-family:monospace">2.76 Hz</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Periode T (detik)</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green);font-family:monospace">0.628 s</td>
-          <td style="text-align:center;padding:10px;color:var(--amber);font-family:monospace">0.363 s</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Mode shape [X₁, X₂]</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green);font-family:monospace">[1, 1]</td>
-          <td style="text-align:center;padding:10px;color:var(--amber);font-family:monospace">[1, −1]</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Pola gerak</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green)">Searah (in-phase)</td>
-          <td style="text-align:center;padding:10px;color:var(--amber)">Berlawanan (anti-phase)</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Pegas tengah k₂</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green)">Diam (tidak terdeformasi)</td>
-          <td style="text-align:center;padding:10px;color:var(--amber)">Bergetar bolak-balik</td>
-        </tr>
-        <tr>
-          <td style="padding:10px 12px;color:var(--text)"><strong>Energi yang tersimpan</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green)">Hanya k₁ + k₃</td>
-          <td style="text-align:center;padding:10px;color:var(--amber)">k₁ + k₃ + 4·k₂</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="info-box reveal">
-    <strong>Bayangkan Mode 1:</strong> Kedua kotak meluncur ke kanan bersama (X₁ = +1, X₂ = +1), lalu ke kiri bersama (−1, −1). Bagaikan pasangan dansa yang sinkron. Pegas tengah selalu memiliki panjang asli — tidak ikut kerja. Frekuensi rendah (10 rad/s).<br><br>
-    <strong>Bayangkan Mode 2:</strong> Massa kiri ke kanan (+1), massa kanan ke kiri (−1). Pegas tengah ditekan menjadi <em>setengah</em> panjangnya, lalu diregang menjadi <em>1.5×</em> panjangnya — bekerja keras! Frekuensi tinggi (17.32 rad/s).
-  </div>
-
-  <div class="tip-box reveal">
-    💡 <strong>Tip:</strong> Klik bolak-balik antara Mode 1 dan Mode 2 untuk merasakan perbedaan tempo dan pola gerak. Untuk visualisasi lanjutan, buka Bagian 08 (Python) → jalankan Cell 4 di Jupyter Notebook untuk plot superposisi kedua mode (free vibration response).
-  </div>
-</div>
-
-<!-- ═══ BAGIAN 07 — APLIKASI: VIBRATION ABSORBER ═══ -->
-<hr class="divider">
-<div class="section" id="m-aplikasi">
-  <div class="section-label reveal">Bagian 07</div>
-  <h2 class="section-title reveal">Aplikasi Industri:<br>Vibration Absorber & Tuned Mass Damper</h2>
-  <p class="section-desc reveal">Aplikasi paling spektakuler dari konsep 2 DoF adalah <strong>vibration absorber</strong> — menambahkan massa-pegas kecil pada struktur untuk meredam getaran berbahaya. Prinsipnya: dengan tuning yang tepat, sistem 2 DoF baru memiliki frekuensi pribadi yang <em>menjauh</em> dari frekuensi eksitasi pengganggu.</p>
+  <h2 class="section-title reveal">Sample Rate &amp; Nyquist:<br>Mengapa Tidak Boleh Sampling Terlalu Lambat</h2>
+  <p class="section-desc reveal">ADC sensor mengambil sample diskrit pada laju <code>fs</code> (Hz). Berapa minimum fs untuk merekam sinyal getaran <code>fmax</code>? Jawabannya: <strong>Nyquist Theorem</strong> — sample rate minimum = 2× frekuensi tertinggi yang ingin direkam. Kalau dilanggar, terjadi <strong>aliasing</strong> — frekuensi tinggi "menyamar" jadi frekuensi rendah palsu.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Prinsip Tuning Absorber Klasik (Den Hartog)</div>
-    Tune frekuensi pribadi absorber: ω_a = √(k_a/m_a) = ω_eksitasi
+    <div class="label">Nyquist Sampling Theorem</div>
+    fs ≥ 2·fmax &nbsp;⟺&nbsp; fmax ≤ fs/2 (Nyquist frequency)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">🏗️</div>
-      <h3>Taipei 101 — Bola 660 Ton</h3>
-      <p>Gedung 508 m ini punya bola pendulum 660 ton di lantai 87–92, terhubung ke struktur lewat pegas. Itu adalah sistem 2 DoF: gedung (m₁) + bola (m₂). Saat angin/gempa pada frekuensi tertentu menggetarkan gedung, bola "menyerap" energi → amplitudo gedung berkurang ~40%.</p>
-      <div class="formula">ω_a tuned ke ω_angin dominan</div>
+      <div class="card-icon">🎯</div>
+      <h3>Nyquist Frequency = fs/2</h3>
+      <p>Frekuensi maksimum yang bisa direkam akurat = setengah sample rate. Untuk fs = 25600 Hz, fmax = 12800 Hz. Spektrum FFT menampilkan dari 0 sampai fs/2 — itu disebut <strong>Nyquist range</strong>.</p>
+      <div class="formula">f_Nyquist = fs/2</div>
     </div>
     <div class="card">
-      <div class="card-icon">🌉</div>
-      <h3>Millennium Bridge London</h3>
-      <p>Saat dibuka tahun 2000, jembatan ini bergoyang berbahaya akibat 2000 pejalan kaki yang tanpa sadar berjalan sinkron pada frekuensi pribadinya. Solusi: dipasang 89 vibration absorber tuned ke frekuensi tersebut.</p>
-      <div class="formula">Multiple absorbers di sepanjang jembatan</div>
+      <div class="card-icon">🌀</div>
+      <h3>Aliasing: Frekuensi Palsu</h3>
+      <p>Sinyal pada f &gt; fs/2 akan "fold" balik dan muncul sebagai frekuensi <code>f_alias = |f − k·fs|</code>. Contoh: sinyal 13 kHz disampling fs=20 kHz → muncul sebagai 7 kHz palsu di spektrum. Berbahaya — diagnosis salah!</p>
+      <div class="formula">f_alias = |f − k·fs|</div>
     </div>
     <div class="card">
-      <div class="card-icon">🚗</div>
-      <h3>Shock Absorber + Bushing Mobil</h3>
-      <p>Engine mount karet bertindak sebagai pegas + damper kecil yang membuat mesin (m₁) dan rangka (m₂) menjadi sistem 2 DoF. Tuning yang tepat menjauhkan frekuensi pribadi rangka dari 800–4000 RPM mesin.</p>
-      <div class="formula">f_engine ≠ f_natural rangka</div>
+      <div class="card-icon">🛡️</div>
+      <h3>Anti-Aliasing Filter</h3>
+      <p>Filter <strong>lowpass</strong> analog sebelum ADC yang memotong sinyal di atas fs/2. Vibration analyzer industri selalu punya AAF built-in. Tanpa AAF, frekuensi tinggi noise/EMI bisa muncul sebagai komponen palsu.</p>
+      <div class="formula">AAF: cutoff = fs/2.5 (margin)</div>
     </div>
     <div class="card">
-      <div class="card-icon">⚙️</div>
-      <h3>Mesin Cuci dengan Counter-Weight</h3>
-      <p>Tabung mesin cuci ditambah massa counter-weight yang dihubungkan oleh pegas suspensi. Saat unbalance terjadi, counter-weight bergetar berlawanan (Mode 2) → meredam getaran tabung.</p>
-      <div class="formula">Reduksi getaran 50–70%</div>
+      <div class="card-icon">📐</div>
+      <h3>Pemilihan fs Praktis</h3>
+      <p>Aturan praktis untuk getaran mesin: <strong>fs = 2.56 × fmax target</strong>. Kalau analisis sampai 10 kHz (high-frequency bearing), pakai fs ≥ 25.6 kHz. Faktor 2.56 (bukan 2) memberi margin untuk filter roll-off realistis.</p>
+      <div class="formula">fs = 2.56 × fmax (industry rule)</div>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Aturan Desain Absorber Sederhana</strong><br>
-    1) Identifikasi <strong>frekuensi pengganggu</strong> ω_drive (mis. 10 rad/s untuk mesin tertentu).<br>
-    2) Pilih massa absorber <strong>m_a ≈ 5–20% massa utama</strong> (lebih besar = lebih efektif tapi lebih berat).<br>
-    3) Tuning: <strong>k_a = m_a · ω_drive²</strong>. Contoh: untuk meredam getaran ω=10 rad/s pada struktur 1000 kg, pilih m_a = 50 kg, k_a = 50·100 = 5000 N/m.<br>
-    4) Hasil: amplitudo struktur utama turun drastis di sekitar ω_drive, tetapi muncul 2 puncak resonansi baru di ω₁ dan ω₂ yang harus dijauhi.
+    <strong>Contoh Konsekuensi Aliasing</strong><br>
+    Bayangkan bearing dengan BPFI (Ball Pass Frequency Inner Race) = 12 kHz. Anda pakai fs = 20 kHz — Nyquist = 10 kHz. Sinyal 12 kHz <em>aliases</em> ke (20 − 12) = 8 kHz — terlihat sebagai komponen 8 kHz palsu. Anda mendiagnosa "8 kHz puncak", tapi sebenarnya 12 kHz! Salah maintenance, salah biaya. Solusi: naikkan fs ke 30+ kHz, atau pasang AAF cutoff &lt; 10 kHz untuk hilangkan komponen 12 kHz sebelum ADC.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Trade-off Penting:</strong> Vibration absorber sangat efektif <em>hanya</em> di frekuensi tuning. Untuk eksitasi broad-band (gempa, angin acak), tambahkan <strong>damping</strong> ke absorber → menjadi <em>Tuned Mass Damper</em> (TMD). Kompromi: peredaman lebih merata, tapi puncak di ω_drive tidak senol.
+    💡 <strong>Cek Cepat:</strong> Sebelum FFT, tanya: berapa fs? Frekuensi tertinggi yang ingin saya analisis? Sesuai dengan Nyquist (fs &gt; 2·fmax)? Apakah ada AAF? Kalau salah satu jawabannya tidak yakin — re-check dulu. Aliasing adalah salah satu sumber misdiagnosis paling umum di field.
   </div>
 </div>
 
-<!-- ═══ BAGIAN 08 — IMPLEMENTASI PYTHON ═══ -->
+<!-- ═══ BAGIAN 07 — WINDOWING & ANTI-LEAKAGE ═══ -->
+<hr class="divider">
+<div class="section" id="m-aplikasi">
+  <div class="section-label reveal">Bagian 07</div>
+  <h2 class="section-title reveal">Windowing:<br>Mengatasi Spectral Leakage</h2>
+  <p class="section-desc reveal">DFT mengasumsikan sinyal <strong>periodik</strong> sepanjang buffer N sample. Tapi di praktik, buffer biasanya tidak pas integer multiple periode — tepi sinyal tidak match. Akibatnya: energi <strong>"bocor"</strong> ke bin frekuensi sekitar puncak sebenarnya, mengaburkan diagnosis. Solusinya: kalikan sinyal dengan <strong>window function</strong> sebelum FFT untuk meratakan tepi ke nol.</p>
+
+  <div class="formula-block reveal">
+    <div class="label">Windowing Process</div>
+    x_windowed[n] = x[n] · w[n] &nbsp;·&nbsp; X_windowed = FFT(x_windowed)
+  </div>
+
+  <div class="cards reveal" style="margin-bottom:32px">
+    <div class="card">
+      <div class="card-icon">🔲</div>
+      <h3>Rectangular (No Window)</h3>
+      <p>w[n] = 1 untuk semua n. Tidak meratakan tepi → leakage terbesar. Hanya cocok untuk sinyal transient yang sudah natural-zero di tepi (impact, hammer test).</p>
+      <div class="formula">Resolusi tertajam, leakage terburuk</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔔</div>
+      <h3>Hann (Hanning)</h3>
+      <p><code>w[n] = 0.5·(1 − cos(2πn/N))</code> — bell-shape sederhana. Default umum untuk sinyal getaran rotor steady-state. Trade-off bagus antara resolusi dan side-lobe suppression.</p>
+      <div class="formula">Hann: bell, side-lobe −31 dB</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <h3>Hamming</h3>
+      <p><code>w[n] = 0.54 − 0.46·cos(2πn/N)</code> — mirip Hann tapi tepi tidak tepat nol. Side-lobe lebih rendah (−43 dB), main-lobe sedikit lebih lebar. Cocok untuk sinyal dengan komponen frekuensi sangat dekat.</p>
+      <div class="formula">Hamming: side-lobe −43 dB</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🌟</div>
+      <h3>Flat-Top</h3>
+      <p>Window khusus untuk <strong>amplitude accuracy</strong>. Side-lobe paling rendah, tapi main-lobe lebar. Cocok saat ingin baca amplitudo akurat (mis. kalibrasi sensor) — bukan untuk diagnosis frekuensi presisi.</p>
+      <div class="formula">Flat-top: amplitude accuracy</div>
+    </div>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>Pilih Window yang Mana?</strong><br>
+    • <strong>Sinyal transient/impact</strong> (hammer test, shock) — pakai <strong>Rectangular</strong> (no window). Sinyal sudah natural-zero.<br>
+    • <strong>Sinyal getaran rotor steady</strong> (motor, pompa, turbin) — pakai <strong>Hann</strong>. Default umum, balance bagus.<br>
+    • <strong>Sinyal dengan frekuensi sangat dekat</strong> (bearing fault sidebands) — pakai <strong>Hamming</strong>. Side-lobe lebih rendah.<br>
+    • <strong>Kalibrasi/measurement amplitudo</strong> — pakai <strong>Flat-top</strong>. Akurasi amplitudo tertinggi, walau resolusi frekuensi turun.<br>
+    Sebagian besar vibration analyzer industri default <strong>Hann</strong>.
+  </div>
+
+  <div class="tip-box reveal">
+    💡 <strong>Amplitude Correction Factor:</strong> Karena window mengurangi energi total sinyal (kalikan dengan ≤ 1), magnitude FFT perlu dikoreksi untuk dapat amplitudo asli. Untuk Hann: kalikan magnitude dengan <strong>2</strong>. Untuk Hamming: <strong>1.85</strong>. Untuk Flat-top: ~4.6. Library seperti <code>scipy.signal.windows</code> menyediakan window + factor otomatis.
+  </div>
+</div>
+
+<!-- ═══ BAGIAN 08 — IMPLEMENTASI PYTHON FFT ═══ -->
 <hr class="divider">
 <div class="section" id="m-python">
   <div class="section-label reveal">Bagian 08</div>
-  <h2 class="section-title reveal">Implementasi Python<br>di Jupyter Notebook</h2>
-  <p class="section-desc reveal">Empat cell Python berikut mengimplementasikan konsep kunci Pertemuan 12 dengan sistem referensi: setup matriks M & K (Cell 1), eigenvalue problem dan frekuensi pribadi (Cell 2), mode shape dan orthogonality (Cell 3), serta simulasi free vibration response (Cell 4). Semua langsung runnable di VS Code Jupyter.</p>
+  <h2 class="section-title reveal">Implementasi Python:<br>FFT dengan numpy &amp; scipy</h2>
+  <p class="section-desc reveal">Empat cell Python berikut mengimplementasikan workflow FFT lengkap: generate sinyal sintetis (Cell 1), FFT dasar dengan numpy (Cell 2), windowing &amp; magnitude correction (Cell 3), dan plot spektrum dengan deteksi puncak (Cell 4). Semua langsung runnable di VS Code Jupyter atau Google Colab.</p>
 
   <!-- Cell 1 -->
   <div class="code-card reveal" style="margin-bottom:32px">
     <div class="code-header">
       <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
       <span class="code-lang">Python · Cell 1</span>
-      <span class="code-label">Setup Matriks M & K</span>
+      <span class="code-label">Generate Sinyal Sintetis (3 Komponen + Noise)</span>
     </div>
     <div class="code-wrap">
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
       <pre><code class="lang-python">import numpy as np
 
-# Parameter sistem referensi (2 DoF, 2 massa + 3 pegas)
-m1, m2 = 1.0, 1.0          # kg
-k1, k2, k3 = 100.0, 100.0, 100.0   # N/m
+# Sample rate & duration
+fs = 2000.0          # 2 kHz
+T  = 2.0             # 2 detik
+N  = int(fs * T)     # 4000 sample
+t  = np.arange(N) / fs
 
-# Matriks massa (diagonal)
-M = np.array([[m1, 0],
-              [0, m2]])
+# Sinyal sintetis: 3 komponen frekuensi + noise putih
+f1, A1 = 50.0,  1.0   # 50 Hz, amplitudo 1.0
+f2, A2 = 120.0, 0.5   # 120 Hz, amplitudo 0.5
+f3, A3 = 350.0, 0.3   # 350 Hz, amplitudo 0.3
 
-# Matriks kekakuan (simetris)
-K = np.array([[k1 + k2, -k2],
-              [-k2,    k2 + k3]])
+x = (A1*np.sin(2*np.pi*f1*t)
+     + A2*np.sin(2*np.pi*f2*t)
+     + A3*np.sin(2*np.pi*f3*t))
+x += 0.1 * np.random.randn(N)   # noise σ=0.1
 
-print("Matriks Massa M:")
-print(M)
-print("\nMatriks Kekakuan K:")
-print(K)
-print(f"\ntrace(K) = {np.trace(K):.1f}")
-print(f"det(K)   = {np.linalg.det(K):.1f}")</code></pre>
+print(f"Sample rate: {fs} Hz")
+print(f"Total samples: {N}")
+print(f"Frequency resolution: {fs/N} Hz/bin")
+print(f"Nyquist: {fs/2} Hz")</code></pre>
     </div>
   </div>
 
@@ -1325,26 +1301,25 @@ print(f"det(K)   = {np.linalg.det(K):.1f}")</code></pre>
     <div class="code-header">
       <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
       <span class="code-lang">Python · Cell 2</span>
-      <span class="code-label">Frekuensi Pribadi ω₁ & ω₂</span>
+      <span class="code-label">FFT Dasar — numpy.fft.rfft</span>
     </div>
     <div class="code-wrap">
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">from numpy.linalg import inv, eig
+      <pre><code class="lang-python"># Real-input FFT (lebih efisien untuk sinyal real)
+X = np.fft.rfft(x)
+freqs = np.fft.rfftfreq(N, d=1/fs)
 
-# Eigenvalue problem: (M^-1 K) X = ω² X
-A = inv(M) @ K
-eigvals, eigvecs = eig(A)
+# Magnitude (amplitudo) — perlu normalisasi 2/N untuk dapat satuan asli
+magnitude = np.abs(X) * 2 / N
+magnitude[0] /= 2   # bin DC tidak digandakan
 
-# Urutkan dari kecil ke besar
-idx = np.argsort(eigvals)
-omega_squared = eigvals[idx]
-modes = eigvecs[:, idx]
-omegas = np.sqrt(omega_squared)
-
-print(f"ω₁² = {omega_squared[0]:.4f}    →    ω₁ = {omegas[0]:.4f} rad/s")
-print(f"ω₂² = {omega_squared[1]:.4f}    →    ω₂ = {omegas[1]:.4f} rad/s")
-print(f"\nf₁ = {omegas[0]/(2*np.pi):.4f} Hz   T₁ = {2*np.pi/omegas[0]:.4f} s")
-print(f"f₂ = {omegas[1]/(2*np.pi):.4f} Hz   T₂ = {2*np.pi/omegas[1]:.4f} s")</code></pre>
+print(f"FFT output length: {len(X)}")
+print(f"Frequency range: 0 – {freqs[-1]:.1f} Hz")
+print(f"
+Top 3 peaks:")
+top_idx = np.argsort(magnitude)[-3:][::-1]
+for i in top_idx:
+    print(f"  f = {freqs[i]:6.2f} Hz  |  amplitude = {magnitude[i]:.3f}")</code></pre>
     </div>
   </div>
 
@@ -1353,21 +1328,29 @@ print(f"f₂ = {omegas[1]/(2*np.pi):.4f} Hz   T₂ = {2*np.pi/omegas[1]:.4f} s")
     <div class="code-header">
       <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
       <span class="code-lang">Python · Cell 3</span>
-      <span class="code-label">Mode Shapes & Orthogonality</span>
+      <span class="code-label">FFT dengan Hann Window + Correction Factor</span>
     </div>
     <div class="code-wrap">
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python"># Normalisasi mode shape: pertama-elemen = 1
-mode1 = modes[:, 0] / modes[0, 0]
-mode2 = modes[:, 1] / modes[0, 1]
+      <pre><code class="lang-python">from scipy.signal import windows
 
-print(f"Mode 1 (ω₁ = {omegas[0]:.2f} rad/s): X = [{mode1[0]:.3f}, {mode1[1]:.3f}]")
-print(f"Mode 2 (ω₂ = {omegas[1]:.2f} rad/s): X = [{mode2[0]:.3f}, {mode2[1]:.3f}]")
+# Hann window + amplitude correction factor (~2.0)
+w = windows.hann(N)
+correction = 1 / np.mean(w)   # ≈ 2.0 untuk Hann
 
-# Cek orthogonality terhadap matriks M
-ortho = mode1 @ M @ mode2
-print(f"\nOrthogonality check: u₁ᵀ M u₂ = {ortho:.2e}")
-print("✓ Orthogonal jika nilai ≈ 0" if abs(ortho) < 1e-10 else "⚠ Cek ulang!")</code></pre>
+x_w = x * w
+X_w = np.fft.rfft(x_w)
+mag_w = np.abs(X_w) * 2 / N * correction
+mag_w[0] /= 2
+
+# Bandingkan tanpa window vs dengan Hann
+print("Tanpa window (rectangular):")
+print(f"  Peak @ f1 = 50 Hz: amp = {magnitude[freqs == 50][0]:.3f} (asli: 1.0)")
+print(f"
+Dengan Hann window:")
+print(f"  Peak @ f1 = 50 Hz: amp = {mag_w[freqs == 50][0]:.3f} (asli: 1.0)")
+print(f"
+Hann mengurangi spectral leakage di sekitar puncak.")</code></pre>
     </div>
   </div>
 
@@ -1376,32 +1359,43 @@ print("✓ Orthogonal jika nilai ≈ 0" if abs(ortho) < 1e-10 else "⚠ Cek ulan
     <div class="code-header">
       <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
       <span class="code-lang">Python · Cell 4</span>
-      <span class="code-label">Simulasi Free Vibration Response</span>
+      <span class="code-label">Plot Spektrum &amp; Deteksi Puncak</span>
     </div>
     <div class="code-wrap">
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
       <pre><code class="lang-python">import matplotlib.pyplot as plt
+from scipy.signal import find_peaks
 
-# Initial conditions: x1(0)=1, x2(0)=0, semua kecepatan = 0
-# Modal decomposition: x(0) = A·u1 + B·u2 → A=B=0.5
-A_amp, B_amp = 0.5, 0.5
+# Auto-detect puncak (height threshold)
+peaks_idx, _ = find_peaks(mag_w, height=0.1, distance=10)
 
-t = np.linspace(0, 3, 1000)
-x1 = A_amp * np.cos(omegas[0]*t) + B_amp * np.cos(omegas[1]*t)
-x2 = A_amp * np.cos(omegas[0]*t) - B_amp * np.cos(omegas[1]*t)
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(11, 6))
 
-fig, ax = plt.subplots(figsize=(10, 4))
-ax.plot(t, x1, label='x₁(t)', color='#0ea5e9')
-ax.plot(t, x2, label='x₂(t)', color='#f59e0b')
-ax.set_xlabel('waktu (s)'); ax.set_ylabel('posisi (m)')
-ax.set_title('Free Vibration Response — Sistem 2 DoF')
-ax.grid(True, alpha=0.3); ax.legend(); plt.tight_layout(); plt.show()
-print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x2)):.3f}")</code></pre>
+# Plot waveform time-domain
+ax1.plot(t[:500], x[:500], color='#0ea5e9', lw=0.8)
+ax1.set_xlabel('Waktu (s)'); ax1.set_ylabel('Amplitudo')
+ax1.set_title('Sinyal Time-Domain (0.25 detik pertama)')
+ax1.grid(True, alpha=0.3)
+
+# Plot spektrum frequency-domain
+ax2.plot(freqs, mag_w, color='#a855f7', lw=1)
+ax2.plot(freqs[peaks_idx], mag_w[peaks_idx], 'ro', ms=8)
+for i in peaks_idx:
+    ax2.annotate(f'{freqs[i]:.0f} Hz',
+                 xy=(freqs[i], mag_w[i]),
+                 xytext=(5, 5), textcoords='offset points',
+                 fontsize=10, color='#fbbf24')
+ax2.set_xlabel('Frekuensi (Hz)'); ax2.set_ylabel('Amplitudo')
+ax2.set_title('Spektrum FFT (Hann window) + Deteksi Puncak')
+ax2.set_xlim(0, 500); ax2.grid(True, alpha=0.3)
+
+plt.tight_layout(); plt.show()
+print(f"Terdeteksi {len(peaks_idx)} puncak di: {freqs[peaks_idx].round(1)} Hz")</code></pre>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Catatan:</strong> Empat cell di atas dapat di-copy ke Jupyter Notebook dan dijalankan berurutan. Cell 1 menyiapkan matriks, Cell 2 menghitung frekuensi pribadi, Cell 3 menampilkan mode shape, Cell 4 mensimulasikan getaran bebas dengan kondisi awal x₁=1, x₂=0. Plot Cell 4 menunjukkan <em>beat phenomenon</em> — superposisi dua mode dengan frekuensi mirip-tapi-berbeda menghasilkan amplitudo modulasi yang khas.
+    <strong>Catatan Workflow:</strong> Empat cell di atas mendemonstrasikan workflow FFT standar di vibration analysis: (1) akuisisi/generate sinyal, (2) FFT raw, (3) windowing untuk anti-leakage, (4) interpretasi spektrum + deteksi puncak. Untuk data real dari accelerometer (CSV / TDMS), ganti Cell 1 dengan <code>pd.read_csv()</code> atau <code>nptdms</code>. Workflow lainnya tetap sama.
   </div>
 </div>
 
