@@ -915,8 +915,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 
   <div class="info-box reveal">
-    <strong>Posisi Pertemuan 12 dalam Alur Mata Kuliah:</strong><br>
-    <strong>P1–P7</strong> (analisis sinyal: RMS, peak, FFT, kurtosis, MFCC) → <strong>UTS</strong> → <strong>P9</strong> (LP) → <strong>P10</strong> (NLP) → <strong>P11</strong> (ANOVA) → <strong>P12 (Anda di sini — Otomatisasi Monitoring Rule-Based)</strong> → <strong>P13</strong> (Otomatisasi Predictive ML) → <strong>P14–P15</strong> (Proyek akhir). Rule-based menyatukan ekstraksi fitur (P1–P7) dengan keputusan otomasi: feature → threshold → alert. Ini <em>baseline</em> sebelum P13 (ML predictive) — selalu mulai rule-based, baru upgrade jika perlu.
+    <strong>Posisi Pertemuan 11 dalam Alur Mata Kuliah:</strong><br>
+    <strong>P1–P7</strong> (analisis sinyal: RMS, peak, FFT, kurtosis, MFCC) → <strong>UTS</strong> → <strong>P8</strong> (LP) → <strong>P9</strong> (NLP) → <strong>P10</strong> (Metaheuristik GA/PSO) → <strong>P11 (Anda di sini — Monitoring Part 1: Sensor + ISO 10816 + Threshold + Hysteresis)</strong> → <strong>P12</strong> (Monitoring Part 2: Tier Alarm + FSM + ANSI/ISA 18.2) → <strong>P13</strong> (ML Part 1: Supervised + LogReg) → <strong>P14</strong> (ML Part 2: RF + SVM + Hyperparameter). Modul ini fokus pada <em>fondasi monitoring</em>: bagaimana data sensor masuk ke sistem (sensor selection + DAQ), bagaimana standar industri (ISO 10816) menetapkan threshold, dan bagaimana mencegah chattering dengan hysteresis. Tier alarm escalation + state machine = next modul (P12).
   </div>
 
   <div class="tip-box reveal">
@@ -1003,12 +1003,12 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 03 — HYSTERESIS & TIER ALARM ═══ -->
+<!-- ═══ BAGIAN 03 — HYSTERESIS (ANTI-CHATTERING) ═══ -->
 <hr class="divider">
 <div class="section" id="m-dmf">
   <div class="section-label reveal">Bagian 03</div>
-  <h2 class="section-title reveal">Hysteresis &amp; Tier Alarm:<br>Hindari Chattering, Atur Eskalasi Bertingkat</h2>
-  <p class="section-desc reveal">Threshold sederhana (<code>x &gt; T → ALERT</code>) punya 2 masalah serius di sistem real: (1) <strong>chattering</strong> — saat sinyal di sekitar threshold (T ± noise), state berkedip cepat ON/OFF/ON/OFF (alert spam ke operator); (2) <strong>binary harshness</strong> — tidak ada nuansa antara "OK" dan "DANGER", padahal antara keduanya ada area "warning" yang harus diperhatikan. Solusi: <strong>hysteresis</strong> (dua threshold: T_on &gt; T_off, perlu cross threshold besar untuk turn ON, threshold kecil untuk turn OFF) dan <strong>tier alarm</strong> (multi-level: warning &lt; alert &lt; critical, gradual escalation). Kombinasi keduanya = sistem alerting matang yang mengikuti standar industri (ANSI/ISA 18.2 Alarm Management).</p>
+  <h2 class="section-title reveal">Hysteresis (Anti-Chattering):<br>Schmitt Trigger untuk Threshold yang Stable</h2>
+  <p class="section-desc reveal">Threshold tunggal (<code>x &gt; T → ALERT</code>) punya masalah serius di sistem real: <strong>chattering</strong>. Saat sinyal sensor di sekitar threshold (T ± noise level), state berkedip cepat ON/OFF/ON/OFF — operator dibanjiri alert palsu, log file penuh dengan transition spam. Solusi klasik dari electronics: <strong>hysteresis</strong> (dua threshold T_on &gt; T_off). Untuk turn ON butuh signal &gt; T_on; untuk turn OFF butuh signal &lt; T_off. Margin (T_on − T_off) ≥ 2× noise level → chattering hilang. Konsep dari <em>Schmitt trigger</em> (Otto Schmitt 1934) yang dipakai di setiap power MOSFET driver, thermostat, comparator IC. Untuk <em>tier alarm escalation</em> (warning &lt; alert &lt; critical) dan <em>finite state machine</em>, lihat modul berikutnya (Pertemuan 12 — Monitoring Part 2).</p>
 
   <div class="formula-block reveal">
     <div class="label">Lima Konsep Inti Hysteresis &amp; Tier Alarm</div>
@@ -1085,81 +1085,79 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 04 — STATE MACHINE & DEBOUNCING ═══ -->
+<!-- ═══ BAGIAN 04 — SENSOR SELECTION & DAQ ═══ -->
 <hr class="divider">
 <div class="section" id="m-resonashi">
   <div class="section-label reveal">Bagian 04</div>
-  <h2 class="section-title reveal">Finite State Machine &amp; Debouncing:<br>Track Health History dengan Transition Logic</h2>
-  <p class="section-desc reveal">Threshold + hysteresis + tier alarm sudah cukup untuk basic monitoring. Tetapi sistem real butuh <strong>memori</strong> — track <em>riwayat state</em> (kapan masuk warning, berapa lama di alert, urutan transisi). Inilah <strong>finite state machine (FSM)</strong> — model formal dengan: <em>states</em> (NORMAL, WARNING, ALERT, CRITICAL, FAULT), <em>transitions</em> (kondisi pindah antar state), <em>actions</em> (apa yang dilakukan saat enter/exit state). Plus, <strong>debouncing</strong> — filter sinyal yang noisy dengan persyaratan "<em>N consecutive samples</em>" sebelum pindah state. FSM = backbone setiap monitoring system production-grade. Implementasi 30 baris Python tetapi memberikan <em>traceability sempurna</em>: setiap event ada timestamp, dari state mana ke state mana, kenapa.</p>
+  <h2 class="section-title reveal">Sensor Selection &amp; Akuisisi Data:<br>Hardware Foundation Monitoring System</h2>
+  <p class="section-desc reveal">Sebelum threshold detection bisa bekerja, harus ada <strong>data sensor berkualitas</strong> yang masuk ke sistem. Pilihan sensor yang salah, sampling rate kurang, atau wiring yang noisy = garbage in, garbage out. Pertemuan ini bahas <em>fondasi hardware monitoring</em>: <strong>jenis sensor</strong> (accelerometer piezoelectric/MEMS untuk vibrasi, RTD/thermocouple untuk suhu, current transformer untuk motor, flow/pressure transmitter), <strong>sampling rate</strong> (Nyquist criterion: f_s ≥ 2 × f_max signal), <strong>DAQ hardware</strong> (NI USB-6009 industrial-grade, Arduino + MPU6050 entry-level lab, Raspberry Pi + ADS1115 mid-range), <strong>signal conditioning</strong> (charge amplifier, anti-aliasing filter, ADC resolution 12–24 bit), dan <strong>protokol komunikasi</strong> (Modbus RTU/TCP, OPC UA, MQTT, RS-485). Pemilihan harus match dengan <em>karakteristik mesin</em> (frekuensi vibrasi dominan), <em>environment</em> (suhu, kelembaban, EMI), dan <em>budget</em>.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Enam Konsep Inti FSM &amp; Debouncing</div>
-    States &amp; transitions &nbsp;·&nbsp; Mealy vs Moore machine &nbsp;·&nbsp; Entry/exit actions &nbsp;·&nbsp; Debouncing (N consecutive) &nbsp;·&nbsp; Heartbeat &amp; timeout &nbsp;·&nbsp; Event sourcing &amp; audit log
+    <div class="label">Enam Komponen Akuisisi Data Industrial</div>
+    Sensor (transducer) &nbsp;·&nbsp; Signal conditioning &nbsp;·&nbsp; ADC resolution &nbsp;·&nbsp; Sampling rate (Nyquist) &nbsp;·&nbsp; Protokol komunikasi &nbsp;·&nbsp; Edge gateway / DAQ
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">🔄</div>
-      <h3>States &amp; Transitions</h3>
-      <p>FSM didefinisikan oleh <strong>5-tuple</strong>: (S, s₀, Σ, δ, F) — set states S, initial state s₀, input alphabet Σ, transition function δ: S × Σ → S, final states F. Untuk monitoring: S = {NORMAL, WARNING, ALERT, CRITICAL, FAULT}; s₀ = NORMAL; Σ = {sensor reading + timer event}; δ = rules (mis. NORMAL → WARNING jika rms &gt; T_warn). Visualisasi via <strong>state diagram</strong> (lingkaran = state, panah = transition). Tools: <code>graphviz</code>, <code>state_machine</code> Python lib.</p>
-      <div class="formula">δ: S × Σ → S</div>
+      <div class="card-icon">📳</div>
+      <h3>Accelerometer Vibrasi</h3>
+      <p>Sensor utama untuk vibrasi mesin. Dua jenis: <strong>Piezoelectric (IEPE)</strong> — high frequency response (1 Hz – 30 kHz), durable, butuh constant current excitation 4 mA. Contoh: PCB Piezotronics 352C33 (~Rp 5–15 juta). Pakai untuk industrial heavy machinery. <strong>MEMS</strong> — low frequency (DC – 1 kHz), murah, integrated chip. Contoh: ADXL355 (Rp 200K), MPU6050 (Rp 30K). Pakai untuk lab eksperimen, low-cost monitoring. Mounting wajib <em>rigid</em> (stud mount &gt; magnetic mount &gt; adhesive) untuk akurasi high frequency. Pasang di <em>bearing housing</em>, arah radial + axial.</p>
+      <div class="formula">IEPE 4 mA · MEMS digital I2C/SPI</div>
     </div>
     <div class="card">
-      <div class="card-icon">🅼</div>
-      <h3>Mealy vs Moore Machine</h3>
-      <p>Dua varian FSM: <strong>Moore</strong> — output hanya bergantung pada <em>state saat ini</em> (mis. di state ALERT, selalu nyalakan lampu oranye, terlepas dari input). <strong>Mealy</strong> — output bergantung pada <em>state + input</em> (mis. transisi ALERT → CRITICAL kirim SMS; tetapi NORMAL → CRITICAL juga kirim SMS dengan pesan berbeda). Mealy lebih ekspresif tetapi rumit. Untuk monitoring sederhana, Moore cukup.</p>
-      <div class="formula">Moore: f(s); Mealy: f(s, σ)</div>
+      <div class="card-icon">🌡️</div>
+      <h3>Temperature: RTD &amp; Thermocouple</h3>
+      <p><strong>RTD (Pt100/Pt1000)</strong> — resistance varies dengan suhu, accuracy ±0.1°C, range −200 to +850°C, response slow (seconds). Pakai untuk bearing temperature, oil temperature. Wiring 3-wire atau 4-wire untuk cancel lead resistance. <strong>Thermocouple (Type K, J, T)</strong> — voltage millivolt dari junction dissimilar metals, range −270 to +1372°C (Type K), response fast (millisecond), accuracy ±1°C. Pakai untuk hot gas, exhaust, kiln temperature. <em>Cold junction compensation</em> wajib. Output mV langsung butuh amplifier (gain ~100×).</p>
+      <div class="formula">RTD: R(T); TC: V(T)</div>
     </div>
     <div class="card">
-      <div class="card-icon">🚪</div>
-      <h3>Entry / Exit Actions</h3>
-      <p>Tiap state punya 2 hook: <strong>on_entry</strong> (jalankan saat state baru di-enter) dan <strong>on_exit</strong> (jalankan saat state ditinggalkan). Contoh: <em>on_entry(ALERT)</em> = log timestamp + send SMS supervisor. <em>on_exit(ALERT)</em> = log durasi + cancel SMS escalation timer. Pola ini memisahkan <em>logic transisi</em> dari <em>side effects</em> (notifikasi, logging). Pattern populer: <strong>state pattern</strong> (Gang of Four), implementation di Python <code>statemachine</code> library.</p>
-      <div class="formula">on_entry / on_exit hooks</div>
+      <div class="card-icon">⚡</div>
+      <h3>Current Transformer (CT) Motor</h3>
+      <p>Untuk monitor health motor, ukur arus stator. Sensor: <strong>Current Transformer</strong> (split-core CT, clamp-on, no wiring break). Output current AC proporsional dengan primary current. Ratio tipikal 100:5, 1000:5. Pakai dengan burden resistor untuk convert ke voltage. Modern: <strong>Hall-effect sensor</strong> (LEM, Allegro) untuk DC + AC, no contact dengan conductor. Aplikasi: <em>Motor Current Signature Analysis (MCSA)</em> — broken rotor bar, eccentricity, bearing fault detect dari spectrum arus. Threshold: arus naik &gt; 10% baseline = warning.</p>
+      <div class="formula">I_secondary = I_primary / N</div>
     </div>
     <div class="card">
-      <div class="card-icon">⏳</div>
-      <h3>Debouncing (N Consecutive Samples)</h3>
-      <p>Sinyal sensor noisy bisa cross threshold sesaat lalu kembali normal. Solusi: <strong>require N consecutive samples</strong> di kondisi alert sebelum pindah state. Contoh: untuk pindah dari NORMAL ke WARNING, butuh 5 sample berturut-turut dengan rms &gt; T_warn. Implementasi: counter di-increment kalau kondisi true, reset ke 0 kalau false. Ketika counter &gt;= N, eksekusi transisi. <em>Trade-off</em>: N besar → lebih robust noise, tetapi delay deteksi (latency) makin lama. Tipikal: N = 3–10 (≈ 100–500 ms pada 50 Hz sampling).</p>
-      <div class="formula">if count &gt;= N: transition</div>
+      <div class="card-icon">📊</div>
+      <h3>Sampling Rate: Nyquist Criterion</h3>
+      <p>Aturan emas: <strong>f_sampling ≥ 2 × f_max</strong> (Shannon-Nyquist 1949). Untuk capture vibrasi sampai 1 kHz, butuh f_s ≥ 2 kHz (industri pakai f_s = 5 kHz untuk margin). <strong>Aliasing</strong>: kalau signal di atas Nyquist, frekuensi tinggi "lipat balik" jadi frekuensi rendah palsu — interpretasi salah. Solusi: <strong>anti-aliasing filter</strong> (low-pass analog, cutoff f_max) sebelum ADC. <em>Best practice</em>: f_s = 2.5–5 × f_max signal. Untuk ISO 10816 (10 Hz – 1 kHz), f_s = 2500–5000 Hz cukup.</p>
+      <div class="formula">f_s ≥ 2 × f_max</div>
     </div>
     <div class="card">
-      <div class="card-icon">💓</div>
-      <h3>Heartbeat &amp; Sensor Timeout</h3>
-      <p>Sensor bisa mati / disconnect tanpa warning — output frozen di nilai terakhir. Untuk detect, FSM butuh <strong>heartbeat</strong>: harapkan sample baru tiap T detik. Kalau tidak ada sample selama 2·T (atau N·T), pindah ke state FAULT (sensor failure). Implementasi: timer yang reset tiap kali ada sample masuk; expired timer trigger transisi. Pattern: <em>watchdog timer</em>, dipakai di mikrokontroller (STM32 IWDG, AVR WDT) untuk detect software hang juga.</p>
-      <div class="formula">if Δt &gt; timeout: FAULT</div>
+      <div class="card-icon">🔌</div>
+      <h3>DAQ Hardware Tiers</h3>
+      <p><strong>Tier 1 — Lab/Research</strong>: NI USB-6009 (Rp 5 juta, 14-bit ADC, 8 channel, 48 kS/s), NI cDAQ + IEPE module (Rp 50 juta+, 24-bit). <strong>Tier 2 — Industrial</strong>: Bently Nevada 3500 series, Emerson AMS Machine Works (vibration monitoring rack-mount). <strong>Tier 3 — Hobby/Prototype</strong>: Raspberry Pi + ADS1115 ADC (Rp 700K total), Arduino Uno + MPU6050 (Rp 200K total), ESP32 + accelerometer (Rp 300K, WiFi built-in). Untuk capstone project mahasiswa, Tier 3 sangat cukup. <em>Production deployment</em> butuh Tier 1/2.</p>
+      <div class="formula">budget vs accuracy trade-off</div>
     </div>
     <div class="card">
-      <div class="card-icon">📜</div>
-      <h3>Event Sourcing &amp; Audit Log</h3>
-      <p>Tiap transition state harus <strong>di-log</strong> dengan: timestamp, old_state, new_state, trigger value, sample data. Format JSON / CSV / database (SQLite, InfluxDB, TimescaleDB). Audit log = <em>source of truth</em> untuk: (a) post-mortem analysis (kenapa shutdown?), (b) compliance audit (ISO/API), (c) trend analysis (frequency of warnings naik = degradasi mesin), (d) ML training data (P13). Pattern: <strong>event sourcing</strong> — replay log untuk reconstruct state apapun di waktu lalu.</p>
-      <div class="formula">log: ts, s_old, s_new, trigger</div>
+      <div class="card-icon">📡</div>
+      <h3>Protokol Komunikasi Industrial</h3>
+      <p>DAQ → server / SCADA pakai protokol standar: <strong>Modbus RTU</strong> (RS-485, simple, dipakai 1979–sekarang) untuk PLC. <strong>Modbus TCP</strong> (Ethernet variant). <strong>OPC UA</strong> (modern industry 4.0 standard, secure, semantic data) — jadi default ABB, Siemens. <strong>MQTT</strong> (publisher/subscriber, IoT lightweight) untuk wireless sensor + cloud. <strong>HART</strong> (4–20 mA + digital overlay) untuk legacy sensor pressure/flow. Pemilihan: legacy plant → Modbus, new plant → OPC UA, IoT/wireless → MQTT. Latency: Modbus ~10–100 ms, MQTT ~50–500 ms (cloud roundtrip).</p>
+      <div class="formula">Modbus · OPC UA · MQTT</div>
     </div>
   </div>
 
   <div class="tbl-wrap reveal" style="margin:32px 0">
     <table class="data-table">
-      <thead><tr><th>Transition</th><th>Trigger Condition</th><th>Action (on_entry)</th><th>Debounce N</th></tr></thead>
+      <thead><tr><th>Sensor Type</th><th>Measurand</th><th>Range</th><th>Accuracy</th><th>Aplikasi</th></tr></thead>
       <tbody>
-        <tr><td style="color:var(--green)">NORMAL → WARNING</td><td>rms &gt; T_warn (1.4)</td><td>Log + email</td><td>5 samples</td></tr>
-        <tr><td style="color:var(--cyan)">WARNING → ALERT</td><td>rms &gt; T_alert (2.8) OR persist &gt; 5 min</td><td>SMS supervisor</td><td>3 samples</td></tr>
-        <tr><td style="color:var(--amber)">ALERT → CRITICAL</td><td>rms &gt; T_crit (4.5) OR persist &gt; 10 min</td><td>Auto-shutdown + page</td><td>2 samples</td></tr>
-        <tr><td style="color:var(--pink)">CRITICAL → FAULT</td><td>sensor timeout &gt; 30 s</td><td>Mark sensor as faulty</td><td>1 timeout</td></tr>
-        <tr><td style="color:var(--violet)">Any → NORMAL</td><td>rms &lt; T_off (hysteresis) AND persist &gt; 1 min</td><td>Log recovery</td><td>10 samples</td></tr>
+        <tr><td style="color:var(--cyan)">Piezoelectric Accelerometer</td><td>Acceleration (g)</td><td>1 Hz – 30 kHz</td><td>±2%</td><td>Industrial vibrasi mesin rotasi</td></tr>
+        <tr><td style="color:var(--green)">MEMS Accelerometer</td><td>Acceleration (g)</td><td>DC – 1 kHz</td><td>±5%</td><td>Lab, IoT low-cost</td></tr>
+        <tr><td style="color:var(--amber)">RTD Pt100</td><td>Temperatur (°C)</td><td>−200 to +850°C</td><td>±0.1°C</td><td>Bearing, oil, ambient</td></tr>
+        <tr><td style="color:var(--violet)">Thermocouple Type K</td><td>Temperatur (°C)</td><td>−270 to +1372°C</td><td>±1°C</td><td>Hot gas, exhaust, kiln</td></tr>
+        <tr><td style="color:var(--pink)">Current Transformer (CT)</td><td>Arus AC (A)</td><td>0–1000 A</td><td>±0.5%</td><td>MCSA motor, energy monitoring</td></tr>
+        <tr><td style="color:var(--cyan)">Pressure Transmitter</td><td>Tekanan (bar/Pa)</td><td>0–600 bar</td><td>±0.25%</td><td>Hydraulic, pneumatic, fluid</td></tr>
+        <tr><td style="color:var(--green)">Flow Meter (Coriolis/Mag)</td><td>Mass/Volume flow</td><td>varies</td><td>±0.5%</td><td>Process pipeline, energy balance</td></tr>
       </tbody>
     </table>
   </div>
 
   <div class="info-box reveal">
-    <strong>Contoh Konkret — FSM untuk Monitoring Pump Sentrifugal:</strong><br>
-    State NORMAL (rms = 0.9 mm/s). Mendadak ada spike single-sample ke 4.2 mm/s. Tanpa debouncing, langsung ke ALERT. Dengan debouncing N=3, FSM increment counter tetapi sample berikutnya kembali ke 1.0 mm/s — counter reset, tetap di NORMAL. Bagus, false alarm dihindari. Setelah 1 jam, RMS naik perlahan: 1.5, 1.8, 2.1, 2.5, 2.9, 3.0, 3.1 (5 sample berturut &gt; 1.4) → transisi NORMAL → WARNING (log + email). Persist 6 menit di WARNING (3 sample &gt; 2.8 setelah 5 menit) → escalate ke ALERT (SMS supervisor). Operator inspect, ketemu coupling misalignment → fix → RMS turun 0.8 → 10 sample &lt; T_off (1.2) selama 1 menit → ALERT → NORMAL (log recovery). Total event log = 4 entries — audit trail lengkap.
+    <strong>Contoh Konkret — Setup DAQ untuk Lab Fan Imbalance Detection:</strong><br>
+    Hardware list: (1) <em>Fan blower</em> 12 cm × 24V 5W (~Rp 100K) di lab. (2) <em>Sensor</em>: MPU6050 IMU (3-axis accel + 3-axis gyro, Rp 30K). (3) <em>Microcontroller</em>: Arduino Uno (Rp 150K) atau ESP32 (Rp 80K, WiFi). (4) <em>Power</em>: USB 5V dari laptop. (5) <em>Wiring</em>: I2C 4-wire (VCC, GND, SDA, SCL) ~30 cm. <strong>Sampling</strong>: f_s = 200 Hz (range vibrasi fan 0–100 Hz, Nyquist OK). <strong>Software</strong>: Arduino sketch baca MPU6050 register tiap 5 ms, kirim via Serial USB ke Python <code>pyserial</code>. <strong>Akuisisi 60 detik</strong> baseline (balanced) + 60 detik dengan tape coin di blade (imbalanced) → 2 dataset CSV @ 12,000 sample. <strong>Total cost</strong>: ~Rp 300K untuk capstone-grade setup. Real industrial pakai Bently Nevada @ Rp 50 juta+.
   </div>
 
-  <div class="warn-box reveal">
-    <div class="warn-icon">⚠️</div>
-    <div>
-      <h4>Trap FSM &amp; Debouncing yang Sering Diabaikan</h4>
-      <p>(1) <strong>State explosion</strong> — kombinasi state dengan banyak feature (mis. RMS × peak × kurt × suhu) cepat tidak terkelola. Solusi: <em>composite state</em> atau hierarchical FSM (HFSM). (2) <strong>Race condition</strong> — sample baru tiba saat transition belum selesai. Pakai mutex / atomic update. (3) <strong>Stuck state</strong> — kalau exit condition tidak pernah tercapai (mis. T_off terlalu rendah), state stuck selamanya. Tambah escape route via timeout. (4) <strong>Debounce N terlalu besar</strong> — latency deteksi naik, alarm critical bisa terlambat. Trade-off: low N untuk critical (≤ 2), high N untuk warning (5–10). (5) <strong>Lupa heartbeat</strong> — sensor mati silent → output frozen → FSM tetap "NORMAL". Watchdog timer wajib. (6) <strong>Audit log overflow</strong> — high-frequency transitions bisa fill disk. Pakai log rotation, ringkasan (N events/min), atau database time-series (InfluxDB) yang punya retention policy. (7) <strong>State machine tanpa diagram</strong> — kode lama tanpa visualisasi sulit di-debug. Selalu maintain state diagram (graphviz) yang sinkron dengan code.</p>
-    </div>
+  <div class="tip-box reveal">
+    💡 <strong>Best Practice Setup DAQ:</strong> (1) <em>Mount sensor rigid</em> — adhesive lemah, magnetic OK, stud mount best (untuk high-freq). (2) <em>Cable shielding</em> — pakai twisted pair shielded untuk reduce EMI dari motor 3-phase. (3) <em>Ground loop avoidance</em> — single ground reference, hindari multiple ground paths. (4) <em>Sampling clock stable</em> — pakai hardware timer (PWM/ISR), JANGAN delay() di loop main (jitter tinggi). (5) <em>Buffer + batch transmit</em> — kumpulkan 100–1000 sample lalu kirim sekaligus, lebih efisien dari per-sample. (6) <em>Timestamp sample</em> — penting untuk align multi-sensor (accel + temp + current). (7) <em>Save raw + metadata</em> — sampling rate, sensor type, sensor location, kondisi mesin (RPM, load). (8) <em>Test sebelum production</em> — known input (mis. shake table 100 Hz reference) → cek output sensor di-decode benar. Tahap-tahap ini sering diabaikan mahasiswa, lalu garbage data muncul di laporan akhir.
   </div>
 </div>
 
