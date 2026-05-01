@@ -4362,9 +4362,9 @@ setTimeout(_sweepTick, 600);
 
 
 // ════════════════════════════════════════════════════════════
-// ANIMASI 3 — Histogram Distribusi: Skewness & Kurtosis Bekerja
-// (Canvas: cvIso, slider: sl_ri/sl_zi; button: btnIso)
-// Generate sample dengan target skewness & kurtosis, render histogram
+// ANIMASI 3 — Multi-Modal Landscape: Lokal vs Global Min (NLP)
+// (Canvas: cvIso, slider: sl_ri = x0, sl_zi = α step size)
+// f(x) = x⁴ − 8x² + 5  — non-konveks, dual minima di x = ±2 (f = -11)
 // ════════════════════════════════════════════════════════════
 let _isoAnim = { t: 0, running: true, raf: null };
 
@@ -4379,118 +4379,140 @@ function drawIso(){
   const W = cv.clientWidth; cv.width = W; const H = cv.height;
   const ctx = cv.getContext('2d');
 
+  // Background
   const bg = ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const skewTarget = parseFloat(document.getElementById('sl_ri').value);
-  const kurtTarget = parseFloat(document.getElementById('sl_zi').value);
-  const tOff = _isoAnim.t;
+  // Read sliders
+  const x0 = parseFloat(document.getElementById('sl_ri').value);
+  const alpha = parseFloat(document.getElementById('sl_zi').value);
 
-  // Plot area
-  const x0 = 50, y0 = 30, w = W - x0 - 30, h = H - 70;
-  const baseY = y0 + h;
+  // Plot region
+  const padL = 60, padR = 40, padT = 30, padB = 50;
+  const xMin = -3.5, xMax = 3.5, yMin = -15, yMax = 25;
+  const wPx = W - padL - padR, hPx = H - padT - padB;
+  const PX = (x) => padL + ((x - xMin) / (xMax - xMin)) * wPx;
+  const PY = (y) => H - padB - ((y - yMin) / (yMax - yMin)) * hPx;
 
-  // Generate samples: mix of Gaussian + skewed exponential + heavy-tail Cauchy-ish
-  // Simple approach: warp a deterministic sin-based sample
-  const N = 800;
-  const samples = [];
-  for (let i = 0; i < N; i++) {
-    const xt = (i + tOff * 8) * 0.1;
-    // Multiple harmonics ~ Gaussian shape
-    let v = Math.sin(xt) + Math.sin(xt * 1.7) * 0.6 + Math.sin(xt * 2.3) * 0.4 + Math.sin(xt * 3.1) * 0.3;
-    v *= 0.5;   // baseline std around 0.7
-    // Apply skew warp: shift mean, asymmetric scaling
-    if (skewTarget > 0) v = v + skewTarget * 0.5 * (v > 0 ? v*v : 0);
-    else if (skewTarget < 0) v = v + skewTarget * 0.5 * (v < 0 ? v*v : 0);
-    // Apply kurtosis warp: amplify extremes
-    const kurtScale = (kurtTarget - 3) * 0.15;
-    if (kurtScale > 0) v = v + Math.sign(v) * kurtScale * v*v;
-    samples.push(v);
-  }
-
-  // Compute stats
-  let sum = 0, sumSq = 0;
-  for (const v of samples) { sum += v; sumSq += v*v; }
-  const mean = sum / N;
-  const variance = sumSq / N - mean*mean;
-  const std = Math.sqrt(Math.max(variance, 1e-9));
-
-  // Skewness & Kurtosis (plain)
-  let m3 = 0, m4 = 0;
-  for (const v of samples) {
-    const d = v - mean;
-    m3 += d*d*d;
-    m4 += d*d*d*d;
-  }
-  m3 /= N; m4 /= N;
-  const skew = m3 / Math.pow(std, 3);
-  const kurt = m4 / Math.pow(std, 4);
-
-  // Build histogram (40 bins)
-  const minV = -4, maxV = 4;
-  const nBins = 40;
-  const binWidth = (maxV - minV) / nBins;
-  const bins = new Array(nBins).fill(0);
-  for (const v of samples) {
-    if (v < minV || v > maxV) continue;
-    const idx = Math.min(nBins-1, Math.floor((v - minV) / binWidth));
-    bins[idx]++;
-  }
-  const maxBin = Math.max(...bins);
+  // f(x) = x^4 − 8x² + 5; f'(x) = 4x³ − 16x = 4x(x² − 4)
+  const f = (x) => x*x*x*x - 8*x*x + 5;
+  const fp = (x) => 4*x*x*x - 16*x;
 
   // Grid
-  _grid(ctx, x0, y0, w, h, 8, 5, '#0d1929');
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let x = -3; x <= 3; x++){ ctx.beginPath(); ctx.moveTo(PX(x), PY(yMin)); ctx.lineTo(PX(x), PY(yMax)); ctx.stroke(); }
+  for(let y = -10; y <= 25; y += 5){ ctx.beginPath(); ctx.moveTo(PX(xMin), PY(y)); ctx.lineTo(PX(xMax), PY(y)); ctx.stroke(); }
 
-  // Draw histogram bars
-  const barW = w / nBins;
-  for (let i = 0; i < nBins; i++) {
-    const bh = (bins[i] / Math.max(maxBin, 1)) * (h - 10);
-    const px = x0 + i * barW;
-    const py = baseY - bh;
-    const grad = ctx.createLinearGradient(px, py, px, baseY);
-    grad.addColorStop(0, 'rgba(168,85,247,.95)');
-    grad.addColorStop(1, 'rgba(168,85,247,.4)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(px+0.5, py, barW-1, bh);
+  // Draw f(x) curve
+  ctx.strokeStyle = 'rgba(168,85,247,.95)'; ctx.lineWidth = 2.4;
+  ctx.shadowColor = 'rgba(168,85,247,.3)'; ctx.shadowBlur = 4;
+  ctx.beginPath();
+  for(let xi = xMin; xi <= xMax; xi += 0.05){
+    const yi = f(xi);
+    if (xi === xMin) ctx.moveTo(PX(xi), PY(yi));
+    else ctx.lineTo(PX(xi), PY(yi));
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Mark optimum points: x = ±2 (global minima), x = 0 (local max)
+  const optima = [
+    { x: -2, label: 'global min (left)', isGlobal: true },
+    { x: 2, label: 'global min (right)', isGlobal: true },
+    { x: 0, label: 'local MAX', isGlobal: false }
+  ];
+  optima.forEach(o => {
+    const yo = f(o.x);
+    if (o.isGlobal) {
+      ctx.fillStyle = '#fbbf24';
+      ctx.strokeStyle = '#000'; ctx.lineWidth = 1.2;
+      _drawStarN(ctx, PX(o.x), PY(yo), 5, 10, 5);
+      ctx.fill(); ctx.stroke();
+    } else {
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath(); ctx.arc(PX(o.x), PY(yo), 5, 0, 2*Math.PI); ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
+    }
+    ctx.fillStyle = o.isGlobal ? '#fbbf24' : '#ef4444';
+    ctx.font = 'bold 9px JetBrains Mono';
+    ctx.fillText(`x=${o.x}, f=${yo.toFixed(0)}`, PX(o.x)+8, PY(yo)+(o.isGlobal ? 14 : -10));
+  });
+
+  // Run gradient descent from x0
+  let xk = x0;
+  const trajectory = [xk];
+  for(let k=0; k<80; k++){
+    const g = fp(xk);
+    if (Math.abs(g) < 1e-4) break;
+    xk = xk - alpha * g;
+    if (Math.abs(xk) > 4) break;
+    trajectory.push(xk);
   }
 
-  // Mean line (yellow)
-  const meanX = x0 + ((mean - minV) / (maxV - minV)) * w;
-  ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2; ctx.setLineDash([6,4]);
-  ctx.beginPath(); ctx.moveTo(meanX, y0); ctx.lineTo(meanX, baseY); ctx.stroke();
-  ctx.fillStyle = '#facc15'; ctx.font = '10px JetBrains Mono';
-  ctx.fillText('μ', meanX + 3, y0 + 12);
+  // Draw trajectory: vertical bars descending
+  const animPhase = Math.min(1, _isoAnim.t * 0.3 / Math.max(trajectory.length, 1));
+  const showSteps = Math.floor(animPhase * trajectory.length);
 
-  // ±σ lines (red)
-  ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 1.5;
-  const sigP = x0 + ((mean + std - minV) / (maxV - minV)) * w;
-  const sigN = x0 + ((mean - std - minV) / (maxV - minV)) * w;
-  ctx.beginPath(); ctx.moveTo(sigP, y0); ctx.lineTo(sigP, baseY); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(sigN, y0); ctx.lineTo(sigN, baseY); ctx.stroke();
+  // Connect trajectory points with gradient descent path
+  ctx.strokeStyle = 'rgba(14,165,233,.85)'; ctx.lineWidth = 1.6; ctx.setLineDash([4,3]);
+  ctx.beginPath();
+  trajectory.slice(0, Math.max(showSteps, 1)).forEach((xi, i) => {
+    if (i === 0) ctx.moveTo(PX(xi), PY(f(xi)));
+    else ctx.lineTo(PX(xi), PY(f(xi)));
+  });
+  ctx.stroke();
   ctx.setLineDash([]);
-  ctx.fillStyle = '#ef4444';
-  ctx.fillText('+σ', sigP + 3, y0 + 12);
-  ctx.fillText('−σ', sigN - 25, y0 + 12);
 
-  // Axis labels
-  ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
-  ctx.fillText('Histogram Sample (N=' + N + ')', x0, y0 - 8);
+  // Markers along trajectory
+  trajectory.slice(0, Math.max(showSteps, 1)).forEach((xi, i) => {
+    const yi = f(xi);
+    ctx.fillStyle = i === 0 ? '#0ea5e9' : 'rgba(14,165,233,.7)';
+    const r = i === 0 ? 6 : 3;
+    ctx.beginPath(); ctx.arc(PX(xi), PY(yi), r, 0, 2*Math.PI); ctx.fill();
+  });
+  // Initial label
+  ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 10px JetBrains Mono';
+  ctx.fillText('x₀', PX(x0)+8, PY(f(x0))-6);
 
-  // Sliders display
-  document.getElementById('v_ri').textContent = skewTarget.toFixed(2);
-  document.getElementById('v_zi').textContent = kurtTarget.toFixed(2);
+  // Current marker (pulse)
+  const finalX = trajectory[Math.max(showSteps-1, 0)];
+  const pulse = 1 + 0.2*Math.sin(_isoAnim.t * 4);
+  ctx.fillStyle = '#fbbf24';
+  ctx.beginPath(); ctx.arc(PX(finalX), PY(f(finalX)), 6*pulse, 0, 2*Math.PI); ctx.fill();
+  ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.stroke();
 
-  // Info
+  // Axes
+  ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(PX(xMin), PY(0)); ctx.lineTo(PX(xMax), PY(0)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(PX(0), PY(yMin)); ctx.lineTo(PX(0), PY(yMax)); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '11px JetBrains Mono';
+  ctx.fillText('x', PX(xMax)+5, PY(0)+4);
+  ctx.fillText('f(x)', PX(0)-30, PY(yMax)+10);
+
+  // Tick labels
+  ctx.font = '9px JetBrains Mono'; ctx.fillStyle = 'rgba(255,255,255,.5)';
+  for(let x = -3; x <= 3; x++) if (x !== 0) ctx.fillText(x, PX(x)-5, PY(0)+14);
+  for(let y = -10; y <= 25; y += 10) if (y !== 0) ctx.fillText(y, PX(0)-22, PY(y)+4);
+
+  // Title
+  ctx.fillStyle = 'rgba(168,85,247,.95)'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText('f(x) = x⁴ − 8x² + 5  (non-konveks)', padL, padT-10);
+
+  // Update slider displays
+  document.getElementById('v_ri').textContent = x0.toFixed(1);
+  document.getElementById('v_zi').textContent = alpha.toFixed(2);
+
+  // Info panel
   const info = document.getElementById('isoInfo');
   if (info) {
-    let interp;
-    if (Math.abs(skew) < 0.3 && Math.abs(kurt - 3) < 0.5) interp = '🔵 Distribusi Gaussian-like';
-    else if (kurt > 5) interp = '🔴 Leptokurtic (ekor tebal — banyak event ekstrem)';
-    else if (kurt < 2.5) interp = '🟡 Platykurtic (datar — distribusi seragam)';
-    else if (Math.abs(skew) > 1) interp = '🟠 Asimetris (skew ' + (skew > 0 ? '+' : '') + skew.toFixed(2) + ')';
-    else interp = '🟢 Mirip normal';
-    info.innerHTML = `μ=<strong>${mean.toFixed(2)}</strong> · σ=<strong>${std.toFixed(2)}</strong> · <strong>Skew=${skew.toFixed(2)}</strong> · <strong>Kurt=${kurt.toFixed(2)}</strong> · ${interp}`;
+    const finalF = f(finalX);
+    let conv;
+    if (Math.abs(finalX - 2) < 0.1) conv = '🟢 Global min KANAN (x = 2, f = -11)';
+    else if (Math.abs(finalX + 2) < 0.1) conv = '🟢 Global min KIRI (x = -2, f = -11)';
+    else if (Math.abs(finalX) < 0.1) conv = '🔴 STUCK di local MAX (saddle-like)!';
+    else conv = `🟡 Belum konvergen (x=${finalX.toFixed(2)})`;
+    info.innerHTML = `x₀=<strong>${x0.toFixed(1)}</strong>, α=${alpha.toFixed(2)} · ${trajectory.length-1} iter · x_final=<strong>${finalX.toFixed(3)}</strong>, f=<strong>${finalF.toFixed(2)}</strong> · ${conv}`;
   }
 }
 
@@ -4500,7 +4522,7 @@ function _isoTick(){
   _isoAnim.raf = requestAnimationFrame(_isoTick);
 }
 (function(){
-  ['sl_ri','sl_zi'].forEach(id=>{const s=document.getElementById(id); if(s) s.addEventListener('input', drawIso);});
+  ['sl_ri','sl_zi'].forEach(id=>{const s=document.getElementById(id); if(s) s.addEventListener('input', () => { _isoAnim.t = 0; drawIso(); });});
 })();
 setTimeout(_isoTick, 700);
 
