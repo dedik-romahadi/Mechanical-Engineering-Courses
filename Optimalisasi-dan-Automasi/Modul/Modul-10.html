@@ -3216,64 +3216,64 @@ let compAnswered = {}, compScores = {};
 // Ditampilkan saat soal dikunci karena kode salah/error, sebagai panduan belajar.
 const COMP_HINTS = {
   c1: {
-    answer: '= 4.0',
-    explain: 'Min <code>f(x) = (x − 4)²</code>: solusi analitik <code>f\'(x) = 2(x−4) = 0 → x* = 4</code>. SciPy BFGS dari x0 = 0 konvergen dalam ~5 iterasi: <code>res = minimize(lambda x: (x[0]-4)**2, x0=[0], method=\'BFGS\'); print(res.x[0])</code> = <strong>4.0</strong>. Cek <code>res.success = True</code>, <code>res.fun ≈ 0</code> (numerik mendekati nol).'
+    answer: '= 60',
+    explain: '<strong>SS_total</strong> = Σ (yᵢⱼ − ȳ)². Data: [5,6,7,8,9,10,11,12,13]. Grand mean = 81/9 = 9. SS_total = 4²+3²+2²+1²+0²+1²+2²+3²+4² = 16+9+4+1+0+1+4+9+16 = <strong>60</strong>. Code: <code>data = np.array([5,6,7,8,9,10,11,12,13]); print(((data - data.mean())**2).sum())</code>.'
   },
   c2: {
-    answer: '≈ 5.6569',
-    explain: 'Gradient analytic: <code>∇f(x,y) = (2(x−3), 4(y−2))</code>. Di (1,1): <code>∇f = (−4, −4)</code>. Norma Euclidean: <code>‖∇f‖ = √(16 + 16) = √32 ≈ <strong>5.6569</strong></code>. Gradient menunjukkan arah peningkatan tercepat — di sini menunjuk dari (1,1) menjauhi optimum (3,2). Negasi (−∇f) adalah arah descent.'
+    answer: '= 54',
+    explain: '<strong>SS_between</strong> = Σ nⱼ·(ȳⱼ − ȳ)². Mean grup: ȳ_A=6, ȳ_B=9, ȳ_C=12. Grand mean ȳ=9. n=3 tiap grup. SS_b = 3·(6−9)² + 3·(9−9)² + 3·(12−9)² = 27 + 0 + 27 = <strong>54</strong>. Mengukur efek faktor — variasi antar mean grup di sekitar grand mean.'
   },
   c3: {
-    answer: '≈ 0',
-    explain: 'Min f(x,y) = x² + 2y². Solusi: <code>∇f = (2x, 4y) = 0 → x*=y*=0, f*=0</code>. SciPy BFGS dari [3,2] konvergen dalam ~3 iterasi karena f quadratic positive-definite (Hessian diagonal [2, 4] ≻ 0). Hasil <code>res.fun</code> ≈ <strong>0</strong> (mungkin 1e-10 karena floating point). Ini contoh fungsi konveks tegas — pasti unique global minimum.'
+    answer: '= 6',
+    explain: '<strong>SS_within</strong> = Σⱼ Σᵢ (yᵢⱼ − ȳⱼ)². Per grup: A: (5−6)²+(6−6)²+(7−6)²=2; B: (8−9)²+(9−9)²+(10−9)²=2; C: (11−12)²+(12−12)²+(13−12)²=2. Total <code>SS_w = 2+2+2 = <strong>6</strong></code>. Mengukur noise (variasi data di dalam grup). Verifikasi: SS_b + SS_w = 54+6 = 60 = SS_total ✓.'
   },
   c4: {
-    answer: '= 2.0',
-    explain: 'NLP berkendala: <code>min x² + y² s.t. x + y = 4</code>. Lagrangian: <code>L = x² + y² + λ(x+y−4)</code>. KKT: <code>∂L/∂x = 2x + λ = 0, ∂L/∂y = 2y + λ = 0</code> → <code>x = y</code>. Substitusi ke kendala: <code>2x = 4 → x = y = 2</code>, λ = −4. Pakai SLSQP: <code>cons = {\'type\':\'eq\', \'fun\': lambda x: x[0]+x[1]-4}; res = minimize(...); res.x[0]</code> = <strong>2.0</strong>.'
+    answer: '= 27.0',
+    explain: '<strong>F-statistic</strong> = MS_between / MS_within = (SS_b/df_b) / (SS_w/df_w). MS_b = 54/2 = 27, MS_w = 6/6 = 1. F = 27/1 = <strong>27</strong>. F sangat besar → bukti kuat efek faktor. p-value akan sangat kecil (&lt; 0.001).'
   },
   c5: {
-    answer: '= -4.0',
-    explain: 'Lagrange multiplier untuk masalah C4: dari <code>2x + λ = 0</code> dan <code>x = 2</code> → <code>λ = -2x = <strong>-4</strong></code>. Arti fisik: jika kendala diubah dari <code>x+y=4</code> ke <code>x+y=4+ε</code> (ε kecil), nilai f optimum akan turun sebesar |λ|·ε = 4·ε. SLSQP tidak langsung kembalikan multiplier; pakai <code>method=\'trust-constr\'</code> dengan <code>res.v</code> untuk Lagrange multiplier eksplisit. Atau hitung manual seperti hint.'
+    answer: '= 19',
+    explain: '<strong>df_total</strong> = N − 1 dengan N = k·n. Untuk k = 4 level dan n = 5 replikasi/level: N = 20, df_total = 20 − 1 = <strong>19</strong>. Verifikasi: df_b = k−1 = 3, df_w = N−k = 16; df_b + df_w = 3+16 = 19 ✓.'
   },
   c6: {
-    answer: '= 2.0',
-    explain: 'Gradient descent 1 iter: <code>f(x) = x²</code>, <code>f\'(x) = 2x</code>. Di x₀ = 5: <code>f\'(5) = 10</code>. Update: <code>x₁ = x₀ − α·f\'(x₀) = 5 − 0.3·10 = 5 − 3 = <strong>2.0</strong></code>. Iterasi berikutnya: x₂ = 2 − 0.3·4 = 0.8, x₃ = 0.32, ... → konvergen ke 0. Step size α = 0.3 sangat agresif; dengan α = 0.5, x₁ = 0 (langsung optimum karena fungsi quadratic + α optimal exact).'
+    answer: '= 27.0',
+    explain: '<strong>scipy.stats.f_oneway</strong> verifikasi manual ANOVA. Code: <code>from scipy.stats import f_oneway; F, p = f_oneway([5,6,7], [8,9,10], [11,12,13]); print(F)</code>. Hasil F = <strong>27.0</strong> (sama dengan manual hitung di C4) dengan p ≈ 0.001 → tolak H₀. scipy memvalidasi bahwa logika partition of variance kita benar.'
   },
   c7: {
-    answer: '≈ 2.16',
-    explain: 'Newton step untuk <code>f(x) = x⁴ − 4x² + 5</code>: <code>f\'(x) = 4x³ − 8x</code>, <code>f\'\'(x) = 12x² − 8</code>. Di x₀ = 3: <code>f\'(3) = 108 − 24 = 84</code>; <code>f\'\'(3) = 108 − 8 = 100</code>. Newton update: <code>x₁ = 3 − 84/100 = <strong>2.16</strong></code>. Iterasi berikutnya akan mendekati x* = √2 ≈ 1.414 (salah satu dari dua minimum global). Newton konvergensi kuadratik di domain attraction.'
+    answer: '= 0.90',
+    explain: '<strong>Effect size η²</strong> = SS_between / SS_total = 54/60 = <strong>0.90</strong>. Artinya 90% varians data dijelaskan oleh faktor — <em>large effect</em> menurut Cohen (η² ≥ 0.14 = large). Interpretasi engineering: faktor ini sangat berpengaruh, layak prioritas. Effect size krusial: p-value bergantung pada N, η² independent.'
   },
   c8: {
-    answer: '= 16.0',
-    explain: 'Validasi konveksitas <code>f(x) = x⁴ + 2x² + 1</code>: <code>f\'(x) = 4x³ + 4x</code>, <code>f\'\'(x) = 12x² + 4</code>. Di x = 1: <code>f\'\'(1) = 12 + 4 = <strong>16</strong></code>. Karena <code>f\'\'(x) = 12x² + 4 ≥ 4 &gt; 0</code> ∀x, fungsi ini <em>strictly convex</em>. Konsekuensi: ada <em>unique</em> global minimum (di x = 0, f(0) = 1), dan sembarang algoritma gradient akan konvergen ke sana.'
+    answer: '≈ 3.885',
+    explain: '<strong>F-critical</strong>: <code>scipy.stats.f.ppf(0.95, dfn=2, dfd=12)</code> = <strong>3.885</strong>. Kalau F_observed &gt; 3.885 → tolak H₀ pada α = 0.05. F_crit menurun saat dfd meningkat (lebih banyak data → lebih sensitif). Untuk dfd=30 → F_crit ≈ 3.32.'
   },
   c9: {
-    answer: '= 1.0',
-    explain: 'NLP dengan bounds: <code>min (x−2)² + (y−3)² s.t. 0≤x≤1, 0≤y≤5</code>. Tanpa kendala, optimum di (2, 3). Tapi karena kendala x ≤ 1, projection ke boundary: x = 1 (upper bound binding), y = 3 (interior). L-BFGS-B menangani bounds langsung tanpa conversion. <code>res = minimize(..., method=\'L-BFGS-B\', bounds=[(0,1),(0,5)]); res.x[0]</code> = <strong>1.0</strong>.'
+    answer: '≈ 0.987',
+    explain: '<strong>Shapiro-Wilk W-statistic</strong>: <code>from scipy.stats import shapiro; W, p = shapiro([2.5, 2.4, 2.6, 2.3, 2.2]); print(W)</code> ≈ <strong>0.987</strong>. W mendekati 1 = sangat normal (W=1 untuk distribusi normal sempurna). p &gt; 0.05 → tidak tolak H₀ "data normal" → asumsi normality OK untuk ANOVA.'
   },
   c10: {
-    answer: '= 27.25',
-    explain: 'Penalty function: <code>F(x) = x² + ρ·max(0, 2−x)²</code>. Di x = 1.5 dengan ρ = 100: <code>x² = 2.25</code>, <code>max(0, 2−1.5) = 0.5</code>, <code>penalty = 100·(0.5)² = 25</code>. Total: <code>F(1.5) = 2.25 + 25 = <strong>27.25</strong></code>. Saat ρ → ∞, minimum F → x = 2 (constraint binding). Untuk ρ = 100, minimum sekitar x = 1.98 (bukan persis 2 karena finite ρ).'
+    answer: '≈ 88.89',
+    explain: '<strong>Reduction ratio Taguchi L9</strong>: <code>(81 − 9) / 81 × 100 = 72/81 × 100 ≈ 88.89%</code>. L9 menghemat ~89% trial dibanding full factorial 3⁴ = 81. Sangat berguna untuk eksperimen mahal. Trade-off: tidak menangkap interaksi tinggi (only main effects).'
   },
   c11: {
-    answer: '= 2.0',
-    explain: 'Rosenbrock function: <code>f(x,y) = (1−x)² + 100(y−x²)²</code>. Solusi unique: <code>x* = 1, y* = 1, f* = 0</code>. Test klasik untuk optimasi NLP. SciPy BFGS dari [−1.2, 1.0] (challenging start) konvergen dalam ~25 iterasi. <code>res.x.sum() = 1 + 1 = <strong>2.0</strong></code>. Lembah berbentuk pisang — gradient descent biasa lambat zigzag, tapi BFGS mengatasi dengan Hessian aproksimasi.'
+    answer: '≈ 30',
+    explain: '<strong>One-way ANOVA scratch</strong> CNC roughness: mean A=2.4, B=1.76, C=2.1, grand=2.087. SS_b ≈ 1.05, SS_w ≈ 0.21, df_b=2, df_w=12. F = (1.05/2)/(0.21/12) ≈ <strong>30</strong>. Cutting speed signifikan (p &lt; 0.001). Verifikasi dengan scipy.stats.f_oneway: F harus match.'
   },
   c12: {
-    answer: '≈ 0.5419',
-    explain: 'Tangki silinder volume tetap: solusi analytic via Lagrange. Lagrangian <code>L = 2πR² + 2πRH + λ(πR²H − V₀)</code>. KKT: <code>∂L/∂R = 4πR + 2πH + 2λπRH = 0</code>, <code>∂L/∂H = 2πR + λπR² = 0</code> → <code>H = 2R</code> (proporsional!), <code>R = ∛(V₀/2π) ≈ <strong>0.5419 m</strong></code>. SLSQP dari x0=[0.5, 1.0] feasible konvergen cepat. Multiplier λ = shadow price terhadap volume target.'
+    answer: '&lt; 0.001',
+    explain: '<strong>Two-way ANOVA welding</strong>: efek arus dominan (25 unit/level vs noise σ=8) → p_arus &lt;&lt; 0.001 (sekitar 1e-7). Code: <code>model = ols(\'strength ~ C(arus) * C(voltage)\', df).fit(); table = sm.stats.anova_lm(model, typ=2); p_arus = table.loc[\'C(arus)\', \'PR(&gt;F)\']</code>. Karena p sangat kecil, target = 0 dengan tolerance 0.001.'
   },
   c13: {
-    answer: '≈ 1.9802',
-    explain: 'Penalty method untuk <code>min x² s.t. x ≥ 2</code>: <code>F(x) = x² + ρ·max(0, 2−x)²</code>. Untuk ρ = 100: minimum di <code>x = 200/101 ≈ 1.9802</code> (analytic via dF/dx = 0 di region constraint violated). Saat ρ → ∞: x → 2 (constraint binding). Code: <code>res = minimize(lambda x: x[0]**2 + 100*max(0,2-x[0])**2, x0=[0]); res.x[0]</code> = <strong>1.9802</strong>. Pelajaran: penalty large = numerical issues; gunakan augmented Lagrangian untuk stabilitas.'
+    answer: '≈ 5',
+    explain: '<strong>Tukey HSD heat treatment</strong>: 4 level → C(4,2) = 6 pasangan. Mean: 450:52, 500:58, 550:62, 600:55. Pasangan yang berbeda jelas (mean diff &gt; 4 σ): 450vs550, 450vs500, 500vs550, 550vs600, 450vs600. Pasangan dekat (450vs600 keduanya sekitar 53-55) mungkin tidak signifikan. Hasil ≈ <strong>5</strong> dari 6 pasangan signifikan. Code: <code>tukey = pairwise_tukeyhsd(df.HRC, df.temp); print(tukey.reject.sum())</code>.'
   },
   c14: {
-    answer: '= -11.0',
-    explain: 'Multi-start untuk non-konveks: <code>f(x) = x⁴ − 8x² + 5</code>. <code>f\'(x) = 4x³ − 16x = 4x(x²−4)</code> → titik stasioner: x = 0 (max lokal, f=5), x = ±2 (min global, f = 16−32+5 = <strong>-11</strong>). Multi-start dari random x0 di [−5, 5]: beberapa run mendarat di x = +2, beberapa di x = −2, semua konvergen ke f = −11. Kunci: <em>min(fs)</em> setelah 10 run = global minimum. Tanpa multi-start, x0 = 0.5 stuck di lokal min x = 2 saja.'
+    answer: '≈ 19',
+    explain: '<strong>Power analysis ANOVA</strong>: <code>from statsmodels.stats.power import FTestAnovaPower; n = FTestAnovaPower().solve_power(effect_size=0.4, alpha=0.05, power=0.80, k_groups=4); print(int(np.ceil(n)))</code> ≈ <strong>19</strong> per grup (total N = 76). Untuk effect size sedang (f=0.25), n meningkat ke ~45/grup. Power analysis WAJIB sebelum eksperimen agar sample cukup untuk deteksi efek yang diharapkan.'
   },
   c15: {
-    answer: '≈ 41 g',
-    explain: 'Pegas coil engineering design — masalah klasik Rao "Engineering Optimization". Solusi optimal sekitar <strong>m ≈ 0.041 kg = 41 g</strong>. Tegangan binding (τ_max = τ_y = 600 MPa), defleksi binding (δ = 25 mm), spacing slack. d_opt ≈ 5–7 mm, N_opt ≈ 9–12, L_opt ≈ 80–100 mm. Variasi acceptable ±5 g tergantung initial guess dan numerical tolerance. Wahl factor di formula tegangan akan menambah margin 10–15%.'
+    answer: '≈ 10',
+    explain: '<strong>Two-way ANOVA injection molding</strong>: model bilinear A·B → ada interaksi signifikan. <code>model = ols(\'defect ~ C(A) * C(B)\', df).fit(); F_AB = sm.stats.anova_lm(model, typ=2).loc[\'C(A):C(B)\', \'F\']</code>. F interaction tipikal 5–15 untuk model bilinear ini, hasil ≈ <strong>10</strong> ± 5 (variasi seed). Engineering decision: F_AB signifikan → main effect tidak boleh diinterpretasi terpisah, harus pakai cell-mean optimum.'
   }
 };
 
