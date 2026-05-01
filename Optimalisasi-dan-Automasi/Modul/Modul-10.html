@@ -1552,76 +1552,85 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   <div class="code-wrap reveal">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 3 — DE Engineering: Spring Weight Optimization dengan 4 Nonlinear Constraints</span>
+      <span class="code-label">Cell 3 — Tukey HSD Post-Hoc + Cek Asumsi (Shapiro-Wilk + Levene) di Injection Molding</span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
-    <pre><span class="kw">from</span> scipy.optimize <span class="kw">import</span> differential_evolution
+    <pre><span class="kw">from</span> statsmodels.stats.multicomp <span class="kw">import</span> pairwise_tukeyhsd
+<span class="kw">from</span> scipy <span class="kw">import</span> stats
 
 np.random.<span class="fn">seed</span>(<span class="nm">42</span>)
 
 <span class="cm"># ═══════════════════════════════════════════════════════════════════</span>
-<span class="cm"># BENCHMARK PROBLEM: Spring Weight Minimization (Arora 2004)</span>
-<span class="cm"># Klasik test problem untuk metaheuristik di engineering optimization.</span>
-<span class="cm"># Variabel: x = (d, D, N) — wire diam, mean coil diam, jumlah lilitan</span>
-<span class="cm"># Objektif: f(x) = (N+2)·D·d²  (proporsional dengan weight)</span>
-<span class="cm"># 4 nonlinear constraints (penalty handling karena DE tidak native support)</span>
+<span class="cm"># EKSPERIMEN: Injection Molding — Tekanan Injeksi vs Defect Rate (%)</span>
+<span class="cm">#   Faktor: tekanan (4 level: 60, 80, 100, 120 MPa)</span>
+<span class="cm">#   Replikasi: n = 6 batch per level → total N = 24</span>
+<span class="cm">#   Workflow lengkap: cek asumsi → ANOVA → post-hoc Tukey HSD</span>
 <span class="cm"># ═══════════════════════════════════════════════════════════════════</span>
 
-<span class="kw">def</span> <span class="fn">spring_weight</span>(x):
-    d, D, N = x
-    <span class="cm"># Objektif: weight (proporsional)</span>
-    f = (N + <span class="nm">2</span>) * D * d**<span class="nm">2</span>
+tekanan_levels = [<span class="nm">60</span>, <span class="nm">80</span>, <span class="nm">100</span>, <span class="nm">120</span>]
+n_rep = <span class="nm">6</span>
+defect_means = {<span class="nm">60</span>: <span class="nm">3.5</span>, <span class="nm">80</span>: <span class="nm">2.1</span>, <span class="nm">100</span>: <span class="nm">1.2</span>, <span class="nm">120</span>: <span class="nm">1.8</span>}    <span class="cm"># 100 MPa optimal</span>
 
-    <span class="cm"># Nonlinear constraints (semua harus ≤ 0 untuk feasible)</span>
-    g1 = <span class="nm">1</span> - (D**<span class="nm">3</span> * N) / (<span class="nm">71785</span> * d**<span class="nm">4</span>)                                <span class="cm"># shear stress</span>
-    g2 = (<span class="nm">4</span>*D**<span class="nm">2</span> - d*D) / (<span class="nm">12566</span> * (D*d**<span class="nm">3</span> - d**<span class="nm">4</span>)) + <span class="nm">1</span>/(<span class="nm">5108</span>*d**<span class="nm">2</span>) - <span class="nm">1</span>      <span class="cm"># surge frequency</span>
-    g3 = <span class="nm">1</span> - <span class="nm">140.45</span>*d / (D**<span class="nm">2</span> * N)                                  <span class="cm"># deflection limit</span>
-    g4 = (D + d)/<span class="nm">1.5</span> - <span class="nm">1</span>                                              <span class="cm"># diameter limit</span>
+rows = []
+<span class="kw">for</span> p <span class="kw">in</span> tekanan_levels:
+    <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(n_rep):
+        defect = defect_means[p] + np.random.<span class="fn">randn</span>() * <span class="nm">0.4</span>     <span class="cm"># noise σ=0.4%</span>
+        rows.<span class="fn">append</span>({<span class="st">'tekanan'</span>: p, <span class="st">'defect'</span>: <span class="fn">max</span>(<span class="nm">0</span>, defect)})
+df = pd.<span class="fn">DataFrame</span>(rows)
 
-    <span class="cm"># Penalty function: tambah hukuman besar untuk constraint violation</span>
-    penalty = <span class="nm">0</span>
-    <span class="kw">for</span> g <span class="kw">in</span> [g1, g2, g3, g4]:
-        <span class="kw">if</span> g &gt; <span class="nm">0</span>:
-            penalty += <span class="nm">1e6</span> * g**<span class="nm">2</span>
+<span class="cm"># ═══════════════ STEP 1 — CEK ASUMSI ═══════════════</span>
+<span class="fn">print</span>(<span class="st">"═══ STEP 1: ASUMPSI ANOVA ═══"</span>)
 
-    <span class="kw">return</span> f + penalty
+<span class="cm"># 1a. Normality test (Shapiro-Wilk per grup)</span>
+<span class="fn">print</span>(<span class="st">"\n[1a] Normality (Shapiro-Wilk) per grup — H0: data normal"</span>)
+<span class="kw">for</span> p <span class="kw">in</span> tekanan_levels:
+    data = df[df[<span class="st">'tekanan'</span>]==p][<span class="st">'defect'</span>]
+    W, p_val = stats.<span class="fn">shapiro</span>(data)
+    sig = <span class="st">"NORMAL ✓"</span> <span class="kw">if</span> p_val &gt; <span class="nm">0.05</span> <span class="kw">else</span> <span class="st">"NOT NORMAL ✗"</span>
+    <span class="fn">print</span>(<span class="st">f"  Tekanan {p} MPa: W = {W:.4f}, p = {p_val:.4f}  →  {sig}"</span>)
 
-<span class="cm"># Bounds (dari paper Arora)</span>
-bounds = [(<span class="nm">0.05</span>, <span class="nm">2.0</span>),     <span class="cm"># d ∈ [0.05, 2.0]</span>
-          (<span class="nm">0.25</span>, <span class="nm">1.3</span>),     <span class="cm"># D ∈ [0.25, 1.3]</span>
-          (<span class="nm">2.0</span>, <span class="nm">15.0</span>)]    <span class="cm"># N ∈ [2, 15]</span>
+<span class="cm"># 1b. Homoscedasticity (Levene's test)</span>
+<span class="fn">print</span>(<span class="st">"\n[1b] Equal variance (Levene's test) — H0: variance sama"</span>)
+groups = [df[df[<span class="st">'tekanan'</span>]==p][<span class="st">'defect'</span>].values <span class="kw">for</span> p <span class="kw">in</span> tekanan_levels]
+W_lev, p_lev = stats.<span class="fn">levene</span>(*groups)
+sig_lev = <span class="st">"EQUAL VAR ✓"</span> <span class="kw">if</span> p_lev &gt; <span class="nm">0.05</span> <span class="kw">else</span> <span class="st">"UNEQUAL ✗"</span>
+<span class="fn">print</span>(<span class="st">f"  Levene W = {W_lev:.4f}, p = {p_lev:.4f}  →  {sig_lev}"</span>)
 
-<span class="cm"># Run DE</span>
-res = <span class="fn">differential_evolution</span>(
-    spring_weight, bounds,
-    maxiter=<span class="nm">300</span>, popsize=<span class="nm">20</span>, tol=<span class="nm">1e-8</span>,
-    mutation=(<span class="nm">0.5</span>, <span class="nm">1.0</span>), recombination=<span class="nm">0.7</span>,
-    seed=<span class="nm">42</span>, polish=<span class="kw">True</span>
-)
+<span class="cm"># ═══════════════ STEP 2 — ONE-WAY ANOVA ═══════════════</span>
+<span class="fn">print</span>(<span class="st">f"\n═══ STEP 2: ONE-WAY ANOVA ═══"</span>)
+F, p = stats.<span class="fn">f_oneway</span>(*groups)
+<span class="fn">print</span>(<span class="st">f"  F-statistic = {F:.4f}, p-value = {p:.6f}"</span>)
+<span class="fn">print</span>(<span class="st">f"  Keputusan: {'TOLAK H0 — efek tekanan signifikan' if p &lt; 0.05 else 'GAGAL TOLAK H0'}"</span>)
 
-d_opt, D_opt, N_opt = res.x
-<span class="fn">print</span>(<span class="st">f"═══ DESAIN OPTIMAL SPRING (DE) ═══"</span>)
-<span class="fn">print</span>(<span class="st">f"  d (wire diameter) = {d_opt:.6f}"</span>)
-<span class="fn">print</span>(<span class="st">f"  D (mean coil diam)= {D_opt:.6f}"</span>)
-<span class="fn">print</span>(<span class="st">f"  N (jumlah lilitan)= {N_opt:.6f}"</span>)
-<span class="fn">print</span>(<span class="st">f"  Weight (objective)= {res.fun:.6f}"</span>)
+<span class="cm"># Effect size eta squared</span>
+all_data = df[<span class="st">'defect'</span>].values
+SS_total = ((all_data - all_data.<span class="fn">mean</span>())**<span class="nm">2</span>).<span class="fn">sum</span>()
+SS_between = <span class="fn">sum</span>(<span class="fn">len</span>(g) * (g.<span class="fn">mean</span>() - all_data.<span class="fn">mean</span>())**<span class="nm">2</span> <span class="kw">for</span> g <span class="kw">in</span> groups)
+eta_sq = SS_between / SS_total
+<span class="fn">print</span>(<span class="st">f"  η² = {eta_sq:.4f}  ({'small' if eta_sq&lt;0.06 else 'medium' if eta_sq&lt;0.14 else 'large'} effect by Cohen)"</span>)
 
-<span class="cm"># Cek constraint values</span>
-g1 = <span class="nm">1</span> - (D_opt**<span class="nm">3</span> * N_opt) / (<span class="nm">71785</span> * d_opt**<span class="nm">4</span>)
-g2 = (<span class="nm">4</span>*D_opt**<span class="nm">2</span> - d_opt*D_opt) / (<span class="nm">12566</span> * (D_opt*d_opt**<span class="nm">3</span> - d_opt**<span class="nm">4</span>)) + <span class="nm">1</span>/(<span class="nm">5108</span>*d_opt**<span class="nm">2</span>) - <span class="nm">1</span>
-g3 = <span class="nm">1</span> - <span class="nm">140.45</span>*d_opt / (D_opt**<span class="nm">2</span> * N_opt)
-g4 = (D_opt + d_opt)/<span class="nm">1.5</span> - <span class="nm">1</span>
+<span class="cm"># ═══════════════ STEP 3 — TUKEY HSD POST-HOC ═══════════════</span>
+<span class="fn">print</span>(<span class="st">f"\n═══ STEP 3: TUKEY HSD PAIRWISE COMPARISON ═══"</span>)
+tukey = <span class="fn">pairwise_tukeyhsd</span>(df[<span class="st">'defect'</span>], df[<span class="st">'tekanan'</span>], alpha=<span class="nm">0.05</span>)
+<span class="fn">print</span>(tukey)
 
-<span class="fn">print</span>(<span class="st">f"\n═══ CONSTRAINT VIOLATIONS (semua harus ≤ 0) ═══"</span>)
-<span class="fn">print</span>(<span class="st">f"  g1 (shear stress)   = {g1:+.6f}  [{'OK' if g1≤=0 else 'VIOLATED'}]"</span>)
-<span class="fn">print</span>(<span class="st">f"  g2 (surge freq)     = {g2:+.6f}  [{'OK' if g2≤=0 else 'VIOLATED'}]"</span>)
-<span class="fn">print</span>(<span class="st">f"  g3 (deflection)     = {g3:+.6f}  [{'OK' if g3≤=0 else 'VIOLATED'}]"</span>)
-<span class="fn">print</span>(<span class="st">f"  g4 (diameter limit) = {g4:+.6f}  [{'OK' if g4≤=0 else 'VIOLATED'}]"</span>)
+<span class="fn">print</span>(<span class="st">f"\n═══ KEPUTUSAN ENGINEERING ═══"</span>)
+best_level = df.<span class="fn">groupby</span>(<span class="st">'tekanan'</span>)[<span class="st">'defect'</span>].<span class="fn">mean</span>().<span class="fn">idxmin</span>()
+<span class="fn">print</span>(<span class="st">f"  Tekanan optimal: {best_level} MPa (mean defect terendah)"</span>)
+<span class="fn">print</span>(<span class="st">f"  Tukey HSD bandingkan {best_level} dengan level lain → cek pasangan signifikan"</span>)
 
-<span class="cm"># Reference best known solution: weight ≈ 0.012665 (Arora 2004)</span>
-<span class="fn">print</span>(<span class="st">f"\n  Reference (Arora 2004) best weight ≈ 0.012665"</span>)
-<span class="fn">print</span>(<span class="st">f"  Selisih dari best known: {abs(res.fun - 0.012665):.6f}"</span>)</pre>
+<span class="cm"># ═══════════════ PLOT ═══════════════</span>
+fig, axes = plt.<span class="fn">subplots</span>(<span class="nm">1</span>, <span class="nm">2</span>, figsize=(<span class="nm">12</span>, <span class="nm">4.5</span>))
+axes[<span class="nm">0</span>].<span class="fn">boxplot</span>(groups, labels=[<span class="st">f'{p} MPa'</span> <span class="kw">for</span> p <span class="kw">in</span> tekanan_levels],
+                 patch_artist=<span class="kw">True</span>, boxprops={<span class="st">'facecolor'</span>:<span class="st">'#06b6d4'</span>, <span class="st">'alpha'</span>:<span class="nm">0.4</span>})
+axes[<span class="nm">0</span>].<span class="fn">set_ylabel</span>(<span class="st">'Defect Rate (%)'</span>); axes[<span class="nm">0</span>].<span class="fn">set_title</span>(<span class="st">f'Boxplot per Tekanan (F={F:.2f}, p={p:.4f})'</span>)
+axes[<span class="nm">0</span>].<span class="fn">grid</span>(axis=<span class="st">'y'</span>, alpha=<span class="nm">0.25</span>)
+
+<span class="cm"># Tukey simultaneous CI plot</span>
+tukey.<span class="fn">plot_simultaneous</span>(ax=axes[<span class="nm">1</span>])
+axes[<span class="nm">1</span>].<span class="fn">set_xlabel</span>(<span class="st">'Mean Defect Rate (%)'</span>); axes[<span class="nm">1</span>].<span class="fn">set_title</span>(<span class="st">'Tukey HSD Simultaneous 95% CI'</span>)
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
   </div>
 
   <!-- Cell 4 -->
