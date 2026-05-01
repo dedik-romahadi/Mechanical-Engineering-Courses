@@ -875,52 +875,52 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 01 — MENGAPA RULE-BASED MONITORING ═══ -->
+<!-- ═══ BAGIAN 01 — MENGAPA TIER ALARM + FSM ═══ -->
 <hr class="divider" style="margin-top:64px">
 <div class="section" id="m-persamaan">
   <div class="section-label reveal">Bagian 01</div>
-  <h2 class="section-title reveal">Mengapa Rule-Based:<br>Monitoring Real-Time yang Sederhana, Transparan &amp; Reliable</h2>
-  <p class="section-desc reveal">Setelah mesin dioptimasi (P9–P11) dan dipasang di lini produksi, pertanyaan beralih dari "<em>parameter mana yang terbaik?</em>" ke "<em>apakah mesin masih sehat saat ini?</em>". Inilah problem <strong>kondisi mesin (machine health)</strong>: detect anomali sebelum failure, kirim alert ke operator, log riwayat untuk trend analysis. Ada banyak pendekatan: (1) <em>rule-based</em> (threshold sederhana, IF-THEN), (2) <em>machine learning</em> (anomaly detection, classifier), (3) <em>deep learning</em> (autoencoder, LSTM forecasting), (4) <em>fisika-based</em> (digital twin). Yang paling banyak dipakai di industri: <strong>rule-based</strong> — <em>tidak glamour</em>, tetapi <em>reliable, transparan, dan mudah audit</em>. ISO 10816 (vibrasi), ISO 13373 (vibration condition monitoring), API 670 (turbomachinery) — semua menetapkan threshold rule-based. Dipakai oleh ABB, Siemens, GE, Honeywell sebagai <em>baseline</em> sebelum upgrade ke ML/DL. Pelajari rule-based dengan benar = bekal kuat untuk seluruh karier QC/maintenance engineering.</p>
+  <h2 class="section-title reveal">Mengapa Tier Alarm + FSM:<br>Production-Grade Alarm Management Architecture</h2>
+  <p class="section-desc reveal">Pertemuan 11 mengajarkan threshold tunggal + hysteresis. Cukup untuk lab demo, tetapi <em>kurang</em> untuk industrial production. Tiga problem yang muncul saat sistem real beroperasi 24/7: (1) <strong>Binary harshness</strong> — threshold tunggal hanya berikan OK / DANGER, tidak ada nuansa "hampir alarm" untuk preventive action. (2) <strong>No memory</strong> — sistem tidak ingat berapa lama mesin sudah di kondisi marginal. (3) <strong>Alarm flood</strong> — saat trip terjadi, puluhan alarm meledak bersama → operator overwhelmed → safety risk. Solusi production-grade: <strong>tier alarm escalation</strong> (Normal → Warning → Alert → Critical), <strong>finite state machine</strong> (FSM dengan memory + transition logic + audit log), dan compliance dengan <strong>ANSI/ISA 18.2 Alarm Management Standard</strong>. Pertemuan 12 fokus pada arsitektur ini — pondasi yang dipakai di setiap kilang minyak, pabrik kimia, pembangkit listrik di dunia. Setelah ini, P13–P14 lanjut ke ML predictive yang complement (bukan replace) rule-based foundation.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Lima Karakteristik Rule-Based Alerting</div>
-    Transparan (auditable) &nbsp;·&nbsp; Deterministik (reproducible) &nbsp;·&nbsp; Real-time (latency &lt; 1 detik) &nbsp;·&nbsp; Compliance-ready (ISO/API) &nbsp;·&nbsp; Compute murah (microcontroller-friendly)
+    <div class="label">Lima Pilar Alarm Management Production-Grade</div>
+    Tier escalation (4-level) &nbsp;·&nbsp; FSM dengan memory &nbsp;·&nbsp; Debouncing N consecutive &nbsp;·&nbsp; Persistence timer &nbsp;·&nbsp; ANSI/ISA 18.2 compliance
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">🔍</div>
-      <h3>Transparan &amp; Auditable</h3>
-      <p>Setiap keputusan alert bisa dijelaskan: "<em>karena rms = 8.2 mm/s &gt; threshold 7.1 mm/s, status = DANGER</em>". Auditor ISO/API hanya butuh review tabel rule. Bandingkan ML black-box (random forest, neural network) yang butuh SHAP/LIME untuk explainability. Untuk industri regulated (nuclear, aviation, medical), rule-based wajib karena <strong style="color:var(--cyan)">root-cause traceability</strong> 100% tanpa ambiguitas.</p>
-      <div class="formula">IF condition THEN action</div>
+      <div class="card-icon">📊</div>
+      <h3>Gradual Escalation: 4-Tier vs Binary</h3>
+      <p>Binary (OK / DANGER) = harsh + reactive. Tier 4-level: <strong>Normal → Warning → Alert → Critical</strong> = gradual + proactive. Tiap tier punya action berbeda: Warning = log + email; Alert = SMS supervisor; Critical = auto-shutdown + page operator. Operator bisa preventive action di Warning/Alert sebelum Critical. Memetakan ke ISO 10816 zona: A=Normal, B=Warning, C=Alert, D=Critical. Adopsi di Pertamina, Pupuk Kaltim, PLN sebagai SLA standard. Operator burnout turun, MTTR turun, false alarm efektif berkurang.</p>
+      <div class="formula">N → W → A → C (gradual)</div>
     </div>
     <div class="card">
-      <div class="card-icon">🎯</div>
-      <h3>Deterministik &amp; Reproducible</h3>
-      <p>Untuk input yang sama, output selalu sama — tidak ada randomness. Berbeda dari ML yang punya noise pelatihan + inference. Konsekuensi positif: bug mudah direproduksi (input X selalu trigger alert; jika tidak, ada bug). Konsekuensi negatif: tidak adaptif terhadap drift (perlu re-tune threshold manual). Modern best practice: <em>rule-based core</em> + <em>ML adaptive layer</em> (Pertemuan 13).</p>
-      <div class="formula">f(x_t) = const → repeatable</div>
+      <div class="card-icon">🧠</div>
+      <h3>FSM = Memory Sistem</h3>
+      <p>Threshold sederhana <em>stateless</em> — tiap sample dievaluasi independen. FSM <em>stateful</em> — ingat: kapan masuk Warning, berapa lama persist, urutan transisi. Ini krusial untuk: (a) <strong>persistence-based escalation</strong> (Warning persist &gt; 5 menit → escalate ke Alert), (b) <strong>auto-recovery dengan grace period</strong> (Alert → Normal hanya kalau persist normal &gt; 1 menit), (c) <strong>audit trail</strong> (timestamp tiap transition untuk post-mortem analysis), (d) <strong>compliance reporting</strong> (durasi total mesin di tier C/D per bulan). Implementasi: 30 baris Python dengan <code>statemachine</code> library.</p>
+      <div class="formula">FSM: state + history + actions</div>
     </div>
     <div class="card">
-      <div class="card-icon">⚡</div>
-      <h3>Real-Time &amp; Edge-Friendly</h3>
-      <p>Threshold check = 1 instruksi CPU (nanodetik). Bisa berjalan di <strong>edge device</strong>: PLC, Raspberry Pi, ESP32, microcontroller 8-bit. Tidak butuh GPU, internet, atau cloud. Latency end-to-end (sensor → alert) &lt; 100 ms. Bandingkan ML inference yang biasanya butuh 10–100 ms hanya untuk forward pass + butuh memory lebih besar. Untuk safety-critical (turbine over-speed), rule-based di hardware-level (ASIC) wajib.</p>
-      <div class="formula">latency &lt; 100 ms (edge)</div>
+      <div class="card-icon">⏳</div>
+      <h3>Debouncing: Filter Noise Transient</h3>
+      <p>Sensor noisy bisa cross threshold sesaat lalu kembali normal. Tanpa debouncing, satu spike → satu alarm → operator confused. Solusi: <strong>require N consecutive samples</strong> di kondisi alert sebelum trigger transition. N=3–5 standar untuk warning, N=1–2 untuk critical (low latency). Trade-off: N besar → robust noise tetapi delay deteksi naik. Pattern dari elektronics (button debouncing 50ms hardware), software equivalent untuk monitoring sensor. Implementasi: counter di-increment kalau kondisi true, reset kalau false. Ketika counter ≥ N, eksekusi transition.</p>
+      <div class="formula">if count ≥ N: transition</div>
     </div>
     <div class="card">
       <div class="card-icon">📜</div>
-      <h3>Compliance-Ready (ISO/API)</h3>
-      <p>Standar industri sudah <em>menetapkan</em> threshold:<br>• <strong>ISO 10816-3</strong>: vibrasi 4 zona (A: good ≤ 1.4 mm/s, B: acceptable, C: unsatisfactory, D: danger ≥ 7.1 mm/s) untuk mesin 15–300 kW.<br>• <strong>API 670</strong>: turbomachinery vibrasi alert 6.4 mm/s, danger 12.7 mm/s.<br>• <strong>ISO 13373-3</strong>: bearing severity (kurtosis, crest factor) thresholds. Compliance audit hanya butuh tunjukkan implementation match standard.</p>
-      <div class="formula">ISO 10816-3 zone A | B | C | D</div>
+      <h3>ANSI/ISA 18.2 — Alarm Management</h3>
+      <p>Standar resmi ISA-18.2 (2009) — wajib di petrochemical, power, pulp&amp;paper. Target: <strong>≤ 1 alarm per 10 menit per operator</strong> di steady state. Lebih = alarm flood = operator overwhelmed = <em>alarm fatigue</em> → ignore alarm penting → safety risk (Texas City BP 2005, 15 fatalities partly due alarm flood). 7 lifecycle phases: identification, rationalization, documentation, implementation, operation, maintenance, monitoring &amp; assessment. EEMUA 191 (UK) ekuivalen. Compliance audit cek alarm rate, response time, dan rationalization document.</p>
+      <div class="formula">≤ 1 alarm / 10 min</div>
     </div>
   </div>
 
   <div class="info-box reveal">
     <strong>Posisi Pertemuan 12 dalam Alur Mata Kuliah:</strong><br>
-    <strong>P1–P7</strong> (analisis sinyal: RMS, peak, FFT, kurtosis, MFCC) → <strong>UTS</strong> → <strong>P9</strong> (LP) → <strong>P10</strong> (NLP) → <strong>P11</strong> (ANOVA) → <strong>P12 (Anda di sini — Otomatisasi Monitoring Rule-Based)</strong> → <strong>P13</strong> (Otomatisasi Predictive ML) → <strong>P14–P15</strong> (Proyek akhir). Rule-based menyatukan ekstraksi fitur (P1–P7) dengan keputusan otomasi: feature → threshold → alert. Ini <em>baseline</em> sebelum P13 (ML predictive) — selalu mulai rule-based, baru upgrade jika perlu.
+    <strong>P1–P7</strong> (signal: RMS, FFT, kurtosis) → <strong>UTS</strong> → <strong>P8</strong> (LP) → <strong>P9</strong> (NLP) → <strong>P10</strong> (Metaheuristik) → <strong>P11</strong> (Monitoring Part 1: Sensor + ISO + Threshold + Hysteresis) → <strong>P12 (Anda di sini — Monitoring Part 2: Tier Alarm + FSM + ANSI/ISA 18.2)</strong> → <strong>P13</strong> (ML Part 1: Supervised + LogReg) → <strong>P14</strong> (ML Part 2: RF + SVM + Hyperparameter). P12 melengkapi rule-based monitoring jadi <em>production-grade</em> dengan tier alarm escalation, FSM transition logic, debouncing, persistence timer, dan compliance ANSI/ISA 18.2. Setelah ini, P13–P14 upgrade ke ML predictive untuk handle pattern multi-feature kompleks yang rule-based tidak bisa.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Prinsip Utama:</strong> Sebelum bangun rule-based system: (1) <em>Definisikan threshold dengan referensi</em> (ISO/API/datasheet vendor) — jangan tebak. (2) <em>Pakai hysteresis</em> untuk hindari chattering saat sinyal di sekitar threshold. (3) <em>Tier alarm</em> (warning &lt; alert &lt; critical) untuk gradual escalation, bukan binary OK/FAIL. (4) <em>Debounce</em> (N consecutive samples) filter false alarm dari noise transient. (5) <em>Log semua transition state</em> untuk audit + trend analysis. (6) <em>Test edge cases</em>: sinyal exactly = threshold (boundary), sinyal naik-turun cepat (chattering test), sinyal mati total (sensor failure). (7) Setelah operasional, <em>monitor false-positive rate</em> dan <em>missed-detection rate</em>; tune threshold jika ada drift sistematik.
+    💡 <strong>Best Practice Alarm Management:</strong> (1) <em>Mulai dengan rationalization</em> — review semua alarm: apakah actionable? Apakah unique? Apakah priority benar? Hapus duplikat &amp; non-actionable. (2) <em>Tier dengan jelas</em> — operator harus tahu di Warning vs Alert vs Critical, action berbeda. (3) <em>Alarm rate target</em>: ≤ 1/10 min steady, ≤ 10/10 min post-disturbance. Kalau lebih = ada masalah. (4) <em>Time-based escalation</em> — Warning persist &gt; 5 menit → auto-escalate ke Alert. (5) <em>Alarm shelving</em> — operator boleh silence specific alarm untuk window terbatas (1–8 jam, mis. selama known maintenance). Otomatis re-enable. (6) <em>Suppression rules</em> — kalau parent alarm trigger (mis. "low oil pressure"), suppress child alarm yang correlated (mis. "high bearing temperature"). (7) <em>Periodic alarm rate review</em> — bulanan/quarterly. Alarm yang trigger > 100×/tahun tanpa actionable harus dihapus atau di-tune. (8) <em>Operator training</em> — alarm management hanya bekerja kalau operator paham filosofi tier escalation.
   </div>
 </div>
 
