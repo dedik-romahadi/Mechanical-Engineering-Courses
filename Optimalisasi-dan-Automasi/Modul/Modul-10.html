@@ -1558,82 +1558,76 @@ ax.<span class="fn">legend</span>(); ax.<span class="fn">grid</span>(alpha=<span
   <div class="code-wrap reveal">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 3 — KKT &amp; Lagrangian: Tangki Silinder Volume Tetap (Analytic + Numeric)</span>
+      <span class="code-label">Cell 3 — DE Engineering: Spring Weight Optimization dengan 4 Nonlinear Constraints</span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
-    <pre><span class="kw">from</span> scipy.optimize <span class="kw">import</span> minimize, NonlinearConstraint
-<span class="kw">import</span> sympy <span class="kw">as</span> sp
+    <pre><span class="kw">from</span> scipy.optimize <span class="kw">import</span> differential_evolution
+
+np.random.<span class="fn">seed</span>(<span class="nm">42</span>)
 
 <span class="cm"># ═══════════════════════════════════════════════════════════════════</span>
-<span class="cm"># PROBLEM: Tangki silinder volume V₀ = 1 m³</span>
-<span class="cm">#   min  f = 2πR² + 2πRH  (luas permukaan = bahan plat)</span>
-<span class="cm">#   s.t. h(R,H) = πR²H − V₀ = 0</span>
-<span class="cm">#</span>
-<span class="cm"># Solusi via KKT/Lagrangian (analytic — Sympy)</span>
+<span class="cm"># BENCHMARK PROBLEM: Spring Weight Minimization (Arora 2004)</span>
+<span class="cm"># Klasik test problem untuk metaheuristik di engineering optimization.</span>
+<span class="cm"># Variabel: x = (d, D, N) — wire diam, mean coil diam, jumlah lilitan</span>
+<span class="cm"># Objektif: f(x) = (N+2)·D·d²  (proporsional dengan weight)</span>
+<span class="cm"># 4 nonlinear constraints (penalty handling karena DE tidak native support)</span>
 <span class="cm"># ═══════════════════════════════════════════════════════════════════</span>
 
-R, H, lam = sp.<span class="fn">symbols</span>(<span class="st">'R H lam'</span>, positive=<span class="kw">True</span>)
-V0 = <span class="nm">1.0</span>                              <span class="cm"># 1 m³</span>
+<span class="kw">def</span> <span class="fn">spring_weight</span>(x):
+    d, D, N = x
+    <span class="cm"># Objektif: weight (proporsional)</span>
+    f = (N + <span class="nm">2</span>) * D * d**<span class="nm">2</span>
 
-f_sym = <span class="nm">2</span>*sp.pi*R**<span class="nm">2</span> + <span class="nm">2</span>*sp.pi*R*H
-h_sym = sp.pi*R**<span class="nm">2</span>*H - V0
-L_sym = f_sym + lam*h_sym
+    <span class="cm"># Nonlinear constraints (semua harus ≤ 0 untuk feasible)</span>
+    g1 = <span class="nm">1</span> - (D**<span class="nm">3</span> * N) / (<span class="nm">71785</span> * d**<span class="nm">4</span>)                                <span class="cm"># shear stress</span>
+    g2 = (<span class="nm">4</span>*D**<span class="nm">2</span> - d*D) / (<span class="nm">12566</span> * (D*d**<span class="nm">3</span> - d**<span class="nm">4</span>)) + <span class="nm">1</span>/(<span class="nm">5108</span>*d**<span class="nm">2</span>) - <span class="nm">1</span>      <span class="cm"># surge frequency</span>
+    g3 = <span class="nm">1</span> - <span class="nm">140.45</span>*d / (D**<span class="nm">2</span> * N)                                  <span class="cm"># deflection limit</span>
+    g4 = (D + d)/<span class="nm">1.5</span> - <span class="nm">1</span>                                              <span class="cm"># diameter limit</span>
 
-<span class="cm"># Stationarity conditions (KKT)</span>
-dL_dR = sp.<span class="fn">diff</span>(L_sym, R)
-dL_dH = sp.<span class="fn">diff</span>(L_sym, H)
+    <span class="cm"># Penalty function: tambah hukuman besar untuk constraint violation</span>
+    penalty = <span class="nm">0</span>
+    <span class="kw">for</span> g <span class="kw">in</span> [g1, g2, g3, g4]:
+        <span class="kw">if</span> g &gt; <span class="nm">0</span>:
+            penalty += <span class="nm">1e6</span> * g**<span class="nm">2</span>
 
-<span class="fn">print</span>(<span class="st">"Lagrangian L(R,H,λ) = f + λ·h"</span>)
-<span class="fn">print</span>(<span class="st">f"  ∂L/∂R = {dL_dR}"</span>)
-<span class="fn">print</span>(<span class="st">f"  ∂L/∂H = {dL_dH}"</span>)
-<span class="fn">print</span>(<span class="st">f"  h(R,H) = {h_sym}"</span>)
+    <span class="kw">return</span> f + penalty
 
-<span class="cm"># Solve sistem KKT</span>
-sol = sp.<span class="fn">solve</span>([dL_dR, dL_dH, h_sym], [R, H, lam], dict=<span class="kw">True</span>)
-sol_real = [s <span class="kw">for</span> s <span class="kw">in</span> sol <span class="kw">if</span> s[R].is_real <span class="kw">and</span> s[R] &gt; <span class="nm">0</span>][<span class="nm">0</span>]
-R_a, H_a, lam_a = <span class="fn">float</span>(sol_real[R]), <span class="fn">float</span>(sol_real[H]), <span class="fn">float</span>(sol_real[lam])
+<span class="cm"># Bounds (dari paper Arora)</span>
+bounds = [(<span class="nm">0.05</span>, <span class="nm">2.0</span>),     <span class="cm"># d ∈ [0.05, 2.0]</span>
+          (<span class="nm">0.25</span>, <span class="nm">1.3</span>),     <span class="cm"># D ∈ [0.25, 1.3]</span>
+          (<span class="nm">2.0</span>, <span class="nm">15.0</span>)]    <span class="cm"># N ∈ [2, 15]</span>
 
-<span class="fn">print</span>(<span class="st">f"\n═══ SOLUSI ANALITIK (KKT) ═══"</span>)
-<span class="fn">print</span>(<span class="st">f"  R* = {R_a:.4f} m"</span>)
-<span class="fn">print</span>(<span class="st">f"  H* = {H_a:.4f} m"</span>)
-<span class="fn">print</span>(<span class="st">f"  Rasio H/R = {H_a/R_a:.4f}  (teori: H = 2R)"</span>)
-<span class="fn">print</span>(<span class="st">f"  λ* = {lam_a:.4f}  (shadow price terhadap V₀)"</span>)
-<span class="fn">print</span>(<span class="st">f"  Luas permukaan minimum = {<span class="nm">2</span>*np.pi*R_a**<span class="nm">2</span> + <span class="nm">2</span>*np.pi*R_a*H_a:.4f} m²"</span>)
+<span class="cm"># Run DE</span>
+res = <span class="fn">differential_evolution</span>(
+    spring_weight, bounds,
+    maxiter=<span class="nm">300</span>, popsize=<span class="nm">20</span>, tol=<span class="nm">1e-8</span>,
+    mutation=(<span class="nm">0.5</span>, <span class="nm">1.0</span>), recombination=<span class="nm">0.7</span>,
+    seed=<span class="nm">42</span>, polish=<span class="kw">True</span>
+)
 
-<span class="cm"># Verifikasi via scipy SLSQP</span>
-<span class="kw">def</span> <span class="fn">f_num</span>(x):
-    <span class="kw">return</span> <span class="nm">2</span>*np.pi*x[<span class="nm">0</span>]**<span class="nm">2</span> + <span class="nm">2</span>*np.pi*x[<span class="nm">0</span>]*x[<span class="nm">1</span>]
+d_opt, D_opt, N_opt = res.x
+<span class="fn">print</span>(<span class="st">f"═══ DESAIN OPTIMAL SPRING (DE) ═══"</span>)
+<span class="fn">print</span>(<span class="st">f"  d (wire diameter) = {d_opt:.6f}"</span>)
+<span class="fn">print</span>(<span class="st">f"  D (mean coil diam)= {D_opt:.6f}"</span>)
+<span class="fn">print</span>(<span class="st">f"  N (jumlah lilitan)= {N_opt:.6f}"</span>)
+<span class="fn">print</span>(<span class="st">f"  Weight (objective)= {res.fun:.6f}"</span>)
 
-<span class="kw">def</span> <span class="fn">h_num</span>(x):
-    <span class="kw">return</span> np.pi*x[<span class="nm">0</span>]**<span class="nm">2</span>*x[<span class="nm">1</span>] - V0
+<span class="cm"># Cek constraint values</span>
+g1 = <span class="nm">1</span> - (D_opt**<span class="nm">3</span> * N_opt) / (<span class="nm">71785</span> * d_opt**<span class="nm">4</span>)
+g2 = (<span class="nm">4</span>*D_opt**<span class="nm">2</span> - d_opt*D_opt) / (<span class="nm">12566</span> * (D_opt*d_opt**<span class="nm">3</span> - d_opt**<span class="nm">4</span>)) + <span class="nm">1</span>/(<span class="nm">5108</span>*d_opt**<span class="nm">2</span>) - <span class="nm">1</span>
+g3 = <span class="nm">1</span> - <span class="nm">140.45</span>*d_opt / (D_opt**<span class="nm">2</span> * N_opt)
+g4 = (D_opt + d_opt)/<span class="nm">1.5</span> - <span class="nm">1</span>
 
-con = {<span class="st">'type'</span>: <span class="st">'eq'</span>, <span class="st">'fun'</span>: h_num}
-res = <span class="fn">minimize</span>(f_num, x0=[<span class="nm">0.5</span>, <span class="nm">1.0</span>], method=<span class="st">'SLSQP'</span>,
-               constraints=[con], bounds=[(<span class="nm">0.01</span>, <span class="nm">5</span>), (<span class="nm">0.01</span>, <span class="nm">10</span>)])
+<span class="fn">print</span>(<span class="st">f"\n═══ CONSTRAINT VIOLATIONS (semua harus ≤ 0) ═══"</span>)
+<span class="fn">print</span>(<span class="st">f"  g1 (shear stress)   = {g1:+.6f}  [{'OK' if g1≤=0 else 'VIOLATED'}]"</span>)
+<span class="fn">print</span>(<span class="st">f"  g2 (surge freq)     = {g2:+.6f}  [{'OK' if g2≤=0 else 'VIOLATED'}]"</span>)
+<span class="fn">print</span>(<span class="st">f"  g3 (deflection)     = {g3:+.6f}  [{'OK' if g3≤=0 else 'VIOLATED'}]"</span>)
+<span class="fn">print</span>(<span class="st">f"  g4 (diameter limit) = {g4:+.6f}  [{'OK' if g4≤=0 else 'VIOLATED'}]"</span>)
 
-<span class="fn">print</span>(<span class="st">f"\n═══ VERIFIKASI NUMERIK (SLSQP) ═══"</span>)
-<span class="fn">print</span>(<span class="st">f"  R = {res.x[<span class="nm">0</span>]:.4f}, H = {res.x[<span class="nm">1</span>]:.4f}"</span>)
-<span class="fn">print</span>(<span class="st">f"  Selisih dari analytic: {abs(res.x[<span class="nm">0</span>] - R_a):.6f}, {abs(res.x[<span class="nm">1</span>] - H_a):.6f}"</span>)
-<span class="fn">print</span>(<span class="st">f"  Constraint violation: {abs(h_num(res.x)):.2e}"</span>)
-<span class="fn">print</span>(<span class="st">f"  Status: {res.message}"</span>)
-
-<span class="cm"># Plot fungsi objektif vs constraint</span>
-RR, HH = np.<span class="fn">meshgrid</span>(np.<span class="fn">linspace</span>(<span class="nm">0.2</span>, <span class="nm">1.5</span>, <span class="nm">100</span>), np.<span class="fn">linspace</span>(<span class="nm">0.2</span>, <span class="nm">3</span>, <span class="nm">100</span>))
-ZZ = <span class="nm">2</span>*np.pi*RR**<span class="nm">2</span> + <span class="nm">2</span>*np.pi*RR*HH
-fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="nm">9</span>, <span class="nm">7</span>))
-cs = ax.<span class="fn">contour</span>(RR, HH, ZZ, levels=<span class="nm">15</span>, colors=<span class="st">'#94a3b8'</span>, linewidths=<span class="nm">0.6</span>)
-ax.<span class="fn">clabel</span>(cs, inline=<span class="kw">True</span>, fontsize=<span class="nm">8</span>)
-
-<span class="cm"># Constraint h(R,H) = 0 → H = V₀/(πR²)</span>
-R_lin = np.<span class="fn">linspace</span>(<span class="nm">0.3</span>, <span class="nm">1.5</span>, <span class="nm">100</span>)
-H_lin = V0 / (np.pi * R_lin**<span class="nm">2</span>)
-ax.<span class="fn">plot</span>(R_lin, H_lin, <span class="st">'-'</span>, color=<span class="st">'#ef4444'</span>, lw=<span class="nm">2</span>, label=<span class="st">f'h(R,H)=0: V=V₀={V0} m³'</span>)
-ax.<span class="fn">plot</span>(R_a, H_a, <span class="st">'*'</span>, color=<span class="st">'#fbbf24'</span>, ms=<span class="nm">22</span>, mec=<span class="st">'#000'</span>, mew=<span class="nm">1</span>, label=<span class="st">f'OPTIMAL ({R_a:.3f}, {H_a:.3f})'</span>, zorder=<span class="nm">5</span>)
-ax.<span class="fn">set_xlabel</span>(<span class="st">'R (m)'</span>); ax.<span class="fn">set_ylabel</span>(<span class="st">'H (m)'</span>)
-ax.<span class="fn">set_title</span>(<span class="st">'Constrained NLP: Min Surface Area s.t. Volume = 1 m³'</span>)
-ax.<span class="fn">legend</span>(); ax.<span class="fn">grid</span>(alpha=<span class="nm">0.25</span>); ax.<span class="fn">set_xlim</span>(<span class="nm">0.2</span>, <span class="nm">1.5</span>); ax.<span class="fn">set_ylim</span>(<span class="nm">0.2</span>, <span class="nm">3</span>)
-plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
+<span class="cm"># Reference best known solution: weight ≈ 0.012665 (Arora 2004)</span>
+<span class="fn">print</span>(<span class="st">f"\n  Reference (Arora 2004) best weight ≈ 0.012665"</span>)
+<span class="fn">print</span>(<span class="st">f"  Selisih dari best known: {abs(res.fun - 0.012665):.6f}"</span>)</pre>
   </div>
 
   <!-- Cell 4 -->
