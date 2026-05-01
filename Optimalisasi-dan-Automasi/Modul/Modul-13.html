@@ -1075,88 +1075,81 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 04 — STATE MACHINE & DEBOUNCING ═══ -->
+<!-- ═══ BAGIAN 04 — DELIVERABLES ═══ -->
 <hr class="divider">
 <div class="section" id="m-resonashi">
   <div class="section-label reveal">Bagian 04</div>
-  <h2 class="section-title reveal">Evaluasi Model:<br>Confusion Matrix, F1-Score, ROC-AUC &amp; Cross-Validation</h2>
-  <p class="section-desc reveal">Setelah model di-fit, pertanyaan kritis: <strong>seberapa bagus performance-nya?</strong> Bukan cuma accuracy — banyak metrik penting tergantung use case. <em>Confusion matrix</em> menunjukkan TP/FP/TN/FN. <em>Precision</em> = "dari yang di-predict fault, berapa benar?" — relevan untuk minimize false alarm. <em>Recall</em> = "dari semua fault sebenarnya, berapa kena?" — relevan untuk safety (jangan miss fault). <em>F1</em> = harmonic mean (balance). <em>ROC-AUC</em> = threshold-independent performance summary. Plus <strong>cross-validation</strong> untuk estimate true generalization (single train/test split bisa lucky/unlucky). Pakai <em>k-fold CV</em> (typically k=5 atau 10) sebagai gold standard. <em>Stratified k-fold</em> untuk imbalanced class.</p>
+  <h2 class="section-title reveal">Deliverables Proyek Akhir:<br>Apa yang Harus Anda Submit</h2>
+  <p class="section-desc reveal">Proyek akhir dinilai berdasarkan <em>artifact yang Anda submit</em>, bukan hanya kode di laptop Anda. Format submission: <strong>satu folder Google Drive</strong> berisi 4 deliverable wajib + 1 opsional. Folder harus accessible (Anyone with link), dengan struktur jelas. <em>Tip strategis</em>: deliverable bukan untuk "lulus formality" — ini bukti kompetensi engineering. Reviewer (dosen + nanti recruiter Anda) akan baca laporan + run notebook → judge ability. Jadi kualitas presentasi sama pentingnya dengan kualitas teknis. Estimasi waktu: notebook (40%), laporan (30%), dataset preparation (20%), video demo opsional (10%).</p>
 
   <div class="formula-block reveal">
-    <div class="label">Enam Konsep Inti Evaluasi Model</div>
-    Confusion matrix (TP/FP/TN/FN) &nbsp;·&nbsp; Precision, Recall, F1 &nbsp;·&nbsp; ROC curve &amp; AUC &nbsp;·&nbsp; Cross-validation (k-fold) &nbsp;·&nbsp; Imbalanced class handling &nbsp;·&nbsp; Overfit detection
+    <div class="label">Empat Deliverable Wajib + Satu Opsional</div>
+    Notebook .ipynb &nbsp;·&nbsp; Laporan PDF &nbsp;·&nbsp; Dataset &amp; README &nbsp;·&nbsp; requirements.txt &nbsp;·&nbsp; (Streamlit dashboard — bonus)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">📊</div>
-      <h3>Confusion Matrix (2×2 Binary)</h3>
-      <p>Matriks 2×2 untuk binary classification: <strong>TP</strong> (predict fault, actual fault) — correct alarm; <strong>FP</strong> (predict fault, actual healthy) — false alarm; <strong>TN</strong> (predict healthy, actual healthy) — correct normal; <strong>FN</strong> (predict healthy, actual fault) — <em>missed fault</em> = paling berbahaya untuk safety. Untuk multi-class (k=4): k×k matrix. Code: <code>from sklearn.metrics import confusion_matrix; cm = confusion_matrix(y_test, y_pred)</code>. Visualisasi: <code>seaborn.heatmap(cm, annot=True)</code>. Insight engineering: <em>FN cost &gt;&gt; FP cost</em> — biasanya prefer recall tinggi.</p>
-      <div class="formula">[[TN, FP], [FN, TP]]</div>
+      <div class="card-icon">📓</div>
+      <h3>D1 — Jupyter Notebook (.ipynb)</h3>
+      <p>File <code>final_project.ipynb</code> dengan <strong>output ter-render</strong> (jangan kosong — runtuk dulu sebelum submit). Strukturkan dengan <strong>markdown cell</strong> sebagai narrative: (1) Judul + nama + NIM + tanggal. (2) Problem statement. (3) Data exploration (info, describe, missing check, distribution plot). (4) Preprocessing &amp; feature engineering (with code + comment). (5) Model training (multiple algorithms compared). (6) Evaluation (confusion matrix heatmap, ROC curve, classification report). (7) Discussion + conclusion. <strong>Wajib</strong>: <code>random_state=42</code>, semua plot dengan title + axis label, code clean (no commented-out garbage).</p>
+      <div class="formula">final_project.ipynb (rendered)</div>
     </div>
     <div class="card">
-      <div class="card-icon">📏</div>
-      <h3>Precision, Recall, F1-Score</h3>
-      <p><strong>Precision</strong> = <code>TP / (TP + FP)</code> — dari yang di-flag fault, berapa benar? Tinggi = sedikit false alarm. <strong>Recall (Sensitivity)</strong> = <code>TP / (TP + FN)</code> — dari semua fault, berapa terdeteksi? Tinggi = sedikit miss. <strong>F1</strong> = <code>2·P·R / (P+R)</code> — harmonic mean, single metric balance. Untuk safety-critical: prioritize <em>recall</em> (jangan miss fault); untuk operator-friendly: prioritize <em>precision</em> (jangan banyak false alarm). API: <code>precision_score, recall_score, f1_score</code> dari <code>sklearn.metrics</code>.</p>
-      <div class="formula">F1 = 2PR/(P+R)</div>
+      <div class="card-icon">📄</div>
+      <h3>D2 — Laporan PDF (5–10 halaman)</h3>
+      <p>Format akademik: cover (judul, nama, NIM, dosen, prodi, tanggal). Sections: <strong>(1) Abstract</strong> (150 kata: problem, method, result). <strong>(2) Pendahuluan</strong> (latar belakang + tujuan). <strong>(3) Dataset &amp; Metodologi</strong> (sumber data + pipeline architecture diagram). <strong>(4) Hasil &amp; Pembahasan</strong> (figures + tabel + analisis). <strong>(5) Kesimpulan &amp; Saran</strong>. <strong>(6) Daftar Pustaka</strong> (IEEE format). Tools: Word/LaTeX/Google Docs → export PDF. Sertakan <strong>minimal 3 figures</strong> (confusion matrix, ROC curve, feature importance, atau training curve). Tabel results dengan angka konkret.</p>
+      <div class="formula">laporan.pdf (5–10 hal)</div>
     </div>
     <div class="card">
-      <div class="card-icon">📈</div>
-      <h3>ROC Curve &amp; AUC</h3>
-      <p><strong>ROC</strong> (Receiver Operating Characteristic) plot: TPR (recall) vs FPR (false positive rate) untuk semua threshold. Kurva mendekati pojok kiri-atas = model excellent. <strong>AUC</strong> (Area Under Curve) = single number 0–1 summary. AUC = 0.5 random; AUC = 1.0 perfect; AUC ≥ 0.9 excellent; AUC 0.7–0.9 good; AUC &lt; 0.6 poor. Threshold-independent — bandingkan model dengan satu metrik. API: <code>from sklearn.metrics import roc_curve, roc_auc_score; auc = roc_auc_score(y_test, y_proba)</code>. Plot: <code>fpr, tpr, _ = roc_curve(y_test, y_proba); plt.plot(fpr, tpr)</code>.</p>
-      <div class="formula">AUC ≥ 0.9 = excellent</div>
+      <div class="card-icon">💾</div>
+      <h3>D3 — Dataset + README</h3>
+      <p>Folder <code>data/</code> dengan dataset (atau link Drive kalau &gt; 100 MB). Plus <strong>README.md</strong> jelaskan: (a) Sumber data (URL atau "self-collected"). (b) Schema kolom (nama + tipe + meaning). (c) Ukuran (sample count, kelas distribution). (d) Cara loading (pandas snippet). Kalau pakai dataset publik: include citation. Kalau self-collected: dokumentasikan setup (sensor, sampling rate, kondisi). <strong>Reproducibility</strong> = tetangga lab Anda bisa load data dengan instruksi README.</p>
+      <div class="formula">data/ + README.md</div>
     </div>
     <div class="card">
-      <div class="card-icon">🔄</div>
-      <h3>k-Fold Cross-Validation</h3>
-      <p>Single train/test split bisa lucky atau unlucky — variance estimate accuracy tinggi. Solusi: <strong>k-fold CV</strong> — split data ke k bagian, train di k-1, test di 1, ulangi k kali. Hasil: <em>mean ± std</em> dari k metrics. Standar k=5 atau 10. <strong>Stratified k-fold</strong> untuk imbalanced (proporsi class di tiap fold sama). API: <code>from sklearn.model_selection import cross_val_score; scores = cross_val_score(model, X, y, cv=5, scoring='f1_macro'); print(f"{scores.mean():.3f} ± {scores.std():.3f}")</code>. Pakai untuk: model selection, hyperparameter tuning, performance estimate.</p>
-      <div class="formula">CV: mean ± std over k folds</div>
+      <div class="card-icon">📦</div>
+      <h3>D4 — requirements.txt</h3>
+      <p>File text dengan <strong>pinned versions</strong> semua library yang dipakai. Generate via: <code>pip freeze &gt; requirements.txt</code> atau buat manual. Contoh isi:<br><code>numpy==1.26.4</code><br><code>pandas==2.1.4</code><br><code>scikit-learn==1.4.0</code><br><code>matplotlib==3.8.2</code><br><code>seaborn==0.13.1</code><br><code>scipy==1.12.0</code><br><code>jupyter==1.0.0</code><br><strong>Wajib</strong> pinned version (bukan <code>numpy</code> saja) — supaya orang lain reproduce hasil yang sama. Plus instruksi install di README: <code>pip install -r requirements.txt</code>.</p>
+      <div class="formula">requirements.txt (pinned)</div>
     </div>
     <div class="card">
-      <div class="card-icon">⚖️</div>
-      <h3>Imbalanced Class Handling</h3>
-      <p>Predictive maintenance sering imbalanced: 1% fault, 99% healthy. Naive accuracy = 99% kalau predict semua "healthy" — useless. Solusi: (1) <strong>Class weighting</strong>: <code>RandomForestClassifier(class_weight='balanced')</code> — weight inverse proporsional class frequency. (2) <strong>Resampling</strong>: SMOTE (oversample minority), undersample majority — pakai <code>imblearn</code> library. (3) <strong>Metrics</strong>: jangan accuracy; pakai precision-recall-F1 (per class), macro-F1, ROC-AUC, atau PR-AUC (lebih robust untuk severe imbalance). (4) <strong>Custom threshold</strong>: dari predict_proba, set threshold optimal berdasarkan business cost FP vs FN.</p>
-      <div class="formula">class_weight='balanced'</div>
+      <div class="card-icon">🌐</div>
+      <h3>D5 (Bonus) — Streamlit Dashboard</h3>
+      <p>OPSIONAL — beri bonus 5 poin extra credit. Build interactive web app dengan Streamlit: upload CSV → run inference → display result. Template starter: <code>import streamlit as st; uploaded = st.file_uploader("Upload data"); if uploaded: df = pd.read_csv(uploaded); model = joblib.load('model.pkl'); pred = model.predict(df); st.dataframe(pred)</code>. Run: <code>streamlit run app.py</code>. Deploy ke <strong>Streamlit Cloud</strong> (free): connect ke GitHub repo → auto-deploy. URL public bisa di-share. Bukti kemampuan deployment = competitive advantage di interview.</p>
+      <div class="formula">streamlit run app.py</div>
     </div>
     <div class="card">
-      <div class="card-icon">🚨</div>
-      <h3>Overfit Detection</h3>
-      <p><strong>Overfit</strong> = train accuracy &gt;&gt; test accuracy. Misalnya: train 99%, test 75% → memorize, tidak generalize. <strong>Diagnostik</strong>: (1) Compare train vs test score; gap besar = overfit. (2) <em>Learning curve</em>: plot accuracy vs training set size. Gap melebar = overfit; gap mengecil dengan data lebih = lack of data. (3) Validation curve: plot accuracy vs hyperparameter complexity (max_depth, C). <strong>Mitigasi</strong>: regularize (smaller max_depth, larger min_samples_leaf, smaller C), more data, simpler model, ensemble (RF averaging reduce overfit), early stopping (XGBoost). API: <code>sklearn.model_selection.learning_curve, validation_curve</code>.</p>
-      <div class="formula">train_acc &gt;&gt; test_acc → overfit</div>
+      <div class="card-icon">🎬</div>
+      <h3>D6 (Bonus) — Video Demo (3–5 menit)</h3>
+      <p>OPSIONAL — beri bonus 3 poin extra credit. Screen recording demo project: jalankan notebook end-to-end, tunjukkan output, narasikan apa yang dilakukan. Tools: OBS Studio (free), Loom (free 5 min), atau Zoom record. <strong>Struktur</strong>: (1) Intro 30 detik (saya siapa, problem apa). (2) Pipeline walkthrough 2 menit (run cells, show output). (3) Discussion 1 menit (apa yang bekerja, lessons learned). (4) Closing 30 detik (future improvement). Upload ke YouTube unlisted atau Google Drive. Format praktik untuk presentation skill — soft skill kritis di industri.</p>
+      <div class="formula">video.mp4 (unlisted)</div>
     </div>
   </div>
 
   <div class="tbl-wrap reveal" style="margin:32px 0">
     <table class="data-table">
-      <thead><tr><th>Metric</th><th>Formula</th><th>Range</th><th>Use Case</th></tr></thead>
+      <thead><tr><th>Deliverable</th><th>Format</th><th>Wajib?</th><th>Estimasi Waktu</th><th>Bobot Penilaian</th></tr></thead>
       <tbody>
-        <tr><td style="color:var(--cyan)">Accuracy</td><td>(TP+TN) / N</td><td>0–1</td><td>Balanced classes only</td></tr>
-        <tr><td style="color:var(--green)">Precision</td><td>TP / (TP+FP)</td><td>0–1</td><td>Minimize false alarm</td></tr>
-        <tr><td style="color:var(--amber)">Recall</td><td>TP / (TP+FN)</td><td>0–1</td><td>Minimize missed fault</td></tr>
-        <tr><td style="color:var(--violet)">F1-score</td><td>2·P·R / (P+R)</td><td>0–1</td><td>Balanced P/R, imbalanced data</td></tr>
-        <tr><td style="color:var(--pink)">ROC-AUC</td><td>area under ROC curve</td><td>0.5–1</td><td>Threshold-independent</td></tr>
-        <tr><td style="color:var(--cyan)">PR-AUC</td><td>area under PR curve</td><td>0–1</td><td>Severe imbalance</td></tr>
+        <tr><td style="color:var(--cyan)">D1. Notebook</td><td>.ipynb</td><td>Ya</td><td>15–25 jam</td><td>40%</td></tr>
+        <tr><td style="color:var(--green)">D2. Laporan</td><td>.pdf</td><td>Ya</td><td>5–8 jam</td><td>30%</td></tr>
+        <tr><td style="color:var(--amber)">D3. Dataset + README</td><td>folder + .md</td><td>Ya</td><td>2–4 jam</td><td>15%</td></tr>
+        <tr><td style="color:var(--violet)">D4. requirements.txt</td><td>.txt</td><td>Ya</td><td>10 menit</td><td>5%</td></tr>
+        <tr><td style="color:var(--pink)">D5. Streamlit dashboard</td><td>.py + Cloud URL</td><td>Bonus +5</td><td>3–5 jam</td><td>+5 pt extra</td></tr>
+        <tr><td style="color:var(--cyan)">D6. Video demo</td><td>.mp4 / YouTube link</td><td>Bonus +3</td><td>1–2 jam</td><td>+3 pt extra</td></tr>
       </tbody>
     </table>
   </div>
 
   <div class="info-box reveal">
-    <strong>Contoh Konkret — Bearing Fault (Imbalanced 5% positive):</strong><br>
-    Dataset: 9500 healthy + 500 fault (5% positive). Naive predict-all-healthy: accuracy 95%, recall 0% — useless. Random Forest dengan <code>class_weight='balanced'</code>:<br>
-    • Confusion matrix: [[9300, 200], [50, 450]] (TN=9300, FP=200, FN=50, TP=450)<br>
-    • Precision = 450/(450+200) = <strong>0.69</strong><br>
-    • Recall = 450/(450+50) = <strong>0.90</strong> — catch 90% fault<br>
-    • F1 = 2·0.69·0.90 / (0.69+0.90) = <strong>0.78</strong><br>
-    • Accuracy = 9750/10000 = 97.5% — meningkat dari naive tetapi BUKAN metrik utama<br>
-    • ROC-AUC = 0.96 — excellent<br>
-    Engineering decision: 50 missed fault (10%) costly — naikkan recall via threshold rendah (e.g. predict_proba &gt; 0.3 instead of 0.5), accept lebih banyak false alarm.
+    <strong>Submission Format — Google Drive Folder:</strong><br>
+    Buat satu folder Google Drive (<em>Anyone with link</em>): <code>FinalProject_Nama_NIM/</code>. Isi dengan: (1) <code>final_project.ipynb</code>, (2) <code>laporan.pdf</code>, (3) <code>data/</code> (atau link kalau besar), (4) <code>requirements.txt</code>, (5) <code>README.md</code>, (6) opsional <code>streamlit_app.py</code> + URL deployed, (7) opsional <code>video_demo.mp4</code> atau YouTube link. <strong>Submit link folder Drive ke Fast Learning LMS</strong> di tab Tugas Pertemuan 14, paling lambat sesuai countdown deadline. Late submission: -10% per hari (max 3 hari, lebih dari itu nilai 0).
   </div>
 
   <div class="warn-box reveal">
     <div class="warn-icon">⚠️</div>
     <div>
-      <h4>Trap Evaluasi yang Sering Diabaikan</h4>
-      <p>(1) <strong>Accuracy untuk imbalanced</strong> — 99% accuracy bisa berarti naive predictor; pakai F1, AUC. (2) <strong>Single train/test split</strong> — variance tinggi. Pakai 5-fold CV untuk estimasi reliable. (3) <strong>Data leakage</strong> — feature scaling/imputation yang fit di full data sebelum split → contaminate test set. <strong>Wajib pakai Pipeline</strong> dengan fit hanya di train. (4) <strong>Test set re-used</strong> — pakai test set berkali-kali untuk select model = overfit ke test set ("test set leakage"). Solusi: train/val/test 60/20/20; tune di val, evaluate sekali di test (reserved). (5) <strong>Mismatched train/deploy distribution</strong> — train data dari mesin sehat di lab, deploy di mesin lapangan dengan kondisi berbeda. Concept drift. Re-train periodik wajib. (6) <strong>Threshold default 0.5</strong> — tidak optimal untuk imbalanced atau cost-sensitive. Plot precision-recall curve, pick threshold optimal. (7) <strong>Compare di metric salah</strong> — misalnya report "accuracy 95%" di paper tetapi tidak mention class balance — misleading. Selalu report multi-metric.</p>
+      <h4>Common Mistakes — Hindari Ini!</h4>
+      <p>(1) <strong>Submit notebook tanpa output ter-render</strong> — reviewer lihat cell kosong, asumsikan tidak jalan, otomatis 0 untuk bagian itu. <strong>Wajib</strong> Restart &amp; Run All sebelum save + submit. (2) <strong>Laporan = print notebook</strong> — laporan punya format akademik beda; bukan dump cell. (3) <strong>Hardcoded path</strong> — <code>/Users/myname/Downloads/data.csv</code> tidak akan jalan di komputer reviewer. Pakai relative path: <code>./data/file.csv</code>. (4) <strong>Pakai library obscure tanpa requirements.txt</strong> — reviewer install fail = 0 poin reproducibility. (5) <strong>Plot tanpa label/title</strong> — viewer bingung, asumsikan amateur. <strong>Selalu</strong>: title, xlabel, ylabel, legend kalau perlu. (6) <strong>Skip cross-validation, hanya single split</strong> — variance tinggi, hasil tidak reliable. Wajib 5-fold CV minimal di laporan. (7) <strong>Tidak ada perbandingan algoritma</strong> — single algorithm = tidak ada justifikasi pemilihan. <strong>Wajib</strong> ≥ 2 algoritma comparison di table. (8) <strong>Discussion section vague</strong> — "model bagus" bukan analisis. Sebut konkret: "Recall 0.92 bagus untuk safety, tetapi precision 0.78 menunjukkan 22% false alarm — perlu threshold tuning di production." (9) <strong>Forget README</strong> — folder tanpa README = mystery box. (10) <strong>Submit di akhir-akhir tanpa cek</strong> — sehari sebelum deadline, submit early, double-check link Drive accessible.</p>
     </div>
   </div>
 </div>
