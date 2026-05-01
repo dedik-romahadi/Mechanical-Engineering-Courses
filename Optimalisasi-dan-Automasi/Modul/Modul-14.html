@@ -875,16 +875,16 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 01 — MENGAPA MACHINE LEARNING ═══ -->
+<!-- ═══ BAGIAN 01 — MENGAPA ALGORITMA LANJUT ═══ -->
 <hr class="divider" style="margin-top:64px">
 <div class="section" id="m-persamaan">
   <div class="section-label reveal">Bagian 01</div>
-  <h2 class="section-title reveal">Mengapa Machine Learning:<br>Saat Rule-Based Tidak Cukup untuk Pola Multi-Fitur Kompleks</h2>
-  <p class="section-desc reveal">Pertemuan 12 (rule-based monitoring) bagus untuk <em>satu fitur</em> dengan <em>threshold tunggal</em> seperti ISO 10816 RMS velocity. Tetapi mesin nyata punya <strong>banyak fitur</strong>: RMS + peak + crest factor + kurtosis (P1–P7) + temperatur bearing + arus motor + flow rate + pressure. Pola fault tertentu hanya muncul dari <em>kombinasi fitur</em>: <em>"RMS naik 20% PLUS kurtosis &gt; 4 PLUS suhu bearing naik 5°C selama 2 jam"</em> = early-stage bearing pitting. Manual rule untuk semua kombinasi: tidak scalable, berkembang jadi alarm flood, susah maintain. Solusi: <strong>machine learning</strong> — biarkan algoritma <em>belajar pola</em> dari data historis (labeled: healthy/fault), kemudian klasifikasi sample baru. Inilah <strong>predictive maintenance</strong> modern: detect fault <em>sebelum</em> failure (7–30 hari lebih awal), kurangi unplanned shutdown, optimasi schedule perawatan. Ditemukan di Industri 4.0 setiap pabrik smart manufacturing. Library standar: <code>scikit-learn</code> (Python), digunakan oleh GE Predix, Siemens MindSphere, IBM Maximo APM.</p>
+  <h2 class="section-title reveal">Mengapa Algoritma Lanjut:<br>Saat Logistic Regression Baseline Tidak Cukup</h2>
+  <p class="section-desc reveal">Pertemuan 13 mengajarkan Logistic Regression sebagai baseline classifier. Tetapi LR punya 3 keterbatasan serius di problem real: (1) <strong>Linear decision boundary saja</strong> — pattern non-linear (XOR, donut, spiral, multi-modal cluster) tidak bisa ditangkap dengan LR sederhana. (2) <strong>Single threshold 0.5 default</strong> — di imbalanced data atau cost-sensitive use case (FN cost ≫ FP cost), threshold 0.5 jauh dari optimal. (3) <strong>Single train/test split</strong> dengan accuracy/F1 saja punya variance tinggi — bisa lucky atau unlucky. Solusi di Pertemuan 14: <strong>Random Forest</strong> (ensemble decorrelated trees, capture non-linear pattern), <strong>SVM dengan kernel RBF</strong> (implicit map ke high-dim space, separabel non-linear di space asli), <strong>Pipeline + StandardScaler</strong> (modular workflow + anti-leakage), <strong>ROC-AUC</strong> (threshold-independent metric untuk model comparison), <strong>k-fold cross-validation</strong> (mean ± std untuk robust estimate), dan <strong>GridSearchCV</strong> (exhaustive hyperparameter search). Ini adalah toolset production-grade yang dipakai di GE Predix, Siemens MindSphere, IBM Maximo APM untuk predictive maintenance industrial scale.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Lima Karakteristik Machine Learning untuk Predictive Maintenance</div>
-    Multi-feature pattern recognition &nbsp;·&nbsp; Belajar dari data historis (labeled) &nbsp;·&nbsp; Generalisasi ke sample baru &nbsp;·&nbsp; Probabilistik (confidence score) &nbsp;·&nbsp; Adaptive (re-train periodik)
+    <div class="label">Enam Konsep Inti ML Algoritma Lanjut</div>
+    Random Forest (ensemble) &nbsp;·&nbsp; SVM kernel trick &nbsp;·&nbsp; Pipeline (anti-leakage) &nbsp;·&nbsp; ROC-AUC (threshold-indep) &nbsp;·&nbsp; k-fold CV (mean ± std) &nbsp;·&nbsp; GridSearchCV (hyperparam tuning)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
@@ -924,16 +924,16 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 02 — SUPERVISED LEARNING FOUNDATIONS ═══ -->
+<!-- ═══ BAGIAN 02 — RANDOM FOREST DETAIL ═══ -->
 <hr class="divider">
 <div class="section" id="m-solusi">
   <div class="section-label reveal">Bagian 02</div>
-  <h2 class="section-title reveal">Supervised Learning Foundations:<br>Dataset, Features, Labels &amp; Training Workflow</h2>
-  <p class="section-desc reveal"><strong>Supervised learning</strong> = belajar dari contoh ber-label. Diberikan dataset <code>D = {(x₁, y₁), (x₂, y₂), …, (xₙ, yₙ)}</code> dengan <em>x</em> = feature vector (mis. [RMS, peak, kurt, suhu, arus]) dan <em>y</em> = label (mis. healthy=0, fault=1), tujuan <em>train</em> sebuah model <code>f: X → Y</code> yang generalisasi ke sample baru. Proses lengkap: (1) <em>kumpulkan data labeled</em>, (2) <em>preprocessing</em> (standardize, encode categorical, handle missing), (3) <em>split train/test</em>, (4) <em>fit model di train</em>, (5) <em>evaluate di test</em>, (6) <em>deploy</em>. Tipe problem: <strong>klasifikasi</strong> (y diskrit: healthy/fault) atau <strong>regresi</strong> (y kontinu: RUL — remaining useful life dalam jam). P13 fokus pada klasifikasi (yang paling umum di predictive maintenance).</p>
+  <h2 class="section-title reveal">Random Forest:<br>Ensemble Decision Tree dengan Bootstrap + Feature Bagging</h2>
+  <p class="section-desc reveal"><strong>Random Forest (RF)</strong> oleh <em>Leo Breiman (2001)</em> adalah ensemble of <em>decorrelated</em> decision trees — salah satu algoritma ML paling populer + powerful + interpretable di tabular data. Tiga ide kunci: (1) <strong>Bootstrap aggregation (bagging)</strong> — tiap tree dilatih di sample acak <em>with-replacement</em> dari training set (~63% unique sample, sisanya duplikat). (2) <strong>Random feature subset per split</strong> — di setiap node, hanya pertimbangkan <code>√(n_features)</code> fitur acak (decorrelate tree, reduce variance). (3) <strong>Majority voting (klasifikasi) atau averaging (regresi)</strong> — ensemble final lebih robust dari single tree. Hasil: low variance (averaging cancel noise), capture non-linear pattern (tree splits axis-aligned), robust ke outlier &amp; missing data. Bonus: <code>feature_importances_</code> built-in untuk interpretability — rank feature mana paling impactful. Hyperparam utama: <em>n_estimators</em> (jumlah trees, default 100), <em>max_depth</em> (kedalaman tree), <em>min_samples_leaf</em> (regularization). Sklearn API: <code>RandomForestClassifier(n_estimators=100, random_state=42).fit(X_train, y_train)</code>.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Enam Komponen Inti Supervised Learning Workflow</div>
-    Dataset (X, y) &nbsp;·&nbsp; Feature engineering &nbsp;·&nbsp; Train/Test split &nbsp;·&nbsp; Model fitting &nbsp;·&nbsp; Evaluation metrics &nbsp;·&nbsp; Hyperparameter tuning
+    <div class="label">Enam Konsep Inti Random Forest</div>
+    Bootstrap sampling &nbsp;·&nbsp; Random feature subset (√n) &nbsp;·&nbsp; Majority voting &nbsp;·&nbsp; n_estimators (jumlah trees) &nbsp;·&nbsp; feature_importances_ &nbsp;·&nbsp; Out-of-bag (OOB) error estimate
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
@@ -1011,16 +1011,16 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 03 — KLASIFIKASI: RANDOM FOREST & SVM ═══ -->
+<!-- ═══ BAGIAN 03 — SVM + PIPELINE ═══ -->
 <hr class="divider">
 <div class="section" id="m-dmf">
   <div class="section-label reveal">Bagian 03</div>
-  <h2 class="section-title reveal">Algoritma Klasifikasi:<br>Logistic Regression, Random Forest, &amp; SVM</h2>
-  <p class="section-desc reveal">Tiga algoritma klasifikasi paling sering dipakai di engineering: <strong>Logistic Regression</strong> (linier, baseline interpretable), <strong>Random Forest</strong> (ensemble decision tree, robust + feature importance), <strong>Support Vector Machine (SVM)</strong> (margin maximization + kernel trick untuk non-linear). Tiap algoritma punya assumption, kekuatan, &amp; kelemahan berbeda. <em>Best practice</em>: coba ketiganya dengan default hyperparameter, pilih yang terbaik di test set, lalu tune hyperparameter top model. Jangan pilih algoritma berdasarkan popularitas — pilih berdasarkan struktur data Anda. Plus <strong>Gradient Boosting</strong> (XGBoost, LightGBM) sebagai state-of-the-art untuk tabular data — tetapi default RF/SVM cukup untuk baseline solid.</p>
+  <h2 class="section-title reveal">Support Vector Machine + Pipeline:<br>Kernel Trick &amp; Anti-Leakage Workflow</h2>
+  <p class="section-desc reveal"><strong>Support Vector Machine (SVM)</strong> oleh <em>Vladimir Vapnik (1995)</em> berdasarkan ide brilian: cari <em>hyperplane</em> yang memaksimalkan margin antara dua kelas. Untuk non-linear: <strong>kernel trick</strong> — implicit map data ke ruang dimensi tinggi via kernel function tanpa explicit mapping. <em>RBF kernel</em>: <code>K(x,y) = exp(-γ‖x-y‖²)</code> equivalen mapping ke infinite-dim space, di space tersebut hyperplane linear cukup untuk separable pattern non-linear di space asli. Hyperparam utama: <em>C</em> (regularization, smaller C = more regularization), <em>kernel</em> ('rbf' default, 'linear', 'poly'), <em>gamma</em> (kernel coefficient, 'scale' default = 1/(n_features × X.var())). SVM <em>sangat sensitif terhadap feature scale</em> — wajib <strong>StandardScaler</strong> sebelum fit. Untuk avoid <em>data leakage</em> (scaler.fit di full data sebelum split → contaminate test), wajib pakai <strong>sklearn Pipeline</strong>: <code>Pipeline([('scl', StandardScaler()), ('svm', SVC(kernel='rbf'))])</code>. Pipeline auto-apply scaler.fit_transform di train, transform-only di test → no leakage. Plus, Pipeline bisa langsung dipakai dengan <code>cross_val_score</code> dan <code>GridSearchCV</code>. Production standar.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Tiga Algoritma Klasifikasi Inti + Pilihan Lanjutan</div>
-    Logistic Regression (linear) &nbsp;·&nbsp; Random Forest (tree ensemble) &nbsp;·&nbsp; SVM (margin + kernel) &nbsp;·&nbsp; Gradient Boosting (advanced)
+    <div class="label">Enam Konsep Inti SVM + Pipeline</div>
+    Margin maximization &nbsp;·&nbsp; Kernel trick (RBF, poly) &nbsp;·&nbsp; Hyperparam C &amp; gamma &nbsp;·&nbsp; StandardScaler wajib &nbsp;·&nbsp; Pipeline anti-leakage &nbsp;·&nbsp; predict_proba (Platt scaling)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
@@ -1103,16 +1103,16 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 04 — STATE MACHINE & DEBOUNCING ═══ -->
+<!-- ═══ BAGIAN 04 — ROC-AUC + CV + GRIDSEARCHCV ═══ -->
 <hr class="divider">
 <div class="section" id="m-resonashi">
   <div class="section-label reveal">Bagian 04</div>
-  <h2 class="section-title reveal">Evaluasi Model:<br>Confusion Matrix, F1-Score, ROC-AUC &amp; Cross-Validation</h2>
-  <p class="section-desc reveal">Setelah model di-fit, pertanyaan kritis: <strong>seberapa bagus performance-nya?</strong> Bukan cuma accuracy — banyak metrik penting tergantung use case. <em>Confusion matrix</em> menunjukkan TP/FP/TN/FN. <em>Precision</em> = "dari yang di-predict fault, berapa benar?" — relevan untuk minimize false alarm. <em>Recall</em> = "dari semua fault sebenarnya, berapa kena?" — relevan untuk safety (jangan miss fault). <em>F1</em> = harmonic mean (balance). <em>ROC-AUC</em> = threshold-independent performance summary. Plus <strong>cross-validation</strong> untuk estimate true generalization (single train/test split bisa lucky/unlucky). Pakai <em>k-fold CV</em> (typically k=5 atau 10) sebagai gold standard. <em>Stratified k-fold</em> untuk imbalanced class.</p>
+  <h2 class="section-title reveal">ROC-AUC, Cross-Validation &amp; GridSearchCV:<br>Evaluasi Lanjutan &amp; Hyperparameter Tuning</h2>
+  <p class="section-desc reveal">Pertemuan 13 mengajarkan accuracy + F1 (single threshold 0.5, single train/test split). Untuk production, butuh evaluasi lanjut: (1) <strong>ROC-AUC (Area Under ROC Curve)</strong> — single number 0–1 yang threshold-independent. ROC = plot TPR vs FPR untuk semua threshold. AUC = 0.5 random; 1.0 perfect; ≥ 0.9 excellent; 0.7–0.9 good. Berguna untuk model comparison (pilih AUC tertinggi) dan threshold tuning (cost-sensitive). (2) <strong>k-fold Cross-Validation</strong> — split data jadi k bagian, train k kali, dapat <em>mean ± std</em> dari k metric estimates. Reduce variance dari single split. <em>Stratified k-fold</em> wajib untuk imbalanced (preserve class ratio per fold). Standar: k=5 atau k=10. (3) <strong>GridSearchCV</strong> — exhaustive search di hyperparameter grid + cross-validation. Sklearn API: <code>GridSearchCV(model, param_grid, cv=5, scoring='f1').fit(X, y)</code>. Output: <code>.best_params_</code>, <code>.best_score_</code>, <code>.best_estimator_</code>. Untuk grid besar, alternatif: <code>RandomizedSearchCV</code>. Plus <em>imbalanced data</em>: <code>class_weight='balanced'</code>, SMOTE oversampling (imblearn library), threshold tuning via precision-recall curve dengan cost asymmetry FN ≫ FP.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Enam Konsep Inti Evaluasi Model</div>
-    Confusion matrix (TP/FP/TN/FN) &nbsp;·&nbsp; Precision, Recall, F1 &nbsp;·&nbsp; ROC curve &amp; AUC &nbsp;·&nbsp; Cross-validation (k-fold) &nbsp;·&nbsp; Imbalanced class handling &nbsp;·&nbsp; Overfit detection
+    <div class="label">Enam Konsep Inti Evaluasi Lanjut + Tuning</div>
+    ROC curve &amp; AUC &nbsp;·&nbsp; Stratified k-fold CV &nbsp;·&nbsp; cross_val_score (mean ± std) &nbsp;·&nbsp; GridSearchCV exhaustive &nbsp;·&nbsp; Imbalanced (class_weight, SMOTE) &nbsp;·&nbsp; Threshold tuning cost-sensitive
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
