@@ -4529,10 +4529,11 @@ setTimeout(_isoTick, 700);
 
 
 // ════════════════════════════════════════════════════════════
-// ANIMASI 4 — Bearing Lifetime Trajectory: U-shape Crest Factor & Kurtosis
-// (Canvas: cvHPB, slider: sl_rh; button: btnHPB)
-// Atas: sinyal vibrasi pada posisi lifetime tertentu (slider)
-// Bawah: trajectory RMS (cyan, monotonic), CF (amber, U-shape), Kurt (violet, U-shape), Peak (pink)
+// ANIMASI 4 — KKT Conditions: Constraint Binding & Lagrange Multipliers (NLP)
+// (Canvas: cvHPB, slider: sl_rh = constraint radius r)
+// min f(x,y) = (x−2)² + (y−1.5)²  s.t. g(x,y) = x² + y² − r² ≤ 0
+// Atas: contour f + circle constraint, gradient ∇f & ∇g paralel di x*
+// Bawah: bar chart Lagrange multiplier μ
 // ════════════════════════════════════════════════════════════
 let _hpbAnim = { t: 0, running: true, raf: null };
 
@@ -4547,166 +4548,194 @@ function drawHPB(){
   const W = cv.clientWidth; cv.width = W; const H = cv.height;
   const ctx = cv.getContext('2d');
 
+  // Background
   const bg = ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const tOff = _hpbAnim.t;
-  const padX = 50;
-  const slLP = document.getElementById('sl_rh');
-  const lifeProgress = slLP ? parseFloat(slLP.value) : 0.4;
+  // Read slider
+  const r = parseFloat(document.getElementById('sl_rh').value);
 
-  // Layout: top panel (vibration signal), bottom panel (trajectory plot)
-  const topH = (H - 60) * 0.4;
-  const botH = (H - 60) * 0.6;
-  const topY = 20;
-  const botY = topY + topH + 20;
-  const plotW = W - padX - 30;
+  // Layout: top = contour + constraint, bottom = multiplier bar
+  const topY = 25, topH = H * 0.7;
+  const botY = topY + topH + 20, botH = H - botY - 30;
 
-  // Generate signal at current life progress
-  const N = 250;
-  const noiseLvl = 0.4 * (1 + 2 * lifeProgress);
-  // Number and amplitude of impacts grows with progress
-  const nImpacts = Math.floor(50 * lifeProgress);
-  const impactAmp = 1.5 + 3 * lifeProgress;
+  // === TOP: 2D contour + constraint ===
+  const padL = 50, padR = 30, padT = 0;
+  const xMin = -3, xMax = 4, yMin = -2.5, yMax = 3;
+  const wPx = W - padL - padR, plotH = topH;
+  const PX = (x) => padL + ((x - xMin) / (xMax - xMin)) * wPx;
+  const PY = (y) => topY + plotH - ((y - yMin) / (yMax - yMin)) * plotH;
 
-  const sig = [];
-  for (let i = 0; i < N; i++) {
-    const xt = i + tOff * 8;
-    let v = 1.0 * Math.sin(xt * 0.4) + 0.3 * Math.sin(xt * 0.8);
-    v += noiseLvl * (Math.sin(xt * 2.71) + Math.sin(xt * 4.13) * 0.6);
-    sig.push(v);
-  }
-  // Inject impacts at deterministic positions (based on lifeProgress)
-  for (let k = 0; k < nImpacts; k++) {
-    const idx = Math.floor((k * 7919) % (N - 6));
-    const decayMag = impactAmp * (0.5 + 0.5 * Math.sin(k * 1.7));
-    for (let j = 0; j < 6; j++) {
-      if (idx + j < N) sig[idx + j] += decayMag * Math.exp(-j * 0.5) * Math.sin(j * 1.2);
-    }
+  // f(x,y) = (x−2)² + (y−1.5)²; ∇f = (2(x−2), 2(y−1.5))
+  // g(x,y) = x²+y² − r² ≤ 0; ∇g = (2x, 2y)
+  // KKT: ∇f + μ∇g = 0 → at optimum, gradients parallel
+
+  // Find optimum (analytic — projection of (2, 1.5) onto disk of radius r)
+  const u_unconstr = [2, 1.5];
+  const u_norm = Math.sqrt(u_unconstr[0]*u_unconstr[0] + u_unconstr[1]*u_unconstr[1]);
+  let optV, mu;
+  if (u_norm <= r) {
+    // Constraint inactive: optimum at unconstrained point
+    optV = u_unconstr.slice();
+    mu = 0;
+  } else {
+    // Constraint active: project to boundary
+    optV = [u_unconstr[0] / u_norm * r, u_unconstr[1] / u_norm * r];
+    // From KKT: ∇f = −μ·∇g → 2(x*−2) = −μ·2x* → μ = (2 − x*)/x*
+    mu = (u_unconstr[0] - optV[0]) / optV[0];
   }
 
-  // Compute features
-  let sumSq = 0, peak = 0, sum = 0;
-  for (let i = 0; i < N; i++) {
-    sumSq += sig[i] * sig[i];
-    if (Math.abs(sig[i]) > peak) peak = Math.abs(sig[i]);
-    sum += sig[i];
-  }
-  const mean = sum / N;
-  const rms = Math.sqrt(sumSq / N);
-  let m4 = 0, m2 = 0;
-  for (let i = 0; i < N; i++) {
-    const d = sig[i] - mean;
-    m2 += d*d; m4 += d*d*d*d;
-  }
-  m2 /= N; m4 /= N;
-  const kurt = m2 > 1e-9 ? m4 / (m2*m2) : 0;
-  const cf = peak / Math.max(rms, 1e-9);
-
-  // TOP: signal plot
-  _grid(ctx, padX, topY, plotW, topH, 20, 4, '#0d1929');
-  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText(`Sinyal Vibrasi @ Lifetime ${(lifeProgress*100).toFixed(0)}%`, padX, topY - 4);
-  const sigYScale = topH * 0.35 / Math.max(peak, 1);
-  ctx.strokeStyle = 'rgba(168,85,247,.9)'; ctx.lineWidth = 1.2;
-  ctx.beginPath();
-  for (let i = 0; i < N; i++) {
-    const px = padX + (i/(N-1)) * plotW;
-    const py = topY + topH/2 - sig[i] * sigYScale;
-    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-  }
-  ctx.stroke();
-
-  // BOTTOM: trajectory plot — RMS, CF, Kurtosis, Peak across lifetime [0..1]
-  _grid(ctx, padX, botY, plotW, botH, 10, 4, '#0d1929');
-  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText('Trajectory Lifetime: RMS, CF, Kurtosis, Peak', padX, botY - 4);
-
-  // Compute trajectory across lifetime points
-  const nPoints = 50;
-  const traj_rms = [], traj_cf = [], traj_kurt = [], traj_peak = [];
-  for (let p = 0; p < nPoints; p++) {
-    const prog = p / (nPoints - 1);
-    const noi = 0.4 * (1 + 2 * prog);
-    const nImp = Math.floor(50 * prog);
-    const ampImp = 1.5 + 3 * prog;
-    let lsumSq = 0, lpeak = 0, lsum = 0;
-    const lsig = new Array(N);
-    for (let i = 0; i < N; i++) {
-      let v = 1.0 * Math.sin(i * 0.4) + 0.3 * Math.sin(i * 0.8);
-      v += noi * (Math.sin(i * 2.71) + Math.sin(i * 4.13) * 0.6);
-      lsig[i] = v;
-    }
-    for (let k = 0; k < nImp; k++) {
-      const idx = Math.floor((k * 7919) % (N - 6));
-      const decayMag = ampImp * (0.5 + 0.5 * Math.sin(k * 1.7));
-      for (let j = 0; j < 6; j++) {
-        if (idx + j < N) lsig[idx + j] += decayMag * Math.exp(-j * 0.5) * Math.sin(j * 1.2);
-      }
-    }
-    for (let i = 0; i < N; i++) {
-      lsumSq += lsig[i] * lsig[i];
-      if (Math.abs(lsig[i]) > lpeak) lpeak = Math.abs(lsig[i]);
-      lsum += lsig[i];
-    }
-    const lmean = lsum / N;
-    const lrms = Math.sqrt(lsumSq / N);
-    let lm2 = 0, lm4 = 0;
-    for (let i = 0; i < N; i++) {
-      const d = lsig[i] - lmean;
-      lm2 += d*d; lm4 += d*d*d*d;
-    }
-    lm2 /= N; lm4 /= N;
-    const lkurt = lm2 > 1e-9 ? lm4/(lm2*lm2) : 0;
-    const lcf = lpeak / Math.max(lrms, 1e-9);
-    traj_rms.push(lrms);
-    traj_cf.push(lcf);
-    traj_kurt.push(lkurt);
-    traj_peak.push(lpeak);
-  }
-
-  // Plot trajectory: multi-line with normalization to fit panel
-  const maxRMS = Math.max(...traj_rms);
-  const maxCF = Math.max(...traj_cf);
-  const maxKurt = Math.max(...traj_kurt);
-  const maxPeak = Math.max(...traj_peak);
-
-  function drawTraj(data, maxV, color, label, yOff) {
-    ctx.strokeStyle = color; ctx.lineWidth = 1.8;
+  // Draw contour lines of f
+  const levels = [0.2, 0.5, 1.0, 2.0, 4.0, 8.0];
+  ctx.strokeStyle = 'rgba(14,165,233,.45)'; ctx.lineWidth = 1.2;
+  levels.forEach(L => {
+    const a = Math.sqrt(L);
     ctx.beginPath();
-    for (let i = 0; i < data.length; i++) {
-      const px = padX + (i/(data.length-1)) * plotW;
-      const py = botY + botH - 20 - (data[i] / maxV) * (botH - 30);
-      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    for(let theta=0; theta<=2*Math.PI+0.01; theta+=0.04){
+      const px = u_unconstr[0] + a*Math.cos(theta);
+      const py = u_unconstr[1] + a*Math.sin(theta);
+      if(theta === 0) ctx.moveTo(PX(px), PY(py));
+      else ctx.lineTo(PX(px), PY(py));
     }
     ctx.stroke();
-    // Label dots
-    ctx.fillStyle = color; ctx.font = '9px JetBrains Mono';
-    ctx.fillText(label, padX + plotW + 5, botY + 10 + yOff * 12);
+  });
+
+  // Draw constraint disk (filled — feasible region)
+  ctx.fillStyle = 'rgba(168,85,247,.12)';
+  ctx.beginPath();
+  ctx.arc(PX(0), PY(0), r * (PX(1) - PX(0)), 0, 2*Math.PI);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(249,115,22,.85)'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(PX(0), PY(0), r * (PX(1) - PX(0)), 0, 2*Math.PI);
+  ctx.stroke();
+
+  // Unconstrained optimum (cross marker if not inside)
+  if (mu > 0) {
+    ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 1.2; ctx.setLineDash([3,3]);
+    ctx.beginPath();
+    ctx.moveTo(PX(u_unconstr[0])-7, PY(u_unconstr[1]));
+    ctx.lineTo(PX(u_unconstr[0])+7, PY(u_unconstr[1]));
+    ctx.moveTo(PX(u_unconstr[0]), PY(u_unconstr[1])-7);
+    ctx.lineTo(PX(u_unconstr[0]), PY(u_unconstr[1])+7);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.font = '9px JetBrains Mono';
+    ctx.fillText('unconstrained', PX(u_unconstr[0])+10, PY(u_unconstr[1])-6);
   }
-  drawTraj(traj_rms, maxRMS, 'rgba(14,165,233,.95)', '— RMS', 0);
-  drawTraj(traj_cf, maxCF, 'rgba(249,115,22,.95)', '— CF', 1);
-  drawTraj(traj_kurt, maxKurt, 'rgba(168,85,247,.95)', '— Kurt', 2);
-  drawTraj(traj_peak, maxPeak, 'rgba(255,64,129,.95)', '— Peak', 3);
 
-  // Marker at current life progress
-  const markerX = padX + lifeProgress * plotW;
-  ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2; ctx.setLineDash([5,3]);
-  ctx.beginPath(); ctx.moveTo(markerX, botY); ctx.lineTo(markerX, botY + botH); ctx.stroke();
-  ctx.setLineDash([]);
+  // Constrained optimum (star)
+  ctx.fillStyle = '#fbbf24';
+  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.2;
+  _drawStarN(ctx, PX(optV[0]), PY(optV[1]), 5, 12, 5);
+  ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 10px JetBrains Mono';
+  ctx.fillText(`x* = (${optV[0].toFixed(2)}, ${optV[1].toFixed(2)})`, PX(optV[0])+15, PY(optV[1])-10);
 
-  // Slider display
-  const vl = document.getElementById('v_rh'); if(vl) vl.textContent = lifeProgress.toFixed(2);
+  // Draw gradients at optimum (∇f purple, ∇g amber)
+  if (mu > 0) {
+    const gradF = [2*(optV[0]-2), 2*(optV[1]-1.5)];
+    const gradG = [2*optV[0], 2*optV[1]];
+    const fNorm = Math.sqrt(gradF[0]**2 + gradF[1]**2);
+    const gNorm = Math.sqrt(gradG[0]**2 + gradG[1]**2);
+    const arrLen = 60;
+    // ∇f (purple)
+    ctx.strokeStyle = 'rgba(168,85,247,.9)'; ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.moveTo(PX(optV[0]), PY(optV[1]));
+    const fdx = gradF[0]/fNorm * arrLen, fdy = -gradF[1]/fNorm * arrLen;
+    ctx.lineTo(PX(optV[0]) + fdx, PY(optV[1]) + fdy);
+    ctx.stroke();
+    // Arrow head
+    ctx.fillStyle = 'rgba(168,85,247,.9)';
+    const fAng = Math.atan2(fdy, fdx);
+    ctx.beginPath();
+    ctx.moveTo(PX(optV[0])+fdx, PY(optV[1])+fdy);
+    ctx.lineTo(PX(optV[0])+fdx - 10*Math.cos(fAng-0.4), PY(optV[1])+fdy - 10*Math.sin(fAng-0.4));
+    ctx.lineTo(PX(optV[0])+fdx - 10*Math.cos(fAng+0.4), PY(optV[1])+fdy - 10*Math.sin(fAng+0.4));
+    ctx.closePath(); ctx.fill();
+    ctx.font = '11px JetBrains Mono';
+    ctx.fillText('∇f', PX(optV[0])+fdx+5, PY(optV[1])+fdy+4);
 
-  // Info
+    // ∇g (amber)
+    ctx.strokeStyle = 'rgba(249,115,22,.9)'; ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.moveTo(PX(optV[0]), PY(optV[1]));
+    const gdx = gradG[0]/gNorm * arrLen, gdy = -gradG[1]/gNorm * arrLen;
+    ctx.lineTo(PX(optV[0]) + gdx, PY(optV[1]) + gdy);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(249,115,22,.9)';
+    const gAng = Math.atan2(gdy, gdx);
+    ctx.beginPath();
+    ctx.moveTo(PX(optV[0])+gdx, PY(optV[1])+gdy);
+    ctx.lineTo(PX(optV[0])+gdx - 10*Math.cos(gAng-0.4), PY(optV[1])+gdy - 10*Math.sin(gAng-0.4));
+    ctx.lineTo(PX(optV[0])+gdx - 10*Math.cos(gAng+0.4), PY(optV[1])+gdy - 10*Math.sin(gAng+0.4));
+    ctx.closePath(); ctx.fill();
+    ctx.fillText('∇g', PX(optV[0])+gdx+5, PY(optV[1])+gdy+4);
+  }
+
+  // Origin & axes
+  ctx.fillStyle = 'rgba(255,255,255,.4)';
+  ctx.beginPath(); ctx.arc(PX(0), PY(0), 2, 0, 2*Math.PI); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(PX(xMin), PY(0)); ctx.lineTo(PX(xMax), PY(0)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(PX(0), PY(yMin)); ctx.lineTo(PX(0), PY(yMax)); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '11px JetBrains Mono';
+  ctx.fillText('x', PX(xMax)+5, PY(0)+4);
+  ctx.fillText('y', PX(0)-15, PY(yMax)+10);
+
+  // Title
+  ctx.fillStyle = 'rgba(168,85,247,.95)'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText(`min (x−2)²+(y−1.5)² s.t. x²+y² ≤ r²  · r=${r.toFixed(2)}`, padL, topY-8);
+
+  // === BOTTOM: μ bar chart ===
+  const barAreaX = padL, barAreaW = W - padL - padR;
+  ctx.fillStyle = 'rgba(168,85,247,.95)'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText('Lagrange Multiplier μ (≥ 0)', barAreaX, botY - 8);
+
+  // Single bar for μ
+  const barX = barAreaX + 20;
+  const barW = 160;
+  const muMax = 3;  // Y-axis max
+  const bh = (Math.min(mu, muMax) / muMax) * (botH - 30);
+  const by = botY + botH - 18 - bh;
+
+  const isBinding = mu > 0.01;
+  const color = isBinding ? 'rgba(255,64,129,.9)' : 'rgba(14,165,233,.7)';
+  const fillCol = isBinding ? 'rgba(255,64,129,.4)' : 'rgba(14,165,233,.3)';
+
+  ctx.fillStyle = fillCol;
+  ctx.fillRect(barX, by, barW, bh);
+  ctx.strokeStyle = color; ctx.lineWidth = 2;
+  ctx.strokeRect(barX, by, barW, bh);
+  ctx.fillStyle = color; ctx.font = 'bold 13px JetBrains Mono';
+  ctx.fillText(`μ = ${mu.toFixed(3)}`, barX + barW/2 - 35, by - 6);
+
+  // Status label
+  ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillStyle = isBinding ? '#ff4081' : '#0ea5e9';
+  ctx.fillText(isBinding ? 'CONSTRAINT ACTIVE (binding)' : 'CONSTRAINT INACTIVE (slack)', barX + barW + 20, by + bh/2 + 5);
+
+  // Complementary slackness equation
+  ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
+  const gValue = optV[0]*optV[0] + optV[1]*optV[1] - r*r;
+  ctx.fillText(`Complementary slackness: μ · g(x*) = ${mu.toFixed(3)} × ${gValue.toFixed(3)} = ${(mu * gValue).toFixed(3)} ≈ 0 ✓`, barX, botY + botH + 4);
+
+  // Update slider display
+  document.getElementById('v_rh').textContent = r.toFixed(2);
+
+  // Info panel
   const info = document.getElementById('hpbInfo');
   if (info) {
-    let stage;
-    if (lifeProgress < 0.2) stage = '🟢 HEALTHY';
-    else if (lifeProgress < 0.6) stage = '🟡 EARLY FAULT (CF/Kurt naik dramatis)';
-    else stage = '🔴 SEVERE (RMS tinggi, CF/Kurt menurun lagi → U-shape)';
-    info.innerHTML = `RMS=<strong>${rms.toFixed(2)}</strong> · Peak=<strong>${peak.toFixed(2)}</strong> · CF=<strong>${cf.toFixed(2)}</strong> · Kurt=<strong>${kurt.toFixed(2)}</strong> · ${stage}`;
+    const fStar = (optV[0]-2)*(optV[0]-2) + (optV[1]-1.5)*(optV[1]-1.5);
+    let kktStatus;
+    if (mu === 0) {
+      kktStatus = `🔵 Constraint INACTIVE → unconstrained optimum (μ = 0). r ≥ ${u_norm.toFixed(2)} cukup.`;
+    } else {
+      kktStatus = `🔴 Constraint ACTIVE → x* di boundary, ∇f & ∇g paralel (μ = ${mu.toFixed(2)} &gt; 0)`;
+    }
+    info.innerHTML = `r=<strong>${r.toFixed(2)}</strong> · x*=(${optV[0].toFixed(2)}, ${optV[1].toFixed(2)}) · f*=<strong>${fStar.toFixed(3)}</strong> · μ=<strong>${mu.toFixed(3)}</strong> · ${kktStatus}`;
   }
 }
 
