@@ -1588,84 +1588,160 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   <div class="code-wrap reveal">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 3 — Tukey HSD Post-Hoc + Cek Asumsi (Shapiro-Wilk + Levene) di Injection Molding</span>
+      <span class="code-label">Cell 3 — Finite State Machine + Debouncing + Tier Alarm + Audit Log</span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
-    <pre><span class="kw">from</span> statsmodels.stats.multicomp <span class="kw">import</span> pairwise_tukeyhsd
-<span class="kw">from</span> scipy <span class="kw">import</span> stats
+    <pre><span class="kw">import</span> pandas <span class="kw">as</span> pd
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime, timedelta
 
 np.random.<span class="fn">seed</span>(<span class="nm">42</span>)
 
 <span class="cm"># ═══════════════════════════════════════════════════════════════════</span>
-<span class="cm"># EKSPERIMEN: Injection Molding — Tekanan Injeksi vs Defect Rate (%)</span>
-<span class="cm">#   Faktor: tekanan (4 level: 60, 80, 100, 120 MPa)</span>
-<span class="cm">#   Replikasi: n = 6 batch per level → total N = 24</span>
-<span class="cm">#   Workflow lengkap: cek asumsi → ANOVA → post-hoc Tukey HSD</span>
+<span class="cm"># SCENARIO: Pump monitoring 12 jam, 1 sample / 30 detik = 1440 samples</span>
+<span class="cm">#   FSM dengan 5 state: NORMAL → WARNING → ALERT → CRITICAL + FAULT</span>
+<span class="cm">#   Debouncing: butuh N=3 consecutive samples untuk transition</span>
+<span class="cm">#   Tier thresholds: T_warn=1.4, T_alert=2.8, T_crit=4.5 (ISO 10816)</span>
+<span class="cm">#   Hysteresis: T_off = T_on - 0.2</span>
+<span class="cm">#   Audit log: timestamp, old_state, new_state, trigger_value</span>
 <span class="cm"># ═══════════════════════════════════════════════════════════════════</span>
 
-tekanan_levels = [<span class="nm">60</span>, <span class="nm">80</span>, <span class="nm">100</span>, <span class="nm">120</span>]
-n_rep = <span class="nm">6</span>
-defect_means = {<span class="nm">60</span>: <span class="nm">3.5</span>, <span class="nm">80</span>: <span class="nm">2.1</span>, <span class="nm">100</span>: <span class="nm">1.2</span>, <span class="nm">120</span>: <span class="nm">1.8</span>}    <span class="cm"># 100 MPa optimal</span>
+<span class="kw">class</span> <span class="fn">MonitoringFSM</span>:
+    <span class="st">"""Finite State Machine untuk monitoring tier alarm dengan debouncing."""</span>
 
-rows = []
-<span class="kw">for</span> p <span class="kw">in</span> tekanan_levels:
-    <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(n_rep):
-        defect = defect_means[p] + np.random.<span class="fn">randn</span>() * <span class="nm">0.4</span>     <span class="cm"># noise σ=0.4%</span>
-        rows.<span class="fn">append</span>({<span class="st">'tekanan'</span>: p, <span class="st">'defect'</span>: <span class="fn">max</span>(<span class="nm">0</span>, defect)})
-df = pd.<span class="fn">DataFrame</span>(rows)
+    STATES = [<span class="st">'NORMAL'</span>, <span class="st">'WARNING'</span>, <span class="st">'ALERT'</span>, <span class="st">'CRITICAL'</span>, <span class="st">'FAULT'</span>]
+    THRESHOLDS = {<span class="st">'WARNING'</span>: <span class="nm">1.4</span>, <span class="st">'ALERT'</span>: <span class="nm">2.8</span>, <span class="st">'CRITICAL'</span>: <span class="nm">4.5</span>}
+    HYSTERESIS = <span class="nm">0.2</span>
+    DEBOUNCE_N = <span class="nm">3</span>
 
-<span class="cm"># ═══════════════ STEP 1 — CEK ASUMSI ═══════════════</span>
-<span class="fn">print</span>(<span class="st">"═══ STEP 1: ASUMPSI ANOVA ═══"</span>)
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self.state = <span class="st">'NORMAL'</span>
+        self.up_counter = <span class="nm">0</span>           <span class="cm"># consecutive samples above threshold</span>
+        self.down_counter = <span class="nm">0</span>         <span class="cm"># consecutive samples below threshold</span>
+        self.audit_log = []
+        self.last_sample_time = <span class="kw">None</span>
 
-<span class="cm"># 1a. Normality test (Shapiro-Wilk per grup)</span>
-<span class="fn">print</span>(<span class="st">"\n[1a] Normality (Shapiro-Wilk) per grup — H0: data normal"</span>)
-<span class="kw">for</span> p <span class="kw">in</span> tekanan_levels:
-    data = df[df[<span class="st">'tekanan'</span>]==p][<span class="st">'defect'</span>]
-    W, p_val = stats.<span class="fn">shapiro</span>(data)
-    sig = <span class="st">"NORMAL ✓"</span> <span class="kw">if</span> p_val &gt; <span class="nm">0.05</span> <span class="kw">else</span> <span class="st">"NOT NORMAL ✗"</span>
-    <span class="fn">print</span>(<span class="st">f"  Tekanan {p} MPa: W = {W:.4f}, p = {p_val:.4f}  →  {sig}"</span>)
+    <span class="kw">def</span> <span class="fn">_target_state</span>(self, x):
+        <span class="st">"""Tentukan state target berdasarkan threshold (tanpa hysteresis)."""</span>
+        <span class="kw">if</span> x &gt;= self.THRESHOLDS[<span class="st">'CRITICAL'</span>]:
+            <span class="kw">return</span> <span class="st">'CRITICAL'</span>
+        <span class="kw">elif</span> x &gt;= self.THRESHOLDS[<span class="st">'ALERT'</span>]:
+            <span class="kw">return</span> <span class="st">'ALERT'</span>
+        <span class="kw">elif</span> x &gt;= self.THRESHOLDS[<span class="st">'WARNING'</span>]:
+            <span class="kw">return</span> <span class="st">'WARNING'</span>
+        <span class="kw">else</span>:
+            <span class="kw">return</span> <span class="st">'NORMAL'</span>
 
-<span class="cm"># 1b. Homoscedasticity (Levene's test)</span>
-<span class="fn">print</span>(<span class="st">"\n[1b] Equal variance (Levene's test) — H0: variance sama"</span>)
-groups = [df[df[<span class="st">'tekanan'</span>]==p][<span class="st">'defect'</span>].values <span class="kw">for</span> p <span class="kw">in</span> tekanan_levels]
-W_lev, p_lev = stats.<span class="fn">levene</span>(*groups)
-sig_lev = <span class="st">"EQUAL VAR ✓"</span> <span class="kw">if</span> p_lev &gt; <span class="nm">0.05</span> <span class="kw">else</span> <span class="st">"UNEQUAL ✗"</span>
-<span class="fn">print</span>(<span class="st">f"  Levene W = {W_lev:.4f}, p = {p_lev:.4f}  →  {sig_lev}"</span>)
+    <span class="kw">def</span> <span class="fn">update</span>(self, x, ts=<span class="kw">None</span>):
+        <span class="st">"""Process satu sample, return current state."""</span>
+        <span class="kw">if</span> ts <span class="kw">is</span> <span class="kw">None</span>:
+            ts = datetime.<span class="fn">now</span>()
+        self.last_sample_time = ts
 
-<span class="cm"># ═══════════════ STEP 2 — ONE-WAY ANOVA ═══════════════</span>
-<span class="fn">print</span>(<span class="st">f"\n═══ STEP 2: ONE-WAY ANOVA ═══"</span>)
-F, p = stats.<span class="fn">f_oneway</span>(*groups)
-<span class="fn">print</span>(<span class="st">f"  F-statistic = {F:.4f}, p-value = {p:.6f}"</span>)
-<span class="fn">print</span>(<span class="st">f"  Keputusan: {'TOLAK H0 — efek tekanan signifikan' if p &lt; 0.05 else 'GAGAL TOLAK H0'}"</span>)
+        <span class="cm"># Sensor health: kalau reading tidak masuk akal → FAULT</span>
+        <span class="kw">if</span> x &lt; <span class="nm">0</span> <span class="kw">or</span> x &gt; <span class="nm">50</span>:
+            self.<span class="fn">_transition</span>(<span class="st">'FAULT'</span>, x, ts, reason=<span class="st">'Out-of-range sensor'</span>)
+            <span class="kw">return</span> self.state
 
-<span class="cm"># Effect size eta squared</span>
-all_data = df[<span class="st">'defect'</span>].values
-SS_total = ((all_data - all_data.<span class="fn">mean</span>())**<span class="nm">2</span>).<span class="fn">sum</span>()
-SS_between = <span class="fn">sum</span>(<span class="fn">len</span>(g) * (g.<span class="fn">mean</span>() - all_data.<span class="fn">mean</span>())**<span class="nm">2</span> <span class="kw">for</span> g <span class="kw">in</span> groups)
-eta_sq = SS_between / SS_total
-<span class="fn">print</span>(<span class="st">f"  η² = {eta_sq:.4f}  ({'small' if eta_sq&lt;0.06 else 'medium' if eta_sq&lt;0.14 else 'large'} effect by Cohen)"</span>)
+        target = self.<span class="fn">_target_state</span>(x)
+        target_idx = self.STATES.<span class="fn">index</span>(target)
+        current_idx = self.STATES.<span class="fn">index</span>(self.state) <span class="kw">if</span> self.state != <span class="st">'FAULT'</span> <span class="kw">else</span> <span class="nm">0</span>
 
-<span class="cm"># ═══════════════ STEP 3 — TUKEY HSD POST-HOC ═══════════════</span>
-<span class="fn">print</span>(<span class="st">f"\n═══ STEP 3: TUKEY HSD PAIRWISE COMPARISON ═══"</span>)
-tukey = <span class="fn">pairwise_tukeyhsd</span>(df[<span class="st">'defect'</span>], df[<span class="st">'tekanan'</span>], alpha=<span class="nm">0.05</span>)
-<span class="fn">print</span>(tukey)
+        <span class="cm"># Debouncing: increment counter only if direction consistent</span>
+        <span class="kw">if</span> target_idx &gt; current_idx:
+            self.up_counter += <span class="nm">1</span>
+            self.down_counter = <span class="nm">0</span>
+            <span class="kw">if</span> self.up_counter &gt;= self.DEBOUNCE_N:
+                self.<span class="fn">_transition</span>(target, x, ts, reason=<span class="st">'Escalation'</span>)
+                self.up_counter = <span class="nm">0</span>
+        <span class="kw">elif</span> target_idx &lt; current_idx:
+            <span class="cm"># Apply hysteresis: turun state hanya kalau x &lt; T - hysteresis</span>
+            below_off = self.<span class="fn">_below_off_threshold</span>(x, current_idx)
+            <span class="kw">if</span> below_off:
+                self.down_counter += <span class="nm">1</span>
+                self.up_counter = <span class="nm">0</span>
+                <span class="kw">if</span> self.down_counter &gt;= self.DEBOUNCE_N:
+                    self.<span class="fn">_transition</span>(target, x, ts, reason=<span class="st">'Recovery'</span>)
+                    self.down_counter = <span class="nm">0</span>
+        <span class="kw">else</span>:
+            self.up_counter = <span class="nm">0</span>
+            self.down_counter = <span class="nm">0</span>
 
-<span class="fn">print</span>(<span class="st">f"\n═══ KEPUTUSAN ENGINEERING ═══"</span>)
-best_level = df.<span class="fn">groupby</span>(<span class="st">'tekanan'</span>)[<span class="st">'defect'</span>].<span class="fn">mean</span>().<span class="fn">idxmin</span>()
-<span class="fn">print</span>(<span class="st">f"  Tekanan optimal: {best_level} MPa (mean defect terendah)"</span>)
-<span class="fn">print</span>(<span class="st">f"  Tukey HSD bandingkan {best_level} dengan level lain → cek pasangan signifikan"</span>)
+        <span class="kw">return</span> self.state
+
+    <span class="kw">def</span> <span class="fn">_below_off_threshold</span>(self, x, current_idx):
+        <span class="st">"""Cek apakah x di bawah T_off (T - hysteresis) dari state saat ini."""</span>
+        <span class="kw">if</span> current_idx == <span class="nm">0</span>:
+            <span class="kw">return</span> <span class="kw">False</span>          <span class="cm"># Already at NORMAL</span>
+        current_name = self.STATES[current_idx]
+        t_off = self.THRESHOLDS[current_name] - self.HYSTERESIS
+        <span class="kw">return</span> x &lt; t_off
+
+    <span class="kw">def</span> <span class="fn">_transition</span>(self, new_state, trigger, ts, reason=<span class="st">''</span>):
+        <span class="st">"""Eksekusi state transition + log."""</span>
+        old_state = self.state
+        self.state = new_state
+        self.audit_log.<span class="fn">append</span>({
+            <span class="st">'timestamp'</span>: ts,
+            <span class="st">'old_state'</span>: old_state,
+            <span class="st">'new_state'</span>: new_state,
+            <span class="st">'trigger_value'</span>: <span class="fn">round</span>(trigger, <span class="nm">3</span>),
+            <span class="st">'reason'</span>: reason,
+        })
+
+<span class="cm"># Generate sinyal: gradient meningkat dengan random spike</span>
+n_samples = <span class="nm">1440</span>             <span class="cm"># 12 jam × 120 sample/jam</span>
+ts_start = datetime(<span class="nm">2025</span>, <span class="nm">11</span>, <span class="nm">15</span>, <span class="nm">8</span>, <span class="nm">0</span>)
+times = [ts_start + <span class="fn">timedelta</span>(seconds=<span class="nm">30</span> * i) <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n_samples)]
+
+base = <span class="nm">0.8</span> + np.<span class="fn">linspace</span>(<span class="nm">0</span>, <span class="nm">5.0</span>, n_samples)        <span class="cm"># Linear degradation 0.8 → 5.8</span>
+noise = <span class="nm">0.15</span> * np.random.<span class="fn">randn</span>(n_samples)
+<span class="cm"># Add 3 random spike yang sesaat (transient noise)</span>
+spike_idx = [<span class="nm">200</span>, <span class="nm">600</span>, <span class="nm">900</span>]
+<span class="kw">for</span> idx <span class="kw">in</span> spike_idx:
+    noise[idx] += <span class="nm">2.0</span>
+rms_signal = base + noise
+
+<span class="cm"># Run FSM</span>
+fsm = <span class="fn">MonitoringFSM</span>()
+state_history = []
+<span class="kw">for</span> r, ts <span class="kw">in</span> <span class="fn">zip</span>(rms_signal, times):
+    state_history.<span class="fn">append</span>(fsm.<span class="fn">update</span>(r, ts))
+
+<span class="cm"># Convert audit log to DataFrame</span>
+audit_df = pd.<span class="fn">DataFrame</span>(fsm.audit_log)
+<span class="fn">print</span>(<span class="st">"═══ AUDIT LOG (state transitions) ═══"</span>)
+<span class="kw">if</span> <span class="fn">len</span>(audit_df) &gt; <span class="nm">0</span>:
+    <span class="fn">print</span>(audit_df.<span class="fn">to_string</span>(index=<span class="kw">False</span>))
+<span class="kw">else</span>:
+    <span class="fn">print</span>(<span class="st">"  (No transitions)"</span>)
+
+<span class="fn">print</span>(<span class="st">f"\nTotal transitions: {len(audit_df)}"</span>)
+<span class="fn">print</span>(<span class="st">f"Spike di sample {spike_idx} → tidak trigger transition (debouncing N=3 efektif!)"</span>)
 
 <span class="cm"># ═══════════════ PLOT ═══════════════</span>
-fig, axes = plt.<span class="fn">subplots</span>(<span class="nm">1</span>, <span class="nm">2</span>, figsize=(<span class="nm">12</span>, <span class="nm">4.5</span>))
-axes[<span class="nm">0</span>].<span class="fn">boxplot</span>(groups, labels=[<span class="st">f'{p} MPa'</span> <span class="kw">for</span> p <span class="kw">in</span> tekanan_levels],
-                 patch_artist=<span class="kw">True</span>, boxprops={<span class="st">'facecolor'</span>:<span class="st">'#06b6d4'</span>, <span class="st">'alpha'</span>:<span class="nm">0.4</span>})
-axes[<span class="nm">0</span>].<span class="fn">set_ylabel</span>(<span class="st">'Defect Rate (%)'</span>); axes[<span class="nm">0</span>].<span class="fn">set_title</span>(<span class="st">f'Boxplot per Tekanan (F={F:.2f}, p={p:.4f})'</span>)
-axes[<span class="nm">0</span>].<span class="fn">grid</span>(axis=<span class="st">'y'</span>, alpha=<span class="nm">0.25</span>)
+fig, axes = plt.<span class="fn">subplots</span>(<span class="nm">2</span>, <span class="nm">1</span>, figsize=(<span class="nm">14</span>, <span class="nm">7</span>), sharex=<span class="kw">True</span>)
 
-<span class="cm"># Tukey simultaneous CI plot</span>
-tukey.<span class="fn">plot_simultaneous</span>(ax=axes[<span class="nm">1</span>])
-axes[<span class="nm">1</span>].<span class="fn">set_xlabel</span>(<span class="st">'Mean Defect Rate (%)'</span>); axes[<span class="nm">1</span>].<span class="fn">set_title</span>(<span class="st">'Tukey HSD Simultaneous 95% CI'</span>)
+<span class="cm"># Top: sinyal + thresholds</span>
+axes[<span class="nm">0</span>].<span class="fn">plot</span>(<span class="fn">range</span>(n_samples), rms_signal, color=<span class="st">'#1f2937'</span>, lw=<span class="nm">0.7</span>, alpha=<span class="nm">0.7</span>)
+axes[<span class="nm">0</span>].<span class="fn">axhline</span>(<span class="nm">1.4</span>, color=<span class="st">'#06b6d4'</span>, linestyle=<span class="st">'--'</span>, lw=<span class="nm">1</span>, label=<span class="st">'WARNING (1.4)'</span>)
+axes[<span class="nm">0</span>].<span class="fn">axhline</span>(<span class="nm">2.8</span>, color=<span class="st">'#f59e0b'</span>, linestyle=<span class="st">'--'</span>, lw=<span class="nm">1</span>, label=<span class="st">'ALERT (2.8)'</span>)
+axes[<span class="nm">0</span>].<span class="fn">axhline</span>(<span class="nm">4.5</span>, color=<span class="st">'#ec4899'</span>, linestyle=<span class="st">'--'</span>, lw=<span class="nm">1</span>, label=<span class="st">'CRITICAL (4.5)'</span>)
+<span class="kw">for</span> idx <span class="kw">in</span> spike_idx:
+    axes[<span class="nm">0</span>].<span class="fn">axvline</span>(idx, color=<span class="st">'#a855f7'</span>, alpha=<span class="nm">0.4</span>, lw=<span class="nm">0.8</span>)
+axes[<span class="nm">0</span>].<span class="fn">set_ylabel</span>(<span class="st">'RMS (mm/s)'</span>); axes[<span class="nm">0</span>].<span class="fn">legend</span>(loc=<span class="st">'upper left'</span>)
+axes[<span class="nm">0</span>].<span class="fn">set_title</span>(<span class="st">'FSM Monitoring: Spikes (purple lines) di-FILTER oleh debouncing N=3'</span>)
+axes[<span class="nm">0</span>].<span class="fn">grid</span>(alpha=<span class="nm">0.25</span>)
+
+<span class="cm"># Bottom: state trajectory</span>
+state_idx = [fsm.STATES.<span class="fn">index</span>(s) <span class="kw">if</span> s <span class="kw">in</span> fsm.STATES <span class="kw">else</span> <span class="nm">0</span> <span class="kw">for</span> s <span class="kw">in</span> state_history]
+colors = [<span class="st">'#22c55e'</span>, <span class="st">'#06b6d4'</span>, <span class="st">'#f59e0b'</span>, <span class="st">'#ec4899'</span>, <span class="st">'#a855f7'</span>]
+axes[<span class="nm">1</span>].<span class="fn">scatter</span>(<span class="fn">range</span>(n_samples), state_idx, c=[colors[i] <span class="kw">for</span> i <span class="kw">in</span> state_idx], s=<span class="nm">3</span>)
+axes[<span class="nm">1</span>].<span class="fn">set_yticks</span>(<span class="fn">range</span>(<span class="fn">len</span>(fsm.STATES))); axes[<span class="nm">1</span>].<span class="fn">set_yticklabels</span>(fsm.STATES)
+axes[<span class="nm">1</span>].<span class="fn">set_xlabel</span>(<span class="st">'Sample index'</span>); axes[<span class="nm">1</span>].<span class="fn">set_ylabel</span>(<span class="st">'State'</span>)
+axes[<span class="nm">1</span>].<span class="fn">set_title</span>(<span class="st">f'State Trajectory ({len(audit_df)} transitions)'</span>)
+axes[<span class="nm">1</span>].<span class="fn">grid</span>(axis=<span class="st">'y'</span>, alpha=<span class="nm">0.25</span>)
+
 plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
   </div>
 
