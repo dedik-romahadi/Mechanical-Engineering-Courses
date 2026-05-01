@@ -999,65 +999,79 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 03 — NEWTON'S METHOD & QUASI-NEWTON ═══ -->
+<!-- ═══ BAGIAN 03 — PARTICLE SWARM OPTIMIZATION ═══ -->
 <hr class="divider">
 <div class="section" id="m-dmf">
   <div class="section-label reveal">Bagian 03</div>
-  <h2 class="section-title reveal">Newton's Method &amp; Quasi-Newton:<br>Konvergensi Kuadratik dengan Hessian</h2>
-  <p class="section-desc reveal">Gradient descent hanya pakai informasi <em>turunan pertama</em> (∇f). <strong>Newton's method</strong> melangkah lebih jauh: pakai <em>turunan kedua</em> (Hessian ∇²f) untuk model lokal kuadratik fungsi, lalu langsung lompat ke minimum model tersebut. Hasilnya: <strong style="color:var(--cyan)">konvergensi kuadratik</strong> — error berkurang sebagai kuadrat di tiap iterasi (jauh lebih cepat dari linier). Tetapi ada cost: butuh hitung &amp; invert Hessian (O(n³) per iterasi). Untuk n besar, <strong>Quasi-Newton (BFGS, L-BFGS)</strong> mengaproksimasi Hessian dari gradient saja — tetap super-linier, tetapi O(n²) atau O(n) per iterasi.</p>
+  <h2 class="section-title reveal">Particle Swarm Optimization:<br>Kawanan Burung sebagai Mesin Optimasi</h2>
+  <p class="section-desc reveal">Diciptakan oleh <strong>James Kennedy &amp; Russell Eberhart (1995)</strong>, <em>Particle Swarm Optimization (PSO)</em> meniru perilaku <em>kawanan burung mencari makanan</em> atau ikan dalam school. Tiap "partikel" (kandidat solusi) terbang di search space dengan velocity, mengingat <em>posisi terbaik personal-nya</em> (pbest) dan posisi <em>terbaik global swarm</em> (gbest). Update velocity = kombinasi inersia + tarikan ke pbest + tarikan ke gbest, ditambah komponen random. Hasilnya: swarm secara kolektif konvergen ke optimum dengan <strong style="color:var(--cyan)">konvergensi cepat</strong> — biasanya lebih cepat dari GA untuk continuous problems. Lebih simple dari GA: tidak ada crossover/mutation, hanya update posisi via velocity equation.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Empat Komponen Newton-Type Methods</div>
-    Newton step d_k = −[∇²f]⁻¹·∇f &nbsp;·&nbsp; Hessian ∇²f(x) &nbsp;·&nbsp; BFGS update H_{k+1} ≈ H_k + ... &nbsp;·&nbsp; L-BFGS (limited memory)
+    <div class="label">Persamaan Update PSO (per iterasi)</div>
+    v<sub>i</sub><sup>t+1</sup> = w·v<sub>i</sub><sup>t</sup> + c₁r₁·(p<sub>i</sub> − x<sub>i</sub>) + c₂r₂·(g − x<sub>i</sub>) &nbsp;·&nbsp; x<sub>i</sub><sup>t+1</sup> = x<sub>i</sub><sup>t</sup> + v<sub>i</sub><sup>t+1</sup>
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">🎯</div>
-      <h3>Pure Newton — Quadratic Model</h3>
-      <p>Aproksimasi Taylor orde-2 sekitar x_k: <code>f(x_k+d) ≈ f(x_k) + ∇fᵀd + ½dᵀHd</code>. Set turunan terhadap d = 0: <code>Hd = −∇f</code> → <strong>Newton direction</strong>. Untuk fungsi quadratic <code>f = ½xᵀAx − bᵀx</code>, satu Newton step langsung sampai minimum. Untuk fungsi non-quadratic, butuh ~5–15 iterasi dengan akurasi tinggi. <strong style="color:var(--cyan)">Konvergensi kuadratik</strong>: <code>‖x_{k+1} − x*‖ ≤ C·‖x_k − x*‖²</code>.</p>
-      <div class="formula">d = −H⁻¹·∇f</div>
+      <div class="card-icon">🐦</div>
+      <h3>Particle, Position, Velocity</h3>
+      <p>Tiap partikel <em>i</em> punya: <strong>posisi</strong> <code>x<sub>i</sub> ∈ ℝⁿ</code> (kandidat solusi), <strong>velocity</strong> <code>v<sub>i</sub> ∈ ℝⁿ</code> (arah + besar perpindahan tiap iterasi), <strong>pbest</strong> <code>p<sub>i</sub></code> (posisi terbaik yang pernah dikunjungi partikel ini), <strong>fitness</strong> <code>f(x<sub>i</sub>)</code>. Swarm size N typical 20–50. Init: posisi random uniform di bounds, velocity random kecil. <strong style="color:var(--cyan)">Tidak ada elitism eksplisit</strong> — pbest sudah berperan sebagai memori per-partikel.</p>
+      <div class="formula">{x_i, v_i, p_i} per particle</div>
     </div>
     <div class="card">
-      <div class="card-icon">🧮</div>
-      <h3>BFGS — Hessian Approximation</h3>
-      <p>Hitung Hessian eksak mahal &amp; sering tidak tersedia analitik. <strong>BFGS</strong> (Broyden-Fletcher-Goldfarb-Shanno, 1970) update matrix <code>B_k ≈ ∇²f</code> dari informasi <code>s_k = x_{k+1}−x_k</code> dan <code>y_k = ∇f_{k+1}−∇f_k</code> (secant condition). Konvergensi super-linier, tanpa Hessian eksplisit. SciPy default untuk unconstrained: <code>method='BFGS'</code>. Robust &amp; sangat cepat untuk n ≤ 1000.</p>
-      <div class="formula">B_{k+1} = B_k + Δ(s,y)</div>
+      <div class="card-icon">🌐</div>
+      <h3>gbest — Global Best Communication</h3>
+      <p>Di tiap iterasi, partikel terbaik di seluruh swarm punya posisi <strong>gbest</strong> <code>g</code>. Semua partikel "tahu" posisi gbest dan tertarik ke arahnya — analogi <em>komunikasi sosial dalam swarm</em>. Ini mekanisme <em>information sharing</em> yang membuat PSO konvergen cepat. Variant: <strong>local best (lbest)</strong> — partikel hanya tahu best dari k tetangga (topology ring/star), lebih lambat tapi lebih robust untuk multi-modal.</p>
+      <div class="formula">g = argmax{f(p_i)}</div>
     </div>
     <div class="card">
-      <div class="card-icon">💾</div>
-      <h3>L-BFGS — Limited Memory</h3>
-      <p>BFGS simpan matrix <code>n×n</code> — tidak feasible untuk n &gt; 10⁵. <strong>L-BFGS</strong> simpan hanya <em>m terakhir pasangan (s, y)</em>, m=5–20. Memori O(mn), per-iterasi O(mn). Standar deep learning (sebelum SGD/Adam dominan), parameter identification, ML besar. SciPy: <code>method='L-BFGS-B'</code> juga support kendala bounds.</p>
-      <div class="formula">memory = m·(s, y) pairs</div>
+      <div class="card-icon">⚖️</div>
+      <h3>Inertia Weight w</h3>
+      <p>Komponen <code>w·v<sub>i</sub><sup>t</sup></code> mempertahankan momentum partikel — analog dengan inersia fisika. <strong>w besar (0.9)</strong> → eksplorasi kuat, partikel terbang jauh; <strong>w kecil (0.4)</strong> → eksploitasi, partikel rapat di sekitar gbest. Strategi populer: <em>linearly decreasing inertia</em> — w turun dari 0.9 → 0.4 sepanjang iterasi (eksplor di awal, eksploit di akhir). <strong style="color:var(--green)">w=0.7 + decay</strong> = setting populer.</p>
+      <div class="formula">w(t) = 0.9 − 0.5·t/T_max</div>
     </div>
     <div class="card">
-      <div class="card-icon">⚠️</div>
-      <h3>Trust Region — Robust Alternative</h3>
-      <p>Line search bisa fail kalau Hessian non-positive-definite (misal saddle point). <strong>Trust region</strong>: hanya percaya quadratic model dalam radius Δ_k, solve subproblem <code>min m(d) s.t. ‖d‖ ≤ Δ_k</code>. Update Δ adaptif berdasarkan kualitas prediksi vs aktual. SciPy: <code>method='trust-ncg'</code>, <code>'trust-krylov'</code>, <code>'trust-constr'</code>. Robust untuk masalah ill-conditioned &amp; non-konveks.</p>
-      <div class="formula">‖d‖ ≤ Δ_k (trust radius)</div>
+      <div class="card-icon">🧲</div>
+      <h3>Cognitive c₁ &amp; Social c₂ Coefficients</h3>
+      <p><code>c₁·r₁·(p<sub>i</sub> − x<sub>i</sub>)</code> = <strong>cognitive component</strong> — partikel tertarik ke pengalaman pribadinya. <code>c₂·r₂·(g − x<sub>i</sub>)</code> = <strong>social component</strong> — tertarik ke best swarm. <code>r₁, r₂ ∈ U[0,1]</code> = random uniform tiap iterasi. Standard: <strong style="color:var(--amber)">c₁ = c₂ = 2.0</strong> (Kennedy original). Untuk swarm besar atau multi-modal: c₁ = 1.5, c₂ = 1.5. Sum c₁+c₂ &lt; 4.1 untuk stabilitas matematis (Clerc 2002).</p>
+      <div class="formula">c₁ + c₂ ≤ 4.1</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📐</div>
+      <h3>Velocity Clamping &amp; Bounds Handling</h3>
+      <p>Tanpa pembatas, velocity bisa eksplosif — partikel terbang keluar bounds. <strong>Velocity clamping</strong>: <code>|v<sub>i,d</sub>| ≤ v_max</code> per dimensi (typical: <code>v_max = 0.2·(ub_d − lb_d)</code>). <strong>Bounds handling</strong> saat partikel keluar feasible region: (1) <em>reflect</em> — bouncing back, (2) <em>absorb</em> — set ke boundary, (3) <em>periodic</em> — wrap-around. Reflect paling natural untuk engineering.</p>
+      <div class="formula">|v_d| ≤ 0.2·(ub_d − lb_d)</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <h3>Konvergensi &amp; Stopping</h3>
+      <p>PSO biasanya konvergen lebih cepat dari GA untuk continuous (~50–200 iterasi vs 100–500 generasi GA). Stopping criteria sama dengan metaheuristik umum: max iter, fitness plateau, atau <em>swarm diversity collapse</em> — saat semua partikel berkumpul rapat (variance posisi swarm → 0), tidak ada eksplorasi lagi → stop. Monitor metric: <strong>swarm diameter</strong> = max(‖x_i − g‖) per iterasi.</p>
+      <div class="formula">stop: max iter ∨ diameter &lt; ε</div>
     </div>
   </div>
 
   <div class="tbl-wrap reveal" style="margin:32px 0">
     <table class="data-table">
-      <thead><tr><th>Algoritma</th><th>Konvergensi</th><th>Cost/Iter</th><th>Kebutuhan</th><th>Cocok Untuk</th></tr></thead>
+      <thead><tr><th>Aspek</th><th>GA</th><th>PSO</th></tr></thead>
       <tbody>
-        <tr><td style="color:var(--cyan)">Steepest Descent</td><td>Linier</td><td>O(n)</td><td>∇f saja</td><td>Konveks well-conditioned, simple</td></tr>
-        <tr><td style="color:var(--green)">Conjugate Gradient</td><td>Super-linier (quadratic case)</td><td>O(n)</td><td>∇f saja</td><td>Sparse, large-scale, quadratic-like</td></tr>
-        <tr><td style="color:var(--violet)">Newton</td><td>Kuadratik</td><td>O(n³)</td><td>∇²f eksak</td><td>n kecil, Hessian tersedia analitik</td></tr>
-        <tr><td style="color:var(--amber)">BFGS (Quasi-Newton)</td><td>Super-linier</td><td>O(n²)</td><td>∇f saja</td><td><strong>Default unconstrained NLP</strong>, n ≤ 1000</td></tr>
-        <tr><td style="color:var(--pink)">L-BFGS-B</td><td>Super-linier</td><td>O(mn)</td><td>∇f, bounds OK</td><td>Large-scale, ML, parameter ID</td></tr>
+        <tr><td style="color:var(--cyan)">Inspirasi alam</td><td>Evolusi Darwin (Holland 1975)</td><td>Kawanan burung/ikan (Kennedy &amp; Eberhart 1995)</td></tr>
+        <tr><td style="color:var(--green)">Operator utama</td><td>Selection + Crossover + Mutation</td><td>Velocity update (cognitive + social + inertia)</td></tr>
+        <tr><td style="color:var(--amber)">Memori</td><td>Hanya generasi sekarang (dengan elitism: + best)</td><td>Tiap partikel ingat pbest; swarm tahu gbest</td></tr>
+        <tr><td style="color:var(--violet)">Encoding native</td><td>Diskrit (binary, integer, permutation)</td><td>Continuous (real-valued)</td></tr>
+        <tr><td style="color:var(--pink)">Konvergensi praktik</td><td>Lambat tapi robust eksplor</td><td>Cepat tapi rentan premature convergence</td></tr>
+        <tr><td style="color:var(--cyan)">Hyperparameter</td><td>Banyak (Pc, Pm, k_tournament, k_elite, …)</td><td>Sedikit (w, c₁, c₂)</td></tr>
+        <tr><td style="color:var(--green)">Cocok untuk</td><td>TSP, scheduling, NAS, evolve struktur</td><td>Continuous parameter tuning, controller PID, NN weight</td></tr>
       </tbody>
     </table>
   </div>
 
   <div class="info-box reveal">
-    <strong>Kapan Pakai Apa? — Decision Tree Singkat:</strong><br>
-    (1) <strong>n ≤ 100, Hessian analitik tersedia</strong> → Newton (cepat &amp; akurat). (2) <strong>n ≤ 1000, gradient saja</strong> → <code>method='BFGS'</code> (default scipy). (3) <strong>n &gt; 10⁴ atau ada bounds</strong> → <code>method='L-BFGS-B'</code>. (4) <strong>Ada kendala g(x) ≤ 0</strong> → <code>method='SLSQP'</code> atau <code>'trust-constr'</code> (lihat Bagian 04). (5) <strong>Non-konveks, banyak lokal minimum</strong> → multi-start + BFGS, atau metaheuristik (Pertemuan 11). (6) <strong>Sangat noisy/non-smooth</strong> → derivative-free <code>method='Nelder-Mead'</code>.
+    <strong>Contoh Konkret — PID Controller Tuning untuk Quadcopter:</strong><br>
+    Cari Kp, Ki, Kd PID controller (3 dimensi continuous, K ∈ [0, 100]) yang minimumkan ITAE (Integral Time × Absolute Error) saat step response. Fungsi blackbox: simulasi closed-loop di Simulink. PSO setting: N=30 partikel, w=0.7→0.4 (linear decay), c₁=c₂=1.5, v_max = 20, max_iter=100. Hasil: gbest ITAE plateau ~0.08 (dari random init ~5.0). Total 3000 simulasi (30 × 100) — feasible. PSO konvergen ke solusi PID yang stable, fast, dan no-overshoot dalam ~1 jam compute.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Validasi Gradient Anda:</strong> Sebelum solve dengan <code>jac=...</code>, cek gradient dengan <code>scipy.optimize.check_grad(f, jac, x0)</code> — bandingkan analitik dengan finite difference. Hasil &lt; 10⁻⁵ artinya gradient benar. Bug gradient yang umum: lupa faktor 2 di kuadratik, salah tanda di kendala penalty, salah dimensi output. Bug gradient hampir selalu menyebabkan konvergensi <em>palsu</em> (solver bilang sukses, tapi solusi salah). Periksa: <code>‖f(x+ε·d) − f(x) − ε·∇fᵀd‖ = O(ε²)</code> di tiap arah d.
+    💡 <strong>Implementasi pyswarms (Library Python paling populer untuk PSO):</strong> <code>import pyswarms as ps; optimizer = ps.single.GlobalBestPSO(n_particles=30, dimensions=3, options={'c1':1.5, 'c2':1.5, 'w':0.7}, bounds=(lb, ub)); cost, pos = optimizer.optimize(f, iters=100)</code>. Sangat simple — 3 baris code. Variant: <strong>LocalBestPSO</strong> (k-neighbors topology), <strong>BinaryPSO</strong> (untuk variabel binary). Alternatif: <strong>scipy.optimize.differential_evolution</strong> (DE adalah gradient-free metaheuristik mirip PSO/GA), <strong>scikit-opt PSO</strong> (lighter dependency).
   </div>
 </div>
 
