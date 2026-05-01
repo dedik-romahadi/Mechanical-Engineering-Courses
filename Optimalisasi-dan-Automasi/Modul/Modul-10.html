@@ -1470,88 +1470,82 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   <div class="code-wrap reveal">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 2 — DE vs PSO Benchmark di Rastrigin 10D + Convergence Comparison</span>
+      <span class="code-label">Cell 2 — Two-Way ANOVA dengan statsmodels (Welding: Arus × Voltage → Tensile Strength)</span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
-    <pre><span class="kw">from</span> scipy.optimize <span class="kw">import</span> differential_evolution
+    <pre><span class="kw">import</span> pandas <span class="kw">as</span> pd
+<span class="kw">import</span> statsmodels.api <span class="kw">as</span> sm
+<span class="kw">from</span> statsmodels.formula.api <span class="kw">import</span> ols
 
 np.random.<span class="fn">seed</span>(<span class="nm">42</span>)
 
 <span class="cm"># ═══════════════════════════════════════════════════════════════════</span>
-<span class="cm"># BENCHMARK: Rastrigin 10D — challenge non-konveks dimensi tinggi</span>
-<span class="cm">#   Bandingkan DE (scipy bawaan) vs PSO (manual implementation)</span>
-<span class="cm">#   Untuk fairness: budget evaluasi sama (~6000 fevals)</span>
+<span class="cm"># EKSPERIMEN: Welding Parameters → Tensile Strength (MPa)</span>
+<span class="cm">#   Faktor A: arus (3 level: 100, 150, 200 A)</span>
+<span class="cm">#   Faktor B: voltage (3 level: 22, 26, 30 V)</span>
+<span class="cm">#   Replikasi: n = 3 specimen per kombinasi → total N = 27</span>
+<span class="cm">#   Pertanyaan: efek main A, main B, dan interaksi A×B?</span>
 <span class="cm"># ═══════════════════════════════════════════════════════════════════</span>
 
-DIM = <span class="nm">10</span>
-LB, UB = -<span class="nm">5.12</span>, <span class="nm">5.12</span>
+<span class="cm"># Generate synthetic data: efek arus dominan, voltage moderat, sedikit interaksi</span>
+arus_levels    = [<span class="nm">100</span>, <span class="nm">150</span>, <span class="nm">200</span>]
+voltage_levels = [<span class="nm">22</span>, <span class="nm">26</span>, <span class="nm">30</span>]
+n_rep = <span class="nm">3</span>
 
-<span class="kw">def</span> <span class="fn">rastrigin_10d</span>(x):
-    x = np.<span class="fn">asarray</span>(x)
-    <span class="kw">return</span> <span class="nm">10</span> * <span class="fn">len</span>(x) + np.<span class="fn">sum</span>(x**<span class="nm">2</span> - <span class="nm">10</span> * np.<span class="fn">cos</span>(<span class="nm">2</span> * np.pi * x))
+rows = []
+<span class="kw">for</span> i, arus <span class="kw">in</span> <span class="fn">enumerate</span>(arus_levels):
+    <span class="kw">for</span> j, volt <span class="kw">in</span> <span class="fn">enumerate</span>(voltage_levels):
+        base = <span class="nm">380</span> + i*<span class="nm">25</span> + j*<span class="nm">10</span> + (i*j*<span class="nm">3</span>)   <span class="cm"># effect arus + volt + sedikit interaksi</span>
+        <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(n_rep):
+            strength = base + np.random.<span class="fn">randn</span>() * <span class="nm">8</span>     <span class="cm"># noise σ=8 MPa</span>
+            rows.<span class="fn">append</span>({<span class="st">'arus'</span>: arus, <span class="st">'voltage'</span>: volt, <span class="st">'strength'</span>: strength})
 
-<span class="cm"># ═══════════════ DIFFERENTIAL EVOLUTION (scipy) ═══════════════</span>
-de_history = []
-<span class="kw">def</span> <span class="fn">de_callback</span>(xk, convergence):
-    de_history.<span class="fn">append</span>(<span class="fn">rastrigin_10d</span>(xk))
+df = pd.<span class="fn">DataFrame</span>(rows)
+<span class="fn">print</span>(<span class="st">"═══ DATA EKSPERIMEN (5 baris pertama) ═══"</span>)
+<span class="fn">print</span>(df.<span class="fn">head</span>())
 
-bounds = [(LB, UB)] * DIM
-de_res = <span class="fn">differential_evolution</span>(
-    rastrigin_10d, bounds,
-    maxiter=<span class="nm">100</span>, popsize=<span class="nm">15</span>,        <span class="cm"># 15·10 = 150 ind/gen × 100 gen = 15000 fevals</span>
-    seed=<span class="nm">42</span>, tol=<span class="nm">1e-8</span>, callback=de_callback
-)
+<span class="cm"># ═══════════════ TWO-WAY ANOVA dengan statsmodels ═══════════════</span>
+<span class="cm"># Formula 'C(arus) * C(voltage)' = main A + main B + interaksi A×B</span>
+model = <span class="fn">ols</span>(<span class="st">'strength ~ C(arus) * C(voltage)'</span>, data=df).<span class="fn">fit</span>()
+anova_table = sm.stats.<span class="fn">anova_lm</span>(model, typ=<span class="nm">2</span>)
 
-<span class="fn">print</span>(<span class="st">f"DE: best fitness = {de_res.fun:.6f}"</span>)
-<span class="fn">print</span>(<span class="st">f"DE: x* = {np.round(de_res.x, 3)}"</span>)
-<span class="fn">print</span>(<span class="st">f"DE: nfev = {de_res.nfev}, success = {de_res.success}"</span>)
+<span class="fn">print</span>(<span class="st">f"\n═══ TWO-WAY ANOVA TABLE ═══"</span>)
+<span class="fn">print</span>(anova_table.<span class="fn">round</span>(<span class="nm">4</span>))
 
-<span class="cm"># ═══════════════ PSO (manual implementation) ═══════════════</span>
-N_part   = <span class="nm">30</span>          <span class="cm"># swarm size</span>
-T_max    = <span class="nm">200</span>         <span class="cm"># 30 × 200 = 6000 fevals</span>
-w_init, w_end = <span class="nm">0.9</span>, <span class="nm">0.4</span>   <span class="cm"># linearly decreasing inertia</span>
-c1, c2   = <span class="nm">1.5</span>, <span class="nm">1.5</span>      <span class="cm"># cognitive & social coefficients</span>
-v_max    = <span class="nm">0.2</span> * (UB - LB)
+<span class="cm"># Interpretasi p-value tiap source</span>
+alpha = <span class="nm">0.05</span>
+<span class="fn">print</span>(<span class="st">f"\n═══ KEPUTUSAN (α = {alpha}) ═══"</span>)
+<span class="kw">for</span> source <span class="kw">in</span> [<span class="st">'C(arus)'</span>, <span class="st">'C(voltage)'</span>, <span class="st">'C(arus):C(voltage)'</span>]:
+    p_val = anova_table.loc[source, <span class="st">'PR(&gt;F)'</span>]
+    sig = <span class="st">"SIGNIFIKAN"</span> <span class="kw">if</span> p_val &lt; alpha <span class="kw">else</span> <span class="st">"tidak signifikan"</span>
+    <span class="fn">print</span>(<span class="st">f"  {source:30s}: p = {p_val:.4f}  →  {sig}"</span>)
 
-<span class="cm"># Init swarm</span>
-pos = np.random.<span class="fn">uniform</span>(LB, UB, (N_part, DIM))
-vel = np.random.<span class="fn">uniform</span>(-v_max, v_max, (N_part, DIM))
-pbest = pos.<span class="fn">copy</span>()
-pbest_fit = np.<span class="fn">array</span>([<span class="fn">rastrigin_10d</span>(x) <span class="kw">for</span> x <span class="kw">in</span> pos])
-gbest = pbest[np.<span class="fn">argmin</span>(pbest_fit)].<span class="fn">copy</span>()
-gbest_fit = pbest_fit.<span class="fn">min</span>()
+<span class="cm"># ═══════════════ INTERACTION PLOT ═══════════════</span>
+<span class="kw">from</span> statsmodels.graphics.factorplots <span class="kw">import</span> interaction_plot
 
-pso_history = [gbest_fit]
-<span class="kw">for</span> t <span class="kw">in</span> <span class="fn">range</span>(T_max):
-    w = w_init + (w_end - w_init) * t / T_max     <span class="cm"># linear decay</span>
-    r1, r2 = np.random.<span class="fn">rand</span>(N_part, DIM), np.random.<span class="fn">rand</span>(N_part, DIM)
-    vel = w*vel + c1*r1*(pbest - pos) + c2*r2*(gbest - pos)
-    vel = np.<span class="fn">clip</span>(vel, -v_max, v_max)
-    pos = np.<span class="fn">clip</span>(pos + vel, LB, UB)
-    fit = np.<span class="fn">array</span>([<span class="fn">rastrigin_10d</span>(x) <span class="kw">for</span> x <span class="kw">in</span> pos])
-    <span class="cm"># update pbest</span>
-    mask = fit &lt; pbest_fit
-    pbest[mask] = pos[mask]
-    pbest_fit[mask] = fit[mask]
-    <span class="cm"># update gbest</span>
-    <span class="kw">if</span> pbest_fit.<span class="fn">min</span>() &lt; gbest_fit:
-        gbest = pbest[np.<span class="fn">argmin</span>(pbest_fit)].<span class="fn">copy</span>()
-        gbest_fit = pbest_fit.<span class="fn">min</span>()
-    pso_history.<span class="fn">append</span>(gbest_fit)
+fig, axes = plt.<span class="fn">subplots</span>(<span class="nm">1</span>, <span class="nm">2</span>, figsize=(<span class="nm">14</span>, <span class="nm">5</span>))
 
-<span class="fn">print</span>(<span class="st">f"\nPSO: best fitness = {gbest_fit:.6f}"</span>)
-<span class="fn">print</span>(<span class="st">f"PSO: x* = {np.round(gbest, 3)}"</span>)
+<span class="cm"># Plot 1: cell means (heatmap-style)</span>
+pivot = df.<span class="fn">pivot_table</span>(values=<span class="st">'strength'</span>, index=<span class="st">'arus'</span>, columns=<span class="st">'voltage'</span>, aggfunc=<span class="st">'mean'</span>)
+im = axes[<span class="nm">0</span>].<span class="fn">imshow</span>(pivot.values, cmap=<span class="st">'viridis'</span>, aspect=<span class="st">'auto'</span>)
+axes[<span class="nm">0</span>].<span class="fn">set_xticks</span>(<span class="fn">range</span>(<span class="fn">len</span>(voltage_levels))); axes[<span class="nm">0</span>].<span class="fn">set_xticklabels</span>(voltage_levels)
+axes[<span class="nm">0</span>].<span class="fn">set_yticks</span>(<span class="fn">range</span>(<span class="fn">len</span>(arus_levels))); axes[<span class="nm">0</span>].<span class="fn">set_yticklabels</span>(arus_levels)
+axes[<span class="nm">0</span>].<span class="fn">set_xlabel</span>(<span class="st">'Voltage (V)'</span>); axes[<span class="nm">0</span>].<span class="fn">set_ylabel</span>(<span class="st">'Arus (A)'</span>)
+axes[<span class="nm">0</span>].<span class="fn">set_title</span>(<span class="st">'Mean Tensile Strength (MPa) per Cell'</span>)
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(arus_levels)):
+    <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(voltage_levels)):
+        axes[<span class="nm">0</span>].<span class="fn">text</span>(j, i, <span class="st">f'{pivot.iloc[i,j]:.0f}'</span>, ha=<span class="st">'center'</span>, color=<span class="st">'white'</span>, fontweight=<span class="st">'bold'</span>)
+plt.<span class="fn">colorbar</span>(im, ax=axes[<span class="nm">0</span>])
 
-<span class="cm"># ═══════════════ COMPARISON PLOT ═══════════════</span>
-fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="nm">11</span>, <span class="nm">5</span>))
-ax.<span class="fn">plot</span>(de_history, color=<span class="st">'#a855f7'</span>, lw=<span class="nm">1.6</span>, label=<span class="st">f'DE (final f={de_res.fun:.3f})'</span>)
-ax.<span class="fn">plot</span>(pso_history, color=<span class="st">'#f97316'</span>, lw=<span class="nm">1.6</span>, label=<span class="st">f'PSO (final f={gbest_fit:.3f})'</span>)
-ax.<span class="fn">axhline</span>(<span class="nm">0</span>, color=<span class="st">'#fbbf24'</span>, ls=<span class="st">'--'</span>, label=<span class="st">'Global min f*=0'</span>)
-ax.<span class="fn">set_xlabel</span>(<span class="st">'Iteration / Generation'</span>); ax.<span class="fn">set_ylabel</span>(<span class="st">'Best fitness (log)'</span>)
-ax.<span class="fn">set_yscale</span>(<span class="st">'log'</span>)
-ax.<span class="fn">set_title</span>(<span class="st">f'DE vs PSO pada Rastrigin {DIM}D'</span>)
-ax.<span class="fn">legend</span>(); ax.<span class="fn">grid</span>(alpha=<span class="nm">0.25</span>); plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
+<span class="cm"># Plot 2: interaction plot</span>
+<span class="fn">interaction_plot</span>(df[<span class="st">'arus'</span>], df[<span class="st">'voltage'</span>], df[<span class="st">'strength'</span>],
+                 ax=axes[<span class="nm">1</span>], colors=[<span class="st">'#a855f7'</span>, <span class="st">'#fbbf24'</span>, <span class="st">'#06b6d4'</span>], markers=[<span class="st">'o'</span>, <span class="st">'s'</span>, <span class="st">'^'</span>])
+axes[<span class="nm">1</span>].<span class="fn">set_xlabel</span>(<span class="st">'Arus (A)'</span>); axes[<span class="nm">1</span>].<span class="fn">set_ylabel</span>(<span class="st">'Mean Tensile Strength (MPa)'</span>)
+axes[<span class="nm">1</span>].<span class="fn">set_title</span>(<span class="st">'Interaction Plot (paralel = no interaction)'</span>)
+axes[<span class="nm">1</span>].<span class="fn">grid</span>(alpha=<span class="nm">0.25</span>)
+
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
   </div>
 
   <!-- Cell 3 -->
