@@ -1637,92 +1637,108 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   <div class="code-wrap reveal">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 4 — multistart_metaheuristic() Reusable: Multi-Run dengan Statistik Mean/Std/Best</span>
+      <span class="code-label">Cell 4 — run_anova_workflow() Reusable: End-to-End ANOVA Pipeline (asumsi → tabel → post-hoc → plot)</span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
-    <pre><span class="kw">from</span> scipy.optimize <span class="kw">import</span> differential_evolution
-<span class="kw">import</span> pandas <span class="kw">as</span> pd
+    <pre><span class="kw">from</span> statsmodels.stats.multicomp <span class="kw">import</span> pairwise_tukeyhsd
+<span class="kw">from</span> scipy <span class="kw">import</span> stats
 
-<span class="kw">def</span> <span class="fn">multistart_metaheuristic</span>(f, bounds, n_runs=<span class="nm">10</span>, maxiter=<span class="nm">200</span>, popsize=<span class="nm">15</span>):
+<span class="kw">def</span> <span class="fn">run_anova_workflow</span>(df, factor_col, response_col, alpha=<span class="nm">0.05</span>, plot=<span class="kw">True</span>):
     <span class="st">"""</span>
-<span class="st">    Run DE multiple times dengan seed berbeda; kumpulkan statistik.</span>
+<span class="st">    End-to-end one-way ANOVA workflow.</span>
 <span class="st">    </span>
-<span class="st">    Critical practice untuk metaheuristik stokastik: 1 run TIDAK cukup.</span>
-<span class="st">    Laporan harus include mean ± std minimum N=5 run untuk fairness.</span>
+<span class="st">    Steps:</span>
+<span class="st">      1. Cek asumsi (Shapiro-Wilk + Levene)</span>
+<span class="st">      2. Hitung ANOVA (manual + scipy verifikasi)</span>
+<span class="st">      3. Tukey HSD post-hoc kalau signifikan</span>
+<span class="st">      4. Effect size η² + interpretasi Cohen</span>
+<span class="st">      5. Plot boxplot + main effect</span>
 <span class="st">    </span>
 <span class="st">    Parameters</span>
 <span class="st">    ----------</span>
-<span class="st">    f         : callable, fungsi objektif</span>
-<span class="st">    bounds    : list of (lb, ub) tuples</span>
-<span class="st">    n_runs    : jumlah run independent dengan seed berbeda</span>
-<span class="st">    maxiter   : iterasi DE per run</span>
-<span class="st">    popsize   : popsize multiplier (DE: actual pop = popsize * dim)</span>
+<span class="st">    df          : pandas DataFrame</span>
+<span class="st">    factor_col  : str, nama kolom faktor (kategorik)</span>
+<span class="st">    response_col: str, nama kolom respons (numerik)</span>
+<span class="st">    alpha       : float, significance level (default 0.05)</span>
+<span class="st">    plot        : bool, generate plot (default True)</span>
 <span class="st">    </span>
-<span class="st">    Return DataFrame statistik + plot box-plot.</span>
+<span class="st">    Return: dict dengan F, p, eta², decision, tukey_result</span>
 <span class="st">    """</span>
-    results = []
-    <span class="kw">for</span> run <span class="kw">in</span> <span class="fn">range</span>(n_runs):
-        seed = run * <span class="nm">7</span> + <span class="nm">11</span>      <span class="cm"># reproducible per-run seeds</span>
-        res = <span class="fn">differential_evolution</span>(
-            f, bounds,
-            maxiter=maxiter, popsize=popsize,
-            seed=seed, tol=<span class="nm">1e-8</span>
-        )
-        results.<span class="fn">append</span>({
-            <span class="st">'run'</span>: run,
-            <span class="st">'seed'</span>: seed,
-            <span class="st">'x*'</span>: np.<span class="fn">round</span>(res.x, <span class="nm">4</span>).<span class="fn">tolist</span>(),
-            <span class="st">'f(x*)'</span>: res.fun,
-            <span class="st">'nfev'</span>: res.nfev,
-            <span class="st">'success'</span>: res.success,
-        })
-    df = pd.<span class="fn">DataFrame</span>(results)
-    <span class="kw">return</span> df
+    levels = <span class="fn">sorted</span>(df[factor_col].<span class="fn">unique</span>())
+    groups = [df[df[factor_col]==lv][response_col].values <span class="kw">for</span> lv <span class="kw">in</span> levels]
 
-<span class="cm"># ─── Demo: Multistart pada Rastrigin 5D ───</span>
-DIM = <span class="nm">5</span>
-LB, UB = -<span class="nm">5.12</span>, <span class="nm">5.12</span>
-<span class="kw">def</span> <span class="fn">rastrigin</span>(x):
-    x = np.<span class="fn">asarray</span>(x)
-    <span class="kw">return</span> <span class="nm">10</span>*<span class="fn">len</span>(x) + np.<span class="fn">sum</span>(x**<span class="nm">2</span> - <span class="nm">10</span>*np.<span class="fn">cos</span>(<span class="nm">2</span>*np.pi*x))
+    <span class="cm"># ─── 1. Cek asumsi ───</span>
+    normality_ok = <span class="kw">all</span>(stats.<span class="fn">shapiro</span>(g)[<span class="nm">1</span>] &gt; alpha <span class="kw">for</span> g <span class="kw">in</span> groups)
+    levene_p = stats.<span class="fn">levene</span>(*groups)[<span class="nm">1</span>]
+    levene_ok = levene_p &gt; alpha
 
-bounds_r = [(LB, UB)] * DIM
+    <span class="cm"># ─── 2. ANOVA ───</span>
+    F, p_val = stats.<span class="fn">f_oneway</span>(*groups)
 
-df = <span class="fn">multistart_metaheuristic</span>(rastrigin, bounds_r, n_runs=<span class="nm">10</span>, maxiter=<span class="nm">100</span>, popsize=<span class="nm">15</span>)
+    <span class="cm"># ─── 3. Effect size η² ───</span>
+    all_y = df[response_col].values
+    SS_t = ((all_y - all_y.<span class="fn">mean</span>())**<span class="nm">2</span>).<span class="fn">sum</span>()
+    SS_b = <span class="fn">sum</span>(<span class="fn">len</span>(g) * (g.<span class="fn">mean</span>() - all_y.<span class="fn">mean</span>())**<span class="nm">2</span> <span class="kw">for</span> g <span class="kw">in</span> groups)
+    eta_sq = SS_b / SS_t
+    cohen = <span class="st">"small"</span> <span class="kw">if</span> eta_sq &lt; <span class="nm">0.06</span> <span class="kw">else</span> <span class="st">"medium"</span> <span class="kw">if</span> eta_sq &lt; <span class="nm">0.14</span> <span class="kw">else</span> <span class="st">"large"</span>
 
-<span class="fn">print</span>(<span class="st">"═══ MULTI-RUN RESULTS (Rastrigin 5D, 10 runs) ═══"</span>)
-<span class="fn">print</span>(df[[<span class="st">'run'</span>, <span class="st">'seed'</span>, <span class="st">'f(x*)'</span>, <span class="st">'nfev'</span>, <span class="st">'success'</span>]].<span class="fn">to_string</span>(index=<span class="kw">False</span>))
+    <span class="cm"># ─── 4. Tukey HSD (kalau signifikan) ───</span>
+    tukey = <span class="kw">None</span>
+    <span class="kw">if</span> p_val &lt; alpha:
+        tukey = <span class="fn">pairwise_tukeyhsd</span>(df[response_col], df[factor_col], alpha=alpha)
 
-<span class="fn">print</span>(<span class="st">f"\n═══ STATISTIK ═══"</span>)
-<span class="fn">print</span>(<span class="st">f"  Best f(x*)  = {df['f(x*)'].min():.6f}"</span>)
-<span class="fn">print</span>(<span class="st">f"  Worst f(x*) = {df['f(x*)'].max():.6f}"</span>)
-<span class="fn">print</span>(<span class="st">f"  Mean ± Std  = {df['f(x*)'].mean():.6f} ± {df['f(x*)'].std():.6f}"</span>)
-<span class="fn">print</span>(<span class="st">f"  Median      = {df['f(x*)'].median():.6f}"</span>)
-<span class="fn">print</span>(<span class="st">f"  Success rate (f &lt; 1e-3) = {(df['f(x*)'] &lt; 1e-3).sum()}/{len(df)} = {(df['f(x*)'] &lt; 1e-3).mean()*100:.0f}%"</span>)
+    <span class="cm"># ─── 5. Reporting ───</span>
+    <span class="fn">print</span>(<span class="st">f"═══ ANOVA WORKFLOW: {response_col} ~ {factor_col} ═══"</span>)
+    <span class="fn">print</span>(<span class="st">f"\n[1] Asumsi:"</span>)
+    <span class="fn">print</span>(<span class="st">f"    Normality (Shapiro per grup): {'✓ OK' if normality_ok else '✗ VIOLATED — pakai Kruskal-Wallis'}"</span>)
+    <span class="fn">print</span>(<span class="st">f"    Equal variance (Levene p={levene_p:.4f}): {'✓ OK' if levene_ok else '✗ VIOLATED — pakai Welch'}"</span>)
+    <span class="fn">print</span>(<span class="st">f"\n[2] ANOVA:"</span>)
+    <span class="fn">print</span>(<span class="st">f"    F = {F:.4f}, p = {p_val:.6f}"</span>)
+    <span class="fn">print</span>(<span class="st">f"    η² = {eta_sq:.4f} ({cohen} effect, Cohen)"</span>)
+    decision = <span class="st">"TOLAK H0 — efek faktor signifikan"</span> <span class="kw">if</span> p_val &lt; alpha <span class="kw">else</span> <span class="st">"GAGAL TOLAK H0"</span>
+    <span class="fn">print</span>(<span class="st">f"    Keputusan: {decision}"</span>)
 
-<span class="cm"># Plot: distribusi run vs box plot</span>
-fig, axes = plt.<span class="fn">subplots</span>(<span class="nm">1</span>, <span class="nm">2</span>, figsize=(<span class="nm">12</span>, <span class="nm">4.5</span>))
+    <span class="kw">if</span> tukey <span class="kw">is</span> <span class="kw">not</span> <span class="kw">None</span>:
+        <span class="fn">print</span>(<span class="st">f"\n[3] Tukey HSD Post-Hoc:"</span>)
+        <span class="fn">print</span>(tukey)
 
-<span class="cm"># Bar chart: f per run</span>
-df_sorted = df.<span class="fn">sort_values</span>(<span class="st">'f(x*)'</span>)
-axes[<span class="nm">0</span>].<span class="fn">bar</span>(<span class="fn">range</span>(<span class="fn">len</span>(df)), df_sorted[<span class="st">'f(x*)'</span>],
-            color=[<span class="st">'#fbbf24'</span> <span class="kw">if</span> i==<span class="nm">0</span> <span class="kw">else</span> <span class="st">'#a855f7'</span> <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(df))])
-axes[<span class="nm">0</span>].<span class="fn">set_xlabel</span>(<span class="st">'Run (sorted)'</span>); axes[<span class="nm">0</span>].<span class="fn">set_ylabel</span>(<span class="st">'f(x*)'</span>)
-axes[<span class="nm">0</span>].<span class="fn">set_title</span>(<span class="st">f'10 Independent DE Runs pada Rastrigin {DIM}D'</span>)
-axes[<span class="nm">0</span>].<span class="fn">grid</span>(axis=<span class="st">'y'</span>, alpha=<span class="nm">0.25</span>)
+    <span class="cm"># ─── 6. Plot ───</span>
+    <span class="kw">if</span> plot:
+        fig, axes = plt.<span class="fn">subplots</span>(<span class="nm">1</span>, <span class="nm">2</span>, figsize=(<span class="nm">12</span>, <span class="nm">4.5</span>))
+        axes[<span class="nm">0</span>].<span class="fn">boxplot</span>(groups, labels=[<span class="fn">str</span>(lv) <span class="kw">for</span> lv <span class="kw">in</span> levels],
+                         patch_artist=<span class="kw">True</span>, boxprops={<span class="st">'facecolor'</span>:<span class="st">'#a855f7'</span>, <span class="st">'alpha'</span>:<span class="nm">0.4</span>})
+        axes[<span class="nm">0</span>].<span class="fn">set_xlabel</span>(factor_col); axes[<span class="nm">0</span>].<span class="fn">set_ylabel</span>(response_col)
+        axes[<span class="nm">0</span>].<span class="fn">set_title</span>(<span class="st">f'F = {F:.2f}, p = {p_val:.4f}, η² = {eta_sq:.3f}'</span>)
+        axes[<span class="nm">0</span>].<span class="fn">grid</span>(axis=<span class="st">'y'</span>, alpha=<span class="nm">0.25</span>)
 
-<span class="cm"># Box plot: distribusi</span>
-axes[<span class="nm">1</span>].<span class="fn">boxplot</span>(df[<span class="st">'f(x*)'</span>], showmeans=<span class="kw">True</span>, patch_artist=<span class="kw">True</span>,
-                 boxprops={<span class="st">'facecolor'</span>: <span class="st">'#a855f7'</span>, <span class="st">'alpha'</span>: <span class="nm">0.4</span>})
-axes[<span class="nm">1</span>].<span class="fn">set_ylabel</span>(<span class="st">'f(x*)'</span>); axes[<span class="nm">1</span>].<span class="fn">set_xticklabels</span>([<span class="st">f'DE on Rastrigin {DIM}D'</span>])
-axes[<span class="nm">1</span>].<span class="fn">set_title</span>(<span class="st">f'Distribusi (mean={df["f(x*)"].mean():.3f} ± {df["f(x*)"].std():.3f})'</span>)
-axes[<span class="nm">1</span>].<span class="fn">grid</span>(axis=<span class="st">'y'</span>, alpha=<span class="nm">0.25</span>)
-plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
+        means = [g.<span class="fn">mean</span>() <span class="kw">for</span> g <span class="kw">in</span> groups]
+        sems = [g.<span class="fn">std</span>(ddof=<span class="nm">1</span>)/np.<span class="fn">sqrt</span>(<span class="fn">len</span>(g)) <span class="kw">for</span> g <span class="kw">in</span> groups]
+        axes[<span class="nm">1</span>].<span class="fn">errorbar</span>(<span class="fn">range</span>(<span class="fn">len</span>(levels)), means, yerr=sems,
+                         fmt=<span class="st">'o-'</span>, color=<span class="st">'#fbbf24'</span>, lw=<span class="nm">2</span>, capsize=<span class="nm">5</span>)
+        axes[<span class="nm">1</span>].<span class="fn">set_xticks</span>(<span class="fn">range</span>(<span class="fn">len</span>(levels))); axes[<span class="nm">1</span>].<span class="fn">set_xticklabels</span>([<span class="fn">str</span>(lv) <span class="kw">for</span> lv <span class="kw">in</span> levels])
+        axes[<span class="nm">1</span>].<span class="fn">set_xlabel</span>(factor_col); axes[<span class="nm">1</span>].<span class="fn">set_ylabel</span>(<span class="st">f'Mean {response_col} ± SE'</span>)
+        axes[<span class="nm">1</span>].<span class="fn">set_title</span>(<span class="st">'Main Effect Plot'</span>); axes[<span class="nm">1</span>].<span class="fn">grid</span>(alpha=<span class="nm">0.25</span>)
+        plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
 
-<span class="cm"># Lesson penting: stokastik = laporkan mean ± std, bukan single best!</span>
-<span class="fn">print</span>(<span class="st">"\n💡 Lesson: laporkan 'mean ± std' di paper/laporan, bukan 'best' saja."</span>)
-<span class="fn">print</span>(<span class="st">"   Best dari 1 run = misleading; berbeda kalau seed berbeda."</span>)</pre>
+    <span class="kw">return</span> {<span class="st">'F'</span>: F, <span class="st">'p'</span>: p_val, <span class="st">'eta_sq'</span>: eta_sq, <span class="st">'decision'</span>: decision,
+            <span class="st">'tukey'</span>: tukey, <span class="st">'normality_ok'</span>: normality_ok, <span class="st">'levene_ok'</span>: levene_ok}
+
+<span class="cm"># ─── DEMO: Heat treatment temperature → Rockwell hardness ───</span>
+np.random.<span class="fn">seed</span>(<span class="nm">42</span>)
+temp_levels = [<span class="nm">450</span>, <span class="nm">500</span>, <span class="nm">550</span>, <span class="nm">600</span>]
+target_hrc  = {<span class="nm">450</span>: <span class="nm">52</span>, <span class="nm">500</span>: <span class="nm">58</span>, <span class="nm">550</span>: <span class="nm">62</span>, <span class="nm">600</span>: <span class="nm">55</span>}    <span class="cm"># 550°C optimal</span>
+
+rows = []
+<span class="kw">for</span> T <span class="kw">in</span> temp_levels:
+    <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">5</span>):
+        rows.<span class="fn">append</span>({<span class="st">'temp'</span>: T, <span class="st">'HRC'</span>: target_hrc[T] + np.random.<span class="fn">randn</span>()*<span class="nm">2</span>})
+df_demo = pd.<span class="fn">DataFrame</span>(rows)
+
+result = <span class="fn">run_anova_workflow</span>(df_demo, <span class="st">'temp'</span>, <span class="st">'HRC'</span>, alpha=<span class="nm">0.05</span>, plot=<span class="kw">True</span>)
+
+<span class="fn">print</span>(<span class="st">f"\n💡 Lesson: workflow ini reusable untuk eksperimen apapun — passing DataFrame + nama kolom."</span>)
+<span class="fn">print</span>(<span class="st">f"   Expand ke two-way: ganti scipy.stats.f_oneway dengan statsmodels.formula.api.ols + anova_lm"</span>)</pre>
   </div>
 </div>
 
