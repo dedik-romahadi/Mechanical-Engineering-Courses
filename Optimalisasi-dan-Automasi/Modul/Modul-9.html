@@ -4194,10 +4194,10 @@ setTimeout(_physicsTick, 500);
 
 
 // ════════════════════════════════════════════════════════════
-// ANIMASI 2 — Injeksi Impak: CF & Kurtosis Melonjak
-// (Canvas: cvSweep, slider: sl_rs/sl_zs; button: btnSweep)
-// Sinyal noise Gaussian dengan impak transient periodik
-// Hitung CF dan Kurtosis live, tampilkan di info panel
+// ANIMASI 2 — Newton vs Steepest Descent (NLP)
+// (Canvas: cvSweep, slider: sl_rs = condition number κ, sl_zs = max iter)
+// f(x,y) = x² + κ·y²  — quadratic, optimum (0, 0)
+// SD = zigzag pada elongated ellipses; Newton = 1 langkah ke optimum
 // ════════════════════════════════════════════════════════════
 let _sweepAnim = { t: 0, running: true, raf: null };
 
@@ -4212,95 +4212,141 @@ function drawSweep(){
   const W = cv.clientWidth; cv.width = W; const H = cv.height;
   const ctx = cv.getContext('2d');
 
+  // Background
   const bg = ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const impactFreq = parseFloat(document.getElementById('sl_rs').value);   // 0..10 per detik
-  const impactAmp  = parseFloat(document.getElementById('sl_zs').value);   // 0..8
-  const tOff = _sweepAnim.t;
+  // Read sliders
+  const kappa = parseFloat(document.getElementById('sl_rs').value);
+  const maxIter = Math.round(parseFloat(document.getElementById('sl_zs').value));
 
-  // Plot area
-  const x0 = 40, y0 = 30, w = W - 60, h = H - 60;
-  const mid = y0 + h/2;
-  const N = 300;
-  const yScale = 25;
+  // Plot region
+  const padL = 50, padR = 30, padT = 25, padB = 40;
+  const xMin = -2.5, xMax = 2.5, yMin = -1.5, yMax = 1.5;
+  const wPx = W - padL - padR, hPx = H - padT - padB;
+  const PX = (x) => padL + ((x - xMin) / (xMax - xMin)) * wPx;
+  const PY = (y) => H - padB - ((y - yMin) / (yMax - yMin)) * hPx;
 
-  // Generate signal: noise + periodic impacts
-  const signal = [];
-  const period = impactFreq > 0.01 ? Math.floor(N / impactFreq) : N + 1;
-  for (let i = 0; i < N; i++) {
-    const xt = i + tOff * 12;
-    // Gaussian-like noise (deterministic from sin combos)
-    let noise = 0.6 * (Math.sin(xt * 2.71) + Math.sin(xt * 1.13) * 0.7 + Math.sin(xt * 4.31) * 0.4);
-    // Periodic impact: spike + decay
-    const phase = Math.floor(i + tOff * 12) % Math.max(period, 1);
-    let impact = 0;
-    if (phase < 6 && impactFreq > 0.01) {
-      impact = impactAmp * Math.exp(-phase * 0.4) * Math.sin(phase * 1.2);
+  // f(x,y) = x² + κy²; ∇f = (2x, 2κy); H = diag(2, 2κ)
+  const f = (x, y) => x*x + kappa*y*y;
+  const grad = (x, y) => [2*x, 2*kappa*y];
+  // Optimal step size for SD: α* = (gᵀg)/(gᵀHg) — exact line search
+
+  // Draw contour lines (axis-aligned ellipses)
+  const levels = [0.05, 0.2, 0.5, 1.0, 2.0, 4.0];
+  ctx.strokeStyle = 'rgba(168,85,247,.4)'; ctx.lineWidth = 1.2;
+  levels.forEach(L => {
+    const a = Math.sqrt(L), b = Math.sqrt(L/kappa);
+    ctx.beginPath();
+    for(let theta=0; theta<=2*Math.PI+0.01; theta+=0.04){
+      const px = a*Math.cos(theta);
+      const py = b*Math.sin(theta);
+      if(theta === 0) ctx.moveTo(PX(px), PY(py));
+      else ctx.lineTo(PX(px), PY(py));
     }
-    signal.push(noise + impact);
+    ctx.stroke();
+  });
+
+  // Initial point: start far on long axis (worst case for SD)
+  const startX = 2, startY = 1;
+
+  // === Steepest Descent with exact line search ===
+  let x_sd = startX, y_sd = startY;
+  const traj_sd = [[x_sd, y_sd]];
+  for(let k=0; k<maxIter; k++){
+    const [gx, gy] = grad(x_sd, y_sd);
+    const gNorm = Math.sqrt(gx*gx + gy*gy);
+    if (gNorm < 1e-5) break;
+    // Exact line search: α* = (gᵀg) / (gᵀHg) where H = diag(2, 2κ)
+    // g·g = gx² + gy²; g·H·g = 2gx² + 2κgy²
+    const num = gx*gx + gy*gy;
+    const den = 2*gx*gx + 2*kappa*gy*gy;
+    const alpha = num / Math.max(den, 1e-9);
+    x_sd = x_sd - alpha * gx;
+    y_sd = y_sd - alpha * gy;
+    traj_sd.push([x_sd, y_sd]);
+    if (Math.abs(x_sd) < 1e-4 && Math.abs(y_sd) < 1e-4) break;
   }
 
-  // Compute features
-  let sumSq = 0, sumAbs = 0, peak = 0, sum = 0;
-  for (let i = 0; i < N; i++) {
-    const v = signal[i];
-    sumSq += v*v; sumAbs += Math.abs(v); sum += v;
-    if (Math.abs(v) > peak) peak = Math.abs(v);
+  // === Newton's Method ===
+  let x_nt = startX, y_nt = startY;
+  const traj_nt = [[x_nt, y_nt]];
+  for(let k=0; k<maxIter; k++){
+    const [gx, gy] = grad(x_nt, y_nt);
+    if (Math.sqrt(gx*gx + gy*gy) < 1e-5) break;
+    // Newton: d = -H^{-1} g, with H = diag(2, 2κ): d = -(gx/2, gy/(2κ))
+    x_nt = x_nt - gx / 2;
+    y_nt = y_nt - gy / (2 * kappa);
+    traj_nt.push([x_nt, y_nt]);
   }
-  const mean = sum / N;
-  const rms = Math.sqrt(sumSq / N);
-  // Kurtosis (plain, fisher=False)
-  let m4 = 0, m2 = 0;
-  for (let i = 0; i < N; i++) {
-    const d = signal[i] - mean;
-    m2 += d*d;
-    m4 += d*d*d*d;
-  }
-  m2 /= N; m4 /= N;
-  const kurt = m2 > 1e-9 ? m4 / (m2*m2) : 0;
-  const cf = peak / Math.max(rms, 1e-9);
 
-  // Grid
-  _grid(ctx, x0, y0, w, h, 20, 6, '#0d1929');
-
-  // Draw signal
-  ctx.strokeStyle = 'rgba(168,85,247,.9)'; ctx.lineWidth = 1.4;
+  // Draw SD trajectory (amber, zigzag)
+  ctx.strokeStyle = 'rgba(249,115,22,.9)'; ctx.lineWidth = 1.8;
+  ctx.shadowColor = 'rgba(249,115,22,.4)'; ctx.shadowBlur = 4;
   ctx.beginPath();
-  for (let i = 0; i < N; i++) {
-    const px = x0 + (i/(N-1)) * w;
-    const py = mid - signal[i] * yScale;
-    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-  }
+  traj_sd.forEach(([x,y], i) => {
+    if (i === 0) ctx.moveTo(PX(x), PY(y));
+    else ctx.lineTo(PX(x), PY(y));
+  });
   ctx.stroke();
+  ctx.shadowBlur = 0;
+  // SD markers
+  traj_sd.forEach(([x,y], i) => {
+    ctx.fillStyle = 'rgba(249,115,22,.85)';
+    ctx.beginPath(); ctx.arc(PX(x), PY(y), i === 0 ? 5 : 2.5, 0, 2*Math.PI); ctx.fill();
+  });
 
-  // Mark zero line + ±RMS
-  ctx.strokeStyle = 'rgba(148,163,184,.3)'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
-  ctx.beginPath(); ctx.moveTo(x0, mid); ctx.lineTo(x0+w, mid); ctx.stroke();
-  ctx.strokeStyle = 'rgba(14,165,233,.6)';
-  ctx.beginPath(); ctx.moveTo(x0, mid - rms*yScale); ctx.lineTo(x0+w, mid - rms*yScale); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x0, mid + rms*yScale); ctx.lineTo(x0+w, mid + rms*yScale); ctx.stroke();
-  ctx.setLineDash([]);
+  // Draw Newton trajectory (pink, direct)
+  ctx.strokeStyle = 'rgba(255,64,129,.95)'; ctx.lineWidth = 2.2;
+  ctx.shadowColor = 'rgba(255,64,129,.5)'; ctx.shadowBlur = 5;
+  ctx.beginPath();
+  traj_nt.forEach(([x,y], i) => {
+    if (i === 0) ctx.moveTo(PX(x), PY(y));
+    else ctx.lineTo(PX(x), PY(y));
+  });
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+  // Newton markers
+  traj_nt.forEach(([x,y], i) => {
+    ctx.fillStyle = 'rgba(255,64,129,.9)';
+    ctx.beginPath(); ctx.arc(PX(x), PY(y), i === 0 ? 5 : 4, 0, 2*Math.PI); ctx.fill();
+  });
 
-  // Labels
-  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText(`Impak: ${impactFreq.toFixed(1)}/det × A=${impactAmp.toFixed(1)}`, x0, y0 - 8);
+  // Optimum (star)
+  ctx.fillStyle = '#fbbf24';
+  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.2;
+  _drawStarN(ctx, PX(0), PY(0), 5, 11, 5);
+  ctx.fill(); ctx.stroke();
+
+  // Axes
+  ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(PX(xMin), PY(0)); ctx.lineTo(PX(xMax), PY(0)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(PX(0), PY(yMin)); ctx.lineTo(PX(0), PY(yMax)); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '11px JetBrains Mono';
+  ctx.fillText('x', PX(xMax)+5, PY(0)+4);
+  ctx.fillText('y', PX(0)-15, PY(yMax)+10);
+
+  // Title
+  ctx.fillStyle = 'rgba(249,115,22,.95)'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText(`f(x,y) = x² + ${kappa.toFixed(1)}·y²  (κ = ${kappa.toFixed(1)})`, padL, padT-8);
+
+  // Legend
+  ctx.font = '10px JetBrains Mono';
+  ctx.fillStyle = 'rgba(249,115,22,.95)'; ctx.fillText(`● SD: ${traj_sd.length-1} iter`, PX(xMin)+5, PY(yMax)+22);
+  ctx.fillStyle = 'rgba(255,64,129,.95)'; ctx.fillText(`● Newton: ${traj_nt.length-1} iter`, PX(xMin)+5, PY(yMax)+34);
 
   // Update slider displays
-  const v1 = document.getElementById('v_rs'); if(v1) v1.textContent = impactFreq.toFixed(2);
-  const v2 = document.getElementById('v_zs'); if(v2) v2.textContent = impactAmp.toFixed(2);
+  document.getElementById('v_rs').textContent = kappa.toFixed(1);
+  document.getElementById('v_zs').textContent = maxIter;
 
-  // Info: CF & Kurtosis with color coding
+  // Info panel
   const info = document.getElementById('sweepInfo');
   if (info) {
-    const kurtCol = kurt > 5 ? '#ef4444' : (kurt > 4 ? '#f97316' : '#0ea5e9');
-    const cfCol   = cf > 5 ? '#ef4444' : (cf > 4 ? '#f97316' : '#0ea5e9');
-    let verdict;
-    if (kurt > 5 || cf > 5) verdict = '🔴 EARLY FAULT — impak transient terdeteksi';
-    else if (kurt > 4 || cf > 4) verdict = '🟡 WARNING — impulsivitas naik';
-    else verdict = '🟢 NORMAL — Gaussian noise dominan';
-    info.innerHTML = `RMS=<strong>${rms.toFixed(2)}</strong> · Peak=<strong>${peak.toFixed(2)}</strong> · <strong style="color:${cfCol}">CF=${cf.toFixed(2)}</strong> · <strong style="color:${kurtCol}">Kurt=${kurt.toFixed(2)}</strong> · ${verdict}`;
+    const speedup = traj_nt.length > 1 ? ((traj_sd.length-1) / Math.max(traj_nt.length-1, 1)).toFixed(1) : '∞';
+    const conv_sd = Math.sqrt(x_sd*x_sd + y_sd*y_sd);
+    const conv_nt = Math.sqrt(x_nt*x_nt + y_nt*y_nt);
+    info.innerHTML = `κ=<strong>${kappa.toFixed(1)}</strong> · SD: <strong>${traj_sd.length-1}</strong> iter (final ‖x‖=${conv_sd.toExponential(2)}) · Newton: <strong>${traj_nt.length-1}</strong> iter (‖x‖=${conv_nt.toExponential(2)}) · Speedup Newton: <strong>${speedup}×</strong>`;
   }
 }
 
