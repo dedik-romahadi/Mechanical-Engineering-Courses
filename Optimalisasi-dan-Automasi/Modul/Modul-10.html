@@ -2372,15 +2372,15 @@ from scipy.optimize import minimize
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:10%;font-size:.9rem;color:var(--green);--dur:20s;--del:0s">min f(x)</span>
-    <span class="ff" style="left:40%;font-size:.8rem;color:var(--cyan);--dur:18s;--del:7s">∇f(x*) = 0</span>
-    <span class="ff" style="left:65%;font-size:.75rem;color:var(--green);--dur:22s;--del:11s">L = f + λᵀh + μᵀg</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--violet);--dur:19s;--del:5s">μᵢgᵢ = 0</span>
+    <span class="ff" style="left:10%;font-size:.9rem;color:var(--green);--dur:20s;--del:0s">pop[t+1] ← σ(pop[t])</span>
+    <span class="ff" style="left:40%;font-size:.8rem;color:var(--cyan);--dur:18s;--del:7s">v = w·v + c₁(p−x) + c₂(g−x)</span>
+    <span class="ff" style="left:65%;font-size:.75rem;color:var(--green);--dur:22s;--del:11s">x' = x + σ·𝒩(0, 1)</span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--violet);--dur:19s;--del:5s">P(s) ∝ fitness(s)</span>
   </div>
   <div class="hero-content">
-    <div class="hero-eyebrow"><div class="pulse-dot"></div>Forum Diskusi · Pertemuan 11 · Non-Linear Programming</div>
-    <h1 class="hero-title" style="font-size:clamp(36px,5vw,60px)">Optimasi Desain Pegas —<br><em>Trade-Off Massa, Tegangan &amp; Defleksi</em></h1>
-    <p class="hero-sub">Studi kasus desain pegas suspensi mobil: cari tinggi, jumlah lilitan, dan diameter wire yang memberikan <em>massa minimum</em> dengan kendala tegangan yield, defleksi target, dan spacing aman. Dengan SLSQP &amp; KKT analysis, kita lihat mana kendala binding (= bottleneck desain), bagaimana sensitivity terhadap perubahan loading, dan kapan harus pakai NLP vs metaheuristik untuk desain yang lebih kompleks.</p>
+    <div class="hero-eyebrow"><div class="pulse-dot"></div>Forum Diskusi · Pertemuan 11 · Metaheuristik</div>
+    <h1 class="hero-title" style="font-size:clamp(36px,5vw,60px)">Generative Design Antena —<br><em>Genetic Algorithm Mengalahkan Insinyur NASA</em></h1>
+    <p class="hero-sub">Studi kasus <strong>NASA Space Technology 5 (ST5)</strong>: tim antenna engineer 6 bulan tidak menemukan desain yang memenuhi semua constraint mission. Tim AI pakai Genetic Algorithm dengan tree-based encoding — dalam 3 hari hasil <em>"S-shape"</em> aneh tetapi memenuhi semua spec, lebih ringan 50 g, dengan gain 95%. Antena ini meluncur ke orbit 2006 dan masih operasional. Diskusi: kapan metaheuristik <em>menang</em> atas desain manusia, dan bagaimana validasinya?</p>
   </div>
 </div>
 
@@ -2388,27 +2388,27 @@ from scipy.optimize import minimize
 
   <!-- SKENARIO -->
   <div class="section-label reveal cyan-label">Skenario</div>
-  <h2 class="section-title reveal">Desain Pegas Coil Suspensi —<br>Optimasi Multi-Kendala Non-Linier</h2>
+  <h2 class="section-title reveal">Antena Evolved NASA ST5 —<br>Saat GA Lebih Kreatif Daripada Insinyur</h2>
 
   <div class="forum-scenario reveal">
-    <div class="scenario-label">📋 KASUS INDUSTRI</div>
+    <div class="scenario-label">📋 KASUS NASA — REAL WORLD</div>
     <p>
-      Sebuah <strong style="color:var(--amber)">tim desain mekanik di pabrik suspensi otomotif</strong> harus mendesain pegas coil baru untuk SUV varian baru. Spesifikasi loading sudah ditentukan oleh tim sasis, dan target massa pegas semaksimal mungkin <em>minimum</em> (efisiensi bahan bakar). Engineer formulasikan NLP berkendala dengan 3 variabel desain dan 3 kendala teknis:
+      Tahun 2004, tim <strong style="color:var(--amber)">NASA ST5</strong> harus mendesain antena untuk 3 mikro-satelit yang akan memetakan magnetosphere bumi. Constraint sangat ketat: <em>gain ≥ 0 dB di 80% bandwidth</em>, VSWR ≤ 2, footprint ≤ 5 cm × 5 cm × 3 cm, massa target &lt; 200 g. Tim antenna engineer manusia mencoba desain klasik (helix, patch, fractal) selama 6 bulan — tidak ada yang memenuhi semua spec sekaligus. Tim AI pimpinan <em>Jason Lohn</em> (NASA Ames) pakai <strong>Genetic Programming</strong> dengan tree-based chromosome:
     </p>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:16px">
-      <div style="background:rgba(0,224,158,.05);border:1px solid rgba(0,224,158,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)">Variabel: d (Ø wire), N (lilitan), L (free length)</div>
-      <div style="background:rgba(255,64,129,.05);border:1px solid rgba(255,64,129,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)">Objektif: <em>min</em> mass = ρπ(d²/4)(πD)N</div>
-      <div style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet)">Stress: 8FD/(πd³) ≤ τ_y = 600 MPa</div>
-      <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">Defleksi: 8FD³N/(Gd⁴) ≥ 25 mm</div>
-      <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">Spacing: L ≥ N·d (avoid solid)</div>
-      <div style="background:rgba(0,224,158,.05);border:1px solid rgba(0,224,158,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)">Solver SLSQP: m* ≈ 41 g (tegangan + defleksi binding)</div>
+      <div style="background:rgba(0,224,158,.05);border:1px solid rgba(0,224,158,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)">Encoding: tree (forward, rotate, branch)</div>
+      <div style="background:rgba(255,64,129,.05);border:1px solid rgba(255,64,129,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)">Fitness: simulasi EM (NEC2) → gain·BW</div>
+      <div style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet)">Population: 200 individu, 50 generasi</div>
+      <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">Compute: 35 jam parallel cluster CPU</div>
+      <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">Hasil: bentuk-S asimetris counter-intuitif</div>
+      <div style="background:rgba(0,224,158,.05);border:1px solid rgba(0,224,158,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)">Mass: 165 g (−18%), Launch: 22 Mar 2006</div>
     </div>
-    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Pertanyaan kritis: hasil <code>scipy.minimize</code> menunjukkan <em>tegangan dan defleksi keduanya BINDING</em> (g(x*) ≈ 0) — kedua kendala aktif di optimum. Spacing slack (L &gt; N·d). <strong style="color:var(--amber)">Lagrange multiplier μ_stress ≈ 0.18, μ_deflection ≈ 1.45</strong> menunjukkan defleksi adalah kendala lebih "ketat". Beberapa pertanyaan: (a) bagaimana interpretasi multiplier untuk decisi engineering — apa artinya secara fisik? (b) jika manajemen ingin lebih ringan 10%, kendala mana harus di-relaks dan apa risikonya? (c) apakah masalah ini konveks? Bisakah kita yakin solusi global atau perlu multi-start? (d) bagaimana validasi asumsi (mis. shear modulus G konstan vs temperature-dependent)?</p>
+    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Pertanyaan kritis: (a) <strong>Mengapa GA bisa "menang"</strong> dari engineer manusia berpengalaman — apa keterbatasan intuisi manusia yang dilampaui oleh stochastic search? (b) Hasil GA berbentuk asimetris aneh — bagaimana <em>verifikasi</em> bahwa ini bukan over-fitting simulasi NEC2 dan <em>memang</em> akan bekerja di orbit nyata? (c) Hyperparameter GA (pop, gen, mutation rate) mempengaruhi hasil — bagaimana memilih tanpa NFL theorem terlanggar? (d) Trade-off compute (35 jam parallel) vs human design (6 bulan): kapan investasi GA worthwhile, kapan overkill? Diskusikan workflow <strong>generative design</strong> dalam mechanical engineering modern (additive manufacturing brackets, hyperloop chassis, F1 wing profiling).</p>
   </div>
 
   <!-- Canvas Animasi Forum -->
   <canvas id="cvForum" height="360" style="margin-bottom:12px;border-radius:12px"></canvas>
-  <p style="font-size:13px;color:var(--muted);margin-bottom:40px;font-family:'JetBrains Mono',monospace;text-align:center">— Visualisasi konsep gradient descent + KKT: sinyal sebagai analog landscape fungsi objektif, impulse sebagai iterasi, distribusi sebagai konvergensi rate</p>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:40px;font-family:'JetBrains Mono',monospace;text-align:center">— Visualisasi konsep evolusi populasi: scatter sebagai populasi GA/PSO, trajectory sebagai konvergensi gbest, distribusi sebagai diversity preservation</p>
 
   <!-- Pertanyaan Diskusi -->
   <div class="section-label reveal">Pertanyaan Diskusi</div>
