@@ -2070,34 +2070,36 @@ result = <span class="fn">run_anova_workflow</span>(df_demo, <span class="st">'t
         <div class="q-type-badge badge-comp">💻 BAGIAN B — Soal Komputasi · 10 Soal · @2 Poin · Menggunakan Jupyter Notebook</div>
 
     <div class="info-box" style="margin-bottom:28px">
-      <strong>📌 Pengingat Formulasi NLP (dipakai di C1–C15):</strong><br>
-      <span style="font-size:13px;color:var(--muted);margin-top:6px;display:block">Soal komputasi NLP: gunakan <code>scipy.optimize.minimize</code>. Method: <code>'BFGS'</code> untuk unconstrained, <code>'SLSQP'</code> untuk berkendala. Sediakan gradient analitik via <code>jac=...</code> bila bisa. Pastikan cek <code>result.success</code>.</span>
+      <strong>📌 Pengingat Formulasi ANOVA (dipakai di C1–C15):</strong><br>
+      <span style="font-size:13px;color:var(--muted);margin-top:6px;display:block">Soal komputasi ANOVA: gunakan <code>scipy.stats.f_oneway</code> untuk one-way ANOVA cepat, <code>statsmodels.formula.api.ols</code> + <code>anova_lm</code> untuk multi-way ANOVA, <code>statsmodels.stats.multicomp.pairwise_tukeyhsd</code> untuk post-hoc.</span>
       <pre style="margin-top:10px;background:#020a18;border:1px solid #1a2840;border-radius:8px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#cbd5e1;overflow-x:auto">import numpy as np
-from scipy.optimize import minimize
+import pandas as pd
+from scipy import stats
 
-# Standard NLP form di scipy.minimize:
-# minimize    f(x), x ∈ ℝⁿ
-# subject to: equality h(x) = 0  → constraints={'type':'eq', 'fun': h}
-#             inequality g(x) ≥ 0 → constraints={'type':'ineq', 'fun': g}
-#             bounds lb ≤ x ≤ ub  → bounds=[(lb,ub), ...]
+# One-way ANOVA cepat:
+F, p = stats.f_oneway(group1, group2, group3)
 
-# Method: 'BFGS' (unconstrained), 'SLSQP'/'trust-constr' (berkendala)</pre>
+# Identitas fundamental:
+# SS_total = SS_between + SS_within
+# F = MS_between / MS_within = (SS_b/df_b) / (SS_w/df_w)
+# eta^2 = SS_between / SS_total  (effect size)
+# df_b = k - 1, df_w = N - k, df_total = N - 1</pre>
     </div>
 
     <!-- COMP 1 -->
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C1</div>
-        <div class="comp-q">Hitung <strong>fitness Rastrigin 1D</strong> di x = 2.0. Formula: <code>f(x) = 10·n + Σ(xᵢ² − 10·cos(2π·xᵢ))</code>, n = 1. Print nilai f(2.0).</div>
+        <div class="comp-q">Hitung <strong>SS_total</strong> (total sum of squares) untuk dataset 3 grup: A = [5, 6, 7], B = [8, 9, 10], C = [11, 12, 13]. Formula: <code>SS_total = Σ(yᵢⱼ − ȳ)²</code> di mana ȳ = grand mean. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Untuk x = 2.0, n = 1: <code>f(2) = 10·1 + (2² − 10·cos(4π)) = 10 + (4 − 10·1) = 10 − 6 = <strong>4.0</strong></code>. (cos(4π) = cos(0) = 1 karena periodicity 2π.)</div>
+      <div class="comp-hint">💡 Grand mean ȳ = (5+6+...+13)/9 = 81/9 = 9. SS_total = (5−9)²+(6−9)²+(7−9)²+(8−9)²+(9−9)²+(10−9)²+(11−9)²+(12−9)²+(13−9)² = 16+9+4+1+0+1+4+9+16 = <strong>60</strong>. Code: <code>data = np.array([5,6,7,8,9,10,11,12,13]); print(((data - data.mean())**2).sum())</code>.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">f(2.0)</strong></span></div>
-        <textarea class="code-textarea" id="code-c1" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi&#10;&#10;Contoh:&#10;import numpy as np&#10;x = 2.0&#10;f = 10 + x**2 - 10*np.cos(2*np.pi*x)&#10;print(f'{f:.4f}')" oninput="onCodeInput('c1')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">SS_total</strong></span></div>
+        <textarea class="code-textarea" id="code-c1" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi&#10;&#10;Contoh:&#10;import numpy as np&#10;data = np.array([5,6,7,8,9,10,11,12,13])&#10;ss_total = ((data - data.mean())**2).sum()&#10;print(f'{ss_total:.4f}')" oninput="onCodeInput('c1')"></textarea>
         <div class="stdout-box" id="stdout-c1"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c1" onclick="runAndCheck('c1', 4.0, 0.01)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c1" onclick="runAndCheck('c1', 60.0, 0.5)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c1"></div>
     </div>
 
@@ -2105,16 +2107,16 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C2</div>
-        <div class="comp-q">Pada GA, populasi N = 50 individuals dengan <strong>elite size k_elite = 5</strong>. Berapa <strong>banyak offspring</strong> baru yang harus di-generate per generasi?</div>
+        <div class="comp-q">Untuk dataset di C1 (A = [5, 6, 7], B = [8, 9, 10], C = [11, 12, 13]), hitung <strong>SS_between</strong> = <code>Σ nⱼ·(ȳⱼ − ȳ)²</code>. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Setiap generasi populasi tetap N = 50. <em>k_elite</em> = 5 individu di-copy langsung tanpa modifikasi (elitism). Sisanya = <code>N − k_elite = 50 − 5 = <strong>45</strong></code> harus di-generate via crossover + mutation. Print <code>50 - 5</code>.</div>
+      <div class="comp-hint">💡 Mean grup: ȳ_A = 6, ȳ_B = 9, ȳ_C = 12. Grand mean ȳ = 9. n=3 tiap grup. <code>SS_b = 3·(6−9)² + 3·(9−9)² + 3·(12−9)² = 3·9 + 0 + 3·9 = <strong>54</strong></code>. SS_between mengukur efek faktor (variasi antar mean grup).</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() jumlah <strong style="color:var(--amber)">offspring</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">SS_between</strong></span></div>
         <textarea class="code-textarea" id="code-c2" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c2')"></textarea>
         <div class="stdout-box" id="stdout-c2"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c2" onclick="runAndCheck('c2', 45.0, 0.5)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c2" onclick="runAndCheck('c2', 54.0, 0.5)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c2"></div>
     </div>
 
@@ -2122,16 +2124,16 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C3</div>
-        <div class="comp-q">PSO dengan velocity update <code>v = w·v + c₁r₁(p − x) + c₂r₂(g − x)</code>. Diketahui <strong>w = 0.7, c₁ = c₂ = 1.5, v_old = 1.0, p − x = 2.0, g − x = 3.0, r₁ = r₂ = 1.0</strong>. Hitung <strong>v_new</strong>.</div>
+        <div class="comp-q">Untuk dataset di C1, hitung <strong>SS_within</strong> = <code>ΣⱼΣᵢ (yᵢⱼ − ȳⱼ)²</code> (deviasi data dari mean grup-nya, jumlah semua grup). Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Substitusi: <code>v_new = 0.7·1.0 + 1.5·1.0·2.0 + 1.5·1.0·3.0 = 0.7 + 3.0 + 4.5 = <strong>8.2</strong></code>. Print <code>0.7*1 + 1.5*1*2 + 1.5*1*3</code>.</div>
+      <div class="comp-hint">💡 Grup A: (5−6)²+(6−6)²+(7−6)² = 1+0+1 = 2. Grup B: (8−9)²+(9−9)²+(10−9)² = 2. Grup C: (11−12)²+(12−12)²+(13−12)² = 2. <code>SS_within = 2 + 2 + 2 = <strong>6</strong></code>. Verifikasi: SS_b + SS_w = 54 + 6 = 60 = SS_total ✓.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">v_new</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">SS_within</strong></span></div>
         <textarea class="code-textarea" id="code-c3" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c3')"></textarea>
         <div class="stdout-box" id="stdout-c3"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c3" onclick="runAndCheck('c3', 8.2, 0.01)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c3" onclick="runAndCheck('c3', 6.0, 0.5)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c3"></div>
     </div>
 
@@ -2139,16 +2141,16 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C4</div>
-        <div class="comp-q">Selesaikan unconstrained <strong>min f(x) = (x − 3)²</strong> dengan <code>scipy.optimize.differential_evolution</code>, bounds = [(−10, 10)], seed = 42. Print <strong>nilai x optimal</strong>.</div>
+        <div class="comp-q">Diketahui <strong>SS_between = 54</strong>, <strong>SS_within = 6</strong>, <strong>df_b = 2</strong>, <strong>df_w = 6</strong>. Hitung statistik <strong>F</strong> = <code>(SS_b/df_b) / (SS_w/df_w)</code>. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Solusi: x* = 3.0. Code: <code>from scipy.optimize import differential_evolution; res = differential_evolution(lambda x: (x[0]−3)**2, bounds=[(−10,10)], seed=42); print(res.x[0])</code>. Output sangat dekat dengan <strong>3.0</strong> (bisa 2.99...).</div>
+      <div class="comp-hint">💡 <code>MS_b = 54/2 = 27</code>, <code>MS_w = 6/6 = 1</code>, <code>F = 27/1 = <strong>27</strong></code>. F sangat besar → bukti kuat efek faktor signifikan. p-value akan sangat kecil (&lt;&lt; 0.05).</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">x optimal</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">F-statistic</strong></span></div>
         <textarea class="code-textarea" id="code-c4" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c4')"></textarea>
         <div class="stdout-box" id="stdout-c4"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c4" onclick="runAndCheck('c4', 3.0, 0.05)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c4" onclick="runAndCheck('c4', 27.0, 0.5)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c4"></div>
     </div>
 
@@ -2156,16 +2158,16 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C5</div>
-        <div class="comp-q">Pada GA dengan <strong>tournament size k = 3</strong>, probabilitas individu <em>terburuk</em> di populasi N=10 untuk dipilih sebagai parent (per turnamen) adalah... Hitung <strong>P(worst dipilih)</strong> dalam %.</div>
+        <div class="comp-q">Untuk one-way ANOVA dengan <strong>k = 4 level</strong> dan <strong>n = 5 replikasi</strong> per level, hitung <strong>df_total</strong> (degrees of freedom total). Formula: <code>df_total = N − 1</code> dengan <code>N = k·n</code>. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Tournament: pilih k=3 individu random, ambil yang terbaik. Untuk individu terburuk dipilih: harus terpilih di k=3 (probability k/N) DAN tidak ada yang lebih buruk darinya di tournament. Karena semua N−1 = 9 individu lebih baik dari worst, kondisi kedua hampir tidak mungkin. <strong>P ≈ k/N · 1/(C(N-1,k-1)/C(N,k))</strong>. Untuk worst individu, P = 1/C(N,k) = 1/C(10,3) = 1/120 ≈ <strong>0.83%</strong>. Print <code>1/120 * 100</code> = 0.833.</div>
+      <div class="comp-hint">💡 N = 4·5 = 20. <code>df_total = 20 − 1 = <strong>19</strong></code>. Verifikasi: df_b = k−1 = 3, df_w = N−k = 16; df_b + df_w = 3+16 = 19 ✓.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">P(worst) (%)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">df_total</strong></span></div>
         <textarea class="code-textarea" id="code-c5" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c5')"></textarea>
         <div class="stdout-box" id="stdout-c5"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c5" onclick="runAndCheck('c5', 0.833, 0.05)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c5" onclick="runAndCheck('c5', 19.0, 0.5)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c5"></div>
     </div>
 
@@ -2173,16 +2175,16 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C6</div>
-        <div class="comp-q"><strong>GA arithmetic crossover</strong>: parent P₁ = [4, 7, 2, 5] dan P₂ = [2, 9, 6, 3]. Hitung anak <code>child = α·P₁ + (1−α)·P₂</code> dengan α = 0.5. Print <strong>jumlah elemen child</strong> (sum).</div>
+        <div class="comp-q">Gunakan <code>scipy.stats.f_oneway</code> pada 3 grup A = [5, 6, 7], B = [8, 9, 10], C = [11, 12, 13]. Print nilai <strong>F-statistic</strong> hasil scipy.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>child = 0.5·[4,7,2,5] + 0.5·[2,9,6,3] = [3, 8, 4, 4]</code>. Sum = 3+8+4+4 = <strong>19</strong>. Arithmetic crossover banyak dipakai pada GA real-coded (kontinu) untuk menjamin offspring tetap di dalam convex hull parent.</div>
+      <div class="comp-hint">💡 <code>from scipy.stats import f_oneway; F, p = f_oneway([5,6,7], [8,9,10], [11,12,13]); print(F)</code>. Hasil = <strong>27.0</strong> (sama dengan manual hitung di C4). p-value = 0.001 → tolak H₀.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">sum(child)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">F (scipy)</strong></span></div>
         <textarea class="code-textarea" id="code-c6" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c6')"></textarea>
         <div class="stdout-box" id="stdout-c6"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c6" onclick="runAndCheck('c6', 19.0, 0.05)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c6" onclick="runAndCheck('c6', 27.0, 0.5)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c6"></div>
     </div>
 
@@ -2190,16 +2192,16 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C7</div>
-        <div class="comp-q"><strong>PSO linear inertia decay</strong>: <code>w(t) = w_max − (w_max − w_min)·(t/t_max)</code>. Untuk <code>w_max = 0.9</code>, <code>w_min = 0.4</code>, <code>t = 40</code>, <code>t_max = 100</code>, hitung <strong>w(40)</strong>. Print nilainya.</div>
+        <div class="comp-q"><strong>Effect size η²</strong>: untuk SS_between = 54 dan SS_total = 60, hitung <code>η² = SS_b / SS_total</code>. Print nilainya (desimal).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>w(40) = 0.9 − (0.9 − 0.4)·(40/100) = 0.9 − 0.5·0.4 = 0.9 − 0.2 = <strong>0.7</strong></code>. Linear decay membantu PSO bertransisi dari <em>eksplorasi</em> (w tinggi → momentum besar) ke <em>eksploitasi</em> (w rendah → fokus refining).</div>
+      <div class="comp-hint">💡 <code>η² = 54/60 = <strong>0.90</strong></code>. Artinya 90% varians data dijelaskan oleh faktor → <em>large effect</em> menurut Cohen (η² ≥ 0.14 = large). Effect size penting untuk interpretasi praktis: efek besar &amp; signifikan = layak action, efek kecil &amp; signifikan = mungkin tidak praktis.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">w(40)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">η²</strong></span></div>
         <textarea class="code-textarea" id="code-c7" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c7')"></textarea>
         <div class="stdout-box" id="stdout-c7"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c7" onclick="runAndCheck('c7', 0.7, 0.005)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c7" onclick="runAndCheck('c7', 0.90, 0.005)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c7"></div>
     </div>
 
@@ -2207,16 +2209,16 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C8</div>
-        <div class="comp-q"><strong>Roulette wheel selection</strong>: 4 individu dengan fitness [5, 15, 30, 50]. Hitung <strong>probabilitas individu dengan fitness 30</strong> terpilih (P = fᵢ / Σf). Print nilainya (desimal).</div>
+        <div class="comp-q"><strong>F-critical value</strong>: untuk α = 0.05, df_b = 2, df_w = 12, hitung <code>F_crit</code> menggunakan <code>scipy.stats.f.ppf(0.95, dfn=2, dfd=12)</code>. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Σf = 5 + 15 + 30 + 50 = 100. <code>P(f=30) = 30/100 = <strong>0.30</strong></code>. Roulette wheel = "fitness-proportionate" selection: makin tinggi fitness, makin besar slice di "rolet". Alternatif: tournament selection (tidak peka skala fitness).</div>
+      <div class="comp-hint">💡 Hasil: <code>F_crit ≈ <strong>3.885</strong></code>. Kalau F_observed &gt; 3.885, tolak H₀ pada α = 0.05. Untuk df berbeda (lebih banyak data), F_crit akan turun (lebih sensitif terhadap efek). Contoh: dfd = 30 → F_crit ≈ 3.32.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">probabilitas (desimal)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">F_critical</strong></span></div>
         <textarea class="code-textarea" id="code-c8" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c8')"></textarea>
         <div class="stdout-box" id="stdout-c8"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c8" onclick="runAndCheck('c8', 0.30, 0.005)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c8" onclick="runAndCheck('c8', 3.885, 0.05)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c8"></div>
     </div>
 
@@ -2224,16 +2226,16 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C9</div>
-        <div class="comp-q"><strong>DE mutation vector</strong>: formula DE/rand/1: <code>v = x_r1 + F·(x_r2 − x_r3)</code>. Untuk <code>F = 0.6</code>, <code>x_r1 = [2, 3]</code>, <code>x_r2 = [5, 1]</code>, <code>x_r3 = [1, 2]</code>, hitung mutant vector v. Print <strong>sum(v)</strong>.</div>
+        <div class="comp-q"><strong>Shapiro-Wilk normality test</strong>: untuk grup data <code>[2.5, 2.4, 2.6, 2.3, 2.2]</code>, gunakan <code>scipy.stats.shapiro</code> untuk dapat W-statistic. Print nilai <strong>W</strong> (statistik pertama dari output, bukan p-value).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>x_r2 − x_r3 = [4, −1]</code>. <code>F·(x_r2 − x_r3) = [2.4, −0.6]</code>. <code>v = [2, 3] + [2.4, −0.6] = [4.4, 2.4]</code>. <code>sum(v) = 4.4 + 2.4 = <strong>6.8</strong></code>. F (scaling factor) tipikal 0.5–0.9; F kecil → eksploitasi, F besar → eksplorasi.</div>
+      <div class="comp-hint">💡 <code>from scipy.stats import shapiro; W, p = shapiro([2.5, 2.4, 2.6, 2.3, 2.2]); print(W)</code>. Hasil ≈ <strong>0.987</strong>. W mendekati 1 = sangat normal (W = 1 untuk normal sempurna). p &gt; 0.05 → tidak tolak H₀ "data normal" → asumsi normality OK.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">sum(v)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">W (Shapiro)</strong></span></div>
         <textarea class="code-textarea" id="code-c9" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c9')"></textarea>
         <div class="stdout-box" id="stdout-c9"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c9" onclick="runAndCheck('c9', 6.8, 0.01)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c9" onclick="runAndCheck('c9', 0.987, 0.02)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c9"></div>
     </div>
 
@@ -2241,16 +2243,16 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C10</div>
-        <div class="comp-q"><strong>Total fitness evaluations PSO</strong>: untuk swarm <code>N = 20</code> partikel dijalankan selama <code>T = 50</code> iterasi (termasuk evaluasi posisi awal). Total evaluasi = <code>N·(T + 1)</code>. Print nilainya.</div>
+        <div class="comp-q"><strong>Total trial Taguchi L9</strong>: orthogonal array L9 mengakomodasi 4 faktor × 3 level dengan hanya 9 baris (vs full factorial 3⁴ = 81). Hitung <strong>reduction ratio</strong> = <code>(81 − 9) / 81 × 100</code> (% pengurangan trial). Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>N·(T+1) = 20·51 = <strong>1020</strong></code>. Setiap partikel dievaluasi sekali pada inisialisasi (gen 0) plus 1× per iterasi. Compute budget = #fungsi evaluasi → kunci membandingkan algoritma; <em>not</em> wall-clock yang variable per mesin.</div>
+      <div class="comp-hint">💡 <code>(81 − 9) / 81 · 100 = 72/81 · 100 ≈ <strong>88.89%</strong></code>. L9 menghemat ~89% trial dibanding full factorial — sangat bermanfaat untuk eksperimen mahal di engineering. Trade-off: tidak bisa estimasi interaksi tinggi (only main effects).</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">total evaluasi</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">reduction (%)</strong></span></div>
         <textarea class="code-textarea" id="code-c10" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c10')"></textarea>
         <div class="stdout-box" id="stdout-c10"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c10" onclick="runAndCheck('c10', 1020, 0.5)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c10" onclick="runAndCheck('c10', 88.89, 0.5)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c10"></div>
     </div>
 
