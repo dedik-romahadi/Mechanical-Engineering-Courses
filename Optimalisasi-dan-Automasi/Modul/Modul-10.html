@@ -1075,80 +1075,81 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 04 — KKT CONDITIONS & CONSTRAINT HANDLING ═══ -->
+<!-- ═══ BAGIAN 04 — VARIANT METAHEURISTIK & HYPERPARAMETER TUNING ═══ -->
 <hr class="divider">
 <div class="section" id="m-resonashi">
   <div class="section-label reveal">Bagian 04</div>
-  <h2 class="section-title reveal">KKT Conditions &amp; Constraint Handling:<br>Optimasi Berkendala dengan Lagrangian &amp; Penalty</h2>
-  <p class="section-desc reveal">Masalah riil hampir selalu berkendala: tegangan ≤ yield, defleksi ≤ batas, biaya ≤ budget, suhu ≥ minimum operasi. Untuk NLP berkendala <code>min f(x) s.t. g(x) ≤ 0, h(x) = 0</code>, kondisi optimalitas orde-pertama adalah <strong>Karush–Kuhn–Tucker (KKT) conditions</strong> (1939–1951) — generalisasi metode Lagrange. KKT memberi <strong style="color:var(--cyan)">syarat perlu</strong> (dan untuk masalah konveks, juga cukup) bagi titik optimal: stationarity gradient Lagrangian, primal feasibility, dual feasibility, dan complementary slackness. Solver modern (SQP, Interior Point) bekerja dengan menyelesaikan KKT secara iteratif.</p>
+  <h2 class="section-title reveal">Variant Metaheuristik &amp; Hyperparameter Tuning:<br>Memilih Algoritma yang Cocok dengan Karakteristik Masalah</h2>
+  <p class="section-desc reveal">GA dan PSO adalah dua keluarga metaheuristik paling populer, tetapi <em>jauh dari satu-satunya</em>. Tiap variant punya karakteristik berbeda: <strong>Differential Evolution (DE)</strong> sangat robust untuk continuous, <strong>Simulated Annealing (SA)</strong> bagus untuk single-solution dengan budget kecil, <strong>Ant Colony Optimization (ACO)</strong> spesialis pathfinding, <strong>CMA-ES</strong> state-of-the-art untuk noisy/expensive blackbox. Memilih yang tepat = memahami struktur masalah Anda. Selain itu, hyperparameter tiap algoritma harus di-tune — tetapi tuning manual jelek; pakai meta-tools seperti <strong>Optuna</strong> atau <strong>Hyperopt</strong> yang menjalankan optimization-of-optimization.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Empat Kondisi KKT (untuk min f s.t. g ≤ 0, h = 0)</div>
-    Stationarity: ∇f + Σλᵢ∇hᵢ + Σμⱼ∇gⱼ = 0 &nbsp;·&nbsp; Primal feasibility: g(x) ≤ 0, h(x) = 0 &nbsp;·&nbsp; Dual feasibility: μⱼ ≥ 0 &nbsp;·&nbsp; Complementary slackness: μⱼ·gⱼ(x) = 0
+    <div class="label">Empat Algoritma Metaheuristik Penting Selain GA/PSO</div>
+    Differential Evolution (DE) &nbsp;·&nbsp; Simulated Annealing (SA) &nbsp;·&nbsp; Ant Colony Optimization (ACO) &nbsp;·&nbsp; CMA-ES (Covariance Matrix Adaptation)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">⚖️</div>
-      <h3>Lagrangian Function</h3>
-      <p>Untuk masalah berkendala equality <code>min f(x) s.t. h(x) = 0</code>, definisikan: <code>L(x, λ) = f(x) + λᵀ·h(x)</code>. Kondisi optimal (Lagrange 1788): <code>∇_x L = ∇f + λᵀ·∇h = 0</code> dan <code>h(x) = 0</code>. Multiplier λ menggambarkan <em>sensitivity</em>: <code>∂f*/∂b = −λ*</code> kalau <code>h(x) = b</code>. KKT memperluas ini untuk inequality kendala dengan slack &amp; condition complementary.</p>
-      <div class="formula">L = f + λᵀh + μᵀg</div>
+      <div class="card-icon">🌋</div>
+      <h3>Differential Evolution (DE)</h3>
+      <p>Storn &amp; Price (1995) — population-based untuk continuous. Update partikel: <code>v = a + F·(b − c)</code> dengan a, b, c random parents (mutation), lalu crossover dengan target individual. Selection: greedy (anak menggantikan parent kalau lebih baik). <strong style="color:var(--cyan)">Sangat robust</strong> — banyak dianggap "default" untuk continuous blackbox optimization. SciPy: <code>scipy.optimize.differential_evolution</code> built-in. Hyperparameter sedikit: F (mutation factor 0.5–0.9), CR (crossover rate 0.7–0.9).</p>
+      <div class="formula">v = a + F·(b − c)</div>
     </div>
     <div class="card">
-      <div class="card-icon">🔓</div>
-      <h3>Complementary Slackness — Active vs Inactive</h3>
-      <p>Untuk inequality <code>gⱼ(x) ≤ 0</code> dan multiplier <code>μⱼ ≥ 0</code>, KKT menuntut <strong>μⱼ · gⱼ(x*) = 0</strong>. Konsekuensi: di optimum, <em>kendala aktif</em> (gⱼ = 0) → multiplier μⱼ bisa &gt; 0; <em>kendala tidak aktif</em> (gⱼ &lt; 0) → harus μⱼ = 0. Ini cara natural untuk klasifikasi mana kendala "binding". <strong style="color:var(--cyan)">Shadow price</strong> di NLP = μⱼ optimal.</p>
-      <div class="formula">μⱼ · gⱼ(x*) = 0, ∀j</div>
+      <div class="card-icon">🔥</div>
+      <h3>Simulated Annealing (SA)</h3>
+      <p>Kirkpatrick et al. (1983) — meniru proses pendinginan logam. <strong>Single-solution</strong> (bukan population). Tiap iterasi: perturb solusi, terima dengan probabilitas <code>P = exp(−ΔE/T)</code>; T menurun bertahap (cooling schedule). Saat T tinggi → terima solusi worse (eksplor); T rendah → hanya terima yang lebih baik (eksploit). Cocok untuk <strong style="color:var(--amber)">budget kecil</strong> atau ketika populasi tidak feasible (mis. fitness evaluation sangat mahal). SciPy: <code>scipy.optimize.dual_annealing</code>.</p>
+      <div class="formula">P_accept = exp(−ΔE/T)</div>
     </div>
     <div class="card">
-      <div class="card-icon">💰</div>
-      <h3>Penalty Method — Soft Constraint</h3>
-      <p>Konversi kendala jadi penalty di objektif: <code>min f(x) + ρ·Σ max(0, gⱼ(x))²</code>. Saat <code>ρ → ∞</code>, solusi unconstrained → solusi constrained. Sederhana untuk implementasi (cukup gradient descent), tetapi <strong style="color:var(--pink)">numerically ill-conditioned</strong> untuk ρ besar. Variant: <em>quadratic penalty</em>, <em>augmented Lagrangian</em> (kombinasi penalty + multiplier, lebih stabil).</p>
-      <div class="formula">L_ρ = f + ρ·Σ[g⁺]²</div>
+      <div class="card-icon">🐜</div>
+      <h3>Ant Colony Optimization (ACO)</h3>
+      <p>Marco Dorigo (1992) — meniru semut yang meninggalkan pheromone di jalur. Spesialis untuk masalah <strong>combinatorial</strong> seperti TSP, vehicle routing, scheduling. Tiap "semut" konstruksi solusi step-by-step berdasarkan probabilitas pheromone × heuristik. Pheromone menguap tiap iterasi (untuk diversitas) dan diperkuat di jalur sukses. Sangat efektif untuk graph-based problems. Library: <code>pyaco</code>, atau implementasi manual ringkas (~50 baris).</p>
+      <div class="formula">P(j) ∝ τᵢⱼ^α · ηᵢⱼ^β</div>
     </div>
     <div class="card">
-      <div class="card-icon">🧱</div>
-      <h3>Barrier Method — Interior Point</h3>
-      <p>Untuk inequality <code>g(x) ≤ 0</code>, tambahkan <strong>log barrier</strong>: <code>min f(x) − μ·Σ log(−gⱼ(x))</code>. Barrier menjadi ∞ saat mendekati boundary, <em>memaksa solusi tetap di interior</em>. Saat <code>μ → 0</code>, solusi → optimum constrained. Dasar dari <strong>Interior Point Methods (IPM)</strong> Karmarkar (1984) — polynomial-time, sangat efisien untuk LP/QP/SDP besar. SciPy: <code>method='trust-constr'</code> atau <code>'interior-point'</code>.</p>
-      <div class="formula">L_μ = f − μ·Σ log(−g)</div>
+      <div class="card-icon">📊</div>
+      <h3>CMA-ES (Covariance Matrix Adaptation)</h3>
+      <p>Hansen &amp; Ostermeier (2001) — state-of-the-art untuk <em>noisy/expensive blackbox</em>. Sample dari distribusi normal multivariat <code>N(m, σ²C)</code>; update mean m, step size σ, dan covariance matrix C berdasarkan ranking sampel terbaik. Otomatis adapt ke landscape geometry — tidak butuh tuning manual. Slightly slower per iter dibanding DE/PSO tetapi sample-efficient (butuh evaluasi sedikit). Library: <code>cma</code> (PyPI: <code>pip install cma</code>).</p>
+      <div class="formula">x ~ N(m, σ²·C)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
-      <h3>SQP — Sequential Quadratic Programming</h3>
-      <p>Pada tiap iterasi, aproksimasi NLP dengan <strong>QP subproblem</strong>: quadratic objective + linier kendala. Solve QP, gunakan solusi sebagai arah descent untuk masalah asli, line search untuk step size. Konvergensi super-linier ke titik KKT. <strong style="color:var(--green)">Standar industri</strong> untuk NLP berkendala. SciPy: <code>method='SLSQP'</code>. Robust, support equality + inequality + bounds.</p>
-      <div class="formula">QP step: min ½dᵀHd + ∇fᵀd s.t. Jd ≤ −g</div>
+      <h3>Hybrid Methods (Memetic Algorithms)</h3>
+      <p>Kombinasi: <strong>metaheuristik global</strong> (GA/PSO) untuk eksplorasi + <strong>local search</strong> (gradient descent, Nelder-Mead) untuk eksploitasi fine-tuning. Disebut <em>memetic algorithm</em>. Strategi: tiap k generasi, ambil top individuals → run local search → replace di populasi. Best of both worlds: GA melarikan diri dari lokal optimum, gradient menyempurnakan di lokal terbaik. Implementasi DEAP support natural via <code>algorithms.varAnd</code> custom.</p>
+      <div class="formula">global + local search</div>
     </div>
     <div class="card">
       <div class="card-icon">🔧</div>
-      <h3>Augmented Lagrangian</h3>
-      <p>Kombinasi penalty + Lagrangian — best of both: <code>L_A = f + λᵀh + (ρ/2)·‖h‖²</code>. Update <code>λ_{k+1} = λ_k + ρ·h(x_k)</code> tiap iter outer. Tidak perlu ρ → ∞, lebih stabil numerik. Powell (1969), Hestenes (1969). Banyak dipakai di ADMM &amp; large-scale optimization. SciPy <code>method='trust-constr'</code> menggunakan variant ini internal.</p>
-      <div class="formula">L_A = f + λᵀh + ρ/2·‖h‖²</div>
+      <h3>Hyperparameter Auto-Tuning</h3>
+      <p>Hyperparameter metaheuristik (Pc, Pm, w, c₁, c₂, …) sendiri masalah optimasi <em>nested</em>. Manual tuning tidak scalable. <strong>Optuna</strong> (Akiba et al. 2019) &amp; <strong>Hyperopt</strong> (Bergstra 2013) menjalankan <em>Bayesian Optimization</em> di hyperparameter space — sample-efficient. Define-by-run API: <code>def objective(trial): pop = trial.suggest_int(…); pc = trial.suggest_float(…); …; return run_GA(…); study.optimize(objective, n_trials=100)</code>.</p>
+      <div class="formula">Bayesian Opt of hyperparams</div>
     </div>
   </div>
 
   <div class="tbl-wrap reveal" style="margin:32px 0">
     <table class="data-table">
-      <thead><tr><th>Method</th><th>Tipe Kendala</th><th>Robustness</th><th>Cocok Untuk</th></tr></thead>
+      <thead><tr><th>Algoritma</th><th>Cocok Tipe Variabel</th><th>Sample Efficiency</th><th>Library Python</th></tr></thead>
       <tbody>
-        <tr><td style="color:var(--cyan)">L-BFGS-B</td><td>Hanya bounds</td><td>Tinggi</td><td>Bounds saja, scalable</td></tr>
-        <tr><td style="color:var(--green)">SLSQP</td><td>=, ≤, bounds</td><td>Tinggi</td><td><strong>Default NLP berkendala</strong>, n &lt; 100</td></tr>
-        <tr><td style="color:var(--amber)">trust-constr</td><td>=, ≤, bounds, sparse</td><td>Sangat tinggi</td><td>Modern, robust, large-scale</td></tr>
-        <tr><td style="color:var(--violet)">COBYLA</td><td>Hanya ≤ (no eq)</td><td>Sedang</td><td>Derivative-free, kendala ≤ saja</td></tr>
-        <tr><td style="color:var(--pink)">Penalty manual</td><td>Apapun</td><td>Rendah (ill-conditioning)</td><td>Belajar konsep, prototyping cepat</td></tr>
+        <tr><td style="color:var(--cyan)">GA (binary/real)</td><td>Diskrit + continuous</td><td>Sedang</td><td>DEAP, scikit-opt, PyGAD</td></tr>
+        <tr><td style="color:var(--green)">PSO (continuous)</td><td>Continuous</td><td>Tinggi</td><td>pyswarms, scikit-opt</td></tr>
+        <tr><td style="color:var(--amber)">DE</td><td>Continuous</td><td>Tinggi</td><td>scipy.optimize.differential_evolution</td></tr>
+        <tr><td style="color:var(--violet)">SA</td><td>Diskrit + continuous</td><td>Rendah (single solution)</td><td>scipy.optimize.dual_annealing</td></tr>
+        <tr><td style="color:var(--pink)">ACO</td><td>Diskrit/graph</td><td>Sedang</td><td>pyaco, manual implementation</td></tr>
+        <tr><td style="color:var(--cyan)">CMA-ES</td><td>Continuous (noisy)</td><td>Sangat Tinggi</td><td><code>cma</code> (PyPI)</td></tr>
       </tbody>
     </table>
   </div>
 
   <div class="info-box reveal">
-    <strong>Contoh Konkret — Desain Tangki Silinder Volume Tetap:</strong><br>
-    Cari radius R dan tinggi H tangki silinder yang meminimumkan luas permukaan (= bahan plat) dengan volume tetap V₀ = 1 m³. <code>min f = 2πR² + 2πRH</code> s.t. <code>h(R,H) = πR²H − V₀ = 0</code>. Lagrangian: <code>L = 2πR² + 2πRH + λ·(πR²H − V₀)</code>. KKT: <code>∂L/∂R = 4πR + 2πH + 2λπRH = 0</code>, <code>∂L/∂H = 2πR + λπR² = 0</code>, <code>πR²H = V₀</code>. Solve → <code>H = 2R</code> (rasio optimal!), <code>R = ∛(V₀/2π) ≈ 0.542 m</code>, <code>H = 1.084 m</code>. Multiplier λ = shadow price terhadap volume target.
+    <strong>Decision Tree — Algoritma Mana yang Dipilih?</strong><br>
+    (1) <strong>Continuous &amp; smooth</strong> → coba <em>gradient-based dulu</em> (BFGS, SLSQP — Pertemuan 10). (2) <strong>Continuous, blackbox, smooth-ish</strong> → DE (default), atau CMA-ES kalau noisy. (3) <strong>Mixed integer/continuous</strong> → GA real-coded atau scikit-opt. (4) <strong>Pure discrete (TSP, scheduling)</strong> → GA permutation atau ACO. (5) <strong>Single-solution, budget kecil</strong> → SA. (6) <strong>Graph/network problem</strong> → ACO. (7) <strong>Hyperparameter tuning ML</strong> → Optuna (Bayesian Opt). (8) <strong>Sangat ekspensif blackbox</strong> (≤ 100 evaluasi total) → Bayesian Optimization (scikit-optimize), bukan metaheuristik klasik.
   </div>
 
   <div class="warn-box reveal">
     <div class="warn-icon">⚠️</div>
     <div>
-      <h4>Trap KKT yang Sering Diabaikan</h4>
-      <p>(1) <strong>Constraint Qualification (CQ)</strong>: KKT hanya berlaku jika kendala memenuhi LICQ atau MFCQ — kendala equality harus linearly independent gradient di x*. Kalau tidak, multiplier bisa tidak unique atau tak terdefinisi. (2) <strong>Non-konveks NLP</strong>: KKT hanya syarat <em>perlu</em>, bukan cukup — bisa stuck di saddle point atau lokal minimum. Validasi dengan second-order condition: <code>dᵀ∇²L·d &gt; 0</code> ∀d ∈ tangent cone. (3) <strong>Penalty method ρ besar</strong>: gradient descent jadi sangat ill-conditioned, BFGS/Newton lebih stabil tetapi tetap hati-hati overflow. (4) Cek <code>result.constr_violation</code> di scipy — kalau &gt; tol, solusi tidak feasible meski solver lapor "success".</p>
+      <h4>Trap Metaheuristik yang Sering Diabaikan</h4>
+      <p>(1) <strong>No Free Lunch (NFL) Theorem</strong> — Wolpert &amp; Macready (1997): tidak ada algoritma yang universal terbaik. Algoritma A bagus di problem class X tapi buruk di Y. Pilih berdasarkan struktur masalah Anda, bukan berdasarkan popularitas. (2) <strong>Single run tidak cukup</strong> — metaheuristik stokastik. Lakukan ≥ 5 run dengan seed berbeda, laporkan mean ± std. (3) <strong>Compare against baseline</strong> — random search atau grid search. Kalau metaheuristik tidak secara nyata lebih baik, mungkin masalahnya tidak butuh metaheuristik. (4) <strong>Hyperparameter tuning</strong> — jangan pakai default tanpa cek; default seringkali bias dataset paper. (5) <strong>Premature convergence</strong> — populasi terkonsentrasi di 1 region, hilang diversitas. Solusi: niching, restart strategy, atau increase mutation. (6) <strong>Computational budget</strong> — set max_evaluations sebagai budget, bukan max_iterations (lebih honest comparison antar algoritma).</p>
     </div>
   </div>
 </div>
