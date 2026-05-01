@@ -1323,50 +1323,50 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 07 — APLIKASI ANOVA DI TEKNIK MESIN ═══ -->
+<!-- ═══ BAGIAN 07 — APLIKASI MONITORING DI INDUSTRI ═══ -->
 <hr class="divider">
 <div class="section" id="m-isolasi">
   <div class="section-label reveal">Bagian 07</div>
-  <h2 class="section-title reveal">Aplikasi ANOVA di<br>Teknik Mesin &amp; Manufaktur</h2>
-  <p class="section-desc reveal">Empat studi kasus engineering yang langsung menggunakan ANOVA &amp; DoE. Bukan teori — ini metode yang dipakai di lini produksi mobil (Toyota, Ford), QC di pabrik turbin (GE, Siemens), tuning machining (Sandvik, Mitsubishi), dan validasi material additive manufacturing (GE Aviation, Boeing). ANOVA mengisi celah ketika optimasi berbasis gradient/metaheuristik tidak feasible karena evaluasi mahal &amp; ber-noise — kita gantikan dengan eksperimen terdesain &amp; F-test.</p>
+  <h2 class="section-title reveal">Aplikasi Rule-Based Monitoring di<br>Industri 4.0 &amp; IoT Manufaktur</h2>
+  <p class="section-desc reveal">Empat studi kasus engineering yang langsung mengaplikasikan rule-based monitoring + state machine. Bukan demo teori — ini sistem yang berjalan sekarang juga di pembangkit listrik (PLN, EDF), pabrik otomotif (Toyota, BMW), kilang minyak (Shell, ExxonMobil), dan smart building (Honeywell, Siemens). Rule-based dipakai sebagai <em>baseline operasional</em>; ML/AI ditambahkan sebagai <em>layer adaptive</em> di atasnya, bukan pengganti.</p>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">⚙️</div>
-      <h3>Tuning Parameter CNC Machining (Sandvik)</h3>
-      <p>Sandvik Coromant (Swedia) memakai <strong>L9 Taguchi orthogonal array + ANOVA</strong> untuk tuning parameter machining: cutting speed (3 level), feed rate (3 level), depth of cut (3 level). Respons: surface roughness Ra (μm) &amp; tool life (menit). Hanya 9 trial × 3 replikasi = 27 eksperimen (vs full factorial 27 × 3 = 81). ANOVA mengidentifikasi: <em>cutting speed paling berpengaruh (η² = 0.62)</em>, feed rate sedang (η² = 0.24), depth tidak signifikan (η² = 0.05). Optimal: V = 200 m/min, f = 0.15 mm/rev, d = 1.0 mm → Ra ↓ 35%, tool life ↑ 50%. Tools: <code>statsmodels.formula.api</code> + Minitab.</p>
-      <div class="formula">L9 → 9 trial → ANOVA</div>
+      <div class="card-icon">🌪️</div>
+      <h3>Wind Turbine SCADA Monitoring (Vestas)</h3>
+      <p>Vestas (Denmark) memantau ribuan turbin angin di seluruh dunia via SCADA + edge gateway. Per turbin ada 200+ sensor (vibrasi nacelle, temperatur gearbox, generator current, blade pitch angle). <strong>Rule-based threshold + ISO 10816-21</strong> (specific untuk wind turbine) dipakai untuk first-line alerting. State machine track health per komponen: gearbox, generator, blade, tower. Saat alarm, sistem otomatis kurangi pitch angle (curtail power) sebelum shutdown. Reduction MTTR (mean time to repair) 30% via early warning. Tools: <strong>OSIsoft PI System</strong>, <strong>Bachmann Webmonitor</strong>, <strong>Vestas Compass</strong>.</p>
+      <div class="formula">200+ sensor / turbin · SCADA</div>
     </div>
     <div class="card">
-      <div class="card-icon">🔧</div>
-      <h3>Welding Parameter Optimization (Lincoln Electric)</h3>
-      <p>Lincoln Electric (USA) memakai <strong>Two-way ANOVA</strong> untuk optimasi MIG/MAG welding pada baja struktural. Faktor: <em>arus las (3 level)</em> &amp; <em>voltage (3 level)</em>, total 9 kombinasi × 5 specimen = 45 spesimen. Respons: tensile strength sambungan (MPa). ANOVA: <em>arus signifikan (F = 28, p &lt; 0.001), voltage signifikan (F = 12, p = 0.003)</em>, interaksi <em>tidak signifikan (p = 0.18)</em> — main effect cukup interpretasi terpisah. Pilih arus 200 A + voltage 28 V (tertinggi dengan nyaman). Quality control: ANOVA jadi protokol wajib di ISO 3834-1 untuk welder qualification.</p>
-      <div class="formula">2-way: arus × voltage → strength</div>
+      <div class="card-icon">🏗️</div>
+      <h3>Gedung Tinggi Smart HVAC (Siemens Building)</h3>
+      <p>Burj Khalifa (Dubai), One World Trade Center (NYC), Shanghai Tower — gedung &gt; 100 lantai punya BMS (Building Management System) dengan 10,000+ data points (suhu zona, CO₂, occupancy, fan/pump status). <strong>Rule-based dengan tier alarm</strong>: warning saat CO₂ &gt; 800 ppm (kantuk), alert saat &gt; 1000 ppm (lethargy), critical &gt; 1500 ppm (kesehatan). Hysteresis 100 ppm hindari fan flapping. State machine track HVAC mode: occupied / unoccupied / pre-cool / setback. Energy saving 15–25% dari rule-based optimization vs constant operation. Standar: <strong>ASHRAE 90.1</strong>, <strong>EN 15251</strong>.</p>
+      <div class="formula">CO₂ tier: 800 / 1000 / 1500</div>
     </div>
     <div class="card">
-      <div class="card-icon">🏭</div>
-      <h3>Quality Control Pabrik Turbin (GE Aviation)</h3>
-      <p>GE Aviation memantau toleransi blade turbine via <strong>Statistical Process Control (SPC) + ANOVA</strong>. Tiap shift (3 shift, 100 blade per shift) diukur diameter, panjang, twist angle. ANOVA: shift × hari × machine. Kalau F_shift signifikan → operator/proses shift ada bias; F_machine signifikan → mesin tertentu butuh kalibrasi. Six Sigma DMAIC: <em>Define-Measure-Analyze-Improve-Control</em>. Tahap "Analyze" = ANOVA + regression untuk identifikasi sumber variasi. GE laporkan defect rate turun dari 850 ke 12 ppm (parts per million) lewat ANOVA-driven QC. Tools: Minitab, JMP, Python pingouin.</p>
-      <div class="formula">SPC: shift × machine → defect</div>
+      <div class="card-icon">⚡</div>
+      <h3>Power Grid Substation Monitoring (PLN, ABB)</h3>
+      <p>Substation 150 kV / 500 kV memantau transformer (oil temp, dissolved gas DGA, tap-changer position), circuit breaker, busbar, lightning arrester. <strong>IEC 61850</strong> protokol untuk komunikasi rule-based logic ke IED (Intelligent Electronic Device). Threshold absolut + rate-of-change (mis. oil temp naik &gt; 5°C/menit = critical). State machine multi-level: normal → caution → emergency → trip. Di PLN, sistem ini detect 90% gangguan sebelum menjadi blackout. Vendor utama: <strong>ABB Relion</strong>, <strong>Siemens Reyrolle</strong>, <strong>Schneider Electric MiCOM</strong>.</p>
+      <div class="formula">IEC 61850 + IED rule logic</div>
     </div>
     <div class="card">
-      <div class="card-icon">🛠️</div>
-      <h3>Additive Manufacturing Parameter Validation (GE Additive)</h3>
-      <p>GE Additive memakai <strong>full factorial ANOVA</strong> untuk validasi parameter SLM (Selective Laser Melting) untuk paduan Inconel 718. Faktor: laser power (3 level), scan speed (3 level), hatch spacing (3 level), preheat temp (2 level) = 54 kombinasi × 3 replikasi = 162 spesimen, ditest porositas, density, tensile strength. <strong>Three-way ANOVA + interaksi 2-arah</strong>. Hasil: laser power × scan speed punya interaksi kuat (F = 18, p &lt; 0.001) — kombinasi spesifik (300 W × 1000 mm/s) memberi density 99.5%. Hatch spacing signifikan tetapi independent. Preheat tidak signifikan untuk respons utama. Standar wajib ASTM F3301 untuk AM qualification.</p>
-      <div class="formula">3-way ANOVA → AM optimal</div>
+      <div class="card-icon">🏎️</div>
+      <h3>F1 Race Car Telemetry (Mercedes-AMG, McLaren)</h3>
+      <p>Mobil F1 punya 300+ sensor (suhu ban tiap sudut, brake temp 800+°C, engine RPM, KERS battery, fuel flow rate). Telemetry real-time ke pit garage via 5G/dedicated network, latency &lt; 50 ms. <strong>Rule-based monitoring agresif</strong>: tier alert untuk suhu rem (warning 700°C, critical 850°C → driver dipanggil pit), tire degradation rate (tier alarm jika &gt; X%/lap). Engineer di pit pakai dashboard custom (NVIDIA Quadro untuk visualisasi). FIA regulasi: data telemetry harus disimpan untuk audit. Sistem: <strong>MES (Mercedes Engine Software)</strong>, <strong>Mclaren Applied Telemetry</strong>.</p>
+      <div class="formula">300+ sensor · telemetry &lt; 50 ms</div>
     </div>
   </div>
 
   <div class="info-box reveal">
     <strong>Kaitan ke Pertemuan Berikutnya:</strong><br>
-    Pertemuan 11 menutup keempat dari paradigma optimasi: LP (P9) → NLP (P10) → ANOVA (P11). Sekarang Anda punya toolbox lengkap: <em>LP/NLP</em> untuk masalah dengan formula matematis, <em>ANOVA/DoE</em> untuk eksperimen fisik dengan faktor terbatas. Pertemuan berikutnya bergeser ke <em>otomasi sistem mekanik</em>: <strong>Pertemuan 12</strong> mengupas <em>otomasi monitoring rule-based</em> — sistem yang memantau mesin via sensor IoT dan trigger action saat threshold dilanggar (cocok dengan output ANOVA: threshold dipilih lewat statistical control limits). <strong>Pertemuan 13</strong> melangkah ke <em>otomasi prediktif berbasis ML</em> — predict failure 7 hari sebelum terjadi via fitur dari Pertemuan 6–7 + classifier. <strong>Pertemuan 14–15</strong>: proyek akhir mengintegrasikan optimasi (LP/NLP/ANOVA) + monitoring (rule-based/ML) untuk masalah end-to-end engineering.
+    Pertemuan 12 mengajarkan <strong>baseline rule-based monitoring</strong>. Pertemuan berikutnya: <strong>Pertemuan 13 (ML Predictive Monitoring)</strong> — saat rule-based mentok karena 50+ sensor &amp; mode kegagalan kompleks, kita upgrade ke <em>anomaly detection</em> (Isolation Forest, Autoencoder), <em>classification</em> (Random Forest, XGBoost), atau <em>forecasting</em> (LSTM, Prophet). Best practice industri: <em>rule-based sebagai safety net</em> + <em>ML sebagai early-warning + diagnosis</em>. Bukan saling menggantikan — keduanya komplementer. <strong>Pertemuan 14–15</strong>: proyek akhir mengintegrasikan signal processing (P1–P7) + optimasi (P9–P11) + monitoring rule-based (P12) + ML (P13) untuk end-to-end industrial monitoring system di skala kecil (mis. fan/blower lab).
   </div>
 
   <div class="warn-box reveal">
     <div class="warn-icon">⚠️</div>
     <div>
-      <h4>Jebakan Praktis Pakai ANOVA</h4>
-      <p>(1) <strong>p-hacking</strong> — jangan ubah α atau hipotesis setelah lihat data. Pre-register protokol eksperimen + analisis sebelum data collection. (2) <strong>Asumsi runtuh tetap dipakai</strong> — kalau Shapiro p &lt; 0.05 (tidak normal), pakai Kruskal-Wallis non-parametric atau transformasi data (log, Box-Cox). Kalau Levene p &lt; 0.05 (variance tidak sama), pakai Welch's ANOVA. (3) <strong>Lupa post-hoc</strong> — ANOVA hanya bilang "ada efek"; tanpa Tukey HSD/Bonferroni, Anda tidak tahu pasangan mana yang berbeda. (4) <strong>Mengabaikan effect size</strong> — p-value bergantung pada sample size; effect kecil dengan n besar bisa signifikan tapi tidak praktis. Selalu laporkan η² atau ω². (5) <strong>Lurking variables</strong> — faktor tidak terukur (humiditas, suhu ruang, operator) bisa confound hasil. Catat semua kondisi eksperimen. (6) <strong>Tidak randomize</strong> — urutan trial sequential bisa terkontaminasi temporal effect (mesin memanas, operator lelah). Pakai random permutation. (7) <strong>Sample size kurang</strong> — power analysis sebelum eksperimen wajib. Untuk efek sedang (Cohen's d = 0.5), one-way ANOVA k=3 butuh n ≈ 28/grup untuk power 0.80.</p>
+      <h4>Jebakan Praktis Rule-Based Monitoring di Industri</h4>
+      <p>(1) <strong>Threshold ditebak tanpa referensi</strong> — selalu cite ISO/API/datasheet. Kalau pakai empirical baseline (μ + 3σ), dokumentasikan periode &amp; sample size. (2) <strong>Lupa hysteresis</strong> — hampir setiap newcomer engineer membangun rule tanpa hysteresis, lalu komplain "alert spam". Hysteresis = mandatory. (3) <strong>Single feature monitoring</strong> — RMS saja sering miss bearing fault (kurtosis lebih sensitif). Pakai multi-feature minimum 2 (RMS + peak atau RMS + kurtosis). (4) <strong>Tidak ada sensor health check</strong> — heartbeat &amp; range validation (sensor reading di luar physically possible range = sensor failure, bukan reading valid). (5) <strong>Alarm flood ignored</strong> — ANSI/ISA 18.2 limit ≤ 1 alarm/10 min/operator. Lebih dari itu, operator alarm fatigue → ignore semua alarm. (6) <strong>Tidak ada alarm rationalization</strong> — review periodik (6–12 bulan): alarm yang tidak pernah actionable harus dihapus. (7) <strong>Threshold tidak adaptif drift</strong> — komponen mesin baru beda dari aged. Re-tune threshold setelah 6 bulan operational atau setelah major maintenance. Modern best practice: <em>rule-based core</em> + <em>adaptive threshold</em> via ML (Pertemuan 13).</p>
     </div>
   </div>
 </div>
