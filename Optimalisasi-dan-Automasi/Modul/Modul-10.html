@@ -1000,75 +1000,75 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <hr class="divider">
 <div class="section" id="m-dmf">
   <div class="section-label reveal">Bagian 03</div>
-  <h2 class="section-title reveal">Particle Swarm Optimization:<br>Kawanan Burung sebagai Mesin Optimasi</h2>
-  <p class="section-desc reveal">Diciptakan oleh <strong>James Kennedy &amp; Russell Eberhart (1995)</strong>, <em>Particle Swarm Optimization (PSO)</em> meniru perilaku <em>kawanan burung mencari makanan</em> atau ikan dalam school. Tiap "partikel" (kandidat solusi) terbang di search space dengan velocity, mengingat <em>posisi terbaik personal-nya</em> (pbest) dan posisi <em>terbaik global swarm</em> (gbest). Update velocity = kombinasi inersia + tarikan ke pbest + tarikan ke gbest, ditambah komponen random. Hasilnya: swarm secara kolektif konvergen ke optimum dengan <strong style="color:var(--cyan)">konvergensi cepat</strong> — biasanya lebih cepat dari GA untuk continuous problems. Lebih simple dari GA: tidak ada crossover/mutation, hanya update posisi via velocity equation.</p>
+  <h2 class="section-title reveal">One-Way ANOVA Workflow:<br>Dari Desain Eksperimen ke Pemilihan Level Optimum</h2>
+  <p class="section-desc reveal">One-way ANOVA mempelajari efek <strong>satu faktor</strong> (variabel independent) terhadap <strong>satu respons</strong> (variabel dependent). Faktor punya <em>k level</em> diskrit (mis. cutting speed: 80, 100, 120 m/min). Tiap level direplikasi <em>n kali</em> untuk estimasi noise. Total trial = k·n. Workflow lengkap: rumuskan hipotesis → desain eksperimen (randomisasi, replikasi) → ambil data → cek asumsi (normality, homoscedasticity, independence) → hitung F &amp; p-value → kalau signifikan, lakukan <strong>post-hoc test</strong> (Tukey HSD) untuk identifikasi pasangan level yang berbeda → pilih level optimum &amp; laporkan effect size.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Persamaan Update PSO (per iterasi)</div>
-    v<sub>i</sub><sup>t+1</sup> = w·v<sub>i</sub><sup>t</sup> + c₁r₁·(p<sub>i</sub> − x<sub>i</sub>) + c₂r₂·(g − x<sub>i</sub>) &nbsp;·&nbsp; x<sub>i</sub><sup>t+1</sup> = x<sub>i</sub><sup>t</sup> + v<sub>i</sub><sup>t+1</sup>
+    <div class="label">Workflow One-Way ANOVA — Tujuh Langkah</div>
+    Hipotesis &nbsp;·&nbsp; Desain Eksperimen (CRD) &nbsp;·&nbsp; Cek Asumsi &nbsp;·&nbsp; Tabel ANOVA &nbsp;·&nbsp; F &amp; p-value &nbsp;·&nbsp; Post-hoc (Tukey HSD) &nbsp;·&nbsp; Effect Size η²
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">🐦</div>
-      <h3>Particle, Position, Velocity</h3>
-      <p>Tiap partikel <em>i</em> punya: <strong>posisi</strong> <code>x<sub>i</sub> ∈ ℝⁿ</code> (kandidat solusi), <strong>velocity</strong> <code>v<sub>i</sub> ∈ ℝⁿ</code> (arah + besar perpindahan tiap iterasi), <strong>pbest</strong> <code>p<sub>i</sub></code> (posisi terbaik yang pernah dikunjungi partikel ini), <strong>fitness</strong> <code>f(x<sub>i</sub>)</code>. Swarm size N typical 20–50. Init: posisi random uniform di bounds, velocity random kecil. <strong style="color:var(--cyan)">Tidak ada elitism eksplisit</strong> — pbest sudah berperan sebagai memori per-partikel.</p>
-      <div class="formula">{x_i, v_i, p_i} per particle</div>
+      <div class="card-icon">🎯</div>
+      <h3>Step 1 — Rumuskan Hipotesis &amp; α</h3>
+      <p>Sebelum eksperimen, tetapkan: faktor (mis. cutting speed), respons (Ra μm), level (80/100/120), <strong>α</strong> (significance level, biasanya 0.05). H₀: μ₁ = μ₂ = μ₃ (cutting speed tidak berpengaruh). H₁: paling tidak satu mean berbeda. <strong style="color:var(--cyan)">Jangan ubah α</strong> setelah lihat data — itu p-hacking.</p>
+      <div class="formula">α = 0.05 (a priori)</div>
     </div>
     <div class="card">
-      <div class="card-icon">🌐</div>
-      <h3>gbest — Global Best Communication</h3>
-      <p>Di tiap iterasi, partikel terbaik di seluruh swarm punya posisi <strong>gbest</strong> <code>g</code>. Semua partikel "tahu" posisi gbest dan tertarik ke arahnya — analogi <em>komunikasi sosial dalam swarm</em>. Ini mekanisme <em>information sharing</em> yang membuat PSO konvergen cepat. Variant: <strong>local best (lbest)</strong> — partikel hanya tahu best dari k tetangga (topology ring/star), lebih lambat tapi lebih robust untuk multi-modal.</p>
-      <div class="formula">g = argmax{f(p_i)}</div>
+      <div class="card-icon">🧪</div>
+      <h3>Step 2 — Completely Randomized Design (CRD)</h3>
+      <p>Tiap kombinasi (level × replikasi) dialokasi ke trial dengan urutan <em>random</em>. Hindari run berurutan satu level lalu pindah (bisa terkontaminasi temporal effect). Tools: <code>random.shuffle</code> di Python atau <code>numpy.random.permutation</code>. <strong>Replikasi minimal n = 3</strong> per level; n = 5 lebih bagus untuk power statistik. Total trial CRD: <strong>N = k·n</strong>.</p>
+      <div class="formula">N = k·n trial random</div>
     </div>
     <div class="card">
-      <div class="card-icon">⚖️</div>
-      <h3>Inertia Weight w</h3>
-      <p>Komponen <code>w·v<sub>i</sub><sup>t</sup></code> mempertahankan momentum partikel — analog dengan inersia fisika. <strong>w besar (0.9)</strong> → eksplorasi kuat, partikel terbang jauh; <strong>w kecil (0.4)</strong> → eksploitasi, partikel rapat di sekitar gbest. Strategi populer: <em>linearly decreasing inertia</em> — w turun dari 0.9 → 0.4 sepanjang iterasi (eksplor di awal, eksploit di akhir). <strong style="color:var(--green)">w=0.7 + decay</strong> = setting populer.</p>
-      <div class="formula">w(t) = 0.9 − 0.5·t/T_max</div>
+      <div class="card-icon">✅</div>
+      <h3>Step 3 — Cek Asumsi ANOVA</h3>
+      <p>ANOVA punya 3 asumsi kunci. <strong>(1) Normality</strong>: residual y_ij − ȳ_j berdistribusi normal — uji <code>scipy.stats.shapiro</code>. <strong>(2) Homoscedasticity</strong>: varians dalam-grup sama antar level — uji <code>scipy.stats.levene</code>. <strong>(3) Independence</strong>: trial saling independent (dijamin oleh randomisasi). Kalau asumsi runtuh: <em>Welch's ANOVA</em> (uneven variance) atau <em>Kruskal-Wallis</em> (non-parametric).</p>
+      <div class="formula">Shapiro · Levene · Random</div>
     </div>
     <div class="card">
-      <div class="card-icon">🧲</div>
-      <h3>Cognitive c₁ &amp; Social c₂ Coefficients</h3>
-      <p><code>c₁·r₁·(p<sub>i</sub> − x<sub>i</sub>)</code> = <strong>cognitive component</strong> — partikel tertarik ke pengalaman pribadinya. <code>c₂·r₂·(g − x<sub>i</sub>)</code> = <strong>social component</strong> — tertarik ke best swarm. <code>r₁, r₂ ∈ U[0,1]</code> = random uniform tiap iterasi. Standard: <strong style="color:var(--amber)">c₁ = c₂ = 2.0</strong> (Kennedy original). Untuk swarm besar atau multi-modal: c₁ = 1.5, c₂ = 1.5. Sum c₁+c₂ &lt; 4.1 untuk stabilitas matematis (Clerc 2002).</p>
-      <div class="formula">c₁ + c₂ ≤ 4.1</div>
+      <div class="card-icon">📋</div>
+      <h3>Step 4 — Susun Tabel ANOVA</h3>
+      <p>Output Python <code>statsmodels.anova_lm</code> berupa tabel: kolom = SS, df, MS, F, p. Baris = sumber variasi (faktor, residual). Validasi: <strong>df_b + df_w = df_total = N − 1</strong>; <strong>SS_b + SS_w = SS_total</strong>. Kalau angka tidak konsisten, ada bug di kode — biasanya formula type Type I vs Type II vs Type III SS keliru. Untuk one-way balanced, ketiganya sama.</p>
+      <div class="formula">SS_b + SS_w = SS_t</div>
     </div>
     <div class="card">
-      <div class="card-icon">📐</div>
-      <h3>Velocity Clamping &amp; Bounds Handling</h3>
-      <p>Tanpa pembatas, velocity bisa eksplosif — partikel terbang keluar bounds. <strong>Velocity clamping</strong>: <code>|v<sub>i,d</sub>| ≤ v_max</code> per dimensi (typical: <code>v_max = 0.2·(ub_d − lb_d)</code>). <strong>Bounds handling</strong> saat partikel keluar feasible region: (1) <em>reflect</em> — bouncing back, (2) <em>absorb</em> — set ke boundary, (3) <em>periodic</em> — wrap-around. Reflect paling natural untuk engineering.</p>
-      <div class="formula">|v_d| ≤ 0.2·(ub_d − lb_d)</div>
+      <div class="card-icon">🎲</div>
+      <h3>Step 5 — Hitung F &amp; p-value</h3>
+      <p><code>F = MS_b / MS_w</code>. p-value = <code>1 − F.cdf(F_obs, df_b, df_w)</code>. Kalau <strong>p &lt; α</strong> (e.g. p = 0.004 &lt; 0.05) → tolak H₀, faktor signifikan. Kalau <strong>p ≥ α</strong> (e.g. p = 0.18) → tidak ada bukti efek (tetapi mungkin sample kecil; cek <em>power</em> dengan G*Power atau pingouin). <strong style="color:var(--amber)">Reporting standar</strong>: F(df_b, df_w) = X.XX, p = X.XXX, η² = X.XX.</p>
+      <div class="formula">p &lt; α ⇒ tolak H₀</div>
     </div>
     <div class="card">
-      <div class="card-icon">📊</div>
-      <h3>Konvergensi &amp; Stopping</h3>
-      <p>PSO biasanya konvergen lebih cepat dari GA untuk continuous (~50–200 iterasi vs 100–500 generasi GA). Stopping criteria sama dengan metaheuristik umum: max iter, fitness plateau, atau <em>swarm diversity collapse</em> — saat semua partikel berkumpul rapat (variance posisi swarm → 0), tidak ada eksplorasi lagi → stop. Monitor metric: <strong>swarm diameter</strong> = max(‖x_i − g‖) per iterasi.</p>
-      <div class="formula">stop: max iter ∨ diameter &lt; ε</div>
+      <div class="card-icon">🔍</div>
+      <h3>Step 6 — Post-hoc: Tukey HSD</h3>
+      <p>ANOVA hanya bilang "ada efek" tanpa identifikasi pasangan. <strong>Tukey HSD</strong> (Honest Significant Difference) bandingkan semua pasangan dengan kontrol <em>family-wise error rate</em>. Output: tabel pairwise dengan p-adjusted; pasangan dengan p &lt; α adalah signifikan berbeda. Library: <code>statsmodels.stats.multicomp.pairwise_tukeyhsd</code> atau <code>pingouin.pairwise_tukey</code>. Pilih level dengan mean optimum yang berbeda signifikan dari level lain.</p>
+      <div class="formula">Tukey: p_adj &lt; α</div>
     </div>
   </div>
 
   <div class="tbl-wrap reveal" style="margin:32px 0">
     <table class="data-table">
-      <thead><tr><th>Aspek</th><th>GA</th><th>PSO</th></tr></thead>
+      <thead><tr><th>Tahap Workflow</th><th>Aksi</th><th>Tools / Function</th><th>Output</th></tr></thead>
       <tbody>
-        <tr><td style="color:var(--cyan)">Inspirasi alam</td><td>Evolusi Darwin (Holland 1975)</td><td>Kawanan burung/ikan (Kennedy &amp; Eberhart 1995)</td></tr>
-        <tr><td style="color:var(--green)">Operator utama</td><td>Selection + Crossover + Mutation</td><td>Velocity update (cognitive + social + inertia)</td></tr>
-        <tr><td style="color:var(--amber)">Memori</td><td>Hanya generasi sekarang (dengan elitism: + best)</td><td>Tiap partikel ingat pbest; swarm tahu gbest</td></tr>
-        <tr><td style="color:var(--violet)">Encoding native</td><td>Diskrit (binary, integer, permutation)</td><td>Continuous (real-valued)</td></tr>
-        <tr><td style="color:var(--pink)">Konvergensi praktik</td><td>Lambat tapi robust eksplor</td><td>Cepat tapi rentan premature convergence</td></tr>
-        <tr><td style="color:var(--cyan)">Hyperparameter</td><td>Banyak (Pc, Pm, k_tournament, k_elite, …)</td><td>Sedikit (w, c₁, c₂)</td></tr>
-        <tr><td style="color:var(--green)">Cocok untuk</td><td>TSP, scheduling, NAS, evolve struktur</td><td>Continuous parameter tuning, controller PID, NN weight</td></tr>
+        <tr><td style="color:var(--cyan)">1. Hipotesis</td><td>Tetapkan H₀, H₁, α, faktor, level</td><td>—</td><td>Protokol eksperimen</td></tr>
+        <tr><td style="color:var(--green)">2. Desain (CRD)</td><td>Randomize urutan trial</td><td><code>np.random.permutation</code></td><td>List urutan trial</td></tr>
+        <tr><td style="color:var(--amber)">3. Cek asumsi</td><td>Normality + Equal variance</td><td><code>scipy.stats.shapiro/levene</code></td><td>p ≥ α (asumsi OK)</td></tr>
+        <tr><td style="color:var(--violet)">4. ANOVA table</td><td>Hitung SS, df, MS</td><td><code>statsmodels.anova_lm</code></td><td>Tabel ANOVA</td></tr>
+        <tr><td style="color:var(--pink)">5. F &amp; p-value</td><td>Compare p ke α</td><td><code>scipy.stats.f_oneway</code></td><td>F, p, decision</td></tr>
+        <tr><td style="color:var(--cyan)">6. Post-hoc</td><td>Pairwise compare (Tukey HSD)</td><td><code>pairwise_tukeyhsd</code></td><td>Pasangan signifikan</td></tr>
+        <tr><td style="color:var(--green)">7. Effect size</td><td>η² = SS_b / SS_total</td><td>Manual atau <code>pingouin.anova</code></td><td>η² (small/med/large)</td></tr>
       </tbody>
     </table>
   </div>
 
   <div class="info-box reveal">
-    <strong>Contoh Konkret — PID Controller Tuning untuk Quadcopter:</strong><br>
-    Cari Kp, Ki, Kd PID controller (3 dimensi continuous, K ∈ [0, 100]) yang minimumkan ITAE (Integral Time × Absolute Error) saat step response. Fungsi blackbox: simulasi closed-loop di Simulink. PSO setting: N=30 partikel, w=0.7→0.4 (linear decay), c₁=c₂=1.5, v_max = 20, max_iter=100. Hasil: gbest ITAE plateau ~0.08 (dari random init ~5.0). Total 3000 simulasi (30 × 100) — feasible. PSO konvergen ke solusi PID yang stable, fast, dan no-overshoot dalam ~1 jam compute.
+    <strong>Contoh Konkret — Welding Current vs Tensile Strength:</strong><br>
+    Faktor: arus las (3 level: 100, 150, 200 A). Respons: tensile strength sambungan (MPa). Replikasi: n=4 specimen tiap level (total N=12). Data: 100 A → mean 380 MPa (SD 12); 150 A → mean 425 MPa (SD 10); 200 A → mean 410 MPa (SD 14). <strong>Shapiro p = 0.42 (normal OK), Levene p = 0.78 (variance equal OK)</strong>. ANOVA: SS_b = 4180, SS_w = 1620, df_b = 2, df_w = 9. <strong>F = (4180/2) / (1620/9) = 2090 / 180 = 11.6, p = 0.003</strong>. Tolak H₀. Tukey HSD: 150 vs 100 (p = 0.002, signifikan), 150 vs 200 (p = 0.18, tidak), 200 vs 100 (p = 0.04, signifikan). <strong>Keputusan engineering: pilih 150 A</strong> (kekuatan tertinggi, signifikan vs 100 A; vs 200 A tidak berbeda → 150 A lebih hemat energi).
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Implementasi pyswarms (Library Python paling populer untuk PSO):</strong> <code>import pyswarms as ps; optimizer = ps.single.GlobalBestPSO(n_particles=30, dimensions=3, options={'c1':1.5, 'c2':1.5, 'w':0.7}, bounds=(lb, ub)); cost, pos = optimizer.optimize(f, iters=100)</code>. Sangat simple — 3 baris code. Variant: <strong>LocalBestPSO</strong> (k-neighbors topology), <strong>BinaryPSO</strong> (untuk variabel binary). Alternatif: <strong>scipy.optimize.differential_evolution</strong> (DE adalah gradient-free metaheuristik mirip PSO/GA), <strong>scikit-opt PSO</strong> (lighter dependency).
+    💡 <strong>Implementasi statsmodels (workflow lengkap one-way ANOVA):</strong> <code>import pandas as pd; import statsmodels.api as sm; from statsmodels.formula.api import ols; from statsmodels.stats.multicomp import pairwise_tukeyhsd; df = pd.DataFrame({'arus': [100]*4 + [150]*4 + [200]*4, 'strength': [...]}); model = ols('strength ~ C(arus)', data=df).fit(); print(sm.stats.anova_lm(model, typ=2)); print(pairwise_tukeyhsd(df.strength, df.arus, alpha=0.05))</code>. Sangat ekspresif. Alternatif quick: <code>scipy.stats.f_oneway(g1, g2, g3) → (F, p)</code>. Untuk effect size langsung: <code>pingouin.anova(data=df, dv='strength', between='arus', detailed=True)</code>.
   </div>
 </div>
 
