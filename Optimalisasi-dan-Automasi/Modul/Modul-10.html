@@ -2250,16 +2250,16 @@ from scipy.optimize import minimize
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C11</div>
-        <div class="comp-q"><strong>Rosenbrock Function</strong> — benchmark NLP klasik: <code>f(x,y) = (1−x)² + 100(y−x²)²</code>. Selesaikan dengan <code>scipy.minimize</code> method <code>'BFGS'</code>, x0 = [−1.2, 1.0]. Print <strong>x* + y*</strong> (jumlah). Solusi: x* = y* = 1, sehingga jumlahnya = <strong>2.0</strong>.</div>
+        <div class="comp-q"><strong>GA from-scratch — Rastrigin 1D</strong>: implementasi simple GA (real-coded). <code>f(x) = 10 + x² − 10·cos(2πx)</code>, bounds [−5.12, 5.12]. Pop = 30, generations = 100, mutation σ = 0.3, tournament size = 3, elitism = 1. <code>np.random.seed(42)</code>. Print <strong>fitness terbaik</strong>. Target ≈ 0 (global min di x = 0).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Rosenbrock dikenal sebagai "banana function" — lembah berbentuk pisang yang sulit dilewati gradient descent biasa, tapi BFGS menangani dengan baik (konvergen ~25 iter). Solusi unik di (1, 1). <code>print(res.x.sum())</code> = 2.0.</div>
+      <div class="comp-hint">💡 Rastrigin punya ~10 minima lokal di [-5,5] — gradient method mudah terjebak; GA lolos via populasi. Loop: (1) eval pop, (2) sort + simpan elit, (3) tournament select, (4) Gaussian mutation x'=x+σ·randn(), (5) clip bounds. Setelah 100 gen, best ≈ 0 (toleransi ±1.0). Stochastic — selalu seed!</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">x* + y*</strong></span></div>
-        <textarea class="code-textarea" id="code-c11" rows="14" placeholder="Paste kode Rosenbrock optimization, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c11')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">best fitness</strong></span></div>
+        <textarea class="code-textarea" id="code-c11" rows="14" placeholder="Paste kode GA from-scratch Rastrigin, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c11')"></textarea>
         <div class="stdout-box" id="stdout-c11"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c11" onclick="runAndCheck('c11', 2.0, 0.01, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c11" onclick="runAndCheck('c11', 0.0, 1.0, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c11"></div>
     </div>
 
@@ -2267,16 +2267,16 @@ from scipy.optimize import minimize
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C12</div>
-        <div class="comp-q"><strong>Tangki Silinder Volume Tetap</strong>: cari R, H untuk min surface area <code>f = 2πR² + 2πRH</code> s.t. volume <code>πR²H = 1.0 m³</code>. Pakai <code>method='SLSQP'</code>. Print <strong>R* (radius optimal, m)</strong>.</div>
+        <div class="comp-q"><strong>scipy differential_evolution — Rastrigin 5D</strong>: gunakan <code>scipy.optimize.differential_evolution</code> untuk minimize Rastrigin 5D <code>f(x) = 10·n + Σ(xᵢ² − 10·cos(2πxᵢ))</code>, bounds <code>[(−5.12, 5.12)]·5</code>, <code>seed=42</code>, default strategy. Print <strong>res.fun</strong> (nilai f optimal). Target ≈ 0.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Solusi analitik via Lagrange: H = 2R, R = ∛(V/2π) ≈ <strong>0.5419 m</strong>. <code>cons = {'type':'eq', 'fun': lambda x: np.pi*x[0]**2*x[1] - 1}; res = minimize(...); print(res.x[0])</code>. x0 awal feasible misal [0.5, 1.0].</div>
+      <div class="comp-hint">💡 Rastrigin 5D punya ~10⁵ ≈ 100k minima lokal — gradient method mati di dimensi tinggi, DE konvergen rapi. <code>from scipy.optimize import differential_evolution</code>; <code>def rastrigin(x): return 10*len(x) + sum(xᵢ² − 10·cos(2π·xᵢ))</code>; <code>res = differential_evolution(rastrigin, [(-5.12,5.12)]*5, seed=42)</code>. Hasil <code>res.fun</code> ≈ 0 (toleransi 0.01).</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">R* (m)</strong></span></div>
-        <textarea class="code-textarea" id="code-c12" rows="14" placeholder="Paste kode tangki silinder optimization, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c12')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">res.fun</strong></span></div>
+        <textarea class="code-textarea" id="code-c12" rows="14" placeholder="Paste kode differential_evolution Rastrigin 5D, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c12')"></textarea>
         <div class="stdout-box" id="stdout-c12"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c12" onclick="runAndCheck('c12', 0.5419, 0.01, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c12" onclick="runAndCheck('c12', 0.0, 0.01, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c12"></div>
     </div>
 
@@ -2284,16 +2284,16 @@ from scipy.optimize import minimize
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C13</div>
-        <div class="comp-q"><strong>Penalty Method Convergence</strong>: untuk <code>min f(x) = x²</code> s.t. <code>x ≥ 2</code>, formulasi penalty <code>F(x) = x² + ρ·max(0, 2−x)²</code>. Solve untuk ρ = 1, 10, 100 dengan <code>scipy.minimize</code>. Print <strong>x* untuk ρ = 100</strong>.</div>
+        <div class="comp-q"><strong>PSO from-scratch — Sphere 2D</strong>: implementasi PSO. <code>f(x,y) = x² + y²</code>, bounds <code>[−5, 5]²</code>. Swarm = 20, iter = 100, w = 0.7, c₁ = c₂ = 1.5. <code>np.random.seed(42)</code>. Update: <code>v = w·v + c₁·r₁·(pbest−x) + c₂·r₂·(gbest−x)</code>; <code>x = x + v</code>. Print <strong>fitness gbest</strong>. Target ≈ 0.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Saat ρ → ∞, x* → 2 (constraint binding). Untuk ρ = 100: solusi penalty <code>x* = 2/(1+1/ρ) = 2·100/101 ≈ <strong>1.9802</strong></code>. Code: <code>res = minimize(lambda x: x[0]**2 + 100*max(0, 2-x[0])**2, x0=[0]); print(res.x[0])</code>.</div>
+      <div class="comp-hint">💡 Sphere = unimodal konveks — PSO seharusnya konvergen rapat ke origin. Init: x ~ U(−5,5)², v ~ U(−1,1)². Loop 100 iter: eval, update pbest jika lebih baik, update gbest, hitung v_new dan x_new (clip ke bounds). Setelah 100 iter, fitness gbest ≈ 0 (toleransi 0.05).</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">x* untuk ρ=100</strong></span></div>
-        <textarea class="code-textarea" id="code-c13" rows="14" placeholder="Paste kode penalty method, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c13')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">fitness gbest</strong></span></div>
+        <textarea class="code-textarea" id="code-c13" rows="16" placeholder="Paste kode PSO from-scratch sphere, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c13')"></textarea>
         <div class="stdout-box" id="stdout-c13"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c13" onclick="runAndCheck('c13', 1.9802, 0.05, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c13" onclick="runAndCheck('c13', 0.0, 0.05, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c13"></div>
     </div>
 
@@ -2301,16 +2301,16 @@ from scipy.optimize import minimize
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C14</div>
-        <div class="comp-q"><strong>Multi-Start untuk Non-Konveks</strong>: untuk <code>f(x) = x⁴ − 8x² + 5</code> (dua minimum di x = ±2, satu lokal di x = 0), jalankan 10 kali <code>minimize</code> BFGS dari x0 random uniform di [−5, 5] (seed=42). Print nilai <strong>f minimum global</strong> yang ditemukan.</div>
+        <div class="comp-q"><strong>Hybrid DE + L-BFGS-B refining — Rosenbrock 2D</strong>: pakai <code>differential_evolution</code> sebagai global stage (bounds [(−5, 5), (−5, 5)], seed=42), kemudian refine dengan <code>scipy.minimize</code> method <code>'L-BFGS-B'</code> dari titik <code>res.x</code>. Print <strong>x* + y*</strong> hasil refinement. Target ≈ 2.0.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Global minimum: f(±2) = 16 − 32 + 5 = <strong>−11</strong>. Lokal di x = 0: f(0) = 5. Multi-start dengan random x0 akan eksplor berbagai lembah; kumpulkan semua hasil, ambil <code>min</code>. Code: <code>np.random.seed(42); fs = [minimize(...).fun for _ in range(10)]; print(min(fs))</code>.</div>
+      <div class="comp-hint">💡 Pola industri: metaheuristik untuk eksplorasi global → gradient method untuk presisi akhir. Rosenbrock <code>f(x,y) = (1−x)² + 100(y−x²)²</code>, optimum di (1, 1). DE alone agak lambat di lembah pisang; refinement BFGS pinpoint ke akurasi tinggi. <code>res_de = differential_evolution(rosen, bounds, seed=42); res_lbfgs = minimize(rosen, res_de.x, method='L-BFGS-B'); print(res_lbfgs.x.sum())</code> → 2.0.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">f global minimum</strong></span></div>
-        <textarea class="code-textarea" id="code-c14" rows="16" placeholder="Paste kode multi-start, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c14')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">x* + y* (refined)</strong></span></div>
+        <textarea class="code-textarea" id="code-c14" rows="16" placeholder="Paste kode hybrid DE+BFGS Rosenbrock, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c14')"></textarea>
         <div class="stdout-box" id="stdout-c14"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c14" onclick="runAndCheck('c14', -11.0, 0.05, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c14" onclick="runAndCheck('c14', 2.0, 0.01, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c14"></div>
     </div>
 
@@ -2318,16 +2318,16 @@ from scipy.optimize import minimize
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C15</div>
-        <div class="comp-q"><strong>Pegas Coil Engineering Design</strong>: min mass <code>m = ρ·π·(d²/4)·(πD)·N</code> dengan ρ = 7.85e−6 kg/mm³, D = 50 mm, F = 500 N. Kendala: τ_max = 8FD/(πd³) ≤ 600 MPa, δ = 8FD³N/(Gd⁴) ≥ 25 mm (G = 79300 MPa), L ≥ N·d. Bounds: d ∈ [2,15], N ∈ [5,30], L ∈ [50,200]. Pakai SLSQP. Print <strong>massa minimum</strong> (g, x0=[8,12,120]).</div>
+        <div class="comp-q"><strong>DE Engineering — Pegas Coil Massa Minimum</strong>: pakai <code>differential_evolution</code> dengan penalty untuk min mass <code>m = ρ·π·(d²/4)·(πD)·N</code> (ρ = 7.85e−6 kg/mm³, D = 50 mm, F = 500 N). Kendala: <code>τ ≤ 600 MPa</code>, <code>δ ≥ 25 mm</code> (G = 79300 MPa), <code>L ≥ N·d</code>. Bounds: d ∈ [2, 15], N ∈ [5, 30], L ∈ [50, 200]. seed=42. Print <strong>massa minimum (g)</strong>. Target ≈ 41.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Constrained NLP klasik desain pegas — banyak referensi (Rao, "Engineering Optimization"). Solusi optimal sekitar <strong>m ≈ 41 g</strong> (massa dalam gram, hasil res.fun×1000). Tegangan binding (max stress di yield), defleksi binding. Code SLSQP dengan 3 inequality constraints.</div>
+      <div class="comp-hint">💡 DE handles non-konveks dan constraints via penalty. Formulasi: <code>F(x) = mass(x) + ρ_pen·Σ max(0, gᵢ(x))²</code> dengan ρ_pen = 1e6. Hasil ≈ 41 g (sama dgn SLSQP klasik karena permasalahan deterministik). Code: <code>def obj(x): d,N,L=x; m=7.85e-6*np.pi*(d²/4)*np.pi*50*N*1000; tau_v=8*500*50/(np.pi*d³)−600; delta_v=25−8*500*50³*N/(79300*d⁴); spc=N*d−L; return m + 1e6·(max(0,tau_v)² + max(0,delta_v)² + max(0,spc)²)</code>; <code>res = differential_evolution(obj, bounds=[(2,15),(5,30),(50,200)], seed=42)</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">massa minimum (g)</strong></span></div>
-        <textarea class="code-textarea" id="code-c15" rows="20" placeholder="Paste kode pegas optimization, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c15')"></textarea>
+        <textarea class="code-textarea" id="code-c15" rows="20" placeholder="Paste kode DE pegas optimization, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c15')"></textarea>
         <div class="stdout-box" id="stdout-c15"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c15" onclick="runAndCheck('c15', 41.0, 5.0, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c15" onclick="runAndCheck('c15', 41.0, 8.0, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c15"></div>
     </div>
 
