@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pertemuan 12 — Otomatisasi Monitoring Mesin: Rule-Based Alerting | Optimalisasi &amp; Automasi</title>
+<title>Pertemuan 11 — Otomatisasi Monitoring: Sensor, Akuisisi &amp; ISO 10816 | Optimalisasi &amp; Automasi</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Sans+3:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
@@ -617,7 +617,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <p class="v-error" id="vError"></p>
     <input type="text" class="v-input" id="vNama" placeholder="Nama Lengkap" autocomplete="off">
     <input type="text" class="v-input" id="vNim" placeholder="NIM (Nomor Induk Mahasiswa)" autocomplete="off">
-    <button class="v-btn-primary" id="vSubmit" onclick="submitVisitor()" disabled style="opacity:.6;cursor:wait">Masuk ke Pertemuan 12 →</button>
+    <button class="v-btn-primary" id="vSubmit" onclick="submitVisitor()" disabled style="opacity:.6;cursor:wait">Masuk ke Pertemuan 11 →</button>
     <button class="v-btn-cancel" id="scheduleBtnLogin" onclick="showScheduleModal()" style="margin-top:8px;border-color:rgba(255,64,129,.3);color:#a855f7;">🕐 Atur Jadwal 🔒</button>
   </div>
 </div>
@@ -766,10 +766,10 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
 <!-- ─── SUBNAV (only visible when Modul tab is active) ─── -->
 <div id="modulSubnav" class="subnav-bar show">
-  <a href="#m-persamaan">Mengapa Rule-Based</a>
-  <a href="#m-solusi">Threshold &amp; ISO 10816</a>
-  <a href="#m-dmf">Hysteresis &amp; Tier Alarm</a>
-  <a href="#m-resonashi">State Machine</a>
+  <a href="#m-persamaan">Mengapa Monitoring</a>
+  <a href="#m-solusi">Sensor &amp; DAQ</a>
+  <a href="#m-dmf">ISO 10816 Zones</a>
+  <a href="#m-resonashi">Threshold &amp; Hysteresis</a>
   <a href="#m-analogi">Analogi</a>
   <a href="#m-animasi">Animasi</a>
   <a href="#m-isolasi">Aplikasi</a>
@@ -821,13 +821,13 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">MQTT · Streamlit · Grafana</span>
   </div>
   <div class="hero-content">
-    <div class="hero-eyebrow"><div class="pulse-dot"></div>Pertemuan 12 &nbsp;·&nbsp; Optimalisasi &amp; Automasi &nbsp;·&nbsp; 2025/2026</div>
+    <div class="hero-eyebrow"><div class="pulse-dot"></div>Pertemuan 11 &nbsp;·&nbsp; Optimalisasi &amp; Automasi &nbsp;·&nbsp; 2025/2026</div>
     <h1 class="hero-title">
       <span class="hl-cyan">Otomatisasi Monitoring —</span><br>
-      <em>Rule-Based Alerting</em><br>
-      <span class="hl-amber">Threshold, ISO 10816 &amp; State Machine</span>
+      <em>Sensor, Akuisisi &amp; ISO 10816</em><br>
+      <span class="hl-amber">Threshold Detection &amp; Hysteresis Anti-Chattering</span>
     </h1>
-    <p class="hero-sub">Pertemuan 9–11 mengajarkan <em>optimasi</em>: bagaimana memilih parameter terbaik. Tetapi setelah mesin beroperasi, pertanyaan berubah: <strong>"apakah mesin ini masih sehat saat ini juga?"</strong> Inilah ranah <em>otomatisasi monitoring</em> — sistem yang memantau sensor (vibrasi, suhu, arus, tekanan) secara real-time dan memicu <em>alert</em> saat threshold dilanggar. Pendekatan paling sederhana, paling reliable, dan dipakai 90% pabrik di dunia: <strong>rule-based alerting</strong>. Tidak ada machine learning, tidak ada model probabilistik — hanya <em>aturan IF-THEN</em> yang transparan: <code>IF rms &gt; 7.1 mm/s THEN status = "DANGER"</code>. Tetapi rule-based yang baik bukan hanya threshold sederhana — butuh <strong>ISO 10816 zone classification</strong> (A–D), <strong>hysteresis</strong> untuk hindari chattering, <strong>tier alarm</strong> (warning/alert/critical), <strong>debouncing</strong> untuk filter noise, dan <strong>finite state machine (FSM)</strong> untuk track health history. Pertemuan ini mengajarkan setiap komponen + implementasi Python lengkap dengan dashboard real-time.</p>
+    <p class="hero-sub">Pertemuan 9–10 mengajarkan <em>optimasi</em>: bagaimana memilih parameter terbaik. Tetapi setelah mesin beroperasi, pertanyaan berubah: <strong>"apakah mesin ini masih sehat saat ini juga?"</strong> Inilah ranah <em>otomatisasi monitoring</em>. Pertemuan 11 fokus pada <strong>fondasi</strong>: <em>sensor selection</em> (accelerometer untuk vibrasi, RTD untuk suhu, current transformer untuk motor, flow/pressure transmitter), <em>akuisisi data</em> (DAQ NI USB-6009, Arduino + IMU, Raspberry Pi, sampling rate Nyquist), <em>standard ISO 10816</em> (zona A/B/C/D berdasarkan RMS velocity untuk Group 1–4 mesin), <em>threshold-based detection</em> (single &amp; multi-level), dan <em>hysteresis</em> (Schmitt trigger anti-chattering, T_on / T_off). Tier alarm escalation, FSM, dan ANSI/ISA 18.2 alarm management dibahas terpisah di <strong>Pertemuan 12</strong>. Modul 50 poin: 4 animasi konsep + 4 sel Python (sensor simulation + ISO classification + hysteresis class + threshold tuning).</p>
     <div class="hero-stats">
       <div class="stat"><div class="stat-num">8</div><div class="stat-lbl">Bagian Materi</div></div>
       <div class="stat"><div class="stat-num">4</div><div class="stat-lbl">Animasi</div></div>
@@ -840,7 +840,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <!-- COUNTDOWN -->
 <div style="padding:48px 32px 0">
   <div class="countdown-wrap reveal">
-    <div class="countdown-label">⏰ Hitung Mundur — Deadline Pertemuan 12 (Rule-Based Monitoring)</div>
+    <div class="countdown-label">⏰ Hitung Mundur — Deadline Pertemuan 11 (Sensor &amp; ISO 10816)</div>
     <div class="countdown-rings">
       <div class="cd-ring ring-d" id="ring-d">
         <svg viewBox="0 0 120 120">
@@ -915,8 +915,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 
   <div class="info-box reveal">
-    <strong>Posisi Pertemuan 12 dalam Alur Mata Kuliah:</strong><br>
-    <strong>P1–P7</strong> (analisis sinyal: RMS, peak, FFT, kurtosis, MFCC) → <strong>UTS</strong> → <strong>P9</strong> (LP) → <strong>P10</strong> (NLP) → <strong>P11</strong> (ANOVA) → <strong>P12 (Anda di sini — Otomatisasi Monitoring Rule-Based)</strong> → <strong>P13</strong> (Otomatisasi Predictive ML) → <strong>P14–P15</strong> (Proyek akhir). Rule-based menyatukan ekstraksi fitur (P1–P7) dengan keputusan otomasi: feature → threshold → alert. Ini <em>baseline</em> sebelum P13 (ML predictive) — selalu mulai rule-based, baru upgrade jika perlu.
+    <strong>Posisi Pertemuan 11 dalam Alur Mata Kuliah:</strong><br>
+    <strong>P1–P7</strong> (analisis sinyal: RMS, peak, FFT, kurtosis, MFCC) → <strong>UTS</strong> → <strong>P8</strong> (LP) → <strong>P9</strong> (NLP) → <strong>P10</strong> (Metaheuristik GA/PSO) → <strong>P11 (Anda di sini — Monitoring Part 1: Sensor + ISO 10816 + Threshold + Hysteresis)</strong> → <strong>P12</strong> (Monitoring Part 2: Tier Alarm + FSM + ANSI/ISA 18.2) → <strong>P13</strong> (ML Part 1: Supervised + LogReg) → <strong>P14</strong> (ML Part 2: RF + SVM + Hyperparameter). Modul ini fokus pada <em>fondasi monitoring</em>: bagaimana data sensor masuk ke sistem (sensor selection + DAQ), bagaimana standar industri (ISO 10816) menetapkan threshold, dan bagaimana mencegah chattering dengan hysteresis. Tier alarm escalation + state machine = next modul (P12).
   </div>
 
   <div class="tip-box reveal">
@@ -1003,12 +1003,12 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 03 — HYSTERESIS & TIER ALARM ═══ -->
+<!-- ═══ BAGIAN 03 — HYSTERESIS (ANTI-CHATTERING) ═══ -->
 <hr class="divider">
 <div class="section" id="m-dmf">
   <div class="section-label reveal">Bagian 03</div>
-  <h2 class="section-title reveal">Hysteresis &amp; Tier Alarm:<br>Hindari Chattering, Atur Eskalasi Bertingkat</h2>
-  <p class="section-desc reveal">Threshold sederhana (<code>x &gt; T → ALERT</code>) punya 2 masalah serius di sistem real: (1) <strong>chattering</strong> — saat sinyal di sekitar threshold (T ± noise), state berkedip cepat ON/OFF/ON/OFF (alert spam ke operator); (2) <strong>binary harshness</strong> — tidak ada nuansa antara "OK" dan "DANGER", padahal antara keduanya ada area "warning" yang harus diperhatikan. Solusi: <strong>hysteresis</strong> (dua threshold: T_on &gt; T_off, perlu cross threshold besar untuk turn ON, threshold kecil untuk turn OFF) dan <strong>tier alarm</strong> (multi-level: warning &lt; alert &lt; critical, gradual escalation). Kombinasi keduanya = sistem alerting matang yang mengikuti standar industri (ANSI/ISA 18.2 Alarm Management).</p>
+  <h2 class="section-title reveal">Hysteresis (Anti-Chattering):<br>Schmitt Trigger untuk Threshold yang Stable</h2>
+  <p class="section-desc reveal">Threshold tunggal (<code>x &gt; T → ALERT</code>) punya masalah serius di sistem real: <strong>chattering</strong>. Saat sinyal sensor di sekitar threshold (T ± noise level), state berkedip cepat ON/OFF/ON/OFF — operator dibanjiri alert palsu, log file penuh dengan transition spam. Solusi klasik dari electronics: <strong>hysteresis</strong> (dua threshold T_on &gt; T_off). Untuk turn ON butuh signal &gt; T_on; untuk turn OFF butuh signal &lt; T_off. Margin (T_on − T_off) ≥ 2× noise level → chattering hilang. Konsep dari <em>Schmitt trigger</em> (Otto Schmitt 1934) yang dipakai di setiap power MOSFET driver, thermostat, comparator IC. Untuk <em>tier alarm escalation</em> (warning &lt; alert &lt; critical) dan <em>finite state machine</em>, lihat modul berikutnya (Pertemuan 12 — Monitoring Part 2).</p>
 
   <div class="formula-block reveal">
     <div class="label">Lima Konsep Inti Hysteresis &amp; Tier Alarm</div>
@@ -1085,81 +1085,79 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 04 — STATE MACHINE & DEBOUNCING ═══ -->
+<!-- ═══ BAGIAN 04 — SENSOR SELECTION & DAQ ═══ -->
 <hr class="divider">
 <div class="section" id="m-resonashi">
   <div class="section-label reveal">Bagian 04</div>
-  <h2 class="section-title reveal">Finite State Machine &amp; Debouncing:<br>Track Health History dengan Transition Logic</h2>
-  <p class="section-desc reveal">Threshold + hysteresis + tier alarm sudah cukup untuk basic monitoring. Tetapi sistem real butuh <strong>memori</strong> — track <em>riwayat state</em> (kapan masuk warning, berapa lama di alert, urutan transisi). Inilah <strong>finite state machine (FSM)</strong> — model formal dengan: <em>states</em> (NORMAL, WARNING, ALERT, CRITICAL, FAULT), <em>transitions</em> (kondisi pindah antar state), <em>actions</em> (apa yang dilakukan saat enter/exit state). Plus, <strong>debouncing</strong> — filter sinyal yang noisy dengan persyaratan "<em>N consecutive samples</em>" sebelum pindah state. FSM = backbone setiap monitoring system production-grade. Implementasi 30 baris Python tetapi memberikan <em>traceability sempurna</em>: setiap event ada timestamp, dari state mana ke state mana, kenapa.</p>
+  <h2 class="section-title reveal">Sensor Selection &amp; Akuisisi Data:<br>Hardware Foundation Monitoring System</h2>
+  <p class="section-desc reveal">Sebelum threshold detection bisa bekerja, harus ada <strong>data sensor berkualitas</strong> yang masuk ke sistem. Pilihan sensor yang salah, sampling rate kurang, atau wiring yang noisy = garbage in, garbage out. Pertemuan ini bahas <em>fondasi hardware monitoring</em>: <strong>jenis sensor</strong> (accelerometer piezoelectric/MEMS untuk vibrasi, RTD/thermocouple untuk suhu, current transformer untuk motor, flow/pressure transmitter), <strong>sampling rate</strong> (Nyquist criterion: f_s ≥ 2 × f_max signal), <strong>DAQ hardware</strong> (NI USB-6009 industrial-grade, Arduino + MPU6050 entry-level lab, Raspberry Pi + ADS1115 mid-range), <strong>signal conditioning</strong> (charge amplifier, anti-aliasing filter, ADC resolution 12–24 bit), dan <strong>protokol komunikasi</strong> (Modbus RTU/TCP, OPC UA, MQTT, RS-485). Pemilihan harus match dengan <em>karakteristik mesin</em> (frekuensi vibrasi dominan), <em>environment</em> (suhu, kelembaban, EMI), dan <em>budget</em>.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Enam Konsep Inti FSM &amp; Debouncing</div>
-    States &amp; transitions &nbsp;·&nbsp; Mealy vs Moore machine &nbsp;·&nbsp; Entry/exit actions &nbsp;·&nbsp; Debouncing (N consecutive) &nbsp;·&nbsp; Heartbeat &amp; timeout &nbsp;·&nbsp; Event sourcing &amp; audit log
+    <div class="label">Enam Komponen Akuisisi Data Industrial</div>
+    Sensor (transducer) &nbsp;·&nbsp; Signal conditioning &nbsp;·&nbsp; ADC resolution &nbsp;·&nbsp; Sampling rate (Nyquist) &nbsp;·&nbsp; Protokol komunikasi &nbsp;·&nbsp; Edge gateway / DAQ
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">🔄</div>
-      <h3>States &amp; Transitions</h3>
-      <p>FSM didefinisikan oleh <strong>5-tuple</strong>: (S, s₀, Σ, δ, F) — set states S, initial state s₀, input alphabet Σ, transition function δ: S × Σ → S, final states F. Untuk monitoring: S = {NORMAL, WARNING, ALERT, CRITICAL, FAULT}; s₀ = NORMAL; Σ = {sensor reading + timer event}; δ = rules (mis. NORMAL → WARNING jika rms &gt; T_warn). Visualisasi via <strong>state diagram</strong> (lingkaran = state, panah = transition). Tools: <code>graphviz</code>, <code>state_machine</code> Python lib.</p>
-      <div class="formula">δ: S × Σ → S</div>
+      <div class="card-icon">📳</div>
+      <h3>Accelerometer Vibrasi</h3>
+      <p>Sensor utama untuk vibrasi mesin. Dua jenis: <strong>Piezoelectric (IEPE)</strong> — high frequency response (1 Hz – 30 kHz), durable, butuh constant current excitation 4 mA. Contoh: PCB Piezotronics 352C33 (~Rp 5–15 juta). Pakai untuk industrial heavy machinery. <strong>MEMS</strong> — low frequency (DC – 1 kHz), murah, integrated chip. Contoh: ADXL355 (Rp 200K), MPU6050 (Rp 30K). Pakai untuk lab eksperimen, low-cost monitoring. Mounting wajib <em>rigid</em> (stud mount &gt; magnetic mount &gt; adhesive) untuk akurasi high frequency. Pasang di <em>bearing housing</em>, arah radial + axial.</p>
+      <div class="formula">IEPE 4 mA · MEMS digital I2C/SPI</div>
     </div>
     <div class="card">
-      <div class="card-icon">🅼</div>
-      <h3>Mealy vs Moore Machine</h3>
-      <p>Dua varian FSM: <strong>Moore</strong> — output hanya bergantung pada <em>state saat ini</em> (mis. di state ALERT, selalu nyalakan lampu oranye, terlepas dari input). <strong>Mealy</strong> — output bergantung pada <em>state + input</em> (mis. transisi ALERT → CRITICAL kirim SMS; tetapi NORMAL → CRITICAL juga kirim SMS dengan pesan berbeda). Mealy lebih ekspresif tetapi rumit. Untuk monitoring sederhana, Moore cukup.</p>
-      <div class="formula">Moore: f(s); Mealy: f(s, σ)</div>
+      <div class="card-icon">🌡️</div>
+      <h3>Temperature: RTD &amp; Thermocouple</h3>
+      <p><strong>RTD (Pt100/Pt1000)</strong> — resistance varies dengan suhu, accuracy ±0.1°C, range −200 to +850°C, response slow (seconds). Pakai untuk bearing temperature, oil temperature. Wiring 3-wire atau 4-wire untuk cancel lead resistance. <strong>Thermocouple (Type K, J, T)</strong> — voltage millivolt dari junction dissimilar metals, range −270 to +1372°C (Type K), response fast (millisecond), accuracy ±1°C. Pakai untuk hot gas, exhaust, kiln temperature. <em>Cold junction compensation</em> wajib. Output mV langsung butuh amplifier (gain ~100×).</p>
+      <div class="formula">RTD: R(T); TC: V(T)</div>
     </div>
     <div class="card">
-      <div class="card-icon">🚪</div>
-      <h3>Entry / Exit Actions</h3>
-      <p>Tiap state punya 2 hook: <strong>on_entry</strong> (jalankan saat state baru di-enter) dan <strong>on_exit</strong> (jalankan saat state ditinggalkan). Contoh: <em>on_entry(ALERT)</em> = log timestamp + send SMS supervisor. <em>on_exit(ALERT)</em> = log durasi + cancel SMS escalation timer. Pola ini memisahkan <em>logic transisi</em> dari <em>side effects</em> (notifikasi, logging). Pattern populer: <strong>state pattern</strong> (Gang of Four), implementation di Python <code>statemachine</code> library.</p>
-      <div class="formula">on_entry / on_exit hooks</div>
+      <div class="card-icon">⚡</div>
+      <h3>Current Transformer (CT) Motor</h3>
+      <p>Untuk monitor health motor, ukur arus stator. Sensor: <strong>Current Transformer</strong> (split-core CT, clamp-on, no wiring break). Output current AC proporsional dengan primary current. Ratio tipikal 100:5, 1000:5. Pakai dengan burden resistor untuk convert ke voltage. Modern: <strong>Hall-effect sensor</strong> (LEM, Allegro) untuk DC + AC, no contact dengan conductor. Aplikasi: <em>Motor Current Signature Analysis (MCSA)</em> — broken rotor bar, eccentricity, bearing fault detect dari spectrum arus. Threshold: arus naik &gt; 10% baseline = warning.</p>
+      <div class="formula">I_secondary = I_primary / N</div>
     </div>
     <div class="card">
-      <div class="card-icon">⏳</div>
-      <h3>Debouncing (N Consecutive Samples)</h3>
-      <p>Sinyal sensor noisy bisa cross threshold sesaat lalu kembali normal. Solusi: <strong>require N consecutive samples</strong> di kondisi alert sebelum pindah state. Contoh: untuk pindah dari NORMAL ke WARNING, butuh 5 sample berturut-turut dengan rms &gt; T_warn. Implementasi: counter di-increment kalau kondisi true, reset ke 0 kalau false. Ketika counter &gt;= N, eksekusi transisi. <em>Trade-off</em>: N besar → lebih robust noise, tetapi delay deteksi (latency) makin lama. Tipikal: N = 3–10 (≈ 100–500 ms pada 50 Hz sampling).</p>
-      <div class="formula">if count &gt;= N: transition</div>
+      <div class="card-icon">📊</div>
+      <h3>Sampling Rate: Nyquist Criterion</h3>
+      <p>Aturan emas: <strong>f_sampling ≥ 2 × f_max</strong> (Shannon-Nyquist 1949). Untuk capture vibrasi sampai 1 kHz, butuh f_s ≥ 2 kHz (industri pakai f_s = 5 kHz untuk margin). <strong>Aliasing</strong>: kalau signal di atas Nyquist, frekuensi tinggi "lipat balik" jadi frekuensi rendah palsu — interpretasi salah. Solusi: <strong>anti-aliasing filter</strong> (low-pass analog, cutoff f_max) sebelum ADC. <em>Best practice</em>: f_s = 2.5–5 × f_max signal. Untuk ISO 10816 (10 Hz – 1 kHz), f_s = 2500–5000 Hz cukup.</p>
+      <div class="formula">f_s ≥ 2 × f_max</div>
     </div>
     <div class="card">
-      <div class="card-icon">💓</div>
-      <h3>Heartbeat &amp; Sensor Timeout</h3>
-      <p>Sensor bisa mati / disconnect tanpa warning — output frozen di nilai terakhir. Untuk detect, FSM butuh <strong>heartbeat</strong>: harapkan sample baru tiap T detik. Kalau tidak ada sample selama 2·T (atau N·T), pindah ke state FAULT (sensor failure). Implementasi: timer yang reset tiap kali ada sample masuk; expired timer trigger transisi. Pattern: <em>watchdog timer</em>, dipakai di mikrokontroller (STM32 IWDG, AVR WDT) untuk detect software hang juga.</p>
-      <div class="formula">if Δt &gt; timeout: FAULT</div>
+      <div class="card-icon">🔌</div>
+      <h3>DAQ Hardware Tiers</h3>
+      <p><strong>Tier 1 — Lab/Research</strong>: NI USB-6009 (Rp 5 juta, 14-bit ADC, 8 channel, 48 kS/s), NI cDAQ + IEPE module (Rp 50 juta+, 24-bit). <strong>Tier 2 — Industrial</strong>: Bently Nevada 3500 series, Emerson AMS Machine Works (vibration monitoring rack-mount). <strong>Tier 3 — Hobby/Prototype</strong>: Raspberry Pi + ADS1115 ADC (Rp 700K total), Arduino Uno + MPU6050 (Rp 200K total), ESP32 + accelerometer (Rp 300K, WiFi built-in). Untuk capstone project mahasiswa, Tier 3 sangat cukup. <em>Production deployment</em> butuh Tier 1/2.</p>
+      <div class="formula">budget vs accuracy trade-off</div>
     </div>
     <div class="card">
-      <div class="card-icon">📜</div>
-      <h3>Event Sourcing &amp; Audit Log</h3>
-      <p>Tiap transition state harus <strong>di-log</strong> dengan: timestamp, old_state, new_state, trigger value, sample data. Format JSON / CSV / database (SQLite, InfluxDB, TimescaleDB). Audit log = <em>source of truth</em> untuk: (a) post-mortem analysis (kenapa shutdown?), (b) compliance audit (ISO/API), (c) trend analysis (frequency of warnings naik = degradasi mesin), (d) ML training data (P13). Pattern: <strong>event sourcing</strong> — replay log untuk reconstruct state apapun di waktu lalu.</p>
-      <div class="formula">log: ts, s_old, s_new, trigger</div>
+      <div class="card-icon">📡</div>
+      <h3>Protokol Komunikasi Industrial</h3>
+      <p>DAQ → server / SCADA pakai protokol standar: <strong>Modbus RTU</strong> (RS-485, simple, dipakai 1979–sekarang) untuk PLC. <strong>Modbus TCP</strong> (Ethernet variant). <strong>OPC UA</strong> (modern industry 4.0 standard, secure, semantic data) — jadi default ABB, Siemens. <strong>MQTT</strong> (publisher/subscriber, IoT lightweight) untuk wireless sensor + cloud. <strong>HART</strong> (4–20 mA + digital overlay) untuk legacy sensor pressure/flow. Pemilihan: legacy plant → Modbus, new plant → OPC UA, IoT/wireless → MQTT. Latency: Modbus ~10–100 ms, MQTT ~50–500 ms (cloud roundtrip).</p>
+      <div class="formula">Modbus · OPC UA · MQTT</div>
     </div>
   </div>
 
   <div class="tbl-wrap reveal" style="margin:32px 0">
     <table class="data-table">
-      <thead><tr><th>Transition</th><th>Trigger Condition</th><th>Action (on_entry)</th><th>Debounce N</th></tr></thead>
+      <thead><tr><th>Sensor Type</th><th>Measurand</th><th>Range</th><th>Accuracy</th><th>Aplikasi</th></tr></thead>
       <tbody>
-        <tr><td style="color:var(--green)">NORMAL → WARNING</td><td>rms &gt; T_warn (1.4)</td><td>Log + email</td><td>5 samples</td></tr>
-        <tr><td style="color:var(--cyan)">WARNING → ALERT</td><td>rms &gt; T_alert (2.8) OR persist &gt; 5 min</td><td>SMS supervisor</td><td>3 samples</td></tr>
-        <tr><td style="color:var(--amber)">ALERT → CRITICAL</td><td>rms &gt; T_crit (4.5) OR persist &gt; 10 min</td><td>Auto-shutdown + page</td><td>2 samples</td></tr>
-        <tr><td style="color:var(--pink)">CRITICAL → FAULT</td><td>sensor timeout &gt; 30 s</td><td>Mark sensor as faulty</td><td>1 timeout</td></tr>
-        <tr><td style="color:var(--violet)">Any → NORMAL</td><td>rms &lt; T_off (hysteresis) AND persist &gt; 1 min</td><td>Log recovery</td><td>10 samples</td></tr>
+        <tr><td style="color:var(--cyan)">Piezoelectric Accelerometer</td><td>Acceleration (g)</td><td>1 Hz – 30 kHz</td><td>±2%</td><td>Industrial vibrasi mesin rotasi</td></tr>
+        <tr><td style="color:var(--green)">MEMS Accelerometer</td><td>Acceleration (g)</td><td>DC – 1 kHz</td><td>±5%</td><td>Lab, IoT low-cost</td></tr>
+        <tr><td style="color:var(--amber)">RTD Pt100</td><td>Temperatur (°C)</td><td>−200 to +850°C</td><td>±0.1°C</td><td>Bearing, oil, ambient</td></tr>
+        <tr><td style="color:var(--violet)">Thermocouple Type K</td><td>Temperatur (°C)</td><td>−270 to +1372°C</td><td>±1°C</td><td>Hot gas, exhaust, kiln</td></tr>
+        <tr><td style="color:var(--pink)">Current Transformer (CT)</td><td>Arus AC (A)</td><td>0–1000 A</td><td>±0.5%</td><td>MCSA motor, energy monitoring</td></tr>
+        <tr><td style="color:var(--cyan)">Pressure Transmitter</td><td>Tekanan (bar/Pa)</td><td>0–600 bar</td><td>±0.25%</td><td>Hydraulic, pneumatic, fluid</td></tr>
+        <tr><td style="color:var(--green)">Flow Meter (Coriolis/Mag)</td><td>Mass/Volume flow</td><td>varies</td><td>±0.5%</td><td>Process pipeline, energy balance</td></tr>
       </tbody>
     </table>
   </div>
 
   <div class="info-box reveal">
-    <strong>Contoh Konkret — FSM untuk Monitoring Pump Sentrifugal:</strong><br>
-    State NORMAL (rms = 0.9 mm/s). Mendadak ada spike single-sample ke 4.2 mm/s. Tanpa debouncing, langsung ke ALERT. Dengan debouncing N=3, FSM increment counter tetapi sample berikutnya kembali ke 1.0 mm/s — counter reset, tetap di NORMAL. Bagus, false alarm dihindari. Setelah 1 jam, RMS naik perlahan: 1.5, 1.8, 2.1, 2.5, 2.9, 3.0, 3.1 (5 sample berturut &gt; 1.4) → transisi NORMAL → WARNING (log + email). Persist 6 menit di WARNING (3 sample &gt; 2.8 setelah 5 menit) → escalate ke ALERT (SMS supervisor). Operator inspect, ketemu coupling misalignment → fix → RMS turun 0.8 → 10 sample &lt; T_off (1.2) selama 1 menit → ALERT → NORMAL (log recovery). Total event log = 4 entries — audit trail lengkap.
+    <strong>Contoh Konkret — Setup DAQ untuk Lab Fan Imbalance Detection:</strong><br>
+    Hardware list: (1) <em>Fan blower</em> 12 cm × 24V 5W (~Rp 100K) di lab. (2) <em>Sensor</em>: MPU6050 IMU (3-axis accel + 3-axis gyro, Rp 30K). (3) <em>Microcontroller</em>: Arduino Uno (Rp 150K) atau ESP32 (Rp 80K, WiFi). (4) <em>Power</em>: USB 5V dari laptop. (5) <em>Wiring</em>: I2C 4-wire (VCC, GND, SDA, SCL) ~30 cm. <strong>Sampling</strong>: f_s = 200 Hz (range vibrasi fan 0–100 Hz, Nyquist OK). <strong>Software</strong>: Arduino sketch baca MPU6050 register tiap 5 ms, kirim via Serial USB ke Python <code>pyserial</code>. <strong>Akuisisi 60 detik</strong> baseline (balanced) + 60 detik dengan tape coin di blade (imbalanced) → 2 dataset CSV @ 12,000 sample. <strong>Total cost</strong>: ~Rp 300K untuk capstone-grade setup. Real industrial pakai Bently Nevada @ Rp 50 juta+.
   </div>
 
-  <div class="warn-box reveal">
-    <div class="warn-icon">⚠️</div>
-    <div>
-      <h4>Trap FSM &amp; Debouncing yang Sering Diabaikan</h4>
-      <p>(1) <strong>State explosion</strong> — kombinasi state dengan banyak feature (mis. RMS × peak × kurt × suhu) cepat tidak terkelola. Solusi: <em>composite state</em> atau hierarchical FSM (HFSM). (2) <strong>Race condition</strong> — sample baru tiba saat transition belum selesai. Pakai mutex / atomic update. (3) <strong>Stuck state</strong> — kalau exit condition tidak pernah tercapai (mis. T_off terlalu rendah), state stuck selamanya. Tambah escape route via timeout. (4) <strong>Debounce N terlalu besar</strong> — latency deteksi naik, alarm critical bisa terlambat. Trade-off: low N untuk critical (≤ 2), high N untuk warning (5–10). (5) <strong>Lupa heartbeat</strong> — sensor mati silent → output frozen → FSM tetap "NORMAL". Watchdog timer wajib. (6) <strong>Audit log overflow</strong> — high-frequency transitions bisa fill disk. Pakai log rotation, ringkasan (N events/min), atau database time-series (InfluxDB) yang punya retention policy. (7) <strong>State machine tanpa diagram</strong> — kode lama tanpa visualisasi sulit di-debug. Selalu maintain state diagram (graphviz) yang sinkron dengan code.</p>
-    </div>
+  <div class="tip-box reveal">
+    💡 <strong>Best Practice Setup DAQ:</strong> (1) <em>Mount sensor rigid</em> — adhesive lemah, magnetic OK, stud mount best (untuk high-freq). (2) <em>Cable shielding</em> — pakai twisted pair shielded untuk reduce EMI dari motor 3-phase. (3) <em>Ground loop avoidance</em> — single ground reference, hindari multiple ground paths. (4) <em>Sampling clock stable</em> — pakai hardware timer (PWM/ISR), JANGAN delay() di loop main (jitter tinggi). (5) <em>Buffer + batch transmit</em> — kumpulkan 100–1000 sample lalu kirim sekaligus, lebih efisien dari per-sample. (6) <em>Timestamp sample</em> — penting untuk align multi-sensor (accel + temp + current). (7) <em>Save raw + metadata</em> — sampling rate, sensor type, sensor location, kondisi mesin (RPM, load). (8) <em>Test sebelum production</em> — known input (mis. shake table 100 Hz reference) → cek output sensor di-decode benar. Tahap-tahap ini sering diabaikan mahasiswa, lalu garbage data muncul di laporan akhir.
   </div>
 </div>
 
@@ -1359,7 +1357,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
   <div class="info-box reveal">
     <strong>Kaitan ke Pertemuan Berikutnya:</strong><br>
-    Pertemuan 12 mengajarkan <strong>baseline rule-based monitoring</strong>. Pertemuan berikutnya: <strong>Pertemuan 13 (ML Predictive Monitoring)</strong> — saat rule-based mentok karena 50+ sensor &amp; mode kegagalan kompleks, kita upgrade ke <em>anomaly detection</em> (Isolation Forest, Autoencoder), <em>classification</em> (Random Forest, XGBoost), atau <em>forecasting</em> (LSTM, Prophet). Best practice industri: <em>rule-based sebagai safety net</em> + <em>ML sebagai early-warning + diagnosis</em>. Bukan saling menggantikan — keduanya komplementer. <strong>Pertemuan 14–15</strong>: proyek akhir mengintegrasikan signal processing (P1–P7) + optimasi (P9–P11) + monitoring rule-based (P12) + ML (P13) untuk end-to-end industrial monitoring system di skala kecil (mis. fan/blower lab).
+    Pertemuan 11 mengajarkan <strong>fondasi monitoring</strong>: sensor + DAQ + ISO 10816 + threshold + hysteresis. Pertemuan berikutnya: <strong>Pertemuan 12</strong> melanjutkan dengan <em>tier alarm escalation</em> (warning/alert/critical), <em>finite state machine</em> (FSM Moore/Mealy), <em>debouncing N consecutive samples</em>, dan <em>ANSI/ISA 18.2 alarm management standard</em>. Lalu <strong>Pertemuan 13–14</strong> upgrade ke <em>ML predictive</em>: Logistic Regression baseline (P13), Random Forest + SVM + hyperparameter tuning (P14) untuk klasifikasi healthy/fault dari multi-feature input. Stack lengkap: <strong>Sensor + ISO threshold (P11)</strong> + <strong>FSM tier alarm (P12)</strong> + <strong>ML klasifikasi (P13–P14)</strong> = end-to-end industrial monitoring system production-grade.
   </div>
 
   <div class="warn-box reveal">
@@ -1953,8 +1951,8 @@ result = <span class="fn">run_monitoring_pipeline</span>(rms_demo, timestamps=ts
     <span class="ff" style="left:75%;font-size:.7rem;color:var(--violet);--dur:22s;--del:9s">FSM + debounce N</span>
   </div>
   <div class="hero-content">
-    <div class="hero-eyebrow"><div class="pulse-dot"></div>Tugas Pertemuan 12 · Rule-Based Monitoring &amp; State Machine</div>
-    <h1 class="hero-title"><span class="hl-amber">Tugas 12</span><br><em>Otomatisasi Monitoring</em><br>Rule-Based Alerting</h1>
+    <div class="hero-eyebrow"><div class="pulse-dot"></div>Tugas Pertemuan 11 · Sensor, ISO 10816 &amp; Hysteresis</div>
+    <h1 class="hero-title"><span class="hl-amber">Tugas 11</span><br><em>Otomatisasi Monitoring</em><br>Rule-Based Alerting</h1>
     <p class="hero-sub">10 pilihan ganda + 10 komputasi Easy/Medium + 5 komputasi Hard (Jupyter Notebook) seputar threshold &amp; ISO 10816 zone classification, hysteresis &amp; tier alarm escalation, finite state machine dengan debouncing, alarm management ANSI/ISA 18.2, dan implementasi pipeline monitoring lengkap dengan Python. Total <strong>50 poin</strong>.</p>
     <div class="hero-stats">
       <div class="stat"><div class="stat-num">10</div><div class="stat-lbl">Pilihan Ganda</div></div>
@@ -2002,7 +2000,7 @@ result = <span class="fn">run_monitoring_pipeline</span>(rms_demo, timestamps=ts
   <div class="warn-box">
     <div class="warn-icon">📓</div>
     <div>
-      <h4>Petunjuk Pengerjaan Tugas 12</h4>
+      <h4>Petunjuk Pengerjaan Tugas 11</h4>
       <p>Kerjakan semua soal di <strong>Jupyter Notebook (VS Code)</strong> dengan bantuan <code style="font-family:'JetBrains Mono',monospace">numpy</code>, <code style="font-family:'JetBrains Mono',monospace">pandas</code>, <code style="font-family:'JetBrains Mono',monospace">scipy</code>, <code style="font-family:'JetBrains Mono',monospace">statsmodels</code>, dan <code style="font-family:'JetBrains Mono',monospace">scikit-learn</code>. Setelah selesai, <strong>paste kode dari Jupyter ke kolom yang tersedia</strong>, lalu klik <strong>▶ Run &amp; Validasi</strong> — poin diberikan jika kode berjalan tanpa error dan output numerik yang di-<code style="font-family:'JetBrains Mono',monospace">print()</code> sesuai nilai yang diharapkan. Di akhir, tempelkan link Google Drive berisi file <code style="font-family:'JetBrains Mono',monospace">.ipynb</code> yang memuat <strong>kode implementasi Python (Bagian 08 Modul)</strong> dan <strong>jawaban lengkap semua soal tugas</strong>.</p>
     </div>
   </div>
@@ -2010,8 +2008,8 @@ result = <span class="fn">run_monitoring_pipeline</span>(rms_demo, timestamps=ts
   <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.2);border-left:4px solid var(--cyan);border-radius:12px;padding:18px 24px;margin-bottom:32px;display:flex;align-items:flex-start;gap:14px">
     <span style="font-size:24px;flex-shrink:0">📤</span>
     <div>
-      <div style="font-weight:700;color:var(--cyan);margin-bottom:4px">Cara Submit Tugas 12</div>
-      <p style="font-size:14px;color:var(--text)">Isi semua soal, tempelkan link Google Drive, lalu klik <strong>📄 Export HTML</strong> — unduh file-nya dan <strong style="color:var(--cyan)">submit ke Fast Learning (LMS UMB) → Tugas Pertemuan 12</strong>.</p>
+      <div style="font-weight:700;color:var(--cyan);margin-bottom:4px">Cara Submit Tugas 11</div>
+      <p style="font-size:14px;color:var(--text)">Isi semua soal, tempelkan link Google Drive, lalu klik <strong>📄 Export HTML</strong> — unduh file-nya dan <strong style="color:var(--cyan)">submit ke Fast Learning (LMS UMB) → Tugas Pertemuan 11</strong>.</p>
     </div>
   </div>
 
@@ -2508,7 +2506,7 @@ import pandas as pd
 </div><!-- end section -->
 
 <footer>
-  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Tugas 12 — Otomatisasi Monitoring Rule-Based · Optimalisasi & Automasi · S1 Teknik Mesin · Universitas Mercu Buana</p>
+  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Tugas 11 — Otomatisasi Monitoring: Sensor &amp; ISO 10816 · Optimalisasi & Automasi · S1 Teknik Mesin · Universitas Mercu Buana</p>
 </footer>
 </div><!-- end page-tugas -->
 
@@ -2531,7 +2529,7 @@ import pandas as pd
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--violet);--dur:19s;--del:5s">FSM + debounce</span>
   </div>
   <div class="hero-content">
-    <div class="hero-eyebrow"><div class="pulse-dot"></div>Forum Diskusi · Pertemuan 12 · Rule-Based Monitoring</div>
+    <div class="hero-eyebrow"><div class="pulse-dot"></div>Forum Diskusi · Pertemuan 11 · Sensor &amp; ISO 10816</div>
     <h1 class="hero-title" style="font-size:clamp(36px,5vw,60px)">Monitoring Pompa Sentrifugal —<br><em>Rule-Based di Kilang Pertamina Cilacap</em></h1>
     <p class="hero-sub">Studi kasus <strong>Pertamina RU IV Cilacap</strong>: kilang minyak terbesar di Indonesia (348 ribu barel/hari). 200+ pompa sentrifugal di unit Crude Distillation. Tim reliability engineering harus monitoring vibrasi 24/7 dengan ISO 10816 zone classification + tier alarm untuk minimize unplanned shutdown. Diskusi: bagaimana threshold yang ketat (zona ISO) berinteraksi dengan kondisi operasi kilang yang dinamis (start-up, partial load, change-over crude type), dan kapan rule-based mentok &amp; perlu upgrade ke ML predictive (Pertemuan 13)?</p>
   </div>
@@ -2665,7 +2663,7 @@ import pandas as pd
     <h3 style="font-family:'Playfair Display',serif;font-size:22px;color:#fff;margin-bottom:8px">Sampaikan Pendapat Anda!</h3>
     <p style="color:var(--muted);font-size:14px;margin-bottom:6px">Isi semua pertanyaan diskusi (minimal 30 kata per jawaban), lalu klik tombol <strong style="color:var(--green)">Copy</strong>.</p>
     <p style="color:var(--muted);font-size:14px;margin-bottom:6px">Kode HTML otomatis tersalin ke clipboard. Buka:</p>
-    <p style="color:var(--text);font-size:14px;font-weight:600;margin-bottom:6px">📌 <strong style="color:var(--cyan)">Fast Learning (LMS UMB) → Forum Pertemuan 12</strong></p>
+    <p style="color:var(--text);font-size:14px;font-weight:600;margin-bottom:6px">📌 <strong style="color:var(--cyan)">Fast Learning (LMS UMB) → Forum Pertemuan 11</strong></p>
     <p style="color:var(--muted);font-size:13px;margin-bottom:24px">Di editor forum, klik tombol <strong style="color:var(--amber)">&lt;/&gt; HTML</strong> untuk beralih ke mode HTML, lalu paste kode yang sudah disalin.</p>
     <div class="forum-status" style="background:rgba(0,224,158,.06);border:1px solid rgba(0,224,158,.25);border-radius:14px;padding:16px 18px;margin:8px 0 22px;text-align:left;display:flex;align-items:center;gap:18px;flex-wrap:wrap">
       <div style="text-align:center;min-width:70px">
@@ -2703,7 +2701,7 @@ import pandas as pd
 </div><!-- end section -->
 
 <footer>
-  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Forum 8 — Otomatisasi Monitoring Rule-Based · Optimalisasi & Automasi · S1 Teknik Mesin · Universitas Mercu Buana</p>
+  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Forum 8 — Otomatisasi Monitoring: Sensor &amp; ISO 10816 · Optimalisasi & Automasi · S1 Teknik Mesin · Universitas Mercu Buana</p>
 </footer>
 </div><!-- end page-forum -->
 
@@ -2726,9 +2724,9 @@ import pandas as pd
     <span class="ff" style="left:85%;font-size:.8rem;color:var(--cyan);--dur:16s;--del:11s">scipy.minimize</span>
   </div>
   <div class="hero-content">
-    <div class="hero-eyebrow"><div class="pulse-dot"></div>Pertemuan 12 &nbsp;·&nbsp; Hasil &amp; Kehadiran</div>
+    <div class="hero-eyebrow"><div class="pulse-dot"></div>Pertemuan 11 &nbsp;·&nbsp; Hasil &amp; Kehadiran</div>
     <h1 class="hero-title"><span class="hl-cyan">Performa</span><br><em>Mahasiswa</em></h1>
-    <p class="hero-sub">Rekap kehadiran, poin, dan aktivitas seluruh mahasiswa yang telah mengakses Pertemuan 12.</p>
+    <p class="hero-sub">Rekap kehadiran, poin, dan aktivitas seluruh mahasiswa yang telah mengakses Pertemuan 11.</p>
   </div>
 </div>
 
@@ -2798,7 +2796,7 @@ import pandas as pd
 </div>
 
 <footer>
-  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Hasil Pertemuan 12 · Optimalisasi & Automasi</p>
+  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Hasil Pertemuan 11 · Optimalisasi & Automasi</p>
 </footer>
 </div><!-- end page-hasil -->
 
@@ -3781,7 +3779,7 @@ function exportTugasHtml() {
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Tugas 12 — ${esc(name)}</title>
+<title>Tugas 11 — ${esc(name)}</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4ff;color:#1e293b;padding:28px}
@@ -3822,7 +3820,7 @@ function exportTugasHtml() {
 <div class="wrap">
 
   <div class="cover">
-    <h1>📝 Tugas 12 — Otomatisasi Monitoring: Rule-Based</h1>
+    <h1>📝 Tugas 11 — Otomatisasi Monitoring: Sensor &amp; ISO 10816</h1>
     <p class="sub">Optimalisasi &amp; Automasi · S1 Teknik Mesin · Universitas Mercu Buana · 2025/2026 · Dosen: Dedik Romahadi</p>
   </div>
 
@@ -3902,7 +3900,7 @@ function exportTugasHtml() {
   </div>
 
   <div class="footer">
-    Tugas 12 — Otomatisasi Monitoring: Rule-Based · Optimalisasi & Automasi · S1 Teknik Mesin UMB 2025/2026
+    Tugas 11 — Otomatisasi Monitoring: Sensor &amp; ISO 10816 · Optimalisasi & Automasi · S1 Teknik Mesin UMB 2025/2026
   </div>
 </div>
 </body></html>`;
@@ -4051,7 +4049,7 @@ function _showCopySuccess(btn, msg) {
   }
   if (msg) {
     msg.style.color = 'var(--green)';
-    msg.textContent = '✅ Kode HTML sudah tersalin. Buka Fast Learning → Forum Pertemuan 12 → klik </> HTML → paste.';
+    msg.textContent = '✅ Kode HTML sudah tersalin. Buka Fast Learning → Forum Pertemuan 11 → klik </> HTML → paste.';
   }
 }
 
@@ -4120,8 +4118,8 @@ function buildForumHtml() {
   return `<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:720px;margin:0 auto;color:#1e293b;">
 
   <div style="background:linear-gradient(135deg,#1e0a40,#0a1628);border-radius:12px 12px 0 0;padding:20px 28px;">
-    <div style="font-size:1.3rem;font-weight:800;color:#a855f7;margin-bottom:4px;">&#128172; Forum Diskusi &#8212; Pertemuan 12</div>
-    <div style="font-size:.82rem;color:#94a3b8;">Otomatisasi Monitoring: Rule-Based &middot; Optimalisasi &amp; Automasi &middot; S1 Teknik Mesin UMB &middot; 2025/2026</div>
+    <div style="font-size:1.3rem;font-weight:800;color:#a855f7;margin-bottom:4px;">&#128172; Forum Diskusi &#8212; Pertemuan 11</div>
+    <div style="font-size:.82rem;color:#94a3b8;">Otomatisasi Monitoring: Sensor &amp; ISO 10816 &middot; Optimalisasi &amp; Automasi &middot; S1 Teknik Mesin UMB &middot; 2025/2026</div>
     <div style="font-size:.8rem;color:#a855f7;margin-top:2px;">Dosen: Dedik Romahadi</div>
   </div>
 
@@ -4179,7 +4177,7 @@ function buildForumHtml() {
   </div>
 
   <div style="background:#f8faff;border:1px solid #e2e8f0;border-radius:0 0 12px 12px;padding:10px 28px;text-align:center;font-size:.72rem;color:#94a3b8;margin-top:4px;">
-    Forum Diskusi Pertemuan 12 &mdash; Otomatisasi Monitoring: Rule-Based &middot; Optimalisasi &amp; Automasi &middot; S1 Teknik Mesin UMB &middot; 2025/2026
+    Forum Diskusi Pertemuan 11 &mdash; Otomatisasi Monitoring: Sensor &amp; ISO 10816 &middot; Optimalisasi &amp; Automasi &middot; S1 Teknik Mesin UMB &middot; 2025/2026
   </div>
 
 </div>`;
