@@ -900,384 +900,374 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 01 — APA ITU SISTEM 2 DoF? ═══ -->
+<!-- ═══ BAGIAN 01 — KONTROL GETARAN: ABSORBER vs ISOLATION ═══ -->
 <hr class="divider" style="margin-top:64px">
 <div class="section" id="m-pengantar">
   <div class="section-label reveal">Bagian 01</div>
-  <h2 class="section-title reveal">Apa Itu Sistem 2 DoF?<br>Saat Satu Massa Saja Tidak Cukup</h2>
-  <p class="section-desc reveal">Pada Pertemuan 1–6, kita selalu menganalisis <strong>satu massa</strong> bergetar (1 DoF — derajat kebebasan). Tetapi mesin nyata jarang sesederhana itu. Mobil punya bodi <em>dan</em> roda. Gedung punya banyak lantai. Turbin punya rotor <em>dan</em> casing. Setiap bagian bisa bergerak independen — sehingga butuh <strong>≥ 2 koordinat</strong> untuk menjelaskan posisi sistem secara lengkap. Itulah <strong>sistem 2 DoF</strong>.</p>
+  <h2 class="section-title reveal">Kontrol Getaran:<br>Vibration Absorber vs Vibration Isolation</h2>
+  <p class="section-desc reveal">Pertemuan-pertemuan sebelumnya kita <em>menganalisis</em> getaran. Sekarang kita <em>mengendalikannya</em>. Dua strategi utama: <strong>vibration absorber</strong> (menyerap energi getaran dengan menambah massa-pegas auxiliary) dan <strong>vibration isolation</strong> (memblokir transmisi getaran dengan isolator elastis). Keduanya esensial di engineering modern — dari mounting kompresor di pabrik sampai TMD raksasa di gedung pencakar langit.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Definisi Sederhana</div>
-    Derajat kebebasan = jumlah koordinat independen yang diperlukan untuk mendeskripsikan posisi sistem pada saat tertentu.
+    <div class="label">Dua Strategi Kontrol Getaran</div>
+    Vibration Absorber (TMD) — menyerap di sumber · Vibration Isolation — memblok transmisi ke environment
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">🚗</div>
-      <h3>Suspensi Mobil</h3>
-      <p>Bodi mobil bergerak naik-turun (x₁), sekaligus roda juga bergerak naik-turun (x₂) saat melewati jalan bergelombang. Dua koordinat → 2 DoF.</p>
-      <div class="formula">x₁ (bodi) &nbsp;|&nbsp; x₂ (roda)</div>
+      <div class="card-icon">🎯</div>
+      <h3>Vibration Absorber (TMD)</h3>
+      <p>Tambahkan massa-pegas auxiliary (m<sub>a</sub>, k<sub>a</sub>) ke struktur utama yang bermasalah. Sistem 2 DoF baru memiliki <strong>2 frekuensi pribadi</strong> yang menjauhi frekuensi eksitasi. Energi getaran "diserap" oleh absorber. Klasik: Den Hartog (1928).</p>
+      <div class="formula">f_eks = √(k_a/m_a) — tuning</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🛡️</div>
+      <h3>Vibration Isolation</h3>
+      <p>Pasang isolator elastis (spring + damper) antara mesin (sumber getaran) dan struktur pendukung (yang harus dilindungi). Memblokir transmisi gaya/displacement. Force atau displacement ratio "transmissibility" menentukan effectiveness.</p>
+      <div class="formula">TR = F_transmitted / F_source</div>
     </div>
     <div class="card">
       <div class="card-icon">🏢</div>
-      <h3>Gedung 2 Lantai</h3>
-      <p>Lantai 1 bergeser horizontal sebesar x₁ saat angin/gempa, lantai 2 bergeser sebesar x₂. Dua lantai = 2 DoF.</p>
-      <div class="formula">x₁ (lantai 1) &nbsp;|&nbsp; x₂ (lantai 2)</div>
+      <h3>Use Case Berbeda</h3>
+      <p><strong>Absorber</strong>: cocok untuk eksitasi <em>narrow-band</em> (mis. mesin running di frekuensi tetap 50 Hz). <strong>Isolation</strong>: cocok untuk <em>broad-band</em> (mis. melindungi instrumen presisi dari berbagai noise environment) atau saat sumber getaran tidak bisa direduksi.</p>
+      <div class="formula">Absorber: narrow-band; Isolation: broad-band</div>
     </div>
     <div class="card">
-      <div class="card-icon">⚙️</div>
-      <h3>Dua Massa Terkait Pegas</h3>
-      <p>Sistem klasik 2 DoF: dua massa m₁ dan m₂ dihubungkan oleh tiga pegas k₁, k₂, k₃ (dua pegas ke dinding, satu di tengah). Inilah model referensi modul ini.</p>
-      <div class="formula">m₁=m₂=1 kg, k=100 N/m</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">🎵</div>
-      <h3>Speaker Gitar</h3>
-      <p>Membran speaker (m₁) terhubung ke kotak (m₂) lewat pegas. Saat dimainkan, keduanya bergetar — itulah kenapa kotak speaker ikut "menggetar".</p>
-      <div class="formula">2 mode getaran utama</div>
+      <div class="card-icon">⚖️</div>
+      <h3>Trade-off Klasik</h3>
+      <p><strong>Absorber</strong>: efektif persis di frekuensi tuning, tapi muncul 2 puncak resonansi baru di sekitarnya yang harus dijauhi (lihat Bagian 03). <strong>Isolation</strong>: butuh ω &gt; √2 ω<sub>n</sub> isolator (di bawah ini malah amplifikasi), butuh isolator yang soft (low k).</p>
+      <div class="formula">No free lunch — both have constraints</div>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Mengapa 2 DoF Begitu Penting?</strong><br>
-    Sistem 1 DoF hanya punya <strong>satu</strong> frekuensi pribadi ωₙ. Tetapi sistem 2 DoF punya <strong>dua</strong> frekuensi pribadi (ω₁ dan ω₂) — masing-masing dengan <strong>pola gerak (mode shape)</strong>-nya sendiri. Memahami ini adalah jembatan menuju multi-DoF (gedung 10 lantai, mesin pesawat, dll). Konsepnya sama, hanya jumlah-nya bertambah.
+    <strong>Real-World Inspiration: Taipei 101</strong><br>
+    Gedung 508 m punya 660-ton TMD (massa raksasa berbentuk bola) di lantai 87-92. Pendulum ini = sistem 2-DoF buatan dengan gedung. Tuning: ω<sub>TMD</sub> = ω<sub>building</sub> ≈ 0.1 Hz (period 10 detik). Saat angin/gempa men-excite gedung di natural frequency-nya, TMD mulai berosilasi out-of-phase, menyerap energi getaran. <strong>Reduksi amplitudo gedung ~40%</strong>. Tanpa TMD, kerusakan struktur seismic akan jauh lebih parah. Engineering masterpiece.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Aturan Mudah:</strong> Banyaknya frekuensi pribadi sebuah sistem getaran = banyaknya derajat kebebasannya. 1 DoF → 1 ω. 2 DoF → 2 ω (ω₁ &lt; ω₂). N DoF → N ω. Pertemuan 11 fokus pada N=2 sebagai pintu masuk paling intuitif.
+    💡 <strong>Pemilihan Strategi:</strong> Tanyakan: (1) Apakah sumber getaran punya frekuensi <em>specific dan dominant</em>? Jika ya → absorber. (2) Apakah perlu <em>memblok transmisi</em> ke equipment downstream? Jika ya → isolation. (3) Apakah keduanya? Combine: source isolation + receiver TMD. Jangan asal pilih — desain salah = waste budget.
   </div>
 </div>
 
-<!-- ═══ BAGIAN 02 — PERSAMAAN GERAK MATRIKS ═══ -->
+<!-- ═══ BAGIAN 02 — TUNED MASS DAMPER (DEN HARTOG) ═══ -->
 <hr class="divider">
 <div class="section" id="m-eom">
   <div class="section-label reveal">Bagian 02</div>
-  <h2 class="section-title reveal">Persamaan Gerak Matriks:<br>Bahasa Universal Sistem 2 DoF</h2>
-  <p class="section-desc reveal">Untuk sistem 1 DoF, persamaan geraknya: <strong>m·ẍ + k·x = 0</strong>. Untuk 2 DoF, kita punya <strong>dua</strong> persamaan — satu untuk tiap massa. Lebih praktis menulisnya dalam <strong>bentuk matriks</strong>: <strong>M·ẍ + K·x = 0</strong>, dengan M = matriks massa, K = matriks kekakuan, x = vektor [x₁, x₂].</p>
+  <h2 class="section-title reveal">Tuned Mass Damper (TMD):<br>Den Hartog Optimal Tuning</h2>
+  <p class="section-desc reveal"><strong>Tuned Mass Damper (TMD)</strong> = vibration absorber dengan damping tambahan untuk perlebar effective bandwidth. Dirumuskan oleh <em>J.P. Den Hartog</em> (1928) dengan tuning optimal untuk minimize peak response. Hingga kini formula Den Hartog masih dipakai untuk preliminary design TMD di structural engineering.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Sistem Referensi Modul Ini — Dua Massa, Tiga Pegas</div>
-    Massa: m₁ = m₂ = 1 kg &nbsp;·&nbsp; Pegas: k₁ = k₂ = k₃ = 100 N/m
+    <div class="label">Den Hartog Optimal Tuning Formulas</div>
+    f<sub>opt</sub> = 1 / (1 + μ) &nbsp;·&nbsp; ζ<sub>opt</sub> = √(3μ / (8(1 + μ)³))
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">📐</div>
-      <h3>Free-Body Diagram Massa 1</h3>
-      <p>Massa 1 ditarik pegas k₁ ke kiri dengan gaya <code>−k₁·x₁</code> dan ditarik/ditolak oleh pegas tengah k₂ dengan gaya <code>−k₂·(x₁−x₂)</code>. Hukum Newton:</p>
-      <div class="formula">m₁·ẍ₁ = −k₁·x₁ − k₂·(x₁ − x₂)</div>
+      <div class="card-icon">🔧</div>
+      <h3>Mass Ratio μ = m<sub>a</sub> / m</h3>
+      <p>Rasio massa absorber terhadap massa utama. Tipikal industri: μ = 0.02 - 0.10 (2-10%). Lebih besar = lebih efektif, tapi lebih berat &amp; mahal. Taipei 101: μ ≈ 0.005 (660 ton dari 130000 ton total — masih cukup karena loading angin lokal).</p>
+      <div class="formula">μ = m_absorber / m_main</div>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
-      <h3>Free-Body Diagram Massa 2</h3>
-      <p>Massa 2 ditarik pegas tengah k₂ dengan gaya <code>−k₂·(x₂−x₁)</code> dan pegas k₃ ke kanan dengan gaya <code>−k₃·x₂</code>:</p>
-      <div class="formula">m₂·ẍ₂ = −k₂·(x₂ − x₁) − k₃·x₂</div>
+      <h3>Tuning Frequency: f<sub>opt</sub></h3>
+      <p>Rasio frekuensi absorber ke frekuensi natural struktur utama: <code>f<sub>opt</sub> = ω<sub>a</sub>/ω<sub>n</sub> = 1/(1+μ)</code>. Untuk μ = 0.05: f<sub>opt</sub> = 0.952 — absorber di-tune sedikit di bawah frekuensi natural struktur. Implementasi: pilih k<sub>a</sub> agar <code>√(k<sub>a</sub>/m<sub>a</sub>) = f<sub>opt</sub>·ω<sub>n</sub></code>.</p>
+      <div class="formula">f_opt = 1/(1 + μ)</div>
     </div>
     <div class="card">
-      <div class="card-icon">🔢</div>
-      <h3>Bentuk Matriks (Singkat)</h3>
-      <p>Kedua persamaan dirapikan: <code>m₁·ẍ₁ + (k₁+k₂)x₁ − k₂·x₂ = 0</code> dan <code>m₂·ẍ₂ − k₂·x₁ + (k₂+k₃)x₂ = 0</code>. Dalam matriks:</p>
-      <div class="formula">M·ẍ + K·x = 0</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">✅</div>
-      <h3>Substitusi Angka Referensi</h3>
-      <p>Dengan m₁=m₂=1 dan k₁=k₂=k₃=100, kita peroleh M = identitas dan K simetris dengan diagonal 200, off-diagonal −100:</p>
-      <div class="formula">M = [[1,0],[0,1]] &nbsp;·&nbsp; K = [[200,−100],[−100,200]]</div>
-    </div>
-  </div>
-
-  <div class="info-box reveal">
-    <strong>Kenali Pola Matriks Kekakuan K</strong><br>
-    Diagonal K(i,i) = jumlah semua kekakuan yang menempel ke massa-i. Off-diagonal K(i,j) = <strong>negatif</strong> kekakuan pegas yang menghubungkan massa-i dan massa-j. K selalu <strong>simetris</strong> (K(i,j) = K(j,i)). Pola ini berlaku universal untuk N DoF — kita tidak perlu menurunkan ulang dari Hukum Newton tiap kali.
-  </div>
-
-  <div class="tip-box reveal">
-    💡 <strong>Cek cepat:</strong> Untuk sistem referensi kita, matriks K = [[200, −100], [−100, 200]]. Trace(K) = 200+200 = 400. Det(K) = 200·200 − (−100)·(−100) = 40000 − 10000 = 30000. Kedua angka ini akan muncul lagi saat kita cari frekuensi pribadi di Bagian 03 — sama seperti Vieta's formula untuk akar polinomial.
-  </div>
-</div>
-
-<!-- ═══ BAGIAN 03 — EIGENVALUE PROBLEM ═══ -->
-<hr class="divider">
-<div class="section" id="m-eigen">
-  <div class="section-label reveal">Bagian 03</div>
-  <h2 class="section-title reveal">Eigenvalue Problem:<br>Mencari Dua Frekuensi Pribadi ω₁ & ω₂</h2>
-  <p class="section-desc reveal">Kita tebak solusi harmonik: tiap massa bergerak dengan frekuensi yang sama ω, tetapi dengan amplitudo berbeda. <code>x(t) = X·sin(ωt)</code> dengan X = vektor [X₁, X₂]. Substitusi ke <code>M·ẍ + K·x = 0</code> menghasilkan <strong>(K − ω²M)·X = 0</strong> — yang dikenal sebagai <strong>eigenvalue problem</strong>.</p>
-
-  <div class="formula-block reveal">
-    <div class="label">Persamaan Karakteristik (Cara Mencari ω)</div>
-    det(K − ω²·M) = 0
-  </div>
-
-  <div class="cards reveal" style="margin-bottom:32px">
-    <div class="card">
-      <div class="card-icon">🔍</div>
-      <h3>Langkah 1 — Tulis Determinan</h3>
-      <p>Dengan parameter referensi: <code>K − ω²M = [[200−ω², −100], [−100, 200−ω²]]</code>. Determinan = (200−ω²)² − (−100)(−100) = (200−ω²)² − 10000.</p>
-      <div class="formula">(200 − ω²)² − 10000 = 0</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">🧮</div>
-      <h3>Langkah 2 — Selesaikan untuk ω²</h3>
-      <p>Akar kuadrat kedua sisi: <code>200 − ω² = ±100</code>. Sehingga ω² = 200 − 100 = 100 (akar pertama, kecil) dan ω² = 200 + 100 = 300 (akar kedua, besar).</p>
-      <div class="formula">ω₁² = 100 &nbsp;·&nbsp; ω₂² = 300</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">✨</div>
-      <h3>Langkah 3 — Akar Frekuensi</h3>
-      <p>Ambil akar kuadrat: <code>ω₁ = √100 = 10 rad/s</code> dan <code>ω₂ = √300 ≈ 17.32 rad/s</code>. Selalu pilih ω &gt; 0; konvensi: ω₁ &lt; ω₂.</p>
-      <div class="formula">ω₁ = 10 rad/s &nbsp;·&nbsp; ω₂ ≈ 17.32 rad/s</div>
+      <div class="card-icon">💧</div>
+      <h3>Optimal Damping: ζ<sub>opt</sub></h3>
+      <p>Damping ratio absorber yang minimize peak response: <code>ζ<sub>opt</sub> = √(3μ/(8(1+μ)³))</code>. Untuk μ=0.05: ζ<sub>opt</sub>=0.135 (13.5%) — moderate damping. Implementasi: pilih c<sub>a</sub> dengan formula <code>c<sub>a</sub> = 2·m<sub>a</sub>·ω<sub>a</sub>·ζ<sub>opt</sub></code>.</p>
+      <div class="formula">ζ_opt = √(3μ/(8(1+μ)³))</div>
     </div>
     <div class="card">
       <div class="card-icon">📊</div>
-      <h3>Konversi ke Hertz & Periode</h3>
-      <p>f = ω/(2π), T = 2π/ω. Hasilnya: f₁ ≈ 1.59 Hz (T₁ ≈ 0.63 s), f₂ ≈ 2.76 Hz (T₂ ≈ 0.36 s). Mode 2 lebih cepat daripada Mode 1.</p>
-      <div class="formula">f₁ ≈ 1.59 Hz, f₂ ≈ 2.76 Hz</div>
+      <h3>Reduction Factor</h3>
+      <p>Dengan tuning optimal Den Hartog, peak amplitude struktur utama dapat direduksi hingga: <code>X<sub>max</sub>/X<sub>static</sub> ≈ √((2 + μ)/μ)</code>. Untuk μ=0.05: ratio = 6.3 (bandingkan tanpa absorber yang infinite di resonance). <strong>Reduksi 80-95%</strong> di puncak resonansi.</p>
+      <div class="formula">X_max ≈ X_static · √((2+μ)/μ)</div>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Cara Cepat: Pakai numpy.linalg.eig</strong><br>
-    Untuk sistem &gt; 2 DoF, menyelesaikan determinan tangan jadi rumit. Pakai komputer:
-    <code style="display:block;background:#020a18;padding:10px 14px;border-radius:8px;margin-top:8px;color:var(--cyan)">A = np.linalg.inv(M) @ K  &nbsp;&nbsp;# matriks dinamis<br>w_squared, modes = np.linalg.eig(A)<br>omegas = np.sqrt(w_squared)</code>
-    Pyodide di browser sudah punya numpy — kode di atas bisa langsung dijalankan di tab Tugas.
+    <strong>Den Hartog Procedure (Step-by-Step Design)</strong><br>
+    1) <strong>Identifikasi</strong> ω<sub>n</sub> struktur utama (dari modal analysis atau eksperimen).<br>
+    2) <strong>Pilih</strong> mass ratio μ (typical 0.02-0.10, lebih besar lebih efektif tapi mahal).<br>
+    3) <strong>Calculate</strong> m<sub>a</sub> = μ·m, lalu f<sub>opt</sub> dan ζ<sub>opt</sub>.<br>
+    4) <strong>Spec absorber</strong>: k<sub>a</sub> = m<sub>a</sub>·(f<sub>opt</sub>·ω<sub>n</sub>)², c<sub>a</sub> = 2·m<sub>a</sub>·f<sub>opt</sub>·ω<sub>n</sub>·ζ<sub>opt</sub>.<br>
+    5) <strong>Verify</strong> via 2-DoF FRF analysis (Bagian 03): cek peak amplitude memenuhi target.<br>
+    6) <strong>Sensitivity check</strong>: real-world ω<sub>n</sub> shifts (mass added, structural change). Robust design pakai μ slightly higher untuk safety margin.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Cek dengan Trace & Determinan:</strong> Untuk sistem 2 DoF dengan M = identitas, ada identitas Vieta sederhana: <code>ω₁² + ω₂² = trace(K)</code> dan <code>ω₁²·ω₂² = det(K)</code>. Verifikasi: 100 + 300 = 400 ✓ (= trace K), dan 100 × 300 = 30000 ✓ (= det K). Cocok!
+    💡 <strong>Sensitivity Concern:</strong> TMD performance <strong>sangat sensitif</strong> terhadap mistuning. Jika ω<sub>n</sub> structure shift 5% (mis. due to crack atau additional mass), reduction efficacy bisa turun dari 90% ke 60%. Solusi: (1) <strong>multiple TMD</strong> dengan range frekuensi (lebih robust tapi mahal), atau (2) <strong>active TMD</strong> dengan sensor + actuator untuk re-tune real-time.
   </div>
 </div>
 
-<!-- ═══ BAGIAN 04 — MODE SHAPES ═══ -->
+<!-- ═══ BAGIAN 03 — FREQUENCY RESPONSE TMD ═══ -->
+<hr class="divider">
+<div class="section" id="m-eigen">
+  <div class="section-label reveal">Bagian 03</div>
+  <h2 class="section-title reveal">Frequency Response dengan TMD:<br>Dua Puncak Baru, Satu Anti-Resonance</h2>
+  <p class="section-desc reveal">Setelah memasang TMD, struktur menjadi sistem 2-DoF dengan respons frekuensi yang khas: <strong>satu anti-resonance</strong> (titik response zero) di frekuensi tuning, diapit oleh <strong>dua puncak resonance baru</strong>. Memahami pola FRF ini critical untuk design — anti-resonance harus tepat di frekuensi eksitasi target, dua puncak baru harus dijauhi.</p>
+
+  <div class="formula-block reveal">
+    <div class="label">FRF Magnitude Struktur Utama dengan TMD</div>
+    |H(ω)| = |X(ω)/F(ω)| dari sistem 2-DoF (closed form via Cramer's rule)
+  </div>
+
+  <div class="cards reveal" style="margin-bottom:32px">
+    <div class="card">
+      <div class="card-icon">📉</div>
+      <h3>Anti-Resonance @ ω<sub>tuning</sub></h3>
+      <p>Pada frekuensi tuning ω<sub>a</sub>=ω<sub>tuning</sub>, response struktur utama (<strong>tanpa damping</strong>) <strong>theoretically zero</strong> — TMD bergerak out-of-phase dan secara perfect membatalkan gaya eksitasi. Inilah magic vibration absorber.</p>
+      <div class="formula">X(ω_tuning) = 0 (undamped)</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📈</div>
+      <h3>Dua Puncak Baru (Resonance 1 &amp; 2)</h3>
+      <p>2-DoF system memiliki 2 frekuensi pribadi: ω<sub>1</sub> &lt; ω<sub>tuning</sub> &lt; ω<sub>2</sub>. Pada tiap ω<sub>i</sub>, response infinite tanpa damping. Dengan damping ζ<sub>opt</sub>, kedua puncak ter-cap di amplitude finite tapi tetap perlu dihindari sebagai eksitasi.</p>
+      <div class="formula">ω₁ &lt; ω_tuning &lt; ω₂</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔍</div>
+      <h3>Pole-Zero Pattern</h3>
+      <p>FRF transfer function <code>H(s) = N(s)/D(s)</code>. Numerator zero di s² = −ω<sub>a</sub>² → anti-resonance. Denominator zero di s² = −ω<sub>1</sub>², −ω<sub>2</sub>² → resonance. Spacing antara ω<sub>1</sub> dan ω<sub>2</sub> tergantung mass ratio μ.</p>
+      <div class="formula">Zeros at ω_a, Poles at ω₁ &amp; ω₂</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚖️</div>
+      <h3>Optimal Damping Effect</h3>
+      <p>Tanpa damping: anti-resonance perfect (X=0) tapi 2 puncak infinite. Dengan damping terlalu besar: TMD "kunci" bersama struktur, tidak bekerja. <strong>ζ<sub>opt</sub></strong> Den Hartog: trade-off perfect — kedua puncak <strong>sama tinggi</strong>, tidak ada satu yang dominan.</p>
+      <div class="formula">ζ_opt → equal peak heights</div>
+    </div>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>FRF Interpretation untuk Design Verification</strong><br>
+    Setelah design TMD selesai, <strong>plot FRF</strong> response struktur utama vs frekuensi:<br>
+    1) <strong>Verify anti-resonance depth</strong>: harus &lt; target threshold pada frekuensi eksitasi.<br>
+    2) <strong>Verify peak heights</strong>: dua puncak baru tidak boleh exceed allowable (mis. 1.5× static deflection).<br>
+    3) <strong>Verify peak locations</strong>: dua puncak tidak boleh coincide dengan frekuensi ekspos lain (mesin lain di gedung).<br>
+    4) <strong>Robustness check</strong>: vary ω<sub>n</sub> structure ±5%, rerun FRF, cek apakah anti-resonance masih dekat target. Jika tidak, perlu redesign atau pakai active TMD.
+  </div>
+
+  <div class="tip-box reveal">
+    💡 <strong>Frequency Range to Avoid:</strong> Setelah TMD installed, eksitasi pada ω<sub>1</sub> dan ω<sub>2</sub> akan worse than tanpa TMD! Pastikan tidak ada source eksitasi tetap (mesin lain, walking pedestrians) yang frekuensinya match ω<sub>1</sub> atau ω<sub>2</sub>. Kasus historikal: TMD di-install untuk mode 1 walking, tapi mode 2 terjadi koinside dengan jogging frequency — performance gembung di scenario lain. Always full FRF check.
+  </div>
+</div>
+
+<!-- ═══ BAGIAN 04 — FORCE TRANSMISSIBILITY ═══ -->
 <hr class="divider">
 <div class="section" id="m-modes">
   <div class="section-label reveal">Bagian 04</div>
-  <h2 class="section-title reveal">Mode Shapes:<br>Setiap Frekuensi Punya "Tarian"-Nya Sendiri</h2>
-  <p class="section-desc reveal">Setiap frekuensi pribadi ω<sub>i</sub> tidak hanya angka — ia punya <strong>pola gerak</strong> spesifik yang menjelaskan <em>bagaimana</em> kedua massa bergerak relatif satu sama lain saat bergetar di frekuensi itu. Pola ini disebut <strong>mode shape</strong> (vektor eigenvalue). Untuk sistem referensi, kita akan temukan dua mode yang sangat intuitif.</p>
+  <h2 class="section-title reveal">Vibration Isolation:<br>Force Transmissibility</h2>
+  <p class="section-desc reveal">Beralih ke strategi #2: <strong>vibration isolation</strong>. Skenario klasik: mesin (mis. kompresor) menghasilkan gaya getaran F<sub>0</sub>·sin(ωt), pasang isolator elastis (spring + damper) antara mesin dan fondasi. Berapa fraksi gaya yang ter-transmit ke fondasi? Itulah <strong>Force Transmissibility (TR)</strong> — parameter desain utama isolator.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Cara Menghitung Mode Shape</div>
-    Untuk tiap ω<sub>i</sub>, substitusi balik ke <code>(K − ω<sub>i</sub>²M)·X = 0</code>, lalu cari rasio X₁ : X₂.
+    <div class="label">Force Transmissibility</div>
+    TR = √((1 + (2ζr)²) / ((1 − r²)² + (2ζr)²)) &nbsp;·&nbsp; r = ω/ω<sub>n</sub>, ω<sub>n</sub> = √(k/m)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">⚖️</div>
-      <h3>Mode 1 (ω₁ = 10) — In-Phase</h3>
-      <p>Substitusi ω₁²=100: <code>(K − 100·I) = [[100,−100],[−100,100]]</code>. Baris pertama: <code>100·X₁ − 100·X₂ = 0 → X₁ = X₂</code>. Mode 1 = <strong>[1, 1]</strong> — kedua massa bergerak <strong>searah dan sama besar</strong>.</p>
-      <div class="formula">Mode 1: X₁ = X₂ = 1 (in-phase)</div>
+      <div class="card-icon">📐</div>
+      <h3>Three Frequency Regions</h3>
+      <p><strong>r &lt; 1</strong>: TR ≈ 1 (isolator ineffective, gaya transmit sepenuhnya).<br><strong>r = 1</strong>: resonance, TR puncak (sangat berbahaya, hindari).<br><strong>r &gt; √2</strong>: TR &lt; 1 (isolator <em>efektif</em>, gaya direduksi).<br>Untuk isolation, design selalu di region r &gt; √2.</p>
+      <div class="formula">Effective: r > √2 (1.414)</div>
     </div>
     <div class="card">
-      <div class="card-icon">↔️</div>
-      <h3>Mode 2 (ω₂ ≈ 17.32) — Anti-Phase</h3>
-      <p>Substitusi ω₂²=300: <code>(K − 300·I) = [[−100,−100],[−100,−100]]</code>. Baris pertama: <code>−100·X₁ − 100·X₂ = 0 → X₁ = −X₂</code>. Mode 2 = <strong>[1, −1]</strong> — kedua massa bergerak <strong>berlawanan</strong>.</p>
-      <div class="formula">Mode 2: X₁ = −X₂ (anti-phase)</div>
+      <div class="card-icon">🛡️</div>
+      <h3>Soft Spring = Better Isolation</h3>
+      <p>Untuk r besar (TR kecil), butuh ω<sub>n</sub> = √(k/m) <strong>kecil</strong> (di bawah ω eksitasi). Implementasi: <strong>k spring kecil (soft)</strong> atau m massa besar. Spring soft: rubber mount, coil spring lembut. Konsekuensi: deflection statis besar.</p>
+      <div class="formula">k small → ω_n small → r large → TR small</div>
     </div>
     <div class="card">
-      <div class="card-icon">🌊</div>
-      <h3>Mengapa Mode 1 Lebih Lambat?</h3>
-      <p>Pada Mode 1, kedua massa bergerak bersama → pegas tengah <strong>tidak tertekan/ditarik</strong> sama sekali. Sistem efektif hanya pakai pegas k₁ dan k₃. Lebih sedikit kekakuan = ω lebih kecil.</p>
-      <div class="formula">ω₁_efektif = √((k₁+k₃)/m) = 10 rad/s ✓</div>
+      <div class="card-icon">💧</div>
+      <h3>Damping Effect — Trade-off</h3>
+      <p>Damping <strong>turunkan</strong> peak di resonance (r=1), tapi <strong>naikkan</strong> TR di high frequency (r &gt;&gt; 1). Trade-off: <strong>low damping</strong> (ζ ≈ 0.05): bagus high-freq isolation, tapi peak resonance sangat tinggi. <strong>High damping</strong> (ζ ≈ 0.3): peak rendah, tapi high-freq isolation kurang.</p>
+      <div class="formula">Low ζ: better high-f isolation, worse resonance</div>
     </div>
     <div class="card">
-      <div class="card-icon">⚡</div>
-      <h3>Mengapa Mode 2 Lebih Cepat?</h3>
-      <p>Pada Mode 2, kedua massa berlawanan arah → pegas tengah <strong>diregang/ditekan dua kali</strong> setiap setengah siklus. Kekakuan efektif lebih besar = ω lebih besar.</p>
-      <div class="formula">ω₂_efektif = √((k₁ + 2k₂)/m) ≈ 17.32 ✓</div>
+      <div class="card-icon">🎯</div>
+      <h3>Target TR untuk Industrial</h3>
+      <p>Industrial standard: <strong>TR ≤ 0.1</strong> (90% reduction) untuk equipment sensitif. <strong>TR ≤ 0.05</strong> (95% reduction) untuk lab/precision. Achieved dengan r ≥ 4 (eksitasi 4× di atas isolator natural frequency). Mis. eksitasi 50 Hz → ω<sub>n</sub> isolator ≤ 12.5 Hz.</p>
+      <div class="formula">TR ≤ 0.1 standard, ≤ 0.05 precision</div>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Sifat Penting Mode Shape — Orthogonality</strong><br>
-    Dua mode shape selalu <strong>orthogonal terhadap matriks massa</strong>: u₁ᵀ·M·u₂ = 0. Untuk kasus kita: [1,1]·[[1,0],[0,1]]·[1,−1]ᵀ = 1·1 + 1·(−1) = 0 ✓. Sifat ini sangat penting: ia memungkinkan kita memecah getaran kompleks menjadi kombinasi mode-mode yang independen (modal analysis).
+    <strong>Static Deflection — Quick Estimate</strong><br>
+    Hubungan praktis isolator: <strong>natural frequency vs static deflection</strong> di bawah berat sendiri. Untuk spring dengan k = mg/δ<sub>static</sub>, ω<sub>n</sub> = √(g/δ). Konversi praktis:<br>
+    • δ = 25 mm (1 inch) → f<sub>n</sub> ≈ 3 Hz → effective isolation di atas 5 Hz<br>
+    • δ = 50 mm → f<sub>n</sub> ≈ 2.2 Hz → effective di atas 3.5 Hz<br>
+    • δ = 100 mm → f<sub>n</sub> ≈ 1.6 Hz → effective di atas 2.5 Hz<br>
+    Quick rule: <strong>isolator effective untuk eksitasi &gt; 1.4× √(g/δ)</strong>. Memberi insight tentang seberapa "lembek" isolator yang dibutuhkan untuk frekuensi target.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Mode shape adalah RASIO, bukan amplitudo absolut.</strong> Mode 1 = [1, 1] dan Mode 1 = [3, 3] adalah <em>mode yang sama</em> — keduanya berkata "kedua massa bergerak searah dengan amplitudo yang sama". Yang penting hanya rasio X₁/X₂. Konvensi normalisasi: biasanya X₁ = 1, atau ‖X‖ = 1.
+    💡 <strong>Pemilihan Material Isolator:</strong> <strong>Steel coil spring</strong>: high deflection (lembut), good for low f, durable. <strong>Rubber mount</strong>: medium deflection, built-in damping (ζ 0.05-0.10), affordable. <strong>Air spring</strong>: adjustable (compressor controlled), highest performance, mahal. <strong>Pneumatic isolator</strong>: precision applications (microscope, semiconductor lithography). Pilih sesuai budget &amp; persyaratan precision.
   </div>
 </div>
 
-<!-- ═══ BAGIAN 05 — ANALOGI SEHARI-HARI ═══ -->
+<!-- ═══ BAGIAN 05 — DISPLACEMENT TRANSMISSIBILITY ═══ -->
 <hr class="divider">
 <div class="section" id="m-analogi">
   <div class="section-label reveal">Bagian 05</div>
-  <h2 class="section-title reveal">Analogi Kehidupan<br>Sehari-Hari</h2>
-  <p class="section-desc reveal">Sistem 2 DoF ada di sekitar kita. Inilah analogi untuk menanamkan intuisi mode 1 vs mode 2.</p>
+  <h2 class="section-title reveal">Displacement Transmissibility:<br>Base Motion Excitation</h2>
+  <p class="section-desc reveal">Skenario kebalikan dari Bagian 04: bukan mesin yang men-eksitasi fondasi, tetapi <strong>fondasi/lantai yang bergerak</strong> dan kita ingin melindungi mesin/instrumen di atasnya. Contoh: melindungi microscope dari getaran lantai. Disebut <strong>base motion excitation</strong>. Yang ditransmisikan: <em>displacement</em>, bukan force. Formula matematis identik (TR sama), tapi interpretasi fisik berbeda.</p>
+
+  <div class="formula-block reveal">
+    <div class="label">Displacement Transmissibility (Base Motion)</div>
+    TR<sub>displacement</sub> = X<sub>mass</sub> / Y<sub>base</sub> = same formula sebagai force TR
+  </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">🎢</div>
-      <h3>Dua Anak di Ayunan Berdampingan</h3>
-      <p>Dua ayunan diikat kayu di tengah — bisa ayun bareng (Mode 1, lambat) atau berlawanan (Mode 2, cepat). Anak-anak intuitif tahu cara "mengunci" mode dengan kayuhan.</p>
+      <div class="card-icon">🔬</div>
+      <h3>Use Case: Lab Equipment Protection</h3>
+      <p>Microscope, timbangan presisi, atomic force microscope (AFM) tidak boleh terganggu getaran lantai (foot traffic, AC fan, mesin lain di lab). Pasang <strong>vibration isolation table</strong> dengan isolator soft (f<sub>n</sub> ~1-2 Hz) untuk reject vibrasi 5+ Hz.</p>
+      <div class="formula">Lab AFM: f_n &lt; 2 Hz, TR &lt; 0.05</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🏭</div>
+      <h3>Use Case: Sensitive Manufacturing</h3>
+      <p>Semiconductor lithography stepper, electron beam lithography butuh isolator sangat soft. Vibrasi lantai 1 μm bisa membuat misalignment ratusan nm di chip — defect yield drop. Custom <strong>active isolation tables</strong> dengan piezo actuator + accelerometer feedback.</p>
+      <div class="formula">Active iso: TR &lt; 0.001 in 1-100 Hz</div>
     </div>
     <div class="card">
       <div class="card-icon">🚗</div>
-      <h3>Mobil di Polisi Tidur</h3>
-      <p>Mobil melewati polisi tidur perlahan: depan-belakang naik bareng (Mode 1, "bouncing"). Lewat lebih cepat: depan naik saat belakang turun (Mode 2, "pitching"). Suspensi mobil dirancang agar kedua mode tidak resonansi dengan jalan biasa.</p>
+      <h3>Use Case: Vehicle Suspension</h3>
+      <p>Mobil = base motion excitation: jalan bergelombang sebagai input, body sebagai mass. Isolator: spring suspensi + shock absorber. Damping tinggi (ζ ~0.3) untuk ride comfort vs handling balance. f<sub>n</sub> design: ~1-2 Hz (frekuensi bouncing tipikal mobil).</p>
+      <div class="formula">Car suspension: f_n 1-2 Hz, ζ 0.3</div>
     </div>
     <div class="card">
       <div class="card-icon">🏢</div>
-      <h3>Gedung 2 Lantai Saat Gempa</h3>
-      <p>Mode 1: kedua lantai bergeser searah (bayangkan gedung "membungkuk"). Mode 2: lantai 1 dan 2 bergeser berlawanan (gedung "mencangkul"). Kerusakan parah biasanya di Mode 2 karena percepatan lebih besar.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🎸</div>
-      <h3>Senar Gitar + Body Resonator</h3>
-      <p>Senar bergetar → bodi gitar ikut bergetar. Body kayu + senar membentuk sistem 2 DoF kuat: itulah kenapa gitar akustik bersuara lebih kaya dibanding senar tunggal.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🛀</div>
-      <h3>Air di Bak Mandi</h3>
-      <p>Goyangkan bak: air membentuk gelombang berdiri. Bisa naik di kiri-turun di kanan (Mode 1) atau pola yang lebih kompleks (Mode 2+). Sama seperti 2 DoF, tapi dengan kontinuum.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🏗️</div>
-      <h3>Tuned Mass Damper (Taipei 101)</h3>
-      <p>Bola raksasa 660 ton di puncak Taipei 101 = sistem 2 DoF buatan. Ditambah <em>sengaja</em> agar gedung punya 2 frekuensi pribadi yang menjauhkan dari frekuensi gempa/angin. Aplikasi praktis konsep mode shape.</p>
+      <h3>Use Case: Seismic Base Isolation</h3>
+      <p>Gedung di area gempa: pasang <strong>base isolators</strong> (laminated rubber bearings, friction pendulum) di antara gedung dan fondasi. Period gedung ter-extend dari 0.5s → 3-5s, jauh dari period gempa dominant. Reduksi acceleration lantai 70-90%.</p>
+      <div class="formula">Seismic iso: T 3-5s shifts response</div>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Aturan Intuisi Mode</strong><br>
-    Untuk sistem dua massa simetris (massa sama, pegas simetris): <strong>Mode 1 selalu in-phase</strong> (massa bergerak bareng) dan <strong>Mode 2 selalu anti-phase</strong> (berlawanan). Mode 1 frekuensinya selalu lebih rendah karena pegas penghubung tidak ikut "kerja". Mode 2 frekuensinya lebih tinggi karena pegas penghubung "kerja dua kali lipat".
-  </div>
-</div>
-
-<!-- ═══ BAGIAN 06 — VISUALISASI INTERAKTIF ═══ -->
-<hr class="divider">
-<div class="section" id="m-anim">
-  <div class="section-label reveal">Bagian 06</div>
-  <h2 class="section-title reveal">Visualisasi Interaktif<br>Mode 1 vs Mode 2</h2>
-  <p class="section-desc reveal">Klik tombol di bawah untuk mengganti mode. Animasi memperlihatkan dua massa (m₁=m₂=1 kg) terhubung tiga pegas (k=100 N/m) berosilasi pada frekuensi pribadinya. Perhatikan: pada Mode 1 kedua massa <strong style="color:var(--green)">searah</strong> dan pegas tengah diam; pada Mode 2 kedua massa <strong style="color:var(--amber)">berlawanan</strong> dan pegas tengah ditekan/diregang dua kali lipat.</p>
-
-  <div class="reveal" style="background:#020812;border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px">
-    <canvas id="cv2dof" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
-    <div style="display:flex;gap:14px;justify-content:center;margin-top:18px;flex-wrap:wrap">
-      <button id="btn-mode1" onclick="set2DofMode(1)" class="mode-btn mode-btn-active"
-        style="padding:10px 22px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(0,224,158,.5);background:rgba(0,224,158,.18);color:var(--green);transition:all .2s">
-        ▶ Mode 1 (ω₁ = 10 rad/s) — In-Phase
-      </button>
-      <button id="btn-mode2" onclick="set2DofMode(2)" class="mode-btn"
-        style="padding:10px 22px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(249,115,22,.4);background:rgba(249,115,22,.08);color:var(--amber);transition:all .2s">
-        ▶ Mode 2 (ω₂ ≈ 17.32 rad/s) — Anti-Phase
-      </button>
-    </div>
-    <div id="mode2dof-info" style="text-align:center;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">
-      Mode 1 aktif · X₁ = X₂ = cos(10·t) · pegas tengah tidak terdeformasi
-    </div>
-  </div>
-
-  <p class="section-desc reveal" style="margin-top:24px">Tabel berikut merangkum perbedaan kedua mode untuk referensi cepat:</p>
-
-  <div class="reveal" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:24px;overflow-x:auto">
-    <table style="width:100%;border-collapse:collapse;font-size:14px">
-      <thead>
-        <tr style="border-bottom:2px solid var(--border)">
-          <th style="text-align:left;padding:12px;color:var(--cyan)">Karakteristik</th>
-          <th style="text-align:center;padding:12px;color:var(--green)">Mode 1 (Lambat)</th>
-          <th style="text-align:center;padding:12px;color:var(--amber)">Mode 2 (Cepat)</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Frekuensi pribadi ω</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green);font-family:monospace">10 rad/s</td>
-          <td style="text-align:center;padding:10px;color:var(--amber);font-family:monospace">17.32 rad/s</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Frekuensi f (Hz)</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green);font-family:monospace">1.59 Hz</td>
-          <td style="text-align:center;padding:10px;color:var(--amber);font-family:monospace">2.76 Hz</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Periode T (detik)</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green);font-family:monospace">0.628 s</td>
-          <td style="text-align:center;padding:10px;color:var(--amber);font-family:monospace">0.363 s</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Mode shape [X₁, X₂]</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green);font-family:monospace">[1, 1]</td>
-          <td style="text-align:center;padding:10px;color:var(--amber);font-family:monospace">[1, −1]</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Pola gerak</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green)">Searah (in-phase)</td>
-          <td style="text-align:center;padding:10px;color:var(--amber)">Berlawanan (anti-phase)</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Pegas tengah k₂</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green)">Diam (tidak terdeformasi)</td>
-          <td style="text-align:center;padding:10px;color:var(--amber)">Bergetar bolak-balik</td>
-        </tr>
-        <tr>
-          <td style="padding:10px 12px;color:var(--text)"><strong>Energi yang tersimpan</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green)">Hanya k₁ + k₃</td>
-          <td style="text-align:center;padding:10px;color:var(--amber)">k₁ + k₃ + 4·k₂</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="info-box reveal">
-    <strong>Bayangkan Mode 1:</strong> Kedua kotak meluncur ke kanan bersama (X₁ = +1, X₂ = +1), lalu ke kiri bersama (−1, −1). Bagaikan pasangan dansa yang sinkron. Pegas tengah selalu memiliki panjang asli — tidak ikut kerja. Frekuensi rendah (10 rad/s).<br><br>
-    <strong>Bayangkan Mode 2:</strong> Massa kiri ke kanan (+1), massa kanan ke kiri (−1). Pegas tengah ditekan menjadi <em>setengah</em> panjangnya, lalu diregang menjadi <em>1.5×</em> panjangnya — bekerja keras! Frekuensi tinggi (17.32 rad/s).
+    <strong>Isolasi Multi-Stage</strong><br>
+    Untuk persyaratan ekstrem (mis. gravitational wave detector LIGO), gunakan <strong>multi-stage isolation</strong>:<br>
+    1) <strong>Stage 1</strong>: passive coarse isolator, f<sub>n</sub> ~10 Hz, reject 50+ Hz environmental.<br>
+    2) <strong>Stage 2</strong>: passive fine isolator, f<sub>n</sub> ~1 Hz, reject 5+ Hz residual.<br>
+    3) <strong>Stage 3</strong>: active control loop dengan accelerometer + actuator, reject sub-Hz drift.<br>
+    Total: 6+ orders of magnitude vibration rejection. LIGO mendeteksi displacement 10⁻¹⁹ m — itulah hasil multi-stage isolation engineering paling extreme.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Tip:</strong> Klik bolak-balik antara Mode 1 dan Mode 2 untuk merasakan perbedaan tempo dan pola gerak. Untuk visualisasi lanjutan, buka Bagian 08 (Python) → jalankan Cell 4 di Jupyter Notebook untuk plot superposisi kedua mode (free vibration response).
+    💡 <strong>Isolasi vs Damping — Beda Fundamental:</strong> Isolation reduces transmission, damping dissipates energy. Untuk environment broadband, <strong>kombinasi keduanya</strong>: spring soft (isolation) + damper moderate (limit resonance peak). Standar engineering rule: pilih spring untuk f<sub>n</sub> target, lalu add damping minimum untuk acceptable peak (ζ 0.05-0.15 typical).
   </div>
 </div>
 
-<!-- ═══ BAGIAN 07 — APLIKASI: VIBRATION ABSORBER ═══ -->
+<!-- ═══ BAGIAN 06 — DESIGN CURVE & PEMILIHAN ISOLATOR ═══ -->
+<hr class="divider">
+<div class="section" id="m-anim">
+  <div class="section-label reveal">Bagian 06</div>
+  <h2 class="section-title reveal">Design Curve &amp; Pemilihan Isolator:<br>Workflow Praktis Industri</h2>
+  <p class="section-desc reveal">Engineer praktisi tidak menurunkan ulang formula transmissibility tiap kali design. Mereka pakai <strong>isolation design chart</strong> — graph yang mengubah parameter desain (frekuensi eksitasi, target TR) menjadi spec isolator (static deflection, natural frequency). Workflow ini terstandar di industri HVAC, manufacturing, dan precision instrumentation.</p>
+
+  <div class="formula-block reveal">
+    <div class="label">Design Variables</div>
+    Input: f<sub>excitation</sub>, TR<sub>target</sub> · Output: f<sub>n</sub>, δ<sub>static</sub>, k, c
+  </div>
+
+  <div class="cards reveal" style="margin-bottom:32px">
+    <div class="card">
+      <div class="card-icon">📋</div>
+      <h3>Step 1: Identify Excitation</h3>
+      <p>Catat frekuensi sumber getaran. Single-source: f<sub>excitation</sub> dari mesin spec (mis. 1750 RPM motor = 29.2 Hz). Multi-source: pilih frekuensi lowest dari range yang harus di-isolate (lower freq harder to isolate).</p>
+      <div class="formula">f_min from source list</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🎯</div>
+      <h3>Step 2: Define Target TR</h3>
+      <p>Berdasarkan toleransi receiver: TR = 0.1 (90% reduction) untuk HVAC ambient, TR = 0.05 (95%) untuk equipment standar, TR = 0.01 (99%) untuk lab presisi. Lebih ketat = lebih mahal isolator.</p>
+      <div class="formula">TR = 0.10 / 0.05 / 0.01</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📐</div>
+      <h3>Step 3: Calculate r &amp; ω<sub>n</sub></h3>
+      <p>Solve TR formula untuk frequency ratio r (assume ζ low ~0.05). Rule of thumb (ζ→0): TR ≈ 1/(r²−1). r = √(1/TR + 1). Untuk TR=0.1: r ≈ 3.3. Then <code>ω<sub>n</sub> = ω<sub>excitation</sub>/r</code>.</p>
+      <div class="formula">r = √(1/TR + 1), ω_n = ω_ex/r</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🛠️</div>
+      <h3>Step 4: Spec Isolator</h3>
+      <p>Calculate static deflection target: <code>δ = g/ω<sub>n</sub>² = 9.81/ω<sub>n</sub>²</code> (m). Convert ke isolator selection: pilih spring/rubber/air dengan deflection rating sesuai. Verify deflection &lt; max yield untuk safety.</p>
+      <div class="formula">δ = g/ω_n² → spec spring</div>
+    </div>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>Worked Example — Compressor Isolation</strong><br>
+    Compressor 200 kg, running 1500 RPM (f = 25 Hz), target TR = 0.1.<br>
+    <strong>Step 1</strong>: f<sub>excitation</sub> = 25 Hz, ω<sub>excitation</sub> = 157 rad/s.<br>
+    <strong>Step 2</strong>: TR<sub>target</sub> = 0.1.<br>
+    <strong>Step 3</strong>: r = √(1/0.1 + 1) = √11 = 3.32. ω<sub>n</sub> = 157/3.32 = 47.3 rad/s = 7.5 Hz.<br>
+    <strong>Step 4</strong>: δ = 9.81/47.3² = 4.4 mm static deflection. Pilih rubber mount dengan deflection 5 mm di bawah berat 200 kg.<br>
+    <strong>Spec final</strong>: 4× rubber mount, masing-masing 50 kg load capacity, 5 mm deflection. Catalog: Mason Industries Type AWMR-200.<br>
+    Total project complete dalam 4 step + catalog selection. Tidak butuh FEM simulation untuk skenario standar.
+  </div>
+
+  <div class="tip-box reveal">
+    💡 <strong>Practical Constraints:</strong> Soft isolator memberi excellent isolation tapi <strong>large deflection</strong> — equipment "ngambang" 20-50 mm di atas isolator. Bisa ganggu visual/installation, atau sway berlebihan saat earthquake/start-up transient. Solusi: <strong>snubber</strong> (mechanical stop yang allow normal motion tapi limit excursion at extreme). Standard di chiller mounting, generator skid.
+  </div>
+</div>
+
+<!-- ═══ BAGIAN 07 — APLIKASI INDUSTRI ═══ -->
 <hr class="divider">
 <div class="section" id="m-aplikasi">
   <div class="section-label reveal">Bagian 07</div>
-  <h2 class="section-title reveal">Aplikasi Industri:<br>Vibration Absorber & Tuned Mass Damper</h2>
-  <p class="section-desc reveal">Aplikasi paling spektakuler dari konsep 2 DoF adalah <strong>vibration absorber</strong> — menambahkan massa-pegas kecil pada struktur untuk meredam getaran berbahaya. Prinsipnya: dengan tuning yang tepat, sistem 2 DoF baru memiliki frekuensi pribadi yang <em>menjauh</em> dari frekuensi eksitasi pengganggu.</p>
+  <h2 class="section-title reveal">Aplikasi Industri:<br>HVAC, Building TMD, Vehicle, Precision Instruments</h2>
+  <p class="section-desc reveal">Vibration absorber dan isolation tersebar di hampir semua industri rotating machinery. Berikut beberapa kasus showcase yang mendemonstrasikan range aplikasi dan rationale design choice.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Prinsip Tuning Absorber Klasik (Den Hartog)</div>
-    Tune frekuensi pribadi absorber: ω_a = √(k_a/m_a) = ω_eksitasi
+    <div class="label">Aplikasi Spectrum</div>
+    Building TMD (very low f) · Industrial Mounting (HVAC, motors) · Vehicle Suspension · Lab Precision Iso
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
       <div class="card-icon">🏗️</div>
-      <h3>Taipei 101 — Bola 660 Ton</h3>
-      <p>Gedung 508 m ini punya bola pendulum 660 ton di lantai 87–92, terhubung ke struktur lewat pegas. Itu adalah sistem 2 DoF: gedung (m₁) + bola (m₂). Saat angin/gempa pada frekuensi tertentu menggetarkan gedung, bola "menyerap" energi → amplitudo gedung berkurang ~40%.</p>
-      <div class="formula">ω_a tuned ke ω_angin dominan</div>
+      <h3>Taipei 101 &amp; Burj Khalifa TMD</h3>
+      <p>Gedung supertall membutuhkan TMD untuk reduksi vibrasi angin/gempa. Taipei 101: 660 ton ball pendulum, period 7-9 sec. Burj Khalifa: tidak pakai single TMD karena ground shape, melainkan <strong>tuned liquid damper</strong> (TLD) — kolam air di top.</p>
+      <div class="formula">Taipei 101: 660t ball, T 7-9s</div>
     </div>
     <div class="card">
       <div class="card-icon">🌉</div>
       <h3>Millennium Bridge London</h3>
-      <p>Saat dibuka tahun 2000, jembatan ini bergoyang berbahaya akibat 2000 pejalan kaki yang tanpa sadar berjalan sinkron pada frekuensi pribadinya. Solusi: dipasang 89 vibration absorber tuned ke frekuensi tersebut.</p>
-      <div class="formula">Multiple absorbers di sepanjang jembatan</div>
+      <p>Jembatan kabel pejalan kaki dibuka 2000, langsung tutup hari pertama karena bergoyang berbahaya akibat <strong>synchronous walking</strong>. Solusi: 89 vibration dampers (37 viscous + 52 TMD) di-install. Total cost £5M. Re-buka 2002 dengan goyangan acceptable.</p>
+      <div class="formula">89 dampers solve synchronous walking</div>
     </div>
     <div class="card">
-      <div class="card-icon">🚗</div>
-      <h3>Shock Absorber + Bushing Mobil</h3>
-      <p>Engine mount karet bertindak sebagai pegas + damper kecil yang membuat mesin (m₁) dan rangka (m₂) menjadi sistem 2 DoF. Tuning yang tepat menjauhkan frekuensi pribadi rangka dari 800–4000 RPM mesin.</p>
-      <div class="formula">f_engine ≠ f_natural rangka</div>
+      <div class="card-icon">❄️</div>
+      <h3>HVAC Air Handling Unit (AHU)</h3>
+      <p>AHU di rooftop besar (10-50 ton) menghasilkan vibrasi di 25-50 Hz dari fan + compressor. Standar: <strong>spring isolators</strong> dengan deflection 25-50 mm, TR target 0.05. Biaya isolator: ~5-10% AHU cost — investment kecil untuk noise dan structural protection.</p>
+      <div class="formula">AHU iso: 25-50mm deflection, TR 0.05</div>
     </div>
     <div class="card">
-      <div class="card-icon">⚙️</div>
-      <h3>Mesin Cuci dengan Counter-Weight</h3>
-      <p>Tabung mesin cuci ditambah massa counter-weight yang dihubungkan oleh pegas suspensi. Saat unbalance terjadi, counter-weight bergetar berlawanan (Mode 2) → meredam getaran tabung.</p>
-      <div class="formula">Reduksi getaran 50–70%</div>
+      <div class="card-icon">🔬</div>
+      <h3>Semiconductor Lithography</h3>
+      <p>Lithography stepper (ASML EUV: $200M per machine) butuh <strong>active vibration isolation</strong> dengan TR &lt; 0.001 di 0.1-100 Hz. Multi-stage: pneumatic isolator (passive) + piezo actuator dengan accelerometer feedback. Critical: chip 5nm node tidak akan yield tanpa ini.</p>
+      <div class="formula">EUV: active iso TR &lt; 0.001</div>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Aturan Desain Absorber Sederhana</strong><br>
-    1) Identifikasi <strong>frekuensi pengganggu</strong> ω_drive (mis. 10 rad/s untuk mesin tertentu).<br>
-    2) Pilih massa absorber <strong>m_a ≈ 5–20% massa utama</strong> (lebih besar = lebih efektif tapi lebih berat).<br>
-    3) Tuning: <strong>k_a = m_a · ω_drive²</strong>. Contoh: untuk meredam getaran ω=10 rad/s pada struktur 1000 kg, pilih m_a = 50 kg, k_a = 50·100 = 5000 N/m.<br>
-    4) Hasil: amplitudo struktur utama turun drastis di sekitar ω_drive, tetapi muncul 2 puncak resonansi baru di ω₁ dan ω₂ yang harus dijauhi.
+    <strong>Standar Industri yang Wajib Diketahui</strong><br>
+    • <strong>ASHRAE Handbook</strong>: HVAC equipment isolation chart, deflection recommendations per equipment type/floor location.<br>
+    • <strong>API 670</strong>: Vibration monitoring standards untuk rotating machinery (turbine, compressor, pump) di oil &amp; gas industry.<br>
+    • <strong>ISO 2631</strong>: Whole-body vibration exposure limits — relevan untuk vehicle &amp; ride comfort design.<br>
+    • <strong>ISO 10137</strong>: Building serviceability vibration criteria — defines acceptable floor vibration untuk different occupancy.<br>
+    • <strong>Mason Industries</strong> &amp; <strong>VMC Group</strong>: catalog isolator selection guide, banyak engineer pakai.<br>
+    Engineer professional refer ini setiap project. Memorize key thresholds untuk quick estimation.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Trade-off Penting:</strong> Vibration absorber sangat efektif <em>hanya</em> di frekuensi tuning. Untuk eksitasi broad-band (gempa, angin acak), tambahkan <strong>damping</strong> ke absorber → menjadi <em>Tuned Mass Damper</em> (TMD). Kompromi: peredaman lebih merata, tapi puncak di ω_drive tidak senol.
+    💡 <strong>Innovation Trends:</strong> (1) <strong>Active TMD</strong>: real-time tuning via sensor + actuator, robust against mistuning. (2) <strong>Magneto-rheological damper</strong>: damping coefficient adjustable via magnetic field — adaptive ride comfort di mobil. (3) <strong>Topology-optimized damper</strong>: 3D-printed structure dengan mass distribution optimal — emerging untuk aerospace lightweight. (4) <strong>AI-driven design</strong>: ML model optimize multi-parameter isolator config faster than manual iteration.
   </div>
 </div>
 
@@ -1285,38 +1275,46 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <hr class="divider">
 <div class="section" id="m-python">
   <div class="section-label reveal">Bagian 08</div>
-  <h2 class="section-title reveal">Implementasi Python<br>di Jupyter Notebook</h2>
-  <p class="section-desc reveal">Empat cell Python berikut mengimplementasikan konsep kunci Pertemuan 11 dengan sistem referensi: setup matriks M & K (Cell 1), eigenvalue problem dan frekuensi pribadi (Cell 2), mode shape dan orthogonality (Cell 3), serta simulasi free vibration response (Cell 4). Semua langsung runnable di VS Code Jupyter.</p>
+  <h2 class="section-title reveal">Implementasi Python:<br>TMD Design &amp; Transmissibility Plot</h2>
+  <p class="section-desc reveal">Empat cell Python berikut mengimplementasikan workflow design lengkap: hitung Den Hartog optimal TMD parameters (Cell 1), plot FRF struktur dengan/tanpa TMD (Cell 2), generate force transmissibility curve untuk isolator design (Cell 3), dan worked example compressor isolation lengkap (Cell 4).</p>
 
   <!-- Cell 1 -->
   <div class="code-card reveal" style="margin-bottom:32px">
     <div class="code-header">
       <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
       <span class="code-lang">Python · Cell 1</span>
-      <span class="code-label">Setup Matriks M & K</span>
+      <span class="code-label">Den Hartog Optimal TMD Parameters</span>
     </div>
     <div class="code-wrap">
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
       <pre><code class="lang-python">import numpy as np
 
-# Parameter sistem referensi (2 DoF, 2 massa + 3 pegas)
-m1, m2 = 1.0, 1.0          # kg
-k1, k2, k3 = 100.0, 100.0, 100.0   # N/m
+def den_hartog_tmd(m_main, omega_n, mu):
+    """Calculate optimal TMD parameters per Den Hartog formula.
+    Args:
+        m_main: mass of main structure (kg)
+        omega_n: natural freq of main (rad/s)
+        mu: mass ratio (m_a / m_main)
+    Returns dict: m_a, k_a, c_a, omega_a, zeta_a, f_opt, zeta_opt
+    """
+    m_a = mu * m_main
+    f_opt = 1 / (1 + mu)
+    zeta_opt = np.sqrt(3*mu / (8 * (1 + mu)**3))
+    omega_a = f_opt * omega_n
+    k_a = m_a * omega_a**2
+    c_a = 2 * m_a * omega_a * zeta_opt
+    return {'m_a': m_a, 'k_a': k_a, 'c_a': c_a,
+            'omega_a': omega_a, 'zeta_a': zeta_opt,
+            'f_opt': f_opt, 'zeta_opt': zeta_opt}
 
-# Matriks massa (diagonal)
-M = np.array([[m1, 0],
-              [0, m2]])
+# Example: building 1000 ton, natural freq 0.2 Hz
+m_main = 1e6   # kg
+omega_n = 2*np.pi * 0.2  # rad/s (period 5 sec)
 
-# Matriks kekakuan (simetris)
-K = np.array([[k1 + k2, -k2],
-              [-k2,    k2 + k3]])
-
-print("Matriks Massa M:")
-print(M)
-print("\nMatriks Kekakuan K:")
-print(K)
-print(f"\ntrace(K) = {np.trace(K):.1f}")
-print(f"det(K)   = {np.linalg.det(K):.1f}")</code></pre>
+for mu in [0.01, 0.02, 0.05, 0.10]:
+    tmd = den_hartog_tmd(m_main, omega_n, mu)
+    print(f"μ={mu:.2f}: m_a={tmd['m_a']/1000:.0f} ton, "
+          f"k_a={tmd['k_a']:.1e} N/m, ζ_opt={tmd['zeta_opt']:.3f}")</code></pre>
     </div>
   </div>
 
@@ -1325,26 +1323,48 @@ print(f"det(K)   = {np.linalg.det(K):.1f}")</code></pre>
     <div class="code-header">
       <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
       <span class="code-lang">Python · Cell 2</span>
-      <span class="code-label">Frekuensi Pribadi ω₁ & ω₂</span>
+      <span class="code-label">FRF Plot: With vs Without TMD</span>
     </div>
     <div class="code-wrap">
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">from numpy.linalg import inv, eig
+      <pre><code class="lang-python">import matplotlib.pyplot as plt
 
-# Eigenvalue problem: (M^-1 K) X = ω² X
-A = inv(M) @ K
-eigvals, eigvecs = eig(A)
+def frf_with_tmd(omega_arr, m, k, m_a, k_a, c_a, F0=1.0):
+    """FRF response of main mass with TMD attached, harmonic force F0."""
+    H = np.zeros(len(omega_arr), dtype=complex)
+    for i, w in enumerate(omega_arr):
+        # 2-DoF impedance matrix
+        Z11 = -m*w**2 + k + k_a + 1j*w*c_a
+        Z12 = -k_a - 1j*w*c_a
+        Z21 = Z12
+        Z22 = -m_a*w**2 + k_a + 1j*w*c_a
+        det = Z11*Z22 - Z12*Z21
+        H[i] = Z22 / det * F0
+    return np.abs(H)
 
-# Urutkan dari kecil ke besar
-idx = np.argsort(eigvals)
-omega_squared = eigvals[idx]
-modes = eigvecs[:, idx]
-omegas = np.sqrt(omega_squared)
+# Without TMD: simple SDOF
+def frf_sdof(omega_arr, m, k, c=0, F0=1.0):
+    H = F0 / (-m*omega_arr**2 + k + 1j*omega_arr*c)
+    return np.abs(H)
 
-print(f"ω₁² = {omega_squared[0]:.4f}    →    ω₁ = {omegas[0]:.4f} rad/s")
-print(f"ω₂² = {omega_squared[1]:.4f}    →    ω₂ = {omegas[1]:.4f} rad/s")
-print(f"\nf₁ = {omegas[0]/(2*np.pi):.4f} Hz   T₁ = {2*np.pi/omegas[0]:.4f} s")
-print(f"f₂ = {omegas[1]/(2*np.pi):.4f} Hz   T₂ = {2*np.pi/omegas[1]:.4f} s")</code></pre>
+m, k = 1e6, 1e6 * (2*np.pi*0.2)**2
+mu = 0.05
+tmd = den_hartog_tmd(m, np.sqrt(k/m), mu)
+omega_arr = np.linspace(0.1, 3, 1000) * np.sqrt(k/m)
+
+H_no_tmd = frf_sdof(omega_arr, m, k, c=0.01*2*np.sqrt(k*m))
+H_with_tmd = frf_with_tmd(omega_arr, m, k, tmd['m_a'], tmd['k_a'], tmd['c_a'])
+
+fig, ax = plt.subplots(figsize=(10, 5))
+r_arr = omega_arr / np.sqrt(k/m)
+ax.semilogy(r_arr, H_no_tmd*k, label='Without TMD (ζ=0.01)', color='#fb7185', lw=2)
+ax.semilogy(r_arr, H_with_tmd*k, label=f'With TMD (μ=0.05, optimal)', color='#16a34a', lw=2)
+ax.axvline(1.0, color='gray', ls='--', alpha=0.5, label='r = 1 (resonance)')
+ax.set_xlabel('Frequency ratio r = ω/ω_n')
+ax.set_ylabel('|H|·k (normalized magnitude)')
+ax.set_title('FRF Comparison: Effect of TMD on Main Structure Response')
+ax.legend(); ax.grid(alpha=0.3, which='both')
+plt.tight_layout(); plt.show()</code></pre>
     </div>
   </div>
 
@@ -1353,21 +1373,35 @@ print(f"f₂ = {omegas[1]/(2*np.pi):.4f} Hz   T₂ = {2*np.pi/omegas[1]:.4f} s")
     <div class="code-header">
       <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
       <span class="code-lang">Python · Cell 3</span>
-      <span class="code-label">Mode Shapes & Orthogonality</span>
+      <span class="code-label">Force Transmissibility Curve (Isolator Design)</span>
     </div>
     <div class="code-wrap">
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python"># Normalisasi mode shape: pertama-elemen = 1
-mode1 = modes[:, 0] / modes[0, 0]
-mode2 = modes[:, 1] / modes[0, 1]
+      <pre><code class="lang-python">def transmissibility(r, zeta):
+    """Force transmissibility for SDOF isolator."""
+    num = 1 + (2*zeta*r)**2
+    den = (1 - r**2)**2 + (2*zeta*r)**2
+    return np.sqrt(num/den)
 
-print(f"Mode 1 (ω₁ = {omegas[0]:.2f} rad/s): X = [{mode1[0]:.3f}, {mode1[1]:.3f}]")
-print(f"Mode 2 (ω₂ = {omegas[1]:.2f} rad/s): X = [{mode2[0]:.3f}, {mode2[1]:.3f}]")
+r = np.logspace(-1, 1.5, 500)   # r from 0.1 to 31
 
-# Cek orthogonality terhadap matriks M
-ortho = mode1 @ M @ mode2
-print(f"\nOrthogonality check: u₁ᵀ M u₂ = {ortho:.2e}")
-print("✓ Orthogonal jika nilai ≈ 0" if abs(ortho) < 1e-10 else "⚠ Cek ulang!")</code></pre>
+fig, ax = plt.subplots(figsize=(10, 6))
+for zeta in [0.01, 0.05, 0.10, 0.20, 0.50]:
+    TR = transmissibility(r, zeta)
+    ax.loglog(r, TR, label=f'ζ = {zeta:.2f}', lw=1.8)
+
+ax.axvline(np.sqrt(2), color='gray', ls='--', alpha=0.7, label='r = √2 (boundary)')
+ax.axhline(1.0, color='gray', ls=':', alpha=0.5)
+ax.fill_between(r[r&lt;np.sqrt(2)], 1e-3, 50, alpha=0.1, color='red',
+                label='Amplification region')
+ax.fill_between(r[r&gt;np.sqrt(2)], 1e-3, 50, alpha=0.1, color='green',
+                label='Isolation region')
+ax.set_xlabel('Frequency ratio r = ω/ω_n')
+ax.set_ylabel('Transmissibility TR')
+ax.set_title('Force Transmissibility — Isolator Design Chart')
+ax.legend(loc='lower left'); ax.grid(alpha=0.3, which='both')
+ax.set_xlim(0.1, 30); ax.set_ylim(0.001, 50)
+plt.tight_layout(); plt.show()</code></pre>
     </div>
   </div>
 
@@ -1376,32 +1410,58 @@ print("✓ Orthogonal jika nilai ≈ 0" if abs(ortho) < 1e-10 else "⚠ Cek ulan
     <div class="code-header">
       <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
       <span class="code-lang">Python · Cell 4</span>
-      <span class="code-label">Simulasi Free Vibration Response</span>
+      <span class="code-label">Worked Example: Compressor Isolation Design</span>
     </div>
     <div class="code-wrap">
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">import matplotlib.pyplot as plt
+      <pre><code class="lang-python">def design_isolator(mass_kg, freq_excitation_hz, target_TR, zeta_assumed=0.05):
+    """Design isolator to meet target transmissibility.
+    Returns dict: omega_n, k_per_isolator, n_isolators, static_deflection_mm.
+    """
+    omega_ex = 2 * np.pi * freq_excitation_hz
+    # Solve TR formula: assume low damping → TR ≈ 1/(r²-1)
+    r_required = np.sqrt(1/target_TR + 1)
+    omega_n = omega_ex / r_required
+    fn = omega_n / (2*np.pi)
+    g = 9.81
+    delta_static_m = g / omega_n**2
 
-# Initial conditions: x1(0)=1, x2(0)=0, semua kecepatan = 0
-# Modal decomposition: x(0) = A·u1 + B·u2 → A=B=0.5
-A_amp, B_amp = 0.5, 0.5
+    # Distribute mass on 4 isolators (typical for skid)
+    n_isolators = 4
+    m_per = mass_kg / n_isolators
+    k_per = m_per * omega_n**2
+    return {
+        'omega_n_rad_s': omega_n,
+        'fn_Hz': fn,
+        'static_deflection_mm': delta_static_m * 1000,
+        'n_isolators': n_isolators,
+        'mass_per_isolator_kg': m_per,
+        'k_per_isolator_N_m': k_per,
+        'TR_actual': transmissibility(omega_ex/omega_n, zeta_assumed),
+    }
 
-t = np.linspace(0, 3, 1000)
-x1 = A_amp * np.cos(omegas[0]*t) + B_amp * np.cos(omegas[1]*t)
-x2 = A_amp * np.cos(omegas[0]*t) - B_amp * np.cos(omegas[1]*t)
+# Example: 200 kg compressor at 1500 RPM, target TR 0.10
+spec = design_isolator(mass_kg=200, freq_excitation_hz=25, target_TR=0.10)
+print("=== Compressor Isolator Design ===")
+print(f"  Excitation: 25 Hz (1500 RPM)")
+print(f"  Target TR: 0.10
+")
+for k, v in spec.items():
+    if isinstance(v, float):
+        print(f"  {k:<30} {v:.3f}")
+    else:
+        print(f"  {k:<30} {v}")
 
-fig, ax = plt.subplots(figsize=(10, 4))
-ax.plot(t, x1, label='x₁(t)', color='#0ea5e9')
-ax.plot(t, x2, label='x₂(t)', color='#f59e0b')
-ax.set_xlabel('waktu (s)'); ax.set_ylabel('posisi (m)')
-ax.set_title('Free Vibration Response — Sistem 2 DoF')
-ax.grid(True, alpha=0.3); ax.legend(); plt.tight_layout(); plt.show()
-print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x2)):.3f}")</code></pre>
+print(f"
+Recommendation: pilih 4 rubber mount, masing-masing")
+print(f"  load capacity {spec['mass_per_isolator_kg']:.0f} kg,")
+print(f"  static deflection {spec['static_deflection_mm']:.1f} mm,")
+print(f"  natural freq isolator {spec['fn_Hz']:.1f} Hz.")</code></pre>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Catatan:</strong> Empat cell di atas dapat di-copy ke Jupyter Notebook dan dijalankan berurutan. Cell 1 menyiapkan matriks, Cell 2 menghitung frekuensi pribadi, Cell 3 menampilkan mode shape, Cell 4 mensimulasikan getaran bebas dengan kondisi awal x₁=1, x₂=0. Plot Cell 4 menunjukkan <em>beat phenomenon</em> — superposisi dua mode dengan frekuensi mirip-tapi-berbeda menghasilkan amplitudo modulasi yang khas.
+    <strong>Quick Reference Cell Functions:</strong> <code>den_hartog_tmd()</code> hitung optimal TMD; <code>transmissibility()</code> standard formula isolator; <code>frf_with_tmd()</code> dan <code>frf_sdof()</code> untuk verification. <code>design_isolator()</code> end-to-end workflow dari excitation + mass → spec final isolator. Pattern ini foundational untuk implementasi production tool design isolator/TMD di engineering company.
   </div>
 </div>
 
