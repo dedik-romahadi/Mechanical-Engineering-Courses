@@ -1423,117 +1423,111 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 09</div>
   <h2 class="section-title reveal">Animasi Interaktif<br>Tiga Kasus Euler-Cauchy Live</h2>
-  <p class="section-desc reveal">Lima animasi interaktif: (1) Solusi y(t) dengan <strong>preset push button</strong> b, (2) akar persamaan karakteristik dengan slider, (3) <strong>toggle</strong> Numerical vs Analytical, (4) <strong>radio</strong> klasifikasi PD, (5) <strong>dropdown</strong> sub-topik. Geser slider untuk melihat bagaimana <strong>koefisien <code>b</code> dan <code>c</code></strong> dari Euler-Cauchy <code>x²y'' + bxy' + cy = 0</code> memengaruhi solusi <code>y(x)</code> di interval <code>x &gt; 0</code>. Saksikan transisi mulus antara tiga kasus akar saat parameter berubah, plus panel akar di bidang kompleks.</p>
+  <p class="section-desc reveal">Lima animasi spesifik untuk <strong>Pertemuan 6 — Persamaan Euler-Cauchy</strong>: (1) <strong>Solver Euler-Cauchy real</strong> via substitusi y = x^m, (2) <strong>akar m</strong> di bidang kompleks dengan stability boundaries, (3) <strong>toggle Substitusi t = ln x</strong> mengubah Cauchy → koefisien konstan, (4) <strong>radio Bentuk Solusi Fundamental</strong> (x^m, x^m·ln x, x^α·cos(β ln x)), (5) <strong>dropdown aplikasi industri</strong> (pipa, balok radial, kapasitor silindris).</p>
 
-  <!-- Animasi 1: 3-case comparison y(x) -->
+  <!-- Animasi 1: Euler-Cauchy Solver (M6-specific, REAL solver via y=x^m) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi 1 — Tiga Kasus Akar Euler-Cauchy: Geser Koefisien, Lihat Solusi y(x)</span>
+      <span class="anim-title">Animasi 1 — Solver Euler-Cauchy: <code>x²y'' + bxy' + cy = 0</code> (closed-form via y=x^m)</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvCases" height="340"></canvas>
+      <canvas id="m6cvCauchy" height="340" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Koefisien <strong>b</strong> — <span class="ctrl-val" id="v_b">1.00</span></label>
-          <input type="range" id="sl_b" min="-4" max="6" step="0.05" value="1.0">
+          <label>Koefisien <strong>b</strong> — <span class="ctrl-val" id="m6vb">1.00</span></label>
+          <input type="range" id="m6slb" min="-4" max="6" step="0.05" value="1.0">
         </div>
         <div class="ctrl-group">
-          <label>Koefisien <strong>c</strong> — <span class="ctrl-val" id="v_c">−4.00</span></label>
-          <input type="range" id="sl_c" min="-12" max="12" step="0.1" value="-4.0">
+          <label>Koefisien <strong>c</strong> — <span class="ctrl-val" id="m6vc">−4.00</span></label>
+          <input type="range" id="m6slc" min="-12" max="12" step="0.1" value="-4.0">
         </div>
-        <button class="btn-anim" id="btnCases" onclick="toggleCases()">⏸ PAUSE</button>
+        <button class="btn-anim" id="m6btnCauchy" onclick="window.m6ToggleCauchy()">⏸ PAUSE</button>
       </div>
-      <div id="casesInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div id="m6CauchyInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi Ini:</strong> Kurva = solusi <em>y(x)</em> dari PD <code>x²y'' + b·x·y' + c·y = 0</code> dengan IVP <code>y(1)=1, y'(1)=0</code> di interval <code>x ∈ (0.1, 10)</code>. Warna: <strong style="color:var(--amber)">amber = D &gt; 0 (real berbeda)</strong>, <strong style="color:var(--violet)">violet = D = 0 (real berulang)</strong>, <strong style="color:var(--cyan)">cyan = D &lt; 0 (kompleks → osilasi log)</strong>. Diskriminan ditampilkan sebagai <code>D = (b−1)² − 4c</code> (asumsi <code>a = 1</code>).<br>
-        <strong>Coba:</strong> (1) <strong>b=−2, c=−4</strong> → m² − 3m − 4 = 0, akar 4 dan −1, kurva polinomial campur. (2) <strong>b=5, c=4</strong> → m² + 4m + 4 = 0, akar berulang m=−2, lihat suku <em>ln x</em>. (3) <strong>b=1, c=4</strong> → m² + 4 = 0, akar ±2i, osilasi murni dalam ln x — perhatikan periode <em>tidak konstan</em> di sumbu x. (4) Geser perlahan untuk lihat transisi.
+        <strong>📊 Cara Membaca:</strong> Kurva = solusi <em>y(x)</em> dari PD Euler-Cauchy <code>x²y'' + b·x·y' + c·y = 0</code> dengan IVP <code>y(1)=1, y'(1)=0</code> di interval <code>x ∈ (0.1, 10)</code>. Substitusi y = x^m menghasilkan persamaan karakteristik <code>m² + (b−1)m + c = 0</code> dengan diskriminan D = (b−1)² − 4c. Warna: <strong style="color:var(--amber)">amber = D &gt; 0 (real berbeda)</strong>, <strong style="color:#a855f7">violet = D = 0 (real berulang, ada term ln x)</strong>, <strong style="color:var(--cyan)">cyan = D &lt; 0 (kompleks → osilasi log scale)</strong>.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 2: Roots in complex plane (m-plane) -->
+  <!-- Animasi 2: m-plane (M6-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--pink)"></div>
-      <span class="anim-title">Animasi 2 — Akar Karakteristik m di Bidang Kompleks (m-plane)</span>
+      <span class="anim-title">Animasi 2 — Akar m di Bidang Kompleks: m² + (b−1)m + c = 0</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvRoots" height="320"></canvas>
+      <canvas id="m6cvMPlane" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Koefisien <strong>b</strong> — <span class="ctrl-val" id="v_b2">3.00</span></label>
-          <input type="range" id="sl_b2" min="-4" max="6" step="0.05" value="3.0">
+          <label>Koefisien <strong>b</strong> — <span class="ctrl-val" id="m6vb2">3.00</span></label>
+          <input type="range" id="m6slb2" min="-4" max="6" step="0.05" value="3.0">
         </div>
         <div class="ctrl-group">
-          <label>Koefisien <strong>c</strong> — <span class="ctrl-val" id="v_c2">2.00</span></label>
-          <input type="range" id="sl_c2" min="-12" max="12" step="0.1" value="2.0">
+          <label>Koefisien <strong>c</strong> — <span class="ctrl-val" id="m6vc2">2.00</span></label>
+          <input type="range" id="m6slc2" min="-12" max="12" step="0.1" value="2.0">
         </div>
       </div>
-      <div id="rootsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
+      <div id="m6MPlaneInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi Ini:</strong> Bidang kompleks <em>m</em>: sumbu horizontal = real, vertikal = imajiner. Dua akar <code>m₁, m₂</code> dari <code>m² + (b−1)m + c = 0</code> ditandai. Berbeda dengan plane <em>r</em> di Pertemuan 5: di sini <strong>tanda real</strong> menentukan apakah <code>x<sup>m</sup></code> tumbuh atau meluruh saat x → ∞. Re(m) &gt; 0 → tumbuh; Re(m) &lt; 0 → meluruh; Re(m) = 0 → osilasi murni dalam ln x.<br>
-        <strong>Coba:</strong> (1) <strong>b = 1, c &gt; 0</strong>: akar selalu murni imajiner (Re=0) — solusi <em>osilasi pure</em> dalam ln x. (2) <strong>b = 1, c &lt; 0</strong>: akar real berlawanan tanda — satu solusi tumbuh, satu meluruh. (3) <strong>b ≠ 1</strong>: akar bergeser ke kiri/kanan — Re(m) = (1−b)/2 menjadi nonzero. (4) Saksikan akar kompleks <em>melompat ke real axis</em> saat D = (b−1)² − 4c menyentuh nol.
+        <strong>📊 Cara Membaca:</strong> Bidang kompleks <em>m</em>: sumbu horizontal = Re(m), vertikal = Im(m). Dua akar <code>m₁, m₂</code> ditandai. <strong>Tanda Re(m) → behavior x^m saat x → ∞:</strong> Re(m) &gt; 0 = solusi tumbuh; Re(m) &lt; 0 = meluruh; Re(m) = 0 = osilasi pure dalam ln x. Stability boundaries: garis Re(m) = 0 (kuning).
       </div>
     </div>
   </div>
 
-  <!-- Animasi 3: Toggle (Numerical vs Analytical) -->
+  <!-- Animasi 3: Toggle Substitusi t = ln x (M6-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--green)"></div>
-      <span class="anim-title">Animasi 3 — Numerical vs Analytical Solution (Toggle)</span>
+      <span class="anim-title">Animasi 3 — Substitusi t = ln x: Cauchy → Koefisien Konstan (Toggle)</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvEMtog" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <canvas id="m6cvSubst" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
           <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--text)">
-            Method:
-            <button type="button" onclick="toggleEMSolver()" style="background:none;border:none;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
-              <span id="em_tog_view" style="display:inline-block;position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
-                <span style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
+            Tampilkan dalam:
+            <button type="button" onclick="window.m6ToggleSubst()" style="background:none;border:none;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
+              <span id="m6_subst_view" style="display:inline-block;position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
+                <span id="m6_subst_knob" style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
               </span>
-              <span id="em_tog_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:700;">ANALYTICAL (closed-form)</span>
+              <span id="m6_subst_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:700;">x-domain: y(x), kurva tidak periodik</span>
             </button>
           </div>
         </div>
       </div>
-      <div id="emTogInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div id="m6SubstInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Toggle metode solusi PD. Analytical: ekspresi tertutup (closed-form) dari teorema. Numerical: integrator step-by-step (RK4, Euler).<br>
-        <strong>Trade-off:</strong> Analytical exact tetapi terbatas pada kelas PD tertentu. Numerical universal tetapi punya error akumulasi + computational cost. Modern engineering: kombinasi keduanya — derive analytical untuk verify, run numerical untuk produksi.
+        <strong>📊 Cara Membaca:</strong> <strong>Trick utama Euler-Cauchy:</strong> dengan substitusi t = ln x, PD <code>x²y'' + bxy' + cy = 0</code> menjadi <code>Y'' + (b−1)Y' + cY = 0</code> — koefisien konstan! Toggle: domain <strong>x</strong> (kurva <em>tidak</em> periodik, periode "stretching") vs domain <strong>t = ln x</strong> (kurva <em>periodik tetap</em>, sin/cos murni). Pilih kasus kompleks (b=1, c=4) untuk lihat efek paling dramatis: di x-domain kurva osilasi ke kanan makin lebar, di t-domain ia osilasi konstan.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 4: Radio group (PD classification) -->
+  <!-- Animasi 4: Bentuk Solusi Fundamental Euler-Cauchy (Radio, M6-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--pink)"></div>
-      <span class="anim-title">Animasi 4 — Klasifikasi PD: Pilih Tipe (Radio Group)</span>
+      <span class="anim-title">Animasi 4 — Bentuk Solusi Fundamental Euler-Cauchy: Tiga Kasus Akar</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvEMrad" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <canvas id="m6cvBasis" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
-          <label>Pilih Klasifikasi PD (radio group):</label>
+          <label>Pilih kasus akar persamaan karakteristik (radio):</label>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
-            <input type="radio" name="em_class_radio" id="em_r1" checked onchange="setEMClass('homogen')" style="display:none;">
-            <label for="em_r1" class="em-rad-lbl" data-c="homogen" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">Homogen ✓</label>
-            <input type="radio" name="em_class_radio" id="em_r2" onchange="setEMClass('nonhomogen')" style="display:none;">
-            <label for="em_r2" class="em-rad-lbl" data-c="nonhomogen" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">Non-Homogen</label>
-            <input type="radio" name="em_class_radio" id="em_r3" onchange="setEMClass('linear')" style="display:none;">
-            <label for="em_r3" class="em-rad-lbl" data-c="linear" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">Linear</label>
-            <input type="radio" name="em_class_radio" id="em_r4" onchange="setEMClass('nonlinear')" style="display:none;">
-            <label for="em_r4" class="em-rad-lbl" data-c="nonlinear" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">Non-Linear</label>
+            <input type="radio" name="m6_basis_radio" id="m6_b1" checked onchange="window.m6SetBasis('distinct')" style="display:none;">
+            <label for="m6_b1" class="m6-basis-lbl" data-c="distinct" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">🔵 D &gt; 0: x^m₁, x^m₂ ✓</label>
+            <input type="radio" name="m6_basis_radio" id="m6_b2" onchange="window.m6SetBasis('repeated')" style="display:none;">
+            <label for="m6_b2" class="m6-basis-lbl" data-c="repeated" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">🟣 D = 0: x^m, x^m·ln(x)</label>
+            <input type="radio" name="m6_basis_radio" id="m6_b3" onchange="window.m6SetBasis('complex')" style="display:none;">
+            <label for="m6_b3" class="m6-basis-lbl" data-c="complex" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">🔶 D &lt; 0: x^α·cos(β ln x), x^α·sin(β ln x)</label>
           </div>
         </div>
       </div>
-      <div id="emRadInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
+      <div id="m6BasisInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Setiap klasifikasi memiliki metode solusi yang berbeda. Visualisasi menampilkan contoh solusi tipikal per kategori.<br>
-        <strong>Insight:</strong> Homogen: r(x)=0, solusi y_h. Non-Homogen: y = y_h + y_p (particular). Linear: superposition principle berlaku. Non-Linear: kompleks, mungkin tidak ada closed-form.
+        <strong>📊 Cara Membaca:</strong> Setiap kasus akar memberi <em>basis solusi fundamental</em> yang berbeda. <strong>D &gt; 0</strong>: dua pangkat berbeda x^m₁, x^m₂. <strong>D = 0</strong>: pangkat tunggal + suku ln x (lambda repeated multiplicity). <strong>D &lt; 0</strong>: x^α dengan osilasi cos/sin di skala log. Plot y₁(x), y₂(x), dan y(x) = y₁ + y₂. Wronskian non-zero ⇒ basis valid (independensi linier).
       </div>
     </div>
   </div>
@@ -1548,19 +1542,19 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <canvas id="cvEMdrop" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
-          <label>Pilih (Dropdown):</label>
-          <select id="sl_em_drop" onchange="setEMDrop(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
-            <option value="case1">🔵 Akar Real Berbeda → x^m₁, x^m₂</option>
-            <option value="case2">🟢 Akar Real Berulang → x^m, x^m·ln(x)</option>
-            <option value="case3">🟣 Akar Kompleks → x^α·cos(β·ln x)</option>
-            <option value="substitution">🔄 Substitusi t=ln(x) → konstanta</option>
+          <label>Pilih aplikasi industri Euler-Cauchy:</label>
+          <select id="m6slApps" onchange="window.m6SetApps(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:520px;margin-top:6px;">
+            <option value="pipe">🌡️ Konduksi Pipa Silinder — r²T'' + rT' = 0 → T(r) = c₁ + c₂·ln r</option>
+            <option value="beam">🏗️ Balok Tirus I(x) = I₀x² — x²y'' + αxy' + βy = 0</option>
+            <option value="capacitor">⚡ Kapasitor Silindris — V(r) = c₁ + c₂·ln r (potensial radial)</option>
+            <option value="bessel">🌐 Mode Bunyi Pipa Organ — pendekatan Euler-Cauchy dari Bessel</option>
+            <option value="stress">🔧 Tegangan Tabung Bertekanan — σ(r) = A + B/r²</option>
           </select>
         </div>
       </div>
-      <div id="emDropInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
+      <div id="m6AppsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Pilih sub-topik dari dropdown. Layout split: kiri label + formula, kanan signal trace solusi 1000 samples (~10 detik).<br>
-        <strong>Insight:</strong> Setiap sub-topik Euler-Cauchy punya signature unik di domain waktu. Bandingkan shape decay/oscillation/growth antara opsi.
+        <strong>📊 Cara Membaca:</strong> Lima aplikasi <em>industri</em> yang dimodelkan Euler-Cauchy karena geometri silindris/radial menghasilkan koefisien polinomial dalam r. Layout split: kiri = ikon engineering (pipa cross-section, balok tirus, capacitor coaxial, organ pipe, pressure tube), kanan = profil radial T(r)/σ(r)/V(r). <strong>Insight:</strong> setiap kali Anda berurusan dengan silinder/lingkaran di engineering, Euler-Cauchy muncul.
       </div>
     </div>
   </div>
@@ -8440,6 +8434,839 @@ function _createForumParticleBurst(event) {
   else attachBtnHandlers();
 })();
 
+</script>
+
+<!-- ════════════════════════════════════════════════════════════════
+     M6 TOPIC-SPECIFIC ANIMATIONS — Persamaan Euler-Cauchy
+     5 canvas: m6cvCauchy, m6cvMPlane, m6cvSubst, m6cvBasis, m6cvApps
+     ════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  function bgGrad(ctx, W, H){
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#020812'); g.addColorStop(1, '#0d1929');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  function gridLines(ctx, x0, x1, y0, y1, divX, divY){
+    ctx.strokeStyle = 'rgba(148,163,184,.10)'; ctx.lineWidth = 1;
+    for (let i = 0; i <= divX; i++){
+      const x = x0 + (i/divX)*(x1-x0);
+      ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.stroke();
+    }
+    for (let j = 0; j <= divY; j++){
+      const y = y0 + (j/divY)*(y1-y0);
+      ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
+    }
+  }
+
+  // Compute Euler-Cauchy solution analytically for IVP y(1)=1, y'(1)=0
+  // Characteristic eqn: m² + (b-1)m + c = 0
+  // Discriminant D = (b-1)² - 4c
+  function eulerCauchySol(x, b, c){
+    const D = (b-1)*(b-1) - 4*c;
+    if (D > 0.001){
+      const sd = Math.sqrt(D);
+      const m1 = (-(b-1) + sd)/2, m2 = (-(b-1) - sd)/2;
+      // y = c1·x^m1 + c2·x^m2 with y(1)=1, y'(1)=0
+      // c1 + c2 = 1; m1·c1 + m2·c2 = 0
+      // c2 = -m1/(m2-m1); c1 = 1 - c2
+      const c2 = -m1/(m2 - m1);
+      const c1 = 1 - c2;
+      return c1 * Math.pow(x, m1) + c2 * Math.pow(x, m2);
+    } else if (D < -0.001){
+      const al = -(b-1)/2, be = Math.sqrt(-D)/2;
+      // y = x^al · (c1·cos(be·ln x) + c2·sin(be·ln x))
+      // y(1)=1: c1=1; y'(1)=0: al·c1 + be·c2 = 0 → c2 = -al/be
+      const c1 = 1, c2 = -al/be;
+      const lnx = Math.log(x);
+      return Math.pow(x, al) * (c1 * Math.cos(be*lnx) + c2 * Math.sin(be*lnx));
+    } else {
+      const m = -(b-1)/2;
+      // y = (c1 + c2·ln x)·x^m
+      // y(1)=1: c1=1; y'(1)=0: m + c2 = 0 → c2 = -m
+      const lnx = Math.log(x);
+      return Math.pow(x, m) * (1 - m * lnx);
+    }
+  }
+
+  function caseInfo(b, c){
+    const D = (b-1)*(b-1) - 4*c;
+    if (D > 0.05){
+      const sd = Math.sqrt(D);
+      return { kase: 'distinct', color: '#f59e0b', desc: `D=${D.toFixed(2)} > 0: m₁=${((-(b-1)+sd)/2).toFixed(2)}, m₂=${((-(b-1)-sd)/2).toFixed(2)}` };
+    } else if (D < -0.05){
+      const al = -(b-1)/2, be = Math.sqrt(-D)/2;
+      return { kase: 'complex', color: '#0ea5e9', desc: `D=${D.toFixed(2)} < 0: m=${al.toFixed(2)}±${be.toFixed(2)}i (osilasi log)` };
+    } else {
+      const m = -(b-1)/2;
+      return { kase: 'repeated', color: '#a855f7', desc: `D≈0: m=${m.toFixed(2)} berulang (term ln x muncul)` };
+    }
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 1 — Solver Euler-Cauchy
+  // ════════════════════════════════════════════════════════════════
+  const m6Cauchy = { running: true, raf: null, t: 0 };
+
+  window.m6ToggleCauchy = function(){
+    m6Cauchy.running = !m6Cauchy.running;
+    const btn = document.getElementById('m6btnCauchy');
+    if (btn) btn.textContent = m6Cauchy.running ? '⏸ PAUSE' : '▶ PLAY';
+    if (m6Cauchy.running) drawM6Cauchy();
+  };
+
+  function drawM6Cauchy(){
+    const cv = document.getElementById('m6cvCauchy'); if(!cv) return;
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const b = parseFloat(document.getElementById('m6slb').value);
+    const c = parseFloat(document.getElementById('m6slc').value);
+    document.getElementById('m6vb').textContent = b.toFixed(2);
+    document.getElementById('m6vc').textContent = c.toFixed(2);
+
+    const padL = 50, padR = 20, padT = 25, padB = 35;
+    const px0 = padL, px1 = W - padR, py0 = padT, py1 = H - padB;
+    const xMin = 0.1, xMax = 10;
+    function tx(x){ return px0 + ((x - xMin)/(xMax - xMin))*(px1 - px0); }
+
+    gridLines(ctx, px0, px1, py0, py1, 10, 6);
+
+    // Compute curve
+    const N = 400;
+    const ys = new Float64Array(N+1);
+    let yMin = 0, yMax = 0;
+    for (let i = 0; i <= N; i++){
+      const x = xMin + (i/N)*(xMax - xMin);
+      const y = eulerCauchySol(x, b, c);
+      ys[i] = y;
+      if (Number.isFinite(y)){
+        if (y < yMin) yMin = y;
+        if (y > yMax) yMax = y;
+      }
+    }
+    // Clamp range for display
+    const yClamp = Math.max(Math.abs(yMin), Math.abs(yMax), 1.2);
+    const yC = Math.min(yClamp, 8);
+    function ty(y){ return (py0+py1)/2 - (y/yC)*((py1-py0)/2 - 8); }
+
+    // Axes
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(tx(1), py0); ctx.lineTo(tx(1), py1); ctx.stroke();
+
+    ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+    ctx.fillText('x', px1 + 5, ty(0) + 4);
+    ctx.fillText('y(x)', px0 - 35, py0 - 4);
+    ctx.fillText('x=1', tx(1) - 12, py1 + 14);
+    for (let xi = 2; xi <= 10; xi += 2){
+      ctx.fillText(String(xi), tx(xi) - 4, py1 + 14);
+    }
+
+    const info = caseInfo(b, c);
+
+    // Plot solution
+    ctx.strokeStyle = info.color; ctx.lineWidth = 2.5;
+    ctx.shadowColor = info.color; ctx.shadowBlur = 10;
+    ctx.beginPath();
+    let started = false;
+    for (let i = 0; i <= N; i++){
+      const x = xMin + (i/N)*(xMax - xMin);
+      const y = ys[i];
+      if (!Number.isFinite(y) || Math.abs(y) > yC * 1.3){ started = false; continue; }
+      const px = tx(x), py = ty(y);
+      if (!started){ ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Title
+    ctx.fillStyle = info.color; ctx.font = 'bold 13px JetBrains Mono, monospace';
+    ctx.fillText(`PD: x²y'' + ${b.toFixed(2)}·xy' + ${c.toFixed(2)}·y = 0`, padL + 8, padT + 16);
+
+    // IVP marker
+    ctx.fillStyle = '#ffd166';
+    ctx.shadowColor = '#ffd166'; ctx.shadowBlur = 12;
+    ctx.beginPath(); ctx.arc(tx(1), ty(1), 5, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#fff'; ctx.font = '10px JetBrains Mono, monospace';
+    ctx.fillText('IVP: y(1)=1', tx(1) + 8, ty(1) - 8);
+
+    // Animated tracing dot
+    if (m6Cauchy.running) m6Cauchy.t = (m6Cauchy.t + 0.05) % (xMax - xMin);
+    const xDot = xMin + m6Cauchy.t;
+    const iDot = Math.min(N, Math.max(0, Math.floor(m6Cauchy.t/(xMax-xMin)*N)));
+    const yDot = ys[iDot];
+    if (Number.isFinite(yDot) && Math.abs(yDot) <= yC * 1.3){
+      ctx.fillStyle = '#fff';
+      ctx.shadowColor = info.color; ctx.shadowBlur = 16;
+      ctx.beginPath(); ctx.arc(tx(xDot), ty(yDot), 6, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    const infoEl = document.getElementById('m6CauchyInfo');
+    if (infoEl){
+      infoEl.innerHTML = `<span style="color:${info.color}">●</span> ${info.desc}`;
+    }
+
+    if (m6Cauchy.running) m6Cauchy.raf = requestAnimationFrame(drawM6Cauchy);
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 2 — m-plane (similar to roots but for m² + (b-1)m + c = 0)
+  // ════════════════════════════════════════════════════════════════
+  function drawM6MPlane(){
+    const cv = document.getElementById('m6cvMPlane'); if(!cv){ requestAnimationFrame(drawM6MPlane); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const b = parseFloat(document.getElementById('m6slb2').value);
+    const c = parseFloat(document.getElementById('m6slc2').value);
+    document.getElementById('m6vb2').textContent = b.toFixed(2);
+    document.getElementById('m6vc2').textContent = c.toFixed(2);
+
+    const padL = 40, padR = 20, padT = 20, padB = 30;
+    const px0 = padL, px1 = W - padR, py0 = padT, py1 = H - padB;
+    const cx = (px0 + px1)/2, cy = (py0 + py1)/2;
+    const halfW = (px1 - px0)/2, halfH = (py1 - py0)/2;
+    const reRange = 6, imRange = 6;
+    function rx(re){ return cx + (re/reRange)*halfW; }
+    function ry(im){ return cy - (im/imRange)*halfH; }
+
+    // Stable region tinting
+    ctx.fillStyle = 'rgba(0,224,158,.05)';
+    ctx.fillRect(px0, py0, cx - px0, py1 - py0);
+    ctx.fillStyle = 'rgba(239,68,68,.05)';
+    ctx.fillRect(cx, py0, px1 - cx, py1 - py0);
+
+    // Grid
+    ctx.strokeStyle = 'rgba(148,163,184,.1)'; ctx.lineWidth = 1;
+    for (let i = -reRange; i <= reRange; i++){
+      const x = rx(i);
+      ctx.beginPath(); ctx.moveTo(x, py0); ctx.lineTo(x, py1); ctx.stroke();
+    }
+    for (let j = -imRange; j <= imRange; j++){
+      const y = ry(j);
+      ctx.beginPath(); ctx.moveTo(px0, y); ctx.lineTo(px1, y); ctx.stroke();
+    }
+
+    // Axes
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(px0, cy); ctx.lineTo(px1, cy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx, py0); ctx.lineTo(cx, py1); ctx.stroke();
+
+    // Stability boundary (Re = 0)
+    ctx.strokeStyle = 'rgba(245,158,11,.5)'; ctx.lineWidth = 2; ctx.setLineDash([6, 4]);
+    ctx.beginPath(); ctx.moveTo(cx, py0); ctx.lineTo(cx, py1); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Compute roots: m² + (b-1)m + c = 0
+    const D = (b-1)*(b-1) - 4*c;
+    let m1, m2;
+    if (D >= 0){
+      const sd = Math.sqrt(D);
+      m1 = { re: (-(b-1) + sd)/2, im: 0 };
+      m2 = { re: (-(b-1) - sd)/2, im: 0 };
+    } else {
+      m1 = { re: -(b-1)/2, im:  Math.sqrt(-D)/2 };
+      m2 = { re: -(b-1)/2, im: -Math.sqrt(-D)/2 };
+    }
+
+    // Labels
+    ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+    ctx.fillText('Re(m)', px1 - 36, cy - 8);
+    ctx.fillText('Im(m)', cx + 6, py0 + 12);
+    ctx.fillText('DECAY (x→∞)', px0 + 8, py0 + 16);
+    ctx.fillText('GROW (x→∞)', px1 - 90, py0 + 16);
+    for (let i = -4; i <= 4; i += 2){
+      if (i === 0) continue;
+      ctx.fillText(String(i), rx(i) - 6, cy + 14);
+      ctx.fillText(String(i), cx + 4, ry(i) + 4);
+    }
+
+    // Roots
+    function drawDot(r, color, label){
+      const x = rx(r.re), y = ry(r.im);
+      ctx.fillStyle = color;
+      ctx.shadowColor = color; ctx.shadowBlur = 14;
+      ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 11px JetBrains Mono, monospace';
+      ctx.fillText(label, x + 12, y - 8);
+    }
+    function rootColor(r){
+      if (r.re < -0.05) return '#00e09e';
+      if (r.re > 0.05) return '#ef4444';
+      return '#f59e0b';
+    }
+    drawDot(m1, rootColor(m1), 'm₁');
+    drawDot(m2, rootColor(m2), 'm₂');
+
+    const infoEl = document.getElementById('m6MPlaneInfo');
+    if (infoEl){
+      let kaseDesc;
+      if (D > 0.05) kaseDesc = 'akar real berbeda → x^m₁, x^m₂';
+      else if (D < -0.05) kaseDesc = 'akar kompleks konjugat → x^α·cos/sin(β·ln x)';
+      else kaseDesc = 'akar real berulang → x^m, x^m·ln(x)';
+      const m1str = m1.im === 0 ? m1.re.toFixed(2) : `${m1.re.toFixed(2)} + ${m1.im.toFixed(2)}i`;
+      const m2str = m2.im === 0 ? m2.re.toFixed(2) : `${m2.re.toFixed(2)} − ${Math.abs(m2.im).toFixed(2)}i`;
+      infoEl.innerHTML = `D = ${D.toFixed(2)} &nbsp;|&nbsp; ${kaseDesc} &nbsp;|&nbsp; m₁=${m1str}, m₂=${m2str}`;
+    }
+
+    requestAnimationFrame(drawM6MPlane);
+  }
+  function _wireM6MPlane(){
+    ['m6slb2','m6slc2'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', () => {/* RAF re-renders */});
+    });
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 3 — Toggle x-domain ↔ t = ln x domain
+  // PD: x²y'' + 1·xy' + 4·y = 0 (kompleks: m = ±2i)
+  //   x-domain: y(x) = cos(2 ln x), tidak periodik di x
+  //   t-domain (t = ln x): Y(t) = cos(2t), periodik
+  // ════════════════════════════════════════════════════════════════
+  const m6Subst = { isXdomain: true, t: 0, raf: null };
+
+  window.m6ToggleSubst = function(){
+    m6Subst.isXdomain = !m6Subst.isXdomain;
+    const view = document.getElementById('m6_subst_view');
+    const knob = document.getElementById('m6_subst_knob');
+    const lbl  = document.getElementById('m6_subst_label');
+    if (m6Subst.isXdomain){
+      view.style.background = 'rgba(0,224,158,.25)'; view.style.borderColor = 'var(--green)';
+      knob.style.transform = 'translateX(0px)';
+      lbl.style.color = 'var(--green)';
+      lbl.textContent = 'x-domain: y(x), kurva tidak periodik';
+    } else {
+      view.style.background = 'rgba(255,179,0,.25)'; view.style.borderColor = 'var(--amber)';
+      knob.style.transform = 'translateX(28px)';
+      lbl.style.color = 'var(--amber)';
+      lbl.textContent = 't-domain: Y(t)=Y(ln x), periodik tetap';
+    }
+  };
+
+  function drawM6Subst(){
+    const cv = document.getElementById('m6cvSubst'); if(!cv){ m6Subst.raf = requestAnimationFrame(drawM6Subst); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const padL = 50, padR = 20, padT = 30, padB = 35;
+    const px0 = padL, px1 = W - padR, py0 = padT, py1 = H - padB;
+    gridLines(ctx, px0, px1, py0, py1, 12, 6);
+
+    // PD: x²y'' + xy' + 4y = 0 (b=1, c=4) → m = 0 ± 2i (pure log oscillation)
+    const yMax = 1.3;
+    function ty(y){ return (py0+py1)/2 - (y/yMax)*((py1-py0)/2 - 10); }
+
+    if (m6Subst.isXdomain){
+      const xMin = 0.5, xMax = 25;
+      function tx(x){ return px0 + ((x-xMin)/(xMax-xMin))*(px1-px0); }
+
+      // Axes
+      ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+
+      // Plot y(x) = cos(2 ln x)
+      ctx.strokeStyle = '#00e09e'; ctx.lineWidth = 2.5;
+      ctx.shadowColor = '#00e09e'; ctx.shadowBlur = 8;
+      ctx.beginPath();
+      const N = 400;
+      for (let i = 0; i <= N; i++){
+        const x = xMin + (i/N)*(xMax - xMin);
+        const y = Math.cos(2 * Math.log(x));
+        if (i === 0) ctx.moveTo(tx(x), ty(y));
+        else ctx.lineTo(tx(x), ty(y));
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+      ctx.fillText('x', px1 + 5, ty(0) + 4);
+      ctx.fillText('y(x)', px0 - 35, py0 - 4);
+      for (let xi = 1; xi <= 25; xi += 5){
+        ctx.fillText(String(xi), tx(xi) - 6, py1 + 14);
+      }
+
+      ctx.fillStyle = '#00e09e'; ctx.font = 'bold 13px JetBrains Mono, monospace';
+      ctx.fillText("y(x) = cos(2 ln x) — periode TIDAK konstan (stretching)", padL + 8, padT - 12);
+
+      // Vertical markers at zeros (periodic in ln x: zeros at x = e^(π/4 + kπ/2))
+      ctx.strokeStyle = 'rgba(245,158,11,.4)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+      for (let k = 0; k <= 6; k++){
+        const xZero = Math.exp((Math.PI/4 + k * Math.PI/2));
+        if (xZero >= xMin && xZero <= xMax){
+          ctx.beginPath(); ctx.moveTo(tx(xZero), py0); ctx.lineTo(tx(xZero), py1); ctx.stroke();
+        }
+      }
+      ctx.setLineDash([]);
+    } else {
+      const tMin = -0.7, tMax = 3.2;
+      function tx(t){ return px0 + ((t-tMin)/(tMax-tMin))*(px1-px0); }
+
+      ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(tx(0), py0); ctx.lineTo(tx(0), py1); ctx.stroke();
+
+      // Plot Y(t) = cos(2t)
+      ctx.strokeStyle = '#ffb300'; ctx.lineWidth = 2.5;
+      ctx.shadowColor = '#ffb300'; ctx.shadowBlur = 8;
+      ctx.beginPath();
+      const N = 400;
+      for (let i = 0; i <= N; i++){
+        const t = tMin + (i/N)*(tMax - tMin);
+        const y = Math.cos(2 * t);
+        if (i === 0) ctx.moveTo(tx(t), ty(y));
+        else ctx.lineTo(tx(t), ty(y));
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+      ctx.fillText('t = ln x', px1 - 30, ty(0) + 14);
+      ctx.fillText('Y(t)', px0 - 25, py0 - 4);
+      for (let ti = 0; ti <= 3; ti++){
+        ctx.fillText(`t=${ti}`, tx(ti) - 12, py1 + 14);
+        // Show corresponding x
+        ctx.fillStyle = 'rgba(255,179,0,.7)';
+        ctx.fillText(`(x=${Math.exp(ti).toFixed(1)})`, tx(ti) - 18, py1 + 28);
+        ctx.fillStyle = '#94a3b8';
+      }
+
+      ctx.fillStyle = '#ffb300'; ctx.font = 'bold 13px JetBrains Mono, monospace';
+      ctx.fillText("Y(t) = cos(2t) — periode 2π/2 = π KONSTAN", padL + 8, padT - 12);
+
+      // Mark constant period zeros
+      ctx.strokeStyle = 'rgba(0,224,158,.4)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+      for (let k = -1; k <= 4; k++){
+        const tZero = Math.PI/4 + k * Math.PI/2;
+        if (tZero >= tMin && tZero <= tMax){
+          ctx.beginPath(); ctx.moveTo(tx(tZero), py0); ctx.lineTo(tx(tZero), py1); ctx.stroke();
+        }
+      }
+      ctx.setLineDash([]);
+    }
+
+    const infoEl = document.getElementById('m6SubstInfo');
+    if (infoEl){
+      infoEl.innerHTML = m6Subst.isXdomain
+        ? `<span style="color:#00e09e">●</span> Domain x: jarak antar zero <strong>melebar exponentially</strong>. Dalam x, ini <em>tidak periodik</em>.`
+        : `<span style="color:#ffb300">●</span> Substitusi t = ln x: Cauchy → koefisien konstan! Y'' + 4Y = 0 punya solusi cos(2t) <strong>periodik π</strong>.`;
+    }
+
+    m6Subst.raf = requestAnimationFrame(drawM6Subst);
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 4 — Bentuk Solusi Fundamental Euler-Cauchy
+  // ════════════════════════════════════════════════════════════════
+  const m6Basis = { which: 'distinct', t: 0, raf: null };
+
+  const M6_BASIS = {
+    distinct: {
+      label: "D > 0: m₁ = 2, m₂ = -1",
+      formula: "y₁ = x²,  y₂ = 1/x",
+      y1: x => x*x,
+      y2: x => 1/x,
+      colors: ['#0ea5e9', '#a855f7']
+    },
+    repeated: {
+      label: "D = 0: m = -1 berulang",
+      formula: "y₁ = 1/x,  y₂ = ln(x)/x",
+      y1: x => 1/x,
+      y2: x => Math.log(x)/x,
+      colors: ['#a855f7', '#ff6bb3']
+    },
+    complex: {
+      label: "D < 0: m = 0 ± 2i (pure imag)",
+      formula: "y₁ = cos(2 ln x),  y₂ = sin(2 ln x)",
+      y1: x => Math.cos(2*Math.log(x)),
+      y2: x => Math.sin(2*Math.log(x)),
+      colors: ['#0ea5e9', '#00e09e']
+    }
+  };
+
+  window.m6SetBasis = function(key){
+    m6Basis.which = key;
+    document.querySelectorAll('.m6-basis-lbl').forEach(lbl => {
+      const c = lbl.getAttribute('data-c');
+      const active = (c === key);
+      lbl.style.border = active ? '2px solid var(--pink)' : '1px solid rgba(148,163,184,.3)';
+      lbl.style.background = active ? 'rgba(255,255,255,.20)' : 'rgba(148,163,184,.10)';
+      lbl.style.color = active ? '#fff' : '#94a3b8';
+      lbl.style.fontWeight = active ? '700' : '400';
+      lbl.style.boxShadow = active ? '0 0 12px rgba(255,107,179,.4)' : 'none';
+      lbl.style.transform = active ? 'scale(1.05)' : 'scale(1)';
+      lbl.textContent = active ? (lbl.textContent.replace(' ✓','') + ' ✓') : lbl.textContent.replace(' ✓','');
+    });
+  };
+
+  function drawM6Basis(){
+    const cv = document.getElementById('m6cvBasis'); if(!cv){ m6Basis.raf = requestAnimationFrame(drawM6Basis); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const obj = M6_BASIS[m6Basis.which];
+    const padL = 50, padR = 20, padT = 35, padB = 35;
+    const px0 = padL, px1 = W - padR, py0 = padT, py1 = H - padB;
+    const xMin = 0.3, xMax = 6;
+    function tx(x){ return px0 + ((x-xMin)/(xMax-xMin))*(px1-px0); }
+
+    gridLines(ctx, px0, px1, py0, py1, 10, 6);
+
+    // Sample
+    const N = 200;
+    const y1Arr = new Float64Array(N+1), y2Arr = new Float64Array(N+1), ySum = new Float64Array(N+1);
+    let yMax = 1;
+    for (let i = 0; i <= N; i++){
+      const x = xMin + (i/N)*(xMax - xMin);
+      y1Arr[i] = obj.y1(x);
+      y2Arr[i] = obj.y2(x);
+      ySum[i] = y1Arr[i] + y2Arr[i];
+      if (Number.isFinite(y1Arr[i]) && Math.abs(y1Arr[i]) > yMax) yMax = Math.abs(y1Arr[i]);
+      if (Number.isFinite(y2Arr[i]) && Math.abs(y2Arr[i]) > yMax) yMax = Math.abs(y2Arr[i]);
+      if (Number.isFinite(ySum[i]) && Math.abs(ySum[i]) > yMax) yMax = Math.abs(ySum[i]);
+    }
+    yMax = Math.min(yMax, 6);
+    function ty(y){ return (py0+py1)/2 - (y/yMax)*((py1-py0)/2 - 8); }
+
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(tx(1), py0); ctx.lineTo(tx(1), py1); ctx.stroke();
+
+    ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+    ctx.fillText('x', px1 + 5, ty(0) + 4);
+
+    const arrs = [
+      { data: y1Arr, color: obj.colors[0], label: 'y₁(x)', width: 2 },
+      { data: y2Arr, color: obj.colors[1], label: 'y₂(x)', width: 2 },
+      { data: ySum,  color: '#fff',         label: 'y₁+y₂', width: 3 }
+    ];
+    for (let k = 0; k < arrs.length; k++){
+      const obj2 = arrs[k];
+      ctx.strokeStyle = obj2.color; ctx.lineWidth = obj2.width;
+      ctx.shadowColor = obj2.color; ctx.shadowBlur = k === 2 ? 8 : 4;
+      ctx.beginPath();
+      let started = false;
+      for (let i = 0; i <= N; i++){
+        const x = xMin + (i/N)*(xMax - xMin);
+        const y = obj2.data[i];
+        if (!Number.isFinite(y) || Math.abs(y) > yMax * 1.3){ started = false; continue; }
+        const px = tx(x), py = ty(y);
+        if (!started){ ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+    }
+    ctx.shadowBlur = 0;
+
+    // Animated dots
+    m6Basis.t = (m6Basis.t + 0.025) % (xMax - xMin);
+    const xDot = xMin + m6Basis.t;
+    const iDot = Math.min(N, Math.floor(m6Basis.t/(xMax-xMin)*N));
+    for (let k = 0; k < arrs.length; k++){
+      const yDot = arrs[k].data[iDot];
+      if (Number.isFinite(yDot) && Math.abs(yDot) <= yMax * 1.3){
+        ctx.fillStyle = '#fff';
+        ctx.shadowColor = arrs[k].color; ctx.shadowBlur = 12;
+        ctx.beginPath(); ctx.arc(tx(xDot), ty(yDot), 5, 0, Math.PI*2); ctx.fill();
+      }
+    }
+    ctx.shadowBlur = 0;
+
+    // Title
+    ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 12px JetBrains Mono, monospace';
+    ctx.fillText(obj.label, padL + 8, padT - 18);
+    ctx.font = '10px JetBrains Mono, monospace';
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText(obj.formula, padL + 8, padT - 4);
+
+    // Legend
+    let lx = px1 - 130, ly = padT + 12;
+    ctx.font = 'bold 11px JetBrains Mono, monospace';
+    for (let k = 0; k < arrs.length; k++){
+      ctx.fillStyle = arrs[k].color;
+      ctx.fillRect(lx, ly - 6, 14, 3);
+      ctx.fillText(arrs[k].label, lx + 18, ly);
+      ly += 14;
+    }
+
+    const infoEl = document.getElementById('m6BasisInfo');
+    if (infoEl){
+      const yDotS = ySum[iDot];
+      infoEl.innerHTML = `<span style="color:${obj.colors[0]}">●</span> ${obj.label} &nbsp;|&nbsp; ${obj.formula} &nbsp;|&nbsp; x=${xDot.toFixed(2)}, y=${Number.isFinite(yDotS) ? yDotS.toFixed(3) : '∞'}`;
+    }
+
+    m6Basis.raf = requestAnimationFrame(drawM6Basis);
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 5 — Aplikasi Industri (radial geometries)
+  // ════════════════════════════════════════════════════════════════
+  const m6Apps = { which: 'pipe', t: 0, raf: null };
+
+  const M6_APPS = {
+    pipe:      { label: "Konduksi Pipa: T(r) = T₁ + (T₂−T₁)·ln(r/R₁)/ln(R₂/R₁)",  color: '#ff6bb3', icon: 'pipe' },
+    beam:      { label: "Balok Tirus I(x)=I₀x²: y(x) = c₁x^m₁ + c₂x^m₂",            color: '#00e09e', icon: 'beam' },
+    capacitor: { label: "Kapasitor Silindris: V(r) = c₁ + c₂·ln(r)",                color: '#0ea5e9', icon: 'cap'  },
+    bessel:    { label: "Mode Bunyi Pipa Organ: pendekatan Euler-Cauchy",          color: '#ffb300', icon: 'organ'},
+    stress:    { label: "Tabung Bertekanan: σ(r) = A + B/r²",                       color: '#a855f7', icon: 'tube' }
+  };
+
+  window.m6SetApps = function(key){
+    m6Apps.which = key; m6Apps.t = 0;
+  };
+
+  function drawM6Apps(){
+    const cv = document.getElementById('m6cvApps'); if(!cv){ m6Apps.raf = requestAnimationFrame(drawM6Apps); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const obj = M6_APPS[m6Apps.which];
+    const splitX = W * 0.42;
+    ctx.strokeStyle = 'rgba(148,163,184,.3)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(splitX, 20); ctx.lineTo(splitX, H - 20); ctx.stroke();
+
+    const cx = splitX/2, cy = H/2;
+    m6Apps.t += 0.012;
+    const t = m6Apps.t;
+
+    // ── LEFT: schematic ──
+    if (obj.icon === 'pipe'){
+      // Pipe cross section: outer + inner ring + temperature gradient
+      const R1 = 30, R2 = 70;
+      // Outer (cold)
+      const grad = ctx.createRadialGradient(cx, cy, R1, cx, cy, R2);
+      grad.addColorStop(0, '#ff6b6b'); grad.addColorStop(1, '#0ea5e9');
+      ctx.fillStyle = grad;
+      ctx.beginPath(); ctx.arc(cx, cy, R2, 0, Math.PI*2); ctx.fill();
+      // Inner cutout
+      ctx.fillStyle = '#020812';
+      ctx.beginPath(); ctx.arc(cx, cy, R1, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(cx, cy, R1, 0, Math.PI*2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx, cy, R2, 0, Math.PI*2); ctx.stroke();
+      // Heat flow arrows (radial)
+      const ang = t * 0.3;
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 1.5;
+      for (let k = 0; k < 6; k++){
+        const a = ang + k * Math.PI/3;
+        ctx.beginPath();
+        ctx.moveTo(cx + R1*Math.cos(a), cy + R1*Math.sin(a));
+        ctx.lineTo(cx + R2*Math.cos(a), cy + R2*Math.sin(a));
+        ctx.stroke();
+      }
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 10px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText('T₁', cx, cy - R1 - 6);
+      ctx.fillText('T₂', cx, cy - R2 - 6);
+      ctx.textAlign = 'left';
+    } else if (obj.icon === 'beam'){
+      // Tapered beam: width varies as x²
+      ctx.fillStyle = obj.color;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 8;
+      ctx.beginPath();
+      const xLen = 130, yBase = 30;
+      ctx.moveTo(cx - xLen/2, cy);
+      for (let i = 0; i <= 20; i++){
+        const xR = i/20;
+        const w = yBase * Math.pow(0.2 + 0.8*xR, 2);
+        ctx.lineTo(cx - xLen/2 + xR*xLen, cy - w);
+      }
+      for (let i = 20; i >= 0; i--){
+        const xR = i/20;
+        const w = yBase * Math.pow(0.2 + 0.8*xR, 2);
+        ctx.lineTo(cx - xLen/2 + xR*xLen, cy + w);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      // Load arrow at tip
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5;
+      const loadDx = Math.sin(t) * 4;
+      ctx.beginPath();
+      ctx.moveTo(cx + xLen/2 + 10 + loadDx, cy - 30);
+      ctx.lineTo(cx + xLen/2 + 10 + loadDx, cy - 5);
+      ctx.stroke();
+      ctx.fillStyle = '#94a3b8';
+      ctx.beginPath();
+      ctx.moveTo(cx + xLen/2 + 10 + loadDx, cy - 5);
+      ctx.lineTo(cx + xLen/2 + 6 + loadDx, cy - 10);
+      ctx.lineTo(cx + xLen/2 + 14 + loadDx, cy - 10);
+      ctx.closePath(); ctx.fill();
+    } else if (obj.icon === 'cap'){
+      // Coaxial capacitor: two cylinders
+      const R1 = 25, R2 = 60;
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(cx, cy, R1, 0, Math.PI*2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx, cy, R2, 0, Math.PI*2); ctx.stroke();
+      // Field lines (radial dashed)
+      ctx.strokeStyle = obj.color.replace('rgb', 'rgba').replace(')', ',0.4)');
+      ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+      for (let k = 0; k < 12; k++){
+        const a = k * Math.PI/6 + t * 0.2;
+        ctx.beginPath();
+        ctx.moveTo(cx + R1*Math.cos(a), cy + R1*Math.sin(a));
+        ctx.lineTo(cx + R2*Math.cos(a), cy + R2*Math.sin(a));
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      // Charges
+      ctx.fillStyle = '#ef4444';
+      for (let k = 0; k < 8; k++){
+        const a = k * Math.PI/4;
+        ctx.fillText('+', cx + R1*Math.cos(a) - 3, cy + R1*Math.sin(a) + 3);
+      }
+      ctx.fillStyle = '#0ea5e9';
+      for (let k = 0; k < 8; k++){
+        const a = k * Math.PI/4 + Math.PI/8;
+        ctx.fillText('−', cx + R2*Math.cos(a) - 3, cy + R2*Math.sin(a) + 3);
+      }
+    } else if (obj.icon === 'organ'){
+      // Organ pipe with standing wave
+      const pipeW = 30, pipeH = 140;
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2;
+      ctx.strokeRect(cx - pipeW/2, cy - pipeH/2, pipeW, pipeH);
+      // Standing wave
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 10;
+      ctx.beginPath();
+      const N = 60;
+      for (let i = 0; i <= N; i++){
+        const yR = i/N;
+        const yPos = cy + pipeH/2 - yR * pipeH;
+        const amp = 12 * Math.sin(yR * Math.PI * 3) * Math.sin(t * 4);
+        ctx.lineTo(cx + amp, yPos);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      // Sound waves emanating
+      ctx.strokeStyle = obj.color.replace('rgb', 'rgba').replace(')', ',0.5)');
+      ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+      for (let k = 0; k < 3; k++){
+        const r = 10 + ((t * 25 + k * 30) % 80);
+        ctx.beginPath(); ctx.arc(cx, cy + pipeH/2 + 10, r, 0, Math.PI*2); ctx.stroke();
+      }
+      ctx.setLineDash([]);
+    } else if (obj.icon === 'tube'){
+      // Pressure tube: cross section with gradient stress
+      const R1 = 25, R2 = 60;
+      const grad = ctx.createRadialGradient(cx, cy, R1, cx, cy, R2);
+      grad.addColorStop(0, '#ff6b6b'); grad.addColorStop(1, '#a855f7');
+      ctx.fillStyle = grad;
+      ctx.beginPath(); ctx.arc(cx, cy, R2, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#020812';
+      ctx.beginPath(); ctx.arc(cx, cy, R1, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(cx, cy, R1, 0, Math.PI*2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx, cy, R2, 0, Math.PI*2); ctx.stroke();
+      // Pressure arrows pointing outward
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 6;
+      for (let k = 0; k < 8; k++){
+        const a = k * Math.PI/4 + t * 0.1;
+        const r0 = R1 + 2;
+        const r1 = R1 + 12 + 4*Math.sin(t*2 + k);
+        ctx.beginPath();
+        ctx.moveTo(cx + r0*Math.cos(a), cy + r0*Math.sin(a));
+        ctx.lineTo(cx + r1*Math.cos(a), cy + r1*Math.sin(a));
+        ctx.stroke();
+      }
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 10px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText('P_in', cx, cy + 2);
+      ctx.textAlign = 'left';
+    }
+
+    // ── RIGHT: radial profile plot ──
+    const sx0 = splitX + 16, sx1 = W - 20, sy0 = 30, sy1 = H - 30;
+    ctx.strokeStyle = 'rgba(148,163,184,.2)'; ctx.lineWidth = 1;
+    ctx.strokeRect(sx0, sy0, sx1 - sx0, sy1 - sy0);
+    gridLines(ctx, sx0, sx1, sy0, sy1, 10, 4);
+
+    function profile(r, t){
+      // r ∈ [1, 5] (radial coordinate)
+      switch (m6Apps.which){
+        case 'pipe':      return 1 - Math.log(r)/Math.log(5);  // T(r) cooling outward
+        case 'beam':      return Math.pow(r, -2) - 0.04;        // y(x) = 1/x² (high m₂)
+        case 'capacitor': return 1 - Math.log(r)/Math.log(5);   // V(r)
+        case 'organ':     return Math.cos(2*Math.log(r)) * 0.7; // log-mode
+        case 'stress':    return 0.2 + 0.8 / (r*r);             // σ(r)
+      }
+    }
+
+    // Plot profile y(r) for r ∈ [1, 5]
+    const rMin = 1, rMax = 5;
+    function rx_pr(r){ return sx0 + ((r-rMin)/(rMax-rMin))*(sx1-sx0); }
+    let yMaxP = 0;
+    const N = 200;
+    const profArr = new Float64Array(N+1);
+    for (let i = 0; i <= N; i++){
+      const r = rMin + (i/N)*(rMax - rMin);
+      profArr[i] = profile(r, t);
+      if (Math.abs(profArr[i]) > yMaxP) yMaxP = Math.abs(profArr[i]);
+    }
+    yMaxP = Math.max(yMaxP, 0.5);
+    function ry_pr(y){ return sy0 + ((yMaxP - y)/(2*yMaxP)) * (sy1 - sy0); }
+
+    // Zero line
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1; ctx.setLineDash([4, 3]);
+    ctx.beginPath(); ctx.moveTo(sx0, ry_pr(0)); ctx.lineTo(sx1, ry_pr(0)); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Plot
+    ctx.strokeStyle = obj.color; ctx.lineWidth = 2.5;
+    ctx.shadowColor = obj.color; ctx.shadowBlur = 10;
+    ctx.beginPath();
+    for (let i = 0; i <= N; i++){
+      const r = rMin + (i/N)*(rMax - rMin);
+      const px = rx_pr(r), py = ry_pr(profArr[i]);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Animated dot
+    const tNorm = (t * 0.4) % (rMax - rMin);
+    const rDot = rMin + tNorm;
+    const iDot = Math.min(N, Math.floor(tNorm/(rMax-rMin)*N));
+    ctx.fillStyle = '#fff';
+    ctx.shadowColor = obj.color; ctx.shadowBlur = 14;
+    ctx.beginPath(); ctx.arc(rx_pr(rDot), ry_pr(profArr[iDot]), 6, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Labels
+    ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+    ctx.fillText('r', sx1 - 10, ry_pr(0) + 14);
+    ctx.fillText('y(r)', sx0 - 35, sy0 + 12);
+
+    ctx.fillStyle = obj.color; ctx.font = 'bold 11px JetBrains Mono, monospace';
+    ctx.fillText(obj.label, sx0 + 6, sy0 + 14);
+
+    const infoEl = document.getElementById('m6AppsInfo');
+    if (infoEl){
+      infoEl.innerHTML = `<span style="color:${obj.color}">●</span> ${obj.label} &nbsp;|&nbsp; r=${rDot.toFixed(2)}, y=${profArr[iDot].toFixed(3)}`;
+    }
+
+    m6Apps.raf = requestAnimationFrame(drawM6Apps);
+  }
+
+  // ── Init ──
+  function initM6Anims(){
+    if (document.getElementById('m6cvCauchy')) drawM6Cauchy();
+    if (document.getElementById('m6cvMPlane')){ drawM6MPlane(); _wireM6MPlane(); }
+    if (document.getElementById('m6cvSubst')) drawM6Subst();
+    if (document.getElementById('m6cvBasis')) drawM6Basis();
+    if (document.getElementById('m6cvApps')) drawM6Apps();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initM6Anims);
+  else initM6Anims();
+})();
 </script>
 
 </body>
