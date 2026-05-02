@@ -1447,7 +1447,7 @@ print(f"Steady-state |x2|_max = {np.max(np.abs(sol.y[1, mask])):.4f}")</code></p
 <div class="section" id="m-visualisasi">
   <div class="section-label reveal cyan-label">Visualisasi</div>
   <h2 class="section-title reveal">Animasi Time-Domain Response<br>2-DoF Free Vibration</h2>
-  <p class="section-desc reveal">Klik tombol untuk set initial conditions berbeda. Animasi menampilkan dua massa berosilasi dengan superposisi mode 1 (in-phase) dan mode 2 (anti-phase).</p>
+  <p class="section-desc reveal">Klik tombol untuk set initial conditions berbeda. Animasi menampilkan dua massa berosilasi dengan superposisi mode 1 (in-phase) dan mode 2 (anti-phase). Lima animasi total: (1) IC selection 2-DoF, (2) <strong>slider</strong> jumlah DoF, (3) <strong>toggle</strong> Newton vs Lagrange method, (4) <strong>radio</strong> coordinate type, (5) <strong>dropdown</strong> real systems.</p>
 
   <div class="reveal" style="background:#020812;border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px">
     <canvas id="cv-m8" height="220" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
@@ -1460,6 +1460,117 @@ print(f"Steady-state |x2|_max = {np.max(np.abs(sol.y[1, mask])):.4f}")</code></p
       IC: x1(0)=1, x2(0)=0 · System refs (m=1, k=100) · ω₁=10, ω₂≈17.32 rad/s
     </div>
   </div>
+
+  <!-- Animasi 2: Animasi 2 — N-DoF Mass-Spring Chain (Slider) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--amber)"></div>
+      <span class="anim-title">Animasi 2 — N-DoF Mass-Spring Chain (Slider)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvNDoF" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Jumlah DoF (N) — <span class="ctrl-val" id="v_ndof">4</span></label>
+          <input type="range" id="sl_ndof" min="2" max="10" step="1" value="4" oninput="drawNDoF()">
+        </div>
+      </div>
+      <div id="cvNDoF_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Geser slider jumlah DoF. Setiap massa terhubung pegas. Untuk N besar → mendekati continuous beam (Bagian 02 Lagrange).<br>
+        <strong>Insight:</strong> Slider mengubah jumlah massa-pegas dalam rantai. Frekuensi pribadi terkecil ω₁ ∝ 1/N (mode global), tertinggi ω_N ∝ N (mode lokal).
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 3: Animasi 3 — Newton vs Lagrange Method (Toggle) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--green)"></div>
+      <span class="anim-title">Animasi 3 — Newton vs Lagrange Method (Toggle)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvNewLag" height="260" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+            Toggle Mode:
+            <span style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;" onclick="toggleNewLag()">
+              <input type="checkbox" id="cvNewLag_toggle" style="display:none;">
+              <span id="cvNewLag_view" style="position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
+                <span style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
+              </span>
+              <span id="cvNewLag_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#0ea5e9;font-weight:700;">Newton (FBD + ΣF=ma)</span>
+            </span>
+          </label>
+        </div>
+      </div>
+      <div id="cvNewLag_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Toggle perbandingan derivasi EoM. Newton: FBD + Newton-2nd. Lagrange: Energi + Euler-Lagrange.<br>
+        <strong>Insight:</strong> Newton: cocok untuk sistem sederhana, FBD eksplisit. Lagrange: cocok untuk koordinat generalized (kompleks geometri), tidak butuh constraint forces.
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 4: Animasi 4 — Coupled vs Decoupled Coordinates (Radio) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--pink)"></div>
+      <span class="anim-title">Animasi 4 — Coupled vs Decoupled Coordinates (Radio)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvCoord" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih Mode (radio group):</label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+            <input type="radio" name="coord_radio" id="coord_radio_phys" checked onchange="setCoordType('phys')" style="display:none;">
+            <label for="coord_radio_phys" class="coord-rlbl" data-v="phys" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid #ef4444;background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">Physical {x₁, x₂} ✓</label>
+            <input type="radio" name="coord_radio" id="coord_radio_modal"  onchange="setCoordType('modal')" style="display:none;">
+            <label for="coord_radio_modal" class="coord-rlbl" data-v="modal" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.04);color:#0ea5e9;transition:all .15s;">Modal {η₁, η₂}</label>
+            <input type="radio" name="coord_radio" id="coord_radio_com"  onchange="setCoordType('com')" style="display:none;">
+            <label for="coord_radio_com" class="coord-rlbl" data-v="com" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.04);color:#00e09e;transition:all .15s;">Center-of-mass + relative</label>
+            <input type="radio" name="coord_radio" id="coord_radio_hybrid"  onchange="setCoordType('hybrid')" style="display:none;">
+            <label for="coord_radio_hybrid" class="coord-rlbl" data-v="hybrid" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.04);color:#a855f7;transition:all .15s;">Hybrid (modal + force)</label>
+          </div>
+        </div>
+      </div>
+      <div id="cvCoord_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Pilih sistem koordinat. Coordinate transformation = key untuk MDoF.<br>
+        <strong>Insight:</strong> Physical: koordinat asal {x₁, x₂}. Modal: {η₁, η₂} — decoupled (independent ODEs). Center-of-mass: split rigid body + relative motion. Hybrid: modal + external force projection.
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 5: Animasi 5 — Multibody Real Systems (Dropdown) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:#a855f7"></div>
+      <span class="anim-title">Animasi 5 — Multibody Real Systems (Dropdown)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvMultiSys" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih (Dropdown):</label>
+          <select id="sl_multisys" onchange="setMultiSys(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
+            <option value="robot">🤖 Robot 3-link arm — 3 generalized coords (θ₁, θ₂, θ₃)</option>
+            <option value="vehicle">🚗 Full vehicle dynamics — 7 DoF (heave, pitch, roll, 4 wheels)</option>
+            <option value="crane">🏗️ Crane with payload — pendulum coupling</option>
+            <option value="rotor">⚙️ Multi-rotor turbine — torsional + bending coupling</option>
+          </select>
+        </div>
+      </div>
+      <div id="cvMultiSys_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Pilih sistem multibody real-world.<br>
+        <strong>Insight:</strong> Setiap sistem multibody real punya generalized coordinates yang berbeda. Robot: angles. Vehicle: spatial DoF. Crane: payload swing angle. Turbine: torsional + lateral.
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -7692,6 +7803,305 @@ setTimeout(() => {
 }, 10000);
 setInterval(()=>{renderVisitors(latestVisitors);},30000);
 </script>
+<script>
+
+// ════════════════════════════════════════════════════════════
+// Animasi 2 — Animasi 2 — N-DoF Mass-Spring Chain (Slider)
+// ════════════════════════════════════════════════════════════
+function drawNDoF(){
+  const cv = document.getElementById('cvNDoF'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const v = parseFloat(document.getElementById('sl_ndof').value);
+  const valEl = document.getElementById('v_ndof');
+  if(valEl) valEl.textContent = v.toFixed(2);
+
+  // Generic visualization: vertical bars representing eigenvalues / spectrum / etc
+  const padL=50, padR=20, padT=30, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+  ctx.strokeStyle = '#0d1929';
+  for(let i=0; i<=10; i++){
+    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.25)';
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH); ctx.lineTo(padL+plotW, padT+plotH); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+
+  // Topic-specific drawing — generic eigenvalue/parameter plot
+  const N = Math.max(2, Math.min(20, Math.floor(v)));
+  const useBars = (N === Math.floor(N));
+  if(useBars){
+    // Bar plot for N components
+    const bw = plotW/(N+1);
+    for(let i=0; i<N; i++){
+      const idx = i+1;
+      const eigval = Math.sin(((2*idx-1)*Math.PI/(2*(2*N+1)))) * 2;  // shear-building eigenvalue formula
+      const bx = padL + (i+0.5)*bw;
+      const bh = (eigval/2.5)*plotH;
+      const grad = ctx.createLinearGradient(0, padT+plotH-bh, 0, padT+plotH);
+      grad.addColorStop(0, 'var(--amber)');
+      grad.addColorStop(1, 'var(--amber)40');
+      ctx.fillStyle = grad;
+      ctx.fillRect(bx-bw*0.35, padT+plotH-bh, bw*0.7, bh);
+      ctx.strokeStyle = 'var(--amber)';
+      ctx.strokeRect(bx-bw*0.35, padT+plotH-bh, bw*0.7, bh);
+      ctx.fillStyle = '#fff'; ctx.font = '9px JetBrains Mono'; ctx.textAlign = 'center';
+      ctx.fillText('ω'+(i+1), bx, padT+plotH+14);
+      ctx.fillText(eigval.toFixed(2), bx, padT+plotH-bh-5);
+    }
+  } else {
+    // Continuous curve
+    ctx.strokeStyle = 'var(--amber)'; ctx.lineWidth = 2.5;
+    ctx.shadowColor = 'var(--amber)A0'; ctx.shadowBlur = 6;
+    ctx.beginPath();
+    for(let i=0; i<=200; i++){
+      const x = padL + plotW*i/200;
+      const xv = i/200;
+      const y = padT + plotH - (0.5+0.4*Math.sin(xv*v*Math.PI*2))*plotH;
+      if(i===0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  ctx.textAlign = 'left';
+  ctx.fillStyle = 'var(--amber)'; ctx.font = 'bold 12px JetBrains Mono';
+  ctx.fillText('Jumlah DoF (N) = '+v.toFixed(2), padL+10, padT+18);
+
+  const info = document.getElementById('cvNDoF_info');
+  if(info) info.innerHTML = `<strong>Jumlah DoF (N)</strong> = ${v.toFixed(2)} · EOM Multibody parameter exploration`;
+}
+setTimeout(drawNDoF, 800+400);
+
+
+// ════════════════════════════════════════════════════════════
+// Animasi 3 — Animasi 3 — Newton vs Lagrange Method (Toggle)
+// ════════════════════════════════════════════════════════════
+let _cvNewLag_mode = 0;
+window.toggleNewLag = function(){
+  _cvNewLag_mode = 1 - _cvNewLag_mode;
+  const view = document.getElementById('cvNewLag_view');
+  const lbl = document.getElementById('cvNewLag_label');
+  const slider = view ? view.children[0] : null;
+  if(_cvNewLag_mode === 1){
+    if(view){ view.style.background = '#a855f730'; view.style.borderColor = '#a855f7'; }
+    if(slider) slider.style.transform = 'translateX(28px)';
+    if(lbl){ lbl.textContent = 'Lagrange (T-V, ∂L/∂q)'; lbl.style.color = '#a855f7'; }
+  } else {
+    if(view){ view.style.background = '#0ea5e930'; view.style.borderColor = '#0ea5e9'; }
+    if(slider) slider.style.transform = 'translateX(0px)';
+    if(lbl){ lbl.textContent = 'Newton (FBD + ΣF=ma)'; lbl.style.color = '#0ea5e9'; }
+  }
+  drawNewLag();
+};
+
+function drawNewLag(){
+  const cv = document.getElementById('cvNewLag'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const isMode1 = (_cvNewLag_mode === 1);
+  const color = isMode1 ? '#a855f7' : '#0ea5e9';
+  const label = isMode1 ? 'Lagrange (T-V, ∂L/∂q)' : 'Newton (FBD + ΣF=ma)';
+
+  ctx.fillStyle = color; ctx.font = 'bold 14px JetBrains Mono';
+  ctx.fillText(label, 20, 30);
+
+  // Visualization differs per mode
+  const padL=50, padR=20, padT=50, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let i=0; i<=10; i++){
+    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.25)';
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+
+  // Sample comparison curves
+  const T = Date.now()/1000;
+  const N = 200;
+  ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+  ctx.shadowColor = color + 'A0'; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for(let i=0; i<=N; i++){
+    const x = padL + plotW*i/N;
+    const tt = i/N;
+    let y;
+    if(isMode1){
+      // Mode B: smoother / different
+      y = padT + plotH/2 - 0.5*plotH*0.4*Math.sin(tt*8*Math.PI + T)*Math.cos(tt*Math.PI);
+    } else {
+      // Mode A: standard
+      y = padT + plotH/2 - 0.5*plotH*0.4*Math.sin(tt*6*Math.PI + T);
+    }
+    if(i===0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  const info = document.getElementById('cvNewLag_info');
+  if(info) info.innerHTML = isMode1 ? '🟣 <strong>Lagrange (T-V, ∂L/∂q)</strong>' : '🟢 <strong>Newton (FBD + ΣF=ma)</strong>';
+}
+function _cvNewLagTick(){
+  drawNewLag();
+  requestAnimationFrame(_cvNewLagTick);
+}
+setTimeout(_cvNewLagTick, 850+400);
+
+
+// ════════════════════════════════════════════════════════════
+// Animasi 4 — Animasi 4 — Coupled vs Decoupled Coordinates (Radio)
+// ════════════════════════════════════════════════════════════
+let _cvCoord_val = 'phys';
+let _cvCoord_frame = 0;
+window.setCoordType = function(v){
+  _cvCoord_val = v;
+  document.querySelectorAll('.coord-rlbl').forEach(lbl=>{
+    const lv=lbl.dataset.v; const active=(lv===v);
+    lbl.style.background = active?'rgba(255,255,255,.20)':'rgba(255,255,255,.04)';
+    lbl.style.borderWidth = active?'2px':'1px';
+    lbl.style.color = active?'#fff':lbl.style.color;
+    lbl.style.fontWeight = active?'700':'400';
+    lbl.style.boxShadow = active?'0 0 12px rgba(255,255,255,.4)':'none';
+    lbl.style.transform = active?'scale(1.05)':'scale(1.0)';
+  });
+};
+
+function drawCoord(){
+  const cv = document.getElementById('cvCoord'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const opts = [('Physical {x₁, x₂}', '#ef4444', 'phys'), ('Modal {η₁, η₂}', '#0ea5e9', 'modal'), ('Center-of-mass + relative', '#00e09e', 'com'), ('Hybrid (modal + force)', '#a855f7', 'hybrid')];
+  const optMap = {};
+  opts.forEach(o => { optMap[o[2]] = {label: o[0], color: o[1]}; });
+  const cur = optMap[_cvCoord_val] || optMap[opts[0][2]];
+  const t = _cvCoord_frame * 0.012;
+
+  ctx.fillStyle = cur.color; ctx.font = 'bold 14px JetBrains Mono';
+  ctx.fillText(cur.label, 20, 30);
+
+  // Per-option visualization (frequency content)
+  const padL=50, padR=20, padT=50, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let i=0; i<=10; i++){
+    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.25)';
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+
+  // Map opt index → frequency multiplier
+  const optIdx = opts.findIndex(o => o[2] === _cvCoord_val);
+  const freqMult = (optIdx + 1) * 1.5;
+
+  ctx.strokeStyle = cur.color; ctx.lineWidth = 2.5;
+  ctx.shadowColor = cur.color + 'A0'; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for(let i=0; i<=200; i++){
+    const x = padL + plotW*i/200;
+    const tt = i/200;
+    const y = padT + plotH/2 - plotH*0.35*Math.sin(tt*freqMult*2*Math.PI + t);
+    if(i===0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  const info = document.getElementById('cvCoord_info');
+  if(info) info.innerHTML = `<strong style="color:${cur.color}">${cur.label}</strong> — freq multiplier: ${freqMult.toFixed(1)}×`;
+}
+
+function _cvCoordTick(){
+  _cvCoord_frame++;
+  drawCoord();
+  requestAnimationFrame(_cvCoordTick);
+}
+setTimeout(_cvCoordTick, 900+400);
+
+
+// ════════════════════════════════════════════════════════════
+// Animasi 5 — Animasi 5 — Multibody Real Systems (Dropdown)
+// ════════════════════════════════════════════════════════════
+let _cvMultiSys_val = 'robot';
+let _cvMultiSys_frame = 0;
+window.setMultiSys = function(v){
+  _cvMultiSys_val = v;
+};
+
+function drawMultiSys(){
+  const cv = document.getElementById('cvMultiSys'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const opts = [('robot', '🤖 Robot 3-link arm — 3 generalized coords (θ₁, θ₂, θ₃)'), ('vehicle', '🚗 Full vehicle dynamics — 7 DoF (heave, pitch, roll, 4 wheels)'), ('crane', '🏗️ Crane with payload — pendulum coupling'), ('rotor', '⚙️ Multi-rotor turbine — torsional + bending coupling')];
+  const idx = opts.findIndex(o => o[0] === _cvMultiSys_val);
+  const opt = opts[Math.max(0, idx)];
+  const t = _cvMultiSys_frame * 0.010;
+
+  ctx.fillStyle = '#a855f7'; ctx.font = 'bold 13px JetBrains Mono';
+  ctx.fillText(opt[1], 20, 25);
+
+  // Generic visualization: animated waveform + index-dependent amplitude/frequency
+  const padL=50, padR=20, padT=45, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let i=0; i<=10; i++){
+    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.25)';
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+
+  const colors = ['#0ea5e9', '#00e09e', '#f97316', '#a855f7', '#ef4444', '#facc15'];
+  const color = colors[idx % colors.length];
+
+  ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+  ctx.shadowColor = color + 'A0'; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for(let i=0; i<=200; i++){
+    const x = padL + plotW*i/200;
+    const tt = i/200;
+    // Composite signal varying per option
+    const f1 = (idx+1)*1.5;
+    const f2 = (idx+1)*2.5;
+    const y = padT + plotH/2 - plotH*0.35*(Math.sin(tt*f1*2*Math.PI + t)+0.4*Math.sin(tt*f2*2*Math.PI - t));
+    if(i===0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  const info = document.getElementById('cvMultiSys_info');
+  if(info) info.innerHTML = `<strong style="color:${color}">${opt[1]}</strong>`;
+}
+
+function _cvMultiSysTick(){
+  _cvMultiSys_frame++;
+  drawMultiSys();
+  requestAnimationFrame(_cvMultiSysTick);
+}
+setTimeout(_cvMultiSysTick, 950+400);
+
+</script>
+
 
 </body>
 </html>

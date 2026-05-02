@@ -1449,7 +1449,7 @@ print(f"Dibanding raw spectrum di 100 Hz, envelope sensitivitas naik 10-100×.")
 <div class="section" id="m-visualisasi">
   <div class="section-label reveal cyan-label">Visualisasi</div>
   <h2 class="section-title reveal">Envelope Analysis Pipeline<br>4-Step Bearing Fault Diagnosis</h2>
-  <p class="section-desc reveal">Klik step 1-4 untuk lihat workflow envelope analysis: Raw → BPF → Hilbert envelope → FFT envelope. BPFO peak baru terlihat di step 4.</p>
+  <p class="section-desc reveal">Klik step 1-4 untuk lihat workflow envelope analysis: Raw → BPF → Hilbert envelope → FFT envelope. BPFO peak baru terlihat di step 4. Lima animasi: (1) FFT spectrum, (2) <strong>slider</strong> RPM, (3) <strong>toggle</strong> envelope analysis, (4) <strong>radio</strong> bearing fault, (5) <strong>dropdown</strong> bearing types.</p>
 
   <div class="reveal" style="background:#020812;border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px">
     <canvas id="cv-m13" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
@@ -1463,6 +1463,117 @@ print(f"Dibanding raw spectrum di 100 Hz, envelope sensitivitas naik 10-100×.")
       Bearing fault simulation: impulse train BPFO modulating high-freq resonance. Klik step untuk lihat pipeline.
     </div>
   </div>
+
+  <!-- Animasi 2: Animasi 2 — RPM/Order Tracking (Slider) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--amber)"></div>
+      <span class="anim-title">Animasi 2 — RPM/Order Tracking (Slider)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvOrder" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>RPM — <span class="ctrl-val" id="v_rpm">1800</span></label>
+          <input type="range" id="sl_rpm" min="600" max="3600" step="60" value="1800" oninput="drawOrder()">
+        </div>
+      </div>
+      <div id="cvOrder_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Geser RPM mesin — lihat puncak 1×, 2×, 3× orders bergerak.<br>
+        <strong>Insight:</strong> Order tracking: spektrum diukur dalam unit "x RPM" alih-alih Hz. Untuk variable-speed machinery, sangat berguna karena fault frequencies konstan dalam orders.
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 3: Animasi 3 — Raw vs Envelope Spectrum (Toggle) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--green)"></div>
+      <span class="anim-title">Animasi 3 — Raw vs Envelope Spectrum (Toggle)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvEnvelope" height="260" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+            Toggle Mode:
+            <span style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;" onclick="toggleEnvelope()">
+              <input type="checkbox" id="cvEnvelope_toggle" style="display:none;">
+              <span id="cvEnvelope_view" style="position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
+                <span style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
+              </span>
+              <span id="cvEnvelope_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#0ea5e9;font-weight:700;">Raw FFT (high-freq carriers)</span>
+            </span>
+          </label>
+        </div>
+      </div>
+      <div id="cvEnvelope_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Toggle raw vs envelope. Envelope mendemodulasi resonansi struktural untuk reveal bearing faults.<br>
+        <strong>Insight:</strong> Raw FFT: dominant by structural resonance, fault frequencies tertimbun. Envelope: filter tinggi (3-10 kHz) → squaring/Hilbert → low-pass → reveals BPFO/BPFI sidebands.
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 4: Animasi 4 — Bearing Fault Frequencies (Radio) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--pink)"></div>
+      <span class="anim-title">Animasi 4 — Bearing Fault Frequencies (Radio)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvBearingFault" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih Mode (radio group):</label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+            <input type="radio" name="bf_radio" id="bf_radio_bpfo" checked onchange="setBearingFault('bpfo')" style="display:none;">
+            <label for="bf_radio_bpfo" class="bf-rlbl" data-v="bpfo" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid #0ea5e9;background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">BPFO: Ball Pass Outer Race ✓</label>
+            <input type="radio" name="bf_radio" id="bf_radio_bpfi"  onchange="setBearingFault('bpfi')" style="display:none;">
+            <label for="bf_radio_bpfi" class="bf-rlbl" data-v="bpfi" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.04);color:#00e09e;transition:all .15s;">BPFI: Ball Pass Inner Race</label>
+            <input type="radio" name="bf_radio" id="bf_radio_bsf"  onchange="setBearingFault('bsf')" style="display:none;">
+            <label for="bf_radio_bsf" class="bf-rlbl" data-v="bsf" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.04);color:#f97316;transition:all .15s;">BSF: Ball Spin Frequency</label>
+            <input type="radio" name="bf_radio" id="bf_radio_ftf"  onchange="setBearingFault('ftf')" style="display:none;">
+            <label for="bf_radio_ftf" class="bf-rlbl" data-v="ftf" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.04);color:#a855f7;transition:all .15s;">FTF: Fundamental Train Freq.</label>
+          </div>
+        </div>
+      </div>
+      <div id="cvBearingFault_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Pilih jenis fault bearing. Setiap punya frekuensi karakteristik.<br>
+        <strong>Insight:</strong> BPFO: defect outer race, bola lewat damaged spot. BPFI: defect inner race, sinkron dengan rotation. BSF: defect bola sendiri. FTF: cage defect (paling jarang). Semua proporsional ke RPM.
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 5: Animasi 5 — Bearing Types & Spec (Dropdown) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:#a855f7"></div>
+      <span class="anim-title">Animasi 5 — Bearing Types & Spec (Dropdown)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvBearingType" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih (Dropdown):</label>
+          <select id="sl_bearingtype" onchange="setBearingType(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
+            <option value="deep_groove">⚙️ Deep Groove Ball — 6203/6205 series, paling umum</option>
+            <option value="cylindrical">⚙️ Cylindrical Roller — high radial load</option>
+            <option value="tapered">⚙️ Tapered Roller — combined radial+axial</option>
+            <option value="spherical">⚙️ Spherical Roller — misalignment tolerant</option>
+          </select>
+        </div>
+      </div>
+      <div id="cvBearingType_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Pilih tipe bearing. Spec menentukan fault frequencies.<br>
+        <strong>Insight:</strong> Deep groove ball: paling umum, balanced load. Cylindrical: pure radial, motor besar. Tapered: gearbox automotive (combined load). Spherical: rolling mill, accept misalignment.
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -7710,6 +7821,305 @@ setTimeout(() => {
 }, 10000);
 setInterval(()=>{renderVisitors(latestVisitors);},30000);
 </script>
+<script>
+
+// ════════════════════════════════════════════════════════════
+// Animasi 2 — Animasi 2 — RPM/Order Tracking (Slider)
+// ════════════════════════════════════════════════════════════
+function drawOrder(){
+  const cv = document.getElementById('cvOrder'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const v = parseFloat(document.getElementById('sl_rpm').value);
+  const valEl = document.getElementById('v_rpm');
+  if(valEl) valEl.textContent = v.toFixed(2);
+
+  // Generic visualization: vertical bars representing eigenvalues / spectrum / etc
+  const padL=50, padR=20, padT=30, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+  ctx.strokeStyle = '#0d1929';
+  for(let i=0; i<=10; i++){
+    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.25)';
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH); ctx.lineTo(padL+plotW, padT+plotH); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+
+  // Topic-specific drawing — generic eigenvalue/parameter plot
+  const N = Math.max(2, Math.min(20, Math.floor(v)));
+  const useBars = (N === Math.floor(N));
+  if(useBars){
+    // Bar plot for N components
+    const bw = plotW/(N+1);
+    for(let i=0; i<N; i++){
+      const idx = i+1;
+      const eigval = Math.sin(((2*idx-1)*Math.PI/(2*(2*N+1)))) * 2;  // shear-building eigenvalue formula
+      const bx = padL + (i+0.5)*bw;
+      const bh = (eigval/2.5)*plotH;
+      const grad = ctx.createLinearGradient(0, padT+plotH-bh, 0, padT+plotH);
+      grad.addColorStop(0, 'var(--amber)');
+      grad.addColorStop(1, 'var(--amber)40');
+      ctx.fillStyle = grad;
+      ctx.fillRect(bx-bw*0.35, padT+plotH-bh, bw*0.7, bh);
+      ctx.strokeStyle = 'var(--amber)';
+      ctx.strokeRect(bx-bw*0.35, padT+plotH-bh, bw*0.7, bh);
+      ctx.fillStyle = '#fff'; ctx.font = '9px JetBrains Mono'; ctx.textAlign = 'center';
+      ctx.fillText('ω'+(i+1), bx, padT+plotH+14);
+      ctx.fillText(eigval.toFixed(2), bx, padT+plotH-bh-5);
+    }
+  } else {
+    // Continuous curve
+    ctx.strokeStyle = 'var(--amber)'; ctx.lineWidth = 2.5;
+    ctx.shadowColor = 'var(--amber)A0'; ctx.shadowBlur = 6;
+    ctx.beginPath();
+    for(let i=0; i<=200; i++){
+      const x = padL + plotW*i/200;
+      const xv = i/200;
+      const y = padT + plotH - (0.5+0.4*Math.sin(xv*v*Math.PI*2))*plotH;
+      if(i===0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  ctx.textAlign = 'left';
+  ctx.fillStyle = 'var(--amber)'; ctx.font = 'bold 12px JetBrains Mono';
+  ctx.fillText('RPM = '+v.toFixed(2), padL+10, padT+18);
+
+  const info = document.getElementById('cvOrder_info');
+  if(info) info.innerHTML = `<strong>RPM</strong> = ${v.toFixed(2)} · Spectrum Diagnosis parameter exploration`;
+}
+setTimeout(drawOrder, 800+650);
+
+
+// ════════════════════════════════════════════════════════════
+// Animasi 3 — Animasi 3 — Raw vs Envelope Spectrum (Toggle)
+// ════════════════════════════════════════════════════════════
+let _cvEnvelope_mode = 0;
+window.toggleEnvelope = function(){
+  _cvEnvelope_mode = 1 - _cvEnvelope_mode;
+  const view = document.getElementById('cvEnvelope_view');
+  const lbl = document.getElementById('cvEnvelope_label');
+  const slider = view ? view.children[0] : null;
+  if(_cvEnvelope_mode === 1){
+    if(view){ view.style.background = '#a855f730'; view.style.borderColor = '#a855f7'; }
+    if(slider) slider.style.transform = 'translateX(28px)';
+    if(lbl){ lbl.textContent = 'Envelope Analysis (demodulated)'; lbl.style.color = '#a855f7'; }
+  } else {
+    if(view){ view.style.background = '#0ea5e930'; view.style.borderColor = '#0ea5e9'; }
+    if(slider) slider.style.transform = 'translateX(0px)';
+    if(lbl){ lbl.textContent = 'Raw FFT (high-freq carriers)'; lbl.style.color = '#0ea5e9'; }
+  }
+  drawEnvelope();
+};
+
+function drawEnvelope(){
+  const cv = document.getElementById('cvEnvelope'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const isMode1 = (_cvEnvelope_mode === 1);
+  const color = isMode1 ? '#a855f7' : '#0ea5e9';
+  const label = isMode1 ? 'Envelope Analysis (demodulated)' : 'Raw FFT (high-freq carriers)';
+
+  ctx.fillStyle = color; ctx.font = 'bold 14px JetBrains Mono';
+  ctx.fillText(label, 20, 30);
+
+  // Visualization differs per mode
+  const padL=50, padR=20, padT=50, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let i=0; i<=10; i++){
+    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.25)';
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+
+  // Sample comparison curves
+  const T = Date.now()/1000;
+  const N = 200;
+  ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+  ctx.shadowColor = color + 'A0'; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for(let i=0; i<=N; i++){
+    const x = padL + plotW*i/N;
+    const tt = i/N;
+    let y;
+    if(isMode1){
+      // Mode B: smoother / different
+      y = padT + plotH/2 - 0.5*plotH*0.4*Math.sin(tt*8*Math.PI + T)*Math.cos(tt*Math.PI);
+    } else {
+      // Mode A: standard
+      y = padT + plotH/2 - 0.5*plotH*0.4*Math.sin(tt*6*Math.PI + T);
+    }
+    if(i===0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  const info = document.getElementById('cvEnvelope_info');
+  if(info) info.innerHTML = isMode1 ? '🟣 <strong>Envelope Analysis (demodulated)</strong>' : '🟢 <strong>Raw FFT (high-freq carriers)</strong>';
+}
+function _cvEnvelopeTick(){
+  drawEnvelope();
+  requestAnimationFrame(_cvEnvelopeTick);
+}
+setTimeout(_cvEnvelopeTick, 850+650);
+
+
+// ════════════════════════════════════════════════════════════
+// Animasi 4 — Animasi 4 — Bearing Fault Frequencies (Radio)
+// ════════════════════════════════════════════════════════════
+let _cvBearingFault_val = 'bpfo';
+let _cvBearingFault_frame = 0;
+window.setBearingFault = function(v){
+  _cvBearingFault_val = v;
+  document.querySelectorAll('.bf-rlbl').forEach(lbl=>{
+    const lv=lbl.dataset.v; const active=(lv===v);
+    lbl.style.background = active?'rgba(255,255,255,.20)':'rgba(255,255,255,.04)';
+    lbl.style.borderWidth = active?'2px':'1px';
+    lbl.style.color = active?'#fff':lbl.style.color;
+    lbl.style.fontWeight = active?'700':'400';
+    lbl.style.boxShadow = active?'0 0 12px rgba(255,255,255,.4)':'none';
+    lbl.style.transform = active?'scale(1.05)':'scale(1.0)';
+  });
+};
+
+function drawBearingFault(){
+  const cv = document.getElementById('cvBearingFault'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const opts = [('BPFO: Ball Pass Outer Race', '#0ea5e9', 'bpfo'), ('BPFI: Ball Pass Inner Race', '#00e09e', 'bpfi'), ('BSF: Ball Spin Frequency', '#f97316', 'bsf'), ('FTF: Fundamental Train Freq.', '#a855f7', 'ftf')];
+  const optMap = {};
+  opts.forEach(o => { optMap[o[2]] = {label: o[0], color: o[1]}; });
+  const cur = optMap[_cvBearingFault_val] || optMap[opts[0][2]];
+  const t = _cvBearingFault_frame * 0.012;
+
+  ctx.fillStyle = cur.color; ctx.font = 'bold 14px JetBrains Mono';
+  ctx.fillText(cur.label, 20, 30);
+
+  // Per-option visualization (frequency content)
+  const padL=50, padR=20, padT=50, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let i=0; i<=10; i++){
+    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.25)';
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+
+  // Map opt index → frequency multiplier
+  const optIdx = opts.findIndex(o => o[2] === _cvBearingFault_val);
+  const freqMult = (optIdx + 1) * 1.5;
+
+  ctx.strokeStyle = cur.color; ctx.lineWidth = 2.5;
+  ctx.shadowColor = cur.color + 'A0'; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for(let i=0; i<=200; i++){
+    const x = padL + plotW*i/200;
+    const tt = i/200;
+    const y = padT + plotH/2 - plotH*0.35*Math.sin(tt*freqMult*2*Math.PI + t);
+    if(i===0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  const info = document.getElementById('cvBearingFault_info');
+  if(info) info.innerHTML = `<strong style="color:${cur.color}">${cur.label}</strong> — freq multiplier: ${freqMult.toFixed(1)}×`;
+}
+
+function _cvBearingFaultTick(){
+  _cvBearingFault_frame++;
+  drawBearingFault();
+  requestAnimationFrame(_cvBearingFaultTick);
+}
+setTimeout(_cvBearingFaultTick, 900+650);
+
+
+// ════════════════════════════════════════════════════════════
+// Animasi 5 — Animasi 5 — Bearing Types & Spec (Dropdown)
+// ════════════════════════════════════════════════════════════
+let _cvBearingType_val = 'deep_groove';
+let _cvBearingType_frame = 0;
+window.setBearingType = function(v){
+  _cvBearingType_val = v;
+};
+
+function drawBearingType(){
+  const cv = document.getElementById('cvBearingType'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const opts = [('deep_groove', '⚙️ Deep Groove Ball — 6203/6205 series, paling umum'), ('cylindrical', '⚙️ Cylindrical Roller — high radial load'), ('tapered', '⚙️ Tapered Roller — combined radial+axial'), ('spherical', '⚙️ Spherical Roller — misalignment tolerant')];
+  const idx = opts.findIndex(o => o[0] === _cvBearingType_val);
+  const opt = opts[Math.max(0, idx)];
+  const t = _cvBearingType_frame * 0.010;
+
+  ctx.fillStyle = '#a855f7'; ctx.font = 'bold 13px JetBrains Mono';
+  ctx.fillText(opt[1], 20, 25);
+
+  // Generic visualization: animated waveform + index-dependent amplitude/frequency
+  const padL=50, padR=20, padT=45, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let i=0; i<=10; i++){
+    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.25)';
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+
+  const colors = ['#0ea5e9', '#00e09e', '#f97316', '#a855f7', '#ef4444', '#facc15'];
+  const color = colors[idx % colors.length];
+
+  ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+  ctx.shadowColor = color + 'A0'; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for(let i=0; i<=200; i++){
+    const x = padL + plotW*i/200;
+    const tt = i/200;
+    // Composite signal varying per option
+    const f1 = (idx+1)*1.5;
+    const f2 = (idx+1)*2.5;
+    const y = padT + plotH/2 - plotH*0.35*(Math.sin(tt*f1*2*Math.PI + t)+0.4*Math.sin(tt*f2*2*Math.PI - t));
+    if(i===0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  const info = document.getElementById('cvBearingType_info');
+  if(info) info.innerHTML = `<strong style="color:${color}">${opt[1]}</strong>`;
+}
+
+function _cvBearingTypeTick(){
+  _cvBearingType_frame++;
+  drawBearingType();
+  requestAnimationFrame(_cvBearingTypeTick);
+}
+setTimeout(_cvBearingTypeTick, 950+650);
+
+</script>
+
 
 </body>
 </html>

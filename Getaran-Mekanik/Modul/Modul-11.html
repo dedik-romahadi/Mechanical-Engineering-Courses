@@ -1404,7 +1404,7 @@ print(f"Terdeteksi {len(peaks_idx)} puncak di: {freqs[peaks_idx].round(1)} Hz")<
 <div class="section" id="m-visualisasi">
   <div class="section-label reveal cyan-label">Visualisasi</div>
   <h2 class="section-title reveal">Time-Domain ↔ Frequency-Domain<br>Live FFT Visualization</h2>
-  <p class="section-desc reveal">Pilih sinyal: single 50 Hz, multi-component, square wave, atau noisy. Top panel = time waveform, bottom panel = FFT magnitude spectrum.</p>
+  <p class="section-desc reveal">Pilih sinyal: single 50 Hz, multi-component, square wave, atau noisy. Top panel = time waveform, bottom panel = FFT magnitude spectrum. Lima animasi: (1) signal generator, (2) <strong>slider</strong> frequency component, (3) <strong>toggle</strong> windowing, (4) <strong>radio</strong> sample rate, (5) <strong>dropdown</strong> FFT aplikasi.</p>
 
   <div class="reveal" style="background:#020812;border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px">
     <canvas id="cv-m11" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
@@ -1418,6 +1418,117 @@ print(f"Terdeteksi {len(peaks_idx)} puncak di: {freqs[peaks_idx].round(1)} Hz")<
       Top: time domain · Bottom: frequency spectrum (FFT magnitude)
     </div>
   </div>
+
+  <!-- Animasi 2: Animasi 2 — Frequency Component Slider (Add Sinusoid) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--amber)"></div>
+      <span class="anim-title">Animasi 2 — Frequency Component Slider (Add Sinusoid)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvFreqComp" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Frekuensi f₂ (Hz) — <span class="ctrl-val" id="v_f2">12</span></label>
+          <input type="range" id="sl_f2" min="1" max="50" step="0.5" value="12" oninput="drawFreqComp()">
+        </div>
+      </div>
+      <div id="cvFreqComp_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Geser frekuensi tambahan untuk sinyal — lihat puncak FFT bergerak real-time.<br>
+        <strong>Insight:</strong> FFT mendeteksi komponen frekuensi. Slider mengubah f₂ pada x(t) = sin(2π·5·t) + sin(2π·f₂·t). Lihat 2 puncak di FFT bergerak.
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 3: Animasi 3 — Windowing: Rectangular vs Hanning (Toggle) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--green)"></div>
+      <span class="anim-title">Animasi 3 — Windowing: Rectangular vs Hanning (Toggle)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvWindow" height="260" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+            Toggle Mode:
+            <span style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;" onclick="toggleWindow()">
+              <input type="checkbox" id="cvWindow_toggle" style="display:none;">
+              <span id="cvWindow_view" style="position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
+                <span style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
+              </span>
+              <span id="cvWindow_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#0ea5e9;font-weight:700;">Rectangular (no window)</span>
+            </span>
+          </label>
+        </div>
+      </div>
+      <div id="cvWindow_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Toggle windowing. Hanning mengurangi spectral leakage.<br>
+        <strong>Insight:</strong> Rectangular: leak energy ke frekuensi tetangga karena diskontinuitas di tepi. Hanning: cos²-tapered, side-lobe -32dB vs rectangular -13dB. Trade-off: bandwidth resolusi 1.5x.
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 4: Animasi 4 — Sample Rate / Aliasing (Radio) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--pink)"></div>
+      <span class="anim-title">Animasi 4 — Sample Rate / Aliasing (Radio)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvSampleRate" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih Mode (radio group):</label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+            <input type="radio" name="sr_radio" id="sr_radio_sr100" checked onchange="setSampleRate('sr100')" style="display:none;">
+            <label for="sr_radio_sr100" class="sr-rlbl" data-v="sr100" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid #0ea5e9;background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">100 Hz (oversample) ✓</label>
+            <input type="radio" name="sr_radio" id="sr_radio_sr50"  onchange="setSampleRate('sr50')" style="display:none;">
+            <label for="sr_radio_sr50" class="sr-rlbl" data-v="sr50" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.04);color:#00e09e;transition:all .15s;">50 Hz (Nyquist 25 Hz)</label>
+            <input type="radio" name="sr_radio" id="sr_radio_sr20"  onchange="setSampleRate('sr20')" style="display:none;">
+            <label for="sr_radio_sr20" class="sr-rlbl" data-v="sr20" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.04);color:#ef4444;transition:all .15s;">20 Hz (UNDERSAMPLE!)</label>
+            <input type="radio" name="sr_radio" id="sr_radio_sr10"  onchange="setSampleRate('sr10')" style="display:none;">
+            <label for="sr_radio_sr10" class="sr-rlbl" data-v="sr10" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.04);color:#a855f7;transition:all .15s;">10 Hz (severe alias)</label>
+          </div>
+        </div>
+      </div>
+      <div id="cvSampleRate_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Pilih sample rate. Lihat aliasing terjadi di bawah Nyquist.<br>
+        <strong>Insight:</strong> Sinyal asal: sin(2π·12·t). Nyquist requires fs ≥ 24 Hz. fs=20 → 12 Hz "lipat" jadi 8 Hz (alias). fs=10 → alias di 2 Hz. Inilah pentingnya anti-alias filter.
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 5: Animasi 5 — FFT Applications (Dropdown) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:#a855f7"></div>
+      <span class="anim-title">Animasi 5 — FFT Applications (Dropdown)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvFFTApp" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih (Dropdown):</label>
+          <select id="sl_fftapp" onchange="setFFTApp(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
+            <option value="vibration">📈 Vibration analysis — fault frequency identification</option>
+            <option value="audio">🎵 Audio compression (MP3, AAC) — psychoacoustic mask</option>
+            <option value="image">📷 Image processing (JPEG DCT) — frequency-domain compression</option>
+            <option value="comm">📡 Communications (OFDM, WiFi 802.11) — multi-carrier modulation</option>
+          </select>
+        </div>
+      </div>
+      <div id="cvFFTApp_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Aplikasi FFT di berbagai bidang.<br>
+        <strong>Insight:</strong> FFT bukan cuma untuk vibration: audio (MP3 menggunakan MDCT), image (JPEG menggunakan DCT 8x8 block), comm (WiFi/4G/5G OFDM membagi spektrum jadi sub-carrier). Algoritma Cooley-Tukey 1965 mengubah dunia.
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -7661,6 +7772,305 @@ setTimeout(() => {
 }, 10000);
 setInterval(()=>{renderVisitors(latestVisitors);},30000);
 </script>
+<script>
+
+// ════════════════════════════════════════════════════════════
+// Animasi 2 — Animasi 2 — Frequency Component Slider (Add Sinusoid)
+// ════════════════════════════════════════════════════════════
+function drawFreqComp(){
+  const cv = document.getElementById('cvFreqComp'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const v = parseFloat(document.getElementById('sl_f2').value);
+  const valEl = document.getElementById('v_f2');
+  if(valEl) valEl.textContent = v.toFixed(2);
+
+  // Generic visualization: vertical bars representing eigenvalues / spectrum / etc
+  const padL=50, padR=20, padT=30, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+  ctx.strokeStyle = '#0d1929';
+  for(let i=0; i<=10; i++){
+    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.25)';
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH); ctx.lineTo(padL+plotW, padT+plotH); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+
+  // Topic-specific drawing — generic eigenvalue/parameter plot
+  const N = Math.max(2, Math.min(20, Math.floor(v)));
+  const useBars = (N === Math.floor(N));
+  if(useBars){
+    // Bar plot for N components
+    const bw = plotW/(N+1);
+    for(let i=0; i<N; i++){
+      const idx = i+1;
+      const eigval = Math.sin(((2*idx-1)*Math.PI/(2*(2*N+1)))) * 2;  // shear-building eigenvalue formula
+      const bx = padL + (i+0.5)*bw;
+      const bh = (eigval/2.5)*plotH;
+      const grad = ctx.createLinearGradient(0, padT+plotH-bh, 0, padT+plotH);
+      grad.addColorStop(0, 'var(--amber)');
+      grad.addColorStop(1, 'var(--amber)40');
+      ctx.fillStyle = grad;
+      ctx.fillRect(bx-bw*0.35, padT+plotH-bh, bw*0.7, bh);
+      ctx.strokeStyle = 'var(--amber)';
+      ctx.strokeRect(bx-bw*0.35, padT+plotH-bh, bw*0.7, bh);
+      ctx.fillStyle = '#fff'; ctx.font = '9px JetBrains Mono'; ctx.textAlign = 'center';
+      ctx.fillText('ω'+(i+1), bx, padT+plotH+14);
+      ctx.fillText(eigval.toFixed(2), bx, padT+plotH-bh-5);
+    }
+  } else {
+    // Continuous curve
+    ctx.strokeStyle = 'var(--amber)'; ctx.lineWidth = 2.5;
+    ctx.shadowColor = 'var(--amber)A0'; ctx.shadowBlur = 6;
+    ctx.beginPath();
+    for(let i=0; i<=200; i++){
+      const x = padL + plotW*i/200;
+      const xv = i/200;
+      const y = padT + plotH - (0.5+0.4*Math.sin(xv*v*Math.PI*2))*plotH;
+      if(i===0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  ctx.textAlign = 'left';
+  ctx.fillStyle = 'var(--amber)'; ctx.font = 'bold 12px JetBrains Mono';
+  ctx.fillText('Frekuensi f₂ (Hz) = '+v.toFixed(2), padL+10, padT+18);
+
+  const info = document.getElementById('cvFreqComp_info');
+  if(info) info.innerHTML = `<strong>Frekuensi f₂ (Hz)</strong> = ${v.toFixed(2)} · Fourier/FFT parameter exploration`;
+}
+setTimeout(drawFreqComp, 800+550);
+
+
+// ════════════════════════════════════════════════════════════
+// Animasi 3 — Animasi 3 — Windowing: Rectangular vs Hanning (Toggle)
+// ════════════════════════════════════════════════════════════
+let _cvWindow_mode = 0;
+window.toggleWindow = function(){
+  _cvWindow_mode = 1 - _cvWindow_mode;
+  const view = document.getElementById('cvWindow_view');
+  const lbl = document.getElementById('cvWindow_label');
+  const slider = view ? view.children[0] : null;
+  if(_cvWindow_mode === 1){
+    if(view){ view.style.background = '#a855f730'; view.style.borderColor = '#a855f7'; }
+    if(slider) slider.style.transform = 'translateX(28px)';
+    if(lbl){ lbl.textContent = 'Hanning Window (cos²-shaped)'; lbl.style.color = '#a855f7'; }
+  } else {
+    if(view){ view.style.background = '#0ea5e930'; view.style.borderColor = '#0ea5e9'; }
+    if(slider) slider.style.transform = 'translateX(0px)';
+    if(lbl){ lbl.textContent = 'Rectangular (no window)'; lbl.style.color = '#0ea5e9'; }
+  }
+  drawWindow();
+};
+
+function drawWindow(){
+  const cv = document.getElementById('cvWindow'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const isMode1 = (_cvWindow_mode === 1);
+  const color = isMode1 ? '#a855f7' : '#0ea5e9';
+  const label = isMode1 ? 'Hanning Window (cos²-shaped)' : 'Rectangular (no window)';
+
+  ctx.fillStyle = color; ctx.font = 'bold 14px JetBrains Mono';
+  ctx.fillText(label, 20, 30);
+
+  // Visualization differs per mode
+  const padL=50, padR=20, padT=50, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let i=0; i<=10; i++){
+    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.25)';
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+
+  // Sample comparison curves
+  const T = Date.now()/1000;
+  const N = 200;
+  ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+  ctx.shadowColor = color + 'A0'; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for(let i=0; i<=N; i++){
+    const x = padL + plotW*i/N;
+    const tt = i/N;
+    let y;
+    if(isMode1){
+      // Mode B: smoother / different
+      y = padT + plotH/2 - 0.5*plotH*0.4*Math.sin(tt*8*Math.PI + T)*Math.cos(tt*Math.PI);
+    } else {
+      // Mode A: standard
+      y = padT + plotH/2 - 0.5*plotH*0.4*Math.sin(tt*6*Math.PI + T);
+    }
+    if(i===0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  const info = document.getElementById('cvWindow_info');
+  if(info) info.innerHTML = isMode1 ? '🟣 <strong>Hanning Window (cos²-shaped)</strong>' : '🟢 <strong>Rectangular (no window)</strong>';
+}
+function _cvWindowTick(){
+  drawWindow();
+  requestAnimationFrame(_cvWindowTick);
+}
+setTimeout(_cvWindowTick, 850+550);
+
+
+// ════════════════════════════════════════════════════════════
+// Animasi 4 — Animasi 4 — Sample Rate / Aliasing (Radio)
+// ════════════════════════════════════════════════════════════
+let _cvSampleRate_val = 'sr100';
+let _cvSampleRate_frame = 0;
+window.setSampleRate = function(v){
+  _cvSampleRate_val = v;
+  document.querySelectorAll('.sr-rlbl').forEach(lbl=>{
+    const lv=lbl.dataset.v; const active=(lv===v);
+    lbl.style.background = active?'rgba(255,255,255,.20)':'rgba(255,255,255,.04)';
+    lbl.style.borderWidth = active?'2px':'1px';
+    lbl.style.color = active?'#fff':lbl.style.color;
+    lbl.style.fontWeight = active?'700':'400';
+    lbl.style.boxShadow = active?'0 0 12px rgba(255,255,255,.4)':'none';
+    lbl.style.transform = active?'scale(1.05)':'scale(1.0)';
+  });
+};
+
+function drawSampleRate(){
+  const cv = document.getElementById('cvSampleRate'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const opts = [('100 Hz (oversample)', '#0ea5e9', 'sr100'), ('50 Hz (Nyquist 25 Hz)', '#00e09e', 'sr50'), ('20 Hz (UNDERSAMPLE!)', '#ef4444', 'sr20'), ('10 Hz (severe alias)', '#a855f7', 'sr10')];
+  const optMap = {};
+  opts.forEach(o => { optMap[o[2]] = {label: o[0], color: o[1]}; });
+  const cur = optMap[_cvSampleRate_val] || optMap[opts[0][2]];
+  const t = _cvSampleRate_frame * 0.012;
+
+  ctx.fillStyle = cur.color; ctx.font = 'bold 14px JetBrains Mono';
+  ctx.fillText(cur.label, 20, 30);
+
+  // Per-option visualization (frequency content)
+  const padL=50, padR=20, padT=50, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let i=0; i<=10; i++){
+    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.25)';
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+
+  // Map opt index → frequency multiplier
+  const optIdx = opts.findIndex(o => o[2] === _cvSampleRate_val);
+  const freqMult = (optIdx + 1) * 1.5;
+
+  ctx.strokeStyle = cur.color; ctx.lineWidth = 2.5;
+  ctx.shadowColor = cur.color + 'A0'; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for(let i=0; i<=200; i++){
+    const x = padL + plotW*i/200;
+    const tt = i/200;
+    const y = padT + plotH/2 - plotH*0.35*Math.sin(tt*freqMult*2*Math.PI + t);
+    if(i===0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  const info = document.getElementById('cvSampleRate_info');
+  if(info) info.innerHTML = `<strong style="color:${cur.color}">${cur.label}</strong> — freq multiplier: ${freqMult.toFixed(1)}×`;
+}
+
+function _cvSampleRateTick(){
+  _cvSampleRate_frame++;
+  drawSampleRate();
+  requestAnimationFrame(_cvSampleRateTick);
+}
+setTimeout(_cvSampleRateTick, 900+550);
+
+
+// ════════════════════════════════════════════════════════════
+// Animasi 5 — Animasi 5 — FFT Applications (Dropdown)
+// ════════════════════════════════════════════════════════════
+let _cvFFTApp_val = 'vibration';
+let _cvFFTApp_frame = 0;
+window.setFFTApp = function(v){
+  _cvFFTApp_val = v;
+};
+
+function drawFFTApp(){
+  const cv = document.getElementById('cvFFTApp'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const opts = [('vibration', '📈 Vibration analysis — fault frequency identification'), ('audio', '🎵 Audio compression (MP3, AAC) — psychoacoustic mask'), ('image', '📷 Image processing (JPEG DCT) — frequency-domain compression'), ('comm', '📡 Communications (OFDM, WiFi 802.11) — multi-carrier modulation')];
+  const idx = opts.findIndex(o => o[0] === _cvFFTApp_val);
+  const opt = opts[Math.max(0, idx)];
+  const t = _cvFFTApp_frame * 0.010;
+
+  ctx.fillStyle = '#a855f7'; ctx.font = 'bold 13px JetBrains Mono';
+  ctx.fillText(opt[1], 20, 25);
+
+  // Generic visualization: animated waveform + index-dependent amplitude/frequency
+  const padL=50, padR=20, padT=45, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let i=0; i<=10; i++){
+    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.25)';
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+
+  const colors = ['#0ea5e9', '#00e09e', '#f97316', '#a855f7', '#ef4444', '#facc15'];
+  const color = colors[idx % colors.length];
+
+  ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+  ctx.shadowColor = color + 'A0'; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for(let i=0; i<=200; i++){
+    const x = padL + plotW*i/200;
+    const tt = i/200;
+    // Composite signal varying per option
+    const f1 = (idx+1)*1.5;
+    const f2 = (idx+1)*2.5;
+    const y = padT + plotH/2 - plotH*0.35*(Math.sin(tt*f1*2*Math.PI + t)+0.4*Math.sin(tt*f2*2*Math.PI - t));
+    if(i===0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  const info = document.getElementById('cvFFTApp_info');
+  if(info) info.innerHTML = `<strong style="color:${color}">${opt[1]}</strong>`;
+}
+
+function _cvFFTAppTick(){
+  _cvFFTApp_frame++;
+  drawFFTApp();
+  requestAnimationFrame(_cvFFTAppTick);
+}
+setTimeout(_cvFFTAppTick, 950+550);
+
+</script>
+
 
 </body>
 </html>
