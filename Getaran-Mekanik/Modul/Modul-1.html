@@ -4962,16 +4962,32 @@ function drawSysReal(){
   ctx.fillText('+max',plotX0-4,plotY0+10);
   ctx.fillText('0',plotX0-4,plotY0+plotH/2+3);
   ctx.fillText('−max',plotX0-4,plotY0+plotH-4);
-  ctx.textAlign='left'; ctx.fillStyle='#a855f7'; ctx.font='bold 11px JetBrains Mono';
+  ctx.textAlign='left'; ctx.fillStyle='#22d3ee'; ctx.font='bold 11px JetBrains Mono';
   ctx.fillText(`Signal: ${label} [${sigUnit}]`,plotX0+6,plotY0+12);
   ctx.fillStyle='#94a3b8'; ctx.font='9px JetBrains Mono'; ctx.textAlign='center';
   ctx.fillText('-4s',plotX0,plotY0+plotH+14);
   ctx.fillText('-2s',plotX0+plotW/2,plotY0+plotH+14);
   ctx.fillText('now',plotX0+plotW,plotY0+plotH+14);
-  // Trace
-  ctx.strokeStyle='#a855f7'; ctx.lineWidth=2; ctx.shadowColor='rgba(168,85,247,.5)'; ctx.shadowBlur=4;
-  ctx.beginPath();
+  // Trace — bright cyan dengan fill area di bawah
   const N=_sysRealHist.length;
+  // Fill area di bawah kurva (semi-transparent)
+  if(N>1){
+    ctx.fillStyle='rgba(34,211,238,.15)';
+    ctx.beginPath();
+    ctx.moveTo(plotX0, plotY0+plotH/2);
+    for(let i=0;i<N;i++){
+      const px=plotX0 + (i/399)*plotW;
+      const py=plotY0+plotH/2 - _sysRealHist[i]*(plotH/2-8);
+      ctx.lineTo(px,py);
+    }
+    ctx.lineTo(plotX0 + ((N-1)/399)*plotW, plotY0+plotH/2);
+    ctx.closePath();
+    ctx.fill();
+  }
+  // Main trace line — bright cyan dengan glow kuat
+  ctx.strokeStyle='#22d3ee'; ctx.lineWidth=2.8; ctx.shadowColor='#22d3ee'; ctx.shadowBlur=10;
+  ctx.lineJoin='round'; ctx.lineCap='round';
+  ctx.beginPath();
   for(let i=0;i<N;i++){
     const px=plotX0 + (i/399)*plotW;
     const py=plotY0+plotH/2 - _sysRealHist[i]*(plotH/2-8);
@@ -4979,13 +4995,20 @@ function drawSysReal(){
   }
   ctx.stroke();
   ctx.shadowBlur=0;
-  // Current dot
+  // Current dot — amber dengan glow lebih besar
   if(N>0){
     const px=plotX0+plotW;
     const py=plotY0+plotH/2 - _sysRealHist[N-1]*(plotH/2-8);
-    ctx.fillStyle='#fbbf24'; ctx.shadowColor='#fbbf24'; ctx.shadowBlur=8;
-    ctx.beginPath(); ctx.arc(px,py,5,0,Math.PI*2); ctx.fill();
+    // Outer halo
+    ctx.fillStyle='rgba(251,191,36,.3)';
+    ctx.beginPath(); ctx.arc(px,py,11,0,Math.PI*2); ctx.fill();
+    // Main dot
+    ctx.fillStyle='#fbbf24'; ctx.shadowColor='#fbbf24'; ctx.shadowBlur=12;
+    ctx.beginPath(); ctx.arc(px,py,6,0,Math.PI*2); ctx.fill();
     ctx.shadowBlur=0;
+    // Inner highlight
+    ctx.fillStyle='#fff';
+    ctx.beginPath(); ctx.arc(px-1.5,py-1.5,2,0,Math.PI*2); ctx.fill();
   }
 
   _sysRealFrame++;
