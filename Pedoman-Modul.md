@@ -6524,6 +6524,238 @@ Sebelum mulai refactor JS canvas atau replacement blok besar:
 
 ---
 
+## 35. Cinematic Panel Design — Tugas Score-Bar + Forum Copy (BARU di v15)
+
+Standar **desain cinematic + animasi** untuk panel Tugas (`.score-bar`) dan panel Forum (`.forum-submit-panel` + `.btn-export-forum` + `.forum-progress`). Applied ke **48 file** (42 modul + 3 UTS + 3 UAS).
+
+### 35.1 Filosofi Design
+
+**Prinsip utama:** *animate AROUND text, not ON text* — animasi di backgrounds, borders, dan decorative pseudo-elements. Teks selalu **solid color** dengan `text-shadow` glow, **NEVER gradient text** (`-webkit-background-clip:text` dengan transparent fill bikin sebagian digit faded saat gradient bergerak).
+
+**Theme distinct per panel** (untuk identitas visual yang jelas):
+- **Tugas Score-Bar / Export HTML**: violet `#a855f7 → #7c3aed` + cyan accent
+- **Forum Copy Panel / Button**: green `#10b981 → #047857` + cyan accent
+
+### 35.2 Tugas Score-Bar — `.score-bar` (Glassmorphism + Cinematic)
+
+**Container** (8 layer animation):
+1. **Glassmorphism**: `backdrop-filter:blur(24px) saturate(180%)` + `rgba(15,23,42,.55)` translucent base
+2. **Mesh gradient blobs** (`::before`): 4 colored radial blobs blur(40px), `meshFloat` 16s translate+rotate+scale
+3. **Particle starfield** (`::after`): 7 multi-color stars via radial-gradient sprites, `particleTwinkle` 4s + `particleDrift` 25s
+4. **3D perspective tilt**: `perspective(1000px) + transform-style:preserve-3d`, hover `rotateX(1.5deg) rotateY(-.5deg) translateZ(6px)`
+5. **Score number `.score-num`**: solid white #fff weight 900, triple text-shadow glow, `scoreNumIdleGlow` 4s color cycle violet→cyan→amber
+6. **Score number pulse `.score-num.score-num-pulse`**: `scoreNumExplode` .85s scale 1.32 + super-glow saat skor naik (JS-triggered via classList toggle + force-reflow `void el.offsetWidth`)
+7. **Title shimmer `.score-info::after`**: `titleShimmer` 3s gradient line bergerak + `scoreLiveBlink` (●) green dot 1.4s
+8. **Progress bar 3-layer** (track scan + barber-pole stripes + light sweep) — lihat §35.4
+
+**JS Hook** untuk pulse animation:
+```javascript
+function updateScore() {
+  const display = document.getElementById('scoreDisplay');
+  const prevVal = display ? parseInt(display.textContent, 10) || 0 : 0;
+  // ... compute nilai ...
+  if (display && nilai > prevVal) {
+    display.classList.remove('score-num-pulse');
+    void display.offsetWidth;  // force reflow untuk re-trigger animation
+    display.classList.add('score-num-pulse');
+    setTimeout(() => display.classList.remove('score-num-pulse'), 850);
+  }
+}
+```
+
+### 35.3 Tugas Export Button — `.btn-export` (Solid Violet 3D)
+
+**Design Prinsip**: SOLID primary action button (Material/Tailwind-style) — bukan glassmorphism translucent yang ambigu.
+
+**Static styling**:
+- Background: `linear-gradient(180deg, #a855f7 0%, #7c3aed 100%)` (solid violet)
+- Border: `2px solid #c084fc` (lighter violet)
+- 3D depth via dual inset shadows:
+  ```css
+  inset 0 1px 0 rgba(255,255,255,.4)   /* top highlight */
+  inset 0 -2px 0 rgba(0,0,0,.2)        /* bottom edge — raised */
+  0 6px 18px rgba(168,85,247,.5)       /* drop shadow */
+  0 0 30px rgba(168,85,247,.25)        /* outer glow */
+  ```
+- font-weight: 900, letter-spacing: 1.5px, text-shadow
+
+**State lifecycle**:
+1. **Disabled**: solid gray `#475569 → #334155`, no glow, no animation, color rgba(255,255,255,.55)
+2. **Ready** (`:not(:disabled)`): `btnReadyPulse` 2s — box-shadow breathing
+3. **Hover**: `linear-gradient(180deg, #bd76f7, #8b3eed)` + multi-layer glow + `translateY(-3px)` + letter-spacing 1.5→1.7px
+4. **Active press**: `translateY(-1px) scale(.97)` + inset shadow (tactile)
+5. **Click**: ripple wave dari titik klik (JS-driven `_createBtnRipple`)
+6. **Hover shimmer**: diagonal sweep `::before` skewX(-20deg) translate left -100% → 130%
+
+**JS handlers**:
+```javascript
+function _createBtnRipple(event) {
+  const button = event.currentTarget;
+  if (button.disabled) return;
+  const rect = button.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height) * 1.8;
+  const ripple = document.createElement('span');
+  ripple.className = 'btn-ripple';
+  ripple.style.width = size + 'px';
+  ripple.style.height = size + 'px';
+  ripple.style.left = (event.clientX - rect.left - size / 2) + 'px';
+  ripple.style.top = (event.clientY - rect.top - size / 2) + 'px';
+  button.appendChild(ripple);
+  setTimeout(() => { try { ripple.remove(); } catch(e){} }, 850);
+}
+// Auto-attach: querySelectorAll('.btn-export').forEach(btn => btn.addEventListener('click', _createBtnRipple))
+```
+
+**Arrow hint badge**: ketika ready, JS injects `<span class="btn-arrow-hint">↓</span>` ke button dengan circular badge styling + `arrowBob` 1.2s (translateY 0→2px). Auto-removed saat disabled.
+
+### 35.4 Progress Bar — 3-Layer Animation (`.score-progress` + `.score-fill`)
+
+**Layer 1 — Track Scan Beam** (`.score-progress::before`):
+- Width 60%, gradient `transparent → violet(.45) → cyan(.7) → violet(.45) → transparent`
+- `trackScan` 3.5s ease-in-out — left -60% → 100%
+- `filter:blur(.5px)` soft glow
+- **Visible bahkan saat fill=0** (anchor untuk panel "alive" feeling)
+
+**Layer 2 — Barber-Pole Stripes** (fill background):
+- `linear-gradient(45deg, rgba(255,255,255,.18) 25%, transparent 25%, transparent 50%, ...)` 18px stripes
+- Plus base gradient violet→cyan→violet
+- `progressStripes` 1.2s linear — scrolling diagonal
+
+**Layer 3 — Light Sweep** (`.score-fill::after`):
+- Width 80%, white gradient
+- `mix-blend-mode:overlay`
+- `scoreFillSweep` 3.2s ease-in-out — left -80% → 100%
+
+**Track styling**: height 7px, `inset 0 2px 4px rgba(0,0,0,.3)` shadow + 1px border rgba(255,255,255,.08).
+
+**Transition**: `cubic-bezier(.34,1.56,.64,1)` elastic untuk width changes (0.8s).
+
+### 35.5 Forum Copy Panel — `.forum-submit-panel` + Button (Green Theme)
+
+**Container** (`.forum-submit-panel`) — distinct dari Tugas:
+1. Glassmorphism (sama dengan tugas, tapi border green `rgba(0,224,158,.3)`)
+2. **Conic-gradient rotating border** (`::before` via mask-composite:exclude) — `forumPanelBorderRotate` 12s
+3. Particle sparkle field — `forumPanelSparkle` 8s + `forumPanelDrift` 18s (green/cyan + white sparkles)
+4. Hover: `translateY(-2px)` + box-shadow lift
+
+**Title `.forum-submit-title`** — text-readable:
+- Solid white #fff dengan `forumTitleGlow` 3.5s text-shadow color cycle green↔cyan (BUKAN gradient text)
+- `::after` underline animated `forumTitleUnderline` 3s gradient bergerak
+
+**Animated SVG icon** (replaces 💬 emoji):
+- Inline SVG chat bubble dengan 3 typing dots
+- `forumIconFloat` 3s — translateY -5px + rotate ±3deg
+- `forumDotBounce` 1.4s dengan staggered delay 0/.18/.36s — typing indicator effect
+
+**Button `.btn-export-forum`** — animasi BERBEDA dari Export HTML:
+| Aspect | Tugas Export HTML | Forum Copy |
+|--------|-------------------|------------|
+| Color theme | Violet `#a855f7→#7c3aed` | **Green `#10b981→#047857`** |
+| Border anim | None (or simple) | **`forumDashOrbit` 5s** — repeating-conic-gradient dashes orbit |
+| BG overlay | Diagonal shimmer | **`forumLiquid` 5s** — radial blobs translate+scale |
+| Idle anim | `btnReadyPulse` simple | **`forumGlowMorph` 3s** — green↔cyan shadow morph |
+| Click effect | `_createBtnRipple` (single ripple) | **`_createForumParticleBurst`** — 10 partikel random direction |
+| Hover transform | translateY only | **translateY + rotateZ(-1.5deg) TILT** |
+
+**Particle burst JS**:
+```javascript
+function _createForumParticleBurst(event) {
+  const button = event.currentTarget;
+  if (button.disabled) return;
+  const rect = button.getBoundingClientRect();
+  const cx = event.clientX - rect.left;
+  const cy = event.clientY - rect.top;
+  for (let i = 0; i < 10; i++) {
+    const particle = document.createElement('span');
+    particle.className = 'forum-particle';
+    particle.style.left = (cx - 3.5) + 'px';
+    particle.style.top = (cy - 3.5) + 'px';
+    const angle = (i / 10) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
+    const distance = 35 + Math.random() * 45;
+    particle.style.setProperty('--burst-x', Math.cos(angle) * distance + 'px');
+    particle.style.setProperty('--burst-y', Math.sin(angle) * distance + 'px');
+    button.appendChild(particle);
+    setTimeout(() => { try { particle.remove(); } catch(e){} }, 750);
+  }
+}
+```
+
+### 35.6 Forum Progress Bar — `.forum-progress` + `.forum-fill` (Green Theme)
+
+Same 3-layer pattern dengan tugas (track scan + stripes + sweep), tetapi GREEN/CYAN colors:
+- Track scan: gradient `green(.45) → cyan(.7) → green(.45)`
+- Fill: `linear-gradient(90deg, #00e09e, #22d3ee)` + diagonal stripes
+- Outer glow: `0 0 16px rgba(0,224,158,.7)` (green)
+
+### 35.7 Forum Total Kata Counter — `.forum-word-total`
+
+Animation pattern mirror dari `.score-num`:
+- `forumWordIdleGlow` 4s — text-shadow color cycle green↔cyan
+- `forumWordBreath` 3s — gentle scale 1↔1.04
+- `forumWordExplode` .7s — scale 1.3× saat total kata bertambah (JS-triggered)
+- `forumTotalHalo` 3s — circular halo ring di belakang angka (`::before` di wrapper)
+
+JS hook di `updateForumStatus()`:
+```javascript
+const totEl = document.getElementById('forumWordTotal');
+if (totEl) {
+  const prevTotal = parseInt(totEl.textContent, 10) || 0;
+  totEl.textContent = totalWords;
+  if (totalWords > prevTotal) {
+    totEl.classList.remove('forum-word-pulse');
+    void totEl.offsetWidth;
+    totEl.classList.add('forum-word-pulse');
+    setTimeout(() => totEl.classList.remove('forum-word-pulse'), 700);
+  }
+}
+```
+
+### 35.8 Layout Centering Pattern — forum-status
+
+Untuk multi-column row (Total Kata + Status Forum + Q stats), setiap kolom DENGAN HEIGHT BERBEDA harus konsisten centered:
+
+```html
+<div class="forum-status" style="display:flex;align-items:stretch;gap:14px;flex-wrap:wrap">
+  <div style="display:flex;flex-direction:column;justify-content:center;align-items:center">...</div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center">...</div>
+  <div style="display:flex;flex-direction:column;justify-content:center">...</div>
+</div>
+```
+
+**Kunci**: parent `align-items:stretch` (semua kolom stretch ke max height) + setiap kolom `flex-direction:column;justify-content:center` (konten vertical centered dalam space-nya).
+
+### 35.9 Universal Replacement Pattern (untuk script propagation)
+
+CSS lama (baseline) yang harus dideteksi dan diganti:
+```css
+.score-bar{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px 28px;...}
+.score-num{font-family:'Playfair Display',serif;font-size:42px;color:var(--violet);...}
+.score-progress{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:8px}
+.score-fill{height:100%;background:linear-gradient(90deg,var(--violet),var(--cyan));...}
+.btn-export{padding:10px 22px;...border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.12);...}
+```
+
+**Catatan untuk variant colors**: Eng-Math menggunakan orange `rgba(249,115,22)`, OA Modul-4 menggunakan purple `rgba(124,77,255)`. Script harus pakai regex untuk match warna yang berbeda di `.btn-export` border/background/hover.
+
+### 35.10 Audit Checklist v15
+
+Saat propagate ke modul baru atau fix existing:
+- [ ] **Score-bar** punya 8 layer animasi (mesh + particles + 3D tilt + idle glow + pulse + title shimmer + live blink + progress 3-layer)
+- [ ] **btn-export** solid violet + 3D inset + ripple JS + arrow hint + ready pulse
+- [ ] **btn-export-forum** solid green + dash orbit + liquid wobble + particle burst JS + tilt rotation
+- [ ] **Forum-progress** sama 3-layer dengan score-progress, green theme
+- [ ] **Forum-submit-panel** glassmorphism + rotating border + sparkles + animated SVG icon
+- [ ] **Total Kata `.forum-word-total`** punya idle glow + breath + explode pulse + halo
+- [ ] **Forum-status** layout pakai `align-items:stretch + flex column center per kolom`
+- [ ] **Text readability** preserved — semua teks solid color + text-shadow (no gradient text)
+- [ ] **JS handlers** terattach via DOMContentLoaded — `_createBtnRipple` + `_createForumParticleBurst`
+- [ ] **No conflicts** dengan animasi countdown (§10.4) atau anim-panel (§14.1)
+
+---
+
+*Pedoman v15 — Mei 2026 (Cinematic Panel Design release).*
+*Update v15: §35 BARU — standar desain panel cinematic untuk Tugas score-bar + Forum copy panel + buttons + progress bars + Total Kata counter. Applied ke 48 file (42 modul + 3 UTS + 3 UAS) dengan green/violet theme distinction. Keyframes: meshFloat, particleTwinkle, particleDrift, scoreNumIdleGlow, scoreNumExplode, titleShimmer, scoreLiveBlink, trackScan, progressStripes, scoreFillSweep, btnReadyPulse, btnRippleExpand, arrowBob, forumDashOrbit, forumLiquid, forumGlowMorph, forumParticleBurst, forumIconFloat, forumDotBounce, forumPanelBreath, forumPanelBorderRotate, forumPanelSparkle, forumPanelDrift, forumTitleGlow, forumTitleUnderline, forumWordIdleGlow, forumWordBreath, forumWordExplode, forumTotalHalo, forumLabelShimmer, forumTrackScan, forumFillStripes, forumFillSweep. Reference implementation: `Modul-6.html` Getaran Mekanik.*
+
 *Pedoman v14 — April 2026 (akhir bulan, post-Animasi-Topic-Alignment + API Timeout Mitigation).*
 *Update v14: §14.1.1 BARU — aturan WAJIB animasi canvas harus sesuai topik modul (anti copy-template-mismatch); §14.1.2 reference mapping animasi per topik (FFT/LP/NLP); §14.1.3 strategi audit pre-merge. §34 BARU — strategi mitigasi `API Stream Idle Timeout` dengan chunked commit pattern (per-animasi commit, HTML-then-JS layered, write+splice escape hatch); recovery procedure setelah timeout; checklist pre-flight refactor besar; lessons learned dari Modul-8 LP & Modul-9 NLP animation refactor (8 animasi, 1700+ baris JS, zero work loss dengan strategi chunked).*
 
