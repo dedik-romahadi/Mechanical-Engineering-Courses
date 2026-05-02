@@ -1037,94 +1037,6 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="cd-note" id="cdDeadline">Deadline: <strong style="color:var(--violet)">Menunggu jadwal...</strong></div>
   </div>
 
-  <!-- Animasi 3: Toggle (Numerical vs Analytical) -->
-  <div class="anim-panel reveal">
-    <div class="anim-header">
-      <div class="anim-dot" style="background:var(--green)"></div>
-      <span class="anim-title">Animasi 3 — Numerical vs Analytical Solution (Toggle)</span>
-    </div>
-    <div class="anim-body">
-      <canvas id="cvEMtog" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
-      <div class="ctrl-row">
-        <div class="ctrl-group" style="flex:1 1 100%;">
-          <label style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-            Method:
-            <span style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;" onclick="toggleEMSolver()">
-              <input type="checkbox" id="sl_em_tog" style="display:none;">
-              <span id="em_tog_view" style="position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
-                <span style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
-              </span>
-              <span id="em_tog_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:700;">ANALYTICAL (closed-form)</span>
-            </span>
-          </label>
-        </div>
-      </div>
-      <div id="emTogInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
-      <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Toggle metode solusi PD. Analytical: ekspresi tertutup (closed-form) dari teorema. Numerical: integrator step-by-step (RK4, Euler).<br>
-        <strong>Trade-off:</strong> Analytical exact tetapi terbatas pada kelas PD tertentu. Numerical universal tetapi punya error akumulasi + computational cost. Modern engineering: kombinasi keduanya — derive analytical untuk verify, run numerical untuk produksi.
-      </div>
-    </div>
-  </div>
-
-  <!-- Animasi 4: Radio group (PD classification) -->
-  <div class="anim-panel reveal">
-    <div class="anim-header">
-      <div class="anim-dot" style="background:var(--pink)"></div>
-      <span class="anim-title">Animasi 4 — Klasifikasi PD: Pilih Tipe (Radio Group)</span>
-    </div>
-    <div class="anim-body">
-      <canvas id="cvEMrad" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
-      <div class="ctrl-row">
-        <div class="ctrl-group" style="flex:1 1 100%;">
-          <label>Pilih Klasifikasi PD (radio group):</label>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
-            <input type="radio" name="em_class_radio" id="em_r1" checked onchange="setEMClass('homogen')" style="display:none;">
-            <label for="em_r1" class="em-rad-lbl" data-c="homogen" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">Homogen ✓</label>
-            <input type="radio" name="em_class_radio" id="em_r2" onchange="setEMClass('nonhomogen')" style="display:none;">
-            <label for="em_r2" class="em-rad-lbl" data-c="nonhomogen" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">Non-Homogen</label>
-            <input type="radio" name="em_class_radio" id="em_r3" onchange="setEMClass('linear')" style="display:none;">
-            <label for="em_r3" class="em-rad-lbl" data-c="linear" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">Linear</label>
-            <input type="radio" name="em_class_radio" id="em_r4" onchange="setEMClass('nonlinear')" style="display:none;">
-            <label for="em_r4" class="em-rad-lbl" data-c="nonlinear" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">Non-Linear</label>
-          </div>
-        </div>
-      </div>
-      <div id="emRadInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
-      <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Setiap klasifikasi memiliki metode solusi yang berbeda. Visualisasi menampilkan contoh solusi tipikal per kategori.<br>
-        <strong>Insight:</strong> Homogen: r(x)=0, solusi y_h. Non-Homogen: y = y_h + y_p (particular). Linear: superposition principle berlaku. Non-Linear: kompleks, mungkin tidak ada closed-form.
-      </div>
-    </div>
-  </div>
-
-  <!-- Animasi 5: Dropdown (Topic-specific) + Signal Trace 1000 samples -->
-  <div class="anim-panel reveal">
-    <div class="anim-header">
-      <div class="anim-dot" style="background:#a855f7"></div>
-      <span class="anim-title">Animasi 5 — Pengenalan PD: Pilih Sub-Topik (Dropdown + Signal Trace)</span>
-    </div>
-    <div class="anim-body">
-      <canvas id="cvEMdrop" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
-      <div class="ctrl-row">
-        <div class="ctrl-group" style="flex:1 1 100%;">
-          <label>Pilih (Dropdown):</label>
-          <select id="sl_em_drop" onchange="setEMDrop(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
-            <option value="linear1">🔢 Orde 1 Linear — y' + p(x)y = q(x)</option>
-            <option value="linear2">📈 Orde 2 Linear — y'' + py' + qy = r(x)</option>
-            <option value="nonlinear">🌀 Non-Linear — y'² atau sin(y)</option>
-            <option value="partial">🌐 PDE — multi-variable</option>
-          </select>
-        </div>
-      </div>
-      <div id="emDropInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
-      <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Pilih sub-topik dari dropdown. Layout split: kiri label + formula, kanan signal trace solusi 1000 samples (~10 detik).<br>
-        <strong>Insight:</strong> Setiap sub-topik Pengenalan PD punya signature unik di domain waktu. Bandingkan shape decay/oscillation/growth antara opsi.
-      </div>
-    </div>
-  </div>
-
 </div>
 
 <!-- ═══ BAGIAN 01 — PENGERTIAN PERSAMAAN DIFERENSIAL ═══ -->
@@ -1493,6 +1405,95 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       </div>
     </div>
   </div>
+
+  <!-- Animasi 3: Toggle (Numerical vs Analytical) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--green)"></div>
+      <span class="anim-title">Animasi 3 — Numerical vs Analytical Solution (Toggle)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvEMtog" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+            Method:
+            <span style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;" onclick="toggleEMSolver()">
+              <input type="checkbox" id="sl_em_tog" style="display:none;">
+              <span id="em_tog_view" style="position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
+                <span style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
+              </span>
+              <span id="em_tog_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:700;">ANALYTICAL (closed-form)</span>
+            </span>
+          </label>
+        </div>
+      </div>
+      <div id="emTogInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Toggle metode solusi PD. Analytical: ekspresi tertutup (closed-form) dari teorema. Numerical: integrator step-by-step (RK4, Euler).<br>
+        <strong>Trade-off:</strong> Analytical exact tetapi terbatas pada kelas PD tertentu. Numerical universal tetapi punya error akumulasi + computational cost. Modern engineering: kombinasi keduanya — derive analytical untuk verify, run numerical untuk produksi.
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 4: Radio group (PD classification) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--pink)"></div>
+      <span class="anim-title">Animasi 4 — Klasifikasi PD: Pilih Tipe (Radio Group)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvEMrad" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih Klasifikasi PD (radio group):</label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+            <input type="radio" name="em_class_radio" id="em_r1" checked onchange="setEMClass('homogen')" style="display:none;">
+            <label for="em_r1" class="em-rad-lbl" data-c="homogen" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">Homogen ✓</label>
+            <input type="radio" name="em_class_radio" id="em_r2" onchange="setEMClass('nonhomogen')" style="display:none;">
+            <label for="em_r2" class="em-rad-lbl" data-c="nonhomogen" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">Non-Homogen</label>
+            <input type="radio" name="em_class_radio" id="em_r3" onchange="setEMClass('linear')" style="display:none;">
+            <label for="em_r3" class="em-rad-lbl" data-c="linear" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">Linear</label>
+            <input type="radio" name="em_class_radio" id="em_r4" onchange="setEMClass('nonlinear')" style="display:none;">
+            <label for="em_r4" class="em-rad-lbl" data-c="nonlinear" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">Non-Linear</label>
+          </div>
+        </div>
+      </div>
+      <div id="emRadInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Setiap klasifikasi memiliki metode solusi yang berbeda. Visualisasi menampilkan contoh solusi tipikal per kategori.<br>
+        <strong>Insight:</strong> Homogen: r(x)=0, solusi y_h. Non-Homogen: y = y_h + y_p (particular). Linear: superposition principle berlaku. Non-Linear: kompleks, mungkin tidak ada closed-form.
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 5: Dropdown (Topic-specific) + Signal Trace 1000 samples -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:#a855f7"></div>
+      <span class="anim-title">Animasi 5 — Pengenalan PD: Pilih Sub-Topik (Dropdown + Signal Trace)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvEMdrop" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih (Dropdown):</label>
+          <select id="sl_em_drop" onchange="setEMDrop(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
+            <option value="linear1">🔢 Orde 1 Linear — y' + p(x)y = q(x)</option>
+            <option value="linear2">📈 Orde 2 Linear — y'' + py' + qy = r(x)</option>
+            <option value="nonlinear">🌀 Non-Linear — y'² atau sin(y)</option>
+            <option value="partial">🌐 PDE — multi-variable</option>
+          </select>
+        </div>
+      </div>
+      <div id="emDropInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Pilih sub-topik dari dropdown. Layout split: kiri label + formula, kanan signal trace solusi 1000 samples (~10 detik).<br>
+        <strong>Insight:</strong> Setiap sub-topik Pengenalan PD punya signature unik di domain waktu. Bandingkan shape decay/oscillation/growth antara opsi.
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- ═══ BAGIAN 10 — APLIKASI & KOMPUTASI PYTHON ═══ -->
