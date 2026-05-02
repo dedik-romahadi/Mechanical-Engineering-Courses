@@ -4947,7 +4947,7 @@ function drawSysReal(){
   // Append to history (keep 200 points)
   if(!_sysRealHist) _sysRealHist=[];
   _sysRealHist.push(sigValue);
-  if(_sysRealHist.length>400) _sysRealHist.shift();
+  if(_sysRealHist.length>1000) _sysRealHist.shift();
 
   // ── RIGHT panel: Signal trace x(t) ──
   const padR=20, padTR=20, padBR=30;
@@ -4965,8 +4965,8 @@ function drawSysReal(){
   ctx.textAlign='left'; ctx.fillStyle='#22d3ee'; ctx.font='bold 11px JetBrains Mono';
   ctx.fillText(`Signal: ${label} [${sigUnit}]`,plotX0+6,plotY0+12);
   ctx.fillStyle='#94a3b8'; ctx.font='9px JetBrains Mono'; ctx.textAlign='center';
-  ctx.fillText('-4s',plotX0,plotY0+plotH+14);
-  ctx.fillText('-2s',plotX0+plotW/2,plotY0+plotH+14);
+  ctx.fillText('-10s',plotX0,plotY0+plotH+14);
+  ctx.fillText('-5s',plotX0+plotW/2,plotY0+plotH+14);
   ctx.fillText('now',plotX0+plotW,plotY0+plotH+14);
   // Trace — bright cyan dengan fill area di bawah
   const N=_sysRealHist.length;
@@ -4976,11 +4976,11 @@ function drawSysReal(){
     ctx.beginPath();
     ctx.moveTo(plotX0, plotY0+plotH/2);
     for(let i=0;i<N;i++){
-      const px=plotX0 + (i/399)*plotW;
+      const px=plotX0 + (i/999)*plotW;
       const py=plotY0+plotH/2 - _sysRealHist[i]*(plotH/2-8);
       ctx.lineTo(px,py);
     }
-    ctx.lineTo(plotX0 + ((N-1)/399)*plotW, plotY0+plotH/2);
+    ctx.lineTo(plotX0 + ((N-1)/999)*plotW, plotY0+plotH/2);
     ctx.closePath();
     ctx.fill();
   }
@@ -4989,7 +4989,7 @@ function drawSysReal(){
   ctx.lineJoin='round'; ctx.lineCap='round';
   ctx.beginPath();
   for(let i=0;i<N;i++){
-    const px=plotX0 + (i/399)*plotW;
+    const px=plotX0 + (i/999)*plotW;
     const py=plotY0+plotH/2 - _sysRealHist[i]*(plotH/2-8);
     if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
   }
