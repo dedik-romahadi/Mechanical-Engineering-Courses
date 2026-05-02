@@ -900,384 +900,378 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 01 — APA ITU SISTEM 2 DoF? ═══ -->
+<!-- ═══ BAGIAN 01 — CONDITION MONITORING & PdM ═══ -->
 <hr class="divider" style="margin-top:64px">
 <div class="section" id="m-pengantar">
   <div class="section-label reveal">Bagian 01</div>
-  <h2 class="section-title reveal">Apa Itu Sistem 2 DoF?<br>Saat Satu Massa Saja Tidak Cukup</h2>
-  <p class="section-desc reveal">Pada Pertemuan 1–6, kita selalu menganalisis <strong>satu massa</strong> bergetar (1 DoF — derajat kebebasan). Tetapi mesin nyata jarang sesederhana itu. Mobil punya bodi <em>dan</em> roda. Gedung punya banyak lantai. Turbin punya rotor <em>dan</em> casing. Setiap bagian bisa bergerak independen — sehingga butuh <strong>≥ 2 koordinat</strong> untuk menjelaskan posisi sistem secara lengkap. Itulah <strong>sistem 2 DoF</strong>.</p>
+  <h2 class="section-title reveal">Condition Monitoring &amp; Predictive Maintenance:<br>Dari Reactive ke Proactive</h2>
+  <p class="section-desc reveal">Sebelum era CM, mesin industri dijaga dengan dua pendekatan ekstrem: <strong>run-to-failure</strong> (boros, downtime tinggi) atau <strong>scheduled preventive</strong> (over-maintenance, biaya besar). <strong>Condition Monitoring (CM)</strong> dengan vibration analysis membuka pendekatan ketiga: <strong>Predictive Maintenance (PdM)</strong> — maintenance dilakukan <em>tepat waktu</em> berdasarkan kondisi aktual mesin. Pertemuan ini integrasi semua tools yang sudah dipelajari (FFT, time-domain stats, envelope analysis) ke workflow CM industri.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Definisi Sederhana</div>
-    Derajat kebebasan = jumlah koordinat independen yang diperlukan untuk mendeskripsikan posisi sistem pada saat tertentu.
+    <div class="label">Tiga Strategi Maintenance</div>
+    Reactive (run-to-failure) · Preventive (scheduled) · <strong>Predictive (CM-based)</strong>
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">🚗</div>
-      <h3>Suspensi Mobil</h3>
-      <p>Bodi mobil bergerak naik-turun (x₁), sekaligus roda juga bergerak naik-turun (x₂) saat melewati jalan bergelombang. Dua koordinat → 2 DoF.</p>
-      <div class="formula">x₁ (bodi) &nbsp;|&nbsp; x₂ (roda)</div>
+      <div class="card-icon">💸</div>
+      <h3>Reactive — Run to Failure</h3>
+      <p>Tunggu sampai rusak, baru perbaiki. Murah upfront, tapi: unplanned downtime, kerusakan secondary (rotor break → casing damage), risiko safety. Cocok hanya untuk komponen non-critical &amp; murah.</p>
+      <div class="formula">Cost: rendah but high downtime risk</div>
     </div>
     <div class="card">
-      <div class="card-icon">🏢</div>
-      <h3>Gedung 2 Lantai</h3>
-      <p>Lantai 1 bergeser horizontal sebesar x₁ saat angin/gempa, lantai 2 bergeser sebesar x₂. Dua lantai = 2 DoF.</p>
-      <div class="formula">x₁ (lantai 1) &nbsp;|&nbsp; x₂ (lantai 2)</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">⚙️</div>
-      <h3>Dua Massa Terkait Pegas</h3>
-      <p>Sistem klasik 2 DoF: dua massa m₁ dan m₂ dihubungkan oleh tiga pegas k₁, k₂, k₃ (dua pegas ke dinding, satu di tengah). Inilah model referensi modul ini.</p>
-      <div class="formula">m₁=m₂=1 kg, k=100 N/m</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">🎵</div>
-      <h3>Speaker Gitar</h3>
-      <p>Membran speaker (m₁) terhubung ke kotak (m₂) lewat pegas. Saat dimainkan, keduanya bergetar — itulah kenapa kotak speaker ikut "menggetar".</p>
-      <div class="formula">2 mode getaran utama</div>
-    </div>
-  </div>
-
-  <div class="info-box reveal">
-    <strong>Mengapa 2 DoF Begitu Penting?</strong><br>
-    Sistem 1 DoF hanya punya <strong>satu</strong> frekuensi pribadi ωₙ. Tetapi sistem 2 DoF punya <strong>dua</strong> frekuensi pribadi (ω₁ dan ω₂) — masing-masing dengan <strong>pola gerak (mode shape)</strong>-nya sendiri. Memahami ini adalah jembatan menuju multi-DoF (gedung 10 lantai, mesin pesawat, dll). Konsepnya sama, hanya jumlah-nya bertambah.
-  </div>
-
-  <div class="tip-box reveal">
-    💡 <strong>Aturan Mudah:</strong> Banyaknya frekuensi pribadi sebuah sistem getaran = banyaknya derajat kebebasannya. 1 DoF → 1 ω. 2 DoF → 2 ω (ω₁ &lt; ω₂). N DoF → N ω. Pertemuan 15 fokus pada N=2 sebagai pintu masuk paling intuitif.
-  </div>
-</div>
-
-<!-- ═══ BAGIAN 02 — PERSAMAAN GERAK MATRIKS ═══ -->
-<hr class="divider">
-<div class="section" id="m-eom">
-  <div class="section-label reveal">Bagian 02</div>
-  <h2 class="section-title reveal">Persamaan Gerak Matriks:<br>Bahasa Universal Sistem 2 DoF</h2>
-  <p class="section-desc reveal">Untuk sistem 1 DoF, persamaan geraknya: <strong>m·ẍ + k·x = 0</strong>. Untuk 2 DoF, kita punya <strong>dua</strong> persamaan — satu untuk tiap massa. Lebih praktis menulisnya dalam <strong>bentuk matriks</strong>: <strong>M·ẍ + K·x = 0</strong>, dengan M = matriks massa, K = matriks kekakuan, x = vektor [x₁, x₂].</p>
-
-  <div class="formula-block reveal">
-    <div class="label">Sistem Referensi Modul Ini — Dua Massa, Tiga Pegas</div>
-    Massa: m₁ = m₂ = 1 kg &nbsp;·&nbsp; Pegas: k₁ = k₂ = k₃ = 100 N/m
-  </div>
-
-  <div class="cards reveal" style="margin-bottom:32px">
-    <div class="card">
-      <div class="card-icon">📐</div>
-      <h3>Free-Body Diagram Massa 1</h3>
-      <p>Massa 1 ditarik pegas k₁ ke kiri dengan gaya <code>−k₁·x₁</code> dan ditarik/ditolak oleh pegas tengah k₂ dengan gaya <code>−k₂·(x₁−x₂)</code>. Hukum Newton:</p>
-      <div class="formula">m₁·ẍ₁ = −k₁·x₁ − k₂·(x₁ − x₂)</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">📐</div>
-      <h3>Free-Body Diagram Massa 2</h3>
-      <p>Massa 2 ditarik pegas tengah k₂ dengan gaya <code>−k₂·(x₂−x₁)</code> dan pegas k₃ ke kanan dengan gaya <code>−k₃·x₂</code>:</p>
-      <div class="formula">m₂·ẍ₂ = −k₂·(x₂ − x₁) − k₃·x₂</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">🔢</div>
-      <h3>Bentuk Matriks (Singkat)</h3>
-      <p>Kedua persamaan dirapikan: <code>m₁·ẍ₁ + (k₁+k₂)x₁ − k₂·x₂ = 0</code> dan <code>m₂·ẍ₂ − k₂·x₁ + (k₂+k₃)x₂ = 0</code>. Dalam matriks:</p>
-      <div class="formula">M·ẍ + K·x = 0</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">✅</div>
-      <h3>Substitusi Angka Referensi</h3>
-      <p>Dengan m₁=m₂=1 dan k₁=k₂=k₃=100, kita peroleh M = identitas dan K simetris dengan diagonal 200, off-diagonal −100:</p>
-      <div class="formula">M = [[1,0],[0,1]] &nbsp;·&nbsp; K = [[200,−100],[−100,200]]</div>
-    </div>
-  </div>
-
-  <div class="info-box reveal">
-    <strong>Kenali Pola Matriks Kekakuan K</strong><br>
-    Diagonal K(i,i) = jumlah semua kekakuan yang menempel ke massa-i. Off-diagonal K(i,j) = <strong>negatif</strong> kekakuan pegas yang menghubungkan massa-i dan massa-j. K selalu <strong>simetris</strong> (K(i,j) = K(j,i)). Pola ini berlaku universal untuk N DoF — kita tidak perlu menurunkan ulang dari Hukum Newton tiap kali.
-  </div>
-
-  <div class="tip-box reveal">
-    💡 <strong>Cek cepat:</strong> Untuk sistem referensi kita, matriks K = [[200, −100], [−100, 200]]. Trace(K) = 200+200 = 400. Det(K) = 200·200 − (−100)·(−100) = 40000 − 10000 = 30000. Kedua angka ini akan muncul lagi saat kita cari frekuensi pribadi di Bagian 03 — sama seperti Vieta's formula untuk akar polinomial.
-  </div>
-</div>
-
-<!-- ═══ BAGIAN 03 — EIGENVALUE PROBLEM ═══ -->
-<hr class="divider">
-<div class="section" id="m-eigen">
-  <div class="section-label reveal">Bagian 03</div>
-  <h2 class="section-title reveal">Eigenvalue Problem:<br>Mencari Dua Frekuensi Pribadi ω₁ & ω₂</h2>
-  <p class="section-desc reveal">Kita tebak solusi harmonik: tiap massa bergerak dengan frekuensi yang sama ω, tetapi dengan amplitudo berbeda. <code>x(t) = X·sin(ωt)</code> dengan X = vektor [X₁, X₂]. Substitusi ke <code>M·ẍ + K·x = 0</code> menghasilkan <strong>(K − ω²M)·X = 0</strong> — yang dikenal sebagai <strong>eigenvalue problem</strong>.</p>
-
-  <div class="formula-block reveal">
-    <div class="label">Persamaan Karakteristik (Cara Mencari ω)</div>
-    det(K − ω²·M) = 0
-  </div>
-
-  <div class="cards reveal" style="margin-bottom:32px">
-    <div class="card">
-      <div class="card-icon">🔍</div>
-      <h3>Langkah 1 — Tulis Determinan</h3>
-      <p>Dengan parameter referensi: <code>K − ω²M = [[200−ω², −100], [−100, 200−ω²]]</code>. Determinan = (200−ω²)² − (−100)(−100) = (200−ω²)² − 10000.</p>
-      <div class="formula">(200 − ω²)² − 10000 = 0</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">🧮</div>
-      <h3>Langkah 2 — Selesaikan untuk ω²</h3>
-      <p>Akar kuadrat kedua sisi: <code>200 − ω² = ±100</code>. Sehingga ω² = 200 − 100 = 100 (akar pertama, kecil) dan ω² = 200 + 100 = 300 (akar kedua, besar).</p>
-      <div class="formula">ω₁² = 100 &nbsp;·&nbsp; ω₂² = 300</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">✨</div>
-      <h3>Langkah 3 — Akar Frekuensi</h3>
-      <p>Ambil akar kuadrat: <code>ω₁ = √100 = 10 rad/s</code> dan <code>ω₂ = √300 ≈ 17.32 rad/s</code>. Selalu pilih ω &gt; 0; konvensi: ω₁ &lt; ω₂.</p>
-      <div class="formula">ω₁ = 10 rad/s &nbsp;·&nbsp; ω₂ ≈ 17.32 rad/s</div>
+      <div class="card-icon">📅</div>
+      <h3>Preventive — Scheduled</h3>
+      <p>Maintenance interval tetap (mis. tiap 3 bulan). Banyak komponen diganti walau masih sehat → over-maintenance &amp; mahal spare parts. Komponen yang gagal di antara interval tetap tidak terdeteksi. Industri petrokimia &amp; aerospace banyak pakai ini.</p>
+      <div class="formula">Cost: tinggi (over-maintenance)</div>
     </div>
     <div class="card">
       <div class="card-icon">📊</div>
-      <h3>Konversi ke Hertz & Periode</h3>
-      <p>f = ω/(2π), T = 2π/ω. Hasilnya: f₁ ≈ 1.59 Hz (T₁ ≈ 0.63 s), f₂ ≈ 2.76 Hz (T₂ ≈ 0.36 s). Mode 2 lebih cepat daripada Mode 1.</p>
-      <div class="formula">f₁ ≈ 1.59 Hz, f₂ ≈ 2.76 Hz</div>
+      <h3>Predictive — Condition-Based</h3>
+      <p>Sensor monitor kondisi aktual (vibration, temperature, oil quality). Maintenance dilakukan <strong>saat indikator menunjukkan degradasi</strong>. Optimal cost-effectiveness. Standar di rotating equipment-heavy industries (oil &amp; gas, power gen, manufacturing).</p>
+      <div class="formula">Cost: minimum + max uptime</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🤖</div>
+      <h3>Prescriptive (Future)</h3>
+      <p>Tahap berikutnya: AI/ML tidak hanya prediksi failure tapi juga <em>recommend action</em> (mis. "ganti bearing #3 dalam 2 minggu, source dari supplier X dengan part number Y"). Implementasi cloud + edge inference. Use case: digital twin enterprise platforms.</p>
+      <div class="formula">CM + AI → autonomous maintenance</div>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Cara Cepat: Pakai numpy.linalg.eig</strong><br>
-    Untuk sistem &gt; 2 DoF, menyelesaikan determinan tangan jadi rumit. Pakai komputer:
-    <code style="display:block;background:#020a18;padding:10px 14px;border-radius:8px;margin-top:8px;color:var(--cyan)">A = np.linalg.inv(M) @ K  &nbsp;&nbsp;# matriks dinamis<br>w_squared, modes = np.linalg.eig(A)<br>omegas = np.sqrt(w_squared)</code>
-    Pyodide di browser sudah punya numpy — kode di atas bisa langsung dijalankan di tab Tugas.
+    <strong>ROI Predictive Maintenance — Numbers Real</strong><br>
+    Studi industri (US Department of Energy 2010): vs reactive maintenance, PdM dengan CM mengurangi:<br>
+    • <strong>Maintenance cost</strong>: 25-30%<br>
+    • <strong>Breakdowns</strong>: 70-75%<br>
+    • <strong>Downtime</strong>: 35-45%<br>
+    • <strong>Production output</strong>: naik 20-25% karena uptime<br>
+    Payback period investasi sensor + monitoring system: <strong>6-12 bulan</strong> untuk pabrik tipikal &gt; 50 mesin critical. ROI 8-12× dalam 3 tahun.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Cek dengan Trace & Determinan:</strong> Untuk sistem 2 DoF dengan M = identitas, ada identitas Vieta sederhana: <code>ω₁² + ω₂² = trace(K)</code> dan <code>ω₁²·ω₂² = det(K)</code>. Verifikasi: 100 + 300 = 400 ✓ (= trace K), dan 100 × 300 = 30000 ✓ (= det K). Cocok!
+    💡 <strong>Standar P-F Curve:</strong> P-F (Potential Failure → Functional Failure) curve menunjukkan degradasi mesin dari first detection sampai actual failure. Vibration monitoring dapat detect P (initial fault) <strong>weeks-to-months</strong> sebelum F (catastrophic failure). Inilah window yang dimanfaatkan PdM untuk planned maintenance.
   </div>
 </div>
 
-<!-- ═══ BAGIAN 04 — MODE SHAPES ═══ -->
+<!-- ═══ BAGIAN 02 — SENSOR SELECTION & MOUNTING ═══ -->
+<hr class="divider">
+<div class="section" id="m-eom">
+  <div class="section-label reveal">Bagian 02</div>
+  <h2 class="section-title reveal">Sensor Selection &amp; Mounting:<br>Quality In = Quality Out</h2>
+  <p class="section-desc reveal">Best algoritma analisis tidak bisa kompensasi data sensor yang buruk. Pemilihan tipe accelerometer, sensitivitas, frequency range, dan <em>cara mounting</em> menentukan kualitas data getaran. Pemahaman ini fundamental untuk implementasi CM yang reliable.</p>
+
+  <div class="formula-block reveal">
+    <div class="label">Aturan Pemilihan Sensor</div>
+    Sensitivity dipilih berdasarkan amplitude expected · Frequency range minimal 5× target band of interest
+  </div>
+
+  <div class="cards reveal" style="margin-bottom:32px">
+    <div class="card">
+      <div class="card-icon">⚡</div>
+      <h3>IEPE (ICP / Piezoelectric)</h3>
+      <p>Tipe paling umum untuk industrial CM. Built-in amplifier, output 4-20 mA (current loop) atau ±5V. Sensitivitas tipikal: 100 mV/g. Frequency range 0.5 Hz - 10 kHz+. Robust, akurat, tahan suhu (+125°C). Brand: PCB, Endevco, Brüel &amp; Kjær.</p>
+      <div class="formula">100 mV/g, 0.5 Hz - 10 kHz</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📱</div>
+      <h3>MEMS (Micro-Electro-Mechanical)</h3>
+      <p>Chip-based sensor (cm-scale), murah, low-power. Cocok untuk wireless monitoring &amp; IoT (Bagian 03). Frequency range terbatas (DC-1 kHz tipikal), noise lebih tinggi dari IEPE. Brand: Analog Devices ADXL355, ST IIS3DWB.</p>
+      <div class="formula">DC - 1 kHz, low cost, IoT-ready</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔬</div>
+      <h3>Velocity / Displacement Probe</h3>
+      <p>Velocity (electromagnetic) coil-based. Displacement (eddy current proximity probe non-contact). Velocity untuk overall vibration ISO 10816. Displacement untuk shaft-relative monitoring (turbine bearing journal).</p>
+      <div class="formula">Velocity: 4 mV/(mm/s); Disp: 8 V/mm</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📍</div>
+      <h3>Mounting Method Hierarchy</h3>
+      <p>Frequency response naik dari low → high mounting quality:<br>(1) <strong>Hand-held</strong> &lt; 1 kHz (poor)<br>(2) <strong>Magnetic</strong> &lt; 2 kHz (decent)<br>(3) <strong>Adhesive</strong> &lt; 5 kHz (good)<br>(4) <strong>Stud mount</strong> &lt; 10+ kHz (excellent, factory standard)</p>
+      <div class="formula">Stud mount untuk frequency &gt; 5 kHz</div>
+    </div>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>Sensor Placement — Critical Dont's</strong><br>
+    1) <strong>Selalu di housing bearing</strong> — bukan casing motor jauh, bukan baseplate. Path force ke bearing harus minimal.<br>
+    2) <strong>Direction matters</strong>: radial (horizontal &amp; vertikal) untuk most fault detection. Axial untuk thrust bearing &amp; misalignment.<br>
+    3) <strong>Avoid resonance amplification</strong>: jangan mount di pelat tipis yang bergetar bebas — energi sensor terbias oleh resonance plate.<br>
+    4) <strong>Mount surface flat &amp; clean</strong>: gunakan grinding atau machining surface mounting jika permukaan kasar. Dust/oil reduce contact rigidity.<br>
+    5) <strong>Cable management</strong>: cable strain causes triboelectric noise. Secure cable, bend radius &gt; 10× cable diameter.
+  </div>
+
+  <div class="tip-box reveal">
+    💡 <strong>Best Practice Industri:</strong> Drill &amp; tap stud hole pada housing bearing saat instalasi awal mesin. Permanent stud mount dengan removable accelerometer connector. Sensor bisa di-rotate antar mesin untuk route-based monitoring sambil tetap dapat consistent measurement quality.
+  </div>
+</div>
+
+<!-- ═══ BAGIAN 03 — DATA ACQUISITION WORKFLOW ═══ -->
+<hr class="divider">
+<div class="section" id="m-eigen">
+  <div class="section-label reveal">Bagian 03</div>
+  <h2 class="section-title reveal">Data Acquisition Workflow:<br>Sensor → ADC → Analysis Pipeline</h2>
+  <p class="section-desc reveal">Sinyal analog dari accelerometer harus dikonversi ke digital (ADC) lalu diproses. Setiap stage memiliki parameter yang mempengaruhi quality &amp; cost. Memahami pipeline penting untuk troubleshooting dan optimisasi sistem CM.</p>
+
+  <div class="formula-block reveal">
+    <div class="label">DAQ Pipeline Klasik</div>
+    Sensor → Signal Conditioning → AAF → ADC → Edge/Cloud Processing → Database → Dashboard
+  </div>
+
+  <div class="cards reveal" style="margin-bottom:32px">
+    <div class="card">
+      <div class="card-icon">🔌</div>
+      <h3>Signal Conditioning</h3>
+      <p>Power IEPE sensor (4 mA current source). Amplifier untuk sensitivity matching. High-pass filter (~0.5 Hz) menghilangkan DC drift. Pelindung overvoltage. Modul DAQ industrial built-in semua ini (NI 9234, B&amp;K LAN-XI).</p>
+      <div class="formula">4 mA IEPE bias + HP filter</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🛡️</div>
+      <h3>Anti-Aliasing Filter (AAF)</h3>
+      <p>Low-pass analog filter sebelum ADC. Cutoff = fs/2.5 (margin filter roll-off). Tanpa AAF, frekuensi &gt; fs/2 alias jadi komponen palsu di spektrum. Critical untuk diagnosis benar.</p>
+      <div class="formula">AAF cutoff ≈ fs / 2.5</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔢</div>
+      <h3>ADC Resolution &amp; Range</h3>
+      <p>Industrial: 24-bit resolution (140 dB dynamic range), oversampled. Range ±5V atau ±10V tipikal. Harus sufficient untuk both small (zone A) dan large (zone D) signals tanpa clipping.</p>
+      <div class="formula">24-bit, 140 dB DR, ±5V</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">☁️</div>
+      <h3>Edge vs Cloud Processing</h3>
+      <p><strong>Edge</strong>: ADC + statistik dasar di node sensor. Hanya kirim summary (RMS, peaks) ke cloud. Latency rendah, bandwidth hemat.<br><strong>Cloud</strong>: Raw waveform di-upload, processing di server. Flexible analytics, tapi butuh bandwidth besar &amp; rentan latency.</p>
+      <div class="formula">Edge for monitoring, Cloud for diagnostics</div>
+    </div>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>Common Industrial DAQ Architectures</strong><br>
+    1) <strong>Wired Distributed</strong>: NI cDAQ chassis dengan modules (9234), ethernet ke server. Reliable, deterministic, expensive untuk large fleet.<br>
+    2) <strong>Wireless Sensor Network (WSN)</strong>: MEMS sensor + radio (LoRa, ZigBee), gateway aggregator. Murah, mudah deploy, terbatas bandwidth (1-10 kSps tipikal).<br>
+    3) <strong>Industrial IoT (IIoT)</strong>: IEPE + edge compute (NVIDIA Jetson, Raspberry Pi), MQTT/AMQP ke cloud. Fleet monitoring scalable. Brand: Augury, Petasense, Senseye.<br>
+    4) <strong>Permanent Online Monitoring</strong>: Critical machinery only (mis. turbine generator). Permanent sensor + dedicated rack DAQ + 24/7 monitoring station. Investment $50K-200K per machine, justified untuk &gt; $1M assets.
+  </div>
+
+  <div class="tip-box reveal">
+    💡 <strong>Bandwidth Estimation:</strong> Raw waveform 25.6 kHz × 24-bit = 75 KB/s per channel. 10 channels → 750 KB/s = 65 GB/day. Cloud upload tidak feasible untuk semua mesin. Solusi: edge processing kompresi ke statistical features (RMS, top peaks) — 10 bytes/measurement, &lt; 1 GB/year per channel. Hanya raw waveform on-demand untuk diagnostic deep dive.
+  </div>
+</div>
+
+<!-- ═══ BAGIAN 04 — FEATURE EXTRACTION ═══ -->
 <hr class="divider">
 <div class="section" id="m-modes">
   <div class="section-label reveal">Bagian 04</div>
-  <h2 class="section-title reveal">Mode Shapes:<br>Setiap Frekuensi Punya "Tarian"-Nya Sendiri</h2>
-  <p class="section-desc reveal">Setiap frekuensi pribadi ω<sub>i</sub> tidak hanya angka — ia punya <strong>pola gerak</strong> spesifik yang menjelaskan <em>bagaimana</em> kedua massa bergerak relatif satu sama lain saat bergetar di frekuensi itu. Pola ini disebut <strong>mode shape</strong> (vektor eigenvalue). Untuk sistem referensi, kita akan temukan dua mode yang sangat intuitif.</p>
+  <h2 class="section-title reveal">Feature Extraction Pipeline:<br>Dari Raw Waveform ke Diagnostic Numbers</h2>
+  <p class="section-desc reveal">Raw waveform tidak praktis di-store atau di-trend. Workflow CM mengekstrak <strong>features</strong> — angka-angka kompak yang merepresentasikan kondisi mesin. Features ini di-trend, di-threshold, atau diumpan ke ML model untuk diagnosis. Strategi feature extraction tergantung use case.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Cara Menghitung Mode Shape</div>
-    Untuk tiap ω<sub>i</sub>, substitusi balik ke <code>(K − ω<sub>i</sub>²M)·X = 0</code>, lalu cari rasio X₁ : X₂.
+    <div class="label">Tiga Kategori Features</div>
+    Time-Domain · Frequency-Domain · Hybrid (Statistical Spectrum)
+  </div>
+
+  <div class="cards reveal" style="margin-bottom:32px">
+    <div class="card">
+      <div class="card-icon">⏱️</div>
+      <h3>Time-Domain Features</h3>
+      <p>Sudah dipelajari Pertemuan 13. Yang sering dipakai untuk CM: <strong>RMS, peak, crest factor, kurtosis, skewness</strong>. Komputasi cepat (O(N)), cocok untuk edge processing, robust terhadap noise.</p>
+      <div class="formula">RMS, Peak, CF, Kurt, Skew</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <h3>Frequency-Domain Features</h3>
+      <p>Setelah FFT: amplitude di <strong>frekuensi karakteristik</strong> (1×rpm, 2×rpm, BPFO, BPFI, GMF). Total energy per band. Center of gravity spectrum. Spectral entropy (ukuran "kekacauan" spektrum).</p>
+      <div class="formula">A(1×), A(BPFO), Spectral entropy</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔬</div>
+      <h3>Envelope-Domain Features</h3>
+      <p>Setelah envelope analysis: amplitude di BPFO, BPFI, BSF, FTF. Modulation index (rasio amplitude carrier vs envelope sideband). Specifically targeted untuk bearing fault diagnosis. Lebih sensitive than raw frequency features.</p>
+      <div class="formula">Envelope @ BPFO, BPFI, modulation index</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🤖</div>
+      <h3>Higher-Order Features (ML)</h3>
+      <p>Wavelet coefficients, Empirical Mode Decomposition (EMD) modes, autoencoder latent space. Memungkinkan ML model belajar pattern complex yang tidak captured by classical features. Trade-off: butuh training data &amp; computational resources.</p>
+      <div class="formula">Wavelet, EMD, autoencoder embeddings</div>
+    </div>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>Feature Selection Strategy</strong><br>
+    Untuk fleet monitoring 100+ mesin, kompromi feature count:<br>
+    • <strong>Tier 1 (always)</strong>: RMS, peak, kurtosis, 1×rpm, 2×rpm amplitude. ~5 features. Untuk severity-based alarm.<br>
+    • <strong>Tier 2 (for critical machines)</strong>: + envelope BPFO/BPFI, GMF, harmonic series. ~15 features. Untuk diagnostic-grade.<br>
+    • <strong>Tier 3 (R&amp;D)</strong>: full spectrum + wavelet + ML embeddings. ~100+ features. Untuk anomaly detection &amp; novel fault discovery.<br>
+    Hindari "feature creep" — terlalu banyak features = false alarm bertambah, bukan diagnosis lebih akurat.
+  </div>
+
+  <div class="tip-box reveal">
+    💡 <strong>Aturan Feature Engineering:</strong> Domain-specific features (BPFO amplitude) hampir selalu mengalahkan generic features (FFT bin amplitude) dalam akurasi diagnosis. Engineer dengan pengetahuan mesin > engineer ML murni. Kombinasi terbaik: domain expert + data scientist.
+  </div>
+</div>
+
+<!-- ═══ BAGIAN 05 — DIAGNOSIS BEARING FAULTS ═══ -->
+<hr class="divider">
+<div class="section" id="m-analogi">
+  <div class="section-label reveal">Bagian 05</div>
+  <h2 class="section-title reveal">Diagnosis Bearing Faults:<br>BPFO, BPFI, BSF Real Cases</h2>
+  <p class="section-desc reveal">Bearing failure adalah penyebab #1 kerusakan pada rotating machinery (sekitar 50% kasus). Diagnosis bearing dengan envelope analysis sudah dipelajari di Pertemuan 14. Bagian ini fokus pada <strong>real-world case patterns</strong> dan diagnostic decision tree yang digunakan engineer praktisi.</p>
+
+  <div class="formula-block reveal">
+    <div class="label">Severity Stages — Bearing Defect Progression</div>
+    Stage 1 (incipient) · Stage 2 (developing) · Stage 3 (advanced) · Stage 4 (catastrophic)
+  </div>
+
+  <div class="cards reveal" style="margin-bottom:32px">
+    <div class="card">
+      <div class="card-icon">🟢</div>
+      <h3>Stage 1 — Incipient (Months Lead Time)</h3>
+      <p>Defect mulai (small spall, brinell mark). Time-domain: kurtosis naik (4-8), RMS &amp; crest masih normal. Envelope: BPFO/BPFI mulai terdeteksi tapi amplitude rendah. Action: <strong>monitor closer, schedule inspection</strong>.</p>
+      <div class="formula">Lead time: 3-6 bulan</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🟡</div>
+      <h3>Stage 2 — Developing (Weeks Lead Time)</h3>
+      <p>Spall meluas. Time-domain: kurtosis tinggi (8-15), crest factor 6-10, RMS naik 1.5-2× baseline. Envelope: BPFO/BPFI dominan, harmonik 2× muncul. Action: <strong>plan replacement dalam 4-8 minggu</strong>.</p>
+      <div class="formula">Lead time: 4-8 minggu</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🟠</div>
+      <h3>Stage 3 — Advanced (Days Lead Time)</h3>
+      <p>Multiple defect zones. Time-domain: RMS zone C/D, crest mungkin DROP balik (banyak spike rata-ratain). Envelope: high amplitude, sidebands. <strong>Plan immediate replacement next maintenance window</strong>.</p>
+      <div class="formula">Lead time: 1-7 hari</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔴</div>
+      <h3>Stage 4 — Catastrophic (Hours)</h3>
+      <p>Cage damage, ball fracture imminent. RMS zone D, time-domain features extreme. Mungkin bearing seize → secondary damage shaft, casing. <strong>EMERGENCY SHUTDOWN</strong>.</p>
+      <div class="formula">Lead time: hours, immediate stop</div>
+    </div>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>Decision Tree: Bearing Fault Diagnosis</strong><br>
+    1) <strong>RMS velocity zone D</strong>? → Emergency shutdown.<br>
+    2) <strong>Kurtosis &gt; 8 + Crest &gt; 6</strong>? → Suspected bearing fault. Lakukan envelope analysis.<br>
+    3) <strong>Envelope peak di BPFO</strong>? → Outer race defect. Trend amplitude weekly.<br>
+    4) <strong>Envelope peak di BPFI + sidebands at f<sub>r</sub></strong>? → Inner race defect (more severe, biasanya).<br>
+    5) <strong>Envelope peak di BSF (often 2×BSF)</strong>? → Ball/roller defect.<br>
+    6) <strong>Envelope peak di FTF</strong>? → Cage damage (rarest, but dangerous — cage failure = bearing seize).<br>
+    Trend semua 4 frekuensi (BPFO/BPFI/BSF/FTF) selama beberapa minggu sebelum decisi replacement.
+  </div>
+
+  <div class="tip-box reveal">
+    💡 <strong>Real-World Tip:</strong> Banyak case di industri menunjukkan kombinasi BPFO + BPFI muncul bersamaan — disebut "race etching" akibat lubrication failure (oil contamination, dry running). Solution bukan hanya ganti bearing, tapi inspect &amp; fix sistem lubrikasi.
+  </div>
+</div>
+
+<!-- ═══ BAGIAN 06 — DIAGNOSIS MEKANIS FAULTS ═══ -->
+<hr class="divider">
+<div class="section" id="m-anim">
+  <div class="section-label reveal">Bagian 06</div>
+  <h2 class="section-title reveal">Diagnosis Mechanical Faults:<br>Unbalance, Misalignment, Looseness</h2>
+  <p class="section-desc reveal">Selain bearing, fault mekanis classic — <strong>unbalance, misalignment, looseness</strong> — bertanggung jawab untuk ~30% kasus vibration excessive. Diagnosis dari spektrum integer harmonic. Setiap fault punya pattern khas yang dapat di-decode dengan mudah setelah cukup latihan.</p>
+
+  <div class="formula-block reveal">
+    <div class="label">Pattern Spektrum Tiga Fault Klasik</div>
+    Unbalance: 1×rpm dominant · Misalignment: 1×, 2×rpm · Looseness: 1×, 2×, 3×, ... rpm series
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
       <div class="card-icon">⚖️</div>
-      <h3>Mode 1 (ω₁ = 10) — In-Phase</h3>
-      <p>Substitusi ω₁²=100: <code>(K − 100·I) = [[100,−100],[−100,100]]</code>. Baris pertama: <code>100·X₁ − 100·X₂ = 0 → X₁ = X₂</code>. Mode 1 = <strong>[1, 1]</strong> — kedua massa bergerak <strong>searah dan sama besar</strong>.</p>
-      <div class="formula">Mode 1: X₁ = X₂ = 1 (in-phase)</div>
+      <h3>Unbalance — 1× rpm Dominant</h3>
+      <p>Center of mass tidak coincide dengan rotation axis. Spektrum: <strong>peak di 1× rpm</strong>, low di 2× dan harmonic lain. Phase difference radial 90° antara horizontal &amp; vertical = pure unbalance. Solusi: <strong>dynamic balancing</strong> dengan trial weights — bisa di-correct di field tanpa disassembly.</p>
+      <div class="formula">1×rpm peak + 90° phase = unbalance</div>
     </div>
     <div class="card">
       <div class="card-icon">↔️</div>
-      <h3>Mode 2 (ω₂ ≈ 17.32) — Anti-Phase</h3>
-      <p>Substitusi ω₂²=300: <code>(K − 300·I) = [[−100,−100],[−100,−100]]</code>. Baris pertama: <code>−100·X₁ − 100·X₂ = 0 → X₁ = −X₂</code>. Mode 2 = <strong>[1, −1]</strong> — kedua massa bergerak <strong>berlawanan</strong>.</p>
-      <div class="formula">Mode 2: X₁ = −X₂ (anti-phase)</div>
+      <h3>Misalignment — 2× rpm Dominant</h3>
+      <p>Coupling shaft tidak collinear (parallel offset, angular). Spektrum: <strong>peak di 2× rpm</strong>, often higher than 1×. Phase: 180° between bearings flanking coupling. Tipe: parallel (radial vibration), angular (axial vibration). Solusi: <strong>laser shaft alignment</strong>.</p>
+      <div class="formula">2×rpm peak + 180° phase = misalignment</div>
     </div>
     <div class="card">
-      <div class="card-icon">🌊</div>
-      <h3>Mengapa Mode 1 Lebih Lambat?</h3>
-      <p>Pada Mode 1, kedua massa bergerak bersama → pegas tengah <strong>tidak tertekan/ditarik</strong> sama sekali. Sistem efektif hanya pakai pegas k₁ dan k₃. Lebih sedikit kekakuan = ω lebih kecil.</p>
-      <div class="formula">ω₁_efektif = √((k₁+k₃)/m) = 10 rad/s ✓</div>
+      <div class="card-icon">🔩</div>
+      <h3>Looseness — Multi-Harmonic</h3>
+      <p>Baut longgar, fit longgar, foundation crack. Spektrum: <strong>multi-harmonic 1×, 2×, 3×, 4×, 5×, 6×</strong> rpm. Time waveform: clipped (impulse pattern). Solusi: <strong>tighten bolts, repair foundation, replace bearing if internal looseness</strong>.</p>
+      <div class="formula">Multi-harmonic series = looseness</div>
     </div>
     <div class="card">
-      <div class="card-icon">⚡</div>
-      <h3>Mengapa Mode 2 Lebih Cepat?</h3>
-      <p>Pada Mode 2, kedua massa berlawanan arah → pegas tengah <strong>diregang/ditekan dua kali</strong> setiap setengah siklus. Kekakuan efektif lebih besar = ω lebih besar.</p>
-      <div class="formula">ω₂_efektif = √((k₁ + 2k₂)/m) ≈ 17.32 ✓</div>
+      <div class="card-icon">🌀</div>
+      <h3>Bent Shaft / Crack Rotor</h3>
+      <p>Shaft physically bent atau crack berkembang. Pattern: <strong>1× rpm + 2× rpm + axial vibration tinggi</strong>. Mirip misalignment tapi axial component lebih dominan. Critical fault → emergency shutdown jika confirmed.</p>
+      <div class="formula">1× + 2× + high axial = bent shaft</div>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Sifat Penting Mode Shape — Orthogonality</strong><br>
-    Dua mode shape selalu <strong>orthogonal terhadap matriks massa</strong>: u₁ᵀ·M·u₂ = 0. Untuk kasus kita: [1,1]·[[1,0],[0,1]]·[1,−1]ᵀ = 1·1 + 1·(−1) = 0 ✓. Sifat ini sangat penting: ia memungkinkan kita memecah getaran kompleks menjadi kombinasi mode-mode yang independen (modal analysis).
+    <strong>Differentiation Decision Matrix</strong><br>
+    | Fault | 1× | 2× | 3×+ | Phase | Direction |<br>
+    |-------|----|----|-----|-------|-----------|<br>
+    | Unbalance | <strong>Dominant</strong> | low | minimal | 90° H/V | Radial |<br>
+    | Misalignment | high | <strong>Dominant</strong> | low | 180° A/B | Radial + Axial |<br>
+    | Looseness | high | high | <strong>Series</strong> | erratic | Variable |<br>
+    | Bent Shaft | <strong>High</strong> | <strong>High</strong> | low | 0°/180° | <strong>Axial dominant</strong> |<br>
+    Engineer praktisi memorize matrix ini — diagnosis bisa dalam 30 detik dari spektrum + phase reading.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Mode shape adalah RASIO, bukan amplitudo absolut.</strong> Mode 1 = [1, 1] dan Mode 1 = [3, 3] adalah <em>mode yang sama</em> — keduanya berkata "kedua massa bergerak searah dengan amplitudo yang sama". Yang penting hanya rasio X₁/X₂. Konvensi normalisasi: biasanya X₁ = 1, atau ‖X‖ = 1.
+    💡 <strong>Phase Analysis:</strong> Selain amplitude, <strong>phase difference</strong> antar sensor (mis. horizontal vs vertical, bearing input vs output) memberi informasi diagnostic kuat. Vibration analyzer pro selalu ukur phase relative — alat 2-channel minimum required untuk advanced diagnosis. Phase reading 30° error sudah berbeda diagnosis (misalignment vs unbalance).
   </div>
 </div>
 
-<!-- ═══ BAGIAN 05 — ANALOGI SEHARI-HARI ═══ -->
-<hr class="divider">
-<div class="section" id="m-analogi">
-  <div class="section-label reveal">Bagian 05</div>
-  <h2 class="section-title reveal">Analogi Kehidupan<br>Sehari-Hari</h2>
-  <p class="section-desc reveal">Sistem 2 DoF ada di sekitar kita. Inilah analogi untuk menanamkan intuisi mode 1 vs mode 2.</p>
-
-  <div class="cards reveal" style="margin-bottom:32px">
-    <div class="card">
-      <div class="card-icon">🎢</div>
-      <h3>Dua Anak di Ayunan Berdampingan</h3>
-      <p>Dua ayunan diikat kayu di tengah — bisa ayun bareng (Mode 1, lambat) atau berlawanan (Mode 2, cepat). Anak-anak intuitif tahu cara "mengunci" mode dengan kayuhan.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🚗</div>
-      <h3>Mobil di Polisi Tidur</h3>
-      <p>Mobil melewati polisi tidur perlahan: depan-belakang naik bareng (Mode 1, "bouncing"). Lewat lebih cepat: depan naik saat belakang turun (Mode 2, "pitching"). Suspensi mobil dirancang agar kedua mode tidak resonansi dengan jalan biasa.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🏢</div>
-      <h3>Gedung 2 Lantai Saat Gempa</h3>
-      <p>Mode 1: kedua lantai bergeser searah (bayangkan gedung "membungkuk"). Mode 2: lantai 1 dan 2 bergeser berlawanan (gedung "mencangkul"). Kerusakan parah biasanya di Mode 2 karena percepatan lebih besar.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🎸</div>
-      <h3>Senar Gitar + Body Resonator</h3>
-      <p>Senar bergetar → bodi gitar ikut bergetar. Body kayu + senar membentuk sistem 2 DoF kuat: itulah kenapa gitar akustik bersuara lebih kaya dibanding senar tunggal.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🛀</div>
-      <h3>Air di Bak Mandi</h3>
-      <p>Goyangkan bak: air membentuk gelombang berdiri. Bisa naik di kiri-turun di kanan (Mode 1) atau pola yang lebih kompleks (Mode 2+). Sama seperti 2 DoF, tapi dengan kontinuum.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🏗️</div>
-      <h3>Tuned Mass Damper (Taipei 101)</h3>
-      <p>Bola raksasa 660 ton di puncak Taipei 101 = sistem 2 DoF buatan. Ditambah <em>sengaja</em> agar gedung punya 2 frekuensi pribadi yang menjauhkan dari frekuensi gempa/angin. Aplikasi praktis konsep mode shape.</p>
-    </div>
-  </div>
-
-  <div class="info-box reveal">
-    <strong>Aturan Intuisi Mode</strong><br>
-    Untuk sistem dua massa simetris (massa sama, pegas simetris): <strong>Mode 1 selalu in-phase</strong> (massa bergerak bareng) dan <strong>Mode 2 selalu anti-phase</strong> (berlawanan). Mode 1 frekuensinya selalu lebih rendah karena pegas penghubung tidak ikut "kerja". Mode 2 frekuensinya lebih tinggi karena pegas penghubung "kerja dua kali lipat".
-  </div>
-</div>
-
-<!-- ═══ BAGIAN 06 — VISUALISASI INTERAKTIF ═══ -->
-<hr class="divider">
-<div class="section" id="m-anim">
-  <div class="section-label reveal">Bagian 06</div>
-  <h2 class="section-title reveal">Visualisasi Interaktif<br>Mode 1 vs Mode 2</h2>
-  <p class="section-desc reveal">Klik tombol di bawah untuk mengganti mode. Animasi memperlihatkan dua massa (m₁=m₂=1 kg) terhubung tiga pegas (k=100 N/m) berosilasi pada frekuensi pribadinya. Perhatikan: pada Mode 1 kedua massa <strong style="color:var(--green)">searah</strong> dan pegas tengah diam; pada Mode 2 kedua massa <strong style="color:var(--amber)">berlawanan</strong> dan pegas tengah ditekan/diregang dua kali lipat.</p>
-
-  <div class="reveal" style="background:#020812;border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px">
-    <canvas id="cv2dof" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
-    <div style="display:flex;gap:14px;justify-content:center;margin-top:18px;flex-wrap:wrap">
-      <button id="btn-mode1" onclick="set2DofMode(1)" class="mode-btn mode-btn-active"
-        style="padding:10px 22px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(0,224,158,.5);background:rgba(0,224,158,.18);color:var(--green);transition:all .2s">
-        ▶ Mode 1 (ω₁ = 10 rad/s) — In-Phase
-      </button>
-      <button id="btn-mode2" onclick="set2DofMode(2)" class="mode-btn"
-        style="padding:10px 22px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(249,115,22,.4);background:rgba(249,115,22,.08);color:var(--amber);transition:all .2s">
-        ▶ Mode 2 (ω₂ ≈ 17.32 rad/s) — Anti-Phase
-      </button>
-    </div>
-    <div id="mode2dof-info" style="text-align:center;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">
-      Mode 1 aktif · X₁ = X₂ = cos(10·t) · pegas tengah tidak terdeformasi
-    </div>
-  </div>
-
-  <p class="section-desc reveal" style="margin-top:24px">Tabel berikut merangkum perbedaan kedua mode untuk referensi cepat:</p>
-
-  <div class="reveal" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:24px;overflow-x:auto">
-    <table style="width:100%;border-collapse:collapse;font-size:14px">
-      <thead>
-        <tr style="border-bottom:2px solid var(--border)">
-          <th style="text-align:left;padding:12px;color:var(--cyan)">Karakteristik</th>
-          <th style="text-align:center;padding:12px;color:var(--green)">Mode 1 (Lambat)</th>
-          <th style="text-align:center;padding:12px;color:var(--amber)">Mode 2 (Cepat)</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Frekuensi pribadi ω</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green);font-family:monospace">10 rad/s</td>
-          <td style="text-align:center;padding:10px;color:var(--amber);font-family:monospace">17.32 rad/s</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Frekuensi f (Hz)</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green);font-family:monospace">1.59 Hz</td>
-          <td style="text-align:center;padding:10px;color:var(--amber);font-family:monospace">2.76 Hz</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Periode T (detik)</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green);font-family:monospace">0.628 s</td>
-          <td style="text-align:center;padding:10px;color:var(--amber);font-family:monospace">0.363 s</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Mode shape [X₁, X₂]</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green);font-family:monospace">[1, 1]</td>
-          <td style="text-align:center;padding:10px;color:var(--amber);font-family:monospace">[1, −1]</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Pola gerak</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green)">Searah (in-phase)</td>
-          <td style="text-align:center;padding:10px;color:var(--amber)">Berlawanan (anti-phase)</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Pegas tengah k₂</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green)">Diam (tidak terdeformasi)</td>
-          <td style="text-align:center;padding:10px;color:var(--amber)">Bergetar bolak-balik</td>
-        </tr>
-        <tr>
-          <td style="padding:10px 12px;color:var(--text)"><strong>Energi yang tersimpan</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green)">Hanya k₁ + k₃</td>
-          <td style="text-align:center;padding:10px;color:var(--amber)">k₁ + k₃ + 4·k₂</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="info-box reveal">
-    <strong>Bayangkan Mode 1:</strong> Kedua kotak meluncur ke kanan bersama (X₁ = +1, X₂ = +1), lalu ke kiri bersama (−1, −1). Bagaikan pasangan dansa yang sinkron. Pegas tengah selalu memiliki panjang asli — tidak ikut kerja. Frekuensi rendah (10 rad/s).<br><br>
-    <strong>Bayangkan Mode 2:</strong> Massa kiri ke kanan (+1), massa kanan ke kiri (−1). Pegas tengah ditekan menjadi <em>setengah</em> panjangnya, lalu diregang menjadi <em>1.5×</em> panjangnya — bekerja keras! Frekuensi tinggi (17.32 rad/s).
-  </div>
-
-  <div class="tip-box reveal">
-    💡 <strong>Tip:</strong> Klik bolak-balik antara Mode 1 dan Mode 2 untuk merasakan perbedaan tempo dan pola gerak. Untuk visualisasi lanjutan, buka Bagian 08 (Python) → jalankan Cell 4 di Jupyter Notebook untuk plot superposisi kedua mode (free vibration response).
-  </div>
-</div>
-
-<!-- ═══ BAGIAN 07 — APLIKASI: VIBRATION ABSORBER ═══ -->
+<!-- ═══ BAGIAN 07 — REMAINING USEFUL LIFE (RUL) ═══ -->
 <hr class="divider">
 <div class="section" id="m-aplikasi">
   <div class="section-label reveal">Bagian 07</div>
-  <h2 class="section-title reveal">Aplikasi Industri:<br>Vibration Absorber & Tuned Mass Damper</h2>
-  <p class="section-desc reveal">Aplikasi paling spektakuler dari konsep 2 DoF adalah <strong>vibration absorber</strong> — menambahkan massa-pegas kecil pada struktur untuk meredam getaran berbahaya. Prinsipnya: dengan tuning yang tepat, sistem 2 DoF baru memiliki frekuensi pribadi yang <em>menjauh</em> dari frekuensi eksitasi pengganggu.</p>
+  <h2 class="section-title reveal">Remaining Useful Life (RUL):<br>Estimasi Sisa Umur Mesin</h2>
+  <p class="section-desc reveal">Tujuan akhir PdM bukan hanya detect fault, tetapi <strong>memprediksi kapan mesin akan failure</strong> — Remaining Useful Life (RUL). Estimasi RUL memungkinkan optimal scheduling: maintenance dilakukan tepat sebelum failure, bukan terlalu cepat (waste) atau terlambat (downtime). Tiga pendekatan utama: threshold-based, model-based (physics), data-driven (ML).</p>
 
   <div class="formula-block reveal">
-    <div class="label">Prinsip Tuning Absorber Klasik (Den Hartog)</div>
-    Tune frekuensi pribadi absorber: ω_a = √(k_a/m_a) = ω_eksitasi
+    <div class="label">Definisi RUL</div>
+    RUL(t) = T_failure − t &nbsp;·&nbsp; Estimated dari trending features + degradation model
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">🏗️</div>
-      <h3>Taipei 101 — Bola 660 Ton</h3>
-      <p>Gedung 508 m ini punya bola pendulum 660 ton di lantai 87–92, terhubung ke struktur lewat pegas. Itu adalah sistem 2 DoF: gedung (m₁) + bola (m₂). Saat angin/gempa pada frekuensi tertentu menggetarkan gedung, bola "menyerap" energi → amplitudo gedung berkurang ~40%.</p>
-      <div class="formula">ω_a tuned ke ω_angin dominan</div>
+      <div class="card-icon">📏</div>
+      <h3>Threshold-Based RUL</h3>
+      <p>Approach simple: track satu feature key (mis. RMS velocity), set threshold critical (mis. zone D = 4.5 mm/s), extrapolate trend ke threshold. RUL = waktu sampai trend reach threshold.<br>Pros: simple, interpretable. Cons: assume linear trend (often non-linear).</p>
+      <div class="formula">RUL = (threshold − current) / slope</div>
     </div>
     <div class="card">
-      <div class="card-icon">🌉</div>
-      <h3>Millennium Bridge London</h3>
-      <p>Saat dibuka tahun 2000, jembatan ini bergoyang berbahaya akibat 2000 pejalan kaki yang tanpa sadar berjalan sinkron pada frekuensi pribadinya. Solusi: dipasang 89 vibration absorber tuned ke frekuensi tersebut.</p>
-      <div class="formula">Multiple absorbers di sepanjang jembatan</div>
+      <div class="card-icon">📈</div>
+      <h3>Trend Analysis (Multi-Feature)</h3>
+      <p>Track multiple features simultaneously: RMS, BPFO amplitude, kurtosis. Combine into health index (Mahalanobis distance, anomaly score). Threshold pada health index untuk RUL estimation. Lebih robust than single feature.</p>
+      <div class="formula">Health Index = f(RMS, BPFO, kurtosis, ...)</div>
     </div>
     <div class="card">
-      <div class="card-icon">🚗</div>
-      <h3>Shock Absorber + Bushing Mobil</h3>
-      <p>Engine mount karet bertindak sebagai pegas + damper kecil yang membuat mesin (m₁) dan rangka (m₂) menjadi sistem 2 DoF. Tuning yang tepat menjauhkan frekuensi pribadi rangka dari 800–4000 RPM mesin.</p>
-      <div class="formula">f_engine ≠ f_natural rangka</div>
+      <div class="card-icon">🔬</div>
+      <h3>Model-Based (Physics)</h3>
+      <p>Pakai physics-based degradation model (mis. Paris-Erdogan crack growth, Hertz contact stress fatigue). Calibrate dengan measurement aktual. Predict RUL dari current state + load profile.<br>Pros: physical interpretable. Cons: butuh detailed knowledge mesin &amp; load.</p>
+      <div class="formula">da/dN = C·(ΔK)^m (Paris law)</div>
     </div>
     <div class="card">
-      <div class="card-icon">⚙️</div>
-      <h3>Mesin Cuci dengan Counter-Weight</h3>
-      <p>Tabung mesin cuci ditambah massa counter-weight yang dihubungkan oleh pegas suspensi. Saat unbalance terjadi, counter-weight bergetar berlawanan (Mode 2) → meredam getaran tabung.</p>
-      <div class="formula">Reduksi getaran 50–70%</div>
+      <div class="card-icon">🤖</div>
+      <h3>Data-Driven (ML/Deep Learning)</h3>
+      <p>Train model (RNN/LSTM/Transformer) pada historical run-to-failure data. Input: time-series features. Output: RUL distribution. State-of-the-art untuk fleet besar dengan banyak training data.<br>Pros: capture complex patterns. Cons: butuh data training banyak, "black box".</p>
+      <div class="formula">RUL = LSTM(features sequence)</div>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Aturan Desain Absorber Sederhana</strong><br>
-    1) Identifikasi <strong>frekuensi pengganggu</strong> ω_drive (mis. 10 rad/s untuk mesin tertentu).<br>
-    2) Pilih massa absorber <strong>m_a ≈ 5–20% massa utama</strong> (lebih besar = lebih efektif tapi lebih berat).<br>
-    3) Tuning: <strong>k_a = m_a · ω_drive²</strong>. Contoh: untuk meredam getaran ω=10 rad/s pada struktur 1000 kg, pilih m_a = 50 kg, k_a = 50·100 = 5000 N/m.<br>
-    4) Hasil: amplitudo struktur utama turun drastis di sekitar ω_drive, tetapi muncul 2 puncak resonansi baru di ω₁ dan ω₂ yang harus dijauhi.
+    <strong>Implementasi Hybrid Recommended</strong><br>
+    Pendekatan paling efektif di industri: <strong>tiered approach</strong>.<br>
+    • <strong>Tier 1 (alarm)</strong>: Threshold-based pada RMS &amp; envelope amplitude. Trigger investigation saat threshold dilampaui.<br>
+    • <strong>Tier 2 (planning)</strong>: Trend analysis multi-feature → estimate window 2-8 weeks before failure. Plan maintenance during window.<br>
+    • <strong>Tier 3 (decision support)</strong>: ML model untuk decision specific (replace now? wait 1 week? what spare to order?).<br>
+    Mulai dari Tier 1 (low complexity, high ROI), naik ke Tier 3 saat data &amp; expertise bertumbuh. Don't jump straight to ML — itu mahal &amp; sering over-engineered.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Trade-off Penting:</strong> Vibration absorber sangat efektif <em>hanya</em> di frekuensi tuning. Untuk eksitasi broad-band (gempa, angin acak), tambahkan <strong>damping</strong> ke absorber → menjadi <em>Tuned Mass Damper</em> (TMD). Kompromi: peredaman lebih merata, tapi puncak di ω_drive tidak senol.
+    💡 <strong>RUL ≠ Deterministic:</strong> RUL adalah <em>distribution</em>, bukan single number. Best practice: report sebagai range (mis. "RUL 4-8 weeks dengan 80% confidence"). Tools statistical: Weibull distribution untuk fitting, Bayesian update saat data baru tersedia. Mahasiswa sering miskonsepsi RUL = single number — hindari ini.
   </div>
 </div>
 
@@ -1285,38 +1279,55 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <hr class="divider">
 <div class="section" id="m-python">
   <div class="section-label reveal">Bagian 08</div>
-  <h2 class="section-title reveal">Implementasi Python<br>di Jupyter Notebook</h2>
-  <p class="section-desc reveal">Empat cell Python berikut mengimplementasikan konsep kunci Pertemuan 15 dengan sistem referensi: setup matriks M & K (Cell 1), eigenvalue problem dan frekuensi pribadi (Cell 2), mode shape dan orthogonality (Cell 3), serta simulasi free vibration response (Cell 4). Semua langsung runnable di VS Code Jupyter.</p>
+  <h2 class="section-title reveal">Implementasi Python:<br>End-to-End CM Pipeline</h2>
+  <p class="section-desc reveal">Empat cell Python berikut mengimplementasikan workflow Condition Monitoring lengkap end-to-end: load &amp; preprocess data (Cell 1), full feature extraction (Cell 2), trend analysis &amp; alarm logic (Cell 3), simple RUL estimation (Cell 4). Pattern ini foundational untuk implementasi production system.</p>
 
   <!-- Cell 1 -->
   <div class="code-card reveal" style="margin-bottom:32px">
     <div class="code-header">
       <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
       <span class="code-lang">Python · Cell 1</span>
-      <span class="code-label">Setup Matriks M & K</span>
+      <span class="code-label">Simulate Bearing Degradation Time Series (8 weeks)</span>
     </div>
     <div class="code-wrap">
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
       <pre><code class="lang-python">import numpy as np
 
-# Parameter sistem referensi (2 DoF, 2 massa + 3 pegas)
-m1, m2 = 1.0, 1.0          # kg
-k1, k2, k3 = 100.0, 100.0, 100.0   # N/m
+# Simulate 8 weeks of daily measurements (56 days)
+n_days = 56
+np.random.seed(42)
 
-# Matriks massa (diagonal)
-M = np.array([[m1, 0],
-              [0, m2]])
+# Linearly degrading defect intensity over time
+defect_intensity = np.linspace(0.1, 4.0, n_days)
+# Add noise and exponential acceleration in last 2 weeks
+defect_intensity[-14:] *= 1 + 0.3*np.arange(14)  # accelerated growth
 
-# Matriks kekakuan (simetris)
-K = np.array([[k1 + k2, -k2],
-              [-k2,    k2 + k3]])
+fs = 25600.0
+T = 1.0   # 1 sec buffer per measurement
+N = int(fs * T)
+t = np.arange(N) / fs
 
-print("Matriks Massa M:")
-print(M)
-print("\nMatriks Kekakuan K:")
-print(K)
-print(f"\ntrace(K) = {np.trace(K):.1f}")
-print(f"det(K)   = {np.linalg.det(K):.1f}")</code></pre>
+# Storage for all daily snapshots
+daily_signals = []
+f_BPFO = 100.0  # Hz
+f_resonance = 5000.0
+f_shaft = 30.0  # Hz
+
+for day in range(n_days):
+    # Background machinery vibration
+    bg = (1.5 * np.sin(2*np.pi*f_shaft*t) + 0.4*np.sin(2*np.pi*2*f_shaft*t)
+          + 0.3*np.random.randn(N))
+    # Bearing fault impulse train (intensity grows over time)
+    impulses = np.zeros(N)
+    for k in range(int(T * f_BPFO)):
+        idx = int(k / f_BPFO * fs)
+        if idx < N - 200:
+            decay = np.exp(-np.arange(200) * 0.02)
+            impulses[idx:idx+200] += defect_intensity[day] * decay * np.sin(2*np.pi*f_resonance*np.arange(200)/fs)
+    daily_signals.append(bg + impulses)
+
+print(f"Generated {n_days} days of bearing signals (1 sec each)")
+print(f"Defect intensity grew from {defect_intensity[0]:.2f} to {defect_intensity[-1]:.2f}")</code></pre>
     </div>
   </div>
 
@@ -1325,26 +1336,40 @@ print(f"det(K)   = {np.linalg.det(K):.1f}")</code></pre>
     <div class="code-header">
       <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
       <span class="code-lang">Python · Cell 2</span>
-      <span class="code-label">Frekuensi Pribadi ω₁ & ω₂</span>
+      <span class="code-label">Extract 5 Features per Day (Multi-Feature Health)</span>
     </div>
     <div class="code-wrap">
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">from numpy.linalg import inv, eig
+      <pre><code class="lang-python">from scipy.signal import butter, filtfilt, hilbert
 
-# Eigenvalue problem: (M^-1 K) X = ω² X
-A = inv(M) @ K
-eigvals, eigvecs = eig(A)
+def extract_features(x, fs):
+    """Return dict: rms, peak, crest, kurtosis, envelope_BPFO_amp."""
+    x = x - x.mean()
+    rms = np.sqrt(np.mean(x**2))
+    peak = np.max(np.abs(x))
+    crest = peak / rms if rms > 0 else 0
+    kurt = np.mean((x/rms)**4) if rms > 0 else 0
 
-# Urutkan dari kecil ke besar
-idx = np.argsort(eigvals)
-omega_squared = eigvals[idx]
-modes = eigvecs[:, idx]
-omegas = np.sqrt(omega_squared)
+    # Envelope analysis untuk BPFO amplitude
+    nyq = fs/2
+    b, a = butter(4, [3000/nyq, 7000/nyq], btype='band')
+    x_bp = filtfilt(b, a, x)
+    env = np.abs(hilbert(x_bp))
+    env -= env.mean()
+    ENV = np.fft.rfft(env)
+    freqs = np.fft.rfftfreq(len(env), d=1/fs)
+    mag_env = np.abs(ENV) * 2 / len(env)
+    bpfo_mask = (freqs > 95) & (freqs < 105)
+    bpfo_amp = mag_env[bpfo_mask].max() if bpfo_mask.any() else 0
+    return {'rms': rms, 'peak': peak, 'crest': crest,
+            'kurtosis': kurt, 'bpfo_amp': bpfo_amp}
 
-print(f"ω₁² = {omega_squared[0]:.4f}    →    ω₁ = {omegas[0]:.4f} rad/s")
-print(f"ω₂² = {omega_squared[1]:.4f}    →    ω₂ = {omegas[1]:.4f} rad/s")
-print(f"\nf₁ = {omegas[0]/(2*np.pi):.4f} Hz   T₁ = {2*np.pi/omegas[0]:.4f} s")
-print(f"f₂ = {omegas[1]/(2*np.pi):.4f} Hz   T₂ = {2*np.pi/omegas[1]:.4f} s")</code></pre>
+# Extract features for all days
+features_log = [extract_features(daily_signals[d], fs) for d in range(n_days)]
+print(f"{'Day':<5}{'RMS':>8}{'Peak':>8}{'Crest':>8}{'Kurt':>8}{'BPFO':>10}")
+for i in [0, 14, 28, 42, 55]:
+    f = features_log[i]
+    print(f"{i:<5}{f['rms']:>8.3f}{f['peak']:>8.3f}{f['crest']:>8.3f}{f['kurtosis']:>8.3f}{f['bpfo_amp']:>10.3f}")</code></pre>
     </div>
   </div>
 
@@ -1353,21 +1378,34 @@ print(f"f₂ = {omegas[1]/(2*np.pi):.4f} Hz   T₂ = {2*np.pi/omegas[1]:.4f} s")
     <div class="code-header">
       <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
       <span class="code-lang">Python · Cell 3</span>
-      <span class="code-label">Mode Shapes & Orthogonality</span>
+      <span class="code-label">Trend Analysis &amp; Alarm Logic</span>
     </div>
     <div class="code-wrap">
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python"># Normalisasi mode shape: pertama-elemen = 1
-mode1 = modes[:, 0] / modes[0, 0]
-mode2 = modes[:, 1] / modes[0, 1]
+      <pre><code class="lang-python">import matplotlib.pyplot as plt
 
-print(f"Mode 1 (ω₁ = {omegas[0]:.2f} rad/s): X = [{mode1[0]:.3f}, {mode1[1]:.3f}]")
-print(f"Mode 2 (ω₂ = {omegas[1]:.2f} rad/s): X = [{mode2[0]:.3f}, {mode2[1]:.3f}]")
+# Convert log to numpy arrays for trending
+days = np.arange(n_days)
+rms_trend = np.array([f['rms'] for f in features_log])
+bpfo_trend = np.array([f['bpfo_amp'] for f in features_log])
+kurt_trend = np.array([f['kurtosis'] for f in features_log])
 
-# Cek orthogonality terhadap matriks M
-ortho = mode1 @ M @ mode2
-print(f"\nOrthogonality check: u₁ᵀ M u₂ = {ortho:.2e}")
-print("✓ Orthogonal jika nilai ≈ 0" if abs(ortho) < 1e-10 else "⚠ Cek ulang!")</code></pre>
+# Define alarm thresholds (ISO 10816 + envelope-specific)
+RMS_ALARM = 2.8        # zone B-C boundary (mm/s)
+BPFO_ALARM = 0.5       # envelope threshold
+KURT_ALARM = 8.0       # impulsive defect
+
+alarms = {
+    'rms': days[rms_trend > RMS_ALARM],
+    'bpfo': days[bpfo_trend > BPFO_ALARM],
+    'kurt': days[kurt_trend > KURT_ALARM],
+}
+
+print(f"RMS alarm first triggered: day {alarms['rms'][0] if len(alarms['rms']) else '—'}")
+print(f"BPFO alarm first triggered: day {alarms['bpfo'][0] if len(alarms['bpfo']) else '—'}")
+print(f"Kurtosis alarm first triggered: day {alarms['kurt'][0] if len(alarms['kurt']) else '—'}")
+print("
+Kurtosis & BPFO biasanya alarm lebih dahulu daripada RMS — early warning.")</code></pre>
     </div>
   </div>
 
@@ -1376,32 +1414,55 @@ print("✓ Orthogonal jika nilai ≈ 0" if abs(ortho) < 1e-10 else "⚠ Cek ulan
     <div class="code-header">
       <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
       <span class="code-lang">Python · Cell 4</span>
-      <span class="code-label">Simulasi Free Vibration Response</span>
+      <span class="code-label">Simple RUL Estimation (Linear Extrapolation)</span>
     </div>
     <div class="code-wrap">
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">import matplotlib.pyplot as plt
+      <pre><code class="lang-python"># Simple RUL: linear regression terakhir 14 hari, extrapolate ke critical threshold
+RUL_THRESHOLD = 4.5    # zone D RMS
+recent_days = days[-14:]
+recent_rms = rms_trend[-14:]
+slope, intercept = np.polyfit(recent_days, recent_rms, 1)
 
-# Initial conditions: x1(0)=1, x2(0)=0, semua kecepatan = 0
-# Modal decomposition: x(0) = A·u1 + B·u2 → A=B=0.5
-A_amp, B_amp = 0.5, 0.5
+# Extrapolate
+days_to_threshold = (RUL_THRESHOLD - intercept) / slope
+RUL_days = days_to_threshold - days[-1]
 
-t = np.linspace(0, 3, 1000)
-x1 = A_amp * np.cos(omegas[0]*t) + B_amp * np.cos(omegas[1]*t)
-x2 = A_amp * np.cos(omegas[0]*t) - B_amp * np.cos(omegas[1]*t)
+# Plot trends + threshold + RUL projection
+fig, ax = plt.subplots(figsize=(11, 5.5))
+ax.plot(days, rms_trend, 'o-', color='#0ea5e9', label='RMS')
+ax.axhline(RMS_ALARM, color='orange', ls='--', alpha=0.7, label=f'Alarm zone B/C ({RMS_ALARM} mm/s)')
+ax.axhline(RUL_THRESHOLD, color='red', ls='--', alpha=0.7, label=f'Critical zone D ({RUL_THRESHOLD} mm/s)')
 
-fig, ax = plt.subplots(figsize=(10, 4))
-ax.plot(t, x1, label='x₁(t)', color='#0ea5e9')
-ax.plot(t, x2, label='x₂(t)', color='#f59e0b')
-ax.set_xlabel('waktu (s)'); ax.set_ylabel('posisi (m)')
-ax.set_title('Free Vibration Response — Sistem 2 DoF')
-ax.grid(True, alpha=0.3); ax.legend(); plt.tight_layout(); plt.show()
-print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x2)):.3f}")</code></pre>
+# Projection to threshold
+proj_days = np.arange(days[-1], days_to_threshold + 5)
+proj_rms = slope*proj_days + intercept
+ax.plot(proj_days, proj_rms, ':', color='red', lw=2, label=f'RUL projection: ~{int(RUL_days)} hari')
+ax.axvline(days_to_threshold, color='red', alpha=0.3)
+
+ax.set_xlabel('Hari'); ax.set_ylabel('RMS Velocity (mm/s)')
+ax.set_title(f'Bearing Degradation Trend &amp; RUL Estimation (RUL = {int(RUL_days)} hari)')
+ax.legend(); ax.grid(alpha=0.3)
+plt.tight_layout(); plt.show()
+
+print(f"
+Final status:")
+print(f"  Current RMS: {rms_trend[-1]:.2f} mm/s ({(rms_trend[-1] / RMS_ALARM):.1f}× alarm)")
+print(f"  Estimated RUL: ~{int(RUL_days)} days until zone D")
+print(f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days (safety margin)")</code></pre>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Catatan:</strong> Empat cell di atas dapat di-copy ke Jupyter Notebook dan dijalankan berurutan. Cell 1 menyiapkan matriks, Cell 2 menghitung frekuensi pribadi, Cell 3 menampilkan mode shape, Cell 4 mensimulasikan getaran bebas dengan kondisi awal x₁=1, x₂=0. Plot Cell 4 menunjukkan <em>beat phenomenon</em> — superposisi dua mode dengan frekuensi mirip-tapi-berbeda menghasilkan amplitudo modulasi yang khas.
+    <strong>Production Workflow Summary</strong><br>
+    Code di atas adalah <em>simplified prototype</em>. Production CM system di industri:<br>
+    1) <strong>Continuous data collection</strong> via permanent sensor + edge gateway.<br>
+    2) <strong>Real-time feature extraction</strong> di edge → push ke cloud database (InfluxDB, TimescaleDB).<br>
+    3) <strong>Anomaly detection</strong> dengan ML model (Isolation Forest, autoencoder).<br>
+    4) <strong>Visual dashboard</strong> (Grafana, custom React) untuk operator.<br>
+    5) <strong>Automated alarm</strong> via webhook (Slack, Telegram, SMS) saat threshold dilampaui.<br>
+    6) <strong>Maintenance ticket integration</strong> ke CMMS (SAP PM, IBM Maximo, Fiix).<br>
+    Open-source stack: Python + FastAPI + InfluxDB + Grafana = solid foundation untuk implementasi internal.
   </div>
 </div>
 
