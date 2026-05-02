@@ -900,384 +900,367 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 01 — APA ITU SISTEM 2 DoF? ═══ -->
+<!-- ═══ BAGIAN 01 — SPEKTRUM MESIN INDUSTRI ═══ -->
 <hr class="divider" style="margin-top:64px">
 <div class="section" id="m-pengantar">
   <div class="section-label reveal">Bagian 01</div>
-  <h2 class="section-title reveal">Apa Itu Sistem 2 DoF?<br>Saat Satu Massa Saja Tidak Cukup</h2>
-  <p class="section-desc reveal">Pada Pertemuan 1–6, kita selalu menganalisis <strong>satu massa</strong> bergetar (1 DoF — derajat kebebasan). Tetapi mesin nyata jarang sesederhana itu. Mobil punya bodi <em>dan</em> roda. Gedung punya banyak lantai. Turbin punya rotor <em>dan</em> casing. Setiap bagian bisa bergerak independen — sehingga butuh <strong>≥ 2 koordinat</strong> untuk menjelaskan posisi sistem secara lengkap. Itulah <strong>sistem 2 DoF</strong>.</p>
+  <h2 class="section-title reveal">Spektrum Mesin Industri:<br>Membaca Sidik Jari Frekuensi Kerusakan</h2>
+  <p class="section-desc reveal">Setelah dasar FFT (Pertemuan 12) dan time-domain indicators (Pertemuan 13), pertanyaan berikutnya: <strong>frekuensi mana</strong> yang muncul di spektrum, dan <strong>apa artinya</strong>? Setiap komponen mesin (rotor, bearing, gear, motor) memiliki frekuensi karakteristik unik yang membentuk "sidik jari" — base diagnosis getaran modern.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Definisi Sederhana</div>
-    Derajat kebebasan = jumlah koordinat independen yang diperlukan untuk mendeskripsikan posisi sistem pada saat tertentu.
+    <div class="label">Insight Kunci</div>
+    Spektrum mesin sehat = <em>line spectrum</em> dengan harmonik teratur (1×, 2×, 3× rpm). Mesin rusak menambahkan komponen frekuensi spesifik (BPFO, BPFI, GMF, dll) atau modulasi sidebands.
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">🚗</div>
-      <h3>Suspensi Mobil</h3>
-      <p>Bodi mobil bergerak naik-turun (x₁), sekaligus roda juga bergerak naik-turun (x₂) saat melewati jalan bergelombang. Dua koordinat → 2 DoF.</p>
-      <div class="formula">x₁ (bodi) &nbsp;|&nbsp; x₂ (roda)</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">🏢</div>
-      <h3>Gedung 2 Lantai</h3>
-      <p>Lantai 1 bergeser horizontal sebesar x₁ saat angin/gempa, lantai 2 bergeser sebesar x₂. Dua lantai = 2 DoF.</p>
-      <div class="formula">x₁ (lantai 1) &nbsp;|&nbsp; x₂ (lantai 2)</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">⚙️</div>
-      <h3>Dua Massa Terkait Pegas</h3>
-      <p>Sistem klasik 2 DoF: dua massa m₁ dan m₂ dihubungkan oleh tiga pegas k₁, k₂, k₃ (dua pegas ke dinding, satu di tengah). Inilah model referensi modul ini.</p>
-      <div class="formula">m₁=m₂=1 kg, k=100 N/m</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">🎵</div>
-      <h3>Speaker Gitar</h3>
-      <p>Membran speaker (m₁) terhubung ke kotak (m₂) lewat pegas. Saat dimainkan, keduanya bergetar — itulah kenapa kotak speaker ikut "menggetar".</p>
-      <div class="formula">2 mode getaran utama</div>
-    </div>
-  </div>
-
-  <div class="info-box reveal">
-    <strong>Mengapa 2 DoF Begitu Penting?</strong><br>
-    Sistem 1 DoF hanya punya <strong>satu</strong> frekuensi pribadi ωₙ. Tetapi sistem 2 DoF punya <strong>dua</strong> frekuensi pribadi (ω₁ dan ω₂) — masing-masing dengan <strong>pola gerak (mode shape)</strong>-nya sendiri. Memahami ini adalah jembatan menuju multi-DoF (gedung 10 lantai, mesin pesawat, dll). Konsepnya sama, hanya jumlah-nya bertambah.
-  </div>
-
-  <div class="tip-box reveal">
-    💡 <strong>Aturan Mudah:</strong> Banyaknya frekuensi pribadi sebuah sistem getaran = banyaknya derajat kebebasannya. 1 DoF → 1 ω. 2 DoF → 2 ω (ω₁ &lt; ω₂). N DoF → N ω. Pertemuan 14 fokus pada N=2 sebagai pintu masuk paling intuitif.
-  </div>
-</div>
-
-<!-- ═══ BAGIAN 02 — PERSAMAAN GERAK MATRIKS ═══ -->
-<hr class="divider">
-<div class="section" id="m-eom">
-  <div class="section-label reveal">Bagian 02</div>
-  <h2 class="section-title reveal">Persamaan Gerak Matriks:<br>Bahasa Universal Sistem 2 DoF</h2>
-  <p class="section-desc reveal">Untuk sistem 1 DoF, persamaan geraknya: <strong>m·ẍ + k·x = 0</strong>. Untuk 2 DoF, kita punya <strong>dua</strong> persamaan — satu untuk tiap massa. Lebih praktis menulisnya dalam <strong>bentuk matriks</strong>: <strong>M·ẍ + K·x = 0</strong>, dengan M = matriks massa, K = matriks kekakuan, x = vektor [x₁, x₂].</p>
-
-  <div class="formula-block reveal">
-    <div class="label">Sistem Referensi Modul Ini — Dua Massa, Tiga Pegas</div>
-    Massa: m₁ = m₂ = 1 kg &nbsp;·&nbsp; Pegas: k₁ = k₂ = k₃ = 100 N/m
-  </div>
-
-  <div class="cards reveal" style="margin-bottom:32px">
-    <div class="card">
-      <div class="card-icon">📐</div>
-      <h3>Free-Body Diagram Massa 1</h3>
-      <p>Massa 1 ditarik pegas k₁ ke kiri dengan gaya <code>−k₁·x₁</code> dan ditarik/ditolak oleh pegas tengah k₂ dengan gaya <code>−k₂·(x₁−x₂)</code>. Hukum Newton:</p>
-      <div class="formula">m₁·ẍ₁ = −k₁·x₁ − k₂·(x₁ − x₂)</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">📐</div>
-      <h3>Free-Body Diagram Massa 2</h3>
-      <p>Massa 2 ditarik pegas tengah k₂ dengan gaya <code>−k₂·(x₂−x₁)</code> dan pegas k₃ ke kanan dengan gaya <code>−k₃·x₂</code>:</p>
-      <div class="formula">m₂·ẍ₂ = −k₂·(x₂ − x₁) − k₃·x₂</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">🔢</div>
-      <h3>Bentuk Matriks (Singkat)</h3>
-      <p>Kedua persamaan dirapikan: <code>m₁·ẍ₁ + (k₁+k₂)x₁ − k₂·x₂ = 0</code> dan <code>m₂·ẍ₂ − k₂·x₁ + (k₂+k₃)x₂ = 0</code>. Dalam matriks:</p>
-      <div class="formula">M·ẍ + K·x = 0</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">✅</div>
-      <h3>Substitusi Angka Referensi</h3>
-      <p>Dengan m₁=m₂=1 dan k₁=k₂=k₃=100, kita peroleh M = identitas dan K simetris dengan diagonal 200, off-diagonal −100:</p>
-      <div class="formula">M = [[1,0],[0,1]] &nbsp;·&nbsp; K = [[200,−100],[−100,200]]</div>
-    </div>
-  </div>
-
-  <div class="info-box reveal">
-    <strong>Kenali Pola Matriks Kekakuan K</strong><br>
-    Diagonal K(i,i) = jumlah semua kekakuan yang menempel ke massa-i. Off-diagonal K(i,j) = <strong>negatif</strong> kekakuan pegas yang menghubungkan massa-i dan massa-j. K selalu <strong>simetris</strong> (K(i,j) = K(j,i)). Pola ini berlaku universal untuk N DoF — kita tidak perlu menurunkan ulang dari Hukum Newton tiap kali.
-  </div>
-
-  <div class="tip-box reveal">
-    💡 <strong>Cek cepat:</strong> Untuk sistem referensi kita, matriks K = [[200, −100], [−100, 200]]. Trace(K) = 200+200 = 400. Det(K) = 200·200 − (−100)·(−100) = 40000 − 10000 = 30000. Kedua angka ini akan muncul lagi saat kita cari frekuensi pribadi di Bagian 03 — sama seperti Vieta's formula untuk akar polinomial.
-  </div>
-</div>
-
-<!-- ═══ BAGIAN 03 — EIGENVALUE PROBLEM ═══ -->
-<hr class="divider">
-<div class="section" id="m-eigen">
-  <div class="section-label reveal">Bagian 03</div>
-  <h2 class="section-title reveal">Eigenvalue Problem:<br>Mencari Dua Frekuensi Pribadi ω₁ & ω₂</h2>
-  <p class="section-desc reveal">Kita tebak solusi harmonik: tiap massa bergerak dengan frekuensi yang sama ω, tetapi dengan amplitudo berbeda. <code>x(t) = X·sin(ωt)</code> dengan X = vektor [X₁, X₂]. Substitusi ke <code>M·ẍ + K·x = 0</code> menghasilkan <strong>(K − ω²M)·X = 0</strong> — yang dikenal sebagai <strong>eigenvalue problem</strong>.</p>
-
-  <div class="formula-block reveal">
-    <div class="label">Persamaan Karakteristik (Cara Mencari ω)</div>
-    det(K − ω²·M) = 0
-  </div>
-
-  <div class="cards reveal" style="margin-bottom:32px">
-    <div class="card">
-      <div class="card-icon">🔍</div>
-      <h3>Langkah 1 — Tulis Determinan</h3>
-      <p>Dengan parameter referensi: <code>K − ω²M = [[200−ω², −100], [−100, 200−ω²]]</code>. Determinan = (200−ω²)² − (−100)(−100) = (200−ω²)² − 10000.</p>
-      <div class="formula">(200 − ω²)² − 10000 = 0</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">🧮</div>
-      <h3>Langkah 2 — Selesaikan untuk ω²</h3>
-      <p>Akar kuadrat kedua sisi: <code>200 − ω² = ±100</code>. Sehingga ω² = 200 − 100 = 100 (akar pertama, kecil) dan ω² = 200 + 100 = 300 (akar kedua, besar).</p>
-      <div class="formula">ω₁² = 100 &nbsp;·&nbsp; ω₂² = 300</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">✨</div>
-      <h3>Langkah 3 — Akar Frekuensi</h3>
-      <p>Ambil akar kuadrat: <code>ω₁ = √100 = 10 rad/s</code> dan <code>ω₂ = √300 ≈ 17.32 rad/s</code>. Selalu pilih ω &gt; 0; konvensi: ω₁ &lt; ω₂.</p>
-      <div class="formula">ω₁ = 10 rad/s &nbsp;·&nbsp; ω₂ ≈ 17.32 rad/s</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">📊</div>
-      <h3>Konversi ke Hertz & Periode</h3>
-      <p>f = ω/(2π), T = 2π/ω. Hasilnya: f₁ ≈ 1.59 Hz (T₁ ≈ 0.63 s), f₂ ≈ 2.76 Hz (T₂ ≈ 0.36 s). Mode 2 lebih cepat daripada Mode 1.</p>
-      <div class="formula">f₁ ≈ 1.59 Hz, f₂ ≈ 2.76 Hz</div>
-    </div>
-  </div>
-
-  <div class="info-box reveal">
-    <strong>Cara Cepat: Pakai numpy.linalg.eig</strong><br>
-    Untuk sistem &gt; 2 DoF, menyelesaikan determinan tangan jadi rumit. Pakai komputer:
-    <code style="display:block;background:#020a18;padding:10px 14px;border-radius:8px;margin-top:8px;color:var(--cyan)">A = np.linalg.inv(M) @ K  &nbsp;&nbsp;# matriks dinamis<br>w_squared, modes = np.linalg.eig(A)<br>omegas = np.sqrt(w_squared)</code>
-    Pyodide di browser sudah punya numpy — kode di atas bisa langsung dijalankan di tab Tugas.
-  </div>
-
-  <div class="tip-box reveal">
-    💡 <strong>Cek dengan Trace & Determinan:</strong> Untuk sistem 2 DoF dengan M = identitas, ada identitas Vieta sederhana: <code>ω₁² + ω₂² = trace(K)</code> dan <code>ω₁²·ω₂² = det(K)</code>. Verifikasi: 100 + 300 = 400 ✓ (= trace K), dan 100 × 300 = 30000 ✓ (= det K). Cocok!
-  </div>
-</div>
-
-<!-- ═══ BAGIAN 04 — MODE SHAPES ═══ -->
-<hr class="divider">
-<div class="section" id="m-modes">
-  <div class="section-label reveal">Bagian 04</div>
-  <h2 class="section-title reveal">Mode Shapes:<br>Setiap Frekuensi Punya "Tarian"-Nya Sendiri</h2>
-  <p class="section-desc reveal">Setiap frekuensi pribadi ω<sub>i</sub> tidak hanya angka — ia punya <strong>pola gerak</strong> spesifik yang menjelaskan <em>bagaimana</em> kedua massa bergerak relatif satu sama lain saat bergetar di frekuensi itu. Pola ini disebut <strong>mode shape</strong> (vektor eigenvalue). Untuk sistem referensi, kita akan temukan dua mode yang sangat intuitif.</p>
-
-  <div class="formula-block reveal">
-    <div class="label">Cara Menghitung Mode Shape</div>
-    Untuk tiap ω<sub>i</sub>, substitusi balik ke <code>(K − ω<sub>i</sub>²M)·X = 0</code>, lalu cari rasio X₁ : X₂.
-  </div>
-
-  <div class="cards reveal" style="margin-bottom:32px">
-    <div class="card">
-      <div class="card-icon">⚖️</div>
-      <h3>Mode 1 (ω₁ = 10) — In-Phase</h3>
-      <p>Substitusi ω₁²=100: <code>(K − 100·I) = [[100,−100],[−100,100]]</code>. Baris pertama: <code>100·X₁ − 100·X₂ = 0 → X₁ = X₂</code>. Mode 1 = <strong>[1, 1]</strong> — kedua massa bergerak <strong>searah dan sama besar</strong>.</p>
-      <div class="formula">Mode 1: X₁ = X₂ = 1 (in-phase)</div>
+      <div class="card-icon">🔄</div>
+      <h3>1× rpm — Unbalance</h3>
+      <p>Komponen di frekuensi rotasi shaft (f<sub>r</sub> = rpm/60). Dominan = unbalance rotor. Naik dengan kuadrat speed. Salah satu fault paling umum &amp; paling mudah dikoreksi dengan dynamic balancing.</p>
+      <div class="formula">1×rpm dominant = unbalance</div>
     </div>
     <div class="card">
       <div class="card-icon">↔️</div>
-      <h3>Mode 2 (ω₂ ≈ 17.32) — Anti-Phase</h3>
-      <p>Substitusi ω₂²=300: <code>(K − 300·I) = [[−100,−100],[−100,−100]]</code>. Baris pertama: <code>−100·X₁ − 100·X₂ = 0 → X₁ = −X₂</code>. Mode 2 = <strong>[1, −1]</strong> — kedua massa bergerak <strong>berlawanan</strong>.</p>
-      <div class="formula">Mode 2: X₁ = −X₂ (anti-phase)</div>
+      <h3>2× rpm — Misalignment</h3>
+      <p>Komponen di 2× frekuensi rotasi. Dominan saat coupling shaft tidak sejajar (parallel offset, angular). Pola tipikal: 2× tinggi + 1× moderate. Perlu laser alignment untuk koreksi.</p>
+      <div class="formula">2×rpm dominant = misalignment</div>
     </div>
     <div class="card">
-      <div class="card-icon">🌊</div>
-      <h3>Mengapa Mode 1 Lebih Lambat?</h3>
-      <p>Pada Mode 1, kedua massa bergerak bersama → pegas tengah <strong>tidak tertekan/ditarik</strong> sama sekali. Sistem efektif hanya pakai pegas k₁ dan k₃. Lebih sedikit kekakuan = ω lebih kecil.</p>
-      <div class="formula">ω₁_efektif = √((k₁+k₃)/m) = 10 rad/s ✓</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">⚡</div>
-      <h3>Mengapa Mode 2 Lebih Cepat?</h3>
-      <p>Pada Mode 2, kedua massa berlawanan arah → pegas tengah <strong>diregang/ditekan dua kali</strong> setiap setengah siklus. Kekakuan efektif lebih besar = ω lebih besar.</p>
-      <div class="formula">ω₂_efektif = √((k₁ + 2k₂)/m) ≈ 17.32 ✓</div>
-    </div>
-  </div>
-
-  <div class="info-box reveal">
-    <strong>Sifat Penting Mode Shape — Orthogonality</strong><br>
-    Dua mode shape selalu <strong>orthogonal terhadap matriks massa</strong>: u₁ᵀ·M·u₂ = 0. Untuk kasus kita: [1,1]·[[1,0],[0,1]]·[1,−1]ᵀ = 1·1 + 1·(−1) = 0 ✓. Sifat ini sangat penting: ia memungkinkan kita memecah getaran kompleks menjadi kombinasi mode-mode yang independen (modal analysis).
-  </div>
-
-  <div class="tip-box reveal">
-    💡 <strong>Mode shape adalah RASIO, bukan amplitudo absolut.</strong> Mode 1 = [1, 1] dan Mode 1 = [3, 3] adalah <em>mode yang sama</em> — keduanya berkata "kedua massa bergerak searah dengan amplitudo yang sama". Yang penting hanya rasio X₁/X₂. Konvensi normalisasi: biasanya X₁ = 1, atau ‖X‖ = 1.
-  </div>
-</div>
-
-<!-- ═══ BAGIAN 05 — ANALOGI SEHARI-HARI ═══ -->
-<hr class="divider">
-<div class="section" id="m-analogi">
-  <div class="section-label reveal">Bagian 05</div>
-  <h2 class="section-title reveal">Analogi Kehidupan<br>Sehari-Hari</h2>
-  <p class="section-desc reveal">Sistem 2 DoF ada di sekitar kita. Inilah analogi untuk menanamkan intuisi mode 1 vs mode 2.</p>
-
-  <div class="cards reveal" style="margin-bottom:32px">
-    <div class="card">
-      <div class="card-icon">🎢</div>
-      <h3>Dua Anak di Ayunan Berdampingan</h3>
-      <p>Dua ayunan diikat kayu di tengah — bisa ayun bareng (Mode 1, lambat) atau berlawanan (Mode 2, cepat). Anak-anak intuitif tahu cara "mengunci" mode dengan kayuhan.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🚗</div>
-      <h3>Mobil di Polisi Tidur</h3>
-      <p>Mobil melewati polisi tidur perlahan: depan-belakang naik bareng (Mode 1, "bouncing"). Lewat lebih cepat: depan naik saat belakang turun (Mode 2, "pitching"). Suspensi mobil dirancang agar kedua mode tidak resonansi dengan jalan biasa.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🏢</div>
-      <h3>Gedung 2 Lantai Saat Gempa</h3>
-      <p>Mode 1: kedua lantai bergeser searah (bayangkan gedung "membungkuk"). Mode 2: lantai 1 dan 2 bergeser berlawanan (gedung "mencangkul"). Kerusakan parah biasanya di Mode 2 karena percepatan lebih besar.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🎸</div>
-      <h3>Senar Gitar + Body Resonator</h3>
-      <p>Senar bergetar → bodi gitar ikut bergetar. Body kayu + senar membentuk sistem 2 DoF kuat: itulah kenapa gitar akustik bersuara lebih kaya dibanding senar tunggal.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🛀</div>
-      <h3>Air di Bak Mandi</h3>
-      <p>Goyangkan bak: air membentuk gelombang berdiri. Bisa naik di kiri-turun di kanan (Mode 1) atau pola yang lebih kompleks (Mode 2+). Sama seperti 2 DoF, tapi dengan kontinuum.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🏗️</div>
-      <h3>Tuned Mass Damper (Taipei 101)</h3>
-      <p>Bola raksasa 660 ton di puncak Taipei 101 = sistem 2 DoF buatan. Ditambah <em>sengaja</em> agar gedung punya 2 frekuensi pribadi yang menjauhkan dari frekuensi gempa/angin. Aplikasi praktis konsep mode shape.</p>
-    </div>
-  </div>
-
-  <div class="info-box reveal">
-    <strong>Aturan Intuisi Mode</strong><br>
-    Untuk sistem dua massa simetris (massa sama, pegas simetris): <strong>Mode 1 selalu in-phase</strong> (massa bergerak bareng) dan <strong>Mode 2 selalu anti-phase</strong> (berlawanan). Mode 1 frekuensinya selalu lebih rendah karena pegas penghubung tidak ikut "kerja". Mode 2 frekuensinya lebih tinggi karena pegas penghubung "kerja dua kali lipat".
-  </div>
-</div>
-
-<!-- ═══ BAGIAN 06 — VISUALISASI INTERAKTIF ═══ -->
-<hr class="divider">
-<div class="section" id="m-anim">
-  <div class="section-label reveal">Bagian 06</div>
-  <h2 class="section-title reveal">Visualisasi Interaktif<br>Mode 1 vs Mode 2</h2>
-  <p class="section-desc reveal">Klik tombol di bawah untuk mengganti mode. Animasi memperlihatkan dua massa (m₁=m₂=1 kg) terhubung tiga pegas (k=100 N/m) berosilasi pada frekuensi pribadinya. Perhatikan: pada Mode 1 kedua massa <strong style="color:var(--green)">searah</strong> dan pegas tengah diam; pada Mode 2 kedua massa <strong style="color:var(--amber)">berlawanan</strong> dan pegas tengah ditekan/diregang dua kali lipat.</p>
-
-  <div class="reveal" style="background:#020812;border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px">
-    <canvas id="cv2dof" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
-    <div style="display:flex;gap:14px;justify-content:center;margin-top:18px;flex-wrap:wrap">
-      <button id="btn-mode1" onclick="set2DofMode(1)" class="mode-btn mode-btn-active"
-        style="padding:10px 22px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(0,224,158,.5);background:rgba(0,224,158,.18);color:var(--green);transition:all .2s">
-        ▶ Mode 1 (ω₁ = 10 rad/s) — In-Phase
-      </button>
-      <button id="btn-mode2" onclick="set2DofMode(2)" class="mode-btn"
-        style="padding:10px 22px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(249,115,22,.4);background:rgba(249,115,22,.08);color:var(--amber);transition:all .2s">
-        ▶ Mode 2 (ω₂ ≈ 17.32 rad/s) — Anti-Phase
-      </button>
-    </div>
-    <div id="mode2dof-info" style="text-align:center;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">
-      Mode 1 aktif · X₁ = X₂ = cos(10·t) · pegas tengah tidak terdeformasi
-    </div>
-  </div>
-
-  <p class="section-desc reveal" style="margin-top:24px">Tabel berikut merangkum perbedaan kedua mode untuk referensi cepat:</p>
-
-  <div class="reveal" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:24px;overflow-x:auto">
-    <table style="width:100%;border-collapse:collapse;font-size:14px">
-      <thead>
-        <tr style="border-bottom:2px solid var(--border)">
-          <th style="text-align:left;padding:12px;color:var(--cyan)">Karakteristik</th>
-          <th style="text-align:center;padding:12px;color:var(--green)">Mode 1 (Lambat)</th>
-          <th style="text-align:center;padding:12px;color:var(--amber)">Mode 2 (Cepat)</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Frekuensi pribadi ω</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green);font-family:monospace">10 rad/s</td>
-          <td style="text-align:center;padding:10px;color:var(--amber);font-family:monospace">17.32 rad/s</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Frekuensi f (Hz)</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green);font-family:monospace">1.59 Hz</td>
-          <td style="text-align:center;padding:10px;color:var(--amber);font-family:monospace">2.76 Hz</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Periode T (detik)</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green);font-family:monospace">0.628 s</td>
-          <td style="text-align:center;padding:10px;color:var(--amber);font-family:monospace">0.363 s</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Mode shape [X₁, X₂]</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green);font-family:monospace">[1, 1]</td>
-          <td style="text-align:center;padding:10px;color:var(--amber);font-family:monospace">[1, −1]</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Pola gerak</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green)">Searah (in-phase)</td>
-          <td style="text-align:center;padding:10px;color:var(--amber)">Berlawanan (anti-phase)</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Pegas tengah k₂</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green)">Diam (tidak terdeformasi)</td>
-          <td style="text-align:center;padding:10px;color:var(--amber)">Bergetar bolak-balik</td>
-        </tr>
-        <tr>
-          <td style="padding:10px 12px;color:var(--text)"><strong>Energi yang tersimpan</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green)">Hanya k₁ + k₃</td>
-          <td style="text-align:center;padding:10px;color:var(--amber)">k₁ + k₃ + 4·k₂</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="info-box reveal">
-    <strong>Bayangkan Mode 1:</strong> Kedua kotak meluncur ke kanan bersama (X₁ = +1, X₂ = +1), lalu ke kiri bersama (−1, −1). Bagaikan pasangan dansa yang sinkron. Pegas tengah selalu memiliki panjang asli — tidak ikut kerja. Frekuensi rendah (10 rad/s).<br><br>
-    <strong>Bayangkan Mode 2:</strong> Massa kiri ke kanan (+1), massa kanan ke kiri (−1). Pegas tengah ditekan menjadi <em>setengah</em> panjangnya, lalu diregang menjadi <em>1.5×</em> panjangnya — bekerja keras! Frekuensi tinggi (17.32 rad/s).
-  </div>
-
-  <div class="tip-box reveal">
-    💡 <strong>Tip:</strong> Klik bolak-balik antara Mode 1 dan Mode 2 untuk merasakan perbedaan tempo dan pola gerak. Untuk visualisasi lanjutan, buka Bagian 08 (Python) → jalankan Cell 4 di Jupyter Notebook untuk plot superposisi kedua mode (free vibration response).
-  </div>
-</div>
-
-<!-- ═══ BAGIAN 07 — APLIKASI: VIBRATION ABSORBER ═══ -->
-<hr class="divider">
-<div class="section" id="m-aplikasi">
-  <div class="section-label reveal">Bagian 07</div>
-  <h2 class="section-title reveal">Aplikasi Industri:<br>Vibration Absorber & Tuned Mass Damper</h2>
-  <p class="section-desc reveal">Aplikasi paling spektakuler dari konsep 2 DoF adalah <strong>vibration absorber</strong> — menambahkan massa-pegas kecil pada struktur untuk meredam getaran berbahaya. Prinsipnya: dengan tuning yang tepat, sistem 2 DoF baru memiliki frekuensi pribadi yang <em>menjauh</em> dari frekuensi eksitasi pengganggu.</p>
-
-  <div class="formula-block reveal">
-    <div class="label">Prinsip Tuning Absorber Klasik (Den Hartog)</div>
-    Tune frekuensi pribadi absorber: ω_a = √(k_a/m_a) = ω_eksitasi
-  </div>
-
-  <div class="cards reveal" style="margin-bottom:32px">
-    <div class="card">
-      <div class="card-icon">🏗️</div>
-      <h3>Taipei 101 — Bola 660 Ton</h3>
-      <p>Gedung 508 m ini punya bola pendulum 660 ton di lantai 87–92, terhubung ke struktur lewat pegas. Itu adalah sistem 2 DoF: gedung (m₁) + bola (m₂). Saat angin/gempa pada frekuensi tertentu menggetarkan gedung, bola "menyerap" energi → amplitudo gedung berkurang ~40%.</p>
-      <div class="formula">ω_a tuned ke ω_angin dominan</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">🌉</div>
-      <h3>Millennium Bridge London</h3>
-      <p>Saat dibuka tahun 2000, jembatan ini bergoyang berbahaya akibat 2000 pejalan kaki yang tanpa sadar berjalan sinkron pada frekuensi pribadinya. Solusi: dipasang 89 vibration absorber tuned ke frekuensi tersebut.</p>
-      <div class="formula">Multiple absorbers di sepanjang jembatan</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">🚗</div>
-      <h3>Shock Absorber + Bushing Mobil</h3>
-      <p>Engine mount karet bertindak sebagai pegas + damper kecil yang membuat mesin (m₁) dan rangka (m₂) menjadi sistem 2 DoF. Tuning yang tepat menjauhkan frekuensi pribadi rangka dari 800–4000 RPM mesin.</p>
-      <div class="formula">f_engine ≠ f_natural rangka</div>
+      <div class="card-icon">📈</div>
+      <h3>3× rpm + Higher — Looseness</h3>
+      <p>Komponen di 3×, 4×, 5×, ... rpm. Dominan pada looseness mekanis (baut longgar, fit longgar, fondasi retak). Spektrum "ramai" dengan banyak harmonik integer.</p>
+      <div class="formula">Multi-harmonics = looseness</div>
     </div>
     <div class="card">
       <div class="card-icon">⚙️</div>
-      <h3>Mesin Cuci dengan Counter-Weight</h3>
-      <p>Tabung mesin cuci ditambah massa counter-weight yang dihubungkan oleh pegas suspensi. Saat unbalance terjadi, counter-weight bergetar berlawanan (Mode 2) → meredam getaran tabung.</p>
-      <div class="formula">Reduksi getaran 50–70%</div>
+      <h3>Gear Mesh Frequency (GMF)</h3>
+      <p>Untuk gearbox: GMF = N<sub>gigi</sub> × f<sub>r</sub>. Dominan di gear sehat. Munculnya <strong>sidebands</strong> di GMF ± k·f<sub>r</sub> = early warning gear damage (pitting, broken tooth). Akan di-detail di Bagian 06.</p>
+      <div class="formula">GMF = N_teeth × f_rotation</div>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Aturan Desain Absorber Sederhana</strong><br>
-    1) Identifikasi <strong>frekuensi pengganggu</strong> ω_drive (mis. 10 rad/s untuk mesin tertentu).<br>
-    2) Pilih massa absorber <strong>m_a ≈ 5–20% massa utama</strong> (lebih besar = lebih efektif tapi lebih berat).<br>
-    3) Tuning: <strong>k_a = m_a · ω_drive²</strong>. Contoh: untuk meredam getaran ω=10 rad/s pada struktur 1000 kg, pilih m_a = 50 kg, k_a = 50·100 = 5000 N/m.<br>
-    4) Hasil: amplitudo struktur utama turun drastis di sekitar ω_drive, tetapi muncul 2 puncak resonansi baru di ω₁ dan ω₂ yang harus dijauhi.
+    <strong>Workflow Diagnosis Spektrum Klasik</strong><br>
+    1) <strong>Identify f<sub>r</sub></strong>: catat rpm shaft (dari nameplate atau measurement tachometer).<br>
+    2) <strong>Identify komponen</strong>: bearing model, gear teeth count, jumlah blade, motor pole.<br>
+    3) <strong>Hitung characteristic frequencies</strong>: BPFO/BPFI (bearing), GMF (gear), pole pass freq (motor).<br>
+    4) <strong>FFT spektrum</strong> dan cari frekuensi tersebut.<br>
+    5) <strong>Compare</strong> dengan baseline sehat — yang naik = potensi fault.<br>
+    Tools: <em>order tracking</em> untuk variable speed (Bagian 02), <em>envelope analysis</em> untuk bearing fault demodulation (Bagian 04).
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Trade-off Penting:</strong> Vibration absorber sangat efektif <em>hanya</em> di frekuensi tuning. Untuk eksitasi broad-band (gempa, angin acak), tambahkan <strong>damping</strong> ke absorber → menjadi <em>Tuned Mass Damper</em> (TMD). Kompromi: peredaman lebih merata, tapi puncak di ω_drive tidak senol.
+    💡 <strong>Aturan 80/20 Diagnosis Getaran:</strong> 80% kasus fault industrial bisa didiagnosa hanya dengan: <strong>1×rpm</strong> (unbalance), <strong>2×rpm</strong> (misalignment), <strong>BPFO/BPFI</strong> (bearing fault), <strong>GMF + sidebands</strong> (gear fault). Lima frekuensi ini wajib dihafal teknisi maintenance.
+  </div>
+</div>
+
+<!-- ═══ BAGIAN 02 — ORDER TRACKING ═══ -->
+<hr class="divider">
+<div class="section" id="m-eom">
+  <div class="section-label reveal">Bagian 02</div>
+  <h2 class="section-title reveal">Order Tracking:<br>Diagnosis Mesin Variable Speed</h2>
+  <p class="section-desc reveal">Banyak mesin industri beroperasi pada rpm yang <em>berubah-ubah</em> — fan dengan VFD, kompresor variable load, turbin start-up/shut-down. FFT konvensional menampilkan spektrum di Hertz, tapi frekuensi karakteristik (1×rpm, BPFO) <strong>bergeser bersama rpm</strong>. <strong>Order tracking</strong> mentransformasi spektrum ke domain "order" (kelipatan rotasi shaft) — komponen menjadi <em>tetap</em> walaupun rpm berubah.</p>
+
+  <div class="formula-block reveal">
+    <div class="label">Definisi Order</div>
+    Order = frekuensi (Hz) / frekuensi rotasi shaft (Hz) &nbsp;·&nbsp; Order 1 = 1×rpm, Order 2 = 2×rpm, dll
+  </div>
+
+  <div class="cards reveal" style="margin-bottom:32px">
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <h3>Frequency Spectrum vs Order Spectrum</h3>
+      <p>Sumbu-x frequency spectrum: Hz. Order spectrum: orders (dimensionless). Saat rpm berubah, peak unbalance bergerak di Hz spectrum — tapi tetap di order=1 di order spectrum. Interpretasi <strong>independent of speed</strong>.</p>
+      <div class="formula">Hz = Order × f_shaft</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📡</div>
+      <h3>Tachometer Signal Required</h3>
+      <p>Order tracking butuh sinyal referensi rotasi: <strong>tachometer pulse</strong> (1 pulse/rev) atau <strong>encoder</strong> (multi-pulse/rev). Di-record bersama vibration signal. Algorithm meresample data agar setiap rev = jumlah sample konstan.</p>
+      <div class="formula">Tach + vibration = synchronous resampling</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔁</div>
+      <h3>Synchronous Resampling Algorithm</h3>
+      <p>(1) Detect tach pulses → tahu waktu tiap rev. (2) Interpolate vibration signal pada waktu yang teratur per fraction of rev. (3) FFT hasil resampled — sumbu frekuensi sekarang adalah orders. Library: <code>scipy.signal.resample</code> + custom interpolation.</p>
+      <div class="formula">Resample t-uniform → θ-uniform</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🎯</div>
+      <h3>Use Case: Run-Up / Coast-Down Test</h3>
+      <p>Saat startup turbin/motor, rpm naik dari 0 ke nominal. FFT konvensional jadi waterfall yang sulit dibaca. Order tracking memberi <strong>Campbell diagram</strong> 2D yang clean — order vs time, dengan resonansi struktural muncul sebagai garis horizontal khas.</p>
+      <div class="formula">Run-up → Order vs RPM → Campbell</div>
+    </div>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>Alternatif: COT (Computed Order Tracking)</strong><br>
+    Bila tach signal tidak tersedia, ada metode <strong>tacholess order tracking</strong>: estimate instantaneous frequency dari sinyal vibrasi sendiri (mis. dari komponen 1×rpm yang biasanya dominan). Algoritma: STFT-based phase tracking, atau Vold-Kalman filter. Akurasi sedikit lebih rendah dari direct tachometer, tapi cukup untuk monitoring rutin.
+  </div>
+
+  <div class="tip-box reveal">
+    💡 <strong>Standar Pemberian Order:</strong> Komponen utama bearing fault biasanya di order non-integer (BPFO ≈ 3.05×, BPFI ≈ 4.95× untuk bearing tipikal). Komponen mekanis lain di integer order (unbalance=1, misalignment=2). Cara cepat membedakan bearing fault vs mekanis: lihat apakah peak di integer atau non-integer order.
+  </div>
+</div>
+
+<!-- ═══ BAGIAN 03 — CEPSTRUM ═══ -->
+<hr class="divider">
+<div class="section" id="m-eigen">
+  <div class="section-label reveal">Bagian 03</div>
+  <h2 class="section-title reveal">Cepstrum:<br>Periodicity dalam Domain Frekuensi</h2>
+  <p class="section-desc reveal">Bagaimana kalau sinyal getaran punya banyak <em>sidebands teratur</em> yang sulit dibaca? Misalnya: 1000 Hz central + sidebands 1000±25, 1000±50, 1000±75, dst. Manual counting susah. <strong>Cepstrum</strong> (anagram "spectrum") adalah <em>FFT dari log-magnitude FFT</em> — domain ketiga yang menyederhanakan deteksi periodicity di spektrum frekuensi. Sangat powerful untuk gear &amp; engine analysis.</p>
+
+  <div class="formula-block reveal">
+    <div class="label">Definisi Real Cepstrum</div>
+    C(τ) = IFFT( log |FFT(x(t))|² ) &nbsp;·&nbsp; τ disebut "quefrency" (satuan: detik)
+  </div>
+
+  <div class="cards reveal" style="margin-bottom:32px">
+    <div class="card">
+      <div class="card-icon">🔁</div>
+      <h3>Three Domains: t → f → τ</h3>
+      <p>Time domain (t), frequency domain (f), cepstrum domain (τ = quefrency). Satuan τ adalah detik (sama seperti time), tapi makna-nya berbeda: <strong>periode sidebands di spektrum</strong>. Quefrency 0.04 s = sidebands berjarak 25 Hz.</p>
+      <div class="formula">τ = 1 / Δf_sidebands</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚙️</div>
+      <h3>Use Case: Gear Sidebands</h3>
+      <p>Gear damage menghasilkan modulasi: GMF carrier + sidebands at f<sub>r</sub> spacing. Spektrum cluttered. Cepstrum: satu peak di τ = 1/f<sub>r</sub> yang langsung menunjukkan periode modulasi. Quantitatively measure modulation strength.</p>
+      <div class="formula">Cepstrum peak @ τ_gear = 1/f_r</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🎺</div>
+      <h3>Use Case: Engine Combustion</h3>
+      <p>Engine 4-stroke: combustion event tiap 2 revolusi (untuk 4-cyl). Cepstrum menangkap firing rate sebagai peak yang clear. Diagnosis individual cylinder issue (mis. misfiring) dari cepstrum amplitude di firing harmonic.</p>
+      <div class="formula">Cepstrum peak @ firing period</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🛠️</div>
+      <h3>Liftering — Cepstrum Filtering</h3>
+      <p>Operasi mirip filtering tapi di cepstrum domain. <strong>Liftering</strong> dapat memisahkan komponen sumber (impulse train) dari komponen filter (struktural resonance). Aplikasi di voice processing &amp; bearing fault separation.</p>
+      <div class="formula">Lifter = filter di quefrency</div>
+    </div>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>Cepstrum vs Envelope Analysis</strong><br>
+    Cepstrum dan envelope analysis (Bagian 04) sama-sama mendeteksi <em>modulation</em>, tapi pada use case berbeda:<br>
+    • <strong>Cepstrum</strong>: bagus untuk modulasi <em>periodic</em> dengan sideband regular (gear mesh + GMF sidebands). Memberi quefrency tunggal.<br>
+    • <strong>Envelope</strong>: bagus untuk modulasi <em>impulsive</em> (bearing fault impacts modulating high-frequency resonance). Memberi spektrum envelope yang menampilkan BPFO/BPFI.<br>
+    Engineer professional pakai keduanya bersamaan untuk diagnosis lengkap.
+  </div>
+
+  <div class="tip-box reveal">
+    💡 <strong>Implementasi Sederhana:</strong> <code>cepstrum = np.fft.irfft(np.log(np.abs(np.fft.rfft(x))**2 + 1e-10))</code>. Konstanta 1e-10 mencegah log(0). Ambil hanya sisi positif dari hasil IFFT (mirip dengan FFT). Plot vs quefrency untuk visualization.
+  </div>
+</div>
+
+<!-- ═══ BAGIAN 04 — ENVELOPE ANALYSIS ═══ -->
+<hr class="divider">
+<div class="section" id="m-modes">
+  <div class="section-label reveal">Bagian 04</div>
+  <h2 class="section-title reveal">Envelope Analysis:<br>Demodulasi Bearing Fault</h2>
+  <p class="section-desc reveal">Bearing fault menghasilkan <strong>impulse pendek</strong> tiap kali roller melewati area defect. Impulse ini "memukul" resonansi struktural high-frequency (3-15 kHz tipikal) dan terekam sebagai <em>amplitude-modulated</em> high-freq carrier. FFT konvensional sulit mendeteksi BPFO yang ter-modulate ini. <strong>Envelope analysis</strong> = high-pass filter + Hilbert transform untuk demodulasi → menghasilkan spektrum envelope dengan peak BPFO yang jelas.</p>
+
+  <div class="formula-block reveal">
+    <div class="label">Envelope Analysis Workflow</div>
+    x(t) → BPF (3-10 kHz) → Hilbert Transform → |envelope| → FFT → spektrum BPFO/BPFI
+  </div>
+
+  <div class="cards reveal" style="margin-bottom:32px">
+    <div class="card">
+      <div class="card-icon">🛡️</div>
+      <h3>Step 1: Band-Pass Filter (BPF)</h3>
+      <p>Filter sinyal di band high-frequency dimana resonansi struktural berada (typical: 3-10 kHz). Membuang komponen low-frequency (rotor unbalance, misalignment) dan high-frequency noise. Tujuan: isolasi sinyal yang ter-modulate impact.</p>
+      <div class="formula">BPF: 3 kHz - 10 kHz typical</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🌊</div>
+      <h3>Step 2: Hilbert Transform → Envelope</h3>
+      <p>Hilbert transform menghasilkan analytic signal x_a(t) = x(t) + j·x_H(t). Magnitude |x_a(t)| = <strong>amplitude envelope</strong> sinyal. Inilah "outline" sinyal yang menampilkan modulasi tanpa carrier high-freq.</p>
+      <div class="formula">env(t) = |x(t) + j·hilbert(x)|</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <h3>Step 3: FFT of Envelope</h3>
+      <p>Transform envelope ke frequency domain. Output: <strong>envelope spectrum</strong> yang menampilkan frekuensi modulasi — BPFO, BPFI, BSF, FTF muncul sebagai peak yang jelas. Inilah "magic" envelope analysis.</p>
+      <div class="formula">FFT(env) → BPFO/BPFI peaks</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🎯</div>
+      <h3>Optimal Band Selection: Kurtogram</h3>
+      <p>Pilihan band BPF mempengaruhi sensitivity. <strong>Kurtogram</strong> (Antoni 2007): tampilkan kurtosis spectral di berbagai (center freq, bandwidth) — pilih band dengan kurtosis tertinggi untuk envelope analysis optimal.</p>
+      <div class="formula">Kurtogram → optimal (fc, BW)</div>
+    </div>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>Mengapa Envelope, Bukan Spectrum Langsung?</strong><br>
+    Bearing fault impulse (mis. BPFO 100 Hz) sangat pendek dengan amplitudo kecil. Di FFT raw, energi-nya tersebar tipis di 0-10 kHz — peak di 100 Hz hampir tak terlihat di tengah noise. Tapi impulse ini <em>memukul</em> resonansi struktur di 5 kHz, menghasilkan damped oscillation 5 kHz yang termodulate amplitudo BPFO. <strong>Envelope analysis</strong> mengekstrak "envelope" osilasi 5 kHz tersebut — yang memodulate dengan rate 100 Hz. FFT dari envelope = peak besar di 100 Hz = BPFO clearly visible. Sensitivitas naik 10-100×.
+  </div>
+
+  <div class="tip-box reveal">
+    💡 <strong>Industry Standard Workflow:</strong> Vibration analyzer modern (CSI 2140, Brüel &amp; Kjær Vibro, dll) memiliki "Envelope" mode bawaan dengan default band 0.5-10 kHz, Hann window. Tinggal klik &amp; FFT envelope — peak BPFO/BPFI muncul auto-labeled (jika model bearing telah dimasukkan). Reduce learning curve teknisi.
+  </div>
+</div>
+
+<!-- ═══ BAGIAN 05 — BEARING FAULT FREQUENCIES ═══ -->
+<hr class="divider">
+<div class="section" id="m-analogi">
+  <div class="section-label reveal">Bagian 05</div>
+  <h2 class="section-title reveal">Bearing Fault Frequencies:<br>BPFO, BPFI, BSF, FTF</h2>
+  <p class="section-desc reveal">Setiap rolling element bearing memiliki <strong>4 frekuensi karakteristik</strong> yang unik tergantung geometri (jumlah ball, diameter ball, pitch diameter, contact angle). Empat frekuensi ini muncul saat ada defect di lokasi spesifik bearing — outer race, inner race, ball, atau cage. Kombinasi peak yang muncul di envelope spectrum memberikan diagnosis presisi.</p>
+
+  <div class="formula-block reveal">
+    <div class="label">Empat Frekuensi Bearing Karakteristik</div>
+    BPFO · BPFI · BSF · FTF — masing-masing untuk lokasi fault yang berbeda
+  </div>
+
+  <div class="cards reveal" style="margin-bottom:32px">
+    <div class="card">
+      <div class="card-icon">⭕</div>
+      <h3>BPFO — Ball Pass Frequency Outer Race</h3>
+      <p>Frekuensi roller yang melewati area defect di <strong>outer race</strong>. Defect tersering di bearing motor (outer race tetap, inner berputar dengan shaft).</p>
+      <div class="formula">BPFO = (n/2) · f_r · (1 − (d/D)·cos α)</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🎯</div>
+      <h3>BPFI — Ball Pass Frequency Inner Race</h3>
+      <p>Frekuensi roller yang melewati defect di <strong>inner race</strong>. Lebih tinggi dari BPFO karena inner race berputar lebih cepat relatif terhadap roller. Modulasi by f<sub>r</sub> sering terlihat (sideband BPFI ± f<sub>r</sub>).</p>
+      <div class="formula">BPFI = (n/2) · f_r · (1 + (d/D)·cos α)</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚪</div>
+      <h3>BSF — Ball Spin Frequency</h3>
+      <p>Frekuensi rotasi <strong>ball itu sendiri</strong>. Defect di ball muncul tiap kali ball berputar dan menyentuh inner/outer race. Kompleks: muncul di 2× BSF jika defect kontak dengan kedua race tiap rev.</p>
+      <div class="formula">BSF = (D/(2d)) · f_r · (1 − ((d/D)·cos α)²)</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🌀</div>
+      <h3>FTF — Fundamental Train Frequency</h3>
+      <p>Frekuensi rotasi <strong>cage/separator</strong> bearing. Lebih rendah dari f<sub>r</sub> (sekitar 0.4× f<sub>r</sub>). Cage damage (broken separator) muncul di FTF dan harmonik-nya.</p>
+      <div class="formula">FTF = (1/2) · f_r · (1 − (d/D)·cos α)</div>
+    </div>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>Approximation untuk Bearing Tipikal</strong><br>
+    Untuk most common bearings dengan kontak angle α ≈ 0 (deep groove ball bearing) dan ratio d/D ≈ 0.2-0.3:<br>
+    • <strong>BPFO ≈ 0.4 × n × f_r</strong> (n = jumlah ball)<br>
+    • <strong>BPFI ≈ 0.6 × n × f_r</strong><br>
+    • <strong>BSF ≈ 2.3 × f_r</strong> (or up to 5× depending on bearing)<br>
+    • <strong>FTF ≈ 0.4 × f_r</strong><br>
+    Untuk bearing 6204 (8 ball, deep groove): BPFO ≈ 3.05× f_r, BPFI ≈ 4.95× f_r. <strong>Database</strong> seperti SKF Bearing Calculator atau bearingfacts.com sediakan exact value per bearing model.
+  </div>
+
+  <div class="tip-box reveal">
+    💡 <strong>Quick Identification:</strong> Saat melihat envelope spectrum, peak di <strong>non-integer order</strong> (mis. 3.05× rpm, 4.95× rpm) hampir pasti bearing fault. Peak di integer order (1×, 2×, 3×) = mekanis (unbalance, misalignment, looseness). Pemisahan ini decision tree pertama dalam diagnosis.
+  </div>
+</div>
+
+<!-- ═══ BAGIAN 06 — GEAR MESH & SIDEBANDS ═══ -->
+<hr class="divider">
+<div class="section" id="m-anim">
+  <div class="section-label reveal">Bagian 06</div>
+  <h2 class="section-title reveal">Gear Mesh Frequency &amp; Sidebands:<br>Diagnosis Gearbox Modern</h2>
+  <p class="section-desc reveal">Gearbox menghasilkan komponen frekuensi paling kompleks: <strong>Gear Mesh Frequency (GMF)</strong> sebagai carrier, ditambah <strong>sidebands</strong> di sekitar GMF dengan spacing = frekuensi rotasi shaft input/output. Pola sidebands memberikan informasi diagnostik kunci tentang kondisi gear (pitting, broken tooth, misalignment).</p>
+
+  <div class="formula-block reveal">
+    <div class="label">Definisi Gear Mesh Frequency</div>
+    GMF = N × f<sub>r</sub> &nbsp;·&nbsp; N = jumlah gigi gear, f<sub>r</sub> = frekuensi rotasi shaft tempat gear terpasang
+  </div>
+
+  <div class="cards reveal" style="margin-bottom:32px">
+    <div class="card">
+      <div class="card-icon">⚙️</div>
+      <h3>GMF dari Gear Pinion vs Bull</h3>
+      <p>Untuk gear pair: GMF = N<sub>pinion</sub> × f<sub>pinion</sub> = N<sub>bull</sub> × f<sub>bull</sub> (sama persis, karena keduanya mesh bersama). Tapi sidebands berbeda: input shaft vs output shaft.</p>
+      <div class="formula">GMF = N_pinion × f_pinion</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📍</div>
+      <h3>Sidebands di GMF ± k·f<sub>r</sub></h3>
+      <p>Sidebands muncul karena modulasi: setiap rev, gear melewati posisi tertentu yang memodulate GMF amplitudo (mis. eccentric mounting, single tooth defect). Spacing sidebands = f<sub>r</sub> shaft yang bermasalah.</p>
+      <div class="formula">Sidebands @ GMF ± k·f_r</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚠️</div>
+      <h3>Single Sideband Pattern → Localized Defect</h3>
+      <p>Sidebands <strong>asimetris</strong> (lebih kuat di GMF + f<sub>r</sub> dari pada GMF − f<sub>r</sub>) sering = localized defect (broken tooth, single chip). Harus dikoreksi segera sebelum chain reaction ke gigi lain.</p>
+      <div class="formula">Asymmetric sidebands = local fault</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📈</div>
+      <h3>Multi-Harmonic GMF</h3>
+      <p>2×GMF, 3×GMF muncul saat gear semakin rusak (high contact stress, distorted mesh). Plot trend amplitude GMF + harmonik vs waktu = indikator severity gear damage progression.</p>
+      <div class="formula">2×GMF, 3×GMF rising = severity</div>
+    </div>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>Stage Progression Gear Damage</strong><br>
+    1) <strong>Stage 1 (early)</strong>: GMF dominant, no/minimal sidebands. Gear normal.<br>
+    2) <strong>Stage 2</strong>: Sidebands at f<sub>r</sub> spacing muncul, amplitude rendah. Wear normal.<br>
+    3) <strong>Stage 3</strong>: Sidebands lebih kuat, asymmetric. Localized defect (chip, scratch).<br>
+    4) <strong>Stage 4 (late)</strong>: 2×GMF, 3×GMF naik. Multiple sidebands. Significant pitting / broken tooth. <strong>Schedule replacement immediately.</strong><br>
+    Time progression Stage 1→4 bisa weeks sampai months tergantung load — yang penting di-trend untuk catch sebelum catastrophic failure.
+  </div>
+
+  <div class="tip-box reveal">
+    💡 <strong>Cepstrum untuk Gear:</strong> Saat sidebands gear menjadi banyak dan susah dihitung manual, pakai cepstrum (Bagian 03). Quefrency peak di τ = 1/f<sub>r</sub> langsung memberi spacing sideband + relative amplitude. Quantitative metric "modulation index" dari cepstrum dapat di-trend untuk gear health.
+  </div>
+</div>
+
+<!-- ═══ BAGIAN 07 — DEMODULATION WORKFLOW ═══ -->
+<hr class="divider">
+<div class="section" id="m-aplikasi">
+  <div class="section-label reveal">Bagian 07</div>
+  <h2 class="section-title reveal">Demodulation Workflow:<br>Step-by-Step Bearing &amp; Gear Diagnosis</h2>
+  <p class="section-desc reveal">Diagnosis spektrum lengkap menggabungkan semua tools yang sudah dipelajari (FFT, order tracking, envelope, cepstrum) dalam workflow sistematis. Berikut adalah <strong>standar operating procedure</strong> diagnosis getaran rolling element bearings dan gearboxes yang digunakan engineer praktisi.</p>
+
+  <div class="formula-block reveal">
+    <div class="label">Diagnosis Decision Tree</div>
+    Acquire → Time-domain stats → FFT → Identify integer/non-integer peaks → Envelope analysis (jika non-integer) → Diagnose
+  </div>
+
+  <div class="cards reveal" style="margin-bottom:32px">
+    <div class="card">
+      <div class="card-icon">1️⃣</div>
+      <h3>Acquire Data</h3>
+      <p>Accelerometer di housing bearing (radial direction). fs = 25.6 kHz minimum. Buffer 1-3 detik. Tachometer signal jika rpm variable. Pastikan mounting rigid (stinger atau magnetic mount minimum, glued mount preferred).</p>
+      <div class="formula">fs ≥ 25 kHz, BW ≥ 5 kHz</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">2️⃣</div>
+      <h3>Time-Domain Quick Check</h3>
+      <p>Hitung RMS (severity), crest factor (impulsiveness), kurtosis. Jika RMS zone D → emergency. Jika crest/kurtosis tinggi → impulsive defect kemungkinan, lanjut envelope analysis.</p>
+      <div class="formula">RMS, CF, Kurtosis baseline</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">3️⃣</div>
+      <h3>Spectrum Analysis</h3>
+      <p>FFT dengan Hann window. Identify peak di 1×rpm, 2×rpm (mekanis). Cek non-integer peaks — ini kemungkinan bearing/gear. Hitung BPFO/BPFI/GMF dari geometry — match dengan peak yang muncul.</p>
+      <div class="formula">FFT → integer vs non-integer</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">4️⃣</div>
+      <h3>Envelope &amp; Confirm</h3>
+      <p>Jika ada peak non-integer atau crest tinggi, lakukan envelope analysis di band 3-10 kHz. Spektrum envelope harus menampilkan BPFO/BPFI dengan amplitudo &gt; 5× noise floor untuk diagnosis confident. Cross-check dengan cepstrum untuk gear sidebands.</p>
+      <div class="formula">Envelope spectrum → BPFO/BPFI</div>
+    </div>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>Common Pitfalls Diagnosis Spektrum</strong><br>
+    1) <strong>Aliasing</strong>: BPFI 12 kHz dengan fs = 20 kHz akan alias ke 8 kHz palsu. Selalu cek fs vs BW analisis.<br>
+    2) <strong>Wrong bearing geometry</strong>: salah model bearing → salah BPFO calculation. Verifikasi dari nameplate atau service manual.<br>
+    3) <strong>Mounted resonance interference</strong>: accelerometer mount loose menghasilkan resonance palsu. Pakai stud mount untuk frequency &gt; 5 kHz.<br>
+    4) <strong>Envelope band terlalu sempit</strong>: miss bearing frequency. Gunakan kurtogram untuk auto-select band optimal.<br>
+    5) <strong>Trend belum ada</strong>: single measurement bisa misleading. Trend RMS + envelope peak amplitudo selama beberapa minggu untuk konfirmasi.
+  </div>
+
+  <div class="tip-box reveal">
+    💡 <strong>Senyum Profesional:</strong> Vibration analyst senior bisa diagnosa 70% kasus dalam 30 detik dari time waveform + spectrum visual. Kuncinya: pengalaman dengan ratusan kasus baseline. Jangan kecewa kalau awal-awal slow — 5-10 cases per week selama 1 tahun = expert level.
   </div>
 </div>
 
@@ -1285,38 +1268,48 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <hr class="divider">
 <div class="section" id="m-python">
   <div class="section-label reveal">Bagian 08</div>
-  <h2 class="section-title reveal">Implementasi Python<br>di Jupyter Notebook</h2>
-  <p class="section-desc reveal">Empat cell Python berikut mengimplementasikan konsep kunci Pertemuan 14 dengan sistem referensi: setup matriks M & K (Cell 1), eigenvalue problem dan frekuensi pribadi (Cell 2), mode shape dan orthogonality (Cell 3), serta simulasi free vibration response (Cell 4). Semua langsung runnable di VS Code Jupyter.</p>
+  <h2 class="section-title reveal">Implementasi Python:<br>Envelope Analysis &amp; Order Tracking</h2>
+  <p class="section-desc reveal">Empat cell Python berikut mengimplementasikan workflow lengkap: simulasi sinyal bearing fault dengan modulasi (Cell 1), envelope analysis dengan Hilbert transform (Cell 2), order tracking dengan tachometer signal (Cell 3), dan dashboard diagnosis terintegrasi (Cell 4). Library: numpy, scipy.signal.</p>
 
   <!-- Cell 1 -->
   <div class="code-card reveal" style="margin-bottom:32px">
     <div class="code-header">
       <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
       <span class="code-lang">Python · Cell 1</span>
-      <span class="code-label">Setup Matriks M & K</span>
+      <span class="code-label">Simulate Bearing Fault Signal (BPFO Modulating Resonance)</span>
     </div>
     <div class="code-wrap">
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
       <pre><code class="lang-python">import numpy as np
 
-# Parameter sistem referensi (2 DoF, 2 massa + 3 pegas)
-m1, m2 = 1.0, 1.0          # kg
-k1, k2, k3 = 100.0, 100.0, 100.0   # N/m
+fs = 25600.0           # 25.6 kHz
+T = 2.0                # 2 detik buffer
+N = int(fs * T)
+t = np.arange(N) / fs
 
-# Matriks massa (diagonal)
-M = np.array([[m1, 0],
-              [0, m2]])
+f_shaft = 30.0         # 30 Hz = 1800 rpm
+f_resonance = 5000.0   # struktur housing bearing resonance
+f_BPFO = 100.0         # BPFO untuk bearing tipikal (~3.3× shaft)
 
-# Matriks kekakuan (simetris)
-K = np.array([[k1 + k2, -k2],
-              [-k2,    k2 + k3]])
+# Sinyal background: 1×rpm + 2×rpm + noise
+x_background = (1.5*np.sin(2*np.pi*f_shaft*t)
+                + 0.4*np.sin(2*np.pi*2*f_shaft*t)
+                + 0.3*np.random.randn(N))
 
-print("Matriks Massa M:")
-print(M)
-print("\nMatriks Kekakuan K:")
-print(K)
-print(f"\ntrace(K) = {np.trace(K):.1f}")
-print(f"det(K)   = {np.linalg.det(K):.1f}")</code></pre>
+# Bearing fault: impulse train at BPFO modulating resonance 5 kHz
+impulse_train = np.zeros(N)
+impulse_period = 1.0 / f_BPFO
+for k in range(int(T * f_BPFO)):
+    idx = int(k * impulse_period * fs)
+    if idx < N - 200:
+        # damped oscillation at resonance
+        decay = np.exp(-np.arange(200) * 0.02)
+        impulse_train[idx:idx+200] += 2.0 * decay * np.sin(2*np.pi*f_resonance*np.arange(200)/fs)
+
+x_bearing = x_background + impulse_train
+
+print(f"Shaft freq: {f_shaft} Hz, BPFO: {f_BPFO} Hz, Resonance: {f_resonance} Hz")
+print(f"Signal length: {N} samples ({T} s)")</code></pre>
     </div>
   </div>
 
@@ -1325,26 +1318,36 @@ print(f"det(K)   = {np.linalg.det(K):.1f}")</code></pre>
     <div class="code-header">
       <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
       <span class="code-lang">Python · Cell 2</span>
-      <span class="code-label">Frekuensi Pribadi ω₁ & ω₂</span>
+      <span class="code-label">Envelope Analysis: BPF + Hilbert + FFT</span>
     </div>
     <div class="code-wrap">
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">from numpy.linalg import inv, eig
+      <pre><code class="lang-python">from scipy.signal import butter, filtfilt, hilbert
 
-# Eigenvalue problem: (M^-1 K) X = ω² X
-A = inv(M) @ K
-eigvals, eigvecs = eig(A)
+# Step 1: Band-pass filter di sekitar resonance (3-7 kHz)
+nyq = fs / 2
+low_cut = 3000 / nyq
+high_cut = 7000 / nyq
+b, a = butter(4, [low_cut, high_cut], btype='band')
+x_bp = filtfilt(b, a, x_bearing)
 
-# Urutkan dari kecil ke besar
-idx = np.argsort(eigvals)
-omega_squared = eigvals[idx]
-modes = eigvecs[:, idx]
-omegas = np.sqrt(omega_squared)
+# Step 2: Hilbert transform → envelope
+envelope = np.abs(hilbert(x_bp))
 
-print(f"ω₁² = {omega_squared[0]:.4f}    →    ω₁ = {omegas[0]:.4f} rad/s")
-print(f"ω₂² = {omega_squared[1]:.4f}    →    ω₂ = {omegas[1]:.4f} rad/s")
-print(f"\nf₁ = {omegas[0]/(2*np.pi):.4f} Hz   T₁ = {2*np.pi/omegas[0]:.4f} s")
-print(f"f₂ = {omegas[1]/(2*np.pi):.4f} Hz   T₂ = {2*np.pi/omegas[1]:.4f} s")</code></pre>
+# Step 3: FFT of envelope
+env_centered = envelope - envelope.mean()
+ENV = np.fft.rfft(env_centered)
+freqs_env = np.fft.rfftfreq(N, d=1/fs)
+mag_env = np.abs(ENV) * 2 / N
+
+# Identify peak around BPFO
+mask = (freqs_env > 50) & (freqs_env < 200)
+peak_idx_local = np.argmax(mag_env[mask])
+peak_freq = freqs_env[mask][peak_idx_local]
+peak_amp = mag_env[mask][peak_idx_local]
+
+print(f"Envelope spectrum peak in 50-200 Hz: f = {peak_freq:.1f} Hz")
+print(f"  → Match BPFO ({f_BPFO} Hz)? {'YES' if abs(peak_freq - f_BPFO) < 5 else 'NO'}")</code></pre>
     </div>
   </div>
 
@@ -1353,21 +1356,37 @@ print(f"f₂ = {omegas[1]/(2*np.pi):.4f} Hz   T₂ = {2*np.pi/omegas[1]:.4f} s")
     <div class="code-header">
       <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
       <span class="code-lang">Python · Cell 3</span>
-      <span class="code-label">Mode Shapes & Orthogonality</span>
+      <span class="code-label">Order Tracking dengan Synthetic Tachometer</span>
     </div>
     <div class="code-wrap">
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python"># Normalisasi mode shape: pertama-elemen = 1
-mode1 = modes[:, 0] / modes[0, 0]
-mode2 = modes[:, 1] / modes[0, 1]
+      <pre><code class="lang-python">from scipy.interpolate import interp1d
 
-print(f"Mode 1 (ω₁ = {omegas[0]:.2f} rad/s): X = [{mode1[0]:.3f}, {mode1[1]:.3f}]")
-print(f"Mode 2 (ω₂ = {omegas[1]:.2f} rad/s): X = [{mode2[0]:.3f}, {mode2[1]:.3f}]")
+# Synthetic tachometer: rpm increases linearly 1500 → 2100 over 2 sec
+rpm_t = 1500 + 300 * t   # variable rpm
+f_shaft_t = rpm_t / 60   # variable shaft freq
+phase_t = 2*np.pi * np.cumsum(f_shaft_t) / fs  # cumulative phase
 
-# Cek orthogonality terhadap matriks M
-ortho = mode1 @ M @ mode2
-print(f"\nOrthogonality check: u₁ᵀ M u₂ = {ortho:.2e}")
-print("✓ Orthogonal jika nilai ≈ 0" if abs(ortho) < 1e-10 else "⚠ Cek ulang!")</code></pre>
+# Signal with rpm-tracking 1× component
+x_var = 1.5 * np.sin(phase_t) + 0.3 * np.random.randn(N)
+
+# Synchronous resampling: M samples per revolution
+M = 1024  # samples per rev
+total_revs = phase_t[-1] / (2*np.pi)
+n_revs = int(total_revs)
+theta_uniform = np.linspace(0, n_revs * 2*np.pi, n_revs * M)
+interp = interp1d(phase_t, x_var, bounds_error=False, fill_value=0)
+x_resampled = interp(theta_uniform)
+
+# Order spectrum
+X_order = np.fft.rfft(x_resampled)
+orders = np.fft.rfftfreq(len(x_resampled)) * M  # normalized to orders
+mag_order = np.abs(X_order) * 2 / len(x_resampled)
+
+# Peak should be at order = 1 (= 1× rpm component)
+mask = (orders > 0.5) & (orders < 1.5)
+peak_order = orders[mask][np.argmax(mag_order[mask])]
+print(f"Order tracking peak: {peak_order:.3f} (expected 1.000)")</code></pre>
     </div>
   </div>
 
@@ -1376,32 +1395,52 @@ print("✓ Orthogonal jika nilai ≈ 0" if abs(ortho) < 1e-10 else "⚠ Cek ulan
     <div class="code-header">
       <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
       <span class="code-lang">Python · Cell 4</span>
-      <span class="code-label">Simulasi Free Vibration Response</span>
+      <span class="code-label">Diagnosis Dashboard: Time + Spectrum + Envelope Spectrum</span>
     </div>
     <div class="code-wrap">
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
       <pre><code class="lang-python">import matplotlib.pyplot as plt
 
-# Initial conditions: x1(0)=1, x2(0)=0, semua kecepatan = 0
-# Modal decomposition: x(0) = A·u1 + B·u2 → A=B=0.5
-A_amp, B_amp = 0.5, 0.5
+# Raw spectrum (untuk komparasi)
+X_raw = np.fft.rfft(x_bearing - x_bearing.mean())
+freqs = np.fft.rfftfreq(N, d=1/fs)
+mag_raw = np.abs(X_raw) * 2 / N
 
-t = np.linspace(0, 3, 1000)
-x1 = A_amp * np.cos(omegas[0]*t) + B_amp * np.cos(omegas[1]*t)
-x2 = A_amp * np.cos(omegas[0]*t) - B_amp * np.cos(omegas[1]*t)
+fig, axes = plt.subplots(3, 1, figsize=(11, 9))
 
-fig, ax = plt.subplots(figsize=(10, 4))
-ax.plot(t, x1, label='x₁(t)', color='#0ea5e9')
-ax.plot(t, x2, label='x₂(t)', color='#f59e0b')
-ax.set_xlabel('waktu (s)'); ax.set_ylabel('posisi (m)')
-ax.set_title('Free Vibration Response — Sistem 2 DoF')
-ax.grid(True, alpha=0.3); ax.legend(); plt.tight_layout(); plt.show()
-print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x2)):.3f}")</code></pre>
+# Time waveform
+axes[0].plot(t[:5000], x_bearing[:5000], color='#0ea5e9', lw=0.5)
+axes[0].set_title('Time Waveform — Bearing Fault Signal')
+axes[0].set_xlabel('t (s)'); axes[0].set_ylabel('Amplitude')
+axes[0].grid(alpha=0.3)
+
+# Raw spectrum (susah baca BPFO)
+axes[1].plot(freqs, mag_raw, color='#a855f7', lw=0.7)
+axes[1].axvline(f_BPFO, color='red', ls='--', label=f'BPFO @ {f_BPFO} Hz')
+axes[1].axvline(f_resonance, color='orange', ls=':', label=f'Resonance @ {f_resonance} Hz')
+axes[1].set_xlim(0, 8000)
+axes[1].set_title('Raw Spectrum — BPFO sulit terlihat')
+axes[1].set_xlabel('Frequency (Hz)'); axes[1].set_ylabel('Amplitude')
+axes[1].legend(); axes[1].grid(alpha=0.3)
+
+# Envelope spectrum (BPFO clearly visible)
+axes[2].plot(freqs_env, mag_env, color='#16a34a', lw=0.9)
+axes[2].axvline(f_BPFO, color='red', ls='--', label=f'BPFO @ {f_BPFO} Hz')
+axes[2].axvline(2*f_BPFO, color='red', ls=':', alpha=0.5, label=f'2×BPFO')
+axes[2].set_xlim(0, 500)
+axes[2].set_title('Envelope Spectrum — BPFO &amp; harmonik clearly visible')
+axes[2].set_xlabel('Frequency (Hz)'); axes[2].set_ylabel('Envelope Amplitude')
+axes[2].legend(); axes[2].grid(alpha=0.3)
+
+plt.tight_layout(); plt.show()
+print(f"
+Diagnosis: BPFO peak amplitude = {peak_amp:.3f}")
+print(f"Dibanding raw spectrum di 100 Hz, envelope sensitivitas naik 10-100×.")</code></pre>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Catatan:</strong> Empat cell di atas dapat di-copy ke Jupyter Notebook dan dijalankan berurutan. Cell 1 menyiapkan matriks, Cell 2 menghitung frekuensi pribadi, Cell 3 menampilkan mode shape, Cell 4 mensimulasikan getaran bebas dengan kondisi awal x₁=1, x₂=0. Plot Cell 4 menunjukkan <em>beat phenomenon</em> — superposisi dua mode dengan frekuensi mirip-tapi-berbeda menghasilkan amplitudo modulasi yang khas.
+    <strong>Library Pro untuk Production:</strong> Untuk kasus production, gunakan library spesialis vibration analysis seperti <code>vibrationtoolbox</code>, <code>tsxlearn</code>, atau commercial toolkit (NI VibrationAssist, Brüel &amp; Kjær PULSE). Fitur tambahan: auto-detection BPFO/BPFI dari bearing model database, real-time waterfall plot, automated diagnostic reports.
   </div>
 </div>
 
