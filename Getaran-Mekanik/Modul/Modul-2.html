@@ -5076,7 +5076,7 @@ function drawDoF(){
 
   // ── RIGHT panel: Signal trace x(t) sliding window ──
   _dofHist.push(Math.max(-1.2, Math.min(1.2, sigValue)));
-  if(_dofHist.length > 400) _dofHist.shift();
+  if(_dofHist.length > 1000) _dofHist.shift();
 
   const padR = 16, padTR = 24, padBR = 28;
   const plotX0 = splitX + 12;
@@ -5101,8 +5101,8 @@ function drawDoF(){
   ctx.textAlign = 'left'; ctx.fillStyle = '#22d3ee'; ctx.font = 'bold 11px JetBrains Mono';
   ctx.fillText(`Signal: ${sigLabel}`, plotX0+6, plotY0+12);
   ctx.fillStyle = '#94a3b8'; ctx.font = '9px JetBrains Mono'; ctx.textAlign = 'center';
-  ctx.fillText('-4s', plotX0, plotY0+plotH+14);
-  ctx.fillText('-2s', plotX0+plotW/2, plotY0+plotH+14);
+  ctx.fillText('-10s', plotX0, plotY0+plotH+14);
+  ctx.fillText('-5s', plotX0+plotW/2, plotY0+plotH+14);
   ctx.fillText('now', plotX0+plotW, plotY0+plotH+14);
 
   // Trace fill area
@@ -5112,11 +5112,11 @@ function drawDoF(){
     ctx.beginPath();
     ctx.moveTo(plotX0, plotY0+plotH/2);
     for(let i=0; i<N2; i++){
-      const px = plotX0 + (i/399)*plotW;
+      const px = plotX0 + (i/999)*plotW;
       const py = plotY0+plotH/2 - _dofHist[i]*(plotH/2-8);
       ctx.lineTo(px, py);
     }
-    ctx.lineTo(plotX0 + ((N2-1)/399)*plotW, plotY0+plotH/2);
+    ctx.lineTo(plotX0 + ((N2-1)/999)*plotW, plotY0+plotH/2);
     ctx.closePath(); ctx.fill();
   }
   // Main trace
@@ -5125,7 +5125,7 @@ function drawDoF(){
   ctx.lineJoin = 'round'; ctx.lineCap = 'round';
   ctx.beginPath();
   for(let i=0; i<N2; i++){
-    const px = plotX0 + (i/399)*plotW;
+    const px = plotX0 + (i/999)*plotW;
     const py = plotY0+plotH/2 - _dofHist[i]*(plotH/2-8);
     if(i===0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
   }
@@ -5133,7 +5133,7 @@ function drawDoF(){
   ctx.shadowBlur = 0;
   // Current dot — amber
   if(N2 > 0){
-    const px = plotX0 + ((N2-1)/399)*plotW;
+    const px = plotX0 + ((N2-1)/999)*plotW;
     const py = plotY0+plotH/2 - _dofHist[N2-1]*(plotH/2-8);
     ctx.fillStyle = 'rgba(251,191,36,.3)';
     ctx.beginPath(); ctx.arc(px, py, 10, 0, Math.PI*2); ctx.fill();
