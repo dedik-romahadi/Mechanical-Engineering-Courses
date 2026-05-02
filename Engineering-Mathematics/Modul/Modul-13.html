@@ -1582,118 +1582,114 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <hr class="divider">
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 09</div>
-  <h2 class="section-title reveal">Animasi Interaktif<br>Visualisasi PFD &amp; Inversi Laplace</h2>
-  <p class="section-desc reveal">Animasi visualisasi <strong>dekomposisi pecahan parsial</strong> dari fungsi rasional <code>F(s)</code> ke jumlah pecahan dasar, lalu inversi tiap suku ke domain waktu. Geser koefisien dan akar penyebut untuk mengamati bagaimana lokasi pole memengaruhi karakter solusi domain waktu (eksponensial, polinomial, osilasi, atau gabungan). Insight visual penting untuk membangun intuisi mengapa <em>tiap akar Q(s)</em> memberi <em>satu mode</em> di f(t).</p>
+  <h2 class="section-title reveal">Animasi Interaktif<br>PFD: Faktorisasi, Cover-Up, &amp; Inversi Laplace</h2>
+  <p class="section-desc reveal">Lima animasi spesifik untuk <strong>Pertemuan 13 — Pecahan Parsial</strong>: (1) <strong>Q(s) Factorization Visualizer</strong> menampilkan akar polinomial denominator, (2) <strong>Cover-Up Rule (Heaviside)</strong> animation untuk shortcut residue, (3) <strong>toggle PFD Form ↔ Time Domain</strong> visualisasi term-by-term inversi, (4) <strong>radio 4 Kasus PFD</strong> (linear distinct/repeated/quadratic/mixed), (5) <strong>dropdown aplikasi engineering</strong> dengan mode dominant identification.</p>
 
-  <!-- Animasi 1: 3-case comparison y(x) -->
+  <!-- Animasi 1: Q(s) Factorization Visualizer (M13-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi 1 — Tiga Kasus Akar Euler-Cauchy: Geser Koefisien, Lihat Solusi y(x)</span>
+      <span class="anim-title">Animasi 1 — Q(s) Factorization: Plot Polynomial &amp; Akar di s-plane</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvCases" height="340"></canvas>
+      <canvas id="m13cvFactor" height="340" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
-        <div class="ctrl-group">
-          <label>Koefisien <strong>b</strong> — <span class="ctrl-val" id="v_b">1.00</span></label>
-          <input type="range" id="sl_b" min="-4" max="6" step="0.05" value="1.0">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih polinomial Q(s) preset:</label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+            <button class="m13q-pbtn" onclick="window.m13SetQ('linear')" data-q="linear" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--cyan);background:var(--cyan);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(8,191,232,.6);transform:scale(1.05);transition:all .15s;">Q = (s+1)(s+3) ✓</button>
+            <button class="m13q-pbtn" onclick="window.m13SetQ('cubic')" data-q="cubic" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,179,0,.4);background:rgba(255,179,0,.10);color:var(--amber);">Q = (s+1)(s+2)(s+5)</button>
+            <button class="m13q-pbtn" onclick="window.m13SetQ('repeated')" data-q="repeated" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">Q = (s+2)²·(s+5)</button>
+            <button class="m13q-pbtn" onclick="window.m13SetQ('complex')" data-q="complex" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">Q = (s²+2s+5)(s+1)</button>
+          </div>
         </div>
-        <div class="ctrl-group">
-          <label>Koefisien <strong>c</strong> — <span class="ctrl-val" id="v_c">−4.00</span></label>
-          <input type="range" id="sl_c" min="-12" max="12" step="0.1" value="-4.0">
-        </div>
-        <button class="btn-anim" id="btnCases" onclick="toggleCases()">⏸ PAUSE</button>
       </div>
-      <div id="casesInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div id="m13FactorInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi Ini (orde 2 sebagai demonstrasi):</strong> Kurva = solusi <em>y(x)</em> dari Euler-Cauchy orde 2 <code>x²y'' + b·x·y' + c·y = 0</code> dengan IVP <code>y(1)=1, y'(1)=0</code> di interval <code>x ∈ (0.1, 10)</code>. Warna: <strong style="color:var(--amber)">amber = D &gt; 0 (real berbeda)</strong>, <strong style="color:var(--violet)">violet = D = 0 (real berulang)</strong>, <strong style="color:var(--cyan)">cyan = D &lt; 0 (kompleks → osilasi log)</strong>.<br>
-        <strong>Untuk PD non-homogen:</strong> Animasi ini menampilkan PD homogen <code>y'' + by' + cy = 0</code> yang memberi y_h. Untuk solusi total non-homogen, tambahkan y_p dari metode UC atau VoP. Saat eksitasi <em>f(x)</em> punya frekuensi/eksponen sama dengan akar karakteristik, <strong>resonansi</strong> terjadi: amplitudo y_p tumbuh linier dengan x (faktor x dari aturan resonansi).
+        <strong>📊 Cara Membaca:</strong> Layout split: kiri = plot Q(s) untuk s real (x-axis crossings = akar real), kanan = s-plane scatter dengan pole markers (X) untuk semua akar (real + complex). <strong>Warna pole:</strong> green (Re&lt;0, stable), red (Re&gt;0, unstable), amber (Re=0, marginal). Setiap akar Q(s) memberikan satu term di PFD dan satu mode di f(t).
       </div>
     </div>
   </div>
 
-  <!-- Animasi 2: Roots in complex plane (m-plane) -->
+  <!-- Animasi 2: Cover-Up Rule (Heaviside) Animation (M13-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--pink)"></div>
-      <span class="anim-title">Animasi 2 — Akar Karakteristik m di Bidang Kompleks (m-plane)</span>
+      <span class="anim-title">Animasi 2 — Cover-Up Rule: Shortcut Heaviside untuk Linear Factor</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvRoots" height="320"></canvas>
+      <canvas id="m13cvCoverUp" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Koefisien <strong>b</strong> — <span class="ctrl-val" id="v_b2">3.00</span></label>
-          <input type="range" id="sl_b2" min="-4" max="6" step="0.05" value="3.0">
-        </div>
-        <div class="ctrl-group">
-          <label>Koefisien <strong>c</strong> — <span class="ctrl-val" id="v_c2">2.00</span></label>
-          <input type="range" id="sl_c2" min="-12" max="12" step="0.1" value="2.0">
+          <label>Pilih akar yang ditutup <strong>r</strong> — <span class="ctrl-val" id="m13rIdx">−1 (s+1)</span></label>
+          <input type="range" id="m13slR" min="0" max="2" step="1" value="0">
         </div>
       </div>
-      <div id="rootsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
+      <div id="m13CoverUpInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi Ini:</strong> Bidang kompleks <em>m</em>: sumbu horizontal = real, vertikal = imajiner. Dua akar <code>m₁, m₂</code> dari <code>m² + (b−1)m + c = 0</code> ditandai. Berbeda dengan plane <em>r</em> di Pertemuan 5: di sini <strong>tanda real</strong> menentukan apakah <code>x<sup>m</sup></code> tumbuh atau meluruh saat x → ∞. Re(m) &gt; 0 → tumbuh; Re(m) &lt; 0 → meluruh; Re(m) = 0 → osilasi murni dalam ln x.<br>
-        <strong>Coba:</strong> (1) <strong>b = 1, c &gt; 0</strong>: akar selalu murni imajiner (Re=0) — solusi <em>osilasi pure</em> dalam ln x. (2) <strong>b = 1, c &lt; 0</strong>: akar real berlawanan tanda — satu solusi tumbuh, satu meluruh. (3) <strong>b ≠ 1</strong>: akar bergeser ke kiri/kanan — Re(m) = (1−b)/2 menjadi nonzero. (4) Saksikan akar kompleks <em>melompat ke real axis</em> saat D = (b−1)² − 4c menyentuh nol.
+        <strong>📊 Cara Membaca:</strong> Cover-Up Rule: untuk F(s) = P(s)/[(s−a₁)(s−a₂)(s−a₃)], residue di pole s = aᵢ adalah <strong>P(aᵢ)/Q'(aᵢ)</strong> = "tutup faktor (s−aᵢ) dan substitusi s = aᵢ ke sisa". Slider memilih akar untuk tutup. Animasi: panel atas tampilkan formula F(s) dengan faktor (s−aᵢ) di-highlight (covered). Hasil residue Aᵢ dihitung otomatis.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 3: Toggle (Numerical vs Analytical) -->
+  <!-- Animasi 3: Toggle PFD Form ↔ Time Domain Inversi (M13-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--green)"></div>
-      <span class="anim-title">Animasi 3 — Numerical vs Analytical Solution (Toggle)</span>
+      <span class="anim-title">Animasi 3 — PFD Form ↔ Time Domain: Term-by-Term Inversi (Toggle)</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvEMtog" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <canvas id="m13cvPFDInv" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
           <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--text)">
-            Method:
-            <button type="button" onclick="toggleEMSolver()" style="background:none;border:none;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
-              <span id="em_tog_view" style="display:inline-block;position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
-                <span style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
+            View:
+            <button type="button" onclick="window.m13TogglePFD()" style="background:none;border:none;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
+              <span id="m13_pfd_view" style="display:inline-block;position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
+                <span id="m13_pfd_knob" style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
               </span>
-              <span id="em_tog_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:700;">ANALYTICAL (closed-form)</span>
+              <span id="m13_pfd_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:700;">PFD FORM: F(s) = ΣAᵢ/(s−aᵢ)</span>
             </button>
           </div>
         </div>
       </div>
-      <div id="emTogInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div id="m13PFDInvInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Toggle metode solusi PD. Analytical: ekspresi tertutup (closed-form) dari teorema. Numerical: integrator step-by-step (RK4, Euler).<br>
-        <strong>Trade-off:</strong> Analytical exact tetapi terbatas pada kelas PD tertentu. Numerical universal tetapi punya error akumulasi + computational cost. Modern engineering: kombinasi keduanya — derive analytical untuk verify, run numerical untuk produksi.
+        <strong>📊 Cara Membaca:</strong> Contoh: F(s) = (s+5)/[(s+1)(s+3)] = 2/(s+1) − 1/(s+3). <strong>PFD FORM</strong>: tampilkan tiap term Aᵢ/(s−aᵢ) sebagai badge dengan formula. <strong>TIME DOMAIN</strong>: plot tiap term hasil inversi (Aᵢ·e^(aᵢt)) dan jumlah f(t). Setiap pole Q(s) → satu mode eksponensial di f(t).
       </div>
     </div>
   </div>
 
-  <!-- Animasi 4: Radio group (PD classification) -->
+  <!-- Animasi 4: 4 Kasus PFD (Radio, M13-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--pink)"></div>
-      <span class="anim-title">Animasi 4 — Klasifikasi PD: Pilih Tipe (Radio Group)</span>
+      <span class="anim-title">Animasi 4 — 4 Kasus PFD: Linear Distinct/Repeated/Quadratic/Mixed (Radio)</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvEMrad" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <canvas id="m13cvCases" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
-          <label>Pilih Klasifikasi PD (radio group):</label>
+          <label>Pilih kasus PFD (radio):</label>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
-            <input type="radio" name="em_class_radio" id="em_r1" checked onchange="setEMClass('homogen')" style="display:none;">
-            <label for="em_r1" class="em-rad-lbl" data-c="homogen" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">Homogen ✓</label>
-            <input type="radio" name="em_class_radio" id="em_r2" onchange="setEMClass('nonhomogen')" style="display:none;">
-            <label for="em_r2" class="em-rad-lbl" data-c="nonhomogen" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">Non-Homogen</label>
-            <input type="radio" name="em_class_radio" id="em_r3" onchange="setEMClass('linear')" style="display:none;">
-            <label for="em_r3" class="em-rad-lbl" data-c="linear" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">Linear</label>
-            <input type="radio" name="em_class_radio" id="em_r4" onchange="setEMClass('nonlinear')" style="display:none;">
-            <label for="em_r4" class="em-rad-lbl" data-c="nonlinear" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">Non-Linear</label>
+            <input type="radio" name="m13_case_radio" id="m13_c1" checked onchange="window.m13SetCase('distinct')" style="display:none;">
+            <label for="m13_c1" class="m13-case-lbl" data-c="distinct" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">🔵 Linear Distinct: 1/((s+1)(s+3)) ✓</label>
+            <input type="radio" name="m13_case_radio" id="m13_c2" onchange="window.m13SetCase('repeated')" style="display:none;">
+            <label for="m13_c2" class="m13-case-lbl" data-c="repeated" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">🟣 Linear Repeated: 1/(s+2)²(s+5)</label>
+            <input type="radio" name="m13_case_radio" id="m13_c3" onchange="window.m13SetCase('quadratic')" style="display:none;">
+            <label for="m13_c3" class="m13-case-lbl" data-c="quadratic" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">🔶 Quadratic: 1/((s²+2s+5)(s+1))</label>
+            <input type="radio" name="m13_case_radio" id="m13_c4" onchange="window.m13SetCase('mixed')" style="display:none;">
+            <label for="m13_c4" class="m13-case-lbl" data-c="mixed" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:#00e09e">🎯 Mixed: 1/(s(s²+1))</label>
           </div>
         </div>
       </div>
-      <div id="emRadInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
+      <div id="m13CaseInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Setiap klasifikasi memiliki metode solusi yang berbeda. Visualisasi menampilkan contoh solusi tipikal per kategori.<br>
-        <strong>Insight:</strong> Homogen: r(x)=0, solusi y_h. Non-Homogen: y = y_h + y_p (particular). Linear: superposition principle berlaku. Non-Linear: kompleks, mungkin tidak ada closed-form.
+        <strong>📊 Cara Membaca:</strong> Empat kasus dekomposisi pecahan parsial:
+        (1) <strong>Linear Distinct</strong>: F(s) = ΣAᵢ/(s−aᵢ) → f(t) = ΣAᵢ·e^(aᵢt);
+        (2) <strong>Linear Repeated</strong> (mult k): butuh A/(s−a) + B/(s−a)² → A·e^(at) + B·t·e^(at);
+        (3) <strong>Quadratic Tak Tereduksi</strong>: (As+B)/(s²+ps+q) → completing-the-square jadi e^(αt)·(...);
+        (4) <strong>Mixed</strong>: kombinasi. Plot f(t) hasil inversi.
       </div>
     </div>
   </div>
@@ -1705,22 +1701,22 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <span class="anim-title">Animasi 5 — Pecahan Parsial: Pilih Sub-Topik (Dropdown + Signal Trace)</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvEMdrop" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <canvas id="m13cvAppArm" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
-          <label>Pilih (Dropdown):</label>
-          <select id="sl_em_drop" onchange="setEMDrop(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
-            <option value="linear">➕ Linear factors A/(s-a)</option>
-            <option value="repeated">🔁 Repeated A/(s-a)² + B/(s-a)</option>
-            <option value="quadratic">📐 Quadratic (As+B)/(s²+ps+q)</option>
-            <option value="residue">🎯 Residue Theorem — fast method</option>
+          <label>Pilih aplikasi engineering yang menggunakan PFD:</label>
+          <select id="m13slAppArm" onchange="window.m13SetAppArm(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:520px;margin-top:6px;">
+            <option value="arm">🤖 Robotic Arm Step Response: PFD identify dominant mode</option>
+            <option value="servo">⚙️ Servo Motor Tuning: PFD reveal pole locations</option>
+            <option value="filter">🎚️ Filter Design: poles → frekuensi response</option>
+            <option value="control">🎛️ Control System Step: overshoot via PFD residues</option>
+            <option value="circuit">⚡ RLC Transient: charge/discharge via PFD</option>
           </select>
         </div>
       </div>
-      <div id="emDropInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
+      <div id="m13AppArmInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Pilih sub-topik dari dropdown. Layout split: kiri label + formula, kanan signal trace solusi 1000 samples (~10 detik).<br>
-        <strong>Insight:</strong> Setiap sub-topik Pecahan Parsial punya signature unik di domain waktu. Bandingkan shape decay/oscillation/growth antara opsi.
+        <strong>📊 Cara Membaca:</strong> Lima aplikasi engineering yang menggunakan PFD untuk identify mode dominant. Layout split: kiri = visualisasi sistem fisik (robot arm, servo motor, filter spectrum, step response, RLC circuit), kanan = decomposed modes dengan dominant mode highlighted (mode dengan smallest |Re(pole)| = slowest decay = dominant). <strong>Engineering insight:</strong> design retuning fokus pada <em>pole dominant</em> untuk improve performance.
       </div>
     </div>
   </div>
@@ -8536,6 +8532,737 @@ function _createForumParticleBurst(event) {
   else attachBtnHandlers();
 })();
 
+</script>
+
+<!-- ════════════════════════════════════════════════════════════════
+     M13 TOPIC-SPECIFIC ANIMATIONS — Pecahan Parsial / PFD
+     5 canvas: m13cvFactor, m13cvCoverUp, m13cvPFDInv, m13cvCases, m13cvAppArm
+     ════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  function bgGrad(ctx, W, H){
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#020812'); g.addColorStop(1, '#0d1929');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  function gridLines(ctx, x0, x1, y0, y1, divX, divY){
+    ctx.strokeStyle = 'rgba(148,163,184,.10)'; ctx.lineWidth = 1;
+    for (let i = 0; i <= divX; i++){
+      const x = x0 + (i/divX)*(x1-x0);
+      ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.stroke();
+    }
+    for (let j = 0; j <= divY; j++){
+      const y = y0 + (j/divY)*(y1-y0);
+      ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
+    }
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 1 — Q(s) Factorization Visualizer
+  // ════════════════════════════════════════════════════════════════
+  const m13Factor = { which: 'linear', t: 0, raf: null };
+
+  const M13_FACTOR = {
+    linear:   { label: 'Q(s) = (s+1)(s+3)',          poles: [{re:-1, im:0}, {re:-3, im:0}],                   poly: s => (s+1)*(s+3) },
+    cubic:    { label: 'Q(s) = (s+1)(s+2)(s+5)',     poles: [{re:-1, im:0}, {re:-2, im:0}, {re:-5, im:0}],   poly: s => (s+1)*(s+2)*(s+5) },
+    repeated: { label: 'Q(s) = (s+2)²·(s+5)',         poles: [{re:-2, im:0, mult:2}, {re:-5, im:0}],            poly: s => (s+2)*(s+2)*(s+5) },
+    complex:  { label: 'Q(s) = (s²+2s+5)(s+1)',       poles: [{re:-1, im:2}, {re:-1, im:-2}, {re:-1, im:0}],    poly: s => (s*s + 2*s + 5)*(s+1) }
+  };
+
+  window.m13SetQ = function(key){
+    m13Factor.which = key;
+    document.querySelectorAll('.m13q-pbtn').forEach(btn => {
+      const q = btn.getAttribute('data-q');
+      const active = (q === key);
+      btn.style.border = active ? '2px solid var(--cyan)' : '1px solid rgba(148,163,184,.3)';
+      btn.style.background = active ? 'var(--cyan)' : 'rgba(148,163,184,.10)';
+      btn.style.color = active ? '#fff' : '#94a3b8';
+      btn.style.fontWeight = active ? '700' : '400';
+      btn.style.boxShadow = active ? '0 0 12px rgba(8,191,232,.6)' : 'none';
+      btn.style.transform = active ? 'scale(1.05)' : 'scale(1)';
+      btn.textContent = active ? (btn.textContent.replace(' ✓','') + ' ✓') : btn.textContent.replace(' ✓','');
+    });
+  };
+
+  function drawM13Factor(){
+    const cv = document.getElementById('m13cvFactor'); if(!cv){ m13Factor.raf = requestAnimationFrame(drawM13Factor); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const obj = M13_FACTOR[m13Factor.which];
+    const splitX = W * 0.5;
+    ctx.strokeStyle = 'rgba(148,163,184,.3)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(splitX, 30); ctx.lineTo(splitX, H - 20); ctx.stroke();
+
+    const padT = 35, padB = 35;
+
+    // ── LEFT: Q(s) plot for s real ──
+    {
+      const px0 = 50, px1 = splitX - 16, py0 = padT, py1 = H - padB;
+      const sMin = -7, sMax = 2;
+      function tx(s){ return px0 + ((s - sMin)/(sMax - sMin))*(px1 - px0); }
+
+      // Sample
+      const N = 300;
+      const ys = new Float64Array(N+1);
+      let yMax = 1;
+      for (let i = 0; i <= N; i++){
+        const s = sMin + (i/N)*(sMax - sMin);
+        ys[i] = obj.poly(s);
+        if (Math.abs(ys[i]) > yMax) yMax = Math.abs(ys[i]);
+      }
+      yMax = Math.min(yMax, 100);
+      function ty(y){ return (py0+py1)/2 - (y/yMax)*((py0-py1)/2 - 8); }
+
+      gridLines(ctx, px0, px1, py0, py1, 9, 6);
+      ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(tx(0), py0); ctx.lineTo(tx(0), py1); ctx.stroke();
+
+      // Plot
+      ctx.strokeStyle = '#0ea5e9'; ctx.lineWidth = 2.5;
+      ctx.shadowColor = '#0ea5e9'; ctx.shadowBlur = 8;
+      ctx.beginPath();
+      let started = false;
+      for (let i = 0; i <= N; i++){
+        const s = sMin + (i/N)*(sMax - sMin);
+        const y = ys[i];
+        if (!Number.isFinite(y) || Math.abs(y) > yMax * 1.3){ started = false; continue; }
+        const px = tx(s), py = ty(y);
+        if (!started){ ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Mark real roots (where Q=0)
+      obj.poles.forEach(p => {
+        if (Math.abs(p.im) < 0.01){
+          ctx.fillStyle = '#ffd166';
+          ctx.shadowColor = '#ffd166'; ctx.shadowBlur = 12;
+          ctx.beginPath(); ctx.arc(tx(p.re), ty(0), 6, 0, Math.PI*2); ctx.fill();
+          ctx.shadowBlur = 0;
+          ctx.fillStyle = '#fff'; ctx.font = 'bold 10px JetBrains Mono, monospace';
+          ctx.fillText(`s=${p.re}`, tx(p.re) + 6, ty(0) - 6);
+        }
+      });
+
+      ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 12px JetBrains Mono, monospace';
+      ctx.fillText('Q(s) plot (s real)', px0 + 6, padT - 10);
+      ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+      ctx.fillText('s', px1 + 5, ty(0) + 4);
+    }
+
+    // ── RIGHT: s-plane scatter ──
+    {
+      const sx0 = splitX + 30, sx1 = W - 20, sy0 = padT, sy1 = H - padB;
+      const cx_p = (sx0 + sx1)/2, cy_p = (sy0 + sy1)/2;
+      const halfW = (sx1 - sx0)/2, halfH = (sy1 - sy0)/2;
+      const reR = 6, imR = 4;
+      function rx(re){ return cx_p + (re/reR)*halfW; }
+      function ry(im){ return cy_p - (im/imR)*halfH; }
+
+      // Stable region tinting
+      ctx.fillStyle = 'rgba(0,224,158,.05)';
+      ctx.fillRect(sx0, sy0, cx_p - sx0, sy1 - sy0);
+
+      gridLines(ctx, sx0, sx1, sy0, sy1, 12, 8);
+      ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(sx0, cy_p); ctx.lineTo(sx1, cy_p); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx_p, sy0); ctx.lineTo(cx_p, sy1); ctx.stroke();
+
+      // Stability boundary
+      ctx.strokeStyle = 'rgba(245,158,11,.5)'; ctx.lineWidth = 2; ctx.setLineDash([6, 4]);
+      ctx.beginPath(); ctx.moveTo(cx_p, sy0); ctx.lineTo(cx_p, sy1); ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Plot poles
+      obj.poles.forEach((p, idx) => {
+        const x = rx(p.re), y = ry(p.im);
+        const color = p.re < -0.05 ? '#00e09e' : (p.re > 0.05 ? '#ef4444' : '#f59e0b');
+        ctx.strokeStyle = color; ctx.lineWidth = 3;
+        ctx.shadowColor = color; ctx.shadowBlur = 14;
+        ctx.beginPath();
+        ctx.moveTo(x - 8, y - 8); ctx.lineTo(x + 8, y + 8);
+        ctx.moveTo(x + 8, y - 8); ctx.lineTo(x - 8, y + 8);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        // Multiplicity badge
+        if (p.mult > 1){
+          ctx.fillStyle = '#fff';
+          ctx.beginPath(); ctx.arc(x + 12, y - 12, 8, 0, Math.PI*2); ctx.fill();
+          ctx.fillStyle = color; ctx.font = 'bold 10px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+          ctx.fillText(String(p.mult), x + 12, y - 8);
+          ctx.textAlign = 'left';
+        }
+      });
+
+      // Labels
+      ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+      ctx.fillText('Re(s)', sx1 - 36, cy_p - 8);
+      ctx.fillText('Im(s)', cx_p + 6, sy0 + 12);
+
+      ctx.fillStyle = '#ff6bb3'; ctx.font = 'bold 12px JetBrains Mono, monospace';
+      ctx.fillText('s-plane: pole locations', sx0 + 6, padT - 10);
+    }
+
+    // Title
+    ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 13px JetBrains Mono, monospace';
+    ctx.fillText(obj.label, 30, 22);
+
+    const infoEl = document.getElementById('m13FactorInfo');
+    if (infoEl){
+      const desc = obj.poles.map(p => {
+        const m = p.mult > 1 ? `(mult ${p.mult})` : '';
+        return p.im === 0 ? `${p.re}${m}` : `${p.re}±${Math.abs(p.im)}i${m}`;
+      }).join(', ');
+      infoEl.innerHTML = `<span style="color:#0ea5e9">●</span> ${obj.label} &nbsp;|&nbsp; akar: ${desc} &nbsp;|&nbsp; ${obj.poles.length} faktor`;
+    }
+
+    m13Factor.raf = requestAnimationFrame(drawM13Factor);
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 2 — Cover-Up Rule
+  // F(s) = 1/((s+1)(s+2)(s+5)), pilih akar yang ditutup
+  // ════════════════════════════════════════════════════════════════
+  const m13Cover = { rIdx: 0, t: 0, raf: null };
+
+  function drawM13CoverUp(){
+    const cv = document.getElementById('m13cvCoverUp'); if(!cv){ m13Cover.raf = requestAnimationFrame(drawM13CoverUp); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const idx = parseInt(document.getElementById('m13slR').value);
+    const roots = [-1, -2, -5];
+    const r = roots[idx];
+    document.getElementById('m13rIdx').textContent = `${r} (s${r >= 0 ? '+' : '−'}${Math.abs(r)})`;
+
+    // F(s) = 1/((s+1)(s+2)(s+5))
+    // A_i = 1 / Π(j≠i) (a_i − a_j) where a_i are pole locations (negatives of factors above)
+    const poles = roots; // r values are pole locations
+    const i = idx;
+    let denom = 1;
+    for (let j = 0; j < poles.length; j++){
+      if (j !== i) denom *= (poles[i] - poles[j]);
+    }
+    const A = 1 / denom;
+
+    // Layout: top = formula with covered factor, bottom = result
+    const padT = 50, padB = 30;
+    const cx = W/2;
+
+    ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 13px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+    ctx.fillText('F(s) = 1 / [(s+1)(s+2)(s+5)]', cx, padT);
+    ctx.textAlign = 'left';
+
+    // Show formula with covered factor highlighted
+    const formY = padT + 50;
+    ctx.font = 'bold 16px JetBrains Mono, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText('A' + (idx+1) + ' = ', cx - 200, formY);
+    // Draw "1 / [factors]" with covered factor as box
+    let xPos = cx - 130;
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 14px JetBrains Mono, monospace';
+    ctx.fillText('1', xPos, formY - 10);
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillRect(xPos - 20, formY - 5, 40, 1);
+    // Denominator factors
+    const factors = ['(s+1)', '(s+2)', '(s+5)'];
+    let xCurr = xPos - 20 + 5;
+    factors.forEach((f, k) => {
+      const isCovered = k === idx;
+      const fontMetrics = ctx.measureText(f);
+      const fW = 50;
+      if (isCovered){
+        // Yellow box covering this factor
+        ctx.fillStyle = '#ffd166';
+        ctx.shadowColor = '#ffd166'; ctx.shadowBlur = 14;
+        ctx.fillRect(xCurr - 2, formY + 12, fW, 22);
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#020812'; ctx.font = 'bold 14px JetBrains Mono, monospace';
+        ctx.fillText('COVERED', xCurr + fW/2 - 2, formY + 26);
+      } else {
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 14px JetBrains Mono, monospace';
+        ctx.fillText(f, xCurr + fW/2 - 2, formY + 26);
+      }
+      xCurr += fW;
+    });
+    ctx.textAlign = 'left';
+
+    // Result: substitute s = r into the remaining factors
+    const resultY = formY + 80;
+    ctx.fillStyle = '#94a3b8'; ctx.font = '12px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+    ctx.fillText(`Substitusi s = ${r}:`, cx, resultY);
+    ctx.fillStyle = '#00e09e'; ctx.font = 'bold 14px JetBrains Mono, monospace';
+    let formula = `A${idx+1} = 1 / `;
+    for (let j = 0; j < poles.length; j++){
+      if (j !== i){
+        formula += `(${r} ${poles[j] >= 0 ? '+' : '−'} ${Math.abs(poles[j])})`;
+      }
+    }
+    ctx.fillText(formula, cx, resultY + 24);
+    ctx.fillText(`= ${A.toFixed(4)}`, cx, resultY + 46);
+    ctx.textAlign = 'left';
+
+    // Bottom: list ALL residues
+    ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px JetBrains Mono, monospace';
+    ctx.fillText('Semua residue:', 30, H - 50);
+    poles.forEach((p, k) => {
+      let den = 1;
+      for (let j = 0; j < poles.length; j++) if (j !== k) den *= (poles[k] - poles[j]);
+      const Ak = 1/den;
+      const isActive = k === idx;
+      ctx.fillStyle = isActive ? '#ffd166' : 'rgba(148,163,184,.7)';
+      ctx.font = `${isActive ? 'bold ' : ''}11px JetBrains Mono, monospace`;
+      ctx.fillText(`A${k+1} = ${Ak.toFixed(4)} (pole at s=${p})`, 30 + k * 200, H - 30);
+    });
+
+    const infoEl = document.getElementById('m13CoverUpInfo');
+    if (infoEl){
+      infoEl.innerHTML = `<span style="color:#ffd166">●</span> Cover-Up: tutup faktor (s${r >= 0 ? '+' : '−'}${Math.abs(r)}), substitusi s=${r} → A${idx+1} = ${A.toFixed(4)}`;
+    }
+
+    m13Cover.raf = requestAnimationFrame(drawM13CoverUp);
+  }
+  function _wireM13CoverUp(){
+    const el = document.getElementById('m13slR');
+    if (el) el.addEventListener('input', () => {});
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 3 — Toggle PFD Form ↔ Time Domain
+  // Example: F(s) = (s+5)/[(s+1)(s+3)] = 2/(s+1) − 1/(s+3) → f(t) = 2e^(−t) − e^(−3t)
+  // ════════════════════════════════════════════════════════════════
+  const m13PFD = { isPFD: true, t: 0, raf: null };
+
+  window.m13TogglePFD = function(){
+    m13PFD.isPFD = !m13PFD.isPFD;
+    const view = document.getElementById('m13_pfd_view');
+    const knob = document.getElementById('m13_pfd_knob');
+    const lbl  = document.getElementById('m13_pfd_label');
+    if (m13PFD.isPFD){
+      view.style.background = 'rgba(0,224,158,.25)'; view.style.borderColor = 'var(--green)';
+      knob.style.transform = 'translateX(0px)';
+      lbl.style.color = 'var(--green)';
+      lbl.textContent = 'PFD FORM: F(s) = ΣAᵢ/(s−aᵢ)';
+    } else {
+      view.style.background = 'rgba(255,179,0,.25)'; view.style.borderColor = 'var(--amber)';
+      knob.style.transform = 'translateX(28px)';
+      lbl.style.color = 'var(--amber)';
+      lbl.textContent = 'TIME DOMAIN: f(t) = ΣAᵢ·e^(aᵢt)';
+    }
+  };
+
+  function drawM13PFDInv(){
+    const cv = document.getElementById('m13cvPFDInv'); if(!cv){ m13PFD.raf = requestAnimationFrame(drawM13PFDInv); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    if (m13PFD.isPFD){
+      // Show PFD form as badges
+      ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 14px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText('F(s) = (s + 5) / [(s + 1)(s + 3)]', W/2, 50);
+      ctx.fillText('=', W/2, 90);
+      ctx.textAlign = 'left';
+
+      // Two badges
+      const terms = [
+        { coef: 2, pole: -1, color: '#0ea5e9', label: '2/(s+1)' },
+        { coef: -1, pole: -3, color: '#ff6bb3', label: '−1/(s+3)' }
+      ];
+      const startX = W/2 - 180;
+      terms.forEach((t, k) => {
+        const bx = startX + k * 180;
+        const by = 110;
+        ctx.fillStyle = `${t.color}30`;
+        ctx.strokeStyle = t.color;
+        ctx.lineWidth = 2;
+        ctx.fillRect(bx, by, 160, 80);
+        ctx.strokeRect(bx, by, 160, 80);
+        ctx.fillStyle = t.color;
+        ctx.shadowColor = t.color; ctx.shadowBlur = 14;
+        ctx.font = 'bold 18px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+        ctx.fillText(t.label, bx + 80, by + 40);
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+        ctx.fillText(`pole at s=${t.pole}`, bx + 80, by + 65);
+        ctx.textAlign = 'left';
+      });
+
+      // Plus sign between
+      ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 24px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText('+', startX + 170, 165);
+      ctx.textAlign = 'left';
+
+      // Footer
+      ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText('Setiap term Aᵢ/(s−aᵢ) → invers ke Aᵢ·e^(aᵢt) di domain waktu', W/2, H - 30);
+      ctx.textAlign = 'left';
+    } else {
+      // Plot time domain f(t)
+      const padL = 50, padT = 35, padB = 35;
+      const px0 = padL, px1 = W - 20, py0 = padT, py1 = H - padB;
+      const tMax = 6;
+      function tx(t){ return px0 + (t/tMax)*(px1 - px0); }
+
+      gridLines(ctx, px0, px1, py0, py1, 12, 6);
+
+      const N = 200;
+      const term1 = new Float64Array(N+1), term2 = new Float64Array(N+1), total = new Float64Array(N+1);
+      let yMax = 1;
+      for (let i = 0; i <= N; i++){
+        const t = (i/N)*tMax;
+        term1[i] = 2 * Math.exp(-t);
+        term2[i] = -1 * Math.exp(-3*t);
+        total[i] = term1[i] + term2[i];
+        if (Math.abs(total[i]) > yMax) yMax = Math.abs(total[i]);
+        if (Math.abs(term1[i]) > yMax) yMax = Math.abs(term1[i]);
+      }
+      function ty(y){ return (py0+py1)/2 - (y/yMax)*((py1-py0)/2 - 8); }
+
+      ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+
+      // Plot terms (faded) + total
+      const arrs = [
+        { data: term1, color: '#0ea5e9', label: '2·e^(−t)', width: 2 },
+        { data: term2, color: '#ff6bb3', label: '−e^(−3t)', width: 2 },
+        { data: total, color: '#fff',     label: 'f(t) = total',  width: 3 }
+      ];
+      arrs.forEach((arr, k) => {
+        ctx.strokeStyle = arr.color; ctx.lineWidth = arr.width;
+        ctx.shadowColor = arr.color; ctx.shadowBlur = k === 2 ? 8 : 4;
+        ctx.beginPath();
+        for (let i = 0; i <= N; i++){
+          const t = (i/N)*tMax;
+          const px = tx(t), py = ty(arr.data[i]);
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+      });
+      ctx.shadowBlur = 0;
+
+      // Animated dot
+      m13PFD.t = (m13PFD.t + 0.025) % tMax;
+      const iDot = Math.min(N, Math.floor(m13PFD.t/tMax * N));
+      arrs.forEach((arr, k) => {
+        ctx.fillStyle = '#fff'; ctx.shadowColor = arr.color; ctx.shadowBlur = 12;
+        ctx.beginPath(); ctx.arc(tx(m13PFD.t), ty(arr.data[iDot]), 5, 0, Math.PI*2); ctx.fill();
+      });
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = '#ffb300'; ctx.font = 'bold 13px JetBrains Mono, monospace';
+      ctx.fillText('f(t) = 2·e^(−t) − e^(−3t)  (inversi tiap term PFD)', padL + 6, padT - 12);
+
+      // Legend
+      let lx = px1 - 130, ly = padT + 12;
+      ctx.font = 'bold 11px JetBrains Mono, monospace';
+      arrs.forEach((arr, k) => {
+        ctx.fillStyle = arr.color;
+        ctx.fillRect(lx, ly - 6, 14, 3);
+        ctx.fillText(arr.label, lx + 18, ly);
+        ly += 14;
+      });
+    }
+
+    const infoEl = document.getElementById('m13PFDInvInfo');
+    if (infoEl){
+      infoEl.innerHTML = m13PFD.isPFD
+        ? `<span style="color:#00e09e">●</span> PFD form: F(s) = 2/(s+1) − 1/(s+3). Setiap term akan di-invers terpisah.`
+        : `<span style="color:#ffb300">●</span> Time domain: f(t) = 2·e^(−t) − e^(−3t). Pole −1 dominan (slowest decay), pole −3 cepat hilang.`;
+    }
+
+    m13PFD.raf = requestAnimationFrame(drawM13PFDInv);
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 4 — 4 Kasus PFD
+  // ════════════════════════════════════════════════════════════════
+  const m13Case = { which: 'distinct', t: 0, raf: null };
+
+  const M13_CASES = {
+    distinct:  { label: 'Linear Distinct: 1/((s+1)(s+3))',                                    formula: '½/(s+1) − ½/(s+3) → ½(e^(−t) − e^(−3t))', fn: t => 0.5*(Math.exp(-t) - Math.exp(-3*t)),                            color: '#0ea5e9' },
+    repeated:  { label: 'Linear Repeated: 1/((s+2)²(s+5))',                                    formula: '... → t·e^(−2t) komponen + biasa',         fn: t => 0.111*t*Math.exp(-2*t) + 0.037*Math.exp(-2*t) - 0.037*Math.exp(-5*t), color: '#a855f7' },
+    quadratic: { label: 'Quadratic: 1/((s²+2s+5)(s+1))',                                       formula: '... → e^(−t)·sin/cos + biasa',              fn: t => 0.25*Math.exp(-t) + 0.25*Math.exp(-t)*(Math.sin(2*t) - Math.cos(2*t)), color: '#0ea5e9' },
+    mixed:     { label: 'Mixed: 1/(s(s²+1))',                                                   formula: '1/s − s/(s²+1) → 1 − cos(t)',               fn: t => 1 - Math.cos(t),                                                color: '#00e09e' }
+  };
+
+  window.m13SetCase = function(key){
+    m13Case.which = key; m13Case.t = 0;
+    document.querySelectorAll('.m13-case-lbl').forEach(lbl => {
+      const c = lbl.getAttribute('data-c');
+      const active = (c === key);
+      lbl.style.border = active ? '2px solid var(--pink)' : '1px solid rgba(148,163,184,.3)';
+      lbl.style.background = active ? 'rgba(255,255,255,.20)' : 'rgba(148,163,184,.10)';
+      lbl.style.color = active ? '#fff' : '#94a3b8';
+      lbl.style.fontWeight = active ? '700' : '400';
+      lbl.style.boxShadow = active ? '0 0 12px rgba(255,107,179,.4)' : 'none';
+      lbl.style.transform = active ? 'scale(1.05)' : 'scale(1)';
+      lbl.textContent = active ? (lbl.textContent.replace(' ✓','') + ' ✓') : lbl.textContent.replace(' ✓','');
+    });
+  };
+
+  function drawM13Cases(){
+    const cv = document.getElementById('m13cvCases'); if(!cv){ m13Case.raf = requestAnimationFrame(drawM13Cases); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const obj = M13_CASES[m13Case.which];
+
+    ctx.fillStyle = obj.color; ctx.font = 'bold 14px JetBrains Mono, monospace';
+    ctx.fillText(obj.label, 30, 30);
+    ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+    ctx.fillText(obj.formula, 30, 50);
+
+    const padL = 50, padT = 70, padB = 30;
+    const px0 = padL, px1 = W - 20, py0 = padT, py1 = H - padB;
+    const tMax = 8;
+    function tx(t){ return px0 + (t/tMax)*(px1 - px0); }
+
+    gridLines(ctx, px0, px1, py0, py1, 12, 6);
+
+    const N = 300;
+    const ys = new Float64Array(N+1);
+    let yMax = 0.5;
+    for (let i = 0; i <= N; i++){
+      const t = (i/N)*tMax;
+      ys[i] = obj.fn(t);
+      if (Math.abs(ys[i]) > yMax) yMax = Math.abs(ys[i]);
+    }
+    function ty(y){ return (py0+py1)/2 - (y/yMax)*((py1-py0)/2 - 8); }
+
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+
+    ctx.strokeStyle = obj.color; ctx.lineWidth = 2.5;
+    ctx.shadowColor = obj.color; ctx.shadowBlur = 10;
+    ctx.beginPath();
+    for (let i = 0; i <= N; i++){
+      const t = (i/N)*tMax;
+      const px = tx(t), py = ty(ys[i]);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Animated dot
+    m13Case.t = (m13Case.t + 0.025) % tMax;
+    const iDot = Math.min(N, Math.floor(m13Case.t/tMax*N));
+    ctx.fillStyle = '#fff';
+    ctx.shadowColor = obj.color; ctx.shadowBlur = 14;
+    ctx.beginPath(); ctx.arc(tx(m13Case.t), ty(ys[iDot]), 6, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+
+    const infoEl = document.getElementById('m13CaseInfo');
+    if (infoEl){
+      infoEl.innerHTML = `<span style="color:${obj.color}">●</span> ${obj.label} &nbsp;|&nbsp; ${obj.formula} &nbsp;|&nbsp; t=${m13Case.t.toFixed(2)}, f(t)=${ys[iDot].toFixed(3)}`;
+    }
+
+    m13Case.raf = requestAnimationFrame(drawM13Cases);
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 5 — Aplikasi Engineering dengan Mode Dominant
+  // ════════════════════════════════════════════════════════════════
+  const m13App = { which: 'arm', t: 0, hist: [], raf: null };
+
+  const M13_APP = {
+    arm:     { label: 'Robotic Arm Step: 2 modes (slow + fast)', poles: [{re: -0.4, color: '#ef4444'}, {re: -3, color: '#94a3b8'}], compute: t => 1 - 1.06*Math.exp(-0.4*t) + 0.06*Math.exp(-3*t),                                                                                            color: '#ff6bb3', icon: 'arm' },
+    servo:   { label: 'Servo Motor: dominant pole at −0.5', poles: [{re: -0.5, color: '#ef4444'}, {re: -2.5, color: '#94a3b8'}], compute: t => 1 - 1.25*Math.exp(-0.5*t) + 0.25*Math.exp(-2.5*t),                                                                                          color: '#0ea5e9', icon: 'servo' },
+    filter:  { label: 'Filter: ringing dengan pole kompleks',  poles: [{re: -0.5, im: 2, color: '#ef4444'}, {re: -3, color: '#94a3b8'}], compute: t => 1 - Math.exp(-0.5*t)*(Math.cos(2*t) + 0.25*Math.sin(2*t)),                                                                          color: '#a855f7', icon: 'filter' },
+    control: { label: 'Control Step: overshoot via complex poles', poles: [{re: -0.4, im: 1.83, color: '#ef4444'}, {re: -0.4, im: -1.83, color: '#ef4444'}], compute: t => 1 - Math.exp(-0.4*t)*(Math.cos(1.83*t) + (0.4/1.83)*Math.sin(1.83*t)),                                          color: '#00e09e', icon: 'control' },
+    circuit: { label: 'RLC Transient Charge: e^(−t)·sin(2t)',   poles: [{re: -1, im: 2, color: '#ef4444'}, {re: -1, im: -2, color: '#ef4444'}], compute: t => Math.exp(-t)*Math.sin(2*t),                                                                                                  color: '#ffb300', icon: 'circuit' }
+  };
+
+  window.m13SetAppArm = function(key){
+    m13App.which = key; m13App.hist = []; m13App.t = 0;
+  };
+
+  function drawM13AppArm(){
+    const cv = document.getElementById('m13cvAppArm'); if(!cv){ m13App.raf = requestAnimationFrame(drawM13AppArm); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const obj = M13_APP[m13App.which];
+    const splitX = W * 0.40;
+    ctx.strokeStyle = 'rgba(148,163,184,.3)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(splitX, 20); ctx.lineTo(splitX, H - 20); ctx.stroke();
+
+    const cx = splitX/2, cy = H/2;
+    m13App.t += 0.012;
+    const t = m13App.t;
+    const val = obj.compute(t);
+
+    if (obj.icon === 'arm'){
+      // Robotic arm joint
+      const angle = val * 0.8 * Math.PI/2;
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 4;
+      // Base
+      ctx.fillStyle = 'rgba(148,163,184,.5)';
+      ctx.fillRect(cx - 25, cy + 30, 50, 8);
+      // Joint
+      ctx.fillStyle = obj.color;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 10;
+      ctx.beginPath(); ctx.arc(cx, cy + 30, 8, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+      // Arm segment
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy + 30);
+      ctx.lineTo(cx - 60*Math.sin(angle), cy + 30 - 60*Math.cos(angle));
+      ctx.stroke();
+      // End effector
+      ctx.fillStyle = obj.color;
+      ctx.beginPath(); ctx.arc(cx - 60*Math.sin(angle), cy + 30 - 60*Math.cos(angle), 6, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 11px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText(`θ = ${(angle * 180 / Math.PI).toFixed(0)}°`, cx, H - 22);
+      ctx.textAlign = 'left';
+    } else if (obj.icon === 'servo'){
+      // Servo motor with rotor
+      const rot = val * Math.PI;
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(cx, cy, 35, 0, Math.PI*2); ctx.stroke();
+      // Rotor
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(cx + 30*Math.cos(rot), cy + 30*Math.sin(rot));
+      ctx.lineTo(cx + 30*Math.cos(rot + Math.PI), cy + 30*Math.sin(rot + Math.PI));
+      ctx.stroke();
+      ctx.fillStyle = obj.color;
+      ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI*2); ctx.fill();
+    } else if (obj.icon === 'filter'){
+      // Filter spectrum
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 8;
+      ctx.beginPath();
+      for (let i = 0; i <= 50; i++){
+        const f = i/50;
+        const omega = f * 4;
+        const mag = 1 / Math.sqrt((4 - omega*omega)*(4 - omega*omega) + omega*omega);
+        const dB = Math.log10(Math.max(mag, 0.01)) * 2;
+        const px = cx - 60 + f * 120;
+        const py = cy + 30 - dB * 15;
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    } else if (obj.icon === 'control'){
+      // Control system step response visualization
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      ctx.fillStyle = `${obj.color}30`;
+      ctx.fillRect(cx - 50, cy - 25, 100, 50);
+      ctx.strokeRect(cx - 50, cy - 25, 100, 50);
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 12px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText('Plant', cx, cy + 4);
+      ctx.textAlign = 'left';
+      // Step input arrow
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx - 100, cy + 10); ctx.lineTo(cx - 90, cy + 10);
+      ctx.lineTo(cx - 90, cy - 10); ctx.lineTo(cx - 50, cy - 10);
+      ctx.stroke();
+      // Output dot
+      ctx.fillStyle = obj.color;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 10 + 12*Math.abs(val);
+      ctx.beginPath(); ctx.arc(cx + 80, cy, 6 + 4*Math.abs(val), 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+    } else if (obj.icon === 'circuit'){
+      // RLC circuit
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      // Simplified RLC box
+      ctx.beginPath();
+      ctx.moveTo(cx - 60, cy - 30);
+      ctx.lineTo(cx + 60, cy - 30);
+      ctx.lineTo(cx + 60, cy + 30);
+      ctx.lineTo(cx - 60, cy + 30);
+      ctx.closePath();
+      ctx.stroke();
+      // Charge oscillation
+      ctx.fillStyle = obj.color;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 12 + 14*Math.abs(val);
+      ctx.beginPath(); ctx.arc(cx, cy, 5 + 6*Math.abs(val), 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    // ── RIGHT: signal trace + pole markers (small) ──
+    const sx0 = splitX + 16, sx1 = W - 20, sy0 = 30, sy1 = H - 30;
+    ctx.strokeStyle = 'rgba(148,163,184,.2)'; ctx.lineWidth = 1;
+    ctx.strokeRect(sx0, sy0, sx1 - sx0, sy1 - sy0);
+    gridLines(ctx, sx0, sx1, sy0, sy1, 10, 4);
+
+    m13App.hist.push(val);
+    if (m13App.hist.length > 1000) m13App.hist.shift();
+
+    const hN = m13App.hist.length;
+    if (hN > 1){
+      let yMin = 0, yMaxH = 1;
+      for (let v of m13App.hist){ if (v < yMin) yMin = v; if (v > yMaxH) yMaxH = v; }
+      const yRng = Math.max(0.5, yMaxH - yMin);
+
+      const zy = sy0 + (yMaxH/yRng) * (sy1 - sy0);
+      ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1; ctx.setLineDash([4, 3]);
+      ctx.beginPath(); ctx.moveTo(sx0, zy); ctx.lineTo(sx1, zy); ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 8;
+      ctx.beginPath();
+      for (let i = 0; i < hN; i++){
+        const px = sx0 + (i/(hN-1))*(sx1 - sx0);
+        const py = sy0 + ((yMaxH - m13App.hist[i])/yRng) * (sy1 - sy0);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = '#fff'; ctx.shadowColor = obj.color; ctx.shadowBlur = 14;
+      const tipY = sy0 + ((yMaxH - val)/yRng)*(sy1 - sy0);
+      ctx.beginPath(); ctx.arc(sx1, tipY, 5, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    // Pole legend (top-right corner)
+    ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px JetBrains Mono, monospace';
+    ctx.fillText('Poles:', sx1 - 100, sy0 + 18);
+    obj.poles.forEach((p, k) => {
+      const isDom = p.color === '#ef4444';
+      ctx.fillStyle = p.color;
+      ctx.font = `${isDom ? 'bold ' : ''}10px JetBrains Mono, monospace`;
+      const lbl = p.im ? `${p.re}±${Math.abs(p.im)}i` : `${p.re}`;
+      ctx.fillText(`${isDom ? '★ ' : '  '}${lbl}`, sx1 - 100, sy0 + 32 + k*12);
+    });
+
+    ctx.fillStyle = obj.color; ctx.font = 'bold 11px JetBrains Mono, monospace';
+    ctx.fillText(obj.label, sx0 + 6, sy0 + 16);
+
+    const infoEl = document.getElementById('m13AppArmInfo');
+    if (infoEl){
+      const dominantPole = obj.poles.find(p => p.color === '#ef4444');
+      const samples = m13App.hist.length;
+      infoEl.innerHTML = `<span style="color:#ef4444">★</span> Dominant pole: ${dominantPole.im ? dominantPole.re + '±' + Math.abs(dominantPole.im) + 'i' : dominantPole.re} &nbsp;|&nbsp; t=${t.toFixed(2)}, val=${val.toFixed(3)} &nbsp;|&nbsp; ${samples}/1000 samples`;
+    }
+
+    m13App.raf = requestAnimationFrame(drawM13AppArm);
+  }
+
+  // ── Init ──
+  function initM13Anims(){
+    if (document.getElementById('m13cvFactor')) drawM13Factor();
+    if (document.getElementById('m13cvCoverUp')){ drawM13CoverUp(); _wireM13CoverUp(); }
+    if (document.getElementById('m13cvPFDInv')) drawM13PFDInv();
+    if (document.getElementById('m13cvCases')) drawM13Cases();
+    if (document.getElementById('m13cvAppArm')) drawM13AppArm();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initM13Anims);
+  else initM13Anims();
+})();
 </script>
 
 </body>
