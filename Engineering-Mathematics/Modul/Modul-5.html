@@ -1406,7 +1406,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 09</div>
   <h2 class="section-title reveal">Animasi Interaktif<br>Tiga Kasus Akar Live</h2>
-  <p class="section-desc reveal">Lima animasi interaktif: (1) Solusi y(t) dengan <strong>preset push button</strong> b, (2) akar persamaan karakteristik dengan slider, (3) <strong>toggle</strong> Numerical vs Analytical, (4) <strong>radio</strong> klasifikasi PD, (5) <strong>dropdown</strong> sub-topik. Geser slider untuk melihat bagaimana <strong>koefisien <code>b</code> dan <code>c</code></strong> dari PD <code>y'' + b·y' + c·y = 0</code> memengaruhi perilaku solusi. Saksikan transisi seamless dari overdamped → critically damped → underdamped saat parameter berubah. Plus panel akar persamaan karakteristik live di plane kompleks.</p>
+  <p class="section-desc reveal">Lima animasi spesifik untuk <strong>Pertemuan 5 — PD Orde 2 Homogen Koefisien Konstan</strong>: (1) Solusi y(t) tiga kasus akar dengan slider <code>b</code>, <code>c</code>, (2) <strong>akar persamaan karakteristik</strong> live di plane kompleks, (3) <strong>toggle Homogen ↔ Non-Homogen</strong> dengan forcing dan resonansi, (4) <strong>radio Bentuk Solusi Fundamental</strong> (real distinct / real repeated / complex), (5) <strong>dropdown aplikasi mekanik</strong> dengan signal trace 1000 samples.</p>
 
   <!-- Animasi 1: 3-case comparison -->
   <div class="anim-panel reveal">
@@ -1461,89 +1461,89 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     </div>
   </div>
 
-  <!-- Animasi 3: Toggle (Numerical vs Analytical) -->
+  <!-- Animasi 3: Toggle Homogen ↔ Non-Homogen + Resonansi (M5-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--green)"></div>
-      <span class="anim-title">Animasi 3 — Numerical vs Analytical Solution (Toggle)</span>
+      <span class="anim-title">Animasi 3 — Homogen ↔ Non-Homogen (Toggle) + Resonansi</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvEMtog" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <canvas id="m5cvForce" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
           <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--text)">
-            Method:
-            <button type="button" onclick="toggleEMSolver()" style="background:none;border:none;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
-              <span id="em_tog_view" style="display:inline-block;position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
-                <span style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
+            Tipe PD:
+            <button type="button" onclick="window.m5ToggleForce()" style="background:none;border:none;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
+              <span id="m5_force_view" style="display:inline-block;position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
+                <span id="m5_force_knob" style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
               </span>
-              <span id="em_tog_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:700;">ANALYTICAL (closed-form)</span>
+              <span id="m5_force_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:700;">HOMOGEN: y'' + 0.4y' + 4y = 0</span>
             </button>
           </div>
         </div>
+        <div class="ctrl-group">
+          <label>Frekuensi forcing <strong>ω</strong> — <span class="ctrl-val" id="m5_omega_v">2.0</span></label>
+          <input type="range" id="m5_omega" min="0.5" max="4" step="0.05" value="2.0">
+        </div>
       </div>
-      <div id="emTogInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div id="m5ForceInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Toggle metode solusi PD. Analytical: ekspresi tertutup (closed-form) dari teorema. Numerical: integrator step-by-step (RK4, Euler).<br>
-        <strong>Trade-off:</strong> Analytical exact tetapi terbatas pada kelas PD tertentu. Numerical universal tetapi punya error akumulasi + computational cost. Modern engineering: kombinasi keduanya — derive analytical untuk verify, run numerical untuk produksi.
+        <strong>📊 Cara Membaca:</strong> <strong>HOMOGEN</strong>: y'' + by' + cy = 0, solusi y_h = transient yang meluruh ke 0. <strong>NON-HOMOGEN</strong>: y'' + by' + cy = sin(ωt), solusi y = y_h + y_p (steady-state oscillation di frekuensi ω). Geser slider <code>ω</code> untuk explore <strong>resonansi</strong> — saat ω ≈ ω_natural = √c (≈ 2 di sini), amplitudo y_p melonjak dramatis. Inilah peristiwa fisik di balik runtuhnya jembatan Tacoma Narrows!
       </div>
     </div>
   </div>
 
-  <!-- Animasi 4: Radio group (PD classification) -->
+  <!-- Animasi 4: Bentuk Solusi Fundamental (Radio, M5-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--pink)"></div>
-      <span class="anim-title">Animasi 4 — Klasifikasi PD: Pilih Tipe (Radio Group)</span>
+      <span class="anim-title">Animasi 4 — Bentuk Solusi Fundamental: y₁(t) &amp; y₂(t) Untuk Tiga Kasus Akar</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvEMrad" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <canvas id="m5cvFund" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
-          <label>Pilih Klasifikasi PD (radio group):</label>
+          <label>Pilih kasus akar persamaan karakteristik (radio):</label>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
-            <input type="radio" name="em_class_radio" id="em_r1" checked onchange="setEMClass('homogen')" style="display:none;">
-            <label for="em_r1" class="em-rad-lbl" data-c="homogen" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">Homogen ✓</label>
-            <input type="radio" name="em_class_radio" id="em_r2" onchange="setEMClass('nonhomogen')" style="display:none;">
-            <label for="em_r2" class="em-rad-lbl" data-c="nonhomogen" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">Non-Homogen</label>
-            <input type="radio" name="em_class_radio" id="em_r3" onchange="setEMClass('linear')" style="display:none;">
-            <label for="em_r3" class="em-rad-lbl" data-c="linear" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">Linear</label>
-            <input type="radio" name="em_class_radio" id="em_r4" onchange="setEMClass('nonlinear')" style="display:none;">
-            <label for="em_r4" class="em-rad-lbl" data-c="nonlinear" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">Non-Linear</label>
+            <input type="radio" name="m5_fund_radio" id="m5_f1" checked onchange="window.m5SetFund('distinct')" style="display:none;">
+            <label for="m5_f1" class="m5-fund-lbl" data-c="distinct" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">🔵 D &gt; 0: e^(λ₁t), e^(λ₂t) ✓</label>
+            <input type="radio" name="m5_fund_radio" id="m5_f2" onchange="window.m5SetFund('repeated')" style="display:none;">
+            <label for="m5_f2" class="m5-fund-lbl" data-c="repeated" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">🟣 D = 0: e^(λt), t·e^(λt)</label>
+            <input type="radio" name="m5_fund_radio" id="m5_f3" onchange="window.m5SetFund('complex')" style="display:none;">
+            <label for="m5_f3" class="m5-fund-lbl" data-c="complex" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">🔶 D &lt; 0: e^(αt)cos(βt), e^(αt)sin(βt)</label>
           </div>
         </div>
       </div>
-      <div id="emRadInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
+      <div id="m5FundInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Setiap klasifikasi memiliki metode solusi yang berbeda. Visualisasi menampilkan contoh solusi tipikal per kategori.<br>
-        <strong>Insight:</strong> Homogen: r(x)=0, solusi y_h. Non-Homogen: y = y_h + y_p (particular). Linear: superposition principle berlaku. Non-Linear: kompleks, mungkin tidak ada closed-form.
+        <strong>📊 Cara Membaca:</strong> Setiap kasus akar memiliki <em>basis solusi fundamental</em> yang berbeda. Canvas plot dua kurva y₁(t) dan y₂(t) (basis), serta solusi umum y(t) = C₁y₁ + C₂y₂ dengan C₁ = C₂ = 1. <strong>D &gt; 0</strong>: dua eksponensial berbeda. <strong>D = 0</strong>: e^λt + multiplied dengan t (ada term polynomial). <strong>D &lt; 0</strong>: dua osilator berbeda fase 90° (cos vs sin). Wronskian W(y₁, y₂) ≠ 0 ⇒ basis valid.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 5: Dropdown (Topic-specific) + Signal Trace 1000 samples -->
+  <!-- Animasi 5: Aplikasi Mekanik PD Orde 2 (Dropdown, M5-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:#a855f7"></div>
-      <span class="anim-title">Animasi 5 — PD Linier Orde N Detail: Pilih Sub-Topik (Dropdown + Signal Trace)</span>
+      <span class="anim-title">Animasi 5 — Aplikasi PD Orde 2: Sistem Mekanik &amp; Elektrik (Dropdown)</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvEMdrop" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <canvas id="m5cvApps" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
-          <label>Pilih (Dropdown):</label>
-          <select id="sl_em_drop" onchange="setEMDrop(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
-            <option value="real_distinct">🔵 Akar Real Berbeda (D>0) → e^(λ₁t), e^(λ₂t)</option>
-            <option value="real_repeat">🟢 Akar Real Berulang (D=0) → e^λt, te^λt</option>
-            <option value="complex">🟣 Akar Kompleks (D<0) → e^αt cos(βt)</option>
-            <option value="mixed">🟠 Mixed Roots — superposisi solusi</option>
+          <label>Pilih sistem yang dimodelkan PD orde 2 (semua bentuk: <code>m·x'' + b·x' + k·x = 0</code>):</label>
+          <select id="m5slApps" onchange="window.m5SetApps(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:520px;margin-top:6px;">
+            <option value="msd">🌀 Pegas-Massa-Damper — m·x'' + b·x' + k·x = 0</option>
+            <option value="rlc">⚡ Rangkaian RLC Seri — L·q'' + R·q' + (1/C)·q = 0</option>
+            <option value="pendulum">🪀 Pendulum (Sudut Kecil) — θ'' + (g/L)·θ = 0</option>
+            <option value="suspension">🚗 Suspensi Mobil — quarter-car model</option>
+            <option value="building">🏢 Building Sway — gedung tinggi terhadap angin</option>
           </select>
         </div>
       </div>
-      <div id="emDropInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
+      <div id="m5AppsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Pilih sub-topik dari dropdown. Layout split: kiri label + formula, kanan signal trace solusi 1000 samples (~10 detik).<br>
-        <strong>Insight:</strong> Setiap sub-topik PD Linier Orde N Detail punya signature unik di domain waktu. Bandingkan shape decay/oscillation/growth antara opsi.
+        <strong>📊 Cara Membaca:</strong> Lima sistem fisik berbeda — semua dimodelkan PD orde 2 yang sama bentuknya. Layout split: kiri = ikon/diagram fisik dengan animasi (massa berosilasi, kapasitor charging, pendulum berayun, suspensi mobil naik-turun, gedung melenggang), kanan = signal trace 1000 samples. <strong>Insight kunci:</strong> bentuk PD identik artinya <em>karakter respon</em> identik (osilasi/decay/critical) — analogi sistem yang dieksploitasi engineer.
       </div>
     </div>
   </div>
@@ -8320,6 +8320,573 @@ function _createForumParticleBurst(event) {
   else attachBtnHandlers();
 })();
 
+</script>
+
+<!-- ════════════════════════════════════════════════════════════════
+     M5 TOPIC-SPECIFIC ANIMATIONS (Animasi 3, 4, 5) — PD Orde 2
+     Animasi 1 (cvCases) + Animasi 2 (cvRoots) sudah perfect fit untuk
+     topik PD Orde 2 koefisien konstan, tetap dipakai infrastructure lama.
+     Canvas baru: m5cvForce, m5cvFund, m5cvApps.
+     ════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  function bgGrad(ctx, W, H){
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#020812'); g.addColorStop(1, '#0d1929');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  function gridLines(ctx, x0, x1, y0, y1, divX, divY){
+    ctx.strokeStyle = 'rgba(148,163,184,.10)'; ctx.lineWidth = 1;
+    for (let i = 0; i <= divX; i++){
+      const x = x0 + (i/divX)*(x1-x0);
+      ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.stroke();
+    }
+    for (let j = 0; j <= divY; j++){
+      const y = y0 + (j/divY)*(y1-y0);
+      ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
+    }
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 3 — Toggle Homogen ↔ Non-Homogen (with forcing & resonance)
+  // PD: y'' + 0.4·y' + 4·y = F(t)
+  //   Homogen:    F(t) = 0
+  //   Non-Homogen: F(t) = sin(ω·t)
+  // ω_natural = √4 = 2 — saat ω → 2, terjadi resonansi
+  // ════════════════════════════════════════════════════════════════
+  const m5Force = { isHomogen: true, t: 0, raf: null };
+
+  window.m5ToggleForce = function(){
+    m5Force.isHomogen = !m5Force.isHomogen;
+    const view = document.getElementById('m5_force_view');
+    const knob = document.getElementById('m5_force_knob');
+    const lbl  = document.getElementById('m5_force_label');
+    if (m5Force.isHomogen){
+      view.style.background = 'rgba(0,224,158,.25)'; view.style.borderColor = 'var(--green)';
+      knob.style.transform = 'translateX(0px)';
+      lbl.style.color = 'var(--green)';
+      lbl.textContent = "HOMOGEN: y'' + 0.4y' + 4y = 0";
+    } else {
+      view.style.background = 'rgba(255,179,0,.25)'; view.style.borderColor = 'var(--amber)';
+      knob.style.transform = 'translateX(28px)';
+      lbl.style.color = 'var(--amber)';
+      lbl.textContent = "NON-HOMOGEN: y'' + 0.4y' + 4y = sin(ωt)";
+    }
+  };
+
+  function drawM5Force(){
+    const cv = document.getElementById('m5cvForce'); if(!cv){ m5Force.raf = requestAnimationFrame(drawM5Force); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const omega = parseFloat(document.getElementById('m5_omega').value);
+    document.getElementById('m5_omega_v').textContent = omega.toFixed(2);
+
+    const padL = 50, padR = 20, padT = 25, padB = 35;
+    const px0 = padL, px1 = W - padR, py0 = padT, py1 = H - padB;
+    const tMax = 25;
+    function tx(t){ return px0 + (t/tMax)*(px1 - px0); }
+
+    gridLines(ctx, px0, px1, py0, py1, 12, 6);
+
+    // Solve PD: y'' + 0.4y' + 4y = F(t), IC y(0) = 1, y'(0) = 0
+    const N = 600;
+    const dt = tMax / N;
+    const ys = new Float64Array(N+1);
+    const Fs = new Float64Array(N+1);
+    let y = 1, v = 0;
+    ys[0] = y;
+    const b = 0.4, c = 4;
+    function F(t){ return m5Force.isHomogen ? 0 : Math.sin(omega * t); }
+    for (let i = 1; i <= N; i++){
+      const t0 = (i-1)*dt;
+      // RK4
+      const f1 = (yy, vv, tt) => [vv, F(tt) - b*vv - c*yy];
+      const k1 = f1(y, v, t0);
+      const k2 = f1(y + dt/2*k1[0], v + dt/2*k1[1], t0 + dt/2);
+      const k3 = f1(y + dt/2*k2[0], v + dt/2*k2[1], t0 + dt/2);
+      const k4 = f1(y + dt*k3[0],   v + dt*k3[1],   t0 + dt);
+      y += dt/6*(k1[0] + 2*k2[0] + 2*k3[0] + k4[0]);
+      v += dt/6*(k1[1] + 2*k2[1] + 2*k3[1] + k4[1]);
+      ys[i] = y;
+      Fs[i] = F(i*dt);
+    }
+
+    // Find y range
+    let yMax = 1;
+    for (let i = 0; i <= N; i++){
+      if (Math.abs(ys[i]) > yMax) yMax = Math.abs(ys[i]);
+    }
+    yMax = Math.min(yMax, 8);
+    function ty(yy){ return (py0+py1)/2 - (yy/yMax)*((py1-py0)/2 - 8); }
+
+    // Axes
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(tx(0), py0); ctx.lineTo(tx(0), py1); ctx.stroke();
+
+    ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+    ctx.fillText('t', px1 + 5, ty(0) + 4);
+    ctx.fillText('y(t)', px0 - 35, py0 - 4);
+
+    // Plot forcing F(t) (light dashed amber)
+    if (!m5Force.isHomogen){
+      ctx.strokeStyle = 'rgba(255,179,0,.5)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]);
+      ctx.beginPath();
+      for (let i = 0; i <= N; i++){
+        const px = tx(i*dt), py = ty(Fs[i]);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // Plot y(t)
+    const color = m5Force.isHomogen ? '#00e09e' : '#ffb300';
+    ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+    ctx.shadowColor = color; ctx.shadowBlur = 10;
+    ctx.beginPath();
+    for (let i = 0; i <= N; i++){
+      const px = tx(i*dt), py = ty(ys[i]);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Animated tracing dot
+    m5Force.t = (m5Force.t + 0.04) % tMax;
+    const iDot = Math.min(N, Math.floor(m5Force.t/dt));
+    ctx.fillStyle = '#fff';
+    ctx.shadowColor = color; ctx.shadowBlur = 14;
+    ctx.beginPath(); ctx.arc(tx(m5Force.t), ty(ys[iDot]), 6, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Title + resonance indicator
+    const omega_n = Math.sqrt(c);
+    const isResonance = !m5Force.isHomogen && Math.abs(omega - omega_n) < 0.15;
+    ctx.fillStyle = isResonance ? '#ef4444' : color;
+    ctx.font = 'bold 13px JetBrains Mono, monospace';
+    const title = m5Force.isHomogen
+      ? "HOMOGEN: y_h transient → 0"
+      : (isResonance ? `⚠ RESONANSI! ω ≈ ω_n = ${omega_n.toFixed(2)}` : `NON-HOMOGEN: y = y_h + y_p (steady-state)`);
+    ctx.fillText(title, padL + 8, padT + 16);
+
+    // Info
+    const infoEl = document.getElementById('m5ForceInfo');
+    if (infoEl){
+      const ampMax = yMax;
+      if (m5Force.isHomogen){
+        infoEl.innerHTML = `<span style="color:${color}">●</span> Homogen — solusi y_h = transient meluruh ke 0 (hanya damping). Amplitudo max = ${ampMax.toFixed(2)}.`;
+      } else {
+        const resColor = isResonance ? '#ef4444' : '#ffb300';
+        infoEl.innerHTML = `<span style="color:${resColor}">●</span> Non-Homogen, ω=${omega.toFixed(2)}, ω_n=${omega_n.toFixed(2)} ⇒ amplitudo max = ${ampMax.toFixed(2)} ${isResonance ? '<strong>(RESONANSI dramatis!)</strong>' : ''}`;
+      }
+    }
+
+    m5Force.raf = requestAnimationFrame(drawM5Force);
+  }
+  function _wireM5Force(){
+    const el = document.getElementById('m5_omega');
+    if (el) el.addEventListener('input', () => { /* RAF re-renders */ });
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 4 — Bentuk Solusi Fundamental (Radio)
+  // 3 kasus akar: distinct, repeated, complex
+  // Plot y₁(t), y₂(t), dan y(t) = y₁ + y₂
+  // ════════════════════════════════════════════════════════════════
+  const m5Fund = { which: 'distinct', t: 0, raf: null };
+
+  const M5_FUND = {
+    distinct: {
+      label: "D > 0: Akar Real Berbeda — λ₁=−1, λ₂=−3",
+      formula: "y₁ = e^(−t),  y₂ = e^(−3t)",
+      y1: t => Math.exp(-t),
+      y2: t => Math.exp(-3*t),
+      colors: ['#0ea5e9', '#a855f7']
+    },
+    repeated: {
+      label: "D = 0: Akar Real Berulang — λ = −1",
+      formula: "y₁ = e^(−t),  y₂ = t·e^(−t)",
+      y1: t => Math.exp(-t),
+      y2: t => t * Math.exp(-t),
+      colors: ['#a855f7', '#ff6bb3']
+    },
+    complex: {
+      label: "D < 0: Akar Kompleks — λ = −0.3 ± 2i",
+      formula: "y₁ = e^(−0.3t)·cos(2t),  y₂ = e^(−0.3t)·sin(2t)",
+      y1: t => Math.exp(-0.3*t) * Math.cos(2*t),
+      y2: t => Math.exp(-0.3*t) * Math.sin(2*t),
+      colors: ['#0ea5e9', '#00e09e']
+    }
+  };
+
+  window.m5SetFund = function(key){
+    m5Fund.which = key;
+    document.querySelectorAll('.m5-fund-lbl').forEach(lbl => {
+      const c = lbl.getAttribute('data-c');
+      const active = (c === key);
+      lbl.style.border = active ? '2px solid var(--pink)' : '1px solid rgba(148,163,184,.3)';
+      lbl.style.background = active ? 'rgba(255,255,255,.20)' : 'rgba(148,163,184,.10)';
+      lbl.style.color = active ? '#fff' : '#94a3b8';
+      lbl.style.fontWeight = active ? '700' : '400';
+      lbl.style.boxShadow = active ? '0 0 12px rgba(255,107,179,.4)' : 'none';
+      lbl.style.transform = active ? 'scale(1.05)' : 'scale(1)';
+      lbl.textContent = active ? (lbl.textContent.replace(' ✓','') + ' ✓') : lbl.textContent.replace(' ✓','');
+    });
+  };
+
+  function drawM5Fund(){
+    const cv = document.getElementById('m5cvFund'); if(!cv){ m5Fund.raf = requestAnimationFrame(drawM5Fund); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const obj = M5_FUND[m5Fund.which];
+    const padL = 50, padR = 20, padT = 35, padB = 35;
+    const px0 = padL, px1 = W - padR, py0 = padT, py1 = H - padB;
+    const tMax = 8;
+    function tx(t){ return px0 + (t/tMax)*(px1 - px0); }
+
+    gridLines(ctx, px0, px1, py0, py1, 8, 6);
+
+    // Sample curves
+    const N = 200;
+    const y1Arr = new Float64Array(N+1), y2Arr = new Float64Array(N+1), ySum = new Float64Array(N+1);
+    let yMax = 1;
+    for (let i = 0; i <= N; i++){
+      const t = (i/N) * tMax;
+      y1Arr[i] = obj.y1(t);
+      y2Arr[i] = obj.y2(t);
+      ySum[i] = y1Arr[i] + y2Arr[i];
+      if (Math.abs(y1Arr[i]) > yMax) yMax = Math.abs(y1Arr[i]);
+      if (Math.abs(y2Arr[i]) > yMax) yMax = Math.abs(y2Arr[i]);
+      if (Math.abs(ySum[i]) > yMax) yMax = Math.abs(ySum[i]);
+    }
+    function ty(y){ return (py0+py1)/2 - (y/yMax)*((py1-py0)/2 - 8); }
+
+    // Axes
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(tx(0), py0); ctx.lineTo(tx(0), py1); ctx.stroke();
+
+    ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+    ctx.fillText('t', px1 + 5, ty(0) + 4);
+
+    // Plot y1, y2, ysum
+    const arrs = [
+      { data: y1Arr, color: obj.colors[0], label: 'y₁(t)', width: 2 },
+      { data: y2Arr, color: obj.colors[1], label: 'y₂(t)', width: 2 },
+      { data: ySum,  color: '#fff',         label: 'y₁+y₂ (umum)', width: 3 }
+    ];
+    for (let k = 0; k < arrs.length; k++){
+      const obj2 = arrs[k];
+      ctx.strokeStyle = obj2.color; ctx.lineWidth = obj2.width;
+      ctx.shadowColor = obj2.color; ctx.shadowBlur = k === 2 ? 8 : 4;
+      ctx.beginPath();
+      for (let i = 0; i <= N; i++){
+        const t = (i/N) * tMax;
+        const px = tx(t), py = ty(obj2.data[i]);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+    }
+    ctx.shadowBlur = 0;
+
+    // Animated tracing dots on each curve
+    m5Fund.t = (m5Fund.t + 0.025) % tMax;
+    const iDot = Math.min(N, Math.floor(m5Fund.t / tMax * N));
+    for (let k = 0; k < arrs.length; k++){
+      ctx.fillStyle = '#fff';
+      ctx.shadowColor = arrs[k].color; ctx.shadowBlur = 12;
+      ctx.beginPath(); ctx.arc(tx(m5Fund.t), ty(arrs[k].data[iDot]), 5, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.shadowBlur = 0;
+
+    // Title (top)
+    ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 12px JetBrains Mono, monospace';
+    ctx.fillText(obj.label, padL + 8, padT - 18);
+    ctx.font = '10px JetBrains Mono, monospace';
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText(obj.formula, padL + 8, padT - 4);
+
+    // Legend (right side)
+    let lx = px1 - 150, ly = padT + 12;
+    ctx.font = 'bold 11px JetBrains Mono, monospace';
+    for (let k = 0; k < arrs.length; k++){
+      ctx.fillStyle = arrs[k].color;
+      ctx.fillRect(lx, ly - 6, 14, 3);
+      ctx.fillText(arrs[k].label, lx + 18, ly);
+      ly += 14;
+    }
+
+    // Info
+    const infoEl = document.getElementById('m5FundInfo');
+    if (infoEl){
+      infoEl.innerHTML = `<span style="color:${obj.colors[0]}">●</span> ${obj.label} &nbsp;|&nbsp; Wronskian W(y₁, y₂) ≠ 0 ⇒ basis valid &nbsp;|&nbsp; t=${m5Fund.t.toFixed(2)}, y=${ySum[iDot].toFixed(3)}`;
+    }
+
+    m5Fund.raf = requestAnimationFrame(drawM5Fund);
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 5 — Aplikasi PD Orde 2 (Dropdown)
+  // ════════════════════════════════════════════════════════════════
+  const m5Apps = { which: 'msd', t: 0, hist: [], raf: null };
+
+  const M5_APPS = {
+    msd:        { label: "Pegas-Massa-Damper: x'' + 0.4x' + 4x = 0",   compute: t => Math.exp(-0.2*t)*Math.cos(2*t),               color: '#0ea5e9', icon: 'msd' },
+    rlc:        { label: "RLC Seri: q'' + 0.3q' + 3q = 0",              compute: t => Math.exp(-0.15*t)*Math.cos(1.7*t),            color: '#ffb300', icon: 'rlc' },
+    pendulum:   { label: "Pendulum kecil: θ'' + 4·θ = 0 (no damping)",  compute: t => 0.6*Math.cos(2*t),                             color: '#a855f7', icon: 'pend' },
+    suspension: { label: "Suspensi mobil: critically damped (D=0)",     compute: t => (1 + 2*t)*Math.exp(-1.2*t) - 0.1,              color: '#00e09e', icon: 'susp' },
+    building:   { label: "Building sway: lightly damped osilasi",       compute: t => Math.exp(-0.05*t)*Math.sin(0.8*t)*0.8,         color: '#ff6bb3', icon: 'bld'  }
+  };
+
+  window.m5SetApps = function(key){
+    m5Apps.which = key; m5Apps.hist = []; m5Apps.t = 0;
+  };
+
+  function drawM5Apps(){
+    const cv = document.getElementById('m5cvApps'); if(!cv){ m5Apps.raf = requestAnimationFrame(drawM5Apps); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const obj = M5_APPS[m5Apps.which];
+    const splitX = W * 0.40;
+    ctx.strokeStyle = 'rgba(148,163,184,.3)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(splitX, 20); ctx.lineTo(splitX, H - 20); ctx.stroke();
+
+    const cx = splitX/2, cy = H/2;
+    const t = m5Apps.t;
+    const val = obj.compute(t);
+
+    // ── LEFT: schematic ──
+    if (obj.icon === 'msd'){
+      // Wall + spring + mass + damper (parallel)
+      const wallY = 30;
+      const massY = wallY + 70 + val * 35;
+      ctx.fillStyle = 'rgba(148,163,184,.3)';
+      ctx.fillRect(cx - 60, wallY - 8, 120, 8);
+      // Spring (zigzag) on left
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let i = 0; i <= 8; i++){
+        const segY = wallY + (massY - wallY - 30)*i/8;
+        const sgn = (i % 2 === 0) ? -1 : 1;
+        ctx.lineTo(cx - 25 + sgn*8, segY);
+      }
+      ctx.stroke();
+      // Damper on right (cylinder)
+      ctx.strokeStyle = obj.color;
+      ctx.beginPath();
+      ctx.moveTo(cx + 25, wallY);
+      ctx.lineTo(cx + 25, wallY + 25);
+      ctx.stroke();
+      ctx.strokeRect(cx + 18, wallY + 25, 14, 30);
+      ctx.beginPath();
+      ctx.moveTo(cx + 25, wallY + 25 + 30);
+      ctx.lineTo(cx + 25, massY);
+      ctx.stroke();
+      // Mass
+      ctx.fillStyle = obj.color;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 12;
+      ctx.fillRect(cx - 30, massY, 60, 35);
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 12px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText('m', cx, massY + 22);
+      ctx.textAlign = 'left';
+    } else if (obj.icon === 'rlc'){
+      // RLC schematic
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      // Box outline
+      ctx.beginPath();
+      ctx.moveTo(cx - 70, cy - 40); ctx.lineTo(cx + 70, cy - 40);
+      ctx.lineTo(cx + 70, cy + 40); ctx.lineTo(cx - 70, cy + 40);
+      ctx.closePath(); ctx.stroke();
+      // R (resistor zigzag) top
+      ctx.beginPath();
+      ctx.moveTo(cx - 70, cy - 40); ctx.lineTo(cx - 30, cy - 40);
+      for (let i = 0; i < 6; i++){
+        const x = cx - 30 + i * 8;
+        ctx.lineTo(x + 4, cy - 40 + (i%2 ? 6 : -6));
+      }
+      ctx.lineTo(cx + 22, cy - 40); ctx.lineTo(cx + 70, cy - 40);
+      ctx.stroke();
+      // L (inductor loops) right
+      ctx.beginPath();
+      for (let i = 0; i < 4; i++){
+        ctx.arc(cx + 70, cy - 30 + i * 16, 6, -Math.PI/2, Math.PI/2);
+      }
+      ctx.stroke();
+      // C (capacitor) bottom
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(cx - 8, cy + 30); ctx.lineTo(cx - 8, cy + 50); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx + 8, cy + 30); ctx.lineTo(cx + 8, cy + 50); ctx.stroke();
+      // Charge oscillation glow
+      ctx.fillStyle = obj.color; ctx.shadowColor = obj.color; ctx.shadowBlur = 12 + 14 * Math.abs(val);
+      ctx.beginPath(); ctx.arc(cx, cy + 40, 4 + 4*Math.abs(val), 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 11px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText(`q(t) = ${val.toFixed(2)}`, cx, H - 22);
+      ctx.textAlign = 'left';
+    } else if (obj.icon === 'pend'){
+      // Pendulum
+      const pivotY = 40;
+      const L = 80;
+      const angle = val * 0.6; // theta
+      const bobX = cx + L * Math.sin(angle);
+      const bobY = pivotY + L * Math.cos(angle);
+      // Pivot
+      ctx.fillStyle = '#94a3b8';
+      ctx.beginPath(); ctx.arc(cx, pivotY, 5, 0, Math.PI*2); ctx.fill();
+      // Rod
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(cx, pivotY); ctx.lineTo(bobX, bobY); ctx.stroke();
+      // Bob
+      ctx.fillStyle = obj.color;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 14;
+      ctx.beginPath(); ctx.arc(bobX, bobY, 12, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+      // Trail (arc)
+      ctx.strokeStyle = 'rgba(168,85,247,.2)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.arc(cx, pivotY, L, Math.PI/2 - 0.6, Math.PI/2 + 0.6); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 11px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText(`θ = ${(angle * 180 / Math.PI).toFixed(1)}°`, cx, H - 22);
+      ctx.textAlign = 'left';
+    } else if (obj.icon === 'susp'){
+      // Quarter car: chassis + spring + wheel
+      const groundY = H - 40;
+      const chassisY = 70 + val * 20;
+      // Ground
+      ctx.fillStyle = 'rgba(148,163,184,.3)';
+      ctx.fillRect(cx - 60, groundY, 120, 6);
+      // Hatching on ground
+      ctx.strokeStyle = 'rgba(148,163,184,.5)';
+      for (let i = -50; i <= 50; i += 10){
+        ctx.beginPath();
+        ctx.moveTo(cx + i, groundY + 6); ctx.lineTo(cx + i + 6, groundY + 14); ctx.stroke();
+      }
+      // Wheel
+      ctx.fillStyle = '#1e293b'; ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(cx, groundY - 22, 22, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+      // Spring + damper between wheel and chassis
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let i = 0; i <= 6; i++){
+        const segY = groundY - 44 - (groundY - 44 - chassisY - 30)*i/6;
+        const sgn = (i % 2 === 0) ? -1 : 1;
+        ctx.lineTo(cx - 12 + sgn*6, segY);
+      }
+      ctx.stroke();
+      // Chassis
+      ctx.fillStyle = obj.color;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 10;
+      ctx.fillRect(cx - 50, chassisY, 100, 28);
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 10px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText('CAR', cx, chassisY + 18);
+      ctx.textAlign = 'left';
+    } else if (obj.icon === 'bld'){
+      // Tall building swaying
+      const sway = val * 25;
+      const baseW = 60, baseY = H - 50;
+      const topY = 50;
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      // Building outline (skewed top)
+      ctx.beginPath();
+      ctx.moveTo(cx - baseW/2, baseY);
+      ctx.lineTo(cx + baseW/2, baseY);
+      ctx.lineTo(cx + baseW/2 + sway*0.7, topY);
+      ctx.lineTo(cx - baseW/2 + sway*0.7, topY);
+      ctx.closePath();
+      ctx.fillStyle = obj.color.replace('rgb', 'rgba').replace(')', ',0.2)');
+      ctx.fill(); ctx.stroke();
+      // Windows
+      const floors = 6;
+      for (let f = 0; f < floors; f++){
+        const fy = baseY - 18 - f * (baseY - topY - 8) / floors;
+        const fySway = sway * (f / floors) * 0.7;
+        ctx.fillStyle = `rgba(255, 179, 0, ${0.4 + 0.4*Math.abs(val)})`;
+        for (let w = -1; w <= 1; w++){
+          ctx.fillRect(cx + w*15 + fySway - 4, fy - 4, 8, 8);
+        }
+      }
+      // Wind arrows
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1;
+      for (let i = 0; i < 3; i++){
+        const ay = topY + 10 + i * 30;
+        ctx.beginPath();
+        ctx.moveTo(20, ay); ctx.lineTo(60, ay);
+        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(60, ay); ctx.lineTo(56, ay - 3); ctx.lineTo(56, ay + 3); ctx.closePath(); ctx.fillStyle = '#94a3b8'; ctx.fill();
+      }
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 11px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText(`sway = ${sway.toFixed(1)} cm`, cx, H - 22);
+      ctx.textAlign = 'left';
+    }
+
+    // ── RIGHT: signal trace ──
+    const sx0 = splitX + 16, sx1 = W - 20, sy0 = 30, sy1 = H - 30;
+    ctx.strokeStyle = 'rgba(148,163,184,.2)'; ctx.lineWidth = 1;
+    ctx.strokeRect(sx0, sy0, sx1 - sx0, sy1 - sy0);
+    gridLines(ctx, sx0, sx1, sy0, sy1, 10, 4);
+
+    m5Apps.t += 0.012;
+    m5Apps.hist.push(val);
+    if (m5Apps.hist.length > 1000) m5Apps.hist.shift();
+
+    const hN = m5Apps.hist.length;
+    if (hN > 1){
+      let yMin = 0, yMaxH = 0;
+      for (let v of m5Apps.hist){ if (v < yMin) yMin = v; if (v > yMaxH) yMaxH = v; }
+      const yRng = Math.max(0.5, yMaxH - yMin);
+
+      // Zero line
+      const zy = sy0 + (yMaxH/yRng) * (sy1 - sy0);
+      ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1; ctx.setLineDash([4, 3]);
+      ctx.beginPath(); ctx.moveTo(sx0, zy); ctx.lineTo(sx1, zy); ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 8;
+      ctx.beginPath();
+      for (let i = 0; i < hN; i++){
+        const px = sx0 + (i/(hN-1))*(sx1 - sx0);
+        const py = sy0 + ((yMaxH - m5Apps.hist[i])/yRng) * (sy1 - sy0);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = '#fff'; ctx.shadowColor = obj.color; ctx.shadowBlur = 14;
+      const tipX = sx1, tipY = sy0 + ((yMaxH - val)/yRng)*(sy1 - sy0);
+      ctx.beginPath(); ctx.arc(tipX, tipY, 5, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    ctx.fillStyle = obj.color; ctx.font = 'bold 12px JetBrains Mono, monospace';
+    ctx.fillText(obj.label, sx0 + 8, sy0 + 16);
+
+    const infoEl = document.getElementById('m5AppsInfo');
+    if (infoEl){
+      const samples = m5Apps.hist.length;
+      infoEl.innerHTML = `<span style="color:${obj.color}">●</span> ${obj.label} &nbsp;|&nbsp; t=${t.toFixed(2)}, val=${val.toFixed(3)} &nbsp;|&nbsp; ${samples}/1000 samples`;
+    }
+
+    m5Apps.raf = requestAnimationFrame(drawM5Apps);
+  }
+
+  function initM5Anims(){
+    if (document.getElementById('m5cvForce')){ drawM5Force(); _wireM5Force(); }
+    if (document.getElementById('m5cvFund')) drawM5Fund();
+    if (document.getElementById('m5cvApps')) drawM5Apps();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initM5Anims);
+  else initM5Anims();
+})();
 </script>
 
 </body>
