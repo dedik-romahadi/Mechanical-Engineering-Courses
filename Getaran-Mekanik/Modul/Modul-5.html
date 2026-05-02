@@ -1179,7 +1179,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 06</div>
   <h2 class="section-title reveal">Animasi Interaktif<br>Resonansi &amp; Isolasi</h2>
-  <p class="section-desc reveal">Empat animasi visual untuk memahami <strong>Pertemuan 5</strong> secara intuitif: (1) Mass-spring-damper fisik yang benar-benar bergetar, (2) sweep frekuensi untuk melihat resonansi dramatis, (3) perbandingan <em>dengan</em> vs <em>tanpa</em> isolator, dan (4) half-power bandwidth interaktif. Geser slider, tekan tombol, eksplorasi!</p>
+  <p class="section-desc reveal">Lima animasi visual untuk memahami Resonansi, DMF & Transmissibility: (1) Mass-spring-damper bergetar dengan <strong>preset push button</strong> rasio frekuensi, (2) sweep frekuensi otomatis lihat puncak DMF terbentuk, (3) perbandingan TANPA vs DENGAN isolator dengan <strong>radio group</strong> regime, (4) half-power bandwidth dengan <strong>radio group</strong> ζ preset, dan (5) <strong>5 jenis isolator industri</strong> dengan <strong>dropdown</strong> (Rubber, Helical, Pneumatic, Wire-Rope, Polymer). Eksplorasi!</p>
 
   <!-- Animasi 1: PHYSICAL Mass-Spring-Damper LIVE -->
   <div class="anim-panel reveal">
@@ -1190,9 +1190,16 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="anim-body">
       <canvas id="cvPhysics" height="340"></canvas>
       <div class="ctrl-row">
-        <div class="ctrl-group">
-          <label>Rasio Frekuensi r = ω/ωₙ — <span class="ctrl-val" id="v_rp">0.80</span></label>
-          <input type="range" id="sl_rp" min="0.1" max="2.5" step="0.02" value="0.8">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Rasio Frekuensi r = ω/ωₙ — preset push buttons — <span class="ctrl-val" id="v_rp">0.80</span></label>
+          <input type="hidden" id="sl_rp" value="0.8">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+            <button class="rp-pbtn" onclick="setPhysicsR(0.5)" data-r="0.5" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">r=0.5 (sub)</button>
+            <button class="rp-pbtn" onclick="setPhysicsR(0.8)" data-r="0.8" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid #0ea5e9;background:#0ea5e9;color:#fff;font-weight:700;box-shadow:0 0 12px rgba(14,165,233,.6);transform:scale(1.05);transition:all .15s;">r=0.8 ✓</button>
+            <button class="rp-pbtn" onclick="setPhysicsR(1.0)" data-r="1.0" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.10);color:#ef4444;">r=1.0 RESONANSI</button>
+            <button class="rp-pbtn" onclick="setPhysicsR(1.4)" data-r="1.4" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">r=√2 (batas)</button>
+            <button class="rp-pbtn" onclick="setPhysicsR(2.0)" data-r="2.0" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">r=2 (isolasi)</button>
+          </div>
         </div>
         <div class="ctrl-group">
           <label>Rasio Redaman ζ — <span class="ctrl-val" id="v_zp">0.10</span></label>
@@ -1268,9 +1275,19 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="anim-body">
       <canvas id="cvHPB" height="320"></canvas>
       <div class="ctrl-row">
-        <div class="ctrl-group">
-          <label>Rasio Redaman TRUE ζ — <span class="ctrl-val" id="v_zh">0.08</span></label>
-          <input type="range" id="sl_zh" min="0.02" max="0.30" step="0.005" value="0.08">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Rasio Redaman TRUE ζ — radio group — <span class="ctrl-val" id="v_zh">0.08</span></label>
+          <input type="hidden" id="sl_zh" value="0.08">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+            <input type="radio" name="zh_radio" id="zh_r1" onchange="setHPBZeta(0.03)" style="display:none;">
+            <label for="zh_r1" class="zh-rlbl" data-z="0.03" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(220,38,38,.4);background:rgba(220,38,38,.10);color:#dc2626;">ζ=0.03 (puncak tajam, Q tinggi)</label>
+            <input type="radio" name="zh_radio" id="zh_r2" checked onchange="setHPBZeta(0.08)" style="display:none;">
+            <label for="zh_r2" class="zh-rlbl" data-z="0.08" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">ζ=0.08 ✓</label>
+            <input type="radio" name="zh_radio" id="zh_r3" onchange="setHPBZeta(0.15)" style="display:none;">
+            <label for="zh_r3" class="zh-rlbl" data-z="0.15" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">ζ=0.15 (sedang)</label>
+            <input type="radio" name="zh_radio" id="zh_r4" onchange="setHPBZeta(0.25)" style="display:none;">
+            <label for="zh_r4" class="zh-rlbl" data-z="0.25" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">ζ=0.25 (Q rendah)</label>
+          </div>
         </div>
         <div class="ctrl-group">
           <label>Geser Garis Horizontal — <span class="ctrl-val" id="v_line">0.50</span></label>
@@ -1284,6 +1301,33 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       </div>
     </div>
   </div>
+
+  <!-- Animasi 5: Industrial Isolator Types Dropdown -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:#a855f7"></div>
+      <span class="anim-title">Animasi 5 — Lima Jenis Isolator Industri: Rubber, Helical, Pneumatic, Wire-Rope, Polymer</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvIsoType" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih Jenis Isolator (Dropdown):</label>
+          <select id="sl_iso_type" onchange="setIsoType(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
+            <option value="rubber">🟦 Rubber Pad / Mount — fn=8 Hz, ζ=0.05 (paling umum)</option>
+            <option value="helical">🟩 Helical Spring + Damper — fn=4.5 Hz (low-freq)</option>
+            <option value="pneumatic">🟧 Pneumatic / Air Spring — fn=1.5 Hz (adjustable)</option>
+            <option value="wirerope">🟪 Wire Rope / Cable — fn=12 Hz (shock+vibration MIL-STD)</option>
+            <option value="polymer">🟨 Polymer / Elastomer — fn=20 Hz (electronics, high-freq)</option>
+          </select>
+        </div>
+      </div>
+      <div id="isoTypeInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca Animasi Ini:</strong> Pilih jenis isolator dari dropdown — kurva transmissibility T_r vs frekuensi (log scale) digambar progresif. Setiap jenis isolator punya rentang frekuensi optimal yang berbeda berdasarkan fn dan ζ.<br>
+        <strong>Pemilihan praktis:</strong> (1) <strong>Rubber pad</strong>: 25-3000 Hz, paling murah, untuk pompa/motor menengah. (2) <strong>Helical spring</strong>: low-freq 15-150 Hz, untuk kompresor besar. (3) <strong>Pneumatic</strong>: 5-100 Hz, presisi tinggi (lab equipment, microscope). (4) <strong>Wire rope</strong>: shock+vibrasi militer, fn tinggi. (5) <strong>Polymer</strong>: 20-2000 Hz, electronics PCB mounting. Aturan emas: pilih isolator dengan fn ≤ ω_eksitasi/√2.
+      </div>
+    </div>
 </div>
 
 <!-- ═══ BAGIAN 07 — DESAIN ISOLATOR INDUSTRI ═══ -->
@@ -4198,7 +4242,7 @@ function drawPhysics(){
 }
 
 function _physicsTick(){
-  if(_physicsAnim.running) _physicsAnim.t += 0.016;
+  if(_physicsAnim.running) _physicsAnim.t += 0.008;
   drawPhysics();
   _physicsAnim.raf = requestAnimationFrame(_physicsTick);
 }
@@ -4397,8 +4441,8 @@ function drawSweep(){
 
 function _sweepTick(){
   if(_sweepAnim.running){
-    _sweepAnim.t += 0.016;
-    _sweepAnim.progress += 0.016/8;  // 8-second sweep
+    _sweepAnim.t += 0.008;
+    _sweepAnim.progress += 0.008/12;  // 8-second sweep
     const zeta = parseFloat(document.getElementById('sl_zs').value);
     const r = _sweepAnim.progress * 2.5;
     const dmf = 1/Math.sqrt((1-r*r)**2 + (2*zeta*r)**2);
@@ -4645,7 +4689,7 @@ function drawIso(){
 }
 
 function _isoTick(){
-  if(_isoAnim.running) _isoAnim.t += 0.016;
+  if(_isoAnim.running) _isoAnim.t += 0.008;
   drawIso();
   _isoAnim.raf = requestAnimationFrame(_isoTick);
 }
@@ -4817,6 +4861,153 @@ function drawHPB(){
   ['sl_zh','sl_line'].forEach(id=>{const s=document.getElementById(id); if(s) s.addEventListener('input', drawHPB);});
 })();
 setTimeout(drawHPB, 800);
+
+
+window.setPhysicsR=function(r){
+  const e=document.getElementById('sl_rp');if(e){e.value=r;const v=document.getElementById('v_rp');if(v)v.textContent=r.toFixed(2);}
+  document.querySelectorAll('.rp-pbtn').forEach(b=>{
+    const rb=parseFloat(b.dataset.r);const active=(Math.abs(rb-r)<0.01);
+    b.style.background=active?'#0ea5e9':'rgba(14,165,233,.08)';
+    b.style.borderColor=active?'#0ea5e9':'rgba(14,165,233,.3)';
+    b.style.color=active?'#fff':'#0ea5e9';
+    b.style.fontWeight=active?'700':'400';
+    b.style.boxShadow=active?'0 0 12px rgba(14,165,233,.6)':'none';
+    b.style.borderWidth=active?'2px':'1px';
+    b.style.transform=active?'scale(1.05)':'scale(1.0)';
+  });
+  if(typeof drawPhysics==='function')drawPhysics();
+};
+
+window.setHPBZeta=function(z){
+  const e=document.getElementById('sl_zh');if(e){e.value=z;const v=document.getElementById('v_zh');if(v)v.textContent=z.toFixed(3);}
+  document.querySelectorAll('.zh-rlbl').forEach(lbl=>{
+    const zb=parseFloat(lbl.dataset.z);const active=(Math.abs(zb-z)<0.005);
+    lbl.style.background=active?'rgba(255,255,255,.20)':'rgba(255,255,255,.04)';
+    lbl.style.borderWidth=active?'2px':'1px';
+    lbl.style.color=active?'#fff':lbl.style.color;
+    lbl.style.fontWeight=active?'700':'400';
+    lbl.style.boxShadow=active?'0 0 12px rgba(255,255,255,.4)':'none';
+    lbl.style.transform=active?'scale(1.05)':'scale(1.0)';
+  });
+  if(typeof drawHPB==='function')drawHPB();
+};
+
+// Animasi 5: Industrial Isolator Types Dropdown
+let _isoType = 'rubber';
+let _isoTypeFrame = 0;
+window.setIsoType = function(mode){ _isoType = mode; };
+
+function drawIsoType(){
+  const cv = document.getElementById('cvIsoType'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const types = {
+    rubber:    {fn: 8.0,  zeta: 0.05, color: '#0ea5e9', label: 'Rubber Pad / Mount', spec: 'fn=8 Hz · ζ=0.05 · cocok 25-3000 Hz · murah'},
+    helical:   {fn: 4.5,  zeta: 0.02, color: '#00e09e', label: 'Helical Spring + Damper', spec: 'fn=4.5 Hz · ζ=0.02 · cocok 15-150 Hz · low-freq'},
+    pneumatic: {fn: 1.5,  zeta: 0.10, color: '#f97316', label: 'Pneumatic / Air Spring', spec: 'fn=1.5 Hz · ζ=0.10 · cocok 5-100 Hz · adjustable'},
+    wirerope:  {fn: 12.0, zeta: 0.15, color: '#a855f7', label: 'Wire Rope / Cable', spec: 'fn=12 Hz · ζ=0.15 · shock+vibration · MIL-STD'},
+    polymer:   {fn: 20.0, zeta: 0.08, color: '#facc15', label: 'Polymer / Elastomer', spec: 'fn=20 Hz · ζ=0.08 · high-freq · electronics'}
+  };
+  const t = types[_isoType];
+  const fn = t.fn, zeta = t.zeta;
+
+  // Plot transmissibility vs frequency
+  const padL=50, padR=20, padT=30, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let i=0; i<=10; i++){
+    const x = padL + plotW*i/10;
+    ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, padT+plotH); ctx.stroke();
+  }
+
+  ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padL, padT+plotH); ctx.lineTo(padL+plotW, padT+plotH);
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH);
+  ctx.stroke();
+
+  // Log freq axis 1 to 1000 Hz
+  const fmin = 1, fmax = 1000;
+  const sx = f => padL + (Math.log10(f/fmin)/Math.log10(fmax/fmin))*plotW;
+  // Tr axis: log scale 0.001 to 10
+  const trMin = 0.001, trMax = 10;
+  const sy = tr => padT + plotH - (Math.log10(tr/trMin)/Math.log10(trMax/trMin))*plotH;
+
+  // Axis labels
+  ctx.fillStyle = '#475569'; ctx.font = '9px JetBrains Mono';
+  ctx.textAlign = 'center';
+  [1,10,100,1000].forEach(f=>{
+    ctx.fillText(f+'Hz', sx(f), padT+plotH+14);
+    ctx.strokeStyle = 'rgba(255,255,255,.05)';
+    ctx.beginPath(); ctx.moveTo(sx(f), padT); ctx.lineTo(sx(f), padT+plotH); ctx.stroke();
+  });
+  ctx.textAlign = 'right';
+  [10, 1, 0.1, 0.01, 0.001].forEach(tr=>{
+    ctx.fillText(tr.toString(), padL-4, sy(tr)+3);
+  });
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px JetBrains Mono';
+  ctx.fillText('T_r', padL-30, padT-8);
+  ctx.fillText('frekuensi (Hz, log scale)', padL+plotW-150, padT+plotH+28);
+
+  // Tr=1 line
+  ctx.strokeStyle = 'rgba(239,68,68,.4)'; ctx.setLineDash([4,3]);
+  ctx.beginPath(); ctx.moveTo(padL, sy(1)); ctx.lineTo(padL+plotW, sy(1)); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(239,68,68,.7)'; ctx.font = '9px JetBrains Mono';
+  ctx.fillText('Tr=1 (no isolation)', padL+10, sy(1)-4);
+
+  // fn marker
+  ctx.strokeStyle = 'rgba(255,179,0,.5)'; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(sx(fn), padT); ctx.lineTo(sx(fn), padT+plotH); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(255,179,0,.9)'; ctx.font = 'bold 9px JetBrains Mono';
+  ctx.fillText(`fn=${fn} Hz`, sx(fn)+3, padT+12);
+
+  // Animated draw — Tr curve
+  const N = 400;
+  const progress = Math.min(1, _isoTypeFrame*0.02);
+  const drawN = Math.floor(progress*N);
+
+  ctx.strokeStyle = t.color;
+  ctx.shadowColor = t.color + 'A0';
+  ctx.shadowBlur = 8;
+  ctx.lineWidth = 2.8;
+  ctx.beginPath();
+  for(let i=0; i<drawN; i++){
+    const f = fmin * Math.pow(fmax/fmin, i/(N-1));
+    const r = f/fn;
+    const tr = Math.sqrt((1+(2*zeta*r)**2)/((1-r*r)**2 + (2*zeta*r)**2));
+    if(i===0) ctx.moveTo(sx(f), sy(Math.max(trMin, Math.min(trMax, tr))));
+    else ctx.lineTo(sx(f), sy(Math.max(trMin, Math.min(trMax, tr))));
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Reset frame
+  if(progress >= 1) _isoTypeFrame = 0;
+
+  // Title
+  ctx.fillStyle = t.color; ctx.font = 'bold 13px JetBrains Mono';
+  ctx.textAlign = 'left';
+  ctx.fillText(t.label, padL+plotW/2-100, padT+18);
+
+  const info = document.getElementById('isoTypeInfo');
+  if(info) info.innerHTML = `<strong style="color:${t.color}">${t.label}</strong> — ${t.spec}`;
+}
+
+function _isoTypeTick(){
+  _isoTypeFrame++;
+  drawIsoType();
+  requestAnimationFrame(_isoTypeTick);
+}
+setTimeout(_isoTypeTick, 1100);
 
 
 // ════════════════════════════════════════════════════════════
