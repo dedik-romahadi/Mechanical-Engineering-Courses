@@ -1466,6 +1466,110 @@ print(f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days
   </div>
 </div>
 
+<!-- ═══ BAGIAN VISUALISASI — ANIMASI INTERAKTIF ═══ -->
+<hr class="divider">
+<div class="section" id="m-visualisasi">
+  <div class="section-label reveal cyan-label">Visualisasi</div>
+  <h2 class="section-title reveal">Bearing Degradation Trend<br>RMS Velocity + ISO 10816 Zones</h2>
+  <p class="section-desc reveal">Trend RMS velocity selama 60 hari untuk 4 stage degradation. Healthy stay di zone A. Stage 3 menunjukkan exponential growth menuju zone D.</p>
+
+  <div class="reveal" style="background:#020812;border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px">
+    <canvas id="cv-m14" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap">
+      <button onclick="window._m14set(0)" id="btn-m14-0" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(0,224,158,.5);background:rgba(0,224,158,.18);color:var(--green)">Healthy</button>
+      <button onclick="window._m14set(1)" id="btn-m14-1" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(255,179,0,.4);background:rgba(255,179,0,.08);color:var(--amber)">Stage 1</button>
+      <button onclick="window._m14set(2)" id="btn-m14-2" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(220,38,38,.5);background:rgba(220,38,38,.18);color:#dc2626">Stage 2</button>
+      <button onclick="window._m14set(3)" id="btn-m14-3" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(127,29,29,.5);background:rgba(127,29,29,.18);color:#7f1d1d">Stage 3</button>
+    </div>
+    <div id="anim-info" style="text-align:center;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">
+      RMS velocity (mm/s) trend selama 60 hari + ISO 10816 thresholds + RUL projection
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const cv = document.getElementById('cv-m14');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  let stage = 0;
+  window._m14set = function(s) {
+    stage = s;
+    document.querySelectorAll('[id^="btn-m14-"]').forEach(b => b.style.opacity = '0.6');
+    document.getElementById('btn-m14-' + s).style.opacity = '1';
+    draw();
+  };
+  document.getElementById('btn-m14-0').style.opacity = '1';
+  function genTrend(stage, days) {
+    const data = [];
+    for (let d = 0; d < days; d++) {
+      let v = 1.0 + 0.05 * Math.random();
+      if (stage === 1) v += 0.02 * d + 0.1 * Math.random();
+      else if (stage === 2) v += 0.04 * d + 0.15 * Math.random();
+      else if (stage === 3) v += 0.06 * d * Math.exp(d / 50) / 5 + 0.2 * Math.random();
+      data.push(v);
+    }
+    return data;
+  }
+  function draw() {
+    const W = cv.width = cv.clientWidth;
+    const H = cv.height;
+    ctx.clearRect(0, 0, W, H);
+    const days = 60;
+    const data = genTrend(stage, days);
+    const maxY = 6.0;
+    // Threshold lines
+    ctx.strokeStyle = 'rgba(0,224,158,0.3)';
+    ctx.setLineDash([4, 4]);
+    const yA = H - 30 - (H - 60) * 1.12 / maxY;
+    ctx.beginPath(); ctx.moveTo(40, yA); ctx.lineTo(W - 20, yA); ctx.stroke();
+    ctx.fillStyle = '#16a34a';
+    ctx.font = '10px monospace';
+    ctx.fillText('Zone A (1.12)', W - 80, yA - 3);
+    ctx.strokeStyle = 'rgba(255,179,0,0.4)';
+    const yB = H - 30 - (H - 60) * 2.8 / maxY;
+    ctx.beginPath(); ctx.moveTo(40, yB); ctx.lineTo(W - 20, yB); ctx.stroke();
+    ctx.fillStyle = '#fbbf24';
+    ctx.fillText('Zone B (2.8)', W - 80, yB - 3);
+    ctx.strokeStyle = 'rgba(220,38,38,0.4)';
+    const yC = H - 30 - (H - 60) * 4.5 / maxY;
+    ctx.beginPath(); ctx.moveTo(40, yC); ctx.lineTo(W - 20, yC); ctx.stroke();
+    ctx.fillStyle = '#dc2626';
+    ctx.fillText('Zone C/D (4.5)', W - 80, yC - 3);
+    ctx.setLineDash([]);
+    // Axes
+    ctx.strokeStyle = 'rgba(148,163,184,0.3)';
+    ctx.beginPath(); ctx.moveTo(40, 20); ctx.lineTo(40, H - 30); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(40, H - 30); ctx.lineTo(W - 20, H - 30); ctx.stroke();
+    ctx.fillStyle = '#94a3b8';
+    ctx.textAlign = 'center';
+    ctx.fillText('Day', W/2, H - 8);
+    ctx.save(); ctx.translate(15, H/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('RMS velocity (mm/s)', 0, 0);
+    ctx.restore();
+    // Plot trend
+    ctx.strokeStyle = stage === 0 ? '#16a34a' : stage === 1 ? '#fbbf24' : stage === 2 ? '#dc2626' : '#7f1d1d';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let d = 0; d < days; d++) {
+      const px = 40 + (W - 60) * d / days;
+      const py = H - 30 - (H - 60) * Math.min(maxY, data[d]) / maxY;
+      if (d === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    // Status
+    const lastV = data[data.length - 1];
+    const zone = lastV <= 1.12 ? 'A (Excellent)' :
+                 lastV <= 2.8 ? 'B (Acceptable)' :
+                 lastV <= 4.5 ? 'C (Unsatisfactory)' : 'D (DAMAGING)';
+    document.getElementById('anim-info').textContent =
+      `Day 60: RMS = ${lastV.toFixed(2)} mm/s · Zone ${zone}`;
+  }
+  draw();
+})();
+</script>
+
 <!-- ═══ DAFTAR PUSTAKA ═══ -->
 <hr class="divider">
 <div class="section reveal">
