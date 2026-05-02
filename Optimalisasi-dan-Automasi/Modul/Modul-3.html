@@ -297,15 +297,44 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 .feedback.warn{display:block;background:rgba(255,64,129,.08);border:1px solid rgba(255,64,129,.25);color:var(--amber)}
 
 /* Score tracker */
-.score-bar{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px 28px;margin-bottom:48px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;position:sticky;top:64px;z-index:90;backdrop-filter:blur(20px)}
-.score-num{font-family:'Playfair Display',serif;font-size:42px;color:var(--violet);line-height:1;min-width:56px;text-align:center}
-.score-info{flex:1;min-width:160px}
-.score-info .score-title{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}
-.score-progress{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:8px}
-.score-fill{height:100%;background:linear-gradient(90deg,var(--violet),var(--cyan));border-radius:3px;transition:width .5s ease;width:0}
-.score-max{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)}
-.btn-export{padding:10px 22px;border-radius:10px;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.12);color:var(--violet);font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px}
-.btn-export:hover{background:rgba(168,85,247,.22);box-shadow:0 4px 16px rgba(168,85,247,.15)}
+/* Score tracker — Pedoman §35 cinematic design (text-readable) */
+.score-bar{position:sticky;top:64px;z-index:90;background:rgba(15,23,42,.55);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1.5px solid rgba(168,85,247,.4);border-radius:24px;padding:26px 30px;margin-bottom:48px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;box-shadow:0 8px 32px rgba(168,85,247,.15),inset 0 1px 0 rgba(255,255,255,.08);overflow:hidden;transform-style:preserve-3d;perspective:1000px;transition:transform .5s cubic-bezier(.2,.8,.2,1),box-shadow .5s}
+.score-bar:hover{transform:perspective(1000px) rotateX(1.5deg) rotateY(-.5deg) translateZ(6px);box-shadow:0 20px 48px rgba(168,85,247,.28),0 0 0 1px rgba(168,85,247,.4) inset}
+.score-bar::before{content:'';position:absolute;inset:-50%;background:radial-gradient(circle at 20% 30%,rgba(168,85,247,.30),transparent 30%),radial-gradient(circle at 80% 70%,rgba(8,191,232,.25),transparent 30%),radial-gradient(circle at 50% 50%,rgba(255,179,0,.18),transparent 35%),radial-gradient(circle at 90% 20%,rgba(0,224,158,.20),transparent 25%);filter:blur(40px);animation:meshFloat 16s ease-in-out infinite;pointer-events:none;z-index:-2}
+@keyframes meshFloat{0%,100%{transform:translate(0,0) rotate(0deg) scale(1)}25%{transform:translate(30px,-20px) rotate(90deg) scale(1.05)}50%{transform:translate(-15px,25px) rotate(180deg) scale(.95)}75%{transform:translate(-25px,-15px) rotate(270deg) scale(1.02)}}
+.score-bar::after{content:'';position:absolute;inset:0;background-image:radial-gradient(2px 2px at 12% 25%,rgba(255,255,255,.7),transparent 50%),radial-gradient(1.5px 1.5px at 28% 60%,rgba(168,85,247,.9),transparent 50%),radial-gradient(2px 2px at 50% 18%,rgba(8,191,232,.8),transparent 50%),radial-gradient(1px 1px at 65% 40%,rgba(255,255,255,.6),transparent 50%),radial-gradient(2.5px 2.5px at 78% 75%,rgba(255,179,0,.7),transparent 50%),radial-gradient(1.5px 1.5px at 92% 35%,rgba(0,224,158,.8),transparent 50%),radial-gradient(1px 1px at 38% 85%,rgba(168,85,247,.6),transparent 50%);background-size:100% 100%;animation:particleTwinkle 4s ease-in-out infinite,particleDrift 25s linear infinite;pointer-events:none;z-index:-1;border-radius:24px}
+@keyframes particleTwinkle{0%,100%{opacity:.5;filter:brightness(1)}50%{opacity:1;filter:brightness(1.4)}}
+@keyframes particleDrift{0%{background-position:0 0,0 0,0 0,0 0,0 0,0 0,0 0}100%{background-position:100% -100%,-50% 80%,80% -60%,-30% 40%,60% -80%,-80% 50%,40% -100%}}
+.score-num{position:relative;z-index:2;font-family:'Playfair Display',serif;font-size:48px;color:#fff;line-height:1;min-width:60px;text-align:center;font-weight:900;letter-spacing:-1px;text-shadow:0 0 12px rgba(168,85,247,.7),0 0 24px rgba(168,85,247,.4),0 2px 4px rgba(0,0,0,.5);animation:scoreNumIdleGlow 4s ease-in-out infinite}
+@keyframes scoreNumIdleGlow{0%,100%{text-shadow:0 0 12px rgba(168,85,247,.7),0 0 24px rgba(168,85,247,.4),0 2px 4px rgba(0,0,0,.5)}33%{text-shadow:0 0 14px rgba(8,191,232,.7),0 0 28px rgba(8,191,232,.5),0 2px 4px rgba(0,0,0,.5)}66%{text-shadow:0 0 14px rgba(255,179,0,.6),0 0 28px rgba(255,179,0,.4),0 2px 4px rgba(0,0,0,.5)}}
+.score-num.score-num-pulse{animation:scoreNumExplode .85s cubic-bezier(.34,1.56,.64,1)}
+@keyframes scoreNumExplode{0%{transform:scale(1)}25%{transform:scale(1.32);text-shadow:0 0 30px rgba(255,255,255,.9),0 0 60px rgba(168,85,247,.8),0 0 90px rgba(8,191,232,.6)}55%{transform:scale(.92)}80%{transform:scale(1.05)}100%{transform:scale(1)}}
+.score-info{flex:1;min-width:160px;position:relative;z-index:2;padding-bottom:4px}
+.score-info::after{content:'';position:absolute;bottom:0;left:0;width:100%;height:1.5px;background:linear-gradient(90deg,transparent,var(--violet) 20%,var(--cyan) 50%,var(--violet) 80%,transparent);background-size:200% 100%;animation:titleShimmer 3s ease-in-out infinite;pointer-events:none}
+@keyframes titleShimmer{0%,100%{background-position:200% 0;opacity:.4}50%{background-position:-200% 0;opacity:1}}
+.score-info .score-title{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--violet);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:4px;font-weight:700;display:flex;align-items:center;gap:7px}
+.score-info .score-title::before{content:'●';color:#00e09e;animation:scoreLiveBlink 1.4s ease-in-out infinite;font-size:11px;filter:drop-shadow(0 0 4px #00e09e)}
+@keyframes scoreLiveBlink{0%,100%{opacity:1;transform:scale(1);filter:drop-shadow(0 0 6px #00e09e)}50%{opacity:.3;transform:scale(.7);filter:drop-shadow(0 0 0 #00e09e)}}
+.score-progress{height:7px;background:rgba(255,255,255,.06);border-radius:5px;overflow:hidden;margin-top:6px;border:1px solid rgba(255,255,255,.08);position:relative;box-shadow:inset 0 2px 4px rgba(0,0,0,.3)}
+.score-progress::before{content:'';position:absolute;top:0;left:-60%;width:60%;height:100%;background:linear-gradient(90deg,transparent 0%,rgba(168,85,247,.45) 20%,rgba(8,191,232,.7) 50%,rgba(168,85,247,.45) 80%,transparent 100%);animation:trackScan 3.5s ease-in-out infinite;pointer-events:none;z-index:0;border-radius:6px;filter:blur(.5px)}
+@keyframes trackScan{0%{left:-60%}100%{left:100%}}
+.score-fill{height:100%;background-image:linear-gradient(45deg,rgba(255,255,255,.18) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.18) 50%,rgba(255,255,255,.18) 75%,transparent 75%),linear-gradient(90deg,var(--violet),var(--cyan),var(--violet));background-size:18px 18px,100% 100%;border-radius:6px;transition:width .8s cubic-bezier(.34,1.56,.64,1);width:0;box-shadow:0 0 16px rgba(168,85,247,.7),inset 0 1px 0 rgba(255,255,255,.3);position:relative;animation:progressStripes 1.2s linear infinite;z-index:1}
+@keyframes progressStripes{to{background-position:18px 0,0 0}}
+.score-fill::after{content:'';position:absolute;top:0;left:0;width:80%;height:100%;background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.85) 50%,transparent 100%);animation:scoreFillSweep 3.2s ease-in-out infinite;mix-blend-mode:overlay}
+@keyframes scoreFillSweep{0%{left:-80%}100%{left:100%}}
+.score-max{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text);position:relative;z-index:2}
+.btn-export{position:relative;padding:14px 30px;border-radius:12px;border:2px solid #c084fc;background:linear-gradient(180deg,#a855f7 0%,#7c3aed 100%);color:#fff;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:900;cursor:pointer;transition:all .25s cubic-bezier(.2,.8,.2,1);display:flex;align-items:center;gap:10px;letter-spacing:1.5px;box-shadow:inset 0 1px 0 rgba(255,255,255,.4),inset 0 -2px 0 rgba(0,0,0,.2),0 6px 18px rgba(168,85,247,.5),0 0 30px rgba(168,85,247,.25);overflow:hidden;z-index:2;text-shadow:0 1px 2px rgba(0,0,0,.6);text-transform:uppercase;min-height:48px}
+.btn-export::before{content:'';position:absolute;top:0;left:-100%;width:80%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);transition:left .8s cubic-bezier(.2,.8,.2,1);pointer-events:none;z-index:1;transform:skewX(-20deg)}
+.btn-export:not(:disabled):hover::before{left:130%}
+.btn-export:hover:not(:disabled){background:linear-gradient(180deg,#bd76f7 0%,#8b3eed 100%);border-color:#e9d5ff;box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -2px 0 rgba(0,0,0,.2),0 12px 28px rgba(168,85,247,.65),0 0 60px rgba(168,85,247,.45),0 0 100px rgba(168,85,247,.18);transform:translateY(-3px);letter-spacing:1.7px}
+.btn-export:not(:disabled):active{transform:translateY(-1px);transition:all .1s;box-shadow:inset 0 3px 6px rgba(0,0,0,.3),0 3px 8px rgba(168,85,247,.4)}
+.btn-export:disabled{background:linear-gradient(180deg,#475569 0%,#334155 100%);border-color:rgba(255,255,255,.12);color:rgba(255,255,255,.55);cursor:not-allowed;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 2px 6px rgba(0,0,0,.2);text-shadow:none;animation:none}
+.btn-export:not(:disabled){animation:btnReadyPulse 2s ease-in-out infinite}
+@keyframes btnReadyPulse{0%,100%{box-shadow:inset 0 1px 0 rgba(255,255,255,.4),inset 0 -2px 0 rgba(0,0,0,.2),0 6px 18px rgba(168,85,247,.5),0 0 30px rgba(168,85,247,.25)}50%{box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -2px 0 rgba(0,0,0,.2),0 8px 24px rgba(168,85,247,.7),0 0 50px rgba(168,85,247,.4)}}
+.btn-ripple{position:absolute;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.85) 0%,rgba(255,255,255,.4) 30%,transparent 70%);transform:scale(0);animation:btnRippleExpand .8s cubic-bezier(.34,1.56,.64,1);pointer-events:none;z-index:3;mix-blend-mode:screen}
+@keyframes btnRippleExpand{0%{transform:scale(0);opacity:1}100%{transform:scale(2.8);opacity:0}}
+.btn-arrow-hint{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;font-size:14px;font-weight:900;animation:arrowBob 1.2s ease-in-out infinite;background:rgba(255,255,255,.18);border-radius:50%;border:1px solid rgba(255,255,255,.3);text-shadow:0 1px 2px rgba(0,0,0,.4)}
+@keyframes arrowBob{0%,100%{transform:translateY(0);opacity:.85}50%{transform:translateY(2px);opacity:1}}
 
 /* ═══ FORUM STYLES ═══ */
 .forum-scenario{background:linear-gradient(135deg,rgba(14,165,233,.05),rgba(168,85,247,.04));border:1px solid rgba(14,165,233,.2);border-radius:20px;padding:32px;margin-bottom:32px;position:relative;overflow:hidden}
@@ -324,8 +353,20 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 .fq-textarea{width:100%;min-height:120px;background:#020a18;border:1px solid var(--border);border-radius:10px;padding:14px 16px;font-family:'Source Sans 3',sans-serif;font-size:14px;color:var(--text);resize:vertical;transition:border-color .2s;line-height:1.7;margin-top:12px}
 .fq-textarea:focus{outline:none;border-color:rgba(168,85,247,.4);box-shadow:0 0 0 3px rgba(168,85,247,.08)}
 .fq-textarea::placeholder{color:var(--muted);font-size:13px}
-.btn-export-forum{padding:11px 26px;border-radius:10px;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.1);color:var(--green);font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
-.btn-export-forum:hover{background:rgba(0,224,158,.2)}
+/* Forum copy button — Pedoman §35 green/cyan theme dengan animasi BERBEDA dari Export */
+.btn-export-forum{position:relative;padding:11px 26px;border-radius:10px;border:2px solid #6ee7b7;background:linear-gradient(180deg,#10b981 0%,#047857 100%);color:#fff;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:900;cursor:pointer;transition:all .25s cubic-bezier(.2,.8,.2,1);display:inline-flex;align-items:center;gap:8px;letter-spacing:1.2px;box-shadow:inset 0 1px 0 rgba(255,255,255,.4),inset 0 -2px 0 rgba(0,0,0,.2),0 4px 14px rgba(16,185,129,.5),0 0 24px rgba(16,185,129,.25);overflow:hidden;z-index:2;text-shadow:0 1px 2px rgba(0,0,0,.6);text-transform:uppercase;min-height:42px;transform-style:preserve-3d}
+.btn-export-forum::before{content:'';position:absolute;inset:-2px;border-radius:10px;background:repeating-conic-gradient(from 0deg,rgba(34,211,238,.85) 0deg,rgba(34,211,238,.85) 12deg,transparent 14deg,transparent 30deg);animation:forumDashOrbit 5s linear infinite;pointer-events:none;z-index:-1;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;padding:2px}
+@keyframes forumDashOrbit{to{transform:rotate(360deg)}}
+.btn-export-forum::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 25% 30%,rgba(255,255,255,.25) 0%,transparent 35%),radial-gradient(circle at 75% 70%,rgba(34,211,238,.18) 0%,transparent 35%);animation:forumLiquid 5s ease-in-out infinite;pointer-events:none;z-index:1;opacity:.7}
+@keyframes forumLiquid{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(8px,-4px) scale(1.06)}66%{transform:translate(-6px,5px) scale(.96)}}
+.btn-export-forum:hover:not(:disabled){background:linear-gradient(180deg,#1ddb95 0%,#059669 100%);border-color:#a7f3d0;box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -2px 0 rgba(0,0,0,.2),0 12px 28px rgba(16,185,129,.6),0 0 50px rgba(34,211,238,.4),0 0 80px rgba(16,185,129,.18);transform:translateY(-2px) rotateZ(-1.5deg);letter-spacing:1.5px}
+.btn-export-forum:not(:disabled):active{transform:translateY(0) rotateZ(0) scale(.96);transition:all .1s;box-shadow:inset 0 3px 6px rgba(0,0,0,.3),0 3px 8px rgba(16,185,129,.4)}
+.btn-export-forum:disabled{background:linear-gradient(180deg,#475569 0%,#334155 100%);border-color:rgba(255,255,255,.12);color:rgba(255,255,255,.55);cursor:not-allowed;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 2px 6px rgba(0,0,0,.2);text-shadow:none;animation:none}
+.btn-export-forum:disabled::before,.btn-export-forum:disabled::after{opacity:.25}
+.btn-export-forum:not(:disabled){animation:forumGlowMorph 3s ease-in-out infinite}
+@keyframes forumGlowMorph{0%,100%{box-shadow:inset 0 1px 0 rgba(255,255,255,.4),inset 0 -2px 0 rgba(0,0,0,.2),0 4px 14px rgba(16,185,129,.5),0 0 24px rgba(16,185,129,.25)}50%{box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -2px 0 rgba(0,0,0,.2),0 6px 20px rgba(34,211,238,.6),0 0 36px rgba(34,211,238,.4)}}
+.forum-particle{position:absolute;width:7px;height:7px;border-radius:50%;background:radial-gradient(circle,#fff 0%,rgba(34,211,238,.85) 50%,transparent 70%);pointer-events:none;z-index:4;animation:forumParticleBurst .75s cubic-bezier(.2,.8,.2,1) forwards;mix-blend-mode:screen}
+@keyframes forumParticleBurst{0%{transform:translate(0,0) scale(.6);opacity:1}100%{transform:translate(var(--burst-x),var(--burst-y)) scale(.2);opacity:0}}
 .poll{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:16px;margin-top:16px}
 .poll-q{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
 .poll-opts{display:flex;flex-direction:column;gap:8px}
@@ -7056,6 +7097,54 @@ function _oa5Tick(){
   requestAnimationFrame(_oa5Tick);
 }
 setTimeout(_oa5Tick, 1000);
+
+
+// ── Pedoman §35: Click ripple effect untuk btn-export ──
+function _createBtnRipple(event) {
+  const button = event.currentTarget;
+  if (button.disabled) return;
+  const rect = button.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height) * 1.8;
+  const ripple = document.createElement('span');
+  ripple.className = 'btn-ripple';
+  ripple.style.width = size + 'px';
+  ripple.style.height = size + 'px';
+  ripple.style.left = (event.clientX - rect.left - size / 2) + 'px';
+  ripple.style.top = (event.clientY - rect.top - size / 2) + 'px';
+  button.appendChild(ripple);
+  setTimeout(function() { try { ripple.remove(); } catch(e){} }, 850);
+}
+function _createForumParticleBurst(event) {
+  const button = event.currentTarget;
+  if (button.disabled) return;
+  const rect = button.getBoundingClientRect();
+  const cx = event.clientX - rect.left;
+  const cy = event.clientY - rect.top;
+  for (let i = 0; i < 10; i++) {
+    const particle = document.createElement('span');
+    particle.className = 'forum-particle';
+    particle.style.left = (cx - 3.5) + 'px';
+    particle.style.top = (cy - 3.5) + 'px';
+    const angle = (i / 10) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
+    const distance = 35 + Math.random() * 45;
+    particle.style.setProperty('--burst-x', Math.cos(angle) * distance + 'px');
+    particle.style.setProperty('--burst-y', Math.sin(angle) * distance + 'px');
+    button.appendChild(particle);
+    setTimeout(function() { try { particle.remove(); } catch(e){} }, 750);
+  }
+}
+(function() {
+  function attachBtnHandlers() {
+    document.querySelectorAll('.btn-export').forEach(function(btn){
+      if (!btn._rippleAttached) { btn.addEventListener('click', _createBtnRipple); btn._rippleAttached = true; }
+    });
+    document.querySelectorAll('.btn-export-forum').forEach(function(btn){
+      if (!btn._burstAttached) { btn.addEventListener('click', _createForumParticleBurst); btn._burstAttached = true; }
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', attachBtnHandlers);
+  else attachBtnHandlers();
+})();
 
 </script>
 
