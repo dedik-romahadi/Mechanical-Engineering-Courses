@@ -4366,6 +4366,8 @@ function toggleCases(){
   _casesAnim.running = !_casesAnim.running;
   const btn = document.getElementById('btnCases');
   if (btn) btn.textContent = _casesAnim.running ? '⏸ PAUSE' : '▶ PLAY';
+  // FIX: restart RAF loop saat un-pause (sebelumnya loop berhenti permanently)
+  if (_casesAnim.running) drawCases();
 }
 
 function drawCases(){
@@ -8045,9 +8047,16 @@ function drawEMTog(){
   for(let i=0; i<=N; i++){
     const x = padL + plotW*i/N;
     const tt = i/N * 4;
-    const y = isNum
-      ? padT + plotH/2 - plotH*0.35*Math.exp(-0.4*tt)*Math.cos(3*tt + t*0.3)*(1+0.05*Math.sin(20*tt))  // numerical with tiny noise
-      : padT + plotH/2 - plotH*0.35*Math.exp(-0.4*tt)*Math.cos(3*tt + t*0.3);
+    let y;
+    if (isNum) {
+      // NUMERICAL: stepped polyline + visible quantization (RK4-like steps)
+      const stepIdx = Math.floor(i/8) * 8;  // step every 8 samples
+      const tt_step = stepIdx/N * 4;
+      y = padT + plotH/2 - plotH*0.35*Math.exp(-0.3*tt_step)*Math.cos(2.5*tt_step + t*0.3);
+    } else {
+      // ANALYTICAL: smooth continuous curve dengan amplitude lebih besar
+      y = padT + plotH/2 - plotH*0.45*Math.exp(-0.4*tt)*Math.cos(3*tt + t*0.3);
+    }
     if(i===0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   }
@@ -8181,12 +8190,28 @@ function drawEMDrop(){
   }
   if(line) ctx.fillText(line.trim(), 14, yy);
 
-  // Compute signal value
+  // Compute signal value — DRAMATIS berbeda per kategori
   const t = _emDropFrame * 0.012;
-  const f1 = (idx+1)*1.5;
-  const f2 = (idx+1)*0.7 + 1.0;
-  const decay = Math.exp(-0.05*t);
-  const sigValue = decay * (0.4*Math.sin(f1*t) + 0.25*Math.sin(f2*t + 0.5));
+  let sigValue;
+  if (idx === 0) {
+    // Kategori 0: Pure sinusoidal stable (low freq, no decay)
+    sigValue = 0.7*Math.sin(1.5*t);
+  } else if (idx === 1) {
+    // Kategori 1: Damped oscillation (decay + medium freq)
+    sigValue = 0.8*Math.exp(-0.08*t)*Math.cos(2.5*t);
+  } else if (idx === 2) {
+    // Kategori 2: Beat pattern (2 close frequencies)
+    sigValue = 0.5*Math.sin(3*t) + 0.5*Math.sin(3.3*t);
+  } else if (idx === 3) {
+    // Kategori 3: Sawtooth-like (multiple harmonics)
+    sigValue = 0.5*Math.sin(2*t) + 0.25*Math.sin(4*t) + 0.15*Math.sin(6*t);
+  } else if (idx === 4) {
+    // Kategori 4: Square-wave approx (odd harmonics)
+    sigValue = 0.6*(Math.sin(2*t) + Math.sin(6*t)/3 + Math.sin(10*t)/5);
+  } else {
+    // Fallback: noisy + decay
+    sigValue = 0.5*Math.exp(-0.03*t)*Math.cos(4*t) + 0.15*(Math.random()-0.5);
+  }
 
   _emDropHist.push(Math.max(-1, Math.min(1, sigValue)));
   if(_emDropHist.length > 1000) _emDropHist.shift();
