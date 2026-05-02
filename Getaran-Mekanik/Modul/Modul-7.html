@@ -1148,23 +1148,140 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <hr class="divider">
 <div class="section" id="m-anim">
   <div class="section-label reveal">Bagian 06</div>
-  <h2 class="section-title reveal">Visualisasi Interaktif<br>Mode 1 vs Mode 2</h2>
-  <p class="section-desc reveal">Klik tombol di bawah untuk mengganti mode. Animasi memperlihatkan dua massa (m₁=m₂=1 kg) terhubung tiga pegas (k=100 N/m) berosilasi pada frekuensi pribadinya. Perhatikan: pada Mode 1 kedua massa <strong style="color:var(--green)">searah</strong> dan pegas tengah diam; pada Mode 2 kedua massa <strong style="color:var(--amber)">berlawanan</strong> dan pegas tengah ditekan/diregang dua kali lipat.</p>
+  <h2 class="section-title reveal">Visualisasi Interaktif 2-DoF<br>5 Aspek Fundamental</h2>
+  <p class="section-desc reveal">Lima animasi untuk eksplorasi sistem 2-DoF: (1) Mode 1 vs Mode 2 dengan <strong>push button</strong>, (2) pengaruh rasio massa pada frekuensi pribadi dengan slider, (3) toggle untuk metode <strong>Numerical vs Symbolic Eigenvalue</strong>, (4) <strong>radio group</strong> untuk superposisi mode (IC selection), dan (5) <strong>dropdown</strong> untuk 4 contoh 2-DoF dunia nyata (suspensi mobil, gedung, vibration absorber, pendulum tergandeng).</p>
 
-  <div class="reveal" style="background:#020812;border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px">
-    <canvas id="cv2dof" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
-    <div style="display:flex;gap:14px;justify-content:center;margin-top:18px;flex-wrap:wrap">
-      <button id="btn-mode1" onclick="set2DofMode(1)" class="mode-btn mode-btn-active"
-        style="padding:10px 22px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(0,224,158,.5);background:rgba(0,224,158,.18);color:var(--green);transition:all .2s">
-        ▶ Mode 1 (ω₁ = 10 rad/s) — In-Phase
-      </button>
-      <button id="btn-mode2" onclick="set2DofMode(2)" class="mode-btn"
-        style="padding:10px 22px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(249,115,22,.4);background:rgba(249,115,22,.08);color:var(--amber);transition:all .2s">
-        ▶ Mode 2 (ω₂ ≈ 17.32 rad/s) — Anti-Phase
-      </button>
+  <!-- Animasi 1: Mode 1 vs Mode 2 -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--cyan)"></div>
+      <span class="anim-title">Animasi 1 — Mode 1 (In-Phase) vs Mode 2 (Anti-Phase) Live</span>
     </div>
-    <div id="mode2dof-info" style="text-align:center;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">
-      Mode 1 aktif · X₁ = X₂ = cos(10·t) · pegas tengah tidak terdeformasi
+    <div class="anim-body">
+      <canvas id="cv2dof" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div style="display:flex;gap:14px;justify-content:center;margin-top:18px;flex-wrap:wrap">
+        <button id="btn-mode1" onclick="set2DofMode(1)" class="mode-btn mode-btn-active"
+          style="padding:10px 22px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:2px solid var(--green);background:var(--green);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(0,224,158,.6);transform:scale(1.05);transition:all .15s">
+          ▶ Mode 1 (ω₁ = 10 rad/s) — In-Phase ✓
+        </button>
+        <button id="btn-mode2" onclick="set2DofMode(2)" class="mode-btn"
+          style="padding:10px 22px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(249,115,22,.4);background:rgba(249,115,22,.08);color:var(--amber);transition:all .15s">
+          ▶ Mode 2 (ω₂ ≈ 17.32 rad/s) — Anti-Phase
+        </button>
+      </div>
+      <div id="mode2dof-info" style="text-align:center;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">
+        Mode 1 aktif · X₁ = X₂ = cos(10·t) · pegas tengah tidak terdeformasi
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 2: Mass Ratio Impact (slider) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--amber)"></div>
+      <span class="anim-title">Animasi 2 — Pengaruh Rasio Massa m₂/m₁ pada Frekuensi Pribadi ω₁ &amp; ω₂</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvMassRatio" height="300" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Rasio Massa m₂/m₁ — <span class="ctrl-val" id="v_mr">1.00</span></label>
+          <input type="range" id="sl_mr" min="0.1" max="5.0" step="0.05" value="1.0" oninput="drawMassRatio()">
+        </div>
+      </div>
+      <div id="mrInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Sumbu X = rasio massa m₂/m₁ (skala 0.1-5). Sumbu Y = frekuensi pribadi (rad/s). Marker bergerak mengikuti slider. Untuk m₁=k₁=k₂=k₃=1: ω₁ dan ω₂ = √eigenvalue dari [K]/[M].<br>
+        <strong>Coba:</strong> (1) m₂/m₁=1 (default) → ω₁=1, ω₂=√3≈1.73. (2) m₂/m₁=4 → ω₂ turun karena massa berat tidak bisa bergetar cepat. (3) m₂/m₁=0.1 → ω₂ tinggi (massa kecil ringan). (4) Eigenvalue scaling: ω² ∝ 1/m.
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 3: Numerical vs Symbolic Eigenvalue (toggle) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--green)"></div>
+      <span class="anim-title">Animasi 3 — Eigenvalue Solving: Numerical vs Symbolic (Toggle Switch)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvEigen" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+            Mode Solver:
+            <span style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;" onclick="toggleEigenMode()">
+              <input type="checkbox" id="sl_eigen_toggle" style="display:none;">
+              <span id="eigen_toggle_view" style="position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
+                <span style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
+              </span>
+              <span id="eigen_toggle_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:700;">NUMERICAL (numpy.linalg.eig)</span>
+            </span>
+          </label>
+        </div>
+      </div>
+      <div id="eigenInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Toggle switch untuk berpindah antara Numerical Solver (numpy.linalg.eig — untuk matrix besar) dan Symbolic Solver (sympy — untuk matrix kecil dengan parameter literal). Setiap mode menampilkan workflow yang sesuai.<br>
+        <strong>Pemilihan:</strong> (1) <strong>Numerical</strong>: cepat untuk MDoF besar (gedung 50 lantai), output desimal, untuk simulasi/optimization. (2) <strong>Symbolic</strong>: untuk derivasi formula, parameter literal (m, k), output ekspresi exact, untuk publikasi/teaching. Modern engineering: kombinasi keduanya — derive symbolic untuk verify, run numerical untuk produksi.
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 4: Mode Superposition (radio group) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--pink)"></div>
+      <span class="anim-title">Animasi 4 — Mode Superposition: Bagaimana 2 Mode Bergabung?</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvSuper" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih Initial Condition (radio group):</label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+            <input type="radio" name="super_radio" id="sup_r1" checked onchange="setSuperMode('mode1')" style="display:none;">
+            <label for="sup_r1" class="sup-rlbl" data-m="mode1" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">100% Mode 1 ✓</label>
+            <input type="radio" name="super_radio" id="sup_r2" onchange="setSuperMode('mode2')" style="display:none;">
+            <label for="sup_r2" class="sup-rlbl" data-m="mode2" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,179,0,.4);background:rgba(255,179,0,.10);color:var(--amber);">100% Mode 2</label>
+            <input type="radio" name="super_radio" id="sup_r3" onchange="setSuperMode('mix')" style="display:none;">
+            <label for="sup_r3" class="sup-rlbl" data-m="mix" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">50% Mode 1 + 50% Mode 2</label>
+            <input type="radio" name="super_radio" id="sup_r4" onchange="setSuperMode('beat')" style="display:none;">
+            <label for="sup_r4" class="sup-rlbl" data-m="beat" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">IC Asimetris (m₁ saja) — beat pattern</label>
+          </div>
+        </div>
+      </div>
+      <div id="superInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Plot menampilkan x₁(t) dan x₂(t) sebagai fungsi waktu untuk berbagai initial condition. Solusi umum: x(t) = α·φ₁·cos(ω₁t) + β·φ₂·cos(ω₂t).<br>
+        <strong>Insight:</strong> (1) <strong>100% Mode 1</strong>: kedua massa sefase, frekuensi ω₁ saja. (2) <strong>100% Mode 2</strong>: berlawanan fase, frekuensi ω₂. (3) <strong>50/50 Mix</strong>: kombinasi kompleks. (4) <strong>IC asimetris</strong> (m₁ ditarik, m₂ diam): respons menampilkan <em>beating phenomenon</em> — energi berpindah bolak-balik antara m₁ dan m₂. Aplikasi: tuned vibration absorber.
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 5: Real-World 2-DoF Examples (dropdown) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:#a855f7"></div>
+      <span class="anim-title">Animasi 5 — Empat Contoh 2-DoF Dunia Nyata: Suspensi, Gedung, TMD, Pendulum</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cv2dofExamples" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih Contoh Sistem 2-DoF (Dropdown):</label>
+          <select id="sl_2dof_ex" onchange="set2DofExample(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
+            <option value="suspension">🚗 Suspensi Mobil — Sprung mass + Unsprung mass</option>
+            <option value="building">🏢 Gedung 2 Lantai — Story shear model</option>
+            <option value="tmd">⚖️ Tuned Mass Damper (TMD) — Vibration Absorber</option>
+            <option value="pendulum">⏱️ Pendulum Tergandeng — Sympathetic vibration</option>
+          </select>
+        </div>
+      </div>
+      <div id="exInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Pilih contoh dari dropdown — animasi menampilkan visualisasi fisik sistem 2-DoF dunia nyata.<br>
+        <strong>Insight:</strong> (1) <strong>Suspensi mobil</strong>: 1/4 model — body (sprung) + roda (unsprung), 2 frekuensi pribadi (~1 Hz body bounce, ~10 Hz wheel hop). (2) <strong>Gedung 2 lantai</strong>: lantai 1 dan lantai 2 sebagai 2 massa, kolom sebagai pegas geser. (3) <strong>TMD</strong>: massa absorber kecil di-tuning ke ω utama → resonansi anti-fase. (4) <strong>Pendulum tergandeng</strong>: sympathetic vibration → energi berpindah, fenomena Huygens.
+      </div>
     </div>
   </div>
 
@@ -3824,12 +3941,24 @@ function set2DofMode(m) {
   const b1 = document.getElementById('btn-mode1');
   const b2 = document.getElementById('btn-mode2');
   if (b1) {
-    b1.style.background = m===1 ? 'rgba(0,224,158,.18)' : 'rgba(0,224,158,.04)';
-    b1.style.borderColor = m===1 ? 'rgba(0,224,158,.5)' : 'rgba(0,224,158,.2)';
+    const a = m===1;
+    b1.style.background = a ? 'var(--green)' : 'rgba(0,224,158,.05)';
+    b1.style.borderColor = a ? 'var(--green)' : 'rgba(0,224,158,.2)';
+    b1.style.color = a ? '#fff' : 'var(--green)';
+    b1.style.fontWeight = a ? '700' : '400';
+    b1.style.boxShadow = a ? '0 0 12px rgba(0,224,158,.6)' : 'none';
+    b1.style.borderWidth = a ? '2px' : '1px';
+    b1.style.transform = a ? 'scale(1.05)' : 'scale(1)';
   }
   if (b2) {
-    b2.style.background = m===2 ? 'rgba(249,115,22,.18)' : 'rgba(249,115,22,.04)';
-    b2.style.borderColor = m===2 ? 'rgba(249,115,22,.5)' : 'rgba(249,115,22,.2)';
+    const a = m===2;
+    b2.style.background = a ? 'var(--amber)' : 'rgba(249,115,22,.05)';
+    b2.style.borderColor = a ? 'var(--amber)' : 'rgba(249,115,22,.2)';
+    b2.style.color = a ? '#fff' : 'var(--amber)';
+    b2.style.fontWeight = a ? '700' : '400';
+    b2.style.boxShadow = a ? '0 0 12px rgba(249,115,22,.6)' : 'none';
+    b2.style.borderWidth = a ? '2px' : '1px';
+    b2.style.transform = a ? 'scale(1.05)' : 'scale(1)';
   }
   const info = document.getElementById('mode2dof-info');
   if (info) {
@@ -4001,7 +4130,7 @@ function _draw2DofFrame() {
 }
 
 function _2dofTick() {
-  _2dofT += 0.016;
+  _2dofT += 0.008;
   _draw2DofFrame();
   _2dofRaf = requestAnimationFrame(_2dofTick);
 }
@@ -4018,6 +4147,509 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', _start2DofAnim);
 } else {
   setTimeout(_start2DofAnim, 100);
+
+// ════════════════════════════════════════════════════════════
+// ANIMASI 2 — Mass Ratio Impact (slider)
+// ════════════════════════════════════════════════════════════
+function drawMassRatio(){
+  const cv = document.getElementById('cvMassRatio'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const mr = parseFloat(document.getElementById('sl_mr').value);
+  document.getElementById('v_mr').textContent = mr.toFixed(2);
+
+  const padL=60, padR=20, padT=30, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let i=0; i<=10; i++){
+    const x = padL + plotW*i/10;
+    ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, padT+plotH); ctx.stroke();
+  }
+  for(let i=0; i<=4; i++){
+    const y = padT + plotH*i/4;
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL+plotW, y); ctx.stroke();
+  }
+
+  ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.lineTo(padL+plotW, padT+plotH); ctx.stroke();
+
+  // Axis: x = mr (0.1 to 5), y = ω (0 to 3)
+  const mrMin = 0.1, mrMax = 5;
+  const wMax = 3;
+  const sx = m => padL + (Math.log(m/mrMin)/Math.log(mrMax/mrMin))*plotW;
+  const sy = w => padT + plotH - (w/wMax)*plotH;
+
+  // Compute ω₁, ω₂ as function of mr (with k=1, m₁=1)
+  // [M] = [[1,0],[0,mr]], [K] = [[2,-1],[-1,2]]
+  // det(K - ω²M) = (2-ω²)(2-ω²·mr) - 1 = 0
+  function eig(mr){
+    // Quadratic in λ=ω²: mr·λ² - (2+2mr)λ + 3 = 0
+    const a=mr, b=-(2+2*mr), c=3;
+    const D = b*b - 4*a*c;
+    const l1 = (-b - Math.sqrt(D))/(2*a);
+    const l2 = (-b + Math.sqrt(D))/(2*a);
+    return [Math.sqrt(l1), Math.sqrt(l2)];
+  }
+
+  // ω₁ curve
+  ctx.strokeStyle = '#0ea5e9'; ctx.lineWidth = 2.5;
+  ctx.shadowColor = '#0ea5e9A0'; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for(let i=0; i<=200; i++){
+    const m = mrMin * Math.pow(mrMax/mrMin, i/200);
+    const [w1,] = eig(m);
+    if(i===0) ctx.moveTo(sx(m), sy(w1));
+    else ctx.lineTo(sx(m), sy(w1));
+  }
+  ctx.stroke();
+
+  // ω₂ curve
+  ctx.strokeStyle = '#f97316'; ctx.lineWidth = 2.5;
+  ctx.shadowColor = '#f97316A0';
+  ctx.beginPath();
+  for(let i=0; i<=200; i++){
+    const m = mrMin * Math.pow(mrMax/mrMin, i/200);
+    const [, w2] = eig(m);
+    if(i===0) ctx.moveTo(sx(m), sy(w2));
+    else ctx.lineTo(sx(m), sy(w2));
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Marker at current mr
+  const [cw1, cw2] = eig(mr);
+  ctx.fillStyle = '#0ea5e9';
+  ctx.shadowColor = '#0ea5e9'; ctx.shadowBlur = 12;
+  ctx.beginPath(); ctx.arc(sx(mr), sy(cw1), 7, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#f97316';
+  ctx.shadowColor = '#f97316';
+  ctx.beginPath(); ctx.arc(sx(mr), sy(cw2), 7, 0, Math.PI*2); ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Axis labels
+  ctx.fillStyle = '#475569'; ctx.font = '9px JetBrains Mono';
+  ctx.textAlign = 'center';
+  [0.1, 0.5, 1, 2, 5].forEach(m=>{
+    ctx.fillText(m.toString(), sx(m), padT+plotH+14);
+  });
+  ctx.textAlign = 'right';
+  for(let i=0; i<=4; i++){
+    const w = wMax*(1-i/4);
+    ctx.fillText(w.toFixed(1), padL-4, padT + plotH*i/4 + 3);
+  }
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px JetBrains Mono';
+  ctx.fillText('ω (rad/s)', padL-50, padT-8);
+  ctx.fillText('m₂/m₁', padL+plotW-40, padT+plotH+28);
+
+  // Legend
+  ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText('── ω₁ (mode 1, lower)', padL+10, padT+18);
+  ctx.fillStyle = '#f97316';
+  ctx.fillText('── ω₂ (mode 2, higher)', padL+10, padT+34);
+
+  document.getElementById('mrInfo').innerHTML = `m₂/m₁ = <strong>${mr.toFixed(2)}</strong> · ω₁ = <strong style="color:#0ea5e9">${cw1.toFixed(3)}</strong> rad/s · ω₂ = <strong style="color:#f97316">${cw2.toFixed(3)}</strong> rad/s · Rasio ω₂/ω₁ = ${(cw2/cw1).toFixed(3)}`;
+}
+setTimeout(drawMassRatio, 800);
+
+// ════════════════════════════════════════════════════════════
+// ANIMASI 3 — Eigenvalue Toggle (Numerical vs Symbolic)
+// ════════════════════════════════════════════════════════════
+let _eigenMode = 'numerical';
+window.toggleEigenMode = function(){
+  _eigenMode = (_eigenMode === 'numerical') ? 'symbolic' : 'numerical';
+  const view = document.getElementById('eigen_toggle_view');
+  const lbl = document.getElementById('eigen_toggle_label');
+  const slider = view ? view.children[0] : null;
+  if(_eigenMode === 'symbolic'){
+    if(view){ view.style.background = 'rgba(168,85,247,.25)'; view.style.borderColor = '#a855f7'; }
+    if(slider) slider.style.transform = 'translateX(28px)';
+    if(lbl){ lbl.textContent = 'SYMBOLIC (sympy.Matrix)'; lbl.style.color = '#a855f7'; }
+  } else {
+    if(view){ view.style.background = 'rgba(0,224,158,.25)'; view.style.borderColor = 'var(--green)'; }
+    if(slider) slider.style.transform = 'translateX(0px)';
+    if(lbl){ lbl.textContent = 'NUMERICAL (numpy.linalg.eig)'; lbl.style.color = 'var(--green)'; }
+  }
+  drawEigen();
+};
+
+function drawEigen(){
+  const cv = document.getElementById('cvEigen'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const isNumerical = (_eigenMode === 'numerical');
+  const color = isNumerical ? 'var(--green)' : '#a855f7';
+  const colorRGB = isNumerical ? '#00e09e' : '#a855f7';
+
+  ctx.fillStyle = colorRGB;
+  ctx.font = 'bold 14px JetBrains Mono';
+  ctx.fillText(isNumerical ? '⚙️ NUMERICAL EIGENVALUE (numpy.linalg.eig)' : '🧮 SYMBOLIC EIGENVALUE (sympy.Matrix)', 20, 30);
+
+  // Display code-like content
+  ctx.font = '11px JetBrains Mono';
+  ctx.fillStyle = '#fff';
+  let lines;
+  if(isNumerical){
+    lines = [
+      'import numpy as np',
+      '',
+      'M = np.array([[1, 0], [0, 1]])',
+      'K = np.array([[200, -100], [-100, 200]])',
+      'eigvals, eigvecs = np.linalg.eig(np.linalg.inv(M) @ K)',
+      '',
+      'omega = np.sqrt(eigvals)',
+      'idx = omega.argsort()',
+      'omega1, omega2 = omega[idx]',
+      '',
+      '# Output:',
+      '# omega1 = 10.000 rad/s',
+      '# omega2 = 17.321 rad/s',
+      '# eigvecs[:,0] = [0.707, 0.707]   # Mode 1 in-phase',
+      '# eigvecs[:,1] = [0.707, -0.707]  # Mode 2 anti-phase'
+    ];
+  } else {
+    lines = [
+      'from sympy import symbols, Matrix, sqrt, simplify',
+      '',
+      'm, k, omega = symbols("m k omega", positive=True)',
+      'M = Matrix([[m, 0], [0, m]])',
+      'K = Matrix([[2*k, -k], [-k, 2*k]])',
+      '',
+      'char_poly = (K - omega**2 * M).det()',
+      '# = m**2*omega**4 - 4*k*m*omega**2 + 3*k**2',
+      '',
+      'roots = sorted(solveset(char_poly, omega**2))',
+      '# omega1**2 = k/m       → omega1 = sqrt(k/m)',
+      '# omega2**2 = 3*k/m     → omega2 = sqrt(3*k/m)',
+      '',
+      '# For k=100, m=1:',
+      '# omega1 = sqrt(100) = 10.000 rad/s',
+      '# omega2 = sqrt(300) = 17.321 rad/s'
+    ];
+  }
+  lines.forEach((line, i) => {
+    ctx.fillStyle = line.startsWith('#') ? '#94a3b8' :
+                    line.startsWith('import') || line.startsWith('from') ? colorRGB :
+                    line.includes('omega1') || line.includes('omega2') ? '#facc15' :
+                    '#cbd5e1';
+    ctx.fillText(line, 30, 60 + i*15);
+  });
+
+  document.getElementById('eigenInfo').innerHTML = isNumerical ?
+    '⚙️ <strong>Numerical</strong>: cepat untuk MDoF besar (gedung 50 lantai), output desimal — dipakai di simulasi/optimization.' :
+    '🧮 <strong>Symbolic</strong>: derive formula literal (m, k), output ekspresi exact — dipakai di publikasi/teaching.';
+}
+setTimeout(drawEigen, 850);
+
+// ════════════════════════════════════════════════════════════
+// ANIMASI 4 — Mode Superposition (radio)
+// ════════════════════════════════════════════════════════════
+let _superMode = 'mode1';
+let _superFrame = 0;
+window.setSuperMode = function(mode){
+  _superMode = mode;
+  document.querySelectorAll('.sup-rlbl').forEach(lbl=>{
+    const m=lbl.dataset.m; const active=(m===mode);
+    lbl.style.background = active?'rgba(255,255,255,.20)':'rgba(255,255,255,.04)';
+    lbl.style.borderWidth = active?'2px':'1px';
+    lbl.style.color = active?'#fff':lbl.style.color;
+    lbl.style.fontWeight = active?'700':'400';
+    lbl.style.boxShadow = active?'0 0 12px rgba(255,255,255,.4)':'none';
+    lbl.style.transform = active?'scale(1.05)':'scale(1.0)';
+  });
+};
+
+function drawSuper(){
+  const cv = document.getElementById('cvSuper'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const t = _superFrame * 0.008;
+  const w1 = 10, w2 = Math.sqrt(300);
+
+  let alpha=1, beta=0;  // Mode 1 only
+  if(_superMode === 'mode2'){ alpha=0; beta=1; }
+  else if(_superMode === 'mix'){ alpha=0.5; beta=0.5; }
+  else if(_superMode === 'beat'){
+    // m₁ pulled, m₂ at rest → α = β = 0.5 (beat between w1 and w2)
+    alpha=0.5; beta=0.5;
+  }
+
+  const x1 = alpha*Math.cos(w1*t) + beta*Math.cos(w2*t);
+  const x2 = alpha*Math.cos(w1*t) - beta*Math.cos(w2*t);
+
+  // Plot x1, x2 as sliding window
+  if(!window._supHist) window._supHist = [];
+  window._supHist.push({t, x1, x2});
+  if(window._supHist.length > 400) window._supHist.shift();
+
+  const padL=50, padR=20, padT=30, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let i=0; i<=10; i++){
+    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  }
+
+  // Axes
+  ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH);
+  ctx.stroke();
+
+  const ymax = 2.2;
+  const sy = y => padT + plotH/2 - (y/ymax)*plotH/2;
+  const N = window._supHist.length;
+  const sx = i => padL + (i/Math.max(1,N-1))*plotW;
+
+  // x1 curve
+  ctx.strokeStyle = '#0ea5e9'; ctx.lineWidth = 2.5;
+  ctx.shadowColor = '#0ea5e9A0'; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  window._supHist.forEach((p, i) => {
+    if(i===0) ctx.moveTo(sx(i), sy(p.x1));
+    else ctx.lineTo(sx(i), sy(p.x1));
+  });
+  ctx.stroke();
+  // x2 curve
+  ctx.strokeStyle = '#f97316';
+  ctx.shadowColor = '#f97316A0';
+  ctx.beginPath();
+  window._supHist.forEach((p, i) => {
+    if(i===0) ctx.moveTo(sx(i), sy(p.x2));
+    else ctx.lineTo(sx(i), sy(p.x2));
+  });
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Legend
+  ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText('── x₁(t)', 20, 25);
+  ctx.fillStyle = '#f97316';
+  ctx.fillText('── x₂(t)', 100, 25);
+
+  document.getElementById('superInfo').innerHTML = ({
+    mode1: '🟢 100% Mode 1: x₁ = x₂ = cos(10t) — kedua massa sefase, gerakan paralel.',
+    mode2: '🟠 100% Mode 2: x₁ = −x₂ = cos(17.32t) — kedua massa anti-fase, getaran cepat.',
+    mix: '🔷 50/50 Mix: gabungan — pola kompleks (sum dari 2 frekuensi).',
+    beat: '🟣 IC Asimetris: m₁ ditarik, m₂ diam → energi berpindah bolak-balik (beat phenomenon).'
+  })[_superMode];
+}
+
+function _superTick(){
+  _superFrame++;
+  drawSuper();
+  requestAnimationFrame(_superTick);
+}
+setTimeout(_superTick, 900);
+
+// ════════════════════════════════════════════════════════════
+// ANIMASI 5 — Real-World 2-DoF Examples (dropdown)
+// ════════════════════════════════════════════════════════════
+let _2dofExType = 'suspension';
+let _2dofExFrame = 0;
+window.set2DofExample = function(mode){ _2dofExType = mode; };
+
+function draw2DofExample(){
+  const cv = document.getElementById('cv2dofExamples'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const t = _2dofExFrame * 0.008;
+  const cx = W/2;
+
+  const examples = {
+    suspension: {
+      title: '🚗 Suspensi Mobil — Sprung mass (body) + Unsprung mass (wheel)',
+      desc: 'Body bounce ω≈1 Hz, wheel hop ω≈10 Hz. Pegas + damper antara body dan wheel + wheel dan ground.',
+      color: '#0ea5e9'
+    },
+    building: {
+      title: '🏢 Gedung 2 Lantai — Story shear model',
+      desc: 'Setiap lantai = massa, kolom = pegas geser. Mode 1: lantai 1+2 sefase. Mode 2: anti-fase. Penting untuk earthquake.',
+      color: '#00e09e'
+    },
+    tmd: {
+      title: '⚖️ TMD (Tuned Mass Damper) — Vibration Absorber',
+      desc: 'Massa absorber kecil di-tuning ke ω utama → resonansi anti-fase membatalkan getaran. Den Hartog formula.',
+      color: '#f97316'
+    },
+    pendulum: {
+      title: '⏱️ Pendulum Tergandeng — Sympathetic Vibration',
+      desc: 'Dua pendulum identik diikat dengan benang lemah. Energi berpindah bolak-balik (Huygens 1665).',
+      color: '#a855f7'
+    }
+  };
+
+  const e = examples[_2dofExType];
+  ctx.fillStyle = e.color; ctx.font = 'bold 13px JetBrains Mono';
+  ctx.textAlign = 'left';
+  ctx.fillText(e.title, 20, 25);
+
+  if(_2dofExType === 'suspension'){
+    // Car body (top)
+    const bodyY = H/2 - 70 + 12*Math.sin(1.0*t);
+    const wheelY = H/2 + 30 + 25*Math.sin(10*t + Math.PI);
+    // Body
+    ctx.fillStyle = e.color + '40';
+    ctx.fillRect(cx-90, bodyY, 180, 50);
+    ctx.strokeStyle = e.color; ctx.lineWidth = 2;
+    ctx.strokeRect(cx-90, bodyY, 180, 50);
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 14px JetBrains Mono';
+    ctx.textAlign = 'center';
+    ctx.fillText('Body (sprung)', cx, bodyY+30);
+    // Spring + damper
+    ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    const sLen = wheelY - (bodyY+50);
+    ctx.moveTo(cx-30, bodyY+50);
+    for(let i=0; i<5; i++){
+      const y = bodyY+50 + (i+0.5)*sLen/5;
+      ctx.lineTo(cx-30 + (i%2===0?-8:8), y);
+    }
+    ctx.lineTo(cx-30, wheelY); ctx.stroke();
+    // Wheel
+    ctx.fillStyle = '#475569';
+    ctx.beginPath(); ctx.arc(cx, wheelY+25, 30, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = 'bold 11px JetBrains Mono';
+    ctx.textAlign = 'center';
+    ctx.fillText('Wheel', cx, wheelY+30);
+    // Ground (bumpy)
+    ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1;
+    ctx.beginPath();
+    for(let xi=0; xi<W; xi+=8){
+      const yy = H-30 + 4*Math.sin(t*5+xi*0.05);
+      if(xi===0) ctx.moveTo(xi, yy);
+      else ctx.lineTo(xi, yy);
+    }
+    ctx.stroke();
+  }
+  else if(_2dofExType === 'building'){
+    // 2-story building
+    const f1 = H-30 - 60 + 18*Math.sin(t*1.0);
+    const f2 = f1 - 70 + 25*Math.sin(t*1.5);
+    // Ground
+    ctx.fillStyle = '#475569';
+    ctx.fillRect(cx-100, H-30, 200, 8);
+    // Columns floor 1
+    ctx.strokeStyle = e.color; ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(cx-70, H-30); ctx.lineTo(cx-70, f1+5);
+    ctx.moveTo(cx+70, H-30); ctx.lineTo(cx+70, f1+5);
+    ctx.stroke();
+    // Floor 1
+    ctx.fillStyle = e.color + '40';
+    ctx.fillRect(cx-80, f1, 160, 8);
+    ctx.strokeRect(cx-80, f1, 160, 8);
+    // Columns floor 2
+    ctx.beginPath();
+    ctx.moveTo(cx-70, f1); ctx.lineTo(cx-70, f2+5);
+    ctx.moveTo(cx+70, f1); ctx.lineTo(cx+70, f2+5);
+    ctx.stroke();
+    // Floor 2
+    ctx.fillRect(cx-80, f2, 160, 8);
+    ctx.strokeRect(cx-80, f2, 160, 8);
+    ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.font = 'bold 11px JetBrains Mono';
+    ctx.fillText('Lantai 2', cx, f2+5);
+    ctx.fillText('Lantai 1', cx, f1+5);
+  }
+  else if(_2dofExType === 'tmd'){
+    // Main structure + small TMD
+    const mainY = H/2 + 5*Math.sin(t*2);
+    const tmdY = mainY - 60 - 18*Math.sin(t*2 + Math.PI);  // anti-phase!
+    // Ground
+    ctx.fillStyle = '#475569';
+    ctx.fillRect(cx-150, H-50, 300, 8);
+    // Main structure
+    ctx.strokeStyle = e.color; ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(cx-90, H-50); ctx.lineTo(cx-90, mainY+50);
+    ctx.moveTo(cx+90, H-50); ctx.lineTo(cx+90, mainY+50);
+    ctx.stroke();
+    ctx.fillStyle = e.color + '40';
+    ctx.fillRect(cx-100, mainY+50, 200, 30);
+    ctx.strokeRect(cx-100, mainY+50, 200, 30);
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 11px JetBrains Mono'; ctx.textAlign = 'center';
+    ctx.fillText('Main Structure (M)', cx, mainY+70);
+    // TMD on top
+    ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    const sLen = mainY+50 - (tmdY+25);
+    ctx.moveTo(cx, mainY+50);
+    for(let i=0; i<4; i++){
+      const yy = mainY+50 - (i+0.5)*sLen/4;
+      ctx.lineTo(cx + (i%2===0?-6:6), yy);
+    }
+    ctx.lineTo(cx, tmdY+25); ctx.stroke();
+    ctx.fillStyle = '#a855f7';
+    ctx.fillRect(cx-30, tmdY, 60, 25);
+    ctx.fillStyle = '#fff';
+    ctx.fillText('TMD', cx, tmdY+15);
+  }
+  else if(_2dofExType === 'pendulum'){
+    // Two coupled pendulums
+    const ceilY = 30;
+    ctx.strokeStyle = '#475569'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(20, ceilY); ctx.lineTo(W-20, ceilY); ctx.stroke();
+    // Coupling string
+    const phase = t*1.5;
+    const A1 = Math.cos(phase) * Math.cos(0.3*t);  // beat envelope
+    const A2 = Math.cos(phase) * Math.sin(0.3*t);
+    const angle1 = 0.5 * A1;
+    const angle2 = 0.5 * A2;
+    const L = 120;
+    const x1 = cx-90 + L*Math.sin(angle1);
+    const y1 = ceilY + L*Math.cos(angle1);
+    const x2 = cx+90 + L*Math.sin(angle2);
+    const y2 = ceilY + L*Math.cos(angle2);
+    // Strings
+    ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(cx-90, ceilY); ctx.lineTo(x1, y1); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx+90, ceilY); ctx.lineTo(x2, y2); ctx.stroke();
+    // Coupling rod (weak)
+    ctx.strokeStyle = e.color + 'A0'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    ctx.setLineDash([]);
+    // Bobs
+    ctx.fillStyle = e.color;
+    ctx.shadowColor = e.color; ctx.shadowBlur = 12;
+    ctx.beginPath(); ctx.arc(x1, y1, 12, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x2, y2, 12, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+
+  document.getElementById('exInfo').innerHTML = `<strong style="color:${e.color}">${e.title}</strong><br>${e.desc}`;
+}
+
+function _2dofExTick(){
+  _2dofExFrame++;
+  draw2DofExample();
+  requestAnimationFrame(_2dofExTick);
+}
+setTimeout(_2dofExTick, 1000);
+
+
 }
 window.addEventListener('resize', () => { if (typeof _draw2DofFrame === 'function') _draw2DofFrame(); });
 

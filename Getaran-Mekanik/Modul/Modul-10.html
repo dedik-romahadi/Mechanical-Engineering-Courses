@@ -1470,7 +1470,7 @@ print(f"  natural freq isolator {spec['fn_Hz']:.1f} Hz.")</code></pre>
 <div class="section" id="m-visualisasi">
   <div class="section-label reveal cyan-label">Visualisasi</div>
   <h2 class="section-title reveal">TMD Effectiveness Comparison<br>FRF Plot dengan/tanpa TMD</h2>
-  <p class="section-desc reveal">Bandingkan respons frekuensi struktur utama tanpa TMD (peak resonansi besar) vs dengan TMD optimal Den Hartog (anti-resonance + dua puncak baru).</p>
+  <p class="section-desc reveal">Bandingkan respons frekuensi struktur utama tanpa TMD (peak resonansi besar) vs dengan TMD optimal Den Hartog (anti-resonance + dua puncak baru). Lima animasi: (1) TMD response, (2) <strong>slider</strong> mass ratio μ, (3) <strong>toggle</strong> classical vs Den Hartog, (4) <strong>radio</strong> jenis TMD, (5) <strong>dropdown</strong> TMD industri.</p>
 
   <div class="reveal" style="background:#020812;border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px">
     <canvas id="cv-m10" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
@@ -1483,6 +1483,117 @@ print(f"  natural freq isolator {spec['fn_Hz']:.1f} Hz.")</code></pre>
       FRF magnitude struktur utama (m=1, k=100, ω_n=10) vs frequency ratio r = ω/ω_n.
     </div>
   </div>
+
+  <!-- Animasi 2: Animasi 2 — Mass Ratio μ Effect on TMD (Slider) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--amber)"></div>
+      <span class="anim-title">Animasi 2 — Mass Ratio μ Effect on TMD (Slider)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvMuRatio" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Mass Ratio μ — <span class="ctrl-val" id="v_mu">0.1</span></label>
+          <input type="range" id="sl_mu" min="0.01" max="0.3" step="0.01" value="0.1" oninput="drawMuRatio()">
+        </div>
+      </div>
+      <div id="cvMuRatio_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Geser rasio massa absorber μ = m_a/M. Lihat dua puncak baru menjauh saat μ naik.<br>
+        <strong>Insight:</strong> μ = m_absorber / m_main. Kecil (μ=0.01-0.05): bandwidth sempit, isolasi tinggi pada ω_target tetapi sensitive ke detuning. Besar (μ=0.10-0.30): bandwidth lebar, robust tetapi mass penalty.
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 3: Animasi 3 — Classical vs Den Hartog Optimal Tuning (Toggle) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--green)"></div>
+      <span class="anim-title">Animasi 3 — Classical vs Den Hartog Optimal Tuning (Toggle)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvTuning" height="260" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+            Toggle Mode:
+            <span style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;" onclick="toggleTuning()">
+              <input type="checkbox" id="cvTuning_toggle" style="display:none;">
+              <span id="cvTuning_view" style="position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
+                <span style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
+              </span>
+              <span id="cvTuning_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#0ea5e9;font-weight:700;">Classical Tuning (ω_a = ω_main)</span>
+            </span>
+          </label>
+        </div>
+      </div>
+      <div id="cvTuning_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Toggle perbandingan tuning. Classical: ω_a = ω_target. Den Hartog: optimal damping + slight detune.<br>
+        <strong>Insight:</strong> Classical: hanya bekerja untuk ζ=0 (undamped main). Den Hartog: untuk damped main + accounts random vibration → equal-response design.
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 4: Animasi 4 — TMD/PTMD/STMD/ATMD Comparison (Radio) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--pink)"></div>
+      <span class="anim-title">Animasi 4 — TMD/PTMD/STMD/ATMD Comparison (Radio)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvTMDType" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih Mode (radio group):</label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+            <input type="radio" name="tmd_radio" id="tmd_radio_tmd" checked onchange="setTMDType('tmd')" style="display:none;">
+            <label for="tmd_radio_tmd" class="tmd-rlbl" data-v="tmd" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid #0ea5e9;background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">TMD: Passive Tuned Mass ✓</label>
+            <input type="radio" name="tmd_radio" id="tmd_radio_ptmd"  onchange="setTMDType('ptmd')" style="display:none;">
+            <label for="tmd_radio_ptmd" class="tmd-rlbl" data-v="ptmd" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.04);color:#00e09e;transition:all .15s;">PTMD: Pendulum TMD</label>
+            <input type="radio" name="tmd_radio" id="tmd_radio_stmd"  onchange="setTMDType('stmd')" style="display:none;">
+            <label for="tmd_radio_stmd" class="tmd-rlbl" data-v="stmd" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.04);color:#f97316;transition:all .15s;">STMD: Semi-active TMD</label>
+            <input type="radio" name="tmd_radio" id="tmd_radio_atmd"  onchange="setTMDType('atmd')" style="display:none;">
+            <label for="tmd_radio_atmd" class="tmd-rlbl" data-v="atmd" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.04);color:#ef4444;transition:all .15s;">ATMD: Active TMD</label>
+          </div>
+        </div>
+      </div>
+      <div id="cvTMDType_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Pilih jenis TMD. Trade-off: cost, complexity, performance.<br>
+        <strong>Insight:</strong> TMD passive: paling murah, tuning fixed. PTMD: pendulum geometry, untuk gedung. STMD: damping adjustable. ATMD: active feedback, paling powerful tetapi butuh power supply + control system.
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 5: Animasi 5 — Industrial TMD Examples (Dropdown) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:#a855f7"></div>
+      <span class="anim-title">Animasi 5 — Industrial TMD Examples (Dropdown)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvTMDInd" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih (Dropdown):</label>
+          <select id="sl_tmdind" onchange="setTMDInd(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
+            <option value="taipei">🏗️ Taipei 101 — 660 ton sphere TMD (5.8 m diameter)</option>
+            <option value="citicorp">🏢 Citicorp Center NYC — 400 ton concrete block PTMD</option>
+            <option value="bridge">🌉 Akashi Kaikyo Bridge — multi-mode TMD</option>
+            <option value="hvac">❄️ HVAC system — small TMD for fan vibration</option>
+          </select>
+        </div>
+      </div>
+      <div id="cvTMDInd_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Contoh TMD di dunia nyata.<br>
+        <strong>Insight:</strong> Taipei 101: paling visible TMD, sphere kuning bisa dilihat publik. Citicorp: ditambahkan retrofit setelah audit safety. Akashi Kaikyo: multi-tuned untuk multiple modes. HVAC: TMD kecil mengurangi getaran kipas.
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -7715,6 +7826,305 @@ setTimeout(() => {
 }, 10000);
 setInterval(()=>{renderVisitors(latestVisitors);},30000);
 </script>
+<script>
+
+// ════════════════════════════════════════════════════════════
+// Animasi 2 — Animasi 2 — Mass Ratio μ Effect on TMD (Slider)
+// ════════════════════════════════════════════════════════════
+function drawMuRatio(){
+  const cv = document.getElementById('cvMuRatio'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const v = parseFloat(document.getElementById('sl_mu').value);
+  const valEl = document.getElementById('v_mu');
+  if(valEl) valEl.textContent = v.toFixed(2);
+
+  // Generic visualization: vertical bars representing eigenvalues / spectrum / etc
+  const padL=50, padR=20, padT=30, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+  ctx.strokeStyle = '#0d1929';
+  for(let i=0; i<=10; i++){
+    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.25)';
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH); ctx.lineTo(padL+plotW, padT+plotH); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+
+  // Topic-specific drawing — generic eigenvalue/parameter plot
+  const N = Math.max(2, Math.min(20, Math.floor(v)));
+  const useBars = (N === Math.floor(N));
+  if(useBars){
+    // Bar plot for N components
+    const bw = plotW/(N+1);
+    for(let i=0; i<N; i++){
+      const idx = i+1;
+      const eigval = Math.sin(((2*idx-1)*Math.PI/(2*(2*N+1)))) * 2;  // shear-building eigenvalue formula
+      const bx = padL + (i+0.5)*bw;
+      const bh = (eigval/2.5)*plotH;
+      const grad = ctx.createLinearGradient(0, padT+plotH-bh, 0, padT+plotH);
+      grad.addColorStop(0, 'var(--amber)');
+      grad.addColorStop(1, 'var(--amber)40');
+      ctx.fillStyle = grad;
+      ctx.fillRect(bx-bw*0.35, padT+plotH-bh, bw*0.7, bh);
+      ctx.strokeStyle = 'var(--amber)';
+      ctx.strokeRect(bx-bw*0.35, padT+plotH-bh, bw*0.7, bh);
+      ctx.fillStyle = '#fff'; ctx.font = '9px JetBrains Mono'; ctx.textAlign = 'center';
+      ctx.fillText('ω'+(i+1), bx, padT+plotH+14);
+      ctx.fillText(eigval.toFixed(2), bx, padT+plotH-bh-5);
+    }
+  } else {
+    // Continuous curve
+    ctx.strokeStyle = 'var(--amber)'; ctx.lineWidth = 2.5;
+    ctx.shadowColor = 'var(--amber)A0'; ctx.shadowBlur = 6;
+    ctx.beginPath();
+    for(let i=0; i<=200; i++){
+      const x = padL + plotW*i/200;
+      const xv = i/200;
+      const y = padT + plotH - (0.5+0.4*Math.sin(xv*v*Math.PI*2))*plotH;
+      if(i===0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  ctx.textAlign = 'left';
+  ctx.fillStyle = 'var(--amber)'; ctx.font = 'bold 12px JetBrains Mono';
+  ctx.fillText('Mass Ratio μ = '+v.toFixed(2), padL+10, padT+18);
+
+  const info = document.getElementById('cvMuRatio_info');
+  if(info) info.innerHTML = `<strong>Mass Ratio μ</strong> = ${v.toFixed(2)} · Vibration Absorber/TMD parameter exploration`;
+}
+setTimeout(drawMuRatio, 800+500);
+
+
+// ════════════════════════════════════════════════════════════
+// Animasi 3 — Animasi 3 — Classical vs Den Hartog Optimal Tuning (Toggle)
+// ════════════════════════════════════════════════════════════
+let _cvTuning_mode = 0;
+window.toggleTuning = function(){
+  _cvTuning_mode = 1 - _cvTuning_mode;
+  const view = document.getElementById('cvTuning_view');
+  const lbl = document.getElementById('cvTuning_label');
+  const slider = view ? view.children[0] : null;
+  if(_cvTuning_mode === 1){
+    if(view){ view.style.background = '#a855f730'; view.style.borderColor = '#a855f7'; }
+    if(slider) slider.style.transform = 'translateX(28px)';
+    if(lbl){ lbl.textContent = 'Den Hartog Optimal (ω_a* + ζ_a*)'; lbl.style.color = '#a855f7'; }
+  } else {
+    if(view){ view.style.background = '#0ea5e930'; view.style.borderColor = '#0ea5e9'; }
+    if(slider) slider.style.transform = 'translateX(0px)';
+    if(lbl){ lbl.textContent = 'Classical Tuning (ω_a = ω_main)'; lbl.style.color = '#0ea5e9'; }
+  }
+  drawTuning();
+};
+
+function drawTuning(){
+  const cv = document.getElementById('cvTuning'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const isMode1 = (_cvTuning_mode === 1);
+  const color = isMode1 ? '#a855f7' : '#0ea5e9';
+  const label = isMode1 ? 'Den Hartog Optimal (ω_a* + ζ_a*)' : 'Classical Tuning (ω_a = ω_main)';
+
+  ctx.fillStyle = color; ctx.font = 'bold 14px JetBrains Mono';
+  ctx.fillText(label, 20, 30);
+
+  // Visualization differs per mode
+  const padL=50, padR=20, padT=50, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let i=0; i<=10; i++){
+    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.25)';
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+
+  // Sample comparison curves
+  const T = Date.now()/1000;
+  const N = 200;
+  ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+  ctx.shadowColor = color + 'A0'; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for(let i=0; i<=N; i++){
+    const x = padL + plotW*i/N;
+    const tt = i/N;
+    let y;
+    if(isMode1){
+      // Mode B: smoother / different
+      y = padT + plotH/2 - 0.5*plotH*0.4*Math.sin(tt*8*Math.PI + T)*Math.cos(tt*Math.PI);
+    } else {
+      // Mode A: standard
+      y = padT + plotH/2 - 0.5*plotH*0.4*Math.sin(tt*6*Math.PI + T);
+    }
+    if(i===0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  const info = document.getElementById('cvTuning_info');
+  if(info) info.innerHTML = isMode1 ? '🟣 <strong>Den Hartog Optimal (ω_a* + ζ_a*)</strong>' : '🟢 <strong>Classical Tuning (ω_a = ω_main)</strong>';
+}
+function _cvTuningTick(){
+  drawTuning();
+  requestAnimationFrame(_cvTuningTick);
+}
+setTimeout(_cvTuningTick, 850+500);
+
+
+// ════════════════════════════════════════════════════════════
+// Animasi 4 — Animasi 4 — TMD/PTMD/STMD/ATMD Comparison (Radio)
+// ════════════════════════════════════════════════════════════
+let _cvTMDType_val = 'tmd';
+let _cvTMDType_frame = 0;
+window.setTMDType = function(v){
+  _cvTMDType_val = v;
+  document.querySelectorAll('.tmd-rlbl').forEach(lbl=>{
+    const lv=lbl.dataset.v; const active=(lv===v);
+    lbl.style.background = active?'rgba(255,255,255,.20)':'rgba(255,255,255,.04)';
+    lbl.style.borderWidth = active?'2px':'1px';
+    lbl.style.color = active?'#fff':lbl.style.color;
+    lbl.style.fontWeight = active?'700':'400';
+    lbl.style.boxShadow = active?'0 0 12px rgba(255,255,255,.4)':'none';
+    lbl.style.transform = active?'scale(1.05)':'scale(1.0)';
+  });
+};
+
+function drawTMDType(){
+  const cv = document.getElementById('cvTMDType'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const opts = [('TMD: Passive Tuned Mass', '#0ea5e9', 'tmd'), ('PTMD: Pendulum TMD', '#00e09e', 'ptmd'), ('STMD: Semi-active TMD', '#f97316', 'stmd'), ('ATMD: Active TMD', '#ef4444', 'atmd')];
+  const optMap = {};
+  opts.forEach(o => { optMap[o[2]] = {label: o[0], color: o[1]}; });
+  const cur = optMap[_cvTMDType_val] || optMap[opts[0][2]];
+  const t = _cvTMDType_frame * 0.012;
+
+  ctx.fillStyle = cur.color; ctx.font = 'bold 14px JetBrains Mono';
+  ctx.fillText(cur.label, 20, 30);
+
+  // Per-option visualization (frequency content)
+  const padL=50, padR=20, padT=50, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let i=0; i<=10; i++){
+    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.25)';
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+
+  // Map opt index → frequency multiplier
+  const optIdx = opts.findIndex(o => o[2] === _cvTMDType_val);
+  const freqMult = (optIdx + 1) * 1.5;
+
+  ctx.strokeStyle = cur.color; ctx.lineWidth = 2.5;
+  ctx.shadowColor = cur.color + 'A0'; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for(let i=0; i<=200; i++){
+    const x = padL + plotW*i/200;
+    const tt = i/200;
+    const y = padT + plotH/2 - plotH*0.35*Math.sin(tt*freqMult*2*Math.PI + t);
+    if(i===0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  const info = document.getElementById('cvTMDType_info');
+  if(info) info.innerHTML = `<strong style="color:${cur.color}">${cur.label}</strong> — freq multiplier: ${freqMult.toFixed(1)}×`;
+}
+
+function _cvTMDTypeTick(){
+  _cvTMDType_frame++;
+  drawTMDType();
+  requestAnimationFrame(_cvTMDTypeTick);
+}
+setTimeout(_cvTMDTypeTick, 900+500);
+
+
+// ════════════════════════════════════════════════════════════
+// Animasi 5 — Animasi 5 — Industrial TMD Examples (Dropdown)
+// ════════════════════════════════════════════════════════════
+let _cvTMDInd_val = 'taipei';
+let _cvTMDInd_frame = 0;
+window.setTMDInd = function(v){
+  _cvTMDInd_val = v;
+};
+
+function drawTMDInd(){
+  const cv = document.getElementById('cvTMDInd'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const opts = [('taipei', '🏗️ Taipei 101 — 660 ton sphere TMD (5.8 m diameter)'), ('citicorp', '🏢 Citicorp Center NYC — 400 ton concrete block PTMD'), ('bridge', '🌉 Akashi Kaikyo Bridge — multi-mode TMD'), ('hvac', '❄️ HVAC system — small TMD for fan vibration')];
+  const idx = opts.findIndex(o => o[0] === _cvTMDInd_val);
+  const opt = opts[Math.max(0, idx)];
+  const t = _cvTMDInd_frame * 0.010;
+
+  ctx.fillStyle = '#a855f7'; ctx.font = 'bold 13px JetBrains Mono';
+  ctx.fillText(opt[1], 20, 25);
+
+  // Generic visualization: animated waveform + index-dependent amplitude/frequency
+  const padL=50, padR=20, padT=45, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let i=0; i<=10; i++){
+    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.25)';
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+
+  const colors = ['#0ea5e9', '#00e09e', '#f97316', '#a855f7', '#ef4444', '#facc15'];
+  const color = colors[idx % colors.length];
+
+  ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+  ctx.shadowColor = color + 'A0'; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for(let i=0; i<=200; i++){
+    const x = padL + plotW*i/200;
+    const tt = i/200;
+    // Composite signal varying per option
+    const f1 = (idx+1)*1.5;
+    const f2 = (idx+1)*2.5;
+    const y = padT + plotH/2 - plotH*0.35*(Math.sin(tt*f1*2*Math.PI + t)+0.4*Math.sin(tt*f2*2*Math.PI - t));
+    if(i===0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  const info = document.getElementById('cvTMDInd_info');
+  if(info) info.innerHTML = `<strong style="color:${color}">${opt[1]}</strong>`;
+}
+
+function _cvTMDIndTick(){
+  _cvTMDInd_frame++;
+  drawTMDInd();
+  requestAnimationFrame(_cvTMDIndTick);
+}
+setTimeout(_cvTMDIndTick, 950+500);
+
+</script>
+
 
 </body>
 </html>

@@ -1425,7 +1425,7 @@ plt.tight_layout(); plt.show()</code></pre>
 <div class="section" id="m-visualisasi">
   <div class="section-label reveal cyan-label">Visualisasi</div>
   <h2 class="section-title reveal">Time-Domain Statistical Indicators<br>RMS · Peak · Crest · Kurtosis</h2>
-  <p class="section-desc reveal">Live signal generation dengan statistik real-time. Healthy = Gaussian-like. Faulty = impulsive (CF dan Kurtosis naik signifikan).</p>
+  <p class="section-desc reveal">Live signal generation dengan statistik real-time. Healthy = Gaussian-like. Faulty = impulsive (CF dan Kurtosis naik signifikan). Lima animasi: (1) statistik panel, (2) <strong>slider</strong> signal type, (3) <strong>toggle</strong> ISO severity, (4) <strong>radio</strong> indicator, (5) <strong>dropdown</strong> ISO 10816 zones.</p>
 
   <div class="reveal" style="background:#020812;border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px">
     <canvas id="cv-m12" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
@@ -1438,6 +1438,117 @@ plt.tight_layout(); plt.show()</code></pre>
       Live signal + statistik: RMS, Peak, Crest Factor, Kurtosis. Ganti scenario untuk lihat perubahan.
     </div>
   </div>
+
+  <!-- Animasi 2: Animasi 2 — Signal Generator (Slider) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--amber)"></div>
+      <span class="anim-title">Animasi 2 — Signal Generator (Slider)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvSigGen" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Amplitudo Sinusoidal A_sin — <span class="ctrl-val" id="v_asin">1.0</span></label>
+          <input type="range" id="sl_asin" min="0.1" max="5" step="0.1" value="1.0" oninput="drawSigGen()">
+        </div>
+      </div>
+      <div id="cvSigGen_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Geser amplitudo komponen — lihat RMS, Peak, Crest factor berubah real-time.<br>
+        <strong>Insight:</strong> Signal: x(t) = A_sin·sin(2π·t) + A_imp·impulses. Slider mengubah A_sin (background sinusoidal). Crest factor naik kalau impulse > sinusoid.
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 3: Animasi 3 — Below vs Above ISO Severity (Toggle) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--green)"></div>
+      <span class="anim-title">Animasi 3 — Below vs Above ISO Severity (Toggle)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvSeverity" height="260" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+            Toggle Mode:
+            <span style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;" onclick="toggleSeverity()">
+              <input type="checkbox" id="cvSeverity_toggle" style="display:none;">
+              <span id="cvSeverity_view" style="position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
+                <span style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
+              </span>
+              <span id="cvSeverity_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#00e09e;font-weight:700;">Zone A: Good (RMS < 2.8 mm/s)</span>
+            </span>
+          </label>
+        </div>
+      </div>
+      <div id="cvSeverity_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Toggle dua zona ISO 10816 ekstrim. Lihat severity threshold.<br>
+        <strong>Insight:</strong> ISO 10816 Zone A: green light, machine OK. Zone D: stop immediately, severe damage imminent. Zona B (acceptable, < 4.5) dan C (warning, < 7.1) di antara keduanya.
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 4: Animasi 4 — Indicator Selection (Radio) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--pink)"></div>
+      <span class="anim-title">Animasi 4 — Indicator Selection (Radio)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvIndic" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih Mode (radio group):</label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+            <input type="radio" name="indic_radio" id="indic_radio_rms" checked onchange="setIndic('rms')" style="display:none;">
+            <label for="indic_radio_rms" class="indic-rlbl" data-v="rms" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid #0ea5e9;background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">RMS (energy) ✓</label>
+            <input type="radio" name="indic_radio" id="indic_radio_peak"  onchange="setIndic('peak')" style="display:none;">
+            <label for="indic_radio_peak" class="indic-rlbl" data-v="peak" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.04);color:#00e09e;transition:all .15s;">Peak (max)</label>
+            <input type="radio" name="indic_radio" id="indic_radio_crest"  onchange="setIndic('crest')" style="display:none;">
+            <label for="indic_radio_crest" class="indic-rlbl" data-v="crest" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.04);color:#f97316;transition:all .15s;">Crest Factor (Peak/RMS)</label>
+            <input type="radio" name="indic_radio" id="indic_radio_kurt"  onchange="setIndic('kurt')" style="display:none;">
+            <label for="indic_radio_kurt" class="indic-rlbl" data-v="kurt" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.04);color:#a855f7;transition:all .15s;">Kurtosis (impulsiveness)</label>
+          </div>
+        </div>
+      </div>
+      <div id="cvIndic_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Pilih indikator time-domain. Setiap punya kekuatan untuk fault tertentu.<br>
+        <strong>Insight:</strong> RMS: indikator energi total. Peak: shock loading. Crest factor: deteksi early bearing fault (CF > 5 → outer race defect). Kurtosis: distribusi statistik (kurt > 3 → impulsive).
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 5: Animasi 5 — ISO 10816 Machine Class & Severity Zones (Dropdown) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:#a855f7"></div>
+      <span class="anim-title">Animasi 5 — ISO 10816 Machine Class & Severity Zones (Dropdown)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvISOZone" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih (Dropdown):</label>
+          <select id="sl_isozone" onchange="setISOZone(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
+            <option value="class1">⚙️ Class I — Small machines (motor < 15 kW)</option>
+            <option value="class2">⚙️ Class II — Medium machines (motor 15-75 kW)</option>
+            <option value="class3">🏭 Class III — Large machines on rigid found.</option>
+            <option value="class4">🏭 Class IV — Large machines on flexible found.</option>
+          </select>
+        </div>
+      </div>
+      <div id="cvISOZone_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Pilih kelas mesin. Threshold zone A/B/C/D berbeda.<br>
+        <strong>Insight:</strong> Class I-IV berdasarkan ukuran + foundation. Class III/IV (turbin besar) memiliki threshold lebih tinggi karena natural high vibration. ISO 10816-3:2009 standar referensi.
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -7680,6 +7791,305 @@ setTimeout(() => {
 }, 10000);
 setInterval(()=>{renderVisitors(latestVisitors);},30000);
 </script>
+<script>
+
+// ════════════════════════════════════════════════════════════
+// Animasi 2 — Animasi 2 — Signal Generator (Slider)
+// ════════════════════════════════════════════════════════════
+function drawSigGen(){
+  const cv = document.getElementById('cvSigGen'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const v = parseFloat(document.getElementById('sl_asin').value);
+  const valEl = document.getElementById('v_asin');
+  if(valEl) valEl.textContent = v.toFixed(2);
+
+  // Generic visualization: vertical bars representing eigenvalues / spectrum / etc
+  const padL=50, padR=20, padT=30, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+  ctx.strokeStyle = '#0d1929';
+  for(let i=0; i<=10; i++){
+    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.25)';
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH); ctx.lineTo(padL+plotW, padT+plotH); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+
+  // Topic-specific drawing — generic eigenvalue/parameter plot
+  const N = Math.max(2, Math.min(20, Math.floor(v)));
+  const useBars = (N === Math.floor(N));
+  if(useBars){
+    // Bar plot for N components
+    const bw = plotW/(N+1);
+    for(let i=0; i<N; i++){
+      const idx = i+1;
+      const eigval = Math.sin(((2*idx-1)*Math.PI/(2*(2*N+1)))) * 2;  // shear-building eigenvalue formula
+      const bx = padL + (i+0.5)*bw;
+      const bh = (eigval/2.5)*plotH;
+      const grad = ctx.createLinearGradient(0, padT+plotH-bh, 0, padT+plotH);
+      grad.addColorStop(0, 'var(--amber)');
+      grad.addColorStop(1, 'var(--amber)40');
+      ctx.fillStyle = grad;
+      ctx.fillRect(bx-bw*0.35, padT+plotH-bh, bw*0.7, bh);
+      ctx.strokeStyle = 'var(--amber)';
+      ctx.strokeRect(bx-bw*0.35, padT+plotH-bh, bw*0.7, bh);
+      ctx.fillStyle = '#fff'; ctx.font = '9px JetBrains Mono'; ctx.textAlign = 'center';
+      ctx.fillText('ω'+(i+1), bx, padT+plotH+14);
+      ctx.fillText(eigval.toFixed(2), bx, padT+plotH-bh-5);
+    }
+  } else {
+    // Continuous curve
+    ctx.strokeStyle = 'var(--amber)'; ctx.lineWidth = 2.5;
+    ctx.shadowColor = 'var(--amber)A0'; ctx.shadowBlur = 6;
+    ctx.beginPath();
+    for(let i=0; i<=200; i++){
+      const x = padL + plotW*i/200;
+      const xv = i/200;
+      const y = padT + plotH - (0.5+0.4*Math.sin(xv*v*Math.PI*2))*plotH;
+      if(i===0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  ctx.textAlign = 'left';
+  ctx.fillStyle = 'var(--amber)'; ctx.font = 'bold 12px JetBrains Mono';
+  ctx.fillText('Amplitudo Sinusoidal A_sin = '+v.toFixed(2), padL+10, padT+18);
+
+  const info = document.getElementById('cvSigGen_info');
+  if(info) info.innerHTML = `<strong>Amplitudo Sinusoidal A_sin</strong> = ${v.toFixed(2)} · Time-domain stats parameter exploration`;
+}
+setTimeout(drawSigGen, 800+600);
+
+
+// ════════════════════════════════════════════════════════════
+// Animasi 3 — Animasi 3 — Below vs Above ISO Severity (Toggle)
+// ════════════════════════════════════════════════════════════
+let _cvSeverity_mode = 0;
+window.toggleSeverity = function(){
+  _cvSeverity_mode = 1 - _cvSeverity_mode;
+  const view = document.getElementById('cvSeverity_view');
+  const lbl = document.getElementById('cvSeverity_label');
+  const slider = view ? view.children[0] : null;
+  if(_cvSeverity_mode === 1){
+    if(view){ view.style.background = '#ef444430'; view.style.borderColor = '#ef4444'; }
+    if(slider) slider.style.transform = 'translateX(28px)';
+    if(lbl){ lbl.textContent = 'Zone D: STOP (RMS > 11.2 mm/s)'; lbl.style.color = '#ef4444'; }
+  } else {
+    if(view){ view.style.background = '#00e09e30'; view.style.borderColor = '#00e09e'; }
+    if(slider) slider.style.transform = 'translateX(0px)';
+    if(lbl){ lbl.textContent = 'Zone A: Good (RMS < 2.8 mm/s)'; lbl.style.color = '#00e09e'; }
+  }
+  drawSeverity();
+};
+
+function drawSeverity(){
+  const cv = document.getElementById('cvSeverity'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const isMode1 = (_cvSeverity_mode === 1);
+  const color = isMode1 ? '#ef4444' : '#00e09e';
+  const label = isMode1 ? 'Zone D: STOP (RMS > 11.2 mm/s)' : 'Zone A: Good (RMS < 2.8 mm/s)';
+
+  ctx.fillStyle = color; ctx.font = 'bold 14px JetBrains Mono';
+  ctx.fillText(label, 20, 30);
+
+  // Visualization differs per mode
+  const padL=50, padR=20, padT=50, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let i=0; i<=10; i++){
+    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.25)';
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+
+  // Sample comparison curves
+  const T = Date.now()/1000;
+  const N = 200;
+  ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+  ctx.shadowColor = color + 'A0'; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for(let i=0; i<=N; i++){
+    const x = padL + plotW*i/N;
+    const tt = i/N;
+    let y;
+    if(isMode1){
+      // Mode B: smoother / different
+      y = padT + plotH/2 - 0.5*plotH*0.4*Math.sin(tt*8*Math.PI + T)*Math.cos(tt*Math.PI);
+    } else {
+      // Mode A: standard
+      y = padT + plotH/2 - 0.5*plotH*0.4*Math.sin(tt*6*Math.PI + T);
+    }
+    if(i===0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  const info = document.getElementById('cvSeverity_info');
+  if(info) info.innerHTML = isMode1 ? '🟣 <strong>Zone D: STOP (RMS > 11.2 mm/s)</strong>' : '🟢 <strong>Zone A: Good (RMS < 2.8 mm/s)</strong>';
+}
+function _cvSeverityTick(){
+  drawSeverity();
+  requestAnimationFrame(_cvSeverityTick);
+}
+setTimeout(_cvSeverityTick, 850+600);
+
+
+// ════════════════════════════════════════════════════════════
+// Animasi 4 — Animasi 4 — Indicator Selection (Radio)
+// ════════════════════════════════════════════════════════════
+let _cvIndic_val = 'rms';
+let _cvIndic_frame = 0;
+window.setIndic = function(v){
+  _cvIndic_val = v;
+  document.querySelectorAll('.indic-rlbl').forEach(lbl=>{
+    const lv=lbl.dataset.v; const active=(lv===v);
+    lbl.style.background = active?'rgba(255,255,255,.20)':'rgba(255,255,255,.04)';
+    lbl.style.borderWidth = active?'2px':'1px';
+    lbl.style.color = active?'#fff':lbl.style.color;
+    lbl.style.fontWeight = active?'700':'400';
+    lbl.style.boxShadow = active?'0 0 12px rgba(255,255,255,.4)':'none';
+    lbl.style.transform = active?'scale(1.05)':'scale(1.0)';
+  });
+};
+
+function drawIndic(){
+  const cv = document.getElementById('cvIndic'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const opts = [('RMS (energy)', '#0ea5e9', 'rms'), ('Peak (max)', '#00e09e', 'peak'), ('Crest Factor (Peak/RMS)', '#f97316', 'crest'), ('Kurtosis (impulsiveness)', '#a855f7', 'kurt')];
+  const optMap = {};
+  opts.forEach(o => { optMap[o[2]] = {label: o[0], color: o[1]}; });
+  const cur = optMap[_cvIndic_val] || optMap[opts[0][2]];
+  const t = _cvIndic_frame * 0.012;
+
+  ctx.fillStyle = cur.color; ctx.font = 'bold 14px JetBrains Mono';
+  ctx.fillText(cur.label, 20, 30);
+
+  // Per-option visualization (frequency content)
+  const padL=50, padR=20, padT=50, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let i=0; i<=10; i++){
+    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.25)';
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+
+  // Map opt index → frequency multiplier
+  const optIdx = opts.findIndex(o => o[2] === _cvIndic_val);
+  const freqMult = (optIdx + 1) * 1.5;
+
+  ctx.strokeStyle = cur.color; ctx.lineWidth = 2.5;
+  ctx.shadowColor = cur.color + 'A0'; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for(let i=0; i<=200; i++){
+    const x = padL + plotW*i/200;
+    const tt = i/200;
+    const y = padT + plotH/2 - plotH*0.35*Math.sin(tt*freqMult*2*Math.PI + t);
+    if(i===0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  const info = document.getElementById('cvIndic_info');
+  if(info) info.innerHTML = `<strong style="color:${cur.color}">${cur.label}</strong> — freq multiplier: ${freqMult.toFixed(1)}×`;
+}
+
+function _cvIndicTick(){
+  _cvIndic_frame++;
+  drawIndic();
+  requestAnimationFrame(_cvIndicTick);
+}
+setTimeout(_cvIndicTick, 900+600);
+
+
+// ════════════════════════════════════════════════════════════
+// Animasi 5 — Animasi 5 — ISO 10816 Machine Class & Severity Zones (Dropdown)
+// ════════════════════════════════════════════════════════════
+let _cvISOZone_val = 'class1';
+let _cvISOZone_frame = 0;
+window.setISOZone = function(v){
+  _cvISOZone_val = v;
+};
+
+function drawISOZone(){
+  const cv = document.getElementById('cvISOZone'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const opts = [('class1', '⚙️ Class I — Small machines (motor < 15 kW)'), ('class2', '⚙️ Class II — Medium machines (motor 15-75 kW)'), ('class3', '🏭 Class III — Large machines on rigid found.'), ('class4', '🏭 Class IV — Large machines on flexible found.')];
+  const idx = opts.findIndex(o => o[0] === _cvISOZone_val);
+  const opt = opts[Math.max(0, idx)];
+  const t = _cvISOZone_frame * 0.010;
+
+  ctx.fillStyle = '#a855f7'; ctx.font = 'bold 13px JetBrains Mono';
+  ctx.fillText(opt[1], 20, 25);
+
+  // Generic visualization: animated waveform + index-dependent amplitude/frequency
+  const padL=50, padR=20, padT=45, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let i=0; i<=10; i++){
+    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.25)';
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+
+  const colors = ['#0ea5e9', '#00e09e', '#f97316', '#a855f7', '#ef4444', '#facc15'];
+  const color = colors[idx % colors.length];
+
+  ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+  ctx.shadowColor = color + 'A0'; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for(let i=0; i<=200; i++){
+    const x = padL + plotW*i/200;
+    const tt = i/200;
+    // Composite signal varying per option
+    const f1 = (idx+1)*1.5;
+    const f2 = (idx+1)*2.5;
+    const y = padT + plotH/2 - plotH*0.35*(Math.sin(tt*f1*2*Math.PI + t)+0.4*Math.sin(tt*f2*2*Math.PI - t));
+    if(i===0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  const info = document.getElementById('cvISOZone_info');
+  if(info) info.innerHTML = `<strong style="color:${color}">${opt[1]}</strong>`;
+}
+
+function _cvISOZoneTick(){
+  _cvISOZone_frame++;
+  drawISOZone();
+  requestAnimationFrame(_cvISOZoneTick);
+}
+setTimeout(_cvISOZoneTick, 950+600);
+
+</script>
+
 
 </body>
 </html>

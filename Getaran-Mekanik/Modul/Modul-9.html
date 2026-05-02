@@ -1457,7 +1457,7 @@ for i in range(N):
 <div class="section" id="m-visualisasi">
   <div class="section-label reveal cyan-label">Visualisasi</div>
   <h2 class="section-title reveal">5-DoF Building Mode Shapes<br>Visualisasi Modal Pattern</h2>
-  <p class="section-desc reveal">Klik mode untuk lihat shape getaran building 5 lantai. Mode 1 monotonic, mode 2 punya 1 zero crossing, mode N punya N-1 zeros. Frekuensi naik dengan mode.</p>
+  <p class="section-desc reveal">Klik mode untuk lihat shape getaran building 5 lantai. Mode 1 monotonic, mode 2 punya 1 zero crossing, mode N punya N-1 zeros. Frekuensi naik dengan mode. Lima animasi: (1) eigenvalue solver visualization, (2) <strong>slider</strong> N-DoF, (3) <strong>toggle</strong> normalization mode, (4) <strong>radio</strong> mode 1/2/3/4, (5) <strong>dropdown</strong> aplikasi modal.</p>
 
   <div class="reveal" style="background:#020812;border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px">
     <canvas id="cv-m9" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
@@ -1472,6 +1472,117 @@ for i in range(N):
       Building 5 lantai shear, m=1, k=1.6e6. Pilih mode untuk melihat shape getarannya.
     </div>
   </div>
+
+  <!-- Animasi 2: Animasi 2 — N-DoF Building Eigenvalues (Slider) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--amber)"></div>
+      <span class="anim-title">Animasi 2 — N-DoF Building Eigenvalues (Slider)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvNStory" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Jumlah Lantai N — <span class="ctrl-val" id="v_nstory">5</span></label>
+          <input type="range" id="sl_nstory" min="2" max="12" step="1" value="5" oninput="drawNStory()">
+        </div>
+      </div>
+      <div id="cvNStory_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Geser jumlah lantai gedung — frekuensi natural ω₁ < ω₂ < ... < ω_N otomatis terhitung.<br>
+        <strong>Insight:</strong> Untuk gedung shear-building N lantai (m identik, k identik per kolom), ω_i = 2·sin((2i-1)π/(2(2N+1)))·√(k/m). N=10 → ω_1 ≈ 0.31, ω_10 ≈ 1.99.
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 3: Animasi 3 — Mass-Norm vs Max-Norm Mode Shape (Toggle) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--green)"></div>
+      <span class="anim-title">Animasi 3 — Mass-Norm vs Max-Norm Mode Shape (Toggle)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvNorm" height="260" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+            Toggle Mode:
+            <span style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;" onclick="toggleNorm()">
+              <input type="checkbox" id="cvNorm_toggle" style="display:none;">
+              <span id="cvNorm_view" style="position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
+                <span style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
+              </span>
+              <span id="cvNorm_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#0ea5e9;font-weight:700;">Mass-Normalized (φᵀMφ=1)</span>
+            </span>
+          </label>
+        </div>
+      </div>
+      <div id="cvNorm_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Mode shape ratio bukan absolute. Pilihan normalisasi tergantung tujuan.<br>
+        <strong>Insight:</strong> Mass-norm: standar untuk modal superposition (m_i = 1 di equation modal). Max-norm: lebih intuitif untuk visualisasi (puncak = 1).
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 4: Animasi 4 — Mode 1/2/3/4 Selection (Radio) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--pink)"></div>
+      <span class="anim-title">Animasi 4 — Mode 1/2/3/4 Selection (Radio)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvModeSel" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih Mode (radio group):</label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+            <input type="radio" name="mode_radio" id="mode_radio_m1" checked onchange="setModeSel('m1')" style="display:none;">
+            <label for="mode_radio_m1" class="mode-rlbl" data-v="m1" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid #0ea5e9;background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">Mode 1 (fundamental) ✓</label>
+            <input type="radio" name="mode_radio" id="mode_radio_m2"  onchange="setModeSel('m2')" style="display:none;">
+            <label for="mode_radio_m2" class="mode-rlbl" data-v="m2" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.04);color:#00e09e;transition:all .15s;">Mode 2</label>
+            <input type="radio" name="mode_radio" id="mode_radio_m3"  onchange="setModeSel('m3')" style="display:none;">
+            <label for="mode_radio_m3" class="mode-rlbl" data-v="m3" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.04);color:#f97316;transition:all .15s;">Mode 3</label>
+            <input type="radio" name="mode_radio" id="mode_radio_m4"  onchange="setModeSel('m4')" style="display:none;">
+            <label for="mode_radio_m4" class="mode-rlbl" data-v="m4" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.04);color:#ef4444;transition:all .15s;">Mode 4</label>
+          </div>
+        </div>
+      </div>
+      <div id="cvModeSel_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Pilih mode shape untuk gedung 4-lantai. Mode shape = pola defleksi pada frekuensi pribadi.<br>
+        <strong>Insight:</strong> Mode 1: semua lantai sefase (fundamental). Mode 2: lantai atas vs bawah anti-fase. Mode 3-4: lebih banyak nodal point (zigzag). Earthquake: mode 1 dominan biasanya.
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 5: Animasi 5 — Modal Analysis Applications (Dropdown) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:#a855f7"></div>
+      <span class="anim-title">Animasi 5 — Modal Analysis Applications (Dropdown)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvModalApp" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih (Dropdown):</label>
+          <select id="sl_modalapp" onchange="setModalApp(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
+            <option value="building">🏢 High-rise building — earthquake mode shapes</option>
+            <option value="bridge">🌉 Suspension bridge — vertical/lateral/torsional modes</option>
+            <option value="aerospace">✈️ Aircraft wing — bending + torsion flutter</option>
+            <option value="automotive">🚗 Vehicle frame — body modes for NVH design</option>
+          </select>
+        </div>
+      </div>
+      <div id="cvModalApp_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Aplikasi modal analysis di industri.<br>
+        <strong>Insight:</strong> Building: mode 1 untuk seismik design. Bridge: identifikasi flutter critical (Tacoma!). Aerospace: aeroelastic clearance. Automotive: NVH (noise-vibration-harshness) tuning untuk komfort.
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -7701,6 +7812,305 @@ setTimeout(() => {
 }, 10000);
 setInterval(()=>{renderVisitors(latestVisitors);},30000);
 </script>
+<script>
+
+// ════════════════════════════════════════════════════════════
+// Animasi 2 — Animasi 2 — N-DoF Building Eigenvalues (Slider)
+// ════════════════════════════════════════════════════════════
+function drawNStory(){
+  const cv = document.getElementById('cvNStory'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const v = parseFloat(document.getElementById('sl_nstory').value);
+  const valEl = document.getElementById('v_nstory');
+  if(valEl) valEl.textContent = v.toFixed(2);
+
+  // Generic visualization: vertical bars representing eigenvalues / spectrum / etc
+  const padL=50, padR=20, padT=30, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+  ctx.strokeStyle = '#0d1929';
+  for(let i=0; i<=10; i++){
+    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.25)';
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH); ctx.lineTo(padL+plotW, padT+plotH); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+
+  // Topic-specific drawing — generic eigenvalue/parameter plot
+  const N = Math.max(2, Math.min(20, Math.floor(v)));
+  const useBars = (N === Math.floor(N));
+  if(useBars){
+    // Bar plot for N components
+    const bw = plotW/(N+1);
+    for(let i=0; i<N; i++){
+      const idx = i+1;
+      const eigval = Math.sin(((2*idx-1)*Math.PI/(2*(2*N+1)))) * 2;  // shear-building eigenvalue formula
+      const bx = padL + (i+0.5)*bw;
+      const bh = (eigval/2.5)*plotH;
+      const grad = ctx.createLinearGradient(0, padT+plotH-bh, 0, padT+plotH);
+      grad.addColorStop(0, 'var(--amber)');
+      grad.addColorStop(1, 'var(--amber)40');
+      ctx.fillStyle = grad;
+      ctx.fillRect(bx-bw*0.35, padT+plotH-bh, bw*0.7, bh);
+      ctx.strokeStyle = 'var(--amber)';
+      ctx.strokeRect(bx-bw*0.35, padT+plotH-bh, bw*0.7, bh);
+      ctx.fillStyle = '#fff'; ctx.font = '9px JetBrains Mono'; ctx.textAlign = 'center';
+      ctx.fillText('ω'+(i+1), bx, padT+plotH+14);
+      ctx.fillText(eigval.toFixed(2), bx, padT+plotH-bh-5);
+    }
+  } else {
+    // Continuous curve
+    ctx.strokeStyle = 'var(--amber)'; ctx.lineWidth = 2.5;
+    ctx.shadowColor = 'var(--amber)A0'; ctx.shadowBlur = 6;
+    ctx.beginPath();
+    for(let i=0; i<=200; i++){
+      const x = padL + plotW*i/200;
+      const xv = i/200;
+      const y = padT + plotH - (0.5+0.4*Math.sin(xv*v*Math.PI*2))*plotH;
+      if(i===0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  ctx.textAlign = 'left';
+  ctx.fillStyle = 'var(--amber)'; ctx.font = 'bold 12px JetBrains Mono';
+  ctx.fillText('Jumlah Lantai N = '+v.toFixed(2), padL+10, padT+18);
+
+  const info = document.getElementById('cvNStory_info');
+  if(info) info.innerHTML = `<strong>Jumlah Lantai N</strong> = ${v.toFixed(2)} · Modal Analysis parameter exploration`;
+}
+setTimeout(drawNStory, 800+450);
+
+
+// ════════════════════════════════════════════════════════════
+// Animasi 3 — Animasi 3 — Mass-Norm vs Max-Norm Mode Shape (Toggle)
+// ════════════════════════════════════════════════════════════
+let _cvNorm_mode = 0;
+window.toggleNorm = function(){
+  _cvNorm_mode = 1 - _cvNorm_mode;
+  const view = document.getElementById('cvNorm_view');
+  const lbl = document.getElementById('cvNorm_label');
+  const slider = view ? view.children[0] : null;
+  if(_cvNorm_mode === 1){
+    if(view){ view.style.background = '#a855f730'; view.style.borderColor = '#a855f7'; }
+    if(slider) slider.style.transform = 'translateX(28px)';
+    if(lbl){ lbl.textContent = 'Max-Normalized (max=1)'; lbl.style.color = '#a855f7'; }
+  } else {
+    if(view){ view.style.background = '#0ea5e930'; view.style.borderColor = '#0ea5e9'; }
+    if(slider) slider.style.transform = 'translateX(0px)';
+    if(lbl){ lbl.textContent = 'Mass-Normalized (φᵀMφ=1)'; lbl.style.color = '#0ea5e9'; }
+  }
+  drawNorm();
+};
+
+function drawNorm(){
+  const cv = document.getElementById('cvNorm'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const isMode1 = (_cvNorm_mode === 1);
+  const color = isMode1 ? '#a855f7' : '#0ea5e9';
+  const label = isMode1 ? 'Max-Normalized (max=1)' : 'Mass-Normalized (φᵀMφ=1)';
+
+  ctx.fillStyle = color; ctx.font = 'bold 14px JetBrains Mono';
+  ctx.fillText(label, 20, 30);
+
+  // Visualization differs per mode
+  const padL=50, padR=20, padT=50, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let i=0; i<=10; i++){
+    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.25)';
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+
+  // Sample comparison curves
+  const T = Date.now()/1000;
+  const N = 200;
+  ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+  ctx.shadowColor = color + 'A0'; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for(let i=0; i<=N; i++){
+    const x = padL + plotW*i/N;
+    const tt = i/N;
+    let y;
+    if(isMode1){
+      // Mode B: smoother / different
+      y = padT + plotH/2 - 0.5*plotH*0.4*Math.sin(tt*8*Math.PI + T)*Math.cos(tt*Math.PI);
+    } else {
+      // Mode A: standard
+      y = padT + plotH/2 - 0.5*plotH*0.4*Math.sin(tt*6*Math.PI + T);
+    }
+    if(i===0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  const info = document.getElementById('cvNorm_info');
+  if(info) info.innerHTML = isMode1 ? '🟣 <strong>Max-Normalized (max=1)</strong>' : '🟢 <strong>Mass-Normalized (φᵀMφ=1)</strong>';
+}
+function _cvNormTick(){
+  drawNorm();
+  requestAnimationFrame(_cvNormTick);
+}
+setTimeout(_cvNormTick, 850+450);
+
+
+// ════════════════════════════════════════════════════════════
+// Animasi 4 — Animasi 4 — Mode 1/2/3/4 Selection (Radio)
+// ════════════════════════════════════════════════════════════
+let _cvModeSel_val = 'm1';
+let _cvModeSel_frame = 0;
+window.setModeSel = function(v){
+  _cvModeSel_val = v;
+  document.querySelectorAll('.mode-rlbl').forEach(lbl=>{
+    const lv=lbl.dataset.v; const active=(lv===v);
+    lbl.style.background = active?'rgba(255,255,255,.20)':'rgba(255,255,255,.04)';
+    lbl.style.borderWidth = active?'2px':'1px';
+    lbl.style.color = active?'#fff':lbl.style.color;
+    lbl.style.fontWeight = active?'700':'400';
+    lbl.style.boxShadow = active?'0 0 12px rgba(255,255,255,.4)':'none';
+    lbl.style.transform = active?'scale(1.05)':'scale(1.0)';
+  });
+};
+
+function drawModeSel(){
+  const cv = document.getElementById('cvModeSel'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const opts = [('Mode 1 (fundamental)', '#0ea5e9', 'm1'), ('Mode 2', '#00e09e', 'm2'), ('Mode 3', '#f97316', 'm3'), ('Mode 4', '#ef4444', 'm4')];
+  const optMap = {};
+  opts.forEach(o => { optMap[o[2]] = {label: o[0], color: o[1]}; });
+  const cur = optMap[_cvModeSel_val] || optMap[opts[0][2]];
+  const t = _cvModeSel_frame * 0.012;
+
+  ctx.fillStyle = cur.color; ctx.font = 'bold 14px JetBrains Mono';
+  ctx.fillText(cur.label, 20, 30);
+
+  // Per-option visualization (frequency content)
+  const padL=50, padR=20, padT=50, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let i=0; i<=10; i++){
+    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.25)';
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+
+  // Map opt index → frequency multiplier
+  const optIdx = opts.findIndex(o => o[2] === _cvModeSel_val);
+  const freqMult = (optIdx + 1) * 1.5;
+
+  ctx.strokeStyle = cur.color; ctx.lineWidth = 2.5;
+  ctx.shadowColor = cur.color + 'A0'; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for(let i=0; i<=200; i++){
+    const x = padL + plotW*i/200;
+    const tt = i/200;
+    const y = padT + plotH/2 - plotH*0.35*Math.sin(tt*freqMult*2*Math.PI + t);
+    if(i===0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  const info = document.getElementById('cvModeSel_info');
+  if(info) info.innerHTML = `<strong style="color:${cur.color}">${cur.label}</strong> — freq multiplier: ${freqMult.toFixed(1)}×`;
+}
+
+function _cvModeSelTick(){
+  _cvModeSel_frame++;
+  drawModeSel();
+  requestAnimationFrame(_cvModeSelTick);
+}
+setTimeout(_cvModeSelTick, 900+450);
+
+
+// ════════════════════════════════════════════════════════════
+// Animasi 5 — Animasi 5 — Modal Analysis Applications (Dropdown)
+// ════════════════════════════════════════════════════════════
+let _cvModalApp_val = 'building';
+let _cvModalApp_frame = 0;
+window.setModalApp = function(v){
+  _cvModalApp_val = v;
+};
+
+function drawModalApp(){
+  const cv = document.getElementById('cvModalApp'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const opts = [('building', '🏢 High-rise building — earthquake mode shapes'), ('bridge', '🌉 Suspension bridge — vertical/lateral/torsional modes'), ('aerospace', '✈️ Aircraft wing — bending + torsion flutter'), ('automotive', '🚗 Vehicle frame — body modes for NVH design')];
+  const idx = opts.findIndex(o => o[0] === _cvModalApp_val);
+  const opt = opts[Math.max(0, idx)];
+  const t = _cvModalApp_frame * 0.010;
+
+  ctx.fillStyle = '#a855f7'; ctx.font = 'bold 13px JetBrains Mono';
+  ctx.fillText(opt[1], 20, 25);
+
+  // Generic visualization: animated waveform + index-dependent amplitude/frequency
+  const padL=50, padR=20, padT=45, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let i=0; i<=10; i++){
+    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.25)';
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+
+  const colors = ['#0ea5e9', '#00e09e', '#f97316', '#a855f7', '#ef4444', '#facc15'];
+  const color = colors[idx % colors.length];
+
+  ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+  ctx.shadowColor = color + 'A0'; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for(let i=0; i<=200; i++){
+    const x = padL + plotW*i/200;
+    const tt = i/200;
+    // Composite signal varying per option
+    const f1 = (idx+1)*1.5;
+    const f2 = (idx+1)*2.5;
+    const y = padT + plotH/2 - plotH*0.35*(Math.sin(tt*f1*2*Math.PI + t)+0.4*Math.sin(tt*f2*2*Math.PI - t));
+    if(i===0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  const info = document.getElementById('cvModalApp_info');
+  if(info) info.innerHTML = `<strong style="color:${color}">${opt[1]}</strong>`;
+}
+
+function _cvModalAppTick(){
+  _cvModalApp_frame++;
+  drawModalApp();
+  requestAnimationFrame(_cvModalAppTick);
+}
+setTimeout(_cvModalAppTick, 950+450);
+
+</script>
+
 
 </body>
 </html>
