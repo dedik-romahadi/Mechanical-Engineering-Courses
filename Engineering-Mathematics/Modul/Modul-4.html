@@ -1304,28 +1304,29 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     </div>
   </div>
 
-  <!-- Animasi 5: Dropdown + Signal Trace -->
+  <!-- Animasi 5: Aplikasi PD Linier Orde 1 Dunia Nyata (M4-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:#a855f7"></div>
-      <span class="anim-title">Animasi 5 — PD Linier Orde N: Sub-Topik (Dropdown + Signal Trace)</span>
+      <span class="anim-title">Animasi 5 — Aplikasi PD Linier Orde 1: Dunia Nyata (Dropdown)</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvEMdrop" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <canvas id="m4cvApps" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
-          <label>Pilih (Dropdown):</label>
-          <select id="sl_em_drop" onchange="setEMDrop(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
-            <option value="first">1️⃣ Orde 1 — y' + p(x)y = q(x)</option>
-            <option value="second">2️⃣ Orde 2 — y'' + py' + qy = r</option>
-            <option value="higher">🔢 Orde Tinggi — y^(n) + ... = r</option>
-            <option value="system">🌐 Sistem PD — y'=Ay coupled</option>
+          <label>Pilih aplikasi (semua dapat diselesaikan dengan faktor integrasi):</label>
+          <select id="m4slApps" onchange="window.m4SetApps(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:520px;margin-top:6px;">
+            <option value="rl">⚡ Rangkaian RL — L·dI/dt + R·I = V (arus naik ke V/R)</option>
+            <option value="mix">🧪 Tangki Pencampuran — V·dC/dt = q(Cᵢₙ − C)</option>
+            <option value="drug">💊 Konsentrasi Obat — dC/dt + k·C = D₀ (dosis konstan)</option>
+            <option value="bank">💰 Bunga Majemuk Kontinyu — dB/dt = r·B</option>
+            <option value="drag">🪂 Jatuh + Drag Linier — m·dv/dt + b·v = m·g</option>
           </select>
         </div>
       </div>
-      <div id="emDropInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
+      <div id="m4AppsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Pilih sub-topik. Layout split: kiri label, kanan signal trace 1000 samples (~10 detik).
+        <strong>📊 Cara Membaca:</strong> Lima aplikasi PD linier orde 1 (semua bentuk <code>y' + P(x)·y = Q(x)</code>). Layout split: kiri = ikon/diagram fisik bergerak (rangkaian RL dengan arus, tangki dengan particle, sel tubuh dengan obat, koin bertambah, parasut), kanan = signal trace 1000 samples (~10 detik). Solusi semua memiliki struktur <em>steady-state + transient e^(−kt)</em>.
       </div>
     </div>
   </div>
@@ -6866,6 +6867,284 @@ function _createForumParticleBurst(event) {
   else attachBtnHandlers();
 })();
 
+</script>
+
+<!-- ════════════════════════════════════════════════════════════════
+     M4 TOPIC-SPECIFIC ANIMASI 5 — Aplikasi PD Linier Orde 1
+     Canvas: m4cvApps. Animasi 1-4 sudah unique (cvLinierFamily,
+     cvFactor, cvBernoulli, cvReduksi) dengan JS dedicated di atas.
+     ════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  function bgGrad(ctx, W, H){
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#020812'); g.addColorStop(1, '#0d1929');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  function gridLines(ctx, x0, x1, y0, y1, divX, divY){
+    ctx.strokeStyle = 'rgba(148,163,184,.10)'; ctx.lineWidth = 1;
+    for (let i = 0; i <= divX; i++){
+      const x = x0 + (i/divX)*(x1-x0);
+      ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.stroke();
+    }
+    for (let j = 0; j <= divY; j++){
+      const y = y0 + (j/divY)*(y1-y0);
+      ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
+    }
+  }
+
+  const m4Apps = { which: 'rl', t: 0, hist: [], raf: null };
+
+  const M4_APPS = {
+    rl:   { label: "RL Circuit: I(t) = (V/R)·(1 − e^(−Rt/L))",       compute: t => 0.95*(1 - Math.exp(-0.5*t)),               color: '#0ea5e9', icon: 'rl'   },
+    mix:  { label: "Tangki: C(t) = Cᵢₙ + (C₀−Cᵢₙ)·e^(−q·t/V)",       compute: t => 0.7 - 0.55*Math.exp(-0.3*t),               color: '#ffb300', icon: 'tank' },
+    drug: { label: "Obat: C(t) = (D₀/k)(1 − e^(−k·t))",                compute: t => 0.85*(1 - Math.exp(-0.6*t)),               color: '#ff6bb3', icon: 'drug' },
+    bank: { label: "Bunga: B(t) = B₀·e^(r·t)",                          compute: t => 0.20 * Math.exp(0.25 * t) - 0.10,           color: '#00e09e', icon: 'coin' },
+    drag: { label: "Drag: v(t) = (mg/b)·(1 − e^(−b·t/m)) (terminal)",  compute: t => 0.92*(1 - Math.exp(-t/2.2)),               color: '#a855f7', icon: 'fall' }
+  };
+
+  window.m4SetApps = function(key){
+    m4Apps.which = key; m4Apps.hist = []; m4Apps.t = 0;
+  };
+
+  function drawM4Apps(){
+    const cv = document.getElementById('m4cvApps'); if(!cv){ m4Apps.raf = requestAnimationFrame(drawM4Apps); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const obj = M4_APPS[m4Apps.which];
+    const splitX = W * 0.40;
+    ctx.strokeStyle = 'rgba(148,163,184,.3)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(splitX, 20); ctx.lineTo(splitX, H - 20); ctx.stroke();
+
+    const cx = splitX/2, cy = H/2;
+    const t = m4Apps.t;
+    const val = obj.compute(t);
+
+    // ── LEFT: schematic ──
+    if (obj.icon === 'rl'){
+      // RL circuit: battery + resistor (zigzag) + inductor (loops)
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      // Battery (left)
+      ctx.beginPath();
+      ctx.moveTo(cx - 70, cy + 20); ctx.lineTo(cx - 70, cy - 20);
+      ctx.moveTo(cx - 78, cy - 8); ctx.lineTo(cx - 62, cy - 8);
+      ctx.moveTo(cx - 74, cy + 4); ctx.lineTo(cx - 66, cy + 4);
+      ctx.stroke();
+      // Wires + resistor (zigzag) + inductor (loops)
+      ctx.beginPath();
+      ctx.moveTo(cx - 70, cy - 20); ctx.lineTo(cx - 70, cy - 40); ctx.lineTo(cx - 30, cy - 40);
+      // Resistor zigzag
+      for (let i = 0; i < 6; i++){
+        const x = cx - 30 + i * 8;
+        ctx.lineTo(x + 4, cy - 40 + (i%2 ? 6 : -6));
+      }
+      ctx.lineTo(cx + 22, cy - 40);
+      // Wire to inductor
+      ctx.lineTo(cx + 50, cy - 40);
+      ctx.stroke();
+      // Inductor loops
+      ctx.beginPath();
+      for (let i = 0; i < 4; i++){
+        ctx.arc(cx + 56 + i * 10, cy - 40, 5, Math.PI, 0);
+      }
+      ctx.stroke();
+      // Wire down + back
+      ctx.beginPath();
+      ctx.moveTo(cx + 96, cy - 40); ctx.lineTo(cx + 96, cy + 30); ctx.lineTo(cx - 70, cy + 30); ctx.lineTo(cx - 70, cy + 20);
+      ctx.stroke();
+      // Current dots flowing (proportional to val)
+      const nDots = Math.max(2, Math.floor(8 * val));
+      ctx.fillStyle = obj.color; ctx.shadowColor = obj.color; ctx.shadowBlur = 10;
+      for (let i = 0; i < nDots; i++){
+        const phase = (t * 1.5 + i / nDots) % 1;
+        // Position along simplified loop (top): -70 to 96
+        const xP = -70 + phase * 166;
+        ctx.beginPath(); ctx.arc(cx + xP, cy - 40, 3, 0, Math.PI*2); ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 11px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText(`I = ${(val*100).toFixed(0)}% I_max`, cx, H - 22);
+      ctx.textAlign = 'left';
+    } else if (obj.icon === 'tank'){
+      // Tank with mixing (similar to M2)
+      const tankW = 80, tankH = 100;
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2;
+      ctx.strokeRect(cx - tankW/2, cy - tankH/2, tankW, tankH);
+      ctx.beginPath(); ctx.moveTo(cx - tankW/2 - 20, cy - tankH/2 - 10); ctx.lineTo(cx - tankW/2, cy - tankH/2 + 5); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx, cy + tankH/2); ctx.lineTo(cx, cy + tankH/2 + 18); ctx.stroke();
+      // Liquid intensity = concentration
+      ctx.fillStyle = `rgba(255,179,0,${0.3 + 0.55*val})`;
+      ctx.fillRect(cx - tankW/2 + 2, cy - tankH/2 + 2, tankW - 4, tankH - 4);
+      // Mixer paddle (rotating)
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+      const ang = t * 3;
+      ctx.beginPath();
+      ctx.moveTo(cx - 15*Math.cos(ang), cy - 15*Math.sin(ang));
+      ctx.lineTo(cx + 15*Math.cos(ang), cy + 15*Math.sin(ang));
+      ctx.stroke();
+      // Particles
+      ctx.fillStyle = '#fff';
+      const npart = Math.floor(2 + 30 * val);
+      for (let i = 0; i < npart; i++){
+        const px = cx - tankW/2 + 5 + ((i*7 + t*8) % (tankW - 10));
+        const py = cy - tankH/2 + 8 + ((i*11 + t*13) % (tankH - 16));
+        ctx.beginPath(); ctx.arc(px, py, 1.5, 0, Math.PI*2); ctx.fill();
+      }
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 11px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText(`C = ${val.toFixed(2)} kg/L`, cx, H - 22);
+      ctx.textAlign = 'left';
+    } else if (obj.icon === 'drug'){
+      // Body silhouette with drug concentration (color intensity)
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      // Head
+      ctx.beginPath(); ctx.arc(cx, cy - 50, 18, 0, Math.PI*2); ctx.stroke();
+      // Body
+      ctx.beginPath();
+      ctx.moveTo(cx - 25, cy - 30); ctx.lineTo(cx - 30, cy + 30);
+      ctx.lineTo(cx + 30, cy + 30); ctx.lineTo(cx + 25, cy - 30);
+      ctx.closePath();
+      ctx.stroke();
+      // Drug concentration fill
+      ctx.fillStyle = obj.color.replace('rgb', 'rgba').replace(')', `,${0.2 + 0.6*val})`);
+      ctx.fill();
+      // Drug molecules (dots inside)
+      ctx.fillStyle = '#fff'; ctx.shadowColor = obj.color; ctx.shadowBlur = 6;
+      const nMol = Math.floor(3 + 25 * val);
+      for (let i = 0; i < nMol; i++){
+        const ang = i * 2.4 + t * 0.3;
+        const r = 5 + (i % 4) * 6;
+        ctx.beginPath(); ctx.arc(cx + r*Math.cos(ang), cy + r*Math.sin(ang), 2, 0, Math.PI*2); ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+      // Drip arrow above (drug input)
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(cx, cy - 100); ctx.lineTo(cx, cy - 75); ctx.stroke();
+      ctx.fillStyle = '#94a3b8';
+      ctx.beginPath(); ctx.moveTo(cx, cy - 75); ctx.lineTo(cx - 5, cy - 80); ctx.lineTo(cx + 5, cy - 80); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 11px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText(`C = ${val.toFixed(2)} mg/mL`, cx, H - 22);
+      ctx.textAlign = 'left';
+    } else if (obj.icon === 'coin'){
+      // Stack of coins growing
+      const nCoins = Math.min(20, Math.floor(2 + 18 * Math.max(0, val + 0.1)));
+      ctx.strokeStyle = obj.color;
+      for (let i = 0; i < nCoins; i++){
+        const cy_i = cy + 40 - i * 6;
+        // Ellipse top + ellipse front
+        ctx.fillStyle = `rgba(0, 224, 158, ${0.3 + (i/nCoins)*0.5})`;
+        ctx.beginPath(); ctx.ellipse(cx, cy_i, 32, 7, 0, 0, Math.PI*2); ctx.fill();
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.ellipse(cx, cy_i, 32, 7, 0, 0, Math.PI*2); ctx.stroke();
+        // $ symbol
+        if (i === nCoins - 1){
+          ctx.fillStyle = '#fff'; ctx.shadowColor = obj.color; ctx.shadowBlur = 10;
+          ctx.font = 'bold 18px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+          ctx.fillText('$', cx, cy_i + 5);
+          ctx.textAlign = 'left'; ctx.shadowBlur = 0;
+        }
+      }
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 11px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText(`B(t) = ${(1 + val*5).toFixed(2)}·B₀`, cx, H - 22);
+      ctx.textAlign = 'left';
+    } else if (obj.icon === 'fall'){
+      // Parachute (similar to M2 — but with terminal velocity emphasis)
+      const objY = 50 + (1 - val) * 70;
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(cx, objY, 32, Math.PI, 0); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx - 32, objY); ctx.lineTo(cx, objY + 32);
+      ctx.moveTo(cx + 32, objY); ctx.lineTo(cx, objY + 32);
+      ctx.stroke();
+      ctx.fillStyle = obj.color; ctx.shadowColor = obj.color; ctx.shadowBlur = 12;
+      ctx.beginPath(); ctx.arc(cx, objY + 40, 8, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+      // Velocity arrow scaling with v
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5;
+      const vLen = 5 + 30*val;
+      ctx.beginPath(); ctx.moveTo(cx + 18, objY + 40); ctx.lineTo(cx + 18, objY + 40 + vLen); ctx.stroke();
+      // Arrowhead
+      const ay = objY + 40 + vLen;
+      ctx.fillStyle = '#94a3b8';
+      ctx.beginPath(); ctx.moveTo(cx + 18, ay); ctx.lineTo(cx + 14, ay - 5); ctx.lineTo(cx + 22, ay - 5); ctx.closePath(); ctx.fill();
+      // Terminal velocity dashed line
+      ctx.strokeStyle = 'rgba(255,179,0,.5)'; ctx.lineWidth = 1; ctx.setLineDash([4, 3]);
+      ctx.beginPath(); ctx.moveTo(cx - 50, cy + 50); ctx.lineTo(cx + 50, cy + 50); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#ffb300'; ctx.font = '10px JetBrains Mono, monospace';
+      ctx.fillText('v_terminal', cx + 12, cy + 46);
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 11px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText(`v = ${(val*30).toFixed(1)} m/s`, cx, H - 22);
+      ctx.textAlign = 'left';
+    }
+
+    // ── RIGHT: signal trace ──
+    const sx0 = splitX + 16, sx1 = W - 20, sy0 = 30, sy1 = H - 30;
+    ctx.strokeStyle = 'rgba(148,163,184,.2)'; ctx.lineWidth = 1;
+    ctx.strokeRect(sx0, sy0, sx1 - sx0, sy1 - sy0);
+    gridLines(ctx, sx0, sx1, sy0, sy1, 10, 4);
+
+    m4Apps.t += 0.012;
+    m4Apps.hist.push(val);
+    if (m4Apps.hist.length > 1000) m4Apps.hist.shift();
+
+    const hN = m4Apps.hist.length;
+    if (hN > 1){
+      let yMin = 0, yMaxH = 0;
+      for (let v of m4Apps.hist){ if (v < yMin) yMin = v; if (v > yMaxH) yMaxH = v; }
+      const yRng = Math.max(0.3, yMaxH - yMin);
+
+      // Steady-state asymptote line
+      let asyVal = null;
+      if (m4Apps.which === 'rl') asyVal = 0.95;
+      else if (m4Apps.which === 'mix') asyVal = 0.70;
+      else if (m4Apps.which === 'drug') asyVal = 0.85;
+      else if (m4Apps.which === 'drag') asyVal = 0.92;
+      if (asyVal !== null && asyVal <= yMaxH){
+        ctx.strokeStyle = 'rgba(255,179,0,.6)'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 3]);
+        const asyY = sy0 + ((yMaxH - asyVal)/yRng)*(sy1 - sy0);
+        ctx.beginPath(); ctx.moveTo(sx0, asyY); ctx.lineTo(sx1, asyY); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#ffb300'; ctx.font = 'bold 10px JetBrains Mono, monospace';
+        ctx.fillText(`steady-state = ${asyVal.toFixed(2)}`, sx1 - 130, asyY - 4);
+      }
+
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 8;
+      ctx.beginPath();
+      for (let i = 0; i < hN; i++){
+        const px = sx0 + (i/(hN-1))*(sx1 - sx0);
+        const py = sy0 + ((yMaxH - m4Apps.hist[i])/yRng) * (sy1 - sy0);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = '#fff'; ctx.shadowColor = obj.color; ctx.shadowBlur = 14;
+      const tipX = sx1, tipY = sy0 + ((yMaxH - val)/yRng)*(sy1 - sy0);
+      ctx.beginPath(); ctx.arc(tipX, tipY, 5, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    ctx.fillStyle = obj.color; ctx.font = 'bold 12px JetBrains Mono, monospace';
+    ctx.fillText(obj.label, sx0 + 8, sy0 + 16);
+
+    const infoEl = document.getElementById('m4AppsInfo');
+    if (infoEl){
+      const samples = m4Apps.hist.length;
+      infoEl.innerHTML = `<span style="color:${obj.color}">●</span> ${obj.label} &nbsp;|&nbsp; t=${t.toFixed(2)}, val=${val.toFixed(3)} &nbsp;|&nbsp; ${samples}/1000 samples`;
+    }
+
+    m4Apps.raf = requestAnimationFrame(drawM4Apps);
+  }
+
+  function initM4Apps(){
+    if (document.getElementById('m4cvApps')) drawM4Apps();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initM4Apps);
+  else initM4Apps();
+})();
 </script>
 
 </body>
