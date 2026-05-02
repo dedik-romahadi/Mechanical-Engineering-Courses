@@ -1490,6 +1490,445 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
   </div>
 </div>
 
+<!-- ═══ BAGIAN VISUALISASI — 5 ANIMASI INTERAKTIF ═══ -->
+<style>
+/* ─── Phase 5: Control Variants CSS ─── */
+.anim-grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); margin-bottom: 24px; }
+.anim-card { background: #020812; border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
+.anim-card h4 { margin: 0 0 8px 0; font-size: 14px; color: var(--cyan); font-family: 'JetBrains Mono', monospace; letter-spacing: 1px; text-transform: uppercase; }
+.anim-card .anim-desc { font-size: 12px; color: var(--muted); margin-bottom: 12px; line-height: 1.5; }
+.anim-canvas { width: 100%; display: block; background: #020812; border-radius: 8px; }
+.anim-controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 12px; justify-content: center; }
+.anim-info { text-align: center; margin-top: 8px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); }
+/* push button */
+.pbtn { padding: 7px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 11px; cursor: pointer; border: 1px solid; }
+.pbtn-cy { border-color: rgba(14,165,233,.4); background: rgba(14,165,233,.10); color: #0ea5e9; }
+.pbtn-am { border-color: rgba(255,179,0,.4); background: rgba(255,179,0,.08); color: var(--amber); }
+.pbtn-rd { border-color: rgba(220,38,38,.4); background: rgba(220,38,38,.08); color: #dc2626; }
+.pbtn-gr { border-color: rgba(0,224,158,.4); background: rgba(0,224,158,.10); color: var(--green); }
+/* slider */
+.anim-slider { width: 100%; max-width: 280px; -webkit-appearance: none; appearance: none; height: 6px; background: #1e293b; border-radius: 3px; outline: none; cursor: pointer; }
+.anim-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; background: var(--cyan); border-radius: 50%; cursor: pointer; }
+.anim-slider::-moz-range-thumb { width: 18px; height: 18px; background: var(--cyan); border-radius: 50%; cursor: pointer; border: 0; }
+.anim-slider-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--cyan); }
+/* toggle switch */
+.anim-toggle { position: relative; display: inline-block; width: 50px; height: 26px; }
+.anim-toggle input { opacity: 0; width: 0; height: 0; }
+.anim-toggle .tslider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #1e293b; border-radius: 26px; transition: .3s; }
+.anim-toggle .tslider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: .3s; }
+.anim-toggle input:checked + .tslider { background: var(--green); }
+.anim-toggle input:checked + .tslider:before { transform: translateX(24px); }
+/* radio group */
+.anim-radio { display: flex; gap: 6px; flex-wrap: wrap; }
+.anim-radio label { padding: 5px 10px; border-radius: 5px; font-family: 'JetBrains Mono', monospace; font-size: 10px; cursor: pointer; border: 1px solid rgba(168,85,247,.3); background: rgba(168,85,247,.05); color: #a855f7; transition: .2s; }
+.anim-radio input { display: none; }
+.anim-radio input:checked + label { background: rgba(168,85,247,.25); border-color: rgba(168,85,247,.6); color: #fff; }
+/* dropdown */
+.anim-dropdown { padding: 6px 12px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 11px; cursor: pointer; border: 1px solid rgba(0,224,158,.4); background: rgba(0,224,158,.08); color: var(--green); }
+@media print { .anim-grid { grid-template-columns: 1fr; } }
+</style>
+<hr class="divider">
+<div class="section" id="m-visualisasi">
+  <div class="section-label reveal cyan-label">Visualisasi</div>
+  <h2 class="section-title reveal">5 Jenis Animasi Interaktif:<br>Pengantar Getaran Mekanik 1-DoF</h2>
+  <p class="section-desc reveal">Lima animasi kanvas untuk memahami konsep dasar getaran mekanik 1-DoF — dengan 5 jenis kontrol berbeda (push button, slider, toggle, radio, dropdown).</p>
+
+  <div class="anim-grid reveal">
+
+    <!-- 1. PUSH BUTTON: Damping Cases -->
+    <div class="anim-card">
+      <h4>1️⃣ Push Buttons — Damping Cases</h4>
+      <p class="anim-desc">Bandingkan respons sistem 1-DoF dengan tiga jenis damping: under, critical, dan over-damped.</p>
+      <canvas id="cv1-1" class="anim-canvas" height="180"></canvas>
+      <div class="anim-controls">
+        <button class="pbtn pbtn-cy" onclick="window._m1set1(0)">Underdamped (ζ=0.1)</button>
+        <button class="pbtn pbtn-am" onclick="window._m1set1(1)">Critical (ζ=1.0)</button>
+        <button class="pbtn pbtn-rd" onclick="window._m1set1(2)">Overdamped (ζ=2.0)</button>
+      </div>
+      <div id="info1-1" class="anim-info">Underdamped: oscillation decay</div>
+    </div>
+
+    <!-- 2. SLIDER: Spring Stiffness -->
+    <div class="anim-card">
+      <h4>2️⃣ Slider — Spring Stiffness Effect</h4>
+      <p class="anim-desc">Geser slider untuk mengubah stiffness k. Lihat bagaimana frekuensi natural ω_n = √(k/m) berubah.</p>
+      <canvas id="cv1-2" class="anim-canvas" height="180"></canvas>
+      <div class="anim-controls">
+        <span class="anim-slider-label" id="lbl1-2">k = 100 N/m</span>
+        <input type="range" class="anim-slider" min="20" max="500" value="100" oninput="window._m1set2(this.value)">
+      </div>
+      <div id="info1-2" class="anim-info">ω_n = 10 rad/s, T = 0.628 s</div>
+    </div>
+
+    <!-- 3. TOGGLE SWITCH: Gravity On/Off -->
+    <div class="anim-card">
+      <h4>3️⃣ Toggle Switch — Gravity On/Off</h4>
+      <p class="anim-desc">Aktifkan/nonaktifkan gravitasi. Static deflection δ = mg/k akan muncul saat gravity ON.</p>
+      <canvas id="cv1-3" class="anim-canvas" height="180"></canvas>
+      <div class="anim-controls">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)">Gravity:</span>
+        <label class="anim-toggle">
+          <input type="checkbox" id="tog1-3" onchange="window._m1set3(this.checked)">
+          <span class="tslider"></span>
+        </label>
+        <span class="anim-slider-label" id="lbl1-3">OFF</span>
+      </div>
+      <div id="info1-3" class="anim-info">Free oscillation around x=0</div>
+    </div>
+
+    <!-- 4. RADIO GROUP: Element View -->
+    <div class="anim-card">
+      <h4>4️⃣ Radio Group — System Elements</h4>
+      <p class="anim-desc">Pilih elemen sistem untuk highlight: massa (inertia), pegas (stiffness), damper (dissipation), atau gabungan.</p>
+      <canvas id="cv1-4" class="anim-canvas" height="180"></canvas>
+      <div class="anim-controls anim-radio">
+        <input type="radio" name="r1-4" id="r1-4-0" checked onchange="window._m1set4('all')">
+        <label for="r1-4-0">All</label>
+        <input type="radio" name="r1-4" id="r1-4-1" onchange="window._m1set4('mass')">
+        <label for="r1-4-1">Mass m</label>
+        <input type="radio" name="r1-4" id="r1-4-2" onchange="window._m1set4('spring')">
+        <label for="r1-4-2">Spring k</label>
+        <input type="radio" name="r1-4" id="r1-4-3" onchange="window._m1set4('damper')">
+        <label for="r1-4-3">Damper c</label>
+      </div>
+      <div id="info1-4" class="anim-info">m·ẍ + c·ẋ + k·x = F(t)</div>
+    </div>
+
+    <!-- 5. DROPDOWN: System Examples -->
+    <div class="anim-card" style="grid-column: 1 / -1;">
+      <h4>5️⃣ Dropdown — Pemodelan Sistem Real</h4>
+      <p class="anim-desc">Pilih sistem real yang dimodelkan sebagai 1-DoF mass-spring-damper equivalent.</p>
+      <canvas id="cv1-5" class="anim-canvas" height="200"></canvas>
+      <div class="anim-controls">
+        <select class="anim-dropdown" onchange="window._m1set5(this.value)">
+          <option value="pendulum">🪀 Pendulum sederhana</option>
+          <option value="msd">🔧 Mass-Spring-Damper</option>
+          <option value="cantilever">🪛 Cantilever Beam</option>
+          <option value="rotor">⚙️ Rotor + Bearing</option>
+          <option value="suspension">🚗 Mobil suspensi</option>
+        </select>
+      </div>
+      <div id="info1-5" class="anim-info">Pendulum: ω_n = √(g/L), L = 1 m → ω_n ≈ 3.13 rad/s</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function() {
+  // ── ANIM 1: Damping Cases (Push Buttons) ──────────────────────────
+  const cv1 = document.getElementById('cv1-1');
+  if (cv1) {
+    const ctx = cv1.getContext('2d');
+    let damp = 0; // 0=under, 1=critical, 2=over
+    window._m1set1 = function(d) { damp = d; t0 = Date.now()/1000;
+      document.getElementById('info1-1').textContent =
+        d === 0 ? 'Underdamped (ζ=0.1): oscillation decay slowly' :
+        d === 1 ? 'Critical (ζ=1.0): fastest non-oscillating return' :
+                  'Overdamped (ζ=2.0): slow non-oscillating return';
+    };
+    let t0 = Date.now()/1000;
+    function draw() {
+      const W = cv1.width = cv1.clientWidth, H = cv1.height;
+      ctx.clearRect(0,0,W,H);
+      ctx.strokeStyle = 'rgba(148,163,184,0.2)'; ctx.beginPath();
+      ctx.moveTo(0, H/2); ctx.lineTo(W, H/2); ctx.stroke();
+      const t = (Date.now()/1000 - t0) % 5;
+      const wn = 10;
+      ctx.strokeStyle = damp === 0 ? '#0ea5e9' : damp === 1 ? '#f59e0b' : '#dc2626';
+      ctx.lineWidth = 2; ctx.beginPath();
+      for (let px = 0; px < W; px++) {
+        const tau = (px/W) * 5;
+        let val;
+        if (damp === 0) val = Math.exp(-0.1*wn*tau) * Math.cos(wn*Math.sqrt(0.99)*tau);
+        else if (damp === 1) val = Math.exp(-wn*tau) * (1 + wn*tau);
+        else val = (Math.exp(-(2-Math.sqrt(3))*wn*tau) + Math.exp(-(2+Math.sqrt(3))*wn*tau))/2;
+        const py = H/2 - val * 60;
+        if (px === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      // Time cursor
+      const cx = (t/5) * W;
+      ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.beginPath();
+      ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.stroke();
+      requestAnimationFrame(draw);
+    }
+    draw();
+  }
+
+  // ── ANIM 2: Spring Stiffness (Slider) ───────────────────────────
+  const cv2 = document.getElementById('cv1-2');
+  if (cv2) {
+    const ctx = cv2.getContext('2d');
+    let k = 100; const m = 1;
+    window._m1set2 = function(v) {
+      k = parseFloat(v);
+      const wn = Math.sqrt(k/m), T = 2*Math.PI/wn;
+      document.getElementById('lbl1-2').textContent = `k = ${k.toFixed(0)} N/m`;
+      document.getElementById('info1-2').textContent = `ω_n = ${wn.toFixed(2)} rad/s, T = ${T.toFixed(3)} s`;
+    };
+    function draw() {
+      const W = cv2.width = cv2.clientWidth, H = cv2.height;
+      ctx.clearRect(0,0,W,H);
+      const t = Date.now()/1000;
+      const wn = Math.sqrt(k/m);
+      const x = Math.cos(wn*t) * 50;
+      // Wall left
+      ctx.fillStyle = '#1e293b'; ctx.fillRect(20, H/2-25, 6, 50);
+      // Spring
+      ctx.strokeStyle = 'rgba(168,85,247,0.7)'; ctx.lineWidth = 2;
+      const sx1 = 26, sx2 = W/2 + x - 25;
+      ctx.beginPath(); ctx.moveTo(sx1, H/2);
+      const segs = 12;
+      for (let i = 1; i < segs; i++) {
+        const tt = i/segs;
+        ctx.lineTo(sx1 + (sx2-sx1)*tt, H/2 + ((i%2)?-7:7));
+      }
+      ctx.lineTo(sx2, H/2); ctx.stroke();
+      // Mass
+      ctx.fillStyle = 'rgba(14,165,233,0.85)';
+      ctx.fillRect(W/2 + x - 25, H/2 - 25, 50, 50);
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 13px monospace'; ctx.textAlign = 'center';
+      ctx.fillText('m=1', W/2+x, H/2+5);
+      requestAnimationFrame(draw);
+    }
+    draw();
+  }
+
+  // ── ANIM 3: Gravity Toggle ──────────────────────────────────────
+  const cv3 = document.getElementById('cv1-3');
+  if (cv3) {
+    const ctx = cv3.getContext('2d');
+    let gravity = false; const m = 1, k = 100, g = 9.81;
+    window._m1set3 = function(on) {
+      gravity = on;
+      document.getElementById('lbl1-3').textContent = on ? 'ON' : 'OFF';
+      document.getElementById('info1-3').textContent = on ?
+        `Static deflection δ = mg/k = ${(m*g/k*1000).toFixed(2)} mm; oscillation around δ` :
+        'Free oscillation around x=0';
+    };
+    function draw() {
+      const W = cv3.width = cv3.clientWidth, H = cv3.height;
+      ctx.clearRect(0,0,W,H);
+      const t = Date.now()/1000;
+      const wn = Math.sqrt(k/m);
+      const offset = gravity ? 30 : 0;
+      const x = Math.cos(wn*t) * 30 + offset;
+      // Ceiling
+      ctx.fillStyle = '#1e293b'; ctx.fillRect(W/2-40, 5, 80, 6);
+      // Spring (vertical)
+      ctx.strokeStyle = 'rgba(168,85,247,0.7)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(W/2, 11);
+      const segs = 12;
+      const yEnd = H/2 + x;
+      for (let i = 1; i < segs; i++) {
+        const tt = i/segs;
+        ctx.lineTo(W/2 + ((i%2)?-7:7), 11 + (yEnd-11)*tt);
+      }
+      ctx.lineTo(W/2, yEnd); ctx.stroke();
+      // Mass
+      ctx.fillStyle = gravity ? 'rgba(255,179,0,0.85)' : 'rgba(14,165,233,0.85)';
+      ctx.fillRect(W/2-25, yEnd, 50, 30);
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
+      ctx.fillText('m', W/2, yEnd+18);
+      // Equilibrium line
+      ctx.strokeStyle = 'rgba(148,163,184,0.3)'; ctx.setLineDash([3,3]);
+      ctx.beginPath(); ctx.moveTo(W/2-50, H/2 + offset);
+      ctx.lineTo(W/2+50, H/2 + offset); ctx.stroke();
+      ctx.setLineDash([]);
+      requestAnimationFrame(draw);
+    }
+    draw();
+  }
+
+  // ── ANIM 4: Radio Element View ─────────────────────────────────
+  const cv4 = document.getElementById('cv1-4');
+  if (cv4) {
+    const ctx = cv4.getContext('2d');
+    let view = 'all';
+    window._m1set4 = function(v) {
+      view = v;
+      const labels = {'all': 'm·ẍ + c·ẋ + k·x = F(t)',
+                      'mass': 'Massa: m·ẍ — gaya inersia',
+                      'spring': 'Pegas: k·x — gaya pemulih',
+                      'damper': 'Damper: c·ẋ — gaya disipasi'};
+      document.getElementById('info1-4').textContent = labels[v];
+    };
+    function draw() {
+      const W = cv4.width = cv4.clientWidth, H = cv4.height;
+      ctx.clearRect(0,0,W,H);
+      const t = Date.now()/1000;
+      const x = Math.cos(2*t) * 30;
+      // Wall
+      const wall = view === 'all' || view !== 'mass' ? 1.0 : 0.2;
+      ctx.fillStyle = `rgba(30,41,59,${wall})`;
+      ctx.fillRect(20, H/2-30, 6, 60);
+      // Spring
+      const spr = view === 'all' || view === 'spring' ? 1.0 : 0.2;
+      ctx.strokeStyle = `rgba(168,85,247,${spr*0.8})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      const sx1 = 26, sx2 = W*0.45 + x - 25;
+      const segs = 10;
+      ctx.moveTo(sx1, H/2);
+      for (let i = 1; i < segs; i++) {
+        const tt = i/segs;
+        ctx.lineTo(sx1 + (sx2-sx1)*tt, H/2 + ((i%2)?-6:6));
+      }
+      ctx.lineTo(sx2, H/2); ctx.stroke();
+      ctx.fillStyle = `rgba(168,85,247,${spr})`;
+      ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center';
+      if (spr > 0.5) ctx.fillText('k', (sx1+sx2)/2, H/2-10);
+      // Damper (parallel to spring)
+      const dmp = view === 'all' || view === 'damper' ? 1.0 : 0.2;
+      ctx.strokeStyle = `rgba(249,115,22,${dmp*0.8})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(sx1+5, H/2+30); ctx.lineTo(sx2-15, H/2+30);
+      ctx.moveTo((sx1+sx2)/2-15, H/2+22); ctx.lineTo((sx1+sx2)/2-15, H/2+38);
+      ctx.lineTo((sx1+sx2)/2+15, H/2+38); ctx.lineTo((sx1+sx2)/2+15, H/2+22);
+      ctx.stroke();
+      ctx.fillStyle = `rgba(249,115,22,${dmp})`;
+      if (dmp > 0.5) ctx.fillText('c', (sx1+sx2)/2, H/2+50);
+      // Mass
+      const mss = view === 'all' || view === 'mass' ? 1.0 : 0.2;
+      ctx.fillStyle = `rgba(14,165,233,${mss})`;
+      ctx.fillRect(W*0.45 + x - 25, H/2 - 25, 50, 50);
+      ctx.fillStyle = `rgba(255,255,255,${mss})`;
+      ctx.font = 'bold 14px monospace';
+      if (mss > 0.5) ctx.fillText('m', W*0.45+x, H/2+5);
+      // Force arrow
+      ctx.strokeStyle = `rgba(0,224,158,${view === 'all' ? 1 : 0.3})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(W*0.7, H/2); ctx.lineTo(W*0.7+40, H/2);
+      ctx.moveTo(W*0.7+30, H/2-7); ctx.lineTo(W*0.7+40, H/2);
+      ctx.lineTo(W*0.7+30, H/2+7);
+      ctx.stroke();
+      ctx.fillStyle = `rgba(0,224,158,${view === 'all' ? 1 : 0.3})`;
+      ctx.fillText('F(t)', W*0.7+50, H/2+5);
+      requestAnimationFrame(draw);
+    }
+    draw();
+  }
+
+  // ── ANIM 5: System Examples (Dropdown) ─────────────────────────
+  const cv5 = document.getElementById('cv1-5');
+  if (cv5) {
+    const ctx = cv5.getContext('2d');
+    let sys = 'pendulum';
+    const SYS_INFO = {
+      'pendulum': 'Pendulum: ω_n = √(g/L), L = 1 m → ω_n ≈ 3.13 rad/s',
+      'msd': 'Mass-Spring-Damper: ω_n = √(k/m), m=1 kg, k=100 N/m → 10 rad/s',
+      'cantilever': 'Cantilever: ω_n = (1.875)²·√(EI/(ρAL⁴)) — bending mode 1',
+      'rotor': 'Rotor: ω_n = √(k_journal/m_rotor), bearing stiffness',
+      'suspension': 'Mobil: ω_n = √(k_spring/m_body) ≈ 1-2 Hz natural ride freq'
+    };
+    window._m1set5 = function(v) {
+      sys = v;
+      document.getElementById('info1-5').textContent = SYS_INFO[v];
+    };
+    function draw() {
+      const W = cv5.width = cv5.clientWidth, H = cv5.height;
+      ctx.clearRect(0,0,W,H);
+      const t = Date.now()/1000;
+      const cx = W/2, cy = H/2;
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 11px monospace';
+      ctx.textAlign = 'center';
+
+      if (sys === 'pendulum') {
+        const theta = Math.sin(3.13*t) * 0.4;
+        const L = 80;
+        const px = cx + L*Math.sin(theta);
+        const py = 30 + L*Math.cos(theta);
+        ctx.fillStyle = '#1e293b'; ctx.fillRect(cx-40, 10, 80, 8);
+        ctx.strokeStyle = 'rgba(168,85,247,0.7)'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(cx, 18); ctx.lineTo(px, py); ctx.stroke();
+        ctx.fillStyle = 'rgba(255,179,0,0.85)'; ctx.beginPath();
+        ctx.arc(px, py, 18, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#fff'; ctx.fillText('m', px, py+4);
+        ctx.fillStyle = 'rgba(148,163,184,0.5)'; ctx.font = '10px monospace';
+        ctx.fillText('L = 1 m', cx-30, 50); ctx.fillText('θ', cx+15, 35);
+      }
+      else if (sys === 'msd') {
+        const x = Math.cos(10*t) * 30;
+        ctx.fillStyle = '#1e293b'; ctx.fillRect(20, cy-30, 6, 60);
+        ctx.strokeStyle = 'rgba(168,85,247,0.7)'; ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(26, cy);
+        const segs = 12;
+        for (let i = 1; i < segs; i++) {
+          const tt = i/segs;
+          ctx.lineTo(26 + (cx+x-25-26)*tt, cy + ((i%2)?-7:7));
+        }
+        ctx.lineTo(cx+x-25, cy); ctx.stroke();
+        ctx.fillStyle = 'rgba(14,165,233,0.85)';
+        ctx.fillRect(cx+x-25, cy-25, 50, 50);
+        ctx.fillStyle = '#fff'; ctx.fillText('m', cx+x, cy+5);
+      }
+      else if (sys === 'cantilever') {
+        // Cantilever beam, mode 1 deflection
+        ctx.fillStyle = '#1e293b'; ctx.fillRect(20, cy-30, 6, 60);
+        ctx.strokeStyle = 'rgba(0,224,158,0.7)'; ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(26, cy);
+        const amp = Math.sin(2*t) * 30;
+        for (let px = 26; px < cx+150; px += 4) {
+          const xn = (px - 26) / (cx+150 - 26);
+          const phi = (1 - Math.cos(1.875*xn)) - 0.367*(Math.sin(1.875*xn) - Math.sinh(1.875*xn) - Math.cosh(1.875*xn) + Math.cos(1.875*xn));
+          const y = cy + amp * xn * xn * 0.7;
+          ctx.lineTo(px, y);
+        }
+        ctx.stroke();
+        ctx.fillStyle = '#fff';
+        ctx.fillText('Cantilever Mode 1', cx, cy+60);
+      }
+      else if (sys === 'rotor') {
+        // Rotor with wobble
+        const wobble = Math.sin(8*t) * 5;
+        ctx.fillStyle = '#1e293b';
+        // Bearings
+        ctx.fillRect(cx-100, cy-15, 30, 30);
+        ctx.fillRect(cx+70, cy-15, 30, 30);
+        // Shaft
+        ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.moveTo(cx-100, cy + wobble); ctx.lineTo(cx+100, cy + wobble); ctx.stroke();
+        // Rotor disk
+        ctx.fillStyle = 'rgba(168,85,247,0.85)';
+        ctx.beginPath(); ctx.arc(cx, cy + wobble, 25, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#fff'; ctx.fillText('Rotor', cx, cy + wobble + 4);
+      }
+      else { // suspension
+        const bump = Math.sin(1.5*t) * 8;
+        // Road
+        ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.moveTo(20, cy + 60 + bump); ctx.lineTo(W-20, cy + 60 + bump); ctx.stroke();
+        // Wheel
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath(); ctx.arc(cx-50, cy+30, 18, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx+50, cy+30, 18, 0, Math.PI*2); ctx.fill();
+        // Spring (suspension)
+        ctx.strokeStyle = 'rgba(168,85,247,0.7)'; ctx.lineWidth = 2;
+        for (let wx of [cx-50, cx+50]) {
+          ctx.beginPath();
+          ctx.moveTo(wx, cy+12);
+          for (let i = 1; i < 6; i++) ctx.lineTo(wx + ((i%2)?5:-5), cy+12 - i*3);
+          ctx.lineTo(wx, cy);
+          ctx.stroke();
+        }
+        // Body
+        ctx.fillStyle = 'rgba(14,165,233,0.85)';
+        ctx.fillRect(cx-90, cy-25 + bump*0.3, 180, 30);
+        ctx.fillStyle = '#fff'; ctx.fillText('Body', cx, cy-5 + bump*0.3);
+      }
+      requestAnimationFrame(draw);
+    }
+    draw();
+  }
+})();
+</script>
+
 <!-- ═══ DAFTAR PUSTAKA ═══ -->
 <hr class="divider">
 <div class="section" id="m-pustaka" style="padding-bottom:40px">
