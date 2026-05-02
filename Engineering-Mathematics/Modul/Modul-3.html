@@ -1498,16 +1498,15 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <canvas id="cvEMtog" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
-          <label style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--text)">
             Method:
-            <span style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;" onclick="toggleEMSolver()">
-              <input type="checkbox" id="sl_em_tog" style="display:none;">
-              <span id="em_tog_view" style="position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
+            <button type="button" onclick="toggleEMSolver()" style="background:none;border:none;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
+              <span id="em_tog_view" style="display:inline-block;position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
                 <span style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
               </span>
               <span id="em_tog_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:700;">ANALYTICAL (closed-form)</span>
-            </span>
-          </label>
+            </button>
+          </div>
         </div>
       </div>
       <div id="emTogInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
@@ -4267,6 +4266,35 @@ function drawCases(){
     }
     infoEl.innerHTML = `<span style="color:${color}">●</span> PD: y'' + ${b.toFixed(2)}·y' + ${c.toFixed(2)}·y = 0 &nbsp;|&nbsp; D = ${D.toFixed(2)} &nbsp;|&nbsp; ${rootsStr}`;
   }
+
+  // ANIMATED tracing dot — moves along the curve based on _casesAnim.time
+  if (typeof _casesAnim.time !== 'number') _casesAnim.time = 0;
+  if (_casesAnim.running) _casesAnim.time = (_casesAnim.time + 0.04) % tMax;
+  const tDot = _casesAnim.time;
+  const iDot = Math.min(N-1, Math.floor(tDot/dt));
+  const dotX = tx(tDot), dotY = ty(ys[iDot]);
+  // Trail (recent samples) — fading
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 4;
+  ctx.shadowColor = color; ctx.shadowBlur = 16;
+  ctx.beginPath();
+  const trailLen = 30;
+  for (let k = Math.max(0, iDot - trailLen); k <= iDot; k++){
+    const tk = k * dt;
+    const px = tx(tk), py = ty(ys[k]);
+    if (k === Math.max(0, iDot - trailLen)) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+  // Big glowing dot at current position
+  ctx.fillStyle = '#fff';
+  ctx.shadowColor = color; ctx.shadowBlur = 20;
+  ctx.beginPath(); ctx.arc(dotX, dotY, 7, 0, Math.PI*2); ctx.fill();
+  ctx.shadowBlur = 0;
+  // Time + value indicator
+  ctx.fillStyle = color; ctx.font = 'bold 12px JetBrains Mono, monospace';
+  ctx.fillText(`t=${tDot.toFixed(2)}, y=${ys[iDot].toFixed(3)}`, dotX + 12, dotY - 8);
 
   if (_casesAnim.running) _casesAnim.raf = requestAnimationFrame(drawCases);
 }
