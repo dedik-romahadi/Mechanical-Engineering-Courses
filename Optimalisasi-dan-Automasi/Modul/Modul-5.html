@@ -1154,7 +1154,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 06</div>
   <h2 class="section-title reveal">Animasi Interaktif<br>Transformasi &amp; Dekomposisi</h2>
-  <p class="section-desc reveal">Empat animasi visual untuk memahami <strong>Pertemuan 5</strong> secara intuitif: (1) deret mentah dengan tren + musiman + noise, (2) efek log transform pada varians tidak stabil, (3) differencing dan pengaruhnya pada stasioneritas, dan (4) dekomposisi aditif ke tiga komponen. Geser slider, lihat transformasi bekerja real-time.</p>
+  <p class="section-desc reveal">Lima animasi visual untuk memahami <strong>Pertemuan 5</strong> secara intuitif: (1) deret mentah dengan tren + musiman + noise, (2) efek log transform pada varians tidak stabil, (3) differencing dan pengaruhnya pada stasioneritas, dan (4) dekomposisi aditif ke tiga komponen. Geser slider, lihat transformasi bekerja real-time.</p>
 
   <!-- Animasi 1 -->
   <div class="anim-panel reveal">
@@ -1248,6 +1248,34 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       </div>
     </div>
   </div>
+
+  <!-- Animasi 5: Animasi 5 — Empat Transformasi & Dekomposisi (Dropdown) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:#a855f7"></div>
+      <span class="anim-title">Animasi 5 — Empat Transformasi & Dekomposisi (Dropdown)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvOA5" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih (Dropdown):</label>
+          <select id="sl_oa5" onchange="setOA5(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
+            <option value="log">📐 Log Transform — stabilize variance</option>
+            <option value="boxcox">🔄 Box-Cox — optimal λ transformation</option>
+            <option value="stl">🌳 STL Decomposition — seasonal + trend</option>
+            <option value="wavelet">🌊 Wavelet — multi-scale decomposition</option>
+          </select>
+        </div>
+      </div>
+      <div id="oa5Info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Pilih transformasi/dekomposisi — untuk sinyal kompleks tidak cukup hanya filter sederhana.<br>
+        <strong>Insight:</strong> Log: untuk multiplicative seasonal. Box-Cox: optimal λ via MLE. STL: robust, fleksibel. Wavelet: spectral lokal, untuk transient/non-stationary.
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- ═══ BAGIAN 07 — APLIKASI TEKNIK MESIN ═══ -->
@@ -3930,7 +3958,7 @@ function drawPhysics(){
 }
 
 function _physicsTick(){
-  if(_physicsAnim.running) _physicsAnim.t += 0.016;
+  if(_physicsAnim.running) _physicsAnim.t += 0.008;
   drawPhysics();
   _physicsAnim.raf = requestAnimationFrame(_physicsTick);
 }
@@ -4023,7 +4051,7 @@ function drawSweep(){
 }
 
 function _sweepTick(){
-  if (_sweepAnim.running) _sweepAnim.t += 0.016;
+  if (_sweepAnim.running) _sweepAnim.t += 0.008;
   drawSweep();
   _sweepAnim.raf = requestAnimationFrame(_sweepTick);
 }
@@ -4162,7 +4190,7 @@ function drawIso(){
 }
 
 function _isoTick(){
-  if(_isoAnim.running) _isoAnim.t += 0.016;
+  if(_isoAnim.running) _isoAnim.t += 0.008;
   drawIso();
   _isoAnim.raf = requestAnimationFrame(_isoTick);
 }
@@ -4273,7 +4301,7 @@ function drawHPB(){
 }
 
 function _hpbTick(){
-  if (_hpbAnim.running) _hpbAnim.t += 0.016;
+  if (_hpbAnim.running) _hpbAnim.t += 0.008;
   drawHPB();
   _hpbAnim.raf = requestAnimationFrame(_hpbTick);
 }
@@ -6861,6 +6889,131 @@ setTimeout(() => {
   }
 }, 10000);
 setInterval(()=>{renderVisitors(latestVisitors);},30000);
+
+
+// ════════════════════════════════════════════════════════════
+// ANIMASI 5 — Topic-specific Dropdown + Signal Trace Window 1000 samples
+// ════════════════════════════════════════════════════════════
+let _oa5Mode = 'log';
+let _oa5Frame = 0;
+let _oa5Hist = [];
+window.setOA5 = function(m){ _oa5Mode = m; _oa5Hist = []; };
+
+function drawOA5(){
+  const cv = document.getElementById('cvOA5'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const opts = [
+    ["log", "📐 Log Transform — stabilize variance"],
+    ["boxcox", "🔄 Box-Cox — optimal λ transformation"],
+    ["stl", "🌳 STL Decomposition — seasonal + trend"],
+    ["wavelet", "🌊 Wavelet — multi-scale decomposition"]
+  ];
+  const idx = opts.findIndex(o => o[0] === _oa5Mode);
+  const opt = opts[Math.max(0, idx)];
+  const colors = ['#0ea5e9', '#00e09e', '#f97316', '#a855f7', '#ef4444', '#facc15'];
+  const color = colors[idx % colors.length];
+
+  // Split: 50% kiri info, 50% kanan signal trace
+  const splitX = Math.floor(W*0.40);
+  ctx.strokeStyle = 'rgba(148,163,184,.15)';
+  ctx.beginPath(); ctx.moveTo(splitX, 10); ctx.lineTo(splitX, H-10); ctx.stroke();
+
+  // Left: title + label
+  ctx.fillStyle = color; ctx.font = 'bold 13px JetBrains Mono';
+  ctx.textAlign = 'left';
+  // Word-wrap long labels
+  const words = opt[1].split(' ');
+  let line = ''; let yy = 30;
+  for(const w of words){
+    if(line.length + w.length > 22 && line){
+      ctx.fillText(line.trim(), 14, yy); yy += 18; line = '';
+    }
+    line += w + ' ';
+  }
+  if(line) ctx.fillText(line.trim(), 14, yy);
+
+  // Compute signal value based on mode index (different waveform per option)
+  const t = _oa5Frame * 0.012;
+  const f1 = (idx+1)*1.5;
+  const f2 = (idx+1)*0.8 + 1.5;
+  const sigValue = 0.35*Math.sin(f1*t) + 0.25*Math.sin(f2*t + 0.5) + 0.05*(Math.random()-0.5);
+
+  // Append history
+  _oa5Hist.push(Math.max(-1, Math.min(1, sigValue)));
+  if(_oa5Hist.length > 1000) _oa5Hist.shift();
+
+  // Right: signal trace plot
+  const padR = 14, padTR = 24, padBR = 26;
+  const plotX0 = splitX + 12;
+  const plotW = W - plotX0 - padR;
+  const plotH = H - padTR - padBR;
+  const plotY0 = padTR;
+
+  ctx.strokeStyle = 'rgba(255,255,255,.06)'; ctx.lineWidth = 1;
+  ctx.strokeRect(plotX0, plotY0, plotW, plotH);
+  ctx.strokeStyle = 'rgba(148,163,184,.2)';
+  ctx.beginPath(); ctx.moveTo(plotX0, plotY0+plotH/2); ctx.lineTo(plotX0+plotW, plotY0+plotH/2); ctx.stroke();
+
+  ctx.fillStyle = '#94a3b8'; ctx.font = '9px JetBrains Mono'; ctx.textAlign = 'right';
+  ctx.fillText('+max', plotX0-3, plotY0+10);
+  ctx.fillText('0', plotX0-3, plotY0+plotH/2+3);
+  ctx.fillText('−max', plotX0-3, plotY0+plotH-3);
+  ctx.textAlign = 'left'; ctx.fillStyle = '#22d3ee'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText('Signal trace x(t)', plotX0+6, plotY0+12);
+  ctx.fillStyle = '#94a3b8'; ctx.font = '9px JetBrains Mono'; ctx.textAlign = 'center';
+  ctx.fillText('-10s', plotX0, plotY0+plotH+14);
+  ctx.fillText('-5s', plotX0+plotW/2, plotY0+plotH+14);
+  ctx.fillText('now', plotX0+plotW, plotY0+plotH+14);
+
+  const N = _oa5Hist.length;
+  if(N > 1){
+    ctx.fillStyle = 'rgba(34,211,238,.15)';
+    ctx.beginPath(); ctx.moveTo(plotX0, plotY0+plotH/2);
+    for(let i=0; i<N; i++){
+      const px = plotX0 + (i/999)*plotW;
+      const py = plotY0+plotH/2 - _oa5Hist[i]*(plotH/2-8);
+      ctx.lineTo(px, py);
+    }
+    ctx.lineTo(plotX0 + ((N-1)/999)*plotW, plotY0+plotH/2);
+    ctx.closePath(); ctx.fill();
+  }
+  ctx.strokeStyle = '#22d3ee'; ctx.lineWidth = 2.4;
+  ctx.shadowColor = '#22d3ee'; ctx.shadowBlur = 8;
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  ctx.beginPath();
+  for(let i=0; i<N; i++){
+    const px = plotX0 + (i/999)*plotW;
+    const py = plotY0+plotH/2 - _oa5Hist[i]*(plotH/2-8);
+    if(i===0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+  if(N > 0){
+    const px = plotX0 + ((N-1)/999)*plotW;
+    const py = plotY0+plotH/2 - _oa5Hist[N-1]*(plotH/2-8);
+    ctx.fillStyle = 'rgba(251,191,36,.3)';
+    ctx.beginPath(); ctx.arc(px, py, 9, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#fbbf24'; ctx.shadowColor = '#fbbf24'; ctx.shadowBlur = 10;
+    ctx.beginPath(); ctx.arc(px, py, 4.5, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+
+  const info = document.getElementById('oa5Info');
+  if(info) info.innerHTML = `<strong style="color:${color}">${opt[1]}</strong>`;
+}
+
+function _oa5Tick(){
+  _oa5Frame++;
+  drawOA5();
+  requestAnimationFrame(_oa5Tick);
+}
+setTimeout(_oa5Tick, 1000);
+
 </script>
 
 </body>
