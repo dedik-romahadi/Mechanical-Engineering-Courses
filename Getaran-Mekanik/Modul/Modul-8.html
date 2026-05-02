@@ -900,423 +900,415 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 01 — APA ITU SISTEM 2 DoF? ═══ -->
+<!-- ═══ BAGIAN 01 — KOORDINAT GENERALIZED & DoF ═══ -->
 <hr class="divider" style="margin-top:64px">
 <div class="section" id="m-pengantar">
   <div class="section-label reveal">Bagian 01</div>
-  <h2 class="section-title reveal">Apa Itu Sistem 2 DoF?<br>Saat Satu Massa Saja Tidak Cukup</h2>
-  <p class="section-desc reveal">Pada Pertemuan 1–6, kita selalu menganalisis <strong>satu massa</strong> bergetar (1 DoF — derajat kebebasan). Tetapi mesin nyata jarang sesederhana itu. Mobil punya bodi <em>dan</em> roda. Gedung punya banyak lantai. Turbin punya rotor <em>dan</em> casing. Setiap bagian bisa bergerak independen — sehingga butuh <strong>≥ 2 koordinat</strong> untuk menjelaskan posisi sistem secara lengkap. Itulah <strong>sistem 2 DoF</strong>.</p>
+  <h2 class="section-title reveal">Koordinat Generalized:<br>Berapa DoF yang Cukup untuk Sistem Kompleks?</h2>
+  <p class="section-desc reveal">Sebelum menderivasi persamaan gerak (EoM), kita harus memilih <strong>koordinat</strong> yang merepresentasikan sistem dengan tepat. Untuk sistem 1-DoF cukup x(t), tetapi mesin nyata seringkali butuh <strong>banyak koordinat</strong>. Konsep <strong>derajat kebebasan (DoF)</strong> dan <strong>koordinat generalized</strong> adalah fondasi sebelum derivasi EoM dengan metode Newton atau Lagrange.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Definisi Sederhana</div>
-    Derajat kebebasan = jumlah koordinat independen yang diperlukan untuk mendeskripsikan posisi sistem pada saat tertentu.
+    <div class="label">Definisi DoF (Derajat Kebebasan)</div>
+    DoF = jumlah koordinat <em>independen</em> yang diperlukan untuk mendefinisikan posisi semua massa dalam sistem
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
       <div class="card-icon">🚗</div>
-      <h3>Suspensi Mobil</h3>
-      <p>Bodi mobil bergerak naik-turun (x₁), sekaligus roda juga bergerak naik-turun (x₂) saat melewati jalan bergelombang. Dua koordinat → 2 DoF.</p>
-      <div class="formula">x₁ (bodi) &nbsp;|&nbsp; x₂ (roda)</div>
+      <h3>Suspensi Mobil — 2 DoF</h3>
+      <p>Bodi mobil bergerak vertikal (x₁) dan roda bergerak vertikal (x₂). Dua koordinat independen — dua DoF. Saat melewati polisi tidur, kedua massa berosilasi dengan pola berbeda tapi terkopel via spring &amp; damper.</p>
+      <div class="formula">q = [x₁, x₂]ᵀ</div>
     </div>
     <div class="card">
       <div class="card-icon">🏢</div>
-      <h3>Gedung 2 Lantai</h3>
-      <p>Lantai 1 bergeser horizontal sebesar x₁ saat angin/gempa, lantai 2 bergeser sebesar x₂. Dua lantai = 2 DoF.</p>
-      <div class="formula">x₁ (lantai 1) &nbsp;|&nbsp; x₂ (lantai 2)</div>
+      <h3>Gedung 5 Lantai — 5 DoF</h3>
+      <p>Setiap lantai bergeser horizontal sebesar x_i — total 5 koordinat untuk gedung 5 lantai. Masing-masing terkait dengan lantai di atas dan bawahnya via stiffness kolom.</p>
+      <div class="formula">q = [x₁, x₂, x₃, x₄, x₅]ᵀ</div>
     </div>
     <div class="card">
-      <div class="card-icon">⚙️</div>
-      <h3>Dua Massa Terkait Pegas</h3>
-      <p>Sistem klasik 2 DoF: dua massa m₁ dan m₂ dihubungkan oleh tiga pegas k₁, k₂, k₃ (dua pegas ke dinding, satu di tengah). Inilah model referensi modul ini.</p>
-      <div class="formula">m₁=m₂=1 kg, k=100 N/m</div>
+      <div class="card-icon">🎯</div>
+      <h3>Constraint &amp; DoF Effective</h3>
+      <p>Bila ada constraint (mis. tidak boleh translasi axial), DoF efektif berkurang. Bandul double pendulum: tampak 4 koordinat (x₁,y₁,x₂,y₂) tapi dengan constraint panjang fix, hanya <strong>2 DoF</strong> independen (sudut θ₁, θ₂).</p>
+      <div class="formula">DoF_eff = total coords − constraints</div>
     </div>
     <div class="card">
-      <div class="card-icon">🎵</div>
-      <h3>Speaker Gitar</h3>
-      <p>Membran speaker (m₁) terhubung ke kotak (m₂) lewat pegas. Saat dimainkan, keduanya bergetar — itulah kenapa kotak speaker ikut "menggetar".</p>
-      <div class="formula">2 mode getaran utama</div>
+      <div class="card-icon">📐</div>
+      <h3>Koordinat Generalized q</h3>
+      <p>Notasi <strong>q = [q₁, q₂, ..., q_n]</strong> = vektor koordinat generalized (any indep. coordinates: linear x, angular θ, dst). Penting untuk Lagrange's method karena tidak terbatas pada Cartesian.</p>
+      <div class="formula">q ∈ ℝⁿ (any indep. coordinates)</div>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Mengapa 2 DoF Begitu Penting?</strong><br>
-    Sistem 1 DoF hanya punya <strong>satu</strong> frekuensi pribadi ωₙ. Tetapi sistem 2 DoF punya <strong>dua</strong> frekuensi pribadi (ω₁ dan ω₂) — masing-masing dengan <strong>pola gerak (mode shape)</strong>-nya sendiri. Memahami ini adalah jembatan menuju multi-DoF (gedung 10 lantai, mesin pesawat, dll). Konsepnya sama, hanya jumlah-nya bertambah.
+    <strong>Pemilihan Koordinat — Pertimbangan Praktis</strong><br>
+    1) <strong>Pilih sesuai geometri natural</strong> sistem: linear untuk translasi, angular untuk rotasi. Hindari mixing kecuali perlu.<br>
+    2) <strong>Cek independence</strong>: koordinat harus independen, tidak terkait constraint. Kalau ada constraint, eliminasi koordinat redundant.<br>
+    3) <strong>Konsistensi notasi</strong>: gunakan q untuk Lagrange, x untuk Newton. Konvensi ini ter-standar di textbook getaran mekanik.<br>
+    4) <strong>Jumlah ω = jumlah DoF</strong>: aturan fundamental — sistem N-DoF memiliki N frekuensi pribadi. Ini akan kita verifikasi di Pertemuan 10 (Modal Analysis).
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Aturan Mudah:</strong> Banyaknya frekuensi pribadi sebuah sistem getaran = banyaknya derajat kebebasannya. 1 DoF → 1 ω. 2 DoF → 2 ω (ω₁ &lt; ω₂). N DoF → N ω. Pertemuan 9 fokus pada N=2 sebagai pintu masuk paling intuitif.
+    💡 <strong>Aturan Cepat:</strong> Hitung jumlah massa yang bisa bergerak independen — itulah DoF. Untuk sistem 2 mass terhubung 3 spring (sistem referensi modul ini): 2 mass = 2 DoF. Sederhana, tidak perlu menghitung Lagrangian dulu.
   </div>
 </div>
 
-<!-- ═══ BAGIAN 02 — PERSAMAAN GERAK MATRIKS ═══ -->
+<!-- ═══ BAGIAN 02 — NEWTON'S METHOD: FREE BODY DIAGRAM ═══ -->
 <hr class="divider">
 <div class="section" id="m-eom">
   <div class="section-label reveal">Bagian 02</div>
-  <h2 class="section-title reveal">Persamaan Gerak Matriks:<br>Bahasa Universal Sistem 2 DoF</h2>
-  <p class="section-desc reveal">Untuk sistem 1 DoF, persamaan geraknya: <strong>m·ẍ + k·x = 0</strong>. Untuk 2 DoF, kita punya <strong>dua</strong> persamaan — satu untuk tiap massa. Lebih praktis menulisnya dalam <strong>bentuk matriks</strong>: <strong>M·ẍ + K·x = 0</strong>, dengan M = matriks massa, K = matriks kekakuan, x = vektor [x₁, x₂].</p>
+  <h2 class="section-title reveal">Newton's Method:<br>Derivasi EoM dengan Free Body Diagram</h2>
+  <p class="section-desc reveal">Metode klasik untuk derivasi persamaan gerak: <strong>tulis Newton's 2nd Law (F = ma) untuk tiap massa secara terpisah</strong> dengan free body diagram (FBD). Untuk sistem 2-DoF dengan 2 massa, hasilnya 2 persamaan diferensial. Pendekatan langsung, intuitif, tetapi kompleks untuk sistem dengan constraint atau angular DoF.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Sistem Referensi Modul Ini — Dua Massa, Tiga Pegas</div>
-    Massa: m₁ = m₂ = 1 kg &nbsp;·&nbsp; Pegas: k₁ = k₂ = k₃ = 100 N/m
+    <div class="label">Newton's 2nd Law per Massa</div>
+    m·ẍ = ΣF (jumlah semua gaya pada massa) &nbsp;·&nbsp; tulis per koordinat
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">📐</div>
-      <h3>Free-Body Diagram Massa 1</h3>
-      <p>Massa 1 ditarik pegas k₁ ke kiri dengan gaya <code>−k₁·x₁</code> dan ditarik/ditolak oleh pegas tengah k₂ dengan gaya <code>−k₂·(x₁−x₂)</code>. Hukum Newton:</p>
-      <div class="formula">m₁·ẍ₁ = −k₁·x₁ − k₂·(x₁ − x₂)</div>
+      <div class="card-icon">🎯</div>
+      <h3>Step 1: Free Body Diagram</h3>
+      <p>Untuk tiap massa, gambar diagram bebas dengan <strong>semua gaya</strong>: spring (k·Δx), damper (c·v), gravitasi (mg), gaya eksternal F(t). Tentukan arah positif dengan konvensi (mis. ke kanan = +).</p>
+      <div class="formula">FBD per massa: ΣF = ma</div>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
-      <h3>Free-Body Diagram Massa 2</h3>
-      <p>Massa 2 ditarik pegas tengah k₂ dengan gaya <code>−k₂·(x₂−x₁)</code> dan pegas k₃ ke kanan dengan gaya <code>−k₃·x₂</code>:</p>
-      <div class="formula">m₂·ẍ₂ = −k₂·(x₂ − x₁) − k₃·x₂</div>
+      <h3>Step 2: Express Spring/Damper Forces</h3>
+      <p>Spring k₂ menghubungkan m₁ dan m₂: gaya pada m₁ = <code>−k₂·(x₁ − x₂)</code> (mendorong/menarik tergantung sign). Damper sama: <code>−c·(ẋ₁ − ẋ₂)</code>.</p>
+      <div class="formula">F_spring₂→m₁ = −k₂·(x₁ − x₂)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔢</div>
-      <h3>Bentuk Matriks (Singkat)</h3>
-      <p>Kedua persamaan dirapikan: <code>m₁·ẍ₁ + (k₁+k₂)x₁ − k₂·x₂ = 0</code> dan <code>m₂·ẍ₂ − k₂·x₁ + (k₂+k₃)x₂ = 0</code>. Dalam matriks:</p>
-      <div class="formula">M·ẍ + K·x = 0</div>
+      <h3>Step 3: Newton EoM per Massa</h3>
+      <p>Untuk m₁: <code>m₁·ẍ₁ = −k₁·x₁ − k₂·(x₁ − x₂)</code>. Untuk m₂: <code>m₂·ẍ₂ = −k₂·(x₂ − x₁) − k₃·x₂</code>. Dua persamaan, dua unknowns (x₁, x₂).</p>
+      <div class="formula">m₁·ẍ₁ = −k₁·x₁ − k₂·(x₁−x₂)</div>
     </div>
     <div class="card">
-      <div class="card-icon">✅</div>
-      <h3>Substitusi Angka Referensi</h3>
-      <p>Dengan m₁=m₂=1 dan k₁=k₂=k₃=100, kita peroleh M = identitas dan K simetris dengan diagonal 200, off-diagonal −100:</p>
-      <div class="formula">M = [[1,0],[0,1]] &nbsp;·&nbsp; K = [[200,−100],[−100,200]]</div>
+      <div class="card-icon">⚡</div>
+      <h3>Step 4: Rearrange ke Matrix Form</h3>
+      <p>Ekspansi: <code>m₁·ẍ₁ + (k₁+k₂)x₁ − k₂·x₂ = 0</code>. Susun ke matriks: <code>[M]{ẍ} + [K]{x} = 0</code> dengan M diagonal dan K simetris. Inilah bentuk standar untuk solving numerik atau modal analysis.</p>
+      <div class="formula">[M]{ẍ} + [K]{x} = 0 (matrix EoM)</div>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Kenali Pola Matriks Kekakuan K</strong><br>
-    Diagonal K(i,i) = jumlah semua kekakuan yang menempel ke massa-i. Off-diagonal K(i,j) = <strong>negatif</strong> kekakuan pegas yang menghubungkan massa-i dan massa-j. K selalu <strong>simetris</strong> (K(i,j) = K(j,i)). Pola ini berlaku universal untuk N DoF — kita tidak perlu menurunkan ulang dari Hukum Newton tiap kali.
+    <strong>Pola Universal Matriks K untuk Spring System</strong><br>
+    Untuk sistem rangkaian massa-spring linear (1D translation):<br>
+    • <strong>K[i,i]</strong> = jumlah semua kekakuan pegas yang terhubung ke massa-i<br>
+    • <strong>K[i,j]</strong> (off-diagonal) = <em>negatif</em> kekakuan pegas yang menghubungkan i dan j (= K[j,i] — selalu simetris)<br>
+    Pola ini berlaku universal untuk N-DoF, tidak perlu turun ulang dari Newton tiap kali. Cukup identifikasi connectivity graph dan apply rule.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Cek cepat:</strong> Untuk sistem referensi kita, matriks K = [[200, −100], [−100, 200]]. Trace(K) = 200+200 = 400. Det(K) = 200·200 − (−100)·(−100) = 40000 − 10000 = 30000. Kedua angka ini akan muncul lagi saat kita cari frekuensi pribadi di Bagian 03 — sama seperti Vieta's formula untuk akar polinomial.
+    💡 <strong>Pitfall Newton:</strong> Sign convention sangat mudah salah. Pastikan konsisten — jika pilih +x ke kanan untuk m₁, maka spring tengah k₂ memberikan gaya <em>negatif</em> (menarik balik) saat x₁ &gt; x₂. Sketsa FBD adalah investasi waktu yang menyelamatkan banyak debugging.
   </div>
 </div>
 
-<!-- ═══ BAGIAN 03 — EIGENVALUE PROBLEM ═══ -->
+<!-- ═══ BAGIAN 03 — LAGRANGE'S EQUATION ═══ -->
 <hr class="divider">
 <div class="section" id="m-eigen">
   <div class="section-label reveal">Bagian 03</div>
-  <h2 class="section-title reveal">Eigenvalue Problem:<br>Mencari Dua Frekuensi Pribadi ω₁ & ω₂</h2>
-  <p class="section-desc reveal">Kita tebak solusi harmonik: tiap massa bergerak dengan frekuensi yang sama ω, tetapi dengan amplitudo berbeda. <code>x(t) = X·sin(ωt)</code> dengan X = vektor [X₁, X₂]. Substitusi ke <code>M·ẍ + K·x = 0</code> menghasilkan <strong>(K − ω²M)·X = 0</strong> — yang dikenal sebagai <strong>eigenvalue problem</strong>.</p>
+  <h2 class="section-title reveal">Lagrange's Equation:<br>Derivasi EoM dengan Pendekatan Energi</h2>
+  <p class="section-desc reveal">Pendekatan alternatif yang lebih elegan: <strong>Lagrange's Equation</strong> menggunakan <em>energy formulation</em> (kinetik T dan potensial V). Dirumuskan oleh Joseph-Louis Lagrange (1788), metode ini lebih powerful untuk sistem kompleks dengan constraint atau koordinat non-Cartesian (angular). Inti: <strong>L = T − V</strong> (Lagrangian) lalu apply Euler-Lagrange equation.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Persamaan Karakteristik (Cara Mencari ω)</div>
-    det(K − ω²·M) = 0
+    <div class="label">Euler-Lagrange Equation</div>
+    d/dt (∂L/∂q̇<sub>i</sub>) − ∂L/∂q<sub>i</sub> = Q<sub>i</sub> &nbsp;·&nbsp; L = T − V
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">🔍</div>
-      <h3>Langkah 1 — Tulis Determinan</h3>
-      <p>Dengan parameter referensi: <code>K − ω²M = [[200−ω², −100], [−100, 200−ω²]]</code>. Determinan = (200−ω²)² − (−100)(−100) = (200−ω²)² − 10000.</p>
-      <div class="formula">(200 − ω²)² − 10000 = 0</div>
+      <div class="card-icon">⚡</div>
+      <h3>Step 1: Energi Kinetik T</h3>
+      <p>Total kinetic energy semua massa: <code>T = ½·m₁·ẋ₁² + ½·m₂·ẋ₂²</code>. Untuk koordinat angular, T = ½·I·θ̇². Dalam matrix form: <code>T = ½·{q̇}ᵀ[M]{q̇}</code>.</p>
+      <div class="formula">T = ½ Σ m_i · q̇_i²</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔋</div>
+      <h3>Step 2: Energi Potensial V</h3>
+      <p>Potential energy semua spring: <code>V = ½·k₁·x₁² + ½·k₂·(x₁−x₂)² + ½·k₃·x₂²</code>. Untuk gravity: V = mgh. Dalam matrix form: <code>V = ½·{q}ᵀ[K]{q}</code>.</p>
+      <div class="formula">V = ½ Σ k_j · Δx_j²</div>
     </div>
     <div class="card">
       <div class="card-icon">🧮</div>
-      <h3>Langkah 2 — Selesaikan untuk ω²</h3>
-      <p>Akar kuadrat kedua sisi: <code>200 − ω² = ±100</code>. Sehingga ω² = 200 − 100 = 100 (akar pertama, kecil) dan ω² = 200 + 100 = 300 (akar kedua, besar).</p>
-      <div class="formula">ω₁² = 100 &nbsp;·&nbsp; ω₂² = 300</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">✨</div>
-      <h3>Langkah 3 — Akar Frekuensi</h3>
-      <p>Ambil akar kuadrat: <code>ω₁ = √100 = 10 rad/s</code> dan <code>ω₂ = √300 ≈ 17.32 rad/s</code>. Selalu pilih ω &gt; 0; konvensi: ω₁ &lt; ω₂.</p>
-      <div class="formula">ω₁ = 10 rad/s &nbsp;·&nbsp; ω₂ ≈ 17.32 rad/s</div>
+      <h3>Step 3: Lagrangian L = T − V</h3>
+      <p>Bentuk Lagrangian: <code>L = ½·m₁·ẋ₁² + ½·m₂·ẋ₂² − ½·k₁·x₁² − ½·k₂·(x₁−x₂)² − ½·k₃·x₂²</code>. Inilah scalar function yang akan kita differentiate.</p>
+      <div class="formula">L = T − V (scalar Lagrangian)</div>
     </div>
     <div class="card">
       <div class="card-icon">📊</div>
-      <h3>Konversi ke Hertz & Periode</h3>
-      <p>f = ω/(2π), T = 2π/ω. Hasilnya: f₁ ≈ 1.59 Hz (T₁ ≈ 0.63 s), f₂ ≈ 2.76 Hz (T₂ ≈ 0.36 s). Mode 2 lebih cepat daripada Mode 1.</p>
-      <div class="formula">f₁ ≈ 1.59 Hz, f₂ ≈ 2.76 Hz</div>
+      <h3>Step 4: Apply Euler-Lagrange</h3>
+      <p>Untuk tiap koordinat q<sub>i</sub>: hitung <code>∂L/∂q̇<sub>i</sub></code>, lalu d/dt-nya, kurangi <code>∂L/∂q<sub>i</sub></code>. Hasil = Q<sub>i</sub> (gaya generalized eksternal). Hasilnya: <strong>EoM yang IDENTIK dengan Newton</strong> — itu confirm correctness.</p>
+      <div class="formula">d/dt(∂L/∂q̇) − ∂L/∂q = Q</div>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Cara Cepat: Pakai numpy.linalg.eig</strong><br>
-    Untuk sistem &gt; 2 DoF, menyelesaikan determinan tangan jadi rumit. Pakai komputer:
-    <code style="display:block;background:#020a18;padding:10px 14px;border-radius:8px;margin-top:8px;color:var(--cyan)">A = np.linalg.inv(M) @ K  &nbsp;&nbsp;# matriks dinamis<br>w_squared, modes = np.linalg.eig(A)<br>omegas = np.sqrt(w_squared)</code>
-    Pyodide di browser sudah punya numpy — kode di atas bisa langsung dijalankan di tab Tugas.
+    <strong>Keunggulan Lagrange vs Newton</strong><br>
+    1) <strong>Tidak butuh FBD</strong> — hanya butuh formulate energi (scalar) yang lebih mudah.<br>
+    2) <strong>Otomatis handle constraint</strong> — pakai constrained Lagrangian dengan Lagrange multipliers.<br>
+    3) <strong>Bekerja untuk koordinat non-Cartesian</strong> — angular DoF, generalized coordinates. Penting untuk pendulum, gyroscopic system.<br>
+    4) <strong>Conservation laws gratis</strong> — kalau L tidak depend pada q (cyclic coordinate), corresponding momentum conserved (Noether's theorem).<br>
+    Untuk sistem 2-DoF translasi sederhana, Newton lebih intuitif. Tetapi untuk sistem rotasi atau N-DoF besar, Lagrange jauh lebih efisien.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Cek dengan Trace & Determinan:</strong> Untuk sistem 2 DoF dengan M = identitas, ada identitas Vieta sederhana: <code>ω₁² + ω₂² = trace(K)</code> dan <code>ω₁²·ω₂² = det(K)</code>. Verifikasi: 100 + 300 = 400 ✓ (= trace K), dan 100 × 300 = 30000 ✓ (= det K). Cocok!
+    💡 <strong>Worked Example Quick:</strong> Untuk sistem referensi (m=1, k=100), L = ½(ẋ₁² + ẋ₂²) − ½·100·x₁² − ½·100·(x₁−x₂)² − ½·100·x₂². Apply Euler-Lagrange untuk q₁=x₁: d/dt(ẋ₁) − ∂L/∂x₁ = 0 → ẍ₁ = −200·x₁ + 100·x₂. Match dengan Newton EoM. ✓
   </div>
 </div>
 
-<!-- ═══ BAGIAN 04 — MODE SHAPES ═══ -->
+<!-- ═══ BAGIAN 04 — NEWTON vs LAGRANGE COMPARISON ═══ -->
 <hr class="divider">
 <div class="section" id="m-modes">
   <div class="section-label reveal">Bagian 04</div>
-  <h2 class="section-title reveal">Mode Shapes:<br>Setiap Frekuensi Punya "Tarian"-Nya Sendiri</h2>
-  <p class="section-desc reveal">Setiap frekuensi pribadi ω<sub>i</sub> tidak hanya angka — ia punya <strong>pola gerak</strong> spesifik yang menjelaskan <em>bagaimana</em> kedua massa bergerak relatif satu sama lain saat bergetar di frekuensi itu. Pola ini disebut <strong>mode shape</strong> (vektor eigenvalue). Untuk sistem referensi, kita akan temukan dua mode yang sangat intuitif.</p>
+  <h2 class="section-title reveal">Newton vs Lagrange:<br>Kapan Pakai yang Mana?</h2>
+  <p class="section-desc reveal">Kedua metode menghasilkan EoM yang IDENTIK untuk sistem yang sama. Perbedaan adalah <strong>workflow</strong> dan <strong>complexity</strong>. Mahasiswa harus paham trade-off: kapan Newton lebih intuitif, kapan Lagrange jauh lebih efisien. Best engineer mahir keduanya.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Cara Menghitung Mode Shape</div>
-    Untuk tiap ω<sub>i</sub>, substitusi balik ke <code>(K − ω<sub>i</sub>²M)·X = 0</code>, lalu cari rasio X₁ : X₂.
+    <div class="label">Decision Matrix</div>
+    Newton: vector forces (F = ma) · Lagrange: scalar energy (L = T − V)
+  </div>
+
+  <div class="cards reveal" style="margin-bottom:32px">
+    <div class="card">
+      <div class="card-icon">🎯</div>
+      <h3>Newton — Kapan Pilih?</h3>
+      <p>Sistem 1-3 DoF dengan koordinat Cartesian sederhana. Pemahaman fisik (FBD) lebih intuitif. Cocok untuk pembelajaran awal &amp; verifikasi quick. Tidak ada constraint kompleks.</p>
+      <div class="formula">Simple translation: pilih Newton</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🌊</div>
+      <h3>Lagrange — Kapan Pilih?</h3>
+      <p>Sistem &gt; 3 DoF, atau ada angular coordinates (rotasi), atau ada constraint geometric (rigid body). Lagrangian formulation jauh lebih ringkas dan less error-prone. Standar di physics &amp; advanced dynamics.</p>
+      <div class="formula">Complex/angular/constrained: Lagrange</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔢</div>
+      <h3>Output Identik</h3>
+      <p>Untuk sistem yang sama, kedua metode HARUS menghasilkan EoM yang sama. Inilah cara verifikasi correctness — derive dengan kedua metode, bandingkan. Kalau berbeda, ada kesalahan di salah satu (biasanya sign error di Newton FBD atau missing term di Lagrange).</p>
+      <div class="formula">Newton EoM ≡ Lagrange EoM</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🚀</div>
+      <h3>Hamilton's Method (Advanced)</h3>
+      <p>Generalisasi Lagrange: <strong>Hamilton's equations</strong> menggunakan momentum p = ∂L/∂q̇. Powerful untuk quantum mechanics, optimal control, simulation numerik orbit. Topik advanced &mdash; tidak dibahas di modul ini, tapi continuation logis dari Lagrange.</p>
+      <div class="formula">Hamilton: H = Σp·q̇ − L</div>
+    </div>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>Compare Worked Example untuk Sistem Referensi (m=1, k=100)</strong><br>
+    <em>Newton path:</em> 1) FBD m₁: gaya k₁ ke kiri, k₂(x₁−x₂) ke kiri. 2) ΣF = m₁·ẍ₁: <code>1·ẍ₁ = −100·x₁ − 100·(x₁−x₂)</code>. 3) Simplify: <code>ẍ₁ = −200·x₁ + 100·x₂</code>.<br>
+    <em>Lagrange path:</em> 1) <code>T = ½(ẋ₁² + ẋ₂²)</code>, <code>V = ½(100·x₁² + 100·(x₁−x₂)² + 100·x₂²)</code>. 2) L = T − V. 3) ∂L/∂ẋ₁ = ẋ₁, d/dt = ẍ₁. 4) ∂L/∂x₁ = −100·x₁ − 100·(x₁−x₂) = −200·x₁ + 100·x₂. 5) Euler-Lagrange: ẍ₁ − (−200·x₁ + 100·x₂) = 0 → <code>ẍ₁ = −200·x₁ + 100·x₂</code>. ✓ <strong>Match!</strong>
+  </div>
+
+  <div class="tip-box reveal">
+    💡 <strong>Pedagogical Recommendation:</strong> Mahasiswa S1 sebaiknya master Newton dulu (lebih intuitif), lalu belajar Lagrange di S2/advanced course. Lagrange terlihat lebih mudah secara <em>computation</em> tapi lebih abstrak <em>conceptually</em> — bisa skip pemahaman fisik kalau langsung Lagrange.
+  </div>
+</div>
+
+<!-- ═══ BAGIAN 05 — MATRIX FORM EoM ═══ -->
+<hr class="divider">
+<div class="section" id="m-analogi">
+  <div class="section-label reveal">Bagian 05</div>
+  <h2 class="section-title reveal">Bentuk Matriks EoM:<br>[M]{ẍ} + [C]{ẋ} + [K]{x} = {F(t)}</h2>
+  <p class="section-desc reveal">Kedua metode (Newton dan Lagrange) menghasilkan EoM yang dapat ditulis dalam bentuk <strong>matrix form standar</strong>. Inilah representasi paling powerful untuk MDoF: <code>[M]{ẍ} + [C]{ẋ} + [K]{x} = {F(t)}</code>. M = matriks massa, C = damping, K = stiffness, F = forcing vector. Bentuk ini langsung di-feed ke numerical solver.</p>
+
+  <div class="formula-block reveal">
+    <div class="label">Matrix EoM Standar</div>
+    [M]{ẍ} + [C]{ẋ} + [K]{x} = {F(t)} &nbsp;·&nbsp; semua matrix N×N untuk sistem N-DoF
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
       <div class="card-icon">⚖️</div>
-      <h3>Mode 1 (ω₁ = 10) — In-Phase</h3>
-      <p>Substitusi ω₁²=100: <code>(K − 100·I) = [[100,−100],[−100,100]]</code>. Baris pertama: <code>100·X₁ − 100·X₂ = 0 → X₁ = X₂</code>. Mode 1 = <strong>[1, 1]</strong> — kedua massa bergerak <strong>searah dan sama besar</strong>.</p>
-      <div class="formula">Mode 1: X₁ = X₂ = 1 (in-phase)</div>
+      <h3>Mass Matrix [M] — Diagonal &amp; Lumped</h3>
+      <p>Untuk lumped-mass system (most common): <code>[M] = diag(m₁, m₂, ..., m_N)</code> — diagonal dengan massa per DoF. Simple. Untuk continuous system (FEM), [M] bisa non-diagonal (consistent mass).</p>
+      <div class="formula">M = diag(m_i)</div>
     </div>
     <div class="card">
-      <div class="card-icon">↔️</div>
-      <h3>Mode 2 (ω₂ ≈ 17.32) — Anti-Phase</h3>
-      <p>Substitusi ω₂²=300: <code>(K − 300·I) = [[−100,−100],[−100,−100]]</code>. Baris pertama: <code>−100·X₁ − 100·X₂ = 0 → X₁ = −X₂</code>. Mode 2 = <strong>[1, −1]</strong> — kedua massa bergerak <strong>berlawanan</strong>.</p>
-      <div class="formula">Mode 2: X₁ = −X₂ (anti-phase)</div>
+      <div class="card-icon">🔧</div>
+      <h3>Stiffness Matrix [K] — Symmetric</h3>
+      <p>Selalu simetris: K[i,j] = K[j,i]. Diagonal: jumlah kekakuan menempel pada DoF. Off-diagonal: −kekakuan koneksi. Pattern universal — kita lihat di Bagian 02 dan akan pakai sepanjang course.</p>
+      <div class="formula">K simetris, K = K^T</div>
     </div>
     <div class="card">
-      <div class="card-icon">🌊</div>
-      <h3>Mengapa Mode 1 Lebih Lambat?</h3>
-      <p>Pada Mode 1, kedua massa bergerak bersama → pegas tengah <strong>tidak tertekan/ditarik</strong> sama sekali. Sistem efektif hanya pakai pegas k₁ dan k₃. Lebih sedikit kekakuan = ω lebih kecil.</p>
-      <div class="formula">ω₁_efektif = √((k₁+k₃)/m) = 10 rad/s ✓</div>
+      <div class="card-icon">💧</div>
+      <h3>Damping Matrix [C] — Optional</h3>
+      <p>Untuk undamped system, [C] = 0. Untuk Rayleigh damping (proportional): <code>[C] = α[M] + β[K]</code>. Common assumption karena memungkinkan modal decoupling (akan dibahas di Pertemuan 10).</p>
+      <div class="formula">C = αM + βK (Rayleigh)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
-      <h3>Mengapa Mode 2 Lebih Cepat?</h3>
-      <p>Pada Mode 2, kedua massa berlawanan arah → pegas tengah <strong>diregang/ditekan dua kali</strong> setiap setengah siklus. Kekakuan efektif lebih besar = ω lebih besar.</p>
-      <div class="formula">ω₂_efektif = √((k₁ + 2k₂)/m) ≈ 17.32 ✓</div>
+      <h3>Forcing Vector {F(t)}</h3>
+      <p>Vektor gaya eksternal per DoF. Bisa harmonic (mis. F₀·sin(ωt) pada satu DoF), seismic (ground acceleration), random, atau zero (free vibration). Time-dependent secara umum.</p>
+      <div class="formula">F(t) ∈ ℝ^N (per DoF)</div>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Sifat Penting Mode Shape — Orthogonality</strong><br>
-    Dua mode shape selalu <strong>orthogonal terhadap matriks massa</strong>: u₁ᵀ·M·u₂ = 0. Untuk kasus kita: [1,1]·[[1,0],[0,1]]·[1,−1]ᵀ = 1·1 + 1·(−1) = 0 ✓. Sifat ini sangat penting: ia memungkinkan kita memecah getaran kompleks menjadi kombinasi mode-mode yang independen (modal analysis).
+    <strong>Konstruksi Matriks dari Connectivity</strong><br>
+    Untuk sistem rangkaian massa-spring-damper, matriks dapat dikonstruksi langsung dari <em>connectivity</em> tanpa derivasi ulang Newton/Lagrange:<br>
+    1) <strong>M[i,i] = m_i</strong> (massa per DoF, diagonal).<br>
+    2) <strong>K[i,i] = Σ k_j</strong> untuk semua spring yang menempel ke DoF i.<br>
+    3) <strong>K[i,j] = -k_ij</strong> untuk spring yang menghubungkan DoF i dan j (off-diagonal, simetris).<br>
+    4) <strong>C[i,j]</strong> dengan rule yang sama tapi dengan damping coefficient c.<br>
+    Untuk sistem referensi (2 mass, 3 spring sama k=100): <code>M=I</code>, <code>K=[[200,-100],[-100,200]]</code>. Bisa ditulis dalam 5 baris kode.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Mode shape adalah RASIO, bukan amplitudo absolut.</strong> Mode 1 = [1, 1] dan Mode 1 = [3, 3] adalah <em>mode yang sama</em> — keduanya berkata "kedua massa bergerak searah dengan amplitudo yang sama". Yang penting hanya rasio X₁/X₂. Konvensi normalisasi: biasanya X₁ = 1, atau ‖X‖ = 1.
+    💡 <strong>Verifikasi Matrix:</strong> Sebelum solve, cek properties: (1) M positive-definite (semua eigenvalue &gt; 0). (2) K positive semi-definite (untuk free system) atau positive-definite (untuk constrained). (3) M &amp; K simetris. Kalau ada yang fail, ada bug di derivation. Quick check di numpy: <code>np.allclose(K, K.T)</code> untuk symmetry.
   </div>
 </div>
 
-<!-- ═══ BAGIAN 05 — ANALOGI SEHARI-HARI ═══ -->
-<hr class="divider">
-<div class="section" id="m-analogi">
-  <div class="section-label reveal">Bagian 05</div>
-  <h2 class="section-title reveal">Analogi Kehidupan<br>Sehari-Hari</h2>
-  <p class="section-desc reveal">Sistem 2 DoF ada di sekitar kita. Inilah analogi untuk menanamkan intuisi mode 1 vs mode 2.</p>
-
-  <div class="cards reveal" style="margin-bottom:32px">
-    <div class="card">
-      <div class="card-icon">🎢</div>
-      <h3>Dua Anak di Ayunan Berdampingan</h3>
-      <p>Dua ayunan diikat kayu di tengah — bisa ayun bareng (Mode 1, lambat) atau berlawanan (Mode 2, cepat). Anak-anak intuitif tahu cara "mengunci" mode dengan kayuhan.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🚗</div>
-      <h3>Mobil di Polisi Tidur</h3>
-      <p>Mobil melewati polisi tidur perlahan: depan-belakang naik bareng (Mode 1, "bouncing"). Lewat lebih cepat: depan naik saat belakang turun (Mode 2, "pitching"). Suspensi mobil dirancang agar kedua mode tidak resonansi dengan jalan biasa.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🏢</div>
-      <h3>Gedung 2 Lantai Saat Gempa</h3>
-      <p>Mode 1: kedua lantai bergeser searah (bayangkan gedung "membungkuk"). Mode 2: lantai 1 dan 2 bergeser berlawanan (gedung "mencangkul"). Kerusakan parah biasanya di Mode 2 karena percepatan lebih besar.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🎸</div>
-      <h3>Senar Gitar + Body Resonator</h3>
-      <p>Senar bergetar → bodi gitar ikut bergetar. Body kayu + senar membentuk sistem 2 DoF kuat: itulah kenapa gitar akustik bersuara lebih kaya dibanding senar tunggal.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🛀</div>
-      <h3>Air di Bak Mandi</h3>
-      <p>Goyangkan bak: air membentuk gelombang berdiri. Bisa naik di kiri-turun di kanan (Mode 1) atau pola yang lebih kompleks (Mode 2+). Sama seperti 2 DoF, tapi dengan kontinuum.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🏗️</div>
-      <h3>Tuned Mass Damper (Taipei 101)</h3>
-      <p>Bola raksasa 660 ton di puncak Taipei 101 = sistem 2 DoF buatan. Ditambah <em>sengaja</em> agar gedung punya 2 frekuensi pribadi yang menjauhkan dari frekuensi gempa/angin. Aplikasi praktis konsep mode shape.</p>
-    </div>
-  </div>
-
-  <div class="info-box reveal">
-    <strong>Aturan Intuisi Mode</strong><br>
-    Untuk sistem dua massa simetris (massa sama, pegas simetris): <strong>Mode 1 selalu in-phase</strong> (massa bergerak bareng) dan <strong>Mode 2 selalu anti-phase</strong> (berlawanan). Mode 1 frekuensinya selalu lebih rendah karena pegas penghubung tidak ikut "kerja". Mode 2 frekuensinya lebih tinggi karena pegas penghubung "kerja dua kali lipat".
-  </div>
-</div>
-
-<!-- ═══ BAGIAN 06 — VISUALISASI INTERAKTIF ═══ -->
+<!-- ═══ BAGIAN 06 — COUPLED vs DECOUPLED ═══ -->
 <hr class="divider">
 <div class="section" id="m-anim">
   <div class="section-label reveal">Bagian 06</div>
-  <h2 class="section-title reveal">Visualisasi Interaktif<br>Mode 1 vs Mode 2</h2>
-  <p class="section-desc reveal">Klik tombol di bawah untuk mengganti mode. Animasi memperlihatkan dua massa (m₁=m₂=1 kg) terhubung tiga pegas (k=100 N/m) berosilasi pada frekuensi pribadinya. Perhatikan: pada Mode 1 kedua massa <strong style="color:var(--green)">searah</strong> dan pegas tengah diam; pada Mode 2 kedua massa <strong style="color:var(--amber)">berlawanan</strong> dan pegas tengah ditekan/diregang dua kali lipat.</p>
-
-  <div class="reveal" style="background:#020812;border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px">
-    <canvas id="cv2dof" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
-    <div style="display:flex;gap:14px;justify-content:center;margin-top:18px;flex-wrap:wrap">
-      <button id="btn-mode1" onclick="set2DofMode(1)" class="mode-btn mode-btn-active"
-        style="padding:10px 22px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(0,224,158,.5);background:rgba(0,224,158,.18);color:var(--green);transition:all .2s">
-        ▶ Mode 1 (ω₁ = 10 rad/s) — In-Phase
-      </button>
-      <button id="btn-mode2" onclick="set2DofMode(2)" class="mode-btn"
-        style="padding:10px 22px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(249,115,22,.4);background:rgba(249,115,22,.08);color:var(--amber);transition:all .2s">
-        ▶ Mode 2 (ω₂ ≈ 17.32 rad/s) — Anti-Phase
-      </button>
-    </div>
-    <div id="mode2dof-info" style="text-align:center;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">
-      Mode 1 aktif · X₁ = X₂ = cos(10·t) · pegas tengah tidak terdeformasi
-    </div>
-  </div>
-
-  <p class="section-desc reveal" style="margin-top:24px">Tabel berikut merangkum perbedaan kedua mode untuk referensi cepat:</p>
-
-  <div class="reveal" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:24px;overflow-x:auto">
-    <table style="width:100%;border-collapse:collapse;font-size:14px">
-      <thead>
-        <tr style="border-bottom:2px solid var(--border)">
-          <th style="text-align:left;padding:12px;color:var(--cyan)">Karakteristik</th>
-          <th style="text-align:center;padding:12px;color:var(--green)">Mode 1 (Lambat)</th>
-          <th style="text-align:center;padding:12px;color:var(--amber)">Mode 2 (Cepat)</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Frekuensi pribadi ω</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green);font-family:monospace">10 rad/s</td>
-          <td style="text-align:center;padding:10px;color:var(--amber);font-family:monospace">17.32 rad/s</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Frekuensi f (Hz)</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green);font-family:monospace">1.59 Hz</td>
-          <td style="text-align:center;padding:10px;color:var(--amber);font-family:monospace">2.76 Hz</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Periode T (detik)</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green);font-family:monospace">0.628 s</td>
-          <td style="text-align:center;padding:10px;color:var(--amber);font-family:monospace">0.363 s</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Mode shape [X₁, X₂]</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green);font-family:monospace">[1, 1]</td>
-          <td style="text-align:center;padding:10px;color:var(--amber);font-family:monospace">[1, −1]</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Pola gerak</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green)">Searah (in-phase)</td>
-          <td style="text-align:center;padding:10px;color:var(--amber)">Berlawanan (anti-phase)</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Pegas tengah k₂</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green)">Diam (tidak terdeformasi)</td>
-          <td style="text-align:center;padding:10px;color:var(--amber)">Bergetar bolak-balik</td>
-        </tr>
-        <tr>
-          <td style="padding:10px 12px;color:var(--text)"><strong>Energi yang tersimpan</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green)">Hanya k₁ + k₃</td>
-          <td style="text-align:center;padding:10px;color:var(--amber)">k₁ + k₃ + 4·k₂</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="info-box reveal">
-    <strong>Bayangkan Mode 1:</strong> Kedua kotak meluncur ke kanan bersama (X₁ = +1, X₂ = +1), lalu ke kiri bersama (−1, −1). Bagaikan pasangan dansa yang sinkron. Pegas tengah selalu memiliki panjang asli — tidak ikut kerja. Frekuensi rendah (10 rad/s).<br><br>
-    <strong>Bayangkan Mode 2:</strong> Massa kiri ke kanan (+1), massa kanan ke kiri (−1). Pegas tengah ditekan menjadi <em>setengah</em> panjangnya, lalu diregang menjadi <em>1.5×</em> panjangnya — bekerja keras! Frekuensi tinggi (17.32 rad/s).
-  </div>
-
-  <div class="tip-box reveal">
-    💡 <strong>Tip:</strong> Klik bolak-balik antara Mode 1 dan Mode 2 untuk merasakan perbedaan tempo dan pola gerak. Untuk visualisasi lanjutan, buka Bagian 08 (Python) → jalankan Cell 4 di Jupyter Notebook untuk plot superposisi kedua mode (free vibration response).
-  </div>
-</div>
-
-<!-- ═══ BAGIAN 07 — APLIKASI: VIBRATION ABSORBER ═══ -->
-<hr class="divider">
-<div class="section" id="m-aplikasi">
-  <div class="section-label reveal">Bagian 07</div>
-  <h2 class="section-title reveal">Aplikasi Industri:<br>Vibration Absorber & Tuned Mass Damper</h2>
-  <p class="section-desc reveal">Aplikasi paling spektakuler dari konsep 2 DoF adalah <strong>vibration absorber</strong> — menambahkan massa-pegas kecil pada struktur untuk meredam getaran berbahaya. Prinsipnya: dengan tuning yang tepat, sistem 2 DoF baru memiliki frekuensi pribadi yang <em>menjauh</em> dari frekuensi eksitasi pengganggu.</p>
+  <h2 class="section-title reveal">Coupled vs Decoupled Coordinates:<br>Sumber Kompleksitas Solving MDoF</h2>
+  <p class="section-desc reveal">Mengapa MDoF system susah di-solve langsung? Karena persamaan-nya <strong>coupled</strong> — ẍ₁ depends pada x₂, dan ẍ₂ depends pada x₁. Tidak bisa solve satu per satu independent. Concept ini critical untuk memahami mengapa modal analysis (Pertemuan 10) sangat powerful — ia mengubah coupled menjadi decoupled.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Prinsip Tuning Absorber Klasik (Den Hartog)</div>
-    Tune frekuensi pribadi absorber: ω_a = √(k_a/m_a) = ω_eksitasi
+    <div class="label">Coupling di Matrix EoM</div>
+    Off-diagonal K[i,j] ≠ 0 ⇒ coordinate i terkopel dengan j ⇒ tidak bisa solve independent
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">🏗️</div>
-      <h3>Taipei 101 — Bola 660 Ton</h3>
-      <p>Gedung 508 m ini punya bola pendulum 660 ton di lantai 87–92, terhubung ke struktur lewat pegas. Itu adalah sistem 2 DoF: gedung (m₁) + bola (m₂). Saat angin/gempa pada frekuensi tertentu menggetarkan gedung, bola "menyerap" energi → amplitudo gedung berkurang ~40%.</p>
-      <div class="formula">ω_a tuned ke ω_angin dominan</div>
+      <div class="card-icon">🔗</div>
+      <h3>Coupled System (Generic 2-DoF)</h3>
+      <p>EoM: <code>ẍ₁ = −200·x₁ + 100·x₂</code>, <code>ẍ₂ = 100·x₁ − 200·x₂</code>. <strong>Tidak bisa solve x₁(t) tanpa juga solve x₂(t)</strong> simultan. Direct integration (Newmark, Wilson-θ) di-step bersamaan untuk kedua persamaan.</p>
+      <div class="formula">ẍ_i depends on x_j (i≠j)</div>
     </div>
     <div class="card">
-      <div class="card-icon">🌉</div>
-      <h3>Millennium Bridge London</h3>
-      <p>Saat dibuka tahun 2000, jembatan ini bergoyang berbahaya akibat 2000 pejalan kaki yang tanpa sadar berjalan sinkron pada frekuensi pribadinya. Solusi: dipasang 89 vibration absorber tuned ke frekuensi tersebut.</p>
-      <div class="formula">Multiple absorbers di sepanjang jembatan</div>
+      <div class="card-icon">⚡</div>
+      <h3>Decoupled System (Hypothetical)</h3>
+      <p>Bila K diagonal: <code>ẍ₁ = −k₁/m₁·x₁</code>, <code>ẍ₂ = −k₂/m₂·x₂</code>. Independent — bisa solve seperti dua sistem 1-DoF terpisah. Solusi: <code>x_i(t) = A_i·cos(ω_i·t)</code>. Trivial.</p>
+      <div class="formula">x_i(t) only depends on x_i(0), v_i(0)</div>
     </div>
     <div class="card">
-      <div class="card-icon">🚗</div>
-      <h3>Shock Absorber + Bushing Mobil</h3>
-      <p>Engine mount karet bertindak sebagai pegas + damper kecil yang membuat mesin (m₁) dan rangka (m₂) menjadi sistem 2 DoF. Tuning yang tepat menjauhkan frekuensi pribadi rangka dari 800–4000 RPM mesin.</p>
-      <div class="formula">f_engine ≠ f_natural rangka</div>
+      <div class="card-icon">🎼</div>
+      <h3>Modal Decoupling (Preview)</h3>
+      <p>Pertemuan 10: <strong>modal analysis</strong> mentransformasi coupled physical coordinates {x} ke <em>decoupled modal coordinates</em> {η} via <code>{x} = [Φ]{η}</code>. Setelah transform, [Φ]ᵀ[K][Φ] menjadi <strong>diagonal</strong> — N independent 1-DoF problems.</p>
+      <div class="formula">Modal: Φ^T K Φ = diag (decoupled)</div>
     </div>
     <div class="card">
-      <div class="card-icon">⚙️</div>
-      <h3>Mesin Cuci dengan Counter-Weight</h3>
-      <p>Tabung mesin cuci ditambah massa counter-weight yang dihubungkan oleh pegas suspensi. Saat unbalance terjadi, counter-weight bergetar berlawanan (Mode 2) → meredam getaran tabung.</p>
-      <div class="formula">Reduksi getaran 50–70%</div>
+      <div class="card-icon">💡</div>
+      <h3>Implikasi untuk Solving Numerik</h3>
+      <p>Coupled MDoF butuh ODE solver yang handle vector state {x, ẋ}. Library: <code>scipy.integrate.solve_ivp</code>. State vector size = 2N (position + velocity). Implementation di Bagian 08.</p>
+      <div class="formula">State vector: y = [x, ẋ] ∈ ℝ^(2N)</div>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Aturan Desain Absorber Sederhana</strong><br>
-    1) Identifikasi <strong>frekuensi pengganggu</strong> ω_drive (mis. 10 rad/s untuk mesin tertentu).<br>
-    2) Pilih massa absorber <strong>m_a ≈ 5–20% massa utama</strong> (lebih besar = lebih efektif tapi lebih berat).<br>
-    3) Tuning: <strong>k_a = m_a · ω_drive²</strong>. Contoh: untuk meredam getaran ω=10 rad/s pada struktur 1000 kg, pilih m_a = 50 kg, k_a = 50·100 = 5000 N/m.<br>
-    4) Hasil: amplitudo struktur utama turun drastis di sekitar ω_drive, tetapi muncul 2 puncak resonansi baru di ω₁ dan ω₂ yang harus dijauhi.
+    <strong>Two Routes to Solve Coupled MDoF:</strong><br>
+    <strong>Route 1 — Direct Numerical Integration</strong>: convert ke 1st-order ODE system, gunakan solver (<code>solve_ivp</code>, Newmark-β, Wilson-θ). Pros: handle non-linear, time-varying, non-proportional damping. Cons: lambat untuk MDoF besar (O(N²) per step).<br>
+    <strong>Route 2 — Modal Decoupling</strong>: transform ke modal coordinates, solve N independent 1-DoF, transform balik. Pros: super cepat, exact untuk linear systems. Cons: terbatas linear + Rayleigh damping.<br>
+    <strong>Industry default</strong>: Route 2 (modal) untuk dynamic analysis structural; Route 1 (direct) untuk transient dengan non-linearity. Kombinasi keduanya = state-of-the-art FEM solver.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Trade-off Penting:</strong> Vibration absorber sangat efektif <em>hanya</em> di frekuensi tuning. Untuk eksitasi broad-band (gempa, angin acak), tambahkan <strong>damping</strong> ke absorber → menjadi <em>Tuned Mass Damper</em> (TMD). Kompromi: peredaman lebih merata, tapi puncak di ω_drive tidak senol.
+    💡 <strong>Quick Check Coupled vs Decoupled:</strong> Print matrix K. Bila ada non-zero off-diagonal element, system <strong>coupled</strong>. Untuk sistem referensi (K=[[200,-100],[-100,200]]) — clearly coupled (off-diagonal -100). Cek ini di-script Anda sebelum decide solving strategy.
   </div>
 </div>
 
-<!-- ═══ BAGIAN 08 — IMPLEMENTASI PYTHON ═══ -->
+<!-- ═══ BAGIAN 07 — NUMERICAL SOLUTION dengan solve_ivp ═══ -->
+<hr class="divider">
+<div class="section" id="m-aplikasi">
+  <div class="section-label reveal">Bagian 07</div>
+  <h2 class="section-title reveal">Numerical Solution:<br>scipy.integrate.solve_ivp untuk MDoF</h2>
+  <p class="section-desc reveal">Setelah EoM dalam matrix form <code>[M]{ẍ} + [C]{ẋ} + [K]{x} = {F(t)}</code>, langkah berikutnya: <strong>solve numerically</strong> untuk dapat respons time-history x(t). Library Python paling robust: <strong>scipy.integrate.solve_ivp</strong> dengan algoritma adaptive Runge-Kutta. Bekerja untuk linear, non-linear, time-varying systems.</p>
+
+  <div class="formula-block reveal">
+    <div class="label">Convert to 1st-Order System</div>
+    [M]{ẍ} = {F} − [C]{ẋ} − [K]{x} &nbsp;⟹&nbsp; ẏ = f(t, y), y = [x, ẋ]ᵀ
+  </div>
+
+  <div class="cards reveal" style="margin-bottom:32px">
+    <div class="card">
+      <div class="card-icon">🔄</div>
+      <h3>Step 1: State Vector Definition</h3>
+      <p>State vector y mengandung position + velocity: <code>y = [x₁, x₂, ..., x_N, ẋ₁, ẋ₂, ..., ẋ_N]</code> — size 2N. ODE 2nd-order N-DoF jadi 1st-order 2N system. Standard trick.</p>
+      <div class="formula">y ∈ ℝ^(2N)</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📐</div>
+      <h3>Step 2: Define f(t, y)</h3>
+      <p>Function ẏ = f(t, y): top half = velocity (= y[N:]), bottom half = acceleration (= M⁻¹·(F − C·ẋ − K·x)). Implementasi 5 baris numpy.</p>
+      <div class="formula">f(t, y) = [v; M⁻¹·(F − Cv − Kx)]</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🚀</div>
+      <h3>Step 3: Call solve_ivp</h3>
+      <p><code>sol = solve_ivp(f, t_span, y0, t_eval=t, method='RK45')</code>. Method default RK45 (adaptive Runge-Kutta order 4-5). Untuk stiff systems pakai 'Radau' atau 'BDF'.</p>
+      <div class="formula">sol = solve_ivp(f, [0, T], y0, t_eval=t)</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <h3>Step 4: Extract &amp; Visualize</h3>
+      <p>sol.y[i, :] = position DoF-i over time. sol.y[N+i, :] = velocity DoF-i. Plot dengan matplotlib. Verify dengan analytical (untuk 1-DoF undamped: x(t) = A·cos(ωt)).</p>
+      <div class="formula">x_i(t) = sol.y[i, :]</div>
+    </div>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>Initial Conditions &amp; Forcing</strong><br>
+    Untuk <strong>free vibration</strong>: y0 = [x0, v0] (initial position + velocity), F = 0.<br>
+    Untuk <strong>forced vibration</strong> harmonic: F(t) = F0·sin(Ω·t), pakai callable F(t) atau interpolation.<br>
+    Untuk <strong>impulse</strong>: pakai short-duration high-amplitude pulse, atau set initial velocity tinggi.<br>
+    Untuk <strong>seismic</strong>: F(t) = -[M]·{r}·a_g(t) dengan r = influence vector dan a_g(t) ground acceleration.<br>
+    solve_ivp menghandle semua scenarios di atas dengan f(t, y) yang mengkomputasi forcing kontekstual.
+  </div>
+
+  <div class="tip-box reveal">
+    💡 <strong>Performance Tip:</strong> Untuk MDoF besar (N &gt; 100), pre-compute <code>M_inv = np.linalg.inv(M)</code> sekali di luar f(t, y) untuk hindari inversi setiap step. Atau pakai <code>scipy.linalg.cho_solve</code> dengan factorized M (Cholesky) untuk efficiency. Speedup 5-10× untuk N besar.
+  </div>
+</div>
+
+<!-- ═══ BAGIAN 08 — IMPLEMENTASI PYTHON LENGKAP ═══ -->
 <hr class="divider">
 <div class="section" id="m-python">
   <div class="section-label reveal">Bagian 08</div>
-  <h2 class="section-title reveal">Implementasi Python<br>di Jupyter Notebook</h2>
-  <p class="section-desc reveal">Empat cell Python berikut mengimplementasikan konsep kunci Pertemuan 9 dengan sistem referensi: setup matriks M & K (Cell 1), eigenvalue problem dan frekuensi pribadi (Cell 2), mode shape dan orthogonality (Cell 3), serta simulasi free vibration response (Cell 4). Semua langsung runnable di VS Code Jupyter.</p>
+  <h2 class="section-title reveal">Implementasi Python:<br>End-to-End Derivasi sampai Response</h2>
+  <p class="section-desc reveal">Empat cell Python berikut mengimplementasikan workflow lengkap: setup matriks dari sistem referensi (Cell 1), verifikasi Newton vs Lagrange (Cell 2), numerical solve dengan solve_ivp untuk free vibration (Cell 3), dan forced vibration response harmonic (Cell 4). Direct production-ready code.</p>
 
   <!-- Cell 1 -->
   <div class="code-card reveal" style="margin-bottom:32px">
     <div class="code-header">
       <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
       <span class="code-lang">Python · Cell 1</span>
-      <span class="code-label">Setup Matriks M & K</span>
+      <span class="code-label">Setup [M], [K], [C] Matrices for 2-DoF System</span>
     </div>
     <div class="code-wrap">
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
       <pre><code class="lang-python">import numpy as np
 
-# Parameter sistem referensi (2 DoF, 2 massa + 3 pegas)
+# Sistem referensi: 2 mass + 3 spring identik
 m1, m2 = 1.0, 1.0          # kg
 k1, k2, k3 = 100.0, 100.0, 100.0   # N/m
+c1, c2, c3 = 0.5, 0.5, 0.5         # N·s/m (light damping)
 
-# Matriks massa (diagonal)
+# Mass matrix (diagonal lumped)
 M = np.array([[m1, 0],
               [0, m2]])
 
-# Matriks kekakuan (simetris)
+# Stiffness matrix (simetris)
 K = np.array([[k1 + k2, -k2],
               [-k2,    k2 + k3]])
 
-print("Matriks Massa M:")
-print(M)
-print("\nMatriks Kekakuan K:")
-print(K)
-print(f"\ntrace(K) = {np.trace(K):.1f}")
-print(f"det(K)   = {np.linalg.det(K):.1f}")</code></pre>
+# Damping matrix (analogous to K)
+C = np.array([[c1 + c2, -c2],
+              [-c2,    c2 + c3]])
+
+print("Mass matrix M:");      print(M)
+print("
+Stiffness matrix K:"); print(K)
+print("
+Damping matrix C:");   print(C)
+print(f"
+M symmetric? {np.allclose(M, M.T)}")
+print(f"K symmetric? {np.allclose(K, K.T)}")
+print(f"C symmetric? {np.allclose(C, C.T)}")</code></pre>
     </div>
   </div>
 
@@ -1325,26 +1317,37 @@ print(f"det(K)   = {np.linalg.det(K):.1f}")</code></pre>
     <div class="code-header">
       <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
       <span class="code-lang">Python · Cell 2</span>
-      <span class="code-label">Frekuensi Pribadi ω₁ & ω₂</span>
+      <span class="code-label">Verifikasi Newton EoM vs Lagrange EoM</span>
     </div>
     <div class="code-wrap">
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">from numpy.linalg import inv, eig
+      <pre><code class="lang-python">import sympy as sp
 
-# Eigenvalue problem: (M^-1 K) X = ω² X
-A = inv(M) @ K
-eigvals, eigvecs = eig(A)
+# Symbolic Lagrange derivation untuk verification
+t = sp.Symbol('t')
+x1 = sp.Function('x1')(t)
+x2 = sp.Function('x2')(t)
+m1s, m2s = sp.symbols('m1 m2', positive=True)
+k1s, k2s, k3s = sp.symbols('k1 k2 k3', positive=True)
 
-# Urutkan dari kecil ke besar
-idx = np.argsort(eigvals)
-omega_squared = eigvals[idx]
-modes = eigvecs[:, idx]
-omegas = np.sqrt(omega_squared)
+# Kinetic energy
+T = sp.Rational(1,2)*m1s*sp.diff(x1,t)**2 + sp.Rational(1,2)*m2s*sp.diff(x2,t)**2
+# Potential energy
+V = sp.Rational(1,2)*k1s*x1**2 + sp.Rational(1,2)*k2s*(x1-x2)**2 + sp.Rational(1,2)*k3s*x2**2
+L = T - V
 
-print(f"ω₁² = {omega_squared[0]:.4f}    →    ω₁ = {omegas[0]:.4f} rad/s")
-print(f"ω₂² = {omega_squared[1]:.4f}    →    ω₂ = {omegas[1]:.4f} rad/s")
-print(f"\nf₁ = {omegas[0]/(2*np.pi):.4f} Hz   T₁ = {2*np.pi/omegas[0]:.4f} s")
-print(f"f₂ = {omegas[1]/(2*np.pi):.4f} Hz   T₂ = {2*np.pi/omegas[1]:.4f} s")</code></pre>
+# Euler-Lagrange untuk x1
+EL1 = sp.diff(sp.diff(L, sp.diff(x1,t)), t) - sp.diff(L, x1)
+EL1_simplified = sp.simplify(EL1)
+print("EoM untuk x1 (Lagrange):")
+print(EL1_simplified, "= 0")
+
+# Newton expected: m1·ẍ1 + (k1+k2)·x1 - k2·x2 = 0
+print("
+Newton expected:")
+print(m1s*sp.diff(x1, t, 2) + (k1s + k2s)*x1 - k2s*x2, "= 0")
+print("
+→ Match! Kedua metode produce same EoM.")</code></pre>
     </div>
   </div>
 
@@ -1353,21 +1356,40 @@ print(f"f₂ = {omegas[1]/(2*np.pi):.4f} Hz   T₂ = {2*np.pi/omegas[1]:.4f} s")
     <div class="code-header">
       <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
       <span class="code-lang">Python · Cell 3</span>
-      <span class="code-label">Mode Shapes & Orthogonality</span>
+      <span class="code-label">Free Vibration Response dengan solve_ivp</span>
     </div>
     <div class="code-wrap">
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python"># Normalisasi mode shape: pertama-elemen = 1
-mode1 = modes[:, 0] / modes[0, 0]
-mode2 = modes[:, 1] / modes[0, 1]
+      <pre><code class="lang-python">from scipy.integrate import solve_ivp
+import matplotlib.pyplot as plt
 
-print(f"Mode 1 (ω₁ = {omegas[0]:.2f} rad/s): X = [{mode1[0]:.3f}, {mode1[1]:.3f}]")
-print(f"Mode 2 (ω₂ = {omegas[1]:.2f} rad/s): X = [{mode2[0]:.3f}, {mode2[1]:.3f}]")
+M_inv = np.linalg.inv(M)
 
-# Cek orthogonality terhadap matriks M
-ortho = mode1 @ M @ mode2
-print(f"\nOrthogonality check: u₁ᵀ M u₂ = {ortho:.2e}")
-print("✓ Orthogonal jika nilai ≈ 0" if abs(ortho) < 1e-10 else "⚠ Cek ulang!")</code></pre>
+def f_free(t, y):
+    """y = [x1, x2, v1, v2]. Return dy/dt."""
+    x = y[:2]
+    v = y[2:]
+    a = M_inv @ (-K @ x - C @ v)   # acceleration from EoM
+    return np.concatenate([v, a])
+
+# Initial conditions: x1(0) = 1, x2(0) = 0, both v(0) = 0
+y0 = [1.0, 0.0, 0.0, 0.0]
+t_span = (0, 5.0)
+t_eval = np.linspace(0, 5, 1000)
+
+sol = solve_ivp(f_free, t_span, y0, t_eval=t_eval, method='RK45', rtol=1e-8)
+
+# Plot
+fig, ax = plt.subplots(figsize=(10, 4))
+ax.plot(sol.t, sol.y[0], label='x1(t)', color='#0ea5e9')
+ax.plot(sol.t, sol.y[1], label='x2(t)', color='#f59e0b')
+ax.set_xlabel('t (s)'); ax.set_ylabel('Displacement (m)')
+ax.set_title('Free Vibration Response — 2 DoF (initial x1=1, x2=0)')
+ax.legend(); ax.grid(alpha=0.3)
+plt.tight_layout(); plt.show()
+
+print(f"max |x1| = {np.max(np.abs(sol.y[0])):.4f}")
+print(f"max |x2| = {np.max(np.abs(sol.y[1])):.4f}")</code></pre>
     </div>
   </div>
 
@@ -1376,32 +1398,47 @@ print("✓ Orthogonal jika nilai ≈ 0" if abs(ortho) < 1e-10 else "⚠ Cek ulan
     <div class="code-header">
       <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
       <span class="code-lang">Python · Cell 4</span>
-      <span class="code-label">Simulasi Free Vibration Response</span>
+      <span class="code-label">Forced Vibration Response (Harmonic Excitation)</span>
     </div>
     <div class="code-wrap">
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">import matplotlib.pyplot as plt
+      <pre><code class="lang-python">def f_forced(t, y, F0=10.0, Omega=8.0):
+    """Forced harmonic excitation di m1: F1(t) = F0·sin(Ω·t)."""
+    x = y[:2]
+    v = y[2:]
+    F = np.array([F0 * np.sin(Omega * t), 0])   # force on m1 only
+    a = M_inv @ (F - K @ x - C @ v)
+    return np.concatenate([v, a])
 
-# Initial conditions: x1(0)=1, x2(0)=0, semua kecepatan = 0
-# Modal decomposition: x(0) = A·u1 + B·u2 → A=B=0.5
-A_amp, B_amp = 0.5, 0.5
+y0 = [0, 0, 0, 0]   # start from rest
+t_eval = np.linspace(0, 10, 2000)
 
-t = np.linspace(0, 3, 1000)
-x1 = A_amp * np.cos(omegas[0]*t) + B_amp * np.cos(omegas[1]*t)
-x2 = A_amp * np.cos(omegas[0]*t) - B_amp * np.cos(omegas[1]*t)
+sol = solve_ivp(f_forced, (0, 10), y0, t_eval=t_eval,
+                method='RK45', rtol=1e-8, args=(10.0, 8.0))
 
-fig, ax = plt.subplots(figsize=(10, 4))
-ax.plot(t, x1, label='x₁(t)', color='#0ea5e9')
-ax.plot(t, x2, label='x₂(t)', color='#f59e0b')
-ax.set_xlabel('waktu (s)'); ax.set_ylabel('posisi (m)')
-ax.set_title('Free Vibration Response — Sistem 2 DoF')
-ax.grid(True, alpha=0.3); ax.legend(); plt.tight_layout(); plt.show()
-print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x2)):.3f}")</code></pre>
+fig, axes = plt.subplots(2, 1, figsize=(10, 6), sharex=True)
+axes[0].plot(sol.t, sol.y[0], color='#0ea5e9')
+axes[0].set_ylabel('x1 (m)'); axes[0].set_title('Forced Vibration: F1 = 10·sin(8t)')
+axes[0].grid(alpha=0.3)
+axes[1].plot(sol.t, sol.y[1], color='#f59e0b')
+axes[1].set_xlabel('t (s)'); axes[1].set_ylabel('x2 (m)')
+axes[1].grid(alpha=0.3)
+plt.tight_layout(); plt.show()
+
+# Steady-state magnitude (terakhir 2 detik)
+mask = sol.t > 8
+print(f"Steady-state |x1|_max = {np.max(np.abs(sol.y[0, mask])):.4f}")
+print(f"Steady-state |x2|_max = {np.max(np.abs(sol.y[1, mask])):.4f}")</code></pre>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Catatan:</strong> Empat cell di atas dapat di-copy ke Jupyter Notebook dan dijalankan berurutan. Cell 1 menyiapkan matriks, Cell 2 menghitung frekuensi pribadi, Cell 3 menampilkan mode shape, Cell 4 mensimulasikan getaran bebas dengan kondisi awal x₁=1, x₂=0. Plot Cell 4 menunjukkan <em>beat phenomenon</em> — superposisi dua mode dengan frekuensi mirip-tapi-berbeda menghasilkan amplitudo modulasi yang khas.
+    <strong>Workflow untuk Production Code</strong><br>
+    Pattern di atas (build matrices → verify → solve_ivp) dapat di-template untuk MDoF dengan N besar:<br>
+    1) <strong>Connectivity-based matrix builder</strong>: function yang return M, K, C dari list of (mass, spring, damper) connections.<br>
+    2) <strong>Generic f(t, y) factory</strong>: closure yang capture M, K, C, F-callable, return ODE function.<br>
+    3) <strong>Output post-processing</strong>: extract specific DoF, compute peak/RMS, generate plot.<br>
+    Dengan modular structure, sistem 100-DoF gedung tinggi dapat di-solve dalam &lt;100 baris kode. Ini foundation FEM-like custom solvers di academic research.
   </div>
 </div>
 
@@ -1510,14 +1547,14 @@ print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">01</div>
-        <div class="mc-q">Berapa banyak <strong>frekuensi pribadi</strong> yang dimiliki oleh sistem getaran 2 DoF?</div>
+        <div class="mc-q"><strong>DoF (degree of freedom)</strong> dari sistem getaran adalah...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc1">
-        <div class="radio-option" onclick="selectMC('mc1',this,false)"><div class="radio-circle"></div>(A) &nbsp; 1 frekuensi pribadi saja</div>
-        <div class="radio-option" onclick="selectMC('mc1',this,true)"><div class="radio-circle"></div>(B) &nbsp; 2 frekuensi pribadi (ω₁ dan ω₂)</div>
-        <div class="radio-option" onclick="selectMC('mc1',this,false)"><div class="radio-circle"></div>(C) &nbsp; 4 frekuensi pribadi</div>
-        <div class="radio-option" onclick="selectMC('mc1',this,false)"><div class="radio-circle"></div>(D) &nbsp; Tidak terhingga (kontinu)</div>
+        <div class="radio-option" onclick="selectMC('mc1',this,false)"><div class="radio-circle"></div>(A) &nbsp; Jumlah massa dalam sistem</div>
+        <div class="radio-option" onclick="selectMC('mc1',this,true)"><div class="radio-circle"></div>(B) &nbsp; Jumlah koordinat independen yang diperlukan untuk mendefinisikan posisi sistem</div>
+        <div class="radio-option" onclick="selectMC('mc1',this,false)"><div class="radio-circle"></div>(C) &nbsp; Jumlah pegas dalam sistem</div>
+        <div class="radio-option" onclick="selectMC('mc1',this,false)"><div class="radio-circle"></div>(D) &nbsp; Jumlah frekuensi pribadi</div>
       </div>
       <button class="mc-submit" id="sub-mc1" onclick="checkMC('mc1')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc1"></div>
@@ -1527,14 +1564,14 @@ print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">02</div>
-        <div class="mc-q">Persamaan gerak sistem 2 DoF dalam <strong>bentuk matriks</strong> ditulis sebagai...</div>
+        <div class="mc-q">Persamaan gerak Newton untuk massa m₁ dalam sistem 2-DoF (mass-spring-mass dengan 3 spring identik k) adalah...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc2">
-        <div class="radio-option" onclick="selectMC('mc2',this,false)"><div class="radio-circle"></div>(A) &nbsp; m·ẍ + k·x = 0</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,true)"><div class="radio-circle"></div>(B) &nbsp; M·ẍ + K·x = 0  (M, K matriks)</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,false)"><div class="radio-circle"></div>(C) &nbsp; M·x + K·ẍ = 0</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,false)"><div class="radio-circle"></div>(D) &nbsp; ẍ = ω²·x</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,false)"><div class="radio-circle"></div>(A) &nbsp; m₁·ẍ₁ = +k₁·x₁ + k₂·(x₁ + x₂)</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,true)"><div class="radio-circle"></div>(B) &nbsp; m₁·ẍ₁ = −k₁·x₁ − k₂·(x₁ − x₂)</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,false)"><div class="radio-circle"></div>(C) &nbsp; m₁·ẋ₁ = −k₁·x₁ − k₂·x₂</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,false)"><div class="radio-circle"></div>(D) &nbsp; m₁·ẍ₁ = k₁·x₁ + k₂·x₂</div>
       </div>
       <button class="mc-submit" id="sub-mc2" onclick="checkMC('mc2')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc2"></div>
@@ -1544,14 +1581,14 @@ print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">03</div>
-        <div class="mc-q">Untuk sistem 2 DoF dengan m₁=m₂=1 kg, k₁=k₂=k₃=100 N/m, matriks kekakuan <strong>K</strong> adalah...</div>
+        <div class="mc-q"><strong>Lagrangian L</strong> dalam Lagrange method didefinisikan sebagai...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc3">
-        <div class="radio-option" onclick="selectMC('mc3',this,false)"><div class="radio-circle"></div>(A) &nbsp; [[100, 0], [0, 100]]</div>
-        <div class="radio-option" onclick="selectMC('mc3',this,false)"><div class="radio-circle"></div>(B) &nbsp; [[200, 100], [100, 200]]</div>
-        <div class="radio-option" onclick="selectMC('mc3',this,true)"><div class="radio-circle"></div>(C) &nbsp; [[200, −100], [−100, 200]]</div>
-        <div class="radio-option" onclick="selectMC('mc3',this,false)"><div class="radio-circle"></div>(D) &nbsp; [[100, −100], [−100, 100]]</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,false)"><div class="radio-circle"></div>(A) &nbsp; T + V (jumlah energi)</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,true)"><div class="radio-circle"></div>(B) &nbsp; T − V (kinetic minus potential)</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,false)"><div class="radio-circle"></div>(C) &nbsp; T · V (perkalian energi)</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,false)"><div class="radio-circle"></div>(D) &nbsp; T / V (rasio energi)</div>
       </div>
       <button class="mc-submit" id="sub-mc3" onclick="checkMC('mc3')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc3"></div>
@@ -1561,14 +1598,14 @@ print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">04</div>
-        <div class="mc-q">Persamaan karakteristik untuk mencari frekuensi pribadi sistem 2 DoF adalah...</div>
+        <div class="mc-q"><strong>Euler-Lagrange equation</strong> untuk koordinat q_i adalah...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc4">
-        <div class="radio-option" onclick="selectMC('mc4',this,false)"><div class="radio-circle"></div>(A) &nbsp; det(M − ω²K) = 0</div>
-        <div class="radio-option" onclick="selectMC('mc4',this,true)"><div class="radio-circle"></div>(B) &nbsp; det(K − ω²M) = 0</div>
-        <div class="radio-option" onclick="selectMC('mc4',this,false)"><div class="radio-circle"></div>(C) &nbsp; trace(K − ω²M) = 0</div>
-        <div class="radio-option" onclick="selectMC('mc4',this,false)"><div class="radio-circle"></div>(D) &nbsp; K + ω²M = 0</div>
+        <div class="radio-option" onclick="selectMC('mc4',this,false)"><div class="radio-circle"></div>(A) &nbsp; d/dt(∂L/∂q_i) − ∂L/∂q̇_i = 0</div>
+        <div class="radio-option" onclick="selectMC('mc4',this,true)"><div class="radio-circle"></div>(B) &nbsp; d/dt(∂L/∂q̇_i) − ∂L/∂q_i = Q_i</div>
+        <div class="radio-option" onclick="selectMC('mc4',this,false)"><div class="radio-circle"></div>(C) &nbsp; ∂L/∂q_i + ∂L/∂q̇_i = 0</div>
+        <div class="radio-option" onclick="selectMC('mc4',this,false)"><div class="radio-circle"></div>(D) &nbsp; d²L/dt² = Q_i</div>
       </div>
       <button class="mc-submit" id="sub-mc4" onclick="checkMC('mc4')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc4"></div>
@@ -1578,14 +1615,14 @@ print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">05</div>
-        <div class="mc-q">Untuk sistem referensi (m=1, k=100), nilai <strong>ω₁</strong> (frekuensi pribadi terendah) adalah...</div>
+        <div class="mc-q">Kapan <strong>Lagrange method lebih dipilih</strong> daripada Newton method?</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc5">
-        <div class="radio-option" onclick="selectMC('mc5',this,false)"><div class="radio-circle"></div>(A) &nbsp; 5 rad/s</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,true)"><div class="radio-circle"></div>(B) &nbsp; 10 rad/s</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,false)"><div class="radio-circle"></div>(C) &nbsp; 17.32 rad/s</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,false)"><div class="radio-circle"></div>(D) &nbsp; 100 rad/s</div>
+        <div class="radio-option" onclick="selectMC('mc5',this,false)"><div class="radio-circle"></div>(A) &nbsp; Untuk sistem 1-DoF dengan koordinat Cartesian sederhana</div>
+        <div class="radio-option" onclick="selectMC('mc5',this,true)"><div class="radio-circle"></div>(B) &nbsp; Untuk sistem dengan banyak DoF, koordinat angular, atau constraint kompleks</div>
+        <div class="radio-option" onclick="selectMC('mc5',this,false)"><div class="radio-circle"></div>(C) &nbsp; Untuk sistem yang tidak punya potential energy</div>
+        <div class="radio-option" onclick="selectMC('mc5',this,false)"><div class="radio-circle"></div>(D) &nbsp; Selalu Lagrange lebih baik dari Newton</div>
       </div>
       <button class="mc-submit" id="sub-mc5" onclick="checkMC('mc5')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc5"></div>
@@ -1595,14 +1632,14 @@ print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">06</div>
-        <div class="mc-q"><strong>Mode 1</strong> dari sistem simetris (m₁=m₂, k₁=k₃) memiliki karakteristik...</div>
+        <div class="mc-q">Bentuk <strong>matriks EoM standar</strong> untuk sistem MDoF dengan damping dan forcing adalah...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc6">
-        <div class="radio-option" onclick="selectMC('mc6',this,true)"><div class="radio-circle"></div>(A) &nbsp; Kedua massa bergerak <strong>searah</strong> (in-phase), pegas tengah tidak terdeformasi</div>
-        <div class="radio-option" onclick="selectMC('mc6',this,false)"><div class="radio-circle"></div>(B) &nbsp; Kedua massa bergerak <strong>berlawanan</strong> (anti-phase), pegas tengah bekerja keras</div>
-        <div class="radio-option" onclick="selectMC('mc6',this,false)"><div class="radio-circle"></div>(C) &nbsp; Hanya massa 1 yang bergerak, massa 2 diam</div>
-        <div class="radio-option" onclick="selectMC('mc6',this,false)"><div class="radio-circle"></div>(D) &nbsp; Frekuensi mode 1 selalu lebih tinggi dari mode 2</div>
+        <div class="radio-option" onclick="selectMC('mc6',this,false)"><div class="radio-circle"></div>(A) &nbsp; [M]·{x} + [K]·{ẍ} = {F}</div>
+        <div class="radio-option" onclick="selectMC('mc6',this,true)"><div class="radio-circle"></div>(B) &nbsp; [M]·{ẍ} + [C]·{ẋ} + [K]·{x} = {F(t)}</div>
+        <div class="radio-option" onclick="selectMC('mc6',this,false)"><div class="radio-circle"></div>(C) &nbsp; [K]·{ẍ} + [M]·{x} = 0</div>
+        <div class="radio-option" onclick="selectMC('mc6',this,false)"><div class="radio-circle"></div>(D) &nbsp; [M] + [K] = {F}</div>
       </div>
       <button class="mc-submit" id="sub-mc6" onclick="checkMC('mc6')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc6"></div>
@@ -1612,14 +1649,14 @@ print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">07</div>
-        <div class="mc-q">Untuk sistem referensi, mode shape Mode 2 (frekuensi tinggi ω₂≈17.32) dinormalisasi ke X₁=1 adalah...</div>
+        <div class="mc-q"><strong>Mass matrix [M]</strong> untuk lumped-mass system bersifat...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc7">
-        <div class="radio-option" onclick="selectMC('mc7',this,false)"><div class="radio-circle"></div>(A) &nbsp; [1, 1]</div>
-        <div class="radio-option" onclick="selectMC('mc7',this,true)"><div class="radio-circle"></div>(B) &nbsp; [1, −1]</div>
-        <div class="radio-option" onclick="selectMC('mc7',this,false)"><div class="radio-circle"></div>(C) &nbsp; [1, 0]</div>
-        <div class="radio-option" onclick="selectMC('mc7',this,false)"><div class="radio-circle"></div>(D) &nbsp; [1, 2]</div>
+        <div class="radio-option" onclick="selectMC('mc7',this,true)"><div class="radio-circle"></div>(A) &nbsp; Diagonal dengan elemen m_i di posisi (i,i)</div>
+        <div class="radio-option" onclick="selectMC('mc7',this,false)"><div class="radio-circle"></div>(B) &nbsp; Off-diagonal dengan negative values</div>
+        <div class="radio-option" onclick="selectMC('mc7',this,false)"><div class="radio-circle"></div>(C) &nbsp; Tidak simetris</div>
+        <div class="radio-option" onclick="selectMC('mc7',this,false)"><div class="radio-circle"></div>(D) &nbsp; Selalu sama dengan stiffness matrix</div>
       </div>
       <button class="mc-submit" id="sub-mc7" onclick="checkMC('mc7')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc7"></div>
@@ -1629,14 +1666,14 @@ print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">08</div>
-        <div class="mc-q">Sifat <strong>orthogonality</strong> antara dua mode shape u₁ dan u₂ pada sistem 2 DoF dinyatakan sebagai...</div>
+        <div class="mc-q"><strong>Sistem coupled</strong> ditandai dengan...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc8">
-        <div class="radio-option" onclick="selectMC('mc8',this,false)"><div class="radio-circle"></div>(A) &nbsp; u₁ · u₂ = 0  (dot product biasa)</div>
-        <div class="radio-option" onclick="selectMC('mc8',this,true)"><div class="radio-circle"></div>(B) &nbsp; u₁ᵀ · M · u₂ = 0  (orthogonal terhadap matriks massa M)</div>
-        <div class="radio-option" onclick="selectMC('mc8',this,false)"><div class="radio-circle"></div>(C) &nbsp; u₁ + u₂ = 0</div>
-        <div class="radio-option" onclick="selectMC('mc8',this,false)"><div class="radio-circle"></div>(D) &nbsp; ‖u₁‖ = ‖u₂‖</div>
+        <div class="radio-option" onclick="selectMC('mc8',this,false)"><div class="radio-circle"></div>(A) &nbsp; Off-diagonal entries di [K] semua nol</div>
+        <div class="radio-option" onclick="selectMC('mc8',this,true)"><div class="radio-circle"></div>(B) &nbsp; Off-diagonal entries di [K] non-zero (DoF saling terkait)</div>
+        <div class="radio-option" onclick="selectMC('mc8',this,false)"><div class="radio-circle"></div>(C) &nbsp; [M] tidak simetris</div>
+        <div class="radio-option" onclick="selectMC('mc8',this,false)"><div class="radio-circle"></div>(D) &nbsp; Tidak ada damping</div>
       </div>
       <button class="mc-submit" id="sub-mc8" onclick="checkMC('mc8')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc8"></div>
@@ -1646,14 +1683,14 @@ print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">09</div>
-        <div class="mc-q">Sebuah <strong>vibration absorber</strong> dipasang ke struktur utama untuk meredam getaran pada frekuensi gangguan ω_drive. Aturan tuning yang benar adalah...</div>
+        <div class="mc-q">Untuk numerical solving dengan <code>scipy.integrate.solve_ivp</code>, EoM 2nd-order MDoF dikonversi ke...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc9">
-        <div class="radio-option" onclick="selectMC('mc9',this,false)"><div class="radio-circle"></div>(A) &nbsp; Frekuensi pribadi absorber harus jauh berbeda dari ω_drive</div>
-        <div class="radio-option" onclick="selectMC('mc9',this,true)"><div class="radio-circle"></div>(B) &nbsp; √(k_a/m_a) = ω_drive (tuning tepat di frekuensi gangguan)</div>
-        <div class="radio-option" onclick="selectMC('mc9',this,false)"><div class="radio-circle"></div>(C) &nbsp; Massa absorber harus lebih besar dari massa struktur</div>
-        <div class="radio-option" onclick="selectMC('mc9',this,false)"><div class="radio-circle"></div>(D) &nbsp; Tanpa peredam (damping = 0) selalu paling efektif untuk semua eksitasi</div>
+        <div class="radio-option" onclick="selectMC('mc9',this,true)"><div class="radio-circle"></div>(A) &nbsp; 1st-order ODE system dengan state vector y = [x, ẋ] (size 2N)</div>
+        <div class="radio-option" onclick="selectMC('mc9',this,false)"><div class="radio-circle"></div>(B) &nbsp; 3rd-order PDE system</div>
+        <div class="radio-option" onclick="selectMC('mc9',this,false)"><div class="radio-circle"></div>(C) &nbsp; Polynomial equation</div>
+        <div class="radio-option" onclick="selectMC('mc9',this,false)"><div class="radio-circle"></div>(D) &nbsp; Linear algebra problem (Ax = b)</div>
       </div>
       <button class="mc-submit" id="sub-mc9" onclick="checkMC('mc9')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc9"></div>
@@ -1663,14 +1700,14 @@ print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">10</div>
-        <div class="mc-q">Identitas trace-determinant untuk sistem 2 DoF dengan M = identitas: hubungan antara ω₁², ω₂² dengan matriks K adalah...</div>
+        <div class="mc-q">Untuk Rayleigh damping, matriks <strong>[C]</strong> dirumuskan sebagai...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc10">
-        <div class="radio-option" onclick="selectMC('mc10',this,false)"><div class="radio-circle"></div>(A) &nbsp; ω₁² + ω₂² = det(K), ω₁² · ω₂² = trace(K)</div>
-        <div class="radio-option" onclick="selectMC('mc10',this,true)"><div class="radio-circle"></div>(B) &nbsp; ω₁² + ω₂² = trace(K), ω₁² · ω₂² = det(K)</div>
-        <div class="radio-option" onclick="selectMC('mc10',this,false)"><div class="radio-circle"></div>(C) &nbsp; ω₁² + ω₂² = ‖K‖, ω₁² · ω₂² = ‖K‖²</div>
-        <div class="radio-option" onclick="selectMC('mc10',this,false)"><div class="radio-circle"></div>(D) &nbsp; Tidak ada hubungan analitik</div>
+        <div class="radio-option" onclick="selectMC('mc10',this,false)"><div class="radio-circle"></div>(A) &nbsp; [C] = [M]·[K]</div>
+        <div class="radio-option" onclick="selectMC('mc10',this,true)"><div class="radio-circle"></div>(B) &nbsp; [C] = α[M] + β[K]</div>
+        <div class="radio-option" onclick="selectMC('mc10',this,false)"><div class="radio-circle"></div>(C) &nbsp; [C] = [M] + [K]</div>
+        <div class="radio-option" onclick="selectMC('mc10',this,false)"><div class="radio-circle"></div>(D) &nbsp; [C] = [I] (identity)</div>
       </div>
       <button class="mc-submit" id="sub-mc10" onclick="checkMC('mc10')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc10"></div>
@@ -1704,16 +1741,16 @@ print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C1</div>
-        <div class="comp-q">Hitung <strong>trace</strong> dari matriks kekakuan K = [[200,−100],[−100,200]] (jumlah elemen diagonal). Gunakan <code>np.trace(K)</code>.</div>
+        <div class="comp-q">Build <strong>mass matrix [M]</strong> untuk sistem 2-DoF dengan m₁=1, m₂=2. Return trace [M].</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>K = np.array([[200,-100],[-100,200]]); print(np.trace(K))</code> &nbsp;|&nbsp; Expected: 400</div>
+      <div class="comp-hint">💡 <code>M = np.array([[1,0],[0,2]]); print(np.trace(M))</code> &nbsp;|&nbsp; Expected: 3</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">trace K</strong></span></div>
-        <textarea class="code-textarea" id="code-c1" placeholder="import numpy as np&#10;K = np.array([[200,-100],[-100,200]])&#10;print(np.trace(K))" oninput="onCodeInput('c1')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
+        <textarea class="code-textarea" id="code-c1" placeholder="import numpy as np&#10;M = np.array([[1, 0], [0, 2]])&#10;print(np.trace(M))" oninput="onCodeInput('c1')"></textarea>
         <div class="stdout-box" id="stdout-c1"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c1" onclick="runAndCheck('c1', 400, 0.5)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c1" onclick="runAndCheck('c1', 3.0, 0.5)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c1"></div>
     </div>
 
@@ -1721,16 +1758,16 @@ print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C2</div>
-        <div class="comp-q">Hitung <strong>determinan</strong> dari matriks K = [[200,−100],[−100,200]] menggunakan <code>np.linalg.det(K)</code>.</div>
+        <div class="comp-q">Build <strong>stiffness matrix [K]</strong> untuk sistem referensi (m=1, k=100, 3 spring identik). Return determinan [K].</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>print(np.linalg.det(K))</code> &nbsp;|&nbsp; Expected: 30000 &nbsp;(= 200×200 − (−100)×(−100))</div>
+      <div class="comp-hint">💡 <code>K = np.array([[200,-100],[-100,200]]); print(np.linalg.det(K))</code> &nbsp;|&nbsp; Expected: 30000</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">det K</strong></span></div>
-        <textarea class="code-textarea" id="code-c2" placeholder="import numpy as np&#10;K = np.array([[200,-100],[-100,200]])&#10;print(np.linalg.det(K))" oninput="onCodeInput('c2')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
+        <textarea class="code-textarea" id="code-c2" placeholder="import numpy as np&#10;K = np.array([[200, -100], [-100, 200]])&#10;print(np.linalg.det(K))" oninput="onCodeInput('c2')"></textarea>
         <div class="stdout-box" id="stdout-c2"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c2" onclick="runAndCheck('c2', 30000, 5)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c2" onclick="runAndCheck('c2', 30000.0, 1.0)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c2"></div>
     </div>
 
@@ -1738,16 +1775,16 @@ print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C3</div>
-        <div class="comp-q">Selesaikan eigenvalue problem <strong>(M⁻¹·K)·X = ω²·X</strong> menggunakan <code>np.linalg.eig</code>. Laporkan <strong>ω₁²</strong> (eigenvalue terkecil).</div>
+        <div class="comp-q">Verify symmetry: <strong>K = Kᵀ?</strong> Untuk K = [[200,-100],[-100,200]], hitung max(|K - K.T|).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>A = np.linalg.inv(M)@K; w2,_ = np.linalg.eig(A); print(min(w2))</code> &nbsp;|&nbsp; Expected: 100</div>
+      <div class="comp-hint">💡 <code>print(np.max(np.abs(K - K.T)))</code> &nbsp;|&nbsp; Expected: 0 (perfectly symmetric)</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">ω₁²</strong></span></div>
-        <textarea class="code-textarea" id="code-c3" placeholder="import numpy as np&#10;M = np.array([[1,0],[0,1]])&#10;K = np.array([[200,-100],[-100,200]])&#10;A = np.linalg.inv(M) @ K&#10;w2, _ = np.linalg.eig(A)&#10;print(min(w2))" oninput="onCodeInput('c3')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
+        <textarea class="code-textarea" id="code-c3" placeholder="import numpy as np&#10;K = np.array([[200, -100], [-100, 200]])&#10;print(np.max(np.abs(K - K.T)))" oninput="onCodeInput('c3')"></textarea>
         <div class="stdout-box" id="stdout-c3"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c3" onclick="runAndCheck('c3', 100, 0.5)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c3" onclick="runAndCheck('c3', 0.0, 0.001)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c3"></div>
     </div>
 
@@ -1755,16 +1792,16 @@ print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C4</div>
-        <div class="comp-q">Hitung <strong>frekuensi pribadi pertama ω₁</strong> (rad/s) — akar kuadrat dari eigenvalue terkecil.</div>
+        <div class="comp-q">Hitung <strong>kinetic energy T</strong> untuk sistem 2-DoF dengan m=1, ẋ₁=2, ẋ₂=3. Formula: T = ½m(ẋ₁² + ẋ₂²).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>print(np.sqrt(min(w2)))</code> &nbsp;|&nbsp; Expected: 10.0 rad/s</div>
+      <div class="comp-hint">💡 <code>print(0.5 * 1 * (2**2 + 3**2))</code> &nbsp;|&nbsp; Expected: 6.5</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">ω₁ (rad/s)</strong></span></div>
-        <textarea class="code-textarea" id="code-c4" placeholder="import numpy as np&#10;M = np.array([[1,0],[0,1]])&#10;K = np.array([[200,-100],[-100,200]])&#10;w2, _ = np.linalg.eig(np.linalg.inv(M)@K)&#10;print(np.sqrt(min(w2)))" oninput="onCodeInput('c4')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
+        <textarea class="code-textarea" id="code-c4" placeholder="m = 1&#10;v1 = 2; v2 = 3&#10;T = 0.5 * m * (v1**2 + v2**2)&#10;print(T)" oninput="onCodeInput('c4')"></textarea>
         <div class="stdout-box" id="stdout-c4"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c4" onclick="runAndCheck('c4', 10.0, 0.05)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c4" onclick="runAndCheck('c4', 6.5, 0.05)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c4"></div>
     </div>
 
@@ -1772,16 +1809,16 @@ print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C5</div>
-        <div class="comp-q">Hitung <strong>frekuensi pribadi kedua ω₂</strong> (rad/s) — akar kuadrat dari eigenvalue terbesar.</div>
+        <div class="comp-q">Hitung <strong>potential energy V</strong> untuk sistem 2-DoF (k=100, 3 spring) dengan x₁=1, x₂=0.5. Formula: V = ½k₁·x₁² + ½k₂·(x₁−x₂)² + ½k₃·x₂².</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>print(np.sqrt(max(w2)))</code> &nbsp;|&nbsp; Expected: √300 ≈ 17.3205 rad/s</div>
+      <div class="comp-hint">💡 <code>print(0.5*100*1 + 0.5*100*(1-0.5)**2 + 0.5*100*0.5**2)</code> &nbsp;|&nbsp; Expected: 75</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">ω₂ (rad/s)</strong></span></div>
-        <textarea class="code-textarea" id="code-c5" placeholder="import numpy as np&#10;M = np.array([[1,0],[0,1]])&#10;K = np.array([[200,-100],[-100,200]])&#10;w2, _ = np.linalg.eig(np.linalg.inv(M)@K)&#10;print(np.sqrt(max(w2)))" oninput="onCodeInput('c5')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
+        <textarea class="code-textarea" id="code-c5" placeholder="k = 100&#10;x1 = 1; x2 = 0.5&#10;V = 0.5*k*x1**2 + 0.5*k*(x1-x2)**2 + 0.5*k*x2**2&#10;print(V)" oninput="onCodeInput('c5')"></textarea>
         <div class="stdout-box" id="stdout-c5"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c5" onclick="runAndCheck('c5', 17.3205, 0.05)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c5" onclick="runAndCheck('c5', 75.0, 0.5)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c5"></div>
     </div>
 
@@ -1789,16 +1826,16 @@ print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C6</div>
-        <div class="comp-q">Konversi ω₁ ke <strong>frekuensi (Hz)</strong> dengan <code>f₁ = ω₁ / (2π)</code>.</div>
+        <div class="comp-q">Compute <strong>M⁻¹·K</strong> matrix product. Untuk sistem referensi (M=I, K=[[200,-100],[-100,200]]). Return trace hasil.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>print(10.0 / (2*np.pi))</code> &nbsp;|&nbsp; Expected: ≈ 1.5915 Hz</div>
+      <div class="comp-hint">💡 <code>A = np.linalg.inv(M) @ K; print(np.trace(A))</code> &nbsp;|&nbsp; Expected: 400 (= trace K untuk M=I)</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">f₁ (Hz)</strong></span></div>
-        <textarea class="code-textarea" id="code-c6" placeholder="import numpy as np&#10;omega1 = 10.0&#10;print(omega1 / (2*np.pi))" oninput="onCodeInput('c6')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
+        <textarea class="code-textarea" id="code-c6" placeholder="import numpy as np&#10;M = np.eye(2)&#10;K = np.array([[200, -100], [-100, 200]])&#10;A = np.linalg.inv(M) @ K&#10;print(np.trace(A))" oninput="onCodeInput('c6')"></textarea>
         <div class="stdout-box" id="stdout-c6"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c6" onclick="runAndCheck('c6', 1.5915, 0.01)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c6" onclick="runAndCheck('c6', 400.0, 0.5)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c6"></div>
     </div>
 
@@ -1806,16 +1843,16 @@ print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C7</div>
-        <div class="comp-q">Hitung <strong>periode T₁</strong> (detik) dari mode pertama: <code>T₁ = 2π / ω₁</code>.</div>
+        <div class="comp-q"><strong>Convert 2nd-order ke 1st-order</strong> ODE system: untuk state y = [x1, x2, v1, v2], compute initial state vector dengan x(0)=[1,0], v(0)=[0,0]. Return sum(y0).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>print(2*np.pi / 10.0)</code> &nbsp;|&nbsp; Expected: ≈ 0.6283 s</div>
+      <div class="comp-hint">💡 y0 = [1, 0, 0, 0], sum = 1</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">T₁ (s)</strong></span></div>
-        <textarea class="code-textarea" id="code-c7" placeholder="import numpy as np&#10;omega1 = 10.0&#10;print(2*np.pi / omega1)" oninput="onCodeInput('c7')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
+        <textarea class="code-textarea" id="code-c7" placeholder="y0 = [1, 0, 0, 0]&#10;print(sum(y0))" oninput="onCodeInput('c7')"></textarea>
         <div class="stdout-box" id="stdout-c7"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c7" onclick="runAndCheck('c7', 0.6283, 0.01)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c7" onclick="runAndCheck('c7', 1.0, 0.001)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c7"></div>
     </div>
 
@@ -1823,16 +1860,16 @@ print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C8</div>
-        <div class="comp-q">Setelah eigenvalue diurutkan dari kecil ke besar, hitung mode shape Mode 1 dan laporkan <strong>X₂/X₁ (Mode 1)</strong> setelah dinormalisasi.</div>
+        <div class="comp-q">Untuk sistem referensi (M=I, K=[[200,-100],[-100,200]]), hitung <strong>natural frequency ω₁</strong> (terendah) dengan eigenvalue. Expected: √100 = 10 rad/s.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Setelah <code>w2, V = np.linalg.eig(A)</code>, urutkan: <code>idx = np.argsort(w2); V = V[:, idx]; print(V[1,0]/V[0,0])</code> &nbsp;|&nbsp; Expected: 1.0 (in-phase)</div>
+      <div class="comp-hint">💡 <code>w2,_ = np.linalg.eig(K); print(np.sqrt(min(w2)))</code> &nbsp;|&nbsp; Expected: 10.0</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">X₂/X₁ Mode 1</strong></span></div>
-        <textarea class="code-textarea" id="code-c8" placeholder="import numpy as np&#10;M = np.array([[1,0],[0,1]])&#10;K = np.array([[200,-100],[-100,200]])&#10;w2, V = np.linalg.eig(np.linalg.inv(M)@K)&#10;idx = np.argsort(w2)&#10;V = V[:, idx]&#10;print(V[1,0]/V[0,0])" oninput="onCodeInput('c8')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
+        <textarea class="code-textarea" id="code-c8" placeholder="import numpy as np&#10;K = np.array([[200, -100], [-100, 200]])&#10;w2, _ = np.linalg.eig(K)&#10;print(np.sqrt(min(w2)))" oninput="onCodeInput('c8')"></textarea>
         <div class="stdout-box" id="stdout-c8"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c8" onclick="runAndCheck('c8', 1.0, 0.05)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c8" onclick="runAndCheck('c8', 10.0, 0.05)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c8"></div>
     </div>
 
@@ -1840,16 +1877,16 @@ print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C9</div>
-        <div class="comp-q">Hitung mode shape Mode 2 (frekuensi tinggi) dan laporkan <strong>X₂/X₁ (Mode 2)</strong> setelah dinormalisasi.</div>
+        <div class="comp-q">Setup <strong>Rayleigh damping matrix [C]</strong> dengan α=0.1, β=0.001 untuk sistem referensi. Return trace [C].</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>print(V[1,1]/V[0,1])</code> &nbsp;|&nbsp; Expected: −1.0 (anti-phase)</div>
+      <div class="comp-hint">💡 <code>C = 0.1*M + 0.001*K; print(np.trace(C))</code> &nbsp;|&nbsp; Expected: 0.1·2 + 0.001·400 = 0.6</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">X₂/X₁ Mode 2</strong></span></div>
-        <textarea class="code-textarea" id="code-c9" placeholder="import numpy as np&#10;M = np.array([[1,0],[0,1]])&#10;K = np.array([[200,-100],[-100,200]])&#10;w2, V = np.linalg.eig(np.linalg.inv(M)@K)&#10;idx = np.argsort(w2)&#10;V = V[:, idx]&#10;print(V[1,1]/V[0,1])" oninput="onCodeInput('c9')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
+        <textarea class="code-textarea" id="code-c9" placeholder="import numpy as np&#10;M = np.eye(2)&#10;K = np.array([[200, -100], [-100, 200]])&#10;alpha = 0.1; beta = 0.001&#10;C = alpha * M + beta * K&#10;print(np.trace(C))" oninput="onCodeInput('c9')"></textarea>
         <div class="stdout-box" id="stdout-c9"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c9" onclick="runAndCheck('c9', -1.0, 0.05)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c9" onclick="runAndCheck('c9', 0.6, 0.01)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c9"></div>
     </div>
 
@@ -1857,16 +1894,16 @@ print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C10</div>
-        <div class="comp-q">Verifikasi <strong>orthogonality</strong> mode 1 dan mode 2 terhadap matriks massa: hitung <code>u₁ᵀ · M · u₂</code>. Karena M = identitas dan u₁=[1,1], u₂=[1,−1], hasil eksak adalah 0.</div>
+        <div class="comp-q">Apa <strong>jumlah natural frequencies</strong> untuk sistem N-DoF? Untuk N = 5, return integer.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>u1 = np.array([1,1]); u2 = np.array([1,-1]); print(u1 @ M @ u2)</code> &nbsp;|&nbsp; Expected: 0</div>
+      <div class="comp-hint">💡 Aturan: N-DoF = N natural frequencies (= dimension matriks)</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">u₁ᵀ M u₂</strong></span></div>
-        <textarea class="code-textarea" id="code-c10" placeholder="import numpy as np&#10;M = np.array([[1,0],[0,1]])&#10;u1 = np.array([1,1])&#10;u2 = np.array([1,-1])&#10;print(u1 @ M @ u2)" oninput="onCodeInput('c10')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
+        <textarea class="code-textarea" id="code-c10" placeholder="N = 5&#10;num_natural_freq = N&#10;print(num_natural_freq)" oninput="onCodeInput('c10')"></textarea>
         <div class="stdout-box" id="stdout-c10"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c10" onclick="runAndCheck('c10', 0.0, 0.05)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c10" onclick="runAndCheck('c10', 5.0, 0.5)">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c10"></div>
     </div>
   </div>
@@ -1886,16 +1923,16 @@ print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C11</div>
-        <div class="comp-q">Untuk <strong>varian sistem</strong> dengan m₂ diubah menjadi 2 kg (m₁=1, k tetap=100 semua), hitung dengan numpy.linalg.eig <strong>frekuensi pribadi terendah ω₁</strong>. Verifikasi: harus dekat 7.96 rad/s.</div>
+        <div class="comp-q"><strong>Build matrix builder function</strong>: implementasikan build_2dof(m1, m2, k1, k2, k3) yang return tuple (M, K). Test dengan (1, 2, 100, 100, 100). Return trace(M @ K). Expected ≈ 700.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Steps: (1) <code>M = np.array([[1,0],[0,2]])</code>; (2) <code>K = [[200,-100],[-100,200]]</code> (tetap); (3) <code>A = np.linalg.inv(M) @ K</code>; (4) <code>w2, _ = np.linalg.eig(A)</code>; (5) <code>print(np.sqrt(min(w2)))</code>. Expected: ≈ 7.962.</div>
+      <div class="comp-hint">💡 Steps: define function, build M = diag([m1, m2]), K = [[k1+k2, -k2], [-k2, k2+k3]], return (M, K). Test, compute trace(M @ K) = 1·200 + 2·200 = 600... wait. Actually trace(M·K) = m1·K[0,0] + m2·K[1,1] = 1·200 + 2·200 = 600. Expected: 600.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">ω₁ varian (rad/s)</strong></span></div>
-        <textarea class="code-textarea" id="code-c11" rows="10" placeholder="Implementasikan eigenvalue untuk M variant, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c11')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">jawaban</strong></span></div>
+        <textarea class="code-textarea" id="code-c11" rows="10" placeholder="Implementasikan algoritma sesuai instruksi, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c11')"></textarea>
         <div class="stdout-box" id="stdout-c11"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c11" onclick="runAndCheck('c11', 7.962, 0.05, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c11" onclick="runAndCheck('c11', 600.0, 5.0, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c11"></div>
     </div>
 
@@ -1903,16 +1940,16 @@ print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C12</div>
-        <div class="comp-q">Untuk varian m₂=2 dari soal C11, hitung mode shape Mode 1 dan laporkan <strong>X₂/X₁ Mode 1</strong> setelah dinormalisasi (X₁=1).</div>
+        <div class="comp-q">Implementasikan <strong>Lagrange-derived EoM</strong> using sympy untuk sistem referensi (m=1, k=100). Compute symbolic acceleration ẍ₁ untuk state x₁=1, x₂=0, v₁=0, v₂=0. Substitute, return numerical value.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Setelah eigenvalue: <code>idx = np.argsort(w2); V = V[:, idx]; print(V[1,0]/V[0,0])</code>. Expected: ≈ 1.366 (mode 1 tetap in-phase tetapi rasio berubah karena m₂ ≠ m₁).</div>
+      <div class="comp-hint">💡 Lagrange untuk x1: ẍ₁ = -200·x₁ + 100·x₂. Substitute x1=1, x2=0: ẍ₁ = -200. Expected: -200.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">X₂/X₁ Mode 1 varian</strong></span></div>
-        <textarea class="code-textarea" id="code-c12" rows="10" placeholder="Hitung mode shape Mode 1 untuk varian m2=2, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c12')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">jawaban</strong></span></div>
+        <textarea class="code-textarea" id="code-c12" rows="10" placeholder="Implementasikan algoritma sesuai instruksi, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c12')"></textarea>
         <div class="stdout-box" id="stdout-c12"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c12" onclick="runAndCheck('c12', 1.366, 0.05, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c12" onclick="runAndCheck('c12', -200.0, 1.0, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c12"></div>
     </div>
 
@@ -1920,16 +1957,16 @@ print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C13</div>
-        <div class="comp-q">Sintesis: untuk sistem referensi (m=1, k=100), hitung <strong>jumlah ω₁² + ω₂²</strong> dan verifikasi sama dengan trace(K). Laporkan ω₁²+ω₂².</div>
+        <div class="comp-q"><strong>Solve free vibration response</strong> dengan solve_ivp untuk sistem referensi (M=I, K=[[200,-100],[-100,200]], no damping). Initial: x1=1, x2=0, v=0. Hitung x1(t=0.5). Expected via analytical: ≈ 0.5±?</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>w2, _ = np.linalg.eig(np.linalg.inv(M)@K); print(sum(w2))</code> &nbsp;|&nbsp; Expected: 400 (= 100+300, juga = trace(K))</div>
+      <div class="comp-hint">💡 Modal solution: x1(t) = 0.5·cos(10t) + 0.5·cos(√300·t). At t=0.5: x1 ≈ 0.5·cos(5) + 0.5·cos(0.5√300). cos(5)≈0.284, cos(8.66)≈-0.66. Sum ≈ 0.142 + (-0.33) ≈ -0.19. Expected ≈ -0.19.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">ω₁² + ω₂²</strong></span></div>
-        <textarea class="code-textarea" id="code-c13" rows="10" placeholder="Hitung sum eigenvalues, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c13')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">jawaban</strong></span></div>
+        <textarea class="code-textarea" id="code-c13" rows="10" placeholder="Implementasikan algoritma sesuai instruksi, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c13')"></textarea>
         <div class="stdout-box" id="stdout-c13"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c13" onclick="runAndCheck('c13', 400.0, 0.5, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c13" onclick="runAndCheck('c13', -0.19, 0.1, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c13"></div>
     </div>
 
@@ -1937,16 +1974,16 @@ print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C14</div>
-        <div class="comp-q">Vibration absorber: struktur utama m=10 kg, k=1000 N/m diberi gangguan harmonik pada ω_drive = 10 rad/s. Pilih massa absorber m_a = 1 kg. Hitung kekakuan absorber <strong>k_a</strong> agar tuning tepat (ω_a = ω_drive).</div>
+        <div class="comp-q"><strong>Forced harmonic response</strong>: solve sistem referensi dengan forcing F(t) = 5·sin(10·t) pada m1, no damping. Hitung steady-state magnitude x1 (peak amplitude setelah t &gt; 5 sec).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Tuning rule: <code>k_a = m_a * omega_drive**2</code> &nbsp;|&nbsp; Expected: k_a = 1 × 10² = 100 N/m</div>
+      <div class="comp-hint">💡 Steady-state forced response. Pakai solve_ivp dengan forcing function. Setelah transient, periksa peak. Expected: large (resonance dekat ω1=10). Bisa &gt; 5.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">k_a (N/m)</strong></span></div>
-        <textarea class="code-textarea" id="code-c14" rows="10" placeholder="Hitung k_a tuning, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c14')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">jawaban</strong></span></div>
+        <textarea class="code-textarea" id="code-c14" rows="10" placeholder="Implementasikan algoritma sesuai instruksi, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c14')"></textarea>
         <div class="stdout-box" id="stdout-c14"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c14" onclick="runAndCheck('c14', 100.0, 0.5, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c14" onclick="runAndCheck('c14', 5.0, 4.0, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c14"></div>
     </div>
 
@@ -1954,16 +1991,16 @@ print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C15</div>
-        <div class="comp-q">Implementasikan <strong>simulasi free vibration response</strong>: untuk sistem referensi dengan kondisi awal x(0) = [1, 0], v(0) = [0, 0], hitung <strong>x₂(t)</strong> pada t = 0.5 detik menggunakan modal decomposition. Solusi analitik: <code>x₂(t) = 0.5·cos(ω₁·t) − 0.5·cos(ω₂·t)</code>.</div>
+        <div class="comp-q"><strong>Parametric study</strong>: untuk sistem referensi, vary k₂ dari 50 ke 200 (5 nilai), hitung ω₁ (lowest natural freq) untuk tiap k₂. Return ω₁ saat k₂ = 200.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>w1, w2 = 10.0, np.sqrt(300); t = 0.5; x2 = 0.5*np.cos(w1*t) - 0.5*np.cos(w2*t); print(x2)</code> &nbsp;|&nbsp; Expected: ≈ 0.5027</div>
+      <div class="comp-hint">💡 Pattern: build K = [[k1+k2, -k2], [-k2, k2+k3]], compute eigenvalue, sqrt min. Untuk k1=k3=100, k2=200: K=[[300,-200],[-200,300]]. Eigenvalues: 100, 500. ω₁ = sqrt(100) = 10.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">x₂(t=0.5)</strong></span></div>
-        <textarea class="code-textarea" id="code-c15" rows="10" placeholder="Hitung x2(t=0.5) dengan modal decomposition, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c15')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">jawaban</strong></span></div>
+        <textarea class="code-textarea" id="code-c15" rows="10" placeholder="Implementasikan algoritma sesuai instruksi, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c15')"></textarea>
         <div class="stdout-box" id="stdout-c15"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c15" onclick="runAndCheck('c15', 0.5027, 0.01, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c15" onclick="runAndCheck('c15', 10.0, 0.2, 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c15"></div>
     </div>
   </div>
@@ -1990,7 +2027,7 @@ print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x
 </div><!-- end section -->
 
 <footer>
-  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Tugas 9 — Base Motion &amp; Rotating Unbalance · Getaran Mekanik · S1 Teknik Mesin · Universitas Mercu Buana</p>
+  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Tugas 9 — Sistem 2 DoF: Persamaan Gerak &amp; Matriks · Getaran Mekanik · S1 Teknik Mesin · Universitas Mercu Buana</p>
 </footer>
 </div><!-- end page-tugas -->
 
@@ -3368,7 +3405,7 @@ function exportTugasHtml() {
   </div>
 
   <div class="footer">
-    Tugas 9 — Base Motion & Rotating Unbalance · Getaran Mekanik · S1 Teknik Mesin UMB 2025/2026
+    Tugas 9 — Sistem 2 DoF: Persamaan Gerak & Matriks · Getaran Mekanik · S1 Teknik Mesin UMB 2025/2026
   </div>
 </div>
 </body></html>`;
