@@ -1547,145 +1547,152 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <hr class="divider">
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 09</div>
-  <h2 class="section-title reveal">Animasi Interaktif<br>Pole di Bidang s &amp; Solusi y(t)</h2>
-  <p class="section-desc reveal">Lima animasi interaktif: (1) Solusi y(t) dengan <strong>preset push button</strong> b, (2) akar persamaan karakteristik dengan slider, (3) <strong>toggle</strong> Numerical vs Analytical, (4) <strong>radio</strong> klasifikasi PD, (5) <strong>dropdown</strong> sub-topik. Animasi visualisasi <strong>lokasi pole transfer function</strong> di bidang kompleks s — fundamental dalam analisis Laplace dan teori kendali. Pole adalah akar denominator <code>1/L(D)</code> atau <code>1/(as² + bs + c)</code> yang sama dengan akar karakteristik PD homogen. Geser slider koefisien b dan c untuk melihat bagaimana pole berpindah di s-plane dan bagaimana solusi y(t) berubah karakter (decay, oscillation, atau growth).</p>
+  <h2 class="section-title reveal">Animasi Interaktif<br>Transformasi Laplace: Pole, Tabel &amp; Aplikasi</h2>
+  <p class="section-desc reveal">Lima animasi spesifik untuk <strong>Pertemuan 10 — Transformasi Laplace</strong>: (1) <strong>Pole-Zero Plot di s-plane</strong> dengan response y(t) live, (2) <strong>Laplace Pairs Visualizer</strong> menampilkan f(t) ↔ F(s), (3) <strong>toggle First/Second Shift Theorem</strong> e^at·f(t) ↔ F(s−a), (4) <strong>radio Pecahan Parsial</strong> 4 kasus (real distinct, repeated, complex, mixed), (5) <strong>dropdown aplikasi engineering</strong> (RLC step, control system, impulse, switching).</p>
 
-  <!-- Animasi 1: 3-case comparison y(x) -->
+  <!-- Animasi 1: Pole-Zero Plot di s-plane (M10-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi 1 — Tiga Kasus Akar Euler-Cauchy: Geser Koefisien, Lihat Solusi y(x)</span>
+      <span class="anim-title">Animasi 1 — Pole-Zero Plot: Geser Pole, Lihat Response y(t)</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvCases" height="340"></canvas>
+      <canvas id="m10cvPole" height="340" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Koefisien <strong>b</strong> — <span class="ctrl-val" id="v_b">1.00</span></label>
-          <input type="range" id="sl_b" min="-4" max="6" step="0.05" value="1.0">
+          <label>Pole real <strong>α</strong> = Re(s) — <span class="ctrl-val" id="m10alphaV">−0.50</span></label>
+          <input type="range" id="m10slAlpha" min="-2" max="1" step="0.05" value="-0.5">
         </div>
         <div class="ctrl-group">
-          <label>Koefisien <strong>c</strong> — <span class="ctrl-val" id="v_c">−4.00</span></label>
-          <input type="range" id="sl_c" min="-12" max="12" step="0.1" value="-4.0">
+          <label>Pole imag <strong>β</strong> = Im(s) — <span class="ctrl-val" id="m10betaV">2.00</span></label>
+          <input type="range" id="m10slBeta" min="0" max="4" step="0.05" value="2.0">
         </div>
-        <button class="btn-anim" id="btnCases" onclick="toggleCases()">⏸ PAUSE</button>
+        <button class="btn-anim" id="m10btnPole" onclick="window.m10TogglePole()">⏸ PAUSE</button>
       </div>
-      <div id="casesInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div id="m10PoleInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi Ini (orde 2 sebagai demonstrasi):</strong> Kurva = solusi <em>y(x)</em> dari Euler-Cauchy orde 2 <code>x²y'' + b·x·y' + c·y = 0</code> dengan IVP <code>y(1)=1, y'(1)=0</code> di interval <code>x ∈ (0.1, 10)</code>. Warna: <strong style="color:var(--amber)">amber = D &gt; 0 (real berbeda)</strong>, <strong style="color:var(--violet)">violet = D = 0 (real berulang)</strong>, <strong style="color:var(--cyan)">cyan = D &lt; 0 (kompleks → osilasi log)</strong>.<br>
-        <strong>Untuk PD non-homogen:</strong> Animasi ini menampilkan PD homogen <code>y'' + by' + cy = 0</code> yang memberi y_h. Untuk solusi total non-homogen, tambahkan y_p dari metode UC atau VoP. Saat eksitasi <em>f(x)</em> punya frekuensi/eksponen sama dengan akar karakteristik, <strong>resonansi</strong> terjadi: amplitudo y_p tumbuh linier dengan x (faktor x dari aturan resonansi).
+        <strong>📊 Cara Membaca:</strong> Layout split: kiri = <em>s-plane</em> dengan dua pole konjugat di α ± βi (drag via slider), kanan = <em>response y(t) = e^(αt)·cos(βt)</em>. <strong>α &lt; 0</strong>: stable, decay; <strong>α = 0</strong>: marginal, osilasi pure; <strong>α &gt; 0</strong>: unstable, growth. <strong>β</strong>: frekuensi osilasi. Inilah peta fundamental sistem dinamis: lokasi pole = karakter response.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 2: Roots in complex plane (m-plane) -->
+  <!-- Animasi 2: Laplace Pairs Visualizer (M10-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--pink)"></div>
-      <span class="anim-title">Animasi 2 — Akar Karakteristik m di Bidang Kompleks (m-plane)</span>
+      <span class="anim-title">Animasi 2 — Laplace Pairs: f(t) ↔ F(s) Side-by-Side Visualizer</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvRoots" height="320"></canvas>
+      <canvas id="m10cvLapTable" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
-        <div class="ctrl-group">
-          <label>Koefisien <strong>b</strong> — <span class="ctrl-val" id="v_b2">3.00</span></label>
-          <input type="range" id="sl_b2" min="-4" max="6" step="0.05" value="3.0">
-        </div>
-        <div class="ctrl-group">
-          <label>Koefisien <strong>c</strong> — <span class="ctrl-val" id="v_c2">2.00</span></label>
-          <input type="range" id="sl_c2" min="-12" max="12" step="0.1" value="2.0">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih Laplace pair (preset push buttons):</label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+            <button class="m10pair-pbtn" onclick="window.m10SetPair('exp')" data-p="exp" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,107,179,.4);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">e^(−2t) ↔ 1/(s+2) ✓</button>
+            <button class="m10pair-pbtn" onclick="window.m10SetPair('sin')" data-p="sin" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">sin(2t) ↔ 2/(s²+4)</button>
+            <button class="m10pair-pbtn" onclick="window.m10SetPair('cos')" data-p="cos" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">cos(2t) ↔ s/(s²+4)</button>
+            <button class="m10pair-pbtn" onclick="window.m10SetPair('t')" data-p="t" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">t ↔ 1/s²</button>
+            <button class="m10pair-pbtn" onclick="window.m10SetPair('damp')" data-p="damp" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,179,0,.4);background:rgba(255,179,0,.10);color:var(--amber);">e^(−t)·sin(2t)</button>
+          </div>
         </div>
       </div>
-      <div id="rootsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
+      <div id="m10LapTableInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi Ini:</strong> Bidang kompleks <em>m</em>: sumbu horizontal = real, vertikal = imajiner. Dua akar <code>m₁, m₂</code> dari <code>m² + (b−1)m + c = 0</code> ditandai. Berbeda dengan plane <em>r</em> di Pertemuan 5: di sini <strong>tanda real</strong> menentukan apakah <code>x<sup>m</sup></code> tumbuh atau meluruh saat x → ∞. Re(m) &gt; 0 → tumbuh; Re(m) &lt; 0 → meluruh; Re(m) = 0 → osilasi murni dalam ln x.<br>
-        <strong>Coba:</strong> (1) <strong>b = 1, c &gt; 0</strong>: akar selalu murni imajiner (Re=0) — solusi <em>osilasi pure</em> dalam ln x. (2) <strong>b = 1, c &lt; 0</strong>: akar real berlawanan tanda — satu solusi tumbuh, satu meluruh. (3) <strong>b ≠ 1</strong>: akar bergeser ke kiri/kanan — Re(m) = (1−b)/2 menjadi nonzero. (4) Saksikan akar kompleks <em>melompat ke real axis</em> saat D = (b−1)² − 4c menyentuh nol.
+        <strong>📊 Cara Membaca:</strong> Layout split: kiri = <em>f(t)</em> di domain waktu, kanan = magnitude <em>|F(s)|</em> di s-plane (heatmap). Pole F(s) tampil sebagai bright spot. <strong>Insight kunci:</strong> Setiap fungsi waktu punya signature di s-plane berupa lokasi pole. Ini fondasi untuk identifikasi sistem dari frequency response.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 3: Toggle (Numerical vs Analytical) -->
+  <!-- Animasi 3: Toggle Shift Theorem (M10-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--green)"></div>
-      <span class="anim-title">Animasi 3 — Numerical vs Analytical Solution (Toggle)</span>
+      <span class="anim-title">Animasi 3 — Shift Theorems: First Shift L{e^(at)·f(t)} = F(s−a) (Toggle)</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvEMtog" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <canvas id="m10cvShift" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
           <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--text)">
-            Method:
-            <button type="button" onclick="toggleEMSolver()" style="background:none;border:none;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
-              <span id="em_tog_view" style="display:inline-block;position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
-                <span style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
+            Theorem:
+            <button type="button" onclick="window.m10ToggleShift()" style="background:none;border:none;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
+              <span id="m10_shift_view" style="display:inline-block;position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
+                <span id="m10_shift_knob" style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
               </span>
-              <span id="em_tog_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:700;">ANALYTICAL (closed-form)</span>
+              <span id="m10_shift_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:700;">FIRST SHIFT: L{e^(at)·f(t)} = F(s−a)</span>
             </button>
           </div>
         </div>
+        <div class="ctrl-group">
+          <label>Shift parameter <strong>a</strong> — <span class="ctrl-val" id="m10_a_v">1.00</span></label>
+          <input type="range" id="m10_a" min="-2" max="2" step="0.05" value="1.0">
+        </div>
       </div>
-      <div id="emTogInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div id="m10ShiftInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Toggle metode solusi PD. Analytical: ekspresi tertutup (closed-form) dari teorema. Numerical: integrator step-by-step (RK4, Euler).<br>
-        <strong>Trade-off:</strong> Analytical exact tetapi terbatas pada kelas PD tertentu. Numerical universal tetapi punya error akumulasi + computational cost. Modern engineering: kombinasi keduanya — derive analytical untuk verify, run numerical untuk produksi.
+        <strong>📊 Cara Membaca:</strong> <strong>FIRST SHIFT</strong> (s-shift): mengalikan f(t) dengan e^(at) menggeser F(s) menjadi F(s−a). Visualisasi: pole sin(2t)/(s²+4) di s = ±2i, setelah dikalikan e^(at) menjadi pole di s = a ± 2i (geser horizontal sebesar a). <strong>SECOND SHIFT</strong> (t-shift): f(t−c)·u(t−c) ↔ e^(−cs)·F(s) — translasi waktu menjadi pengalian eksponensial di s-domain.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 4: Radio group (PD classification) -->
+  <!-- Animasi 4: Pecahan Parsial Cases (Radio, M10-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--pink)"></div>
-      <span class="anim-title">Animasi 4 — Klasifikasi PD: Pilih Tipe (Radio Group)</span>
+      <span class="anim-title">Animasi 4 — Pecahan Parsial: 4 Kasus Decomposition F(s) → f(t)</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvEMrad" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <canvas id="m10cvDecomp" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
-          <label>Pilih Klasifikasi PD (radio group):</label>
+          <label>Pilih kasus pecahan parsial (radio):</label>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
-            <input type="radio" name="em_class_radio" id="em_r1" checked onchange="setEMClass('homogen')" style="display:none;">
-            <label for="em_r1" class="em-rad-lbl" data-c="homogen" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">Homogen ✓</label>
-            <input type="radio" name="em_class_radio" id="em_r2" onchange="setEMClass('nonhomogen')" style="display:none;">
-            <label for="em_r2" class="em-rad-lbl" data-c="nonhomogen" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">Non-Homogen</label>
-            <input type="radio" name="em_class_radio" id="em_r3" onchange="setEMClass('linear')" style="display:none;">
-            <label for="em_r3" class="em-rad-lbl" data-c="linear" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">Linear</label>
-            <input type="radio" name="em_class_radio" id="em_r4" onchange="setEMClass('nonlinear')" style="display:none;">
-            <label for="em_r4" class="em-rad-lbl" data-c="nonlinear" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">Non-Linear</label>
+            <input type="radio" name="m10_decomp_radio" id="m10_d1" checked onchange="window.m10SetDecomp('distinct')" style="display:none;">
+            <label for="m10_d1" class="m10-decomp-lbl" data-c="distinct" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">🔵 Real Distinct: 1/((s+1)(s+3)) ✓</label>
+            <input type="radio" name="m10_decomp_radio" id="m10_d2" onchange="window.m10SetDecomp('repeated')" style="display:none;">
+            <label for="m10_d2" class="m10-decomp-lbl" data-c="repeated" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">🟣 Real Repeated: 1/(s+2)²</label>
+            <input type="radio" name="m10_decomp_radio" id="m10_d3" onchange="window.m10SetDecomp('complex')" style="display:none;">
+            <label for="m10_d3" class="m10-decomp-lbl" data-c="complex" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">🔶 Complex: s/(s²+2s+5)</label>
+            <input type="radio" name="m10_decomp_radio" id="m10_d4" onchange="window.m10SetDecomp('mixed')" style="display:none;">
+            <label for="m10_d4" class="m10-decomp-lbl" data-c="mixed" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:#00e09e;">🎯 Mixed: 1/(s(s²+1))</label>
           </div>
         </div>
       </div>
-      <div id="emRadInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
+      <div id="m10DecompInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Setiap klasifikasi memiliki metode solusi yang berbeda. Visualisasi menampilkan contoh solusi tipikal per kategori.<br>
-        <strong>Insight:</strong> Homogen: r(x)=0, solusi y_h. Non-Homogen: y = y_h + y_p (particular). Linear: superposition principle berlaku. Non-Linear: kompleks, mungkin tidak ada closed-form.
+        <strong>📊 Cara Membaca:</strong> Empat kasus dekomposisi pecahan parsial untuk invers Laplace:
+        (1) <strong>Real Distinct</strong>: F(s) = A/(s+a) + B/(s+b);
+        (2) <strong>Real Repeated</strong>: F(s) = A/(s+a) + B/(s+a)²;
+        (3) <strong>Complex Conjugate</strong>: pakai completing-the-square menjadi (s+α)/((s+α)²+β²);
+        (4) <strong>Mixed</strong>: kombinasi distinct real + complex.
+        Canvas tampilkan F(s) decomposed + corresponding f(t) hasil invers.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 5: Dropdown (Topic-specific) + Signal Trace 1000 samples -->
+  <!-- Animasi 5: Aplikasi Laplace di Engineering (Dropdown, M10-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:#a855f7"></div>
-      <span class="anim-title">Animasi 5 — Transformasi Laplace: Pilih Sub-Topik (Dropdown + Signal Trace)</span>
+      <span class="anim-title">Animasi 5 — Aplikasi Laplace di Engineering Modern (Dropdown)</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvEMdrop" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <canvas id="m10cvAppLap" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
-          <label>Pilih (Dropdown):</label>
-          <select id="sl_em_drop" onchange="setEMDrop(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
-            <option value="basic">📐 Basic — L{1, t, e^at, sin, cos}</option>
-            <option value="shift">↔️ Shift Theorems — first/second shift</option>
-            <option value="derivative">📈 Derivative L{f'} = sF(s)-f(0)</option>
-            <option value="integral">∫ Integral L{∫f}=F(s)/s</option>
+          <label>Pilih aplikasi engineering yang menggunakan Laplace:</label>
+          <select id="m10slAppLap" onchange="window.m10SetAppLap(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:520px;margin-top:6px;">
+            <option value="rlc_step">⚡ RLC Step Response: V₀·u(t) input, transient + steady</option>
+            <option value="control">🎛️ Control Step: G(s) = K/(s²+2ζωs+ω²) — overshoot/settling</option>
+            <option value="impulse">💥 Impulse Response: δ(t) input → h(t) (kernel)</option>
+            <option value="switching">🔌 Heaviside Switch: u(t−c) — delayed activation</option>
+            <option value="convolution">⊛ Convolution: y(t) = h(t) ⊛ f(t)</option>
           </select>
         </div>
       </div>
-      <div id="emDropInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
+      <div id="m10AppLapInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Pilih sub-topik dari dropdown. Layout split: kiri label + formula, kanan signal trace solusi 1000 samples (~10 detik).<br>
-        <strong>Insight:</strong> Setiap sub-topik Transformasi Laplace punya signature unik di domain waktu. Bandingkan shape decay/oscillation/growth antara opsi.
+        <strong>📊 Cara Membaca:</strong> Lima aplikasi engineering yang sangat kuat dengan Laplace. Layout split: kiri = visualisasi sistem fisik (RLC step input, control block diagram, impulse hammer, switch closing, convolution sliding), kanan = response y(t). <strong>Insight:</strong> Laplace mengubah PD dengan input diskontinu (step, impulse, switching) menjadi aljabar — tanpa Laplace, ini sulit dengan UC/VoP biasa.
       </div>
     </div>
   </div>
@@ -8438,6 +8445,892 @@ function _createForumParticleBurst(event) {
   else attachBtnHandlers();
 })();
 
+</script>
+
+<!-- ════════════════════════════════════════════════════════════════
+     M10 TOPIC-SPECIFIC ANIMATIONS — Transformasi Laplace
+     5 canvas: m10cvPole, m10cvLapTable, m10cvShift, m10cvDecomp, m10cvAppLap
+     ════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  function bgGrad(ctx, W, H){
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#020812'); g.addColorStop(1, '#0d1929');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  function gridLines(ctx, x0, x1, y0, y1, divX, divY){
+    ctx.strokeStyle = 'rgba(148,163,184,.10)'; ctx.lineWidth = 1;
+    for (let i = 0; i <= divX; i++){
+      const x = x0 + (i/divX)*(x1-x0);
+      ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.stroke();
+    }
+    for (let j = 0; j <= divY; j++){
+      const y = y0 + (j/divY)*(y1-y0);
+      ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
+    }
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 1 — Pole-Zero Plot di s-plane + Response y(t)
+  // y(t) = e^(αt)·cos(βt), pole di s = α ± βi
+  // ════════════════════════════════════════════════════════════════
+  const m10Pole = { running: true, raf: null, t: 0 };
+
+  window.m10TogglePole = function(){
+    m10Pole.running = !m10Pole.running;
+    const btn = document.getElementById('m10btnPole');
+    if (btn) btn.textContent = m10Pole.running ? '⏸ PAUSE' : '▶ PLAY';
+    if (m10Pole.running) drawM10Pole();
+  };
+
+  function drawM10Pole(){
+    const cv = document.getElementById('m10cvPole'); if(!cv) return;
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const alpha = parseFloat(document.getElementById('m10slAlpha').value);
+    const beta = parseFloat(document.getElementById('m10slBeta').value);
+    document.getElementById('m10alphaV').textContent = alpha.toFixed(2);
+    document.getElementById('m10betaV').textContent = beta.toFixed(2);
+
+    const splitX = W * 0.42;
+    ctx.strokeStyle = 'rgba(148,163,184,.3)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(splitX, 20); ctx.lineTo(splitX, H - 20); ctx.stroke();
+
+    // ── LEFT: s-plane ──
+    const padL = 30, padT = 30, padB = 30;
+    const px0 = padL, px1 = splitX - 16;
+    const py0 = padT, py1 = H - padB;
+    const cx = (px0 + px1)/2, cy = (py0 + py1)/2;
+    const halfW = (px1 - px0)/2, halfH = (py1 - py0)/2;
+    const reRange = 3, imRange = 4;
+    function rx(re){ return cx + (re/reRange)*halfW; }
+    function ry(im){ return cy - (im/imRange)*halfH; }
+
+    // Stable region tinting
+    ctx.fillStyle = 'rgba(0,224,158,.05)';
+    ctx.fillRect(px0, py0, cx - px0, py1 - py0);
+    ctx.fillStyle = 'rgba(239,68,68,.05)';
+    ctx.fillRect(cx, py0, px1 - cx, py1 - py0);
+
+    // Grid
+    ctx.strokeStyle = 'rgba(148,163,184,.1)'; ctx.lineWidth = 1;
+    for (let i = -reRange; i <= reRange; i++){
+      const x = rx(i);
+      ctx.beginPath(); ctx.moveTo(x, py0); ctx.lineTo(x, py1); ctx.stroke();
+    }
+    for (let j = -imRange; j <= imRange; j++){
+      const y = ry(j);
+      ctx.beginPath(); ctx.moveTo(px0, y); ctx.lineTo(px1, y); ctx.stroke();
+    }
+
+    // Axes + stability boundary
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(px0, cy); ctx.lineTo(px1, cy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx, py0); ctx.lineTo(cx, py1); ctx.stroke();
+    // Imaginary axis = boundary
+    ctx.strokeStyle = 'rgba(245,158,11,.6)'; ctx.lineWidth = 2; ctx.setLineDash([6, 4]);
+    ctx.beginPath(); ctx.moveTo(cx, py0); ctx.lineTo(cx, py1); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Labels
+    ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+    ctx.fillText('Re(s)', px1 - 36, cy - 8);
+    ctx.fillText('Im(s)', cx + 6, py0 + 12);
+    ctx.fillText('STABLE', px0 + 8, py0 + 14);
+    ctx.fillText('UNSTABLE', px1 - 64, py0 + 14);
+
+    // Pole pair (conjugate)
+    const isStable = alpha < -0.05;
+    const isMarginal = Math.abs(alpha) < 0.05;
+    const color = isStable ? '#00e09e' : (isMarginal ? '#f59e0b' : '#ef4444');
+    function drawX(x, y){
+      ctx.strokeStyle = color; ctx.lineWidth = 3;
+      ctx.shadowColor = color; ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.moveTo(x - 8, y - 8); ctx.lineTo(x + 8, y + 8);
+      ctx.moveTo(x + 8, y - 8); ctx.lineTo(x - 8, y + 8);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+    drawX(rx(alpha), ry(beta));
+    drawX(rx(alpha), ry(-beta));
+    ctx.fillStyle = color; ctx.font = 'bold 11px JetBrains Mono, monospace';
+    ctx.fillText(`s = ${alpha.toFixed(2)} + ${beta.toFixed(2)}i`, rx(alpha) + 14, ry(beta) - 4);
+    ctx.fillText(`s = ${alpha.toFixed(2)} − ${beta.toFixed(2)}i`, rx(alpha) + 14, ry(-beta) + 14);
+
+    // ── RIGHT: y(t) response ──
+    const sx0 = splitX + 30, sx1 = W - 20, sy0 = padT, sy1 = H - padB;
+    const tMax = 12;
+    function tx(t){ return sx0 + (t/tMax)*(sx1 - sx0); }
+
+    gridLines(ctx, sx0, sx1, sy0, sy1, 12, 6);
+
+    // Compute y(t) = e^(αt)·cos(βt)
+    const N = 300;
+    const ys = new Float64Array(N+1);
+    let yMax = 1;
+    for (let i = 0; i <= N; i++){
+      const t = (i/N)*tMax;
+      ys[i] = Math.exp(alpha*t) * Math.cos(beta*t);
+      if (Math.abs(ys[i]) > yMax) yMax = Math.abs(ys[i]);
+    }
+    yMax = Math.min(yMax, 30);
+    function ty(y){ return (sy0+sy1)/2 - (y/yMax)*((sy1-sy0)/2 - 8); }
+
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(sx0, ty(0)); ctx.lineTo(sx1, ty(0)); ctx.stroke();
+
+    ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+    ctx.fillText('t', sx1 + 5, ty(0) + 4);
+    ctx.fillText('y(t)', sx0 - 25, sy0 - 4);
+
+    // Plot
+    ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+    ctx.shadowColor = color; ctx.shadowBlur = 10;
+    ctx.beginPath();
+    for (let i = 0; i <= N; i++){
+      const t = (i/N)*tMax;
+      const px = tx(t), py = ty(ys[i]);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Animated dot
+    if (m10Pole.running) m10Pole.t = (m10Pole.t + 0.04) % tMax;
+    const iDot = Math.min(N, Math.floor(m10Pole.t/tMax*N));
+    ctx.fillStyle = '#fff';
+    ctx.shadowColor = color; ctx.shadowBlur = 14;
+    ctx.beginPath(); ctx.arc(tx(m10Pole.t), ty(ys[iDot]), 6, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Title
+    ctx.fillStyle = color; ctx.font = 'bold 12px JetBrains Mono, monospace';
+    const status = isStable ? 'STABLE' : (isMarginal ? 'MARGINAL' : 'UNSTABLE');
+    ctx.fillText(`y(t) = e^(${alpha.toFixed(2)}t)·cos(${beta.toFixed(2)}t)  [${status}]`, sx0 + 6, sy0 + 14);
+
+    const infoEl = document.getElementById('m10PoleInfo');
+    if (infoEl){
+      infoEl.innerHTML = `<span style="color:${color}">●</span> Pole di s = ${alpha.toFixed(2)} ± ${beta.toFixed(2)}i &nbsp;|&nbsp; ${status} &nbsp;|&nbsp; ${isStable ? 'decay' : (isMarginal ? 'osilasi pure' : 'growth')}`;
+    }
+
+    if (m10Pole.running) m10Pole.raf = requestAnimationFrame(drawM10Pole);
+  }
+  function _wireM10Pole(){
+    ['m10slAlpha','m10slBeta'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', () => {});
+    });
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 2 — Laplace Pairs Visualizer
+  // f(t) ↔ F(s); plot f(t) and |F(s)| heatmap
+  // ════════════════════════════════════════════════════════════════
+  const m10LapTable = { which: 'exp', t: 0, raf: null };
+
+  const M10_PAIRS = {
+    exp:  { fLabel: 'f(t) = e^(−2t)',          FLabel: 'F(s) = 1/(s+2)',           ft: t => Math.exp(-2*t),                    poles: [{re:-2, im:0}], color: '#ff6bb3' },
+    sin:  { fLabel: 'f(t) = sin(2t)',           FLabel: 'F(s) = 2/(s²+4)',         ft: t => Math.sin(2*t),                     poles: [{re:0, im:2}, {re:0, im:-2}], color: '#00e09e' },
+    cos:  { fLabel: 'f(t) = cos(2t)',           FLabel: 'F(s) = s/(s²+4)',         ft: t => Math.cos(2*t),                     poles: [{re:0, im:2}, {re:0, im:-2}], color: '#0ea5e9' },
+    t:    { fLabel: 'f(t) = t',                 FLabel: 'F(s) = 1/s²',             ft: t => t,                                 poles: [{re:0, im:0, mult:2}], color: '#a855f7' },
+    damp: { fLabel: 'f(t) = e^(−t)·sin(2t)',   FLabel: 'F(s) = 2/((s+1)²+4)',     ft: t => Math.exp(-t)*Math.sin(2*t),         poles: [{re:-1, im:2}, {re:-1, im:-2}], color: '#ffb300' }
+  };
+
+  window.m10SetPair = function(key){
+    m10LapTable.which = key; m10LapTable.t = 0;
+    document.querySelectorAll('.m10pair-pbtn').forEach(btn => {
+      const p = btn.getAttribute('data-p');
+      const active = (p === key);
+      btn.style.border = active ? '2px solid var(--pink)' : '1px solid rgba(148,163,184,.3)';
+      btn.style.background = active ? 'rgba(255,107,179,.4)' : 'rgba(148,163,184,.10)';
+      btn.style.color = active ? '#fff' : '#94a3b8';
+      btn.style.fontWeight = active ? '700' : '400';
+      btn.style.boxShadow = active ? '0 0 12px rgba(255,107,179,.4)' : 'none';
+      btn.style.transform = active ? 'scale(1.05)' : 'scale(1)';
+      btn.textContent = active ? (btn.textContent.replace(' ✓','') + ' ✓') : btn.textContent.replace(' ✓','');
+    });
+  };
+
+  function drawM10LapTable(){
+    const cv = document.getElementById('m10cvLapTable'); if(!cv){ m10LapTable.raf = requestAnimationFrame(drawM10LapTable); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const obj = M10_PAIRS[m10LapTable.which];
+    const splitX = W * 0.5;
+    ctx.strokeStyle = 'rgba(148,163,184,.3)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(splitX, 35); ctx.lineTo(splitX, H - 20); ctx.stroke();
+
+    // ── LEFT: f(t) ──
+    {
+      const padL = 50, padT = 50, padB = 30;
+      const px0 = padL, px1 = splitX - 16, py0 = padT, py1 = H - padB;
+      const tMax = 6;
+      function tx(t){ return px0 + (t/tMax)*(px1 - px0); }
+
+      gridLines(ctx, px0, px1, py0, py1, 8, 6);
+
+      const N = 200;
+      const ys = new Float64Array(N+1);
+      let yMax = 1;
+      for (let i = 0; i <= N; i++){
+        const t = (i/N)*tMax;
+        ys[i] = obj.ft(t);
+        if (Math.abs(ys[i]) > yMax) yMax = Math.abs(ys[i]);
+      }
+      yMax = Math.max(yMax, 0.5);
+      function ty(y){ return (py0+py1)/2 - (y/yMax)*((py1-py0)/2 - 8); }
+
+      ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(tx(0), py0); ctx.lineTo(tx(0), py1); ctx.stroke();
+
+      ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+      ctx.fillText('t', px1 + 5, ty(0) + 4);
+
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2.5;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 10;
+      ctx.beginPath();
+      for (let i = 0; i <= N; i++){
+        const t = (i/N)*tMax;
+        const px = tx(t), py = ty(ys[i]);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Animated dot
+      m10LapTable.t = (m10LapTable.t + 0.025) % tMax;
+      const iDot = Math.min(N, Math.floor(m10LapTable.t/tMax*N));
+      ctx.fillStyle = '#fff';
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 12;
+      ctx.beginPath(); ctx.arc(tx(m10LapTable.t), ty(ys[iDot]), 5, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = obj.color; ctx.font = 'bold 12px JetBrains Mono, monospace';
+      ctx.fillText(obj.fLabel, padL + 6, padT - 8);
+    }
+
+    // ── RIGHT: |F(s)| heatmap (s-plane) ──
+    {
+      const padL = 30, padT = 50, padB = 30;
+      const px0 = splitX + padL, px1 = W - 20, py0 = padT, py1 = H - padB;
+      const cx = (px0 + px1)/2, cy = (py0 + py1)/2;
+      const halfW = (px1 - px0)/2, halfH = (py1 - py0)/2;
+      const reR = 4, imR = 4;
+      function rx(re){ return cx + (re/reR)*halfW; }
+      function ry(im){ return cy - (im/imR)*halfH; }
+
+      // Heatmap |F(s)| using grid 30x20
+      const cellsX = 30, cellsY = 20;
+      const cw = (px1 - px0) / cellsX, ch = (py1 - py0) / cellsY;
+      // Compute |F(s)| at each cell center (handle pole singularity)
+      function Fmag(re, im){
+        // Compute based on poles (1 over product of (s - p))
+        let mag = 1;
+        for (const p of obj.poles){
+          const dre = re - p.re, dim = im - p.im;
+          const mod = Math.sqrt(dre*dre + dim*dim);
+          if (mod < 0.05) return 1e6;
+          mag /= mod;
+        }
+        // For sin: numerator factor 2; for cos: factor s; for t: 1/s²
+        // Just use simple mag for visualization
+        return Math.min(mag, 5);
+      }
+      let maxV = 0;
+      const grid = new Float64Array(cellsX * cellsY);
+      for (let i = 0; i < cellsX; i++){
+        for (let j = 0; j < cellsY; j++){
+          const re = -reR + ((i + 0.5)/cellsX) * 2*reR;
+          const im = -imR + ((j + 0.5)/cellsY) * 2*imR;
+          grid[j*cellsX + i] = Fmag(re, im);
+          if (grid[j*cellsX + i] > maxV) maxV = grid[j*cellsX + i];
+        }
+      }
+      // Plot
+      for (let i = 0; i < cellsX; i++){
+        for (let j = 0; j < cellsY; j++){
+          const v = Math.min(grid[j*cellsX + i] / maxV, 1);
+          const alphaV = v;
+          ctx.fillStyle = `rgba(255, 107, 179, ${alphaV})`;
+          ctx.fillRect(px0 + i*cw, py0 + j*ch, cw - 1, ch - 1);
+        }
+      }
+      // Border + axes
+      ctx.strokeStyle = 'rgba(148,163,184,.3)'; ctx.lineWidth = 1;
+      ctx.strokeRect(px0, py0, px1 - px0, py1 - py0);
+      ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(px0, cy); ctx.lineTo(px1, cy); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx, py0); ctx.lineTo(cx, py1); ctx.stroke();
+
+      // Mark poles with X
+      obj.poles.forEach(p => {
+        const x = rx(p.re), y = ry(p.im);
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
+        ctx.shadowColor = obj.color; ctx.shadowBlur = 14;
+        ctx.beginPath();
+        ctx.moveTo(x - 8, y - 8); ctx.lineTo(x + 8, y + 8);
+        ctx.moveTo(x + 8, y - 8); ctx.lineTo(x - 8, y + 8);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      });
+
+      // Labels
+      ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+      ctx.fillText('Re(s)', px1 - 32, cy - 6);
+      ctx.fillText('Im(s)', cx + 4, py0 + 10);
+
+      ctx.fillStyle = obj.color; ctx.font = 'bold 12px JetBrains Mono, monospace';
+      ctx.fillText(obj.FLabel + ' (heatmap)', px0 + 6, padT - 8);
+    }
+
+    // Big arrow with "L" label
+    ctx.strokeStyle = '#ffd166'; ctx.lineWidth = 2;
+    ctx.shadowColor = '#ffd166'; ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.moveTo(splitX - 14, H/2);
+    ctx.lineTo(splitX + 14, H/2);
+    ctx.stroke();
+    ctx.fillStyle = '#ffd166';
+    ctx.beginPath();
+    ctx.moveTo(splitX + 14, H/2);
+    ctx.lineTo(splitX + 6, H/2 - 6);
+    ctx.lineTo(splitX + 6, H/2 + 6);
+    ctx.closePath(); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#ffd166'; ctx.font = 'bold 11px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+    ctx.fillText('L', splitX, H/2 - 12);
+    ctx.textAlign = 'left';
+
+    const infoEl = document.getElementById('m10LapTableInfo');
+    if (infoEl){
+      infoEl.innerHTML = `<span style="color:${obj.color}">●</span> ${obj.fLabel} &nbsp;⇔&nbsp; ${obj.FLabel} &nbsp;|&nbsp; pole(s): ${obj.poles.map(p => `${p.re.toFixed(1)}${p.im !== 0 ? (p.im > 0 ? '+' : '−') + Math.abs(p.im).toFixed(1) + 'i' : ''}`).join(', ')}`;
+    }
+
+    m10LapTable.raf = requestAnimationFrame(drawM10LapTable);
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 3 — Toggle First Shift Theorem
+  // First shift: e^(at)·sin(2t) ↔ 2/((s−a)²+4) — pole shifted by a
+  // ════════════════════════════════════════════════════════════════
+  const m10Shift = { isFirst: true, t: 0, raf: null };
+
+  window.m10ToggleShift = function(){
+    m10Shift.isFirst = !m10Shift.isFirst;
+    const view = document.getElementById('m10_shift_view');
+    const knob = document.getElementById('m10_shift_knob');
+    const lbl  = document.getElementById('m10_shift_label');
+    if (m10Shift.isFirst){
+      view.style.background = 'rgba(0,224,158,.25)'; view.style.borderColor = 'var(--green)';
+      knob.style.transform = 'translateX(0px)';
+      lbl.style.color = 'var(--green)';
+      lbl.textContent = 'FIRST SHIFT: L{e^(at)·f(t)} = F(s−a)';
+    } else {
+      view.style.background = 'rgba(255,179,0,.25)'; view.style.borderColor = 'var(--amber)';
+      knob.style.transform = 'translateX(28px)';
+      lbl.style.color = 'var(--amber)';
+      lbl.textContent = 'SECOND SHIFT: L{f(t−c)·u(t−c)} = e^(−cs)·F(s)';
+    }
+  };
+
+  function drawM10Shift(){
+    const cv = document.getElementById('m10cvShift'); if(!cv){ m10Shift.raf = requestAnimationFrame(drawM10Shift); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const a = parseFloat(document.getElementById('m10_a').value);
+    document.getElementById('m10_a_v').textContent = a.toFixed(2);
+
+    const splitX = W * 0.5;
+    ctx.strokeStyle = 'rgba(148,163,184,.3)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(splitX, 35); ctx.lineTo(splitX, H - 20); ctx.stroke();
+
+    if (m10Shift.isFirst){
+      // Plot f(t) = sin(2t) and e^(at)·sin(2t) on left
+      // Plot pole locations on right
+      const padL = 50, padT = 50, padB = 30;
+      const px0 = padL, px1 = splitX - 16, py0 = padT, py1 = H - padB;
+      const tMax = 8;
+      function tx(t){ return px0 + (t/tMax)*(px1 - px0); }
+
+      gridLines(ctx, px0, px1, py0, py1, 8, 6);
+
+      const N = 200;
+      const fArr = new Float64Array(N+1), gArr = new Float64Array(N+1);
+      let yMax = 1;
+      for (let i = 0; i <= N; i++){
+        const t = (i/N)*tMax;
+        fArr[i] = Math.sin(2*t);
+        gArr[i] = Math.exp(a*t)*Math.sin(2*t);
+        if (Math.abs(fArr[i]) > yMax) yMax = Math.abs(fArr[i]);
+        if (Math.abs(gArr[i]) > yMax) yMax = Math.abs(gArr[i]);
+      }
+      yMax = Math.min(yMax, 30);
+      function ty(y){ return (py0+py1)/2 - (y/yMax)*((py1-py0)/2 - 8); }
+
+      ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+
+      // f(t) faded
+      ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 4]);
+      ctx.beginPath();
+      for (let i = 0; i <= N; i++){
+        const t = (i/N)*tMax;
+        const px = tx(t), py = ty(fArr[i]);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // g(t) = e^(at)·sin(2t)
+      const colorG = a < 0 ? '#00e09e' : (a > 0 ? '#ef4444' : '#f59e0b');
+      ctx.strokeStyle = colorG; ctx.lineWidth = 2.5;
+      ctx.shadowColor = colorG; ctx.shadowBlur = 10;
+      ctx.beginPath();
+      for (let i = 0; i <= N; i++){
+        const t = (i/N)*tMax;
+        const px = tx(t), py = ty(gArr[i]);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = colorG; ctx.font = 'bold 12px JetBrains Mono, monospace';
+      ctx.fillText(`g(t) = e^(${a.toFixed(2)}t)·sin(2t)`, padL + 6, padT - 8);
+      ctx.fillStyle = 'rgba(148,163,184,.7)'; ctx.font = '10px JetBrains Mono, monospace';
+      ctx.fillText('(faded: f(t) = sin(2t))', padL + 6, padT - 26);
+
+      // ── RIGHT: pole locations ──
+      const sx0 = splitX + 30, sx1 = W - 20, sy0 = padT, sy1 = H - padB;
+      const cx = (sx0 + sx1)/2, cy = (sy0 + sy1)/2;
+      const halfWp = (sx1 - sx0)/2, halfHp = (sy1 - sy0)/2;
+      const reR = 3, imR = 4;
+      function rx(re){ return cx + (re/reR)*halfWp; }
+      function ry(im){ return cy - (im/imR)*halfHp; }
+
+      gridLines(ctx, sx0, sx1, sy0, sy1, 8, 8);
+      ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(sx0, cy); ctx.lineTo(sx1, cy); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx, sy0); ctx.lineTo(cx, sy1); ctx.stroke();
+
+      // Original poles at s = ±2i (faded)
+      ctx.strokeStyle = 'rgba(148,163,184,.6)'; ctx.lineWidth = 2;
+      [{re:0, im:2}, {re:0, im:-2}].forEach(p => {
+        const x = rx(p.re), y = ry(p.im);
+        ctx.beginPath();
+        ctx.moveTo(x - 6, y - 6); ctx.lineTo(x + 6, y + 6);
+        ctx.moveTo(x + 6, y - 6); ctx.lineTo(x - 6, y + 6);
+        ctx.stroke();
+      });
+      ctx.fillStyle = 'rgba(148,163,184,.7)'; ctx.font = '10px JetBrains Mono, monospace';
+      ctx.fillText('original ±2i', rx(0) + 8, ry(2) - 8);
+
+      // Shifted poles at s = a ± 2i (highlighted)
+      [{re: a, im: 2}, {re: a, im: -2}].forEach(p => {
+        const x = rx(p.re), y = ry(p.im);
+        ctx.strokeStyle = colorG; ctx.lineWidth = 3;
+        ctx.shadowColor = colorG; ctx.shadowBlur = 14;
+        ctx.beginPath();
+        ctx.moveTo(x - 8, y - 8); ctx.lineTo(x + 8, y + 8);
+        ctx.moveTo(x + 8, y - 8); ctx.lineTo(x - 8, y + 8);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        // Shift arrow
+        ctx.strokeStyle = '#ffd166'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]);
+        ctx.beginPath(); ctx.moveTo(rx(0), y); ctx.lineTo(x - 10, y); ctx.stroke();
+        ctx.setLineDash([]);
+      });
+      ctx.fillStyle = colorG; ctx.font = 'bold 11px JetBrains Mono, monospace';
+      ctx.fillText(`shifted: ${a.toFixed(2)} ± 2i`, rx(a) + 12, ry(2) - 8);
+
+      ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+      ctx.fillText('Re(s)', sx1 - 32, cy - 6);
+      ctx.fillText('Im(s)', cx + 4, sy0 + 10);
+      ctx.fillStyle = colorG; ctx.font = 'bold 12px JetBrains Mono, monospace';
+      ctx.fillText(`G(s) = 2/((s−${a.toFixed(2)})² + 4)`, sx0 + 6, sy0 - 8);
+
+    } else {
+      // Second shift: f(t−c)·u(t−c) ↔ e^(−cs)·F(s)
+      // f(t) = sin(2t), c = a (use same slider)
+      const c = Math.abs(a);
+      const padL = 50, padT = 50, padB = 30;
+      const px0 = padL, px1 = W - 20, py0 = padT, py1 = H - padB;
+      const tMax = 8;
+      function tx(t){ return px0 + (t/tMax)*(px1 - px0); }
+
+      gridLines(ctx, px0, px1, py0, py1, 12, 6);
+
+      function ty(y){ return (py0+py1)/2 - (y/2)*((py1-py0)/2 - 8); }
+
+      ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+
+      // f(t) faded
+      ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 4]);
+      ctx.beginPath();
+      const N = 200;
+      for (let i = 0; i <= N; i++){
+        const t = (i/N)*tMax;
+        const px = tx(t), py = ty(Math.sin(2*t));
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // g(t) = sin(2(t-c))·u(t-c) — delayed
+      ctx.strokeStyle = '#ffb300'; ctx.lineWidth = 2.5;
+      ctx.shadowColor = '#ffb300'; ctx.shadowBlur = 10;
+      ctx.beginPath();
+      for (let i = 0; i <= N; i++){
+        const t = (i/N)*tMax;
+        const v = (t > c) ? Math.sin(2*(t - c)) : 0;
+        const px = tx(t), py = ty(v);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Mark t = c
+      ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]);
+      ctx.beginPath(); ctx.moveTo(tx(c), py0); ctx.lineTo(tx(c), py1); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#ef4444'; ctx.font = 'bold 11px JetBrains Mono, monospace';
+      ctx.fillText(`t = c = ${c.toFixed(2)}`, tx(c) + 6, py0 + 16);
+
+      ctx.fillStyle = '#ffb300'; ctx.font = 'bold 13px JetBrains Mono, monospace';
+      ctx.fillText(`f(t−${c.toFixed(2)})·u(t−${c.toFixed(2)})  ↔  e^(−${c.toFixed(2)}s)·F(s)`, padL + 6, padT - 8);
+      ctx.fillStyle = 'rgba(148,163,184,.7)'; ctx.font = '10px JetBrains Mono, monospace';
+      ctx.fillText('(faded: f(t) = sin(2t))', padL + 6, padT - 26);
+    }
+
+    const infoEl = document.getElementById('m10ShiftInfo');
+    if (infoEl){
+      infoEl.innerHTML = m10Shift.isFirst
+        ? `<span style="color:#00e09e">●</span> First Shift: e^(${a.toFixed(2)}t)·sin(2t) → pole bergeser horizontal sebesar a (s ↦ s−a). Stability flip saat a melewati 0.`
+        : `<span style="color:#ffb300">●</span> Second Shift: f(t−c)·u(t−c) → translasi waktu di t-domain = pengalian e^(−cs) di s-domain.`;
+    }
+
+    m10Shift.raf = requestAnimationFrame(drawM10Shift);
+  }
+  function _wireM10Shift(){
+    const el = document.getElementById('m10_a');
+    if (el) el.addEventListener('input', () => {});
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 4 — Pecahan Parsial 4 Cases
+  // ════════════════════════════════════════════════════════════════
+  const m10Decomp = { which: 'distinct', t: 0, raf: null };
+
+  const M10_DECOMP = {
+    distinct: { label: 'Real Distinct: 1/((s+1)(s+3))',                                    formula: '= ½/(s+1) − ½/(s+3) → ½(e^(−t) − e^(−3t))', fn: t => 0.5*(Math.exp(-t) - Math.exp(-3*t)),                            color: '#0ea5e9' },
+    repeated: { label: 'Real Repeated: 1/(s+2)²',                                          formula: '→ t·e^(−2t)',                                fn: t => t * Math.exp(-2*t),                                              color: '#a855f7' },
+    complex:  { label: 'Complex: s/(s²+2s+5)',                                              formula: '= (s+1)/((s+1)²+4) − ½·2/((s+1)²+4) → e^(−t)·cos(2t) − ½·e^(−t)·sin(2t)', fn: t => Math.exp(-t)*Math.cos(2*t) - 0.5*Math.exp(-t)*Math.sin(2*t),  color: '#00e09e' },
+    mixed:    { label: 'Mixed: 1/(s(s²+1))',                                                formula: '= 1/s − s/(s²+1) → 1 − cos(t)',              fn: t => 1 - Math.cos(t),                                                color: '#ff6bb3' }
+  };
+
+  window.m10SetDecomp = function(key){
+    m10Decomp.which = key; m10Decomp.t = 0;
+    document.querySelectorAll('.m10-decomp-lbl').forEach(lbl => {
+      const c = lbl.getAttribute('data-c');
+      const active = (c === key);
+      lbl.style.border = active ? '2px solid var(--pink)' : '1px solid rgba(148,163,184,.3)';
+      lbl.style.background = active ? 'rgba(255,255,255,.20)' : 'rgba(148,163,184,.10)';
+      lbl.style.color = active ? '#fff' : '#94a3b8';
+      lbl.style.fontWeight = active ? '700' : '400';
+      lbl.style.boxShadow = active ? '0 0 12px rgba(255,107,179,.4)' : 'none';
+      lbl.style.transform = active ? 'scale(1.05)' : 'scale(1)';
+      lbl.textContent = active ? (lbl.textContent.replace(' ✓','') + ' ✓') : lbl.textContent.replace(' ✓','');
+    });
+  };
+
+  function drawM10Decomp(){
+    const cv = document.getElementById('m10cvDecomp'); if(!cv){ m10Decomp.raf = requestAnimationFrame(drawM10Decomp); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const obj = M10_DECOMP[m10Decomp.which];
+
+    // Title
+    ctx.fillStyle = obj.color; ctx.font = 'bold 14px JetBrains Mono, monospace';
+    ctx.fillText(obj.label, 30, 30);
+    ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+    ctx.fillText(obj.formula, 30, 50);
+
+    // Plot inverse Laplace result f(t)
+    const padL = 50, padT = 70, padB = 30;
+    const px0 = padL, px1 = W - 20, py0 = padT, py1 = H - padB;
+    const tMax = 8;
+    function tx(t){ return px0 + (t/tMax)*(px1 - px0); }
+
+    gridLines(ctx, px0, px1, py0, py1, 12, 6);
+
+    const N = 300;
+    const ys = new Float64Array(N+1);
+    let yMax = 1;
+    for (let i = 0; i <= N; i++){
+      const t = (i/N)*tMax;
+      ys[i] = obj.fn(t);
+      if (Math.abs(ys[i]) > yMax) yMax = Math.abs(ys[i]);
+    }
+    yMax = Math.max(yMax, 0.5);
+    function ty(y){ return (py0+py1)/2 - (y/yMax)*((py1-py0)/2 - 8); }
+
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+
+    ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+    ctx.fillText('t', px1 + 5, ty(0) + 4);
+    ctx.fillText('f(t) = L⁻¹{F(s)}', px0 - 5, py0 - 6);
+
+    ctx.strokeStyle = obj.color; ctx.lineWidth = 2.5;
+    ctx.shadowColor = obj.color; ctx.shadowBlur = 10;
+    ctx.beginPath();
+    for (let i = 0; i <= N; i++){
+      const t = (i/N)*tMax;
+      const px = tx(t), py = ty(ys[i]);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Animated dot
+    m10Decomp.t = (m10Decomp.t + 0.03) % tMax;
+    const iDot = Math.min(N, Math.floor(m10Decomp.t/tMax*N));
+    ctx.fillStyle = '#fff';
+    ctx.shadowColor = obj.color; ctx.shadowBlur = 14;
+    ctx.beginPath(); ctx.arc(tx(m10Decomp.t), ty(ys[iDot]), 6, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+
+    const infoEl = document.getElementById('m10DecompInfo');
+    if (infoEl){
+      infoEl.innerHTML = `<span style="color:${obj.color}">●</span> ${obj.label} &nbsp;|&nbsp; ${obj.formula} &nbsp;|&nbsp; t=${m10Decomp.t.toFixed(2)}, f(t)=${ys[iDot].toFixed(3)}`;
+    }
+
+    m10Decomp.raf = requestAnimationFrame(drawM10Decomp);
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 5 — Aplikasi Laplace di Engineering
+  // ════════════════════════════════════════════════════════════════
+  const m10App = { which: 'rlc_step', t: 0, hist: [], raf: null };
+
+  const M10_APP = {
+    rlc_step:   { label: 'RLC Step Response: V₀=1, R=1, L=0.5, C=0.2',                     compute: t => 1 - Math.exp(-t)*(Math.cos(2*t) + 0.5*Math.sin(2*t)),               color: '#ffb300', icon: 'rlc' },
+    control:    { label: 'Control 2nd-order step: ζ=0.4, ω=2',                              compute: t => 1 - Math.exp(-0.8*t)*(Math.cos(1.83*t) + (0.8/1.83)*Math.sin(1.83*t)), color: '#0ea5e9', icon: 'block' },
+    impulse:    { label: 'Impulse Response h(t): h = e^(−t)·sin(2t) (kernel)',              compute: t => Math.exp(-t)*Math.sin(2*t),                                          color: '#a855f7', icon: 'impulse' },
+    switching:  { label: 'Heaviside Switch: u(t)·(1 − u(t−3))·sin(t)',                      compute: t => (t > 3) ? 0 : Math.sin(t),                                          color: '#00e09e', icon: 'switch' },
+    convolution:{ label: 'Convolution: y = h ⊛ f, h=e^(−t), f=u(t)',                        compute: t => 1 - Math.exp(-t),                                                    color: '#ff6bb3', icon: 'conv' }
+  };
+
+  window.m10SetAppLap = function(key){
+    m10App.which = key; m10App.hist = []; m10App.t = 0;
+  };
+
+  function drawM10AppLap(){
+    const cv = document.getElementById('m10cvAppLap'); if(!cv){ m10App.raf = requestAnimationFrame(drawM10AppLap); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const obj = M10_APP[m10App.which];
+    const splitX = W * 0.40;
+    ctx.strokeStyle = 'rgba(148,163,184,.3)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(splitX, 20); ctx.lineTo(splitX, H - 20); ctx.stroke();
+
+    const cx = splitX/2, cy = H/2;
+    m10App.t += 0.012;
+    const t = m10App.t;
+    const val = obj.compute(t);
+
+    if (obj.icon === 'rlc'){
+      // RLC with step input
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx - 70, cy - 40); ctx.lineTo(cx + 70, cy - 40);
+      ctx.lineTo(cx + 70, cy + 40); ctx.lineTo(cx - 70, cy + 40);
+      ctx.closePath();
+      ctx.stroke();
+      // Step source
+      ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx - 100, cy + 10);
+      ctx.lineTo(cx - 90, cy + 10);
+      ctx.lineTo(cx - 90, cy - 10);
+      ctx.lineTo(cx - 80, cy - 10);
+      ctx.stroke();
+      ctx.fillStyle = '#ef4444'; ctx.font = 'bold 11px JetBrains Mono, monospace';
+      ctx.fillText('V₀·u(t)', cx - 110, cy + 26);
+      // Output meter
+      ctx.fillStyle = obj.color; ctx.shadowColor = obj.color; ctx.shadowBlur = 10 + 14*Math.abs(val);
+      ctx.beginPath(); ctx.arc(cx + 90, cy, 8 + 6*Math.abs(val), 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+    } else if (obj.icon === 'block'){
+      // Control feedback block diagram
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      ctx.fillStyle = `${obj.color}20`;
+      ctx.fillRect(cx - 50, cy - 25, 100, 50);
+      ctx.strokeRect(cx - 50, cy - 25, 100, 50);
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 12px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText('G(s)', cx, cy + 4);
+      ctx.textAlign = 'left';
+      // Sum
+      ctx.beginPath(); ctx.arc(cx - 90, cy, 12, 0, Math.PI*2); ctx.stroke();
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 14px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText('+', cx - 90, cy + 5);
+      ctx.textAlign = 'left';
+      // Wires
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(cx - 130, cy); ctx.lineTo(cx - 102, cy);
+      ctx.moveTo(cx - 78, cy); ctx.lineTo(cx - 50, cy);
+      ctx.moveTo(cx + 50, cy); ctx.lineTo(cx + 100, cy); ctx.lineTo(cx + 100, cy + 50); ctx.lineTo(cx - 90, cy + 50); ctx.lineTo(cx - 90, cy + 12);
+      ctx.stroke();
+      // Step input
+      ctx.fillStyle = '#ef4444'; ctx.font = 'bold 11px JetBrains Mono, monospace';
+      ctx.fillText('step', cx - 132, cy - 6);
+    } else if (obj.icon === 'impulse'){
+      // Hammer hitting + ringing response
+      const hammerX = cx;
+      const hitTime = (t * 0.5) % 4;
+      const hammerY = hitTime < 0.5 ? cy - 60 + hitTime * 80 : cy - 20;
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillRect(hammerX - 8, hammerY - 20, 16, 30);
+      ctx.fillStyle = '#a855f7';
+      ctx.fillRect(hammerX - 12, hammerY + 10, 24, 12);
+      // Anvil/floor
+      ctx.fillStyle = 'rgba(148,163,184,.4)';
+      ctx.fillRect(cx - 50, cy + 30, 100, 8);
+      // Ringing waves emanating
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 1.5;
+      for (let k = 0; k < 4; k++){
+        const r = (t * 30 + k * 25) % 100;
+        const opacity = Math.max(0, 1 - r/100);
+        ctx.strokeStyle = obj.color.replace('rgb', 'rgba').replace(')', `,${opacity})`);
+        ctx.beginPath(); ctx.arc(cx, cy + 30, r, 0, Math.PI*2); ctx.stroke();
+      }
+    } else if (obj.icon === 'switch'){
+      // Light switch (state on/off based on val)
+      const on = val > 0.05;
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      // Switch box
+      ctx.strokeRect(cx - 30, cy - 40, 60, 80);
+      // Lever
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + (on ? 18 : -18), cy - 18);
+      ctx.lineWidth = 4;
+      ctx.stroke();
+      // Bulb (lit when on)
+      ctx.fillStyle = on ? '#ffd166' : '#475569';
+      ctx.shadowColor = '#ffd166'; ctx.shadowBlur = on ? 20 : 0;
+      ctx.beginPath(); ctx.arc(cx + 70, cy, 16, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+      // Wire
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(cx + 30, cy); ctx.lineTo(cx + 54, cy); ctx.stroke();
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 11px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText(on ? 'ON' : 'OFF (t > 3)', cx + 70, cy + 35);
+      ctx.textAlign = 'left';
+    } else if (obj.icon === 'conv'){
+      // Convolution: sliding window product
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      const slideT = (t * 0.5) % 4;
+      // Function f(t) = u(t) (rectangle)
+      ctx.fillStyle = `${obj.color}30`;
+      ctx.fillRect(cx - 60, cy + 10, 120, 30);
+      ctx.strokeRect(cx - 60, cy + 10, 120, 30);
+      ctx.fillStyle = obj.color; ctx.font = 'bold 11px JetBrains Mono, monospace';
+      ctx.fillText('f(t) = u(t)', cx - 30, cy + 28);
+      // Function h(t) = e^(-t) (sliding decay)
+      const slideX = cx - 60 + slideT * 30;
+      ctx.strokeStyle = '#ffb300'; ctx.lineWidth = 2;
+      ctx.shadowColor = '#ffb300'; ctx.shadowBlur = 10;
+      ctx.beginPath();
+      for (let i = 0; i <= 30; i++){
+        const xR = i/30;
+        const yV = Math.exp(-xR * 3) * 25;
+        if (i === 0) ctx.moveTo(slideX + xR * 30, cy - 25 - yV);
+        else ctx.lineTo(slideX + xR * 30, cy - 25 - yV);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#ffb300'; ctx.fillText('h(t-τ)', slideX, cy - 60);
+      // Result ring
+      ctx.fillStyle = obj.color;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 14;
+      ctx.beginPath(); ctx.arc(cx, cy + 70, 5 + 8*val, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    // ── RIGHT: signal trace ──
+    const sx0 = splitX + 16, sx1 = W - 20, sy0 = 30, sy1 = H - 30;
+    ctx.strokeStyle = 'rgba(148,163,184,.2)'; ctx.lineWidth = 1;
+    ctx.strokeRect(sx0, sy0, sx1 - sx0, sy1 - sy0);
+    gridLines(ctx, sx0, sx1, sy0, sy1, 10, 4);
+
+    m10App.hist.push(val);
+    if (m10App.hist.length > 1000) m10App.hist.shift();
+
+    const hN = m10App.hist.length;
+    if (hN > 1){
+      let yMin = 0, yMaxH = 0;
+      for (let v of m10App.hist){ if (v < yMin) yMin = v; if (v > yMaxH) yMaxH = v; }
+      const yRng = Math.max(0.5, yMaxH - yMin);
+
+      const zy = sy0 + (yMaxH/yRng) * (sy1 - sy0);
+      ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1; ctx.setLineDash([4, 3]);
+      ctx.beginPath(); ctx.moveTo(sx0, zy); ctx.lineTo(sx1, zy); ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 8;
+      ctx.beginPath();
+      for (let i = 0; i < hN; i++){
+        const px = sx0 + (i/(hN-1))*(sx1 - sx0);
+        const py = sy0 + ((yMaxH - m10App.hist[i])/yRng) * (sy1 - sy0);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = '#fff'; ctx.shadowColor = obj.color; ctx.shadowBlur = 14;
+      const tipY = sy0 + ((yMaxH - val)/yRng)*(sy1 - sy0);
+      ctx.beginPath(); ctx.arc(sx1, tipY, 5, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    ctx.fillStyle = obj.color; ctx.font = 'bold 11px JetBrains Mono, monospace';
+    ctx.fillText(obj.label, sx0 + 6, sy0 + 16);
+
+    const infoEl = document.getElementById('m10AppLapInfo');
+    if (infoEl){
+      const samples = m10App.hist.length;
+      infoEl.innerHTML = `<span style="color:${obj.color}">●</span> ${obj.label} &nbsp;|&nbsp; t=${t.toFixed(2)}, val=${val.toFixed(3)} &nbsp;|&nbsp; ${samples}/1000 samples`;
+    }
+
+    m10App.raf = requestAnimationFrame(drawM10AppLap);
+  }
+
+  // ── Init ──
+  function initM10Anims(){
+    if (document.getElementById('m10cvPole')){ drawM10Pole(); _wireM10Pole(); }
+    if (document.getElementById('m10cvLapTable')) drawM10LapTable();
+    if (document.getElementById('m10cvShift')){ drawM10Shift(); _wireM10Shift(); }
+    if (document.getElementById('m10cvDecomp')) drawM10Decomp();
+    if (document.getElementById('m10cvAppLap')) drawM10AppLap();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initM10Anims);
+  else initM10Anims();
+})();
 </script>
 
 </body>
