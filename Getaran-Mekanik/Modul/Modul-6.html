@@ -327,9 +327,17 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 .btn-export:not(:disabled):hover::before{width:300%;height:400%;opacity:1}
 .btn-export::after{content:'';position:absolute;inset:-2px;border-radius:14px;background:conic-gradient(from 0deg,transparent 0deg,transparent 80deg,rgba(255,255,255,.9) 90deg,rgba(8,191,232,.9) 95deg,rgba(168,85,247,.9) 100deg,transparent 110deg,transparent 360deg);animation:btnHoloSpark 3s linear infinite;pointer-events:none;z-index:-1;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;padding:2px}
 @keyframes btnHoloSpark{to{transform:rotate(360deg)}}
-.btn-export:hover{background:linear-gradient(135deg,rgba(168,85,247,.5),rgba(124,77,255,.45));box-shadow:0 12px 36px rgba(168,85,247,.55),0 0 60px rgba(168,85,247,.35);transform:translateY(-3px) scale(1.04);border-color:rgba(168,85,247,.95)}
-.btn-export:not(:disabled){animation:btnFloatGlow 2.6s ease-in-out infinite}
+.btn-export:hover{background:linear-gradient(135deg,rgba(168,85,247,.5),rgba(124,77,255,.45));box-shadow:0 12px 36px rgba(168,85,247,.55),0 0 60px rgba(168,85,247,.35),0 0 100px rgba(8,191,232,.2),inset 0 1px 0 rgba(255,255,255,.2),inset 0 -2px 8px rgba(0,0,0,.2);transform:translateY(-3px) scale(1.04);border-color:rgba(168,85,247,.95);letter-spacing:1.3px}
+.btn-export:not(:disabled):active{transform:translateY(-1px) scale(.97);transition:all .12s;box-shadow:0 4px 12px rgba(168,85,247,.4),inset 0 4px 12px rgba(0,0,0,.25)}
+.btn-export:disabled{filter:grayscale(.4)}
+.btn-export:disabled::after{animation-duration:6s;opacity:.4}
+.btn-export:not(:disabled){animation:btnFloatGlow 2.6s ease-in-out infinite,btnReady 1.6s ease-in-out infinite}
 @keyframes btnFloatGlow{0%,100%{box-shadow:0 4px 16px rgba(168,85,247,.3),0 0 0 0 rgba(168,85,247,.5)}50%{box-shadow:0 8px 28px rgba(168,85,247,.55),0 0 0 6px rgba(168,85,247,0)}}
+@keyframes btnReady{0%,100%{border-color:rgba(168,85,247,.6)}50%{border-color:rgba(8,191,232,.85)}}
+.btn-ripple{position:absolute;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.7) 0%,rgba(168,85,247,.45) 30%,rgba(8,191,232,.25) 60%,transparent 80%);transform:scale(0);animation:btnRippleExpand .85s cubic-bezier(.34,1.56,.64,1);pointer-events:none;z-index:3;mix-blend-mode:screen}
+@keyframes btnRippleExpand{0%{transform:scale(0);opacity:1}100%{transform:scale(2.8);opacity:0}}
+.btn-arrow-hint{display:inline-block;animation:arrowBob 1.4s ease-in-out infinite;margin-left:2px}
+@keyframes arrowBob{0%,100%{transform:translateY(0);opacity:.7}50%{transform:translateY(2px);opacity:1}}
 
 /* ═══ FORUM STYLES ═══ */
 .forum-scenario{background:linear-gradient(135deg,rgba(14,165,233,.05),rgba(168,85,247,.04));border:1px solid rgba(14,165,233,.2);border-radius:20px;padding:32px;margin-bottom:32px;position:relative;overflow:hidden}
@@ -3143,8 +3151,52 @@ function _setBtnState(btn, ready) {
   // pointer-events tetap auto agar cursor not-allowed tampil saat hover (disabled
   // attribute sudah cukup mencegah klik).
   btn.style.pointerEvents = 'auto';
+  // Animated arrow hint indicator saat ready (download arrow ↓ bouncing)
+  if (btn.id === 'btn-score-export') {
+    const existingHint = btn.querySelector('.btn-arrow-hint');
+    if (ready && !existingHint) {
+      const arrow = document.createElement('span');
+      arrow.className = 'btn-arrow-hint';
+      arrow.textContent = '↓';
+      btn.appendChild(arrow);
+    } else if (!ready && existingHint) {
+      existingHint.remove();
+    }
+  }
 }
 window._setBtnState = _setBtnState;
+
+// Click ripple effect handler untuk btn-export
+function _createBtnRipple(event) {
+  const button = event.currentTarget;
+  if (button.disabled) return;
+  const rect = button.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height) * 1.8;
+  const ripple = document.createElement('span');
+  ripple.className = 'btn-ripple';
+  ripple.style.width = size + 'px';
+  ripple.style.height = size + 'px';
+  ripple.style.left = (event.clientX - rect.left - size / 2) + 'px';
+  ripple.style.top = (event.clientY - rect.top - size / 2) + 'px';
+  button.appendChild(ripple);
+  setTimeout(function() { try { ripple.remove(); } catch(e){} }, 850);
+}
+
+// Attach ripple ke btn-export saat DOM ready
+(function() {
+  function attachRippleHandler() {
+    const btn = document.getElementById('btn-score-export');
+    if (btn && !btn._rippleAttached) {
+      btn.addEventListener('click', _createBtnRipple);
+      btn._rippleAttached = true;
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', attachRippleHandler);
+  } else {
+    attachRippleHandler();
+  }
+})();
 
 function onCodeInput(qId) {
   const btn = document.getElementById('sub-' + qId);
