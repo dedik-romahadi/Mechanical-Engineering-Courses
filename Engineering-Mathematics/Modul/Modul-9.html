@@ -1521,145 +1521,146 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <hr class="divider">
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 09</div>
-  <h2 class="section-title reveal">Animasi Interaktif<br>Akar Karakteristik &amp; Solusi Cauchy-Euler</h2>
-  <p class="section-desc reveal">Lima animasi interaktif: (1) Solusi y(t) dengan <strong>preset push button</strong> b, (2) akar persamaan karakteristik dengan slider, (3) <strong>toggle</strong> Numerical vs Analytical, (4) <strong>radio</strong> klasifikasi PD, (5) <strong>dropdown</strong> sub-topik. Animasi visualisasi akar karakteristik PD Cauchy-Euler — kasus utama di mana <strong>reduksi orde</strong> sering dipakai (terutama saat akar berulang). Geser slider koefisien b dan c untuk melihat bagaimana akar m berpindah di bidang kompleks dan bagaimana solusi <code>y = x<sup>m</sup></code> berubah karakter. Tiga kasus akar (real berbeda, berganda, kompleks) yang dihasilkan menentukan pola y_h — saat akar berganda, reduksi orde memberi solusi kedua <code>x<sup>m</sup>·ln|x|</code>.</p>
+  <h2 class="section-title reveal">Animasi Interaktif<br>Reduksi Orde &amp; D-Operator (Invers Operator)</h2>
+  <p class="section-desc reveal">Lima animasi spesifik untuk <strong>Pertemuan 9 — Reduksi Orde &amp; Invers Operator</strong>: (1) <strong>Reduction of Order Visualizer</strong> menemukan y₂ dari y₁ yang diketahui, (2) <strong>D-Operator Action</strong> menampilkan efek operator D, D², L(D) pada fungsi, (3) <strong>toggle Invers Operator e^(αx)</strong> dengan kasus resonansi 1/L(α), (4) <strong>radio 4 Aturan Invers</strong> (eksponensial, sin/cos, polinomial McLaurin, mixed), (5) <strong>dropdown aplikasi engineering</strong> dengan analisis D-operator.</p>
 
-  <!-- Animasi 1: 3-case comparison y(x) -->
+  <!-- Animasi 1: Reduction of Order Visualizer (M9-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi 1 — Tiga Kasus Akar Euler-Cauchy: Geser Koefisien, Lihat Solusi y(x)</span>
+      <span class="anim-title">Animasi 1 — Reduction of Order: Cari y₂ dari y₁ yang Diketahui</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvCases" height="340"></canvas>
+      <canvas id="m9cvReduksi" height="340" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
-        <div class="ctrl-group">
-          <label>Koefisien <strong>b</strong> — <span class="ctrl-val" id="v_b">1.00</span></label>
-          <input type="range" id="sl_b" min="-4" max="6" step="0.05" value="1.0">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih PD homogen + y₁ yang diketahui:</label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+            <button class="m9red-pbtn" onclick="window.m9SetReduksi('rep')" data-r="rep" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--cyan);background:var(--cyan);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(8,191,232,.6);transform:scale(1.05);transition:all .15s;">y'' − 4y' + 4y = 0, y₁=e^(2x) ✓</button>
+            <button class="m9red-pbtn" onclick="window.m9SetReduksi('cauchy')" data-r="cauchy" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,179,0,.4);background:rgba(255,179,0,.10);color:var(--amber);">x²y'' − 3xy' + 4y = 0, y₁=x²</button>
+            <button class="m9red-pbtn" onclick="window.m9SetReduksi('hermite')" data-r="hermite" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">y'' − 2xy' + 2y = 0, y₁=x</button>
+          </div>
         </div>
-        <div class="ctrl-group">
-          <label>Koefisien <strong>c</strong> — <span class="ctrl-val" id="v_c">−4.00</span></label>
-          <input type="range" id="sl_c" min="-12" max="12" step="0.1" value="-4.0">
-        </div>
-        <button class="btn-anim" id="btnCases" onclick="toggleCases()">⏸ PAUSE</button>
+        <button class="btn-anim" id="m9btnReduksi" onclick="window.m9ToggleReduksi()">⏸ PAUSE</button>
       </div>
-      <div id="casesInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div id="m9ReduksiInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi Ini (orde 2 sebagai demonstrasi):</strong> Kurva = solusi <em>y(x)</em> dari Euler-Cauchy orde 2 <code>x²y'' + b·x·y' + c·y = 0</code> dengan IVP <code>y(1)=1, y'(1)=0</code> di interval <code>x ∈ (0.1, 10)</code>. Warna: <strong style="color:var(--amber)">amber = D &gt; 0 (real berbeda)</strong>, <strong style="color:var(--violet)">violet = D = 0 (real berulang)</strong>, <strong style="color:var(--cyan)">cyan = D &lt; 0 (kompleks → osilasi log)</strong>.<br>
-        <strong>Untuk PD non-homogen:</strong> Animasi ini menampilkan PD homogen <code>y'' + by' + cy = 0</code> yang memberi y_h. Untuk solusi total non-homogen, tambahkan y_p dari metode UC atau VoP. Saat eksitasi <em>f(x)</em> punya frekuensi/eksponen sama dengan akar karakteristik, <strong>resonansi</strong> terjadi: amplitudo y_p tumbuh linier dengan x (faktor x dari aturan resonansi).
+        <strong>📊 Cara Membaca:</strong> Formula d'Alembert: <strong>y₂ = y₁·∫(e^(−∫P dx)/y₁²) dx</strong>. Diberikan y₁(x) (cyan), reduction menghitung y₂(x) (pink). Kedua basis solusi independen linier — Wronskian W(y₁, y₂) ≠ 0. Kasus 1: PD koefisien konstan dengan akar berulang → y₁ = e^(rx), y₂ = x·e^(rx). Kasus 2: Cauchy-Euler akar berulang → y₁ = x^m, y₂ = x^m·ln(x).
       </div>
     </div>
   </div>
 
-  <!-- Animasi 2: Roots in complex plane (m-plane) -->
+  <!-- Animasi 2: D-Operator Action (M9-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--pink)"></div>
-      <span class="anim-title">Animasi 2 — Akar Karakteristik m di Bidang Kompleks (m-plane)</span>
+      <span class="anim-title">Animasi 2 — D-Operator Action: Efek D, D², (D − r) pada Fungsi</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvRoots" height="320"></canvas>
+      <canvas id="m9cvDOper" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Koefisien <strong>b</strong> — <span class="ctrl-val" id="v_b2">3.00</span></label>
-          <input type="range" id="sl_b2" min="-4" max="6" step="0.05" value="3.0">
+          <label>Operator — <span class="ctrl-val" id="m9OpVal">D</span></label>
+          <input type="range" id="m9slOp" min="0" max="3" step="1" value="0">
         </div>
         <div class="ctrl-group">
-          <label>Koefisien <strong>c</strong> — <span class="ctrl-val" id="v_c2">2.00</span></label>
-          <input type="range" id="sl_c2" min="-12" max="12" step="0.1" value="2.0">
+          <label>Konstanta <strong>r</strong> (untuk D−r) — <span class="ctrl-val" id="m9rVal">2.00</span></label>
+          <input type="range" id="m9slR" min="-3" max="3" step="0.05" value="2.0">
         </div>
       </div>
-      <div id="rootsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
+      <div id="m9DOperInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi Ini:</strong> Bidang kompleks <em>m</em>: sumbu horizontal = real, vertikal = imajiner. Dua akar <code>m₁, m₂</code> dari <code>m² + (b−1)m + c = 0</code> ditandai. Berbeda dengan plane <em>r</em> di Pertemuan 5: di sini <strong>tanda real</strong> menentukan apakah <code>x<sup>m</sup></code> tumbuh atau meluruh saat x → ∞. Re(m) &gt; 0 → tumbuh; Re(m) &lt; 0 → meluruh; Re(m) = 0 → osilasi murni dalam ln x.<br>
-        <strong>Coba:</strong> (1) <strong>b = 1, c &gt; 0</strong>: akar selalu murni imajiner (Re=0) — solusi <em>osilasi pure</em> dalam ln x. (2) <strong>b = 1, c &lt; 0</strong>: akar real berlawanan tanda — satu solusi tumbuh, satu meluruh. (3) <strong>b ≠ 1</strong>: akar bergeser ke kiri/kanan — Re(m) = (1−b)/2 menjadi nonzero. (4) Saksikan akar kompleks <em>melompat ke real axis</em> saat D = (b−1)² − 4c menyentuh nol.
+        <strong>📊 Cara Membaca:</strong> D-operator notation: D[y] = y', D²[y] = y''. Slider memilih operator (D, D², (D−r), (D−r)²). Canvas plot kurva input <em>f(x) = e^(2x)·sin(x)</em> dan kurva output operator. Insight kunci: <strong>(D − r)·e^(rx) = 0</strong> (annihilator), <strong>(D − r)²·x·e^(rx) = 0</strong>. Inilah dasar invers operator: 1/(D − r) "membatalkan" (D − r).
       </div>
     </div>
   </div>
 
-  <!-- Animasi 3: Toggle (Numerical vs Analytical) -->
+  <!-- Animasi 3: Toggle Invers Operator e^(αx) (M9-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--green)"></div>
-      <span class="anim-title">Animasi 3 — Numerical vs Analytical Solution (Toggle)</span>
+      <span class="anim-title">Animasi 3 — Invers Operator e^(αx): Aturan Normal vs Resonansi (Toggle)</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvEMtog" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <canvas id="m9cvInvExp" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
           <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--text)">
-            Method:
-            <button type="button" onclick="toggleEMSolver()" style="background:none;border:none;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
-              <span id="em_tog_view" style="display:inline-block;position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
-                <span style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
+            Mode:
+            <button type="button" onclick="window.m9ToggleInvExp()" style="background:none;border:none;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
+              <span id="m9_invexp_view" style="display:inline-block;position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
+                <span id="m9_invexp_knob" style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
               </span>
-              <span id="em_tog_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:700;">ANALYTICAL (closed-form)</span>
+              <span id="m9_invexp_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:700;">NORMAL: y_p = e^(αx)/L(α), L(α) ≠ 0</span>
             </button>
           </div>
         </div>
+        <div class="ctrl-group">
+          <label>Eksponen <strong>α</strong> — <span class="ctrl-val" id="m9_alpha_v">1.50</span></label>
+          <input type="range" id="m9_alpha" min="-3" max="4" step="0.05" value="1.5">
+        </div>
       </div>
-      <div id="emTogInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div id="m9InvExpInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Toggle metode solusi PD. Analytical: ekspresi tertutup (closed-form) dari teorema. Numerical: integrator step-by-step (RK4, Euler).<br>
-        <strong>Trade-off:</strong> Analytical exact tetapi terbatas pada kelas PD tertentu. Numerical universal tetapi punya error akumulasi + computational cost. Modern engineering: kombinasi keduanya — derive analytical untuk verify, run numerical untuk produksi.
+        <strong>📊 Cara Membaca:</strong> PD <code>y'' − 5y' + 6y = e^(αx)</code> (akar karakteristik m=2, m=3). <strong>Aturan Normal</strong> (α ≠ 2, α ≠ 3): y_p = e^(αx)/L(α) = e^(αx)/(α² − 5α + 6). <strong>Aturan Resonansi</strong> (α = 2 atau α = 3): L(α) = 0, divide-by-zero! Pakai aturan modifikasi: y_p = x·e^(αx)/L'(α). Geser slider α → 2 atau 3 untuk lihat transisi divergence → bounded resonance.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 4: Radio group (PD classification) -->
+  <!-- Animasi 4: 4 Aturan Invers Operator (Radio, M9-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--pink)"></div>
-      <span class="anim-title">Animasi 4 — Klasifikasi PD: Pilih Tipe (Radio Group)</span>
+      <span class="anim-title">Animasi 4 — 4 Aturan Invers Operator: Eksp / Trig / Polinomial / Mixed</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvEMrad" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <canvas id="m9cvInvType" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
-          <label>Pilih Klasifikasi PD (radio group):</label>
+          <label>Pilih aturan invers operator (radio):</label>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
-            <input type="radio" name="em_class_radio" id="em_r1" checked onchange="setEMClass('homogen')" style="display:none;">
-            <label for="em_r1" class="em-rad-lbl" data-c="homogen" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">Homogen ✓</label>
-            <input type="radio" name="em_class_radio" id="em_r2" onchange="setEMClass('nonhomogen')" style="display:none;">
-            <label for="em_r2" class="em-rad-lbl" data-c="nonhomogen" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">Non-Homogen</label>
-            <input type="radio" name="em_class_radio" id="em_r3" onchange="setEMClass('linear')" style="display:none;">
-            <label for="em_r3" class="em-rad-lbl" data-c="linear" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">Linear</label>
-            <input type="radio" name="em_class_radio" id="em_r4" onchange="setEMClass('nonlinear')" style="display:none;">
-            <label for="em_r4" class="em-rad-lbl" data-c="nonlinear" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">Non-Linear</label>
+            <input type="radio" name="m9_inv_radio" id="m9_iv1" checked onchange="window.m9SetInvType('exp')" style="display:none;">
+            <label for="m9_iv1" class="m9-inv-lbl" data-c="exp" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">📈 Eksponensial: 1/L(D)·e^(αx) ✓</label>
+            <input type="radio" name="m9_inv_radio" id="m9_iv2" onchange="window.m9SetInvType('trig')" style="display:none;">
+            <label for="m9_iv2" class="m9-inv-lbl" data-c="trig" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">🌊 Trigonometri: 1/L(D²)·sin(βx)</label>
+            <input type="radio" name="m9_inv_radio" id="m9_iv3" onchange="window.m9SetInvType('poly')" style="display:none;">
+            <label for="m9_iv3" class="m9-inv-lbl" data-c="poly" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">📐 Polinomial: McLaurin 1/L(D)</label>
+            <input type="radio" name="m9_inv_radio" id="m9_iv4" onchange="window.m9SetInvType('mixed')" style="display:none;">
+            <label for="m9_iv4" class="m9-inv-lbl" data-c="mixed" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">🎯 Mixed: e^(αx)·sin(βx) shift</label>
           </div>
         </div>
       </div>
-      <div id="emRadInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
+      <div id="m9InvTypeInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Setiap klasifikasi memiliki metode solusi yang berbeda. Visualisasi menampilkan contoh solusi tipikal per kategori.<br>
-        <strong>Insight:</strong> Homogen: r(x)=0, solusi y_h. Non-Homogen: y = y_h + y_p (particular). Linear: superposition principle berlaku. Non-Linear: kompleks, mungkin tidak ada closed-form.
+        <strong>📊 Cara Membaca:</strong> Empat aturan invers operator:
+        (1) <strong>Eksponensial</strong>: ganti D → α. (2) <strong>Trigonometri</strong>: ganti D² → −β². (3) <strong>Polinomial</strong>: ekspansi McLaurin 1/L(D) sebagai deret pangkat D. (4) <strong>Mixed</strong>: faktor e^(αx) keluar via shift theorem. Canvas tampilkan f(x) (kiri) dan y_p hasil (kanan) per aturan.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 5: Dropdown (Topic-specific) + Signal Trace 1000 samples -->
+  <!-- Animasi 5: Aplikasi Engineering D-Operator (Dropdown, M9-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:#a855f7"></div>
-      <span class="anim-title">Animasi 5 — Reduksi Orde: Pilih Sub-Topik (Dropdown + Signal Trace)</span>
+      <span class="anim-title">Animasi 5 — Aplikasi D-Operator di Engineering Praktis (Dropdown)</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvEMdrop" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <canvas id="m9cvAppOper" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
-          <label>Pilih (Dropdown):</label>
-          <select id="sl_em_drop" onchange="setEMDrop(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
-            <option value="reduction">⬇️ Reduction of Order — y₂ = y₁∫(...)dx</option>
-            <option value="inverse_op">🔧 Inverse Operator — 1/D, 1/(D-a)</option>
-            <option value="annihilator">⚡ Annihilator Method — operator polynomial</option>
-            <option value="green">🟢 Green's Function — kernel approach</option>
+          <label>Pilih aplikasi yang menggunakan D-operator:</label>
+          <select id="m9slAppOper" onchange="window.m9SetAppOper(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:520px;margin-top:6px;">
+            <option value="rlc">⚡ RLC Filter Design: H(D) = 1/(LD² + RD + 1/C)</option>
+            <option value="control">🎛️ Control System: G(s) = K/(s² + 2ζωs + ω²)</option>
+            <option value="vibration">🌀 Mode Analysis: (D² + ω²)·y = 0 → eigenfrequency</option>
+            <option value="cantilever">🏗️ Cantilever EI: D⁴y = w(x) annihilator approach</option>
+            <option value="population">🐛 Population Lag: (D − k)·N = h(t)</option>
           </select>
         </div>
       </div>
-      <div id="emDropInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
+      <div id="m9AppOperInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Pilih sub-topik dari dropdown. Layout split: kiri label + formula, kanan signal trace solusi 1000 samples (~10 detik).<br>
-        <strong>Insight:</strong> Setiap sub-topik Reduksi Orde punya signature unik di domain waktu. Bandingkan shape decay/oscillation/growth antara opsi.
+        <strong>📊 Cara Membaca:</strong> Lima aplikasi engineering yang menggunakan D-operator atau analognya (Laplace s-operator). Layout split: kiri = sistem fisik dengan label operator, kanan = response/transfer function. <strong>Insight:</strong> D-operator adalah jembatan antara PD time-domain dan transfer function frequency-domain — fondasi seluruh control engineering modern.
       </div>
     </div>
   </div>
@@ -8410,6 +8411,734 @@ function _createForumParticleBurst(event) {
   else attachBtnHandlers();
 })();
 
+</script>
+
+<!-- ════════════════════════════════════════════════════════════════
+     M9 TOPIC-SPECIFIC ANIMATIONS — Reduksi Orde & Invers Operator
+     5 canvas: m9cvReduksi, m9cvDOper, m9cvInvExp, m9cvInvType, m9cvAppOper
+     ════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  function bgGrad(ctx, W, H){
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#020812'); g.addColorStop(1, '#0d1929');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  function gridLines(ctx, x0, x1, y0, y1, divX, divY){
+    ctx.strokeStyle = 'rgba(148,163,184,.10)'; ctx.lineWidth = 1;
+    for (let i = 0; i <= divX; i++){
+      const x = x0 + (i/divX)*(x1-x0);
+      ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.stroke();
+    }
+    for (let j = 0; j <= divY; j++){
+      const y = y0 + (j/divY)*(y1-y0);
+      ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
+    }
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 1 — Reduction of Order: y₂ = y₁·∫(e^(-∫P)/y₁²) dx
+  // ════════════════════════════════════════════════════════════════
+  const m9Red = { running: true, raf: null, t: 0, which: 'rep' };
+
+  // Each preset: PD coefficients, y1(x), and explicit y2(x) closed-form
+  const M9_RED = {
+    rep: {
+      label: "y'' − 4y' + 4y = 0 (akar berulang m=2)",
+      formY1: "y₁ = e^(2x)",
+      formY2: "y₂ = x·e^(2x)",
+      y1: x => Math.exp(2*x),
+      y2: x => x * Math.exp(2*x),
+      xMin: -1, xMax: 2.5
+    },
+    cauchy: {
+      label: "x²y'' − 3xy' + 4y = 0 (akar berulang m=2 di Cauchy)",
+      formY1: "y₁ = x²",
+      formY2: "y₂ = x²·ln(x)",
+      y1: x => x*x,
+      y2: x => x*x * Math.log(x),
+      xMin: 0.3, xMax: 4
+    },
+    hermite: {
+      label: "y'' − 2x·y' + 2y = 0 (Hermite-like, y₁=x diketahui)",
+      formY1: "y₁ = x",
+      formY2: "y₂ = 1 + (x/2)·integral_term (approx)",
+      y1: x => x,
+      y2: x => 1 + (x*x*x)/3 - (x*x*x*x*x)/15,
+      xMin: -2, xMax: 2.5
+    }
+  };
+
+  window.m9SetReduksi = function(key){
+    m9Red.which = key;
+    document.querySelectorAll('.m9red-pbtn').forEach(btn => {
+      const r = btn.getAttribute('data-r');
+      const active = (r === key);
+      btn.style.border = active ? '2px solid var(--cyan)' : '1px solid rgba(148,163,184,.3)';
+      btn.style.background = active ? 'var(--cyan)' : 'rgba(148,163,184,.10)';
+      btn.style.color = active ? '#fff' : '#94a3b8';
+      btn.style.fontWeight = active ? '700' : '400';
+      btn.style.boxShadow = active ? '0 0 12px rgba(8,191,232,.6)' : 'none';
+      btn.style.transform = active ? 'scale(1.05)' : 'scale(1)';
+      btn.textContent = active ? (btn.textContent.replace(' ✓','') + ' ✓') : btn.textContent.replace(' ✓','');
+    });
+  };
+  window.m9ToggleReduksi = function(){
+    m9Red.running = !m9Red.running;
+    const btn = document.getElementById('m9btnReduksi');
+    if (btn) btn.textContent = m9Red.running ? '⏸ PAUSE' : '▶ PLAY';
+    if (m9Red.running) drawM9Red();
+  };
+
+  function drawM9Red(){
+    const cv = document.getElementById('m9cvReduksi'); if(!cv) return;
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const obj = M9_RED[m9Red.which];
+    const padL = 50, padR = 20, padT = 25, padB = 35;
+    const px0 = padL, px1 = W - padR, py0 = padT, py1 = H - padB;
+    function tx(x){ return px0 + ((x - obj.xMin)/(obj.xMax - obj.xMin))*(px1 - px0); }
+
+    gridLines(ctx, px0, px1, py0, py1, 12, 6);
+
+    // Sample
+    const N = 200;
+    const y1Arr = new Float64Array(N+1), y2Arr = new Float64Array(N+1);
+    let yMax = 1;
+    for (let i = 0; i <= N; i++){
+      const x = obj.xMin + (i/N)*(obj.xMax - obj.xMin);
+      y1Arr[i] = obj.y1(x);
+      y2Arr[i] = obj.y2(x);
+      if (Number.isFinite(y1Arr[i]) && Math.abs(y1Arr[i]) > yMax) yMax = Math.abs(y1Arr[i]);
+      if (Number.isFinite(y2Arr[i]) && Math.abs(y2Arr[i]) > yMax) yMax = Math.abs(y2Arr[i]);
+    }
+    yMax = Math.min(yMax, 20);
+    function ty(y){ return (py0+py1)/2 - (y/yMax)*((py1-py0)/2 - 8); }
+
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+    if (obj.xMin <= 0 && obj.xMax >= 0){
+      ctx.beginPath(); ctx.moveTo(tx(0), py0); ctx.lineTo(tx(0), py1); ctx.stroke();
+    }
+
+    ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+    ctx.fillText('x', px1 + 5, ty(0) + 4);
+    ctx.fillText('y', px0 - 25, py0 - 4);
+
+    // Plot y₁ (cyan), y₂ (pink)
+    ctx.strokeStyle = '#0ea5e9'; ctx.lineWidth = 2.5;
+    ctx.shadowColor = '#0ea5e9'; ctx.shadowBlur = 8;
+    ctx.beginPath();
+    let started = false;
+    for (let i = 0; i <= N; i++){
+      const x = obj.xMin + (i/N)*(obj.xMax - obj.xMin);
+      const y = y1Arr[i];
+      if (!Number.isFinite(y) || Math.abs(y) > yMax * 1.3){ started = false; continue; }
+      const px = tx(x), py = ty(y);
+      if (!started){ ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    ctx.strokeStyle = '#ff6bb3'; ctx.lineWidth = 2.5;
+    ctx.shadowColor = '#ff6bb3'; ctx.shadowBlur = 8;
+    ctx.beginPath();
+    started = false;
+    for (let i = 0; i <= N; i++){
+      const x = obj.xMin + (i/N)*(obj.xMax - obj.xMin);
+      const y = y2Arr[i];
+      if (!Number.isFinite(y) || Math.abs(y) > yMax * 1.3){ started = false; continue; }
+      const px = tx(x), py = ty(y);
+      if (!started){ ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Animated dots
+    if (m9Red.running) m9Red.t = (m9Red.t + 0.02) % (obj.xMax - obj.xMin);
+    const xDot = obj.xMin + m9Red.t;
+    const iDot = Math.min(N, Math.floor(m9Red.t/(obj.xMax - obj.xMin)*N));
+    if (Number.isFinite(y1Arr[iDot]) && Math.abs(y1Arr[iDot]) <= yMax * 1.3){
+      ctx.fillStyle = '#fff'; ctx.shadowColor = '#0ea5e9'; ctx.shadowBlur = 12;
+      ctx.beginPath(); ctx.arc(tx(xDot), ty(y1Arr[iDot]), 5, 0, Math.PI*2); ctx.fill();
+    }
+    if (Number.isFinite(y2Arr[iDot]) && Math.abs(y2Arr[iDot]) <= yMax * 1.3){
+      ctx.fillStyle = '#fff'; ctx.shadowColor = '#ff6bb3'; ctx.shadowBlur = 12;
+      ctx.beginPath(); ctx.arc(tx(xDot), ty(y2Arr[iDot]), 5, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.shadowBlur = 0;
+
+    // Title
+    ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 12px JetBrains Mono, monospace';
+    ctx.fillText(obj.label, padL + 8, padT + 14);
+
+    // Legend
+    ctx.font = 'bold 11px JetBrains Mono, monospace';
+    ctx.fillStyle = '#0ea5e9'; ctx.fillRect(px1 - 200, padT + 24, 14, 3);
+    ctx.fillText(obj.formY1, px1 - 180, padT + 28);
+    ctx.fillStyle = '#ff6bb3'; ctx.fillRect(px1 - 200, padT + 42, 14, 3);
+    ctx.fillText(obj.formY2, px1 - 180, padT + 46);
+
+    const infoEl = document.getElementById('m9ReduksiInfo');
+    if (infoEl){
+      infoEl.innerHTML = `<span style="color:#0ea5e9">●</span> ${obj.formY1} (input) &nbsp;⇒&nbsp; <span style="color:#ff6bb3">●</span> ${obj.formY2} (output) &nbsp;|&nbsp; W(y₁,y₂) ≠ 0 ⇒ basis valid`;
+    }
+
+    if (m9Red.running) m9Red.raf = requestAnimationFrame(drawM9Red);
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 2 — D-Operator Action
+  // f(x) = e^(2x)·sin(x), apply D, D², (D-r), (D-r)²
+  // ════════════════════════════════════════════════════════════════
+  function drawM9DOper(){
+    const cv = document.getElementById('m9cvDOper'); if(!cv){ requestAnimationFrame(drawM9DOper); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const opIdx = parseInt(document.getElementById('m9slOp').value);
+    const r = parseFloat(document.getElementById('m9slR').value);
+    const opLabels = ['D', 'D²', '(D − r)', '(D − r)²'];
+    document.getElementById('m9OpVal').textContent = opLabels[opIdx];
+    document.getElementById('m9rVal').textContent = r.toFixed(2);
+
+    // f(x) = e^(2x)·sin(x), so:
+    // f' = 2·e^(2x)·sin(x) + e^(2x)·cos(x)
+    // f'' = 4·e^(2x)·sin(x) + 4·e^(2x)·cos(x) − e^(2x)·sin(x) = e^(2x)·(3sin + 4cos)
+    function f(x){ return Math.exp(2*x) * Math.sin(x); }
+    function f1(x){ return Math.exp(2*x) * (2*Math.sin(x) + Math.cos(x)); }
+    function f2(x){ return Math.exp(2*x) * (3*Math.sin(x) + 4*Math.cos(x)); }
+
+    // Apply operator
+    function applyOp(x){
+      switch(opIdx){
+        case 0: return f1(x); // D
+        case 1: return f2(x); // D²
+        case 2: return f1(x) - r * f(x); // (D-r)
+        case 3: return f2(x) - 2*r * f1(x) + r*r * f(x); // (D-r)² = D² - 2rD + r²
+      }
+      return 0;
+    }
+
+    const padL = 50, padR = 20, padT = 30, padB = 35;
+    const px0 = padL, px1 = W - padR, py0 = padT, py1 = H - padB;
+    const xMin = -1, xMax = 1.5;
+    function tx(x){ return px0 + ((x - xMin)/(xMax - xMin))*(px1 - px0); }
+
+    // Sample
+    const N = 200;
+    const fArr = new Float64Array(N+1), opArr = new Float64Array(N+1);
+    let yMax = 1;
+    for (let i = 0; i <= N; i++){
+      const x = xMin + (i/N)*(xMax - xMin);
+      fArr[i] = f(x);
+      opArr[i] = applyOp(x);
+      if (Math.abs(fArr[i]) > yMax) yMax = Math.abs(fArr[i]);
+      if (Math.abs(opArr[i]) > yMax) yMax = Math.abs(opArr[i]);
+    }
+    yMax = Math.min(yMax, 30);
+    function ty(y){ return (py0+py1)/2 - (y/yMax)*((py1-py0)/2 - 8); }
+
+    gridLines(ctx, px0, px1, py0, py1, 10, 6);
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(tx(0), py0); ctx.lineTo(tx(0), py1); ctx.stroke();
+
+    // Plot f (light) and op[f] (bold)
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 4]);
+    ctx.beginPath();
+    for (let i = 0; i <= N; i++){
+      const x = xMin + (i/N)*(xMax - xMin);
+      const px = tx(x), py = ty(fArr[i]);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.strokeStyle = '#ff6bb3'; ctx.lineWidth = 2.5;
+    ctx.shadowColor = '#ff6bb3'; ctx.shadowBlur = 8;
+    ctx.beginPath();
+    for (let i = 0; i <= N; i++){
+      const x = xMin + (i/N)*(xMax - xMin);
+      const px = tx(x), py = ty(opArr[i]);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Title
+    ctx.fillStyle = '#ff6bb3'; ctx.font = 'bold 13px JetBrains Mono, monospace';
+    const opStr = opIdx <= 1 ? opLabels[opIdx] : opLabels[opIdx].replace('r', r.toFixed(2));
+    ctx.fillText(`Input: f(x) = e^(2x)·sin(x)  →  Output: ${opStr}[f]`, padL + 8, padT - 12);
+
+    // Legend
+    ctx.fillStyle = 'rgba(148,163,184,.7)'; ctx.font = 'bold 11px JetBrains Mono, monospace';
+    ctx.fillRect(px1 - 130, padT + 12, 14, 3);
+    ctx.fillText('f (input)', px1 - 110, padT + 16);
+    ctx.fillStyle = '#ff6bb3';
+    ctx.fillRect(px1 - 130, padT + 30, 14, 3);
+    ctx.fillText(`${opStr}[f]`, px1 - 110, padT + 34);
+
+    const infoEl = document.getElementById('m9DOperInfo');
+    if (infoEl){
+      let note = '';
+      if (opIdx === 2 && Math.abs(r - 2) < 0.05){
+        note = ' ⚠ (D − 2)·e^(2x)·sin(x): r=α matches → annihilator partial';
+      }
+      infoEl.innerHTML = `<span style="color:#ff6bb3">●</span> Operator <strong>${opStr}</strong> applied to f(x) = e^(2x)·sin(x)${note}`;
+    }
+
+    requestAnimationFrame(drawM9DOper);
+  }
+  function _wireM9DOper(){
+    ['m9slOp','m9slR'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', () => {});
+    });
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 3 — Toggle Invers Operator e^(αx) Normal vs Resonance
+  // PD: y'' − 5y' + 6y = e^(αx), L(D) = D² − 5D + 6, akar 2 dan 3
+  // L(α) = α² − 5α + 6
+  // ════════════════════════════════════════════════════════════════
+  const m9InvExp = { isNormal: true, t: 0, raf: null };
+
+  window.m9ToggleInvExp = function(){
+    m9InvExp.isNormal = !m9InvExp.isNormal;
+    const view = document.getElementById('m9_invexp_view');
+    const knob = document.getElementById('m9_invexp_knob');
+    const lbl  = document.getElementById('m9_invexp_label');
+    if (m9InvExp.isNormal){
+      view.style.background = 'rgba(0,224,158,.25)'; view.style.borderColor = 'var(--green)';
+      knob.style.transform = 'translateX(0px)';
+      lbl.style.color = 'var(--green)';
+      lbl.textContent = 'NORMAL: y_p = e^(αx)/L(α), L(α) ≠ 0';
+      document.getElementById('m9_alpha').value = '1.5';
+    } else {
+      view.style.background = 'rgba(239,68,68,.25)'; view.style.borderColor = '#ef4444';
+      knob.style.transform = 'translateX(28px)';
+      lbl.style.color = '#ef4444';
+      lbl.textContent = 'RESONANSI: α = 2 (akar L), pakai y_p = x·e^(2x)/L\'(2)';
+      document.getElementById('m9_alpha').value = '2.0';
+    }
+  };
+
+  function drawM9InvExp(){
+    const cv = document.getElementById('m9cvInvExp'); if(!cv){ m9InvExp.raf = requestAnimationFrame(drawM9InvExp); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const alpha = parseFloat(document.getElementById('m9_alpha').value);
+    document.getElementById('m9_alpha_v').textContent = alpha.toFixed(2);
+
+    const padL = 50, padR = 20, padT = 25, padB = 35;
+    const px0 = padL, px1 = W - padR, py0 = padT, py1 = H - padB;
+    const xMin = -1, xMax = 4;
+    function tx(x){ return px0 + ((x - xMin)/(xMax - xMin))*(px1 - px0); }
+
+    gridLines(ctx, px0, px1, py0, py1, 10, 6);
+
+    // L(α) = α² − 5α + 6 = (α − 2)(α − 3)
+    const Lalpha = alpha*alpha - 5*alpha + 6;
+    const Lprime = 2*alpha - 5;
+    const isResonance = Math.abs(Lalpha) < 0.05;
+
+    // Compute y_p
+    function fForce(x){ return Math.exp(alpha * x); }
+    function yp(x){
+      if (isResonance){
+        return x * Math.exp(alpha * x) / Lprime;
+      } else {
+        return Math.exp(alpha * x) / Lalpha;
+      }
+    }
+
+    // Sample
+    const N = 200;
+    const fArr = new Float64Array(N+1), ypArr = new Float64Array(N+1);
+    let yMax = 1;
+    for (let i = 0; i <= N; i++){
+      const x = xMin + (i/N)*(xMax - xMin);
+      fArr[i] = fForce(x);
+      ypArr[i] = yp(x);
+      if (Math.abs(fArr[i]) > yMax) yMax = Math.abs(fArr[i]);
+      if (Math.abs(ypArr[i]) > yMax) yMax = Math.abs(ypArr[i]);
+    }
+    yMax = Math.min(yMax, 100);
+    function ty(y){ return (py0+py1)/2 - (y/yMax)*((py1-py0)/2 - 8); }
+
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+
+    // Plot f(x) (faded amber)
+    ctx.strokeStyle = 'rgba(255,179,0,.4)'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 3]);
+    ctx.beginPath();
+    for (let i = 0; i <= N; i++){
+      const x = xMin + (i/N)*(xMax - xMin);
+      const px = tx(x), py = ty(fArr[i]);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Plot y_p (color)
+    const color = isResonance ? '#ef4444' : '#00e09e';
+    ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+    ctx.shadowColor = color; ctx.shadowBlur = 10;
+    ctx.beginPath();
+    for (let i = 0; i <= N; i++){
+      const x = xMin + (i/N)*(xMax - xMin);
+      const px = tx(x), py = ty(ypArr[i]);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Title
+    ctx.fillStyle = color; ctx.font = 'bold 13px JetBrains Mono, monospace';
+    const formula = isResonance
+      ? `y_p = x·e^(${alpha.toFixed(2)}x) / L'(${alpha.toFixed(2)}) = x·e^(${alpha.toFixed(2)}x) / ${Lprime.toFixed(2)}`
+      : `y_p = e^(${alpha.toFixed(2)}x) / L(${alpha.toFixed(2)}) = e^(${alpha.toFixed(2)}x) / ${Lalpha.toFixed(2)}`;
+    ctx.fillText(`PD: y'' − 5y' + 6y = e^(${alpha.toFixed(2)}x)  ${isResonance ? '⚠ RESONANSI (α=2 atau 3)' : ''}`, padL + 8, padT + 16);
+    ctx.font = '11px JetBrains Mono, monospace';
+    ctx.fillText(formula, padL + 8, padT + 32);
+
+    // Animated dot
+    m9InvExp.t = (m9InvExp.t + 0.02) % (xMax - xMin);
+    const xDot = xMin + m9InvExp.t;
+    const iDot = Math.min(N, Math.floor(m9InvExp.t/(xMax-xMin)*N));
+    if (Number.isFinite(ypArr[iDot]) && Math.abs(ypArr[iDot]) <= yMax * 1.3){
+      ctx.fillStyle = '#fff';
+      ctx.shadowColor = color; ctx.shadowBlur = 14;
+      ctx.beginPath(); ctx.arc(tx(xDot), ty(ypArr[iDot]), 6, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    const infoEl = document.getElementById('m9InvExpInfo');
+    if (infoEl){
+      infoEl.innerHTML = isResonance
+        ? `<span style="color:#ef4444">⚠</span> α=${alpha.toFixed(2)}: L(α)=0 → RESONANSI! Pakai aturan modifikasi y_p = x·e^(αx)/L'(α). L'=${Lprime.toFixed(2)}`
+        : `<span style="color:#00e09e">●</span> α=${alpha.toFixed(2)}: L(α)=${Lalpha.toFixed(2)} ≠ 0 → y_p = e^(αx)/L(α) bounded`;
+    }
+
+    m9InvExp.raf = requestAnimationFrame(drawM9InvExp);
+  }
+  function _wireM9InvExp(){
+    const el = document.getElementById('m9_alpha');
+    if (el) el.addEventListener('input', () => {});
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 4 — 4 Aturan Invers Operator
+  // ════════════════════════════════════════════════════════════════
+  const m9InvType = { which: 'exp', t: 0, raf: null };
+
+  const M9_INV = {
+    exp:    { label: '1/L(D)·e^(αx) → ganti D → α',                                  formula: '1/(D² + D + 1)·e^(2x) = e^(2x)/(4 + 2 + 1) = e^(2x)/7',
+              fIn: x => Math.exp(2*x), fOut: x => Math.exp(2*x)/7, color: '#ff6bb3' },
+    trig:   { label: '1/L(D²)·sin(βx) → ganti D² → −β²',                              formula: '1/(D² + 4)·sin(3x) = sin(3x)/(−9+4) = −sin(3x)/5',
+              fIn: x => Math.sin(3*x), fOut: x => -Math.sin(3*x)/5, color: '#00e09e' },
+    poly:   { label: '1/L(D)·polinomial → ekspansi McLaurin',                         formula: '1/(1 + D + D²)·x² ≈ (1 − D + 0)·x² = x² − 2x',
+              fIn: x => x*x, fOut: x => x*x - 2*x, color: '#0ea5e9' },
+    mixed:  { label: 'e^(αx)·g(x) → shift theorem: 1/L(D)[e^αx·g] = e^αx·1/L(D+α)[g]', formula: '1/(D² + 4)·e^(x)sin(x) = e^x·1/((D+1)² + 4)·sin(x)',
+              fIn: x => Math.exp(x)*Math.sin(x), fOut: x => Math.exp(x)*( -Math.sin(x)/4 - Math.cos(x)/8 ), color: '#a855f7' }
+  };
+
+  window.m9SetInvType = function(key){
+    m9InvType.which = key;
+    document.querySelectorAll('.m9-inv-lbl').forEach(lbl => {
+      const c = lbl.getAttribute('data-c');
+      const active = (c === key);
+      lbl.style.border = active ? '2px solid var(--pink)' : '1px solid rgba(148,163,184,.3)';
+      lbl.style.background = active ? 'rgba(255,255,255,.20)' : 'rgba(148,163,184,.10)';
+      lbl.style.color = active ? '#fff' : '#94a3b8';
+      lbl.style.fontWeight = active ? '700' : '400';
+      lbl.style.boxShadow = active ? '0 0 12px rgba(255,107,179,.4)' : 'none';
+      lbl.style.transform = active ? 'scale(1.05)' : 'scale(1)';
+      lbl.textContent = active ? (lbl.textContent.replace(' ✓','') + ' ✓') : lbl.textContent.replace(' ✓','');
+    });
+  };
+
+  function drawM9InvType(){
+    const cv = document.getElementById('m9cvInvType'); if(!cv){ m9InvType.raf = requestAnimationFrame(drawM9InvType); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const obj = M9_INV[m9InvType.which];
+
+    // Two panels: f(x) left, y_p right
+    const splitX = W * 0.5;
+    ctx.strokeStyle = 'rgba(148,163,184,.3)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(splitX, 35); ctx.lineTo(splitX, H - 20); ctx.stroke();
+
+    function plotPanel(panelX0, panelX1, fn, label, color){
+      const padT = 50, padB = 35;
+      const py0 = padT, py1 = H - padB;
+      const xMin = -2, xMax = 2.5;
+      function tx(x){ return panelX0 + 30 + ((x-xMin)/(xMax-xMin))*((panelX1-panelX0) - 50); }
+
+      const N = 100;
+      let yMax = 0;
+      const ys = new Float64Array(N+1);
+      for (let i = 0; i <= N; i++){
+        const x = xMin + (i/N)*(xMax-xMin);
+        ys[i] = fn(x);
+        if (Number.isFinite(ys[i]) && Math.abs(ys[i]) > yMax) yMax = Math.abs(ys[i]);
+      }
+      yMax = Math.max(yMax, 0.5);
+      function ty(y){ return (py0+py1)/2 - (y/yMax)*((py1-py0)/2 - 8); }
+
+      ctx.strokeStyle = 'rgba(148,163,184,.10)'; ctx.lineWidth = 1;
+      for (let i = 0; i <= 6; i++){
+        const xx = xMin + i*(xMax-xMin)/6;
+        ctx.beginPath(); ctx.moveTo(tx(xx), py0); ctx.lineTo(tx(xx), py1); ctx.stroke();
+      }
+      ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(tx(xMin), ty(0)); ctx.lineTo(tx(xMax), ty(0)); ctx.stroke();
+
+      ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+      ctx.shadowColor = color; ctx.shadowBlur = 8;
+      ctx.beginPath();
+      for (let i = 0; i <= N; i++){
+        const x = xMin + (i/N)*(xMax-xMin);
+        const px = tx(x), py = ty(ys[i]);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = color; ctx.font = 'bold 12px JetBrains Mono, monospace';
+      ctx.fillText(label, panelX0 + 8, padT - 8);
+    }
+
+    plotPanel(0, splitX, obj.fIn, 'f(x) input', '#0ea5e9');
+    plotPanel(splitX, W, obj.fOut, 'y_p output', obj.color);
+
+    // Big arrow with rule label
+    ctx.strokeStyle = '#ffd166'; ctx.lineWidth = 2;
+    ctx.shadowColor = '#ffd166'; ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.moveTo(splitX - 16, H/2);
+    ctx.lineTo(splitX + 16, H/2);
+    ctx.stroke();
+    ctx.fillStyle = '#ffd166';
+    ctx.beginPath();
+    ctx.moveTo(splitX + 16, H/2);
+    ctx.lineTo(splitX + 8, H/2 - 6);
+    ctx.lineTo(splitX + 8, H/2 + 6);
+    ctx.closePath(); ctx.fill();
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = '#ffd166'; ctx.font = 'bold 11px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+    ctx.fillText('1/L(D)', splitX, H/2 - 12);
+    ctx.textAlign = 'left';
+
+    // Title across top
+    ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 13px JetBrains Mono, monospace';
+    ctx.fillText(obj.label, 30, 22);
+    ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono, monospace';
+    ctx.fillText('Contoh: ' + obj.formula, 30, 38);
+
+    const infoEl = document.getElementById('m9InvTypeInfo');
+    if (infoEl){
+      infoEl.innerHTML = `<span style="color:${obj.color}">●</span> ${obj.label}`;
+    }
+
+    m9InvType.raf = requestAnimationFrame(drawM9InvType);
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 5 — Aplikasi D-Operator Engineering
+  // ════════════════════════════════════════════════════════════════
+  const m9AppOper = { which: 'rlc', t: 0, hist: [], raf: null };
+
+  const M9_APP = {
+    rlc:        { label: 'RLC Filter: H(D) = 1/(0.1D² + 0.5D + 1)',                       compute: t => Math.exp(-0.3*t)*Math.cos(2*t) + 0.4*Math.sin(t),       color: '#ffb300', icon: 'filter' },
+    control:    { label: 'Control: G(s) = 5/(s² + 0.6s + 9), step response',              compute: t => 1 - Math.exp(-0.3*t)*(Math.cos(2.97*t) + (0.3/2.97)*Math.sin(2.97*t)), color: '#0ea5e9', icon: 'block'  },
+    vibration:  { label: 'Mode Analysis: (D² + 4)·y = 0, eigenfrequency ω=2 rad/s',       compute: t => Math.cos(2*t),                                                            color: '#a855f7', icon: 'mode'   },
+    cantilever: { label: 'Cantilever: D⁴y = w(x), pakai annihilator',                     compute: t => Math.pow(((t * 0.05) % 1), 2) * 0.7,                                      color: '#00e09e', icon: 'beam'   },
+    population: { label: 'Population Lag: (D − 0.3)·N = 100·sin(t)',                      compute: t => 100/Math.sqrt(0.09 + 1)*Math.sin(t - Math.atan(1/0.3))/30,                color: '#ff6bb3', icon: 'pop'    }
+  };
+
+  window.m9SetAppOper = function(key){
+    m9AppOper.which = key; m9AppOper.hist = []; m9AppOper.t = 0;
+  };
+
+  function drawM9AppOper(){
+    const cv = document.getElementById('m9cvAppOper'); if(!cv){ m9AppOper.raf = requestAnimationFrame(drawM9AppOper); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const obj = M9_APP[m9AppOper.which];
+    const splitX = W * 0.40;
+    ctx.strokeStyle = 'rgba(148,163,184,.3)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(splitX, 20); ctx.lineTo(splitX, H - 20); ctx.stroke();
+
+    const cx = splitX/2, cy = H/2;
+    m9AppOper.t += 0.012;
+    const t = m9AppOper.t;
+    const val = obj.compute(t);
+
+    if (obj.icon === 'filter'){
+      // Frequency response box
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      ctx.fillStyle = `${obj.color}20`;
+      ctx.fillRect(cx - 60, cy - 35, 120, 70);
+      ctx.strokeRect(cx - 60, cy - 35, 120, 70);
+      // H(D) label
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 14px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText('H(D)', cx, cy + 5);
+      ctx.font = '10px JetBrains Mono, monospace';
+      ctx.fillText('1/(0.1D²+0.5D+1)', cx, cy + 22);
+      ctx.textAlign = 'left';
+      // Input/output arrows
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(cx - 100, cy); ctx.lineTo(cx - 60, cy); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx + 60, cy); ctx.lineTo(cx + 95, cy); ctx.stroke();
+      // Arrowheads
+      ctx.fillStyle = '#94a3b8';
+      ctx.beginPath(); ctx.moveTo(cx - 60, cy); ctx.lineTo(cx - 67, cy - 4); ctx.lineTo(cx - 67, cy + 4); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(cx + 95, cy); ctx.lineTo(cx + 88, cy - 4); ctx.lineTo(cx + 88, cy + 4); ctx.closePath(); ctx.fill();
+      // Labels
+      ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px JetBrains Mono, monospace';
+      ctx.fillText('input', cx - 100, cy - 8);
+      ctx.fillText('output', cx + 65, cy - 8);
+    } else if (obj.icon === 'block'){
+      // Control block diagram: K/(s²+...)
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      ctx.fillStyle = `${obj.color}20`;
+      ctx.fillRect(cx - 50, cy - 25, 100, 50);
+      ctx.strokeRect(cx - 50, cy - 25, 100, 50);
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 12px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText('G(s)', cx, cy + 4);
+      ctx.textAlign = 'left';
+      // Sum junction
+      ctx.beginPath(); ctx.arc(cx - 90, cy, 12, 0, Math.PI*2); ctx.stroke();
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 14px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText('+', cx - 90, cy + 5);
+      ctx.textAlign = 'left';
+      // Wires
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(cx - 130, cy); ctx.lineTo(cx - 102, cy);
+      ctx.moveTo(cx - 78, cy); ctx.lineTo(cx - 50, cy);
+      ctx.moveTo(cx + 50, cy); ctx.lineTo(cx + 100, cy); ctx.lineTo(cx + 100, cy + 50); ctx.lineTo(cx - 90, cy + 50); ctx.lineTo(cx - 90, cy + 12);
+      ctx.stroke();
+    } else if (obj.icon === 'mode'){
+      // Eigenmode: oscillator at fundamental freq
+      const angle = val * Math.PI;
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(cx, cy, 50, 0, Math.PI*2); ctx.stroke();
+      // Pendulum-like mass
+      const px = cx + 50*Math.sin(t * 2);
+      ctx.fillStyle = obj.color;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 14;
+      ctx.beginPath(); ctx.arc(px, cy, 10, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 11px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText('ω = 2 rad/s', cx, H - 20);
+      ctx.textAlign = 'left';
+    } else if (obj.icon === 'beam'){
+      // Cantilever beam with deflection
+      const beamY = cy;
+      const beamL = splitX - 60;
+      const beamX0 = 25;
+      ctx.fillStyle = 'rgba(148,163,184,.4)';
+      ctx.fillRect(beamX0 - 14, beamY - 30, 14, 60);
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 4;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 6;
+      ctx.beginPath();
+      const N = 30;
+      for (let i = 0; i <= N; i++){
+        const xR = i/N;
+        const yDef = beamY + 20 * xR * xR * (3 - xR) * Math.sin(t * 1.5);
+        if (i === 0) ctx.moveTo(beamX0 + xR*beamL, yDef);
+        else ctx.lineTo(beamX0 + xR*beamL, yDef);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    } else if (obj.icon === 'pop'){
+      // Population dots
+      const count = Math.min(40, Math.floor(20 + 20 * val));
+      ctx.fillStyle = obj.color; ctx.shadowColor = obj.color; ctx.shadowBlur = 8;
+      for (let i = 0; i < count; i++){
+        const ang = i * 2.4 + t * 0.2;
+        const r = Math.sqrt(i/count) * 50;
+        ctx.beginPath(); ctx.arc(cx + r*Math.cos(ang), cy + r*Math.sin(ang), 3, 0, Math.PI*2); ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 11px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText(`N = ${count}`, cx, H - 22);
+      ctx.textAlign = 'left';
+    }
+
+    // ── RIGHT: signal trace ──
+    const sx0 = splitX + 16, sx1 = W - 20, sy0 = 30, sy1 = H - 30;
+    ctx.strokeStyle = 'rgba(148,163,184,.2)'; ctx.lineWidth = 1;
+    ctx.strokeRect(sx0, sy0, sx1 - sx0, sy1 - sy0);
+    gridLines(ctx, sx0, sx1, sy0, sy1, 10, 4);
+
+    m9AppOper.hist.push(val);
+    if (m9AppOper.hist.length > 1000) m9AppOper.hist.shift();
+
+    const hN = m9AppOper.hist.length;
+    if (hN > 1){
+      let yMin = 0, yMaxH = 0;
+      for (let v of m9AppOper.hist){ if (v < yMin) yMin = v; if (v > yMaxH) yMaxH = v; }
+      const yRng = Math.max(0.5, yMaxH - yMin);
+
+      const zy = sy0 + (yMaxH/yRng) * (sy1 - sy0);
+      ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1; ctx.setLineDash([4, 3]);
+      ctx.beginPath(); ctx.moveTo(sx0, zy); ctx.lineTo(sx1, zy); ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 8;
+      ctx.beginPath();
+      for (let i = 0; i < hN; i++){
+        const px = sx0 + (i/(hN-1))*(sx1 - sx0);
+        const py = sy0 + ((yMaxH - m9AppOper.hist[i])/yRng) * (sy1 - sy0);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = '#fff'; ctx.shadowColor = obj.color; ctx.shadowBlur = 14;
+      const tipY = sy0 + ((yMaxH - val)/yRng)*(sy1 - sy0);
+      ctx.beginPath(); ctx.arc(sx1, tipY, 5, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    ctx.fillStyle = obj.color; ctx.font = 'bold 11px JetBrains Mono, monospace';
+    ctx.fillText(obj.label, sx0 + 6, sy0 + 16);
+
+    const infoEl = document.getElementById('m9AppOperInfo');
+    if (infoEl){
+      const samples = m9AppOper.hist.length;
+      infoEl.innerHTML = `<span style="color:${obj.color}">●</span> ${obj.label} &nbsp;|&nbsp; t=${t.toFixed(2)}, val=${val.toFixed(3)} &nbsp;|&nbsp; ${samples}/1000 samples`;
+    }
+
+    m9AppOper.raf = requestAnimationFrame(drawM9AppOper);
+  }
+
+  // ── Init ──
+  function initM9Anims(){
+    if (document.getElementById('m9cvReduksi')) drawM9Red();
+    if (document.getElementById('m9cvDOper')){ drawM9DOper(); _wireM9DOper(); }
+    if (document.getElementById('m9cvInvExp')){ drawM9InvExp(); _wireM9InvExp(); }
+    if (document.getElementById('m9cvInvType')) drawM9InvType();
+    if (document.getElementById('m9cvAppOper')) drawM9AppOper();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initM9Anims);
+  else initM9Anims();
+})();
 </script>
 
 </body>
