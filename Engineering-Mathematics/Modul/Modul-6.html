@@ -948,6 +948,95 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     </div>
     <div class="cd-note" id="cdDeadline">Deadline: <strong style="color:var(--violet)">Menunggu jadwal...</strong></div>
   </div>
+
+  <!-- Animasi 3: Toggle (Numerical vs Analytical) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--green)"></div>
+      <span class="anim-title">Animasi 3 — Numerical vs Analytical Solution (Toggle)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvEMtog" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+            Method:
+            <span style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;" onclick="toggleEMSolver()">
+              <input type="checkbox" id="sl_em_tog" style="display:none;">
+              <span id="em_tog_view" style="position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
+                <span style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
+              </span>
+              <span id="em_tog_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:700;">ANALYTICAL (closed-form)</span>
+            </span>
+          </label>
+        </div>
+      </div>
+      <div id="emTogInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Toggle metode solusi PD. Analytical: ekspresi tertutup (closed-form) dari teorema. Numerical: integrator step-by-step (RK4, Euler).<br>
+        <strong>Trade-off:</strong> Analytical exact tetapi terbatas pada kelas PD tertentu. Numerical universal tetapi punya error akumulasi + computational cost. Modern engineering: kombinasi keduanya — derive analytical untuk verify, run numerical untuk produksi.
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 4: Radio group (PD classification) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--pink)"></div>
+      <span class="anim-title">Animasi 4 — Klasifikasi PD: Pilih Tipe (Radio Group)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvEMrad" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih Klasifikasi PD (radio group):</label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+            <input type="radio" name="em_class_radio" id="em_r1" checked onchange="setEMClass('homogen')" style="display:none;">
+            <label for="em_r1" class="em-rad-lbl" data-c="homogen" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">Homogen ✓</label>
+            <input type="radio" name="em_class_radio" id="em_r2" onchange="setEMClass('nonhomogen')" style="display:none;">
+            <label for="em_r2" class="em-rad-lbl" data-c="nonhomogen" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">Non-Homogen</label>
+            <input type="radio" name="em_class_radio" id="em_r3" onchange="setEMClass('linear')" style="display:none;">
+            <label for="em_r3" class="em-rad-lbl" data-c="linear" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">Linear</label>
+            <input type="radio" name="em_class_radio" id="em_r4" onchange="setEMClass('nonlinear')" style="display:none;">
+            <label for="em_r4" class="em-rad-lbl" data-c="nonlinear" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">Non-Linear</label>
+          </div>
+        </div>
+      </div>
+      <div id="emRadInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Setiap klasifikasi memiliki metode solusi yang berbeda. Visualisasi menampilkan contoh solusi tipikal per kategori.<br>
+        <strong>Insight:</strong> Homogen: r(x)=0, solusi y_h. Non-Homogen: y = y_h + y_p (particular). Linear: superposition principle berlaku. Non-Linear: kompleks, mungkin tidak ada closed-form.
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 5: Dropdown (Topic-specific) + Signal Trace 1000 samples -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:#a855f7"></div>
+      <span class="anim-title">Animasi 5 — Euler-Cauchy: Pilih Sub-Topik (Dropdown + Signal Trace)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvEMdrop" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih (Dropdown):</label>
+          <select id="sl_em_drop" onchange="setEMDrop(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
+            <option value="case1">🔵 Akar Real Berbeda → x^m₁, x^m₂</option>
+            <option value="case2">🟢 Akar Real Berulang → x^m, x^m·ln(x)</option>
+            <option value="case3">🟣 Akar Kompleks → x^α·cos(β·ln x)</option>
+            <option value="substitution">🔄 Substitusi t=ln(x) → konstanta</option>
+          </select>
+        </div>
+      </div>
+      <div id="emDropInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Pilih sub-topik dari dropdown. Layout split: kiri label + formula, kanan signal trace solusi 1000 samples (~10 detik).<br>
+        <strong>Insight:</strong> Setiap sub-topik Euler-Cauchy punya signature unik di domain waktu. Bandingkan shape decay/oscillation/growth antara opsi.
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- ═══ BAGIAN 01 — PENGERTIAN PERSAMAAN EULER-CAUCHY ═══ -->
@@ -1342,7 +1431,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 09</div>
   <h2 class="section-title reveal">Animasi Interaktif<br>Tiga Kasus Euler-Cauchy Live</h2>
-  <p class="section-desc reveal">Geser slider untuk melihat bagaimana <strong>koefisien <code>b</code> dan <code>c</code></strong> dari Euler-Cauchy <code>x²y'' + bxy' + cy = 0</code> memengaruhi solusi <code>y(x)</code> di interval <code>x &gt; 0</code>. Saksikan transisi mulus antara tiga kasus akar saat parameter berubah, plus panel akar di bidang kompleks.</p>
+  <p class="section-desc reveal">Lima animasi interaktif: (1) Solusi y(t) dengan <strong>preset push button</strong> b, (2) akar persamaan karakteristik dengan slider, (3) <strong>toggle</strong> Numerical vs Analytical, (4) <strong>radio</strong> klasifikasi PD, (5) <strong>dropdown</strong> sub-topik. Geser slider untuk melihat bagaimana <strong>koefisien <code>b</code> dan <code>c</code></strong> dari Euler-Cauchy <code>x²y'' + bxy' + cy = 0</code> memengaruhi solusi <code>y(x)</code> di interval <code>x &gt; 0</code>. Saksikan transisi mulus antara tiga kasus akar saat parameter berubah, plus panel akar di bidang kompleks.</p>
 
   <!-- Animasi 1: 3-case comparison y(x) -->
   <div class="anim-panel reveal">
@@ -7872,6 +7961,283 @@ setTimeout(() => {
   }
 }, 10000);
 setInterval(()=>{renderVisitors(latestVisitors);},30000);
+
+
+window.setEMb = function(b){
+  const e = document.getElementById('sl_b'); if(e){ e.value = b; const v = document.getElementById('v_b'); if(v) v.textContent = parseFloat(b).toFixed(2); }
+  document.querySelectorAll('.emb-pbtn').forEach(btn=>{
+    const bb = parseFloat(btn.dataset.b); const active = (Math.abs(bb-b) < 0.01);
+    btn.style.background = active ? 'var(--cyan)' : 'rgba(8,191,232,.08)';
+    btn.style.borderColor = active ? 'var(--cyan)' : 'rgba(8,191,232,.3)';
+    btn.style.color = active ? '#fff' : btn.style.color;
+    btn.style.fontWeight = active ? '700' : '400';
+    btn.style.boxShadow = active ? '0 0 12px rgba(8,191,232,.6)' : 'none';
+    btn.style.borderWidth = active ? '2px' : '1px';
+    btn.style.transform = active ? 'scale(1.05)' : 'scale(1.0)';
+  });
+  if(typeof drawCases === 'function') drawCases();
+};
+
+// ════════════════════════════════════════════════════════════
+// ANIMASI 3 — Toggle Numerical vs Analytical
+// ════════════════════════════════════════════════════════════
+let _emTogMode = 0;
+window.toggleEMSolver = function(){
+  _emTogMode = 1 - _emTogMode;
+  const view = document.getElementById('em_tog_view');
+  const lbl = document.getElementById('em_tog_label');
+  const slider = view ? view.children[0] : null;
+  if(_emTogMode === 1){
+    if(view){ view.style.background = 'rgba(168,85,247,.25)'; view.style.borderColor = '#a855f7'; }
+    if(slider) slider.style.transform = 'translateX(28px)';
+    if(lbl){ lbl.textContent = 'NUMERICAL (RK4 step-by-step)'; lbl.style.color = '#a855f7'; }
+  } else {
+    if(view){ view.style.background = 'rgba(0,224,158,.25)'; view.style.borderColor = 'var(--green)'; }
+    if(slider) slider.style.transform = 'translateX(0px)';
+    if(lbl){ lbl.textContent = 'ANALYTICAL (closed-form)'; lbl.style.color = 'var(--green)'; }
+  }
+};
+
+let _emTogFrame = 0;
+function drawEMTog(){
+  const cv = document.getElementById('cvEMtog'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const isNum = (_emTogMode === 1);
+  const color = isNum ? '#a855f7' : '#00e09e';
+  ctx.fillStyle = color; ctx.font = 'bold 14px JetBrains Mono';
+  ctx.fillText(isNum ? '⚙️ NUMERICAL: y(t+dt) = y(t) + dt·f(t,y)' : '🧮 ANALYTICAL: y(t) = e^(-bt/2)·cos(ωt)', 20, 30);
+
+  const padL=50, padR=20, padT=50, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let i=0; i<=10; i++){
+    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.25)';
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+
+  const t = _emTogFrame * 0.012;
+  const N = 200;
+  ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+  ctx.shadowColor = color + 'A0'; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for(let i=0; i<=N; i++){
+    const x = padL + plotW*i/N;
+    const tt = i/N * 4;
+    const y = isNum
+      ? padT + plotH/2 - plotH*0.35*Math.exp(-0.4*tt)*Math.cos(3*tt + t*0.3)*(1+0.05*Math.sin(20*tt))  // numerical with tiny noise
+      : padT + plotH/2 - plotH*0.35*Math.exp(-0.4*tt)*Math.cos(3*tt + t*0.3);
+    if(i===0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  const info = document.getElementById('emTogInfo');
+  if(info) info.innerHTML = isNum
+    ? '🟣 <strong>Numerical</strong>: integrator RK4/Euler, error orde dt^4 (RK4) atau dt (Euler). Cocok PD tanpa closed-form.'
+    : '🟢 <strong>Analytical</strong>: ekspresi exact via teorema (Laplace, eigenvalue, dst). Closed-form, no error akumulasi.';
+}
+function _emTogTick(){ _emTogFrame++; drawEMTog(); requestAnimationFrame(_emTogTick); }
+setTimeout(_emTogTick, 850);
+
+// ════════════════════════════════════════════════════════════
+// ANIMASI 4 — Radio Group: PD Classification
+// ════════════════════════════════════════════════════════════
+let _emClass = 'homogen';
+let _emClassFrame = 0;
+window.setEMClass = function(c){
+  _emClass = c;
+  document.querySelectorAll('.em-rad-lbl').forEach(lbl=>{
+    const cb = lbl.dataset.c; const active = (cb === c);
+    lbl.style.background = active ? 'rgba(255,255,255,.20)' : 'rgba(255,255,255,.04)';
+    lbl.style.borderWidth = active ? '2px' : '1px';
+    lbl.style.color = active ? '#fff' : lbl.style.color;
+    lbl.style.fontWeight = active ? '700' : '400';
+    lbl.style.boxShadow = active ? '0 0 12px rgba(255,255,255,.4)' : 'none';
+    lbl.style.transform = active ? 'scale(1.05)' : 'scale(1.0)';
+  });
+};
+
+function drawEMRad(){
+  const cv = document.getElementById('cvEMrad'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const styles = {
+    homogen: {c: '#0ea5e9', label: 'Homogen: y\u2032\u2032 + py\u2032 + qy = 0', formula: 'r(x) = 0'},
+    nonhomogen: {c: '#00e09e', label: 'Non-Homogen: y\u2032\u2032 + py\u2032 + qy = r(x)', formula: 'r(x) = sin(ωt) etc'},
+    linear: {c: '#f97316', label: 'Linear: y\u2032\u2032 + p(x)y\u2032 + q(x)y = r(x)', formula: 'pangkat 1 + tidak ada y·y\u2032'},
+    nonlinear: {c: '#a855f7', label: 'Non-Linear: (y\u2032)\u00b2 atau sin(y) atau y·y\u2032', formula: 'pangkat ≥2 atau fn non-linear'}
+  };
+  const s = styles[_emClass] || styles.homogen;
+
+  ctx.fillStyle = s.c; ctx.font = 'bold 13px JetBrains Mono';
+  ctx.fillText(s.label, 20, 30);
+  ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono';
+  ctx.fillText('Karakteristik: ' + s.formula, 20, 50);
+
+  const padL=50, padR=20, padT=70, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let i=0; i<=10; i++){
+    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.25)';
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+
+  const t = _emClassFrame * 0.010;
+  const N = 200;
+  ctx.strokeStyle = s.c; ctx.lineWidth = 2.5;
+  ctx.shadowColor = s.c + 'A0'; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for(let i=0; i<=N; i++){
+    const x = padL + plotW*i/N;
+    const tt = i/N * 4;
+    let y;
+    if(_emClass === 'homogen') y = padT + plotH/2 - plotH*0.35*Math.exp(-0.3*tt)*Math.cos(3*tt + t);
+    else if(_emClass === 'nonhomogen') y = padT + plotH/2 - plotH*0.35*(Math.exp(-0.3*tt)*Math.cos(3*tt + t) + 0.5*Math.sin(2*tt));
+    else if(_emClass === 'linear') y = padT + plotH/2 - plotH*0.35*Math.exp(-0.2*tt)*Math.cos(2*tt + t);
+    else y = padT + plotH/2 - plotH*0.35*Math.tanh(2*Math.sin(3*tt + t))*Math.exp(-0.3*tt);
+    if(i===0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  const info = document.getElementById('emRadInfo');
+  if(info) info.innerHTML = `<strong style="color:${s.c}">${s.label}</strong> · ${s.formula}`;
+}
+function _emRadTick(){ _emClassFrame++; drawEMRad(); requestAnimationFrame(_emRadTick); }
+setTimeout(_emRadTick, 900);
+
+// ════════════════════════════════════════════════════════════
+// ANIMASI 5 — Dropdown + Signal Trace 1000 samples
+// ════════════════════════════════════════════════════════════
+let _emDropMode = 'case1';
+let _emDropFrame = 0;
+let _emDropHist = [];
+window.setEMDrop = function(m){ _emDropMode = m; _emDropHist = []; };
+
+function drawEMDrop(){
+  const cv = document.getElementById('cvEMdrop'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const opts = [
+    ["case1", "🔵 Akar Real Berbeda → x^m₁, x^m₂"],
+    ["case2", "🟢 Akar Real Berulang → x^m, x^m·ln(x)"],
+    ["case3", "🟣 Akar Kompleks → x^α·cos(β·ln x)"],
+    ["substitution", "🔄 Substitusi t=ln(x) → konstanta"]
+  ];
+  const idx = opts.findIndex(o => o[0] === _emDropMode);
+  const opt = opts[Math.max(0, idx)];
+  const colors = ['#0ea5e9', '#00e09e', '#f97316', '#a855f7', '#ef4444', '#facc15'];
+  const color = colors[idx % colors.length];
+
+  // Split: 40% kiri, 60% kanan
+  const splitX = Math.floor(W*0.40);
+  ctx.strokeStyle = 'rgba(148,163,184,.15)';
+  ctx.beginPath(); ctx.moveTo(splitX, 10); ctx.lineTo(splitX, H-10); ctx.stroke();
+
+  // Left: title
+  ctx.fillStyle = color; ctx.font = 'bold 12px JetBrains Mono';
+  ctx.textAlign = 'left';
+  const words = opt[1].split(' ');
+  let line = ''; let yy = 30;
+  for(const w of words){
+    if(line.length + w.length > 22 && line){
+      ctx.fillText(line.trim(), 14, yy); yy += 18; line = '';
+    }
+    line += w + ' ';
+  }
+  if(line) ctx.fillText(line.trim(), 14, yy);
+
+  // Compute signal value
+  const t = _emDropFrame * 0.012;
+  const f1 = (idx+1)*1.5;
+  const f2 = (idx+1)*0.7 + 1.0;
+  const decay = Math.exp(-0.05*t);
+  const sigValue = decay * (0.4*Math.sin(f1*t) + 0.25*Math.sin(f2*t + 0.5));
+
+  _emDropHist.push(Math.max(-1, Math.min(1, sigValue)));
+  if(_emDropHist.length > 1000) _emDropHist.shift();
+
+  // Right: signal trace
+  const padR = 14, padTR = 24, padBR = 26;
+  const plotX0 = splitX + 12;
+  const plotW = W - plotX0 - padR;
+  const plotH = H - padTR - padBR;
+  const plotY0 = padTR;
+
+  ctx.strokeStyle = 'rgba(255,255,255,.06)'; ctx.lineWidth = 1;
+  ctx.strokeRect(plotX0, plotY0, plotW, plotH);
+  ctx.strokeStyle = 'rgba(148,163,184,.2)';
+  ctx.beginPath(); ctx.moveTo(plotX0, plotY0+plotH/2); ctx.lineTo(plotX0+plotW, plotY0+plotH/2); ctx.stroke();
+
+  ctx.fillStyle = '#94a3b8'; ctx.font = '9px JetBrains Mono'; ctx.textAlign = 'right';
+  ctx.fillText('+max', plotX0-3, plotY0+10);
+  ctx.fillText('0', plotX0-3, plotY0+plotH/2+3);
+  ctx.fillText('−max', plotX0-3, plotY0+plotH-3);
+  ctx.textAlign = 'left'; ctx.fillStyle = '#22d3ee'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText('Solution y(t)', plotX0+6, plotY0+12);
+  ctx.fillStyle = '#94a3b8'; ctx.font = '9px JetBrains Mono'; ctx.textAlign = 'center';
+  ctx.fillText('-10s', plotX0, plotY0+plotH+14);
+  ctx.fillText('-5s', plotX0+plotW/2, plotY0+plotH+14);
+  ctx.fillText('now', plotX0+plotW, plotY0+plotH+14);
+
+  const N = _emDropHist.length;
+  if(N > 1){
+    ctx.fillStyle = 'rgba(34,211,238,.15)';
+    ctx.beginPath(); ctx.moveTo(plotX0, plotY0+plotH/2);
+    for(let i=0; i<N; i++){
+      const px = plotX0 + (i/999)*plotW;
+      const py = plotY0+plotH/2 - _emDropHist[i]*(plotH/2-8);
+      ctx.lineTo(px, py);
+    }
+    ctx.lineTo(plotX0 + ((N-1)/999)*plotW, plotY0+plotH/2);
+    ctx.closePath(); ctx.fill();
+  }
+  ctx.strokeStyle = '#22d3ee'; ctx.lineWidth = 2.4;
+  ctx.shadowColor = '#22d3ee'; ctx.shadowBlur = 8;
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  ctx.beginPath();
+  for(let i=0; i<N; i++){
+    const px = plotX0 + (i/999)*plotW;
+    const py = plotY0+plotH/2 - _emDropHist[i]*(plotH/2-8);
+    if(i===0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+  if(N > 0){
+    const px = plotX0 + ((N-1)/999)*plotW;
+    const py = plotY0+plotH/2 - _emDropHist[N-1]*(plotH/2-8);
+    ctx.fillStyle = 'rgba(251,191,36,.3)';
+    ctx.beginPath(); ctx.arc(px, py, 9, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#fbbf24'; ctx.shadowColor = '#fbbf24'; ctx.shadowBlur = 10;
+    ctx.beginPath(); ctx.arc(px, py, 4.5, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+
+  const info = document.getElementById('emDropInfo');
+  if(info) info.innerHTML = `<strong style="color:${color}">${opt[1]}</strong>`;
+}
+function _emDropTick(){ _emDropFrame++; drawEMDrop(); requestAnimationFrame(_emDropTick); }
+setTimeout(_emDropTick, 950);
+
 </script>
 
 </body>
