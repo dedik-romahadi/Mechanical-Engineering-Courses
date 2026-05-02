@@ -1548,118 +1548,115 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <hr class="divider">
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 09</div>
-  <h2 class="section-title reveal">Animasi Interaktif<br>Visualisasi Sintesis Fourier &amp; Spektrum</h2>
-  <p class="section-desc reveal">Animasi visualisasi <strong>sintesis Deret Fourier</strong> — bagaimana superposisi sin/cos dengan frekuensi harmonik menghasilkan sinyal periodik kompleks (square wave, sawtooth, triangular). Tambah jumlah harmonik N untuk melihat konvergensi (dan fenomena Gibbs di diskontinuitas). Spektrum amplitudo bar plot memberi visual decay rate (1/n untuk diskontinu, 1/n² untuk continuous-non-smooth). Insight visual: <em>setiap sinyal periodik adalah dua wajah</em> — domain waktu &amp; domain frekuensi.</p>
+  <h2 class="section-title reveal">Animasi Interaktif<br>Deret Fourier: Sintesis, Spektrum, &amp; FFT</h2>
+  <p class="section-desc reveal">Lima animasi spesifik untuk <strong>Pertemuan 14 — Deret Fourier</strong>: (1) <strong>Fourier Synthesis Live</strong> bangun square/sawtooth/triangle dari N harmonik, (2) <strong>Koefisien aₙ, bₙ</strong> sebagai bar chart spektrum, (3) <strong>toggle Even ↔ Odd Function</strong> (cosine-only vs sine-only series), (4) <strong>radio Konvergensi Dirichlet</strong> dengan 4 contoh fungsi, (5) <strong>dropdown FFT Engineering</strong> aplikasi (vibration analysis, audio, EQ filter, harmonic distortion).</p>
 
-  <!-- Animasi 1: 3-case comparison y(x) -->
+  <!-- Animasi 1: Fourier Synthesis Live (M14-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi 1 — Tiga Kasus Akar Euler-Cauchy: Geser Koefisien, Lihat Solusi y(x)</span>
+      <span class="anim-title">Animasi 1 — Fourier Synthesis: Bangun Sinyal dari N Harmonik</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvCases" height="340"></canvas>
+      <canvas id="m14cvSynth" height="340" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
-        <div class="ctrl-group">
-          <label>Koefisien <strong>b</strong> — <span class="ctrl-val" id="v_b">1.00</span></label>
-          <input type="range" id="sl_b" min="-4" max="6" step="0.05" value="1.0">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih sinyal target:</label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+            <button class="m14sig-pbtn" onclick="window.m14SetSig('square')" data-s="square" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--cyan);background:var(--cyan);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(8,191,232,.6);transform:scale(1.05);transition:all .15s;">Square Wave ✓</button>
+            <button class="m14sig-pbtn" onclick="window.m14SetSig('sawtooth')" data-s="sawtooth" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,179,0,.4);background:rgba(255,179,0,.10);color:var(--amber);">Sawtooth</button>
+            <button class="m14sig-pbtn" onclick="window.m14SetSig('triangle')" data-s="triangle" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">Triangle Wave</button>
+            <button class="m14sig-pbtn" onclick="window.m14SetSig('halfwave')" data-s="halfwave" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">Half-Wave Rectified</button>
+          </div>
         </div>
         <div class="ctrl-group">
-          <label>Koefisien <strong>c</strong> — <span class="ctrl-val" id="v_c">−4.00</span></label>
-          <input type="range" id="sl_c" min="-12" max="12" step="0.1" value="-4.0">
+          <label>Jumlah harmonik <strong>N</strong> — <span class="ctrl-val" id="m14NV">5</span></label>
+          <input type="range" id="m14slN" min="1" max="50" step="1" value="5">
         </div>
-        <button class="btn-anim" id="btnCases" onclick="toggleCases()">⏸ PAUSE</button>
+        <button class="btn-anim" id="m14btnSynth" onclick="window.m14ToggleSynth()">⏸ PAUSE</button>
       </div>
-      <div id="casesInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div id="m14SynthInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi Ini (orde 2 sebagai demonstrasi):</strong> Kurva = solusi <em>y(x)</em> dari Euler-Cauchy orde 2 <code>x²y'' + b·x·y' + c·y = 0</code> dengan IVP <code>y(1)=1, y'(1)=0</code> di interval <code>x ∈ (0.1, 10)</code>. Warna: <strong style="color:var(--amber)">amber = D &gt; 0 (real berbeda)</strong>, <strong style="color:var(--violet)">violet = D = 0 (real berulang)</strong>, <strong style="color:var(--cyan)">cyan = D &lt; 0 (kompleks → osilasi log)</strong>.<br>
-        <strong>Untuk PD non-homogen:</strong> Animasi ini menampilkan PD homogen <code>y'' + by' + cy = 0</code> yang memberi y_h. Untuk solusi total non-homogen, tambahkan y_p dari metode UC atau VoP. Saat eksitasi <em>f(x)</em> punya frekuensi/eksponen sama dengan akar karakteristik, <strong>resonansi</strong> terjadi: amplitudo y_p tumbuh linier dengan x (faktor x dari aturan resonansi).
+        <strong>📊 Cara Membaca:</strong> Plot target sinyal (faded gray) + Fourier partial sum (cyan, N harmonik). Ratchet up N untuk lihat <strong>konvergensi</strong> ke shape target. Diskontinuitas → <em>fenomena Gibbs</em>: 9% overshoot tetap walau N → ∞. Setiap sinyal periodik bisa direkonstruksi dari sin/cos dengan frekuensi 2πn/T (Fourier theorem).
       </div>
     </div>
   </div>
 
-  <!-- Animasi 2: Roots in complex plane (m-plane) -->
+  <!-- Animasi 2: Koefisien aₙ, bₙ Bar Chart (M14-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--pink)"></div>
-      <span class="anim-title">Animasi 2 — Akar Karakteristik m di Bidang Kompleks (m-plane)</span>
+      <span class="anim-title">Animasi 2 — Koefisien aₙ, bₙ: Bar Chart Spektrum Amplitudo</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvRoots" height="320"></canvas>
+      <canvas id="m14cvCoeffs" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Koefisien <strong>b</strong> — <span class="ctrl-val" id="v_b2">3.00</span></label>
-          <input type="range" id="sl_b2" min="-4" max="6" step="0.05" value="3.0">
-        </div>
-        <div class="ctrl-group">
-          <label>Koefisien <strong>c</strong> — <span class="ctrl-val" id="v_c2">2.00</span></label>
-          <input type="range" id="sl_c2" min="-12" max="12" step="0.1" value="2.0">
+          <label>Pilih sinyal — <span class="ctrl-val" id="m14SigType">Square Wave</span></label>
+          <input type="range" id="m14slCoSig" min="0" max="3" step="1" value="0">
         </div>
       </div>
-      <div id="rootsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
+      <div id="m14CoeffsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi Ini:</strong> Bidang kompleks <em>m</em>: sumbu horizontal = real, vertikal = imajiner. Dua akar <code>m₁, m₂</code> dari <code>m² + (b−1)m + c = 0</code> ditandai. Berbeda dengan plane <em>r</em> di Pertemuan 5: di sini <strong>tanda real</strong> menentukan apakah <code>x<sup>m</sup></code> tumbuh atau meluruh saat x → ∞. Re(m) &gt; 0 → tumbuh; Re(m) &lt; 0 → meluruh; Re(m) = 0 → osilasi murni dalam ln x.<br>
-        <strong>Coba:</strong> (1) <strong>b = 1, c &gt; 0</strong>: akar selalu murni imajiner (Re=0) — solusi <em>osilasi pure</em> dalam ln x. (2) <strong>b = 1, c &lt; 0</strong>: akar real berlawanan tanda — satu solusi tumbuh, satu meluruh. (3) <strong>b ≠ 1</strong>: akar bergeser ke kiri/kanan — Re(m) = (1−b)/2 menjadi nonzero. (4) Saksikan akar kompleks <em>melompat ke real axis</em> saat D = (b−1)² − 4c menyentuh nol.
+        <strong>📊 Cara Membaca:</strong> Bar chart amplitudo |bₙ| (atau |aₙ|) untuk N harmonik pertama. <strong>Decay rate</strong> menunjukkan smoothness: 1/n untuk square wave (diskontinu), 1/n² untuk triangle (continuous tapi non-smooth turunan), 1/n³ untuk smooth. <strong>Frequency content visualization</strong>: tinggi bar = energi frekuensi tersebut. Inilah dasar audio EQ dan spectrum analysis.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 3: Toggle (Numerical vs Analytical) -->
+  <!-- Animasi 3: Toggle Even ↔ Odd Function (M14-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--green)"></div>
-      <span class="anim-title">Animasi 3 — Numerical vs Analytical Solution (Toggle)</span>
+      <span class="anim-title">Animasi 3 — Even vs Odd Function: Cosine-Only ↔ Sine-Only Series (Toggle)</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvEMtog" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <canvas id="m14cvEvenOdd" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
           <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--text)">
-            Method:
-            <button type="button" onclick="toggleEMSolver()" style="background:none;border:none;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
-              <span id="em_tog_view" style="display:inline-block;position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
-                <span style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
+            Function symmetry:
+            <button type="button" onclick="window.m14ToggleEO()" style="background:none;border:none;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
+              <span id="m14_eo_view" style="display:inline-block;position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
+                <span id="m14_eo_knob" style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
               </span>
-              <span id="em_tog_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:700;">ANALYTICAL (closed-form)</span>
+              <span id="m14_eo_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:700;">EVEN: f(−x) = f(x), cosine-only series</span>
             </button>
           </div>
         </div>
       </div>
-      <div id="emTogInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div id="m14EOInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Toggle metode solusi PD. Analytical: ekspresi tertutup (closed-form) dari teorema. Numerical: integrator step-by-step (RK4, Euler).<br>
-        <strong>Trade-off:</strong> Analytical exact tetapi terbatas pada kelas PD tertentu. Numerical universal tetapi punya error akumulasi + computational cost. Modern engineering: kombinasi keduanya — derive analytical untuk verify, run numerical untuk produksi.
+        <strong>📊 Cara Membaca:</strong> Simetri memotong setengah pekerjaan integrasi. <strong>EVEN function</strong> (f(−x) = f(x), seperti |x|, triangle): bₙ = 0 → series cosine-only dengan koefisien aₙ saja. <strong>ODD function</strong> (f(−x) = −f(x), seperti sawtooth, square shifted): aₙ = 0 → series sine-only dengan koefisien bₙ saja. Layout split: kiri = function plot, kanan = bar chart koefisien (cosine merah / sine biru).
       </div>
     </div>
   </div>
 
-  <!-- Animasi 4: Radio group (PD classification) -->
+  <!-- Animasi 4: Konvergensi Dirichlet (Radio, M14-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--pink)"></div>
-      <span class="anim-title">Animasi 4 — Klasifikasi PD: Pilih Tipe (Radio Group)</span>
+      <span class="anim-title">Animasi 4 — Konvergensi Dirichlet: 4 Contoh Fungsi (Radio)</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvEMrad" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <canvas id="m14cvDirichlet" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
-          <label>Pilih Klasifikasi PD (radio group):</label>
+          <label>Pilih fungsi target untuk uji Konvergensi Dirichlet (radio):</label>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
-            <input type="radio" name="em_class_radio" id="em_r1" checked onchange="setEMClass('homogen')" style="display:none;">
-            <label for="em_r1" class="em-rad-lbl" data-c="homogen" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">Homogen ✓</label>
-            <input type="radio" name="em_class_radio" id="em_r2" onchange="setEMClass('nonhomogen')" style="display:none;">
-            <label for="em_r2" class="em-rad-lbl" data-c="nonhomogen" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">Non-Homogen</label>
-            <input type="radio" name="em_class_radio" id="em_r3" onchange="setEMClass('linear')" style="display:none;">
-            <label for="em_r3" class="em-rad-lbl" data-c="linear" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">Linear</label>
-            <input type="radio" name="em_class_radio" id="em_r4" onchange="setEMClass('nonlinear')" style="display:none;">
-            <label for="em_r4" class="em-rad-lbl" data-c="nonlinear" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">Non-Linear</label>
+            <input type="radio" name="m14_dr_radio" id="m14_d1" checked onchange="window.m14SetDirichlet('continuous')" style="display:none;">
+            <label for="m14_d1" class="m14-dr-lbl" data-c="continuous" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">✅ Continuous (smooth) ✓</label>
+            <input type="radio" name="m14_dr_radio" id="m14_d2" onchange="window.m14SetDirichlet('jump')" style="display:none;">
+            <label for="m14_d2" class="m14-dr-lbl" data-c="jump" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">🪜 Jump Discontinuity (Gibbs)</label>
+            <input type="radio" name="m14_dr_radio" id="m14_d3" onchange="window.m14SetDirichlet('peak')" style="display:none;">
+            <label for="m14_d3" class="m14-dr-lbl" data-c="peak" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">📐 Triangle (kink)</label>
+            <input type="radio" name="m14_dr_radio" id="m14_d4" onchange="window.m14SetDirichlet('cosine')" style="display:none;">
+            <label for="m14_d4" class="m14-dr-lbl" data-c="cosine" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:#00e09e">🌊 Cosine (analytical)</label>
           </div>
         </div>
       </div>
-      <div id="emRadInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
+      <div id="m14DirichletInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Setiap klasifikasi memiliki metode solusi yang berbeda. Visualisasi menampilkan contoh solusi tipikal per kategori.<br>
-        <strong>Insight:</strong> Homogen: r(x)=0, solusi y_h. Non-Homogen: y = y_h + y_p (particular). Linear: superposition principle berlaku. Non-Linear: kompleks, mungkin tidak ada closed-form.
+        <strong>📊 Cara Membaca:</strong> Konvergensi Dirichlet: Fourier series konvergen ke f(x) di titik continuous, dan ke <em>average</em> kiri+kanan di titik diskontinuitas. <strong>Continuous + smooth</strong>: konvergen cepat (1/n³), no Gibbs. <strong>Jump diskontinuitas</strong>: 9% Gibbs overshoot tetap. <strong>Triangle (kink)</strong>: konvergen 1/n², no Gibbs. <strong>Analytical (cosine)</strong>: 1 term saja sudah perfect.
       </div>
     </div>
   </div>
@@ -1671,22 +1668,22 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <span class="anim-title">Animasi 5 — Deret Fourier: Pilih Sub-Topik (Dropdown + Signal Trace)</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvEMdrop" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <canvas id="m14cvAppFFT" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
-          <label>Pilih (Dropdown):</label>
-          <select id="sl_em_drop" onchange="setEMDrop(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
-            <option value="square">⬜ Square Wave — Σsin((2n-1)x)/(2n-1)</option>
-            <option value="triangle">🔺 Triangle — Σcos((2n-1)x)/(2n-1)²</option>
-            <option value="sawtooth">📐 Sawtooth — Σ(-1)^(n+1)·sin(nx)/n</option>
-            <option value="halfwave">🌊 Half-Wave — rectified signal</option>
+          <label>Pilih aplikasi engineering FFT:</label>
+          <select id="m14slAppFFT" onchange="window.m14SetAppFFT(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:520px;margin-top:6px;">
+            <option value="vibration">🌀 Vibration Analysis: Centrifugal Pump diagnostic</option>
+            <option value="audio">🎵 Audio Spectrum: kombinasi tone + harmonics</option>
+            <option value="eq">🎚️ Audio EQ Filter: boost/cut frekuensi tertentu</option>
+            <option value="harmonic">⚡ Harmonic Distortion: power line analysis</option>
+            <option value="ecg">💓 ECG Signal: filter noise via FFT</option>
           </select>
         </div>
       </div>
-      <div id="emDropInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
+      <div id="m14AppFFTInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Pilih sub-topik dari dropdown. Layout split: kiri label + formula, kanan signal trace solusi 1000 samples (~10 detik).<br>
-        <strong>Insight:</strong> Setiap sub-topik Deret Fourier punya signature unik di domain waktu. Bandingkan shape decay/oscillation/growth antara opsi.
+        <strong>📊 Cara Membaca:</strong> Lima aplikasi engineering FFT (Fast Fourier Transform). Layout split: kiri = visualisasi sistem fisik (centrifugal pump, audio waveform, EQ slider, power line, ECG), kanan = signal trace + spektrum frekuensi bar chart. <strong>Engineering insight:</strong> FFT adalah tools paling penting di engineering modern — vibration analysis (predictive maintenance), audio processing (compression, EQ), power quality, biomedical signal processing.
       </div>
     </div>
   </div>
@@ -8503,6 +8500,759 @@ function _createForumParticleBurst(event) {
   else attachBtnHandlers();
 })();
 
+</script>
+
+<!-- ════════════════════════════════════════════════════════════════
+     M14 TOPIC-SPECIFIC ANIMATIONS — Deret Fourier
+     5 canvas: m14cvSynth, m14cvCoeffs, m14cvEvenOdd, m14cvDirichlet, m14cvAppFFT
+     ════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  function bgGrad(ctx, W, H){
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#020812'); g.addColorStop(1, '#0d1929');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  function gridLines(ctx, x0, x1, y0, y1, divX, divY){
+    ctx.strokeStyle = 'rgba(148,163,184,.10)'; ctx.lineWidth = 1;
+    for (let i = 0; i <= divX; i++){
+      const x = x0 + (i/divX)*(x1-x0);
+      ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.stroke();
+    }
+    for (let j = 0; j <= divY; j++){
+      const y = y0 + (j/divY)*(y1-y0);
+      ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
+    }
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 1 — Fourier Synthesis Live
+  // ════════════════════════════════════════════════════════════════
+  const m14Synth = { running: true, raf: null, t: 0, sig: 'square' };
+
+  // Target signals (period 2π)
+  function targetSig(x, sig){
+    const xMod = ((x % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
+    switch(sig){
+      case 'square':   return xMod < Math.PI ? 1 : -1;
+      case 'sawtooth': return (xMod / Math.PI) - 1;
+      case 'triangle': return xMod < Math.PI ? (2*xMod/Math.PI - 1) : (3 - 2*xMod/Math.PI);
+      case 'halfwave': return Math.max(0, Math.sin(xMod));
+    }
+  }
+
+  // Fourier partial sum up to N harmonics
+  function fourierSum(x, sig, N){
+    let s = 0;
+    if (sig === 'square'){
+      // 4/π Σ sin((2k-1)x)/(2k-1)
+      for (let k = 1; k <= N; k++){
+        const n = 2*k - 1;
+        s += Math.sin(n*x) / n;
+      }
+      s *= 4/Math.PI;
+    } else if (sig === 'sawtooth'){
+      // (2/π) Σ (-1)^(n+1) sin(nx)/n
+      for (let n = 1; n <= N; n++){
+        s += Math.pow(-1, n+1) * Math.sin(n*x) / n;
+      }
+      s *= 2/Math.PI;
+      // shift to [-1, 1]: actually our target sawtooth = x/π - 1
+      // approximation -2/π + 2/π·(x), whose Fourier = (2/π)Σ(-1)^(n+1)sin(nx)/n
+      // Let's just match: the formula gives sawtooth from -1 to 1
+      // Done.
+    } else if (sig === 'triangle'){
+      // (8/π²) Σ_{odd k} (-1)^((k-1)/2)·sin(kx)/k²
+      for (let k = 1; k <= N; k += 2){
+        s += Math.pow(-1, (k-1)/2) * Math.sin(k*x) / (k*k);
+      }
+      s *= 8/(Math.PI*Math.PI);
+    } else if (sig === 'halfwave'){
+      // 1/π + sin(x)/2 - 2/π·Σ cos(2kx)/(4k²-1)
+      s = 1/Math.PI + Math.sin(x)/2;
+      for (let k = 1; k <= N; k++){
+        s -= (2/Math.PI) * Math.cos(2*k*x) / (4*k*k - 1);
+      }
+    }
+    return s;
+  }
+
+  window.m14SetSig = function(key){
+    m14Synth.sig = key;
+    document.querySelectorAll('.m14sig-pbtn').forEach(btn => {
+      const s = btn.getAttribute('data-s');
+      const active = (s === key);
+      btn.style.border = active ? '2px solid var(--cyan)' : '1px solid rgba(148,163,184,.3)';
+      btn.style.background = active ? 'var(--cyan)' : 'rgba(148,163,184,.10)';
+      btn.style.color = active ? '#fff' : '#94a3b8';
+      btn.style.fontWeight = active ? '700' : '400';
+      btn.style.boxShadow = active ? '0 0 12px rgba(8,191,232,.6)' : 'none';
+      btn.style.transform = active ? 'scale(1.05)' : 'scale(1)';
+      btn.textContent = active ? (btn.textContent.replace(' ✓','') + ' ✓') : btn.textContent.replace(' ✓','');
+    });
+  };
+  window.m14ToggleSynth = function(){
+    m14Synth.running = !m14Synth.running;
+    const btn = document.getElementById('m14btnSynth');
+    if (btn) btn.textContent = m14Synth.running ? '⏸ PAUSE' : '▶ PLAY';
+    if (m14Synth.running) drawM14Synth();
+  };
+
+  function drawM14Synth(){
+    const cv = document.getElementById('m14cvSynth'); if(!cv) return;
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const N = parseInt(document.getElementById('m14slN').value);
+    document.getElementById('m14NV').textContent = String(N);
+
+    const padL = 50, padT = 35, padB = 35;
+    const px0 = padL, px1 = W - 20, py0 = padT, py1 = H - padB;
+    const xMin = -Math.PI, xMax = 3*Math.PI;
+    function tx(x){ return px0 + ((x - xMin)/(xMax - xMin))*(px1 - px0); }
+
+    gridLines(ctx, px0, px1, py0, py1, 12, 6);
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+
+    const yMax = 1.5;
+    function ty(y){ return (py0+py1)/2 - (y/yMax)*((py1-py0)/2 - 8); }
+    ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+
+    // Plot target (faded)
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]);
+    ctx.beginPath();
+    const Ns = 400;
+    for (let i = 0; i <= Ns; i++){
+      const x = xMin + (i/Ns)*(xMax - xMin);
+      const px = tx(x), py = ty(targetSig(x, m14Synth.sig));
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Plot Fourier partial sum
+    ctx.strokeStyle = '#0ea5e9'; ctx.lineWidth = 2.5;
+    ctx.shadowColor = '#0ea5e9'; ctx.shadowBlur = 10;
+    ctx.beginPath();
+    for (let i = 0; i <= Ns; i++){
+      const x = xMin + (i/Ns)*(xMax - xMin);
+      const px = tx(x), py = ty(fourierSum(x, m14Synth.sig, N));
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Animated tracing dot
+    if (m14Synth.running) m14Synth.t = (m14Synth.t + 0.03) % (xMax - xMin);
+    const xDot = xMin + m14Synth.t;
+    ctx.fillStyle = '#fff';
+    ctx.shadowColor = '#0ea5e9'; ctx.shadowBlur = 14;
+    ctx.beginPath(); ctx.arc(tx(xDot), ty(fourierSum(xDot, m14Synth.sig, N)), 6, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Title
+    ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 13px JetBrains Mono, monospace';
+    ctx.fillText(`Fourier synthesis: ${m14Synth.sig.toUpperCase()}, N = ${N} harmonik`, padL + 6, padT - 12);
+
+    // Labels
+    ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+    ctx.fillText('x', px1 + 5, ty(0) + 4);
+    ['−π', '0', 'π', '2π', '3π'].forEach((lbl, k) => {
+      ctx.fillText(lbl, tx(-Math.PI + k*Math.PI) - 6, py1 + 14);
+    });
+
+    const infoEl = document.getElementById('m14SynthInfo');
+    if (infoEl){
+      const decayRate = m14Synth.sig === 'square' || m14Synth.sig === 'sawtooth' ? '1/n' : '1/n²';
+      infoEl.innerHTML = `<span style="color:#0ea5e9">●</span> ${m14Synth.sig} dengan N=${N} harmonik &nbsp;|&nbsp; decay rate ≈ ${decayRate} &nbsp;|&nbsp; ${m14Synth.sig === 'square' || m14Synth.sig === 'sawtooth' ? '⚠ Gibbs ~9% di diskontinuitas' : 'no Gibbs (continuous)'}`;
+    }
+
+    if (m14Synth.running) m14Synth.raf = requestAnimationFrame(drawM14Synth);
+  }
+  function _wireM14Synth(){
+    const el = document.getElementById('m14slN');
+    if (el) el.addEventListener('input', () => {});
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 2 — Koefisien aₙ, bₙ Bar Chart
+  // ════════════════════════════════════════════════════════════════
+  function drawM14Coeffs(){
+    const cv = document.getElementById('m14cvCoeffs'); if(!cv){ requestAnimationFrame(drawM14Coeffs); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const sigIdx = parseInt(document.getElementById('m14slCoSig').value);
+    const sigs = ['Square Wave', 'Sawtooth', 'Triangle', 'Half-Wave Rectified'];
+    document.getElementById('m14SigType').textContent = sigs[sigIdx];
+
+    // Compute |bₙ| for first 20 harmonics
+    function getCoeffs(idx){
+      const N = 20;
+      const arr = [];
+      for (let n = 1; n <= N; n++){
+        let mag = 0;
+        if (idx === 0){
+          // Square wave: bₙ = 4/(πn) for odd n, else 0
+          mag = (n % 2 === 1) ? 4/(Math.PI*n) : 0;
+        } else if (idx === 1){
+          // Sawtooth: bₙ = 2(-1)^(n+1)/(πn) → magnitude = 2/(πn)
+          mag = 2/(Math.PI*n);
+        } else if (idx === 2){
+          // Triangle: bₙ = 8/(π²n²) for odd n, else 0
+          mag = (n % 2 === 1) ? 8/(Math.PI*Math.PI*n*n) : 0;
+        } else if (idx === 3){
+          // Half-wave: aₙ = -2/(π(4k²-1)) for n=2k, b₁ = 1/2 saja
+          if (n === 1) mag = 0.5;
+          else if (n % 2 === 0) mag = 2/(Math.PI*(n*n - 1));
+          else mag = 0;
+        }
+        arr.push(Math.abs(mag));
+      }
+      return arr;
+    }
+
+    const coeffs = getCoeffs(sigIdx);
+    const N = coeffs.length;
+    const yMax = Math.max(...coeffs, 0.1);
+
+    const padL = 50, padT = 35, padB = 35;
+    const px0 = padL, px1 = W - 20, py0 = padT, py1 = H - padB;
+    gridLines(ctx, px0, px1, py0, py1, N, 6);
+
+    const barW = (px1 - px0) / N - 4;
+    function ty(y){ return py1 - (y/yMax)*(py1 - py0 - 8); }
+
+    // Bars
+    coeffs.forEach((mag, i) => {
+      const xPos = px0 + i * (barW + 4) + 2;
+      const yPos = ty(mag);
+      const isOdd = (i + 1) % 2 === 1;
+      ctx.fillStyle = isOdd ? '#ff6bb3' : 'rgba(148,163,184,.3)';
+      ctx.shadowColor = '#ff6bb3'; ctx.shadowBlur = isOdd && mag > 0.01 ? 8 : 0;
+      ctx.fillRect(xPos, yPos, barW, py1 - yPos);
+      ctx.shadowBlur = 0;
+      // n label
+      if (i < 10){
+        ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+        ctx.fillText(String(i+1), xPos + barW/2, py1 + 14);
+        if (mag > yMax * 0.05){
+          ctx.fillStyle = isOdd ? '#fff' : '#94a3b8'; ctx.font = '9px JetBrains Mono, monospace';
+          ctx.fillText(mag.toFixed(2), xPos + barW/2, yPos - 3);
+        }
+        ctx.textAlign = 'left';
+      }
+    });
+
+    // Title
+    ctx.fillStyle = '#ff6bb3'; ctx.font = 'bold 13px JetBrains Mono, monospace';
+    ctx.fillText(`|bₙ| spectrum: ${sigs[sigIdx]}`, padL + 6, padT - 12);
+
+    ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+    ctx.fillText('n (harmonic)', px1 - 80, py1 + 28);
+    ctx.fillText('|bₙ|', px0 - 30, py0 + 8);
+
+    const infoEl = document.getElementById('m14CoeffsInfo');
+    if (infoEl){
+      const formula = ['bₙ = 4/(πn) odd, 0 even (1/n decay)',
+                       'bₙ = 2(-1)^(n+1)/(πn) (1/n decay)',
+                       'bₙ = 8/(π²n²) odd, 0 even (1/n² decay)',
+                       'mixed: b₁ = ½, aₙ = 2/(π(n²-1)) even, 1/n² decay'];
+      infoEl.innerHTML = `<span style="color:#ff6bb3">●</span> ${sigs[sigIdx]}: ${formula[sigIdx]}`;
+    }
+
+    requestAnimationFrame(drawM14Coeffs);
+  }
+  function _wireM14Coeffs(){
+    const el = document.getElementById('m14slCoSig');
+    if (el) el.addEventListener('input', () => {});
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 3 — Toggle Even ↔ Odd Function
+  // ════════════════════════════════════════════════════════════════
+  const m14EO = { isEven: true, raf: null };
+
+  window.m14ToggleEO = function(){
+    m14EO.isEven = !m14EO.isEven;
+    const view = document.getElementById('m14_eo_view');
+    const knob = document.getElementById('m14_eo_knob');
+    const lbl  = document.getElementById('m14_eo_label');
+    if (m14EO.isEven){
+      view.style.background = 'rgba(0,224,158,.25)'; view.style.borderColor = 'var(--green)';
+      knob.style.transform = 'translateX(0px)';
+      lbl.style.color = 'var(--green)';
+      lbl.textContent = 'EVEN: f(−x) = f(x), cosine-only series';
+    } else {
+      view.style.background = 'rgba(255,179,0,.25)'; view.style.borderColor = 'var(--amber)';
+      knob.style.transform = 'translateX(28px)';
+      lbl.style.color = 'var(--amber)';
+      lbl.textContent = 'ODD: f(−x) = −f(x), sine-only series';
+    }
+  };
+
+  function drawM14EO(){
+    const cv = document.getElementById('m14cvEvenOdd'); if(!cv){ m14EO.raf = requestAnimationFrame(drawM14EO); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const splitX = W * 0.5;
+    ctx.strokeStyle = 'rgba(148,163,184,.3)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(splitX, 35); ctx.lineTo(splitX, H - 20); ctx.stroke();
+
+    const padT = 50, padB = 35;
+
+    // ── LEFT: function plot ──
+    {
+      const px0 = 50, px1 = splitX - 16, py0 = padT, py1 = H - padB;
+      const xMin = -Math.PI, xMax = Math.PI;
+      function tx(x){ return px0 + ((x - xMin)/(xMax - xMin))*(px1 - px0); }
+
+      gridLines(ctx, px0, px1, py0, py1, 8, 6);
+
+      // Plot symmetry axis
+      ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(tx(0), py0); ctx.lineTo(tx(0), py1); ctx.stroke();
+
+      const yMax = 1.5;
+      function ty(y){ return (py0+py1)/2 - (y/yMax)*((py1-py0)/2 - 8); }
+      ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+
+      // Function: even = |x|/π (triangle wave shape), odd = x/π (sawtooth shape)
+      const N = 200;
+      ctx.strokeStyle = m14EO.isEven ? '#00e09e' : '#ffb300';
+      ctx.lineWidth = 2.5;
+      ctx.shadowColor = m14EO.isEven ? '#00e09e' : '#ffb300'; ctx.shadowBlur = 10;
+      ctx.beginPath();
+      for (let i = 0; i <= N; i++){
+        const x = xMin + (i/N)*(xMax - xMin);
+        const y = m14EO.isEven ? Math.abs(x)/Math.PI : x/Math.PI;
+        const px = tx(x), py = ty(y);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Symmetry annotation: arrows showing reflection
+      ctx.strokeStyle = '#ffd166'; ctx.lineWidth = 1.5; ctx.setLineDash([3, 3]);
+      // Vertical line + reflection arrows at 2 sample points
+      [Math.PI*0.5].forEach(xR => {
+        const yR = m14EO.isEven ? Math.abs(xR)/Math.PI : xR/Math.PI;
+        const yMirror = m14EO.isEven ? Math.abs(-xR)/Math.PI : (-xR)/Math.PI;
+        ctx.beginPath();
+        ctx.moveTo(tx(xR), ty(yR));
+        ctx.lineTo(tx(-xR), ty(yMirror));
+        ctx.stroke();
+      });
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = m14EO.isEven ? '#00e09e' : '#ffb300';
+      ctx.font = 'bold 12px JetBrains Mono, monospace';
+      ctx.fillText(m14EO.isEven ? 'f(x) = |x|/π (EVEN)' : 'f(x) = x/π (ODD)', px0 + 6, padT - 12);
+      ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+      ctx.fillText('x', px1 + 5, ty(0) + 4);
+    }
+
+    // ── RIGHT: bar chart koefisien ──
+    {
+      const px0 = splitX + 30, px1 = W - 20, py0 = padT, py1 = H - padB;
+      const N = 8;
+      const barW = (px1 - px0) / N - 4;
+
+      // Coefficients
+      const coeffs = [];
+      for (let n = 1; n <= N; n++){
+        let coef = 0;
+        if (m14EO.isEven){
+          // f(x) = |x|/π is even, has aₙ only
+          // a₀ = 1/2 (mean), aₙ = 2(cos(nπ) - 1)/(π²n²)
+          if (n === 1) coef = 0.5;
+          coef = 2*(Math.cos(n*Math.PI) - 1)/(Math.PI*Math.PI*n*n);
+        } else {
+          // f(x) = x/π is odd, has bₙ only
+          // bₙ = -2(-1)^n/(πn)
+          coef = -2*Math.pow(-1, n)/(Math.PI*n);
+        }
+        coeffs.push(Math.abs(coef));
+      }
+
+      const yMaxC = Math.max(...coeffs, 0.1);
+      function ty(y){ return py1 - (y/yMaxC)*(py1 - py0 - 8); }
+
+      coeffs.forEach((mag, i) => {
+        const xPos = px0 + i * (barW + 4) + 2;
+        const yPos = ty(mag);
+        ctx.fillStyle = m14EO.isEven ? '#ef4444' : '#0ea5e9';
+        ctx.shadowColor = m14EO.isEven ? '#ef4444' : '#0ea5e9'; ctx.shadowBlur = 6;
+        ctx.fillRect(xPos, yPos, barW, py1 - yPos);
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+        ctx.fillText(String(i+1), xPos + barW/2, py1 + 14);
+        ctx.textAlign = 'left';
+      });
+
+      ctx.fillStyle = m14EO.isEven ? '#ef4444' : '#0ea5e9';
+      ctx.font = 'bold 12px JetBrains Mono, monospace';
+      ctx.fillText(m14EO.isEven ? 'Koefisien |aₙ| (cosine-only)' : 'Koefisien |bₙ| (sine-only)', px0 + 6, padT - 12);
+    }
+
+    const infoEl = document.getElementById('m14EOInfo');
+    if (infoEl){
+      infoEl.innerHTML = m14EO.isEven
+        ? `<span style="color:#00e09e">●</span> Even function f(x) = |x|/π → bₙ = 0, hanya aₙ ≠ 0 (cosine series).`
+        : `<span style="color:#ffb300">●</span> Odd function f(x) = x/π → aₙ = 0, hanya bₙ ≠ 0 (sine series).`;
+    }
+
+    m14EO.raf = requestAnimationFrame(drawM14EO);
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 4 — Konvergensi Dirichlet
+  // ════════════════════════════════════════════════════════════════
+  const m14Dir = { which: 'continuous', t: 0, raf: null };
+
+  const M14_DIR = {
+    continuous: { label: 'f(x) = sin(x)·cos(x)/2 (smooth)', target: x => Math.sin(x)*Math.cos(x)/2, fourier: (x, N) => {
+      // sin(x)cos(x) = sin(2x)/2, so already 1 term
+      return Math.sin(2*x)/4;
+    }, decayRate: '1/n³ (cepat)', gibbs: 'no Gibbs', color: '#00e09e' },
+    jump:       { label: 'Square Wave (jump diskontinuitas)', target: x => {
+      const xMod = ((x % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
+      return xMod < Math.PI ? 1 : -1;
+    }, fourier: (x, N) => {
+      let s = 0;
+      for (let k = 1; k <= N; k++){
+        const n = 2*k - 1;
+        s += Math.sin(n*x) / n;
+      }
+      return s * 4/Math.PI;
+    }, decayRate: '1/n (lambat)', gibbs: '⚠ Gibbs ~9% overshoot', color: '#a855f7' },
+    peak:       { label: 'Triangle Wave (kink, no jump)', target: x => {
+      const xMod = ((x % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
+      return xMod < Math.PI ? (2*xMod/Math.PI - 1) : (3 - 2*xMod/Math.PI);
+    }, fourier: (x, N) => {
+      let s = 0;
+      for (let k = 1; k <= N; k += 2){
+        s += Math.pow(-1, (k-1)/2) * Math.sin(k*x) / (k*k);
+      }
+      return s * 8/(Math.PI*Math.PI);
+    }, decayRate: '1/n² (medium)', gibbs: 'no Gibbs', color: '#0ea5e9' },
+    cosine:     { label: 'f(x) = cos(2x) (analytical, single mode)', target: x => Math.cos(2*x), fourier: (x, N) => {
+      return Math.cos(2*x);  // 1 term
+    }, decayRate: 'instant', gibbs: 'perfect', color: '#ff6bb3' }
+  };
+
+  window.m14SetDirichlet = function(key){
+    m14Dir.which = key;
+    document.querySelectorAll('.m14-dr-lbl').forEach(lbl => {
+      const c = lbl.getAttribute('data-c');
+      const active = (c === key);
+      lbl.style.border = active ? '2px solid var(--pink)' : '1px solid rgba(148,163,184,.3)';
+      lbl.style.background = active ? 'rgba(255,255,255,.20)' : 'rgba(148,163,184,.10)';
+      lbl.style.color = active ? '#fff' : '#94a3b8';
+      lbl.style.fontWeight = active ? '700' : '400';
+      lbl.style.boxShadow = active ? '0 0 12px rgba(255,107,179,.4)' : 'none';
+      lbl.style.transform = active ? 'scale(1.05)' : 'scale(1)';
+      lbl.textContent = active ? (lbl.textContent.replace(' ✓','') + ' ✓') : lbl.textContent.replace(' ✓','');
+    });
+  };
+
+  function drawM14Dirichlet(){
+    const cv = document.getElementById('m14cvDirichlet'); if(!cv){ m14Dir.raf = requestAnimationFrame(drawM14Dirichlet); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const obj = M14_DIR[m14Dir.which];
+    const padL = 50, padT = 35, padB = 35;
+    const px0 = padL, px1 = W - 20, py0 = padT, py1 = H - padB;
+    const xMin = -Math.PI, xMax = 3*Math.PI;
+    function tx(x){ return px0 + ((x - xMin)/(xMax - xMin))*(px1 - px0); }
+
+    gridLines(ctx, px0, px1, py0, py1, 12, 6);
+
+    const yMax = 1.5;
+    function ty(y){ return (py0+py1)/2 - (y/yMax)*((py1-py0)/2 - 8); }
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+
+    // Plot target (faded)
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]);
+    ctx.beginPath();
+    const N = 400;
+    for (let i = 0; i <= N; i++){
+      const x = xMin + (i/N)*(xMax - xMin);
+      const px = tx(x), py = ty(obj.target(x));
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Animated N (cycle from 1 to 30)
+    m14Dir.t += 0.03;
+    const Nh = 1 + Math.floor((Math.sin(m14Dir.t * 0.3) + 1) * 15);  // 1 to 30
+
+    // Plot Fourier partial sum
+    ctx.strokeStyle = obj.color; ctx.lineWidth = 2.5;
+    ctx.shadowColor = obj.color; ctx.shadowBlur = 10;
+    ctx.beginPath();
+    for (let i = 0; i <= N; i++){
+      const x = xMin + (i/N)*(xMax - xMin);
+      const px = tx(x), py = ty(obj.fourier(x, Nh));
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Title
+    ctx.fillStyle = obj.color; ctx.font = 'bold 13px JetBrains Mono, monospace';
+    ctx.fillText(`${obj.label}, N=${Nh}`, padL + 6, padT - 12);
+
+    ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+    ctx.fillText('x', px1 + 5, ty(0) + 4);
+    ctx.fillText(`decay: ${obj.decayRate}, ${obj.gibbs}`, px0 + 8, py1 + 28);
+
+    const infoEl = document.getElementById('m14DirichletInfo');
+    if (infoEl){
+      infoEl.innerHTML = `<span style="color:${obj.color}">●</span> ${obj.label} &nbsp;|&nbsp; decay rate: ${obj.decayRate}, ${obj.gibbs} &nbsp;|&nbsp; N=${Nh} animated`;
+    }
+
+    m14Dir.raf = requestAnimationFrame(drawM14Dirichlet);
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 5 — Aplikasi FFT Engineering
+  // ════════════════════════════════════════════════════════════════
+  const m14App = { which: 'vibration', t: 0, hist: [], raf: null };
+
+  const M14_APP = {
+    vibration: { label: 'Centrifugal Pump Vibration: 1× + 2× + bearing fault', freqs: [{f: 1, A: 0.5, color: '#0ea5e9'}, {f: 2, A: 0.3, color: '#a855f7'}, {f: 5.7, A: 0.4, color: '#ef4444'}], compute: t => 0.5*Math.sin(2*Math.PI*1*t/10) + 0.3*Math.sin(2*Math.PI*2*t/10) + 0.4*Math.sin(2*Math.PI*5.7*t/10), color: '#ff6bb3', icon: 'pump' },
+    audio:     { label: 'Audio: kombinasi 220 Hz (A3) + 440 (A4) + 880 (A5)', freqs: [{f: 1, A: 0.5}, {f: 2, A: 0.4}, {f: 4, A: 0.2}], compute: t => 0.5*Math.sin(2*Math.PI*1*t/10) + 0.4*Math.sin(2*Math.PI*2*t/10) + 0.2*Math.sin(2*Math.PI*4*t/10), color: '#00e09e', icon: 'audio' },
+    eq:        { label: 'EQ: bass-cut + treble-boost', freqs: [{f: 0.5, A: 0.1}, {f: 2, A: 0.4}, {f: 4, A: 0.7}], compute: t => 0.1*Math.sin(2*Math.PI*0.5*t/10) + 0.4*Math.sin(2*Math.PI*2*t/10) + 0.7*Math.sin(2*Math.PI*4*t/10), color: '#0ea5e9', icon: 'eq' },
+    harmonic:  { label: 'Power Line: 50 Hz + harmonic 100, 150, 250 Hz', freqs: [{f: 1, A: 0.7}, {f: 2, A: 0.2}, {f: 3, A: 0.15}, {f: 5, A: 0.1}], compute: t => 0.7*Math.sin(2*Math.PI*1*t/10) + 0.2*Math.sin(2*Math.PI*2*t/10) + 0.15*Math.sin(2*Math.PI*3*t/10) + 0.1*Math.sin(2*Math.PI*5*t/10), color: '#ffb300', icon: 'power' },
+    ecg:       { label: 'ECG: heart rate + 50/60Hz noise', freqs: [{f: 1.2, A: 0.6}, {f: 6, A: 0.15, color: '#ef4444'}], compute: t => 0.6*Math.sin(2*Math.PI*1.2*t/10) * (Math.exp(-Math.pow((t % 8) - 1, 2)*2) + 0.3) + 0.15*Math.sin(2*Math.PI*6*t/10), color: '#a855f7', icon: 'ecg' }
+  };
+
+  window.m14SetAppFFT = function(key){
+    m14App.which = key; m14App.hist = []; m14App.t = 0;
+  };
+
+  function drawM14AppFFT(){
+    const cv = document.getElementById('m14cvAppFFT'); if(!cv){ m14App.raf = requestAnimationFrame(drawM14AppFFT); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const obj = M14_APP[m14App.which];
+    const splitX = W * 0.40;
+    ctx.strokeStyle = 'rgba(148,163,184,.3)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(splitX, 20); ctx.lineTo(splitX, H - 20); ctx.stroke();
+
+    const cx = splitX/2, cy = H/2;
+    m14App.t += 0.012;
+    const t = m14App.t;
+    const val = obj.compute(t);
+
+    if (obj.icon === 'pump'){
+      // Centrifugal pump with rotor + accelerometer
+      const rot = t * 4;
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(cx, cy, 35, 0, Math.PI*2); ctx.stroke();
+      // Rotor blades
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 3;
+      for (let k = 0; k < 6; k++){
+        const a = rot + k * Math.PI/3;
+        ctx.beginPath();
+        ctx.moveTo(cx + 5*Math.cos(a), cy + 5*Math.sin(a));
+        ctx.lineTo(cx + 30*Math.cos(a), cy + 30*Math.sin(a));
+        ctx.stroke();
+      }
+      // Accelerometer
+      ctx.fillStyle = '#ef4444'; ctx.fillRect(cx + 35, cy - 5, 12, 10);
+      ctx.fillStyle = '#fff'; ctx.font = '8px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText('ACC', cx + 41, cy + 1);
+      ctx.textAlign = 'left';
+      // Vibration line emanating
+      ctx.strokeStyle = `rgba(239, 68, 68, ${0.3 + 0.5*Math.abs(val)})`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let i = 0; i <= 10; i++){
+        const xPos = cx + 47 + i*4;
+        const yV = Math.sin(i*0.5 + t*8) * 6;
+        ctx.lineTo(xPos, cy + yV);
+      }
+      ctx.stroke();
+    } else if (obj.icon === 'audio'){
+      // Speaker cone vibrating
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      ctx.fillStyle = `${obj.color}30`;
+      ctx.beginPath();
+      ctx.moveTo(cx - 40, cy - 30);
+      ctx.lineTo(cx - 40, cy + 30);
+      ctx.lineTo(cx + 20 + 8*val, cy + 18);
+      ctx.lineTo(cx + 20 + 8*val, cy - 18);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      // Sound waves
+      for (let k = 0; k < 4; k++){
+        const r = 20 + ((t * 30 + k * 25) % 80);
+        const opacity = Math.max(0, 1 - r/80);
+        ctx.strokeStyle = `rgba(0, 224, 158, ${opacity * 0.5})`;
+        ctx.beginPath(); ctx.arc(cx + 30, cy, r, -Math.PI*0.4, Math.PI*0.4); ctx.stroke();
+      }
+    } else if (obj.icon === 'eq'){
+      // EQ slider bars
+      const freqs = obj.freqs;
+      const startX = cx - 60;
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillRect(startX - 10, cy - 50, 120, 4);  // top bar
+      ctx.fillRect(startX - 10, cy + 46, 120, 4);  // bottom bar
+      freqs.forEach((f, k) => {
+        const sx = startX + k * 50;
+        const sy = cy - 25 + (1 - f.A) * 40;
+        // Vertical track
+        ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(sx, cy - 50); ctx.lineTo(sx, cy + 50); ctx.stroke();
+        // Slider knob
+        ctx.fillStyle = obj.color;
+        ctx.shadowColor = obj.color; ctx.shadowBlur = 8;
+        ctx.fillRect(sx - 12, sy - 6, 24, 12);
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 9px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+        ctx.fillText(`${f.f}×`, sx, cy + 70);
+        ctx.textAlign = 'left';
+      });
+    } else if (obj.icon === 'power'){
+      // Power line tower
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      ctx.beginPath();
+      // Tower
+      ctx.moveTo(cx - 30, cy + 40); ctx.lineTo(cx + 30, cy + 40);
+      ctx.moveTo(cx - 25, cy + 30); ctx.lineTo(cx, cy - 50); ctx.lineTo(cx + 25, cy + 30);
+      ctx.moveTo(cx - 18, cy + 10); ctx.lineTo(cx + 18, cy + 10);
+      ctx.moveTo(cx - 22, cy - 20); ctx.lineTo(cx + 22, cy - 20);
+      ctx.stroke();
+      // Sinusoidal current (animated)
+      ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let i = 0; i <= 30; i++){
+        const xR = i/30;
+        const yV = Math.sin(xR * Math.PI * 4 + t * 10) * 6;
+        if (i === 0) ctx.moveTo(cx - 35 + xR * 70, cy + 10 + yV);
+        else ctx.lineTo(cx - 35 + xR * 70, cy + 10 + yV);
+      }
+      ctx.stroke();
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 10px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText('60 Hz + harmonics', cx, H - 22);
+      ctx.textAlign = 'left';
+    } else if (obj.icon === 'ecg'){
+      // ECG signal
+      const ecgY = cy;
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 8;
+      ctx.beginPath();
+      for (let i = 0; i <= 60; i++){
+        const xPos = cx - 60 + i * 2;
+        const phase = (i + t * 10) % 25;
+        let yV;
+        if (phase < 1) yV = -2;
+        else if (phase < 3) yV = -10 - phase*5;
+        else if (phase < 4) yV = 25 - phase*8;
+        else if (phase < 7) yV = -2 + phase;
+        else yV = 0;
+        ctx.lineTo(xPos, ecgY + yV);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      // Heart icon
+      ctx.fillStyle = obj.color;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 8 + 8*Math.abs(val);
+      ctx.beginPath();
+      ctx.arc(cx + 60, cy - 25, 4 + 2*Math.abs(val), 0, Math.PI*2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    // ── RIGHT: top half = signal trace, bottom half = FFT bar chart ──
+    const sx0 = splitX + 16, sx1 = W - 20;
+    const splitY = H * 0.5;
+    const sy0 = 30, sy1 = splitY - 8;
+    const sy2 = splitY + 8, sy3 = H - 30;
+
+    // Signal trace (top)
+    ctx.strokeStyle = 'rgba(148,163,184,.2)'; ctx.lineWidth = 1;
+    ctx.strokeRect(sx0, sy0, sx1 - sx0, sy1 - sy0);
+    gridLines(ctx, sx0, sx1, sy0, sy1, 10, 2);
+
+    m14App.hist.push(val);
+    if (m14App.hist.length > 200) m14App.hist.shift();
+
+    const hN = m14App.hist.length;
+    if (hN > 1){
+      let yMin = -1, yMaxH = 1;
+      for (let v of m14App.hist){ if (v < yMin) yMin = v; if (v > yMaxH) yMaxH = v; }
+      const yRng = Math.max(0.5, yMaxH - yMin);
+
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      for (let i = 0; i < hN; i++){
+        const px = sx0 + (i/(hN-1))*(sx1 - sx0);
+        const py = sy0 + ((yMaxH - m14App.hist[i])/yRng) * (sy1 - sy0);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+    }
+    ctx.fillStyle = obj.color; ctx.font = 'bold 10px JetBrains Mono, monospace';
+    ctx.fillText('Signal trace (time domain)', sx0 + 4, sy0 + 12);
+
+    // FFT bar chart (bottom)
+    ctx.strokeStyle = 'rgba(148,163,184,.2)'; ctx.lineWidth = 1;
+    ctx.strokeRect(sx0, sy2, sx1 - sx0, sy3 - sy2);
+    gridLines(ctx, sx0, sx1, sy2, sy3, 10, 2);
+
+    const fftMax = Math.max(...obj.freqs.map(f => f.A));
+    const barCount = 10;
+    for (let k = 1; k <= barCount; k++){
+      const matched = obj.freqs.find(f => Math.round(f.f) === k);
+      const A = matched ? matched.A : 0;
+      const xPos = sx0 + (k - 0.5) * (sx1 - sx0)/barCount;
+      const barH = (A / fftMax) * (sy3 - sy2 - 16);
+      const colorBar = matched && matched.color ? matched.color : obj.color;
+      ctx.fillStyle = colorBar;
+      ctx.shadowColor = colorBar; ctx.shadowBlur = barH > 5 ? 6 : 0;
+      ctx.fillRect(xPos - 8, sy3 - barH, 16, barH);
+      ctx.shadowBlur = 0;
+      // n label
+      ctx.fillStyle = '#94a3b8'; ctx.font = '9px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText(String(k), xPos, sy3 + 14);
+      ctx.textAlign = 'left';
+    }
+    ctx.fillStyle = obj.color; ctx.font = 'bold 10px JetBrains Mono, monospace';
+    ctx.fillText('|FFT| spectrum (frequency domain)', sx0 + 4, sy2 + 12);
+
+    const infoEl = document.getElementById('m14AppFFTInfo');
+    if (infoEl){
+      const peakFreqs = obj.freqs.map(f => `${f.f}×`).join(', ');
+      infoEl.innerHTML = `<span style="color:${obj.color}">●</span> ${obj.label} &nbsp;|&nbsp; peak frequencies: ${peakFreqs}`;
+    }
+
+    m14App.raf = requestAnimationFrame(drawM14AppFFT);
+  }
+
+  // ── Init ──
+  function initM14Anims(){
+    if (document.getElementById('m14cvSynth')){ drawM14Synth(); _wireM14Synth(); }
+    if (document.getElementById('m14cvCoeffs')){ drawM14Coeffs(); _wireM14Coeffs(); }
+    if (document.getElementById('m14cvEvenOdd')) drawM14EO();
+    if (document.getElementById('m14cvDirichlet')) drawM14Dirichlet();
+    if (document.getElementById('m14cvAppFFT')) drawM14AppFFT();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initM14Anims);
+  else initM14Anims();
+})();
 </script>
 
 </body>
