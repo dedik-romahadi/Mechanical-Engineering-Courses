@@ -1152,13 +1152,13 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <canvas id="cvPhase" height="240"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
-          <label>Frekuensi ω (rad/s) — preset push buttons — <span class="ctrl-val" id="v_ph_w">5.0</span></label>
-          <input type="hidden" id="sl_ph_w" value="5">
+          <label>Frekuensi ω (rad/s) — preset push buttons — <span class="ctrl-val" id="v_ph_w">3.0</span></label>
+          <input type="hidden" id="sl_ph_w" value="3">
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
-            <button class="ph-pbtn" onclick="setPhaseW(2)" data-w="2" style="padding:6px 14px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">Slow (2)</button>
-            <button class="ph-pbtn" onclick="setPhaseW(5)" data-w="5" style="padding:6px 14px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.6);background:rgba(14,165,233,.25);color:#0ea5e9;">Medium (5)</button>
+            <button class="ph-pbtn" onclick="setPhaseW(2)" data-w="2" style="padding:6px 14px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">Very Slow (2)</button>
+            <button class="ph-pbtn" onclick="setPhaseW(3)" data-w="3" style="padding:6px 14px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.6);background:rgba(14,165,233,.25);color:#0ea5e9;">Slow (3)</button>
+            <button class="ph-pbtn" onclick="setPhaseW(5)" data-w="5" style="padding:6px 14px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">Medium (5)</button>
             <button class="ph-pbtn" onclick="setPhaseW(8)" data-w="8" style="padding:6px 14px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">Fast (8)</button>
-            <button class="ph-pbtn" onclick="setPhaseW(12)" data-w="12" style="padding:6px 14px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">Very Fast (12)</button>
           </div>
         </div>
         <div class="ctrl-group">
@@ -1256,7 +1256,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <span class="anim-title">Animasi 5 — Pemodelan Sistem 1-DoF Real-World: Pendulum, Cantilever, Rotor, dst.</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvSysReal" height="240" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <canvas id="cvSysReal" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
           <label>Pilih Sistem Real (Dropdown):</label>
@@ -4596,7 +4596,7 @@ function drawPhase(){
   ctx.beginPath(); ctx.moveTo(padL,padT+plotH/2); ctx.lineTo(padL+plotW,padT+plotH/2); ctx.stroke();
 
   const tmax=Math.max(2,4*Math.PI/w);
-  const t0=_phaseFrame*0.010;
+  const t0=_phaseFrame*0.004;
   // Normalize all 3 to ±1 by dividing by their magnitudes
   // x_max = A, v_max = A*w, a_max = A*w*w
   const sx=tt=>padL+(tt/tmax)*plotW;
@@ -4795,7 +4795,7 @@ function drawVibTypes(){
     let gen;
     const wd=w*Math.sqrt(Math.max(0.001,1-z*z));
     if(idx===0) gen=tt=>Math.cos(w*(tt-tmax+t0));
-    else if(idx===1) gen=tt=>Math.exp(-z*w*(tt+t0))*Math.cos(wd*(tt+t0));
+    else if(idx===1){const period=tmax*1.2; gen=tt=>{const tau=(tt+t0)%period; return Math.exp(-z*w*tau)*Math.cos(wd*tau);};}
     else if(idx===2) gen=tt=>0.7*Math.cos(w*(tt-tmax+t0)-Math.PI/4);
     else gen=tt=>{const ix=Math.floor(tt/tmax*200)+shift; return _vtRand[ix%_vtRand.length]*0.7;};
     ctx.strokeStyle=c.col; ctx.lineWidth=1.6; ctx.shadowColor=c.col; ctx.shadowBlur=3;
@@ -4810,16 +4810,17 @@ function drawVibTypes(){
     ctx.shadowBlur=0;
     // Decay envelope for damped (idx 1)
     if(idx===1){
+      const period2=tmax*1.2;
       ctx.strokeStyle='rgba(251,191,36,.5)'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
       ctx.beginPath();
       for(let i=0;i<=80;i++){
-        const tt=tmax*i/80, env=Math.exp(-z*w*(tt+t0));
+        const tt=tmax*i/80, tau=(tt+t0)%period2, env=Math.exp(-z*w*tau);
         if(i===0) ctx.moveTo(sx(tt),sy(env)); else ctx.lineTo(sx(tt),sy(env));
       }
       ctx.stroke();
       ctx.beginPath();
       for(let i=0;i<=80;i++){
-        const tt=tmax*i/80, env=Math.exp(-z*w*(tt+t0));
+        const tt=tmax*i/80, tau=(tt+t0)%period2, env=Math.exp(-z*w*tau);
         if(i===0) ctx.moveTo(sx(tt),sy(-env)); else ctx.lineTo(sx(tt),sy(-env));
       }
       ctx.stroke();
@@ -4838,81 +4839,82 @@ let _sysRealKind='pendulum', _sysRealFrame=0;
 window.setSysReal=function(v){_sysRealKind=v;drawSysReal();};
 function drawSysReal(){
   const cv=document.getElementById('cvSysReal'); if(!cv) return;
-  const W=cv.clientWidth; cv.width=W; const H=cv.height;
+  const W=cv.clientWidth; cv.width=W; cv.height=Math.max(280,cv.height); const H=cv.height;
   const ctx=cv.getContext('2d');
   const bg=ctx.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#020812'); bg.addColorStop(1,'#080c18');
   ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
-  const t=_sysRealFrame*0.012;
-  const cx=W/2, cy=H/2;
+  const t=_sysRealFrame*0.005;
+  // Split canvas: LEFT = system viz, RIGHT = signal trace
+  const splitX=Math.max(280,W*0.5);
+  const cx=splitX/2, cy=H/2;
   ctx.font='bold 11px JetBrains Mono'; ctx.textAlign='center';
 
+  // Compute signal value for current system
+  let sigValue=0, wn=0, label='', sigUnit='';
   if(_sysRealKind==='pendulum'){
-    const wn=Math.sqrt(9.81/1.0); // L=1m
-    const theta=Math.sin(wn*t)*0.45;
-    const L=100;
+    wn=Math.sqrt(9.81/1.0);
+    sigValue=Math.sin(wn*t)*0.45;
+    label='θ(t)'; sigUnit='rad';
+    // Pendulum viz
+    const theta=sigValue;
+    const L=110;
     const px=cx+L*Math.sin(theta);
     const py=30+L*Math.cos(theta);
-    // Ceiling
     ctx.fillStyle='#1e293b'; ctx.fillRect(cx-50,15,100,8);
-    for(let i=0;i<=10;i++){ ctx.strokeStyle='rgba(148,163,184,.3)'; ctx.lineWidth=1;
-      ctx.beginPath(); ctx.moveTo(cx-50+i*10,23); ctx.lineTo(cx-58+i*10,30); ctx.stroke();}
-    // String
     ctx.strokeStyle='rgba(168,85,247,.7)'; ctx.lineWidth=2;
     ctx.beginPath(); ctx.moveTo(cx,23); ctx.lineTo(px,py); ctx.stroke();
-    // Bob
     ctx.fillStyle='rgba(255,179,0,.85)'; ctx.beginPath();
     ctx.arc(px,py,18,0,Math.PI*2); ctx.fill();
     ctx.fillStyle='#fff'; ctx.fillText('m',px,py+4);
     document.getElementById('sysRealInfo').textContent=`Pendulum L=1m: ω_n = √(g/L) = ${wn.toFixed(2)} rad/s, T = ${(2*Math.PI/wn).toFixed(2)} s`;
   }
   else if(_sysRealKind==='msd'){
-    const wn=Math.sqrt(100); // k=100, m=1
-    const x=Math.cos(wn*t)*40;
-    // Wall
+    wn=Math.sqrt(100);
+    sigValue=Math.cos(wn*t)*0.4;
+    label='x(t)'; sigUnit='m';
+    const x=sigValue*100;
     ctx.fillStyle='#1e293b'; ctx.fillRect(20,cy-40,8,80);
-    // Spring
     ctx.strokeStyle='rgba(168,85,247,.7)'; ctx.lineWidth=2;
     ctx.beginPath(); ctx.moveTo(28,cy);
     const segs=12;
     for(let i=1;i<segs;i++){const tt=i/segs; ctx.lineTo(28+(cx+x-30-28)*tt, cy+((i%2)?-7:7));}
     ctx.lineTo(cx+x-30,cy); ctx.stroke();
-    // Mass
     ctx.fillStyle='rgba(14,165,233,.85)'; ctx.fillRect(cx+x-30,cy-30,60,60);
     ctx.fillStyle='#fff'; ctx.font='bold 14px JetBrains Mono'; ctx.fillText('m',cx+x,cy+5);
     document.getElementById('sysRealInfo').textContent=`Mass-Spring k=100 N/m, m=1 kg: ω_n = √(k/m) = ${wn.toFixed(2)} rad/s`;
   }
   else if(_sysRealKind==='cantilever'){
-    // Cantilever beam, mode 1
+    wn=2*Math.PI*1.5;
+    const amp=Math.sin(2*t)*0.5;
+    sigValue=amp;
+    label='y_tip(t)'; sigUnit='m';
     ctx.fillStyle='#1e293b'; ctx.fillRect(20,cy-40,8,80);
     ctx.strokeStyle='rgba(0,224,158,.8)'; ctx.lineWidth=4;
     ctx.beginPath(); ctx.moveTo(28,cy);
-    const amp=Math.sin(2*t)*30;
-    const beamL=W-80;
+    const beamL=splitX-80;
     for(let px=0;px<=beamL;px+=4){
       const xn=px/beamL;
-      const phi=xn*xn*(3-xn); // simplified mode 1 shape
-      const y=cy + amp*phi*0.6;
+      const phi=xn*xn*(3-xn);
+      const y=cy + amp*30*phi*0.6;
       ctx.lineTo(28+px, y);
     }
     ctx.stroke();
-    // Tip mass
-    const tipY=cy + amp*0.6*1*(3-1);
+    const tipY=cy + amp*30*0.6*1*(3-1);
     ctx.fillStyle='rgba(0,224,158,.9)';
     ctx.beginPath(); ctx.arc(28+beamL,tipY,12,0,Math.PI*2); ctx.fill();
     ctx.fillStyle='#fff'; ctx.font='bold 11px JetBrains Mono'; ctx.fillText('Cantilever Mode 1',cx,cy+80);
     document.getElementById('sysRealInfo').textContent='Cantilever: ω_n = (1.875)²·√(EI/(ρAL⁴)) — bending mode 1, tip mass berosilasi';
   }
   else if(_sysRealKind==='rotor'){
-    const wobble=Math.sin(8*t)*8;
-    // Bearings
+    wn=2*Math.PI*1.27;
+    const wobble=Math.sin(wn*t)*8;
+    sigValue=wobble/8*0.4;
+    label='wobble(t)'; sigUnit='m';
     ctx.fillStyle='#1e293b'; ctx.fillRect(cx-110,cy-20,30,40); ctx.fillRect(cx+80,cy-20,30,40);
-    // Shaft
     ctx.strokeStyle='#94a3b8'; ctx.lineWidth=4;
     ctx.beginPath(); ctx.moveTo(cx-110,cy+wobble); ctx.lineTo(cx+110,cy+wobble); ctx.stroke();
-    // Rotor disk
     ctx.fillStyle='rgba(168,85,247,.9)';
     ctx.beginPath(); ctx.arc(cx,cy+wobble,28,0,Math.PI*2); ctx.fill();
-    // Spin marker
     const spin=t*5;
     ctx.fillStyle='#fff'; ctx.beginPath();
     ctx.arc(cx+Math.cos(spin)*20, cy+wobble+Math.sin(spin)*20, 4, 0, Math.PI*2); ctx.fill();
@@ -4920,31 +4922,75 @@ function drawSysReal(){
     document.getElementById('sysRealInfo').textContent='Rotor + Bearing: ω_n = √(k_journal/m_rotor), bearing journal sebagai pegas radial';
   }
   else if(_sysRealKind==='suspension'){
-    const bump=Math.sin(1.5*t)*10;
-    // Road
+    wn=2*Math.PI*1.0;
+    const bump=Math.sin(wn*t)*10;
+    sigValue=bump/10*0.3;
+    label='z_body(t)'; sigUnit='m';
     ctx.strokeStyle='#1e293b'; ctx.lineWidth=4;
-    ctx.beginPath(); ctx.moveTo(20,cy+70+bump); ctx.lineTo(W-20,cy+70+bump); ctx.stroke();
-    // Wheels
+    ctx.beginPath(); ctx.moveTo(20,cy+70+bump); ctx.lineTo(splitX-20,cy+70+bump); ctx.stroke();
     ctx.fillStyle='#0f172a';
     ctx.beginPath(); ctx.arc(cx-60,cy+40,20,0,Math.PI*2); ctx.fill();
     ctx.beginPath(); ctx.arc(cx+60,cy+40,20,0,Math.PI*2); ctx.fill();
-    // Springs
     for(let wx of [cx-60,cx+60]){
       ctx.strokeStyle='rgba(168,85,247,.7)'; ctx.lineWidth=2;
       ctx.beginPath(); ctx.moveTo(wx,cy+20);
       for(let i=1;i<6;i++) ctx.lineTo(wx+((i%2)?6:-6), cy+20-i*4);
       ctx.lineTo(wx,cy); ctx.stroke();
     }
-    // Body
     ctx.fillStyle='rgba(14,165,233,.9)';
     ctx.fillRect(cx-100,cy-25+bump*0.3,200,30);
     ctx.fillStyle='#fff'; ctx.font='bold 11px JetBrains Mono'; ctx.fillText('Body',cx,cy-5+bump*0.3);
     document.getElementById('sysRealInfo').textContent='Suspensi mobil: ω_n = √(k_spring/m_body) ≈ 1-2 Hz natural ride frequency';
   }
 
+  // Append to history (keep 200 points)
+  if(!_sysRealHist) _sysRealHist=[];
+  _sysRealHist.push(sigValue);
+  if(_sysRealHist.length>200) _sysRealHist.shift();
+
+  // ── RIGHT panel: Signal trace x(t) ──
+  const padR=20, padTR=20, padBR=30;
+  const plotX0=splitX+10, plotW=W-plotX0-padR, plotH=H-padTR-padBR, plotY0=padTR;
+  ctx.strokeStyle='rgba(255,255,255,.06)'; ctx.lineWidth=1;
+  ctx.strokeRect(plotX0,plotY0,plotW,plotH);
+  // Zero line
+  ctx.strokeStyle='rgba(148,163,184,.2)';
+  ctx.beginPath(); ctx.moveTo(plotX0,plotY0+plotH/2); ctx.lineTo(plotX0+plotW,plotY0+plotH/2); ctx.stroke();
+  // Axis labels
+  ctx.fillStyle='#94a3b8'; ctx.font='10px JetBrains Mono'; ctx.textAlign='right';
+  ctx.fillText('+max',plotX0-4,plotY0+10);
+  ctx.fillText('0',plotX0-4,plotY0+plotH/2+3);
+  ctx.fillText('−max',plotX0-4,plotY0+plotH-4);
+  ctx.textAlign='left'; ctx.fillStyle='#a855f7'; ctx.font='bold 11px JetBrains Mono';
+  ctx.fillText(`Signal: ${label} [${sigUnit}]`,plotX0+6,plotY0+12);
+  ctx.fillStyle='#94a3b8'; ctx.font='9px JetBrains Mono'; ctx.textAlign='center';
+  ctx.fillText('-2s',plotX0,plotY0+plotH+14);
+  ctx.fillText('-1s',plotX0+plotW/2,plotY0+plotH+14);
+  ctx.fillText('now',plotX0+plotW,plotY0+plotH+14);
+  // Trace
+  ctx.strokeStyle='#a855f7'; ctx.lineWidth=2; ctx.shadowColor='rgba(168,85,247,.5)'; ctx.shadowBlur=4;
+  ctx.beginPath();
+  const N=_sysRealHist.length;
+  for(let i=0;i<N;i++){
+    const px=plotX0 + (i/199)*plotW;
+    const py=plotY0+plotH/2 - _sysRealHist[i]*(plotH/2-8);
+    if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+  ctx.shadowBlur=0;
+  // Current dot
+  if(N>0){
+    const px=plotX0+plotW;
+    const py=plotY0+plotH/2 - _sysRealHist[N-1]*(plotH/2-8);
+    ctx.fillStyle='#fbbf24'; ctx.shadowColor='#fbbf24'; ctx.shadowBlur=8;
+    ctx.beginPath(); ctx.arc(px,py,5,0,Math.PI*2); ctx.fill();
+    ctx.shadowBlur=0;
+  }
+
   _sysRealFrame++;
   requestAnimationFrame(drawSysReal);
 }
+let _sysRealHist=null;
 setTimeout(()=>{drawSysReal();},500);
 
 (function(){['sl_vt_z','sl_vt_w'].forEach(id=>{const s=document.getElementById(id); if(s) s.addEventListener('input',()=>{if(_vtPaused) drawVibTypes();});});})();
