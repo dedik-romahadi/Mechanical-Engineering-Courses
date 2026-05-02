@@ -2283,10 +2283,10 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Pipeline filter yang paling tepat?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>EMA (α=0.1) saja — sederhana dan responsif</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>Median (k=5) → Savitzky-Golay (w=11, p=3) → analisis: median dulu untuk hapus spike, lalu SG untuk preserve peak frekuensi pada FFT</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>MA window 100 → langsung FFT</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Tidak perlu filter — algoritma FFT modern robust terhadap noise</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>EMA (α=0.1) saja — sederhana dan responsif</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>Median (k=5) → Savitzky-Golay (w=11, p=3) → analisis: median dulu untuk hapus spike, lalu SG untuk preserve peak frekuensi pada FFT</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>MA window 100 → langsung FFT</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Tidak perlu filter — algoritma FFT modern robust terhadap noise</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! Pipeline <strong>median → SG</strong> adalah pilihan tepat: (1) <strong>Median k=5</strong> menghapus spike EMI sepenuhnya — operasi nonlinear ini essential karena MA/EMA hanya mengurangi spike, tidak menghilangkannya. (2) <strong>SG w=11, p=3</strong> mengurangi gaussian noise sambil mempertahankan amplitudo peak vibration — kritis untuk severity assessment ISO 10816 dan identifikasi bearing fault frequencies. EMA tidak cocok di sini karena lag akan mendistorsi posisi peak di domain frekuensi setelah FFT.</div>
           <div class="p-fb w" id="fp1w">❌ EMA saja tidak menghapus impulse spike (hanya mengurangi). MA window 100 akan menumpulkan peak frekuensi → severity assessment tidak akurat. Tidak menggunakan filter sama sekali = artefak akan dominate output, hasil assessment tidak reliable. Urutan pipeline matters: median harus PERTAMA karena ia nonlinear; menerapkan smoothing dulu akan menyebar spike ke window besar, baru kemudian median menjadi tidak efektif.</div>
@@ -2315,10 +2315,10 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Pendekatan EMA yang paling tepat?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>EMA α=0.5 langsung pada 5 kHz raw — paling responsif</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>Hitung RMS per-jam (agregasi), baru EMA dengan α=0.05–0.1 pada agregat — N_eff ≈ 1-2 hari, cocok untuk trending</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>EMA α=10⁻⁶ pada raw — agar match time scale berhari-hari</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Lupakan EMA — pakai fixed threshold ISO saja</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>EMA α=0.5 langsung pada 5 kHz raw — paling responsif</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Hitung RMS per-jam (agregasi), baru EMA dengan α=0.05–0.1 pada agregat — N_eff ≈ 1-2 hari, cocok untuk trending</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>EMA α=10⁻⁶ pada raw — agar match time scale berhari-hari</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Lupakan EMA — pakai fixed threshold ISO saja</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Tepat! Hierarchy aggregation adalah pendekatan industri standar: (1) di edge, hitung RMS per 1-second window pada raw 5 kHz, (2) agregasi jadi RMS_max per 1-hour window (1 sampel/jam, mengurangi data ratio 18000:1), (3) EMA dengan α=0.05-0.1 pada agregat hourly → effective window 1-2 hari, sangat cocok untuk trend monitoring kondisi motor. Pendekatan ini juga hemat bandwidth (kirim hanya 1 nilai per jam ke cloud) &amp; meaningful (RMS adalah quantity utama untuk ISO 10816).</div>
           <div class="p-fb w" id="fp2w">❌ α=0.5 pada raw data terlalu cepat berubah (effective N=3 sampel = 0.6 ms). α=10⁻⁶ matematis benar tapi menyebabkan overflow numerik dan tidak praktis. Tanpa EMA sama sekali = miss trend gradual; fixed threshold ISO baik untuk klasifikasi tapi tidak menangkap drift perlahan.</div>
@@ -3315,7 +3315,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -7176,6 +7177,8 @@ function _createForumParticleBurst(event) {
   else attachBtnHandlers();
 })();
 
+
+window._pollAnswers = {1: 1, 2: 1};
 </script>
 
 </body>

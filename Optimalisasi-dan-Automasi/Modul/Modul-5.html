@@ -2270,10 +2270,10 @@ series   = pd.Series(y, index=pd.date_range('2025-01-01', periods=N, freq='D'))<
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Urutan preprocessing yang paling tepat?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Z-score dulu → log → STL (scaling sebelum stabilkan varians)</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>log → STL (period=7) → Z-score pada residual</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Differencing orde 3 langsung — membuang semua tren kompleks</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Min-Max scaling saja cukup — algoritma ML modern robust</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>Z-score dulu → log → STL (scaling sebelum stabilkan varians)</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>log → STL (period=7) → Z-score pada residual</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Differencing orde 3 langsung — membuang semua tren kompleks</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Min-Max scaling saja cukup — algoritma ML modern robust</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! Pipeline yang benar: (1) <strong>log</strong> dulu — menstabilkan varians yang tumbuh 3× sehingga transformasi berikutnya tidak bias. (2) <strong>STL periode 7</strong> — memisahkan tren drift kalibrasi dan musiman mingguan, menyisakan residual "murni bearing". (3) <strong>Z-score pada residual</strong> — agar multi-sensor bisa digabung di model ML dengan skala setara. Scaling <em>setelah</em> dekomposisi, bukan sebelum.</div>
           <div class="p-fb w" id="fp1w">❌ Urutan preprocessing itu penting. Z-score sebelum log akan "mengunci" parameter berdasarkan data heteroskedastik — parameter tidak valid untuk data baru. Differencing orde 3 membuang terlalu banyak informasi dan memperbesar noise. Scaling saja tanpa dekomposisi tidak menghilangkan tren drift yang jadi akar masalah.</div>
@@ -2302,10 +2302,10 @@ series   = pd.Series(y, index=pd.date_range('2025-01-01', periods=N, freq='D'))<
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Cara paling andal membedakan drift vs degradasi?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Lihat residual saja — abaikan tren sepenuhnya</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>Bandingkan tren lintas 12 motor — yang kolinear = drift, yang berbeda = kondisi unit</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Ganti sensor tiap minggu agar drift hilang</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Pakai model ML langsung tanpa preprocessing — biar model yang belajar</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Lihat residual saja — abaikan tren sepenuhnya</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Bandingkan tren lintas 12 motor — yang kolinear = drift, yang berbeda = kondisi unit</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Ganti sensor tiap minggu agar drift hilang</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Pakai model ML langsung tanpa preprocessing — biar model yang belajar</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Tepat! Drift kalibrasi adalah <strong>sinyal sistemik</strong> — memengaruhi semua sensor dengan cara serupa karena biasanya terkait suhu ambient, elektronika, firmware. Bila tren 12 motor <em>sangat berkorelasi</em> → drift. Bila hanya 1-2 motor yang tren meningkat sementara 10 lainnya stabil → degradasi spesifik unit tersebut. Pendekatan ini disebut <em>common-mode rejection</em> dan merupakan teknik standar di multi-sensor monitoring.</div>
           <div class="p-fb w" id="fp2w">❌ Membuang tren sepenuhnya menghilangkan informasi degradasi yang bersifat tren. Ganti sensor tidak skalabel ekonomis. "Biarkan ML belajar" tanpa preprocessing hanya akan mempelajari drift kalibrasi sebagai "fitur penting" — model akan rusak begitu sensor di-recalibrate.</div>
@@ -3303,7 +3303,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -7162,6 +7163,8 @@ function _createForumParticleBurst(event) {
   else attachBtnHandlers();
 })();
 
+
+window._pollAnswers = {1: 1, 2: 1};
 </script>
 
 </body>

@@ -2353,10 +2353,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Bagaimana klasifikasi PD 1: <code>(x² + y²) dx + 2xy dy = 0</code>?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Hanya HOMOGEN (tidak eksak)</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Hanya EKSAK (tidak homogen)</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>HOMOGEN dan EKSAK (keduanya)</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Bukan homogen maupun eksak</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>Hanya HOMOGEN (tidak eksak)</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>Hanya EKSAK (tidak homogen)</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>HOMOGEN dan EKSAK (keduanya)</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Bukan homogen maupun eksak</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! HOMOGEN: <code>g = x²+y²</code> (derajad 2), <code>h = 2xy</code> (derajad 2) — derajat sama → homogen. EKSAK: <code>M_y = 2y</code>, <code>N_x = 2y</code> — sama → juga eksak. Jadi PD 1 bisa diselesaikan dengan KEDUA metode (homogen via <code>y=ux</code> ATAU eksak via rekonstruksi <code>F</code>).</div>
           <div class="p-fb w" id="fp1w">❌ Cek dua syarat: (a) derajat homogenitas <code>g</code> dan <code>h</code> sama? (b) <code>M_y = N_x</code>? PD ini kebetulan memenuhi <strong>keduanya</strong>.</div>
@@ -2385,10 +2385,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Solusi umum PD 2 <code>(2xy + 3) dx + (x² − 4) dy = 0</code> adalah?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div><code>x²y + 3y − 4x = c</code></div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div><code>x²y + 3x − 4y = c</code></div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div><code>x³y + 3x − 4y² = c</code></div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div><code>2xy² + 3x = c</code></div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div><code>x²y + 3y − 4x = c</code></div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div><code>x²y + 3x − 4y = c</code></div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div><code>x³y + 3x − 4y² = c</code></div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div><code>2xy² + 3x = c</code></div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Benar! <code>F = ∫M dx = ∫(2xy+3) dx = x²y + 3x + g(y)</code>. <code>F_y = x² + g'(y) = N = x² − 4</code> → <code>g'(y) = −4</code> → <code>g(y) = −4y</code>. Solusi: <code>x²y + 3x − 4y = c</code>. Catat: posisi <code>3x</code> (bukan <code>3y</code>) karena 3 berasal dari M (koefisien <code>dx</code>), sedangkan −4 dari N (koefisien <code>dy</code>).</div>
           <div class="p-fb w" id="fp2w">❌ Hati-hati posisi konstanta 3 dan −4. Konstanta 3 di <code>M dx</code> diintegralkan terhadap <code>x</code> → <code>3x</code>. Konstanta −4 di <code>N dy</code> diintegralkan terhadap <code>y</code> → <code>−4y</code>.</div>
@@ -3453,7 +3453,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -9058,6 +9059,8 @@ function _createForumParticleBurst(event) {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initM3Anims);
   else initM3Anims();
 })();
+
+window._pollAnswers = {1: 2, 2: 1};
 </script>
 
 </body>

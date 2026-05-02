@@ -2314,10 +2314,10 @@ x = signal + noise                              # ← Ini deret time series Anda
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Sampling rate yang paling tepat untuk kasus Rendi?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>1 kHz — cukup untuk kebutuhan dasar dan hemat storage</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>3 kHz — tepat di Nyquist boundary untuk gear mesh</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>10 kHz — oversampling ~7× di atas f_maks (1.5 kHz), cukup margin untuk anti-aliasing filter dan envelope analysis</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>50 kHz — selalu pakai maksimal sampling rate</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>1 kHz — cukup untuk kebutuhan dasar dan hemat storage</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>3 kHz — tepat di Nyquist boundary untuk gear mesh</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>10 kHz — oversampling ~7× di atas f_maks (1.5 kHz), cukup margin untuk anti-aliasing filter dan envelope analysis</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>50 kHz — selalu pakai maksimal sampling rate</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! 10 kHz adalah <strong>sweet spot praktis industri</strong> untuk vibration monitoring umum: (1) cukup di atas f<sub>maks</sub> 1.5 kHz dengan margin 5-7× untuk anti-aliasing filter design yang realistis, (2) memungkinkan future envelope analysis untuk bearing fault detection (yang butuh resolusi tinggi pada band 1-10 kHz), (3) tidak boros storage seperti 50 kHz (5× lebih banyak data tanpa benefit signifikan untuk kasus ini), (4) sesuai standar ISO 10816 untuk vibration severity assessment. Ingat Pedoman: <em>sample tinggi di edge, hitung statistik (RMS, std, CF), kirim hanya feature ke cloud</em>.</div>
           <div class="p-fb w" id="fp1w">❌ 1 kHz akan menyebabkan aliasing — gear mesh 1.5 kHz akan tampak sebagai frekuensi palsu. 3 kHz tepat di Nyquist berarti tidak ada margin untuk anti-aliasing filter (yang tidak ideal/tajam di frekuensi cut-off). 50 kHz tidak salah tapi 5× lebih boros storage tanpa benefit nyata untuk kasus monitoring umum motor 11 kW.</div>
@@ -2346,10 +2346,10 @@ x = signal + noise                              # ← Ini deret time series Anda
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Kombinasi statistik &amp; window yang paling efektif?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Hanya Mean, dihitung tiap 1 jam — sederhana</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>RMS + Peak + Crest Factor, window 1 detik di edge → agregasi statistik harian (max RMS harian, max CF harian)</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Semua statistik (mean/median/RMS/std/peak/CF/skew/kurtosis) tiap 100 ms — comprehensive</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Tidak perlu statistik — simpan langsung raw data 10 kHz selama 15 hari</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Hanya Mean, dihitung tiap 1 jam — sederhana</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>RMS + Peak + Crest Factor, window 1 detik di edge → agregasi statistik harian (max RMS harian, max CF harian)</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Semua statistik (mean/median/RMS/std/peak/CF/skew/kurtosis) tiap 100 ms — comprehensive</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Tidak perlu statistik — simpan langsung raw data 10 kHz selama 15 hari</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Tepat! Pendekatan multi-metric dengan rolling window 1 detik adalah <strong>standar industri</strong>: (1) <strong>RMS</strong> = ISO 10816 vibration severity (wajib untuk klasifikasi kondisi), (2) <strong>Peak</strong> = deteksi shock event mendadak, (3) <strong>Crest Factor</strong> = sensitif spalling bearing — ketiganya saling melengkapi tanpa redundansi. Window 1 detik (10000 sampel @ 10 kHz) memberi resolusi temporal yang baik. Agregasi harian (max, median, persentil 95) memungkinkan trending tanpa boros storage. Mean tidak perlu disimpan karena ≈ 0 untuk sinyal AC vibration.</div>
           <div class="p-fb w" id="fp2w">❌ Mean saja tidak informatif untuk AC vibration. 8 statistik tiap 100ms boros komputasi tanpa nilai tambah signifikan untuk diagnostik dasar (skew/kurtosis lebih relevan untuk advanced). Simpan raw 10 kHz selama 15 hari = ~52 GB per motor (8 motor = 420 GB) → tidak skalabel ekonomis &amp; tidak diperlukan untuk monitoring trend kondisi.</div>
@@ -3842,7 +3842,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -7702,6 +7703,8 @@ function _createForumParticleBurst(event) {
   else attachBtnHandlers();
 })();
 
+
+window._pollAnswers = {1: 2, 2: 1};
 </script>
 
 </body>

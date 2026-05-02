@@ -2441,10 +2441,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Pada nilai r berapa pompa ini beroperasi?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>r ≈ 0.50 — jauh di bawah resonansi</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>r ≈ 1.00 — TEPAT di resonansi (sangat berbahaya)</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>r ≈ 1.50 — di atas resonansi</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>r ≈ 3.00 — supercritical, aman</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>r ≈ 0.50 — jauh di bawah resonansi</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>r ≈ 1.00 — TEPAT di resonansi (sangat berbahaya)</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>r ≈ 1.50 — di atas resonansi</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>r ≈ 3.00 — supercritical, aman</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! ωₙ = √(540000/150) = √3600 = 60 rad/s. r = 60/60 = 1.000 — sistem TEPAT di resonansi! R = r²/(2ζr) = 1/(2·0.10) = 5.0. X = 5·0.12/150 = 0.004 m = 4 mm. Ini cocok dengan ±2 mm yang dilaporkan operator (mendekati order of magnitude — bisa lebih besar lagi karena kondisi resonansi).</div>
           <div class="p-fb w" id="fp1w">❌ Hitung dulu ωₙ = √(k/M) = √(540000/150). Nilai r = ω/ωₙ akan menunjukkan posisi sistem terhadap resonansi.</div>
@@ -2473,10 +2473,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Strategi mana yang paling efektif jika sistem TEPAT di resonansi (r ≈ 1)?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Hanya menambah pelumas bearing — tidak mengubah dinamik</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>Mengubah ωₙ (tambah kekakuan k atau massa M) untuk menjauhkan r dari 1</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Tambah lapisan cat rangka — kosmetik saja</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Tambah peluit alarm — bukan solusi engineering</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Hanya menambah pelumas bearing — tidak mengubah dinamik</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Mengubah ωₙ (tambah kekakuan k atau massa M) untuk menjauhkan r dari 1</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Tambah lapisan cat rangka — kosmetik saja</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Tambah peluit alarm — bukan solusi engineering</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Benar! Karena pompa di r = 1 (resonansi), amplifikasi 1/(2ζ) ≈ 5×. Solusi: (1) Menaikkan k_rangka 50% (540000 → 810000) menaikkan ωₙ dari 60 ke ~73.5 rad/s, sehingga r = 60/73.5 = 0.82, dan R turun dari 5 ke ~2.65. (2) Atau tambah inertia block 75 kg agar M total = 225, ωₙ = √(540000/225) = 49 rad/s, r = 60/49 = 1.22 (sedikit di atas resonansi, R lebih kecil).</div>
           <div class="p-fb w" id="fp2w">❌ Solusi tersebut tidak mengatasi root cause: r ≈ 1. Pelumas tidak mengubah ωₙ atau ζ secara signifikan. Solusi yang benar adalah memodifikasi parameter dinamik (M, k, atau ω).</div>
@@ -3593,7 +3593,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -8073,6 +8074,8 @@ setTimeout(() => {
   }
 }, 10000);
 setInterval(()=>{renderVisitors(latestVisitors);},30000);
+
+window._pollAnswers = {1: 1, 2: 1};
 </script>
 
 </body>
