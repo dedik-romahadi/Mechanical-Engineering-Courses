@@ -1452,6 +1452,103 @@ for i in range(N):
   </div>
 </div>
 
+<!-- ═══ BAGIAN VISUALISASI — ANIMASI INTERAKTIF ═══ -->
+<hr class="divider">
+<div class="section" id="m-visualisasi">
+  <div class="section-label reveal cyan-label">Visualisasi</div>
+  <h2 class="section-title reveal">5-DoF Building Mode Shapes<br>Visualisasi Modal Pattern</h2>
+  <p class="section-desc reveal">Klik mode untuk lihat shape getaran building 5 lantai. Mode 1 monotonic, mode 2 punya 1 zero crossing, mode N punya N-1 zeros. Frekuensi naik dengan mode.</p>
+
+  <div class="reveal" style="background:#020812;border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px">
+    <canvas id="cv-m9" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap">
+      <button onclick="window._m9setMode(1)" id="btn-m9-1" style="padding:9px 16px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(14,165,233,.5);background:rgba(14,165,233,.18);color:#0ea5e9">Mode 1</button>
+      <button onclick="window._m9setMode(2)" id="btn-m9-2" style="padding:9px 16px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.08);color:#a855f7">Mode 2</button>
+      <button onclick="window._m9setMode(3)" id="btn-m9-3" style="padding:9px 16px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.08);color:var(--green)">Mode 3</button>
+      <button onclick="window._m9setMode(4)" id="btn-m9-4" style="padding:9px 16px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(255,179,0,.4);background:rgba(255,179,0,.08);color:var(--amber)">Mode 4</button>
+      <button onclick="window._m9setMode(5)" id="btn-m9-5" style="padding:9px 16px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(220,38,38,.4);background:rgba(220,38,38,.08);color:#dc2626">Mode 5</button>
+    </div>
+    <div id="anim-info" style="text-align:center;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">
+      Building 5 lantai shear, m=1, k=1.6e6. Pilih mode untuk melihat shape getarannya.
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const cv = document.getElementById('cv-m9');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  // Pre-computed mode shapes for uniform 5-DoF shear building (mass-normalized)
+  // For uniform N-DoF shear: phi[k,i] = sqrt(2/(N+1))*sin(k*pi/(N+1)*(i+0.5)) approximately
+  // Use simple analytical form for shear building with k=1.6e6, m=1 per floor
+  const N = 5;
+  const omega = [2.5, 7.4, 11.9, 15.7, 18.7]; // approx natural freqs (rad/s)
+  // Mode shapes (normalized, columns = modes)
+  const phi = [
+    [0.231, 0.435, 0.594, 0.694, 0.731],   // mode 1: monotonic
+    [0.435, 0.594, 0.000, -0.594, -0.435], // mode 2: 1 zero
+    [0.594, 0.000, -0.731, 0.000, 0.594],  // mode 3: 2 zeros
+    [0.694, -0.594, 0.000, 0.594, -0.694], // mode 4: 3 zeros
+    [0.731, -0.435, 0.594, -0.694, 0.435], // mode 5: 4 zeros
+  ];
+  let curMode = 0;
+  window._m9setMode = function(m) {
+    curMode = m - 1;
+    document.querySelectorAll('[id^="btn-m9-"]').forEach(b => b.style.opacity = '0.6');
+    document.getElementById('btn-m9-' + m).style.opacity = '1';
+  };
+  document.getElementById('btn-m9-1').style.opacity = '1';
+  let t0 = Date.now() / 1000;
+  function draw() {
+    const W = cv.width = cv.clientWidth;
+    const H = cv.height;
+    ctx.clearRect(0, 0, W, H);
+    const t = Date.now()/1000 - t0;
+    const baseX = W * 0.5;
+    const floorH = (H - 40) / N;
+    const scale = 80;
+    const ampMod = Math.cos(omega[curMode] * 0.4 * t); // slowed
+    // Draw ground
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(baseX - 80, H - 20, 160, 8);
+    // Floors
+    for (let i = N - 1; i >= 0; i--) {
+      const dx = phi[curMode][i] * ampMod * scale;
+      const y = H - 20 - (i + 1) * floorH;
+      // Column
+      const xLeft = baseX - 50;
+      const xRight = baseX + 50;
+      const yPrev = i === 0 ? H - 20 : H - 20 - i * floorH;
+      const dxPrev = i === 0 ? 0 : phi[curMode][i-1] * ampMod * scale;
+      ctx.strokeStyle = 'rgba(168,85,247,0.7)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(xLeft + dxPrev, yPrev);
+      ctx.lineTo(xLeft + dx, y);
+      ctx.moveTo(xRight + dxPrev, yPrev);
+      ctx.lineTo(xRight + dx, y);
+      ctx.stroke();
+      // Floor slab
+      ctx.fillStyle = curMode === 0 ? 'rgba(14,165,233,0.85)' :
+                      curMode === 1 ? 'rgba(168,85,247,0.85)' :
+                      curMode === 2 ? 'rgba(0,224,158,0.85)' :
+                      curMode === 3 ? 'rgba(255,179,0,0.85)' :
+                                      'rgba(220,38,38,0.85)';
+      ctx.fillRect(xLeft + dx, y - 8, 100, 16);
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 11px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('Floor ' + (i+1), baseX + dx, y + 4);
+    }
+    document.getElementById('anim-info').textContent =
+      `Mode ${curMode + 1} · ω = ${omega[curMode].toFixed(2)} rad/s · f = ${(omega[curMode]/(2*Math.PI)).toFixed(2)} Hz`;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>
+
 <!-- ═══ DAFTAR PUSTAKA ═══ -->
 <hr class="divider">
 <div class="section reveal">

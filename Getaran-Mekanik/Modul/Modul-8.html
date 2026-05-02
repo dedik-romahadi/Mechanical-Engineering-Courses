@@ -1442,6 +1442,104 @@ print(f"Steady-state |x2|_max = {np.max(np.abs(sol.y[1, mask])):.4f}")</code></p
   </div>
 </div>
 
+<!-- ═══ BAGIAN VISUALISASI — ANIMASI INTERAKTIF ═══ -->
+<hr class="divider">
+<div class="section" id="m-visualisasi">
+  <div class="section-label reveal cyan-label">Visualisasi</div>
+  <h2 class="section-title reveal">Animasi Time-Domain Response<br>2-DoF Free Vibration</h2>
+  <p class="section-desc reveal">Klik tombol untuk set initial conditions berbeda. Animasi menampilkan dua massa berosilasi dengan superposisi mode 1 (in-phase) dan mode 2 (anti-phase).</p>
+
+  <div class="reveal" style="background:#020812;border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px">
+    <canvas id="cv-m8" height="220" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap">
+      <button onclick="window._m8setIC(1)" id="btn-m8-1" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(0,224,158,.5);background:rgba(0,224,158,.18);color:var(--green)">▶ x1=1, x2=0</button>
+      <button onclick="window._m8setIC(2)" id="btn-m8-2" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(168,85,247,.5);background:rgba(168,85,247,.10);color:#a855f7">▶ x1=0, x2=1</button>
+      <button onclick="window._m8setIC(3)" id="btn-m8-3" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(255,179,0,.4);background:rgba(255,179,0,.08);color:var(--amber)">▶ x1=1, x2=1 (Mode 1)</button>
+    </div>
+    <div id="anim-info" style="text-align:center;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">
+      IC: x1(0)=1, x2(0)=0 · System refs (m=1, k=100) · ω₁=10, ω₂≈17.32 rad/s
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const cv = document.getElementById('cv-m8');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  let ic = [1, 0, 0, 0]; // x1, x2, v1, v2
+  const w1sq = 100, w2sq = 300;
+  const w1 = Math.sqrt(w1sq), w2 = Math.sqrt(w2sq);
+
+  window._m8setIC = function(mode) {
+    if (mode === 1) ic = [1, 0, 0, 0];
+    else if (mode === 2) ic = [0, 1, 0, 0];
+    else if (mode === 3) ic = [1, 1, 0, 0];
+    t0 = Date.now() / 1000;
+    document.querySelectorAll('[id^="btn-m8-"]').forEach(b => b.style.opacity = '0.6');
+    document.getElementById('btn-m8-' + mode).style.opacity = '1';
+  };
+
+  let t0 = Date.now() / 1000;
+  function getXY(t) {
+    // Modal: x = phi1*A1*cos(w1*t) + phi2*A2*cos(w2*t)
+    // phi1 = [1,1]/sqrt(2), phi2 = [1,-1]/sqrt(2) (mass-norm, M=I)
+    // η_1(0) = phi1^T·M·x0, η_2(0) = phi2^T·M·x0
+    const eta1 = (ic[0] + ic[1]) / Math.sqrt(2);
+    const eta2 = (ic[0] - ic[1]) / Math.sqrt(2);
+    const x1 = (eta1 * Math.cos(w1*t) + eta2 * Math.cos(w2*t)) / Math.sqrt(2);
+    const x2 = (eta1 * Math.cos(w1*t) - eta2 * Math.cos(w2*t)) / Math.sqrt(2);
+    return [x1, x2];
+  }
+
+  function draw() {
+    const W = cv.width = cv.clientWidth;
+    const H = cv.height;
+    ctx.clearRect(0, 0, W, H);
+    const t = Date.now()/1000 - t0;
+    const [x1, x2] = getXY(t);
+    const cx1 = W*0.30, cx2 = W*0.70, cy = H*0.50;
+    const scale = 60;
+    // Walls
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(W*0.02, cy-30, 8, 60);
+    ctx.fillRect(W*0.98-8, cy-30, 8, 60);
+    // Springs (lines)
+    ctx.strokeStyle = 'rgba(168,85,247,0.7)';
+    ctx.lineWidth = 2;
+    function drawSpring(x1, x2, y) {
+      ctx.beginPath();
+      const segs = 8;
+      ctx.moveTo(x1, y);
+      for (let i = 1; i < segs; i++) {
+        const t = i/segs;
+        ctx.lineTo(x1 + (x2-x1)*t, y + ((i%2)?-6:6));
+      }
+      ctx.lineTo(x2, y);
+      ctx.stroke();
+    }
+    drawSpring(W*0.02+8, cx1+x1*scale-25, cy);
+    drawSpring(cx1+x1*scale+25, cx2+x2*scale-25, cy);
+    drawSpring(cx2+x2*scale+25, W*0.98-8, cy);
+    // Masses
+    ctx.fillStyle = 'rgba(14,165,233,0.85)';
+    ctx.fillRect(cx1+x1*scale-25, cy-25, 50, 50);
+    ctx.fillStyle = 'rgba(255,179,0,0.85)';
+    ctx.fillRect(cx2+x2*scale-25, cy-25, 50, 50);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 14px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('m1', cx1+x1*scale, cy+5);
+    ctx.fillText('m2', cx2+x2*scale, cy+5);
+    // Info
+    document.getElementById('anim-info').textContent =
+      `t = ${t.toFixed(2)}s · x1 = ${x1.toFixed(3)} · x2 = ${x2.toFixed(3)}`;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>
+
 <!-- ═══ DAFTAR PUSTAKA ═══ -->
 <hr class="divider">
 <div class="section reveal">

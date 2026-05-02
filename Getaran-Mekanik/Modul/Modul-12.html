@@ -1420,6 +1420,114 @@ plt.tight_layout(); plt.show()</code></pre>
   </div>
 </div>
 
+<!-- ═══ BAGIAN VISUALISASI — ANIMASI INTERAKTIF ═══ -->
+<hr class="divider">
+<div class="section" id="m-visualisasi">
+  <div class="section-label reveal cyan-label">Visualisasi</div>
+  <h2 class="section-title reveal">Time-Domain Statistical Indicators<br>RMS · Peak · Crest · Kurtosis</h2>
+  <p class="section-desc reveal">Live signal generation dengan statistik real-time. Healthy = Gaussian-like. Faulty = impulsive (CF dan Kurtosis naik signifikan).</p>
+
+  <div class="reveal" style="background:#020812;border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px">
+    <canvas id="cv-m12" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap">
+      <button onclick="window._m12set(0)" id="btn-m12-0" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(0,224,158,.5);background:rgba(0,224,158,.18);color:var(--green)">Healthy</button>
+      <button onclick="window._m12set(1)" id="btn-m12-1" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(255,179,0,.4);background:rgba(255,179,0,.08);color:var(--amber)">Stage 1 (Early)</button>
+      <button onclick="window._m12set(2)" id="btn-m12-2" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(220,38,38,.5);background:rgba(220,38,38,.18);color:#dc2626">Stage 3 (Severe)</button>
+    </div>
+    <div id="anim-info" style="text-align:center;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">
+      Live signal + statistik: RMS, Peak, Crest Factor, Kurtosis. Ganti scenario untuk lihat perubahan.
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const cv = document.getElementById('cv-m12');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  let mode = 0;
+  window._m12set = function(m) {
+    mode = m;
+    document.querySelectorAll('[id^="btn-m12-"]').forEach(b => b.style.opacity = '0.6');
+    document.getElementById('btn-m12-' + m).style.opacity = '1';
+  };
+  document.getElementById('btn-m12-0').style.opacity = '1';
+  let t0 = 0;
+  function genSignal(N) {
+    const x = new Array(N);
+    for (let i = 0; i < N; i++) {
+      const t = (i + t0) / 100;
+      let v = 1.5 * Math.sin(2*Math.PI*30*t/N) + 0.3 * (Math.random() - 0.5) * 2;
+      // Add impulse for faulty
+      if (mode > 0 && Math.floor((i + t0) % 25) === 0) {
+        const amp = mode === 1 ? 3 : 7;
+        v += amp * Math.exp(-((i % 25) - 0)/2) * Math.sin(20 * (i % 25));
+      }
+      x[i] = v;
+    }
+    return x;
+  }
+  function stats(x) {
+    const mean = x.reduce((a,b)=>a+b)/x.length;
+    const xm = x.map(v => v - mean);
+    const rms = Math.sqrt(xm.reduce((a,b)=>a+b*b, 0) / x.length);
+    const peak = Math.max(...x.map(Math.abs));
+    const crest = peak / Math.max(0.001, rms);
+    const m4 = xm.reduce((a,b)=>a+Math.pow(b,4), 0)/x.length;
+    const kurt = m4 / Math.pow(rms, 4);
+    return { rms, peak, crest, kurt };
+  }
+  function draw() {
+    t0 += 0.5;
+    const W = cv.width = cv.clientWidth;
+    const H = cv.height;
+    ctx.clearRect(0, 0, W, H);
+    const N = 200;
+    const x = genSignal(N);
+    const s = stats(x);
+    // Top half: waveform
+    ctx.strokeStyle = mode === 0 ? '#16a34a' : mode === 1 ? '#fbbf24' : '#dc2626';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (let i = 0; i < N; i++) {
+      const px = i/N * (W*0.55 - 30) + 20;
+      const py = H * 0.5 - x[i] * 18;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    // Right half: stats meters
+    const meterX = W * 0.62;
+    const meterMaxW = W * 0.32;
+    const meters = [
+      ['RMS', s.rms, 5, '#0ea5e9'],
+      ['Peak', s.peak, 12, '#a855f7'],
+      ['Crest', s.crest, 8, '#fbbf24'],
+      ['Kurtosis', s.kurt, 15, '#dc2626'],
+    ];
+    ctx.font = 'bold 13px monospace';
+    meters.forEach(([name, v, max, color], i) => {
+      const y = 30 + i * 60;
+      ctx.fillStyle = '#94a3b8';
+      ctx.textAlign = 'left';
+      ctx.fillText(name, meterX, y);
+      ctx.fillStyle = color;
+      ctx.fillText(v.toFixed(2), meterX + meterMaxW - 35, y);
+      // Bar
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(meterX, y + 8, meterMaxW, 16);
+      ctx.fillStyle = color;
+      const barW = Math.min(meterMaxW, meterMaxW * v / max);
+      ctx.fillRect(meterX, y + 8, barW, 16);
+    });
+    document.getElementById('anim-info').textContent =
+      `Mode: ${['Healthy', 'Stage 1 (Early)', 'Stage 3 (Severe)'][mode]} · CF & Kurtosis sensitif terhadap impulses`;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>
+
 <!-- ═══ DAFTAR PUSTAKA ═══ -->
 <hr class="divider">
 <div class="section reveal">

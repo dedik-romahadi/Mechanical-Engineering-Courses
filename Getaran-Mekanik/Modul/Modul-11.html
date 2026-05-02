@@ -1399,6 +1399,116 @@ print(f"Terdeteksi {len(peaks_idx)} puncak di: {freqs[peaks_idx].round(1)} Hz")<
   </div>
 </div>
 
+<!-- ═══ BAGIAN VISUALISASI — ANIMASI INTERAKTIF ═══ -->
+<hr class="divider">
+<div class="section" id="m-visualisasi">
+  <div class="section-label reveal cyan-label">Visualisasi</div>
+  <h2 class="section-title reveal">Time-Domain ↔ Frequency-Domain<br>Live FFT Visualization</h2>
+  <p class="section-desc reveal">Pilih sinyal: single 50 Hz, multi-component, square wave, atau noisy. Top panel = time waveform, bottom panel = FFT magnitude spectrum.</p>
+
+  <div class="reveal" style="background:#020812;border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px">
+    <canvas id="cv-m11" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap">
+      <button onclick="window._m11set(0)" id="btn-m11-0" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(14,165,233,.5);background:rgba(14,165,233,.18);color:#0ea5e9">50 Hz</button>
+      <button onclick="window._m11set(1)" id="btn-m11-1" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.08);color:#a855f7">3 Komponen</button>
+      <button onclick="window._m11set(2)" id="btn-m11-2" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.08);color:var(--green)">Square Wave</button>
+      <button onclick="window._m11set(3)" id="btn-m11-3" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(255,179,0,.4);background:rgba(255,179,0,.08);color:var(--amber)">Noisy</button>
+    </div>
+    <div id="anim-info" style="text-align:center;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">
+      Top: time domain · Bottom: frequency spectrum (FFT magnitude)
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const cv = document.getElementById('cv-m11');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const N = 256;
+  let signalType = 0;
+  window._m11set = function(s) {
+    signalType = s;
+    document.querySelectorAll('[id^="btn-m11-"]').forEach(b => b.style.opacity = '0.6');
+    document.getElementById('btn-m11-' + s).style.opacity = '1';
+  };
+  document.getElementById('btn-m11-0').style.opacity = '1';
+  function genSignal(N, type, t0) {
+    const x = new Array(N);
+    for (let i = 0; i < N; i++) {
+      const t = (i + t0) / N * 0.5; // window time
+      let v;
+      if (type === 0) v = Math.sin(2*Math.PI*50*t/100);
+      else if (type === 1) v = Math.sin(2*Math.PI*30*t/100) + 0.5*Math.sin(2*Math.PI*70*t/100) + 0.3*Math.sin(2*Math.PI*110*t/100);
+      else if (type === 2) {
+        // Square wave Fourier sum
+        v = 0;
+        for (let k = 1; k <= 7; k += 2) v += Math.sin(2*Math.PI*30*k*t/100) / k;
+        v *= 4/Math.PI;
+      } else {
+        v = Math.sin(2*Math.PI*50*t/100) + 0.5*(Math.random() - 0.5) * 2;
+      }
+      x[i] = v;
+    }
+    return x;
+  }
+  // Naive DFT (small N OK)
+  function dft(x) {
+    const N = x.length;
+    const mag = new Array(N/2);
+    for (let k = 0; k < N/2; k++) {
+      let re = 0, im = 0;
+      for (let n = 0; n < N; n++) {
+        re += x[n] * Math.cos(-2*Math.PI*k*n/N);
+        im += x[n] * Math.sin(-2*Math.PI*k*n/N);
+      }
+      mag[k] = Math.sqrt(re*re + im*im) / N * 2;
+    }
+    return mag;
+  }
+  let t0 = 0;
+  function draw() {
+    t0 += 0.5;
+    const W = cv.width = cv.clientWidth;
+    const H = cv.height;
+    ctx.clearRect(0, 0, W, H);
+    const x = genSignal(N, signalType, t0);
+    const mag = dft(x);
+    // Top: time waveform
+    ctx.strokeStyle = '#0ea5e9';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (let i = 0; i < N; i++) {
+      const px = i / N * (W - 30) + 20;
+      const py = H * 0.25 - x[i] * 30;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '11px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('Time domain x(t)', 20, 15);
+    // Divider
+    ctx.strokeStyle = 'rgba(148,163,184,0.2)';
+    ctx.beginPath(); ctx.moveTo(0, H*0.5); ctx.lineTo(W, H*0.5); ctx.stroke();
+    // Bottom: spectrum (bar chart)
+    ctx.fillStyle = '#a855f7';
+    const maxMag = Math.max(0.01, ...mag);
+    for (let k = 0; k < mag.length; k++) {
+      const px = k / mag.length * (W - 30) + 20;
+      const bar_h = mag[k] / maxMag * (H * 0.4);
+      const py = H - 20 - bar_h;
+      ctx.fillRect(px, py, (W - 30)/mag.length * 0.7, bar_h);
+    }
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText('Frequency spectrum |X(f)|', 20, H * 0.55 + 10);
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>
+
 <!-- ═══ DAFTAR PUSTAKA ═══ -->
 <hr class="divider">
 <div class="section reveal">
