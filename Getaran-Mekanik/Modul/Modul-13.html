@@ -1444,6 +1444,120 @@ print(f"Dibanding raw spectrum di 100 Hz, envelope sensitivitas naik 10-100×.")
   </div>
 </div>
 
+<!-- ═══ BAGIAN VISUALISASI — ANIMASI INTERAKTIF ═══ -->
+<hr class="divider">
+<div class="section" id="m-visualisasi">
+  <div class="section-label reveal cyan-label">Visualisasi</div>
+  <h2 class="section-title reveal">Envelope Analysis Pipeline<br>4-Step Bearing Fault Diagnosis</h2>
+  <p class="section-desc reveal">Klik step 1-4 untuk lihat workflow envelope analysis: Raw → BPF → Hilbert envelope → FFT envelope. BPFO peak baru terlihat di step 4.</p>
+
+  <div class="reveal" style="background:#020812;border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px">
+    <canvas id="cv-m13" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap">
+      <button onclick="window._m13set(0)" id="btn-m13-0" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(14,165,233,.5);background:rgba(14,165,233,.18);color:#0ea5e9">1. Raw Signal</button>
+      <button onclick="window._m13set(1)" id="btn-m13-1" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.08);color:#a855f7">2. Bandpass</button>
+      <button onclick="window._m13set(2)" id="btn-m13-2" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(0,224,158,.5);background:rgba(0,224,158,.18);color:var(--green)">3. Envelope</button>
+      <button onclick="window._m13set(3)" id="btn-m13-3" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(255,179,0,.4);background:rgba(255,179,0,.08);color:var(--amber)">4. FFT Envelope</button>
+    </div>
+    <div id="anim-info" style="text-align:center;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">
+      Bearing fault simulation: impulse train BPFO modulating high-freq resonance. Klik step untuk lihat pipeline.
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const cv = document.getElementById('cv-m13');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  let step = 0;
+  window._m13set = function(s) {
+    step = s;
+    document.querySelectorAll('[id^="btn-m13-"]').forEach(b => b.style.opacity = '0.6');
+    document.getElementById('btn-m13-' + s).style.opacity = '1';
+    draw();
+  };
+  document.getElementById('btn-m13-0').style.opacity = '1';
+  function draw() {
+    const W = cv.width = cv.clientWidth;
+    const H = cv.height;
+    ctx.clearRect(0, 0, W, H);
+    const N = 400;
+    // Signal: impulse train at BPFO (rate 30) modulating 100 Hz resonance
+    const raw = new Array(N), bp = new Array(N), env = new Array(N);
+    for (let i = 0; i < N; i++) {
+      const t = i / N * 4;
+      // Background sinusoid
+      let v = 0.5 * Math.sin(2*Math.PI*5*t);
+      // Impulse train
+      const imp_period = N / 12; // ~12 impulses
+      const phase = i % imp_period;
+      if (phase < 30) {
+        v += 2 * Math.exp(-phase/5) * Math.sin(2*Math.PI*30*phase/30);
+      }
+      raw[i] = v;
+      bp[i] = phase < 30 ? 2 * Math.exp(-phase/5) * Math.sin(2*Math.PI*30*phase/30) : 0;
+      env[i] = phase < 30 ? 2 * Math.exp(-phase/5) : 0;
+    }
+    // Plot raw
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '11px monospace';
+    ctx.textAlign = 'left';
+    if (step === 0) {
+      ctx.strokeStyle = '#0ea5e9';
+      ctx.fillText('Step 1: Raw signal — bearing fault tersembunyi di background', 20, 18);
+      drawWave(ctx, raw, 30, H/2 - 30, W - 50, H/2 + 10, '#0ea5e9');
+    } else if (step === 1) {
+      ctx.strokeStyle = '#a855f7';
+      ctx.fillText('Step 2: Band-pass filter (3-7 kHz) — isolasi resonance high-freq', 20, 18);
+      drawWave(ctx, bp, 30, H/2 - 30, W - 50, H/2 + 10, '#a855f7');
+    } else if (step === 2) {
+      ctx.strokeStyle = '#16a34a';
+      ctx.fillText('Step 3: Envelope (Hilbert) — outline modulation', 20, 18);
+      drawWave(ctx, env, 30, H/2 - 30, W - 50, H/2 + 10, '#16a34a');
+    } else {
+      ctx.strokeStyle = '#fbbf24';
+      ctx.fillText('Step 4: FFT envelope → BPFO peak terlihat jelas di 30 Hz', 20, 18);
+      // Spectrum: peak at 30 Hz with harmonics
+      const spec = new Array(80);
+      for (let k = 0; k < spec.length; k++) {
+        spec[k] = Math.exp(-Math.pow((k - 30)/3, 2)) +
+                  0.4 * Math.exp(-Math.pow((k - 60)/4, 2)) +
+                  0.2 * Math.exp(-Math.pow((k - 90)/5, 2)) +
+                  0.05 * Math.random();
+      }
+      const baseY = H - 30, maxH = H - 60;
+      ctx.fillStyle = '#fbbf24';
+      const barW = (W - 50) / spec.length;
+      for (let k = 0; k < spec.length; k++) {
+        ctx.fillRect(30 + k * barW, baseY - spec[k] * maxH, barW * 0.7, spec[k] * maxH);
+      }
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '10px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('30 Hz (BPFO)', 30 + 30 * barW, baseY - 10);
+      ctx.fillText('60 (2×)', 30 + 60 * barW, baseY - 10);
+      ctx.fillText('90 (3×)', 30 + 90 * barW, baseY - 10);
+    }
+  }
+  function drawWave(ctx, data, x, yMin, w, yMax, color) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    const yMid = (yMin + yMax) / 2;
+    const amp = (yMax - yMin) / 2 / 3;
+    for (let i = 0; i < data.length; i++) {
+      const px = x + i / data.length * w;
+      const py = yMid - data[i] * amp;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+  }
+  draw();
+})();
+</script>
+
 <!-- ═══ DAFTAR PUSTAKA ═══ -->
 <hr class="divider">
 <div class="section reveal">

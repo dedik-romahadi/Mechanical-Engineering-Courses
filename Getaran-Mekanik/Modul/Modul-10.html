@@ -1465,6 +1465,104 @@ print(f"  natural freq isolator {spec['fn_Hz']:.1f} Hz.")</code></pre>
   </div>
 </div>
 
+<!-- ═══ BAGIAN VISUALISASI — ANIMASI INTERAKTIF ═══ -->
+<hr class="divider">
+<div class="section" id="m-visualisasi">
+  <div class="section-label reveal cyan-label">Visualisasi</div>
+  <h2 class="section-title reveal">TMD Effectiveness Comparison<br>FRF Plot dengan/tanpa TMD</h2>
+  <p class="section-desc reveal">Bandingkan respons frekuensi struktur utama tanpa TMD (peak resonansi besar) vs dengan TMD optimal Den Hartog (anti-resonance + dua puncak baru).</p>
+
+  <div class="reveal" style="background:#020812;border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px">
+    <canvas id="cv-m10" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap">
+      <button onclick="window._m10set(0)" id="btn-m10-0" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(220,38,38,.5);background:rgba(220,38,38,.18);color:#dc2626">Without TMD</button>
+      <button onclick="window._m10set(1)" id="btn-m10-1" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(0,224,158,.5);background:rgba(0,224,158,.18);color:var(--green)">With TMD (μ=0.05)</button>
+      <button onclick="window._m10set(2)" id="btn-m10-2" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(255,179,0,.4);background:rgba(255,179,0,.08);color:var(--amber)">With TMD (μ=0.10)</button>
+    </div>
+    <div id="anim-info" style="text-align:center;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">
+      FRF magnitude struktur utama (m=1, k=100, ω_n=10) vs frequency ratio r = ω/ω_n.
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const cv = document.getElementById('cv-m10');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  let mode = 0;
+  window._m10set = function(m) {
+    mode = m;
+    document.querySelectorAll('[id^="btn-m10-"]').forEach(b => b.style.opacity = '0.6');
+    document.getElementById('btn-m10-' + m).style.opacity = '1';
+    drawFRF();
+  };
+  document.getElementById('btn-m10-0').style.opacity = '1';
+  function frfNoTMD(r, zeta) {
+    return 1 / Math.sqrt((1-r*r)*(1-r*r) + (2*zeta*r)*(2*zeta*r));
+  }
+  function frfWithTMD(r, mu) {
+    const fopt = 1/(1+mu);
+    const zopt = Math.sqrt(3*mu/(8*Math.pow(1+mu, 3)));
+    const wa2 = fopt*fopt*1; // (omega_a / omega_n)^2 normalized
+    // Numerator: |Z22|^2 = (-mu*r^2 + mu*wa2)^2 + (2*zopt*sqrt(mu)*r*Math.sqrt(wa2))^2
+    // Denominator: |det|
+    // Simplified analytical approximation
+    const wsq = r * r;
+    const a = (1 - wsq) - mu * wsq * (fopt*fopt) / (fopt*fopt - wsq + 1e-9);
+    return 1 / Math.max(0.05, Math.abs(a));
+  }
+  function drawFRF() {
+    const W = cv.width = cv.clientWidth;
+    const H = cv.height;
+    ctx.clearRect(0, 0, W, H);
+    // Axes
+    ctx.strokeStyle = 'rgba(148,163,184,0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(40, H-30); ctx.lineTo(W-20, H-30); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(40, 20); ctx.lineTo(40, H-30); ctx.stroke();
+    // Labels
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '11px monospace';
+    ctx.textAlign = 'center';
+    for (let i = 0; i <= 6; i++) {
+      const x = 40 + (W-60)*i/6;
+      ctx.fillText((i*0.5).toFixed(1), x, H-10);
+    }
+    ctx.save();
+    ctx.translate(20, H/2);
+    ctx.rotate(-Math.PI/2);
+    ctx.fillText('|H| (log scale)', 0, 0);
+    ctx.restore();
+    ctx.textAlign = 'center';
+    ctx.fillText('r = ω/ω_n', W/2, H-1);
+    // Plot
+    const pts = 200;
+    function logScale(v) { return Math.log10(Math.max(0.01, v) + 1) / Math.log10(101); }
+    ctx.strokeStyle = mode === 0 ? '#dc2626' : mode === 1 ? '#16a34a' : '#fbbf24';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let i = 0; i < pts; i++) {
+      const r = i/pts * 3;
+      let v;
+      if (mode === 0) v = frfNoTMD(r, 0.02);
+      else if (mode === 1) v = frfWithTMD(r, 0.05);
+      else v = frfWithTMD(r, 0.10);
+      const x = 40 + (W-60)*r/3;
+      const y = H-30 - (H-50)*logScale(v);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    document.getElementById('anim-info').textContent =
+      mode === 0 ? 'Without TMD: peak resonance besar di r = 1' :
+      mode === 1 ? 'With TMD μ=0.05: anti-resonance di r=1, dua puncak baru' :
+                   'With TMD μ=0.10: lebih efektif tapi puncak baru lebih lebar';
+  }
+  drawFRF();
+})();
+</script>
+
 <!-- ═══ DAFTAR PUSTAKA ═══ -->
 <hr class="divider">
 <div class="section reveal">
