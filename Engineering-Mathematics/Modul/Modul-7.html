@@ -1462,144 +1462,156 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 09</div>
   <h2 class="section-title reveal">Animasi Interaktif<br>Tiga Kasus Akar — Live Demo</h2>
-  <p class="section-desc reveal">Lima animasi interaktif: (1) Solusi y(t) dengan <strong>preset push button</strong> b, (2) akar persamaan karakteristik dengan slider, (3) <strong>toggle</strong> Numerical vs Analytical, (4) <strong>radio</strong> klasifikasi PD, (5) <strong>dropdown</strong> sub-topik. Tiga kasus akar (real berbeda, berganda, kompleks) yang berlaku universal untuk Euler-Cauchy <strong>orde berapa pun</strong> — paling mudah divisualisasikan pada orde 2. Geser slider untuk melihat bagaimana koefisien memengaruhi solusi <code>y(x)</code>, dan saksikan migrasi akar di bidang kompleks. Pola yang sama berlaku untuk orde tinggi: setiap akar (real atau pasangan kompleks) menyumbang fungsi basis sesuai aturan multiplisitas, hanya jumlahnya bertambah dengan orde n.</p>
+  <p class="section-desc reveal">Lima animasi spesifik untuk <strong>Pertemuan 7 — Euler-Cauchy Orde Tinggi</strong>: (1) <strong>Solver orde n</strong> (n = 3 atau 4) dengan slider akar manual, (2) <strong>n akar di m-plane</strong> dengan migration animasi, (3) <strong>Horner synthetic division</strong> untuk find roots step-by-step, (4) <strong>radio Multiplisitas Akar</strong> menampilkan basis functions per kasus, (5) <strong>dropdown aplikasi orde 4</strong> (defleksi balok, vibrasi pelat, buckling).</p>
 
-  <!-- Animasi 1: 3-case comparison y(x) -->
+  <!-- Animasi 1: Solver Euler-Cauchy Orde n (M7-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi 1 — Tiga Kasus Akar Euler-Cauchy: Geser Koefisien, Lihat Solusi y(x)</span>
+      <span class="anim-title">Animasi 1 — Solver Euler-Cauchy Orde n: Pilih Akar, Lihat Solusi y(x)</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvCases" height="340"></canvas>
+      <canvas id="m7cvOrden" height="340" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
-        <div class="ctrl-group">
-          <label>Koefisien <strong>b</strong> — <span class="ctrl-val" id="v_b">1.00</span></label>
-          <input type="range" id="sl_b" min="-4" max="6" step="0.05" value="1.0">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih orde n — preset push buttons:</label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+            <button class="m7n-pbtn" onclick="window.m7SetN(3)" data-n="3" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--cyan);background:var(--cyan);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(8,191,232,.6);transform:scale(1.05);transition:all .15s;">Orde n=3 ✓</button>
+            <button class="m7n-pbtn" onclick="window.m7SetN(4)" data-n="4" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,179,0,.4);background:rgba(255,179,0,.10);color:var(--amber);">Orde n=4</button>
+          </div>
         </div>
         <div class="ctrl-group">
-          <label>Koefisien <strong>c</strong> — <span class="ctrl-val" id="v_c">−4.00</span></label>
-          <input type="range" id="sl_c" min="-12" max="12" step="0.1" value="-4.0">
+          <label>Akar <strong>m₁</strong> — <span class="ctrl-val" id="m7m1v">−2.00</span></label>
+          <input type="range" id="m7slm1" min="-4" max="4" step="0.1" value="-2.0">
         </div>
-        <button class="btn-anim" id="btnCases" onclick="toggleCases()">⏸ PAUSE</button>
+        <div class="ctrl-group">
+          <label>Akar <strong>m₂</strong> — <span class="ctrl-val" id="m7m2v">1.00</span></label>
+          <input type="range" id="m7slm2" min="-4" max="4" step="0.1" value="1.0">
+        </div>
+        <div class="ctrl-group">
+          <label>Akar <strong>m₃</strong> — <span class="ctrl-val" id="m7m3v">3.00</span></label>
+          <input type="range" id="m7slm3" min="-4" max="4" step="0.1" value="3.0">
+        </div>
+        <button class="btn-anim" id="m7btnOrden" onclick="window.m7ToggleOrden()">⏸ PAUSE</button>
       </div>
-      <div id="casesInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div id="m7OrdenInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi Ini (orde 2 sebagai demonstrasi):</strong> Kurva = solusi <em>y(x)</em> dari Euler-Cauchy orde 2 <code>x²y'' + b·x·y' + c·y = 0</code> dengan IVP <code>y(1)=1, y'(1)=0</code> di interval <code>x ∈ (0.1, 10)</code>. Warna: <strong style="color:var(--amber)">amber = D &gt; 0 (real berbeda)</strong>, <strong style="color:var(--violet)">violet = D = 0 (real berulang)</strong>, <strong style="color:var(--cyan)">cyan = D &lt; 0 (kompleks → osilasi log)</strong>.<br>
-        <strong>Generalisasi orde tinggi:</strong> Tiap akar real <em>m<sub>i</sub></em> dari polinomial karakteristik orde n menyumbang mode <code>x<sup>mᵢ</sup></code>. Setiap akar berganda multiplisitas k menambah faktor <code>(ln x)<sup>0..k−1</sup></code>. Setiap pasangan kompleks <code>α±βi</code> menyumbang dua mode <code>x<sup>α</sup>·cos(β ln x)</code> dan <code>x<sup>α</sup>·sin(β ln x)</code>. Animasi orde 2 ini adalah kasus khusus n=2 dengan 2 mode.
+        <strong>📊 Cara Membaca:</strong> Konstruksi solusi Euler-Cauchy orde n langsung dari akarnya: y = c₁·x^m₁ + c₂·x^m₂ + ... + cₙ·x^mₙ. Slider memilih akar individual. <strong>Untuk orde 3</strong> ditampilkan 3 akar; <strong>orde 4</strong> menampilkan 4 akar (m₄ otomatis dipilih). Mode dengan m &lt; 0 mendominasi saat x → 0; mode m &gt; 0 mendominasi saat x → ∞. Solusi total adalah superposisi linear semua mode.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 2: Roots in complex plane (m-plane) -->
+  <!-- Animasi 2: n Akar di m-plane (M7-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--pink)"></div>
-      <span class="anim-title">Animasi 2 — Akar Karakteristik m di Bidang Kompleks (m-plane)</span>
+      <span class="anim-title">Animasi 2 — n Akar di m-plane: Migration &amp; Stability</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvRoots" height="320"></canvas>
+      <canvas id="m7cvRootsN" height="340" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
-        <div class="ctrl-group">
-          <label>Koefisien <strong>b</strong> — <span class="ctrl-val" id="v_b2">3.00</span></label>
-          <input type="range" id="sl_b2" min="-4" max="6" step="0.05" value="3.0">
-        </div>
-        <div class="ctrl-group">
-          <label>Koefisien <strong>c</strong> — <span class="ctrl-val" id="v_c2">2.00</span></label>
-          <input type="range" id="sl_c2" min="-12" max="12" step="0.1" value="2.0">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih konfigurasi akar (preset):</label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+            <button class="m7preset-pbtn" onclick="window.m7SetPreset('distinct3')" data-p="distinct3" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,107,179,.4);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">Orde 3: 3 real berbeda ✓</button>
+            <button class="m7preset-pbtn" onclick="window.m7SetPreset('repeated3')" data-p="repeated3" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">Orde 3: 1 real berganda k=2</button>
+            <button class="m7preset-pbtn" onclick="window.m7SetPreset('complex3')" data-p="complex3" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">Orde 3: 1 real + 2 kompleks</button>
+            <button class="m7preset-pbtn" onclick="window.m7SetPreset('quartet')" data-p="quartet" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:#00e09e;">Orde 4: kompleks berganda</button>
+          </div>
         </div>
       </div>
-      <div id="rootsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
+      <div id="m7RootsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi Ini:</strong> Bidang kompleks <em>m</em>: sumbu horizontal = real, vertikal = imajiner. Dua akar <code>m₁, m₂</code> dari <code>m² + (b−1)m + c = 0</code> ditandai. Berbeda dengan plane <em>r</em> di Pertemuan 5: di sini <strong>tanda real</strong> menentukan apakah <code>x<sup>m</sup></code> tumbuh atau meluruh saat x → ∞. Re(m) &gt; 0 → tumbuh; Re(m) &lt; 0 → meluruh; Re(m) = 0 → osilasi murni dalam ln x.<br>
-        <strong>Coba:</strong> (1) <strong>b = 1, c &gt; 0</strong>: akar selalu murni imajiner (Re=0) — solusi <em>osilasi pure</em> dalam ln x. (2) <strong>b = 1, c &lt; 0</strong>: akar real berlawanan tanda — satu solusi tumbuh, satu meluruh. (3) <strong>b ≠ 1</strong>: akar bergeser ke kiri/kanan — Re(m) = (1−b)/2 menjadi nonzero. (4) Saksikan akar kompleks <em>melompat ke real axis</em> saat D = (b−1)² − 4c menyentuh nol.
+        <strong>📊 Cara Membaca:</strong> Bidang kompleks m. n akar polinomial karakteristik orde n ditandai sebagai dot dengan multiplicity ditampilkan via badge. Stable region (Re(m)&lt;0) green = mode <em>decay saat x→∞</em>; unstable (Re(m)&gt;0) red = mode <em>tumbuh saat x→∞</em>. Pasangan kompleks selalu konjugat (mirror image). Setiap akar berganda multiplisitas k menyumbang k mode independen via multiplikasi (ln x)^(0..k-1).
       </div>
     </div>
   </div>
 
-  <!-- Animasi 3: Toggle (Numerical vs Analytical) -->
+  <!-- Animasi 3: Toggle Polinomial Plot ↔ Horner Synthetic Division (M7-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--green)"></div>
-      <span class="anim-title">Animasi 3 — Numerical vs Analytical Solution (Toggle)</span>
+      <span class="anim-title">Animasi 3 — Toggle: Polinomial p(m) ↔ Horner Synthetic Division</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvEMtog" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <canvas id="m7cvHorner" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
           <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--text)">
-            Method:
-            <button type="button" onclick="toggleEMSolver()" style="background:none;border:none;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
-              <span id="em_tog_view" style="display:inline-block;position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
-                <span style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
+            Tampilan:
+            <button type="button" onclick="window.m7ToggleHorner()" style="background:none;border:none;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
+              <span id="m7_horner_view" style="display:inline-block;position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
+                <span id="m7_horner_knob" style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
               </span>
-              <span id="em_tog_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:700;">ANALYTICAL (closed-form)</span>
+              <span id="m7_horner_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:700;">PLOT: p(m) = m³ − 3m² − 4m + 12 (akar visual)</span>
             </button>
           </div>
         </div>
       </div>
-      <div id="emTogInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div id="m7HornerInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Toggle metode solusi PD. Analytical: ekspresi tertutup (closed-form) dari teorema. Numerical: integrator step-by-step (RK4, Euler).<br>
-        <strong>Trade-off:</strong> Analytical exact tetapi terbatas pada kelas PD tertentu. Numerical universal tetapi punya error akumulasi + computational cost. Modern engineering: kombinasi keduanya — derive analytical untuk verify, run numerical untuk produksi.
+        <strong>📊 Cara Membaca:</strong> Untuk Euler-Cauchy orde n, root finding polinomial karakteristik adalah langkah kritis. <strong>PLOT</strong>: visualisasi p(m) sebagai kurva, akar = perpotongan dengan sumbu m. <strong>HORNER</strong>: tabel synthetic division step-by-step — bagi p(m) dengan (m − r) untuk setiap kandidat r dari rasional roots theorem. Sisa = 0 → r adalah akar. Reduksi orde polinomial setiap iterasi.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 4: Radio group (PD classification) -->
+  <!-- Animasi 4: Multiplisitas Akar Orde Tinggi (Radio, M7-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--pink)"></div>
-      <span class="anim-title">Animasi 4 — Klasifikasi PD: Pilih Tipe (Radio Group)</span>
+      <span class="anim-title">Animasi 4 — Multiplisitas Akar: 4 Kasus Basis Functions Orde Tinggi</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvEMrad" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <canvas id="m7cvMult" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
-          <label>Pilih Klasifikasi PD (radio group):</label>
+          <label>Pilih kasus multiplisitas akar:</label>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
-            <input type="radio" name="em_class_radio" id="em_r1" checked onchange="setEMClass('homogen')" style="display:none;">
-            <label for="em_r1" class="em-rad-lbl" data-c="homogen" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">Homogen ✓</label>
-            <input type="radio" name="em_class_radio" id="em_r2" onchange="setEMClass('nonhomogen')" style="display:none;">
-            <label for="em_r2" class="em-rad-lbl" data-c="nonhomogen" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">Non-Homogen</label>
-            <input type="radio" name="em_class_radio" id="em_r3" onchange="setEMClass('linear')" style="display:none;">
-            <label for="em_r3" class="em-rad-lbl" data-c="linear" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">Linear</label>
-            <input type="radio" name="em_class_radio" id="em_r4" onchange="setEMClass('nonlinear')" style="display:none;">
-            <label for="em_r4" class="em-rad-lbl" data-c="nonlinear" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">Non-Linear</label>
+            <input type="radio" name="m7_mult_radio" id="m7_m1" checked onchange="window.m7SetMult('distinct')" style="display:none;">
+            <label for="m7_m1" class="m7-mult-lbl" data-c="distinct" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">3 Real Berbeda: x⁻², x, x³ ✓</label>
+            <input type="radio" name="m7_mult_radio" id="m7_m2" onchange="window.m7SetMult('repk2')" style="display:none;">
+            <label for="m7_m2" class="m7-mult-lbl" data-c="repk2" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">Berganda k=2: x², x²·ln x, x²·(ln x)²</label>
+            <input type="radio" name="m7_mult_radio" id="m7_m3" onchange="window.m7SetMult('mixComplex')" style="display:none;">
+            <label for="m7_m3" class="m7-mult-lbl" data-c="mixComplex" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">1 Real + 2 Kompleks: x, cos(2 ln x), sin(2 ln x)</label>
+            <input type="radio" name="m7_mult_radio" id="m7_m4" onchange="window.m7SetMult('quartetComplex')" style="display:none;">
+            <label for="m7_m4" class="m7-mult-lbl" data-c="quartetComplex" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:#00e09e;">Kompleks Berganda: cos(β ln x), ln x·cos(β ln x), sin(β ln x), ln x·sin(β ln x)</label>
           </div>
         </div>
       </div>
-      <div id="emRadInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
+      <div id="m7MultInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Setiap klasifikasi memiliki metode solusi yang berbeda. Visualisasi menampilkan contoh solusi tipikal per kategori.<br>
-        <strong>Insight:</strong> Homogen: r(x)=0, solusi y_h. Non-Homogen: y = y_h + y_p (particular). Linear: superposition principle berlaku. Non-Linear: kompleks, mungkin tidak ada closed-form.
+        <strong>📊 Cara Membaca:</strong> Empat kasus tipikal multiplisitas akar di Euler-Cauchy orde tinggi:
+        (1) <strong>Distinct</strong>: tiga eksponen berbeda, basis adalah pangkat murni;
+        (2) <strong>Berganda k=2</strong>: satu akar muncul 2 kali, tambahkan faktor (ln x);
+        (3) <strong>Mix Complex</strong>: 1 akar real + pasangan kompleks, total 3 mode;
+        (4) <strong>Complex Berganda</strong>: pasangan kompleks muncul 2 kali (orde 4), 4 mode dengan faktor ln x.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 5: Dropdown (Topic-specific) + Signal Trace 1000 samples -->
+  <!-- Animasi 5: Aplikasi Engineering Orde Tinggi (Dropdown, M7-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:#a855f7"></div>
-      <span class="anim-title">Animasi 5 — Euler-Cauchy Orde Tinggi: Pilih Sub-Topik (Dropdown + Signal Trace)</span>
+      <span class="anim-title">Animasi 5 — Aplikasi Engineering: PD Orde 4 (Beam, Plate, Buckling)</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvEMdrop" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <canvas id="m7cvAppN" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
-          <label>Pilih (Dropdown):</label>
-          <select id="sl_em_drop" onchange="setEMDrop(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
-            <option value="order2">2️⃣ Orde 2 — paling sering muncul</option>
-            <option value="order3">3️⃣ Orde 3 — vibrasi mode shape</option>
-            <option value="order4">4️⃣ Orde 4 — beam deflection EI·y'''' = w(x)</option>
-            <option value="orderN">🔢 Orde N — generalized</option>
+          <label>Pilih aplikasi (semua dimodelkan PD orde 4):</label>
+          <select id="m7slAppN" onchange="window.m7SetAppN(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:520px;margin-top:6px;">
+            <option value="simply">📐 Balok Simply Supported: EI·y'''' = w (deflection sinusoidal mode)</option>
+            <option value="cantilever">🏗️ Balok Cantilever: EI·y'''' = 0, ujung kanan free</option>
+            <option value="plate">🪟 Vibrasi Pelat Persegi: orde 4 di 2D (∇⁴u)</option>
+            <option value="buckling">📏 Euler Buckling Column: y'''' + (P/EI)·y'' = 0</option>
+            <option value="taperedB">🪜 Balok Tirus EI(x) = E·I₀·x²: Euler-Cauchy orde 4</option>
           </select>
         </div>
       </div>
-      <div id="emDropInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
+      <div id="m7AppNInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Pilih sub-topik dari dropdown. Layout split: kiri label + formula, kanan signal trace solusi 1000 samples (~10 detik).<br>
-        <strong>Insight:</strong> Setiap sub-topik Euler-Cauchy Orde Tinggi punya signature unik di domain waktu. Bandingkan shape decay/oscillation/growth antara opsi.
+        <strong>📊 Cara Membaca:</strong> Lima aplikasi engineering yang dimodelkan PD orde 4 (balok bending, plate vibration, buckling). Layout split: kiri = visualisasi struktur fisik bergerak (beam deflection, plate vibration mode, buckled column), kanan = mode shape y(x)/displacement profile. <strong>Insight:</strong> EI·y'''' = w(x) muncul di seluruh teknik struktural, dengan boundary condition (clamped/pinned/free) menentukan akar polinomial karakteristik.
       </div>
     </div>
   </div>
@@ -8354,6 +8366,879 @@ function _createForumParticleBurst(event) {
   else attachBtnHandlers();
 })();
 
+</script>
+
+<!-- ════════════════════════════════════════════════════════════════
+     M7 TOPIC-SPECIFIC ANIMATIONS — Euler-Cauchy Orde Tinggi
+     5 canvas: m7cvOrden, m7cvRootsN, m7cvHorner, m7cvMult, m7cvAppN
+     ════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  function bgGrad(ctx, W, H){
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#020812'); g.addColorStop(1, '#0d1929');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  function gridLines(ctx, x0, x1, y0, y1, divX, divY){
+    ctx.strokeStyle = 'rgba(148,163,184,.10)'; ctx.lineWidth = 1;
+    for (let i = 0; i <= divX; i++){
+      const x = x0 + (i/divX)*(x1-x0);
+      ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.stroke();
+    }
+    for (let j = 0; j <= divY; j++){
+      const y = y0 + (j/divY)*(y1-y0);
+      ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
+    }
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 1 — Solver Euler-Cauchy Orde n (n = 3 atau 4)
+  // y = c₁·x^m₁ + c₂·x^m₂ + c₃·x^m₃ [+ c₄·x^m₄]
+  // c_i ditentukan dari IVP y(1)=1, y'(1)=0 [, y''(1)=0, y'''(1)=0]
+  // ════════════════════════════════════════════════════════════════
+  const m7Orden = { running: true, raf: null, t: 0, n: 3 };
+
+  window.m7SetN = function(n){
+    m7Orden.n = n;
+    document.querySelectorAll('.m7n-pbtn').forEach(btn => {
+      const v = parseInt(btn.getAttribute('data-n'));
+      const active = (v === n);
+      btn.style.border = active ? '2px solid var(--cyan)' : '1px solid rgba(148,163,184,.3)';
+      btn.style.background = active ? 'var(--cyan)' : 'rgba(148,163,184,.10)';
+      btn.style.color = active ? '#fff' : '#94a3b8';
+      btn.style.fontWeight = active ? '700' : '400';
+      btn.style.boxShadow = active ? '0 0 12px rgba(8,191,232,.6)' : 'none';
+      btn.style.transform = active ? 'scale(1.05)' : 'scale(1)';
+      btn.textContent = active ? (btn.textContent.replace(' ✓','') + ' ✓') : btn.textContent.replace(' ✓','');
+    });
+  };
+  window.m7ToggleOrden = function(){
+    m7Orden.running = !m7Orden.running;
+    const btn = document.getElementById('m7btnOrden');
+    if (btn) btn.textContent = m7Orden.running ? '⏸ PAUSE' : '▶ PLAY';
+    if (m7Orden.running) drawM7Orden();
+  };
+
+  // Solve linear system A·c = b for n×n system using Gaussian elimination
+  function solveLinear(A, b){
+    const n = A.length;
+    const M = A.map((row, i) => [...row, b[i]]);
+    for (let k = 0; k < n; k++){
+      let maxRow = k;
+      for (let i = k+1; i < n; i++) if (Math.abs(M[i][k]) > Math.abs(M[maxRow][k])) maxRow = i;
+      [M[k], M[maxRow]] = [M[maxRow], M[k]];
+      if (Math.abs(M[k][k]) < 1e-10) return null;
+      for (let i = k+1; i < n; i++){
+        const f = M[i][k] / M[k][k];
+        for (let j = k; j <= n; j++) M[i][j] -= f * M[k][j];
+      }
+    }
+    const x = new Array(n);
+    for (let i = n-1; i >= 0; i--){
+      let s = M[i][n];
+      for (let j = i+1; j < n; j++) s -= M[i][j] * x[j];
+      x[i] = s / M[i][i];
+    }
+    return x;
+  }
+
+  function drawM7Orden(){
+    const cv = document.getElementById('m7cvOrden'); if(!cv) return;
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const m1 = parseFloat(document.getElementById('m7slm1').value);
+    const m2 = parseFloat(document.getElementById('m7slm2').value);
+    const m3 = parseFloat(document.getElementById('m7slm3').value);
+    document.getElementById('m7m1v').textContent = m1.toFixed(2);
+    document.getElementById('m7m2v').textContent = m2.toFixed(2);
+    document.getElementById('m7m3v').textContent = m3.toFixed(2);
+
+    const ms = m7Orden.n === 3 ? [m1, m2, m3] : [m1, m2, m3, (m1+m2+m3)/3 + 1.5];
+
+    const padL = 50, padR = 20, padT = 25, padB = 35;
+    const px0 = padL, px1 = W - padR, py0 = padT, py1 = H - padB;
+    const xMin = 0.1, xMax = 8;
+    function tx(x){ return px0 + ((x - xMin)/(xMax - xMin))*(px1 - px0); }
+
+    gridLines(ctx, px0, px1, py0, py1, 10, 6);
+
+    // IVP: y(1)=1, y'(1)=0 [, y''(1)=0, y'''(1)=0 for n=4]
+    // y = Σ cᵢ·x^mᵢ
+    // y(1) = Σ cᵢ = 1
+    // y'(1) = Σ mᵢ·cᵢ = 0
+    // y''(1) = Σ mᵢ(mᵢ-1)·cᵢ = 0
+    // y'''(1) = Σ mᵢ(mᵢ-1)(mᵢ-2)·cᵢ = 0
+    const n = ms.length;
+    const A = [];
+    for (let row = 0; row < n; row++){
+      A.push(ms.map(m => {
+        let v = 1;
+        for (let k = 0; k < row; k++) v *= (m - k);
+        return v;
+      }));
+    }
+    const bVec = new Array(n).fill(0);
+    bVec[0] = 1;
+    const cs = solveLinear(A, bVec);
+
+    // Compute y(x)
+    const N = 400;
+    const ys = new Float64Array(N+1);
+    let yMin = 0, yMax = 0;
+    for (let i = 0; i <= N; i++){
+      const x = xMin + (i/N)*(xMax - xMin);
+      let y = 0;
+      if (cs){
+        for (let k = 0; k < n; k++) y += cs[k] * Math.pow(x, ms[k]);
+      }
+      ys[i] = y;
+      if (Number.isFinite(y)){
+        if (y < yMin) yMin = y;
+        if (y > yMax) yMax = y;
+      }
+    }
+    const yClamp = Math.min(Math.max(Math.abs(yMin), Math.abs(yMax), 1.5), 8);
+    function ty(y){ return (py0+py1)/2 - (y/yClamp)*((py1-py0)/2 - 8); }
+
+    // Axes
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(tx(1), py0); ctx.lineTo(tx(1), py1); ctx.stroke();
+
+    ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+    ctx.fillText('x', px1 + 5, ty(0) + 4);
+    ctx.fillText('y(x)', px0 - 35, py0 - 4);
+    ctx.fillText('x=1', tx(1) - 10, py1 + 14);
+
+    // Plot each mode separately (faded) + total
+    const modeColors = ['#0ea5e9', '#a855f7', '#00e09e', '#ff6bb3'];
+    if (cs){
+      for (let k = 0; k < n; k++){
+        ctx.strokeStyle = modeColors[k] + '50';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        let started = false;
+        for (let i = 0; i <= N; i++){
+          const x = xMin + (i/N)*(xMax - xMin);
+          const y = cs[k] * Math.pow(x, ms[k]);
+          if (!Number.isFinite(y) || Math.abs(y) > yClamp * 1.3){ started = false; continue; }
+          const px = tx(x), py = ty(y);
+          if (!started){ ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+      }
+    }
+
+    // Total y(x)
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
+    ctx.shadowColor = '#fff'; ctx.shadowBlur = 8;
+    ctx.beginPath();
+    let started = false;
+    for (let i = 0; i <= N; i++){
+      const x = xMin + (i/N)*(xMax - xMin);
+      const y = ys[i];
+      if (!Number.isFinite(y) || Math.abs(y) > yClamp * 1.3){ started = false; continue; }
+      const px = tx(x), py = ty(y);
+      if (!started){ ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Title
+    ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 13px JetBrains Mono, monospace';
+    const formula = ms.map((m, k) => `${cs ? cs[k].toFixed(2) : '?'}·x^${m.toFixed(2)}`).join(' + ');
+    ctx.fillText(`Orde ${n}: y = ${formula}`, padL + 8, padT + 16);
+
+    // Animated tracing dot
+    if (m7Orden.running) m7Orden.t = (m7Orden.t + 0.03) % (xMax - xMin);
+    const xDot = xMin + m7Orden.t;
+    const iDot = Math.min(N, Math.max(0, Math.floor(m7Orden.t/(xMax-xMin)*N)));
+    if (Number.isFinite(ys[iDot]) && Math.abs(ys[iDot]) <= yClamp * 1.3){
+      ctx.fillStyle = '#fff';
+      ctx.shadowColor = '#0ea5e9'; ctx.shadowBlur = 16;
+      ctx.beginPath(); ctx.arc(tx(xDot), ty(ys[iDot]), 6, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    // Info
+    const infoEl = document.getElementById('m7OrdenInfo');
+    if (infoEl){
+      const cstr = cs ? cs.map(c => c.toFixed(2)).join(', ') : 'singular';
+      infoEl.innerHTML = `<span style="color:#0ea5e9">●</span> Orde n=${n}, akar [${ms.map(m=>m.toFixed(2)).join(', ')}], koefisien c=[${cstr}] dari IVP`;
+    }
+
+    if (m7Orden.running) m7Orden.raf = requestAnimationFrame(drawM7Orden);
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 2 — n Akar di m-plane (preset configurations)
+  // ════════════════════════════════════════════════════════════════
+  const m7Roots = { preset: 'distinct3', t: 0, raf: null };
+
+  const M7_PRESETS = {
+    distinct3: { roots: [{re:-2, im:0, mult:1}, {re: 1, im:0, mult:1}, {re: 3, im:0, mult:1}], desc: 'Orde 3, 3 akar real berbeda' },
+    repeated3: { roots: [{re:-1, im:0, mult:2}, {re: 2, im:0, mult:1}], desc: 'Orde 3, akar real berganda k=2 di m=-1' },
+    complex3:  { roots: [{re: 1, im:0, mult:1}, {re:-0.5, im: 1.5, mult:1}, {re:-0.5, im:-1.5, mult:1}], desc: 'Orde 3, 1 real + pasangan kompleks' },
+    quartet:   { roots: [{re:-0.3, im: 1.7, mult:2}, {re:-0.3, im:-1.7, mult:2}], desc: 'Orde 4, pasangan kompleks berganda k=2' }
+  };
+
+  window.m7SetPreset = function(key){
+    m7Roots.preset = key;
+    document.querySelectorAll('.m7preset-pbtn').forEach(btn => {
+      const p = btn.getAttribute('data-p');
+      const active = (p === key);
+      btn.style.border = active ? '2px solid var(--pink)' : '1px solid rgba(148,163,184,.3)';
+      btn.style.background = active ? 'rgba(255,107,179,.4)' : 'rgba(148,163,184,.10)';
+      btn.style.color = active ? '#fff' : '#94a3b8';
+      btn.style.fontWeight = active ? '700' : '400';
+      btn.style.boxShadow = active ? '0 0 12px rgba(255,107,179,.4)' : 'none';
+      btn.style.transform = active ? 'scale(1.05)' : 'scale(1)';
+      btn.textContent = active ? (btn.textContent.replace(' ✓','') + ' ✓') : btn.textContent.replace(' ✓','');
+    });
+  };
+
+  function drawM7RootsN(){
+    const cv = document.getElementById('m7cvRootsN'); if(!cv){ m7Roots.raf = requestAnimationFrame(drawM7RootsN); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const padL = 40, padR = 20, padT = 30, padB = 40;
+    const px0 = padL, px1 = W - padR, py0 = padT, py1 = H - padB;
+    const cx = (px0 + px1)/2, cy = (py0 + py1)/2;
+    const halfW = (px1 - px0)/2, halfH = (py1 - py0)/2;
+    const reRange = 4, imRange = 3;
+    function rx(re){ return cx + (re/reRange)*halfW; }
+    function ry(im){ return cy - (im/imRange)*halfH; }
+
+    // Stable region tinting
+    ctx.fillStyle = 'rgba(0,224,158,.05)';
+    ctx.fillRect(px0, py0, cx - px0, py1 - py0);
+    ctx.fillStyle = 'rgba(239,68,68,.05)';
+    ctx.fillRect(cx, py0, px1 - cx, py1 - py0);
+
+    // Grid
+    ctx.strokeStyle = 'rgba(148,163,184,.1)'; ctx.lineWidth = 1;
+    for (let i = -reRange; i <= reRange; i++){
+      const x = rx(i);
+      ctx.beginPath(); ctx.moveTo(x, py0); ctx.lineTo(x, py1); ctx.stroke();
+    }
+    for (let j = -imRange; j <= imRange; j++){
+      const y = ry(j);
+      ctx.beginPath(); ctx.moveTo(px0, y); ctx.lineTo(px1, y); ctx.stroke();
+    }
+
+    // Axes
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(px0, cy); ctx.lineTo(px1, cy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx, py0); ctx.lineTo(cx, py1); ctx.stroke();
+
+    // Stability boundary
+    ctx.strokeStyle = 'rgba(245,158,11,.6)'; ctx.lineWidth = 2; ctx.setLineDash([6, 4]);
+    ctx.beginPath(); ctx.moveTo(cx, py0); ctx.lineTo(cx, py1); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Labels
+    ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+    ctx.fillText('Re(m)', px1 - 36, cy - 8);
+    ctx.fillText('Im(m)', cx + 6, py0 + 12);
+    ctx.fillText('DECAY (x→∞)', px0 + 8, py0 + 16);
+    ctx.fillText('GROW (x→∞)', px1 - 90, py0 + 16);
+
+    // Plot roots
+    const cfg = M7_PRESETS[m7Roots.preset];
+    cfg.roots.forEach((r, idx) => {
+      const x = rx(r.re), y = ry(r.im);
+      const color = r.re < -0.05 ? '#00e09e' : (r.re > 0.05 ? '#ef4444' : '#f59e0b');
+      ctx.fillStyle = color;
+      ctx.shadowColor = color; ctx.shadowBlur = 14;
+      ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+      // Multiplicity badge
+      if (r.mult > 1){
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(x + 12, y - 12, 8, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = color; ctx.font = 'bold 10px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+        ctx.fillText(String(r.mult), x + 12, y - 8);
+        ctx.textAlign = 'left';
+      }
+      // Label
+      ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 11px JetBrains Mono, monospace';
+      const lbl = r.im === 0 ? `m=${r.re}` : `m=${r.re}±${Math.abs(r.im)}i`;
+      ctx.fillText(lbl, x + 12, y + 22);
+    });
+
+    // Title
+    ctx.fillStyle = '#ff6bb3'; ctx.font = 'bold 13px JetBrains Mono, monospace';
+    ctx.fillText(cfg.desc, padL + 8, padT - 12);
+
+    const infoEl = document.getElementById('m7RootsInfo');
+    if (infoEl){
+      const totalOrder = cfg.roots.reduce((sum, r) => sum + r.mult * (r.im === 0 ? 1 : 2), 0);
+      // Note: complex pairs are listed separately, so each contributes mult*1
+      const actualOrder = cfg.roots.reduce((sum, r) => sum + r.mult, 0);
+      const desc = cfg.roots.map(r => {
+        const c = r.im === 0 ? r.re.toFixed(1) : `${r.re.toFixed(1)}±${Math.abs(r.im).toFixed(1)}i`;
+        return r.mult > 1 ? `${c} (k=${r.mult})` : c;
+      }).join(', ');
+      infoEl.innerHTML = `<span style="color:#ff6bb3">●</span> ${cfg.desc} &nbsp;|&nbsp; akar: ${desc}`;
+    }
+
+    m7Roots.raf = requestAnimationFrame(drawM7RootsN);
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 3 — Toggle Polynomial Plot ↔ Horner Synthetic Division
+  // p(m) = m³ − 3m² − 4m + 12 (akar 2, 3, −2)
+  // ════════════════════════════════════════════════════════════════
+  const m7Horner = { isPlot: true, t: 0, raf: null };
+
+  window.m7ToggleHorner = function(){
+    m7Horner.isPlot = !m7Horner.isPlot;
+    const view = document.getElementById('m7_horner_view');
+    const knob = document.getElementById('m7_horner_knob');
+    const lbl  = document.getElementById('m7_horner_label');
+    if (m7Horner.isPlot){
+      view.style.background = 'rgba(0,224,158,.25)'; view.style.borderColor = 'var(--green)';
+      knob.style.transform = 'translateX(0px)';
+      lbl.style.color = 'var(--green)';
+      lbl.textContent = 'PLOT: p(m) = m³ − 3m² − 4m + 12 (akar visual)';
+    } else {
+      view.style.background = 'rgba(255,179,0,.25)'; view.style.borderColor = 'var(--amber)';
+      knob.style.transform = 'translateX(28px)';
+      lbl.style.color = 'var(--amber)';
+      lbl.textContent = 'HORNER: tabel synthetic division step-by-step';
+    }
+  };
+
+  // Polynomial p(m) = m³ − 3m² − 4m + 12, roots: 2, 3, −2
+  function poly(m){ return m*m*m - 3*m*m - 4*m + 12; }
+  // Synthetic division of a (orde 3) polynomial [1, -3, -4, 12] by (m − r)
+  function syntheticDivide(coeffs, r){
+    const result = [coeffs[0]];
+    for (let i = 1; i < coeffs.length; i++){
+      result.push(coeffs[i] + r * result[i-1]);
+    }
+    return result;
+  }
+
+  function drawM7Horner(){
+    const cv = document.getElementById('m7cvHorner'); if(!cv){ m7Horner.raf = requestAnimationFrame(drawM7Horner); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const padL = 50, padR = 20, padT = 30, padB = 35;
+    const px0 = padL, px1 = W - padR, py0 = padT, py1 = H - padB;
+
+    if (m7Horner.isPlot){
+      // Plot p(m) for m ∈ [-3.5, 4]
+      gridLines(ctx, px0, px1, py0, py1, 12, 6);
+      const mMin = -3.5, mMax = 4;
+      function tx(m){ return px0 + ((m - mMin)/(mMax - mMin))*(px1 - px0); }
+
+      const N = 200;
+      let yMax = 0, yMin = 0;
+      const ys = new Float64Array(N+1);
+      for (let i = 0; i <= N; i++){
+        const m = mMin + (i/N)*(mMax - mMin);
+        ys[i] = poly(m);
+        if (ys[i] > yMax) yMax = ys[i];
+        if (ys[i] < yMin) yMin = ys[i];
+      }
+      const yC = Math.max(Math.abs(yMin), Math.abs(yMax), 5);
+      function ty(y){ return (py0+py1)/2 - (y/yC)*((py1-py0)/2 - 8); }
+
+      // Axes
+      ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(tx(0), py0); ctx.lineTo(tx(0), py1); ctx.stroke();
+      ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+      ctx.fillText('m', px1 + 5, ty(0) + 4);
+      ctx.fillText('p(m)', px0 - 35, py0 - 4);
+
+      // Plot polynomial
+      ctx.strokeStyle = '#00e09e'; ctx.lineWidth = 2.5;
+      ctx.shadowColor = '#00e09e'; ctx.shadowBlur = 8;
+      ctx.beginPath();
+      for (let i = 0; i <= N; i++){
+        const m = mMin + (i/N)*(mMax - mMin);
+        const px = tx(m), py = ty(ys[i]);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Mark roots: 2, 3, −2
+      [2, 3, -2].forEach(r => {
+        ctx.fillStyle = '#ffd166';
+        ctx.shadowColor = '#ffd166'; ctx.shadowBlur = 14;
+        ctx.beginPath(); ctx.arc(tx(r), ty(0), 7, 0, Math.PI*2); ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 11px JetBrains Mono, monospace';
+        ctx.fillText(`m=${r}`, tx(r) + 8, ty(0) - 8);
+      });
+
+      // Animated tracing dot
+      m7Horner.t = (m7Horner.t + 0.025) % (mMax - mMin);
+      const mDot = mMin + m7Horner.t;
+      const iDot = Math.min(N, Math.floor(m7Horner.t/(mMax - mMin)*N));
+      ctx.fillStyle = '#fff';
+      ctx.shadowColor = '#00e09e'; ctx.shadowBlur = 14;
+      ctx.beginPath(); ctx.arc(tx(mDot), ty(ys[iDot]), 5, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = '#00e09e'; ctx.font = 'bold 13px JetBrains Mono, monospace';
+      ctx.fillText('p(m) = m³ − 3m² − 4m + 12 → akar: −2, 2, 3', padL + 8, padT - 12);
+    } else {
+      // Synthetic division table animation
+      const coeffs = [1, -3, -4, 12];
+      const candidates = [-2, 2, 3];  // try each root in sequence
+      m7Horner.t += 0.005;
+      const tIdx = Math.floor(m7Horner.t * 0.5) % 3;
+      const r = candidates[tIdx];
+      const stepProgress = (m7Horner.t * 0.5) % 1;
+      const step = Math.floor(stepProgress * (coeffs.length + 1));
+
+      // Compute partial division
+      const partialResult = [coeffs[0]];
+      for (let i = 1; i < coeffs.length && i <= step; i++){
+        partialResult.push(coeffs[i] + r * partialResult[i-1]);
+      }
+
+      // Draw table
+      const cellW = (px1 - px0 - 80) / coeffs.length;
+      const cellH = 50;
+      const tableX = px0 + 60;
+      const tableY = py0 + 50;
+
+      // Title
+      ctx.fillStyle = '#ffb300'; ctx.font = 'bold 13px JetBrains Mono, monospace';
+      ctx.fillText(`Synthetic Division: p(m) ÷ (m − ${r})`, padL + 8, padT - 12);
+
+      // Header (coefficients)
+      ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 12px JetBrains Mono, monospace';
+      ctx.fillText('Koef:', tableX - 50, tableY - 18);
+      coeffs.forEach((c, i) => {
+        ctx.fillStyle = '#fff';
+        ctx.fillText(String(c), tableX + i * cellW + cellW/2 - 8, tableY - 18);
+      });
+
+      // r value
+      ctx.fillStyle = '#ffb300'; ctx.font = 'bold 12px JetBrains Mono, monospace';
+      ctx.fillText(`r=${r}`, tableX - 50, tableY + cellH/2 + 4);
+
+      // Cells: bring down coefs, multiply by r, sum
+      // Row 1: coefs (top)
+      for (let i = 0; i < coeffs.length; i++){
+        ctx.strokeStyle = 'rgba(255,179,0,.4)';
+        ctx.strokeRect(tableX + i * cellW, tableY, cellW, cellH);
+      }
+
+      // Row 2 (multipliers, below row 1): r * partialResult[i-1]
+      for (let i = 1; i < partialResult.length; i++){
+        ctx.fillStyle = 'rgba(255,179,0,.15)';
+        ctx.fillRect(tableX + i * cellW, tableY + cellH, cellW, cellH);
+        ctx.strokeStyle = 'rgba(255,179,0,.4)';
+        ctx.strokeRect(tableX + i * cellW, tableY + cellH, cellW, cellH);
+        ctx.fillStyle = '#ffb300'; ctx.font = 'bold 14px JetBrains Mono, monospace';
+        ctx.fillText(String((r * partialResult[i-1]).toFixed(1)), tableX + i * cellW + cellW/2 - 12, tableY + cellH + cellH/2 + 5);
+      }
+
+      // Row 3 (results, bottom): partialResult
+      for (let i = 0; i < partialResult.length; i++){
+        ctx.fillStyle = '#00e09e' + '33';
+        ctx.fillRect(tableX + i * cellW, tableY + 2*cellH, cellW, cellH);
+        ctx.strokeStyle = '#00e09e';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(tableX + i * cellW, tableY + 2*cellH, cellW, cellH);
+        ctx.fillStyle = '#00e09e'; ctx.font = 'bold 16px JetBrains Mono, monospace';
+        const v = partialResult[i];
+        ctx.fillText(String(v.toFixed(1)), tableX + i * cellW + cellW/2 - 14, tableY + 2*cellH + cellH/2 + 6);
+      }
+
+      // Verdict (last cell = remainder)
+      const remainder = partialResult[partialResult.length - 1];
+      if (partialResult.length === coeffs.length){
+        const isRoot = Math.abs(remainder) < 0.001;
+        ctx.fillStyle = isRoot ? '#00e09e' : '#ef4444';
+        ctx.font = 'bold 14px JetBrains Mono, monospace';
+        ctx.fillText(isRoot ? `✓ r=${r} adalah AKAR (sisa=0)` : `✗ r=${r} bukan akar (sisa=${remainder.toFixed(1)})`, tableX, tableY + 3*cellH + 30);
+      }
+    }
+
+    const infoEl = document.getElementById('m7HornerInfo');
+    if (infoEl){
+      infoEl.innerHTML = m7Horner.isPlot
+        ? `<span style="color:#00e09e">●</span> Akar polynomial = perpotongan kurva dengan sumbu m. Untuk p(m) = m³ − 3m² − 4m + 12: akar adalah −2, 2, dan 3.`
+        : `<span style="color:#ffb300">●</span> Horner synthetic division: bagi p(m) dengan (m − r). Sisa = 0 → r adalah akar. Reduksi orde polinomial setiap iterasi.`;
+    }
+
+    m7Horner.raf = requestAnimationFrame(drawM7Horner);
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 4 — Multiplisitas Akar (4 kasus basis functions)
+  // ════════════════════════════════════════════════════════════════
+  const m7Mult = { which: 'distinct', t: 0, raf: null };
+
+  const M7_MULT = {
+    distinct:        { label: '3 Real Berbeda: m=-2, 1, 3', formula: 'y₁=x⁻², y₂=x, y₃=x³',
+                       basis: [x => 1/(x*x), x => x, x => x*x*x], colors: ['#0ea5e9', '#a855f7', '#00e09e'] },
+    repk2:           { label: 'Berganda k=2: m=2 (mult 2), m=-1', formula: 'y₁=x², y₂=x²·ln x, y₃=1/x',
+                       basis: [x => x*x, x => x*x*Math.log(x), x => 1/x], colors: ['#a855f7', '#ff6bb3', '#0ea5e9'] },
+    mixComplex:      { label: '1 Real + 2 Kompleks: m=1, 0±2i', formula: 'y₁=x, y₂=cos(2 ln x), y₃=sin(2 ln x)',
+                       basis: [x => x, x => Math.cos(2*Math.log(x)), x => Math.sin(2*Math.log(x))], colors: ['#0ea5e9', '#00e09e', '#ff6bb3'] },
+    quartetComplex:  { label: 'Kompleks Berganda: 0±2i (mult 2)', formula: '4 mode: cos(2lnx), lnx·cos(2lnx), sin(2lnx), lnx·sin(2lnx)',
+                       basis: [x => Math.cos(2*Math.log(x)), x => Math.log(x)*Math.cos(2*Math.log(x)), x => Math.sin(2*Math.log(x)), x => Math.log(x)*Math.sin(2*Math.log(x))], colors: ['#0ea5e9', '#a855f7', '#00e09e', '#ff6bb3'] }
+  };
+
+  window.m7SetMult = function(key){
+    m7Mult.which = key;
+    document.querySelectorAll('.m7-mult-lbl').forEach(lbl => {
+      const c = lbl.getAttribute('data-c');
+      const active = (c === key);
+      lbl.style.border = active ? '2px solid var(--pink)' : '1px solid rgba(148,163,184,.3)';
+      lbl.style.background = active ? 'rgba(255,255,255,.20)' : 'rgba(148,163,184,.10)';
+      lbl.style.color = active ? '#fff' : '#94a3b8';
+      lbl.style.fontWeight = active ? '700' : '400';
+      lbl.style.boxShadow = active ? '0 0 12px rgba(255,107,179,.4)' : 'none';
+      lbl.style.transform = active ? 'scale(1.05)' : 'scale(1)';
+      lbl.textContent = active ? (lbl.textContent.replace(' ✓','') + ' ✓') : lbl.textContent.replace(' ✓','');
+    });
+  };
+
+  function drawM7Mult(){
+    const cv = document.getElementById('m7cvMult'); if(!cv){ m7Mult.raf = requestAnimationFrame(drawM7Mult); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const obj = M7_MULT[m7Mult.which];
+    const padL = 50, padR = 20, padT = 35, padB = 35;
+    const px0 = padL, px1 = W - padR, py0 = padT, py1 = H - padB;
+    const xMin = 0.3, xMax = 5;
+    function tx(x){ return px0 + ((x-xMin)/(xMax-xMin))*(px1-px0); }
+
+    gridLines(ctx, px0, px1, py0, py1, 10, 6);
+
+    // Sample
+    const N = 200;
+    const arrs = obj.basis.map(fn => {
+      const arr = new Float64Array(N+1);
+      for (let i = 0; i <= N; i++){
+        const x = xMin + (i/N)*(xMax-xMin);
+        arr[i] = fn(x);
+      }
+      return arr;
+    });
+    let yMax = 1;
+    arrs.forEach(arr => {
+      for (let i = 0; i <= N; i++){
+        const v = arr[i];
+        if (Number.isFinite(v) && Math.abs(v) > yMax) yMax = Math.abs(v);
+      }
+    });
+    yMax = Math.min(yMax, 6);
+    function ty(y){ return (py0+py1)/2 - (y/yMax)*((py1-py0)/2 - 8); }
+
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(tx(1), py0); ctx.lineTo(tx(1), py1); ctx.stroke();
+
+    // Plot
+    arrs.forEach((arr, k) => {
+      ctx.strokeStyle = obj.colors[k]; ctx.lineWidth = 2;
+      ctx.shadowColor = obj.colors[k]; ctx.shadowBlur = 6;
+      ctx.beginPath();
+      let started = false;
+      for (let i = 0; i <= N; i++){
+        const x = xMin + (i/N)*(xMax-xMin);
+        const y = arr[i];
+        if (!Number.isFinite(y) || Math.abs(y) > yMax * 1.3){ started = false; continue; }
+        const px = tx(x), py = ty(y);
+        if (!started){ ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+    });
+    ctx.shadowBlur = 0;
+
+    // Animated dots
+    m7Mult.t = (m7Mult.t + 0.025) % (xMax - xMin);
+    const xDot = xMin + m7Mult.t;
+    const iDot = Math.min(N, Math.floor(m7Mult.t/(xMax-xMin)*N));
+    arrs.forEach((arr, k) => {
+      if (Number.isFinite(arr[iDot]) && Math.abs(arr[iDot]) <= yMax * 1.3){
+        ctx.fillStyle = '#fff';
+        ctx.shadowColor = obj.colors[k]; ctx.shadowBlur = 12;
+        ctx.beginPath(); ctx.arc(tx(xDot), ty(arr[iDot]), 5, 0, Math.PI*2); ctx.fill();
+      }
+    });
+    ctx.shadowBlur = 0;
+
+    // Title + formula
+    ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 12px JetBrains Mono, monospace';
+    ctx.fillText(obj.label, padL + 8, padT - 18);
+    ctx.font = '10px JetBrains Mono, monospace'; ctx.fillStyle = '#94a3b8';
+    ctx.fillText(obj.formula, padL + 8, padT - 4);
+
+    // Legend
+    let lx = px1 - 130, ly = padT + 12;
+    ctx.font = 'bold 11px JetBrains Mono, monospace';
+    arrs.forEach((arr, k) => {
+      ctx.fillStyle = obj.colors[k];
+      ctx.fillRect(lx, ly - 6, 14, 3);
+      ctx.fillText(`y${k+1}(x)`, lx + 18, ly);
+      ly += 14;
+    });
+
+    const infoEl = document.getElementById('m7MultInfo');
+    if (infoEl){
+      infoEl.innerHTML = `<span style="color:${obj.colors[0]}">●</span> ${obj.label} &nbsp;|&nbsp; ${obj.formula}`;
+    }
+
+    m7Mult.raf = requestAnimationFrame(drawM7Mult);
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 5 — Aplikasi Engineering Orde 4
+  // ════════════════════════════════════════════════════════════════
+  const m7AppN = { which: 'simply', t: 0, raf: null };
+
+  const M7_APPS = {
+    simply:     { label: 'Balok Simply Supported: y(x) = sin(πx/L) (mode 1)',
+                  shape: x => Math.sin(Math.PI*x), color: '#0ea5e9', icon: 'simply' },
+    cantilever: { label: 'Cantilever: w(x) = (qL⁴/24EI)(1−x/L)²(2+x/L)·x²/L²',
+                  shape: x => (1-x)*(1-x)*(2+x)*x*x*0.6, color: '#00e09e', icon: 'cantilever' },
+    plate:      { label: 'Vibrasi Pelat 2D: u = sin(πx/a)·sin(πy/b)',
+                  shape: x => Math.sin(Math.PI*x), color: '#ff6bb3', icon: 'plate' },
+    buckling:   { label: 'Euler Buckling: y = sin(πx/L) [P_critical = π²EI/L²]',
+                  shape: x => Math.sin(Math.PI*x), color: '#ffb300', icon: 'buckling' },
+    taperedB:   { label: 'Balok Tirus EI(x)=EI₀x²: solusi Euler-Cauchy orde 4',
+                  shape: x => Math.pow(x, 2.5) - x*x, color: '#a855f7', icon: 'tapered' }
+  };
+
+  window.m7SetAppN = function(key){
+    m7AppN.which = key; m7AppN.t = 0;
+  };
+
+  function drawM7AppN(){
+    const cv = document.getElementById('m7cvAppN'); if(!cv){ m7AppN.raf = requestAnimationFrame(drawM7AppN); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const obj = M7_APPS[m7AppN.which];
+    const splitX = W * 0.50;
+    ctx.strokeStyle = 'rgba(148,163,184,.3)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(splitX, 20); ctx.lineTo(splitX, H - 20); ctx.stroke();
+
+    m7AppN.t += 0.012;
+    const t = m7AppN.t;
+    const amp = Math.sin(t * 1.5) * 0.7;
+
+    // ── LEFT: structural visualization ──
+    if (obj.icon === 'simply'){
+      // Beam with two pin supports
+      const beamY = H/2;
+      const beamL = splitX - 60;
+      const beamX0 = 30;
+      // Deflected shape
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 4;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 8;
+      ctx.beginPath();
+      const N = 60;
+      for (let i = 0; i <= N; i++){
+        const xR = i/N;
+        const yDef = beamY + amp * 30 * Math.sin(Math.PI * xR);
+        if (i === 0) ctx.moveTo(beamX0 + xR * beamL, yDef);
+        else ctx.lineTo(beamX0 + xR * beamL, yDef);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      // Pin supports (triangles)
+      ctx.fillStyle = '#94a3b8';
+      [beamX0, beamX0 + beamL].forEach(sx => {
+        ctx.beginPath();
+        ctx.moveTo(sx, beamY + 20);
+        ctx.lineTo(sx - 8, beamY + 32);
+        ctx.lineTo(sx + 8, beamY + 32);
+        ctx.closePath(); ctx.fill();
+      });
+    } else if (obj.icon === 'cantilever'){
+      // Cantilever: clamped left, free right
+      const beamY = H/2;
+      const beamL = splitX - 50;
+      const beamX0 = 30;
+      // Clamping wall
+      ctx.fillStyle = 'rgba(148,163,184,.5)';
+      ctx.fillRect(beamX0 - 12, beamY - 30, 12, 60);
+      // Hatching
+      ctx.strokeStyle = '#94a3b8';
+      for (let i = -3; i <= 3; i++){
+        ctx.beginPath();
+        ctx.moveTo(beamX0 - 12, beamY + i*8);
+        ctx.lineTo(beamX0 - 18, beamY + i*8 - 4);
+        ctx.stroke();
+      }
+      // Beam (deflected)
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 4;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 8;
+      ctx.beginPath();
+      const N = 60;
+      for (let i = 0; i <= N; i++){
+        const xR = i/N;
+        const yDef = beamY + amp * 35 * obj.shape(xR);
+        if (i === 0) ctx.moveTo(beamX0 + xR * beamL, yDef);
+        else ctx.lineTo(beamX0 + xR * beamL, yDef);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      // Load arrow at tip
+      const tipY = beamY + amp * 35 * obj.shape(1);
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(beamX0 + beamL, tipY - 30); ctx.lineTo(beamX0 + beamL, tipY - 5);
+      ctx.stroke();
+      ctx.fillStyle = '#94a3b8';
+      ctx.beginPath();
+      ctx.moveTo(beamX0 + beamL, tipY - 5);
+      ctx.lineTo(beamX0 + beamL - 5, tipY - 12);
+      ctx.lineTo(beamX0 + beamL + 5, tipY - 12);
+      ctx.closePath(); ctx.fill();
+    } else if (obj.icon === 'plate'){
+      // 2D plate vibration: contour pattern
+      const plateW = splitX - 50, plateH = H - 50;
+      const plateX = 25, plateY = 25;
+      // Mesh deformation
+      const grid = 12;
+      for (let i = 0; i < grid; i++){
+        for (let j = 0; j < grid; j++){
+          const xR = i/grid, yR = j/grid;
+          const u = Math.sin(Math.PI*xR) * Math.sin(Math.PI*yR) * amp;
+          const cellSize = plateW / grid;
+          const px = plateX + xR * plateW;
+          const py = plateY + yR * plateH;
+          // Color based on displacement
+          const intensity = Math.abs(u);
+          ctx.fillStyle = u >= 0 ? `rgba(255, 107, 179, ${intensity})` : `rgba(14, 165, 233, ${intensity})`;
+          ctx.fillRect(px, py, cellSize, plateH/grid);
+        }
+      }
+      // Border
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2;
+      ctx.strokeRect(plateX, plateY, plateW, plateH);
+    } else if (obj.icon === 'buckling'){
+      // Vertical column with buckled shape
+      const colY0 = 20, colY1 = H - 20;
+      const colX = splitX/2;
+      // Buckled shape
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 5;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 10;
+      ctx.beginPath();
+      const N = 60;
+      for (let i = 0; i <= N; i++){
+        const yR = i/N;
+        const xDef = colX + amp * 25 * Math.sin(Math.PI * yR);
+        const yPos = colY0 + yR * (colY1 - colY0);
+        if (i === 0) ctx.moveTo(xDef, yPos); else ctx.lineTo(xDef, yPos);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      // Top load arrow
+      ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(colX, colY0 - 20); ctx.lineTo(colX, colY0 - 4); ctx.stroke();
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath();
+      ctx.moveTo(colX, colY0 - 4); ctx.lineTo(colX - 6, colY0 - 12); ctx.lineTo(colX + 6, colY0 - 12);
+      ctx.closePath(); ctx.fill();
+      // Pin (bottom)
+      ctx.fillStyle = '#94a3b8';
+      ctx.beginPath(); ctx.moveTo(colX, colY1 + 4); ctx.lineTo(colX - 8, colY1 + 16); ctx.lineTo(colX + 8, colY1 + 16); ctx.closePath(); ctx.fill();
+    } else if (obj.icon === 'tapered'){
+      // Tapered beam with deflection
+      const beamY = H/2;
+      const beamL = splitX - 60;
+      const beamX0 = 30;
+      // Tapered beam shape (width x²)
+      ctx.fillStyle = obj.color; ctx.shadowColor = obj.color; ctx.shadowBlur = 6;
+      ctx.beginPath();
+      const N = 30;
+      const points = [];
+      for (let i = 0; i <= N; i++){
+        const xR = i/N;
+        const w = 6 + 30 * xR * xR;
+        const yDef = beamY + amp * 20 * obj.shape(xR);
+        points.push({ x: beamX0 + xR * beamL, top: yDef - w/2, bot: yDef + w/2 });
+      }
+      ctx.moveTo(points[0].x, points[0].top);
+      for (let p of points) ctx.lineTo(p.x, p.top);
+      for (let i = points.length - 1; i >= 0; i--) ctx.lineTo(points[i].x, points[i].bot);
+      ctx.closePath();
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      // Wall hatching at base
+      ctx.strokeStyle = '#94a3b8';
+      ctx.fillStyle = 'rgba(148,163,184,.4)';
+      ctx.fillRect(beamX0 - 14, beamY - 40, 14, 80);
+    }
+
+    // ── RIGHT: mode shape y(x) ──
+    const sx0 = splitX + 16, sx1 = W - 20, sy0 = 30, sy1 = H - 30;
+    ctx.strokeStyle = 'rgba(148,163,184,.2)'; ctx.lineWidth = 1;
+    ctx.strokeRect(sx0, sy0, sx1 - sx0, sy1 - sy0);
+    gridLines(ctx, sx0, sx1, sy0, sy1, 10, 4);
+
+    function rx_pr(x){ return sx0 + x*(sx1-sx0); }
+    function ry_pr(y){ return (sy0 + sy1)/2 - y*((sy1-sy0)/2 - 8); }
+
+    // Zero line
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1; ctx.setLineDash([4, 3]);
+    ctx.beginPath(); ctx.moveTo(sx0, ry_pr(0)); ctx.lineTo(sx1, ry_pr(0)); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Plot mode shape (current amplitude)
+    const N2 = 100;
+    ctx.strokeStyle = obj.color; ctx.lineWidth = 2.5;
+    ctx.shadowColor = obj.color; ctx.shadowBlur = 8;
+    ctx.beginPath();
+    for (let i = 0; i <= N2; i++){
+      const xR = i/N2;
+      const y = obj.shape(xR) * amp;
+      if (i === 0) ctx.moveTo(rx_pr(xR), ry_pr(y));
+      else ctx.lineTo(rx_pr(xR), ry_pr(y));
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+    ctx.fillText('x/L', sx1 - 22, ry_pr(0) + 14);
+    ctx.fillText('y(x)', sx0 - 35, sy0 + 12);
+
+    ctx.fillStyle = obj.color; ctx.font = 'bold 11px JetBrains Mono, monospace';
+    ctx.fillText(obj.label, sx0 + 6, sy0 + 14);
+
+    const infoEl = document.getElementById('m7AppNInfo');
+    if (infoEl){
+      infoEl.innerHTML = `<span style="color:${obj.color}">●</span> ${obj.label} &nbsp;|&nbsp; t=${t.toFixed(2)}, amp=${amp.toFixed(2)}`;
+    }
+
+    m7AppN.raf = requestAnimationFrame(drawM7AppN);
+  }
+
+  // ── Init ──
+  function initM7Anims(){
+    if (document.getElementById('m7cvOrden')) drawM7Orden();
+    if (document.getElementById('m7cvRootsN')) drawM7RootsN();
+    if (document.getElementById('m7cvHorner')) drawM7Horner();
+    if (document.getElementById('m7cvMult')) drawM7Mult();
+    if (document.getElementById('m7cvAppN')) drawM7AppN();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initM7Anims);
+  else initM7Anims();
+})();
 </script>
 
 </body>
