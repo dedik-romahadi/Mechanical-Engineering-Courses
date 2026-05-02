@@ -2299,10 +2299,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Berapa ωₙ dan apa kesimpulan tentang resonansi?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>ωₙ ≈ 50 rad/s, kedua kondisi jauh dari resonansi</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>ωₙ ≈ 229.7 rad/s; 1800 RPM r=0.82 (aman); 2200 RPM r=1.00 (RESONANSI!)</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>ωₙ ≈ 500 rad/s, mesin jauh di bawah resonansi</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>ωₙ tergantung F₀, tidak bisa dihitung dari m dan k saja</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>ωₙ ≈ 50 rad/s, kedua kondisi jauh dari resonansi</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>ωₙ ≈ 229.7 rad/s; 1800 RPM r=0.82 (aman); 2200 RPM r=1.00 (RESONANSI!)</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>ωₙ ≈ 500 rad/s, mesin jauh di bawah resonansi</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>ωₙ tergantung F₀, tidak bisa dihitung dari m dan k saja</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! ωₙ = √(9.5×10⁷/1800) = √52778 ≈ <strong>229.73 rad/s</strong> (≈ 36.56 Hz). c_c = 2√(km) ≈ 827043 Ns/m → ζ = 41400/827043 ≈ <strong>0.050</strong> (small damping). Untuk 1800 RPM: ω = 30·2π = 188.5 rad/s, r = 0.820 (aman). Untuk 2200 RPM: ω = 36.67·2π = 230.4 rad/s, r ≈ <strong>1.003 — TEPAT DI RESONANSI!</strong> Inilah penyebab amplifikasi getaran.</div>
           <div class="p-fb w" id="fp1w">❌ Hitung ωₙ = √(k/m) dulu, lalu konversi RPM → rad/s: ω = RPM/60 × 2π. Bandingkan kedua r dengan 1.</div>
@@ -2333,10 +2333,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Apa rasio DMF_baru/DMF_lama yang Anda dapat?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>1.5× — klaim operator "5× lipat" terlalu dramatis</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>~3.35× (DMF_lama≈3.0, DMF_baru≈9.94 di resonansi). Klaim "5×" kira-kira tepat secara magnitude</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>10× — DMF berlipat-lipat saat dekat resonansi</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>0.5× — getaran justru BERKURANG di resonansi</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>1.5× — klaim operator "5× lipat" terlalu dramatis</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>~3.35× (DMF_lama≈3.0, DMF_baru≈9.94 di resonansi). Klaim "5×" kira-kira tepat secara magnitude</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>10× — DMF berlipat-lipat saat dekat resonansi</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>0.5× — getaran justru BERKURANG di resonansi</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Tepat! Untuk r=0.820, ζ=0.05: DMF_lama = 1/√((1-0.673)² + (2·0.05·0.82)²) = 1/√(0.107 + 0.0067) ≈ <strong>2.97</strong>. Untuk r=1.003: DMF_baru ≈ <strong>9.94</strong> (≈ 1/(2ζ) = 10 di resonansi). Rasio = 9.94/2.97 ≈ 3.35× — magnitude konsisten dengan klaim "5×". Amplitudo X_baru = (4500/9.5e7)·9.94 ≈ <strong>0.471 mm</strong> vs X_lama ≈ 0.141 mm. Tᵣ_baru ≈ 9.99 → F_T = 4500·9.99 ≈ <strong>44.9 kN</strong> (vs 13.4 kN lama) — itulah yang menyebabkan retakan beton!</div>
           <div class="p-fb w" id="fp2w">❌ Substitusi r dan ζ ke rumus DMF, lalu hitung X = (F₀/k)·DMF. Untuk transmissibility, gunakan rumus Tᵣ.</div>
@@ -3342,7 +3342,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -7236,6 +7237,8 @@ function _createForumParticleBurst(event) {
   else attachBtnHandlers();
 })();
 
+
+window._pollAnswers = {1: 1, 2: 1};
 </script>
 
 </body>

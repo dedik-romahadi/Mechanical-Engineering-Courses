@@ -2445,10 +2445,10 @@ plt.<span class="fn">show</span>()
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Untuk PD <code>r²T'' + rT' = 0</code> (a=1, b=1, c=0), berapa diskriminan dan kasus akarnya?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>D = 1 − 0 = 1 &gt; 0 → akar real berbeda, T = c₁·r + c₂</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>D = 0 − 0 = 0 → akar berulang m = 0, T = c₁ + c₂·ln r</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>D = −4 → akar kompleks, T = c₁·cos(2 ln r) + c₂·sin(2 ln r)</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Bukan persamaan Euler-Cauchy karena c = 0</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>D = 1 − 0 = 1 &gt; 0 → akar real berbeda, T = c₁·r + c₂</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>D = 0 − 0 = 0 → akar berulang m = 0, T = c₁ + c₂·ln r</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>D = −4 → akar kompleks, T = c₁·cos(2 ln r) + c₂·sin(2 ln r)</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Bukan persamaan Euler-Cauchy karena c = 0</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! Karakteristik <code>m(m−1) + m + 0 = m² = 0</code> → akar berulang m = 0. Solusi pertama: <code>r<sup>0</sup> = 1</code>. Solusi kedua dengan faktor ln: <code>r<sup>0</sup> · ln r = ln r</code>. Solusi umum: <strong>T(r) = c₁ + c₂·ln r</strong>. Profil <em>logaritmik</em> — ciri khas konduksi panas radial.</div>
           <div class="p-fb w" id="fp1w">❌ Hitung kembali: <code>m(m−1) + m·1 + 0 = m² − m + m = m² = 0</code>. Akar berulang m = 0 berarti faktor <em>ln r</em> muncul (analog dengan faktor x di PD koef konstan dengan akar berulang). Solusi <strong>tidak linier</strong> — terbukti menjadi logaritmik.</div>
@@ -2477,10 +2477,10 @@ plt.<span class="fn">show</span>()
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Mengapa profil temperatur di pipa silinder TIDAK linier (seperti dinding datar)?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Karena temperatur tidak konstan di sekeliling pipa</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>Karena luas penampang konduksi A = 2π·r berubah dengan r — heat flux per unit area harus naik di r kecil agar Q total konstan</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Karena material pipa tidak homogen</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Profil sebenarnya linier; kita hanya menghitung perkiraan</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Karena temperatur tidak konstan di sekeliling pipa</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Karena luas penampang konduksi A = 2π·r berubah dengan r — heat flux per unit area harus naik di r kecil agar Q total konstan</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Karena material pipa tidak homogen</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Profil sebenarnya linier; kita hanya menghitung perkiraan</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Benar! Heat flux total <code>Q = const = −k·A(r)·dT/dr</code>. Karena <code>A = 2π·r·L</code> bertambah linier dengan r, gradien <code>dT/dr</code> harus mengecil seiring r naik — menghasilkan profil <strong>logaritmik</strong> bukan linier. Inilah persamaan Euler-Cauchy yang muncul alami dari <em>geometri silinder</em>.</div>
           <div class="p-fb w" id="fp2w">❌ Pertimbangkan geometri: di pipa silinder, luas konduksi berubah dengan radius. Hukum Fourier <code>Q = −k·A·dT/dr</code> dengan A = 2π·r·L tidak konstan menghasilkan PD radial yang berbeda dari kasus 1D dinding datar.</div>
@@ -3619,7 +3619,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -9267,6 +9268,8 @@ function _createForumParticleBurst(event) {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initM6Anims);
   else initM6Anims();
 })();
+
+window._pollAnswers = {1: 1, 2: 1};
 </script>
 
 </body>

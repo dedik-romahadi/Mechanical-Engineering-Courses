@@ -2397,10 +2397,10 @@ from scipy.optimize import linprog
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Alasan utama B1 dan B3 tidak diproduksi adalah...</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>B1 dan B3 tidak menguntungkan secara absolut</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>LP optimal di vertex daerah feasibel — di vertex tersebut beberapa variabel = 0; B1/B3 efek "dominated" oleh kendala demand B2 ≥ 5 dan B4 ≤ 30 yang membuat jam welding tersisa terbaik dipakai untuk B2/B4</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>B1 dan B3 punya profit per unit terendah</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Solver scipy ada bug, hasilnya salah</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>B1 dan B3 tidak menguntungkan secara absolut</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>LP optimal di vertex daerah feasibel — di vertex tersebut beberapa variabel = 0; B1/B3 efek "dominated" oleh kendala demand B2 ≥ 5 dan B4 ≤ 30 yang membuat jam welding tersisa terbaik dipakai untuk B2/B4</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>B1 dan B3 punya profit per unit terendah</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Solver scipy ada bug, hasilnya salah</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! Karakteristik penting LP: solusi optimal selalu di <strong>vertex (titik sudut)</strong> daerah feasibel, dan di vertex umumnya <em>banyak variabel bernilai 0</em> (kendala equality + non-negativity yang aktif). Jadi solusi pecah hanya di sebagian variabel, bukan kombinasi semua produk. <strong>Reduced cost</strong> untuk B1 (= profit aktual − contribution dari sumber daya yang dipakai, dievaluasi dengan dual) adalah negatif — artinya menambah 1 unit B1 akan <em>menurunkan</em> Z optimal dari (0, 18.75, 0, 30). Semua jam welding yang tersedia (150) habis untuk B2 (2·18.75 = 37.5) dan B4 (3·30 = 90). Sisa welding 22.5 tidak cukup untuk B1/B3 plus B2/B4 secara bersamaan tanpa menurunkan Z. <strong>Action manajerial</strong>: bicarakan ulang kontrak B1/B3 — apakah profitnya bisa naik agar masuk mix? Atau diskontinuasi formal kalau memang permanen tidak optimal.</div>
           <div class="p-fb w" id="fp1w">❌ Periksa kembali. B1 punya profit 30 (positif), bahkan B1 punya rasio profit/welding tertinggi (30). Tetapi tidak masuk mix optimal — alasannya bukan profit absolut, tetapi <em>opportunity cost</em> di kombinasi semua kendala. Inilah kekuatan LP: ia menyelesaikan kompromi multi-kendala yang tidak intuitif kalau dilihat per produk saja.</div>
@@ -2429,10 +2429,10 @@ from scipy.optimize import linprog
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Keputusan paling rasional berdasarkan data saat ini adalah...</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>(B) Beli mesin baru — modernisasi pabrik selalu bagus untuk reputasi</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>(A) Overtime dulu (marginal profit positif Rp 8k/jam, no commitment), monitor demand growth — pertimbangkan (B) hanya jika demand naik 2× atau lebih dalam 1–2 tahun ke depan</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>(C) Outsource karena yang termurah secara fixed cost</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Tidak ada perubahan — Z = Rp 2,737k sudah optimal, jangan diganggu</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>(B) Beli mesin baru — modernisasi pabrik selalu bagus untuk reputasi</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>(A) Overtime dulu (marginal profit positif Rp 8k/jam, no commitment), monitor demand growth — pertimbangkan (B) hanya jika demand naik 2× atau lebih dalam 1–2 tahun ke depan</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>(C) Outsource karena yang termurah secara fixed cost</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Tidak ada perubahan — Z = Rp 2,737k sudah optimal, jangan diganggu</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Tepat! <strong>Strategi bertahap (staged investment)</strong> adalah pendekatan optimal di bawah ketidakpastian. Overtime (A) memberi marginal profit Rp 8k/jam dengan komitmen rendah dan reversibel — coba selama 1–3 bulan, validasi asumsi linieritas (apakah profit per unit B2/B4 konstan saat volume naik?), dan kumpulkan data demand growth. Mesin baru (B) capex Rp 800 juta vs marginal benefit Rp 48 juta/tahun → payback 16.7 tahun — <em>tidak feasible</em> kecuali demand future naik 2-3× lipat. Outsource (C) marginal profit Rp 4k/jam (lebih rendah dari overtime A) tetapi tidak ada modal awal. Untuk peak demand musiman atau saat overtime sudah maksimal, outsource bisa menjadi <em>complement</em>. <strong>Caveat:</strong> shadow price hanya valid dalam rentang sensitivity (lihat <code>res.ineqlin.marginals</code> dan range b yang preserve basis); kalau kapasitas welding ditambah terlalu banyak, kendala lain (CNC, painting, material) bisa menjadi bottleneck baru — re-solve LP.</div>
           <div class="p-fb w" id="fp2w">❌ Periksa kembali. Modernisasi pabrik (B) hanya bagus jika finansial-nya bagus — payback 16.7 tahun &gt; lifespan 8 tahun mesin = NPV negatif. Outsource (C) marginal profit 4k vs overtime (A) yang 8k, jadi (A) lebih dulu menguntungkan. "Tidak berubah" adalah meninggalkan profit di meja: shadow price Rp 16k berarti SETIAP jam welding tambahan worth Rp 16k untuk perusahaan.</div>
@@ -3430,7 +3430,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -7630,6 +7631,8 @@ function _createForumParticleBurst(event) {
   else attachBtnHandlers();
 })();
 
+
+window._pollAnswers = {1: 1, 2: 1};
 </script>
 
 </body>

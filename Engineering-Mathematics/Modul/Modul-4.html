@@ -2295,10 +2295,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Jika k digandakan (0.04 → 0.08), waktu pendinginan ke 80°C akan...</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Tetap sama karena suhu akhir sama</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>Menjadi setengahnya, karena \(t \propto 1/k\) di persamaan eksponensial ✓</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Menjadi seperempatnya karena eksponensial kuadratis</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Tidak dapat dihitung tanpa data eksperimen baru</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>Tetap sama karena suhu akhir sama</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>Menjadi setengahnya, karena \(t \propto 1/k\) di persamaan eksponensial ✓</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Menjadi seperempatnya karena eksponensial kuadratis</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Tidak dapat dihitung tanpa data eksperimen baru</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! Karena \(T(t)\) bergantung pada \(e^{-kt}\), menggandakan \(k\) akan menyamakan \(e^{-kt}\) yang sama saat \(t\) dibagi dua. Hitung: \(t_1 = \ln(420/50)/0.04 \approx 53.2\) menit; \(t_2 \approx 26.6\) menit — persis setengahnya.</div>
           <div class="p-fb w" id="fp1w">❌ Kurang tepat. Kunci: solusi PD linier menghasilkan peluruhan eksponensial. Lihat relasi \(kt = \text{konstanta}\) untuk mencapai suhu target yang sama.</div>
@@ -2327,10 +2327,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Metode paling tepat untuk \(T' = -k(T-T_\infty)^{1.2}\) adalah...</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Faktor integrasi \(u = e^{\int k\, dt}\) — langsung seperti PD linier</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Bernoulli dengan \(z = T^{-0.2}\) — karena ada pangkat non-satu</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>Pisah variabel: substitusi \(u = T - T_\infty\), lalu \(u^{-1.2}\, du = -k\, dt\) ✓</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Reduksi orde dengan \(w = T'\) karena mengandung turunan</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Faktor integrasi \(u = e^{\int k\, dt}\) — langsung seperti PD linier</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Bernoulli dengan \(z = T^{-0.2}\) — karena ada pangkat non-satu</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Pisah variabel: substitusi \(u = T - T_\infty\), lalu \(u^{-1.2}\, du = -k\, dt\) ✓</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Reduksi orde dengan \(w = T'\) karena mengandung turunan</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Benar! Setelah substitusi \(u = T - T_\infty\), PD menjadi \(du/dt = -ku^{1.2}\) — variabel terpisah. Integral: \(\int u^{-1.2}du = -kt + c\) → \(-5u^{-0.2} = -kt + c\). Bernoulli formal butuh bentuk \(y' + Py = Qy^n\) (ada suku linier \(Py\)), yang tidak ada di sini.</div>
           <div class="p-fb w" id="fp2w">❌ Pertimbangkan: Faktor integrasi hanya bekerja untuk bentuk \(y' + Py = Q\). Bernoulli butuh \(y' + Py = Qy^n\) — di sini tidak ada suku \(Py\) setelah substitusi.</div>
@@ -3328,7 +3328,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -7145,6 +7146,8 @@ function _createForumParticleBurst(event) {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initM4Apps);
   else initM4Apps();
 })();
+
+window._pollAnswers = {1: 1, 2: 2};
 </script>
 
 </body>

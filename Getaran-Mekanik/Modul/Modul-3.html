@@ -2521,10 +2521,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Berapa nilai ζ saat ini dan klasifikasinya?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>ζ ≈ 1.0, Critical damped — sesuai target</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>ζ ≈ 0.10, Underdamped — sangat lemah → osilasi banyak siklus</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>ζ ≈ 0.50, Underdamped moderate</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>ζ ≈ 2.0, Overdamped</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>ζ ≈ 1.0, Critical damped — sesuai target</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>ζ ≈ 0.10, Underdamped — sangat lemah → osilasi banyak siklus</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>ζ ≈ 0.50, Underdamped moderate</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>ζ ≈ 2.0, Overdamped</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! ωₙ = √(8×10⁻³/5×10⁻⁶) = √1600 = <strong>40 rad/s</strong>. c_c = 2√(8×10⁻³ · 5×10⁻⁶) = 4×10⁻⁴ N·m·s/rad. ζ = 4×10⁻⁵/4×10⁻⁴ = <strong>0.10 (underdamped)</strong>. ω_d ≈ 39.8 rad/s, T_d ≈ 0.158 s. Settling time ≈ 4/(0.1·40) = 1.0 s — tapi karena observasi adalah ke "stabil" (tidak terlihat osilasi), bisa lebih lama. Konsisten dengan keluhan 4-5 siklus dan ~2.5 detik.</div>
           <div class="p-fb w" id="fp1w">❌ Hitung step-by-step: ωₙ=√(k/J), c_c=2√(kJ), lalu ζ=c/c_c. Bandingkan dengan 1.</div>
@@ -2553,10 +2553,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Berapa δ dan ζ?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>δ ≈ 0.20, ζ ≈ 0.03</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>δ = ln(30/16) ≈ 0.628, ζ ≈ 0.10 (sesuai dengan ζ teoritis dari Q1)</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>δ ≈ 1.50, ζ ≈ 0.23</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>δ ≈ 14, ζ ≈ 0.91 (artinya hampir critical)</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>δ ≈ 0.20, ζ ≈ 0.03</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>δ = ln(30/16) ≈ 0.628, ζ ≈ 0.10 (sesuai dengan ζ teoritis dari Q1)</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>δ ≈ 1.50, ζ ≈ 0.23</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>δ ≈ 14, ζ ≈ 0.91 (artinya hampir critical)</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Tepat! δ = ln(30/16) = ln(1.875) ≈ <strong>0.628</strong>. Eksak: ζ = 0.628/√(4π² + 0.628²) = 0.628/6.319 ≈ <strong>0.0994</strong>. Aproksimasi: ζ ≈ 0.628/(2π) ≈ 0.100. Kedua nilai sangat dekat dengan ζ teoritis 0.10 dari Q1 → <em>spesifikasi pabrik akurat</em>. Selisih < 1% — pengukuran kalibrasi reliable.</div>
           <div class="p-fb w" id="fp2w">❌ Hitung step-by-step: δ = ln(θ₁/θ₂) = ln(30/16). Lalu konversi ke ζ.</div>
@@ -3564,7 +3564,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -8275,6 +8276,8 @@ function _createForumParticleBurst(event) {
   else attachBtnHandlers();
 })();
 
+
+window._pollAnswers = {1: 1, 2: 1};
 </script>
 
 </body>

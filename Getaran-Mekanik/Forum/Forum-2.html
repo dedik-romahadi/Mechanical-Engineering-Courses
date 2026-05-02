@@ -455,9 +455,9 @@
           <div class="poll">
             <div class="poll-q">QUICK CHECK — Kondisi redaman sistem ini?</div>
             <div class="poll-opts" id="p1">
-              <div class="p-opt" onclick="vote(1,this,false)"><div class="p-circle"></div>Overdamped (ζ &gt; 1)</div>
-              <div class="p-opt" onclick="vote(1,this,true)"> <div class="p-circle"></div>Underdamped (ζ &lt; 1)</div>
-              <div class="p-opt" onclick="vote(1,this,false)"><div class="p-circle"></div>Critically damped (ζ = 1)</div>
+              <div class="p-opt" onclick="vote(1,this,0)"><div class="p-circle"></div>Overdamped (ζ &gt; 1)</div>
+              <div class="p-opt" onclick="vote(1,this,1)"> <div class="p-circle"></div>Underdamped (ζ &lt; 1)</div>
+              <div class="p-opt" onclick="vote(1,this,2)"><div class="p-circle"></div>Critically damped (ζ = 1)</div>
             </div>
             <div class="p-fb r" id="p1r">✅ Benar! ζ = 20 / (2×√(1000×10)) = 20/200 = <strong>0.1</strong> → Underdamped. Sistem berosilasi dan meluruh perlahan.</div>
             <div class="p-fb w" id="p1w">❌ Coba lagi. Hitung dulu cc = 2√(km), lalu ζ = c/cc.</div>
@@ -484,9 +484,9 @@
           <div class="poll">
             <div class="poll-q">QUICK CHECK — Berapa nilai r sistem ini?</div>
             <div class="poll-opts" id="p2">
-              <div class="p-opt" onclick="vote(2,this,false)"><div class="p-circle"></div>r = 0.50 — jauh dari resonansi</div>
-              <div class="p-opt" onclick="vote(2,this,false)"><div class="p-circle"></div>r = 1.00 — tepat resonansi</div>
-              <div class="p-opt" onclick="vote(2,this,true)"> <div class="p-circle"></div>r = 0.95 — mendekati resonansi</div>
+              <div class="p-opt" onclick="vote(2,this,0)"><div class="p-circle"></div>r = 0.50 — jauh dari resonansi</div>
+              <div class="p-opt" onclick="vote(2,this,1)"><div class="p-circle"></div>r = 1.00 — tepat resonansi</div>
+              <div class="p-opt" onclick="vote(2,this,2)"> <div class="p-circle"></div>r = 0.95 — mendekati resonansi</div>
             </div>
             <div class="p-fb r" id="p2r">✅ Tepat! ωₙ = √(1000/10) = 10 rad/s, maka r = 9.5/10 = <strong>0.95</strong>. Sangat dekat dengan resonansi — perlu diwaspadai!</div>
             <div class="p-fb w" id="p2w">❌ Hitung dulu ωₙ = √(k/m), kemudian r = ω/ωₙ = 9.5/ωₙ.</div>
@@ -687,7 +687,8 @@ function toggle(id){
 }
 
 /* ── POLL ── */
-function vote(n,el,correct){
+function vote(n, el, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const wrap=document.getElementById('p'+n);
   if(wrap.dataset.done) return;
   wrap.dataset.done='1';
@@ -1098,6 +1099,8 @@ window._awardPoint = function(qId) {
 window._loadScoredQuestions();
 
 initVisitor();
+
+window._pollAnswers = {1: 1, 2: 2};
 </script>
 
 </body>

@@ -2653,10 +2653,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Mengapa <em>signature</em> getaran mesin healthy berisi harmonik kelipatan RPM (1×, 2×, 3×), bukan satu peak murni di 25 Hz saja?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Karena pengukuran tidak akurat sehingga muncul peak palsu</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>Karena getaran mesin tidak sin murni — non-sinusoidal periodik → deret Fourier dengan harmonik kelipatan, akibat clearance, coupling, blade pass, dll</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Karena spektrum FFT selalu memiliki noise harmonik</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Karena 50 Hz adalah noise dari grid PLN</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>Karena pengukuran tidak akurat sehingga muncul peak palsu</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>Karena getaran mesin tidak sin murni — non-sinusoidal periodik → deret Fourier dengan harmonik kelipatan, akibat clearance, coupling, blade pass, dll</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Karena spektrum FFT selalu memiliki noise harmonik</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Karena 50 Hz adalah noise dari grid PLN</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! Sinyal getaran mesin healthy adalah <strong>periodik non-sinusoidal</strong>. Mekanik real (clearance bearing, gear engagement, blade passage, sedikit imperfect alignment) menghasilkan kontak/excitation yang non-sinusoidal di tiap revolusi. Deret Fourier menyatakan: sinyal periodik manapun = jumlah harmonik kelipatan fundamental. Maka 1× (25 Hz, dominan), 2× (50 Hz, lebih kecil), 3× (75 Hz, makin kecil) — pola "fingerprint" healthy. Mesin yang vibrasinya <em>persis sin murni</em> sebenarnya jarang ada — adanya hanya di balanced rotor ideal di lab.</div>
           <div class="p-fb w" id="fp1w">❌ Mesin healthy tetap memberi spektrum dengan harmonik kelipatan karena getaran mekanis bukan sin murni. Penyebab: clearance bearing → impulse tiap rev → harmonik 1×+2×+...; coupling → 2× harmonic dominant; multi-blade pump → blade pass frequency. Spektrum harmonik = signature normal, bukan anomali.</div>
@@ -2689,10 +2689,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Apa yang membedakan peak <em>BPFO</em> dari peak harmonik shaft (1×, 2×, 3×) di spektrum FFT?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Amplitudo BPFO selalu lebih besar dari shaft harmonics</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>Frekuensi BPFO <em>non-synchronous</em> dengan shaft (bukan kelipatan integer dari RPM/60), karena tergantung geometri bearing (jumlah ball, diameter, pitch)</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>BPFO selalu di 100 Hz untuk semua mesin</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>BPFO peak selalu hilang setelah pelumasan</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Amplitudo BPFO selalu lebih besar dari shaft harmonics</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Frekuensi BPFO <em>non-synchronous</em> dengan shaft (bukan kelipatan integer dari RPM/60), karena tergantung geometri bearing (jumlah ball, diameter, pitch)</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>BPFO selalu di 100 Hz untuk semua mesin</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>BPFO peak selalu hilang setelah pelumasan</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Tepat! <strong>Bearing fault frequencies</strong> bersifat <em>non-synchronous</em> dengan shaft speed — tidak kelipatan integer RPM. Formula tergantung geometri bearing: BPFO, BPFI, BSF, FTF. Mis. untuk 1500 RPM (25 Hz shaft) dan bearing 6308: BPFO ≈ 67.5 Hz (bukan 50 atau 75 Hz). Munculnya peak di frekuensi non-synchronous = warning sign bearing fault. Bandingkan dengan harmonik shaft (1×=25, 2×=50, 3×=75 Hz) yang selalu kelipatan integer RPM/60. Engineer maintenance pakai spec sheet bearing → hitung 4 frekuensi karakteristik → cocokan dengan peak baru yang muncul → diagnose mana yang fault (outer race, inner race, ball, atau cage).</div>
           <div class="p-fb w" id="fp2w">❌ Inti diagnostic FFT: <em>bearing fault frequencies</em> adalah non-synchronous dengan shaft speed. Kelipatan integer RPM/60 = harmonik mekanik (1×, 2×, 3×, …) = pola normal. Frekuensi non-integer (BPFO, BPFI, BSF, FTF) = signature bearing fault. Geometri bearing menentukan formula spesifik tiap fault.</div>
@@ -3837,7 +3837,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -9253,6 +9254,8 @@ function _createForumParticleBurst(event) {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initM14Anims);
   else initM14Anims();
 })();
+
+window._pollAnswers = {1: 1, 2: 1};
 </script>
 
 </body>

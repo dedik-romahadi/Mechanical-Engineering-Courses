@@ -2484,10 +2484,10 @@ from scipy.optimize import minimize
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Mengapa kedua kendala BINDING di optimum desain massa minimum?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Karena solver scipy memang selalu memaksa semua kendala = 0</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>Untuk min massa dengan loading tetap, "kurang material" akan melanggar kendala (overstress / under-deflect). Optimum ada di <em>boundary</em> kedua kendala — kendala yang tidak binding berarti masih ada margin untuk kurangi massa lebih lanjut</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Kedua kendala kebetulan paralel di space (R, H), jadi pasti binding bersamaan</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Hanya tegangan binding; defleksi adalah secondary constraint</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>Karena solver scipy memang selalu memaksa semua kendala = 0</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>Untuk min massa dengan loading tetap, "kurang material" akan melanggar kendala (overstress / under-deflect). Optimum ada di <em>boundary</em> kedua kendala — kendala yang tidak binding berarti masih ada margin untuk kurangi massa lebih lanjut</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Kedua kendala kebetulan paralel di space (R, H), jadi pasti binding bersamaan</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Hanya tegangan binding; defleksi adalah secondary constraint</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! Karakteristik desain "min mass" dengan loading tetap: solusi optimal pasti di <strong>boundary kendala kritis</strong>. Logika: kalau kendala stress tidak binding (τ &lt; τ_y dengan margin), kita bisa <em>kurangi d</em> sedikit → mass turun. Begitu juga kalau defleksi tidak binding (δ &gt; δ_target), kita bisa kurangi N → mass turun. Solver akan terus iterate sampai kedua kendala bertabrakan dengan boundary — <em>complementary slackness</em>. Multiplier μ_defl &gt; μ_stress berarti kendala defleksi <strong>lebih ketat</strong>: relaxasi 1 mm di δ_target akan turunkan mass lebih banyak daripada relaxasi 1 MPa di τ_y. <strong>Spacing tidak binding</strong>: artinya geometri pegas tidak terlalu padat (L &gt; N·d dengan margin) — bisa dipakai untuk visual tolerance / coiling yang lebih nyaman. Action engineering: investigasi material baru dengan G lebih tinggi (turunkan defleksi paling berdampak).</div>
           <div class="p-fb w" id="fp1w">❌ Periksa kembali. Solver tidak <em>memaksa</em> semua kendala = 0 — kalau kendala spacing slack di optimum, itu hasil natural. Bahkan paralelitas kendala bukan penyebab kedua binding; penyebabnya adalah sifat min-mass dengan loading tetap. Coba cek Lagrange multiplier output dari trust-constr — μ &gt; 0 menunjukkan binding aktif.</div>
@@ -2516,10 +2516,10 @@ from scipy.optimize import minimize
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Strategi paling realistis untuk pegas coil ini adalah...</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Tidak perlu mempertimbangkan konveksitas — solver scipy modern selalu menemukan global</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>Jalankan SLSQP dari x0 default untuk dapat baseline solution; verifikasi via multi-start (10 random x0) untuk konfirmasi tidak ada lokal optimum lain di ranah desain praktis. Untuk masalah engineering yang lebih kompleks (banyak local minima), pakai metaheuristik (GA/PSO) di Pertemuan 11</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Cukup pakai gradient descent manual dari titik awal (8, 12, 120) tanpa kendala — pasti global</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Pegas ini selalu konveks sepanjang d, N, L &gt; 0 — tidak ada masalah multi-modality</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Tidak perlu mempertimbangkan konveksitas — solver scipy modern selalu menemukan global</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Jalankan SLSQP dari x0 default untuk dapat baseline solution; verifikasi via multi-start (10 random x0) untuk konfirmasi tidak ada lokal optimum lain di ranah desain praktis. Untuk masalah engineering yang lebih kompleks (banyak local minima), pakai metaheuristik (GA/PSO) di Pertemuan 11</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Cukup pakai gradient descent manual dari titik awal (8, 12, 120) tanpa kendala — pasti global</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Pegas ini selalu konveks sepanjang d, N, L &gt; 0 — tidak ada masalah multi-modality</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Tepat! <strong>Validasi via multi-start</strong> adalah praktik wajib untuk NLP non-konveks meski "secara struktur" hanya 1 lembah feasibel. Jalankan 5–10 SLSQP dari x0 random di bounds; jika semua konvergen ke nilai <code>m*</code> yang sama (dengan toleransi numerik), kita confident itu global (atau setidaknya unique local optimum di domain feasibel). Insight tambahan: untuk pegas dengan <em>fatigue cycle</em> sebagai kendala (S-N curve non-monotonic), atau <em>buckling</em> sebagai kendala kompleks, multi-start saja tidak cukup — gunakan <em>Genetic Algorithm</em> atau <em>Particle Swarm Optimization</em> (Pertemuan 11) yang population-based. Beberapa industrial tools (Altair OptiStruct, Tosca) menggunakan kombinasi gradient + metaheuristik. <strong>Caveat:</strong> kalau bounds Anda sangat luas (mis. d ∈ [0.1, 50] mm), space explorasi besar dan multi-start dengan banyak start (100+) atau global optimizer (basinhopping, differential evolution) yang lebih cocok.</div>
           <div class="p-fb w" id="fp2w">❌ Periksa kembali. Tidak ada solver yang menjamin global untuk NLP non-konveks tanpa info tambahan. Gradient descent unconstrained tidak masuk akal untuk masalah berkendala — solusi bakal infeasible. Pegas dengan f bilinier dan g non-linier umumnya non-konveks. Verifikasi via multi-start adalah due diligence wajib.</div>
@@ -3518,7 +3518,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -7679,6 +7680,8 @@ function _createForumParticleBurst(event) {
   else attachBtnHandlers();
 })();
 
+
+window._pollAnswers = {1: 1, 2: 1};
 </script>
 
 </body>

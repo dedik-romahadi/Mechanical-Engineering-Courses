@@ -2563,10 +2563,10 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Setup baseline LogReg paling tepat untuk extreme imbalance?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div><code>train_test_split(X, y, test_size=0.2)</code> default — sklearn akan handle otomatis</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div><strong>Wajib stratify</strong>: <code>train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)</code>. Plus pakai <code>class_weight='balanced'</code> di <code>LogisticRegression(class_weight='balanced', max_iter=1000)</code>. Plus evaluasi pakai F1/recall/PR-AUC, BUKAN accuracy. Plus stratified 5-fold CV (<code>StratifiedKFold</code>). Untuk extreme imbalance, threshold tuning 0.5 → ~0.1 (lebih rendah supaya catch lebih banyak positive)</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Hapus 99% healthy sample supaya jadi 50/50 balanced — model lebih mudah belajar</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Tetap pakai accuracy — 99.9% aman</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div><code>train_test_split(X, y, test_size=0.2)</code> default — sklearn akan handle otomatis</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div><strong>Wajib stratify</strong>: <code>train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)</code>. Plus pakai <code>class_weight='balanced'</code> di <code>LogisticRegression(class_weight='balanced', max_iter=1000)</code>. Plus evaluasi pakai F1/recall/PR-AUC, BUKAN accuracy. Plus stratified 5-fold CV (<code>StratifiedKFold</code>). Untuk extreme imbalance, threshold tuning 0.5 → ~0.1 (lebih rendah supaya catch lebih banyak positive)</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Hapus 99% healthy sample supaya jadi 50/50 balanced — model lebih mudah belajar</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Tetap pakai accuracy — 99.9% aman</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! <strong>Setup Baseline LogReg untuk Extreme Imbalance</strong> butuh checklist wajib: (1) <strong>stratify=y</strong> di train_test_split — guarantee test set punya proporsi positive sama dengan original (~0.024% × 200K = ~48 positive di test, statistically meaningful). Tanpa stratify, random split bisa kebetulan 0 positive di test → metric meaningless. (2) <strong>random_state=42</strong> untuk reproducibility. (3) <strong>class_weight='balanced'</strong> di LogReg — auto-adjust loss inverse proportional ke class frequency. Equivalent dengan oversampling tetapi lebih efisien. (4) <strong>Evaluasi metric</strong>: <em>JANGAN accuracy</em> (99.9% misleading). Pakai <strong>F1</strong> (harmonic mean P&amp;R), <strong>Recall</strong> (sensitivity, critical untuk safety), <strong>PR-AUC</strong> (lebih informatif dari ROC-AUC untuk extreme imbalance). (5) <strong>StratifiedKFold</strong> untuk cross-validation, bukan KFold default. (6) <strong>Threshold tuning</strong>: default 0.5 jauh dari optimal. Plot precision-recall curve dengan <code>sklearn.metrics.precision_recall_curve</code>, pilih threshold di "knee" curve. Untuk safety-critical PdM seperti aviation, threshold ~0.1–0.2 lebih appropriate (recall tinggi, sacrifice precision). (7) <strong>SMOTE alternative</strong>: kalau class_weight tidak cukup, pakai SMOTE oversampling — tetapi HANYA di training set, bukan test set. <code>imblearn.over_sampling.SMOTE</code>. SMOTE generate synthetic positive samples di feature space.</div>
           <div class="p-fb w" id="fp1w">❌ Periksa kembali. Default split TIDAK auto-stratify. Hapus mayoritas = lose representative sampling + violate i.i.d. assumption. Accuracy 99.9% misleading untuk extreme imbalance. Stratify + class_weight + F1/recall + threshold tuning adalah jawaban benar.</div>
@@ -2595,10 +2595,10 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Cara terbaik komunikasikan koefisien LogReg ke maintenance engineer?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Print <code>model.coef_</code> raw — engineer bisa baca sendiri</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div><strong>Visualisasi feature importance ranked</strong>: bar chart |w[i]| descending dengan color coding (positif=merah/danger, negatif=hijau/protective). Plus <em>per-prediction breakdown</em> untuk each alert: "Engine X predicted degraded karena (a) EGT delta +5°C dari baseline = log-odds +0.85, (b) N1 vibration +12% = +0.31, (c) oil_pressure -3% = -0.18 (slight protective)". Sertakan <em>interpretasi engineering</em>: "EGT tinggi konsisten dengan combustion inefficiency — recommend borescope inspection turbine vane". Pelajaran: <strong>raw number tidak cukup, butuh narrative engineering</strong></div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Tidak perlu jelaskan — engineer harus belajar ML sendiri</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Skip LogReg, langsung pakai Random Forest dengan SHAP</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Print <code>model.coef_</code> raw — engineer bisa baca sendiri</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div><strong>Visualisasi feature importance ranked</strong>: bar chart |w[i]| descending dengan color coding (positif=merah/danger, negatif=hijau/protective). Plus <em>per-prediction breakdown</em> untuk each alert: "Engine X predicted degraded karena (a) EGT delta +5°C dari baseline = log-odds +0.85, (b) N1 vibration +12% = +0.31, (c) oil_pressure -3% = -0.18 (slight protective)". Sertakan <em>interpretasi engineering</em>: "EGT tinggi konsisten dengan combustion inefficiency — recommend borescope inspection turbine vane". Pelajaran: <strong>raw number tidak cukup, butuh narrative engineering</strong></div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Tidak perlu jelaskan — engineer harus belajar ML sendiri</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Skip LogReg, langsung pakai Random Forest dengan SHAP</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Tepat! <strong>LogReg Coefficient Interpretation untuk Stakeholder</strong> = nilai jual terbesar LogReg vs RF/SVM. (1) <strong>Standardize wajib</strong>: pakai <code>StandardScaler</code> sebelum fit LogReg. Tanpa standardize, fitur dengan unit besar (EGT 600°C vs vibration 5 mm/s) akan dominate koefisien karena scale, bukan importance. Setelah standardize, semua fitur di-rescale ke mean=0, std=1 → koefisien comparable. (2) <strong>Magnitude |w[i]|</strong> = relative importance. Sort descending → top contributors. EGT (0.85) jauh lebih dominant dari fuel_flow (0.05) — fokus ke EGT analysis. (3) <strong>Sign w[i]</strong> = direction. Positif = fitur naik → probability degradation naik. Negatif = fitur naik → probability degradation TURUN (protective effect). Oil_pressure -0.18 = high oil pressure korelasi dengan engine sehat (logical: lubrikasi cukup). (4) <strong>Per-prediction breakdown</strong>: untuk specific alert, hitung <code>z[i] = w[i] × x_standardized[i]</code> untuk tiap fitur. Stack sebagai waterfall chart: starting from intercept b, tambah/kurang per fitur, sampai final z. Pakai sigmoid(z) untuk dapat probability. (5) <strong>Engineering narrative</strong>: koefisien angka bukan tujuan akhir. Translate ke bahasa engineer: "EGT tinggi → combustion inefficiency → suspected: turbine vane wear → recommended: borescope inspection". (6) <strong>Visualisasi tools</strong>: matplotlib bar chart untuk global, waterfall chart untuk per-prediction. <code>eli5</code> Python library untuk LogReg/linear model explanation. (7) <strong>LogReg vs SHAP-needed RF</strong>: kalau cukup explanation dengan koefisien LogReg, lebih simple + cepat dari RF + SHAP. Lompat ke RF di P14 hanya kalau LogReg accuracy tidak cukup.</div>
           <div class="p-fb w" id="fp2w">❌ Periksa kembali. Raw print = engineer bingung. "Belajar sendiri" = tidak professional. RF + SHAP overkill kalau LogReg sudah explainable. Visualisasi koefisien + per-prediction breakdown + engineering narrative = jawaban tepat.</div>
@@ -3597,7 +3597,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -7758,6 +7759,8 @@ function _createForumParticleBurst(event) {
   else attachBtnHandlers();
 })();
 
+
+window._pollAnswers = {1: 1, 2: 1};
 </script>
 
 </body>

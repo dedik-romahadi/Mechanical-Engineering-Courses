@@ -234,7 +234,7 @@ footer{text-align:center;padding:2.5rem 2rem;border-top:1px solid var(--bd);colo
           <div class="poll-label">Pilih jawaban kamu:</div>
           <div class="poll-opts" id="p1">
             <div class="poll-opt" onclick="selPoll(this,'p1')"><div class="poll-dot"></div>PD Biasa Linier Orde 2 Homogen</div>
-            <div class="poll-opt" data-correct onclick="selPoll(this,'p1')"><div class="poll-dot"></div>PD Biasa Linier Orde 2 Non-Homogen</div>
+            <div class="poll-opt" onclick="selPoll(this,'p1')"><div class="poll-dot"></div>PD Biasa Linier Orde 2 Non-Homogen</div>
             <div class="poll-opt" onclick="selPoll(this,'p1')"><div class="poll-dot"></div>PD Parsial Non-Linier Orde 2</div>
             <div class="poll-opt" onclick="selPoll(this,'p1')"><div class="poll-dot"></div>PD Biasa Non-Linier Orde 1</div>
           </div>
@@ -269,7 +269,7 @@ footer{text-align:center;padding:2.5rem 2rem;border-top:1px solid var(--bd);colo
           <div class="poll-label">Apakah klaim tersebut benar?</div>
           <div class="poll-opts" id="p2">
             <div class="poll-opt" onclick="selPoll(this,'p2')"><div class="poll-dot"></div>Benar, karena turunan sin x menghasilkan cos x yang saling menghilangkan</div>
-            <div class="poll-opt" data-correct onclick="selPoll(this,'p2')"><div class="poll-dot"></div>Salah, karena \(5\cos x + 5\sin x \neq 0\) untuk semua \(x\)</div>
+            <div class="poll-opt" onclick="selPoll(this,'p2')"><div class="poll-dot"></div>Salah, karena \(5\cos x + 5\sin x \neq 0\) untuk semua \(x\)</div>
             <div class="poll-opt" onclick="selPoll(this,'p2')"><div class="poll-dot"></div>Benar, karena \(y = 5\sin x\) memenuhi \(y' = -y\)</div>
             <div class="poll-opt" onclick="selPoll(this,'p2')"><div class="poll-dot"></div>Salah, karena PD ini hanya memiliki solusi \(y = 0\)</div>
           </div>
@@ -313,7 +313,7 @@ footer{text-align:center;padding:2.5rem 2rem;border-top:1px solid var(--bd);colo
         <div class="poll">
           <div class="poll-label">Pilih jawaban kamu:</div>
           <div class="poll-opts" id="p3">
-            <div class="poll-opt" data-correct onclick="selPoll(this,'p3')"><div class="poll-dot"></div>(A) dan (C) saja</div>
+            <div class="poll-opt" onclick="selPoll(this,'p3')"><div class="poll-dot"></div>(A) dan (C) saja</div>
             <div class="poll-opt" onclick="selPoll(this,'p3')"><div class="poll-dot"></div>(A), (B), dan (C) semuanya bisa</div>
             <div class="poll-opt" onclick="selPoll(this,'p3')"><div class="poll-dot"></div>(B) dan (C) saja</div>
             <div class="poll-opt" onclick="selPoll(this,'p3')"><div class="poll-dot"></div>Hanya (A) saja</div>
@@ -348,7 +348,7 @@ footer{text-align:center;padding:2.5rem 2rem;border-top:1px solid var(--bd);colo
           <div class="poll-label">Apakah kopi pernah benar-benar mencapai suhu ruangan (22°C)?</div>
           <div class="poll-opts" id="p4">
             <div class="poll-opt" onclick="selPoll(this,'p4')"><div class="poll-dot"></div>Ya, kopi akan mencapai tepat 22°C setelah waktu yang cukup lama</div>
-            <div class="poll-opt" data-correct onclick="selPoll(this,'p4')"><div class="poll-dot"></div>Tidak, karena \(e^{-kt}\) tidak pernah tepat nol — hanya mendekati</div>
+            <div class="poll-opt" onclick="selPoll(this,'p4')"><div class="poll-dot"></div>Tidak, karena \(e^{-kt}\) tidak pernah tepat nol — hanya mendekati</div>
             <div class="poll-opt" onclick="selPoll(this,'p4')"><div class="poll-dot"></div>Ya, karena solusi \(T(t) = 22 + Ce^{-kt}\) menunjukkan \(T \to 22\)</div>
             <div class="poll-opt" onclick="selPoll(this,'p4')"><div class="poll-dot"></div>Tidak, karena PD ini bukan variabel terpisah</div>
           </div>
@@ -394,7 +394,7 @@ footer{text-align:center;padding:2.5rem 2rem;border-top:1px solid var(--bd);colo
           <div class="poll-opts" id="p5">
             <div class="poll-opt" onclick="selPoll(this,'p5')"><div class="poll-dot"></div>Getaran pegas pada suspensi kendaraan</div>
             <div class="poll-opt" onclick="selPoll(this,'p5')"><div class="poll-dot"></div>Pendinginan mesin mobil setelah dimatikan</div>
-            <div class="poll-opt" data-correct onclick="selPoll(this,'p5')"><div class="poll-dot"></div>Menghitung luas persegi panjang</div>
+            <div class="poll-opt" onclick="selPoll(this,'p5')"><div class="poll-dot"></div>Menghitung luas persegi panjang</div>
             <div class="poll-opt" onclick="selPoll(this,'p5')"><div class="poll-dot"></div>Aliran fluida dalam pipa</div>
           </div>
           <button class="poll-check" onclick="checkPoll('p5')">Cek Jawaban</button>
@@ -493,11 +493,11 @@ function checkPoll(id){
   const isFirst=!document.getElementById('res-'+id).dataset.checked;
   opts.forEach(o=>{
     o.classList.remove('correct','wrong');
-    if(o.hasAttribute('data-correct'))o.classList.add('correct');
-    else if(o.classList.contains('selected')&&!o.hasAttribute('data-correct'))o.classList.add('wrong');
+    if(window._pollCorrectIdx[id]===Array.from(o.parentElement.children).indexOf(o))o.classList.add('correct');
+    else if(o.classList.contains('selected')&&window._pollCorrectIdx[id]!==Array.from(o.parentElement.children).indexOf(o))o.classList.add('wrong');
     o.style.pointerEvents='none';
   });
-  if(sel.hasAttribute('data-correct')){
+  if(window._pollCorrectIdx[id]===Array.from(sel.parentElement.children).indexOf(sel)){
     res.className='poll-result ok';res.textContent='🎉 Benar! Sekarang jelaskan alasanmu di Forum Diskusi.';
     if(isFirst&&typeof window._awardPoint==='function')window._awardPoint(id);
   }
@@ -855,6 +855,8 @@ window._awardPoint = function(qId) {
 window._loadScoredQuestions();
 
 initVisitor();
+
+window._pollCorrectIdx = {'p1': 1, 'p2': 1, 'p3': 0, 'p4': 1, 'p5': 2};
 </script>
 </body>
 </html>

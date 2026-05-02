@@ -335,7 +335,7 @@
         <div class="radio-option" data-value="C" onclick="selectOption('mc1','C')"><input type="radio" name="mc1"><div class="radio-circle"></div><span><strong>C.</strong> Pressure gauge (sensor tekanan)</span></div>
         <div class="radio-option" data-value="D" onclick="selectOption('mc1','D')"><input type="radio" name="mc1"><div class="radio-circle"></div><span><strong>D.</strong> Tachometer (sensor RPM)</span></div>
       </div>
-      <div class="exercise-actions"><button class="btn-check" onclick="checkAnswer('mc1','B')">Cek Jawaban</button><button class="btn-hint" onclick="toggleHint('mc1')">💡 Petunjuk</button></div>
+      <div class="exercise-actions"><button class="btn-check" onclick="checkAnswer('mc1')">Cek Jawaban</button><button class="btn-hint" onclick="toggleHint('mc1')">💡 Petunjuk</button></div>
       <div class="feedback" id="fb-mc1"></div>
       <div class="hint-box" id="hint-mc1">💡 Pikirkan: sinyal apa yang paling langsung berubah saat kondisi mekanik pompa memburuk? Apakah perubahan tersebut terdeteksi lebih awal dibanding suhu atau tekanan?</div>
       <div style="margin-top:16px;padding:14px 18px;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.15);border-radius:12px;">
@@ -358,7 +358,7 @@
         <div class="radio-option" data-value="C" onclick="selectOption('mc2','C')"><input type="radio" name="mc2"><div class="radio-circle"></div><span><strong>C.</strong> 300 Hz atau lebih — minimal 2× frekuensi tertinggi (150 Hz)</span></div>
         <div class="radio-option" data-value="D" onclick="selectOption('mc2','D')"><input type="radio" name="mc2"><div class="radio-circle"></div><span><strong>D.</strong> 1000 Hz — semakin tinggi selalu lebih baik</span></div>
       </div>
-      <div class="exercise-actions"><button class="btn-check" onclick="checkAnswer('mc2','C')">Cek Jawaban</button><button class="btn-hint" onclick="toggleHint('mc2')">💡 Petunjuk</button></div>
+      <div class="exercise-actions"><button class="btn-check" onclick="checkAnswer('mc2')">Cek Jawaban</button><button class="btn-hint" onclick="toggleHint('mc2')">💡 Petunjuk</button></div>
       <div class="feedback" id="fb-mc2"></div>
       <div class="hint-box" id="hint-mc2">💡 Nyquist: fₛ ≥ 2 × f_max. Yang penting bukan frekuensi fundamental (50 Hz), tapi frekuensi TERTINGGI yang ingin dideteksi. Harmonik ke-3 = 150 Hz.</div>
       <div style="margin-top:16px;padding:14px 18px;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.15);border-radius:12px;">
@@ -381,7 +381,7 @@
         <div class="radio-option" data-value="C" onclick="selectOption('mc3','C')"><input type="radio" name="mc3"><div class="radio-circle"></div><span><strong>C.</strong> Tabel spesifikasi material: kekerasan 62 HRC, tegangan 750 MPa</span></div>
         <div class="radio-option" data-value="D" onclick="selectOption('mc3','D')"><input type="radio" name="mc3"><div class="radio-circle"></div><span><strong>D.</strong> Arus motor direkam setiap siklus operasi selama 1 jam</span></div>
       </div>
-      <div class="exercise-actions"><button class="btn-check" onclick="checkAnswer('mc3','C')">Cek Jawaban</button><button class="btn-hint" onclick="toggleHint('mc3')">💡 Petunjuk</button></div>
+      <div class="exercise-actions"><button class="btn-check" onclick="checkAnswer('mc3')">Cek Jawaban</button><button class="btn-hint" onclick="toggleHint('mc3')">💡 Petunjuk</button></div>
       <div class="feedback" id="fb-mc3"></div>
       <div class="hint-box" id="hint-mc3">💡 Time series = data yang berurutan terhadap waktu. Data statis = data yang tidak berubah dan urutan tidak bermakna.</div>
       <div style="margin-top:16px;padding:14px 18px;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.15);border-radius:12px;">
@@ -404,7 +404,7 @@
         <div class="radio-option" data-value="C" onclick="selectOption('mc4','C')"><input type="radio" name="mc4"><div class="radio-circle"></div><span><strong>C.</strong> Tergantung budget — multivariate lebih mahal tapi tidak lebih baik</span></div>
         <div class="radio-option" data-value="D" onclick="selectOption('mc4','D')"><input type="radio" name="mc4"><div class="radio-circle"></div><span><strong>D.</strong> Gunakan sensor RPM saja karena paling murah</span></div>
       </div>
-      <div class="exercise-actions"><button class="btn-check" onclick="checkAnswer('mc4','B')">Cek Jawaban</button><button class="btn-hint" onclick="toggleHint('mc4')">💡 Petunjuk</button></div>
+      <div class="exercise-actions"><button class="btn-check" onclick="checkAnswer('mc4')">Cek Jawaban</button><button class="btn-hint" onclick="toggleHint('mc4')">💡 Petunjuk</button></div>
       <div class="feedback" id="fb-mc4"></div>
       <div class="hint-box" id="hint-mc4">💡 Ingat analogi medical check-up: dokter tidak hanya cek tekanan darah, tapi juga gula darah, kolesterol, detak jantung. Kenapa? Karena pola KORELASI antar parameter memberikan informasi yang lebih kaya.</div>
       <div style="margin-top:16px;padding:14px 18px;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.15);border-radius:12px;">
@@ -543,7 +543,8 @@ function selectOption(qId, value) {
   if (opt) { opt.classList.add('selected'); opt.querySelector('input').checked = true; }
 }
 
-function checkAnswer(qId, correct) {
+function checkAnswer(qId) {
+  const correct = window._mcAnswers[qId];
   const group = document.getElementById('rg-' + qId);
   if (!group) return;
   const selected = group.querySelector('.radio-option.selected');
@@ -932,6 +933,8 @@ saveIdentity = function(v) {
 };
 
 initVisitor();
+
+window._mcAnswers = {'mc1': 'B', 'mc2': 'C', 'mc3': 'C', 'mc4': 'B'};
 </script>
 
 </body>
