@@ -900,384 +900,362 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 01 — APA ITU SISTEM 2 DoF? ═══ -->
+<!-- ═══ BAGIAN 01 — STATISTIK SINYAL GETARAN ═══ -->
 <hr class="divider" style="margin-top:64px">
 <div class="section" id="m-pengantar">
   <div class="section-label reveal">Bagian 01</div>
-  <h2 class="section-title reveal">Apa Itu Sistem 2 DoF?<br>Saat Satu Massa Saja Tidak Cukup</h2>
-  <p class="section-desc reveal">Pada Pertemuan 1–6, kita selalu menganalisis <strong>satu massa</strong> bergetar (1 DoF — derajat kebebasan). Tetapi mesin nyata jarang sesederhana itu. Mobil punya bodi <em>dan</em> roda. Gedung punya banyak lantai. Turbin punya rotor <em>dan</em> casing. Setiap bagian bisa bergerak independen — sehingga butuh <strong>≥ 2 koordinat</strong> untuk menjelaskan posisi sistem secara lengkap. Itulah <strong>sistem 2 DoF</strong>.</p>
+  <h2 class="section-title reveal">Statistik Sinyal Getaran:<br>Apa yang Bisa Diukur dari Waveform?</h2>
+  <p class="section-desc reveal">Sebelum melompat ke FFT atau diagnosis spektrum, langkah pertama analisis getaran adalah <strong>statistik time-domain</strong> dari sinyal mentah. Beberapa indikator sederhana — <strong>RMS, peak, crest factor, kurtosis</strong> — sudah cukup untuk klasifikasi awal kondisi mesin: sehat, perlu perhatian, atau sudah berbahaya. Inilah dasar dari <strong>vibration condition monitoring</strong> modern berbasis standar ISO 10816.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Definisi Sederhana</div>
-    Derajat kebebasan = jumlah koordinat independen yang diperlukan untuk mendeskripsikan posisi sistem pada saat tertentu.
+    <div class="label">Insight Kunci</div>
+    Sinyal getaran adalah <em>sinyal stokastik</em> (acak terbatas) yang memiliki properti statistik yang dapat memberi informasi tentang kondisi mesin tanpa perlu transform domain.
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">🚗</div>
-      <h3>Suspensi Mobil</h3>
-      <p>Bodi mobil bergerak naik-turun (x₁), sekaligus roda juga bergerak naik-turun (x₂) saat melewati jalan bergelombang. Dua koordinat → 2 DoF.</p>
-      <div class="formula">x₁ (bodi) &nbsp;|&nbsp; x₂ (roda)</div>
+      <div class="card-icon">📊</div>
+      <h3>Time-Domain vs Frequency-Domain</h3>
+      <p>Frequency-domain (FFT) memberi tahu <em>frekuensi mana</em> yang aktif. Time-domain memberi tahu <em>seberapa parah</em> getaran-nya secara overall. Keduanya komplementer: time-domain untuk severity, FFT untuk diagnosis penyebab.</p>
+      <div class="formula">Severity ↔ Time | Cause ↔ Frequency</div>
     </div>
     <div class="card">
-      <div class="card-icon">🏢</div>
-      <h3>Gedung 2 Lantai</h3>
-      <p>Lantai 1 bergeser horizontal sebesar x₁ saat angin/gempa, lantai 2 bergeser sebesar x₂. Dua lantai = 2 DoF.</p>
-      <div class="formula">x₁ (lantai 1) &nbsp;|&nbsp; x₂ (lantai 2)</div>
+      <div class="card-icon">⚡</div>
+      <h3>Indikator Cepat Tanpa Komputasi Berat</h3>
+      <p>RMS, peak, crest, kurtosis dihitung dari sample mentah dengan operasi sederhana (mean, max, var). Tidak perlu FFT, tidak perlu windowing. Bisa dihitung embedded di sensor ADC dengan latency rendah — cocok untuk <strong>online monitoring real-time</strong>.</p>
+      <div class="formula">Compute O(N) — sangat cepat</div>
     </div>
     <div class="card">
-      <div class="card-icon">⚙️</div>
-      <h3>Dua Massa Terkait Pegas</h3>
-      <p>Sistem klasik 2 DoF: dua massa m₁ dan m₂ dihubungkan oleh tiga pegas k₁, k₂, k₃ (dua pegas ke dinding, satu di tengah). Inilah model referensi modul ini.</p>
-      <div class="formula">m₁=m₂=1 kg, k=100 N/m</div>
+      <div class="card-icon">🏭</div>
+      <h3>Standar Industri</h3>
+      <p>ISO 10816 (& penggantinya ISO 20816) menggunakan <strong>RMS velocity (mm/s)</strong> sebagai indikator utama untuk klasifikasi severity. Angka tunggal yang mudah dibaca operator: berapa mm/s? Cek tabel zone A-D. Ada di hampir semua vibration meter handheld.</p>
+      <div class="formula">RMS velocity (mm/s) → Zone A-D</div>
     </div>
     <div class="card">
-      <div class="card-icon">🎵</div>
-      <h3>Speaker Gitar</h3>
-      <p>Membran speaker (m₁) terhubung ke kotak (m₂) lewat pegas. Saat dimainkan, keduanya bergetar — itulah kenapa kotak speaker ikut "menggetar".</p>
-      <div class="formula">2 mode getaran utama</div>
+      <div class="card-icon">⚠️</div>
+      <h3>Jenis Defect dari Statistik Bentuk</h3>
+      <p>Crest factor &amp; kurtosis sensitif terhadap <em>impulsive defect</em> — bearing fault, gear pitting, looseness — yang menghasilkan spike tajam. Sinyal mesin sehat: distribusi Gaussian (kurtosis ≈ 3). Sinyal dengan impact: kurtosis tinggi (5-50+).</p>
+      <div class="formula">Kurtosis &gt; 4 = warning impulsive defect</div>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Mengapa 2 DoF Begitu Penting?</strong><br>
-    Sistem 1 DoF hanya punya <strong>satu</strong> frekuensi pribadi ωₙ. Tetapi sistem 2 DoF punya <strong>dua</strong> frekuensi pribadi (ω₁ dan ω₂) — masing-masing dengan <strong>pola gerak (mode shape)</strong>-nya sendiri. Memahami ini adalah jembatan menuju multi-DoF (gedung 10 lantai, mesin pesawat, dll). Konsepnya sama, hanya jumlah-nya bertambah.
+    <strong>Workflow Standar Vibration Monitoring</strong><br>
+    1) <strong>Acquire</strong> sinyal accelerometer (mis. 25.6 kHz, 1 detik buffer).<br>
+    2) <strong>Integrate</strong> untuk dapat velocity (mm/s) — standar ISO pakai velocity.<br>
+    3) <strong>Hitung statistik time-domain</strong>: RMS, peak, crest, kurtosis (Bagian 02-06 modul ini).<br>
+    4) <strong>Bandingkan</strong> RMS velocity dengan tabel ISO 10816 (Bagian 07).<br>
+    5) Kalau zone C/D atau crest/kurtosis tinggi → lanjut <strong>spectrum analysis</strong> (Pertemuan 14) untuk diagnosis penyebab.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Aturan Mudah:</strong> Banyaknya frekuensi pribadi sebuah sistem getaran = banyaknya derajat kebebasannya. 1 DoF → 1 ω. 2 DoF → 2 ω (ω₁ &lt; ω₂). N DoF → N ω. Pertemuan 13 fokus pada N=2 sebagai pintu masuk paling intuitif.
+    💡 <strong>Aturan Praktis:</strong> Jangan langsung lompat ke FFT untuk semua kasus. Untuk monitoring rutin, statistik time-domain (RMS + crest + kurtosis) sudah memberi 80% informasi yang dibutuhkan dengan komputasi 5% dari FFT. Hemat waktu, hemat resource embedded.
   </div>
 </div>
 
-<!-- ═══ BAGIAN 02 — PERSAMAAN GERAK MATRIKS ═══ -->
+<!-- ═══ BAGIAN 02 — RMS (ROOT MEAN SQUARE) ═══ -->
 <hr class="divider">
 <div class="section" id="m-eom">
   <div class="section-label reveal">Bagian 02</div>
-  <h2 class="section-title reveal">Persamaan Gerak Matriks:<br>Bahasa Universal Sistem 2 DoF</h2>
-  <p class="section-desc reveal">Untuk sistem 1 DoF, persamaan geraknya: <strong>m·ẍ + k·x = 0</strong>. Untuk 2 DoF, kita punya <strong>dua</strong> persamaan — satu untuk tiap massa. Lebih praktis menulisnya dalam <strong>bentuk matriks</strong>: <strong>M·ẍ + K·x = 0</strong>, dengan M = matriks massa, K = matriks kekakuan, x = vektor [x₁, x₂].</p>
+  <h2 class="section-title reveal">RMS (Root Mean Square):<br>Indikator Energi Getaran Utama</h2>
+  <p class="section-desc reveal"><strong>RMS</strong> adalah ukuran "rata-rata energi" sinyal — secara fisik proporsional terhadap <strong>daya getaran</strong> yang dipancarkan mesin. Untuk sinyal velocity (mm/s), RMS adalah indikator severity utama yang dipakai standar ISO 10816 untuk klasifikasi kondisi mesin.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Sistem Referensi Modul Ini — Dua Massa, Tiga Pegas</div>
-    Massa: m₁ = m₂ = 1 kg &nbsp;·&nbsp; Pegas: k₁ = k₂ = k₃ = 100 N/m
+    <div class="label">Definisi RMS untuk Sinyal Diskrit</div>
+    RMS = √( (1/N) · Σ x[i]² )   untuk i = 0, 1, ..., N−1
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">📐</div>
-      <h3>Free-Body Diagram Massa 1</h3>
-      <p>Massa 1 ditarik pegas k₁ ke kiri dengan gaya <code>−k₁·x₁</code> dan ditarik/ditolak oleh pegas tengah k₂ dengan gaya <code>−k₂·(x₁−x₂)</code>. Hukum Newton:</p>
-      <div class="formula">m₁·ẍ₁ = −k₁·x₁ − k₂·(x₁ − x₂)</div>
+      <div class="card-icon">⚡</div>
+      <h3>Hubungan dengan Energi</h3>
+      <p>RMS² = average power. Untuk sinyal velocity v(t), kinetic energy density ∝ v². RMS-nya adalah ukuran "average velocity magnitude" yang konsisten dengan energi mekanik. Inilah mengapa ISO pakai RMS, bukan peak.</p>
+      <div class="formula">P_avg = RMS²/Z (resistive analogy)</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🌊</div>
+      <h3>RMS Sinusoidal vs General</h3>
+      <p>Untuk sinusoidal murni A·sin(ωt): RMS = A/√2 ≈ 0.707·A. Untuk sinyal real (campuran): hitung dari definisi diskrit. Konstanta 0.707 hanya berlaku sinusoidal — jangan dipakai untuk waveform kompleks.</p>
+      <div class="formula">Sin: RMS = peak / √2</div>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
-      <h3>Free-Body Diagram Massa 2</h3>
-      <p>Massa 2 ditarik pegas tengah k₂ dengan gaya <code>−k₂·(x₂−x₁)</code> dan pegas k₃ ke kanan dengan gaya <code>−k₃·x₂</code>:</p>
-      <div class="formula">m₂·ẍ₂ = −k₂·(x₂ − x₁) − k₃·x₂</div>
+      <h3>Komputasi Praktis</h3>
+      <p>Python: <code>np.sqrt(np.mean(x**2))</code> — satu line. Atau <code>np.std(x)</code> kalau sinyal sudah zero-mean (no DC offset). Untuk sinyal velocity dengan DC offset, hilangkan dulu: <code>x = x - x.mean()</code>.</p>
+      <div class="formula">np.sqrt(np.mean(x**2))</div>
     </div>
     <div class="card">
-      <div class="card-icon">🔢</div>
-      <h3>Bentuk Matriks (Singkat)</h3>
-      <p>Kedua persamaan dirapikan: <code>m₁·ẍ₁ + (k₁+k₂)x₁ − k₂·x₂ = 0</code> dan <code>m₂·ẍ₂ − k₂·x₁ + (k₂+k₃)x₂ = 0</code>. Dalam matriks:</p>
-      <div class="formula">M·ẍ + K·x = 0</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">✅</div>
-      <h3>Substitusi Angka Referensi</h3>
-      <p>Dengan m₁=m₂=1 dan k₁=k₂=k₃=100, kita peroleh M = identitas dan K simetris dengan diagonal 200, off-diagonal −100:</p>
-      <div class="formula">M = [[1,0],[0,1]] &nbsp;·&nbsp; K = [[200,−100],[−100,200]]</div>
+      <div class="card-icon">🏭</div>
+      <h3>Satuan untuk ISO Standard</h3>
+      <p>ISO 10816 spesifik menggunakan <strong>RMS velocity dalam mm/s</strong> (bukan acceleration g atau displacement μm). Mengapa velocity? Karena RMS velocity relatif <em>flat</em> terhadap frekuensi untuk mesin tipikal — satu angka cocok untuk berbagai rpm.</p>
+      <div class="formula">v_RMS (mm/s) = standar industri</div>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Kenali Pola Matriks Kekakuan K</strong><br>
-    Diagonal K(i,i) = jumlah semua kekakuan yang menempel ke massa-i. Off-diagonal K(i,j) = <strong>negatif</strong> kekakuan pegas yang menghubungkan massa-i dan massa-j. K selalu <strong>simetris</strong> (K(i,j) = K(j,i)). Pola ini berlaku universal untuk N DoF — kita tidak perlu menurunkan ulang dari Hukum Newton tiap kali.
+    <strong>Konversi Acceleration ↔ Velocity ↔ Displacement</strong><br>
+    Sensor accelerometer mengukur a(t) dalam g atau m/s². Untuk dapat velocity v(t), <strong>integrate</strong> sekali: <code>v = scipy.integrate.cumulative_trapezoid(a, dx=1/fs)</code>. Untuk displacement, integrate dua kali. Hati-hati: integrasi memperbesar low-frequency drift — biasanya pakai high-pass filter dulu (cutoff ~1-10 Hz) untuk hilangkan baseline drift.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Cek cepat:</strong> Untuk sistem referensi kita, matriks K = [[200, −100], [−100, 200]]. Trace(K) = 200+200 = 400. Det(K) = 200·200 − (−100)·(−100) = 40000 − 10000 = 30000. Kedua angka ini akan muncul lagi saat kita cari frekuensi pribadi di Bagian 03 — sama seperti Vieta's formula untuk akar polinomial.
+    💡 <strong>Cek Cepat:</strong> RMS velocity untuk pompa centrifugal industri tipikal: 0.5–2 mm/s = excellent (zone A). 2.8–4.5 = acceptable (zone B). 4.5–7.1 = unsatisfactory (zone C, perlu maintenance). &gt;7.1 = unacceptable (zone D, shutdown). Angka exact tergantung kategori mesin (Class I-IV) — lihat Bagian 07.
   </div>
 </div>
 
-<!-- ═══ BAGIAN 03 — EIGENVALUE PROBLEM ═══ -->
+<!-- ═══ BAGIAN 03 — PEAK & PEAK-TO-PEAK ═══ -->
 <hr class="divider">
 <div class="section" id="m-eigen">
   <div class="section-label reveal">Bagian 03</div>
-  <h2 class="section-title reveal">Eigenvalue Problem:<br>Mencari Dua Frekuensi Pribadi ω₁ & ω₂</h2>
-  <p class="section-desc reveal">Kita tebak solusi harmonik: tiap massa bergerak dengan frekuensi yang sama ω, tetapi dengan amplitudo berbeda. <code>x(t) = X·sin(ωt)</code> dengan X = vektor [X₁, X₂]. Substitusi ke <code>M·ẍ + K·x = 0</code> menghasilkan <strong>(K − ω²M)·X = 0</strong> — yang dikenal sebagai <strong>eigenvalue problem</strong>.</p>
+  <h2 class="section-title reveal">Peak &amp; Peak-to-Peak:<br>Mendeteksi Shock Loading</h2>
+  <p class="section-desc reveal">Saat RMS bagus untuk severity steady-state, ia <em>tidak sensitif</em> terhadap <strong>shock</strong> singkat (impact, hammer hit, transient). <strong>Peak</strong> dan <strong>Peak-to-Peak</strong> menangkap nilai ekstrim sinyal — indikator paling sensitif untuk impulse, shock loading, dan defect impulsif.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Persamaan Karakteristik (Cara Mencari ω)</div>
-    det(K − ω²·M) = 0
+    <div class="label">Definisi Peak Indicators</div>
+    Peak = max( |x[i]| ) &nbsp;·&nbsp; Peak-to-Peak (P-P) = max(x) − min(x)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">🔍</div>
-      <h3>Langkah 1 — Tulis Determinan</h3>
-      <p>Dengan parameter referensi: <code>K − ω²M = [[200−ω², −100], [−100, 200−ω²]]</code>. Determinan = (200−ω²)² − (−100)(−100) = (200−ω²)² − 10000.</p>
-      <div class="formula">(200 − ω²)² − 10000 = 0</div>
+      <div class="card-icon">🔝</div>
+      <h3>Peak (Absolute Maximum)</h3>
+      <p>Nilai absolut terbesar dalam buffer. Untuk sinyal sinusoidal: peak = A. Untuk sinyal real dengan asymmetric distribution: peak = max(|x_max|, |x_min|). Sensitif terhadap satu spike sekalipun — <em>good for fault detection, bad for noise sensitivity</em>.</p>
+      <div class="formula">Peak = np.max(np.abs(x))</div>
     </div>
     <div class="card">
-      <div class="card-icon">🧮</div>
-      <h3>Langkah 2 — Selesaikan untuk ω²</h3>
-      <p>Akar kuadrat kedua sisi: <code>200 − ω² = ±100</code>. Sehingga ω² = 200 − 100 = 100 (akar pertama, kecil) dan ω² = 200 + 100 = 300 (akar kedua, besar).</p>
-      <div class="formula">ω₁² = 100 &nbsp;·&nbsp; ω₂² = 300</div>
+      <div class="card-icon">↕️</div>
+      <h3>Peak-to-Peak (Total Excursion)</h3>
+      <p>Selisih max − min. Untuk sinusoidal symmetric: P-P = 2·peak = 2·A. Sering dipakai untuk <strong>displacement</strong> (μm, mil) — clearance &amp; rubbing assessment. Standar ISO untuk displacement biasanya pakai P-P, sementara velocity pakai RMS.</p>
+      <div class="formula">P-P = max(x) − min(x)</div>
     </div>
     <div class="card">
-      <div class="card-icon">✨</div>
-      <h3>Langkah 3 — Akar Frekuensi</h3>
-      <p>Ambil akar kuadrat: <code>ω₁ = √100 = 10 rad/s</code> dan <code>ω₂ = √300 ≈ 17.32 rad/s</code>. Selalu pilih ω &gt; 0; konvensi: ω₁ &lt; ω₂.</p>
-      <div class="formula">ω₁ = 10 rad/s &nbsp;·&nbsp; ω₂ ≈ 17.32 rad/s</div>
+      <div class="card-icon">⚠️</div>
+      <h3>Sensitivitas terhadap Outlier</h3>
+      <p>Satu spike noise (mis. EMI dari power line) bisa membuat peak melonjak — <strong>false alarm</strong>. Solusi: gunakan <strong>peak filtered</strong> atau <strong>peak per cycle</strong> untuk averaging. Untuk monitoring presisi, RMS lebih reliable.</p>
+      <div class="formula">Outlier sensitivity = high</div>
     </div>
     <div class="card">
-      <div class="card-icon">📊</div>
-      <h3>Konversi ke Hertz & Periode</h3>
-      <p>f = ω/(2π), T = 2π/ω. Hasilnya: f₁ ≈ 1.59 Hz (T₁ ≈ 0.63 s), f₂ ≈ 2.76 Hz (T₂ ≈ 0.36 s). Mode 2 lebih cepat daripada Mode 1.</p>
-      <div class="formula">f₁ ≈ 1.59 Hz, f₂ ≈ 2.76 Hz</div>
+      <div class="card-icon">🛠️</div>
+      <h3>Peak/RMS Ratio = Crest Factor</h3>
+      <p>Rasio peak terhadap RMS sangat informatif (Bagian 04). Sinyal sehat: crest ≈ 1.4 (sinusoidal limit). Sinyal dengan impact: crest tinggi (3-10+). Inilah cara membedakan "loud but smooth" vs "loud and impulsive".</p>
+      <div class="formula">Crest = Peak / RMS (Bagian 04)</div>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Cara Cepat: Pakai numpy.linalg.eig</strong><br>
-    Untuk sistem &gt; 2 DoF, menyelesaikan determinan tangan jadi rumit. Pakai komputer:
-    <code style="display:block;background:#020a18;padding:10px 14px;border-radius:8px;margin-top:8px;color:var(--cyan)">A = np.linalg.inv(M) @ K  &nbsp;&nbsp;# matriks dinamis<br>w_squared, modes = np.linalg.eig(A)<br>omegas = np.sqrt(w_squared)</code>
-    Pyodide di browser sudah punya numpy — kode di atas bisa langsung dijalankan di tab Tugas.
+    <strong>Kapan Pakai Peak vs RMS?</strong><br>
+    • <strong>Peak</strong>: deteksi <em>kerusakan akut</em> — bearing fault yang sudah parah (impulse besar), looseness mekanis, gear tooth break, kavitasi pompa. Sensitif tapi noisy.<br>
+    • <strong>RMS</strong>: monitoring <em>steady-state severity</em> — unbalance, misalignment, vibrasi rotor secara umum. Stabil dan kalibrasi-able dengan ISO standard.<br>
+    Vibration analyzer profesional menampilkan keduanya berdampingan — operator bisa lihat overall (RMS) dan transient (peak) dalam satu glance.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Cek dengan Trace & Determinan:</strong> Untuk sistem 2 DoF dengan M = identitas, ada identitas Vieta sederhana: <code>ω₁² + ω₂² = trace(K)</code> dan <code>ω₁²·ω₂² = det(K)</code>. Verifikasi: 100 + 300 = 400 ✓ (= trace K), dan 100 × 300 = 30000 ✓ (= det K). Cocok!
+    💡 <strong>Time-Window Effect:</strong> Peak sangat dipengaruhi durasi buffer. Buffer 0.1 detik mungkin tidak menangkap satu impact yang terjadi tiap 1 detik. Buffer 1 detik akan menangkap sekitar 1 impact. Buffer 10 detik akan stabil. Untuk monitoring impact-based defect, pakai buffer cukup panjang (≥ 1 detik) atau "peak hold" mode di analyzer.
   </div>
 </div>
 
-<!-- ═══ BAGIAN 04 — MODE SHAPES ═══ -->
+<!-- ═══ BAGIAN 04 — CREST FACTOR ═══ -->
 <hr class="divider">
 <div class="section" id="m-modes">
   <div class="section-label reveal">Bagian 04</div>
-  <h2 class="section-title reveal">Mode Shapes:<br>Setiap Frekuensi Punya "Tarian"-Nya Sendiri</h2>
-  <p class="section-desc reveal">Setiap frekuensi pribadi ω<sub>i</sub> tidak hanya angka — ia punya <strong>pola gerak</strong> spesifik yang menjelaskan <em>bagaimana</em> kedua massa bergerak relatif satu sama lain saat bergetar di frekuensi itu. Pola ini disebut <strong>mode shape</strong> (vektor eigenvalue). Untuk sistem referensi, kita akan temukan dua mode yang sangat intuitif.</p>
+  <h2 class="section-title reveal">Crest Factor:<br>Mengukur Tingkat Impulsiveness</h2>
+  <p class="section-desc reveal"><strong>Crest Factor</strong> adalah rasio peak terhadap RMS — indikator <em>seberapa "spiky"</em> sinyal. Sinyal smooth (sinusoidal murni) memiliki crest ≈ 1.41. Sinyal dengan impact tajam (bearing fault, gear pitting) memiliki crest jauh lebih tinggi. Sangat sensitif untuk <strong>early-stage defect detection</strong> — sering naik <em>sebelum</em> RMS naik.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Cara Menghitung Mode Shape</div>
-    Untuk tiap ω<sub>i</sub>, substitusi balik ke <code>(K − ω<sub>i</sub>²M)·X = 0</code>, lalu cari rasio X₁ : X₂.
+    <div class="label">Definisi Crest Factor</div>
+    CF = Peak / RMS &nbsp;·&nbsp; Sinusoidal: CF = √2 ≈ 1.414
+  </div>
+
+  <div class="cards reveal" style="margin-bottom:32px">
+    <div class="card">
+      <div class="card-icon">📐</div>
+      <h3>CF Sinusoidal Murni = √2</h3>
+      <p>Untuk x(t) = A·sin(ωt): peak = A, RMS = A/√2. CF = A / (A/√2) = √2 ≈ 1.41. Inilah <strong>baseline minimum</strong> — sinyal real tidak bisa lebih rendah dari ini (kalau ya, ada masalah).</p>
+      <div class="formula">CF_sin = √2</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🌫️</div>
+      <h3>CF White Noise ≈ 3-4</h3>
+      <p>Sinyal acak Gaussian: peak ≈ 3σ (rule of thumb), RMS = σ. CF ≈ 3. Sinyal getaran mesin sehat tipikal CF = 3-4 (mix sinusoidal harmonik + sedikit noise).</p>
+      <div class="formula">CF_noise ≈ 3</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚡</div>
+      <h3>CF Impulsive Signal &gt; 5</h3>
+      <p>Sinyal dengan spike tajam (bearing inner race fault, gear pitting): peak naik drastis, RMS naik sedikit (karena durasi spike pendek). CF = 5-15 tipikal untuk early-stage bearing fault.</p>
+      <div class="formula">CF &gt; 5 = impulsive defect warning</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📉</div>
+      <h3>CF Drop = Late-Stage Failure</h3>
+      <p>Anehnya, ketika bearing defect menjadi sangat parah (multi-spike, distributed damage), <strong>CF turun lagi</strong> ke ~3 karena banyak spike membesarkan RMS. Trajectory CF: <em>naik dulu (early), turun lagi (advanced)</em>. Plot trend CF vs waktu critical untuk maintenance decision.</p>
+      <div class="formula">CF early high → late low (failure progression)</div>
+    </div>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>Interpretasi CF Trend untuk Maintenance Decision</strong><br>
+    • CF stabil di 2-3: sinyal smooth, mesin sehat. Tidak perlu action.<br>
+    • CF naik ke 4-6 secara perlahan: <strong>early-stage defect</strong>. Schedule inspection.<br>
+    • CF spike ke 8-15: <strong>active developing fault</strong>. Detailed FFT diagnosis required.<br>
+    • CF turun balik ke 3-4 setelah pernah tinggi: <strong>warning! late-stage / catastrophic risk</strong>. Immediate shutdown &amp; replacement.<br>
+    Karena CF dimensionless (rasio), bisa dibandingkan langsung antar mesin / antar measurement tanpa perlu kalibrasi.
+  </div>
+
+  <div class="tip-box reveal">
+    💡 <strong>Best Used in Combination:</strong> CF sendiri bisa misleading. Pair dengan kurtosis (Bagian 05) untuk konfirmasi. Bila CF tinggi <em>dan</em> kurtosis tinggi → confident impulsive defect. Bila CF tinggi tapi kurtosis ≈ 3 → kemungkinan single-event noise (false alarm).
+  </div>
+</div>
+
+<!-- ═══ BAGIAN 05 — KURTOSIS ═══ -->
+<hr class="divider">
+<div class="section" id="m-analogi">
+  <div class="section-label reveal">Bagian 05</div>
+  <h2 class="section-title reveal">Kurtosis:<br>Distribusi Statistik &amp; Deteksi Impulsive Defect</h2>
+  <p class="section-desc reveal"><strong>Kurtosis</strong> adalah momen statistik orde-4 yang mengukur "tail heaviness" distribusi sinyal. Sinyal Gaussian (mesin sehat) memiliki kurtosis ≈ 3. Sinyal dengan banyak <strong>outlier impulsif</strong> (bearing fault dengan impacts berulang) memiliki kurtosis tinggi (5-50+). Salah satu indikator paling powerful untuk early-stage rolling element bearing fault.</p>
+
+  <div class="formula-block reveal">
+    <div class="label">Definisi Kurtosis (Normalized 4th Moment)</div>
+    Kurtosis = E[(x − μ)⁴] / σ⁴ &nbsp;·&nbsp; Excess Kurtosis = Kurtosis − 3
+  </div>
+
+  <div class="cards reveal" style="margin-bottom:32px">
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <h3>Distribusi Gaussian → K = 3</h3>
+      <p>Sinyal acak Gaussian (white noise) memiliki kurtosis tepat 3. Inilah baseline — semua interpretasi kurtosis relatif terhadap angka ini. Sinyal mesin sehat tipikal K ≈ 2.8-3.2.</p>
+      <div class="formula">Gaussian: K = 3 (excess = 0)</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚡</div>
+      <h3>Impulsive Signal → K &gt;&gt; 3</h3>
+      <p>Bearing fault menghasilkan spike pendek tapi tinggi tiap rotating period — distribusi non-Gaussian dengan tail panjang. Kurtosis 5-15 = early-stage. Kurtosis &gt; 20 = advanced fault. Sangat sensitif tapi reliable.</p>
+      <div class="formula">K &gt; 5 = impulsive warning</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📉</div>
+      <h3>Distribusi Flat → K &lt; 3</h3>
+      <p>Sinyal sinusoidal murni: K = 1.5. Sinyal uniform random: K = 1.8. Distribusi "flat" (tidak ada extreme outlier) memiliki K rendah. Mesin running smoothly dengan dominasi sinusoidal harmonik akan memiliki K sedikit di bawah 3.</p>
+      <div class="formula">Sin: K = 1.5; Uniform: K ≈ 1.8</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔬</div>
+      <h3>Spectral Kurtosis (Lanjutan)</h3>
+      <p>Kurtosis dihitung per frequency band setelah filter — disebut <strong>Spectral Kurtosis (SK)</strong>. Membantu identifikasi <em>frekuensi mana</em> yang impulsif. Algoritma <strong>Kurtogram</strong> (Antoni 2007) auto-detect frequency band optimal untuk envelope analysis (Pertemuan 14).</p>
+      <div class="formula">SK(f) → kurtogram → optimal band</div>
+    </div>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>Mengapa Kurtosis Powerful untuk Bearing Fault?</strong><br>
+    Bearing roller yang melewati area fault (spalling, pitting) menghasilkan <strong>impact pendek tapi tinggi</strong> tiap kali. Jika frekuensi rotasi 30 Hz dan ada 8 ball, BPFO ≈ 100 Hz — 100 spike per detik di accelerometer. Setiap spike singkat (ms-scale) tapi amplitudo besar. Kurtosis menangkap sifat ini sangat baik karena momen orde-4 (^4) memperbesar nilai ekstrim secara non-linear. Outlier kontribusi besar ke kurtosis, sementara kontribusi kecil ke RMS.
+  </div>
+
+  <div class="tip-box reveal">
+    💡 <strong>Kombinasi Optimal:</strong> Untuk monitoring bearing, gabungkan tiga indikator: <strong>RMS velocity</strong> (overall severity), <strong>Crest Factor</strong> (impulsiveness ratio), dan <strong>Kurtosis</strong> (statistical confirmation). Trigger alarm hanya jika minimal 2 dari 3 abnormal — mengurangi false alarm dari noise transient.
+  </div>
+</div>
+
+<!-- ═══ BAGIAN 06 — SKEWNESS, STD, DISTRIBUSI ═══ -->
+<hr class="divider">
+<div class="section" id="m-anim">
+  <div class="section-label reveal">Bagian 06</div>
+  <h2 class="section-title reveal">Skewness, Std Dev, &amp; Histogram:<br>Karakterisasi Distribusi Sinyal Lengkap</h2>
+  <p class="section-desc reveal">Selain RMS dan kurtosis, beberapa statistik tambahan melengkapi gambaran distribusi sinyal: <strong>standard deviation</strong> (sebenarnya = RMS untuk zero-mean signal), <strong>skewness</strong> (asymmetry), dan <strong>histogram</strong> visualisasi. Bersama-sama, statistik ini memberi profile lengkap karakter sinyal dan bisa di-trended untuk anomaly detection.</p>
+
+  <div class="formula-block reveal">
+    <div class="label">Empat Momen Statistik Sinyal</div>
+    Mean (μ) · Std Dev (σ) · Skewness (γ₁) · Kurtosis (γ₂)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
       <div class="card-icon">⚖️</div>
-      <h3>Mode 1 (ω₁ = 10) — In-Phase</h3>
-      <p>Substitusi ω₁²=100: <code>(K − 100·I) = [[100,−100],[−100,100]]</code>. Baris pertama: <code>100·X₁ − 100·X₂ = 0 → X₁ = X₂</code>. Mode 1 = <strong>[1, 1]</strong> — kedua massa bergerak <strong>searah dan sama besar</strong>.</p>
-      <div class="formula">Mode 1: X₁ = X₂ = 1 (in-phase)</div>
+      <h3>Mean (μ) — DC Offset</h3>
+      <p>Untuk sinyal velocity/acceleration AC, mean idealnya = 0. Mean ≠ 0 menunjukkan DC offset sensor (kalibrasi salah, gravity component). Selalu remove DC sebelum analisis: <code>x = x - x.mean()</code>.</p>
+      <div class="formula">μ = (1/N) Σ x[i]</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📏</div>
+      <h3>Standard Deviation (σ)</h3>
+      <p>σ = √(variance). Untuk zero-mean signal, σ = RMS. Untuk sinyal dengan DC, σ &lt; RMS. Indikator spread/dispersion. Python: <code>np.std(x)</code>.</p>
+      <div class="formula">σ² = (1/N) Σ (x[i] − μ)²</div>
     </div>
     <div class="card">
       <div class="card-icon">↔️</div>
-      <h3>Mode 2 (ω₂ ≈ 17.32) — Anti-Phase</h3>
-      <p>Substitusi ω₂²=300: <code>(K − 300·I) = [[−100,−100],[−100,−100]]</code>. Baris pertama: <code>−100·X₁ − 100·X₂ = 0 → X₁ = −X₂</code>. Mode 2 = <strong>[1, −1]</strong> — kedua massa bergerak <strong>berlawanan</strong>.</p>
-      <div class="formula">Mode 2: X₁ = −X₂ (anti-phase)</div>
+      <h3>Skewness — Asymmetry</h3>
+      <p>Momen orde-3: γ₁ = E[(x−μ)³]/σ³. Sinyal symmetric (mesin normal): γ₁ ≈ 0. Sinyal dengan defect arah satu (mis. crack pada gear tooth): γ₁ ≠ 0. Less commonly used than kurtosis tapi diagnostic.</p>
+      <div class="formula">|γ₁| &gt; 0.5 = directional bias</div>
     </div>
     <div class="card">
-      <div class="card-icon">🌊</div>
-      <h3>Mengapa Mode 1 Lebih Lambat?</h3>
-      <p>Pada Mode 1, kedua massa bergerak bersama → pegas tengah <strong>tidak tertekan/ditarik</strong> sama sekali. Sistem efektif hanya pakai pegas k₁ dan k₃. Lebih sedikit kekakuan = ω lebih kecil.</p>
-      <div class="formula">ω₁_efektif = √((k₁+k₃)/m) = 10 rad/s ✓</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">⚡</div>
-      <h3>Mengapa Mode 2 Lebih Cepat?</h3>
-      <p>Pada Mode 2, kedua massa berlawanan arah → pegas tengah <strong>diregang/ditekan dua kali</strong> setiap setengah siklus. Kekakuan efektif lebih besar = ω lebih besar.</p>
-      <div class="formula">ω₂_efektif = √((k₁ + 2k₂)/m) ≈ 17.32 ✓</div>
+      <div class="card-icon">📊</div>
+      <h3>Histogram Visualization</h3>
+      <p>Plot distribusi amplitudo sinyal. Healthy machine: shape Gaussian (bell). Faulty machine: tail heavier, peakier, atau bimodal. Sering jadi entry untuk visual anomaly detection oleh analyst experienced.</p>
+      <div class="formula">np.histogram(x, bins=50)</div>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Sifat Penting Mode Shape — Orthogonality</strong><br>
-    Dua mode shape selalu <strong>orthogonal terhadap matriks massa</strong>: u₁ᵀ·M·u₂ = 0. Untuk kasus kita: [1,1]·[[1,0],[0,1]]·[1,−1]ᵀ = 1·1 + 1·(−1) = 0 ✓. Sifat ini sangat penting: ia memungkinkan kita memecah getaran kompleks menjadi kombinasi mode-mode yang independen (modal analysis).
+    <strong>Anomaly Detection berbasis Distribusi</strong><br>
+    Pendekatan modern: <strong>baseline distribution learning</strong>. Selama mesin healthy (running-in period), record statistik (μ, σ, skewness, kurtosis). Saat operasi normal, monitor live statistics — bila keluar dari ±3σ baseline interval, trigger alarm. Ini foundation algoritma <strong>statistical process control (SPC)</strong> untuk vibration. Cocok untuk fleet monitoring banyak mesin sekaligus karena tidak butuh model fisika spesifik.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Mode shape adalah RASIO, bukan amplitudo absolut.</strong> Mode 1 = [1, 1] dan Mode 1 = [3, 3] adalah <em>mode yang sama</em> — keduanya berkata "kedua massa bergerak searah dengan amplitudo yang sama". Yang penting hanya rasio X₁/X₂. Konvensi normalisasi: biasanya X₁ = 1, atau ‖X‖ = 1.
+    💡 <strong>Quick Health Check Macro:</strong> Print semua statistik sekaligus dengan <code>scipy.stats.describe(x)</code> — return objek dengan minmax, mean, variance, skewness, kurtosis. Cocok untuk quick diagnostic saat investigasi data baru. Untuk production, hitung manual (lebih cepat untuk single statistic).
   </div>
 </div>
 
-<!-- ═══ BAGIAN 05 — ANALOGI SEHARI-HARI ═══ -->
-<hr class="divider">
-<div class="section" id="m-analogi">
-  <div class="section-label reveal">Bagian 05</div>
-  <h2 class="section-title reveal">Analogi Kehidupan<br>Sehari-Hari</h2>
-  <p class="section-desc reveal">Sistem 2 DoF ada di sekitar kita. Inilah analogi untuk menanamkan intuisi mode 1 vs mode 2.</p>
-
-  <div class="cards reveal" style="margin-bottom:32px">
-    <div class="card">
-      <div class="card-icon">🎢</div>
-      <h3>Dua Anak di Ayunan Berdampingan</h3>
-      <p>Dua ayunan diikat kayu di tengah — bisa ayun bareng (Mode 1, lambat) atau berlawanan (Mode 2, cepat). Anak-anak intuitif tahu cara "mengunci" mode dengan kayuhan.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🚗</div>
-      <h3>Mobil di Polisi Tidur</h3>
-      <p>Mobil melewati polisi tidur perlahan: depan-belakang naik bareng (Mode 1, "bouncing"). Lewat lebih cepat: depan naik saat belakang turun (Mode 2, "pitching"). Suspensi mobil dirancang agar kedua mode tidak resonansi dengan jalan biasa.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🏢</div>
-      <h3>Gedung 2 Lantai Saat Gempa</h3>
-      <p>Mode 1: kedua lantai bergeser searah (bayangkan gedung "membungkuk"). Mode 2: lantai 1 dan 2 bergeser berlawanan (gedung "mencangkul"). Kerusakan parah biasanya di Mode 2 karena percepatan lebih besar.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🎸</div>
-      <h3>Senar Gitar + Body Resonator</h3>
-      <p>Senar bergetar → bodi gitar ikut bergetar. Body kayu + senar membentuk sistem 2 DoF kuat: itulah kenapa gitar akustik bersuara lebih kaya dibanding senar tunggal.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🛀</div>
-      <h3>Air di Bak Mandi</h3>
-      <p>Goyangkan bak: air membentuk gelombang berdiri. Bisa naik di kiri-turun di kanan (Mode 1) atau pola yang lebih kompleks (Mode 2+). Sama seperti 2 DoF, tapi dengan kontinuum.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🏗️</div>
-      <h3>Tuned Mass Damper (Taipei 101)</h3>
-      <p>Bola raksasa 660 ton di puncak Taipei 101 = sistem 2 DoF buatan. Ditambah <em>sengaja</em> agar gedung punya 2 frekuensi pribadi yang menjauhkan dari frekuensi gempa/angin. Aplikasi praktis konsep mode shape.</p>
-    </div>
-  </div>
-
-  <div class="info-box reveal">
-    <strong>Aturan Intuisi Mode</strong><br>
-    Untuk sistem dua massa simetris (massa sama, pegas simetris): <strong>Mode 1 selalu in-phase</strong> (massa bergerak bareng) dan <strong>Mode 2 selalu anti-phase</strong> (berlawanan). Mode 1 frekuensinya selalu lebih rendah karena pegas penghubung tidak ikut "kerja". Mode 2 frekuensinya lebih tinggi karena pegas penghubung "kerja dua kali lipat".
-  </div>
-</div>
-
-<!-- ═══ BAGIAN 06 — VISUALISASI INTERAKTIF ═══ -->
-<hr class="divider">
-<div class="section" id="m-anim">
-  <div class="section-label reveal">Bagian 06</div>
-  <h2 class="section-title reveal">Visualisasi Interaktif<br>Mode 1 vs Mode 2</h2>
-  <p class="section-desc reveal">Klik tombol di bawah untuk mengganti mode. Animasi memperlihatkan dua massa (m₁=m₂=1 kg) terhubung tiga pegas (k=100 N/m) berosilasi pada frekuensi pribadinya. Perhatikan: pada Mode 1 kedua massa <strong style="color:var(--green)">searah</strong> dan pegas tengah diam; pada Mode 2 kedua massa <strong style="color:var(--amber)">berlawanan</strong> dan pegas tengah ditekan/diregang dua kali lipat.</p>
-
-  <div class="reveal" style="background:#020812;border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px">
-    <canvas id="cv2dof" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
-    <div style="display:flex;gap:14px;justify-content:center;margin-top:18px;flex-wrap:wrap">
-      <button id="btn-mode1" onclick="set2DofMode(1)" class="mode-btn mode-btn-active"
-        style="padding:10px 22px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(0,224,158,.5);background:rgba(0,224,158,.18);color:var(--green);transition:all .2s">
-        ▶ Mode 1 (ω₁ = 10 rad/s) — In-Phase
-      </button>
-      <button id="btn-mode2" onclick="set2DofMode(2)" class="mode-btn"
-        style="padding:10px 22px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(249,115,22,.4);background:rgba(249,115,22,.08);color:var(--amber);transition:all .2s">
-        ▶ Mode 2 (ω₂ ≈ 17.32 rad/s) — Anti-Phase
-      </button>
-    </div>
-    <div id="mode2dof-info" style="text-align:center;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">
-      Mode 1 aktif · X₁ = X₂ = cos(10·t) · pegas tengah tidak terdeformasi
-    </div>
-  </div>
-
-  <p class="section-desc reveal" style="margin-top:24px">Tabel berikut merangkum perbedaan kedua mode untuk referensi cepat:</p>
-
-  <div class="reveal" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:24px;overflow-x:auto">
-    <table style="width:100%;border-collapse:collapse;font-size:14px">
-      <thead>
-        <tr style="border-bottom:2px solid var(--border)">
-          <th style="text-align:left;padding:12px;color:var(--cyan)">Karakteristik</th>
-          <th style="text-align:center;padding:12px;color:var(--green)">Mode 1 (Lambat)</th>
-          <th style="text-align:center;padding:12px;color:var(--amber)">Mode 2 (Cepat)</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Frekuensi pribadi ω</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green);font-family:monospace">10 rad/s</td>
-          <td style="text-align:center;padding:10px;color:var(--amber);font-family:monospace">17.32 rad/s</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Frekuensi f (Hz)</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green);font-family:monospace">1.59 Hz</td>
-          <td style="text-align:center;padding:10px;color:var(--amber);font-family:monospace">2.76 Hz</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Periode T (detik)</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green);font-family:monospace">0.628 s</td>
-          <td style="text-align:center;padding:10px;color:var(--amber);font-family:monospace">0.363 s</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Mode shape [X₁, X₂]</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green);font-family:monospace">[1, 1]</td>
-          <td style="text-align:center;padding:10px;color:var(--amber);font-family:monospace">[1, −1]</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Pola gerak</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green)">Searah (in-phase)</td>
-          <td style="text-align:center;padding:10px;color:var(--amber)">Berlawanan (anti-phase)</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:10px 12px;color:var(--text)"><strong>Pegas tengah k₂</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green)">Diam (tidak terdeformasi)</td>
-          <td style="text-align:center;padding:10px;color:var(--amber)">Bergetar bolak-balik</td>
-        </tr>
-        <tr>
-          <td style="padding:10px 12px;color:var(--text)"><strong>Energi yang tersimpan</strong></td>
-          <td style="text-align:center;padding:10px;color:var(--green)">Hanya k₁ + k₃</td>
-          <td style="text-align:center;padding:10px;color:var(--amber)">k₁ + k₃ + 4·k₂</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="info-box reveal">
-    <strong>Bayangkan Mode 1:</strong> Kedua kotak meluncur ke kanan bersama (X₁ = +1, X₂ = +1), lalu ke kiri bersama (−1, −1). Bagaikan pasangan dansa yang sinkron. Pegas tengah selalu memiliki panjang asli — tidak ikut kerja. Frekuensi rendah (10 rad/s).<br><br>
-    <strong>Bayangkan Mode 2:</strong> Massa kiri ke kanan (+1), massa kanan ke kiri (−1). Pegas tengah ditekan menjadi <em>setengah</em> panjangnya, lalu diregang menjadi <em>1.5×</em> panjangnya — bekerja keras! Frekuensi tinggi (17.32 rad/s).
-  </div>
-
-  <div class="tip-box reveal">
-    💡 <strong>Tip:</strong> Klik bolak-balik antara Mode 1 dan Mode 2 untuk merasakan perbedaan tempo dan pola gerak. Untuk visualisasi lanjutan, buka Bagian 08 (Python) → jalankan Cell 4 di Jupyter Notebook untuk plot superposisi kedua mode (free vibration response).
-  </div>
-</div>
-
-<!-- ═══ BAGIAN 07 — APLIKASI: VIBRATION ABSORBER ═══ -->
+<!-- ═══ BAGIAN 07 — STANDAR ISO 10816 ═══ -->
 <hr class="divider">
 <div class="section" id="m-aplikasi">
   <div class="section-label reveal">Bagian 07</div>
-  <h2 class="section-title reveal">Aplikasi Industri:<br>Vibration Absorber & Tuned Mass Damper</h2>
-  <p class="section-desc reveal">Aplikasi paling spektakuler dari konsep 2 DoF adalah <strong>vibration absorber</strong> — menambahkan massa-pegas kecil pada struktur untuk meredam getaran berbahaya. Prinsipnya: dengan tuning yang tepat, sistem 2 DoF baru memiliki frekuensi pribadi yang <em>menjauh</em> dari frekuensi eksitasi pengganggu.</p>
+  <h2 class="section-title reveal">Standar ISO 10816 / 20816:<br>Klasifikasi Severity Getaran Mesin</h2>
+  <p class="section-desc reveal">Standar internasional <strong>ISO 10816</strong> (& penggantinya ISO 20816) memberi pedoman <em>universal</em> untuk klasifikasi severity getaran mesin berbasis <strong>RMS velocity (mm/s)</strong>. Membagi mesin ke 4 kategori (Class I-IV) dan 4 zona kondisi (A-D). Hampir semua vibration meter handheld dan industrial monitoring system mengimplementasikan tabel ini.</p>
 
   <div class="formula-block reveal">
-    <div class="label">Prinsip Tuning Absorber Klasik (Den Hartog)</div>
-    Tune frekuensi pribadi absorber: ω_a = √(k_a/m_a) = ω_eksitasi
+    <div class="label">Klasifikasi 4 Zona Kondisi (ISO 10816-1)</div>
+    Zone A = Newly Commissioned · Zone B = Acceptable · Zone C = Unsatisfactory · Zone D = Damaging
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
-      <div class="card-icon">🏗️</div>
-      <h3>Taipei 101 — Bola 660 Ton</h3>
-      <p>Gedung 508 m ini punya bola pendulum 660 ton di lantai 87–92, terhubung ke struktur lewat pegas. Itu adalah sistem 2 DoF: gedung (m₁) + bola (m₂). Saat angin/gempa pada frekuensi tertentu menggetarkan gedung, bola "menyerap" energi → amplitudo gedung berkurang ~40%.</p>
-      <div class="formula">ω_a tuned ke ω_angin dominan</div>
+      <div class="card-icon">🟢</div>
+      <h3>Zone A — Excellent (Newly Commissioned)</h3>
+      <p>Vibrasi sangat rendah, kondisi mesin seperti baru. Untuk mesin medium (Class II): RMS velocity ≤ 1.12 mm/s. Continue normal operation, no maintenance needed.</p>
+      <div class="formula">Class II: ≤ 1.12 mm/s (Zone A)</div>
     </div>
     <div class="card">
-      <div class="card-icon">🌉</div>
-      <h3>Millennium Bridge London</h3>
-      <p>Saat dibuka tahun 2000, jembatan ini bergoyang berbahaya akibat 2000 pejalan kaki yang tanpa sadar berjalan sinkron pada frekuensi pribadinya. Solusi: dipasang 89 vibration absorber tuned ke frekuensi tersebut.</p>
-      <div class="formula">Multiple absorbers di sepanjang jembatan</div>
+      <div class="card-icon">🟡</div>
+      <h3>Zone B — Acceptable (Long-Term Operation)</h3>
+      <p>Vibrasi acceptable untuk operasi jangka panjang. Class II: 1.12–2.8 mm/s. Continue operation, monitor periodically (mis. monthly inspection).</p>
+      <div class="formula">Class II: 1.12-2.8 mm/s (Zone B)</div>
     </div>
     <div class="card">
-      <div class="card-icon">🚗</div>
-      <h3>Shock Absorber + Bushing Mobil</h3>
-      <p>Engine mount karet bertindak sebagai pegas + damper kecil yang membuat mesin (m₁) dan rangka (m₂) menjadi sistem 2 DoF. Tuning yang tepat menjauhkan frekuensi pribadi rangka dari 800–4000 RPM mesin.</p>
-      <div class="formula">f_engine ≠ f_natural rangka</div>
+      <div class="card-icon">🟠</div>
+      <h3>Zone C — Unsatisfactory (Limited Operation)</h3>
+      <p>Vibrasi terlalu tinggi untuk operasi normal. Class II: 2.8–4.5 mm/s. Schedule maintenance dalam waktu dekat. Limited operation OK sampai schedule available.</p>
+      <div class="formula">Class II: 2.8-4.5 mm/s (Zone C)</div>
     </div>
     <div class="card">
-      <div class="card-icon">⚙️</div>
-      <h3>Mesin Cuci dengan Counter-Weight</h3>
-      <p>Tabung mesin cuci ditambah massa counter-weight yang dihubungkan oleh pegas suspensi. Saat unbalance terjadi, counter-weight bergetar berlawanan (Mode 2) → meredam getaran tabung.</p>
-      <div class="formula">Reduksi getaran 50–70%</div>
+      <div class="card-icon">🔴</div>
+      <h3>Zone D — Damaging (Immediate Shutdown)</h3>
+      <p>Vibrasi berbahaya yang akan menyebabkan kerusakan. Class II: &gt; 4.5 mm/s. <strong>Immediate shutdown</strong>. Identifikasi penyebab via FFT diagnosis sebelum restart.</p>
+      <div class="formula">Class II: &gt; 4.5 mm/s (Zone D)</div>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Aturan Desain Absorber Sederhana</strong><br>
-    1) Identifikasi <strong>frekuensi pengganggu</strong> ω_drive (mis. 10 rad/s untuk mesin tertentu).<br>
-    2) Pilih massa absorber <strong>m_a ≈ 5–20% massa utama</strong> (lebih besar = lebih efektif tapi lebih berat).<br>
-    3) Tuning: <strong>k_a = m_a · ω_drive²</strong>. Contoh: untuk meredam getaran ω=10 rad/s pada struktur 1000 kg, pilih m_a = 50 kg, k_a = 50·100 = 5000 N/m.<br>
-    4) Hasil: amplitudo struktur utama turun drastis di sekitar ω_drive, tetapi muncul 2 puncak resonansi baru di ω₁ dan ω₂ yang harus dijauhi.
+    <strong>Klasifikasi 4 Class Mesin (ISO 10816-1)</strong><br>
+    • <strong>Class I</strong> — Small machines &lt; 15 kW (electric motor portable, small pump). Threshold lebih rendah.<br>
+    • <strong>Class II</strong> — Medium machines 15–75 kW (rigid foundation). Standar paling umum.<br>
+    • <strong>Class III</strong> — Large machines on rigid foundation (turbine, large motor &gt; 75 kW).<br>
+    • <strong>Class IV</strong> — Large machines on flexible foundation (offshore platform, marine engine).<br>
+    Threshold zone berbeda per class. Engineer wajib pilih class yang sesuai dengan mesin. Salah class = false interpretation.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Trade-off Penting:</strong> Vibration absorber sangat efektif <em>hanya</em> di frekuensi tuning. Untuk eksitasi broad-band (gempa, angin acak), tambahkan <strong>damping</strong> ke absorber → menjadi <em>Tuned Mass Damper</em> (TMD). Kompromi: peredaman lebih merata, tapi puncak di ω_drive tidak senol.
+    💡 <strong>Tabel Cheat Sheet (Class II — Most Common):</strong><br>
+    A: ≤ 1.12 mm/s | B: 1.12–2.8 | C: 2.8–4.5 | D: &gt; 4.5<br><br>
+    Untuk mesin Class III tambahkan ~40% threshold. Class IV tambahkan ~80%. Class I kurangi ~30%. Tabel lengkap di standar ISO 10816 atau implementasi software vibration analyzer.
   </div>
 </div>
 
@@ -1285,38 +1263,45 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <hr class="divider">
 <div class="section" id="m-python">
   <div class="section-label reveal">Bagian 08</div>
-  <h2 class="section-title reveal">Implementasi Python<br>di Jupyter Notebook</h2>
-  <p class="section-desc reveal">Empat cell Python berikut mengimplementasikan konsep kunci Pertemuan 13 dengan sistem referensi: setup matriks M & K (Cell 1), eigenvalue problem dan frekuensi pribadi (Cell 2), mode shape dan orthogonality (Cell 3), serta simulasi free vibration response (Cell 4). Semua langsung runnable di VS Code Jupyter.</p>
+  <h2 class="section-title reveal">Implementasi Python:<br>Real-Time Monitoring Dashboard</h2>
+  <p class="section-desc reveal">Empat cell Python berikut mengimplementasikan workflow time-domain monitoring lengkap: generate sinyal getaran sintetis (Cell 1), hitung RMS/peak/crest/kurtosis (Cell 2), klasifikasi ISO 10816 (Cell 3), dan plot dashboard monitoring dengan trend (Cell 4). Langsung runnable di VS Code Jupyter atau Google Colab.</p>
 
   <!-- Cell 1 -->
   <div class="code-card reveal" style="margin-bottom:32px">
     <div class="code-header">
       <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
       <span class="code-lang">Python · Cell 1</span>
-      <span class="code-label">Setup Matriks M & K</span>
+      <span class="code-label">Generate Sinyal Getaran Sintetis (Healthy + Faulty)</span>
     </div>
     <div class="code-wrap">
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
       <pre><code class="lang-python">import numpy as np
 
-# Parameter sistem referensi (2 DoF, 2 massa + 3 pegas)
-m1, m2 = 1.0, 1.0          # kg
-k1, k2, k3 = 100.0, 100.0, 100.0   # N/m
+fs = 25600.0       # 25.6 kHz (standar industri)
+T = 1.0            # 1 detik buffer
+N = int(fs * T)
+t = np.arange(N) / fs
 
-# Matriks massa (diagonal)
-M = np.array([[m1, 0],
-              [0, m2]])
+# Sinyal Healthy: 1× rpm + 2× rpm + sedikit noise
+rpm = 1800
+f_rpm = rpm / 60   # 30 Hz
+v_healthy = (1.5 * np.sin(2*np.pi*f_rpm*t)
+             + 0.5 * np.sin(2*np.pi*2*f_rpm*t)
+             + 0.2 * np.random.randn(N))   # mm/s velocity
 
-# Matriks kekakuan (simetris)
-K = np.array([[k1 + k2, -k2],
-              [-k2,    k2 + k3]])
+# Sinyal Faulty: ditambah impulse 100 Hz (BPFO bearing) + noise
+f_bpfo = 100
+impulse_train = np.zeros(N)
+for k in range(int(T * f_bpfo)):
+    idx = int(k / f_bpfo * fs)
+    if idx < N - 50:
+        impulse_train[idx:idx+50] = 8 * np.exp(-np.arange(50)/3) * np.sin(2*np.pi*5000*np.arange(50)/fs)
 
-print("Matriks Massa M:")
-print(M)
-print("\nMatriks Kekakuan K:")
-print(K)
-print(f"\ntrace(K) = {np.trace(K):.1f}")
-print(f"det(K)   = {np.linalg.det(K):.1f}")</code></pre>
+v_faulty = v_healthy + 0.4 * impulse_train
+
+print(f"Sample rate: {fs} Hz, Buffer: {T} s, Samples: {N}")
+print(f"Healthy velocity range: [{v_healthy.min():.2f}, {v_healthy.max():.2f}] mm/s")
+print(f"Faulty velocity range : [{v_faulty.min():.2f}, {v_faulty.max():.2f}] mm/s")</code></pre>
     </div>
   </div>
 
@@ -1325,26 +1310,27 @@ print(f"det(K)   = {np.linalg.det(K):.1f}")</code></pre>
     <div class="code-header">
       <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
       <span class="code-lang">Python · Cell 2</span>
-      <span class="code-label">Frekuensi Pribadi ω₁ & ω₂</span>
+      <span class="code-label">Hitung 4 Indikator Time-Domain</span>
     </div>
     <div class="code-wrap">
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">from numpy.linalg import inv, eig
+      <pre><code class="lang-python">def time_domain_indicators(x):
+    """Return dict: rms, peak, crest, kurtosis (excess)."""
+    x = x - x.mean()                    # remove DC
+    rms = np.sqrt(np.mean(x**2))
+    peak = np.max(np.abs(x))
+    crest = peak / rms if rms > 0 else 0
+    # Excess kurtosis (subtract 3 so Gaussian = 0)
+    kurt = np.mean((x/rms)**4) - 3 if rms > 0 else 0
+    return {'rms': rms, 'peak': peak, 'crest': crest, 'kurtosis_excess': kurt}
 
-# Eigenvalue problem: (M^-1 K) X = ω² X
-A = inv(M) @ K
-eigvals, eigvecs = eig(A)
+stats_h = time_domain_indicators(v_healthy)
+stats_f = time_domain_indicators(v_faulty)
 
-# Urutkan dari kecil ke besar
-idx = np.argsort(eigvals)
-omega_squared = eigvals[idx]
-modes = eigvecs[:, idx]
-omegas = np.sqrt(omega_squared)
-
-print(f"ω₁² = {omega_squared[0]:.4f}    →    ω₁ = {omegas[0]:.4f} rad/s")
-print(f"ω₂² = {omega_squared[1]:.4f}    →    ω₂ = {omegas[1]:.4f} rad/s")
-print(f"\nf₁ = {omegas[0]/(2*np.pi):.4f} Hz   T₁ = {2*np.pi/omegas[0]:.4f} s")
-print(f"f₂ = {omegas[1]/(2*np.pi):.4f} Hz   T₂ = {2*np.pi/omegas[1]:.4f} s")</code></pre>
+print(f"{'Indikator':<20} {'Healthy':>10} {'Faulty':>10}")
+print('-' * 42)
+for k in ['rms', 'peak', 'crest', 'kurtosis_excess']:
+    print(f"{k:<20} {stats_h[k]:>10.3f} {stats_f[k]:>10.3f}")</code></pre>
     </div>
   </div>
 
@@ -1353,21 +1339,32 @@ print(f"f₂ = {omegas[1]/(2*np.pi):.4f} Hz   T₂ = {2*np.pi/omegas[1]:.4f} s")
     <div class="code-header">
       <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
       <span class="code-lang">Python · Cell 3</span>
-      <span class="code-label">Mode Shapes & Orthogonality</span>
+      <span class="code-label">Klasifikasi ISO 10816 (Class II Medium Machine)</span>
     </div>
     <div class="code-wrap">
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python"># Normalisasi mode shape: pertama-elemen = 1
-mode1 = modes[:, 0] / modes[0, 0]
-mode2 = modes[:, 1] / modes[0, 1]
+      <pre><code class="lang-python"># ISO 10816-1 thresholds untuk Class II (medium machines, rigid foundation)
+ISO_THRESHOLDS_CLASS_II = {
+    'A_max': 1.12,   # Newly Commissioned
+    'B_max': 2.80,   # Acceptable
+    'C_max': 4.50,   # Unsatisfactory (D = above)
+}
 
-print(f"Mode 1 (ω₁ = {omegas[0]:.2f} rad/s): X = [{mode1[0]:.3f}, {mode1[1]:.3f}]")
-print(f"Mode 2 (ω₂ = {omegas[1]:.2f} rad/s): X = [{mode2[0]:.3f}, {mode2[1]:.3f}]")
+def classify_iso_10816(rms_velocity_mms, class_thresholds=ISO_THRESHOLDS_CLASS_II):
+    if rms_velocity_mms <= class_thresholds['A_max']:
+        return 'A', 'Excellent (Newly Commissioned)'
+    elif rms_velocity_mms <= class_thresholds['B_max']:
+        return 'B', 'Acceptable (Long-term Operation)'
+    elif rms_velocity_mms <= class_thresholds['C_max']:
+        return 'C', 'Unsatisfactory (Limited Operation)'
+    else:
+        return 'D', 'Damaging (Immediate Shutdown)'
 
-# Cek orthogonality terhadap matriks M
-ortho = mode1 @ M @ mode2
-print(f"\nOrthogonality check: u₁ᵀ M u₂ = {ortho:.2e}")
-print("✓ Orthogonal jika nilai ≈ 0" if abs(ortho) < 1e-10 else "⚠ Cek ulang!")</code></pre>
+zone_h, status_h = classify_iso_10816(stats_h['rms'])
+zone_f, status_f = classify_iso_10816(stats_f['rms'])
+
+print(f"Healthy mesin:  RMS = {stats_h['rms']:.2f} mm/s  →  Zone {zone_h} ({status_h})")
+print(f"Faulty  mesin:  RMS = {stats_f['rms']:.2f} mm/s  →  Zone {zone_f} ({status_f})")</code></pre>
     </div>
   </div>
 
@@ -1376,32 +1373,50 @@ print("✓ Orthogonal jika nilai ≈ 0" if abs(ortho) < 1e-10 else "⚠ Cek ulan
     <div class="code-header">
       <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
       <span class="code-lang">Python · Cell 4</span>
-      <span class="code-label">Simulasi Free Vibration Response</span>
+      <span class="code-label">Plot Dashboard: Waveform + Histogram + Indicators</span>
     </div>
     <div class="code-wrap">
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
       <pre><code class="lang-python">import matplotlib.pyplot as plt
 
-# Initial conditions: x1(0)=1, x2(0)=0, semua kecepatan = 0
-# Modal decomposition: x(0) = A·u1 + B·u2 → A=B=0.5
-A_amp, B_amp = 0.5, 0.5
+fig, axes = plt.subplots(2, 2, figsize=(12, 7))
 
-t = np.linspace(0, 3, 1000)
-x1 = A_amp * np.cos(omegas[0]*t) + B_amp * np.cos(omegas[1]*t)
-x2 = A_amp * np.cos(omegas[0]*t) - B_amp * np.cos(omegas[1]*t)
+# Healthy waveform
+axes[0,0].plot(t[:5000], v_healthy[:5000], color='#16a34a', lw=0.7)
+axes[0,0].set_title(f'Healthy: RMS={stats_h["rms"]:.2f} mm/s → Zone {zone_h}')
+axes[0,0].set_xlabel('t (s)'); axes[0,0].set_ylabel('v (mm/s)')
+axes[0,0].grid(alpha=0.3)
 
-fig, ax = plt.subplots(figsize=(10, 4))
-ax.plot(t, x1, label='x₁(t)', color='#0ea5e9')
-ax.plot(t, x2, label='x₂(t)', color='#f59e0b')
-ax.set_xlabel('waktu (s)'); ax.set_ylabel('posisi (m)')
-ax.set_title('Free Vibration Response — Sistem 2 DoF')
-ax.grid(True, alpha=0.3); ax.legend(); plt.tight_layout(); plt.show()
-print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x2)):.3f}")</code></pre>
+# Faulty waveform
+axes[0,1].plot(t[:5000], v_faulty[:5000], color='#dc2626', lw=0.7)
+axes[0,1].set_title(f'Faulty: RMS={stats_f["rms"]:.2f} mm/s → Zone {zone_f}')
+axes[0,1].set_xlabel('t (s)'); axes[0,1].set_ylabel('v (mm/s)')
+axes[0,1].grid(alpha=0.3)
+
+# Histogram comparison
+axes[1,0].hist(v_healthy, bins=80, color='#16a34a', alpha=0.6, label='Healthy')
+axes[1,0].hist(v_faulty, bins=80, color='#dc2626', alpha=0.6, label='Faulty')
+axes[1,0].set_title(f'Distribusi: Healthy K={stats_h["kurtosis_excess"]:.2f}, Faulty K={stats_f["kurtosis_excess"]:.2f}')
+axes[1,0].set_xlabel('v (mm/s)'); axes[1,0].set_ylabel('count')
+axes[1,0].legend(); axes[1,0].grid(alpha=0.3)
+
+# Indicator comparison bar chart
+labels = ['RMS', 'Peak', 'Crest', 'Kurtosis']
+healthy_vals = [stats_h['rms'], stats_h['peak'], stats_h['crest'], stats_h['kurtosis_excess']]
+faulty_vals = [stats_f['rms'], stats_f['peak'], stats_f['crest'], stats_f['kurtosis_excess']]
+x_pos = np.arange(len(labels))
+axes[1,1].bar(x_pos - 0.2, healthy_vals, 0.4, color='#16a34a', label='Healthy')
+axes[1,1].bar(x_pos + 0.2, faulty_vals, 0.4, color='#dc2626', label='Faulty')
+axes[1,1].set_xticks(x_pos); axes[1,1].set_xticklabels(labels)
+axes[1,1].set_title('Indikator Comparison')
+axes[1,1].legend(); axes[1,1].grid(alpha=0.3, axis='y')
+
+plt.tight_layout(); plt.show()</code></pre>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Catatan:</strong> Empat cell di atas dapat di-copy ke Jupyter Notebook dan dijalankan berurutan. Cell 1 menyiapkan matriks, Cell 2 menghitung frekuensi pribadi, Cell 3 menampilkan mode shape, Cell 4 mensimulasikan getaran bebas dengan kondisi awal x₁=1, x₂=0. Plot Cell 4 menunjukkan <em>beat phenomenon</em> — superposisi dua mode dengan frekuensi mirip-tapi-berbeda menghasilkan amplitudo modulasi yang khas.
+    <strong>Workflow untuk Production Monitoring:</strong> Cell 1-4 di atas adalah <em>simulasi</em> untuk pembelajaran. Untuk implementasi production: ganti Cell 1 dengan akuisisi data real dari accelerometer (misalnya via NI-DAQ, IEPE sensor + ADC, atau MEMS chip seperti ADXL355). Wrap Cell 2-3 dalam loop yang dieksekusi tiap N detik. Push hasil ke database time-series (InfluxDB, TimescaleDB) untuk trending. Set alarm via webhook ke Slack/Telegram saat zone berubah.
   </div>
 </div>
 
