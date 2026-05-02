@@ -1353,143 +1353,154 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <hr class="divider">
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 09</div>
-  <h2 class="section-title reveal">Animasi Interaktif<br>Slope Field &amp; Solusi</h2>
-  <p class="section-desc reveal">Lima animasi interaktif: (1) Solusi y(t) dengan <strong>preset push button</strong> b, (2) akar persamaan karakteristik dengan slider, (3) <strong>toggle</strong> Numerical vs Analytical, (4) <strong>radio</strong> klasifikasi PD, (5) <strong>dropdown</strong> sub-topik. Geser slider untuk melihat bagaimana <strong>laju (k)</strong> mempengaruhi solusi PD <code>dy/dx = k·y</code>. Animasi ini menunjukkan satu keluarga solusi eksponensial dengan parameter berubah — membantu intuisi tentang growth/decay.</p>
+  <h2 class="section-title reveal">Animasi Interaktif<br>Variabel Terpisah: Slope Field &amp; Solusi</h2>
+  <p class="section-desc reveal">Lima animasi spesifik untuk <strong>Pertemuan 2 — Variabel Terpisah</strong>: (1) <strong>Slope Field + Trajectory</strong> menyusuri arah panah dari titik awal yang dipilih, (2) <strong>Solution Family</strong> menampilkan banyak kurva integral untuk nilai C berbeda, (3) <strong>toggle Implicit ↔ Explicit</strong> bandingkan F(x,y)=C vs y=g(x), (4) <strong>radio 4 tipe aplikasi separable</strong> (eksponensial, logistik, pendinginan, peluruhan), (5) <strong>dropdown aplikasi nyata</strong> dengan signal trace 1000 samples.</p>
 
-  <!-- Animasi 1 -->
+  <!-- Animasi 1: Slope Field + Animated Trajectory (M2-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi 1 — Solusi y(x) untuk PD <code>dy/dx = k·y</code></span>
+      <span class="anim-title">Animasi 1 — Slope Field + Trajectory: <code>dy/dx = f(x)·g(y)</code></span>
     </div>
     <div class="anim-body">
-      <canvas id="cvCases" height="340"></canvas>
+      <canvas id="m2cvSlope" height="360" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
-        <div class="ctrl-group">
-          <label>Konstanta laju <strong>k</strong> — <span class="ctrl-val" id="v_b">0.50</span></label>
-          <input type="range" id="sl_b" min="-2" max="2" step="0.05" value="0.5">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih PD separable — preset push buttons:</label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+            <button class="m2sl-pbtn" onclick="window.m2SetSlope('xy')" data-f="xy" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--cyan);background:var(--cyan);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(8,191,232,.6);transform:scale(1.05);transition:all .15s;">dy/dx = x·y ✓</button>
+            <button class="m2sl-pbtn" onclick="window.m2SetSlope('xoy')" data-f="xoy" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,179,0,.4);background:rgba(255,179,0,.10);color:var(--amber);">dy/dx = x/y</button>
+            <button class="m2sl-pbtn" onclick="window.m2SetSlope('y2')" data-f="y2" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">dy/dx = y²</button>
+            <button class="m2sl-pbtn" onclick="window.m2SetSlope('siny')" data-f="siny" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">dy/dx = sin(x)·y</button>
+          </div>
         </div>
         <div class="ctrl-group">
-          <label>Nilai awal <strong>y(0)</strong> — <span class="ctrl-val" id="v_c">1.00</span></label>
-          <input type="range" id="sl_c" min="0.5" max="5" step="0.1" value="1.0">
+          <label>Titik awal <strong>x₀</strong> — <span class="ctrl-val" id="m2x0v">−1.5</span></label>
+          <input type="range" id="m2slX0" min="-2.5" max="2.5" step="0.1" value="-1.5">
         </div>
-        <button class="btn-anim" id="btnCases" onclick="toggleCases()">⏸ PAUSE</button>
+        <div class="ctrl-group">
+          <label>Titik awal <strong>y₀</strong> — <span class="ctrl-val" id="m2y0v">0.5</span></label>
+          <input type="range" id="m2slY0" min="-2" max="2" step="0.1" value="0.5">
+        </div>
+        <button class="btn-anim" id="m2btnSlope" onclick="window.m2ToggleSlope()">⏸ PAUSE</button>
       </div>
-      <div id="casesInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div id="m2SlopeInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Kurva di canvas adalah solusi <em>y = y(0)·e<sup>kx</sup></em>. <strong>k positif</strong> = pertumbuhan eksponensial (populasi, bunga). <strong>k negatif</strong> = peluruhan eksponensial (radioaktif, kopi mendingin). <strong>k = 0</strong> = solusi konstan (tidak berubah). Geser slider untuk melihat transisi antara growth dan decay.
+        <strong>📊 Cara Membaca:</strong> Panah pada grid menunjukkan <em>arah slope</em> di setiap titik (x, y). Bola putih bergerak menyusuri arah panah dari titik awal (x₀, y₀) — itulah <strong>kurva solusi</strong> dari PD. Variabel Terpisah punya struktur f(x)·g(y) yang membuat slope field terlihat "berlapis": kontribusi x dan y bisa dipisah. Geser slider untuk lihat trajectory dari titik awal berbeda.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 2: Newton cooling simulation -->
+  <!-- Animasi 2: Solution Family — multiple integral curves (M2-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--pink)"></div>
-      <span class="anim-title">Animasi 2 — Simulasi Pendinginan Newton</span>
+      <span class="anim-title">Animasi 2 — Solution Family: Banyak Kurva Integral untuk C Berbeda</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvRoots" height="320"></canvas>
+      <canvas id="m2cvFam" height="340" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Suhu Awal <strong>T₀</strong> — <span class="ctrl-val" id="v_b2">100</span></label>
-          <input type="range" id="sl_b2" min="40" max="200" step="1" value="100">
+          <label>PD <code>dy/dx = k·y</code> &nbsp; konstanta <strong>k</strong> — <span class="ctrl-val" id="m2kv">0.30</span></label>
+          <input type="range" id="m2slK" min="-1" max="1" step="0.05" value="0.3">
         </div>
         <div class="ctrl-group">
-          <label>Suhu Lingkungan <strong>Tₘ</strong> — <span class="ctrl-val" id="v_c2">20</span></label>
-          <input type="range" id="sl_c2" min="0" max="40" step="1" value="20">
+          <label>Jumlah kurva keluarga — <span class="ctrl-val" id="m2nv">7</span></label>
+          <input type="range" id="m2slN" min="3" max="15" step="2" value="7">
+        </div>
+        <div class="ctrl-group">
+          <label>Range konstanta <strong>C</strong> — ±<span class="ctrl-val" id="m2cv">2.0</span></label>
+          <input type="range" id="m2slC" min="0.5" max="4" step="0.1" value="2.0">
         </div>
       </div>
-      <div id="rootsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
+      <div id="m2FamInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Kurva menunjukkan T(t) = Tₘ + (T₀ − Tₘ)·e<sup>−0.1t</sup>. Asimptot horizontal di T = Tₘ menunjukkan suhu lingkungan; kurva mendekati tapi <em>tidak pernah mencapai</em> nilai itu — perilaku tipikal sistem dengan input konstan.
+        <strong>📊 Cara Membaca:</strong> Untuk PD <code>dy/dx = k·y</code>, solusi umum y = C·e^(kx) adalah <em>keluarga kurva</em> — satu untuk tiap nilai C. Tanpa <strong>syarat awal</strong> (IC), tidak ada solusi tunggal — semua kurva valid! Bola putih bergerak di setiap kurva dengan kecepatan sama (di koordinat x), sehingga pergerakan tampak terkoordinasi. Variabel Terpisah selalu menghasilkan keluarga 1-parameter seperti ini.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 3: Toggle (Numerical vs Analytical) -->
+  <!-- Animasi 3: Implicit vs Explicit Toggle (M2-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--green)"></div>
-      <span class="anim-title">Animasi 3 — Numerical vs Analytical Solution (Toggle)</span>
+      <span class="anim-title">Animasi 3 — Bentuk Solusi: Implicit F(x,y)=C ↔ Explicit y=g(x) (Toggle)</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvEMtog" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <canvas id="m2cvIE" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
           <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--text)">
-            Method:
-            <button type="button" onclick="toggleEMSolver()" style="background:none;border:none;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
-              <span id="em_tog_view" style="display:inline-block;position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
-                <span style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
+            Bentuk solusi:
+            <button type="button" onclick="window.m2ToggleIE()" style="background:none;border:none;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
+              <span id="m2_ie_view" style="display:inline-block;position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
+                <span id="m2_ie_knob" style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
               </span>
-              <span id="em_tog_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:700;">ANALYTICAL (closed-form)</span>
+              <span id="m2_ie_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:700;">IMPLICIT: x² + y² = C (lingkaran)</span>
             </button>
           </div>
         </div>
       </div>
-      <div id="emTogInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div id="m2IEInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Toggle metode solusi PD. Analytical: ekspresi tertutup (closed-form) dari teorema. Numerical: integrator step-by-step (RK4, Euler).<br>
-        <strong>Trade-off:</strong> Analytical exact tetapi terbatas pada kelas PD tertentu. Numerical universal tetapi punya error akumulasi + computational cost. Modern engineering: kombinasi keduanya — derive analytical untuk verify, run numerical untuk produksi.
+        <strong>📊 Cara Membaca:</strong> Hasil integrasi variabel terpisah sering keluar dalam <em>bentuk implicit</em> F(x, y) = C. Untuk PD <code>dy/dx = −x/y</code>, hasil integrasi: ½y² = −½x² + C, atau x² + y² = 2C — <strong>lingkaran</strong>! Bentuk explicit y = ±√(2C − x²) <em>kehilangan informasi</em> tentang cabang ± dan domain. Implicit adalah bentuk paling lengkap; explicit hanya valid jika invertible.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 4: Radio group (PD classification) -->
+  <!-- Animasi 4: 4 Tipe Aplikasi Separable (Radio) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--pink)"></div>
-      <span class="anim-title">Animasi 4 — Klasifikasi PD: Pilih Tipe (Radio Group)</span>
+      <span class="anim-title">Animasi 4 — Tipe Aplikasi Separable: Pilih Bentuk PD (Radio Group)</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvEMrad" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <canvas id="m2cvType" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
-          <label>Pilih Klasifikasi PD (radio group):</label>
+          <label>Pilih bentuk PD separable:</label>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
-            <input type="radio" name="em_class_radio" id="em_r1" checked onchange="setEMClass('homogen')" style="display:none;">
-            <label for="em_r1" class="em-rad-lbl" data-c="homogen" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">Homogen ✓</label>
-            <input type="radio" name="em_class_radio" id="em_r2" onchange="setEMClass('nonhomogen')" style="display:none;">
-            <label for="em_r2" class="em-rad-lbl" data-c="nonhomogen" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">Non-Homogen</label>
-            <input type="radio" name="em_class_radio" id="em_r3" onchange="setEMClass('linear')" style="display:none;">
-            <label for="em_r3" class="em-rad-lbl" data-c="linear" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">Linear</label>
-            <input type="radio" name="em_class_radio" id="em_r4" onchange="setEMClass('nonlinear')" style="display:none;">
-            <label for="em_r4" class="em-rad-lbl" data-c="nonlinear" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">Non-Linear</label>
+            <input type="radio" name="m2_type_radio" id="m2_t1" checked onchange="window.m2SetType('exp')" style="display:none;">
+            <label for="m2_t1" class="m2-type-lbl" data-c="exp" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">📈 Exp Growth: dy/dx=k·y ✓</label>
+            <input type="radio" name="m2_type_radio" id="m2_t2" onchange="window.m2SetType('log')" style="display:none;">
+            <label for="m2_t2" class="m2-type-lbl" data-c="log" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">🐛 Logistic: dy/dx=r·y(1−y/K)</label>
+            <input type="radio" name="m2_type_radio" id="m2_t3" onchange="window.m2SetType('cool')" style="display:none;">
+            <label for="m2_t3" class="m2-type-lbl" data-c="cool" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">🌡️ Cooling: dT/dt=−k(T−Tₐ)</label>
+            <input type="radio" name="m2_type_radio" id="m2_t4" onchange="window.m2SetType('decay')" style="display:none;">
+            <label for="m2_t4" class="m2-type-lbl" data-c="decay" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">☢️ Decay: dN/dt=−λN</label>
           </div>
         </div>
       </div>
-      <div id="emRadInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
+      <div id="m2TypeInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Setiap klasifikasi memiliki metode solusi yang berbeda. Visualisasi menampilkan contoh solusi tipikal per kategori.<br>
-        <strong>Insight:</strong> Homogen: r(x)=0, solusi y_h. Non-Homogen: y = y_h + y_p (particular). Linear: superposition principle berlaku. Non-Linear: kompleks, mungkin tidak ada closed-form.
+        <strong>📊 Cara Membaca:</strong> Empat PD klasik yang semuanya separable, dengan signature solusi sangat berbeda: <em>Exp</em> tumbuh tak terbatas, <em>Logistic</em> tumbuh ke saturation K, <em>Cooling</em> meluruh ke asimptot Tₐ, <em>Decay</em> meluruh ke 0. Canvas menampilkan kurva solusi + label asimptot/perilaku khas setiap tipe. Ini adalah PD nyata yang muncul di biologi, termal, dan fisika nuklir.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 5: Dropdown (Topic-specific) + Signal Trace 1000 samples -->
+  <!-- Animasi 5: Aplikasi Variabel Terpisah Dunia Nyata (Dropdown) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:#a855f7"></div>
-      <span class="anim-title">Animasi 5 — Variabel Terpisah: Pilih Sub-Topik (Dropdown + Signal Trace)</span>
+      <span class="anim-title">Animasi 5 — Aplikasi Dunia Nyata Variabel Terpisah (Dropdown)</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvEMdrop" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <canvas id="m2cvApps" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
-          <label>Pilih (Dropdown):</label>
-          <select id="sl_em_drop" onchange="setEMDrop(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
-            <option value="exponential">📊 dy/dx = ky → exponential growth</option>
-            <option value="logistic">🐛 dy/dx = ry(1-y/K) → logistic</option>
-            <option value="cooling">🌡️ dT/dt = -k(T-Ts) → Newton cooling</option>
-            <option value="decay">☢️ dN/dt = -λN → radioactive decay</option>
+          <label>Pilih aplikasi nyata yang menggunakan variabel terpisah:</label>
+          <select id="m2slApps" onchange="window.m2SetApps(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
+            <option value="cooling">☕ Pendinginan Kopi — T(t) = Tₐ + (T₀−Tₐ)e^(−kt)</option>
+            <option value="halflife">☢️ Waktu Paruh — N(t) = N₀·e^(−ln2·t/T½)</option>
+            <option value="population">🐛 Populasi Bakteri — N(t) = N₀·e^(rt)</option>
+            <option value="mixing">🧪 Tangki Garam — V·dC/dt = q(Cᵢₙ − C)</option>
+            <option value="terminal">🪂 Kecepatan Terminal — m·dv/dt = mg − bv</option>
           </select>
         </div>
       </div>
-      <div id="emDropInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
+      <div id="m2AppsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Pilih sub-topik dari dropdown. Layout split: kiri label + formula, kanan signal trace solusi 1000 samples (~10 detik).<br>
-        <strong>Insight:</strong> Setiap sub-topik Variabel Terpisah punya signature unik di domain waktu. Bandingkan shape decay/oscillation/growth antara opsi.
+        <strong>📊 Cara Membaca:</strong> Lima aplikasi nyata yang dimodelkan dengan PD variabel terpisah. Layout split: kiri = ikon/diagram (cangkir kopi, atom decay, bakteri, tangki, parasut), kanan = signal trace 1000 samples (~10 detik). <strong>Insight:</strong> Walau domainnya beda, semua menggunakan teknik "pisahkan variabel" untuk mendapat closed-form solusi yang melibatkan e^(±kt). Inilah kekuatan metode separasi variabel.
       </div>
     </div>
   </div>
@@ -8183,6 +8194,763 @@ function _createForumParticleBurst(event) {
   else attachBtnHandlers();
 })();
 
+</script>
+
+<!-- ════════════════════════════════════════════════════════════════
+     M2 TOPIC-SPECIFIC ANIMATIONS — Variabel Terpisah
+     5 canvas: m2cvSlope, m2cvFam, m2cvIE, m2cvType, m2cvApps
+     Independent dari shared cvCases/cvRoots/cvEM* infrastructure.
+     ════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  function bgGrad(ctx, W, H){
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#020812'); g.addColorStop(1, '#0d1929');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  function gridLines(ctx, x0, x1, y0, y1, divX, divY){
+    ctx.strokeStyle = 'rgba(148,163,184,.10)'; ctx.lineWidth = 1;
+    for (let i = 0; i <= divX; i++){
+      const x = x0 + (i/divX)*(x1-x0);
+      ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.stroke();
+    }
+    for (let j = 0; j <= divY; j++){
+      const y = y0 + (j/divY)*(y1-y0);
+      ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
+    }
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 1 — Slope Field + Animated Trajectory
+  // PD: dy/dx = f(x)·g(y) (4 preset)
+  // ════════════════════════════════════════════════════════════════
+  const m2Slope = { running: true, raf: null, t: 0, func: 'xy', traj: [] };
+
+  const M2_SLOPE = {
+    xy:   { label: "dy/dx = x·y",       f: (x, y) => x * y,                color: '#0ea5e9' },
+    xoy:  { label: "dy/dx = x/y",       f: (x, y) => Math.abs(y) > 0.05 ? x / y : x * 20 * Math.sign(y || 1), color: '#f59e0b' },
+    y2:   { label: "dy/dx = y²",        f: (x, y) => Math.min(50, Math.max(-50, y * y)), color: '#00e09e' },
+    siny: { label: "dy/dx = sin(x)·y",  f: (x, y) => Math.sin(x) * y,      color: '#a855f7' }
+  };
+
+  window.m2SetSlope = function(key){
+    m2Slope.func = key; m2Slope.traj = []; m2Slope.t = 0;
+    document.querySelectorAll('.m2sl-pbtn').forEach(btn => {
+      const f = btn.getAttribute('data-f');
+      const active = (f === key);
+      btn.style.border = active ? '2px solid var(--cyan)' : '1px solid rgba(148,163,184,.3)';
+      btn.style.background = active ? 'var(--cyan)' : 'rgba(148,163,184,.10)';
+      btn.style.color = active ? '#fff' : '#94a3b8';
+      btn.style.fontWeight = active ? '700' : '400';
+      btn.style.boxShadow = active ? '0 0 12px rgba(8,191,232,.6)' : 'none';
+      btn.style.transform = active ? 'scale(1.05)' : 'scale(1)';
+      btn.textContent = active ? (btn.textContent.replace(' ✓','') + ' ✓') : btn.textContent.replace(' ✓','');
+    });
+  };
+  window.m2ToggleSlope = function(){
+    m2Slope.running = !m2Slope.running;
+    const btn = document.getElementById('m2btnSlope');
+    if (btn) btn.textContent = m2Slope.running ? '⏸ PAUSE' : '▶ PLAY';
+    if (m2Slope.running) drawM2Slope();
+  };
+
+  function drawM2Slope(){
+    const cv = document.getElementById('m2cvSlope'); if(!cv) return;
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const padL = 50, padR = 20, padT = 25, padB = 35;
+    const px0 = padL, px1 = W - padR, py0 = padT, py1 = H - padB;
+    const xMin = -3, xMax = 3, yMin = -2.5, yMax = 2.5;
+    function tx(x){ return px0 + ((x - xMin)/(xMax - xMin))*(px1 - px0); }
+    function ty(y){ return py1 - ((y - yMin)/(yMax - yMin))*(py1 - py0); }
+
+    gridLines(ctx, px0, px1, py0, py1, 12, 8);
+
+    // Axes
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(tx(0), py0); ctx.lineTo(tx(0), py1); ctx.stroke();
+
+    const obj = M2_SLOPE[m2Slope.func];
+
+    // Slope arrows on grid
+    const NX = 18, NY = 12;
+    ctx.lineCap = 'round';
+    for (let i = 0; i <= NX; i++){
+      for (let j = 0; j <= NY; j++){
+        const x = xMin + (i/NX)*(xMax - xMin);
+        const y = yMin + (j/NY)*(yMax - yMin);
+        const slope = obj.f(x, y);
+        const ang = Math.atan(slope);
+        const len = 12;
+        const cx = tx(x), cy = ty(y);
+        const ax = cx - len*Math.cos(ang)/2, ay = cy + len*Math.sin(ang)/2;
+        const bx = cx + len*Math.cos(ang)/2, by = cy - len*Math.sin(ang)/2;
+        const intensity = Math.min(1, Math.abs(slope)/3);
+        ctx.strokeStyle = `rgba(148,163,184,${0.25 + 0.55*intensity})`;
+        ctx.lineWidth = 1 + intensity;
+        ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
+      }
+    }
+    ctx.lineCap = 'butt';
+
+    // Labels
+    ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+    ctx.fillText('x', px1 + 5, ty(0) + 4);
+    ctx.fillText('y', tx(0) + 5, py0 - 4);
+    for (let xi = -2; xi <= 2; xi++){
+      if (xi === 0) continue;
+      ctx.fillText(String(xi), tx(xi) - 4, ty(0) + 14);
+    }
+
+    // Read IC sliders
+    const x0 = parseFloat(document.getElementById('m2slX0').value);
+    const y0 = parseFloat(document.getElementById('m2slY0').value);
+    document.getElementById('m2x0v').textContent = x0.toFixed(1);
+    document.getElementById('m2y0v').textContent = y0.toFixed(1);
+
+    // Animate trajectory: integrate forward from (x0, y0) using RK4
+    if (m2Slope.running){
+      m2Slope.t += 0.012;
+    }
+    const steps = Math.min(400, Math.floor(m2Slope.t * 50));
+    const dx = 0.02;
+    let xC = x0, yC = y0;
+    const path = [{ x: xC, y: yC }];
+    for (let s = 0; s < steps; s++){
+      const k1 = obj.f(xC, yC);
+      const k2 = obj.f(xC + dx/2, yC + dx/2*k1);
+      const k3 = obj.f(xC + dx/2, yC + dx/2*k2);
+      const k4 = obj.f(xC + dx,   yC + dx*k3);
+      yC += dx/6*(k1 + 2*k2 + 2*k3 + k4);
+      xC += dx;
+      if (xC > xMax || !isFinite(yC) || Math.abs(yC) > 100) break;
+      path.push({ x: xC, y: yC });
+    }
+
+    // Plot trajectory polyline
+    ctx.strokeStyle = obj.color; ctx.lineWidth = 2.5;
+    ctx.shadowColor = obj.color; ctx.shadowBlur = 10;
+    ctx.beginPath();
+    for (let i = 0; i < path.length; i++){
+      const p = path[i];
+      if (Math.abs(p.y) > yMax * 1.5) continue;
+      const px = tx(p.x), py = ty(Math.max(yMin*1.5, Math.min(yMax*1.5, p.y)));
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // IC marker (square)
+    ctx.fillStyle = '#ffd166';
+    ctx.shadowColor = '#ffd166'; ctx.shadowBlur = 14;
+    ctx.fillRect(tx(x0) - 5, ty(y0) - 5, 10, 10);
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 11px JetBrains Mono, monospace';
+    ctx.fillText(`(${x0.toFixed(1)}, ${y0.toFixed(1)})`, tx(x0) + 8, ty(y0) - 8);
+
+    // Animated tip dot
+    if (path.length > 0){
+      const tip = path[path.length - 1];
+      if (Math.abs(tip.y) <= yMax * 1.5){
+        ctx.fillStyle = '#fff';
+        ctx.shadowColor = obj.color; ctx.shadowBlur = 18;
+        ctx.beginPath(); ctx.arc(tx(tip.x), ty(tip.y), 6, 0, Math.PI*2); ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    // Title
+    ctx.fillStyle = obj.color; ctx.font = 'bold 13px JetBrains Mono, monospace';
+    ctx.fillText(`PD separable: ${obj.label}`, padL + 8, padT + 16);
+
+    // Restart trajectory after exiting domain (loop)
+    if (m2Slope.t > 8) m2Slope.t = 0;
+
+    // Info
+    const infoEl = document.getElementById('m2SlopeInfo');
+    if (infoEl){
+      const tip = path[path.length - 1];
+      infoEl.innerHTML = `<span style="color:${obj.color}">●</span> ${obj.label} &nbsp;|&nbsp; IC (${x0.toFixed(1)}, ${y0.toFixed(1)}) &nbsp;|&nbsp; tip: x=${tip.x.toFixed(2)}, y=${tip.y.toFixed(2)} &nbsp;|&nbsp; ${path.length} samples`;
+    }
+
+    if (m2Slope.running) m2Slope.raf = requestAnimationFrame(drawM2Slope);
+  }
+  function _wireM2Slope(){
+    ['m2slX0','m2slY0'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', () => { m2Slope.t = 0; if (!m2Slope.running) drawM2Slope(); });
+    });
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 2 — Solution Family: y = C·e^(kx) untuk berbagai C
+  // ════════════════════════════════════════════════════════════════
+  const m2Fam = { t: 0, raf: null };
+
+  function drawM2Fam(){
+    const cv = document.getElementById('m2cvFam'); if(!cv){ m2Fam.raf = requestAnimationFrame(drawM2Fam); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const k = parseFloat(document.getElementById('m2slK').value);
+    const N = parseInt(document.getElementById('m2slN').value);
+    const Cmax = parseFloat(document.getElementById('m2slC').value);
+    document.getElementById('m2kv').textContent = k.toFixed(2);
+    document.getElementById('m2nv').textContent = String(N);
+    document.getElementById('m2cv').textContent = Cmax.toFixed(1);
+
+    const padL = 50, padR = 20, padT = 25, padB = 35;
+    const px0 = padL, px1 = W - padR, py0 = padT, py1 = H - padB;
+    const xMin = -3, xMax = 3, yMax = Cmax * Math.exp(Math.abs(k)*3);
+    const yClamp = Math.min(yMax, 8);
+    function tx(x){ return px0 + ((x - xMin)/(xMax - xMin))*(px1 - px0); }
+    function ty(y){ return (py0+py1)/2 - (y/yClamp)*((py1-py0)/2 - 8); }
+
+    gridLines(ctx, px0, px1, py0, py1, 12, 8);
+
+    // Axes
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(tx(0), py0); ctx.lineTo(tx(0), py1); ctx.stroke();
+
+    ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+    ctx.fillText('x', px1 + 5, ty(0) + 4);
+    ctx.fillText('y', tx(0) + 5, py0 - 4);
+
+    // C values: linspace
+    const Cs = [];
+    for (let i = 0; i < N; i++){
+      const C = -Cmax + (i/(N-1))*(2*Cmax);
+      Cs.push(C);
+    }
+
+    // Plot curves
+    const SAMPLES = 200;
+    m2Fam.t = (m2Fam.t + 0.012) % (xMax - xMin);
+
+    for (let cI = 0; cI < Cs.length; cI++){
+      const C = Cs[cI];
+      const isHigh = Math.abs(C) > Cmax * 0.7;
+      const hue = (cI / Cs.length) * 320;
+      const color = `hsl(${hue}, 70%, ${isHigh ? '70%' : '60%'})`;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = isHigh ? 2 : 1.5;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = isHigh ? 4 : 2;
+      ctx.beginPath();
+      let started = false;
+      for (let i = 0; i <= SAMPLES; i++){
+        const x = xMin + (i/SAMPLES)*(xMax - xMin);
+        const y = C * Math.exp(k * x);
+        if (Math.abs(y) > yClamp * 1.2){ started = false; continue; }
+        const px = tx(x), py = ty(y);
+        if (!started){ ctx.moveTo(px, py); started = true; }
+        else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+
+      // Animated dot at common x position
+      const xDot = xMin + m2Fam.t;
+      const yDot = C * Math.exp(k * xDot);
+      if (Math.abs(yDot) <= yClamp){
+        ctx.fillStyle = '#fff';
+        ctx.shadowColor = color; ctx.shadowBlur = 8;
+        ctx.beginPath(); ctx.arc(tx(xDot), ty(yDot), 3.5, 0, Math.PI*2); ctx.fill();
+      }
+    }
+    ctx.shadowBlur = 0;
+
+    // Title
+    ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 13px JetBrains Mono, monospace';
+    ctx.fillText(`Solution family: y = C·e^(${k.toFixed(2)}·x), C ∈ [−${Cmax.toFixed(1)}, ${Cmax.toFixed(1)}]`, padL + 8, padT + 16);
+
+    // Info
+    const infoEl = document.getElementById('m2FamInfo');
+    if (infoEl){
+      const behavior = k > 0.01 ? 'pertumbuhan eksponensial' : (k < -0.01 ? 'peluruhan eksponensial' : 'kurva konstan');
+      infoEl.innerHTML = `<span style="color:#ff6bb3">●</span> ${N} kurva integral, k=${k.toFixed(2)} ⇒ <strong>${behavior}</strong> &nbsp;|&nbsp; tanpa IC, semua C valid (1-parameter family)`;
+    }
+
+    m2Fam.raf = requestAnimationFrame(drawM2Fam);
+  }
+  function _wireM2Fam(){
+    ['m2slK','m2slN','m2slC'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', () => {/* drawM2Fam runs in RAF */});
+    });
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 3 — Implicit (lingkaran x²+y²=2C) ↔ Explicit (y=±√(2C−x²))
+  // ════════════════════════════════════════════════════════════════
+  const m2IE = { isImplicit: true, t: 0, raf: null };
+
+  window.m2ToggleIE = function(){
+    m2IE.isImplicit = !m2IE.isImplicit;
+    const view = document.getElementById('m2_ie_view');
+    const knob = document.getElementById('m2_ie_knob');
+    const lbl  = document.getElementById('m2_ie_label');
+    if (m2IE.isImplicit){
+      view.style.background = 'rgba(0,224,158,.25)'; view.style.borderColor = 'var(--green)';
+      knob.style.transform = 'translateX(0px)';
+      lbl.style.color = 'var(--green)';
+      lbl.textContent = 'IMPLICIT: x² + y² = 2C (lingkaran)';
+    } else {
+      view.style.background = 'rgba(255,179,0,.25)'; view.style.borderColor = 'var(--amber)';
+      knob.style.transform = 'translateX(28px)';
+      lbl.style.color = 'var(--amber)';
+      lbl.textContent = 'EXPLICIT: y = ±√(2C − x²) (cabang ±)';
+    }
+  };
+
+  function drawM2IE(){
+    const cv = document.getElementById('m2cvIE'); if(!cv){ m2IE.raf = requestAnimationFrame(drawM2IE); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const padL = 50, padR = 20, padT = 25, padB = 35;
+    const px0 = padL, px1 = W - padR, py0 = padT, py1 = H - padB;
+    const xMin = -3, xMax = 3, yMin = -2.5, yMax = 2.5;
+    function tx(x){ return px0 + ((x - xMin)/(xMax - xMin))*(px1 - px0); }
+    function ty(y){ return py1 - ((y - yMin)/(yMax - yMin))*(py1 - py0); }
+    gridLines(ctx, px0, px1, py0, py1, 12, 8);
+
+    // Axes
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(tx(0), py0); ctx.lineTo(tx(0), py1); ctx.stroke();
+
+    ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+    ctx.fillText('x', px1 + 5, ty(0) + 4);
+    ctx.fillText('y', tx(0) + 5, py0 - 4);
+
+    // Animated C values: cycle through several radii
+    m2IE.t = (m2IE.t + 0.008) % 1;
+    const Cvals = [0.5, 1.0, 1.5, 2.0];
+
+    if (m2IE.isImplicit){
+      // Plot full circles for each C
+      for (let i = 0; i < Cvals.length; i++){
+        const C = Cvals[i];
+        const r = Math.sqrt(2*C);
+        if (r > 2.5) continue;
+        const hue = 100 + i * 40;
+        ctx.strokeStyle = `hsl(${hue}, 70%, 60%)`;
+        ctx.lineWidth = 2;
+        ctx.shadowColor = `hsl(${hue}, 70%, 60%)`; ctx.shadowBlur = 6;
+        ctx.beginPath();
+        // Parametric circle: x = r·cos(θ), y = r·sin(θ)
+        for (let s = 0; s <= 100; s++){
+          const theta = (s/100) * 2 * Math.PI;
+          const x = r * Math.cos(theta), y = r * Math.sin(theta);
+          const px = tx(x), py = ty(y);
+          if (s === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        // Animated dot revolving
+        const theta = m2IE.t * 2 * Math.PI + i * 0.6;
+        const xD = r * Math.cos(theta), yD = r * Math.sin(theta);
+        ctx.fillStyle = '#fff';
+        ctx.shadowColor = `hsl(${hue}, 70%, 60%)`; ctx.shadowBlur = 12;
+        ctx.beginPath(); ctx.arc(tx(xD), ty(yD), 4, 0, Math.PI*2); ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+    } else {
+      // Plot upper + lower branches separately for each C
+      for (let i = 0; i < Cvals.length; i++){
+        const C = Cvals[i];
+        const r = Math.sqrt(2*C);
+        if (r > 2.5) continue;
+        const hue = 30 + i * 30;
+        // Upper branch: y = +√(2C - x²)
+        ctx.strokeStyle = `hsl(${hue}, 80%, 60%)`;
+        ctx.lineWidth = 2;
+        ctx.shadowColor = `hsl(${hue}, 80%, 60%)`; ctx.shadowBlur = 6;
+        ctx.beginPath();
+        let started = false;
+        for (let s = 0; s <= 80; s++){
+          const x = -r + (s/80) * 2*r;
+          const arg = 2*C - x*x;
+          if (arg < 0) continue;
+          const y = Math.sqrt(arg);
+          const px = tx(x), py = ty(y);
+          if (!started){ ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+        // Lower branch dashed
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        started = false;
+        for (let s = 0; s <= 80; s++){
+          const x = -r + (s/80) * 2*r;
+          const arg = 2*C - x*x;
+          if (arg < 0) continue;
+          const y = -Math.sqrt(arg);
+          const px = tx(x), py = ty(y);
+          if (!started){ ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Vertical "danger" line at x = ±r (where derivative blows up)
+        ctx.strokeStyle = `rgba(239,68,68,.4)`;
+        ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+        ctx.beginPath(); ctx.moveTo(tx(-r), py0); ctx.lineTo(tx(-r), py1); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(tx( r), py0); ctx.lineTo(tx( r), py1); ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      ctx.shadowBlur = 0;
+    }
+
+    // Title
+    ctx.fillStyle = m2IE.isImplicit ? 'var(--green)' : 'var(--amber)';
+    ctx.fillStyle = m2IE.isImplicit ? '#00e09e' : '#ffb300';
+    ctx.font = 'bold 13px JetBrains Mono, monospace';
+    const t = m2IE.isImplicit
+      ? 'PD: dy/dx = −x/y  ⇒  IMPLICIT: x² + y² = 2C'
+      : 'PD: dy/dx = −x/y  ⇒  EXPLICIT: y = ±√(2C − x²) (dua cabang)';
+    ctx.fillText(t, padL + 8, padT + 16);
+
+    // Info
+    const infoEl = document.getElementById('m2IEInfo');
+    if (infoEl){
+      infoEl.innerHTML = m2IE.isImplicit
+        ? `<span style="color:#00e09e">●</span> Implicit menjaga <strong>seluruh kurva</strong> (lingkaran utuh, kedua cabang ±). Tidak ada singularity di rumus.`
+        : `<span style="color:#ffb300">●</span> Explicit memerlukan <strong>dua fungsi</strong> (cabang + dan −). Garis merah putus = singularity dy/dx = ∞ di tepi domain.`;
+    }
+
+    m2IE.raf = requestAnimationFrame(drawM2IE);
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 4 — 4 Tipe Aplikasi Separable (Radio)
+  // ════════════════════════════════════════════════════════════════
+  const m2Type = { which: 'exp', t: 0, raf: null };
+
+  const M2_TYPE = {
+    exp:   { label: "Exp Growth: dy/dx = k·y",       y: t => 0.3*Math.exp(0.3*t),                  asym: '∞ (tak terbatas)', color: '#ff6bb3' },
+    log:   { label: "Logistic: dy/dx = r·y(1−y/K)",  y: t => 1/(1 + Math.exp(-0.5*(t-3))) * 1.0,    asym: 'K = 1.0 (saturation)', color: '#00e09e' },
+    cool:  { label: "Cooling: dT/dt = −k(T−Tₐ)",     y: t => 0.2 + 0.8*Math.exp(-0.4*t),            asym: 'Tₐ = 0.2 (suhu lingkungan)', color: '#0ea5e9' },
+    decay: { label: "Decay: dN/dt = −λ·N",            y: t => Math.exp(-0.4*t),                      asym: '0 (peluruhan total)', color: '#a855f7' }
+  };
+
+  window.m2SetType = function(key){
+    m2Type.which = key; m2Type.t = 0;
+    document.querySelectorAll('.m2-type-lbl').forEach(lbl => {
+      const c = lbl.getAttribute('data-c');
+      const active = (c === key);
+      lbl.style.border = active ? '2px solid var(--pink)' : '1px solid rgba(148,163,184,.3)';
+      lbl.style.background = active ? 'rgba(255,255,255,.20)' : 'rgba(148,163,184,.10)';
+      lbl.style.color = active ? '#fff' : '#94a3b8';
+      lbl.style.fontWeight = active ? '700' : '400';
+      lbl.style.boxShadow = active ? '0 0 12px rgba(255,107,179,.4)' : 'none';
+      lbl.style.transform = active ? 'scale(1.05)' : 'scale(1)';
+      lbl.textContent = active ? (lbl.textContent.replace(' ✓','') + ' ✓') : lbl.textContent.replace(' ✓','');
+    });
+  };
+
+  function drawM2Type(){
+    const cv = document.getElementById('m2cvType'); if(!cv){ m2Type.raf = requestAnimationFrame(drawM2Type); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const obj = M2_TYPE[m2Type.which];
+
+    const padL = 50, padR = 20, padT = 25, padB = 35;
+    const px0 = padL, px1 = W - padR, py0 = padT, py1 = H - padB;
+    const tMax = 10;
+    function tx(t){ return px0 + (t/tMax)*(px1 - px0); }
+
+    gridLines(ctx, px0, px1, py0, py1, 10, 6);
+
+    // Compute curve to find y range
+    const N = 200;
+    const ys = new Float64Array(N+1);
+    let yMin = 0, yMax = 0;
+    for (let i = 0; i <= N; i++){
+      const t = (i/N)*tMax;
+      ys[i] = obj.y(t);
+      if (ys[i] < yMin) yMin = ys[i];
+      if (ys[i] > yMax) yMax = ys[i];
+    }
+    yMax = Math.max(yMax, 0.5);
+    const yMargin = 0.15 * (yMax - yMin);
+    const yLow = yMin - yMargin, yHigh = yMax + yMargin;
+    function ty(y){ return py1 - ((y - yLow)/(yHigh - yLow))*(py1 - py0); }
+
+    // Axes
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(tx(0), py0); ctx.lineTo(tx(0), py1); ctx.stroke();
+
+    ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+    ctx.fillText('t', px1 + 5, ty(0) + 4);
+    ctx.fillText('y', tx(0) + 5, py0 - 4);
+
+    // Asymptote line (where applicable)
+    let asyVal = null;
+    if (m2Type.which === 'log') asyVal = 1.0;
+    else if (m2Type.which === 'cool') asyVal = 0.2;
+    else if (m2Type.which === 'decay') asyVal = 0;
+    if (asyVal !== null){
+      ctx.strokeStyle = 'rgba(255,179,0,.6)'; ctx.lineWidth = 1.5; ctx.setLineDash([6, 4]);
+      ctx.beginPath(); ctx.moveTo(px0, ty(asyVal)); ctx.lineTo(px1, ty(asyVal)); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#ffb300'; ctx.font = 'bold 11px JetBrains Mono, monospace';
+      ctx.fillText(`asimptot y=${asyVal}`, px1 - 110, ty(asyVal) - 6);
+    }
+
+    // Plot curve
+    ctx.strokeStyle = obj.color; ctx.lineWidth = 2.5;
+    ctx.shadowColor = obj.color; ctx.shadowBlur = 10;
+    ctx.beginPath();
+    for (let i = 0; i <= N; i++){
+      const t = (i/N)*tMax;
+      const px = tx(t), py = ty(ys[i]);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Animated tip dot
+    m2Type.t = (m2Type.t + 0.04) % tMax;
+    const iDot = Math.min(N, Math.floor(m2Type.t/tMax * N));
+    const yDot = ys[iDot];
+    ctx.fillStyle = '#fff';
+    ctx.shadowColor = obj.color; ctx.shadowBlur = 16;
+    ctx.beginPath(); ctx.arc(tx(m2Type.t), ty(yDot), 6, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = obj.color; ctx.font = 'bold 11px JetBrains Mono, monospace';
+    ctx.fillText(`(${m2Type.t.toFixed(1)}, ${yDot.toFixed(2)})`, tx(m2Type.t) + 10, ty(yDot) - 8);
+
+    // Title
+    ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 13px JetBrains Mono, monospace';
+    ctx.fillText(obj.label, padL + 8, padT + 16);
+
+    // Info
+    const infoEl = document.getElementById('m2TypeInfo');
+    if (infoEl){
+      infoEl.innerHTML = `<span style="color:${obj.color}">●</span> ${obj.label} &nbsp;|&nbsp; perilaku tipikal: <strong>${obj.asym}</strong> &nbsp;|&nbsp; t=${m2Type.t.toFixed(2)}s, y=${yDot.toFixed(3)}`;
+    }
+
+    m2Type.raf = requestAnimationFrame(drawM2Type);
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 5 — Aplikasi Variabel Terpisah Dunia Nyata (Dropdown)
+  // ════════════════════════════════════════════════════════════════
+  const m2Apps = { which: 'cooling', t: 0, hist: [], raf: null };
+
+  const M2_APPS = {
+    cooling:    { label: "Pendinginan Kopi: T(t) = 20 + 70·e^(−0.4·t)",        compute: t => 0.20 + 0.70*Math.exp(-0.4*t),       color: '#0ea5e9', icon: 'cup'   },
+    halflife:   { label: "Waktu Paruh: N(t) = 100·e^(−ln2·t/3)",                compute: t => 1.0 * Math.exp(-Math.LN2 * t/3),    color: '#a855f7', icon: 'atom'  },
+    population: { label: "Populasi Bakteri: N(t) = 1·e^(0.5·t)",                compute: t => 0.10 * Math.exp(0.5*t) - 0.20,      color: '#00e09e', icon: 'germ'  },
+    mixing:     { label: "Tangki Garam: C(t) = 0.5(1 − e^(−0.3·t))",            compute: t => 0.50*(1 - Math.exp(-0.3*t)),        color: '#ffb300', icon: 'tank'  },
+    terminal:   { label: "Kecepatan Terminal: v(t) = v_T(1 − e^(−t/τ))",       compute: t => 0.95*(1 - Math.exp(-t/2)),          color: '#ff6bb3', icon: 'chute' }
+  };
+
+  window.m2SetApps = function(key){
+    m2Apps.which = key; m2Apps.hist = []; m2Apps.t = 0;
+  };
+
+  function drawM2Apps(){
+    const cv = document.getElementById('m2cvApps'); if(!cv){ m2Apps.raf = requestAnimationFrame(drawM2Apps); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const obj = M2_APPS[m2Apps.which];
+    const splitX = W * 0.36;
+    ctx.strokeStyle = 'rgba(148,163,184,.3)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(splitX, 20); ctx.lineTo(splitX, H - 20); ctx.stroke();
+
+    const cx = splitX/2, cy = H/2;
+    const t = m2Apps.t;
+    const val = obj.compute(t);
+
+    // ── LEFT: schematic icon ──
+    if (obj.icon === 'cup'){
+      // Coffee cup with mercury thermometer
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx - 35, cy - 30); ctx.lineTo(cx - 30, cy + 30);
+      ctx.lineTo(cx + 30, cy + 30); ctx.lineTo(cx + 35, cy - 30);
+      ctx.stroke();
+      // handle
+      ctx.beginPath(); ctx.arc(cx + 42, cy, 12, -Math.PI/2, Math.PI/2); ctx.stroke();
+      // Liquid level glow
+      ctx.fillStyle = obj.color;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 10 + 20*val;
+      ctx.fillRect(cx - 30, cy - 26, 60, 56);
+      ctx.shadowBlur = 0;
+      // Steam (rising)
+      ctx.strokeStyle = `rgba(148,163,184,${0.2 + 0.6*val})`;
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 3; i++){
+        const ox = cx - 15 + i*15;
+        ctx.beginPath();
+        ctx.moveTo(ox, cy - 36);
+        ctx.bezierCurveTo(ox + 6, cy - 50, ox - 6, cy - 60, ox + 4, cy - 75);
+        ctx.stroke();
+      }
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 13px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText(`T = ${(20 + 70*val).toFixed(0)}°C`, cx, H - 22);
+      ctx.textAlign = 'left';
+    } else if (obj.icon === 'atom'){
+      // Atom with electrons orbiting; nucleus shrinks proportional to remaining N
+      const remaining = val;
+      // Nucleus
+      ctx.fillStyle = obj.color;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 16;
+      ctx.beginPath(); ctx.arc(cx, cy, 8 + 18*remaining, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+      // Orbiting electrons
+      ctx.strokeStyle = 'rgba(168,85,247,.4)'; ctx.lineWidth = 1;
+      for (let r = 30; r <= 60; r += 15){
+        ctx.beginPath(); ctx.ellipse(cx, cy, r, r*0.4, 0, 0, Math.PI*2); ctx.stroke();
+      }
+      // Decay particles flying outward
+      const nP = Math.floor((1 - remaining) * 12);
+      ctx.fillStyle = '#ffb300';
+      for (let i = 0; i < nP; i++){
+        const ang = i * 0.7 + t * 0.5;
+        const r = 50 + (t*30 + i*5) % 80;
+        ctx.beginPath(); ctx.arc(cx + r*Math.cos(ang), cy + r*Math.sin(ang), 2, 0, Math.PI*2); ctx.fill();
+      }
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 13px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText(`N/N₀ = ${remaining.toFixed(2)}`, cx, H - 22);
+      ctx.textAlign = 'left';
+    } else if (obj.icon === 'germ'){
+      // Bacteria dots (count grows)
+      const count = Math.min(80, Math.floor(4 + 50 * Math.max(0, val)));
+      ctx.fillStyle = obj.color;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 6;
+      for (let i = 0; i < count; i++){
+        const ang = i * 2.4;
+        const r = Math.sqrt(i/count) * 60;
+        ctx.beginPath();
+        ctx.ellipse(cx + r*Math.cos(ang), cy + r*Math.sin(ang), 4, 2.5, ang, 0, Math.PI*2);
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 13px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText(`N = ${count} koloni`, cx, H - 22);
+      ctx.textAlign = 'left';
+    } else if (obj.icon === 'tank'){
+      // Tank with liquid level proportional to concentration
+      const tankW = 80, tankH = 100;
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2;
+      ctx.strokeRect(cx - tankW/2, cy - tankH/2, tankW, tankH);
+      // Inflow pipe (top-left)
+      ctx.beginPath(); ctx.moveTo(cx - tankW/2 - 20, cy - tankH/2 - 10); ctx.lineTo(cx - tankW/2, cy - tankH/2 + 5); ctx.stroke();
+      // Outflow pipe (bottom)
+      ctx.beginPath(); ctx.moveTo(cx, cy + tankH/2); ctx.lineTo(cx, cy + tankH/2 + 18); ctx.stroke();
+      // Liquid (color intensity = concentration)
+      const fillH = tankH * 0.85;
+      ctx.fillStyle = `rgba(255,179,0,${0.3 + 0.6*val})`;
+      ctx.fillRect(cx - tankW/2 + 2, cy - tankH/2 + 2 + (tankH - fillH), tankW - 4, fillH - 2);
+      // Salt particles inside (floating)
+      ctx.fillStyle = '#fff';
+      const npart = Math.floor(2 + 30 * val);
+      for (let i = 0; i < npart; i++){
+        const px = cx - tankW/2 + 5 + ((i*7 + t*8) % (tankW - 10));
+        const py = cy - tankH/2 + 8 + (tankH - fillH) + ((i*11 + t*13) % (fillH - 10));
+        ctx.beginPath(); ctx.arc(px, py, 1.5, 0, Math.PI*2); ctx.fill();
+      }
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 13px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText(`C = ${val.toFixed(2)} kg/L`, cx, H - 22);
+      ctx.textAlign = 'left';
+    } else if (obj.icon === 'chute'){
+      // Parachute falling with v ramping to terminal
+      const objY = 50 + (1 - val) * 80;
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      // Canopy
+      ctx.beginPath(); ctx.arc(cx, objY, 32, Math.PI, 0); ctx.stroke();
+      // Strings
+      ctx.beginPath();
+      ctx.moveTo(cx - 32, objY); ctx.lineTo(cx, objY + 32);
+      ctx.moveTo(cx + 32, objY); ctx.lineTo(cx, objY + 32);
+      ctx.stroke();
+      // Mass
+      ctx.fillStyle = obj.color;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 12;
+      ctx.beginPath(); ctx.arc(cx, objY + 40, 8, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+      // Velocity arrow (down)
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(cx + 18, objY + 40); ctx.lineTo(cx + 18, objY + 40 + 5 + 25*val); ctx.stroke();
+      // Arrowhead
+      const ay = objY + 40 + 5 + 25*val;
+      ctx.beginPath(); ctx.moveTo(cx + 18, ay); ctx.lineTo(cx + 14, ay - 4); ctx.lineTo(cx + 22, ay - 4); ctx.closePath(); ctx.fillStyle = '#94a3b8'; ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 13px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText(`v = ${(val*30).toFixed(1)} m/s`, cx, H - 22);
+      ctx.textAlign = 'left';
+    }
+
+    // ── RIGHT: signal trace ──
+    const sx0 = splitX + 16, sx1 = W - 20, sy0 = 30, sy1 = H - 30;
+    ctx.strokeStyle = 'rgba(148,163,184,.2)'; ctx.lineWidth = 1;
+    ctx.strokeRect(sx0, sy0, sx1 - sx0, sy1 - sy0);
+    gridLines(ctx, sx0, sx1, sy0, sy1, 10, 4);
+
+    m2Apps.t += 0.012;
+    m2Apps.hist.push(val);
+    if (m2Apps.hist.length > 1000) m2Apps.hist.shift();
+
+    const hN = m2Apps.hist.length;
+    if (hN > 1){
+      let yMin = 0, yMaxH = 0;
+      for (let v of m2Apps.hist){ if (v < yMin) yMin = v; if (v > yMaxH) yMaxH = v; }
+      const yRng = Math.max(0.3, yMaxH - yMin);
+
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 8;
+      ctx.beginPath();
+      for (let i = 0; i < hN; i++){
+        const px = sx0 + (i/(hN-1))*(sx1 - sx0);
+        const py = sy0 + ((yMaxH - m2Apps.hist[i])/yRng) * (sy1 - sy0);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Tip dot
+      ctx.fillStyle = '#fff'; ctx.shadowColor = obj.color; ctx.shadowBlur = 14;
+      const tipX = sx1, tipY = sy0 + ((yMaxH - val)/yRng)*(sy1 - sy0);
+      ctx.beginPath(); ctx.arc(tipX, tipY, 5, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    ctx.fillStyle = obj.color; ctx.font = 'bold 12px JetBrains Mono, monospace';
+    ctx.fillText(obj.label, sx0 + 8, sy0 + 16);
+
+    const infoEl = document.getElementById('m2AppsInfo');
+    if (infoEl){
+      const samples = m2Apps.hist.length;
+      infoEl.innerHTML = `<span style="color:${obj.color}">●</span> ${obj.label} &nbsp;|&nbsp; t=${t.toFixed(2)}s, y=${val.toFixed(3)} &nbsp;|&nbsp; ${samples}/1000 samples`;
+    }
+
+    m2Apps.raf = requestAnimationFrame(drawM2Apps);
+  }
+
+  // ── Init ──
+  function initM2Anims(){
+    if (document.getElementById('m2cvSlope')){ drawM2Slope(); _wireM2Slope(); }
+    if (document.getElementById('m2cvFam')){ drawM2Fam(); _wireM2Fam(); }
+    if (document.getElementById('m2cvIE')) drawM2IE();
+    if (document.getElementById('m2cvType')) drawM2Type();
+    if (document.getElementById('m2cvApps')) drawM2Apps();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initM2Anims);
+  else initM2Anims();
+})();
 </script>
 
 </body>
