@@ -2330,10 +2330,10 @@ plt.<span class="fn">show</span>()</pre>
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Konfig B (m=400, c=2000, k=2500). Berapa D dan kasusnya?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>D = 1.6×10⁶ → overdamped</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>D = 0 → critically damped (akar berulang r = −2.5)</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>D = −2×10⁶ → underdamped</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>D = 4×10⁶ → overdamped berlebihan</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>D = 1.6×10⁶ → overdamped</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>D = 0 → critically damped (akar berulang r = −2.5)</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>D = −2×10⁶ → underdamped</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>D = 4×10⁶ → overdamped berlebihan</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! D = 2000² − 4·400·2500 = 4,000,000 − 4,000,000 = <strong>0</strong>. Critically damped! Akar berulang r = −c/(2m) = −2000/800 = −2.5. Solusi: <code>y(t) = (C₁ + C₂·t)·e^(−2.5t)</code>. Konfig B kembali ke kesetimbangan tercepat tanpa overshoot — desain ideal!</div>
           <div class="p-fb w" id="fp1w">❌ Hitung kembali: D = c² − 4mk = 2000² − 4(400)(2500). Pastikan operasi pangkat dan perkalian benar. Ingat: untuk Konfig B, c = 2000 (cek: c_critical = 2√(mk) = 2√(10⁶) = 2000).</div>
@@ -2362,10 +2362,10 @@ plt.<span class="fn">show</span>()</pre>
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Untuk hatchback kompak yang mengutamakan keseimbangan comfort + handling, mana terbaik?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Konfig A (overdamped) — paling stabil</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>Konfig B (critically damped) — kembali stabil tercepat tanpa mengayun</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Konfig C (underdamped) — paling nyaman</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Tidak ada perbedaan praktis</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Konfig A (overdamped) — paling stabil</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Konfig B (critically damped) — kembali stabil tercepat tanpa mengayun</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Konfig C (underdamped) — paling nyaman</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Tidak ada perbedaan praktis</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Benar! Critically damped adalah <strong>desain optimum</strong> untuk most consumer cars: respons cepat ke gangguan tanpa overshoot/oscillation. Sedikit di bawah critical (sedikit underdamped, ζ ≈ 0.7) sering dipilih agar terasa lebih "lembut" — trade-off comfort vs response time. Konfig A terlalu kaku, Konfig C bouncy.</div>
           <div class="p-fb w" id="fp2w">❌ Pertimbangkan: pengendara mobil keluarga ingin stabilitas (tidak mengayun setelah polisi tidur) tetapi juga responsivitas (tidak terasa "diseret" lambat). Critically damped memberikan keduanya secara optimal.</div>
@@ -3504,7 +3504,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -8887,6 +8888,8 @@ function _createForumParticleBurst(event) {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initM5Anims);
   else initM5Anims();
 })();
+
+window._pollAnswers = {1: 1, 2: 1};
 </script>
 
 </body>

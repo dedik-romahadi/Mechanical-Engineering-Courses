@@ -2563,10 +2563,10 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Strategi paling tepat untuk imbalanced PdM dataset?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Pakai accuracy sebagai metric utama — kalau &gt; 95% berarti model bagus</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>Evaluasi pakai <strong>F1 / Recall / ROC-AUC</strong> (bukan accuracy). Training pakai <code>class_weight='balanced'</code> di RandomForest atau SMOTE oversampling pada training set saja (jangan di test). Plus stratified k-fold CV untuk preserve class ratio. Optimasi threshold prediksi via precision-recall curve sesuai cost asymmetry</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Hapus semua sample healthy supaya 50/50 — biar model belajar fault pattern saja</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Tidak perlu apa-apa — sklearn handle otomatis</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>Pakai accuracy sebagai metric utama — kalau &gt; 95% berarti model bagus</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>Evaluasi pakai <strong>F1 / Recall / ROC-AUC</strong> (bukan accuracy). Training pakai <code>class_weight='balanced'</code> di RandomForest atau SMOTE oversampling pada training set saja (jangan di test). Plus stratified k-fold CV untuk preserve class ratio. Optimasi threshold prediksi via precision-recall curve sesuai cost asymmetry</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Hapus semua sample healthy supaya 50/50 — biar model belajar fault pattern saja</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Tidak perlu apa-apa — sklearn handle otomatis</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! <strong>Imbalanced Data Strategy</strong> adalah praktik wajib di PdM. (1) <strong>Metric matters</strong>: accuracy menyesatkan — pakai F1 (harmonic mean precision &amp; recall), recall (sensitivity, jangan miss fault), ROC-AUC (threshold-independent ranking), atau PR-AUC (lebih informatif untuk imbalanced). (2) <strong>Class weighting</strong>: <code>RandomForestClassifier(class_weight='balanced')</code> auto-adjust loss weight inverse proporsional ke class frequency — minoritas dapat bobot lebih besar. (3) <strong>Resampling</strong>: SMOTE (Synthetic Minority Oversampling) generate synthetic samples di feature space (interpolasi antara nearest neighbors). KRITIS: hanya apply pada training set, JANGAN test set (akan inflate metric tidak realistis). Pakai <code>imblearn.pipeline.Pipeline</code> + <code>SMOTE()</code>. (4) <strong>Stratified k-fold</strong>: <code>StratifiedKFold(shuffle=True)</code> preserve class ratio di setiap fold — wajib untuk imbalanced. (5) <strong>Threshold tuning</strong>: default 0.5 belum tentu optimal. Pakai precision-recall curve, pilih threshold berdasarkan cost asymmetry (FN cost ≫ FP cost untuk safety-critical). (6) <strong>Pupuk Kaltim case</strong>: pakai <code>class_weight='balanced'</code> + threshold 0.35 (turunkan dari 0.5 → naikkan recall ke 92%, sacrifice precision dari 0.85 → 0.78 — acceptable trade-off karena false alarm bisa di-filter rule-based safety net).</div>
           <div class="p-fb w" id="fp1w">❌ Periksa kembali. Accuracy menyesatkan untuk imbalanced. Hapus mayoritas = lose information real-world distribution. sklearn TIDAK auto-handle. F1/Recall/ROC-AUC + class_weight + SMOTE adalah jawaban benar.</div>
@@ -2595,10 +2595,10 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Strategi optimasi cost-sensitive untuk safety-critical PdM?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Maximize precision saja — biar operator tidak terganggu false alarm</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>Cost-sensitive: tentukan FN_cost &amp; FP_cost (mis. 400:1), pilih threshold yang minimize <strong>expected cost</strong> total. Pakai <strong>F-beta score (β=2)</strong> untuk weight recall lebih tinggi. Plus dual-layer: ML high-recall (catch all candidate) → rule-based filter second-pass (reduce false alarm) → operator dashboard dengan SHAP explanation untuk verify cepat. Monitor alarm fatigue rate sebagai KPI</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Maximize accuracy saja — model handle automatically</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Lower threshold ke 0.1 supaya catch semua fault — tidak peduli false alarm</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Maximize precision saja — biar operator tidak terganggu false alarm</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Cost-sensitive: tentukan FN_cost &amp; FP_cost (mis. 400:1), pilih threshold yang minimize <strong>expected cost</strong> total. Pakai <strong>F-beta score (β=2)</strong> untuk weight recall lebih tinggi. Plus dual-layer: ML high-recall (catch all candidate) → rule-based filter second-pass (reduce false alarm) → operator dashboard dengan SHAP explanation untuk verify cepat. Monitor alarm fatigue rate sebagai KPI</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Maximize accuracy saja — model handle automatically</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Lower threshold ke 0.1 supaya catch semua fault — tidak peduli false alarm</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Tepat! <strong>Cost-Sensitive PdM Optimization</strong> adalah inti production deployment. (1) <strong>Cost matrix</strong>: FN cost = unplanned shutdown loss + safety risk + reputation damage (~Rp 2 miliar). FP cost = inspector time + minor disruption (~Rp 5 juta). Rasio ~400:1. (2) <strong>Expected cost minimization</strong>: <code>E[cost] = FN_count × FN_cost + FP_count × FP_cost</code>. Tune threshold untuk minimize ini, BUKAN accuracy. (3) <strong>F-beta score</strong>: <code>F_β = (1+β²) PR / (β²P + R)</code>. β=2 → weight recall 4× lebih dari precision. β=0.5 → weight precision 4× dari recall. Untuk PdM safety-critical: β=2 atau β=3. (4) <strong>Dual-layer architecture</strong>: ML layer (high-recall, threshold 0.3) → rule-based filter (e.g., require ML prediction + RMS persistence ≥ 5 menit) → operator dashboard dengan SHAP explanation. Filter reduce false alarm 50–80% tanpa lose recall. (5) <strong>Alarm fatigue KPI</strong>: track "alarm acknowledged within 5 min rate" dan "alarm dismissed without action rate". Kalau dismissed > 70% → operator effectively ignore alarm = system useless. (6) <strong>Pupuk Kaltim improvement</strong>: 0.78 precision masih marginal — ditingkatkan ke 0.88 dengan rule-based filter (require RMS &gt; 1.4 mm/s + ML score &gt; 0.5). Recall preserved 0.91. Operator complaint turun 60%.</div>
           <div class="p-fb w" id="fp2w">❌ Periksa kembali. Maximize precision = miss banyak fault. Maximize accuracy = irrelevant untuk imbalanced. Threshold 0.1 = alarm flood lebih buruk. Cost-sensitive + F-beta + dual-layer adalah jawaban produksi.</div>
@@ -3597,7 +3597,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -7758,6 +7759,8 @@ function _createForumParticleBurst(event) {
   else attachBtnHandlers();
 })();
 
+
+window._pollAnswers = {1: 1, 2: 1};
 </script>
 
 </body>

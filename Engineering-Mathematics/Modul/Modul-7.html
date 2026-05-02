@@ -2520,10 +2520,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Hitung <strong>b₂</strong> dengan a₄=1, a₃=6, a₂=−6:</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>b₂ = −6 (tidak ada konversi)</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>b₂ = −6 − 3·6 + 11·1 = −13</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>b₂ = −6 + 3·6 = 12</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>b₂ = a₂² = 36</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>b₂ = −6 (tidak ada konversi)</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>b₂ = −6 − 3·6 + 11·1 = −13</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>b₂ = −6 + 3·6 = 12</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>b₂ = a₂² = 36</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! Konversi orde 4: <code>b₂ = a₂ − 3·a₃ + 11·a₄ = −6 − 18 + 11 = <strong>−13</strong></code>. Hitung juga b₃ = 6 − 6(1) = 0; b₁ = −12 − (−6) + 2(6) − 6(1) = 0. Polinomial: m⁴ + 0·m³ + (−13)m² + 0·m + 36 = <strong>m⁴ − 13m² + 36</strong>. Bikuadrat — bisa pakai substitusi u=m².</div>
           <div class="p-fb w" id="fp1w">❌ Hitung kembali rumus orde 4: <code>b₂ = a₂ − 3·a₃ + 11·a₄</code>. Jangan lupa kontribusi dari <em>setiap</em> koefisien a yang menyumbang ke pangkat m². Pola koefisien {6, 11} muncul dari ekspansi m(m−1)(m−2)(m−3).</div>
@@ -2552,10 +2552,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Untuk balok cantilever dengan domain [1, 6] dan BVP standard, berapa banyak mode independen yang dipakai?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>2 mode (sama seperti orde 2)</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>3 mode (orde 3 saja)</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>4 mode — sesuai orde n=4 dan 4 syarat batas BVP</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Tergantung — kadang 2, kadang 4</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>2 mode (sama seperti orde 2)</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>3 mode (orde 3 saja)</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>4 mode — sesuai orde n=4 dan 4 syarat batas BVP</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Tergantung — kadang 2, kadang 4</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Benar! PD orde n memiliki <strong>n konstanta sembarang</strong> dalam solusi umum. Untuk orde 4: <code>y = c₁x² + c₂x⁻² + c₃x³ + c₄x⁻³</code>. BVP cantilever memerlukan 4 syarat (y, y' di pangkal + y'', y''' di ujung) → <strong>sistem 4×4</strong> menentukan c₁..c₄. Karena domain [1, 6] tidak mencakup x=0, semua 4 mode regular dan dipakai.</div>
           <div class="p-fb w" id="fp2w">❌ Aturan dasar: PD orde n homogen memiliki dimensi solusi = n. Untuk orde 4, basis berisi 4 fungsi independen. BVP membutuhkan <em>tepat n</em> syarat batas untuk menentukan semua konstanta. Cek bahwa Wronskian 4×4 ≠ 0.</div>
@@ -3694,7 +3694,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -9239,6 +9240,8 @@ function _createForumParticleBurst(event) {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initM7Anims);
   else initM7Anims();
 })();
+
+window._pollAnswers = {1: 1, 2: 2};
 </script>
 
 </body>

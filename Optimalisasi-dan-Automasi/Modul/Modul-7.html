@@ -2362,10 +2362,10 @@ ratio = d / D                                    # ≈ 0.2034
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Diagnosis paling tepat untuk pola spektrum ini adalah...</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Peak struktural pompa (blade-pass) — abaikan saja</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>Outer-race defect (BPFO) — peak FFT, harmonik di envelope, dan SK tinggi di band resonansi adalah signature lengkap</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Misalignment shaft — biasanya muncul di 2× fr</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Imbalance rotor — peak utama pasti di 1× fr</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>Peak struktural pompa (blade-pass) — abaikan saja</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>Outer-race defect (BPFO) — peak FFT, harmonik di envelope, dan SK tinggi di band resonansi adalah signature lengkap</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Misalignment shaft — biasanya muncul di 2× fr</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Imbalance rotor — peak utama pasti di 1× fr</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! Tiga indikator sekaligus mengarah ke outer-race defect: (1) <strong>peak FFT raw 88.4 Hz</strong> persis BPFO 6205 di 1480 rpm (selisih &lt;0.3 Hz dari teori); (2) <strong>envelope spectrum</strong> menunjukkan BPFO + harmonik 2× dan 3× — pola periodik impak yang khas; (3) <strong>spectral kurtosis</strong> di band resonansi 2–4 kHz naik dramatic (3 → 8.5), menunjukkan impak transient pada band tersebut. Outer-race defect adalah jenis bearing fault paling umum (~80% kasus) dan sideband ±fr lemah cocok dengan posisi defect di outer race (tidak ter-modulasi load zone). <strong>Action: plan replacement dalam 2–4 minggu</strong> — masih ada waktu, tapi monitoring weekly dengan trend envelope amplitude.</div>
           <div class="p-fb w" id="fp1w">❌ Periksa kembali. Blade-pass biasanya kelipatan jumlah blade × fr (misal 6 blade × 24.67 = 148 Hz, bukan 88 Hz). Misalignment dominan di 2·fr ≈ 49 Hz. Imbalance dominan di 1·fr ≈ 24.67 Hz. Hanya BPFO yang predict 88 Hz untuk geometri 6205 dan rpm 1480 — apalagi diperkuat envelope spectrum dengan harmonik dan spectral kurtosis tinggi.</div>
@@ -2394,10 +2394,10 @@ ratio = d / D                                    # ≈ 0.2034
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Pendekatan terbaik untuk identifikasi early bearing fault adalah...</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>FFT raw saja — cari peak tertinggi langsung</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Time-domain features (RMS, kurtosis) — paling cepat &amp; murah</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>Envelope analysis (bandpass + Hilbert + FFT) di band resonansi yang dipilih via kurtogram</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Pakai sinyal raw mentah, biar AI yang belajar</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>FFT raw saja — cari peak tertinggi langsung</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Time-domain features (RMS, kurtosis) — paling cepat &amp; murah</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Envelope analysis (bandpass + Hilbert + FFT) di band resonansi yang dipilih via kurtogram</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Pakai sinyal raw mentah, biar AI yang belajar</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Tepat! <strong>Envelope analysis</strong> adalah gold standard untuk diagnosa bearing (Randall &amp; Antoni, 2011). Pipeline: (1) <em>Kurtogram</em> untuk pilih band resonansi optimal (band dengan spectral kurtosis tertinggi); (2) <em>Bandpass</em> filter untuk isolasi resonansi yang dimodulasi; (3) <em>Hilbert transform</em> untuk ekstrak envelope (amplitudo instantan); (4) <em>FFT envelope</em> untuk reveal rate impak (BPFO/BPFI/FTF). FFT raw saja sering miss early fault karena energi BPFO masih kecil dibanding fr/2fr/3fr. Time-domain features (RMS, kurtosis) memberi sinyal "ada masalah" tetapi tidak bisa <em>identifikasi tipe defect</em> — envelope spectrum bisa: peak BPFO → outer race, peak BPFI + sideband ±fr → inner race, peak FTF → cage.</div>
           <div class="p-fb w" id="fp2w">❌ FFT raw rentan terhadap dominansi komponen low-frequency (fr, blade-pass, line frequency); peak BPFO sering tenggelam. Time-domain features tidak bisa membedakan jenis defect. ML "blackbox" tanpa preprocessing yang tepat butuh ribuan label data — tidak realistis untuk most industrial setting. Envelope analysis tetap juara karena memanfaatkan struktur fisik fenomena bearing fault.</div>
@@ -3395,7 +3395,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -7417,6 +7418,8 @@ function _createForumParticleBurst(event) {
   else attachBtnHandlers();
 })();
 
+
+window._pollAnswers = {1: 1, 2: 2};
 </script>
 
 </body>

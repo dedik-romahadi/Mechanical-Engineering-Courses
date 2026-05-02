@@ -2328,10 +2328,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Pola spike mana yang paling kuat menunjukkan <em>bearing fault</em> dini, bukan noise?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Spike acak yang muncul pada milidetik berbeda di setiap sumbu</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>Spike berulang dengan periode tetap (misal setiap putaran spindle), terkonsentrasi di satu sumbu</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Semua sumbu spike pada timestamp yang sama persis</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Spike yang terjadi hanya di awal recording (boot-up)</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>Spike acak yang muncul pada milidetik berbeda di setiap sumbu</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>Spike berulang dengan periode tetap (misal setiap putaran spindle), terkonsentrasi di satu sumbu</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Semua sumbu spike pada timestamp yang sama persis</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Spike yang terjadi hanya di awal recording (boot-up)</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! Spike <em>periodik</em> sinkron dengan kecepatan putar spindle adalah ciri khas <em>impulse</em> bearing fault. Spike acak/serentak/saat boot lebih mungkin noise listrik atau gangguan komunikasi.</div>
           <div class="p-fb w" id="fp1w">❌ Spike acak tidak korelasi dengan periode mekanis — itu lebih mungkin noise. Cari pola yang berulang sinkron dengan rotasi spindle.</div>
@@ -2360,10 +2360,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Strategi mana paling tepat untuk sinyal accelerometer dengan 12% missing?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Drop semua baris NaN — yang penting tidak ada NaN tersisa</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Mean-fill seluruh kolom — paling cepat dan sederhana</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>Interpolasi linear untuk gap pendek (≤ 5 sampel) + flag &amp; segmentasi untuk gap panjang</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Forward-fill semua — mempertahankan jumlah baris</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Drop semua baris NaN — yang penting tidak ada NaN tersisa</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Mean-fill seluruh kolom — paling cepat dan sederhana</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Interpolasi linear untuk gap pendek (≤ 5 sampel) + flag &amp; segmentasi untuk gap panjang</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Forward-fill semua — mempertahankan jumlah baris</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Benar! Pendekatan <em>hybrid</em> paling aman: gap pendek diinterpolasi (kontinuitas terjaga, distorsi minimal), gap panjang ditandai dan analisis dilakukan per-segmen valid (menghindari artefak imputasi).</div>
           <div class="p-fb w" id="fp2w">❌ Strategi ini menghasilkan distorsi pada sinyal cepat. Drop merusak indeks waktu, mean/ffill menumpulkan dinamika asli, FFT akan tertipu.</div>
@@ -3063,7 +3063,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -6497,6 +6498,8 @@ function _createForumParticleBurst(event) {
   else attachBtnHandlers();
 })();
 
+
+window._pollAnswers = {1: 1, 2: 2};
 </script>
 
 </body>

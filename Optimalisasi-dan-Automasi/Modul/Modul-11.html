@@ -2692,10 +2692,10 @@ import pandas as pd
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Strategi sensor selection paling tepat untuk kasus ini?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Pilih MEMS semua (24 × Rp 200K = Rp 5 jt) — hemat budget besar untuk feature lain</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div><strong>IEPE untuk semua 24 sensor</strong>. Alasan: (a) Mill bearing fault frequency BPFO/BPFI bisa sampai 1–2 kHz (harmonic), MEMS DC–1 kHz miss high freq. (b) Environment harsh (60°C, debu, EMI dari motor 3 MW) butuh sensor robust + shielded — IEPE industrial-grade designed untuk ini. (c) Accuracy ±2% vs ±5% = beda krusial untuk classify ISO 10816 zone yang punya boundary 1.4/2.8/4.5 mm/s. (d) Lifetime IEPE 15+ tahun vs MEMS 2–5 tahun — TCO IEPE lebih rendah. Budget tepat fit Rp 20 jt/sensor</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Hybrid: IEPE 6 sensor (1 per stand) + MEMS 18 sensor (3 per stand) — coverage maksimal</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Pakai vibration meter portable (manual round) — tidak online, tetapi murah</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>Pilih MEMS semua (24 × Rp 200K = Rp 5 jt) — hemat budget besar untuk feature lain</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div><strong>IEPE untuk semua 24 sensor</strong>. Alasan: (a) Mill bearing fault frequency BPFO/BPFI bisa sampai 1–2 kHz (harmonic), MEMS DC–1 kHz miss high freq. (b) Environment harsh (60°C, debu, EMI dari motor 3 MW) butuh sensor robust + shielded — IEPE industrial-grade designed untuk ini. (c) Accuracy ±2% vs ±5% = beda krusial untuk classify ISO 10816 zone yang punya boundary 1.4/2.8/4.5 mm/s. (d) Lifetime IEPE 15+ tahun vs MEMS 2–5 tahun — TCO IEPE lebih rendah. Budget tepat fit Rp 20 jt/sensor</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Hybrid: IEPE 6 sensor (1 per stand) + MEMS 18 sensor (3 per stand) — coverage maksimal</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Pakai vibration meter portable (manual round) — tidak online, tetapi murah</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! <strong>IEPE Industrial-Grade untuk Critical Application</strong> adalah pilihan standar. (1) <strong>Frequency response</strong>: bearing fault BPFO/BPFI + harmonik bisa sampai 1–2 kHz. MEMS 0–1 kHz akan miss harmonik penting → diagnosa fault tidak akurat. IEPE 1 Hz – 30 kHz cover semua. (2) <strong>Industrial reliability</strong>: IEPE punya constant current excitation 4 mA standar (interferensi rendah), shielded cable BNC, hermetically sealed. MEMS chip-level sensitif EMI dari motor 3 MW + suhu tinggi 60°C. (3) <strong>ISO compliance</strong>: ISO 10816-3 specifically requires accuracy ±2% — IEPE meet, MEMS gagal. (4) <strong>TCO calculation</strong>: IEPE Rp 15jt × 1 unit/15 tahun = Rp 1jt/tahun. MEMS Rp 200K × 5 unit/15 tahun (replacement) = Rp 1jt/tahun BERSAMA dengan downtime untuk replacement = lebih mahal. (5) <strong>Brand recommendation</strong>: PCB Piezotronics (USA), Brüel &amp; Kjær (Denmark), Wilcoxon Sensing (USA), IMI Sensors. (6) <strong>MEMS appropriate use case</strong>: lab eksperimen, prototyping, low-criticality monitoring. Untuk production critical asset di harsh environment → always industrial-grade IEPE.</div>
           <div class="p-fb w" id="fp1w">❌ Periksa kembali. MEMS miss high frequency (BPFO harmonic). Hybrid mengkomplikasi setup. Vibration meter portable = manual, kurang scalable + tidak real-time. IEPE all-in adalah industry standard.</div>
@@ -2724,10 +2724,10 @@ import pandas as pd
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Strategi sampling paling efektif untuk constraint multi-channel + budget?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Pakai f_s = 1 Hz untuk semua (ultra-cheap), abaikan high frequency analysis</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div><strong>Tiered sampling strategy</strong>: continuous low-rate (f_s = 10 Hz) untuk RMS trending + threshold check, plus burst high-rate (f_s = 5 kHz selama 5 detik tiap 1 jam) untuk FFT/envelope analysis on-demand. Pakai NI cDAQ-9171 + IEPE module 24-bit ADC simultaneous. Anti-aliasing filter analog 2 kHz low-pass wajib. Storage: ~150 GB/tahun, manageable di local NAS. Cost: Rp 50 jt one-time setup</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Pakai f_s = 50 kHz untuk semua channel sepanjang waktu (overkill, miliaran sample/hari)</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Pakai f_s = 100 Hz fixed (compromise, miss BPFO harmonic)</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Pakai f_s = 1 Hz untuk semua (ultra-cheap), abaikan high frequency analysis</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div><strong>Tiered sampling strategy</strong>: continuous low-rate (f_s = 10 Hz) untuk RMS trending + threshold check, plus burst high-rate (f_s = 5 kHz selama 5 detik tiap 1 jam) untuk FFT/envelope analysis on-demand. Pakai NI cDAQ-9171 + IEPE module 24-bit ADC simultaneous. Anti-aliasing filter analog 2 kHz low-pass wajib. Storage: ~150 GB/tahun, manageable di local NAS. Cost: Rp 50 jt one-time setup</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Pakai f_s = 50 kHz untuk semua channel sepanjang waktu (overkill, miliaran sample/hari)</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Pakai f_s = 100 Hz fixed (compromise, miss BPFO harmonic)</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Tepat! <strong>Tiered Sampling Strategy</strong> adalah industrial best practice. (1) <strong>Low-rate continuous (f_s = 10 Hz)</strong>: hanya RMS calculation realtime, bandwidth tipis (10 Hz × 24 channel × 24 jam = 8.6M sample/hari = 35 MB/hari). Cukup untuk threshold check ISO 10816 + trend monitoring. (2) <strong>High-rate burst (f_s = 5 kHz, 5 detik tiap jam)</strong>: capture full spectrum untuk FFT analysis. Bandwidth: 5000 × 24 × 5 sec × 24 hr = 14.4M sample/hari = ~60 MB/hari. (3) <strong>Trigger-based capture</strong>: kalau RMS continuous mode threshold breach → trigger burst capture untuk diagnostic detail. (4) <strong>Anti-aliasing filter</strong>: analog 2 kHz Butterworth low-pass sebelum ADC — wajib untuk hindari aliasing high-freq noise. (5) <strong>Hardware</strong>: NI cDAQ-9174 chassis + 9234 IEPE module (4-channel × 51.2 kS/s simultaneous) Rp 50 jt = workhorse industrial setup. (6) <strong>Storage</strong>: TimescaleDB (continuous) + Parquet file (burst snapshots) di NAS Synology Rp 15 jt. <em>Pelajaran</em>: jangan over-engineer dengan 50 kHz semua waktu — bandwidth/storage/cost tidak proportional dengan diagnostic value yang didapat.</div>
           <div class="p-fb w" id="fp2w">❌ Periksa kembali. f_s = 1 Hz miss BPFO 105 Hz total. f_s = 50 kHz overkill (10 GB/hari, storage problem). f_s = 100 Hz miss harmonic. Tiered = optimal balance.</div>
@@ -3726,7 +3726,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -7887,6 +7888,8 @@ function _createForumParticleBurst(event) {
   else attachBtnHandlers();
 })();
 
+
+window._pollAnswers = {1: 1, 2: 1};
 </script>
 
 </body>

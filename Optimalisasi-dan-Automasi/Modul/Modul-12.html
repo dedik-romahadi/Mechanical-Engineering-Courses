@@ -2694,10 +2694,10 @@ import pandas as pd
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Cara terbaik menangani transient di rule-based monitoring?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Naikkan threshold permanently 3× supaya tidak alarm di start-up</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>Pakai <em>operating mode tag</em> dari DCS (start-up, steady, shutdown) — disable alarm atau pakai threshold lebih longgar saat mode bukan steady-state. Plus debounce N tinggi (10–30) saat mode non-steady. Re-enable alarm normal saat mode kembali ke steady setelah grace period (mis. 15 menit)</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Matikan semua alarm selama jam kerja</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Pakai threshold tunggal &amp; abaikan transient</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>Naikkan threshold permanently 3× supaya tidak alarm di start-up</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>Pakai <em>operating mode tag</em> dari DCS (start-up, steady, shutdown) — disable alarm atau pakai threshold lebih longgar saat mode bukan steady-state. Plus debounce N tinggi (10–30) saat mode non-steady. Re-enable alarm normal saat mode kembali ke steady setelah grace period (mis. 15 menit)</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Matikan semua alarm selama jam kerja</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Pakai threshold tunggal &amp; abaikan transient</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! <strong>Operating Mode-Aware Alarm Logic</strong> adalah praktik industrial standar. Implementasi: (1) <strong>State machine multi-mode</strong>: tambah dimension "operating mode" ke FSM. Tiap mode punya threshold sendiri (mode = STARTUP → T_alert × 1.5, debounce N=20; mode = STEADY → ISO standard). (2) <strong>Mode detection</strong>: bisa dari DCS PLC tag (operator manual signal), atau auto-detect dari rate-of-change RMS (start-up = RMS naik &gt; 1 mm/s/min). (3) <strong>Grace period</strong>: setelah transition mode → steady, tunggu 5–15 menit sebelum apply ISO threshold ketat. (4) <strong>Alarm shelving</strong>: ANSI/ISA 18.2 allow operator silence specific alarm selama window terbatas (1–8 jam) — useful saat known maintenance. <strong>Action di Pertamina</strong>: integrasi DCS Honeywell Experion + rule engine custom Python via OPC UA → match ke sistem reality. (5) Logging: tetap log RMS &amp; mode; transient yang abnormal (mis. start-up &gt; 5 menit) tetap raise warning untuk maintenance.</div>
           <div class="p-fb w" id="fp1w">❌ Periksa kembali. Naikkan threshold permanent = lose sensitivity di steady-state (rentan miss genuine danger). Disable alarm 100% = blind ops. Operating-mode-aware alarm logic adalah jawaban yang mature.</div>
@@ -2726,10 +2726,10 @@ import pandas as pd
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Strategi paling matang untuk handle concept drift?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Naikkan threshold ISO supaya tidak banyak alarm — abaikan standar</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>Hybrid: pertahankan ISO 10816 fixed sebagai <em>safety threshold</em> (compliance + insurance). Tambah <em>adaptive secondary alert</em> berbasis rolling 30-day baseline (mis. alert kalau current RMS &gt; baseline + 2σ atau &gt; 1.3× baseline). Plus alarm rationalization review setiap 6 bulan. Best practice + ML adaptive di P13</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Disable semua warning, hanya keep critical</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Tune threshold tiap minggu manual oleh operator</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Naikkan threshold ISO supaya tidak banyak alarm — abaikan standar</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Hybrid: pertahankan ISO 10816 fixed sebagai <em>safety threshold</em> (compliance + insurance). Tambah <em>adaptive secondary alert</em> berbasis rolling 30-day baseline (mis. alert kalau current RMS &gt; baseline + 2σ atau &gt; 1.3× baseline). Plus alarm rationalization review setiap 6 bulan. Best practice + ML adaptive di P13</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Disable semua warning, hanya keep critical</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Tune threshold tiap minggu manual oleh operator</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Tepat! <strong>Hybrid Fixed + Adaptive Threshold</strong> adalah pola production-grade. (1) <strong>Fixed ISO threshold</strong>: untuk compliance (insurance, PSM regulation OSHA, audit ISO 55000), legal protection — jangan diubah. Acts sebagai safety net. (2) <strong>Adaptive secondary baseline</strong>: rolling 30-day mean μ_30d &amp; std σ_30d. Alert saat RMS &gt; μ_30d + 2σ (deviasi statistik dari "normal recent") atau &gt; 1.3× μ_30d (relative threshold). Sensitif terhadap perubahan trend tanpa over-alert pada absolute value yang naik perlahan. (3) <strong>Alarm rationalization</strong>: review periodik (6–12 bulan) — alarm yang trigger &gt; 100×/tahun tetapi tidak pernah actionable harus dihapus atau dinaikkan threshold. (4) <strong>Concept drift detection</strong>: monitor metric "alarm rate per bulan" dan "% time in Zone B/C/D". Kalau naik konsisten, indikasi (a) genuine degradation (need maintenance) atau (b) baseline drift (need re-tune). Disambiguate via inspection. (5) <strong>Automated re-tuning</strong>: dilarang tanpa human review (risiko hide genuine degradation). Tetapi <em>recommendation engine</em> bisa propose new thresholds based on baseline data → human approve. Inilah jembatan ke ML predictive (P13).</div>
           <div class="p-fb w" id="fp2w">❌ Periksa kembali. Disable warning hilangkan early-warning. Manual tuning tiap minggu tidak scalable untuk 200 pompa. Naikkan threshold ISO violate compliance. Hybrid fixed + adaptive baseline adalah jawaban mature.</div>
@@ -3728,7 +3728,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -7889,6 +7890,8 @@ function _createForumParticleBurst(event) {
   else attachBtnHandlers();
 })();
 
+
+window._pollAnswers = {1: 1, 2: 1};
 </script>
 
 </body>

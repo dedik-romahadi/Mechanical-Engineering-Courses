@@ -2598,10 +2598,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Mengapa Laplace lebih cocok dari UC/VoP untuk input step?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>UC/VoP lebih cepat untuk step</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>Step diskontinu di t=0 — UC tidak bisa ansatz, VoP integral sulit. Laplace handle natural via L{u(t)} = 1/s.</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Karena step membutuhkan dua syarat awal</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>UC/VoP hanya untuk PD orde 1</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>UC/VoP lebih cepat untuk step</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>Step diskontinu di t=0 — UC tidak bisa ansatz, VoP integral sulit. Laplace handle natural via L{u(t)} = 1/s.</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Karena step membutuhkan dua syarat awal</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>UC/VoP hanya untuk PD orde 1</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! Step function <code>u(t)</code> diskontinu di t=0 (jump dari 0 ke V₀). UC mengandalkan tebakan polinomial/eksp/sin yang <em>kontinu</em> — gagal untuk step. VoP butuh integral <em>∫y₂·g/W dx</em> yang sulit untuk g = step. Laplace memetakan step ke <code>1/s</code> di domain s — mulus dan rapi. Plus syarat awal otomatis masuk via <code>L{q'} = sQ − q(0)</code>. Selesai dalam workflow 4-langkah standar (transformasi → solve → pecahan parsial → invers).</div>
           <div class="p-fb w" id="fp1w">❌ Step function = <em>diskontinu</em> di t = 0. UC tidak punya ansatz untuk step (tabel UC adalah polinomial, eksp, sin/cos — semua kontinu). VoP mengandalkan integral yang ill-defined untuk g(x) diskontinu. Laplace memetakan <code>u(t)</code> ke <code>1/s</code> di domain s, lalu invers Laplace mengembalikan ke domain waktu dengan rapi.</div>
@@ -2630,10 +2630,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Apa fungsi dari pecahan parsial dalam workflow Laplace?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Untuk membuat persamaan lebih kompleks</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>Memecah Q(s) menjadi term yang ada di tabel Laplace, sehingga invers Laplace dapat dilakukan term-by-term</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Mengganti integral dengan turunan</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Tidak diperlukan jika denominator sederhana</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Untuk membuat persamaan lebih kompleks</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Memecah Q(s) menjadi term yang ada di tabel Laplace, sehingga invers Laplace dapat dilakukan term-by-term</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Mengganti integral dengan turunan</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Tidak diperlukan jika denominator sederhana</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Tepat! Tabel Laplace berisi entry untuk pole <em>tunggal</em>: <code>1/(s−a)</code>, <code>1/(s−a)²</code>, <code>1/((s−a)² + ω²)</code>, dll. Bila Q(s) berupa pecahan polinomial dengan denominator orde tinggi (seperti <code>s·(s²+4s+13)</code>), pecahan parsial memecahnya jadi jumlah term sederhana. Tiap term di-invers via tabel, lalu jumlahkan via linieritas. Tanpa pecahan parsial, tabel saja tidak cukup untuk PD orde tinggi atau sistem dengan input kompleks.</div>
           <div class="p-fb w" id="fp2w">❌ Pecahan parsial adalah <strong>jembatan kritis</strong> antara aljabar Y(s) dan tabel Laplace. Tabel hanya punya entry sederhana — tanpa dekomposisi, denominator kompleks tidak match. SymPy <code>sp.apart()</code> melakukan otomatis. Cover-up rule (Heaviside) cara cepat hitung manual untuk akar real berbeda.</div>
@@ -3773,7 +3773,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -9331,6 +9332,8 @@ function _createForumParticleBurst(event) {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initM10Anims);
   else initM10Anims();
 })();
+
+window._pollAnswers = {1: 1, 2: 1};
 </script>
 
 </body>

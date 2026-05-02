@@ -2584,10 +2584,10 @@ plt.<span class="fn">show</span>()
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Mengapa input Dirac impulse memberi output langsung = transfer function di domain s?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Karena Dirac itu fungsi konstan</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>L{δ(t)} = 1, jadi Y(s) = H(s)·1 = H(s) — output di domain s langsung = transfer function</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Karena hammer test memberi gaya sangat besar</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Karena impulse mempengaruhi banyak mode getar</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>Karena Dirac itu fungsi konstan</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>L{δ(t)} = 1, jadi Y(s) = H(s)·1 = H(s) — output di domain s langsung = transfer function</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Karena hammer test memberi gaya sangat besar</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Karena impulse mempengaruhi banyak mode getar</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! <strong>L{δ(t)} = 1</strong> adalah transformasi paling sederhana di tabel Laplace. Konsekuensi: <code>Y(s) = H(s)·U(s) = H(s)·1 = H(s)</code>. Maka output h(t) di domain waktu = invers Laplace dari transfer function: <strong>h(t) = L⁻¹{H(s)}</strong>. Inilah mengapa hammer test <em>fundamental</em> di experimental modal analysis: input "kotak hitam" yang paling sederhana (Dirac) memberi output yang langsung mengandung semua informasi sistem (h(t) = "fingerprint" sistem).</div>
           <div class="p-fb w" id="fp1w">❌ Inti: Dirac delta punya transformasi Laplace paling sederhana <code>L{δ(t)} = 1</code>. Jadi saat <code>Y(s) = H(s)·U(s)</code> dengan <code>U(s) = 1</code>: hasil Y(s) = H(s) langsung. Domain waktu: y(t) = h(t) = invers Laplace dari transfer function = "impulse response" yang berisi semua informasi sistem.</div>
@@ -2616,10 +2616,10 @@ plt.<span class="fn">show</span>()
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Apa makna damping ratio ζ ≈ 0.55?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Sistem overdamped (tidak ada osilasi)</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>Underdamped (0 &lt; ζ &lt; 1) — ada osilasi peluruh, response cepat dengan moderate overshoot</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Critically damped (response tercepat tanpa overshoot)</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Unstable (pole di kanan)</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Sistem overdamped (tidak ada osilasi)</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Underdamped (0 &lt; ζ &lt; 1) — ada osilasi peluruh, response cepat dengan moderate overshoot</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Critically damped (response tercepat tanpa overshoot)</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Unstable (pole di kanan)</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Benar! <strong>ζ ≈ 0.55</strong> adalah <em>underdamped</em> (0 &lt; ζ &lt; 1). Karakter: (a) <strong>osilasi peluruh</strong> — pole kompleks dengan envelope decay e<sup>−σt</sup>. (b) <strong>Settling time</strong> ≈ 4/σ = 2 s (5% rule). (c) <strong>Overshoot</strong> moderat ≈ 13% — tidak terlalu besar (yang akan terjadi bila ζ→0) atau lambat (yang akan terjadi bila ζ→1+). Untuk power supply atau control system, ζ ∈ [0.6, 0.8] sering dipilih sebagai <em>kompromis ideal</em>: response cepat tanpa overshoot berlebihan. Dari hammer test, ζ &lt; 0.1 menunjukkan struktur "ringing" (vibrasi terlalu lama) — perlu damper.</div>
           <div class="p-fb w" id="fp2w">❌ Damping ratio ζ klasifikasi: ζ = 0 (undamped, osilasi tak meluruh), 0 &lt; ζ &lt; 1 (<strong>underdamped</strong>, osilasi peluruh), ζ = 1 (critically damped, no osilasi), ζ &gt; 1 (overdamped, slow decay). Untuk pole −2 ± 3j: σ = 2, ω<sub>d</sub> = 3, ω<sub>n</sub> = √(σ²+ω<sub>d</sub>²) = √13 ≈ 3.61, ζ = σ/ω<sub>n</sub> ≈ 0.55 → underdamped.</div>
@@ -3760,7 +3760,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -9271,6 +9272,8 @@ function _createForumParticleBurst(event) {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initM11Anims);
   else initM11Anims();
 })();
+
+window._pollAnswers = {1: 1, 2: 1};
 </script>
 
 </body>

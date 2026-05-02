@@ -2273,10 +2273,10 @@ plt.<span class="fn">show</span>()</pre>
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Apakah <code>dy/dx = x + y</code> variabel terpisah?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Ya, karena ada x dan y secara terpisah</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>Tidak, karena <code>x+y</code> tidak bisa difaktorkan jadi <code>f(x)·g(y)</code></div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Ya, dengan trick faktorisasi</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Tergantung syarat awal</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>Ya, karena ada x dan y secara terpisah</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>Tidak, karena <code>x+y</code> tidak bisa difaktorkan jadi <code>f(x)·g(y)</code></div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Ya, dengan trick faktorisasi</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Tergantung syarat awal</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! Suku <code>x+y</code> tidak bisa difaktorkan menjadi produk fungsi-x dan fungsi-y. Misalnya, tidak ada faktorisasi <code>(x+y) = h(x)·k(y)</code> untuk fungsi h dan k apa pun. PD ini harus diselesaikan dengan metode lain (PD homogen substitusi y=ux, atau PD linier orde 1).</div>
           <div class="p-fb w" id="fp1w">❌ Cek lagi: PD variabel terpisah harus bisa ditulis sebagai <code>dy/dx = f(x)·g(y)</code>. Cek apakah suku <code>(x+y)</code> bisa difaktorkan demikian.</div>
@@ -2305,10 +2305,10 @@ plt.<span class="fn">show</span>()</pre>
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Berapa T(10) dari PD 2 (Newton Cooling, T₀=100, Tm=20, k=0.1)?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>≈ 100°C (tidak banyak berubah)</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>≈ 49.43°C &nbsp;<em>(20 + 80·e<sup>-1</sup>)</em></div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>≈ 30°C (sudah dekat T<sub>m</sub>)</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>≈ 20°C (sama dengan T<sub>m</sub>)</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>≈ 100°C (tidak banyak berubah)</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>≈ 49.43°C &nbsp;<em>(20 + 80·e<sup>-1</sup>)</em></div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>≈ 30°C (sudah dekat T<sub>m</sub>)</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>≈ 20°C (sama dengan T<sub>m</sub>)</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Benar! <code>T(10) = 20 + 80e<sup>-0.1·10</sup> = 20 + 80·e<sup>-1</sup> = 20 + 80·0.3679 ≈ 20 + 29.43 = 49.43°C</code>. Bola tembaga turun setengah perjalanan menuju suhu ruangan dalam 10 menit. Insight: pendinginan terjadi cepat di awal (selisih 80°C), kemudian melambat.</div>
           <div class="p-fb w" id="fp2w">❌ Hitung dengan teliti: <code>T(t) = T<sub>m</sub> + (T₀-T<sub>m</sub>)·e<sup>-kt</sup> = 20 + 80·e<sup>-1</sup></code>. Gunakan <code>e<sup>-1</sup> ≈ 0.3679</code>.</div>
@@ -3369,7 +3369,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -8951,6 +8952,8 @@ function _createForumParticleBurst(event) {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initM2Anims);
   else initM2Anims();
 })();
+
+window._pollAnswers = {1: 1, 2: 1};
 </script>
 
 </body>

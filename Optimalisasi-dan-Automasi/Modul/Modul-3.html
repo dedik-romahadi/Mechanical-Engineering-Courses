@@ -2312,10 +2312,10 @@ df = pd.DataFrame(data, index=pd.date_range('2026-01-01 08:00:00', periods=N, fr
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Arsitektur akuisisi yang paling tepat?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Single-rate ADC fs=50 kHz untuk semua sensor (vibration + suhu + pressure) — uniformity</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>Multi-rate: IEPE+24-bit ADC 25 kHz untuk vibration, RTD/TC+16-bit ADC 1-10 Hz untuk process, edge gateway per-line (cluster 10 motor) untuk scalability</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Cloud-only — kirim raw data dari semua sensor langsung ke cloud tanpa edge processing</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>MEMS accelerometer murah saja (range terbatas) untuk hemat budget</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>Single-rate ADC fs=50 kHz untuk semua sensor (vibration + suhu + pressure) — uniformity</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>Multi-rate: IEPE+24-bit ADC 25 kHz untuk vibration, RTD/TC+16-bit ADC 1-10 Hz untuk process, edge gateway per-line (cluster 10 motor) untuk scalability</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Cloud-only — kirim raw data dari semua sensor langsung ke cloud tanpa edge processing</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>MEMS accelerometer murah saja (range terbatas) untuk hemat budget</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! Multi-rate adalah <strong>arsitektur industri standar</strong>: (1) <strong>vibration butuh fs tinggi</strong> (kHz) untuk capture bearing fault frequencies hingga 5-10 kHz; (2) <strong>process sensor bisa fs rendah</strong> (1-10 Hz) — dinamika thermal/pressure lambat, fs tinggi hanya boros storage tanpa benefit. <strong>24-bit ADC untuk vibration high-end</strong> memberi DR ~144 dB — penting untuk capture amplitude range luas dari noise lantai sampai impulsive event. <strong>Edge gateway per-line</strong> (cluster 10 motor): scalable horizontal (tambah cluster untuk 100 motor), dan store-and-forward melindungi dari network outage. Kirim hanya feature (RMS, peak, FFT bins) ke cloud — bukan raw data.</div>
           <div class="p-fb w" id="fp1w">❌ Single-rate 50 kHz untuk semua sensor = boros storage 100× untuk process data (suhu yang dinamikanya 1 Hz disampling 50 kHz). Cloud-only tanpa edge = bandwidth requirement absurd (30 motor × 25 kHz × 16-bit = 12 MB/s); juga tidak resilient terhadap network outage. MEMS murah punya range terbatas (DC-1 kHz) — tidak bisa capture bearing fault 1-10 kHz, salah pilih sensor untuk aplikasi.</div>
@@ -2344,10 +2344,10 @@ df = pd.DataFrame(data, index=pd.date_range('2026-01-01 08:00:00', periods=N, fr
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Storage architecture yang paling tepat?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Pakai PostgreSQL biasa untuk semua data — sederhana</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>InfluxDB Cloud (TSDB) dengan retention policy: hot 30 hari (raw), warm 1 tahun (1-min downsampled), cold 5 tahun (1-hour) di S3 Parquet untuk audit</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Spreadsheet Excel multi-sheet untuk semua history</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Flat files CSV per hari di network share, no database</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Pakai PostgreSQL biasa untuk semua data — sederhana</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>InfluxDB Cloud (TSDB) dengan retention policy: hot 30 hari (raw), warm 1 tahun (1-min downsampled), cold 5 tahun (1-hour) di S3 Parquet untuk audit</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Spreadsheet Excel multi-sheet untuk semua history</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Flat files CSV per hari di network share, no database</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Tepat! TSDB dirancang khusus untuk time series workload: (1) <strong>InfluxDB</strong> punya native time-aware queries, downsampling otomatis, retention policy builtin, dan integrasi out-of-the-box dengan Grafana. (2) <strong>Tiered retention</strong>: hot 30 hari raw cukup untuk recent forensic; warm 1 tahun 1-min agregat cukup untuk monthly reliability review; cold 5 tahun 1-hour di S3 Parquet sangat hemat untuk audit compliance (storage cost ~$0.023/GB/month vs SSD $50+/GB). (3) <strong>Estimasi total cost</strong>: ~30 GB hot + 5 GB warm + 2 GB cold ≈ &lt; $50/bulan cloud cost untuk 30 motor — sangat ekonomis.</div>
           <div class="p-fb w" id="fp2w">❌ PostgreSQL biasa tidak optimal untuk time series — tidak ada native downsampling/retention, query window function lambat. TimescaleDB (extension) bisa, tapi Influx lebih sederhana untuk kasus ini. Excel obviously tidak scalable untuk 16M points/hari. CSV flat files = no indexing, query trend bulanan butuh scan TB data — lama &amp; lambat. Tanpa retention policy, biaya storage akan eksponensial di tahun 2-3.</div>
@@ -3344,7 +3344,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -7205,6 +7206,8 @@ function _createForumParticleBurst(event) {
   else attachBtnHandlers();
 })();
 
+
+window._pollAnswers = {1: 1, 2: 1};
 </script>
 
 </body>

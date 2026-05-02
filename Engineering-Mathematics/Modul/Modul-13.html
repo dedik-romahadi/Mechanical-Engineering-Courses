@@ -2670,10 +2670,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Mengapa cover-up rule cocok di-pakai untuk Y(s) ini, dan bukan metode samakan koefisien?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Karena pole-nya kompleks</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>Karena semua faktor di Q(s) adalah <em>linear berbeda &amp; non-berulang</em> — kondisi ideal untuk cover-up</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Karena samakan koefisien tidak bisa untuk orde 4</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Karena cover-up lebih akurat secara numerik</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>Karena pole-nya kompleks</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>Karena semua faktor di Q(s) adalah <em>linear berbeda &amp; non-berulang</em> — kondisi ideal untuk cover-up</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Karena samakan koefisien tidak bisa untuk orde 4</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Karena cover-up lebih akurat secara numerik</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! <strong>Cover-up rule</strong> ideal untuk faktor linear non-berulang: setiap koefisien diperoleh dengan satu evaluasi (tutup faktor → substitusi akar). Untuk Y(s) ini: 4 cover-up → 4 koefisien dalam &lt;1 menit. Tanpa cover-up, samakan koefisien butuh sistem 4 persamaan linier dari ekspansi <code>60 = A(s+2)(s+5)(s+6) + Bs(s+5)(s+6) + …</code> — secara matematis sama valid tapi jauh lebih lambat dan mudah error. Untuk kasus berulang atau kuadratik tak tereduksi, cover-up tidak langsung work — tetap perlu samakan koefisien atau metode turunan.</div>
           <div class="p-fb w" id="fp1w">❌ Cover-up rule berlaku <em>hanya</em> untuk faktor linear non-berulang. Q(s) di sini = s·(s+2)(s+5)(s+6) → semua faktor linear &amp; berbeda. Kondisi ideal. Tutup tiap faktor satu per satu, evaluasi sisa pada akar masing-masing → dapat 4 koefisien tanpa setup persamaan linier.</div>
@@ -2705,10 +2705,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Mengapa pole <code>s = −2</code> disebut "dominant" dibanding pole <code>s = −5</code> dan <code>s = −6</code>?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Karena residunya paling besar</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>Karena pole-nya paling kecil (dekat imaginary axis) → time constant terbesar → decay paling lambat → menentukan settling time</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Karena pole pertama dalam ekspansi PFD</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Karena residunya negatif</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Karena residunya paling besar</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Karena pole-nya paling kecil (dekat imaginary axis) → time constant terbesar → decay paling lambat → menentukan settling time</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Karena pole pertama dalam ekspansi PFD</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Karena residunya negatif</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Tepat! <strong>Dominant pole</strong> = pole dengan <em>real part terbesar</em> (paling dekat ke 0/imaginary axis) di antara pole-pole stable. Untuk Y(s): pole −2 paling lambat decay (τ=0.5) dibanding pole −5 (τ=0.2) dan −6 (τ=0.167). Setelah ~3·τ = 0.5–1 s, mode cepat sudah hilang, hanya mode dominant yang aktif. Konsekuensi: <strong>settling time</strong> didikte oleh dominant pole (≈ 4·τ = 2 s untuk 2 % rule). Dalam control design, <em>desired closed-loop dominant pole</em> ditempatkan untuk match spec settling/overshoot. Mode lebih cepat boleh ada — tidak menghambat performance.</div>
           <div class="p-fb w" id="fp2w">❌ "Dominant" merefer ke <em>kecepatan decay</em>, bukan magnitudo residu atau urutan listing. Pole real lebih besar (mendekati 0) → time constant 1/|pole| lebih besar → decay lebih lambat → menentukan settling time. Pole −2 punya τ=0.5 s, paling lambat dari trio (−2, −5, −6) → dominant.</div>
@@ -3855,7 +3855,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -9263,6 +9264,8 @@ function _createForumParticleBurst(event) {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initM13Anims);
   else initM13Anims();
 })();
+
+window._pollAnswers = {1: 1, 2: 1};
 </script>
 
 </body>

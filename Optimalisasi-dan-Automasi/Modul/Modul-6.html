@@ -2346,10 +2346,10 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Berdasarkan pola fitur, bearing ini ada di stadium...</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Healthy — kenaikan terlalu kecil untuk dikhawatirkan</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>Early bearing fault — Kurt &amp; CF naik dramatis tapi RMS masih moderat (klasik U-shape rising phase)</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Severe fault — perlu shutdown SEKARANG</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Sensor faulty — bukan bearing</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>Healthy — kenaikan terlalu kecil untuk dikhawatirkan</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>Early bearing fault — Kurt &amp; CF naik dramatis tapi RMS masih moderat (klasik U-shape rising phase)</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Severe fault — perlu shutdown SEKARANG</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Sensor faulty — bukan bearing</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! Pola <strong>Kurt 7.4 + CF 5.8 dengan RMS hanya naik moderat (+18%)</strong> adalah <em>signature klasik early bearing fault</em>. Impak transient singkat menaikkan peak (dan dengan itu CF dan Kurt) tetapi belum cukup banyak untuk mengangkat RMS dramatis. Posisi di trajectory: <em>rising phase dari U-shape</em>. Bila dibiarkan, kerusakan akan progresif: Kurt &amp; CF akan terus naik beberapa minggu, lalu turun lagi saat severe (di mana RMS akan melonjak naik). <strong>Action: monitoring intensif + plan replacement dalam 1-2 minggu</strong> — tidak perlu shutdown emergency, tapi jangan tunggu jadwal reguler 2 bulan.</div>
           <div class="p-fb w" id="fp1w">❌ Pelajari kembali tabel U-shape di Bagian 04. Healthy: Kurt~3, CF~3 (tidak match data). Severe: Kurt &amp; CF justru turun (juga tidak match). Pola data ini paling cocok dengan early fault zone. Kenaikan +139% pada kurtosis sangat signifikan — bukan noise mekanikal biasa.</div>
@@ -2378,10 +2378,10 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Strategi monitoring yang paling efektif?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Pakai RMS saja — simple dan sesuai ISO 10816</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Pakai Kurtosis saja — paling sensitif, jadi paling cepat alert</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>Multi-fitur tier alarm: Kurtosis untuk early warning, RMS untuk severity, CF untuk konfirmasi U-shape</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Tidak perlu monitoring — biar model ML otomatis</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Pakai RMS saja — simple dan sesuai ISO 10816</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Pakai Kurtosis saja — paling sensitif, jadi paling cepat alert</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Multi-fitur tier alarm: Kurtosis untuk early warning, RMS untuk severity, CF untuk konfirmasi U-shape</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Tidak perlu monitoring — biar model ML otomatis</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Tepat! <strong>Kombinasi multi-fitur</strong> adalah praktik industri standard. Tier 1 (early warning, monitor lebih sering): <em>Kurtosis &gt; 5 atau CF &gt; 4</em>. Tier 2 (alert, plan replacement): <em>Kurt &gt; 8 dan RMS naik &gt; 30%</em>. Tier 3 (critical, immediate action): <em>RMS &gt; ISO 10816 unsatisfactory threshold</em>. Pakai Kurtosis saja akan trigger banyak false positive saat operasi normal yang impulsif (gear engagement, belt slap). Pakai RMS saja terlambat — bearing sudah severe sebelum alert. Multi-fitur memberi <em>signal-to-noise ratio terbaik</em>.</div>
           <div class="p-fb w" id="fp2w">❌ ISO 10816 RMS-only adalah baseline minimum, bukan optimal. Single-feature monitoring rentan: terlalu sensitif (pakai kurtosis saja) atau terlalu telat (pakai RMS saja). "Biar ML belajar" tanpa engineered features butuh data labeled berlimpah yang jarang tersedia di industri. Multi-fitur engineering features tetap juara untuk monitoring praktis.</div>
@@ -3379,7 +3379,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -7402,6 +7403,8 @@ function _createForumParticleBurst(event) {
   else attachBtnHandlers();
 })();
 
+
+window._pollAnswers = {1: 1, 2: 2};
 </script>
 
 </body>

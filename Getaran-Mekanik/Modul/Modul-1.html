@@ -2309,10 +2309,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Frekuensi dominan 25 Hz pada motor 1500 RPM termasuk frekuensi karakteristik yang mana?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>1× RPM (25 Hz) — gejala klasik unbalance rotor</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>2× RPM (50 Hz) — gejala misalignment poros</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>BPFO (bearing outer race) — defect bearing</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Sub-sinkron (&lt; 1× RPM) — oil whirl di journal bearing</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>1× RPM (25 Hz) — gejala klasik unbalance rotor</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>2× RPM (50 Hz) — gejala misalignment poros</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>BPFO (bearing outer race) — defect bearing</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Sub-sinkron (&lt; 1× RPM) — oil whirl di journal bearing</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! 1500 RPM ÷ 60 = 25 Hz, dan frekuensi dominan terukur tepat 25 Hz = 1× RPM. Ini gejala klasik <strong>unbalance rotor</strong> — distribusi massa rotor tidak simetris terhadap sumbu putar. Solusi: dynamic balancing sesuai standar ISO 1940.</div>
           <div class="p-fb w" id="fp1w">❌ Konversi dulu: 1500 RPM = 1500/60 = 25 Hz. Frekuensi dominan terukur (25 Hz) sama persis dengan 1× RPM. Lihat tabel diagnostik di Bagian 07 untuk identifikasi fault.</div>
@@ -2341,10 +2341,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Untuk pompa pada 25 Hz, parameter mana yang paling tepat untuk monitoring rutin?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Perpindahan (mm) — paling akurat di frekuensi rendah saja (&lt; 10 Hz)</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>Kecepatan (mm/s) — paling efektif di rentang 10–1000 Hz, sesuai ISO 10816</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Percepatan (m/s²) — paling baik untuk frekuensi tinggi (&gt; 1000 Hz, bearing defect)</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>RMS dari ketiganya — kompleks dan tidak ada standar industri</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Perpindahan (mm) — paling akurat di frekuensi rendah saja (&lt; 10 Hz)</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Kecepatan (mm/s) — paling efektif di rentang 10–1000 Hz, sesuai ISO 10816</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Percepatan (m/s²) — paling baik untuk frekuensi tinggi (&gt; 1000 Hz, bearing defect)</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>RMS dari ketiganya — kompleks dan tidak ada standar industri</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Benar! Pada 25 Hz (rentang 10–1000 Hz), <strong>velocity</strong> adalah parameter paling informatif dan relatif konstan terhadap frekuensi. Itulah sebabnya ISO 10816 (standar dunia untuk vibration severity mesin rotasi) berbasis v_RMS dengan threshold sesuai kelas mesin. v_RMS = 8.2 mm/s pada pompa kelas ini = zona "unsatisfactory" → wajib investigasi.</div>
           <div class="p-fb w" id="fp2w">❌ Lihat Bagian 02 untuk pemilihan parameter berdasarkan rentang frekuensi. Velocity paling sesuai untuk frekuensi mesin rotasi tipikal (10–1000 Hz). Standar ISO 10816 secara eksplisit berbasis v_RMS.</div>
@@ -3846,7 +3846,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -7406,6 +7407,8 @@ function _createForumParticleBurst(event) {
   else attachBtnHandlers();
 })();
 
+
+window._pollAnswers = {1: 0, 2: 1};
 </script>
 
 </body>

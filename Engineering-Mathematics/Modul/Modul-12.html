@@ -2617,10 +2617,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Mengapa setiap jump duty cycle dimodelkan sebagai <em>delta-koefisien</em> dikalikan H(t−a), bukan nilai duty absolut?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Karena Heaviside hanya bisa bernilai 0 atau 1</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>Step bertingkat = jumlah <em>kenaikan</em> berurutan; tiap H(t−a) menambahkan delta-jump pada saat t=a, sehingga total = penjumlahan jump kumulatif</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Karena Laplace tidak bisa transformasi nilai konstan</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Karena duty cycle harus dalam fraksi</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>Karena Heaviside hanya bisa bernilai 0 atau 1</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>Step bertingkat = jumlah <em>kenaikan</em> berurutan; tiap H(t−a) menambahkan delta-jump pada saat t=a, sehingga total = penjumlahan jump kumulatif</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Karena Laplace tidak bisa transformasi nilai konstan</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Karena duty cycle harus dalam fraksi</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! Konstruksi step bertingkat menggunakan <strong>delta-jump</strong>: pada t=2 duty naik dari 0.30 ke 0.60, jadi delta = +0.30 → tambahkan <code>0.30·H(t−2)</code>. Pada t=5 naik dari 0.60 ke 0.80, delta = +0.20 → tambahkan <code>0.20·H(t−5)</code>. Total: jumlah semua jump kumulatif yang tetap aktif setelah t=a karena H tidak pernah turun. Linearitas Laplace lalu memberi V(s) langsung. Trik ini sering dipakai untuk <em>load profile</em> berfase, schedule, dan multi-step process control.</div>
           <div class="p-fb w" id="fp1w">❌ Inti: H(t−a) bernilai 0 sebelum t=a dan 1 setelahnya. Untuk profil bertingkat, kita tidak menulis nilai mutlak duty di tiap interval, tapi <em>kenaikan</em> (delta) di setiap titik jump. Total fungsi = penjumlahan semua jump yang sudah terjadi sampai t. Misal duty 0.30→0.60→0.80: delta = +0.30, +0.30, +0.20.</div>
@@ -2649,10 +2649,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Untuk hitung <code>L{t·H(t−2)}</code>, mengapa kita harus reformulasi t = (t−2)+2 dulu?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Karena t·H(t−2) tidak punya transformasi Laplace</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>Second shift theorem mensyaratkan bentuk f(t−a)·H(t−a) — argumen f harus digeser ke (t−a), bukan t mentah</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Karena Heaviside H(t−2) hanya valid untuk t ≥ 2</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Karena kita perlu konversi ke domain s manual</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Karena t·H(t−2) tidak punya transformasi Laplace</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Second shift theorem mensyaratkan bentuk f(t−a)·H(t−a) — argumen f harus digeser ke (t−a), bukan t mentah</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Karena Heaviside H(t−2) hanya valid untuk t ≥ 2</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Karena kita perlu konversi ke domain s manual</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Tepat! <strong>Second Shift Theorem</strong> <code>L{f(t−a)·H(t−a)} = e<sup>−as</sup>·F(s)</code> berlaku <em>hanya</em> bila f memiliki argumen (t−a) — yaitu sudah digeser. Jika argumen f masih t (mentah), seperti t·H(t−2), pertama harus reformulasi: <code>t = (t−2) + 2</code>, sehingga <code>t·H(t−2) = (t−2)·H(t−2) + 2·H(t−2)</code>. Kedua suku sekarang siap untuk second shift. Trik ini sangat sering muncul di control system saat sinyal ramp atau polinomial mengalami delay.</div>
           <div class="p-fb w" id="fp2w">❌ Inti: bentuk standar second shift adalah f(t−a)·H(t−a) dengan f-nya digeser. t·H(t−2) tidak cocok karena t belum digeser ke (t−2). Solusi: tulis t = (t−2) + 2, distribusikan ke H(t−2), lalu pisah jadi dua suku yang masing-masing bisa pakai second shift theorem.</div>
@@ -3795,7 +3795,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -9255,6 +9256,8 @@ function _createForumParticleBurst(event) {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initM12Anims);
   else initM12Anims();
 })();
+
+window._pollAnswers = {1: 1, 2: 1};
 </script>
 
 </body>

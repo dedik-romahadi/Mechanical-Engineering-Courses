@@ -2396,10 +2396,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Berapa nilai ζ dan klasifikasi sistem?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>ζ ≈ 0.50, Critical damped — kembali stabil paling cepat</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>ζ ≈ 0.25, Underdamped — berosilasi sebelum stabil</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>ζ ≈ 1.50, Overdamped — terlalu kaku</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>ζ = 0, Tak teredam — getaran abadi</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>ζ ≈ 0.50, Critical damped — kembali stabil paling cepat</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>ζ ≈ 0.25, Underdamped — berosilasi sebelum stabil</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>ζ ≈ 1.50, Overdamped — terlalu kaku</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>ζ = 0, Tak teredam — getaran abadi</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! ωₙ = √(40000/400) = 10 rad/s. c_c = 2√(40000·400) = 8000 Ns/m. ζ = 2000/8000 = 0.25. Klasifikasi: <strong>Underdamped</strong> (0 &lt; ζ &lt; 1) — sistem berosilasi sambil meluruh. Inilah yang menyebabkan keluhan "memantul" beberapa siklus.</div>
           <div class="p-fb w" id="fp1w">❌ Hitung step-by-step: ωₙ = √(k/m), kemudian c_c = 2√(km), lalu ζ = c/c_c. Bandingkan ζ dengan 1 untuk klasifikasi.</div>
@@ -2428,10 +2428,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Bentuk trajektori sistem ini di plane fase adalah?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Elips tertutup di sekitar origin</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>Spiral yang mendekati origin</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Garis lurus langsung ke origin</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Spiral yang menjauhi origin</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Elips tertutup di sekitar origin</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Spiral yang mendekati origin</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Garis lurus langsung ke origin</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Spiral yang menjauhi origin</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Benar! Sistem underdamped (ζ=0.25) menghasilkan <strong>spiral menuju origin</strong> — disebut <em>stable focus</em>. Setiap siklus, energi berkurang karena disipasi peredam (dE/dt = −cẋ² ≤ 0). Spiral menjauhi origin adalah tanda sistem unstable (KRITIS!) — segera matikan mesin jika terlihat.</div>
           <div class="p-fb w" id="fp2w">❌ Untuk underdamped, sistem berosilasi (rotasi di plane fase) sambil amplitudo meluruh (radius mengecil). Bentuk yang sesuai adalah spiral menuju origin.</div>
@@ -3438,7 +3438,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -8244,6 +8245,8 @@ function _createForumParticleBurst(event) {
   else attachBtnHandlers();
 })();
 
+
+window._pollAnswers = {1: 1, 2: 1};
 </script>
 
 </body>

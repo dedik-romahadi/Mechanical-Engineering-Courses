@@ -2564,10 +2564,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Apa indikasi resonansi mendekati dari L(−ω²)?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>L(−ω²) sangat besar</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>Bagian "konstan" k − mω² mendekati nol — tanda resonansi</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Akar L positif, sistem tidak stabil</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Tidak ada resonansi karena ada redaman</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>L(−ω²) sangat besar</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>Bagian "konstan" k − mω² mendekati nol — tanda resonansi</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Akar L positif, sistem tidak stabil</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Tidak ada resonansi karena ada redaman</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! Substitusi <code>D² → −ω²</code> di L(D) genap: <code>k − mω² = 200000 − 50·3969 = 1550</code> — sangat kecil dibanding k (200000). Inilah tanda <strong>resonansi mendekati</strong>: bila c = 0 (tanpa redaman), L_eff = 0 dan invers operator memberi amplitudo ∞. Dengan c &gt; 0, denominator <code>(k−mω²)² + (cω)² = 1550² + 12600² ≈ 1.6×10⁸</code> didominasi cω — amplitudo besar tetapi terbatas. Akar L sendiri (λ = −2 ± 63.2i) menentukan transient yang meluruh dengan envelope e^(−2t).</div>
           <div class="p-fb w" id="fp1w">❌ Pertimbangkan: substitusi D² → −ω² = −63² = −3969 di L(D): bagian D² genap memberi <code>k + m·(−ω²) = k − mω² = 200000 − 50·3969 = 1550</code>. Karena ini jauh lebih kecil dari k = 200000, artinya <strong>kita mendekati resonansi</strong> — ω operasi dekat dengan ω_n = √(k/m) = 63.25 rad/s.</div>
@@ -2596,10 +2596,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Mengapa metode invers operator + trik konjugat lebih efisien dari UC?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Karena selalu memberi hasil berbeda dari UC</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>Hasil identik UC, tetapi tanpa setting up sistem aljabar 2×2 — langsung dapat A, B via aljabar operator</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Karena tidak butuh tahu ω</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Karena hanya bekerja untuk f polinomial</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Karena selalu memberi hasil berbeda dari UC</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Hasil identik UC, tetapi tanpa setting up sistem aljabar 2×2 — langsung dapat A, B via aljabar operator</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Karena tidak butuh tahu ω</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Karena hanya bekerja untuk f polinomial</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Benar! Invers operator memberi <strong>shortcut aljabar</strong>: substitusi D² → −ω², kalikan konjugat, dan langsung dapat numerator + denominator dalam bentuk koefisien sin dan cos. Tanpa harus menyusun matriks 2×2 dan solve sistem aljabar UC. Hasilnya identik dengan UC karena keduanya mencari y_p yang sama. Pada near-resonansi, denominator (k−mω²)² + (cω)² didominasi (cω)² karena (k−mω²) → 0 → amplitudo besar. Kunci pengenalan resonansi: <strong>cek L(−ω²)</strong> sebelum invers operator.</div>
           <div class="p-fb w" id="fp2w">❌ Trik konjugat = analog rasionalisasi √ di aljabar. Kalikan (1550 + 200D) dengan konjugat (1550 − 200D) memberi denom <code>1550² − (200D)²</code> = <code>1550² + 40000·ω²</code> setelah substitusi D² → −ω². Numerator <code>(1550 − 200D)·sin(ωt)</code> mudah dihitung karena D·sin(ωt) = ω·cos(ωt). Hasil A, B identik dengan UC tetapi dapat dalam <em>langkah aljabar yang lebih singkat</em>.</div>
@@ -3739,7 +3739,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -9139,6 +9140,8 @@ function _createForumParticleBurst(event) {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initM9Anims);
   else initM9Anims();
 })();
+
+window._pollAnswers = {1: 1, 2: 1};
 </script>
 
 </body>

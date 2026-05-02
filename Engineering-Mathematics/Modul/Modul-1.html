@@ -2254,10 +2254,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Bagaimana klasifikasi PD 2: <code>x²y'' − 3xy' + 4y = 2x²</code>?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Orde 2, linier, homogen, koefisien konstan</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>Orde 2, linier, non-homogen, koefisien variabel (Cauchy)</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Orde 2, non-linier, homogen, koefisien variabel</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Orde 4, linier, non-homogen, koefisien variabel</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>Orde 2, linier, homogen, koefisien konstan</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>Orde 2, linier, non-homogen, koefisien variabel (Cauchy)</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Orde 2, non-linier, homogen, koefisien variabel</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Orde 4, linier, non-homogen, koefisien variabel</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! Turunan tertinggi y'' → orde 2. Semua y, y', y'' pangkat 1 → linier. RHS = 2x² ≠ 0 → non-homogen. Koefisien <code>x², 3x, 4</code> berubah dengan x → koefisien variabel. Bentuk a<sub>i</sub>·x<sup>i</sup> = PD Cauchy.</div>
           <div class="p-fb w" id="fp1w">❌ Cek lagi: turunan tertinggi (orde), apakah ada perkalian antar y atau pangkat ≥ 2 (linier?), nilai RHS (homogen?), dan koefisien (konstan vs fungsi x).</div>
@@ -2286,10 +2286,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Apa hasil verifikasi PD 3 (kandidat y = cos 2x)?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Solusi, karena cos 2x muncul di kedua ruas</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>BUKAN solusi, karena LHS = 0 ≠ cos 2x = RHS</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Solusi, dengan modifikasi tanda</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Tidak bisa diverifikasi tanpa syarat awal</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Solusi, karena cos 2x muncul di kedua ruas</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>BUKAN solusi, karena LHS = 0 ≠ cos 2x = RHS</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Solusi, dengan modifikasi tanda</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Tidak bisa diverifikasi tanpa syarat awal</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Benar! <code>y = cos 2x → y'' = −4cos 2x</code>. <code>LHS = y'' + 4y = −4cos 2x + 4cos 2x = 0</code>. <code>RHS = cos 2x</code>. Karena 0 ≠ cos 2x, fungsi BUKAN solusi. Insight: solusi PD non-homogen butuh metode khusus, bukan asal "ambil yang mirip RHS".</div>
           <div class="p-fb w" id="fp2w">❌ Hitung turunan dengan teliti. <code>y = cos 2x → y' = −2sin 2x → y'' = −4cos 2x</code>. Lalu substitusi LHS dan bandingkan dengan RHS.</div>
@@ -3842,7 +3842,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -9447,6 +9448,8 @@ function _createForumParticleBurst(event) {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initM1Anims);
   else initM1Anims();
 })();
+
+window._pollAnswers = {1: 1, 2: 1};
 </script>
 
 </body>

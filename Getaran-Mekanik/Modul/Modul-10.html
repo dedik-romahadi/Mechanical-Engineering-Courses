@@ -2424,10 +2424,10 @@ print(f"  natural freq isolator {spec['fn_Hz']:.1f} Hz.")</code></pre>
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Frekuensi eksitasi 10 dan 17.32 rad/s adalah...</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Frekuensi sembarang yang kebetulan menghasilkan amplitudo besar</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>Tepat sama dengan kedua frekuensi pribadi sistem (ω₁ dan ω₂) — ini RESONANSI</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Frekuensi kerusakan komponen pegas saja (bukan sistem)</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>Frekuensi yang membuat damping minimum</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>Frekuensi sembarang yang kebetulan menghasilkan amplitudo besar</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>Tepat sama dengan kedua frekuensi pribadi sistem (ω₁ dan ω₂) — ini RESONANSI</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Frekuensi kerusakan komponen pegas saja (bukan sistem)</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Frekuensi yang membuat damping minimum</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! det(K − ω²M) = (200 − ω²)² − 10000 = 0 → ω² = 100 dan 300. Maka ω₁ = 10 rad/s dan ω₂ = √300 ≈ 17.32 rad/s — persis frekuensi eksitasi yang menimbulkan amplitudo besar. Sistem mengalami RESONANSI di kedua frekuensi pribadinya. Ini juga bisa diverifikasi dengan trace identity: ω₁²+ω₂² = 100+300 = 400 = trace(K) ✓.</div>
           <div class="p-fb w" id="fp1w">❌ Hitung dulu det(K − ω²M) = 0. Anda akan menemukan ω² = 100 dan 300, yang persis bersesuaian dengan ω yang dilaporkan operator. Kondisi ini disebut RESONANSI.</div>
@@ -2456,10 +2456,10 @@ print(f"  natural freq isolator {spec['fn_Hz']:.1f} Hz.")</code></pre>
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Mengapa pegas tengah k₂ pecah saat mode 2 (ω₂)?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Karena pegas k₂ secara material lebih lemah dari k₁ dan k₃</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>Karena di mode 2 (anti-phase), regangan pegas tengah = 2·X (dua kali lipat amplitudo massa)</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Karena pegas tengah tidak punya peredam</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Kebetulan saja — bukan karena dinamika</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Karena pegas k₂ secara material lebih lemah dari k₁ dan k₃</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Karena di mode 2 (anti-phase), regangan pegas tengah = 2·X (dua kali lipat amplitudo massa)</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Karena pegas tengah tidak punya peredam</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Kebetulan saja — bukan karena dinamika</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Benar! Pada mode 2, X₁ = +X dan X₂ = −X. Regangan pegas tengah = X₂ − X₁ = −2X (dua kali lipat amplitudo masing-masing massa). Pada mode 1, X₁ = X₂ → regangan pegas tengah = X₂ − X₁ = 0 (pegas tidak terdeformasi sama sekali). Itulah mengapa pegas tengah hanya pecah saat eksitasi mode 2 — ia bekerja paling keras di mode itu.</div>
           <div class="p-fb w" id="fp2w">❌ Cek mode shape: di Mode 2 (anti-phase, X₁=−X₂), berapa regangan pegas tengah? Bandingkan dengan Mode 1 (in-phase, X₁=X₂). Pada mode mana pegas tengah bekerja paling keras?</div>
@@ -3435,7 +3435,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -8271,6 +8272,8 @@ function _createForumParticleBurst(event) {
   else attachBtnHandlers();
 })();
 
+
+window._pollAnswers = {1: 1, 2: 1};
 </script>
 
 

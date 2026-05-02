@@ -2396,10 +2396,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Berapa nilai r sistem blower ini?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>r ≈ 0.70 — jauh dari resonansi</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>r ≈ 1.00 — tepat resonansi</div>
-            <div class="p-opt" onclick="voteForum(1,this,true)"><div class="p-circle"></div>r ≈ 0.95 — sangat dekat resonansi</div>
-            <div class="p-opt" onclick="voteForum(1,this,false)"><div class="p-circle"></div>r ≈ 1.50 — jauh di atas resonansi</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>r ≈ 0.70 — jauh dari resonansi</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>r ≈ 1.00 — tepat resonansi</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>r ≈ 0.95 — sangat dekat resonansi</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>r ≈ 1.50 — jauh di atas resonansi</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! ωₙ = √(72000/80) = √900 = 30 rad/s. r = 28.5/30 = 0.95. Sangat dekat resonansi! DMF ≈ 3.2 — berbahaya. Baut yang sering longgar adalah gejala klasik getaran resonansi yang menyebabkan fatigue siklik.</div>
           <div class="p-fb w" id="fp1w">❌ Hitung dulu ωₙ = √(k/m) = √(72000/80), kemudian r = 28.5/ωₙ. Nilai r yang benar akan menunjukkan apakah sistem dekat atau jauh dari resonansi.</div>
@@ -2428,10 +2428,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Rekomendasi mana yang paling efektif untuk menjauhi resonansi?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Hanya menambah pelumas — tidak mengubah parameter dinamik</div>
-            <div class="p-opt" onclick="voteForum(2,this,true)"><div class="p-circle"></div>Menambah massa/kekakuan untuk mengubah ωₙ jauh dari ω operasi</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Mematikan mesin — bukan solusi permanen</div>
-            <div class="p-opt" onclick="voteForum(2,this,false)"><div class="p-circle"></div>Mengencangkan baut — tidak mengatasi akar masalah</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Hanya menambah pelumas — tidak mengubah parameter dinamik</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Menambah massa/kekakuan untuk mengubah ωₙ jauh dari ω operasi</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Mematikan mesin — bukan solusi permanen</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Mengencangkan baut — tidak mengatasi akar masalah</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Benar! Mengubah ωₙ (misal menambah kekakuan penyangga \(k\)) agar \(r\) bergerak jauh dari 1 adalah solusi yang paling efektif secara teknis. Contoh: menaikkan \(k\) sebesar 50% (72000 → 108000 N/m) menaikkan ωₙ dari 30 ke ~36.7 rad/s, sehingga \(r = 28.5/36.7 = 0.78\) — aman.</div>
           <div class="p-fb w" id="fp2w">❌ Solusi tersebut tidak mengatasi akar masalah: \(r \approx 1\) yang menyebabkan amplifikasi besar. Kencangkan baut hanya meredakan gejala sementara — getaran akan kembali melonggarkannya.</div>
@@ -3437,7 +3437,8 @@ function toggleFQ(id) {
   const card = document.getElementById(id);
   card.classList.toggle('open');
 }
-function voteForum(n, opt, correct) {
+function voteForum(n, opt, idx) {
+  const correct = (idx === window._pollAnswers[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';
@@ -7936,6 +7937,8 @@ function _createForumParticleBurst(event) {
   else attachBtnHandlers();
 })();
 
+
+window._pollAnswers = {1: 2, 2: 1};
 </script>
 
 </body>
