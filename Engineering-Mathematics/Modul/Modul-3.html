@@ -1427,150 +1427,146 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <hr class="divider">
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 09</div>
-  <h2 class="section-title reveal">Animasi Interaktif<br>Solusi PD Live</h2>
-  <p class="section-desc reveal">Lima animasi interaktif: (1) Solusi y(t) dengan <strong>preset push button</strong> b, (2) akar persamaan karakteristik dengan slider, (3) <strong>toggle</strong> Numerical vs Analytical, (4) <strong>radio</strong> klasifikasi PD, (5) <strong>dropdown</strong> sub-topik. Geser slider untuk mengamati bagaimana <strong>parameter PD orde 2</strong> mempengaruhi perilaku solusi. Animasi ini menggunakan PD <code>y'' + b·y' + c·y = 0</code> sebagai contoh — kita akan mempelajari PD jenis ini secara mendalam di Pertemuan 5.</p>
+  <h2 class="section-title reveal">Animasi Interaktif<br>PD Homogen &amp; PD Eksak</h2>
+  <p class="section-desc reveal">Lima animasi spesifik untuk <strong>Pertemuan 3 — PD Homogen &amp; PD Eksak</strong>: (1) <strong>Detektor Homogen</strong> menguji f(tx, ty) = tᵈ·f(x,y), (2) <strong>Substitusi y = u·x Visualizer</strong> dua panel (asli vs separable), (3) <strong>toggle Homogen ↔ Eksak</strong> bandingkan dua metode, (4) <strong>radio Tes Eksaktness</strong> ∂M/∂y vs ∂N/∂x, (5) <strong>dropdown aplikasi</strong> dengan signal trace 1000 samples.</p>
 
-  <!-- Animasi 1: solusi y(t) -->
+  <!-- Animasi 1: Detektor PD Homogen (M3-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi 1 — Solusi y(t) untuk Parameter b dan c yang Berubah</span>
+      <span class="anim-title">Animasi 1 — Detektor PD Homogen: Uji f(tx, ty) = tᵈ·f(x, y)</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvCases" height="340"></canvas>
+      <canvas id="m3cvDeg" height="340" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
-          <label>Koefisien <strong>b</strong> — preset push buttons — <span class="ctrl-val" id="v_b">2.00</span></label>
-          <input type="hidden" id="sl_b" value="2.0">
+          <label>Pilih fungsi f(x, y) — preset push buttons:</label>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
-            <button class="emb-pbtn" onclick="setEMb(0)" data-b="0" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(220,38,38,.4);background:rgba(220,38,38,.10);color:#dc2626;">b=0 (undamped)</button>
-            <button class="emb-pbtn" onclick="setEMb(1)" data-b="1" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,179,0,.4);background:rgba(255,179,0,.10);color:var(--amber);">b=1</button>
-            <button class="emb-pbtn" onclick="setEMb(2)" data-b="2" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--cyan);background:var(--cyan);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(8,191,232,.6);transform:scale(1.05);transition:all .15s;">b=2 ✓</button>
-            <button class="emb-pbtn" onclick="setEMb(4)" data-b="4" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">b=4 critical</button>
-            <button class="emb-pbtn" onclick="setEMb(8)" data-b="8" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">b=8 over</button>
+            <button class="m3deg-pbtn" onclick="window.m3SetDeg('xy')" data-f="xy" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--cyan);background:var(--cyan);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(8,191,232,.6);transform:scale(1.05);transition:all .15s;">f = x·y (d=2) ✓</button>
+            <button class="m3deg-pbtn" onclick="window.m3SetDeg('x2y2')" data-f="x2y2" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,179,0,.4);background:rgba(255,179,0,.10);color:var(--amber);">f = x²+y² (d=2)</button>
+            <button class="m3deg-pbtn" onclick="window.m3SetDeg('xpy')" data-f="xpy" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">f = x+y (d=1)</button>
+            <button class="m3deg-pbtn" onclick="window.m3SetDeg('xy1')" data-f="xy1" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">f = xy + 1 (BUKAN homogen)</button>
           </div>
         </div>
         <div class="ctrl-group">
-          <label>Koefisien <strong>c</strong> — <span class="ctrl-val" id="v_c">5.00</span></label>
-          <input type="range" id="sl_c" min="0.5" max="25" step="0.1" value="5.0">
+          <label>Faktor scaling <strong>t</strong> — <span class="ctrl-val" id="m3tv">2.0</span></label>
+          <input type="range" id="m3slT" min="0.5" max="3" step="0.05" value="2.0">
         </div>
-        <button class="btn-anim" id="btnCases" onclick="toggleCases()">⏸ PAUSE</button>
+        <button class="btn-anim" id="m3btnDeg" onclick="window.m3ToggleDeg()">⏸ PAUSE</button>
       </div>
-      <div id="casesInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div id="m3DegInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Kurva di canvas adalah <em>solusi y(t)</em> dari PD <code>y'' + b·y' + c·y = 0</code> dengan IVP <code>y(0)=1, y'(0)=0</code>. Geser slider untuk merubah b dan c, dan amati bagaimana solusi berubah dramatis. Kita sedang melihat <strong>perilaku PD orde 2 linier homogen koefisien konstan</strong> — topik utama di Pertemuan 5!
+        <strong>📊 Cara Membaca:</strong> PD homogen derajat d ⟺ f(t·x, t·y) = tᵈ·f(x, y) untuk semua t. Canvas tampilkan dua titik test bergerak: P₁(x, y) dan P₂(t·x, t·y), serta nilai f di kedua titik. Jika rasio f(P₂)/f(P₁) ≡ tᵈ konstan untuk semua titik, fungsi homogen. Bar di kanan tampilkan rasio observed vs prediksi tᵈ.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 2: roots in complex plane -->
+  <!-- Animasi 2: Substitusi y = u·x Visualizer (M3-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--pink)"></div>
-      <span class="anim-title">Animasi 2 — Akar Persamaan Karakteristik di Bidang Kompleks</span>
+      <span class="anim-title">Animasi 2 — Substitusi y = u·x: Transformasi PD Homogen → Separable</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvRoots" height="320"></canvas>
+      <canvas id="m3cvSub" height="340" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Koefisien <strong>b</strong> — <span class="ctrl-val" id="v_b2">3.00</span></label>
-          <input type="range" id="sl_b2" min="0" max="10" step="0.05" value="3.0">
+          <label>Posisi titik tracing <strong>x</strong> — <span class="ctrl-val" id="m3xv">1.5</span></label>
+          <input type="range" id="m3slX" min="0.3" max="3.0" step="0.05" value="1.5">
         </div>
         <div class="ctrl-group">
-          <label>Koefisien <strong>c</strong> — <span class="ctrl-val" id="v_c2">5.00</span></label>
-          <input type="range" id="sl_c2" min="0.5" max="25" step="0.1" value="5.0">
+          <label>Konstanta <strong>C</strong> integrasi — <span class="ctrl-val" id="m3cv2">1.0</span></label>
+          <input type="range" id="m3slC2" min="0.3" max="3.0" step="0.1" value="1.0">
         </div>
       </div>
-      <div id="rootsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
+      <div id="m3SubInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Setiap PD orde 2 koefisien konstan punya <em>persamaan karakteristik</em> yang akar-akarnya menentukan jenis solusi. Sumbu horizontal = bagian real, vertikal = imaginer. Akar di kiri (Re&lt;0) = solusi decay; akar di sumbu real = no oscillation; akar imajiner murni = oscillation tak teredam.
+        <strong>📊 Cara Membaca:</strong> Untuk PD homogen <code>dy/dx = (x+y)/(x−y)</code>, substitusi y = u·x mengubahnya menjadi <em>variabel terpisah</em> di (x, u). Canvas split: <strong>kiri</strong> = solusi y(x) di koordinat asli (sebuah kurva spiral logarithmic), <strong>kanan</strong> = u(x) = y/x di koordinat baru (sebuah kurva separable yang integral-nya elementary). Bola putih bergerak bersamaan di kedua panel — titik di kiri adalah (x, u·x), titik di kanan adalah (x, u).
       </div>
     </div>
   </div>
 
-  <!-- Animasi 3: Toggle (Numerical vs Analytical) -->
+  <!-- Animasi 3: Toggle Homogen ↔ Eksak (M3-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--green)"></div>
-      <span class="anim-title">Animasi 3 — Numerical vs Analytical Solution (Toggle)</span>
+      <span class="anim-title">Animasi 3 — Metode Solusi: Homogen (substitusi) ↔ Eksak (potential function)</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvEMtog" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <canvas id="m3cvMethod" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
           <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--text)">
-            Method:
-            <button type="button" onclick="toggleEMSolver()" style="background:none;border:none;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
-              <span id="em_tog_view" style="display:inline-block;position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
-                <span style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
+            Metode:
+            <button type="button" onclick="window.m3ToggleMethod()" style="background:none;border:none;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
+              <span id="m3_method_view" style="display:inline-block;position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
+                <span id="m3_method_knob" style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
               </span>
-              <span id="em_tog_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:700;">ANALYTICAL (closed-form)</span>
+              <span id="m3_method_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:700;">HOMOGEN: substitusi y = u·x</span>
             </button>
           </div>
         </div>
       </div>
-      <div id="emTogInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div id="m3MethodInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Toggle metode solusi PD. Analytical: ekspresi tertutup (closed-form) dari teorema. Numerical: integrator step-by-step (RK4, Euler).<br>
-        <strong>Trade-off:</strong> Analytical exact tetapi terbatas pada kelas PD tertentu. Numerical universal tetapi punya error akumulasi + computational cost. Modern engineering: kombinasi keduanya — derive analytical untuk verify, run numerical untuk produksi.
+        <strong>📊 Cara Membaca:</strong> Dua metode klasik PD orde 1 nonseparable. <strong>HOMOGEN</strong> menggunakan substitusi y = u·x untuk mengubah PD ke separable; visualisasi tampilkan trajectory di plane (x, y) dengan ray from origin (semua titik di ray sama y/x = u). <strong>EKSAK</strong> memanfaatkan fungsi potensial F(x, y) sehingga PD = dF; visualisasi tampilkan kontur F(x, y) = C sebagai level curves.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 4: Radio group (PD classification) -->
+  <!-- Animasi 4: Tes Eksaktness ∂M/∂y vs ∂N/∂x (Radio) — M3-specific -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--pink)"></div>
-      <span class="anim-title">Animasi 4 — Klasifikasi PD: Pilih Tipe (Radio Group)</span>
+      <span class="anim-title">Animasi 4 — Tes Eksaktness: Apakah ∂M/∂y = ∂N/∂x?</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvEMrad" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <canvas id="m3cvExact" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
-          <label>Pilih Klasifikasi PD (radio group):</label>
+          <label>Pilih PD bentuk M(x,y)dx + N(x,y)dy = 0 — uji eksaktness (radio):</label>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
-            <input type="radio" name="em_class_radio" id="em_r1" checked onchange="setEMClass('homogen')" style="display:none;">
-            <label for="em_r1" class="em-rad-lbl" data-c="homogen" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">Homogen ✓</label>
-            <input type="radio" name="em_class_radio" id="em_r2" onchange="setEMClass('nonhomogen')" style="display:none;">
-            <label for="em_r2" class="em-rad-lbl" data-c="nonhomogen" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">Non-Homogen</label>
-            <input type="radio" name="em_class_radio" id="em_r3" onchange="setEMClass('linear')" style="display:none;">
-            <label for="em_r3" class="em-rad-lbl" data-c="linear" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">Linear</label>
-            <input type="radio" name="em_class_radio" id="em_r4" onchange="setEMClass('nonlinear')" style="display:none;">
-            <label for="em_r4" class="em-rad-lbl" data-c="nonlinear" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">Non-Linear</label>
+            <input type="radio" name="m3_exact_radio" id="m3_e1" checked onchange="window.m3SetExact('p1')" style="display:none;">
+            <label for="m3_e1" class="m3-exact-lbl" data-c="p1" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">(2xy)dx + (x²)dy ✓</label>
+            <input type="radio" name="m3_exact_radio" id="m3_e2" onchange="window.m3SetExact('p2')" style="display:none;">
+            <label for="m3_e2" class="m3-exact-lbl" data-c="p2" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">(y)dx + (x)dy</label>
+            <input type="radio" name="m3_exact_radio" id="m3_e3" onchange="window.m3SetExact('p3')" style="display:none;">
+            <label for="m3_e3" class="m3-exact-lbl" data-c="p3" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">(y)dx + (2x)dy ✗</label>
+            <input type="radio" name="m3_exact_radio" id="m3_e4" onchange="window.m3SetExact('p4')" style="display:none;">
+            <label for="m3_e4" class="m3-exact-lbl" data-c="p4" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">(cos x + y)dx + (x)dy</label>
           </div>
         </div>
       </div>
-      <div id="emRadInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
+      <div id="m3ExactInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Setiap klasifikasi memiliki metode solusi yang berbeda. Visualisasi menampilkan contoh solusi tipikal per kategori.<br>
-        <strong>Insight:</strong> Homogen: r(x)=0, solusi y_h. Non-Homogen: y = y_h + y_p (particular). Linear: superposition principle berlaku. Non-Linear: kompleks, mungkin tidak ada closed-form.
+        <strong>📊 Cara Membaca:</strong> PD eksak ⟺ ada F(x, y) sehingga ∂F/∂x = M dan ∂F/∂y = N. Syarat perlu: <strong>∂M/∂y = ∂N/∂x</strong>. Canvas tampilkan dua heatmap berdampingan: kiri = ∂M/∂y, kanan = ∂N/∂x. Jika kedua heatmap <em>identik</em> (verdict ✓ green), PD eksak. Jika berbeda (verdict ✗ red), PD tidak eksak — perlu integrating factor.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 5: Dropdown (Topic-specific) + Signal Trace 1000 samples -->
+  <!-- Animasi 5: Aplikasi PD Homogen & Eksak Dunia Nyata (Dropdown) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:#a855f7"></div>
-      <span class="anim-title">Animasi 5 — Homogen & Eksak: Pilih Sub-Topik (Dropdown + Signal Trace)</span>
+      <span class="anim-title">Animasi 5 — Aplikasi Dunia Nyata: PD Homogen &amp; Eksak (Dropdown)</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvEMdrop" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <canvas id="m3cvApps" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group" style="flex:1 1 100%;">
-          <label>Pilih (Dropdown):</label>
-          <select id="sl_em_drop" onchange="setEMDrop(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
-            <option value="homogen">🔄 Homogen — substitusi y=vx</option>
-            <option value="exact">✅ Eksak — ∂M/∂y = ∂N/∂x</option>
-            <option value="integrating">🔧 Integrating Factor μ(x,y)</option>
-            <option value="bernoulli">📐 Bernoulli — y' + py = qy^n</option>
+          <label>Pilih aplikasi:</label>
+          <select id="m3slApps" onchange="window.m3SetApps(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
+            <option value="spiral">🌀 Spiral Logaritmik — dy/dx = (x+y)/(x−y) [Homogen]</option>
+            <option value="orbits">🪐 Orbit Konservatif — dE = 0 [Eksak, energy const]</option>
+            <option value="streamlines">💨 Streamline Aliran — ψ(x,y) = C [Eksak, stream func]</option>
+            <option value="similar">📐 Bangun Geometri Mirip — y/x = const [Homogen, scaling]</option>
+            <option value="potential">⚡ Potensial Listrik — V(x,y) = C [Eksak, equipotential]</option>
           </select>
         </div>
       </div>
-      <div id="emDropInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
+      <div id="m3AppsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Pilih sub-topik dari dropdown. Layout split: kiri label + formula, kanan signal trace solusi 1000 samples (~10 detik).<br>
-        <strong>Insight:</strong> Setiap sub-topik Homogen & Eksak punya signature unik di domain waktu. Bandingkan shape decay/oscillation/growth antara opsi.
+        <strong>📊 Cara Membaca:</strong> Lima aplikasi nyata. Layout split: kiri = visualisasi geometris/fisika (spiral, orbit, streamline, segitiga similar, equipotential), kanan = signal trace 1000 samples. <strong>Insight:</strong> PD homogen muncul saat ada simetri scaling (similar geometry). PD eksak muncul saat ada conserved quantity (energy, mass, charge) — fungsi potensial F(x, y) = C adalah level curve dari kuantitas konservasi.
       </div>
     </div>
   </div>
@@ -8282,6 +8278,786 @@ function _createForumParticleBurst(event) {
   else attachBtnHandlers();
 })();
 
+</script>
+
+<!-- ════════════════════════════════════════════════════════════════
+     M3 TOPIC-SPECIFIC ANIMATIONS — PD Homogen & PD Eksak
+     5 canvas: m3cvDeg, m3cvSub, m3cvMethod, m3cvExact, m3cvApps
+     ════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  function bgGrad(ctx, W, H){
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#020812'); g.addColorStop(1, '#0d1929');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  function gridLines(ctx, x0, x1, y0, y1, divX, divY){
+    ctx.strokeStyle = 'rgba(148,163,184,.10)'; ctx.lineWidth = 1;
+    for (let i = 0; i <= divX; i++){
+      const x = x0 + (i/divX)*(x1-x0);
+      ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.stroke();
+    }
+    for (let j = 0; j <= divY; j++){
+      const y = y0 + (j/divY)*(y1-y0);
+      ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
+    }
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 1 — Detektor PD Homogen: f(tx,ty) = t^d · f(x,y)
+  // ════════════════════════════════════════════════════════════════
+  const m3Deg = { running: true, raf: null, t: 0, func: 'xy' };
+
+  const M3_DEG = {
+    xy:    { label: "f(x, y) = x · y",          d: 2, isHom: true,  f: (x, y) => x * y },
+    x2y2:  { label: "f(x, y) = x² + y²",         d: 2, isHom: true,  f: (x, y) => x*x + y*y },
+    xpy:   { label: "f(x, y) = x + y",           d: 1, isHom: true,  f: (x, y) => x + y },
+    xy1:   { label: "f(x, y) = x · y + 1",       d: NaN, isHom: false, f: (x, y) => x*y + 1 }
+  };
+
+  window.m3SetDeg = function(key){
+    m3Deg.func = key;
+    document.querySelectorAll('.m3deg-pbtn').forEach(btn => {
+      const f = btn.getAttribute('data-f');
+      const active = (f === key);
+      btn.style.border = active ? '2px solid var(--cyan)' : '1px solid rgba(148,163,184,.3)';
+      btn.style.background = active ? 'var(--cyan)' : 'rgba(148,163,184,.10)';
+      btn.style.color = active ? '#fff' : '#94a3b8';
+      btn.style.fontWeight = active ? '700' : '400';
+      btn.style.boxShadow = active ? '0 0 12px rgba(8,191,232,.6)' : 'none';
+      btn.style.transform = active ? 'scale(1.05)' : 'scale(1)';
+      btn.textContent = active ? (btn.textContent.replace(' ✓','') + ' ✓') : btn.textContent.replace(' ✓','');
+    });
+  };
+  window.m3ToggleDeg = function(){
+    m3Deg.running = !m3Deg.running;
+    const btn = document.getElementById('m3btnDeg');
+    if (btn) btn.textContent = m3Deg.running ? '⏸ PAUSE' : '▶ PLAY';
+    if (m3Deg.running) drawM3Deg();
+  };
+
+  function drawM3Deg(){
+    const cv = document.getElementById('m3cvDeg'); if(!cv) return;
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const obj = M3_DEG[m3Deg.func];
+    const t = parseFloat(document.getElementById('m3slT').value);
+    document.getElementById('m3tv').textContent = t.toFixed(1);
+
+    // Layout: left = x,y plane with two test points + ray, right = bar comparison
+    const splitX = W * 0.62;
+    ctx.strokeStyle = 'rgba(148,163,184,.3)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(splitX, 20); ctx.lineTo(splitX, H - 20); ctx.stroke();
+
+    // ── LEFT: x-y plane ──
+    const padL = 50, padR = 20, padT = 25, padB = 35;
+    const px0 = padL, px1 = splitX - 16, py0 = padT, py1 = H - padB;
+    const cx = (px0 + px1)/2, cy = (py0 + py1)/2;
+    const halfW = (px1 - px0)/2, halfH = (py1 - py0)/2;
+    const xMax = 3, yMax = 3;
+    function px(x){ return cx + (x/xMax)*halfW; }
+    function py(y){ return cy - (y/yMax)*halfH; }
+
+    gridLines(ctx, px0, px1, py0, py1, 8, 8);
+
+    // Axes
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(px0, cy); ctx.lineTo(px1, cy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx, py0); ctx.lineTo(cx, py1); ctx.stroke();
+
+    ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+    ctx.fillText('x', px1 + 5, cy + 4);
+    ctx.fillText('y', cx + 5, py0 - 4);
+
+    // Animated test point P1 = (x0, y0) tracing circle around origin
+    if (m3Deg.running) m3Deg.t += 0.012;
+    const ang = m3Deg.t;
+    const r1 = 1.0;
+    const x0 = r1 * Math.cos(ang) * 1.3, y0 = r1 * Math.sin(ang) * 1.3;
+    // P2 = (t*x0, t*y0)
+    const x1 = t * x0, y1 = t * y0;
+
+    // Ray from origin through P1, P2 (direction same)
+    const rayLen = 3;
+    ctx.strokeStyle = 'rgba(255,179,0,.4)'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 4]);
+    ctx.beginPath();
+    ctx.moveTo(px(-rayLen * Math.cos(ang) * 1.3), py(-rayLen * Math.sin(ang) * 1.3));
+    ctx.lineTo(px(rayLen * Math.cos(ang) * 1.3), py(rayLen * Math.sin(ang) * 1.3));
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // P1 dot (cyan)
+    ctx.fillStyle = '#0ea5e9';
+    ctx.shadowColor = '#0ea5e9'; ctx.shadowBlur = 12;
+    ctx.beginPath(); ctx.arc(px(x0), py(y0), 6, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 11px JetBrains Mono, monospace';
+    ctx.fillText(`P₁(${x0.toFixed(2)}, ${y0.toFixed(2)})`, px(x0) + 8, py(y0) - 10);
+
+    // P2 dot (pink)
+    ctx.fillStyle = '#ff6bb3';
+    ctx.shadowColor = '#ff6bb3'; ctx.shadowBlur = 12;
+    ctx.beginPath(); ctx.arc(px(x1), py(y1), 6, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 11px JetBrains Mono, monospace';
+    ctx.fillText(`P₂(${x1.toFixed(2)}, ${y1.toFixed(2)})`, px(x1) + 8, py(y1) - 10);
+
+    // Title (left)
+    ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 13px JetBrains Mono, monospace';
+    ctx.fillText(obj.label, padL + 8, padT + 16);
+
+    // ── RIGHT: bar comparison ──
+    const sx0 = splitX + 16, sx1 = W - 20, sy0 = padT + 10, sy1 = H - padB;
+    ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px JetBrains Mono, monospace';
+    ctx.fillText('Test: f(P₂)/f(P₁) vs t^d', sx0, sy0);
+
+    const f1 = obj.f(x0, y0);
+    const f2 = obj.f(x1, y1);
+    const ratioObs = Math.abs(f1) > 0.001 ? f2 / f1 : 0;
+    const predicted = obj.isHom ? Math.pow(t, obj.d) : NaN;
+
+    // Bar dimensions
+    const bw = 36, bh = sy1 - sy0 - 60;
+    const yBase = sy1 - 30;
+    const barMax = obj.isHom ? Math.max(predicted * 1.3, 4) : Math.max(Math.abs(ratioObs) * 1.3, 4);
+
+    function drawBar(label, value, color, xCenter){
+      const h = Math.min(bh, Math.abs(value) / barMax * bh);
+      ctx.fillStyle = color + '33';
+      ctx.fillRect(xCenter - bw/2, yBase - h, bw, h);
+      ctx.strokeStyle = color; ctx.lineWidth = 2;
+      ctx.strokeRect(xCenter - bw/2, yBase - h, bw, h);
+      ctx.fillStyle = color;
+      ctx.font = 'bold 11px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText(label, xCenter, yBase + 16);
+      ctx.fillText(value.toFixed(2), xCenter, yBase - h - 8);
+      ctx.textAlign = 'left';
+    }
+
+    const xObs = sx0 + 60;
+    const xPred = sx0 + 140;
+    drawBar('observed', ratioObs, '#0ea5e9', xObs);
+    if (obj.isHom){
+      drawBar(`t^${obj.d}`, predicted, '#00e09e', xPred);
+      // Verdict
+      const diff = Math.abs(ratioObs - predicted);
+      const ok = diff < 0.1;
+      ctx.fillStyle = ok ? '#00e09e' : '#ef4444';
+      ctx.font = 'bold 13px JetBrains Mono, monospace';
+      ctx.fillText(ok ? '✓ HOMOGEN' : '⚠ Mismatch', sx0, sy1 - 4);
+    } else {
+      ctx.fillStyle = '#ef4444';
+      ctx.font = 'bold 12px JetBrains Mono, monospace';
+      ctx.fillText('✗ BUKAN homogen', xPred - 16, yBase - 8);
+    }
+
+    // Info
+    const infoEl = document.getElementById('m3DegInfo');
+    if (infoEl){
+      if (obj.isHom){
+        const diff = Math.abs(ratioObs - predicted);
+        infoEl.innerHTML = `<span style="color:#0ea5e9">●</span> ${obj.label} &nbsp;|&nbsp; f(P₁)=${f1.toFixed(2)}, f(P₂)=${f2.toFixed(2)} ⇒ rasio ${ratioObs.toFixed(2)} ≈ t^${obj.d} = ${predicted.toFixed(2)} &nbsp;|&nbsp; |Δ| = ${diff.toFixed(3)}`;
+      } else {
+        infoEl.innerHTML = `<span style="color:#ef4444">●</span> ${obj.label} &nbsp;|&nbsp; f(P₁)=${f1.toFixed(2)}, f(P₂)=${f2.toFixed(2)} ⇒ rasio ${ratioObs.toFixed(2)} TIDAK konsisten dengan t^d apapun`;
+      }
+    }
+
+    if (m3Deg.running) m3Deg.raf = requestAnimationFrame(drawM3Deg);
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 2 — Substitusi y = u·x: split panel (asli vs separable)
+  // PD: dy/dx = (x+y)/(x-y) ⇒ y = u·x ⇒ du/(1-u-u²) = dx/x (separable)
+  // ════════════════════════════════════════════════════════════════
+  const m3Sub = { t: 0, raf: null };
+
+  function drawM3Sub(){
+    const cv = document.getElementById('m3cvSub'); if(!cv){ m3Sub.raf = requestAnimationFrame(drawM3Sub); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const xT = parseFloat(document.getElementById('m3slX').value);
+    const C = parseFloat(document.getElementById('m3slC2').value);
+    document.getElementById('m3xv').textContent = xT.toFixed(2);
+    document.getElementById('m3cv2').textContent = C.toFixed(1);
+
+    // Split layout
+    const splitX = W * 0.5;
+    ctx.strokeStyle = 'rgba(148,163,184,.3)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(splitX, 20); ctx.lineTo(splitX, H - 20); ctx.stroke();
+
+    const padT = 25, padB = 35;
+
+    // Solve PD numerically: dy/dx = (x+y)/(x-y), IC y(0.3) = C·0.3 (so initial u = C)
+    const x0 = 0.3, y0 = C * x0;
+    const dx = 0.01;
+    const xMax = 3.5;
+    const N = Math.floor((xMax - x0)/dx);
+    const xs = new Float64Array(N+1), ys = new Float64Array(N+1), us = new Float64Array(N+1);
+    let xi = x0, yi = y0;
+    xs[0] = xi; ys[0] = yi; us[0] = yi/xi;
+    for (let i = 1; i <= N; i++){
+      // RK4 for dy/dx = (x+y)/(x-y), guard div by 0
+      function f(x, y){ return Math.abs(x - y) > 0.01 ? (x + y)/(x - y) : 50; }
+      const k1 = f(xi, yi);
+      const k2 = f(xi + dx/2, yi + dx/2*k1);
+      const k3 = f(xi + dx/2, yi + dx/2*k2);
+      const k4 = f(xi + dx,   yi + dx*k3);
+      yi += dx/6*(k1 + 2*k2 + 2*k3 + k4);
+      xi += dx;
+      xs[i] = xi; ys[i] = yi; us[i] = yi/xi;
+    }
+
+    // ── LEFT panel: (x, y) plane original PD ──
+    {
+      const padL = 50, padR = 16;
+      const px0 = padL, px1 = splitX - padR;
+      const py0 = padT, py1 = H - padB;
+      const cx = (px0 + px1)/2, cy = (py0 + py1)/2;
+      const halfW = (px1 - px0)/2, halfH = (py1 - py0)/2;
+      const xR = 3.5, yR = 3.5;
+      function tx(x){ return cx + (x/xR)*halfW; }
+      function ty(y){ return cy - (y/yR)*halfH; }
+
+      gridLines(ctx, px0, px1, py0, py1, 8, 8);
+      ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(px0, cy); ctx.lineTo(px1, cy); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx, py0); ctx.lineTo(cx, py1); ctx.stroke();
+
+      ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+      ctx.fillText('x', px1 + 5, cy + 4);
+      ctx.fillText('y', cx + 5, py0 - 4);
+
+      // Plot full curve
+      ctx.strokeStyle = '#0ea5e9'; ctx.lineWidth = 2.5;
+      ctx.shadowColor = '#0ea5e9'; ctx.shadowBlur = 8;
+      ctx.beginPath();
+      let started = false;
+      for (let i = 0; i <= N; i++){
+        if (Math.abs(ys[i]) > yR * 1.2) { started = false; continue; }
+        const tpx = tx(xs[i]), tpy = ty(ys[i]);
+        if (!started){ ctx.moveTo(tpx, tpy); started = true; }
+        else ctx.lineTo(tpx, tpy);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Title
+      ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 12px JetBrains Mono, monospace';
+      ctx.fillText("ASLI: dy/dx = (x+y)/(x-y)", padL + 4, padT + 14);
+
+      // Animated dot at xT
+      const iDot = Math.min(N, Math.max(0, Math.floor((xT - x0)/dx)));
+      const yDot = ys[iDot];
+      ctx.fillStyle = '#fff';
+      ctx.shadowColor = '#0ea5e9'; ctx.shadowBlur = 14;
+      ctx.beginPath(); ctx.arc(tx(xT), ty(yDot), 6, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    // ── RIGHT panel: (x, u) plane separable form ──
+    {
+      const padL = 50, padR = 16;
+      const px0 = splitX + padL/2, px1 = W - padR;
+      const py0 = padT, py1 = H - padB;
+      const cx = (px0 + px1)/2, cy = (py0 + py1)/2;
+      const halfW = (px1 - px0)/2, halfH = (py1 - py0)/2;
+      const xR = 3.5, uR = 3.5;
+      function tx(x){ return cx + (x/xR)*halfW; }
+      function ty(u){ return cy - (u/uR)*halfH; }
+
+      gridLines(ctx, px0, px1, py0, py1, 8, 8);
+      ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(px0, cy); ctx.lineTo(px1, cy); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx, py0); ctx.lineTo(cx, py1); ctx.stroke();
+
+      ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+      ctx.fillText('x', px1 + 5, cy + 4);
+      ctx.fillText('u = y/x', cx + 5, py0 - 4);
+
+      // Plot u(x)
+      ctx.strokeStyle = '#ff6bb3'; ctx.lineWidth = 2.5;
+      ctx.shadowColor = '#ff6bb3'; ctx.shadowBlur = 8;
+      ctx.beginPath();
+      let started = false;
+      for (let i = 0; i <= N; i++){
+        if (Math.abs(us[i]) > uR * 1.2) { started = false; continue; }
+        const tpx = tx(xs[i]), tpy = ty(us[i]);
+        if (!started){ ctx.moveTo(tpx, tpy); started = true; }
+        else ctx.lineTo(tpx, tpy);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Title
+      ctx.fillStyle = '#ff6bb3'; ctx.font = 'bold 12px JetBrains Mono, monospace';
+      ctx.fillText("BARU: x·du/dx = (1+u)/(1-u) − u", px0 + 4, padT + 14);
+
+      const iDot = Math.min(N, Math.max(0, Math.floor((xT - x0)/dx)));
+      const uDot = us[iDot];
+      ctx.fillStyle = '#fff';
+      ctx.shadowColor = '#ff6bb3'; ctx.shadowBlur = 14;
+      ctx.beginPath(); ctx.arc(tx(xT), ty(uDot), 6, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    // Info
+    const infoEl = document.getElementById('m3SubInfo');
+    if (infoEl){
+      const iDot = Math.min(N, Math.max(0, Math.floor((xT - x0)/dx)));
+      infoEl.innerHTML = `<span style="color:#0ea5e9">●</span> Asli: y(${xT.toFixed(2)}) = ${ys[iDot].toFixed(3)} &nbsp;&nbsp; <span style="color:#ff6bb3">●</span> Baru: u(${xT.toFixed(2)}) = ${us[iDot].toFixed(3)} = y/x &nbsp;|&nbsp; substitusi mengubah PD non-separable → separable`;
+    }
+
+    m3Sub.raf = requestAnimationFrame(drawM3Sub);
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 3 — Toggle Homogen ↔ Eksak Method
+  // Homogen: visualize trajectory + ray from origin (same y/x = u)
+  // Eksak: visualize potential function level curves F(x,y) = C
+  // ════════════════════════════════════════════════════════════════
+  const m3Method = { isHomogen: true, t: 0, raf: null };
+
+  window.m3ToggleMethod = function(){
+    m3Method.isHomogen = !m3Method.isHomogen;
+    const view = document.getElementById('m3_method_view');
+    const knob = document.getElementById('m3_method_knob');
+    const lbl  = document.getElementById('m3_method_label');
+    if (m3Method.isHomogen){
+      view.style.background = 'rgba(0,224,158,.25)'; view.style.borderColor = 'var(--green)';
+      knob.style.transform = 'translateX(0px)';
+      lbl.style.color = 'var(--green)';
+      lbl.textContent = 'HOMOGEN: substitusi y = u·x';
+    } else {
+      view.style.background = 'rgba(255,179,0,.25)'; view.style.borderColor = 'var(--amber)';
+      knob.style.transform = 'translateX(28px)';
+      lbl.style.color = 'var(--amber)';
+      lbl.textContent = 'EKSAK: kontur F(x, y) = C';
+    }
+  };
+
+  function drawM3Method(){
+    const cv = document.getElementById('m3cvMethod'); if(!cv){ m3Method.raf = requestAnimationFrame(drawM3Method); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const padL = 50, padR = 20, padT = 25, padB = 35;
+    const px0 = padL, px1 = W - padR, py0 = padT, py1 = H - padB;
+    const cx = (px0 + px1)/2, cy = (py0 + py1)/2;
+    const halfW = (px1 - px0)/2, halfH = (py1 - py0)/2;
+    const xR = 3, yR = 2.5;
+    function tx(x){ return cx + (x/xR)*halfW; }
+    function ty(y){ return cy - (y/yR)*halfH; }
+    gridLines(ctx, px0, px1, py0, py1, 12, 8);
+
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(px0, cy); ctx.lineTo(px1, cy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx, py0); ctx.lineTo(cx, py1); ctx.stroke();
+
+    m3Method.t = (m3Method.t + 0.012) % (2 * Math.PI);
+
+    if (m3Method.isHomogen){
+      // Show several rays from origin (each ray = constant u = y/x = solution)
+      const slopes = [-2, -1, -0.5, 0.5, 1, 2];
+      for (let i = 0; i < slopes.length; i++){
+        const s = slopes[i];
+        const hue = (i / slopes.length) * 200 + 180;
+        ctx.strokeStyle = `hsl(${hue}, 70%, 60%)`;
+        ctx.lineWidth = 2;
+        ctx.shadowColor = `hsl(${hue}, 70%, 60%)`; ctx.shadowBlur = 4;
+        ctx.beginPath();
+        ctx.moveTo(tx(-xR), ty(-s * xR));
+        ctx.lineTo(tx(xR), ty(s * xR));
+        ctx.stroke();
+
+        // Animated dot moving outward
+        const r = (m3Method.t / (2*Math.PI)) * xR;
+        const xD = r, yD = s * r;
+        if (Math.abs(yD) <= yR){
+          ctx.fillStyle = '#fff';
+          ctx.shadowColor = `hsl(${hue}, 70%, 60%)`; ctx.shadowBlur = 10;
+          ctx.beginPath(); ctx.arc(tx(xD), ty(yD), 4, 0, Math.PI*2); ctx.fill();
+        }
+      }
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = '#00e09e'; ctx.font = 'bold 13px JetBrains Mono, monospace';
+      ctx.fillText('HOMOGEN: solusi = ray dari origin (y/x = u konstan)', padL + 8, padT + 16);
+    } else {
+      // Show level curves F(x, y) = x² + y² (concentric circles), and F = x·y (hyperbolas)
+      // Use F = x² + y² with several C values
+      const Cs = [0.3, 1.0, 2.0, 3.5, 5.5];
+      for (let i = 0; i < Cs.length; i++){
+        const C = Cs[i];
+        const r = Math.sqrt(C);
+        const hue = 30 + i * 25;
+        ctx.strokeStyle = `hsl(${hue}, 80%, 60%)`;
+        ctx.lineWidth = 2;
+        ctx.shadowColor = `hsl(${hue}, 80%, 60%)`; ctx.shadowBlur = 6;
+        ctx.beginPath();
+        for (let s = 0; s <= 100; s++){
+          const theta = (s/100) * 2 * Math.PI;
+          const x = r * Math.cos(theta), y = r * Math.sin(theta);
+          if (Math.abs(y) > yR * 1.1 || Math.abs(x) > xR * 1.1) continue;
+          const tpx = tx(x), tpy = ty(y);
+          if (s === 0) ctx.moveTo(tpx, tpy); else ctx.lineTo(tpx, tpy);
+        }
+        ctx.stroke();
+
+        // Animated dot revolving on each contour
+        const theta = m3Method.t + i * 0.4;
+        const xD = r * Math.cos(theta), yD = r * Math.sin(theta);
+        if (Math.abs(yD) <= yR && Math.abs(xD) <= xR){
+          ctx.fillStyle = '#fff';
+          ctx.shadowColor = `hsl(${hue}, 80%, 60%)`; ctx.shadowBlur = 10;
+          ctx.beginPath(); ctx.arc(tx(xD), ty(yD), 4, 0, Math.PI*2); ctx.fill();
+        }
+      }
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = '#ffb300'; ctx.font = 'bold 13px JetBrains Mono, monospace';
+      ctx.fillText('EKSAK: solusi = level curves F(x, y) = C (kontur)', padL + 8, padT + 16);
+    }
+
+    // Info
+    const infoEl = document.getElementById('m3MethodInfo');
+    if (infoEl){
+      infoEl.innerHTML = m3Method.isHomogen
+        ? `<span style="color:#00e09e">●</span> Setiap titik sepanjang ray punya rasio y/x = u sama. Substitusi y = u·x mengubah PD ke <strong>variabel terpisah</strong> di (x, u).`
+        : `<span style="color:#ffb300">●</span> PD eksak ⟺ M dx + N dy = dF (diferensial total). Solusi = level set F(x, y) = C — <strong>conservation contours</strong>.`;
+    }
+
+    m3Method.raf = requestAnimationFrame(drawM3Method);
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 4 — Tes Eksaktness: ∂M/∂y vs ∂N/∂x heatmap
+  // ════════════════════════════════════════════════════════════════
+  const m3Exact = { which: 'p1', raf: null };
+
+  // Each PD: M(x,y) dx + N(x,y) dy = 0; M_y = ∂M/∂y, N_x = ∂N/∂x
+  const M3_EXACT = {
+    p1: { label: '(2xy) dx + (x²) dy',           My: (x, y) => 2*x,         Nx: (x, y) => 2*x,         exact: true,  F: '(F = x²·y)' },
+    p2: { label: '(y) dx + (x) dy',              My: (x, y) => 1,            Nx: (x, y) => 1,            exact: true,  F: '(F = x·y)' },
+    p3: { label: '(y) dx + (2x) dy',             My: (x, y) => 1,            Nx: (x, y) => 2,            exact: false, F: 'M_y ≠ N_x' },
+    p4: { label: '(cos x + y) dx + (x) dy',      My: (x, y) => 1,            Nx: (x, y) => 1,            exact: true,  F: '(F = sin x + x·y)' }
+  };
+
+  window.m3SetExact = function(key){
+    m3Exact.which = key;
+    document.querySelectorAll('.m3-exact-lbl').forEach(lbl => {
+      const c = lbl.getAttribute('data-c');
+      const active = (c === key);
+      lbl.style.border = active ? '2px solid var(--pink)' : '1px solid rgba(148,163,184,.3)';
+      lbl.style.background = active ? 'rgba(255,255,255,.20)' : 'rgba(148,163,184,.10)';
+      lbl.style.color = active ? '#fff' : '#94a3b8';
+      lbl.style.fontWeight = active ? '700' : '400';
+      lbl.style.boxShadow = active ? '0 0 12px rgba(255,107,179,.4)' : 'none';
+      lbl.style.transform = active ? 'scale(1.05)' : 'scale(1)';
+      lbl.textContent = active ? (lbl.textContent.replace(' ✓','').replace(' ✗','') + ' ✓') : lbl.textContent.replace(' ✓','').replace(' ✗','');
+    });
+  };
+
+  function drawM3Exact(){
+    const cv = document.getElementById('m3cvExact'); if(!cv){ m3Exact.raf = requestAnimationFrame(drawM3Exact); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const obj = M3_EXACT[m3Exact.which];
+
+    // Two heatmap panels: ∂M/∂y on left, ∂N/∂x on right
+    const padT = 30, padB = 30;
+    const splitX = W * 0.5;
+
+    function plotHeatmap(fn, x0, x1, y0, y1, label, color){
+      const cellsX = 16, cellsY = 12;
+      const cw = (x1 - x0)/cellsX, ch = (y1 - y0)/cellsY;
+
+      // Compute min/max for color scale
+      let vMin = Infinity, vMax = -Infinity;
+      const xR = 3, yR = 2;
+      for (let i = 0; i < cellsX; i++){
+        for (let j = 0; j < cellsY; j++){
+          const xC = -xR + (i + 0.5)/cellsX * 2*xR;
+          const yC = -yR + (j + 0.5)/cellsY * 2*yR;
+          const v = fn(xC, yC);
+          if (v < vMin) vMin = v;
+          if (v > vMax) vMax = v;
+        }
+      }
+      const vRng = Math.max(0.01, vMax - vMin);
+
+      // Draw cells
+      for (let i = 0; i < cellsX; i++){
+        for (let j = 0; j < cellsY; j++){
+          const xC = -xR + (i + 0.5)/cellsX * 2*xR;
+          const yC = -yR + (j + 0.5)/cellsY * 2*yR;
+          const v = fn(xC, yC);
+          const norm = (v - vMin)/vRng;
+          const alpha = 0.15 + 0.7 * norm;
+          ctx.fillStyle = color.replace('rgb(', 'rgba(').replace(')', `,${alpha})`);
+          ctx.fillRect(x0 + i * cw, y0 + j * ch, cw - 1, ch - 1);
+        }
+      }
+
+      // Border
+      ctx.strokeStyle = color.replace('rgb', 'rgba').replace(')', ',0.5)');
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x0, y0, x1 - x0, y1 - y0);
+
+      // Title
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 13px JetBrains Mono, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(label, (x0 + x1)/2, y0 - 10);
+      ctx.font = '10px JetBrains Mono, monospace';
+      ctx.fillText(`range: [${vMin.toFixed(2)}, ${vMax.toFixed(2)}]`, (x0 + x1)/2, y1 + 18);
+      ctx.textAlign = 'left';
+    }
+
+    plotHeatmap(obj.My, 30, splitX - 16, padT + 14, H - padB - 18, '∂M/∂y', 'rgb(14, 165, 233)');
+    plotHeatmap(obj.Nx, splitX + 16, W - 30, padT + 14, H - padB - 18, '∂N/∂x', 'rgb(255, 107, 179)');
+
+    // Verdict at top
+    ctx.fillStyle = obj.exact ? '#00e09e' : '#ef4444';
+    ctx.font = 'bold 14px JetBrains Mono, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(obj.exact ? '✓ EKSAK: heatmap identik' : '✗ TIDAK EKSAK: heatmap berbeda', W/2, padT - 12);
+    ctx.textAlign = 'left';
+
+    // Info
+    const infoEl = document.getElementById('m3ExactInfo');
+    if (infoEl){
+      infoEl.innerHTML = obj.exact
+        ? `<span style="color:#00e09e">✓</span> ${obj.label} &nbsp;|&nbsp; <strong>EKSAK</strong> &nbsp;|&nbsp; ${obj.F}`
+        : `<span style="color:#ef4444">✗</span> ${obj.label} &nbsp;|&nbsp; <strong>TIDAK EKSAK</strong> &nbsp;|&nbsp; ${obj.F} — perlu integrating factor`;
+    }
+
+    m3Exact.raf = requestAnimationFrame(drawM3Exact);
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ANIMASI 5 — Aplikasi PD Homogen & Eksak (Dropdown)
+  // ════════════════════════════════════════════════════════════════
+  const m3Apps = { which: 'spiral', t: 0, hist: [], raf: null };
+
+  const M3_APPS = {
+    spiral:      { label: "Spiral Logaritmik: r = a·e^(b·θ)",        compute: t => Math.cos(t * 1.5) * Math.exp(-0.05 * t),                color: '#0ea5e9', icon: 'spiral' },
+    orbits:      { label: "Energi Orbit Konservatif: E = const",     compute: t => 0.6 + 0.3*Math.cos(t * 0.8),                              color: '#a855f7', icon: 'orbit'  },
+    streamlines: { label: "Streamline 2D: ψ(x, y) = C",              compute: t => Math.sin(t * 1.2) * 0.6 + 0.2,                            color: '#00e09e', icon: 'flow'   },
+    similar:     { label: "Bangun Mirip: y/x = const (scaling)",     compute: t => 0.3 + 0.6*((t * 0.4) % 1),                                color: '#ffb300', icon: 'tri'    },
+    potential:   { label: "Equipotential V(x, y) = C (medan listrik)", compute: t => 0.5 + 0.4*Math.sin(t * 1.0 + 0.5),                       color: '#ff6bb3', icon: 'pot'    }
+  };
+
+  window.m3SetApps = function(key){
+    m3Apps.which = key; m3Apps.hist = []; m3Apps.t = 0;
+  };
+
+  function drawM3Apps(){
+    const cv = document.getElementById('m3cvApps'); if(!cv){ m3Apps.raf = requestAnimationFrame(drawM3Apps); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+
+    const obj = M3_APPS[m3Apps.which];
+    const splitX = W * 0.42;
+    ctx.strokeStyle = 'rgba(148,163,184,.3)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(splitX, 20); ctx.lineTo(splitX, H - 20); ctx.stroke();
+
+    const cx = splitX/2, cy = H/2;
+    const t = m3Apps.t;
+    const val = obj.compute(t);
+
+    // ── LEFT: schematic ──
+    if (obj.icon === 'spiral'){
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 8;
+      ctx.beginPath();
+      const PTS = 200;
+      for (let i = 0; i <= PTS; i++){
+        const theta = (i/PTS) * 5 * Math.PI;
+        const r = 2 * Math.exp(0.13 * theta);
+        if (r > 90) break;
+        const px = cx + r * Math.cos(theta), py = cy + r * Math.sin(theta);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      // Animated dot
+      const theta = (t * 0.8) % (5 * Math.PI);
+      const r = 2 * Math.exp(0.13 * theta);
+      ctx.fillStyle = '#fff';
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 14;
+      ctx.beginPath(); ctx.arc(cx + r * Math.cos(theta), cy + r * Math.sin(theta), 6, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+    } else if (obj.icon === 'orbit'){
+      // Orbit ellipse + planet
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 6;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, 70, 40, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      // Sun (center)
+      ctx.fillStyle = '#ffb300';
+      ctx.shadowColor = '#ffb300'; ctx.shadowBlur = 16;
+      ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+      // Planet revolving
+      const ang = t * 0.6;
+      const px = cx + 70 * Math.cos(ang), py = cy + 40 * Math.sin(ang);
+      ctx.fillStyle = '#fff';
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 12;
+      ctx.beginPath(); ctx.arc(px, py, 6, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 11px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+      ctx.fillText(`E = ${val.toFixed(2)}`, cx, H - 22);
+      ctx.textAlign = 'left';
+    } else if (obj.icon === 'flow'){
+      // Streamlines (parallel curves)
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 1.5;
+      for (let row = -3; row <= 3; row++){
+        ctx.beginPath();
+        for (let i = 0; i <= 50; i++){
+          const xR = -1 + (i/50) * 2;
+          const yR = row * 0.25 + 0.15 * Math.sin(xR * 3 + t * 0.5);
+          ctx.lineTo(cx + xR * 80, cy + yR * 30);
+        }
+        ctx.stroke();
+      }
+      // Particles
+      ctx.fillStyle = '#fff';
+      for (let i = 0; i < 6; i++){
+        const phase = (t * 30 + i * 30) % 160;
+        const xR = -1 + phase / 80;
+        const yR = (i - 2.5) * 0.25 + 0.15 * Math.sin(xR * 3 + t * 0.5);
+        ctx.shadowColor = obj.color; ctx.shadowBlur = 8;
+        ctx.beginPath(); ctx.arc(cx + xR * 80, cy + yR * 30, 3, 0, Math.PI*2); ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+    } else if (obj.icon === 'tri'){
+      // Similar triangles (scaling)
+      const scales = [0.4, 0.7, 1.0, 1.3];
+      for (let i = 0; i < scales.length; i++){
+        const s = scales[i];
+        const hue = 30 + i * 20;
+        ctx.strokeStyle = `hsl(${hue}, 80%, 60%)`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - 50 * s);
+        ctx.lineTo(cx - 50 * s, cy + 30 * s);
+        ctx.lineTo(cx + 50 * s, cy + 30 * s);
+        ctx.closePath();
+        ctx.stroke();
+      }
+      // Animated scaling triangle
+      const sA = 0.3 + (val % 1) * 1.0;
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - 50 * sA);
+      ctx.lineTo(cx - 50 * sA, cy + 30 * sA);
+      ctx.lineTo(cx + 50 * sA, cy + 30 * sA);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    } else if (obj.icon === 'pot'){
+      // Equipotential contours (ellipses around 2 charges)
+      const charges = [{x: -30, y: 0, q: 1}, {x: 30, y: 0, q: -1}];
+      // Plot a few contours
+      const CSet = [0.3, 0.6, 1.0, 1.5];
+      for (let cI = 0; cI < CSet.length; cI++){
+        const C = CSet[cI];
+        const hue = 280 + cI * 15;
+        ctx.strokeStyle = `hsl(${hue}, 80%, 60%)`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        for (let theta = 0; theta < 2 * Math.PI; theta += 0.05){
+          // distance to point of contour ~ C
+          const r = 25 + C * 15;
+          const px = cx + r * Math.cos(theta) * (1 + 0.4 * Math.cos(theta));
+          const py = cy + r * Math.sin(theta);
+          if (theta === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.closePath(); ctx.stroke();
+      }
+      // Charges
+      ctx.fillStyle = '#ef4444'; ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 12;
+      ctx.beginPath(); ctx.arc(cx + charges[0].x, cy + charges[0].y, 8, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#0ea5e9'; ctx.shadowColor = '#0ea5e9'; ctx.shadowBlur = 12;
+      ctx.beginPath(); ctx.arc(cx + charges[1].x, cy + charges[1].y, 8, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+      // Test charge moving along contour
+      const ang = t * 0.5;
+      const r = 25 + val * 15;
+      const px = cx + r * Math.cos(ang) * (1 + 0.4 * Math.cos(ang));
+      const py = cy + r * Math.sin(ang);
+      ctx.fillStyle = '#fff';
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 14;
+      ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    // ── RIGHT: signal trace ──
+    const sx0 = splitX + 16, sx1 = W - 20, sy0 = 30, sy1 = H - 30;
+    ctx.strokeStyle = 'rgba(148,163,184,.2)'; ctx.lineWidth = 1;
+    ctx.strokeRect(sx0, sy0, sx1 - sx0, sy1 - sy0);
+    gridLines(ctx, sx0, sx1, sy0, sy1, 10, 4);
+
+    m3Apps.t += 0.012;
+    m3Apps.hist.push(val);
+    if (m3Apps.hist.length > 1000) m3Apps.hist.shift();
+
+    const hN = m3Apps.hist.length;
+    if (hN > 1){
+      let yMin = 0, yMaxH = 0;
+      for (let v of m3Apps.hist){ if (v < yMin) yMin = v; if (v > yMaxH) yMaxH = v; }
+      const yRng = Math.max(0.3, yMaxH - yMin);
+
+      ctx.strokeStyle = obj.color; ctx.lineWidth = 2;
+      ctx.shadowColor = obj.color; ctx.shadowBlur = 8;
+      ctx.beginPath();
+      for (let i = 0; i < hN; i++){
+        const px = sx0 + (i/(hN-1))*(sx1 - sx0);
+        const py = sy0 + ((yMaxH - m3Apps.hist[i])/yRng) * (sy1 - sy0);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = '#fff'; ctx.shadowColor = obj.color; ctx.shadowBlur = 14;
+      const tipX = sx1, tipY = sy0 + ((yMaxH - val)/yRng)*(sy1 - sy0);
+      ctx.beginPath(); ctx.arc(tipX, tipY, 5, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    ctx.fillStyle = obj.color; ctx.font = 'bold 12px JetBrains Mono, monospace';
+    ctx.fillText(obj.label, sx0 + 8, sy0 + 16);
+
+    const infoEl = document.getElementById('m3AppsInfo');
+    if (infoEl){
+      const samples = m3Apps.hist.length;
+      infoEl.innerHTML = `<span style="color:${obj.color}">●</span> ${obj.label} &nbsp;|&nbsp; t=${t.toFixed(2)}, val=${val.toFixed(3)} &nbsp;|&nbsp; ${samples}/1000 samples`;
+    }
+
+    m3Apps.raf = requestAnimationFrame(drawM3Apps);
+  }
+
+  // ── Init ──
+  function initM3Anims(){
+    if (document.getElementById('m3cvDeg')) drawM3Deg();
+    if (document.getElementById('m3cvSub')) drawM3Sub();
+    if (document.getElementById('m3cvMethod')) drawM3Method();
+    if (document.getElementById('m3cvExact')) drawM3Exact();
+    if (document.getElementById('m3cvApps')) drawM3Apps();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initM3Anims);
+  else initM3Anims();
+})();
 </script>
 
 </body>
