@@ -1187,7 +1187,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 06</div>
   <h2 class="section-title reveal">Animasi Interaktif<br>Base Motion &amp; Rotating Unbalance</h2>
-  <p class="section-desc reveal">Empat animasi visual khusus untuk topik <strong>Pertemuan 6</strong>: (1) <strong>Base motion live</strong> — pondasi y(t)=Y·sin(ωt) bergerak, massa merespon dengan amplitudo X = T<sub>d</sub>·Y; (2) <strong>Rotating unbalance live</strong> — rotor dengan massa eksentrik m₀ berputar, frame bergetar akibat gaya sentrifugal m₀·e·ω²; (3) <strong>Sweep T<sub>d</sub>(r,ζ)</strong> — bangun kurva transmissibility base motion dan lihat crossover di r=√2; (4) <strong>Kurva R(r,ζ) rotating unbalance</strong> — lihat asymptote unik R→1 saat r→∞. Geser slider, eksplorasi perbedaan kedua jenis eksitasi!</p>
+  <p class="section-desc reveal">Lima animasi untuk Pertemuan 6 (Base Motion + Rotating Unbalance): (1) Base motion live dengan <strong>preset push button</strong> r, (2) rotating unbalance live dengan slider, (3) sweep T<sub>d</sub>(r,ζ) build kurva, (4) R(r,ζ) curve dengan <strong>radio group</strong> ζ preset, dan (5) <strong>4 jenis balancing rotor</strong> dengan <strong>dropdown</strong> (Static, Two-plane Dynamic, Multi-plane, Field). Geser, tekan, pilih — eksplorasi!</p>
 
   <!-- Animasi 1: BASE MOTION LIVE -->
   <div class="anim-panel reveal">
@@ -1198,9 +1198,16 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="anim-body">
       <canvas id="cvPhysics" height="340"></canvas>
       <div class="ctrl-row">
-        <div class="ctrl-group">
-          <label>Rasio Frekuensi r = ω/ωₙ — <span class="ctrl-val" id="v_rp">0.80</span></label>
-          <input type="range" id="sl_rp" min="0.1" max="3.5" step="0.02" value="0.8">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Rasio Frekuensi r = ω/ωₙ — preset push buttons — <span class="ctrl-val" id="v_rp">0.80</span></label>
+          <input type="hidden" id="sl_rp" value="0.8">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+            <button class="rp-pbtn" onclick="setBaseR(0.5)" data-r="0.5" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">r=0.5 (Td~1, ikut)</button>
+            <button class="rp-pbtn" onclick="setBaseR(0.8)" data-r="0.8" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid #0ea5e9;background:#0ea5e9;color:#fff;font-weight:700;box-shadow:0 0 12px rgba(14,165,233,.6);transform:scale(1.05);transition:all .15s;">r=0.8 ✓</button>
+            <button class="rp-pbtn" onclick="setBaseR(1.0)" data-r="1.0" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.10);color:#ef4444;">r=1 RESONANSI</button>
+            <button class="rp-pbtn" onclick="setBaseR(1.41)" data-r="1.41" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">r=√2 crossover</button>
+            <button class="rp-pbtn" onclick="setBaseR(3.0)" data-r="3.0" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">r=3 (isolasi)</button>
+          </div>
         </div>
         <div class="ctrl-group">
           <label>Rasio Redaman ζ — <span class="ctrl-val" id="v_zp">0.10</span></label>
@@ -1280,15 +1287,52 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
           <label>Geser Operasi r = ω/ωₙ — <span class="ctrl-val" id="v_zh">1.00</span></label>
           <input type="range" id="sl_zh" min="0.1" max="4.0" step="0.02" value="1.00">
         </div>
-        <div class="ctrl-group">
-          <label>Rasio Redaman ζ — <span class="ctrl-val" id="v_line">0.10</span></label>
-          <input type="range" id="sl_line" min="0.02" max="0.5" step="0.01" value="0.10">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Rasio Redaman ζ — radio group — <span class="ctrl-val" id="v_line">0.10</span></label>
+          <input type="hidden" id="sl_line" value="0.10">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+            <input type="radio" name="run_zeta_radio" id="run_z_r1" onchange="setRunZeta(0.05)" style="display:none;">
+            <label for="run_z_r1" class="run-z-rlbl" data-z="0.05" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(220,38,38,.4);background:rgba(220,38,38,.10);color:#dc2626;">ζ=0.05 (resonansi tajam)</label>
+            <input type="radio" name="run_zeta_radio" id="run_z_r2" checked onchange="setRunZeta(0.10)" style="display:none;">
+            <label for="run_z_r2" class="run-z-rlbl" data-z="0.10" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">ζ=0.10 ✓</label>
+            <input type="radio" name="run_zeta_radio" id="run_z_r3" onchange="setRunZeta(0.20)" style="display:none;">
+            <label for="run_z_r3" class="run-z-rlbl" data-z="0.20" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">ζ=0.20 (sedang)</label>
+            <input type="radio" name="run_zeta_radio" id="run_z_r4" onchange="setRunZeta(0.40)" style="display:none;">
+            <label for="run_z_r4" class="run-z-rlbl" data-z="0.40" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">ζ=0.40 (heavy)</label>
+          </div>
         </div>
       </div>
       <div id="hpbInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
         <strong>📊 Cara Membaca Animasi Ini:</strong> Plot menampilkan <strong>R(r,ζ) = X·M/(m₀·e)</strong> — faktor pembesaran rotating unbalance untuk 4 nilai ζ berbeda. Garis hijau putus-putus = asymptote <strong>R = 1</strong> (limit fundamental saat r→∞).<br>
         <strong>Amati:</strong> (1) <strong>r → 0</strong>: R → 0 (gaya sentrifugal kecil). (2) Puncak R berada di <strong>r = 1/√(1−2ζ²)</strong> — sedikit <em>di atas</em> 1 (kebalikan dari DMF biasa!). (3) Saat r → ∞, semua kurva ζ konvergen ke R = 1, artinya X → m₀e/M tidak peduli ζ. (4) Geser slider r untuk lihat operating point berpindah; perhatikan bagaimana <em>menambah ζ</em> hanya berguna di sekitar r=1 — di r besar tidak banyak berbeda.
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 5: Rotor Balancing Types Dropdown -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:#a855f7"></div>
+      <span class="anim-title">Animasi 5 — Empat Jenis Balancing Rotor: Static, Two-Plane, Multi-Plane, Field</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvBalance" height="300" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih Jenis Balancing (Dropdown):</label>
+          <select id="sl_balance_type" onchange="setBalanceType(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
+            <option value="static">⚖️ Static Balancing (Single-Plane) — disk tipis L/D&lt;0.5</option>
+            <option value="twoplane">⚖️⚖️ Two-Plane Dynamic Balancing — rotor sedang L/D ~1-3</option>
+            <option value="multiplane">🌀 Multi-Plane (Modal) Balancing — rotor flexible L/D&gt;3</option>
+            <option value="field">🔧 Field/On-Site Balancing — sensor accelerometer real-time</option>
+          </select>
+        </div>
+      </div>
+      <div id="balanceInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca Animasi Ini:</strong> Pilih jenis balancing dari dropdown. Animasi menampilkan visualisasi rotor dengan unbalance dan strategi koreksi.<br>
+        <strong>Standar industri:</strong> ISO 1940-1 (rigid rotor: G grades), ISO 21940-12 (flexible rotor), ISO 21940-21 (field balancing). Pemilihan: Static (cocok L/D&lt;0.5, disk grinding), Two-plane (~1-3, motor armature), Multi-plane (&gt;3, turbine), Field (tanpa bongkar mesin, pakai vibration analyzer).
       </div>
     </div>
   </div>
@@ -4248,7 +4292,7 @@ function drawPhysics(){
 }
 
 function _physicsTick(){
-  if(_physicsAnim.running) _physicsAnim.t += 0.016;
+  if(_physicsAnim.running) _physicsAnim.t += 0.008;
   drawPhysics();
   _physicsAnim.raf = requestAnimationFrame(_physicsTick);
 }
@@ -4477,7 +4521,7 @@ function drawSweep(){
 }
 
 function _sweepTick(){
-  if(_rotorAnim.running) _rotorAnim.t += 0.016;
+  if(_rotorAnim.running) _rotorAnim.t += 0.008;
   drawSweep();
   _rotorAnim.raf = requestAnimationFrame(_sweepTick);
 }
@@ -4696,7 +4740,7 @@ function drawIso(){
 
 function _isoTick(){
   if(_tdSweepAnim.running){
-    _tdSweepAnim.t += 0.016;
+    _tdSweepAnim.t += 0.008;
     _tdSweepAnim.progress += 0.016/10;
     const zeta = parseFloat(document.getElementById('sl_ri').value);
     const r = _tdSweepAnim.progress * 4.0;
@@ -4866,6 +4910,204 @@ function drawHPB(){
   ['sl_zh','sl_line'].forEach(id=>{const s=document.getElementById(id); if(s) s.addEventListener('input', drawHPB);});
 })();
 setTimeout(drawHPB, 800);
+
+
+window.setBaseR=function(r){
+  const e=document.getElementById('sl_rp');if(e){e.value=r;const v=document.getElementById('v_rp');if(v)v.textContent=r.toFixed(2);}
+  document.querySelectorAll('.rp-pbtn').forEach(b=>{
+    const rb=parseFloat(b.dataset.r);const active=(Math.abs(rb-r)<0.02);
+    b.style.background=active?'#0ea5e9':'rgba(14,165,233,.08)';
+    b.style.borderColor=active?'#0ea5e9':'rgba(14,165,233,.3)';
+    b.style.color=active?'#fff':'#0ea5e9';
+    b.style.fontWeight=active?'700':'400';
+    b.style.boxShadow=active?'0 0 12px rgba(14,165,233,.6)':'none';
+    b.style.borderWidth=active?'2px':'1px';
+    b.style.transform=active?'scale(1.05)':'scale(1.0)';
+  });
+  if(typeof drawPhysics==='function')drawPhysics();
+};
+
+window.setRunZeta=function(z){
+  const e=document.getElementById('sl_line');if(e){e.value=z;const v=document.getElementById('v_line');if(v)v.textContent=z.toFixed(2);}
+  document.querySelectorAll('.run-z-rlbl').forEach(lbl=>{
+    const zb=parseFloat(lbl.dataset.z);const active=(Math.abs(zb-z)<0.01);
+    lbl.style.background=active?'rgba(255,255,255,.20)':'rgba(255,255,255,.04)';
+    lbl.style.borderWidth=active?'2px':'1px';
+    lbl.style.color=active?'#fff':lbl.style.color;
+    lbl.style.fontWeight=active?'700':'400';
+    lbl.style.boxShadow=active?'0 0 12px rgba(255,255,255,.4)':'none';
+    lbl.style.transform=active?'scale(1.05)':'scale(1.0)';
+  });
+  if(typeof drawHPB==='function')drawHPB();
+};
+
+// Animasi 5: Rotor Balancing Types Dropdown
+let _balanceType = 'static';
+let _balanceFrame = 0;
+window.setBalanceType = function(mode){ _balanceType = mode; };
+
+function drawBalance(){
+  const cv = document.getElementById('cvBalance'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const t = _balanceFrame * 0.012;
+  const cx = W/2, cy = H/2;
+
+  const types = {
+    static: {
+      title: '⚖️ Static Balancing (Single-Plane) — Disk Tipis',
+      desc: 'Untuk rotor pendek dengan L/D < 0.5 (disk grinding, pulley). Hanya 1 plane koreksi. Static unbalance: massa eksentrik pada satu radius.',
+      color: '#0ea5e9'
+    },
+    twoplane: {
+      title: '⚖️⚖️ Two-Plane Dynamic Balancing — Rotor Sedang',
+      desc: 'Untuk rotor L/D ~ 1-3 (motor armature, pump impeller). 2 plane koreksi diperlukan karena couple unbalance (resultant gaya = 0 tapi momen ≠ 0). ISO 1940 G2.5-G6.3.',
+      color: '#00e09e'
+    },
+    multiplane: {
+      title: '🌀 Multi-Plane Balancing — Rotor Fleksibel',
+      desc: 'Untuk turbin/kompresor besar (L/D > 3). Rotor flexible — modal balancing dengan beberapa plane. ISO 21940-12. Kompleks, butuh modal analysis.',
+      color: '#a855f7'
+    },
+    field: {
+      title: '🔧 Field/On-Site Balancing — Vibration Sensor',
+      desc: 'Balancing tanpa membongkar mesin: instal accelerometer 2 titik, ukur amplitudo + fase saat berjalan, tambah trial weight, hitung correction. Pakai analyzer SKF/Bently.',
+      color: '#facc15'
+    }
+  };
+
+  const c = types[_balanceType];
+
+  // Title
+  ctx.fillStyle = c.color; ctx.font = 'bold 13px JetBrains Mono';
+  ctx.textAlign = 'left';
+  ctx.fillText(c.title, 20, 25);
+
+  // Visual: rotor cross-section with unbalance markers
+  if(_balanceType === 'static'){
+    // Single disk
+    ctx.strokeStyle = c.color; ctx.lineWidth = 3;
+    ctx.shadowColor = c.color + 'A0'; ctx.shadowBlur = 8;
+    ctx.beginPath(); ctx.arc(cx, cy, 80, 0, Math.PI*2); ctx.stroke();
+    ctx.shadowBlur = 0;
+    // Eccentric mass (rotating)
+    const angle = t;
+    const mx = cx + 65*Math.cos(angle), my = cy + 65*Math.sin(angle);
+    ctx.fillStyle = '#ef4444';
+    ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 12;
+    ctx.beginPath(); ctx.arc(mx, my, 8, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+    // Counterweight (after balance)
+    const cwx = cx - 65*Math.cos(angle), cwy = cy - 65*Math.sin(angle);
+    ctx.fillStyle = '#00e09e';
+    ctx.beginPath(); ctx.arc(cwx, cwy, 6, 0, Math.PI*2); ctx.fill();
+    // Center
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI*2); ctx.fill();
+    // Labels
+    ctx.fillStyle = '#ef4444'; ctx.font = '11px JetBrains Mono';
+    ctx.fillText('m₀ (unbalance)', mx+12, my-5);
+    ctx.fillStyle = '#00e09e';
+    ctx.fillText('counterweight', cwx-90, cwy+5);
+  }
+  else if(_balanceType === 'twoplane'){
+    // Two disks separated horizontally
+    [-1, 1].forEach((sign, i) => {
+      const ox = cx + sign*120;
+      ctx.strokeStyle = c.color; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.ellipse(ox, cy, 15, 70, 0, 0, Math.PI*2); ctx.stroke();
+      // Eccentric masses (opposite phase = couple)
+      const angle = t + (sign > 0 ? Math.PI : 0);
+      const mx = ox + 14*Math.cos(angle*0.3), my = cy + 55*Math.sin(angle);
+      ctx.fillStyle = '#ef4444';
+      ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 10;
+      ctx.beginPath(); ctx.arc(mx, my, 7, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+    });
+    // Shaft
+    ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(cx-180, cy); ctx.lineTo(cx+180, cy); ctx.stroke();
+    // Plane labels
+    ctx.fillStyle = c.color; ctx.font = 'bold 11px JetBrains Mono';
+    ctx.textAlign = 'center';
+    ctx.fillText('Plane A', cx-120, cy+90);
+    ctx.fillText('Plane B', cx+120, cy+90);
+    ctx.textAlign = 'left';
+  }
+  else if(_balanceType === 'multiplane'){
+    // Long flexible shaft with multiple disks
+    ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 3;
+    ctx.beginPath();
+    for(let xi=0; xi<=W-40; xi+=2){
+      const ph = (xi/W)*Math.PI*1.5;
+      const dy = 8*Math.sin(t*2+ph);
+      if(xi===0) ctx.moveTo(20, cy+dy);
+      else ctx.lineTo(20+xi, cy+dy);
+    }
+    ctx.stroke();
+    // 4 disks
+    [0.2, 0.4, 0.6, 0.8].forEach((frac, i) => {
+      const ox = 20 + frac*(W-40);
+      const ph = frac*Math.PI*1.5;
+      const dy = 8*Math.sin(t*2+ph);
+      ctx.strokeStyle = c.color; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.ellipse(ox, cy+dy, 10, 35, 0, 0, Math.PI*2); ctx.stroke();
+      const angle = t + i*Math.PI/2;
+      const mx = ox + 9*Math.cos(angle*0.3), my = cy+dy + 28*Math.sin(angle);
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath(); ctx.arc(mx, my, 5, 0, Math.PI*2); ctx.fill();
+    });
+    ctx.fillStyle = c.color; ctx.font = 'bold 11px JetBrains Mono';
+    ctx.fillText('Modal balancing — 4 plane koreksi', 20, H-20);
+  }
+  else if(_balanceType === 'field'){
+    // Machine with sensors
+    ctx.strokeStyle = c.color; ctx.lineWidth = 2.5;
+    ctx.fillStyle = c.color + '20';
+    ctx.fillRect(cx-80, cy-50, 160, 100);
+    ctx.strokeRect(cx-80, cy-50, 160, 100);
+    // Spinning rotor
+    const angle = t*1.5;
+    const rx = cx + 25*Math.cos(angle), ry = cy + 8*Math.sin(angle);
+    ctx.fillStyle = '#ef4444';
+    ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 12;
+    ctx.beginPath(); ctx.arc(rx, ry, 6, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+    // Sensors (accelerometers)
+    [-1, 1].forEach((sign) => {
+      const sx = cx + sign*60, sy = cy - 35;
+      ctx.fillStyle = '#00e09e';
+      ctx.fillRect(sx-8, sy-8, 16, 16);
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.strokeRect(sx-8, sy-8, 16, 16);
+      // Wave from sensor (signal)
+      ctx.strokeStyle = '#00e09e';
+      ctx.beginPath();
+      for(let i=0; i<40; i++){
+        const px = sx + i*2;
+        const py = sy - 25 + 6*Math.sin(t*4 + sign*i*0.4);
+        if(i===0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+    });
+    ctx.fillStyle = c.color; ctx.font = 'bold 11px JetBrains Mono';
+    ctx.fillText('Sensor: amplitudo + fase real-time', 20, H-20);
+  }
+
+  const info = document.getElementById('balanceInfo');
+  if(info) info.innerHTML = `<strong style="color:${c.color}">${c.title}</strong><br>${c.desc}`;
+}
+
+function _balanceTick(){
+  _balanceFrame++;
+  drawBalance();
+  requestAnimationFrame(_balanceTick);
+}
+setTimeout(_balanceTick, 1100);
 
 
 // ════════════════════════════════════════════════════════════

@@ -1195,7 +1195,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 06</div>
   <h2 class="section-title reveal">Animasi Interaktif<br>Visualisasi Tiga Regim Redaman</h2>
-  <p class="section-desc reveal">Empat animasi visual untuk memahami getaran bebas teredam: (1) Mass-spring-damper fisik dengan ζ slider — lihat transisi underdamped → critical → overdamped, (2) Time-domain comparison untuk 3 regim sekaligus, (3) Decay envelope visualization dengan logarithmic decrement live, dan (4) Amplitudo decay rate spectrum. Geser slider, tekan tombol, eksplorasi!</p>
+  <p class="section-desc reveal">Lima animasi visual untuk memahami getaran bebas teredam: (1) Empat regim side-by-side dengan tombol DROP, (2) drop test interaktif dengan <strong>preset push button</strong> ζ, (3) logarithmic decrement live dengan <strong>radio group</strong> ζ "sistem misterius", (4) settling time vs ζ explorer dengan slider, dan (5) <strong>perbandingan jenis redaman</strong> dengan <strong>dropdown</strong> (Viscous, Coulomb, Quadratic, Hysteretic). Geser slider, tekan tombol, pilih preset — eksplorasi!</p>
 
   <!-- Animasi 1: 4 REGIM SIDE-BY-SIDE -->
   <div class="anim-panel reveal">
@@ -1226,9 +1226,16 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="anim-body">
       <canvas id="cvDropTest" height="360"></canvas>
       <div class="ctrl-row">
-        <div class="ctrl-group">
-          <label>Rasio Redaman ζ — <span class="ctrl-val" id="v_zd">0.20</span></label>
-          <input type="range" id="sl_zd" min="0" max="2.5" step="0.02" value="0.2">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Rasio Redaman ζ — preset push buttons — <span class="ctrl-val" id="v_zd">0.20</span></label>
+          <input type="hidden" id="sl_zd" value="0.2">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+            <button class="zd-pbtn" onclick="setDropZeta(0)" data-z="0" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(250,204,21,.4);background:rgba(250,204,21,.10);color:#facc15;">ζ=0 (tak teredam)</button>
+            <button class="zd-pbtn" onclick="setDropZeta(0.2)" data-z="0.2" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--amber);background:var(--amber);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,179,0,.6);transform:scale(1.05);transition:all .15s;">ζ=0.2 underdamped ✓</button>
+            <button class="zd-pbtn" onclick="setDropZeta(0.7)" data-z="0.7" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">ζ=0.7 (tinggi)</button>
+            <button class="zd-pbtn" onclick="setDropZeta(1.0)" data-z="1.0" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">ζ=1.0 critical</button>
+            <button class="zd-pbtn" onclick="setDropZeta(2.0)" data-z="2.0" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">ζ=2.0 overdamped</button>
+          </div>
         </div>
         <button class="btn-anim" id="btnDrop" onclick="dropMass()">▶ DROP</button>
         <button class="btn-anim" onclick="resetDrop()" style="background:rgba(168,85,247,.15);color:var(--violet);border-color:rgba(168,85,247,.3)">↺ RESET</button>
@@ -1250,9 +1257,19 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="anim-body">
       <canvas id="cvLogDec" height="380"></canvas>
       <div class="ctrl-row">
-        <div class="ctrl-group">
-          <label>ζ "Sebenarnya" (Sistem Misterius) — <span class="ctrl-val" id="v_zl">0.15</span></label>
-          <input type="range" id="sl_zl" min="0.02" max="0.40" step="0.005" value="0.15">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>ζ "Sebenarnya" (Sistem Misterius) — radio group — <span class="ctrl-val" id="v_zl">0.15</span></label>
+          <input type="hidden" id="sl_zl" value="0.15">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+            <input type="radio" name="zl_radio" id="zl_r1" onchange="setLogDecZeta(0.05)" style="display:none;">
+            <label for="zl_r1" class="zl-rlbl" data-z="0.05" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(220,38,38,.4);background:rgba(220,38,38,.10);color:#dc2626;">ζ=0.05 (~baja)</label>
+            <input type="radio" name="zl_radio" id="zl_r2" checked onchange="setLogDecZeta(0.15)" style="display:none;">
+            <label for="zl_r2" class="zl-rlbl" data-z="0.15" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--green);background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(0,224,158,.4);transform:scale(1.05);transition:all .15s;">ζ=0.15 ✓</label>
+            <input type="radio" name="zl_radio" id="zl_r3" onchange="setLogDecZeta(0.25)" style="display:none;">
+            <label for="zl_r3" class="zl-rlbl" data-z="0.25" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,179,0,.4);background:rgba(255,179,0,.10);color:var(--amber);">ζ=0.25 (~karet)</label>
+            <input type="radio" name="zl_radio" id="zl_r4" onchange="setLogDecZeta(0.35)" style="display:none;">
+            <label for="zl_r4" class="zl-rlbl" data-z="0.35" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">ζ=0.35 (~viscous)</label>
+          </div>
         </div>
         <button class="btn-anim" id="btnLogDec" onclick="toggleLogDec()">⏸ PAUSE</button>
       </div>
@@ -1282,6 +1299,33 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="tip-box" style="margin-top:16px">
         <strong>📊 Cara Membaca Animasi Ini:</strong> Kiri: kurva <strong>t_s vs ζ</strong> (settling time untuk ±2% amplitudo). Marker di kurva mengikuti slider ζ. Kanan: <strong>mini-simulation x(t)</strong> dari sistem dengan ζ yang dipilih — animasi real-time. Garis horizontal hijau = ±2% threshold; perpotongan = settling time visual.<br>
         <strong>Coba:</strong> (1) Geser ζ dari 0.05 ke 1.0 — t_s turun curam. (2) ζ=1 (critical) memberi t_s minimum untuk underdamped → critical transition. (3) ζ &gt; 1 (overdamped) — t_s justru NAIK kembali karena slow eigenvalue dominan. (4) Catat: t_s tidak monoton — ada nilai optimal di sekitar ζ ≈ 0.7-1.0.
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 5: Damping Type Comparison -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:#a855f7"></div>
+      <span class="anim-title">Animasi 5 — Jenis Redaman: Viscous vs Coulomb vs Quadratic vs Hysteretic</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvDampType" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih Model Redaman (Dropdown):</label>
+          <select id="sl_damp_type" onchange="setDampType(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
+            <option value="viscous">⚙️ Viscous: F_d = -c·ẋ (linear, paling umum)</option>
+            <option value="coulomb">🔧 Coulomb: F_d = -μN·sign(ẋ) (gesekan kering, decay linier)</option>
+            <option value="quadratic">💨 Quadratic: F_d = -c·ẋ·|ẋ| (aerodinamik)</option>
+            <option value="hysteretic">🏗️ Hysteretic: F_d = -h·x·sign(ẋ) (structural)</option>
+          </select>
+        </div>
+      </div>
+      <div id="dampTypeInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca Animasi Ini:</strong> Pilih jenis redaman dari dropdown — animasi menggambar progresif x(t) dengan model redaman yang dipilih. Empat model umum: Viscous (linier proporsional ẋ), Coulomb (gesekan kering konstan), Quadratic (proporsional ẋ²), dan Hysteretic (proporsional x).<br>
+        <strong>Insight engineering:</strong> (1) Viscous: persamaan analitik bersih, dipakai untuk preliminary. (2) Coulomb: real di engsel/bearing kering — decay <em>linier</em> (bukan eksponensial). (3) Quadratic: penting di aerodinamik (mobil, sayap). (4) Hysteretic: redaman material, ratio decay konstan — dasar SAE J1739, ASTM E756.
       </div>
     </div>
   </div>
@@ -4293,7 +4337,7 @@ function drawRegimes(){
 
 function _regTick(){
   if (!_regAnim.running) return;
-  _regAnim.t += 0.016;
+  _regAnim.t += 0.008;
   if (_regAnim.t > 6) _regAnim.t = 0;   // restart cycle (6s allows ~3.8 cycles untuk undamped pada ωₙ=4)
   drawRegimes();
   _regAnim.raf = requestAnimationFrame(_regTick);
@@ -4561,7 +4605,7 @@ function drawDrop(){
 
 function _dropTick(){
   if (!_dropAnim.running) return;
-  _dropAnim.t += 0.016;
+  _dropAnim.t += 0.008;
   if (_dropAnim.t > 3.0) {
     _dropAnim.running = false;
     const btn = document.getElementById('btnDrop');
@@ -4785,7 +4829,7 @@ function drawLogDec(){
 
 function _logTick(){
   if (!_logAnim.running) return;
-  _logAnim.t += 0.016;
+  _logAnim.t += 0.008;
   if (_logAnim.t > 4.0) {
     // restart cycle
     _logAnim.t = 0;
@@ -5075,7 +5119,7 @@ function drawSettling(){
 }
 
 function _settTick(){
-  _settAnim.t += 0.016;
+  _settAnim.t += 0.008;
   drawSettling();
   _settAnim.raf = requestAnimationFrame(_settTick);
 }
@@ -5085,6 +5129,178 @@ setTimeout(() => { drawSettling(); _settTick(); }, 800);
   if (sl) sl.addEventListener('input', drawSettling);
 })();
 
+
+
+// Push button preset for Animasi 2 (DropTest)
+window.setDropZeta=function(z){
+  const e=document.getElementById('sl_zd');if(e){e.value=z;const v=document.getElementById('v_zd');if(v)v.textContent=z.toFixed(2);}
+  document.querySelectorAll('.zd-pbtn').forEach(b=>{
+    const zb=parseFloat(b.dataset.z);const active=(Math.abs(zb-z)<0.01);
+    b.style.background=active?'var(--amber)':'rgba(255,179,0,.08)';
+    b.style.borderColor=active?'var(--amber)':'rgba(255,179,0,.3)';
+    b.style.color=active?'#fff':b.style.color;
+    b.style.fontWeight=active?'700':'400';
+    b.style.boxShadow=active?'0 0 12px rgba(255,179,0,.6)':'none';
+    b.style.borderWidth=active?'2px':'1px';
+    b.style.transform=active?'scale(1.05)':'scale(1.0)';
+  });
+};
+
+// Radio group for Animasi 3 (LogDec)
+window.setLogDecZeta=function(z){
+  const e=document.getElementById('sl_zl');if(e){e.value=z;const v=document.getElementById('v_zl');if(v)v.textContent=z.toFixed(3);}
+  document.querySelectorAll('.zl-rlbl').forEach(lbl=>{
+    const zb=parseFloat(lbl.dataset.z);const active=(Math.abs(zb-z)<0.005);
+    lbl.style.background=active?'rgba(255,255,255,.20)':'rgba(255,255,255,.04)';
+    lbl.style.borderWidth=active?'2px':'1px';
+    lbl.style.color=active?'#fff':lbl.style.color;
+    lbl.style.fontWeight=active?'700':'400';
+    lbl.style.boxShadow=active?'0 0 12px rgba(255,255,255,.4)':'none';
+    lbl.style.transform=active?'scale(1.05)':'scale(1.0)';
+  });
+  if(typeof drawLogDec==='function')drawLogDec();
+};
+
+// Animasi 5: Damping Type Comparison (Viscous/Coulomb/Quadratic/Hysteretic)
+let _dampType = 'viscous';
+let _dampFrame = 0;
+window.setDampType = function(mode){ _dampType = mode; _dampFrame = 0; };
+
+function drawDampType(){
+  const cv = document.getElementById('cvDampType'); if(!cv) return;
+  const W = cv.clientWidth; cv.width = W; const H = cv.height;
+  const ctx = cv.getContext('2d');
+
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  const padL=50, padR=20, padT=30, padB=40;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+
+  // Grid
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let i=0; i<=10; i++){
+    const x = padL + plotW*i/10;
+    ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, padT+plotH); ctx.stroke();
+  }
+  for(let i=0; i<=4; i++){
+    const y = padT + plotH*i/4;
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL+plotW, y); ctx.stroke();
+  }
+
+  // Axes
+  ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH);
+  ctx.stroke();
+
+  // Compute time history with selected damping model
+  const Tmax = 12;  // sec
+  const N = 600;
+  const xs = new Array(N);
+  const dt = Tmax/(N-1);
+  let x = 0.05, v = 0;
+  const k = 1, m = 1;  // ωn = 1
+  const c = 0.15;  // for viscous
+  for(let i=0; i<N; i++){
+    xs[i] = x;
+    let Fdamp = 0;
+    if(_dampType === 'viscous')      Fdamp = -2*c*v;
+    else if(_dampType === 'coulomb')  Fdamp = -0.08*Math.sign(v);  // dry friction
+    else if(_dampType === 'quadratic')Fdamp = -0.3*v*Math.abs(v);  // ~ aerodynamic
+    else if(_dampType === 'hysteretic')Fdamp = -0.15*x*Math.sign(v);  // structural
+    const a = -k*x/m + Fdamp/m;
+    v += a*dt;
+    x += v*dt;
+  }
+
+  // Map to canvas
+  const tmaxPlot = Tmax;
+  const ymax = 0.06;
+  const sx = t => padL + (t/tmaxPlot)*plotW;
+  const sy = y => padT + plotH/2 - (y/ymax)*plotH/2;
+
+  // Axis labels
+  ctx.fillStyle = '#475569'; ctx.font = '9px JetBrains Mono';
+  ctx.textAlign = 'right';
+  for(let i=-2; i<=2; i++){
+    const v = i*0.025;
+    ctx.fillText(v.toFixed(2), padL-4, sy(v)+3);
+  }
+  ctx.textAlign = 'center';
+  for(let i=0; i<=6; i++){
+    ctx.fillText((i*2).toString(), padL+plotW*i/6, padT+plotH+14);
+  }
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px JetBrains Mono';
+  ctx.fillText('x(t) [m]', padL-40, padT-8);
+  ctx.fillText('t [s]', padL+plotW-30, padT+plotH+28);
+
+  // Animated draw — show progressive trace based on _dampFrame
+  const progress = Math.min(1, _dampFrame*0.005/Tmax);
+  const drawN = Math.floor(progress*N);
+
+  const colors = {
+    viscous: '#0ea5e9',
+    coulomb: '#f97316',
+    quadratic: '#00e09e',
+    hysteretic: '#a855f7'
+  };
+  const labels = {
+    viscous: 'Viscous: F_d = -c·ẋ (linear, paling umum)',
+    coulomb: 'Coulomb: F_d = -μN·sign(ẋ) (gesekan kering, decay LINIER)',
+    quadratic: 'Quadratic: F_d = -c·ẋ·|ẋ| (aerodinamik, decay non-linear)',
+    hysteretic: 'Hysteretic: F_d = -h·x·sign(ẋ) (structural, ratio ≈ const)'
+  };
+
+  ctx.strokeStyle = colors[_dampType];
+  ctx.shadowColor = colors[_dampType] + '80';
+  ctx.shadowBlur = 8;
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  for(let i=0; i<drawN; i++){
+    const t = i*dt;
+    if(i===0) ctx.moveTo(sx(t), sy(xs[i]));
+    else ctx.lineTo(sx(t), sy(xs[i]));
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Current dot
+  if(drawN > 0 && drawN < N){
+    const t = drawN*dt;
+    ctx.fillStyle = '#fff';
+    ctx.shadowColor = colors[_dampType]; ctx.shadowBlur = 12;
+    ctx.beginPath(); ctx.arc(sx(t), sy(xs[drawN-1]), 5, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+
+  // Title
+  ctx.fillStyle = colors[_dampType]; ctx.font = 'bold 13px JetBrains Mono';
+  ctx.textAlign = 'left';
+  ctx.fillText(labels[_dampType], padL+10, padT+20);
+
+  // Info
+  const info = document.getElementById('dampTypeInfo');
+  if(info){
+    const desc = {
+      viscous: '⚙️ Viscous damping (linear): paling sering dipakai untuk model preliminary. Decay envelope = e^(-ζωt). Persamaan analitik standar.',
+      coulomb: '🔧 Coulomb friction: gaya kering konstan, decay <strong>linier</strong> (bukan eksponensial). Contoh: kontak logam-logam, stick-slip.',
+      quadratic: '💨 Quadratic damping: ~ aerodinamik (drag), gelombang air. Decay LEBIH LAMBAT dari viscous untuk amplitudo besar.',
+      hysteretic: '🏗️ Hysteretic damping: redaman struktural (internal material). Energi loss per siklus konstan → decay ratio konstan.'
+    };
+    info.innerHTML = desc[_dampType];
+  }
+}
+
+function _dampTick(){
+  _dampFrame++;
+  drawDampType();
+  requestAnimationFrame(_dampTick);
+}
+setTimeout(_dampTick, 1000);
 
 
 // ════════════════════════════════════════════════════════════
