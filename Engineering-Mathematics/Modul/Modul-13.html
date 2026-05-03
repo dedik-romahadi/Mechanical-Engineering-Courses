@@ -1218,8 +1218,49 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     ⚠ <strong>Pitfall faktor linear berbeda:</strong> <strong>(1)</strong> Pastikan akar benar-benar berbeda — bila ada akar berulang, masuk ke kasus 2 (Bagian 04). <strong>(2)</strong> Tanda — <code>(s+2)</code> punya akar <code>s = −2</code> (bukan +2). Substitusi s = −2 saat hitung B. <strong>(3)</strong> Jangan tertukar antara <code>1/(s−a)</code> ↔ <code>e<sup>at</sup></code> dan <code>1/(s+a)</code> ↔ <code>e<sup>−at</sup></code> di tabel. <strong>(4)</strong> Untuk numerator deg = deg(Q)−1 (one less than denominator), PFD selalu work. Jika numerator lebih kompleks, cek dulu syarat deg P &lt; deg Q. <strong>(5)</strong> SymPy: <code>sp.apart((3*s+5)/((s-1)*(s+2)), s)</code>.
   </div>
 
-  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
-    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), §6 Kasus Pertama — Contoh 6.1, 6.2 &amp; 6.3:</strong> modul mendefinisikan rumus eksplisit cover-up <code>A<sub>i</sub> = lim<sub>s→a<sub>i</sub></sub> [(s−a<sub>i</sub>)·P(s)/Q(s)]</code> dan mengilustrasikan dengan tiga contoh: <em>Contoh 6.1</em> <code>F(s) = (2s+3)/(s²−5s+6) = 9/(s−3) − 7/(s−2)</code> → <code>f(t) = 9e<sup>3t</sup> − 7e<sup>2t</sup></code>; <em>Contoh 6.2</em> <code>F(s) = (s²−4s+13)/(s³−2s²−s+2)</code> dengan tiga akar berbeda <code>s = 1, −1, 2</code> → <code>f(t) = 3e<sup>−t</sup> − 5e<sup>t</sup> + 3e<sup>2t</sup></code>; <em>Contoh 6.3</em> <em>solve PD orde-2</em> <code>y″ − 5y′ + 6y = 4e<sup>t</sup></code> dengan IVP — pakai shortcut <code>Y(s) = R(s)/H(s) + G(s)/H(s)</code> dari Modul 11, lalu PFD di pole <code>s = 1, 2, 3</code>. Pola modul: identifikasi akar Q(s), tulis template, substitusi nilai s = a<sub>i</sub>, dapat A<sub>i</sub>, lalu invers ke <code>e<sup>a<sub>i</sub>t</sup></code>.
+  <div class="info-box reveal" style="margin-top:18px">
+    <strong>Contoh 6.1 — PFD Faktor Linear Berbeda (2 akar):</strong>
+    Tentukan invers Laplace dari <code>F(s) = (2s+3)/(s²−5s+6)</code>.
+  </div>
+
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+    <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
+    Faktorkan Q(s):&nbsp;&nbsp; s² − 5s + 6&nbsp;&nbsp;&nbsp; = (s − 2)(s − 3)&nbsp;&nbsp;&rarr; akar: s = 2, 3<br>
+    Template PFD:&nbsp;&nbsp;&nbsp; F(s)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = A/(s − 2) + B/(s − 3)<br>
+    Cover-up A:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; A&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = (2·2 + 3)/(2 − 3) = 7/(−1) = −7<br>
+    Cover-up B:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; B&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = (2·3 + 3)/(3 − 2) = 9/1 = 9<br>
+    PFD final:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; F(s)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 9/(s − 3) − 7/(s − 2)<br>
+    <strong style="color:#fff">Hasil:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; f(t)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 9e<sup>3t</sup> − 7e<sup>2t</sup></strong>
+  </div>
+
+  <div class="info-box reveal" style="margin-top:18px">
+    <strong>Contoh 6.2 — PFD Faktor Linear Berbeda (3 akar):</strong>
+    Tentukan invers Laplace dari <code>F(s) = (s²−4s+13)/(s³−2s²−s+2)</code>.
+  </div>
+
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+    <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
+    Faktorkan Q(s):&nbsp;&nbsp; s³ − 2s² − s + 2 = (s − 1)(s + 1)(s − 2)&nbsp;&nbsp;&rarr; akar: s = 1, −1, 2<br>
+    Template PFD:&nbsp;&nbsp;&nbsp; F(s) = A/(s − 1) + B/(s + 1) + C/(s − 2)<br>
+    Cover-up A:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; A = (1 − 4 + 13)/[(1 + 1)(1 − 2)] = 10/(−2) = −5<br>
+    Cover-up B:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; B = (1 + 4 + 13)/[(−1 − 1)(−1 − 2)] = 18/6 = 3<br>
+    Cover-up C:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; C = (4 − 8 + 13)/[(2 − 1)(2 + 1)] = 9/3 = 3<br>
+    PFD final:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; F(s) = 3/(s + 1) − 5/(s − 1) + 3/(s − 2)<br>
+    <strong style="color:#fff">Hasil:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; f(t) = 3e<sup>−t</sup> − 5e<sup>t</sup> + 3e<sup>2t</sup></strong>
+  </div>
+
+  <div class="info-box reveal" style="margin-top:18px">
+    <strong>Contoh 6.3 — Solve PD Orde-2 dengan PFD:</strong>
+    Selesaikan <code>y″ − 5y′ + 6y = 4e<sup>t</sup></code> dengan IVP standar via shortcut Laplace + PFD.
+  </div>
+
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+    <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
+    Karakteristik:&nbsp;&nbsp; H(s) = s² − 5s + 6 = (s − 2)(s − 3)<br>
+    Input Laplace:&nbsp;&nbsp; R(s)&nbsp; = 4/(s − 1)<br>
+    Shortcut:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Y(s)&nbsp; = R(s)/H(s) + G(s)/H(s)&nbsp;&nbsp;&rarr; pole di s = 1, 2, 3<br>
+    PFD pada pole:&nbsp; Y(s) = A/(s − 1) + B/(s − 2) + C/(s − 3)&nbsp;&nbsp;&rarr; cover-up tiap akar<br>
+    <strong style="color:#fff">Hasil:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; y(t) = A·e<sup>t</sup> + B·e<sup>2t</sup> + C·e<sup>3t</sup>&nbsp;&nbsp; (kombinasi 3 mode eksponensial)</strong>
   </div>
 </div>
 
@@ -1301,8 +1342,21 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     ⚠ <strong>Pitfall faktor berulang:</strong> <strong>(1)</strong> JANGAN lupa term dengan pangkat lebih rendah — <code>A/(s−a)² + B/(s−a)</code> kedua-duanya wajib, tidak boleh skip A. <strong>(2)</strong> Cover-up rule sederhana hanya beri <strong>Aₖ</strong> (pangkat tertinggi), bukan A₁ sampai Aₖ₋₁. Untuk koefisien lain, samakan koefisien atau pakai turunan. <strong>(3)</strong> Multiplicity menentukan jumlah term — <code>(s−a)³</code> selalu butuh <strong>3</strong> term, <code>(s−a)⁵</code> butuh 5 term. <strong>(4)</strong> Inversi: kategori <code>tⁿ·e<sup>at</sup>/n!</code>, hati-hati factorial — <code>1/(s−a)³ ↔ t²·e<sup>at</sup>/2</code> (bagi 2!), bukan <code>t²·e<sup>at</sup></code>. <strong>(5)</strong> SymPy: <code>sp.apart(1/(s*(s+2)**2), s)</code> automatic.
   </div>
 
-  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
-    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), §6 Kasus Kedua — solve PD non-homogen orde 2 dengan akar berulang multiplicity 4:</strong> modul mendemonstrasikan kasus paling kompleks faktor linear berulang. Diberikan PD <code>y″ − 4y′ + 4y = 6te<sup>2t</sup> − 4e<sup>2t</sup></code> dengan <code>y(0) = 2, y′(0) = 8</code>. Setelah Laplace + shortcut <code>Y(s) = R(s)/H(s) + G(s)/H(s)</code>, hasil <strong>Y(s) = (2s³ − 8s² + 4s + 14)/(s−2)<sup>4</sup></strong>. Karena denominator <code>(s−2)<sup>4</sup></code>, template PFD: <code>A<sub>4</sub>/(s−2)<sup>4</sup> + A<sub>3</sub>/(s−2)<sup>3</sup> + A<sub>2</sub>/(s−2)<sup>2</sup> + A<sub>1</sub>/(s−2)</code>. Modul menghitung <code>A<sub>4</sub> = 6, A<sub>3</sub> = −4, A<sub>2</sub> = ..., A<sub>1</sub> = ...</code> dan invers ke <code>y(t) = ... + (6/3!)t³e<sup>2t</sup> − ...</code> dengan pola tabel <code>1/(s−a)<sup>n</sup> ↔ t<sup>n−1</sup>e<sup>at</sup>/(n−1)!</code>. Detail kunci: cover-up rule modifikasi memberi A<sub>4</sub> langsung; A<sub>1</sub>–A<sub>3</sub> via turunan ke-1, ke-2, ke-3 atau samakan koefisien polinomial.
+  <div class="info-box reveal" style="margin-top:18px">
+    <strong>Contoh 6.10 — Solve PD Non-Homogen dengan Akar Berulang Multiplicity 4:</strong>
+    Selesaikan <code>y″ − 4y′ + 4y = 6te<sup>2t</sup> − 4e<sup>2t</sup></code> dengan <code>y(0) = 2, y′(0) = 8</code>.
+  </div>
+
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+    <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
+    Karakteristik:&nbsp;&nbsp;&nbsp; H(s) = s² − 4s + 4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = (s − 2)²<br>
+    Input Laplace:&nbsp;&nbsp;&nbsp; R(s) = 6/(s − 2)² − 4/(s − 2)<br>
+    Shortcut Laplace: Y(s) = (2s³ − 8s² + 4s + 14)/(s − 2)<sup>4</sup><br>
+    Template PFD:&nbsp;&nbsp;&nbsp;&nbsp; Y(s) = A<sub>1</sub>/(s − 2) + A<sub>2</sub>/(s − 2)² + A<sub>3</sub>/(s − 2)³ + A<sub>4</sub>/(s − 2)<sup>4</sup><br>
+    Cover-up A<sub>4</sub>:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; A<sub>4</sub> = (s − 2)<sup>4</sup>·Y(s) |<sub>s=2</sub> = 6&nbsp;&nbsp;(pangkat tertinggi langsung)<br>
+    Turunan ke-1:&nbsp;&nbsp;&nbsp;&nbsp; A<sub>3</sub> = −4&nbsp;&nbsp;(dari d/ds[(s − 2)<sup>4</sup>·Y(s)] |<sub>s=2</sub>)<br>
+    Tabel inversi:&nbsp;&nbsp;&nbsp; ℒ⁻¹{1/(s − a)<sup>n</sup>} = t<sup>n−1</sup>·e<sup>at</sup>/(n − 1)!<br>
+    <strong style="color:#fff">Hasil:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; y(t) = A<sub>1</sub>·e<sup>2t</sup> + A<sub>2</sub>·t·e<sup>2t</sup> + (A<sub>3</sub>/2!)·t²·e<sup>2t</sup> + (6/3!)·t³·e<sup>2t</sup></strong>
   </div>
 </div>
 
@@ -1988,8 +2042,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     💡 <strong>Strategi belajar:</strong> Kerjakan Tugas tab dengan urutan ini — (1) MC dulu untuk konsep, (2) Komputasi Easy/Medium untuk latihan rutin, (3) Komputasi Hard di akhir karena membutuhkan pemahaman menyeluruh. Diskusikan kesulitan di tab Forum atau panel chat 💬 (klik FAB di pojok kanan bawah). Selamat mengerjakan!
   </div>
 
-  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
-    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), §6 Contoh 6.1 &amp; 6.2 — Reproduksi Komputasi PFD:</strong> modul menghitung manual: <em>Contoh 6.1</em> <code>F(s) = (2s+3)/(s²−5s+6)</code> dengan akar 2 dan 3, hasil PFD <code>9/(s−3) − 7/(s−2)</code> → <code>f(t) = 9e<sup>3t</sup> − 7e<sup>2t</sup></code>; <em>Contoh 6.2</em> <code>F(s) = (s²−4s+13)/(s³−2s²−s+2)</code> dengan akar 1, −1, 2, hasil <code>3/(s+1) − 5/(s−1) + 3/(s−2)</code>. Verifikasi dengan SymPy: <pre style="background:rgba(0,0,0,.3);padding:10px;border-radius:6px;font-size:12px;margin:8px 0;overflow:auto">import sympy as sp
+  <div class="info-box reveal" style="margin-top:18px">
+    <strong>Verifikasi Komputasi PFD dengan SymPy (Reproduksi Contoh 6.1 &amp; 6.2):</strong>
+    Bandingkan hasil cover-up manual dengan output otomatis <code>sp.apart</code> — semua koefisien wajib match.
+    <pre style="background:rgba(0,0,0,.3);padding:10px;border-radius:6px;font-size:12px;margin:8px 0;overflow:auto">import sympy as sp
 s, t = sp.symbols('s t', positive=True)
 # Contoh 6.1
 F1 = (2*s + 3)/(s**2 - 5*s + 6)
@@ -1998,7 +2054,8 @@ print(sp.inverse_laplace_transform(F1, s, t))  # 9*exp(3*t) - 7*exp(2*t)
 # Contoh 6.2
 F2 = (s**2 - 4*s + 13)/(s**3 - 2*s**2 - s + 2)
 print(sp.apart(F2, s))               # 3/(s+1) - 5/(s-1) + 3/(s-2)
-print(sp.inverse_laplace_transform(F2, s, t))  # 3*e^(-t) - 5*e^t + 3*e^(2t)</pre>Output SymPy identik dengan langkah cover-up modul — bukti bahwa rumus <code>A<sub>i</sub> = lim<sub>s→a<sub>i</sub></sub>(s−a<sub>i</sub>)F(s)</code> selalu reliable untuk Kasus 1. Bandingkan langkah modul dengan output <code>sp.apart</code>, semua koefisien match.
+print(sp.inverse_laplace_transform(F2, s, t))  # 3*e^(-t) - 5*e^t + 3*e^(2t)</pre>
+    Output SymPy identik dengan langkah cover-up — bukti bahwa rumus <code>A<sub>i</sub> = lim<sub>s→a<sub>i</sub></sub>(s − a<sub>i</sub>)·F(s)</code> selalu reliable untuk Kasus 1.
   </div>
 </div>
 
@@ -2142,8 +2199,16 @@ print(sp.inverse_laplace_transform(F2, s, t))  # 3*e^(-t) - 5*e^t + 3*e^(2t)</pr
     </div>
   </div>
 
-  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-bottom:24px">
-    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), §6 — Pola Soal PFD untuk Tugas 13:</strong> Tugas 13 mencakup 4 kasus PFD modul PDF: (1) Kasus Pertama — faktor linear berbeda (Contoh 6.1, 6.2, 6.3), (2) Kasus Kedua — faktor linear berulang dengan multiplicity sampai 4 (Contoh 6.10), (3) Kasus Ketiga — faktor kuadratik konjugat tak berulang (Contoh 6.13 menghasilkan kombinasi <code>e<sup>at</sup>·sin/cos</code>), (4) Kasus Keempat — faktor kuadratik konjugat berulang (Contoh 6.14). Tip cara cepat: <em>identifikasi tipe Q(s) dulu</em> sebelum tulis template — cek diskriminan kuadratik, multiplicity tiap akar, lalu pilih kasus 1/2/3/4. Komputasi Hard menambahkan integrasi Tugas 13 dengan Modul 11 (solve PD via Y(s) = R(s)/H(s) + G(s)/H(s)) dan Modul 12 (invers Laplace dengan faktor e<sup>−as</sup>).
+  <div class="info-box reveal" style="margin-bottom:24px">
+    <strong>Pola Soal PFD — Cakupan 4 Kasus pada Tugas 13:</strong>
+    Tugas 13 mencakup empat kasus dekomposisi pecahan parsial yang berurutan secara konseptual:
+    <ul style="margin-top:10px;margin-bottom:8px;padding-left:20px;line-height:1.8">
+      <li><strong>Kasus 1</strong> — Faktor linear berbeda (cover-up rule langsung).</li>
+      <li><strong>Kasus 2</strong> — Faktor linear berulang dengan multiplicity sampai 4 (turunan ke-1, ke-2, ke-3 untuk koefisien rendah).</li>
+      <li><strong>Kasus 3</strong> — Faktor kuadratik konjugat tak berulang (menghasilkan kombinasi <code>e<sup>at</sup>·sin/cos</code> via lengkapi kuadrat).</li>
+      <li><strong>Kasus 4</strong> — Faktor kuadratik konjugat berulang (kombinasi multiplicity dengan completing the square).</li>
+    </ul>
+    Tip cara cepat: <em>identifikasi tipe Q(s) dulu</em> sebelum tulis template — cek diskriminan kuadratik, multiplicity tiap akar, lalu pilih Kasus 1/2/3/4. Komputasi Hard menambahkan integrasi dengan Modul 11 (solve PD via <code>Y(s) = R(s)/H(s) + G(s)/H(s)</code>) dan Modul 12 (invers Laplace dengan faktor <code>e<sup>−as</sup></code>).
   </div>
 
   <!-- ─── PILIHAN GANDA ─── -->
@@ -2680,8 +2745,18 @@ print(sp.inverse_laplace_transform(F2, s, t))  # 3*e^(-t) - 5*e^t + 3*e^(2t)</pr
   <canvas id="cvForum" height="360" style="margin-bottom:12px;border-radius:12px"></canvas>
   <p style="font-size:13px;color:var(--muted);margin-bottom:24px;font-family:'JetBrains Mono',monospace;text-align:center">— Visualisasi step response y(t) robotic arm: tiga mode peluruhan e^(−2t), e^(−5t), e^(−6t) dengan residu berbeda, plus konstanta DC dari pole di s=0. Mode terlambat (e^(−2t)) dominant karena decay paling lambat — menentukan settling time ≈ 4/2 = 2 s. PFD memungkinkan analisis tiap mode terpisah.</p>
 
-  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-bottom:36px">
-    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), §6 Contoh 6.2 sebagai Template untuk Forum Step Response:</strong> kasus robotic arm <code>Y(s) = 60/[s(s+2)(s+5)(s+6)]</code> di forum ini adalah <em>generalisasi 4-pole</em> dari Contoh 6.2 modul yang men-decompose 3-pole <code>(s²−4s+13)/(s³−2s²−s+2)</code> menjadi tiga mode <code>3e<sup>−t</sup> − 5e<sup>t</sup> + 3e<sup>2t</sup></code>. Pakai rumus cover-up modul: <code>A<sub>i</sub> = lim<sub>s→a<sub>i</sub></sub>[(s−a<sub>i</sub>)·F(s)]</code> per akar. Untuk forum: A<sub>0</sub> di s=0, A<sub>−2</sub> di s=−2, A<sub>−5</sub> di s=−5, A<sub>−6</sub> di s=−6. Modul mengajarkan bahwa <em>residu</em> A<sub>i</sub> = bobot mode <code>e<sup>a<sub>i</sub>t</sup></code> di solusi waktu — interpretasi engineering: pole paling kecil (closest to imaginary axis) = mode dominant = penentu settling time, tepat seperti yang dianalisis Sucipto (3rd Edition) untuk teori kontrol.
+  <div class="info-box reveal" style="margin-bottom:24px">
+    <strong>Forum Step Response Robotic Arm — Generalisasi 4-Pole:</strong>
+    Kasus <code>Y(s) = 60/[s·(s + 2)(s + 5)(s + 6)]</code> di forum ini adalah generalisasi 4-pole dari kerangka 3-pole standar PFD. Setiap residu A<sub>i</sub> = bobot mode <code>e<sup>a<sub>i</sub>t</sup></code> di solusi waktu. Interpretasi engineering: pole paling kecil (closest to imaginary axis) = mode dominant = penentu settling time.
+  </div>
+
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2;margin-bottom:36px">
+    <div class="label" style="text-align:left">Cover-Up Rule per Akar — A<sub>i</sub> = lim<sub>s&rarr;a<sub>i</sub></sub>[(s − a<sub>i</sub>)·F(s)]</div>
+    Pole di s = 0:&nbsp;&nbsp;&nbsp; A<sub>0</sub>&nbsp;&nbsp; = 60/[(0 + 2)(0 + 5)(0 + 6)]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 60/60&nbsp;&nbsp;&nbsp; = 1<br>
+    Pole di s = −2:&nbsp; A<sub>−2</sub> = 60/[(−2)(−2 + 5)(−2 + 6)] = 60/(−24) = −2.5<br>
+    Pole di s = −5:&nbsp; A<sub>−5</sub> = 60/[(−5)(−5 + 2)(−5 + 6)] = 60/15&nbsp;&nbsp;&nbsp; = 4<br>
+    Pole di s = −6:&nbsp; A<sub>−6</sub> = 60/[(−6)(−6 + 2)(−6 + 5)] = 60/(−24) = −2.5<br>
+    <strong style="color:#fff">Hasil:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; y(t) = 1 − 2.5·e<sup>−2t</sup> + 4·e<sup>−5t</sup> − 2.5·e<sup>−6t</sup>&nbsp;&nbsp;&nbsp;(mode dominant: e<sup>−2t</sup>)</strong>
   </div>
 
   <!-- Pertanyaan Diskusi -->

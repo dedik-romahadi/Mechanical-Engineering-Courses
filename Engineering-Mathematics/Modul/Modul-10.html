@@ -1078,13 +1078,20 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     💡 <strong>Strategi belajar Laplace:</strong> <strong>(1) Hafal tabel dasar</strong> — 8-10 fungsi kunci (1, t, e^(at), sin/cos, t·e^(at), dll). <strong>(2) Hafal sifat turunan</strong> — <code>L{f'} = sF − f(0)</code>, <code>L{f''} = s²F − sf(0) − f'(0)</code>. <strong>(3) Latih pecahan parsial</strong> — kunci dari invers Laplace adalah dekomposisi F(s) menjadi term yang ada di tabel. <strong>(4) Pakai SymPy</strong> sebagai verifikasi: <code>sp.laplace_transform(f, t, s)</code> dan <code>sp.inverse_laplace_transform(F, s, t)</code>.
   </div>
 
-  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
-    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), §4.1 Pengertian Transformasi Laplace dan Inversnya:</strong>
-    <p style="margin:8px 0 0 0;font-size:14px;line-height:1.7">Modul PDF mendefinisikan Laplace sebagai <em>integral tak wajar</em>:</p>
-    <div style="text-align:center;margin:8px 0;font-family:'JetBrains Mono',monospace;color:var(--cyan)">F(s) = L{f} = ∫₀<sup>∞</sup> f(t)·e<sup>−st</sup> dt &nbsp;&nbsp;&nbsp; (jika integral konvergen untuk setiap s)</div>
-    <p style="margin:6px 0 0 0;font-size:14px;line-height:1.7">Sebagai ilustrasi konvergensi, modul menghitung <code>∫₀<sup>∞</sup> e<sup>−2t</sup>dt = ½</code> (konvergen) dan menyebut Fungsi Gamma <code>Γ(n) = ∫₀<sup>∞</sup>e<sup>−t</sup>t<sup>n−1</sup>dt</code> dengan sifat <code>Γ(n + 1) = n!</code> — yang nanti dipakai untuk derivasi <code>L{t<sup>n</sup>} = n!/s<sup>n+1</sup></code>. Modul juga menegaskan: <em>"Bilamana diketahui invers transformasi Laplace dari suatu fungsi F(s), maka dapat ditentukan pula fungsi pembangkitnya"</em> — ini definisi <code>f(t) = L<sup>−1</sup>{F(s)}</code>.</p>
-    <span style="display:block;margin-top:8px;font-size:13px;color:var(--muted)">Lihat halaman 2–3 modul PDF (Sucipto + Markoni) untuk penurunan lengkap.</span>
+  <div class="info-box reveal" style="margin-top:18px">
+    <strong>Definisi Formal Transformasi Laplace:</strong>
+    Transformasi Laplace dirumuskan sebagai <em>integral tak wajar</em> yang memetakan fungsi domain waktu <code>f(t)</code> ke fungsi domain frekuensi kompleks <code>F(s)</code>.
   </div>
+
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+    <div class="label" style="text-align:left">Definisi Integral Laplace dan Invers</div>
+    F(s) = L{f(t)}&nbsp;&nbsp;&nbsp;&nbsp; = ∫₀<sup>∞</sup> f(t)·e<sup>−st</sup> dt&nbsp;&nbsp;&nbsp;&nbsp;(jika integral konvergen)<br>
+    f(t) = L<sup>−1</sup>{F(s)}&nbsp;&nbsp;(definisi invers — kembali ke domain waktu)
+  </div>
+
+  <p class="reveal" style="font-size:14px;line-height:1.75;color:var(--text);margin-top:14px">
+    Sebagai ilustrasi konvergensi, integral <code>∫₀<sup>∞</sup> e<sup>−2t</sup> dt = ½</code> bersifat konvergen. Konsep terkait yang penting adalah <strong>Fungsi Gamma</strong> <code>Γ(n) = ∫₀<sup>∞</sup> e<sup>−t</sup>·t<sup>n−1</sup> dt</code> dengan sifat <code>Γ(n + 1) = n!</code>, yang menjadi dasar penurunan rumus <code>L{t<sup>n</sup>} = n!/s<sup>n+1</sup></code>. Hubungan timbal balik antara <code>f(t)</code> dan <code>F(s)</code> menjadi jantung metode Laplace: bila invers <code>L<sup>−1</sup>{F(s)}</code> diketahui, maka fungsi pembangkit <code>f(t)</code> dapat ditentukan kembali secara unik.
+  </p>
 </div>
 
 <!-- ═══ BAGIAN 02 — PERSAMAAN KARAKTERISTIK ORDE n & RUMUS bᵢ ═══ -->
@@ -1160,16 +1167,24 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     💡 <strong>Cara mengenali F(s) di tabel:</strong> Saat melakukan <em>invers Laplace</em>, periksa bentuk denominator: <strong>(1) Linear (s − a)</strong> → eksponensial e^(at). <strong>(2) Quadratic dengan +ω²</strong> (s² + ω²) → sin/cos. <strong>(3) Quadratic dengan −a²</strong> (s² − a²) → sinh/cosh. <strong>(4) (s − a)<sup>n+1</sup></strong> → t<sup>n</sup>·e^(at). <strong>(5) (s−a)² + ω²</strong> → e^(at)·sin/cos. Numerator menentukan koefisien atau pola sin vs cos.
   </div>
 
-  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
-    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), Tabel 4.1 Rumus Dasar Transformasi Laplace dan Inversnya:</strong>
-    <p style="margin:8px 0 0 0;font-size:14px;line-height:1.7">Modul PDF (halaman 6) menyajikan <strong>Tabel 4.1</strong> dengan 6 entri pasangan <code>f(t) ↔ F(s)</code> sebagai fondasi:</p>
-    <ul style="margin:6px 0 0 22px;font-size:14px;line-height:1.65">
-      <li><code>L{1} = 1/s</code>, &nbsp; <code>L{t} = 1/s²</code>, &nbsp; <code>L{t<sup>n</sup>} = n!/s<sup>n+1</sup></code> (n = 0, 1, 2, …)</li>
-      <li><code>L{e<sup>at</sup>} = 1/(s − a)</code>, &nbsp; <code>L{cos bt} = s/(s² + b²)</code>, &nbsp; <code>L{sin bt} = b/(s² + b²)</code></li>
-    </ul>
-    <p style="margin:8px 0 0 0;font-size:14px;line-height:1.7"><strong>Contoh 1.1</strong> di modul PDF mengerjakan derivasi <code>L{e<sup>at</sup>}</code>, <code>L{cos bt}</code>, dan <code>L{t<sup>n</sup>}</code> langsung dari definisi integral tak wajar — pakai trik <code>u = st</code> dan substitusi limit. <strong>Contoh 1.5</strong> mengkombinasikan <em>linieritas</em> + tabel untuk menghitung <code>L{2t³ + 3 cos 2t}</code>, <code>L{4t² − 3 sin 2t}</code>, <code>L{sin 3t + 2e<sup>3t</sup>}</code>, dst.</p>
-    <span style="display:block;margin-top:8px;font-size:13px;color:var(--muted)">Tabel di atas (10 entri) adalah versi diperluas dari Tabel 4.1 PDF — entri tambahan (sinh, cosh, t<sup>n</sup>e<sup>at</sup>, e<sup>at</sup>sin/cos) berasal dari <strong>Tabel 4.2</strong> di halaman 10 modul PDF (sifat pergeseran sumbu s).</span>
+  <div class="info-box reveal" style="margin-top:18px">
+    <strong>Enam Pasangan Dasar <code>f(t) ↔ F(s)</code> yang Wajib Dikuasai:</strong>
+    Berikut enam entri inti yang menjadi fondasi tabel Laplace — semua dapat diturunkan langsung dari definisi integral tak wajar.
   </div>
+
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+    <div class="label" style="text-align:left">Enam Entri Inti Tabel Laplace</div>
+    L{1}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 1/s<br>
+    L{t}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 1/s²<br>
+    L{t<sup>n</sup>}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = n!/s<sup>n+1</sup>&nbsp;&nbsp;(n = 0, 1, 2, …)<br>
+    L{e<sup>at</sup>}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 1/(s − a)<br>
+    L{cos bt}&nbsp;&nbsp; = s/(s² + b²)<br>
+    L{sin bt}&nbsp;&nbsp;&nbsp; = b/(s² + b²)
+  </div>
+
+  <p class="reveal" style="font-size:14px;line-height:1.75;color:var(--text);margin-top:14px">
+    Penurunan keenam entri di atas dilakukan langsung dari definisi integral tak wajar — biasanya dengan trik substitusi <code>u = st</code> atau integrasi parsial berulang. Saat dipadukan dengan sifat <em>linieritas</em>, satu kombinasi tabel sudah cukup untuk menghitung ekspresi gabungan seperti <code>L{2t³ + 3 cos 2t}</code>, <code>L{4t² − 3 sin 2t}</code>, atau <code>L{sin 3t + 2e<sup>3t</sup>}</code>. Tabel 10 entri yang ditampilkan di atas merupakan perluasan dari enam entri dasar ini — empat entri tambahan (<code>sinh</code>, <code>cosh</code>, <code>t<sup>n</sup>·e<sup>at</sup></code>, <code>e<sup>at</sup>·sin/cos</code>) berasal dari penerapan <strong>sifat pergeseran sumbu s</strong> (first-shifting theorem) yang dibahas di Bagian 03.
+  </p>
 </div>
 
 <!-- ═══ BAGIAN 03 — UC: f(x) POLINOMIAL ═══ -->
@@ -1295,17 +1310,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     ⚠ <strong>Pitfall transformasi turunan:</strong> <strong>(1)</strong> Lupa minus tanda di rumus — selalu <code>L{f'} = sF − f(0)</code>, bukan +. <strong>(2)</strong> Lupa syarat awal — bila tidak diberikan secara eksplisit, asumsikan y(0) = y'(0) = 0 (sistem mulai dari rest). <strong>(3)</strong> Salah orde — untuk f'', butuh 2 syarat (f(0) dan f'(0)); jangan lupa term s·f(0). <strong>(4)</strong> Bila PD orde n, jangan lupa n syarat awal harus tersedia. <strong>(5)</strong> Pastikan kedua sisi PD ditransformasi — termasuk f(t) di sisi kanan menjadi F(s).
   </div>
 
-  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
-    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), Contoh 2.1 — Pakai Transformasi Turunan untuk Hitung F(s):</strong>
-    <p style="margin:8px 0 0 0;font-size:14px;line-height:1.7">Modul PDF (halaman 13) menggunakan rumus <code>L{f'(t)} = sF(s) − f(0)</code> untuk menghitung <code>L{cos² t}</code>. Strategi: pakai turunan untuk <em>memunculkan</em> fungsi yang lebih sederhana di tabel.</p>
-    <ul style="margin:6px 0 0 22px;font-size:14px;line-height:1.7">
-      <li><strong>Step 1.</strong> <code>f(t) = cos² t</code>, <code>f(0) = 1</code>. Hitung <code>f'(t) = −2 cos t·sin t = −sin 2t</code>.</li>
-      <li><strong>Step 2.</strong> Pakai <code>L{f'} = sF − f(0)</code>: <code>L{−sin 2t} = sF(s) − 1</code> → <code>−2/(s²+4) = sF(s) − 1</code>.</li>
-      <li><strong>Step 3.</strong> Solve: <code>sF(s) = 1 − 2/(s²+4) = (s²+2)/(s²+4)</code> → <code style="color:var(--green)">F(s) = (s²+2)/[s·(s²+4)]</code>.</li>
-    </ul>
-    <p style="margin:8px 0 0 0;font-size:14px;line-height:1.7"><strong>Contoh 2.2</strong> (halaman 14) menerapkan rumus <strong>turunan kedua</strong> <code>L{f''} = s²F − sf(0) − f'(0)</code> untuk menghitung <code>L{t sin bt} = 2bs/(s² + b²)²</code> dan <code>L{t cos bt}</code> — hasil yang sama bisa diperoleh dari sifat <code>L{t·f(t)} = −F'(s)</code>, tapi modul PDF sengaja menempuh jalur transformasi turunan agar terlihat <em>kekuatan</em> rumus pendekatan ini.</p>
-    <span style="display:block;margin-top:8px;font-size:13px;color:var(--muted)">Trik PDF: bila <code>F(s)</code> belum ada di tabel, turunkan <code>f(t)</code> sampai dapat fungsi yang ada — lalu pakai rumus turunan untuk balik.</span>
+  <div class="info-box reveal" style="margin-top:18px">
+    <strong>Contoh 2.1 — Pakai Transformasi Turunan untuk Hitung F(s):</strong>
+    Hitung <code>L{cos² t}</code> dengan strategi <em>memanfaatkan rumus turunan</em>: turunkan <code>f(t)</code> sampai diperoleh fungsi yang sudah ada di tabel, lalu balik untuk mendapatkan <code>F(s)</code>.
   </div>
+
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+    <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
+    Misalkan&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; f(t) = cos² t,&nbsp;&nbsp;&nbsp;&nbsp; f(0) = 1<br>
+    Turunan&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; f'(t) = −2 cos t·sin t = −sin 2t<br>
+    Rumus&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; L{f'(t)} = sF(s) − f(0)<br>
+    Substitusi&nbsp;&nbsp;&nbsp; L{−sin 2t}&nbsp;&nbsp; = sF(s) − 1<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; −2/(s² + 4)&nbsp; = sF(s) − 1<br>
+    Solve&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; sF(s)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 1 − 2/(s² + 4) = (s² + 2)/(s² + 4)<br>
+    <strong style="color:#fff">Hasil:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; F(s) = (s² + 2) / [ s·(s² + 4) ]</strong>
+  </div>
+
+  <p class="reveal" style="font-size:14px;line-height:1.75;color:var(--text);margin-top:14px">
+    Pendekatan serupa juga berlaku untuk <strong>turunan orde dua</strong> via rumus <code>L{f''(t)} = s²F(s) − s·f(0) − f'(0)</code>. Penerapannya menghasilkan dua identitas penting: <code>L{t sin bt} = 2bs/(s² + b²)²</code> dan <code>L{t cos bt} = (s² − b²)/(s² + b²)²</code>. Hasil yang sama dapat diperoleh dari sifat <code>L{t·f(t)} = −F'(s)</code>, namun jalur turunan ini mempertegas peran krusial syarat awal pada algoritma Laplace.
+  </p>
 </div>
 
 <!-- ═══ BAGIAN 05 — RESONANSI: f Tumpang Tindih dengan y_h ═══ -->
@@ -1463,15 +1486,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     ⚠ <strong>Tips invers Laplace:</strong> <strong>(1)</strong> Lengkapi kuadrat untuk denominator quadratic — bila tidak match s² + ω² atau (s−a)² + ω², susun ke salah satunya. <strong>(2)</strong> Sesuaikan numerator dengan konstanta multiplikasi — tabel mungkin butuh adjust faktor. <strong>(3)</strong> Pecahan parsial untuk denominator yang dapat difaktorkan. <strong>(4)</strong> Heaviside untuk denominator dengan e^(−as). <strong>(5)</strong> SymPy <code>sp.inverse_laplace_transform(F, s, t)</code> sebagai backup.
   </div>
 
-  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
-    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), Contoh 2.5 — Invers Laplace dengan Dekomposisi:</strong>
-    <p style="margin:8px 0 0 0;font-size:14px;line-height:1.7">Modul PDF (halaman 16) menyelesaikan <code>L<sup>−1</sup>{(s² − 8)/(s² + 4)²}</code> dengan trik <em>pisah numerator</em>:</p>
-    <div style="text-align:center;margin:8px 0;font-family:'JetBrains Mono',monospace;color:var(--cyan)">(s² − 8)/(s² + 4)² = s²/(s² + 4)² − 8/(s² + 4)²</div>
-    <p style="margin:6px 0 0 0;font-size:14px;line-height:1.7">Gunakan rumus <code>L<sup>−1</sup>{s²/(s²+b²)²} = (1/(2b))(sin bt + bt cos bt)</code> dan <code>L<sup>−1</sup>{1/(s²+b²)²} = (1/(2b³))(sin bt − bt cos bt)</code> dengan b = 2, hasil:</p>
-    <div style="text-align:center;margin:8px 0;font-family:'JetBrains Mono',monospace;color:var(--green)">f(t) = −¼ sin 2t + (3/2)·t cos 2t</div>
-    <p style="margin:8px 0 0 0;font-size:14px;line-height:1.7"><strong>Contoh 2.8</strong> (halaman 18) memakai <em>integrasi berlapis</em> + first shift theorem untuk <code>L<sup>−1</sup>{1/[s²(s² − 4s + 5)]}</code> — <code>s² − 4s + 5 = (s − 2)² + 1</code> menghasilkan basis <code>e<sup>2t</sup> sin t</code>, lalu integrasi dua kali (sifat <code>L<sup>−1</sup>{F(s)/s} = ∫₀<sup>t</sup> f(u)du</code>) memberi solusi akhir polinomial-eksp campuran.</p>
-    <span style="display:block;margin-top:8px;font-size:13px;color:var(--muted)">Lihat <strong>Contoh 2.11</strong> (halaman 21) untuk metode <em>pecahan rasional sebagai jumlah pecahan parsial</em> pada <code>F(s) = 1/[s³(s² − 5s + 6)]</code> — workflow yang setara dengan algoritma <code>sp.apart()</code> Cell 3 Python.</span>
+  <div class="info-box reveal" style="margin-top:18px">
+    <strong>Contoh 2.5 — Invers Laplace dengan Dekomposisi Numerator:</strong>
+    Hitung <code>L<sup>−1</sup>{(s² − 8)/(s² + 4)²}</code> menggunakan trik <em>pisah numerator</em> agar tiap suku cocok dengan entri tabel turunan trigonometri.
   </div>
+
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+    <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
+    Pisah numerator&nbsp;&nbsp;&nbsp; (s² − 8)/(s² + 4)²&nbsp; = s²/(s² + 4)² − 8/(s² + 4)²<br>
+    Identitas tabel&nbsp;&nbsp;&nbsp;&nbsp; L<sup>−1</sup>{s²/(s² + b²)²}&nbsp;&nbsp;&nbsp; = (1/(2b))·(sin bt + bt cos bt)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; L<sup>−1</sup>{1/(s² + b²)²}&nbsp;&nbsp;&nbsp; = (1/(2b³))·(sin bt − bt cos bt)<br>
+    Substitusi b = 2&nbsp;&nbsp;&nbsp; L<sup>−1</sup>{s²/(s² + 4)²}&nbsp;&nbsp;&nbsp; = ¼·(sin 2t + 2t cos 2t)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; L<sup>−1</sup>{8/(s² + 4)²}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = (8/16)·(sin 2t − 2t cos 2t)<br>
+    Gabung&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; f(t) = ¼ sin 2t + ½ t cos 2t − ½ sin 2t + t cos 2t<br>
+    <strong style="color:#fff">Hasil:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; f(t) = −¼ sin 2t + (3/2)·t cos 2t</strong>
+  </div>
+
+  <p class="reveal" style="font-size:14px;line-height:1.75;color:var(--text);margin-top:14px">
+    Pendekatan dekomposisi serupa dapat dipadukan dengan <strong>first-shifting theorem</strong> untuk kasus seperti <code>L<sup>−1</sup>{1/[s²(s² − 4s + 5)]}</code>. Karena <code>s² − 4s + 5 = (s − 2)² + 1</code>, bentuk ini menghasilkan basis <code>e<sup>2t</sup> sin t</code>, lalu integrasi berlapis dua kali (sifat <code>L<sup>−1</sup>{F(s)/s} = ∫₀<sup>t</sup> f(u) du</code>) memberi solusi akhir berupa kombinasi polinomial-eksponensial. Untuk denominator yang lebih kompleks seperti <code>F(s) = 1/[s³(s² − 5s + 6)]</code>, gunakan dekomposisi pecahan parsial penuh — metode ini setara dengan algoritma <code>sp.apart()</code> di SymPy yang akan dibahas pada Bagian 08.
+  </p>
 </div>
 
 <!-- ═══ BAGIAN 07 — IVP LENGKAP UNTUK PD NON-HOMOGEN ═══ -->
@@ -1955,8 +1988,8 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     💡 <strong>Strategi belajar:</strong> Kerjakan Tugas tab dengan urutan ini — (1) MC dulu untuk konsep, (2) Komputasi Easy/Medium untuk latihan rutin, (3) Komputasi Hard di akhir karena membutuhkan pemahaman menyeluruh. Diskusikan kesulitan di tab Forum atau panel chat 💬 (klik FAB di pojok kanan bawah). Selamat mengerjakan!
   </div>
 
-  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
-    📘 <strong>Korelasi dengan Modul PDF (Mercu Buana — Wiwit Suprihatiningsih):</strong> Cell 1–4 di atas mereproduksi alur perhitungan modul PDF — <strong>Contoh 1.1</strong> (derivasi <code>L{e<sup>at</sup>}, L{cos bt}, L{t<sup>n</sup>}</code> dari definisi integral), <strong>Contoh 1.5</strong> (linieritas pada <code>L{2t³ + 3 cos 2t}</code> dst), <strong>Contoh 1.9</strong> (Tabel 4.2 first shift untuk <code>L{t⁴e<sup>−3t</sup>}, L{(t³ − 4t²)e<sup>2t</sup>}</code>), <strong>Contoh 2.1, 2.2</strong> (transformasi turunan untuk <code>L{cos² t}, L{e<sup>t</sup>cos² t}, L{t sin bt}</code>), serta <strong>Contoh 2.5, 2.8, 2.11</strong> (invers Laplace dengan dekomposisi/integrasi berlapis/pecahan parsial). Verifikasi cepat dengan <code>sp.laplace_transform()</code> atau <code>sp.inverse_laplace_transform()</code> di Cell 1 dan 2.
+  <div class="tip-box reveal" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
+    🔬 <strong>Pemetaan Cell SymPy ↔ Topik Konseptual:</strong> Empat cell Python di atas mereproduksi seluruh alur kerja Laplace yang dibahas di Bagian 01–07 — derivasi <code>L{e<sup>at</sup>}, L{cos bt}, L{t<sup>n</sup>}</code> langsung dari definisi integral, penerapan linieritas pada ekspresi gabungan seperti <code>L{2t³ + 3 cos 2t}</code>, first-shifting theorem untuk <code>L{t⁴e<sup>−3t</sup>}</code> dan <code>L{(t³ − 4t²)e<sup>2t</sup>}</code>, transformasi turunan untuk <code>L{cos² t}</code> dan <code>L{e<sup>t</sup>cos² t}</code>, hingga invers Laplace dengan teknik dekomposisi numerator, integrasi berlapis, dan pecahan parsial. Gunakan <code>sp.laplace_transform()</code> dan <code>sp.inverse_laplace_transform()</code> di Cell 1 dan 2 sebagai alat verifikasi cepat untuk seluruh latihan tugas.
   </div>
 </div>
 
@@ -2100,11 +2133,11 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     </div>
   </div>
 
-  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-bottom:32px;display:flex;align-items:flex-start;gap:14px">
-    <span style="font-size:24px;flex-shrink:0">📘</span>
+  <div class="tip-box reveal" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-bottom:32px;display:flex;align-items:flex-start;gap:14px">
+    <span style="font-size:24px;flex-shrink:0">📚</span>
     <div>
-      <div style="font-weight:700;color:var(--violet);margin-bottom:4px">Referensi Modul PDF (Mercu Buana — Wiwit Suprihatiningsih)</div>
-      <p style="font-size:14px;color:var(--text);margin:0">Sebelum mengerjakan, baca ulang <strong>§4.1</strong> modul PDF (Sucipto + Markoni) — definisi integral tak wajar, <strong>Tabel 4.1</strong> (rumus dasar L untuk 1, t, t<sup>n</sup>, e<sup>at</sup>, cos bt, sin bt), <strong>Tabel 4.2</strong> (sifat pergeseran sumbu s untuk t<sup>n</sup>e<sup>at</sup>, e<sup>at</sup>cos bt, e<sup>at</sup>sin bt), serta workflow <em>transformasi turunan</em> di Contoh 2.1–2.2 dan <em>invers Laplace dengan dekomposisi/pecahan parsial</em> di Contoh 2.5, 2.8, 2.11. Soal pilihan ganda menguji <em>5 sifat fundamental</em> (linieritas, first/second shift, multiplikasi t, transformasi turunan), sedangkan komputasi menuntut alur penuh: <strong>PD → aljabar dalam s → pecahan parsial → invers via tabel → y(t)</strong>.</p>
+      <div style="font-weight:700;color:var(--violet);margin-bottom:4px">Cakupan Materi yang Diuji</div>
+      <p style="font-size:14px;color:var(--text);margin:0">Sebelum mengerjakan, pastikan Anda telah memahami: definisi integral tak wajar, tabel rumus dasar Laplace untuk <code>1, t, t<sup>n</sup>, e<sup>at</sup>, cos bt, sin bt</code>, sifat pergeseran sumbu <code>s</code> untuk <code>t<sup>n</sup>e<sup>at</sup>, e<sup>at</sup>cos bt, e<sup>at</sup>sin bt</code>, workflow <em>transformasi turunan</em>, serta teknik <em>invers Laplace dengan dekomposisi numerator dan pecahan parsial</em>. Soal pilihan ganda menguji <strong>lima sifat fundamental</strong> — linieritas, first/second shift, multiplikasi <code>t</code>, dan transformasi turunan — sedangkan bagian komputasi menuntut alur penuh penyelesaian: <strong>PD → aljabar dalam <code>s</code> → pecahan parsial → invers via tabel → <code>y(t)</code></strong>.</p>
     </div>
   </div>
 
@@ -2637,8 +2670,9 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     </div>
     <p style="margin-top:14px;font-size:14px;color:var(--muted)">Sistem RLC <strong>underdamped</strong> dengan pole kompleks <code>s = −2 ± 3j</code>. Step response: muatan q(t) naik dari 0, overshoot, lalu meluruh ke steady state. UC/VoP <em>gagal</em> untuk input step (diskontinu di t=0) — Laplace adalah satu-satunya metode praktis. Tiga pertanyaan diskusi memandu analisis: (1) transformasi PD ke aljabar dengan input step, (2) pecahan parsial dan invers Laplace, (3) interpretasi engineering response transient + steady-state.</p>
 
-    <div class="pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);border-radius:10px;padding:12px 16px;margin-top:14px;font-size:13.5px;color:var(--text);line-height:1.7">
-      📘 <strong>Petunjuk dari Modul PDF (§4.1, Tabel 4.1, Contoh 2.5/2.8):</strong> Persamaan <code>Q(s) = 5/[s·(s² + 4s + 13)]</code> dapat dibedah dengan teknik PDF: <em>(i)</em> pecahan parsial pada akar simple <code>1/s</code> + akar kompleks konjugat dari <code>s² + 4s + 13 = (s + 2)² + 9</code>, lalu <em>(ii)</em> aplikasi <strong>Tabel 4.2</strong> (pergeseran sumbu s) untuk mengenali <code>(s + 2)/[(s + 2)² + 9] → e<sup>−2t</sup>cos 3t</code> dan <code>3/[(s + 2)² + 9] → e<sup>−2t</sup>sin 3t</code>. Pendekatan integrasi berlapis di <strong>Contoh 2.5/2.8</strong> modul PDF (halaman 16, 18) adalah metode alternatif yang setara — pilih sesuai preferensi. Hasil akhir: <code>q(t) = (5/13)·[1 − e<sup>−2t</sup>(cos 3t + (2/3) sin 3t)]</code> = transient eksponensial-osilasi yang konvergen ke <code>q(∞) = 5/13</code>.
+    <div class="info-box reveal" style="margin-top:14px">
+      <strong>Petunjuk Penyelesaian — Pecahan Parsial + First Shift:</strong>
+      Persamaan <code>Q(s) = 5/[s·(s² + 4s + 13)]</code> dapat dibedah dalam dua langkah: <em>(i)</em> pecahan parsial pada akar simple <code>1/s</code> dan akar kompleks konjugat dari <code>s² + 4s + 13 = (s + 2)² + 9</code>, lalu <em>(ii)</em> aplikasi sifat pergeseran sumbu <code>s</code> untuk mengenali <code>(s + 2)/[(s + 2)² + 9] → e<sup>−2t</sup>cos 3t</code> dan <code>3/[(s + 2)² + 9] → e<sup>−2t</sup>sin 3t</code>. Pendekatan integrasi berlapis merupakan metode alternatif yang setara — pilih sesuai preferensi. Hasil akhir: <code>q(t) = (5/13)·[1 − e<sup>−2t</sup>(cos 3t + (2/3) sin 3t)]</code> — transient eksponensial-osilasi yang konvergen ke nilai steady-state <code>q(∞) = 5/13</code>.
     </div>
   </div>
 
