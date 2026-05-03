@@ -1147,8 +1147,31 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     ⚠ <strong>Pitfall visualisasi:</strong> <strong>(1)</strong> Tanda jump matters — naik = + Heaviside, turun = − Heaviside. <strong>(2)</strong> Pastikan koefisien Heaviside = <em>perubahan</em> nilai fungsi, bukan nilai absolut. <strong>(3)</strong> Untuk fungsi yang nol di luar interval, gunakan pulse rectangular (jangan lupa minus untuk turun). <strong>(4)</strong> SymPy <code>sp.Piecewise</code> dapat dikonversi ke Heaviside via <code>sp.piecewise_to_heaviside</code>. <strong>(5)</strong> Pakai matplotlib untuk verifikasi visual: <code>plt.plot(t, [eval_at(ti) for ti in t])</code>.
   </div>
 
-  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
-    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), §5 Contoh 5.1 &amp; 5.2 — Konversi Piecewise ke Tangga Satuan:</strong> modul memulai dengan <em>notasi formal</em> tangga satuan u(t−a): bernilai 0 jika t&lt;a dan 1 jika t&gt;a (Gambar 4.5.1). Kemudian fungsi piecewise dengan banyak persamaan ditulis sebagai <code>g(t) = f(t−a)·u(t−a)</code>. <em>Contoh 5.1</em> mengubah <code>f(t) = {0 jika t&lt;0; 1 jika 0&lt;t&lt;1; 0 jika t&gt;1}</code> menjadi <code>f(t) = u(t) − u(t−1)</code> — pulse rectangular. <em>Contoh 5.2</em> mengubah <code>f(t) = {0; t−1; 0}</code> di interval [1,2] menjadi <code>(t−1)·u(t−1) − (t−1)·u(t−2) − u(t−2)</code>, yaitu <em>fungsi ramp dipotong</em> dengan teknik <strong>aturan jump</strong> persis seperti yang kita ajarkan di atas. Pakai pola modul ini sebagai cross-check sebelum lompat ke transformasi.
+  <div class="info-box reveal">
+    <strong>Contoh 5.1 — Pulse Rectangular dari Piecewise:</strong>
+    Konversi <code>f(t) = {0 jika t&lt;0;&nbsp; 1 jika 0&lt;t&lt;1;&nbsp; 0 jika t&gt;1}</code> ke notasi tangga satuan u(t−a).
+  </div>
+
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+    <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
+    Notasi formal:&nbsp;&nbsp;&nbsp; u(t − a) = 0 jika t &lt; a,&nbsp;&nbsp; 1 jika t &gt; a<br>
+    Jump di t=0:&nbsp;&nbsp;&nbsp;&nbsp; 0 → 1&nbsp;&nbsp;⟹&nbsp;&nbsp; +1·u(t)<br>
+    Jump di t=1:&nbsp;&nbsp;&nbsp;&nbsp; 1 → 0&nbsp;&nbsp;⟹&nbsp;&nbsp; −1·u(t − 1)<br>
+    <strong style="color:#fff">Hasil:&nbsp; f(t) = u(t) − u(t − 1)&nbsp; (pulse rectangular)</strong>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>Contoh 5.2 — Ramp Dipotong:</strong>
+    Konversi <code>f(t) = {0 jika t&lt;1;&nbsp; t−1 jika 1&lt;t&lt;2;&nbsp; 0 jika t&gt;2}</code> ke notasi tangga satuan.
+  </div>
+
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+    <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
+    Aturan umum:&nbsp;&nbsp;&nbsp; g(t) = f(t − a)·u(t − a)<br>
+    Mulai ramp t=1:&nbsp;&nbsp; (t − 1)·u(t − 1)<br>
+    Stop ramp t=2:&nbsp;&nbsp; − (t − 1)·u(t − 2)<br>
+    Drop ke 0:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; − u(t − 2)<br>
+    <strong style="color:#fff">Hasil:&nbsp; f(t) = (t − 1)·u(t − 1) − (t − 1)·u(t − 2) − u(t − 2)</strong>
   </div>
 </div>
 
@@ -1298,8 +1321,43 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     ⚠ <strong>Tips Second Shift:</strong> <strong>(1)</strong> Selalu cek argumen f sebelum menerapkan theorem — apakah f(t−a) atau f(t)? <strong>(2)</strong> Untuk f(t)·H(t−a) (tidak digeser), pakai trik <code>f(t) = f((t−a)+a)</code>. <strong>(3)</strong> Untuk invers Laplace dengan e^(−as), <em>SELALU</em> hasil mengandung H(t−a) (jangan lupa). <strong>(4)</strong> SymPy <code>sp.laplace_transform</code> handle ini otomatis tetapi hasil mungkin perlu disederhanakan dengan <code>sp.simplify</code>. <strong>(5)</strong> Verifikasi dengan substitusi t&lt;a (harus 0) dan t&gt;a (harus match).
   </div>
 
-  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
-    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), §5 Contoh 5.5–5.7 — Invers Laplace dengan e<sup>−as</sup>:</strong> modul mendemonstrasikan tiga kasus invers berturut-turut: (a) <em>Contoh 5.5</em> untuk <code>Y(s) = (1−e<sup>−s</sup>)/(s²−3s+2)</code> — pisahkan menjadi <code>F(s) − F(s)·e<sup>−s</sup></code> dengan <code>F(s) = 1/[(s−1)(s−2)] = 1/(s−2) − 1/(s−1)</code> sehingga <code>f(t) = e<sup>2t</sup> − e<sup>t</sup></code> dan hasil akhir <code>y(t) = (e<sup>2t</sup>−e<sup>t</sup>) − (e<sup>2(t−1)</sup>−e<sup>t−1</sup>)·u(t−1)</code>; (b) <em>Contoh 5.6</em> untuk forcing kosinus tergeser <code>cos 2(t−π)·u(t−π)</code> — modul memanfaatkan identitas <code>cos 2(t−π) = cos 2t cos 2π + sin 2t sin 2π = cos 2t</code>; (c) <em>Contoh 5.7</em> untuk <code>Y(s) = (1−e<sup>−πs</sup>−se<sup>−2πs</sup>)/(s²+1)</code> dengan tiga delay sekaligus → <code>y(t) = sin t − sin(t−π)u(t−π) − cos(t−2π)u(t−2π)</code>. Pola umum: identifikasi <code>F(s)</code> dasar, hitung <code>L⁻¹</code>-nya, lalu gunakan <code>L⁻¹{e<sup>−as</sup>F(s)} = f(t−a)·u(t−a)</code> per term. Pakai pola ini untuk Tugas Komputasi inverse-Laplace.
+  <div class="info-box reveal">
+    <strong>Contoh 5.5 — Invers Laplace dengan Faktor e<sup>−s</sup>:</strong>
+    Tentukan invers Laplace dari <code>Y(s) = (1 − e<sup>−s</sup>)/(s² − 3s + 2)</code>.
+  </div>
+
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+    <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
+    Pisahkan term:&nbsp;&nbsp;&nbsp;&nbsp; Y(s) = F(s) − F(s)·e<sup>−s</sup>,&nbsp;&nbsp; F(s) = 1/[(s−1)(s−2)]<br>
+    Pecah parsial:&nbsp;&nbsp;&nbsp;&nbsp; F(s) = 1/(s − 2) − 1/(s − 1)<br>
+    Invers F:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; f(t) = e<sup>2t</sup> − e<sup>t</sup><br>
+    Second shift a=1:&nbsp; ℒ⁻¹{e<sup>−s</sup>·F(s)} = f(t − 1)·u(t − 1)<br>
+    <strong style="color:#fff">Hasil:&nbsp; y(t) = (e<sup>2t</sup> − e<sup>t</sup>) − (e<sup>2(t−1)</sup> − e<sup>t−1</sup>)·u(t − 1)</strong>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>Contoh 5.6 — Identitas Trigonometri pada Forcing Tergeser:</strong>
+    Sederhanakan <code>cos 2(t − π)·u(t − π)</code> sebelum invers Laplace.
+  </div>
+
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+    <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
+    Ekspansi:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cos 2(t − π) = cos 2t · cos 2π + sin 2t · sin 2π<br>
+    Substitusi:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cos 2π = 1,&nbsp;&nbsp; sin 2π = 0<br>
+    <strong style="color:#fff">Hasil:&nbsp; cos 2(t − π) = cos 2t&nbsp; (forcing tetap kosinus murni setelah delay π)</strong>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>Contoh 5.7 — Invers Laplace dengan Tiga Delay Sekaligus:</strong>
+    Tentukan <code>y(t)</code> dari <code>Y(s) = (1 − e<sup>−πs</sup> − s·e<sup>−2πs</sup>)/(s² + 1)</code>.
+  </div>
+
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+    <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
+    Term 1:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ℒ⁻¹{1/(s² + 1)} = sin t<br>
+    Term 2 (a=π):&nbsp;&nbsp; ℒ⁻¹{e<sup>−πs</sup>/(s² + 1)} = sin(t − π)·u(t − π)<br>
+    Term 3 (a=2π):&nbsp; ℒ⁻¹{s·e<sup>−2πs</sup>/(s² + 1)} = cos(t − 2π)·u(t − 2π)<br>
+    <strong style="color:#fff">Hasil:&nbsp; y(t) = sin t − sin(t − π)·u(t − π) − cos(t − 2π)·u(t − 2π)</strong>
   </div>
 </div>
 
@@ -1941,18 +1999,51 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     💡 <strong>Strategi belajar:</strong> Kerjakan Tugas tab dengan urutan ini — (1) MC dulu untuk konsep, (2) Komputasi Easy/Medium untuk latihan rutin, (3) Komputasi Hard di akhir karena membutuhkan pemahaman menyeluruh. Diskusikan kesulitan di tab Forum atau panel chat 💬 (klik FAB di pojok kanan bawah). Selamat mengerjakan!
   </div>
 
-  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
-    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), §5 Contoh 5.3 &amp; 5.4 — Reproduksi Komputasi Laplace Pulse + Ramp:</strong> modul menghitung manual: <em>Contoh 5.3</em> untuk pulse <code>f(t) = u(t) − u(t−1)</code> → <code>L{f} = (1−e<sup>−s</sup>)/s</code>; lalu untuk fungsi gigi gergaji <code>tu(t) − u(t−1) − (t−1)u(t−1)</code> → <code>L{f} = (1 − e<sup>−s</sup> − se<sup>−s</sup>)/s²</code>; <em>Contoh 5.4</em> untuk segitiga <code>(t−1)u(t−1) − u(t−2) − (t−2)u(t−2)</code> → <code>L{f} = (e<sup>−s</sup> − e<sup>−2s</sup> − se<sup>−2s</sup>)/s²</code>. Verifikasi dengan SymPy: <pre style="background:rgba(0,0,0,.3);padding:10px;border-radius:6px;font-size:12px;margin:8px 0;overflow:auto">import sympy as sp
+  <div class="info-box reveal">
+    <strong>Contoh 5.3 — Laplace Pulse &amp; Gigi Gergaji:</strong>
+    Hitung <code>L{f}</code> untuk dua bentuk: (a) pulse rectangular dan (b) gigi gergaji yang dipotong di t=1.
+  </div>
+
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+    <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
+    (a) Pulse:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; f(t) = u(t) − u(t − 1)<br>
+    Transformasi:&nbsp;&nbsp;&nbsp; L{f} = 1/s − e<sup>−s</sup>/s<br>
+    <strong style="color:#fff">Hasil (a):&nbsp; L{f} = (1 − e<sup>−s</sup>)/s</strong><br>
+    <br>
+    (b) Gigi gergaji:&nbsp; f(t) = t·u(t) − u(t − 1) − (t − 1)·u(t − 1)<br>
+    Per term:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; L{t·u(t)} = 1/s²,&nbsp;&nbsp; L{u(t − 1)} = e<sup>−s</sup>/s,&nbsp;&nbsp; L{(t − 1)·u(t − 1)} = e<sup>−s</sup>/s²<br>
+    Gabung:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; L{f} = 1/s² − e<sup>−s</sup>/s − e<sup>−s</sup>/s²<br>
+    <strong style="color:#fff">Hasil (b):&nbsp; L{f} = (1 − e<sup>−s</sup> − s·e<sup>−s</sup>)/s²</strong>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>Contoh 5.4 — Laplace Segitiga Naik-Turun:</strong>
+    Hitung <code>L{f}</code> untuk segitiga <code>f(t) = (t − 1)·u(t − 1) − u(t − 2) − (t − 2)·u(t − 2)</code>.
+  </div>
+
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+    <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
+    Term 1:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; L{(t − 1)·u(t − 1)} = e<sup>−s</sup>/s²<br>
+    Term 2:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; L{u(t − 2)} = e<sup>−2s</sup>/s<br>
+    Term 3:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; L{(t − 2)·u(t − 2)} = e<sup>−2s</sup>/s²<br>
+    Gabung:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; L{f} = e<sup>−s</sup>/s² − e<sup>−2s</sup>/s − e<sup>−2s</sup>/s²<br>
+    <strong style="color:#fff">Hasil:&nbsp; L{f} = (e<sup>−s</sup> − e<sup>−2s</sup> − s·e<sup>−2s</sup>)/s²</strong>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>Verifikasi SymPy:</strong> hasil ketiga contoh di atas dapat direproduksi dengan kode berikut.
+    <pre style="background:rgba(0,0,0,.3);padding:10px;border-radius:6px;font-size:12px;margin:8px 0;overflow:auto">import sympy as sp
 t, s = sp.symbols('t s', positive=True)
 H = sp.Heaviside
-f53a = H(t) - H(t-1)                       # Contoh 5.3a — pulse
-f53b = t*H(t) - H(t-1) - (t-1)*H(t-1)      # Contoh 5.3b — gigi gergaji
-f54  = (t-1)*H(t-1) - H(t-2) - (t-2)*H(t-2)  # Contoh 5.4 — segitiga
+f53a = H(t) - H(t-1)                         # Contoh 5.3a — pulse
+f53b = t*H(t) - H(t-1) - (t-1)*H(t-1)        # Contoh 5.3b — gigi gergaji
+f54  = (t-1)*H(t-1) - H(t-2) - (t-2)*H(t-2)  # Contoh 5.4   — segitiga
 for f in (f53a, f53b, f54):
     F = sp.simplify(sp.laplace_transform(f, t, s, noconds=True))
     print(F)
-# Hasil identik dengan modul: (1-exp(-s))/s, (1-exp(-s)-s*exp(-s))/s**2,
-# (exp(-s)-exp(-2*s)-s*exp(-2*s))/s**2</pre>Pola yang sama dipakai untuk membangun <em>sequence pulse</em> dan <em>step bertingkat</em> di kasus PWM forum.
+# Output: (1-exp(-s))/s, (1-exp(-s)-s*exp(-s))/s**2,
+#         (exp(-s)-exp(-2*s)-s*exp(-2*s))/s**2</pre>
+    Pola yang sama dipakai untuk membangun <em>sequence pulse</em> dan <em>step bertingkat</em> di kasus PWM forum.
   </div>
 </div>
 
@@ -2096,8 +2187,14 @@ for f in (f53a, f53b, f54):
     </div>
   </div>
 
-  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-bottom:24px">
-    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), §5 — Pola Soal Tangga Satuan untuk Tugas 12:</strong> Tugas 12 dirancang menjadi superset dari tujuh contoh modul: (1) konversi piecewise → u(t−a) menggunakan aturan jump (Contoh 5.1, 5.2), (2) Laplace bentuk tunggal <code>L{u(t−a)} = e<sup>−as</sup>/s</code> dan kombinasi pulse/ramp/segitiga (Contoh 5.3, 5.4), (3) <em>invers</em> Laplace dengan faktor <code>e<sup>−as</sup></code> via second shift theorem (Contoh 5.5–5.7). Soal Komputasi Hard menambahkan layer engineering modern: pulse train periodik, square wave, PWM duty bertingkat, dan response sistem orde-1/orde-2 ke input switching — semua menggunakan kerangka <em>Heaviside building block</em> yang persis modul. Saran kerja: selesaikan dulu Contoh 5.1–5.7 di buku catatan sebelum lompat ke soal komputasi.
+  <div class="info-box reveal" style="margin-bottom:24px">
+    <strong>Pola Soal Tangga Satuan untuk Tugas 12:</strong> Tugas 12 adalah superset dari tujuh contoh fundamental yang disusun bertingkat:
+    <ul style="margin:8px 0 0 20px;padding:0;line-height:1.8">
+      <li>Konversi piecewise → <code>u(t − a)</code> via aturan jump (Contoh 5.1, 5.2).</li>
+      <li>Laplace bentuk tunggal <code>L{u(t − a)} = e<sup>−as</sup>/s</code> dan kombinasi pulse/ramp/segitiga (Contoh 5.3, 5.4).</li>
+      <li><em>Invers</em> Laplace dengan faktor <code>e<sup>−as</sup></code> via second shift theorem (Contoh 5.5–5.7).</li>
+    </ul>
+    Soal Komputasi Hard menambahkan layer engineering modern: pulse train periodik, square wave, PWM duty bertingkat, dan response sistem orde-1/orde-2 ke input switching — semua memakai kerangka <em>Heaviside building block</em>. Saran kerja: selesaikan dulu Contoh 5.1–5.7 di buku catatan sebelum lompat ke soal komputasi.
   </div>
 
   <!-- ─── PILIHAN GANDA ─── -->
