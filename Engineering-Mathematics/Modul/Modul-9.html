@@ -1493,17 +1493,50 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     Selesaikan <code>(D² − 1)·y = e<sup>x</sup>·cos x</code>.
   </div>
 
-  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
-    <div class="label" style="text-align:left">Penyelesaian via Shift Theorem</div>
-    Karakteristik:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; L(D) = D² − 1 = (D − 1)(D + 1)&nbsp;&nbsp;⟹&nbsp;&nbsp; D = ±1<br>
-    Solusi homogen:&nbsp;&nbsp;&nbsp;&nbsp; y<sub>h</sub> = c₁·e<sup>x</sup> + c₂·e<sup>−x</sup><br>
-    Shift α = 1:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; L(D + 1) = (D + 1)² − 1 = D² + 2D<br>
-    y<sub>p</sub> via shift:&nbsp;&nbsp;&nbsp;&nbsp; y<sub>p</sub> = e<sup>x</sup>·(1/(D² + 2D))·cos x<br>
-    D² → −1:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = e<sup>x</sup>·(1/(2D − 1))·cos x<br>
-    Konjugat:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = e<sup>x</sup>·(2D + 1)/(4D² − 1)·cos x<br>
-    D² → −1:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = e<sup>x</sup>·(2D + 1)/(−5)·cos x<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = (1/5)·e<sup>x</sup>·(2·sin x − cos x)<br>
-    <strong style="color:#fff">Solusi total:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; y = c₁·e<sup>x</sup> + c₂·e<sup>−x</sup> + (1/5)·e<sup>x</sup>·(2·sin x − cos x)</strong>
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:1.9">
+    <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
+
+    <strong style="color:#fff">Langkah 1 — Tulis Operator L(D) dan Cari Akar Karakteristik</strong><br>
+    <span style="color:var(--muted);font-size:13px">Mengubah PD ke bentuk operator <code>L(D)·y = f</code> agar dapat diolah dengan aljabar polinomial. Akar L(D) = 0 menentukan basis solusi homogen.</span><br>
+    Karakteristik:&nbsp;&nbsp; L(D) = D² − 1 = (D − 1)(D + 1)&nbsp;&nbsp;⟹&nbsp;&nbsp; D = ±1<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 2 — Susun Solusi Homogen y<sub>h</sub></strong><br>
+    <span style="color:var(--muted);font-size:13px">Setiap akar real berbeda r memberi basis e<sup>rx</sup>. Akar ±1 menghasilkan dua eksponen dengan tanda berlawanan.</span><br>
+    y<sub>h</sub> = c₁·e<sup>x</sup> + c₂·e<sup>−x</sup><br>
+    <br>
+
+    <strong style="color:#fff">Langkah 3 — Pakai Teorema Shift karena f Mengandung e<sup>x</sup></strong><br>
+    <span style="color:var(--muted);font-size:13px">Sifat shift: <code>(1/L(D))·[e<sup>αx</sup>·v(x)] = e<sup>αx</sup>·(1/L(D + α))·v(x)</code>. Dengan menggeser operator, faktor e<sup>x</sup> "keluar" dan masalah jadi murni trigonometri.</span><br>
+    Shift α = 1:&nbsp;&nbsp; L(D + 1) = (D + 1)² − 1 = D² + 2D<br>
+    Bentuk baru:&nbsp;&nbsp; y<sub>p</sub> = e<sup>x</sup>·(1/(D² + 2D))·cos x<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 4 — Substitusi D² → −1 (Sifat Trigonometri)</strong><br>
+    <span style="color:var(--muted);font-size:13px">Karena <code>D²·cos x = −cos x</code>, operator D² dapat diganti dengan −β² = −1 saat dikenakan ke cos x. Bentuk operator menyederhana.</span><br>
+    = e<sup>x</sup>·(1/(−1 + 2D))·cos x&nbsp;&nbsp;= e<sup>x</sup>·(1/(2D − 1))·cos x<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 5 — Trik Konjugat untuk Hilangkan D di Penyebut</strong><br>
+    <span style="color:var(--muted);font-size:13px">Karena penyebut masih berisi D (suku ganjil), kalikan numerator &amp; denominator dengan konjugat (2D + 1) — analog rasionalisasi √ di aljabar.</span><br>
+    Konjugat:&nbsp;&nbsp; = e<sup>x</sup>·(2D + 1)/[(2D − 1)(2D + 1)]·cos x&nbsp;&nbsp;= e<sup>x</sup>·(2D + 1)/(4D² − 1)·cos x<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 6 — Substitusi D² → −1 Lagi di Penyebut</strong><br>
+    <span style="color:var(--muted);font-size:13px">Sekarang penyebut hanya pangkat genap D, substitusi D² → −1 memberi konstanta murni.</span><br>
+    Penyebut:&nbsp;&nbsp; 4·(−1) − 1 = −5&nbsp;&nbsp;⟹&nbsp;&nbsp; = e<sup>x</sup>·(2D + 1)/(−5)·cos x<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 7 — Hitung (2D + 1)·cos x</strong><br>
+    <span style="color:var(--muted);font-size:13px">Aturan turunan trig: <code>D·cos x = −sin x</code>. Distribusi operator memberi kombinasi sin dan cos.</span><br>
+    (2D + 1)·cos x = 2·(−sin x) + cos x = −2·sin x + cos x<br>
+    Hasilnya:&nbsp;&nbsp; y<sub>p</sub> = e<sup>x</sup>·(−2·sin x + cos x)/(−5) = (1/5)·e<sup>x</sup>·(2·sin x − cos x)<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 8 — Gabungkan y<sub>h</sub> + y<sub>p</sub></strong><br>
+    <span style="color:var(--muted);font-size:13px">Solusi umum PD non-homogen = solusi homogen umum + satu solusi khusus.</span><br>
+    <br>
+    <strong style="color:var(--cyan)">✓ Hasil:&nbsp;&nbsp; y = c₁·e<sup>x</sup> + c₂·e<sup>−x</sup> + (1/5)·e<sup>x</sup>·(2·sin x − cos x)</strong>
   </div>
 </div>
 

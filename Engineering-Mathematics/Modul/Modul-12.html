@@ -2085,16 +2085,50 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     Hitung <code>L{f}</code> untuk dua bentuk: (a) pulse rectangular dan (b) gigi gergaji yang dipotong di t=1.
   </div>
 
-  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:1.9">
     <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
-    (a) Pulse:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; f(t) = u(t) − u(t − 1)<br>
-    Transformasi:&nbsp;&nbsp;&nbsp; L{f} = 1/s − e<sup>−s</sup>/s<br>
-    <strong style="color:#fff">Hasil (a):&nbsp; L{f} = (1 − e<sup>−s</sup>)/s</strong><br>
+
+    <strong style="color:#fff">Bagian (a) — Pulse Rectangular</strong><br>
     <br>
-    (b) Gigi gergaji:&nbsp; f(t) = t·u(t) − u(t − 1) − (t − 1)·u(t − 1)<br>
-    Per term:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; L{t·u(t)} = 1/s²,&nbsp;&nbsp; L{u(t − 1)} = e<sup>−s</sup>/s,&nbsp;&nbsp; L{(t − 1)·u(t − 1)} = e<sup>−s</sup>/s²<br>
-    Gabung:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; L{f} = 1/s² − e<sup>−s</sup>/s − e<sup>−s</sup>/s²<br>
-    <strong style="color:#fff">Hasil (b):&nbsp; L{f} = (1 − e<sup>−s</sup> − s·e<sup>−s</sup>)/s²</strong>
+
+    <strong style="color:#fff">Langkah 1 — Tulis pulse dengan dua Heaviside</strong><br>
+    <span style="color:var(--muted);font-size:13px">Pulse rectangular = "saklar nyala" di t=0 lalu "saklar mati" di t=1. Dimodelkan sebagai selisih dua tangga satuan u(t) (turn ON di 0) dan u(t−1) (turn OFF di 1).</span><br>
+    Bentuk pulse:&nbsp;&nbsp; f(t) = u(t) − u(t − 1)<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 2 — Terapkan linearitas Laplace</strong><br>
+    <span style="color:var(--muted);font-size:13px">Linearitas: ℒ{αf + βg} = αℒ{f} + βℒ{g}. Pakai pasangan baku ℒ{u(t−a)} = e<sup>−as</sup>/s untuk tiap suku — a=0 dan a=1.</span><br>
+    Per suku:&nbsp;&nbsp; ℒ{u(t)} = 1/s,&nbsp;&nbsp; ℒ{u(t − 1)} = e<sup>−s</sup>/s<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 3 — Kombinasi linier dan sederhanakan</strong><br>
+    <span style="color:var(--muted);font-size:13px">Faktorkan 1/s sehingga muncul bentuk kanonik (1 − e<sup>−Ts</sup>)/s yang merupakan template universal untuk pulse berdurasi T.</span><br>
+    Gabung:&nbsp;&nbsp; ℒ{f} = 1/s − e<sup>−s</sup>/s<br>
+    <br>
+
+    <strong style="color:var(--cyan)">✓ Hasil (a):&nbsp;&nbsp; ℒ{f} = (1 − e<sup>−s</sup>)/s</strong><br>
+    <br>
+    <br>
+
+    <strong style="color:#fff">Bagian (b) — Gigi Gergaji Dipotong</strong><br>
+    <br>
+
+    <strong style="color:#fff">Langkah 1 — Dekomposisi fungsi piecewise</strong><br>
+    <span style="color:var(--muted);font-size:13px">Gigi gergaji = ramp t naik dari 0 ke 1 di [0,1], lalu jatuh ke 0 di t=1. Pisahkan jadi tiga bagian: ramp t·u(t) (mulai naik), drop −u(t−1) (jatuh sebesar 1), dan koreksi −(t−1)·u(t−1) (hentikan ramp setelah t=1).</span><br>
+    Bentuk:&nbsp;&nbsp; f(t) = t·u(t) − u(t − 1) − (t − 1)·u(t − 1)<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 2 — Transformasi tiap suku</strong><br>
+    <span style="color:var(--muted);font-size:13px">Suku 1: pasangan baku ℒ{t} = 1/s². Suku 2: step ditunda ℒ{u(t−1)} = e<sup>−s</sup>/s. Suku 3: bentuk f(t−a)·u(t−a) cocok untuk second shift theorem dengan f(t)=t → F(s)=1/s².</span><br>
+    Per suku:&nbsp;&nbsp; ℒ{t·u(t)} = 1/s²,&nbsp;&nbsp; ℒ{u(t − 1)} = e<sup>−s</sup>/s,&nbsp;&nbsp; ℒ{(t − 1)·u(t − 1)} = e<sup>−s</sup>/s²<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 3 — Gabungkan dan sederhanakan</strong><br>
+    <span style="color:var(--muted);font-size:13px">Faktorkan 1/s² agar bentuknya rapi. Numerator menyimpan info struktur sinyal: konstanta 1, term e<sup>−s</sup>, dan term s·e<sup>−s</sup> (sisa dari penyebut s²).</span><br>
+    Gabung:&nbsp;&nbsp; ℒ{f} = 1/s² − e<sup>−s</sup>/s − e<sup>−s</sup>/s²<br>
+    <br>
+
+    <strong style="color:var(--cyan)">✓ Hasil (b):&nbsp;&nbsp; ℒ{f} = (1 − e<sup>−s</sup> − s·e<sup>−s</sup>)/s²</strong>
   </div>
 
   <div class="info-box reveal">
@@ -2102,13 +2136,35 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     Hitung <code>L{f}</code> untuk segitiga <code>f(t) = (t − 1)·u(t − 1) − u(t − 2) − (t − 2)·u(t − 2)</code>.
   </div>
 
-  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:1.9">
     <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
-    Term 1:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; L{(t − 1)·u(t − 1)} = e<sup>−s</sup>/s²<br>
-    Term 2:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; L{u(t − 2)} = e<sup>−2s</sup>/s<br>
-    Term 3:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; L{(t − 2)·u(t − 2)} = e<sup>−2s</sup>/s²<br>
-    Gabung:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; L{f} = e<sup>−s</sup>/s² − e<sup>−2s</sup>/s − e<sup>−2s</sup>/s²<br>
-    <strong style="color:#fff">Hasil:&nbsp; L{f} = (e<sup>−s</sup> − e<sup>−2s</sup> − s·e<sup>−2s</sup>)/s²</strong>
+
+    <strong style="color:#fff">Langkah 1 — Identifikasi struktur segitiga</strong><br>
+    <span style="color:var(--muted);font-size:13px">Segitiga = ramp naik di [1,2] dari 0 ke 1, lalu turun ke 0 di t=2. Sudah ditulis dalam tiga blok Heaviside: ramp mulai t=1, drop konstan di t=2, dan koreksi ramp agar berhenti tumbuh setelah t=2. Bentuk ini siap untuk transformasi langsung.</span><br>
+    Fungsi:&nbsp;&nbsp; f(t) = (t − 1)·u(t − 1) − u(t − 2) − (t − 2)·u(t − 2)<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 2 — Transformasi suku 1 (ramp ditunda 1 detik)</strong><br>
+    <span style="color:var(--muted);font-size:13px">Bentuk f(t−a)·u(t−a) cocok dengan second shift theorem: ℒ{f(t−a)·u(t−a)} = e<sup>−as</sup>·F(s). Dengan f(t)=t maka F(s)=1/s² dan a=1.</span><br>
+    Suku 1:&nbsp;&nbsp; ℒ{(t − 1)·u(t − 1)} = e<sup>−s</sup>/s²<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 3 — Transformasi suku 2 (step ditunda 2 detik)</strong><br>
+    <span style="color:var(--muted);font-size:13px">Step Heaviside murni dengan delay 2: pasangan baku ℒ{u(t−a)} = e<sup>−as</sup>/s. Tidak butuh second shift karena tidak ada f(t−a) di depannya.</span><br>
+    Suku 2:&nbsp;&nbsp; ℒ{u(t − 2)} = e<sup>−2s</sup>/s<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 4 — Transformasi suku 3 (ramp ditunda 2 detik)</strong><br>
+    <span style="color:var(--muted);font-size:13px">Sama prinsipnya dengan suku 1 tapi dengan a=2. Faktor delay menjadi e<sup>−2s</sup> dan F(s)=1/s² tetap.</span><br>
+    Suku 3:&nbsp;&nbsp; ℒ{(t − 2)·u(t − 2)} = e<sup>−2s</sup>/s²<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 5 — Gabung lewat linearitas</strong><br>
+    <span style="color:var(--muted);font-size:13px">Jumlahkan ketiga hasil sesuai tanda di fungsi asal. Faktorkan 1/s² supaya bentuk akhir kompak dan struktur delay e<sup>−s</sup>, e<sup>−2s</sup> terlihat jelas.</span><br>
+    Gabung:&nbsp;&nbsp; ℒ{f} = e<sup>−s</sup>/s² − e<sup>−2s</sup>/s − e<sup>−2s</sup>/s²<br>
+    <br>
+
+    <strong style="color:var(--cyan)">✓ Hasil:&nbsp;&nbsp; ℒ{f} = (e<sup>−s</sup> − e<sup>−2s</sup> − s·e<sup>−2s</sup>)/s²</strong>
   </div>
 
   <div class="info-box reveal">
