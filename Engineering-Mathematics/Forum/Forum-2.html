@@ -493,11 +493,11 @@ function checkPoll(id){
   const isFirst=!document.getElementById('res-'+id).dataset.checked;
   opts.forEach(o=>{
     o.classList.remove('correct','wrong');
-    if(window._pollCorrectIdx[id]===Array.from(o.parentElement.children).indexOf(o))o.classList.add('correct');
-    else if(o.classList.contains('selected')&&window._pollCorrectIdx[id]!==Array.from(o.parentElement.children).indexOf(o))o.classList.add('wrong');
+    if(_ah(id+'_'+Array.from(o.parentElement.children).indexOf(o))===window._pc[id])o.classList.add('correct');
+    else if(o.classList.contains('selected')&&_ah(id+'_'+Array.from(o.parentElement.children).indexOf(o))!==window._pc[id])o.classList.add('wrong');
     o.style.pointerEvents='none';
   });
-  if(window._pollCorrectIdx[id]===Array.from(sel.parentElement.children).indexOf(sel)){
+  if(_ah(id+'_'+Array.from(sel.parentElement.children).indexOf(sel))===window._pc[id]){
     res.className='poll-result ok';res.textContent='🎉 Benar! Sekarang jelaskan alasanmu di Forum Diskusi.';
     if(isFirst&&typeof window._awardPoint==='function')window._awardPoint(id);
   }
@@ -856,7 +856,8 @@ window._loadScoredQuestions();
 
 initVisitor();
 
-window._pollCorrectIdx = {'p1': 1, 'p2': 1, 'p3': 0, 'p4': 1, 'p5': 2};
+function _ah(s){let h=5381;s=s+'mEKsP9k4tQ2';for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))&0xffffffff;return(h>>>0).toString(36);}
+window._pc = {'p1': '1u8mmzp', 'p2': 'bncubq', 'p3': 'ei8qti', 'p4': '18j1cy0', 'p5': '3ipx3e'};
 </script>
 </body>
 </html>
