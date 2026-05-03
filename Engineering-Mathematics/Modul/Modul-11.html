@@ -1398,6 +1398,10 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="warn-box reveal">
     ⚠ <strong>Tips PD orde tinggi:</strong> <strong>(1)</strong> Pastikan jumlah syarat awal = orde PD. <strong>(2)</strong> Untuk denominator orde 4+, faktorisasi mungkin tidak rapi (akar irrasional). Pakai numerik. <strong>(3)</strong> Bila ada pole kompleks, biarkan quadratic dan lengkapi kuadrat untuk match dengan e^(at)·sin/cos. <strong>(4)</strong> Untuk balok orde 4, syarat batas (BVP) berbeda dengan IVP — Laplace lebih natural untuk IVP. Untuk BVP, hasil Y(s) memuat parameter unknown yang harus dideterminasi dari syarat batas. <strong>(5)</strong> SymPy <code>sp.dsolve</code> dengan <code>ics</code> adalah cara cepat untuk PD orde tinggi.
   </div>
+
+  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
+    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), §5.3 Penerapan pada Persamaan Diferensial:</strong> modul memberi <em>shortcut formula</em> langsung untuk PD linear orde-2 koefisien konstan <code>ay″ + by′ + cy = r(t)</code>: setelah Laplace dengan IVP <code>y(0), y′(0)</code>, fungsi pembantu <strong>Y(s) = R(s)/Q(s) + G(s)/Q(s)</strong>, dengan <code>R(s) = L{r(t)}</code>, <code>Q(s) = as² + bs + c</code> (polinomial karakteristik), dan <code>G(s) = (as + b)·y(0) + a·y′(0)</code>. Generalisasinya untuk orde-3: <code>Q(s) = a₃s³ + a₂s² + a₁s + a₀</code>, <code>G(s) = (a₃s² + a₂s + a₁)y(0) + (a₃s + a₂)y′(0) + a₃y″(0)</code>. Modul mengilustrasikan dengan <em>Contoh 3.4</em> — solve <code>y‴ − 3y″ + 4y = 0</code> dengan y(0)=2, y′(0)=3, y″(0)=13: dapat <code>Y(s) = (2s² − 3s + 4)/[(s−2)²(s+1)]</code> → <code>y(t) = 2te^(2t) + e^(−t)</code>. Pakai shortcut ini untuk verifikasi IVP-Laplace versi panjang yang kita derivasi di atas.
+  </div>
 </div>
 
 <!-- ═══ BAGIAN 07 — IVP LENGKAP UNTUK PD NON-HOMOGEN ═══ -->
@@ -1898,6 +1902,18 @@ plt.<span class="fn">show</span>()
 
   <div class="tip-box reveal">
     💡 <strong>Strategi belajar:</strong> Kerjakan Tugas tab dengan urutan ini — (1) MC dulu untuk konsep, (2) Komputasi Easy/Medium untuk latihan rutin, (3) Komputasi Hard di akhir karena membutuhkan pemahaman menyeluruh. Diskusikan kesulitan di tab Forum atau panel chat 💬 (klik FAB di pojok kanan bawah). Selamat mengerjakan!
+  </div>
+
+  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
+    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), §5.3 Contoh 3.1 &amp; 3.2 — Reproduksi Komputasi:</strong> modul mengerjakan <em>Contoh 3.1</em> <code>y″ − 3y′ + 2y = 0</code> dengan <code>y(0) = 4, y′(0) = 5</code> manual: <code>Y(s) = (4s − 7)/(s² − 3s + 2) = 3/(s−1) + 1/(s−2)</code> → <code>y(t) = 3e^t + e^(2t)</code>. Verifikasi dengan SymPy: <pre style="background:rgba(0,0,0,.3);padding:10px;border-radius:6px;font-size:12px;margin:8px 0;overflow:auto">import sympy as sp
+t, s = sp.symbols('t s', positive=True); Y = sp.Function('Y')
+y = sp.Function('y')(t)
+eq = sp.Eq(y.diff(t,2) - 3*y.diff(t) + 2*y, 0)
+sol = sp.dsolve(eq, y, ics={y.subs(t,0): 4, y.diff(t).subs(t,0): 5})
+print(sol)  # Eq(y(t), 3*exp(t) + exp(2*t))
+# Verifikasi via Laplace shortcut: Y(s) = R(s)/Q(s) + G(s)/Q(s)
+R, Q, G = 0, s**2 - 3*s + 2, (s - 3)*4 + 5
+Ys = (R + G)/Q; print(sp.apart(Ys, s))  # 3/(s-1) + 1/(s-2)</pre>Untuk <em>Contoh 3.2</em> dengan akar berulang <code>(s−2)²</code>, hasilnya <code>y(t) = 2e^(2t) − 3te^(2t)</code> — menunjukkan term <code>te^(at)</code> yang hanya muncul pada akar berulang (resonansi). Bandingkan output simpy dengan langkah manual modul: identik!
   </div>
 </div>
 
