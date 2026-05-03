@@ -1315,15 +1315,38 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     Hitung <code>L{cos² t}</code> dengan strategi <em>memanfaatkan rumus turunan</em>: turunkan <code>f(t)</code> sampai diperoleh fungsi yang sudah ada di tabel, lalu balik untuk mendapatkan <code>F(s)</code>.
   </div>
 
-  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:1.9">
     <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
-    Misalkan&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; f(t) = cos² t,&nbsp;&nbsp;&nbsp;&nbsp; f(0) = 1<br>
-    Turunan&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; f'(t) = −2 cos t·sin t = −sin 2t<br>
-    Rumus&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; L{f'(t)} = sF(s) − f(0)<br>
-    Substitusi&nbsp;&nbsp;&nbsp; L{−sin 2t}&nbsp;&nbsp; = sF(s) − 1<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; −2/(s² + 4)&nbsp; = sF(s) − 1<br>
-    Solve&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; sF(s)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 1 − 2/(s² + 4) = (s² + 2)/(s² + 4)<br>
-    <strong style="color:#fff">Hasil:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; F(s) = (s² + 2) / [ s·(s² + 4) ]</strong>
+
+    <strong style="color:#fff">Langkah 1 — Tetapkan f(t) dan Hitung Nilai Awal f(0)</strong><br>
+    <span style="color:var(--muted);font-size:13px">Sebagai informasi: ℒ adalah simbol transformasi Laplace, sebuah aturan yang mengubah fungsi waktu f(t) menjadi fungsi frekuensi F(s). Nilai awal f(0) muncul di rumus turunan Laplace, jadi hitung dulu.</span><br>
+    Misalkan:&nbsp;&nbsp; f(t) = cos² t&nbsp;&nbsp;⟹&nbsp;&nbsp; f(0) = cos² 0 = 1<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 2 — Hitung Turunan f′(t) dan Sederhanakan</strong><br>
+    <span style="color:var(--muted);font-size:13px">Pakai aturan rantai: <code>d/dt[cos² t] = 2·cos t·(−sin t) = −2 sin t cos t</code>. Identitas trig <code>2 sin t cos t = sin 2t</code> menyederhanakan hasilnya menjadi fungsi tunggal yang ada di tabel Laplace.</span><br>
+    f′(t) = −2 cos t·sin t = −sin 2t<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 3 — Pakai Rumus Transformasi Laplace untuk Turunan</strong><br>
+    <span style="color:var(--muted);font-size:13px">Sifat fundamental: <code>ℒ{f′(t)} = sF(s) − f(0)</code>. Rumus ini mengubah operasi turunan di domain waktu menjadi perkalian dengan s di domain Laplace — inilah trik utama mengubah PD menjadi aljabar.</span><br>
+    Rumus:&nbsp;&nbsp; ℒ{f′(t)} = s·F(s) − f(0)<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 4 — Substitusi Hasil Turunan ke Rumus</strong><br>
+    <span style="color:var(--muted);font-size:13px">Sisi kiri: <code>ℒ{−sin 2t}</code> dapat langsung dibaca dari tabel: <code>ℒ{sin ωt} = ω/(s² + ω²)</code>, jadi dengan ω = 2 didapat <code>ℒ{sin 2t} = 2/(s² + 4)</code>.</span><br>
+    Substitusi f(0) = 1:&nbsp;&nbsp; ℒ{−sin 2t} = s·F(s) − 1&nbsp;&nbsp;⟹&nbsp;&nbsp; −2/(s² + 4) = s·F(s) − 1<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 5 — Aljabar untuk Isolasi F(s)</strong><br>
+    <span style="color:var(--muted);font-size:13px">Pindahkan −1 ke sisi kiri lalu bagi dengan s. Operasi murni aljabar — kekuatan utama metode Laplace.</span><br>
+    s·F(s) = 1 − 2/(s² + 4) = (s² + 4 − 2)/(s² + 4) = (s² + 2)/(s² + 4)<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 6 — Bagi Kedua Sisi dengan s</strong><br>
+    <span style="color:var(--muted);font-size:13px">Final step: bagi dengan s untuk dapatkan F(s) eksplisit.</span><br>
+    <br>
+    <strong style="color:var(--cyan)">✓ Hasil:&nbsp;&nbsp; F(s) = ℒ{cos² t} = (s² + 2) / [s·(s² + 4)]</strong>
   </div>
 
   <p class="reveal" style="font-size:14px;line-height:1.75;color:var(--text);margin-top:14px">
@@ -1491,15 +1514,39 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     Hitung <code>L<sup>−1</sup>{(s² − 8)/(s² + 4)²}</code> menggunakan trik <em>pisah numerator</em> agar tiap suku cocok dengan entri tabel turunan trigonometri.
   </div>
 
-  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:1.9">
     <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
-    Pisah numerator&nbsp;&nbsp;&nbsp; (s² − 8)/(s² + 4)²&nbsp; = s²/(s² + 4)² − 8/(s² + 4)²<br>
-    Identitas tabel&nbsp;&nbsp;&nbsp;&nbsp; L<sup>−1</sup>{s²/(s² + b²)²}&nbsp;&nbsp;&nbsp; = (1/(2b))·(sin bt + bt cos bt)<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; L<sup>−1</sup>{1/(s² + b²)²}&nbsp;&nbsp;&nbsp; = (1/(2b³))·(sin bt − bt cos bt)<br>
-    Substitusi b = 2&nbsp;&nbsp;&nbsp; L<sup>−1</sup>{s²/(s² + 4)²}&nbsp;&nbsp;&nbsp; = ¼·(sin 2t + 2t cos 2t)<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; L<sup>−1</sup>{8/(s² + 4)²}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = (8/16)·(sin 2t − 2t cos 2t)<br>
-    Gabung&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; f(t) = ¼ sin 2t + ½ t cos 2t − ½ sin 2t + t cos 2t<br>
-    <strong style="color:#fff">Hasil:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; f(t) = −¼ sin 2t + (3/2)·t cos 2t</strong>
+
+    <strong style="color:#fff">Langkah 1 — Pisah Numerator agar Tiap Suku Cocok Tabel</strong><br>
+    <span style="color:var(--muted);font-size:13px">Sebagai informasi: ℒ⁻¹ adalah invers Laplace — kebalikan dari ℒ — yang mengubah F(s) kembali ke fungsi waktu f(t). Bentuk <code>(s² + b²)²</code> di penyebut menandakan kasus turunan trigonometri (t·sin atau t·cos). Pisahkan numerator agar tiap suku berdiri sendiri.</span><br>
+    Pisah:&nbsp;&nbsp; (s² − 8)/(s² + 4)² = s²/(s² + 4)² − 8/(s² + 4)²<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 2 — Tulis Dua Identitas Tabel yang Akan Dipakai</strong><br>
+    <span style="color:var(--muted);font-size:13px">Dua entri tabel kunci untuk denominator <code>(s² + b²)²</code>: satu menghasilkan kombinasi sin + t·cos, satu lagi sin − t·cos. Kedua identitas ini diturunkan dari sifat <code>ℒ{t·f(t)} = −F'(s)</code>.</span><br>
+    ℒ⁻¹{s²/(s² + b²)²}&nbsp;&nbsp;= (1/(2b))·(sin bt + bt·cos bt)<br>
+    ℒ⁻¹{1/(s² + b²)²}&nbsp;&nbsp;&nbsp;= (1/(2b³))·(sin bt − bt·cos bt)<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 3 — Substitusi b = 2 ke Suku Pertama</strong><br>
+    <span style="color:var(--muted);font-size:13px">Identifikasi b² = 4 → b = 2. Pakai rumus pertama dengan koefisien <code>1/(2·2) = 1/4</code>.</span><br>
+    ℒ⁻¹{s²/(s² + 4)²} = ¼·(sin 2t + 2t·cos 2t) = ¼·sin 2t + ½·t·cos 2t<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 4 — Substitusi b = 2 ke Suku Kedua</strong><br>
+    <span style="color:var(--muted);font-size:13px">Pakai rumus kedua dengan koefisien <code>1/(2·8) = 1/16</code>. Ingat ada faktor 8 di numerator awal.</span><br>
+    ℒ⁻¹{8/(s² + 4)²} = 8·(1/16)·(sin 2t − 2t·cos 2t) = ½·sin 2t − t·cos 2t<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 5 — Gabung Dua Suku (Ingat Tanda Minus)</strong><br>
+    <span style="color:var(--muted);font-size:13px">Ingat di Langkah 1 ada tanda minus di antara dua suku, jadi kurangkan suku kedua dari suku pertama.</span><br>
+    f(t) = [¼·sin 2t + ½·t·cos 2t] − [½·sin 2t − t·cos 2t]<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= ¼·sin 2t − ½·sin 2t + ½·t·cos 2t + t·cos 2t<br>
+    Sederhanakan koefisien sin: ¼ − ½ = −¼<br>
+    Sederhanakan koefisien t·cos: ½ + 1 = 3/2<br>
+    <br>
+
+    <strong style="color:var(--cyan)">✓ Hasil:&nbsp;&nbsp; f(t) = −¼·sin 2t + (3/2)·t·cos 2t</strong>
   </div>
 
   <p class="reveal" style="font-size:14px;line-height:1.75;color:var(--text);margin-top:14px">
