@@ -1152,12 +1152,29 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     Konversi <code>f(t) = {0 jika t&lt;0;&nbsp; 1 jika 0&lt;t&lt;1;&nbsp; 0 jika t&gt;1}</code> ke notasi tangga satuan u(t−a).
   </div>
 
-  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:1.9">
     <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
-    Notasi formal:&nbsp;&nbsp;&nbsp; u(t − a) = 0 jika t &lt; a,&nbsp;&nbsp; 1 jika t &gt; a<br>
-    Jump di t=0:&nbsp;&nbsp;&nbsp;&nbsp; 0 → 1&nbsp;&nbsp;⟹&nbsp;&nbsp; +1·u(t)<br>
-    Jump di t=1:&nbsp;&nbsp;&nbsp;&nbsp; 1 → 0&nbsp;&nbsp;⟹&nbsp;&nbsp; −1·u(t − 1)<br>
-    <strong style="color:#fff">Hasil:&nbsp; f(t) = u(t) − u(t − 1)&nbsp; (pulse rectangular)</strong>
+
+    <strong style="color:#fff">Langkah 1 — Tinjau definisi tangga satuan</strong><br>
+    <span style="color:var(--muted);font-size:13px">Heaviside <code>u(t−a)</code> bernilai 0 sebelum t=a dan 1 sesudahnya. Konsep ini dipakai untuk "menyalakan" atau "mematikan" suatu nilai pada waktu tertentu.</span><br>
+    Notasi formal:&nbsp;&nbsp; u(t − a) = 0 jika t &lt; a,&nbsp;&nbsp; 1 jika t &gt; a<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 2 — Identifikasi jump di t=0</strong><br>
+    <span style="color:var(--muted);font-size:13px">Pada t=0 nilai f naik dari 0 ke 1 (delta = +1). Setiap loncatan naik dimodelkan oleh +1·u(t−a) dengan koefisien sama dengan besar loncatan.</span><br>
+    Jump di t=0:&nbsp;&nbsp; 0 → 1&nbsp;&nbsp;⟹&nbsp;&nbsp; +1·u(t)<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 3 — Identifikasi jump di t=1</strong><br>
+    <span style="color:var(--muted);font-size:13px">Pada t=1 fungsi turun dari 1 ke 0 (delta = −1), sehingga ditambahkan −1·u(t−1) untuk "mematikan" sinyal yang sudah aktif.</span><br>
+    Jump di t=1:&nbsp;&nbsp; 1 → 0&nbsp;&nbsp;⟹&nbsp;&nbsp; −1·u(t − 1)<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 4 — Gabungkan menjadi pulse rectangular</strong><br>
+    <span style="color:var(--muted);font-size:13px">Penjumlahan dua Heaviside menghasilkan pulsa kotak: aktif hanya pada interval [0, 1] dan nol di luarnya — bentuk standar untuk gerbang logika atau saklar berdurasi.</span><br>
+    <br>
+
+    <strong style="color:var(--cyan)">✓ Hasil:&nbsp;&nbsp; f(t) = u(t) − u(t − 1)&nbsp; (pulse rectangular)</strong>
   </div>
 
   <div class="info-box reveal">
@@ -1165,13 +1182,30 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     Konversi <code>f(t) = {0 jika t&lt;1;&nbsp; t−1 jika 1&lt;t&lt;2;&nbsp; 0 jika t&gt;2}</code> ke notasi tangga satuan.
   </div>
 
-  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:1.9">
     <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
-    Aturan umum:&nbsp;&nbsp;&nbsp; g(t) = f(t − a)·u(t − a)<br>
+
+    <strong style="color:#fff">Langkah 1 — Aturan umum penggeseran</strong><br>
+    <span style="color:var(--muted);font-size:13px">Untuk menyalakan fungsi f mulai dari t=a, kalikan f yang sudah digeser <code>f(t−a)</code> dengan <code>u(t−a)</code>. Inilah dasar second shift yang membuat ramp/sinus/eksponensial bisa "muncul terlambat".</span><br>
+    Aturan umum:&nbsp;&nbsp; g(t) = f(t − a)·u(t − a)<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 2 — Mulai ramp pada t=1</strong><br>
+    <span style="color:var(--muted);font-size:13px">Ramp <code>t−1</code> bernilai 0 di t=1 dan tumbuh linier setelahnya. Dikalikan u(t−1) supaya hanya aktif sejak t=1.</span><br>
     Mulai ramp t=1:&nbsp;&nbsp; (t − 1)·u(t − 1)<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 3 — Hentikan ramp pada t=2</strong><br>
+    <span style="color:var(--muted);font-size:13px">Pada t=2 ramp harus berhenti tumbuh: kita kurangi salinan ramp yang sama mulai t=2 sehingga kontribusi linear saling meniadakan untuk t&gt;2.</span><br>
     Stop ramp t=2:&nbsp;&nbsp; − (t − 1)·u(t − 2)<br>
-    Drop ke 0:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; − u(t − 2)<br>
-    <strong style="color:#fff">Hasil:&nbsp; f(t) = (t − 1)·u(t − 1) − (t − 1)·u(t − 2) − u(t − 2)</strong>
+    <br>
+
+    <strong style="color:#fff">Langkah 4 — Lompatan turun di t=2</strong><br>
+    <span style="color:var(--muted);font-size:13px">Tepat di t=2 ramp mencapai nilai 1, lalu fungsi loncat ke 0 (delta = −1). Tambahkan −u(t−2) untuk membuang sisa nilai konstan.</span><br>
+    Drop ke 0:&nbsp;&nbsp; − u(t − 2)<br>
+    <br>
+
+    <strong style="color:var(--cyan)">✓ Hasil:&nbsp;&nbsp; f(t) = (t − 1)·u(t − 1) − (t − 1)·u(t − 2) − u(t − 2)</strong>
   </div>
 </div>
 
@@ -1326,13 +1360,30 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     Tentukan invers Laplace dari <code>Y(s) = (1 − e<sup>−s</sup>)/(s² − 3s + 2)</code>.
   </div>
 
-  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:1.9">
     <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
-    Pisahkan term:&nbsp;&nbsp;&nbsp;&nbsp; Y(s) = F(s) − F(s)·e<sup>−s</sup>,&nbsp;&nbsp; F(s) = 1/[(s−1)(s−2)]<br>
-    Pecah parsial:&nbsp;&nbsp;&nbsp;&nbsp; F(s) = 1/(s − 2) − 1/(s − 1)<br>
-    Invers F:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; f(t) = e<sup>2t</sup> − e<sup>t</sup><br>
-    Second shift a=1:&nbsp; ℒ⁻¹{e<sup>−s</sup>·F(s)} = f(t − 1)·u(t − 1)<br>
-    <strong style="color:#fff">Hasil:&nbsp; y(t) = (e<sup>2t</sup> − e<sup>t</sup>) − (e<sup>2(t−1)</sup> − e<sup>t−1</sup>)·u(t − 1)</strong>
+
+    <strong style="color:#fff">Langkah 1 — Pisahkan menjadi dua suku</strong><br>
+    <span style="color:var(--muted);font-size:13px">Faktor <code>e<sup>−s</sup></code> menandakan ada delay 1 detik. Pisahkan Y(s) menjadi bagian "tanpa delay" dan "dengan delay" supaya tiap bagian dapat ditangani memakai second shift theorem.</span><br>
+    Pisahkan term:&nbsp;&nbsp; Y(s) = F(s) − F(s)·e<sup>−s</sup>,&nbsp;&nbsp; F(s) = 1/[(s−1)(s−2)]<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 2 — Pecahan parsial untuk F(s)</strong><br>
+    <span style="color:var(--muted);font-size:13px">Penyebut berupa dua faktor linear berbeda. Pecahan parsial mengubahnya menjadi jumlah dua suku 1/(s−p) yang inversnya langsung dari tabel = e<sup>pt</sup>.</span><br>
+    Pecah parsial:&nbsp;&nbsp; F(s) = 1/(s − 2) − 1/(s − 1)<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 3 — Invers Laplace bagian tanpa delay</strong><br>
+    <span style="color:var(--muted);font-size:13px">Pakai pasangan baku ℒ⁻¹{1/(s−p)} = e<sup>pt</sup> untuk tiap suku. Hasilnya jadi f(t) yang akan dipakai dua kali (langsung dan ter-delay).</span><br>
+    Invers F:&nbsp;&nbsp; f(t) = e<sup>2t</sup> − e<sup>t</sup><br>
+    <br>
+
+    <strong style="color:#fff">Langkah 4 — Terapkan second shift theorem (a=1)</strong><br>
+    <span style="color:var(--muted);font-size:13px">Aturan: ℒ⁻¹{e<sup>−as</sup>·F(s)} = f(t−a)·u(t−a). Jadi suku kedua menjadi salinan f(t) yang digeser 1 detik dan baru aktif setelah t=1.</span><br>
+    Second shift a=1:&nbsp;&nbsp; ℒ⁻¹{e<sup>−s</sup>·F(s)} = f(t − 1)·u(t − 1)<br>
+    <br>
+
+    <strong style="color:var(--cyan)">✓ Hasil:&nbsp;&nbsp; y(t) = (e<sup>2t</sup> − e<sup>t</sup>) − (e<sup>2(t−1)</sup> − e<sup>t−1</sup>)·u(t − 1)</strong>
   </div>
 
   <div class="info-box reveal">
@@ -1340,11 +1391,24 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     Sederhanakan <code>cos 2(t − π)·u(t − π)</code> sebelum invers Laplace.
   </div>
 
-  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:1.9">
     <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
-    Ekspansi:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cos 2(t − π) = cos 2t · cos 2π + sin 2t · sin 2π<br>
-    Substitusi:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cos 2π = 1,&nbsp;&nbsp; sin 2π = 0<br>
-    <strong style="color:#fff">Hasil:&nbsp; cos 2(t − π) = cos 2t&nbsp; (forcing tetap kosinus murni setelah delay π)</strong>
+
+    <strong style="color:#fff">Langkah 1 — Ekspansi rumus selisih sudut</strong><br>
+    <span style="color:var(--muted);font-size:13px">Identitas <code>cos(A−B) = cos A·cos B + sin A·sin B</code> memecah argumen tergeser menjadi kombinasi sin/cos murni — bentuk yang lebih mudah ditransformasi Laplace.</span><br>
+    Ekspansi:&nbsp;&nbsp; cos 2(t − π) = cos 2t · cos 2π + sin 2t · sin 2π<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 2 — Substitusi nilai trigonometri di kelipatan π</strong><br>
+    <span style="color:var(--muted);font-size:13px">Argumen 2π berada satu putaran penuh dari nol, jadi cos 2π = 1 dan sin 2π = 0. Akibatnya satu suku hilang dan ekspresi menyederhana drastis.</span><br>
+    Substitusi:&nbsp;&nbsp; cos 2π = 1,&nbsp;&nbsp; sin 2π = 0<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 3 — Interpretasi fisik</strong><br>
+    <span style="color:var(--muted);font-size:13px">Karena delay π merupakan satu periode penuh dari cos 2t (periode = π), bentuk gelombangnya identik dengan aslinya. Inilah mengapa "delay sebesar periode" tidak mengubah forcing.</span><br>
+    <br>
+
+    <strong style="color:var(--cyan)">✓ Hasil:&nbsp;&nbsp; cos 2(t − π) = cos 2t&nbsp; (forcing tetap kosinus murni setelah delay π)</strong>
   </div>
 
   <div class="info-box reveal">
@@ -1352,12 +1416,29 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     Tentukan <code>y(t)</code> dari <code>Y(s) = (1 − e<sup>−πs</sup> − s·e<sup>−2πs</sup>)/(s² + 1)</code>.
   </div>
 
-  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:1.9">
     <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
-    Term 1:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ℒ⁻¹{1/(s² + 1)} = sin t<br>
+
+    <strong style="color:#fff">Langkah 1 — Pisahkan tiga suku berdasarkan delay</strong><br>
+    <span style="color:var(--muted);font-size:13px">Setiap faktor <code>e<sup>−as</sup></code> menandai suatu peristiwa yang ditunda sebesar <em>a</em> detik. Pecah Y(s) jadi tiga bagian dan kerjakan satu per satu.</span><br>
+    <br>
+
+    <strong style="color:#fff">Langkah 2 — Invers suku tanpa delay</strong><br>
+    <span style="color:var(--muted);font-size:13px">Pakai pasangan baku ℒ⁻¹{1/(s²+1)} = sin t — sinus murni yang dimulai sejak t=0.</span><br>
+    Term 1:&nbsp;&nbsp; ℒ⁻¹{1/(s² + 1)} = sin t<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 3 — Invers suku dengan delay π</strong><br>
+    <span style="color:var(--muted);font-size:13px">Second shift: kalikan f(t)=sin t dengan u(t−π) lalu geser argumennya menjadi (t−π). Hasilnya sinyal sin yang baru aktif setelah t=π.</span><br>
     Term 2 (a=π):&nbsp;&nbsp; ℒ⁻¹{e<sup>−πs</sup>/(s² + 1)} = sin(t − π)·u(t − π)<br>
-    Term 3 (a=2π):&nbsp; ℒ⁻¹{s·e<sup>−2πs</sup>/(s² + 1)} = cos(t − 2π)·u(t − 2π)<br>
-    <strong style="color:#fff">Hasil:&nbsp; y(t) = sin t − sin(t − π)·u(t − π) − cos(t − 2π)·u(t − 2π)</strong>
+    <br>
+
+    <strong style="color:#fff">Langkah 4 — Invers suku dengan delay 2π dan faktor s</strong><br>
+    <span style="color:var(--muted);font-size:13px">Kehadiran s di pembilang berarti pasangan invers menjadi cosinus: ℒ⁻¹{s/(s²+1)} = cos t. Lalu second shift dengan a=2π memberi cos yang ditunda dua periode penuh.</span><br>
+    Term 3 (a=2π):&nbsp;&nbsp; ℒ⁻¹{s·e<sup>−2πs</sup>/(s² + 1)} = cos(t − 2π)·u(t − 2π)<br>
+    <br>
+
+    <strong style="color:var(--cyan)">✓ Hasil:&nbsp;&nbsp; y(t) = sin t − sin(t − π)·u(t − π) − cos(t − 2π)·u(t − 2π)</strong>
   </div>
 </div>
 

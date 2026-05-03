@@ -1361,22 +1361,60 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     Selesaikan <code>(D² − 3D + 2)·y = e<sup>3x</sup></code>.
   </div>
 
-  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:1.9">
     <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
-    Karakteristik:&nbsp;&nbsp;&nbsp; L(D) = D² − 3D + 2 = (D − 1)(D − 2) = 0&nbsp;&nbsp;⟹&nbsp;&nbsp; D = 1, 2<br>
-    Solusi homogen:&nbsp;&nbsp; y<sub>h</sub> = c₁·e<sup>x</sup> + c₂·e<sup>2x</sup><br>
-    Cek L(3):&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; L(3) = 9 − 9 + 2 = 2&nbsp;&nbsp;≠ 0<br>
-    Solusi khusus:&nbsp;&nbsp;&nbsp; y<sub>p</sub> = e<sup>3x</sup>/L(3) = e<sup>3x</sup>/2<br>
-    <strong style="color:#fff">Solusi total:&nbsp;&nbsp;&nbsp;&nbsp; y = c₁·e<sup>x</sup> + c₂·e<sup>2x</sup> + ½·e<sup>3x</sup></strong>
+
+    <strong style="color:#fff">Langkah 1 — Tulis Polinomial Operator L(D)</strong><br>
+    <span style="color:var(--muted);font-size:13px">D adalah singkatan dari operator turunan d/dx. Mengubah PD ke bentuk operator memudahkan kita memperlakukan turunan seperti aljabar polinomial biasa.</span><br>
+    Bentuk operator:&nbsp;&nbsp; L(D) = D² − 3D + 2<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 2 — Faktorkan L(D) untuk Cari Akar Karakteristik</strong><br>
+    <span style="color:var(--muted);font-size:13px">Akar L(D) = 0 menentukan eksponen di solusi homogen. Faktorisasi mempermudah identifikasi akar tanpa rumus kuadratik.</span><br>
+    Faktorisasi:&nbsp;&nbsp; L(D) = (D − 1)(D − 2) = 0&nbsp;&nbsp;⟹&nbsp;&nbsp; D = 1, 2<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 3 — Susun Solusi Homogen y<sub>h</sub></strong><br>
+    <span style="color:var(--muted);font-size:13px">Setiap akar real berbeda r memberi basis e<sup>rx</sup>. Gabungan linier semua basis = solusi homogen umum.</span><br>
+    y<sub>h</sub>:&nbsp;&nbsp; y<sub>h</sub> = c₁·e<sup>x</sup> + c₂·e<sup>2x</sup><br>
+    <br>
+
+    <strong style="color:#fff">Langkah 4 — Cek L(3) untuk Pastikan Bukan Kasus Resonansi</strong><br>
+    <span style="color:var(--muted);font-size:13px">Rumus invers operator <code>(1/L(D))·e<sup>αx</sup> = e<sup>αx</sup>/L(α)</code> hanya berlaku bila L(α) ≠ 0. Bila L(α) = 0 berarti α adalah akar karakteristik (resonansi) dan butuh trik kalikan x.</span><br>
+    Substitusi α = 3:&nbsp;&nbsp; L(3) = 3² − 3·3 + 2 = 9 − 9 + 2 = 2&nbsp;&nbsp;≠ 0&nbsp;&nbsp;✓ (bukan resonansi)<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 5 — Hitung Solusi Khusus y<sub>p</sub> via Rumus Invers</strong><br>
+    <span style="color:var(--muted);font-size:13px">Pakai rumus baku: bagi e<sup>3x</sup> dengan L(3) = 2. Tidak perlu tebakan UC atau sistem aljabar.</span><br>
+    y<sub>p</sub> = e<sup>3x</sup>/L(3) = e<sup>3x</sup>/2<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 6 — Gabungkan y<sub>h</sub> + y<sub>p</sub></strong><br>
+    <span style="color:var(--muted);font-size:13px">Solusi umum PD non-homogen = solusi homogen + satu solusi khusus.</span><br>
+    <br>
+    <strong style="color:var(--cyan)">✓ Hasil:&nbsp;&nbsp; y = c₁·e<sup>x</sup> + c₂·e<sup>2x</sup> + ½·e<sup>3x</sup></strong>
   </div>
 
-  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:1.9">
     <div class="label" style="text-align:left">Verifikasi via Integrasi Berlapis</div>
+
+    <strong style="color:#fff">Langkah 1 — Faktorkan 1/L(D) jadi Dua Operator Orde 1</strong><br>
+    <span style="color:var(--muted);font-size:13px">Rumus baku: <code>(1/(D − r))·f(x) = e<sup>rx</sup>·∫e<sup>−rx</sup>·f(x) dx</code>. Operator orde tinggi = serial operator orde 1.</span><br>
     y<sub>p</sub> = (1/[(D − 2)(D − 1)])·e<sup>3x</sup><br>
-    &nbsp;&nbsp;&nbsp;&nbsp;= (1/(D − 2))·e<sup>x</sup>·∫e<sup>−x</sup>·e<sup>3x</sup> dx<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;= (1/(D − 2))·(½·e<sup>3x</sup>)<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;= ½·e<sup>2x</sup>·∫e<sup>−2x</sup>·e<sup>3x</sup> dx<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;= ½·e<sup>3x</sup>&nbsp;&nbsp;✓
+    <br>
+
+    <strong style="color:#fff">Langkah 2 — Terapkan Operator (1/(D − 1)) Pertama</strong><br>
+    <span style="color:var(--muted);font-size:13px">Pakai r = 1: kalikan dengan e<sup>x</sup> di depan integral, integrate-kan e<sup>−x</sup>·f(x).</span><br>
+    = (1/(D − 2))·e<sup>x</sup>·∫e<sup>−x</sup>·e<sup>3x</sup> dx&nbsp;&nbsp;= (1/(D − 2))·e<sup>x</sup>·∫e<sup>2x</sup> dx<br>
+    Hasil integral:&nbsp;&nbsp; ∫e<sup>2x</sup> dx = ½·e<sup>2x</sup>&nbsp;&nbsp;⟹&nbsp;&nbsp; = (1/(D − 2))·(½·e<sup>3x</sup>)<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 3 — Terapkan Operator (1/(D − 2)) Kedua</strong><br>
+    <span style="color:var(--muted);font-size:13px">Pakai r = 2: kalikan dengan e<sup>2x</sup> di depan, integrate-kan e<sup>−2x</sup>·f(x).</span><br>
+    = ½·e<sup>2x</sup>·∫e<sup>−2x</sup>·e<sup>3x</sup> dx&nbsp;&nbsp;= ½·e<sup>2x</sup>·∫e<sup>x</sup> dx&nbsp;&nbsp;= ½·e<sup>2x</sup>·e<sup>x</sup><br>
+    <br>
+
+    <strong style="color:var(--cyan)">✓ Hasil:&nbsp;&nbsp; y<sub>p</sub> = ½·e<sup>3x</sup>&nbsp;&nbsp;(sama dengan rumus invers — terverifikasi)</strong>
   </div>
 </div>
 
