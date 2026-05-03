@@ -2731,8 +2731,17 @@ for f in (f53a, f53b, f54):
   <canvas id="cvForum" height="360" style="margin-bottom:12px;border-radius:12px"></canvas>
   <p style="font-size:13px;color:var(--muted);margin-bottom:24px;font-family:'JetBrains Mono',monospace;text-align:center">— Visualisasi profil duty bertingkat d(t): mulai 30 % di t=0, naik ke 60 % di t=2 s, lalu 80 % di t=5 s. Setiap jump adalah Heaviside step yang dikalikan koefisien delta-duty. Output average voltage V_avg(t) = 12·d(t) di-overlay dengan response motor ω(t) yang naik bertahap mengikuti time constant τ = 0.5 s.</p>
 
-  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-bottom:36px">
-    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), §5 — Step Bertingkat sebagai Aplikasi Aturan Jump:</strong> profil duty PWM <code>d(t) = 0.30·u(t) + 0.30·u(t−2) + 0.20·u(t−5)</code> di forum ini adalah <em>generalisasi</em> dari Contoh 5.1 dan 5.2 modul. Modul mengajarkan bahwa setiap fungsi dengan banyak persamaan dapat ditulis menggunakan kombinasi linier <code>u(t−aᵢ)</code> dimana koefisien tiap term = <em>perubahan</em> nilai fungsi pada titik diskontinu (Δd₁ = 0.30, Δd₂ = +0.30, Δd₃ = +0.20). Sekali V_avg(t) ditulis demikian, transformasi Laplace tinggal menjumlahkan term <code>e<sup>−aᵢs</sup>/s</code> per Contoh 5.3 modul. Inilah kekuatan kerangka Heaviside: konstruksi visual sederhana langsung map ke domain Laplace, dan respon motor τ·ω′ + ω = K·V_avg dapat di-solve dengan teknik PD orde-1 + second shift dari Modul-11 §5.3 yang persis sama dengan kerangka Sucipto/Markoni.
+  <div class="info-box reveal" style="margin-bottom:24px">
+    <strong>Step Bertingkat sebagai Aplikasi Aturan Jump:</strong> profil duty PWM <code>d(t) = 0.30·u(t) + 0.30·u(t−2) + 0.20·u(t−5)</code> di forum ini adalah generalisasi dari kasus dasar fungsi tangga. Setiap fungsi dengan banyak persamaan dapat ditulis menggunakan kombinasi linier <code>u(t−aᵢ)</code> dimana koefisien tiap term = <em>perubahan</em> nilai fungsi pada titik diskontinu (Δd₁ = 0.30, Δd₂ = +0.30, Δd₃ = +0.20). Sekali V_avg(t) ditulis demikian, transformasi Laplace tinggal menjumlahkan term <code>e<sup>−aᵢs</sup>/s</code>.
+  </div>
+
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2;margin-bottom:36px">
+    <div class="label" style="text-align:left">Konstruksi Heaviside &rarr; Domain Laplace</div>
+    Profil duty:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; d(t)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 0.30·u(t) + 0.30·u(t−2) + 0.20·u(t−5)<br>
+    Average voltage: V_avg(t)&nbsp;&nbsp; = 12·d(t) = 3.6·u(t) + 3.6·u(t−2) + 2.4·u(t−5)<br>
+    Aturan dasar:&nbsp;&nbsp;&nbsp;&nbsp; ℒ{u(t−a)} = e<sup>−as</sup>/s<br>
+    Hasil Laplace:&nbsp;&nbsp;&nbsp; V(s)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 3.6/s + 3.6·e<sup>−2s</sup>/s + 2.4·e<sup>−5s</sup>/s<br>
+    <strong style="color:#fff">Respon motor:&nbsp;&nbsp;&nbsp;&nbsp; τ·ω′ + ω = K·V_avg &nbsp;&rarr;&nbsp; di-solve dengan teknik PD orde-1 + second shift</strong>
   </div>
 
   <!-- Pertanyaan Diskusi -->

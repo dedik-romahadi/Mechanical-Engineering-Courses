@@ -1399,9 +1399,42 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     ⚠ <strong>Tips PD orde tinggi:</strong> <strong>(1)</strong> Pastikan jumlah syarat awal = orde PD. <strong>(2)</strong> Untuk denominator orde 4+, faktorisasi mungkin tidak rapi (akar irrasional). Pakai numerik. <strong>(3)</strong> Bila ada pole kompleks, biarkan quadratic dan lengkapi kuadrat untuk match dengan e^(at)·sin/cos. <strong>(4)</strong> Untuk balok orde 4, syarat batas (BVP) berbeda dengan IVP — Laplace lebih natural untuk IVP. Untuk BVP, hasil Y(s) memuat parameter unknown yang harus dideterminasi dari syarat batas. <strong>(5)</strong> SymPy <code>sp.dsolve</code> dengan <code>ics</code> adalah cara cepat untuk PD orde tinggi.
   </div>
 
-  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
-    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), §5.3 Penerapan pada Persamaan Diferensial:</strong> modul memberi <em>shortcut formula</em> langsung untuk PD linear orde-2 koefisien konstan <code>ay″ + by′ + cy = r(t)</code>: setelah Laplace dengan IVP <code>y(0), y′(0)</code>, fungsi pembantu <strong>Y(s) = R(s)/Q(s) + G(s)/Q(s)</strong>, dengan <code>R(s) = L{r(t)}</code>, <code>Q(s) = as² + bs + c</code> (polinomial karakteristik), dan <code>G(s) = (as + b)·y(0) + a·y′(0)</code>. Generalisasinya untuk orde-3: <code>Q(s) = a₃s³ + a₂s² + a₁s + a₀</code>, <code>G(s) = (a₃s² + a₂s + a₁)y(0) + (a₃s + a₂)y′(0) + a₃y″(0)</code>. Modul mengilustrasikan dengan <em>Contoh 3.4</em> — solve <code>y‴ − 3y″ + 4y = 0</code> dengan y(0)=2, y′(0)=3, y″(0)=13: dapat <code>Y(s) = (2s² − 3s + 4)/[(s−2)²(s+1)]</code> → <code>y(t) = 2te^(2t) + e^(−t)</code>. Pakai shortcut ini untuk verifikasi IVP-Laplace versi panjang yang kita derivasi di atas.
+  <div class="info-box reveal" style="margin-top:18px">
+    <strong>Shortcut Formula untuk PD Linear Koefisien Konstan:</strong>
+    Untuk PD orde-2 berbentuk <code>a·y″ + b·y′ + c·y = r(t)</code> dengan IVP <code>y(0), y′(0)</code>, transformasi Laplace menghasilkan bentuk umum yang dapat ditulis langsung tanpa menderivasi setiap suku.
   </div>
+
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+    <div class="label" style="text-align:left">Shortcut Formula Y(s) — Orde 2 dan Orde 3</div>
+    Bentuk umum&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Y(s) = R(s)/Q(s) + G(s)/Q(s)<br>
+    R(s)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = L{r(t)}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (transformasi sisi kanan)<br>
+    <br>
+    <strong style="color:#fff">Orde 2:</strong>&nbsp;&nbsp;&nbsp; Q(s) = as² + bs + c&nbsp;&nbsp;(polinomial karakteristik)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; G(s) = (as + b)·y(0) + a·y′(0)<br>
+    <br>
+    <strong style="color:#fff">Orde 3:</strong>&nbsp;&nbsp;&nbsp; Q(s) = a₃s³ + a₂s² + a₁s + a₀<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; G(s) = (a₃s² + a₂s + a₁)·y(0) + (a₃s + a₂)·y′(0) + a₃·y″(0)
+  </div>
+
+  <div class="info-box reveal" style="margin-top:14px">
+    <strong>Contoh 3.4 — Penerapan Shortcut pada PD Orde 3 Homogen:</strong>
+    Selesaikan <code>y‴ − 3y″ + 4y = 0</code> dengan syarat awal <code>y(0) = 2, y′(0) = 3, y″(0) = 13</code>.
+  </div>
+
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+    <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
+    Identifikasi&nbsp;&nbsp;&nbsp; a₃ = 1, a₂ = −3, a₁ = 0, a₀ = 4&nbsp;&nbsp;&nbsp;&nbsp; (homogen ⟹ R(s) = 0)<br>
+    Q(s)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = s³ − 3s² + 4 = (s − 2)²·(s + 1)<br>
+    G(s)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = (s² − 3s)·2 + (s − 3)·3 + 1·13<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 2s² − 3s + 4<br>
+    Substitusi&nbsp;&nbsp;&nbsp;&nbsp; Y(s) = (2s² − 3s + 4) / [(s − 2)²·(s + 1)]<br>
+    Pecahan parsial&nbsp; Y(s) = 2/(s − 2)² + 1/(s + 1)<br>
+    <strong style="color:#fff">Solusi:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; y(t) = 2t·e<sup>2t</sup> + e<sup>−t</sup></strong>
+  </div>
+
+  <p class="reveal" style="font-size:14px;line-height:1.75;color:var(--text);margin-top:14px">
+    Shortcut formula di atas dapat digeneralisasi untuk PD koefisien konstan orde-<code>n</code> apa pun: <code>Q(s)</code> selalu berupa polinomial karakteristik, sedangkan <code>G(s)</code> mengkompilasi seluruh kontribusi syarat awal dalam bentuk polinomial dengan koefisien yang merupakan <em>kombinasi linier</em> dari koefisien PD asli. Gunakan formula ini sebagai alat verifikasi cepat untuk hasil derivasi penuh IVP-Laplace yang dilakukan di atas.
+  </p>
 </div>
 
 <!-- ═══ BAGIAN 07 — IVP LENGKAP UNTUK PD NON-HOMOGEN ═══ -->
@@ -1904,17 +1937,42 @@ plt.<span class="fn">show</span>()
     💡 <strong>Strategi belajar:</strong> Kerjakan Tugas tab dengan urutan ini — (1) MC dulu untuk konsep, (2) Komputasi Easy/Medium untuk latihan rutin, (3) Komputasi Hard di akhir karena membutuhkan pemahaman menyeluruh. Diskusikan kesulitan di tab Forum atau panel chat 💬 (klik FAB di pojok kanan bawah). Selamat mengerjakan!
   </div>
 
-  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
-    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), §5.3 Contoh 3.1 &amp; 3.2 — Reproduksi Komputasi:</strong> modul mengerjakan <em>Contoh 3.1</em> <code>y″ − 3y′ + 2y = 0</code> dengan <code>y(0) = 4, y′(0) = 5</code> manual: <code>Y(s) = (4s − 7)/(s² − 3s + 2) = 3/(s−1) + 1/(s−2)</code> → <code>y(t) = 3e^t + e^(2t)</code>. Verifikasi dengan SymPy: <pre style="background:rgba(0,0,0,.3);padding:10px;border-radius:6px;font-size:12px;margin:8px 0;overflow:auto">import sympy as sp
-t, s = sp.symbols('t s', positive=True); Y = sp.Function('Y')
-y = sp.Function('y')(t)
-eq = sp.Eq(y.diff(t,2) - 3*y.diff(t) + 2*y, 0)
-sol = sp.dsolve(eq, y, ics={y.subs(t,0): 4, y.diff(t).subs(t,0): 5})
-print(sol)  # Eq(y(t), 3*exp(t) + exp(2*t))
-# Verifikasi via Laplace shortcut: Y(s) = R(s)/Q(s) + G(s)/Q(s)
-R, Q, G = 0, s**2 - 3*s + 2, (s - 3)*4 + 5
-Ys = (R + G)/Q; print(sp.apart(Ys, s))  # 3/(s-1) + 1/(s-2)</pre>Untuk <em>Contoh 3.2</em> dengan akar berulang <code>(s−2)²</code>, hasilnya <code>y(t) = 2e^(2t) − 3te^(2t)</code> — menunjukkan term <code>te^(at)</code> yang hanya muncul pada akar berulang (resonansi). Bandingkan output simpy dengan langkah manual modul: identik!
+  <div class="info-box reveal" style="margin-top:18px">
+    <strong>Contoh 3.1 — PD Orde 2 Akar Real Berbeda:</strong>
+    Selesaikan <code>y″ − 3y′ + 2y = 0</code> dengan syarat awal <code>y(0) = 4, y′(0) = 5</code> menggunakan metode Laplace.
   </div>
+
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+    <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
+    Q(s)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = s² − 3s + 2 = (s − 1)·(s − 2)<br>
+    G(s)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = (s − 3)·4 + 5 = 4s − 7<br>
+    Y(s)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = (4s − 7) / [(s − 1)·(s − 2)]<br>
+    Pecahan parsial&nbsp; Y(s) = 3/(s − 1) + 1/(s − 2)<br>
+    <strong style="color:#fff">Solusi:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; y(t) = 3·e<sup>t</sup> + e<sup>2t</sup></strong>
+  </div>
+
+  <div class="info-box reveal" style="margin-top:14px">
+    <strong>Verifikasi dengan SymPy:</strong>
+    Hasil manual di atas dapat dibandingkan langsung dengan keluaran <code>sp.dsolve()</code> maupun pendekatan shortcut <code>Y(s) = R(s)/Q(s) + G(s)/Q(s)</code> yang dilanjutkan <code>sp.apart()</code>.
+  </div>
+
+  <pre style="background:rgba(0,0,0,.3);padding:14px 16px;border-radius:8px;font-size:12.5px;margin:8px 0;overflow:auto;line-height:1.65">import sympy as sp
+t, s = sp.symbols('t s', positive=True)
+y = sp.Function('y')(t)
+
+# Pendekatan 1: dsolve langsung
+eq  = sp.Eq(y.diff(t, 2) - 3*y.diff(t) + 2*y, 0)
+sol = sp.dsolve(eq, y, ics={y.subs(t, 0): 4, y.diff(t).subs(t, 0): 5})
+print(sol)               # Eq(y(t), 3*exp(t) + exp(2*t))
+
+# Pendekatan 2: shortcut Laplace Y(s) = R(s)/Q(s) + G(s)/Q(s)
+R, Q, G = 0, s**2 - 3*s + 2, (s - 3)*4 + 5
+Ys      = (R + G) / Q
+print(sp.apart(Ys, s))   # 3/(s - 1) + 1/(s - 2)</pre>
+
+  <p class="reveal" style="font-size:14px;line-height:1.75;color:var(--text);margin-top:14px">
+    Untuk PD dengan <strong>akar karakteristik berulang</strong> seperti <code>y″ − 4y′ + 4y = 0</code>, denominator <code>Y(s)</code> berbentuk <code>(s − 2)²</code> dan menghasilkan solusi yang memuat suku <code>t·e<sup>at</sup></code> — sebagai contoh <code>y(t) = 2·e<sup>2t</sup> − 3t·e<sup>2t</sup></code>. Munculnya faktor <code>t</code> ini adalah ciri khas akar berulang, paralel dengan fenomena resonansi yang dibahas pada modul-modul sebelumnya. Output SymPy dan langkah manual selalu memberi hasil yang identik bila syarat awal diterjemahkan dengan benar.
+  </p>
 </div>
 
 
@@ -2057,8 +2115,18 @@ Ys = (R + G)/Q; print(sp.apart(Ys, s))  # 3/(s-1) + 1/(s-2)</pre>Untuk <em>Conto
     </div>
   </div>
 
-  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-bottom:24px">
-    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), §5.3 Contoh 3.1–3.9 — Pola Soal Latihan:</strong> sebelum mengerjakan tugas, review enam contoh kunci di modul PDF yang menjadi <em>template pola soal</em>: (1) <em>Contoh 3.1</em> homogen orde-2 akar real beda — <code>y″ − 3y′ + 2y = 0</code>, (2) <em>Contoh 3.2</em> homogen akar berulang — <code>y″ − 4y′ + 4y = 0</code> menghasilkan <code>te^(at)</code>, (3) <em>Contoh 3.3</em> akar kompleks — <code>y″ + 6y′ + 13y = 0</code> menghasilkan <code>e^(σt)·sin/cos(ω<sub>d</sub>t)</code>, (4) <em>Contoh 3.4</em> orde-3 — <code>y‴ − 3y″ + 4y = 0</code>, (5) <em>Contoh 3.5</em> non-homogen forcing eksponensial — <code>y″ − 4y′ + 4y = 12te^(2t) − 6e^(2t)</code>, (6) <em>Contoh 3.6</em> forcing sinusoidal — <code>y″ + 4y = 8 cos 2t</code>. Pakai pola ini sebagai check: jenis akar Q(s) → bentuk solusi y(t). Tugas Pertemuan 11 menambah lapis Heaviside, Dirac, transfer function, dan konvolusi yang TIDAK dibahas modul tetapi menjadi standar engineering modern.
+  <div class="tip-box reveal" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-bottom:24px">
+    <strong style="color:var(--violet)">📚 Enam Pola Soal Kunci — Pemetaan Akar Karakteristik ke Bentuk Solusi:</strong>
+    <p style="margin:8px 0 6px 0;font-size:14px;line-height:1.7">Sebelum mengerjakan tugas, kuasai enam pola berikut sebagai <em>template</em> diagnosa: jenis akar polinomial karakteristik <code>Q(s)</code> selalu menentukan bentuk solusi <code>y(t)</code>.</p>
+    <ul style="margin:6px 0 0 22px;font-size:14px;line-height:1.85">
+      <li><strong>Pola 1 — Homogen orde 2, akar real berbeda:</strong> <code>y″ − 3y′ + 2y = 0</code> ⟹ <code>y(t) = c₁·e<sup>r₁t</sup> + c₂·e<sup>r₂t</sup></code>.</li>
+      <li><strong>Pola 2 — Homogen, akar berulang:</strong> <code>y″ − 4y′ + 4y = 0</code> ⟹ muncul faktor <code>t·e<sup>at</sup></code>.</li>
+      <li><strong>Pola 3 — Homogen, akar kompleks konjugat:</strong> <code>y″ + 6y′ + 13y = 0</code> ⟹ <code>y(t) = e<sup>σt</sup>·(A cos ω<sub>d</sub>t + B sin ω<sub>d</sub>t)</code>.</li>
+      <li><strong>Pola 4 — Homogen orde 3:</strong> <code>y‴ − 3y″ + 4y = 0</code> ⟹ kombinasi tiga basis sesuai akar <code>Q(s)</code> kubik.</li>
+      <li><strong>Pola 5 — Non-homogen, forcing eksponensial:</strong> <code>y″ − 4y′ + 4y = 12t·e<sup>2t</sup> − 6·e<sup>2t</sup></code> ⟹ kasus resonansi karena <code>r = 2</code> juga akar <code>Q(s)</code>.</li>
+      <li><strong>Pola 6 — Non-homogen, forcing sinusoidal:</strong> <code>y″ + 4y = 8 cos 2t</code> ⟹ resonansi murni (frekuensi forcing = frekuensi natural).</li>
+    </ul>
+    <p style="margin:10px 0 0 0;font-size:13.5px;line-height:1.7;color:var(--text)">Tugas Pertemuan 11 memperluas keenam pola ini dengan lapisan tambahan — <strong>Heaviside step, Dirac delta, transfer function, dan konvolusi</strong> — yang menjadi standar analisis sistem dinamis modern di engineering.</p>
   </div>
 
   <!-- ─── PILIHAN GANDA ─── -->
