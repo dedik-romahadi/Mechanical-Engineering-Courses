@@ -1134,6 +1134,16 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="warn-box reveal">
     ⚠ <strong>Cek resonansi WAJIB!</strong> Sebelum substitusi, hitung akar karakteristik PD homogen. Bandingkan dengan eksponen/frekuensi f(x). <strong>Kasus resonansi:</strong> (1) f = e^(rx) dengan r akar simple → tebak <code>y_p = A·x·e^(rx)</code>. (2) f = e^(rx) dengan r akar berulang → tebak <code>y_p = A·x²·e^(rx)</code>. (3) f = sin(βx) atau cos(βx) dengan ±βi akar kompleks → tebak <code>y_p = x·[A·cos(βx) + B·sin(βx)]</code>. Lupa cek resonansi → tebakan gagal (sistem aljabar tidak punya solusi).
   </div>
+
+  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
+    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), §2.6 Aturan Menentukan y_p:</strong>
+    <ol style="margin:8px 0 0 20px;padding:0;line-height:1.7;font-size:14px">
+      <li><strong>Aturan Dasar.</strong> Bila <code>r(x)</code> ada di kolom pertama tabel ansatz dan <em>bukan</em> bagian dari y_h, pilih y_p dari kolom kedua sesuai bentuknya. Konstanta diperoleh dari substitusi + samakan koefisien.</li>
+      <li><strong>Aturan Kedua.</strong> Bila y_p hasil Aturan Dasar <em>sudah merupakan suku</em> di y_h (akar karakteristik bertepatan dengan eksponen/frekuensi r(x)), <strong>kalikan y_p dengan x</strong> (atau x² bila akar berulang) — inilah kasus resonansi UC.</li>
+      <li><strong>Aturan Ketiga (Superposisi).</strong> Bila <code>r(x) = r₁(x) + r₂(x) + …</code> (penjumlahan beberapa fungsi kolom 1), pilih <code>y_p = y_p1 + y_p2 + …</code> — tiap komponen ditebak independen, lalu dijumlahkan.</li>
+    </ol>
+    <span style="display:block;margin-top:8px;font-size:13px;color:var(--muted)">Format 3-aturan ini memetakan setiap kasus UC ke alur keputusan deterministik: cek tabel → cek y_h overlap → cek superposisi.</span>
+  </div>
 </div>
 
 <!-- ═══ BAGIAN 03 — UC: f(x) POLINOMIAL ═══ -->
@@ -1199,6 +1209,16 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="tip-box reveal">
     💡 <strong>Cek hasil:</strong> Selalu substitusi <code>y_p</code> akhir kembali ke PD asal. Hitung <code>ay_p'' + by_p' + cy_p</code> dan pastikan sama dengan <code>f(x)</code>. Bila tidak match, periksa: (1) apakah cek resonansi terlewat? (2) apakah ada kesalahan turunan? (3) apakah samakan koefisien benar (jangan lupa pangkat 0 / konstanta)?
   </div>
+
+  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
+    📘 <strong>Dari Modul PDF (Contoh 6.2 — PD <em>Orde 3</em>):</strong> Selesaikan <code>y''' − 2y'' − 5y' + 6y = 12x³ − 2x − 8</code>.<br>
+    <strong>Step 1.</strong> PD homogen: <code>λ³ − 2λ² − 5λ + 6 = (λ−1)(λ−3)(λ+2) = 0</code> → akar 1, 3, −2 → <code>y_h = c₁e^x + c₂e^(3x) + c₃e^(−2x)</code>.<br>
+    <strong>Step 2.</strong> r(x) = 12x³ − 2x − 8 polinomial derajat 3, bukan bagian y_h → Aturan Dasar. Tebak <code>y_p = k₃x³ + k₂x² + k₁x + k₀</code>.<br>
+    <strong>Step 3.</strong> Hitung <code>y_p′ = 3k₃x² + 2k₂x + k₁</code>, <code>y_p″ = 6k₃x + 2k₂</code>, <code>y_p‴ = 6k₃</code>. Substitusi & samakan koefisien tiap pangkat x:<br>
+    <code>x³</code>: <code>6k₃ = 12 → k₃ = 2</code>; &nbsp;<code>x²</code>: <code>−15k₃ + 6k₂ = 0 → k₂ = 5</code>; &nbsp;<code>x</code>: <code>−12k₂ − 10k₁ + 6k₁ = −2 → k₁ = 12</code>; &nbsp;<code>x⁰</code>: <code>6k₃ − 4k₂ − 5k₁ + 6k₀ = −8 → k₀ = 10</code>.<br>
+    <strong>Solusi total:</strong> <code>y = c₁e^x + c₂e^(2x) + c₃e^(−2x) + 2x³ + 5x² + 12x + 10</code>.<br>
+    <span style="color:var(--muted);font-size:13px">Catatan: aturan polinomial UC <strong>tidak terbatas pada orde 2</strong> — sama persis di orde n, hanya jumlah turunan dan akar karakteristik yang bertambah.</span>
+  </div>
 </div>
 
 <!-- ═══ BAGIAN 04 — UC: f(x) EKSPONENSIAL & TRIGONOMETRI ═══ -->
@@ -1263,6 +1283,17 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
   <div class="warn-box reveal">
     ⚠ <strong>Pitfall trigonometri:</strong> JANGAN tebak hanya <code>y_p = A·sin(2x)</code> bila f = sin(2x). Pasti gagal karena turunan menghasilkan cos. Aturan: <em>untuk apapun bentuk trigonometri input, tebakan WAJIB punya cos dan sin sekaligus</em>. Bahkan bila f = cos(2x) saja, tebakan tetap <code>A cos(2x) + B sin(2x)</code> — biarkan B = 0 muncul natural dari sistem aljabar (atau B kebetulan ≠ 0 — itu yang biasa terjadi).
+  </div>
+
+  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
+    📘 <strong>Dari Modul PDF (Contoh 6.3 — Aturan Ketiga / Superposisi):</strong> Selesaikan <code>y'' − 4y' + 5y = 65 cos(2x) + 20x² + 3x</code>.<br>
+    <strong>Step 1.</strong> Karakteristik: <code>λ² − 4λ + 5 = 0 → λ = 2 ± i</code> → <code>y_h = e^(2x)·[c₁ cos x + c₂ sin x]</code>.<br>
+    <strong>Step 2.</strong> r(x) gabungan trigonometri (kolom 1: <code>cos 2x</code>) + polinomial derajat 2. Cek resonansi: ±2i bukan akar (akar 2±i), aman. Aturan Ketiga → tebak <code>y_p = (A cos 2x + B sin 2x) + (k₂x² + k₁x + k₀)</code>.<br>
+    <strong>Step 3.</strong> Substitusi & samakan koefisien per komponen:<br>
+    Trigonometri → <code>(A − 8B) cos 2x + (8A + B) sin 2x = 65 cos 2x + 0</code> ⟹ <code>A − 8B = 65</code>, <code>8A + B = 0</code> → <strong>A = 1, B = −8</strong>.<br>
+    Polinomial → <code>5k₂ = 20</code>, <code>−8k₂ + 5k₁ = 3</code>, <code>2k₂ − 4k₁ + 5k₀ = 0</code> → <strong>k₂ = 4, k₁ = 7, k₀ = 4</strong>.<br>
+    <strong>Solusi total:</strong> <code>y = e^(2x)·(c₁ cos x + c₂ sin x) + cos 2x − 8 sin 2x + 4x² + 7x + 4</code>.<br>
+    <span style="color:var(--muted);font-size:13px">Insight: superposisi linieritas memecah masalah kompleks (input gabungan) menjadi sub-problem independen — pola yang sama dipakai di rangkaian listrik (multi-source) dan analisis struktur (multi-load).</span>
   </div>
 </div>
 
@@ -1384,6 +1415,22 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
   <div class="warn-box reveal">
     ⚠ <strong>Pitfall VoP:</strong> (1) Lupa standar form (bagi dengan a) → rumus salah. (2) Kesalahan tanda — perhatikan <code>u₁ = −∫(y₂·f/W) dx</code> dengan minus di depan. (3) Konstanta integrasi tidak ditulis (boleh, akan diserap c₁, c₂ di y_h). (4) Kesalahan integrasi yang sulit — gunakan tabel integral atau SymPy untuk verifikasi. (5) Hasil akhir y_p mungkin sama bila f bisa pakai UC — tetapi VoP biasanya menambah term yang lebih panjang/rumit.
+  </div>
+
+  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
+    📘 <strong>Dari Modul PDF (Contoh 7.1 — VoP untuk f = x sin 2x):</strong> Selesaikan <code>y'' + 4y = x sin(2x)</code>.<br>
+    <strong>Step 1.</strong> PD homogen <code>y'' + 4y = 0</code>: <code>λ² + 4 = 0 → λ = ±2i</code> → <code>y_h = c₁ cos 2x + c₂ sin 2x</code>. Basis: <code>y₁ = cos 2x</code>, <code>y₂ = sin 2x</code>.<br>
+    <strong>Step 2.</strong> Sebenarnya UC <em>bisa</em> tapi resonansi (±2i akar!) — tebakan jadi rumit. PDF memilih VoP sebagai pendekatan universal.<br>
+    <strong>Step 3.</strong> Wronskian: <code>W = |cos 2x &nbsp; sin 2x; −2 sin 2x &nbsp; 2 cos 2x| = 2 cos² 2x + 2 sin² 2x = 2</code>.<br>
+    <strong>Step 4.</strong> Hitung u₁′, u₂′ via Crammer (a₂ = 1, r(x) = x sin 2x):<br>
+    <code>u₁′ = −y₂·r/W = −sin 2x · x sin 2x / 2 = −(x sin² 2x)/2</code>;<br>
+    <code>u₂′ = y₁·r/W = cos 2x · x sin 2x / 2 = (x sin 2x cos 2x)/2 = (x sin 4x)/4</code>.<br>
+    <strong>Step 5.</strong> Integrasi (gunakan <code>sin² u = (1 − cos 2u)/2</code> dan integrasi parsial):<br>
+    <code>u₁ = −x²/8 + (x sin 4x)/16 + (cos 4x)/64</code>; &nbsp; <code>u₂ = −(x cos 4x)/16 + (sin 4x)/64</code>.<br>
+    <strong>Step 6.</strong> y_p = u₁·cos 2x + u₂·sin 2x. Setelah simplifikasi (gunakan identitas cos(4x − 2x) = cos 2x):<br>
+    <code>y_p = −(x²/8) cos 2x + (x/16) sin 2x</code>.<br>
+    <strong>Solusi total:</strong> <code>y = c₁ cos 2x + c₂ sin 2x − (x²/8) cos 2x + (x/16) sin 2x</code>.<br>
+    <span style="color:var(--muted);font-size:13px">Insight: term <code>−(x²/8) cos 2x</code> tumbuh seperti <em>x²</em> — tanda matematis resonansi. Pada sistem fisik dengan eksitasi pada frekuensi natural, amplitudo respon meledak persis seperti ini.</span>
   </div>
 </div>
 
@@ -1841,6 +1888,60 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
 <span class="fn">print</span>(<span class="st">f"y(2)   = {y(2):.4f}  (didominasi y_p)"</span>)</pre>
   </div>
 
+  <div class="code-wrap reveal">
+    <div class="code-header">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 5 — Verifikasi PDF Contoh 7.2: VoP untuk y'' − 2y' + y = (x²+x)·eˣ</span>
+      <span class="code-lang">Python</span>
+      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
+    </div>
+    <pre><span class="kw">import</span> sympy <span class="kw">as</span> sp
+
+<span class="cm"># Reproduksi Contoh 7.2 dari Modul PDF (Mercu Buana - Wiwit Suprihatiningsih)</span>
+<span class="cm"># PD: y'' - 2y' + y = (x^2 + x)e^x  -- akar berulang m=1, mult 2 (RESONANSI ganda)</span>
+<span class="cm"># Basis homogen: y1 = e^x, y2 = x*e^x (dari akar berulang)</span>
+x = sp.<span class="fn">symbols</span>(<span class="st">'x'</span>)
+y1 = sp.<span class="fn">exp</span>(x)
+y2 = x*sp.<span class="fn">exp</span>(x)
+g  = (x**<span class="nm">2</span> + x)*sp.<span class="fn">exp</span>(x)   <span class="cm"># r(x) di standar form (a=1)</span>
+
+<span class="cm"># Wronskian: W = y1*y2' - y2*y1'</span>
+W = sp.<span class="fn">simplify</span>(y1*y2.<span class="fn">diff</span>(x) - y2*y1.<span class="fn">diff</span>(x))
+<span class="fn">print</span>(<span class="st">"W ="</span>, W)   <span class="cm"># exp(2x)  -- sesuai PDF</span>
+
+<span class="cm"># u1' = -y2*g/W, u2' = y1*g/W (rumus VoP)</span>
+u1p = sp.<span class="fn">simplify</span>(-y2*g/W)
+u2p = sp.<span class="fn">simplify</span>( y1*g/W)
+<span class="fn">print</span>(<span class="st">"u1' ="</span>, u1p)   <span class="cm"># -(x^3 + x^2) -- sesuai PDF</span>
+<span class="fn">print</span>(<span class="st">"u2' ="</span>, u2p)   <span class="cm"># (x^3 + x^2)  -- sesuai PDF</span>
+
+<span class="cm"># Integral u1, u2</span>
+u1 = sp.<span class="fn">integrate</span>(u1p, x)
+u2 = sp.<span class="fn">integrate</span>(u2p, x)
+<span class="fn">print</span>(<span class="st">"u1 ="</span>, sp.<span class="fn">factor</span>(u1))   <span class="cm"># -(x^4/4 + x^3/3)</span>
+<span class="fn">print</span>(<span class="st">"u2 ="</span>, sp.<span class="fn">factor</span>(u2))   <span class="cm"># x^4/4 + x^3/3</span>
+
+<span class="cm"># y_p = u1*y1 + u2*y2</span>
+y_p = sp.<span class="fn">simplify</span>(u1*y1 + u2*y2)
+<span class="fn">print</span>(<span class="st">"y_p ="</span>, sp.<span class="fn">factor</span>(y_p))
+<span class="cm"># Output PDF: y_p = ((1/4)x^4 + (1/12)x^4 - (1/3)x^3) * e^x</span>
+<span class="cm">#         = ((x^4)/4 + (x^4)/12 - (x^3)/3) * e^x  -- bandingkan dengan PDF</span>
+
+<span class="cm"># Verifikasi: substitusi balik ke PD</span>
+LHS = y_p.<span class="fn">diff</span>(x, <span class="nm">2</span>) - <span class="nm">2</span>*y_p.<span class="fn">diff</span>(x) + y_p
+<span class="fn">print</span>(<span class="st">"LHS - RHS ="</span>, sp.<span class="fn">simplify</span>(LHS - g))   <span class="cm"># 0  →  exact match</span>
+
+<span class="cm"># Solusi total: y_h + y_p</span>
+c1, c2 = sp.<span class="fn">symbols</span>(<span class="st">'c1 c2'</span>)
+y_total = c1*sp.<span class="fn">exp</span>(x) + c2*x*sp.<span class="fn">exp</span>(x) + y_p
+<span class="fn">print</span>(<span class="st">"\nSolusi total y(x):"</span>)
+<span class="fn">print</span>(sp.<span class="fn">simplify</span>(y_total))</pre>
+  </div>
+
+  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
+    📘 <strong>Korelasi dengan Modul PDF:</strong> Cell 5 di atas adalah implementasi langsung <strong>Contoh 7.2</strong> dari modul PDF Mercu Buana (Sucipto + Markoni). Pakai workflow yang sama untuk reproduksi semua contoh PDF: <em>Contoh 6.1</em> (UC orde 2 polinomial), <em>6.2</em> (UC orde 3), <em>6.3</em> (superposisi cos+poly), <em>7.1</em> (VoP <code>y'' + 4y = x sin 2x</code>). Cell 1–4 fokus workflow umum, Cell 5 fokus verifikasi numerik PDF.
+  </div>
+
   <div class="tip-box reveal">
     💡 <strong>Strategi belajar:</strong> Kerjakan Tugas tab dengan urutan ini — (1) MC dulu untuk konsep, (2) Komputasi Easy/Medium untuk latihan rutin, (3) Komputasi Hard di akhir karena membutuhkan pemahaman menyeluruh. Diskusikan kesulitan di tab Forum atau panel chat 💬 (klik FAB di pojok kanan bawah). Selamat mengerjakan!
   </div>
@@ -1888,6 +1989,20 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       <div style="font-size:14px;line-height:1.7">
         SymPy Development Team. <em style="color:#fff">SymPy Documentation — ODE Solvers (dsolve)</em>. 2024.
         <br><span style="color:var(--muted);font-size:13px"><a href="https://docs.sympy.org/latest/modules/solvers/ode.html" style="color:var(--cyan)" target="_blank">docs.sympy.org/latest/modules/solvers/ode.html</a></span>
+      </div>
+    </div>
+    <div style="display:flex;gap:16px;padding:18px 22px;background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.15);border-left:3px solid var(--violet);border-radius:10px;align-items:flex-start">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--violet);flex-shrink:0;min-width:32px">[6]</span>
+      <div style="font-size:14px;line-height:1.7">
+        Sucipto, Erwin. <em style="color:#fff">Engineering Mathematics</em>, 3rd Edition. Jakarta: Erlangga, 1994.
+        <br><span style="color:var(--muted);font-size:13px">Referensi inti modul PDF Mercu Buana — basis pembahasan UC, Tabel Pilihan y_p, dan VoP orde-n.</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:16px;padding:18px 22px;background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.15);border-left:3px solid var(--violet);border-radius:10px;align-items:flex-start">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--violet);flex-shrink:0;min-width:32px">[7]</span>
+      <div style="font-size:14px;line-height:1.7">
+        Markoni. <em style="color:#fff">Pengantar Dasar Matematika Rekayasa</em>, 1st Edition. Yogyakarta: Graha Ilmu, 2014.
+        <br><span style="color:var(--muted);font-size:13px">Referensi pendamping modul PDF Mercu Buana — pendekatan rekayasa untuk PD non-homogen dan aplikasi.</span>
       </div>
     </div>
   </div>
@@ -1969,6 +2084,14 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div>
       <div style="font-weight:700;color:var(--cyan);margin-bottom:4px">Cara Submit Tugas 8</div>
       <p style="font-size:14px;color:var(--text)">Isi semua soal, tempelkan link Google Drive, lalu klik <strong>📄 Export HTML</strong> — unduh file-nya dan <strong style="color:var(--cyan)">submit ke Fast Learning (LMS UMB) → Tugas Pertemuan 8</strong>.</p>
+    </div>
+  </div>
+
+  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-bottom:32px;display:flex;align-items:flex-start;gap:14px">
+    <span style="font-size:24px;flex-shrink:0">📘</span>
+    <div>
+      <div style="font-weight:700;color:var(--violet);margin-bottom:4px">Referensi Modul PDF (Mercu Buana)</div>
+      <p style="font-size:14px;color:var(--text);margin:0">Sebelum mengerjakan, baca ulang <strong>Contoh 6.1, 6.2, 6.3</strong> (UC) dan <strong>Contoh 7.1, 7.2</strong> (VoP) di modul PDF — pola langkah substitusi & samakan koefisien yang dipakai di soal pilihan ganda dan komputasi mengikuti format yang sama. Soal MC menguji <em>3 Aturan UC</em> (Dasar / Resonansi / Superposisi) yang dibahas di tip-box "📘 Dari Modul PDF" pada tab Modul.</p>
     </div>
   </div>
 
@@ -2496,6 +2619,9 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">m·ẍ + c·ẋ + k·x = F₀·sin(ωt)</code>
       dengan parameter terukur: m = 50 kg, k = 2×10⁵ N/m, c = 200 N·s/m, F₀ = 500 N. Operator melaporkan getaran maksimum saat ω = 63 rad/s. Tim diminta menentukan apakah ini fenomena resonansi dan merancang mitigasi.
     </p>
+    <div class="pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);border-radius:10px;padding:12px 16px;margin-top:14px;font-size:13.5px;color:var(--text);line-height:1.7">
+      📘 <strong>Petunjuk dari Modul PDF (§2.6 Aturan Kedua):</strong> Bentuk PD ini secara matematis identik dengan struktur <code>y'' + by' + cy = sin(ωt)</code>. Karena f(t) trigonometri, gunakan tebakan <code>y_p = A cos(ωt) + B sin(ωt)</code> (Tabel Pilihan PDF). Bila <code>±ωi</code> ternyata akar karakteristik (kasus resonansi tanpa redaman), Aturan Kedua: kalikan dengan t. Pada sistem dengan redaman c &gt; 0 (kompresor ini), akar kompleks bukan persis ±ωi karena Re(λ) ≠ 0 — jadi tebakan standar masih berlaku, tetapi <em>amplitudo respon</em> meledak ketika ω ≈ ω_n (resonansi fisik).
+    </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:16px">
       <div style="background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">PD: 50ẍ + 200ẋ + 2×10⁵·x = 500·sin(ωt)</div>
       <div style="background:rgba(0,224,158,.05);border:1px solid rgba(0,224,158,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)">ω_n = √(k/m) = √(4000) = 63.25 rad/s</div>

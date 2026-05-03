@@ -1217,6 +1217,10 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="warn-box reveal">
     ⚠ <strong>Pitfall faktor linear berbeda:</strong> <strong>(1)</strong> Pastikan akar benar-benar berbeda — bila ada akar berulang, masuk ke kasus 2 (Bagian 04). <strong>(2)</strong> Tanda — <code>(s+2)</code> punya akar <code>s = −2</code> (bukan +2). Substitusi s = −2 saat hitung B. <strong>(3)</strong> Jangan tertukar antara <code>1/(s−a)</code> ↔ <code>e<sup>at</sup></code> dan <code>1/(s+a)</code> ↔ <code>e<sup>−at</sup></code> di tabel. <strong>(4)</strong> Untuk numerator deg = deg(Q)−1 (one less than denominator), PFD selalu work. Jika numerator lebih kompleks, cek dulu syarat deg P &lt; deg Q. <strong>(5)</strong> SymPy: <code>sp.apart((3*s+5)/((s-1)*(s+2)), s)</code>.
   </div>
+
+  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
+    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), §6 Kasus Pertama — Contoh 6.1, 6.2 &amp; 6.3:</strong> modul mendefinisikan rumus eksplisit cover-up <code>A<sub>i</sub> = lim<sub>s→a<sub>i</sub></sub> [(s−a<sub>i</sub>)·P(s)/Q(s)]</code> dan mengilustrasikan dengan tiga contoh: <em>Contoh 6.1</em> <code>F(s) = (2s+3)/(s²−5s+6) = 9/(s−3) − 7/(s−2)</code> → <code>f(t) = 9e<sup>3t</sup> − 7e<sup>2t</sup></code>; <em>Contoh 6.2</em> <code>F(s) = (s²−4s+13)/(s³−2s²−s+2)</code> dengan tiga akar berbeda <code>s = 1, −1, 2</code> → <code>f(t) = 3e<sup>−t</sup> − 5e<sup>t</sup> + 3e<sup>2t</sup></code>; <em>Contoh 6.3</em> <em>solve PD orde-2</em> <code>y″ − 5y′ + 6y = 4e<sup>t</sup></code> dengan IVP — pakai shortcut <code>Y(s) = R(s)/H(s) + G(s)/H(s)</code> dari Modul 11, lalu PFD di pole <code>s = 1, 2, 3</code>. Pola modul: identifikasi akar Q(s), tulis template, substitusi nilai s = a<sub>i</sub>, dapat A<sub>i</sub>, lalu invers ke <code>e<sup>a<sub>i</sub>t</sup></code>.
+  </div>
 </div>
 
 <!-- ═══ BAGIAN 04 — KASUS 2: FAKTOR LINEAR BERULANG ═══ -->
@@ -1295,6 +1299,10 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
   <div class="warn-box reveal">
     ⚠ <strong>Pitfall faktor berulang:</strong> <strong>(1)</strong> JANGAN lupa term dengan pangkat lebih rendah — <code>A/(s−a)² + B/(s−a)</code> kedua-duanya wajib, tidak boleh skip A. <strong>(2)</strong> Cover-up rule sederhana hanya beri <strong>Aₖ</strong> (pangkat tertinggi), bukan A₁ sampai Aₖ₋₁. Untuk koefisien lain, samakan koefisien atau pakai turunan. <strong>(3)</strong> Multiplicity menentukan jumlah term — <code>(s−a)³</code> selalu butuh <strong>3</strong> term, <code>(s−a)⁵</code> butuh 5 term. <strong>(4)</strong> Inversi: kategori <code>tⁿ·e<sup>at</sup>/n!</code>, hati-hati factorial — <code>1/(s−a)³ ↔ t²·e<sup>at</sup>/2</code> (bagi 2!), bukan <code>t²·e<sup>at</sup></code>. <strong>(5)</strong> SymPy: <code>sp.apart(1/(s*(s+2)**2), s)</code> automatic.
+  </div>
+
+  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
+    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), §6 Kasus Kedua — solve PD non-homogen orde 2 dengan akar berulang multiplicity 4:</strong> modul mendemonstrasikan kasus paling kompleks faktor linear berulang. Diberikan PD <code>y″ − 4y′ + 4y = 6te<sup>2t</sup> − 4e<sup>2t</sup></code> dengan <code>y(0) = 2, y′(0) = 8</code>. Setelah Laplace + shortcut <code>Y(s) = R(s)/H(s) + G(s)/H(s)</code>, hasil <strong>Y(s) = (2s³ − 8s² + 4s + 14)/(s−2)<sup>4</sup></strong>. Karena denominator <code>(s−2)<sup>4</sup></code>, template PFD: <code>A<sub>4</sub>/(s−2)<sup>4</sup> + A<sub>3</sub>/(s−2)<sup>3</sup> + A<sub>2</sub>/(s−2)<sup>2</sup> + A<sub>1</sub>/(s−2)</code>. Modul menghitung <code>A<sub>4</sub> = 6, A<sub>3</sub> = −4, A<sub>2</sub> = ..., A<sub>1</sub> = ...</code> dan invers ke <code>y(t) = ... + (6/3!)t³e<sup>2t</sup> − ...</code> dengan pola tabel <code>1/(s−a)<sup>n</sup> ↔ t<sup>n−1</sup>e<sup>at</sup>/(n−1)!</code>. Detail kunci: cover-up rule modifikasi memberi A<sub>4</sub> langsung; A<sub>1</sub>–A<sub>3</sub> via turunan ke-1, ke-2, ke-3 atau samakan koefisien polinomial.
   </div>
 </div>
 
@@ -1979,6 +1987,19 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   <div class="tip-box reveal">
     💡 <strong>Strategi belajar:</strong> Kerjakan Tugas tab dengan urutan ini — (1) MC dulu untuk konsep, (2) Komputasi Easy/Medium untuk latihan rutin, (3) Komputasi Hard di akhir karena membutuhkan pemahaman menyeluruh. Diskusikan kesulitan di tab Forum atau panel chat 💬 (klik FAB di pojok kanan bawah). Selamat mengerjakan!
   </div>
+
+  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
+    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), §6 Contoh 6.1 &amp; 6.2 — Reproduksi Komputasi PFD:</strong> modul menghitung manual: <em>Contoh 6.1</em> <code>F(s) = (2s+3)/(s²−5s+6)</code> dengan akar 2 dan 3, hasil PFD <code>9/(s−3) − 7/(s−2)</code> → <code>f(t) = 9e<sup>3t</sup> − 7e<sup>2t</sup></code>; <em>Contoh 6.2</em> <code>F(s) = (s²−4s+13)/(s³−2s²−s+2)</code> dengan akar 1, −1, 2, hasil <code>3/(s+1) − 5/(s−1) + 3/(s−2)</code>. Verifikasi dengan SymPy: <pre style="background:rgba(0,0,0,.3);padding:10px;border-radius:6px;font-size:12px;margin:8px 0;overflow:auto">import sympy as sp
+s, t = sp.symbols('s t', positive=True)
+# Contoh 6.1
+F1 = (2*s + 3)/(s**2 - 5*s + 6)
+print(sp.apart(F1, s))               # 9/(s-3) - 7/(s-2)
+print(sp.inverse_laplace_transform(F1, s, t))  # 9*exp(3*t) - 7*exp(2*t)
+# Contoh 6.2
+F2 = (s**2 - 4*s + 13)/(s**3 - 2*s**2 - s + 2)
+print(sp.apart(F2, s))               # 3/(s+1) - 5/(s-1) + 3/(s-2)
+print(sp.inverse_laplace_transform(F2, s, t))  # 3*e^(-t) - 5*e^t + 3*e^(2t)</pre>Output SymPy identik dengan langkah cover-up modul — bukti bahwa rumus <code>A<sub>i</sub> = lim<sub>s→a<sub>i</sub></sub>(s−a<sub>i</sub>)F(s)</code> selalu reliable untuk Kasus 1. Bandingkan langkah modul dengan output <code>sp.apart</code>, semua koefisien match.
+  </div>
 </div>
 
 
@@ -2023,6 +2044,20 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       <div style="font-size:14px;line-height:1.7">
         SymPy Development Team. <em style="color:#fff">SymPy Documentation — Polynomial Manipulation (sp.apart)</em>. 2024.
         <br><span style="color:var(--muted);font-size:13px"><a href="https://docs.sympy.org/latest/modules/polys/reference.html#sympy.polys.partfrac.apart" style="color:var(--cyan)" target="_blank">docs.sympy.org — sympy.polys.partfrac.apart (Partial Fraction Decomposition)</a></span>
+      </div>
+    </div>
+    <div style="display:flex;gap:16px;padding:18px 22px;background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.15);border-left:3px solid var(--violet);border-radius:10px;align-items:flex-start">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--violet);flex-shrink:0;min-width:32px">[6]</span>
+      <div style="font-size:14px;line-height:1.7">
+        Sucipto, Erwin. <em style="color:#fff">Engineering Mathematics</em>, 3rd Edition. Jakarta: Erlangga, 1994.
+        <br><span style="color:var(--muted);font-size:13px">Referensi inti modul PDF Mercu Buana — basis pembahasan §6 Metode Jumlahan Pecahan Parsial dengan empat kasus (linear berbeda, linear berulang, kompleks konjugat berbeda, kompleks konjugat berulang) lengkap dengan Contoh 6.1–6.14.</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:16px;padding:18px 22px;background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.15);border-left:3px solid var(--violet);border-radius:10px;align-items:flex-start">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--violet);flex-shrink:0;min-width:32px">[7]</span>
+      <div style="font-size:14px;line-height:1.7">
+        Markoni. <em style="color:#fff">Pengantar Dasar Matematika Rekayasa</em>, 1st Edition. Yogyakarta: Graha Ilmu, 2014.
+        <br><span style="color:var(--muted);font-size:13px">Referensi pendamping modul PDF Mercu Buana — pembahasan invers Laplace via dekomposisi pecahan parsial untuk solve PD orde tinggi dengan akar real berbeda, berulang, dan kompleks konjugat.</span>
       </div>
     </div>
   </div>
@@ -2105,6 +2140,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       <div style="font-weight:700;color:var(--cyan);margin-bottom:4px">Cara Submit Tugas 13</div>
       <p style="font-size:14px;color:var(--text)">Isi semua soal, tempelkan link Google Drive, lalu klik <strong>📄 Export HTML</strong> — unduh file-nya dan <strong style="color:var(--cyan)">submit ke Fast Learning (LMS UMB) → Tugas Pertemuan 13</strong>.</p>
     </div>
+  </div>
+
+  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-bottom:24px">
+    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), §6 — Pola Soal PFD untuk Tugas 13:</strong> Tugas 13 mencakup 4 kasus PFD modul PDF: (1) Kasus Pertama — faktor linear berbeda (Contoh 6.1, 6.2, 6.3), (2) Kasus Kedua — faktor linear berulang dengan multiplicity sampai 4 (Contoh 6.10), (3) Kasus Ketiga — faktor kuadratik konjugat tak berulang (Contoh 6.13 menghasilkan kombinasi <code>e<sup>at</sup>·sin/cos</code>), (4) Kasus Keempat — faktor kuadratik konjugat berulang (Contoh 6.14). Tip cara cepat: <em>identifikasi tipe Q(s) dulu</em> sebelum tulis template — cek diskriminan kuadratik, multiplicity tiap akar, lalu pilih kasus 1/2/3/4. Komputasi Hard menambahkan integrasi Tugas 13 dengan Modul 11 (solve PD via Y(s) = R(s)/H(s) + G(s)/H(s)) dan Modul 12 (invers Laplace dengan faktor e<sup>−as</sup>).
   </div>
 
   <!-- ─── PILIHAN GANDA ─── -->
@@ -2639,7 +2678,11 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
 
   <!-- Canvas Animasi Forum — kept ID for canvas reuse -->
   <canvas id="cvForum" height="360" style="margin-bottom:12px;border-radius:12px"></canvas>
-  <p style="font-size:13px;color:var(--muted);margin-bottom:40px;font-family:'JetBrains Mono',monospace;text-align:center">— Visualisasi step response y(t) robotic arm: tiga mode peluruhan e^(−2t), e^(−5t), e^(−6t) dengan residu berbeda, plus konstanta DC dari pole di s=0. Mode terlambat (e^(−2t)) dominant karena decay paling lambat — menentukan settling time ≈ 4/2 = 2 s. PFD memungkinkan analisis tiap mode terpisah.</p>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:24px;font-family:'JetBrains Mono',monospace;text-align:center">— Visualisasi step response y(t) robotic arm: tiga mode peluruhan e^(−2t), e^(−5t), e^(−6t) dengan residu berbeda, plus konstanta DC dari pole di s=0. Mode terlambat (e^(−2t)) dominant karena decay paling lambat — menentukan settling time ≈ 4/2 = 2 s. PFD memungkinkan analisis tiap mode terpisah.</p>
+
+  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-bottom:36px">
+    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), §6 Contoh 6.2 sebagai Template untuk Forum Step Response:</strong> kasus robotic arm <code>Y(s) = 60/[s(s+2)(s+5)(s+6)]</code> di forum ini adalah <em>generalisasi 4-pole</em> dari Contoh 6.2 modul yang men-decompose 3-pole <code>(s²−4s+13)/(s³−2s²−s+2)</code> menjadi tiga mode <code>3e<sup>−t</sup> − 5e<sup>t</sup> + 3e<sup>2t</sup></code>. Pakai rumus cover-up modul: <code>A<sub>i</sub> = lim<sub>s→a<sub>i</sub></sub>[(s−a<sub>i</sub>)·F(s)]</code> per akar. Untuk forum: A<sub>0</sub> di s=0, A<sub>−2</sub> di s=−2, A<sub>−5</sub> di s=−5, A<sub>−6</sub> di s=−6. Modul mengajarkan bahwa <em>residu</em> A<sub>i</sub> = bobot mode <code>e<sup>a<sub>i</sub>t</sup></code> di solusi waktu — interpretasi engineering: pole paling kecil (closest to imaginary axis) = mode dominant = penentu settling time, tepat seperti yang dianalisis Sucipto (3rd Edition) untuk teori kontrol.
+  </div>
 
   <!-- Pertanyaan Diskusi -->
   <div class="section-label reveal">Pertanyaan Diskusi</div>
