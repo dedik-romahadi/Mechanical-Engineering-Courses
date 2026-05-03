@@ -2663,8 +2663,23 @@ print(sp.apart(Ys, s))   # 3/(s - 1) + 1/(s - 2)</pre>
   <canvas id="cvForum" height="360" style="margin-bottom:12px;border-radius:12px"></canvas>
   <p style="font-size:13px;color:var(--muted);margin-bottom:24px;font-family:'JetBrains Mono',monospace;text-align:center">— Visualisasi impulse response h(t) dari hammer test: osilasi pada frekuensi natural ω<sub>d</sub> = 3 rad/s dengan envelope decay e<sup>−σt</sup> (σ = 2). Pole kompleks s = −2±3j memberi karakter underdamped — sistem stabil tetapi berosilasi sebelum settling.</p>
 
-  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-bottom:36px">
-    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), §5.3 Contoh 3.3 sebagai Jembatan ke Hammer Test:</strong> kasus forum ini adalah <em>aplikasi langsung</em> dari Contoh 3.3 modul yang menyelesaikan <code>y″ + 6y′ + 13y = 0</code> dengan <code>y(0)=2, y′(0)=1</code>, hasil <code>y(t) = 2e^(−3t)·cos 2t + (7/2)e^(−3t)·sin 2t</code>. Modul menunjukkan teknik <em>completing the square</em> denominator <code>s² + 6s + 13 = (s+3)² + 4</code> untuk dapat akar kompleks <code>s = −3 ± 2j</code> → bentuk <code>e^(σt)·sin/cos(ω<sub>d</sub>t)</code>. Di hammer test ini, kita pakai sudut pandang <strong>terbalik</strong>: dari h(t) terukur (eksperimental) ⇒ tebak Q(s) dengan completing the square ⇒ identifikasi pole sistem ⇒ rekonstruksi PD <code>m·ẍ + c·ẋ + k·x = F(t)</code> sehingga didapat parameter fisik (massa, damping, stiffness). Inilah esensi <em>system identification</em> — kebalikan dari soal modul (forward = PD ke solusi, inverse = solusi ke PD).
+  <div class="info-box reveal" style="margin-bottom:18px">
+    <strong>Petunjuk Penyelesaian — Akar Kompleks via Completing the Square:</strong>
+    Kasus hammer test ini merupakan aplikasi langsung dari pola PD orde-2 dengan akar karakteristik kompleks. Sebagai pemanasan, perhatikan PD referensi <code>y″ + 6y′ + 13y = 0</code> dengan <code>y(0) = 2, y′(0) = 1</code> yang diselesaikan via completing the square pada denominator.
+  </div>
+
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2;margin-bottom:18px">
+    <div class="label" style="text-align:left">Pola Solusi PD Orde-2 dengan Akar Kompleks Konjugat</div>
+    Polinomial karakteristik&nbsp;&nbsp; s² + 6s + 13 = (s + 3)² + 4<br>
+    Akar kompleks&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; s = −3 ± 2j&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (σ = −3, ω<sub>d</sub> = 2)<br>
+    Bentuk umum solusi&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; y(t) = e<sup>σt</sup>·(A·cos ω<sub>d</sub>t + B·sin ω<sub>d</sub>t)<br>
+    Substitusi IVP&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; A = 2,&nbsp;&nbsp; B = 7/2<br>
+    <strong style="color:#fff">Solusi:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; y(t) = 2·e<sup>−3t</sup>·cos 2t + (7/2)·e<sup>−3t</sup>·sin 2t</strong>
+  </div>
+
+  <div class="info-box reveal" style="margin-bottom:36px">
+    <strong>Aplikasi pada Hammer Test — Sudut Pandang Terbalik (System Identification):</strong>
+    Pada kasus forum ini, alur penyelesaian dibalik. Mulai dari <code>h(t)</code> yang terukur secara eksperimental, lakukan: <em>(i)</em> tebak <code>Q(s)</code> dengan completing the square dari pola decay-osilasi, <em>(ii)</em> identifikasi pole sistem dari akar kompleks <code>s = σ ± ω<sub>d</sub>j</code>, <em>(iii)</em> rekonstruksi PD <code>m·ẍ + c·ẋ + k·x = F(t)</code> untuk memperoleh parameter fisik (massa, damping, kekakuan). Inilah esensi <em>system identification</em> — kebalikan dari arah forward (PD → solusi) menjadi arah inverse (solusi → PD).
   </div>
 
   <!-- Pertanyaan Diskusi -->
