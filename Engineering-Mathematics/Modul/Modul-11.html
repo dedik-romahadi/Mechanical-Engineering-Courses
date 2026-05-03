@@ -1421,15 +1421,44 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     Selesaikan <code>y‴ − 3y″ + 4y = 0</code> dengan syarat awal <code>y(0) = 2, y′(0) = 3, y″(0) = 13</code>.
   </div>
 
-  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:1.9">
     <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
-    Identifikasi&nbsp;&nbsp;&nbsp; a₃ = 1, a₂ = −3, a₁ = 0, a₀ = 4&nbsp;&nbsp;&nbsp;&nbsp; (homogen ⟹ R(s) = 0)<br>
-    Q(s)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = s³ − 3s² + 4 = (s − 2)²·(s + 1)<br>
-    G(s)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = (s² − 3s)·2 + (s − 3)·3 + 1·13<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 2s² − 3s + 4<br>
-    Substitusi&nbsp;&nbsp;&nbsp;&nbsp; Y(s) = (2s² − 3s + 4) / [(s − 2)²·(s + 1)]<br>
-    Pecahan parsial&nbsp; Y(s) = 2/(s − 2)² + 1/(s + 1)<br>
-    <strong style="color:#fff">Solusi:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; y(t) = 2t·e<sup>2t</sup> + e<sup>−t</sup></strong>
+
+    <strong style="color:#fff">Langkah 1 — Identifikasi Koefisien PD dan R(s)</strong><br>
+    <span style="color:var(--muted);font-size:13px">Tulis PD orde-3 dalam bentuk standar <code>a₃y‴ + a₂y″ + a₁y′ + a₀y = r(t)</code>. Karena tidak ada y′ → a₁ = 0. PD homogen → r(t) = 0 → R(s) = ℒ{0} = 0.</span><br>
+    Koefisien:&nbsp;&nbsp; a₃ = 1, a₂ = −3, a₁ = 0, a₀ = 4&nbsp;&nbsp;&nbsp;&nbsp; (homogen ⟹ R(s) = 0)<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 2 — Bangun Polinomial Karakteristik Q(s)</strong><br>
+    <span style="color:var(--muted);font-size:13px">Q(s) = polinomial yang sama dengan PD tetapi <code>y<sup>(k)</sup></code> diganti <code>s<sup>k</sup></code>. Akar Q(s) = 0 menentukan pole sistem dan basis solusi homogen di domain waktu.</span><br>
+    Q(s) = s³ − 3s² + 0·s + 4 = s³ − 3s² + 4<br>
+    Faktorisasi:&nbsp;&nbsp; Q(s) = (s − 2)²·(s + 1)&nbsp;&nbsp;⟹&nbsp;&nbsp; akar: s = 2 (berulang), s = −1<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 3 — Hitung G(s) dari Syarat Awal</strong><br>
+    <span style="color:var(--muted);font-size:13px">Sebagai informasi: G(s) menyimpan kontribusi syarat awal y(0), y′(0), y″(0). Rumus shortcut untuk orde-3: <code>G(s) = (a₃s² + a₂s + a₁)·y(0) + (a₃s + a₂)·y′(0) + a₃·y″(0)</code>.</span><br>
+    G(s) = (s² − 3s + 0)·2 + (s − 3)·3 + 1·13<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= 2s² − 6s + 3s − 9 + 13<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= 2s² − 3s + 4<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 4 — Susun Y(s) dari Rumus Shortcut</strong><br>
+    <span style="color:var(--muted);font-size:13px">Bentuk umum: <code>Y(s) = [R(s) + G(s)] / Q(s)</code>. Karena R(s) = 0, hanya G(s) yang muncul di numerator.</span><br>
+    Y(s) = (2s² − 3s + 4) / [(s − 2)²·(s + 1)]<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 5 — Pecahan Parsial dengan Akar Berulang</strong><br>
+    <span style="color:var(--muted);font-size:13px">Karena (s − 2) berulang dua kali, dekomposisi: <code>A/(s − 2) + B/(s − 2)² + C/(s + 1)</code>. Setelah mengalikan kedua ruas dengan denominator dan substitusi nilai s, didapat A = 0, B = 2, C = 1.</span><br>
+    Y(s) = 2/(s − 2)² + 1/(s + 1)<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 6 — Invers Laplace Tiap Suku</strong><br>
+    <span style="color:var(--muted);font-size:13px">Pakai entri tabel: <code>ℒ⁻¹{1/(s − a)²} = t·e<sup>at</sup></code> dan <code>ℒ⁻¹{1/(s − a)} = e<sup>at</sup></code>. Akar berulang menghasilkan faktor <code>t</code>.</span><br>
+    ℒ⁻¹{2/(s − 2)²} = 2t·e<sup>2t</sup><br>
+    ℒ⁻¹{1/(s + 1)} = e<sup>−t</sup><br>
+    <br>
+
+    <strong style="color:var(--cyan)">✓ Hasil:&nbsp;&nbsp; y(t) = 2t·e<sup>2t</sup> + e<sup>−t</sup></strong>
   </div>
 
   <p class="reveal" style="font-size:14px;line-height:1.75;color:var(--text);margin-top:14px">
@@ -1942,13 +1971,39 @@ plt.<span class="fn">show</span>()
     Selesaikan <code>y″ − 3y′ + 2y = 0</code> dengan syarat awal <code>y(0) = 4, y′(0) = 5</code> menggunakan metode Laplace.
   </div>
 
-  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:1.9">
     <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
-    Q(s)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = s² − 3s + 2 = (s − 1)·(s − 2)<br>
-    G(s)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = (s − 3)·4 + 5 = 4s − 7<br>
-    Y(s)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = (4s − 7) / [(s − 1)·(s − 2)]<br>
-    Pecahan parsial&nbsp; Y(s) = 3/(s − 1) + 1/(s − 2)<br>
-    <strong style="color:#fff">Solusi:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; y(t) = 3·e<sup>t</sup> + e<sup>2t</sup></strong>
+
+    <strong style="color:#fff">Langkah 1 — Bangun Polinomial Karakteristik Q(s)</strong><br>
+    <span style="color:var(--muted);font-size:13px">Untuk PD orde-2 <code>a·y″ + b·y′ + c·y = r(t)</code>, polinomial karakteristik <code>Q(s) = as² + bs + c</code>. Akar Q(s) menentukan basis solusi.</span><br>
+    Koefisien:&nbsp;&nbsp; a = 1, b = −3, c = 2<br>
+    Q(s) = s² − 3s + 2 = (s − 1)·(s − 2)&nbsp;&nbsp;⟹&nbsp;&nbsp; akar: s = 1, s = 2 (real berbeda)<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 2 — Hitung G(s) dari Syarat Awal</strong><br>
+    <span style="color:var(--muted);font-size:13px">Sebagai informasi: G(s) menampung kontribusi syarat awal. Untuk orde-2: <code>G(s) = (a·s + b)·y(0) + a·y′(0)</code>. Inilah cara IVP "masuk" ke transformasi Laplace.</span><br>
+    G(s) = (1·s + (−3))·4 + 1·5 = (s − 3)·4 + 5 = 4s − 12 + 5 = 4s − 7<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 3 — Susun Y(s) dengan Rumus Shortcut</strong><br>
+    <span style="color:var(--muted);font-size:13px">Bentuk umum: <code>Y(s) = [R(s) + G(s)] / Q(s)</code>. Karena PD homogen, R(s) = ℒ{0} = 0.</span><br>
+    Y(s) = (4s − 7) / [(s − 1)·(s − 2)]<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 4 — Pecahan Parsial untuk Akar Real Berbeda</strong><br>
+    <span style="color:var(--muted);font-size:13px">Dekomposisi: <code>Y(s) = A/(s − 1) + B/(s − 2)</code>. Pakai trik tutup (cover-up): substitusi s = 1 dan s = 2 langsung di pembilang/penyebut.</span><br>
+    Pada s = 1:&nbsp;&nbsp; A = (4·1 − 7)/(1 − 2) = (−3)/(−1) = 3<br>
+    Pada s = 2:&nbsp;&nbsp; B = (4·2 − 7)/(2 − 1) = 1/1 = 1<br>
+    Hasil pecahan parsial:&nbsp;&nbsp; Y(s) = 3/(s − 1) + 1/(s − 2)<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 5 — Invers Laplace Tiap Suku</strong><br>
+    <span style="color:var(--muted);font-size:13px">Pakai entri tabel kunci: <code>ℒ⁻¹{1/(s − a)} = e<sup>at</sup></code>. Tiap akar real berbeda memberi satu eksponensial.</span><br>
+    ℒ⁻¹{3/(s − 1)} = 3·e<sup>t</sup><br>
+    ℒ⁻¹{1/(s − 2)} = e<sup>2t</sup><br>
+    <br>
+
+    <strong style="color:var(--cyan)">✓ Hasil:&nbsp;&nbsp; y(t) = 3·e<sup>t</sup> + e<sup>2t</sup></strong>
   </div>
 
   <div class="info-box reveal" style="margin-top:14px">
@@ -2664,13 +2719,41 @@ print(sp.apart(Ys, s))   # 3/(s - 1) + 1/(s - 2)</pre>
     Kasus hammer test ini merupakan aplikasi langsung dari pola PD orde-2 dengan akar karakteristik kompleks. Sebagai pemanasan, perhatikan PD referensi <code>y″ + 6y′ + 13y = 0</code> dengan <code>y(0) = 2, y′(0) = 1</code> yang diselesaikan via completing the square pada denominator.
   </div>
 
-  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2;margin-bottom:18px">
-    <div class="label" style="text-align:left">Pola Solusi PD Orde-2 dengan Akar Kompleks Konjugat</div>
-    Polinomial karakteristik&nbsp;&nbsp; s² + 6s + 13 = (s + 3)² + 4<br>
-    Akar kompleks&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; s = −3 ± 2j&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (σ = −3, ω<sub>d</sub> = 2)<br>
-    Bentuk umum solusi&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; y(t) = e<sup>σt</sup>·(A·cos ω<sub>d</sub>t + B·sin ω<sub>d</sub>t)<br>
-    Substitusi IVP&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; A = 2,&nbsp;&nbsp; B = 7/2<br>
-    <strong style="color:#fff">Solusi:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; y(t) = 2·e<sup>−3t</sup>·cos 2t + (7/2)·e<sup>−3t</sup>·sin 2t</strong>
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:1.9;margin-bottom:18px">
+    <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
+
+    <strong style="color:#fff">Langkah 1 — Tulis Polinomial Karakteristik</strong><br>
+    <span style="color:var(--muted);font-size:13px">Untuk PD <code>y″ + 6y′ + 13y = 0</code>, ganti turunan dengan pangkat s: <code>s² + 6s + 13</code>. Akar polinomial ini akan menentukan apakah solusi berupa eksponensial murni, osilasi, atau kombinasi (osilasi-meluruh).</span><br>
+    Q(s) = s² + 6s + 13<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 2 — Lengkapi Kuadrat (Completing the Square)</strong><br>
+    <span style="color:var(--muted);font-size:13px">Sebagai informasi: completing the square mengubah <code>s² + bs + c</code> jadi <code>(s + b/2)² + (c − b²/4)</code>. Trik ini dipakai bila diskriminan negatif (akar kompleks) — bentuk akhir mencocokkan tabel Laplace untuk e<sup>at</sup>·sin/cos.</span><br>
+    s² + 6s + 13 = s² + 6s + 9 + 4 = (s + 3)² + 4&nbsp;&nbsp;⟹&nbsp;&nbsp; bentuk (s − a)² + ω² dengan a = −3, ω = 2<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 3 — Identifikasi Akar Kompleks Konjugat</strong><br>
+    <span style="color:var(--muted);font-size:13px">Akar dari <code>(s + 3)² + 4 = 0</code> adalah <code>s + 3 = ±2j</code> → s = −3 ± 2j. Bagian real (−3) memberi laju peluruhan; bagian imajiner (±2) memberi frekuensi osilasi.</span><br>
+    s = −3 ± 2j&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (σ = −3 = decay rate, ω<sub>d</sub> = 2 = damped frequency)<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 4 — Tulis Bentuk Umum Solusi</strong><br>
+    <span style="color:var(--muted);font-size:13px">Akar kompleks <code>s = σ ± jω<sub>d</sub></code> selalu memberi solusi berbentuk <code>e<sup>σt</sup>·(A·cos ω<sub>d</sub>t + B·sin ω<sub>d</sub>t)</code> — eksponensial dikalikan kombinasi sin dan cos.</span><br>
+    y(t) = e<sup>−3t</sup>·(A·cos 2t + B·sin 2t)<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 5 — Pakai Syarat Awal y(0) = 2 untuk Cari A</strong><br>
+    <span style="color:var(--muted);font-size:13px">Substitusi t = 0: <code>e⁰ = 1</code>, <code>cos 0 = 1</code>, <code>sin 0 = 0</code>. Hanya konstanta A yang tersisa.</span><br>
+    y(0) = 1·(A·1 + B·0) = A = 2&nbsp;&nbsp;⟹&nbsp;&nbsp; A = 2<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 6 — Pakai Syarat Awal y′(0) = 1 untuk Cari B</strong><br>
+    <span style="color:var(--muted);font-size:13px">Hitung turunan dengan aturan hasil kali: <code>y′ = −3·e<sup>−3t</sup>·(A·cos 2t + B·sin 2t) + e<sup>−3t</sup>·(−2A·sin 2t + 2B·cos 2t)</code>. Substitusi t = 0.</span><br>
+    y′(0) = −3·(A) + (2B) = −3A + 2B<br>
+    Substitusi A = 2:&nbsp;&nbsp; −6 + 2B = 1&nbsp;&nbsp;⟹&nbsp;&nbsp; B = 7/2<br>
+    <br>
+
+    <strong style="color:var(--cyan)">✓ Hasil:&nbsp;&nbsp; y(t) = 2·e<sup>−3t</sup>·cos 2t + (7/2)·e<sup>−3t</sup>·sin 2t</strong>
   </div>
 
   <div class="info-box reveal" style="margin-bottom:36px">

@@ -1230,15 +1230,40 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     Hitung Deret Fourier dari square wave <code>f(x) = −k</code> di <code>[−π, 0]</code> dan <code>+k</code> di <code>[0, π]</code> (ganjil, T = 2π), lalu turunkan identitas Leibniz dari konvergensi di <code>x = π/2</code>.
   </div>
 
-  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:1.9">
     <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
-    Cek simetri:&nbsp;&nbsp;&nbsp;&nbsp; f(−x) = −f(x)&nbsp;&nbsp;&rarr; ganjil&nbsp;&nbsp;&rarr; a<sub>0</sub> = 0, a<sub>n</sub> = 0<br>
-    Koefisien b<sub>n</sub>:&nbsp;&nbsp; b<sub>n</sub>&nbsp;&nbsp;&nbsp;&nbsp; = (2/T)·∫<sub>0</sub><sup>T</sup> f(x)·sin(nωx) dx&nbsp;&nbsp;dengan ω = 1<br>
-    Hasil integral:&nbsp; b<sub>n</sub>&nbsp;&nbsp;&nbsp;&nbsp; = (2k/(nπ))·(1 − cos nπ)<br>
-    Evaluasi:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; b<sub>1</sub> = 4k/π,&nbsp;&nbsp; b<sub>3</sub> = 4k/(3π),&nbsp;&nbsp; b<sub>5</sub> = 4k/(5π),&nbsp;&nbsp; b<sub>genap</sub> = 0<br>
-    Deret Fourier:&nbsp;&nbsp; f(x)&nbsp; = (4k/π)·[sin x + sin(3x)/3 + sin(5x)/5 + …]<br>
-    Konvergensi di x = π/2: f(π/2) = k&nbsp;&nbsp;&rarr;&nbsp; k = (4k/π)·[1 − 1/3 + 1/5 − 1/7 + …]<br>
-    <strong style="color:#fff">Identitas Leibniz:&nbsp; 1 − 1/3 + 1/5 − 1/7 + … = π/4</strong>
+
+    <strong style="color:#fff">Langkah 1 — Cek simetri fungsi</strong><br>
+    <span style="color:var(--muted);font-size:13px">Square wave bernilai −k di kiri origin dan +k di kanan origin. f(−x) = −f(x), jadi <em>ganjil</em>. Konsekuensi: semua koefisien cosinus (a<sub>0</sub> dan a<sub>n</sub>) langsung nol — hemat setengah pekerjaan.</span><br>
+    Simetri:&nbsp;&nbsp; f(−x) = −f(x)&nbsp;&nbsp;⟹&nbsp;&nbsp; ganjil&nbsp;&nbsp;⟹&nbsp;&nbsp; a<sub>0</sub> = 0, a<sub>n</sub> = 0<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 2 — Tulis rumus Euler untuk b<sub>n</sub></strong><br>
+    <span style="color:var(--muted);font-size:13px">Periode T = 2π, frekuensi sudut ω = 2π/T = 1. Untuk fungsi ganjil pakai integral di setengah periode lalu kalikan 4/T (karena integran genap × interval simetris).</span><br>
+    b<sub>n</sub> = (2/T)·∫<sub>0</sub><sup>T</sup> f(x)·sin(nωx) dx,&nbsp;&nbsp; ω = 1<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 3 — Hitung integral pada [0, π]</strong><br>
+    <span style="color:var(--muted);font-size:13px">Pada [0, π] f(x) = +k konstan, jadi integral menjadi k·∫sin(nx)dx = k·[−cos(nx)/n] dari 0 ke π = (k/n)·(1 − cos nπ). Faktor 2/T = 1/π di depan.</span><br>
+    Hasil integral:&nbsp;&nbsp; b<sub>n</sub> = (2k/(nπ))·(1 − cos nπ)<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 4 — Evaluasi cos nπ untuk n ganjil/genap</strong><br>
+    <span style="color:var(--muted);font-size:13px">cos nπ = (−1)<sup>n</sup>. Bila n genap → cos nπ = 1 → b<sub>n</sub> = 0. Bila n ganjil → cos nπ = −1 → faktor (1 − (−1)) = 2 → b<sub>n</sub> = 4k/(nπ). Jadi square wave hanya berisi harmonik ganjil.</span><br>
+    Evaluasi:&nbsp;&nbsp; b<sub>1</sub> = 4k/π,&nbsp;&nbsp; b<sub>3</sub> = 4k/(3π),&nbsp;&nbsp; b<sub>5</sub> = 4k/(5π),&nbsp;&nbsp; b<sub>genap</sub> = 0<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 5 — Tulis Deret Fourier lengkap</strong><br>
+    <span style="color:var(--muted);font-size:13px">Sumasi hanya untuk n ganjil dengan amplitudo decay 1/n — fingerprint khas square wave. Decay 1/n berarti rekonstruksi konvergen lambat dan menimbulkan fenomena Gibbs di tepi.</span><br>
+    f(x) = (4k/π)·[sin x + sin(3x)/3 + sin(5x)/5 + …]<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 6 — Substitusi x = π/2 untuk turunkan Leibniz</strong><br>
+    <span style="color:var(--muted);font-size:13px">Pada x = π/2 (titik kontinu), Dirichlet menjamin deret konvergen ke nilai fungsi = k. sin(π/2) = 1, sin(3π/2) = −1, sin(5π/2) = 1, dst. Bagi kedua sisi dengan k lalu dengan 4/π untuk dapatkan identitas Leibniz.</span><br>
+    Konvergensi di x = π/2:&nbsp;&nbsp; k = (4k/π)·[1 − 1/3 + 1/5 − 1/7 + …]<br>
+    <br>
+
+    <strong style="color:var(--cyan)">✓ Identitas Leibniz:&nbsp;&nbsp; 1 − 1/3 + 1/5 − 1/7 + … = π/4</strong>
   </div>
 
   <div class="info-box reveal" style="margin-top:18px">
@@ -1246,15 +1271,40 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     Hitung Deret Fourier dari <code>f(x) = |x|</code> dengan periode 2π (genap), lalu turunkan identitas dari konvergensi di <code>x = 0</code>.
   </div>
 
-  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
+  <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:1.9">
     <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
-    Cek simetri:&nbsp;&nbsp;&nbsp;&nbsp; f(−x) = f(x)&nbsp;&nbsp;&rarr; genap&nbsp;&nbsp;&rarr; b<sub>n</sub> = 0<br>
-    Koefisien a<sub>0</sub>:&nbsp;&nbsp; a<sub>0</sub>/2 = π/2&nbsp;&nbsp;(nilai rata-rata |x| pada [−π, π])<br>
-    Koefisien a<sub>n</sub>:&nbsp;&nbsp; a<sub>n</sub>&nbsp;&nbsp;&nbsp;&nbsp; = (2/π)·∫<sub>0</sub><sup>π</sup> x·cos(nx) dx = (2/(πn²))·(cos nπ − 1)<br>
-    Evaluasi:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; a<sub>1</sub> = −4/π, a<sub>3</sub> = −4/(9π), a<sub>5</sub> = −4/(25π),&nbsp;&nbsp; a<sub>genap</sub> = 0<br>
-    Deret Fourier:&nbsp;&nbsp; f(x)&nbsp; = π/2 − (4/π)·[cos x + cos(3x)/9 + cos(5x)/25 + …]<br>
-    Konvergensi di x = 0: f(0) = 0&nbsp;&nbsp;&rarr;&nbsp; π/2 = (4/π)·[1 + 1/9 + 1/25 + …]<br>
-    <strong style="color:#fff">Identitas Basel:&nbsp; Σ 1/(2n − 1)² = π²/8</strong>
+
+    <strong style="color:#fff">Langkah 1 — Cek simetri |x|</strong><br>
+    <span style="color:var(--muted);font-size:13px">|−x| = |x| → fungsi <em>genap</em>. Konsekuensi: semua koefisien sinus b<sub>n</sub> = 0 secara otomatis. Hanya perlu hitung a<sub>0</sub> dan a<sub>n</sub>.</span><br>
+    Simetri:&nbsp;&nbsp; f(−x) = f(x)&nbsp;&nbsp;⟹&nbsp;&nbsp; genap&nbsp;&nbsp;⟹&nbsp;&nbsp; b<sub>n</sub> = 0<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 2 — Hitung a<sub>0</sub>/2 (nilai rata-rata)</strong><br>
+    <span style="color:var(--muted);font-size:13px">Komponen DC = nilai rata-rata fungsi pada satu periode. Untuk |x| pada [−π, π]: rata-rata = (1/2π)·∫<sub>−π</sub><sup>π</sup>|x|dx = (1/π)·∫<sub>0</sub><sup>π</sup>x dx = π/2.</span><br>
+    a<sub>0</sub>/2 = π/2<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 3 — Hitung a<sub>n</sub> dengan integration by parts</strong><br>
+    <span style="color:var(--muted);font-size:13px">Karena |x| genap, pakai shortcut a<sub>n</sub> = (2/π)·∫<sub>0</sub><sup>π</sup> x·cos(nx) dx. Pakai integration by parts: u=x, dv=cos(nx)dx → hasilnya menjadi (cos nπ − 1)/n² (suku boundary di x=π).</span><br>
+    a<sub>n</sub> = (2/π)·∫<sub>0</sub><sup>π</sup> x·cos(nx) dx = (2/(πn²))·(cos nπ − 1)<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 4 — Evaluasi untuk n ganjil/genap</strong><br>
+    <span style="color:var(--muted);font-size:13px">cos nπ = (−1)<sup>n</sup>. n genap → cos nπ = 1 → a<sub>n</sub> = 0. n ganjil → cos nπ = −1 → faktor (−1−1) = −2 → a<sub>n</sub> = −4/(πn²). Decay 1/n² jauh lebih cepat dari square wave (yang 1/n) — itu sebabnya triangular halus tanpa Gibbs ekstrem.</span><br>
+    a<sub>1</sub> = −4/π,&nbsp;&nbsp; a<sub>3</sub> = −4/(9π),&nbsp;&nbsp; a<sub>5</sub> = −4/(25π),&nbsp;&nbsp; a<sub>genap</sub> = 0<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 5 — Susun Deret Fourier lengkap</strong><br>
+    <span style="color:var(--muted);font-size:13px">Komponen DC π/2 ditambah jumlah harmonik cosinus ganjil. Tanda minus berasal dari a<sub>n</sub> negatif. Pola 1/n² adalah signature fungsi triangular.</span><br>
+    f(x) = π/2 − (4/π)·[cos x + cos(3x)/9 + cos(5x)/25 + …]<br>
+    <br>
+
+    <strong style="color:#fff">Langkah 6 — Substitusi x = 0 untuk turunkan Basel</strong><br>
+    <span style="color:var(--muted);font-size:13px">Pada x = 0 (titik kontinu), Dirichlet menjamin deret konvergen ke f(0) = 0. cos(0) = cos(0) = … = 1, jadi semua suku cosinus jadi 1. Pindahkan π/2 ke sisi kanan dan susun untuk dapatkan deret kebalikan kuadrat ganjil.</span><br>
+    Konvergensi di x = 0:&nbsp;&nbsp; π/2 = (4/π)·[1 + 1/9 + 1/25 + …]<br>
+    <br>
+
+    <strong style="color:var(--cyan)">✓ Identitas Basel:&nbsp;&nbsp; Σ 1/(2n − 1)² = π²/8</strong>
   </div>
 </div>
 
