@@ -8,6 +8,10 @@
 >
 > **Diperbarui:** April 2026 (v7) — mencerminkan refactor Modul-4 (countdown circular, palet per-tab, hero animation per-tab, scoring rule lengkap, Firebase Security Rules, blokir akses di luar jadwal, **sistem PIN 6-digit untuk mahasiswa**, **password admin ter-hash SHA-256**, **animasi login constellation + electric charges + lightning blasts**, **Dosen Login Modal dengan password masking**, **role-based visibility untuk tombol Reset** — tombol Atur Jadwal tetap visible sebagai bootstrap action, **scoring universal 50 poin** dengan 5 soal Komputasi Hard @4 poin, **partial credit +1 poin** untuk Hard yang salah, **status label butuh poin** — Tepat Waktu/Terlambat hanya diberikan jika mahasiswa memperoleh poin > 0 (akses tanpa poin = Belum), **Bolos diperluas** — mencakup juga mahasiswa yang akses tapi 0 poin saat jadwal sudah berakhir, **PIN global lintas-course** — satu PIN per mahasiswa yang berlaku di SEMUA mata kuliah dan modul, disimpan di node `pins/mhs_<NIM>` terpisah dari visitor records sehingga reset modul tidak menghapus PIN).
 >
+> **v16 (Mei 2026) — Export HTML Tugas + Forum Copy HTML redesign:** Standar baru untuk file HTML hasil download Tugas (§36) dan output paste ke LMS Forum (§37). **§36 Export HTML Tugas (BARU)** — score-display tanpa SVG ring (anti kotak shadow), 3 orbit-spark warna-warni (cyan/green/pink), cover restructure (eyebrow + 2-col h1 badge + 4 chips), meta items emoji label (👤 🆔 📅), badge sizing fixed 84×38px wrapped dengan `<span>` (anti table-cell break), footer dark panel 3-kolom info + status pill blink + ring expand, date format manual `3-5-2026, 13:22:47`, animation stack 15+ moving elements (orbs, formulas, sparks, count-up, confetti, ripple), 2 critical JS template literal pitfalls didokumentasikan: `</script>` HARUS di-escape jadi `<\/script>` (HTML parser issue) + `\'` di dalam `${...}` interpolation INVALID (JS syntax error). **§37 Forum Copy HTML (BARU)** — output LMS-paste pakai email-friendly HTML (table-based layout, no display:flex/grid, inline styles only), meta info WAJIB nested `<table>` untuk titik 2 sejajar (anti `&nbsp;` padding), footer bg = header bg per-course (Engineering-Math dark brown, Getaran/OptoAuto dark navy), footer topic highlighted dengan accent course (orange Math, purple Getaran/OptoAuto), border-top rgba accent untuk visual continuity, per-course theme map lengkap (§37.5). Applied ke 48 file (42 modul export + 6 exam) untuk §36, dan 42 modul untuk §37 (Exam tidak punya Copy Forum). PR references: #159, #160, #161, #162, #163, #164, #166, #167.
+
+> **v15 (Mei 2026) — Cinematic Panel Design release:** §35 BARU — standar desain panel cinematic untuk Tugas score-bar + Forum copy panel + buttons + progress bars + Total Kata counter. Applied ke 48 file (42 modul + 3 UTS + 3 UAS) dengan green/violet theme distinction. Reference implementation: `Modul-6.html` Getaran Mekanik.
+
 > **v14 (April 2026, akhir bulan) — Animation Topic-Alignment + API Timeout Mitigation:** Dokumentasi formal aturan **animasi canvas WAJIB sesuai topik modul** untuk mencegah bug pedagogis "judul HTML LP tapi canvas masih FFT" yang muncul saat copy template (§14.1.1). Mapping animasi reference per topik (FFT → LP → NLP → metaheuristik) di §14.1.2 dengan slot konvensi `drawPhysics/Sweep/Iso/HPB`. Strategi audit pre-merge dengan tabel checklist 6-layer (HTML title, slider, canvas drawing, tip-box, info panel, float formulas) di §14.1.3. **§34 BARU — Strategi mitigasi `API Stream Idle Timeout`** dengan chunked commit pattern (per-animasi commit, HTML-then-JS layered, write+splice escape hatch); recovery procedure (revert vs commit-as-wip); pre-flight checklist refactor besar; lessons learned dari Modul-8 LP & Modul-9 NLP animation refactor (8 animasi, 1700+ baris JS, zero work loss dengan strategi chunked). Pattern ini sekarang **standar wajib** untuk pekerjaan replacement > 500 baris atau > 30KB.
 >
 > **v13 (April 2026, late-month) — Vibrant Countdown redesign:** Redesain panel hitung mundur deadline (Section §10) menjadi lebih colorful & menarik. Tambahan: aurora konik berputar, gradient border 4-warna via mask compositing, label sweep animation, ring 130px (dari 120px) dengan halo radial pulsing, double drop-shadow glow neon, hover scale-up, gradient-text angka 32px font-weight 900, ring detik dengan tick animation, note deadline sebagai pill glassmorphism. Bug fix: `overflow:visible` pada `.cd-ring svg` untuk mencegah glow drop-shadow ter-clip menjadi bayang kotak di tepi viewport SVG. Applied ke seluruh modul Optimalisasi & Automasi (6) dan Getaran-Mekanik (7). Pedoman lengkap di §10.4.
@@ -6752,6 +6756,415 @@ Saat propagate ke modul baru atau fix existing:
 - [ ] **No conflicts** dengan animasi countdown (§10.4) atau anim-panel (§14.1)
 
 ---
+
+## 36. Export HTML Tugas — Animated Standalone File (BARU di v16)
+
+Standar **desain HTML standalone yang di-download** mahasiswa saat klik tombol "Export HTML" di tab Tugas (`exportTugasHtml()`). File ini dibuka di browser secara independen dari sistem modul, lalu di-submit ke Fast Learning LMS sebagai bukti pengerjaan.
+
+**Dibedakan dari §35** — §35 adalah CSS untuk panel `.score-bar` di **modul page itu sendiri** (UI saat mahasiswa mengerjakan). §36 adalah CSS untuk **file HTML hasil export** yang download.
+
+### 36.1 Struktur Wajib Template
+
+```javascript
+function exportTugasHtml() {
+  const _d = new Date();
+  const _p = n => String(n).padStart(2,'0');
+  const now = _d.getDate()+'-'+(_d.getMonth()+1)+'-'+_d.getFullYear()+', '+
+              _p(_d.getHours())+':'+_p(_d.getMinutes())+':'+_p(_d.getSeconds());
+  // Format: "3-5-2026, 13:22:47" (bukan toLocaleString default "/" + ".")
+
+  const html = `<!DOCTYPE html><html lang="id"><head>...
+    <style>...enhancement layer + theme per-file...</style>
+  </head><body>
+    <!-- Background ambient -->
+    <div class="orb orb-1"></div>...
+    <div class="float-formula">∫ f(x) dx = F(x) + C</div>...
+
+    <div class="wrap">
+      <div class="cover">
+        <div class="cover-eyebrow">📝 Lembar Jawaban Tugas</div>
+        <h1>
+          <span class="h1-num">Tugas N</span>
+          <span class="h1-topic">Topic Title</span>
+        </h1>
+        <div class="cover-meta-row">
+          <span class="cm-chip">Mata Kuliah</span>
+          ...
+          <span class="cm-chip cm-chip-accent">Dosen: Dedik Romahadi</span>
+        </div>
+      </div>
+
+      <div class="meta">
+        <div class="meta-item"><span class="meta-label">👤 Nama</span><strong>${esc(name)}</strong></div>
+        ...
+      </div>
+
+      <div class="score-banner">
+        <div class="score-display">
+          <div class="orbit-spark os1"></div>
+          <div class="orbit-spark os2"></div>
+          <div class="orbit-spark os3"></div>
+          <div class="score-label-top">⭐ NILAI</div>
+          <div class="score-big" data-target="${nilai}">${nilai}</div>
+          <div class="score-label-bot">DARI 100</div>
+        </div>
+        <div style="flex:1">
+          <div class="score-bar-wrap">
+            <div class="score-bar-fill" style="width:${nilai}%">
+              <div class="bar-particle bp1"></div>...
+            </div>
+            <div class="bar-score-chip" style="left:calc(${nilai}% - 30px)">${nilai}%</div>
+          </div>
+          <span class="score-mini">Total: <strong>${total}/50</strong></span>
+          ...
+        </div>
+      </div>
+
+      <!-- Tables MC + Comp E/M + Comp Hard dengan badge Wrap pakai <span> -->
+      <table>
+        <thead><tr><th>No</th><th>Pertanyaan</th><th>Jawaban Anda</th><th>Poin</th></tr></thead>
+        <tbody>${mcData.map(d => \`<tr>
+          <td>\${d.no}</td>
+          <td>\${esc(d.title)}</td>
+          <td><span class="\${d.correct?'correct':'wrong'}">\${esc(d.selected)} \${d.correct?'✓':'✗'}</span></td>
+          <td><span class="pts \${d.correct?'pts-correct':'pts-wrong'}">\${d.pts}</span></td>
+        </tr>\`).join('')}</tbody>
+      </table>
+
+      <div class="gdrive-block">...</div>
+      <div class="footer">
+        <div class="footer-inner">
+          <div class="footer-row footer-row-top">3 kolom info</div>
+          <div class="footer-row footer-row-bot">tag + status pill blink</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Count-up animation + confetti for high scores + click ripple
+    <\/script>
+  </body></html>`;
+}
+```
+
+### 36.2 Animation Stack — 15+ Moving Elements
+
+| # | Element | Animation | Loop |
+|---|---------|-----------|------|
+| 1 | `body::before` grid mesh | `gridMove` | 8s |
+| 2-5 | `.orb-1..4` floating gradient blobs | `orbFloat1..4` | 18-25s |
+| 6-8 | `.star-1..3` sparkle stars | `star1..3` + `sparkle` | 12-16s |
+| 9-13 | `.float-formula` math drifting | `drift` | 28-36s |
+| 14 | `.cover-scan` vertical line | `scanline` | 4s |
+| 15 | `.cover h1` gradient text shine | `textShine` | 6s |
+| 16 | `.wrap::before` rotating border | `borderRotate` | 6s |
+| 17 | `.score-display::before` halo pulse | `scoreHaloPulse` | 3s |
+| 18 | `.score-display::after` orbit dot | `scoreOrbit` | 6s |
+| 19-21 | `.orbit-spark.os1/2/3` warna-warni | `scoreOrbit2/3/4` | 7.5/9/11s |
+| 22 | `.score-big` count-up | JS `requestAnimationFrame` | one-shot 1.8s |
+| 23 | `.score-bar-fill` fill | `barFill` | one-shot 1.8s |
+| 24 | `.score-bar-fill::after` pulsing dot | `pulseGlow` + `barRayBurst` | 1.2/2s |
+| 25-28 | `.bar-particle.bp1..4` | `barParticle` | staggered 3s |
+| 29 | `.bar-score-chip` floating | `scoreBubbleFloat` | 2.5s |
+| 30 | tbody tr stagger fade-in | `slideRight` | 0.07s delay each |
+| 31 | `.gdrive-block::after` border flow | `borderRotate` | 3s |
+| 32 | `.fp-dot` blinking | `dotBlink` + `dotRing` | 1.1/1.6s |
+
+### 36.3 Score Display — TANPA SVG Ring (Anti-Kotak)
+
+> **Lesson learned (Mei 2026):** Versi awal pakai `<svg>` ring dengan `mask-composite:exclude` untuk rotating gradient border. Browser yang tidak full-support `mask-composite` me-render SEBAGAI KOTAK (rectangle). User report "bayangan kotak masih terlihat" 3× sampai akhirnya REDESIGN total.
+
+**Pattern WAJIB pakai pure typography + radial halo** (no SVG, no mask-composite):
+```html
+<div class="score-display">
+  <div class="orbit-spark os1"></div>  <!-- 🔵 cyan orbit 7.5s -->
+  <div class="orbit-spark os2"></div>  <!-- 🟢 green orbit 9s -->
+  <div class="orbit-spark os3"></div>  <!-- 🩷 pink orbit 11s reverse -->
+  <div class="score-label-top">⭐ NILAI</div>
+  <div class="score-big" data-target="${nilai}">${nilai}</div>
+  <div class="score-label-bot">DARI 100</div>
+</div>
+```
+
+**CSS** — halo via `::before` radial-gradient blur (CIRCULAR, bukan box):
+```css
+.score-display{position:relative;display:flex;flex-direction:column;align-items:center;padding:8px 28px}
+.score-display::before{
+  content:"";position:absolute;width:200px;height:200px;border-radius:50%;
+  background:radial-gradient(circle,rgba(168,85,247,.45) 0%,rgba(34,211,238,.25) 35%,rgba(0,224,158,.10) 60%,transparent 80%);
+  filter:blur(30px);
+  animation:scoreHaloPulse 3s ease-in-out infinite;
+  left:50%;top:50%;transform:translate(-50%,-50%);
+}
+.score-big{
+  font-family:'Orbitron',serif;
+  font-size:5rem;font-weight:900;
+  background:linear-gradient(135deg,#a855f7,#22d3ee,#00e09e);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  display:inline-block;line-height:.95;
+  /* JANGAN tambah filter:drop-shadow — bikin shadow rectangular */
+}
+.score-banner{
+  background:transparent !important;  /* TRANSPARENT bukan dark/light bg */
+  /* Hindari rectangle box di belakang circle */
+}
+```
+
+### 36.4 Badge Sizing — Wrap dengan `<span>` (Anti-Misalign)
+
+> **Lesson learned:** Awalnya class `.correct/.wrong/.pts` di-apply langsung ke `<td>`. CSS `display:inline-flex` override `display:table-cell` → BREAK table layout, badges left-aligned tidak center.
+
+**Pattern WAJIB**: wrap td content dengan `<span>`:
+```html
+<!-- ❌ SALAH -->
+<td class="correct">(B) ✓</td>
+<td class="pts pts-correct">1</td>
+
+<!-- ✅ BENAR -->
+<td><span class="correct">(B) ✓</span></td>
+<td><span class="pts pts-correct">1</span></td>
+```
+
+CSS dengan **fixed dimensions** untuk konsistensi:
+```css
+.correct, .wrong, .partial{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:84px;height:38px;
+  padding:0;border-radius:10px;font-weight:800;
+}
+.pts{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:46px;height:38px;  /* fixed, bukan padding-based */
+  border-radius:10px;font-family:'Orbitron',monospace;
+}
+td:nth-child(3),td:nth-child(4){text-align:center !important}
+th:nth-child(3),th:nth-child(4){text-align:center !important}
+```
+
+### 36.5 JavaScript Template Literal Pitfalls (CRITICAL)
+
+#### Pitfall 1: `</script>` di dalam template literal HARUS di-escape
+
+```javascript
+const html = `<!DOCTYPE html>...
+  <script>count-up animation</script>  ← ❌ HTML parser CLOSE outer <script> di sini
+</body></html>`;
+
+// ✅ FIX:
+const html = `<!DOCTYPE html>...
+  <script>count-up animation<\/script>  ← ✓ HTML parser tidak recognize, JS string sama
+</body></html>`;
+```
+
+**Akibat tanpa escape**: Browser HTML parser hits `</script>` literal text → CLOSE outer `<script>` tag prematurely → SEMUA JS setelah itu jadi RAW HTML. Tab broken, login broken, semua fungsi mati.
+
+**`\/` dalam JS string adalah escape sequence valid** yang produces `/`. Output di download HTML tetap `</script>` proper.
+
+#### Pitfall 2: `\'` di dalam `${...}` interpolation INVALID
+
+```javascript
+// ❌ SALAH — \\' di dalam ${...} adalah JS expression, bukan string
+<td><span class="${d.correct?\'correct\':\'wrong\'}">value</span></td>
+//                          ^^         ^^
+//                          SyntaxError: Invalid token
+
+// ✅ BENAR — pakai single quote langsung
+<td><span class="${d.correct?'correct':'wrong'}">value</span></td>
+```
+
+**Penjelasan**: `${...}` adalah JS code (template interpolation). Dalam JS expression context, `\'` di-parse sebagai `\` + `'` — backslash literal lalu start string. SyntaxError.
+
+**Akibat**: SELURUH inline script (sampai 200K chars) gagal parse. Schedule listener tidak jalan, switchTab tidak jalan, semua interactive function broken.
+
+**Audit cara cepat**:
+```bash
+# Cek backslash-quote di dalam JS interpolation
+grep -nE '\$\{[^}]*\\\\'\''[^}]*\}' Modul-N.html
+# Output kosong = aman
+```
+
+### 36.6 Date Format — Manual (Bukan toLocaleString)
+
+```javascript
+// ❌ Hindari — output "3/5/2026, 13.22.47" (slash + dot)
+const now = new Date().toLocaleString('id-ID');
+
+// ✅ WAJIB — output "3-5-2026, 13:22:47" (dash + colon)
+const _d = new Date();
+const _p = n => String(n).padStart(2,'0');
+const now = _d.getDate()+'-'+(_d.getMonth()+1)+'-'+_d.getFullYear()+
+            ', '+_p(_d.getHours())+':'+_p(_d.getMinutes())+':'+_p(_d.getSeconds());
+```
+
+### 36.7 Audit Checklist v16 — Export HTML
+
+- [ ] **Date format manual** — `_d = new Date()` + `_p` padStart helper
+- [ ] **`</script>` escaped** dengan `<\/script>` di dalam template literal
+- [ ] **Tidak ada `\'` di dalam `${...}`** — pakai `'` langsung
+- [ ] **Score-display, BUKAN score-circle-wrap+SVG** — hindari kotak shadow
+- [ ] **Score-big tanpa filter:drop-shadow** — bikin rectangular shadow
+- [ ] **Score-banner background:transparent!important** — hindari kotak bg
+- [ ] **Td badges wrapped dengan `<span>`** — preserve table-cell layout
+- [ ] **3 orbit-spark warna-warni** (cyan/green/pink) di score-display
+- [ ] **Cover dengan eyebrow + 2-col h1 + 4 chips** — bukan h1+sub paragraph
+- [ ] **Meta items dengan emoji label** (👤 🆔 📅)
+- [ ] **Footer dark panel** dengan 3 kolom info + status pill blink
+- [ ] **Animations 15+** — orbs, formulas, sparks, count-up, confetti, ripple
+- [ ] **Print-friendly mode** — animations disabled saat print
+- [ ] **Mobile responsive** ≤640px — orbs hidden, layout stack
+- [ ] **Theme color per-file preserved** (orange Math, purple OptoAuto, dll)
+
+---
+
+## 37. Forum Copy HTML — LMS-Compatible Output (BARU di v16)
+
+Standar **HTML yang di-copy ke clipboard** saat mahasiswa klik tombol "Copy Forum (kode HTML)" di tab Forum (`buildForumHtml() + copyForumHtml()`). HTML ini di-paste ke editor Fast Learning LMS forum dalam mode `</> HTML`. Output **WAJIB SURVIVE LMS sanitization** yang sering strip CSS dan beberapa HTML structure.
+
+### 37.1 Filosofi Design — Email-Friendly HTML
+
+Berbeda dari §36 (export HTML standalone) yang punya CSS lengkap, output forum copy harus pakai **email-friendly HTML technique**:
+
+- **`<table>` untuk layout** (LMS hampir selalu preserve)
+- **Inline styles** semua (LMS strip `<style>` blocks dan eksternal CSS)
+- **Tidak boleh** `display:flex`, `display:grid` (sering di-strip → break layout)
+- **Pakai `<br>`** untuk line breaks (always safe)
+- **Pakai `<h3>`, `<strong>`, `<em>`** untuk semantik (always preserved)
+
+### 37.2 Struktur Wajib
+
+```javascript
+function buildForumHtml() {
+  const _d = new Date();
+  const _p = n => String(n).padStart(2,'0');
+  const now = _d.getDate()+'-'+(_d.getMonth()+1)+'-'+_d.getFullYear()+
+              ', '+_p(_d.getHours())+':'+_p(_d.getMinutes())+':'+_p(_d.getSeconds());
+
+  return `<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:720px;margin:0 auto;color:#1e293b;">
+
+  <!-- HEADER (dark bg per-course theme) -->
+  <table cellpadding="0" cellspacing="0" border="0" style="width:100%;background:#0a1628;border-radius:12px 12px 0 0;">
+    <tr><td style="padding:20px 28px;">
+      <div style="font-size:1.3rem;font-weight:800;color:#a855f7;">💬 Forum Diskusi — Pertemuan N</div>
+      <div style="font-size:.82rem;color:#94a3b8;">Topic · Course · S1 Teknik Mesin UMB · 2025/2026</div>
+      <div style="font-size:.8rem;color:#a855f7;margin-top:2px;">Dosen: Dedik Romahadi</div>
+    </td></tr>
+  </table>
+
+  <!-- META INFO — nested table untuk titik 2 sejajar -->
+  <table style="width:100%;background:#f1f5f9;border-left:4px solid #a855f7;">
+    <tr><td style="padding:14px 28px;">
+      <table style="font-size:14px;line-height:1.9;">
+        <tr>
+          <td style="color:#64748b;font-weight:700;padding-right:6px;width:80px"><strong>Nama</strong></td>
+          <td style="color:#64748b;font-weight:700;padding-right:10px">:</td>
+          <td style="color:#1e293b;font-weight:600">${name}</td>
+        </tr>
+        <tr><td><strong>NIM</strong></td><td>:</td><td>${nim}</td></tr>
+        <tr><td><strong>Tanggal</strong></td><td>:</td><td>${now}</td></tr>
+      </table>
+    </td></tr>
+  </table>
+
+  <!-- SKENARIO + 3 PERTANYAAN -->
+  ...
+
+  <!-- FOOTER — match header bg dengan topic accent highlighted -->
+  <table style="width:100%;background:#0a1628;border-radius:0 0 12px 12px;margin-top:4px;">
+    <tr><td style="padding:14px 28px;text-align:center;font-size:.72rem;color:#94a3b8;border-top:1px solid rgba(168,85,247,.25);">
+      Forum Diskusi Pertemuan N — <span style="color:#a855f7;font-weight:700">Topic</span> · Course · ...
+    </td></tr>
+  </table>
+
+</div>`;
+}
+```
+
+### 37.3 Aturan Kritis
+
+#### Aturan 1: Meta Info WAJIB Pakai Nested `<table>` untuk Colon Alignment
+
+```html
+<!-- ❌ SALAH — &nbsp; padding tidak align (font tidak monospace) -->
+<strong>Nama&nbsp;&nbsp;&nbsp;:</strong> Eka Bima Saputra<br>
+<strong>NIM&nbsp;&nbsp;&nbsp;&nbsp;:</strong> 41325120003<br>
+<strong>Tanggal:</strong> 3-5-2026
+
+<!-- ✅ BENAR — nested table dengan 3 cell per row -->
+<table>
+  <tr><td width="80"><strong>Nama</strong></td><td>:</td><td>Eka Bima Saputra</td></tr>
+  <tr><td><strong>NIM</strong></td><td>:</td><td>41325120003</td></tr>
+  <tr><td><strong>Tanggal</strong></td><td>:</td><td>3-5-2026</td></tr>
+</table>
+```
+
+#### Aturan 2: Footer BG WAJIB Match Header BG
+
+Per-course theme:
+| Course | Header BG | Footer BG | Topic Accent |
+|--------|-----------|-----------|--------------|
+| Engineering-Math (M1-M14) | Dark brown per-modul (`#2d1004`, `#1a0a05`, dll) | **Sama dengan header** | Orange (`#ea580c`, `#f97316`) |
+| Getaran-Mekanik (M1-M14) | Dark navy `#0a1628` | `#0a1628` | Purple `#a855f7` |
+| Optimalisasi-dan-Automasi (M1-M14) | Dark navy `#0a1628` | `#0a1628` | Purple `#a855f7` |
+
+> **Anti-pattern**: M4 OptoAuto dulu pakai light header `#f0f4ff` + violet `#7c4dff` (dari modul UI theme custom). Footer match-nya jadi inkonsisten dengan OptoAuto lain. **Normalisasi**: semua OptoAuto pakai dark navy `#0a1628` + purple `#a855f7` (lihat PR #164).
+
+#### Aturan 3: Footer Topic Highlighted dengan Accent
+
+```html
+<div class="footer">
+  Forum Diskusi Pertemuan N — <span style="color:{ACCENT};font-weight:700">Topic</span> · Course · ...
+</div>
+```
+
+#### Aturan 4: Border-Top Footer dengan rgba Accent
+
+Visual continuity dengan header:
+```css
+border-top:1px solid rgba(168,85,247,.25)  /* purple untuk Getaran/OptoAuto */
+border-top:1px solid rgba(249,115,22,.25)  /* orange untuk Math */
+```
+
+### 37.4 Audit Checklist v16 — Forum Copy HTML
+
+- [ ] **Date format manual** (`3-5-2026, 13:22:47`)
+- [ ] **Layout pakai `<table>`** semua (no `display:flex`/`grid`)
+- [ ] **Meta info nested table** untuk colon alignment
+- [ ] **Header bg dark** sesuai per-course theme
+- [ ] **Footer bg = header bg** (match per-course)
+- [ ] **Footer topic accent** highlighted dengan course primary color
+- [ ] **Border-top footer** dengan rgba accent
+- [ ] **Inline styles only** (no `<style>` blocks)
+- [ ] **`<br>`** untuk line breaks
+- [ ] **3-tier copy fallback** tetap dipakai (§16.3)
+- [ ] **Konsistensi 14 modul × 3 kursus** — sama struktur, beda content + theme color
+
+### 37.5 Per-Course Theme Map (Reference)
+
+| Element | Engineering-Math | Getaran-Mekanik | Optimalisasi-dan-Automasi |
+|---------|------------------|-----------------|---------------------------|
+| Header BG | `#2d1004` / `#1a0a05` / dst (per-modul) | `#0a1628` | `#0a1628` |
+| Title color | `#ea580c` / `#f97316` (orange) | `#a855f7` (purple) | `#a855f7` |
+| Subtitle | `#94a3b8` | `#94a3b8` | `#94a3b8` |
+| Meta border-left | accent header | `#a855f7` | `#a855f7` |
+| Skenario title | `#9a3412` (dark orange) | `#5b35d0` (dark violet) | `#5b35d0` |
+| Question 1 badge | `#f97316` | `#a855f7` | `#a855f7` |
+| Question 2 badge | `#ea580c` | `#0ea5e9` | `#0ea5e9` |
+| Question 3 badge | `#00e09e` | `#00e09e` | `#00e09e` |
+| Footer BG | sama dengan header | `#0a1628` | `#0a1628` |
+| Footer topic accent | `#ea580c` | `#a855f7` | `#a855f7` |
+| Border-top accent | `rgba(249,115,22,.25)` | `rgba(168,85,247,.25)` | `rgba(168,85,247,.25)` |
+
+### 37.6 Files Affected
+
+- **Modul HTML**: `buildForumHtml()` di **42 file** (14 modul × 3 kursus)
+- **Exam HTML** (UTS/UAS): TIDAK punya Copy Forum (tidak ada Forum tab di Exam)
+
+---
+
+
+
+*Pedoman v16 — Mei 2026 (Export HTML Tugas + Forum Copy HTML redesign).*
+*Update v16: §36 BARU — standar Export HTML Tugas standalone (score-display tanpa SVG ring anti kotak shadow, 3 orbit-spark warna-warni cyan/green/pink, cover restructure dengan eyebrow + 2-col h1 badge + 4 chips, meta items emoji label, badge sizing fixed wrapped span, footer dark panel + status pill blink, date format manual `3-5-2026, 13:22:47`, 15+ animations stack, 2 critical JS template literal pitfalls: `</script>` HARUS di-escape jadi `<\/script>` + `\'` di dalam `${...}` interpolation INVALID — keduanya menyebabkan login broken). §37 BARU — standar Forum Copy HTML untuk LMS-paste (table-based layout email-friendly, meta info nested table untuk colon alignment, footer bg = header bg per-course, topic accent highlighted, per-course theme map). Applied ke 48 file (42 modul export + 6 exam) untuk §36, dan 42 modul untuk §37. PR #159–#167.*
 
 *Pedoman v15 — Mei 2026 (Cinematic Panel Design release).*
 *Update v15: §35 BARU — standar desain panel cinematic untuk Tugas score-bar + Forum copy panel + buttons + progress bars + Total Kata counter. Applied ke 48 file (42 modul + 3 UTS + 3 UAS) dengan green/violet theme distinction. Keyframes: meshFloat, particleTwinkle, particleDrift, scoreNumIdleGlow, scoreNumExplode, titleShimmer, scoreLiveBlink, trackScan, progressStripes, scoreFillSweep, btnReadyPulse, btnRippleExpand, arrowBob, forumDashOrbit, forumLiquid, forumGlowMorph, forumParticleBurst, forumIconFloat, forumDotBounce, forumPanelBreath, forumPanelBorderRotate, forumPanelSparkle, forumPanelDrift, forumTitleGlow, forumTitleUnderline, forumWordIdleGlow, forumWordBreath, forumWordExplode, forumTotalHalo, forumLabelShimmer, forumTrackScan, forumFillStripes, forumFillSweep. Reference implementation: `Modul-6.html` Getaran Mekanik.*
