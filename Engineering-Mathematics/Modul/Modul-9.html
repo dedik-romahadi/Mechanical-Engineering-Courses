@@ -1203,6 +1203,14 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="tip-box reveal">
     💡 <strong>Mengapa D-operator?</strong> Tiga keunggulan: <strong>(1)</strong> tulis PD secara <em>kompak</em> — lebih ringkas dari notasi turunan eksplisit. <strong>(2)</strong> faktorisasi PD homogen <em>identik</em> dengan faktorisasi polinomial L(D), sehingga akar karakteristik = akar L. <strong>(3)</strong> rumus invers operator memberi <strong>y_p dalam satu baris</strong> tanpa tebakan UC + sistem aljabar. Engineer dan fisikawan zaman pra-komputer pakai D-operator seperti tabel Laplace untuk solve PD secara cepat.
   </div>
+
+  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
+    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), §3.1 Pengertian Metode Invers Operator:</strong>
+    <p style="margin:8px 0 0 0;font-size:14px;line-height:1.7">Modul PDF mendefinisikan <em>D-operator</em> sebagai transformasi <code>D = d/dx</code> sehingga <code>D<sup>k</sup>·y = d<sup>k</sup>y/dx<sup>k</sup></code>, dan menulis PD orde-n koefisien konstan dalam bentuk <strong>fungsi operator</strong>:</p>
+    <div style="text-align:center;margin:8px 0;font-family:'JetBrains Mono',monospace;color:var(--cyan)">L<sub>n</sub>(D) = D<sup>n</sup> + a<sub>n−1</sub>D<sup>n−1</sup> + … + a₂D² + a₁D + a₀</div>
+    <p style="margin:6px 0 0 0;font-size:14px;line-height:1.7">Sehingga PD homogen ditulis ringkas <code>L<sub>n</sub>(D)y = 0</code> dan PD non-homogen <code>L<sub>n</sub>(D)y = r(x)</code>. Modul juga membahas <em>contoh ilustratif</em>: <code>y''' − 6y'' + 11y' − 6y = (D³ − 6D² + 11D − 6)y = (D − 1)(D − 2)(D − 3)y</code>, dan <code>y''' − 8y'' + 12y' − 8y = (D − 2)³y</code> (faktor berulang triple).</p>
+    <span style="display:block;margin-top:8px;font-size:13px;color:var(--muted)">Polinomial karakteristik <code>L<sub>n</sub>(λ) = 0</code> memuat akar <code>λ₁, λ₂, …, λ<sub>n</sub></code> — basis solusi homogen di §3.2 modul PDF (halaman 6–10).</span>
+  </div>
 </div>
 
 <!-- ═══ BAGIAN 04 — UC: f(x) EKSPONENSIAL & TRIGONOMETRI ═══ -->
@@ -1336,6 +1344,17 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="tip-box reveal">
     💡 <strong>Workflow optimal:</strong> <strong>(1) Hitung L(α)</strong> — substitusi α ke L(D). <strong>(2) Bila L(α) ≠ 0</strong>: pakai rumus standar <code>e^(αx)/L(α)</code>, selesai. <strong>(3) Bila L(α) = 0</strong>: hitung L'(α). Bila ≠ 0, pakai <code>x·e^(αx)/L'(α)</code>. Bila = 0, lanjut ke L''(α). <strong>(4) Verifikasi</strong>: substitusi y_p ke PD asal, harus sama dengan f. Untuk f = K·e^(αx) (K konstanta), kalikan saja hasil dengan K.
   </div>
+
+  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
+    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), Contoh 3.1 — Invers Operator untuk Eksponensial:</strong>
+    <p style="margin:8px 0 0 0;font-size:14px;line-height:1.7">Modul PDF menyelesaikan <code>(D² − 3D + 2)y = e<sup>3x</sup></code>. Langkah:</p>
+    <ol style="margin:6px 0 0 22px;font-size:14px;line-height:1.7">
+      <li><strong>Langkah pertama (y_h):</strong> <code>L(D) = D² − 3D + 2 = (D − 1)(D − 2)</code> → akar D = 1, 2 → <code>y_h = c₁e<sup>x</sup> + c₂e<sup>2x</sup></code>.</li>
+      <li><strong>Langkah kedua (y_p):</strong> tulis <code>y = (1/[(D − 2)(D − 1)])·e<sup>3x</sup></code>. Modul mengintegralkan <em>satu demi satu</em>: <code>y_p = (1/(D − 2))·e<sup>x</sup>∫e<sup>−x</sup>·e<sup>3x</sup>dx = (1/(D − 2))·(½ e<sup>3x</sup>) = ½ e<sup>2x</sup>∫e<sup>−2x</sup>·e<sup>3x</sup>dx = ½ e<sup>3x</sup></code>.</li>
+    </ol>
+    <p style="margin:8px 0 0 0;font-size:14px;line-height:1.7">Solusi total: <code style="color:var(--green)">y = c₁e<sup>x</sup> + c₂e<sup>2x</sup> + ½ e<sup>3x</sup></code>. <em>Cek cepat dengan rumus modern</em>: <code>L(3) = 9 − 9 + 2 = 2 ≠ 0</code> → <code>y_p = e<sup>3x</sup>/L(3) = e<sup>3x</sup>/2</code> — hasil identik!</p>
+    <span style="display:block;margin-top:8px;font-size:13px;color:var(--muted)">Pendekatan integrasi berlapis di modul PDF (halaman 13–14) <em>setara</em> dengan rumus pembagian polinomial yang dipakai pada bagian ini — tetapi format invers operator modern jauh lebih ringkas.</span>
+  </div>
 </div>
 
 <!-- ═══ BAGIAN 06 — WRONSKIAN ORDE n & PEMBAGIAN SINTETIS ═══ -->
@@ -1406,6 +1425,15 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
   <div class="warn-box reveal">
     ⚠ <strong>Tips trigonometri:</strong> <strong>(1) Selalu cek L(−β²)</strong> sebelum substitusi. <strong>(2) Bila L hanya pangkat genap D</strong>, rumus langsung. <strong>(3) Bila ada D ganjil</strong>, pakai trik konjugat — kalikan dan bagi dengan konjugat untuk dapatkan D² murni di penyebut. <strong>(4) D·sin = β·cos, D·cos = −β·sin</strong> — turunan trig itu pertukaran. <strong>(5) Resonansi:</strong> hasil mengandung x → amplitudo tumbuh linier (kasus klasik mesin/jembatan resonan). Trik konjugat = analog rasionalisasi √ di aljabar.
+  </div>
+
+  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
+    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), Contoh 3.2 — Invers Operator dengan f = e<sup>x</sup>·cos x:</strong>
+    <p style="margin:8px 0 0 0;font-size:14px;line-height:1.7">Modul PDF menyelesaikan <code>(D² − 1)y = e<sup>x</sup> cos x</code> melalui integrasi berlapis pada <code>1/[(D − 1)(D + 1)]</code>. Hasil integrasi:</p>
+    <div style="text-align:center;margin:8px 0;font-family:'JetBrains Mono',monospace;color:var(--cyan)">y_p = (1/5)·e<sup>x</sup>·(2 sin x − cos x)</div>
+    <p style="margin:6px 0 0 0;font-size:14px;line-height:1.7">Solusi total: <code style="color:var(--green)">y = c₁e<sup>x</sup> + c₂e<sup>−x</sup> + (1/5)·e<sup>x</sup>(2 sin x − cos x)</code>.</p>
+    <p style="margin:8px 0 0 0;font-size:14px;line-height:1.7"><em>Pendekatan modern (shift theorem):</em> karena f memuat <code>e<sup>x</sup>·v(x)</code> dengan <code>v = cos x</code>, pakai sifat geser <code>(1/L(D))·[e<sup>αx</sup>v(x)] = e<sup>αx</sup>·(1/L(D + α))·v(x)</code>. Substitusi α = 1: <code>L(D + 1) = (D + 1)² − 1 = D² + 2D</code>. Lalu <code>(1/(D² + 2D))·cos x</code> dengan <code>D² → −1</code>: jadi <code>(1/(−1 + 2D))·cos x</code>, kalikan konjugat <code>(2D + 1)/(2D + 1)</code>… hasilnya identik.</p>
+    <span style="display:block;margin-top:8px;font-size:13px;color:var(--muted)">Lihat halaman 14–15 modul PDF untuk derivasi lengkap. Penghitungan integral dua tahap di sana setara dengan teorema shift modern — beda format, sama hasil.</span>
   </div>
 </div>
 
@@ -1879,6 +1907,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
   <div class="tip-box reveal">
     💡 <strong>Strategi belajar:</strong> Kerjakan Tugas tab dengan urutan ini — (1) MC dulu untuk konsep, (2) Komputasi Easy/Medium untuk latihan rutin, (3) Komputasi Hard di akhir karena membutuhkan pemahaman menyeluruh. Diskusikan kesulitan di tab Forum atau panel chat 💬 (klik FAB di pojok kanan bawah). Selamat mengerjakan!
   </div>
+
+  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
+    📘 <strong>Korelasi dengan Modul PDF (Mercu Buana — Wiwit Suprihatiningsih):</strong> Cell 1–4 di atas mereproduksi alur perhitungan modul PDF — <strong>Contoh 2.1</strong> <code>(D² − 3D + 2)y = 0</code> (akar D = 1, 2 → <code>y = c₁e<sup>x</sup> + c₂e<sup>2x</sup></code>), <strong>Contoh 2.2</strong> <code>(D³ − 6D² + 11D − 6)y = 0</code> (faktor <code>(D − 1)(D − 2)(D − 3)</code> → <code>y = c₁e<sup>x</sup> + c₂e<sup>2x</sup> + c₃e<sup>3x</sup></code>), <strong>Contoh 3.1</strong> <code>(D² − 3D + 2)y = e<sup>3x</sup></code> (y_p = ½ e<sup>3x</sup>), dan <strong>Contoh 3.2</strong> <code>(D² − 1)y = e<sup>x</sup> cos x</code> (y_p = (e<sup>x</sup>/5)(2 sin x − cos x)). Semua hasil dapat divalidasi dengan <code>sp.dsolve()</code> Cell 1, atau dihitung manual dengan helper <code>invL_exp</code> Cell 2.
+  </div>
 </div>
 
 
@@ -1923,6 +1955,20 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       <div style="font-size:14px;line-height:1.7">
         SymPy Development Team. <em style="color:#fff">SymPy Documentation — ODE Solvers (dsolve) &amp; Operator Algebra</em>. 2024.
         <br><span style="color:var(--muted);font-size:13px"><a href="https://docs.sympy.org/latest/modules/solvers/ode.html" style="color:var(--cyan)" target="_blank">docs.sympy.org/latest/modules/solvers/ode.html</a></span>
+      </div>
+    </div>
+    <div style="display:flex;gap:16px;padding:18px 22px;background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.15);border-left:3px solid var(--violet);border-radius:10px;align-items:flex-start">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--violet);flex-shrink:0;min-width:32px">[6]</span>
+      <div style="font-size:14px;line-height:1.7">
+        Sucipto, Erwin. <em style="color:#fff">Engineering Mathematics</em>, 3rd Edition. Jakarta: Erlangga, 1994.
+        <br><span style="color:var(--muted);font-size:13px">Referensi inti modul PDF Mercu Buana — basis pembahasan §3.1 D-operator <code>L<sub>n</sub>(D)</code>, §3.2 metode invers operator homogen (faktor linier tidak berulang &amp; berulang), §3.3 invers operator non-homogen dengan integrasi berlapis (Contoh 2.1, 2.2, 3.1, 3.2).</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:16px;padding:18px 22px;background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.15);border-left:3px solid var(--violet);border-radius:10px;align-items:flex-start">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--violet);flex-shrink:0;min-width:32px">[7]</span>
+      <div style="font-size:14px;line-height:1.7">
+        Markoni. <em style="color:#fff">Pengantar Dasar Matematika Rekayasa</em>, 1st Edition. Yogyakarta: Graha Ilmu, 2014.
+        <br><span style="color:var(--muted);font-size:13px">Referensi pendamping modul PDF Mercu Buana — pendekatan rekayasa untuk metode invers operator pada PD orde-n koefisien konstan dan aplikasi vibrasi terpaksa.</span>
       </div>
     </div>
   </div>
@@ -2004,6 +2050,14 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div>
       <div style="font-weight:700;color:var(--cyan);margin-bottom:4px">Cara Submit Tugas 9</div>
       <p style="font-size:14px;color:var(--text)">Isi semua soal, tempelkan link Google Drive, lalu klik <strong>📄 Export HTML</strong> — unduh file-nya dan <strong style="color:var(--cyan)">submit ke Fast Learning (LMS UMB) → Tugas Pertemuan 9</strong>.</p>
+    </div>
+  </div>
+
+  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-bottom:32px;display:flex;align-items:flex-start;gap:14px">
+    <span style="font-size:24px;flex-shrink:0">📘</span>
+    <div>
+      <div style="font-weight:700;color:var(--violet);margin-bottom:4px">Referensi Modul PDF (Mercu Buana — Wiwit Suprihatiningsih)</div>
+      <p style="font-size:14px;color:var(--text);margin:0">Sebelum mengerjakan, baca ulang <strong>§3.1–3.3</strong> modul PDF (Sucipto + Markoni): definisi <code>L<sub>n</sub>(D)</code>, faktor linier tidak berulang vs berulang (Kasus Pertama &amp; Kedua), dan integrasi berlapis untuk invers operator non-homogen. Soal pilihan ganda menguji <em>4 sifat fundamental D-operator</em> (linieritas, <code>L(D)e<sup>αx</sup> = L(α)e<sup>αx</sup></code>, shift theorem, sin/cos via D²) sedangkan komputasi menuntut alur penuh: <strong>Contoh 2.1, 2.2</strong> (homogen) dan <strong>Contoh 3.1, 3.2</strong> (non-homogen) dapat digunakan sebagai template kerangka.</p>
     </div>
   </div>
 
@@ -2535,6 +2589,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       <div style="background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)">x_p = (1/L(D))·F₀sin(ωt)</div>
     </div>
     <p style="margin-top:14px;font-size:14px;color:var(--muted)">Operasi pada <code>ω ≈ ω_n</code> = <strong>resonansi mendekati</strong>: substitusi D² → −ω² di L(D) memberi koefisien <code>k − mω² ≈ 0</code> di komponen genap. Trik konjugat invers operator memberi steady-state dengan amplitudo memuncak. Tiga pertanyaan diskusi memandu analisis: (1) bangun L(D) dan deteksi resonansi via L(−ω²), (2) hitung x_p numerik via invers operator, (3) rancang mitigasi engineering.</p>
+
+    <div class="pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);border-radius:10px;padding:12px 16px;margin-top:14px;font-size:13.5px;color:var(--text);line-height:1.7">
+      📘 <strong>Petunjuk dari Modul PDF (§3.3 Metode Invers Operator):</strong> Modul PDF Mercu Buana menulis <code>L(D)y = r(x)</code> sebagai <code>y_p = (1/L(D))·r(x)</code>. Untuk skenario kompresor ini, <code>L(D) = mD² + cD + k</code>. Modul mengajarkan integrasi berlapis: <code>1/[(D − λ₁)(D − λ₂)]·F₀sin(ωt)</code> dipisah jadi pecahan parsial bila akar L riil, atau dipakai trik konjugat bila akar kompleks. Karena akar L pada masalah ini kompleks (<code>−2 ± 63.2i</code>), pendekatan yang lebih mudah: <em>substitusi D² → −ω²</em> di suku genap, lalu kalikan konjugat untuk hilangkan suku <code>cD</code> ganjil. Hasil <code>x_p</code> = amplitudo besar saat <code>ω ≈ ω_n</code> — ini fenomena <strong>resonansi mekanik</strong> yang menjadi inti diskusi forum.
+    </div>
   </div>
 
   <!-- Canvas Animasi Forum — kept ID for canvas reuse -->
