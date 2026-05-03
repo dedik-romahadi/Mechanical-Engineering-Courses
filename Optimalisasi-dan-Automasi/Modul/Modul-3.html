@@ -1248,97 +1248,89 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 06</div>
   <h2 class="section-title reveal">Visualisasi Pipeline<br>Akuisisi Data</h2>
-  <p class="section-desc reveal">Lima animasi kanvas berikut memvisualisasikan tahap-tahap pipeline akuisisi: (1) <em>signal flow</em> dari sensor analog hingga ADC digital, (2) <em>tiered storage</em> dengan data mengalir dari edge ke cloud, (3) <em>spectrogram</em> live dari motor running dengan frekuensi yang berubah, (4) <em>multi-sensor heatmap</em> dengan deteksi anomali per-mesin.</p>
+  <p class="section-desc reveal">Lima animasi spesifik untuk <strong>Pertemuan 3 — Akuisisi Data</strong>: (1) <strong>Continuous → Sampled</strong> sensor signal dengan slider sample rate, (2) <strong>Aliasing Demo</strong> — Nyquist criterion (Fs &lt; 2·Fsignal = aliasing), (3) <strong>ADC Quantization</strong> dengan slider bit depth + error histogram, (4) <strong>4-Stage Pipeline</strong> Sensor→AAF→ADC→Memory dengan signal di tiap tahap, (5) <strong>dropdown</strong> 4 stage sub-topik.</p>
 
-  <!-- Animasi 1 -->
+  <!-- Animasi 1: Sensor Sampling (continuous → discrete) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi 1 — Deret Mentah: Tren + Musiman + Noise Interaktif</span>
+      <span class="anim-title">Animasi 1 — Sensor Sampling: Continuous Signal → Discrete Samples</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvPhysics" height="300"></canvas>
+      <canvas id="m3optSensor" height="300" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Kekuatan Tren — <span class="ctrl-val" id="v_rp">1.00</span></label>
-          <input type="range" id="sl_rp" min="0" max="2" step="0.05" value="1.0">
+          <label>Sample Rate <strong>Fs</strong> Hz — <span class="ctrl-val" id="m3optSensFs">10</span></label>
+          <input type="range" id="m3optSensSlFs" min="2" max="50" step="1" value="10">
         </div>
-        <div class="ctrl-group">
-          <label>Amplitudo Musiman — <span class="ctrl-val" id="v_zp">1.00</span></label>
-          <input type="range" id="sl_zp" min="0" max="2" step="0.05" value="1.0">
-        </div>
-        <button class="btn-anim" id="btnPhysics" onclick="togglePhysics()">⏸ PAUSE</button>
+        <button class="btn-anim" id="m3optSensBtn" onclick="window.m3optToggleSens()">⏸ PAUSE</button>
       </div>
-      <div id="physicsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div id="m3optSensInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi:</strong> Ungu = deret asli, kombinasi dari tren (biru) + musiman (oranye) + noise acak. Tren dan musiman bisa Anda atur slidernya.<br>
-        <strong>Coba:</strong> (1) Set Tren = 0 dan Musiman = 1 → hanya komponen periodik murni yang terlihat. (2) Set Tren = 2 dan Musiman = 0 → tren linear murni. (3) Set keduanya tinggi → deret kompleks khas data industri — sulit dibaca mentah, butuh dekomposisi.
+        <strong>📊 Cara Membaca:</strong> Kurva continuous (cyan) = sinyal sensor analog. Dot vertikal = sample point yang diambil ADC pada interval 1/Fs detik. Slider mengubah sampling rate. <strong>Lower Fs</strong>: less samples, less detail. <strong>Higher Fs</strong>: more accurate representation. <strong>Trade-off</strong>: high Fs → high storage + processing cost. Engineering goal: Fs minimum yang masih capture sinyal (Nyquist).
       </div>
     </div>
   </div>
 
-  <!-- Animasi 2 -->
+  <!-- Animasi 2: Aliasing Demo (Nyquist) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--amber)"></div>
-      <span class="anim-title">Animasi 2 — Log Transform: Menstabilkan Varians yang Tumbuh</span>
+      <span class="anim-title">Animasi 2 — Aliasing Demo: Saat Fs &lt; 2·Fsignal (Nyquist Theorem)</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvSweep" height="300"></canvas>
+      <canvas id="m3optAlias" height="300" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Faktor Pertumbuhan Varians — <span class="ctrl-val" id="v_rs">1.50</span></label>
-          <input type="range" id="sl_rs" min="0.5" max="3" step="0.1" value="1.5">
+          <label>Sample Rate <strong>Fs</strong> Hz — <span class="ctrl-val" id="m3optAlFs">5.0</span></label>
+          <input type="range" id="m3optAlSlFs" min="0.5" max="10" step="0.1" value="5.0">
         </div>
-        <button class="btn-anim" id="btnSweep" onclick="toggleSweep()">⏸ PAUSE</button>
       </div>
+      <div id="m3optAlInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Kiri = deret asli dengan varians yang <em>tumbuh</em> (heteroskedastik) — osilasi kecil di awal, besar di akhir. Kanan = hasil <code>log(y)</code>: osilasi menjadi hampir seragam amplitudonya.<br>
-        <strong>Coba:</strong> Geser faktor pertumbuhan ke 3.0 — deret asli jadi "corong" ekstrem. Log transform memampatkannya jadi strip horizontal. Inilah mengapa data energi, produksi, dan finansial hampir selalu di-log-kan sebelum dimodelkan.
+        <strong>📊 Cara Membaca:</strong> Sinyal asli <code>3 Hz</code> (cyan). Sample dots di interval 1/Fs. Reconstructed signal dari samples (red dashed). <strong>Fs &gt; 6 Hz</strong> (Nyquist criterion 2×Fsignal): reconstructed match original ✓. <strong>Fs &lt; 6 Hz</strong>: ALIASING — reconstructed muncul sebagai sinyal palsu frekuensi rendah! Inilah fondasi anti-aliasing filter requirement.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 3 -->
+  <!-- Animasi 3: ADC Quantization -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--violet)"></div>
-      <span class="anim-title">Animasi 3 — Differencing: Dari Deret Bertren ke Stasioner</span>
+      <span class="anim-title">Animasi 3 — ADC Quantization: Slider Bit Depth + Error Visualization</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvIso" height="300"></canvas>
+      <canvas id="m3optQuant" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Orde Differencing d — <span class="ctrl-val" id="v_ri">1</span></label>
-          <input type="range" id="sl_ri" min="0" max="2" step="1" value="1">
+          <label>Bit Depth <strong>n</strong> — <span class="ctrl-val" id="m3optQbits">4</span></label>
+          <input type="range" id="m3optQslBits" min="2" max="12" step="1" value="4">
         </div>
-        <button class="btn-anim" id="btnIso" onclick="toggleIso()">⏸ PAUSE</button>
       </div>
+      <div id="m3optQInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Atas = deret asli dengan tren linear naik. Bawah = setelah differencing <code>∇<sup>d</sup>x<sub>t</sub></code>. Orde d = 0 → tidak ada perubahan. d = 1 → tren linear hilang. d = 2 → tren kuadratik hilang.<br>
-        <strong>Coba:</strong> d = 0 → deret naik-naik-naik (non-stasioner). d = 1 → fluktuasi di sekitar nol (stasioner!). Perhatikan: tiap orde differencing mengurangi 1 observasi — overdifferencing memperbesar noise, jadi jangan lebihi d yang diperlukan.
+        <strong>📊 Cara Membaca:</strong> Layout split: kiri = analog signal vs quantized staircase (n-bit ADC = 2ⁿ levels). Kanan = quantization error histogram. <strong>n=2 (4 levels)</strong>: heavy staircase, error besar. <strong>n=12 (4096 levels)</strong>: nearly continuous, error minimal (LSB ≈ FullScale/2ⁿ). <strong>SQNR ≈ 6.02n + 1.76 dB</strong>: setiap +1 bit = +6 dB SNR. Engineering implication: n=16 untuk audio HiFi, n=24 untuk vibration analysis.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 4 -->
+  <!-- Animasi 4: 4-Stage DAQ Pipeline -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--green)"></div>
-      <span class="anim-title">Animasi 4 — Dekomposisi Aditif: Memecah Deret ke T + S + R</span>
+      <span class="anim-title">Animasi 4 — Pipeline Lengkap: Sensor → AAF → ADC → Memory</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvHPB" height="340"></canvas>
+      <canvas id="m3optPipe" height="340" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Window MA (panjang musiman) — <span class="ctrl-val" id="v_rh">12</span></label>
-          <input type="range" id="sl_rh" min="4" max="30" step="2" value="12">
+          <label>AAF Cutoff (Hz) — <span class="ctrl-val" id="m3optPipeFc">15</span></label>
+          <input type="range" id="m3optPipeSlFc" min="5" max="40" step="1" value="15">
         </div>
-        <button class="btn-anim" id="btnHPB" onclick="toggleHPB()">⏸ PAUSE</button>
       </div>
+      <div id="m3optPipeInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Empat panel dari atas ke bawah: <strong>Observasi</strong> (ungu) = data asli; <strong>Trend</strong> (cyan) = hasil moving average; <strong>Seasonal</strong> (amber) = pola periodik sisa; <strong>Residual</strong> (hijau) = noise acak yang tersisa.<br>
-        <strong>Coba:</strong> Window 4 → tren terlalu bergejolak (under-smoothing). Window 12 → tren halus, musiman dan residual terpisah bersih. Window 30 → over-smoothing, pola musiman bocor ke residual. <em>Memilih window = memilih periode musiman yang Anda percaya.</em>
+        <strong>📊 Cara Membaca:</strong> 4 panel showing signal at each pipeline stage. <strong>Stage 1</strong>: Sensor (raw analog with high-freq noise). <strong>Stage 2</strong>: AAF Anti-Aliasing Filter (low-pass to prevent fold-back). <strong>Stage 3</strong>: ADC sampling at Fs (discrete dots). <strong>Stage 4</strong>: Memory (digital array, plotted as bar chart). <strong>Engineering principle</strong>: AAF cutoff harus &lt; Fs/2 untuk prevent aliasing.
       </div>
     </div>
   </div>
@@ -7209,6 +7201,317 @@ function _createForumParticleBurst(event) {
 
 function _ah(s){let h=5381;s=s+'mEKsP9k4tQ2';for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))&0xffffffff;return(h>>>0).toString(36);}
 window._pa = {1: '1vcm311', 2: 'crcad2'};
+</script>
+
+<!-- M3 Optimalisasi: Data Acquisition animasi -->
+<script>
+(function(){
+  function bgGrad(ctx, W, H){const g = ctx.createLinearGradient(0, 0, 0, H);g.addColorStop(0, '#020812'); g.addColorStop(1, '#0d1929');ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);}
+  function gridLines(ctx, x0, x1, y0, y1, divX, divY){ctx.strokeStyle = 'rgba(148,163,184,.10)'; ctx.lineWidth = 1;for(let i=0;i<=divX;i++){const x=x0+(i/divX)*(x1-x0);ctx.beginPath();ctx.moveTo(x,y0);ctx.lineTo(x,y1);ctx.stroke();}for(let j=0;j<=divY;j++){const y=y0+(j/divY)*(y1-y0);ctx.beginPath();ctx.moveTo(x0,y);ctx.lineTo(x1,y);ctx.stroke();}}
+
+  // ANIMASI 1: Sensor sampling continuous → discrete
+  const m3Sens = { running: true, raf: null, t: 0 };
+  window.m3optToggleSens = function(){
+    m3Sens.running = !m3Sens.running;
+    const btn = document.getElementById('m3optSensBtn');
+    if (btn) btn.textContent = m3Sens.running ? '⏸ PAUSE' : '▶ PLAY';
+    if (m3Sens.running) drawM3Sens();
+  };
+  function drawM3Sens(){
+    const cv = document.getElementById('m3optSensor'); if(!cv) return;
+    const W=cv.clientWidth; cv.width=W; const H=cv.height;
+    const ctx=cv.getContext('2d'); bgGrad(ctx,W,H);
+    const Fs=parseInt(document.getElementById('m3optSensSlFs').value);
+    document.getElementById('m3optSensFs').textContent=String(Fs);
+    const padL=50, padR=20, padT=30, padB=35;
+    const px0=padL, px1=W-padR, py0=padT, py1=H-padB;
+    gridLines(ctx,px0,px1,py0,py1,12,4);
+    if(m3Sens.running) m3Sens.t=(m3Sens.t+0.01)%10;
+    // Continuous signal: 0.5 Hz + 1.5 Hz components, 5 sec window
+    const Tmax=5;
+    function tx(t){ return px0+(t/Tmax)*(px1-px0); }
+    const yMax=2;
+    function ty(y){ return (py0+py1)/2-(y/yMax)*((py1-py0)/2-8); }
+    function sigVal(t){ return Math.sin(2*Math.PI*0.5*(t+m3Sens.t)) + 0.4*Math.sin(2*Math.PI*1.5*(t+m3Sens.t)); }
+    // Continuous (smooth)
+    ctx.strokeStyle='rgba(148,163,184,.5)'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+    ctx.strokeStyle='#0ea5e9'; ctx.lineWidth=2;
+    ctx.shadowColor='#0ea5e9'; ctx.shadowBlur=6;
+    ctx.beginPath();
+    const Ncont=300;
+    for(let i=0;i<=Ncont;i++){
+      const t=(i/Ncont)*Tmax;
+      const v=sigVal(t);
+      if(i===0) ctx.moveTo(tx(t),ty(v));
+      else ctx.lineTo(tx(t),ty(v));
+    }
+    ctx.stroke();
+    ctx.shadowBlur=0;
+    // Sample dots
+    const Nsamp=Math.floor(Fs*Tmax);
+    ctx.fillStyle='#ffd166';
+    for(let i=0;i<=Nsamp;i++){
+      const t=i/Fs;
+      if(t>Tmax) break;
+      const v=sigVal(t);
+      ctx.shadowColor='#ffd166'; ctx.shadowBlur=10;
+      ctx.beginPath(); ctx.arc(tx(t),ty(v),3.5,0,Math.PI*2); ctx.fill();
+      ctx.shadowBlur=0;
+      // Vertical line from sample to zero
+      ctx.strokeStyle='rgba(255,209,102,.4)'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(tx(t),ty(0)); ctx.lineTo(tx(t),ty(v)); ctx.stroke();
+    }
+    ctx.fillStyle='#0ea5e9'; ctx.font='bold 12px JetBrains Mono, monospace';
+    ctx.fillText(`Sensor: 0.5 + 1.5 Hz, sampled @ Fs=${Fs} Hz → ${Nsamp+1} samples in 5s`, padL+6, padT-12);
+    const infoEl=document.getElementById('m3optSensInfo');
+    if(infoEl) infoEl.innerHTML=`<span style="color:#0ea5e9">●</span> Continuous signal (cyan) sampled @ Fs=${Fs} Hz (yellow dots). Nyquist needs Fs &gt; 3 Hz untuk capture 1.5 Hz component.`;
+    if(m3Sens.running) m3Sens.raf=requestAnimationFrame(drawM3Sens);
+  }
+
+  // ANIMASI 2: Aliasing demo
+  function drawM3Alias(){
+    const cv = document.getElementById('m3optAlias'); if(!cv){requestAnimationFrame(drawM3Alias);return;}
+    const W=cv.clientWidth; cv.width=W; const H=cv.height;
+    const ctx=cv.getContext('2d'); bgGrad(ctx,W,H);
+    const Fs=parseFloat(document.getElementById('m3optAlSlFs').value);
+    document.getElementById('m3optAlFs').textContent=Fs.toFixed(1);
+    const padL=50,padR=20,padT=30,padB=35;
+    const px0=padL,px1=W-padR,py0=padT,py1=H-padB;
+    gridLines(ctx,px0,px1,py0,py1,12,4);
+    const Tmax=2;
+    function tx(t){return px0+(t/Tmax)*(px1-px0);}
+    function ty(y){return (py0+py1)/2-(y/1.5)*((py1-py0)/2-8);}
+    const Forig=3;
+    function origVal(t){return Math.sin(2*Math.PI*Forig*t);}
+    // Original (faded)
+    ctx.strokeStyle='rgba(148,163,184,.5)'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(px0,ty(0)); ctx.lineTo(px1,ty(0)); ctx.stroke();
+    ctx.strokeStyle='#0ea5e9'; ctx.lineWidth=2;
+    ctx.beginPath();
+    for(let i=0;i<=300;i++){const t=(i/300)*Tmax; const v=origVal(t); if(i===0)ctx.moveTo(tx(t),ty(v));else ctx.lineTo(tx(t),ty(v));}
+    ctx.stroke();
+    // Sample dots
+    const Nsamp=Math.floor(Fs*Tmax);
+    const samples=[];
+    for(let i=0;i<=Nsamp;i++){const t=i/Fs; if(t<=Tmax) samples.push({t,v:origVal(t)});}
+    ctx.fillStyle='#ffd166';
+    samples.forEach(s=>{
+      ctx.shadowColor='#ffd166'; ctx.shadowBlur=8;
+      ctx.beginPath(); ctx.arc(tx(s.t),ty(s.v),4,0,Math.PI*2); ctx.fill();
+      ctx.shadowBlur=0;
+    });
+    // Reconstructed signal (linear interpolation between samples)
+    if(samples.length>=2){
+      ctx.strokeStyle='#ef4444'; ctx.lineWidth=2; ctx.setLineDash([4,3]);
+      ctx.beginPath();
+      ctx.moveTo(tx(samples[0].t), ty(samples[0].v));
+      for(let i=1;i<samples.length;i++){
+        ctx.lineTo(tx(samples[i].t), ty(samples[i].v));
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    const isAliased = Fs < 2*Forig;
+    ctx.fillStyle = isAliased ? '#ef4444' : '#00e09e';
+    ctx.font='bold 13px JetBrains Mono, monospace';
+    ctx.fillText(isAliased ? `⚠ ALIASING: Fs=${Fs.toFixed(1)} < 2·Forig=${2*Forig} Hz` : `✓ OK: Fs=${Fs.toFixed(1)} ≥ Nyquist=${2*Forig} Hz`, padL+6, padT-12);
+    const infoEl=document.getElementById('m3optAlInfo');
+    if(infoEl) infoEl.innerHTML=isAliased
+      ? `<span style="color:#ef4444">⚠</span> Fs=${Fs.toFixed(1)} Hz &lt; Nyquist=6 Hz: rekonstruksi (red dashed) menjadi <strong>sinyal palsu</strong> frekuensi rendah.`
+      : `<span style="color:#00e09e">✓</span> Fs=${Fs.toFixed(1)} Hz cukup. Rekonstruksi mengikuti sinyal asli.`;
+    requestAnimationFrame(drawM3Alias);
+  }
+
+  // ANIMASI 3: ADC quantization
+  function drawM3Quant(){
+    const cv = document.getElementById('m3optQuant'); if(!cv){requestAnimationFrame(drawM3Quant);return;}
+    const W=cv.clientWidth; cv.width=W; const H=cv.height;
+    const ctx=cv.getContext('2d'); bgGrad(ctx,W,H);
+    const bits=parseInt(document.getElementById('m3optQslBits').value);
+    document.getElementById('m3optQbits').textContent=String(bits);
+    const levels=Math.pow(2,bits);
+    // Split: left = signal staircase, right = error histogram
+    const splitX=W*0.6;
+    ctx.strokeStyle='rgba(148,163,184,.3)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(splitX,20); ctx.lineTo(splitX,H-20); ctx.stroke();
+    // Left: signal
+    {
+      const padL=50, padR=10, padT=30, padB=35;
+      const px0=padL, px1=splitX-16, py0=padT, py1=H-padB;
+      gridLines(ctx,px0,px1,py0,py1,8,levels<=8?levels:8);
+      const N=200;
+      const Tmax=2;
+      function tx(t){return px0+(t/Tmax)*(px1-px0);}
+      function ty(y){return py1-((y+1)/2)*(py1-py0-8)-4;}
+      // Continuous
+      ctx.strokeStyle='#0ea5e9'; ctx.lineWidth=1.5;
+      ctx.beginPath();
+      for(let i=0;i<=N;i++){const t=(i/N)*Tmax; const v=Math.sin(2*Math.PI*1*t); if(i===0)ctx.moveTo(tx(t),ty(v));else ctx.lineTo(tx(t),ty(v));}
+      ctx.stroke();
+      // Quantized staircase
+      const lsb=2/levels;
+      ctx.strokeStyle='#a855f7'; ctx.lineWidth=2;
+      ctx.shadowColor='#a855f7'; ctx.shadowBlur=6;
+      ctx.beginPath();
+      let lastY=0;
+      for(let i=0;i<=N;i++){
+        const t=(i/N)*Tmax;
+        const v=Math.sin(2*Math.PI*1*t);
+        const q=Math.round(v/lsb)*lsb;
+        if(i===0){ ctx.moveTo(tx(t),ty(q)); lastY=q; }
+        else { ctx.lineTo(tx(t),ty(lastY)); ctx.lineTo(tx(t),ty(q)); lastY=q; }
+      }
+      ctx.stroke();
+      ctx.shadowBlur=0;
+      ctx.fillStyle='#a855f7'; ctx.font='bold 11px JetBrains Mono, monospace';
+      ctx.fillText(`${bits}-bit ADC = ${levels} levels, LSB=${lsb.toFixed(3)}`, padL+6, padT-12);
+    }
+    // Right: error histogram
+    {
+      const padT=30, padB=35;
+      const sx0=splitX+10, sx1=W-20;
+      const sy0=padT, sy1=H-padB;
+      gridLines(ctx,sx0,sx1,sy0,sy1,8,4);
+      const N=2000;
+      const lsb=2/levels;
+      const errs=[];
+      for(let i=0;i<N;i++){
+        const t=(i/N)*4;
+        const v=Math.sin(2*Math.PI*1*t)+0.5*Math.sin(2*Math.PI*3*t);
+        const q=Math.round(v/lsb)*lsb;
+        errs.push(v-q);
+      }
+      // Bin errors
+      const NBINS=20;
+      const hist=new Array(NBINS).fill(0);
+      const range=lsb;
+      errs.forEach(e=>{
+        const idx=Math.floor(((e+range/2)/range)*NBINS);
+        if(idx>=0 && idx<NBINS) hist[idx]++;
+      });
+      const maxC=Math.max(...hist,1);
+      const bw=(sx1-sx0)/NBINS-2;
+      hist.forEach((c,i)=>{
+        const xb=sx0+i*((sx1-sx0)/NBINS)+1;
+        const h=(c/maxC)*(sy1-sy0-30);
+        ctx.fillStyle='#a855f7';
+        ctx.fillRect(xb, sy1-h, bw, h);
+      });
+      ctx.fillStyle='#94a3b8'; ctx.font='10px JetBrains Mono, monospace';
+      ctx.fillText('error', sx1-30, sy1+18);
+      ctx.fillStyle='#a855f7'; ctx.font='bold 11px JetBrains Mono, monospace';
+      ctx.fillText(`Quantization error histogram, range=±LSB/2`, sx0+4, padT-12);
+      // SQNR
+      const sqnr = 6.02*bits + 1.76;
+      ctx.fillStyle='#fff'; ctx.font='bold 12px JetBrains Mono, monospace';
+      ctx.fillText(`SQNR ≈ ${sqnr.toFixed(1)} dB`, sx0+4, sy1-4);
+    }
+    const infoEl=document.getElementById('m3optQInfo');
+    if(infoEl) infoEl.innerHTML=`<span style="color:#a855f7">●</span> n=${bits}-bit ADC, ${levels} levels, LSB=${(2/levels).toFixed(3)}, SQNR ≈ ${(6.02*bits+1.76).toFixed(1)} dB`;
+    requestAnimationFrame(drawM3Quant);
+  }
+
+  // ANIMASI 4: 4-stage pipeline
+  function drawM3Pipe(){
+    const cv = document.getElementById('m3optPipe'); if(!cv){requestAnimationFrame(drawM3Pipe);return;}
+    const W=cv.clientWidth; cv.width=W; const H=cv.height;
+    const ctx=cv.getContext('2d'); bgGrad(ctx,W,H);
+    const fc=parseFloat(document.getElementById('m3optPipeSlFc').value);
+    document.getElementById('m3optPipeFc').textContent=fc.toFixed(0);
+    // 4 horizontal panels
+    const panelH=(H-40)/4;
+    const pad=8;
+    const stages=[
+      {label:'1. Sensor (raw analog)', color:'#0ea5e9'},
+      {label:`2. AAF Anti-Aliasing (cutoff ${fc} Hz)`, color:'#ffb300'},
+      {label:'3. ADC Sampled (Fs=50 Hz, 8-bit)', color:'#a855f7'},
+      {label:'4. Memory (digital array)', color:'#00e09e'}
+    ];
+    const N=200;
+    const Tmax=1;
+    // Generate raw sensor: low-freq (3 Hz) + noise + high-freq (40 Hz that needs AAF)
+    function rng(s){const x=Math.sin(s*12.9898)*43758.5453;return x-Math.floor(x);}
+    const raw=[];
+    for(let i=0;i<N;i++){
+      const t=i/N*Tmax;
+      raw.push(Math.sin(2*Math.PI*3*t) + 0.4*Math.sin(2*Math.PI*40*t) + 0.2*(rng(i*0.137)-0.5));
+    }
+    // After AAF (simple low-pass)
+    const aaf=[];
+    let prev=raw[0];
+    const alpha=1-Math.exp(-2*Math.PI*fc/N*Tmax*60);
+    for(let i=0;i<N;i++){
+      prev=alpha*raw[i]+(1-alpha)*prev;
+      aaf.push(prev);
+    }
+    // ADC samples (downsampled)
+    const Fs=50, decim=Math.floor(N/(Fs*Tmax));
+    const adc=[];
+    for(let i=0;i<N;i+=decim){
+      // 8-bit quant
+      const lsb=2/256;
+      adc.push({i, v: Math.round(aaf[i]/lsb)*lsb});
+    }
+    stages.forEach((s, idx)=>{
+      const py0=20+idx*panelH+pad, py1=20+(idx+1)*panelH-pad;
+      const px0=160, px1=W-20;
+      ctx.fillStyle='rgba(148,163,184,.05)';
+      ctx.fillRect(px0,py0,px1-px0,py1-py0);
+      ctx.strokeStyle='rgba(148,163,184,.2)'; ctx.lineWidth=1;
+      ctx.strokeRect(px0,py0,px1-px0,py1-py0);
+      // Label
+      ctx.fillStyle=s.color; ctx.font='bold 11px JetBrains Mono, monospace';
+      ctx.fillText(s.label, 12, (py0+py1)/2+4);
+      // Plot
+      function tx(i){return px0+(i/(N-1))*(px1-px0);}
+      function ty(v){return (py0+py1)/2-v*((py1-py0)/2-4);}
+      ctx.strokeStyle='rgba(148,163,184,.4)'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+      ctx.strokeStyle=s.color; ctx.lineWidth=1.8;
+      ctx.shadowColor=s.color; ctx.shadowBlur=4;
+      if(idx===0){
+        ctx.beginPath();
+        for(let i=0;i<N;i++){const x=tx(i),y=ty(raw[i]); if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}
+        ctx.stroke();
+      } else if(idx===1){
+        ctx.beginPath();
+        for(let i=0;i<N;i++){const x=tx(i),y=ty(aaf[i]); if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}
+        ctx.stroke();
+      } else if(idx===2){
+        // Sample dots + stem
+        ctx.fillStyle=s.color;
+        adc.forEach(p=>{
+          ctx.beginPath(); ctx.moveTo(tx(p.i),ty(0)); ctx.lineTo(tx(p.i),ty(p.v)); ctx.stroke();
+          ctx.beginPath(); ctx.arc(tx(p.i),ty(p.v),3,0,Math.PI*2); ctx.fill();
+        });
+      } else if(idx===3){
+        // Bar chart
+        const bw=(px1-px0)/adc.length-1;
+        adc.forEach((p,i)=>{
+          const x=px0+i*((px1-px0)/adc.length);
+          const h=Math.abs(p.v)*((py1-py0)/2-4);
+          const y=p.v>=0?ty(p.v):ty(0);
+          ctx.fillStyle=s.color;
+          ctx.fillRect(x, y, bw, h);
+        });
+      }
+      ctx.shadowBlur=0;
+    });
+    const infoEl=document.getElementById('m3optPipeInfo');
+    if(infoEl) infoEl.innerHTML=`<span style="color:#0ea5e9">●</span> Pipeline 4-stage: Sensor (low+high freq) → AAF (cutoff ${fc} Hz) → ADC (Fs=50 Hz, 8-bit) → Memory. Note: AAF removes 40 Hz content sebelum ADC.`;
+    requestAnimationFrame(drawM3Pipe);
+  }
+
+  function init(){
+    if (document.getElementById('m3optSensor')) drawM3Sens();
+    if (document.getElementById('m3optAlias')) drawM3Alias();
+    if (document.getElementById('m3optQuant')) drawM3Quant();
+    if (document.getElementById('m3optPipe')) drawM3Pipe();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
 </script>
 
 </body>
