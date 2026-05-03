@@ -6851,8 +6851,11 @@ function updateLeaderboard(visitors, schedExpired){
   for(const s of masterStudents){
     const v = visitMap[s.nim];
     const hasP = v && ((v.points || 0) > 0);
-    if(hasP){
-      hadir++;
+    const late = hasP && (typeof isLate === 'function') && isLate(v.timestamp);
+    if(hasP && !late){
+      hadir++;   // Tepat Waktu: punya poin + tidak terlambat
+    } else if(late){
+      absen++;   // Terlambat: dihitung sebagai absen
     } else if(schedEnded){
       absen++;   // Bolos: tidak punya poin + jadwal sudah berakhir
                  //        (mencakup tidak-akses maupun akses-tapi-0-poin)

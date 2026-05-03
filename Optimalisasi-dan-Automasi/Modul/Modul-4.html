@@ -5032,12 +5032,16 @@ function updateLeaderboard(visitors, schedExpired){
   for(const s of masterStudents){
     const v = visitMap[s.nim];
     const hasP = v && ((v.points || 0) > 0);
-    if (hasP) {
-      hadir++;
-    } else if (schedEnded) {
-      absen++;   // status Bolos: !hasPoints + jadwal selesai
+    const late = hasP && (typeof isLate === 'function') && isLate(v.timestamp);
+    if(hasP && !late){
+      hadir++;   // Tepat Waktu: punya poin + tidak terlambat
+    } else if(late){
+      absen++;   // Terlambat: dihitung sebagai absen
+    } else if(schedEnded){
+      absen++;   // Bolos: tidak punya poin + jadwal sudah berakhir
+                 //        (mencakup tidak-akses maupun akses-tapi-0-poin)
     }
-    // else: Belum (jadwal masih aktif, belum berhasil dapat poin)
+    // else: Belum (jadwal masih aktif, belum berhasil dapat poin) — tidak dihitung
   }
   const setTxt = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = String(val); };
   setTxt('statTotalMhs', totalMhs);
