@@ -2507,6 +2507,8 @@ window.shuffleSeed = shuffleSeed;
 
 
 
+function _ah(s){let h=5381;s=s+'mEKsP9k4tQ2';for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))&0xffffffff;return(h>>>0).toString(36);}
+
 // Storage untuk answer key per soal (di-populate saat render dengan N spesifik)
 window._uasAnswerKeys = {
   tf: {},        // {tf1: true, tf2: false, ...}
@@ -2545,7 +2547,8 @@ function selectMC(qId, opt, correct) {
   const rg = document.getElementById('rg-' + qId);
   rg.querySelectorAll('.radio-option').forEach(o => o.classList.remove('selected'));
   opt.classList.add('selected');
-  opt._correct = correct;
+  opt._idx = correct;
+  opt._correct = (_ah(qId + '_' + correct) === window._uasAnswerKeys.mc[qId]);
   // Capture option index untuk Firebase storage
   const optList = Array.from(rg.querySelectorAll('.radio-option'));
   const idx = optList.indexOf(opt);
@@ -2657,7 +2660,7 @@ function checkTF(qId) {
 
   // Get correct answer from answer key
   const correctAnswer = window._uasAnswerKeys.tf[qId];
-  if (typeof correctAnswer !== 'boolean') {
+  if (typeof correctAnswer !== 'string') {
     fb.className = 'feedback warn'; fb.textContent = '⚠ Soal belum siap — silakan reload halaman.';
     return;
   }
@@ -2669,7 +2672,7 @@ function checkTF(qId) {
   opts.querySelectorAll('.tf-option').forEach(o => o.style.pointerEvents = 'none');
 
   const userPick = sel._isTrue;   // boolean: jawaban user
-  if (userPick === correctAnswer) {
+  if (_ah(qId + '_' + userPick) === correctAnswer) {
     fb.className = 'feedback correct';
     fb.textContent = '✅ Jawaban diterima. +1 poin tercatat. Soal TERKUNCI PERMANEN — tidak ada kesempatan ulang.';
     if (sub) { sub.textContent = '✓ Terjawab'; sub.style.background='rgba(0,224,158,.1)'; sub.style.borderColor='rgba(0,224,158,.4)'; sub.style.color='var(--green)'; }
@@ -2712,7 +2715,7 @@ function renderUASQuestions() {
     tfContainer.innerHTML = '';
     window.UAS_TF.forEach((q, i) => {
       const data = q.parametric ? q.compute(N) : { text: q.text, answer: q.answer };
-      window._uasAnswerKeys.tf[q.id] = data.answer;
+      window._uasAnswerKeys.tf[q.id] = _ah(q.id + '_' + data.answer);
       const num = i + 1;
       const isParam = q.parametric;
       const card = document.createElement('div');
@@ -2749,15 +2752,14 @@ function renderUASQuestions() {
     mcContainer.innerHTML = '';
     window.UAS_MC.forEach((q, i) => {
       const data = q.parametric ? q.compute(N) : { text: q.text, options: q.options, correctIdx: q.correctIdx };
-      window._uasAnswerKeys.mc[q.id] = data.correctIdx;
+      window._uasAnswerKeys.mc[q.id] = _ah(q.id + '_' + data.correctIdx);
       const num = i + 1;
       const isParam = q.parametric;
       const card = document.createElement('div');
       card.className = 'mc-card reveal' + (isParam ? ' mc-parametric' : '');
       const optsHtml = data.options.map((opt, idx) => {
-        const isCorrect = (idx === data.correctIdx);
         return `
-          <div class="radio-option" onclick="selectMC('${q.id}', this, ${isCorrect})">
+          <div class="radio-option" onclick="selectMC('${q.id}', this, ${idx})">
             <div class="radio-circle"></div>
             <span><strong style="color:var(--cyan);margin-right:6px">${String.fromCharCode(65 + idx)}.</strong> ${opt}</span>
           </div>`;
