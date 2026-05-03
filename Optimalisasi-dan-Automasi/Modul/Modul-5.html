@@ -1233,98 +1233,89 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <hr class="divider">
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 06</div>
-  <h2 class="section-title reveal">Animasi Interaktif<br>Transformasi &amp; Dekomposisi</h2>
-  <p class="section-desc reveal">Lima animasi visual untuk memahami <strong>Pertemuan 5</strong> secara intuitif: (1) deret mentah dengan tren + musiman + noise, (2) efek log transform pada varians tidak stabil, (3) differencing dan pengaruhnya pada stasioneritas, dan (4) dekomposisi aditif ke tiga komponen. Geser slider, lihat transformasi bekerja real-time.</p>
+  <h2 class="section-title reveal">Animasi Interaktif<br>Transformasi Variance-Stabilizing &amp; Skewness</h2>
+  <p class="section-desc reveal">Lima animasi spesifik untuk <strong>Pertemuan 5 — Transformasi &amp; Dekomposisi</strong>: (1) <strong>Box-Cox Transform</strong> dengan slider λ (normalisasi distribusi), (2) <strong>Square-Root</strong> untuk count data + Poisson stabilization, (3) <strong>Log Transform</strong> untuk multiplicative→additive variance, (4) <strong>4-Way Comparison</strong> (Box-Cox vs Sqrt vs Log vs Yeo-Johnson) pada data skewed yang sama, (5) <strong>dropdown</strong> 4 transformasi dengan signal trace.</p>
 
-  <!-- Animasi 1 -->
+  <!-- Animasi 1: Box-Cox -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi 1 — Deret Mentah: Tren + Musiman + Noise Interaktif</span>
+      <span class="anim-title">Animasi 1 — Box-Cox Transform: Slider λ untuk Normalisasi Distribusi</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvPhysics" height="300"></canvas>
+      <canvas id="m5optBoxcox" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Kekuatan Tren — <span class="ctrl-val" id="v_rp">1.00</span></label>
-          <input type="range" id="sl_rp" min="0" max="2" step="0.05" value="1.0">
+          <label>Lambda <strong>λ</strong> — <span class="ctrl-val" id="m5optBCv">0.50</span></label>
+          <input type="range" id="m5optBCslLam" min="-2" max="2" step="0.05" value="0.50">
         </div>
-        <div class="ctrl-group">
-          <label>Amplitudo Musiman — <span class="ctrl-val" id="v_zp">1.00</span></label>
-          <input type="range" id="sl_zp" min="0" max="2" step="0.05" value="1.0">
-        </div>
-        <button class="btn-anim" id="btnPhysics" onclick="togglePhysics()">⏸ PAUSE</button>
       </div>
-      <div id="physicsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div id="m5optBCInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi:</strong> Ungu = deret asli, kombinasi dari tren (biru) + musiman (oranye) + noise acak. Tren dan musiman bisa Anda atur slidernya.<br>
-        <strong>Coba:</strong> (1) Set Tren = 0 dan Musiman = 1 → hanya komponen periodik murni yang terlihat. (2) Set Tren = 2 dan Musiman = 0 → tren linear murni. (3) Set keduanya tinggi → deret kompleks khas data industri — sulit dibaca mentah, butuh dekomposisi.
+        <strong>📊 Cara Membaca:</strong> Layout split: kiri = histogram data asli (right-skewed), kanan = histogram setelah Box-Cox <code>y' = (y^λ − 1)/λ untuk λ≠0, log(y) untuk λ=0</code>. <strong>λ = 1</strong>: no change. <strong>λ = 0</strong>: log transform. <strong>λ = 0.5</strong>: square-root. <strong>λ = -1</strong>: reciprocal. Optimal λ found by maximum likelihood — distribusi paling normal.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 2 -->
+  <!-- Animasi 2: Square-Root -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--amber)"></div>
-      <span class="anim-title">Animasi 2 — Log Transform: Menstabilkan Varians yang Tumbuh</span>
+      <span class="anim-title">Animasi 2 — Square-Root Transform: Stabilkan Variance pada Count/Poisson Data</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvSweep" height="300"></canvas>
+      <canvas id="m5optSqrt" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Faktor Pertumbuhan Varians — <span class="ctrl-val" id="v_rs">1.50</span></label>
-          <input type="range" id="sl_rs" min="0.5" max="3" step="0.1" value="1.5">
+          <label>Mean Rate λ — <span class="ctrl-val" id="m5optSqrtMu">5.0</span></label>
+          <input type="range" id="m5optSqrtSlMu" min="1" max="50" step="1" value="5">
         </div>
-        <button class="btn-anim" id="btnSweep" onclick="toggleSweep()">⏸ PAUSE</button>
       </div>
+      <div id="m5optSqrtInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Kiri = deret asli dengan varians yang <em>tumbuh</em> (heteroskedastik) — osilasi kecil di awal, besar di akhir. Kanan = hasil <code>log(y)</code>: osilasi menjadi hampir seragam amplitudonya.<br>
-        <strong>Coba:</strong> Geser faktor pertumbuhan ke 3.0 — deret asli jadi "corong" ekstrem. Log transform memampatkannya jadi strip horizontal. Inilah mengapa data energi, produksi, dan finansial hampir selalu di-log-kan sebelum dimodelkan.
+        <strong>📊 Cara Membaca:</strong> Poisson data: <code>Var(X) = E(X) = λ</code>. Naik mean → naik variance (heteroskedastik). Square-root <code>√X</code> punya properti: <code>Var(√X) ≈ 1/4</code> (constant!). Layout: kiri = raw Poisson samples per bin (variance grows), kanan = √(samples) (variance stabil). Application: count data (defects, accidents, vibration peaks per hour).
       </div>
     </div>
   </div>
 
-  <!-- Animasi 3 -->
+  <!-- Animasi 3: Log Transform -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--violet)"></div>
-      <span class="anim-title">Animasi 3 — Differencing: Dari Deret Bertren ke Stasioner</span>
+      <span class="anim-title">Animasi 3 — Log Transform: Multiplicative → Additive (Variance Stabilization)</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvIso" height="300"></canvas>
+      <canvas id="m5optLog" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Orde Differencing d — <span class="ctrl-val" id="v_ri">1</span></label>
-          <input type="range" id="sl_ri" min="0" max="2" step="1" value="1">
+          <label>Multiplicative Variance Growth — <span class="ctrl-val" id="m5optLogG">1.50</span></label>
+          <input type="range" id="m5optLogSlG" min="0.5" max="3" step="0.05" value="1.50">
         </div>
-        <button class="btn-anim" id="btnIso" onclick="toggleIso()">⏸ PAUSE</button>
       </div>
+      <div id="m5optLogInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Atas = deret asli dengan tren linear naik. Bawah = setelah differencing <code>∇<sup>d</sup>x<sub>t</sub></code>. Orde d = 0 → tidak ada perubahan. d = 1 → tren linear hilang. d = 2 → tren kuadratik hilang.<br>
-        <strong>Coba:</strong> d = 0 → deret naik-naik-naik (non-stasioner). d = 1 → fluktuasi di sekitar nol (stasioner!). Perhatikan: tiap orde differencing mengurangi 1 observasi — overdifferencing memperbesar noise, jadi jangan lebihi d yang diperlukan.
+        <strong>📊 Cara Membaca:</strong> Time series dengan variance proporsional ke level (typical untuk data ekonomi/produksi). Layout split: kiri = raw data (osilasi membesar dengan tren), kanan = log(y) (osilasi seragam). Multiplicative model <code>X = Trend × Season × Noise</code> menjadi additive <code>log X = log Trend + log Season + log Noise</code>. Inilah dasar mengapa data finansial/produksi selalu di-log dulu.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 4 -->
+  <!-- Animasi 4: 4-Way Comparison -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--green)"></div>
-      <span class="anim-title">Animasi 4 — Dekomposisi Aditif: Memecah Deret ke T + S + R</span>
+      <span class="anim-title">Animasi 4 — 4-Way Comparison: Box-Cox vs Sqrt vs Log vs Yeo-Johnson</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvHPB" height="340"></canvas>
+      <canvas id="m5optTComp" height="340" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Window MA (panjang musiman) — <span class="ctrl-val" id="v_rh">12</span></label>
-          <input type="range" id="sl_rh" min="4" max="30" step="2" value="12">
+          <label>Skewness <strong>γ</strong> — <span class="ctrl-val" id="m5optTCv">2.0</span></label>
+          <input type="range" id="m5optTCslG" min="0.5" max="5" step="0.1" value="2.0">
         </div>
-        <button class="btn-anim" id="btnHPB" onclick="toggleHPB()">⏸ PAUSE</button>
       </div>
+      <div id="m5optTCInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Empat panel dari atas ke bawah: <strong>Observasi</strong> (ungu) = data asli; <strong>Trend</strong> (cyan) = hasil moving average; <strong>Seasonal</strong> (amber) = pola periodik sisa; <strong>Residual</strong> (hijau) = noise acak yang tersisa.<br>
-        <strong>Coba:</strong> Window 4 → tren terlalu bergejolak (under-smoothing). Window 12 → tren halus, musiman dan residual terpisah bersih. Window 30 → over-smoothing, pola musiman bocor ke residual. <em>Memilih window = memilih periode musiman yang Anda percaya.</em>
+        <strong>📊 Cara Membaca:</strong> 4 panel histogram: original (skewed) + 4 hasil transform. <strong>Box-Cox</strong>: hanya untuk y &gt; 0. <strong>Sqrt</strong>: light-handed, stabil untuk Poisson. <strong>Log</strong>: heavy normalization, multiplicative. <strong>Yeo-Johnson</strong>: extends Box-Cox ke negatif values. Compare skewness reduction per method. Geser γ untuk lihat transform mana paling robust untuk extreme skewness.
       </div>
     </div>
   </div>
@@ -7166,6 +7157,219 @@ function _createForumParticleBurst(event) {
 
 function _ah(s){let h=5381;s=s+'mEKsP9k4tQ2';for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))&0xffffffff;return(h>>>0).toString(36);}
 window._pa = {1: '1vcm311', 2: 'crcad2'};
+</script>
+
+<!-- M5 Optimalisasi: Transformation animations -->
+<script>
+(function(){
+  function bgGrad(ctx, W, H){const g = ctx.createLinearGradient(0, 0, 0, H);g.addColorStop(0, '#020812'); g.addColorStop(1, '#0d1929');ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);}
+  function gridLines(ctx, x0, x1, y0, y1, divX, divY){ctx.strokeStyle = 'rgba(148,163,184,.10)'; ctx.lineWidth = 1;for(let i=0;i<=divX;i++){const x=x0+(i/divX)*(x1-x0);ctx.beginPath();ctx.moveTo(x,y0);ctx.lineTo(x,y1);ctx.stroke();}for(let j=0;j<=divY;j++){const y=y0+(j/divY)*(y1-y0);ctx.beginPath();ctx.moveTo(x0,y);ctx.lineTo(x1,y);ctx.stroke();}}
+  function _rng(s){const x=Math.sin(s*12.9898)*43758.5453;return x-Math.floor(x);}
+  // Generate skewed data via lognormal-like distribution
+  function genSkewedData(N, gamma, seed){
+    const data=[];
+    for(let i=0;i<N;i++){
+      const u=_rng(i*1.137+seed);
+      const v=_rng(i*0.731+seed);
+      // Box-Muller
+      const z=Math.sqrt(-2*Math.log(Math.max(u,1e-6)))*Math.cos(2*Math.PI*v);
+      // Apply skewness via exp
+      const x=Math.exp(z*0.5*gamma);
+      data.push(x);
+    }
+    return data;
+  }
+  function histogram(data, bins){
+    const min=Math.min(...data), max=Math.max(...data);
+    const w=(max-min)/bins;
+    const h=new Array(bins).fill(0);
+    data.forEach(v=>{
+      const idx=Math.min(bins-1, Math.floor((v-min)/w));
+      h[idx]++;
+    });
+    return {h, min, max, w};
+  }
+  function plotHist(ctx, hist, x0, x1, y0, y1, color){
+    const maxC=Math.max(...hist.h, 1);
+    const bw=(x1-x0)/hist.h.length-1;
+    hist.h.forEach((c,i)=>{
+      const x=x0+i*((x1-x0)/hist.h.length);
+      const h=(c/maxC)*(y1-y0-8);
+      ctx.fillStyle=color;
+      ctx.fillRect(x, y1-h, bw, h);
+    });
+  }
+
+  // ANIMASI 1: Box-Cox
+  function drawM5BC(){
+    const cv=document.getElementById('m5optBoxcox'); if(!cv){requestAnimationFrame(drawM5BC);return;}
+    const W=cv.clientWidth; cv.width=W; const H=cv.height;
+    const ctx=cv.getContext('2d'); bgGrad(ctx,W,H);
+    const lam=parseFloat(document.getElementById('m5optBCslLam').value);
+    document.getElementById('m5optBCv').textContent=lam.toFixed(2);
+    const splitX=W*0.5;
+    ctx.strokeStyle='rgba(148,163,184,.3)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(splitX,30); ctx.lineTo(splitX,H-20); ctx.stroke();
+    const N=500;
+    const data=genSkewedData(N, 2.0, 1);
+    // Apply Box-Cox
+    const trans=data.map(y=>{
+      if(y<=0) return 0;
+      if(Math.abs(lam)<0.01) return Math.log(y);
+      return (Math.pow(y,lam)-1)/lam;
+    });
+    const padT=40, padB=30;
+    plotHist(ctx, histogram(data,30), 50, splitX-16, padT, H-padB, '#0ea5e9');
+    plotHist(ctx, histogram(trans,30), splitX+16, W-20, padT, H-padB, '#a855f7');
+    ctx.fillStyle='#0ea5e9'; ctx.font='bold 12px JetBrains Mono, monospace';
+    ctx.fillText('Original (right-skewed)', 56, padT-8);
+    ctx.fillStyle='#a855f7';
+    ctx.fillText(`Box-Cox(λ=${lam.toFixed(2)})`, splitX+22, padT-8);
+    // Skewness label
+    const mean=trans.reduce((a,b)=>a+b,0)/N;
+    const std=Math.sqrt(trans.reduce((a,b)=>a+(b-mean)**2,0)/N);
+    const skew=trans.reduce((a,b)=>a+((b-mean)/std)**3,0)/N;
+    ctx.fillStyle='#fff'; ctx.font='10px JetBrains Mono, monospace';
+    ctx.fillText(`skewness = ${skew.toFixed(2)}`, splitX+22, H-12);
+    const infoEl=document.getElementById('m5optBCInfo');
+    if(infoEl) infoEl.innerHTML=`<span style="color:#a855f7">●</span> Box-Cox λ=${lam.toFixed(2)}: ${Math.abs(lam)<0.01?'log(y)':'(y^'+lam.toFixed(2)+'−1)/'+lam.toFixed(2)}, skewness setelah transform = ${skew.toFixed(2)} (target: ~0)`;
+    requestAnimationFrame(drawM5BC);
+  }
+
+  // ANIMASI 2: Sqrt for Poisson
+  function drawM5Sqrt(){
+    const cv=document.getElementById('m5optSqrt'); if(!cv){requestAnimationFrame(drawM5Sqrt);return;}
+    const W=cv.clientWidth; cv.width=W; const H=cv.height;
+    const ctx=cv.getContext('2d'); bgGrad(ctx,W,H);
+    const mu=parseFloat(document.getElementById('m5optSqrtSlMu').value);
+    document.getElementById('m5optSqrtMu').textContent=mu.toFixed(1);
+    const splitX=W*0.5;
+    ctx.strokeStyle='rgba(148,163,184,.3)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(splitX,30); ctx.lineTo(splitX,H-20); ctx.stroke();
+    // Generate Poisson samples (approximation via normal for large mu)
+    const N=300;
+    const data=[];
+    for(let i=0;i<N;i++){
+      const u=_rng(i*1.137);
+      const v=_rng(i*0.731);
+      const z=Math.sqrt(-2*Math.log(Math.max(u,1e-6)))*Math.cos(2*Math.PI*v);
+      data.push(Math.max(0, mu+z*Math.sqrt(mu)));
+    }
+    const sqrtData=data.map(v=>Math.sqrt(v));
+    const padT=40, padB=30;
+    plotHist(ctx, histogram(data,25), 50, splitX-16, padT, H-padB, '#ffb300');
+    plotHist(ctx, histogram(sqrtData,25), splitX+16, W-20, padT, H-padB, '#00e09e');
+    ctx.fillStyle='#ffb300'; ctx.font='bold 12px JetBrains Mono, monospace';
+    ctx.fillText(`Poisson samples (λ=${mu.toFixed(1)})`, 56, padT-8);
+    ctx.fillStyle='#00e09e';
+    ctx.fillText(`√X transform`, splitX+22, padT-8);
+    const stdRaw=Math.sqrt(data.reduce((a,b)=>a+(b-mu)**2,0)/N);
+    const meanS=sqrtData.reduce((a,b)=>a+b,0)/N;
+    const stdS=Math.sqrt(sqrtData.reduce((a,b)=>a+(b-meanS)**2,0)/N);
+    ctx.fillStyle='#fff'; ctx.font='10px JetBrains Mono, monospace';
+    ctx.fillText(`σ_raw=${stdRaw.toFixed(2)}, σ_sqrt=${stdS.toFixed(2)} (~0.5 expected)`, splitX+22, H-12);
+    const infoEl=document.getElementById('m5optSqrtInfo');
+    if(infoEl) infoEl.innerHTML=`<span style="color:#00e09e">●</span> Poisson λ=${mu.toFixed(1)}: σ_raw=${stdRaw.toFixed(2)} (∝√λ), σ_sqrt=${stdS.toFixed(2)} (≈ 0.5 konstan untuk semua λ)`;
+    requestAnimationFrame(drawM5Sqrt);
+  }
+
+  // ANIMASI 3: Log Transform on time series
+  function drawM5Log(){
+    const cv=document.getElementById('m5optLog'); if(!cv){requestAnimationFrame(drawM5Log);return;}
+    const W=cv.clientWidth; cv.width=W; const H=cv.height;
+    const ctx=cv.getContext('2d'); bgGrad(ctx,W,H);
+    const g=parseFloat(document.getElementById('m5optLogSlG').value);
+    document.getElementById('m5optLogG').textContent=g.toFixed(2);
+    const splitX=W*0.5;
+    ctx.strokeStyle='rgba(148,163,184,.3)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(splitX,30); ctx.lineTo(splitX,H-20); ctx.stroke();
+    // Generate time series with growing variance
+    const N=200;
+    const raw=[], lg=[];
+    for(let i=0;i<N;i++){
+      const t=i/N;
+      const trend=10*Math.exp(g*t);
+      const noise=trend*0.15*(_rng(i*0.137)*2-1);
+      raw.push(trend+noise);
+      lg.push(Math.log(Math.max(0.01, trend+noise)));
+    }
+    const padT=40, padB=30;
+    function plotTS(data, x0, x1, y0, y1, color){
+      const min=Math.min(...data), max=Math.max(...data);
+      function tx(i){return x0+(i/(N-1))*(x1-x0);}
+      function ty(v){return y1-((v-min)/(max-min))*(y1-y0-8);}
+      ctx.strokeStyle=color; ctx.lineWidth=2;
+      ctx.shadowColor=color; ctx.shadowBlur=6;
+      ctx.beginPath();
+      for(let i=0;i<N;i++){const x=tx(i),y=ty(data[i]); if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}
+      ctx.stroke();
+      ctx.shadowBlur=0;
+    }
+    plotTS(raw, 50, splitX-16, padT, H-padB, '#a855f7');
+    plotTS(lg, splitX+16, W-20, padT, H-padB, '#0ea5e9');
+    ctx.fillStyle='#a855f7'; ctx.font='bold 12px JetBrains Mono, monospace';
+    ctx.fillText('Original X(t) — variance grows', 56, padT-8);
+    ctx.fillStyle='#0ea5e9';
+    ctx.fillText('log X(t) — variance konstan', splitX+22, padT-8);
+    const infoEl=document.getElementById('m5optLogInfo');
+    if(infoEl) infoEl.innerHTML=`<span style="color:#0ea5e9">●</span> Multiplicative growth rate=${g.toFixed(2)}: log mengubah variance proporsional ke level menjadi konstan (homoscedastic)`;
+    requestAnimationFrame(drawM5Log);
+  }
+
+  // ANIMASI 4: 4-way comparison
+  function drawM5TC(){
+    const cv=document.getElementById('m5optTComp'); if(!cv){requestAnimationFrame(drawM5TC);return;}
+    const W=cv.clientWidth; cv.width=W; const H=cv.height;
+    const ctx=cv.getContext('2d'); bgGrad(ctx,W,H);
+    const gamma=parseFloat(document.getElementById('m5optTCslG').value);
+    document.getElementById('m5optTCv').textContent=gamma.toFixed(1);
+    const N=400;
+    const data=genSkewedData(N, gamma, 7);
+    // Transformations
+    const trans={
+      'Box-Cox(λ=0.3)': data.map(y=>(Math.pow(y,0.3)-1)/0.3),
+      'Sqrt': data.map(y=>Math.sqrt(y)),
+      'Log': data.map(y=>Math.log(Math.max(0.01,y))),
+      'Yeo-Johnson(λ=0.3)': data.map(y=>y>=0?(Math.pow(y+1,0.3)-1)/0.3:-(Math.pow(-y+1,2-0.3)-1)/(2-0.3))
+    };
+    // Layout: 2x2 grid + original on top
+    const cols=2, rows=2;
+    const cw=(W-40)/cols, ch=(H-60)/rows;
+    Object.entries(trans).forEach(([label, td], idx)=>{
+      const r=Math.floor(idx/cols), c=idx%cols;
+      const x0=20+c*cw+5, x1=20+(c+1)*cw-5;
+      const y0=40+r*ch+5, y1=40+(r+1)*ch-5;
+      ctx.fillStyle='rgba(148,163,184,.05)';
+      ctx.fillRect(x0,y0,x1-x0,y1-y0);
+      ctx.strokeStyle='rgba(148,163,184,.2)'; ctx.lineWidth=1;
+      ctx.strokeRect(x0,y0,x1-x0,y1-y0);
+      const colors=['#0ea5e9','#ffb300','#a855f7','#00e09e'];
+      plotHist(ctx, histogram(td,20), x0+30, x1-5, y0+25, y1-5, colors[idx]);
+      ctx.fillStyle=colors[idx]; ctx.font='bold 11px JetBrains Mono, monospace';
+      ctx.fillText(label, x0+8, y0+18);
+      // Skewness
+      const m=td.reduce((a,b)=>a+b,0)/td.length;
+      const s=Math.sqrt(td.reduce((a,b)=>a+(b-m)**2,0)/td.length);
+      const sk=td.reduce((a,b)=>a+((b-m)/s)**3,0)/td.length;
+      ctx.fillStyle='#94a3b8'; ctx.font='10px JetBrains Mono, monospace';
+      ctx.fillText(`skew=${sk.toFixed(2)}`, x1-70, y0+18);
+    });
+    ctx.fillStyle='#fff'; ctx.font='bold 13px JetBrains Mono, monospace';
+    ctx.fillText(`Original skewness γ=${gamma.toFixed(1)}: 4 transformasi side-by-side`, 25, 28);
+    const infoEl=document.getElementById('m5optTCInfo');
+    if(infoEl) infoEl.innerHTML=`<span style="color:#fff">●</span> Skewed data (γ=${gamma.toFixed(1)}) → 4 transform: Box-Cox / Sqrt / Log / Yeo-Johnson. Skewness target: ~0`;
+    requestAnimationFrame(drawM5TC);
+  }
+
+  function init(){
+    if (document.getElementById('m5optBoxcox')) drawM5BC();
+    if (document.getElementById('m5optSqrt')) drawM5Sqrt();
+    if (document.getElementById('m5optLog')) drawM5Log();
+    if (document.getElementById('m5optTComp')) drawM5TC();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
 </script>
 
 </body>

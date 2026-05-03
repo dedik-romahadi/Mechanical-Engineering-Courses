@@ -1248,98 +1248,102 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <hr class="divider">
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 06</div>
-  <h2 class="section-title reveal">Animasi Interaktif<br>Visualisasi Time Series</h2>
-  <p class="section-desc reveal">Lima animasi kanvas berikut memvisualisasikan bagaimana filter bekerja pada sinyal noisy: (1) <em>moving average</em> dengan window slider, (2) <em>EMA</em> dengan α slider untuk lihat trade-off responsivitas vs smoothing, (3) <em>Savitzky-Golay</em> dengan window+order slider untuk lihat peak preservation, (4) <em>perbandingan</em> MA vs EMA vs SG vs Median pada sinyal yang sama.</p>
+  <h2 class="section-title reveal">Animasi Interaktif<br>Visualisasi Filter Time Series</h2>
+  <p class="section-desc reveal">Lima animasi spesifik untuk <strong>Pertemuan 2 — Filter</strong>: (1) <strong>Moving Average Live</strong> dengan slider window, (2) <strong>EMA</strong> dengan slider α (responsivitas vs smoothing), (3) <strong>Butterworth Low-Pass</strong> dengan slider cutoff frequency, (4) <strong>4-Way Comparison</strong> (MA vs EMA vs Median vs Kalman) pada sinyal noisy yang sama, (5) <strong>dropdown 4 jenis filter</strong> dengan dropdown.</p>
 
-  <!-- Animasi 1 -->
+  <!-- Animasi 1: Moving Average Live (M2-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi 1 — Deret Mentah: Tren + Musiman + Noise Interaktif</span>
+      <span class="anim-title">Animasi 1 — Moving Average Filter: Slider Window Size</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvPhysics" height="300"></canvas>
+      <canvas id="m2optMA" height="300" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Kekuatan Tren — <span class="ctrl-val" id="v_rp">1.00</span></label>
-          <input type="range" id="sl_rp" min="0" max="2" step="0.05" value="1.0">
+          <label>Window Size <strong>k</strong> — <span class="ctrl-val" id="m2optMAk">10</span></label>
+          <input type="range" id="m2optMAslK" min="2" max="50" step="1" value="10">
         </div>
         <div class="ctrl-group">
-          <label>Amplitudo Musiman — <span class="ctrl-val" id="v_zp">1.00</span></label>
-          <input type="range" id="sl_zp" min="0" max="2" step="0.05" value="1.0">
+          <label>Noise Level <strong>σ</strong> — <span class="ctrl-val" id="m2optMASig">0.30</span></label>
+          <input type="range" id="m2optMAslSig" min="0.05" max="1" step="0.05" value="0.30">
         </div>
-        <button class="btn-anim" id="btnPhysics" onclick="togglePhysics()">⏸ PAUSE</button>
+        <button class="btn-anim" id="m2optMAbtn" onclick="window.m2optToggleMA()">⏸ PAUSE</button>
       </div>
-      <div id="physicsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div id="m2optMAInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi:</strong> Ungu = deret asli, kombinasi dari tren (biru) + musiman (oranye) + noise acak. Tren dan musiman bisa Anda atur slidernya.<br>
-        <strong>Coba:</strong> (1) Set Tren = 0 dan Musiman = 1 → hanya komponen periodik murni yang terlihat. (2) Set Tren = 2 dan Musiman = 0 → tren linear murni. (3) Set keduanya tinggi → deret kompleks khas data industri — sulit dibaca mentah, butuh dekomposisi.
+        <strong>📊 Cara Membaca:</strong> Plot input noisy (faded) vs MA output (cyan). MA formula: <code>y[n] = (1/k)·Σ x[n-i] for i=0..k-1</code>. <strong>Trade-off:</strong> window kecil → responsif tapi noisy; window besar → smooth tapi lag = (k-1)/2 samples. <strong>Coba:</strong> k=2 (sedikit smooth) → k=50 (heavy smooth, lag ~25 samples). Geser σ untuk lihat efek noise level pada hasil filter.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 2 -->
+  <!-- Animasi 2: EMA (Exponential Moving Average) (M2-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--amber)"></div>
-      <span class="anim-title">Animasi 2 — Log Transform: Menstabilkan Varians yang Tumbuh</span>
+      <span class="anim-title">Animasi 2 — EMA: Slider α untuk Responsivitas vs Smoothing</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvSweep" height="300"></canvas>
+      <canvas id="m2optEMA" height="300" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Faktor Pertumbuhan Varians — <span class="ctrl-val" id="v_rs">1.50</span></label>
-          <input type="range" id="sl_rs" min="0.5" max="3" step="0.1" value="1.5">
+          <label>Smoothing factor <strong>α</strong> — <span class="ctrl-val" id="m2optEMAa">0.30</span></label>
+          <input type="range" id="m2optEMAslA" min="0.05" max="1" step="0.05" value="0.30">
         </div>
-        <button class="btn-anim" id="btnSweep" onclick="toggleSweep()">⏸ PAUSE</button>
       </div>
+      <div id="m2optEMAInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Kiri = deret asli dengan varians yang <em>tumbuh</em> (heteroskedastik) — osilasi kecil di awal, besar di akhir. Kanan = hasil <code>log(y)</code>: osilasi menjadi hampir seragam amplitudonya.<br>
-        <strong>Coba:</strong> Geser faktor pertumbuhan ke 3.0 — deret asli jadi "corong" ekstrem. Log transform memampatkannya jadi strip horizontal. Inilah mengapa data energi, produksi, dan finansial hampir selalu di-log-kan sebelum dimodelkan.
+        <strong>📊 Cara Membaca:</strong> EMA formula: <code>y[n] = α·x[n] + (1−α)·y[n−1]</code>. Recursive — hanya butuh 1 prev sample. <strong>α tinggi</strong> (0.9): hampir tidak smooth (output ≈ input). <strong>α rendah</strong> (0.1): heavy smooth tapi delay. <strong>Effective window</strong> ≈ 2/α − 1. Tidak seperti MA, EMA tidak punya hard lag — semua sample berkontribusi dengan exponentially decaying weight.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 3 -->
+  <!-- Animasi 3: Butterworth Low-Pass (M2-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--violet)"></div>
-      <span class="anim-title">Animasi 3 — Differencing: Dari Deret Bertren ke Stasioner</span>
+      <span class="anim-title">Animasi 3 — Butterworth Low-Pass: Slider Cutoff Frequency</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvIso" height="300"></canvas>
+      <canvas id="m2optButter" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Orde Differencing d — <span class="ctrl-val" id="v_ri">1</span></label>
-          <input type="range" id="sl_ri" min="0" max="2" step="1" value="1">
+          <label>Cutoff <strong>fc</strong> — <span class="ctrl-val" id="m2optBfc">0.10</span></label>
+          <input type="range" id="m2optBslFc" min="0.02" max="0.45" step="0.01" value="0.10">
         </div>
-        <button class="btn-anim" id="btnIso" onclick="toggleIso()">⏸ PAUSE</button>
+        <div class="ctrl-group">
+          <label>Order <strong>n</strong> — <span class="ctrl-val" id="m2optBn">2</span></label>
+          <input type="range" id="m2optBslN" min="1" max="6" step="1" value="2">
+        </div>
       </div>
+      <div id="m2optBInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Atas = deret asli dengan tren linear naik. Bawah = setelah differencing <code>∇<sup>d</sup>x<sub>t</sub></code>. Orde d = 0 → tidak ada perubahan. d = 1 → tren linear hilang. d = 2 → tren kuadratik hilang.<br>
-        <strong>Coba:</strong> d = 0 → deret naik-naik-naik (non-stasioner). d = 1 → fluktuasi di sekitar nol (stasioner!). Perhatikan: tiap orde differencing mengurangi 1 observasi — overdifferencing memperbesar noise, jadi jangan lebihi d yang diperlukan.
+        <strong>📊 Cara Membaca:</strong> Layout split: kiri = signal (input + filtered), kanan = magnitude response |H(f)| dB. Butterworth = maximally flat passband. <strong>Cutoff fc</strong>: −3 dB point (pass / stop boundary). <strong>Order n</strong>: roll-off −20·n dB/decade beyond fc. n=1 (gentle), n=6 (sharp). Semua frequency &gt; fc di-attenuate dengan smooth roll-off.
       </div>
     </div>
   </div>
 
-  <!-- Animasi 4 -->
+  <!-- Animasi 4: 4-Way Filter Comparison (M2-specific) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--green)"></div>
-      <span class="anim-title">Animasi 4 — Dekomposisi Aditif: Memecah Deret ke T + S + R</span>
+      <span class="anim-title">Animasi 4 — 4-Way Comparison: MA vs EMA vs Median vs Kalman</span>
     </div>
     <div class="anim-body">
-      <canvas id="cvHPB" height="340"></canvas>
+      <canvas id="m2optCompare" height="340" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Window MA (panjang musiman) — <span class="ctrl-val" id="v_rh">12</span></label>
-          <input type="range" id="sl_rh" min="4" max="30" step="2" value="12">
+          <label>Spike Probability — <span class="ctrl-val" id="m2optCmpP">0.05</span></label>
+          <input type="range" id="m2optCmpslP" min="0" max="0.2" step="0.01" value="0.05">
         </div>
-        <button class="btn-anim" id="btnHPB" onclick="toggleHPB()">⏸ PAUSE</button>
+        <div class="ctrl-group">
+          <label>Noise Level — <span class="ctrl-val" id="m2optCmpSig">0.20</span></label>
+          <input type="range" id="m2optCmpslSig" min="0.05" max="0.5" step="0.05" value="0.20">
+        </div>
       </div>
+      <div id="m2optCmpInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Empat panel dari atas ke bawah: <strong>Observasi</strong> (ungu) = data asli; <strong>Trend</strong> (cyan) = hasil moving average; <strong>Seasonal</strong> (amber) = pola periodik sisa; <strong>Residual</strong> (hijau) = noise acak yang tersisa.<br>
-        <strong>Coba:</strong> Window 4 → tren terlalu bergejolak (under-smoothing). Window 12 → tren halus, musiman dan residual terpisah bersih. Window 30 → over-smoothing, pola musiman bocor ke residual. <em>Memilih window = memilih periode musiman yang Anda percaya.</em>
+        <strong>📊 Cara Membaca:</strong> 4 filter ter-apply ke signal yang SAMA dengan noise + occasional spikes. Color: cyan=MA, amber=EMA, violet=Median, green=Kalman. <strong>Behavior:</strong> MA & EMA dipengaruhi spikes (smear). Median TAHAN spikes (robust to outliers). Kalman optimal jika model state diketahui (predict + update). <strong>Coba:</strong> set spike prob = 0.15 → median menang.
       </div>
     </div>
   </div>
@@ -7180,6 +7184,322 @@ function _createForumParticleBurst(event) {
 
 function _ah(s){let h=5381;s=s+'mEKsP9k4tQ2';for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))&0xffffffff;return(h>>>0).toString(36);}
 window._pa = {1: '1vcm311', 2: 'crcad2'};
+</script>
+
+<!-- ════════════════════════════════════════════════════════════════
+     M2 Optimalisasi TOPIC-SPECIFIC ANIMATIONS — Filter
+     4 canvas baru: m2optMA, m2optEMA, m2optButter, m2optCompare
+     Animasi 5 (cvOA5) tetap pakai infrastructure existing.
+     ════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  function bgGrad(ctx, W, H){
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#020812'); g.addColorStop(1, '#0d1929');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  function gridLines(ctx, x0, x1, y0, y1, divX, divY){
+    ctx.strokeStyle = 'rgba(148,163,184,.10)'; ctx.lineWidth = 1;
+    for (let i = 0; i <= divX; i++){
+      const x = x0 + (i/divX)*(x1-x0);
+      ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.stroke();
+    }
+    for (let j = 0; j <= divY; j++){
+      const y = y0 + (j/divY)*(y1-y0);
+      ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
+    }
+  }
+  function _rand(s){ const x=Math.sin(s*12.9898)*43758.5453; return x-Math.floor(x); }
+  function genSignal(N, sigma, spikeP, t0){
+    const arr = new Float64Array(N);
+    for (let i = 0; i < N; i++){
+      const t = i + t0;
+      let s = Math.sin(2*Math.PI*0.05*t) + 0.5*Math.sin(2*Math.PI*0.18*t);
+      s += sigma * (2 * _rand(t * 0.137) - 1);
+      if (spikeP > 0 && _rand(t * 0.731) < spikeP){
+        s += (_rand(t * 0.911) > 0.5 ? 1 : -1) * 1.5;
+      }
+      arr[i] = s;
+    }
+    return arr;
+  }
+
+  // ANIMASI 1 — Moving Average
+  const m2MA = { running: true, raf: null, t: 0 };
+  window.m2optToggleMA = function(){
+    m2MA.running = !m2MA.running;
+    const btn = document.getElementById('m2optMAbtn');
+    if (btn) btn.textContent = m2MA.running ? '⏸ PAUSE' : '▶ PLAY';
+    if (m2MA.running) drawM2MA();
+  };
+  function drawM2MA(){
+    const cv = document.getElementById('m2optMA'); if(!cv) return;
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+    const k = parseInt(document.getElementById('m2optMAslK').value);
+    const sigma = parseFloat(document.getElementById('m2optMAslSig').value);
+    document.getElementById('m2optMAk').textContent = String(k);
+    document.getElementById('m2optMASig').textContent = sigma.toFixed(2);
+    const padL = 50, padR = 20, padT = 30, padB = 35;
+    const px0 = padL, px1 = W - padR, py0 = padT, py1 = H - padB;
+    gridLines(ctx, px0, px1, py0, py1, 12, 4);
+    if (m2MA.running) m2MA.t = (m2MA.t + 0.5) % 1000;
+    const N = 200;
+    const sig = genSignal(N, sigma, 0, m2MA.t);
+    const ma = new Float64Array(N);
+    for (let i = 0; i < N; i++){
+      let sum = 0, cnt = 0;
+      for (let j = Math.max(0, i-k+1); j <= i; j++){ sum += sig[j]; cnt++; }
+      ma[i] = sum / cnt;
+    }
+    function tx(i){ return px0 + (i/(N-1))*(px1-px0); }
+    const yMax = 3;
+    function ty(y){ return (py0+py1)/2 - (y/yMax)*((py1-py0)/2 - 8); }
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+    ctx.strokeStyle = 'rgba(148,163,184,.6)'; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (let i = 0; i < N; i++){ const px=tx(i),py=ty(sig[i]); if(i===0)ctx.moveTo(px,py); else ctx.lineTo(px,py); }
+    ctx.stroke();
+    ctx.strokeStyle = '#0ea5e9'; ctx.lineWidth = 2.5;
+    ctx.shadowColor = '#0ea5e9'; ctx.shadowBlur = 10;
+    ctx.beginPath();
+    for (let i = 0; i < N; i++){ const px=tx(i),py=ty(ma[i]); if(i===0)ctx.moveTo(px,py); else ctx.lineTo(px,py); }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 12px JetBrains Mono, monospace';
+    ctx.fillText(`MA(k=${k}): y[n] = (1/${k})·Σ x[n−i], lag ≈ ${((k-1)/2).toFixed(1)} samples`, padL+6, padT-12);
+    const infoEl = document.getElementById('m2optMAInfo');
+    if (infoEl) infoEl.innerHTML = `<span style="color:#0ea5e9">●</span> MA window k=${k}, noise σ=${sigma.toFixed(2)}, lag = ${((k-1)/2).toFixed(1)} samples`;
+    if (m2MA.running) m2MA.raf = requestAnimationFrame(drawM2MA);
+  }
+
+  // ANIMASI 2 — EMA
+  function drawM2EMA(){
+    const cv = document.getElementById('m2optEMA'); if(!cv){ requestAnimationFrame(drawM2EMA); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+    const alpha = parseFloat(document.getElementById('m2optEMAslA').value);
+    document.getElementById('m2optEMAa').textContent = alpha.toFixed(2);
+    const padL = 50, padR = 20, padT = 30, padB = 35;
+    const px0 = padL, px1 = W - padR, py0 = padT, py1 = H - padB;
+    gridLines(ctx, px0, px1, py0, py1, 12, 4);
+    const N = 200;
+    const sig = genSignal(N, 0.30, 0, 0);
+    const ema = new Float64Array(N);
+    ema[0] = sig[0];
+    for (let i = 1; i < N; i++){ ema[i] = alpha * sig[i] + (1 - alpha) * ema[i-1]; }
+    function tx(i){ return px0 + (i/(N-1))*(px1-px0); }
+    const yMax = 3;
+    function ty(y){ return (py0+py1)/2 - (y/yMax)*((py1-py0)/2 - 8); }
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+    ctx.strokeStyle = 'rgba(148,163,184,.6)'; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (let i = 0; i < N; i++){ const px=tx(i),py=ty(sig[i]); if(i===0)ctx.moveTo(px,py); else ctx.lineTo(px,py); }
+    ctx.stroke();
+    ctx.strokeStyle = '#ffb300'; ctx.lineWidth = 2.5;
+    ctx.shadowColor = '#ffb300'; ctx.shadowBlur = 10;
+    ctx.beginPath();
+    for (let i = 0; i < N; i++){ const px=tx(i),py=ty(ema[i]); if(i===0)ctx.moveTo(px,py); else ctx.lineTo(px,py); }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    const effW = 2/alpha - 1;
+    ctx.fillStyle = '#ffb300'; ctx.font = 'bold 12px JetBrains Mono, monospace';
+    ctx.fillText(`EMA(α=${alpha.toFixed(2)}): y[n] = α·x[n] + (1−α)·y[n−1], effective window ≈ ${effW.toFixed(1)}`, padL+6, padT-12);
+    const infoEl = document.getElementById('m2optEMAInfo');
+    if (infoEl) infoEl.innerHTML = `<span style="color:#ffb300">●</span> α=${alpha.toFixed(2)}, effective window ≈ ${effW.toFixed(1)} samples`;
+    requestAnimationFrame(drawM2EMA);
+  }
+
+  // ANIMASI 3 — Butterworth (split: signal + magnitude response)
+  function drawM2Butter(){
+    const cv = document.getElementById('m2optButter'); if(!cv){ requestAnimationFrame(drawM2Butter); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+    const fc = parseFloat(document.getElementById('m2optBslFc').value);
+    const n = parseInt(document.getElementById('m2optBslN').value);
+    document.getElementById('m2optBfc').textContent = fc.toFixed(2);
+    document.getElementById('m2optBn').textContent = String(n);
+    const splitY = H * 0.5;
+    ctx.strokeStyle = 'rgba(148,163,184,.3)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(20, splitY); ctx.lineTo(W-20, splitY); ctx.stroke();
+    // Top: time signal
+    {
+      const padL = 50, padR = 20, padT = 25;
+      const px0 = padL, px1 = W-padR, py0 = padT, py1 = splitY-8;
+      gridLines(ctx, px0, px1, py0, py1, 12, 3);
+      const N = 256;
+      const sig = genSignal(N, 0.20, 0, 0);
+      const alpha = 1 - Math.exp(-2 * Math.PI * fc);
+      let filtered = sig.slice();
+      for (let pass = 0; pass < n; pass++){
+        let prev = filtered[0];
+        for (let i = 1; i < N; i++){
+          prev = alpha * filtered[i] + (1 - alpha) * prev;
+          filtered[i] = prev;
+        }
+      }
+      function tx(i){ return px0 + (i/(N-1))*(px1-px0); }
+      const yMax = 2.5;
+      function ty(y){ return (py0+py1)/2 - (y/yMax)*((py1-py0)/2 - 6); }
+      ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+      ctx.strokeStyle = 'rgba(148,163,184,.6)'; ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      for (let i = 0; i < N; i++){ const px=tx(i),py=ty(sig[i]); if(i===0)ctx.moveTo(px,py); else ctx.lineTo(px,py); }
+      ctx.stroke();
+      ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 2;
+      ctx.shadowColor = '#a855f7'; ctx.shadowBlur = 8;
+      ctx.beginPath();
+      for (let i = 0; i < N; i++){ const px=tx(i),py=ty(filtered[i]); if(i===0)ctx.moveTo(px,py); else ctx.lineTo(px,py); }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#a855f7'; ctx.font = 'bold 12px JetBrains Mono, monospace';
+      ctx.fillText('Time signal (faded=input, violet=filtered)', padL+6, padT-8);
+    }
+    // Bottom: |H(f)| dB
+    {
+      const padL = 50, padR = 20, padT = 8, padB = 35;
+      const px0 = padL, px1 = W-padR, py0 = splitY+8, py1 = H-padB;
+      gridLines(ctx, px0, px1, py0, py1, 10, 3);
+      const fMin = 0.005, fMax = 0.5;
+      function fx(f){
+        const lg = (Math.log10(f) - Math.log10(fMin)) / (Math.log10(fMax) - Math.log10(fMin));
+        return px0 + lg * (px1 - px0);
+      }
+      const dbMin = -60, dbMax = 5;
+      function fy(db){ return py1 - ((db - dbMin)/(dbMax - dbMin)) * (py1 - py0); }
+      ctx.strokeStyle = 'rgba(148,163,184,.4)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(px0, fy(0)); ctx.lineTo(px1, fy(0)); ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,179,0,.4)'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+      ctx.beginPath(); ctx.moveTo(px0, fy(-3)); ctx.lineTo(px1, fy(-3)); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#ffb300'; ctx.font = '10px JetBrains Mono, monospace';
+      ctx.fillText('-3 dB', px0+4, fy(-3)-3);
+      ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 1.5; ctx.setLineDash([4,3]);
+      ctx.beginPath(); ctx.moveTo(fx(fc), py0); ctx.lineTo(fx(fc), py1); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 2.5;
+      ctx.shadowColor = '#a855f7'; ctx.shadowBlur = 8;
+      ctx.beginPath();
+      const NSAMPLES = 200;
+      for (let i = 0; i <= NSAMPLES; i++){
+        const f = fMin * Math.pow(fMax/fMin, i/NSAMPLES);
+        const ratio = Math.pow(f/fc, 2*n);
+        const mag = 1 / Math.sqrt(1 + ratio);
+        const db = 20 * Math.log10(mag);
+        const px = fx(f), py = fy(Math.max(dbMin, db));
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+      ctx.fillText('frequency (log)', px1-90, py1+18);
+      ctx.fillText('|H(f)| dB', px0-25, py0+8);
+      ctx.fillStyle = '#ef4444'; ctx.font = 'bold 11px JetBrains Mono, monospace';
+      ctx.fillText(`fc=${fc.toFixed(2)}`, fx(fc)+4, py0+12);
+      ctx.fillStyle = '#a855f7'; ctx.font = 'bold 11px JetBrains Mono, monospace';
+      ctx.fillText(`Butterworth |H(f)|, n=${n} → roll-off ${20*n} dB/dec`, padL+6, py0-2);
+    }
+    const infoEl = document.getElementById('m2optBInfo');
+    if (infoEl) infoEl.innerHTML = `<span style="color:#a855f7">●</span> Butterworth: fc=${fc.toFixed(2)} (−3 dB), order=${n}, roll-off ${20*n} dB/dec`;
+    requestAnimationFrame(drawM2Butter);
+  }
+
+  // ANIMASI 4 — 4-Way Comparison
+  const m2Cmp = { t: 0 };
+  function drawM2Compare(){
+    const cv = document.getElementById('m2optCompare'); if(!cv){ requestAnimationFrame(drawM2Compare); return; }
+    const W = cv.clientWidth; cv.width = W; const H = cv.height;
+    const ctx = cv.getContext('2d');
+    bgGrad(ctx, W, H);
+    const spikeP = parseFloat(document.getElementById('m2optCmpslP').value);
+    const sigma = parseFloat(document.getElementById('m2optCmpslSig').value);
+    document.getElementById('m2optCmpP').textContent = spikeP.toFixed(2);
+    document.getElementById('m2optCmpSig').textContent = sigma.toFixed(2);
+    const padL = 50, padR = 20, padT = 30, padB = 35;
+    const px0 = padL, px1 = W-padR, py0 = padT, py1 = H-padB;
+    gridLines(ctx, px0, px1, py0, py1, 12, 4);
+    m2Cmp.t = (m2Cmp.t + 0.3) % 1000;
+    const N = 200;
+    const sig = genSignal(N, sigma, spikeP, m2Cmp.t);
+    const k = 12;
+    const ma = new Float64Array(N), ema = new Float64Array(N), med = new Float64Array(N), kal = new Float64Array(N);
+    for (let i = 0; i < N; i++){
+      let sum=0,cnt=0;
+      for (let j = Math.max(0,i-k+1); j <= i; j++){ sum += sig[j]; cnt++; }
+      ma[i] = sum/cnt;
+    }
+    const a = 0.15;
+    ema[0] = sig[0];
+    for (let i = 1; i < N; i++) ema[i] = a*sig[i] + (1-a)*ema[i-1];
+    for (let i = 0; i < N; i++){
+      const win=[];
+      for (let j = Math.max(0,i-Math.floor(k/2)); j <= Math.min(N-1,i+Math.floor(k/2)); j++) win.push(sig[j]);
+      win.sort((a,b)=>a-b);
+      med[i] = win[Math.floor(win.length/2)];
+    }
+    let x = sig[0], P = 1;
+    const Q = 0.001, R = sigma * sigma;
+    kal[0] = x;
+    for (let i = 1; i < N; i++){
+      P = P + Q;
+      const K = P / (P + R);
+      x = x + K * (sig[i] - x);
+      P = (1 - K) * P;
+      kal[i] = x;
+    }
+    function tx(i){ return px0 + (i/(N-1))*(px1-px0); }
+    const yMax = 4;
+    function ty(y){ return (py0+py1)/2 - (y/yMax)*((py1-py0)/2 - 8); }
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(px0, ty(0)); ctx.lineTo(px1, ty(0)); ctx.stroke();
+    ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    for (let i = 0; i < N; i++){ const px=tx(i),py=ty(sig[i]); if(i===0)ctx.moveTo(px,py); else ctx.lineTo(px,py); }
+    ctx.stroke();
+    const filters = [
+      { data: ma, color: '#0ea5e9', label: 'MA(k=12)' },
+      { data: ema, color: '#ffb300', label: 'EMA(α=0.15)' },
+      { data: med, color: '#a855f7', label: 'Median' },
+      { data: kal, color: '#00e09e', label: 'Kalman' }
+    ];
+    filters.forEach(f => {
+      ctx.strokeStyle = f.color; ctx.lineWidth = 2;
+      ctx.shadowColor = f.color; ctx.shadowBlur = 4;
+      ctx.beginPath();
+      for (let i = 0; i < N; i++){ const px=tx(i),py=ty(f.data[i]); if(i===0)ctx.moveTo(px,py); else ctx.lineTo(px,py); }
+      ctx.stroke();
+    });
+    ctx.shadowBlur = 0;
+    let lx = px1 - 130, ly = padT + 12;
+    ctx.font = 'bold 11px JetBrains Mono, monospace';
+    filters.forEach(f => {
+      ctx.fillStyle = f.color;
+      ctx.fillRect(lx, ly-6, 14, 3);
+      ctx.fillText(f.label, lx+18, ly);
+      ly += 14;
+    });
+    ctx.fillStyle = '#00e09e'; ctx.font = 'bold 12px JetBrains Mono, monospace';
+    ctx.fillText('4 filter pada signal sama: noise σ=' + sigma.toFixed(2) + ', spike P=' + spikeP.toFixed(2), padL+6, padT-12);
+    const infoEl = document.getElementById('m2optCmpInfo');
+    if (infoEl) infoEl.innerHTML = `<span style="color:#0ea5e9">●</span> MA <span style="color:#ffb300">●</span> EMA <span style="color:#a855f7">●</span> Median (robust) <span style="color:#00e09e">●</span> Kalman — naik spikes untuk lihat keunggulan median`;
+    requestAnimationFrame(drawM2Compare);
+  }
+
+  function initM2OptAnims(){
+    if (document.getElementById('m2optMA')) drawM2MA();
+    if (document.getElementById('m2optEMA')) drawM2EMA();
+    if (document.getElementById('m2optButter')) drawM2Butter();
+    if (document.getElementById('m2optCompare')) drawM2Compare();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initM2OptAnims);
+  else initM2OptAnims();
+})();
 </script>
 
 </body>
