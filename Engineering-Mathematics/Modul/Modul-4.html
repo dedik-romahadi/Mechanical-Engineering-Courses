@@ -1192,6 +1192,11 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <p>Jika PD berbentuk \(y'' + P(x)y' + Q(x)y = R(x)\) (memuat \(y\) sendiri), metode reduksi sederhana ini tidak berlaku. Dibutuhkan teknik lain seperti reduksi d'Alembert (jika satu solusi sudah diketahui) atau metode koefisien tak tentu untuk PD linier homogen/non-homogen orde dua.</p>
     </div>
   </div>
+
+  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
+    📘 <strong>Dari Modul PDF — Contoh 5.8 (Reduksi PD Orde Tiga ke Orde Satu):</strong>
+    Selesaikan \(y''' - y'' = xe^x\) dengan syarat \(y(0) = 1\), \(y'(0) = 2\), \(y''(0) = 4\). Karena PD tidak memuat \(y\) maupun \(y'\), substitusikan \(w = y''\), \(w' = y'''\), sehingga PD tereduksi menjadi \(w' - w = xe^x\) — PD linier orde satu dengan \(P = -1\), \(Q = xe^x\). Faktor integrasi \(u = e^{-x}\) memberi \(w = \tfrac{1}{2}x^2 e^x + c_0 e^x\). Substitusi \(y''(0) = 4\) → \(c_0 = 4\). Integralkan dua kali (gunakan \(c_1 = 2\) dari \(y'(0) = 2\), lalu \(c_2 = -6\) dari \(y(0) = 1\)) untuk mendapat \(y = \tfrac{1}{2}x^2 e^x - 2xe^x + 7e^x + 2x - 6\). Pelajaran kunci: <em>setiap kali integralkan, sisipkan kondisi awal sebelum integrasi berikutnya</em> agar konstanta tidak menumpuk dan mudah dihitung.
+  </div>
 </div>
 
 <!-- ═══ BAGIAN 05 — ANALOGI KEHIDUPAN SEHARI-HARI ═══ -->
@@ -1576,6 +1581,11 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     4. Klik <strong>Run All</strong> untuk menjalankan seluruh notebook sekaligus<br>
     5. Pastikan semua grafik tampil — screenshot atau export sebagai HTML untuk pengumpulan
   </div>
+
+  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
+    📘 <strong>Dari Modul PDF — Validasi Solusi Manual ↔ SymPy:</strong>
+    Modul PDF menyajikan setiap contoh secara manual: untuk Contoh 5.1 PDF \(xy' + (1-x)y = 4xe^x\ln x\), penyelesaian akhirnya \(yxe^{-x} = x^2(2\ln x - 1) + c\). Cell 1 di atas memanggil <code style="font-family:'JetBrains Mono',monospace">dsolve()</code> SymPy yang menghasilkan ekspresi serupa (mungkin disusun ulang). <strong>Validasi</strong>: substitusikan \(c = 0\) dan plot \(y(x) = x^2(2\ln x - 1)\cdot e^x/x\) — kurva harus mulus, monoton naik untuk \(x > 1\). Untuk Bernoulli (Contoh 5.4 PDF: \(xy' + y = y^3 x^2\ln x\)), hasil manual \(y^{-2} = cx^2 - x^2\ln^2 x\) dapat diuji numerik dengan <code style="font-family:'JetBrains Mono',monospace">scipy.integrate.solve_ivp</code>. Pelajaran: SymPy memberi solusi simbolik instan, tapi pemahaman lima langkah (faktor integrasi, substitusi Bernoulli/reduksi) tetap krusial untuk verifikasi dan debugging.
+  </div>
 </div>
 
 <!-- ═══ DAFTAR PUSTAKA ═══ -->
@@ -1692,6 +1702,11 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       <h4>Petunjuk Pengerjaan Tugas 4</h4>
       <p>Kerjakan semua soal di <strong>Jupyter Notebook (VS Code)</strong> dengan bantuan <code style="font-family:'JetBrains Mono',monospace">sympy</code> dan <code style="font-family:'JetBrains Mono',monospace">numpy</code>. Setelah selesai, <strong>paste kode dari Jupyter ke kolom yang tersedia</strong>, lalu klik <strong>▶ Run &amp; Validasi</strong> — poin diberikan jika kode berjalan tanpa error dan output numerik yang di-<code style="font-family:'JetBrains Mono',monospace">print()</code> sesuai nilai yang diharapkan. Di akhir, tempelkan link Google Drive berisi file <code style="font-family:'JetBrains Mono',monospace">.ipynb</code> yang memuat <strong>kode implementasi Python (Bagian 08 Modul)</strong> dan <strong>jawaban lengkap semua soal tugas</strong>.</p>
     </div>
+  </div>
+
+  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px;margin-bottom:24px">
+    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), §1.5 — Pola Kerja Standar:</strong>
+    Modul PDF menyajikan delapan contoh (5.1–5.8) yang seluruhnya mengikuti pola: <strong>(1)</strong> bawa PD ke bentuk baku <em>y' + P(x)y = Q(x)</em>, <strong>(2)</strong> hitung <em>∫P(x)dx</em>, <strong>(3)</strong> tentukan faktor integrasi <em>u = e<sup>∫P dx</sup></em>, <strong>(4)</strong> integralkan <em>∫Q(x)·u dx</em>, <strong>(5)</strong> susun penyelesaian <em>y·u = ∫Q·u dx + c</em>. Untuk Bernoulli (Contoh 5.4–5.6), substitusi <em>z = y<sup>1−n</sup></em> melinierkannya. Untuk reduksi orde (Contoh 5.7–5.8), substitusi <em>w = y<sup>(n−1)</sup></em>. Soal di Tugas 4 mengikuti pola yang sama — pastikan setiap PD dibawa ke bentuk baku terlebih dahulu, baru identifikasi metodenya.
   </div>
 
   <div style="background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.2);border-left:4px solid var(--cyan);border-radius:12px;padding:18px 24px;margin-bottom:32px;display:flex;align-items:flex-start;gap:14px">
@@ -2286,6 +2301,11 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       <div style="background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet)">k = 0.04 /menit (terukur)</div>
     </div>
     <p style="margin-top:14px;font-size:14px;color:var(--muted)">Model Hukum Pendinginan Newton: <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">T' + kT = kT∞</code> — PD linier orde satu dengan solusi <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">T(t) = T∞ + (T₀ − T∞)·e^(−kt)</code>. Tim ingin meningkatkan k (mempercepat pendinginan) dengan menambah <strong style="color:var(--amber)">kipas / spray mist</strong>, namun harus mempertimbangkan biaya energi dan risiko <em>thermal shock</em> pada material. Forum ini mengajak Anda menganalisis trade-off teknik & ekonomi berdasarkan PD linier.</p>
+  </div>
+
+  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px;margin-bottom:18px">
+    📘 <strong>Dari Modul PDF — Hubungan Kasus dengan Contoh 5.1–5.3:</strong>
+    Persamaan pendinginan Newton <em>T' + kT = kT<sub>∞</sub></em> adalah PD linier orde satu paling sederhana — \(P(x) = k\) dan \(Q(x) = kT_\infty\) keduanya konstan. Tinjau Contoh 5.3 PDF (Wiwit Suprihatiningsih) yang membahas PD linier dengan syarat awal \(y(0) = 24\): polanya identik dengan kasus ini di mana \(T(0) = T_0 = 450°C\) menentukan konstanta integrasi. Faktor integrasi \(u = e^{kt}\), \(\int Q\cdot u\,dt = T_\infty e^{kt}\), dan akhirnya \(T(t) = T_\infty + (T_0 - T_\infty)e^{-kt}\) — peluruhan eksponensial menuju \(T_\infty\) dengan konstanta waktu \(\tau = 1/k\). Modul mengajarkan: ubah PD ke bentuk baku, lalu ikuti lima langkah faktor integrasi.
   </div>
 
   <!-- Canvas Animasi Forum -->

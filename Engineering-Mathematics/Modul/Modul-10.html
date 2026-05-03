@@ -1077,6 +1077,14 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="tip-box reveal">
     💡 <strong>Strategi belajar Laplace:</strong> <strong>(1) Hafal tabel dasar</strong> — 8-10 fungsi kunci (1, t, e^(at), sin/cos, t·e^(at), dll). <strong>(2) Hafal sifat turunan</strong> — <code>L{f'} = sF − f(0)</code>, <code>L{f''} = s²F − sf(0) − f'(0)</code>. <strong>(3) Latih pecahan parsial</strong> — kunci dari invers Laplace adalah dekomposisi F(s) menjadi term yang ada di tabel. <strong>(4) Pakai SymPy</strong> sebagai verifikasi: <code>sp.laplace_transform(f, t, s)</code> dan <code>sp.inverse_laplace_transform(F, s, t)</code>.
   </div>
+
+  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
+    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), §4.1 Pengertian Transformasi Laplace dan Inversnya:</strong>
+    <p style="margin:8px 0 0 0;font-size:14px;line-height:1.7">Modul PDF mendefinisikan Laplace sebagai <em>integral tak wajar</em>:</p>
+    <div style="text-align:center;margin:8px 0;font-family:'JetBrains Mono',monospace;color:var(--cyan)">F(s) = L{f} = ∫₀<sup>∞</sup> f(t)·e<sup>−st</sup> dt &nbsp;&nbsp;&nbsp; (jika integral konvergen untuk setiap s)</div>
+    <p style="margin:6px 0 0 0;font-size:14px;line-height:1.7">Sebagai ilustrasi konvergensi, modul menghitung <code>∫₀<sup>∞</sup> e<sup>−2t</sup>dt = ½</code> (konvergen) dan menyebut Fungsi Gamma <code>Γ(n) = ∫₀<sup>∞</sup>e<sup>−t</sup>t<sup>n−1</sup>dt</code> dengan sifat <code>Γ(n + 1) = n!</code> — yang nanti dipakai untuk derivasi <code>L{t<sup>n</sup>} = n!/s<sup>n+1</sup></code>. Modul juga menegaskan: <em>"Bilamana diketahui invers transformasi Laplace dari suatu fungsi F(s), maka dapat ditentukan pula fungsi pembangkitnya"</em> — ini definisi <code>f(t) = L<sup>−1</sup>{F(s)}</code>.</p>
+    <span style="display:block;margin-top:8px;font-size:13px;color:var(--muted)">Lihat halaman 2–3 modul PDF (Sucipto + Markoni) untuk penurunan lengkap.</span>
+  </div>
 </div>
 
 <!-- ═══ BAGIAN 02 — PERSAMAAN KARAKTERISTIK ORDE n & RUMUS bᵢ ═══ -->
@@ -1150,6 +1158,17 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
   <div class="tip-box reveal">
     💡 <strong>Cara mengenali F(s) di tabel:</strong> Saat melakukan <em>invers Laplace</em>, periksa bentuk denominator: <strong>(1) Linear (s − a)</strong> → eksponensial e^(at). <strong>(2) Quadratic dengan +ω²</strong> (s² + ω²) → sin/cos. <strong>(3) Quadratic dengan −a²</strong> (s² − a²) → sinh/cosh. <strong>(4) (s − a)<sup>n+1</sup></strong> → t<sup>n</sup>·e^(at). <strong>(5) (s−a)² + ω²</strong> → e^(at)·sin/cos. Numerator menentukan koefisien atau pola sin vs cos.
+  </div>
+
+  <div class="tip-box reveal pdf-ref" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.18);border-left:4px solid var(--violet);margin-top:18px">
+    📘 <strong>Dari Modul PDF (Mercu Buana — Wiwit Suprihatiningsih), Tabel 4.1 Rumus Dasar Transformasi Laplace dan Inversnya:</strong>
+    <p style="margin:8px 0 0 0;font-size:14px;line-height:1.7">Modul PDF (halaman 6) menyajikan <strong>Tabel 4.1</strong> dengan 6 entri pasangan <code>f(t) ↔ F(s)</code> sebagai fondasi:</p>
+    <ul style="margin:6px 0 0 22px;font-size:14px;line-height:1.65">
+      <li><code>L{1} = 1/s</code>, &nbsp; <code>L{t} = 1/s²</code>, &nbsp; <code>L{t<sup>n</sup>} = n!/s<sup>n+1</sup></code> (n = 0, 1, 2, …)</li>
+      <li><code>L{e<sup>at</sup>} = 1/(s − a)</code>, &nbsp; <code>L{cos bt} = s/(s² + b²)</code>, &nbsp; <code>L{sin bt} = b/(s² + b²)</code></li>
+    </ul>
+    <p style="margin:8px 0 0 0;font-size:14px;line-height:1.7"><strong>Contoh 1.1</strong> di modul PDF mengerjakan derivasi <code>L{e<sup>at</sup>}</code>, <code>L{cos bt}</code>, dan <code>L{t<sup>n</sup>}</code> langsung dari definisi integral tak wajar — pakai trik <code>u = st</code> dan substitusi limit. <strong>Contoh 1.5</strong> mengkombinasikan <em>linieritas</em> + tabel untuk menghitung <code>L{2t³ + 3 cos 2t}</code>, <code>L{4t² − 3 sin 2t}</code>, <code>L{sin 3t + 2e<sup>3t</sup>}</code>, dst.</p>
+    <span style="display:block;margin-top:8px;font-size:13px;color:var(--muted)">Tabel di atas (10 entri) adalah versi diperluas dari Tabel 4.1 PDF — entri tambahan (sinh, cosh, t<sup>n</sup>e<sup>at</sup>, e<sup>at</sup>sin/cos) berasal dari <strong>Tabel 4.2</strong> di halaman 10 modul PDF (sifat pergeseran sumbu s).</span>
   </div>
 </div>
 
