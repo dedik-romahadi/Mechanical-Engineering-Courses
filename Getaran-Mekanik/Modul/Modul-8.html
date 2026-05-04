@@ -3563,9 +3563,23 @@ function exportTugasHtml() {
     { id:'c9',  label:'X₂/X₁ Mode 2',                q:'Mode 2 anti-phase: X₂/X₁ = −1.0' },
     { id:'c10', label:'Orthogonality u₁ᵀMu₂',        q:'[1,1]·I·[1,−1]ᵀ = 0' }
   ];
+  // Get full question text from DOM (.comp-q) or fallback to d.q
+  function _getCompFullQ(id) {
+    const numText = id.toUpperCase();
+    const nums = document.querySelectorAll('.comp-num');
+    for (const n of nums) {
+      if (n.textContent.trim() === numText) {
+        const q = n.parentElement && n.parentElement.querySelector('.comp-q');
+        if (q) return q.textContent.trim();
+      }
+    }
+    return null;
+  }
+
   const compEzData = compEzDefs.map(d => {
     const ta = document.getElementById('code-' + d.id);
-    return { ...d, code: ta ? ta.value.trim() : '', pts: compScores[d.id] || 0 };
+    const fullQ = _getCompFullQ(d.id) || d.q;
+    return { ...d, q: fullQ, code: ta ? ta.value.trim() : '', pts: compScores[d.id] || 0 };
   });
 
   // Comp Hard definitions (c11..c15)
@@ -3578,7 +3592,8 @@ function exportTugasHtml() {
   ];
   const compHardData = compHardDefs.map(d => {
     const ta = document.getElementById('code-' + d.id);
-    return { ...d, code: ta ? ta.value.trim() : '', pts: compScores[d.id] || 0 };
+    const fullQ = _getCompFullQ(d.id) || d.q;
+    return { ...d, q: fullQ, code: ta ? ta.value.trim() : '', pts: compScores[d.id] || 0 };
   });
 
   const html = `<!DOCTYPE html>
@@ -3710,8 +3725,8 @@ function exportTugasHtml() {
   th:nth-child(4){color:#7c2d12!important;background:linear-gradient(180deg,#fef3c7,#fff7ed)!important}
   th:first-child::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,#a855f7,#22d3ee)}
   td{padding:14px 18px!important;transition:all .2s;vertical-align:middle!important}
-  td:nth-child(3),td:nth-child(4){text-align:center!important}
-  th:nth-child(3),th:nth-child(4){text-align:center!important}
+  td:nth-child(4){text-align:center!important}
+  th:nth-child(4){text-align:center!important}
   tbody tr{animation:slideRight .5s cubic-bezier(.16,1,.3,1) both}
   tbody tr:nth-child(1){animation-delay:.55s}
   tbody tr:nth-child(2){animation-delay:.62s}
@@ -3725,9 +3740,9 @@ function exportTugasHtml() {
   tbody tr:nth-child(10){animation-delay:1.18s}
   tbody tr:hover{transform:translateX(4px)}
   tbody tr:hover td{background:linear-gradient(90deg,rgba(168,85,247,.08),rgba(34,211,238,.05),transparent)!important;box-shadow:inset 4px 0 0 #a855f7}
-  .correct{display:inline-flex;align-items:center;justify-content:center;gap:6px;animation:bounceIn .4s ease both;padding:0;background:linear-gradient(135deg,rgba(5,150,105,.18),rgba(16,185,129,.10));color:#047857!important;border-radius:10px;border:1px solid rgba(5,150,105,.30);font-weight:800;box-shadow:0 2px 6px rgba(5,150,105,.12);min-width:84px;height:38px;font-size:.92rem}
-  .wrong{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0;background:linear-gradient(135deg,rgba(220,38,38,.18),rgba(239,68,68,.10));color:#b91c1c!important;border-radius:10px;border:1px solid rgba(220,38,38,.30);font-weight:800;box-shadow:0 2px 6px rgba(220,38,38,.12);min-width:84px;height:38px;font-size:.92rem}
-  .partial{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0;background:linear-gradient(135deg,rgba(217,119,6,.18),rgba(245,158,11,.10));color:#b45309!important;border-radius:10px;border:1px solid rgba(217,119,6,.30);font-weight:800;box-shadow:0 2px 6px rgba(217,119,6,.12);min-width:84px;height:38px;font-size:.92rem}
+  .correct{display:inline-flex;align-items:center;gap:6px;animation:bounceIn .4s ease both;padding:6px 14px;background:linear-gradient(135deg,rgba(5,150,105,.10),rgba(16,185,129,.06));color:#047857!important;border-radius:8px;border:1px solid rgba(5,150,105,.22);font-weight:400!important;box-shadow:0 1px 3px rgba(5,150,105,.08);font-size:.88rem;min-height:30px}
+  .wrong{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:linear-gradient(135deg,rgba(220,38,38,.10),rgba(239,68,68,.06));color:#b91c1c!important;border-radius:8px;border:1px solid rgba(220,38,38,.22);font-weight:400!important;box-shadow:0 1px 3px rgba(220,38,38,.08);font-size:.88rem;min-height:30px}
+  .partial{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:linear-gradient(135deg,rgba(217,119,6,.10),rgba(245,158,11,.06));color:#b45309!important;border-radius:8px;border:1px solid rgba(217,119,6,.22);font-weight:400!important;box-shadow:0 1px 3px rgba(217,119,6,.08);font-size:.88rem;min-height:30px}
   .pts{font-family:'Orbitron','JetBrains Mono',monospace!important;font-size:1.05rem!important;font-weight:900!important;letter-spacing:.5px;display:inline-flex;align-items:center;justify-content:center;width:46px;height:38px;padding:0;border-radius:10px;background:linear-gradient(135deg,rgba(168,85,247,.10),rgba(34,211,238,.06));border:1px solid rgba(168,85,247,.20);box-shadow:0 2px 6px rgba(168,85,247,.10);box-sizing:border-box}
   .pts-correct{background:linear-gradient(135deg,rgba(5,150,105,.20),rgba(16,185,129,.12))!important;border-color:rgba(5,150,105,.35)!important;color:#047857!important;box-shadow:0 2px 8px rgba(5,150,105,.18)!important}
   .pts-wrong{background:linear-gradient(135deg,rgba(220,38,38,.18),rgba(239,68,68,.10))!important;border-color:rgba(220,38,38,.35)!important;color:#b91c1c!important;box-shadow:0 2px 8px rgba(220,38,38,.15)!important}
@@ -3941,12 +3956,12 @@ function exportTugasHtml() {
   <!-- COMP E/M TABLE — 10 soal -->
   <div class="section-head" style="margin-top:2px"><h2><span class="anim-icon icon-pulse" style="color:#22d3ee">💻</span><span>Bagian B — Komputasi Easy/Medium (${compEz}/${SCORE_CONFIG.COMP_EZ_TOTAL} poin)</span></h2></div>
   <table>
-    <thead><tr><th style="width:40px">No</th><th>Soal</th><th>Kode Python</th><th style="width:60px;text-align:center">Poin</th></tr></thead>
+    <thead><tr><th style="width:40px">No</th><th style="width:42%">Soal</th><th style="width:42%">Kode Python</th><th style="width:60px;text-align:center">Poin</th></tr></thead>
     <tbody>
       ${compEzData.map((d,i) => `<tr>
         <td>C${i+1}</td>
         <td style="font-size:.8rem;color:#475569">${d.q}</td>
-        <td style="font-family:monospace;font-size:.78rem;background:#f8f5ff;padding:6px 8px;border-radius:4px;white-space:pre-wrap;max-width:280px;word-break:break-word">${esc(d.code||'(belum diisi)')}</td>
+        <td style="font-family:monospace;font-size:.78rem;background:#f8f5ff;padding:6px 8px;border-radius:4px;white-space:pre-wrap;word-break:break-word;white-space:pre-wrap">${esc(d.code||'(belum diisi)')}</td>
         <td><span class="pts ${d.pts?'pts-correct':'pts-wrong'}">${d.pts}</span></td>
       </tr>`).join('')}
     </tbody>
@@ -3955,7 +3970,7 @@ function exportTugasHtml() {
   <!-- COMP HARD TABLE — 5 soal @4 poin -->
   <div class="section-head hard-head" style="margin-top:2px"><h2><span class="anim-icon icon-float" style="color:#ec4899">🧠</span><span>Bagian C — Komputasi Hard (${compHard}/${SCORE_CONFIG.COMP_HARD_TOTAL} poin)</span></h2></div>
   <table>
-    <thead><tr><th style="width:40px">No</th><th>Soal</th><th>Kode Python</th><th style="width:60px;text-align:center">Poin</th></tr></thead>
+    <thead><tr><th style="width:40px">No</th><th style="width:42%">Soal</th><th style="width:42%">Kode Python</th><th style="width:60px;text-align:center">Poin</th></tr></thead>
     <tbody>
       ${compHardData.map((d,i) => {
         const ptsColor = d.pts >= SCORE_CONFIG.COMP_HARD_POINT ? '#059669'
@@ -3964,7 +3979,7 @@ function exportTugasHtml() {
         return `<tr>
           <td>C${i+11}</td>
           <td style="font-size:.8rem;color:#475569">${d.q}</td>
-          <td style="font-family:monospace;font-size:.78rem;background:#fdf2f8;padding:6px 8px;border-radius:4px;white-space:pre-wrap;max-width:280px;word-break:break-word">${esc(d.code||'(belum diisi)')}</td>
+          <td style="font-family:monospace;font-size:.78rem;background:#fdf2f8;padding:6px 8px;border-radius:4px;white-space:pre-wrap;word-break:break-word;white-space:pre-wrap">${esc(d.code||'(belum diisi)')}</td>
           <td><span class="pts ${d.pts >= SCORE_CONFIG.COMP_HARD_POINT?'pts-correct':d.pts>0?'pts-partial':'pts-wrong'}">${d.pts}</span></td>
         </tr>`;
       }).join('')}

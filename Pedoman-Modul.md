@@ -8,6 +8,8 @@
 >
 > **Diperbarui:** April 2026 (v7) — mencerminkan refactor Modul-4 (countdown circular, palet per-tab, hero animation per-tab, scoring rule lengkap, Firebase Security Rules, blokir akses di luar jadwal, **sistem PIN 6-digit untuk mahasiswa**, **password admin ter-hash SHA-256**, **animasi login constellation + electric charges + lightning blasts**, **Dosen Login Modal dengan password masking**, **role-based visibility untuk tombol Reset** — tombol Atur Jadwal tetap visible sebagai bootstrap action, **scoring universal 50 poin** dengan 5 soal Komputasi Hard @4 poin, **partial credit +1 poin** untuk Hard yang salah, **status label butuh poin** — Tepat Waktu/Terlambat hanya diberikan jika mahasiswa memperoleh poin > 0 (akses tanpa poin = Belum), **Bolos diperluas** — mencakup juga mahasiswa yang akses tapi 0 poin saat jadwal sudah berakhir, **PIN global lintas-course** — satu PIN per mahasiswa yang berlaku di SEMUA mata kuliah dan modul, disimpan di node `pins/mhs_<NIM>` terpisah dari visitor records sehingga reset modul tidak menghapus PIN).
 >
+> **v17 (Mei 2026) — Layout polish Export HTML Tugas:** Penyempurnaan format kolom Jawaban Anda + Bagian B/C dari user feedback. **§36.8 BARU** — equal column widths 42%/42% untuk Soal vs Kode Python di Bagian B & C (sebelumnya auto-fit), hapus `max-width:280px` constraint pada code cell, **JS helper `_getCompFullQ`** untuk capture full question text dari DOM `<div class="comp-q">` (sebelumnya `d.q` dari `compEzDefs`/`compHardDefs` hanya text PENDEK label/ringkasan, sekarang full question text seperti yang ditampilkan ke mahasiswa). **§36.9 BARU** — Jawaban Anda format `font-weight:400!important` (override per-file CSS yang punya 700), hapus `justify-content:center` dan `min-width fixed`, layout rata kiri natural; td:nth-child(3) tidak lagi text-align:center (hanya kolom Poin yang center). Applied ke **48 file** dengan handling 2 pattern berbeda: (a) `compEzDefs+compHardDefs` separate (40 file), (b) `compDefs` single array M4 (2 file Math+OptoAuto), (c) `window.UTS_COMP_EZ`/`UAS_COMP_EZ` external JSON (6 exam — sudah punya full text dari awal, no helper needed).
+
 > **v16 (Mei 2026) — Export HTML Tugas + Forum Copy HTML redesign:** Standar baru untuk file HTML hasil download Tugas (§36) dan output paste ke LMS Forum (§37). **§36 Export HTML Tugas (BARU)** — score-display tanpa SVG ring (anti kotak shadow), 3 orbit-spark warna-warni (cyan/green/pink), cover restructure (eyebrow + 2-col h1 badge + 4 chips), meta items emoji label (👤 🆔 📅), badge sizing fixed 84×38px wrapped dengan `<span>` (anti table-cell break), footer dark panel 3-kolom info + status pill blink + ring expand, date format manual `3-5-2026, 13:22:47`, animation stack 15+ moving elements (orbs, formulas, sparks, count-up, confetti, ripple), 2 critical JS template literal pitfalls didokumentasikan: `</script>` HARUS di-escape jadi `<\/script>` (HTML parser issue) + `\'` di dalam `${...}` interpolation INVALID (JS syntax error). **§37 Forum Copy HTML (BARU)** — output LMS-paste pakai email-friendly HTML (table-based layout, no display:flex/grid, inline styles only), meta info WAJIB nested `<table>` untuk titik 2 sejajar (anti `&nbsp;` padding), footer bg = header bg per-course (Engineering-Math dark brown, Getaran/OptoAuto dark navy), footer topic highlighted dengan accent course (orange Math, purple Getaran/OptoAuto), border-top rgba accent untuk visual continuity, per-course theme map lengkap (§37.5). Applied ke 48 file (42 modul export + 6 exam) untuk §36, dan 42 modul untuk §37 (Exam tidak punya Copy Forum). PR references: #159, #160, #161, #162, #163, #164, #166, #167.
 
 > **v15 (Mei 2026) — Cinematic Panel Design release:** §35 BARU — standar desain panel cinematic untuk Tugas score-bar + Forum copy panel + buttons + progress bars + Total Kata counter. Applied ke 48 file (42 modul + 3 UTS + 3 UAS) dengan green/violet theme distinction. Reference implementation: `Modul-6.html` Getaran Mekanik.
@@ -7014,6 +7016,152 @@ const now = _d.getDate()+'-'+(_d.getMonth()+1)+'-'+_d.getFullYear()+
 - [ ] **Mobile responsive** ≤640px — orbs hidden, layout stack
 - [ ] **Theme color per-file preserved** (orange Math, purple OptoAuto, dll)
 
+### 36.8 Layout Tabel — Equal Columns + Soal Lengkap (BARU di v17)
+
+#### 36.8.1 Equal Column Widths untuk Bagian B & C
+
+> **User feedback (Mei 2026):** Awalnya kolom "Soal" dan "Kode Python" tidak punya width spec (auto-fit), sehingga lebar kolom bervariasi tergantung content. Padahal user ingin layout konsisten dan predictable.
+
+**Pattern WAJIB** untuk semua tabel Bagian B (Komputasi E/M) dan C (Komputasi Hard):
+
+```html
+<thead><tr>
+  <th style="width:40px">No</th>
+  <th style="width:42%">Soal</th>
+  <th style="width:42%">Kode Python</th>
+  <th style="width:60px;text-align:center">Poin</th>
+</tr></thead>
+```
+
+Untuk Exam (UTS/UAS) yang pakai header "Soal (Singkat)":
+```html
+<th style="width:42%">Soal (Singkat)</th>
+<th style="width:42%">Kode Python</th>
+```
+
+**Hasil**: kolom Soal dan Kode Python equal width 42% masing-masing, predictable layout.
+
+#### 36.8.2 Hilangkan max-width Constraint pada Code Cell
+
+```diff
+-<td style="...max-width:280px;word-break:break-word">code</td>
++<td style="...word-break:break-word;white-space:pre-wrap">code</td>
+```
+
+`max-width:280px` membatasi cell width meskipun column 42%. Hapus untuk biarkan cell mengikuti column width. `white-space:pre-wrap` preserve indentation di kode multi-line.
+
+#### 36.8.3 Capture Full Question Text dari DOM (Soal Lengkap)
+
+> **User feedback (Mei 2026):** Soal di Bagian B/C tidak tersimpan lengkap. Investigasi: `compEzDefs` / `compHardDefs` punya `q` field dengan **text PENDEK** (label/ringkasan), bukan question text panjang yang ditampilkan di `<div class="comp-q">` di page.
+
+**Helper function WAJIB** untuk capture full question:
+
+```javascript
+// Get full question text from DOM (.comp-q) or fallback to d.q
+function _getCompFullQ(id) {
+  const numText = id.toUpperCase();
+  const nums = document.querySelectorAll('.comp-num');
+  for (const n of nums) {
+    if (n.textContent.trim() === numText) {
+      const q = n.parentElement && n.parentElement.querySelector('.comp-q');
+      if (q) return q.textContent.trim();
+    }
+  }
+  return null;
+}
+
+// Update .map() untuk pakai helper:
+const compEzData = compEzDefs.map(d => {
+  const ta = document.getElementById('code-' + d.id);
+  const fullQ = _getCompFullQ(d.id) || d.q;  // fallback ke d.q kalau gagal
+  return { ...d, q: fullQ, code: ta ? ta.value.trim() : '', pts: compScores[d.id] || 0 };
+});
+
+const compHardData = compHardDefs.map(d => {
+  const ta = document.getElementById('code-' + d.id);
+  const fullQ = _getCompFullQ(d.id) || d.q;
+  return { ...d, q: fullQ, code: ta ? ta.value.trim() : '', pts: compScores[d.id] || 0 };
+});
+```
+
+**Untuk M4 pattern** (single `compDefs` array — Math + OptoAuto):
+```javascript
+const compData = compDefs.map(d => {
+  const ta = document.getElementById('code-' + d.id);
+  const fullQ = _getCompFullQ(d.id) || d.q;
+  return { ...d, q: fullQ, code: ta ? ta.value.trim() : '', pts: compScores[d.id] || 0 };
+});
+```
+
+**Untuk Exam files** (UTS/UAS): tidak perlu helper. Mereka pakai `window.UTS_COMP_EZ` / `window.UAS_COMP_EZ` yang load dari JSON eksternal — `q.q` sudah berisi full text.
+
+### 36.9 Jawaban Anda — Format Reguler Rata Kiri (BARU di v17)
+
+> **User feedback (Mei 2026):** Format teks bold + center di kolom "Jawaban Anda" terlalu mencolok. Buat reguler weight + rata kiri.
+
+**Pattern WAJIB** untuk `.correct` / `.wrong` / `.partial`:
+
+```css
+.correct{
+  display:inline-flex;align-items:center;gap:6px;
+  /* JANGAN: justify-content:center (bikin center horizontal) */
+  /* JANGAN: min-width:84px;height:38px (fixed size kaku) */
+  padding:6px 14px;
+  background:linear-gradient(135deg,rgba(5,150,105,.10),rgba(16,185,129,.06));
+  color:#047857!important;
+  border-radius:8px;
+  border:1px solid rgba(5,150,105,.22);
+  font-weight:400!important;  /* WAJIB !important untuk override existing 700 */
+  box-shadow:0 1px 3px rgba(5,150,105,.08);
+  font-size:.88rem;
+  min-height:30px;
+  /* width: auto (mengikuti content, tidak fixed) */
+}
+```
+
+**Catatan critical**: per-file CSS theme di base style sering punya `.correct{font-weight:700}`. Tanpa `!important`, override TIDAK bekerja karena cascade specificity sama.
+
+**td:nth-child(3) text-align**:
+```css
+/* WAJIB: hapus dari kombinasi td:nth-child(3,4) */
+/* td:nth-child(3),td:nth-child(4){text-align:center!important}  ← INI HAPUS */
+
+/* SEKARANG: hanya kolom Poin yang center */
+td:nth-child(4){text-align:center!important}
+/* Kolom Jawaban Anda (3) default left-aligned */
+```
+
+### 36.10 Audit Checklist v17 — Export HTML Layout
+
+- [ ] **font-weight:400!important** di `.correct/.wrong/.partial` (override per-file 700)
+- [ ] **Tidak ada justify-content:center** di badge classes (rata kiri natural)
+- [ ] **Tidak ada min-width fixed 84px** atau height 38px (auto-size sesuai content)
+- [ ] **td:nth-child(3) tidak text-align:center** (Jawaban Anda rata kiri)
+- [ ] **td:nth-child(4) text-align:center** (Poin tetap center)
+- [ ] **th width:42%** di kolom Soal & Kode Python untuk Bagian B & C
+- [ ] **`_getCompFullQ` helper** ada (capture full question dari DOM)
+- [ ] **`fullQ = _getCompFullQ(d.id) || d.q`** di .map() untuk fallback
+- [ ] **max-width:280px DIHAPUS** dari code cell style
+- [ ] **white-space:pre-wrap** ada untuk multi-line code
+
+
+
+- [ ] **Date format manual** — `_d = new Date()` + `_p` padStart helper
+- [ ] **`</script>` escaped** dengan `<\/script>` di dalam template literal
+- [ ] **Tidak ada `\'` di dalam `${...}`** — pakai `'` langsung
+- [ ] **Score-display, BUKAN score-circle-wrap+SVG** — hindari kotak shadow
+- [ ] **Score-big tanpa filter:drop-shadow** — bikin rectangular shadow
+- [ ] **Score-banner background:transparent!important** — hindari kotak bg
+- [ ] **Td badges wrapped dengan `<span>`** — preserve table-cell layout
+- [ ] **3 orbit-spark warna-warni** (cyan/green/pink) di score-display
+- [ ] **Cover dengan eyebrow + 2-col h1 + 4 chips** — bukan h1+sub paragraph
+- [ ] **Meta items dengan emoji label** (👤 🆔 📅)
+- [ ] **Footer dark panel** dengan 3 kolom info + status pill blink
+- [ ] **Animations 15+** — orbs, formulas, sparks, count-up, confetti, ripple
+- [ ] **Print-friendly mode** — animations disabled saat print
+- [ ] **Mobile responsive** ≤640px — orbs hidden, layout stack
+- [ ] **Theme color per-file preserved** (orange Math, purple OptoAuto, dll)
+
 ---
 
 ## 37. Forum Copy HTML — LMS-Compatible Output (BARU di v16)
@@ -7162,6 +7310,9 @@ border-top:1px solid rgba(249,115,22,.25)  /* orange untuk Math */
 ---
 
 
+
+*Pedoman v17 — Mei 2026 (Layout polish Export HTML Tugas).*
+*Update v17: §36.8 BARU — equal column widths 42%/42% untuk Soal & Kode Python di Bagian B/C, max-width:280px constraint dihapus dari code cells, JS helper `_getCompFullQ` untuk capture full question text dari DOM. §36.9 BARU — Jawaban Anda format reguler (font-weight:400!important override) + rata kiri (no justify-content:center, no min-width fixed). Audit checklist v17 di §36.10 (10 items). Applied ke 48 file (42 modul + 6 exam) dengan 3 pattern handling: compEzDefs+compHardDefs (40), compDefs (2 M4), window.UTS/UAS_COMP_EZ (6 exam).*
 
 *Pedoman v16 — Mei 2026 (Export HTML Tugas + Forum Copy HTML redesign).*
 *Update v16: §36 BARU — standar Export HTML Tugas standalone (score-display tanpa SVG ring anti kotak shadow, 3 orbit-spark warna-warni cyan/green/pink, cover restructure dengan eyebrow + 2-col h1 badge + 4 chips, meta items emoji label, badge sizing fixed wrapped span, footer dark panel + status pill blink, date format manual `3-5-2026, 13:22:47`, 15+ animations stack, 2 critical JS template literal pitfalls: `</script>` HARUS di-escape jadi `<\/script>` + `\'` di dalam `${...}` interpolation INVALID — keduanya menyebabkan login broken). §37 BARU — standar Forum Copy HTML untuk LMS-paste (table-based layout email-friendly, meta info nested table untuk colon alignment, footer bg = header bg per-course, topic accent highlighted, per-course theme map). Applied ke 48 file (42 modul export + 6 exam) untuk §36, dan 42 modul untuk §37. PR #159–#167.*
