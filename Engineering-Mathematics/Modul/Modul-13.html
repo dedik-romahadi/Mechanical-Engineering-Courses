@@ -4196,7 +4196,7 @@ function exportTugasHtml() {
     }
     return {
       no: i+1,
-      title: MC_QUESTIONS[i] || ('Soal ' + (i+1)),
+      title: _getMcFullQ(id) || MC_QUESTIONS[i] || ('Soal ' + (i+1)),
       selected: selectedText,
       correct: isCorrect,
       pts: mcScores[id] || 0
@@ -4216,7 +4216,21 @@ function exportTugasHtml() {
     { id:'c9',  label:'Solve PD via PFD y(0.5) = 3e^(2t)−e^(3t)',      q:'3e − e^(1.5) ≈ 3.673' },
     { id:'c10', label:'Final Value Theorem y(∞)',                      q:'1/13 ≈ 0.077 (FVT)' }
   ];
-  // Get full question text from DOM (.comp-q) or fallback to d.q
+  // Get full MC question text from DOM (.mc-q) or fallback to MC_QUESTIONS array
+  function _getMcFullQ(id) {
+    const idx = id.replace('mc', '');
+    const numText = idx.padStart(2, '0');
+    const nums = document.querySelectorAll('.mc-num');
+    for (const n of nums) {
+      if (n.textContent.trim() === numText) {
+        const q = n.parentElement && n.parentElement.querySelector('.mc-q');
+        if (q) return q.textContent.trim();
+      }
+    }
+    return null;
+  }
+
+    // Get full question text from DOM (.comp-q) or fallback to d.q
   function _getCompFullQ(id) {
     const numText = id.toUpperCase();
     const nums = document.querySelectorAll('.comp-num');
