@@ -3840,6 +3840,7 @@ function exportTugasHtml() {
     }
     return {
       no: i+1,
+      title: _getMcFullQ(id) || ('Soal ' + (i+1)),
       selected: selectedText,
       correct: isCorrect,
       pts: mcScores[id] || 0
@@ -3859,7 +3860,21 @@ function exportTugasHtml() {
     { id:'c9', label:'Logistic P(20 hari)', q:'P(t) = K/(1+((K−P₀)/P₀)·e^(−rt)), K=1000, P₀=50, r=0.1' },
     { id:'c10', label:'solve_ivp: y(2) untuk y\' + 2y = 4', q:'Numerik y(2) untuk y\' + 2y = 4, y(0) = 0' },
   ];
-  // Get full question text from DOM (.comp-q) or fallback to d.q
+  // Get full MC question text from DOM (.mc-q) or fallback to MC_QUESTIONS array
+  function _getMcFullQ(id) {
+    const idx = id.replace('mc', '');
+    const numText = idx.padStart(2, '0');
+    const nums = document.querySelectorAll('.mc-num');
+    for (const n of nums) {
+      if (n.textContent.trim() === numText) {
+        const q = n.parentElement && n.parentElement.querySelector('.mc-q');
+        if (q) return q.textContent.trim();
+      }
+    }
+    return null;
+  }
+
+    // Get full question text from DOM (.comp-q) or fallback to d.q
   function _getCompFullQ(id) {
     const numText = id.toUpperCase();
     const nums = document.querySelectorAll('.comp-num');
@@ -4219,7 +4234,7 @@ function exportTugasHtml() {
     <tbody>
       ${mcData.map(d => `<tr>
         <td>${d.no}</td>
-        <td style="font-size:.8rem;color:#475569">${['Identifikasi P(x) pada bentuk baku','Rumus faktor integrasi u = e^∫P dx','Identifikasi tipe PD (Bernoulli n=4)','Substitusi Bernoulli z = y^(1−n)','Penyelesaian umum y\' + 3y = e^(2x)','Reduksi orde y\'\' − (1/x)y\' = x ln x','Faktor integrasi untuk P(x) = 1/x','Model PD pendinginan Newton','Arus steady-state rangkaian RL','Langkah pertama menyelesaikan Bernoulli'][d.no-1]}</td>
+        <td style="font-size:.8rem;color:#475569">${esc(d.title)}</td>
         <td><span class="${d.correct?'correct':'wrong'}">${esc(d.selected)} ${d.correct?'✓':'✗'}</span></td>
         <td><span class="pts ${d.pts?'pts-correct':'pts-wrong'}">${d.pts}</span></td>
       </tr>`).join('')}
