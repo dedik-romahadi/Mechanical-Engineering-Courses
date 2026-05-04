@@ -8,6 +8,8 @@
 >
 > **Diperbarui:** April 2026 (v7) — mencerminkan refactor Modul-4 (countdown circular, palet per-tab, hero animation per-tab, scoring rule lengkap, Firebase Security Rules, blokir akses di luar jadwal, **sistem PIN 6-digit untuk mahasiswa**, **password admin ter-hash SHA-256**, **animasi login constellation + electric charges + lightning blasts**, **Dosen Login Modal dengan password masking**, **role-based visibility untuk tombol Reset** — tombol Atur Jadwal tetap visible sebagai bootstrap action, **scoring universal 50 poin** dengan 5 soal Komputasi Hard @4 poin, **partial credit +1 poin** untuk Hard yang salah, **status label butuh poin** — Tepat Waktu/Terlambat hanya diberikan jika mahasiswa memperoleh poin > 0 (akses tanpa poin = Belum), **Bolos diperluas** — mencakup juga mahasiswa yang akses tapi 0 poin saat jadwal sudah berakhir, **PIN global lintas-course** — satu PIN per mahasiswa yang berlaku di SEMUA mata kuliah dan modul, disimpan di node `pins/mhs_<NIM>` terpisah dari visitor records sehingga reset modul tidak menghapus PIN).
 >
+> **v17.1 (Mei 2026) — Bagian A soal lengkap:** Extension dari v17. Helper `_getMcFullQ` ditambah untuk capture full MC question text dari DOM `<div class="mc-q">` (sebelumnya `MC_QUESTIONS` array berisi short labels). `mcData.title` sekarang pakai pattern `_getMcFullQ(id) || MC_QUESTIONS[i] || ('Soal ' + (i+1))`. Untuk M4 (Math + OptoAuto) yang pakai inline array di table, pattern di-refactor: `title` field ditambah ke mcData mapping, table pakai `${esc(d.title)}` instead of inline array. Applied ke 42 modul (40 standar + 2 M4). Exam files tidak perlu (`UTS_MC.text` sudah punya full HTML). §36.8 di-update dengan §36.8.3 (MC) + §36.8.4 (Comp).
+
 > **v17 (Mei 2026) — Layout polish Export HTML Tugas:** Penyempurnaan format kolom Jawaban Anda + Bagian B/C dari user feedback. **§36.8 BARU** — equal column widths 42%/42% untuk Soal vs Kode Python di Bagian B & C (sebelumnya auto-fit), hapus `max-width:280px` constraint pada code cell, **JS helper `_getCompFullQ`** untuk capture full question text dari DOM `<div class="comp-q">` (sebelumnya `d.q` dari `compEzDefs`/`compHardDefs` hanya text PENDEK label/ringkasan, sekarang full question text seperti yang ditampilkan ke mahasiswa). **§36.9 BARU** — Jawaban Anda format `font-weight:400!important` (override per-file CSS yang punya 700), hapus `justify-content:center` dan `min-width fixed`, layout rata kiri natural; td:nth-child(3) tidak lagi text-align:center (hanya kolom Poin yang center). Applied ke **48 file** dengan handling 2 pattern berbeda: (a) `compEzDefs+compHardDefs` separate (40 file), (b) `compDefs` single array M4 (2 file Math+OptoAuto), (c) `window.UTS_COMP_EZ`/`UAS_COMP_EZ` external JSON (6 exam — sudah punya full text dari awal, no helper needed).
 
 > **v16 (Mei 2026) — Export HTML Tugas + Forum Copy HTML redesign:** Standar baru untuk file HTML hasil download Tugas (§36) dan output paste ke LMS Forum (§37). **§36 Export HTML Tugas (BARU)** — score-display tanpa SVG ring (anti kotak shadow), 3 orbit-spark warna-warni (cyan/green/pink), cover restructure (eyebrow + 2-col h1 badge + 4 chips), meta items emoji label (👤 🆔 📅), badge sizing fixed 84×38px wrapped dengan `<span>` (anti table-cell break), footer dark panel 3-kolom info + status pill blink + ring expand, date format manual `3-5-2026, 13:22:47`, animation stack 15+ moving elements (orbs, formulas, sparks, count-up, confetti, ripple), 2 critical JS template literal pitfalls didokumentasikan: `</script>` HARUS di-escape jadi `<\/script>` (HTML parser issue) + `\'` di dalam `${...}` interpolation INVALID (JS syntax error). **§37 Forum Copy HTML (BARU)** — output LMS-paste pakai email-friendly HTML (table-based layout, no display:flex/grid, inline styles only), meta info WAJIB nested `<table>` untuk titik 2 sejajar (anti `&nbsp;` padding), footer bg = header bg per-course (Engineering-Math dark brown, Getaran/OptoAuto dark navy), footer topic highlighted dengan accent course (orange Math, purple Getaran/OptoAuto), border-top rgba accent untuk visual continuity, per-course theme map lengkap (§37.5). Applied ke 48 file (42 modul export + 6 exam) untuk §36, dan 42 modul untuk §37 (Exam tidak punya Copy Forum). PR references: #159, #160, #161, #162, #163, #164, #166, #167.
@@ -7050,7 +7052,58 @@ Untuk Exam (UTS/UAS) yang pakai header "Soal (Singkat)":
 
 `max-width:280px` membatasi cell width meskipun column 42%. Hapus untuk biarkan cell mengikuti column width. `white-space:pre-wrap` preserve indentation di kode multi-line.
 
-#### 36.8.3 Capture Full Question Text dari DOM (Soal Lengkap)
+#### 36.8.3 Capture Full MC Question dari DOM (Bagian A)
+
+> **User feedback (Mei 2026):** Bagian A (Pilihan Ganda) juga punya issue yang sama dengan Bagian B/C. `MC_QUESTIONS` array di JS hanya berisi label pendek, padahal `<div class="mc-q">` di page punya full HTML question text.
+
+**Helper function `_getMcFullQ`** (parallel dengan `_getCompFullQ`):
+
+```javascript
+function _getMcFullQ(id) {
+  const idx = id.replace('mc', '');
+  const numText = idx.padStart(2, '0');  // '01', '02', dst
+  const nums = document.querySelectorAll('.mc-num');
+  for (const n of nums) {
+    if (n.textContent.trim() === numText) {
+      const q = n.parentElement && n.parentElement.querySelector('.mc-q');
+      if (q) return q.textContent.trim();
+    }
+  }
+  return null;
+}
+```
+
+**Update mcData mapping** untuk pakai helper dengan fallback ke `MC_QUESTIONS`:
+
+```javascript
+const mcData = Array.from({length: SCORE_CONFIG.MC_COUNT}, (_, i) => {
+  const id = 'mc' + (i+1);
+  // ... existing selection logic ...
+  return {
+    no: i+1,
+    title: _getMcFullQ(id) || MC_QUESTIONS[i] || ('Soal ' + (i+1)),  // ← helper first
+    selected: selectedText,
+    correct: isCorrect,
+    pts: mcScores[id] || 0
+  };
+});
+```
+
+**Untuk M4 pattern** (tanpa `MC_QUESTIONS` array, pakai inline array di table):
+```javascript
+// Dulu: <td>${['label1','label2',...][d.no-1]}</td>
+// Sekarang:
+return {
+  no: i+1,
+  title: _getMcFullQ(id) || ('Soal ' + (i+1)),  // ← helper di mapping
+  selected: ..., correct: ..., pts: mcScores[id] || 0
+};
+// Table: <td>${esc(d.title)}</td>
+```
+
+**Untuk Exam files**: tidak perlu helper. Mereka pakai `window.UTS_MC` / `UAS_MC` external JSON dengan `text` field yang sudah punya full HTML question.
+
+#### 36.8.4 Capture Full Comp Question dari DOM (Soal Lengkap Bagian B/C)
 
 > **User feedback (Mei 2026):** Soal di Bagian B/C tidak tersimpan lengkap. Investigasi: `compEzDefs` / `compHardDefs` punya `q` field dengan **text PENDEK** (label/ringkasan), bukan question text panjang yang ditampilkan di `<div class="comp-q">` di page.
 
@@ -7131,7 +7184,7 @@ td:nth-child(4){text-align:center!important}
 /* Kolom Jawaban Anda (3) default left-aligned */
 ```
 
-### 36.10 Audit Checklist v17 — Export HTML Layout
+### 36.10 Audit Checklist v17 — Export HTML Layout (Updated v17.1)
 
 - [ ] **font-weight:400!important** di `.correct/.wrong/.partial` (override per-file 700)
 - [ ] **Tidak ada justify-content:center** di badge classes (rata kiri natural)
@@ -7143,6 +7196,8 @@ td:nth-child(4){text-align:center!important}
 - [ ] **`fullQ = _getCompFullQ(d.id) || d.q`** di .map() untuk fallback
 - [ ] **max-width:280px DIHAPUS** dari code cell style
 - [ ] **white-space:pre-wrap** ada untuk multi-line code
+- [ ] **`_getMcFullQ` helper** ada (capture full MC question dari DOM)
+- [ ] **`title: _getMcFullQ(id) || ...`** di mcData mapping (Bagian A soal lengkap)
 
 
 
