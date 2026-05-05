@@ -8,6 +8,8 @@
 >
 > **Diperbarui:** April 2026 (v7) — mencerminkan refactor Modul-4 (countdown circular, palet per-tab, hero animation per-tab, scoring rule lengkap, Firebase Security Rules, blokir akses di luar jadwal, **sistem PIN 6-digit untuk mahasiswa**, **password admin ter-hash SHA-256**, **animasi login constellation + electric charges + lightning blasts**, **Dosen Login Modal dengan password masking**, **role-based visibility untuk tombol Reset** — tombol Atur Jadwal tetap visible sebagai bootstrap action, **scoring universal 50 poin** dengan 5 soal Komputasi Hard @4 poin, **partial credit +1 poin** untuk Hard yang salah, **status label butuh poin** — Tepat Waktu/Terlambat hanya diberikan jika mahasiswa memperoleh poin > 0 (akses tanpa poin = Belum), **Bolos diperluas** — mencakup juga mahasiswa yang akses tapi 0 poin saat jadwal sudah berakhir, **PIN global lintas-course** — satu PIN per mahasiswa yang berlaku di SEMUA mata kuliah dan modul, disimpan di node `pins/mhs_<NIM>` terpisah dari visitor records sehingga reset modul tidak menghapus PIN).
 >
+> **v17.2 (Mei 2026) — Kode Python column wider:** User feedback final — kolom Kode Python lebih lebar dari Soal di Bagian B/C untuk readability code multi-line. Pattern: `width:30%` Soal + `width:55%` Kode Python (proporsi 1.83×). Replace pattern v17 (42%/42% equal) ke 48 file. §36.8.1 di-update dengan evolusi history.
+
 > **v17.1 (Mei 2026) — Bagian A soal lengkap:** Extension dari v17. Helper `_getMcFullQ` ditambah untuk capture full MC question text dari DOM `<div class="mc-q">` (sebelumnya `MC_QUESTIONS` array berisi short labels). `mcData.title` sekarang pakai pattern `_getMcFullQ(id) || MC_QUESTIONS[i] || ('Soal ' + (i+1))`. Untuk M4 (Math + OptoAuto) yang pakai inline array di table, pattern di-refactor: `title` field ditambah ke mcData mapping, table pakai `${esc(d.title)}` instead of inline array. Applied ke 42 modul (40 standar + 2 M4). Exam files tidak perlu (`UTS_MC.text` sudah punya full HTML). §36.8 di-update dengan §36.8.3 (MC) + §36.8.4 (Comp).
 
 > **v17 (Mei 2026) — Layout polish Export HTML Tugas:** Penyempurnaan format kolom Jawaban Anda + Bagian B/C dari user feedback. **§36.8 BARU** — equal column widths 42%/42% untuk Soal vs Kode Python di Bagian B & C (sebelumnya auto-fit), hapus `max-width:280px` constraint pada code cell, **JS helper `_getCompFullQ`** untuk capture full question text dari DOM `<div class="comp-q">` (sebelumnya `d.q` dari `compEzDefs`/`compHardDefs` hanya text PENDEK label/ringkasan, sekarang full question text seperti yang ditampilkan ke mahasiswa). **§36.9 BARU** — Jawaban Anda format `font-weight:400!important` (override per-file CSS yang punya 700), hapus `justify-content:center` dan `min-width fixed`, layout rata kiri natural; td:nth-child(3) tidak lagi text-align:center (hanya kolom Poin yang center). Applied ke **48 file** dengan handling 2 pattern berbeda: (a) `compEzDefs+compHardDefs` separate (40 file), (b) `compDefs` single array M4 (2 file Math+OptoAuto), (c) `window.UTS_COMP_EZ`/`UAS_COMP_EZ` external JSON (6 exam — sudah punya full text dari awal, no helper needed).
@@ -7020,28 +7022,31 @@ const now = _d.getDate()+'-'+(_d.getMonth()+1)+'-'+_d.getFullYear()+
 
 ### 36.8 Layout Tabel — Equal Columns + Soal Lengkap (BARU di v17)
 
-#### 36.8.1 Equal Column Widths untuk Bagian B & C
-
-> **User feedback (Mei 2026):** Awalnya kolom "Soal" dan "Kode Python" tidak punya width spec (auto-fit), sehingga lebar kolom bervariasi tergantung content. Padahal user ingin layout konsisten dan predictable.
+#### 36.8.1 Column Widths untuk Bagian B & C — Kode Python lebih lebar (Updated v17.2)
 
 **Pattern WAJIB** untuk semua tabel Bagian B (Komputasi E/M) dan C (Komputasi Hard):
 
 ```html
 <thead><tr>
   <th style="width:40px">No</th>
-  <th style="width:42%">Soal</th>
-  <th style="width:42%">Kode Python</th>
+  <th style="width:30%">Soal</th>
+  <th style="width:55%">Kode Python</th>
   <th style="width:60px;text-align:center">Poin</th>
 </tr></thead>
 ```
 
 Untuk Exam (UTS/UAS) yang pakai header "Soal (Singkat)":
 ```html
-<th style="width:42%">Soal (Singkat)</th>
-<th style="width:42%">Kode Python</th>
+<th style="width:30%">Soal (Singkat)</th>
+<th style="width:55%">Kode Python</th>
 ```
 
-**Hasil**: kolom Soal dan Kode Python equal width 42% masing-masing, predictable layout.
+**Hasil**: kolom Kode Python lebih lebar (55%) dari kolom Soal (30%) — proporsi 1.83×. Code multi-line lebih readable, soal singkat tetap muat.
+
+**Evolusi** (perubahan history):
+- v17 awal: Auto-fit tidak konsisten
+- v17 update: 42%/42% equal columns
+- **v17.2 (final)**: 30%/55% — Kode Python lebih lebar (sesuai user feedback final)
 
 #### 36.8.2 Hilangkan max-width Constraint pada Code Cell
 
@@ -7191,7 +7196,7 @@ td:nth-child(4){text-align:center!important}
 - [ ] **Tidak ada min-width fixed 84px** atau height 38px (auto-size sesuai content)
 - [ ] **td:nth-child(3) tidak text-align:center** (Jawaban Anda rata kiri)
 - [ ] **td:nth-child(4) text-align:center** (Poin tetap center)
-- [ ] **th width:42%** di kolom Soal & Kode Python untuk Bagian B & C
+- [ ] **th width:30% Soal + 55% Kode Python** untuk Bagian B & C (v17.2 final)
 - [ ] **`_getCompFullQ` helper** ada (capture full question dari DOM)
 - [ ] **`fullQ = _getCompFullQ(d.id) || d.q`** di .map() untuk fallback
 - [ ] **max-width:280px DIHAPUS** dari code cell style
