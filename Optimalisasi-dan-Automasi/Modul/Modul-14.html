@@ -4820,136 +4820,103 @@ function drawSweep(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  // Read sliders
-  const kappa = parseFloat(document.getElementById('sl_rs').value);
-  const maxIter = Math.round(parseFloat(document.getElementById('sl_zs').value));
+  // Read sliders: rs = max complexity (3..30), zs = noise level (0..0.5)
+  const maxC = Math.round(parseFloat(document.getElementById('sl_rs').value));
+  const noise = parseFloat(document.getElementById('sl_zs').value);
+  const cur = Math.max(1, Math.round(1 + (_sweepAnim.t*4)%maxC));   // animated current
 
   // Plot region
-  const padL = 50, padR = 30, padT = 25, padB = 40;
-  const xMin = -2.5, xMax = 2.5, yMin = -1.5, yMax = 1.5;
+  const padL = 60, padR = 30, padT = 30, padB = 50;
   const wPx = W - padL - padR, hPx = H - padT - padB;
-  const PX = (x) => padL + ((x - xMin) / (xMax - xMin)) * wPx;
-  const PY = (y) => H - padB - ((y - yMin) / (yMax - yMin)) * hPx;
+  const PX = (c)=>padL + (c/maxC) * wPx;
+  const PY = (a)=>H - padB - a * hPx;
 
-  // f(x,y) = x² + κy²; ∇f = (2x, 2κy); H = diag(2, 2κ)
-  const f = (x, y) => x*x + kappa*y*y;
-  const grad = (x, y) => [2*x, 2*kappa*y];
-  // Optimal step size for SD: α* = (gᵀg)/(gᵀHg) — exact line search
+  // Grid
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let a=0;a<=1;a+=0.1){ ctx.beginPath(); ctx.moveTo(padL, PY(a)); ctx.lineTo(W-padR, PY(a)); ctx.stroke(); }
+  for(let c=0;c<=maxC;c+=Math.max(1,Math.floor(maxC/10))){ ctx.beginPath(); ctx.moveTo(PX(c), padT); ctx.lineTo(PX(c), H-padB); ctx.stroke(); }
 
-  // Draw contour lines (axis-aligned ellipses)
-  const levels = [0.05, 0.2, 0.5, 1.0, 2.0, 4.0];
-  ctx.strokeStyle = 'rgba(168,85,247,.4)'; ctx.lineWidth = 1.2;
-  levels.forEach(L => {
-    const a = Math.sqrt(L), b = Math.sqrt(L/kappa);
-    ctx.beginPath();
-    for(let theta=0; theta<=2*Math.PI+0.01; theta+=0.04){
-      const px = a*Math.cos(theta);
-      const py = b*Math.sin(theta);
-      if(theta === 0) ctx.moveTo(PX(px), PY(py));
-      else ctx.lineTo(PX(px), PY(py));
-    }
-    ctx.stroke();
-  });
-
-  // Initial point: start far on long axis (worst case for SD)
-  const startX = 2, startY = 1;
-
-  // === Steepest Descent with exact line search ===
-  let x_sd = startX, y_sd = startY;
-  const traj_sd = [[x_sd, y_sd]];
-  for(let k=0; k<maxIter; k++){
-    const [gx, gy] = grad(x_sd, y_sd);
-    const gNorm = Math.sqrt(gx*gx + gy*gy);
-    if (gNorm < 1e-5) break;
-    // Exact line search: α* = (gᵀg) / (gᵀHg) where H = diag(2, 2κ)
-    // g·g = gx² + gy²; g·H·g = 2gx² + 2κgy²
-    const num = gx*gx + gy*gy;
-    const den = 2*gx*gx + 2*kappa*gy*gy;
-    const alpha = num / Math.max(den, 1e-9);
-    x_sd = x_sd - alpha * gx;
-    y_sd = y_sd - alpha * gy;
-    traj_sd.push([x_sd, y_sd]);
-    if (Math.abs(x_sd) < 1e-4 && Math.abs(y_sd) < 1e-4) break;
+  // Compute train/test accuracy curves
+  // Train: monotonically increases to 1.0 - small floor
+  // Test: U-shape inverted: rises to peak then drops as overfit kicks in
+  const trainAcc = [];
+  const testAcc = [];
+  for(let c=1;c<=maxC;c++){
+    const tA = 0.55 + 0.42*(1 - Math.exp(-c*0.35));
+    const peakC = Math.max(3, Math.round(8*(1-noise)));
+    const distFromPeak = (c-peakC)/Math.max(peakC,1);
+    const overfitPenalty = noise*1.2 * Math.max(0, distFromPeak)*Math.max(0, distFromPeak);
+    const sA = 0.50 + 0.40*(1 - Math.exp(-c*0.45)) - overfitPenalty - noise*0.05*c/maxC;
+    trainAcc.push(Math.max(0.45, Math.min(1, tA)));
+    testAcc.push(Math.max(0.30, Math.min(1, sA)));
   }
 
-  // === Newton's Method ===
-  let x_nt = startX, y_nt = startY;
-  const traj_nt = [[x_nt, y_nt]];
-  for(let k=0; k<maxIter; k++){
-    const [gx, gy] = grad(x_nt, y_nt);
-    if (Math.sqrt(gx*gx + gy*gy) < 1e-5) break;
-    // Newton: d = -H^{-1} g, with H = diag(2, 2κ): d = -(gx/2, gy/(2κ))
-    x_nt = x_nt - gx / 2;
-    y_nt = y_nt - gy / (2 * kappa);
-    traj_nt.push([x_nt, y_nt]);
-  }
+  // Underfit / good / overfit zones
+  const peakIdx = testAcc.indexOf(Math.max(...testAcc));
+  const peakC = peakIdx+1;
+  const underfitX = PX(Math.max(2, peakC-3)), goodX = PX(Math.min(maxC, peakC+3));
+  ctx.fillStyle = 'rgba(239,68,68,.07)'; ctx.fillRect(padL, padT, underfitX-padL, hPx);
+  ctx.fillStyle = 'rgba(34,197,94,.07)'; ctx.fillRect(underfitX, padT, goodX-underfitX, hPx);
+  ctx.fillStyle = 'rgba(249,115,22,.07)'; ctx.fillRect(goodX, padT, W-padR-goodX, hPx);
+  ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
+  ctx.fillText('underfit', padL+6, padT+12);
+  ctx.fillText('good fit', underfitX+8, padT+12);
+  ctx.fillText('overfit', goodX+6, padT+12);
 
-  // Draw SD trajectory (amber, zigzag)
-  ctx.strokeStyle = 'rgba(249,115,22,.9)'; ctx.lineWidth = 1.8;
-  ctx.shadowColor = 'rgba(249,115,22,.4)'; ctx.shadowBlur = 4;
+  // Draw train curve (cyan)
+  ctx.strokeStyle = '#0ea5e9'; ctx.lineWidth = 2.4; ctx.shadowColor = 'rgba(14,165,233,.4)'; ctx.shadowBlur = 4;
   ctx.beginPath();
-  traj_sd.forEach(([x,y], i) => {
-    if (i === 0) ctx.moveTo(PX(x), PY(y));
-    else ctx.lineTo(PX(x), PY(y));
-  });
+  trainAcc.forEach((a,i)=>{ if(i===0) ctx.moveTo(PX(i+1), PY(a)); else ctx.lineTo(PX(i+1), PY(a)); });
+  ctx.stroke();
+  // Test curve (orange)
+  ctx.strokeStyle = '#f97316'; ctx.shadowColor = 'rgba(249,115,22,.4)';
+  ctx.beginPath();
+  testAcc.forEach((a,i)=>{ if(i===0) ctx.moveTo(PX(i+1), PY(a)); else ctx.lineTo(PX(i+1), PY(a)); });
   ctx.stroke();
   ctx.shadowBlur = 0;
-  // SD markers
-  traj_sd.forEach(([x,y], i) => {
-    ctx.fillStyle = 'rgba(249,115,22,.85)';
-    ctx.beginPath(); ctx.arc(PX(x), PY(y), i === 0 ? 5 : 2.5, 0, 2*Math.PI); ctx.fill();
-  });
 
-  // Draw Newton trajectory (pink, direct)
-  ctx.strokeStyle = 'rgba(255,64,129,.95)'; ctx.lineWidth = 2.2;
-  ctx.shadowColor = 'rgba(255,64,129,.5)'; ctx.shadowBlur = 5;
-  ctx.beginPath();
-  traj_nt.forEach(([x,y], i) => {
-    if (i === 0) ctx.moveTo(PX(x), PY(y));
-    else ctx.lineTo(PX(x), PY(y));
-  });
-  ctx.stroke();
-  ctx.shadowBlur = 0;
-  // Newton markers
-  traj_nt.forEach(([x,y], i) => {
-    ctx.fillStyle = 'rgba(255,64,129,.9)';
-    ctx.beginPath(); ctx.arc(PX(x), PY(y), i === 0 ? 5 : 4, 0, 2*Math.PI); ctx.fill();
-  });
+  // Marker at current complexity
+  const curIdx = Math.min(cur-1, trainAcc.length-1);
+  const curTrain = trainAcc[curIdx], curTest = testAcc[curIdx];
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(PX(cur), padT); ctx.lineTo(PX(cur), H-padB); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#0ea5e9'; ctx.beginPath(); ctx.arc(PX(cur), PY(curTrain), 5, 0, 2*Math.PI); ctx.fill();
+  ctx.fillStyle = '#f97316'; ctx.beginPath(); ctx.arc(PX(cur), PY(curTest), 5, 0, 2*Math.PI); ctx.fill();
 
-  // Optimum (star)
-  ctx.fillStyle = '#fbbf24';
-  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.2;
-  _drawStarN(ctx, PX(0), PY(0), 5, 11, 5);
+  // Star at peak test
+  ctx.fillStyle = '#fbbf24'; ctx.strokeStyle='#000'; ctx.lineWidth=1.2;
+  _drawStarN(ctx, PX(peakC), PY(testAcc[peakIdx]), 5, 9, 4);
   ctx.fill(); ctx.stroke();
 
   // Axes
-  ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 1.2;
-  ctx.beginPath(); ctx.moveTo(PX(xMin), PY(0)); ctx.lineTo(PX(xMax), PY(0)); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(PX(0), PY(yMin)); ctx.lineTo(PX(0), PY(yMax)); ctx.stroke();
-  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '11px JetBrains Mono';
-  ctx.fillText('x', PX(xMax)+5, PY(0)+4);
-  ctx.fillText('y', PX(0)-15, PY(yMax)+10);
+  ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(padL, H-padB); ctx.lineTo(W-padR, H-padB); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, H-padB); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '10px JetBrains Mono';
+  for(let a=0;a<=1.0001;a+=0.2){ ctx.fillText(a.toFixed(1), padL-32, PY(a)+4); }
+  for(let c=0;c<=maxC;c+=Math.max(1,Math.floor(maxC/6))){ ctx.fillText(c, PX(c)-6, H-padB+14); }
+  ctx.fillText('complexity', W/2-30, H-12);
+  ctx.save(); ctx.translate(14, H/2); ctx.rotate(-Math.PI/2); ctx.fillText('accuracy', -25, 0); ctx.restore();
 
-  // Title
-  ctx.fillStyle = 'rgba(249,115,22,.95)'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText(`f(x,y) = x² + ${kappa.toFixed(1)}·y²  (κ = ${kappa.toFixed(1)})`, padL, padT-8);
-
-  // Legend
-  ctx.font = '10px JetBrains Mono';
-  ctx.fillStyle = 'rgba(249,115,22,.95)'; ctx.fillText(`● SD: ${traj_sd.length-1} iter`, PX(xMin)+5, PY(yMax)+22);
-  ctx.fillStyle = 'rgba(255,64,129,.95)'; ctx.fillText(`● Newton: ${traj_nt.length-1} iter`, PX(xMin)+5, PY(yMax)+34);
+  // Title + legend
+  ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText('● train', W-padR-180, padT-8);
+  ctx.fillStyle = '#f97316'; ctx.fillText('● test', W-padR-100, padT-8);
+  ctx.fillStyle = '#94a3b8'; ctx.fillText('★ best', W-padR-50, padT-8);
 
   // Update slider displays
-  document.getElementById('v_rs').textContent = kappa.toFixed(1);
-  document.getElementById('v_zs').textContent = maxIter;
+  document.getElementById('v_rs').textContent = maxC;
+  document.getElementById('v_zs').textContent = noise.toFixed(2);
 
-  // Info panel
   const info = document.getElementById('sweepInfo');
   if (info) {
-    const speedup = traj_nt.length > 1 ? ((traj_sd.length-1) / Math.max(traj_nt.length-1, 1)).toFixed(1) : '∞';
-    const conv_sd = Math.sqrt(x_sd*x_sd + y_sd*y_sd);
-    const conv_nt = Math.sqrt(x_nt*x_nt + y_nt*y_nt);
-    info.innerHTML = `κ=<strong>${kappa.toFixed(1)}</strong> · SD: <strong>${traj_sd.length-1}</strong> iter (final ‖x‖=${conv_sd.toExponential(2)}) · Newton: <strong>${traj_nt.length-1}</strong> iter (‖x‖=${conv_nt.toExponential(2)}) · Speedup Newton: <strong>${speedup}×</strong>`;
+    const gap = (curTrain - curTest);
+    let zone;
+    if (cur < peakC-2) zone = 'UNDERFIT';
+    else if (cur > peakC+2) zone = 'OVERFIT';
+    else zone = 'GOOD FIT';
+    info.innerHTML = `complexity=<strong>${cur}</strong>/${maxC} · train=<strong>${(curTrain*100).toFixed(1)}%</strong> · test=<strong>${(curTest*100).toFixed(1)}%</strong> · gap=${(gap*100).toFixed(1)}pp · best @ depth=${peakC} · zone: <strong>${zone}</strong>`;
   }
 }
 
@@ -4987,135 +4954,105 @@ function drawIso(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  // Read sliders
-  const x0 = parseFloat(document.getElementById('sl_ri').value);
-  const alpha = parseFloat(document.getElementById('sl_zi').value);
+  // Read sliders: ri = n_estimators idx (0..7), zi = max_depth (3..15)
+  const nIdx = Math.round(parseFloat(document.getElementById('sl_ri').value));
+  const dCur = Math.round(parseFloat(document.getElementById('sl_zi').value));
+  const nEstValues = [10, 20, 35, 50, 80, 120, 160, 200];          // 8 cols
+  const depthValues = [3,4,5,6,7,8,9,10,11,12,13,14,15];           // 13 rows
+  const nCols = nEstValues.length, nRows = depthValues.length;
 
-  // Plot region
-  const padL = 60, padR = 40, padT = 30, padB = 50;
-  const xMin = -3.5, xMax = 3.5, yMin = -15, yMax = 25;
+  // Layout
+  const padL = 70, padR = 90, padT = 30, padB = 45;
   const wPx = W - padL - padR, hPx = H - padT - padB;
-  const PX = (x) => padL + ((x - xMin) / (xMax - xMin)) * wPx;
-  const PY = (y) => H - padB - ((y - yMin) / (yMax - yMin)) * hPx;
+  const cellW = wPx/nCols, cellH = hPx/nRows;
 
-  // f(x) = x^4 − 8x² + 5; f'(x) = 4x³ − 16x = 4x(x² − 4)
-  const f = (x) => x*x*x*x - 8*x*x + 5;
-  const fp = (x) => 4*x*x*x - 16*x;
-
-  // Grid
-  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
-  for(let x = -3; x <= 3; x++){ ctx.beginPath(); ctx.moveTo(PX(x), PY(yMin)); ctx.lineTo(PX(x), PY(yMax)); ctx.stroke(); }
-  for(let y = -10; y <= 25; y += 5){ ctx.beginPath(); ctx.moveTo(PX(xMin), PY(y)); ctx.lineTo(PX(xMax), PY(y)); ctx.stroke(); }
-
-  // Draw f(x) curve
-  ctx.strokeStyle = 'rgba(168,85,247,.95)'; ctx.lineWidth = 2.4;
-  ctx.shadowColor = 'rgba(168,85,247,.3)'; ctx.shadowBlur = 4;
-  ctx.beginPath();
-  for(let xi = xMin; xi <= xMax; xi += 0.05){
-    const yi = f(xi);
-    if (xi === xMin) ctx.moveTo(PX(xi), PY(yi));
-    else ctx.lineTo(PX(xi), PY(yi));
-  }
-  ctx.stroke();
-  ctx.shadowBlur = 0;
-
-  // Mark optimum points: x = ±2 (global minima), x = 0 (local max)
-  const optima = [
-    { x: -2, label: 'global min (left)', isGlobal: true },
-    { x: 2, label: 'global min (right)', isGlobal: true },
-    { x: 0, label: 'local MAX', isGlobal: false }
-  ];
-  optima.forEach(o => {
-    const yo = f(o.x);
-    if (o.isGlobal) {
-      ctx.fillStyle = '#fbbf24';
-      ctx.strokeStyle = '#000'; ctx.lineWidth = 1.2;
-      _drawStarN(ctx, PX(o.x), PY(yo), 5, 10, 5);
-      ctx.fill(); ctx.stroke();
-    } else {
-      ctx.fillStyle = '#ef4444';
-      ctx.beginPath(); ctx.arc(PX(o.x), PY(yo), 5, 0, 2*Math.PI); ctx.fill();
-      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
+  // Generate accuracy grid (deterministic). Best ~ depth=8, n=120.
+  const grid = [];
+  let bestS = -1, bestI=0, bestJ=0;
+  for(let j=0;j<nRows;j++){
+    grid.push([]);
+    for(let i=0;i<nCols;i++){
+      const dDist = (depthValues[j]-8)/8;
+      const nDist = (Math.log(nEstValues[i])-Math.log(120))/Math.log(120);
+      const score = 0.86 - 0.18*dDist*dDist - 0.10*nDist*nDist
+                  + 0.012*Math.sin(i*1.7 + j*1.3);     // mild noise
+      grid[j].push(Math.max(0.55, Math.min(0.99, score)));
+      if (grid[j][i] > bestS){ bestS = grid[j][i]; bestI=i; bestJ=j; }
     }
-    ctx.fillStyle = o.isGlobal ? '#fbbf24' : '#ef4444';
-    ctx.font = 'bold 9px JetBrains Mono';
-    ctx.fillText(`x=${o.x}, f=${yo.toFixed(0)}`, PX(o.x)+8, PY(yo)+(o.isGlobal ? 14 : -10));
-  });
-
-  // Run gradient descent from x0
-  let xk = x0;
-  const trajectory = [xk];
-  for(let k=0; k<80; k++){
-    const g = fp(xk);
-    if (Math.abs(g) < 1e-4) break;
-    xk = xk - alpha * g;
-    if (Math.abs(xk) > 4) break;
-    trajectory.push(xk);
   }
 
-  // Draw trajectory: vertical bars descending
-  const animPhase = Math.min(1, _isoAnim.t * 0.3 / Math.max(trajectory.length, 1));
-  const showSteps = Math.floor(animPhase * trajectory.length);
+  // Viridis-ish color (low=dark purple, mid=teal/green, high=yellow)
+  const viridis = (t)=>{
+    t = Math.max(0, Math.min(1, t));
+    const r = Math.round(68 + t*(253-68));
+    const g = Math.round(1 + t*(231-1));
+    const b = Math.round(84 + t*(37-84));
+    return `rgb(${r},${g},${b})`;
+  };
 
-  // Connect trajectory points with gradient descent path
-  ctx.strokeStyle = 'rgba(14,165,233,.85)'; ctx.lineWidth = 1.6; ctx.setLineDash([4,3]);
-  ctx.beginPath();
-  trajectory.slice(0, Math.max(showSteps, 1)).forEach((xi, i) => {
-    if (i === 0) ctx.moveTo(PX(xi), PY(f(xi)));
-    else ctx.lineTo(PX(xi), PY(f(xi)));
-  });
-  ctx.stroke();
-  ctx.setLineDash([]);
+  // Draw heatmap cells
+  const minS = Math.min(...grid.flat()), maxS = Math.max(...grid.flat());
+  for(let j=0;j<nRows;j++){
+    for(let i=0;i<nCols;i++){
+      const t = (grid[j][i]-minS)/Math.max(1e-6, maxS-minS);
+      ctx.fillStyle = viridis(t);
+      ctx.fillRect(padL + i*cellW, padT + j*cellH, cellW-1, cellH-1);
+      // Cell text
+      ctx.fillStyle = t > 0.55 ? '#000' : '#e2e8f0';
+      ctx.font = '9px JetBrains Mono';
+      ctx.fillText(grid[j][i].toFixed(2), padL+i*cellW+cellW/2-12, padT+j*cellH+cellH/2+3);
+    }
+  }
 
-  // Markers along trajectory
-  trajectory.slice(0, Math.max(showSteps, 1)).forEach((xi, i) => {
-    const yi = f(xi);
-    ctx.fillStyle = i === 0 ? '#0ea5e9' : 'rgba(14,165,233,.7)';
-    const r = i === 0 ? 6 : 3;
-    ctx.beginPath(); ctx.arc(PX(xi), PY(yi), r, 0, 2*Math.PI); ctx.fill();
-  });
-  // Initial label
-  ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText('x₀', PX(x0)+8, PY(f(x0))-6);
+  // Mark best (gold star)
+  const bestX = padL + bestI*cellW + cellW/2;
+  const bestY = padT + bestJ*cellH + cellH/2;
+  ctx.fillStyle = '#fbbf24'; ctx.strokeStyle='#000'; ctx.lineWidth=1.5;
+  _drawStarN(ctx, bestX, bestY, 5, 9, 4);
+  ctx.fill(); ctx.stroke();
 
-  // Current marker (pulse)
-  const finalX = trajectory[Math.max(showSteps-1, 0)];
-  const pulse = 1 + 0.2*Math.sin(_isoAnim.t * 4);
-  ctx.fillStyle = '#fbbf24';
-  ctx.beginPath(); ctx.arc(PX(finalX), PY(f(finalX)), 6*pulse, 0, 2*Math.PI); ctx.fill();
-  ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.stroke();
+  // Mark current selection (white box) — clamp depth to row
+  const curJ = depthValues.indexOf(dCur);
+  if (curJ >= 0){
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.5;
+    ctx.strokeRect(padL + nIdx*cellW, padT + curJ*cellH, cellW-1, cellH-1);
+  }
 
-  // Axes
-  ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 1.2;
-  ctx.beginPath(); ctx.moveTo(PX(xMin), PY(0)); ctx.lineTo(PX(xMax), PY(0)); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(PX(0), PY(yMin)); ctx.lineTo(PX(0), PY(yMax)); ctx.stroke();
-  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '11px JetBrains Mono';
-  ctx.fillText('x', PX(xMax)+5, PY(0)+4);
-  ctx.fillText('f(x)', PX(0)-30, PY(yMax)+10);
+  // Axis labels
+  ctx.fillStyle = '#94a3b8'; ctx.font = '9px JetBrains Mono';
+  for(let i=0;i<nCols;i++) ctx.fillText(nEstValues[i], padL+i*cellW+cellW/2-12, H-padB+14);
+  for(let j=0;j<nRows;j++) ctx.fillText(depthValues[j], padL-22, padT+j*cellH+cellH/2+4);
+  ctx.fillStyle = '#cbd5e1'; ctx.font = 'bold 10px JetBrains Mono';
+  ctx.fillText('n_estimators →', W/2-50, H-12);
+  ctx.save(); ctx.translate(14, H/2); ctx.rotate(-Math.PI/2); ctx.fillText('max_depth →', -40, 0); ctx.restore();
 
-  // Tick labels
-  ctx.font = '9px JetBrains Mono'; ctx.fillStyle = 'rgba(255,255,255,.5)';
-  for(let x = -3; x <= 3; x++) if (x !== 0) ctx.fillText(x, PX(x)-5, PY(0)+14);
-  for(let y = -10; y <= 25; y += 10) if (y !== 0) ctx.fillText(y, PX(0)-22, PY(y)+4);
+  // Color bar legend
+  const cbX = W - padR + 14, cbW = 18, cbH = hPx;
+  for(let k=0;k<cbH;k++){
+    const t = 1 - k/cbH;
+    ctx.fillStyle = viridis(t);
+    ctx.fillRect(cbX, padT+k, cbW, 1);
+  }
+  ctx.strokeStyle = '#475569'; ctx.lineWidth=1; ctx.strokeRect(cbX, padT, cbW, cbH);
+  ctx.fillStyle = '#94a3b8'; ctx.font = '9px JetBrains Mono';
+  ctx.fillText(maxS.toFixed(2), cbX+cbW+4, padT+8);
+  ctx.fillText(minS.toFixed(2), cbX+cbW+4, padT+cbH);
+  ctx.fillText('CV acc', cbX-2, padT-8);
 
   // Title
-  ctx.fillStyle = 'rgba(168,85,247,.95)'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText('f(x) = x⁴ − 8x² + 5  (non-konveks)', padL, padT-10);
+  ctx.fillStyle = '#a855f7'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText('GridSearchCV — RandomForest (n_estimators × max_depth)', padL, padT-10);
 
   // Update slider displays
-  document.getElementById('v_ri').textContent = x0.toFixed(1);
-  document.getElementById('v_zi').textContent = alpha.toFixed(2);
+  document.getElementById('v_ri').textContent = `${nIdx} (n=${nEstValues[nIdx]})`;
+  document.getElementById('v_zi').textContent = dCur;
 
-  // Info panel
   const info = document.getElementById('isoInfo');
-  if (info) {
-    const finalF = f(finalX);
-    let conv;
-    if (Math.abs(finalX - 2) < 0.1) conv = '🟢 Global min KANAN (x = 2, f = -11)';
-    else if (Math.abs(finalX + 2) < 0.1) conv = '🟢 Global min KIRI (x = -2, f = -11)';
-    else if (Math.abs(finalX) < 0.1) conv = '🔴 STUCK di local MAX (saddle-like)!';
-    else conv = `🟡 Belum konvergen (x=${finalX.toFixed(2)})`;
-    info.innerHTML = `x₀=<strong>${x0.toFixed(1)}</strong>, α=${alpha.toFixed(2)} · ${trajectory.length-1} iter · x_final=<strong>${finalX.toFixed(3)}</strong>, f=<strong>${finalF.toFixed(2)}</strong> · ${conv}`;
+  if (info){
+    const curScore = (curJ>=0) ? grid[curJ][nIdx] : null;
+    const bestN = nEstValues[bestI], bestD = depthValues[bestJ];
+    const curStr = curScore!==null ? `${(curScore*100).toFixed(2)}%` : 'N/A';
+    info.innerHTML = `current cell (n=${nEstValues[nIdx]}, depth=${dCur}) acc=<strong>${curStr}</strong> · BEST: n_estimators=<strong>${bestN}</strong>, max_depth=<strong>${bestD}</strong> → acc=<strong>${(bestS*100).toFixed(2)}%</strong> · grid=${nCols}×${nRows}=${nCols*nRows} fits`;
   }
 }
 
@@ -5156,189 +5093,121 @@ function drawHPB(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  // Read slider
-  const r = parseFloat(document.getElementById('sl_rh').value);
+  // Read slider: rh = decision threshold (0..1)
+  const thr = parseFloat(document.getElementById('sl_rh').value);
 
-  // Layout: top = contour + constraint, bottom = multiplier bar
-  const topY = 25, topH = H * 0.7;
-  const botY = topY + topH + 20, botH = H - botY - 30;
+  // Plot region (square ROC)
+  const padL = 70, padR = 200, padT = 30, padB = 50;
+  const wPx = W - padL - padR, hPx = H - padT - padB;
+  const side = Math.min(wPx, hPx);
+  const PX = (f)=>padL + f*side;
+  const PY = (t)=>padT + (1-t)*side;
 
-  // === TOP: 2D contour + constraint ===
-  const padL = 50, padR = 30, padT = 0;
-  const xMin = -3, xMax = 4, yMin = -2.5, yMax = 3;
-  const wPx = W - padL - padR, plotH = topH;
-  const PX = (x) => padL + ((x - xMin) / (xMax - xMin)) * wPx;
-  const PY = (y) => topY + plotH - ((y - yMin) / (yMax - yMin)) * plotH;
-
-  // f(x,y) = (x−2)² + (y−1.5)²; ∇f = (2(x−2), 2(y−1.5))
-  // g(x,y) = x²+y² − r² ≤ 0; ∇g = (2x, 2y)
-  // KKT: ∇f + μ∇g = 0 → at optimum, gradients parallel
-
-  // Find optimum (analytic — projection of (2, 1.5) onto disk of radius r)
-  const u_unconstr = [2, 1.5];
-  const u_norm = Math.sqrt(u_unconstr[0]*u_unconstr[0] + u_unconstr[1]*u_unconstr[1]);
-  let optV, mu;
-  if (u_norm <= r) {
-    // Constraint inactive: optimum at unconstrained point
-    optV = u_unconstr.slice();
-    mu = 0;
-  } else {
-    // Constraint active: project to boundary
-    optV = [u_unconstr[0] / u_norm * r, u_unconstr[1] / u_norm * r];
-    // From KKT: ∇f = −μ·∇g → 2(x*−2) = −μ·2x* → μ = (2 − x*)/x*
-    mu = (u_unconstr[0] - optV[0]) / optV[0];
+  // Axes grid
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
+  for(let v=0;v<=1.001;v+=0.1){
+    ctx.beginPath(); ctx.moveTo(PX(0), PY(v)); ctx.lineTo(PX(1), PY(v)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(PX(v), PY(0)); ctx.lineTo(PX(v), PY(1)); ctx.stroke();
   }
 
-  // Draw contour lines of f
-  const levels = [0.2, 0.5, 1.0, 2.0, 4.0, 8.0];
-  ctx.strokeStyle = 'rgba(14,165,233,.45)'; ctx.lineWidth = 1.2;
-  levels.forEach(L => {
-    const a = Math.sqrt(L);
-    ctx.beginPath();
-    for(let theta=0; theta<=2*Math.PI+0.01; theta+=0.04){
-      const px = u_unconstr[0] + a*Math.cos(theta);
-      const py = u_unconstr[1] + a*Math.sin(theta);
-      if(theta === 0) ctx.moveTo(PX(px), PY(py));
-      else ctx.lineTo(PX(px), PY(py));
+  // Diagonal random classifier line
+  ctx.strokeStyle = 'rgba(148,163,184,.6)'; ctx.lineWidth = 1.5; ctx.setLineDash([5,4]);
+  ctx.beginPath(); ctx.moveTo(PX(0), PY(0)); ctx.lineTo(PX(1), PY(1)); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // ROC parametric curves: TPR(t) = 1 - (1-t)^k, FPR(t) = (1-t)^q for threshold sweep
+  // higher k/q gap → better model (curve hugs top-left). t goes 0..1
+  const models = [
+    { name:'Logistic', color:'#0ea5e9', k:1.4,  q:0.55 },
+    { name:'RandomForest', color:'#fbbf24', k:2.6, q:0.35 },
+    { name:'SVM RBF', color:'#a855f7', k:3.5, q:0.22 }
+  ];
+
+  // Build curves and AUC (trapezoidal)
+  models.forEach(m=>{
+    m.curve = [];
+    for(let i=0;i<=200;i++){
+      const t = i/200;
+      const tpr = 1 - Math.pow(1-t, m.k);
+      const fpr = Math.pow(1-t, 1/m.q);
+      m.curve.push([fpr, tpr]);
     }
-    ctx.stroke();
+    // AUC via trapezoid (sort by FPR ascending)
+    const srt = [...m.curve].sort((a,b)=>a[0]-b[0]);
+    let auc = 0;
+    for(let i=1;i<srt.length;i++){
+      auc += (srt[i][0]-srt[i-1][0]) * (srt[i][1]+srt[i-1][1])/2;
+    }
+    m.auc = Math.max(0, Math.min(1, auc));
+    // Operating point at threshold thr
+    const tprT = 1 - Math.pow(thr, m.k);
+    const fprT = Math.pow(thr, 1/m.q);
+    m.opPoint = [fprT, tprT];
   });
 
-  // Draw constraint disk (filled — feasible region)
-  ctx.fillStyle = 'rgba(168,85,247,.12)';
-  ctx.beginPath();
-  ctx.arc(PX(0), PY(0), r * (PX(1) - PX(0)), 0, 2*Math.PI);
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(249,115,22,.85)'; ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.arc(PX(0), PY(0), r * (PX(1) - PX(0)), 0, 2*Math.PI);
-  ctx.stroke();
-
-  // Unconstrained optimum (cross marker if not inside)
-  if (mu > 0) {
-    ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 1.2; ctx.setLineDash([3,3]);
+  // Draw each ROC curve
+  models.forEach(m=>{
+    ctx.strokeStyle = m.color; ctx.lineWidth = 2.4;
+    ctx.shadowColor = m.color+'66'; ctx.shadowBlur = 4;
     ctx.beginPath();
-    ctx.moveTo(PX(u_unconstr[0])-7, PY(u_unconstr[1]));
-    ctx.lineTo(PX(u_unconstr[0])+7, PY(u_unconstr[1]));
-    ctx.moveTo(PX(u_unconstr[0]), PY(u_unconstr[1])-7);
-    ctx.lineTo(PX(u_unconstr[0]), PY(u_unconstr[1])+7);
+    m.curve.forEach((p,i)=>{ if(i===0) ctx.moveTo(PX(p[0]), PY(p[1])); else ctx.lineTo(PX(p[0]), PY(p[1])); });
     ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.font = '9px JetBrains Mono';
-    ctx.fillText('unconstrained', PX(u_unconstr[0])+10, PY(u_unconstr[1])-6);
+    ctx.shadowBlur = 0;
+  });
+
+  // Operating-point markers (animated as threshold slides)
+  models.forEach(m=>{
+    ctx.fillStyle = m.color; ctx.strokeStyle='#fff'; ctx.lineWidth=1.5;
+    const pulse = 1 + 0.15*Math.sin(_hpbAnim.t*3);
+    ctx.beginPath(); ctx.arc(PX(m.opPoint[0]), PY(m.opPoint[1]), 6*pulse, 0, 2*Math.PI); ctx.fill(); ctx.stroke();
+  });
+
+  // Axes labels
+  ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(PX(0), PY(0)); ctx.lineTo(PX(1), PY(0)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(PX(0), PY(0)); ctx.lineTo(PX(0), PY(1)); ctx.stroke();
+  ctx.fillStyle = '#cbd5e1'; ctx.font = '10px JetBrains Mono';
+  for(let v=0;v<=1.001;v+=0.2){
+    ctx.fillText(v.toFixed(1), PX(v)-8, PY(0)+14);
+    ctx.fillText(v.toFixed(1), padL-30, PY(v)+4);
   }
-
-  // Constrained optimum (star)
-  ctx.fillStyle = '#fbbf24';
-  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.2;
-  _drawStarN(ctx, PX(optV[0]), PY(optV[1]), 5, 12, 5);
-  ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText(`x* = (${optV[0].toFixed(2)}, ${optV[1].toFixed(2)})`, PX(optV[0])+15, PY(optV[1])-10);
-
-  // Draw gradients at optimum (∇f purple, ∇g amber)
-  if (mu > 0) {
-    const gradF = [2*(optV[0]-2), 2*(optV[1]-1.5)];
-    const gradG = [2*optV[0], 2*optV[1]];
-    const fNorm = Math.sqrt(gradF[0]**2 + gradF[1]**2);
-    const gNorm = Math.sqrt(gradG[0]**2 + gradG[1]**2);
-    const arrLen = 60;
-    // ∇f (purple)
-    ctx.strokeStyle = 'rgba(168,85,247,.9)'; ctx.lineWidth = 2.4;
-    ctx.beginPath();
-    ctx.moveTo(PX(optV[0]), PY(optV[1]));
-    const fdx = gradF[0]/fNorm * arrLen, fdy = -gradF[1]/fNorm * arrLen;
-    ctx.lineTo(PX(optV[0]) + fdx, PY(optV[1]) + fdy);
-    ctx.stroke();
-    // Arrow head
-    ctx.fillStyle = 'rgba(168,85,247,.9)';
-    const fAng = Math.atan2(fdy, fdx);
-    ctx.beginPath();
-    ctx.moveTo(PX(optV[0])+fdx, PY(optV[1])+fdy);
-    ctx.lineTo(PX(optV[0])+fdx - 10*Math.cos(fAng-0.4), PY(optV[1])+fdy - 10*Math.sin(fAng-0.4));
-    ctx.lineTo(PX(optV[0])+fdx - 10*Math.cos(fAng+0.4), PY(optV[1])+fdy - 10*Math.sin(fAng+0.4));
-    ctx.closePath(); ctx.fill();
-    ctx.font = '11px JetBrains Mono';
-    ctx.fillText('∇f', PX(optV[0])+fdx+5, PY(optV[1])+fdy+4);
-
-    // ∇g (amber)
-    ctx.strokeStyle = 'rgba(249,115,22,.9)'; ctx.lineWidth = 2.4;
-    ctx.beginPath();
-    ctx.moveTo(PX(optV[0]), PY(optV[1]));
-    const gdx = gradG[0]/gNorm * arrLen, gdy = -gradG[1]/gNorm * arrLen;
-    ctx.lineTo(PX(optV[0]) + gdx, PY(optV[1]) + gdy);
-    ctx.stroke();
-    ctx.fillStyle = 'rgba(249,115,22,.9)';
-    const gAng = Math.atan2(gdy, gdx);
-    ctx.beginPath();
-    ctx.moveTo(PX(optV[0])+gdx, PY(optV[1])+gdy);
-    ctx.lineTo(PX(optV[0])+gdx - 10*Math.cos(gAng-0.4), PY(optV[1])+gdy - 10*Math.sin(gAng-0.4));
-    ctx.lineTo(PX(optV[0])+gdx - 10*Math.cos(gAng+0.4), PY(optV[1])+gdy - 10*Math.sin(gAng+0.4));
-    ctx.closePath(); ctx.fill();
-    ctx.fillText('∇g', PX(optV[0])+gdx+5, PY(optV[1])+gdy+4);
-  }
-
-  // Origin & axes
-  ctx.fillStyle = 'rgba(255,255,255,.4)';
-  ctx.beginPath(); ctx.arc(PX(0), PY(0), 2, 0, 2*Math.PI); ctx.fill();
-  ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 1.2;
-  ctx.beginPath(); ctx.moveTo(PX(xMin), PY(0)); ctx.lineTo(PX(xMax), PY(0)); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(PX(0), PY(yMin)); ctx.lineTo(PX(0), PY(yMax)); ctx.stroke();
-  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '11px JetBrains Mono';
-  ctx.fillText('x', PX(xMax)+5, PY(0)+4);
-  ctx.fillText('y', PX(0)-15, PY(yMax)+10);
+  ctx.fillStyle = '#cbd5e1'; ctx.font = 'bold 10px JetBrains Mono';
+  ctx.fillText('FPR (1 − specificity) →', PX(0.4), PY(0)+30);
+  ctx.save(); ctx.translate(20, PY(0.5)); ctx.rotate(-Math.PI/2); ctx.fillText('TPR (recall) →', -40, 0); ctx.restore();
 
   // Title
-  ctx.fillStyle = 'rgba(168,85,247,.95)'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText(`min (x−2)²+(y−1.5)² s.t. x²+y² ≤ r²  · r=${r.toFixed(2)}`, padL, topY-8);
+  ctx.fillStyle = '#22c55e'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText('ROC Curve & AUC — 3-Model Comparison', padL, padT-10);
 
-  // === BOTTOM: μ bar chart ===
-  const barAreaX = padL, barAreaW = W - padL - padR;
-  ctx.fillStyle = 'rgba(168,85,247,.95)'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText('Lagrange Multiplier μ (≥ 0)', barAreaX, botY - 8);
+  // Legend panel (right side)
+  const legX = padL + side + 20, legY = padT + 10;
+  ctx.fillStyle = 'rgba(15,23,42,.7)';
+  ctx.fillRect(legX-8, legY-18, 175, 22 + models.length*26);
+  ctx.strokeStyle = '#334155'; ctx.lineWidth = 1; ctx.strokeRect(legX-8, legY-18, 175, 22+models.length*26);
+  ctx.fillStyle = '#cbd5e1'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText('Model — AUC', legX, legY-2);
+  models.forEach((m,i)=>{
+    const ly = legY + 18 + i*26;
+    ctx.fillStyle = m.color;
+    ctx.beginPath(); ctx.arc(legX+6, ly-4, 5, 0, 2*Math.PI); ctx.fill();
+    ctx.fillStyle = m.color; ctx.font = 'bold 11px JetBrains Mono';
+    ctx.fillText(m.name, legX+18, ly);
+    ctx.fillStyle = '#e2e8f0'; ctx.font = '10px JetBrains Mono';
+    ctx.fillText(`AUC=${m.auc.toFixed(3)}  TPR=${m.opPoint[1].toFixed(2)}  FPR=${m.opPoint[0].toFixed(2)}`, legX+6, ly+12);
+  });
 
-  // Single bar for μ
-  const barX = barAreaX + 20;
-  const barW = 160;
-  const muMax = 3;  // Y-axis max
-  const bh = (Math.min(mu, muMax) / muMax) * (botH - 30);
-  const by = botY + botH - 18 - bh;
-
-  const isBinding = mu > 0.01;
-  const color = isBinding ? 'rgba(255,64,129,.9)' : 'rgba(14,165,233,.7)';
-  const fillCol = isBinding ? 'rgba(255,64,129,.4)' : 'rgba(14,165,233,.3)';
-
-  ctx.fillStyle = fillCol;
-  ctx.fillRect(barX, by, barW, bh);
-  ctx.strokeStyle = color; ctx.lineWidth = 2;
-  ctx.strokeRect(barX, by, barW, bh);
-  ctx.fillStyle = color; ctx.font = 'bold 13px JetBrains Mono';
-  ctx.fillText(`μ = ${mu.toFixed(3)}`, barX + barW/2 - 35, by - 6);
-
-  // Status label
-  ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillStyle = isBinding ? '#ff4081' : '#0ea5e9';
-  ctx.fillText(isBinding ? 'CONSTRAINT ACTIVE (binding)' : 'CONSTRAINT INACTIVE (slack)', barX + barW + 20, by + bh/2 + 5);
-
-  // Complementary slackness equation
+  // Threshold display
   ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
-  const gValue = optV[0]*optV[0] + optV[1]*optV[1] - r*r;
-  ctx.fillText(`Complementary slackness: μ · g(x*) = ${mu.toFixed(3)} × ${gValue.toFixed(3)} = ${(mu * gValue).toFixed(3)} ≈ 0 ✓`, barX, botY + botH + 4);
+  ctx.fillText(`threshold = ${thr.toFixed(2)}`, legX, legY + 18 + models.length*26 + 6);
 
   // Update slider display
-  document.getElementById('v_rh').textContent = r.toFixed(2);
+  document.getElementById('v_rh').textContent = thr.toFixed(2);
 
-  // Info panel
   const info = document.getElementById('hpbInfo');
-  if (info) {
-    const fStar = (optV[0]-2)*(optV[0]-2) + (optV[1]-1.5)*(optV[1]-1.5);
-    let kktStatus;
-    if (mu === 0) {
-      kktStatus = `🔵 Constraint INACTIVE → unconstrained optimum (μ = 0). r ≥ ${u_norm.toFixed(2)} cukup.`;
-    } else {
-      kktStatus = `🔴 Constraint ACTIVE → x* di boundary, ∇f & ∇g paralel (μ = ${mu.toFixed(2)} &gt; 0)`;
-    }
-    info.innerHTML = `r=<strong>${r.toFixed(2)}</strong> · x*=(${optV[0].toFixed(2)}, ${optV[1].toFixed(2)}) · f*=<strong>${fStar.toFixed(3)}</strong> · μ=<strong>${mu.toFixed(3)}</strong> · ${kktStatus}`;
+  if (info){
+    const best = models.reduce((a,b)=>a.auc>b.auc?a:b);
+    const parts = models.map(m=>`${m.name}(AUC=${m.auc.toFixed(3)}, TPR=${m.opPoint[1].toFixed(2)}, FPR=${m.opPoint[0].toFixed(2)})`).join(' · ');
+    info.innerHTML = `threshold=<strong>${thr.toFixed(2)}</strong> · ${parts} · BEST: <strong>${best.name}</strong>`;
   }
 }
 

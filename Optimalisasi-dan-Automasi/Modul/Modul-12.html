@@ -5097,135 +5097,134 @@ function drawIso(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  // Read sliders
-  const x0 = parseFloat(document.getElementById('sl_ri').value);
-  const alpha = parseFloat(document.getElementById('sl_zi').value);
+  // Sliders: T1 (warn→alert) 1..30s, T2 (alert→critical) 5..60s
+  const T1 = parseFloat(document.getElementById('sl_ri').value);
+  const T2 = parseFloat(document.getElementById('sl_zi').value);
 
-  // Plot region
-  const padL = 60, padR = 40, padT = 30, padB = 50;
-  const xMin = -3.5, xMax = 3.5, yMin = -15, yMax = 25;
-  const wPx = W - padL - padR, hPx = H - padT - padB;
-  const PX = (x) => padL + ((x - xMin) / (xMax - xMin)) * wPx;
-  const PY = (y) => H - padB - ((y - yMin) / (yMax - yMin)) * hPx;
+  // Layout: top = signal trace; mid = tier ribbon; bottom = persistence pills + playhead
+  const padL = 60, padR = 30;
+  const sigY0 = 32, sigY1 = 145;
+  const ribY0 = 158, ribY1 = 200;
+  const pillY = 230;
 
-  // f(x) = x^4 − 8x² + 5; f'(x) = 4x³ − 16x = 4x(x² − 4)
-  const f = (x) => x*x*x*x - 8*x*x + 5;
-  const fp = (x) => 4*x*x*x - 16*x;
+  // Time window 0..60s, animated playhead
+  const Twin = 60;
+  const tNow = (_isoAnim.t * 6) % Twin;
+  const tPx = (t) => padL + (t / Twin) * (W - padL - padR);
 
-  // Grid
-  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
-  for(let x = -3; x <= 3; x++){ ctx.beginPath(); ctx.moveTo(PX(x), PY(yMin)); ctx.lineTo(PX(x), PY(yMax)); ctx.stroke(); }
-  for(let y = -10; y <= 25; y += 5){ ctx.beginPath(); ctx.moveTo(PX(xMin), PY(y)); ctx.lineTo(PX(xMax), PY(y)); ctx.stroke(); }
+  // Synthetic process signal: ramp-up then plateau above threshold then decay
+  const TH = 0.55;
+  const sigAt = (t) => {
+    const phase = (t / Twin);
+    let v = 0.18 + 0.06 * Math.sin(t * 0.7);
+    // Sustained breach starting at t≈10s
+    if (t > 10) v += 0.55 * Math.min(1, (t - 10) / 4);
+    if (t > 38) v -= 0.5 * Math.min(1, (t - 38) / 6);
+    // Light noise
+    v += 0.04 * Math.sin(t * 3.7) + 0.03 * Math.sin(t * 11.1);
+    return Math.max(0, Math.min(1, v));
+  };
 
-  // Draw f(x) curve
-  ctx.strokeStyle = 'rgba(168,85,247,.95)'; ctx.lineWidth = 2.4;
-  ctx.shadowColor = 'rgba(168,85,247,.3)'; ctx.shadowBlur = 4;
+  // Compute current state by walking from t=0 → tNow with persistence accumulator
+  // state: 0=Normal, 1=Warn, 2=Alert, 3=Critical
+  const dt = 0.2;
+  let aboveTime = 0; let state = 0; let stateEnter = 0;
+  for(let tt=0; tt<=tNow; tt+=dt){
+    const v = sigAt(tt);
+    if (v > TH) aboveTime += dt; else aboveTime = 0;
+    let newState = 0;
+    if (aboveTime > 0) newState = 1;
+    if (aboveTime >= T1) newState = 2;
+    if (aboveTime >= T1 + T2) newState = 3;
+    if (newState !== state) { state = newState; stateEnter = tt; }
+  }
+  const timeInState = Math.max(0, tNow - stateEnter);
+
+  // === SIGNAL band ===
+  ctx.fillStyle = 'rgba(255,255,255,.025)'; ctx.fillRect(padL, sigY0, W - padL - padR, sigY1 - sigY0);
+  ctx.strokeStyle = 'rgba(255,255,255,.08)'; ctx.lineWidth = 1; ctx.strokeRect(padL, sigY0, W - padL - padR, sigY1 - sigY0);
+  // threshold line
+  const yTh = sigY1 - TH * (sigY1 - sigY0);
+  ctx.strokeStyle = 'rgba(249,115,22,.7)'; ctx.lineWidth = 1.2; ctx.setLineDash([5,4]);
+  ctx.beginPath(); ctx.moveTo(padL, yTh); ctx.lineTo(W - padR, yTh); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(249,115,22,.85)'; ctx.font = '9px JetBrains Mono'; ctx.fillText('TH=' + TH.toFixed(2), W - padR - 50, yTh - 3);
+  // signal trace
+  ctx.strokeStyle = 'rgba(14,165,233,.95)'; ctx.lineWidth = 1.8;
   ctx.beginPath();
-  for(let xi = xMin; xi <= xMax; xi += 0.05){
-    const yi = f(xi);
-    if (xi === xMin) ctx.moveTo(PX(xi), PY(yi));
-    else ctx.lineTo(PX(xi), PY(yi));
+  for(let tt=0; tt<=Twin; tt+=0.3){
+    const v = sigAt(tt);
+    const xp = tPx(tt), yp = sigY1 - v * (sigY1 - sigY0);
+    if (tt === 0) ctx.moveTo(xp, yp); else ctx.lineTo(xp, yp);
   }
   ctx.stroke();
-  ctx.shadowBlur = 0;
+  ctx.fillStyle = 'rgba(14,165,233,.95)'; ctx.font = 'bold 10px JetBrains Mono';
+  ctx.fillText('signal', padL + 6, sigY0 + 12);
 
-  // Mark optimum points: x = ±2 (global minima), x = 0 (local max)
-  const optima = [
-    { x: -2, label: 'global min (left)', isGlobal: true },
-    { x: 2, label: 'global min (right)', isGlobal: true },
-    { x: 0, label: 'local MAX', isGlobal: false }
-  ];
-  optima.forEach(o => {
-    const yo = f(o.x);
-    if (o.isGlobal) {
-      ctx.fillStyle = '#fbbf24';
-      ctx.strokeStyle = '#000'; ctx.lineWidth = 1.2;
-      _drawStarN(ctx, PX(o.x), PY(yo), 5, 10, 5);
-      ctx.fill(); ctx.stroke();
-    } else {
-      ctx.fillStyle = '#ef4444';
-      ctx.beginPath(); ctx.arc(PX(o.x), PY(yo), 5, 0, 2*Math.PI); ctx.fill();
-      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
+  // === TIER ribbon ===
+  // Walk through window and color each segment by computed state
+  ctx.fillStyle = 'rgba(255,255,255,.025)'; ctx.fillRect(padL, ribY0, W - padL - padR, ribY1 - ribY0);
+  let aT = 0, sT = 0;
+  const cols = ['rgba(34,197,94,.55)','rgba(234,179,8,.85)','rgba(249,115,22,.9)','rgba(239,68,68,.95)'];
+  const names = ['NORMAL','WARN','ALERT','CRITICAL'];
+  let segStart = 0, segState = 0;
+  for(let tt=0; tt<=Twin + dt; tt+=dt){
+    const v = (tt <= Twin) ? sigAt(tt) : 0;
+    if (v > TH) aT += dt; else aT = 0;
+    let s = 0;
+    if (aT > 0) s = 1;
+    if (aT >= T1) s = 2;
+    if (aT >= T1 + T2) s = 3;
+    if (s !== segState || tt > Twin) {
+      const x0 = tPx(segStart), x1 = tPx(Math.min(tt, Twin));
+      ctx.fillStyle = cols[segState];
+      ctx.fillRect(x0, ribY0 + 2, x1 - x0, ribY1 - ribY0 - 4);
+      segStart = tt; segState = s;
     }
-    ctx.fillStyle = o.isGlobal ? '#fbbf24' : '#ef4444';
-    ctx.font = 'bold 9px JetBrains Mono';
-    ctx.fillText(`x=${o.x}, f=${yo.toFixed(0)}`, PX(o.x)+8, PY(yo)+(o.isGlobal ? 14 : -10));
-  });
-
-  // Run gradient descent from x0
-  let xk = x0;
-  const trajectory = [xk];
-  for(let k=0; k<80; k++){
-    const g = fp(xk);
-    if (Math.abs(g) < 1e-4) break;
-    xk = xk - alpha * g;
-    if (Math.abs(xk) > 4) break;
-    trajectory.push(xk);
   }
+  ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.lineWidth = 1; ctx.strokeRect(padL, ribY0, W - padL - padR, ribY1 - ribY0);
 
-  // Draw trajectory: vertical bars descending
-  const animPhase = Math.min(1, _isoAnim.t * 0.3 / Math.max(trajectory.length, 1));
-  const showSteps = Math.floor(animPhase * trajectory.length);
+  // Playhead vertical line
+  ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(tPx(tNow), sigY0 - 4); ctx.lineTo(tPx(tNow), ribY1 + 4); ctx.stroke();
 
-  // Connect trajectory points with gradient descent path
-  ctx.strokeStyle = 'rgba(14,165,233,.85)'; ctx.lineWidth = 1.6; ctx.setLineDash([4,3]);
-  ctx.beginPath();
-  trajectory.slice(0, Math.max(showSteps, 1)).forEach((xi, i) => {
-    if (i === 0) ctx.moveTo(PX(xi), PY(f(xi)));
-    else ctx.lineTo(PX(xi), PY(f(xi)));
+  // === Tier pills + threshold markers T1, T2 ===
+  ['NORMAL','WARN','ALERT','CRITICAL'].forEach((nm, i) => {
+    const px = padL + i * 110;
+    const active = (i === state);
+    ctx.fillStyle = active ? cols[i] : 'rgba(255,255,255,.06)';
+    ctx.fillRect(px, pillY, 100, 26);
+    ctx.strokeStyle = active ? '#fff' : 'rgba(255,255,255,.2)'; ctx.lineWidth = active ? 1.5 : 1;
+    ctx.strokeRect(px, pillY, 100, 26);
+    ctx.fillStyle = active ? '#000' : 'rgba(255,255,255,.6)';
+    ctx.font = 'bold 10px JetBrains Mono';
+    ctx.fillText(nm, px + 8, pillY + 17);
   });
-  ctx.stroke();
-  ctx.setLineDash([]);
+  // T1 / T2 annotations
+  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '9px JetBrains Mono';
+  ctx.fillText('T1=' + T1.toFixed(0) + 's', padL + 110 + 5, pillY + 38);
+  ctx.fillText('T2=' + T2.toFixed(0) + 's', padL + 220 + 5, pillY + 38);
 
-  // Markers along trajectory
-  trajectory.slice(0, Math.max(showSteps, 1)).forEach((xi, i) => {
-    const yi = f(xi);
-    ctx.fillStyle = i === 0 ? '#0ea5e9' : 'rgba(14,165,233,.7)';
-    const r = i === 0 ? 6 : 3;
-    ctx.beginPath(); ctx.arc(PX(xi), PY(yi), r, 0, 2*Math.PI); ctx.fill();
-  });
-  // Initial label
-  ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText('x₀', PX(x0)+8, PY(f(x0))-6);
-
-  // Current marker (pulse)
-  const finalX = trajectory[Math.max(showSteps-1, 0)];
-  const pulse = 1 + 0.2*Math.sin(_isoAnim.t * 4);
-  ctx.fillStyle = '#fbbf24';
-  ctx.beginPath(); ctx.arc(PX(finalX), PY(f(finalX)), 6*pulse, 0, 2*Math.PI); ctx.fill();
-  ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.stroke();
-
-  // Axes
-  ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 1.2;
-  ctx.beginPath(); ctx.moveTo(PX(xMin), PY(0)); ctx.lineTo(PX(xMax), PY(0)); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(PX(0), PY(yMin)); ctx.lineTo(PX(0), PY(yMax)); ctx.stroke();
-  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '11px JetBrains Mono';
-  ctx.fillText('x', PX(xMax)+5, PY(0)+4);
-  ctx.fillText('f(x)', PX(0)-30, PY(yMax)+10);
-
-  // Tick labels
-  ctx.font = '9px JetBrains Mono'; ctx.fillStyle = 'rgba(255,255,255,.5)';
-  for(let x = -3; x <= 3; x++) if (x !== 0) ctx.fillText(x, PX(x)-5, PY(0)+14);
-  for(let y = -10; y <= 25; y += 10) if (y !== 0) ctx.fillText(y, PX(0)-22, PY(y)+4);
+  // Time axis ticks
+  ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 1;
+  ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.font = '9px JetBrains Mono';
+  for(let s=0; s<=Twin; s+=10){
+    const xp = tPx(s);
+    ctx.beginPath(); ctx.moveTo(xp, ribY1 + 2); ctx.lineTo(xp, ribY1 + 6); ctx.stroke();
+    ctx.fillText(s + 's', xp - 6, ribY1 + 16);
+  }
 
   // Title
   ctx.fillStyle = 'rgba(168,85,247,.95)'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText('f(x) = x⁴ − 8x² + 5  (non-konveks)', padL, padT-10);
+  ctx.fillText('Tier Escalation: persistence T1 + T2', padL, 18);
 
-  // Update slider displays
-  document.getElementById('v_ri').textContent = x0.toFixed(1);
-  document.getElementById('v_zi').textContent = alpha.toFixed(2);
+  // Slider displays
+  document.getElementById('v_ri').textContent = T1.toFixed(0);
+  document.getElementById('v_zi').textContent = T2.toFixed(0);
 
-  // Info panel
+  // Info
   const info = document.getElementById('isoInfo');
   if (info) {
-    const finalF = f(finalX);
-    let conv;
-    if (Math.abs(finalX - 2) < 0.1) conv = '🟢 Global min KANAN (x = 2, f = -11)';
-    else if (Math.abs(finalX + 2) < 0.1) conv = '🟢 Global min KIRI (x = -2, f = -11)';
-    else if (Math.abs(finalX) < 0.1) conv = '🔴 STUCK di local MAX (saddle-like)!';
-    else conv = `🟡 Belum konvergen (x=${finalX.toFixed(2)})`;
-    info.innerHTML = `x₀=<strong>${x0.toFixed(1)}</strong>, α=${alpha.toFixed(2)} · ${trajectory.length-1} iter · x_final=<strong>${finalX.toFixed(3)}</strong>, f=<strong>${finalF.toFixed(2)}</strong> · ${conv}`;
+    info.innerHTML = `t=<strong>${tNow.toFixed(1)}s</strong> · current=<strong style="color:${cols[state].replace(',.5','').replace('.55',1).replace('.85',1).replace('.9',1).replace('.95',1)}">${names[state]}</strong> · time-in-state=<strong>${timeInState.toFixed(1)}s</strong> · T1=${T1.toFixed(0)}s · T2=${T2.toFixed(0)}s · above-threshold accumulator=${aboveTime.toFixed(1)}s`;
   }
 }
 
@@ -5266,189 +5265,160 @@ function drawHPB(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  // Read slider
-  const r = parseFloat(document.getElementById('sl_rh').value);
+  // Slider: scenario progress 0..1
+  const prog = parseFloat(document.getElementById('sl_rh').value);
 
-  // Layout: top = contour + constraint, bottom = multiplier bar
-  const topY = 25, topH = H * 0.7;
-  const botY = topY + topH + 20, botH = H - botY - 30;
+  // Layout: top half = state diagram, bottom half = transition trace
+  const padL = 50, padR = 30;
+  const topY0 = 28, topY1 = 200;
+  const botY0 = 218, botY1 = H - 30;
 
-  // === TOP: 2D contour + constraint ===
-  const padL = 50, padR = 30, padT = 0;
-  const xMin = -3, xMax = 4, yMin = -2.5, yMax = 3;
-  const wPx = W - padL - padR, plotH = topH;
-  const PX = (x) => padL + ((x - xMin) / (xMax - xMin)) * wPx;
-  const PY = (y) => topY + plotH - ((y - yMin) / (yMax - yMin)) * plotH;
-
-  // f(x,y) = (x−2)² + (y−1.5)²; ∇f = (2(x−2), 2(y−1.5))
-  // g(x,y) = x²+y² − r² ≤ 0; ∇g = (2x, 2y)
-  // KKT: ∇f + μ∇g = 0 → at optimum, gradients parallel
-
-  // Find optimum (analytic — projection of (2, 1.5) onto disk of radius r)
-  const u_unconstr = [2, 1.5];
-  const u_norm = Math.sqrt(u_unconstr[0]*u_unconstr[0] + u_unconstr[1]*u_unconstr[1]);
-  let optV, mu;
-  if (u_norm <= r) {
-    // Constraint inactive: optimum at unconstrained point
-    optV = u_unconstr.slice();
-    mu = 0;
-  } else {
-    // Constraint active: project to boundary
-    optV = [u_unconstr[0] / u_norm * r, u_unconstr[1] / u_norm * r];
-    // From KKT: ∇f = −μ·∇g → 2(x*−2) = −μ·2x* → μ = (2 − x*)/x*
-    mu = (u_unconstr[0] - optV[0]) / optV[0];
-  }
-
-  // Draw contour lines of f
-  const levels = [0.2, 0.5, 1.0, 2.0, 4.0, 8.0];
-  ctx.strokeStyle = 'rgba(14,165,233,.45)'; ctx.lineWidth = 1.2;
-  levels.forEach(L => {
-    const a = Math.sqrt(L);
-    ctx.beginPath();
-    for(let theta=0; theta<=2*Math.PI+0.01; theta+=0.04){
-      const px = u_unconstr[0] + a*Math.cos(theta);
-      const py = u_unconstr[1] + a*Math.sin(theta);
-      if(theta === 0) ctx.moveTo(PX(px), PY(py));
-      else ctx.lineTo(PX(px), PY(py));
+  // ===== Build transition trace =====
+  // 4 states: 0=Normal, 1=Warn, 2=Alarm, 3=Latched
+  const stateNames = ['NORMAL','WARN','ALARM','LATCHED'];
+  const stateCols = ['#22c55e','#eab308','#f97316','#ef4444'];
+  const Twin = 60;
+  const N = 240;
+  const trace = new Array(N);
+  let cur = 0;
+  let transitions = 0;
+  let latched = false;
+  // Scenario: at prog=0 stay Normal; intermediate cycle Warn↔Alarm; at prog=1 reach Latched
+  for(let i=0; i<N; i++){
+    const tt = i / N;
+    let target = 0;
+    if (prog < 0.05) target = 0;
+    else if (prog >= 0.95) {
+      // Walk Normal → Warn → Alarm → Latched
+      if (tt < 0.18) target = 0;
+      else if (tt < 0.36) target = 1;
+      else if (tt < 0.55) target = 2;
+      else target = 3;
+    } else {
+      // Cycle Normal → Warn → Alarm → Warn → Normal repeatedly, intensity scales w/ prog
+      const phase = (tt * (1 + prog * 3)) % 1;
+      if (phase < 0.25) target = 0;
+      else if (phase < 0.5) target = 1;
+      else if (phase < 0.75) target = 2;
+      else target = 1;
+      // Higher prog occasionally jumps to Latched briefly
+      if (prog > 0.7 && Math.sin(tt * 18 + prog * 9) > 0.85) target = 3;
     }
+    if (target !== cur) {
+      transitions++;
+      cur = target;
+      if (cur === 3) latched = true;
+    }
+    if (latched && prog >= 0.95) cur = 3; // sticky latch at end of scenario
+    trace[i] = cur;
+  }
+  const finalState = trace[N-1];
+
+  // ===== TOP: state diagram =====
+  ctx.fillStyle = 'rgba(255,255,255,.025)'; ctx.fillRect(padL, topY0, W - padL - padR, topY1 - topY0);
+  ctx.strokeStyle = 'rgba(255,255,255,.08)'; ctx.lineWidth = 1; ctx.strokeRect(padL, topY0, W - padL - padR, topY1 - topY0);
+
+  // Place 4 nodes horizontally
+  const nodeY = (topY0 + topY1) / 2;
+  const xs = [0,1,2,3].map(i => padL + 70 + i * ((W - padL - padR - 140) / 3));
+  const R = 32;
+
+  // Edges: forward arrows with labels (debounce-N, hysteresis, ack)
+  const drawArrow = (x0, y0, x1, y1, label, color, curveAbove) => {
+    ctx.strokeStyle = color; ctx.lineWidth = 1.6;
+    const cy = y0 + (curveAbove ? -34 : 34);
+    ctx.beginPath();
+    ctx.moveTo(x0, y0);
+    ctx.quadraticCurveTo((x0+x1)/2, cy, x1, y1);
     ctx.stroke();
+    // arrowhead
+    const ang = Math.atan2(y1 - cy, x1 - (x0+x1)/2);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x1 - 8*Math.cos(ang - 0.4), y1 - 8*Math.sin(ang - 0.4));
+    ctx.lineTo(x1 - 8*Math.cos(ang + 0.4), y1 - 8*Math.sin(ang + 0.4));
+    ctx.closePath(); ctx.fill();
+    // label
+    ctx.fillStyle = color; ctx.font = '9px JetBrains Mono';
+    ctx.fillText(label, (x0+x1)/2 - 30, cy + (curveAbove ? -2 : 12));
+  };
+
+  // Forward edges (debounce N)
+  drawArrow(xs[0] + R, nodeY, xs[1] - R, nodeY, 'debounce N', 'rgba(234,179,8,.85)', true);
+  drawArrow(xs[1] + R, nodeY, xs[2] - R, nodeY, 'persist > T1', 'rgba(249,115,22,.85)', true);
+  drawArrow(xs[2] + R, nodeY, xs[3] - R, nodeY, 'persist > T2', 'rgba(239,68,68,.9)', true);
+  // Reverse edges (hysteresis / ack)
+  drawArrow(xs[1] - R*0.8, nodeY + 8, xs[0] + R*0.8, nodeY + 8, 'hyst clear', 'rgba(34,197,94,.7)', false);
+  drawArrow(xs[2] - R*0.8, nodeY + 8, xs[1] + R*0.8, nodeY + 8, 'hyst clear', 'rgba(34,197,94,.7)', false);
+  drawArrow(xs[3] - R*0.8, nodeY + 8, xs[0] + R*0.8, nodeY + 8, 'operator ACK', 'rgba(56,189,248,.85)', false);
+
+  // Nodes
+  xs.forEach((x, i) => {
+    const active = (i === finalState);
+    ctx.fillStyle = active ? stateCols[i] : 'rgba(20,30,50,.85)';
+    ctx.beginPath(); ctx.arc(x, nodeY, R, 0, 2*Math.PI); ctx.fill();
+    ctx.strokeStyle = active ? '#fff' : stateCols[i]; ctx.lineWidth = active ? 3 : 1.8;
+    ctx.beginPath(); ctx.arc(x, nodeY, R, 0, 2*Math.PI); ctx.stroke();
+    ctx.fillStyle = active ? '#000' : stateCols[i];
+    ctx.font = 'bold 10px JetBrains Mono'; ctx.textAlign = 'center';
+    ctx.fillText(stateNames[i], x, nodeY + 4);
+    ctx.textAlign = 'start';
   });
 
-  // Draw constraint disk (filled — feasible region)
-  ctx.fillStyle = 'rgba(168,85,247,.12)';
-  ctx.beginPath();
-  ctx.arc(PX(0), PY(0), r * (PX(1) - PX(0)), 0, 2*Math.PI);
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(249,115,22,.85)'; ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.arc(PX(0), PY(0), r * (PX(1) - PX(0)), 0, 2*Math.PI);
-  ctx.stroke();
-
-  // Unconstrained optimum (cross marker if not inside)
-  if (mu > 0) {
-    ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 1.2; ctx.setLineDash([3,3]);
-    ctx.beginPath();
-    ctx.moveTo(PX(u_unconstr[0])-7, PY(u_unconstr[1]));
-    ctx.lineTo(PX(u_unconstr[0])+7, PY(u_unconstr[1]));
-    ctx.moveTo(PX(u_unconstr[0]), PY(u_unconstr[1])-7);
-    ctx.lineTo(PX(u_unconstr[0]), PY(u_unconstr[1])+7);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.font = '9px JetBrains Mono';
-    ctx.fillText('unconstrained', PX(u_unconstr[0])+10, PY(u_unconstr[1])-6);
-  }
-
-  // Constrained optimum (star)
-  ctx.fillStyle = '#fbbf24';
-  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.2;
-  _drawStarN(ctx, PX(optV[0]), PY(optV[1]), 5, 12, 5);
-  ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText(`x* = (${optV[0].toFixed(2)}, ${optV[1].toFixed(2)})`, PX(optV[0])+15, PY(optV[1])-10);
-
-  // Draw gradients at optimum (∇f purple, ∇g amber)
-  if (mu > 0) {
-    const gradF = [2*(optV[0]-2), 2*(optV[1]-1.5)];
-    const gradG = [2*optV[0], 2*optV[1]];
-    const fNorm = Math.sqrt(gradF[0]**2 + gradF[1]**2);
-    const gNorm = Math.sqrt(gradG[0]**2 + gradG[1]**2);
-    const arrLen = 60;
-    // ∇f (purple)
-    ctx.strokeStyle = 'rgba(168,85,247,.9)'; ctx.lineWidth = 2.4;
-    ctx.beginPath();
-    ctx.moveTo(PX(optV[0]), PY(optV[1]));
-    const fdx = gradF[0]/fNorm * arrLen, fdy = -gradF[1]/fNorm * arrLen;
-    ctx.lineTo(PX(optV[0]) + fdx, PY(optV[1]) + fdy);
-    ctx.stroke();
-    // Arrow head
-    ctx.fillStyle = 'rgba(168,85,247,.9)';
-    const fAng = Math.atan2(fdy, fdx);
-    ctx.beginPath();
-    ctx.moveTo(PX(optV[0])+fdx, PY(optV[1])+fdy);
-    ctx.lineTo(PX(optV[0])+fdx - 10*Math.cos(fAng-0.4), PY(optV[1])+fdy - 10*Math.sin(fAng-0.4));
-    ctx.lineTo(PX(optV[0])+fdx - 10*Math.cos(fAng+0.4), PY(optV[1])+fdy - 10*Math.sin(fAng+0.4));
-    ctx.closePath(); ctx.fill();
-    ctx.font = '11px JetBrains Mono';
-    ctx.fillText('∇f', PX(optV[0])+fdx+5, PY(optV[1])+fdy+4);
-
-    // ∇g (amber)
-    ctx.strokeStyle = 'rgba(249,115,22,.9)'; ctx.lineWidth = 2.4;
-    ctx.beginPath();
-    ctx.moveTo(PX(optV[0]), PY(optV[1]));
-    const gdx = gradG[0]/gNorm * arrLen, gdy = -gradG[1]/gNorm * arrLen;
-    ctx.lineTo(PX(optV[0]) + gdx, PY(optV[1]) + gdy);
-    ctx.stroke();
-    ctx.fillStyle = 'rgba(249,115,22,.9)';
-    const gAng = Math.atan2(gdy, gdx);
-    ctx.beginPath();
-    ctx.moveTo(PX(optV[0])+gdx, PY(optV[1])+gdy);
-    ctx.lineTo(PX(optV[0])+gdx - 10*Math.cos(gAng-0.4), PY(optV[1])+gdy - 10*Math.sin(gAng-0.4));
-    ctx.lineTo(PX(optV[0])+gdx - 10*Math.cos(gAng+0.4), PY(optV[1])+gdy - 10*Math.sin(gAng+0.4));
-    ctx.closePath(); ctx.fill();
-    ctx.fillText('∇g', PX(optV[0])+gdx+5, PY(optV[1])+gdy+4);
-  }
-
-  // Origin & axes
-  ctx.fillStyle = 'rgba(255,255,255,.4)';
-  ctx.beginPath(); ctx.arc(PX(0), PY(0), 2, 0, 2*Math.PI); ctx.fill();
-  ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 1.2;
-  ctx.beginPath(); ctx.moveTo(PX(xMin), PY(0)); ctx.lineTo(PX(xMax), PY(0)); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(PX(0), PY(yMin)); ctx.lineTo(PX(0), PY(yMax)); ctx.stroke();
-  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '11px JetBrains Mono';
-  ctx.fillText('x', PX(xMax)+5, PY(0)+4);
-  ctx.fillText('y', PX(0)-15, PY(yMax)+10);
-
   // Title
-  ctx.fillStyle = 'rgba(168,85,247,.95)'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText(`min (x−2)²+(y−1.5)² s.t. x²+y² ≤ r²  · r=${r.toFixed(2)}`, padL, topY-8);
+  ctx.fillStyle = 'rgba(34,197,94,.95)'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText('FSM diagram (current state highlighted)', padL, 16);
 
-  // === BOTTOM: μ bar chart ===
-  const barAreaX = padL, barAreaW = W - padL - padR;
-  ctx.fillStyle = 'rgba(168,85,247,.95)'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText('Lagrange Multiplier μ (≥ 0)', barAreaX, botY - 8);
+  // ===== BOTTOM: transition trace timeline =====
+  ctx.fillStyle = 'rgba(255,255,255,.025)'; ctx.fillRect(padL, botY0, W - padL - padR, botY1 - botY0);
+  ctx.strokeStyle = 'rgba(255,255,255,.08)'; ctx.lineWidth = 1; ctx.strokeRect(padL, botY0, W - padL - padR, botY1 - botY0);
 
-  // Single bar for μ
-  const barX = barAreaX + 20;
-  const barW = 160;
-  const muMax = 3;  // Y-axis max
-  const bh = (Math.min(mu, muMax) / muMax) * (botH - 30);
-  const by = botY + botH - 18 - bh;
+  // 4 horizontal lanes + state ribbon
+  const laneH = (botY1 - botY0) / 4;
+  const xPx = (i) => padL + (i / (N - 1)) * (W - padL - padR);
+  // Lane labels
+  for(let i=0; i<4; i++){
+    ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.font = '9px JetBrains Mono';
+    ctx.fillText(stateNames[i], padL - 48, botY0 + (3 - i) * laneH + laneH/2 + 4);
+    // lane separator
+    ctx.strokeStyle = 'rgba(255,255,255,.06)';
+    ctx.beginPath(); ctx.moveTo(padL, botY0 + i*laneH); ctx.lineTo(W - padR, botY0 + i*laneH); ctx.stroke();
+  }
+  // Step trace
+  ctx.strokeStyle = 'rgba(34,197,94,.95)'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  for(let i=0; i<N; i++){
+    const yp = botY0 + (3 - trace[i]) * laneH + laneH/2;
+    if (i === 0) ctx.moveTo(xPx(i), yp); else ctx.lineTo(xPx(i), yp);
+  }
+  ctx.stroke();
+  // Color dots at transition points
+  for(let i=1; i<N; i++){
+    if (trace[i] !== trace[i-1]) {
+      const yp = botY0 + (3 - trace[i]) * laneH + laneH/2;
+      ctx.fillStyle = stateCols[trace[i]];
+      ctx.beginPath(); ctx.arc(xPx(i), yp, 3.5, 0, 2*Math.PI); ctx.fill();
+    }
+  }
+  // Time axis ticks
+  ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = '9px JetBrains Mono';
+  for(let s=0; s<=Twin; s+=10){
+    const xp = padL + (s/Twin) * (W - padL - padR);
+    ctx.strokeStyle = 'rgba(255,255,255,.3)';
+    ctx.beginPath(); ctx.moveTo(xp, botY1); ctx.lineTo(xp, botY1 + 4); ctx.stroke();
+    ctx.fillText(s + 's', xp - 6, botY1 + 16);
+  }
+  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = 'bold 10px JetBrains Mono';
+  ctx.fillText('Transition Trace', padL + 6, botY0 + 12);
 
-  const isBinding = mu > 0.01;
-  const color = isBinding ? 'rgba(255,64,129,.9)' : 'rgba(14,165,233,.7)';
-  const fillCol = isBinding ? 'rgba(255,64,129,.4)' : 'rgba(14,165,233,.3)';
-
-  ctx.fillStyle = fillCol;
-  ctx.fillRect(barX, by, barW, bh);
-  ctx.strokeStyle = color; ctx.lineWidth = 2;
-  ctx.strokeRect(barX, by, barW, bh);
-  ctx.fillStyle = color; ctx.font = 'bold 13px JetBrains Mono';
-  ctx.fillText(`μ = ${mu.toFixed(3)}`, barX + barW/2 - 35, by - 6);
-
-  // Status label
-  ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillStyle = isBinding ? '#ff4081' : '#0ea5e9';
-  ctx.fillText(isBinding ? 'CONSTRAINT ACTIVE (binding)' : 'CONSTRAINT INACTIVE (slack)', barX + barW + 20, by + bh/2 + 5);
-
-  // Complementary slackness equation
-  ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
-  const gValue = optV[0]*optV[0] + optV[1]*optV[1] - r*r;
-  ctx.fillText(`Complementary slackness: μ · g(x*) = ${mu.toFixed(3)} × ${gValue.toFixed(3)} = ${(mu * gValue).toFixed(3)} ≈ 0 ✓`, barX, botY + botH + 4);
-
-  // Update slider display
-  document.getElementById('v_rh').textContent = r.toFixed(2);
+  // Slider display
+  document.getElementById('v_rh').textContent = prog.toFixed(2);
 
   // Info panel
   const info = document.getElementById('hpbInfo');
   if (info) {
-    const fStar = (optV[0]-2)*(optV[0]-2) + (optV[1]-1.5)*(optV[1]-1.5);
-    let kktStatus;
-    if (mu === 0) {
-      kktStatus = `🔵 Constraint INACTIVE → unconstrained optimum (μ = 0). r ≥ ${u_norm.toFixed(2)} cukup.`;
-    } else {
-      kktStatus = `🔴 Constraint ACTIVE → x* di boundary, ∇f & ∇g paralel (μ = ${mu.toFixed(2)} &gt; 0)`;
-    }
-    info.innerHTML = `r=<strong>${r.toFixed(2)}</strong> · x*=(${optV[0].toFixed(2)}, ${optV[1].toFixed(2)}) · f*=<strong>${fStar.toFixed(3)}</strong> · μ=<strong>${mu.toFixed(3)}</strong> · ${kktStatus}`;
+    info.innerHTML = `scenario=<strong>${prog.toFixed(2)}</strong> · state=<strong style="color:${stateCols[finalState]}">${stateNames[finalState]}</strong> · transitions=<strong>${transitions}</strong> · latched=<strong>${latched ? 'YES (needs ACK)' : 'NO'}</strong>`;
   }
 }
 
