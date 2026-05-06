@@ -834,7 +834,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
 <!-- ─── NAVBAR TOP BAR (always fixed) ─── -->
 <nav id="navTop">
-  <span class="nav-brand"><span class="pulse"></span><span>OPTOAUTO // P6</span></span>
+  <span class="nav-brand"><span class="pulse"></span><span>OPTOAUTO // P7</span></span>
   <div class="nav-tabs">
     <button class="nav-tab active" id="tab-modul" onclick="switchTab('modul')">📖 Modul</button>
     <button class="nav-tab" id="tab-tugas" onclick="switchTab('tugas')">📝 Tugas</button>
@@ -1285,11 +1285,11 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <canvas id="cvSweep" height="300"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Frekuensi Impak (per detik) — <span class="ctrl-val" id="v_rs">2.00</span></label>
-          <input type="range" id="sl_rs" min="0" max="10" step="0.5" value="2.0">
+          <label>Pilih Fault (FTF→BSF→BPFO→BPFI) — <span class="ctrl-val" id="v_rs">2.50</span></label>
+          <input type="range" id="sl_rs" min="0" max="10" step="0.5" value="5.0">
         </div>
         <div class="ctrl-group">
-          <label>Amplitudo Impak — <span class="ctrl-val" id="v_zs">3.00</span></label>
+          <label>Severity (peak height + sidebands) — <span class="ctrl-val" id="v_zs">3.00</span></label>
           <input type="range" id="sl_zs" min="0" max="8" step="0.2" value="3.0">
         </div>
         <button class="btn-anim" id="btnSweep" onclick="toggleSweep()">⏸ PAUSE</button>
@@ -1312,12 +1312,12 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <canvas id="cvIso" height="300"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Skewness Target — <span class="ctrl-val" id="v_ri">0.00</span></label>
-          <input type="range" id="sl_ri" min="-2" max="2" step="0.1" value="0.0">
+          <label>Jumlah Peak Frekuensi — <span class="ctrl-val" id="v_ri">2</span></label>
+          <input type="range" id="sl_ri" min="1" max="5" step="1" value="2">
         </div>
         <div class="ctrl-group">
-          <label>Kurtosis Target — <span class="ctrl-val" id="v_zi">3.00</span></label>
-          <input type="range" id="sl_zi" min="1.5" max="10" step="0.1" value="3.0">
+          <label>Level Noise Floor — <span class="ctrl-val" id="v_zi">0.30</span></label>
+          <input type="range" id="sl_zi" min="0" max="2" step="0.05" value="0.3">
         </div>
         <button class="btn-anim" id="btnIso" onclick="toggleIso()">⏸ PAUSE</button>
       </div>
@@ -4464,80 +4464,103 @@ function drawPhysics(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  // Grid
-  _grid(ctx, 40, 20, W-60, H-60, 20, 6, '#0d1929');
-
-  // Params from sliders: amplitudo sinusoidal & level noise
-  const sinAmp   = parseFloat(document.getElementById('sl_rp').value);
-  const noiseLvl = parseFloat(document.getElementById('sl_zp').value);
+  // Params
+  const sigAmp   = parseFloat(document.getElementById('sl_rp').value);   // 0..2
+  const noiseLvl = parseFloat(document.getElementById('sl_zp').value);   // 0..1.5
   const tOff = _physicsAnim.t;
 
-  // Plot area
-  const x0 = 40, y0 = 20, w = W - 60, h = H - 60;
-  const N = 200;
-  const mid = y0 + h/2;
-  const yScale = 50;   // pixels per unit
+  // Two stacked plots: top = time signal, bottom = FFT magnitude spectrum
+  const margin = 38, gap = 14;
+  const topH = Math.floor((H - 2*margin - gap) * 0.42);
+  const botH = H - 2*margin - gap - topH;
+  const x0 = 50, w = W - x0 - 30;
+  const yT = margin, yB = margin + topH + gap;
 
-  // Generate signal samples (deterministic pseudo-noise)
-  const signal = [];
+  // ── TOP: time-domain signal ──────────────────────────────────
+  _grid(ctx, x0, yT, w, topH, 12, 4, '#0d1929');
+  const N = 256;
+  const fSig = 12;  // dominant frequency component (Hz scaled)
+  const fs = N;     // sample rate (per second equivalent)
+  const sig = [];
   for (let i = 0; i < N; i++) {
-    const xt = i + tOff * 10;
-    const sinPart = sinAmp * Math.sin(2*Math.PI*xt/35);
-    const noisePart = noiseLvl * (Math.sin(xt*2.73) * Math.cos(xt*1.91) + Math.sin(xt*5.13)*0.5);
-    signal.push(sinPart + noisePart);
+    const t = i / fs;
+    const sine = sigAmp * Math.sin(2*Math.PI*fSig*(t + tOff*0.05));
+    const noise = noiseLvl * (Math.sin(i*7.13 + tOff*3) + Math.sin(i*3.71 + tOff*1.7)*0.6 + Math.sin(i*11.3 + tOff*2.1)*0.4) / 2;
+    sig.push(sine + noise);
   }
-
-  // Compute frequency-domain features
-  let sumSq = 0, sumAbs = 0, peak = 0, mn = Infinity, mx = -Infinity;
-  for (let i = 0; i < N; i++) {
-    const v = signal[i];
-    sumSq += v*v; sumAbs += Math.abs(v);
-    if (Math.abs(v) > peak) peak = Math.abs(v);
-    if (v < mn) mn = v;
-    if (v > mx) mx = v;
-  }
-  const rms = Math.sqrt(sumSq / N);
-  const absAvg = sumAbs / N;
-  const pp = mx - mn;
-  const cf = peak / Math.max(rms, 1e-9);
-
-  // Draw signal
-  ctx.strokeStyle = 'rgba(168,85,247,.95)'; ctx.lineWidth = 1.6;
-  ctx.shadowColor = 'rgba(168,85,247,.3)'; ctx.shadowBlur = 4;
+  const tMid = yT + topH/2;
+  const ySc = topH * 0.32;
+  ctx.strokeStyle = 'rgba(14,165,233,.95)'; ctx.lineWidth = 1.4;
+  ctx.shadowColor = 'rgba(14,165,233,.35)'; ctx.shadowBlur = 4;
   ctx.beginPath();
   for (let i = 0; i < N; i++) {
-    const px = x0 + (i/(N-1)) * w;
-    const py = mid - signal[i] * yScale;
-    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    const px = x0 + (i/(N-1))*w;
+    const py = tMid - sig[i]*ySc;
+    if (i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
   }
-  ctx.stroke();
-  ctx.shadowBlur = 0;
+  ctx.stroke(); ctx.shadowBlur = 0;
+  ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
+  ctx.fillText('x(t)  domain waktu', x0, yT - 6);
+  ctx.fillText('t →', x0 + w - 22, yT + topH + 12);
 
-  // Overlay ±RMS (cyan dashed)
-  ctx.strokeStyle = 'rgba(14,165,233,.85)'; ctx.lineWidth = 1.5; ctx.setLineDash([6,4]);
-  ctx.beginPath(); ctx.moveTo(x0, mid - rms*yScale); ctx.lineTo(x0+w, mid - rms*yScale); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x0, mid + rms*yScale); ctx.lineTo(x0+w, mid + rms*yScale); ctx.stroke();
-
-  // Overlay ±peak (amber)
-  ctx.strokeStyle = 'rgba(249,115,22,.7)'; ctx.lineWidth = 1.2; ctx.setLineDash([3,3]);
-  ctx.beginPath(); ctx.moveTo(x0, mid - peak*yScale); ctx.lineTo(x0+w, mid - peak*yScale); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x0, mid + peak*yScale); ctx.lineTo(x0+w, mid + peak*yScale); ctx.stroke();
+  // ── BOTTOM: FFT magnitude spectrum (compute via simple DFT, K bins) ──
+  _grid(ctx, x0, yB, w, botH, 16, 4, '#0d1929');
+  const K = 64;  // half spectrum
+  const mag = new Array(K).fill(0);
+  for (let k = 0; k < K; k++) {
+    let re = 0, im = 0;
+    for (let i = 0; i < N; i++) {
+      const ang = 2*Math.PI*k*i/N;
+      re += sig[i] * Math.cos(ang);
+      im -= sig[i] * Math.sin(ang);
+    }
+    mag[k] = Math.sqrt(re*re + im*im) * (2/N);
+  }
+  const maxMag = Math.max(...mag, 0.1);
+  const barW = w / K;
+  for (let k = 0; k < K; k++) {
+    const bh = (mag[k]/maxMag) * (botH - 12);
+    const px = x0 + k*barW;
+    const py = yB + botH - bh;
+    const isPeak = k === fSig || k === fSig+1 || k === fSig-1;
+    const grad = ctx.createLinearGradient(px, py, px, yB + botH);
+    if (isPeak) {
+      grad.addColorStop(0, 'rgba(0,224,158,1)');
+      grad.addColorStop(1, 'rgba(0,224,158,.4)');
+    } else {
+      grad.addColorStop(0, 'rgba(168,85,247,.85)');
+      grad.addColorStop(1, 'rgba(168,85,247,.25)');
+    }
+    ctx.fillStyle = grad;
+    ctx.fillRect(px+0.5, py, barW-1, bh);
+  }
+  // Mark dominant peak
+  const peakIdx = mag.indexOf(maxMag);
+  const peakX = x0 + (peakIdx + 0.5) * barW;
+  ctx.strokeStyle = 'rgba(0,224,158,.6)'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(peakX, yB); ctx.lineTo(peakX, yB+botH); ctx.stroke();
   ctx.setLineDash([]);
+  ctx.fillStyle = '#00e09e'; ctx.font = 'bold 10px JetBrains Mono';
+  ctx.fillText(`f₀ ≈ ${peakIdx} Hz`, peakX + 6, yB + 14);
 
-  // Legend labels
-  ctx.font = '10px JetBrains Mono';
-  ctx.fillStyle = 'rgba(168,85,247,.95)'; ctx.fillText('● Sinyal vibrasi', x0, y0 - 6);
-  ctx.fillStyle = 'rgba(14,165,233,.95)'; ctx.fillText('--- ±RMS', x0 + 130, y0 - 6);
-  ctx.fillStyle = 'rgba(249,115,22,.85)'; ctx.fillText('··· ±peak', x0 + 200, y0 - 6);
+  ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
+  ctx.fillText('|X(f)|  magnitude spectrum (FFT)', x0, yB - 6);
+  ctx.fillText('f (Hz) →', x0 + w - 50, yB + botH + 14);
 
-  // Update slider display
-  const v1 = document.getElementById('v_rp'); if(v1) v1.textContent = sinAmp.toFixed(2);
+  // Slider displays
+  const v1 = document.getElementById('v_rp'); if(v1) v1.textContent = sigAmp.toFixed(2);
   const v2 = document.getElementById('v_zp'); if(v2) v2.textContent = noiseLvl.toFixed(2);
 
-  // Info panel: numeric features
+  // Compute simple spectral features
+  let totalPow = 0, sumF = 0;
+  for (let k = 1; k < K; k++) { totalPow += mag[k]*mag[k]; sumF += k * mag[k]*mag[k]; }
+  const centroid = totalPow > 1e-9 ? sumF / totalPow : 0;
+  const noiseFloor = mag.slice(20, 60).reduce((a,b)=>a+b,0) / 40;
+  const snr = maxMag / Math.max(noiseFloor, 1e-9);
+
   const info = document.getElementById('physicsInfo');
   if (info) {
-    info.innerHTML = `RMS=<strong>${rms.toFixed(3)}</strong> &nbsp;·&nbsp; Peak=<strong>${peak.toFixed(3)}</strong> &nbsp;·&nbsp; PP=<strong>${pp.toFixed(3)}</strong> &nbsp;·&nbsp; |x|<sub>avg</sub>=${absAvg.toFixed(3)} &nbsp;·&nbsp; CF=<strong>${cf.toFixed(2)}</strong>`;
+    info.innerHTML = `Peak <strong>${maxMag.toFixed(2)}</strong> @ <strong>${peakIdx} Hz</strong> &nbsp;·&nbsp; Centroid <strong>${centroid.toFixed(1)} Hz</strong> &nbsp;·&nbsp; Noise floor <strong>${noiseFloor.toFixed(3)}</strong> &nbsp;·&nbsp; SNR <strong>${snr.toFixed(1)}×</strong>`;
   }
 }
 
@@ -4575,91 +4598,112 @@ function drawSweep(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const impactFreq = parseFloat(document.getElementById('sl_rs').value);   // 0..10 per detik
-  const impactAmp  = parseFloat(document.getElementById('sl_zs').value);   // 0..8
+  // sl_rs: which fault selector (0..10 → BPFO/BPFI/BSF/FTF zones)
+  // sl_zs: severity (0..8) → peak height + sideband density
+  const faultSel = parseFloat(document.getElementById('sl_rs').value);
+  const sev      = parseFloat(document.getElementById('sl_zs').value);
   const tOff = _sweepAnim.t;
 
-  // Plot area
-  const x0 = 40, y0 = 30, w = W - 60, h = H - 60;
-  const mid = y0 + h/2;
-  const N = 300;
-  const yScale = 25;
+  // Bearing fault frequency definitions (× shaft RPM, typical SKF 6205)
+  const FAULTS = [
+    { name:'FTF',  hz: 7,   color:'#22d3ee' },   // Fundamental Train Freq
+    { name:'BSF',  hz: 18,  color:'#a855f7' },   // Ball Spin Freq
+    { name:'BPFO', hz: 36,  color:'#f97316' },   // Ball Pass Freq Outer
+    { name:'BPFI', hz: 54,  color:'#ef4444' }    // Ball Pass Freq Inner
+  ];
+  // Map slider 0..10 → which fault is "active"
+  const activeIdx = Math.min(3, Math.max(0, Math.floor(faultSel * 4 / 10)));
+  const active = FAULTS[activeIdx];
 
-  // Generate signal: noise + periodic impacts
-  const signal = [];
-  const period = impactFreq > 0.01 ? Math.floor(N / impactFreq) : N + 1;
-  for (let i = 0; i < N; i++) {
-    const xt = i + tOff * 12;
-    // Gaussian-like noise (deterministic from sin combos)
-    let noise = 0.6 * (Math.sin(xt * 2.71) + Math.sin(xt * 1.13) * 0.7 + Math.sin(xt * 4.31) * 0.4);
-    // Periodic impact: spike + decay
-    const phase = Math.floor(i + tOff * 12) % Math.max(period, 1);
-    let impact = 0;
-    if (phase < 6 && impactFreq > 0.01) {
-      impact = impactAmp * Math.exp(-phase * 0.4) * Math.sin(phase * 1.2);
-    }
-    signal.push(noise + impact);
-  }
+  // Two stacked: top time-domain bearing signal, bottom spectrum w/ fault peaks
+  const margin = 38, gap = 14;
+  const topH = Math.floor((H - 2*margin - gap) * 0.35);
+  const botH = H - 2*margin - gap - topH;
+  const x0 = 50, w = W - x0 - 30;
+  const yT = margin, yB = margin + topH + gap;
+  const K = 80;  // spectrum bins: 1..80 Hz scale
 
-  // Compute features
-  let sumSq = 0, sumAbs = 0, peak = 0, sum = 0;
-  for (let i = 0; i < N; i++) {
-    const v = signal[i];
-    sumSq += v*v; sumAbs += Math.abs(v); sum += v;
-    if (Math.abs(v) > peak) peak = Math.abs(v);
-  }
-  const mean = sum / N;
-  const rms = Math.sqrt(sumSq / N);
-  // Kurtosis (plain, fisher=False)
-  let m4 = 0, m2 = 0;
-  for (let i = 0; i < N; i++) {
-    const d = signal[i] - mean;
-    m2 += d*d;
-    m4 += d*d*d*d;
-  }
-  m2 /= N; m4 /= N;
-  const kurt = m2 > 1e-9 ? m4 / (m2*m2) : 0;
-  const cf = peak / Math.max(rms, 1e-9);
-
-  // Grid
-  _grid(ctx, x0, y0, w, h, 20, 6, '#0d1929');
-
-  // Draw signal
-  ctx.strokeStyle = 'rgba(168,85,247,.9)'; ctx.lineWidth = 1.4;
+  // ── TOP: time-domain (bearing signal w/ periodic impulses at active.hz) ──
+  _grid(ctx, x0, yT, w, topH, 12, 4, '#0d1929');
+  const N = 280;
+  const period = N / Math.max(active.hz/4, 0.5);  // visible period (compress for display)
+  const tMid = yT + topH/2;
+  const tSc = topH * 0.32;
+  ctx.strokeStyle = active.color; ctx.lineWidth = 1.3;
   ctx.beginPath();
   for (let i = 0; i < N; i++) {
-    const px = x0 + (i/(N-1)) * w;
-    const py = mid - signal[i] * yScale;
-    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    const xt = i + tOff * 14;
+    // Background gaussian-ish noise
+    let v = 0.4 * (Math.sin(xt*2.71) + Math.sin(xt*1.13)*0.7 + Math.sin(xt*4.31)*0.5);
+    // Periodic impulse train at active fault freq
+    const phase = (i + tOff*14) % period;
+    if (phase < 6) v += sev * 0.15 * Math.exp(-phase*0.5) * Math.sin(phase*1.6);
+    const px = x0 + (i/(N-1))*w;
+    const py = tMid - v * tSc;
+    if (i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
   }
   ctx.stroke();
+  ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
+  ctx.fillText(`x(t)  bearing vibration · fault: ${active.name} @ ${active.hz} Hz`, x0, yT - 6);
 
-  // Mark zero line + ±RMS
-  ctx.strokeStyle = 'rgba(148,163,184,.3)'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
-  ctx.beginPath(); ctx.moveTo(x0, mid); ctx.lineTo(x0+w, mid); ctx.stroke();
-  ctx.strokeStyle = 'rgba(14,165,233,.6)';
-  ctx.beginPath(); ctx.moveTo(x0, mid - rms*yScale); ctx.lineTo(x0+w, mid - rms*yScale); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x0, mid + rms*yScale); ctx.lineTo(x0+w, mid + rms*yScale); ctx.stroke();
-  ctx.setLineDash([]);
+  // ── BOTTOM: spectrum with all 4 fault freqs labeled, active one tall ──
+  _grid(ctx, x0, yB, w, botH, 16, 4, '#0d1929');
+  const barW = w / K;
+  // Build bars: noise floor everywhere, peaks at fault freqs
+  for (let k = 0; k < K; k++) {
+    let m = 0.05 + 0.04 * Math.abs(Math.sin(k*0.31 + tOff*0.5));  // noise floor
+    // Peak at active fault freq + harmonics 2x, 3x
+    for (const f of FAULTS) {
+      const isActive = f.name === active.name;
+      const peakHt = isActive ? (0.4 + sev*0.07) : 0.10;
+      // Fundamental
+      if (Math.abs(k - f.hz) < 1.5) m += peakHt * Math.exp(-Math.pow((k-f.hz)/0.6, 2));
+      // Harmonics (only if active)
+      if (isActive) {
+        if (Math.abs(k - 2*f.hz) < 1.5) m += peakHt*0.55 * Math.exp(-Math.pow((k-2*f.hz)/0.6, 2));
+        if (Math.abs(k - 3*f.hz) < 1.5) m += peakHt*0.30 * Math.exp(-Math.pow((k-3*f.hz)/0.6, 2));
+        // Sidebands (modulasi shaft RPM = 1 Hz around fundamental, when severe)
+        if (sev > 3) {
+          if (Math.abs(k - (f.hz+1)) < 1.0) m += peakHt*0.25 * Math.exp(-Math.pow((k-(f.hz+1))/0.5, 2));
+          if (Math.abs(k - (f.hz-1)) < 1.0) m += peakHt*0.25 * Math.exp(-Math.pow((k-(f.hz-1))/0.5, 2));
+        }
+      }
+    }
+    const bh = m * (botH - 16);
+    const px = x0 + k*barW;
+    const py = yB + botH - bh;
+    let col = 'rgba(148,163,184,.5)';
+    for (const f of FAULTS) {
+      if (Math.abs(k - f.hz) < 1.5 || (f.name === active.name && (Math.abs(k - 2*f.hz) < 1.5 || Math.abs(k - 3*f.hz) < 1.5))) col = f.color;
+    }
+    ctx.fillStyle = col;
+    ctx.fillRect(px+0.5, py, Math.max(barW-1, 1), bh);
+  }
+  // Annotate fault labels above their bars
+  ctx.font = 'bold 9px JetBrains Mono';
+  for (const f of FAULTS) {
+    const lx = x0 + (f.hz/(K-1))*w;
+    ctx.fillStyle = f.color;
+    ctx.fillText(f.name, lx - 12, yB + 12);
+    ctx.strokeStyle = f.color; ctx.lineWidth = 0.8; ctx.setLineDash([2,3]);
+    ctx.beginPath(); ctx.moveTo(lx, yB+14); ctx.lineTo(lx, yB+botH); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
+  ctx.fillText('|X(f)|  magnitude spectrum + fault frequency markers', x0, yB - 6);
+  ctx.fillText('f (Hz) →', x0 + w - 50, yB + botH + 14);
 
-  // Labels
-  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText(`Impak: ${impactFreq.toFixed(1)}/det × A=${impactAmp.toFixed(1)}`, x0, y0 - 8);
+  const v1 = document.getElementById('v_rs'); if(v1) v1.textContent = faultSel.toFixed(2);
+  const v2 = document.getElementById('v_zs'); if(v2) v2.textContent = sev.toFixed(2);
 
-  // Update slider displays
-  const v1 = document.getElementById('v_rs'); if(v1) v1.textContent = impactFreq.toFixed(2);
-  const v2 = document.getElementById('v_zs'); if(v2) v2.textContent = impactAmp.toFixed(2);
-
-  // Info: CF & Kurtosis with color coding
   const info = document.getElementById('sweepInfo');
   if (info) {
-    const kurtCol = kurt > 5 ? '#ef4444' : (kurt > 4 ? '#f97316' : '#0ea5e9');
-    const cfCol   = cf > 5 ? '#ef4444' : (cf > 4 ? '#f97316' : '#0ea5e9');
     let verdict;
-    if (kurt > 5 || cf > 5) verdict = '🔴 EARLY FAULT — impak transient terdeteksi';
-    else if (kurt > 4 || cf > 4) verdict = '🟡 WARNING — impulsivitas naik';
-    else verdict = '🟢 NORMAL — Gaussian noise dominan';
-    info.innerHTML = `RMS=<strong>${rms.toFixed(2)}</strong> · Peak=<strong>${peak.toFixed(2)}</strong> · <strong style="color:${cfCol}">CF=${cf.toFixed(2)}</strong> · <strong style="color:${kurtCol}">Kurt=${kurt.toFixed(2)}</strong> · ${verdict}`;
+    if (sev < 1.5) verdict = '🟢 NORMAL — peaks rendah, noise floor saja';
+    else if (sev < 4) verdict = '🟡 EARLY FAULT — peak fundamental terlihat';
+    else if (sev < 6) verdict = '🟠 PROGRESSIVE — harmonik 2×, 3× muncul';
+    else verdict = '🔴 SEVERE — harmonik + sidebands (modulasi shaft RPM)';
+    info.innerHTML = `Aktif: <strong style="color:${active.color}">${active.name}</strong> = <strong>${active.hz} Hz</strong> &nbsp;·&nbsp; Severity <strong>${sev.toFixed(1)}/8</strong> &nbsp;·&nbsp; ${verdict}`;
   }
 }
 
@@ -4696,114 +4740,98 @@ function drawIso(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const skewTarget = parseFloat(document.getElementById('sl_ri').value);
-  const kurtTarget = parseFloat(document.getElementById('sl_zi').value);
+  // sl_ri: number of frequency peaks (1..5)
+  // sl_zi: noise floor level (0..2)
+  const nPeaks = Math.max(1, Math.min(5, Math.round(parseFloat(document.getElementById('sl_ri').value))));
+  const noiseFl = parseFloat(document.getElementById('sl_zi').value);
   const tOff = _isoAnim.t;
 
-  // Plot area
-  const x0 = 50, y0 = 30, w = W - x0 - 30, h = H - 70;
-  const baseY = y0 + h;
+  // Two stacked: Magnitude Spectrum (top) + PSD (bottom)
+  const margin = 38, gap = 14;
+  const halfH = Math.floor((H - 2*margin - gap) / 2);
+  const x0 = 50, w = W - x0 - 30;
+  const yT = margin, yB = margin + halfH + gap;
+  const K = 96;
 
-  // Generate samples: mix of Gaussian + skewed exponential + heavy-tail Cauchy-ish
-  // Simple approach: warp a deterministic sin-based sample
-  const N = 800;
-  const samples = [];
-  for (let i = 0; i < N; i++) {
-    const xt = (i + tOff * 8) * 0.1;
-    // Multiple harmonics ~ Gaussian shape
-    let v = Math.sin(xt) + Math.sin(xt * 1.7) * 0.6 + Math.sin(xt * 2.3) * 0.4 + Math.sin(xt * 3.1) * 0.3;
-    v *= 0.5;   // baseline std around 0.7
-    // Apply skew warp: shift mean, asymmetric scaling
-    if (skewTarget > 0) v = v + skewTarget * 0.5 * (v > 0 ? v*v : 0);
-    else if (skewTarget < 0) v = v + skewTarget * 0.5 * (v < 0 ? v*v : 0);
-    // Apply kurtosis warp: amplify extremes
-    const kurtScale = (kurtTarget - 3) * 0.15;
-    if (kurtScale > 0) v = v + Math.sign(v) * kurtScale * v*v;
-    samples.push(v);
+  const PEAKS = [12, 28, 44, 62, 78];
+  const PEAK_AMPS = [1.0, 0.7, 0.5, 0.85, 0.55];
+  const usedPeaks = PEAKS.slice(0, nPeaks);
+  const usedAmps = PEAK_AMPS.slice(0, nPeaks);
+
+  const mag = new Array(K).fill(0);
+  const psd = new Array(K).fill(0);
+  const dF = 1;
+  const winNorm = K;
+  for (let k = 0; k < K; k++) {
+    let m = noiseFl * (0.04 + 0.03*Math.abs(Math.sin(k*0.41 + tOff*0.6)));
+    for (let p = 0; p < usedPeaks.length; p++) {
+      const dk = k - usedPeaks[p];
+      m += usedAmps[p] * Math.exp(-Math.pow(dk/0.7, 2));
+    }
+    mag[k] = m;
+    psd[k] = (m*m) / (winNorm * dF);
   }
+  const maxMag = Math.max(...mag, 0.1);
+  const maxPsd = Math.max(...psd, 0.001);
+  const barW = w / K;
 
-  // Compute stats
-  let sum = 0, sumSq = 0;
-  for (const v of samples) { sum += v; sumSq += v*v; }
-  const mean = sum / N;
-  const variance = sumSq / N - mean*mean;
-  const std = Math.sqrt(Math.max(variance, 1e-9));
-
-  // Skewness & Kurtosis (plain)
-  let m3 = 0, m4 = 0;
-  for (const v of samples) {
-    const d = v - mean;
-    m3 += d*d*d;
-    m4 += d*d*d*d;
-  }
-  m3 /= N; m4 /= N;
-  const skew = m3 / Math.pow(std, 3);
-  const kurt = m4 / Math.pow(std, 4);
-
-  // Build histogram (40 bins)
-  const minV = -4, maxV = 4;
-  const nBins = 40;
-  const binWidth = (maxV - minV) / nBins;
-  const bins = new Array(nBins).fill(0);
-  for (const v of samples) {
-    if (v < minV || v > maxV) continue;
-    const idx = Math.min(nBins-1, Math.floor((v - minV) / binWidth));
-    bins[idx]++;
-  }
-  const maxBin = Math.max(...bins);
-
-  // Grid
-  _grid(ctx, x0, y0, w, h, 8, 5, '#0d1929');
-
-  // Draw histogram bars
-  const barW = w / nBins;
-  for (let i = 0; i < nBins; i++) {
-    const bh = (bins[i] / Math.max(maxBin, 1)) * (h - 10);
-    const px = x0 + i * barW;
-    const py = baseY - bh;
-    const grad = ctx.createLinearGradient(px, py, px, baseY);
-    grad.addColorStop(0, 'rgba(168,85,247,.95)');
-    grad.addColorStop(1, 'rgba(168,85,247,.4)');
+  // ── TOP: Magnitude Spectrum (linear) ──
+  _grid(ctx, x0, yT, w, halfH, 16, 4, '#0d1929');
+  for (let k = 0; k < K; k++) {
+    const bh = (mag[k]/maxMag) * (halfH - 12);
+    const px = x0 + k*barW;
+    const py = yT + halfH - bh;
+    const isPeak = usedPeaks.some(p => Math.abs(k - p) <= 1);
+    const grad = ctx.createLinearGradient(px, py, px, yT + halfH);
+    if (isPeak) {
+      grad.addColorStop(0, 'rgba(14,165,233,1)');
+      grad.addColorStop(1, 'rgba(14,165,233,.35)');
+    } else {
+      grad.addColorStop(0, 'rgba(168,85,247,.6)');
+      grad.addColorStop(1, 'rgba(168,85,247,.15)');
+    }
     ctx.fillStyle = grad;
-    ctx.fillRect(px+0.5, py, barW-1, bh);
+    ctx.fillRect(px+0.5, py, Math.max(barW-1,1), bh);
   }
-
-  // Mean line (yellow)
-  const meanX = x0 + ((mean - minV) / (maxV - minV)) * w;
-  ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2; ctx.setLineDash([6,4]);
-  ctx.beginPath(); ctx.moveTo(meanX, y0); ctx.lineTo(meanX, baseY); ctx.stroke();
-  ctx.fillStyle = '#facc15'; ctx.font = '10px JetBrains Mono';
-  ctx.fillText('μ', meanX + 3, y0 + 12);
-
-  // ±σ lines (red)
-  ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 1.5;
-  const sigP = x0 + ((mean + std - minV) / (maxV - minV)) * w;
-  const sigN = x0 + ((mean - std - minV) / (maxV - minV)) * w;
-  ctx.beginPath(); ctx.moveTo(sigP, y0); ctx.lineTo(sigP, baseY); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(sigN, y0); ctx.lineTo(sigN, baseY); ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle = '#ef4444';
-  ctx.fillText('+σ', sigP + 3, y0 + 12);
-  ctx.fillText('−σ', sigN - 25, y0 + 12);
-
-  // Axis labels
   ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
-  ctx.fillText('Histogram Sample (N=' + N + ')', x0, y0 - 8);
+  ctx.fillText('|X(f)|  Magnitude Spectrum  (mm/s)  — linear amplitude', x0, yT - 6);
+  ctx.fillStyle = 'rgba(14,165,233,.9)'; ctx.font = 'bold 10px JetBrains Mono';
+  ctx.fillText(`max ${maxMag.toFixed(2)} mm/s`, x0 + w - 130, yT + 12);
 
-  // Sliders display
-  document.getElementById('v_ri').textContent = skewTarget.toFixed(2);
-  document.getElementById('v_zi').textContent = kurtTarget.toFixed(2);
+  // ── BOTTOM: PSD (power/Hz) ──
+  _grid(ctx, x0, yB, w, halfH, 16, 4, '#0d1929');
+  for (let k = 0; k < K; k++) {
+    const bh = (psd[k]/maxPsd) * (halfH - 12);
+    const px = x0 + k*barW;
+    const py = yB + halfH - bh;
+    const isPeak = usedPeaks.some(p => Math.abs(k - p) <= 1);
+    const grad = ctx.createLinearGradient(px, py, px, yB + halfH);
+    if (isPeak) {
+      grad.addColorStop(0, 'rgba(0,224,158,1)');
+      grad.addColorStop(1, 'rgba(0,224,158,.35)');
+    } else {
+      grad.addColorStop(0, 'rgba(168,85,247,.45)');
+      grad.addColorStop(1, 'rgba(168,85,247,.10)');
+    }
+    ctx.fillStyle = grad;
+    ctx.fillRect(px+0.5, py, Math.max(barW-1,1), bh);
+  }
+  ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
+  ctx.fillText('PSD  Power Spectral Density  (mm²/s²/Hz)  — power per Hz', x0, yB - 6);
+  ctx.fillStyle = 'rgba(0,224,158,.9)'; ctx.font = 'bold 10px JetBrains Mono';
+  ctx.fillText(`max ${maxPsd.toExponential(2)}`, x0 + w - 130, yB + 12);
+  ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
+  ctx.fillText('f (Hz) →', x0 + w - 50, yB + halfH + 14);
 
-  // Info
+  document.getElementById('v_ri').textContent = nPeaks.toFixed(0);
+  document.getElementById('v_zi').textContent = noiseFl.toFixed(2);
+
+  let totalPow = 0;
+  for (let k = 1; k < K; k++) totalPow += psd[k] * dF;
+
   const info = document.getElementById('isoInfo');
   if (info) {
-    let interp;
-    if (Math.abs(skew) < 0.3 && Math.abs(kurt - 3) < 0.5) interp = '🔵 Distribusi Gaussian-like';
-    else if (kurt > 5) interp = '🔴 Leptokurtic (ekor tebal — banyak event ekstrem)';
-    else if (kurt < 2.5) interp = '🟡 Platykurtic (datar — distribusi seragam)';
-    else if (Math.abs(skew) > 1) interp = '🟠 Asimetris (skew ' + (skew > 0 ? '+' : '') + skew.toFixed(2) + ')';
-    else interp = '🟢 Mirip normal';
-    info.innerHTML = `μ=<strong>${mean.toFixed(2)}</strong> · σ=<strong>${std.toFixed(2)}</strong> · <strong>Skew=${skew.toFixed(2)}</strong> · <strong>Kurt=${kurt.toFixed(2)}</strong> · ${interp}`;
+    info.innerHTML = `Peaks: <strong>${nPeaks}</strong> &nbsp;·&nbsp; Noise floor <strong>${noiseFl.toFixed(2)}</strong> &nbsp;·&nbsp; Total power (Parseval) <strong>${totalPow.toFixed(2)}</strong> mm²/s² &nbsp;·&nbsp; <em>Magnitude</em> = identifikasi peak; <em>PSD</em> = perbandingan energi band &amp; compliance test.`;
   }
 }
 
@@ -4847,145 +4875,110 @@ function drawHPB(){
   const slLP = document.getElementById('sl_rh');
   const lifeProgress = slLP ? parseFloat(slLP.value) : 0.4;
 
-  // Layout: top panel (vibration signal), bottom panel (trajectory plot)
-  const topH = (H - 60) * 0.4;
-  const botH = (H - 60) * 0.6;
-  const topY = 20;
-  const botY = topY + topH + 20;
-  const plotW = W - padX - 30;
+  // STFT Spectrogram: x = time window (0..nT), y = frequency bin (0..nF), color = magnitude
+  const x0 = padX, y0 = 30, w = W - padX - 80, h = H - 60;
+  const nT = 90;   // time windows
+  const nF = 50;   // frequency bins (low at top? we'll put high freq at top)
+  const cellW = w / nT;
+  const cellH = h / nF;
 
-  // Generate signal at current life progress
-  const N = 250;
-  const noiseLvl = 0.4 * (1 + 2 * lifeProgress);
-  // Number and amplitude of impacts grows with progress
-  const nImpacts = Math.floor(50 * lifeProgress);
-  const impactAmp = 1.5 + 3 * lifeProgress;
+  // Background
+  ctx.fillStyle = '#020812'; ctx.fillRect(x0, y0, w, h);
 
-  const sig = [];
-  for (let i = 0; i < N; i++) {
-    const xt = i + tOff * 8;
-    let v = 1.0 * Math.sin(xt * 0.4) + 0.3 * Math.sin(xt * 0.8);
-    v += noiseLvl * (Math.sin(xt * 2.71) + Math.sin(xt * 4.13) * 0.6);
-    sig.push(v);
-  }
-  // Inject impacts at deterministic positions (based on lifeProgress)
-  for (let k = 0; k < nImpacts; k++) {
-    const idx = Math.floor((k * 7919) % (N - 6));
-    const decayMag = impactAmp * (0.5 + 0.5 * Math.sin(k * 1.7));
-    for (let j = 0; j < 6; j++) {
-      if (idx + j < N) sig[idx + j] += decayMag * Math.exp(-j * 0.5) * Math.sin(j * 1.2);
-    }
-  }
+  // Animated playhead position based on tOff (cycles through time window)
+  const phase = (tOff * 0.4) % 1;
 
-  // Compute features
-  let sumSq = 0, peak = 0, sum = 0;
-  for (let i = 0; i < N; i++) {
-    sumSq += sig[i] * sig[i];
-    if (Math.abs(sig[i]) > peak) peak = Math.abs(sig[i]);
-    sum += sig[i];
-  }
-  const mean = sum / N;
-  const rms = Math.sqrt(sumSq / N);
-  let m4 = 0, m2 = 0;
-  for (let i = 0; i < N; i++) {
-    const d = sig[i] - mean;
-    m2 += d*d; m4 += d*d*d*d;
-  }
-  m2 /= N; m4 /= N;
-  const kurt = m2 > 1e-9 ? m4 / (m2*m2) : 0;
-  const cf = peak / Math.max(rms, 1e-9);
+  // Determine fault profile based on lifetime: 0 = healthy (only shaft freq),
+  // 0.4 = early (BPFO peaks emerge), 1.0 = severe (multiple harmonics + sidebands)
+  const SHAFT = 6;       // freq bin index
+  const BPFO = 18;
+  const BPFI = 28;
+  const BSF = 12;
+  const sev = lifeProgress;   // 0..1
 
-  // TOP: signal plot
-  _grid(ctx, padX, topY, plotW, topH, 20, 4, '#0d1929');
-  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText(`Sinyal Vibrasi @ Lifetime ${(lifeProgress*100).toFixed(0)}%`, padX, topY - 4);
-  const sigYScale = topH * 0.35 / Math.max(peak, 1);
-  ctx.strokeStyle = 'rgba(168,85,247,.9)'; ctx.lineWidth = 1.2;
-  ctx.beginPath();
-  for (let i = 0; i < N; i++) {
-    const px = padX + (i/(N-1)) * plotW;
-    const py = topY + topH/2 - sig[i] * sigYScale;
-    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-  }
-  ctx.stroke();
-
-  // BOTTOM: trajectory plot — RMS, CF, Kurtosis, Peak across lifetime [0..1]
-  _grid(ctx, padX, botY, plotW, botH, 10, 4, '#0d1929');
-  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText('Trajectory Lifetime: RMS, CF, Kurtosis, Peak', padX, botY - 4);
-
-  // Compute trajectory across lifetime points
-  const nPoints = 50;
-  const traj_rms = [], traj_cf = [], traj_kurt = [], traj_peak = [];
-  for (let p = 0; p < nPoints; p++) {
-    const prog = p / (nPoints - 1);
-    const noi = 0.4 * (1 + 2 * prog);
-    const nImp = Math.floor(50 * prog);
-    const ampImp = 1.5 + 3 * prog;
-    let lsumSq = 0, lpeak = 0, lsum = 0;
-    const lsig = new Array(N);
-    for (let i = 0; i < N; i++) {
-      let v = 1.0 * Math.sin(i * 0.4) + 0.3 * Math.sin(i * 0.8);
-      v += noi * (Math.sin(i * 2.71) + Math.sin(i * 4.13) * 0.6);
-      lsig[i] = v;
-    }
-    for (let k = 0; k < nImp; k++) {
-      const idx = Math.floor((k * 7919) % (N - 6));
-      const decayMag = ampImp * (0.5 + 0.5 * Math.sin(k * 1.7));
-      for (let j = 0; j < 6; j++) {
-        if (idx + j < N) lsig[idx + j] += decayMag * Math.exp(-j * 0.5) * Math.sin(j * 1.2);
+  // Build spectrogram cell by cell. y axis: freq, x axis: time.
+  // Higher freq at top means: bin index 0 = lowest, plot row 0 = top (high freq)
+  for (let ti = 0; ti < nT; ti++) {
+    const tNorm = ti / nT;
+    // Time-varying intensity: animate slightly with tOff for STFT "scanning" effect
+    const tWave = 1 + 0.15 * Math.sin(tNorm*8 + tOff*1.2);
+    for (let fi = 0; fi < nF; fi++) {
+      const f = nF - 1 - fi;  // map: row 0 (top) = highest freq bin
+      // Base noise floor (low everywhere)
+      let m = 0.04 + 0.05 * Math.abs(Math.sin(f*0.31 + ti*0.71));
+      // Shaft fundamental — always present
+      m += 0.55 * Math.exp(-Math.pow((f-SHAFT)/0.9, 2)) * tWave;
+      // Shaft 2nd harmonic — small
+      m += 0.20 * Math.exp(-Math.pow((f-SHAFT*2)/0.9, 2)) * tWave;
+      // Fault frequencies — emerge as severity grows
+      if (sev > 0.15) {
+        const sevF = (sev - 0.15) / 0.85;
+        m += 0.50 * sevF * Math.exp(-Math.pow((f-BPFO)/0.9, 2)) * tWave;
+        if (sev > 0.4) m += 0.35 * (sev-0.4) * Math.exp(-Math.pow((f-BPFO*2)/0.9, 2)) * tWave;
+        if (sev > 0.55) m += 0.25 * (sev-0.55) * Math.exp(-Math.pow((f-BPFI)/1.0, 2)) * tWave;
+        if (sev > 0.7) m += 0.20 * (sev-0.7) * Math.exp(-Math.pow((f-BSF)/1.0, 2)) * tWave;
+        // Broadband for severe (random hot spots)
+        if (sev > 0.8) m += 0.18 * (sev-0.8) * Math.abs(Math.sin(f*1.7 + ti*0.83 + tOff*2));
       }
+      // Modulate over time slightly with non-stationarity for severe
+      if (sev > 0.5) {
+        m += 0.08 * sev * Math.abs(Math.sin(ti*0.3 - f*0.5 + tOff*0.7));
+      }
+      // Color: heatmap viridis-like (dark blue → green → yellow → red)
+      const v = Math.min(1, m);
+      let r, g, b;
+      if (v < 0.25)      { r = 8 + v*4*40;       g = 12 + v*4*30;     b = 60 + v*4*120; }
+      else if (v < 0.5)  { r = 48 - (v-0.25)*4*40; g = 42 + (v-0.25)*4*120; b = 180 - (v-0.25)*4*120; }
+      else if (v < 0.75) { r = 8 + (v-0.5)*4*220;  g = 162 + (v-0.5)*4*60; b = 60 - (v-0.5)*4*40; }
+      else               { r = 228 + (v-0.75)*4*20; g = 222 - (v-0.75)*4*100; b = 20; }
+      ctx.fillStyle = `rgb(${r|0},${g|0},${b|0})`;
+      ctx.fillRect(x0 + ti*cellW, y0 + fi*cellH, cellW + 0.5, cellH + 0.5);
     }
-    for (let i = 0; i < N; i++) {
-      lsumSq += lsig[i] * lsig[i];
-      if (Math.abs(lsig[i]) > lpeak) lpeak = Math.abs(lsig[i]);
-      lsum += lsig[i];
-    }
-    const lmean = lsum / N;
-    const lrms = Math.sqrt(lsumSq / N);
-    let lm2 = 0, lm4 = 0;
-    for (let i = 0; i < N; i++) {
-      const d = lsig[i] - lmean;
-      lm2 += d*d; lm4 += d*d*d*d;
-    }
-    lm2 /= N; lm4 /= N;
-    const lkurt = lm2 > 1e-9 ? lm4/(lm2*lm2) : 0;
-    const lcf = lpeak / Math.max(lrms, 1e-9);
-    traj_rms.push(lrms);
-    traj_cf.push(lcf);
-    traj_kurt.push(lkurt);
-    traj_peak.push(lpeak);
   }
 
-  // Plot trajectory: multi-line with normalization to fit panel
-  const maxRMS = Math.max(...traj_rms);
-  const maxCF = Math.max(...traj_cf);
-  const maxKurt = Math.max(...traj_kurt);
-  const maxPeak = Math.max(...traj_peak);
-
-  function drawTraj(data, maxV, color, label, yOff) {
-    ctx.strokeStyle = color; ctx.lineWidth = 1.8;
-    ctx.beginPath();
-    for (let i = 0; i < data.length; i++) {
-      const px = padX + (i/(data.length-1)) * plotW;
-      const py = botY + botH - 20 - (data[i] / maxV) * (botH - 30);
-      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-    }
-    ctx.stroke();
-    // Label dots
-    ctx.fillStyle = color; ctx.font = '9px JetBrains Mono';
-    ctx.fillText(label, padX + plotW + 5, botY + 10 + yOff * 12);
+  // Frequency axis labels (right side)
+  ctx.fillStyle = '#94a3b8'; ctx.font = '9px JetBrains Mono';
+  function freqLabel(binIdx, name, color) {
+    const yPos = y0 + (nF - 1 - binIdx) * cellH + cellH/2;
+    ctx.fillStyle = color; ctx.fillText(`◀ ${name}`, x0 + w + 4, yPos + 3);
   }
-  drawTraj(traj_rms, maxRMS, 'rgba(14,165,233,.95)', '— RMS', 0);
-  drawTraj(traj_cf, maxCF, 'rgba(249,115,22,.95)', '— CF', 1);
-  drawTraj(traj_kurt, maxKurt, 'rgba(168,85,247,.95)', '— Kurt', 2);
-  drawTraj(traj_peak, maxPeak, 'rgba(255,64,129,.95)', '— Peak', 3);
+  freqLabel(SHAFT, 'shaft',  '#fbbf24');
+  freqLabel(BSF,   'BSF',    '#22d3ee');
+  freqLabel(BPFO,  'BPFO',   '#f97316');
+  freqLabel(BPFO*2,'2×BPFO', '#f87171');
+  freqLabel(BPFI,  'BPFI',   '#ef4444');
 
-  // Marker at current life progress
-  const markerX = padX + lifeProgress * plotW;
-  ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2; ctx.setLineDash([5,3]);
-  ctx.beginPath(); ctx.moveTo(markerX, botY); ctx.lineTo(markerX, botY + botH); ctx.stroke();
+  // Animated time playhead (vertical line)
+  const phX = x0 + phase * w;
+  ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.lineWidth = 1; ctx.setLineDash([4,3]);
+  ctx.beginPath(); ctx.moveTo(phX, y0); ctx.lineTo(phX, y0 + h); ctx.stroke();
   ctx.setLineDash([]);
+
+  // Title and axis labels
+  ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
+  ctx.fillText(`STFT Spectrogram  (window=256, hop=64)  · lifetime ${(lifeProgress*100).toFixed(0)}%`, x0, y0 - 8);
+  ctx.save();
+  ctx.translate(x0 - 10, y0 + h/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('frequency →', 0, 0);
+  ctx.restore();
+  ctx.fillText('time →', x0 + w/2 - 18, y0 + h + 16);
+
+  // Color legend (small bar)
+  const legW = 80, legH = 8;
+  const legX = x0 + w - legW - 10, legY = y0 + h + 22;
+  for (let i = 0; i < legW; i++) {
+    const v = i/legW;
+    let r, g, b;
+    if (v < 0.25)      { r = 8 + v*4*40;       g = 12 + v*4*30;     b = 60 + v*4*120; }
+    else if (v < 0.5)  { r = 48 - (v-0.25)*4*40; g = 42 + (v-0.25)*4*120; b = 180 - (v-0.25)*4*120; }
+    else if (v < 0.75) { r = 8 + (v-0.5)*4*220;  g = 162 + (v-0.5)*4*60; b = 60 - (v-0.5)*4*40; }
+    else               { r = 228 + (v-0.75)*4*20; g = 222 - (v-0.75)*4*100; b = 20; }
+    ctx.fillStyle = `rgb(${r|0},${g|0},${b|0})`;
+    ctx.fillRect(legX + i, legY, 1, legH);
+  }
+  ctx.fillStyle = '#94a3b8'; ctx.font = '8px JetBrains Mono';
+  ctx.fillText('low', legX - 22, legY + 7);
+  ctx.fillText('high', legX + legW + 4, legY + 7);
 
   // Slider display
   const vl = document.getElementById('v_rh'); if(vl) vl.textContent = lifeProgress.toFixed(2);
@@ -4994,10 +4987,11 @@ function drawHPB(){
   const info = document.getElementById('hpbInfo');
   if (info) {
     let stage;
-    if (lifeProgress < 0.2) stage = '🟢 HEALTHY';
-    else if (lifeProgress < 0.6) stage = '🟡 EARLY FAULT (CF/Kurt naik dramatis)';
-    else stage = '🔴 SEVERE (RMS tinggi, CF/Kurt menurun lagi → U-shape)';
-    info.innerHTML = `RMS=<strong>${rms.toFixed(2)}</strong> · Peak=<strong>${peak.toFixed(2)}</strong> · CF=<strong>${cf.toFixed(2)}</strong> · Kurt=<strong>${kurt.toFixed(2)}</strong> · ${stage}`;
+    if (lifeProgress < 0.15) stage = '🟢 HEALTHY — hanya shaft freq + harmoniknya yang muncul';
+    else if (lifeProgress < 0.4) stage = '🟡 EARLY FAULT — BPFO peak baru muncul di band tengah';
+    else if (lifeProgress < 0.7) stage = '🟠 PROGRESSIVE — harmonik 2× BPFO + BPFI muncul';
+    else stage = '🔴 SEVERE — multi-peak + broadband + non-stationary modulation';
+    info.innerHTML = `Lifetime <strong>${(lifeProgress*100).toFixed(0)}%</strong> &nbsp;·&nbsp; Time bins <strong>${nT}</strong>, freq bins <strong>${nF}</strong> &nbsp;·&nbsp; ${stage}`;
   }
 }
 
@@ -7661,104 +7655,145 @@ function drawOA5(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const opts = [
-    ["fft", "🌊 FFT Magnitude — spektrum frekuensi"],
-    ["psd", "📊 PSD — power spectral density"],
-    ["cepstrum", "🔁 Cepstrum — periodicity in spectrum"],
-    ["envelope", "📡 Envelope — demodulation bearing fault"]
-  ];
-  const idx = opts.findIndex(o => o[0] === _oa5Mode);
-  const opt = opts[Math.max(0, idx)];
-  const colors = ['#0ea5e9', '#00e09e', '#f97316', '#a855f7', '#ef4444', '#facc15'];
-  const color = colors[idx % colors.length];
+  const META = {
+    fft:      { color:'#0ea5e9', title:'FFT Magnitude', sub:'|X(f)| = |Σ x[n]·e^(-j2πkn/N)| · spektrum frekuensi linear', xlab:'f (Hz)', ylab:'|X(f)|' },
+    psd:      { color:'#00e09e', title:'PSD',           sub:'Pₓₓ(f) = |X(f)|² / (fs·N) · power per Hz', xlab:'f (Hz)', ylab:'Pₓₓ' },
+    cepstrum: { color:'#f97316', title:'Cepstrum',      sub:'C(τ) = IFFT( log|FFT(x)| ) · periodicity in spectrum', xlab:'quefrency τ (s)', ylab:'|C(τ)|' },
+    envelope: { color:'#a855f7', title:'Envelope',      sub:'env(x) = |Hilbert(x)| → FFT · demodulasi bearing fault', xlab:'f (Hz)', ylab:'|Env(f)|' }
+  };
+  const meta = META[_oa5Mode] || META.fft;
 
-  // Split: 50% kiri info, 50% kanan signal trace
-  const splitX = Math.floor(W*0.40);
-  ctx.strokeStyle = 'rgba(148,163,184,.15)';
-  ctx.beginPath(); ctx.moveTo(splitX, 10); ctx.lineTo(splitX, H-10); ctx.stroke();
+  const t = _oa5Frame * 0.018;
+  const padL = 50, padR = 22, padT = 36, padB = 32;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+  const x0 = padL, y0 = padT;
 
-  // Left: title + label
-  ctx.fillStyle = color; ctx.font = 'bold 13px JetBrains Mono';
-  ctx.textAlign = 'left';
-  // Word-wrap long labels
-  const words = opt[1].split(' ');
-  let line = ''; let yy = 30;
-  for(const w of words){
-    if(line.length + w.length > 22 && line){
-      ctx.fillText(line.trim(), 14, yy); yy += 18; line = '';
+  // Title strip
+  ctx.fillStyle = meta.color; ctx.font = 'bold 13px JetBrains Mono';
+  ctx.fillText(meta.title, x0, 22);
+  ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
+  ctx.fillText(meta.sub, x0 + 130, 22);
+
+  // Plot frame
+  _grid(ctx, x0, y0, plotW, plotH, 16, 5, '#0d1929');
+
+  // Common bearing-like signal: shaft + BPFO + sidebands + noise
+  const SHAFT = 8, BPFO = 32;
+
+  // Build series specific to mode
+  const K = 120;
+  const arr = new Array(K).fill(0);
+  if (_oa5Mode === 'fft') {
+    // Magnitude spectrum: peak at shaft + BPFO + harmonik
+    for (let k = 0; k < K; k++) {
+      let m = 0.04 + 0.04*Math.abs(Math.sin(k*0.31 + t*0.6));
+      m += 0.85 * Math.exp(-Math.pow((k-SHAFT)/0.7,2));
+      m += 0.55 * Math.exp(-Math.pow((k-BPFO)/0.7,2));
+      m += 0.32 * Math.exp(-Math.pow((k-2*BPFO)/0.7,2));
+      m += 0.20 * Math.exp(-Math.pow((k-3*BPFO)/0.7,2));
+      arr[k] = m;
     }
-    line += w + ' ';
-  }
-  if(line) ctx.fillText(line.trim(), 14, yy);
-
-  // Compute signal value based on mode index (different waveform per option)
-  const t = _oa5Frame * 0.012;
-  const f1 = (idx+1)*1.5;
-  const f2 = (idx+1)*0.8 + 1.5;
-  const sigValue = 0.35*Math.sin(f1*t) + 0.25*Math.sin(f2*t + 0.5) + 0.05*(Math.random()-0.5);
-
-  // Append history
-  _oa5Hist.push(Math.max(-1, Math.min(1, sigValue)));
-  if(_oa5Hist.length > 1000) _oa5Hist.shift();
-
-  // Right: signal trace plot
-  const padR = 14, padTR = 24, padBR = 26;
-  const plotX0 = splitX + 12;
-  const plotW = W - plotX0 - padR;
-  const plotH = H - padTR - padBR;
-  const plotY0 = padTR;
-
-  ctx.strokeStyle = 'rgba(255,255,255,.06)'; ctx.lineWidth = 1;
-  ctx.strokeRect(plotX0, plotY0, plotW, plotH);
-  ctx.strokeStyle = 'rgba(148,163,184,.2)';
-  ctx.beginPath(); ctx.moveTo(plotX0, plotY0+plotH/2); ctx.lineTo(plotX0+plotW, plotY0+plotH/2); ctx.stroke();
-
-  ctx.fillStyle = '#94a3b8'; ctx.font = '9px JetBrains Mono'; ctx.textAlign = 'right';
-  ctx.fillText('+max', plotX0-3, plotY0+10);
-  ctx.fillText('0', plotX0-3, plotY0+plotH/2+3);
-  ctx.fillText('−max', plotX0-3, plotY0+plotH-3);
-  ctx.textAlign = 'left'; ctx.fillStyle = '#22d3ee'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText('Signal trace x(t)', plotX0+6, plotY0+12);
-  ctx.fillStyle = '#94a3b8'; ctx.font = '9px JetBrains Mono'; ctx.textAlign = 'center';
-  ctx.fillText('-10s', plotX0, plotY0+plotH+14);
-  ctx.fillText('-5s', plotX0+plotW/2, plotY0+plotH+14);
-  ctx.fillText('now', plotX0+plotW, plotY0+plotH+14);
-
-  const N = _oa5Hist.length;
-  if(N > 1){
-    ctx.fillStyle = 'rgba(34,211,238,.15)';
-    ctx.beginPath(); ctx.moveTo(plotX0, plotY0+plotH/2);
-    for(let i=0; i<N; i++){
-      const px = plotX0 + (i/999)*plotW;
-      const py = plotY0+plotH/2 - _oa5Hist[i]*(plotH/2-8);
-      ctx.lineTo(px, py);
+  } else if (_oa5Mode === 'psd') {
+    // PSD: same peaks but squared (sharper)
+    for (let k = 0; k < K; k++) {
+      let m = 0.04 + 0.04*Math.abs(Math.sin(k*0.31 + t*0.6));
+      m += 0.85 * Math.exp(-Math.pow((k-SHAFT)/0.7,2));
+      m += 0.55 * Math.exp(-Math.pow((k-BPFO)/0.7,2));
+      m += 0.32 * Math.exp(-Math.pow((k-2*BPFO)/0.7,2));
+      m += 0.20 * Math.exp(-Math.pow((k-3*BPFO)/0.7,2));
+      arr[k] = m * m;
     }
-    ctx.lineTo(plotX0 + ((N-1)/999)*plotW, plotY0+plotH/2);
-    ctx.closePath(); ctx.fill();
+  } else if (_oa5Mode === 'cepstrum') {
+    // Cepstrum: peaks at quefrency = 1/BPFO and harmonics (period rather than freq)
+    // Show peaks at small "rahmonics" - period of fault repetition
+    const Q = 12;   // quefrency unit equivalent to 1/BPFO
+    for (let k = 0; k < K; k++) {
+      let m = 0.05 + 0.04*Math.abs(Math.sin(k*0.27 + t*0.5));
+      // Strong peak at fundamental quefrency
+      m += 0.75 * Math.exp(-Math.pow((k-Q)/0.6,2));
+      m += 0.45 * Math.exp(-Math.pow((k-2*Q)/0.7,2));
+      m += 0.28 * Math.exp(-Math.pow((k-3*Q)/0.8,2));
+      m += 0.18 * Math.exp(-Math.pow((k-4*Q)/1.0,2));
+      arr[k] = m;
+    }
+  } else if (_oa5Mode === 'envelope') {
+    // Envelope spectrum: BPFO + sidebands (after Hilbert demodulation, low-freq peaks dominate)
+    for (let k = 0; k < K; k++) {
+      let m = 0.04 + 0.03*Math.abs(Math.sin(k*0.31 + t*0.7));
+      // Strong fault freq + sidebands at shaft
+      m += 0.90 * Math.exp(-Math.pow((k-BPFO)/0.5,2));
+      m += 0.50 * Math.exp(-Math.pow((k-(BPFO-SHAFT))/0.5,2));   // lower sideband
+      m += 0.50 * Math.exp(-Math.pow((k-(BPFO+SHAFT))/0.5,2));   // upper sideband
+      m += 0.42 * Math.exp(-Math.pow((k-2*BPFO)/0.6,2));
+      m += 0.25 * Math.exp(-Math.pow((k-(2*BPFO-SHAFT))/0.6,2));
+      m += 0.25 * Math.exp(-Math.pow((k-(2*BPFO+SHAFT))/0.6,2));
+      arr[k] = m;
+    }
   }
-  ctx.strokeStyle = '#22d3ee'; ctx.lineWidth = 2.4;
-  ctx.shadowColor = '#22d3ee'; ctx.shadowBlur = 8;
-  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-  ctx.beginPath();
-  for(let i=0; i<N; i++){
-    const px = plotX0 + (i/999)*plotW;
-    const py = plotY0+plotH/2 - _oa5Hist[i]*(plotH/2-8);
-    if(i===0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+
+  // Time-modulate slightly for animation
+  for (let k = 0; k < K; k++) arr[k] *= (1 + 0.05*Math.sin(t*1.2 + k*0.21));
+
+  const maxV = Math.max(...arr, 0.1);
+  const barW = plotW / K;
+  for (let k = 0; k < K; k++) {
+    const bh = (arr[k]/maxV) * (plotH - 12);
+    const px = x0 + k*barW;
+    const py = y0 + plotH - bh;
+    // Highlight the dominant peaks
+    const isPeakFFT = _oa5Mode==='fft' || _oa5Mode==='psd' ? (Math.abs(k-SHAFT)<1.5 || Math.abs(k-BPFO)<1.5 || Math.abs(k-2*BPFO)<1.5 || Math.abs(k-3*BPFO)<1.5) : false;
+    const isPeakCep = _oa5Mode==='cepstrum' ? (Math.abs(k-12)<1.5 || Math.abs(k-24)<1.5 || Math.abs(k-36)<1.5) : false;
+    const isPeakEnv = _oa5Mode==='envelope' ? (Math.abs(k-BPFO)<1.5 || Math.abs(k-(BPFO-SHAFT))<1.5 || Math.abs(k-(BPFO+SHAFT))<1.5 || Math.abs(k-2*BPFO)<1.5) : false;
+    const isHi = isPeakFFT || isPeakCep || isPeakEnv;
+    const grad = ctx.createLinearGradient(px, py, px, y0+plotH);
+    if (isHi) {
+      grad.addColorStop(0, meta.color);
+      grad.addColorStop(1, meta.color + '40');
+    } else {
+      grad.addColorStop(0, 'rgba(168,85,247,.55)');
+      grad.addColorStop(1, 'rgba(168,85,247,.10)');
+    }
+    ctx.fillStyle = grad;
+    ctx.fillRect(px+0.5, py, Math.max(barW-1,1), bh);
   }
-  ctx.stroke();
-  ctx.shadowBlur = 0;
-  if(N > 0){
-    const px = plotX0 + ((N-1)/999)*plotW;
-    const py = plotY0+plotH/2 - _oa5Hist[N-1]*(plotH/2-8);
-    ctx.fillStyle = 'rgba(251,191,36,.3)';
-    ctx.beginPath(); ctx.arc(px, py, 9, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = '#fbbf24'; ctx.shadowColor = '#fbbf24'; ctx.shadowBlur = 10;
-    ctx.beginPath(); ctx.arc(px, py, 4.5, 0, Math.PI*2); ctx.fill();
-    ctx.shadowBlur = 0;
+
+  // Annotate key peaks
+  ctx.fillStyle = meta.color; ctx.font = 'bold 9px JetBrains Mono';
+  if (_oa5Mode === 'fft' || _oa5Mode === 'psd') {
+    ctx.fillText('shaft', x0 + (SHAFT/(K-1))*plotW - 12, y0 + 14);
+    ctx.fillText('BPFO',  x0 + (BPFO/(K-1))*plotW - 12, y0 + 14);
+    ctx.fillText('2×',    x0 + (2*BPFO/(K-1))*plotW - 6, y0 + 14);
+    ctx.fillText('3×',    x0 + (3*BPFO/(K-1))*plotW - 6, y0 + 14);
+  } else if (_oa5Mode === 'cepstrum') {
+    ctx.fillText('1/BPFO', x0 + (12/(K-1))*plotW - 18, y0 + 14);
+    ctx.fillText('2×',     x0 + (24/(K-1))*plotW - 6,  y0 + 14);
+    ctx.fillText('3×',     x0 + (36/(K-1))*plotW - 6,  y0 + 14);
+  } else if (_oa5Mode === 'envelope') {
+    ctx.fillText('BPFO−fs', x0 + ((BPFO-SHAFT)/(K-1))*plotW - 24, y0 + 14);
+    ctx.fillText('BPFO',    x0 + (BPFO/(K-1))*plotW - 12,         y0 + 14);
+    ctx.fillText('BPFO+fs', x0 + ((BPFO+SHAFT)/(K-1))*plotW - 6,  y0 + 14);
   }
+
+  // Axis labels
+  ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
+  ctx.fillText(meta.xlab + ' →', x0 + plotW - 60, y0 + plotH + 18);
+  ctx.save();
+  ctx.translate(x0 - 30, y0 + plotH/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText(meta.ylab, 0, 0);
+  ctx.restore();
+
+  // Mode-specific contextual help
+  ctx.fillStyle = meta.color + 'CC'; ctx.font = '10px JetBrains Mono';
+  let help = '';
+  if (_oa5Mode === 'fft') help = 'numpy.fft.rfft(x) → magnitudo |X|';
+  else if (_oa5Mode === 'psd') help = 'scipy.signal.welch(x, fs, nperseg=1024)';
+  else if (_oa5Mode === 'cepstrum') help = 'np.abs(np.fft.ifft(np.log(|FFT(x)|)))';
+  else if (_oa5Mode === 'envelope') help = 'env = abs(scipy.signal.hilbert(bandpass(x))) → FFT(env)';
+  ctx.fillText(help, x0 + 4, y0 + plotH - 6);
 
   const info = document.getElementById('oa5Info');
-  if(info) info.innerHTML = `<strong style="color:${color}">${opt[1]}</strong>`;
+  if(info) info.innerHTML = `<strong style="color:${meta.color}">${meta.title}</strong> — ${meta.sub}`;
 }
 
 function _oa5Tick(){
