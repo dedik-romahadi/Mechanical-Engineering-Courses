@@ -4677,111 +4677,111 @@ function drawPhysics(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  // Read sliders
-  const alpha = parseFloat(document.getElementById('sl_rp').value);
-  const x0 = parseFloat(document.getElementById('sl_zp').value);
+  // Read sliders: rp = data complexity (0..1), zp = model strength (0..1)
+  const complexity = parseFloat(document.getElementById('sl_rp').value);
+  const strength = parseFloat(document.getElementById('sl_zp').value);
+  const nEst = Math.round(1 + strength*49);          // RF n_estimators 1..50
+  const gamma = 0.1 + strength*1.9;                  // SVM γ 0.1..2.0
 
-  // Plot region
-  const padL = 50, padR = 30, padT = 25, padB = 40;
-  const xMin = -3, xMax = 3, yMin = -2, yMax = 2;
-  const wPx = W - padL - padR, hPx = H - padT - padB;
-  const PX = (x) => padL + ((x - xMin) / (xMax - xMin)) * wPx;
-  const PY = (y) => H - padB - ((y - yMin) / (yMax - yMin)) * hPx;
+  // Layout: side-by-side panels
+  const padO = 14, gap = 14;
+  const panW = (W - padO*2 - gap)/2, panH = H - padO*2 - 22;
+  const pan = [{x:padO, y:padO+22, w:panW, h:panH, label:'Random Forest (axis-aligned)', color:'#fbbf24'},
+               {x:padO+panW+gap, y:padO+22, w:panW, h:panH, label:'SVM RBF (smooth)', color:'#a855f7'}];
 
-  // f(x,y) = (x − 1)² + 2(y − 0.5)²; ∇f = (2(x−1), 4(y−0.5))
-  const f = (x, y) => (x-1)*(x-1) + 2*(y-0.5)*(y-0.5);
-  const grad = (x, y) => [2*(x-1), 4*(y-0.5)];
-
-  // Draw contour lines
-  const levels = [0.2, 0.5, 1.0, 2.0, 4.0, 8.0];
-  ctx.strokeStyle = 'rgba(168,85,247,.5)'; ctx.lineWidth = 1.3;
-  levels.forEach(L => {
-    // Ellipse: (x-1)² + 2(y-0.5)² = L → semi-axis a = √L, b = √(L/2)
-    const a = Math.sqrt(L), b = Math.sqrt(L/2);
-    ctx.beginPath();
-    for(let theta=0; theta<=2*Math.PI+0.01; theta+=0.05){
-      const px = 1 + a*Math.cos(theta);
-      const py = 0.5 + b*Math.sin(theta);
-      if(theta === 0) ctx.moveTo(PX(px), PY(py));
-      else ctx.lineTo(PX(px), PY(py));
-    }
-    ctx.stroke();
-    // Level label
-    ctx.fillStyle = 'rgba(168,85,247,.6)'; ctx.font = '9px JetBrains Mono';
-    ctx.fillText(L.toFixed(1), PX(1+a), PY(0.5));
-  });
-
-  // Run gradient descent from (x0, 0)
-  let xk = x0, yk = 0;
-  const trajectory = [[xk, yk]];
-  for(let k=0; k<60; k++){
-    const [gx, gy] = grad(xk, yk);
-    if (Math.sqrt(gx*gx + gy*gy) < 1e-4) break;
-    xk = xk - alpha * gx;
-    yk = yk - alpha * gy;
-    if (Math.abs(xk) > 5 || Math.abs(yk) > 5) break;  // diverged
-    trajectory.push([xk, yk]);
+  // Generate 2D dataset (deterministic, depends on complexity)
+  const rng = (s)=>{let x=Math.sin(s*9301+49297)*233280; return x-Math.floor(x);};
+  const N = 90;
+  const pts = [];
+  for(let i=0;i<N;i++){
+    const r1=rng(i+1), r2=rng(i+2), r3=rng(i+3);
+    let x = (r1-0.5)*4, y = (r2-0.5)*4;
+    let cls;
+    // Linear vs spiral mix based on complexity
+    const t = Math.atan2(y,x), rho = Math.sqrt(x*x+y*y);
+    const linearLabel = (y > -0.4*x) ? 1 : 0;
+    const spiralLabel = (Math.sin(t*2 + rho*1.6) > 0) ? 1 : 0;
+    cls = (rng(i+4) < complexity) ? spiralLabel : linearLabel;
+    if (rng(i+5) < 0.08) cls = 1-cls;                // noise
+    pts.push([x,y,cls]);
   }
 
-  // Draw trajectory
-  ctx.strokeStyle = 'rgba(14,165,233,.95)'; ctx.lineWidth = 1.8;
-  ctx.shadowColor = 'rgba(14,165,233,.4)'; ctx.shadowBlur = 4;
-  ctx.beginPath();
-  trajectory.forEach(([x,y], i) => {
-    if (i === 0) ctx.moveTo(PX(x), PY(y));
-    else ctx.lineTo(PX(x), PY(y));
+  // Classifier surrogates
+  // RF approx: vote among nEst axis-aligned splits centered on data centroid
+  const centroid = pts.reduce((a,p)=>[a[0]+p[0]/N,a[1]+p[1]/N],[0,0]);
+  const classifyRF = (x,y)=>{
+    let votes=0;
+    for(let t=0;t<nEst;t++){
+      const useX = rng(t*7+1) < 0.5;
+      const split = (useX?centroid[0]:centroid[1]) + (rng(t*7+2)-0.5)*1.2;
+      const sign = rng(t*7+3) < 0.5 ? 1:-1;
+      const v = useX ? (x-split) : (y-split);
+      votes += (sign*v > 0) ? 1 : -1;
+    }
+    return votes > 0 ? 1 : 0;
+  };
+  // SVM-RBF approx: kernel sum over support vectors (use class +1 - class -1)
+  const classifySVM = (x,y)=>{
+    let s = 0;
+    for(let i=0;i<pts.length;i++){
+      const dx=x-pts[i][0], dy=y-pts[i][1];
+      const k = Math.exp(-gamma*(dx*dx+dy*dy));
+      s += (pts[i][2]===1?1:-1)*k;
+    }
+    return s > 0 ? 1 : 0;
+  };
+
+  // Draw each panel
+  pan.forEach((P,pi)=>{
+    const classify = pi===0 ? classifyRF : classifySVM;
+    const PX = (x)=>P.x + ((x+2.5)/5)*P.w;
+    const PY = (y)=>P.y + (1-(y+2.5)/5)*P.h;
+
+    // Panel bg + border
+    ctx.fillStyle = '#020812'; ctx.fillRect(P.x, P.y, P.w, P.h);
+    ctx.strokeStyle = P.color+'66'; ctx.lineWidth = 1; ctx.strokeRect(P.x, P.y, P.w, P.h);
+
+    // Decision region (coarse pixel grid)
+    const step = 9;
+    for(let px=P.x; px<P.x+P.w; px+=step){
+      for(let py=P.y; py<P.y+P.h; py+=step){
+        const xx = -2.5 + (px-P.x)/P.w * 5;
+        const yy = 2.5 - (py-P.y)/P.h * 5;
+        const c = classify(xx,yy);
+        ctx.fillStyle = c===1 ? 'rgba(34,197,94,.18)' : 'rgba(239,68,68,.18)';
+        ctx.fillRect(px,py,step,step);
+      }
+    }
+
+    // Plot points and compute accuracy
+    let correct = 0;
+    pts.forEach(p=>{
+      ctx.fillStyle = p[2]===1 ? '#22c55e' : '#ef4444';
+      ctx.strokeStyle = '#000'; ctx.lineWidth = 0.8;
+      ctx.beginPath(); ctx.arc(PX(p[0]), PY(p[1]), 3.2, 0, 2*Math.PI); ctx.fill(); ctx.stroke();
+      if (classify(p[0],p[1]) === p[2]) correct++;
+    });
+
+    // Title + accuracy
+    ctx.fillStyle = P.color; ctx.font = 'bold 11px JetBrains Mono';
+    ctx.fillText(P.label, P.x+6, P.y-6);
+    ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
+    const acc = (correct/N*100).toFixed(1);
+    ctx.fillText(`acc = ${acc}%`, P.x+P.w-72, P.y+14);
+    P._acc = correct/N;
   });
-  ctx.stroke();
-  ctx.shadowBlur = 0;
-
-  // Draw iteration markers (small dots)
-  trajectory.forEach(([x,y], i) => {
-    ctx.fillStyle = 'rgba(14,165,233,.9)';
-    const r = (i === 0) ? 6 : 3;
-    ctx.beginPath(); ctx.arc(PX(x), PY(y), r, 0, 2*Math.PI); ctx.fill();
-  });
-  // Label initial
-  ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText('x₀', PX(x0)+8, PY(0)+4);
-
-  // Optimum (star)
-  ctx.fillStyle = '#fbbf24';
-  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.2;
-  _drawStarN(ctx, PX(1), PY(0.5), 5, 11, 5);
-  ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText('x* = (1, 0.5)', PX(1)+12, PY(0.5)-10);
-
-  // Axes
-  ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 1.2;
-  ctx.beginPath(); ctx.moveTo(PX(xMin), PY(0)); ctx.lineTo(PX(xMax), PY(0)); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(PX(0), PY(yMin)); ctx.lineTo(PX(0), PY(yMax)); ctx.stroke();
-  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '11px JetBrains Mono';
-  ctx.fillText('x', PX(xMax)+5, PY(0)+4);
-  ctx.fillText('y', PX(0)-15, PY(yMax)+10);
-
-  // Title
-  ctx.fillStyle = 'rgba(14,165,233,.95)'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText('f(x,y) = (x−1)² + 2(y−0.5)²  · α=' + alpha.toFixed(2) + ', x₀=' + x0.toFixed(1), padL, padT-8);
 
   // Update slider displays
-  document.getElementById('v_rp').textContent = alpha.toFixed(2);
-  document.getElementById('v_zp').textContent = x0.toFixed(1);
+  document.getElementById('v_rp').textContent = complexity.toFixed(2);
+  document.getElementById('v_zp').textContent = strength.toFixed(2);
 
   // Info panel
-  const finalPt = trajectory[trajectory.length-1];
-  const fFinal = f(finalPt[0], finalPt[1]);
-  const [gx, gy] = grad(finalPt[0], finalPt[1]);
-  const gradNorm = Math.sqrt(gx*gx + gy*gy);
-  const converged = gradNorm < 0.05;
-  const diverged = Math.abs(finalPt[0]) > 4 || Math.abs(finalPt[1]) > 4;
   const info = document.getElementById('physicsInfo');
   if (info) {
-    let status;
-    if (diverged) status = '🔴 DIVERGEN — α terlalu besar, kurangi step size!';
-    else if (converged) status = `🟢 KONVERGEN dalam ${trajectory.length-1} iter`;
-    else status = `🟡 Belum konvergen (60 iter limit, ‖∇f‖=${gradNorm.toFixed(3)})`;
-    info.innerHTML = `Iter: <strong>${trajectory.length-1}</strong> · x_final = (${finalPt[0].toFixed(3)}, ${finalPt[1].toFixed(3)}) · f = <strong>${fFinal.toFixed(4)}</strong> · ‖∇f‖ = ${gradNorm.toFixed(3)} · ${status}`;
+    const accRF = (pan[0]._acc*100).toFixed(1);
+    const accSVM = (pan[1]._acc*100).toFixed(1);
+    const winner = pan[0]._acc > pan[1]._acc ? 'RF' : (pan[1]._acc > pan[0]._acc ? 'SVM RBF' : 'Tie');
+    info.innerHTML = `Complexity=<strong>${complexity.toFixed(2)}</strong> · RF (n_est=${nEst}) acc=<strong>${accRF}%</strong> · SVM RBF (γ=${gamma.toFixed(2)}) acc=<strong>${accSVM}%</strong> · winner: <strong>${winner}</strong>`;
   }
 }
 
