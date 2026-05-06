@@ -1334,12 +1334,12 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <canvas id="cvPhysics" height="340"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Noise Level — <span class="ctrl-val" id="v_rp">0.10</span></label>
-          <input type="range" id="sl_rp" min="0.01" max="0.5" step="0.01" value="0.10">
+          <label>Boundary Slope (w) — <span class="ctrl-val" id="v_rp">1.0</span></label>
+          <input type="range" id="sl_rp" min="-3" max="3" step="0.1" value="1.0">
         </div>
         <div class="ctrl-group">
-          <label>Class Separability — <span class="ctrl-val" id="v_zp">30</span></label>
-          <input type="range" id="sl_zp" min="10" max="100" step="5" value="30">
+          <label>Intercept Bias (b) — <span class="ctrl-val" id="v_zp">0.0</span></label>
+          <input type="range" id="sl_zp" min="-2" max="2" step="0.1" value="0.0">
         </div>
         <button class="btn-anim" id="btnPhysics" onclick="togglePhysics()">⏸ PAUSE</button>
       </div>
@@ -1361,12 +1361,12 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <canvas id="cvSweep" height="340"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Model Complexity (max_depth) — <span class="ctrl-val" id="v_rs">0.7</span></label>
-          <input type="range" id="sl_rs" min="0.1" max="10.0" step="0.1" value="0.7">
+          <label>Test Ratio — <span class="ctrl-val" id="v_rs">0.30</span></label>
+          <input type="range" id="sl_rs" min="0.1" max="0.5" step="0.05" value="0.30">
         </div>
         <div class="ctrl-group">
-          <label>Training Set Size (n) — <span class="ctrl-val" id="v_zs">1.5</span></label>
-          <input type="range" id="sl_zs" min="0.01" max="0.20" step="0.01" value="0.05">
+          <label>Stratify (0=random, 1=stratified) — <span class="ctrl-val" id="v_zs">1</span></label>
+          <input type="range" id="sl_zs" min="0" max="1" step="1" value="1">
         </div>
         <button class="btn-anim" id="btnSweep" onclick="toggleSweep()">⏸ PAUSE</button>
       </div>
@@ -1388,12 +1388,12 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <canvas id="cvIso" height="320"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Decision Threshold — <span class="ctrl-val" id="v_ri">50</span></label>
-          <input type="range" id="sl_ri" min="3" max="100" step="1" value="50">
+          <label>Decision Threshold — <span class="ctrl-val" id="v_ri">0.50</span></label>
+          <input type="range" id="sl_ri" min="0" max="1" step="0.01" value="0.50">
         </div>
         <div class="ctrl-group">
-          <label>Class Imbalance Ratio — <span class="ctrl-val" id="v_zi">42</span></label>
-          <input type="range" id="sl_zi" min="1" max="100" step="1" value="42">
+          <label>Difficulty (0=clear, 1=overlap) — <span class="ctrl-val" id="v_zi">0.30</span></label>
+          <input type="range" id="sl_zi" min="0" max="1" step="0.05" value="0.30">
         </div>
         <button class="btn-anim" id="btnIso" onclick="toggleIso()">⏸ PAUSE</button>
       </div>
@@ -1415,8 +1415,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <canvas id="cvHPB" height="380"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Model Quality (separation) — <span class="ctrl-val" id="v_rh">3</span></label>
-          <input type="range" id="sl_rh" min="0" max="10" step="1" value="3">
+          <label>Decision Threshold — <span class="ctrl-val" id="v_rh">0.50</span></label>
+          <input type="range" id="sl_rh" min="0" max="1" step="0.01" value="0.50">
         </div>
         <button class="btn-anim" id="btnHPB" onclick="toggleHPB()">⏸ PAUSE</button>
       </div>
@@ -4677,111 +4677,125 @@ function drawPhysics(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  // Read sliders
-  const alpha = parseFloat(document.getElementById('sl_rp').value);
-  const x0 = parseFloat(document.getElementById('sl_zp').value);
+  // Read sliders: w = boundary slope, b = intercept bias
+  const w = parseFloat(document.getElementById('sl_rp').value);
+  const b = parseFloat(document.getElementById('sl_zp').value);
 
-  // Plot region
-  const padL = 50, padR = 30, padT = 25, padB = 40;
-  const xMin = -3, xMax = 3, yMin = -2, yMax = 2;
-  const wPx = W - padL - padR, hPx = H - padT - padB;
-  const PX = (x) => padL + ((x - xMin) / (xMax - xMin)) * wPx;
-  const PY = (y) => H - padB - ((y - yMin) / (yMax - yMin)) * hPx;
+  // Layout: two panels side by side
+  const padL = 50, padR = 30, padT = 25, padB = 35;
+  const halfW = (W - padL - padR) / 2;
+  const plotH = H - padT - padB;
+  // Left = scatter 2D feature space; Right = 1D sigmoid curve
+  const LX = (x) => padL + ((x + 3) / 6) * halfW;
+  const LY = (y) => padT + plotH - ((y + 3) / 6) * plotH;
+  const rxOff = padL + halfW + 30;
+  const RX = (z) => rxOff + ((z + 6) / 12) * (halfW - 20);
+  const RY = (s) => padT + plotH - s * plotH;
 
-  // f(x,y) = (x − 1)² + 2(y − 0.5)²; ∇f = (2(x−1), 4(y−0.5))
-  const f = (x, y) => (x-1)*(x-1) + 2*(y-0.5)*(y-0.5);
-  const grad = (x, y) => [2*(x-1), 4*(y-0.5)];
-
-  // Draw contour lines
-  const levels = [0.2, 0.5, 1.0, 2.0, 4.0, 8.0];
-  ctx.strokeStyle = 'rgba(168,85,247,.5)'; ctx.lineWidth = 1.3;
-  levels.forEach(L => {
-    // Ellipse: (x-1)² + 2(y-0.5)² = L → semi-axis a = √L, b = √(L/2)
-    const a = Math.sqrt(L), b = Math.sqrt(L/2);
-    ctx.beginPath();
-    for(let theta=0; theta<=2*Math.PI+0.01; theta+=0.05){
-      const px = 1 + a*Math.cos(theta);
-      const py = 0.5 + b*Math.sin(theta);
-      if(theta === 0) ctx.moveTo(PX(px), PY(py));
-      else ctx.lineTo(PX(px), PY(py));
+  // ─── LEFT: 2D scatter + decision boundary ───
+  // Sigmoid contour shading (probability heat)
+  const cellPx = 8;
+  for(let py = 0; py < plotH; py += cellPx){
+    for(let px = 0; px < halfW; px += cellPx){
+      const x1 = -3 + (px / halfW) * 6;
+      const x2 = 3 - (py / plotH) * 6;
+      const z = w * x1 + b - x2;  // linear combiner; boundary: x2 = w*x1 + b
+      const p = 1 / (1 + Math.exp(-z));
+      const r = Math.floor(40 + p * 60);
+      const g = Math.floor(20 + (1-Math.abs(p-0.5)*2) * 20);
+      const blu = Math.floor(40 + (1-p) * 60);
+      ctx.fillStyle = `rgba(${r},${g+30},${blu},.35)`;
+      ctx.fillRect(padL + px, padT + py, cellPx, cellPx);
     }
-    ctx.stroke();
-    // Level label
-    ctx.fillStyle = 'rgba(168,85,247,.6)'; ctx.font = '9px JetBrains Mono';
-    ctx.fillText(L.toFixed(1), PX(1+a), PY(0.5));
-  });
-
-  // Run gradient descent from (x0, 0)
-  let xk = x0, yk = 0;
-  const trajectory = [[xk, yk]];
-  for(let k=0; k<60; k++){
-    const [gx, gy] = grad(xk, yk);
-    if (Math.sqrt(gx*gx + gy*gy) < 1e-4) break;
-    xk = xk - alpha * gx;
-    yk = yk - alpha * gy;
-    if (Math.abs(xk) > 5 || Math.abs(yk) > 5) break;  // diverged
-    trajectory.push([xk, yk]);
   }
 
-  // Draw trajectory
-  ctx.strokeStyle = 'rgba(14,165,233,.95)'; ctx.lineWidth = 1.8;
-  ctx.shadowColor = 'rgba(14,165,233,.4)'; ctx.shadowBlur = 4;
+  // Synthetic 2-class scatter: class 0 below boundary, class 1 above (with noise)
+  let nCorrect = 0, nTotal = 0;
+  const seed = (i) => {const s=Math.sin(i*9301+49297)*233280; return s-Math.floor(s);};
+  for(let i = 0; i < 60; i++){
+    const cls = i % 2;
+    const cx = -2.5 + seed(i*3+1) * 5;
+    // Ground-truth class boundary line: x2 = 0.8 * x1 + 0.2 (true model)
+    const trueLine = 0.8 * cx + 0.2;
+    const offset = (cls === 1 ? 0.6 : -0.6) + (seed(i*3+2) - 0.5) * 1.4;
+    const cy = trueLine + offset;
+    if(cy < -2.8 || cy > 2.8) continue;
+    // Predicted class via current (w, b)
+    const z = w * cx + b - cy;
+    const pPred = 1/(1+Math.exp(-z));
+    const yPred = pPred >= 0.5 ? 0 : 1;  // class 0 if z > 0 i.e. below boundary
+    const correct = (yPred === cls);
+    if(correct) nCorrect++;
+    nTotal++;
+    ctx.fillStyle = cls === 0 ? 'rgba(239,68,68,.95)' : 'rgba(34,197,94,.95)';
+    ctx.strokeStyle = correct ? 'rgba(255,255,255,.4)' : 'rgba(255,255,0,.95)';
+    ctx.lineWidth = correct ? 0.8 : 1.6;
+    ctx.beginPath(); ctx.arc(LX(cx), LY(cy), 4, 0, 2*Math.PI); ctx.fill(); ctx.stroke();
+  }
+
+  // Decision boundary line: x2 = w*x1 + b
+  ctx.strokeStyle = 'rgba(14,165,233,.95)'; ctx.lineWidth = 2.2;
+  ctx.shadowColor = 'rgba(14,165,233,.5)'; ctx.shadowBlur = 5;
   ctx.beginPath();
-  trajectory.forEach(([x,y], i) => {
-    if (i === 0) ctx.moveTo(PX(x), PY(y));
-    else ctx.lineTo(PX(x), PY(y));
-  });
+  ctx.moveTo(LX(-3), LY(w*-3 + b));
+  ctx.lineTo(LX(3), LY(w*3 + b));
   ctx.stroke();
   ctx.shadowBlur = 0;
 
-  // Draw iteration markers (small dots)
-  trajectory.forEach(([x,y], i) => {
-    ctx.fillStyle = 'rgba(14,165,233,.9)';
-    const r = (i === 0) ? 6 : 3;
-    ctx.beginPath(); ctx.arc(PX(x), PY(y), r, 0, 2*Math.PI); ctx.fill();
-  });
-  // Label initial
-  ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText('x₀', PX(x0)+8, PY(0)+4);
-
-  // Optimum (star)
-  ctx.fillStyle = '#fbbf24';
-  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.2;
-  _drawStarN(ctx, PX(1), PY(0.5), 5, 11, 5);
-  ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText('x* = (1, 0.5)', PX(1)+12, PY(0.5)-10);
-
-  // Axes
-  ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 1.2;
-  ctx.beginPath(); ctx.moveTo(PX(xMin), PY(0)); ctx.lineTo(PX(xMax), PY(0)); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(PX(0), PY(yMin)); ctx.lineTo(PX(0), PY(yMax)); ctx.stroke();
-  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '11px JetBrains Mono';
-  ctx.fillText('x', PX(xMax)+5, PY(0)+4);
-  ctx.fillText('y', PX(0)-15, PY(yMax)+10);
-
-  // Title
+  // Left axes
+  ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 1;
+  ctx.strokeRect(padL, padT, halfW, plotH);
+  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '10px JetBrains Mono';
+  ctx.fillText('x₁', padL + halfW - 14, padT + plotH + 14);
+  ctx.fillText('x₂', padL - 18, padT + 12);
   ctx.fillStyle = 'rgba(14,165,233,.95)'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText('f(x,y) = (x−1)² + 2(y−0.5)²  · α=' + alpha.toFixed(2) + ', x₀=' + x0.toFixed(1), padL, padT-8);
+  ctx.fillText('Feature Space + Decision Boundary', padL, padT - 8);
+  // Class legend
+  ctx.fillStyle = 'rgba(239,68,68,.95)'; ctx.beginPath(); ctx.arc(padL+8, padT+plotH-10, 4, 0, 2*Math.PI); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.font = '9px JetBrains Mono'; ctx.fillText('class 0', padL+16, padT+plotH-7);
+  ctx.fillStyle = 'rgba(34,197,94,.95)'; ctx.beginPath(); ctx.arc(padL+70, padT+plotH-10, 4, 0, 2*Math.PI); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.fillText('class 1', padL+78, padT+plotH-7);
+
+  // ─── RIGHT: 1D sigmoid curve ───
+  ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 1;
+  ctx.strokeRect(rxOff, padT, halfW - 20, plotH);
+  // Grid + threshold line at σ=0.5
+  ctx.strokeStyle = 'rgba(255,255,255,.18)'; ctx.setLineDash([3,3]); ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(rxOff, RY(0.5)); ctx.lineTo(rxOff + halfW - 20, RY(0.5)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(RX(0), padT); ctx.lineTo(RX(0), padT + plotH); ctx.stroke();
+  ctx.setLineDash([]);
+  // σ(z) = 1/(1+e^-z) curve
+  ctx.strokeStyle = 'rgba(34,197,94,.95)'; ctx.lineWidth = 2.4;
+  ctx.shadowColor = 'rgba(34,197,94,.4)'; ctx.shadowBlur = 4;
+  ctx.beginPath();
+  for(let z = -6; z <= 6; z += 0.1){
+    const s = 1 / (1 + Math.exp(-z));
+    if(z === -6) ctx.moveTo(RX(z), RY(s));
+    else ctx.lineTo(RX(z), RY(s));
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+  // Threshold dot at σ=0.5 (z=0)
+  ctx.fillStyle = '#fbbf24';
+  ctx.beginPath(); ctx.arc(RX(0), RY(0.5), 5, 0, 2*Math.PI); ctx.fill();
+  ctx.fillStyle = 'rgba(34,197,94,.95)'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText('σ(z) = 1/(1+e⁻ᶻ)', rxOff, padT - 8);
+  ctx.fillStyle = '#fbbf24'; ctx.font = '9px JetBrains Mono';
+  ctx.fillText('threshold 0.5', RX(0)+6, RY(0.5)-6);
 
   // Update slider displays
-  document.getElementById('v_rp').textContent = alpha.toFixed(2);
-  document.getElementById('v_zp').textContent = x0.toFixed(1);
+  document.getElementById('v_rp').textContent = w.toFixed(2);
+  document.getElementById('v_zp').textContent = b.toFixed(2);
 
-  // Info panel
-  const finalPt = trajectory[trajectory.length-1];
-  const fFinal = f(finalPt[0], finalPt[1]);
-  const [gx, gy] = grad(finalPt[0], finalPt[1]);
-  const gradNorm = Math.sqrt(gx*gx + gy*gy);
-  const converged = gradNorm < 0.05;
-  const diverged = Math.abs(finalPt[0]) > 4 || Math.abs(finalPt[1]) > 4;
+  // Info: accuracy estimate
+  const acc = nTotal ? (nCorrect / nTotal) : 0;
   const info = document.getElementById('physicsInfo');
-  if (info) {
-    let status;
-    if (diverged) status = '🔴 DIVERGEN — α terlalu besar, kurangi step size!';
-    else if (converged) status = `🟢 KONVERGEN dalam ${trajectory.length-1} iter`;
-    else status = `🟡 Belum konvergen (60 iter limit, ‖∇f‖=${gradNorm.toFixed(3)})`;
-    info.innerHTML = `Iter: <strong>${trajectory.length-1}</strong> · x_final = (${finalPt[0].toFixed(3)}, ${finalPt[1].toFixed(3)}) · f = <strong>${fFinal.toFixed(4)}</strong> · ‖∇f‖ = ${gradNorm.toFixed(3)} · ${status}`;
+  if(info){
+    let lvl;
+    if(acc > 0.85) lvl = '🟢 Boundary cocok dengan true pattern';
+    else if(acc > 0.65) lvl = '🟡 Suboptimal — adjust w atau b';
+    else lvl = '🔴 Boundary salah arah, banyak misclassified';
+    info.innerHTML = `w=<strong>${w.toFixed(2)}</strong>, b=<strong>${b.toFixed(2)}</strong> · acc≈<strong>${(acc*100).toFixed(1)}%</strong> (${nCorrect}/${nTotal}) · ${lvl}`;
   }
 }
 

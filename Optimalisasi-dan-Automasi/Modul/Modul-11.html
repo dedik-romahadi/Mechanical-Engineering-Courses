@@ -1306,12 +1306,12 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <canvas id="cvPhysics" height="340"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Hysteresis Margin (T_on − T_off) — <span class="ctrl-val" id="v_rp">0.10</span></label>
-          <input type="range" id="sl_rp" min="0.01" max="0.5" step="0.01" value="0.10">
+          <label>Noise Level σ (mm/s) — <span class="ctrl-val" id="v_rp">0.40</span></label>
+          <input type="range" id="sl_rp" min="0" max="2" step="0.05" value="0.40">
         </div>
         <div class="ctrl-group">
-          <label>Noise Amplitude — <span class="ctrl-val" id="v_zp">30</span></label>
-          <input type="range" id="sl_zp" min="10" max="100" step="5" value="30">
+          <label>Hysteresis Band Δ — <span class="ctrl-val" id="v_zp">0.50</span></label>
+          <input type="range" id="sl_zp" min="0" max="1" step="0.02" value="0.50">
         </div>
         <button class="btn-anim" id="btnPhysics" onclick="togglePhysics()">⏸ PAUSE</button>
       </div>
@@ -1333,12 +1333,12 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <canvas id="cvSweep" height="340"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>RMS Velocity (mm/s) — <span class="ctrl-val" id="v_rs">0.7</span></label>
-          <input type="range" id="sl_rs" min="0.1" max="10.0" step="0.1" value="0.7">
+          <label>Vibration RMS (mm/s) — <span class="ctrl-val" id="v_rs">2.5</span></label>
+          <input type="range" id="sl_rs" min="0" max="15" step="0.1" value="2.5">
         </div>
         <div class="ctrl-group">
-          <label>Trend Slope (degradasi/jam) — <span class="ctrl-val" id="v_zs">1.5</span></label>
-          <input type="range" id="sl_zs" min="0.01" max="0.20" step="0.01" value="0.05">
+          <label>Machine Class (1=small … 4=large) — <span class="ctrl-val" id="v_zs">2</span></label>
+          <input type="range" id="sl_zs" min="1" max="4" step="1" value="2">
         </div>
         <button class="btn-anim" id="btnSweep" onclick="toggleSweep()">⏸ PAUSE</button>
       </div>
@@ -1360,12 +1360,12 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <canvas id="cvIso" height="320"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Persistence Threshold (detik) — <span class="ctrl-val" id="v_ri">50</span></label>
-          <input type="range" id="sl_ri" min="3" max="100" step="1" value="50">
+          <label>Sinyal Freq f_signal (Hz) — <span class="ctrl-val" id="v_ri">5</span></label>
+          <input type="range" id="sl_ri" min="1" max="20" step="0.5" value="5">
         </div>
         <div class="ctrl-group">
-          <label>Random Seed Sinyal — <span class="ctrl-val" id="v_zi">42</span></label>
-          <input type="range" id="sl_zi" min="1" max="100" step="1" value="42">
+          <label>Sample Rate f_s (Hz) — <span class="ctrl-val" id="v_zi">25</span></label>
+          <input type="range" id="sl_zi" min="5" max="100" step="1" value="25">
         </div>
         <button class="btn-anim" id="btnIso" onclick="toggleIso()">⏸ PAUSE</button>
       </div>
@@ -1387,8 +1387,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <canvas id="cvHPB" height="380"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Debounce N (consecutive samples) — <span class="ctrl-val" id="v_rh">3</span></label>
-          <input type="range" id="sl_rh" min="0" max="10" step="1" value="3">
+          <label>Lifetime / Kondisi (0=baru … 1=aus) — <span class="ctrl-val" id="v_rh">0.30</span></label>
+          <input type="range" id="sl_rh" min="0" max="1" step="0.02" value="0.30">
         </div>
         <button class="btn-anim" id="btnHPB" onclick="toggleHPB()">⏸ PAUSE</button>
       </div>
@@ -4806,111 +4806,110 @@ function drawPhysics(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  // Read sliders
-  const alpha = parseFloat(document.getElementById('sl_rp').value);
-  const x0 = parseFloat(document.getElementById('sl_zp').value);
+  // Read sliders: noise level (mm/s) & hysteresis band (mm/s)
+  const noise = parseFloat(document.getElementById('sl_rp').value);
+  const band  = parseFloat(document.getElementById('sl_zp').value);
+  const T = 4.5;            // single-threshold target (mm/s)
+  const Tup = T + band/2;   // hysteresis upper
+  const Tdn = T - band/2;   // hysteresis lower
 
-  // Plot region
-  const padL = 50, padR = 30, padT = 25, padB = 40;
-  const xMin = -3, xMax = 3, yMin = -2, yMax = 2;
-  const wPx = W - padL - padR, hPx = H - padT - padB;
-  const PX = (x) => padL + ((x - xMin) / (xMax - xMin)) * wPx;
-  const PY = (y) => H - padB - ((y - yMin) / (yMax - yMin)) * hPx;
+  // Layout: two stacked panels
+  const padL = 56, padR = 18, padT = 22, padB = 28;
+  const wPx = W - padL - padR;
+  const halfH = (H - padT - padB) / 2;
+  const N = 220;
 
-  // f(x,y) = (x − 1)² + 2(y − 0.5)²; ∇f = (2(x−1), 4(y−0.5))
-  const f = (x, y) => (x-1)*(x-1) + 2*(y-0.5)*(y-0.5);
-  const grad = (x, y) => [2*(x-1), 4*(y-0.5)];
-
-  // Draw contour lines
-  const levels = [0.2, 0.5, 1.0, 2.0, 4.0, 8.0];
-  ctx.strokeStyle = 'rgba(168,85,247,.5)'; ctx.lineWidth = 1.3;
-  levels.forEach(L => {
-    // Ellipse: (x-1)² + 2(y-0.5)² = L → semi-axis a = √L, b = √(L/2)
-    const a = Math.sqrt(L), b = Math.sqrt(L/2);
-    ctx.beginPath();
-    for(let theta=0; theta<=2*Math.PI+0.01; theta+=0.05){
-      const px = 1 + a*Math.cos(theta);
-      const py = 0.5 + b*Math.sin(theta);
-      if(theta === 0) ctx.moveTo(PX(px), PY(py));
-      else ctx.lineTo(PX(px), PY(py));
-    }
-    ctx.stroke();
-    // Level label
-    ctx.fillStyle = 'rgba(168,85,247,.6)'; ctx.font = '9px JetBrains Mono';
-    ctx.fillText(L.toFixed(1), PX(1+a), PY(0.5));
-  });
-
-  // Run gradient descent from (x0, 0)
-  let xk = x0, yk = 0;
-  const trajectory = [[xk, yk]];
-  for(let k=0; k<60; k++){
-    const [gx, gy] = grad(xk, yk);
-    if (Math.sqrt(gx*gx + gy*gy) < 1e-4) break;
-    xk = xk - alpha * gx;
-    yk = yk - alpha * gy;
-    if (Math.abs(xk) > 5 || Math.abs(yk) > 5) break;  // diverged
-    trajectory.push([xk, yk]);
+  // Build noisy RMS time-series (deterministic seeded noise + drift)
+  const t = _physicsAnim.t || 0;
+  const sig = new Array(N);
+  let seed = 1337;
+  const rng = () => { seed = (seed*9301 + 49297) % 233280; return seed/233280 - 0.5; };
+  for(let i=0; i<N; i++){
+    const drift = 0.6*Math.sin(t*0.3 + i*0.025) + 0.3*Math.sin(t*0.7 + i*0.06);
+    sig[i] = T + drift + noise*2*rng();
   }
 
-  // Draw trajectory
-  ctx.strokeStyle = 'rgba(14,165,233,.95)'; ctx.lineWidth = 1.8;
-  ctx.shadowColor = 'rgba(14,165,233,.4)'; ctx.shadowBlur = 4;
+  // Run two detectors
+  const sSimple = new Array(N), sHyst = new Array(N);
+  let stS = false, stH = false;
+  let chS = 0, chH = 0;
+  for(let i=0; i<N; i++){
+    const v = sig[i];
+    const ns = v >= T;
+    if (ns !== stS) chS++;
+    stS = ns; sSimple[i] = stS ? 1 : 0;
+    if (!stH && v >= Tup) { stH = true;  chH++; }
+    else if (stH && v <= Tdn) { stH = false; chH++; }
+    sHyst[i] = stH ? 1 : 0;
+  }
+
+  const yMin = T - 3.5, yMax = T + 3.5;
+  const PX = (i) => padL + (i/(N-1))*wPx;
+  const PYsig = (v) => padT + halfH - ((v - yMin)/(yMax - yMin))*halfH;
+
+  // === TOP: noisy RMS signal vs threshold band ===
+  // Hysteresis band fill
+  ctx.fillStyle = 'rgba(251,191,36,.14)';
+  ctx.fillRect(padL, PYsig(Tup), wPx, PYsig(Tdn)-PYsig(Tup));
+
+  // Threshold lines
+  ctx.strokeStyle = 'rgba(239,68,68,.85)'; ctx.setLineDash([5,4]); ctx.lineWidth = 1.4;
+  ctx.beginPath(); ctx.moveTo(padL, PYsig(T)); ctx.lineTo(padL+wPx, PYsig(T)); ctx.stroke();
+  ctx.strokeStyle = 'rgba(34,197,94,.7)';
+  ctx.beginPath(); ctx.moveTo(padL, PYsig(Tup)); ctx.lineTo(padL+wPx, PYsig(Tup)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(padL, PYsig(Tdn)); ctx.lineTo(padL+wPx, PYsig(Tdn)); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Signal trace
+  ctx.strokeStyle = 'rgba(56,189,248,.95)'; ctx.lineWidth = 1.6;
   ctx.beginPath();
-  trajectory.forEach(([x,y], i) => {
-    if (i === 0) ctx.moveTo(PX(x), PY(y));
-    else ctx.lineTo(PX(x), PY(y));
-  });
+  for(let i=0; i<N; i++){ const x=PX(i), y=PYsig(sig[i]); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); }
   ctx.stroke();
-  ctx.shadowBlur = 0;
 
-  // Draw iteration markers (small dots)
-  trajectory.forEach(([x,y], i) => {
-    ctx.fillStyle = 'rgba(14,165,233,.9)';
-    const r = (i === 0) ? 6 : 3;
-    ctx.beginPath(); ctx.arc(PX(x), PY(y), r, 0, 2*Math.PI); ctx.fill();
-  });
-  // Label initial
-  ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText('x₀', PX(x0)+8, PY(0)+4);
+  // Labels for top
+  ctx.fillStyle = '#ef4444'; ctx.font = 'bold 10px JetBrains Mono';
+  ctx.fillText('T = '+T.toFixed(1), padL+wPx-70, PYsig(T)-4);
+  ctx.fillStyle = '#22c55e';
+  ctx.fillText('T_on = '+Tup.toFixed(2), 4, PYsig(Tup)+3);
+  ctx.fillText('T_off = '+Tdn.toFixed(2), 4, PYsig(Tdn)+3);
+  ctx.fillStyle = 'rgba(56,189,248,.95)'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText('RMS Signal (mm/s)  σ='+noise.toFixed(2), padL, padT-6);
 
-  // Optimum (star)
-  ctx.fillStyle = '#fbbf24';
-  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.2;
-  _drawStarN(ctx, PX(1), PY(0.5), 5, 11, 5);
-  ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText('x* = (1, 0.5)', PX(1)+12, PY(0.5)-10);
-
-  // Axes
-  ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 1.2;
-  ctx.beginPath(); ctx.moveTo(PX(xMin), PY(0)); ctx.lineTo(PX(xMax), PY(0)); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(PX(0), PY(yMin)); ctx.lineTo(PX(0), PY(yMax)); ctx.stroke();
-  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '11px JetBrains Mono';
-  ctx.fillText('x', PX(xMax)+5, PY(0)+4);
-  ctx.fillText('y', PX(0)-15, PY(yMax)+10);
-
-  // Title
-  ctx.fillStyle = 'rgba(14,165,233,.95)'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText('f(x,y) = (x−1)² + 2(y−0.5)²  · α=' + alpha.toFixed(2) + ', x₀=' + x0.toFixed(1), padL, padT-8);
+  // === BOTTOM: state tracks ===
+  const botY0 = padT + halfH + 14;
+  const trkH = (halfH - 14) / 2;
+  const drawTrack = (states, y, color, label, count) => {
+    ctx.fillStyle = 'rgba(255,255,255,.05)';
+    ctx.fillRect(padL, y, wPx, trkH);
+    ctx.fillStyle = color;
+    for(let i=0; i<N; i++){
+      if(states[i]){
+        const x = PX(i);
+        const xN = (i<N-1) ? PX(i+1) : padL+wPx;
+        ctx.fillRect(x, y+4, xN-x+0.5, trkH-8);
+      }
+    }
+    // edges
+    ctx.strokeStyle = color; ctx.lineWidth = 1;
+    ctx.strokeRect(padL, y, wPx, trkH);
+    ctx.fillStyle = '#e5e7eb'; ctx.font = '10px JetBrains Mono';
+    ctx.fillText(label+'  edges='+count, padL+6, y+trkH-5);
+  };
+  drawTrack(sSimple, botY0,        'rgba(239,68,68,.55)',  'SIMPLE THRESHOLD', chS);
+  drawTrack(sHyst,   botY0+trkH+6, 'rgba(34,197,94,.55)',  'HYSTERESIS',       chH);
 
   // Update slider displays
-  document.getElementById('v_rp').textContent = alpha.toFixed(2);
-  document.getElementById('v_zp').textContent = x0.toFixed(1);
+  document.getElementById('v_rp').textContent = noise.toFixed(2);
+  document.getElementById('v_zp').textContent = band.toFixed(2);
 
-  // Info panel
-  const finalPt = trajectory[trajectory.length-1];
-  const fFinal = f(finalPt[0], finalPt[1]);
-  const [gx, gy] = grad(finalPt[0], finalPt[1]);
-  const gradNorm = Math.sqrt(gx*gx + gy*gy);
-  const converged = gradNorm < 0.05;
-  const diverged = Math.abs(finalPt[0]) > 4 || Math.abs(finalPt[1]) > 4;
   const info = document.getElementById('physicsInfo');
-  if (info) {
-    let status;
-    if (diverged) status = '🔴 DIVERGEN — α terlalu besar, kurangi step size!';
-    else if (converged) status = `🟢 KONVERGEN dalam ${trajectory.length-1} iter`;
-    else status = `🟡 Belum konvergen (60 iter limit, ‖∇f‖=${gradNorm.toFixed(3)})`;
-    info.innerHTML = `Iter: <strong>${trajectory.length-1}</strong> · x_final = (${finalPt[0].toFixed(3)}, ${finalPt[1].toFixed(3)}) · f = <strong>${fFinal.toFixed(4)}</strong> · ‖∇f‖ = ${gradNorm.toFixed(3)} · ${status}`;
+  if(info){
+    const ratio = chH > 0 ? (chS/chH).toFixed(1) : '∞';
+    let verdict;
+    if (band < 2*noise && chH > chS*0.6) verdict = '🟡 Band &lt; 2σ → hysteresis ikut chatter';
+    else if (chS > 4*Math.max(chH,1)) verdict = '🟢 Hysteresis menekan chatter '+ratio+'×';
+    else verdict = '🔵 Sinyal tenang — keduanya stabil';
+    info.innerHTML = `Simple edges: <strong>${chS}</strong> · Hysteresis edges: <strong>${chH}</strong> · Reduction = <strong>${ratio}×</strong> · Band/σ = ${(band/Math.max(noise,0.01)).toFixed(2)} · ${verdict}`;
   }
 }
 
@@ -4949,136 +4948,91 @@ function drawSweep(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  // Read sliders
-  const kappa = parseFloat(document.getElementById('sl_rs').value);
-  const maxIter = Math.round(parseFloat(document.getElementById('sl_zs').value));
+  // Read sliders: vibration RMS (mm/s) & machine class (1..4)
+  const rms = parseFloat(document.getElementById('sl_rs').value);
+  const cls = Math.round(parseFloat(document.getElementById('sl_zs').value));
 
-  // Plot region
-  const padL = 50, padR = 30, padT = 25, padB = 40;
-  const xMin = -2.5, xMax = 2.5, yMin = -1.5, yMax = 1.5;
-  const wPx = W - padL - padR, hPx = H - padT - padB;
-  const PX = (x) => padL + ((x - xMin) / (xMax - xMin)) * wPx;
-  const PY = (y) => H - padB - ((y - yMin) / (yMax - yMin)) * hPx;
+  // ISO 10816 zone boundaries (mm/s) per machine class (Class I..IV)
+  // Format: [A/B, B/C, C/D]
+  const zones = {
+    1: [0.71, 1.80, 4.50],   // small <15 kW
+    2: [1.12, 2.80, 7.10],   // medium 15-75 kW rigid
+    3: [1.80, 4.50, 11.20],  // large 300 kW rigid
+    4: [2.80, 7.10, 18.00]   // very large flexible
+  };
+  const b = zones[cls] || zones[2];
+  const xMax = 15;
 
-  // f(x,y) = x² + κy²; ∇f = (2x, 2κy); H = diag(2, 2κ)
-  const f = (x, y) => x*x + kappa*y*y;
-  const grad = (x, y) => [2*x, 2*kappa*y];
-  // Optimal step size for SD: α* = (gᵀg)/(gᵀHg) — exact line search
-
-  // Draw contour lines (axis-aligned ellipses)
-  const levels = [0.05, 0.2, 0.5, 1.0, 2.0, 4.0];
-  ctx.strokeStyle = 'rgba(168,85,247,.4)'; ctx.lineWidth = 1.2;
-  levels.forEach(L => {
-    const a = Math.sqrt(L), b = Math.sqrt(L/kappa);
-    ctx.beginPath();
-    for(let theta=0; theta<=2*Math.PI+0.01; theta+=0.04){
-      const px = a*Math.cos(theta);
-      const py = b*Math.sin(theta);
-      if(theta === 0) ctx.moveTo(PX(px), PY(py));
-      else ctx.lineTo(PX(px), PY(py));
-    }
-    ctx.stroke();
-  });
-
-  // Initial point: start far on long axis (worst case for SD)
-  const startX = 2, startY = 1;
-
-  // === Steepest Descent with exact line search ===
-  let x_sd = startX, y_sd = startY;
-  const traj_sd = [[x_sd, y_sd]];
-  for(let k=0; k<maxIter; k++){
-    const [gx, gy] = grad(x_sd, y_sd);
-    const gNorm = Math.sqrt(gx*gx + gy*gy);
-    if (gNorm < 1e-5) break;
-    // Exact line search: α* = (gᵀg) / (gᵀHg) where H = diag(2, 2κ)
-    // g·g = gx² + gy²; g·H·g = 2gx² + 2κgy²
-    const num = gx*gx + gy*gy;
-    const den = 2*gx*gx + 2*kappa*gy*gy;
-    const alpha = num / Math.max(den, 1e-9);
-    x_sd = x_sd - alpha * gx;
-    y_sd = y_sd - alpha * gy;
-    traj_sd.push([x_sd, y_sd]);
-    if (Math.abs(x_sd) < 1e-4 && Math.abs(y_sd) < 1e-4) break;
-  }
-
-  // === Newton's Method ===
-  let x_nt = startX, y_nt = startY;
-  const traj_nt = [[x_nt, y_nt]];
-  for(let k=0; k<maxIter; k++){
-    const [gx, gy] = grad(x_nt, y_nt);
-    if (Math.sqrt(gx*gx + gy*gy) < 1e-5) break;
-    // Newton: d = -H^{-1} g, with H = diag(2, 2κ): d = -(gx/2, gy/(2κ))
-    x_nt = x_nt - gx / 2;
-    y_nt = y_nt - gy / (2 * kappa);
-    traj_nt.push([x_nt, y_nt]);
-  }
-
-  // Draw SD trajectory (amber, zigzag)
-  ctx.strokeStyle = 'rgba(249,115,22,.9)'; ctx.lineWidth = 1.8;
-  ctx.shadowColor = 'rgba(249,115,22,.4)'; ctx.shadowBlur = 4;
-  ctx.beginPath();
-  traj_sd.forEach(([x,y], i) => {
-    if (i === 0) ctx.moveTo(PX(x), PY(y));
-    else ctx.lineTo(PX(x), PY(y));
-  });
-  ctx.stroke();
-  ctx.shadowBlur = 0;
-  // SD markers
-  traj_sd.forEach(([x,y], i) => {
-    ctx.fillStyle = 'rgba(249,115,22,.85)';
-    ctx.beginPath(); ctx.arc(PX(x), PY(y), i === 0 ? 5 : 2.5, 0, 2*Math.PI); ctx.fill();
-  });
-
-  // Draw Newton trajectory (pink, direct)
-  ctx.strokeStyle = 'rgba(255,64,129,.95)'; ctx.lineWidth = 2.2;
-  ctx.shadowColor = 'rgba(255,64,129,.5)'; ctx.shadowBlur = 5;
-  ctx.beginPath();
-  traj_nt.forEach(([x,y], i) => {
-    if (i === 0) ctx.moveTo(PX(x), PY(y));
-    else ctx.lineTo(PX(x), PY(y));
-  });
-  ctx.stroke();
-  ctx.shadowBlur = 0;
-  // Newton markers
-  traj_nt.forEach(([x,y], i) => {
-    ctx.fillStyle = 'rgba(255,64,129,.9)';
-    ctx.beginPath(); ctx.arc(PX(x), PY(y), i === 0 ? 5 : 4, 0, 2*Math.PI); ctx.fill();
-  });
-
-  // Optimum (star)
-  ctx.fillStyle = '#fbbf24';
-  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.2;
-  _drawStarN(ctx, PX(0), PY(0), 5, 11, 5);
-  ctx.fill(); ctx.stroke();
-
-  // Axes
-  ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 1.2;
-  ctx.beginPath(); ctx.moveTo(PX(xMin), PY(0)); ctx.lineTo(PX(xMax), PY(0)); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(PX(0), PY(yMin)); ctx.lineTo(PX(0), PY(yMax)); ctx.stroke();
-  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '11px JetBrains Mono';
-  ctx.fillText('x', PX(xMax)+5, PY(0)+4);
-  ctx.fillText('y', PX(0)-15, PY(yMax)+10);
+  const padL = 60, padR = 28, padT = 30, padB = 70;
+  const wPx = W - padL - padR;
+  const barY = padT + 30, barH = 70;
+  const PX = (v) => padL + (Math.min(v,xMax)/xMax)*wPx;
 
   // Title
-  ctx.fillStyle = 'rgba(249,115,22,.95)'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText(`f(x,y) = x² + ${kappa.toFixed(1)}·y²  (κ = ${kappa.toFixed(1)})`, padL, padT-8);
+  ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 12px JetBrains Mono';
+  ctx.fillText('ISO 10816  ·  Machine Class '+cls+'  ·  Velocity RMS (mm/s)', padL, padT-8);
 
-  // Legend
-  ctx.font = '10px JetBrains Mono';
-  ctx.fillStyle = 'rgba(249,115,22,.95)'; ctx.fillText(`● SD: ${traj_sd.length-1} iter`, PX(xMin)+5, PY(yMax)+22);
-  ctx.fillStyle = 'rgba(255,64,129,.95)'; ctx.fillText(`● Newton: ${traj_nt.length-1} iter`, PX(xMin)+5, PY(yMax)+34);
+  // Zone color bands
+  const colors = ['rgba(34,197,94,.85)','rgba(251,191,36,.85)','rgba(249,115,22,.85)','rgba(239,68,68,.85)'];
+  const labels = ['A — Good','B — Acceptable','C — Unsatisfactory','D — Unacceptable'];
+  const edges = [0, b[0], b[1], b[2], xMax];
+  for(let i=0; i<4; i++){
+    const x0 = PX(edges[i]), x1 = PX(edges[i+1]);
+    ctx.fillStyle = colors[i];
+    ctx.fillRect(x0, barY, x1-x0, barH);
+    ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.lineWidth = 1; ctx.strokeRect(x0, barY, x1-x0, barH);
+    ctx.fillStyle = '#0b1220'; ctx.font = 'bold 11px JetBrains Mono';
+    if (x1-x0 > 64) ctx.fillText(labels[i], x0+8, barY+barH/2+4);
+    else ctx.fillText(labels[i].split(' ')[0], x0+6, barY+barH/2+4);
+    // boundary value labels (under bar)
+    if (i < 3){
+      ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
+      ctx.fillText(b[i].toFixed(2), x1-14, barY+barH+14);
+    }
+  }
+  // axis ticks
+  ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.font = '9px JetBrains Mono';
+  for(let v=0; v<=xMax; v+=2.5){
+    const x = PX(v); ctx.fillRect(x, barY+barH+18, 1, 4);
+    ctx.fillText(v.toFixed(1), x-7, barY+barH+32);
+  }
 
-  // Update slider displays
-  document.getElementById('v_rs').textContent = kappa.toFixed(1);
-  document.getElementById('v_zs').textContent = maxIter;
+  // Determine current zone
+  let zIdx = 0;
+  if (rms >= b[2]) zIdx = 3;
+  else if (rms >= b[1]) zIdx = 2;
+  else if (rms >= b[0]) zIdx = 1;
+  const zoneLetter = ['A','B','C','D'][zIdx];
+  const action = ['Continue operation','Inspect — schedule check','Reduce — limited time','SHUTDOWN — danger'][zIdx];
 
-  // Info panel
+  // Marker arrow pointing to RMS value
+  const mx = PX(rms);
+  ctx.fillStyle = '#f8fafc'; ctx.strokeStyle = '#000'; ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(mx, barY-4); ctx.lineTo(mx-8, barY-18); ctx.lineTo(mx+8, barY-18); ctx.closePath();
+  ctx.fill(); ctx.stroke();
+  // pulsing dashed line through bar
+  const pulse = 0.6 + 0.4*Math.sin(_sweepAnim.t*5);
+  ctx.strokeStyle = `rgba(248,250,252,${pulse.toFixed(2)})`; ctx.lineWidth = 2; ctx.setLineDash([4,3]);
+  ctx.beginPath(); ctx.moveTo(mx, barY); ctx.lineTo(mx, barY+barH); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 12px JetBrains Mono';
+  ctx.fillText(rms.toFixed(2)+' mm/s', mx-30, barY-22);
+
+  // Verdict box
+  const vbY = barY+barH+50;
+  ctx.fillStyle = colors[zIdx]; ctx.fillRect(padL, vbY, 24, 22);
+  ctx.fillStyle = '#0b1220'; ctx.font = 'bold 16px JetBrains Mono';
+  ctx.fillText(zoneLetter, padL+6, vbY+17);
+  ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 12px JetBrains Mono';
+  ctx.fillText('Zone '+zoneLetter+'  →  '+action, padL+34, vbY+16);
+
+  document.getElementById('v_rs').textContent = rms.toFixed(2);
+  document.getElementById('v_zs').textContent = cls;
+
   const info = document.getElementById('sweepInfo');
-  if (info) {
-    const speedup = traj_nt.length > 1 ? ((traj_sd.length-1) / Math.max(traj_nt.length-1, 1)).toFixed(1) : '∞';
-    const conv_sd = Math.sqrt(x_sd*x_sd + y_sd*y_sd);
-    const conv_nt = Math.sqrt(x_nt*x_nt + y_nt*y_nt);
-    info.innerHTML = `κ=<strong>${kappa.toFixed(1)}</strong> · SD: <strong>${traj_sd.length-1}</strong> iter (final ‖x‖=${conv_sd.toExponential(2)}) · Newton: <strong>${traj_nt.length-1}</strong> iter (‖x‖=${conv_nt.toExponential(2)}) · Speedup Newton: <strong>${speedup}×</strong>`;
+  if (info){
+    info.innerHTML = `RMS = <strong>${rms.toFixed(2)} mm/s</strong> · Class ${cls} → boundaries A|B=${b[0]}, B|C=${b[1]}, C|D=${b[2]} · Zone <strong>${zoneLetter}</strong> · Action: <strong>${action}</strong>`;
   }
 }
 

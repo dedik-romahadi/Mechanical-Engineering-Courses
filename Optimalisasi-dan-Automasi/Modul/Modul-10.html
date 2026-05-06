@@ -1295,12 +1295,12 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <canvas id="cvPhysics" height="340"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Effect Size (jarak antar mean) — <span class="ctrl-val" id="v_rp">0.10</span></label>
-          <input type="range" id="sl_rp" min="0.01" max="0.5" step="0.01" value="0.10">
+          <label>Effect Size — separasi mean grup (Δ) — <span class="ctrl-val" id="v_rp">1.50</span></label>
+          <input type="range" id="sl_rp" min="0" max="3" step="0.05" value="1.5">
         </div>
         <div class="ctrl-group">
-          <label>Sample Size per Grup (n) — <span class="ctrl-val" id="v_zp">30</span></label>
-          <input type="range" id="sl_zp" min="10" max="100" step="5" value="30">
+          <label>Within-group Noise (σ) — <span class="ctrl-val" id="v_zp">0.80</span></label>
+          <input type="range" id="sl_zp" min="0.05" max="2" step="0.05" value="0.8">
         </div>
         <button class="btn-anim" id="btnPhysics" onclick="togglePhysics()">⏸ PAUSE</button>
       </div>
@@ -1322,12 +1322,12 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <canvas id="cvSweep" height="340"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>F observed — <span class="ctrl-val" id="v_rs">0.7</span></label>
-          <input type="range" id="sl_rs" min="0.1" max="10.0" step="0.1" value="0.7">
+          <label>α (significance level) — <span class="ctrl-val" id="v_rs">0.050</span></label>
+          <input type="range" id="sl_rs" min="0.001" max="0.1" step="0.001" value="0.05">
         </div>
         <div class="ctrl-group">
-          <label>α (significance level) — <span class="ctrl-val" id="v_zs">1.5</span></label>
-          <input type="range" id="sl_zs" min="0.01" max="0.20" step="0.01" value="0.05">
+          <label>F observed — <span class="ctrl-val" id="v_zs">3.50</span></label>
+          <input type="range" id="sl_zs" min="0.5" max="15" step="0.1" value="3.5">
         </div>
         <button class="btn-anim" id="btnSweep" onclick="toggleSweep()">⏸ PAUSE</button>
       </div>
@@ -1349,12 +1349,12 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <canvas id="cvIso" height="320"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Sample Size n per Level — <span class="ctrl-val" id="v_ri">50</span></label>
-          <input type="range" id="sl_ri" min="3" max="100" step="1" value="50">
+          <label>Effect Size (Cohen's f) — <span class="ctrl-val" id="v_ri">0.30</span></label>
+          <input type="range" id="sl_ri" min="0" max="1" step="0.02" value="0.3">
         </div>
         <div class="ctrl-group">
-          <label>Random Seed — <span class="ctrl-val" id="v_zi">42</span></label>
-          <input type="range" id="sl_zi" min="1" max="100" step="1" value="42">
+          <label>Sample Size n per Level — <span class="ctrl-val" id="v_zi">15</span></label>
+          <input type="range" id="sl_zi" min="3" max="60" step="1" value="15">
         </div>
         <button class="btn-anim" id="btnIso" onclick="toggleIso()">⏸ PAUSE</button>
       </div>
@@ -1376,8 +1376,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <canvas id="cvHPB" height="380"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Interaction Strength — <span class="ctrl-val" id="v_rh">3</span></label>
-          <input type="range" id="sl_rh" min="0" max="10" step="1" value="3">
+          <label>Interaction Strength (0=paralel, 1=crossed) — <span class="ctrl-val" id="v_rh">0.30</span></label>
+          <input type="range" id="sl_rh" min="0" max="1" step="0.02" value="0.3">
         </div>
         <button class="btn-anim" id="btnHPB" onclick="toggleHPB()">⏸ PAUSE</button>
       </div>
@@ -4675,111 +4675,114 @@ function drawPhysics(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  // Read sliders
-  const alpha = parseFloat(document.getElementById('sl_rp').value);
-  const x0 = parseFloat(document.getElementById('sl_zp').value);
+  // Sliders: rp = effect size (mean separation), zp = within-group noise σ
+  const effect = parseFloat(document.getElementById('sl_rp').value);
+  const sigma  = parseFloat(document.getElementById('sl_zp').value);
+  const tOff = _physicsAnim.t;
 
   // Plot region
-  const padL = 50, padR = 30, padT = 25, padB = 40;
-  const xMin = -3, xMax = 3, yMin = -2, yMax = 2;
+  const padL = 60, padR = 30, padT = 28, padB = 40;
   const wPx = W - padL - padR, hPx = H - padT - padB;
-  const PX = (x) => padL + ((x - xMin) / (xMax - xMin)) * wPx;
-  const PY = (y) => H - padB - ((y - yMin) / (yMax - yMin)) * hPx;
+  _grid(ctx, padL, padT, wPx, hPx, 12, 6, '#0d1929');
 
-  // f(x,y) = (x − 1)² + 2(y − 0.5)²; ∇f = (2(x−1), 4(y−0.5))
-  const f = (x, y) => (x-1)*(x-1) + 2*(y-0.5)*(y-0.5);
-  const grad = (x, y) => [2*(x-1), 4*(y-0.5)];
+  // 3 groups with means at -effect, 0, +effect (centered), each n=20
+  const k = 3, n = 20;
+  const groupColors = ['#0ea5e9', '#00e09e', '#a855f7'];
+  const groupX = [padL + wPx*0.22, padL + wPx*0.5, padL + wPx*0.78];
+  const baseMean = 5;
+  const trueMeans = [baseMean - effect, baseMean, baseMean + effect];
+  const yMin = 1, yMax = 9;
+  const PY = (v) => padT + hPx - ((v - yMin)/(yMax - yMin)) * hPx;
 
-  // Draw contour lines
-  const levels = [0.2, 0.5, 1.0, 2.0, 4.0, 8.0];
-  ctx.strokeStyle = 'rgba(168,85,247,.5)'; ctx.lineWidth = 1.3;
-  levels.forEach(L => {
-    // Ellipse: (x-1)² + 2(y-0.5)² = L → semi-axis a = √L, b = √(L/2)
-    const a = Math.sqrt(L), b = Math.sqrt(L/2);
-    ctx.beginPath();
-    for(let theta=0; theta<=2*Math.PI+0.01; theta+=0.05){
-      const px = 1 + a*Math.cos(theta);
-      const py = 0.5 + b*Math.sin(theta);
-      if(theta === 0) ctx.moveTo(PX(px), PY(py));
-      else ctx.lineTo(PX(px), PY(py));
+  // Generate samples (deterministic w/ small jitter from tOff)
+  const samples = [[],[],[]];
+  let grandSum = 0, totalN = k*n;
+  for (let g=0; g<k; g++){
+    for (let i=0; i<n; i++){
+      // Pseudo-noise: Box-Muller-ish using sin combos
+      const seed = g*97 + i*13 + tOff*0.4;
+      const u1 = (Math.sin(seed*1.91) + Math.sin(seed*4.07)*0.7 + Math.sin(seed*9.13)*0.4) / 2.1;
+      const yij = trueMeans[g] + sigma * u1;
+      samples[g].push(yij); grandSum += yij;
     }
-    ctx.stroke();
-    // Level label
-    ctx.fillStyle = 'rgba(168,85,247,.6)'; ctx.font = '9px JetBrains Mono';
-    ctx.fillText(L.toFixed(1), PX(1+a), PY(0.5));
-  });
+  }
+  const grandMean = grandSum / totalN;
+  // Group means
+  const gMeans = samples.map(arr => arr.reduce((a,b)=>a+b,0)/arr.length);
 
-  // Run gradient descent from (x0, 0)
-  let xk = x0, yk = 0;
-  const trajectory = [[xk, yk]];
-  for(let k=0; k<60; k++){
-    const [gx, gy] = grad(xk, yk);
-    if (Math.sqrt(gx*gx + gy*gy) < 1e-4) break;
-    xk = xk - alpha * gx;
-    yk = yk - alpha * gy;
-    if (Math.abs(xk) > 5 || Math.abs(yk) > 5) break;  // diverged
-    trajectory.push([xk, yk]);
+  // SS_between = Σ n*(ḡ_i − ḡ)²; SS_within = Σ Σ (y_ij − ḡ_i)²
+  let SSb = 0, SSw = 0;
+  for (let g=0; g<k; g++){
+    SSb += n * (gMeans[g] - grandMean) * (gMeans[g] - grandMean);
+    samples[g].forEach(y => { SSw += (y - gMeans[g]) * (y - gMeans[g]); });
+  }
+  const dfB = k - 1, dfW = totalN - k;
+  const MSb = SSb / dfB, MSw = SSw / Math.max(dfW, 1);
+  const F = MSw > 1e-9 ? MSb / MSw : 0;
+  // Crude p-value approximation: 1 - tanh(F/F_crit_5%) for visualization only
+  const pApprox = Math.exp(-F * 0.4) / (1 + 0.2*F);
+
+  // Grand mean dashed horizontal line
+  ctx.strokeStyle = 'rgba(255,255,255,.45)'; ctx.lineWidth = 1.4; ctx.setLineDash([6,4]);
+  ctx.beginPath(); ctx.moveTo(padL, PY(grandMean)); ctx.lineTo(padL+wPx, PY(grandMean)); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '10px JetBrains Mono';
+  ctx.fillText(`grand mean ȳ = ${grandMean.toFixed(2)}`, padL+wPx-150, PY(grandMean)-5);
+
+  // For each group: scatter dots, group mean bar, between arrow, within spread
+  for (let g=0; g<k; g++){
+    const cx = groupX[g], col = groupColors[g];
+    // Within-group dots (jitter ±18 px)
+    samples[g].forEach((y, i) => {
+      const jx = cx + (Math.sin(i*5.31 + g*1.7) * 18);
+      ctx.fillStyle = col + 'cc';
+      ctx.beginPath(); ctx.arc(jx, PY(y), 3, 0, 2*Math.PI); ctx.fill();
+      // Within residual line (faint)
+      ctx.strokeStyle = col + '44'; ctx.lineWidth = 0.8;
+      ctx.beginPath(); ctx.moveTo(jx, PY(y)); ctx.lineTo(jx, PY(gMeans[g])); ctx.stroke();
+    });
+    // Group mean horizontal bar
+    ctx.strokeStyle = col; ctx.lineWidth = 3;
+    ctx.shadowColor = col; ctx.shadowBlur = 6;
+    ctx.beginPath(); ctx.moveTo(cx-32, PY(gMeans[g])); ctx.lineTo(cx+32, PY(gMeans[g])); ctx.stroke();
+    ctx.shadowBlur = 0;
+    // Between-group arrow from grand mean to group mean
+    ctx.strokeStyle = '#f97316'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(cx, PY(grandMean)); ctx.lineTo(cx, PY(gMeans[g])); ctx.stroke();
+    // Arrowhead
+    const dir = gMeans[g] > grandMean ? -1 : 1;
+    ctx.fillStyle = '#f97316';
+    ctx.beginPath();
+    ctx.moveTo(cx, PY(gMeans[g]));
+    ctx.lineTo(cx-5, PY(gMeans[g]) + 7*dir);
+    ctx.lineTo(cx+5, PY(gMeans[g]) + 7*dir);
+    ctx.closePath(); ctx.fill();
+    // Group label
+    ctx.fillStyle = col; ctx.font = 'bold 11px JetBrains Mono';
+    ctx.fillText(`Grup ${g+1}`, cx-22, padT + hPx + 14);
+    ctx.fillStyle = '#fff'; ctx.font = '10px JetBrains Mono';
+    ctx.fillText(`ȳ${g+1}=${gMeans[g].toFixed(2)}`, cx-26, PY(gMeans[g]) - 8);
   }
 
-  // Draw trajectory
-  ctx.strokeStyle = 'rgba(14,165,233,.95)'; ctx.lineWidth = 1.8;
-  ctx.shadowColor = 'rgba(14,165,233,.4)'; ctx.shadowBlur = 4;
-  ctx.beginPath();
-  trajectory.forEach(([x,y], i) => {
-    if (i === 0) ctx.moveTo(PX(x), PY(y));
-    else ctx.lineTo(PX(x), PY(y));
-  });
-  ctx.stroke();
-  ctx.shadowBlur = 0;
+  // Title + legend
+  ctx.fillStyle = 'rgba(14,165,233,.95)'; ctx.font = 'bold 12px JetBrains Mono';
+  ctx.fillText('Variance Partition: SS_between (orange ↕) vs SS_within (residuals)', padL, padT-10);
+  // Y-axis ticks
+  ctx.fillStyle = '#64748b'; ctx.font = '9px JetBrains Mono';
+  for (let v=2; v<=8; v+=2) ctx.fillText(v.toFixed(0), padL-22, PY(v)+3);
+  ctx.save(); ctx.translate(padL-44, padT+hPx/2); ctx.rotate(-Math.PI/2);
+  ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
+  ctx.fillText('respons y', -30, 0); ctx.restore();
 
-  // Draw iteration markers (small dots)
-  trajectory.forEach(([x,y], i) => {
-    ctx.fillStyle = 'rgba(14,165,233,.9)';
-    const r = (i === 0) ? 6 : 3;
-    ctx.beginPath(); ctx.arc(PX(x), PY(y), r, 0, 2*Math.PI); ctx.fill();
-  });
-  // Label initial
-  ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText('x₀', PX(x0)+8, PY(0)+4);
-
-  // Optimum (star)
-  ctx.fillStyle = '#fbbf24';
-  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.2;
-  _drawStarN(ctx, PX(1), PY(0.5), 5, 11, 5);
-  ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText('x* = (1, 0.5)', PX(1)+12, PY(0.5)-10);
-
-  // Axes
-  ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 1.2;
-  ctx.beginPath(); ctx.moveTo(PX(xMin), PY(0)); ctx.lineTo(PX(xMax), PY(0)); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(PX(0), PY(yMin)); ctx.lineTo(PX(0), PY(yMax)); ctx.stroke();
-  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '11px JetBrains Mono';
-  ctx.fillText('x', PX(xMax)+5, PY(0)+4);
-  ctx.fillText('y', PX(0)-15, PY(yMax)+10);
-
-  // Title
-  ctx.fillStyle = 'rgba(14,165,233,.95)'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText('f(x,y) = (x−1)² + 2(y−0.5)²  · α=' + alpha.toFixed(2) + ', x₀=' + x0.toFixed(1), padL, padT-8);
-
-  // Update slider displays
-  document.getElementById('v_rp').textContent = alpha.toFixed(2);
-  document.getElementById('v_zp').textContent = x0.toFixed(1);
+  // Slider displays
+  document.getElementById('v_rp').textContent = effect.toFixed(2);
+  document.getElementById('v_zp').textContent = sigma.toFixed(2);
 
   // Info panel
-  const finalPt = trajectory[trajectory.length-1];
-  const fFinal = f(finalPt[0], finalPt[1]);
-  const [gx, gy] = grad(finalPt[0], finalPt[1]);
-  const gradNorm = Math.sqrt(gx*gx + gy*gy);
-  const converged = gradNorm < 0.05;
-  const diverged = Math.abs(finalPt[0]) > 4 || Math.abs(finalPt[1]) > 4;
   const info = document.getElementById('physicsInfo');
   if (info) {
-    let status;
-    if (diverged) status = '🔴 DIVERGEN — α terlalu besar, kurangi step size!';
-    else if (converged) status = `🟢 KONVERGEN dalam ${trajectory.length-1} iter`;
-    else status = `🟡 Belum konvergen (60 iter limit, ‖∇f‖=${gradNorm.toFixed(3)})`;
-    info.innerHTML = `Iter: <strong>${trajectory.length-1}</strong> · x_final = (${finalPt[0].toFixed(3)}, ${finalPt[1].toFixed(3)}) · f = <strong>${fFinal.toFixed(4)}</strong> · ‖∇f‖ = ${gradNorm.toFixed(3)} · ${status}`;
+    const verdict = F > 3.35 ? '🟢 F &gt; F_crit(0.05) → reject H₀' : '🟡 F &lt; F_crit → fail to reject H₀';
+    info.innerHTML = `SS_between=<strong>${SSb.toFixed(2)}</strong> · SS_within=<strong>${SSw.toFixed(2)}</strong> · MS_b=${MSb.toFixed(2)} · MS_w=${MSw.toFixed(2)} · F(${dfB},${dfW})=<strong>${F.toFixed(2)}</strong> · p≈<strong>${pApprox.toFixed(3)}</strong> · ${verdict}`;
   }
 }
 
@@ -4818,136 +4821,135 @@ function drawSweep(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  // Read sliders
-  const kappa = parseFloat(document.getElementById('sl_rs').value);
-  const maxIter = Math.round(parseFloat(document.getElementById('sl_zs').value));
+  // Sliders: rs = α (significance), zs = F observed
+  const alpha = parseFloat(document.getElementById('sl_rs').value);
+  const Fobs  = parseFloat(document.getElementById('sl_zs').value);
 
   // Plot region
-  const padL = 50, padR = 30, padT = 25, padB = 40;
-  const xMin = -2.5, xMax = 2.5, yMin = -1.5, yMax = 1.5;
+  const padL = 60, padR = 30, padT = 28, padB = 44;
   const wPx = W - padL - padR, hPx = H - padT - padB;
-  const PX = (x) => padL + ((x - xMin) / (xMax - xMin)) * wPx;
-  const PY = (y) => H - padB - ((y - yMin) / (yMax - yMin)) * hPx;
+  _grid(ctx, padL, padT, wPx, hPx, 12, 6, '#0d1929');
 
-  // f(x,y) = x² + κy²; ∇f = (2x, 2κy); H = diag(2, 2κ)
-  const f = (x, y) => x*x + kappa*y*y;
-  const grad = (x, y) => [2*x, 2*kappa*y];
-  // Optimal step size for SD: α* = (gᵀg)/(gᵀHg) — exact line search
+  // F-distribution PDF: df1=2, df2=27 (k=3 groups, total n=30)
+  const df1 = 2, df2 = 27;
+  // F-pdf (un-normalized form, scaled later): f(x) ∝ x^(df1/2 - 1) / (df2 + df1*x)^((df1+df2)/2)
+  const fPdf = (x) => {
+    if (x <= 0) return 0;
+    const a = Math.pow(df1*x, df1/2) * Math.pow(df2, df2/2);
+    const b = Math.pow(df1*x + df2, (df1+df2)/2);
+    return a / (b * x); // simplified beta-free shape, monotone decreasing for df1=2
+  };
 
-  // Draw contour lines (axis-aligned ellipses)
-  const levels = [0.05, 0.2, 0.5, 1.0, 2.0, 4.0];
-  ctx.strokeStyle = 'rgba(168,85,247,.4)'; ctx.lineWidth = 1.2;
-  levels.forEach(L => {
-    const a = Math.sqrt(L), b = Math.sqrt(L/kappa);
+  // Domain x in [0, 8]
+  const xMin = 0, xMax = 8;
+  const N = 240;
+  const xs = [], ys = [];
+  let yMax = 0;
+  for (let i=0; i<=N; i++){
+    const xv = xMin + (xMax - xMin) * i/N;
+    const yv = fPdf(xv);
+    xs.push(xv); ys.push(yv);
+    if (yv > yMax) yMax = yv;
+  }
+  yMax *= 1.05;
+
+  const PX = (x) => padL + ((x - xMin)/(xMax - xMin)) * wPx;
+  const PY = (y) => padT + hPx - (y / yMax) * (hPx - 6);
+
+  // Find F_crit such that P(F ≥ F_crit) ≈ α (numerical via right-tail integration)
+  // Compute total area & cumulative right-tail
+  const dx = (xMax - xMin) / N;
+  let totalArea = 0;
+  for (let i=0; i<N; i++) totalArea += 0.5 * (ys[i] + ys[i+1]) * dx;
+  // Find F_crit by sweeping right→left until tail area / total ≈ α
+  let acc = 0, Fcrit = xMax;
+  for (let i = N-1; i >= 0; i--){
+    acc += 0.5 * (ys[i] + ys[i+1]) * dx;
+    if (acc / totalArea >= alpha) { Fcrit = xs[i]; break; }
+  }
+
+  // Shade critical region (x ≥ Fcrit) — pink-orange
+  ctx.fillStyle = 'rgba(255,64,129,.28)';
+  ctx.beginPath();
+  ctx.moveTo(PX(Fcrit), padT + hPx);
+  for (let i=0; i<=N; i++){
+    if (xs[i] >= Fcrit) ctx.lineTo(PX(xs[i]), PY(ys[i]));
+  }
+  ctx.lineTo(PX(xMax), padT + hPx);
+  ctx.closePath(); ctx.fill();
+
+  // Shade p-value tail (x ≥ Fobs) — slightly different overlay
+  if (Fobs <= xMax){
+    ctx.fillStyle = 'rgba(168,85,247,.35)';
     ctx.beginPath();
-    for(let theta=0; theta<=2*Math.PI+0.01; theta+=0.04){
-      const px = a*Math.cos(theta);
-      const py = b*Math.sin(theta);
-      if(theta === 0) ctx.moveTo(PX(px), PY(py));
-      else ctx.lineTo(PX(px), PY(py));
+    ctx.moveTo(PX(Fobs), padT + hPx);
+    for (let i=0; i<=N; i++){
+      if (xs[i] >= Fobs) ctx.lineTo(PX(xs[i]), PY(ys[i]));
     }
-    ctx.stroke();
-  });
-
-  // Initial point: start far on long axis (worst case for SD)
-  const startX = 2, startY = 1;
-
-  // === Steepest Descent with exact line search ===
-  let x_sd = startX, y_sd = startY;
-  const traj_sd = [[x_sd, y_sd]];
-  for(let k=0; k<maxIter; k++){
-    const [gx, gy] = grad(x_sd, y_sd);
-    const gNorm = Math.sqrt(gx*gx + gy*gy);
-    if (gNorm < 1e-5) break;
-    // Exact line search: α* = (gᵀg) / (gᵀHg) where H = diag(2, 2κ)
-    // g·g = gx² + gy²; g·H·g = 2gx² + 2κgy²
-    const num = gx*gx + gy*gy;
-    const den = 2*gx*gx + 2*kappa*gy*gy;
-    const alpha = num / Math.max(den, 1e-9);
-    x_sd = x_sd - alpha * gx;
-    y_sd = y_sd - alpha * gy;
-    traj_sd.push([x_sd, y_sd]);
-    if (Math.abs(x_sd) < 1e-4 && Math.abs(y_sd) < 1e-4) break;
+    ctx.lineTo(PX(xMax), padT + hPx);
+    ctx.closePath(); ctx.fill();
   }
 
-  // === Newton's Method ===
-  let x_nt = startX, y_nt = startY;
-  const traj_nt = [[x_nt, y_nt]];
-  for(let k=0; k<maxIter; k++){
-    const [gx, gy] = grad(x_nt, y_nt);
-    if (Math.sqrt(gx*gx + gy*gy) < 1e-5) break;
-    // Newton: d = -H^{-1} g, with H = diag(2, 2κ): d = -(gx/2, gy/(2κ))
-    x_nt = x_nt - gx / 2;
-    y_nt = y_nt - gy / (2 * kappa);
-    traj_nt.push([x_nt, y_nt]);
+  // PDF curve
+  ctx.strokeStyle = 'rgba(14,165,233,.95)'; ctx.lineWidth = 2.2;
+  ctx.shadowColor = 'rgba(14,165,233,.4)'; ctx.shadowBlur = 5;
+  ctx.beginPath();
+  for (let i=0; i<=N; i++){
+    const px = PX(xs[i]), py = PY(ys[i]);
+    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
   }
+  ctx.stroke(); ctx.shadowBlur = 0;
 
-  // Draw SD trajectory (amber, zigzag)
-  ctx.strokeStyle = 'rgba(249,115,22,.9)'; ctx.lineWidth = 1.8;
-  ctx.shadowColor = 'rgba(249,115,22,.4)'; ctx.shadowBlur = 4;
-  ctx.beginPath();
-  traj_sd.forEach(([x,y], i) => {
-    if (i === 0) ctx.moveTo(PX(x), PY(y));
-    else ctx.lineTo(PX(x), PY(y));
-  });
-  ctx.stroke();
+  // F_crit vertical line (red dashed)
+  ctx.strokeStyle = '#ff4081'; ctx.lineWidth = 2; ctx.setLineDash([5,4]);
+  ctx.beginPath(); ctx.moveTo(PX(Fcrit), padT); ctx.lineTo(PX(Fcrit), padT + hPx); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#ff4081'; ctx.font = 'bold 10px JetBrains Mono';
+  ctx.fillText(`F_crit=${Fcrit.toFixed(2)}`, PX(Fcrit)+4, padT+12);
+
+  // F_obs vertical line (green solid)
+  ctx.strokeStyle = '#00e09e'; ctx.lineWidth = 2.4;
+  ctx.shadowColor = 'rgba(0,224,158,.5)'; ctx.shadowBlur = 6;
+  ctx.beginPath(); ctx.moveTo(PX(Math.min(Fobs,xMax)), padT); ctx.lineTo(PX(Math.min(Fobs,xMax)), padT + hPx); ctx.stroke();
   ctx.shadowBlur = 0;
-  // SD markers
-  traj_sd.forEach(([x,y], i) => {
-    ctx.fillStyle = 'rgba(249,115,22,.85)';
-    ctx.beginPath(); ctx.arc(PX(x), PY(y), i === 0 ? 5 : 2.5, 0, 2*Math.PI); ctx.fill();
-  });
+  ctx.fillStyle = '#00e09e'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText(`F_obs=${Fobs.toFixed(2)}`, PX(Math.min(Fobs,xMax))+4, padT+28);
 
-  // Draw Newton trajectory (pink, direct)
-  ctx.strokeStyle = 'rgba(255,64,129,.95)'; ctx.lineWidth = 2.2;
-  ctx.shadowColor = 'rgba(255,64,129,.5)'; ctx.shadowBlur = 5;
-  ctx.beginPath();
-  traj_nt.forEach(([x,y], i) => {
-    if (i === 0) ctx.moveTo(PX(x), PY(y));
-    else ctx.lineTo(PX(x), PY(y));
-  });
-  ctx.stroke();
-  ctx.shadowBlur = 0;
-  // Newton markers
-  traj_nt.forEach(([x,y], i) => {
-    ctx.fillStyle = 'rgba(255,64,129,.9)';
-    ctx.beginPath(); ctx.arc(PX(x), PY(y), i === 0 ? 5 : 4, 0, 2*Math.PI); ctx.fill();
-  });
+  // Compute p-value (right tail beyond F_obs / total)
+  let pTail = 0;
+  for (let i=0; i<N; i++){
+    if (xs[i] >= Fobs) pTail += 0.5 * (ys[i] + ys[i+1]) * dx;
+  }
+  const pVal = Math.min(1, pTail / totalArea);
 
-  // Optimum (star)
-  ctx.fillStyle = '#fbbf24';
-  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.2;
-  _drawStarN(ctx, PX(0), PY(0), 5, 11, 5);
-  ctx.fill(); ctx.stroke();
-
-  // Axes
-  ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 1.2;
-  ctx.beginPath(); ctx.moveTo(PX(xMin), PY(0)); ctx.lineTo(PX(xMax), PY(0)); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(PX(0), PY(yMin)); ctx.lineTo(PX(0), PY(yMax)); ctx.stroke();
-  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '11px JetBrains Mono';
-  ctx.fillText('x', PX(xMax)+5, PY(0)+4);
-  ctx.fillText('y', PX(0)-15, PY(yMax)+10);
+  // Axis labels & ticks
+  ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
+  for (let xv=0; xv<=xMax; xv+=2) ctx.fillText(xv.toFixed(0), PX(xv)-4, padT+hPx+14);
+  ctx.fillText('F', padL+wPx-8, padT+hPx+28);
+  ctx.save(); ctx.translate(padL-44, padT+hPx/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('PDF f(F)', -30, 0); ctx.restore();
 
   // Title
-  ctx.fillStyle = 'rgba(249,115,22,.95)'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText(`f(x,y) = x² + ${kappa.toFixed(1)}·y²  (κ = ${kappa.toFixed(1)})`, padL, padT-8);
+  ctx.fillStyle = 'rgba(14,165,233,.95)'; ctx.font = 'bold 12px JetBrains Mono';
+  ctx.fillText(`F-Distribution (df1=${df1}, df2=${df2}) · α=${alpha.toFixed(3)} → F_crit=${Fcrit.toFixed(2)}`, padL, padT-10);
 
-  // Legend
-  ctx.font = '10px JetBrains Mono';
-  ctx.fillStyle = 'rgba(249,115,22,.95)'; ctx.fillText(`● SD: ${traj_sd.length-1} iter`, PX(xMin)+5, PY(yMax)+22);
-  ctx.fillStyle = 'rgba(255,64,129,.95)'; ctx.fillText(`● Newton: ${traj_nt.length-1} iter`, PX(xMin)+5, PY(yMax)+34);
+  // Verdict box (top right)
+  const reject = Fobs > Fcrit;
+  const verdict = reject ? 'REJECT H₀' : 'FAIL TO REJECT H₀';
+  ctx.fillStyle = reject ? 'rgba(255,64,129,.85)' : 'rgba(100,116,139,.85)';
+  ctx.fillRect(padL+wPx-150, padT+8, 140, 26);
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 12px JetBrains Mono';
+  ctx.fillText(verdict, padL+wPx-145, padT+25);
 
-  // Update slider displays
-  document.getElementById('v_rs').textContent = kappa.toFixed(1);
-  document.getElementById('v_zs').textContent = maxIter;
+  // Slider displays
+  document.getElementById('v_rs').textContent = alpha.toFixed(3);
+  document.getElementById('v_zs').textContent = Fobs.toFixed(2);
 
   // Info panel
   const info = document.getElementById('sweepInfo');
-  if (info) {
-    const speedup = traj_nt.length > 1 ? ((traj_sd.length-1) / Math.max(traj_nt.length-1, 1)).toFixed(1) : '∞';
-    const conv_sd = Math.sqrt(x_sd*x_sd + y_sd*y_sd);
-    const conv_nt = Math.sqrt(x_nt*x_nt + y_nt*y_nt);
-    info.innerHTML = `κ=<strong>${kappa.toFixed(1)}</strong> · SD: <strong>${traj_sd.length-1}</strong> iter (final ‖x‖=${conv_sd.toExponential(2)}) · Newton: <strong>${traj_nt.length-1}</strong> iter (‖x‖=${conv_nt.toExponential(2)}) · Speedup Newton: <strong>${speedup}×</strong>`;
+  if (info){
+    const sym = reject ? '🟢' : '🟡';
+    info.innerHTML = `α=<strong>${alpha.toFixed(3)}</strong> · F_crit(${df1},${df2})=<strong>${Fcrit.toFixed(2)}</strong> · F_obs=<strong>${Fobs.toFixed(2)}</strong> · p=<strong>${pVal.toFixed(4)}</strong> · ${sym} ${verdict} (p ${reject?'&lt;':'&gt;'} α)`;
   }
 }
 

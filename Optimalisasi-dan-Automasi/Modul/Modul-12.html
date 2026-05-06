@@ -1308,12 +1308,12 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <canvas id="cvPhysics" height="340"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Hysteresis Margin (T_on − T_off) — <span class="ctrl-val" id="v_rp">0.10</span></label>
-          <input type="range" id="sl_rp" min="0.01" max="0.5" step="0.01" value="0.10">
+          <label>Noise Level σ — <span class="ctrl-val" id="v_rp">0.60</span></label>
+          <input type="range" id="sl_rp" min="0" max="2" step="0.05" value="0.60">
         </div>
         <div class="ctrl-group">
-          <label>Noise Amplitude — <span class="ctrl-val" id="v_zp">30</span></label>
-          <input type="range" id="sl_zp" min="10" max="100" step="5" value="30">
+          <label>Debounce N (consecutive) — <span class="ctrl-val" id="v_zp">3</span></label>
+          <input type="range" id="sl_zp" min="1" max="10" step="1" value="3">
         </div>
         <button class="btn-anim" id="btnPhysics" onclick="togglePhysics()">⏸ PAUSE</button>
       </div>
@@ -1335,12 +1335,12 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <canvas id="cvSweep" height="340"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>RMS Velocity (mm/s) — <span class="ctrl-val" id="v_rs">0.7</span></label>
-          <input type="range" id="sl_rs" min="0.1" max="10.0" step="0.1" value="0.7">
+          <label>Upset Severity — <span class="ctrl-val" id="v_rs">2.5</span></label>
+          <input type="range" id="sl_rs" min="0" max="5" step="0.1" value="2.5">
         </div>
         <div class="ctrl-group">
-          <label>Trend Slope (degradasi/jam) — <span class="ctrl-val" id="v_zs">1.5</span></label>
-          <input type="range" id="sl_zs" min="0.01" max="0.20" step="0.01" value="0.05">
+          <label>Rationalization (0=raw, 1=full) — <span class="ctrl-val" id="v_zs">0.60</span></label>
+          <input type="range" id="sl_zs" min="0" max="1" step="0.02" value="0.60">
         </div>
         <button class="btn-anim" id="btnSweep" onclick="toggleSweep()">⏸ PAUSE</button>
       </div>
@@ -1362,12 +1362,12 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <canvas id="cvIso" height="320"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Persistence Threshold (detik) — <span class="ctrl-val" id="v_ri">50</span></label>
-          <input type="range" id="sl_ri" min="3" max="100" step="1" value="50">
+          <label>T1 Persistence (s) — warn→alert — <span class="ctrl-val" id="v_ri">8</span></label>
+          <input type="range" id="sl_ri" min="1" max="30" step="1" value="8">
         </div>
         <div class="ctrl-group">
-          <label>Random Seed Sinyal — <span class="ctrl-val" id="v_zi">42</span></label>
-          <input type="range" id="sl_zi" min="1" max="100" step="1" value="42">
+          <label>T2 Persistence (s) — alert→critical — <span class="ctrl-val" id="v_zi">20</span></label>
+          <input type="range" id="sl_zi" min="5" max="60" step="1" value="20">
         </div>
         <button class="btn-anim" id="btnIso" onclick="toggleIso()">⏸ PAUSE</button>
       </div>
@@ -1389,8 +1389,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <canvas id="cvHPB" height="380"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Debounce N (consecutive samples) — <span class="ctrl-val" id="v_rh">3</span></label>
-          <input type="range" id="sl_rh" min="0" max="10" step="1" value="3">
+          <label>Scenario Progress — <span class="ctrl-val" id="v_rh">0.30</span></label>
+          <input type="range" id="sl_rh" min="0" max="1" step="0.02" value="0.30">
         </div>
         <button class="btn-anim" id="btnHPB" onclick="toggleHPB()">⏸ PAUSE</button>
       </div>
@@ -4808,111 +4808,112 @@ function drawPhysics(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  // Read sliders
-  const alpha = parseFloat(document.getElementById('sl_rp').value);
-  const x0 = parseFloat(document.getElementById('sl_zp').value);
+  // Read sliders: noise level σ (0..2) + debounce N (1..10)
+  const sigma = parseFloat(document.getElementById('sl_rp').value);
+  const N = Math.round(parseFloat(document.getElementById('sl_zp').value));
 
-  // Plot region
-  const padL = 50, padR = 30, padT = 25, padB = 40;
-  const xMin = -3, xMax = 3, yMin = -2, yMax = 2;
-  const wPx = W - padL - padR, hPx = H - padT - padB;
-  const PX = (x) => padL + ((x - xMin) / (xMax - xMin)) * wPx;
-  const PY = (y) => H - padB - ((y - yMin) / (yMax - yMin)) * hPx;
+  // Layout: top half = raw signal, bottom half = debounced
+  const padL = 55, padR = 25, padT = 22, padB = 28;
+  const midGap = 14;
+  const halfH = (H - padT - padB - midGap) / 2;
+  const yTop0 = padT, yTop1 = padT + halfH;
+  const yBot0 = yTop1 + midGap, yBot1 = yBot0 + halfH;
 
-  // f(x,y) = (x − 1)² + 2(y − 0.5)²; ∇f = (2(x−1), 4(y−0.5))
-  const f = (x, y) => (x-1)*(x-1) + 2*(y-0.5)*(y-0.5);
-  const grad = (x, y) => [2*(x-1), 4*(y-0.5)];
+  // Time axis: 240 samples sliding window with anim offset
+  const Nsamp = 240;
+  const tOff = _physicsAnim.t * 12;
+  const xPx = (i) => padL + (i / (Nsamp - 1)) * (W - padL - padR);
 
-  // Draw contour lines
-  const levels = [0.2, 0.5, 1.0, 2.0, 4.0, 8.0];
-  ctx.strokeStyle = 'rgba(168,85,247,.5)'; ctx.lineWidth = 1.3;
-  levels.forEach(L => {
-    // Ellipse: (x-1)² + 2(y-0.5)² = L → semi-axis a = √L, b = √(L/2)
-    const a = Math.sqrt(L), b = Math.sqrt(L/2);
-    ctx.beginPath();
-    for(let theta=0; theta<=2*Math.PI+0.01; theta+=0.05){
-      const px = 1 + a*Math.cos(theta);
-      const py = 0.5 + b*Math.sin(theta);
-      if(theta === 0) ctx.moveTo(PX(px), PY(py));
-      else ctx.lineTo(PX(px), PY(py));
-    }
-    ctx.stroke();
-    // Level label
-    ctx.fillStyle = 'rgba(168,85,247,.6)'; ctx.font = '9px JetBrains Mono';
-    ctx.fillText(L.toFixed(1), PX(1+a), PY(0.5));
-  });
+  // Deterministic pseudo-random (mulberry32-like)
+  const rng = (seed) => { let s = (seed * 16807) % 2147483647; return ((s & 0x7fffffff) / 2147483647) * 2 - 1; };
 
-  // Run gradient descent from (x0, 0)
-  let xk = x0, yk = 0;
-  const trajectory = [[xk, yk]];
-  for(let k=0; k<60; k++){
-    const [gx, gy] = grad(xk, yk);
-    if (Math.sqrt(gx*gx + gy*gy) < 1e-4) break;
-    xk = xk - alpha * gx;
-    yk = yk - alpha * gy;
-    if (Math.abs(xk) > 5 || Math.abs(yk) > 5) break;  // diverged
-    trajectory.push([xk, yk]);
+  // Generate raw signal: baseline + transient bumps + Gaussian-ish noise
+  const TH = 0.50;
+  const raw = new Array(Nsamp);
+  for(let i=0; i<Nsamp; i++){
+    const t = i + tOff;
+    // Sustained breach: long plateau every ~180 samples
+    let base = 0.05;
+    if (((t % 180) > 110 && (t % 180) < 160)) base = 0.85;
+    // Single-sample spikes (false transients)
+    const spikeSeed = Math.floor(t / 6);
+    if (rng(spikeSeed * 31) > 0.78 && (t % 6) < 1) base += 0.7 + 0.3 * rng(spikeSeed * 17);
+    // Noise
+    const noise = sigma * 0.5 * (rng(t * 13.7) + rng(t * 7.1) + rng(t * 23.3)) / 3;
+    raw[i] = Math.max(-0.2, Math.min(1.4, base + noise));
   }
 
-  // Draw trajectory
-  ctx.strokeStyle = 'rgba(14,165,233,.95)'; ctx.lineWidth = 1.8;
-  ctx.shadowColor = 'rgba(14,165,233,.4)'; ctx.shadowBlur = 4;
-  ctx.beginPath();
-  trajectory.forEach(([x,y], i) => {
-    if (i === 0) ctx.moveTo(PX(x), PY(y));
-    else ctx.lineTo(PX(x), PY(y));
-  });
-  ctx.stroke();
-  ctx.shadowBlur = 0;
+  // Debounce: counter increments when raw>TH, resets when raw<=TH; alarm latches when counter≥N
+  const deb = new Array(Nsamp);
+  let cnt = 0, latched = false;
+  for(let i=0; i<Nsamp; i++){
+    if (raw[i] > TH) cnt++; else { cnt = 0; latched = false; }
+    if (cnt >= N) latched = true;
+    deb[i] = latched ? 1 : 0;
+  }
 
-  // Draw iteration markers (small dots)
-  trajectory.forEach(([x,y], i) => {
-    ctx.fillStyle = 'rgba(14,165,233,.9)';
-    const r = (i === 0) ? 6 : 3;
-    ctx.beginPath(); ctx.arc(PX(x), PY(y), r, 0, 2*Math.PI); ctx.fill();
-  });
-  // Label initial
-  ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText('x₀', PX(x0)+8, PY(0)+4);
+  // Helper: plot signal in a band
+  const drawBand = (label, sig, y0, y1, color, isBinary) => {
+    // band frame
+    ctx.fillStyle = 'rgba(255,255,255,.025)'; ctx.fillRect(padL, y0, W - padL - padR, y1 - y0);
+    ctx.strokeStyle = 'rgba(255,255,255,.08)'; ctx.lineWidth = 1; ctx.strokeRect(padL, y0, W - padL - padR, y1 - y0);
+    // threshold line (only meaningful for raw)
+    if (!isBinary) {
+      const yTh = y1 - TH/1.4 * (y1 - y0);
+      ctx.strokeStyle = 'rgba(249,115,22,.7)'; ctx.lineWidth = 1.2; ctx.setLineDash([5,4]);
+      ctx.beginPath(); ctx.moveTo(padL, yTh); ctx.lineTo(W - padR, yTh); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(249,115,22,.85)'; ctx.font = '9px JetBrains Mono';
+      ctx.fillText('TH=' + TH.toFixed(2), W - padR - 50, yTh - 3);
+    }
+    // signal trace
+    ctx.strokeStyle = color; ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    for(let i=0; i<Nsamp; i++){
+      const v = isBinary ? sig[i] : Math.max(0, Math.min(1.4, sig[i])) / 1.4;
+      const yp = y1 - v * (y1 - y0);
+      if (i === 0) ctx.moveTo(xPx(i), yp); else ctx.lineTo(xPx(i), yp);
+    }
+    ctx.stroke();
+    // label
+    ctx.fillStyle = color; ctx.font = 'bold 10px JetBrains Mono';
+    ctx.fillText(label, padL + 6, y0 + 12);
+  };
 
-  // Optimum (star)
-  ctx.fillStyle = '#fbbf24';
-  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.2;
-  _drawStarN(ctx, PX(1), PY(0.5), 5, 11, 5);
-  ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText('x* = (1, 0.5)', PX(1)+12, PY(0.5)-10);
+  drawBand('RAW (noisy sensor)  σ=' + sigma.toFixed(2), raw, yTop0, yTop1, 'rgba(14,165,233,.9)', false);
+  drawBand('DEBOUNCED (N=' + N + ' consecutive)', deb, yBot0, yBot1, 'rgba(34,197,94,.9)', true);
 
-  // Axes
-  ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 1.2;
-  ctx.beginPath(); ctx.moveTo(PX(xMin), PY(0)); ctx.lineTo(PX(xMax), PY(0)); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(PX(0), PY(yMin)); ctx.lineTo(PX(0), PY(yMax)); ctx.stroke();
-  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '11px JetBrains Mono';
-  ctx.fillText('x', PX(xMax)+5, PY(0)+4);
-  ctx.fillText('y', PX(0)-15, PY(yMax)+10);
+  // Mark FALSE TRIGGER on raw (single-sample crossing) vs TRUE ALARM on debounced (rising edge)
+  let rawAlarms = 0, debAlarms = 0;
+  for(let i=1; i<Nsamp; i++){
+    if (raw[i] > TH && raw[i-1] <= TH) {
+      rawAlarms++;
+      ctx.fillStyle = 'rgba(239,68,68,.95)';
+      ctx.beginPath(); ctx.arc(xPx(i), yTop0 + 6, 3, 0, 2*Math.PI); ctx.fill();
+    }
+    if (deb[i] === 1 && deb[i-1] === 0) {
+      debAlarms++;
+      ctx.fillStyle = 'rgba(34,197,94,1)';
+      ctx.beginPath(); ctx.arc(xPx(i), yBot0 + 6, 4, 0, 2*Math.PI); ctx.fill();
+      ctx.fillStyle = 'rgba(34,197,94,.95)'; ctx.font = 'bold 9px JetBrains Mono';
+      ctx.fillText('TRUE', xPx(i) + 6, yBot0 + 10);
+    }
+  }
+  ctx.fillStyle = 'rgba(239,68,68,.95)'; ctx.font = 'bold 9px JetBrains Mono';
+  ctx.fillText('● FALSE TRIGGER (raw)', padL + 240, yTop0 + 12);
 
   // Title
   ctx.fillStyle = 'rgba(14,165,233,.95)'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText('f(x,y) = (x−1)² + 2(y−0.5)²  · α=' + alpha.toFixed(2) + ', x₀=' + x0.toFixed(1), padL, padT-8);
+  ctx.fillText('Debouncing N-consecutive: filter noise transients', padL, 14);
 
-  // Update slider displays
-  document.getElementById('v_rp').textContent = alpha.toFixed(2);
-  document.getElementById('v_zp').textContent = x0.toFixed(1);
+  // Slider displays
+  document.getElementById('v_rp').textContent = sigma.toFixed(2);
+  document.getElementById('v_zp').textContent = N;
 
-  // Info panel
-  const finalPt = trajectory[trajectory.length-1];
-  const fFinal = f(finalPt[0], finalPt[1]);
-  const [gx, gy] = grad(finalPt[0], finalPt[1]);
-  const gradNorm = Math.sqrt(gx*gx + gy*gy);
-  const converged = gradNorm < 0.05;
-  const diverged = Math.abs(finalPt[0]) > 4 || Math.abs(finalPt[1]) > 4;
+  // Info
+  const reduction = rawAlarms > 0 ? (100 * (rawAlarms - debAlarms) / rawAlarms) : 0;
   const info = document.getElementById('physicsInfo');
   if (info) {
-    let status;
-    if (diverged) status = '🔴 DIVERGEN — α terlalu besar, kurangi step size!';
-    else if (converged) status = `🟢 KONVERGEN dalam ${trajectory.length-1} iter`;
-    else status = `🟡 Belum konvergen (60 iter limit, ‖∇f‖=${gradNorm.toFixed(3)})`;
-    info.innerHTML = `Iter: <strong>${trajectory.length-1}</strong> · x_final = (${finalPt[0].toFixed(3)}, ${finalPt[1].toFixed(3)}) · f = <strong>${fFinal.toFixed(4)}</strong> · ‖∇f‖ = ${gradNorm.toFixed(3)} · ${status}`;
+    info.innerHTML = `σ=<strong>${sigma.toFixed(2)}</strong> · N=<strong>${N}</strong> · raw_alarms=<strong>${rawAlarms}</strong> · debounced_alarms=<strong>${debAlarms}</strong> · false_pos_reduction=<strong>${reduction.toFixed(0)}%</strong> · latency=<strong>${N}</strong>×T_sample`;
   }
 }
 
