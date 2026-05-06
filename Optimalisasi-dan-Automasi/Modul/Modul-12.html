@@ -4952,136 +4952,114 @@ function drawSweep(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  // Read sliders
-  const kappa = parseFloat(document.getElementById('sl_rs').value);
-  const maxIter = Math.round(parseFloat(document.getElementById('sl_zs').value));
+  // Sliders: severity (0..5) + rationalization aggression (0..1)
+  const sev = parseFloat(document.getElementById('sl_rs').value);
+  const rat = parseFloat(document.getElementById('sl_zs').value);
 
-  // Plot region
-  const padL = 50, padR = 30, padT = 25, padB = 40;
-  const xMin = -2.5, xMax = 2.5, yMin = -1.5, yMax = 1.5;
-  const wPx = W - padL - padR, hPx = H - padT - padB;
-  const PX = (x) => padL + ((x - xMin) / (xMax - xMin)) * wPx;
-  const PY = (y) => H - padB - ((y - yMin) / (yMax - yMin)) * hPx;
+  // Layout: 10-min timeline split into BEFORE (top) and AFTER (bottom) lanes
+  const padL = 60, padR = 28, padT = 22, padB = 32;
+  const laneGap = 24, laneH = (H - padT - padB - laneGap) / 2;
+  const yTop0 = padT, yTop1 = padT + laneH;
+  const yBot0 = yTop1 + laneGap, yBot1 = yBot0 + laneH;
+  const NMIN = 60; // 60 time-bins = 10 min × 6 bins
+  const binW = (W - padL - padR) / NMIN;
 
-  // f(x,y) = x² + κy²; ∇f = (2x, 2κy); H = diag(2, 2κ)
-  const f = (x, y) => x*x + kappa*y*y;
-  const grad = (x, y) => [2*x, 2*kappa*y];
-  // Optimal step size for SD: α* = (gᵀg)/(gᵀHg) — exact line search
+  const rng = (s) => { const x = Math.sin(s * 9301 + 49297) * 233280; return (x - Math.floor(x)) * 2 - 1; };
 
-  // Draw contour lines (axis-aligned ellipses)
-  const levels = [0.05, 0.2, 0.5, 1.0, 2.0, 4.0];
-  ctx.strokeStyle = 'rgba(168,85,247,.4)'; ctx.lineWidth = 1.2;
-  levels.forEach(L => {
-    const a = Math.sqrt(L), b = Math.sqrt(L/kappa);
-    ctx.beginPath();
-    for(let theta=0; theta<=2*Math.PI+0.01; theta+=0.04){
-      const px = a*Math.cos(theta);
-      const py = b*Math.sin(theta);
-      if(theta === 0) ctx.moveTo(PX(px), PY(py));
-      else ctx.lineTo(PX(px), PY(py));
-    }
-    ctx.stroke();
-  });
-
-  // Initial point: start far on long axis (worst case for SD)
-  const startX = 2, startY = 1;
-
-  // === Steepest Descent with exact line search ===
-  let x_sd = startX, y_sd = startY;
-  const traj_sd = [[x_sd, y_sd]];
-  for(let k=0; k<maxIter; k++){
-    const [gx, gy] = grad(x_sd, y_sd);
-    const gNorm = Math.sqrt(gx*gx + gy*gy);
-    if (gNorm < 1e-5) break;
-    // Exact line search: α* = (gᵀg) / (gᵀHg) where H = diag(2, 2κ)
-    // g·g = gx² + gy²; g·H·g = 2gx² + 2κgy²
-    const num = gx*gx + gy*gy;
-    const den = 2*gx*gx + 2*kappa*gy*gy;
-    const alpha = num / Math.max(den, 1e-9);
-    x_sd = x_sd - alpha * gx;
-    y_sd = y_sd - alpha * gy;
-    traj_sd.push([x_sd, y_sd]);
-    if (Math.abs(x_sd) < 1e-4 && Math.abs(y_sd) < 1e-4) break;
+  // Build BEFORE alarm cloud — flood proportional to severity
+  // Per minute-bin: number of alarms = baseline + severity-driven burst
+  const before = [];
+  const after = [];
+  let totalBefore = 0, totalAfter = 0;
+  const upsetCenter = 28 + Math.floor(8 * Math.sin(_sweepAnim.t * 0.6));
+  for(let b=0; b<NMIN; b++){
+    // Distance to upset event (Gaussian-ish)
+    const d = (b - upsetCenter) / 6;
+    const gauss = Math.exp(-d*d * 0.5);
+    // Raw flood count (BEFORE rationalization)
+    let nBefore = Math.round(2 + sev * 6 * gauss + Math.abs(rng(b * 3.1)) * sev * 4);
+    if (sev < 0.05) nBefore = Math.max(0, Math.round(1 + rng(b)*0.7));
+    before.push(nBefore);
+    totalBefore += nBefore;
+    // After: rationalization suppresses correlated children + low priority
+    // Higher rat → fewer alarms; floor of meaningful events near peak
+    const keep = Math.max(0.06, 1 - rat * 0.95);
+    let nAfter = Math.round(nBefore * keep * 0.4);
+    // Cap per minute-bin to ANSI/ISA target (≤ 1 standing/min after rationalization)
+    const maxAfter = Math.max(1, Math.round(2 + (1 - rat) * 4));
+    nAfter = Math.min(nAfter, maxAfter);
+    after.push(nAfter);
+    totalAfter += nAfter;
   }
 
-  // === Newton's Method ===
-  let x_nt = startX, y_nt = startY;
-  const traj_nt = [[x_nt, y_nt]];
-  for(let k=0; k<maxIter; k++){
-    const [gx, gy] = grad(x_nt, y_nt);
-    if (Math.sqrt(gx*gx + gy*gy) < 1e-5) break;
-    // Newton: d = -H^{-1} g, with H = diag(2, 2κ): d = -(gx/2, gy/(2κ))
-    x_nt = x_nt - gx / 2;
-    y_nt = y_nt - gy / (2 * kappa);
-    traj_nt.push([x_nt, y_nt]);
+  // Priority colors (Red/Orange/Yellow per ANSI/ISA 18.2 tier)
+  const prioCols = ['rgba(239,68,68,.85)','rgba(249,115,22,.85)','rgba(234,179,8,.78)'];
+
+  // Helper: draw a stacked-bar lane
+  const drawLane = (label, arr, y0, y1, target) => {
+    // lane background
+    ctx.fillStyle = 'rgba(255,255,255,.025)'; ctx.fillRect(padL, y0, W - padL - padR, y1 - y0);
+    ctx.strokeStyle = 'rgba(255,255,255,.08)'; ctx.lineWidth = 1; ctx.strokeRect(padL, y0, W - padL - padR, y1 - y0);
+    // ANSI/ISA target line: ≤ 10 alarms / 10min ≈ 1 per minute-bin (here scaled visually)
+    const yTgt = y1 - Math.min(target, 12) / 12 * (y1 - y0);
+    ctx.strokeStyle = 'rgba(34,197,94,.55)'; ctx.lineWidth = 1.2; ctx.setLineDash([4,3]);
+    ctx.beginPath(); ctx.moveTo(padL, yTgt); ctx.lineTo(W - padR, yTgt); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(34,197,94,.85)'; ctx.font = '9px JetBrains Mono';
+    ctx.fillText('ANSI/ISA target ≤' + target + '/min', padL + 4, yTgt - 3);
+    // Stacked bars by priority
+    arr.forEach((cnt, b) => {
+      const x = padL + b * binW + 1;
+      let yCur = y1 - 2;
+      for(let k=0; k<cnt; k++){
+        const prio = (k % 3 === 0) ? 0 : (k % 3 === 1 ? 1 : 2);
+        const cellH = Math.max(1.5, (y1 - y0 - 4) / 12);
+        ctx.fillStyle = prioCols[prio];
+        ctx.fillRect(x, yCur - cellH, Math.max(1, binW - 2), cellH - 0.6);
+        yCur -= cellH;
+        if (yCur < y0 + 14) break;
+      }
+    });
+    // Label
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 11px JetBrains Mono';
+    ctx.fillText(label, padL + 6, y0 + 14);
+  };
+
+  drawLane('BEFORE rationalization (flood)', before, yTop0, yTop1, 10);
+  drawLane('AFTER ANSI/ISA 18.2 (rationalized)', after, yBot0, yBot1, 2);
+
+  // Time axis ticks (every minute)
+  ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 1;
+  ctx.fillStyle = 'rgba(255,255,255,.65)'; ctx.font = '9px JetBrains Mono';
+  for(let m=0; m<=10; m++){
+    const x = padL + (m/10) * (W - padL - padR);
+    ctx.beginPath(); ctx.moveTo(x, H - padB + 2); ctx.lineTo(x, H - padB + 6); ctx.stroke();
+    ctx.fillText(m + 'm', x - 5, H - padB + 18);
   }
+  ctx.fillText('time (10-min window)', (W - 100) / 2, H - 6);
 
-  // Draw SD trajectory (amber, zigzag)
-  ctx.strokeStyle = 'rgba(249,115,22,.9)'; ctx.lineWidth = 1.8;
-  ctx.shadowColor = 'rgba(249,115,22,.4)'; ctx.shadowBlur = 4;
-  ctx.beginPath();
-  traj_sd.forEach(([x,y], i) => {
-    if (i === 0) ctx.moveTo(PX(x), PY(y));
-    else ctx.lineTo(PX(x), PY(y));
+  // Legend (priority pills)
+  const lx = padL + 220, ly = yTop0 + 12;
+  ['HIGH','MED','LOW'].forEach((p, i) => {
+    ctx.fillStyle = prioCols[i]; ctx.fillRect(lx + i*70, ly - 8, 10, 10);
+    ctx.fillStyle = '#fff'; ctx.font = '9px JetBrains Mono'; ctx.fillText(p, lx + i*70 + 14, ly + 1);
   });
-  ctx.stroke();
-  ctx.shadowBlur = 0;
-  // SD markers
-  traj_sd.forEach(([x,y], i) => {
-    ctx.fillStyle = 'rgba(249,115,22,.85)';
-    ctx.beginPath(); ctx.arc(PX(x), PY(y), i === 0 ? 5 : 2.5, 0, 2*Math.PI); ctx.fill();
-  });
-
-  // Draw Newton trajectory (pink, direct)
-  ctx.strokeStyle = 'rgba(255,64,129,.95)'; ctx.lineWidth = 2.2;
-  ctx.shadowColor = 'rgba(255,64,129,.5)'; ctx.shadowBlur = 5;
-  ctx.beginPath();
-  traj_nt.forEach(([x,y], i) => {
-    if (i === 0) ctx.moveTo(PX(x), PY(y));
-    else ctx.lineTo(PX(x), PY(y));
-  });
-  ctx.stroke();
-  ctx.shadowBlur = 0;
-  // Newton markers
-  traj_nt.forEach(([x,y], i) => {
-    ctx.fillStyle = 'rgba(255,64,129,.9)';
-    ctx.beginPath(); ctx.arc(PX(x), PY(y), i === 0 ? 5 : 4, 0, 2*Math.PI); ctx.fill();
-  });
-
-  // Optimum (star)
-  ctx.fillStyle = '#fbbf24';
-  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.2;
-  _drawStarN(ctx, PX(0), PY(0), 5, 11, 5);
-  ctx.fill(); ctx.stroke();
-
-  // Axes
-  ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 1.2;
-  ctx.beginPath(); ctx.moveTo(PX(xMin), PY(0)); ctx.lineTo(PX(xMax), PY(0)); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(PX(0), PY(yMin)); ctx.lineTo(PX(0), PY(yMax)); ctx.stroke();
-  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '11px JetBrains Mono';
-  ctx.fillText('x', PX(xMax)+5, PY(0)+4);
-  ctx.fillText('y', PX(0)-15, PY(yMax)+10);
 
   // Title
   ctx.fillStyle = 'rgba(249,115,22,.95)'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText(`f(x,y) = x² + ${kappa.toFixed(1)}·y²  (κ = ${kappa.toFixed(1)})`, padL, padT-8);
+  ctx.fillText('Alarm Flood vs Rationalization (ANSI/ISA 18.2)', padL, 14);
 
-  // Legend
-  ctx.font = '10px JetBrains Mono';
-  ctx.fillStyle = 'rgba(249,115,22,.95)'; ctx.fillText(`● SD: ${traj_sd.length-1} iter`, PX(xMin)+5, PY(yMax)+22);
-  ctx.fillStyle = 'rgba(255,64,129,.95)'; ctx.fillText(`● Newton: ${traj_nt.length-1} iter`, PX(xMin)+5, PY(yMax)+34);
+  // Slider displays
+  document.getElementById('v_rs').textContent = sev.toFixed(2);
+  document.getElementById('v_zs').textContent = rat.toFixed(2);
 
-  // Update slider displays
-  document.getElementById('v_rs').textContent = kappa.toFixed(1);
-  document.getElementById('v_zs').textContent = maxIter;
-
-  // Info panel
+  // Info: per-min stats + standing alarm est
+  const peakBefore = Math.max(...before);
+  const peakAfter = Math.max(...after);
+  const standing = Math.round(after.reduce((a,b) => a+b, 0) / NMIN);
+  const compliant = (peakAfter <= 10 && standing <= 2);
   const info = document.getElementById('sweepInfo');
   if (info) {
-    const speedup = traj_nt.length > 1 ? ((traj_sd.length-1) / Math.max(traj_nt.length-1, 1)).toFixed(1) : '∞';
-    const conv_sd = Math.sqrt(x_sd*x_sd + y_sd*y_sd);
-    const conv_nt = Math.sqrt(x_nt*x_nt + y_nt*y_nt);
-    info.innerHTML = `κ=<strong>${kappa.toFixed(1)}</strong> · SD: <strong>${traj_sd.length-1}</strong> iter (final ‖x‖=${conv_sd.toExponential(2)}) · Newton: <strong>${traj_nt.length-1}</strong> iter (‖x‖=${conv_nt.toExponential(2)}) · Speedup Newton: <strong>${speedup}×</strong>`;
+    info.innerHTML = `severity=<strong>${sev.toFixed(2)}</strong> · rationalization=<strong>${rat.toFixed(2)}</strong> · before=<strong>${totalBefore}</strong> alarms (peak ${peakBefore}/min) · after=<strong>${totalAfter}</strong> (peak ${peakAfter}/min, standing≈${standing}) · ${compliant ? '🟢 ANSI/ISA 18.2 COMPLIANT' : '🔴 EXCEEDS target'}`;
   }
 }
 
