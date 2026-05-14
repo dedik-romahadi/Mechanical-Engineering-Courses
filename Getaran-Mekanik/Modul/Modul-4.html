@@ -4936,7 +4936,8 @@ function drawForumCanvas() {
   const Tr_baru = trans(r_baru, zeta);   // 9.99
 
   const t = _punchAnim.t;
-  
+  const tSlow = t * 0.05;   // slow-motion factor untuk punch & getaran fondasi
+
   // ── Layout ──
   const headerH = 26;
   const leftW = W * 0.30;
@@ -4975,7 +4976,7 @@ function drawForumCanvas() {
   
   // Punch cycle: 36.67 stroke/s → 0.0273 s per stroke
   const stroke_period = 60 / 2200;     // s per stroke
-  const phase = (t % stroke_period) / stroke_period;
+  const phase = (tSlow % stroke_period) / stroke_period;
   // Animation: 70% punch down (phase 0..0.7), 30% retract (phase 0.7..1.0)
   let punchProgress;
   if (phase < 0.5) {
@@ -5012,7 +5013,7 @@ function drawForumCanvas() {
   
   // Foundation with vibration
   const vib_amp_pixels = 8;  // exaggerated for visualization
-  const vib_phase = omega_baru * t;
+  const vib_phase = omega_baru * tSlow;
   const vib_x = vib_amp_pixels * Math.sin(vib_phase);
   
   ctx.fillStyle = 'rgba(139,69,19,.3)';
@@ -5046,7 +5047,7 @@ function drawForumCanvas() {
   // Status labels
   ctx.fillStyle = '#ef4444'; ctx.font = 'bold 9px JetBrains Mono';
   ctx.textAlign = 'center';
-  ctx.fillText('FONDASI BERGETAR', leftW/2, punchBaseY + 53);
+  ctx.fillText('FONDASI BERGETAR', leftW/2, punchBaseY + 26);
   ctx.fillStyle = '#fbbf24'; ctx.font = '8px JetBrains Mono';
   ctx.fillText(`F_T ≈ 45 kN!`, leftW/2, animY + animH - 8);
   
@@ -5108,7 +5109,7 @@ function drawForumCanvas() {
   ctx.setLineDash([]);
   ctx.fillStyle = 'rgba(239,68,68,.7)'; ctx.font = 'bold 9px JetBrains Mono';
   ctx.textAlign = 'center';
-  ctx.fillText('r=1 (resonansi)', resPx, tpY - 5);
+  ctx.fillText('r=1', resPx, tpY - 5);
   
   // Marker LAMA (1800 RPM, r=0.82, DMF=2.97) — green
   const lamaPx = tpX + (r_lama - rMin) / (rMax - rMin) * tpW;
@@ -5138,8 +5139,9 @@ function drawForumCanvas() {
   ctx.fillText(`DMF=${DMF_lama.toFixed(1)}`, lamaPx, lamaPy + 33);
   
   ctx.fillStyle = '#ec4899';
-  ctx.fillText('2200 RPM', baruPx, baruPy - 16);
-  ctx.fillText(`DMF=${DMF_baru.toFixed(1)} ⚠`, baruPx, baruPy - 5);
+  ctx.textAlign = 'left';
+  ctx.fillText('2200 RPM', baruPx + 13, baruPy + 4);
+  ctx.fillText(`DMF=${DMF_baru.toFixed(1)} ⚠`, baruPx + 13, baruPy + 16);
   
   // Axis labels
   ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
@@ -5158,7 +5160,7 @@ function drawForumCanvas() {
 }
 
 function _punchTick() {
-  _punchAnim.t += 0.018;
+  _punchAnim.t += 0.010;
   drawForumCanvas();
   _punchAnim.raf = requestAnimationFrame(_punchTick);
 }
