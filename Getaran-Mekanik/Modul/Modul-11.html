@@ -2318,32 +2318,31 @@ print(f"Terdeteksi {len(peaks_idx)} puncak di: {freqs[peaks_idx].round(1)} Hz")<
 
   <!-- SKENARIO -->
   <div class="section-label reveal cyan-label">Skenario</div>
-  <h2 class="section-title reveal">Sebuah Platform Uji 2-Tingkat<br>yang Bergetar Berlebihan</h2>
+  <h2 class="section-title reveal">Mesin Berisik di Lantai Produksi:<br>FFT untuk Diagnosis</h2>
 
   <div class="forum-scenario reveal">
-    <div class="scenario-label">📋 KASUS LABORATORIUM</div>
+    <div class="scenario-label">📋 KASUS MAINTENANCE PABRIK</div>
     <p>
-      Sebuah <strong style="color:var(--cyan)">platform pengujian peralatan 2-tingkat</strong> di lab teknik mesin terdiri dari dua massa identik (m₁ = m₂ = 1 kg) yang dihubungkan oleh tiga pegas identik (k₁ = k₂ = k₃ = 100 N/m) — sistem klasik 2 DoF. Operator melaporkan: saat motor eksitasi diputar pada <strong style="color:var(--amber)">ω = 10 rad/s</strong>, kedua massa bergerak <em>searah</em> dengan amplitudo besar. Saat motor diputar pada <strong style="color:var(--amber)">ω ≈ 17.32 rad/s</strong>, kedua massa bergerak <em>berlawanan</em> dengan amplitudo bahkan lebih besar lagi. Pegas di tengah pun pecah setelah beberapa siklus. Tim teknik diminta menganalisis fenomena ini menggunakan teori frekuensi pribadi 2 DoF, lalu merancang solusi.
+      Tim maintenance pabrik menerima keluhan: sebuah <strong style="color:var(--cyan)">motor induksi 1800 rpm</strong> yang menggerakkan gearbox (rasio 1:3) terdengar lebih bising dari biasanya, dengan getaran terasa di housing. Operator menempelkan accelerometer pada housing motor, sampling pada <strong style="color:var(--amber)">fs = 5 120 Hz selama 0.8 detik (N = 4 096 sampel)</strong>. Data time-domain hanya memperlihatkan sinyal kompleks tidak periodik. Tim mahasiswa diminta: lakukan FFT, identifikasi puncak frekuensi (1×, 2×, 3× rpm, gear mesh frequency, sidebands), validasi pemilihan fs &amp; window, dan beri diagnosis awal.
     </p>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:16px">
-      <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">m₁ = m₂ = 1 kg</div>
-      <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">k₁ = k₂ = k₃ = 100 N/m</div>
-      <div style="background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)">ω_eksitasi 1 = 10 rad/s</div>
-      <div style="background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)">ω_eksitasi 2 = 17.32 rad/s</div>
-      <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">M = identitas (m=1)</div>
-      <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">K = [[200,−100],[−100,200]]</div>
+      <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">Motor: 1800 rpm</div>
+      <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">Gearbox: rasio 1:3, n_teeth = 24</div>
+      <div style="background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)">fs = 5 120 Hz</div>
+      <div style="background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)">N = 4 096 (nperseg)</div>
+      <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">Δf = fs/N = 1.25 Hz</div>
+      <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">f_Nyquist = fs/2 = 2 560 Hz</div>
     </div>
-    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Persamaan gerak: <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">M·ẍ + K·x = 0</code>. Persamaan karakteristik: <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">det(K − ω²M) = 0</code>. Forum mengajak Anda mengidentifikasi: (1) mengapa eksitasi pada frekuensi spesifik ini menyebabkan amplitudo besar, (2) bagaimana mode shape menjelaskan pola gerak yang diamati, (3) bagaimana mendesain vibration absorber praktis untuk meredam getaran berbahaya.</p>
+    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Komponen frekuensi ekspektasi: 1× = 30 Hz (rotasi motor), 2× = 60 Hz (misalignment), 3× = 90 Hz (looseness), GMF = n_teeth × f_shaft = 24 × 30 = 720 Hz (gear mesh). Spektrum DFT: <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">X[k] = Σ x[n]·e^(−j2πkn/N)</code>. Aturan Nyquist: <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">fs ≥ 2·f_max</code> (praktik: 2.5×).</p>
   </div>
 
-  <!-- Canvas Forum di-hide karena animasi 2-DoF interaktif tersedia di Materi Bagian 06.
-       Mahasiswa diarahkan ke sana untuk visualisasi mode shape. -->
+  <!-- Reference visualisasi spektrum mesin -->
   <canvas id="cvForum" height="0" style="display:none"></canvas>
   <div style="background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.2);border-left:4px solid var(--violet);border-radius:12px;padding:16px 22px;margin-bottom:32px;display:flex;align-items:flex-start;gap:12px">
-    <span style="font-size:20px;flex-shrink:0">🎬</span>
+    <span style="font-size:20px;flex-shrink:0">📊</span>
     <div>
-      <div style="font-weight:700;color:var(--violet);margin-bottom:4px;font-size:14px">Visualisasi Mode 1 vs Mode 2</div>
-      <p style="font-size:13px;color:var(--muted);margin:0;line-height:1.7">Untuk membantu menjawab pertanyaan diskusi, buka tab <strong style="color:var(--text)">Modul → Bagian 06 (Visualisasi Interaktif)</strong> — tersedia animasi canvas dua massa terhubung tiga pegas yang dapat di-switch antara Mode 1 (in-phase, ω₁=10) dan Mode 2 (anti-phase, ω₂≈17.32). Perhatikan secara visual mengapa pegas tengah pecah saat eksitasi Mode 2.</p>
+      <div style="font-weight:700;color:var(--violet);margin-bottom:4px;font-size:14px">Pemilihan Window: Hann vs Rectangular</div>
+      <p style="font-size:13px;color:var(--muted);margin:0;line-height:1.7">Sinyal getaran umumnya non-periodik dalam window analisis → spectral leakage. Window Hann (default scipy welch) mengurangi leakage dengan amplitudo trade-off ~−6 dB. Untuk pemisahan dua peak dekat, gunakan Δf kecil + window Hann/Flat-top. Untuk amplitudo absolut yang akurat, terapkan amplitude correction factor (Hann: ×2.0).</p>
     </div>
   </div>
 
@@ -2355,31 +2354,31 @@ print(f"Terdeteksi {len(peaks_idx)} puncak di: {freqs[peaks_idx].round(1)} Hz")<
   <div class="fq-card reveal" id="fq1">
     <div class="fq-head" onclick="toggleFQ('fq1')">
       <div class="fq-num" style="background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.2);color:var(--cyan)">01</div>
-      <h3>Diagnosis: Mengapa eksitasi pada ω = 10 dan ω ≈ 17.32 menyebabkan amplitudo besar?</h3>
+      <h3>Setup FFT: Validasi fs, nperseg, dan resolusi frekuensi Δf untuk diagnosis ini.</h3>
       <span class="fq-arrow">›</span>
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Hitung kedua frekuensi pribadi sistem dengan persamaan karakteristik <code>det(K − ω²M) = 0</code> atau menggunakan numpy.linalg.eig. Bandingkan hasil dengan frekuensi eksitasi yang dilaporkan operator. Apa kesimpulan diagnosa Anda?</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Diagnosis tertarget: 1× (30 Hz), 2× (60 Hz), 3× (90 Hz), dan GMF (720 Hz) plus sidebands GMF ± f_shaft. Pertanyaan: apakah fs = 5 120 Hz cukup memenuhi Nyquist untuk semua komponen ini? Apakah Δf = 1.25 Hz cukup memisahkan 1× dan 2× (jarak 30 Hz, jelas terpisah) atau GMF sidebands (jarak 30 Hz, juga terpisah)? Hitung pula durasi rekaman.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">det(K − ω²M) = 0</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">ω₁² + ω₂² = trace(K)</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">ω₁²·ω₂² = det(K)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">f_Nyquist = fs/2</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">Δf = fs/N = 1/T</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">T = N/fs</span>
         </div>
 
         <div class="poll">
-          <div class="poll-q">QUICK CHECK — Frekuensi eksitasi 10 dan 17.32 rad/s adalah...</div>
+          <div class="poll-q">QUICK CHECK — Setup fs = 5120 Hz, N = 4096 untuk diagnosis ini...</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>Frekuensi sembarang yang kebetulan menghasilkan amplitudo besar</div>
-            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>Tepat sama dengan kedua frekuensi pribadi sistem (ω₁ dan ω₂) — ini RESONANSI</div>
-            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Frekuensi kerusakan komponen pegas saja (bukan sistem)</div>
-            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Frekuensi yang membuat damping minimum</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>fs terlalu rendah — GMF 720 Hz akan ter-aliasing</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>fs cukup (f_Nyq=2560 Hz &gt; 720 Hz), Δf=1.25 Hz memisahkan sidebands GMF±30 Hz dengan baik (24 bin), T=0.8 s</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Δf = 1.25 Hz terlalu besar — 1× dan 2× akan menyatu</div>
+            <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>N = 4096 bukan pangkat 2, tidak bisa FFT</div>
           </div>
-          <div class="p-fb r" id="fp1r">✅ Tepat! det(K − ω²M) = (200 − ω²)² − 10000 = 0 → ω² = 100 dan 300. Maka ω₁ = 10 rad/s dan ω₂ = √300 ≈ 17.32 rad/s — persis frekuensi eksitasi yang menimbulkan amplitudo besar. Sistem mengalami RESONANSI di kedua frekuensi pribadinya. Ini juga bisa diverifikasi dengan trace identity: ω₁²+ω₂² = 100+300 = 400 = trace(K) ✓.</div>
-          <div class="p-fb w" id="fp1w">❌ Hitung dulu det(K − ω²M) = 0. Anda akan menemukan ω² = 100 dan 300, yang persis bersesuaian dengan ω yang dilaporkan operator. Kondisi ini disebut RESONANSI.</div>
+          <div class="p-fb r" id="fp1r">✅ Tepat! f_Nyquist = 2560 Hz &gt; GMF 720 Hz (faktor 3.6× — aman). Δf = 5120/4096 = 1.25 Hz; jarak antar harmonik 30 Hz = 24 bin (sangat aman untuk pemisahan). Durasi T = N/fs = 4096/5120 = 0.8 s (cukup untuk 24 putaran shaft pada 1800 rpm = 30 rev/s). 4096 = 2¹² adalah pangkat 2 (FFT optimal). Setup ini memenuhi best practice analisis vibrasi mesin rotating.</div>
+          <div class="p-fb w" id="fp1w">❌ Cek angka: f_Nyquist = fs/2 = 2560 Hz. Apakah lebih besar dari GMF 720 Hz? Δf = fs/N = 1.25 Hz; apakah lebih kecil dari jarak antar-fitur (30 Hz)?</div>
         </div>
 
-        <textarea class="fq-textarea" id="ans-fq1" placeholder="Tulis jawaban diskusi Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Selesaikan det(K − ω²M) = 0 secara analitik atau dengan numpy. (2) Cocokkan dengan frekuensi eksitasi 10 dan 17.32 rad/s. (3) Jelaskan apa itu resonansi dalam konteks 2 DoF — ada berapa frekuensi resonansi?" oninput="checkForumReady()"></textarea>
+        <textarea class="fq-textarea" id="ans-fq1" placeholder="Tulis validasi setup FFT Anda (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Hitung f_Nyquist dan bandingkan dengan f_max yang ingin diamati (GMF=720 Hz). (2) Hitung Δf = fs/N dan bandingkan dengan jarak antar-fitur (30 Hz). (3) Hitung T = N/fs dan diskusikan apakah cukup banyak putaran shaft tertangkap. (4) Bahas trade-off: fs lebih tinggi → range frekuensi lebih luas tapi Δf jadi besar untuk N tetap." oninput="checkForumReady()"></textarea>
         <div id="wc-fq1" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right;">0 / min 30 kata</div>
       </div>
     </div>
@@ -2389,29 +2388,29 @@ print(f"Terdeteksi {len(peaks_idx)} puncak di: {freqs[peaks_idx].round(1)} Hz")<
   <div class="fq-card reveal" id="fq2">
     <div class="fq-head" onclick="toggleFQ('fq2')">
       <div class="fq-num" style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2);color:var(--amber)">02</div>
-      <h3>Mode shape: Mengapa pola gerak berbeda di ω₁ vs ω₂, dan mengapa pegas tengah pecah saat ω₂?</h3>
+      <h3>Interpretasi spektrum: Apa diagnosis jika peak 2× dominan, dan apa jika ada sidebands GMF ± f_shaft?</h3>
       <span class="fq-arrow">›</span>
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Hitung mode shape Mode 1 (ω₁) dan Mode 2 (ω₂) dengan substitusi balik ke (K − ω²M)·X = 0. Bandingkan rasio X₁/X₂ dengan pengamatan operator (kedua massa searah di ω = 10, berlawanan di ω = 17.32). Jelaskan mengapa pegas tengah <strong>khusus pecah</strong> saat eksitasi mode 2.</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Pelajari "fingerprint" gangguan mesin umum: <strong>1× dominan</strong> = unbalance, <strong>2× dominan</strong> = misalignment, <strong>3× &amp; harmonik</strong> = mechanical looseness, <strong>GMF dengan sidebands ±f_shaft</strong> = gear wear/eksentrisitas (modulasi amplitudo karena gigi tidak seragam), <strong>peak non-sinkron 0.4–0.5× f_shaft</strong> = oil whirl. Apa diagnosis untuk kasus dimana spektrum menunjukkan 1× kecil, 2× = 4× amplitudo 1×, dan GMF dengan dua sidebands kuat di ±30 Hz?</p>
         <div style="background:rgba(249,115,22,.04);border:1px solid rgba(249,115,22,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);margin-bottom:12px">
-          💬 <em>Hint: Substitusi ω₁²=100 ke (K − 100·M)X = 0 → [[100,−100],[−100,100]]X = 0 → X₁ = X₂ (Mode 1 in-phase). Substitusi ω₂²=300 ke (K − 300·M)X = 0 → [[−100,−100],[−100,−100]]X = 0 → X₁ = −X₂ (Mode 2 anti-phase).</em>
+          💬 <em>Hint: 2× &gt;&gt; 1× → tanda khas <strong>misalignment</strong> antara motor dan gearbox shaft. GMF dengan sidebands di ±f_shaft → tanda <strong>gear eksentrisitas</strong> atau wear lokal pada satu gigi (gigi tertentu engage tiap satu putaran shaft, modulasi periodik). Diagnosis ganda: lakukan re-alignment (laser alignment) sebagai langkah pertama, lalu inspeksi visual gear.</em>
         </div>
 
         <div class="poll">
-          <div class="poll-q">QUICK CHECK — Mengapa pegas tengah k₂ pecah saat mode 2 (ω₂)?</div>
+          <div class="poll-q">QUICK CHECK — Spektrum menunjukkan peak besar pada 60 Hz (≈3× rpm 1200 rpm?) — apa yang harus diperiksa lebih dulu?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Karena pegas k₂ secara material lebih lemah dari k₁ dan k₃</div>
-            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Karena di mode 2 (anti-phase), regangan pegas tengah = 2·X (dua kali lipat amplitudo massa)</div>
-            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Karena pegas tengah tidak punya peredam</div>
-            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Kebetulan saja — bukan karena dinamika</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Langsung ganti bearing motor</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Cek apakah 60 Hz adalah frekuensi listrik PLN (electrical noise / motor magnetic) — bukan masalah mekanik; matikan motor dan ukur sinyal "off" untuk konfirmasi</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Abaikan, getaran &lt; 100 Hz biasanya aman</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Tambah lebih banyak baut pondasi</div>
           </div>
-          <div class="p-fb r" id="fp2r">✅ Benar! Pada mode 2, X₁ = +X dan X₂ = −X. Regangan pegas tengah = X₂ − X₁ = −2X (dua kali lipat amplitudo masing-masing massa). Pada mode 1, X₁ = X₂ → regangan pegas tengah = X₂ − X₁ = 0 (pegas tidak terdeformasi sama sekali). Itulah mengapa pegas tengah hanya pecah saat eksitasi mode 2 — ia bekerja paling keras di mode itu.</div>
-          <div class="p-fb w" id="fp2w">❌ Cek mode shape: di Mode 2 (anti-phase, X₁=−X₂), berapa regangan pegas tengah? Bandingkan dengan Mode 1 (in-phase, X₁=X₂). Pada mode mana pegas tengah bekerja paling keras?</div>
+          <div class="p-fb r" id="fp2r">✅ Tepat! 60 Hz adalah frekuensi listrik nominal AS / atau 50 Hz × 1.2 untuk Indonesia. Banyak motor induksi memunculkan getaran di f_line dan 2×f_line akibat torsional ripple atau eccentricity rotor-stator. Tes diagnostic standar: matikan motor dan ukur "background" — jika peak 60 Hz hilang, asalnya elektromagnetik. Jika tetap ada (mis. dari sumber lain), berarti mekanik. Untuk kasus motor 1800 rpm = 30 Hz, peak 60 Hz adalah persis 2× rpm → kemungkinan besar MISALIGNMENT (mekanik), bukan listrik.</div>
+          <div class="p-fb w" id="fp2w">❌ Selalu lakukan baseline measurement (motor off) sebelum diagnosis untuk memisahkan kontribusi elektromagnetik vs mekanik. Peak yang tepat di f_line atau 2×f_line wajib dicurigai sebagai electrical.</div>
         </div>
 
-        <textarea class="fq-textarea" id="ans-fq2" placeholder="Tulis analisis mode shape Anda (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Hitung mode shape kedua mode dengan substitusi balik. (2) Hitung regangan pegas tengah (Δℓ_k₂ = X₂ − X₁) untuk Mode 1 dan Mode 2. (3) Jelaskan dari sudut pandang energi: mode mana yang menyimpan paling banyak energi di pegas k₂?" oninput="checkForumReady()"></textarea>
+        <textarea class="fq-textarea" id="ans-fq2" placeholder="Tulis interpretasi spektrum dan diagnosis Anda (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Daftar fingerprint umum: 1× = unbalance, 2× = misalignment, 3×/harmonik = looseness, GMF±f_shaft = gear wear, sub-sinkron = oil whirl. (2) Berikan diagnosis untuk pola yang disebut di soal (2× dominan + GMF dengan sidebands). (3) Tahap perbaikan apa yang Anda rekomendasikan? (4) Jangan lupa cek baseline / electrical contribution sebelum menyimpulkan." oninput="checkForumReady()"></textarea>
         <div id="wc-fq2" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right;">0 / min 30 kata</div>
       </div>
     </div>
@@ -2421,21 +2420,22 @@ print(f"Terdeteksi {len(peaks_idx)} puncak di: {freqs[peaks_idx].round(1)} Hz")<
   <div class="fq-card reveal" id="fq3">
     <div class="fq-head" onclick="toggleFQ('fq3')">
       <div class="fq-num" style="background:rgba(0,224,158,.1);border:1px solid rgba(0,224,158,.2);color:var(--green)">03</div>
-      <h3>Solusi: Bagaimana mendesain vibration absorber untuk meredam mode 2 (yang merusak pegas)?</h3>
+      <h3>Windowing &amp; leakage: Mengapa pakai Hann window, dan apa amplitude correction factor-nya?</h3>
       <span class="fq-arrow">›</span>
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Eksitasi paling berbahaya adalah pada ω₂ ≈ 17.32 rad/s (yang merusak pegas tengah). Tugas Anda: rancang vibration absorber kecil (m_a, k_a) yang dipasang ke salah satu massa untuk meredam getaran di ω = 17.32 rad/s. Aturan tuning: <code>√(k_a/m_a) = ω_drive</code>. Jika m_a = 0.1 kg (10% massa utama), berapa k_a yang diperlukan? Bagaimana sistem 2 DoF asli berubah menjadi sistem 3 DoF setelah pemasangan absorber?</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Sinyal getaran 0.8 s di kasus ini tidak mengandung jumlah putaran yang bulat per komponen frekuensi (mis. 1× = 30 Hz × 0.8 s = 24 putaran — kebetulan bulat untuk 1×, tetapi tidak untuk frekuensi non-integer). Tanpa windowing → spectral leakage. Jelaskan: (a) mengapa Hann lebih baik daripada rectangular, (b) trade-off Hann vs Flat-top vs Hamming, (c) ACF Hann = 2.0 berarti apa.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">k_a = m_a · ω_drive²</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">m_a ≈ 5–20% m_struktur</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">x_w[n] = w[n]·x[n]</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">ACF_Hann = 2.0</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">w_Hann[n] = 0.5(1 − cos(2πn/N))</span>
         </div>
         <div style="background:rgba(0,224,158,.04);border:1px solid rgba(0,224,158,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);">
-          💬 <em>Hint: untuk meredam ω_drive = 17.32 rad/s dengan m_a = 0.1 kg, perlu k_a = 0.1 × (17.32)² = 0.1 × 300 = <strong style="color:var(--green)">30 N/m</strong>. Setelah dipasang, sistem menjadi 3 DoF dengan tiga frekuensi pribadi baru — dua di antaranya berada di sekitar ω_drive (mengapit), satu lebih jauh. Trade-off: tidak ada lagi puncak resonansi tepat di ω = 17.32, tetapi muncul dua puncak baru yang lebih kecil di ω yang berdekatan.</em>
+          💬 <em>Hint: Tanpa window (rectangular), DFT mengasumsikan sinyal periodik dalam jendela N sampel — diskontinuitas di ujung jendela menyebar energi ke seluruh spektrum (leakage). Hann (cosine-bell) memperkecil amplitudo di tepi → leakage berkurang sangat besar. Trade-off: amplitudo peak terbaca ~50% lebih rendah → kalikan dengan ACF = 2.0 untuk koreksi. Flat-top (ACF ≈ 4.18) memberi pembacaan amplitudo TERAKURAT tapi resolusi frekuensi lebih buruk. Hamming = mirip Hann tetapi tidak nol di tepi.</em>
         </div>
 
-        <textarea class="fq-textarea" id="ans-fq3" placeholder="Tulis rancangan vibration absorber Anda (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Hitung k_a untuk m_a = 0.1 kg dengan tuning rule. (2) Jelaskan bagaimana penambahan absorber mengubah sistem 2 DoF menjadi 3 DoF. (3) Trade-off apa yang muncul (efektif di satu frekuensi tapi muncul puncak baru di frekuensi lain)? (4) Beri contoh aplikasi nyata vibration absorber (Taipei 101, Millennium Bridge, dll)." oninput="checkForumReady()"></textarea>
+        <textarea class="fq-textarea" id="ans-fq3" placeholder="Tulis pembahasan windowing Anda (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Definisikan spectral leakage dan asalnya (asumsi periodisitas DFT vs sinyal non-periodik). (2) Jelaskan bagaimana Hann mengurangi leakage. (3) Bandingkan Hann (ACF=2.0, resolusi baik) vs Flat-top (ACF≈4.18, amplitudo akurat) vs Rectangular (no correction tapi leakage tinggi). (4) Berikan rekomendasi window untuk kasus diagnosis ini (Hann adalah default praktis terbaik)." oninput="checkForumReady()"></textarea>
         <div id="wc-fq3" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right;">0 / min 30 kata</div>
       </div>
     </div>
@@ -4390,22 +4390,22 @@ function buildForumHtml() {
 
   <table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background:#f0f4ff;border-left:4px solid #a855f7;margin-top:2px;">
     <tr><td style="padding:16px 28px;">
-      <div style="font-weight:700;color:#5b35d0;margin-bottom:8px;font-size:15px;">&#128203; Skenario: Platform Uji 2-Tingkat yang Bergetar Berlebihan</div>
-      <div style="font-size:.88rem;color:#475569;margin-bottom:10px;line-height:1.65;">Platform pengujian peralatan 2-tingkat terdiri dari dua massa identik yang dihubungkan tiga pegas identik &mdash; sistem klasik 2 DoF. Saat motor eksitasi diputar pada &omega; = 10 rad/s kedua massa bergerak searah; pada &omega; &asymp; 17.32 rad/s kedua massa bergerak berlawanan dan pegas tengah pecah. Persamaan gerak: <span style="font-family:monospace;color:#0ea5e9;">M&middot;&uuml;x + K&middot;x = 0</span>. Parameter lapangan:</div>
-      <div style="margin-top:10px;line-height:2.2;"><div style="display:inline-block;margin:2px 6px 2px 0;background:#fef3c7;border:1px solid #fde68a;color:#b45309;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">m&#8321; = m&#8322; = 1 kg</div>
-      <div style="display:inline-block;margin:2px 6px 2px 0;background:#fef3c7;border:1px solid #fde68a;color:#b45309;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">k&#8321; = k&#8322; = k&#8323; = 100 N/m</div>
-      <div style="display:inline-block;margin:2px 6px 2px 0;background:#dbeafe;border:1px solid #93c5fd;color:#1d4ed8;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">&omega;_eksitasi 1 = 10 rad/s</div>
-      <div style="display:inline-block;margin:2px 6px 2px 0;background:#dbeafe;border:1px solid #93c5fd;color:#1d4ed8;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">&omega;_eksitasi 2 = 17.32 rad/s</div>
-      <div style="display:inline-block;margin:2px 6px 2px 0;background:#fce7f3;border:1px solid #f9a8d4;color:#be185d;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">M = identitas (m=1)</div>
-      <div style="display:inline-block;margin:2px 6px 2px 0;background:#fce7f3;border:1px solid #f9a8d4;color:#be185d;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">K = [[200,&minus;100],[&minus;100,200]]</div>
+      <div style="font-weight:700;color:#5b35d0;margin-bottom:8px;font-size:15px;">&#128203; Skenario: Mesin Berisik &mdash; FFT Diagnosis</div>
+      <div style="font-size:.88rem;color:#475569;margin-bottom:10px;line-height:1.65;">Motor induksi 1800 rpm yang menggerakkan gearbox rasio 1:3 (n_teeth=24) berisik abnormal. Accelerometer di housing sampel fs = 5 120 Hz selama 0.8 s (N = 4 096). Target spektrum: 1&times; (30 Hz), 2&times; (60 Hz), 3&times; (90 Hz), GMF (720 Hz) &amp; sidebands GMF&plusmn;30 Hz. Lakukan validasi setup FFT, interpretasi spektrum, dan pilihan windowing.</div>
+      <div style="margin-top:10px;line-height:2.2;"><div style="display:inline-block;margin:2px 6px 2px 0;background:#fef3c7;border:1px solid #fde68a;color:#b45309;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">Motor: 1800 rpm</div>
+      <div style="display:inline-block;margin:2px 6px 2px 0;background:#fef3c7;border:1px solid #fde68a;color:#b45309;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">n_teeth = 24, rasio 1:3</div>
+      <div style="display:inline-block;margin:2px 6px 2px 0;background:#dbeafe;border:1px solid #93c5fd;color:#1d4ed8;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">fs = 5 120 Hz, N = 4 096</div>
+      <div style="display:inline-block;margin:2px 6px 2px 0;background:#dbeafe;border:1px solid #93c5fd;color:#1d4ed8;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">&Delta;f = 1.25 Hz, T = 0.8 s</div>
+      <div style="display:inline-block;margin:2px 6px 2px 0;background:#fce7f3;border:1px solid #f9a8d4;color:#be185d;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">f_Nyquist = 2 560 Hz</div>
+      <div style="display:inline-block;margin:2px 6px 2px 0;background:#fce7f3;border:1px solid #f9a8d4;color:#be185d;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">GMF = 720 Hz</div>
     </td></tr>
   </table>
   </div>
 
   <table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background:#ffffff;border:1px solid #e2e8f0;margin-top:8px;">
     <tr><td style="padding:20px 28px;">
-      <h3 style="margin:0 0 10px 0;font-size:15px;color:#1e293b;line-height:1.55;font-weight:700;"><span style="display:inline-block;background:#a855f7;color:#fff;padding:3px 12px;border-radius:6px;font-weight:700;font-size:13px;margin-right:8px;">1</span>Diagnosis: Mengapa eksitasi pada &omega; = 10 dan &omega; &asymp; 17.32 menyebabkan amplitudo besar?</h3>
-      <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Hitung kedua frekuensi pribadi sistem dengan persamaan karakteristik det(K &minus; &omega;&sup2;M) = 0 atau menggunakan numpy.linalg.eig. Bandingkan hasil dengan frekuensi eksitasi yang dilaporkan operator. Apa kesimpulan diagnosa Anda?</div>
+      <h3 style="margin:0 0 10px 0;font-size:15px;color:#1e293b;line-height:1.55;font-weight:700;"><span style="display:inline-block;background:#a855f7;color:#fff;padding:3px 12px;border-radius:6px;font-weight:700;font-size:13px;margin-right:8px;">1</span>Setup FFT: Validasi fs, nperseg, dan resolusi frekuensi &Delta;f untuk diagnosis ini.</h3>
+      <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Periksa f_Nyquist = fs/2 = 2560 Hz &gt; GMF 720 Hz (aman), &Delta;f = fs/N = 1.25 Hz (cukup kecil untuk memisahkan sidebands GMF&plusmn;30 Hz), T = N/fs = 0.8 s. Diskusikan trade-off fs vs &Delta;f untuk N tetap.</div>
       <div style="margin-left:40px;margin-top:10px;">
         <div style="font-size:.7rem;font-weight:700;color:#a855f7;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
         <div style="background:#f8f5ff;border:1px solid #c4b5fd;border-radius:8px;padding:14px 16px;font-size:.88rem;color:#1e293b;line-height:1.75;min-height:48px;">${ans1}</div>
@@ -4415,8 +4415,8 @@ function buildForumHtml() {
 
   <table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background:#ffffff;border:1px solid #e2e8f0;margin-top:4px;">
     <tr><td style="padding:20px 28px;">
-      <h3 style="margin:0 0 10px 0;font-size:15px;color:#1e293b;line-height:1.55;font-weight:700;"><span style="display:inline-block;background:#0ea5e9;color:#fff;padding:3px 12px;border-radius:6px;font-weight:700;font-size:13px;margin-right:8px;">2</span>Mode shape: Mengapa pola gerak berbeda di &omega;&#8321; vs &omega;&#8322;, dan mengapa pegas tengah pecah saat &omega;&#8322;?</h3>
-      <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Hitung mode shape Mode 1 (&omega;&#8321;) dan Mode 2 (&omega;&#8322;) dengan substitusi balik ke (K &minus; &omega;&sup2;M)&middot;X = 0. Bandingkan rasio X&#8321;/X&#8322; dengan pengamatan operator (kedua massa searah di &omega; = 10, berlawanan di &omega; = 17.32). Jelaskan mengapa pegas tengah khusus pecah saat eksitasi mode 2.</div>
+      <h3 style="margin:0 0 10px 0;font-size:15px;color:#1e293b;line-height:1.55;font-weight:700;"><span style="display:inline-block;background:#0ea5e9;color:#fff;padding:3px 12px;border-radius:6px;font-weight:700;font-size:13px;margin-right:8px;">2</span>Interpretasi spektrum: Apa diagnosis dari pola 2&times; dominan + GMF &plusmn; f_shaft sidebands?</h3>
+      <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Fingerprint umum: 1&times; = unbalance, 2&times; = misalignment, 3&times;/harmonik = looseness, GMF&plusmn;f_shaft = gear wear/eksentrisitas, sub-sinkron = oil whirl. Diagnosis kasus 2&times;&gt;&gt;1&times; + GMF sidebands &rarr; misalignment + gear eksentrisitas. Jangan lupa cek kontribusi elektromagnetik (peak di f_line).</div>
       <div style="margin-left:40px;margin-top:10px;">
         <div style="font-size:.7rem;font-weight:700;color:#0ea5e9;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
         <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:14px 16px;font-size:.88rem;color:#1e293b;line-height:1.75;min-height:48px;">${ans2}</div>
@@ -4426,8 +4426,8 @@ function buildForumHtml() {
 
   <table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background:#ffffff;border:1px solid #e2e8f0;margin-top:4px;">
     <tr><td style="padding:20px 28px;">
-      <h3 style="margin:0 0 10px 0;font-size:15px;color:#1e293b;line-height:1.55;font-weight:700;"><span style="display:inline-block;background:#00e09e;color:#fff;padding:3px 12px;border-radius:6px;font-weight:700;font-size:13px;margin-right:8px;">3</span>Solusi: Bagaimana mendesain vibration absorber untuk meredam mode 2 (yang merusak pegas)?</h3>
-      <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Rancang vibration absorber kecil (m_a, k_a) yang dipasang ke salah satu massa untuk meredam getaran di &omega; = 17.32 rad/s. Aturan tuning: &radic;(k_a/m_a) = &omega;_drive. Jika m_a = 0.1 kg (10% massa utama), berapa k_a yang diperlukan? Bagaimana sistem 2 DoF asli berubah menjadi sistem 3 DoF setelah pemasangan absorber?</div>
+      <h3 style="margin:0 0 10px 0;font-size:15px;color:#1e293b;line-height:1.55;font-weight:700;"><span style="display:inline-block;background:#00e09e;color:#fff;padding:3px 12px;border-radius:6px;font-weight:700;font-size:13px;margin-right:8px;">3</span>Windowing &amp; leakage: Hann window dan ACF=2.0 &mdash; mengapa penting?</h3>
+      <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Tanpa window (rectangular), DFT bocor energi karena diskontinuitas tepi jendela. Hann mengurangi leakage drastis dengan trade-off amplitudo &times;0.5 (koreksi ACF=2.0). Bandingkan dengan Flat-top (amplitudo akurat, resolusi buruk) dan Hamming. Berikan rekomendasi untuk diagnosis ini.</div>
       <div style="margin-left:40px;margin-top:10px;">
         <div style="font-size:.7rem;font-weight:700;color:#00e09e;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
         <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:14px 16px;font-size:.88rem;color:#1e293b;line-height:1.75;min-height:48px;">${ans3}</div>
