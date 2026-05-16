@@ -2,19 +2,28 @@
 /**
  * Cloud Functions — server-side exam answer validation.
  *
- * Pilot scope (Phase 1): Getaran Mekanik UTS.
+ * Pilot scope (Phase 2): Getaran Mekanik UTS.
  * Setelah stabil, akan di-extend ke UAS + 4 exam mata kuliah lain (lihat EXAM_DB_PATHS).
  *
- * Arsitektur:
- *   - Client mengirim {examId, qId, userAnswer, nim, pinHash, lateMultiplier}
- *   - Function verifikasi pinHash vs RTDB pins/mhs_<NIM>
- *   - Cek rate-limit (1 attempt per soal per mahasiswa) di Firestore examAttempts/...
- *   - Lookup kunci jawaban dari Firestore examAnswers/{examId}/qs/{qId} (admin-only readable)
- *   - Bandingkan jawaban (tf / mc / comp dengan tolerance)
- *   - Award poin ke RTDB visitor record (transaction)
- *   - Return {correct, explain, scoreDelta, alreadyAnswered}
+ * Arsitektur (Phase 2 — code as source of truth):
+ *   - Kunci jawaban + compute(N) untuk 45 soal hidup di functions/exam-data/getaran-uts.js
+ *   - Firestore HANYA dipakai untuk audit trail (examAttempts/), bukan storage kunci.
+ *   - Client TIDAK PUNYA akses ke kunci jawaban — semua verifikasi server-side.
  *
- * Kunci jawaban TIDAK PERNAH disertakan dalam HTML client.
+ * Callable functions:
+ *   1. getExamPresentation({examId, nim, pinHash})
+ *        Return: { N, questions: [{id, type, modul, points, options?(MC only), tolerance?(comp)}] }
+ *        Tujuan: client tahu meta + options (untuk MC) tanpa tahu correctIdx.
+ *
+ *   2. checkExamAnswer({examId, qId, userAnswer, nim, pinHash, lateMultiplier})
+ *        Return: { correct, scoreDelta, alreadyAnswered }
+ *        TIDAK return explain — sesuai aturan UTS-Murni (§27.7 Pedoman Modul).
+ *
+ * Security:
+ *   - PIN verifikasi via RTDB pins/mhs_<NIM> (read-only access)
+ *   - Rate limit: 1 attempt per qId per NIM (enforced via Firestore examAttempts/)
+ *   - lateMultiplier di-clamp ke [0, 1]
+ *   - userAnswer index MC dibatasi 0..3
  */
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
@@ -23,63 +32,49 @@ const { initializeApp } = require("firebase-admin/app");
 const { getDatabase } = require("firebase-admin/database");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 
+const getaranUts = require("./exam-data/getaran-uts");
+
 initializeApp();
 
 setGlobalOptions({
   region: "asia-southeast1",
-  maxInstances: 10,        // mencegah runaway scale (cost safety)
+  maxInstances: 10,
   memory: "256MiB",
   timeoutSeconds: 10,
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Whitelist exam yang sudah dimigrasi ke server-side validation.
-// Format: examId → RTDB path untuk visitor record (sama dengan client `DB_PATH`).
+// Registry: examId → { dbPath (RTDB visitor record), dataModule }
+// Saat extend ke exam baru, tambahkan entry + require module-nya.
 // ─────────────────────────────────────────────────────────────────────────────
-const EXAM_DB_PATHS = {
-  "getaran-mekanik-uts": "visitors/getaran_mekanik/uts",
-  // "getaran-mekanik-uas": "visitors/getaran_mekanik/uas",
-  // "math4-uts":           "visitors/math4/uts",
-  // "math4-uas":           "visitors/math4/uas",
-  // "optoauto-uts":        "visitors/optoauto/uts",
-  // "optoauto-uas":        "visitors/optoauto/uas",
+const EXAM_REGISTRY = {
+  "getaran-mekanik-uts": {
+    dbPath: "visitors/getaran_mekanik/uts",
+    data: getaranUts,
+  },
+  // "getaran-mekanik-uas": { dbPath: "visitors/getaran_mekanik/uas", data: require("./exam-data/getaran-uas") },
+  // "math4-uts":           { dbPath: "visitors/math4/uts",          data: require("./exam-data/math4-uts") },
 };
 
-// Konsisten dengan helper client `sanitizeKey()` di exam HTML.
 function sanitizeKey(s) {
   return String(s).replace(/[.#$[\]/]/g, "_");
 }
 
-// Late multiplier dikirim dari client (schedule logic kompleks ada di sana).
-// Kita clamp ke range [0, 1] supaya tidak bisa di-spoof menjadi negatif/besar.
 function clampMultiplier(m) {
   const n = Number(m);
   if (!Number.isFinite(n) || n < 0 || n > 1) return 1;
   return n;
 }
 
-// ═════════════════════════════════════════════════════════════════════════════
-// checkExamAnswer — callable function (HTTPS).
-// Client memanggil via: httpsCallable(getFunctions(app, 'asia-southeast1'), 'checkExamAnswer')
-// ═════════════════════════════════════════════════════════════════════════════
-exports.checkExamAnswer = onCall(async (request) => {
-  const d = request.data || {};
-  const { examId, qId, userAnswer, nim, pinHash, lateMultiplier } = d;
-
-  // ── 1) Validasi input ──
-  if (!examId || typeof qId !== "string" ||
-      userAnswer === undefined || userAnswer === null ||
-      !nim || !pinHash) {
-    throw new HttpsError("invalid-argument", "Missing required fields");
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared: verifikasi PIN vs RTDB pins/mhs_<NIM>.
+// Throws HttpsError jika invalid.
+// ─────────────────────────────────────────────────────────────────────────────
+async function verifyPin(nim, pinHash) {
+  if (!nim || !pinHash) {
+    throw new HttpsError("invalid-argument", "Missing nim or pinHash");
   }
-  const dbPath = EXAM_DB_PATHS[examId];
-  if (!dbPath) {
-    throw new HttpsError("not-found", `Unknown exam: ${examId}`);
-  }
-
   const nimKey = sanitizeKey(nim);
-
-  // ── 2) Auth: verifikasi pinHash vs RTDB pins/ ──
   const rtdb = getDatabase();
   const pinSnap = await rtdb.ref(`pins/mhs_${nimKey}`).get();
   if (!pinSnap.exists()) {
@@ -89,84 +84,121 @@ exports.checkExamAnswer = onCall(async (request) => {
   if (!storedPin || storedPin.pinHash !== pinHash) {
     throw new HttpsError("unauthenticated", "Kredensial tidak valid");
   }
+  return nimKey;
+}
 
-  // ── 3) Rate-limit: 1 attempt per soal per mahasiswa ──
+// ═════════════════════════════════════════════════════════════════════════════
+// getExamPresentation — return question metadata + MC options (NO answers).
+// Dipanggil client saat mahasiswa membuka exam, sekali untuk semua 45 soal.
+// ═════════════════════════════════════════════════════════════════════════════
+exports.getExamPresentation = onCall(async (request) => {
+  const { examId, nim, pinHash } = request.data || {};
+  const exam = EXAM_REGISTRY[examId];
+  if (!exam) {
+    throw new HttpsError("not-found", `Unknown exam: ${examId}`);
+  }
+  await verifyPin(nim, pinHash);
+
+  const N = exam.data.getNFromNim(nim);
+  const questions = exam.data.listAllQuestionIds().map((qId) => {
+    const meta = exam.data.getQuestionMeta(qId);
+    const out = {
+      id: meta.id,
+      type: meta.type,
+      modul: meta.modul,
+      points: meta.points,
+      parametric: meta.parametric,
+    };
+    if (meta.category) out.category = meta.category;
+    if (meta.type === "comp") out.tolerance = meta.tolerance;
+    if (meta.type === "mc") {
+      out.options = exam.data.getMCOptions(qId, N);
+    }
+    return out;
+  });
+
+  return { N, scoreTotal: exam.data.SCORE_TOTAL, questions };
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+// checkExamAnswer — validate single answer, award points.
+// ═════════════════════════════════════════════════════════════════════════════
+exports.checkExamAnswer = onCall(async (request) => {
+  const d = request.data || {};
+  const { examId, qId, userAnswer, nim, pinHash, lateMultiplier } = d;
+
+  if (!examId || typeof qId !== "string" || userAnswer === undefined || userAnswer === null) {
+    throw new HttpsError("invalid-argument", "Missing required fields");
+  }
+  const exam = EXAM_REGISTRY[examId];
+  if (!exam) {
+    throw new HttpsError("not-found", `Unknown exam: ${examId}`);
+  }
+
+  const nimKey = await verifyPin(nim, pinHash);
+  const N = exam.data.getNFromNim(nim);
+
+  // ── Rate-limit: 1 attempt per soal per mahasiswa (enforce di Firestore) ──
   const fs = getFirestore();
   const attemptRef = fs.doc(`examAttempts/${examId}/students/${nimKey}/qs/${qId}`);
   const attemptSnap = await attemptRef.get();
   if (attemptSnap.exists()) {
     const prev = attemptSnap.data();
+    // TIDAK return explain — exam-murni rule.
     return {
       alreadyAnswered: true,
       correct: prev.correct === true,
-      explain: prev.explain || "",
       scoreDelta: 0,
     };
   }
 
-  // ── 4) Lookup kunci jawaban (Firestore admin-only readable) ──
-  const ansRef = fs.doc(`examAnswers/${examId}/qs/${qId}`);
-  const ansSnap = await ansRef.get();
-  if (!ansSnap.exists()) {
-    throw new HttpsError("not-found", `Answer key for ${qId} not configured`);
-  }
-  const ans = ansSnap.data();
-
-  // ── 5) Bandingkan jawaban berdasarkan tipe ──
-  let correct = false;
-  if (ans.type === "tf") {
-    correct = Boolean(userAnswer) === Boolean(ans.answer);
-  } else if (ans.type === "mc") {
-    correct = Number(userAnswer) === Number(ans.correctIdx);
-  } else if (ans.type === "comp") {
-    const got = Number(userAnswer);
-    const target = Number(ans.answer);
-    const tol = Number(ans.tolerance ?? 0.01);
-    correct = Number.isFinite(got) && Math.abs(got - target) <= tol;
-  } else {
-    throw new HttpsError("internal", `Unknown question type: ${ans.type}`);
+  // ── Verifikasi via code module (source of truth) ──
+  const verdict = exam.data.verifyAnswer(qId, N, userAnswer);
+  if (verdict.error) {
+    throw new HttpsError("not-found", `Answer key error for ${qId}: ${verdict.error}`);
   }
 
-  const basePoints = Number(ans.points ?? 1);
-  const mult = clampMultiplier(lateMultiplier ?? 1);
-  const scoreDelta = correct ? basePoints * mult : 0;
+  const mult = clampMultiplier(lateMultiplier);
+  const scoreDelta = verdict.correct ? Math.round(verdict.points * mult * 1000) / 1000 : 0;
 
-  // ── 6) Log attempt (audit trail) ──
+  // ── Log attempt (audit trail). userAnswer disimpan untuk forensik dosen,
+  //    TAPI tidak pernah di-return ke client. ──
   await attemptRef.set({
     examId,
     qId,
-    userAnswer,
-    correct,
-    scoreDelta,
-    explain: ans.explain || "",
+    nim,
+    N,
+    userAnswer: typeof userAnswer === "object" ? JSON.stringify(userAnswer) : userAnswer,
+    correct: verdict.correct,
+    pointsAwarded: scoreDelta,
     lateMultiplier: mult,
     timestamp: FieldValue.serverTimestamp(),
   });
 
-  // ── 7) Award poin ke RTDB visitor record (transaction-safe) ──
-  if (correct && scoreDelta > 0) {
-    const vRef = rtdb.ref(`${dbPath}/mhs_${nimKey}`);
+  // ── Award poin ke RTDB visitor record (transaction-safe) ──
+  if (verdict.correct && scoreDelta > 0) {
+    const rtdb = getDatabase();
+    const vRef = rtdb.ref(`${exam.dbPath}/mhs_${nimKey}`);
     await vRef.transaction((cur) => {
-      if (!cur) return cur;   // visitor record harus sudah ada (created saat login)
+      if (!cur) return cur;
       const scored = (cur.scoredQuestions || "").split(",").filter(Boolean);
-      if (scored.includes(qId)) return cur;   // double-protect (seharusnya tidak terjadi karena rate-limit)
+      if (scored.includes(qId)) return cur;
       scored.push(qId);
-      const selections = Object.assign({}, cur.selections || {});
-      // Simpan pilihan mahasiswa untuk audit (MC/TF saja)
-      if (ans.type === "mc" || ans.type === "tf") {
-        selections[qId] = userAnswer;
-      }
       cur.points = (cur.points || 0) + scoreDelta;
       cur.pointTimestamp = new Date().toISOString();
       cur.scoredQuestions = scored.join(",");
-      cur.selections = selections;
+      // Simpan selection untuk TF/MC saja (untuk visual restore di client)
+      if (typeof userAnswer === "boolean" || typeof userAnswer === "number") {
+        const sel = Object.assign({}, cur.selections || {});
+        sel[qId] = userAnswer;
+        cur.selections = sel;
+      }
       return cur;
     });
   }
 
   return {
-    correct,
-    explain: ans.explain || "",
+    correct: verdict.correct,
     scoreDelta,
     alreadyAnswered: false,
   };
