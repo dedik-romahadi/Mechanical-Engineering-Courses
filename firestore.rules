@@ -1,0 +1,28 @@
+rules_version = '2';
+
+// Firestore security: server-side exam validation.
+// Kunci jawaban & log attempt HANYA boleh diakses oleh Cloud Functions (admin SDK).
+// Client SDK ditolak untuk semua read/write — fungsi callable yang mediate.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Kunci jawaban exam (BACA-TULIS DITOLAK untuk client) ──
+    // Hanya admin SDK (di Cloud Function) yang bisa baca.
+    // Struktur: examAnswers/{examId}/qs/{qId} → { type, answer|correctIdx, tolerance, explain, points }
+    match /examAnswers/{document=**} {
+      allow read, write: if false;
+    }
+
+    // ── Log attempt mahasiswa (BACA-TULIS DITOLAK untuk client) ──
+    // Hanya admin SDK yang bisa tulis. Berisi audit trail per (examId, NIM, qId).
+    match /examAttempts/{document=**} {
+      allow read, write: if false;
+    }
+
+    // Default: deny semua koleksi lain (whitelist pattern).
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
