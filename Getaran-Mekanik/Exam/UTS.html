@@ -5958,8 +5958,23 @@ const _functions = getFunctions(app, 'asia-southeast1');
 const _checkExamAnswerCallable = httpsCallable(_functions, 'checkExamAnswer');
 
 // PIN hash session-scope (set saat login berhasil, dipakai utk auth ke callable).
-// Disengaja TIDAK disimpan di localStorage — hilang saat tab ditutup (lebih aman).
+// Disimpan di sessionStorage (bukan localStorage) supaya:
+// • Survive F5 reload (di-restore dari sessionStorage saat re-init)
+// • Hilang otomatis saat tab ditutup (security tradeoff yg aman)
+const _PIN_SESSION_KEY = 'getaran_mekanik_uts_pinhash';
 window._sessionPinHash = null;
+try {
+  const stored = sessionStorage.getItem(_PIN_SESSION_KEY);
+  if (stored && /^[0-9a-f]{64}$/.test(stored)) window._sessionPinHash = stored;
+} catch (e) { /* sessionStorage tidak available di beberapa context */ }
+function _setSessionPinHash(hash) {
+  window._sessionPinHash = hash || null;
+  try {
+    if (hash) sessionStorage.setItem(_PIN_SESSION_KEY, hash);
+    else sessionStorage.removeItem(_PIN_SESSION_KEY);
+  } catch (e) {}
+}
+window._setSessionPinHash = _setSessionPinHash;
 
 // Helper: panggil Cloud Function utk validasi 1 soal.
 // Args:
@@ -6817,7 +6832,7 @@ async function submitPinSetup() {
 
   try {
     const pinHash = await _sha256Hex(p1);
-    window._sessionPinHash = pinHash;   // PHASE 3: simpan utk callable server-side
+    _setSessionPinHash(pinHash);   // PHASE 3: simpan utk callable server-side (sessionStorage + memory)
     const { nama, nim, nowISO, schedOpen } = _pinFlow;
     const key = sanitizeKey('mhs_' + nim);
 
@@ -6888,8 +6903,8 @@ async function submitPinVerify() {
       return;
     }
 
-    // PHASE 3: PIN match → simpan hash utk callable server-side
-    window._sessionPinHash = inputHash;
+    // PHASE 3: PIN match → simpan hash utk callable server-side (sessionStorage + memory)
+    _setSessionPinHash(inputHash);
 
     // PIN match → create/update visitor record di course/module CURRENT (TANPA pinHash)
     const key = sanitizeKey('mhs_' + nim);
