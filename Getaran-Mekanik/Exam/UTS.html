@@ -1021,8 +1021,11 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
 <!-- ═══ BAGIAN A — TRUE / FALSE ═══ -->
 <hr class="divider" style="margin-top:64px">
 
-<!-- ─── SCORE BAR (sticky) ─── -->
-<div class="section">
+<!-- ─── SCORE BAR (sticky) — wrapper section dibuat MENCAKUP semua subseksi soal
+     supaya score-bar's containing block extend through entire questions area,
+     sehingga `position: sticky` jalan saat scroll. Inner sections punya
+     padding-left/right:0 utk avoid double-padding (parent sudah 32px). ─── -->
+<div class="section" style="padding-bottom:0">
   <div class="score-bar reveal">
     <div class="score-num" id="scoreDisplay">0</div>
     <div class="score-info">
@@ -1044,9 +1047,8 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
       <div id="export-blocked-msg" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--amber);text-align:center;flex-basis:100%"></div>
     </div>
   </div>
-</div>
 
-<div class="section" id="u-bagian-a">
+<div class="section" id="u-bagian-a" style="padding-left:0;padding-right:0">
   <div class="section-label reveal" style="color:var(--cyan)">Bagian A</div>
   <h2 class="section-title reveal">True or False<br><em style="color:var(--cyan)">10 Pernyataan</em></h2>
   <p class="section-desc reveal">Pilih <strong>BENAR (TRUE)</strong> atau <strong>SALAH (FALSE)</strong> untuk setiap pernyataan. Soal #1, #2, #3, #6, #7, #9 adalah soal teori. Soal #4, #5, #8, #10 menggunakan parameter dari NIM Anda — perhatikan nilai yang ditampilkan.</p>
@@ -1055,7 +1057,7 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
 
 <!-- ═══ BAGIAN B — PILIHAN GANDA ═══ -->
 <hr class="divider" style="margin-top:64px">
-<div class="section" id="u-bagian-b">
+<div class="section" id="u-bagian-b" style="padding-left:0;padding-right:0">
   <div class="section-label reveal" style="color:var(--violet)">Bagian B</div>
   <h2 class="section-title reveal">Pilihan Ganda<br><em style="color:var(--violet)">20 Soal</em></h2>
   <p class="section-desc reveal">Pilih satu jawaban dari 4 opsi (A, B, C, D). Soal teori bersifat konseptual; soal komputasional memiliki nilai opsi yang dihitung dari NIM Anda.</p>
@@ -1064,7 +1066,7 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
 
 <!-- ═══ BAGIAN C — KOMPUTASI SEDANG ═══ -->
 <hr class="divider" style="margin-top:64px">
-<div class="section" id="u-bagian-c">
+<div class="section" id="u-bagian-c" style="padding-left:0;padding-right:0">
   <div class="section-label reveal" style="color:var(--amber)">Bagian C</div>
   <h2 class="section-title reveal">Komputasi Sedang<br><em style="color:var(--amber)">10 Soal · @2 Poin</em></h2>
   <p class="section-desc reveal">Tulis kode Python (≈5–15 baris) untuk menyelesaikan setiap soal menggunakan parameter NIM Anda. Hint berisi kerangka kode awal. Output numerik harus sesuai (toleransi terbatas).</p>
@@ -1073,7 +1075,7 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
 
 <!-- ═══ BAGIAN D — KOMPUTASI HARD ═══ -->
 <hr class="divider" style="margin-top:64px">
-<div class="section" id="u-bagian-d">
+<div class="section" id="u-bagian-d" style="padding-left:0;padding-right:0">
   <div class="section-label reveal" style="color:var(--pink)">Bagian D</div>
   <h2 class="section-title reveal">Komputasi Hard<br><em style="color:var(--pink)">5 Soal · @4 Poin</em></h2>
   <p class="section-desc reveal">Algoritma lengkap (20–50+ baris): integrasi numerik, identifikasi parameter, FFT, optimasi. <strong>Partial credit +1 poin</strong> jika kode di-submit tapi output salah / error.</p>
@@ -1106,7 +1108,7 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
 
 <!-- ═══ FINISH ═══ -->
 <hr class="divider" style="margin-top:64px">
-<div class="section" id="u-finish">
+<div class="section" id="u-finish" style="padding-left:0;padding-right:0">
   <div class="section-label reveal">Selesai</div>
   <h2 class="section-title reveal">Sudah <em>Selesai?</em></h2>
   <p class="section-desc reveal">Periksa kembali semua jawaban di score panel atas. Pastikan total poin yang Anda peroleh sudah maksimal. Pastikan link Google Drive jawaban komputasi sudah diisi. Klik <strong>📄 Export HTML</strong> untuk mengunduh laporan resmi UTS yang akan menjadi bukti pengerjaan.</p>
@@ -1121,6 +1123,8 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
     </p>
   </div>
 </div>
+
+</div><!-- end outer score-bar section wrapper (sticky containment) -->
 
 </div><!-- end page-uts -->
 
@@ -3861,7 +3865,8 @@ function cpC(btn){
 // Universal 50-poin: cek 10 MC + 10 Comp E/M + 5 Comp Hard. Generate IDs dari
 // SCORE_CONFIG agar konsisten jika struktur soal berubah di masa depan.
 function checkExportReady() {
-  // UTS: Export aktif begitu ada >= 1 jawaban DAN link Google Drive valid
+  // UTS: Export STRICT — aktif HANYA jika SEMUA 45 soal terjawab + link Google Drive valid.
+  // Sama seperti Modul. Mahasiswa tidak bisa export bukti partial — wajib lengkap.
   const btnTop    = document.getElementById('btn-score-export');
   const btnBottom = document.getElementById('btn-export-tugas');
   const msgEl     = document.getElementById('export-blocked-msg');
@@ -3900,35 +3905,34 @@ function checkExportReady() {
     }
   }
 
-  // Export aktif jika minimal 1 jawaban DAN link Google Drive valid
-  const ready = totalAnswered >= 1 && gdriveOk;
+  // STRICT: Export aktif HANYA jika SEMUA soal terjawab DAN link Google Drive valid
+  const allAnswered = emptyTF.length === 0
+                   && emptyMC.length === 0
+                   && emptyCompEz.length === 0
+                   && emptyCompHard.length === 0;
+  const ready = allAnswered && gdriveOk;
 
   _setBtnState(btnTop,    ready);
   _setBtnState(btnBottom, ready);
 
   if (msgEl) {
-    // 3 state: belum-bisa-export (block), bisa-export-tapi-incomplete (warning), all-done (success)
-    const blockParts = [];
-    if (totalAnswered === 0) blockParts.push('Jawab minimal 1 soal');
-    if (!gdriveOk)           blockParts.push('Link Google Drive belum diisi/valid');
-
-    if (blockParts.length > 0) {
-      // Belum bisa export — merah/amber
-      msgEl.style.color = 'var(--amber)';
-      msgEl.textContent = '⚠ ' + blockParts.join(' · ');
-    } else if (totalAnswered === 45) {
-      // All done — hijau
+    if (ready) {
       msgEl.style.color = 'var(--green)';
       msgEl.textContent = '✅ Semua 45 soal terjawab & link Google Drive valid. Export siap!';
     } else {
-      // Bisa export tapi belum lengkap — kuning warning, info soal yg masih kosong
+      // Block — amber warning, list yg belum dikerjakan
       msgEl.style.color = 'var(--amber)';
-      const remainParts = [];
-      if (emptyTF.length)        remainParts.push(emptyTF.length + ' TF');
-      if (emptyMC.length)        remainParts.push(emptyMC.length + ' PG');
-      if (emptyCompEz.length)    remainParts.push(emptyCompEz.length + ' Komp E/M');
-      if (emptyCompHard.length)  remainParts.push(emptyCompHard.length + ' Komp Hard');
-      msgEl.textContent = `△ ${totalAnswered}/45 terjawab · belum: ${remainParts.join(', ')} — bisa export sekarang sbg bukti, atau lanjutkan mengerjakan.`;
+      const blockParts = [];
+      if (!allAnswered) {
+        const remainParts = [];
+        if (emptyTF.length)        remainParts.push(emptyTF.length + ' TF');
+        if (emptyMC.length)        remainParts.push(emptyMC.length + ' PG');
+        if (emptyCompEz.length)    remainParts.push(emptyCompEz.length + ' Komp E/M');
+        if (emptyCompHard.length)  remainParts.push(emptyCompHard.length + ' Komp Hard');
+        blockParts.push(`Belum dikerjakan: ${remainParts.join(', ')} (${totalAnswered}/45 sudah dijawab)`);
+      }
+      if (!gdriveOk) blockParts.push('Link Google Drive belum diisi/valid');
+      msgEl.textContent = '⚠ ' + blockParts.join(' · ');
     }
   }
 
