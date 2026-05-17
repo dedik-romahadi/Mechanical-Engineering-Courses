@@ -1,0 +1,108 @@
+name: Firebase Deploy Pilot (Getaran UTS)
+
+# Manual trigger only (workflow_dispatch). Bapak buka GitHub repo → tab Actions →
+# pilih workflow ini → klik "Run workflow" → centang step yang ingin dijalankan.
+#
+# Setup PRASYARAT (sekali setup):
+# 1. Download Service Account key dari Firebase Console:
+#    Firebase Console → ⚙ Project settings → tab "Service accounts" →
+#    "Generate new private key" → simpan file JSON.
+# 2. Tambah roles tambahan ke service account (lewat Google Cloud Console → IAM):
+#    - Firebase Admin                 (roles/firebase.admin)
+#    - Cloud Functions Developer      (roles/cloudfunctions.developer)
+#    - Service Account User           (roles/iam.serviceAccountUser)
+#    - Cloud Build Editor             (roles/cloudbuild.builds.editor)
+#    - Artifact Registry Writer       (roles/artifactregistry.writer)
+#    Email SA biasanya: firebase-adminsdk-XXXXX@getaran-mekanik.iam.gserviceaccount.com
+# 3. Upload SA key sebagai GitHub Secret:
+#    Repo → Settings → Secrets and variables → Actions → "New repository secret"
+#    Name: FIREBASE_SA_KEY
+#    Value: paste ISI LENGKAP file JSON (mulai dari `{`, sampai `}`)
+#
+# Lalu trigger workflow ini dari tab Actions di GitHub. Saat klik "Run workflow",
+# pilih branch yang berisi seed script & function code yang ingin di-deploy
+# (mis. claude/cloud-functions-pin-verify-fs3YS untuk pilot Phase 2).
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run_seed:
+        description: 'Dry-run seed (preview 45 soal, tanpa nulis ke Firestore)'
+        type: boolean
+        default: true
+      deploy_rules:
+        description: 'Deploy Firestore rules (deny-all)'
+        type: boolean
+        default: false
+      live_seed:
+        description: '⚠ LIVE seed → tulis 45 doc ke examAnswers/ (OVERWRITE jika sudah ada)'
+        type: boolean
+        default: false
+      deploy_functions:
+        description: 'Deploy Cloud Functions (checkExamAnswer)'
+        type: boolean
+        default: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install function dependencies
+        working-directory: functions
+        run: npm install
+
+      - name: Authenticate to Google Cloud
+        id: gcp-auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SA_KEY }}
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Print plan
+        run: |
+          echo "─────────────────────────────────────────────────"
+          echo "Pilot deploy plan:"
+          echo "  dry_run_seed:     ${{ inputs.dry_run_seed }}"
+          echo "  deploy_rules:     ${{ inputs.deploy_rules }}"
+          echo "  live_seed:        ${{ inputs.live_seed }}"
+          echo "  deploy_functions: ${{ inputs.deploy_functions }}"
+          echo "─────────────────────────────────────────────────"
+
+      - name: Step 1 — Dry-run seed
+        if: ${{ inputs.dry_run_seed }}
+        working-directory: functions
+        run: node seed/seed-firestore.js --dry-run
+
+      - name: Step 2 — Deploy Firestore rules
+        if: ${{ inputs.deploy_rules }}
+        run: firebase deploy --only firestore:rules --project getaran-mekanik --non-interactive
+
+      - name: Step 3 — LIVE seed (write 45 answer keys to Firestore)
+        if: ${{ inputs.live_seed }}
+        working-directory: functions
+        run: npm run seed
+
+      - name: Step 4 — Deploy Cloud Functions
+        if: ${{ inputs.deploy_functions }}
+        run: firebase deploy --only functions --project getaran-mekanik --non-interactive
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "─────────────────────────────────────────────────"
+          echo "Selesai. Verifikasi di Firebase Console:"
+          echo "  • Firestore → examAnswers/getaran-mekanik-uts/qs/ (harus ada 45 doc setelah live_seed)"
+          echo "  • Functions → checkExamAnswer (asia-southeast1)"
+          echo "─────────────────────────────────────────────────"
