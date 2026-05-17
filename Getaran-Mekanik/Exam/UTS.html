@@ -1037,6 +1037,12 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
       <div>Komp Hard: <span id="scoreCompHard" style="color:var(--pink)">0</span>/<span style="color:var(--muted)">20</span> poin</div>
     </div>
     <button class="btn-export" id="btn-score-export" onclick="exportTugasHtml()" disabled style="padding:10px 20px;border-radius:10px;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.1);color:var(--violet);font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s">📄 Export HTML</button>
+    <!-- ─── Info panel + status message (selalu muncul, sama seperti Modul) ─── -->
+    <div style="flex-basis:100%;border-top:1px solid var(--border);padding-top:14px;margin-top:4px;display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
+      <span style="font-size:18px;flex-shrink:0;line-height:1.4">📤</span>
+      <div style="flex:1;min-width:240px;font-size:13px;color:var(--muted);line-height:1.55">Jawab soal &amp; isi link Google Drive, lalu klik <strong style="color:var(--violet)">📄 Export HTML</strong> di atas untuk mengunduh laporan resmi UTS sebagai bukti pengerjaan.</div>
+      <div id="export-blocked-msg" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--amber);text-align:center;flex-basis:100%"></div>
+    </div>
   </div>
 </div>
 
@@ -3901,14 +3907,28 @@ function checkExportReady() {
   _setBtnState(btnBottom, ready);
 
   if (msgEl) {
-    const parts = [];
-    if (totalAnswered === 0) parts.push('Jawab minimal 1 soal');
-    if (!gdriveOk)           parts.push('Link Google Drive belum diisi/valid');
-    if (parts.length === 0) {
-      if (totalAnswered === 45) msgEl.textContent = '✅ Semua soal terisi & link Google Drive valid. Export siap!';
-      else msgEl.textContent = `✅ ${totalAnswered}/45 soal terjawab & link valid — Anda dapat export sekarang atau lanjutkan mengerjakan.`;
+    // 3 state: belum-bisa-export (block), bisa-export-tapi-incomplete (warning), all-done (success)
+    const blockParts = [];
+    if (totalAnswered === 0) blockParts.push('Jawab minimal 1 soal');
+    if (!gdriveOk)           blockParts.push('Link Google Drive belum diisi/valid');
+
+    if (blockParts.length > 0) {
+      // Belum bisa export — merah/amber
+      msgEl.style.color = 'var(--amber)';
+      msgEl.textContent = '⚠ ' + blockParts.join(' · ');
+    } else if (totalAnswered === 45) {
+      // All done — hijau
+      msgEl.style.color = 'var(--green)';
+      msgEl.textContent = '✅ Semua 45 soal terjawab & link Google Drive valid. Export siap!';
     } else {
-      msgEl.textContent = '⚠ ' + parts.join(' · ');
+      // Bisa export tapi belum lengkap — kuning warning, info soal yg masih kosong
+      msgEl.style.color = 'var(--amber)';
+      const remainParts = [];
+      if (emptyTF.length)        remainParts.push(emptyTF.length + ' TF');
+      if (emptyMC.length)        remainParts.push(emptyMC.length + ' PG');
+      if (emptyCompEz.length)    remainParts.push(emptyCompEz.length + ' Komp E/M');
+      if (emptyCompHard.length)  remainParts.push(emptyCompHard.length + ' Komp Hard');
+      msgEl.textContent = `△ ${totalAnswered}/45 terjawab · belum: ${remainParts.join(', ')} — bisa export sekarang sbg bukti, atau lanjutkan mengerjakan.`;
     }
   }
 
@@ -3916,12 +3936,14 @@ function checkExportReady() {
 }
 
 // PEDOMAN §15.4b — Button state helper (replaces fragile cssText.replace regex)
+// Sync dgn Modul-1 behavior: pointer-events tetap auto agar cursor not-allowed
+// tampil saat hover state disabled. Disabled attribute sudah cukup cegah klik.
 function _setBtnState(btn, ready) {
   if (!btn) return;
   btn.disabled = !ready;
   btn.style.opacity = ready ? '1' : '.4';
   btn.style.cursor  = ready ? 'pointer' : 'not-allowed';
-  btn.style.pointerEvents = ready ? 'auto' : 'none';   // hard-prevent click even if `disabled` somehow dropped
+  btn.style.pointerEvents = 'auto';
 }
 window._setBtnState = _setBtnState;
 
