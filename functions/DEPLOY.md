@@ -3,6 +3,11 @@
 Pilot scope: **Getaran Mekanik UTS** (45 soal / 70 poin — 10 TF + 20 MC + 10 Comp E/M + 5 Comp Hard).
 Setelah stabil → extend ke UAS + 4 exam mata kuliah lain (lihat `EXAM_CONFIG` di `index.js`).
 
+## Pilihan deploy method
+
+- **Lokal (Firebase CLI)** — butuh `firebase login` + akses lancar ke Google services
+- **GitHub Actions** — untuk situasi di mana akses Google diblok (mis. user di China, network restricted). Lihat `.github/workflows/firebase-deploy-pilot.yml`.
+
 ## Prasyarat (sekali setup)
 
 1. **Firebase project Blaze plan** ✅ (sudah dikonfirmasi)
