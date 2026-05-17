@@ -1040,10 +1040,11 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
       <div>Komp Hard: <span id="scoreCompHard" style="color:var(--pink)">0</span>/<span style="color:var(--muted)">20</span> poin</div>
     </div>
     <button class="btn-export" id="btn-score-export" onclick="exportTugasHtml()" disabled style="padding:7px 14px;border-radius:8px;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.1);color:var(--violet);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;min-height:auto">📄 Export HTML</button>
-    <!-- ─── Info panel + status message (compact) ─── -->
+    <!-- ─── Info panel + status message + sisa waktu (compact) ─── -->
     <div style="flex-basis:100%;border-top:1px solid var(--border);padding-top:6px;margin-top:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <span style="font-size:12px;flex-shrink:0;line-height:1">📤</span>
       <div style="flex:1;min-width:200px;font-size:10.5px;color:var(--muted);line-height:1.3">Jawab soal &amp; isi link Google Drive, klik <strong style="color:var(--violet)">📄 Export HTML</strong> untuk mengunduh laporan UTS.</div>
+      <div id="exportTimeLeft" style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--green);white-space:nowrap;flex-shrink:0;padding:3px 8px;background:rgba(0,224,158,.08);border:1px solid rgba(0,224,158,.25);border-radius:6px;line-height:1.3">⏰ <span id="exportTimeText">--</span></div>
       <div id="export-blocked-msg" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--amber);text-align:center;flex-basis:100%;line-height:1.3"></div>
     </div>
   </div>
@@ -1503,9 +1504,58 @@ function _countdownTick() {
         }
       }
     });
+
+    // ── Update sisa waktu di score-bar export panel (compact format) ──
+    _updateExportTimeLeft(mode, d, h, m, s);
   } catch(err) {
     console.error('[Countdown] tick error:', err);
   }
+}
+
+// Helper: format & color sisa waktu di score-bar export panel
+function _updateExportTimeLeft(mode, d, h, m, s) {
+  const elTime  = document.getElementById('exportTimeText');
+  const elWrap  = document.getElementById('exportTimeLeft');
+  if (!elTime || !elWrap) return;
+
+  // Color schemes by state
+  const colors = {
+    normal:  { fg: 'var(--green)',  bg: 'rgba(0,224,158,.08)',  bd: 'rgba(0,224,158,.25)'  },
+    warn:    { fg: 'var(--amber)',  bg: 'rgba(251,191,36,.10)', bd: 'rgba(251,191,36,.30)' },
+    danger:  { fg: 'var(--pink)',   bg: 'rgba(239,68,68,.10)',  bd: 'rgba(239,68,68,.30)'  },
+    info:    { fg: 'var(--violet)', bg: 'rgba(168,85,247,.10)', bd: 'rgba(168,85,247,.30)' },
+  };
+  const apply = (c) => {
+    elWrap.style.color = c.fg;
+    elWrap.style.background = c.bg;
+    elWrap.style.borderColor = c.bd;
+  };
+
+  if (mode === 'expired') {
+    elTime.textContent = 'Waktu habis';
+    apply(colors.danger);
+    return;
+  }
+  if (mode === 'to-start') {
+    const parts = [];
+    if (d > 0) parts.push(d + 'h');
+    if (h > 0) parts.push(h + 'j');
+    if (m > 0 || (d === 0 && h === 0)) parts.push(m + 'm');
+    elTime.textContent = 'Mulai dalam ' + (parts.join(' ') || '0m');
+    apply(colors.info);
+    return;
+  }
+  // in-progress
+  let text;
+  if (d > 0)      text = d + 'h ' + h + 'j ' + m + 'm';
+  else if (h > 0) text = h + 'j ' + m + 'm';
+  else            text = m + 'm ' + String(s).padStart(2,'0') + 'd';
+  elTime.textContent = 'Sisa: ' + text;
+  // Color: danger jika < 5 menit, warn jika < 30 menit, else normal (hijau)
+  const totalMin = d * 1440 + h * 60 + m;
+  if (totalMin < 5)       apply(colors.danger);
+  else if (totalMin < 30) apply(colors.warn);
+  else                    apply(colors.normal);
 }
 
 // Start countdown sebagai setInterval persisten yang selalu jalan
