@@ -2848,7 +2848,7 @@ function selectMC(qId, opt, correct) {
   opt._idx = idx;
   document.getElementById('sub-' + qId).disabled = false;
 }
-function checkMC(qId) {
+async function checkMC(qId) {
   if (!_firebaseStateLoaded) {
     const fb = document.getElementById('fb-' + qId);
     if (fb) { fb.className = 'feedback warn'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
@@ -2873,12 +2873,32 @@ function checkMC(qId) {
   const sel = rg.querySelector('.radio-option.selected');
   const fb = document.getElementById('fb-' + qId);
   if (!sel) { fb.className = 'feedback warn'; fb.textContent = '⚠ Pilih salah satu opsi terlebih dahulu.'; return; }
+
+  const selectedIdx = (typeof sel._idx === 'number') ? sel._idx : Array.from(rg.querySelectorAll('.radio-option')).indexOf(sel);
+  const sub = document.getElementById('sub-' + qId);
+
+  // ─── PHASE 3: Server-side validation ───────────────────────────────────────
+  if (window.USE_SERVER_VALIDATION) {
+    mcAnswered[qId] = true;
+    if (sub) { sub.disabled = true; sub.textContent = '⏳ Memvalidasi...'; sub.classList.add('running'); }
+    rg.querySelectorAll('.radio-option').forEach(o => o.style.pointerEvents = 'none');
+    try {
+      const res = await window._callCheckExamAnswer(qId, selectedIdx);
+      _applyServerExamResult(qId, res, 'mc', sub, fb);
+    } catch (err) {
+      mcAnswered[qId] = false;
+      if (sub) { sub.disabled = false; sub.textContent = 'Periksa'; sub.classList.remove('running'); }
+      rg.querySelectorAll('.radio-option').forEach(o => o.style.pointerEvents = '');
+      _handleServerExamError(err, qId, fb);
+    }
+    return;
+  }
+
+  // ─── LEGACY: client-side validation (USE_SERVER_VALIDATION=false) ──────────
   // Mark answered IMMEDIATELY untuk prevent double-click race
   mcAnswered[qId] = true;
-  const sub = document.getElementById('sub-' + qId);
   if (sub) { sub.disabled = true; }
   rg.querySelectorAll('.radio-option').forEach(o => o.style.pointerEvents = 'none');
-  const selectedIdx = (typeof sel._idx === 'number') ? sel._idx : Array.from(rg.querySelectorAll('.radio-option')).indexOf(sel);
   if (sel._correct) {
     fb.className = 'feedback correct';
     fb.textContent = '✅ Jawaban diterima. +1 poin tercatat. Soal TERKUNCI PERMANEN — tidak ada kesempatan ulang.';
@@ -2925,7 +2945,102 @@ function selectTF(qId, opt, isTrue) {
   document.getElementById('sub-' + qId).disabled = false;
 }
 
-function checkTF(qId) {
+// ─── PHASE 3 helpers — apply hasil dari server callable ke UI/state ──────────
+// Disinilah branch antara mode "server" dan "client legacy" disatukan:
+// callsite cukup pass {qId, res, type, sub, fb} → fungsi ini handle visual,
+// score, _answeredQ marker, consolation toast.
+function _applyServerExamResult(qId, res, type, sub, fb) {
+  // res shape: {correct, status, scoreDelta, marker, explain, lateMultiplier,
+  //             pastDeadline, consolationAwarded, alreadyAnswered}
+  const status = res.status || (res.correct ? 'correct' : 'wrong');
+  const delta = Number(res.scoreDelta) || 0;
+
+  // Update local score state (utk updateScore() bar di top)
+  if (type === 'tf')   { tfScores[qId] = delta; tfAnswered[qId] = true; }
+  if (type === 'mc')   { mcScores[qId] = delta; mcAnswered[qId] = true; }
+  if (type === 'comp') { compScores[qId] = delta; compAnswered[qId] = true; }
+
+  // Add marker ke local _answeredQ supaya restore-on-reload tidak duplicate
+  if (res.marker) _answeredQ.add(res.marker);
+
+  // Feedback text
+  if (fb) {
+    if (status === 'correct') {
+      fb.className = 'feedback correct';
+      fb.textContent = '✅ Jawaban diterima. +' + delta + ' poin tercatat. Soal TERKUNCI PERMANEN — tidak ada kesempatan ulang.';
+    } else if (status === 'partial') {
+      fb.className = 'feedback warn';
+      fb.textContent = '△ Partial credit +' + delta + ' poin (upaya tercatat). Soal TERKUNCI PERMANEN — tidak ada kesempatan ulang.';
+    } else {
+      fb.className = 'feedback wrong';
+      fb.textContent = res.alreadyAnswered
+        ? '🔒 Sudah dijawab sebelumnya — TIDAK ADA KESEMPATAN ULANG.'
+        : '🔒 Jawaban telah dikunci. TIDAK ADA KESEMPATAN ULANG. (UTS murni — jawaban benar tidak ditampilkan)';
+    }
+  }
+
+  // Tombol & opsi visual lock
+  if (sub) {
+    if (status === 'correct') {
+      sub.textContent = '✓ Terjawab';
+      sub.style.background = 'rgba(0,224,158,.1)';
+      sub.style.borderColor = 'rgba(0,224,158,.4)';
+      sub.style.color = 'var(--green)';
+    } else if (status === 'partial') {
+      sub.textContent = '△ Usaha (+' + delta + ') · Terkunci';
+      sub.style.borderColor = 'rgba(251,191,36,.4)';
+      sub.style.color = 'var(--amber)';
+    } else {
+      sub.textContent = '🔒 Terkunci';
+      sub.style.background = 'rgba(239,68,68,.1)';
+      sub.style.borderColor = 'rgba(239,68,68,.4)';
+      sub.style.color = 'var(--pink)';
+    }
+    sub.disabled = true;
+    sub.classList.remove('running');
+  }
+
+  // Consolation toast (sekali aja)
+  if (res.consolationAwarded === true) {
+    try {
+      if (typeof _showResetToast === 'function') {
+        _showResetToast('🎁 Konsolasi: +1 poin karena mencoba semua soal!');
+      } else {
+        console.log('[CONSOLATION] +1 poin');
+      }
+    } catch(e) {}
+  }
+
+  if (typeof updateScore === 'function') updateScore();
+  if (typeof checkExportReady === 'function') checkExportReady();
+}
+
+// ─── PHASE 3 helpers — render error dari server ──────────────────────────────
+function _handleServerExamError(err, qId, fb) {
+  const code = (err && err.code) || 'unknown';
+  let msg;
+  if (code === 'failed-precondition') {
+    msg = '🔒 ' + (err.message || 'Akses ujian ditutup oleh server.');
+  } else if (code === 'unauthenticated') {
+    msg = '⚠ ' + (err.message || 'Sesi PIN expired — silakan login ulang.');
+  } else if (code === 'not-found') {
+    msg = '⚠ Soal belum dikonfigurasi di server — hubungi dosen.';
+  } else if (code === 'invalid-argument') {
+    msg = '⚠ Format data tidak valid: ' + (err.message || code);
+  } else {
+    msg = '⚠ Koneksi/server error — coba lagi dalam beberapa detik. (' + (err.message || code) + ')';
+  }
+  if (fb) {
+    fb.className = 'feedback warn';
+    fb.style.display = 'block';
+    fb.textContent = msg;
+  }
+  console.error('[exam callable]', qId, code, err);
+}
+window._applyServerExamResult = _applyServerExamResult;
+window._handleServerExamError = _handleServerExamError;
+
+async function checkTF(qId) {
   if (!_firebaseStateLoaded) {
     const fb = document.getElementById('fb-' + qId);
     if (fb) { fb.className = 'feedback warn'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
@@ -2951,20 +3066,38 @@ function checkTF(qId) {
   const fb = document.getElementById('fb-' + qId);
   if (!sel) { fb.className = 'feedback warn'; fb.textContent = '⚠ Pilih BENAR atau SALAH terlebih dahulu.'; return; }
 
-  // Get correct answer from answer key
+  const userPick = sel._isTrue;   // boolean: jawaban user
+  const sub = document.getElementById('sub-' + qId);
+
+  // ─── PHASE 3: Server-side validation ───────────────────────────────────────
+  if (window.USE_SERVER_VALIDATION) {
+    // Optimistic lock untuk cegah double-click
+    tfAnswered[qId] = true;
+    if (sub) { sub.disabled = true; sub.textContent = '⏳ Memvalidasi...'; sub.classList.add('running'); }
+    opts.querySelectorAll('.tf-option').forEach(o => o.style.pointerEvents = 'none');
+    try {
+      const res = await window._callCheckExamAnswer(qId, userPick);
+      _applyServerExamResult(qId, res, 'tf', sub, fb);
+    } catch (err) {
+      // Rollback optimistic lock (boleh retry)
+      tfAnswered[qId] = false;
+      if (sub) { sub.disabled = false; sub.textContent = 'Periksa'; sub.classList.remove('running'); }
+      opts.querySelectorAll('.tf-option').forEach(o => o.style.pointerEvents = '');
+      _handleServerExamError(err, qId, fb);
+    }
+    return;
+  }
+
+  // ─── LEGACY: client-side validation (USE_SERVER_VALIDATION=false) ──────────
   const correctAnswer = window._utsAnswerKeys.tf[qId];
   if (typeof correctAnswer !== 'string') {
     fb.className = 'feedback warn'; fb.textContent = '⚠ Soal belum siap — silakan reload halaman.';
     return;
   }
-
   // Mark answered IMMEDIATELY untuk prevent double-click race
   tfAnswered[qId] = true;
-  const sub = document.getElementById('sub-' + qId);
   if (sub) sub.disabled = true;
   opts.querySelectorAll('.tf-option').forEach(o => o.style.pointerEvents = 'none');
-
-  const userPick = sel._isTrue;   // boolean: jawaban user
   if (_ah(qId + '_' + userPick) === correctAnswer) {
     fb.className = 'feedback correct';
     fb.textContent = '✅ Jawaban diterima. +1 poin tercatat. Soal TERKUNCI PERMANEN — tidak ada kesempatan ulang.';
@@ -3567,16 +3700,75 @@ async function runAndCheck(qId, expectedAns, tol, difficulty) {
       stdout.classList.add('show');
       if (errMsg) {
         stdout.innerHTML = `<div class="stdout-label">❌ Error</div><div class="stderr-line">${errMsg.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`;
-        const msg = partialOnFail > 0
-          ? `🔒 Kode error — soal dikunci. +${partialOnFail} poin untuk upaya Hard (kode non-kosong).`
-          : '🔒 Kode error — soal dikunci. Tidak ada kesempatan ulang.';
-        _lockCompWrong(qId, msg, partialOnFail);
-        return;
+      } else {
+        const outEsc = (output||'').replace(/</g,'&lt;').replace(/>/g,'&gt;') || '(tidak ada output)';
+        stdout.innerHTML = `<div class="stdout-label">📤 Output</div>${outEsc}`;
       }
-      const outEsc = (output||'').replace(/</g,'&lt;').replace(/>/g,'&gt;') || '(tidak ada output)';
-      stdout.innerHTML = `<div class="stdout-label">📤 Output</div>${outEsc}`;
     }
 
+    // ─── PHASE 3: Server-side validation ─────────────────────────────────────
+    // Kirim ke server: userAnswer = null (Pyodide error) ATAU last parsed number
+    // (typical case: student print(answer) sebagai output terakhir). codeText
+    // disimpan utk audit di RTDB codes[qId].
+    if (window.USE_SERVER_VALIDATION) {
+      let userAnswer = null;
+      if (!errMsg) {
+        const nums = parseNumbers(output || '');
+        if (nums.length > 0) userAnswer = nums[nums.length - 1];   // ambil angka terakhir
+      }
+      try {
+        const res = await window._callCheckExamAnswer(qId, userAnswer, code);
+        // Lock textarea sesuai status (mirror _lockCompWrong behavior)
+        if (ta) {
+          ta.disabled = true;
+          if (res.correct) {
+            ta.style.borderColor = 'rgba(0,224,158,.5)'; ta.style.opacity = '.85';
+          } else if (res.status === 'partial') {
+            ta.style.borderColor = 'rgba(251,191,36,.3)'; ta.style.opacity = '.75';
+          } else {
+            ta.style.borderColor = 'rgba(239,68,68,.25)'; ta.style.opacity = '.7';
+          }
+        }
+        _applyServerExamResult(qId, res, 'comp', btn, fb);
+        // Override fb text dgn comp-specific message (lebih informatif dari helper default)
+        if (fb) {
+          if (res.correct) {
+            fb.textContent = '✅ Kode berjalan tanpa error & output benar! +' + res.scoreDelta + ' poin tercatat. Soal TERKUNCI PERMANEN.';
+          } else if (res.status === 'partial') {
+            fb.textContent = errMsg
+              ? '🔒 Kode error — soal dikunci. +' + res.scoreDelta + ' poin untuk upaya Hard (kode non-kosong). TIDAK ADA KESEMPATAN ULANG.'
+              : '🔒 Output tidak match expected — soal dikunci. +' + res.scoreDelta + ' poin untuk upaya Hard. TIDAK ADA KESEMPATAN ULANG.';
+          } else {
+            const outPreview = (output || '(kosong)').trim().slice(0, 100);
+            fb.textContent = errMsg
+              ? '🔒 Kode error — soal dikunci. Tidak ada kesempatan ulang.'
+              : '🔒 Output tidak match expected. Output: "' + outPreview + '". Soal dikunci. TIDAK ADA KESEMPATAN ULANG.';
+          }
+        }
+        // Override button text utk comp (lebih spesifik dari helper default)
+        if (btn) {
+          if (res.correct) btn.textContent = '✓ Selesai · Terkunci';
+          else if (res.status === 'partial') btn.textContent = '△ Usaha (+' + res.scoreDelta + ') · Terkunci';
+          else btn.textContent = '✗ Terkunci';
+        }
+      } catch (err) {
+        // Rollback: unlock supaya bisa retry
+        compAnswered[qId] = false;
+        if (btn) { btn.disabled = false; btn.classList.remove('running'); }
+        if (ta) { ta.disabled = false; }
+        _handleServerExamError(err, qId, fb);
+      }
+      return;
+    }
+
+    // ─── LEGACY: client-side validation (USE_SERVER_VALIDATION=false) ────────
+    if (errMsg) {
+      const msg = partialOnFail > 0
+        ? `🔒 Kode error — soal dikunci. +${partialOnFail} poin untuk upaya Hard (kode non-kosong).`
+        : '🔒 Kode error — soal dikunci. Tidak ada kesempatan ulang.';
+      _lockCompWrong(qId, msg, partialOnFail);
+      return;
+    }
     const nums = parseNumbers(output || '');
     const correct = nums.some(n => Math.abs(n - expectedAns) <= tol);
 
@@ -5720,6 +5912,7 @@ window.addEventListener('resize', () => {
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { getDatabase, ref, get, set, remove, onValue } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",
@@ -5740,6 +5933,70 @@ const PERTEMUAN = 'uts';
 const RELATED_MODULES = [];   // UTS standalone, no related modules
 const SCHEDULE_PATH = `settings/getaran_mekanik/${PERTEMUAN}/schedule`;
 const LOCAL_IDENTITY = `getaran_mekanik_identity_${MODULE_ID}`;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PHASE 3 (May 2026) — Server-side validation via Cloud Functions.
+// Saat USE_SERVER_VALIDATION=true:
+//   • checkTF/checkMC/runAndCheck panggil callable `checkExamAnswer`.
+//   • Server (Cloud Function) yg lookup answer key (Firestore), bandingkan,
+//     apply late multiplier, write ke RTDB visitor record (transaction-safe),
+//     dan return {correct, status, scoreDelta, marker, explain, ...}.
+//   • Client award/record functions (_awardPoint, _awardTfPoint, dst) jadi
+//     no-op (early return) — server sudah handle write RTDB.
+//   • Kunci jawaban TIDAK PERLU lagi di window._utsAnswerKeys (tapi tetap
+//     ada utk fallback). Defense-in-depth: smart attacker masih bisa lihat
+//     compute() di JS, tapi server adalah authority utk poin yg masuk RTDB.
+// Saat USE_SERVER_VALIDATION=false (rollback emergency):
+//   • Semua logika kembali ke client (sama seperti sebelum Phase 3).
+//   • Cukup flip flag ini, commit, deploy HTML — no function redeploy needed.
+// ═══════════════════════════════════════════════════════════════════════════
+const USE_SERVER_VALIDATION = true;
+const EXAM_ID = 'getaran-mekanik-uts';
+window.USE_SERVER_VALIDATION = USE_SERVER_VALIDATION;
+
+const _functions = getFunctions(app, 'asia-southeast1');
+const _checkExamAnswerCallable = httpsCallable(_functions, 'checkExamAnswer');
+
+// PIN hash session-scope (set saat login berhasil, dipakai utk auth ke callable).
+// Disengaja TIDAK disimpan di localStorage — hilang saat tab ditutup (lebih aman).
+window._sessionPinHash = null;
+
+// Helper: panggil Cloud Function utk validasi 1 soal.
+// Args:
+//   qId        — string question ID (mis. "tf1", "mc3", "c11")
+//   userAnswer — boolean (TF) | number 0-3 (MC) | number/null (Comp; null = Pyodide error)
+//   codeText   — string optional (utk Comp, source code Python utk audit)
+// Returns Promise<{correct, status, scoreDelta, marker, explain, lateMultiplier,
+//                  pastDeadline, consolationAwarded, alreadyAnswered}>
+// Throws Error dengan .code (HttpsError code: 'unauthenticated', 'failed-precondition',
+//   'not-found', 'invalid-argument', 'internal') dan .message human-readable.
+async function _callCheckExamAnswer(qId, userAnswer, codeText) {
+  const me = getIdentity();
+  if (!me || !me.nim) {
+    const err = new Error('Identity tidak ditemukan — silakan login ulang');
+    err.code = 'unauthenticated'; throw err;
+  }
+  const pinHash = window._sessionPinHash;
+  if (!pinHash) {
+    const err = new Error('Sesi PIN expired — silakan login ulang dengan PIN');
+    err.code = 'unauthenticated'; throw err;
+  }
+  const payload = { examId: EXAM_ID, qId, userAnswer, nim: me.nim, pinHash };
+  if (typeof codeText === 'string' && codeText.length > 0) {
+    payload.codeText = codeText.slice(0, 5000);
+  }
+  try {
+    const result = await _checkExamAnswerCallable(payload);
+    return result.data;
+  } catch (err) {
+    // Re-throw dgn code dari Firebase Functions error
+    const wrapped = new Error(err.message || 'Server error');
+    wrapped.code = err.code || 'unknown';
+    wrapped.details = err.details;
+    throw wrapped;
+  }
+}
+window._callCheckExamAnswer = _callCheckExamAnswer;
 let panelOpen = false;
 let currentSchedule = null;
 const VISIT_COOLDOWN = 3600000;
@@ -6560,6 +6817,7 @@ async function submitPinSetup() {
 
   try {
     const pinHash = await _sha256Hex(p1);
+    window._sessionPinHash = pinHash;   // PHASE 3: simpan utk callable server-side
     const { nama, nim, nowISO, schedOpen } = _pinFlow;
     const key = sanitizeKey('mhs_' + nim);
 
@@ -6629,6 +6887,9 @@ async function submitPinVerify() {
       document.getElementById('pinInputField').focus();
       return;
     }
+
+    // PHASE 3: PIN match → simpan hash utk callable server-side
+    window._sessionPinHash = inputHash;
 
     // PIN match → create/update visitor record di course/module CURRENT (TANPA pinHash)
     const key = sanitizeKey('mhs_' + nim);
@@ -7162,6 +7423,7 @@ function _checkConsolationPoint(nodeRef, state) {
 }
 
 window._awardPoint = function(qId, selectedIdx) {
+  if (window.USE_SERVER_VALIDATION) return;   // PHASE 3: server sudah tulis RTDB
   if (!_isScheduleOpen()) return;  // NO point save outside active schedule
   if (_answeredQ.has(qId)) return;
   const me = getIdentity();
@@ -7203,6 +7465,7 @@ window._awardPoint = function(qId, selectedIdx) {
 };
 
 window._awardCompPoint = function(qId, point) {
+  if (window.USE_SERVER_VALIDATION) return;   // PHASE 3: server sudah tulis RTDB
   if (!_isScheduleOpen()) return;  // NO point save outside active schedule
   // Fallback for legacy call sites: deteksi dari _isHardComp jika point tidak diberikan.
   const pts = (typeof point === 'number' && point > 0) ? point
@@ -7247,6 +7510,7 @@ window._awardCompPoint = function(qId, point) {
 // Menulis marker _comp_partial (berbeda dari _comp dan _comp_used) + tambah poin kecil (1).
 // Tidak trigger konsolasi karena points sudah > 0.
 window._awardCompPartial = function(qId, point) {
+  if (window.USE_SERVER_VALIDATION) return;   // PHASE 3: server sudah tulis RTDB
   if (!_isScheduleOpen()) return;
   if (_isPastDeadline()) return;   // v8: terlambat tidak dapat partial credit Hard
   const pts = (typeof point === 'number' && point > 0) ? point : 1;
@@ -7288,6 +7552,7 @@ window._awardCompPartial = function(qId, point) {
 
 // ── Record a failed MC attempt to Firebase ──
 window._recordMcAttempt = function(qId, selectedIdx) {
+  if (window.USE_SERVER_VALIDATION) return;   // PHASE 3: server sudah tulis RTDB
   if (!_isScheduleOpen()) return;  // no record outside active schedule
   const me = getIdentity();
   if (!me || !me.nim || me.role === 'dosen') return;
@@ -7328,6 +7593,7 @@ window._recordMcAttempt = function(qId, selectedIdx) {
 
 // ── TF: Award point on correct answer (mirip _awardPoint untuk MC) ──
 window._awardTfPoint = function(qId, selectedValue) {
+  if (window.USE_SERVER_VALIDATION) return;   // PHASE 3: server sudah tulis RTDB
   if (!_isScheduleOpen()) return;
   if (_answeredQ.has(qId)) return;
   const me = getIdentity();
@@ -7370,6 +7636,7 @@ window._awardTfPoint = function(qId, selectedValue) {
 
 // ── TF: Record failed attempt ──
 window._recordTfAttempt = function(qId, selectedValue) {
+  if (window.USE_SERVER_VALIDATION) return;   // PHASE 3: server sudah tulis RTDB
   if (!_isScheduleOpen()) return;
   const me = getIdentity();
   if (!me || !me.nim || me.role === 'dosen') return;
@@ -7410,6 +7677,7 @@ window._recordTfAttempt = function(qId, selectedValue) {
 
 // ── Record a failed comp attempt to Firebase (anti-manipulation) ──
 window._recordCompAttempt = function(qId) {
+  if (window.USE_SERVER_VALIDATION) return;   // PHASE 3: server sudah tulis RTDB
   if (!_isScheduleOpen()) return;  // no record outside active schedule
   const me = getIdentity();
   if (!me || !me.nim || me.role === 'dosen') return;
