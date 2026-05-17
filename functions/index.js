@@ -270,7 +270,7 @@ exports.checkExamAnswer = onCall(async (request) => {
   // ── 4) Rate-limit: 1 attempt per qId per nim (Firestore idempotency check) ──
   const attemptRef = fs.doc(`examAttempts/${examId}/students/${nimKey}/qs/${qId}`);
   const attemptSnap = await attemptRef.get();
-  if (attemptSnap.exists()) {
+  if (attemptSnap.exists) {
     const prev = attemptSnap.data();
     return {
       alreadyAnswered: true,
@@ -286,7 +286,7 @@ exports.checkExamAnswer = onCall(async (request) => {
   // ── 5) Lookup answer key (Firestore admin-only readable) ──
   const ansRef = fs.doc(`examAnswers/${examId}/qs/${qId}`);
   const ansSnap = await ansRef.get();
-  if (!ansSnap.exists()) {
+  if (!ansSnap.exists) {
     throw new HttpsError("not-found", `Answer key for ${qId} not configured`);
   }
   const rawAns = ansSnap.data();
