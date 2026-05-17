@@ -111,8 +111,12 @@ Atau cek di Firebase Console → Functions → Logs.
 ## Roadmap
 
 - **Phase 1 (✅ done)**: Infrastructure — function deployed, Firestore rules aktif.
-- **Phase 2 (sekarang)**: Extract kunci jawaban Getaran UTS → seed ke Firestore.
-- **Phase 3**: Rewrite client-side di `Getaran-Mekanik/Exam/UTS.html` (panggil callable).
+- **Phase 2 (✅ done)**: Extract kunci jawaban Getaran UTS → seed ke Firestore (45 docs).
+- **Phase 3 (✅ done)**: Refactor client `Getaran-Mekanik/Exam/UTS.html` → panggil callable.
+  - Feature flag `USE_SERVER_VALIDATION` di top file (default `true`).
+  - Saat `true`: checkTF/checkMC/runAndCheck panggil server; award/record functions jadi no-op.
+  - Saat `false`: fallback ke logika client lama (kunci jawaban di `window._utsAnswerKeys`).
+  - Rollback emergency: flip flag → commit → deploy HTML (tidak perlu redeploy function).
 - **Phase 4 (pilot OK)**: Extend ke UAS + 4 exam mata kuliah lain (tambah entry di `EXAM_CONFIG`).
 - **Phase 5 (kalau Exam stabil)**: Pertimbangkan rollout ke Tugas (Modul 1-14).
 
