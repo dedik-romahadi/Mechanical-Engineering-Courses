@@ -19,7 +19,9 @@ name: Firebase Deploy Pilot (Getaran UTS)
 #    Name: FIREBASE_SA_KEY
 #    Value: paste ISI LENGKAP file JSON (mulai dari `{`, sampai `}`)
 #
-# Lalu trigger workflow ini dari tab Actions di GitHub.
+# Lalu trigger workflow ini dari tab Actions di GitHub. Saat klik "Run workflow",
+# pilih branch yang berisi seed script & function code yang ingin di-deploy
+# (mis. claude/cloud-functions-pin-verify-fs3YS untuk pilot Phase 2).
 
 on:
   workflow_dispatch:
@@ -94,7 +96,7 @@ jobs:
 
       - name: Step 4 — Deploy Cloud Functions
         if: ${{ inputs.deploy_functions }}
-        run: firebase deploy --only functions --project getaran-mekanik --non-interactive
+        run: firebase deploy --only functions --project getaran-mekanik --non-interactive --force
 
       - name: Summary
         if: always()
