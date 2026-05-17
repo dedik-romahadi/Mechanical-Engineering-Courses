@@ -149,12 +149,24 @@ async function evalSchedule(rtdb, schedulePath, lateMultiplierValue) {
 // Returns { correct: bool, allowPartial: bool }.
 function evaluateAnswer(ans, userAnswer) {
   if (ans.type === "tf") {
+    if (userAnswer === undefined || userAnswer === null) {
+      throw new HttpsError("invalid-argument", "userAnswer required for TF");
+    }
     return { correct: Boolean(userAnswer) === Boolean(ans.answer), allowPartial: false };
   }
   if (ans.type === "mc") {
+    if (userAnswer === undefined || userAnswer === null) {
+      throw new HttpsError("invalid-argument", "userAnswer required for MC");
+    }
     return { correct: Number(userAnswer) === Number(ans.correctIdx), allowPartial: false };
   }
   if (ans.type === "comp") {
+    // null = client tidak punya jawaban yang bisa di-parse (mis. Pyodide error).
+    // Tetap dianggap sbg attempt yg salah, tapi partial-credit logic tetap berlaku
+    // utk Comp Hard non-late.
+    if (userAnswer === undefined || userAnswer === null) {
+      return { correct: false, allowPartial: ans.allowPartial === true };
+    }
     const got = Number(userAnswer);
     const target = Number(ans.answer);
     const tol = Number(ans.tolerance ?? 0.01);
@@ -212,8 +224,10 @@ exports.checkExamAnswer = onCall(async (request) => {
   const { examId, qId, userAnswer, nim, pinHash, codeText } = d;
 
   // ── 1) Validate input ──
+  // Catatan: utk Comp dgn Pyodide error, client kirim userAnswer=null → tetap
+  // dianggap attempt (cek tipe-specific di evaluateAnswer). Jadi null bukan
+  // invalid di sini.
   if (!examId || typeof qId !== "string" || qId.length === 0 || qId.length > 40 ||
-      userAnswer === undefined || userAnswer === null ||
       !nim || !pinHash) {
     throw new HttpsError("invalid-argument", "Missing or malformed required fields");
   }
