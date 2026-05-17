@@ -3865,8 +3865,9 @@ function cpC(btn){
 // Universal 50-poin: cek 10 MC + 10 Comp E/M + 5 Comp Hard. Generate IDs dari
 // SCORE_CONFIG agar konsisten jika struktur soal berubah di masa depan.
 function checkExportReady() {
-  // UTS: Export STRICT — aktif HANYA jika SEMUA 45 soal terjawab + link Google Drive valid.
-  // Sama seperti Modul. Mahasiswa tidak bisa export bukti partial — wajib lengkap.
+  // UTS: Export LENIENT — aktif jika ≥1 soal terjawab + link Google Drive valid.
+  // Mahasiswa BISA export bukti partial (bermanfaat untuk submit sebagian),
+  // tapi tetap dapat WARNING informatif soal mana yg belum dikerjakan.
   const btnTop    = document.getElementById('btn-score-export');
   const btnBottom = document.getElementById('btn-export-tugas');
   const msgEl     = document.getElementById('export-blocked-msg');
@@ -3905,34 +3906,38 @@ function checkExportReady() {
     }
   }
 
-  // STRICT: Export aktif HANYA jika SEMUA soal terjawab DAN link Google Drive valid
+  // LENIENT: Export aktif jika ≥1 soal terjawab DAN link Google Drive valid.
+  // Tapi tetap show warning kalau belum semua soal selesai (informatif, bukan blocker).
   const allAnswered = emptyTF.length === 0
                    && emptyMC.length === 0
                    && emptyCompEz.length === 0
                    && emptyCompHard.length === 0;
-  const ready = allAnswered && gdriveOk;
+  const ready = totalAnswered >= 1 && gdriveOk;
 
   _setBtnState(btnTop,    ready);
   _setBtnState(btnBottom, ready);
 
   if (msgEl) {
-    if (ready) {
+    if (allAnswered && gdriveOk) {
+      // Semua selesai — hijau
       msgEl.style.color = 'var(--green)';
       msgEl.textContent = '✅ Semua 45 soal terjawab & link Google Drive valid. Export siap!';
-    } else {
-      // Block — amber warning, list yg belum dikerjakan
+    } else if (ready) {
+      // Bisa export tapi belum lengkap — amber warning informatif
       msgEl.style.color = 'var(--amber)';
-      const blockParts = [];
-      if (!allAnswered) {
-        const remainParts = [];
-        if (emptyTF.length)        remainParts.push(emptyTF.length + ' TF');
-        if (emptyMC.length)        remainParts.push(emptyMC.length + ' PG');
-        if (emptyCompEz.length)    remainParts.push(emptyCompEz.length + ' Komp E/M');
-        if (emptyCompHard.length)  remainParts.push(emptyCompHard.length + ' Komp Hard');
-        blockParts.push(`Belum dikerjakan: ${remainParts.join(', ')} (${totalAnswered}/45 sudah dijawab)`);
-      }
-      if (!gdriveOk) blockParts.push('Link Google Drive belum diisi/valid');
-      msgEl.textContent = '⚠ ' + blockParts.join(' · ');
+      const remainParts = [];
+      if (emptyTF.length)        remainParts.push(emptyTF.length + ' TF');
+      if (emptyMC.length)        remainParts.push(emptyMC.length + ' PG');
+      if (emptyCompEz.length)    remainParts.push(emptyCompEz.length + ' Komp E/M');
+      if (emptyCompHard.length)  remainParts.push(emptyCompHard.length + ' Komp Hard');
+      msgEl.textContent = `⚠ Belum dikerjakan: ${remainParts.join(', ')} (${totalAnswered}/45 sudah dijawab) — bisa export sekarang sbg bukti, atau lanjutkan mengerjakan.`;
+    } else if (!gdriveOk) {
+      // Belum bisa export karena gdrive belum diisi (skip msg "Jawab minimal 1 soal" sesuai instruksi)
+      msgEl.style.color = 'var(--amber)';
+      msgEl.textContent = '⚠ Link Google Drive belum diisi/valid';
+    } else {
+      // 0 jawaban + gdrive OK — banner kosong (tidak perlu pesan "Jawab minimal 1 soal")
+      msgEl.textContent = '';
     }
   }
 
