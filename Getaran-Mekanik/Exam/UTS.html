@@ -2553,7 +2553,7 @@ const UTS_COMP_EZ = [
                • <b>c = (N + 1) / 10 = (${N} + 1) / 10 = ${c.toFixed(1)} Ns/m</b><br>
                Hitung <b>frekuensi natural teredam ω<sub>d</sub></b> (rad/s). Rumus: ω<sub>d</sub> = ωₙ·√(1−ζ²).
                <div style="margin-top:8px;padding:8px 10px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.3);border-radius:6px;color:var(--violet);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 3 nilai berurutan: <b>ωₙ → ζ → ω_d</b>. Final answer saja tidak cukup.</div>`,
-        hint: `import numpy as np\n# N = ${N}\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\n# Langkah: (1) wn = √(k/m), (2) zeta = c/(2√(km)), (3) wd = wn·√(1−ζ²)\n# WAJIB print BERURUTAN semua nilai antara + final:\nwn = np.sqrt(k/m)\nprint(wn)            # langkah 1\nzeta = c/(2*np.sqrt(m*k))\nprint(zeta)          # langkah 2\nwd = wn*np.sqrt(1 - zeta**2)\nprint(wd)            # final`,
+        hint: `import numpy as np\n# N = ${N}\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\n# Rumus: ωₙ = √(k/m),  ζ = c/(2·√(k·m)),  ω_d = ωₙ·√(1−ζ²)\n# WAJIB print BERURUTAN: wn → zeta → wd\n# TODO: hitung wn, lalu print(wn)       # langkah 1\n# TODO: hitung zeta, lalu print(zeta)   # langkah 2\n# TODO: hitung wd, lalu print(wd)       # final`,
         diagram: _diagram('Underdamped — Frekuensi natural teredam ωd < ωn', _svg.decay({zeta: zeta, wn: wn})),
         expected: wd,
         expectedSteps: [
@@ -2625,7 +2625,7 @@ const UTS_COMP_EZ = [
                • <b>F₀ = (N + 1) × 10 = (${N} + 1) × 10 = ${F0} N</b><br>
                Sistem dieksitasi gaya harmonik F(t) = F₀·sin(ωt). Hitung <b>amplitudo steady-state X</b> dalam <b>mm</b>. Rumus: X = F₀/√((k−mω²)² + (cω)²).
                <div style="margin-top:8px;padding:8px 10px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.3);border-radius:6px;color:var(--violet);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 2 nilai berurutan: <b>X dalam meter → X dalam mm</b>.</div>`,
-        hint: `import numpy as np\n# N = ${N}\nm = 10           # tetap\nc = 50           # tetap\nk = 10000        # tetap\nF0 = ${F0}         # = (N+1) * 10\nomega = 20       # tetap\n# WAJIB print BERURUTAN: X (meter) → X (mm):\ndenom = np.sqrt((k - m*omega**2)**2 + (c*omega)**2)\nX = F0 / denom\nprint(X)              # langkah 1: amplitudo dalam meter\nX_mm = X * 1000\nprint(X_mm)           # final: amplitudo dalam mm`,
+        hint: `import numpy as np\n# N = ${N}\nm = 10           # tetap\nc = 50           # tetap\nk = 10000        # tetap\nF0 = ${F0}         # = (N+1) * 10\nomega = 20       # tetap\n# Rumus: X = F₀ / √((k − m·ω²)² + (c·ω)²)\n# WAJIB print BERURUTAN: X (meter) → X (mm)\n# TODO: hitung X dalam meter, lalu print(X)        # langkah 1: amplitudo dalam meter\n# TODO: konversi ke mm, lalu print(X_mm)           # final: amplitudo dalam mm`,
         diagram: _diagram('Forced Vibration — Cari amplitudo steady-state X', _svg.springMassDamper(k, m, c, {force: 'F₀sin(ωt)'})),
         expected: X_mm,
         expectedSteps: [
@@ -2652,7 +2652,7 @@ const UTS_COMP_EZ = [
                • <b>c = (N + 1) / 10 = (${N} + 1) / 10 = ${c.toFixed(1)} Ns/m</b><br>
                Hitung <b>Quality factor Q</b>. Rumus: Q = 1/(2ζ), dengan ζ = c/(2√(km)).
                <div style="margin-top:8px;padding:8px 10px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.3);border-radius:6px;color:var(--violet);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 2 nilai berurutan: <b>ζ → Q</b>.</div>`,
-        hint: `import numpy as np\n# N = ${N}\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\n# WAJIB print BERURUTAN: zeta → Q\nzeta = c/(2*np.sqrt(m*k))\nprint(zeta)        # langkah 1\nQ = 1/(2*zeta)\nprint(Q)           # final`,
+        hint: `import numpy as np\n# N = ${N}\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\n# Rumus: ζ = c/(2·√(k·m)),  Q = 1/(2·ζ)\n# WAJIB print BERURUTAN: zeta → Q\n# TODO: hitung zeta, lalu print(zeta)    # langkah 1\n# TODO: hitung Q, lalu print(Q)          # final`,
         diagram: _diagram('Q-Factor = nilai DMF di puncak resonansi (r≈1)', _svg.dmfCurve({zetas: [zeta, 0.05, 0.2], highlightR: 1.0, highlightZeta: zeta})),
         expected: Q,
         expectedSteps: [
@@ -2759,7 +2759,7 @@ const UTS_COMP_HARD = [
                • <b>c = (N + 1) / 10 = (${N} + 1) / 10 = ${c.toFixed(1)} Ns/m</b><br>
                Implementasikan integrator <b>Runge-Kutta orde-4 (RK4)</b> untuk menyelesaikan sistem getaran bebas teredam <code>mẍ + cẋ + kx = 0</code>. Kondisi awal: <b>x(0) = 0.1 m, ẋ(0) = 0</b>. Step <b>h = 0.001 s</b>, durasi <b>t = 0..3 s</b>. Laporkan <b>nilai puncak amplitudo positif PERTAMA setelah simpangan x melewati nol</b> (yaitu peak positif kedua, dalam meter).
                <div style="margin-top:8px;padding:8px 10px;background:rgba(236,72,153,.08);border:1px solid rgba(236,72,153,.3);border-radius:6px;color:var(--pink);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 3 nilai berurutan: <b>ζ → ωₙ → peak amplitude</b>. Final answer saja tidak cukup.</div>`,
-        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\n# WAJIB print BERURUTAN: zeta → wn → peak\nzeta = c/(2*np.sqrt(m*k))\nprint(zeta)              # langkah 1\nwn = np.sqrt(k/m)\nprint(wn)                # langkah 2\n# Kerangka RK4: state = [x, v]; rhs(state) = [v, (-c*v - k*x)/m];\n# loop t=0..3 dgn h=0.001, deteksi zero crossing (+ ke -), lalu cari peak (v: + → ≤0, x > 0)\n# print(peak_x)         # final`,
+        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\n# Rumus: ζ = c/(2·√(k·m)),  ωₙ = √(k/m)\n# WAJIB print BERURUTAN: zeta → wn → peak\n# TODO: hitung zeta, lalu print(zeta)         # langkah 1\n# TODO: hitung wn, lalu print(wn)             # langkah 2\n# Kerangka RK4: state = [x, v]; rhs(state) = [v, (-c*v - k*x)/m];\n# loop t=0..3 dgn h=0.001, deteksi zero crossing (+ ke -), lalu cari peak (v: + → ≤0, x > 0)\n# TODO: implementasikan RK4 + peak detection, lalu print(peak_x)   # final`,
         diagram: _diagram('Sistem Massa-Pegas-Peredam (free vibration, x₀=0.1)', _svg.springMassDamper(k, m, c.toFixed(1))),
         expected: expected,
         expectedSteps: [
@@ -2788,7 +2788,7 @@ const UTS_COMP_HARD = [
                • <b>ωₙ = 10 rad/s</b> (tetap)<br>
                Identifikasi <b>rasio redaman ζ</b> dari sinyal getaran bebas underdamped <code>x(t) = exp(−ζ_true·ωₙ·t)·cos(ωd·t)</code> untuk t ∈ [0, 8] dengan 4000 sampel. Lakukan <em>peak detection</em>, ambil <b>n = 5 puncak</b>, hitung logarithmic decrement δ = (1/n)·ln(x₁/x_(1+n)), lalu estimasi <b>ζ = δ/√(4π² + δ²)</b>. Laporkan ζ_estimasi (harus mendekati ζ_true).
                <div style="margin-top:8px;padding:8px 10px;background:rgba(236,72,153,.08);border:1px solid rgba(236,72,153,.3);border-radius:6px;color:var(--pink);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 2 nilai berurutan: <b>δ → ζ_est</b>. Final answer saja tidak cukup.</div>`,
-        hint: `import numpy as np\nfrom scipy.signal import find_peaks\n# N = ${N} (dari NIM Anda)\nzeta_true = (${N}+1)/200    # = ${zeta_true.toFixed(4)}\nwn = 10                    # tetap\nwd = wn * np.sqrt(1 - zeta_true**2)\n\nt = np.linspace(0, 8, 4000)\nx = np.exp(-zeta_true*wn*t) * np.cos(wd*t)\npeaks, _ = find_peaks(x)\n# WAJIB print BERURUTAN: delta → zeta_est\ndelta = (1/5) * np.log(x[peaks[0]] / x[peaks[5]])\nprint(delta)              # langkah 1: logarithmic decrement\nzeta_est = delta / np.sqrt(4*np.pi**2 + delta**2)\nprint(zeta_est)           # final`,
+        hint: `import numpy as np\nfrom scipy.signal import find_peaks\n# N = ${N} (dari NIM Anda)\nzeta_true = (${N}+1)/200    # ground-truth (target estimasi)\nwn = 10                    # tetap\nwd = wn * np.sqrt(1 - zeta_true**2)\n\nt = np.linspace(0, 8, 4000)\nx = np.exp(-zeta_true*wn*t) * np.cos(wd*t)\npeaks, _ = find_peaks(x)\n# Diberikan: array peaks (indeks puncak dari find_peaks)\n# Rumus: δ = (1/n)·ln(x[p₀] / x[pₙ]),   ζ = δ / √(4π² + δ²)\n# WAJIB print BERURUTAN: delta → zeta_est\n# TODO: hitung delta dari peaks[0] dan peaks[5] (n=5), lalu print(delta)   # langkah 1: logarithmic decrement\n# TODO: hitung zeta_est dari delta, lalu print(zeta_est)                   # final`,
         diagram: _diagram('Identifikasi ζ — peak detection pada decay sinyal', _svg.decay({zeta: zeta_true, wn: wn, markPeaks: 5})),
         expected: zeta_est,
         expectedSteps: [
@@ -2813,7 +2813,7 @@ const UTS_COMP_HARD = [
                • <b>f₁ = N + 1 = ${N} + 1 = ${f1} Hz</b> (komponen dominan, A₁ = 1.0)<br>
                • <b>f₂ = 80 Hz</b> (tetap, komponen lemah, A₂ = 0.3)<br>
                Lakukan <b>analisis FFT</b> untuk mengidentifikasi frekuensi dominan dari sinyal getaran <code>x(t) = A₁·sin(2π·f₁·t) + A₂·sin(2π·f₂·t)</code> untuk <b>t ∈ [0, 4]</b> detik dengan <b>sampling rate 1000 Hz</b>. Hitung FFT dengan <code>numpy.fft.rfft</code>, cari frekuensi dengan magnitudo tertinggi, dan laporkan <b>frekuensi dominan dalam Hz</b>.`,
-        hint: `import numpy as np\n# N = ${N}\nf1 = ${N}+1            # = ${f1} Hz (dominan)\nf2 = 80              # tetap, lemah\nA1, A2 = 1.0, 0.3\nfs = 1000\nt = np.arange(0, 4, 1/fs)\nx = A1*np.sin(2*np.pi*f1*t) + A2*np.sin(2*np.pi*f2*t)\nX = np.fft.rfft(x)\nfreqs = np.fft.rfftfreq(len(t), 1/fs)\nidx = np.argmax(np.abs(X))\nprint(freqs[idx])`,
+        hint: `import numpy as np\n# N = ${N}\nf1 = ${N}+1            # = ${f1} Hz (dominan)\nf2 = 80              # tetap, lemah\nA1, A2 = 1.0, 0.3\nfs = 1000\nt = np.arange(0, 4, 1/fs)\nx = A1*np.sin(2*np.pi*f1*t) + A2*np.sin(2*np.pi*f2*t)\n# Diberikan: sinyal x dgn 2 komponen sinusoidal (1 dominan, 1 lemah)\n# Petunjuk: pakai np.fft.rfft(x) + np.fft.rfftfreq(len(t), 1/fs),\n#           cari index amplitudo maksimum dgn np.argmax(np.abs(X))\n# TODO: hitung frekuensi dominan, lalu print(f_dominan)`,
         diagram: _diagram('FFT — sinyal time-domain & spektrum frekuensi', _svg.fftSpec(f1, f2)),
         expected: f1,
         tolerance: 0.5
@@ -2840,7 +2840,7 @@ const UTS_COMP_HARD = [
                • <b>c = (N + 1) / 10 = (${N} + 1) / 10 = ${c.toFixed(1)} Ns/m</b><br>
                Cari <b>frekuensi eksitasi yang memberikan amplifikasi MAKSIMUM</b> (resonansi). Lakukan sweep ω dari 1 hingga 100 rad/s dengan step 0.01, hitung DMF(ω) untuk setiap ω, lalu laporkan <b>ω_peak (rad/s) di mana DMF mencapai maksimum</b>.
                <div style="margin-top:8px;padding:8px 10px;background:rgba(236,72,153,.08);border:1px solid rgba(236,72,153,.3);border-radius:6px;color:var(--pink);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 2 nilai berurutan: <b>ζ → ω_peak</b>. Final answer saja tidak cukup.</div>`,
-        hint: `import numpy as np\n# N = ${N}\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\nwn = np.sqrt(k/m)\n# WAJIB print BERURUTAN: zeta → omega_peak\nzeta = c/(2*np.sqrt(m*k))\nprint(zeta)              # langkah 1\nomegas = np.arange(1, 100, 0.01)\nr = omegas/wn\nDMF = 1/np.sqrt((1-r**2)**2 + (2*zeta*r)**2)\nidx = np.argmax(DMF)\nprint(omegas[idx])       # final: omega_peak`,
+        hint: `import numpy as np\n# N = ${N}\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\nwn = np.sqrt(k/m)\n# Petunjuk:\n#   ζ = c/(2·√(k·m))\n#   DMF(ω) = 1/√((1−r²)² + (2·ζ·r)²),   dgn r = ω/ωₙ\n#   sweep ω ∈ [1, 100] dgn step 0.01, cari ω yg maksimumkan DMF (pakai np.argmax)\n# WAJIB print BERURUTAN: zeta → omega_peak\n# TODO: hitung zeta, lalu print(zeta)                       # langkah 1\n# TODO: sweep & cari omega_peak, lalu print(omega_peak)     # final: omega_peak`,
         diagram: _diagram('Sweep frekuensi — cari ω yang DMF maksimum', _svg.dmfCurve({zetas: [zeta, 0.05, 0.2], highlightR: r_peak, highlightZeta: zeta})),
         expected: omega_peak,
         expectedSteps: [
@@ -2876,7 +2876,7 @@ const UTS_COMP_HARD = [
                • <b>T_R target = 0.10</b> (10%), <b>ζ = 0.05</b> (tetap)<br>
                Desain isolator getaran. Tentukan <b>nilai kekakuan pegas k (N/m) MAKSIMUM</b> yang masih memenuhi syarat T<sub>R</sub> ≤ 0.10. Lakukan sweep ωₙ dari 0.01 hingga ω_eksitasi, cari ωₙ maksimum yang memenuhi, lalu hitung k = m·ωₙ².
                <div style="margin-top:8px;padding:8px 10px;background:rgba(236,72,153,.08);border:1px solid rgba(236,72,153,.3);border-radius:6px;color:var(--pink);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 2 nilai berurutan: <b>ωₙ_max → k_max</b>. Final answer saja tidak cukup.</div>`,
-        hint: `import numpy as np\n# N = ${N}\nm = 50           # tetap (mesin)\nomega_ex = ${omega_ex}      # = N+1 (eksitasi)\nTR_target = 0.10\nzeta = 0.05\n\nbest_wn = 0\nfor wn in np.arange(0.01, omega_ex, 0.01):\n    r = omega_ex / wn\n    TR = np.sqrt((1 + (2*zeta*r)**2) / ((1-r**2)**2 + (2*zeta*r)**2))\n    if TR <= TR_target:\n        best_wn = wn\n# WAJIB print BERURUTAN: best_wn → k\nprint(best_wn)        # langkah 1: omega_n maksimum\nk = m * best_wn**2\nprint(k)              # final`,
+        hint: `import numpy as np\n# N = ${N}\nm = 50           # tetap (mesin)\nomega_ex = ${omega_ex}      # = N+1 (eksitasi)\nTR_target = 0.10\nzeta = 0.05\n# Petunjuk:\n#   r = ω_ex / ωₙ\n#   T_R(r) = √((1 + (2·ζ·r)²) / ((1−r²)² + (2·ζ·r)²))\n#   sweep ωₙ ∈ [0.01, ω_ex] dgn step 0.01, cari ωₙ TERBESAR yg masih buat T_R ≤ TR_target\n#   k = m · ωₙ²\n# WAJIB print BERURUTAN: best_wn → k\n# TODO: loop cari best_wn, lalu print(best_wn)   # langkah 1: omega_n maksimum\n# TODO: hitung k, lalu print(k)                  # final`,
         diagram: _diagram('Desain isolator — cari ωₙ paling besar yang T_R ≤ 0.10', _svg.trCurve({zeta: 0.05, target: TR_target})),
         expected: k_max,
         expectedSteps: [
