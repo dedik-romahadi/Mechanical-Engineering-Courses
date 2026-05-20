@@ -64,6 +64,9 @@ function buildPayload(q) {
     if (variant.correctIdx !== undefined) entry.correctIdx = variant.correctIdx;
     if (variant.tolerance !== undefined) entry.tolerance = variant.tolerance;   // override per-N
     if (variant.explain !== undefined) entry.explain = variant.explain;
+    // Multi-step: array of {label, value, tolerance}. Kalau ada, server pakai
+    // sequence-matching alih-alih single-number check.
+    if (variant.expectedSteps !== undefined) entry.expectedSteps = variant.expectedSteps;
     byN[String(N)] = entry;
   }
   common.byN = byN;
@@ -81,7 +84,13 @@ function validatePayload(qId, payload) {
       if (!v) { missing.push(N); continue; }
       if (payload.type === "tf" && typeof v.answer !== "boolean") missing.push(`${N} (no bool)`);
       if (payload.type === "mc" && typeof v.correctIdx !== "number") missing.push(`${N} (no idx)`);
-      if (payload.type === "comp" && !Number.isFinite(v.answer)) missing.push(`${N} (no num)`);
+      if (payload.type === "comp") {
+        // Comp variant valid kalau punya: single answer (legacy) ATAU expectedSteps array.
+        const hasAnswer = Number.isFinite(v.answer);
+        const hasSteps = Array.isArray(v.expectedSteps) && v.expectedSteps.length > 0 &&
+          v.expectedSteps.every((s) => Number.isFinite(Number(s.value)));
+        if (!hasAnswer && !hasSteps) missing.push(`${N} (no num & no expectedSteps)`);
+      }
     }
     if (missing.length) throw new Error(`${qId}: invalid byN at N=${missing.slice(0,5).join(",")}${missing.length>5?"...":""}`);
   } else {
@@ -110,9 +119,14 @@ function preview(qId, payload) {
   } else {
     const sample = [0, 42, 99].map((N) => {
       const v = payload.byN[String(N)];
-      const ans = payload.type === "tf" ? v.answer
-                : payload.type === "mc" ? `idx=${v.correctIdx}`
-                : v.answer?.toFixed?.(4) ?? v.answer;
+      let ans;
+      if (payload.type === "tf") ans = v.answer;
+      else if (payload.type === "mc") ans = `idx=${v.correctIdx}`;
+      else if (Array.isArray(v.expectedSteps)) {
+        ans = `steps=[${v.expectedSteps.map((s) => Number(s.value).toFixed?.(3)).join(",")}]`;
+      } else {
+        ans = v.answer?.toFixed?.(4) ?? v.answer;
+      }
       return `N=${N}:${ans}`;
     }).join("  ");
     console.log(`${head}  → ${sample}`);

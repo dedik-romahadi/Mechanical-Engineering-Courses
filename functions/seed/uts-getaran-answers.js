@@ -371,7 +371,15 @@ const COMP_EZ = [
       const wn = Math.sqrt(k / m);
       const zeta = c / (2 * Math.sqrt(m * k));
       const wd = wn * Math.sqrt(1 - zeta * zeta);
-      return { answer: wd, explain: `ωn=10, ζ=${zeta.toFixed(3)}, ω_d = 10·√(1-ζ²) = <b>${wd.toFixed(3)} rad/s</b>` };
+      return {
+        answer: wd,
+        expectedSteps: [
+          { label: "ωₙ",  value: wn,   tolerance: 0.02 },
+          { label: "ζ",   value: zeta, tolerance: 0.001 },
+          { label: "ω_d", value: wd,   tolerance: 0.02 },
+        ],
+        explain: `ωn=10, ζ=${zeta.toFixed(3)}, ω_d = 10·√(1-ζ²) = <b>${wd.toFixed(3)} rad/s</b>`,
+      };
     } },
 
   { qId: "c6", type: "comp", points: 2, parametric: true, tolerance: 0.005,
@@ -396,8 +404,16 @@ const COMP_EZ = [
       const F0 = (N + 1) * 10;
       const omega = 20;
       const denom = Math.sqrt(Math.pow(k - m * omega * omega, 2) + Math.pow(c * omega, 2));
-      const X_mm = (F0 / denom) * 1000;
-      return { answer: X_mm, explain: `X = F₀/√((k-mω²)² + (cω)²) = ${F0}/${denom.toFixed(2)} m = <b>${X_mm.toFixed(3)} mm</b>` };
+      const X_m = F0 / denom;
+      const X_mm = X_m * 1000;
+      return {
+        answer: X_mm,
+        expectedSteps: [
+          { label: "X (m)",  value: X_m,  tolerance: 0.00005 },
+          { label: "X (mm)", value: X_mm, tolerance: 0.05 },
+        ],
+        explain: `X = F₀/√((k-mω²)² + (cω)²) = ${F0}/${denom.toFixed(2)} m = <b>${X_mm.toFixed(3)} mm</b>`,
+      };
     } },
 
   { qId: "c9", type: "comp", points: 2, parametric: true, tolerance: 0.05,
@@ -406,7 +422,14 @@ const COMP_EZ = [
       const c = (N + 1) / 10;
       const zeta = c / (2 * Math.sqrt(m * k));
       const Q = 1 / (2 * zeta);
-      return { answer: Q, explain: `ζ = ${zeta.toFixed(3)}; Q = 1/(2ζ) = <b>${Q.toFixed(2)}</b>` };
+      return {
+        answer: Q,
+        expectedSteps: [
+          { label: "ζ", value: zeta, tolerance: 0.001 },
+          { label: "Q", value: Q,    tolerance: 0.05 },
+        ],
+        explain: `ζ = ${zeta.toFixed(3)}; Q = 1/(2ζ) = <b>${Q.toFixed(2)}</b>`,
+      };
     } },
 
   { qId: "c10", type: "comp", points: 2, parametric: true, tolerance: 0.005,
@@ -461,7 +484,8 @@ function _c11FirstPositivePeakAfterCross(N) {
 }
 
 // Helper: replikasi sweep DMF utk c15 (cermin client UTS.html line 2768-2776).
-function _c15KMax(N) {
+// Returns {omegaNMax, kMax} — dipakai utk expectedSteps multi-step validation.
+function _c15Sweep(N) {
   const m = 50;
   const omega_ex = N + 1;
   const TR_target = 0.10;
@@ -472,16 +496,28 @@ function _c15KMax(N) {
     const tr = Math.sqrt((1 + Math.pow(2*zeta*r, 2)) / (Math.pow(1-r*r, 2) + Math.pow(2*zeta*r, 2)));
     if (tr <= TR_target) omega_n_max = wn_test;
   }
-  return m * omega_n_max * omega_n_max;
+  return { omegaNMax: omega_n_max, kMax: m * omega_n_max * omega_n_max };
 }
+function _c15KMax(N) { return _c15Sweep(N).kMax; }
 
 const COMP_HARD = [
   { qId: "c11", type: "comp", points: 4, parametric: true, tolerance: 0.005,
     allowPartial: true, partialPoints: 1,
     compute: (N) => {
+      const m = 1, k = 100;
       const c = (N + 1) / 10;
+      const wn = Math.sqrt(k / m);
+      const zeta = c / (2 * Math.sqrt(m * k));
       const peak = _c11FirstPositivePeakAfterCross(N);
-      return { answer: peak, explain: `RK4 integration mẍ+cẋ+kx=0 dgn m=1, k=100, c=${c.toFixed(1)}, x₀=0.1, v₀=0 → peak positif pertama setelah crossing = <b>${peak.toFixed(4)} m</b>` };
+      return {
+        answer: peak,
+        expectedSteps: [
+          { label: "ζ",    value: zeta, tolerance: 0.001 },
+          { label: "ωₙ",   value: wn,   tolerance: 0.02 },
+          { label: "peak", value: peak, tolerance: 0.005 },
+        ],
+        explain: `RK4 integration mẍ+cẋ+kx=0 dgn m=1, k=100, c=${c.toFixed(1)}, x₀=0.1, v₀=0 → peak positif pertama setelah crossing = <b>${peak.toFixed(4)} m</b>`,
+      };
     } },
 
   { qId: "c12", type: "comp", points: 4, parametric: true, tolerance: 0.005,
@@ -493,7 +529,14 @@ const COMP_HARD = [
       const Td = 2 * Math.PI / wd;
       const delta_expected = zeta_true * wn * Td;
       const zeta_est = delta_expected / Math.sqrt(4 * Math.PI * Math.PI + delta_expected * delta_expected);
-      return { answer: zeta_est, explain: `ζ_true = ${zeta_true.toFixed(4)}; δ = ζ·ωₙ·Td = ${delta_expected.toFixed(4)}; ζ_est = δ/√(4π²+δ²) = <b>${zeta_est.toFixed(4)}</b>` };
+      return {
+        answer: zeta_est,
+        expectedSteps: [
+          { label: "δ",     value: delta_expected, tolerance: 0.01 },
+          { label: "ζ_est", value: zeta_est,       tolerance: 0.005 },
+        ],
+        explain: `ζ_true = ${zeta_true.toFixed(4)}; δ = ζ·ωₙ·Td = ${delta_expected.toFixed(4)}; ζ_est = δ/√(4π²+δ²) = <b>${zeta_est.toFixed(4)}</b>`,
+      };
     } },
 
   { qId: "c13", type: "comp", points: 4, parametric: true, tolerance: 0.5,
@@ -512,14 +555,28 @@ const COMP_HARD = [
       const zeta = c / (2 * Math.sqrt(m * k));
       const r_peak = Math.sqrt(1 - 2 * zeta * zeta);
       const omega_peak = r_peak * wn;
-      return { answer: omega_peak, explain: `ωₙ=10, ζ=${zeta.toFixed(3)}, r_peak=√(1-2ζ²)=${r_peak.toFixed(4)}, ω_peak = r_peak·ωₙ = <b>${omega_peak.toFixed(3)} rad/s</b>` };
+      return {
+        answer: omega_peak,
+        expectedSteps: [
+          { label: "ζ",       value: zeta,       tolerance: 0.001 },
+          { label: "ω_peak",  value: omega_peak, tolerance: 0.05 },
+        ],
+        explain: `ωₙ=10, ζ=${zeta.toFixed(3)}, r_peak=√(1-2ζ²)=${r_peak.toFixed(4)}, ω_peak = r_peak·ωₙ = <b>${omega_peak.toFixed(3)} rad/s</b>`,
+      };
     } },
 
   { qId: "c15", type: "comp", points: 4, parametric: true, tolerance: 50,
     allowPartial: true, partialPoints: 1,
     compute: (N) => {
-      const k_max = _c15KMax(N);
-      return { answer: k_max, explain: `Sweep ωₙ dgn step 0.01, cari yg memenuhi T_R ≤ 0.10 → k_max = m·ωₙ_max² = <b>${k_max.toFixed(1)} N/m</b>` };
+      const { omegaNMax, kMax } = _c15Sweep(N);
+      return {
+        answer: kMax,
+        expectedSteps: [
+          { label: "ωₙ_max", value: omegaNMax, tolerance: 0.02 },
+          { label: "k_max",  value: kMax,      tolerance: 50 },
+        ],
+        explain: `Sweep ωₙ dgn step 0.01, cari yg memenuhi T_R ≤ 0.10 → ωₙ_max = ${omegaNMax.toFixed(2)} rad/s → k_max = m·ωₙ² = <b>${kMax.toFixed(1)} N/m</b>`,
+      };
     } },
 ];
 
