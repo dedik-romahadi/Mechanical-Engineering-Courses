@@ -8,6 +8,8 @@
 >
 > **Diperbarui:** April 2026 (v7) — mencerminkan refactor Modul-4 (countdown circular, palet per-tab, hero animation per-tab, scoring rule lengkap, Firebase Security Rules, blokir akses di luar jadwal, **sistem PIN 6-digit untuk mahasiswa**, **password admin ter-hash SHA-256**, **animasi login constellation + electric charges + lightning blasts**, **Dosen Login Modal dengan password masking**, **role-based visibility untuk tombol Reset** — tombol Atur Jadwal tetap visible sebagai bootstrap action, **scoring universal 50 poin** dengan 5 soal Komputasi Hard @4 poin, **partial credit +1 poin** untuk Hard yang salah, **status label butuh poin** — Tepat Waktu/Terlambat hanya diberikan jika mahasiswa memperoleh poin > 0 (akses tanpa poin = Belum), **Bolos diperluas** — mencakup juga mahasiswa yang akses tapi 0 poin saat jadwal sudah berakhir, **PIN global lintas-course** — satu PIN per mahasiswa yang berlaku di SEMUA mata kuliah dan modul, disimpan di node `pins/mhs_<NIM>` terpisah dari visitor records sehingga reset modul tidak menghapus PIN).
 >
+> **v18 (Mei 2026) — Phase 3 Server-Side Exam Validation (BREAKING untuk UTS Getaran):** Migrasi arsitektur validasi UTS Getaran dari client-side ke server-side via Cloud Function `checkExamAnswer`. **Kunci jawaban dihapus total dari client HTML** (sebelumnya `_utsAnswerKeys` global di-cache saat render, leak ke F12 Sources) — sekarang hanya ada di Firestore `examAnswers/<examId>/qs/<qId>` (admin-only readable). Setiap submit Periksa: client kirim qId+jawaban → server lookup answer key → evaluate → write attempt ke Firestore `examAttempts/<examId>/students/<nim>/qs/<qId>` (idempotency lock, anti retry) → transaction RTDB visitor record (points + scoredQuestions). **Self-heal mechanism (§27.10)**: kalau attempt Firestore exist tapi RTDB inconsistent (function timeout di tengah transaction), server replay transaction pakai `prev.scoreDelta` saat next request — auto-recover lost points. **Reset Mahasiswa juga clear Firestore examAttempts** (sebelumnya hanya RTDB → mahasiswa tetap ke-lock alreadyAnswered). **Cloud Function timeout: 30s** (sebelumnya 10s — root cause inconsistency bug). Hint Comp Hard tidak lagi tampilkan kode komputasi (`t = np.arange(...)`, `x = np.exp(...)`) supaya mahasiswa harus generate sinyal sendiri. PR references: #228 (strip keys), #229 (strip rumus dari hint), #230 (strip kode dari hint), #231 (timeout 30s + self-heal + UX), #232 (Reset clear Firestore).
+
 > **v17.2 (Mei 2026) — Kode Python column wider:** User feedback final — kolom Kode Python lebih lebar dari Soal di Bagian B/C untuk readability code multi-line. Pattern: `width:30%` Soal + `width:55%` Kode Python (proporsi 1.83×). Replace pattern v17 (42%/42% equal) ke 48 file. §36.8.1 di-update dengan evolusi history.
 
 > **v17.1 (Mei 2026) — Bagian A soal lengkap:** Extension dari v17. Helper `_getMcFullQ` ditambah untuk capture full MC question text dari DOM `<div class="mc-q">` (sebelumnya `MC_QUESTIONS` array berisi short labels). `mcData.title` sekarang pakai pattern `_getMcFullQ(id) || MC_QUESTIONS[i] || ('Soal ' + (i+1))`. Untuk M4 (Math + OptoAuto) yang pakai inline array di table, pattern di-refactor: `title` field ditambah ke mcData mapping, table pakai `${esc(d.title)}` instead of inline array. Applied ke 42 modul (40 standar + 2 M4). Exam files tidak perlu (`UTS_MC.text` sudah punya full HTML). §36.8 di-update dengan §36.8.3 (MC) + §36.8.4 (Comp).
@@ -5257,7 +5259,7 @@ UTS memperkenalkan tipe soal **True/False** (1 poin) yang tidak ada di Modul reg
 </div>
 ```
 
-**Functions yang dibutuhkan:** `selectTF`, `checkTF`, `_awardTfPoint`, `_recordTfAttempt`. Pattern sama dengan MC, hanya domain answer adalah `boolean` bukan index.
+**Functions yang dibutuhkan:** `selectTF` (pick option), `checkTF` (submit ke server callable). Pattern sama dengan MC, hanya domain answer adalah `boolean` bukan index. Sejak **v18** (Phase 3), `_awardTfPoint` & `_recordTfAttempt` adalah **no-op shells** — scoring authoritative di server via `checkExamAnswer` callable (§27.9).
 
 ### 27.3 NIM-Based Question Parametrization
 
@@ -5309,8 +5311,10 @@ function renderUTSQuestions() {
   const tfContainer = document.getElementById('container-tf');
   tfContainer.innerHTML = '';
   window.UTS_TF.forEach((q, i) => {
-    const data = q.parametric ? q.compute(N) : { text: q.text, answer: q.answer };
-    window._utsAnswerKeys.tf[q.id] = data.answer;  // ← cache answer key
+    // Sejak v18: compute(N) HANYA return display data (text, options untuk MC,
+    // hint untuk Comp). Tidak ada answer/correctIdx/expected/tolerance/explain —
+    // kunci jawaban authoritative di Firestore examAnswers (§27.9).
+    const data = q.parametric ? q.compute(N) : { text: q.text };
     tfContainer.appendChild(_buildTfCard(q, data, i));
   });
 
@@ -5323,6 +5327,8 @@ function renderUTSQuestions() {
   }
 }
 ```
+
+**Cache `window._utsAnswerKeys`** sudah dihapus di v18 — sebelumnya cache global ini di-populate saat render, tapi terlihat di DevTools (Sources → search `answer:`) sehingga mahasiswa bisa baca semua jawaban TF/MC. Sekarang tidak ada answer key di client sama sekali.
 
 **Lifecycle:**
 1. Login berhasil → `getIdentity()` returns object
@@ -5368,36 +5374,120 @@ UI berbeda per mode:
 
 Berbeda dari Modul reguler yang reveal jawaban benar setelah submit (untuk pembelajaran), **UTS tidak reveal**:
 - Tidak ada green highlight pada opsi correct
-- `MC_HINTS` tidak ditampilkan
+- `MC_HINTS` kosong (`const MC_HINTS = {}` placeholder untuk kompat)
 - Field `data.diagram` di-render (visual aid, bukan jawaban)
-- Field `data.explain` hanya muncul di export HTML untuk dosen, tidak di UI mahasiswa
+- **Sejak v18:** Field `data.explain` dihapus total dari client (dulu masih ada di JSON definisi soal). Server `checkExamAnswer` return `explain` tapi client `_applyServerExamResult` **tidak menggunakannya** — `COMP_HINTS` const juga dihapus (sebelumnya berisi 15 jawaban eksplisit sebagai dead code dari legacy validation path).
 
 Filosofi: UTS adalah summative assessment, bukan formative. Jawaban benar baru di-reveal di sesi review pasca-UTS.
 
-### 27.8 One-Shot Enforcement (3 Layer)
+**Hint kode Comp:** Hint Python (`hint: ...` di compute() return) sengaja minimal sejak v18:
+- ✅ Boleh: imports, variable assignments dengan nilai (`m = 1`, `k = ${k}`), inline source comments (`# = (N+1) * 10`), output format directive (`# WAJIB print BERURUTAN: zeta → wn`)
+- ❌ Tidak boleh: rumus solusi (`# Rumus: ζ = c/(2√(km))`), algoritma skeleton (`# Kerangka RK4: state = [x, v]; rhs = ...`), kode komputasi (`t = np.arange(...)`, `x = A1*np.sin(...)`), function call yang sudah selesai untuk mahasiswa (`peaks, _ = find_peaks(x)`)
 
-UTS adalah ujian — tidak boleh ada cara mahasiswa retry soal. Implementasi 3 lapis:
+Mahasiswa harus tahu sendiri rumus matematis dan algoritma implementasi.
+
+### 27.8 One-Shot Enforcement — Server-Authoritative (sejak v18)
+
+UTS adalah ujian — tidak boleh ada cara mahasiswa retry soal. **Server (Cloud Function) adalah satu-satunya source of truth.** Client lock hanya untuk UX (cegah double-click, instant feedback) — tidak dipakai untuk keputusan scoring.
 
 ```javascript
-// LAYER 1: Local state check (cepat, sebelum render)
-if (_answeredQ.has(qId)) return;  // sudah dijawab, exit
+// CLIENT (cosmetic, UX only):
+// LAYER 1: Local state check (cepat, sebelum await server)
+if (tfAnswered[qId] || _answeredQ.has(qId)) {
+  fb.textContent = '🔒 Sudah dijawab sebelumnya.';
+  return;
+}
 
-// LAYER 2: Mark immediately (sebelum await Firebase)
-_answeredQ.add(qId);
-disableQuestionUI(qId);
+// LAYER 2: Optimistic lock (cegah double-click saat await)
+tfAnswered[qId] = true;
+sub.disabled = true; sub.textContent = '⏳ Memvalidasi...';
 
-// LAYER 3: Firebase RMW atomic check
-get(nodeRef).then(snap => {
-  const ex = snap.val();
-  const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
-  if (scored.includes(qId) || scored.includes(qId + '_used')) {
-    return;  // ← server-side enforcement: tolak duplicate award
-  }
-  // ... lanjut award point
-});
+// SERVER (authoritative):
+const res = await window._callCheckExamAnswer(qId, userPick);
+_applyServerExamResult(qId, res, 'tf', sub, fb);
 ```
 
-**Mengapa 3 layer?** Layer 1 protect dari double-click cepat. Layer 2 protect dari concurrent click di tab berbeda (sebelum Firebase respond). Layer 3 protect dari devtools manipulation atau race antar tab.
+**Server enforcement** (`functions/index.js`):
+```javascript
+// LAYER 3: Firestore idempotency check (anti retry)
+const attemptRef = fs.doc(`examAttempts/${examId}/students/${nimKey}/qs/${qId}`);
+const attemptSnap = await attemptRef.get();
+if (attemptSnap.exists) {
+  // Sudah ada attempt → return alreadyAnswered + (mungkin) trigger self-heal
+  return { alreadyAnswered: true, ..., scoreDelta: 0, healed };
+}
+// (fresh attempt: evaluate + write attempt + RTDB transaction)
+```
+
+**Mengapa server-authoritative?** Pre-v18 lapisan 3 di client (RMW pada RTDB) bisa di-bypass dengan DevTools: mahasiswa edit `scoredQuestions` lokal, panggil `_awardPoint` langsung, atau modifikasi state JS. Sejak v18, server pakai Admin SDK (bypass RTDB rules) dan Firestore `examAttempts` sebagai idempotency log — tidak bisa di-tamper dari browser.
+
+### 27.9 Phase 3 — Server-Side Validation Architecture (sejak v18)
+
+**Komponen** (file: `functions/index.js`, deploy via GitHub Actions workflow "Firebase Deploy Pilot"):
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│ Client (UTS.html)                                                    │
+│   checkTF/checkMC/runAndCheck → window._callCheckExamAnswer(qId,...)│
+└────────────────────────────┬────────────────────────────────────────┘
+                             │ httpsCallable(_functions, 'checkExamAnswer')
+                             ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│ Cloud Function: checkExamAnswer (region: asia-southeast1)           │
+│   1. Verify pinHash (auth)                                          │
+│   2. Read RTDB settings/.../schedule (open/closed/late check)      │
+│   3. Read Firestore examAttempts (idempotency — alreadyAnswered?)   │
+│      └─ if exists: self-heal jika RTDB inconsistent (§27.10)        │
+│   4. Read Firestore examAnswers/<qId> (kunci jawaban)              │
+│   5. Evaluate answer → outcome.points × multiplier = scoreDelta     │
+│   6. Write Firestore examAttempts (audit trail)                     │
+│   7. Transaction RTDB visitors (points + scoredQuestions atomic)    │
+│   8. Return {correct, status, scoreDelta, marker, healed, ...}      │
+│                                                                      │
+│   timeoutSeconds: 30 (cold start + transaction retries headroom)   │
+│   memory: 256MiB, maxInstances: 10                                  │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+**Schema Firestore `examAnswers/<examId>/qs/<qId>`** (admin-only readable via Firestore rules):
+```js
+// Static question (TF/MC non-parametric):
+{ type: 'tf', points: 1, parametric: false, answer: true, explain: "..." }
+// Parametric: byN map [0..99]
+{ type: 'mc', points: 1, parametric: true, byN: { '0': {correctIdx: 2}, '1': {...}, ... } }
+// Comp parametric multi-step:
+{ type: 'comp', points: 4, parametric: true, allowPartial: true, partialPoints: 1,
+  byN: { '0': { expectedSteps: [{label:'ζ',value:0.05,tolerance:0.005}, ...] }, ... } }
+```
+
+**Schema Firestore `examAttempts/<examId>/students/<nimKey>/qs/<qId>`** (idempotency log):
+```js
+{ qId, type, parametric, nVariant, userAnswer, correct, status, marker,
+  scoreDelta, lateMultiplier, pastDeadline, explain, timestamp, codePreview }
+```
+
+**Re-seed answer keys** (kalau seed file `functions/seed/uts-getaran-answers.js` diupdate):
+```
+Actions → "Firebase Deploy Pilot" → ☑ "⚠ LIVE seed → tulis 45 doc ke examAnswers/"
+```
+Atau lokal: `cd functions && npm run seed`.
+
+### 27.10 RTDB↔Firestore Self-Heal Mechanism (sejak v18)
+
+**Problem yang dipecahkan:** Function timeout 10s (pre-v18) bisa kill mid-transaction setelah Firestore attempt write tapi sebelum RTDB transaction selesai. Hasilnya: Firestore HAS attempt, RTDB MISSING points. Mahasiswa retry → server return `alreadyAnswered: true, scoreDelta: 0` → UI tampil **"+0 poin tercatat"** misleading + score bar tetap 0.
+
+**Solusi (v18):** 3-fix combo
+1. **Timeout 10s → 30s** (`setGlobalOptions({timeoutSeconds: 30})` — cegah recurrence)
+2. **Server self-heal** — saat `alreadyAnswered` detected, server cek RTDB consistency. Kalau `prev.correct=true && prev.scoreDelta>0` tapi `scoredQuestions` di RTDB tidak include marker → replay transaksi pakai `prev.scoreDelta` (idempotent — kalau sudah konsisten, no-op). Return `healed: true`.
+3. **Client `_applyServerExamResult`** — detect `res.alreadyAnswered` SEBELUM branch status. Kalau `healed=true`: update local score + tampil pesan recovery (`"✅ Poin BARU SAJA TERPULIHKAN (+N poin)..."`). Kalau false: lock message biasa, JANGAN overwrite `tfScores/mcScores/compScores` dengan 0 (preserve previous delta).
+
+**Reset Mahasiswa scope (v18):** Tombol 🗑 Reset di Tab Hasil sekarang hapus DUA storage:
+1. **Firestore `examAttempts/.../students/*/qs/*`** (via callable `resetExamAttempts`, admin password auth)
+2. **RTDB `visitors/<course>/<module>/mhs_*`** (existing flow)
+
+STEP 0 (Firestore) jalan SEBELUM RTDB delete. Kalau gagal → ABORT (jangan setengah-reset). Tanpa fix ini, reset hanya partial: mahasiswa tetap ke-lock `alreadyAnswered` untuk semua soal yang pernah dicoba sebelum reset karena Firestore attempt records masih ada.
+
+**Backup CLI** (kalau UI broken): `node functions/seed/reset-uts-attempts.js --confirm`.
 
 ---
 
