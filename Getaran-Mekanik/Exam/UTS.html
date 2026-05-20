@@ -6944,6 +6944,26 @@ async function confirmReset(){
   window._resetInProgress = true;
 
   try {
+    // STEP 0: Hapus Firestore examAttempts via callable (admin-only).
+    // Tanpa ini, mahasiswa tetap ke-lock 'alreadyAnswered' utk soal yg pernah
+    // dicoba sebelum reset — meskipun RTDB visitor sudah di-clear.
+    try {
+      const adminHash = await _sha256Hex(document.getElementById('resetPw').value);
+      const resetCallable = httpsCallable(_functions, 'resetExamAttempts');
+      const result = await resetCallable({ examId: EXAM_ID, adminPwHash: adminHash });
+      console.log('[Reset] Firestore examAttempts cleared:', result.data);
+    } catch (fsErr) {
+      // Kalau Firestore reset gagal, JANGAN lanjut RTDB delete — biar state konsisten.
+      // Dosen bisa retry. Common causes: function belum di-deploy, network, auth.
+      window._resetInProgress = false;
+      btns.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';});
+      const msg = fsErr && fsErr.message ? fsErr.message : String(fsErr);
+      errEl.textContent = '❌ Gagal reset Firestore: ' + msg + '. Cloud Function "resetExamAttempts" mungkin belum di-deploy. Reset RTDB dibatalkan utk konsistensi.';
+      errEl.style.display = 'block';
+      console.error('[Reset] Firestore callable failed:', fsErr);
+      return;
+    }
+
     // STEP 1: Hapus visitor data utama child-by-child (deterministic per-record).
     // Reason: rule .write hanya defined di $visitorKey level. Parent-level remove
     // bisa ambiguous (rule cascade behavior tidak konsisten saat ada concurrent
