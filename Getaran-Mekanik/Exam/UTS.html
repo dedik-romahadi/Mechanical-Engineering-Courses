@@ -2276,11 +2276,15 @@ const UTS_MC = [
       const zeta = c / (2 * Math.sqrt(m * k));
       const wd = wn * Math.sqrt(1 - zeta * zeta);
       const correct = wd;
+      // Bug fix May 2026: distractor sebelumnya {ωₙ, ωₙ(1-ζ²), ωₙ√(1+ζ²)}
+      // SEMUA converge ke ωₙ saat ζ→0. Untuk NIM dgn N=0..3 (ζ=0.005..0.02),
+      // ke-4 opsi collapse ke "10.000 rad/s" — mahasiswa lihat 4 opsi identik.
+      // Redesign distractor agar tetap pedagogis tapi numerik distinct di semua N.
       const opts = [
-        { v: correct, lbl: correct.toFixed(3) },
-        { v: wn, lbl: wn.toFixed(3) },                                       // mistake: pakai ωₙ
-        { v: wn * (1 - zeta * zeta), lbl: (wn*(1-zeta*zeta)).toFixed(3) },   // mistake: tanpa sqrt
-        { v: wn * Math.sqrt(1 + zeta * zeta), lbl: (wn*Math.sqrt(1+zeta*zeta)).toFixed(3) }  // mistake: + bukan -
+        { v: correct, lbl: correct.toFixed(4) },
+        { v: wn, lbl: wn.toFixed(4) },                                       // mistake: lupa koreksi damping
+        { v: wn * (1 - zeta), lbl: (wn*(1-zeta)).toFixed(4) },               // mistake: linear approx bukan √
+        { v: wn / Math.sqrt(1 - zeta * zeta), lbl: (wn/Math.sqrt(1-zeta*zeta)).toFixed(4) }  // mistake: bagi bukan kali
       ];
       const shuffled = shuffleSeed(opts, N + 11);
       return {
@@ -2291,7 +2295,7 @@ const UTS_MC = [
                Frekuensi natural teredam ω_d (rad/s) adalah:`,
         options: shuffled.map(o => o.lbl + ' rad/s'),
         correctIdx: shuffled.findIndex(o => o.v === correct),
-        explain: `ζ = c/(2√(km)) = ${c.toFixed(1)}/20 = ${zeta.toFixed(3)}; ω_d = ωₙ·√(1-ζ²) = 10·√(1-${zeta.toFixed(3)}²) = <b>${correct.toFixed(3)} rad/s</b>`,
+        explain: `ζ = c/(2√(km)) = ${c.toFixed(1)}/20 = ${zeta.toFixed(3)}; ω_d = ωₙ·√(1-ζ²) = 10·√(1-${zeta.toFixed(3)}²) = <b>${correct.toFixed(4)} rad/s</b>`,
         diagram: _diagram('Underdamped Decay — frekuensi ω_d vs envelope', _svg.decay({zeta: zeta, wn: wn}))
       };
     }
