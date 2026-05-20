@@ -2807,17 +2807,29 @@ function _applyServerExamResult(qId, res, type, sub, fb) {
   const delta = Number(res.scoreDelta) || 0;
 
   // ── alreadyAnswered: idempotency lock ──────────────────────────────────────
-  // Server returns scoreDelta=0 + status dari attempt sebelumnya. JANGAN overwrite
-  // local tfScores/mcScores/compScores dgn 0 (akan drop poin yg sudah didapat dari
-  // attempt pertama). Tampilkan pesan distinct supaya mahasiswa paham locknya.
+  // Server returns scoreDelta=0 + status dari attempt sebelumnya, KECUALI kalau
+  // baru saja self-heal (RTDB↔Firestore inconsistency) — dalam case itu return
+  // scoreDelta dari attempt record + healed:true.
   if (res.alreadyAnswered === true) {
     if (type === 'tf')   tfAnswered[qId] = true;
     if (type === 'mc')   mcAnswered[qId] = true;
     if (type === 'comp') compAnswered[qId] = true;
     if (res.marker) _answeredQ.add(res.marker);
 
+    // Kalau healed=true, scoreDelta positive → update local state spy konsisten
+    // dgn RTDB yg sudah di-heal. Kalau healed=false, jangan overwrite (preserve
+    // previous correct delta yg sudah ada di local).
+    if (res.healed === true && delta > 0) {
+      if (type === 'tf')   tfScores[qId] = delta;
+      if (type === 'mc')   mcScores[qId] = delta;
+      if (type === 'comp') compScores[qId] = delta;
+    }
+
     if (fb) {
-      if (status === 'correct') {
+      if (res.healed === true) {
+        fb.className = 'feedback correct';
+        fb.textContent = '✅ Poin Anda dari submission sebelumnya BARU SAJA TERPULIHKAN (+' + delta + ' poin). Sebelumnya tercatat 0 karena bug sinkronisasi — sudah diperbaiki. TIDAK ADA KESEMPATAN ULANG.';
+      } else if (status === 'correct') {
         fb.className = 'feedback correct';
         fb.textContent = '🔒 Soal ini sudah Anda jawab BENAR sebelumnya — poin sudah tercatat dari attempt pertama. TIDAK ADA KESEMPATAN ULANG.';
       } else if (status === 'partial') {
@@ -2843,7 +2855,7 @@ function _applyServerExamResult(qId, res, type, sub, fb) {
       sub.disabled = true;
       sub.classList.remove('running');
     }
-    // TIDAK update score state, TIDAK call updateScore — preserve previous delta
+    if (res.healed === true && typeof updateScore === 'function') updateScore();
     return;
   }
 
