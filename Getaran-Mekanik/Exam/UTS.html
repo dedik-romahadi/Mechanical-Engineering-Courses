@@ -2806,7 +2806,60 @@ function _applyServerExamResult(qId, res, type, sub, fb) {
   const status = res.status || (res.correct ? 'correct' : 'wrong');
   const delta = Number(res.scoreDelta) || 0;
 
-  // Update local score state (utk updateScore() bar di top)
+  // ── alreadyAnswered: idempotency lock ──────────────────────────────────────
+  // Server returns scoreDelta=0 + status dari attempt sebelumnya, KECUALI kalau
+  // baru saja self-heal (RTDB↔Firestore inconsistency) — dalam case itu return
+  // scoreDelta dari attempt record + healed:true.
+  if (res.alreadyAnswered === true) {
+    if (type === 'tf')   tfAnswered[qId] = true;
+    if (type === 'mc')   mcAnswered[qId] = true;
+    if (type === 'comp') compAnswered[qId] = true;
+    if (res.marker) _answeredQ.add(res.marker);
+
+    // Kalau healed=true, scoreDelta positive → update local state spy konsisten
+    // dgn RTDB yg sudah di-heal. Kalau healed=false, jangan overwrite (preserve
+    // previous correct delta yg sudah ada di local).
+    if (res.healed === true && delta > 0) {
+      if (type === 'tf')   tfScores[qId] = delta;
+      if (type === 'mc')   mcScores[qId] = delta;
+      if (type === 'comp') compScores[qId] = delta;
+    }
+
+    if (fb) {
+      if (res.healed === true) {
+        fb.className = 'feedback correct';
+        fb.textContent = '✅ Poin Anda dari submission sebelumnya BARU SAJA TERPULIHKAN (+' + delta + ' poin). Sebelumnya tercatat 0 karena bug sinkronisasi — sudah diperbaiki. TIDAK ADA KESEMPATAN ULANG.';
+      } else if (status === 'correct') {
+        fb.className = 'feedback correct';
+        fb.textContent = '🔒 Soal ini sudah Anda jawab BENAR sebelumnya — poin sudah tercatat dari attempt pertama. TIDAK ADA KESEMPATAN ULANG.';
+      } else if (status === 'partial') {
+        fb.className = 'feedback warn';
+        fb.textContent = '🔒 Soal ini sudah dijawab sebelumnya (partial credit). TIDAK ADA KESEMPATAN ULANG.';
+      } else {
+        fb.className = 'feedback wrong';
+        fb.textContent = '🔒 Soal ini sudah dijawab SALAH sebelumnya — TIDAK ADA KESEMPATAN ULANG.';
+      }
+    }
+    if (sub) {
+      if (status === 'correct') {
+        sub.textContent = '✓ Terjawab';
+        sub.style.background = 'rgba(0,224,158,.1)';
+        sub.style.borderColor = 'rgba(0,224,158,.4)';
+        sub.style.color = 'var(--green)';
+      } else {
+        sub.textContent = '🔒 Terkunci';
+        sub.style.background = 'rgba(239,68,68,.1)';
+        sub.style.borderColor = 'rgba(239,68,68,.4)';
+        sub.style.color = 'var(--pink)';
+      }
+      sub.disabled = true;
+      sub.classList.remove('running');
+    }
+    if (res.healed === true && typeof updateScore === 'function') updateScore();
+    return;
+  }
+
+  // ── Fresh attempt: update local score state ─────────────────────────────────
   if (type === 'tf')   { tfScores[qId] = delta; tfAnswered[qId] = true; }
   if (type === 'mc')   { mcScores[qId] = delta; mcAnswered[qId] = true; }
   if (type === 'comp') { compScores[qId] = delta; compAnswered[qId] = true; }
@@ -2824,9 +2877,7 @@ function _applyServerExamResult(qId, res, type, sub, fb) {
       fb.textContent = '△ Partial credit +' + delta + ' poin (upaya tercatat). Soal TERKUNCI PERMANEN — tidak ada kesempatan ulang.';
     } else {
       fb.className = 'feedback wrong';
-      fb.textContent = res.alreadyAnswered
-        ? '🔒 Sudah dijawab sebelumnya — TIDAK ADA KESEMPATAN ULANG.'
-        : '🔒 Jawaban telah dikunci. TIDAK ADA KESEMPATAN ULANG. (UTS murni — jawaban benar tidak ditampilkan)';
+      fb.textContent = '🔒 Jawaban telah dikunci. TIDAK ADA KESEMPATAN ULANG. (UTS murni — jawaban benar tidak ditampilkan)';
     }
   }
 

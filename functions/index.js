@@ -46,7 +46,13 @@ setGlobalOptions({
   region: "asia-southeast1",
   maxInstances: 10,        // cost safety: cegah runaway scale
   memory: "256MiB",
-  timeoutSeconds: 10,
+  // ROOT CAUSE bug "+0 poin tercatat" / RTDB↔Firestore inconsistency:
+  // Function flow = schedule check (RTDB) + Firestore attempt check + answer key
+  // lookup + Firestore attempt write + RTDB transaction (dgn retries). Cold start
+  // tambah 2-5s. Total bisa lewat 10s → function di-kill mid-transaction →
+  // Firestore done, RTDB belum → inconsistency permanen. 30s memberi headroom
+  // cukup utk cold start + slow network + transaction retries.
+  timeoutSeconds: 30,
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -327,14 +333,62 @@ exports.checkExamAnswer = onCall(async (request) => {
   const attemptSnap = await attemptRef.get();
   if (attemptSnap.exists) {
     const prev = attemptSnap.data();
+    const prevMarker = prev.marker || qId;
+
+    // ── SELF-HEAL: RTDB↔Firestore consistency check ──────────────────────────
+    // Skenario bug: attempt pertama berhasil tulis ke Firestore (line 383) tapi
+    // transaksi RTDB (line 388+) gagal/timeout/race-condition. Akibat: Firestore
+    // punya attempt record, tapi RTDB visitor.scoredQuestions kosong & points=0.
+    // Student lapor "+0 poin" karena poin tidak pernah tercatat di RTDB.
+    //
+    // Fix: di sini, kalau prev correct + scoreDelta > 0 tapi RTDB tidak punya
+    // marker ini di scoredQuestions, re-apply transaksi pakai prev.scoreDelta.
+    // Idempotent — kalau RTDB sudah konsisten, transaksi return early no-op.
+    let healed = false;
+    if (prev.correct === true && Number(prev.scoreDelta) > 0) {
+      const vRef = rtdb.ref(`${cfg.dbPath}/mhs_${nimKey}`);
+      const vSnap = await vRef.get();
+      const visitor = vSnap.val() || {};
+      const currentScored = (visitor.scoredQuestions || "").split(",").filter(Boolean);
+      if (!currentScored.includes(prevMarker)) {
+        await vRef.transaction((cur) => {
+          if (cur === null) {
+            cur = {
+              nama: storedPin.nama || "—",
+              nim,
+              role: "student",
+              timestamp: new Date().toISOString(),
+              lastVisit: new Date().toISOString(),
+              visitCount: 1,
+              points: 0,
+              scoredQuestions: "",
+            };
+          }
+          const scored = (cur.scoredQuestions || "").split(",").filter(Boolean);
+          if (scored.includes(prevMarker)) return cur;   // race-safe: someone else healed
+          scored.push(prevMarker);
+          cur.scoredQuestions = scored.join(",");
+          cur.points = Math.min((cur.points || 0) + Number(prev.scoreDelta), cfg.totalPoints);
+          cur.pointTimestamp = new Date().toISOString();
+          return cur;
+        });
+        healed = true;
+        console.log("[SELF-HEAL]", nimKey, qId, "re-applied scoreDelta", prev.scoreDelta);
+      }
+    }
+
     return {
       alreadyAnswered: true,
       correct: prev.correct === true,
       status: prev.status || (prev.correct ? "correct" : "wrong"),
       explain: prev.explain || "",
-      scoreDelta: 0,
-      marker: prev.marker || qId,
+      // Kalau baru saja heal, return scoreDelta dari attempt record supaya
+      // client bisa update local state. Kalau tidak heal (RTDB sudah konsisten),
+      // return 0 (poin tidak ditambahkan lagi — anti double-score).
+      scoreDelta: healed ? Number(prev.scoreDelta) : 0,
+      marker: prevMarker,
       lateMultiplier: prev.lateMultiplier ?? null,
+      healed,
     };
   }
 
