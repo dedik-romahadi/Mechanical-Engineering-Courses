@@ -2491,7 +2491,7 @@ const UTS_COMP_EZ = [
                • <b>x₁ = 0.1 m</b> (tetap)<br>
                • <b>x₂ = x₁ · exp(−(N+1)/100) = 0.1 · exp(−${N+1}/100) = ${x2.toFixed(4)} m</b><br>
                Hitung <b>logarithmic decrement δ</b>. Rumus: δ = ln(x₁/x₂).`,
-        hint: `import numpy as np\n# N = ${N}\nx1 = 0.1                       # tetap\nx2 = 0.1 * np.exp(-(${N}+1)/100)  # = ${x2.toFixed(4)}\n# TODO: hitung delta, lalu print(delta)`,
+        hint: `import numpy as np\n# N = ${N}\nx1 = 0.1                  # tetap (amplitudo siklus pertama)\nx2 = ${x2.toFixed(4)}              # tetap (amplitudo siklus berikutnya — diberikan)\n# TODO: hitung delta, lalu print(delta)`,
         diagram: _diagram('Logarithmic Decrement — δ = ln(x₁/x₂)', _svg.decay({zeta: 0.08, wn: 5, markPeaks: 3}))
       };
     }
@@ -2609,7 +2609,7 @@ const UTS_COMP_HARD = [
                • <b>ωₙ = 10 rad/s</b> (tetap)<br>
                Identifikasi <b>rasio redaman ζ</b> dari sinyal getaran bebas underdamped <code>x(t) = exp(−ζ_true·ωₙ·t)·cos(ωd·t)</code> untuk t ∈ [0, 8] dengan 4000 sampel. Lakukan <em>peak detection</em> (ambil <b>n = 5 puncak</b>), hitung <b>logarithmic decrement</b>, lalu estimasi <b>ζ</b>. Laporkan ζ_estimasi (harus mendekati ζ_true).
                <div style="margin-top:8px;padding:8px 10px;background:rgba(236,72,153,.08);border:1px solid rgba(236,72,153,.3);border-radius:6px;color:var(--pink);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 2 nilai berurutan: <b>δ → ζ_est</b>. Final answer saja tidak cukup.</div>`,
-        hint: `import numpy as np\nfrom scipy.signal import find_peaks\n# N = ${N} (dari NIM Anda)\nzeta_true = (${N}+1)/200    # ground-truth (target estimasi)\nwn = 10                    # tetap\nwd = wn * np.sqrt(1 - zeta_true**2)\n\nt = np.linspace(0, 8, 4000)\nx = np.exp(-zeta_true*wn*t) * np.cos(wd*t)\n# WAJIB print BERURUTAN: delta → zeta_est\n# TODO: lakukan peak detection (n=5), hitung delta, lalu print(delta)   # langkah 1: logarithmic decrement\n# TODO: estimasi zeta_est dari delta, lalu print(zeta_est)              # final`,
+        hint: `import numpy as np\nfrom scipy.signal import find_peaks\n# N = ${N} (dari NIM Anda)\nzeta_true = (${N}+1)/200    # ground-truth (untuk validasi internal)\nwn = 10                     # tetap (rad/s)\n# Parameter sinyal (sesuai text soal): t ∈ [0, 8] s, 4000 sampel\n# WAJIB print BERURUTAN: delta → zeta_est\n# TODO: generate sinyal x(t); lakukan peak detection (n=5); hitung delta; print(delta)\n# TODO: estimasi zeta_est dari delta; print(zeta_est)`,
         diagram: _diagram('Identifikasi ζ — peak detection pada decay sinyal', _svg.decay({zeta: zeta_true, wn: wn, markPeaks: 5}))
       };
     }
@@ -2626,7 +2626,7 @@ const UTS_COMP_HARD = [
                • <b>f₁ = N + 1 = ${N} + 1 = ${f1} Hz</b> (komponen dominan, A₁ = 1.0)<br>
                • <b>f₂ = 80 Hz</b> (tetap, komponen lemah, A₂ = 0.3)<br>
                Lakukan <b>analisis FFT</b> untuk mengidentifikasi frekuensi dominan dari sinyal getaran <code>x(t) = A₁·sin(2π·f₁·t) + A₂·sin(2π·f₂·t)</code> untuk <b>t ∈ [0, 4]</b> detik dengan <b>sampling rate 1000 Hz</b>. Hitung FFT dengan <code>numpy.fft.rfft</code>, cari frekuensi dengan magnitudo tertinggi, dan laporkan <b>frekuensi dominan dalam Hz</b>.`,
-        hint: `import numpy as np\n# N = ${N}\nf1 = ${N}+1            # = ${f1} Hz (dominan)\nf2 = 80              # tetap, lemah\nA1, A2 = 1.0, 0.3\nfs = 1000\nt = np.arange(0, 4, 1/fs)\nx = A1*np.sin(2*np.pi*f1*t) + A2*np.sin(2*np.pi*f2*t)\n# TODO: hitung frekuensi dominan, lalu print(f_dominan)`,
+        hint: `import numpy as np\n# N = ${N}\nf1 = ${f1}              # Hz (komponen dominan, A1 = 1.0)\nf2 = 80                # Hz (komponen lemah, A2 = 0.3)\nfs = 1000              # sampling rate, durasi 4 detik (sesuai text soal)\n# TODO: generate sinyal x(t); lakukan FFT; cari frekuensi dominan; print(f_dominan)`,
         diagram: _diagram('FFT — sinyal time-domain & spektrum frekuensi', _svg.fftSpec(f1, f2))
       };
     }
@@ -2646,7 +2646,7 @@ const UTS_COMP_HARD = [
                • <b>c = (N + 1) / 10 = (${N} + 1) / 10 = ${c.toFixed(1)} Ns/m</b><br>
                Cari <b>frekuensi eksitasi yang memberikan amplifikasi MAKSIMUM</b> (resonansi). Lakukan sweep ω dari 1 hingga 100 rad/s dengan step 0.01, hitung DMF(ω) untuk setiap ω, lalu laporkan <b>ω_peak (rad/s) di mana DMF mencapai maksimum</b>.
                <div style="margin-top:8px;padding:8px 10px;background:rgba(236,72,153,.08);border:1px solid rgba(236,72,153,.3);border-radius:6px;color:var(--pink);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 2 nilai berurutan: <b>ζ → ω_peak</b>. Final answer saja tidak cukup.</div>`,
-        hint: `import numpy as np\n# N = ${N}\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\nwn = np.sqrt(k/m)\n# WAJIB print BERURUTAN: zeta → omega_peak\n# TODO: hitung zeta, lalu print(zeta)                       # langkah 1\n# TODO: sweep ω ∈ [1, 100] dgn step 0.01, cari omega_peak, lalu print(omega_peak)     # final: omega_peak`,
+        hint: `import numpy as np\n# N = ${N}\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\n# WAJIB print BERURUTAN: zeta → omega_peak\n# TODO: hitung zeta, lalu print(zeta)                       # langkah 1\n# TODO: sweep ω ∈ [1, 100] dgn step 0.01, cari omega_peak, lalu print(omega_peak)     # final`,
         diagram: _diagram('Sweep frekuensi — cari ω yang DMF maksimum', _svg.dmfCurve({zetas: [zeta, 0.05, 0.2], highlightR: r_peak, highlightZeta: zeta}))
       };
     }
