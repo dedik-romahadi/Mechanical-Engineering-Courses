@@ -42,6 +42,10 @@ on:
         description: 'Deploy Cloud Functions (checkExamAnswer)'
         type: boolean
         default: false
+      deploy_database_rules:
+        description: 'Deploy RTDB rules (database.rules.json — utk Atur Jadwal, presence, dll)'
+        type: boolean
+        default: false
 
 jobs:
   deploy:
@@ -74,10 +78,11 @@ jobs:
         run: |
           echo "─────────────────────────────────────────────────"
           echo "Pilot deploy plan:"
-          echo "  dry_run_seed:     ${{ inputs.dry_run_seed }}"
-          echo "  deploy_rules:     ${{ inputs.deploy_rules }}"
-          echo "  live_seed:        ${{ inputs.live_seed }}"
-          echo "  deploy_functions: ${{ inputs.deploy_functions }}"
+          echo "  dry_run_seed:          ${{ inputs.dry_run_seed }}"
+          echo "  deploy_rules:          ${{ inputs.deploy_rules }}"
+          echo "  live_seed:             ${{ inputs.live_seed }}"
+          echo "  deploy_functions:      ${{ inputs.deploy_functions }}"
+          echo "  deploy_database_rules: ${{ inputs.deploy_database_rules }}"
           echo "─────────────────────────────────────────────────"
 
       - name: Step 1 — Dry-run seed
@@ -97,6 +102,10 @@ jobs:
       - name: Step 4 — Deploy Cloud Functions
         if: ${{ inputs.deploy_functions }}
         run: firebase deploy --only functions --project getaran-mekanik --non-interactive --force
+
+      - name: Step 5 — Deploy RTDB rules
+        if: ${{ inputs.deploy_database_rules }}
+        run: firebase deploy --only database --project getaran-mekanik --non-interactive
 
       - name: Summary
         if: always()
