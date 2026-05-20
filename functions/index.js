@@ -46,7 +46,13 @@ setGlobalOptions({
   region: "asia-southeast1",
   maxInstances: 10,        // cost safety: cegah runaway scale
   memory: "256MiB",
-  timeoutSeconds: 10,
+  // ROOT CAUSE bug "+0 poin tercatat" / RTDB↔Firestore inconsistency:
+  // Function flow = schedule check (RTDB) + Firestore attempt check + answer key
+  // lookup + Firestore attempt write + RTDB transaction (dgn retries). Cold start
+  // tambah 2-5s. Total bisa lewat 10s → function di-kill mid-transaction →
+  // Firestore done, RTDB belum → inconsistency permanen. 30s memberi headroom
+  // cukup utk cold start + slow network + transaction retries.
+  timeoutSeconds: 30,
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
