@@ -514,3 +514,59 @@ exports.checkExamAnswer = onCall(async (request) => {
       : null,
   };
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// resetExamAttempts — callable function (admin-only).
+//
+// Hapus SELURUH collection examAttempts/{examId}/students/*/qs/* di Firestore.
+// Dipanggil dari client `confirmReset()` saat dosen klik tombol "Reset Mahasiswa"
+// di Tab Hasil. Selama ini reset hanya hapus RTDB visitors → mahasiswa tetap
+// terkunci 'alreadyAnswered' untuk soal yang pernah dicoba. Reset ini melengkapi
+// supaya benar-benar fresh.
+//
+// Auth: admin password hash (SHA-256) — sama dgn ADMIN_PW_HASH di client.
+// TODO: pindah ke env var (firebase functions config) supaya hash tidak hardcoded.
+//
+// Request: { examId: 'getaran-mekanik-uts', adminPwHash: '<sha256-hex>' }
+// Response: { deleted: <int>, students: <int> }
+// ─────────────────────────────────────────────────────────────────────────────
+const ADMIN_PW_HASH = "57ae60d11a0de7b13b9c77c4664dc951afe403952b46c3b4f95a8bc0eb8a0470";
+
+exports.resetExamAttempts = onCall({ timeoutSeconds: 60 }, async (request) => {
+  const { examId, adminPwHash } = request.data || {};
+
+  if (!examId || typeof examId !== "string") {
+    throw new HttpsError("invalid-argument", "examId wajib diisi");
+  }
+  if (!EXAM_CONFIG[examId]) {
+    throw new HttpsError("invalid-argument", `examId '${examId}' tidak dikonfigurasi`);
+  }
+  if (!adminPwHash || typeof adminPwHash !== "string" || adminPwHash !== ADMIN_PW_HASH) {
+    throw new HttpsError("permission-denied", "Admin password salah atau tidak disertakan");
+  }
+
+  const fs = getFirestore();
+  const studentsRef = fs.collection(`examAttempts/${examId}/students`);
+  const studentDocs = await studentsRef.listDocuments();
+
+  if (studentDocs.length === 0) {
+    return { deleted: 0, students: 0 };
+  }
+
+  let totalDeleted = 0;
+  for (const studentDoc of studentDocs) {
+    const qsDocs = await studentDoc.collection("qs").listDocuments();
+    // Batch delete (max 500 per batch — pakai 400 untuk safety)
+    for (let i = 0; i < qsDocs.length; i += 400) {
+      const batch = fs.batch();
+      qsDocs.slice(i, i + 400).forEach((d) => batch.delete(d));
+      await batch.commit();
+      totalDeleted += Math.min(400, qsDocs.length - i);
+    }
+    // Delete the student doc itself (empty container after qs cleared)
+    await studentDoc.delete();
+  }
+
+  console.log("[resetExamAttempts]", examId, "deleted", totalDeleted, "attempts across", studentDocs.length, "students");
+  return { deleted: totalDeleted, students: studentDocs.length };
+});
