@@ -3232,6 +3232,42 @@ function renderUTSQuestions() {
   const N = (typeof window.getN === 'function') ? window.getN() : 0;
   console.log('[UTS] Rendering questions with N =', N);
 
+  // ── GUARD: refuse render dgn N=0 utk non-dosen ──
+  // Bug May 2026: identity bisa ada di localStorage tapi tanpa nim valid,
+  // bikin getN()=0 → soal komputasi render dgn parameter salah (c=0.1 dst).
+  // Tampilkan loading + retry sampai NIM tersedia. Dosen (nim='DOSEN' → N=0)
+  // tetap di-allow untuk preview.
+  const _me = (typeof getIdentity === 'function') ? getIdentity() : null;
+  const _role = _me && _me.role;
+  if (N === 0 && _role !== 'dosen') {
+    console.warn('[UTS] Refuse render: N=0 untuk role=' + _role + '. Identity:', _me);
+    const _tfC = document.getElementById('container-tf');
+    if (_tfC && !_tfC.dataset.utsLoadingShown) {
+      _tfC.innerHTML = '<div style="padding:24px;background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.25);border-radius:12px;color:#cbd5e1;font-size:14px;line-height:1.7"><strong style="color:#a78bfa;font-size:15px">⏳ Menunggu identitas NIM siap...</strong><br>Soal akan muncul otomatis begitu NIM terdeteksi.<br><br>Jika tidak muncul dalam 30 detik, silakan <strong>login ulang</strong> via tombol identitas (kanan-bawah) atau refresh halaman (Ctrl+R).</div>';
+      _tfC.dataset.utsLoadingShown = '1';
+    }
+    if (!window._utsRenderRetryStarted) {
+      window._utsRenderRetryStarted = true;
+      let attempts = 0;
+      const retryTimer = setInterval(() => {
+        attempts++;
+        const N2 = (typeof window.getN === 'function') ? window.getN() : 0;
+        if (N2 !== 0) {
+          clearInterval(retryTimer);
+          window._utsRenderRetryStarted = false;
+          if (_tfC) delete _tfC.dataset.utsLoadingShown;
+          renderUTSQuestions();
+        } else if (attempts > 60) {
+          clearInterval(retryTimer);
+          window._utsRenderRetryStarted = false;
+          const tfC = document.getElementById('container-tf');
+          if (tfC) tfC.innerHTML = '<div style="padding:24px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.35);border-radius:12px;color:#fca5a5;font-size:14px;line-height:1.7"><strong>⚠ NIM tidak terdeteksi setelah 30 detik.</strong><br>Identity di localStorage mungkin corrupt (tanpa NIM). Solusi:<br><br>1. Klik tombol identitas (kanan-bawah) → Logout<br>2. Login ulang dengan NIM Anda<br><br>Jika masih bermasalah, refresh halaman (Ctrl+R / Cmd+R) lalu login ulang.</div>';
+        }
+      }, 500);
+    }
+    return;   // JANGAN set _utsRendered=true — biar bisa di-retry
+  }
+
   // ── Helper: HTML-escape function (untuk safe rendering) ──
   const _esc = (s) => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
@@ -3336,6 +3372,10 @@ function renderUTSQuestions() {
   }
 
   _utsRendered = true;
+  // CRITICAL: set _utsRenderedFlag HANYA setelah render benar-benar sukses.
+  // Caller sebelumnya set unconditional → kalau guard fire & return early,
+  // flag jadi true padahal cards belum render → saveIdentity skip re-render.
+  window._utsRenderedFlag = true;
   // Trigger reveal observer for new elements
   if (typeof revealObs !== 'undefined') {
     document.querySelectorAll('.reveal:not(.visible)').forEach(el => revealObs.observe(el));
@@ -4896,7 +4936,13 @@ function exportForumHtml() { copyForumHtml(); }
   // Menggunakan inline style agar kompatibel dengan editor LMS
 
 function getIdentityLocal() {
-  try { return JSON.parse(localStorage.getItem('getaran_mekanik_identity_pertemuan-4')); } catch(e) { return null; }
+  // BUG fix May 2026 — Pedoman §7.4:
+  // Hardcoded key 'getaran_mekanik_identity_pertemuan-4' adalah LEGACY dari
+  // template modul reguler. Untuk UTS, MODULE_ID='uts' jadi key harus
+  // 'getaran_mekanik_identity_uts'. Tidak bisa pakai const LOCAL_IDENTITY
+  // dari module script (cross-script scope trap §26.1), jadi hardcode key
+  // yg benar di sini.
+  try { return JSON.parse(localStorage.getItem('getaran_mekanik_identity_uts')); } catch(e) { return null; }
 }
 
 // ═══════════════════════════════════════
@@ -6163,12 +6209,24 @@ let currentSchedule = null;
 const VISIT_COOLDOWN = 3600000;
 
 function getIdentity(){try{return JSON.parse(localStorage.getItem(LOCAL_IDENTITY));}catch(e){return null;}}
+// CRITICAL — Pedoman §26.1 (Cross-Script Scope Trap):
+// getIdentity didefinisikan di <script type="module"> yg memiliki module scope
+// terisolasi. Regular <script> (yg punya getN, renderUTSQuestions, dll) tidak
+// bisa akses getIdentity di sini tanpa expose ke window.
+// Bug May 2026: tanpa baris ini, getN() di regular script selalu return 0
+// karena `typeof getIdentity === 'function'` evaluate ke false → semua soal
+// NIM-based render dgn N=0 (parameter salah). Verified via node --input-type=module:
+// function di module tidak leak ke globalThis.
+window.getIdentity = getIdentity;
 function saveIdentity(v){
   localStorage.setItem(LOCAL_IDENTITY, JSON.stringify(v));
-  // UTS: Auto-render questions setelah identity tersimpan (NIM tersedia)
+  // UTS: Auto-render questions setelah identity tersimpan (NIM tersedia).
+  // Pedoman §24.4: saveIdentity sbg single source of truth utk re-render UI.
+  // _utsRenderedFlag di-set INSIDE renderUTSQuestions setelah render sukses
+  // (BUKAN di sini) — biar guard N=0 yg return early tidak nge-lock flag.
   if (typeof window.renderUTSQuestions === 'function' && !window._utsRenderedFlag) {
     setTimeout(() => {
-      try { window.renderUTSQuestions(); window._utsRenderedFlag = true; }
+      try { window.renderUTSQuestions(); }
       catch(e) { console.error('renderUTSQuestions error:', e); }
     }, 50);
   }
@@ -6467,15 +6525,19 @@ function _handleScheduleReady() {
             const ex=snap.val();
             const lastV=new Date(ex.lastVisit||ex.timestamp).getTime();
             if(Date.now()-lastV>=VISIT_COOLDOWN && _isScheduleOpen()){
-              set(ref(db,`${DB_PATH}/${_key}`), _stripLegacyPinFields({...ex,visitCount:(ex.visitCount||1)+1,lastVisit:new Date().toISOString()}));
+              // DEFENSIVE: force nim/nama/role dari me — jangan trust ex yg
+              // mungkin tidak punya field ini (data lama / corrupt).
+              set(ref(db,`${DB_PATH}/${_key}`), _stripLegacyPinFields({...ex,nim:me.nim,nama:me.nama,role:me.role||'student',visitCount:(ex.visitCount||1)+1,lastVisit:new Date().toISOString()}));
             }
           }
         }).catch(err => console.error("[UTS Firebase] write failed:", err));
       }
       _applyRoleVisibility();
-      // UTS: Render questions FIRST sebelum _loadScoredQuestions agar DOM ready
+      // UTS: Render questions FIRST sebelum _loadScoredQuestions agar DOM ready.
+      // _utsRenderedFlag di-set INSIDE renderUTSQuestions setelah render sukses
+      // (BUKAN di sini) — biar guard N=0 yg return early tidak nge-lock flag.
       if (typeof window.renderUTSQuestions === 'function' && !window._utsRenderedFlag) {
-        try { window.renderUTSQuestions(); window._utsRenderedFlag = true; }
+        try { window.renderUTSQuestions(); }
         catch(e) { console.error('renderUTSQuestions error:', e); }
       }
       setTimeout(function(){ if(typeof window._loadScoredQuestions==='function') window._loadScoredQuestions(); }, 500);
@@ -7061,6 +7123,11 @@ async function submitPinVerify() {
       const lastV = new Date(existingVisitor.lastVisit || existingVisitor.timestamp).getTime();
       const canBump = (Date.now() - lastV) >= VISIT_COOLDOWN;
       visitorRec = Object.assign({}, existingVisitor, {
+        // DEFENSIVE: force nama/nim/role dari form input — jangan trust
+        // existingVisitor Firebase record yg mungkin corrupt / data lama tanpa
+        // field ini. Bug May 2026: returning student dgn existingVisitor tanpa
+        // nim bikin saveIdentity simpan identity tanpa nim → getN()=0.
+        nama, nim, role: 'student',
         visitCount: canBump ? (existingVisitor.visitCount || 1) + 1 : (existingVisitor.visitCount || 1),
         lastVisit: canBump ? nowISO : (existingVisitor.lastVisit || existingVisitor.timestamp)
       });
@@ -8102,11 +8169,13 @@ window.shuffleMCOptions = shuffleMCOptions;
 // _loadScoredQuestions trigger.
 initVisitor();
 // Safety: jika ada returning user dengan identity sudah cached, render segera.
+// _utsRenderedFlag di-set INSIDE renderUTSQuestions setelah render sukses
+// (BUKAN di sini) — biar guard N=0 yg return early tidak nge-lock flag.
 if (typeof getIdentity === 'function') {
   const _me = getIdentity();
   if (_me && _me.nim && typeof renderUTSQuestions === 'function' && !window._utsRenderedFlag) {
     setTimeout(() => {
-      try { renderUTSQuestions(); window._utsRenderedFlag = true; }
+      try { renderUTSQuestions(); }
       catch(e) { console.error('renderUTSQuestions early error:', e); }
     }, 100);
   }
