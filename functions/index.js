@@ -107,6 +107,9 @@ function resolveAnswerKey(ans, nim) {
     correctIdx: variant.correctIdx !== undefined ? variant.correctIdx : ans.correctIdx,
     tolerance: variant.tolerance !== undefined ? variant.tolerance : ans.tolerance,
     explain: variant.explain !== undefined ? variant.explain : ans.explain,
+    // Multi-step: per-variant array of {label, value, tolerance}. Kalau ada,
+    // grader pakai sequence-matching alih-alih single-number check.
+    expectedSteps: variant.expectedSteps !== undefined ? variant.expectedSteps : ans.expectedSteps,
   };
 }
 
@@ -145,9 +148,39 @@ async function evalSchedule(rtdb, schedulePath, lateMultiplierValue) {
   return { isOpen, pastDeadline, multiplier, reason };
 }
 
+// Match user numbers ke expectedSteps secara berurutan, allow skip step yg tidak ketemu.
+// Returns { matches: bool[], allMatch: bool, someMatch: bool }.
+// Algoritma: untuk tiap expected step, cari first user number (≥ userIdx) yg match.
+// Kalau ketemu → mark + advance userIdx. Kalau tidak → step ditandai false tapi userIdx
+// TIDAK advance (next step boleh cari dari awal user list yg tersisa). Urutan tetap
+// dijaga: step k+1 hanya boleh match user number setelah step k yg sudah match.
+function matchExpectedSteps(userNums, steps) {
+  const matches = new Array(steps.length).fill(false);
+  let userIdx = 0;
+  for (let stepIdx = 0; stepIdx < steps.length; stepIdx++) {
+    const s = steps[stepIdx];
+    const target = Number(s.value);
+    const tol = Number(s.tolerance ?? 0.01);
+    if (!Number.isFinite(target)) continue;
+    for (let i = userIdx; i < userNums.length; i++) {
+      const n = userNums[i];
+      if (Number.isFinite(n) && Math.abs(n - target) <= tol) {
+        matches[stepIdx] = true;
+        userIdx = i + 1;
+        break;
+      }
+    }
+  }
+  return {
+    matches,
+    allMatch: matches.every(Boolean),
+    someMatch: matches.some(Boolean),
+  };
+}
+
 // Bandingkan jawaban berdasarkan tipe.
-// Returns { correct: bool, allowPartial: bool }.
-function evaluateAnswer(ans, userAnswer) {
+// Returns { correct: bool, allowPartial: bool, stepResults?: bool[] }.
+function evaluateAnswer(ans, userAnswer, userAnswers) {
   if (ans.type === "tf") {
     if (userAnswer === undefined || userAnswer === null) {
       throw new HttpsError("invalid-argument", "userAnswer required for TF");
@@ -161,6 +194,20 @@ function evaluateAnswer(ans, userAnswer) {
     return { correct: Number(userAnswer) === Number(ans.correctIdx), allowPartial: false };
   }
   if (ans.type === "comp") {
+    // ── Multi-step path: expectedSteps array → harus print semua nilai berurutan ──
+    // Strict mode: final answer benar SAJA tidak cukup. Semua step harus match.
+    if (Array.isArray(ans.expectedSteps) && ans.expectedSteps.length > 0) {
+      const userNums = Array.isArray(userAnswers)
+        ? userAnswers.map(Number).filter(Number.isFinite)
+        : (Number.isFinite(Number(userAnswer)) ? [Number(userAnswer)] : []);
+      const m = matchExpectedSteps(userNums, ans.expectedSteps);
+      return {
+        correct: m.allMatch,
+        allowPartial: ans.allowPartial === true,
+        stepResults: m.matches,
+      };
+    }
+    // ── Single-answer path (legacy, untuk soal 1-step) ──
     // null = client tidak punya jawaban yang bisa di-parse (mis. Pyodide error).
     // Tetap dianggap sbg attempt yg salah, tapi partial-credit logic tetap berlaku
     // utk Comp Hard non-late.
@@ -221,7 +268,7 @@ function normalizeSelection(type, userAnswer) {
 // ═════════════════════════════════════════════════════════════════════════════
 exports.checkExamAnswer = onCall(async (request) => {
   const d = request.data || {};
-  const { examId, qId, userAnswer, nim, pinHash, codeText } = d;
+  const { examId, qId, userAnswer, userAnswers, nim, pinHash, codeText } = d;
 
   // ── 1) Validate input ──
   // Catatan: utk Comp dgn Pyodide error, client kirim userAnswer=null → tetap
@@ -293,7 +340,7 @@ exports.checkExamAnswer = onCall(async (request) => {
   const ans = resolveAnswerKey(rawAns, nim);
 
   // ── 6) Evaluate ──
-  const evalResult = evaluateAnswer(ans, userAnswer);
+  const evalResult = evaluateAnswer(ans, userAnswer, userAnswers);
   const outcome = computeOutcome(ans, evalResult, sched.pastDeadline);
   const scoreDelta = outcome.points * sched.multiplier;
   const markerKey = qId + outcome.markerSuffix;
@@ -317,6 +364,13 @@ exports.checkExamAnswer = onCall(async (request) => {
   };
   if (ans.type === "comp" && typeof codeText === "string" && codeText.length > 0) {
     attemptDoc.codePreview = codeText.slice(0, 5000);
+  }
+  if (Array.isArray(evalResult.stepResults)) {
+    attemptDoc.stepResults = evalResult.stepResults;
+    if (Array.isArray(userAnswers)) {
+      // Simpan userAnswers (capped) utk audit trail multi-step
+      attemptDoc.userAnswers = userAnswers.slice(0, 64).map(Number);
+    }
   }
   await attemptRef.set(attemptDoc);
 
@@ -390,5 +444,11 @@ exports.checkExamAnswer = onCall(async (request) => {
     lateMultiplier: sched.multiplier, // 1.0 atau 0.8 (transparency utk UI)
     pastDeadline: sched.pastDeadline,
     consolationAwarded,
+    // Multi-step diagnostic: array bool per langkah (mis. [true,false,true]).
+    // Hanya ada utk soal comp dgn expectedSteps. UI pakai utk feedback "ζ ✓, ω_d ✗".
+    stepResults: evalResult.stepResults || null,
+    stepLabels: (ans.type === "comp" && Array.isArray(ans.expectedSteps))
+      ? ans.expectedSteps.map((s) => s.label || "")
+      : null,
   };
 });
