@@ -965,6 +965,7 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
     <p style="margin-top:12px;line-height:1.7">
       Setiap soal komputasi (Bagian C dan D) memiliki <strong>parameter unik</strong> yang dihitung dari <strong>2 digit terakhir NIM Anda</strong> (variabel <code style="color:var(--cyan)">N</code>).
       Sebagai contoh, jika NIM Anda <code>41320120<span style="color:var(--amber)">52</span></code>, maka <code>N = 52</code>.
+      <strong style="color:var(--amber)">Pengecualian:</strong> jika 2 digit terakhir NIM = <code>00</code>, maka <code>N</code> diambil dari <strong>2 digit sebelumnya</strong> (mis. NIM <code>4132012<span style="color:var(--amber)">20</span>00</code> → <code>N = 20</code>) — untuk menghindari parameter degenerate <code>N=0</code>.
       Jangan menyontek jawaban teman — <strong>parameter dan jawaban Anda berbeda dari mahasiswa lain</strong>.
     </p>
   </div>
@@ -1659,7 +1660,15 @@ function getN() {
   if (!me || !me.nim) return 0;
   const s = String(me.nim).replace(/\D/g, '');
   if (s.length < 2) return 0;
-  return parseInt(s.slice(-2), 10) || 0;
+  let n = parseInt(s.slice(-2), 10);
+  // Bug fix May 2026 (user request): kalau 2 digit terakhir = "00" (N=0),
+  // fallback ke 2 digit sebelumnya supaya soal NIM-based tidak render dgn
+  // parameter degenerate (c=0.1, k=10 dst yg bikin distraktor collapse).
+  // Contoh: NIM "4132012000" → "00" (N=0) → fallback ke "20" (N=20).
+  if (n === 0 && s.length >= 4) {
+    n = parseInt(s.slice(-4, -2), 10) || 0;
+  }
+  return n || 0;
 }
 window.getN = getN;
 
