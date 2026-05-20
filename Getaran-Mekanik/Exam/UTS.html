@@ -3232,6 +3232,49 @@ function renderUTSQuestions() {
   const N = (typeof window.getN === 'function') ? window.getN() : 0;
   console.log('[UTS] Rendering questions with N =', N);
 
+  // ── GUARD: jangan render dgn N=0 utk student (NIM belum siap) ──
+  // Kalau identity belum punya nim valid (mis. localStorage corrupt, race
+  // condition, atau identity object tanpa field nim), render dgn N=0 bikin
+  // semua soal komputasi pakai parameter salah (mis. c=0.1, k=10) — bug
+  // fatal mid-exam. Refuse render & schedule retry ketika identity siap.
+  const _me = (typeof getIdentity === 'function') ? getIdentity() : null;
+  const _role = _me && _me.role;
+  // Block N=0 render kecuali utk dosen (preview mode). Student / role tidak
+  // dikenal → block & retry (kemungkinan identity belum komplit).
+  if (N === 0 && _role !== 'dosen') {
+    console.warn('[UTS] Refuse render: N=0 utk student. Identity:', _me);
+    // Tampilkan loading placeholder di container-tf selama menunggu identity siap
+    const _loadingHtml = '<div style="padding:24px;background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.25);border-radius:12px;color:#cbd5e1;font-size:14px;line-height:1.6"><strong style="color:#a78bfa">⏳ Menunggu identitas NIM siap...</strong><br>Soal akan muncul otomatis begitu NIM terdeteksi. Jika tidak muncul dalam 30 detik, silakan login ulang via tombol identitas (kanan-bawah) atau refresh halaman (Ctrl+R).</div>';
+    const _tfC = document.getElementById('container-tf');
+    if (_tfC && !_tfC.dataset.utsLoadingShown) {
+      _tfC.innerHTML = _loadingHtml;
+      _tfC.dataset.utsLoadingShown = '1';
+    }
+    // Retry tiap 500ms sampai N != 0 (max 30 detik)
+    if (!window._utsRenderRetryStarted) {
+      window._utsRenderRetryStarted = true;
+      let attempts = 0;
+      const retryTimer = setInterval(() => {
+        attempts++;
+        const N2 = (typeof window.getN === 'function') ? window.getN() : 0;
+        if (N2 !== 0) {
+          clearInterval(retryTimer);
+          window._utsRenderRetryStarted = false;
+          if (_tfC) delete _tfC.dataset.utsLoadingShown;
+          console.log('[UTS] Identity ready (N=' + N2 + '), trigger render.');
+          renderUTSQuestions();
+        } else if (attempts > 60) {
+          clearInterval(retryTimer);
+          window._utsRenderRetryStarted = false;
+          console.error('[UTS] Identity tidak siap setelah 30 detik.');
+          const tfC = document.getElementById('container-tf');
+          if (tfC) tfC.innerHTML = '<div style="padding:24px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.35);border-radius:12px;color:#fca5a5;font-size:14px;line-height:1.6"><strong>⚠ NIM tidak terdeteksi.</strong><br>Silakan <strong>logout & login ulang</strong> via tombol identitas (kanan-bawah). Jika masalah berlanjut, refresh halaman ini (Ctrl+R / Cmd+R) lalu login ulang dengan NIM Anda.</div>';
+        }
+      }, 500);
+    }
+    return;
+  }
+
   // ── Helper: HTML-escape function (untuk safe rendering) ──
   const _esc = (s) => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
