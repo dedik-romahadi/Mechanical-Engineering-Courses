@@ -1982,22 +1982,16 @@ const UTS_TF = [
   // ── MODUL 1 ──
   {
     id: 'tf1', modul: 1, parametric: false,
-    text: "Getaran mesin adalah gerakan osilasi (bolak-balik) komponen mesin di sekitar posisi keseimbangan, dan amplitudonya selalu menjadi indikator kondisi mesin.",
-    answer: true,
-    explain: "Sesuai Modul 1 Bagian 01 — definisi getaran mesin & perannya sebagai sinyal kondisi mesin."
+    text: "Getaran mesin adalah gerakan osilasi (bolak-balik) komponen mesin di sekitar posisi keseimbangan, dan amplitudonya selalu menjadi indikator kondisi mesin."
   },
   {
     id: 'tf2', modul: 1, parametric: false,
-    text: "Untuk monitoring frekuensi tinggi (>1 kHz) seperti bearing fault, parameter <b>kecepatan (mm/s)</b> lebih sesuai daripada percepatan (m/s²).",
-    answer: false,
-    explain: "Modul 1 Bagian 02 — pada frekuensi tinggi (>1 kHz), <b>percepatan</b> yang dominan dan paling sensitif. Velocity untuk frekuensi mid (10-1000 Hz)."
+    text: "Untuk monitoring frekuensi tinggi (>1 kHz) seperti bearing fault, parameter <b>kecepatan (mm/s)</b> lebih sesuai daripada percepatan (m/s²)."
   },
   // ── MODUL 2 ──
   {
     id: 'tf3', modul: 2, parametric: false,
     text: "Pada sistem getaran linier, gaya pegas berbanding lurus dengan <b>perpindahan</b>, sedangkan gaya peredam viskos berbanding lurus dengan <b>kecepatan</b>.",
-    answer: true,
-    explain: "Modul 2 Bagian 01 — F_pegas = -k·x dan F_peredam = -c·ẋ. Hukum dasar tiga elemen sistem getaran SDOF.",
     diagram: _diagram('Sistem SDOF — pegas k, peredam c, massa m', _svg.springMassDamper('k', 'm', 'c'))
   },
   {
@@ -2006,14 +2000,11 @@ const UTS_TF = [
       // FORMULA EKSPLISIT: m = N+1, k = 1000 (tetap)
       const m = N + 1;                // langsung dari NIM: m = N+1 kg (range 1-100)
       const k = 1000;                 // konstan untuk semua mahasiswa
-      const T = 2 * Math.PI * Math.sqrt(m / k);
       return {
         text: `Sistem getaran SDOF undamped. Berdasarkan NIM Anda, <b>N = ${N}</b> (2 digit terakhir):<br>
                • <b>m = N + 1 = ${N} + 1 = ${m} kg</b><br>
                • <b>k = 1000 N/m</b> (tetap, sama untuk semua mahasiswa)<br>
                Apakah periode natural <em>T &gt; 1.5 detik</em>?`,
-        answer: T > 1.5,
-        explain: `T = 2π·√(m/k) = 2π·√(${m}/1000) = <b>${T.toFixed(3)} s</b> ${T > 1.5 ? '> 1.5 → BENAR' : '≤ 1.5 → SALAH'}`,
         diagram: _diagram('Sistem Pegas-Massa Bebas — cek T = 2π·√(m/k)', _svg.springMass(k, m))
       };
     }
@@ -2025,19 +2016,14 @@ const UTS_TF = [
       // FORMULA EKSPLISIT: m=5 (tetap), k=125 (tetap), c=N+1 (NIM)
       // c_crit = 2√(km) = 2√(625) = 50 → ζ = (N+1)/50
       // Crossover ζ=1 di N=49 → balanced split: 49 underdamped, 51 overdamped
-      const m = 5;                    // tetap
-      const k = 125;                  // tetap → ω_n = √(125/5) = 5 rad/s
       const c = N + 1;                // langsung dari NIM: c = N+1 Ns/m
-      const c_crit = 2 * Math.sqrt(m * k);  // = 50
-      const zeta = c / c_crit;
+      const zeta = c / 50;            // c_crit = 2√(km) = 50
       return {
         text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
                • <b>m = 5 kg</b> (tetap)<br>
                • <b>k = 125 N/m</b> (tetap)<br>
                • <b>c = N + 1 = ${N} + 1 = ${c} Ns/m</b><br>
                Apakah sistem ini berada dalam regim <em>underdamped</em> (ζ &lt; 1)?`,
-        answer: zeta < 1,
-        explain: `c_crit = 2√(km) = 2√(${k}·${m}) = ${c_crit}; ζ = c/c_crit = ${c}/${c_crit} = <b>${zeta.toFixed(3)}</b> ${zeta < 1 ? '< 1 → underdamped (BENAR)' : '≥ 1 → bukan underdamped (SALAH)'}`,
         diagram: _diagram('Tiga Regim Damping — bandingkan respons ζ<1, ζ=1, ζ>1', _svg.threeRegimes(zeta < 1 ? 'under' : (zeta > 1 ? 'over' : 'critical')))
       };
     }
@@ -2045,16 +2031,12 @@ const UTS_TF = [
   {
     id: 'tf6', modul: 3, parametric: false,
     text: "<em>Logarithmic decrement</em> (δ) adalah metode standar untuk identifikasi rasio redaman ζ dari respons getaran bebas teredam dengan mengukur rasio amplitudo dua puncak berurutan.",
-    answer: true,
-    explain: "Modul 3 Bagian 04 — δ = (1/n)·ln(x₁/x_(n+1)) dan ζ = δ/√(4π² + δ²). Metode standar di lab vibrasi.",
     diagram: _diagram('Log Decrement — ukur rasio amplitudo puncak berurutan', _svg.decay({zeta: 0.08, wn: 5, markPeaks: 4}))
   },
   // ── MODUL 4 ──
   {
     id: 'tf7', modul: 4, parametric: false,
     text: "Pada kondisi resonansi (r = ω/ωₙ = 1) sistem dengan damping (ζ &gt; 0), respons amplitudo membesar tanpa batas (tak terhingga).",
-    answer: false,
-    explain: "Modul 4 Bagian 04 — pada resonansi dengan damping, X = X_st/(2ζ) yaitu <em>terbatas</em>. Hanya untuk sistem undamped (ζ=0) yang amplitudo → ∞.",
     diagram: _diagram('DMF puncak finite untuk ζ>0 (lihat semua kurva tidak ke ∞)', _svg.dmfCurve({zetas: [0.05, 0.1, 0.2, 0.5], highlightR: 1.0, highlightZeta: 0.1}))
   },
   {
@@ -2063,19 +2045,14 @@ const UTS_TF = [
       // FORMULA EKSPLISIT: m=1 (tetap), k=2500 (tetap), ω = N+1 (NIM)
       // ω_n = √(2500) = 50 rad/s → r = (N+1)/50
       // Crossover r=1 di N=49 → balanced split
-      const m = 1;                    // tetap
-      const k = 2500;                 // tetap → ω_n = 50 rad/s
       const omega = N + 1;            // langsung dari NIM: ω = N+1 rad/s
-      const wn = Math.sqrt(k / m);
-      const r = omega / wn;
+      const r = omega / 50;           // ωₙ = √(k/m) = 50 rad/s
       return {
         text: `Sistem getaran paksa. Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
                • <b>m = 1 kg</b> (tetap)<br>
                • <b>k = 2500 N/m</b> (tetap)<br>
                • <b>ω = N + 1 = ${N} + 1 = ${omega} rad/s</b> (eksitasi)<br>
                Apakah frequency ratio <em>r = ω/ωₙ &gt; 1</em> (di atas resonansi)?`,
-        answer: r > 1,
-        explain: `ωₙ = √(k/m) = √(2500/1) = ${wn} rad/s; r = ω/ωₙ = ${omega}/${wn} = <b>${r.toFixed(3)}</b> ${r > 1 ? '> 1 (BENAR)' : '≤ 1 (SALAH)'}`,
         diagram: _diagram('Posisi r mahasiswa pada kurva DMF', _svg.dmfCurve({zetas: [0.1, 0.2], highlightR: r, highlightZeta: 0.1}))
       };
     }
@@ -2084,8 +2061,6 @@ const UTS_TF = [
   {
     id: 'tf9', modul: 5, parametric: false,
     text: "<b>Q-factor</b> (Quality factor) yang lebih tinggi menunjukkan damping yang <em>lebih besar</em> pada sistem resonansi.",
-    answer: false,
-    explain: "Modul 5 Bagian 04 — Q = 1/(2ζ), jadi Q ↑ berarti ζ ↓ (damping kecil). Sistem dengan Q tinggi punya puncak resonansi tajam.",
     diagram: _diagram('Q-Factor — semakin kecil ζ, semakin tajam peak DMF', _svg.dmfCurve({zetas: [0.02, 0.1, 0.3], highlightR: 1.0, highlightZeta: 0.02}))
   },
   {
@@ -2095,14 +2070,11 @@ const UTS_TF = [
       // Crossover r=√2 di N≈37 → balanced split
       const zeta = 0.05;              // tetap
       const r = 0.5 + 0.025 * N;       // langsung dari NIM
-      const TR = Math.sqrt((1 + Math.pow(2*zeta*r, 2)) / (Math.pow(1 - r*r, 2) + Math.pow(2*zeta*r, 2)));
       return {
         text: `Sistem isolasi getaran. Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
                • <b>ζ = 0.05</b> (tetap, damping rendah)<br>
                • <b>r = 0.5 + 0.025·N = 0.5 + 0.025·${N} = ${r.toFixed(3)}</b><br>
                Apakah transmisibilitas <em>T<sub>R</sub> &lt; 1</em> (isolasi efektif)?`,
-        answer: TR < 1,
-        explain: `T_R = √((1 + (2ζr)²) / ((1-r²)² + (2ζr)²)) = <b>${TR.toFixed(3)}</b> ${TR < 1 ? '< 1 → ter-isolasi (BENAR)' : '≥ 1 → tidak ter-isolasi (SALAH). Isolasi efektif hanya untuk r > √2 ≈ 1.414.'}`,
         diagram: _diagram('Transmissibility T_R — isolasi hanya jika r > √2', _svg.trCurve({zeta: zeta, target: 1.0}))
       };
     }
@@ -2119,16 +2091,12 @@ const UTS_MC = [
   {
     id: 'mc1', modul: 1, parametric: false,
     text: "Berikut yang <b>BUKAN</b> merupakan parameter standar pengukuran getaran adalah:",
-    options: ["Perpindahan (mm)", "Kecepatan (mm/s)", "Percepatan (m/s²)", "Tekanan (Pa)"],
-    correctIdx: 3,
-    explain: "Modul 1 Bagian 02 — tiga parameter standar: perpindahan, kecepatan, percepatan. Tekanan bukan parameter getaran."
+    options: ["Perpindahan (mm)", "Kecepatan (mm/s)", "Percepatan (m/s²)", "Tekanan (Pa)"]
   },
   {
     id: 'mc2', modul: 1, parametric: false,
     text: "Pada getaran harmonik sederhana <code>x(t) = A·sin(ωt)</code>, hubungan antara percepatan maksimum a<sub>max</sub> dan amplitudo perpindahan A adalah:",
     options: ["a<sub>max</sub> = A·ω", "a<sub>max</sub> = A·ω²", "a<sub>max</sub> = A/ω", "a<sub>max</sub> = A·ω³"],
-    correctIdx: 1,
-    explain: "Turunan kedua x(t) = A·sin(ωt) adalah ẍ(t) = -A·ω²·sin(ωt), maka a_max = A·ω².",
     diagram: _diagram('Hubungan x(t), v(t), a(t) pada gerakan harmonik', _svg.harmonicMotion())
   },
   {
@@ -2137,30 +2105,25 @@ const UTS_MC = [
       // FORMULA EKSPLISIT: rpm = (N+1)·30 → range 30-3000 RPM
       const rpm = (N + 1) * 30;        // langsung dari NIM
       const omega = 2 * Math.PI * (rpm / 60);
-      const correct = omega;
       const opts = [
-        { v: correct, lbl: correct.toFixed(2) },
-        { v: rpm / 60, lbl: (rpm / 60).toFixed(2) },        // mistake: lupa 2π
-        { v: 2 * rpm, lbl: (2 * rpm).toFixed(2) },          // mistake: lupa /60
-        { v: omega / 2, lbl: (omega / 2).toFixed(2) }       // mistake: setengah
+        { lbl: omega.toFixed(2) },
+        { lbl: (rpm / 60).toFixed(2) },        // mistake: lupa 2π
+        { lbl: (2 * rpm).toFixed(2) },         // mistake: lupa /60
+        { lbl: (omega / 2).toFixed(2) }        // mistake: setengah
       ];
       const shuffled = shuffleSeed(opts, N);
       return {
         text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
                • <b>RPM = (N + 1) × 30 = (${N} + 1) × 30 = ${rpm} RPM</b><br>
                Frekuensi sudut motor ω (rad/s) adalah:`,
-        options: shuffled.map(o => o.lbl + ' rad/s'),
-        correctIdx: shuffled.findIndex(o => o.v === correct),
-        explain: `ω = 2π·(RPM/60) = 2π·(${rpm}/60) = <b>${correct.toFixed(2)} rad/s</b>`
+        options: shuffled.map(o => o.lbl + ' rad/s')
       };
     }
   },
   {
     id: 'mc4', modul: 1, parametric: false,
     text: "Peredam massa (<em>tuned mass damper</em>) berukuran 660 ton di puncak gedung Taipei 101 berfungsi untuk:",
-    options: ["Meredam getaran akibat angin & gempa", "Menambah massa total agar gedung lebih kokoh", "Memberikan dukungan struktural utama", "Sebagai cadangan generator listrik"],
-    correctIdx: 0,
-    explain: "Modul 1 Bagian 07 — TMD digunakan untuk meredam osilasi struktur akibat eksitasi eksternal (angin, gempa)."
+    options: ["Meredam getaran akibat angin & gempa", "Menambah massa total agar gedung lebih kokoh", "Memberikan dukungan struktural utama", "Sebagai cadangan generator listrik"]
   },
 
   // ── MODUL 2: Sistem Massa-Pegas-Peredam (4 soal) ──
@@ -2171,12 +2134,11 @@ const UTS_MC = [
       const m = 1;                    // tetap
       const k = N + 1;                // langsung dari NIM: k = N+1 N/m (range 1-100)
       const wn = Math.sqrt(k / m);
-      const correct = wn;
       const opts = [
-        { v: correct, lbl: correct.toFixed(2) },
-        { v: correct * 1.15, lbl: (correct * 1.15).toFixed(2) },
-        { v: correct / 1.15, lbl: (correct / 1.15).toFixed(2) },
-        { v: Math.sqrt(m / k), lbl: Math.sqrt(m / k).toFixed(4) }    // common mistake: invert
+        { lbl: wn.toFixed(2) },
+        { lbl: (wn * 1.15).toFixed(2) },
+        { lbl: (wn / 1.15).toFixed(2) },
+        { lbl: Math.sqrt(m / k).toFixed(4) }    // common mistake: invert
       ];
       const shuffled = shuffleSeed(opts, N + 5);
       return {
@@ -2185,8 +2147,6 @@ const UTS_MC = [
                • <b>k = N + 1 = ${N} + 1 = ${k} N/m</b><br>
                Frekuensi natural ωₙ adalah:`,
         options: shuffled.map(o => o.lbl + ' rad/s'),
-        correctIdx: shuffled.findIndex(o => o.v === correct),
-        explain: `ωₙ = √(k/m) = √(${k}/1) = √${k} = <b>${correct.toFixed(2)} rad/s</b>`,
         diagram: _diagram('Sistem Pegas-Massa — cari ωₙ = √(k/m)', _svg.springMass(k, m))
       };
     }
@@ -2194,9 +2154,7 @@ const UTS_MC = [
   {
     id: 'mc6', modul: 2, parametric: false,
     text: "Persamaan gerak SDOF dengan eksitasi paksa harmonik adalah:",
-    options: ["mẍ + kx = 0", "mẍ + cẋ + kx = 0", "mẍ + cẋ + kx = F₀sin(ωt)", "mẍ = F₀sin(ωt)"],
-    correctIdx: 2,
-    explain: "Modul 2 Bagian 02 & Modul 4 Bagian 01 — bentuk umum persamaan gerak getaran paksa."
+    options: ["mẍ + kx = 0", "mẍ + cẋ + kx = 0", "mẍ + cẋ + kx = F₀sin(ωt)", "mẍ = F₀sin(ωt)"]
   },
   {
     id: 'mc7', modul: 2, parametric: true,
@@ -2205,12 +2163,11 @@ const UTS_MC = [
       const m = N + 1;                // langsung dari NIM
       const k = 1000;                 // tetap
       const T = 2 * Math.PI * Math.sqrt(m / k);
-      const correct = T;
       const opts = [
-        { v: correct, lbl: correct.toFixed(4) },
-        { v: 1 / Math.sqrt(k / m), lbl: (1/Math.sqrt(k/m)).toFixed(4) },   // mistake: tanpa 2π
-        { v: 2 * Math.PI * Math.sqrt(k / m), lbl: (2*Math.PI*Math.sqrt(k/m)).toFixed(4) },  // mistake: invert
-        { v: Math.PI * Math.sqrt(m / k), lbl: (Math.PI*Math.sqrt(m/k)).toFixed(4) }   // mistake: π not 2π
+        { lbl: T.toFixed(4) },
+        { lbl: (1/Math.sqrt(k/m)).toFixed(4) },                          // mistake: tanpa 2π
+        { lbl: (2*Math.PI*Math.sqrt(k/m)).toFixed(4) },                  // mistake: invert
+        { lbl: (Math.PI*Math.sqrt(m/k)).toFixed(4) }                     // mistake: π not 2π
       ];
       const shuffled = shuffleSeed(opts, N + 7);
       return {
@@ -2219,8 +2176,6 @@ const UTS_MC = [
                • <b>k = 1000 N/m</b> (tetap)<br>
                Periode natural T (detik) adalah:`,
         options: shuffled.map(o => o.lbl + ' s'),
-        correctIdx: shuffled.findIndex(o => o.v === correct),
-        explain: `T = 2π·√(m/k) = 2π·√(${m}/1000) = <b>${correct.toFixed(4)} s</b>`,
         diagram: _diagram('Sistem Pegas-Massa — cari T = 2π·√(m/k)', _svg.springMass(k, m))
       };
     }
@@ -2228,9 +2183,7 @@ const UTS_MC = [
   {
     id: 'mc8', modul: 2, parametric: false,
     text: "Pada sistem dengan <b>2 derajat kebebasan</b> (2-DOF), berapa banyak frekuensi natural yang dimiliki sistem?",
-    options: ["1", "2", "3", "Tergantung damping"],
-    correctIdx: 1,
-    explain: "Modul 2 Bagian 04 — sistem n-DOF memiliki n frekuensi natural (eigenvalue dari matriks M⁻¹K)."
+    options: ["1", "2", "3", "Tergantung damping"]
   },
 
   // ── MODUL 3: Damped Free Vibration (4 soal) ──
@@ -2238,8 +2191,6 @@ const UTS_MC = [
     id: 'mc9', modul: 3, parametric: false,
     text: "Sistem getaran teredam dengan <b>ζ = 1</b> berada dalam kondisi:",
     options: ["Underdamped (osilasi mengecil)", "Critically damped (kembali tercepat tanpa overshoot)", "Overdamped (kembali lambat tanpa osilasi)", "Undamped (osilasi konstan)"],
-    correctIdx: 1,
-    explain: "Modul 3 Bagian 03 — ζ = 1 adalah critical damping, mengembalikan sistem ke equilibrium paling cepat tanpa overshoot.",
     diagram: _diagram('Tiga Regim Damping — mana respons ζ=1?', _svg.threeRegimes(null))
   },
   {
@@ -2250,14 +2201,12 @@ const UTS_MC = [
       const m = 1;                    // tetap
       const k = 100;                  // tetap
       const c = N + 1;                // langsung dari NIM
-      const cc = 2 * Math.sqrt(m * k);  // = 20
-      const zeta = c / cc;
-      const correct = zeta;
+      const zeta = c / 20;
       const opts = [
-        { v: correct, lbl: correct.toFixed(4) },
-        { v: c / Math.sqrt(m * k), lbl: (c/Math.sqrt(m*k)).toFixed(4) },     // mistake: lupa /2
-        { v: c / (2 * m * k), lbl: (c/(2*m*k)).toFixed(6) },                  // mistake: tanpa sqrt
-        { v: c / (2 * Math.sqrt(k / m)), lbl: (c/(2*Math.sqrt(k/m))).toFixed(4) }  // mistake: invert
+        { lbl: zeta.toFixed(4) },
+        { lbl: (c/Math.sqrt(m*k)).toFixed(4) },     // mistake: lupa /2
+        { lbl: (c/(2*m*k)).toFixed(6) },             // mistake: tanpa sqrt
+        { lbl: (c/(2*Math.sqrt(k/m))).toFixed(4) }   // mistake: invert
       ];
       const shuffled = shuffleSeed(opts, N + 10);
       return {
@@ -2267,8 +2216,6 @@ const UTS_MC = [
                • <b>c = N + 1 = ${N} + 1 = ${c} Ns/m</b><br>
                Rasio redaman ζ adalah:`,
         options: shuffled.map(o => o.lbl),
-        correctIdx: shuffled.findIndex(o => o.v === correct),
-        explain: `ζ = c/(2√(km)) = ${c}/(2·√(100·1)) = ${c}/${cc} = <b>${correct.toFixed(4)}</b>`,
         diagram: _diagram('Sistem Massa-Pegas-Peredam — cari rasio redaman ζ', _svg.springMassDamper(k, m, c))
       };
     }
@@ -2284,16 +2231,15 @@ const UTS_MC = [
       const wn = Math.sqrt(k / m);
       const zeta = c / (2 * Math.sqrt(m * k));
       const wd = wn * Math.sqrt(1 - zeta * zeta);
-      const correct = wd;
       // Bug fix May 2026: distractor sebelumnya {ωₙ, ωₙ(1-ζ²), ωₙ√(1+ζ²)}
       // SEMUA converge ke ωₙ saat ζ→0. Untuk NIM dgn N=0..3 (ζ=0.005..0.02),
       // ke-4 opsi collapse ke "10.000 rad/s" — mahasiswa lihat 4 opsi identik.
       // Redesign distractor agar tetap pedagogis tapi numerik distinct di semua N.
       const opts = [
-        { v: correct, lbl: correct.toFixed(4) },
-        { v: wn, lbl: wn.toFixed(4) },                                       // mistake: lupa koreksi damping
-        { v: wn * (1 - zeta), lbl: (wn*(1-zeta)).toFixed(4) },               // mistake: linear approx bukan √
-        { v: wn / Math.sqrt(1 - zeta * zeta), lbl: (wn/Math.sqrt(1-zeta*zeta)).toFixed(4) }  // mistake: bagi bukan kali
+        { lbl: wd.toFixed(4) },
+        { lbl: wn.toFixed(4) },                                       // mistake: lupa koreksi damping
+        { lbl: (wn*(1-zeta)).toFixed(4) },                            // mistake: linear approx bukan √
+        { lbl: (wn/Math.sqrt(1-zeta*zeta)).toFixed(4) }               // mistake: bagi bukan kali
       ];
       const shuffled = shuffleSeed(opts, N + 11);
       return {
@@ -2303,8 +2249,6 @@ const UTS_MC = [
                • <b>c = (N + 1) / 10 = (${N} + 1) / 10 = ${c.toFixed(1)} Ns/m</b><br>
                Frekuensi natural teredam ω_d (rad/s) adalah:`,
         options: shuffled.map(o => o.lbl + ' rad/s'),
-        correctIdx: shuffled.findIndex(o => o.v === correct),
-        explain: `ζ = c/(2√(km)) = ${c.toFixed(1)}/20 = ${zeta.toFixed(3)}; ω_d = ωₙ·√(1-ζ²) = 10·√(1-${zeta.toFixed(3)}²) = <b>${correct.toFixed(4)} rad/s</b>`,
         diagram: _diagram('Underdamped Decay — frekuensi ω_d vs envelope', _svg.decay({zeta: zeta, wn: wn}))
       };
     }
@@ -2312,9 +2256,7 @@ const UTS_MC = [
   {
     id: 'mc12', modul: 3, parametric: false,
     text: "Pada underdamped vibration, hubungan antara <b>logarithmic decrement δ</b> dan rasio redaman ζ untuk damping rendah (ζ &lt;&lt; 1) dapat didekati dengan:",
-    options: ["δ ≈ 2πζ", "δ ≈ ζ²", "δ ≈ ζ/2π", "δ ≈ √ζ"],
-    correctIdx: 0,
-    explain: "Modul 3 Bagian 04 — untuk ζ small, δ = 2πζ/√(1-ζ²) ≈ 2πζ. Approksimasi standar di teknik."
+    options: ["δ ≈ 2πζ", "δ ≈ ζ²", "δ ≈ ζ/2π", "δ ≈ √ζ"]
   },
 
   // ── MODUL 4: Forced Vibration & DMF (4 soal) ──
@@ -2322,8 +2264,6 @@ const UTS_MC = [
     id: 'mc13', modul: 4, parametric: false,
     text: "Pada kondisi resonansi (r = 1) sistem dengan damping ratio ζ, nilai <b>Dynamic Magnification Factor (DMF)</b> adalah:",
     options: ["DMF = 1/(2ζ)", "DMF = 2ζ", "DMF = 1/ζ", "DMF → ∞"],
-    correctIdx: 0,
-    explain: "Modul 4 Bagian 03 — pada r=1: DMF = 1/√((1-1)² + (2ζ)²) = 1/(2ζ). Inilah nilai amplifikasi maksimum (terbatas).",
     diagram: _diagram('Nilai DMF tepat di resonansi r=1', _svg.dmfCurve({zetas: [0.05, 0.1, 0.2, 0.5], highlightR: 1.0, highlightZeta: 0.1}))
   },
   {
@@ -2333,12 +2273,11 @@ const UTS_MC = [
       const r = (N + 1) / 50;          // langsung dari NIM (range 0.02 - 2.0)
       const zeta = 0.1;                // tetap
       const DMF = 1 / Math.sqrt(Math.pow(1 - r * r, 2) + Math.pow(2 * zeta * r, 2));
-      const correct = DMF;
       const opts = [
-        { v: correct, lbl: correct.toFixed(3) },
-        { v: 1 / Math.abs(1 - r * r), lbl: (1/Math.abs(1-r*r)).toFixed(3) },  // mistake: lupa damping
-        { v: 1 / (2 * zeta), lbl: (1/(2*zeta)).toFixed(3) },                  // mistake: assume r=1
-        { v: 1 / Math.sqrt(Math.pow(1 - r, 2) + Math.pow(2 * zeta * r, 2)), lbl: (1/Math.sqrt(Math.pow(1-r,2)+Math.pow(2*zeta*r,2))).toFixed(3) }  // mistake: (1-r) bukan (1-r²)
+        { lbl: DMF.toFixed(3) },
+        { lbl: (1/Math.abs(1-r*r)).toFixed(3) },                                                 // mistake: lupa damping
+        { lbl: (1/(2*zeta)).toFixed(3) },                                                         // mistake: assume r=1
+        { lbl: (1/Math.sqrt(Math.pow(1-r,2)+Math.pow(2*zeta*r,2))).toFixed(3) }                  // mistake: (1-r) bukan (1-r²)
       ];
       const shuffled = shuffleSeed(opts, N + 14);
       return {
@@ -2347,8 +2286,6 @@ const UTS_MC = [
                • <b>ζ = 0.1</b> (tetap)<br>
                Dynamic Magnification Factor (DMF) adalah:`,
         options: shuffled.map(o => o.lbl),
-        correctIdx: shuffled.findIndex(o => o.v === correct),
-        explain: `DMF = 1/√((1-r²)² + (2ζr)²) = 1/√((1-${(r*r).toFixed(3)})² + (${(2*zeta*r).toFixed(3)})²) = <b>${correct.toFixed(3)}</b>`,
         diagram: _diagram('Cari DMF pada r dan ζ mahasiswa', _svg.dmfCurve({zetas: [zeta, 0.1, 0.3], highlightR: r, highlightZeta: zeta}))
       };
     }
@@ -2363,13 +2300,12 @@ const UTS_MC = [
       const wn = Math.sqrt(k / m);    // = √1000 ≈ 31.62 rad/s
       const zeta = 0.1;                // tetap
       const X_st = F0 / k;             // static deflection
-      const X_res = X_st / (2 * zeta); // amplitude pada resonansi
-      const correct = X_res * 1000;    // convert to mm
+      const X_res_mm = (X_st / (2 * zeta)) * 1000;  // amplitude pada resonansi (mm)
       const opts = [
-        { v: correct, lbl: correct.toFixed(3) },
-        { v: X_st * 1000, lbl: (X_st*1000).toFixed(3) },                    // mistake: lupa amplifikasi
-        { v: F0 / wn / 1000, lbl: (F0/wn/1000).toFixed(5) },                // wrong formula
-        { v: F0 / k * (1 / zeta) * 1000, lbl: (F0/k*(1/zeta)*1000).toFixed(3) } // mistake: 1/ζ bukan 1/(2ζ)
+        { lbl: X_res_mm.toFixed(3) },
+        { lbl: (X_st*1000).toFixed(3) },                                    // mistake: lupa amplifikasi
+        { lbl: (F0/wn/1000).toFixed(5) },                                   // wrong formula
+        { lbl: (F0/k*(1/zeta)*1000).toFixed(3) }                            // mistake: 1/ζ bukan 1/(2ζ)
       ];
       const shuffled = shuffleSeed(opts, N + 15);
       return {
@@ -2378,8 +2314,6 @@ const UTS_MC = [
                • <b>F₀ = (N + 1) × 10 = (${N} + 1) × 10 = ${F0} N</b><br>
                Sistem dieksitasi tepat pada frekuensi natural (resonansi). Amplitudo steady-state X (mm) adalah:`,
         options: shuffled.map(o => o.lbl + ' mm'),
-        correctIdx: shuffled.findIndex(o => o.v === correct),
-        explain: `Pada resonansi: X = F₀/(2ζk) = ${F0}/(2·0.1·10000) = ${X_res.toExponential(3)} m = <b>${correct.toFixed(3)} mm</b>`,
         diagram: _diagram('Sistem Forced — eksitasi tepat di resonansi', _svg.springMassDamper(k, m, 'c', {force: 'F₀=' + F0 + 'N'}))
       };
     }
@@ -2387,9 +2321,7 @@ const UTS_MC = [
   {
     id: 'mc16', modul: 4, parametric: false,
     text: "Cara <b>terbaik</b> menghindari resonansi pada mesin rotasi yang harus tetap beroperasi pada frekuensi tertentu adalah:",
-    options: ["Tambah massa untuk menggeser ωₙ jauh dari ω", "Naikkan damping ratio ζ", "Geser frekuensi natural ωₙ jauh dari ω operasi (tuning)", "Semua jawaban di atas dapat membantu, namun tuning ωₙ adalah pendekatan utama"],
-    correctIdx: 3,
-    explain: "Modul 4 Bagian 04 — untuk menghindari resonansi: (1) tuning ωₙ jauh dari ω, (2) tambah damping, (3) gunakan tuned mass damper. Tuning ωₙ paling efektif."
+    options: ["Tambah massa untuk menggeser ωₙ jauh dari ω", "Naikkan damping ratio ζ", "Geser frekuensi natural ωₙ jauh dari ω operasi (tuning)", "Semua jawaban di atas dapat membantu, namun tuning ωₙ adalah pendekatan utama"]
   },
 
   // ── MODUL 5: Resonansi & Transmissibility (4 soal) ──
@@ -2397,8 +2329,6 @@ const UTS_MC = [
     id: 'mc17', modul: 5, parametric: false,
     text: "Pada kurva DMF vs r untuk berbagai damping ratio ζ, lokasi puncak resonansi terjadi pada r:",
     options: ["r = 1 (selalu, untuk semua ζ)", "r = √(1 - 2ζ²) (sedikit di bawah 1)", "r = √(1 + 2ζ²) (sedikit di atas 1)", "r = 1/(2ζ)"],
-    correctIdx: 1,
-    explain: "Modul 5 Bagian 02 — peak DMF terjadi pada r_peak = √(1-2ζ²), <em>sedikit</em> di bawah r=1 untuk ζ &gt; 0. Untuk ζ = 0, r_peak = 1.",
     diagram: _diagram('Lokasi peak DMF — bandingkan dengan r=1', _svg.dmfCurve({zetas: [0.1, 0.3, 0.5], highlightR: 1.0, highlightZeta: 0.1}))
   },
   {
@@ -2407,12 +2337,11 @@ const UTS_MC = [
       // FORMULA EKSPLISIT: ζ = (N+1)/200 langsung dari NIM (range 0.005 - 0.5)
       const zeta = (N + 1) / 200;       // langsung dari NIM
       const Q = 1 / (2 * zeta);
-      const correct = Q;
       const opts = [
-        { v: correct, lbl: correct.toFixed(2) },
-        { v: 1 / zeta, lbl: (1/zeta).toFixed(2) },                          // mistake: lupa /2
-        { v: 2 * zeta, lbl: (2*zeta).toFixed(4) },                           // mistake: invert
-        { v: 1 / (zeta * zeta), lbl: (1/(zeta*zeta)).toFixed(2) }            // mistake: ζ²
+        { lbl: Q.toFixed(2) },
+        { lbl: (1/zeta).toFixed(2) },                          // mistake: lupa /2
+        { lbl: (2*zeta).toFixed(4) },                           // mistake: invert
+        { lbl: (1/(zeta*zeta)).toFixed(2) }                     // mistake: ζ²
       ];
       const shuffled = shuffleSeed(opts, N + 18);
       return {
@@ -2420,8 +2349,6 @@ const UTS_MC = [
                • <b>ζ = (N + 1) / 200 = (${N} + 1) / 200 = ${zeta.toFixed(3)}</b><br>
                Sistem resonansi dengan damping ratio ζ tersebut. Quality factor Q adalah:`,
         options: shuffled.map(o => o.lbl),
-        correctIdx: shuffled.findIndex(o => o.v === correct),
-        explain: `Q = 1/(2ζ) = 1/(2·${zeta.toFixed(3)}) = <b>${Q.toFixed(2)}</b>. Q tinggi → puncak resonansi tajam.`,
         diagram: _diagram('Q = nilai DMF di puncak resonansi', _svg.dmfCurve({zetas: [zeta, 0.1, 0.3], highlightR: 1.0, highlightZeta: zeta}))
       };
     }
@@ -2433,12 +2360,11 @@ const UTS_MC = [
       const r = 1.5 + 0.04 * N;        // langsung dari NIM
       const zeta = 0.05;                // tetap
       const TR = Math.sqrt((1 + Math.pow(2*zeta*r, 2)) / (Math.pow(1-r*r, 2) + Math.pow(2*zeta*r, 2)));
-      const correct = TR;
       const opts = [
-        { v: correct, lbl: correct.toFixed(4) },
-        { v: 1 / Math.abs(1 - r * r), lbl: (1/Math.abs(1-r*r)).toFixed(4) },  // approx (lupa numerator)
-        { v: 1 / (r * r - 1), lbl: (1/(r*r-1)).toFixed(4) },                  // simpler approx
-        { v: 1 / r, lbl: (1/r).toFixed(4) }                                   // wrong
+        { lbl: TR.toFixed(4) },
+        { lbl: (1/Math.abs(1-r*r)).toFixed(4) },  // approx (lupa numerator)
+        { lbl: (1/(r*r-1)).toFixed(4) },           // simpler approx
+        { lbl: (1/r).toFixed(4) }                   // wrong
       ];
       const shuffled = shuffleSeed(opts, N + 19);
       return {
@@ -2447,8 +2373,6 @@ const UTS_MC = [
                • <b>ζ = 0.05</b> (tetap, damping rendah)<br>
                Untuk isolator getaran tersebut, nilai transmisibilitas T<sub>R</sub> adalah:`,
         options: shuffled.map(o => o.lbl),
-        correctIdx: shuffled.findIndex(o => o.v === correct),
-        explain: `T_R = √((1+(2ζr)²)/((1-r²)²+(2ζr)²)) = <b>${correct.toFixed(4)}</b>`,
         diagram: _diagram('Transmissibility T_R pada r mahasiswa', _svg.trCurve({zeta: zeta}))
       };
     }
@@ -2457,8 +2381,6 @@ const UTS_MC = [
     id: 'mc20', modul: 5, parametric: false,
     text: "Untuk desain isolator getaran yang efektif (T<sub>R</sub> &lt; 1), syarat minimum frekuensi rasio adalah:",
     options: ["r &gt; 1", "r &gt; √2 ≈ 1.414", "r &gt; 2", "r &gt; π"],
-    correctIdx: 1,
-    explain: "Modul 5 Bagian 03 — untuk semua ζ, T_R = 1 saat r = √2. Isolasi efektif (T_R < 1) hanya untuk r > √2.",
     diagram: _diagram('T_R curve — isolasi efektif (T_R<1) hanya jika r > √2', _svg.trCurve({zeta: 0.1, target: 1.0}))
   },
 ];
@@ -2475,14 +2397,11 @@ const UTS_COMP_EZ = [
     compute: (N) => {
       // FORMULA EKSPLISIT: rpm = (N+1)·30 langsung dari NIM
       const rpm = (N + 1) * 30;        // langsung dari NIM (range 30-3000 RPM)
-      const omega = 2 * Math.PI * (rpm / 60);
       return {
         text: `Berdasarkan NIM Anda, <b>N = ${N}</b> (2 digit terakhir):<br>
                • <b>RPM = (N + 1) × 30 = (${N} + 1) × 30 = ${rpm} RPM</b><br>
                Hitung <b>frekuensi sudut motor ω</b> (rad/s) dengan rumus ω = 2π·(RPM/60).`,
-        hint: `import numpy as np\n# N = ${N} (dari 2 digit terakhir NIM Anda)\nrpm = ${rpm}  # = (N+1) * 30\n# TODO: hitung omega dengan rumus ω = 2π·(RPM/60)\n# TODO: print(omega)`,
-        expected: omega,
-        tolerance: 0.05
+        hint: `import numpy as np\n# N = ${N} (dari 2 digit terakhir NIM Anda)\nrpm = ${rpm}  # = (N+1) * 30\n# TODO: hitung omega dengan rumus ω = 2π·(RPM/60)\n# TODO: print(omega)`
       };
     }
   },
@@ -2493,16 +2412,13 @@ const UTS_COMP_EZ = [
       // FORMULA EKSPLISIT: m=1 (tetap), k=(N+1)·10 langsung dari NIM
       const m = 1;                     // tetap
       const k = (N + 1) * 10;          // langsung dari NIM (range 10-1000 N/m)
-      const wn = Math.sqrt(k / m);
       return {
         text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
                • <b>m = 1 kg</b> (tetap)<br>
                • <b>k = (N + 1) × 10 = (${N} + 1) × 10 = ${k} N/m</b><br>
                Hitung <b>frekuensi natural ωₙ</b> (rad/s). Rumus: ωₙ = √(k/m).`,
         hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nm = 1            # tetap\nk = ${k}        # = (N+1) * 10\n# TODO: hitung wn dengan rumus ωₙ = √(k/m) — gunakan np.sqrt()\n# TODO: print(wn)`,
-        diagram: _diagram('Sistem Pegas-Massa Bebas', _svg.springMass(k, m)),
-        expected: wn,
-        tolerance: 0.02
+        diagram: _diagram('Sistem Pegas-Massa Bebas', _svg.springMass(k, m))
       };
     }
   },
@@ -2513,16 +2429,13 @@ const UTS_COMP_EZ = [
       // FORMULA EKSPLISIT: m=1 (tetap), k=(N+1)·40 langsung dari NIM
       const m = 1;                     // tetap
       const k = (N + 1) * 40;          // langsung dari NIM (range 40-4000 N/m)
-      const fn = Math.sqrt(k / m) / (2 * Math.PI);
       return {
         text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
                • <b>m = 1 kg</b> (tetap)<br>
                • <b>k = (N + 1) × 40 = (${N} + 1) × 40 = ${k} N/m</b><br>
                Hitung <b>frekuensi natural f<sub>n</sub></b> dalam <b>Hz</b>. Rumus: f<sub>n</sub> = (1/2π)·√(k/m).`,
         hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nm = 1            # tetap\nk = ${k}        # = (N+1) * 40\n# TODO: hitung fn dengan rumus fn = (1/2π)·√(k/m)\n# TODO: print(fn)`,
-        diagram: _diagram('Sistem Pegas-Massa (cari frekuensi natural Hz)', _svg.springMass(k, m)),
-        expected: fn,
-        tolerance: 0.01
+        diagram: _diagram('Sistem Pegas-Massa (cari frekuensi natural Hz)', _svg.springMass(k, m))
       };
     }
   },
@@ -2534,7 +2447,6 @@ const UTS_COMP_EZ = [
       const m = 1;                     // tetap
       const k = 100;                   // tetap → c_crit = 2√(km) = 20
       const c = N + 1;                 // langsung dari NIM (range 1-100)
-      const zeta = c / (2 * Math.sqrt(m * k));
       return {
         text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
                • <b>m = 1 kg</b> (tetap)<br>
@@ -2542,9 +2454,7 @@ const UTS_COMP_EZ = [
                • <b>c = N + 1 = ${N} + 1 = ${c} Ns/m</b><br>
                Hitung <b>rasio redaman ζ</b> (dimensionless). Rumus: ζ = c/(2√(km)).`,
         hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nm = 1            # tetap\nk = 100          # tetap\nc = ${c}            # = N+1\n# TODO: hitung zeta dengan rumus ζ = c/(2√(km))\n# TODO: print(zeta)`,
-        diagram: _diagram('Sistem Massa-Pegas-Peredam (cari rasio redaman ζ)', _svg.springMassDamper(k, m, c)),
-        expected: zeta,
-        tolerance: 0.005
+        diagram: _diagram('Sistem Massa-Pegas-Peredam (cari rasio redaman ζ)', _svg.springMassDamper(k, m, c))
       };
     }
   },
@@ -2554,12 +2464,9 @@ const UTS_COMP_EZ = [
     compute: (N) => {
       // FORMULA EKSPLISIT: m=1, k=100, c=(N+1)/10 langsung dari NIM
       // ζ = (N+1)/200 → range 0.005-0.5, selalu underdamped
-      const m = 1;                     // tetap
-      const k = 100;                   // tetap → ω_n = 10
       const c = (N + 1) / 10;          // langsung dari NIM (range 0.1-10)
-      const wn = Math.sqrt(k / m);
-      const zeta = c / (2 * Math.sqrt(m * k));
-      const wd = wn * Math.sqrt(1 - zeta * zeta);
+      const zeta = c / 20;             // ωₙ=10, 2√(km)=20
+      const wn = 10;
       return {
         text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
                • <b>m = 1 kg</b> (tetap), <b>k = 100 N/m</b> (tetap) → ωₙ = 10 rad/s<br>
@@ -2567,14 +2474,7 @@ const UTS_COMP_EZ = [
                Hitung <b>frekuensi natural teredam ω<sub>d</sub></b> (rad/s). Rumus: ω<sub>d</sub> = ωₙ·√(1−ζ²).
                <div style="margin-top:8px;padding:8px 10px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.3);border-radius:6px;color:var(--violet);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 3 nilai berurutan: <b>ωₙ → ζ → ω_d</b>. Final answer saja tidak cukup.</div>`,
         hint: `import numpy as np\n# N = ${N}\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\n# Rumus: ωₙ = √(k/m),  ζ = c/(2·√(k·m)),  ω_d = ωₙ·√(1−ζ²)\n# WAJIB print BERURUTAN: wn → zeta → wd\n# TODO: hitung wn, lalu print(wn)       # langkah 1\n# TODO: hitung zeta, lalu print(zeta)   # langkah 2\n# TODO: hitung wd, lalu print(wd)       # final`,
-        diagram: _diagram('Underdamped — Frekuensi natural teredam ωd < ωn', _svg.decay({zeta: zeta, wn: wn})),
-        expected: wd,
-        expectedSteps: [
-          { label: 'ωₙ',  value: wn,   tolerance: 0.02 },
-          { label: 'ζ',   value: zeta, tolerance: 0.001 },
-          { label: 'ω_d', value: wd,   tolerance: 0.02 },
-        ],
-        tolerance: 0.02
+        diagram: _diagram('Underdamped — Frekuensi natural teredam ωd < ωn', _svg.decay({zeta: zeta, wn: wn}))
       };
     }
   },
@@ -2586,16 +2486,13 @@ const UTS_COMP_EZ = [
       const x1 = 0.1;                  // tetap (m)
       const ratio = Math.exp(-(N + 1) / 100);  // rasio x2/x1, range 0.367 - 0.990
       const x2 = x1 * ratio;
-      const delta = Math.log(x1 / x2);
       return {
         text: `Berdasarkan NIM Anda, <b>N = ${N}</b>. Pada eksperimen getaran bebas teredam, dua puncak amplitudo berurutan diukur:<br>
                • <b>x₁ = 0.1 m</b> (tetap)<br>
                • <b>x₂ = x₁ · exp(−(N+1)/100) = 0.1 · exp(−${N+1}/100) = ${x2.toFixed(4)} m</b><br>
                Hitung <b>logarithmic decrement δ</b>. Rumus: δ = ln(x₁/x₂).`,
         hint: `import numpy as np\n# N = ${N}\nx1 = 0.1                       # tetap\nx2 = 0.1 * np.exp(-(${N}+1)/100)  # = ${x2.toFixed(4)}\n# TODO: hitung delta = ln(x1/x2) — gunakan np.log()\n# TODO: print(delta)`,
-        diagram: _diagram('Logarithmic Decrement — δ = ln(x₁/x₂)', _svg.decay({zeta: 0.08, wn: 5, markPeaks: 3})),
-        expected: delta,
-        tolerance: 0.005
+        diagram: _diagram('Logarithmic Decrement — δ = ln(x₁/x₂)', _svg.decay({zeta: 0.08, wn: 5, markPeaks: 3}))
       };
     }
   },
@@ -2606,16 +2503,13 @@ const UTS_COMP_EZ = [
       // FORMULA EKSPLISIT: r = (N+1)/50 langsung dari NIM, ζ = 0.1 tetap
       const r = (N + 1) / 50;          // langsung dari NIM (range 0.02 - 2.0)
       const zeta = 0.1;                 // tetap
-      const DMF = 1 / Math.sqrt(Math.pow(1 - r * r, 2) + Math.pow(2 * zeta * r, 2));
       return {
         text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
                • <b>r = (N + 1) / 50 = (${N} + 1) / 50 = ${r.toFixed(3)}</b><br>
                • <b>ζ = 0.1</b> (tetap)<br>
                Hitung <b>Dynamic Magnification Factor (DMF)</b>. Rumus: DMF = 1/√((1−r²)² + (2ζr)²).`,
         hint: `import numpy as np\n# N = ${N}\nr = ${r.toFixed(3)}        # = (N+1)/50\nzeta = 0.1                # tetap\n# TODO: hitung DMF dengan rumus DMF = 1/√((1−r²)² + (2ζr)²)\n# TODO: print(DMF)`,
-        diagram: _diagram('Dynamic Magnification Factor — kurva DMF vs r', _svg.dmfCurve({zetas: [zeta, 0.05, 0.2, 0.7], highlightR: r, highlightZeta: zeta})),
-        expected: DMF,
-        tolerance: 0.01
+        diagram: _diagram('Dynamic Magnification Factor — kurva DMF vs r', _svg.dmfCurve({zetas: [zeta, 0.05, 0.2, 0.7], highlightR: r, highlightZeta: zeta}))
       };
     }
   },
@@ -2628,10 +2522,6 @@ const UTS_COMP_EZ = [
       const c = 50;                     // tetap
       const k = 10000;                  // tetap → ω_n = √1000 ≈ 31.6
       const F0 = (N + 1) * 10;          // langsung dari NIM (range 10-1000 N)
-      const omega = 20;                 // tetap (off-resonance, r ≈ 0.633)
-      const denom = Math.sqrt(Math.pow(k - m * omega * omega, 2) + Math.pow(c * omega, 2));
-      const X = F0 / denom;             // amplitudo steady-state (m)
-      const X_mm = X * 1000;            // dalam mm
       return {
         text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
                • <b>m = 10 kg, c = 50 Ns/m, k = 10000 N/m, ω = 20 rad/s</b> (semua tetap)<br>
@@ -2639,13 +2529,7 @@ const UTS_COMP_EZ = [
                Sistem dieksitasi gaya harmonik F(t) = F₀·sin(ωt). Hitung <b>amplitudo steady-state X</b> dalam <b>mm</b>. Rumus: X = F₀/√((k−mω²)² + (cω)²).
                <div style="margin-top:8px;padding:8px 10px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.3);border-radius:6px;color:var(--violet);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 2 nilai berurutan: <b>X dalam meter → X dalam mm</b>.</div>`,
         hint: `import numpy as np\n# N = ${N}\nm = 10           # tetap\nc = 50           # tetap\nk = 10000        # tetap\nF0 = ${F0}         # = (N+1) * 10\nomega = 20       # tetap\n# Rumus: X = F₀ / √((k − m·ω²)² + (c·ω)²)\n# WAJIB print BERURUTAN: X (meter) → X (mm)\n# TODO: hitung X dalam meter, lalu print(X)        # langkah 1: amplitudo dalam meter\n# TODO: konversi ke mm, lalu print(X_mm)           # final: amplitudo dalam mm`,
-        diagram: _diagram('Forced Vibration — Cari amplitudo steady-state X', _svg.springMassDamper(k, m, c, {force: 'F₀sin(ωt)'})),
-        expected: X_mm,
-        expectedSteps: [
-          { label: 'X (m)',  value: X,    tolerance: 0.00005 },
-          { label: 'X (mm)', value: X_mm, tolerance: 0.05 },
-        ],
-        tolerance: 0.05
+        diagram: _diagram('Forced Vibration — Cari amplitudo steady-state X', _svg.springMassDamper(k, m, c, {force: 'F₀sin(ωt)'}))
       };
     }
   },
@@ -2654,11 +2538,8 @@ const UTS_COMP_EZ = [
     id: 'c9', modul: 5,
     compute: (N) => {
       // FORMULA EKSPLISIT: m=1 (tetap), k=100 (tetap), c=(N+1)/10 langsung dari NIM
-      const m = 1;                     // tetap
-      const k = 100;                   // tetap → c_crit = 20
       const c = (N + 1) / 10;          // langsung dari NIM (range 0.1-10)
-      const zeta = c / (2 * Math.sqrt(m * k));
-      const Q = 1 / (2 * zeta);
+      const zeta = c / 20;             // ωₙ=10, 2√(km)=20
       return {
         text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
                • <b>m = 1 kg, k = 100 N/m</b> (tetap)<br>
@@ -2666,13 +2547,7 @@ const UTS_COMP_EZ = [
                Hitung <b>Quality factor Q</b>. Rumus: Q = 1/(2ζ), dengan ζ = c/(2√(km)).
                <div style="margin-top:8px;padding:8px 10px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.3);border-radius:6px;color:var(--violet);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 2 nilai berurutan: <b>ζ → Q</b>.</div>`,
         hint: `import numpy as np\n# N = ${N}\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\n# Rumus: ζ = c/(2·√(k·m)),  Q = 1/(2·ζ)\n# WAJIB print BERURUTAN: zeta → Q\n# TODO: hitung zeta, lalu print(zeta)    # langkah 1\n# TODO: hitung Q, lalu print(Q)          # final`,
-        diagram: _diagram('Q-Factor = nilai DMF di puncak resonansi (r≈1)', _svg.dmfCurve({zetas: [zeta, 0.05, 0.2], highlightR: 1.0, highlightZeta: zeta})),
-        expected: Q,
-        expectedSteps: [
-          { label: 'ζ', value: zeta, tolerance: 0.001 },
-          { label: 'Q', value: Q,    tolerance: 0.05 },
-        ],
-        tolerance: 0.05
+        diagram: _diagram('Q-Factor = nilai DMF di puncak resonansi (r≈1)', _svg.dmfCurve({zetas: [zeta, 0.05, 0.2], highlightR: 1.0, highlightZeta: zeta}))
       };
     }
   },
@@ -2683,16 +2558,13 @@ const UTS_COMP_EZ = [
       // FORMULA EKSPLISIT: r = 1.6 + 0.04·N langsung dari NIM (range 1.6-5.56), ζ = 0.05 tetap
       const r = 1.6 + 0.04 * N;        // langsung dari NIM (semua > √2)
       const zeta = 0.05;                // tetap
-      const TR = Math.sqrt((1 + Math.pow(2*zeta*r, 2)) / (Math.pow(1-r*r, 2) + Math.pow(2*zeta*r, 2)));
       return {
         text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
                • <b>r = 1.6 + 0.04·N = 1.6 + 0.04·${N} = ${r.toFixed(3)}</b><br>
                • <b>ζ = 0.05</b> (tetap, damping rendah)<br>
                Hitung <b>transmisibilitas T<sub>R</sub></b> untuk sistem isolasi tersebut. Rumus: T<sub>R</sub> = √((1+(2ζr)²) / ((1−r²)² + (2ζr)²)).`,
         hint: `import numpy as np\n# N = ${N}\nr = ${r.toFixed(3)}            # = 1.6 + 0.04*N\nzeta = 0.05            # tetap\n# TODO: hitung TR dengan rumus T_R = √((1+(2ζr)²) / ((1−r²)² + (2ζr)²))\n# TODO: print(TR)`,
-        diagram: _diagram('Transmissibility T_R vs r — Isolasi efektif r > √2', _svg.trCurve({zeta: zeta})),
-        expected: TR,
-        tolerance: 0.005
+        diagram: _diagram('Transmissibility T_R vs r — Isolasi efektif r > √2', _svg.trCurve({zeta: zeta}))
       };
     }
   },
@@ -2711,60 +2583,7 @@ const UTS_COMP_HARD = [
     compute: (N) => {
       // FORMULA EKSPLISIT: m=1 (tetap), k=100 (tetap), c=(N+1)/10 langsung dari NIM
       // ζ = (N+1)/200 → range 0.005-0.5, selalu underdamped
-      const m = 1;                     // tetap
-      const k = 100;                   // tetap → ω_n = 10 rad/s
       const c = (N + 1) / 10;          // langsung dari NIM (range 0.1-10 Ns/m)
-      const wn = Math.sqrt(k / m);
-      const zeta = c / (2 * Math.sqrt(m * k));
-      const wd = wn * Math.sqrt(1 - zeta * zeta);
-      const x0 = 0.1, v0 = 0;
-      const A = x0;
-      const B = (zeta * wn * x0 + v0) / wd;     // since v0 = 0: B = zeta*wn*x0/wd
-      // Peak pertama setelah crossing 0:
-      // x(t) = exp(-zeta*wn*t) * (A*cos(wd*t) + B*sin(wd*t))
-      // Cari peak with t > T_d/2 (after first zero crossing)
-      // Peak terjadi pada t = T_d (one period), tapi karena exp decay, peak pertama setelah crossing
-      // ada sekitar t = T_d * 0.5 + T_d/2 = T_d (peak negatif), then peak positif kedua di t ≈ 1.5*T_d... 
-      // Wait — let me think. x(0) = +0.1 (positive peak). x crosses zero at some t1, then negative peak,
-      // then crosses zero, then positive peak (this is "first positive peak after t=0 crossing").
-      // For underdamped: zero crossings approximately at T_d/4 + n*T_d/2
-      // First positive peak after t=0 is approximately at t ≈ T_d (one full period later).
-      // Use numerical RK4 to compute exactly.
-      function rhs(state) {
-        const [x, v] = state;
-        return [v, (-c * v - k * x) / m];
-      }
-      function rk4(state, h) {
-        const k1 = rhs(state);
-        const k2 = rhs([state[0] + h/2*k1[0], state[1] + h/2*k1[1]]);
-        const k3 = rhs([state[0] + h/2*k2[0], state[1] + h/2*k2[1]]);
-        const k4 = rhs([state[0] + h*k3[0], state[1] + h*k3[1]]);
-        return [
-          state[0] + h/6*(k1[0] + 2*k2[0] + 2*k3[0] + k4[0]),
-          state[1] + h/6*(k1[1] + 2*k2[1] + 2*k3[1] + k4[1])
-        ];
-      }
-      let state = [x0, v0];
-      const h = 0.001;
-      const T = 3.0;
-      const steps = Math.floor(T / h);
-      let prev_v = v0;
-      let crossedZero = false;
-      let firstPositivePeakAfterCross = null;
-      for (let i = 1; i <= steps; i++) {
-        state = rk4(state, h);
-        // Detect zero crossing of x (from + to -)
-        if (!crossedZero && state[0] < 0) crossedZero = true;
-        // After crossing, look for next positive peak: v changes sign + to -, x > 0
-        if (crossedZero && state[0] > 0 && prev_v > 0 && state[1] <= 0) {
-          firstPositivePeakAfterCross = state[0];
-          break;
-        }
-        prev_v = state[1];
-      }
-      const expected = firstPositivePeakAfterCross || 0;
-      const wn_val = Math.sqrt(k / m);
-      const zeta_val = c / (2 * Math.sqrt(m * k));
       return {
         text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
                • <b>m = 1 kg</b> (tetap)<br>
@@ -2773,14 +2592,7 @@ const UTS_COMP_HARD = [
                Implementasikan integrator <b>Runge-Kutta orde-4 (RK4)</b> untuk menyelesaikan sistem getaran bebas teredam <code>mẍ + cẋ + kx = 0</code>. Kondisi awal: <b>x(0) = 0.1 m, ẋ(0) = 0</b>. Step <b>h = 0.001 s</b>, durasi <b>t = 0..3 s</b>. Laporkan <b>nilai puncak amplitudo positif PERTAMA setelah simpangan x melewati nol</b> (yaitu peak positif kedua, dalam meter).
                <div style="margin-top:8px;padding:8px 10px;background:rgba(236,72,153,.08);border:1px solid rgba(236,72,153,.3);border-radius:6px;color:var(--pink);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 3 nilai berurutan: <b>ζ → ωₙ → peak amplitude</b>. Final answer saja tidak cukup.</div>`,
         hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\n# Rumus: ζ = c/(2·√(k·m)),  ωₙ = √(k/m)\n# WAJIB print BERURUTAN: zeta → wn → peak\n# TODO: hitung zeta, lalu print(zeta)         # langkah 1\n# TODO: hitung wn, lalu print(wn)             # langkah 2\n# Kerangka RK4: state = [x, v]; rhs(state) = [v, (-c*v - k*x)/m];\n# loop t=0..3 dgn h=0.001, deteksi zero crossing (+ ke -), lalu cari peak (v: + → ≤0, x > 0)\n# TODO: implementasikan RK4 + peak detection, lalu print(peak_x)   # final`,
-        diagram: _diagram('Sistem Massa-Pegas-Peredam (free vibration, x₀=0.1)', _svg.springMassDamper(k, m, c.toFixed(1))),
-        expected: expected,
-        expectedSteps: [
-          { label: 'ζ',    value: zeta_val, tolerance: 0.001 },
-          { label: 'ωₙ',   value: wn_val,   tolerance: 0.02 },
-          { label: 'peak', value: expected, tolerance: 0.005 },
-        ],
-        tolerance: 0.005
+        diagram: _diagram('Sistem Massa-Pegas-Peredam (free vibration, x₀=0.1)', _svg.springMassDamper(100, 1, c.toFixed(1)))
       };
     }
   },
@@ -2791,10 +2603,6 @@ const UTS_COMP_HARD = [
       // FORMULA EKSPLISIT: zeta_true = (N+1)/200 langsung dari NIM, wn = 10 tetap
       const zeta_true = (N + 1) / 200;          // langsung dari NIM (range 0.005-0.5)
       const wn = 10;                             // tetap (rad/s)
-      const wd = wn * Math.sqrt(1 - zeta_true * zeta_true);
-      const Td = 2 * Math.PI / wd;
-      const delta_expected = zeta_true * wn * Td;
-      const zeta_est = delta_expected / Math.sqrt(4 * Math.PI * Math.PI + delta_expected * delta_expected);
       return {
         text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
                • <b>ζ_true = (N + 1) / 200 = (${N} + 1) / 200 = ${zeta_true.toFixed(4)}</b> (rasio redaman sebenarnya)<br>
@@ -2802,13 +2610,7 @@ const UTS_COMP_HARD = [
                Identifikasi <b>rasio redaman ζ</b> dari sinyal getaran bebas underdamped <code>x(t) = exp(−ζ_true·ωₙ·t)·cos(ωd·t)</code> untuk t ∈ [0, 8] dengan 4000 sampel. Lakukan <em>peak detection</em>, ambil <b>n = 5 puncak</b>, hitung logarithmic decrement δ = (1/n)·ln(x₁/x_(1+n)), lalu estimasi <b>ζ = δ/√(4π² + δ²)</b>. Laporkan ζ_estimasi (harus mendekati ζ_true).
                <div style="margin-top:8px;padding:8px 10px;background:rgba(236,72,153,.08);border:1px solid rgba(236,72,153,.3);border-radius:6px;color:var(--pink);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 2 nilai berurutan: <b>δ → ζ_est</b>. Final answer saja tidak cukup.</div>`,
         hint: `import numpy as np\nfrom scipy.signal import find_peaks\n# N = ${N} (dari NIM Anda)\nzeta_true = (${N}+1)/200    # ground-truth (target estimasi)\nwn = 10                    # tetap\nwd = wn * np.sqrt(1 - zeta_true**2)\n\nt = np.linspace(0, 8, 4000)\nx = np.exp(-zeta_true*wn*t) * np.cos(wd*t)\npeaks, _ = find_peaks(x)\n# Diberikan: array peaks (indeks puncak dari find_peaks)\n# Rumus: δ = (1/n)·ln(x[p₀] / x[pₙ]),   ζ = δ / √(4π² + δ²)\n# WAJIB print BERURUTAN: delta → zeta_est\n# TODO: hitung delta dari peaks[0] dan peaks[5] (n=5), lalu print(delta)   # langkah 1: logarithmic decrement\n# TODO: hitung zeta_est dari delta, lalu print(zeta_est)                   # final`,
-        diagram: _diagram('Identifikasi ζ — peak detection pada decay sinyal', _svg.decay({zeta: zeta_true, wn: wn, markPeaks: 5})),
-        expected: zeta_est,
-        expectedSteps: [
-          { label: 'δ',     value: delta_expected, tolerance: 0.01 },
-          { label: 'ζ_est', value: zeta_est,       tolerance: 0.005 },
-        ],
-        tolerance: 0.005
+        diagram: _diagram('Identifikasi ζ — peak detection pada decay sinyal', _svg.decay({zeta: zeta_true, wn: wn, markPeaks: 5}))
       };
     }
   },
@@ -2819,17 +2621,13 @@ const UTS_COMP_HARD = [
       // FORMULA EKSPLISIT: f1 = N+1 Hz langsung dari NIM (komponen dominan), f2 = 80 Hz tetap
       const f1 = N + 1;                  // langsung dari NIM (range 1-100 Hz, dominan)
       const f2 = 80;                     // tetap (komponen lemah)
-      const A1 = 1.0;                    // amplitudo dominan
-      const A2 = 0.3;                    // amplitudo lemah
       return {
         text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
                • <b>f₁ = N + 1 = ${N} + 1 = ${f1} Hz</b> (komponen dominan, A₁ = 1.0)<br>
                • <b>f₂ = 80 Hz</b> (tetap, komponen lemah, A₂ = 0.3)<br>
                Lakukan <b>analisis FFT</b> untuk mengidentifikasi frekuensi dominan dari sinyal getaran <code>x(t) = A₁·sin(2π·f₁·t) + A₂·sin(2π·f₂·t)</code> untuk <b>t ∈ [0, 4]</b> detik dengan <b>sampling rate 1000 Hz</b>. Hitung FFT dengan <code>numpy.fft.rfft</code>, cari frekuensi dengan magnitudo tertinggi, dan laporkan <b>frekuensi dominan dalam Hz</b>.`,
         hint: `import numpy as np\n# N = ${N}\nf1 = ${N}+1            # = ${f1} Hz (dominan)\nf2 = 80              # tetap, lemah\nA1, A2 = 1.0, 0.3\nfs = 1000\nt = np.arange(0, 4, 1/fs)\nx = A1*np.sin(2*np.pi*f1*t) + A2*np.sin(2*np.pi*f2*t)\n# Diberikan: sinyal x dgn 2 komponen sinusoidal (1 dominan, 1 lemah)\n# Petunjuk: pakai np.fft.rfft(x) + np.fft.rfftfreq(len(t), 1/fs),\n#           cari index amplitudo maksimum dgn np.argmax(np.abs(X))\n# TODO: hitung frekuensi dominan, lalu print(f_dominan)`,
-        diagram: _diagram('FFT — sinyal time-domain & spektrum frekuensi', _svg.fftSpec(f1, f2)),
-        expected: f1,
-        tolerance: 0.5
+        diagram: _diagram('FFT — sinyal time-domain & spektrum frekuensi', _svg.fftSpec(f1, f2))
       };
     }
   },
@@ -2839,14 +2637,9 @@ const UTS_COMP_HARD = [
     compute: (N) => {
       // FORMULA EKSPLISIT: m=1 (tetap), k=100 (tetap), c=(N+1)/10 langsung dari NIM
       // ω_n = 10, ζ = (N+1)/200 → ω_peak = 10·√(1−2ζ²)
-      const m = 1;                     // tetap
-      const k = 100;                   // tetap → ω_n = 10 rad/s
       const c = (N + 1) / 10;          // langsung dari NIM (range 0.1-10)
-      const wn = Math.sqrt(k / m);
-      const zeta = c / (2 * Math.sqrt(m * k));
+      const zeta = c / 20;             // 2√(km) = 20
       const r_peak = Math.sqrt(1 - 2 * zeta * zeta);
-      const omega_peak = r_peak * wn;
-      const DMF_max = 1 / (2 * zeta * Math.sqrt(1 - zeta * zeta));
       return {
         text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
                • <b>m = 1 kg, k = 100 N/m</b> (tetap) → ωₙ = 10 rad/s<br>
@@ -2854,13 +2647,7 @@ const UTS_COMP_HARD = [
                Cari <b>frekuensi eksitasi yang memberikan amplifikasi MAKSIMUM</b> (resonansi). Lakukan sweep ω dari 1 hingga 100 rad/s dengan step 0.01, hitung DMF(ω) untuk setiap ω, lalu laporkan <b>ω_peak (rad/s) di mana DMF mencapai maksimum</b>.
                <div style="margin-top:8px;padding:8px 10px;background:rgba(236,72,153,.08);border:1px solid rgba(236,72,153,.3);border-radius:6px;color:var(--pink);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 2 nilai berurutan: <b>ζ → ω_peak</b>. Final answer saja tidak cukup.</div>`,
         hint: `import numpy as np\n# N = ${N}\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\nwn = np.sqrt(k/m)\n# Petunjuk:\n#   ζ = c/(2·√(k·m))\n#   DMF(ω) = 1/√((1−r²)² + (2·ζ·r)²),   dgn r = ω/ωₙ\n#   sweep ω ∈ [1, 100] dgn step 0.01, cari ω yg maksimumkan DMF (pakai np.argmax)\n# WAJIB print BERURUTAN: zeta → omega_peak\n# TODO: hitung zeta, lalu print(zeta)                       # langkah 1\n# TODO: sweep & cari omega_peak, lalu print(omega_peak)     # final: omega_peak`,
-        diagram: _diagram('Sweep frekuensi — cari ω yang DMF maksimum', _svg.dmfCurve({zetas: [zeta, 0.05, 0.2], highlightR: r_peak, highlightZeta: zeta})),
-        expected: omega_peak,
-        expectedSteps: [
-          { label: 'ζ',      value: zeta,       tolerance: 0.001 },
-          { label: 'ω_peak', value: omega_peak, tolerance: 0.05 },
-        ],
-        tolerance: 0.05
+        diagram: _diagram('Sweep frekuensi — cari ω yang DMF maksimum', _svg.dmfCurve({zetas: [zeta, 0.05, 0.2], highlightR: r_peak, highlightZeta: zeta}))
       };
     }
   },
@@ -2869,19 +2656,8 @@ const UTS_COMP_HARD = [
     id: 'c15', modul: 5,
     compute: (N) => {
       // FORMULA EKSPLISIT: m=50 (tetap), ω_ex = N+1 langsung dari NIM, target T_R=0.10
-      const m = 50;                    // tetap (kg, mesin)
       const omega_ex = N + 1;          // langsung dari NIM (range 1-100 rad/s)
       const TR_target = 0.10;          // target 10% transmisibilitas
-      const zeta = 0.05;                // tetap
-      let omega_n_max = 0;
-      for (let wn_test = 0.01; wn_test < omega_ex; wn_test += 0.01) {
-        const r = omega_ex / wn_test;
-        const tr = Math.sqrt((1 + Math.pow(2*zeta*r, 2)) / (Math.pow(1-r*r, 2) + Math.pow(2*zeta*r, 2)));
-        if (tr <= TR_target) {
-          omega_n_max = wn_test;
-        }
-      }
-      const k_max = m * omega_n_max * omega_n_max;
       return {
         text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
                • <b>m = 50 kg</b> (tetap, mesin)<br>
@@ -2890,13 +2666,7 @@ const UTS_COMP_HARD = [
                Desain isolator getaran. Tentukan <b>nilai kekakuan pegas k (N/m) MAKSIMUM</b> yang masih memenuhi syarat T<sub>R</sub> ≤ 0.10. Lakukan sweep ωₙ dari 0.01 hingga ω_eksitasi, cari ωₙ maksimum yang memenuhi, lalu hitung k = m·ωₙ².
                <div style="margin-top:8px;padding:8px 10px;background:rgba(236,72,153,.08);border:1px solid rgba(236,72,153,.3);border-radius:6px;color:var(--pink);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 2 nilai berurutan: <b>ωₙ_max → k_max</b>. Final answer saja tidak cukup.</div>`,
         hint: `import numpy as np\n# N = ${N}\nm = 50           # tetap (mesin)\nomega_ex = ${omega_ex}      # = N+1 (eksitasi)\nTR_target = 0.10\nzeta = 0.05\n# Petunjuk:\n#   r = ω_ex / ωₙ\n#   T_R(r) = √((1 + (2·ζ·r)²) / ((1−r²)² + (2·ζ·r)²))\n#   sweep ωₙ ∈ [0.01, ω_ex] dgn step 0.01, cari ωₙ TERBESAR yg masih buat T_R ≤ TR_target\n#   k = m · ωₙ²\n# WAJIB print BERURUTAN: best_wn → k\n# TODO: loop cari best_wn, lalu print(best_wn)   # langkah 1: omega_n maksimum\n# TODO: hitung k, lalu print(k)                  # final`,
-        diagram: _diagram('Desain isolator — cari ωₙ paling besar yang T_R ≤ 0.10', _svg.trCurve({zeta: 0.05, target: TR_target})),
-        expected: k_max,
-        expectedSteps: [
-          { label: 'ωₙ_max', value: omega_n_max, tolerance: 0.02 },
-          { label: 'k_max',  value: k_max,       tolerance: 50 },
-        ],
-        tolerance: 50
+        diagram: _diagram('Desain isolator — cari ωₙ paling besar yang T_R ≤ 0.10', _svg.trCurve({zeta: 0.05, target: TR_target}))
       };
     }
   },
@@ -2913,15 +2683,9 @@ window.shuffleSeed = shuffleSeed;
 
 
 
-function _ah(s){let h=5381;s=s+'mEKsP9k4tQ2';for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))&0xffffffff;return(h>>>0).toString(36);}
-
-// Storage untuk answer key per soal (di-populate saat render dengan N spesifik)
-window._utsAnswerKeys = {
-  tf: {},        // {tf1: true, tf2: false, ...}
-  mc: {},        // {mc1: 0, mc2: 1, ...} — correct option index
-  compEz: {},    // {c1: {expected: 12.34, tolerance: 0.05}, ...}
-  compHard: {}   // {c11: {expected: 0.05, tolerance: 0.005}, ...}
-};
+// NOTE: Answer keys live ONLY in Firestore (examAnswers/getaran-mekanik-uts/qs/<qId>).
+// Server (Cloud Function `checkExamAnswer`) is the sole validator. Client HTML
+// must not carry any correct-answer data — students with DevTools could read it.
 
 
 // PEDOMAN §18.2 Layer 1 — Race-condition guard.
@@ -2953,9 +2717,7 @@ function selectMC(qId, opt, correct) {
   const rg = document.getElementById('rg-' + qId);
   rg.querySelectorAll('.radio-option').forEach(o => o.classList.remove('selected'));
   opt.classList.add('selected');
-  opt._idx = correct;
-  opt._correct = (_ah(qId + '_' + correct) === window._utsAnswerKeys.mc[qId]);
-  // Capture option index untuk Firebase storage
+  // Capture option index untuk Firebase storage / server submission
   const optList = Array.from(rg.querySelectorAll('.radio-option'));
   const idx = optList.indexOf(opt);
   opt._idx = idx;
@@ -2990,43 +2752,19 @@ async function checkMC(qId) {
   const selectedIdx = (typeof sel._idx === 'number') ? sel._idx : Array.from(rg.querySelectorAll('.radio-option')).indexOf(sel);
   const sub = document.getElementById('sub-' + qId);
 
-  // ─── PHASE 3: Server-side validation ───────────────────────────────────────
-  if (window.USE_SERVER_VALIDATION) {
-    mcAnswered[qId] = true;
-    if (sub) { sub.disabled = true; sub.textContent = '⏳ Memvalidasi...'; sub.classList.add('running'); }
-    rg.querySelectorAll('.radio-option').forEach(o => o.style.pointerEvents = 'none');
-    try {
-      const res = await window._callCheckExamAnswer(qId, selectedIdx);
-      _applyServerExamResult(qId, res, 'mc', sub, fb);
-    } catch (err) {
-      mcAnswered[qId] = false;
-      if (sub) { sub.disabled = false; sub.textContent = 'Periksa'; sub.classList.remove('running'); }
-      rg.querySelectorAll('.radio-option').forEach(o => o.style.pointerEvents = '');
-      _handleServerExamError(err, qId, fb);
-    }
-    return;
-  }
-
-  // ─── LEGACY: client-side validation (USE_SERVER_VALIDATION=false) ──────────
-  // Mark answered IMMEDIATELY untuk prevent double-click race
+  // ─── Server-side validation (sole authoritative path) ────────────────────
   mcAnswered[qId] = true;
-  if (sub) { sub.disabled = true; }
+  if (sub) { sub.disabled = true; sub.textContent = '⏳ Memvalidasi...'; sub.classList.add('running'); }
   rg.querySelectorAll('.radio-option').forEach(o => o.style.pointerEvents = 'none');
-  if (sel._correct) {
-    fb.className = 'feedback correct';
-    fb.textContent = '✅ Jawaban diterima. +1 poin tercatat. Soal TERKUNCI PERMANEN — tidak ada kesempatan ulang.';
-    if (sub) { sub.textContent = '✓ Terjawab'; sub.style.background='rgba(0,224,158,.1)'; sub.style.borderColor='rgba(0,224,158,.4)'; sub.style.color='var(--green)'; }
-    mcScores[qId] = 1;
-    if (typeof window._awardPoint === 'function') window._awardPoint(qId, selectedIdx);
-  } else {
-    fb.className = 'feedback wrong';
-    fb.textContent = '🔒 Jawaban telah dikunci. TIDAK ADA KESEMPATAN ULANG. (UTS murni — jawaban benar tidak ditampilkan)';
-    if (sub) { sub.textContent = '🔒 Terkunci'; sub.style.background='rgba(239,68,68,.1)'; sub.style.borderColor='rgba(239,68,68,.4)'; sub.style.color='var(--pink)'; }
-    mcScores[qId] = 0;
-    if (typeof window._recordMcAttempt === 'function') window._recordMcAttempt(qId, selectedIdx);
+  try {
+    const res = await window._callCheckExamAnswer(qId, selectedIdx);
+    _applyServerExamResult(qId, res, 'mc', sub, fb);
+  } catch (err) {
+    mcAnswered[qId] = false;
+    if (sub) { sub.disabled = false; sub.textContent = 'Periksa'; sub.classList.remove('running'); }
+    rg.querySelectorAll('.radio-option').forEach(o => o.style.pointerEvents = '');
+    _handleServerExamError(err, qId, fb);
   }
-  updateScore();
-  checkExportReady();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -3182,50 +2920,21 @@ async function checkTF(qId) {
   const userPick = sel._isTrue;   // boolean: jawaban user
   const sub = document.getElementById('sub-' + qId);
 
-  // ─── PHASE 3: Server-side validation ───────────────────────────────────────
-  if (window.USE_SERVER_VALIDATION) {
-    // Optimistic lock untuk cegah double-click
-    tfAnswered[qId] = true;
-    if (sub) { sub.disabled = true; sub.textContent = '⏳ Memvalidasi...'; sub.classList.add('running'); }
-    opts.querySelectorAll('.tf-option').forEach(o => o.style.pointerEvents = 'none');
-    try {
-      const res = await window._callCheckExamAnswer(qId, userPick);
-      _applyServerExamResult(qId, res, 'tf', sub, fb);
-    } catch (err) {
-      // Rollback optimistic lock (boleh retry)
-      tfAnswered[qId] = false;
-      if (sub) { sub.disabled = false; sub.textContent = 'Periksa'; sub.classList.remove('running'); }
-      opts.querySelectorAll('.tf-option').forEach(o => o.style.pointerEvents = '');
-      _handleServerExamError(err, qId, fb);
-    }
-    return;
-  }
-
-  // ─── LEGACY: client-side validation (USE_SERVER_VALIDATION=false) ──────────
-  const correctAnswer = window._utsAnswerKeys.tf[qId];
-  if (typeof correctAnswer !== 'string') {
-    fb.className = 'feedback warn'; fb.textContent = '⚠ Soal belum siap — silakan reload halaman.';
-    return;
-  }
-  // Mark answered IMMEDIATELY untuk prevent double-click race
+  // ─── Server-side validation (sole authoritative path) ────────────────────
+  // Optimistic lock untuk cegah double-click
   tfAnswered[qId] = true;
-  if (sub) sub.disabled = true;
+  if (sub) { sub.disabled = true; sub.textContent = '⏳ Memvalidasi...'; sub.classList.add('running'); }
   opts.querySelectorAll('.tf-option').forEach(o => o.style.pointerEvents = 'none');
-  if (_ah(qId + '_' + userPick) === correctAnswer) {
-    fb.className = 'feedback correct';
-    fb.textContent = '✅ Jawaban diterima. +1 poin tercatat. Soal TERKUNCI PERMANEN — tidak ada kesempatan ulang.';
-    if (sub) { sub.textContent = '✓ Terjawab'; sub.style.background='rgba(0,224,158,.1)'; sub.style.borderColor='rgba(0,224,158,.4)'; sub.style.color='var(--green)'; }
-    tfScores[qId] = 1;
-    if (typeof window._awardTfPoint === 'function') window._awardTfPoint(qId, userPick);
-  } else {
-    fb.className = 'feedback wrong';
-    fb.textContent = '🔒 Jawaban telah dikunci. TIDAK ADA KESEMPATAN ULANG. (UTS murni — jawaban benar tidak ditampilkan)';
-    if (sub) { sub.textContent = '🔒 Terkunci'; sub.style.background='rgba(239,68,68,.1)'; sub.style.borderColor='rgba(239,68,68,.4)'; sub.style.color='var(--pink)'; }
-    tfScores[qId] = 0;
-    if (typeof window._recordTfAttempt === 'function') window._recordTfAttempt(qId, userPick);
+  try {
+    const res = await window._callCheckExamAnswer(qId, userPick);
+    _applyServerExamResult(qId, res, 'tf', sub, fb);
+  } catch (err) {
+    // Rollback optimistic lock (boleh retry)
+    tfAnswered[qId] = false;
+    if (sub) { sub.disabled = false; sub.textContent = 'Periksa'; sub.classList.remove('running'); }
+    opts.querySelectorAll('.tf-option').forEach(o => o.style.pointerEvents = '');
+    _handleServerExamError(err, qId, fb);
   }
-  updateScore();
-  checkExportReady();
 }
 
 window.selectTF = selectTF;
@@ -3289,8 +2998,7 @@ function renderUTSQuestions() {
   if (tfContainer) {
     tfContainer.innerHTML = '';
     window.UTS_TF.forEach((q, i) => {
-      const data = q.parametric ? q.compute(N) : { text: q.text, answer: q.answer };
-      window._utsAnswerKeys.tf[q.id] = _ah(q.id + '_' + data.answer);
+      const data = q.parametric ? q.compute(N) : { text: q.text };
       const num = i + 1;
       const isParam = q.parametric;
       const card = document.createElement('div');
@@ -3326,8 +3034,7 @@ function renderUTSQuestions() {
   if (mcContainer) {
     mcContainer.innerHTML = '';
     window.UTS_MC.forEach((q, i) => {
-      const data = q.parametric ? q.compute(N) : { text: q.text, options: q.options, correctIdx: q.correctIdx };
-      window._utsAnswerKeys.mc[q.id] = _ah(q.id + '_' + data.correctIdx);
+      const data = q.parametric ? q.compute(N) : { text: q.text, options: q.options };
       const num = i + 1;
       const isParam = q.parametric;
       const card = document.createElement('div');
@@ -3364,7 +3071,6 @@ function renderUTSQuestions() {
     compEzContainer.innerHTML = '';
     window.UTS_COMP_EZ.forEach((q, i) => {
       const data = q.compute(N);
-      window._utsAnswerKeys.compEz[q.id] = { expected: data.expected, tolerance: data.tolerance };
       const num = i + 1;
       const card = _buildCompCard(q, num, data, 'C', false);
       compEzContainer.appendChild(card);
@@ -3377,7 +3083,6 @@ function renderUTSQuestions() {
     compHardContainer.innerHTML = '';
     window.UTS_COMP_HARD.forEach((q, i) => {
       const data = q.compute(N);
-      window._utsAnswerKeys.compHard[q.id] = { expected: data.expected, tolerance: data.tolerance };
       const num = i + 1;
       const card = _buildCompCard(q, num, data, 'D', true);
       compHardContainer.appendChild(card);
@@ -3428,7 +3133,7 @@ function _buildCompCard(q, num, data, sectionLetter, isHard) {
     ${data.diagram || ''}
     <div class="comp-hint"><strong style="color:var(--violet)">💡 Hint / Kerangka Kode:</strong><br><pre style="margin-top:6px;color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:12px;white-space:pre-wrap;line-height:1.5">${data.hint}</pre></div>
     <textarea class="code-textarea" id="code-${q.id}" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi..."></textarea>
-    <button class="comp-submit" id="sub-${q.id}" onclick="runAndCheck('${q.id}', ${data.expected}, ${data.tolerance}${isHard ? ", 'hard'" : ""})">▶ Run &amp; Validasi</button>
+    <button class="comp-submit" id="sub-${q.id}" onclick="runAndCheck('${q.id}'${isHard ? ", 'hard'" : ", 'easy'"})">▶ Run &amp; Validasi</button>
     <div class="feedback" id="fb-${q.id}"></div>
     <div class="stdout-box" id="stdout-${q.id}"></div>
   `;
@@ -3635,135 +3340,8 @@ function parseNumbers(str) {
 
 let compAnswered = {}, compScores = {};
 
-// ── Hint penjelasan jawaban benar untuk setiap soal komputasi ──
-// Ditampilkan saat soal dikunci karena kode salah/error, sebagai panduan belajar.
-const COMP_HINTS = {
-  c1: {
-    answer: '20.0 rad/s',
-    explain: 'Frekuensi natural <code>ωₙ = √(k/m)</code>. Dengan <code>k = 2000 N/m</code> dan <code>m = 5 kg</code>: <code>ωₙ = √(2000/5) = √400 = <strong>20 rad/s</strong></code>. Pastikan menggunakan <code>np.sqrt(k/m)</code> dan mencetak dengan <code>print()</code>.'
-  },
-  c2: {
-    answer: '≈ 3.183 Hz',
-    explain: 'Frekuensi linier <code>fₙ = ωₙ/(2π)</code>. Dengan <code>ωₙ = 20 rad/s</code>: <code>fₙ = 20/(2·π) ≈ <strong>3.183 Hz</strong></code>. Hubungan ini fundamental — Hz adalah satuan praktis untuk insinyur (cycles/second), sedangkan rad/s lebih nyaman untuk persamaan diferensial.'
-  },
-  c3: {
-    answer: '≈ 0.314 s',
-    explain: 'Periode adalah waktu untuk satu siklus penuh: <code>T = 2π/ωₙ = 1/fₙ</code>. Dengan <code>ωₙ = 20</code>: <code>T = 2π/20 ≈ <strong>0.314 s</strong></code> atau ~314 ms. Sistem ini menyelesaikan 1 osilasi setiap 0.314 detik.'
-  },
-  c4: {
-    answer: '0.2',
-    explain: 'Rasio redaman <code>ζ = c / (2√(km))</code>. Hitung dulu redaman kritis <code>c_c = 2·√(2000·5) = 2·100 = 200 Ns/m</code>. Maka <code>ζ = 40/200 = <strong>0.2</strong></code>. Sistem ini <em>underdamped</em> (ζ &lt; 1) — masih akan berosilasi sebelum berhenti.'
-  },
-  c5: {
-    answer: '≈ 19.596 rad/s',
-    explain: 'Frekuensi teredam <code>ω_d = ωₙ·√(1−ζ²)</code>. Dengan <code>ωₙ = 20</code> dan <code>ζ = 0.2</code>: <code>ω_d = 20·√(1−0.04) = 20·√0.96 ≈ <strong>19.596 rad/s</strong></code>. Untuk damping kecil (ζ &lt; 0.1), perbedaan ω_d vs ωₙ &lt; 0.5%, sehingga sering diabaikan dalam praktik.'
-  },
-  c6: {
-    answer: '1.0 m/s',
-    explain: 'Untuk gerakan harmonik <code>x(t) = A·sin(ωt)</code>, kecepatan adalah turunan: <code>ẋ(t) = A·ω·cos(ωt)</code>. Maksimum saat cos = 1, sehingga <code>v_max = A·ω = 0.05·20 = <strong>1.0 m/s</strong></code>. Hubungan v_max = A·ω fundamental untuk konversi parameter di analisis vibrasi.'
-  },
-  c7: {
-    answer: '20.0 m/s²',
-    explain: 'Percepatan adalah turunan kedua: <code>ẍ(t) = −A·ω²·sin(ωt)</code>. Maksimum (dalam besaran absolut): <code>a_max = A·ω² = 0.05·400 = <strong>20 m/s²</strong></code> (≈ 2g). Pada frekuensi tinggi, percepatan jauh lebih besar dari perpindahan/kecepatan — itulah sebabnya accelerometer dipilih untuk monitoring frekuensi tinggi.'
-  },
-  c8: {
-    answer: '≈ 0.0707 m',
-    explain: 'Untuk sinyal sinusoidal pure, RMS = amplitudo dibagi √2. <code>A_rms = 0.1/√2 ≈ <strong>0.0707 m</strong></code> atau 70.71 mm. Faktor 1/√2 (≈ 0.7071) hanya berlaku untuk sinusoidal murni — untuk sinyal kompleks atau noise, RMS dihitung dengan integrasi numerik.'
-  },
-  c9: {
-    answer: '≈ 157.08 rad/s',
-    explain: 'Konversi RPM ke rad/s: <code>ω = 2π·RPM/60 = (2π/60)·RPM</code>. Dengan RPM = 1500: <code>ω = (2π·1500)/60 = π·50 ≈ <strong>157.08 rad/s</strong></code>. Atau bisa dilihat sebagai: 1500 RPM = 25 Hz = 25·2π rad/s. Konversi ini sering muncul di spesifikasi motor.'
-  },
-  c10: {
-    answer: '≈ 2.006 s',
-    explain: 'Periode pendulum sederhana: <code>T = 2π·√(L/g)</code>. Dengan <code>L = 1 m</code> dan <code>g = 9.81 m/s²</code>: <code>T = 2π·√(1/9.81) ≈ 2π·0.3193 ≈ <strong>2.006 s</strong></code>. Catatan menarik: untuk sudut kecil, periode hanya bergantung pada L dan g — bukan amplitudo atau massa pendulum (Galileo, ~1602).'
-  },
-  c11: {
-    answer: '≈ 0.0729 m',
-    explain: 'Untuk getaran bebas underdamped dengan x₀ = 0.1, ẋ₀ = 0, solusi analitik: <code>x(t) = 0.1·exp(−ζωₙ·t)·[cos(ω_d·t) + (ζωₙ/ω_d)·sin(ω_d·t)]</code>. Puncak pertama setelah t=0 terjadi pada ~T_d/2 ≈ π/ω_d ≈ 0.16 s. Pada saat itu, x ≈ <strong>0.0729 m</strong>. Implementasi RK4 standar harus sangat dekat dengan nilai ini (toleransi 0.005). Pastikan loop RK4 benar dan deteksi puncak dengan find_peaks (positive only).'
-  },
-  c12: {
-    answer: '≈ 0.0498',
-    explain: 'Logarithmic decrement <code>δ = (1/n)·ln(x₁/x_(1+n))</code>. Untuk signal <code>x(t) = 0.1·exp(−0.5t)·cos(10t)</code>, peluruhan eksponensial dengan rate 0.5 → setelah n=5 siklus (T_d ≈ 2π/10 ≈ 0.628 s, total t = 3.14 s): rasio amplitudo = exp(−0.5·3.14) ≈ 0.208. <code>δ = (1/5)·ln(1/0.208) ≈ 0.314</code>. Lalu <code>ζ = δ/√(4π² + δ²) ≈ 0.314/6.29 ≈ <strong>0.0498</strong></code>. Mendekati true value 0.5/√(0.25+100) ≈ 0.0499.'
-  },
-  c13: {
-    answer: '8.0 Hz',
-    explain: 'FFT mengubah signal time-domain menjadi frequency-domain. Untuk <code>x(t) = 0.5·sin(2π·8·t) + 0.2·sin(2π·25·t)</code>, ada 2 puncak frekuensi: 8 Hz (amplitudo 0.5) dan 25 Hz (amplitudo 0.2). Frekuensi <strong>dominan</strong> = yang amplitudonya terbesar = <strong>8 Hz</strong>. Gunakan <code>np.fft.rfft</code> dan <code>np.argmax(np.abs(X))</code> untuk identifikasi. Resolusi frekuensi = fs/N = 1000/2000 = 0.5 Hz.'
-  },
-  c14: {
-    answer: '≈ 0.749 s',
-    explain: 'Settling time dari envelope eksponensial: <code>x_envelope(t) = x₀·exp(−ζωₙ·t)</code>. Untuk turun ke 5% (faktor 0.05): <code>0.05 = exp(−ζωₙ·t)</code> → <code>t = −ln(0.05)/(ζωₙ) = ln(20)/(0.2·20) = 2.996/4 ≈ <strong>0.749 s</strong></code>. Settling time klasik untuk control system: 4/(ζωₙ) untuk 2% atau 3/(ζωₙ) untuk 5%.'
-  },
-  c15: {
-    answer: '2.5 J',
-    explain: 'Untuk sistem konservatif (tanpa gaya luar bekerja), energi total = energi potensial maksimum (saat x = A, v = 0). <code>E_total = ½·k·A² = ½·2000·(0.05)² = ½·2000·0.0025 = <strong>2.5 J</strong></code>. Atau verifikasi via energi kinetik maksimum (saat x = 0, v = v_max = A·ωₙ): <code>E = ½·m·v_max² = ½·5·(0.05·20)² = ½·5·1 = 2.5 J</code> ✓ — keduanya identik (konservasi energi).'
-  }
-};
 
-// ── Lock a comp question permanently (wrong answer or error) ──
-// ── LOCK COMP WRONG ──
-// partialPoint: opsional, ke-3 arg. Jika > 0, soal ter-lock dengan state "usaha" (△ Usaha, amber)
-// dan memberi poin partial (khusus Comp Hard: +1 poin). Jika 0 atau undefined, state default
-// "terkunci" (✗ Terkunci, pink) tanpa poin.
-function _lockCompWrong(qId, fbMsg, partialPoint) {
-  const pts = (typeof partialPoint === 'number' && partialPoint > 0) ? partialPoint : 0;
-  compAnswered[qId] = true;
-  compScores[qId] = pts;   // 0 atau 1
-
-  const btn = document.getElementById('sub-' + qId);
-  const ta  = document.getElementById('code-' + qId);
-  const fb  = document.getElementById('fb-' + qId);
-
-  if (pts > 0) {
-    // Partial credit state (amber △ Usaha)
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = '△ Usaha (+' + pts + ') · Terkunci';
-      btn.style.borderColor = 'rgba(251,191,36,.4)';
-      btn.style.color = 'var(--amber)';
-      btn.classList.remove('running');
-    }
-    if (ta) {
-      ta.disabled = true;
-      ta.style.borderColor = 'rgba(251,191,36,.3)';
-      ta.style.opacity = '.75';
-    }
-    if (fb) {
-      fb.className = 'feedback warn';
-      // CRITICAL: pastikan feedback tampil
-      // UTS murni: TIDAK reveal jawaban benar
-      fb.textContent = fbMsg;
-    }
-    // Firebase: tulis marker _comp_partial + tambah poin
-    if (typeof window._awardCompPartial === 'function') window._awardCompPartial(qId, pts);
-  } else {
-    // Standard locked state (pink ✗ Terkunci)
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = '✗ Terkunci';
-      btn.style.borderColor = 'rgba(239,68,68,.3)';
-      btn.style.color = 'var(--pink)';
-      btn.classList.remove('running');
-    }
-    if (ta) {
-      ta.disabled = true;
-      ta.style.borderColor = 'rgba(239,68,68,.25)';
-      ta.style.opacity = '.7';
-    }
-    if (fb) {
-      fb.className = 'feedback wrong';
-      // CRITICAL: pastikan feedback tampil
-      // UTS murni: TIDAK reveal jawaban benar
-      fb.textContent = fbMsg;
-    }
-    // Firebase: tulis marker _comp_used saja (tanpa poin)
-    if (typeof window._recordCompAttempt === 'function') window._recordCompAttempt(qId);
-  }
-  updateScore();
-  checkExportReady();
-}
-
-async function runAndCheck(qId, expectedAns, tol, difficulty) {
+async function runAndCheck(qId, difficulty) {
   // PEDOMAN §18.2 Layer 1 — race-condition guard
   if (!_firebaseStateLoaded) {
     const fb = document.getElementById('fb-' + qId);
@@ -3778,7 +3356,6 @@ async function runAndCheck(qId, expectedAns, tol, difficulty) {
   }
   const isHard = (difficulty === 'hard');
   const correctPoint = isHard ? SCORE_CONFIG.COMP_HARD_POINT : SCORE_CONFIG.COMP_EZ_POINT;   // 4 atau 2
-  const partialOnFail = isHard ? 1 : 0;   // partial credit hanya untuk Hard
 
   // ONE-SHOT: cek state lokal DAN cache Firebase
   const compKey = qId + '_comp';
@@ -3859,106 +3436,75 @@ async function runAndCheck(qId, expectedAns, tol, difficulty) {
       }
     }
 
-    // ─── PHASE 3: Server-side validation ─────────────────────────────────────
+    // ─── Server-side validation (sole authoritative path) ─────────────────────
     // Kirim ke server: userAnswer = null (Pyodide error) ATAU last parsed number
     // (typical case: student print(answer) sebagai output terakhir). codeText
     // disimpan utk audit di RTDB codes[qId].
-    if (window.USE_SERVER_VALIDATION) {
-      let userAnswer = null;
-      let userAnswers = null;
-      if (!errMsg) {
-        const nums = parseNumbers(output || '');
-        if (nums.length > 0) {
-          userAnswer = nums[nums.length - 1];   // back-compat single-answer (legacy soal)
-          userAnswers = nums;                    // multi-step: kirim SEMUA angka berurutan
+    let userAnswer = null;
+    let userAnswers = null;
+    if (!errMsg) {
+      const nums = parseNumbers(output || '');
+      if (nums.length > 0) {
+        userAnswer = nums[nums.length - 1];   // back-compat single-answer (legacy soal)
+        userAnswers = nums;                    // multi-step: kirim SEMUA angka berurutan
+      }
+    }
+    try {
+      const res = await window._callCheckExamAnswer(qId, userAnswer, code, userAnswers);
+      // Lock textarea sesuai status
+      if (ta) {
+        ta.disabled = true;
+        if (res.correct) {
+          ta.style.borderColor = 'rgba(0,224,158,.5)'; ta.style.opacity = '.85';
+        } else if (res.status === 'partial') {
+          ta.style.borderColor = 'rgba(251,191,36,.3)'; ta.style.opacity = '.75';
+        } else {
+          ta.style.borderColor = 'rgba(239,68,68,.25)'; ta.style.opacity = '.7';
         }
       }
-      try {
-        const res = await window._callCheckExamAnswer(qId, userAnswer, code, userAnswers);
-        // Lock textarea sesuai status (mirror _lockCompWrong behavior)
-        if (ta) {
-          ta.disabled = true;
-          if (res.correct) {
-            ta.style.borderColor = 'rgba(0,224,158,.5)'; ta.style.opacity = '.85';
-          } else if (res.status === 'partial') {
-            ta.style.borderColor = 'rgba(251,191,36,.3)'; ta.style.opacity = '.75';
-          } else {
-            ta.style.borderColor = 'rgba(239,68,68,.25)'; ta.style.opacity = '.7';
-          }
-        }
-        _applyServerExamResult(qId, res, 'comp', btn, fb);
-        // ── Build step-by-step diagnostic (utk soal multi-step dgn expectedSteps) ──
-        // Format: "ωₙ ✓ · ζ ✓ · ω_d ✗"
-        let stepDiag = '';
-        if (Array.isArray(res.stepResults) && Array.isArray(res.stepLabels) &&
-            res.stepResults.length === res.stepLabels.length) {
-          stepDiag = res.stepResults
-            .map((ok, i) => (res.stepLabels[i] || ('step' + (i+1))) + ' ' + (ok ? '✓' : '✗'))
-            .join(' · ');
-        }
-        // Override fb text dgn comp-specific message (lebih informatif dari helper default)
-        if (fb) {
-          if (res.correct) {
-            fb.textContent = stepDiag
-              ? '✅ Semua langkah benar (' + stepDiag + '). +' + res.scoreDelta + ' poin tercatat. Soal TERKUNCI PERMANEN.'
-              : '✅ Kode berjalan tanpa error & output benar! +' + res.scoreDelta + ' poin tercatat. Soal TERKUNCI PERMANEN.';
-          } else if (res.status === 'partial') {
-            fb.textContent = errMsg
-              ? '🔒 Kode error — soal dikunci. +' + res.scoreDelta + ' poin untuk upaya Hard (kode non-kosong). TIDAK ADA KESEMPATAN ULANG.'
-              : (stepDiag
-                  ? '🔒 Tidak semua langkah match (' + stepDiag + '). Final answer saja tidak cukup. +' + res.scoreDelta + ' poin upaya Hard. TIDAK ADA KESEMPATAN ULANG.'
-                  : '🔒 Output tidak match expected — soal dikunci. +' + res.scoreDelta + ' poin untuk upaya Hard. TIDAK ADA KESEMPATAN ULANG.');
-          } else {
-            const outPreview = (output || '(kosong)').trim().slice(0, 100);
-            fb.textContent = errMsg
-              ? '🔒 Kode error — soal dikunci. Tidak ada kesempatan ulang.'
-              : (stepDiag
-                  ? '🔒 Tidak semua langkah match (' + stepDiag + '). Wajib print SEMUA nilai antara berurutan. Soal dikunci. TIDAK ADA KESEMPATAN ULANG.'
-                  : '🔒 Output tidak match expected. Output: "' + outPreview + '". Soal dikunci. TIDAK ADA KESEMPATAN ULANG.');
-          }
-        }
-        // Override button text utk comp (lebih spesifik dari helper default)
-        if (btn) {
-          if (res.correct) btn.textContent = '✓ Selesai · Terkunci';
-          else if (res.status === 'partial') btn.textContent = '△ Usaha (+' + res.scoreDelta + ') · Terkunci';
-          else btn.textContent = '✗ Terkunci';
-        }
-      } catch (err) {
-        // Rollback: unlock supaya bisa retry
-        compAnswered[qId] = false;
-        if (btn) { btn.disabled = false; btn.classList.remove('running'); }
-        if (ta) { ta.disabled = false; }
-        _handleServerExamError(err, qId, fb);
+      _applyServerExamResult(qId, res, 'comp', btn, fb);
+      // ── Build step-by-step diagnostic (utk soal multi-step dgn expectedSteps) ──
+      // Format: "ωₙ ✓ · ζ ✓ · ω_d ✗"
+      let stepDiag = '';
+      if (Array.isArray(res.stepResults) && Array.isArray(res.stepLabels) &&
+          res.stepResults.length === res.stepLabels.length) {
+        stepDiag = res.stepResults
+          .map((ok, i) => (res.stepLabels[i] || ('step' + (i+1))) + ' ' + (ok ? '✓' : '✗'))
+          .join(' · ');
       }
-      return;
-    }
-
-    // ─── LEGACY: client-side validation (USE_SERVER_VALIDATION=false) ────────
-    if (errMsg) {
-      const msg = partialOnFail > 0
-        ? `🔒 Kode error — soal dikunci. +${partialOnFail} poin untuk upaya Hard (kode non-kosong).`
-        : '🔒 Kode error — soal dikunci. Tidak ada kesempatan ulang.';
-      _lockCompWrong(qId, msg, partialOnFail);
-      return;
-    }
-    const nums = parseNumbers(output || '');
-    const correct = nums.some(n => Math.abs(n - expectedAns) <= tol);
-
-    if (correct) {
-      fb.className = 'feedback correct';
-      fb.textContent = '✅ Kode berjalan tanpa error & output benar! +' + correctPoint + ' poin tercatat. Soal TERKUNCI PERMANEN.';
-      compAnswered[qId] = true; compScores[qId] = correctPoint;
-      btn.disabled = true; btn.textContent = '✓ Selesai · Terkunci'; btn.classList.remove('running');
-      btn.style.background = 'rgba(0,224,158,.1)'; btn.style.borderColor='rgba(0,224,158,.4)'; btn.style.color='var(--green)';
-      if (ta) { ta.disabled = true; ta.style.borderColor = 'rgba(0,224,158,.5)'; ta.style.opacity='.85'; }
-      if (typeof window._awardCompPoint === 'function') window._awardCompPoint(qId, correctPoint);
-      updateScore(); checkExportReady();
-    } else {
-      const outPreview = (output || '(kosong)').trim().slice(0, 100);
-      const msg = partialOnFail > 0
-        ? `🔒 Output tidak mengandung nilai yang benar (≈ ${expectedAns}). +${partialOnFail} poin untuk upaya Hard. Output: "${outPreview}". TIDAK ADA KESEMPATAN ULANG.`
-        : `🔒 Output tidak mengandung nilai yang benar (≈ ${expectedAns}). Output: "${outPreview}". Soal dikunci. TIDAK ADA KESEMPATAN ULANG.`;
-      _lockCompWrong(qId, msg, partialOnFail);
+      // Override fb text dgn comp-specific message (lebih informatif dari helper default)
+      if (fb) {
+        if (res.correct) {
+          fb.textContent = stepDiag
+            ? '✅ Semua langkah benar (' + stepDiag + '). +' + res.scoreDelta + ' poin tercatat. Soal TERKUNCI PERMANEN.'
+            : '✅ Kode berjalan tanpa error & output benar! +' + res.scoreDelta + ' poin tercatat. Soal TERKUNCI PERMANEN.';
+        } else if (res.status === 'partial') {
+          fb.textContent = errMsg
+            ? '🔒 Kode error — soal dikunci. +' + res.scoreDelta + ' poin untuk upaya Hard (kode non-kosong). TIDAK ADA KESEMPATAN ULANG.'
+            : (stepDiag
+                ? '🔒 Tidak semua langkah match (' + stepDiag + '). Final answer saja tidak cukup. +' + res.scoreDelta + ' poin upaya Hard. TIDAK ADA KESEMPATAN ULANG.'
+                : '🔒 Output tidak match expected — soal dikunci. +' + res.scoreDelta + ' poin untuk upaya Hard. TIDAK ADA KESEMPATAN ULANG.');
+        } else {
+          const outPreview = (output || '(kosong)').trim().slice(0, 100);
+          fb.textContent = errMsg
+            ? '🔒 Kode error — soal dikunci. Tidak ada kesempatan ulang.'
+            : (stepDiag
+                ? '🔒 Tidak semua langkah match (' + stepDiag + '). Wajib print SEMUA nilai antara berurutan. Soal dikunci. TIDAK ADA KESEMPATAN ULANG.'
+                : '🔒 Output tidak match expected. Output: "' + outPreview + '". Soal dikunci. TIDAK ADA KESEMPATAN ULANG.');
+        }
+      }
+      // Override button text utk comp (lebih spesifik dari helper default)
+      if (btn) {
+        if (res.correct) btn.textContent = '✓ Selesai · Terkunci';
+        else if (res.status === 'partial') btn.textContent = '△ Usaha (+' + res.scoreDelta + ') · Terkunci';
+        else btn.textContent = '✗ Terkunci';
+      }
+    } catch (err) {
+      // Rollback: unlock supaya bisa retry
+      compAnswered[qId] = false;
+      if (btn) { btn.disabled = false; btn.classList.remove('running'); }
+      if (ta) { ta.disabled = false; }
+      _handleServerExamError(err, qId, fb);
     }
   } catch (e) {
     fb.className = 'feedback wrong';
@@ -3967,8 +3513,9 @@ async function runAndCheck(qId, expectedAns, tol, difficulty) {
   }
 }
 
-// Keep checkComp alias for _loadScoredQuestions compatibility (legacy signature)
-function checkComp(qId, expectedAns, tol) { runAndCheck(qId, expectedAns, tol, 'easy'); }
+// Keep checkComp alias for _loadScoredQuestions compatibility (legacy signature).
+// Server is sole validator now; expected/tolerance args are no longer used.
+function checkComp(qId) { runAndCheck(qId, 'easy'); }
 
 // ── SCORE UPDATE ──
 // Universal 50-poin breakdown: mc (10) + ezComp (20) + hardComp (20) = 50
@@ -4201,6 +3748,8 @@ function exportTugasHtml() {
   });
 
   // ── Collect Comp E/M data ──
+  // NOTE: expected/tolerance sengaja TIDAK dikumpulkan — kunci jawaban
+  // murni server-side (Firestore). Export PDF hanya berisi soal + kode user.
   const compEzData = (window.UTS_COMP_EZ || []).map((q, i) => {
     const data = q.compute(N);
     const id = q.id;
@@ -4209,8 +3758,6 @@ function exportTugasHtml() {
       no: i+1,
       title: stripTags(data.text).slice(0, 120) + (stripTags(data.text).length > 120 ? '…' : ''),
       modul: q.modul,
-      expected: typeof data.expected === 'number' ? data.expected.toFixed(4) : data.expected,
-      tolerance: data.tolerance,
       code: ta ? ta.value.trim() : '',
       pts: compScores[id] || 0
     };
@@ -4225,8 +3772,6 @@ function exportTugasHtml() {
       no: i+1,
       title: stripTags(data.text).slice(0, 120) + (stripTags(data.text).length > 120 ? '…' : ''),
       modul: q.modul,
-      expected: typeof data.expected === 'number' ? data.expected.toFixed(4) : data.expected,
-      tolerance: data.tolerance,
       code: ta ? ta.value.trim() : '',
       pts: compScores[id] || 0
     };
@@ -4624,7 +4169,7 @@ function exportTugasHtml() {
     <tbody>
       ${compEzData.map(d => `<tr>
         <td>C${String(d.no).padStart(2,'0')}</td>
-        <td style="font-size:.78rem;color:#475569"><span class="badge-modul">M${d.modul}</span>${esc(d.title)}<br><span style="color:#94a3b8;font-size:.7rem">expected ≈ ${d.expected} (tol ±${d.tolerance})</span></td>
+        <td style="font-size:.78rem;color:#475569"><span class="badge-modul">M${d.modul}</span>${esc(d.title)}</td>
         <td style="font-family:monospace;font-size:.72rem;background:#fff7ed;padding:6px 8px;border-radius:4px;white-space:pre-wrap;word-break:break-word;white-space:pre-wrap">${esc(d.code||'(belum diisi)')}</td>
         <td><span class="pts ${d.pts?'pts-correct':'pts-wrong'}">${d.pts}</span></td>
       </tr>`).join('')}
@@ -4642,7 +4187,7 @@ function exportTugasHtml() {
                        : '#dc2626';
         return `<tr>
           <td>D${String(d.no).padStart(2,'0')}</td>
-          <td style="font-size:.78rem;color:#475569"><span class="badge-modul">M${d.modul}</span>${esc(d.title)}<br><span style="color:#94a3b8;font-size:.7rem">expected ≈ ${d.expected} (tol ±${d.tolerance})</span></td>
+          <td style="font-size:.78rem;color:#475569"><span class="badge-modul">M${d.modul}</span>${esc(d.title)}</td>
           <td style="font-family:monospace;font-size:.72rem;background:#fdf2f8;padding:6px 8px;border-radius:4px;white-space:pre-wrap;word-break:break-word;white-space:pre-wrap">${esc(d.code||'(belum diisi)')}</td>
           <td class="pts" style="color:${ptsColor}">${d.pts}${d.pts>0&&d.pts<SCORE_CONFIG.COMP_HARD_POINT?' (partial)':''}</td>
         </tr>`;
@@ -6137,24 +5682,19 @@ const HEARTBEAT_MS = 20000;          // tulis lastSeen tiap 20 detik
 const ONLINE_THRESHOLD_MS = 45000;   // stale jika tidak ada heartbeat dalam 45 detik
 
 // ═══════════════════════════════════════════════════════════════════════════
-// PHASE 3 (May 2026) — Server-side validation via Cloud Functions.
-// Saat USE_SERVER_VALIDATION=true:
+// Server-side validation (mandatory, no client fallback).
 //   • checkTF/checkMC/runAndCheck panggil callable `checkExamAnswer`.
 //   • Server (Cloud Function) yg lookup answer key (Firestore), bandingkan,
 //     apply late multiplier, write ke RTDB visitor record (transaction-safe),
-//     dan return {correct, status, scoreDelta, marker, explain, ...}.
-//   • Client award/record functions (_awardPoint, _awardTfPoint, dst) jadi
-//     no-op (early return) — server sudah handle write RTDB.
-//   • Kunci jawaban TIDAK PERLU lagi di window._utsAnswerKeys (tapi tetap
-//     ada utk fallback). Defense-in-depth: smart attacker masih bisa lihat
-//     compute() di JS, tapi server adalah authority utk poin yg masuk RTDB.
-// Saat USE_SERVER_VALIDATION=false (rollback emergency):
-//   • Semua logika kembali ke client (sama seperti sebelum Phase 3).
-//   • Cukup flip flag ini, commit, deploy HTML — no function redeploy needed.
+//     dan return {correct, status, scoreDelta, marker, ...}.
+//   • Client award/record helpers (_awardPoint, _awardTfPoint, dst) tetap ada
+//     sebagai no-op shells utk kompatibilitas pemanggil lama — server sudah
+//     handle semua write ke RTDB.
+//   • Kunci jawaban TIDAK pernah ada di client. Defense-in-depth: smart
+//     attacker masih bisa lihat compute() di JS (parameter dari NIM), tapi
+//     server adalah satu-satunya authority utk validasi & poin yg masuk RTDB.
 // ═══════════════════════════════════════════════════════════════════════════
-const USE_SERVER_VALIDATION = true;
 const EXAM_ID = 'getaran-mekanik-uts';
-window.USE_SERVER_VALIDATION = USE_SERVER_VALIDATION;
 
 const _functions = getFunctions(app, 'asia-southeast1');
 const _checkExamAnswerCallable = httpsCallable(_functions, 'checkExamAnswer');
@@ -7759,296 +7299,19 @@ function _checkConsolationPoint(nodeRef, state) {
   } catch(e) { /* swallow */ }
 }
 
-window._awardPoint = function(qId, selectedIdx) {
-  if (window.USE_SERVER_VALIDATION) return;   // PHASE 3: server sudah tulis RTDB
-  if (!_isScheduleOpen()) return;  // NO point save outside active schedule
-  if (_answeredQ.has(qId)) return;
-  const me = getIdentity();
-  if (!me || !me.nim || me.role === 'dosen') return;
-  const key = sanitizeKey('mhs_' + me.nim);
-  const nodeRef = ref(db, DB_PATH + '/' + key);
-  get(nodeRef).then(snap => {
-    let ex;
-    if (!snap.exists()) {
-      // PEDOMAN v5 §15.4e — Auto-create visitor record (race-condition guard).
-      // Tanpa ini, mahasiswa yang answer terlalu cepat setelah login bisa kehilangan poin.
-      console.warn('[UTS] Visitor record missing — auto-creating with default values');
-      ex = {
-        nama: me.nama || '—', nim: me.nim, role: 'student',
-        timestamp: me.timestamp || new Date().toISOString(),
-        lastVisit: new Date().toISOString(),
-        visitCount: 1,
-        points: 0,           // PEDOMAN §13.4.1 — wajib init (null-comparison trap fix)
-        scoredQuestions: ''  // PEDOMAN §13.4.1 — wajib init
-      };
-    } else {
-      ex = snap.val();
-    }
-    const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
-    if (scored.includes(qId)) { _answeredQ.add(qId); return; }
-    _answeredQ.add(qId); scored.push(qId);
-    // Simpan user selection (option index 0-3) ke selections/
-    const selections = Object.assign({}, ex.selections || {});
-    if (typeof selectedIdx === 'number') selections[qId] = selectedIdx;
-    const updated = _stripLegacyPinFields(Object.assign({}, ex, {
-      points: (ex.points||0)+(1*_getLateMultiplier()),
-      pointTimestamp: new Date().toISOString(),
-      scoredQuestions: scored.join(','),
-      selections: selections
-    }));
-    set(nodeRef, updated);
-    _checkConsolationPoint(nodeRef, updated);
-  }).catch(err => console.error("[UTS Firebase] write failed:", err));
-};
-
-window._awardCompPoint = function(qId, point) {
-  if (window.USE_SERVER_VALIDATION) return;   // PHASE 3: server sudah tulis RTDB
-  if (!_isScheduleOpen()) return;  // NO point save outside active schedule
-  // Fallback for legacy call sites: deteksi dari _isHardComp jika point tidak diberikan.
-  const pts = (typeof point === 'number' && point > 0) ? point
-            : (window._isHardComp(qId) ? SCORE_CONFIG.COMP_HARD_POINT : SCORE_CONFIG.COMP_EZ_POINT);
-  const compKey = qId + '_comp';
-  if (_answeredQ.has(compKey)) return;
-  const me = getIdentity();
-  if (!me || !me.nim || me.role === 'dosen') return;
-  const key = sanitizeKey('mhs_' + me.nim);
-  const nodeRef = ref(db, DB_PATH + '/' + key);
-  // PEDOMAN §15.4c — Capture code text from textarea for Firebase persistence
-  const codeText = (document.getElementById('code-' + qId)?.value || '').slice(0, 5000);
-  get(nodeRef).then(snap => {
-    let ex;
-    if (!snap.exists()) {
-      // PEDOMAN v5 §15.4e — Auto-create visitor record (race-condition guard).
-      // Tanpa ini, mahasiswa yang answer terlalu cepat setelah login bisa kehilangan poin.
-      console.warn('[UTS] Visitor record missing — auto-creating with default values');
-      ex = {
-        nama: me.nama || '—', nim: me.nim, role: 'student',
-        timestamp: me.timestamp || new Date().toISOString(),
-        lastVisit: new Date().toISOString(),
-        visitCount: 1,
-        points: 0,           // PEDOMAN §13.4.1 — wajib init (null-comparison trap fix)
-        scoredQuestions: ''  // PEDOMAN §13.4.1 — wajib init
-      };
-    } else {
-      ex = snap.val();
-    }
-    const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
-    if (scored.includes(compKey)) { _answeredQ.add(compKey); return; }
-    _answeredQ.add(compKey); scored.push(compKey);
-    const newPoints = Math.min((ex.points || 0) + (pts * _getLateMultiplier()), SCORE_CONFIG.TOTAL);
-    const codes = Object.assign({}, ex.codes || {}, codeText ? { [qId]: codeText } : {});
-    const updated = _stripLegacyPinFields(Object.assign({}, ex, { points: newPoints, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(','), codes: codes }));
-    set(nodeRef, updated);
-    _checkConsolationPoint(nodeRef, updated);
-  }).catch(err => console.error("[UTS Firebase] write failed:", err));
-};
-
-// ── Partial credit untuk Comp Hard (kode non-kosong tapi output/error salah) ──
-// Menulis marker _comp_partial (berbeda dari _comp dan _comp_used) + tambah poin kecil (1).
-// Tidak trigger konsolasi karena points sudah > 0.
-window._awardCompPartial = function(qId, point) {
-  if (window.USE_SERVER_VALIDATION) return;   // PHASE 3: server sudah tulis RTDB
-  if (!_isScheduleOpen()) return;
-  if (_isPastDeadline()) return;   // v8: terlambat tidak dapat partial credit Hard
-  const pts = (typeof point === 'number' && point > 0) ? point : 1;
-  const partialKey = qId + '_comp_partial';
-  if (_answeredQ.has(partialKey)) return;
-  const me = getIdentity();
-  if (!me || !me.nim || me.role === 'dosen') return;
-  const key = sanitizeKey('mhs_' + me.nim);
-  const nodeRef = ref(db, DB_PATH + '/' + key);
-  // PEDOMAN §15.4c — Capture code text (partial tetap simpan kode upaya mahasiswa)
-  const codeText = (document.getElementById('code-' + qId)?.value || '').slice(0, 5000);
-  get(nodeRef).then(snap => {
-    let ex;
-    if (!snap.exists()) {
-      // PEDOMAN v5 §15.4e — Auto-create visitor record (race-condition guard).
-      // Tanpa ini, mahasiswa yang answer terlalu cepat setelah login bisa kehilangan poin.
-      console.warn('[UTS] Visitor record missing — auto-creating with default values');
-      ex = {
-        nama: me.nama || '—', nim: me.nim, role: 'student',
-        timestamp: me.timestamp || new Date().toISOString(),
-        lastVisit: new Date().toISOString(),
-        visitCount: 1,
-        points: 0,           // PEDOMAN §13.4.1 — wajib init (null-comparison trap fix)
-        scoredQuestions: ''  // PEDOMAN §13.4.1 — wajib init
-      };
-    } else {
-      ex = snap.val();
-    }
-    const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
-    if (scored.includes(partialKey)) { _answeredQ.add(partialKey); return; }
-    _answeredQ.add(partialKey); scored.push(partialKey);
-    const newPoints = Math.min((ex.points || 0) + (pts * _getLateMultiplier()), SCORE_CONFIG.TOTAL);
-    const codes = Object.assign({}, ex.codes || {}, codeText ? { [qId]: codeText } : {});
-    const updated = _stripLegacyPinFields(Object.assign({}, ex, { points: newPoints, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(','), codes: codes }));
-    set(nodeRef, updated);
-    // Tidak trigger konsolasi — poin sudah > 0
-  }).catch(err => console.error("[UTS Firebase] write failed:", err));
-};
-
-// ── Record a failed MC attempt to Firebase ──
-window._recordMcAttempt = function(qId, selectedIdx) {
-  if (window.USE_SERVER_VALIDATION) return;   // PHASE 3: server sudah tulis RTDB
-  if (!_isScheduleOpen()) return;  // no record outside active schedule
-  const me = getIdentity();
-  if (!me || !me.nim || me.role === 'dosen') return;
-  const key = sanitizeKey('mhs_' + me.nim);
-  const nodeRef = ref(db, DB_PATH + '/' + key);
-  get(nodeRef).then(snap => {
-    let ex;
-    if (!snap.exists()) {
-      // PEDOMAN v5 §15.4e — Auto-create visitor record (race-condition guard).
-      // Tanpa ini, mahasiswa yang answer terlalu cepat setelah login bisa kehilangan poin.
-      console.warn('[UTS] Visitor record missing — auto-creating with default values');
-      ex = {
-        nama: me.nama || '—', nim: me.nim, role: 'student',
-        timestamp: me.timestamp || new Date().toISOString(),
-        lastVisit: new Date().toISOString(),
-        visitCount: 1,
-        points: 0,           // PEDOMAN §13.4.1 — wajib init (null-comparison trap fix)
-        scoredQuestions: ''  // PEDOMAN §13.4.1 — wajib init
-      };
-    } else {
-      ex = snap.val();
-    }
-    const usedKey = qId + '_mc_used';
-    const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
-    if (scored.includes(usedKey)) return;
-    scored.push(usedKey);
-    // Simpan user selection (option index 0-3) ke selections/
-    const selections = Object.assign({}, ex.selections || {});
-    if (typeof selectedIdx === 'number') selections[qId] = selectedIdx;
-    const updated = _stripLegacyPinFields(Object.assign({}, ex, {
-      scoredQuestions: scored.join(','),
-      selections: selections
-    }));
-    set(nodeRef, updated);
-    _checkConsolationPoint(nodeRef, updated);
-  }).catch(err => console.error("[UTS Firebase] write failed:", err));
-};
-
-// ── TF: Award point on correct answer (mirip _awardPoint untuk MC) ──
-window._awardTfPoint = function(qId, selectedValue) {
-  if (window.USE_SERVER_VALIDATION) return;   // PHASE 3: server sudah tulis RTDB
-  if (!_isScheduleOpen()) return;
-  if (_answeredQ.has(qId)) return;
-  const me = getIdentity();
-  if (!me || !me.nim || me.role === 'dosen') return;
-  const key = sanitizeKey('mhs_' + me.nim);
-  const nodeRef = ref(db, DB_PATH + '/' + key);
-  get(nodeRef).then(snap => {
-    let ex;
-    if (!snap.exists()) {
-      // PEDOMAN v5 §15.4e — Auto-create visitor record (race-condition guard).
-      // Tanpa ini, mahasiswa yang answer terlalu cepat setelah login bisa kehilangan poin.
-      console.warn('[UTS] Visitor record missing — auto-creating with default values');
-      ex = {
-        nama: me.nama || '—', nim: me.nim, role: 'student',
-        timestamp: me.timestamp || new Date().toISOString(),
-        lastVisit: new Date().toISOString(),
-        visitCount: 1,
-        points: 0,           // PEDOMAN §13.4.1 — wajib init (null-comparison trap fix)
-        scoredQuestions: ''  // PEDOMAN §13.4.1 — wajib init
-      };
-    } else {
-      ex = snap.val();
-    }
-    const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
-    if (scored.includes(qId)) { _answeredQ.add(qId); return; }
-    _answeredQ.add(qId); scored.push(qId);
-    // Simpan user selection (true/false) ke selections/
-    const selections = Object.assign({}, ex.selections || {});
-    if (typeof selectedValue === 'boolean') selections[qId] = selectedValue;
-    const updated = _stripLegacyPinFields(Object.assign({}, ex, {
-      points: (ex.points||0)+(1*_getLateMultiplier()),
-      pointTimestamp: new Date().toISOString(),
-      scoredQuestions: scored.join(','),
-      selections: selections
-    }));
-    set(nodeRef, updated);
-    _checkConsolationPoint(nodeRef, updated);
-  }).catch(err => console.error("[UTS Firebase] write failed:", err));
-};
-
-// ── TF: Record failed attempt ──
-window._recordTfAttempt = function(qId, selectedValue) {
-  if (window.USE_SERVER_VALIDATION) return;   // PHASE 3: server sudah tulis RTDB
-  if (!_isScheduleOpen()) return;
-  const me = getIdentity();
-  if (!me || !me.nim || me.role === 'dosen') return;
-  const key = sanitizeKey('mhs_' + me.nim);
-  const nodeRef = ref(db, DB_PATH + '/' + key);
-  get(nodeRef).then(snap => {
-    let ex;
-    if (!snap.exists()) {
-      // PEDOMAN v5 §15.4e — Auto-create visitor record (race-condition guard).
-      // Tanpa ini, mahasiswa yang answer terlalu cepat setelah login bisa kehilangan poin.
-      console.warn('[UTS] Visitor record missing — auto-creating with default values');
-      ex = {
-        nama: me.nama || '—', nim: me.nim, role: 'student',
-        timestamp: me.timestamp || new Date().toISOString(),
-        lastVisit: new Date().toISOString(),
-        visitCount: 1,
-        points: 0,           // PEDOMAN §13.4.1 — wajib init (null-comparison trap fix)
-        scoredQuestions: ''  // PEDOMAN §13.4.1 — wajib init
-      };
-    } else {
-      ex = snap.val();
-    }
-    const usedKey = qId + '_tf_used';
-    const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
-    if (scored.includes(usedKey)) return;
-    scored.push(usedKey);
-    // Simpan user selection (true/false) ke selections/
-    const selections = Object.assign({}, ex.selections || {});
-    if (typeof selectedValue === 'boolean') selections[qId] = selectedValue;
-    const updated = _stripLegacyPinFields(Object.assign({}, ex, {
-      scoredQuestions: scored.join(','),
-      selections: selections
-    }));
-    set(nodeRef, updated);
-    _checkConsolationPoint(nodeRef, updated);
-  }).catch(err => console.error("[UTS Firebase] write failed:", err));
-};
-
-// ── Record a failed comp attempt to Firebase (anti-manipulation) ──
-window._recordCompAttempt = function(qId) {
-  if (window.USE_SERVER_VALIDATION) return;   // PHASE 3: server sudah tulis RTDB
-  if (!_isScheduleOpen()) return;  // no record outside active schedule
-  const me = getIdentity();
-  if (!me || !me.nim || me.role === 'dosen') return;
-  const key = sanitizeKey('mhs_' + me.nim);
-  const nodeRef = ref(db, DB_PATH + '/' + key);
-  // PEDOMAN §15.4c — Capture code text (kode salah tetap disimpan sebagai dokumentasi upaya)
-  const codeText = (document.getElementById('code-' + qId)?.value || '').slice(0, 5000);
-  get(nodeRef).then(snap => {
-    let ex;
-    if (!snap.exists()) {
-      // PEDOMAN v5 §15.4e — Auto-create visitor record (race-condition guard).
-      // Tanpa ini, mahasiswa yang answer terlalu cepat setelah login bisa kehilangan poin.
-      console.warn('[UTS] Visitor record missing — auto-creating with default values');
-      ex = {
-        nama: me.nama || '—', nim: me.nim, role: 'student',
-        timestamp: me.timestamp || new Date().toISOString(),
-        lastVisit: new Date().toISOString(),
-        visitCount: 1,
-        points: 0,           // PEDOMAN §13.4.1 — wajib init (null-comparison trap fix)
-        scoredQuestions: ''  // PEDOMAN §13.4.1 — wajib init
-      };
-    } else {
-      ex = snap.val();
-    }
-    const usedKey = qId + '_comp_used';
-    const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
-    if (scored.includes(usedKey)) return;   // already recorded
-    scored.push(usedKey);
-    const codes = Object.assign({}, ex.codes || {}, codeText ? { [qId]: codeText } : {});
-    const updated = Object.assign({}, ex, { scoredQuestions: scored.join(','), codes: codes });
-    set(nodeRef, updated);
-    _checkConsolationPoint(nodeRef, updated);
-  }).catch(err => console.error("[UTS Firebase] write failed:", err));
-};
+// ── No-op shells (compat) ────────────────────────────────────────────────
+// Server (Cloud Function `checkExamAnswer`) is the only writer to RTDB
+// visitor records — it handles points, scoredQuestions, selections, codes,
+// and consolation logic transactionally. The legacy client-side `_awardX` /
+// `_recordX` helpers are kept as no-ops so any leftover caller (e.g. older
+// restore paths) does not throw, but they intentionally do nothing.
+window._awardPoint        = function(/* qId, selectedIdx */) {};
+window._awardCompPoint    = function(/* qId, point */)      {};
+window._awardCompPartial  = function(/* qId, point */)      {};
+window._awardTfPoint      = function(/* qId, selectedValue */) {};
+window._recordMcAttempt   = function(/* qId, selectedIdx */)   {};
+window._recordTfAttempt   = function(/* qId, selectedValue */) {};
+window._recordCompAttempt = function(/* qId */)              {};
 
 // ═══════════════════════════════════════════════════════════════
 // FIREBASE STATE PERSISTENCE — Cache + Idempotent Visual Apply
