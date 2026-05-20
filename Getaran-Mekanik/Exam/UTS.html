@@ -2535,7 +2535,7 @@ const UTS_COMP_EZ = [
       };
     }
   },
-  // ── C5: Modul 3 — Damped natural frequency ω_d ──
+  // ── C5: Modul 3 — Damped natural frequency ω_d (MULTI-STEP) ──
   {
     id: 'c5', modul: 3,
     compute: (N) => {
@@ -2551,10 +2551,16 @@ const UTS_COMP_EZ = [
         text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
                • <b>m = 1 kg</b> (tetap), <b>k = 100 N/m</b> (tetap) → ωₙ = 10 rad/s<br>
                • <b>c = (N + 1) / 10 = (${N} + 1) / 10 = ${c.toFixed(1)} Ns/m</b><br>
-               Hitung <b>frekuensi natural teredam ω<sub>d</sub></b> (rad/s). Rumus: ω<sub>d</sub> = ωₙ·√(1−ζ²).`,
-        hint: `import numpy as np\n# N = ${N}\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\n# Langkah: (1) wn = √(k/m), (2) zeta = c/(2√(km)), (3) wd = wn·√(1−ζ²)\n# TODO: implement dan print(wd)`,
+               Hitung <b>frekuensi natural teredam ω<sub>d</sub></b> (rad/s). Rumus: ω<sub>d</sub> = ωₙ·√(1−ζ²).
+               <div style="margin-top:8px;padding:8px 10px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.3);border-radius:6px;color:var(--violet);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 3 nilai berurutan: <b>ωₙ → ζ → ω_d</b>. Final answer saja tidak cukup.</div>`,
+        hint: `import numpy as np\n# N = ${N}\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\n# Langkah: (1) wn = √(k/m), (2) zeta = c/(2√(km)), (3) wd = wn·√(1−ζ²)\n# WAJIB print BERURUTAN semua nilai antara + final:\nwn = np.sqrt(k/m)\nprint(wn)            # langkah 1\nzeta = c/(2*np.sqrt(m*k))\nprint(zeta)          # langkah 2\nwd = wn*np.sqrt(1 - zeta**2)\nprint(wd)            # final`,
         diagram: _diagram('Underdamped — Frekuensi natural teredam ωd < ωn', _svg.decay({zeta: zeta, wn: wn})),
         expected: wd,
+        expectedSteps: [
+          { label: 'ωₙ',  value: wn,   tolerance: 0.02 },
+          { label: 'ζ',   value: zeta, tolerance: 0.001 },
+          { label: 'ω_d', value: wd,   tolerance: 0.02 },
+        ],
         tolerance: 0.02
       };
     }
@@ -2600,7 +2606,7 @@ const UTS_COMP_EZ = [
       };
     }
   },
-  // ── C8: Modul 4 — Steady-state amplitude X ──
+  // ── C8: Modul 4 — Steady-state amplitude X (MULTI-STEP) ──
   {
     id: 'c8', modul: 4,
     compute: (N) => {
@@ -2617,15 +2623,20 @@ const UTS_COMP_EZ = [
         text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
                • <b>m = 10 kg, c = 50 Ns/m, k = 10000 N/m, ω = 20 rad/s</b> (semua tetap)<br>
                • <b>F₀ = (N + 1) × 10 = (${N} + 1) × 10 = ${F0} N</b><br>
-               Sistem dieksitasi gaya harmonik F(t) = F₀·sin(ωt). Hitung <b>amplitudo steady-state X</b> dalam <b>mm</b>. Rumus: X = F₀/√((k−mω²)² + (cω)²).`,
-        hint: `import numpy as np\n# N = ${N}\nm = 10           # tetap\nc = 50           # tetap\nk = 10000        # tetap\nF0 = ${F0}         # = (N+1) * 10\nomega = 20       # tetap\n# TODO: hitung X = F0/√((k−mω²)² + (cω)²) dalam METER\n# TODO: konversi ke mm: X_mm = X*1000, lalu print(X_mm)`,
+               Sistem dieksitasi gaya harmonik F(t) = F₀·sin(ωt). Hitung <b>amplitudo steady-state X</b> dalam <b>mm</b>. Rumus: X = F₀/√((k−mω²)² + (cω)²).
+               <div style="margin-top:8px;padding:8px 10px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.3);border-radius:6px;color:var(--violet);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 2 nilai berurutan: <b>X dalam meter → X dalam mm</b>.</div>`,
+        hint: `import numpy as np\n# N = ${N}\nm = 10           # tetap\nc = 50           # tetap\nk = 10000        # tetap\nF0 = ${F0}         # = (N+1) * 10\nomega = 20       # tetap\n# WAJIB print BERURUTAN: X (meter) → X (mm):\ndenom = np.sqrt((k - m*omega**2)**2 + (c*omega)**2)\nX = F0 / denom\nprint(X)              # langkah 1: amplitudo dalam meter\nX_mm = X * 1000\nprint(X_mm)           # final: amplitudo dalam mm`,
         diagram: _diagram('Forced Vibration — Cari amplitudo steady-state X', _svg.springMassDamper(k, m, c, {force: 'F₀sin(ωt)'})),
         expected: X_mm,
+        expectedSteps: [
+          { label: 'X (m)',  value: X,    tolerance: 0.00005 },
+          { label: 'X (mm)', value: X_mm, tolerance: 0.05 },
+        ],
         tolerance: 0.05
       };
     }
   },
-  // ── C9: Modul 5 — Q-factor ──
+  // ── C9: Modul 5 — Q-factor (MULTI-STEP) ──
   {
     id: 'c9', modul: 5,
     compute: (N) => {
@@ -2639,10 +2650,15 @@ const UTS_COMP_EZ = [
         text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
                • <b>m = 1 kg, k = 100 N/m</b> (tetap)<br>
                • <b>c = (N + 1) / 10 = (${N} + 1) / 10 = ${c.toFixed(1)} Ns/m</b><br>
-               Hitung <b>Quality factor Q</b>. Rumus: Q = 1/(2ζ), dengan ζ = c/(2√(km)).`,
-        hint: `import numpy as np\n# N = ${N}\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\n# Langkah: (1) zeta = c/(2√(km)), (2) Q = 1/(2ζ)\n# TODO: implement dan print(Q)`,
+               Hitung <b>Quality factor Q</b>. Rumus: Q = 1/(2ζ), dengan ζ = c/(2√(km)).
+               <div style="margin-top:8px;padding:8px 10px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.3);border-radius:6px;color:var(--violet);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 2 nilai berurutan: <b>ζ → Q</b>.</div>`,
+        hint: `import numpy as np\n# N = ${N}\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\n# WAJIB print BERURUTAN: zeta → Q\nzeta = c/(2*np.sqrt(m*k))\nprint(zeta)        # langkah 1\nQ = 1/(2*zeta)\nprint(Q)           # final`,
         diagram: _diagram('Q-Factor = nilai DMF di puncak resonansi (r≈1)', _svg.dmfCurve({zetas: [zeta, 0.05, 0.2], highlightR: 1.0, highlightZeta: zeta})),
         expected: Q,
+        expectedSteps: [
+          { label: 'ζ', value: zeta, tolerance: 0.001 },
+          { label: 'Q', value: Q,    tolerance: 0.05 },
+        ],
         tolerance: 0.05
       };
     }
@@ -2734,20 +2750,28 @@ const UTS_COMP_HARD = [
         prev_v = state[1];
       }
       const expected = firstPositivePeakAfterCross || 0;
+      const wn_val = Math.sqrt(k / m);
+      const zeta_val = c / (2 * Math.sqrt(m * k));
       return {
         text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
                • <b>m = 1 kg</b> (tetap)<br>
                • <b>k = 100 N/m</b> (tetap) → ωₙ = 10 rad/s<br>
                • <b>c = (N + 1) / 10 = (${N} + 1) / 10 = ${c.toFixed(1)} Ns/m</b><br>
-               Implementasikan integrator <b>Runge-Kutta orde-4 (RK4)</b> untuk menyelesaikan sistem getaran bebas teredam <code>mẍ + cẋ + kx = 0</code>. Kondisi awal: <b>x(0) = 0.1 m, ẋ(0) = 0</b>. Step <b>h = 0.001 s</b>, durasi <b>t = 0..3 s</b>. Laporkan <b>nilai puncak amplitudo positif PERTAMA setelah simpangan x melewati nol</b> (yaitu peak positif kedua, dalam meter).`,
-        hint: `# N = ${N} (dari NIM Anda)\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\n# Kerangka: state = [x, v]; def rhs(state): return [v, (-c*v - k*x)/m]; def rk4(state, h): ...; \n# loop sampai t=3, deteksi zero crossing dari + ke -, lalu cari peak (v: + → ≤0, x > 0).\n# Print nilai x pada peak tersebut.`,
+               Implementasikan integrator <b>Runge-Kutta orde-4 (RK4)</b> untuk menyelesaikan sistem getaran bebas teredam <code>mẍ + cẋ + kx = 0</code>. Kondisi awal: <b>x(0) = 0.1 m, ẋ(0) = 0</b>. Step <b>h = 0.001 s</b>, durasi <b>t = 0..3 s</b>. Laporkan <b>nilai puncak amplitudo positif PERTAMA setelah simpangan x melewati nol</b> (yaitu peak positif kedua, dalam meter).
+               <div style="margin-top:8px;padding:8px 10px;background:rgba(236,72,153,.08);border:1px solid rgba(236,72,153,.3);border-radius:6px;color:var(--pink);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 3 nilai berurutan: <b>ζ → ωₙ → peak amplitude</b>. Final answer saja tidak cukup.</div>`,
+        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\n# WAJIB print BERURUTAN: zeta → wn → peak\nzeta = c/(2*np.sqrt(m*k))\nprint(zeta)              # langkah 1\nwn = np.sqrt(k/m)\nprint(wn)                # langkah 2\n# Kerangka RK4: state = [x, v]; rhs(state) = [v, (-c*v - k*x)/m];\n# loop t=0..3 dgn h=0.001, deteksi zero crossing (+ ke -), lalu cari peak (v: + → ≤0, x > 0)\n# print(peak_x)         # final`,
         diagram: _diagram('Sistem Massa-Pegas-Peredam (free vibration, x₀=0.1)', _svg.springMassDamper(k, m, c.toFixed(1))),
         expected: expected,
+        expectedSteps: [
+          { label: 'ζ',    value: zeta_val, tolerance: 0.001 },
+          { label: 'ωₙ',   value: wn_val,   tolerance: 0.02 },
+          { label: 'peak', value: expected, tolerance: 0.005 },
+        ],
         tolerance: 0.005
       };
     }
   },
-  // ── C12: Modul 3 — Identifikasi ζ via logarithmic decrement ──
+  // ── C12: Modul 3 — Identifikasi ζ via logarithmic decrement (MULTI-STEP) ──
   {
     id: 'c12', modul: 3,
     compute: (N) => {
@@ -2762,10 +2786,15 @@ const UTS_COMP_HARD = [
         text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
                • <b>ζ_true = (N + 1) / 200 = (${N} + 1) / 200 = ${zeta_true.toFixed(4)}</b> (rasio redaman sebenarnya)<br>
                • <b>ωₙ = 10 rad/s</b> (tetap)<br>
-               Identifikasi <b>rasio redaman ζ</b> dari sinyal getaran bebas underdamped <code>x(t) = exp(−ζ_true·ωₙ·t)·cos(ωd·t)</code> untuk t ∈ [0, 8] dengan 4000 sampel. Lakukan <em>peak detection</em>, ambil <b>n = 5 puncak</b>, hitung logarithmic decrement δ = (1/n)·ln(x₁/x_(1+n)), lalu estimasi <b>ζ = δ/√(4π² + δ²)</b>. Laporkan ζ_estimasi (harus mendekati ζ_true).`,
-        hint: `import numpy as np\nfrom scipy.signal import find_peaks\n# N = ${N} (dari NIM Anda)\nzeta_true = (${N}+1)/200    # = ${zeta_true.toFixed(4)}\nwn = 10                    # tetap\nwd = wn * np.sqrt(1 - zeta_true**2)\n\nt = np.linspace(0, 8, 4000)\nx = np.exp(-zeta_true*wn*t) * np.cos(wd*t)\npeaks, _ = find_peaks(x)\n# Ambil 6 peak pertama → delta = (1/5)*ln(x[peaks[0]] / x[peaks[5]])\n# zeta_est = delta / sqrt(4*pi**2 + delta**2)\n# print(zeta_est)`,
+               Identifikasi <b>rasio redaman ζ</b> dari sinyal getaran bebas underdamped <code>x(t) = exp(−ζ_true·ωₙ·t)·cos(ωd·t)</code> untuk t ∈ [0, 8] dengan 4000 sampel. Lakukan <em>peak detection</em>, ambil <b>n = 5 puncak</b>, hitung logarithmic decrement δ = (1/n)·ln(x₁/x_(1+n)), lalu estimasi <b>ζ = δ/√(4π² + δ²)</b>. Laporkan ζ_estimasi (harus mendekati ζ_true).
+               <div style="margin-top:8px;padding:8px 10px;background:rgba(236,72,153,.08);border:1px solid rgba(236,72,153,.3);border-radius:6px;color:var(--pink);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 2 nilai berurutan: <b>δ → ζ_est</b>. Final answer saja tidak cukup.</div>`,
+        hint: `import numpy as np\nfrom scipy.signal import find_peaks\n# N = ${N} (dari NIM Anda)\nzeta_true = (${N}+1)/200    # = ${zeta_true.toFixed(4)}\nwn = 10                    # tetap\nwd = wn * np.sqrt(1 - zeta_true**2)\n\nt = np.linspace(0, 8, 4000)\nx = np.exp(-zeta_true*wn*t) * np.cos(wd*t)\npeaks, _ = find_peaks(x)\n# WAJIB print BERURUTAN: delta → zeta_est\ndelta = (1/5) * np.log(x[peaks[0]] / x[peaks[5]])\nprint(delta)              # langkah 1: logarithmic decrement\nzeta_est = delta / np.sqrt(4*np.pi**2 + delta**2)\nprint(zeta_est)           # final`,
         diagram: _diagram('Identifikasi ζ — peak detection pada decay sinyal', _svg.decay({zeta: zeta_true, wn: wn, markPeaks: 5})),
         expected: zeta_est,
+        expectedSteps: [
+          { label: 'δ',     value: delta_expected, tolerance: 0.01 },
+          { label: 'ζ_est', value: zeta_est,       tolerance: 0.005 },
+        ],
         tolerance: 0.005
       };
     }
@@ -2809,10 +2838,15 @@ const UTS_COMP_HARD = [
         text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
                • <b>m = 1 kg, k = 100 N/m</b> (tetap) → ωₙ = 10 rad/s<br>
                • <b>c = (N + 1) / 10 = (${N} + 1) / 10 = ${c.toFixed(1)} Ns/m</b><br>
-               Cari <b>frekuensi eksitasi yang memberikan amplifikasi MAKSIMUM</b> (resonansi). Lakukan sweep ω dari 1 hingga 100 rad/s dengan step 0.01, hitung DMF(ω) untuk setiap ω, lalu laporkan <b>ω_peak (rad/s) di mana DMF mencapai maksimum</b>.`,
-        hint: `import numpy as np\n# N = ${N}\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\nwn = np.sqrt(k/m)\nzeta = c/(2*np.sqrt(m*k))\nomegas = np.arange(1, 100, 0.01)\nr = omegas/wn\nDMF = 1/np.sqrt((1-r**2)**2 + (2*zeta*r)**2)\nidx = np.argmax(DMF)\nprint(omegas[idx])`,
+               Cari <b>frekuensi eksitasi yang memberikan amplifikasi MAKSIMUM</b> (resonansi). Lakukan sweep ω dari 1 hingga 100 rad/s dengan step 0.01, hitung DMF(ω) untuk setiap ω, lalu laporkan <b>ω_peak (rad/s) di mana DMF mencapai maksimum</b>.
+               <div style="margin-top:8px;padding:8px 10px;background:rgba(236,72,153,.08);border:1px solid rgba(236,72,153,.3);border-radius:6px;color:var(--pink);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 2 nilai berurutan: <b>ζ → ω_peak</b>. Final answer saja tidak cukup.</div>`,
+        hint: `import numpy as np\n# N = ${N}\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\nwn = np.sqrt(k/m)\n# WAJIB print BERURUTAN: zeta → omega_peak\nzeta = c/(2*np.sqrt(m*k))\nprint(zeta)              # langkah 1\nomegas = np.arange(1, 100, 0.01)\nr = omegas/wn\nDMF = 1/np.sqrt((1-r**2)**2 + (2*zeta*r)**2)\nidx = np.argmax(DMF)\nprint(omegas[idx])       # final: omega_peak`,
         diagram: _diagram('Sweep frekuensi — cari ω yang DMF maksimum', _svg.dmfCurve({zetas: [zeta, 0.05, 0.2], highlightR: r_peak, highlightZeta: zeta})),
         expected: omega_peak,
+        expectedSteps: [
+          { label: 'ζ',      value: zeta,       tolerance: 0.001 },
+          { label: 'ω_peak', value: omega_peak, tolerance: 0.05 },
+        ],
         tolerance: 0.05
       };
     }
@@ -2840,10 +2874,15 @@ const UTS_COMP_HARD = [
                • <b>m = 50 kg</b> (tetap, mesin)<br>
                • <b>ω_eksitasi = N + 1 = ${N} + 1 = ${omega_ex} rad/s</b><br>
                • <b>T_R target = 0.10</b> (10%), <b>ζ = 0.05</b> (tetap)<br>
-               Desain isolator getaran. Tentukan <b>nilai kekakuan pegas k (N/m) MAKSIMUM</b> yang masih memenuhi syarat T<sub>R</sub> ≤ 0.10. Lakukan sweep ωₙ dari 0.01 hingga ω_eksitasi, cari ωₙ maksimum yang memenuhi, lalu hitung k = m·ωₙ².`,
-        hint: `import numpy as np\n# N = ${N}\nm = 50           # tetap (mesin)\nomega_ex = ${omega_ex}      # = N+1 (eksitasi)\nTR_target = 0.10\nzeta = 0.05\n\nbest_wn = 0\nfor wn in np.arange(0.01, omega_ex, 0.01):\n    r = omega_ex / wn\n    TR = np.sqrt((1 + (2*zeta*r)**2) / ((1-r**2)**2 + (2*zeta*r)**2))\n    if TR <= TR_target:\n        best_wn = wn\nk = m * best_wn**2\nprint(k)`,
+               Desain isolator getaran. Tentukan <b>nilai kekakuan pegas k (N/m) MAKSIMUM</b> yang masih memenuhi syarat T<sub>R</sub> ≤ 0.10. Lakukan sweep ωₙ dari 0.01 hingga ω_eksitasi, cari ωₙ maksimum yang memenuhi, lalu hitung k = m·ωₙ².
+               <div style="margin-top:8px;padding:8px 10px;background:rgba(236,72,153,.08);border:1px solid rgba(236,72,153,.3);border-radius:6px;color:var(--pink);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 2 nilai berurutan: <b>ωₙ_max → k_max</b>. Final answer saja tidak cukup.</div>`,
+        hint: `import numpy as np\n# N = ${N}\nm = 50           # tetap (mesin)\nomega_ex = ${omega_ex}      # = N+1 (eksitasi)\nTR_target = 0.10\nzeta = 0.05\n\nbest_wn = 0\nfor wn in np.arange(0.01, omega_ex, 0.01):\n    r = omega_ex / wn\n    TR = np.sqrt((1 + (2*zeta*r)**2) / ((1-r**2)**2 + (2*zeta*r)**2))\n    if TR <= TR_target:\n        best_wn = wn\n# WAJIB print BERURUTAN: best_wn → k\nprint(best_wn)        # langkah 1: omega_n maksimum\nk = m * best_wn**2\nprint(k)              # final`,
         diagram: _diagram('Desain isolator — cari ωₙ paling besar yang T_R ≤ 0.10', _svg.trCurve({zeta: 0.05, target: TR_target})),
         expected: k_max,
+        expectedSteps: [
+          { label: 'ωₙ_max', value: omega_n_max, tolerance: 0.02 },
+          { label: 'k_max',  value: k_max,       tolerance: 50 },
+        ],
         tolerance: 50
       };
     }
@@ -3773,12 +3812,16 @@ async function runAndCheck(qId, expectedAns, tol, difficulty) {
     // disimpan utk audit di RTDB codes[qId].
     if (window.USE_SERVER_VALIDATION) {
       let userAnswer = null;
+      let userAnswers = null;
       if (!errMsg) {
         const nums = parseNumbers(output || '');
-        if (nums.length > 0) userAnswer = nums[nums.length - 1];   // ambil angka terakhir
+        if (nums.length > 0) {
+          userAnswer = nums[nums.length - 1];   // back-compat single-answer (legacy soal)
+          userAnswers = nums;                    // multi-step: kirim SEMUA angka berurutan
+        }
       }
       try {
-        const res = await window._callCheckExamAnswer(qId, userAnswer, code);
+        const res = await window._callCheckExamAnswer(qId, userAnswer, code, userAnswers);
         // Lock textarea sesuai status (mirror _lockCompWrong behavior)
         if (ta) {
           ta.disabled = true;
@@ -3791,19 +3834,34 @@ async function runAndCheck(qId, expectedAns, tol, difficulty) {
           }
         }
         _applyServerExamResult(qId, res, 'comp', btn, fb);
+        // ── Build step-by-step diagnostic (utk soal multi-step dgn expectedSteps) ──
+        // Format: "ωₙ ✓ · ζ ✓ · ω_d ✗"
+        let stepDiag = '';
+        if (Array.isArray(res.stepResults) && Array.isArray(res.stepLabels) &&
+            res.stepResults.length === res.stepLabels.length) {
+          stepDiag = res.stepResults
+            .map((ok, i) => (res.stepLabels[i] || ('step' + (i+1))) + ' ' + (ok ? '✓' : '✗'))
+            .join(' · ');
+        }
         // Override fb text dgn comp-specific message (lebih informatif dari helper default)
         if (fb) {
           if (res.correct) {
-            fb.textContent = '✅ Kode berjalan tanpa error & output benar! +' + res.scoreDelta + ' poin tercatat. Soal TERKUNCI PERMANEN.';
+            fb.textContent = stepDiag
+              ? '✅ Semua langkah benar (' + stepDiag + '). +' + res.scoreDelta + ' poin tercatat. Soal TERKUNCI PERMANEN.'
+              : '✅ Kode berjalan tanpa error & output benar! +' + res.scoreDelta + ' poin tercatat. Soal TERKUNCI PERMANEN.';
           } else if (res.status === 'partial') {
             fb.textContent = errMsg
               ? '🔒 Kode error — soal dikunci. +' + res.scoreDelta + ' poin untuk upaya Hard (kode non-kosong). TIDAK ADA KESEMPATAN ULANG.'
-              : '🔒 Output tidak match expected — soal dikunci. +' + res.scoreDelta + ' poin untuk upaya Hard. TIDAK ADA KESEMPATAN ULANG.';
+              : (stepDiag
+                  ? '🔒 Tidak semua langkah match (' + stepDiag + '). Final answer saja tidak cukup. +' + res.scoreDelta + ' poin upaya Hard. TIDAK ADA KESEMPATAN ULANG.'
+                  : '🔒 Output tidak match expected — soal dikunci. +' + res.scoreDelta + ' poin untuk upaya Hard. TIDAK ADA KESEMPATAN ULANG.');
           } else {
             const outPreview = (output || '(kosong)').trim().slice(0, 100);
             fb.textContent = errMsg
               ? '🔒 Kode error — soal dikunci. Tidak ada kesempatan ulang.'
-              : '🔒 Output tidak match expected. Output: "' + outPreview + '". Soal dikunci. TIDAK ADA KESEMPATAN ULANG.';
+              : (stepDiag
+                  ? '🔒 Tidak semua langkah match (' + stepDiag + '). Wajib print SEMUA nilai antara berurutan. Soal dikunci. TIDAK ADA KESEMPATAN ULANG.'
+                  : '🔒 Output tidak match expected. Output: "' + outPreview + '". Soal dikunci. TIDAK ADA KESEMPATAN ULANG.');
           }
         }
         // Override button text utk comp (lebih spesifik dari helper default)
@@ -6060,14 +6118,16 @@ window._setSessionPinHash = _setSessionPinHash;
 
 // Helper: panggil Cloud Function utk validasi 1 soal.
 // Args:
-//   qId        — string question ID (mis. "tf1", "mc3", "c11")
-//   userAnswer — boolean (TF) | number 0-3 (MC) | number/null (Comp; null = Pyodide error)
-//   codeText   — string optional (utk Comp, source code Python utk audit)
+//   qId         — string question ID (mis. "tf1", "mc3", "c11")
+//   userAnswer  — boolean (TF) | number 0-3 (MC) | number/null (Comp; null = Pyodide error)
+//   codeText    — string optional (utk Comp, source code Python utk audit)
+//   userAnswers — number[] optional (Comp multi-step: SEMUA angka di output Python
+//                 berurutan, utk validasi expectedSteps. Server pakai sequence-match.)
 // Returns Promise<{correct, status, scoreDelta, marker, explain, lateMultiplier,
-//                  pastDeadline, consolationAwarded, alreadyAnswered}>
+//                  pastDeadline, consolationAwarded, alreadyAnswered, stepResults?, stepLabels?}>
 // Throws Error dengan .code (HttpsError code: 'unauthenticated', 'failed-precondition',
 //   'not-found', 'invalid-argument', 'internal') dan .message human-readable.
-async function _callCheckExamAnswer(qId, userAnswer, codeText) {
+async function _callCheckExamAnswer(qId, userAnswer, codeText, userAnswers) {
   const me = getIdentity();
   if (!me || !me.nim) {
     const err = new Error('Identity tidak ditemukan — silakan login ulang');
@@ -6081,6 +6141,10 @@ async function _callCheckExamAnswer(qId, userAnswer, codeText) {
   const payload = { examId: EXAM_ID, qId, userAnswer, nim: me.nim, pinHash };
   if (typeof codeText === 'string' && codeText.length > 0) {
     payload.codeText = codeText.slice(0, 5000);
+  }
+  if (Array.isArray(userAnswers) && userAnswers.length > 0) {
+    // Cap di 64 angka — soal komputasi normal max ~5 angka, ini guard utk runaway output.
+    payload.userAnswers = userAnswers.slice(0, 64).map(Number).filter(Number.isFinite);
   }
   try {
     const result = await _checkExamAnswerCallable(payload);
