@@ -78,12 +78,20 @@ function sanitizeKey(s) {
   return String(s).replace(/[.#$[\]/]/g, "_");
 }
 
-// Sync dengan client `getN()` (UTS.html line 1596-1602): 2 digit terakhir NIM.
+// Sync dengan client `getN()` (UTS.html line 1657-1672): 2 digit terakhir NIM,
+// dengan fallback ke 2 digit sebelumnya kalau last-2 = "00" (May 2026 rule).
 // Dipakai utk lookup variant parametric (byN map).
+// CRITICAL: HARUS sync persis dgn client getN(). Kalau client pakai N=20 utk
+// NIM "4132012000" (fallback dari "00"), server juga harus pakai N=20 — kalau
+// tidak, expected mismatch → mahasiswa selalu salah meskipun jawaban benar.
 function deriveN(nim) {
   const digits = String(nim).replace(/\D/g, "");
   if (digits.length < 2) return 0;
-  return parseInt(digits.slice(-2), 10) || 0;
+  let n = parseInt(digits.slice(-2), 10);
+  if (n === 0 && digits.length >= 4) {
+    n = parseInt(digits.slice(-4, -2), 10) || 0;
+  }
+  return n || 0;
 }
 
 // Resolve answer key: kalau parametric, ambil variant dari byN[N] dengan fallback
