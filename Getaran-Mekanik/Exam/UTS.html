@@ -2806,7 +2806,48 @@ function _applyServerExamResult(qId, res, type, sub, fb) {
   const status = res.status || (res.correct ? 'correct' : 'wrong');
   const delta = Number(res.scoreDelta) || 0;
 
-  // Update local score state (utk updateScore() bar di top)
+  // ── alreadyAnswered: idempotency lock ──────────────────────────────────────
+  // Server returns scoreDelta=0 + status dari attempt sebelumnya. JANGAN overwrite
+  // local tfScores/mcScores/compScores dgn 0 (akan drop poin yg sudah didapat dari
+  // attempt pertama). Tampilkan pesan distinct supaya mahasiswa paham locknya.
+  if (res.alreadyAnswered === true) {
+    if (type === 'tf')   tfAnswered[qId] = true;
+    if (type === 'mc')   mcAnswered[qId] = true;
+    if (type === 'comp') compAnswered[qId] = true;
+    if (res.marker) _answeredQ.add(res.marker);
+
+    if (fb) {
+      if (status === 'correct') {
+        fb.className = 'feedback correct';
+        fb.textContent = '🔒 Soal ini sudah Anda jawab BENAR sebelumnya — poin sudah tercatat dari attempt pertama. TIDAK ADA KESEMPATAN ULANG.';
+      } else if (status === 'partial') {
+        fb.className = 'feedback warn';
+        fb.textContent = '🔒 Soal ini sudah dijawab sebelumnya (partial credit). TIDAK ADA KESEMPATAN ULANG.';
+      } else {
+        fb.className = 'feedback wrong';
+        fb.textContent = '🔒 Soal ini sudah dijawab SALAH sebelumnya — TIDAK ADA KESEMPATAN ULANG.';
+      }
+    }
+    if (sub) {
+      if (status === 'correct') {
+        sub.textContent = '✓ Terjawab';
+        sub.style.background = 'rgba(0,224,158,.1)';
+        sub.style.borderColor = 'rgba(0,224,158,.4)';
+        sub.style.color = 'var(--green)';
+      } else {
+        sub.textContent = '🔒 Terkunci';
+        sub.style.background = 'rgba(239,68,68,.1)';
+        sub.style.borderColor = 'rgba(239,68,68,.4)';
+        sub.style.color = 'var(--pink)';
+      }
+      sub.disabled = true;
+      sub.classList.remove('running');
+    }
+    // TIDAK update score state, TIDAK call updateScore — preserve previous delta
+    return;
+  }
+
+  // ── Fresh attempt: update local score state ─────────────────────────────────
   if (type === 'tf')   { tfScores[qId] = delta; tfAnswered[qId] = true; }
   if (type === 'mc')   { mcScores[qId] = delta; mcAnswered[qId] = true; }
   if (type === 'comp') { compScores[qId] = delta; compAnswered[qId] = true; }
@@ -2824,9 +2865,7 @@ function _applyServerExamResult(qId, res, type, sub, fb) {
       fb.textContent = '△ Partial credit +' + delta + ' poin (upaya tercatat). Soal TERKUNCI PERMANEN — tidak ada kesempatan ulang.';
     } else {
       fb.className = 'feedback wrong';
-      fb.textContent = res.alreadyAnswered
-        ? '🔒 Sudah dijawab sebelumnya — TIDAK ADA KESEMPATAN ULANG.'
-        : '🔒 Jawaban telah dikunci. TIDAK ADA KESEMPATAN ULANG. (UTS murni — jawaban benar tidak ditampilkan)';
+      fb.textContent = '🔒 Jawaban telah dikunci. TIDAK ADA KESEMPATAN ULANG. (UTS murni — jawaban benar tidak ditampilkan)';
     }
   }
 
