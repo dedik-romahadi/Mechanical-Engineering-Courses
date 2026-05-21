@@ -51,7 +51,11 @@ const EXAMS = {
     const { UTS_QUESTIONS, SUMMARY } = require("./uts-optoauto-answers");
     return { questions: UTS_QUESTIONS, summary: SUMMARY };
   })(),
-  // Tambah saat rollout: "math4-uts", "math4-uas", "optoauto-uas"
+  "optoauto-uas": (() => {
+    const { UAS_QUESTIONS, SUMMARY } = require("./uas-optoauto-answers");
+    return { questions: UAS_QUESTIONS, summary: SUMMARY };
+  })(),
+  // Tambah saat rollout: "math4-uts", "math4-uas"
 };
 
 const PROJECT_ID = "getaran-mekanik";
