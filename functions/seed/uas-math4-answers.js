@@ -257,7 +257,8 @@ const COMP_EZ = [
 
   { qId: "c2", type: "comp", points: 2, parametric: true, tolerance: 0.001,
     compute: (N) => {
-      const a = 2 + (N % 4);
+      // SOURCE FIX: (N%4)+2 → (N%3)+2 utk hindari divergence 1/0 saat a=b=5
+      const a = 2 + (N % 3);
       const b = 5;
       const result = 1 / (b - a);
       return {
@@ -310,7 +311,8 @@ const COMP_EZ = [
 
   { qId: "c7", type: "comp", points: 2, parametric: true, tolerance: 0.001,
     compute: (N) => {
-      const a = 2 + (N % 4);
+      // SOURCE FIX: (N%4)+2 → (N%3)+2 utk hindari divergence 1/0 saat a=b=5
+      const a = 2 + (N % 3);
       const A = 1 / (a - 5);
       return {
         expected: parseFloat(A.toFixed(4)),
