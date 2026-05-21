@@ -6905,17 +6905,22 @@ async function submitPinVerify() {
       };
     }
 
-    if (isReentry) {
-      // Re-entry mid-session: visitor record sudah ada di RTDB dengan progress
-      // (points, scoredQuestions di-write oleh cloud function). Client TIDAK
-      // boleh overwrite — RTDB rules reject dengan PERMISSION_DENIED.
-      // Cukup restore identity local dengan latest visitor data.
+    if (existingVisitor) {
+      // Re-login: visitor record sudah ada di RTDB. Client TIDAK boleh
+      // overwrite (RTDB rules reject dengan PERMISSION_DENIED kalau record
+      // sudah punya progress dari cloud function: points, scoredQuestions,
+      // examAttempts). Cukup restore identity local — visitCount bump
+      // tidak kritis untuk exam grading.
+      // Cover 2 skenario: (a) re-entry mid-session via _promptPinReentry,
+      // (b) fresh re-login setelah localStorage clear (incognito, dll).
       saveIdentity(visitorRec);
     } else if (schedOpen) {
+      // First-time login + schedule open: create new visitor record di RTDB.
+      // Client write allowed karena record belum ada (rules: ".write": "!data.exists() || ...").
       saveIdentity(visitorRec);
       await set(ref(db, DB_PATH + '/' + key), visitorRec);
     } else {
-      // Di luar jadwal: update identity local saja (tidak write Firebase)
+      // First-time login tapi di luar jadwal: identity local only, skip Firebase.
       saveIdentity({ nama, nim, role: 'student', timestamp: existingVisitor ? existingVisitor.timestamp : nowISO });
     }
 
