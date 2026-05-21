@@ -1,7 +1,9 @@
-name: Firebase Deploy Pilot (Getaran)
+name: Firebase Deploy Exam (multi-course)
 
-# Manual trigger only (workflow_dispatch). Bapak buka GitHub repo → tab Actions →
-# pilih workflow ini → klik "Run workflow" → centang step yang ingin dijalankan.
+# Manual trigger workflow untuk deploy Firestore rules, RTDB rules, Cloud
+# Functions, dan seed exam answer keys. Support multi-course/multi-exam via
+# input `exam_target` (pilih: getaran-mekanik-uts, getaran-mekanik-uas,
+# optoauto-uts, all, dst — tambah di EXAMS map saat rollout exam baru).
 #
 # Setup PRASYARAT (sekali setup):
 # 1. Download Service Account key dari Firebase Console:
@@ -19,9 +21,9 @@ name: Firebase Deploy Pilot (Getaran)
 #    Name: FIREBASE_SA_KEY
 #    Value: paste ISI LENGKAP file JSON (mulai dari `{`, sampai `}`)
 #
-# Lalu trigger workflow ini dari tab Actions di GitHub. Saat klik "Run workflow",
-# pilih branch yang berisi seed script & function code yang ingin di-deploy
-# (mis. claude/cloud-functions-pin-verify-fs3YS untuk pilot Phase 2).
+# Catatan: semua exam (Getaran, Optoauto, Math) deploy ke SATU Firebase project
+# yang sama (`getaran-mekanik`). Multi-tenancy via Firestore path prefix
+# (examAnswers/<examId>/qs/) dan RTDB path (visitors/<course>/<module>/).
 
 on:
   workflow_dispatch:
