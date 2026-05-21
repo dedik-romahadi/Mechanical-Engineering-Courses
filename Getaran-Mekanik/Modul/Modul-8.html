@@ -4364,6 +4364,9 @@ textarea,input,select,option,
   -ms-user-select:text!important;user-select:text!important;
 }
 img,video,svg{-webkit-user-drag:none;user-drag:none;}
+body.friction-blurred{filter:blur(12px);transition:filter .3s ease;}
+body.friction-blurred #frictionNotice,
+body.friction-blurred #frictionToast{filter:none;}
 #frictionWatermark{
   position:fixed;inset:0;pointer-events:none;z-index:999998;
   opacity:.08;mix-blend-mode:difference;user-select:none;
@@ -8629,6 +8632,13 @@ window._pa = {1: '1vcm311', 2: 'crcad2'};
     }
   }
 
+  function onCopy(e){
+    if (!isStudent()) return;
+    if (e.target.closest('textarea, input, [contenteditable="true"]')) return;
+    e.preventDefault();
+    showToast('🔒 Copy teks soal dinonaktifkan.');
+  }
+
   function onContextMenu(e){
     if (!isStudent()) return;
     if (e.target.closest('textarea, input, [contenteditable="true"]')) return;
@@ -8649,6 +8659,23 @@ window._pa = {1: '1vcm311', 2: 'crcad2'};
       showToast('🔒 View source dinonaktifkan.');
       return;
     }
+    // Ctrl+A blocker (allow di textarea/input)
+    if ((e.ctrlKey || e.metaKey) && k === 'a'){
+      if (e.target.closest('textarea, input, [contenteditable="true"]')) return;
+      e.preventDefault();
+      showToast('🔒 Select all dinonaktifkan.');
+      return;
+    }
+    // Ctrl+C blocker untuk teks soal (allow di textarea/input)
+    if ((e.ctrlKey || e.metaKey) && k === 'c'){
+      if (e.target.closest('textarea, input, [contenteditable="true"]')) return;
+      // Don't preventDefault — let user-select:none CSS handle it
+      // Just show toast as deterrent feedback
+      const sel = window.getSelection ? String(window.getSelection()) : '';
+      if (sel.trim().length > 3) {
+        showToast('🔒 Copy teks soal dinonaktifkan.');
+      }
+    }
     if ((e.ctrlKey || e.metaKey) && (k === 'p' || k === 's')){
       e.preventDefault();
       showToast('🔒 Print / Save page dinonaktifkan.');
@@ -8660,12 +8687,22 @@ window._pa = {1: '1vcm311', 2: 'crcad2'};
   }
 
   let tabLeaveCount = 0;
+  let _blurTimer = null;
   function onVisibility(){
     if (!isStudent()) return;
     if (document.hidden){
       tabLeaveCount++;
-    } else if (tabLeaveCount > 0){
-      showToast('⚠ Anda meninggalkan tab '+tabLeaveCount+'×. Tercatat di sistem.');
+      // Blur halaman setelah 200ms (prevent false trigger Alt+Tab cepat).
+      // Screenshot via OS-level capture saat tab hidden akan tertangkap blur.
+      _blurTimer = setTimeout(() => {
+        document.body.classList.add('friction-blurred');
+      }, 200);
+    } else {
+      clearTimeout(_blurTimer);
+      document.body.classList.remove('friction-blurred');
+      if (tabLeaveCount > 0){
+        showToast('⚠ Anda meninggalkan tab '+tabLeaveCount+'×. Tercatat di sistem.');
+      }
     }
   }
 
@@ -8682,6 +8719,7 @@ window._pa = {1: '1vcm311', 2: 'crcad2'};
 
   function init(){
     document.addEventListener('contextmenu', onContextMenu, { capture: true });
+    document.addEventListener('copy', onCopy, { capture: true });
     document.addEventListener('keydown', onKeyDown, { capture: true });
     document.addEventListener('visibilitychange', onVisibility);
     window.addEventListener('storage', renderWatermark);
