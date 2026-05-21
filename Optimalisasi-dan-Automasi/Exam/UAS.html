@@ -3010,7 +3010,11 @@ function _handleServerExamError(err, qId, fb) {
   if (code === 'failed-precondition') {
     msg = '🔒 ' + (err.message || 'Akses ujian ditutup oleh server.');
   } else if (code === 'unauthenticated') {
-    msg = '⚠ ' + (err.message || 'Sesi PIN expired — silakan login ulang.');
+    msg = '⚠ Sesi PIN expired — silakan input PIN lagi untuk lanjut.';
+    // Auto-trigger PIN re-entry modal — mahasiswa input PIN, lalu klik submit lagi.
+    if (typeof _promptPinReentry === 'function' && !window._sessionPinHash) {
+      _promptPinReentry('Sesi PIN expired — silakan input PIN Anda untuk melanjutkan.');
+    }
   } else if (code === 'not-found') {
     msg = '⚠ Soal belum dikonfigurasi di server — hubungi dosen.';
   } else if (code === 'invalid-argument') {
@@ -6139,6 +6143,13 @@ function _handleScheduleReady() {
         catch(e) { console.error('renderUASQuestions error:', e); }
       }
       setTimeout(function(){ if(typeof window._loadScoredQuestions==='function') window._loadScoredQuestions(); }, 500);
+      // Proactive PIN session check — kalau identity di localStorage tapi sessionStorage
+      // kosong (mis. mahasiswa Alt+Tab + tab di-discard oleh browser), prompt PIN modal.
+      setTimeout(function(){
+        if (!window._sessionPinHash && typeof _promptPinReentry === 'function') {
+          _promptPinReentry('Sesi PIN belum aktif — silakan input PIN Anda untuk dapat submit jawaban.');
+        }
+      }, 800);
     }
   }
 }
@@ -6596,6 +6607,56 @@ function _showPinSetup(nama) {
   document.getElementById('pinSetupOverlay').classList.remove('hidden');
   setTimeout(() => document.getElementById('pinSetupInput1').focus(), 100);
 }
+
+// Mid-session PIN re-entry: dipanggil saat _sessionPinHash hilang (sessionStorage
+// di-evict oleh browser, atau mahasiswa pindah ke tab baru tanpa close exam tab).
+// Fetch existing PIN dari Firebase, show _showPinInput modal dengan custom reason.
+async function _promptPinReentry(reason) {
+  if (window._sessionPinHash) return true;   // already have PIN, no need
+  const me = getIdentity();
+  if (!me || !me.nim || me.role !== 'student') return true;   // skip dosen/no-identity
+
+  // Prevent stacking — kalau modal sudah open, skip
+  const pinOverlay = document.getElementById('pinInputOverlay');
+  if (pinOverlay && !pinOverlay.classList.contains('hidden')) return false;
+
+  try {
+    const key = sanitizeKey('mhs_' + me.nim);
+    const [pinSnap, visSnap] = await Promise.all([
+      get(ref(db, 'pins/' + key)),
+      get(ref(db, DB_PATH + '/' + key))
+    ]);
+    const existingPin = pinSnap.exists() ? pinSnap.val() : null;
+    const existingVisitor = visSnap.exists() ? visSnap.val() : null;
+
+    if (!existingPin || !existingPin.pinHash) {
+      console.warn('[PIN Re-entry] No PIN found in pins/' + key + ' — student must contact dosen for reset');
+      alert('PIN Anda tidak ditemukan di sistem. Silakan hubungi dosen untuk reset PIN.');
+      return false;
+    }
+
+    _pinFlow = {
+      nama: me.nama, nim: me.nim,
+      nowISO: new Date().toISOString(),
+      existingPin, existingVisitor,
+      schedOpen: typeof _isScheduleOpen === 'function' ? _isScheduleOpen() : true
+    };
+    _showPinInput(me.nama);
+    if (reason) {
+      const errEl = document.getElementById('pinInputError');
+      if (errEl) {
+        errEl.textContent = '\u26a0 ' + reason;
+        errEl.style.color = '#fb923c';
+        errEl.style.display = 'block';
+      }
+    }
+    return false;
+  } catch(e) {
+    console.error('[PIN Re-entry] Failed to setup:', e);
+    return false;
+  }
+}
+window._promptPinReentry = _promptPinReentry;
 
 function _showPinInput(nama) {
   document.getElementById('pinInputName').textContent = nama;
