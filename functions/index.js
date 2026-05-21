@@ -68,7 +68,14 @@ const EXAM_CONFIG = {
     consolationPoint: 1,
     lateMultiplierValue: 0.8,    // di window (end, end+extension]
   },
-  // "getaran-mekanik-uas": { dbPath: "visitors/getaran_mekanik/uas", ... },
+  "getaran-mekanik-uas": {
+    dbPath: "visitors/getaran_mekanik/uas",
+    schedulePath: "settings/getaran_mekanik/uas/schedule",
+    totalPoints: 70,             // schema identik UTS (10 TF + 20 MC + 10 Comp + 5 Hard)
+    consolationThreshold: 30,
+    consolationPoint: 1,
+    lateMultiplierValue: 0.8,
+  },
   // "math4-uts":           { dbPath: "visitors/math4/uts",            ... },
   // "math4-uas":           { dbPath: "visitors/math4/uas",            ... },
   // "optoauto-uts":        { dbPath: "visitors/optoauto/uts",         ... },
