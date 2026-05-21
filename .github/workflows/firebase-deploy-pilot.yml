@@ -1,4 +1,4 @@
-name: Firebase Deploy Pilot (Getaran UTS)
+name: Firebase Deploy Pilot (Getaran)
 
 # Manual trigger only (workflow_dispatch). Bapak buka GitHub repo → tab Actions →
 # pilih workflow ini → klik "Run workflow" → centang step yang ingin dijalankan.
@@ -26,8 +26,17 @@ name: Firebase Deploy Pilot (Getaran UTS)
 on:
   workflow_dispatch:
     inputs:
+      exam_target:
+        description: 'Target exam untuk seed (pilih satu exam atau "all")'
+        type: choice
+        required: true
+        default: 'getaran-mekanik-uts'
+        options:
+          - getaran-mekanik-uts
+          - getaran-mekanik-uas
+          - all
       dry_run_seed:
-        description: 'Dry-run seed (preview 45 soal, tanpa nulis ke Firestore)'
+        description: 'Dry-run seed (preview soal, tanpa nulis ke Firestore)'
         type: boolean
         default: true
       deploy_rules:
@@ -35,11 +44,11 @@ on:
         type: boolean
         default: false
       live_seed:
-        description: '⚠ LIVE seed → tulis 45 doc ke examAnswers/ (OVERWRITE jika sudah ada)'
+        description: '⚠ LIVE seed → tulis answer keys ke Firestore examAnswers/ (OVERWRITE jika sudah ada)'
         type: boolean
         default: false
       deploy_functions:
-        description: 'Deploy Cloud Functions (checkExamAnswer)'
+        description: 'Deploy Cloud Functions (checkExamAnswer + resetExamAttempts)'
         type: boolean
         default: false
       deploy_database_rules:
@@ -78,6 +87,7 @@ jobs:
         run: |
           echo "─────────────────────────────────────────────────"
           echo "Pilot deploy plan:"
+          echo "  exam_target:           ${{ inputs.exam_target }}"
           echo "  dry_run_seed:          ${{ inputs.dry_run_seed }}"
           echo "  deploy_rules:          ${{ inputs.deploy_rules }}"
           echo "  live_seed:             ${{ inputs.live_seed }}"
@@ -85,19 +95,28 @@ jobs:
           echo "  deploy_database_rules: ${{ inputs.deploy_database_rules }}"
           echo "─────────────────────────────────────────────────"
 
+      - name: Compute seed flag
+        id: seed_flag
+        run: |
+          if [ "${{ inputs.exam_target }}" = "all" ]; then
+            echo "flag=--all" >> $GITHUB_OUTPUT
+          else
+            echo "flag=--exam ${{ inputs.exam_target }}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Step 1 — Dry-run seed
         if: ${{ inputs.dry_run_seed }}
         working-directory: functions
-        run: node seed/seed-firestore.js --dry-run
+        run: node seed/seed-firestore.js ${{ steps.seed_flag.outputs.flag }} --dry-run
 
       - name: Step 2 — Deploy Firestore rules
         if: ${{ inputs.deploy_rules }}
         run: firebase deploy --only firestore:rules --project getaran-mekanik --non-interactive
 
-      - name: Step 3 — LIVE seed (write 45 answer keys to Firestore)
+      - name: Step 3 — LIVE seed (write answer keys to Firestore)
         if: ${{ inputs.live_seed }}
         working-directory: functions
-        run: npm run seed
+        run: node seed/seed-firestore.js ${{ steps.seed_flag.outputs.flag }}
 
       - name: Step 4 — Deploy Cloud Functions
         if: ${{ inputs.deploy_functions }}
@@ -112,6 +131,6 @@ jobs:
         run: |
           echo "─────────────────────────────────────────────────"
           echo "Selesai. Verifikasi di Firebase Console:"
-          echo "  • Firestore → examAnswers/getaran-mekanik-uts/qs/ (harus ada 45 doc setelah live_seed)"
-          echo "  • Functions → checkExamAnswer (asia-southeast1)"
+          echo "  • Firestore → examAnswers/<examId>/qs/ (target: ${{ inputs.exam_target }})"
+          echo "  • Functions → checkExamAnswer, resetExamAttempts (asia-southeast1)"
           echo "─────────────────────────────────────────────────"
