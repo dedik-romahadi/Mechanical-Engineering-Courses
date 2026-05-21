@@ -1972,52 +1972,40 @@ const UAS_TF = [
   // ── MODUL 8: Persamaan Gerak Multibody ──
   {
     id: 'tf1', modul: 8, parametric: false,
-    text: "Persamaan Lagrange L = T − V (Lagrangian) digunakan untuk derivasi EoM sistem multibody dengan koordinat generalized — tidak butuh Free Body Diagram eksplisit.",
-    answer: true,
-    explain: "Modul 8 — Lagrange method: ∂/∂t(∂L/∂q̇) − ∂L/∂q = Q. Cocok untuk sistem dengan constraint/koordinat kompleks (Newton butuh FBD per body)."
+    text: "Persamaan Lagrange L = T − V (Lagrangian) digunakan untuk derivasi EoM sistem multibody dengan koordinat generalized — tidak butuh Free Body Diagram eksplisit."
   },
   {
     id: 'tf2', modul: 8, parametric: true,
     compute: (N) => {
       const dof = (N % 4) + 2;  // 2 to 5
       return {
-        text: `Sistem 2-DoF mass-spring-damper dengan matriks [M], [K] berukuran 2×2 menghasilkan <b>${dof}</b> frekuensi natural pribadi (eigenvalues). Apakah pernyataan benar?`,
-        answer: dof === 2,
-        explain: `2-DoF → 2 DoF → 2 frekuensi pribadi. Pernyataan ${dof === 2 ? 'BENAR' : 'SALAH (seharusnya 2, bukan ' + dof + ')'}.`
+        text: `Sistem 2-DoF mass-spring-damper dengan matriks [M], [K] berukuran 2×2 menghasilkan <b>${dof}</b> frekuensi natural pribadi (eigenvalues). Apakah pernyataan benar?`
       };
     }
   },
   // ── MODUL 9: Modal Analysis ──
   {
     id: 'tf3', modul: 9, parametric: false,
-    text: "Mode shape adalah RASIO defleksi antar DoF (bukan amplitudo absolut). Konvensi mass-normalization: φᵀMφ = 1.",
-    answer: true,
-    explain: "Modul 9 — Mode shape ratio menentukan POLA defleksi, amplitudo absolut tergantung initial condition. Mass-norm dipakai standard di software FEA."
+    text: "Mode shape adalah RASIO defleksi antar DoF (bukan amplitudo absolut). Konvensi mass-normalization: φᵀMφ = 1."
   },
   {
     id: 'tf4', modul: 9, parametric: true,
     compute: (N) => {
       const n = (N % 5) + 3;  // 3 to 7
       return {
-        text: `Pada gedung shear-building <b>${n} lantai</b> (m identik per lantai), mode 1 (fundamental) selalu memiliki frekuensi <em>terendah</em> dengan semua lantai sefase. Apakah pernyataan benar?`,
-        answer: true,
-        explain: `Modul 9 — Mode 1 fundamental frequency ω₁ = 2·sin(π/(2(2N+1)))·√(k/m) selalu terendah, semua lantai bergerak sefase (dominan untuk earthquake response).`
+        text: `Pada gedung shear-building <b>${n} lantai</b> (m identik per lantai), mode 1 (fundamental) selalu memiliki frekuensi <em>terendah</em> dengan semua lantai sefase. Apakah pernyataan benar?`
       };
     }
   },
   // ── MODUL 10: TMD/Vibration Absorber ──
   {
     id: 'tf5', modul: 10, parametric: false,
-    text: "Tuned Mass Damper (TMD) bekerja dengan menambah massa absorber kecil yang di-tune ke frekuensi eksitasi — menciptakan dua puncak baru di kiri-kanan ω_target dengan anti-resonance di tengah.",
-    answer: true,
-    explain: "Modul 10 — TMD passive: dua peak baru ω_a± menjauh saat μ naik. Den Hartog optimal tuning: ω_a* = ω_target/(1+μ), ζ_a* = √(3μ/(8(1+μ)³))."
+    text: "Tuned Mass Damper (TMD) bekerja dengan menambah massa absorber kecil yang di-tune ke frekuensi eksitasi — menciptakan dua puncak baru di kiri-kanan ω_target dengan anti-resonance di tengah."
   },
   // ── MODUL 11: Fourier/FFT ──
   {
     id: 'tf6', modul: 11, parametric: false,
-    text: "Teorema Nyquist mensyaratkan sample rate fs ≥ 2·f_max untuk merekonstruksi sinyal frekuensi f_max tanpa aliasing.",
-    answer: true,
-    explain: "Modul 11 — Nyquist-Shannon: fs minimal 2× frekuensi tertinggi. Praktik: fs ≥ 2.5× untuk margin + anti-alias filter sebelum ADC."
+    text: "Teorema Nyquist mensyaratkan sample rate fs ≥ 2·f_max untuk merekonstruksi sinyal frekuensi f_max tanpa aliasing."
   },
   {
     id: 'tf7', modul: 11, parametric: true,
@@ -2027,18 +2015,14 @@ const UAS_TF = [
       const fs_actual = 100 + N;  // 100 to 199 Hz
       const ok = fs_actual >= fs_required;
       return {
-        text: `Sinyal vibration mengandung frekuensi maksimum <b>f_max = 50 + 2N = ${fmax} Hz</b>. Sample rate yang tersedia: <b>fs = 100 + N = ${fs_actual} Hz</b>. Apakah aliasing TERHINDAR?`,
-        answer: ok,
-        explain: `fs_required = 2·${fmax} = ${fs_required} Hz. fs_actual = ${fs_actual} ${ok ? '≥' : '<'} ${fs_required} → aliasing ${ok ? 'TERHINDAR' : 'TERJADI'}.`
+        text: `Sinyal vibration mengandung frekuensi maksimum <b>f_max = 50 + 2N = ${fmax} Hz</b>. Sample rate yang tersedia: <b>fs = 100 + N = ${fs_actual} Hz</b>. Apakah aliasing TERHINDAR?`
       };
     }
   },
   // ── MODUL 12: Time-domain stats ──
   {
     id: 'tf8', modul: 12, parametric: false,
-    text: "Crest Factor (CF = peak/RMS) lebih sensitif terhadap impulsive defect (early bearing fault) dibanding RMS biasa — CF > 5 mengindikasikan abnormality.",
-    answer: true,
-    explain: "Modul 12 — CF reveal impulsive content. Sinusoidal pure: CF = √2 ≈ 1.414. CF > 5 = early bearing fault signature."
+    text: "Crest Factor (CF = peak/RMS) lebih sensitif terhadap impulsive defect (early bearing fault) dibanding RMS biasa — CF > 5 mengindikasikan abnormality."
   },
   // ── MODUL 13: Spectrum Diagnosis ──
   {
@@ -2047,23 +2031,15 @@ const UAS_TF = [
       // BPFO calculation: BPFO = (Nb/2)·fr·(1 - (d/D)·cos(α))
       // Untuk SKF 6203: Nb=8 balls, d/D ≈ 0.41, α=0
       const rpm = 1500 + N*30;  // 1500 to 4470 rpm
-      const fr = rpm / 60;
-      const bpfo = (8/2) * fr * (1 - 0.41 * 1);
-      const target = 100;  // user reads spectrum, sees peak at ~100 Hz
-      const ok = Math.abs(bpfo - target) < 20;  // within tolerance
       return {
-        text: `Bearing SKF 6203 (Nb=8 bola, d/D=0.41) berputar pada <b>RPM = 1500 + 30N = ${rpm}</b>. Frekuensi BPFO (Ball Pass Frequency Outer race) ≈ <b>${target} Hz</b>?`,
-        answer: ok,
-        explain: `fr = ${rpm}/60 = ${fr.toFixed(2)} Hz. BPFO = (8/2)·fr·(1−0.41) = <b>${bpfo.toFixed(2)} Hz</b>. ${ok ? 'Mendekati 100 Hz (BENAR)' : 'Jauh dari 100 Hz (SALAH)'}.`
+        text: `Bearing SKF 6203 (Nb=8 bola, d/D=0.41) berputar pada <b>RPM = 1500 + 30N = ${rpm}</b>. Frekuensi BPFO (Ball Pass Frequency Outer race) ≈ <b>100 Hz</b>?`
       };
     }
   },
   // ── MODUL 14: Condition Monitoring ──
   {
     id: 'tf10', modul: 14, parametric: false,
-    text: "Predictive Maintenance (CM-based) typically saves 30-40% dari biaya maintenance dibanding reactive (run-to-failure), karena early detection mencegah collateral damage.",
-    answer: true,
-    explain: "Modul 14 — RoI predictive maintenance: deteksi dini bearing defect → ganti sebelum chip metal masuk gear → save 5-10× downtime cost."
+    text: "Predictive Maintenance (CM-based) typically saves 30-40% dari biaya maintenance dibanding reactive (run-to-failure), karena early detection mencegah collateral damage."
   }
 ];
 
@@ -2082,31 +2058,20 @@ const UAS_MC = [
       "Lagrangian L = T − V dan ∂/∂t(∂L/∂q̇) − ∂L/∂q = Q",
       "Newton II Law langsung dalam koordinat global",
       "Persamaan Bernoulli untuk fluid coupling"
-    ],
-    correct: 1,
-    explain: "Lagrange method: derive dari energi kinetik T dan potensial V, gunakan koordinat generalized q. Tidak butuh FBD eksplisit."
+    ]
   },
   {
     id: 'mc2', modul: 8, parametric: false,
     text: "Pada sistem 2-DoF dengan matriks massa [M] = [[m₁,0],[0,m₂]] dan kekakuan [K] = [[k₁+k₂,-k₂],[-k₂,k₂+k₃]], jumlah frekuensi pribadi yang dihasilkan adalah:",
-    options: ["1 frekuensi", "2 frekuensi", "3 frekuensi", "4 frekuensi"],
-    correct: 1,
-    explain: "Sistem 2-DoF → matriks 2×2 → karakteristik polynomial orde 4 di ω², menghasilkan 2 akar ω² → 2 frekuensi natural ω₁ < ω₂."
+    options: ["1 frekuensi", "2 frekuensi", "3 frekuensi", "4 frekuensi"]
   },
   {
     id: 'mc3', modul: 8, parametric: true,
     compute: (N) => {
       const m1 = 2 + (N % 5);  // 2 to 6
-      const m2 = m1;
-      const k = 100;
-      // Standard 2-DoF symmetric: ω₁² = k/m, ω₂² = 3k/m
-      const w1 = Math.sqrt(k/m1);
-      const correctIdx = w1 < 5 ? 0 : (w1 < 7 ? 1 : (w1 < 10 ? 2 : 3));
       return {
         text: `Sistem 2-DoF simetris: m₁ = m₂ = <b>2 + (N mod 5) = ${m1} kg</b>, k = 100 N/m (semua pegas). Frekuensi mode 1 (in-phase) adalah ω₁ = √(k/m). Berapa nilai ω₁?`,
-        options: ["< 5 rad/s", "5–7 rad/s", "7–10 rad/s", "≥ 10 rad/s"],
-        correct: correctIdx,
-        explain: `ω₁ = √(${k}/${m1}) = ${w1.toFixed(2)} rad/s → ${["<5","5-7","7-10","≥10"][correctIdx]}`
+        options: ["< 5 rad/s", "5–7 rad/s", "7–10 rad/s", "≥ 10 rad/s"]
       };
     }
   },
@@ -2119,9 +2084,7 @@ const UAS_MC = [
       "Eigenvalues = ω² (frekuensi natural²); eigenvectors = mode shape",
       "Eigenvalues = damping ratio; eigenvectors = frequency response",
       "Eigenvalues = transient solution; eigenvectors = steady-state"
-    ],
-    correct: 1,
-    explain: "Modal Analysis: eigenvalue ω² + eigenvector φ. Untuk gedung 5 lantai → 5 mode (5 ω + 5 φ)."
+    ]
   },
   {
     id: 'mc5', modul: 9, parametric: false,
@@ -2131,9 +2094,7 @@ const UAS_MC = [
       "φᵢᵀ·φⱼ = 1 (unit vectors)",
       "φᵢᵀ·K·φⱼ = ω² (proporsional eigenvalue)",
       "φᵢ × φⱼ = 0 (cross product zero)"
-    ],
-    correct: 0,
-    explain: "Modal orthogonality: φᵢᵀMφⱼ = 0 dan φᵢᵀKφⱼ = 0 untuk i≠j. Ini yang memungkinkan modal decoupling (transformasi {x}={Φ}{η})."
+    ]
   },
   {
     id: 'mc6', modul: 9, parametric: true,
@@ -2141,9 +2102,7 @@ const UAS_MC = [
       const stories = 3 + (N % 4);  // 3-6 stories
       return {
         text: `Untuk gedung shear-building <b>${stories} lantai</b> (m identik, k identik per kolom), berapa banyak mode shape yang harus dianalisis untuk modal superposition lengkap?`,
-        options: [`${stories - 1} mode`, `${stories} mode`, `${stories + 1} mode`, `${stories + 2} mode`],
-        correct: 1,
-        explain: `N-DoF → N mode shapes. Gedung ${stories} lantai = ${stories}-DoF → ${stories} mode pribadi.`
+        options: [`${stories - 1} mode`, `${stories} mode`, `${stories + 1} mode`, `${stories + 2} mode`]
       };
     }
   },
@@ -2156,21 +2115,16 @@ const UAS_MC = [
       "ω_a* = ω_target / (1 + μ)",
       "ω_a* = ω_target × (1 + μ)",
       "ω_a* = ω_target × √(1 + μ)"
-    ],
-    correct: 1,
-    explain: "Den Hartog (1956) optimal tuning untuk damped main: ω_a* = ω_target/(1+μ) dengan ζ_a* = √(3μ/(8(1+μ)³))."
+    ]
   },
   {
     id: 'mc8', modul: 10, parametric: true,
     compute: (N) => {
       const mu = 0.05 + (N % 10) * 0.02;  // 0.05 to 0.23
       const muPercent = (mu * 100).toFixed(0);
-      const correctIdx = mu < 0.10 ? 0 : (mu < 0.20 ? 1 : 2);
       return {
         text: `TMD design dengan mass ratio <b>μ = m_a/M = ${(mu).toFixed(2)} (${muPercent}%)</b>. Bandwidth isolasi (lebar zona attenuasi) tergolong:`,
-        options: ["Sempit (< 10% μ)", "Sedang (10-20% μ)", "Lebar (≥ 20% μ)", "Tidak ada bandwidth (μ=0)"],
-        correct: correctIdx,
-        explain: `μ = ${mu.toFixed(2)} → bandwidth ${["sempit","sedang","lebar"][correctIdx]}. Trade-off: μ kecil = sensitive ke detuning, μ besar = robust tapi mass penalty.`
+        options: ["Sempit (< 10% μ)", "Sedang (10-20% μ)", "Lebar (≥ 20% μ)", "Tidak ada bandwidth (μ=0)"]
       };
     }
   },
@@ -2182,29 +2136,21 @@ const UAS_MC = [
       "Pendulum TMD (PTMD) dengan cable suspension",
       "Semi-active TMD dengan adjustable damping",
       "Wire-rope shock isolator"
-    ],
-    correct: 1,
-    explain: "Taipei 101 TMD = sphere 5.5m, 660 ton, suspended dengan 4 sets kabel = pendulum TMD. Frekuensi ~0.15 Hz untuk wind/earthquake."
+    ]
   },
   // ── MODUL 11: Fourier/FFT (3 soal) ──
   {
     id: 'mc10', modul: 11, parametric: false,
     text: "Algoritma Fast Fourier Transform (FFT) Cooley-Tukey memiliki kompleksitas:",
-    options: ["O(N²)", "O(N log N)", "O(N³)", "O(2^N)"],
-    correct: 1,
-    explain: "FFT Cooley-Tukey 1965: O(N log N) — game-changer dari DFT naive O(N²). Kunci modern signal processing."
+    options: ["O(N²)", "O(N log N)", "O(N³)", "O(2^N)"]
   },
   {
     id: 'mc11', modul: 11, parametric: true,
     compute: (N) => {
       const fmax = 200 + N*5;  // 200 to 695 Hz
-      const fs_min = 2 * fmax;  // Nyquist
-      const correctIdx = fs_min <= 500 ? 0 : (fs_min <= 1000 ? 1 : (fs_min <= 1500 ? 2 : 3));
       return {
         text: `Sinyal getaran motor dengan f_max = <b>200 + 5N = ${fmax} Hz</b>. Sample rate minimum (anti-aliasing) yang diperlukan:`,
-        options: ["≤ 500 Hz", "500–1000 Hz", "1000–1500 Hz", "> 1500 Hz"],
-        correct: correctIdx,
-        explain: `Nyquist: fs ≥ 2·f_max = 2·${fmax} = <b>${fs_min} Hz</b> → ${["≤500","500-1000","1000-1500",">1500"][correctIdx]}`
+        options: ["≤ 500 Hz", "500–1000 Hz", "1000–1500 Hz", "> 1500 Hz"]
       };
     }
   },
@@ -2216,9 +2162,7 @@ const UAS_MC = [
       "Resolusi frekuensi turun ~1.5×",
       "Nyquist rate naik 2×",
       "Phase information hilang"
-    ],
-    correct: 1,
-    explain: "Hanning: bandwidth main-lobe ~1.5× lebih lebar dari rectangular → resolusi frekuensi turun, tapi side-lobe jauh lebih rendah."
+    ]
   },
   // ── MODUL 12: Time-domain stats (3 soal) ──
   {
@@ -2229,20 +2173,15 @@ const UAS_MC = [
       "Energi total sinyal",
       "Distribusi statistik (skewness)",
       "Crest factor"
-    ],
-    correct: 1,
-    explain: "RMS = √(mean(x²)) ≈ amplitudo equivalent untuk power perhitungan. ISO 10816 standard untuk machinery condition."
+    ]
   },
   {
     id: 'mc14', modul: 12, parametric: true,
     compute: (N) => {
       const rms = 1.5 + N*0.1;  // 1.5 to 11.4 mm/s
-      const zone = rms < 2.8 ? 0 : (rms < 4.5 ? 1 : (rms < 11.2 ? 2 : 3));
       return {
         text: `Pengukuran RMS getaran motor 50 kW: <b>v_rms = 1.5 + 0.1N = ${rms.toFixed(1)} mm/s</b>. Berdasarkan ISO 10816-3 Class II, mesin ini berada di zona:`,
-        options: ["A — Good (acceptable)", "B — Acceptable (monitor)", "C — Unsatisfactory (action soon)", "D — Stop immediately"],
-        correct: zone,
-        explain: `ISO 10816 Class II: A < 2.8, B < 4.5, C < 11.2, D ≥ 11.2 mm/s. v_rms = ${rms.toFixed(1)} → Zone <b>${["A","B","C","D"][zone]}</b>.`
+        options: ["A — Good (acceptable)", "B — Acceptable (monitor)", "C — Unsatisfactory (action soon)", "D — Stop immediately"]
       };
     }
   },
@@ -2254,9 +2193,7 @@ const UAS_MC = [
       "Sinyal sinusoidal stabil",
       "Impulsive content — early bearing fault signature",
       "Signal saturated (clipping)"
-    ],
-    correct: 2,
-    explain: "Gaussian noise: kurt ≈ 3. Sinusoidal: kurt = 1.5. Bearing impulsive: kurt > 3.5 — gold standard early bearing fault detection."
+    ]
   },
   // ── MODUL 13: Spectrum Diagnosis (3 soal) ──
   {
@@ -2267,9 +2204,7 @@ const UAS_MC = [
       "Bearing dengan diameter besar",
       "Sinyal sangat low-frequency (< 1 Hz)",
       "Reduce phase noise"
-    ],
-    correct: 0,
-    explain: "Order tracking: spectrum dalam x·RPM (orders). Untuk mesin run-up/coast-down, fault frequencies tetap konstan dalam orders."
+    ]
   },
   {
     id: 'mc17', modul: 13, parametric: false,
@@ -2279,22 +2214,15 @@ const UAS_MC = [
       "Misalignment (2× RPM)",
       "Bearing faults (BPFO, BPFI hidden under structural resonance)",
       "Soft foot looseness"
-    ],
-    correct: 2,
-    explain: "Bearing fault hidden di carrier frekuensi tinggi (3-10 kHz). Envelope: bandpass + squaring + low-pass → reveal sidebands BPFO/BPFI/BSF."
+    ]
   },
   {
     id: 'mc18', modul: 13, parametric: true,
     compute: (N) => {
       const rpm = 1200 + N*30;  // 1200 to 4170 rpm
-      const fr = rpm / 60;
-      const bpfi = (8/2) * fr * (1 + 0.41);  // SKF 6203 inner race
-      const correctIdx = bpfi < 100 ? 0 : (bpfi < 200 ? 1 : (bpfi < 400 ? 2 : 3));
       return {
         text: `Bearing 6203 (Nb=8, d/D=0.41) di motor RPM = <b>1200 + 30N = ${rpm}</b>. Frekuensi BPFI (inner race fault):`,
-        options: ["< 100 Hz", "100–200 Hz", "200–400 Hz", "≥ 400 Hz"],
-        correct: correctIdx,
-        explain: `fr = ${fr.toFixed(2)} Hz. BPFI = (8/2)·fr·(1+0.41) = ${bpfi.toFixed(2)} Hz → ${["<100","100-200","200-400","≥400"][correctIdx]}`
+        options: ["< 100 Hz", "100–200 Hz", "200–400 Hz", "≥ 400 Hz"]
       };
     }
   },
@@ -2307,25 +2235,17 @@ const UAS_MC = [
       "Adhesive (cyanoacrylate)",
       "Stud-mount (drilled+tapped, gold standard)",
       "Hand-held probe"
-    ],
-    correct: 2,
-    explain: "Mounting frequency response: stud-mount > glue/wax > magnet > probe. Stud usable up to >10 kHz, magnet limited ~2 kHz."
+    ]
   },
   {
     id: 'mc20', modul: 14, parametric: true,
     compute: (N) => {
       // Trending: degradation t to threshold
       const rate = 0.5 + N*0.05;  // 0.5 to 5.45 mm/s per month
-      const threshold = 11.2;  // Zone D
       const current = 4.5 + N*0.1;  // 4.5 to 14.4 mm/s
-      const remaining = (threshold - current) / rate;
-      const correctIdx = remaining < 0 ? 3 : (remaining < 6 ? 2 : (remaining < 12 ? 1 : 0));
-      const remainStr = remaining < 0 ? 'sudah lewat' : remaining.toFixed(1) + ' bulan';
       return {
         text: `Motor saat ini RMS = <b>${current.toFixed(1)} mm/s</b>, degradation rate = <b>${rate.toFixed(2)} mm/s/bulan</b>, threshold ISO Zone D = 11.2 mm/s. RUL (Remaining Useful Life):`,
-        options: ["> 12 bulan", "6–12 bulan", "0–6 bulan", "Sudah melewati threshold (urgent!)"],
-        correct: correctIdx,
-        explain: `RUL = (11.2 − ${current.toFixed(1)}) / ${rate.toFixed(2)} = <b>${remainStr}</b> → ${["> 12","6-12","0-6","urgent"][correctIdx]}`
+        options: ["> 12 bulan", "6–12 bulan", "0–6 bulan", "Sudah melewati threshold (urgent!)"]
       };
     }
   }
@@ -2341,21 +2261,8 @@ const UAS_COMP_EZ = [
   {
     id: 'c1', modul: 8, parametric: true,
     compute: (N) => {
-      const m1 = 2, m2 = 1;
-      const k1 = 100, k2 = 50, k3 = 100;
-      // [M] = diag(m1,m2), [K] = [[k1+k2,-k2],[-k2,k2+k3]]
-      // det(K-ω²M) = 0 → solve
-      const a = m1*m2;
-      const b = -((k1+k2)*m2 + (k2+k3)*m1);
-      const c = (k1+k2)*(k2+k3) - k2*k2;
-      const D = b*b - 4*a*c;
-      const w1sq = (-b - Math.sqrt(D)) / (2*a);
-      const w1 = Math.sqrt(w1sq);
       return {
-        question: `Sistem 2-DoF: m₁=2 kg, m₂=1 kg, k₁=k₃=100 N/m, k₂=50 N/m. Hitung frekuensi mode 1 (ω₁, terendah) dalam rad/s. (Round 2 desimal)`,
-        expected: parseFloat(w1.toFixed(2)),
-        tolerance: 0.05,
-        explain: `[M] = diag(2,1), [K] = [[150,-50],[-50,150]]. det(K-ω²M) = 0 → 2ω⁴ - 450ω² + 20000 = 0. Solve: ω₁² = ${w1sq.toFixed(2)} → ω₁ = <b>${w1.toFixed(2)} rad/s</b>`
+        text: `Sistem 2-DoF: m₁=2 kg, m₂=1 kg, k₁=k₃=100 N/m, k₂=50 N/m. Hitung frekuensi mode 1 (ω₁, terendah) dalam rad/s. (Round 2 desimal)`
       };
     }
   },
@@ -2363,13 +2270,8 @@ const UAS_COMP_EZ = [
     id: 'c2', modul: 8, parametric: true,
     compute: (N) => {
       const m = 5 + (N % 6);  // 5-10 kg
-      const k = 200;
-      const w_n = Math.sqrt(k/m);
       return {
-        question: `Sistem SDOF dengan m = <b>5 + (N mod 6) = ${m} kg</b>, k = 200 N/m. Hitung frekuensi natural ω_n (rad/s, 2 desimal).`,
-        expected: parseFloat(w_n.toFixed(2)),
-        tolerance: 0.05,
-        explain: `ω_n = √(k/m) = √(200/${m}) = <b>${w_n.toFixed(2)} rad/s</b>`
+        text: `Sistem SDOF dengan m = <b>5 + (N mod 6) = ${m} kg</b>, k = 200 N/m. Hitung frekuensi natural ω_n (rad/s, 2 desimal).`
       };
     }
   },
@@ -2379,14 +2281,8 @@ const UAS_COMP_EZ = [
     compute: (N) => {
       // Gedung shear: stories=N%4+3, m=1, k=100
       const stories = (N % 4) + 3;
-      const m = 1, k = 100;
-      // Mode 1 freq: ω₁ = 2·sin(π/(2(2N+1)))·√(k/m), N here is stories
-      const w1 = 2 * Math.sin(Math.PI / (2*(2*stories+1))) * Math.sqrt(k/m);
       return {
-        question: `Gedung shear-building <b>${stories} lantai</b> (m=1, k=100 per lantai). Hitung frekuensi mode 1 (rad/s, 3 desimal). Gunakan ω₁ = 2·sin(π/(2(2n+1)))·√(k/m).`,
-        expected: parseFloat(w1.toFixed(3)),
-        tolerance: 0.01,
-        explain: `n=${stories}, ω₁ = 2·sin(π/(${2*stories+1}·2))·√(100/1) = <b>${w1.toFixed(3)} rad/s</b>`
+        text: `Gedung shear-building <b>${stories} lantai</b> (m=1, k=100 per lantai). Hitung frekuensi mode 1 (rad/s, 3 desimal). Gunakan ω₁ = 2·sin(π/(2(2n+1)))·√(k/m).`
       };
     }
   },
@@ -2395,13 +2291,8 @@ const UAS_COMP_EZ = [
     id: 'c4', modul: 10, parametric: true,
     compute: (N) => {
       const mu = 0.05 + (N % 10) * 0.01;  // 0.05 to 0.14
-      const omega_target = 50;  // rad/s
-      const omega_a_opt = omega_target / (1 + mu);
       return {
-        question: `TMD untuk struktur dengan ω_target = 50 rad/s. Mass ratio <b>μ = 0.05 + 0.01·(N mod 10) = ${mu.toFixed(2)}</b>. Hitung frekuensi tuning optimal Den Hartog ω_a* (rad/s, 3 desimal).`,
-        expected: parseFloat(omega_a_opt.toFixed(3)),
-        tolerance: 0.01,
-        explain: `Den Hartog: ω_a* = ω_target/(1+μ) = 50/(1+${mu.toFixed(2)}) = <b>${omega_a_opt.toFixed(3)} rad/s</b>`
+        text: `TMD untuk struktur dengan ω_target = 50 rad/s. Mass ratio <b>μ = 0.05 + 0.01·(N mod 10) = ${mu.toFixed(2)}</b>. Hitung frekuensi tuning optimal Den Hartog ω_a* (rad/s, 3 desimal).`
       };
     }
   },
@@ -2409,12 +2300,8 @@ const UAS_COMP_EZ = [
     id: 'c5', modul: 10, parametric: true,
     compute: (N) => {
       const mu = 0.05 + (N % 10) * 0.01;
-      const zeta_a_opt = Math.sqrt(3*mu / (8*(1+mu)**3));
       return {
-        question: `Lanjutan: dengan μ yang sama (<b>μ = ${mu.toFixed(2)}</b>), hitung damping ratio TMD optimal ζ_a* (4 desimal). Formula: ζ_a* = √(3μ/(8(1+μ)³))`,
-        expected: parseFloat(zeta_a_opt.toFixed(4)),
-        tolerance: 0.001,
-        explain: `ζ_a* = √(3·${mu.toFixed(2)}/(8·(1+${mu.toFixed(2)})³)) = <b>${zeta_a_opt.toFixed(4)}</b>`
+        text: `Lanjutan: dengan μ yang sama (<b>μ = ${mu.toFixed(2)}</b>), hitung damping ratio TMD optimal ζ_a* (4 desimal). Formula: ζ_a* = √(3μ/(8(1+μ)³))`
       };
     }
   },
@@ -2423,12 +2310,8 @@ const UAS_COMP_EZ = [
     id: 'c6', modul: 11, parametric: true,
     compute: (N) => {
       const fmax = 200 + N*3;  // 200 to 497 Hz
-      const fs = 2 * fmax;
       return {
-        question: `Sinyal vibration dengan f_max = <b>200 + 3N = ${fmax} Hz</b>. Hitung sample rate Nyquist minimum fs (Hz, integer).`,
-        expected: fs,
-        tolerance: 1,
-        explain: `Nyquist: fs ≥ 2·f_max = 2·${fmax} = <b>${fs} Hz</b>`
+        text: `Sinyal vibration dengan f_max = <b>200 + 3N = ${fmax} Hz</b>. Hitung sample rate Nyquist minimum fs (Hz, integer).`
       };
     }
   },
@@ -2436,14 +2319,8 @@ const UAS_COMP_EZ = [
     id: 'c7', modul: 11, parametric: true,
     compute: (N) => {
       const fs = 1000 + N*10;  // 1000 to 1990 Hz
-      const T_window = 1.0;  // 1 second
-      const N_samples = Math.round(fs * T_window);
-      const df = fs / N_samples;
       return {
-        question: `FFT dengan sample rate fs = <b>${fs} Hz</b>, window length T = 1 detik. Hitung resolusi frekuensi Δf (Hz, 4 desimal).`,
-        expected: parseFloat(df.toFixed(4)),
-        tolerance: 0.01,
-        explain: `Δf = fs/N = ${fs}/${N_samples} = <b>${df.toFixed(4)} Hz</b> (≈ 1/T = 1 Hz untuk T = 1s)`
+        text: `FFT dengan sample rate fs = <b>${fs} Hz</b>, window length T = 1 detik. Hitung resolusi frekuensi Δf (Hz, 4 desimal).`
       };
     }
   },
@@ -2452,12 +2329,8 @@ const UAS_COMP_EZ = [
     id: 'c8', modul: 12, parametric: true,
     compute: (N) => {
       const A = 1 + N*0.05;  // 1 to 5.95 mm/s peak
-      const rms = A / Math.sqrt(2);
       return {
-        question: `Sinyal sinusoidal pure dengan amplitude peak <b>A = 1 + 0.05N = ${A.toFixed(2)} mm/s</b>. Hitung RMS (mm/s, 3 desimal).`,
-        expected: parseFloat(rms.toFixed(3)),
-        tolerance: 0.01,
-        explain: `Untuk sinusoidal: RMS = A/√2 = ${A.toFixed(2)}/1.414 = <b>${rms.toFixed(3)} mm/s</b>`
+        text: `Sinyal sinusoidal pure dengan amplitude peak <b>A = 1 + 0.05N = ${A.toFixed(2)} mm/s</b>. Hitung RMS (mm/s, 3 desimal).`
       };
     }
   },
@@ -2466,12 +2339,8 @@ const UAS_COMP_EZ = [
     compute: (N) => {
       const peak = 8 + N*0.1;  // 8 to 17.9
       const rms = 2 + N*0.03;  // 2 to 4.97
-      const cf = peak / rms;
       return {
-        question: `Sinyal getaran: peak = <b>8 + 0.1N = ${peak.toFixed(1)} mm/s</b>, RMS = <b>2 + 0.03N = ${rms.toFixed(2)} mm/s</b>. Hitung Crest Factor CF = peak/RMS (3 desimal).`,
-        expected: parseFloat(cf.toFixed(3)),
-        tolerance: 0.05,
-        explain: `CF = ${peak.toFixed(1)}/${rms.toFixed(2)} = <b>${cf.toFixed(3)}</b> ${cf > 5 ? '(impulsive — early bearing fault!)' : '(normal range)'}`
+        text: `Sinyal getaran: peak = <b>8 + 0.1N = ${peak.toFixed(1)} mm/s</b>, RMS = <b>2 + 0.03N = ${rms.toFixed(2)} mm/s</b>. Hitung Crest Factor CF = peak/RMS (3 desimal).`
       };
     }
   },
@@ -2480,15 +2349,8 @@ const UAS_COMP_EZ = [
     id: 'c10', modul: 13, parametric: true,
     compute: (N) => {
       const rpm = 1200 + N*30;  // 1200 to 4170 rpm
-      const fr = rpm / 60;
-      // SKF 6204: Nb=8, d=7.94mm, D=33.5mm, α=0
-      const dD = 7.94 / 33.5;  // ≈ 0.237
-      const bpfo = (8/2) * fr * (1 - dD);
       return {
-        question: `Bearing SKF 6204 (Nb=8, d=7.94mm, D=33.5mm, α=0). RPM = <b>${rpm}</b>. Hitung BPFO = (Nb/2)·fr·(1−d/D·cos α) dalam Hz (3 desimal).`,
-        expected: parseFloat(bpfo.toFixed(3)),
-        tolerance: 0.1,
-        explain: `fr = ${rpm}/60 = ${fr.toFixed(3)} Hz. d/D = ${dD.toFixed(3)}. BPFO = 4·${fr.toFixed(3)}·(1−${dD.toFixed(3)}) = <b>${bpfo.toFixed(3)} Hz</b>`
+        text: `Bearing SKF 6204 (Nb=8, d=7.94mm, D=33.5mm, α=0). RPM = <b>${rpm}</b>. Hitung BPFO = (Nb/2)·fr·(1−d/D·cos α) dalam Hz (3 desimal).`
       };
     }
   }
@@ -2506,21 +2368,9 @@ const UAS_COMP_HARD = [
     id: 'c11', modul: 9, parametric: true,
     compute: (N) => {
       // 2-DoF: m1=1, m2=1+N%5, k1=100, k2=50, k3=100
-      const m1 = 1, m2 = 1 + (N % 5);  // 1-5 kg
-      const k1 = 100, k2 = 50, k3 = 100;
-      // [K-ω²M] det = 0
-      const a = m1 * m2;
-      const b = -((k1 + k2)*m2 + (k2 + k3)*m1);
-      const c = (k1 + k2)*(k2 + k3) - k2*k2;
-      const D = b*b - 4*a*c;
-      const w1sq = (-b - Math.sqrt(D)) / (2*a);
-      const w2sq = (-b + Math.sqrt(D)) / (2*a);
-      const w2 = Math.sqrt(w2sq);
+      const m2 = 1 + (N % 5);  // 1-5 kg
       return {
-        question: `Sistem 2-DoF: m₁=1, m₂=<b>1 + (N mod 5) = ${m2} kg</b>, k₁=k₃=100, k₂=50. Hitung frekuensi mode 2 (ω₂, tertinggi) dalam rad/s, 3 desimal. <em>Petunjuk: dengan numpy: import numpy as np; M = np.diag([1, ${m2}]); K = np.array([[150,-50],[-50,150]]); from scipy.linalg import eig; w² = eig(K, M)[0]; ω = np.sqrt(np.real(w²)); print(np.sort(ω)[-1])</em>`,
-        expected: parseFloat(w2.toFixed(3)),
-        tolerance: 0.05,
-        explain: `[M]=diag(1,${m2}), [K]=[[150,-50],[-50,150]]. det(K-ω²M) = ${a}ω⁴ ${b>0?'+':''}${b}ω² + ${c} = 0. ω² = ${w1sq.toFixed(2)} or ${w2sq.toFixed(2)} → ω₂ = <b>${w2.toFixed(3)} rad/s</b>`
+        text: `Sistem 2-DoF: m₁=1, m₂=<b>1 + (N mod 5) = ${m2} kg</b>, k₁=k₃=100, k₂=50. Hitung frekuensi mode 2 (ω₂, tertinggi) dalam rad/s, 3 desimal. <em>Petunjuk: dengan numpy: import numpy as np; M = np.diag([1, ${m2}]); K = np.array([[150,-50],[-50,150]]); from scipy.linalg import eig; w² = eig(K, M)[0]; ω = np.sqrt(np.real(w²)); print(np.sort(ω)[-1])</em>`
       };
     }
   },
@@ -2531,16 +2381,8 @@ const UAS_COMP_HARD = [
       // Sinyal: x(t) = A·sin(2π·f·t), durasi T, fs
       const A = 2 + (N % 8);  // 2 to 9
       const f = 50 + (N % 10) * 5;  // 50 to 95 Hz
-      const fs = 1000;
-      const T = 1.0;
-      const N_samples = fs * T;
-      // FFT magnitude di bin f: peak ≈ A·N/2 (one-sided)
-      const peak_mag = A * N_samples / 2;
       return {
-        question: `Sinyal x(t) = <b>${A}·sin(2π·${f}·t)</b>, sampling fs=1000 Hz, T=1 detik (N=1000 samples). Hitung magnitude FFT one-sided di bin frekuensi ${f} Hz (no normalisasi, integer).`,
-        expected: peak_mag,
-        tolerance: 5,
-        explain: `Peak FFT one-sided untuk sinusoidal: |X[k]| = A·N/2 = ${A}·1000/2 = <b>${peak_mag}</b> (di bin k = f·T = ${f}·1 = ${f})`
+        text: `Sinyal x(t) = <b>${A}·sin(2π·${f}·t)</b>, sampling fs=1000 Hz, T=1 detik (N=1000 samples). Hitung magnitude FFT one-sided di bin frekuensi ${f} Hz (no normalisasi, integer).`
       };
     }
   },
@@ -2551,13 +2393,8 @@ const UAS_COMP_HARD = [
       // Hitung RMS dari histogram amplitudes
       const A1 = 1 + N*0.1;  // 1 to 10.9
       const A2 = 0.5 + N*0.05;  // 0.5 to 5.45
-      // RMS dari sum of two sinusoidals: √((A1²+A2²)/2)
-      const rms = Math.sqrt((A1*A1 + A2*A2) / 2);
       return {
-        question: `Sinyal getaran motor besar: x(t) = <b>${A1.toFixed(1)}·sin(2π·30·t) + ${A2.toFixed(2)}·sin(2π·90·t)</b> mm/s. Hitung RMS total (mm/s, 3 desimal). <em>Tip: untuk multi-frekuensi orthogonal, RMS_total = √(Σ(Aᵢ²/2))</em>`,
-        expected: parseFloat(rms.toFixed(3)),
-        tolerance: 0.05,
-        explain: `RMS = √((A₁²+A₂²)/2) = √((${A1.toFixed(1)}² + ${A2.toFixed(2)}²)/2) = √(${((A1*A1+A2*A2)/2).toFixed(2)}) = <b>${rms.toFixed(3)} mm/s</b>`
+        text: `Sinyal getaran motor besar: x(t) = <b>${A1.toFixed(1)}·sin(2π·30·t) + ${A2.toFixed(2)}·sin(2π·90·t)</b> mm/s. Hitung RMS total (mm/s, 3 desimal). <em>Tip: untuk multi-frekuensi orthogonal, RMS_total = √(Σ(Aᵢ²/2))</em>`
       };
     }
   },
@@ -2567,16 +2404,8 @@ const UAS_COMP_HARD = [
     compute: (N) => {
       // BPFI for SKF 6307: Nb=8, d=12.7mm, D=51mm
       const rpm = 1500 + N*25;  // 1500 to 3975 rpm
-      const fr = rpm / 60;
-      const Nb = 8;
-      const dD = 12.7 / 51;  // ≈ 0.249
-      const bpfi = (Nb/2) * fr * (1 + dD);
-      const sideband_diff = fr;  // Sidebands BPFI ± fr (untuk inner race rotates with shaft)
       return {
-        question: `Bearing 6307 (Nb=8, d=12.7mm, D=51mm). Mesin RPM = <b>${rpm}</b>. Identifikasi jarak antara dua sideband BPFI ± fr di spektrum (Hz, 3 desimal).`,
-        expected: parseFloat((2*sideband_diff).toFixed(3)),
-        tolerance: 0.1,
-        explain: `fr = ${fr.toFixed(3)} Hz. BPFI = 4·${fr.toFixed(3)}·(1+${dD.toFixed(3)}) = ${bpfi.toFixed(3)} Hz. Sidebands BPFI − fr dan BPFI + fr → jarak = <b>2·fr = ${(2*fr).toFixed(3)} Hz</b>`
+        text: `Bearing 6307 (Nb=8, d=12.7mm, D=51mm). Mesin RPM = <b>${rpm}</b>. Identifikasi jarak antara dua sideband BPFI ± fr di spektrum (Hz, 3 desimal).`
       };
     }
   },
@@ -2588,13 +2417,8 @@ const UAS_COMP_HARD = [
       // y(0) = current, y(t_RUL) = threshold
       const current = 4.5 + (N % 7) * 0.5;  // 4.5 to 7.5 mm/s
       const rate = 0.3 + (N % 8) * 0.1;  // 0.3 to 1.0 mm/s/month
-      const threshold = 11.2;
-      const rul = (threshold - current) / rate;
       return {
-        question: `Vibration trending motor: current RMS = <b>${current.toFixed(1)} mm/s</b>, degradation rate = <b>${rate.toFixed(1)} mm/s/bulan</b>. Threshold ISO 10816 Zone D (alarm) = 11.2 mm/s. Hitung RUL (Remaining Useful Life) dalam bulan, 2 desimal.`,
-        expected: parseFloat(rul.toFixed(2)),
-        tolerance: 0.05,
-        explain: `RUL = (threshold − current) / rate = (11.2 − ${current.toFixed(1)}) / ${rate.toFixed(1)} = <b>${rul.toFixed(2)} bulan</b>`
+        text: `Vibration trending motor: current RMS = <b>${current.toFixed(1)} mm/s</b>, degradation rate = <b>${rate.toFixed(1)} mm/s/bulan</b>. Threshold ISO 10816 Zone D (alarm) = 11.2 mm/s. Hitung RUL (Remaining Useful Life) dalam bulan, 2 desimal.`
       };
     }
   }
@@ -2609,17 +2433,6 @@ window.shuffleSeed = shuffleSeed;
 
 
 
-
-
-function _ah(s){let h=5381;s=s+'mEKsP9k4tQ2';for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))&0xffffffff;return(h>>>0).toString(36);}
-
-// Storage untuk answer key per soal (di-populate saat render dengan N spesifik)
-window._uasAnswerKeys = {
-  tf: {},        // {tf1: true, tf2: false, ...}
-  mc: {},        // {mc1: 0, mc2: 1, ...} — correct option index
-  compEz: {},    // {c1: {expected: 12.34, tolerance: 0.05}, ...}
-  compHard: {}   // {c11: {expected: 0.05, tolerance: 0.005}, ...}
-};
 
 
 // PEDOMAN §18.2 Layer 1 — Race-condition guard.
@@ -2651,15 +2464,13 @@ function selectMC(qId, opt, correct) {
   const rg = document.getElementById('rg-' + qId);
   rg.querySelectorAll('.radio-option').forEach(o => o.classList.remove('selected'));
   opt.classList.add('selected');
-  opt._idx = correct;
-  opt._correct = (_ah(qId + '_' + correct) === window._uasAnswerKeys.mc[qId]);
-  // Capture option index untuk Firebase storage
+  // Capture option index untuk Firebase storage + server callable
   const optList = Array.from(rg.querySelectorAll('.radio-option'));
   const idx = optList.indexOf(opt);
   opt._idx = idx;
   document.getElementById('sub-' + qId).disabled = false;
 }
-function checkMC(qId) {
+async function checkMC(qId) {
   if (!_firebaseStateLoaded) {
     const fb = document.getElementById('fb-' + qId);
     if (fb) { fb.className = 'feedback warn'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
@@ -2684,27 +2495,23 @@ function checkMC(qId) {
   const sel = rg.querySelector('.radio-option.selected');
   const fb = document.getElementById('fb-' + qId);
   if (!sel) { fb.className = 'feedback warn'; fb.textContent = '⚠ Pilih salah satu opsi terlebih dahulu.'; return; }
-  // Mark answered IMMEDIATELY untuk prevent double-click race
-  mcAnswered[qId] = true;
-  const sub = document.getElementById('sub-' + qId);
-  if (sub) { sub.disabled = true; }
-  rg.querySelectorAll('.radio-option').forEach(o => o.style.pointerEvents = 'none');
+
   const selectedIdx = (typeof sel._idx === 'number') ? sel._idx : Array.from(rg.querySelectorAll('.radio-option')).indexOf(sel);
-  if (sel._correct) {
-    fb.className = 'feedback correct';
-    fb.textContent = '✅ Jawaban diterima. +1 poin tercatat. Soal TERKUNCI PERMANEN — tidak ada kesempatan ulang.';
-    if (sub) { sub.textContent = '✓ Terjawab'; sub.style.background='rgba(0,224,158,.1)'; sub.style.borderColor='rgba(0,224,158,.4)'; sub.style.color='var(--green)'; }
-    mcScores[qId] = 1;
-    if (typeof window._awardPoint === 'function') window._awardPoint(qId, selectedIdx);
-  } else {
-    fb.className = 'feedback wrong';
-    fb.textContent = '🔒 Jawaban telah dikunci. TIDAK ADA KESEMPATAN ULANG. (UAS murni — jawaban benar tidak ditampilkan)';
-    if (sub) { sub.textContent = '🔒 Terkunci'; sub.style.background='rgba(239,68,68,.1)'; sub.style.borderColor='rgba(239,68,68,.4)'; sub.style.color='var(--pink)'; }
-    mcScores[qId] = 0;
-    if (typeof window._recordMcAttempt === 'function') window._recordMcAttempt(qId, selectedIdx);
+  const sub = document.getElementById('sub-' + qId);
+
+  // ─── Server-side validation (sole authoritative path) ────────────────────
+  mcAnswered[qId] = true;
+  if (sub) { sub.disabled = true; sub.textContent = '⏳ Memvalidasi...'; sub.classList.add('running'); }
+  rg.querySelectorAll('.radio-option').forEach(o => o.style.pointerEvents = 'none');
+  try {
+    const res = await window._callCheckExamAnswer(qId, selectedIdx);
+    _applyServerExamResult(qId, res, 'mc', sub, fb);
+  } catch (err) {
+    mcAnswered[qId] = false;
+    if (sub) { sub.disabled = false; sub.textContent = 'Periksa'; sub.classList.remove('running'); }
+    rg.querySelectorAll('.radio-option').forEach(o => o.style.pointerEvents = '');
+    _handleServerExamError(err, qId, fb);
   }
-  updateScore();
-  checkExportReady();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -2736,7 +2543,153 @@ function selectTF(qId, opt, isTrue) {
   document.getElementById('sub-' + qId).disabled = false;
 }
 
-function checkTF(qId) {
+// ─── PHASE 3 helpers — apply hasil dari server callable ke UI/state ──────────
+// Disinilah branch antara mode "server" dan "client legacy" disatukan:
+// callsite cukup pass {qId, res, type, sub, fb} → fungsi ini handle visual,
+// score, _answeredQ marker, consolation toast.
+function _applyServerExamResult(qId, res, type, sub, fb) {
+  // res shape: {correct, status, scoreDelta, marker, explain, lateMultiplier,
+  //             pastDeadline, consolationAwarded, alreadyAnswered}
+  const status = res.status || (res.correct ? 'correct' : 'wrong');
+  const delta = Number(res.scoreDelta) || 0;
+
+  // ── alreadyAnswered: idempotency lock ──────────────────────────────────────
+  // Server returns scoreDelta=0 + status dari attempt sebelumnya, KECUALI kalau
+  // baru saja self-heal (RTDB↔Firestore inconsistency) — dalam case itu return
+  // scoreDelta dari attempt record + healed:true.
+  if (res.alreadyAnswered === true) {
+    if (type === 'tf')   tfAnswered[qId] = true;
+    if (type === 'mc')   mcAnswered[qId] = true;
+    if (type === 'comp') compAnswered[qId] = true;
+    if (res.marker) _answeredQ.add(res.marker);
+
+    // Kalau healed=true, scoreDelta positive → update local state spy konsisten
+    // dgn RTDB yg sudah di-heal. Kalau healed=false, jangan overwrite (preserve
+    // previous correct delta yg sudah ada di local).
+    if (res.healed === true && delta > 0) {
+      if (type === 'tf')   tfScores[qId] = delta;
+      if (type === 'mc')   mcScores[qId] = delta;
+      if (type === 'comp') compScores[qId] = delta;
+    }
+
+    if (fb) {
+      if (res.healed === true) {
+        fb.className = 'feedback correct';
+        fb.textContent = '✅ Poin Anda dari submission sebelumnya BARU SAJA TERPULIHKAN (+' + delta + ' poin). Sebelumnya tercatat 0 karena bug sinkronisasi — sudah diperbaiki. TIDAK ADA KESEMPATAN ULANG.';
+      } else if (status === 'correct') {
+        fb.className = 'feedback correct';
+        fb.textContent = '🔒 Soal ini sudah Anda jawab BENAR sebelumnya — poin sudah tercatat dari attempt pertama. TIDAK ADA KESEMPATAN ULANG.';
+      } else if (status === 'partial') {
+        fb.className = 'feedback warn';
+        fb.textContent = '🔒 Soal ini sudah dijawab sebelumnya (partial credit). TIDAK ADA KESEMPATAN ULANG.';
+      } else {
+        fb.className = 'feedback wrong';
+        fb.textContent = '🔒 Soal ini sudah dijawab SALAH sebelumnya — TIDAK ADA KESEMPATAN ULANG.';
+      }
+    }
+    if (sub) {
+      if (status === 'correct') {
+        sub.textContent = '✓ Terjawab';
+        sub.style.background = 'rgba(0,224,158,.1)';
+        sub.style.borderColor = 'rgba(0,224,158,.4)';
+        sub.style.color = 'var(--green)';
+      } else {
+        sub.textContent = '🔒 Terkunci';
+        sub.style.background = 'rgba(239,68,68,.1)';
+        sub.style.borderColor = 'rgba(239,68,68,.4)';
+        sub.style.color = 'var(--pink)';
+      }
+      sub.disabled = true;
+      sub.classList.remove('running');
+    }
+    if (res.healed === true && typeof updateScore === 'function') updateScore();
+    return;
+  }
+
+  // ── Fresh attempt: update local score state ─────────────────────────────────
+  if (type === 'tf')   { tfScores[qId] = delta; tfAnswered[qId] = true; }
+  if (type === 'mc')   { mcScores[qId] = delta; mcAnswered[qId] = true; }
+  if (type === 'comp') { compScores[qId] = delta; compAnswered[qId] = true; }
+
+  // Add marker ke local _answeredQ supaya restore-on-reload tidak duplicate
+  if (res.marker) _answeredQ.add(res.marker);
+
+  // Feedback text
+  if (fb) {
+    if (status === 'correct') {
+      fb.className = 'feedback correct';
+      fb.textContent = '✅ Jawaban diterima. +' + delta + ' poin tercatat. Soal TERKUNCI PERMANEN — tidak ada kesempatan ulang.';
+    } else if (status === 'partial') {
+      fb.className = 'feedback warn';
+      fb.textContent = '△ Partial credit +' + delta + ' poin (upaya tercatat). Soal TERKUNCI PERMANEN — tidak ada kesempatan ulang.';
+    } else {
+      fb.className = 'feedback wrong';
+      fb.textContent = '🔒 Jawaban telah dikunci. TIDAK ADA KESEMPATAN ULANG. (UAS murni — jawaban benar tidak ditampilkan)';
+    }
+  }
+
+  // Tombol & opsi visual lock
+  if (sub) {
+    if (status === 'correct') {
+      sub.textContent = '✓ Terjawab';
+      sub.style.background = 'rgba(0,224,158,.1)';
+      sub.style.borderColor = 'rgba(0,224,158,.4)';
+      sub.style.color = 'var(--green)';
+    } else if (status === 'partial') {
+      sub.textContent = '△ Usaha (+' + delta + ') · Terkunci';
+      sub.style.borderColor = 'rgba(251,191,36,.4)';
+      sub.style.color = 'var(--amber)';
+    } else {
+      sub.textContent = '🔒 Terkunci';
+      sub.style.background = 'rgba(239,68,68,.1)';
+      sub.style.borderColor = 'rgba(239,68,68,.4)';
+      sub.style.color = 'var(--pink)';
+    }
+    sub.disabled = true;
+    sub.classList.remove('running');
+  }
+
+  // Consolation toast (sekali aja)
+  if (res.consolationAwarded === true) {
+    try {
+      if (typeof _showResetToast === 'function') {
+        _showResetToast('🎁 Konsolasi: +1 poin karena mencoba semua soal!');
+      } else {
+        console.log('[CONSOLATION] +1 poin');
+      }
+    } catch(e) {}
+  }
+
+  if (typeof updateScore === 'function') updateScore();
+  if (typeof checkExportReady === 'function') checkExportReady();
+}
+
+// ─── PHASE 3 helpers — render error dari server ──────────────────────────────
+function _handleServerExamError(err, qId, fb) {
+  const code = (err && err.code) || 'unknown';
+  let msg;
+  if (code === 'failed-precondition') {
+    msg = '🔒 ' + (err.message || 'Akses ujian ditutup oleh server.');
+  } else if (code === 'unauthenticated') {
+    msg = '⚠ ' + (err.message || 'Sesi PIN expired — silakan login ulang.');
+  } else if (code === 'not-found') {
+    msg = '⚠ Soal belum dikonfigurasi di server — hubungi dosen.';
+  } else if (code === 'invalid-argument') {
+    msg = '⚠ Format data tidak valid: ' + (err.message || code);
+  } else {
+    msg = '⚠ Koneksi/server error — coba lagi dalam beberapa detik. (' + (err.message || code) + ')';
+  }
+  if (fb) {
+    fb.className = 'feedback warn';
+    fb.style.display = 'block';
+    fb.textContent = msg;
+  }
+  console.error('[exam callable]', qId, code, err);
+}
+window._applyServerExamResult = _applyServerExamResult;
+window._handleServerExamError = _handleServerExamError;
+
+async function checkTF(qId) {
   if (!_firebaseStateLoaded) {
     const fb = document.getElementById('fb-' + qId);
     if (fb) { fb.className = 'feedback warn'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
@@ -2762,35 +2715,24 @@ function checkTF(qId) {
   const fb = document.getElementById('fb-' + qId);
   if (!sel) { fb.className = 'feedback warn'; fb.textContent = '⚠ Pilih BENAR atau SALAH terlebih dahulu.'; return; }
 
-  // Get correct answer from answer key
-  const correctAnswer = window._uasAnswerKeys.tf[qId];
-  if (typeof correctAnswer !== 'string') {
-    fb.className = 'feedback warn'; fb.textContent = '⚠ Soal belum siap — silakan reload halaman.';
-    return;
-  }
-
-  // Mark answered IMMEDIATELY untuk prevent double-click race
-  tfAnswered[qId] = true;
-  const sub = document.getElementById('sub-' + qId);
-  if (sub) sub.disabled = true;
-  opts.querySelectorAll('.tf-option').forEach(o => o.style.pointerEvents = 'none');
-
   const userPick = sel._isTrue;   // boolean: jawaban user
-  if (_ah(qId + '_' + userPick) === correctAnswer) {
-    fb.className = 'feedback correct';
-    fb.textContent = '✅ Jawaban diterima. +1 poin tercatat. Soal TERKUNCI PERMANEN — tidak ada kesempatan ulang.';
-    if (sub) { sub.textContent = '✓ Terjawab'; sub.style.background='rgba(0,224,158,.1)'; sub.style.borderColor='rgba(0,224,158,.4)'; sub.style.color='var(--green)'; }
-    tfScores[qId] = 1;
-    if (typeof window._awardTfPoint === 'function') window._awardTfPoint(qId, userPick);
-  } else {
-    fb.className = 'feedback wrong';
-    fb.textContent = '🔒 Jawaban telah dikunci. TIDAK ADA KESEMPATAN ULANG. (UAS murni — jawaban benar tidak ditampilkan)';
-    if (sub) { sub.textContent = '🔒 Terkunci'; sub.style.background='rgba(239,68,68,.1)'; sub.style.borderColor='rgba(239,68,68,.4)'; sub.style.color='var(--pink)'; }
-    tfScores[qId] = 0;
-    if (typeof window._recordTfAttempt === 'function') window._recordTfAttempt(qId, userPick);
+  const sub = document.getElementById('sub-' + qId);
+
+  // ─── Server-side validation (sole authoritative path) ────────────────────
+  // Optimistic lock untuk cegah double-click
+  tfAnswered[qId] = true;
+  if (sub) { sub.disabled = true; sub.textContent = '⏳ Memvalidasi...'; sub.classList.add('running'); }
+  opts.querySelectorAll('.tf-option').forEach(o => o.style.pointerEvents = 'none');
+  try {
+    const res = await window._callCheckExamAnswer(qId, userPick);
+    _applyServerExamResult(qId, res, 'tf', sub, fb);
+  } catch (err) {
+    // Rollback optimistic lock (boleh retry)
+    tfAnswered[qId] = false;
+    if (sub) { sub.disabled = false; sub.textContent = 'Periksa'; sub.classList.remove('running'); }
+    opts.querySelectorAll('.tf-option').forEach(o => o.style.pointerEvents = '');
+    _handleServerExamError(err, qId, fb);
   }
-  updateScore();
-  checkExportReady();
 }
 
 window.selectTF = selectTF;
@@ -2818,8 +2760,7 @@ function renderUASQuestions() {
   if (tfContainer) {
     tfContainer.innerHTML = '';
     window.UAS_TF.forEach((q, i) => {
-      const data = q.parametric ? q.compute(N) : { text: q.text, answer: q.answer };
-      window._uasAnswerKeys.tf[q.id] = _ah(q.id + '_' + data.answer);
+      const data = q.parametric ? q.compute(N) : { text: q.text };
       const num = i + 1;
       const isParam = q.parametric;
       const card = document.createElement('div');
@@ -2855,8 +2796,7 @@ function renderUASQuestions() {
   if (mcContainer) {
     mcContainer.innerHTML = '';
     window.UAS_MC.forEach((q, i) => {
-      const data = q.parametric ? q.compute(N) : { text: q.text, options: q.options, correctIdx: q.correctIdx };
-      window._uasAnswerKeys.mc[q.id] = _ah(q.id + '_' + data.correctIdx);
+      const data = q.parametric ? q.compute(N) : { text: q.text, options: q.options };
       const num = i + 1;
       const isParam = q.parametric;
       const card = document.createElement('div');
@@ -2893,7 +2833,6 @@ function renderUASQuestions() {
     compEzContainer.innerHTML = '';
     window.UAS_COMP_EZ.forEach((q, i) => {
       const data = q.compute(N);
-      window._uasAnswerKeys.compEz[q.id] = { expected: data.expected, tolerance: data.tolerance };
       const num = i + 1;
       const card = _buildCompCard(q, num, data, 'C', false);
       compEzContainer.appendChild(card);
@@ -2906,7 +2845,6 @@ function renderUASQuestions() {
     compHardContainer.innerHTML = '';
     window.UAS_COMP_HARD.forEach((q, i) => {
       const data = q.compute(N);
-      window._uasAnswerKeys.compHard[q.id] = { expected: data.expected, tolerance: data.tolerance };
       const num = i + 1;
       const card = _buildCompCard(q, num, data, 'D', true);
       compHardContainer.appendChild(card);
@@ -2951,9 +2889,9 @@ function _buildCompCard(q, num, data, sectionLetter, isHard) {
       <div class="comp-pts">${points} poin${partialNote}</div>
     </div>
     ${data.diagram || ''}
-    <div class="comp-hint"><strong style="color:var(--violet)">💡 Hint / Kerangka Kode:</strong><br><pre style="margin-top:6px;color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:12px;white-space:pre-wrap;line-height:1.5">${data.hint}</pre></div>
+    ${data.hint ? `<div class="comp-hint"><strong style="color:var(--violet)">💡 Hint / Kerangka Kode:</strong><br><pre style="margin-top:6px;color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:12px;white-space:pre-wrap;line-height:1.5">${data.hint}</pre></div>` : ''}
     <textarea class="code-textarea" id="code-${q.id}" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi..."></textarea>
-    <button class="comp-submit" id="sub-${q.id}" onclick="runAndCheck('${q.id}', ${data.expected}, ${data.tolerance}${isHard ? ", 'hard'" : ""})">▶ Run &amp; Validasi</button>
+    <button class="comp-submit" id="sub-${q.id}" onclick="runAndCheck('${q.id}'${isHard ? ", 'hard'" : ", 'easy'"})">▶ Run &amp; Validasi</button>
     <div class="feedback" id="fb-${q.id}"></div>
     <div class="stdout-box" id="stdout-${q.id}"></div>
   `;
@@ -3160,135 +3098,7 @@ function parseNumbers(str) {
 
 let compAnswered = {}, compScores = {};
 
-// ── Hint penjelasan jawaban benar untuk setiap soal komputasi ──
-// Ditampilkan saat soal dikunci karena kode salah/error, sebagai panduan belajar.
-const COMP_HINTS = {
-  c1: {
-    answer: '20.0 rad/s',
-    explain: 'Frekuensi natural <code>ωₙ = √(k/m)</code>. Dengan <code>k = 2000 N/m</code> dan <code>m = 5 kg</code>: <code>ωₙ = √(2000/5) = √400 = <strong>20 rad/s</strong></code>. Pastikan menggunakan <code>np.sqrt(k/m)</code> dan mencetak dengan <code>print()</code>.'
-  },
-  c2: {
-    answer: '≈ 3.183 Hz',
-    explain: 'Frekuensi linier <code>fₙ = ωₙ/(2π)</code>. Dengan <code>ωₙ = 20 rad/s</code>: <code>fₙ = 20/(2·π) ≈ <strong>3.183 Hz</strong></code>. Hubungan ini fundamental — Hz adalah satuan praktis untuk insinyur (cycles/second), sedangkan rad/s lebih nyaman untuk persamaan diferensial.'
-  },
-  c3: {
-    answer: '≈ 0.314 s',
-    explain: 'Periode adalah waktu untuk satu siklus penuh: <code>T = 2π/ωₙ = 1/fₙ</code>. Dengan <code>ωₙ = 20</code>: <code>T = 2π/20 ≈ <strong>0.314 s</strong></code> atau ~314 ms. Sistem ini menyelesaikan 1 osilasi setiap 0.314 detik.'
-  },
-  c4: {
-    answer: '0.2',
-    explain: 'Rasio redaman <code>ζ = c / (2√(km))</code>. Hitung dulu redaman kritis <code>c_c = 2·√(2000·5) = 2·100 = 200 Ns/m</code>. Maka <code>ζ = 40/200 = <strong>0.2</strong></code>. Sistem ini <em>underdamped</em> (ζ &lt; 1) — masih akan berosilasi sebelum berhenti.'
-  },
-  c5: {
-    answer: '≈ 19.596 rad/s',
-    explain: 'Frekuensi teredam <code>ω_d = ωₙ·√(1−ζ²)</code>. Dengan <code>ωₙ = 20</code> dan <code>ζ = 0.2</code>: <code>ω_d = 20·√(1−0.04) = 20·√0.96 ≈ <strong>19.596 rad/s</strong></code>. Untuk damping kecil (ζ &lt; 0.1), perbedaan ω_d vs ωₙ &lt; 0.5%, sehingga sering diabaikan dalam praktik.'
-  },
-  c6: {
-    answer: '1.0 m/s',
-    explain: 'Untuk gerakan harmonik <code>x(t) = A·sin(ωt)</code>, kecepatan adalah turunan: <code>ẋ(t) = A·ω·cos(ωt)</code>. Maksimum saat cos = 1, sehingga <code>v_max = A·ω = 0.05·20 = <strong>1.0 m/s</strong></code>. Hubungan v_max = A·ω fundamental untuk konversi parameter di analisis vibrasi.'
-  },
-  c7: {
-    answer: '20.0 m/s²',
-    explain: 'Percepatan adalah turunan kedua: <code>ẍ(t) = −A·ω²·sin(ωt)</code>. Maksimum (dalam besaran absolut): <code>a_max = A·ω² = 0.05·400 = <strong>20 m/s²</strong></code> (≈ 2g). Pada frekuensi tinggi, percepatan jauh lebih besar dari perpindahan/kecepatan — itulah sebabnya accelerometer dipilih untuk monitoring frekuensi tinggi.'
-  },
-  c8: {
-    answer: '≈ 0.0707 m',
-    explain: 'Untuk sinyal sinusoidal pure, RMS = amplitudo dibagi √2. <code>A_rms = 0.1/√2 ≈ <strong>0.0707 m</strong></code> atau 70.71 mm. Faktor 1/√2 (≈ 0.7071) hanya berlaku untuk sinusoidal murni — untuk sinyal kompleks atau noise, RMS dihitung dengan integrasi numerik.'
-  },
-  c9: {
-    answer: '≈ 157.08 rad/s',
-    explain: 'Konversi RPM ke rad/s: <code>ω = 2π·RPM/60 = (2π/60)·RPM</code>. Dengan RPM = 1500: <code>ω = (2π·1500)/60 = π·50 ≈ <strong>157.08 rad/s</strong></code>. Atau bisa dilihat sebagai: 1500 RPM = 25 Hz = 25·2π rad/s. Konversi ini sering muncul di spesifikasi motor.'
-  },
-  c10: {
-    answer: '≈ 2.006 s',
-    explain: 'Periode pendulum sederhana: <code>T = 2π·√(L/g)</code>. Dengan <code>L = 1 m</code> dan <code>g = 9.81 m/s²</code>: <code>T = 2π·√(1/9.81) ≈ 2π·0.3193 ≈ <strong>2.006 s</strong></code>. Catatan menarik: untuk sudut kecil, periode hanya bergantung pada L dan g — bukan amplitudo atau massa pendulum (Galileo, ~1602).'
-  },
-  c11: {
-    answer: '≈ 0.0729 m',
-    explain: 'Untuk getaran bebas underdamped dengan x₀ = 0.1, ẋ₀ = 0, solusi analitik: <code>x(t) = 0.1·exp(−ζωₙ·t)·[cos(ω_d·t) + (ζωₙ/ω_d)·sin(ω_d·t)]</code>. Puncak pertama setelah t=0 terjadi pada ~T_d/2 ≈ π/ω_d ≈ 0.16 s. Pada saat itu, x ≈ <strong>0.0729 m</strong>. Implementasi RK4 standar harus sangat dekat dengan nilai ini (toleransi 0.005). Pastikan loop RK4 benar dan deteksi puncak dengan find_peaks (positive only).'
-  },
-  c12: {
-    answer: '≈ 0.0498',
-    explain: 'Logarithmic decrement <code>δ = (1/n)·ln(x₁/x_(1+n))</code>. Untuk signal <code>x(t) = 0.1·exp(−0.5t)·cos(10t)</code>, peluruhan eksponensial dengan rate 0.5 → setelah n=5 siklus (T_d ≈ 2π/10 ≈ 0.628 s, total t = 3.14 s): rasio amplitudo = exp(−0.5·3.14) ≈ 0.208. <code>δ = (1/5)·ln(1/0.208) ≈ 0.314</code>. Lalu <code>ζ = δ/√(4π² + δ²) ≈ 0.314/6.29 ≈ <strong>0.0498</strong></code>. Mendekati true value 0.5/√(0.25+100) ≈ 0.0499.'
-  },
-  c13: {
-    answer: '8.0 Hz',
-    explain: 'FFT mengubah signal time-domain menjadi frequency-domain. Untuk <code>x(t) = 0.5·sin(2π·8·t) + 0.2·sin(2π·25·t)</code>, ada 2 puncak frekuensi: 8 Hz (amplitudo 0.5) dan 25 Hz (amplitudo 0.2). Frekuensi <strong>dominan</strong> = yang amplitudonya terbesar = <strong>8 Hz</strong>. Gunakan <code>np.fft.rfft</code> dan <code>np.argmax(np.abs(X))</code> untuk identifikasi. Resolusi frekuensi = fs/N = 1000/2000 = 0.5 Hz.'
-  },
-  c14: {
-    answer: '≈ 0.749 s',
-    explain: 'Settling time dari envelope eksponensial: <code>x_envelope(t) = x₀·exp(−ζωₙ·t)</code>. Untuk turun ke 5% (faktor 0.05): <code>0.05 = exp(−ζωₙ·t)</code> → <code>t = −ln(0.05)/(ζωₙ) = ln(20)/(0.2·20) = 2.996/4 ≈ <strong>0.749 s</strong></code>. Settling time klasik untuk control system: 4/(ζωₙ) untuk 2% atau 3/(ζωₙ) untuk 5%.'
-  },
-  c15: {
-    answer: '2.5 J',
-    explain: 'Untuk sistem konservatif (tanpa gaya luar bekerja), energi total = energi potensial maksimum (saat x = A, v = 0). <code>E_total = ½·k·A² = ½·2000·(0.05)² = ½·2000·0.0025 = <strong>2.5 J</strong></code>. Atau verifikasi via energi kinetik maksimum (saat x = 0, v = v_max = A·ωₙ): <code>E = ½·m·v_max² = ½·5·(0.05·20)² = ½·5·1 = 2.5 J</code> ✓ — keduanya identik (konservasi energi).'
-  }
-};
-
-// ── Lock a comp question permanently (wrong answer or error) ──
-// ── LOCK COMP WRONG ──
-// partialPoint: opsional, ke-3 arg. Jika > 0, soal ter-lock dengan state "usaha" (△ Usaha, amber)
-// dan memberi poin partial (khusus Comp Hard: +1 poin). Jika 0 atau undefined, state default
-// "terkunci" (✗ Terkunci, pink) tanpa poin.
-function _lockCompWrong(qId, fbMsg, partialPoint) {
-  const pts = (typeof partialPoint === 'number' && partialPoint > 0) ? partialPoint : 0;
-  compAnswered[qId] = true;
-  compScores[qId] = pts;   // 0 atau 1
-
-  const btn = document.getElementById('sub-' + qId);
-  const ta  = document.getElementById('code-' + qId);
-  const fb  = document.getElementById('fb-' + qId);
-
-  if (pts > 0) {
-    // Partial credit state (amber △ Usaha)
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = '△ Usaha (+' + pts + ') · Terkunci';
-      btn.style.borderColor = 'rgba(251,191,36,.4)';
-      btn.style.color = 'var(--amber)';
-      btn.classList.remove('running');
-    }
-    if (ta) {
-      ta.disabled = true;
-      ta.style.borderColor = 'rgba(251,191,36,.3)';
-      ta.style.opacity = '.75';
-    }
-    if (fb) {
-      fb.className = 'feedback warn';
-      // CRITICAL: pastikan feedback tampil
-      // UAS murni: TIDAK reveal jawaban benar
-      fb.textContent = fbMsg;
-    }
-    // Firebase: tulis marker _comp_partial + tambah poin
-    if (typeof window._awardCompPartial === 'function') window._awardCompPartial(qId, pts);
-  } else {
-    // Standard locked state (pink ✗ Terkunci)
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = '✗ Terkunci';
-      btn.style.borderColor = 'rgba(239,68,68,.3)';
-      btn.style.color = 'var(--pink)';
-      btn.classList.remove('running');
-    }
-    if (ta) {
-      ta.disabled = true;
-      ta.style.borderColor = 'rgba(239,68,68,.25)';
-      ta.style.opacity = '.7';
-    }
-    if (fb) {
-      fb.className = 'feedback wrong';
-      // CRITICAL: pastikan feedback tampil
-      // UAS murni: TIDAK reveal jawaban benar
-      fb.textContent = fbMsg;
-    }
-    // Firebase: tulis marker _comp_used saja (tanpa poin)
-    if (typeof window._recordCompAttempt === 'function') window._recordCompAttempt(qId);
-  }
-  updateScore();
-  checkExportReady();
-}
-
-async function runAndCheck(qId, expectedAns, tol, difficulty) {
+async function runAndCheck(qId, difficulty) {
   // PEDOMAN §18.2 Layer 1 — race-condition guard
   if (!_firebaseStateLoaded) {
     const fb = document.getElementById('fb-' + qId);
@@ -3303,7 +3113,6 @@ async function runAndCheck(qId, expectedAns, tol, difficulty) {
   }
   const isHard = (difficulty === 'hard');
   const correctPoint = isHard ? SCORE_CONFIG.COMP_HARD_POINT : SCORE_CONFIG.COMP_EZ_POINT;   // 4 atau 2
-  const partialOnFail = isHard ? 1 : 0;   // partial credit hanya untuk Hard
 
   // ONE-SHOT: cek state lokal DAN cache Firebase
   const compKey = qId + '_comp';
@@ -3378,34 +3187,81 @@ async function runAndCheck(qId, expectedAns, tol, difficulty) {
       stdout.classList.add('show');
       if (errMsg) {
         stdout.innerHTML = `<div class="stdout-label">❌ Error</div><div class="stderr-line">${errMsg.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`;
-        const msg = partialOnFail > 0
-          ? `🔒 Kode error — soal dikunci. +${partialOnFail} poin untuk upaya Hard (kode non-kosong).`
-          : '🔒 Kode error — soal dikunci. Tidak ada kesempatan ulang.';
-        _lockCompWrong(qId, msg, partialOnFail);
-        return;
+      } else {
+        const outEsc = (output||'').replace(/</g,'&lt;').replace(/>/g,'&gt;') || '(tidak ada output)';
+        stdout.innerHTML = `<div class="stdout-label">📤 Output</div>${outEsc}`;
       }
-      const outEsc = (output||'').replace(/</g,'&lt;').replace(/>/g,'&gt;') || '(tidak ada output)';
-      stdout.innerHTML = `<div class="stdout-label">📤 Output</div>${outEsc}`;
     }
 
-    const nums = parseNumbers(output || '');
-    const correct = nums.some(n => Math.abs(n - expectedAns) <= tol);
-
-    if (correct) {
-      fb.className = 'feedback correct';
-      fb.textContent = '✅ Kode berjalan tanpa error & output benar! +' + correctPoint + ' poin tercatat. Soal TERKUNCI PERMANEN.';
-      compAnswered[qId] = true; compScores[qId] = correctPoint;
-      btn.disabled = true; btn.textContent = '✓ Selesai · Terkunci'; btn.classList.remove('running');
-      btn.style.background = 'rgba(0,224,158,.1)'; btn.style.borderColor='rgba(0,224,158,.4)'; btn.style.color='var(--green)';
-      if (ta) { ta.disabled = true; ta.style.borderColor = 'rgba(0,224,158,.5)'; ta.style.opacity='.85'; }
-      if (typeof window._awardCompPoint === 'function') window._awardCompPoint(qId, correctPoint);
-      updateScore(); checkExportReady();
-    } else {
-      const outPreview = (output || '(kosong)').trim().slice(0, 100);
-      const msg = partialOnFail > 0
-        ? `🔒 Output tidak mengandung nilai yang benar (≈ ${expectedAns}). +${partialOnFail} poin untuk upaya Hard. Output: "${outPreview}". TIDAK ADA KESEMPATAN ULANG.`
-        : `🔒 Output tidak mengandung nilai yang benar (≈ ${expectedAns}). Output: "${outPreview}". Soal dikunci. TIDAK ADA KESEMPATAN ULANG.`;
-      _lockCompWrong(qId, msg, partialOnFail);
+    // ─── Server-side validation (sole authoritative path) ─────────────────────
+    // Kirim ke server: userAnswer = null (Pyodide error) ATAU last parsed number
+    // (typical case: student print(answer) sebagai output terakhir). codeText
+    // disimpan utk audit di RTDB codes[qId].
+    let userAnswer = null;
+    let userAnswers = null;
+    if (!errMsg) {
+      const nums = parseNumbers(output || '');
+      if (nums.length > 0) {
+        userAnswer = nums[nums.length - 1];   // back-compat single-answer (legacy soal)
+        userAnswers = nums;                    // multi-step: kirim SEMUA angka berurutan
+      }
+    }
+    try {
+      const res = await window._callCheckExamAnswer(qId, userAnswer, code, userAnswers);
+      // Lock textarea sesuai status
+      if (ta) {
+        ta.disabled = true;
+        if (res.correct) {
+          ta.style.borderColor = 'rgba(0,224,158,.5)'; ta.style.opacity = '.85';
+        } else if (res.status === 'partial') {
+          ta.style.borderColor = 'rgba(251,191,36,.3)'; ta.style.opacity = '.75';
+        } else {
+          ta.style.borderColor = 'rgba(239,68,68,.25)'; ta.style.opacity = '.7';
+        }
+      }
+      _applyServerExamResult(qId, res, 'comp', btn, fb);
+      // ── Build step-by-step diagnostic (utk soal multi-step dgn expectedSteps) ──
+      // Format: "ωₙ ✓ · ζ ✓ · ω_d ✗"
+      let stepDiag = '';
+      if (Array.isArray(res.stepResults) && Array.isArray(res.stepLabels) &&
+          res.stepResults.length === res.stepLabels.length) {
+        stepDiag = res.stepResults
+          .map((ok, i) => (res.stepLabels[i] || ('step' + (i+1))) + ' ' + (ok ? '✓' : '✗'))
+          .join(' · ');
+      }
+      // Override fb text dgn comp-specific message (lebih informatif dari helper default)
+      if (fb) {
+        if (res.correct) {
+          fb.textContent = stepDiag
+            ? '✅ Semua langkah benar (' + stepDiag + '). +' + res.scoreDelta + ' poin tercatat. Soal TERKUNCI PERMANEN.'
+            : '✅ Kode berjalan tanpa error & output benar! +' + res.scoreDelta + ' poin tercatat. Soal TERKUNCI PERMANEN.';
+        } else if (res.status === 'partial') {
+          fb.textContent = errMsg
+            ? '🔒 Kode error — soal dikunci. +' + res.scoreDelta + ' poin untuk upaya Hard (kode non-kosong). TIDAK ADA KESEMPATAN ULANG.'
+            : (stepDiag
+                ? '🔒 Tidak semua langkah match (' + stepDiag + '). Final answer saja tidak cukup. +' + res.scoreDelta + ' poin upaya Hard. TIDAK ADA KESEMPATAN ULANG.'
+                : '🔒 Output tidak match expected — soal dikunci. +' + res.scoreDelta + ' poin untuk upaya Hard. TIDAK ADA KESEMPATAN ULANG.');
+        } else {
+          const outPreview = (output || '(kosong)').trim().slice(0, 100);
+          fb.textContent = errMsg
+            ? '🔒 Kode error — soal dikunci. Tidak ada kesempatan ulang.'
+            : (stepDiag
+                ? '🔒 Tidak semua langkah match (' + stepDiag + '). Wajib print SEMUA nilai antara berurutan. Soal dikunci. TIDAK ADA KESEMPATAN ULANG.'
+                : '🔒 Output tidak match expected. Output: "' + outPreview + '". Soal dikunci. TIDAK ADA KESEMPATAN ULANG.');
+        }
+      }
+      // Override button text utk comp (lebih spesifik dari helper default)
+      if (btn) {
+        if (res.correct) btn.textContent = '✓ Selesai · Terkunci';
+        else if (res.status === 'partial') btn.textContent = '△ Usaha (+' + res.scoreDelta + ') · Terkunci';
+        else btn.textContent = '✗ Terkunci';
+      }
+    } catch (err) {
+      // Rollback: unlock supaya bisa retry
+      compAnswered[qId] = false;
+      if (btn) { btn.disabled = false; btn.classList.remove('running'); }
+      if (ta) { ta.disabled = false; }
+      _handleServerExamError(err, qId, fb);
     }
   } catch (e) {
     fb.className = 'feedback wrong';
@@ -3414,8 +3270,9 @@ async function runAndCheck(qId, expectedAns, tol, difficulty) {
   }
 }
 
-// Keep checkComp alias for _loadScoredQuestions compatibility (legacy signature)
-function checkComp(qId, expectedAns, tol) { runAndCheck(qId, expectedAns, tol, 'easy'); }
+// Keep checkComp alias for _loadScoredQuestions compatibility (legacy signature).
+// Server is sole validator now; expected/tolerance args are no longer used.
+function checkComp(qId) { runAndCheck(qId, 'easy'); }
 
 // ── SCORE UPDATE ──
 // Universal 50-poin breakdown: mc (10) + ezComp (20) + hardComp (20) = 50
@@ -3584,7 +3441,7 @@ function exportTugasHtml() {
 
   // ── Collect TF data ──
   const tfData = (window.UAS_TF || []).map((q, i) => {
-    const data = q.parametric ? q.compute(N) : { text: q.text, answer: q.answer };
+    const data = q.parametric ? q.compute(N) : { text: q.text };
     const id = q.id;
     const opts = document.getElementById('tfopts-' + id);
     const sel = opts?.querySelector('.tf-option.selected');
@@ -3611,7 +3468,7 @@ function exportTugasHtml() {
 
   // ── Collect MC data ──
   const mcData = (window.UAS_MC || []).map((q, i) => {
-    const data = q.parametric ? q.compute(N) : { text: q.text, options: q.options, correctIdx: q.correctIdx };
+    const data = q.parametric ? q.compute(N) : { text: q.text, options: q.options };
     const id = q.id;
     const rg = document.getElementById('rg-' + id);
     const sel = rg?.querySelector('.radio-option.selected');
@@ -3637,6 +3494,8 @@ function exportTugasHtml() {
   });
 
   // ── Collect Comp E/M data ──
+  // NOTE: expected/tolerance sengaja TIDAK dikumpulkan — kunci jawaban
+  // murni server-side (Firestore). Export PDF hanya berisi soal + kode user.
   const compEzData = (window.UAS_COMP_EZ || []).map((q, i) => {
     const data = q.compute(N);
     const id = q.id;
@@ -3645,8 +3504,6 @@ function exportTugasHtml() {
       no: i+1,
       title: stripTags(data.text).slice(0, 120) + (stripTags(data.text).length > 120 ? '…' : ''),
       modul: q.modul,
-      expected: typeof data.expected === 'number' ? data.expected.toFixed(4) : data.expected,
-      tolerance: data.tolerance,
       code: ta ? ta.value.trim() : '',
       pts: compScores[id] || 0
     };
@@ -3661,8 +3518,6 @@ function exportTugasHtml() {
       no: i+1,
       title: stripTags(data.text).slice(0, 120) + (stripTags(data.text).length > 120 ? '…' : ''),
       modul: q.modul,
-      expected: typeof data.expected === 'number' ? data.expected.toFixed(4) : data.expected,
-      tolerance: data.tolerance,
       code: ta ? ta.value.trim() : '',
       pts: compScores[id] || 0
     };
@@ -4060,7 +3915,7 @@ function exportTugasHtml() {
     <tbody>
       ${compEzData.map(d => `<tr>
         <td>C${String(d.no).padStart(2,'0')}</td>
-        <td style="font-size:.78rem;color:#475569"><span class="badge-modul">M${d.modul}</span>${esc(d.title)}<br><span style="color:#94a3b8;font-size:.7rem">expected ≈ ${d.expected} (tol ±${d.tolerance})</span></td>
+        <td style="font-size:.78rem;color:#475569"><span class="badge-modul">M${d.modul}</span>${esc(d.title)}</td>
         <td style="font-family:monospace;font-size:.72rem;background:#fff7ed;padding:6px 8px;border-radius:4px;white-space:pre-wrap;word-break:break-word;white-space:pre-wrap">${esc(d.code||'(belum diisi)')}</td>
         <td><span class="pts ${d.pts?'pts-correct':'pts-wrong'}">${d.pts}</span></td>
       </tr>`).join('')}
@@ -4078,7 +3933,7 @@ function exportTugasHtml() {
                        : '#dc2626';
         return `<tr>
           <td>D${String(d.no).padStart(2,'0')}</td>
-          <td style="font-size:.78rem;color:#475569"><span class="badge-modul">M${d.modul}</span>${esc(d.title)}<br><span style="color:#94a3b8;font-size:.7rem">expected ≈ ${d.expected} (tol ±${d.tolerance})</span></td>
+          <td style="font-size:.78rem;color:#475569"><span class="badge-modul">M${d.modul}</span>${esc(d.title)}</td>
           <td style="font-family:monospace;font-size:.72rem;background:#fdf2f8;padding:6px 8px;border-radius:4px;white-space:pre-wrap;word-break:break-word;white-space:pre-wrap">${esc(d.code||'(belum diisi)')}</td>
           <td class="pts" style="color:${ptsColor}">${d.pts}${d.pts>0&&d.pts<SCORE_CONFIG.COMP_HARD_POINT?' (partial)':''}</td>
         </tr>`;
@@ -5541,6 +5396,7 @@ window.addEventListener('resize', () => {
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { getDatabase, ref, get, set, remove, onValue } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",
@@ -5561,6 +5417,86 @@ const PERTEMUAN = 'uas';
 const RELATED_MODULES = [];   // UAS standalone, no related modules
 const SCHEDULE_PATH = `settings/getaran_mekanik/${PERTEMUAN}/schedule`;
 const LOCAL_IDENTITY = `getaran_mekanik_identity_${MODULE_ID}`;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PHASE 3 — SERVER-SIDE EXAM VALIDATION
+// • Cloud Function `checkExamAnswer` adalah satu-satunya authority utk validasi
+//   jawaban (TF/MC/Comp) dan award poin. Client cuma kirim {qId, userAnswer, …}
+//   dan terima {correct, status, scoreDelta, marker, …}.
+// • Client award/record helpers (_awardPoint, _awardTfPoint, dst) tetap ada
+//   sebagai no-op shells utk kompatibilitas pemanggil lama — server sudah
+//   handle semua write ke RTDB.
+// • Kunci jawaban TIDAK pernah ada di client. Defense-in-depth: smart
+//   attacker masih bisa lihat compute() di JS (parameter dari NIM), tapi
+//   server adalah satu-satunya authority utk validasi & poin yg masuk RTDB.
+// ═══════════════════════════════════════════════════════════════════════════
+const EXAM_ID = 'getaran-mekanik-uas';
+
+const _functions = getFunctions(app, 'asia-southeast1');
+const _checkExamAnswerCallable = httpsCallable(_functions, 'checkExamAnswer');
+
+// PIN hash session-scope (set saat login berhasil, dipakai utk auth ke callable).
+// Disimpan di sessionStorage (bukan localStorage) supaya:
+// • Survive F5 reload (di-restore dari sessionStorage saat re-init)
+// • Hilang otomatis saat tab ditutup (security tradeoff yg aman)
+const _PIN_SESSION_KEY = 'getaran_mekanik_uas_pinhash';
+window._sessionPinHash = null;
+try {
+  const stored = sessionStorage.getItem(_PIN_SESSION_KEY);
+  if (stored && /^[0-9a-f]{64}$/.test(stored)) window._sessionPinHash = stored;
+} catch (e) { /* sessionStorage tidak available di beberapa context */ }
+function _setSessionPinHash(hash) {
+  window._sessionPinHash = hash || null;
+  try {
+    if (hash) sessionStorage.setItem(_PIN_SESSION_KEY, hash);
+    else sessionStorage.removeItem(_PIN_SESSION_KEY);
+  } catch (e) {}
+}
+window._setSessionPinHash = _setSessionPinHash;
+
+// Helper: panggil Cloud Function utk validasi 1 soal.
+// Args:
+//   qId         — string question ID (mis. "tf1", "mc3", "c11")
+//   userAnswer  — boolean (TF) | number 0-3 (MC) | number/null (Comp; null = Pyodide error)
+//   codeText    — string optional (utk Comp, source code Python utk audit)
+//   userAnswers — number[] optional (Comp multi-step: SEMUA angka di output Python
+//                 berurutan, utk validasi expectedSteps. Server pakai sequence-match.)
+// Returns Promise<{correct, status, scoreDelta, marker, explain, lateMultiplier,
+//                  pastDeadline, consolationAwarded, alreadyAnswered, stepResults?, stepLabels?}>
+// Throws Error dengan .code (HttpsError code: 'unauthenticated', 'failed-precondition',
+//   'not-found', 'invalid-argument', 'internal') dan .message human-readable.
+async function _callCheckExamAnswer(qId, userAnswer, codeText, userAnswers) {
+  const me = getIdentity();
+  if (!me || !me.nim) {
+    const err = new Error('Identity tidak ditemukan — silakan login ulang');
+    err.code = 'unauthenticated'; throw err;
+  }
+  const pinHash = window._sessionPinHash;
+  if (!pinHash) {
+    const err = new Error('Sesi PIN expired — silakan login ulang dengan PIN');
+    err.code = 'unauthenticated'; throw err;
+  }
+  const payload = { examId: EXAM_ID, qId, userAnswer, nim: me.nim, pinHash };
+  if (typeof codeText === 'string' && codeText.length > 0) {
+    payload.codeText = codeText.slice(0, 5000);
+  }
+  if (Array.isArray(userAnswers) && userAnswers.length > 0) {
+    // Cap di 64 angka — soal komputasi normal max ~5 angka, ini guard utk runaway output.
+    payload.userAnswers = userAnswers.slice(0, 64).map(Number).filter(Number.isFinite);
+  }
+  try {
+    const result = await _checkExamAnswerCallable(payload);
+    return result.data;
+  } catch (err) {
+    // Re-throw dgn code dari Firebase Functions error
+    const wrapped = new Error(err.message || 'Server error');
+    wrapped.code = err.code || 'unknown';
+    wrapped.details = err.details;
+    throw wrapped;
+  }
+}
+window._callCheckExamAnswer = _callCheckExamAnswer;
+
 let panelOpen = false;
 let currentSchedule = null;
 const VISIT_COOLDOWN = 3600000;
@@ -6381,6 +6317,7 @@ async function submitPinSetup() {
 
   try {
     const pinHash = await _sha256Hex(p1);
+    _setSessionPinHash(pinHash);   // PHASE 3: simpan utk callable server-side (sessionStorage + memory)
     const { nama, nim, nowISO, schedOpen } = _pinFlow;
     const key = sanitizeKey('mhs_' + nim);
 
@@ -6450,6 +6387,9 @@ async function submitPinVerify() {
       document.getElementById('pinInputField').focus();
       return;
     }
+
+    // PHASE 3: PIN match → simpan hash utk callable server-side (sessionStorage + memory)
+    _setSessionPinHash(inputHash);
 
     // PIN match → create/update visitor record di course/module CURRENT (TANPA pinHash)
     const key = sanitizeKey('mhs_' + nim);
@@ -6576,6 +6516,26 @@ async function confirmReset(){
   window._resetInProgress = true;
 
   try {
+    // STEP 0: Hapus Firestore examAttempts via callable (admin-only).
+    // Tanpa ini, mahasiswa tetap ke-lock 'alreadyAnswered' utk soal yg pernah
+    // dicoba sebelum reset — meskipun RTDB visitor sudah di-clear.
+    try {
+      const adminHash = await _sha256Hex(document.getElementById('resetPw').value);
+      const resetCallable = httpsCallable(_functions, 'resetExamAttempts');
+      const result = await resetCallable({ examId: EXAM_ID, adminPwHash: adminHash });
+      console.log('[Reset] Firestore examAttempts cleared:', result.data);
+    } catch (fsErr) {
+      // Kalau Firestore reset gagal, JANGAN lanjut RTDB delete — biar state konsisten.
+      // Dosen bisa retry. Common causes: function belum di-deploy, network, auth.
+      window._resetInProgress = false;
+      btns.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';});
+      const msg = fsErr && fsErr.message ? fsErr.message : String(fsErr);
+      errEl.textContent = '❌ Gagal reset Firestore: ' + msg + '. Cloud Function "resetExamAttempts" mungkin belum di-deploy. Reset RTDB dibatalkan utk konsistensi.';
+      errEl.style.display = 'block';
+      console.error('[Reset] Firestore callable failed:', fsErr);
+      return;
+    }
+
     // STEP 1: Hapus visitor data utama child-by-child (deterministic per-record).
     // Reason: rule .write hanya defined di $visitorKey level. Parent-level remove
     // bisa ambiguous (rule cascade behavior tidak konsisten saat ada concurrent
@@ -6982,289 +6942,19 @@ function _checkConsolationPoint(nodeRef, state) {
   } catch(e) { /* swallow */ }
 }
 
-window._awardPoint = function(qId, selectedIdx) {
-  if (!_isScheduleOpen()) return;  // NO point save outside active schedule
-  if (_answeredQ.has(qId)) return;
-  const me = getIdentity();
-  if (!me || !me.nim || me.role === 'dosen') return;
-  const key = sanitizeKey('mhs_' + me.nim);
-  const nodeRef = ref(db, DB_PATH + '/' + key);
-  get(nodeRef).then(snap => {
-    let ex;
-    if (!snap.exists()) {
-      // PEDOMAN v5 §15.4e — Auto-create visitor record (race-condition guard).
-      // Tanpa ini, mahasiswa yang answer terlalu cepat setelah login bisa kehilangan poin.
-      console.warn('[UAS] Visitor record missing — auto-creating with default values');
-      ex = {
-        nama: me.nama || '—', nim: me.nim, role: 'student',
-        timestamp: me.timestamp || new Date().toISOString(),
-        lastVisit: new Date().toISOString(),
-        visitCount: 1,
-        points: 0,           // PEDOMAN §13.4.1 — wajib init (null-comparison trap fix)
-        scoredQuestions: ''  // PEDOMAN §13.4.1 — wajib init
-      };
-    } else {
-      ex = snap.val();
-    }
-    const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
-    if (scored.includes(qId)) { _answeredQ.add(qId); return; }
-    _answeredQ.add(qId); scored.push(qId);
-    // Simpan user selection (option index 0-3) ke selections/
-    const selections = Object.assign({}, ex.selections || {});
-    if (typeof selectedIdx === 'number') selections[qId] = selectedIdx;
-    const updated = _stripLegacyPinFields(Object.assign({}, ex, {
-      points: (ex.points||0)+(1*_getLateMultiplier()),
-      pointTimestamp: new Date().toISOString(),
-      scoredQuestions: scored.join(','),
-      selections: selections
-    }));
-    set(nodeRef, updated);
-    _checkConsolationPoint(nodeRef, updated);
-  }).catch(err => console.error("[UAS Firebase] write failed:", err));
-};
-
-window._awardCompPoint = function(qId, point) {
-  if (!_isScheduleOpen()) return;  // NO point save outside active schedule
-  // Fallback for legacy call sites: deteksi dari _isHardComp jika point tidak diberikan.
-  const pts = (typeof point === 'number' && point > 0) ? point
-            : (window._isHardComp(qId) ? SCORE_CONFIG.COMP_HARD_POINT : SCORE_CONFIG.COMP_EZ_POINT);
-  const compKey = qId + '_comp';
-  if (_answeredQ.has(compKey)) return;
-  const me = getIdentity();
-  if (!me || !me.nim || me.role === 'dosen') return;
-  const key = sanitizeKey('mhs_' + me.nim);
-  const nodeRef = ref(db, DB_PATH + '/' + key);
-  // PEDOMAN §15.4c — Capture code text from textarea for Firebase persistence
-  const codeText = (document.getElementById('code-' + qId)?.value || '').slice(0, 5000);
-  get(nodeRef).then(snap => {
-    let ex;
-    if (!snap.exists()) {
-      // PEDOMAN v5 §15.4e — Auto-create visitor record (race-condition guard).
-      // Tanpa ini, mahasiswa yang answer terlalu cepat setelah login bisa kehilangan poin.
-      console.warn('[UAS] Visitor record missing — auto-creating with default values');
-      ex = {
-        nama: me.nama || '—', nim: me.nim, role: 'student',
-        timestamp: me.timestamp || new Date().toISOString(),
-        lastVisit: new Date().toISOString(),
-        visitCount: 1,
-        points: 0,           // PEDOMAN §13.4.1 — wajib init (null-comparison trap fix)
-        scoredQuestions: ''  // PEDOMAN §13.4.1 — wajib init
-      };
-    } else {
-      ex = snap.val();
-    }
-    const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
-    if (scored.includes(compKey)) { _answeredQ.add(compKey); return; }
-    _answeredQ.add(compKey); scored.push(compKey);
-    const newPoints = Math.min((ex.points || 0) + (pts * _getLateMultiplier()), SCORE_CONFIG.TOTAL);
-    const codes = Object.assign({}, ex.codes || {}, codeText ? { [qId]: codeText } : {});
-    const updated = _stripLegacyPinFields(Object.assign({}, ex, { points: newPoints, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(','), codes: codes }));
-    set(nodeRef, updated);
-    _checkConsolationPoint(nodeRef, updated);
-  }).catch(err => console.error("[UAS Firebase] write failed:", err));
-};
-
-// ── Partial credit untuk Comp Hard (kode non-kosong tapi output/error salah) ──
-// Menulis marker _comp_partial (berbeda dari _comp dan _comp_used) + tambah poin kecil (1).
-// Tidak trigger konsolasi karena points sudah > 0.
-window._awardCompPartial = function(qId, point) {
-  if (!_isScheduleOpen()) return;
-  if (_isPastDeadline()) return;   // v8: terlambat tidak dapat partial credit Hard
-  const pts = (typeof point === 'number' && point > 0) ? point : 1;
-  const partialKey = qId + '_comp_partial';
-  if (_answeredQ.has(partialKey)) return;
-  const me = getIdentity();
-  if (!me || !me.nim || me.role === 'dosen') return;
-  const key = sanitizeKey('mhs_' + me.nim);
-  const nodeRef = ref(db, DB_PATH + '/' + key);
-  // PEDOMAN §15.4c — Capture code text (partial tetap simpan kode upaya mahasiswa)
-  const codeText = (document.getElementById('code-' + qId)?.value || '').slice(0, 5000);
-  get(nodeRef).then(snap => {
-    let ex;
-    if (!snap.exists()) {
-      // PEDOMAN v5 §15.4e — Auto-create visitor record (race-condition guard).
-      // Tanpa ini, mahasiswa yang answer terlalu cepat setelah login bisa kehilangan poin.
-      console.warn('[UAS] Visitor record missing — auto-creating with default values');
-      ex = {
-        nama: me.nama || '—', nim: me.nim, role: 'student',
-        timestamp: me.timestamp || new Date().toISOString(),
-        lastVisit: new Date().toISOString(),
-        visitCount: 1,
-        points: 0,           // PEDOMAN §13.4.1 — wajib init (null-comparison trap fix)
-        scoredQuestions: ''  // PEDOMAN §13.4.1 — wajib init
-      };
-    } else {
-      ex = snap.val();
-    }
-    const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
-    if (scored.includes(partialKey)) { _answeredQ.add(partialKey); return; }
-    _answeredQ.add(partialKey); scored.push(partialKey);
-    const newPoints = Math.min((ex.points || 0) + (pts * _getLateMultiplier()), SCORE_CONFIG.TOTAL);
-    const codes = Object.assign({}, ex.codes || {}, codeText ? { [qId]: codeText } : {});
-    const updated = _stripLegacyPinFields(Object.assign({}, ex, { points: newPoints, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(','), codes: codes }));
-    set(nodeRef, updated);
-    // Tidak trigger konsolasi — poin sudah > 0
-  }).catch(err => console.error("[UAS Firebase] write failed:", err));
-};
-
-// ── Record a failed MC attempt to Firebase ──
-window._recordMcAttempt = function(qId, selectedIdx) {
-  if (!_isScheduleOpen()) return;  // no record outside active schedule
-  const me = getIdentity();
-  if (!me || !me.nim || me.role === 'dosen') return;
-  const key = sanitizeKey('mhs_' + me.nim);
-  const nodeRef = ref(db, DB_PATH + '/' + key);
-  get(nodeRef).then(snap => {
-    let ex;
-    if (!snap.exists()) {
-      // PEDOMAN v5 §15.4e — Auto-create visitor record (race-condition guard).
-      // Tanpa ini, mahasiswa yang answer terlalu cepat setelah login bisa kehilangan poin.
-      console.warn('[UAS] Visitor record missing — auto-creating with default values');
-      ex = {
-        nama: me.nama || '—', nim: me.nim, role: 'student',
-        timestamp: me.timestamp || new Date().toISOString(),
-        lastVisit: new Date().toISOString(),
-        visitCount: 1,
-        points: 0,           // PEDOMAN §13.4.1 — wajib init (null-comparison trap fix)
-        scoredQuestions: ''  // PEDOMAN §13.4.1 — wajib init
-      };
-    } else {
-      ex = snap.val();
-    }
-    const usedKey = qId + '_mc_used';
-    const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
-    if (scored.includes(usedKey)) return;
-    scored.push(usedKey);
-    // Simpan user selection (option index 0-3) ke selections/
-    const selections = Object.assign({}, ex.selections || {});
-    if (typeof selectedIdx === 'number') selections[qId] = selectedIdx;
-    const updated = _stripLegacyPinFields(Object.assign({}, ex, {
-      scoredQuestions: scored.join(','),
-      selections: selections
-    }));
-    set(nodeRef, updated);
-    _checkConsolationPoint(nodeRef, updated);
-  }).catch(err => console.error("[UAS Firebase] write failed:", err));
-};
-
-// ── TF: Award point on correct answer (mirip _awardPoint untuk MC) ──
-window._awardTfPoint = function(qId, selectedValue) {
-  if (!_isScheduleOpen()) return;
-  if (_answeredQ.has(qId)) return;
-  const me = getIdentity();
-  if (!me || !me.nim || me.role === 'dosen') return;
-  const key = sanitizeKey('mhs_' + me.nim);
-  const nodeRef = ref(db, DB_PATH + '/' + key);
-  get(nodeRef).then(snap => {
-    let ex;
-    if (!snap.exists()) {
-      // PEDOMAN v5 §15.4e — Auto-create visitor record (race-condition guard).
-      // Tanpa ini, mahasiswa yang answer terlalu cepat setelah login bisa kehilangan poin.
-      console.warn('[UAS] Visitor record missing — auto-creating with default values');
-      ex = {
-        nama: me.nama || '—', nim: me.nim, role: 'student',
-        timestamp: me.timestamp || new Date().toISOString(),
-        lastVisit: new Date().toISOString(),
-        visitCount: 1,
-        points: 0,           // PEDOMAN §13.4.1 — wajib init (null-comparison trap fix)
-        scoredQuestions: ''  // PEDOMAN §13.4.1 — wajib init
-      };
-    } else {
-      ex = snap.val();
-    }
-    const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
-    if (scored.includes(qId)) { _answeredQ.add(qId); return; }
-    _answeredQ.add(qId); scored.push(qId);
-    // Simpan user selection (true/false) ke selections/
-    const selections = Object.assign({}, ex.selections || {});
-    if (typeof selectedValue === 'boolean') selections[qId] = selectedValue;
-    const updated = _stripLegacyPinFields(Object.assign({}, ex, {
-      points: (ex.points||0)+(1*_getLateMultiplier()),
-      pointTimestamp: new Date().toISOString(),
-      scoredQuestions: scored.join(','),
-      selections: selections
-    }));
-    set(nodeRef, updated);
-    _checkConsolationPoint(nodeRef, updated);
-  }).catch(err => console.error("[UAS Firebase] write failed:", err));
-};
-
-// ── TF: Record failed attempt ──
-window._recordTfAttempt = function(qId, selectedValue) {
-  if (!_isScheduleOpen()) return;
-  const me = getIdentity();
-  if (!me || !me.nim || me.role === 'dosen') return;
-  const key = sanitizeKey('mhs_' + me.nim);
-  const nodeRef = ref(db, DB_PATH + '/' + key);
-  get(nodeRef).then(snap => {
-    let ex;
-    if (!snap.exists()) {
-      // PEDOMAN v5 §15.4e — Auto-create visitor record (race-condition guard).
-      // Tanpa ini, mahasiswa yang answer terlalu cepat setelah login bisa kehilangan poin.
-      console.warn('[UAS] Visitor record missing — auto-creating with default values');
-      ex = {
-        nama: me.nama || '—', nim: me.nim, role: 'student',
-        timestamp: me.timestamp || new Date().toISOString(),
-        lastVisit: new Date().toISOString(),
-        visitCount: 1,
-        points: 0,           // PEDOMAN §13.4.1 — wajib init (null-comparison trap fix)
-        scoredQuestions: ''  // PEDOMAN §13.4.1 — wajib init
-      };
-    } else {
-      ex = snap.val();
-    }
-    const usedKey = qId + '_tf_used';
-    const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
-    if (scored.includes(usedKey)) return;
-    scored.push(usedKey);
-    // Simpan user selection (true/false) ke selections/
-    const selections = Object.assign({}, ex.selections || {});
-    if (typeof selectedValue === 'boolean') selections[qId] = selectedValue;
-    const updated = _stripLegacyPinFields(Object.assign({}, ex, {
-      scoredQuestions: scored.join(','),
-      selections: selections
-    }));
-    set(nodeRef, updated);
-    _checkConsolationPoint(nodeRef, updated);
-  }).catch(err => console.error("[UAS Firebase] write failed:", err));
-};
-
-// ── Record a failed comp attempt to Firebase (anti-manipulation) ──
-window._recordCompAttempt = function(qId) {
-  if (!_isScheduleOpen()) return;  // no record outside active schedule
-  const me = getIdentity();
-  if (!me || !me.nim || me.role === 'dosen') return;
-  const key = sanitizeKey('mhs_' + me.nim);
-  const nodeRef = ref(db, DB_PATH + '/' + key);
-  // PEDOMAN §15.4c — Capture code text (kode salah tetap disimpan sebagai dokumentasi upaya)
-  const codeText = (document.getElementById('code-' + qId)?.value || '').slice(0, 5000);
-  get(nodeRef).then(snap => {
-    let ex;
-    if (!snap.exists()) {
-      // PEDOMAN v5 §15.4e — Auto-create visitor record (race-condition guard).
-      // Tanpa ini, mahasiswa yang answer terlalu cepat setelah login bisa kehilangan poin.
-      console.warn('[UAS] Visitor record missing — auto-creating with default values');
-      ex = {
-        nama: me.nama || '—', nim: me.nim, role: 'student',
-        timestamp: me.timestamp || new Date().toISOString(),
-        lastVisit: new Date().toISOString(),
-        visitCount: 1,
-        points: 0,           // PEDOMAN §13.4.1 — wajib init (null-comparison trap fix)
-        scoredQuestions: ''  // PEDOMAN §13.4.1 — wajib init
-      };
-    } else {
-      ex = snap.val();
-    }
-    const usedKey = qId + '_comp_used';
-    const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
-    if (scored.includes(usedKey)) return;   // already recorded
-    scored.push(usedKey);
-    const codes = Object.assign({}, ex.codes || {}, codeText ? { [qId]: codeText } : {});
-    const updated = Object.assign({}, ex, { scoredQuestions: scored.join(','), codes: codes });
-    set(nodeRef, updated);
-    _checkConsolationPoint(nodeRef, updated);
-  }).catch(err => console.error("[UAS Firebase] write failed:", err));
-};
+// ─── PHASE 3: Award/record functions are NO-OP SHELLS ────────────────────────
+// Server (Cloud Function `checkExamAnswer`) is sole authority for awarding
+// points and writing scoredQuestions/points/codes/selections to RTDB.
+// These shells exist only for backward-compat with any legacy callers that
+// might still reference them (defensive). Client-side score writes were
+// migrated out of UAS.html in the Phase 3 server-side validation refactor.
+window._awardPoint = function() {};
+window._awardCompPoint = function() {};
+window._awardCompPartial = function() {};
+window._recordMcAttempt = function() {};
+window._awardTfPoint = function() {};
+window._recordTfAttempt = function() {};
+window._recordCompAttempt = function() {};
 
 // ═══════════════════════════════════════════════════════════════
 // FIREBASE STATE PERSISTENCE — Cache + Idempotent Visual Apply
