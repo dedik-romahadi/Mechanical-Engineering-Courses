@@ -37,19 +37,23 @@ const COMP_EZ = [
 ];
 
 const COMP_HARD = [
-
+  { qId: "c11", type: "comp", points: 4, answer: 0.0729, tolerance: 0.005, allowPartial: true, partialPoints: 1, explain: "Untuk getaran bebas underdamped dengan x₀ = 0.1, ẋ₀ = 0, solusi analitik: <code>x(t) = 0.1·exp(−ζωₙ·t)·[cos(ω_d·t) + (ζωₙ/ω_d)·sin(ω_d·t)]</code>. Puncak pertama setelah t=0 terjadi pada ~T_d/2 ≈ π/ω_d ≈ 0.16 s. Pada saat itu, x ≈ <strong>0.0729 m</strong>. Implementasi RK4 standar harus sangat dekat dengan nilai ini (toleransi 0.005). Pastikan loop RK4 benar dan deteksi puncak dengan find_peaks (positive only)." },
+  { qId: "c12", type: "comp", points: 4, answer: 0.0498, tolerance: 0.005, allowPartial: true, partialPoints: 1, explain: "Logarithmic decrement <code>δ = (1/n)·ln(x₁/x_(1+n))</code>. Untuk signal <code>x(t) = 0.1·exp(−0.5t)·cos(10t)</code>, peluruhan eksponensial dengan rate 0.5 → setelah n=5 siklus (T_d ≈ 2π/10 ≈ 0.628 s, total t = 3.14 s): rasio amplitudo = exp(−0.5·3.14) ≈ 0.208. <code>δ = (1/5)·ln(1/0.208) ≈ 0.314</code>. Lalu <code>ζ = δ/√(4π² + δ²) ≈ 0.314/6.29 ≈ <strong>0.0498</strong></code>. Mendekati true value 0.5/√(0.25+100) ≈ 0.0499." },
+  { qId: "c13", type: "comp", points: 4, answer: 8, tolerance: 0.5, allowPartial: true, partialPoints: 1, explain: "FFT mengubah signal time-domain menjadi frequency-domain. Untuk <code>x(t) = 0.5·sin(2π·8·t) + 0.2·sin(2π·25·t)</code>, ada 2 puncak frekuensi: 8 Hz (amplitudo 0.5) dan 25 Hz (amplitudo 0.2). Frekuensi <strong>dominan</strong> = yang amplitudonya terbesar = <strong>8 Hz</strong>. Gunakan <code>np.fft.rfft</code> dan <code>np.argmax(np.abs(X))</code> untuk identifikasi. Resolusi frekuensi = fs/N = 1000/2000 = 0.5 Hz." },
+  { qId: "c14", type: "comp", points: 4, answer: 0.749, tolerance: 0.02, allowPartial: true, partialPoints: 1, explain: "Settling time dari envelope eksponensial: <code>x_envelope(t) = x₀·exp(−ζωₙ·t)</code>. Untuk turun ke 5% (faktor 0.05): <code>0.05 = exp(−ζωₙ·t)</code> → <code>t = −ln(0.05)/(ζωₙ) = ln(20)/(0.2·20) = 2.996/4 ≈ <strong>0.749 s</strong></code>. Settling time klasik untuk control system: 4/(ζωₙ) untuk 2% atau 3/(ζωₙ) untuk 5%." },
+  { qId: "c15", type: "comp", points: 4, answer: 2.5, tolerance: 0.05, allowPartial: true, partialPoints: 1, explain: "Untuk sistem konservatif (tanpa gaya luar bekerja), energi total = energi potensial maksimum (saat x = A, v = 0). <code>E_total = ½·k·A² = ½·2000·(0.05)² = ½·2000·0.0025 = <strong>2.5 J</strong></code>. Atau verifikasi via energi kinetik maksimum (saat x = 0, v = v_max = A·ωₙ): <code>E = ½·m·v_max² = ½·5·(0.05·20)² = ½·5·1 = 2.5 J</code> ✓ — keduanya identik (konservasi energi)." }
 ];
 
 const MODUL_QUESTIONS = [...MC, ...COMP_EZ, ...COMP_HARD];
 
 const SUMMARY = {
   "modulId": "getaran-mekanik-modul-1",
-  "totalSoal": 20,
-  "totalPoin": 30,
+  "totalSoal": 25,
+  "totalPoin": 50,
   "breakdown": {
     "mc": 10,
     "compEz": 10,
-    "compHard": 0
+    "compHard": 5
   }
 };
 

@@ -89,19 +89,61 @@ const MC_HINTS = extractConstObject("MC_HINTS") || {};
 const COMP_HINTS = extractConstObject("COMP_HINTS") || {};
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Extract runAndCheck('qId', answer, tolerance) from button onclick
+// Extract runAndCheck('qId', answer, tolerance[, difficulty]) from onclick.
+// Supports 3-arg (legacy) dan 4-arg (Math Modul-4 dgn 'easy'/'hard' suffix).
 // ─────────────────────────────────────────────────────────────────────────────
-const runAndCheckRe = /runAndCheck\(\s*['"](\w+)['"]\s*,\s*([\d.-]+)\s*,\s*([\d.-]+)\)/g;
-const compRunMap = {};   // qId → {answer, tolerance}
+const runAndCheckRe = /runAndCheck\(\s*['"](\w+)['"]\s*,\s*([\d.-]+)\s*,\s*([\d.-]+)\s*(?:,\s*['"](easy|hard)['"]\s*)?\)/g;
+const compRunMap = {};   // qId → {answer, tolerance, difficulty?}
 let m;
 while ((m = runAndCheckRe.exec(html)) !== null) {
   const qId = m[1];
   const answer = parseFloat(m[2]);
   const tolerance = parseFloat(m[3]);
+  const difficulty = m[4] || null;   // 'easy' | 'hard' | null
   if (Number.isFinite(answer) && Number.isFinite(tolerance)) {
-    compRunMap[qId] = { answer, tolerance };
+    compRunMap[qId] = { answer, tolerance, difficulty };
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Fallback: extract MC answer dari onclick="selectMC('qId',this,VALUE)"
+// VALUE bisa: true/false (legacy boolean) atau 'A'/'B'/'C'/'D' (Math Modul-4).
+// Untuk boolean: scan semua 4 options per qId, cari yg true, hitung index → letter.
+// Untuk letter: ambil letter dari option yg matches dgn MC_HINTS atau special.
+// ─────────────────────────────────────────────────────────────────────────────
+function extractMcFromOnclick() {
+  const result = {};
+  const selectMcRe = /selectMC\(\s*['"](\w+)['"]\s*,\s*this\s*,\s*(true|false|['"][A-D]['"])\s*\)/g;
+  const byQid = {};   // qId → [{val, order}]
+  let mm;
+  while ((mm = selectMcRe.exec(html)) !== null) {
+    const qId = mm[1];
+    const raw = mm[2];
+    if (!byQid[qId]) byQid[qId] = [];
+    byQid[qId].push({ raw, order: byQid[qId].length });
+  }
+  for (const [qId, options] of Object.entries(byQid)) {
+    if (options.length !== 4) continue;   // expect 4 options per MC
+    // Letter format: pakai letter dari option dgn val='X' (selalu correct kalau letter explicit)
+    // Wait — Math Modul-4 pakai letter di ALL options (A/B/C/D as the option's identity).
+    // Untuk Math Modul-4, NEED MC_HINTS to know which letter is correct.
+    // Untuk boolean format: cari option dgn true → index → letter.
+    const firstRaw = options[0].raw;
+    if (firstRaw === "true" || firstRaw === "false") {
+      // Boolean format
+      const trueIdx = options.findIndex((o) => o.raw === "true");
+      if (trueIdx >= 0 && trueIdx <= 3) {
+        result[qId] = String.fromCharCode("A".charCodeAt(0) + trueIdx);
+      }
+    } else {
+      // Letter format (each option carries its own letter A/B/C/D).
+      // Cannot determine correct from this alone — need MC_HINTS.
+      // Skip; will rely on MC_HINTS.
+    }
+  }
+  return result;
+}
+const mcFromOnclick = extractMcFromOnclick();
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Detect Comp Hard qIds (default: c11..c15 per Getaran convention).
@@ -121,17 +163,31 @@ const MC = [];
 const COMP_EZ = [];
 const COMP_HARD = [];
 
-for (const [qId, info] of Object.entries(MC_HINTS)) {
+// Union: qId yang ada di MC_HINTS ATAU di mcFromOnclick
+const allMcQids = new Set([
+  ...Object.keys(MC_HINTS),
+  ...Object.keys(mcFromOnclick),
+]);
+for (const qId of allMcQids) {
+  const hintInfo = MC_HINTS[qId] || {};
+  const onclickLetter = mcFromOnclick[qId] || "";
+  // Prefer MC_HINTS answer (explicit), fallback ke onclick (boolean-derived)
+  const answer = String(hintInfo.answer || onclickLetter || "").toUpperCase();
+  if (!answer || !/^[A-D]$/.test(answer)) {
+    console.warn(`⚠ ${qId}: cannot determine answer (no MC_HINTS, no boolean onclick)`);
+    continue;
+  }
   MC.push({
     qId, type: "mc", points: 1,
-    answer: String(info.answer || "").toUpperCase(),
-    explain: info.explain || "",
+    answer,
+    explain: hintInfo.explain || "",
   });
 }
 
 for (const [qId, run] of Object.entries(compRunMap)) {
   const explainSrc = COMP_HINTS[qId] || {};
-  const isHard = isHardComp(qId);
+  // Prefer explicit difficulty dari onclick 4th arg, fallback ke qId-based detection
+  const isHard = run.difficulty === "hard" || (run.difficulty === null && isHardComp(qId));
   const entry = {
     qId, type: "comp",
     points: isHard ? 4 : 2,
