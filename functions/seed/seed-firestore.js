@@ -3,16 +3,27 @@
 /**
  * Seed answer keys ke Firestore `examAnswers/{examId}/qs/{qId}`.
  *
- * Pilot scope: getaran-mekanik-uts (45 soal). Untuk soal parametric,
- * generate byN[0..99] map (1 doc per qId, ukuran cukup utk semua varian).
+ * Support multiple exams via mapping table EXAMS di bawah. Tambah entry
+ * baru di EXAMS map saat rollout exam tambahan.
  *
  * Cara pakai (dari direktori `functions/`):
  *
- *   # Dry-run (preview, tidak nulis ke Firestore):
- *   node seed/seed-firestore.js --dry-run
+ *   # List exam yang tersedia:
+ *   node seed/seed-firestore.js --list
  *
- *   # Live seed (overwrite/upsert semua 45 doc):
- *   npm run seed
+ *   # Dry-run untuk exam tertentu (preview, tidak nulis):
+ *   node seed/seed-firestore.js --exam getaran-mekanik-uts --dry-run
+ *
+ *   # Live seed untuk satu exam:
+ *   node seed/seed-firestore.js --exam getaran-mekanik-uas
+ *
+ *   # Live seed SEMUA exam:
+ *   node seed/seed-firestore.js --all
+ *
+ *   # Shorthand (legacy default = getaran-mekanik-uts via npm script):
+ *   npm run seed                 → getaran-mekanik-uts
+ *   npm run seed -- --dry-run    → dry-run UTS
+ *   npm run seed:uas             → getaran-mekanik-uas
  *
  * Autentikasi Firebase Admin SDK (pilih salah satu):
  *   (A) Application Default Credentials (recommended utk dev lokal):
@@ -20,18 +31,35 @@
  *   (B) Service account key JSON:
  *       export GOOGLE_APPLICATION_CREDENTIALS=/path/to/sa-key.json
  *
- * Untuk download service account key:
- *   Firebase Console → Project settings → Service accounts → Generate new private key
- *   ⚠ JANGAN commit file SA key ke git (sudah di .gitignore).
+ * ⚠ JANGAN commit service account key ke git (sudah di .gitignore).
  */
 
-const { UTS_QUESTIONS, SUMMARY } = require("./uts-getaran-answers");
-// firebase-admin di-require lazy di main() agar dry-run tidak butuh npm install
+// ─────────────────────────────────────────────────────────────────────────────
+// EXAMS MAP — daftarkan exam baru di sini saat rollout
+// Setiap entry: examId → { questions: Array, summary: {examId, totalSoal, totalPoin, ...} }
+// ─────────────────────────────────────────────────────────────────────────────
+const EXAMS = {
+  "getaran-mekanik-uts": (() => {
+    const { UTS_QUESTIONS, SUMMARY } = require("./uts-getaran-answers");
+    return { questions: UTS_QUESTIONS, summary: SUMMARY };
+  })(),
+  "getaran-mekanik-uas": (() => {
+    const { UAS_QUESTIONS, SUMMARY } = require("./uas-getaran-answers");
+    return { questions: UAS_QUESTIONS, summary: SUMMARY };
+  })(),
+  // Tambah saat rollout: "math4-uts", "math4-uas", "optoauto-uts", "optoauto-uas"
+};
 
 const PROJECT_ID = "getaran-mekanik";
-const EXAM_ID = SUMMARY.examId;     // "getaran-mekanik-uts"
 const N_RANGE = Array.from({ length: 100 }, (_, i) => i);  // 0..99
-const DRY_RUN = process.argv.includes("--dry-run");
+
+// CLI arg parsing
+const ARGS = process.argv.slice(2);
+const DRY_RUN = ARGS.includes("--dry-run");
+const LIST_ONLY = ARGS.includes("--list");
+const ALL = ARGS.includes("--all");
+const EXAM_ARG_IDX = ARGS.indexOf("--exam");
+const CLI_EXAM_ID = EXAM_ARG_IDX !== -1 ? ARGS[EXAM_ARG_IDX + 1] : null;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Build payload utk satu soal: static → field langsung; parametric → byN map
@@ -62,6 +90,9 @@ function buildPayload(q) {
     const entry = {};
     if (variant.answer !== undefined) entry.answer = variant.answer;
     if (variant.correctIdx !== undefined) entry.correctIdx = variant.correctIdx;
+    // `expected` is the Comp answer field name in UAS (UTS pakai `answer:`).
+    // Server `evaluateAnswer` fallback ke `ans.expected` kalau `ans.answer` undefined.
+    if (variant.expected !== undefined) entry.expected = variant.expected;
     if (variant.tolerance !== undefined) entry.tolerance = variant.tolerance;   // override per-N
     if (variant.explain !== undefined) entry.explain = variant.explain;
     // Multi-step: array of {label, value, tolerance}. Kalau ada, server pakai
@@ -74,7 +105,7 @@ function buildPayload(q) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Sanity check: pastikan byN map valid (semua N punya answer/correctIdx)
+// Sanity check: pastikan byN map valid
 // ─────────────────────────────────────────────────────────────────────────────
 function validatePayload(qId, payload) {
   if (payload.parametric) {
@@ -85,11 +116,13 @@ function validatePayload(qId, payload) {
       if (payload.type === "tf" && typeof v.answer !== "boolean") missing.push(`${N} (no bool)`);
       if (payload.type === "mc" && typeof v.correctIdx !== "number") missing.push(`${N} (no idx)`);
       if (payload.type === "comp") {
-        // Comp variant valid kalau punya: single answer (legacy) ATAU expectedSteps array.
         const hasAnswer = Number.isFinite(v.answer);
+        const hasExpected = Number.isFinite(v.expected);
         const hasSteps = Array.isArray(v.expectedSteps) && v.expectedSteps.length > 0 &&
           v.expectedSteps.every((s) => Number.isFinite(Number(s.value)));
-        if (!hasAnswer && !hasSteps) missing.push(`${N} (no num & no expectedSteps)`);
+        if (!hasAnswer && !hasExpected && !hasSteps) {
+          missing.push(`${N} (no num & no expectedSteps)`);
+        }
       }
     }
     if (missing.length) throw new Error(`${qId}: invalid byN at N=${missing.slice(0,5).join(",")}${missing.length>5?"...":""}`);
@@ -100,8 +133,8 @@ function validatePayload(qId, payload) {
     if (payload.type === "mc" && typeof payload.correctIdx !== "number") {
       throw new Error(`${qId}: static MC must have number correctIdx`);
     }
-    if (payload.type === "comp" && !Number.isFinite(payload.answer)) {
-      throw new Error(`${qId}: static Comp must have finite number answer`);
+    if (payload.type === "comp" && !Number.isFinite(payload.answer) && !Number.isFinite(payload.expected)) {
+      throw new Error(`${qId}: static Comp must have finite number answer/expected`);
     }
   }
 }
@@ -114,7 +147,7 @@ function preview(qId, payload) {
   if (!payload.parametric) {
     const ans = payload.type === "tf" ? payload.answer
               : payload.type === "mc" ? `idx=${payload.correctIdx}`
-              : `ans=${payload.answer}${payload.tolerance ? ` ±${payload.tolerance}` : ""}`;
+              : `ans=${payload.answer ?? payload.expected}${payload.tolerance ? ` ±${payload.tolerance}` : ""}`;
     console.log(`${head}  → ${ans}`);
   } else {
     const sample = [0, 42, 99].map((N) => {
@@ -125,7 +158,8 @@ function preview(qId, payload) {
       else if (Array.isArray(v.expectedSteps)) {
         ans = `steps=[${v.expectedSteps.map((s) => Number(s.value).toFixed?.(3)).join(",")}]`;
       } else {
-        ans = v.answer?.toFixed?.(4) ?? v.answer;
+        const num = v.answer ?? v.expected;
+        ans = num?.toFixed?.(4) ?? num;
       }
       return `N=${N}:${ans}`;
     }).join("  ");
@@ -134,20 +168,28 @@ function preview(qId, payload) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MAIN
+// Seed satu exam
 // ─────────────────────────────────────────────────────────────────────────────
-async function main() {
+async function seedExam(examId, db) {
+  const exam = EXAMS[examId];
+  if (!exam) {
+    throw new Error(`Unknown examId '${examId}'. Available: ${Object.keys(EXAMS).join(", ")}`);
+  }
+  const { questions, summary } = exam;
+  const totalQuestions = summary.totalSoal ?? summary.totalQuestions ?? questions.length;
+  const totalPoints = summary.totalPoin ?? summary.totalPoints ?? 0;
+  const parametricCount = summary.parametricCount ?? questions.filter((q) => q.parametric).length;
+
   console.log("─".repeat(78));
-  console.log(`Seed Firestore answer keys — ${EXAM_ID}`);
-  console.log(`  Total soal:      ${SUMMARY.totalQuestions}`);
-  console.log(`  Total poin:      ${SUMMARY.totalPoints}`);
-  console.log(`  Parametric:      ${SUMMARY.parametricCount}/${SUMMARY.totalQuestions}`);
+  console.log(`Seed Firestore answer keys — ${examId}`);
+  console.log(`  Total soal:      ${totalQuestions}`);
+  console.log(`  Total poin:      ${totalPoints}`);
+  console.log(`  Parametric:      ${parametricCount}/${totalQuestions}`);
   console.log(`  Mode:            ${DRY_RUN ? "DRY-RUN (no write)" : "LIVE (will upsert all docs)"}`);
   console.log("─".repeat(78));
 
-  // Build + validate semua payload dulu (fail-fast sebelum touch Firestore)
   const payloads = [];
-  for (const q of UTS_QUESTIONS) {
+  for (const q of questions) {
     const payload = buildPayload(q);
     validatePayload(q.qId, payload);
     payloads.push({ qId: q.qId, payload });
@@ -157,42 +199,102 @@ async function main() {
   console.log(`✓ Built & validated ${payloads.length} payloads`);
 
   if (DRY_RUN) {
-    console.log("DRY-RUN selesai. Tidak ada penulisan ke Firestore. Hapus --dry-run untuk live.");
-    process.exit(0);
+    console.log(`DRY-RUN selesai untuk ${examId}. Tidak ada penulisan ke Firestore.`);
+    return { examId, count: payloads.length, written: false };
   }
 
-  // Init Admin SDK (gunakan ADC atau GOOGLE_APPLICATION_CREDENTIALS)
-  const admin = require("firebase-admin");   // lazy require — dry-run tidak butuh ini
-  admin.initializeApp({ projectId: PROJECT_ID });
-  const db = admin.firestore();
-
-  // Batch write (max 500 ops per batch; kita cuma punya 45, jadi 1 batch cukup)
+  // Batch write
   const batch = db.batch();
   for (const { qId, payload } of payloads) {
-    const ref = db.collection("examAnswers").doc(EXAM_ID).collection("qs").doc(qId);
+    const ref = db.collection("examAnswers").doc(examId).collection("qs").doc(qId);
     batch.set(ref, payload);
   }
   await batch.commit();
-  console.log(`✅ Wrote ${payloads.length} docs → examAnswers/${EXAM_ID}/qs/`);
+  console.log(`✅ Wrote ${payloads.length} docs → examAnswers/${examId}/qs/`);
 
-  // Verifikasi: read 3 docs (1 TF static, 1 MC parametric, 1 Comp Hard)
-  console.log("─".repeat(78));
-  console.log("Verifikasi (read back 3 sample docs):");
-  for (const qId of ["tf1", "mc14", "c11"]) {
-    const snap = await db.collection("examAnswers").doc(EXAM_ID).collection("qs").doc(qId).get();
+  // Sample verification: read first qId of each type
+  console.log("Verifikasi (read back sample docs):");
+  const samples = new Set();
+  for (const q of questions) {
+    if (samples.has(q.type)) continue;
+    samples.add(q.type);
+    const snap = await db.collection("examAnswers").doc(examId).collection("qs").doc(q.qId).get();
     if (!snap.exists) {
-      console.log(`  ✗ ${qId}: NOT FOUND`);
+      console.log(`  ✗ ${q.qId}: NOT FOUND`);
       continue;
     }
     const d = snap.data();
     const sample = d.parametric
-      ? `byN keys: ${Object.keys(d.byN).length}, N=0 → ${JSON.stringify(d.byN["0"]).slice(0, 80)}`
+      ? `byN keys: ${Object.keys(d.byN || {}).length}, N=0 → ${JSON.stringify(d.byN["0"]).slice(0, 80)}`
       : JSON.stringify(d).slice(0, 100);
-    console.log(`  ✓ ${qId}: ${sample}`);
+    console.log(`  ✓ ${q.qId} (${q.type}): ${sample}`);
   }
-  console.log("─".repeat(78));
-  console.log("Seed selesai. Cek di Firebase Console → Firestore → examAnswers/");
-  process.exit(0);
+  return { examId, count: payloads.length, written: true };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MAIN
+// ─────────────────────────────────────────────────────────────────────────────
+async function main() {
+  if (LIST_ONLY) {
+    console.log("Available exams:");
+    for (const [id, ex] of Object.entries(EXAMS)) {
+      const total = ex.summary.totalSoal ?? ex.summary.totalQuestions ?? ex.questions.length;
+      console.log(`  • ${id.padEnd(28)} (${total} soal / ${ex.summary.totalPoin ?? ex.summary.totalPoints ?? "?"} poin)`);
+    }
+    process.exit(0);
+  }
+
+  // Determine which exams to seed
+  let targets;
+  if (ALL) {
+    targets = Object.keys(EXAMS);
+  } else if (CLI_EXAM_ID) {
+    if (!EXAMS[CLI_EXAM_ID]) {
+      console.error(`❌ Unknown --exam '${CLI_EXAM_ID}'. Available:`);
+      Object.keys(EXAMS).forEach((id) => console.error(`     • ${id}`));
+      process.exit(1);
+    }
+    targets = [CLI_EXAM_ID];
+  } else {
+    // Backward compat: default ke getaran-mekanik-uts
+    targets = ["getaran-mekanik-uts"];
+    console.log("ℹ Tidak ada --exam atau --all flag. Default ke getaran-mekanik-uts (backward compat).");
+    console.log("  Pakai --list untuk lihat exam tersedia, atau --exam <id> / --all untuk eksplisit.\n");
+  }
+
+  // Init Admin SDK (skip kalau DRY_RUN)
+  let db = null;
+  if (!DRY_RUN) {
+    const admin = require("firebase-admin");
+    admin.initializeApp({ projectId: PROJECT_ID });
+    db = admin.firestore();
+  }
+
+  const results = [];
+  for (const examId of targets) {
+    try {
+      const result = await seedExam(examId, db);
+      results.push(result);
+    } catch (err) {
+      console.error(`❌ Gagal seed ${examId}:`, err.message);
+      results.push({ examId, error: err.message });
+    }
+  }
+
+  console.log("\n" + "═".repeat(78));
+  console.log("SUMMARY:");
+  for (const r of results) {
+    if (r.error) {
+      console.log(`  ✗ ${r.examId}: ERROR — ${r.error}`);
+    } else {
+      console.log(`  ${r.written ? "✅" : "🔍"} ${r.examId}: ${r.count} soal ${r.written ? "written" : "(dry-run only)"}`);
+    }
+  }
+  console.log("═".repeat(78));
+
+  const hadError = results.some((r) => r.error);
+  process.exit(hadError ? 1 : 0);
 }
 
 main().catch((err) => {

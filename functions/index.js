@@ -126,6 +126,8 @@ function resolveAnswerKey(ans, nim) {
     partialPoints: ans.partialPoints,
     answer: variant.answer !== undefined ? variant.answer : ans.answer,
     correctIdx: variant.correctIdx !== undefined ? variant.correctIdx : ans.correctIdx,
+    // expected is an alias for answer (legacy: UTS pakai answer:, UAS pakai expected:)
+    expected: variant.expected !== undefined ? variant.expected : ans.expected,
     tolerance: variant.tolerance !== undefined ? variant.tolerance : ans.tolerance,
     explain: variant.explain !== undefined ? variant.explain : ans.explain,
     // Multi-step: per-variant array of {label, value, tolerance}. Kalau ada,
@@ -236,7 +238,9 @@ function evaluateAnswer(ans, userAnswer, userAnswers) {
       return { correct: false, allowPartial: ans.allowPartial === true };
     }
     const got = Number(userAnswer);
-    const target = Number(ans.answer);
+    // Field name flexibility: UTS Getaran pakai `answer:`, UAS Getaran pakai `expected:`
+    // (legacy inconsistency dari source HTML). Server support keduanya.
+    const target = Number(ans.answer ?? ans.expected);
     const tol = Number(ans.tolerance ?? 0.01);
     const correct = Number.isFinite(got) && Number.isFinite(target) && Math.abs(got - target) <= tol;
     return { correct, allowPartial: ans.allowPartial === true };
