@@ -4136,53 +4136,7 @@ function fallbackCopy(text, btn, msg) {
       '.banner{background:#fff7ed;border-bottom:2px solid #f59e0b;padding:14px 20px;font-size:14px;line-height:1.6}' +
       '.banner b{color:#b45309;font-size:16px}.banner kbd{background:#fef3c7;border:1px solid #f59e0b;border-radius:4px;padding:2px 6px;font-family:monospace;font-weight:700;color:#78350f}' +
       '.btn{display:inline-block;margin:14px 20px;padding:10px 18px;background:#3b82f6;color:#fff;border:0;border-radius:8px;font-weight:700;cursor:pointer;font-size:14px}' +
-      '.btn:hover{background:#2563eb}textarea{width:calc(100% - 40px);height:calc(100vh - 180px);margin:0 20px 20px;padding:12px;font-family:Consolas,Monaco,monospace;font-size:12px;border:1px solid #cbd5e1;border-radius:8px;resize:none;background:#fff;color:#0f172a;line-height:1.5}
-/* ─── FRICTION LAYER (anti-AI deterrent — student only) ──────────────── */
-/* Disable text selection di seluruh body; allow di textarea/input agar
-   mahasiswa tetap bisa edit kode dan input jawaban. Watermark NIM+nama
-   diagonal sebagai deterrent screenshot. */
-body{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;}
-textarea,input,select,option,
-.code-textarea,.v-input,[contenteditable="true"]{
-  -webkit-user-select:text!important;-moz-user-select:text!important;
-  -ms-user-select:text!important;user-select:text!important;
-}
-img,video,svg{-webkit-user-drag:none;user-drag:none;}
-body.friction-blurred{filter:blur(12px);transition:filter .3s ease;}
-body.friction-blurred #frictionNotice,
-body.friction-blurred #frictionToast{filter:none;}
-#frictionWatermark{
-  position:fixed;inset:0;pointer-events:none;z-index:999998;
-  opacity:.08;mix-blend-mode:difference;user-select:none;
-  display:none; /* shown only when student logged in */
-}
-#frictionWatermark.active{display:block;}
-#frictionToast{
-  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
-  background:rgba(239,68,68,.95);color:#fff;padding:12px 20px;
-  border-radius:12px;font-size:13px;font-weight:600;
-  z-index:999999;box-shadow:0 6px 24px rgba(0,0,0,.4);
-  pointer-events:none;opacity:0;transition:opacity .3s;
-  font-family:'JetBrains Mono',monospace;max-width:90vw;text-align:center;
-}
-#frictionToast.show{opacity:1;}
-#frictionNotice{
-  position:fixed;top:64px;right:16px;
-  background:rgba(124,77,255,.12);border:1px solid rgba(124,77,255,.35);
-  color:#a78bfa;padding:8px 14px;border-radius:10px;font-size:11px;
-  font-weight:700;font-family:'JetBrains Mono',monospace;
-  letter-spacing:.5px;z-index:99997;pointer-events:none;display:none;
-}
-#frictionNotice.active{display:block;}
-@media print {
-  body > * { display: none !important; }
-  body::after {
-    content: "\01F512 Mode Modul \2014 Print/Screenshot dinonaktifkan. Aktivitas terdeteksi & tercatat.";
-    display: block; font-size: 18pt; color: #000; padding: 40px;
-  }
-}
-
-</style>' +
+      '.btn:hover{background:#2563eb}textarea{width:calc(100% - 40px);height:calc(100vh - 180px);margin:0 20px 20px;padding:12px;font-family:Consolas,Monaco,monospace;font-size:12px;border:1px solid #cbd5e1;border-radius:8px;resize:none;background:#fff;color:#0f172a;line-height:1.5}</style>' +
       '</head><body>' +
       '<div class="banner"><b>📋 Copy Manual</b><br>Browser memblokir auto-copy. Tekan <kbd>Ctrl+A</kbd> lalu <kbd>Ctrl+C</kbd> untuk salin, kemudian paste di Fast Learning.</div>' +
       '<button class="btn" onclick="document.querySelector(\'textarea\').select();">📌 Select All</button>' +
@@ -7805,6 +7759,54 @@ window._ah = _ah;
 </script>
 
 
+
+<!-- FRICTION LAYER CSS (extracted from popup template — see fix #261) -->
+<style>
+/* ─── FRICTION LAYER (anti-AI deterrent — student only) ──────────────── */
+/* Disable text selection di seluruh body; allow di textarea/input agar
+   mahasiswa tetap bisa edit kode dan input jawaban. Watermark NIM+nama
+   diagonal sebagai deterrent screenshot. */
+body{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;}
+textarea,input,select,option,
+.code-textarea,.v-input,[contenteditable="true"]{
+  -webkit-user-select:text!important;-moz-user-select:text!important;
+  -ms-user-select:text!important;user-select:text!important;
+}
+img,video,svg{-webkit-user-drag:none;user-drag:none;}
+body.friction-blurred{filter:blur(12px);transition:filter .3s ease;}
+body.friction-blurred #frictionNotice,
+body.friction-blurred #frictionToast{filter:none;}
+#frictionWatermark{
+  position:fixed;inset:0;pointer-events:none;z-index:999998;
+  opacity:.08;mix-blend-mode:difference;user-select:none;
+  display:none; /* shown only when student logged in */
+}
+#frictionWatermark.active{display:block;}
+#frictionToast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:rgba(239,68,68,.95);color:#fff;padding:12px 20px;
+  border-radius:12px;font-size:13px;font-weight:600;
+  z-index:999999;box-shadow:0 6px 24px rgba(0,0,0,.4);
+  pointer-events:none;opacity:0;transition:opacity .3s;
+  font-family:'JetBrains Mono',monospace;max-width:90vw;text-align:center;
+}
+#frictionToast.show{opacity:1;}
+#frictionNotice{
+  position:fixed;top:64px;right:16px;
+  background:rgba(124,77,255,.12);border:1px solid rgba(124,77,255,.35);
+  color:#a78bfa;padding:8px 14px;border-radius:10px;font-size:11px;
+  font-weight:700;font-family:'JetBrains Mono',monospace;
+  letter-spacing:.5px;z-index:99997;pointer-events:none;display:none;
+}
+#frictionNotice.active{display:block;}
+@media print {
+  body > * { display: none !important; }
+  body::after {
+    content: "\01F512 Mode Modul \2014 Print/Screenshot dinonaktifkan. Aktivitas terdeteksi & tercatat.";
+    display: block; font-size: 18pt; color: #000; padding: 40px;
+  }
+}
+</style>
 
 <!-- ═══════════════════════════════════════════════════════════════════
      FRICTION LAYER (anti-AI deterrent — student only)
