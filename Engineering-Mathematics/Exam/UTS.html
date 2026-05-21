@@ -6575,7 +6575,8 @@ async function _promptPinReentry(reason) {
       nama: me.nama, nim: me.nim,
       nowISO: new Date().toISOString(),
       existingPin, existingVisitor,
-      schedOpen: typeof _isScheduleOpen === 'function' ? _isScheduleOpen() : true
+      schedOpen: typeof _isScheduleOpen === 'function' ? _isScheduleOpen() : true,
+      isReentry: true   // skip RTDB write — visitor already exists, just restore _sessionPinHash
     };
     _showPinInput(me.nama);
     if (reason) {
@@ -6671,7 +6672,7 @@ async function submitPinSetup() {
     document.getElementById('visitorOverlay').classList.add('hidden');
     document.getElementById('visitorFab').style.display = 'flex';
     _applyRoleVisibility();   // pastikan tombol dosen tersembunyi untuk mahasiswa
-    _pinFlow = { nama: null, nim: null, nowISO: null, existingPin: null, existingVisitor: null, schedOpen: false };
+    _pinFlow = { nama: null, nim: null, nowISO: null, existingPin: null, existingVisitor: null, schedOpen: false, isReentry: false };
     setTimeout(() => { if (typeof window._loadScoredQuestions === 'function') window._loadScoredQuestions(); }, 500);
   } catch(e) {
     errEl.textContent = '\u274c Gagal menyimpan PIN: ' + (e && e.message ? e.message : e);
@@ -6694,7 +6695,7 @@ async function submitPinVerify() {
 
   try {
     const inputHash = await _sha256Hex(pin);
-    const { existingPin, existingVisitor, nama, nim, nowISO, schedOpen } = _pinFlow;
+    const { existingPin, existingVisitor, nama, nim, nowISO, schedOpen, isReentry } = _pinFlow;
 
     // ─── Verifikasi PIN dari GLOBAL pins/ ───
     if (!existingPin || inputHash !== existingPin.pinHash) {
@@ -6736,7 +6737,13 @@ async function submitPinVerify() {
       };
     }
 
-    if (schedOpen) {
+    if (isReentry) {
+      // Re-entry mid-session: visitor record sudah ada di RTDB dengan progress
+      // (points, scoredQuestions di-write oleh cloud function). Client TIDAK
+      // boleh overwrite — RTDB rules reject dengan PERMISSION_DENIED.
+      // Cukup restore identity local dengan latest visitor data.
+      saveIdentity(visitorRec);
+    } else if (schedOpen) {
       saveIdentity(visitorRec);
       await set(ref(db, DB_PATH + '/' + key), visitorRec);
     } else {
@@ -6748,7 +6755,7 @@ async function submitPinVerify() {
     document.getElementById('visitorOverlay').classList.add('hidden');
     document.getElementById('visitorFab').style.display = 'flex';
     _applyRoleVisibility();   // pastikan tombol dosen tersembunyi untuk mahasiswa
-    _pinFlow = { nama: null, nim: null, nowISO: null, existingPin: null, existingVisitor: null, schedOpen: false };
+    _pinFlow = { nama: null, nim: null, nowISO: null, existingPin: null, existingVisitor: null, schedOpen: false, isReentry: false };
     setTimeout(() => { if (typeof window._loadScoredQuestions === 'function') window._loadScoredQuestions(); }, 500);
   } catch(e) {
     errEl.textContent = '\u274c Gagal verifikasi PIN: ' + (e && e.message ? e.message : e);
