@@ -4375,7 +4375,50 @@ function fallbackCopy(text, btn, msg) {
 .banner b{font-size:16px;display:block;margin-bottom:4px}
 textarea{width:100%;height:calc(100vh - 180px);font-family:'Courier New',monospace;font-size:12px;padding:14px;border:2px solid #cbd5e1;border-radius:8px;resize:vertical;background:#fff}
 button{background:#0ea5e9;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-top:10px}
-button:hover{background:#0284c7}</style></head><body>
+button:hover{background:#0284c7}
+/* ─── FRICTION LAYER (anti-AI deterrent — student only) ──────────────── */
+/* Disable text selection di seluruh body; allow di textarea/input agar
+   mahasiswa tetap bisa edit kode dan input jawaban. Watermark NIM+nama
+   diagonal sebagai deterrent screenshot. */
+body{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;}
+textarea,input,select,option,
+.code-textarea,.v-input,[contenteditable="true"]{
+  -webkit-user-select:text!important;-moz-user-select:text!important;
+  -ms-user-select:text!important;user-select:text!important;
+}
+img,video,svg{-webkit-user-drag:none;user-drag:none;}
+#frictionWatermark{
+  position:fixed;inset:0;pointer-events:none;z-index:999998;
+  opacity:.08;mix-blend-mode:difference;user-select:none;
+  display:none; /* shown only when student logged in */
+}
+#frictionWatermark.active{display:block;}
+#frictionToast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:rgba(239,68,68,.95);color:#fff;padding:12px 20px;
+  border-radius:12px;font-size:13px;font-weight:600;
+  z-index:999999;box-shadow:0 6px 24px rgba(0,0,0,.4);
+  pointer-events:none;opacity:0;transition:opacity .3s;
+  font-family:'JetBrains Mono',monospace;max-width:90vw;text-align:center;
+}
+#frictionToast.show{opacity:1;}
+#frictionNotice{
+  position:fixed;top:64px;right:16px;
+  background:rgba(124,77,255,.12);border:1px solid rgba(124,77,255,.35);
+  color:#a78bfa;padding:8px 14px;border-radius:10px;font-size:11px;
+  font-weight:700;font-family:'JetBrains Mono',monospace;
+  letter-spacing:.5px;z-index:99997;pointer-events:none;display:none;
+}
+#frictionNotice.active{display:block;}
+@media print {
+  body > * { display: none !important; }
+  body::after {
+    content: "\01F512 Mode Modul \2014 Print/Screenshot dinonaktifkan. Aktivitas terdeteksi & tercatat.";
+    display: block; font-size: 18pt; color: #000; padding: 40px;
+  }
+}
+
+</style></head><body>
 <div class="banner"><b>📋 Copy Manual</b>Browser tidak mengizinkan otomatis copy. Tekan <kbd>Ctrl+A</kbd> lalu <kbd>Ctrl+C</kbd> di textarea bawah, lalu paste di Fast Learning.</div>
 <button onclick="document.querySelector('textarea').select();document.querySelector('textarea').setSelectionRange(0,99999);">Select All</button>
 <textarea readonly>${text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>
@@ -8528,6 +8571,157 @@ function _ah(s){let h=5381;s=s+'mEKsP9k4tQ2';for(let i=0;i<s.length;i++)h=((h<<5
 window._pa = {1: '1vcm311', 2: 'crcad2'};
 </script>
 
+
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     FRICTION LAYER (anti-AI deterrent — student only)
+     DevTools blocker + watermark + tab leave + screen capture detection
+═══════════════════════════════════════════════════════════════════ -->
+<script>
+(function _frictionLayer(){
+  const LK = 'getaran_mekanik_identity_pertemuan-11';
+
+  function getMe(){
+    try { return JSON.parse(localStorage.getItem(LK) || 'null'); }
+    catch(e){ return null; }
+  }
+  function isStudent(){
+    const m = getMe();
+    return !!(m && m.nim && m.role !== 'dosen');
+  }
+  function escH(s){
+    return String(s||'').replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function showToast(msg){
+    let t = document.getElementById('frictionToast');
+    if (!t){
+      t = document.createElement('div');
+      t.id = 'frictionToast';
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(()=> t.classList.remove('show'), 3200);
+  }
+
+  let lastSig = null;
+  function renderWatermark(){
+    const m = getMe();
+    const sig = m ? `${m.nim}-${m.nama}-${m.role}` : null;
+    if (sig === lastSig) return;
+    lastSig = sig;
+
+    const ex = document.getElementById('frictionWatermark');
+    if (ex) ex.remove();
+    const notice = document.getElementById('frictionNotice');
+
+    if (!isStudent()){
+      if (notice) notice.classList.remove('active');
+      return;
+    }
+
+    const text = escH(`${m.nim} · ${m.nama}`);
+    const wm = document.createElement('div');
+    wm.id = 'frictionWatermark';
+    wm.classList.add('active');
+    wm.setAttribute('aria-hidden', 'true');
+    wm.innerHTML =
+      '<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" style="display:block">'
+      + '<defs>'
+      +   '<pattern id="wmp" patternUnits="userSpaceOnUse" width="420" height="200" patternTransform="rotate(-30)">'
+      +     '<text x="20" y="60" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#fff" opacity=".95">'+text+'</text>'
+      +     '<text x="20" y="140" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#fff" opacity=".95">'+text+'</text>'
+      +   '</pattern>'
+      + '</defs>'
+      + '<rect width="100%" height="100%" fill="url(#wmp)"/>'
+      + '</svg>';
+    document.body.appendChild(wm);
+
+    if (notice){
+      notice.classList.add('active');
+    } else {
+      const n = document.createElement('div');
+      n.id = 'frictionNotice';
+      n.classList.add('active');
+      n.textContent = '🔒 Mode Modul Aktif';
+      n.title = 'Tab leave, screen capture, dan aktivitas tercatat.';
+      document.body.appendChild(n);
+    }
+  }
+
+  function onContextMenu(e){
+    if (!isStudent()) return;
+    if (e.target.closest('textarea, input, [contenteditable="true"]')) return;
+    e.preventDefault();
+    showToast('🔒 Klik kanan dinonaktifkan saat mengerjakan modul.');
+  }
+
+  function onKeyDown(e){
+    if (!isStudent()) return;
+    const k = (e.key || '').toLowerCase();
+    if (e.key === 'F12' || ((e.ctrlKey || e.metaKey) && e.shiftKey && ['i','j','c'].includes(k))){
+      e.preventDefault();
+      showToast('🔒 DevTools dinonaktifkan saat mengerjakan modul.');
+      return;
+    }
+    if ((e.ctrlKey || e.metaKey) && k === 'u'){
+      e.preventDefault();
+      showToast('🔒 View source dinonaktifkan.');
+      return;
+    }
+    if ((e.ctrlKey || e.metaKey) && (k === 'p' || k === 's')){
+      e.preventDefault();
+      showToast('🔒 Print / Save page dinonaktifkan.');
+      return;
+    }
+    if (e.key === 'PrintScreen'){
+      showToast('🔒 PrintScreen terdeteksi. Aktivitas tercatat.');
+    }
+  }
+
+  let tabLeaveCount = 0;
+  function onVisibility(){
+    if (!isStudent()) return;
+    if (document.hidden){
+      tabLeaveCount++;
+    } else if (tabLeaveCount > 0){
+      showToast('⚠ Anda meninggalkan tab '+tabLeaveCount+'×. Tercatat di sistem.');
+    }
+  }
+
+  function patchScreenCapture(){
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) return;
+    const orig = navigator.mediaDevices.getDisplayMedia.bind(navigator.mediaDevices);
+    navigator.mediaDevices.getDisplayMedia = function(){
+      if (isStudent()){
+        showToast('🔒 Screen recording terdeteksi. Aktivitas tercatat.');
+      }
+      return orig.apply(navigator.mediaDevices, arguments);
+    };
+  }
+
+  function init(){
+    document.addEventListener('contextmenu', onContextMenu, { capture: true });
+    document.addEventListener('keydown', onKeyDown, { capture: true });
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('storage', renderWatermark);
+    window.addEventListener('friction:render', renderWatermark);
+    patchScreenCapture();
+    renderWatermark();
+    setInterval(renderWatermark, 1500);
+  }
+
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+  window._frictionRender = renderWatermark;
+})();
+</script>
 
 </body>
 </html>
