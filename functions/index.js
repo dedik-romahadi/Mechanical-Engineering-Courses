@@ -108,11 +108,38 @@ const EXAM_CONFIG = {
     consolationPoint: 1,
     lateMultiplierValue: 0.8,
   },
-  // "math4-uts":           { dbPath: "visitors/math4/uts",            ... },
-  // "math4-uas":           { dbPath: "visitors/math4/uas",            ... },
-  // "optoauto-uts":        { dbPath: "visitors/optoauto/uts",         ... },
-  // "optoauto-uas":        { dbPath: "visitors/optoauto/uas",         ... },
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MODUL_CONFIG — generated per-modul config (42 modul = 3 course × 14 modul).
+// Schema modul beda dgn exam:
+// - totalPoints: 50 (universal: 10 MC + 10 Comp_EZ + 5 Comp_HARD)
+// - MC answer format: letter 'A'/'B'/'C'/'D' (bukan index seperti exam)
+// - Reveal explain pada submit (formative learning, bukan summative)
+// - DB path pakai underscore course slug (math4, getaran_mekanik, optoauto)
+// - RTDB stored at visitors/<courseSlug>/pertemuan-N
+// ─────────────────────────────────────────────────────────────────────────────
+function _makeModulConfig(courseSlug, modulNum) {
+  return {
+    dbPath: `visitors/${courseSlug}/pertemuan-${modulNum}`,
+    schedulePath: `settings/${courseSlug}/pertemuan-${modulNum}/schedule`,
+    totalPoints: 50,             // universal: 10 MC × 1 + 10 Comp E × 2 + 5 Comp H × 4
+    consolationThreshold: 20,    // ≥20 distinct base-ID attempted
+    consolationPoint: 1,
+    lateMultiplierValue: 0.8,
+  };
+}
+const MODUL_CONFIG = {};
+const _MODUL_COURSES = [
+  { slug: "math4",           id: "math4" },
+  { slug: "getaran_mekanik", id: "getaran-mekanik" },
+  { slug: "optoauto",        id: "optoauto" },
+];
+for (const { slug, id } of _MODUL_COURSES) {
+  for (let n = 1; n <= 14; n++) {
+    MODUL_CONFIG[`${id}-modul-${n}`] = _makeModulConfig(slug, n);
+  }
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -611,5 +638,288 @@ exports.resetExamAttempts = onCall({ timeoutSeconds: 60 }, async (request) => {
   }
 
   console.log("[resetExamAttempts]", examId, "deleted", totalDeleted, "attempts across", studentDocs.length, "students");
+  return { deleted: totalDeleted, students: studentDocs.length };
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+// MODUL VALIDATION — Phase 3 untuk Modul Pertemuan (formative, with reveal)
+// ═════════════════════════════════════════════════════════════════════════════
+
+// Modul scoring (universal 50-poin per Pedoman §15.1):
+//   MC: 1 poin, answer format: letter 'A'/'B'/'C'/'D'
+//   Comp Easy: 2 poin, expected numeric ± tolerance
+//   Comp Hard: 4 poin (correct), 1 poin (partial — code submitted but wrong)
+function _computeModulOutcome(ans, evalResult, pastDeadline) {
+  const basePoints = Number(ans.points ?? 1);
+  if (ans.type === "mc") {
+    return evalResult.correct
+      ? { markerSuffix: "",       points: basePoints, status: "correct" }
+      : { markerSuffix: "_mc_used", points: 0,        status: "wrong" };
+  }
+  if (ans.type === "comp") {
+    if (evalResult.correct) {
+      return { markerSuffix: "_comp", points: basePoints, status: "correct" };
+    }
+    const allowPartial = ans.allowPartial === true;
+    const partial = Number(ans.partialPoints ?? 1);
+    if (allowPartial && !pastDeadline) {
+      return { markerSuffix: "_comp_partial", points: partial, status: "partial" };
+    }
+    return { markerSuffix: "_comp_used", points: 0, status: "wrong" };
+  }
+  return { markerSuffix: "", points: 0, status: "wrong" };
+}
+
+function _evaluateModulAnswer(ans, userAnswer) {
+  if (ans.type === "mc") {
+    // Modul MC: answer adalah letter 'A'/'B'/'C'/'D'. User send letter juga.
+    if (typeof userAnswer !== "string" || !/^[A-D]$/.test(userAnswer)) {
+      return { correct: false };
+    }
+    return { correct: userAnswer.toUpperCase() === String(ans.answer).toUpperCase() };
+  }
+  if (ans.type === "comp") {
+    if (userAnswer === undefined || userAnswer === null) {
+      return { correct: false };
+    }
+    const got = Number(userAnswer);
+    const target = Number(ans.answer ?? ans.expected);
+    const tol = Number(ans.tolerance ?? 0.01);
+    const correct = Number.isFinite(got) && Number.isFinite(target) && Math.abs(got - target) <= tol;
+    return { correct };
+  }
+  return { correct: false };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// checkModulAnswer — callable function (HTTPS).
+//
+// Request: { modulId, qId, userAnswer, codeText?, nim, nama, pinHash }
+// Response: { correct, status, scoreDelta, marker, explain, correctAnswer,
+//             alreadyAnswered, healed, lateMultiplier, consolationAwarded }
+//
+// Berbeda dgn checkExamAnswer:
+// - Reveal explain + correctAnswer ALWAYS (formative, untuk pembelajaran)
+// - MC validasi pakai letter A/B/C/D (bukan index)
+// - Tidak ada multi-step expectedSteps
+// - Schedule per-modul (visitors/<course>/pertemuan-N)
+// ─────────────────────────────────────────────────────────────────────────────
+exports.checkModulAnswer = onCall(async (request) => {
+  const { modulId, qId, userAnswer, codeText, nim, nama, pinHash } = request.data || {};
+
+  if (!modulId || typeof modulId !== "string") {
+    throw new HttpsError("invalid-argument", "modulId wajib diisi");
+  }
+  const cfg = MODUL_CONFIG[modulId];
+  if (!cfg) {
+    throw new HttpsError("invalid-argument", `modulId '${modulId}' tidak dikonfigurasi`);
+  }
+  if (!qId || typeof qId !== "string") {
+    throw new HttpsError("invalid-argument", "qId wajib diisi");
+  }
+  if (!nim || !nama || !pinHash) {
+    throw new HttpsError("invalid-argument", "nim/nama/pinHash wajib diisi");
+  }
+
+  const fs = getFirestore();
+  const rtdb = getDatabase();
+  const nimKey = sanitizeKey("mhs_" + nim);
+
+  // ── 1) Verify PIN (cross-check dgn pins/ global) ──
+  const pinSnap = await rtdb.ref(`pins/${nimKey}`).get();
+  if (!pinSnap.exists()) {
+    throw new HttpsError("unauthenticated", "PIN belum di-setup utk NIM ini");
+  }
+  const storedPin = pinSnap.val();
+  if (storedPin.pinHash !== pinHash) {
+    throw new HttpsError("unauthenticated", "PIN salah — silakan login ulang");
+  }
+
+  // ── 2) Schedule check ──
+  const sched = await evalSchedule(rtdb, cfg.schedulePath, cfg.lateMultiplierValue);
+  if (!sched.isOpen) {
+    const msg = sched.reason === "before-start"
+      ? "Akses modul belum dibuka"
+      : sched.reason === "after-deadline"
+        ? "Batas waktu pengerjaan modul sudah lewat"
+        : "Jadwal modul belum dikonfigurasi";
+    throw new HttpsError("failed-precondition", msg);
+  }
+
+  // ── 3) Idempotency check di Firestore modulAttempts ──
+  const attemptRef = fs.doc(`modulAttempts/${modulId}/students/${nimKey}/qs/${qId}`);
+  const attemptSnap = await attemptRef.get();
+  if (attemptSnap.exists) {
+    const prev = attemptSnap.data();
+    const prevMarker = prev.marker || qId;
+
+    // SELF-HEAL: replay RTDB transaction kalau inconsistent (mirror exam)
+    let healed = false;
+    if (prev.correct === true && Number(prev.scoreDelta) > 0) {
+      const vRef = rtdb.ref(`${cfg.dbPath}/mhs_${nimKey}`);
+      const vSnap = await vRef.get();
+      const visitor = vSnap.val() || {};
+      const currentScored = (visitor.scoredQuestions || "").split(",").filter(Boolean);
+      if (!currentScored.includes(prevMarker)) {
+        await vRef.transaction((cur) => {
+          if (cur === null) {
+            cur = {
+              nama: storedPin.nama || "—", nim, role: "student",
+              timestamp: new Date().toISOString(),
+              lastVisit: new Date().toISOString(),
+              visitCount: 1, points: 0, scoredQuestions: "",
+            };
+          }
+          const scored = (cur.scoredQuestions || "").split(",").filter(Boolean);
+          if (scored.includes(prevMarker)) return cur;
+          scored.push(prevMarker);
+          cur.scoredQuestions = scored.join(",");
+          cur.points = Math.min((cur.points || 0) + Number(prev.scoreDelta), cfg.totalPoints);
+          cur.pointTimestamp = new Date().toISOString();
+          return cur;
+        });
+        healed = true;
+        console.log("[MODUL SELF-HEAL]", nimKey, modulId, qId, "re-applied", prev.scoreDelta);
+      }
+    }
+
+    return {
+      alreadyAnswered: true,
+      correct: prev.correct === true,
+      status: prev.status || (prev.correct ? "correct" : "wrong"),
+      scoreDelta: healed ? Number(prev.scoreDelta) : 0,
+      marker: prevMarker,
+      explain: prev.explain || "",
+      correctAnswer: prev.correctAnswer || "",
+      lateMultiplier: prev.lateMultiplier ?? null,
+      healed,
+    };
+  }
+
+  // ── 4) Lookup answer key di Firestore modulAnswers ──
+  const ansRef = fs.doc(`modulAnswers/${modulId}/qs/${qId}`);
+  const ansSnap = await ansRef.get();
+  if (!ansSnap.exists) {
+    throw new HttpsError("not-found", `Answer key for ${qId} not configured`);
+  }
+  const ans = ansSnap.data();
+
+  // ── 5) Evaluate ──
+  const evalResult = _evaluateModulAnswer(ans, userAnswer);
+  const outcome = _computeModulOutcome(ans, evalResult, sched.pastDeadline);
+  const scoreDelta = outcome.points * sched.multiplier;
+  const markerKey = qId + outcome.markerSuffix;
+  const correctAnswer = ans.type === "mc"
+    ? String(ans.answer || "").toUpperCase()
+    : String(ans.answer ?? ans.expected ?? "");
+
+  // ── 6) Write attempt ──
+  const attemptDoc = {
+    modulId, qId,
+    type: ans.type,
+    userAnswer,
+    correct: evalResult.correct,
+    status: outcome.status,
+    marker: markerKey,
+    scoreDelta,
+    lateMultiplier: sched.multiplier,
+    pastDeadline: sched.pastDeadline,
+    explain: ans.explain || "",
+    correctAnswer,
+    timestamp: FieldValue.serverTimestamp(),
+  };
+  if (ans.type === "comp" && typeof codeText === "string" && codeText.length > 0) {
+    attemptDoc.codePreview = codeText.slice(0, 5000);
+  }
+  await attemptRef.set(attemptDoc);
+
+  // ── 7) RTDB transaction (atomic points + scoredQuestions) ──
+  let consolationAwarded = false;
+  const vRef = rtdb.ref(`${cfg.dbPath}/mhs_${nimKey}`);
+  await vRef.transaction((cur) => {
+    consolationAwarded = false;
+    if (cur === null) {
+      cur = {
+        nama: storedPin.nama || "—", nim, role: "student",
+        timestamp: new Date().toISOString(),
+        lastVisit: new Date().toISOString(),
+        visitCount: 1, points: 0, scoredQuestions: "",
+      };
+    }
+    delete cur.pinHash;
+    delete cur.pinSetAt;
+    const scored = (cur.scoredQuestions || "").split(",").filter(Boolean);
+    if (scored.includes(markerKey)) return cur;
+    scored.push(markerKey);
+    cur.scoredQuestions = scored.join(",");
+    if (scoreDelta > 0) {
+      cur.points = Math.min((cur.points || 0) + scoreDelta, cfg.totalPoints);
+      cur.pointTimestamp = new Date().toISOString();
+    }
+    if (ans.type === "mc") {
+      cur.selections = Object.assign({}, cur.selections || {});
+      cur.selections[qId] = String(userAnswer || "").toUpperCase();
+    } else if (ans.type === "comp" && typeof codeText === "string" && codeText.length > 0) {
+      cur.codes = Object.assign({}, cur.codes || {});
+      cur.codes[qId] = codeText.slice(0, 5000);
+    }
+    // Consolation
+    if (!cur.consolationAwarded && (cur.points || 0) === 0) {
+      const baseIds = new Set(scored.map(stripMarkerSuffix));
+      if (baseIds.size >= cfg.consolationThreshold) {
+        cur.points = cfg.consolationPoint;
+        cur.pointTimestamp = new Date().toISOString();
+        cur.consolationAwarded = true;
+        consolationAwarded = true;
+      }
+    }
+    return cur;
+  });
+
+  return {
+    alreadyAnswered: false,
+    correct: evalResult.correct,
+    status: outcome.status,
+    scoreDelta,
+    marker: markerKey,
+    explain: ans.explain || "",      // ALWAYS return for modul (formative reveal)
+    correctAnswer,                    // ALWAYS return for modul (formative reveal)
+    lateMultiplier: sched.multiplier,
+    pastDeadline: sched.pastDeadline,
+    consolationAwarded,
+  };
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// resetModulAttempts — admin callable, hapus modulAttempts utk satu modul.
+// Request: { modulId, adminPwHash }
+// Response: { deleted, students }
+// ─────────────────────────────────────────────────────────────────────────────
+exports.resetModulAttempts = onCall({ timeoutSeconds: 60 }, async (request) => {
+  const { modulId, adminPwHash } = request.data || {};
+  if (!modulId || !MODUL_CONFIG[modulId]) {
+    throw new HttpsError("invalid-argument", `modulId '${modulId}' tidak dikonfigurasi`);
+  }
+  if (!adminPwHash || adminPwHash !== ADMIN_PW_HASH) {
+    throw new HttpsError("permission-denied", "Admin password salah");
+  }
+
+  const fs = getFirestore();
+  const studentsRef = fs.collection(`modulAttempts/${modulId}/students`);
+  const studentDocs = await studentsRef.listDocuments();
+  if (studentDocs.length === 0) return { deleted: 0, students: 0 };
+
+  let totalDeleted = 0;
+  for (const studentDoc of studentDocs) {
+    const qsDocs = await studentDoc.collection("qs").listDocuments();
+    for (let i = 0; i < qsDocs.length; i += 400) {
+      const batch = fs.batch();
+      qsDocs.slice(i, i + 400).forEach((d) => batch.delete(d));
+      await batch.commit();
+      totalDeleted += Math.min(400, qsDocs.length - i);
+    }
+    await studentDoc.delete();
+  }
+  console.log("[resetModulAttempts]", modulId, "deleted", totalDeleted, "attempts");
   return { deleted: totalDeleted, students: studentDocs.length };
 });

@@ -65,6 +65,31 @@ const EXAMS = {
   })(),
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// MODULS MAP — daftarkan modul baru di sini. Schema: 50-poin universal,
+// MC pakai letter answer (A/B/C/D), reveal explain pada submit.
+// Tulis ke Firestore `modulAnswers/<modulId>/qs/<qId>`.
+// ─────────────────────────────────────────────────────────────────────────────
+const MODULS = {};
+// Auto-discover modul seed files di seed/modul/<modulId>-answers.js
+(() => {
+  const fs = require("fs");
+  const path = require("path");
+  const modulDir = path.join(__dirname, "modul");
+  if (!fs.existsSync(modulDir)) return;
+  for (const file of fs.readdirSync(modulDir)) {
+    const m = file.match(/^(.+)-answers\.js$/);
+    if (!m) continue;
+    const modulId = m[1];
+    try {
+      const { MODUL_QUESTIONS, SUMMARY } = require(path.join(modulDir, file));
+      MODULS[modulId] = { questions: MODUL_QUESTIONS, summary: SUMMARY };
+    } catch (e) {
+      console.warn(`Failed to load modul seed ${file}: ${e.message}`);
+    }
+  }
+})();
+
 const PROJECT_ID = "getaran-mekanik";
 const N_RANGE = Array.from({ length: 100 }, (_, i) => i);  // 0..99
 
@@ -73,8 +98,12 @@ const ARGS = process.argv.slice(2);
 const DRY_RUN = ARGS.includes("--dry-run");
 const LIST_ONLY = ARGS.includes("--list");
 const ALL = ARGS.includes("--all");
+const ALL_MODUL = ARGS.includes("--all-modul");
+const ALL_EXAM = ARGS.includes("--all-exam");
 const EXAM_ARG_IDX = ARGS.indexOf("--exam");
 const CLI_EXAM_ID = EXAM_ARG_IDX !== -1 ? ARGS[EXAM_ARG_IDX + 1] : null;
+const MODUL_ARG_IDX = ARGS.indexOf("--modul");
+const CLI_MODUL_ID = MODUL_ARG_IDX !== -1 ? ARGS[MODUL_ARG_IDX + 1] : null;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Build payload utk satu soal: static → field langsung; parametric → byN map
@@ -248,6 +277,65 @@ async function seedExam(examId, db) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Seed satu modul (write ke modulAnswers/<modulId>/qs/)
+// Schema modul lebih simpel: static MC (letter answer) atau static Comp
+// (numeric answer + tolerance). Tidak ada parametric, tidak ada expectedSteps.
+// ─────────────────────────────────────────────────────────────────────────────
+async function seedModul(modulId, db) {
+  const modul = MODULS[modulId];
+  if (!modul) {
+    throw new Error(`Unknown modulId '${modulId}'. Available: ${Object.keys(MODULS).join(", ") || "(none)"}`);
+  }
+  const { questions, summary } = modul;
+  console.log("─".repeat(78));
+  console.log(`Seed Firestore modul answer keys — ${modulId}`);
+  console.log(`  Total soal:      ${summary.totalSoal ?? questions.length}`);
+  console.log(`  Total poin:      ${summary.totalPoin ?? "?"}`);
+  console.log(`  Breakdown:       ${JSON.stringify(summary.breakdown || {})}`);
+  console.log(`  Mode:            ${DRY_RUN ? "DRY-RUN (no write)" : "LIVE (will upsert all docs)"}`);
+  console.log("─".repeat(78));
+
+  // Validate + preview
+  const payloads = [];
+  for (const q of questions) {
+    if (!q.qId || !q.type) throw new Error(`Invalid entry: ${JSON.stringify(q).slice(0,80)}`);
+    const payload = { type: q.type, points: q.points };
+    if (q.type === "mc") {
+      if (!/^[A-D]$/i.test(String(q.answer || ""))) throw new Error(`${q.qId}: MC answer must be A/B/C/D`);
+      payload.answer = String(q.answer).toUpperCase();
+    } else if (q.type === "comp") {
+      if (!Number.isFinite(q.answer)) throw new Error(`${q.qId}: Comp answer must be number`);
+      payload.answer = q.answer;
+      if (q.tolerance !== undefined) payload.tolerance = q.tolerance;
+      if (q.allowPartial === true) {
+        payload.allowPartial = true;
+        payload.partialPoints = q.partialPoints ?? 1;
+      }
+    }
+    if (q.explain) payload.explain = q.explain;
+    payloads.push({ qId: q.qId, payload });
+    const desc = q.type === "mc" ? `→ ${payload.answer}` : `→ ${payload.answer} ±${payload.tolerance}${payload.allowPartial?" [PARTIAL]":""}`;
+    console.log(`  ${q.qId.padEnd(6)} ${q.type.padEnd(4)} pts=${q.points} ${desc}`);
+  }
+  console.log("─".repeat(78));
+  console.log(`✓ Built & validated ${payloads.length} payloads`);
+
+  if (DRY_RUN) {
+    console.log(`DRY-RUN selesai untuk ${modulId}.`);
+    return { id: modulId, count: payloads.length, written: false };
+  }
+
+  const batch = db.batch();
+  for (const { qId, payload } of payloads) {
+    const ref = db.collection("modulAnswers").doc(modulId).collection("qs").doc(qId);
+    batch.set(ref, payload);
+  }
+  await batch.commit();
+  console.log(`✅ Wrote ${payloads.length} docs → modulAnswers/${modulId}/qs/`);
+  return { id: modulId, count: payloads.length, written: true };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // MAIN
 // ─────────────────────────────────────────────────────────────────────────────
 async function main() {
@@ -257,25 +345,49 @@ async function main() {
       const total = ex.summary.totalSoal ?? ex.summary.totalQuestions ?? ex.questions.length;
       console.log(`  • ${id.padEnd(28)} (${total} soal / ${ex.summary.totalPoin ?? ex.summary.totalPoints ?? "?"} poin)`);
     }
+    console.log("\nAvailable moduls:");
+    if (Object.keys(MODULS).length === 0) {
+      console.log("  (none — buat seed file di functions/seed/modul/<modulId>-answers.js)");
+    } else {
+      for (const [id, mod] of Object.entries(MODULS)) {
+        const total = mod.summary.totalSoal ?? mod.questions.length;
+        console.log(`  • ${id.padEnd(30)} (${total} soal / ${mod.summary.totalPoin ?? "?"} poin)`);
+      }
+    }
     process.exit(0);
   }
 
-  // Determine which exams to seed
-  let targets;
+  // Determine targets — support exam + modul
+  const examTargets = [];
+  const modulTargets = [];
   if (ALL) {
-    targets = Object.keys(EXAMS);
-  } else if (CLI_EXAM_ID) {
-    if (!EXAMS[CLI_EXAM_ID]) {
-      console.error(`❌ Unknown --exam '${CLI_EXAM_ID}'. Available:`);
-      Object.keys(EXAMS).forEach((id) => console.error(`     • ${id}`));
-      process.exit(1);
-    }
-    targets = [CLI_EXAM_ID];
+    examTargets.push(...Object.keys(EXAMS));
+    modulTargets.push(...Object.keys(MODULS));
   } else {
-    // Backward compat: default ke getaran-mekanik-uts
-    targets = ["getaran-mekanik-uts"];
-    console.log("ℹ Tidak ada --exam atau --all flag. Default ke getaran-mekanik-uts (backward compat).");
-    console.log("  Pakai --list untuk lihat exam tersedia, atau --exam <id> / --all untuk eksplisit.\n");
+    if (ALL_EXAM) examTargets.push(...Object.keys(EXAMS));
+    if (ALL_MODUL) modulTargets.push(...Object.keys(MODULS));
+    if (CLI_EXAM_ID) {
+      if (!EXAMS[CLI_EXAM_ID]) {
+        console.error(`❌ Unknown --exam '${CLI_EXAM_ID}'. Available:`);
+        Object.keys(EXAMS).forEach((id) => console.error(`     • ${id}`));
+        process.exit(1);
+      }
+      examTargets.push(CLI_EXAM_ID);
+    }
+    if (CLI_MODUL_ID) {
+      if (!MODULS[CLI_MODUL_ID]) {
+        console.error(`❌ Unknown --modul '${CLI_MODUL_ID}'. Available:`);
+        Object.keys(MODULS).forEach((id) => console.error(`     • ${id}`));
+        process.exit(1);
+      }
+      modulTargets.push(CLI_MODUL_ID);
+    }
+    if (examTargets.length === 0 && modulTargets.length === 0) {
+      // Backward compat
+      examTargets.push("getaran-mekanik-uts");
+      console.log("ℹ Tidak ada flag. Default ke getaran-mekanik-uts (backward compat).");
+      console.log("  Pakai --list, --exam <id>, --modul <id>, --all, --all-exam, atau --all-modul.\n");
+    }
   }
 
   // Init Admin SDK (skip kalau DRY_RUN)
@@ -287,23 +399,33 @@ async function main() {
   }
 
   const results = [];
-  for (const examId of targets) {
+  for (const examId of examTargets) {
     try {
       const result = await seedExam(examId, db);
-      results.push(result);
+      results.push({ kind: "exam", id: examId, ...result });
     } catch (err) {
-      console.error(`❌ Gagal seed ${examId}:`, err.message);
-      results.push({ examId, error: err.message });
+      console.error(`❌ Gagal seed exam ${examId}:`, err.message);
+      results.push({ kind: "exam", id: examId, error: err.message });
+    }
+  }
+  for (const modulId of modulTargets) {
+    try {
+      const result = await seedModul(modulId, db);
+      results.push({ kind: "modul", id: modulId, ...result });
+    } catch (err) {
+      console.error(`❌ Gagal seed modul ${modulId}:`, err.message);
+      results.push({ kind: "modul", id: modulId, error: err.message });
     }
   }
 
   console.log("\n" + "═".repeat(78));
   console.log("SUMMARY:");
   for (const r of results) {
+    const tag = `[${r.kind}]`.padEnd(8);
     if (r.error) {
-      console.log(`  ✗ ${r.examId}: ERROR — ${r.error}`);
+      console.log(`  ✗ ${tag} ${r.id}: ERROR — ${r.error}`);
     } else {
-      console.log(`  ${r.written ? "✅" : "🔍"} ${r.examId}: ${r.count} soal ${r.written ? "written" : "(dry-run only)"}`);
+      console.log(`  ${r.written ? "✅" : "🔍"} ${tag} ${r.id}: ${r.count} soal ${r.written ? "written" : "(dry-run only)"}`);
     }
   }
   console.log("═".repeat(78));
