@@ -2724,7 +2724,7 @@ const UTS_COMP_EZ = [
         text: `Berdasarkan NIM Anda, <b>N = ${N}</b> (2 digit terakhir):<br>
                • <b>RPM = (N + 1) × 30 = (${N} + 1) × 30 = ${rpm} RPM</b><br>
                Hitung <b>frekuensi rotasi f<sub>1×</sub></b> dalam <b>Hz</b>. Rumus: f = RPM / 60.`,
-        hint: `# N = ${N} (dari 2 digit terakhir NIM Anda)\nrpm = ${rpm}      # = (N+1) * 30\n# TODO: hitung f_rot = rpm / 60\n# TODO: print(f_rot)`,
+        hint: `# N = ${N} (dari 2 digit terakhir NIM Anda)\nrpm = ${rpm}      # = (N+1) * 30\n# TODO: hitung frekuensi rotasi f_rot (Hz), lalu print`,
         diagram: _diagram(`Motor ${rpm} RPM → frekuensi rotasi ${f_rot.toFixed(2)} Hz`, _svg.timeSeriesPlot({f_label: `${f_rot.toFixed(2)} Hz`}))
       };
     }
@@ -2742,7 +2742,7 @@ const UTS_COMP_EZ = [
                • <b>Amplitudo A = (N + 1) / 10 = (${N} + 1) / 10 = ${A.toFixed(2)}</b><br>
                Hitung <b>RMS</b> dari sinyal sinusoidal murni x(t) = A·sin(2π·f·t).<br>
                Rumus teoretis: RMS<sub>sin</sub> = A / √2.`,
-        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nA = ${A.toFixed(2)}      # = (N+1) / 10\n# TODO: hitung rms = A / np.sqrt(2)\n# TODO: print(rms)`,
+        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nA = ${A.toFixed(2)}      # = (N+1) / 10\n# TODO: hitung RMS sinusoid murni, lalu print`,
         diagram: _diagram(`Sinusoid amplitudo A = ${A.toFixed(2)}, RMS = A/√2`, _svg.timeSeriesPlot({showCF:true, f_label:'50 Hz'}))
       };
     }
@@ -2759,7 +2759,7 @@ const UTS_COMP_EZ = [
                • <b>Sinyal konstan x = N + 1 = ${signal_value}</b> sepanjang 1000 sampel<br>
                Terapkan Moving Average <b>k = 10</b> pada sinyal konstan tersebut, lalu hitung <b>mean dari hasil MA</b>.<br>
                Petunjuk: untuk sinyal konstan, MA juga konstan, sehingga mean = nilai sinyal.`,
-        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nx = np.full(1000, ${signal_value})  # array konstan dengan nilai N+1\n# TODO: hitung MA k=10\n#   Contoh: ma = np.convolve(x, np.ones(10)/10, mode='valid')\n# TODO: print(np.mean(ma))`
+        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nx = np.full(1000, ${signal_value})  # array input (diberikan)\n# TODO: lakukan Moving Average k=10 pada x, lalu print rata-rata hasil`
       };
     }
   },
@@ -2777,7 +2777,7 @@ const UTS_COMP_EZ = [
         text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
                • <b>α = (N + 1) / 200 = (${N} + 1) / 200 = ${alpha.toFixed(4)}</b><br>
                Hitung <b>effective window N<sub>eff</sub></b> dari EMA. Rumus: N<sub>eff</sub> = 2/α − 1.`,
-        hint: `# N = ${N} (dari NIM Anda)\nalpha = ${alpha.toFixed(4)}      # = (N+1) / 200, di-clamp ke [0.01, 0.5]\n# TODO: hitung n_eff = 2/alpha - 1\n# TODO: print(n_eff)`,
+        hint: `# N = ${N} (dari NIM Anda)\nalpha = ${alpha.toFixed(4)}      # = (N+1) / 200, di-clamp ke [0.01, 0.5]\n# TODO: hitung effective window n_eff dari alpha, lalu print`,
         diagram: _diagram(`EMA α = ${alpha.toFixed(4)} → N_eff = ${N_eff.toFixed(1)} sampel`, _svg.filterCompare({filter:'EMA', color:'#0ea5e9'}))
       };
     }
@@ -2799,7 +2799,7 @@ const UTS_COMP_EZ = [
                • Resolusi <b>16-bit</b> (tetap), <b>1 channel</b> (tetap)<br>
                Hitung <b>storage requirement (MB)</b> untuk merekam <b>1 jam</b> data.<br>
                Rumus: storage = f<sub>s</sub> × (bits/8) × channels × seconds / 1024².`,
-        hint: `# N = ${N} (dari NIM Anda)\nfs = ${fs}        # = (N+1) * 100\nbits = 16\nchannels = 1\nseconds = 3600\n# TODO: hitung storage_MB = fs * bits/8 * channels * seconds / 1024**2\n# TODO: print(storage_MB)`,
+        hint: `# N = ${N} (dari NIM Anda)\nfs = ${fs}        # = (N+1) * 100\nbits = 16\nchannels = 1\nseconds = 3600\n# TODO: hitung storage dalam MB untuk durasi 1 jam, lalu print`,
         diagram: _diagram(`Pipeline: fs = ${fs} Hz, 16-bit, hitung storage 1 jam`, _svg.acquisitionPipeline({fs_label: `${fs} Hz`, bits:'16'}))
       };
     }
@@ -2818,7 +2818,7 @@ const UTS_COMP_EZ = [
                • <b>Resolusi ADC = 8 + (N mod 17) = 8 + (${N} mod 17) = ${bits} bit</b><br>
                Hitung <b>Dynamic Range (DR) dalam dB</b> dari ADC ${bits}-bit.<br>
                Rumus: DR = 6.02·N<sub>bits</sub> + 1.76.`,
-        hint: `# N = ${N} (dari NIM Anda)\nbits = ${bits}        # = 8 + (N mod 17), di-clamp ke 24\n# TODO: hitung dr = 6.02 * bits + 1.76\n# TODO: print(dr)`,
+        hint: `# N = ${N} (dari NIM Anda)\nbits = ${bits}        # = 8 + (N mod 17), di-clamp ke 24\n# TODO: hitung Dynamic Range (dB), lalu print`,
         diagram: _diagram(`ADC ${bits}-bit → hitung DR (dB)`, _svg.adcResolution({bits, DR}))
       };
     }
@@ -2837,7 +2837,7 @@ const UTS_COMP_EZ = [
                • <b>Jumlah missing values = N + 5 = ${N} + 5 = ${missing_count}</b><br>
                • <b>Total data points = 1000</b> (tetap)<br>
                Hitung <b>persentase missing values (%)</b>.`,
-        hint: `# N = ${N} (dari NIM Anda)\nmissing_count = ${missing_count}     # = N+5\ntotal = 1000\n# TODO: hitung missing_pct = (missing_count / total) * 100\n# TODO: print(missing_pct)`
+        hint: `# N = ${N} (dari NIM Anda)\nmissing_count = ${missing_count}     # = N+5\ntotal = 1000\n# TODO: hitung persentase missing values, lalu print`
       };
     }
   },
@@ -2856,7 +2856,7 @@ const UTS_COMP_EZ = [
                • <b>x = N + 50 = ${N} + 50 = ${x}</b> (data point yang dievaluasi)<br>
                • <b>μ = 50</b> (tetap), <b>σ = 10</b> (tetap)<br>
                Hitung <b>Z-score</b> dari x. Rumus: z = (x − μ) / σ.`,
-        hint: `# N = ${N} (dari NIM Anda)\nx = ${x}      # = N + 50\nmu = 50\nsigma = 10\n# TODO: hitung z = (x - mu) / sigma\n# TODO: print(z)`,
+        hint: `# N = ${N} (dari NIM Anda)\nx = ${x}      # = N + 50\nmu = 50\nsigma = 10\n# TODO: hitung z-score dari x, lalu print`,
         diagram: _diagram(`x = ${x}, μ = 50, σ = 10 → hitung z-score`, _svg.outlierPlot({threshold:3.0, n_outliers:1}))
       };
     }
@@ -2874,7 +2874,7 @@ const UTS_COMP_EZ = [
                • <b>y = exp((N + 1) / 50) = exp((${N} + 1) / 50) = ${y.toFixed(4)}</b><br>
                Terapkan <b>log transform</b> (natural log). Hitung <b>log(y)</b>.<br>
                Catatan: secara matematis, log(exp(x)) = x, jadi log(y) = (N+1)/50.`,
-        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\ny = np.exp((${N} + 1) / 50)      # = exp((N+1)/50)\n# TODO: hitung log_y = np.log(y)\n# TODO: print(log_y)`
+        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\ny = np.exp((${N} + 1) / 50)      # input: y = exp((N+1)/50)\n# TODO: terapkan natural log pada y, lalu print hasil`
       };
     }
   },
@@ -2894,7 +2894,7 @@ const UTS_COMP_EZ = [
                • <b>y<sub>t</sub> = (N + 1) + 0.5 · t</b> untuk t = 0, 1, 2, ..., 9<br>
                • Sehingga <b>y<sub>0</sub> = ${y_0}</b>, y<sub>1</sub> = ${y_1}, dst<br>
                Hitung <b>first difference Δy<sub>1</sub> = y<sub>1</sub> − y<sub>0</sub></b>.`,
-        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nt = np.arange(10)\ny = (${N} + 1) + 0.5 * t      # y_t = (N+1) + 0.5·t\n# TODO: hitung first_diff = y[1] - y[0]\n# atau pakai np.diff(y)[0]\n# TODO: print(first_diff)`,
+        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nt = np.arange(10)\ny = (${N} + 1) + 0.5 * t      # input: y_t = (N+1) + 0.5·t\n# TODO: hitung first difference Δy_1 dari array y, lalu print`,
         diagram: _diagram('Time series y_t = (N+1) + 0.5·t — first diff = slope konstan', _svg.decomposition({labels:false}))
       };
     }
@@ -2922,10 +2922,9 @@ const UTS_COMP_HARD = [
         text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
                • <b>Amplitudo A = (N + 1) / 10 = (${N} + 1) / 10 = ${A.toFixed(2)}</b><br>
                • <b>f<sub>s</sub> = 1000 Hz</b> (tetap), <b>T = 1.0 detik</b> (tetap), <b>f<sub>signal</sub> = 50 Hz</b> (tetap)<br>
-               <b>Tantangan:</b> Generate sinyal x(t) = A·sin(2π·50·t) dengan parameter di atas, lalu hitung <b>RMS dari array hasil generate</b> (bukan dari rumus teoretis).<br>
-               Petunjuk: pakai <code>np.arange</code> untuk t, lalu <code>np.sqrt(np.mean(x²))</code>.<br>
+               <b>Tantangan:</b> Generate sinyal sinusoidal x(t) dengan amplitudo A dan frekuensi f<sub>signal</sub> di atas, sampling rate f<sub>s</sub>, durasi T. Hitung <b>RMS dari array hasil generate</b> (bukan dari rumus teoretis).<br>
                Hasil sebaiknya mendekati nilai teoretis A/√2.`,
-        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nA = ${A.toFixed(2)}        # = (N+1) / 10\nfs = 1000      # tetap\nT = 1.0        # tetap (detik)\nf_signal = 50  # tetap (Hz)\n\n# TODO: 1. Generate array waktu t = np.arange(0, T, 1/fs)\n# TODO: 2. Generate sinyal x = A * np.sin(2 * np.pi * f_signal * t)\n# TODO: 3. Hitung rms = np.sqrt(np.mean(x**2))\n# TODO: 4. print(rms)`,
+        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nA = ${A.toFixed(2)}        # = (N+1) / 10\nfs = 1000      # tetap\nT = 1.0        # tetap (detik)\nf_signal = 50  # tetap (Hz)\n# TODO: generate sinyal sinusoidal x(t), hitung RMS, lalu print`,
         diagram: _diagram(`Sinusoid A = ${A.toFixed(2)}, fs = 1000 Hz, T = 1s — hitung RMS`, _svg.timeSeriesPlot({showCF:true, f_label:'50 Hz'}))
       };
     }
@@ -2948,7 +2947,7 @@ const UTS_COMP_HARD = [
                <code>np.random.seed(42); signal = 5.0 + np.random.randn(100) * 0.1</code> (baseline 5 + noise σ=0.1).<br>
                Inisialisasi <b>EMA[0] = signal[0]</b>, lalu iterasi: EMA[i] = α·signal[i] + (1−α)·EMA[i−1].<br>
                Cetak <b>EMA[-1]</b> (nilai terakhir setelah konvergen, yang harus mendekati baseline 5.0).`,
-        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nalpha = ${alpha.toFixed(4)}     # = (N+1)/200, di-clamp ke [0.01, 0.5]\n\nnp.random.seed(42)\nsignal = 5.0 + np.random.randn(100) * 0.1   # baseline 5 + noise σ=0.1\n\nema = np.zeros(100)\nema[0] = signal[0]\n# TODO: loop dari i=1 sampai i=99\n#   ema[i] = alpha * signal[i] + (1 - alpha) * ema[i-1]\n# TODO: print(ema[-1])`,
+        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nalpha = ${alpha.toFixed(4)}     # = (N+1)/200, di-clamp ke [0.01, 0.5]\n\nnp.random.seed(42)\nsignal = 5.0 + np.random.randn(100) * 0.1   # input: baseline 5 + noise σ=0.1\n# TODO: implementasikan EMA from scratch sesuai spec di soal, lalu print(ema[-1])`,
         diagram: _diagram(`EMA α = ${alpha.toFixed(4)} — implementasi from scratch`, _svg.filterCompare({filter:'EMA scratch', color:'#0ea5e9'}))
       };
     }
@@ -2964,10 +2963,9 @@ const UTS_COMP_HARD = [
         text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
                • <b>f<sub>signal</sub> = min(200, (N + 1) × 5) = min(200, ${(N+1)*5}) = ${f_signal} Hz</b><br>
                • <b>f<sub>s</sub> = 1000 Hz</b> (tetap), <b>T = 1.0 detik</b> (tetap)<br>
-               <b>Tantangan:</b> Generate sinyal sinusoidal x(t) = sin(2π · ${f_signal} · t), lalu deteksi <b>frekuensi peak (Hz)</b> menggunakan FFT.<br>
-               Pakai <code>np.fft.rfft</code> dan <code>np.fft.rfftfreq</code>, lalu cari frekuensi pada index dengan magnitude maksimum.<br>
+               <b>Tantangan:</b> Generate sinyal sinusoidal x(t) = sin(2π · ${f_signal} · t) dengan parameter di atas, lalu deteksi <b>frekuensi peak (Hz)</b> menggunakan FFT.<br>
                Cetak <b>peak_freq</b> — harus sama dengan f<sub>signal</sub>.`,
-        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nf_signal = ${f_signal}     # = min(200, (N+1)*5)\nfs = 1000          # tetap\nT = 1.0            # tetap\n\nt = np.arange(0, T, 1/fs)\nx = np.sin(2 * np.pi * f_signal * t)\n\n# TODO: 1. Hitung fft_vals = np.fft.rfft(x)\n# TODO: 2. Hitung freqs = np.fft.rfftfreq(len(x), 1/fs)\n# TODO: 3. Cari peak: peak_idx = np.argmax(np.abs(fft_vals))\n# TODO: 4. peak_freq = freqs[peak_idx]\n# TODO: 5. print(peak_freq)`,
+        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nf_signal = ${f_signal}     # = min(200, (N+1)*5)\nfs = 1000          # tetap\nT = 1.0            # tetap\n# TODO: generate sinyal sinusoidal x(t), lakukan FFT, deteksi peak frequency, lalu print`,
         diagram: _diagram(`Sinyal ${f_signal} Hz @ fs=1000 Hz — deteksi peak via FFT`, _svg.spectrogramView({peakFreq: f_signal, peakLabel: `${f_signal} Hz`, fmax: 250}))
       };
     }
@@ -2986,7 +2984,7 @@ const UTS_COMP_HARD = [
                <code>np.random.seed(42); base = np.random.normal(0, 0.5, 500); base[:${n_outliers}] = 5.0</code><br>
                Sinyal asli punya σ ≈ 0.5 (tight), lalu Anda inject ${n_outliers} outlier di awal array dengan nilai tetap 5.0.<br>
                Cetak <b>jumlah titik dengan |x| > 3.0</b> — seharusnya sama persis dengan jumlah outlier yang Anda inject.`,
-        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nn_outliers = ${n_outliers}     # = N + 5\n\nnp.random.seed(42)\nbase = np.random.normal(0, 0.5, 500)\nbase[:n_outliers] = 5.0      # inject outliers di awal array\n\n# TODO: hitung detected = np.sum(np.abs(base) > 3.0)\n# TODO: print(int(detected))`,
+        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nn_outliers = ${n_outliers}     # = N + 5\n\nnp.random.seed(42)\nbase = np.random.normal(0, 0.5, 500)\nbase[:n_outliers] = 5.0      # input: inject outliers di awal array\n# TODO: deteksi jumlah titik dengan |x| > 3.0 di base, lalu print (sebagai int)`,
         diagram: _diagram(`${n_outliers} outlier injected (|x|=5.0) di base σ=0.5 — threshold |x|>3`, _svg.outlierPlot({threshold:3.0, n_outliers: Math.min(n_outliers, 8)}))
       };
     }
@@ -3009,7 +3007,7 @@ const UTS_COMP_HARD = [
                Untuk index i (di mana i ≥ 6 dan i ≤ 93), trend[i] = mean(y[i−5 : i+7]).<br>
                Cetak <b>trend pada index 50</b>.<br>
                Karena trend asli adalah 10 + 0.1·t, di t=50 nilai sebenarnya adalah 10 + 5 = 15 (dengan toleransi noise).`,
-        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nnp.random.seed(${N})\nn = 100\nt = np.arange(n)\ny = 10 + 0.1 * t + 2 * np.sin(2 * np.pi * t / 12) + np.random.normal(0, 0.5, n)\n\nwindow = 12\nhalf = window // 2     # = 6\ntrend = np.full(n, np.nan)\n# TODO: loop dari i=half sampai i=n-half\n#   trend[i] = np.mean(y[i-half+1 : i+half+1])  # centered\n# TODO: print(trend[50])`,
+        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nnp.random.seed(${N})\nn = 100\nt = np.arange(n)\ny = 10 + 0.1 * t + 2 * np.sin(2 * np.pi * t / 12) + np.random.normal(0, 0.5, n)  # input series\n\nwindow = 12\n# TODO: hitung trend dengan centered Moving Average window=12 sesuai spec di soal\n# TODO: print trend pada index 50`,
         diagram: _diagram('y_t = 10 + 0.1·t + 2·sin(2π·t/12) + noise — extract trend via centered MA', _svg.decomposition({}))
       };
     }
