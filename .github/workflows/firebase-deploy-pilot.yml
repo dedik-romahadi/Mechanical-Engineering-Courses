@@ -28,19 +28,35 @@ name: Firebase Deploy Exam (multi-course)
 on:
   workflow_dispatch:
     inputs:
-      exam_target:
-        description: 'Target exam untuk seed (pilih satu exam atau "all")'
+      seed_scope:
+        description: 'Scope seed (exam tertentu, modul tertentu, atau bulk)'
         type: choice
         required: true
-        default: 'getaran-mekanik-uts'
+        default: 'none'
         options:
-          - getaran-mekanik-uts
-          - getaran-mekanik-uas
-          - optoauto-uts
-          - optoauto-uas
-          - math4-uts
-          - math4-uas
+          - none
+          # ─── EXAM (6 total) ───
+          - exam:getaran-mekanik-uts
+          - exam:getaran-mekanik-uas
+          - exam:optoauto-uts
+          - exam:optoauto-uas
+          - exam:math4-uts
+          - exam:math4-uas
+          - all-exam
+          # ─── MODUL bulk (42 total per course) ───
+          - all-modul-getaran-mekanik
+          - all-modul-math4
+          - all-modul-optoauto
+          - all-modul
+          # ─── Specific modul: pakai modul_custom_id field di bawah ───
+          - modul:custom
+          # ─── Combined ───
           - all
+      modul_custom_id:
+        description: 'Modul ID kalau pilih "modul:custom" di atas (mis. getaran-mekanik-modul-1)'
+        type: string
+        required: false
+        default: ''
       dry_run_seed:
         description: 'Dry-run seed (preview soal, tanpa nulis ke Firestore)'
         type: boolean
@@ -50,11 +66,11 @@ on:
         type: boolean
         default: false
       live_seed:
-        description: '⚠ LIVE seed → tulis answer keys ke Firestore examAnswers/ (OVERWRITE jika sudah ada)'
+        description: '⚠ LIVE seed → tulis answer keys ke Firestore (OVERWRITE jika sudah ada)'
         type: boolean
         default: false
       deploy_functions:
-        description: 'Deploy Cloud Functions (checkExamAnswer + resetExamAttempts)'
+        description: 'Deploy Cloud Functions (checkExam/Modul + resetExam/Modul callables)'
         type: boolean
         default: false
       deploy_database_rules:
@@ -92,8 +108,9 @@ jobs:
       - name: Print plan
         run: |
           echo "─────────────────────────────────────────────────"
-          echo "Pilot deploy plan:"
-          echo "  exam_target:           ${{ inputs.exam_target }}"
+          echo "Deploy plan:"
+          echo "  seed_scope:            ${{ inputs.seed_scope }}"
+          echo "  modul_custom_id:       ${{ inputs.modul_custom_id }}"
           echo "  dry_run_seed:          ${{ inputs.dry_run_seed }}"
           echo "  deploy_rules:          ${{ inputs.deploy_rules }}"
           echo "  live_seed:             ${{ inputs.live_seed }}"
@@ -104,14 +121,56 @@ jobs:
       - name: Compute seed flag
         id: seed_flag
         run: |
-          if [ "${{ inputs.exam_target }}" = "all" ]; then
-            echo "flag=--all" >> $GITHUB_OUTPUT
-          else
-            echo "flag=--exam ${{ inputs.exam_target }}" >> $GITHUB_OUTPUT
-          fi
+          SCOPE="${{ inputs.seed_scope }}"
+          MODUL_CUSTOM="${{ inputs.modul_custom_id }}"
+          case "$SCOPE" in
+            none)
+              echo "flag=" >> $GITHUB_OUTPUT
+              echo "skip_seed=true" >> $GITHUB_OUTPUT
+              ;;
+            exam:*)
+              EXAM_ID="${SCOPE#exam:}"
+              echo "flag=--exam $EXAM_ID" >> $GITHUB_OUTPUT
+              echo "skip_seed=false" >> $GITHUB_OUTPUT
+              ;;
+            all-exam)
+              echo "flag=--all-exam" >> $GITHUB_OUTPUT
+              echo "skip_seed=false" >> $GITHUB_OUTPUT
+              ;;
+            all-modul)
+              echo "flag=--all-modul" >> $GITHUB_OUTPUT
+              echo "skip_seed=false" >> $GITHUB_OUTPUT
+              ;;
+            all-modul-*)
+              COURSE="${SCOPE#all-modul-}"
+              # Use Node to expand --modul flags for given course prefix
+              FLAGS=""
+              for i in $(seq 1 14); do
+                FLAGS="$FLAGS --modul ${COURSE}-modul-$i"
+              done
+              echo "flag=$FLAGS" >> $GITHUB_OUTPUT
+              echo "skip_seed=false" >> $GITHUB_OUTPUT
+              ;;
+            modul:custom)
+              if [ -z "$MODUL_CUSTOM" ]; then
+                echo "❌ modul:custom dipilih tapi modul_custom_id kosong"
+                exit 1
+              fi
+              echo "flag=--modul $MODUL_CUSTOM" >> $GITHUB_OUTPUT
+              echo "skip_seed=false" >> $GITHUB_OUTPUT
+              ;;
+            all)
+              echo "flag=--all" >> $GITHUB_OUTPUT
+              echo "skip_seed=false" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "❌ Unknown seed_scope: $SCOPE"
+              exit 1
+              ;;
+          esac
 
       - name: Step 1 — Dry-run seed
-        if: ${{ inputs.dry_run_seed }}
+        if: ${{ inputs.dry_run_seed && steps.seed_flag.outputs.skip_seed != 'true' }}
         working-directory: functions
         run: node seed/seed-firestore.js ${{ steps.seed_flag.outputs.flag }} --dry-run
 
@@ -120,7 +179,7 @@ jobs:
         run: firebase deploy --only firestore:rules --project getaran-mekanik --non-interactive
 
       - name: Step 3 — LIVE seed (write answer keys to Firestore)
-        if: ${{ inputs.live_seed }}
+        if: ${{ inputs.live_seed && steps.seed_flag.outputs.skip_seed != 'true' }}
         working-directory: functions
         run: node seed/seed-firestore.js ${{ steps.seed_flag.outputs.flag }}
 
@@ -137,6 +196,6 @@ jobs:
         run: |
           echo "─────────────────────────────────────────────────"
           echo "Selesai. Verifikasi di Firebase Console:"
-          echo "  • Firestore → examAnswers/<examId>/qs/ (target: ${{ inputs.exam_target }})"
-          echo "  • Functions → checkExamAnswer, resetExamAttempts (asia-southeast1)"
+          echo "  • Firestore → examAnswers/<examId>/qs/ atau modulAnswers/<modulId>/qs/"
+          echo "  • Functions → checkExam/Modul + resetExam/Modul callables (asia-southeast1)"
           echo "─────────────────────────────────────────────────"
