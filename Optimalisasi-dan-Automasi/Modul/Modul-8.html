@@ -2886,8 +2886,11 @@ function _applyModulServerResult(qId, res, type, sub, fb, rg) {
   const delta  = Number(res.scoreDelta) || 0;
 
   // Update local state (untuk score breakdown & export)
-  if (type === 'mc')   { mcScores[qId]   = delta; mcAnswered[qId]   = true; }
-  if (type === 'comp') { compScores[qId] = delta; compAnswered[qId] = true; }
+  // GUARD: jangan overwrite scores saat alreadyAnswered (delta=0 dari server idempotency).
+  // Score sudah tercatat di RTDB; client cuma update flag answered, JANGAN turunkan score.
+  const skipScoreUpdate = res.alreadyAnswered === true && res.healed !== true;
+  if (type === 'mc')   { if (!skipScoreUpdate) mcScores[qId]   = delta; mcAnswered[qId]   = true; }
+  if (type === 'comp') { if (!skipScoreUpdate) compScores[qId] = delta; compAnswered[qId] = true; }
   if (res.marker) _answeredQ.add(res.marker);
 
   // alreadyAnswered (tanpa healed) -- soal sudah pernah disubmit sebelumnya
