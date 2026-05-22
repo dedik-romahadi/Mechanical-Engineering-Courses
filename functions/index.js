@@ -208,7 +208,7 @@ function stripMarkerSuffix(tag) {
 
 // Baca jadwal dari RTDB → evaluasi server-authoritative.
 // Returns { isOpen, pastDeadline, multiplier, reason }.
-async function evalSchedule(rtdb, schedulePath, lateMultiplierValue) {
+async function evalSchedule(rtdb, schedulePath, lateMultiplierValue, mode = "exam") {
   const snap = await rtdb.ref(schedulePath).get();
   if (!snap.exists()) {
     return { isOpen: false, pastDeadline: false, multiplier: 0, reason: "schedule-missing" };
@@ -221,8 +221,18 @@ async function evalSchedule(rtdb, schedulePath, lateMultiplierValue) {
   const start = new Date(s.start).getTime();
   const end = new Date(s.end).getTime();
   const ext = Number(s.extension || 0) * 60 * 1000;     // menit → ms
-  const isOpen = now >= start && now <= end + ext;
-  const pastDeadline = now > end && now <= end + ext;
+  // Mode differentiation (Pedoman §… v8):
+  // - 'exam': window (end, end+extension] → terlambat dgn penalty. Setelah itu → diblokir.
+  // - 'modul': TIDAK ADA upper bound. Mahasiswa terlambat tetap submit dgn penalty 80%
+  //           indefinitely. Blocked hanya sebelum start atau schedule belum diatur.
+  let isOpen, pastDeadline;
+  if (mode === "modul") {
+    isOpen = now >= start;
+    pastDeadline = now > end;
+  } else {
+    isOpen = now >= start && now <= end + ext;
+    pastDeadline = now > end && now <= end + ext;
+  }
   let multiplier = 0;
   if (isOpen) multiplier = pastDeadline ? lateMultiplierValue : 1.0;
   let reason = "open";
@@ -735,14 +745,17 @@ exports.checkModulAnswer = onCall(async (request) => {
     throw new HttpsError("unauthenticated", "PIN salah — silakan login ulang");
   }
 
-  // ── 2) Schedule check ──
-  const sched = await evalSchedule(rtdb, cfg.schedulePath, cfg.lateMultiplierValue);
+  // ── 2) Schedule check (Pedoman §… v8: modul TIDAK ADA upper bound) ──
+  // Modul rule: mahasiswa terlambat tetap bisa submit indefinitely dgn penalty 80%
+  // (sched.multiplier = lateMultiplierValue saat now > end). Block hanya kalau:
+  // - before-start: akses sebelum jadwal dimulai
+  // - schedule-missing/incomplete: dosen belum atur jadwal
+  // Berbeda dari exam yang punya cutoff di end + extension.
+  const sched = await evalSchedule(rtdb, cfg.schedulePath, cfg.lateMultiplierValue, "modul");
   if (!sched.isOpen) {
     const msg = sched.reason === "before-start"
       ? "Akses modul belum dibuka"
-      : sched.reason === "after-deadline"
-        ? "Batas waktu pengerjaan modul sudah lewat"
-        : "Jadwal modul belum dikonfigurasi";
+      : "Jadwal modul belum dikonfigurasi";
     throw new HttpsError("failed-precondition", msg);
   }
 
