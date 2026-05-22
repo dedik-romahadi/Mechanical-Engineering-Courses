@@ -769,7 +769,7 @@ exports.checkModulAnswer = onCall(async (request) => {
     // SELF-HEAL: replay RTDB transaction kalau inconsistent (mirror exam)
     let healed = false;
     if (prev.correct === true && Number(prev.scoreDelta) > 0) {
-      const vRef = rtdb.ref(`${cfg.dbPath}/mhs_${nimKey}`);
+      const vRef = rtdb.ref(`${cfg.dbPath}/${nimKey}`);
       const vSnap = await vRef.get();
       const visitor = vSnap.val() || {};
       const currentScored = (visitor.scoredQuestions || "").split(",").filter(Boolean);
@@ -848,7 +848,7 @@ exports.checkModulAnswer = onCall(async (request) => {
 
   // ── 7) RTDB transaction (atomic points + scoredQuestions) ──
   let consolationAwarded = false;
-  const vRef = rtdb.ref(`${cfg.dbPath}/mhs_${nimKey}`);
+  const vRef = rtdb.ref(`${cfg.dbPath}/${nimKey}`);
   await vRef.transaction((cur) => {
     consolationAwarded = false;
     if (cur === null) {
