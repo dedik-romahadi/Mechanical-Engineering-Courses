@@ -7201,7 +7201,7 @@ window._loadScoredQuestions = function() {
       // opsi yang benar agar export HTML & visual highlight bekerja konsisten.
       // Identifikasi opsi benar via MC_HINTS[qId].answer (post-shuffle pointer).
       if (/^mc\d+$/.test(qId)) {
-        if (!mcAnswered[qId]) { mcAnswered[qId] = true; mcScores[qId] = 1; }
+        mcAnswered[qId] = true; mcScores[qId] = 1;
         const rg = document.getElementById('rg-' + qId);
         if (rg) {
           rg.dataset.locked='true';
@@ -7232,7 +7232,7 @@ window._loadScoredQuestions = function() {
       // untuk tujuan learning, walau mahasiswa pilih opsi lain.
       if (/^mc\d+_mc_used$/.test(qId)) {
         const baseId = qId.replace('_mc_used','');
-        if (!mcAnswered[baseId]) { mcAnswered[baseId] = true; mcScores[baseId] = 0; }
+        mcAnswered[baseId] = true; mcScores[baseId] = 0;
         const rg = document.getElementById('rg-' + baseId);
         if (rg) {
           rg.dataset.locked='true';
@@ -7263,7 +7263,7 @@ window._loadScoredQuestions = function() {
         const restoredPts = (typeof window._isHardComp === 'function' && window._isHardComp(baseId))
           ? SCORE_CONFIG.COMP_HARD_POINT
           : SCORE_CONFIG.COMP_EZ_POINT;
-        if (!compAnswered[baseId]) { compAnswered[baseId]=true; compScores[baseId]=restoredPts; }
+        compAnswered[baseId]=true; compScores[baseId]=restoredPts;
         const sub=document.getElementById('sub-'+baseId);
         if(sub){ sub.disabled=true; sub.textContent='✓ Selesai'; sub.classList.remove('running'); }
         const ta=document.getElementById('code-'+baseId);
@@ -7287,7 +7287,7 @@ window._loadScoredQuestions = function() {
       // ── Restore comp wrong/error answers (_comp_used suffix) ──
       if (qId.endsWith('_comp_used')) {
         const baseId = qId.replace('_comp_used','');
-        if (!compAnswered[baseId]) { compAnswered[baseId]=true; compScores[baseId]=0; }
+        compAnswered[baseId]=true; compScores[baseId]=0;
         const sub=document.getElementById('sub-'+baseId);
         if(sub){ sub.disabled=true; sub.textContent='✗ Terkunci'; sub.style.borderColor='rgba(239,68,68,.3)'; sub.style.color='var(--pink)'; sub.classList.remove('running'); }
         const ta=document.getElementById('code-'+baseId);
