@@ -792,7 +792,7 @@ body.friction-blurred #frictionToast{filter:none;}
     <div style="text-align:left;margin-bottom:14px;">
       <label style="font-size:.75rem;color:#94a3b8;font-weight:600;display:block;margin-bottom:4px;">Perpanjangan (menit) — opsional</label>
       <input type="number" class="v-input" id="scheduleExtension" min="0" value="0" placeholder="0 (tanpa perpanjangan)" style="margin-bottom:0;">
-      <p style="font-size:.7rem;color:#64748b;margin:4px 0 0;line-height:1.4;">Mahasiswa yang mengerjakan di sesi perpanjangan tercatat <strong style="color:#fb7185">⏰ Terlambat</strong> dengan poin dikurangi 20%. Setelah perpanjangan habis, submit diblokir.</p>
+      <p style="font-size:.7rem;color:#64748b;margin:4px 0 0;line-height:1.4;">Mahasiswa yang mengerjakan di sesi perpanjangan tercatat <strong style="color:#fb7185">⏰ Terlambat</strong> dengan poin dikurangi 30%. Setelah perpanjangan habis, submit diblokir.</p>
     </div>
     <button class="v-btn-primary" onclick="saveSchedule()">💾 Simpan Jadwal</button>
     <button class="v-btn-cancel" onclick="hideScheduleModal()">Batal</button>
@@ -7104,7 +7104,7 @@ function _isScheduleOpen() {
 
 // ─── v8 Late submission helpers (Pedoman §9.2, §15.4) ───────────────
 function _isPastDeadline() {
-  // Exam: "past deadline" (untuk late multiplier 0.8) hanya saat dalam
+  // Exam: "past deadline" (untuk late multiplier 0.7) hanya saat dalam
   // window perpanjangan (now in (end, end+extension]). Setelah extension habis,
   // _isScheduleOpen() = false jadi award functions tidak akan dipanggil.
   if (!currentSchedule || !currentSchedule.end) return false;
@@ -7114,7 +7114,7 @@ function _isPastDeadline() {
   return now > e && now <= (e + ext);
 }
 function _getLateMultiplier() {
-  return _isPastDeadline() ? 0.8 : 1.0;
+  return _isPastDeadline() ? 0.7 : 1.0;
 }
 window._isPastDeadline    = _isPastDeadline;
 window._getLateMultiplier = _getLateMultiplier;
@@ -7289,7 +7289,7 @@ function _updateLateBanner() {
       // State 2: Sesi perpanjangan (terlambat tapi masih bisa submit)
       const sisaMnt = Math.max(1, Math.ceil((e + ext - now) / 60000));
       if (titleEl) titleEl.textContent = '⏰ Sesi Perpanjangan — Status Terlambat';
-      if (msgEl) msgEl.innerHTML = 'Anda berada di <strong style="color:#fff">sesi perpanjangan ujian</strong> (sisa ' + sisaMnt + ' menit). Status tercatat <strong style="color:#fff">⏰ Terlambat</strong>: <strong style="color:#fff">poin per soal dikurangi 20%</strong>, <strong style="color:#fff">tidak masuk Top Skor / Top Akses</strong>, dan <strong style="color:#fff">Comp Hard tidak dapat partial credit</strong>. Setelah perpanjangan habis, submit akan diblokir.';
+      if (msgEl) msgEl.innerHTML = 'Anda berada di <strong style="color:#fff">sesi perpanjangan ujian</strong> (sisa ' + sisaMnt + ' menit). Status tercatat <strong style="color:#fff">⏰ Terlambat</strong>: <strong style="color:#fff">poin per soal dikurangi 30%</strong>, <strong style="color:#fff">tidak masuk Top Skor / Top Akses</strong>, dan <strong style="color:#fff">Comp Hard tidak dapat partial credit</strong>. Setelah perpanjangan habis, submit akan diblokir.';
     } else {
       // State 3: Habis total
       if (titleEl) titleEl.textContent = '⏱ Waktu Ujian Sudah Habis';
