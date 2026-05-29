@@ -2046,7 +2046,7 @@ df = pd.DataFrame(data, index=pd.date_range('2026-01-01 08:00:00', periods=N, fr
         <div class="comp-q">Hitung <strong>jumlah titik di motor_2_rms yang melebihi 2.8 mm/s</strong> (threshold ISO 10816 warning). Pakai boolean indexing: <code>(df['motor_2_rms'] &gt; 2.8).sum()</code>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>n = int((df['motor_2_rms'] > 2.8).sum())</code> &nbsp;|&nbsp; <code>print(n)</code> — hasil sekitar 102</div>
+      <div class="comp-hint">💡 Buat mask boolean dengan kondisi <code>df['motor_2_rms'] &gt; threshold</code> lalu jumlahkan dengan <code>.sum()</code> untuk menghitung jumlah sampel yang memenuhi.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">count > 2.8</strong></span></div>
         <textarea class="code-textarea" id="code-c7" placeholder="Paste kode Python, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c7')"></textarea>
@@ -2063,7 +2063,7 @@ df = pd.DataFrame(data, index=pd.date_range('2026-01-01 08:00:00', periods=N, fr
         <div class="comp-q">Lakukan <strong>resampling 5-min max aggregation</strong> dengan pandas: <code>df.resample('5min').max()</code>. Cetak <strong>jumlah baris</strong> dari hasil resample (60 menit / 5 menit = ?).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>df_5min = df.resample('5min').max(); print(len(df_5min))</code> — hasil 12</div>
+      <div class="comp-hint">💡 Gunakan <code>df.resample('5min').max()</code> lalu hitung jumlah baris hasilnya dengan <code>len()</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">len(df_5min)</strong></span></div>
         <textarea class="code-textarea" id="code-c8" placeholder="Paste kode Python, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c8')"></textarea>
@@ -2080,7 +2080,7 @@ df = pd.DataFrame(data, index=pd.date_range('2026-01-01 08:00:00', periods=N, fr
         <div class="comp-q">Hitung <strong>jumlah motor yang max RMS-nya melebihi 2.5 mm/s</strong> dari dataset referensi. Loop atau gunakan <code>(df.max() &gt; 2.5).sum()</code>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>n = int((df.max() > 2.5).sum())</code> &nbsp;|&nbsp; <code>print(n)</code> — hasil sekitar 3 (motor 2-4 melebihi 2.5)</div>
+      <div class="comp-hint">💡 Hitung nilai maksimum tiap kolom dengan <code>df.max()</code>, lalu hitung berapa kolom yang melebihi threshold dengan kondisi boolean + <code>.sum()</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">count_motors</strong></span></div>
         <textarea class="code-textarea" id="code-c9" placeholder="Paste kode Python, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c9')"></textarea>
@@ -2097,7 +2097,7 @@ df = pd.DataFrame(data, index=pd.date_range('2026-01-01 08:00:00', periods=N, fr
         <div class="comp-q">Hitung <strong>frekuensi peak dari FFT</strong> sinyal sinusoidal pure 50 Hz dengan fs=5000 Hz selama 1 detik. Pakai <code>np.fft.rfft</code> dan <code>np.fft.rfftfreq</code>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>t = np.arange(0, 1.0, 1/5000); sig = np.sin(2*np.pi*50*t); fv = np.fft.rfft(sig); fr = np.fft.rfftfreq(len(sig), 1/5000); peak = fr[np.argmax(np.abs(fv))]</code> &nbsp;|&nbsp; <code>print(peak)</code> — hasil 50.0</div>
+      <div class="comp-hint">💡 Bangun sinyal, hitung FFT dengan <code>np.fft.rfft</code> dan frekuensinya dengan <code>np.fft.rfftfreq</code>, lalu ambil frekuensi pada magnitudo terbesar via <code>np.argmax(np.abs(...))</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">peak freq (Hz)</strong></span></div>
         <textarea class="code-textarea" id="code-c10" placeholder="Paste kode Python, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c10')"></textarea>
@@ -2124,7 +2124,7 @@ df = pd.DataFrame(data, index=pd.date_range('2026-01-01 08:00:00', periods=N, fr
         <div class="comp-q">Implementasikan <strong>analisis spectrogram lengkap</strong>. Generate sinyal test 30 Hz pure dengan fs=1000 Hz, durasi 2 detik. Gunakan <code>scipy.signal.spectrogram</code> dengan <code>nperseg=128, noverlap=64</code>. Cari <strong>frekuensi rata-rata dengan power tertinggi</strong> sepanjang waktu (ambil mean power per frekuensi, cari argmax).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>from scipy.signal import spectrogram; f, t_sp, Sxx = spectrogram(sig, fs=1000, nperseg=128, noverlap=64); avg_power = np.mean(Sxx, axis=1); peak_f = f[np.argmax(avg_power)]</code>. Cetak <code>peak_f</code> — hasil sekitar 31.25 Hz (resolusi spectrogram tidak tepat 30 Hz).</div>
+      <div class="comp-hint">💡 Gunakan <code>scipy.signal.spectrogram</code>, rata-ratakan power sepanjang sumbu waktu (<code>np.mean(Sxx, axis=1)</code>), lalu ambil frekuensi dengan power rata-rata terbesar.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">peak freq (Hz)</strong></span></div>
         <textarea class="code-textarea" id="code-c11" rows="12" placeholder="Paste kode spectrogram + analisis lengkap, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c11')"></textarea>
@@ -2141,7 +2141,7 @@ df = pd.DataFrame(data, index=pd.date_range('2026-01-01 08:00:00', periods=N, fr
         <div class="comp-q">Demonstrasikan <strong>aliasing detection</strong> melalui FFT. Generate sinyal 120 Hz pure tapi sampel pada fs=100 Hz (under-Nyquist!) selama 1 detik. Hitung FFT, cetak <strong>frekuensi peak yang tampak</strong> — yang akan tampak adalah frekuensi alias (|120 − 100| = 20 Hz), BUKAN 120 Hz asli.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>fs_under=100; t = np.arange(0, 1.0, 1/fs_under); sig = np.sin(2*np.pi*120*t); fv = np.fft.rfft(sig); fr = np.fft.rfftfreq(len(sig), 1/fs_under); peak = fr[np.argmax(np.abs(fv))]; print(peak)</code> — hasil 20.0 Hz (bukti aliasing!)</div>
+      <div class="comp-hint">💡 Sampel sinyal di bawah Nyquist, lalu cari frekuensi peak via FFT (<code>rfft</code>/<code>rfftfreq</code> + <code>argmax</code>); frekuensi alias = |f_signal − k·fs| untuk k integer terdekat.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">alias freq (Hz)</strong></span></div>
         <textarea class="code-textarea" id="code-c12" rows="12" placeholder="Paste kode aliasing demonstration lengkap, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c12')"></textarea>
@@ -2158,7 +2158,7 @@ df = pd.DataFrame(data, index=pd.date_range('2026-01-01 08:00:00', periods=N, fr
         <div class="comp-q">Implementasikan <strong>heatmap aggregation pipeline</strong> pada dataset referensi: (1) resample 5-min max, (2) buat matrix transposed (rows=motors, cols=time bins), (3) hitung <strong>jumlah cells yang melebihi threshold 2.5 mm/s</strong> (cells anomalous yang akan ditandai di heatmap).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>df_5min = df.resample('5min').max(); heatmap = df_5min.values.T; n_anom = int(np.sum(heatmap > 2.5))</code>. Cetak <code>n_anom</code> — hasil sekitar 21 (3 motor × 7 bins yang melebihi).</div>
+      <div class="comp-hint">💡 Resample data ke bin 5 menit dengan <code>resample('5min').max()</code>, lalu hitung berapa sel yang melebihi threshold dengan kondisi boolean + <code>np.sum</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">cells &gt; 2.5</strong></span></div>
         <textarea class="code-textarea" id="code-c13" rows="14" placeholder="Paste kode heatmap pipeline lengkap, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c13')"></textarea>
@@ -2175,7 +2175,7 @@ df = pd.DataFrame(data, index=pd.date_range('2026-01-01 08:00:00', periods=N, fr
         <div class="comp-q">Hitung <strong>rata-rata pairwise correlation</strong> antar 4 motor di dataset referensi. Pakai <code>df.corr()</code>, ambil hanya bagian off-diagonal upper triangle, hitung mean. Untuk dataset kita (motor independen + 1 motor punya event), korelasi seharusnya sangat kecil (mendekati 0).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>corr_matrix = df.corr(); off_diag = corr_matrix.values[np.triu_indices_from(corr_matrix, k=1)]; avg = np.mean(off_diag)</code>. Cetak <code>avg</code> — hasil mendekati 0 (motor independen).</div>
+      <div class="comp-hint">💡 Hitung matriks korelasi dengan <code>df.corr()</code>, ambil elemen off-diagonal segitiga atas (<code>np.triu_indices_from</code>, k=1), lalu rata-ratakan dengan <code>np.mean</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">avg correlation</strong></span></div>
         <textarea class="code-textarea" id="code-c14" rows="12" placeholder="Paste kode correlation analysis lengkap, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c14')"></textarea>
@@ -2192,7 +2192,7 @@ df = pd.DataFrame(data, index=pd.date_range('2026-01-01 08:00:00', periods=N, fr
         <div class="comp-q">Hitung <strong>storage requirement edge tier</strong> dalam GB untuk arsitektur: 8 motor, fs=10 kHz, 16-bit, retention 15 hari. Rumus: <code>storage_GB = fs · (bits/8) · channels · seconds_per_day · days / 1024³</code>.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>fs=10000; bits=16; ch=8; days=15; sec_per_day=86400; storage_GB = fs * bits/8 * ch * sec_per_day * days / 1024**3</code>. Cetak <code>storage_GB</code> — hasil sekitar 193 GB. Hitung skenario yang berbeda (5 motor, 25 hari) untuk melihat scalability.</div>
+      <div class="comp-hint">💡 Storage = fs × (bits/8) × channel × detik_per_hari × jumlah_hari, lalu bagi 1024³ untuk konversi ke GB; substitusikan parameter dari soal.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">Storage GB</strong></span></div>
         <textarea class="code-textarea" id="code-c15" rows="12" placeholder="Paste kode storage calculation lengkap, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c15')"></textarea>

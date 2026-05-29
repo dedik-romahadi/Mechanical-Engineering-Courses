@@ -2201,7 +2201,7 @@ F, p = stats.f_oneway(group1, group2, group3)
         <div class="comp-q">Hitung <strong>SS_total</strong> (total sum of squares) untuk dataset 3 grup: A = [5, 6, 7], B = [8, 9, 10], C = [11, 12, 13]. Formula: <code>SS_total = Σ(yᵢⱼ − ȳ)²</code> di mana ȳ = grand mean. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Grand mean ȳ = (5+6+...+13)/9 = 81/9 = 9. SS_total = (5−9)²+(6−9)²+(7−9)²+(8−9)²+(9−9)²+(10−9)²+(11−9)²+(12−9)²+(13−9)² = 16+9+4+1+0+1+4+9+16 = <strong>60</strong>. Code: <code>data = np.array([5,6,7,8,9,10,11,12,13]); print(((data - data.mean())**2).sum())</code>.</div>
+      <div class="comp-hint">💡 SS_total = Σ(yᵢ − grand mean)²; gabungkan semua grup ke satu array lalu jumlahkan kuadrat deviasi terhadap meannya.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">SS_total</strong></span></div>
         <textarea class="code-textarea" id="code-c1" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi&#10;&#10;Contoh:&#10;import numpy as np&#10;data = np.array([5,6,7,8,9,10,11,12,13])&#10;ss_total = ((data - data.mean())**2).sum()&#10;print(f'{ss_total:.4f}')" oninput="onCodeInput('c1')"></textarea>
@@ -2218,7 +2218,7 @@ F, p = stats.f_oneway(group1, group2, group3)
         <div class="comp-q">Untuk dataset di C1 (A = [5, 6, 7], B = [8, 9, 10], C = [11, 12, 13]), hitung <strong>SS_between</strong> = <code>Σ nⱼ·(ȳⱼ − ȳ)²</code>. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Mean grup: ȳ_A = 6, ȳ_B = 9, ȳ_C = 12. Grand mean ȳ = 9. n=3 tiap grup. <code>SS_b = 3·(6−9)² + 3·(9−9)² + 3·(12−9)² = 3·9 + 0 + 3·9 = <strong>54</strong></code>. SS_between mengukur efek faktor (variasi antar mean grup).</div>
+      <div class="comp-hint">💡 SS_between = Σ nⱼ·(mean grup − grand mean)²; hitung mean tiap grup dan grand mean, lalu jumlahkan deviasi kuadrat berbobot ukuran grup.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">SS_between</strong></span></div>
         <textarea class="code-textarea" id="code-c2" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c2')"></textarea>
@@ -2235,7 +2235,7 @@ F, p = stats.f_oneway(group1, group2, group3)
         <div class="comp-q">Untuk dataset di C1, hitung <strong>SS_within</strong> = <code>ΣⱼΣᵢ (yᵢⱼ − ȳⱼ)²</code> (deviasi data dari mean grup-nya, jumlah semua grup). Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Grup A: (5−6)²+(6−6)²+(7−6)² = 1+0+1 = 2. Grup B: (8−9)²+(9−9)²+(10−9)² = 2. Grup C: (11−12)²+(12−12)²+(13−12)² = 2. <code>SS_within = 2 + 2 + 2 = <strong>6</strong></code>. Verifikasi: SS_b + SS_w = 54 + 6 = 60 = SS_total ✓.</div>
+      <div class="comp-hint">💡 SS_within = jumlah kuadrat deviasi tiap data terhadap mean grup-nya, dijumlahkan atas semua grup. Verifikasi: SS_between + SS_within = SS_total.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">SS_within</strong></span></div>
         <textarea class="code-textarea" id="code-c3" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c3')"></textarea>
@@ -2252,7 +2252,7 @@ F, p = stats.f_oneway(group1, group2, group3)
         <div class="comp-q">Diketahui <strong>SS_between = 54</strong>, <strong>SS_within = 6</strong>, <strong>df_b = 2</strong>, <strong>df_w = 6</strong>. Hitung statistik <strong>F</strong> = <code>(SS_b/df_b) / (SS_w/df_w)</code>. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>MS_b = 54/2 = 27</code>, <code>MS_w = 6/6 = 1</code>, <code>F = 27/1 = <strong>27</strong></code>. F sangat besar → bukti kuat efek faktor signifikan. p-value akan sangat kecil (&lt;&lt; 0.05).</div>
+      <div class="comp-hint">💡 MS_b = SS_b/df_b dan MS_w = SS_w/df_w; F = MS_b ÷ MS_w. F besar menandakan efek faktor yang kuat.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">F-statistic</strong></span></div>
         <textarea class="code-textarea" id="code-c4" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c4')"></textarea>
@@ -2269,7 +2269,7 @@ F, p = stats.f_oneway(group1, group2, group3)
         <div class="comp-q">Untuk one-way ANOVA dengan <strong>k = 4 level</strong> dan <strong>n = 5 replikasi</strong> per level, hitung <strong>df_total</strong> (degrees of freedom total). Formula: <code>df_total = N − 1</code> dengan <code>N = k·n</code>. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 N = 4·5 = 20. <code>df_total = 20 − 1 = <strong>19</strong></code>. Verifikasi: df_b = k−1 = 3, df_w = N−k = 16; df_b + df_w = 3+16 = 19 ✓.</div>
+      <div class="comp-hint">💡 N = k × n (total observasi), lalu df_total = N − 1. Verifikasi: df_total = df_between (k−1) + df_within (N−k).</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">df_total</strong></span></div>
         <textarea class="code-textarea" id="code-c5" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c5')"></textarea>
@@ -2286,7 +2286,7 @@ F, p = stats.f_oneway(group1, group2, group3)
         <div class="comp-q">Gunakan <code>scipy.stats.f_oneway</code> pada 3 grup A = [5, 6, 7], B = [8, 9, 10], C = [11, 12, 13]. Print nilai <strong>F-statistic</strong> hasil scipy.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>from scipy.stats import f_oneway; F, p = f_oneway([5,6,7], [8,9,10], [11,12,13]); print(F)</code>. Hasil = <strong>27.0</strong> (sama dengan manual hitung di C4). p-value = 0.001 → tolak H₀.</div>
+      <div class="comp-hint">💡 Gunakan <code>scipy.stats.f_oneway</code> dengan tiap grup sebagai argumen; fungsi mengembalikan F-statistic dan p-value (F sama dengan hasil manual sebelumnya).</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">F (scipy)</strong></span></div>
         <textarea class="code-textarea" id="code-c6" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c6')"></textarea>
@@ -2303,7 +2303,7 @@ F, p = stats.f_oneway(group1, group2, group3)
         <div class="comp-q"><strong>Effect size η²</strong>: untuk SS_between = 54 dan SS_total = 60, hitung <code>η² = SS_b / SS_total</code>. Print nilainya (desimal).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>η² = 54/60 = <strong>0.90</strong></code>. Artinya 90% varians data dijelaskan oleh faktor → <em>large effect</em> menurut Cohen (η² ≥ 0.14 = large). Effect size penting untuk interpretasi praktis: efek besar &amp; signifikan = layak action, efek kecil &amp; signifikan = mungkin tidak praktis.</div>
+      <div class="comp-hint">💡 η² = SS_between ÷ SS_total — proporsi varians yang dijelaskan faktor. Menurut Cohen, η² ≥ 0.14 tergolong large effect.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">η²</strong></span></div>
         <textarea class="code-textarea" id="code-c7" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c7')"></textarea>
@@ -2320,7 +2320,7 @@ F, p = stats.f_oneway(group1, group2, group3)
         <div class="comp-q"><strong>F-critical value</strong>: untuk α = 0.05, df_b = 2, df_w = 12, hitung <code>F_crit</code> menggunakan <code>scipy.stats.f.ppf(0.95, dfn=2, dfd=12)</code>. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Hasil: <code>F_crit ≈ <strong>3.885</strong></code>. Kalau F_observed &gt; 3.885, tolak H₀ pada α = 0.05. Untuk df berbeda (lebih banyak data), F_crit akan turun (lebih sensitif terhadap efek). Contoh: dfd = 30 → F_crit ≈ 3.32.</div>
+      <div class="comp-hint">💡 Gunakan <code>scipy.stats.f.ppf(1−α, dfn, dfd)</code> untuk F-critical; jika F_observed melebihinya, tolak H₀. Makin besar df, F_crit makin kecil.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">F_critical</strong></span></div>
         <textarea class="code-textarea" id="code-c8" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c8')"></textarea>
@@ -2337,7 +2337,7 @@ F, p = stats.f_oneway(group1, group2, group3)
         <div class="comp-q"><strong>Shapiro-Wilk normality test</strong>: untuk grup data <code>[2.5, 2.4, 2.6, 2.3, 2.2]</code>, gunakan <code>scipy.stats.shapiro</code> untuk dapat W-statistic. Print nilai <strong>W</strong> (statistik pertama dari output, bukan p-value).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>from scipy.stats import shapiro; W, p = shapiro([2.5, 2.4, 2.6, 2.3, 2.2]); print(W)</code>. Hasil ≈ <strong>0.987</strong>. W mendekati 1 = sangat normal (W = 1 untuk normal sempurna). p &gt; 0.05 → tidak tolak H₀ "data normal" → asumsi normality OK.</div>
+      <div class="comp-hint">💡 Gunakan <code>scipy.stats.shapiro</code>; nilai pertama yang dikembalikan adalah W-statistic (mendekati 1 berarti makin normal).</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">W (Shapiro)</strong></span></div>
         <textarea class="code-textarea" id="code-c9" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c9')"></textarea>
@@ -2354,7 +2354,7 @@ F, p = stats.f_oneway(group1, group2, group3)
         <div class="comp-q"><strong>Total trial Taguchi L9</strong>: orthogonal array L9 mengakomodasi 4 faktor × 3 level dengan hanya 9 baris (vs full factorial 3⁴ = 81). Hitung <strong>reduction ratio</strong> = <code>(81 − 9) / 81 × 100</code> (% pengurangan trial). Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>(81 − 9) / 81 · 100 = 72/81 · 100 ≈ <strong>88.89%</strong></code>. L9 menghemat ~89% trial dibanding full factorial — sangat bermanfaat untuk eksperimen mahal di engineering. Trade-off: tidak bisa estimasi interaksi tinggi (only main effects).</div>
+      <div class="comp-hint">💡 Reduction ratio = (trial_full − trial_L9) ÷ trial_full × 100, dengan trial_full = 3⁴. Substitusikan nilai dari soal.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">reduction (%)</strong></span></div>
         <textarea class="code-textarea" id="code-c10" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c10')"></textarea>
@@ -2381,7 +2381,7 @@ F, p = stats.f_oneway(group1, group2, group3)
         <div class="comp-q"><strong>One-Way ANOVA dari scratch — CNC Cutting Speed → Surface Roughness</strong>: gunakan data 3 grup A=[2.5, 2.4, 2.6, 2.3, 2.2], B=[1.8, 1.7, 1.9, 1.8, 1.6], C=[2.0, 2.2, 2.1, 2.3, 1.9] (Ra μm pada speed 80, 100, 120 m/min). Hitung <strong>F-statistic</strong> manual via SS_between, SS_within, df, MS — tanpa <code>scipy.stats.f_oneway</code>. Print F.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Mean A=2.4, B=1.76, C=2.1, grand=2.087. SS_b = 5·((2.4−2.087)²+(1.76−2.087)²+(2.1−2.087)²) ≈ 1.05. SS_w = sum kuadrat deviasi data ke mean grup-nya ≈ 0.21. F = (1.05/2)/(0.21/12) ≈ <strong>30</strong>. Tolerance ± 5 (manual rounding). Verifikasi dengan scipy: F should match.</div>
+      <div class="comp-hint">💡 Hitung mean tiap grup dan grand mean, lalu SS_between, SS_within, MS, dan F = MS_b/MS_w secara manual; verifikasi dengan <code>scipy.stats.f_oneway</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">F-statistic</strong></span></div>
         <textarea class="code-textarea" id="code-c11" rows="14" placeholder="Paste kode One-Way ANOVA scratch, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c11')"></textarea>
@@ -2398,7 +2398,7 @@ F, p = stats.f_oneway(group1, group2, group3)
         <div class="comp-q"><strong>Two-Way ANOVA Welding (statsmodels)</strong>: dataset arus × voltage. Generate via seed=42, 3 level arus (100, 150, 200 A), 3 level voltage (22, 26, 30 V), 3 replikasi/cell. Mean cell: arus_idx·25 + volt_idx·10 + arus·volt·3 + N(0,8). Pakai <code>ols('strength ~ C(arus)*C(voltage)', df).fit()</code> + <code>anova_lm</code>. Print <strong>p-value untuk faktor arus (main effect)</strong>. Target &lt; 0.001.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Pakai pandas DataFrame dengan kolom arus, voltage, strength. Set np.random.seed(42), generate 27 data points. ANOVA via <code>sm.stats.anova_lm(model, typ=2)</code>. p_arus = anova_table.loc['C(arus)', 'PR(&gt;F)']. Karena efek arus sangat dominan (25 unit/level vs noise 8), p sangat kecil (~1e-7). Print p_arus &lt; 0.001 (target 0 dengan toleransi 0.001).</div>
+      <div class="comp-hint">💡 Bangun DataFrame (set seed sesuai soal), fit model <code>ols('strength ~ C(arus)*C(voltage)')</code>, jalankan <code>anova_lm</code>, lalu ambil p-value baris <code>C(arus)</code> dari kolom <code>PR(&gt;F)</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">p_arus</strong></span></div>
         <textarea class="code-textarea" id="code-c12" rows="16" placeholder="Paste kode Two-Way ANOVA statsmodels, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c12')"></textarea>
@@ -2415,7 +2415,7 @@ F, p = stats.f_oneway(group1, group2, group3)
         <div class="comp-q"><strong>Tukey HSD Post-Hoc + Asumsi Check — Heat Treatment</strong>: 4 level temperatur (450, 500, 550, 600 °C), 5 spesimen/level, target HRC: {450:52, 500:58, 550:62, 600:55} ± 2. seed=42. (1) Cek normality (Shapiro per grup), (2) cek equal variance (Levene), (3) Run ANOVA, (4) Run <code>pairwise_tukeyhsd</code>. Print <strong>jumlah pasangan signifikan</strong> (reject column = True) dari Tukey HSD.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 4 level → C(4,2) = 6 pasangan. Karena efek besar (mean diff sd 2-10), kebanyakan pasangan signifikan kecuali yang dekat (mis. 450 vs 600 keduanya rendah). Output Tukey punya kolom 'reject'; count yang True. Hasil ≈ <strong>5</strong> dari 6 pasangan signifikan. Toleransi ±1.</div>
+      <div class="comp-hint">💡 Jalankan <code>pairwise_tukeyhsd</code>, lalu hitung berapa baris dengan kolom <code>reject == True</code> (pasangan yang berbeda signifikan); 4 level menghasilkan C(4,2) = 6 pasangan.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() jumlah <strong style="color:var(--pink)">pasangan signifikan</strong></span></div>
         <textarea class="code-textarea" id="code-c13" rows="16" placeholder="Paste kode Tukey HSD + asumsi, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c13')"></textarea>
@@ -2432,7 +2432,7 @@ F, p = stats.f_oneway(group1, group2, group3)
         <div class="comp-q"><strong>Power Analysis ANOVA</strong>: gunakan <code>statsmodels.stats.power.FTestAnovaPower</code> untuk hitung sample size <em>per grup</em> yang dibutuhkan untuk deteksi effect size <code>f = 0.4 (large effect by Cohen)</code> dengan k=4 grup, α=0.05, power=0.80. <code>solve_power(effect_size=0.4, alpha=0.05, power=0.80, k_groups=4)</code>. Print <strong>n per grup</strong> (round ke int).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>from statsmodels.stats.power import FTestAnovaPower; n = FTestAnovaPower().solve_power(effect_size=0.4, alpha=0.05, power=0.80, k_groups=4); print(int(np.ceil(n)))</code>. Hasil ≈ <strong>19</strong> per grup (total N = 76). Untuk effect size sedang (f=0.25), n meningkat ke ~45/grup. Power analysis WAJIB sebelum eksperimen agar sample cukup.</div>
+      <div class="comp-hint">💡 Gunakan <code>FTestAnovaPower().solve_power(effect_size, alpha, power, k_groups)</code> dengan parameter dari soal, lalu bulatkan ke atas dengan <code>np.ceil</code> untuk n per grup.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">n per grup</strong></span></div>
         <textarea class="code-textarea" id="code-c14" rows="14" placeholder="Paste kode Power Analysis, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c14')"></textarea>
@@ -2449,7 +2449,7 @@ F, p = stats.f_oneway(group1, group2, group3)
         <div class="comp-q"><strong>Engineering ANOVA Workflow — Injection Molding 2-Faktor</strong>: faktor A=tekanan (3 level: 80, 100, 120 MPa), B=suhu mold (3 level: 50, 70, 90 °C), 3 replikasi/cell. Mean cell: defect[%] = 4 − 0.02·A − 0.01·B + 0.001·A·B + N(0, 0.3). Total 27 trial, seed=42. Two-way ANOVA. Print <strong>F-statistic untuk interaction effect (A×B)</strong>.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Generate data dengan model bilinear A·B → akan ada interaksi signifikan. <code>ols('defect ~ C(A) * C(B)', df).fit()</code>; ambil F dari <code>anova_lm</code> baris <code>'C(A):C(B)'</code>. F interaction tipikal 5–15 untuk effect bilinear ini. Hasil ≈ <strong>10</strong> ± 5 (variasi seed). Engineering decision: kalau F_AB signifikan → main effect tidak boleh diinterpretasi terpisah, harus pakai cell-mean optimum.</div>
+      <div class="comp-hint">💡 Fit model <code>ols('defect ~ C(A)*C(B)')</code> lalu jalankan <code>anova_lm</code>; ambil F-statistic dari baris interaksi <code>C(A):C(B)</code>. Jika signifikan, main effect tidak boleh diinterpretasi terpisah.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">F_interaction</strong></span></div>
         <textarea class="code-textarea" id="code-c15" rows="20" placeholder="Paste kode Two-Way ANOVA injection molding, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c15')"></textarea>
