@@ -2400,7 +2400,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
         <div class="comp-q"><strong>Random Forest + 5-Fold Cross-Validation</strong>: generate dataset healthy vs fault. <code>np.random.seed(42); n=300; X_h=np.random.randn(n,4); X_f=np.random.randn(n,4)+2.0; X=np.vstack([X_h,X_f]); y=np.concatenate([np.zeros(n),np.ones(n)])</code>. Train <code>RandomForestClassifier(n_estimators=100, random_state=42)</code> dengan 5-fold CV, print <strong>mean accuracy</strong> (3 desimal).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Dataset balanced 300/300, 4 fitur, separasi 2.0 → RF excellent. <code>cross_val_score(RandomForestClassifier(n_estimators=100,random_state=42), X, y, cv=5, scoring='accuracy').mean()</code>. Cross-val memberi estimasi unbiased karena setiap sample digunakan exactly once sebagai test. Hasil tipikal: <strong>0.97 ± 0.02</strong>. Tolerance ± 0.03.</div>
+      <div class="comp-hint">💡 Gunakan <code>cross_val_score</code> dengan <code>RandomForestClassifier</code>, cv=5, scoring accuracy, lalu ambil rata-ratanya dengan <code>.mean()</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">mean CV accuracy</strong></span></div>
         <textarea class="code-textarea" id="code-c12" rows="16" placeholder="Paste kode Random Forest + cross_val_score, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c12')"></textarea>
@@ -2417,7 +2417,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
         <div class="comp-q"><strong>SVM RBF Pipeline + StandardScaler</strong>: dataset multi-skala (butuh scaling sebelum SVM). <code>np.random.seed(42); n=250; X_h=np.random.randn(n,5)*10; X_f=np.random.randn(n,5)*10+5; X=np.vstack([X_h,X_f]); y=np.concatenate([np.zeros(n),np.ones(n)])</code>. Bangun <code>Pipeline([('scl',StandardScaler()),('svm',SVC(kernel='rbf',C=1.0,gamma='scale',random_state=42))])</code>. Split 75/25 stratified, train, print <strong>test accuracy</strong> (3 desimal).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 SVM RBF sensitive terhadap feature scale → wajib StandardScaler dulu (di Pipeline mencegah data leakage). Pipeline auto-applies scaler.fit_transform pada train, scaler.transform pada test. Hasil tipikal: <strong>0.92 ± 0.04</strong>. Tolerance ± 0.05.</div>
+      <div class="comp-hint">💡 Bangun <code>Pipeline</code> berisi <code>StandardScaler</code> lalu <code>SVC(kernel='rbf')</code> agar scaling otomatis dan bebas data leakage; split stratified, latih, lalu evaluasi <code>.score()</code> di test set.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">test accuracy</strong></span></div>
         <textarea class="code-textarea" id="code-c13" rows="16" placeholder="Paste kode SVM Pipeline, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c13')"></textarea>
@@ -2434,7 +2434,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
         <div class="comp-q"><strong>GridSearchCV — Hyperparameter Tuning RandomForest</strong>: dataset 4 fitur. <code>np.random.seed(42); n=250; X_h=np.random.randn(n,4); X_f=np.random.randn(n,4)+2.0; X=np.vstack([X_h,X_f]); y=np.concatenate([np.zeros(n),np.ones(n)])</code>. Tune <code>n_estimators=[50,100]</code>, <code>max_depth=[3,5,None]</code> dengan <code>GridSearchCV(cv=3, scoring='accuracy')</code>. Print <strong>best_score_</strong> (3 desimal).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Total kombinasi = 2 × 3 = 6 kandidat × 3 fold = 18 model dilatih. <code>gs = GridSearchCV(RandomForestClassifier(random_state=42), {'n_estimators':[50,100], 'max_depth':[3,5,None]}, cv=3, scoring='accuracy'); gs.fit(X,y); print(f"{gs.best_score_:.3f}")</code>. Hasil tipikal: <strong>0.97 ± 0.02</strong>. Tolerance ± 0.04.</div>
+      <div class="comp-hint">💡 Jalankan <code>GridSearchCV</code> dengan param_grid dan cv dari soal, panggil <code>.fit()</code>, lalu baca skor terbaik dari atribut <code>best_score_</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">best_score_</strong></span></div>
         <textarea class="code-textarea" id="code-c14" rows="14" placeholder="Paste kode GridSearchCV, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c14')"></textarea>
@@ -2451,7 +2451,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
         <div class="comp-q"><strong>Engineering Pipeline — End-to-End ML Comparison (3 model)</strong>: dataset bearing fault. <code>np.random.seed(42); n=300; X_h=np.random.randn(n,5); X_f=np.random.randn(n,5)+1.8; X=np.vstack([X_h,X_f]); y=np.concatenate([np.zeros(n),np.ones(n)])</code>. Split 80/20 stratified. Train 3 model: <strong>LogReg</strong>, <strong>RandomForest(n=100)</strong>, <strong>SVM-RBF Pipeline (Scaler+SVC probability=True)</strong>. Print <strong>best ROC-AUC</strong> dari 3 model di test set (3 desimal).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 ROC-AUC threshold-independent ranking — pakai <code>predict_proba(X_test)[:,1]</code> lalu <code>roc_auc_score(y_test, proba)</code>. Loop 3 model, simpan best AUC. SVM butuh <code>probability=True</code> untuk predict_proba. Dengan separasi 1.8 di 5D, expected best ≈ <strong>0.98 ± 0.02</strong>. Tolerance ± 0.03.</div>
+      <div class="comp-hint">💡 Untuk tiap model ambil probabilitas kelas positif via <code>predict_proba(X_test)[:,1]</code>, hitung <code>roc_auc_score(y_test, proba)</code>, lalu pilih AUC terbaik. SVM perlu <code>probability=True</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">best ROC-AUC</strong></span></div>
         <textarea class="code-textarea" id="code-c15" rows="20" placeholder="Paste kode end-to-end ML comparison, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c15')"></textarea>
