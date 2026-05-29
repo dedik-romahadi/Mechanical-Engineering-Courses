@@ -6263,7 +6263,7 @@ function updateScheduleDisplay(){
 function isLate(timestamp){
   // v8 (Mei 2026): Terlambat = timestamp akses jatuh SETELAH deadline.
   // Mahasiswa terlambat tetap bisa mengerjakan tugas; poin per soal
-  // dikurangi 20%, Comp Hard tidak dapat partial credit, dan tidak
+  // dikurangi 30%, Comp Hard tidak dapat partial credit, dan tidak
   // masuk Top Skor / Top Akses. Lihat Pedoman §9.1, §9.2, §15.4, §17.3.
   if(!currentSchedule || !currentSchedule.end) return false;
   const t = new Date(timestamp).getTime();
@@ -7198,7 +7198,7 @@ function _isPastDeadline() {
   return Date.now() > new Date(currentSchedule.end).getTime();
 }
 function _getLateMultiplier() {
-  return _isPastDeadline() ? 0.8 : 1.0;
+  return _isPastDeadline() ? 0.7 : 1.0;
 }
 window._isPastDeadline    = _isPastDeadline;
 window._getLateMultiplier = _getLateMultiplier;
@@ -7224,7 +7224,7 @@ function _updateLateBanner() {
     const msgEl = banner.querySelector('p');
     if (past) {
       if (titleEl) titleEl.textContent = 'Akses Setelah Deadline — Status Terlambat';
-      if (msgEl) msgEl.innerHTML = 'Anda <strong style="color:#fff">tetap dapat mengerjakan tugas</strong>, namun status akan tercatat <strong style="color:#fff">⏰ Terlambat</strong> dengan ketentuan: <strong style="color:#fff">poin per soal dikurangi 20%</strong>, <strong style="color:#fff">tidak masuk Top Skor / Top Akses</strong>, dan <strong style="color:#fff">Comp Hard tidak dapat poin partial</strong> jika jawaban salah.';
+      if (msgEl) msgEl.innerHTML = 'Anda <strong style="color:#fff">tetap dapat mengerjakan tugas</strong>, namun status akan tercatat <strong style="color:#fff">⏰ Terlambat</strong> dengan ketentuan: <strong style="color:#fff">poin per soal dikurangi 30%</strong>, <strong style="color:#fff">tidak masuk Top Skor / Top Akses</strong>, dan <strong style="color:#fff">Comp Hard tidak dapat poin partial</strong> jika jawaban salah.';
     } else {
       if (titleEl) titleEl.textContent = 'Akses di Luar Jadwal Perkuliahan';
       if (msgEl) msgEl.innerHTML = 'Pertemuan belum dibuka. Anda dapat tetap melihat materi, namun <strong style="color:#fff">poin dan kehadiran tidak akan dicatat</strong>. Pengerjaan soal di halaman ini tidak akan disimpan.';
