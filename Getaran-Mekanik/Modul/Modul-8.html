@@ -935,7 +935,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <p class="hero-sub">Setelah memahami frekuensi pribadi &amp; mode shape (Pertemuan 7), kini kita kembali ke <strong>fondasinya</strong>: bagaimana sebenarnya persamaan gerak matriks <code>[M]{ẍ} + [C]{ẋ} + [K]{x} = {F(t)}</code> di-<strong>derive</strong>. Modul ini bahas dua metode utama — <strong>Newton's Method</strong> (free body diagram, sum of forces) dan <strong>Lagrange's Equation</strong> (energy-based: T &amp; V) — lalu solusi numerik <strong>solve_ivp</strong> untuk respons time-history.</p>
     <div class="hero-stats">
       <div class="stat"><div class="stat-num">8</div><div class="stat-lbl">Bagian Materi</div></div>
-      <div class="stat"><div class="stat-num">4</div><div class="stat-lbl">Animasi</div></div>
+      <div class="stat"><div class="stat-num">5</div><div class="stat-lbl">Animasi</div></div>
       <div class="stat"><div class="stat-num">4</div><div class="stat-lbl">Cell Python</div></div>
       <div class="stat"><div class="stat-num">50</div><div class="stat-lbl">Poin Tugas</div></div>
     </div>
@@ -1530,6 +1530,10 @@ print(f"Steady-state |x2|_max = {np.max(np.abs(sol.y[1, mask])):.4f}")</code></p
   <p class="section-desc reveal">Klik tombol untuk set initial conditions berbeda. Animasi menampilkan dua massa berosilasi dengan superposisi mode 1 (in-phase) dan mode 2 (anti-phase). Lima animasi total: (1) IC selection 2-DoF, (2) <strong>slider</strong> jumlah DoF, (3) <strong>toggle</strong> Newton vs Lagrange method, (4) <strong>radio</strong> coordinate type, (5) <strong>dropdown</strong> real systems.</p>
 
   <div class="reveal" style="background:#020812;border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px">
+    <div class="anim-header" style="margin-bottom:14px">
+      <div class="anim-dot" style="background:var(--green)"></div>
+      <span class="anim-title">Animasi 1 — IC Selection 2-DoF Free Vibration</span>
+    </div>
     <canvas id="cv-m8" height="220" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
     <div style="display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap">
       <button onclick="window._m8setIC(1)" id="btn-m8-1" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(0,224,158,.5);background:rgba(0,224,158,.18);color:var(--green)">▶ x1=1, x2=0</button>
@@ -8197,11 +8201,11 @@ function drawNDoF(){
       const bx = padL + (i+0.5)*bw;
       const bh = (eigval/2.5)*plotH;
       const grad = ctx.createLinearGradient(0, padT+plotH-bh, 0, padT+plotH);
-      grad.addColorStop(0, 'var(--amber)');
-      grad.addColorStop(1, 'var(--amber)40');
+      grad.addColorStop(0, '#ffb300');
+      grad.addColorStop(1, 'rgba(255,179,0,.25)');
       ctx.fillStyle = grad;
       ctx.fillRect(bx-bw*0.35, padT+plotH-bh, bw*0.7, bh);
-      ctx.strokeStyle = 'var(--amber)';
+      ctx.strokeStyle = '#ffb300';
       ctx.strokeRect(bx-bw*0.35, padT+plotH-bh, bw*0.7, bh);
       ctx.fillStyle = '#fff'; ctx.font = '9px JetBrains Mono'; ctx.textAlign = 'center';
       ctx.fillText('ω'+(i+1), bx, padT+plotH+14);
@@ -8209,8 +8213,8 @@ function drawNDoF(){
     }
   } else {
     // Continuous curve
-    ctx.strokeStyle = 'var(--amber)'; ctx.lineWidth = 2.5;
-    ctx.shadowColor = 'var(--amber)A0'; ctx.shadowBlur = 6;
+    ctx.strokeStyle = '#ffb300'; ctx.lineWidth = 2.5;
+    ctx.shadowColor = 'rgba(255,179,0,.63)'; ctx.shadowBlur = 6;
     ctx.beginPath();
     for(let i=0; i<=200; i++){
       const x = padL + plotW*i/200;
@@ -8224,7 +8228,7 @@ function drawNDoF(){
   }
 
   ctx.textAlign = 'left';
-  ctx.fillStyle = 'var(--amber)'; ctx.font = 'bold 12px JetBrains Mono';
+  ctx.fillStyle = '#ffb300'; ctx.font = 'bold 12px JetBrains Mono';
   ctx.fillText('Jumlah DoF (N) = '+v.toFixed(2), padL+10, padT+18);
 
   const info = document.getElementById('cvNDoF_info');
@@ -8340,7 +8344,7 @@ function drawCoord(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const opts = [('Physical {x₁, x₂}', '#ef4444', 'phys'), ('Modal {η₁, η₂}', '#0ea5e9', 'modal'), ('Center-of-mass + relative', '#00e09e', 'com'), ('Hybrid (modal + force)', '#a855f7', 'hybrid')];
+  const opts = [['Physical {x₁, x₂}', '#ef4444', 'phys'], ['Modal {η₁, η₂}', '#0ea5e9', 'modal'], ['Center-of-mass + relative', '#00e09e', 'com'], ['Hybrid (modal + force)', '#a855f7', 'hybrid']];
   const optMap = {};
   opts.forEach(o => { optMap[o[2]] = {label: o[0], color: o[1]}; });
   const cur = optMap[_cvCoord_val] || optMap[opts[0][2]];
@@ -8406,7 +8410,7 @@ function drawMultiSys(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const opts = [('robot', '🤖 Robot 3-link arm — 3 generalized coords (θ₁, θ₂, θ₃)'), ('vehicle', '🚗 Full vehicle dynamics — 7 DoF (heave, pitch, roll, 4 wheels)'), ('crane', '🏗️ Crane with payload — pendulum coupling'), ('rotor', '⚙️ Multi-rotor turbine — torsional + bending coupling')];
+  const opts = [['robot', '🤖 Robot 3-link arm — 3 generalized coords (θ₁, θ₂, θ₃)'], ['vehicle', '🚗 Full vehicle dynamics — 7 DoF (heave, pitch, roll, 4 wheels)'], ['crane', '🏗️ Crane with payload — pendulum coupling'], ['rotor', '⚙️ Multi-rotor turbine — torsional + bending coupling']];
   const idx = opts.findIndex(o => o[0] === _cvMultiSys_val);
   const opt = opts[Math.max(0, idx)];
   const t = _cvMultiSys_frame * 0.010;
