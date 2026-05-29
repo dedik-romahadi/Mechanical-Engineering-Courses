@@ -1352,171 +1352,162 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <p class="section-desc reveal">Empat cell Python berikut mengimplementasikan workflow lengkap: simulasi sinyal bearing fault dengan modulasi (Cell 1), envelope analysis dengan Hilbert transform (Cell 2), order tracking dengan tachometer signal (Cell 3), dan dashboard diagnosis terintegrasi (Cell 4). Library: numpy, scipy.signal.</p>
 
   <!-- Cell 1 -->
-  <div class="code-card reveal" style="margin-bottom:32px">
+  <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
-      <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="code-lang">Python · Cell 1</span>
-      <span class="code-label">Simulate Bearing Fault Signal (BPFO Modulating Resonance)</span>
-    </div>
-    <div class="code-wrap">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 1 — Simulate Bearing Fault Signal (BPFO Modulating Resonance)</span>
+      <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">import numpy as np
+    </div>
+    <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
 
-fs = 25600.0           # 25.6 kHz
-T = 2.0                # 2 detik buffer
-N = int(fs * T)
-t = np.arange(N) / fs
+fs = <span class="nm">25600.0</span>           <span class="cm"># 25.6 kHz</span>
+T = <span class="nm">2.0</span>                <span class="cm"># 2 detik buffer</span>
+N = <span class="fn">int</span>(fs * T)
+t = np.<span class="fn">arange</span>(N) / fs
 
-f_shaft = 30.0         # 30 Hz = 1800 rpm
-f_resonance = 5000.0   # struktur housing bearing resonance
-f_BPFO = 100.0         # BPFO untuk bearing tipikal (~3.3× shaft)
+f_shaft = <span class="nm">30.0</span>         <span class="cm"># 30 Hz = 1800 rpm</span>
+f_resonance = <span class="nm">5000.0</span>   <span class="cm"># struktur housing bearing resonance</span>
+f_BPFO = <span class="nm">100.0</span>         <span class="cm"># BPFO untuk bearing tipikal (~3.3× shaft)</span>
 
-# Sinyal background: 1×rpm + 2×rpm + noise
-x_background = (1.5*np.sin(2*np.pi*f_shaft*t)
-                + 0.4*np.sin(2*np.pi*2*f_shaft*t)
-                + 0.3*np.random.randn(N))
+<span class="cm"># Sinyal background: 1×rpm + 2×rpm + noise</span>
+x_background = (<span class="nm">1.5</span>*np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*f_shaft*t)
+                + <span class="nm">0.4</span>*np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*<span class="nm">2</span>*f_shaft*t)
+                + <span class="nm">0.3</span>*np.random.<span class="fn">randn</span>(N))
 
-# Bearing fault: impulse train at BPFO modulating resonance 5 kHz
-impulse_train = np.zeros(N)
-impulse_period = 1.0 / f_BPFO
-for k in range(int(T * f_BPFO)):
-    idx = int(k * impulse_period * fs)
-    if idx < N - 200:
-        # damped oscillation at resonance
-        decay = np.exp(-np.arange(200) * 0.02)
-        impulse_train[idx:idx+200] += 2.0 * decay * np.sin(2*np.pi*f_resonance*np.arange(200)/fs)
+<span class="cm"># Bearing fault: impulse train at BPFO modulating resonance 5 kHz</span>
+impulse_train = np.<span class="fn">zeros</span>(N)
+impulse_period = <span class="nm">1.0</span> / f_BPFO
+<span class="kw">for</span> k <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">int</span>(T * f_BPFO)):
+    idx = <span class="fn">int</span>(k * impulse_period * fs)
+    <span class="kw">if</span> idx &lt; N - <span class="nm">200</span>:
+        <span class="cm"># damped oscillation at resonance</span>
+        decay = np.<span class="fn">exp</span>(-np.<span class="fn">arange</span>(<span class="nm">200</span>) * <span class="nm">0.02</span>)
+        impulse_train[idx:idx+<span class="nm">200</span>] += <span class="nm">2.0</span> * decay * np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*f_resonance*np.<span class="fn">arange</span>(<span class="nm">200</span>)/fs)
 
 x_bearing = x_background + impulse_train
 
-print(f"Shaft freq: {f_shaft} Hz, BPFO: {f_BPFO} Hz, Resonance: {f_resonance} Hz")
-print(f"Signal length: {N} samples ({T} s)")</code></pre>
-    </div>
+<span class="fn">print</span>(<span class="st">f"Shaft freq: {f_shaft} Hz, BPFO: {f_BPFO} Hz, Resonance: {f_resonance} Hz"</span>)
+<span class="fn">print</span>(<span class="st">f"Signal length: {N} samples ({T} s)"</span>)</pre>
   </div>
 
   <!-- Cell 2 -->
-  <div class="code-card reveal" style="margin-bottom:32px">
+  <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
-      <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="code-lang">Python · Cell 2</span>
-      <span class="code-label">Envelope Analysis: BPF + Hilbert + FFT</span>
-    </div>
-    <div class="code-wrap">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 2 — Envelope Analysis: BPF + Hilbert + FFT</span>
+      <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">from scipy.signal import butter, filtfilt, hilbert
+    </div>
+    <pre><span class="kw">from</span> scipy.signal <span class="kw">import</span> butter, filtfilt, hilbert
 
-# Step 1: Band-pass filter di sekitar resonance (3-7 kHz)
-nyq = fs / 2
-low_cut = 3000 / nyq
-high_cut = 7000 / nyq
-b, a = butter(4, [low_cut, high_cut], btype='band')
-x_bp = filtfilt(b, a, x_bearing)
+<span class="cm"># Step 1: Band-pass filter di sekitar resonance (3-7 kHz)</span>
+nyq = fs / <span class="nm">2</span>
+low_cut = <span class="nm">3000</span> / nyq
+high_cut = <span class="nm">7000</span> / nyq
+b, a = <span class="fn">butter</span>(<span class="nm">4</span>, [low_cut, high_cut], btype=<span class="st">'band'</span>)
+x_bp = <span class="fn">filtfilt</span>(b, a, x_bearing)
 
-# Step 2: Hilbert transform → envelope
-envelope = np.abs(hilbert(x_bp))
+<span class="cm"># Step 2: Hilbert transform → envelope</span>
+envelope = np.<span class="fn">abs</span>(<span class="fn">hilbert</span>(x_bp))
 
-# Step 3: FFT of envelope
-env_centered = envelope - envelope.mean()
-ENV = np.fft.rfft(env_centered)
-freqs_env = np.fft.rfftfreq(N, d=1/fs)
-mag_env = np.abs(ENV) * 2 / N
+<span class="cm"># Step 3: FFT of envelope</span>
+env_centered = envelope - envelope.<span class="fn">mean</span>()
+ENV = np.fft.<span class="fn">rfft</span>(env_centered)
+freqs_env = np.fft.<span class="fn">rfftfreq</span>(N, d=<span class="nm">1</span>/fs)
+mag_env = np.<span class="fn">abs</span>(ENV) * <span class="nm">2</span> / N
 
-# Identify peak around BPFO
-mask = (freqs_env > 50) & (freqs_env < 200)
-peak_idx_local = np.argmax(mag_env[mask])
+<span class="cm"># Identify peak around BPFO</span>
+mask = (freqs_env &gt; <span class="nm">50</span>) &amp; (freqs_env &lt; <span class="nm">200</span>)
+peak_idx_local = np.<span class="fn">argmax</span>(mag_env[mask])
 peak_freq = freqs_env[mask][peak_idx_local]
 peak_amp = mag_env[mask][peak_idx_local]
 
-print(f"Envelope spectrum peak in 50-200 Hz: f = {peak_freq:.1f} Hz")
-print(f"  → Match BPFO ({f_BPFO} Hz)? {'YES' if abs(peak_freq - f_BPFO) < 5 else 'NO'}")</code></pre>
-    </div>
+<span class="fn">print</span>(<span class="st">f"Envelope spectrum peak in 50-200 Hz: f = {peak_freq:.1f} Hz"</span>)
+<span class="fn">print</span>(<span class="st">f"  → Match BPFO ({f_BPFO} Hz)? {'YES' if abs(peak_freq - f_BPFO) &lt; 5 else 'NO'}"</span>)</pre>
   </div>
 
   <!-- Cell 3 -->
-  <div class="code-card reveal" style="margin-bottom:32px">
+  <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
-      <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="code-lang">Python · Cell 3</span>
-      <span class="code-label">Order Tracking dengan Synthetic Tachometer</span>
-    </div>
-    <div class="code-wrap">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 3 — Order Tracking dengan Synthetic Tachometer</span>
+      <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">from scipy.interpolate import interp1d
-
-# Synthetic tachometer: rpm increases linearly 1500 → 2100 over 2 sec
-rpm_t = 1500 + 300 * t   # variable rpm
-f_shaft_t = rpm_t / 60   # variable shaft freq
-phase_t = 2*np.pi * np.cumsum(f_shaft_t) / fs  # cumulative phase
-
-# Signal with rpm-tracking 1× component
-x_var = 1.5 * np.sin(phase_t) + 0.3 * np.random.randn(N)
-
-# Synchronous resampling: M samples per revolution
-M = 1024  # samples per rev
-total_revs = phase_t[-1] / (2*np.pi)
-n_revs = int(total_revs)
-theta_uniform = np.linspace(0, n_revs * 2*np.pi, n_revs * M)
-interp = interp1d(phase_t, x_var, bounds_error=False, fill_value=0)
-x_resampled = interp(theta_uniform)
-
-# Order spectrum
-X_order = np.fft.rfft(x_resampled)
-orders = np.fft.rfftfreq(len(x_resampled)) * M  # normalized to orders
-mag_order = np.abs(X_order) * 2 / len(x_resampled)
-
-# Peak should be at order = 1 (= 1× rpm component)
-mask = (orders > 0.5) & (orders < 1.5)
-peak_order = orders[mask][np.argmax(mag_order[mask])]
-print(f"Order tracking peak: {peak_order:.3f} (expected 1.000)")</code></pre>
     </div>
+    <pre><span class="kw">from</span> scipy.interpolate <span class="kw">import</span> interp1d
+
+<span class="cm"># Synthetic tachometer: rpm increases linearly 1500 → 2100 over 2 sec</span>
+rpm_t = <span class="nm">1500</span> + <span class="nm">300</span> * t   <span class="cm"># variable rpm</span>
+f_shaft_t = rpm_t / <span class="nm">60</span>   <span class="cm"># variable shaft freq</span>
+phase_t = <span class="nm">2</span>*np.pi * np.<span class="fn">cumsum</span>(f_shaft_t) / fs  <span class="cm"># cumulative phase</span>
+
+<span class="cm"># Signal with rpm-tracking 1× component</span>
+x_var = <span class="nm">1.5</span> * np.<span class="fn">sin</span>(phase_t) + <span class="nm">0.3</span> * np.random.<span class="fn">randn</span>(N)
+
+<span class="cm"># Synchronous resampling: M samples per revolution</span>
+M = <span class="nm">1024</span>  <span class="cm"># samples per rev</span>
+total_revs = phase_t[-<span class="nm">1</span>] / (<span class="nm">2</span>*np.pi)
+n_revs = <span class="fn">int</span>(total_revs)
+theta_uniform = np.<span class="fn">linspace</span>(<span class="nm">0</span>, n_revs * <span class="nm">2</span>*np.pi, n_revs * M)
+interp = <span class="fn">interp1d</span>(phase_t, x_var, bounds_error=<span class="kw">False</span>, fill_value=<span class="nm">0</span>)
+x_resampled = <span class="fn">interp</span>(theta_uniform)
+
+<span class="cm"># Order spectrum</span>
+X_order = np.fft.<span class="fn">rfft</span>(x_resampled)
+orders = np.fft.<span class="fn">rfftfreq</span>(<span class="fn">len</span>(x_resampled)) * M  <span class="cm"># normalized to orders</span>
+mag_order = np.<span class="fn">abs</span>(X_order) * <span class="nm">2</span> / <span class="fn">len</span>(x_resampled)
+
+<span class="cm"># Peak should be at order = 1 (= 1× rpm component)</span>
+mask = (orders &gt; <span class="nm">0.5</span>) &amp; (orders &lt; <span class="nm">1.5</span>)
+peak_order = orders[mask][np.<span class="fn">argmax</span>(mag_order[mask])]
+<span class="fn">print</span>(<span class="st">f"Order tracking peak: {peak_order:.3f} (expected 1.000)"</span>)</pre>
   </div>
 
   <!-- Cell 4 -->
-  <div class="code-card reveal" style="margin-bottom:32px">
+  <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
-      <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="code-lang">Python · Cell 4</span>
-      <span class="code-label">Diagnosis Dashboard: Time + Spectrum + Envelope Spectrum</span>
-    </div>
-    <div class="code-wrap">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 4 — Diagnosis Dashboard: Time + Spectrum + Envelope Spectrum</span>
+      <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">import matplotlib.pyplot as plt
-
-# Raw spectrum (untuk komparasi)
-X_raw = np.fft.rfft(x_bearing - x_bearing.mean())
-freqs = np.fft.rfftfreq(N, d=1/fs)
-mag_raw = np.abs(X_raw) * 2 / N
-
-fig, axes = plt.subplots(3, 1, figsize=(11, 9))
-
-# Time waveform
-axes[0].plot(t[:5000], x_bearing[:5000], color='#0ea5e9', lw=0.5)
-axes[0].set_title('Time Waveform — Bearing Fault Signal')
-axes[0].set_xlabel('t (s)'); axes[0].set_ylabel('Amplitude')
-axes[0].grid(alpha=0.3)
-
-# Raw spectrum (susah baca BPFO)
-axes[1].plot(freqs, mag_raw, color='#a855f7', lw=0.7)
-axes[1].axvline(f_BPFO, color='red', ls='--', label=f'BPFO @ {f_BPFO} Hz')
-axes[1].axvline(f_resonance, color='orange', ls=':', label=f'Resonance @ {f_resonance} Hz')
-axes[1].set_xlim(0, 8000)
-axes[1].set_title('Raw Spectrum — BPFO sulit terlihat')
-axes[1].set_xlabel('Frequency (Hz)'); axes[1].set_ylabel('Amplitude')
-axes[1].legend(); axes[1].grid(alpha=0.3)
-
-# Envelope spectrum (BPFO clearly visible)
-axes[2].plot(freqs_env, mag_env, color='#16a34a', lw=0.9)
-axes[2].axvline(f_BPFO, color='red', ls='--', label=f'BPFO @ {f_BPFO} Hz')
-axes[2].axvline(2*f_BPFO, color='red', ls=':', alpha=0.5, label=f'2×BPFO')
-axes[2].set_xlim(0, 500)
-axes[2].set_title('Envelope Spectrum — BPFO &amp; harmonik clearly visible')
-axes[2].set_xlabel('Frequency (Hz)'); axes[2].set_ylabel('Envelope Amplitude')
-axes[2].legend(); axes[2].grid(alpha=0.3)
-
-plt.tight_layout(); plt.show()
-print(f"
-Diagnosis: BPFO peak amplitude = {peak_amp:.3f}")
-print(f"Dibanding raw spectrum di 100 Hz, envelope sensitivitas naik 10-100×.")</code></pre>
     </div>
+    <pre><span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+
+<span class="cm"># Raw spectrum (untuk komparasi)</span>
+X_raw = np.fft.<span class="fn">rfft</span>(x_bearing - x_bearing.<span class="fn">mean</span>())
+freqs = np.fft.<span class="fn">rfftfreq</span>(N, d=<span class="nm">1</span>/fs)
+mag_raw = np.<span class="fn">abs</span>(X_raw) * <span class="nm">2</span> / N
+
+fig, axes = plt.<span class="fn">subplots</span>(<span class="nm">3</span>, <span class="nm">1</span>, figsize=(<span class="nm">11</span>, <span class="nm">9</span>))
+
+<span class="cm"># Time waveform</span>
+axes[<span class="nm">0</span>].<span class="fn">plot</span>(t[:<span class="nm">5000</span>], x_bearing[:<span class="nm">5000</span>], color=<span class="st">'#0ea5e9'</span>, lw=<span class="nm">0.5</span>)
+axes[<span class="nm">0</span>].<span class="fn">set_title</span>(<span class="st">'Time Waveform — Bearing Fault Signal'</span>)
+axes[<span class="nm">0</span>].<span class="fn">set_xlabel</span>(<span class="st">'t (s)'</span>); axes[<span class="nm">0</span>].<span class="fn">set_ylabel</span>(<span class="st">'Amplitude'</span>)
+axes[<span class="nm">0</span>].<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>)
+
+<span class="cm"># Raw spectrum (susah baca BPFO)</span>
+axes[<span class="nm">1</span>].<span class="fn">plot</span>(freqs, mag_raw, color=<span class="st">'#a855f7'</span>, lw=<span class="nm">0.7</span>)
+axes[<span class="nm">1</span>].<span class="fn">axvline</span>(f_BPFO, color=<span class="st">'red'</span>, ls=<span class="st">'--'</span>, label=<span class="st">f'BPFO @ {f_BPFO} Hz'</span>)
+axes[<span class="nm">1</span>].<span class="fn">axvline</span>(f_resonance, color=<span class="st">'orange'</span>, ls=<span class="st">':'</span>, label=<span class="st">f'Resonance @ {f_resonance} Hz'</span>)
+axes[<span class="nm">1</span>].<span class="fn">set_xlim</span>(<span class="nm">0</span>, <span class="nm">8000</span>)
+axes[<span class="nm">1</span>].<span class="fn">set_title</span>(<span class="st">'Raw Spectrum — BPFO sulit terlihat'</span>)
+axes[<span class="nm">1</span>].<span class="fn">set_xlabel</span>(<span class="st">'Frequency (Hz)'</span>); axes[<span class="nm">1</span>].<span class="fn">set_ylabel</span>(<span class="st">'Amplitude'</span>)
+axes[<span class="nm">1</span>].<span class="fn">legend</span>(); axes[<span class="nm">1</span>].<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>)
+
+<span class="cm"># Envelope spectrum (BPFO clearly visible)</span>
+axes[<span class="nm">2</span>].<span class="fn">plot</span>(freqs_env, mag_env, color=<span class="st">'#16a34a'</span>, lw=<span class="nm">0.9</span>)
+axes[<span class="nm">2</span>].<span class="fn">axvline</span>(f_BPFO, color=<span class="st">'red'</span>, ls=<span class="st">'--'</span>, label=<span class="st">f'BPFO @ {f_BPFO} Hz'</span>)
+axes[<span class="nm">2</span>].<span class="fn">axvline</span>(<span class="nm">2</span>*f_BPFO, color=<span class="st">'red'</span>, ls=<span class="st">':'</span>, alpha=<span class="nm">0.5</span>, label=<span class="st">f'2×BPFO'</span>)
+axes[<span class="nm">2</span>].<span class="fn">set_xlim</span>(<span class="nm">0</span>, <span class="nm">500</span>)
+axes[<span class="nm">2</span>].<span class="fn">set_title</span>(<span class="st">'Envelope Spectrum — BPFO &amp; harmonik clearly visible'</span>)
+axes[<span class="nm">2</span>].<span class="fn">set_xlabel</span>(<span class="st">'Frequency (Hz)'</span>); axes[<span class="nm">2</span>].<span class="fn">set_ylabel</span>(<span class="st">'Envelope Amplitude'</span>)
+axes[<span class="nm">2</span>].<span class="fn">legend</span>(); axes[<span class="nm">2</span>].<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>)
+
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
+<span class="fn">print</span>(<span class="st">f"\nDiagnosis: BPFO peak amplitude = {peak_amp:.3f}"</span>)
+<span class="fn">print</span>(<span class="st">f"Dibanding raw spectrum di 100 Hz, envelope sensitivitas naik 10-100×."</span>)</pre>
   </div>
 
   <div class="info-box reveal">
