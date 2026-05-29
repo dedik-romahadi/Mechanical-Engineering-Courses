@@ -10,7 +10,7 @@
  *   - Function verifikasi pinHash vs RTDB pins/mhs_<NIM>
  *   - Function baca jadwal dari RTDB settings/.../schedule (server-authoritative)
  *     → tolak jika sebelum start atau setelah (end + extension).
- *     → late multiplier (default 0.8) hanya berlaku di window (end, end+extension].
+ *     → late multiplier (default 0.7) hanya berlaku di window (end, end+extension].
  *   - Rate-limit: 1 attempt per soal via Firestore examAttempts/{examId}/students/{nim}/qs/{qId}
  *   - Lookup kunci jawaban Firestore examAnswers/{examId}/qs/{qId} (deny-all utk client)
  *   - Bandingkan jawaban (tf / mc / comp ± tolerance)
@@ -66,7 +66,7 @@ const EXAM_CONFIG = {
     totalPoints: 70,             // 10 TF + 20 MC + 10 Comp E/M + 5 Comp Hard
     consolationThreshold: 30,    // ≥30 distinct base-ID attempted
     consolationPoint: 1,
-    lateMultiplierValue: 0.8,    // di window (end, end+extension]
+    lateMultiplierValue: 0.7,    // di window (end, end+extension]
   },
   "getaran-mekanik-uas": {
     dbPath: "visitors/getaran_mekanik/uas",
@@ -74,7 +74,7 @@ const EXAM_CONFIG = {
     totalPoints: 70,             // schema identik UTS (10 TF + 20 MC + 10 Comp + 5 Hard)
     consolationThreshold: 30,
     consolationPoint: 1,
-    lateMultiplierValue: 0.8,
+    lateMultiplierValue: 0.7,
   },
   "optoauto-uts": {
     dbPath: "visitors/optoauto/uts",
@@ -82,7 +82,7 @@ const EXAM_CONFIG = {
     totalPoints: 70,             // schema identik (10 TF + 20 MC + 10 Comp + 5 Hard)
     consolationThreshold: 30,
     consolationPoint: 1,
-    lateMultiplierValue: 0.8,
+    lateMultiplierValue: 0.7,
   },
   "optoauto-uas": {
     dbPath: "visitors/optoauto/uas",
@@ -90,7 +90,7 @@ const EXAM_CONFIG = {
     totalPoints: 70,
     consolationThreshold: 30,
     consolationPoint: 1,
-    lateMultiplierValue: 0.8,
+    lateMultiplierValue: 0.7,
   },
   "math4-uts": {
     dbPath: "visitors/math4/uts",
@@ -98,7 +98,7 @@ const EXAM_CONFIG = {
     totalPoints: 70,
     consolationThreshold: 30,
     consolationPoint: 1,
-    lateMultiplierValue: 0.8,
+    lateMultiplierValue: 0.7,
   },
   "math4-uas": {
     dbPath: "visitors/math4/uas",
@@ -106,7 +106,7 @@ const EXAM_CONFIG = {
     totalPoints: 70,
     consolationThreshold: 30,
     consolationPoint: 1,
-    lateMultiplierValue: 0.8,
+    lateMultiplierValue: 0.7,
   },
 };
 
@@ -126,7 +126,7 @@ function _makeModulConfig(courseSlug, modulNum) {
     totalPoints: 50,             // universal: 10 MC × 1 + 10 Comp E × 2 + 5 Comp H × 4
     consolationThreshold: 20,    // ≥20 distinct base-ID attempted
     consolationPoint: 1,
-    lateMultiplierValue: 0.8,
+    lateMultiplierValue: 0.7,
   };
 }
 const MODUL_CONFIG = {};
@@ -223,7 +223,7 @@ async function evalSchedule(rtdb, schedulePath, lateMultiplierValue, mode = "exa
   const ext = Number(s.extension || 0) * 60 * 1000;     // menit → ms
   // Mode differentiation (Pedoman §… v8):
   // - 'exam': window (end, end+extension] → terlambat dgn penalty. Setelah itu → diblokir.
-  // - 'modul': TIDAK ADA upper bound. Mahasiswa terlambat tetap submit dgn penalty 80%
+  // - 'modul': TIDAK ADA upper bound. Mahasiswa terlambat tetap submit dgn penalty 70%
   //           indefinitely. Blocked hanya sebelum start atau schedule belum diatur.
   let isOpen, pastDeadline;
   if (mode === "modul") {
@@ -583,7 +583,7 @@ exports.checkExamAnswer = onCall(async (request) => {
     scoreDelta,                       // poin yang sudah ditambahkan ke RTDB (sudah × multiplier)
     marker: markerKey,                // marker yang ditulis ke scoredQuestions
     explain: ans.explain || "",
-    lateMultiplier: sched.multiplier, // 1.0 atau 0.8 (transparency utk UI)
+    lateMultiplier: sched.multiplier, // 1.0 atau 0.7 (transparency utk UI)
     pastDeadline: sched.pastDeadline,
     consolationAwarded,
     // Multi-step diagnostic: array bool per langkah (mis. [true,false,true]).
@@ -753,7 +753,7 @@ exports.checkModulAnswer = onCall(async (request) => {
   }
 
   // ── 2) Schedule check (Pedoman §… v8: modul TIDAK ADA upper bound) ──
-  // Modul rule: mahasiswa terlambat tetap bisa submit indefinitely dgn penalty 80%
+  // Modul rule: mahasiswa terlambat tetap bisa submit indefinitely dgn penalty 70%
   // (sched.multiplier = lateMultiplierValue saat now > end). Block hanya kalau:
   // - before-start: akses sebelum jadwal dimulai
   // - schedule-missing/incomplete: dosen belum atur jadwal
