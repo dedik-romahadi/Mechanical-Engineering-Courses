@@ -1354,173 +1354,158 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <p class="section-desc reveal">Empat cell Python berikut mengimplementasikan modal analysis lengkap untuk gedung 5 lantai (5-DoF lateral): setup matriks M &amp; K (Cell 1), eigenvalue solve dengan scipy (Cell 2), modal transformation &amp; orthogonality verification (Cell 3), modal superposition response untuk seismic ground motion (Cell 4).</p>
 
   <!-- Cell 1 -->
-  <div class="code-card reveal" style="margin-bottom:32px">
+  <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
-      <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="code-lang">Python · Cell 1</span>
-      <span class="code-label">Setup 5-DoF Building (Mass &amp; Stiffness Matrix)</span>
-    </div>
-    <div class="code-wrap">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 1 — Setup 5-DoF Building (Mass &amp; Stiffness Matrix)</span>
+      <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">import numpy as np
-
-# Building 5-lantai: tiap lantai 1 DoF lateral
-# Mass per lantai: 1000 kg (uniform)
-# Stiffness per lantai: 1.6e6 N/m (uniform)
-N = 5
-m_floor = 1000.0
-k_floor = 1.6e6
-
-# Mass matrix (diagonal, lumped mass)
-M = np.eye(N) * m_floor
-
-# Stiffness matrix (tridiagonal: shear building model)
-K = np.zeros((N, N))
-for i in range(N):
-    K[i, i] += k_floor   # contribution from spring above
-    if i &lt; N - 1:
-        K[i, i] += k_floor       # contribution from spring below
-        K[i, i+1] = -k_floor
-        K[i+1, i] = -k_floor
-
-print(f"Mass matrix M ({N}×{N}):")
-print(M)
-print(f"
-Stiffness matrix K ({N}×{N}):")
-print(K)
-print(f"
-Trace(K) = {np.trace(K):.0f}, det(K) = {np.linalg.det(K):.2e}")</code></pre>
     </div>
+    <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="cm"># Building 5-lantai: tiap lantai 1 DoF lateral</span>
+<span class="cm"># Mass per lantai: 1000 kg (uniform)</span>
+<span class="cm"># Stiffness per lantai: 1.6e6 N/m (uniform)</span>
+N = <span class="nm">5</span>
+m_floor = <span class="nm">1000.0</span>
+k_floor = <span class="nm">1.6e6</span>
+
+<span class="cm"># Mass matrix (diagonal, lumped mass)</span>
+M = np.<span class="fn">eye</span>(N) * m_floor
+
+<span class="cm"># Stiffness matrix (tridiagonal: shear building model)</span>
+K = np.<span class="fn">zeros</span>((N, N))
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(N):
+    K[i, i] += k_floor   <span class="cm"># contribution from spring above</span>
+    <span class="kw">if</span> i &lt; N - <span class="nm">1</span>:
+        K[i, i] += k_floor       <span class="cm"># contribution from spring below</span>
+        K[i, i+<span class="nm">1</span>] = -k_floor
+        K[i+<span class="nm">1</span>, i] = -k_floor
+
+<span class="fn">print</span>(<span class="st">f"Mass matrix M ({N}×{N}):"</span>)
+<span class="fn">print</span>(M)
+<span class="fn">print</span>(<span class="st">f"\nStiffness matrix K ({N}×{N}):"</span>)
+<span class="fn">print</span>(K)
+<span class="fn">print</span>(<span class="st">f"\nTrace(K) = {np.trace(K):.0f}, det(K) = {np.linalg.det(K):.2e}"</span>)</pre>
   </div>
 
   <!-- Cell 2 -->
-  <div class="code-card reveal" style="margin-bottom:32px">
+  <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
-      <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="code-lang">Python · Cell 2</span>
-      <span class="code-label">Generalized Eigenvalue Solve dengan scipy.linalg.eigh</span>
-    </div>
-    <div class="code-wrap">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 2 — Generalized Eigenvalue Solve dengan scipy.linalg.eigh</span>
+      <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">from scipy.linalg import eigh
-
-# Solve generalized eigenvalue: K φ = ω² M φ
-# eigh returns mass-normalized eigenvectors automatically
-eigvals, Phi = eigh(K, M)
-omegas = np.sqrt(eigvals)
-freqs = omegas / (2*np.pi)
-periods = 2*np.pi / omegas
-
-print(f"{'Mode':&gt;5}{'ω (rad/s)':&gt;15}{'f (Hz)':&gt;12}{'T (sec)':&gt;12}")
-for i in range(N):
-    print(f"{i+1:&gt;5}{omegas[i]:&gt;15.3f}{freqs[i]:&gt;12.3f}{periods[i]:&gt;12.3f}")
-
-print(f"
-Mode shapes (kolom = mode):")
-print(np.round(Phi, 3))</code></pre>
     </div>
+    <pre><span class="kw">from</span> scipy.linalg <span class="kw">import</span> eigh
+
+<span class="cm"># Solve generalized eigenvalue: K φ = ω² M φ</span>
+<span class="cm"># eigh returns mass-normalized eigenvectors automatically</span>
+eigvals, Phi = <span class="fn">eigh</span>(K, M)
+omegas = np.<span class="fn">sqrt</span>(eigvals)
+freqs = omegas / (<span class="nm">2</span>*np.pi)
+periods = <span class="nm">2</span>*np.pi / omegas
+
+<span class="fn">print</span>(<span class="st">f"{'Mode':&gt;5}{'ω (rad/s)':&gt;15}{'f (Hz)':&gt;12}{'T (sec)':&gt;12}"</span>)
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(N):
+    <span class="fn">print</span>(<span class="st">f"{i+1:&gt;5}{omegas[i]:&gt;15.3f}{freqs[i]:&gt;12.3f}{periods[i]:&gt;12.3f}"</span>)
+
+<span class="fn">print</span>(<span class="st">f"\nMode shapes (kolom = mode):"</span>)
+<span class="fn">print</span>(np.<span class="fn">round</span>(Phi, <span class="nm">3</span>))</pre>
   </div>
 
   <!-- Cell 3 -->
-  <div class="code-card reveal" style="margin-bottom:32px">
+  <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
-      <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="code-lang">Python · Cell 3</span>
-      <span class="code-label">Verify Orthogonality &amp; Plot Mode Shapes</span>
-    </div>
-    <div class="code-wrap">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 3 — Verify Orthogonality &amp; Plot Mode Shapes</span>
+      <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">import matplotlib.pyplot as plt
+    </div>
+    <pre><span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
 
-# Verify M-orthogonality (mass-normalized: Phi^T M Phi = I)
+<span class="cm"># Verify M-orthogonality (mass-normalized: Phi^T M Phi = I)</span>
 M_modal = Phi.T @ M @ Phi
-print("Phi^T M Phi (should be Identity):")
-print(np.round(M_modal, 6))
+<span class="fn">print</span>(<span class="st">"Phi^T M Phi (should be Identity):"</span>)
+<span class="fn">print</span>(np.<span class="fn">round</span>(M_modal, <span class="nm">6</span>))
 
 K_modal = Phi.T @ K @ Phi
-print("
-Phi^T K Phi (should be diag(omega^2)):")
-print(np.round(K_modal, 2))
+<span class="fn">print</span>(<span class="st">"\nPhi^T K Phi (should be diag(omega^2)):"</span>)
+<span class="fn">print</span>(np.<span class="fn">round</span>(K_modal, <span class="nm">2</span>))
 
-# Plot mode shapes (each mode as bar from ground to top)
-fig, axes = plt.subplots(1, N, figsize=(14, 4), sharey=True)
-floors = np.arange(1, N+1)
-colors = ['#0ea5e9', '#a855f7', '#16a34a', '#fbbf24', '#dc2626']
+<span class="cm"># Plot mode shapes (each mode as bar from ground to top)</span>
+fig, axes = plt.<span class="fn">subplots</span>(<span class="nm">1</span>, N, figsize=(<span class="nm">14</span>, <span class="nm">4</span>), sharey=<span class="kw">True</span>)
+floors = np.<span class="fn">arange</span>(<span class="nm">1</span>, N+<span class="nm">1</span>)
+colors = [<span class="st">'#0ea5e9'</span>, <span class="st">'#a855f7'</span>, <span class="st">'#16a34a'</span>, <span class="st">'#fbbf24'</span>, <span class="st">'#dc2626'</span>]
 
-for i in range(N):
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(N):
     ax = axes[i]
-    # Add ground (0) at bottom
-    mode_with_ground = np.concatenate([[0], Phi[:, i]])
-    floor_with_ground = np.concatenate([[0], floors])
-    ax.plot(mode_with_ground, floor_with_ground, 'o-', color=colors[i], lw=2, ms=10)
-    ax.axvline(0, color='gray', ls='--', alpha=0.5)
-    ax.set_title(f'Mode {i+1}
-ω={omegas[i]:.2f} rad/s
-f={freqs[i]:.2f} Hz')
-    ax.set_xlabel('φ amplitude')
-    if i == 0: ax.set_ylabel('Floor')
-    ax.grid(alpha=0.3)
-    ax.set_yticks(floor_with_ground)
+    <span class="cm"># Add ground (0) at bottom</span>
+    mode_with_ground = np.<span class="fn">concatenate</span>([[<span class="nm">0</span>], Phi[:, i]])
+    floor_with_ground = np.<span class="fn">concatenate</span>([[<span class="nm">0</span>], floors])
+    ax.<span class="fn">plot</span>(mode_with_ground, floor_with_ground, <span class="st">'o-'</span>, color=colors[i], lw=<span class="nm">2</span>, ms=<span class="nm">10</span>)
+    ax.<span class="fn">axvline</span>(<span class="nm">0</span>, color=<span class="st">'gray'</span>, ls=<span class="st">'--'</span>, alpha=<span class="nm">0.5</span>)
+    ax.<span class="fn">set_title</span>(<span class="st">f'Mode {i+1}\nω={omegas[i]:.2f} rad/s\nf={freqs[i]:.2f} Hz'</span>)
+    ax.<span class="fn">set_xlabel</span>(<span class="st">'φ amplitude'</span>)
+    <span class="kw">if</span> i == <span class="nm">0</span>: ax.<span class="fn">set_ylabel</span>(<span class="st">'Floor'</span>)
+    ax.<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>)
+    ax.<span class="fn">set_yticks</span>(floor_with_ground)
 
-plt.tight_layout(); plt.show()</code></pre>
-    </div>
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
   </div>
 
   <!-- Cell 4 -->
-  <div class="code-card reveal" style="margin-bottom:32px">
+  <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
-      <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="code-lang">Python · Cell 4</span>
-      <span class="code-label">Modal Superposition: Seismic Response Time-History</span>
-    </div>
-    <div class="code-wrap">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 4 — Modal Superposition: Seismic Response Time-History</span>
+      <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">from scipy.integrate import odeint
-
-# Synthetic ground acceleration: 5 Hz earthquake-like signal
-dt = 0.01
-t = np.arange(0, 10, dt)
-ag_t = 0.3 * np.sin(2*np.pi*5*t) * np.exp(-t/3)   # decaying earthquake (g)
-ag_t *= 9.81   # convert to m/s²
-
-# Modal participation factors (for horizontal ground motion)
-r = np.ones(N)   # influence vector (uniform horizontal)
-Gamma = Phi.T @ M @ r   # modal participation factor per mode
-
-# Modal damping (assume Rayleigh: 5% for all modes)
-zeta = 0.05
-
-# Solve N independent modal ODEs: η_i'' + 2ζω_i η_i' + ω_i² η_i = -Γ_i a_g(t)
-def modal_ode(y, t_val, omega_i, zeta_i, Gamma_i, ag_func):
-    eta, deta = y
-    ddeta = -2*zeta_i*omega_i*deta - omega_i**2*eta - Gamma_i*ag_func(t_val)
-    return [deta, ddeta]
-
-from scipy.interpolate import interp1d
-ag_func = interp1d(t, ag_t, bounds_error=False, fill_value=0)
-
-eta_all = np.zeros((N, len(t)))
-for i in range(N):
-    sol = odeint(modal_ode, [0, 0], t, args=(omegas[i], zeta, Gamma[i], ag_func))
-    eta_all[i, :] = sol[:, 0]
-
-# Superpose: x(t) = Phi @ eta(t)
-x_all = Phi @ eta_all   # (N floors, len(t))
-
-# Plot top floor displacement vs time
-fig, ax = plt.subplots(figsize=(11, 5))
-for i in range(N):
-    ax.plot(t, x_all[i, :]*1000, label=f'Floor {i+1}', alpha=0.7)
-ax.set_xlabel('Time (s)'); ax.set_ylabel('Displacement (mm)')
-ax.set_title(f'Seismic Response — Modal Superposition (5-DoF Building)
-Gamma factors: {np.round(Gamma, 2)}')
-ax.legend(loc='upper right'); ax.grid(alpha=0.3)
-plt.tight_layout(); plt.show()
-
-print(f"Max displacement per floor (mm):")
-for i in range(N):
-    print(f"  Floor {i+1}: {np.max(np.abs(x_all[i, :]))*1000:.2f} mm")</code></pre>
     </div>
+    <pre><span class="kw">from</span> scipy.integrate <span class="kw">import</span> odeint
+
+<span class="cm"># Synthetic ground acceleration: 5 Hz earthquake-like signal</span>
+dt = <span class="nm">0.01</span>
+t = np.<span class="fn">arange</span>(<span class="nm">0</span>, <span class="nm">10</span>, dt)
+ag_t = <span class="nm">0.3</span> * np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*<span class="nm">5</span>*t) * np.<span class="fn">exp</span>(-t/<span class="nm">3</span>)   <span class="cm"># decaying earthquake (g)</span>
+ag_t *= <span class="nm">9.81</span>   <span class="cm"># convert to m/s²</span>
+
+<span class="cm"># Modal participation factors (for horizontal ground motion)</span>
+r = np.<span class="fn">ones</span>(N)   <span class="cm"># influence vector (uniform horizontal)</span>
+Gamma = Phi.T @ M @ r   <span class="cm"># modal participation factor per mode</span>
+
+<span class="cm"># Modal damping (assume Rayleigh: 5% for all modes)</span>
+zeta = <span class="nm">0.05</span>
+
+<span class="cm"># Solve N independent modal ODEs: η_i'' + 2ζω_i η_i' + ω_i² η_i = -Γ_i a_g(t)</span>
+<span class="kw">def</span> <span class="fn">modal_ode</span>(y, t_val, omega_i, zeta_i, Gamma_i, ag_func):
+    eta, deta = y
+    ddeta = -<span class="nm">2</span>*zeta_i*omega_i*deta - omega_i**<span class="nm">2</span>*eta - Gamma_i*<span class="fn">ag_func</span>(t_val)
+    <span class="kw">return</span> [deta, ddeta]
+
+<span class="kw">from</span> scipy.interpolate <span class="kw">import</span> interp1d
+ag_func = <span class="fn">interp1d</span>(t, ag_t, bounds_error=<span class="kw">False</span>, fill_value=<span class="nm">0</span>)
+
+eta_all = np.<span class="fn">zeros</span>((N, <span class="fn">len</span>(t)))
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(N):
+    sol = <span class="fn">odeint</span>(modal_ode, [<span class="nm">0</span>, <span class="nm">0</span>], t, args=(omegas[i], zeta, Gamma[i], ag_func))
+    eta_all[i, :] = sol[:, <span class="nm">0</span>]
+
+<span class="cm"># Superpose: x(t) = Phi @ eta(t)</span>
+x_all = Phi @ eta_all   <span class="cm"># (N floors, len(t))</span>
+
+<span class="cm"># Plot top floor displacement vs time</span>
+fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="nm">11</span>, <span class="nm">5</span>))
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(N):
+    ax.<span class="fn">plot</span>(t, x_all[i, :]*<span class="nm">1000</span>, label=<span class="st">f'Floor {i+1}'</span>, alpha=<span class="nm">0.7</span>)
+ax.<span class="fn">set_xlabel</span>(<span class="st">'Time (s)'</span>); ax.<span class="fn">set_ylabel</span>(<span class="st">'Displacement (mm)'</span>)
+ax.<span class="fn">set_title</span>(<span class="st">f'Seismic Response — Modal Superposition (5-DoF Building)\nGamma factors: {np.round(Gamma, 2)}'</span>)
+ax.<span class="fn">legend</span>(loc=<span class="st">'upper right'</span>); ax.<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>)
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
+
+<span class="fn">print</span>(<span class="st">f"Max displacement per floor (mm):"</span>)
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(N):
+    <span class="fn">print</span>(<span class="st">f"  Floor {i+1}: {np.max(np.abs(x_all[i, :]))*1000:.2f} mm"</span>)</pre>
   </div>
 
   <div class="info-box reveal">

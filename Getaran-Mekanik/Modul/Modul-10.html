@@ -1359,185 +1359,175 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <p class="section-desc reveal">Empat cell Python berikut mengimplementasikan workflow design lengkap: hitung Den Hartog optimal TMD parameters (Cell 1), plot FRF struktur dengan/tanpa TMD (Cell 2), generate force transmissibility curve untuk isolator design (Cell 3), dan worked example compressor isolation lengkap (Cell 4).</p>
 
   <!-- Cell 1 -->
-  <div class="code-card reveal" style="margin-bottom:32px">
+  <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
-      <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="code-lang">Python · Cell 1</span>
-      <span class="code-label">Den Hartog Optimal TMD Parameters</span>
-    </div>
-    <div class="code-wrap">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 1 — Den Hartog Optimal TMD Parameters</span>
+      <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">import numpy as np
+    </div>
+    <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
 
-def den_hartog_tmd(m_main, omega_n, mu):
-    """Calculate optimal TMD parameters per Den Hartog formula.
+<span class="kw">def</span> <span class="fn">den_hartog_tmd</span>(m_main, omega_n, mu):
+    <span class="st">"""Calculate optimal TMD parameters per Den Hartog formula.
     Args:
         m_main: mass of main structure (kg)
         omega_n: natural freq of main (rad/s)
         mu: mass ratio (m_a / m_main)
     Returns dict: m_a, k_a, c_a, omega_a, zeta_a, f_opt, zeta_opt
-    """
+    """</span>
     m_a = mu * m_main
-    f_opt = 1 / (1 + mu)
-    zeta_opt = np.sqrt(3*mu / (8 * (1 + mu)**3))
+    f_opt = <span class="nm">1</span> / (<span class="nm">1</span> + mu)
+    zeta_opt = np.<span class="fn">sqrt</span>(<span class="nm">3</span>*mu / (<span class="nm">8</span> * (<span class="nm">1</span> + mu)**<span class="nm">3</span>))
     omega_a = f_opt * omega_n
-    k_a = m_a * omega_a**2
-    c_a = 2 * m_a * omega_a * zeta_opt
-    return {'m_a': m_a, 'k_a': k_a, 'c_a': c_a,
-            'omega_a': omega_a, 'zeta_a': zeta_opt,
-            'f_opt': f_opt, 'zeta_opt': zeta_opt}
+    k_a = m_a * omega_a**<span class="nm">2</span>
+    c_a = <span class="nm">2</span> * m_a * omega_a * zeta_opt
+    <span class="kw">return</span> {<span class="st">'m_a'</span>: m_a, <span class="st">'k_a'</span>: k_a, <span class="st">'c_a'</span>: c_a,
+            <span class="st">'omega_a'</span>: omega_a, <span class="st">'zeta_a'</span>: zeta_opt,
+            <span class="st">'f_opt'</span>: f_opt, <span class="st">'zeta_opt'</span>: zeta_opt}
 
-# Example: building 1000 ton, natural freq 0.2 Hz
-m_main = 1e6   # kg
-omega_n = 2*np.pi * 0.2  # rad/s (period 5 sec)
+<span class="cm"># Example: building 1000 ton, natural freq 0.2 Hz</span>
+m_main = <span class="nm">1e6</span>   <span class="cm"># kg</span>
+omega_n = <span class="nm">2</span>*np.pi * <span class="nm">0.2</span>  <span class="cm"># rad/s (period 5 sec)</span>
 
-for mu in [0.01, 0.02, 0.05, 0.10]:
-    tmd = den_hartog_tmd(m_main, omega_n, mu)
-    print(f"μ={mu:.2f}: m_a={tmd['m_a']/1000:.0f} ton, "
-          f"k_a={tmd['k_a']:.1e} N/m, ζ_opt={tmd['zeta_opt']:.3f}")</code></pre>
-    </div>
+<span class="kw">for</span> mu <span class="kw">in</span> [<span class="nm">0.01</span>, <span class="nm">0.02</span>, <span class="nm">0.05</span>, <span class="nm">0.10</span>]:
+    tmd = <span class="fn">den_hartog_tmd</span>(m_main, omega_n, mu)
+    <span class="fn">print</span>(<span class="st">f"μ={mu:.2f}: m_a={tmd['m_a']/1000:.0f} ton, "</span>
+          <span class="st">f"k_a={tmd['k_a']:.1e} N/m, ζ_opt={tmd['zeta_opt']:.3f}"</span>)</pre>
   </div>
 
   <!-- Cell 2 -->
-  <div class="code-card reveal" style="margin-bottom:32px">
+  <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
-      <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="code-lang">Python · Cell 2</span>
-      <span class="code-label">FRF Plot: With vs Without TMD</span>
-    </div>
-    <div class="code-wrap">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 2 — FRF Plot: With vs Without TMD</span>
+      <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">import matplotlib.pyplot as plt
+    </div>
+    <pre><span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
 
-def frf_with_tmd(omega_arr, m, k, m_a, k_a, c_a, F0=1.0):
-    """FRF response of main mass with TMD attached, harmonic force F0."""
-    H = np.zeros(len(omega_arr), dtype=complex)
-    for i, w in enumerate(omega_arr):
-        # 2-DoF impedance matrix
-        Z11 = -m*w**2 + k + k_a + 1j*w*c_a
-        Z12 = -k_a - 1j*w*c_a
+<span class="kw">def</span> <span class="fn">frf_with_tmd</span>(omega_arr, m, k, m_a, k_a, c_a, F0=<span class="nm">1.0</span>):
+    <span class="st">"""FRF response of main mass with TMD attached, harmonic force F0."""</span>
+    H = np.<span class="fn">zeros</span>(<span class="fn">len</span>(omega_arr), dtype=complex)
+    <span class="kw">for</span> i, w <span class="kw">in</span> <span class="fn">enumerate</span>(omega_arr):
+        <span class="cm"># 2-DoF impedance matrix</span>
+        Z11 = -m*w**<span class="nm">2</span> + k + k_a + <span class="nm">1j</span>*w*c_a
+        Z12 = -k_a - <span class="nm">1j</span>*w*c_a
         Z21 = Z12
-        Z22 = -m_a*w**2 + k_a + 1j*w*c_a
+        Z22 = -m_a*w**<span class="nm">2</span> + k_a + <span class="nm">1j</span>*w*c_a
         det = Z11*Z22 - Z12*Z21
         H[i] = Z22 / det * F0
-    return np.abs(H)
+    <span class="kw">return</span> np.<span class="fn">abs</span>(H)
 
-# Without TMD: simple SDOF
-def frf_sdof(omega_arr, m, k, c=0, F0=1.0):
-    H = F0 / (-m*omega_arr**2 + k + 1j*omega_arr*c)
-    return np.abs(H)
+<span class="cm"># Without TMD: simple SDOF</span>
+<span class="kw">def</span> <span class="fn">frf_sdof</span>(omega_arr, m, k, c=<span class="nm">0</span>, F0=<span class="nm">1.0</span>):
+    H = F0 / (-m*omega_arr**<span class="nm">2</span> + k + <span class="nm">1j</span>*omega_arr*c)
+    <span class="kw">return</span> np.<span class="fn">abs</span>(H)
 
-m, k = 1e6, 1e6 * (2*np.pi*0.2)**2
-mu = 0.05
-tmd = den_hartog_tmd(m, np.sqrt(k/m), mu)
-omega_arr = np.linspace(0.1, 3, 1000) * np.sqrt(k/m)
+m, k = <span class="nm">1e6</span>, <span class="nm">1e6</span> * (<span class="nm">2</span>*np.pi*<span class="nm">0.2</span>)**<span class="nm">2</span>
+mu = <span class="nm">0.05</span>
+tmd = <span class="fn">den_hartog_tmd</span>(m, np.<span class="fn">sqrt</span>(k/m), mu)
+omega_arr = np.<span class="fn">linspace</span>(<span class="nm">0.1</span>, <span class="nm">3</span>, <span class="nm">1000</span>) * np.<span class="fn">sqrt</span>(k/m)
 
-H_no_tmd = frf_sdof(omega_arr, m, k, c=0.01*2*np.sqrt(k*m))
-H_with_tmd = frf_with_tmd(omega_arr, m, k, tmd['m_a'], tmd['k_a'], tmd['c_a'])
+H_no_tmd = <span class="fn">frf_sdof</span>(omega_arr, m, k, c=<span class="nm">0.01</span>*<span class="nm">2</span>*np.<span class="fn">sqrt</span>(k*m))
+H_with_tmd = <span class="fn">frf_with_tmd</span>(omega_arr, m, k, tmd[<span class="st">'m_a'</span>], tmd[<span class="st">'k_a'</span>], tmd[<span class="st">'c_a'</span>])
 
-fig, ax = plt.subplots(figsize=(10, 5))
-r_arr = omega_arr / np.sqrt(k/m)
-ax.semilogy(r_arr, H_no_tmd*k, label='Without TMD (ζ=0.01)', color='#fb7185', lw=2)
-ax.semilogy(r_arr, H_with_tmd*k, label=f'With TMD (μ=0.05, optimal)', color='#16a34a', lw=2)
-ax.axvline(1.0, color='gray', ls='--', alpha=0.5, label='r = 1 (resonance)')
-ax.set_xlabel('Frequency ratio r = ω/ω_n')
-ax.set_ylabel('|H|·k (normalized magnitude)')
-ax.set_title('FRF Comparison: Effect of TMD on Main Structure Response')
-ax.legend(); ax.grid(alpha=0.3, which='both')
-plt.tight_layout(); plt.show()</code></pre>
-    </div>
+fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="nm">10</span>, <span class="nm">5</span>))
+r_arr = omega_arr / np.<span class="fn">sqrt</span>(k/m)
+ax.<span class="fn">semilogy</span>(r_arr, H_no_tmd*k, label=<span class="st">'Without TMD (ζ=0.01)'</span>, color=<span class="st">'#fb7185'</span>, lw=<span class="nm">2</span>)
+ax.<span class="fn">semilogy</span>(r_arr, H_with_tmd*k, label=<span class="st">f'With TMD (μ=0.05, optimal)'</span>, color=<span class="st">'#16a34a'</span>, lw=<span class="nm">2</span>)
+ax.<span class="fn">axvline</span>(<span class="nm">1.0</span>, color=<span class="st">'gray'</span>, ls=<span class="st">'--'</span>, alpha=<span class="nm">0.5</span>, label=<span class="st">'r = 1 (resonance)'</span>)
+ax.<span class="fn">set_xlabel</span>(<span class="st">'Frequency ratio r = ω/ω_n'</span>)
+ax.<span class="fn">set_ylabel</span>(<span class="st">'|H|·k (normalized magnitude)'</span>)
+ax.<span class="fn">set_title</span>(<span class="st">'FRF Comparison: Effect of TMD on Main Structure Response'</span>)
+ax.<span class="fn">legend</span>(); ax.<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>, which=<span class="st">'both'</span>)
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
   </div>
 
   <!-- Cell 3 -->
-  <div class="code-card reveal" style="margin-bottom:32px">
+  <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
-      <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="code-lang">Python · Cell 3</span>
-      <span class="code-label">Force Transmissibility Curve (Isolator Design)</span>
-    </div>
-    <div class="code-wrap">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 3 — Force Transmissibility Curve (Isolator Design)</span>
+      <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">def transmissibility(r, zeta):
-    """Force transmissibility for SDOF isolator."""
-    num = 1 + (2*zeta*r)**2
-    den = (1 - r**2)**2 + (2*zeta*r)**2
-    return np.sqrt(num/den)
-
-r = np.logspace(-1, 1.5, 500)   # r from 0.1 to 31
-
-fig, ax = plt.subplots(figsize=(10, 6))
-for zeta in [0.01, 0.05, 0.10, 0.20, 0.50]:
-    TR = transmissibility(r, zeta)
-    ax.loglog(r, TR, label=f'ζ = {zeta:.2f}', lw=1.8)
-
-ax.axvline(np.sqrt(2), color='gray', ls='--', alpha=0.7, label='r = √2 (boundary)')
-ax.axhline(1.0, color='gray', ls=':', alpha=0.5)
-ax.fill_between(r[r&lt;np.sqrt(2)], 1e-3, 50, alpha=0.1, color='red',
-                label='Amplification region')
-ax.fill_between(r[r&gt;np.sqrt(2)], 1e-3, 50, alpha=0.1, color='green',
-                label='Isolation region')
-ax.set_xlabel('Frequency ratio r = ω/ω_n')
-ax.set_ylabel('Transmissibility TR')
-ax.set_title('Force Transmissibility — Isolator Design Chart')
-ax.legend(loc='lower left'); ax.grid(alpha=0.3, which='both')
-ax.set_xlim(0.1, 30); ax.set_ylim(0.001, 50)
-plt.tight_layout(); plt.show()</code></pre>
     </div>
+    <pre><span class="kw">def</span> <span class="fn">transmissibility</span>(r, zeta):
+    <span class="st">"""Force transmissibility for SDOF isolator."""</span>
+    num = <span class="nm">1</span> + (<span class="nm">2</span>*zeta*r)**<span class="nm">2</span>
+    den = (<span class="nm">1</span> - r**<span class="nm">2</span>)**<span class="nm">2</span> + (<span class="nm">2</span>*zeta*r)**<span class="nm">2</span>
+    <span class="kw">return</span> np.<span class="fn">sqrt</span>(num/den)
+
+r = np.<span class="fn">logspace</span>(-<span class="nm">1</span>, <span class="nm">1.5</span>, <span class="nm">500</span>)   <span class="cm"># r from 0.1 to 31</span>
+
+fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="nm">10</span>, <span class="nm">6</span>))
+<span class="kw">for</span> zeta <span class="kw">in</span> [<span class="nm">0.01</span>, <span class="nm">0.05</span>, <span class="nm">0.10</span>, <span class="nm">0.20</span>, <span class="nm">0.50</span>]:
+    TR = <span class="fn">transmissibility</span>(r, zeta)
+    ax.<span class="fn">loglog</span>(r, TR, label=<span class="st">f'ζ = {zeta:.2f}'</span>, lw=<span class="nm">1.8</span>)
+
+ax.<span class="fn">axvline</span>(np.<span class="fn">sqrt</span>(<span class="nm">2</span>), color=<span class="st">'gray'</span>, ls=<span class="st">'--'</span>, alpha=<span class="nm">0.7</span>, label=<span class="st">'r = √2 (boundary)'</span>)
+ax.<span class="fn">axhline</span>(<span class="nm">1.0</span>, color=<span class="st">'gray'</span>, ls=<span class="st">':'</span>, alpha=<span class="nm">0.5</span>)
+ax.<span class="fn">fill_between</span>(r[r&lt;np.<span class="fn">sqrt</span>(<span class="nm">2</span>)], <span class="nm">1e-3</span>, <span class="nm">50</span>, alpha=<span class="nm">0.1</span>, color=<span class="st">'red'</span>,
+                label=<span class="st">'Amplification region'</span>)
+ax.<span class="fn">fill_between</span>(r[r&gt;np.<span class="fn">sqrt</span>(<span class="nm">2</span>)], <span class="nm">1e-3</span>, <span class="nm">50</span>, alpha=<span class="nm">0.1</span>, color=<span class="st">'green'</span>,
+                label=<span class="st">'Isolation region'</span>)
+ax.<span class="fn">set_xlabel</span>(<span class="st">'Frequency ratio r = ω/ω_n'</span>)
+ax.<span class="fn">set_ylabel</span>(<span class="st">'Transmissibility TR'</span>)
+ax.<span class="fn">set_title</span>(<span class="st">'Force Transmissibility — Isolator Design Chart'</span>)
+ax.<span class="fn">legend</span>(loc=<span class="st">'lower left'</span>); ax.<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>, which=<span class="st">'both'</span>)
+ax.<span class="fn">set_xlim</span>(<span class="nm">0.1</span>, <span class="nm">30</span>); ax.<span class="fn">set_ylim</span>(<span class="nm">0.001</span>, <span class="nm">50</span>)
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
   </div>
 
   <!-- Cell 4 -->
-  <div class="code-card reveal" style="margin-bottom:32px">
+  <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
-      <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="code-lang">Python · Cell 4</span>
-      <span class="code-label">Worked Example: Compressor Isolation Design</span>
-    </div>
-    <div class="code-wrap">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 4 — Worked Example: Compressor Isolation Design</span>
+      <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">def design_isolator(mass_kg, freq_excitation_hz, target_TR, zeta_assumed=0.05):
-    """Design isolator to meet target transmissibility.
+    </div>
+    <pre><span class="kw">def</span> <span class="fn">design_isolator</span>(mass_kg, freq_excitation_hz, target_TR, zeta_assumed=<span class="nm">0.05</span>):
+    <span class="st">"""Design isolator to meet target transmissibility.
     Returns dict: omega_n, k_per_isolator, n_isolators, static_deflection_mm.
-    """
-    omega_ex = 2 * np.pi * freq_excitation_hz
-    # Solve TR formula: assume low damping → TR ≈ 1/(r²-1)
-    r_required = np.sqrt(1/target_TR + 1)
+    """</span>
+    omega_ex = <span class="nm">2</span> * np.pi * freq_excitation_hz
+    <span class="cm"># Solve TR formula: assume low damping → TR ≈ 1/(r²-1)</span>
+    r_required = np.<span class="fn">sqrt</span>(<span class="nm">1</span>/target_TR + <span class="nm">1</span>)
     omega_n = omega_ex / r_required
-    fn = omega_n / (2*np.pi)
-    g = 9.81
-    delta_static_m = g / omega_n**2
+    fn = omega_n / (<span class="nm">2</span>*np.pi)
+    g = <span class="nm">9.81</span>
+    delta_static_m = g / omega_n**<span class="nm">2</span>
 
-    # Distribute mass on 4 isolators (typical for skid)
-    n_isolators = 4
+    <span class="cm"># Distribute mass on 4 isolators (typical for skid)</span>
+    n_isolators = <span class="nm">4</span>
     m_per = mass_kg / n_isolators
-    k_per = m_per * omega_n**2
-    return {
-        'omega_n_rad_s': omega_n,
-        'fn_Hz': fn,
-        'static_deflection_mm': delta_static_m * 1000,
-        'n_isolators': n_isolators,
-        'mass_per_isolator_kg': m_per,
-        'k_per_isolator_N_m': k_per,
-        'TR_actual': transmissibility(omega_ex/omega_n, zeta_assumed),
+    k_per = m_per * omega_n**<span class="nm">2</span>
+    <span class="kw">return</span> {
+        <span class="st">'omega_n_rad_s'</span>: omega_n,
+        <span class="st">'fn_Hz'</span>: fn,
+        <span class="st">'static_deflection_mm'</span>: delta_static_m * <span class="nm">1000</span>,
+        <span class="st">'n_isolators'</span>: n_isolators,
+        <span class="st">'mass_per_isolator_kg'</span>: m_per,
+        <span class="st">'k_per_isolator_N_m'</span>: k_per,
+        <span class="st">'TR_actual'</span>: <span class="fn">transmissibility</span>(omega_ex/omega_n, zeta_assumed),
     }
 
-# Example: 200 kg compressor at 1500 RPM, target TR 0.10
-spec = design_isolator(mass_kg=200, freq_excitation_hz=25, target_TR=0.10)
-print("=== Compressor Isolator Design ===")
-print(f"  Excitation: 25 Hz (1500 RPM)")
-print(f"  Target TR: 0.10
-")
-for k, v in spec.items():
-    if isinstance(v, float):
-        print(f"  {k:<30} {v:.3f}")
-    else:
-        print(f"  {k:<30} {v}")
+<span class="cm"># Example: 200 kg compressor at 1500 RPM, target TR 0.10</span>
+spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</span>, freq_excitation_hz=<span class="nm">25</span>, target_TR=<span class="nm">0.10</span>)
+<span class="fn">print</span>(<span class="st">"=== Compressor Isolator Design ==="</span>)
+<span class="fn">print</span>(<span class="st">f"  Excitation: 25 Hz (1500 RPM)"</span>)
+<span class="fn">print</span>(<span class="st">f"  Target TR: 0.10\n"</span>)
+<span class="kw">for</span> k, v <span class="kw">in</span> spec.<span class="fn">items</span>():
+    <span class="kw">if</span> <span class="fn">isinstance</span>(v, float):
+        <span class="fn">print</span>(<span class="st">f"  {k:&lt;30} {v:.3f}"</span>)
+    <span class="kw">else</span>:
+        <span class="fn">print</span>(<span class="st">f"  {k:&lt;30} {v}"</span>)
 
-print(f"
-Recommendation: pilih 4 rubber mount, masing-masing")
-print(f"  load capacity {spec['mass_per_isolator_kg']:.0f} kg,")
-print(f"  static deflection {spec['static_deflection_mm']:.1f} mm,")
-print(f"  natural freq isolator {spec['fn_Hz']:.1f} Hz.")</code></pre>
-    </div>
+<span class="fn">print</span>(<span class="st">f"\nRecommendation: pilih 4 rubber mount, masing-masing"</span>)
+<span class="fn">print</span>(<span class="st">f"  load capacity {spec['mass_per_isolator_kg']:.0f} kg,"</span>)
+<span class="fn">print</span>(<span class="st">f"  static deflection {spec['static_deflection_mm']:.1f} mm,"</span>)
+<span class="fn">print</span>(<span class="st">f"  natural freq isolator {spec['fn_Hz']:.1f} Hz."</span>)</pre>
   </div>
 
   <div class="info-box reveal">
