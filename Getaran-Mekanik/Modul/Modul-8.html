@@ -1353,163 +1353,150 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <p class="section-desc reveal">Empat cell Python berikut mengimplementasikan workflow lengkap: setup matriks dari sistem referensi (Cell 1), verifikasi Newton vs Lagrange (Cell 2), numerical solve dengan solve_ivp untuk free vibration (Cell 3), dan forced vibration response harmonic (Cell 4). Direct production-ready code.</p>
 
   <!-- Cell 1 -->
-  <div class="code-card reveal" style="margin-bottom:32px">
+  <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
-      <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="code-lang">Python · Cell 1</span>
-      <span class="code-label">Setup [M], [K], [C] Matrices for 2-DoF System</span>
-    </div>
-    <div class="code-wrap">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 1 — Setup [M], [K], [C] Matrices for 2-DoF System</span>
+      <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">import numpy as np
+    </div>
+    <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
 
-# Sistem referensi: 2 mass + 3 spring identik
-m1, m2 = 1.0, 1.0          # kg
-k1, k2, k3 = 100.0, 100.0, 100.0   # N/m
-c1, c2, c3 = 0.5, 0.5, 0.5         # N·s/m (light damping)
+<span class="cm"># Sistem referensi: 2 mass + 3 spring identik</span>
+m1, m2 = <span class="nm">1.0</span>, <span class="nm">1.0</span>          <span class="cm"># kg</span>
+k1, k2, k3 = <span class="nm">100.0</span>, <span class="nm">100.0</span>, <span class="nm">100.0</span>   <span class="cm"># N/m</span>
+c1, c2, c3 = <span class="nm">0.5</span>, <span class="nm">0.5</span>, <span class="nm">0.5</span>         <span class="cm"># N·s/m (light damping)</span>
 
-# Mass matrix (diagonal lumped)
-M = np.array([[m1, 0],
-              [0, m2]])
+<span class="cm"># Mass matrix (diagonal lumped)</span>
+M = np.<span class="fn">array</span>([[m1, <span class="nm">0</span>],
+              [<span class="nm">0</span>, m2]])
 
-# Stiffness matrix (simetris)
-K = np.array([[k1 + k2, -k2],
+<span class="cm"># Stiffness matrix (simetris)</span>
+K = np.<span class="fn">array</span>([[k1 + k2, -k2],
               [-k2,    k2 + k3]])
 
-# Damping matrix (analogous to K)
-C = np.array([[c1 + c2, -c2],
+<span class="cm"># Damping matrix (analogous to K)</span>
+C = np.<span class="fn">array</span>([[c1 + c2, -c2],
               [-c2,    c2 + c3]])
 
-print("Mass matrix M:");      print(M)
-print("
-Stiffness matrix K:"); print(K)
-print("
-Damping matrix C:");   print(C)
-print(f"
-M symmetric? {np.allclose(M, M.T)}")
-print(f"K symmetric? {np.allclose(K, K.T)}")
-print(f"C symmetric? {np.allclose(C, C.T)}")</code></pre>
-    </div>
+<span class="fn">print</span>(<span class="st">"Mass matrix M:"</span>);      <span class="fn">print</span>(M)
+<span class="fn">print</span>(<span class="st">"\nStiffness matrix K:"</span>); <span class="fn">print</span>(K)
+<span class="fn">print</span>(<span class="st">"\nDamping matrix C:"</span>);   <span class="fn">print</span>(C)
+<span class="fn">print</span>(<span class="st">f"\nM symmetric? {np.allclose(M, M.T)}"</span>)
+<span class="fn">print</span>(<span class="st">f"K symmetric? {np.allclose(K, K.T)}"</span>)
+<span class="fn">print</span>(<span class="st">f"C symmetric? {np.allclose(C, C.T)}"</span>)</pre>
   </div>
 
   <!-- Cell 2 -->
-  <div class="code-card reveal" style="margin-bottom:32px">
+  <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
-      <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="code-lang">Python · Cell 2</span>
-      <span class="code-label">Verifikasi Newton EoM vs Lagrange EoM</span>
-    </div>
-    <div class="code-wrap">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 2 — Verifikasi Newton EoM vs Lagrange EoM</span>
+      <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">import sympy as sp
+    </div>
+    <pre><span class="kw">import</span> sympy <span class="kw">as</span> sp
 
-# Symbolic Lagrange derivation untuk verification
-t = sp.Symbol('t')
-x1 = sp.Function('x1')(t)
-x2 = sp.Function('x2')(t)
-m1s, m2s = sp.symbols('m1 m2', positive=True)
-k1s, k2s, k3s = sp.symbols('k1 k2 k3', positive=True)
+<span class="cm"># Symbolic Lagrange derivation untuk verification</span>
+t = sp.<span class="fn">Symbol</span>(<span class="st">'t'</span>)
+x1 = sp.<span class="fn">Function</span>(<span class="st">'x1'</span>)(t)
+x2 = sp.<span class="fn">Function</span>(<span class="st">'x2'</span>)(t)
+m1s, m2s = sp.<span class="fn">symbols</span>(<span class="st">'m1 m2'</span>, positive=<span class="kw">True</span>)
+k1s, k2s, k3s = sp.<span class="fn">symbols</span>(<span class="st">'k1 k2 k3'</span>, positive=<span class="kw">True</span>)
 
-# Kinetic energy
-T = sp.Rational(1,2)*m1s*sp.diff(x1,t)**2 + sp.Rational(1,2)*m2s*sp.diff(x2,t)**2
-# Potential energy
-V = sp.Rational(1,2)*k1s*x1**2 + sp.Rational(1,2)*k2s*(x1-x2)**2 + sp.Rational(1,2)*k3s*x2**2
+<span class="cm"># Kinetic energy</span>
+T = sp.<span class="fn">Rational</span>(<span class="nm">1</span>,<span class="nm">2</span>)*m1s*sp.<span class="fn">diff</span>(x1,t)**<span class="nm">2</span> + sp.<span class="fn">Rational</span>(<span class="nm">1</span>,<span class="nm">2</span>)*m2s*sp.<span class="fn">diff</span>(x2,t)**<span class="nm">2</span>
+<span class="cm"># Potential energy</span>
+V = sp.<span class="fn">Rational</span>(<span class="nm">1</span>,<span class="nm">2</span>)*k1s*x1**<span class="nm">2</span> + sp.<span class="fn">Rational</span>(<span class="nm">1</span>,<span class="nm">2</span>)*k2s*(x1-x2)**<span class="nm">2</span> + sp.<span class="fn">Rational</span>(<span class="nm">1</span>,<span class="nm">2</span>)*k3s*x2**<span class="nm">2</span>
 L = T - V
 
-# Euler-Lagrange untuk x1
-EL1 = sp.diff(sp.diff(L, sp.diff(x1,t)), t) - sp.diff(L, x1)
-EL1_simplified = sp.simplify(EL1)
-print("EoM untuk x1 (Lagrange):")
-print(EL1_simplified, "= 0")
+<span class="cm"># Euler-Lagrange untuk x1</span>
+EL1 = sp.<span class="fn">diff</span>(sp.<span class="fn">diff</span>(L, sp.<span class="fn">diff</span>(x1,t)), t) - sp.<span class="fn">diff</span>(L, x1)
+EL1_simplified = sp.<span class="fn">simplify</span>(EL1)
+<span class="fn">print</span>(<span class="st">"EoM untuk x1 (Lagrange):"</span>)
+<span class="fn">print</span>(EL1_simplified, <span class="st">"= 0"</span>)
 
-# Newton expected: m1·ẍ1 + (k1+k2)·x1 - k2·x2 = 0
-print("
-Newton expected:")
-print(m1s*sp.diff(x1, t, 2) + (k1s + k2s)*x1 - k2s*x2, "= 0")
-print("
-→ Match! Kedua metode produce same EoM.")</code></pre>
-    </div>
+<span class="cm"># Newton expected: m1·ẍ1 + (k1+k2)·x1 - k2·x2 = 0</span>
+<span class="fn">print</span>(<span class="st">"\nNewton expected:"</span>)
+<span class="fn">print</span>(m1s*sp.<span class="fn">diff</span>(x1, t, <span class="nm">2</span>) + (k1s + k2s)*x1 - k2s*x2, <span class="st">"= 0"</span>)
+<span class="fn">print</span>(<span class="st">"\n→ Match! Kedua metode produce same EoM."</span>)</pre>
   </div>
 
   <!-- Cell 3 -->
-  <div class="code-card reveal" style="margin-bottom:32px">
+  <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
-      <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="code-lang">Python · Cell 3</span>
-      <span class="code-label">Free Vibration Response dengan solve_ivp</span>
-    </div>
-    <div class="code-wrap">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 3 — Free Vibration Response dengan solve_ivp</span>
+      <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">from scipy.integrate import solve_ivp
-import matplotlib.pyplot as plt
-
-M_inv = np.linalg.inv(M)
-
-def f_free(t, y):
-    """y = [x1, x2, v1, v2]. Return dy/dt."""
-    x = y[:2]
-    v = y[2:]
-    a = M_inv @ (-K @ x - C @ v)   # acceleration from EoM
-    return np.concatenate([v, a])
-
-# Initial conditions: x1(0) = 1, x2(0) = 0, both v(0) = 0
-y0 = [1.0, 0.0, 0.0, 0.0]
-t_span = (0, 5.0)
-t_eval = np.linspace(0, 5, 1000)
-
-sol = solve_ivp(f_free, t_span, y0, t_eval=t_eval, method='RK45', rtol=1e-8)
-
-# Plot
-fig, ax = plt.subplots(figsize=(10, 4))
-ax.plot(sol.t, sol.y[0], label='x1(t)', color='#0ea5e9')
-ax.plot(sol.t, sol.y[1], label='x2(t)', color='#f59e0b')
-ax.set_xlabel('t (s)'); ax.set_ylabel('Displacement (m)')
-ax.set_title('Free Vibration Response — 2 DoF (initial x1=1, x2=0)')
-ax.legend(); ax.grid(alpha=0.3)
-plt.tight_layout(); plt.show()
-
-print(f"max |x1| = {np.max(np.abs(sol.y[0])):.4f}")
-print(f"max |x2| = {np.max(np.abs(sol.y[1])):.4f}")</code></pre>
     </div>
+    <pre><span class="kw">from</span> scipy.integrate <span class="kw">import</span> solve_ivp
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+
+M_inv = np.linalg.<span class="fn">inv</span>(M)
+
+<span class="kw">def</span> <span class="fn">f_free</span>(t, y):
+    <span class="st">"""y = [x1, x2, v1, v2]. Return dy/dt."""</span>
+    x = y[:<span class="nm">2</span>]
+    v = y[<span class="nm">2</span>:]
+    a = M_inv @ (-K @ x - C @ v)   <span class="cm"># acceleration from EoM</span>
+    <span class="kw">return</span> np.<span class="fn">concatenate</span>([v, a])
+
+<span class="cm"># Initial conditions: x1(0) = 1, x2(0) = 0, both v(0) = 0</span>
+y0 = [<span class="nm">1.0</span>, <span class="nm">0.0</span>, <span class="nm">0.0</span>, <span class="nm">0.0</span>]
+t_span = (<span class="nm">0</span>, <span class="nm">5.0</span>)
+t_eval = np.<span class="fn">linspace</span>(<span class="nm">0</span>, <span class="nm">5</span>, <span class="nm">1000</span>)
+
+sol = <span class="fn">solve_ivp</span>(f_free, t_span, y0, t_eval=t_eval, method=<span class="st">'RK45'</span>, rtol=<span class="nm">1e-8</span>)
+
+<span class="cm"># Plot</span>
+fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="nm">10</span>, <span class="nm">4</span>))
+ax.<span class="fn">plot</span>(sol.t, sol.y[<span class="nm">0</span>], label=<span class="st">'x1(t)'</span>, color=<span class="st">'#0ea5e9'</span>)
+ax.<span class="fn">plot</span>(sol.t, sol.y[<span class="nm">1</span>], label=<span class="st">'x2(t)'</span>, color=<span class="st">'#f59e0b'</span>)
+ax.<span class="fn">set_xlabel</span>(<span class="st">'t (s)'</span>); ax.<span class="fn">set_ylabel</span>(<span class="st">'Displacement (m)'</span>)
+ax.<span class="fn">set_title</span>(<span class="st">'Free Vibration Response — 2 DoF (initial x1=1, x2=0)'</span>)
+ax.<span class="fn">legend</span>(); ax.<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>)
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
+
+<span class="fn">print</span>(<span class="st">f"max |x1| = {np.max(np.abs(sol.y[0])):.4f}"</span>)
+<span class="fn">print</span>(<span class="st">f"max |x2| = {np.max(np.abs(sol.y[1])):.4f}"</span>)</pre>
   </div>
 
   <!-- Cell 4 -->
-  <div class="code-card reveal" style="margin-bottom:32px">
+  <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
-      <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="code-lang">Python · Cell 4</span>
-      <span class="code-label">Forced Vibration Response (Harmonic Excitation)</span>
-    </div>
-    <div class="code-wrap">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 4 — Forced Vibration Response (Harmonic Excitation)</span>
+      <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">def f_forced(t, y, F0=10.0, Omega=8.0):
-    """Forced harmonic excitation di m1: F1(t) = F0·sin(Ω·t)."""
-    x = y[:2]
-    v = y[2:]
-    F = np.array([F0 * np.sin(Omega * t), 0])   # force on m1 only
-    a = M_inv @ (F - K @ x - C @ v)
-    return np.concatenate([v, a])
-
-y0 = [0, 0, 0, 0]   # start from rest
-t_eval = np.linspace(0, 10, 2000)
-
-sol = solve_ivp(f_forced, (0, 10), y0, t_eval=t_eval,
-                method='RK45', rtol=1e-8, args=(10.0, 8.0))
-
-fig, axes = plt.subplots(2, 1, figsize=(10, 6), sharex=True)
-axes[0].plot(sol.t, sol.y[0], color='#0ea5e9')
-axes[0].set_ylabel('x1 (m)'); axes[0].set_title('Forced Vibration: F1 = 10·sin(8t)')
-axes[0].grid(alpha=0.3)
-axes[1].plot(sol.t, sol.y[1], color='#f59e0b')
-axes[1].set_xlabel('t (s)'); axes[1].set_ylabel('x2 (m)')
-axes[1].grid(alpha=0.3)
-plt.tight_layout(); plt.show()
-
-# Steady-state magnitude (terakhir 2 detik)
-mask = sol.t > 8
-print(f"Steady-state |x1|_max = {np.max(np.abs(sol.y[0, mask])):.4f}")
-print(f"Steady-state |x2|_max = {np.max(np.abs(sol.y[1, mask])):.4f}")</code></pre>
     </div>
+    <pre><span class="kw">def</span> <span class="fn">f_forced</span>(t, y, F0=<span class="nm">10.0</span>, Omega=<span class="nm">8.0</span>):
+    <span class="st">"""Forced harmonic excitation di m1: F1(t) = F0·sin(Ω·t)."""</span>
+    x = y[:<span class="nm">2</span>]
+    v = y[<span class="nm">2</span>:]
+    F = np.<span class="fn">array</span>([F0 * np.<span class="fn">sin</span>(Omega * t), <span class="nm">0</span>])   <span class="cm"># force on m1 only</span>
+    a = M_inv @ (F - K @ x - C @ v)
+    <span class="kw">return</span> np.<span class="fn">concatenate</span>([v, a])
+
+y0 = [<span class="nm">0</span>, <span class="nm">0</span>, <span class="nm">0</span>, <span class="nm">0</span>]   <span class="cm"># start from rest</span>
+t_eval = np.<span class="fn">linspace</span>(<span class="nm">0</span>, <span class="nm">10</span>, <span class="nm">2000</span>)
+
+sol = <span class="fn">solve_ivp</span>(f_forced, (<span class="nm">0</span>, <span class="nm">10</span>), y0, t_eval=t_eval,
+                method=<span class="st">'RK45'</span>, rtol=<span class="nm">1e-8</span>, args=(<span class="nm">10.0</span>, <span class="nm">8.0</span>))
+
+fig, axes = plt.<span class="fn">subplots</span>(<span class="nm">2</span>, <span class="nm">1</span>, figsize=(<span class="nm">10</span>, <span class="nm">6</span>), sharex=<span class="kw">True</span>)
+axes[<span class="nm">0</span>].<span class="fn">plot</span>(sol.t, sol.y[<span class="nm">0</span>], color=<span class="st">'#0ea5e9'</span>)
+axes[<span class="nm">0</span>].<span class="fn">set_ylabel</span>(<span class="st">'x1 (m)'</span>); axes[<span class="nm">0</span>].<span class="fn">set_title</span>(<span class="st">'Forced Vibration: F1 = 10·sin(8t)'</span>)
+axes[<span class="nm">0</span>].<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>)
+axes[<span class="nm">1</span>].<span class="fn">plot</span>(sol.t, sol.y[<span class="nm">1</span>], color=<span class="st">'#f59e0b'</span>)
+axes[<span class="nm">1</span>].<span class="fn">set_xlabel</span>(<span class="st">'t (s)'</span>); axes[<span class="nm">1</span>].<span class="fn">set_ylabel</span>(<span class="st">'x2 (m)'</span>)
+axes[<span class="nm">1</span>].<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>)
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
+
+<span class="cm"># Steady-state magnitude (terakhir 2 detik)</span>
+mask = sol.t &gt; <span class="nm">8</span>
+<span class="fn">print</span>(<span class="st">f"Steady-state |x1|_max = {np.max(np.abs(sol.y[0, mask])):.4f}"</span>)
+<span class="fn">print</span>(<span class="st">f"Steady-state |x2|_max = {np.max(np.abs(sol.y[1, mask])):.4f}"</span>)</pre>
   </div>
 
   <div class="info-box reveal">
