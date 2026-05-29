@@ -2608,7 +2608,7 @@ plt.<span class="fn">show</span>()
         <div class="comp-q">Pipa silinder berongga: dinding dalam R₁ = 0.05 m bertemperatur T₁ = 200°C, dinding luar R₂ = 0.10 m bertemperatur T₂ = 40°C. Profil temperatur tunak <code>r²T'' + rT' = 0</code> → <code>T(r) = T₁ + (T₂−T₁)·ln(r/R₁)/ln(R₂/R₁)</code>. Hitung <strong>T pada r = 0.075 m</strong> (tengah dinding).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>T = 200 + (40-200)*np.log(0.075/0.05)/np.log(0.10/0.05)</code>. Nilai ≈ 106.4°C (logaritmik, bukan 120°C linier!).</div>
+      <div class="comp-hint">💡 Distribusi suhu radial silinder bersifat logaritmik: <code>T(r) = T₁ + (T₂−T₁)·ln(r/r₁)/ln(r₂/r₁)</code>; substitusikan radius yang diminta lalu evaluasi.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">T(r=0.075m) [°C]</strong></span></div>
         <textarea class="code-textarea" id="code-c9" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c9')"></textarea>
@@ -2625,7 +2625,7 @@ plt.<span class="fn">show</span>()
         <div class="comp-q">Untuk PD Euler-Cauchy <code>x²y'' + 6xy' + 9y = 0</code>, tentukan <strong>jenis kasus akar</strong>: cetak <code>1</code> untuk akar real berbeda, <code>2</code> untuk akar berulang, <code>3</code> untuk akar kompleks konjugat. Gunakan diskriminan <code>D = (b−a)² − 4ac</code>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 a=1, b=6, c=9 → D = (6−1)² − 4·1·9 = 25 − 36 = −11 &lt; 0 → akar kompleks → kode <code>3</code>. Gunakan if/elif/else.</div>
+      <div class="comp-hint">💡 Klasifikasikan tipe akar persamaan indeks dari tanda diskriminan <code>(b−a)² − 4ac</code> memakai if/elif/else, lalu keluarkan kode yang sesuai.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">kode kasus (1, 2, atau 3)</strong></span></div>
         <textarea class="code-textarea" id="code-c10" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c10')"></textarea>
@@ -2655,7 +2655,7 @@ plt.<span class="fn">show</span>()
         <div class="comp-q">Selesaikan IVP Euler-Cauchy <strong>secara numerik</strong> via substitusi <code>t = ln x</code>: PD ref <code>x²y'' − 2xy' − 4y = 0</code> dengan <code>y(1)=2, y'(1)=−3</code>. Reduksi ke <code>Ÿ + (b−a)·Ẏ + c·Y = 0</code>, gunakan <code>scipy.integrate.solve_ivp</code> di domain t, lalu evaluasi <code>y(3) = Y(ln 3)</code>. Cetak <strong>y(3)</strong> (harus ≈ −15.467).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 a=1, b=−2, c=−4 → koef konstan PD <code>Ÿ − 3·Ẏ − 4·Y = 0</code>. IVP di t=0: <code>Y(0)=y(1)=2</code>, <code>Ẏ(0) = e<sup>0</sup>·y'(1) = −3</code>. <code>solve_ivp(f, [0, np.log(3)], [2, -3], dense_output=True, rtol=1e-10).sol(np.log(3))[0]</code>.</div>
+      <div class="comp-hint">💡 Substitusi t=ln x mengubah Euler-Cauchy menjadi PD koefisien konstan; ubah ke sistem orde-1, integrasikan dengan <code>solve_ivp</code> sampai t yang sesuai dengan x yang diminta.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">y(3) hasil scipy</strong></span></div>
         <textarea class="code-textarea" id="code-c11" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi&#10;&#10;Template:&#10;from scipy.integrate import solve_ivp&#10;import numpy as np&#10;# Ÿ + (b-a)·Ẏ + c·Y = 0  →  Ÿ − 3Ẏ − 4Y = 0&#10;def f(t, Y):&#10;    return [Y[1], 3*Y[1] + 4*Y[0]]&#10;t_target = np.log(3)&#10;sol = solve_ivp(f, [0, t_target], [2, -3], dense_output=True, rtol=1e-10)&#10;print(f'y(3) = {sol.sol(t_target)[0]:.4f}')" oninput="onCodeInput('c11')"></textarea>
@@ -2672,7 +2672,7 @@ plt.<span class="fn">show</span>()
         <div class="comp-q">Verifikasi solusi Euler-Cauchy <strong>kasus akar berulang</strong> dengan SymPy: PD <code>x²y'' + 5xy' + 4y = 0</code>, IVP <code>y(1)=3, y'(1)=−4</code>. Gunakan <code>sympy.dsolve</code> dengan ICS, lalu <code>lambdify</code> untuk evaluasi <strong>y(e)</strong> = y(2.71828). Hasil ≈ 0.6767.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>x = sp.symbols('x', positive=True)</code>; <code>y = sp.Function('y')</code>; <code>eq = sp.Eq(x**2*y(x).diff(x,2) + 5*x*y(x).diff(x) + 4*y(x), 0)</code>; <code>sol = sp.dsolve(eq, y(x), ics={y(1):3, y(x).diff(x).subs(x,1):-4})</code>; <code>f = sp.lambdify(x, sol.rhs)</code>; <code>print(float(f(np.e)))</code>. Solusi: <code>y(x) = (3 + 2 ln x)/x²</code>.</div>
+      <div class="comp-hint">💡 Susun PD sebagai persamaan SymPy, selesaikan dengan <code>sp.dsolve</code> beserta <code>ics</code> dari syarat awal, ubah ke fungsi numerik via <code>sp.lambdify</code>, lalu evaluasi di titik yang diminta.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">y(e)</strong></span></div>
         <textarea class="code-textarea" id="code-c12" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c12')"></textarea>
@@ -2689,7 +2689,7 @@ plt.<span class="fn">show</span>()
         <div class="comp-q">Gunakan <code>numpy.roots</code> untuk mencari akar persamaan karakteristik Euler-Cauchy <code>x²y'' + xy' + 4y = 0</code>. Karakteristiknya: <code>m² + 4 = 0</code> (dari <code>m² + (b−a)m + c</code> dengan b=1, a=1, c=4). Ekstrak <strong>nilai β</strong> = bagian imag positif dari akar kompleks.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>roots = np.roots([1, 0, 4])</code> return [+2j, −2j]. Filter dengan <code>.imag &gt; 0</code> atau <code>max(abs(r.imag) for r in roots)</code>.</div>
+      <div class="comp-hint">💡 Pakai <code>np.roots</code> pada koefisien persamaan indeks, lalu ambil besar bagian imajiner dari akar kompleksnya.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">β (bagian imag absolut)</strong></span></div>
         <textarea class="code-textarea" id="code-c13" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c13')"></textarea>
@@ -2706,7 +2706,7 @@ plt.<span class="fn">show</span>()
         <div class="comp-q">Gunakan <strong>SymPy dsolve</strong> untuk verifikasi simbolik solusi Euler-Cauchy referensi: <code>x²y'' − 2xy' − 4y = 0</code>. Setelah dsolve menghasilkan <code>y = C₁·x⁴ + C₂/x</code>, substitusi C₁ = 1, C₂ = 1, lalu evaluasi <strong>y(2)</strong> dengan <code>lambdify</code>. Hasil = 16 + 0.5 = 16.5.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>import sympy as sp; x = sp.symbols('x', positive=True); y_expr = x**4 + 1/x; f = sp.lambdify(x, y_expr); print(float(f(2)))</code>. Atau lebih lengkap pakai <code>sp.dsolve</code> dan substitusi konstanta hasilnya.</div>
+      <div class="comp-hint">💡 Bentuk solusi sebagai ekspresi SymPy (atau via <code>sp.dsolve</code> dengan konstanta dari syarat awal), ubah ke fungsi numerik dengan <code>sp.lambdify</code>, lalu evaluasi di titik yang diminta.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">y(2)</strong></span></div>
         <textarea class="code-textarea" id="code-c14" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c14')"></textarea>
@@ -2723,7 +2723,7 @@ plt.<span class="fn">show</span>()
         <div class="comp-q">Pipa uap industri dengan dinding dalam R₁=0.05 m, dinding luar R₂=0.10 m, T₁=200°C, T₂=40°C. Konduktivitas termal k=15 W/(m·K), panjang L=1 m. PD radial <code>r²T'' + rT' = 0</code> menghasilkan solusi <code>T(r) = T₁ + c₂·ln(r/R₁)</code> dengan <code>c₂ = (T₂−T₁)/ln(R₂/R₁)</code>. Hitung <strong>laju kehilangan panas total Q</strong> (Watt) menggunakan rumus <code>Q = −2π·k·L·c₂</code>.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>import numpy as np</code>. <code>c2 = (40 - 200) / np.log(0.10 / 0.05) = -230.83</code>. <code>Q = -2 * np.pi * 15 * 1 * c2 ≈ 21755 W</code>. Inilah aplikasi Euler-Cauchy ke desain isolasi pipa uap industri.</div>
+      <div class="comp-hint">💡 Tentukan konstanta distribusi suhu logaritmik dari syarat batas, lalu hitung laju kalor radial dengan <code>Q = −2π k L · c₂</code> (hukum Fourier untuk silinder).</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">Q (Watt)</strong></span></div>
         <textarea class="code-textarea" id="code-c15" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c15')"></textarea>

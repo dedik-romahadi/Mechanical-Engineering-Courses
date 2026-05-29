@@ -2037,7 +2037,7 @@ from scipy.optimize import linprog
         <div class="comp-q">Selesaikan LP 1D sederhana: <strong>max Z = 5x</strong> s.t. <code>2x ≤ 10</code>, <code>x ≥ 0</code>. Print nilai <strong>Z optimal</strong>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>c = [-5]; A_ub = [[2]]; b_ub = [10]; res = linprog(c, A_ub=A_ub, b_ub=b_ub, bounds=[(0, None)])</code>. Solusi: x* = 5, Z = 5·5 = <strong>25</strong>. Cetak <code>-res.fun</code>.</div>
+      <div class="comp-hint">💡 <code>linprog</code> meminimalkan, jadi untuk maksimisasi negasikan vektor c; nilai Z optimal didapat dari <code>-res.fun</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">Z optimal</strong></span></div>
         <textarea class="code-textarea" id="code-c1" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi&#10;&#10;Contoh:&#10;from scipy.optimize import linprog&#10;c = [-5]&#10;A_ub = [[2]]&#10;b_ub = [10]&#10;res = linprog(c, A_ub=A_ub, b_ub=b_ub, bounds=[(0, None)])&#10;print(f'{-res.fun:.4f}')" oninput="onCodeInput('c1')"></textarea>
@@ -2054,7 +2054,7 @@ from scipy.optimize import linprog
         <div class="comp-q">Pabrik bracket 2-produk: <strong>max Z = 40x_A + 30x_B</strong> s.t. <code>2x_A + x_B ≤ 60</code> (CNC), <code>x_A + 3x_B ≤ 80</code> (welding), <code>x ≥ 0</code>. Selesaikan dengan linprog dan print <strong>Z optimal</strong> (Rp k).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Solusi vertex (20, 20): Z = 40·20 + 30·20 = 800 + 600 = <strong>1400</strong>. Pakai <code>c = [-40, -30]; A_ub = [[2,1],[1,3]]; b_ub = [60, 80]</code>.</div>
+      <div class="comp-hint">💡 Susun c (negasi karena maksimisasi), A_ub dari koefisien kendala, dan b_ub dari batas kapasitas; ambil Z dari <code>-res.fun</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">Z optimal</strong></span></div>
         <textarea class="code-textarea" id="code-c2" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c2')"></textarea>
@@ -2071,7 +2071,7 @@ from scipy.optimize import linprog
         <div class="comp-q">Untuk LP yang sama dengan C2, print <strong>x_A optimal</strong> (jumlah unit Bracket A).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Vertex optimal terjadi di perpotongan kendala CNC &amp; Welding (binding). Sistem: <code>2x_A + x_B = 60, x_A + 3x_B = 80</code> → kalikan persamaan 1 dengan 3, kurangi: <code>5x_A = 100</code> → x_A = <strong>20</strong>. Cetak <code>res.x[0]</code>.</div>
+      <div class="comp-hint">💡 Vertex optimal terjadi di perpotongan kedua kendala binding (CNC &amp; welding); nilai x_A diambil dari elemen pertama <code>res.x</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">x_A optimal</strong></span></div>
         <textarea class="code-textarea" id="code-c3" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c3')"></textarea>
@@ -2088,7 +2088,7 @@ from scipy.optimize import linprog
         <div class="comp-q">LP minimisasi diet: <strong>min Z = 2x₁ + 3x₂</strong> (biaya per unit) s.t. <code>x₁ + 2x₂ ≥ 10</code> (protein), <code>3x₁ + x₂ ≥ 15</code> (kalori), <code>x ≥ 0</code>. Print <strong>Z minimum</strong>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Konversi ≥ jadi ≤ dengan negasi: <code>A_ub = [[-1,-2],[-3,-1]], b_ub = [-10,-15]</code>. <code>c = [2, 3]</code> langsung (tanpa negasi karena sudah min). Solusi: x* = (4, 3), Z = 2·4 + 3·3 = <strong>17</strong>.</div>
+      <div class="comp-hint">💡 Konversi kendala ≥ menjadi ≤ dengan menegasikan kedua sisi; karena ini minimisasi, c dipakai langsung tanpa negasi dan Z = <code>res.fun</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">Z minimum</strong></span></div>
         <textarea class="code-textarea" id="code-c4" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c4')"></textarea>
@@ -2105,7 +2105,7 @@ from scipy.optimize import linprog
         <div class="comp-q">LP 3 variabel: <strong>max Z = 10x₁ + 6x₂ + 4x₃</strong> s.t. <code>x₁ + x₂ + x₃ ≤ 100</code>, <code>10x₁ + 4x₂ + 5x₃ ≤ 600</code>, <code>2x₁ + 2x₂ + 6x₃ ≤ 300</code>, <code>x ≥ 0</code>. Print <strong>Z optimal</strong>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Klasik problem dari Hillier-Lieberman. Solusi optimum di vertex (33⅓, 66⅔, 0). <code>Z = 10·33.333 + 6·66.667 + 4·0 = 333.33 + 400.00 = <strong>733.33</strong></code> (atau dibulatkan 733.33).</div>
+      <div class="comp-hint">💡 Susun c (negasi untuk maksimisasi) dan tiga baris A_ub/b_ub dari kendala; serahkan ke <code>linprog</code> dan ambil Z dari <code>-res.fun</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">Z optimal</strong></span></div>
         <textarea class="code-textarea" id="code-c5" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c5')"></textarea>
@@ -2122,7 +2122,7 @@ from scipy.optimize import linprog
         <div class="comp-q"><strong>Slack di vertex optimal C2</strong> (pabrik bracket 2-produk): hitung slack kendala CNC <code>s_CNC = 60 − (2·x_A + x_B)</code> di solusi optimal x_A=20, x_B=20. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>s_CNC = 60 − (2·20 + 20) = 60 − 60 = <strong>0</strong></code>. Slack = 0 berarti kendala <em>binding</em> (sumber daya CNC habis terpakai). Bisa juga didapat lewat <code>res.ineqlin.residual[0]</code> langsung.</div>
+      <div class="comp-hint">💡 Slack = kapasitas − pemakaian di solusi optimal; slack = 0 berarti kendala binding. Bisa juga dibaca dari <code>res.ineqlin.residual</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">slack CNC</strong></span></div>
         <textarea class="code-textarea" id="code-c6" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c6')"></textarea>
@@ -2139,7 +2139,7 @@ from scipy.optimize import linprog
         <div class="comp-q">Hitung <strong>shadow price</strong> untuk kendala CNC pada masalah pabrik bracket 2-produk (C2). Pakai <code>res.ineqlin.marginals</code> lalu negasikan (karena scipy negasi internal). Print nilainya (Rp k/jam).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Sistem persamaan dual untuk LP ini: <code>2y₁+y₂=40, y₁+3y₂=30</code> → <code>y₁=18, y₂=4</code>. Shadow price kendala CNC = <strong>18</strong> (Rp 18k/jam). Artinya: tambahan 1 jam CNC menaikkan profit Rp 18k. Pakai <code>-res.ineqlin.marginals[0]</code>.</div>
+      <div class="comp-hint">💡 Shadow price = perubahan Z per unit kenaikan kapasitas kendala; baca dari <code>res.ineqlin.marginals</code> lalu negasikan karena konvensi internal scipy.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">shadow price CNC</strong></span></div>
         <textarea class="code-textarea" id="code-c7" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c7')"></textarea>
@@ -2156,7 +2156,7 @@ from scipy.optimize import linprog
         <div class="comp-q">LP dengan kendala equality: <strong>min Z = x₁ + 2x₂</strong> s.t. <code>x₁ + x₂ = 10</code>, <code>x₁ ≥ 0, x₂ ≥ 0</code>. Pakai parameter <code>A_eq, b_eq</code> di linprog. Print <strong>Z minimum</strong>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Karena ingin min Z = x₁ + 2x₂ dengan constraint x₁+x₂=10 dan keduanya ≥ 0, solusi optimal: maksimal-kan x₁ (koef kecil), minimum-kan x₂. → x₁=10, x₂=0, Z = <strong>10</strong>. Pakai <code>linprog(c=[1,2], A_eq=[[1,1]], b_eq=[10], bounds=[(0,None),(0,None)])</code>.</div>
+      <div class="comp-hint">💡 Gunakan parameter <code>A_eq</code> dan <code>b_eq</code> untuk kendala equality; karena minimisasi, solver memilih variabel berkoefisien kecil. Ambil Z dari <code>res.fun</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">Z minimum</strong></span></div>
         <textarea class="code-textarea" id="code-c8" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c8')"></textarea>
@@ -2173,7 +2173,7 @@ from scipy.optimize import linprog
         <div class="comp-q"><strong>Vertex enumeration manual</strong>: untuk LP <code>max Z = 3x₁ + 2x₂</code> s.t. <code>x₁ + x₂ ≤ 4</code>, <code>x₁ ≤ 3</code>, <code>x ≥ 0</code>. Vertex feasibel: (0,0), (3,0), (3,1), (0,4). Hitung <strong>Z maksimal</strong> dengan iterasi loop di Python.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Z di tiap vertex: (0,0)→0, (3,0)→9, (3,1)→11, (0,4)→8. Maks = <strong>11</strong>. Pakai <code>vertices = [(0,0),(3,0),(3,1),(0,4)]; Z_max = max(3*v[0]+2*v[1] for v in vertices)</code>.</div>
+      <div class="comp-hint">💡 Loop tiap vertex feasibel yang diberikan, evaluasi fungsi tujuan Z = 3x₁ + 2x₂, lalu ambil nilai maksimum dengan <code>max</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">Z max</strong></span></div>
         <textarea class="code-textarea" id="code-c9" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c9')"></textarea>
@@ -2190,7 +2190,7 @@ from scipy.optimize import linprog
         <div class="comp-q"><strong>Pabrik dengan bounds variabel</strong>: max Z = 5x₁ + 4x₂ s.t. <code>x₁ + x₂ ≤ 50</code>, <code>0 ≤ x₁ ≤ 20</code>, <code>0 ≤ x₂ ≤ 35</code>. Pakai parameter <code>bounds</code> di linprog. Print <strong>Z optimal</strong>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>bounds=[(0,20),(0,35)]; c=[-5,-4]; A_ub=[[1,1]]; b_ub=[50]</code>. Solusi optimal: x₁=20 (upper bound binding), x₂=30 (sisa 50−20). Z = 5·20 + 4·30 = 100 + 120 = <strong>220</strong>.</div>
+      <div class="comp-hint">💡 Masukkan batas atas/bawah variabel lewat parameter <code>bounds</code>; negasikan c untuk maksimisasi dan ambil Z dari <code>-res.fun</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">Z optimal</strong></span></div>
         <textarea class="code-textarea" id="code-c10" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c10')"></textarea>
@@ -2217,7 +2217,7 @@ from scipy.optimize import linprog
         <div class="comp-q"><strong>LP 4-Produk dengan 6 Kendala</strong>: max <code>Z = 30x₁ + 50x₂ + 40x₃ + 60x₄</code> s.t. CNC: <code>2x₁+3x₂+2.5x₃+4x₄ ≤ 200</code>; Welding: <code>x₁+2x₂+1.5x₃+3x₄ ≤ 150</code>; Painting: <code>0.5x₁+x₂+x₃+2x₄ ≤ 120</code>; Material: <code>5x₁+8x₂+6x₃+10x₄ ≤ 800</code>; <code>x₂ ≥ 5</code>; <code>x₄ ≤ 30</code>. Print <strong>Z optimal</strong>.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Pakai linprog HiGHS. <code>c=[-30,-50,-40,-60]</code>; baris ke-5 negasikan untuk <code>−x₂ ≤ −5</code>; baris ke-6 untuk <code>x₄ ≤ 30</code>. Solusi optimal sekitar x = (0, 18.75, 0, 30), Z ≈ <strong>2737.5</strong>.</div>
+      <div class="comp-hint">💡 Negasikan c untuk maksimisasi; kendala <code>x₂ ≥ 5</code> ditulis sebagai <code>−x₂ ≤ −5</code> dan <code>x₄ ≤ 30</code> sebagai baris biasa. Ambil Z dari <code>-res.fun</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">Z optimal</strong></span></div>
         <textarea class="code-textarea" id="code-c11" rows="14" placeholder="Paste kode lengkap LP 4 variabel, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c11')"></textarea>
@@ -2234,7 +2234,7 @@ from scipy.optimize import linprog
         <div class="comp-q"><strong>Transportation Problem</strong>: 2 gudang (kapasitas 30, 40) kirim ke 3 kota (demand 20, 25, 25). Cost matrix (Rp k per unit):<br><code>C = [[8, 6, 10], [9, 12, 13]]</code>. Variabel <code>xᵢⱼ</code> = unit dari gudang i ke kota j (6 variabel). Print <strong>total cost minimum</strong>.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Flatten C jadi vektor c = [8,6,10,9,12,13]. Kendala: 2 supply (≤) + 3 demand (=, balanced karena Σsupply = Σdemand = 70). Pakai <code>A_eq = [[1,1,1,0,0,0],[0,0,0,1,1,1]]</code> untuk supply (binding karena equality balanced) dan untuk demand. Solusi: x = (5, 25, 0, 15, 0, 25). Total = 8·5 + 6·25 + 10·0 + 9·15 + 12·0 + 13·25 = 40 + 150 + 135 + 325 = <strong>650</strong>.</div>
+      <div class="comp-hint">💡 Flatten cost matrix menjadi vektor c, susun baris kendala supply per gudang dan demand per kota; karena total supply = total demand, pakai kendala equality. Ambil biaya dari <code>res.fun</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">total cost minimum</strong></span></div>
         <textarea class="code-textarea" id="code-c12" rows="14" placeholder="Paste kode transportation LP, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c12')"></textarea>
@@ -2251,7 +2251,7 @@ from scipy.optimize import linprog
         <div class="comp-q"><strong>Blending Problem (Steel Alloy)</strong>: campur 3 raw material x₁,x₂,x₃ (harga Rp/kg: 10, 8, 12) untuk hasilkan 100 kg alloy. Kandungan karbon (%): [0.5, 0.3, 0.7]; target karbon ≥ 0.5%. Min total biaya. Print <strong>biaya minimum</strong> (Rp/100 kg).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>min Z = 10x₁+8x₂+12x₃</code> s.t. <code>x₁+x₂+x₃ = 100</code> (total weight), <code>0.5x₁+0.3x₂+0.7x₃ ≥ 50</code> (50% × 100kg karbon), <code>x ≥ 0</code>. Konversi ≥ jadi ≤ dengan negasi: <code>−0.5x₁−0.3x₂−0.7x₃ ≤ −50</code>. Solusi: x₁=100, x₂=0, x₃=0 → cost = <strong>1000</strong>. (Material 1 paling murah dan sudah cukup karbon).</div>
+      <div class="comp-hint">💡 Kendala total berat = 100 kg pakai equality; kendala karbon ≥ target dikonversi ke ≤ dengan negasi. Karena minimisasi, biaya diambil dari <code>res.fun</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">biaya minimum</strong></span></div>
         <textarea class="code-textarea" id="code-c13" rows="14" placeholder="Paste kode blending LP, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c13')"></textarea>
@@ -2268,7 +2268,7 @@ from scipy.optimize import linprog
         <div class="comp-q"><strong>Vertex enumerasi LP 2D otomatis</strong>: untuk LP <code>max Z = 4x₁ + 3x₂</code> s.t. <code>2x₁ + x₂ ≤ 8</code>, <code>x₁ + 2x₂ ≤ 8</code>, <code>x ≥ 0</code>: tulis algoritma yang (1) cari semua titik perpotongan tiap pasangan kendala (termasuk sumbu), (2) filter feasibel, (3) evaluasi Z di tiap vertex feasibel, (4) pilih max. Print <strong>Z optimal</strong>.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Constraint termasuk x₁=0 dan x₂=0. Solve <code>np.linalg.solve(A_pair, b_pair)</code> untuk tiap pasangan dari 4 garis (6 kombinasi). Filter: <code>x ≥ 0</code> dan <code>2x₁+x₂ ≤ 8+ε</code>, <code>x₁+2x₂ ≤ 8+ε</code>. Vertex feasibel: (0,0), (4,0), (8/3, 8/3), (0,4). Z di (8/3, 8/3) = 4·8/3 + 3·8/3 = 56/3 ≈ <strong>18.67</strong>.</div>
+      <div class="comp-hint">💡 Cari titik perpotongan tiap pasang garis kendala (termasuk sumbu) dengan <code>np.linalg.solve</code>, filter yang feasibel, lalu evaluasi Z di tiap vertex dan ambil maksimum.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">Z max via vertex enum</strong></span></div>
         <textarea class="code-textarea" id="code-c14" rows="16" placeholder="Paste kode vertex enumeration, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c14')"></textarea>
@@ -2285,7 +2285,7 @@ from scipy.optimize import linprog
         <div class="comp-q"><strong>Sensitivity Analysis</strong>: untuk pabrik bracket 2-produk (C2: max 40x_A+30x_B, kendala CNC ≤ 60, Welding ≤ 80, x ≥ 0). Hitung <strong>perubahan Z optimal</strong> kalau kapasitas CNC ditambah dari 60 → 65 (lebih 5 jam). Bandingkan dengan prediksi shadow price (5·18 = 90). Print Z_baru − Z_lama.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Solve LP awal, dapat Z_lama = 1400. Solve LP baru dengan <code>b_ub=[65, 80]</code>, dapat Z_baru = 1490. Selisih = <strong>90</strong>. Cocok dengan prediksi shadow price dual·Δb = 18·5 = 90 ✓ (asumsi Δb dalam sensitivity range). Inilah validasi sensitivity analysis.</div>
+      <div class="comp-hint">💡 Selesaikan LP dua kali (kapasitas CNC lama vs baru), lalu hitung selisih Z; bandingkan dengan prediksi shadow price × Δb sebagai validasi sensitivity analysis.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">ΔZ (= 90)</strong></span></div>
         <textarea class="code-textarea" id="code-c15" rows="16" placeholder="Paste kode sensitivity analysis, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c15')"></textarea>
