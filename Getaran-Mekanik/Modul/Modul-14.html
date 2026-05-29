@@ -1363,174 +1363,164 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <p class="section-desc reveal">Empat cell Python berikut mengimplementasikan workflow Condition Monitoring lengkap end-to-end: load &amp; preprocess data (Cell 1), full feature extraction (Cell 2), trend analysis &amp; alarm logic (Cell 3), simple RUL estimation (Cell 4). Pattern ini foundational untuk implementasi production system.</p>
 
   <!-- Cell 1 -->
-  <div class="code-card reveal" style="margin-bottom:32px">
+  <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
-      <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="code-lang">Python · Cell 1</span>
-      <span class="code-label">Simulate Bearing Degradation Time Series (8 weeks)</span>
-    </div>
-    <div class="code-wrap">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 1 — Simulate Bearing Degradation Time Series (8 weeks)</span>
+      <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">import numpy as np
-
-# Simulate 8 weeks of daily measurements (56 days)
-n_days = 56
-np.random.seed(42)
-
-# Linearly degrading defect intensity over time
-defect_intensity = np.linspace(0.1, 4.0, n_days)
-# Add noise and exponential acceleration in last 2 weeks
-defect_intensity[-14:] *= 1 + 0.3*np.arange(14)  # accelerated growth
-
-fs = 25600.0
-T = 1.0   # 1 sec buffer per measurement
-N = int(fs * T)
-t = np.arange(N) / fs
-
-# Storage for all daily snapshots
-daily_signals = []
-f_BPFO = 100.0  # Hz
-f_resonance = 5000.0
-f_shaft = 30.0  # Hz
-
-for day in range(n_days):
-    # Background machinery vibration
-    bg = (1.5 * np.sin(2*np.pi*f_shaft*t) + 0.4*np.sin(2*np.pi*2*f_shaft*t)
-          + 0.3*np.random.randn(N))
-    # Bearing fault impulse train (intensity grows over time)
-    impulses = np.zeros(N)
-    for k in range(int(T * f_BPFO)):
-        idx = int(k / f_BPFO * fs)
-        if idx < N - 200:
-            decay = np.exp(-np.arange(200) * 0.02)
-            impulses[idx:idx+200] += defect_intensity[day] * decay * np.sin(2*np.pi*f_resonance*np.arange(200)/fs)
-    daily_signals.append(bg + impulses)
-
-print(f"Generated {n_days} days of bearing signals (1 sec each)")
-print(f"Defect intensity grew from {defect_intensity[0]:.2f} to {defect_intensity[-1]:.2f}")</code></pre>
     </div>
+    <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="cm"># Simulate 8 weeks of daily measurements (56 days)</span>
+n_days = <span class="nm">56</span>
+np.random.<span class="fn">seed</span>(<span class="nm">42</span>)
+
+<span class="cm"># Linearly degrading defect intensity over time</span>
+defect_intensity = np.<span class="fn">linspace</span>(<span class="nm">0.1</span>, <span class="nm">4.0</span>, n_days)
+<span class="cm"># Add noise and exponential acceleration in last 2 weeks</span>
+defect_intensity[-<span class="nm">14</span>:] *= <span class="nm">1</span> + <span class="nm">0.3</span>*np.<span class="fn">arange</span>(<span class="nm">14</span>)  <span class="cm"># accelerated growth</span>
+
+fs = <span class="nm">25600.0</span>
+T = <span class="nm">1.0</span>   <span class="cm"># 1 sec buffer per measurement</span>
+N = <span class="fn">int</span>(fs * T)
+t = np.<span class="fn">arange</span>(N) / fs
+
+<span class="cm"># Storage for all daily snapshots</span>
+daily_signals = []
+f_BPFO = <span class="nm">100.0</span>  <span class="cm"># Hz</span>
+f_resonance = <span class="nm">5000.0</span>
+f_shaft = <span class="nm">30.0</span>  <span class="cm"># Hz</span>
+
+<span class="kw">for</span> day <span class="kw">in</span> <span class="fn">range</span>(n_days):
+    <span class="cm"># Background machinery vibration</span>
+    bg = (<span class="nm">1.5</span> * np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*f_shaft*t) + <span class="nm">0.4</span>*np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*<span class="nm">2</span>*f_shaft*t)
+          + <span class="nm">0.3</span>*np.random.<span class="fn">randn</span>(N))
+    <span class="cm"># Bearing fault impulse train (intensity grows over time)</span>
+    impulses = np.<span class="fn">zeros</span>(N)
+    <span class="kw">for</span> k <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">int</span>(T * f_BPFO)):
+        idx = <span class="fn">int</span>(k / f_BPFO * fs)
+        <span class="kw">if</span> idx &lt; N - <span class="nm">200</span>:
+            decay = np.<span class="fn">exp</span>(-np.<span class="fn">arange</span>(<span class="nm">200</span>) * <span class="nm">0.02</span>)
+            impulses[idx:idx+<span class="nm">200</span>] += defect_intensity[day] * decay * np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*f_resonance*np.<span class="fn">arange</span>(<span class="nm">200</span>)/fs)
+    daily_signals.<span class="fn">append</span>(bg + impulses)
+
+<span class="fn">print</span>(<span class="st">f"Generated {n_days} days of bearing signals (1 sec each)"</span>)
+<span class="fn">print</span>(<span class="st">f"Defect intensity grew from {defect_intensity[0]:.2f} to {defect_intensity[-1]:.2f}"</span>)</pre>
   </div>
 
   <!-- Cell 2 -->
-  <div class="code-card reveal" style="margin-bottom:32px">
+  <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
-      <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="code-lang">Python · Cell 2</span>
-      <span class="code-label">Extract 5 Features per Day (Multi-Feature Health)</span>
-    </div>
-    <div class="code-wrap">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 2 — Extract 5 Features per Day (Multi-Feature Health)</span>
+      <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">from scipy.signal import butter, filtfilt, hilbert
-
-def extract_features(x, fs):
-    """Return dict: rms, peak, crest, kurtosis, envelope_BPFO_amp."""
-    x = x - x.mean()
-    rms = np.sqrt(np.mean(x**2))
-    peak = np.max(np.abs(x))
-    crest = peak / rms if rms > 0 else 0
-    kurt = np.mean((x/rms)**4) if rms > 0 else 0
-
-    # Envelope analysis untuk BPFO amplitude
-    nyq = fs/2
-    b, a = butter(4, [3000/nyq, 7000/nyq], btype='band')
-    x_bp = filtfilt(b, a, x)
-    env = np.abs(hilbert(x_bp))
-    env -= env.mean()
-    ENV = np.fft.rfft(env)
-    freqs = np.fft.rfftfreq(len(env), d=1/fs)
-    mag_env = np.abs(ENV) * 2 / len(env)
-    bpfo_mask = (freqs > 95) & (freqs < 105)
-    bpfo_amp = mag_env[bpfo_mask].max() if bpfo_mask.any() else 0
-    return {'rms': rms, 'peak': peak, 'crest': crest,
-            'kurtosis': kurt, 'bpfo_amp': bpfo_amp}
-
-# Extract features for all days
-features_log = [extract_features(daily_signals[d], fs) for d in range(n_days)]
-print(f"{'Day':<5}{'RMS':>8}{'Peak':>8}{'Crest':>8}{'Kurt':>8}{'BPFO':>10}")
-for i in [0, 14, 28, 42, 55]:
-    f = features_log[i]
-    print(f"{i:<5}{f['rms']:>8.3f}{f['peak']:>8.3f}{f['crest']:>8.3f}{f['kurtosis']:>8.3f}{f['bpfo_amp']:>10.3f}")</code></pre>
     </div>
+    <pre><span class="kw">from</span> scipy.signal <span class="kw">import</span> butter, filtfilt, hilbert
+
+<span class="kw">def</span> <span class="fn">extract_features</span>(x, fs):
+    <span class="st">"""Return dict: rms, peak, crest, kurtosis, envelope_BPFO_amp."""</span>
+    x = x - x.<span class="fn">mean</span>()
+    rms = np.<span class="fn">sqrt</span>(np.<span class="fn">mean</span>(x**<span class="nm">2</span>))
+    peak = np.<span class="fn">max</span>(np.<span class="fn">abs</span>(x))
+    crest = peak / rms <span class="kw">if</span> rms &gt; <span class="nm">0</span> <span class="kw">else</span> <span class="nm">0</span>
+    kurt = np.<span class="fn">mean</span>((x/rms)**<span class="nm">4</span>) <span class="kw">if</span> rms &gt; <span class="nm">0</span> <span class="kw">else</span> <span class="nm">0</span>
+
+    <span class="cm"># Envelope analysis untuk BPFO amplitude</span>
+    nyq = fs/<span class="nm">2</span>
+    b, a = <span class="fn">butter</span>(<span class="nm">4</span>, [<span class="nm">3000</span>/nyq, <span class="nm">7000</span>/nyq], btype=<span class="st">'band'</span>)
+    x_bp = <span class="fn">filtfilt</span>(b, a, x)
+    env = np.<span class="fn">abs</span>(<span class="fn">hilbert</span>(x_bp))
+    env -= env.<span class="fn">mean</span>()
+    ENV = np.fft.<span class="fn">rfft</span>(env)
+    freqs = np.fft.<span class="fn">rfftfreq</span>(<span class="fn">len</span>(env), d=<span class="nm">1</span>/fs)
+    mag_env = np.<span class="fn">abs</span>(ENV) * <span class="nm">2</span> / <span class="fn">len</span>(env)
+    bpfo_mask = (freqs &gt; <span class="nm">95</span>) &amp; (freqs &lt; <span class="nm">105</span>)
+    bpfo_amp = mag_env[bpfo_mask].<span class="fn">max</span>() <span class="kw">if</span> bpfo_mask.<span class="fn">any</span>() <span class="kw">else</span> <span class="nm">0</span>
+    <span class="kw">return</span> {<span class="st">'rms'</span>: rms, <span class="st">'peak'</span>: peak, <span class="st">'crest'</span>: crest,
+            <span class="st">'kurtosis'</span>: kurt, <span class="st">'bpfo_amp'</span>: bpfo_amp}
+
+<span class="cm"># Extract features for all days</span>
+features_log = [<span class="fn">extract_features</span>(daily_signals[d], fs) <span class="kw">for</span> d <span class="kw">in</span> <span class="fn">range</span>(n_days)]
+<span class="fn">print</span>(<span class="st">f"{'Day':&lt;5}{'RMS':&gt;8}{'Peak':&gt;8}{'Crest':&gt;8}{'Kurt':&gt;8}{'BPFO':&gt;10}"</span>)
+<span class="kw">for</span> i <span class="kw">in</span> [<span class="nm">0</span>, <span class="nm">14</span>, <span class="nm">28</span>, <span class="nm">42</span>, <span class="nm">55</span>]:
+    f = features_log[i]
+    <span class="fn">print</span>(<span class="st">f"{i:&lt;5}{f['rms']:&gt;8.3f}{f['peak']:&gt;8.3f}{f['crest']:&gt;8.3f}{f['kurtosis']:&gt;8.3f}{f['bpfo_amp']:&gt;10.3f}"</span>)</pre>
   </div>
 
   <!-- Cell 3 -->
-  <div class="code-card reveal" style="margin-bottom:32px">
+  <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
-      <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="code-lang">Python · Cell 3</span>
-      <span class="code-label">Trend Analysis &amp; Alarm Logic</span>
-    </div>
-    <div class="code-wrap">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 3 — Trend Analysis &amp; Alarm Logic</span>
+      <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">import matplotlib.pyplot as plt
+    </div>
+    <pre><span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
 
-# Convert log to numpy arrays for trending
-days = np.arange(n_days)
-rms_trend = np.array([f['rms'] for f in features_log])
-bpfo_trend = np.array([f['bpfo_amp'] for f in features_log])
-kurt_trend = np.array([f['kurtosis'] for f in features_log])
+<span class="cm"># Convert log to numpy arrays for trending</span>
+days = np.<span class="fn">arange</span>(n_days)
+rms_trend = np.<span class="fn">array</span>([f[<span class="st">'rms'</span>] <span class="kw">for</span> f <span class="kw">in</span> features_log])
+bpfo_trend = np.<span class="fn">array</span>([f[<span class="st">'bpfo_amp'</span>] <span class="kw">for</span> f <span class="kw">in</span> features_log])
+kurt_trend = np.<span class="fn">array</span>([f[<span class="st">'kurtosis'</span>] <span class="kw">for</span> f <span class="kw">in</span> features_log])
 
-# Define alarm thresholds (ISO 10816 + envelope-specific)
-RMS_ALARM = 2.8        # zone B-C boundary (mm/s)
-BPFO_ALARM = 0.5       # envelope threshold
-KURT_ALARM = 8.0       # impulsive defect
+<span class="cm"># Define alarm thresholds (ISO 10816 + envelope-specific)</span>
+RMS_ALARM = <span class="nm">2.8</span>        <span class="cm"># zone B-C boundary (mm/s)</span>
+BPFO_ALARM = <span class="nm">0.5</span>       <span class="cm"># envelope threshold</span>
+KURT_ALARM = <span class="nm">8.0</span>       <span class="cm"># impulsive defect</span>
 
 alarms = {
-    'rms': days[rms_trend > RMS_ALARM],
-    'bpfo': days[bpfo_trend > BPFO_ALARM],
-    'kurt': days[kurt_trend > KURT_ALARM],
+    <span class="st">'rms'</span>: days[rms_trend &gt; RMS_ALARM],
+    <span class="st">'bpfo'</span>: days[bpfo_trend &gt; BPFO_ALARM],
+    <span class="st">'kurt'</span>: days[kurt_trend &gt; KURT_ALARM],
 }
 
-print(f"RMS alarm first triggered: day {alarms['rms'][0] if len(alarms['rms']) else '—'}")
-print(f"BPFO alarm first triggered: day {alarms['bpfo'][0] if len(alarms['bpfo']) else '—'}")
-print(f"Kurtosis alarm first triggered: day {alarms['kurt'][0] if len(alarms['kurt']) else '—'}")
-print("
-Kurtosis & BPFO biasanya alarm lebih dahulu daripada RMS — early warning.")</code></pre>
-    </div>
+<span class="fn">print</span>(<span class="st">f"RMS alarm first triggered: day {alarms['rms'][0] if len(alarms['rms']) else '—'}"</span>)
+<span class="fn">print</span>(<span class="st">f"BPFO alarm first triggered: day {alarms['bpfo'][0] if len(alarms['bpfo']) else '—'}"</span>)
+<span class="fn">print</span>(<span class="st">f"Kurtosis alarm first triggered: day {alarms['kurt'][0] if len(alarms['kurt']) else '—'}"</span>)
+<span class="fn">print</span>(<span class="st">"\nKurtosis &amp; BPFO biasanya alarm lebih dahulu daripada RMS — early warning."</span>)</pre>
   </div>
 
   <!-- Cell 4 -->
-  <div class="code-card reveal" style="margin-bottom:32px">
+  <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
-      <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="code-lang">Python · Cell 4</span>
-      <span class="code-label">Simple RUL Estimation (Linear Extrapolation)</span>
-    </div>
-    <div class="code-wrap">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 4 — Simple RUL Estimation (Linear Extrapolation)</span>
+      <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python"># Simple RUL: linear regression terakhir 14 hari, extrapolate ke critical threshold
-RUL_THRESHOLD = 4.5    # zone D RMS
-recent_days = days[-14:]
-recent_rms = rms_trend[-14:]
-slope, intercept = np.polyfit(recent_days, recent_rms, 1)
-
-# Extrapolate
-days_to_threshold = (RUL_THRESHOLD - intercept) / slope
-RUL_days = days_to_threshold - days[-1]
-
-# Plot trends + threshold + RUL projection
-fig, ax = plt.subplots(figsize=(11, 5.5))
-ax.plot(days, rms_trend, 'o-', color='#0ea5e9', label='RMS')
-ax.axhline(RMS_ALARM, color='orange', ls='--', alpha=0.7, label=f'Alarm zone B/C ({RMS_ALARM} mm/s)')
-ax.axhline(RUL_THRESHOLD, color='red', ls='--', alpha=0.7, label=f'Critical zone D ({RUL_THRESHOLD} mm/s)')
-
-# Projection to threshold
-proj_days = np.arange(days[-1], days_to_threshold + 5)
-proj_rms = slope*proj_days + intercept
-ax.plot(proj_days, proj_rms, ':', color='red', lw=2, label=f'RUL projection: ~{int(RUL_days)} hari')
-ax.axvline(days_to_threshold, color='red', alpha=0.3)
-
-ax.set_xlabel('Hari'); ax.set_ylabel('RMS Velocity (mm/s)')
-ax.set_title(f'Bearing Degradation Trend &amp; RUL Estimation (RUL = {int(RUL_days)} hari)')
-ax.legend(); ax.grid(alpha=0.3)
-plt.tight_layout(); plt.show()
-
-print(f"
-Final status:")
-print(f"  Current RMS: {rms_trend[-1]:.2f} mm/s ({(rms_trend[-1] / RMS_ALARM):.1f}× alarm)")
-print(f"  Estimated RUL: ~{int(RUL_days)} days until zone D")
-print(f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days (safety margin)")</code></pre>
     </div>
+    <pre><span class="cm"># Simple RUL: linear regression terakhir 14 hari, extrapolate ke critical threshold</span>
+RUL_THRESHOLD = <span class="nm">4.5</span>    <span class="cm"># zone D RMS</span>
+recent_days = days[-<span class="nm">14</span>:]
+recent_rms = rms_trend[-<span class="nm">14</span>:]
+slope, intercept = np.<span class="fn">polyfit</span>(recent_days, recent_rms, <span class="nm">1</span>)
+
+<span class="cm"># Extrapolate</span>
+days_to_threshold = (RUL_THRESHOLD - intercept) / slope
+RUL_days = days_to_threshold - days[-<span class="nm">1</span>]
+
+<span class="cm"># Plot trends + threshold + RUL projection</span>
+fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="nm">11</span>, <span class="nm">5.5</span>))
+ax.<span class="fn">plot</span>(days, rms_trend, <span class="st">'o-'</span>, color=<span class="st">'#0ea5e9'</span>, label=<span class="st">'RMS'</span>)
+ax.<span class="fn">axhline</span>(RMS_ALARM, color=<span class="st">'orange'</span>, ls=<span class="st">'--'</span>, alpha=<span class="nm">0.7</span>, label=<span class="st">f'Alarm zone B/C ({RMS_ALARM} mm/s)'</span>)
+ax.<span class="fn">axhline</span>(RUL_THRESHOLD, color=<span class="st">'red'</span>, ls=<span class="st">'--'</span>, alpha=<span class="nm">0.7</span>, label=<span class="st">f'Critical zone D ({RUL_THRESHOLD} mm/s)'</span>)
+
+<span class="cm"># Projection to threshold</span>
+proj_days = np.<span class="fn">arange</span>(days[-<span class="nm">1</span>], days_to_threshold + <span class="nm">5</span>)
+proj_rms = slope*proj_days + intercept
+ax.<span class="fn">plot</span>(proj_days, proj_rms, <span class="st">':'</span>, color=<span class="st">'red'</span>, lw=<span class="nm">2</span>, label=<span class="st">f'RUL projection: ~{int(RUL_days)} hari'</span>)
+ax.<span class="fn">axvline</span>(days_to_threshold, color=<span class="st">'red'</span>, alpha=<span class="nm">0.3</span>)
+
+ax.<span class="fn">set_xlabel</span>(<span class="st">'Hari'</span>); ax.<span class="fn">set_ylabel</span>(<span class="st">'RMS Velocity (mm/s)'</span>)
+ax.<span class="fn">set_title</span>(<span class="st">f'Bearing Degradation Trend &amp; RUL Estimation (RUL = {int(RUL_days)} hari)'</span>)
+ax.<span class="fn">legend</span>(); ax.<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>)
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
+
+<span class="fn">print</span>(<span class="st">f"\nFinal status:"</span>)
+<span class="fn">print</span>(<span class="st">f"  Current RMS: {rms_trend[-1]:.2f} mm/s ({(rms_trend[-1] / RMS_ALARM):.1f}× alarm)"</span>)
+<span class="fn">print</span>(<span class="st">f"  Estimated RUL: ~{int(RUL_days)} days until zone D"</span>)
+<span class="fn">print</span>(<span class="st">f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days (safety margin)"</span>)</pre>
   </div>
 
   <div class="info-box reveal">
