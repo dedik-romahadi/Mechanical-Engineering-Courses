@@ -1485,115 +1485,107 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <p class="section-desc reveal">Empat cell Python berikut mengimplementasikan konsep kunci Pertemuan 7 dengan sistem referensi: setup matriks M & K (Cell 1), eigenvalue problem dan frekuensi pribadi (Cell 2), mode shape dan orthogonality (Cell 3), serta simulasi free vibration response (Cell 4). Semua langsung runnable di VS Code Jupyter.</p>
 
   <!-- Cell 1 -->
-  <div class="code-card reveal" style="margin-bottom:32px">
+  <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
-      <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="code-lang">Python · Cell 1</span>
-      <span class="code-label">Setup Matriks M & K</span>
-    </div>
-    <div class="code-wrap">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 1 — Setup Matriks M & K</span>
+      <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">import numpy as np
+    </div>
+    <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
 
-# Parameter sistem referensi (2 DoF, 2 massa + 3 pegas)
-m1, m2 = 1.0, 1.0          # kg
-k1, k2, k3 = 100.0, 100.0, 100.0   # N/m
+<span class="cm"># Parameter sistem referensi (2 DoF, 2 massa + 3 pegas)</span>
+m1, m2 = <span class="nm">1.0</span>, <span class="nm">1.0</span>          <span class="cm"># kg</span>
+k1, k2, k3 = <span class="nm">100.0</span>, <span class="nm">100.0</span>, <span class="nm">100.0</span>   <span class="cm"># N/m</span>
 
-# Matriks massa (diagonal)
-M = np.array([[m1, 0],
-              [0, m2]])
+<span class="cm"># Matriks massa (diagonal)</span>
+M = np.<span class="fn">array</span>([[m1, <span class="nm">0</span>],
+              [<span class="nm">0</span>, m2]])
 
-# Matriks kekakuan (simetris)
-K = np.array([[k1 + k2, -k2],
+<span class="cm"># Matriks kekakuan (simetris)</span>
+K = np.<span class="fn">array</span>([[k1 + k2, -k2],
               [-k2,    k2 + k3]])
 
-print("Matriks Massa M:")
-print(M)
-print("\nMatriks Kekakuan K:")
-print(K)
-print(f"\ntrace(K) = {np.trace(K):.1f}")
-print(f"det(K)   = {np.linalg.det(K):.1f}")</code></pre>
-    </div>
+<span class="fn">print</span>(<span class="st">"Matriks Massa M:"</span>)
+<span class="fn">print</span>(M)
+<span class="fn">print</span>(<span class="st">"\nMatriks Kekakuan K:"</span>)
+<span class="fn">print</span>(K)
+<span class="fn">print</span>(<span class="st">f"\ntrace(K) = {np.trace(K):.1f}"</span>)
+<span class="fn">print</span>(<span class="st">f"det(K)   = {np.linalg.det(K):.1f}"</span>)</pre>
   </div>
 
   <!-- Cell 2 -->
-  <div class="code-card reveal" style="margin-bottom:32px">
+  <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
-      <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="code-lang">Python · Cell 2</span>
-      <span class="code-label">Frekuensi Pribadi ω₁ & ω₂</span>
-    </div>
-    <div class="code-wrap">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 2 — Frekuensi Pribadi ω₁ &amp; ω₂</span>
+      <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">from numpy.linalg import inv, eig
+    </div>
+    <pre><span class="kw">from</span> numpy.linalg <span class="kw">import</span> inv, eig
 
-# Eigenvalue problem: (M^-1 K) X = ω² X
-A = inv(M) @ K
-eigvals, eigvecs = eig(A)
+<span class="cm"># Eigenvalue problem: (M^-1 K) X = ω² X</span>
+A = <span class="fn">inv</span>(M) @ K
+eigvals, eigvecs = <span class="fn">eig</span>(A)
 
-# Urutkan dari kecil ke besar
-idx = np.argsort(eigvals)
+<span class="cm"># Urutkan dari kecil ke besar</span>
+idx = np.<span class="fn">argsort</span>(eigvals)
 omega_squared = eigvals[idx]
 modes = eigvecs[:, idx]
-omegas = np.sqrt(omega_squared)
+omegas = np.<span class="fn">sqrt</span>(omega_squared)
 
-print(f"ω₁² = {omega_squared[0]:.4f}    →    ω₁ = {omegas[0]:.4f} rad/s")
-print(f"ω₂² = {omega_squared[1]:.4f}    →    ω₂ = {omegas[1]:.4f} rad/s")
-print(f"\nf₁ = {omegas[0]/(2*np.pi):.4f} Hz   T₁ = {2*np.pi/omegas[0]:.4f} s")
-print(f"f₂ = {omegas[1]/(2*np.pi):.4f} Hz   T₂ = {2*np.pi/omegas[1]:.4f} s")</code></pre>
-    </div>
+<span class="fn">print</span>(<span class="st">f"ω₁² = {omega_squared[0]:.4f}    →    ω₁ = {omegas[0]:.4f} rad/s"</span>)
+<span class="fn">print</span>(<span class="st">f"ω₂² = {omega_squared[1]:.4f}    →    ω₂ = {omegas[1]:.4f} rad/s"</span>)
+<span class="fn">print</span>(<span class="st">f"\nf₁ = {omegas[0]/(2*np.pi):.4f} Hz   T₁ = {2*np.pi/omegas[0]:.4f} s"</span>)
+<span class="fn">print</span>(<span class="st">f"f₂ = {omegas[1]/(2*np.pi):.4f} Hz   T₂ = {2*np.pi/omegas[1]:.4f} s"</span>)</pre>
   </div>
 
   <!-- Cell 3 -->
-  <div class="code-card reveal" style="margin-bottom:32px">
+  <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
-      <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="code-lang">Python · Cell 3</span>
-      <span class="code-label">Mode Shapes & Orthogonality</span>
-    </div>
-    <div class="code-wrap">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 3 — Mode Shapes &amp; Orthogonality</span>
+      <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python"># Normalisasi mode shape: pertama-elemen = 1
-mode1 = modes[:, 0] / modes[0, 0]
-mode2 = modes[:, 1] / modes[0, 1]
-
-print(f"Mode 1 (ω₁ = {omegas[0]:.2f} rad/s): X = [{mode1[0]:.3f}, {mode1[1]:.3f}]")
-print(f"Mode 2 (ω₂ = {omegas[1]:.2f} rad/s): X = [{mode2[0]:.3f}, {mode2[1]:.3f}]")
-
-# Cek orthogonality terhadap matriks M
-ortho = mode1 @ M @ mode2
-print(f"\nOrthogonality check: u₁ᵀ M u₂ = {ortho:.2e}")
-print("✓ Orthogonal jika nilai ≈ 0" if abs(ortho) < 1e-10 else "⚠ Cek ulang!")</code></pre>
     </div>
+    <pre><span class="cm"># Normalisasi mode shape: pertama-elemen = 1</span>
+mode1 = modes[:, <span class="nm">0</span>] / modes[<span class="nm">0</span>, <span class="nm">0</span>]
+mode2 = modes[:, <span class="nm">1</span>] / modes[<span class="nm">0</span>, <span class="nm">1</span>]
+
+<span class="fn">print</span>(<span class="st">f"Mode 1 (ω₁ = {omegas[0]:.2f} rad/s): X = [{mode1[0]:.3f}, {mode1[1]:.3f}]"</span>)
+<span class="fn">print</span>(<span class="st">f"Mode 2 (ω₂ = {omegas[1]:.2f} rad/s): X = [{mode2[0]:.3f}, {mode2[1]:.3f}]"</span>)
+
+<span class="cm"># Cek orthogonality terhadap matriks M</span>
+ortho = mode1 @ M @ mode2
+<span class="fn">print</span>(<span class="st">f"\nOrthogonality check: u₁ᵀ M u₂ = {ortho:.2e}"</span>)
+<span class="fn">print</span>(<span class="st">"✓ Orthogonal jika nilai ≈ 0"</span> <span class="kw">if</span> <span class="fn">abs</span>(ortho) &lt; <span class="nm">1e-10</span> <span class="kw">else</span> <span class="st">"⚠ Cek ulang!"</span>)</pre>
   </div>
 
   <!-- Cell 4 -->
-  <div class="code-card reveal" style="margin-bottom:32px">
+  <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
-      <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="code-lang">Python · Cell 4</span>
-      <span class="code-label">Simulasi Free Vibration Response</span>
-    </div>
-    <div class="code-wrap">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 4 — Simulasi Free Vibration Response</span>
+      <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">import matplotlib.pyplot as plt
-
-# Initial conditions: x1(0)=1, x2(0)=0, semua kecepatan = 0
-# Modal decomposition: x(0) = A·u1 + B·u2 → A=B=0.5
-A_amp, B_amp = 0.5, 0.5
-
-t = np.linspace(0, 3, 1000)
-x1 = A_amp * np.cos(omegas[0]*t) + B_amp * np.cos(omegas[1]*t)
-x2 = A_amp * np.cos(omegas[0]*t) - B_amp * np.cos(omegas[1]*t)
-
-fig, ax = plt.subplots(figsize=(10, 4))
-ax.plot(t, x1, label='x₁(t)', color='#0ea5e9')
-ax.plot(t, x2, label='x₂(t)', color='#f59e0b')
-ax.set_xlabel('waktu (s)'); ax.set_ylabel('posisi (m)')
-ax.set_title('Free Vibration Response — Sistem 2 DoF')
-ax.grid(True, alpha=0.3); ax.legend(); plt.tight_layout(); plt.show()
-print(f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x2)):.3f}")</code></pre>
     </div>
+    <pre><span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+
+<span class="cm"># Initial conditions: x1(0)=1, x2(0)=0, semua kecepatan = 0</span>
+<span class="cm"># Modal decomposition: x(0) = A·u1 + B·u2 → A=B=0.5</span>
+A_amp, B_amp = <span class="nm">0.5</span>, <span class="nm">0.5</span>
+
+t = np.<span class="fn">linspace</span>(<span class="nm">0</span>, <span class="nm">3</span>, <span class="nm">1000</span>)
+x1 = A_amp * np.<span class="fn">cos</span>(omegas[<span class="nm">0</span>]*t) + B_amp * np.<span class="fn">cos</span>(omegas[<span class="nm">1</span>]*t)
+x2 = A_amp * np.<span class="fn">cos</span>(omegas[<span class="nm">0</span>]*t) - B_amp * np.<span class="fn">cos</span>(omegas[<span class="nm">1</span>]*t)
+
+fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="nm">10</span>, <span class="nm">4</span>))
+ax.<span class="fn">plot</span>(t, x1, label=<span class="st">'x₁(t)'</span>, color=<span class="st">'#0ea5e9'</span>)
+ax.<span class="fn">plot</span>(t, x2, label=<span class="st">'x₂(t)'</span>, color=<span class="st">'#f59e0b'</span>)
+ax.<span class="fn">set_xlabel</span>(<span class="st">'waktu (s)'</span>); ax.<span class="fn">set_ylabel</span>(<span class="st">'posisi (m)'</span>)
+ax.<span class="fn">set_title</span>(<span class="st">'Free Vibration Response — Sistem 2 DoF'</span>)
+ax.<span class="fn">grid</span>(<span class="kw">True</span>, alpha=<span class="nm">0.3</span>); ax.<span class="fn">legend</span>(); plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
+<span class="fn">print</span>(<span class="st">f"max |x₁| ≈ {np.max(np.abs(x1)):.3f}, max |x₂| ≈ {np.max(np.abs(x2)):.3f}"</span>)</pre>
   </div>
 
   <div class="info-box reveal">
