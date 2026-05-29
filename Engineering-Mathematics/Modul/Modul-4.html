@@ -3635,6 +3635,7 @@ async function runAndCheck(qId, difficulty) {
 // Keep checkComp alias for _loadScoredQuestions compatibility (legacy signature ignored)
 function checkComp(qId) { runAndCheck(qId, 'easy'); }
 // ── SCORE UPDATE ──
+function _fmtPts(n){const r=Math.round((Number(n)||0)*100)/100;return (Number.isInteger(r)?r:parseFloat(r.toFixed(2)))+'';}
 function updateScore() {
   const mc        = Object.values(mcScores).reduce((a,b) => a+b, 0);
   // Split comp by qId suffix — c1..c10 = easy, c11..c15 = hard
@@ -3646,10 +3647,10 @@ function updateScore() {
   const total = mc + compEz + compHard;
   const nilai = pointsToScore(total);   // skala 0–100
   document.getElementById('scoreDisplay').textContent = nilai;
-  document.getElementById('scoreDetail').textContent  = total + ' / ' + SCORE_CONFIG.TOTAL + ' poin';
-  document.getElementById('scoreMC').textContent        = mc;
-  document.getElementById('scoreCompEz').textContent    = compEz;
-  document.getElementById('scoreCompHard').textContent  = compHard;
+  document.getElementById('scoreDetail').textContent  = _fmtPts(total) + ' / ' + SCORE_CONFIG.TOTAL + ' poin';
+  document.getElementById('scoreMC').textContent        = _fmtPts(mc);
+  document.getElementById('scoreCompEz').textContent    = _fmtPts(compEz);
+  document.getElementById('scoreCompHard').textContent  = _fmtPts(compHard);
   document.getElementById('scoreFill').style.width      = nilai + '%';
 }
 
@@ -4233,7 +4234,7 @@ function exportTugasHtml() {
     </div>
     <div style="flex:1">
       <div class="score-bar-wrap" style="margin-bottom:8px"><div class="score-bar-fill" style="width:${nilai}%"><div class="bar-particle bp1"></div><div class="bar-particle bp2"></div><div class="bar-particle bp3"></div><div class="bar-particle bp4"></div></div><div class="bar-score-chip" style="left:calc(${nilai}% - 30px)">${nilai}%</div></div>
-      <div class="score-detail" style="margin-top:6px">Poin: ${total}/30 &nbsp;·&nbsp; PG: ${mc}/10 &nbsp;·&nbsp; Komputasi: ${comp}/20</div>
+      <div class="score-detail" style="margin-top:6px">Poin: ${_fmtPts(total)}/30 &nbsp;·&nbsp; PG: ${_fmtPts(mc)}/10 &nbsp;·&nbsp; Komputasi: ${_fmtPts(comp)}/20</div>
     </div>
   </div>
 
@@ -6178,7 +6179,7 @@ function updateLeaderboard(visitors, schedExpired){
   // Top Akses — ONLY students with points > 0 qualify, then sort by visitCount desc, then earliest timestamp
   const akses=[...visited].filter(v=>(v.points||0)>0&&!isLate(v.timestamp)).sort((a,b)=>{const d=(b.visitCount||1)-(a.visitCount||1);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp);});
   const medalR=['🥇','🥈','🥉'];
-  function renderCardSkor(v,idx){const pts=v.points||0;const nilai=pointsToScore(pts);return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="font-size:1rem;flex-shrink:0;">'+medalR[idx]+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(0,224,158,.12);color:#00e09e;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;white-space:nowrap;">'+pts+' <span style="opacity:.7;font-weight:600;">('+nilai+')</span></div></div>';}
+  function renderCardSkor(v,idx){const pts=v.points||0;const nilai=pointsToScore(pts);return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="font-size:1rem;flex-shrink:0;">'+medalR[idx]+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(0,224,158,.12);color:#00e09e;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;white-space:nowrap;">'+_fmtPts(pts)+' <span style="opacity:.7;font-weight:600;">('+nilai+')</span></div></div>';}
   function renderCardAkses(v,idx){const vc=v.visitCount||1;return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(251,191,36,.15);color:#fbbf24;font-size:.65rem;font-weight:800;flex-shrink:0;">'+(idx+1)+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(251,191,36,.12);color:#fbbf24;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+vc+'x</div></div>';}
   rajinEl.innerHTML=topSkor.length?topSkor.slice(0,3).map((v,i)=>renderCardSkor(v,i)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
   santaiEl.innerHTML=akses.length?akses.slice(0,3).map((v,i)=>renderCardAkses(v,i)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
@@ -6477,7 +6478,7 @@ function renderVisitors(visitors){
     else{statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(0,224,158,.1);color:#00e09e;border:1px solid rgba(0,224,158,.25);">\u2705 Tepat Waktu</span>';}
     const vcDisplay=vc?vc+'x':'<span style="color:#475569;">—</span>';
     const nilai=pointsToScore(pts||0);
-    const ptsDisplay=pts?'<span style="color:#00e09e;font-weight:800;">'+pts+'</span> <span style="color:#64748b;font-weight:600;font-size:.78rem;">('+nilai+')</span>':'<span style="color:#475569;">0 <span style="font-weight:600;font-size:.78rem;">(0)</span></span>';
+    const ptsDisplay=pts?'<span style="color:#00e09e;font-weight:800;">'+_fmtPts(pts)+'</span> <span style="color:#64748b;font-weight:600;font-size:.78rem;">('+nilai+')</span>':'<span style="color:#475569;">0 <span style="font-weight:600;font-size:.78rem;">(0)</span></span>';
     const tsColor=bolos?'#ef4444':late?'#fb7185':hasVisit?'#64748b':'#475569';
     const absenClass=(!hasPoints||bolos)?' absen':'';
     return `<div class="vt-row${absenClass}" style="${rowBg}"><div class="vt-num" style="color:${tsColor};">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div class="vt-avatar" style="${ac}">${ini}</div><div><div class="vt-name" style="${nameColor}">${escH(nama)}</div></div></div><div style="flex:1;font-size:.8rem;color:${hasVisit?'#94a3b8':'#475569'};font-family:monospace;">${s.nim}</div><div style="flex:1;text-align:center;"><span class="vt-status">${statusCol}</span></div><div style="flex:0.5;text-align:center;font-size:.85rem;">${ptsDisplay}</div><div class="vt-visit" style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:#94a3b8;">${vcDisplay}</div><div style="flex:1;text-align:right;font-size:.78rem;color:${tsColor};">${ts}</div></div>`;
