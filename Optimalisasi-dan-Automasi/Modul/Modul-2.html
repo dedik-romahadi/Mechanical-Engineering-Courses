@@ -1927,7 +1927,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
         <div class="comp-q">Hitung <strong>RMS</strong> dari sinyal <code>y</code> mentah (raw, sebelum filter). Bandingkan dengan RMS clean signal (≈ 0.707) — selisihnya menunjukkan kontribusi noise + spike.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>rms_y = np.sqrt(np.mean(y**2))</code> &nbsp;|&nbsp; <code>print(rms_y)</code> — hasil sekitar 0.90</div>
+      <div class="comp-hint">💡 RMS = akar dari rata-rata kuadrat sinyal; gunakan <code>np.sqrt</code> dan <code>np.mean</code> pada <code>y**2</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">RMS(y)</strong></span></div>
         <textarea class="code-textarea" id="code-c1" placeholder="Paste kode Python lengkap (termasuk dataset referensi), lalu klik ▶ Run & Validasi" oninput="onCodeInput('c1')"></textarea>
@@ -1944,7 +1944,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
         <div class="comp-q">Terapkan <strong>Moving Average dengan window k=10</strong> menggunakan <code>np.convolve(y, np.ones(10)/10, mode='same')</code>. Cetak <strong>mean dari hasil filter</strong>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>ma_10 = np.convolve(y, np.ones(10)/10, mode='same')</code> &nbsp;|&nbsp; <code>print(np.mean(ma_10))</code> — hasil sekitar 0.03</div>
+      <div class="comp-hint">💡 Pakai <code>np.convolve</code> dengan kernel <code>np.ones(k)/k</code> dan <code>mode='same'</code>, lalu ambil rata-rata hasilnya dengan <code>np.mean</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">mean(MA_10)</strong></span></div>
         <textarea class="code-textarea" id="code-c2" placeholder="Paste kode Python, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c2')"></textarea>
@@ -1961,7 +1961,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
         <div class="comp-q">Terapkan <strong>Moving Average dengan window k=50</strong>. Cetak <strong>standar deviasi (ddof=1) dari hasil filter</strong> — std akan jauh lebih kecil dari raw karena noise tersmoothing.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>ma_50 = np.convolve(y, np.ones(50)/50, mode='same')</code> &nbsp;|&nbsp; <code>print(np.std(ma_50, ddof=1))</code> — hasil sekitar 0.65</div>
+      <div class="comp-hint">💡 Terapkan moving average dengan <code>np.convolve</code> (kernel <code>np.ones(k)/k</code>), lalu hitung std sampel dengan <code>np.std(..., ddof=1)</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">std(MA_50)</strong></span></div>
         <textarea class="code-textarea" id="code-c3" placeholder="Paste kode Python, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c3')"></textarea>
@@ -1978,7 +1978,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
         <div class="comp-q">Terapkan <strong>EMA dengan α = 0.1</strong> menggunakan pandas: <code>ema = pd.Series(y).ewm(alpha=0.1, adjust=False).mean().values</code>. Cetak <strong>nilai EMA pada indeks terakhir</strong>: <code>ema[-1]</code>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>import pandas as pd; ema = pd.Series(y).ewm(alpha=0.1, adjust=False).mean().values</code> &nbsp;|&nbsp; <code>print(ema[-1])</code> — hasil sekitar -0.22</div>
+      <div class="comp-hint">💡 Gunakan <code>pd.Series(y).ewm(alpha=..., adjust=False).mean()</code>, lalu ambil nilai pada indeks terakhir.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">EMA[-1]</strong></span></div>
         <textarea class="code-textarea" id="code-c4" placeholder="Paste kode Python, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c4')"></textarea>
@@ -1995,7 +1995,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
         <div class="comp-q">Terapkan <strong>EMA dengan α = 0.5</strong> (sangat responsif). Cetak <strong>nilai EMA pada indeks 1500</strong> (segera setelah spike yang ke-4 di indeks 1500). EMA dengan α besar akan "menyerap" spike dengan kuat.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>ema_05 = pd.Series(y).ewm(alpha=0.5, adjust=False).mean().values</code> &nbsp;|&nbsp; <code>print(ema_05[1500])</code> — hasil sekitar 2.96 (terpengaruh spike)</div>
+      <div class="comp-hint">💡 Hitung EMA responsif dengan <code>ewm(alpha=..., adjust=False).mean()</code>, lalu ambil nilai pada indeks yang diminta soal.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">EMA[1500]</strong></span></div>
         <textarea class="code-textarea" id="code-c5" placeholder="Paste kode Python, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c5')"></textarea>
@@ -2012,7 +2012,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
         <div class="comp-q">Terapkan <strong>Savitzky-Golay (window=11, polyorder=3)</strong> dari <code>scipy.signal</code>. Cetak <strong>nilai filtered pada indeks 1000</strong> (lokasi spike — SG akan tetap "terkena" namun lebih halus dari raw).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>from scipy.signal import savgol_filter; sg = savgol_filter(y, 11, 3)</code> &nbsp;|&nbsp; <code>print(sg[1000])</code> — hasil sekitar 1.31</div>
+      <div class="comp-hint">💡 Gunakan <code>scipy.signal.savgol_filter</code> dengan window dan polyorder dari soal, lalu ambil nilai pada indeks yang diminta.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">SG[1000]</strong></span></div>
         <textarea class="code-textarea" id="code-c6" placeholder="Paste kode Python, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c6')"></textarea>
@@ -2029,7 +2029,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
         <div class="comp-q">Terapkan <strong>Median filter dengan kernel_size=5</strong> dari <code>scipy.signal</code>. Cetak <strong>nilai pada indeks 100</strong> (lokasi spike pertama). Median filter akan SEPENUHNYA menghapus spike (tidak seperti MA yang hanya mengurangi).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>from scipy.signal import medfilt; med = medfilt(y, kernel_size=5)</code> &nbsp;|&nbsp; <code>print(med[100])</code> — hasil sekitar -0.09 (spike hilang, kembali ke noise level)</div>
+      <div class="comp-hint">💡 Gunakan <code>scipy.signal.medfilt</code> dengan kernel_size dari soal, lalu ambil nilai pada indeks spike yang diminta.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">med[100]</strong></span></div>
         <textarea class="code-textarea" id="code-c7" placeholder="Paste kode Python, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c7')"></textarea>
@@ -2046,7 +2046,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
         <div class="comp-q">Hitung <strong>effective window N</strong> equivalent untuk EMA dengan α = 0.1. Rumus: <code>N = 2/α − 1</code>. Cetak nilai N.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>alpha = 0.1; N_eff = 2/alpha - 1</code> &nbsp;|&nbsp; <code>print(N_eff)</code> — hasil 19.0</div>
+      <div class="comp-hint">💡 Effective window N = 2/α − 1. Substitusikan nilai α dari soal.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">N_eff</strong></span></div>
         <textarea class="code-textarea" id="code-c8" placeholder="Paste kode Python, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c8')"></textarea>
@@ -2063,7 +2063,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
         <div class="comp-q">Hitung <strong>RMS dari residual</strong> (selisih antara <code>y</code> dengan <code>clean</code>): <code>residual = y − clean</code>. Cetak <strong>RMS residual</strong> — ini mengukur kontaminasi noise + spike total.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>residual = y - clean; rms_res = np.sqrt(np.mean(residual**2))</code> &nbsp;|&nbsp; <code>print(rms_res)</code> — hasil sekitar 0.55</div>
+      <div class="comp-hint">💡 Hitung residual = y − clean, lalu RMS-nya dengan <code>np.sqrt(np.mean(residual**2))</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">RMS(y−clean)</strong></span></div>
         <textarea class="code-textarea" id="code-c9" placeholder="Paste kode Python, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c9')"></textarea>
@@ -2080,7 +2080,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
         <div class="comp-q">Terapkan <strong>MA k=25</strong> pada <code>y</code> lalu hitung <strong>RMS hasilnya</strong>. Bandingkan dengan RMS clean (0.707) — MA window 25 cukup baik untuk recovery RMS asli.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>ma_25 = np.convolve(y, np.ones(25)/25, mode='same'); rms_filt = np.sqrt(np.mean(ma_25**2))</code> &nbsp;|&nbsp; <code>print(rms_filt)</code> — hasil sekitar 0.71 (sangat dekat clean RMS!)</div>
+      <div class="comp-hint">💡 Terapkan moving average k=25 dengan <code>np.convolve</code>, lalu hitung RMS hasilnya dengan <code>np.sqrt</code>/<code>np.mean</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">RMS(MA_25)</strong></span></div>
         <textarea class="code-textarea" id="code-c10" placeholder="Paste kode Python, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c10')"></textarea>
@@ -2107,7 +2107,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
         <div class="comp-q">Implementasikan <strong>Moving Average DARI AWAL</strong> tanpa <code>np.convolve</code> atau pandas. Untuk window k=15 dan dataset referensi <code>y</code>, gunakan loop: untuk tiap titik <code>i</code>, hitung mean dari <code>y[max(0, i−7):min(N, i+8)]</code> (centered, dengan boundary handling). Cetak <strong>mean dari MA hasil</strong>.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Loop manual: <code>out = np.zeros(N); for i in range(N): lo = max(0, i-7); hi = min(N, i+8); out[i] = y[lo:hi].mean()</code>. Cetak <code>np.mean(out)</code>.</div>
+      <div class="comp-hint">💡 Loop tiap titik i, ambil window centered <code>y[max(0,i-7):min(N,i+8)]</code> dan hitung mean-nya untuk mengisi out[i]; akhirnya ambil rata-rata seluruh out.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">mean(MA_manual)</strong></span></div>
         <textarea class="code-textarea" id="code-c11" rows="12" placeholder="Paste kode MA dari awal (loop, tanpa np.convolve), lalu klik ▶ Run & Validasi" oninput="onCodeInput('c11')"></textarea>
@@ -2124,7 +2124,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
         <div class="comp-q">Implementasikan <strong>EMA DARI AWAL</strong> tanpa pandas. Untuk dataset <code>y</code> dengan α=0.05 dan inisialisasi <code>EMA[0] = mean(y[:10])</code> (bukan default <code>y[0]</code>). Cetak <strong>nilai EMA pada indeks 100</strong>.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Recursive: <code>out = np.empty_like(y); out[0] = y[:10].mean()</code>; loop <code>for i in range(1, N): out[i] = 0.05*y[i] + 0.95*out[i-1]</code>. Cetak <code>out[100]</code>. Hasil sekitar 0.62.</div>
+      <div class="comp-hint">💡 Inisialisasi EMA[0] = mean dari 10 titik pertama, lalu iterasi rumus rekursif EMAᵢ = α·yᵢ + (1−α)·EMAᵢ₋₁; ambil nilai pada indeks yang diminta.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">EMA_manual[100]</strong></span></div>
         <textarea class="code-textarea" id="code-c12" rows="12" placeholder="Paste kode EMA dari awal (recursive, dengan custom init), lalu klik ▶ Run & Validasi" oninput="onCodeInput('c12')"></textarea>
@@ -2141,7 +2141,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
         <div class="comp-q">Implementasikan <strong>Savitzky-Golay DARI AWAL</strong> tanpa <code>scipy.signal.savgol_filter</code>. Untuk window=11, polyorder=3, dan dataset <code>y</code>: untuk tiap pusat window, fit polinomial orde 3 dengan <code>np.polyfit(idx, y[i-5:i+6], 3)</code>, lalu evaluasi di pusat (idx=0). Cetak <strong>nilai SG manual pada indeks 500</strong>.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>idx = np.arange(-5, 6); out = y.copy().astype(float)</code>. Loop <code>for i in range(5, N-5): coeffs = np.polyfit(idx, y[i-5:i+6], 3); out[i] = np.polyval(coeffs, 0)</code>. Cetak <code>out[500]</code>. Verifikasi dengan scipy savgol_filter — perbedaan harus &lt; 1e-12.</div>
+      <div class="comp-hint">💡 Untuk tiap pusat window, fit polinomial orde 3 dengan <code>np.polyfit</code> pada 11 titik sekitar, lalu evaluasi di pusat (idx=0) memakai <code>np.polyval</code>; ambil nilai pada indeks yang diminta dan validasi terhadap <code>savgol_filter</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">SG_manual[500]</strong></span></div>
         <textarea class="code-textarea" id="code-c13" rows="14" placeholder="Paste kode Savitzky-Golay dari awal (np.polyfit per window), lalu klik ▶ Run & Validasi" oninput="onCodeInput('c13')"></textarea>
@@ -2158,7 +2158,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
         <div class="comp-q">Implementasikan <strong>anomaly detection berbasis EMA + 3σ rule</strong>. Generate sinyal baru: <code>y_anom = clean + noise</code> (tanpa spike), lalu inject 3 anomali besar: <code>y_anom[[250, 750, 1250]] += 4.0</code>. Hitung EMA(α=0.05) lalu residual = y_anom − EMA. Hitung <code>n_detect = sum(|residual| &gt; 3·std(residual))</code>. Cetak <strong>jumlah anomali terdeteksi</strong>. (Karena lag EMA, biasanya menangkap &gt; 3 — sekitar 5–7 detection sah).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>y_anom = clean + noise; y_anom[[250,750,1250]] += 4.0</code>; pakai EMA recursive Anda dari C12 dengan α=0.05. <code>residual = y_anom - ema; sigma = np.std(residual, ddof=1); n = int(np.sum(np.abs(residual) > 3*sigma))</code>. Cetak n.</div>
+      <div class="comp-hint">💡 Bangun sinyal beranomali sesuai soal, hitung EMA-nya, lalu residual = sinyal − EMA; hitung berapa titik dengan |residual| melebihi 3×std residual.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">n_detect</strong></span></div>
         <textarea class="code-textarea" id="code-c14" rows="14" placeholder="Paste kode anomaly detection EMA+3σ lengkap, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c14')"></textarea>
@@ -2175,7 +2175,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
         <div class="comp-q">Implementasikan <strong>filter pipeline lengkap</strong> pada <code>y</code>: (1) median filter k=5 untuk hapus spike, (2) Savitzky-Golay w=11, p=3 untuk smoothing yang preserve peak, (3) EMA α=0.1 untuk baseline yang halus. Hitung <strong>RMS dari output akhir pipeline</strong>. Hasil seharusnya mendekati RMS clean (≈ 0.707) — pipeline berhasil membersihkan noise &amp; spike tapi mempertahankan sinyal asli.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>from scipy.signal import medfilt, savgol_filter; m1 = medfilt(y, 5); m2 = savgol_filter(m1, 11, 3); m3 = pd.Series(m2).ewm(alpha=0.1, adjust=False).mean().values</code>. Cetak <code>np.sqrt(np.mean(m3**2))</code>. Hasil sekitar 0.69 (sangat dekat clean RMS 0.707, sukses!)</div>
+      <div class="comp-hint">💡 Rangkai tiga tahap berurutan: <code>medfilt</code> → <code>savgol_filter</code> → <code>ewm().mean()</code> sesuai parameter soal, lalu hitung RMS output akhir dengan <code>np.sqrt</code>/<code>np.mean</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">RMS(pipeline)</strong></span></div>
         <textarea class="code-textarea" id="code-c15" rows="14" placeholder="Paste kode filter pipeline end-to-end (median → SG → EMA), lalu klik ▶ Run & Validasi" oninput="onCodeInput('c15')"></textarea>
