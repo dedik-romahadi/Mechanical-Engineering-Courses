@@ -626,29 +626,36 @@ exports.resetExamAttempts = onCall({ timeoutSeconds: 60 }, async (request) => {
   }
 
   const fs = getFirestore();
-  const studentsRef = fs.collection(`examAttempts/${examId}/students`);
-  const studentDocs = await studentsRef.listDocuments();
+  try {
+    const studentsRef = fs.collection(`examAttempts/${examId}/students`);
+    const studentDocs = await studentsRef.listDocuments();
 
-  if (studentDocs.length === 0) {
-    return { deleted: 0, students: 0 };
-  }
-
-  let totalDeleted = 0;
-  for (const studentDoc of studentDocs) {
-    const qsDocs = await studentDoc.collection("qs").listDocuments();
-    // Batch delete (max 500 per batch — pakai 400 untuk safety)
-    for (let i = 0; i < qsDocs.length; i += 400) {
-      const batch = fs.batch();
-      qsDocs.slice(i, i + 400).forEach((d) => batch.delete(d));
-      await batch.commit();
-      totalDeleted += Math.min(400, qsDocs.length - i);
+    if (studentDocs.length === 0) {
+      return { deleted: 0, students: 0 };
     }
-    // Delete the student doc itself (empty container after qs cleared)
-    await studentDoc.delete();
-  }
 
-  console.log("[resetExamAttempts]", examId, "deleted", totalDeleted, "attempts across", studentDocs.length, "students");
-  return { deleted: totalDeleted, students: studentDocs.length };
+    let totalDeleted = 0;
+    for (const studentDoc of studentDocs) {
+      const qsDocs = await studentDoc.collection("qs").listDocuments();
+      // Batch delete (max 500 per batch — pakai 400 untuk safety)
+      for (let i = 0; i < qsDocs.length; i += 400) {
+        const batch = fs.batch();
+        qsDocs.slice(i, i + 400).forEach((d) => batch.delete(d));
+        await batch.commit();
+        totalDeleted += Math.min(400, qsDocs.length - i);
+      }
+      // Delete the student doc itself (empty container after qs cleared)
+      await studentDoc.delete();
+    }
+
+    console.log("[resetExamAttempts]", examId, "deleted", totalDeleted, "attempts across", studentDocs.length, "students");
+    return { deleted: totalDeleted, students: studentDocs.length };
+  } catch (e) {
+    // Surface penyebab asli ke dosen — tanpa ini Firebase membungkus exception
+    // non-HttpsError jadi "internal" yang opaque & tidak bisa didiagnosa.
+    console.error("[resetExamAttempts] FAILED", examId, e);
+    throw new HttpsError("internal", `Reset exam gagal: ${e.message || e}`);
+  }
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -918,21 +925,28 @@ exports.resetModulAttempts = onCall({ timeoutSeconds: 60 }, async (request) => {
   }
 
   const fs = getFirestore();
-  const studentsRef = fs.collection(`modulAttempts/${modulId}/students`);
-  const studentDocs = await studentsRef.listDocuments();
-  if (studentDocs.length === 0) return { deleted: 0, students: 0 };
+  try {
+    const studentsRef = fs.collection(`modulAttempts/${modulId}/students`);
+    const studentDocs = await studentsRef.listDocuments();
+    if (studentDocs.length === 0) return { deleted: 0, students: 0 };
 
-  let totalDeleted = 0;
-  for (const studentDoc of studentDocs) {
-    const qsDocs = await studentDoc.collection("qs").listDocuments();
-    for (let i = 0; i < qsDocs.length; i += 400) {
-      const batch = fs.batch();
-      qsDocs.slice(i, i + 400).forEach((d) => batch.delete(d));
-      await batch.commit();
-      totalDeleted += Math.min(400, qsDocs.length - i);
+    let totalDeleted = 0;
+    for (const studentDoc of studentDocs) {
+      const qsDocs = await studentDoc.collection("qs").listDocuments();
+      for (let i = 0; i < qsDocs.length; i += 400) {
+        const batch = fs.batch();
+        qsDocs.slice(i, i + 400).forEach((d) => batch.delete(d));
+        await batch.commit();
+        totalDeleted += Math.min(400, qsDocs.length - i);
+      }
+      await studentDoc.delete();
     }
-    await studentDoc.delete();
+    console.log("[resetModulAttempts]", modulId, "deleted", totalDeleted, "attempts");
+    return { deleted: totalDeleted, students: studentDocs.length };
+  } catch (e) {
+    // Surface penyebab asli ke dosen — tanpa ini Firebase membungkus exception
+    // non-HttpsError jadi "internal" yang opaque & tidak bisa didiagnosa.
+    console.error("[resetModulAttempts] FAILED", modulId, e);
+    throw new HttpsError("internal", `Reset modul gagal: ${e.message || e}`);
   }
-  console.log("[resetModulAttempts]", modulId, "deleted", totalDeleted, "attempts");
-  return { deleted: totalDeleted, students: studentDocs.length };
 });
