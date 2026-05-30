@@ -978,18 +978,18 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🧪</div>
       <h3>Tangani Noise Pengukuran Eksplisit</h3>
       <p>Setiap trial eksperimen punya noise (variasi alat ukur, fluktuasi material, manusia operator). ANOVA secara eksplisit memodelkan noise sebagai <em>varians dalam-grup (within)</em> dan membandingkan dengan <em>varians antar-grup (between)</em>. Kalau efek faktor lebih besar dari noise → signifikan. Tidak butuh asumsi gradient/smoothness — hanya butuh <strong>data eksperimen di tiap level faktor</strong>.</p>
-      <div class="formula">\(SS_total = SS_b + SS_w\)</div>
+      <div class="formula">\(SS_{\text{total}} = SS_b + SS_w\)</div>
     </div>
     <div class="card">
       <div class="card-icon">💰</div>
       <h3>Ekonomis: Sample Size Kecil Cukup</h3>
       <p>Untuk problem 1 faktor × 3 level dengan 5 ulangan tiap level = total 15 eksperimen. Cukup untuk dapat power statistik 80% (deteksi efek sedang). Bandingkan GA/PSO yang butuh ratusan-ribuan evaluasi. Untuk eksperimen mahal (CNC machining, welding, heat treatment), ANOVA jauh lebih hemat. <strong style="color:var(--cyan)">Sweet spot</strong>: 2–5 faktor, 2–4 level/faktor, &lt; 100 total trial.</p>
-      <div class="formula">\(N_trial = k_levels \times n_replicates\)</div>
+      <div class="formula">\(N_{trial} = k_{levels} \times n_{replicates}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🐍</div>
       <h3>Implementasi: scipy.stats &amp; statsmodels</h3>
-      <p>Python ekosistem: <strong>\(scipy.stats.f_oneway\)</strong> (one-way ANOVA cepat), <strong>statsmodels</strong> (full ANOVA table dengan formula API: <code>ols('y ~ C(faktor)', data).fit() → anova_lm</code>), <strong>pingouin</strong> (effect size, post-hoc Tukey HSD), <strong>pyDOE2</strong> (orthogonal arrays untuk Taguchi method). Visualisasi: <strong>seaborn.boxplot</strong> + <strong>seaborn.pointplot</strong> untuk effect plots; <strong>statsmodels.graphics.factorplots</strong> untuk interaction plot.</p>
+      <p>Python ekosistem: <strong>\(scipy.stats.f_{oneway}\)</strong> (one-way ANOVA cepat), <strong>statsmodels</strong> (full ANOVA table dengan formula API: <code>ols('y ~ C(faktor)', data).fit() → anova_lm</code>), <strong>pingouin</strong> (effect size, post-hoc Tukey HSD), <strong>pyDOE2</strong> (orthogonal arrays untuk Taguchi method). Visualisasi: <strong>seaborn.boxplot</strong> + <strong>seaborn.pointplot</strong> untuk effect plots; <strong>statsmodels.graphics.factorplots</strong> untuk interaction plot.</p>
       <div class="formula">scipy.stats / statsmodels</div>
     </div>
   </div>
@@ -1013,7 +1013,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
   <div class="formula-block reveal">
     <div class="label">Enam Komponen Inti One-Way ANOVA</div>
-    Hipotesis \((H_0\) &amp; \(H_1) \cdot\) Sum \(of\) Squares \((SS_total, SS_between, SS_within) \cdot\) Degrees \(of\) Freedom \((df_b, df_w) \cdot\) Mean Squares \((MS_b, MS_w) \cdot F-statistic \cdot p-value\) &amp; keputusan
+    Hipotesis \((H_0\) &amp; \(H_1) \cdot\) Sum \(of\) Squares \((SS_{\text{total}}, SS_{\text{between}}, SS_{\text{within}}) \cdot\) Degrees \(of\) Freedom \((df_b, df_w) \cdot\) Mean Squares \((MS_b, MS_w) \cdot F-statistic \cdot p-value\) &amp; keputusan
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
@@ -1026,25 +1026,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="card">
       <div class="card-icon">🧮</div>
       <h3>Sum of Squares (SS) — Partisi Varians</h3>
-      <p>Total variability data dipecah menjadi dua sumber. <strong>\(SS_total\)</strong> = Σ (yᵢⱼ − ȳ)² (jumlah kuadrat deviasi dari grand mean). <strong>\(SS_between\)</strong> = Σⱼ nⱼ·(ȳⱼ − ȳ)² (deviasi mean grup dari grand mean — efek faktor). <strong>\(SS_within\)</strong> = ΣⱼΣᵢ (yᵢⱼ − ȳⱼ)² (deviasi data dari mean grup — noise). Identitas fundamental: <strong style="color:var(--cyan)">\(SS_total = SS_between + SS_within\)</strong>. Inilah dasar "<em>analysis of variance</em>".</p>
+      <p>Total variability data dipecah menjadi dua sumber. <strong>\(SS_{\text{total}}\)</strong> = Σ (yᵢⱼ − ȳ)² (jumlah kuadrat deviasi dari grand mean). <strong>\(SS_{\text{between}}\)</strong> = Σⱼ nⱼ·(ȳⱼ − ȳ)² (deviasi mean grup dari grand mean — efek faktor). <strong>\(SS_{\text{within}}\)</strong> = ΣⱼΣᵢ (yᵢⱼ − ȳⱼ)² (deviasi data dari mean grup — noise). Identitas fundamental: <strong style="color:var(--cyan)">\(SS_{\text{total}} = SS_{\text{between}} + SS_{\text{within}}\)</strong>. Inilah dasar "<em>analysis of variance</em>".</p>
       <div class="formula">\(SS_t = SS_b + SS_w\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
       <h3>Degrees of Freedom (df)</h3>
-      <p>Tiap SS punya degrees of freedom (jumlah informasi independent). Untuk k grup, total N data: <strong>\(df_between\)</strong> = k − 1 (k mean grup, dikurangi 1 karena grand mean tetap). <strong>\(df_within\)</strong> = N − k (tiap grup punya nⱼ − 1 dof, dijumlahkan). <strong>\(df_total\)</strong> = N − 1 = df_b + df_w. Dof penting karena <em>Mean Square = SS/df</em> — normalisasi yang membuat F-statistic bisa dibandingkan ke distribusi teoretis.</p>
+      <p>Tiap SS punya degrees of freedom (jumlah informasi independent). Untuk k grup, total N data: <strong>\(df_{\text{between}}\)</strong> = k − 1 (k mean grup, dikurangi 1 karena grand mean tetap). <strong>\(df_{\text{within}}\)</strong> = N − k (tiap grup punya nⱼ − 1 dof, dijumlahkan). <strong>\(df_{\text{total}}\)</strong> = N − 1 = df_b + df_w. Dof penting karena <em>Mean Square = SS/df</em> — normalisasi yang membuat F-statistic bisa dibandingkan ke distribusi teoretis.</p>
       <div class="formula">\(df_b = k-1, df_w = N-k\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚖️</div>
       <h3>Mean Squares — Estimasi Varians</h3>
-      <p>Mean Square = SS/df, estimasi varians populasi. <strong>\(MS_between\)</strong> = SS_b / df_b → estimasi varians yang mencakup <em>efek faktor + noise</em>. <strong>\(MS_within\)</strong> = SS_w / df_w → estimasi varians <em>noise saja</em>. Kalau H₀ benar (tidak ada efek), MS_b ≈ MS_w karena keduanya sama-sama noise. Kalau H₁ benar, MS_b &gt; MS_w (efek faktor menambah varians antar-grup). MS_w juga disebut <em>MSE</em> (Mean Squared Error) atau <em>residual variance</em>.</p>
+      <p>Mean Square = SS/df, estimasi varians populasi. <strong>\(MS_{\text{between}}\)</strong> = SS_b / df_b → estimasi varians yang mencakup <em>efek faktor + noise</em>. <strong>\(MS_{\text{within}}\)</strong> = SS_w / df_w → estimasi varians <em>noise saja</em>. Kalau H₀ benar (tidak ada efek), MS_b ≈ MS_w karena keduanya sama-sama noise. Kalau H₁ benar, MS_b &gt; MS_w (efek faktor menambah varians antar-grup). MS_w juga disebut <em>MSE</em> (Mean Squared Error) atau <em>residual variance</em>.</p>
       <div class="formula">\(MS_b = SS_b / df_b\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>F-Statistic = MS_b / MS_w</h3>
-      <p>Rasio dua estimasi varians. Mengikuti <strong>F-distribution</strong> dengan parameter (df_b, df_w) <em>jika H₀ benar</em>. Distribusi F asimetris, miring ke kanan, hanya nilai positif. F = 1 berarti MS_b = MS_w (no effect). F &gt;&gt; 1 berarti efek faktor besar relatif noise. Untuk α = 0.05 dan (df_b=2, df_w=12), <em>\(F_critical \approx 3.89\)</em> — F observed &gt; F_crit → tolak H₀. Modern workflow: hitung <strong>p-value</strong> langsung lebih informatif dari "F &gt; F_crit".</p>
+      <p>Rasio dua estimasi varians. Mengikuti <strong>F-distribution</strong> dengan parameter (df_b, df_w) <em>jika H₀ benar</em>. Distribusi F asimetris, miring ke kanan, hanya nilai positif. F = 1 berarti MS_b = MS_w (no effect). F &gt;&gt; 1 berarti efek faktor besar relatif noise. Untuk α = 0.05 dan (df_b=2, df_w=12), <em>\(F_{\text{critical}} \approx 3.89\)</em> — F observed &gt; F_crit → tolak H₀. Modern workflow: hitung <strong>p-value</strong> langsung lebih informatif dari "F &gt; F_crit".</p>
       <div class="formula">\(F = MS_b / MS_w\)</div>
     </div>
     <div class="card">
@@ -1072,7 +1072,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Implementasi \(scipy.stats.f_oneway:\)</strong> One-liner dalam Python: <code>from scipy.stats import f_oneway; F, p = f_oneway(group1, group2, group3)</code>. <strong>statsmodels</strong> memberikan tabel ANOVA lengkap: <code>import statsmodels.api as sm; from statsmodels.formula.api import ols; model = ols('y ~ C(faktor)', data=df).fit(); table = sm.stats.anova_lm(model, typ=2); print(table)</code>. Untuk effect size dan power analysis: <strong>pingouin</strong> (<code>pg.anova</code> + <code>pg.power_anova</code>). Visualisasi efek: <strong>seaborn.pointplot(x='faktor', y='y', data=df)</strong> + boxplot.
+    💡 <strong>Implementasi \(scipy.stats.f_{oneway}:\)</strong> One-liner dalam Python: <code>from scipy.stats import f_oneway; F, p = f_oneway(group1, group2, group3)</code>. <strong>statsmodels</strong> memberikan tabel ANOVA lengkap: <code>import statsmodels.api as sm; from statsmodels.formula.api import ols; model = ols('y ~ C(faktor)', data=df).fit(); table = sm.stats.anova_lm(model, typ=2); print(table)</code>. Untuk effect size dan power analysis: <strong>pingouin</strong> (<code>pg.anova</code> + <code>pg.power_anova</code>). Visualisasi efek: <strong>seaborn.pointplot(x='faktor', y='y', data=df)</strong> + boxplot.
   </div>
 </div>
 
@@ -1110,7 +1110,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="card">
       <div class="card-icon">📋</div>
       <h3>Step 4 — Susun Tabel ANOVA</h3>
-      <p>Output Python <code>statsmodels.anova_lm</code> berupa tabel: kolom = SS, df, MS, F, p. Baris = sumber variasi (faktor, residual). Validasi: <strong>\(df_b + df_w = df_total = N - 1\)</strong>; <strong>\(SS_b + SS_w = SS_total\)</strong>. Kalau angka tidak konsisten, ada bug di kode — biasanya formula type Type I vs Type II vs Type III SS keliru. Untuk one-way balanced, ketiganya sama.</p>
+      <p>Output Python <code>statsmodels.anova_lm</code> berupa tabel: kolom = SS, df, MS, F, p. Baris = sumber variasi (faktor, residual). Validasi: <strong>\(df_b + df_w = df_{\text{total}} = N - 1\)</strong>; <strong>\(SS_b + SS_w = SS_{\text{total}}\)</strong>. Kalau angka tidak konsisten, ada bug di kode — biasanya formula type Type I vs Type II vs Type III SS keliru. Untuk one-way balanced, ketiganya sama.</p>
       <div class="formula">\(SS_b + SS_w = SS_t\)</div>
     </div>
     <div class="card">
@@ -1123,7 +1123,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🔍</div>
       <h3>Step 6 — Post-hoc: Tukey HSD</h3>
       <p>ANOVA hanya bilang "ada efek" tanpa identifikasi pasangan. <strong>Tukey HSD</strong> (Honest Significant Difference) bandingkan semua pasangan dengan kontrol <em>family-wise error rate</em>. Output: tabel pairwise dengan p-adjusted; pasangan dengan p &lt; α adalah signifikan berbeda. Library: <code>statsmodels.stats.multicomp.pairwise_tukeyhsd</code> atau <code>pingouin.pairwise_tukey</code>. Pilih level dengan mean optimum yang berbeda signifikan dari level lain.</p>
-      <div class="formula">\(Tukey: p_adj < \alpha\)</div>
+      <div class="formula">\(Tukey: p_{adj} < \alpha\)</div>
     </div>
   </div>
 
@@ -1168,20 +1168,20 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="card">
       <div class="card-icon">📊</div>
       <h3>Model Aditif: y = μ + αᵢ + βⱼ + (αβ)ᵢⱼ + ε</h3>
-      <p>Two-way ANOVA mengasumsikan respons yᵢⱼₖ = grand mean + efek faktor A level i + efek faktor B level j + interaksi level (i,j) + noise. <strong>\(SS_total = SS_A + SS_B + SS_AB + SS_error\)</strong>. Tiap term punya df sendiri: df_A = a−1, df_B = b−1, df_AB = (a−1)(b−1), df_error = ab(n−1). Tabel ANOVA punya 4 baris: A, B, AB interaction, error. <strong style="color:var(--cyan)">Tiga F-test independen</strong>.</p>
+      <p>Two-way ANOVA mengasumsikan respons yᵢⱼₖ = grand mean + efek faktor A level i + efek faktor B level j + interaksi level (i,j) + noise. <strong>\(SS_{\text{total}} = SS_A + SS_B + SS_{AB} + SS_{error}\)</strong>. Tiap term punya df sendiri: df_A = a−1, df_B = b−1, df_AB = (a−1)(b−1), df_error = ab(n−1). Tabel ANOVA punya 4 baris: A, B, AB interaction, error. <strong style="color:var(--cyan)">Tiga F-test independen</strong>.</p>
       <div class="formula">\(y = \mu + \alpha _i + \beta _j + (\alpha \beta )_i_j + \epsilon\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🅰️</div>
       <h3>Main Effect — Pengaruh Tunggal Faktor</h3>
       <p>Main effect faktor A: <code>F_A = MS_A / MS_error</code>. Menjawab "apakah rata-rata respons berbeda antar level A, <em>marjinal</em> atas B?" Mean A_i = rata-rata semua observasi di level A=i (semua level B). Kalau F_A signifikan (p &lt; α), faktor A berpengaruh secara overall. Sama untuk main effect B. <strong style="color:var(--green)">Hati-hati</strong>: main effect bisa misleading kalau ada interaksi kuat — selalu cek interaction dulu.</p>
-      <div class="formula">\(F_A = MS_A / MS_error\)</div>
+      <div class="formula">\(F_A = MS_A / MS_{error}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔗</div>
       <h3>Interaction Effect A × B</h3>
-      <p>Interaksi: efek faktor A <em>berbeda</em> tergantung level B. Contoh: arus 200 A bagus saat voltage rendah tapi buruk saat voltage tinggi. <strong>\(F_AB = MS_AB / MS_error\)</strong>. Visualisasi: <em>interaction plot</em> — plot mean(y) vs A untuk tiap level B; <strong>garis tidak paralel = ada interaksi</strong>. Kalau interaksi signifikan, efek A &amp; B harus dipelajari bersama-sama, tidak terpisah. Reporting: <em>"interaction A×B: F(2, 12) = 4.5, p = 0.04"</em>.</p>
-      <div class="formula">\(F_AB \to garis tidak paralel\)</div>
+      <p>Interaksi: efek faktor A <em>berbeda</em> tergantung level B. Contoh: arus 200 A bagus saat voltage rendah tapi buruk saat voltage tinggi. <strong>\(F_{AB} = MS_{AB} / MS_{error}\)</strong>. Visualisasi: <em>interaction plot</em> — plot mean(y) vs A untuk tiap level B; <strong>garis tidak paralel = ada interaksi</strong>. Kalau interaksi signifikan, efek A &amp; B harus dipelajari bersama-sama, tidak terpisah. Reporting: <em>"interaction A×B: F(2, 12) = 4.5, p = 0.04"</em>.</p>
+      <div class="formula">\(F_{AB} \to garis tidak paralel\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
@@ -1218,7 +1218,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
   <div class="info-box reveal">
     <strong>Contoh Konkret — Injection Molding (Tekanan × Suhu):</strong><br>
-    Faktor A: tekanan injeksi (3 level: 80, 100, 120 MPa). Faktor B: suhu mold (3 level: 50, 70, 90 °C). Respons: defect rate (%). Replikasi n=2 per kombinasi (full factorial 3×3×2 = 18 trial). Hasil ANOVA: <strong>\(F_A = 28.4, p_A\) &lt; \(0.001\) (signifikan); \(F_B = 12.1, p_B = 0.003\) (signifikan); \(F_AB = 5.8, p_AB = 0.012\) (signifikan!)</strong>. Karena <em>interaksi signifikan</em>, kita tidak bisa interpretasi A &amp; B terpisah. Plot interaksi menunjukkan: tekanan 100 MPa optimum saat suhu 70°C (defect ≈ 1.2%); tetapi 120 MPa optimum saat suhu 90°C (defect ≈ 0.9%). <strong>Keputusan: pilih kombinasi (120 MPa, 90 °C)</strong> — tidak bisa dicapai oleh dua one-way ANOVA terpisah!
+    Faktor A: tekanan injeksi (3 level: 80, 100, 120 MPa). Faktor B: suhu mold (3 level: 50, 70, 90 °C). Respons: defect rate (%). Replikasi n=2 per kombinasi (full factorial 3×3×2 = 18 trial). Hasil ANOVA: <strong>\(F_A = 28.4, p_A\) &lt; \(0.001\) (signifikan); \(F_B = 12.1, p_B = 0.003\) (signifikan); \(F_{AB} = 5.8, p_{AB} = 0.012\) (signifikan!)</strong>. Karena <em>interaksi signifikan</em>, kita tidak bisa interpretasi A &amp; B terpisah. Plot interaksi menunjukkan: tekanan 100 MPa optimum saat suhu 70°C (defect ≈ 1.2%); tetapi 120 MPa optimum saat suhu 90°C (defect ≈ 0.9%). <strong>Keputusan: pilih kombinasi (120 MPa, 90 °C)</strong> — tidak bisa dicapai oleh dua one-way ANOVA terpisah!
   </div>
 
   <div class="warn-box reveal">
@@ -1289,7 +1289,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi \(1\;\text{---}\) Variance Partition: \(SS_between vs SS_within\)</span>
+      <span class="anim-title">Animasi \(1\;\text{---}\) Variance Partition: \(SS_{\text{between}} vs SS_{\text{within}}\)</span>
     </div>
     <div class="anim-body">
       <canvas id="cvPhysics" height="340"></canvas>
@@ -1486,7 +1486,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="code-wrap reveal">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell \(1\;\text{---}\;One-Way\) ANOVA dari Scratch \(+\) Verifikasi \(scipy.stats.f_oneway\) (CNC Cutting Speed)</span>
+      <span class="code-label">Cell \(1\;\text{---}\;One-Way\) ANOVA dari Scratch \(+\) Verifikasi \(scipy.stats.f_{oneway}\) (CNC Cutting Speed)</span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
@@ -1745,7 +1745,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   <div class="code-wrap reveal">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell \(4\;\text{---}\;run_anova_workflow()\) Reusable: \(End-to-End\) ANOVA Pipeline (asumsi \(\to\) tabel \(\to post-hoc \to\) plot)</span>
+      <span class="code-label">Cell \(4\;\text{---}\;run_anova_{workflow}()\) Reusable: \(End-to-End\) ANOVA Pipeline (asumsi \(\to\) tabel \(\to post-hoc \to\) plot)</span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
@@ -2022,7 +2022,7 @@ result = <span class="fn">run_anova_workflow</span>(df_demo, <span class="st">'t
         <div class="radio-option" onclick="selectMC('mc2',this,'A')"><div class="radio-circle"></div>(A) &nbsp; SS_total = SS_between × SS_within</div>
         <div class="radio-option" onclick="selectMC('mc2',this,'B')"><div class="radio-circle"></div>(B) &nbsp; SS_total = SS_between + SS_within — total varians = varians antar-grup (efek faktor) + varians dalam-grup (noise)</div>
         <div class="radio-option" onclick="selectMC('mc2',this,'C')"><div class="radio-circle"></div>(C) &nbsp; SS_total = SS_between − SS_within</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,'D')"><div class="radio-circle"></div>(D) &nbsp; SS_total = \(\sqrt{SS_between^2 + SS_within^2}\)</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'D')"><div class="radio-circle"></div>(D) &nbsp; SS_total = \(\sqrt{SS_{\text{between}}^2 + SS_{\text{within}}^2}\)</div>
       </div>
       <button class="mc-submit" id="sub-mc2" onclick="checkMC('mc2')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc2"></div>
@@ -2198,12 +2198,12 @@ F, p = stats.f_oneway(group1, group2, group3)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C1</div>
-        <div class="comp-q">Hitung <strong>\(SS_total\)</strong> (total sum of squares) untuk dataset 3 grup: A = [5, 6, 7], B = [8, 9, 10], C = [11, 12, 13]. Formula: <code>SS_total = Σ(yᵢⱼ − ȳ)²</code> di mana ȳ = grand mean. Print nilainya.</div>
+        <div class="comp-q">Hitung <strong>\(SS_{\text{total}}\)</strong> (total sum of squares) untuk dataset 3 grup: A = [5, 6, 7], B = [8, 9, 10], C = [11, 12, 13]. Formula: <code>SS_total = Σ(yᵢⱼ − ȳ)²</code> di mana ȳ = grand mean. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 SS_total = Σ(yᵢ − grand mean)²; gabungkan semua grup ke satu array lalu jumlahkan kuadrat deviasi terhadap meannya.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(SS_total\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(SS_{\text{total}}\)</strong></span></div>
         <textarea class="code-textarea" id="code-c1" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi&#10;&#10;Contoh:&#10;import numpy as np&#10;data = np.array([5,6,7,8,9,10,11,12,13])&#10;ss_total = ((data - data.mean())**2).sum()&#10;print(f'{ss_total:.4f}')" oninput="onCodeInput('c1')"></textarea>
         <div class="stdout-box" id="stdout-c1"></div>
       </div>
@@ -2215,12 +2215,12 @@ F, p = stats.f_oneway(group1, group2, group3)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C2</div>
-        <div class="comp-q">Untuk dataset di C1 (A = [5, 6, 7], B = [8, 9, 10], C = [11, 12, 13]), hitung <strong>\(SS_between\)</strong> = <code>Σ nⱼ·(ȳⱼ − ȳ)²</code>. Print nilainya.</div>
+        <div class="comp-q">Untuk dataset di C1 (A = [5, 6, 7], B = [8, 9, 10], C = [11, 12, 13]), hitung <strong>\(SS_{\text{between}}\)</strong> = <code>Σ nⱼ·(ȳⱼ − ȳ)²</code>. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 SS_between = Σ nⱼ·(mean grup − grand mean)²; hitung mean tiap grup dan grand mean, lalu jumlahkan deviasi kuadrat berbobot ukuran grup.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(SS_between\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(SS_{\text{between}}\)</strong></span></div>
         <textarea class="code-textarea" id="code-c2" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c2')"></textarea>
         <div class="stdout-box" id="stdout-c2"></div>
       </div>
@@ -2232,12 +2232,12 @@ F, p = stats.f_oneway(group1, group2, group3)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C3</div>
-        <div class="comp-q">Untuk dataset di C1, hitung <strong>\(SS_within\)</strong> = <code>ΣⱼΣᵢ (yᵢⱼ − ȳⱼ)²</code> (deviasi data dari mean grup-nya, jumlah semua grup). Print nilainya.</div>
+        <div class="comp-q">Untuk dataset di C1, hitung <strong>\(SS_{\text{within}}\)</strong> = <code>ΣⱼΣᵢ (yᵢⱼ − ȳⱼ)²</code> (deviasi data dari mean grup-nya, jumlah semua grup). Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 SS_within = jumlah kuadrat deviasi tiap data terhadap mean grup-nya, dijumlahkan atas semua grup. Verifikasi: SS_between + SS_within = SS_total.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(SS_within\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(SS_{\text{within}}\)</strong></span></div>
         <textarea class="code-textarea" id="code-c3" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c3')"></textarea>
         <div class="stdout-box" id="stdout-c3"></div>
       </div>
@@ -2249,7 +2249,7 @@ F, p = stats.f_oneway(group1, group2, group3)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C4</div>
-        <div class="comp-q">Diketahui <strong>\(SS_between = 120\)</strong>, <strong>\(SS_within = 36\)</strong>, <strong>\(df_b = 3\)</strong>, <strong>\(df_w = 16\)</strong>. Hitung statistik <strong>F</strong> = <code>(SS_b/df_b) / (SS_w/df_w)</code>. Print nilainya.</div>
+        <div class="comp-q">Diketahui <strong>\(SS_{\text{between}} = 120\)</strong>, <strong>\(SS_{\text{within}} = 36\)</strong>, <strong>\(df_b = 3\)</strong>, <strong>\(df_w = 16\)</strong>. Hitung statistik <strong>F</strong> = <code>(SS_b/df_b) / (SS_w/df_w)</code>. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 MS_b = SS_b/df_b dan MS_w = SS_w/df_w; F = MS_b ÷ MS_w. F besar menandakan efek faktor yang kuat.</div>
@@ -2266,12 +2266,12 @@ F, p = stats.f_oneway(group1, group2, group3)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C5</div>
-        <div class="comp-q">Untuk one-way ANOVA dengan <strong>k = 4 level</strong> dan <strong>n = 5 replikasi</strong> per level, hitung <strong>\(df_total\)</strong> (degrees of freedom total). Formula: <code>df_total = N − 1</code> dengan <code>N = k·n</code>. Print nilainya.</div>
+        <div class="comp-q">Untuk one-way ANOVA dengan <strong>k = 4 level</strong> dan <strong>n = 5 replikasi</strong> per level, hitung <strong>\(df_{\text{total}}\)</strong> (degrees of freedom total). Formula: <code>df_total = N − 1</code> dengan <code>N = k·n</code>. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 N = k × n (total observasi), lalu df_total = N − 1. Verifikasi: df_total = df_between (k−1) + df_within (N−k).</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(df_total\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(df_{\text{total}}\)</strong></span></div>
         <textarea class="code-textarea" id="code-c5" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c5')"></textarea>
         <div class="stdout-box" id="stdout-c5"></div>
       </div>
@@ -2322,7 +2322,7 @@ F, p = stats.f_oneway(group1, group2, group3)
       </div>
       <div class="comp-hint">💡 Gunakan <code>scipy.stats.f.ppf(1−α, dfn, dfd)</code> untuk F-critical; jika F_observed melebihinya, tolak H₀. Makin besar df, F_crit makin kecil.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(F_critical\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(F_{\text{critical}}\)</strong></span></div>
         <textarea class="code-textarea" id="code-c8" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c8')"></textarea>
         <div class="stdout-box" id="stdout-c8"></div>
       </div>
@@ -2400,7 +2400,7 @@ F, p = stats.f_oneway(group1, group2, group3)
       </div>
       <div class="comp-hint">💡 Bangun DataFrame (set seed sesuai soal), fit model <code>ols('strength ~ C(arus)*C(voltage)')</code>, jalankan <code>anova_lm</code>, lalu ambil p-value baris <code>C(arus)</code> dari kolom <code>PR(&gt;F)</code>.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">\(p_arus\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">\(p_{arus}\)</strong></span></div>
         <textarea class="code-textarea" id="code-c12" rows="16" placeholder="Paste kode Two-Way ANOVA statsmodels, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c12')"></textarea>
         <div class="stdout-box" id="stdout-c12"></div>
       </div>
@@ -2451,7 +2451,7 @@ F, p = stats.f_oneway(group1, group2, group3)
       </div>
       <div class="comp-hint">💡 Fit model <code>ols('defect ~ C(A)*C(B)')</code> lalu jalankan <code>anova_lm</code>; ambil F-statistic dari baris interaksi <code>C(A):C(B)</code>. Jika signifikan, main effect tidak boleh diinterpretasi terpisah.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">\(F_interaction\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">\(F_{interaction}\)</strong></span></div>
         <textarea class="code-textarea" id="code-c15" rows="20" placeholder="Paste kode Two-Way ANOVA injection molding, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c15')"></textarea>
         <div class="stdout-box" id="stdout-c15"></div>
       </div>

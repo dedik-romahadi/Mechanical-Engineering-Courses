@@ -932,7 +932,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <em>Gerak</em><br>
       <span class="hl-amber">Sistem 2 DoF</span>
     </h1>
-    <p class="hero-sub">Setelah memahami frekuensi pribadi &amp; mode shape (Pertemuan 7), kini kita kembali ke <strong>fondasinya</strong>: bagaimana sebenarnya persamaan gerak matriks <code>[M]{ẍ} + [C]{ẋ} + [K]{x} = {F(t)}</code> di-<strong>derive</strong>. Modul ini bahas dua metode utama — <strong>Newton's Method</strong> (free body diagram, sum of forces) dan <strong>Lagrange's Equation</strong> (energy-based: T &amp; V) — lalu solusi numerik <strong>\(solve_ivp\)</strong> untuk respons time-history.</p>
+    <p class="hero-sub">Setelah memahami frekuensi pribadi &amp; mode shape (Pertemuan 7), kini kita kembali ke <strong>fondasinya</strong>: bagaimana sebenarnya persamaan gerak matriks <code>[M]{ẍ} + [C]{ẋ} + [K]{x} = {F(t)}</code> di-<strong>derive</strong>. Modul ini bahas dua metode utama — <strong>Newton's Method</strong> (free body diagram, sum of forces) dan <strong>Lagrange's Equation</strong> (energy-based: T &amp; V) — lalu solusi numerik <strong>\(solve_{\text{ivp}}\)</strong> untuk respons time-history.</p>
     <div class="hero-stats">
       <div class="stat"><div class="stat-num">8</div><div class="stat-lbl">Bagian Materi</div></div>
       <div class="stat"><div class="stat-num">5</div><div class="stat-lbl">Animasi</div></div>
@@ -1009,7 +1009,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🎯</div>
       <h3>Constraint &amp; DoF Effective</h3>
       <p>Bila ada constraint (mis. tidak boleh translasi axial), DoF efektif berkurang. Bandul double pendulum: tampak 4 koordinat (x₁,y₁,x₂,y₂) tapi dengan constraint panjang fix, hanya <strong>2 DoF</strong> independen (sudut θ₁, θ₂).</p>
-      <div class="formula">\(DoF_eff =\;\text{total coords}\;-\;\text{constraints}\)</div>
+      <div class="formula">\(DoF_{\text{eff}} =\;\text{total coords}\;-\;\text{constraints}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
@@ -1231,7 +1231,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     Untuk sistem rangkaian massa-spring-damper, matriks dapat dikonstruksi langsung dari <em>connectivity</em> tanpa derivasi ulang Newton/Lagrange:<br>
     1) <strong>M[i,i] \(= m_i\)</strong> (massa per DoF, diagonal).<br>
     2) <strong>K[i,i] \(= \Sigma k_j\)</strong> untuk semua spring yang menempel ke DoF i.<br>
-    3) <strong>K[i,j] \(= -k_ij\)</strong> untuk spring yang menghubungkan DoF i dan j (off-diagonal, simetris).<br>
+    3) <strong>K[i,j] \(= -k_{ij}\)</strong> untuk spring yang menghubungkan DoF i dan j (off-diagonal, simetris).<br>
     4) <strong>C[i,j]</strong> dengan rule yang sama tapi dengan damping coefficient c.<br>
     Untuk sistem referensi (2 mass, 3 spring sama k=100): <code>M=I</code>, <code>K=[[200,-100],[-100,200]]</code>. Bisa ditulis dalam 5 baris kode.
   </div>
@@ -1297,7 +1297,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <div class="section" id="m-aplikasi">
   <div class="section-label reveal">Bagian 07</div>
   <h2 class="section-title reveal">Numerical Solution:<br>scipy.integrate.solve_ivp untuk MDoF</h2>
-  <p class="section-desc reveal">Setelah EoM dalam matrix form <code>[M]{ẍ} + [C]{ẋ} + [K]{x} = {F(t)}</code>, langkah berikutnya: <strong>solve numerically</strong> untuk dapat respons time-history x(t). Library Python paling robust: <strong>\(scipy.integrate.solve_ivp\)</strong> dengan algoritma adaptive Runge-Kutta. Bekerja untuk linear, non-linear, time-varying systems.</p>
+  <p class="section-desc reveal">Setelah EoM dalam matrix form <code>[M]{ẍ} + [C]{ẋ} + [K]{x} = {F(t)}</code>, langkah berikutnya: <strong>solve numerically</strong> untuk dapat respons time-history x(t). Library Python paling robust: <strong>\(scipy.integrate.solve_{\text{ivp}}\)</strong> dengan algoritma adaptive Runge-Kutta. Bekerja untuk linear, non-linear, time-varying systems.</p>
 
   <div class="formula-block reveal">
     <div class="label">Convert to 1st-Order System</div>
@@ -1426,7 +1426,7 @@ EL1_simplified = sp.<span class="fn">simplify</span>(EL1)
   <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell \(3\;\text{---}\) Free Vibration Response dengan \(solve_ivp\)</span>
+      <span class="code-label">Cell \(3\;\text{---}\) Free Vibration Response dengan \(solve_{\text{ivp}}\)</span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>

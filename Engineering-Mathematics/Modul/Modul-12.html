@@ -1244,7 +1244,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">∑</div>
       <h3>Linieritas untuk Kombinasi</h3>
       <p>Untuk sinyal kombinasi <code>f(t) = c₁·H(t−a₁) + c₂·H(t−a₂) + ...</code>: \(L{f(t)} = c_1 \cdot e^{-a_1s}/s + c_2 \cdot e^{-a_2s}/s + ...\). Linieritas memungkinkan transformasi tiap term independen lalu dijumlahkan — sangat efisien untuk sinyal step ber-tingkat.</p>
-      <div class="formula">\(L{\sum c_iH(t-a_i)} = \sum c_ie^{-a_is}/s\)</div>
+      <div class="formula">\(L{\sum c_{iH}(t-a_i)} = \sum c_{ie}^{-a_{is}}/s\)</div>
     </div>
   </div>
 
@@ -1595,7 +1595,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📊</div>
       <h3>Step 2: Solve Y(s)</h3>
       <p>Susun: \(P(s) \cdot Y(s) = R(s) + sum cᵢ \cdot e^{-aᵢs} \cdot G(s)\). Solve aljabar: \(Y(s) = R(s)/P(s) + sum cᵢ \cdot e^{-aᵢs} \cdot G(s)/P(s)\). Pisahkan term dengan e^(−as) dari term tanpa.</p>
-      <div class="formula">\(Y(s) = Y_1 + \sum e^{-a_is} \cdot Y_2_i\)</div>
+      <div class="formula">\(Y(s) = Y_1 + \sum e^{-a_{is}} \cdot Y_2_i\)</div>
     </div>
     <div class="card">
       <div class="card-icon">↩️</div>
@@ -1820,7 +1820,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       </div>
       <div id="m12AppPWMInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Lima aplikasi switching engineering. Layout split: kiri = visualisasi sistem fisik (motor + PWM signal, ramping motor, multi-stage start, thermostat heater, encoder disk), kanan = signal trace 1000 samples menampilkan input switching + averaged response. <strong>Insight kunci PWM:</strong> dengan duty cycle D, motor melihat <em>average voltage \(= D \cdot V_peak\)</em> karena inersia rotor menyaring switching tinggi.
+        <strong>📊 Cara Membaca:</strong> Lima aplikasi switching engineering. Layout split: kiri = visualisasi sistem fisik (motor + PWM signal, ramping motor, multi-stage start, thermostat heater, encoder disk), kanan = signal trace 1000 samples menampilkan input switching + averaged response. <strong>Insight kunci PWM:</strong> dengan duty cycle D, motor melihat <em>average voltage \(= D \cdot V_{\text{peak}}\)</em> karena inersia rotor menyaring switching tinggi.
       </div>
     </div>
   </div>
@@ -2651,7 +2651,7 @@ for f in (f53a, f53b, f54):
       </div>
       <div class="comp-hint">💡 Tegangan rata-rata PWM setelah filter adalah <code>V_avg = V₀ · d</code>; substitusikan amplitudo dan duty cycle.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">\(V_avg\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">\(V_{\text{avg}}\)</strong></span></div>
         <textarea class="code-textarea" id="code-c8" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c8')"></textarea>
         <div class="stdout-box" id="stdout-c8"></div>
       </div>
@@ -2749,7 +2749,7 @@ for f in (f53a, f53b, f54):
       </div>
       <div class="comp-hint">💡 Tegangan steady-state PWM setelah low-pass adalah <code>V₀·d</code>; verifikasi numerik dengan merata-rata output setelah transien meluruh.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">\(V_avg\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">\(V_{\text{avg}}\)</strong></span></div>
         <textarea class="code-textarea" id="code-c13" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi&#10;&#10;import numpy as np&#10;from scipy import signal&#10;V0, T, d, tau = 12, 1.0, 0.4, 0.5&#10;t = np.linspace(0, 10*T, 5000)&#10;pwm = V0 * (signal.square(2*np.pi*t/T, duty=d) &gt; 0)&#10;sys = signal.TransferFunction([1], [tau, 1])&#10;_, y, _ = signal.lsim(sys, pwm, t)&#10;V_avg = np.mean(y[t&gt;5])&#10;print(f'V_avg = {V_avg:.3f}')" oninput="onCodeInput('c13')"></textarea>
         <div class="stdout-box" id="stdout-c13"></div>
       </div>
@@ -2778,12 +2778,12 @@ for f in (f53a, f53b, f54):
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C15</div>
-        <div class="comp-q">Sirkuit RC dengan time constant τ=2 menerima step input <code>v_in(t) = 10·H(t−1)</code>. Hitung <strong>\(v_out(5)\)</strong> (3 desimal).</div>
+        <div class="comp-q">Sirkuit RC dengan time constant τ=2 menerima step input <code>v_in(t) = 10·H(t−1)</code>. Hitung <strong>\(v_{out}(5)\)</strong> (3 desimal).</div>
         <div class="comp-pts">4 poin</div>
       </div>
       <div class="comp-hint">💡 Substitusikan nilai t yang diminta ke <code>v_out(t)</code> (perhatikan step aktif untuk t≥1) lalu evaluasi suku eksponensial dengan <code>np.exp</code>.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">\(v_out(5)\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">\(v_{out}(5)\)</strong></span></div>
         <textarea class="code-textarea" id="code-c15" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi&#10;&#10;import numpy as np&#10;t, tau, V0, a = 5, 2, 10, 1&#10;# v_out(t) = V0*(1 - exp(-(t-a)/tau))*H(t-a)&#10;v_out = V0 * (1 - np.exp(-(t-a)/tau)) * (1 if t&gt;=a else 0)&#10;print(f'v_out(5) = {v_out:.4f}')" oninput="onCodeInput('c15')"></textarea>
         <div class="stdout-box" id="stdout-c15"></div>
       </div>
@@ -2871,10 +2871,10 @@ for f in (f53a, f53b, f54):
   <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2;margin-bottom:36px">
     <div class="label" style="text-align:left">Konstruksi Heaviside &rarr; Domain Laplace</div>
     Profil duty:      \(d(t) = 0.30 \cdot u(t) + 0.30 \cdot u(t-2) + 0.20 \cdot u(t-5)\)<br>
-    Average voltage: \(V_avg(t) = 12 \cdot d(t) = 3.6 \cdot u(t) + 3.6 \cdot u(t-2) + 2.4 \cdot u(t-5)\)<br>
+    Average voltage: \(V_{\text{avg}}(t) = 12 \cdot d(t) = 3.6 \cdot u(t) + 3.6 \cdot u(t-2) + 2.4 \cdot u(t-5)\)<br>
     Aturan dasar:     \(ℒ{u(t-a)} = e^{-as}/s\)<br>
     Hasil Laplace:    \(V(s) = 3.6/s + 3.6 \cdot e^{-2s}/s + 2.4 \cdot e^{-5s}/s\)<br>
-    <strong style="color:#fff">Respon motor:     \(\tau \cdot \omega ' + \omega = K \cdot V_avg\) &rarr;  \(di-solve\) dengan teknik \(PD\;\text{orde}\;-1 +\) second shift</strong>
+    <strong style="color:#fff">Respon motor:     \(\tau \cdot \omega ' + \omega = K \cdot V_{\text{avg}}\) &rarr;  \(di-solve\) dengan teknik \(PD\;\text{orde}\;-1 +\) second shift</strong>
   </div>
 
   <!-- Pertanyaan Diskusi -->
@@ -2885,7 +2885,7 @@ for f in (f53a, f53b, f54):
   <div class="fq-card reveal" id="fq1">
     <div class="fq-head" onclick="toggleFQ('fq1')">
       <div class="fq-num" style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2);color:var(--cyan)">01</div>
-      <h3>Konstruksi profil <strong>\(V_avg(t)\)</strong> = 12·d(t) sebagai jumlah Heaviside terbobot, lalu cari <code>V(s) = L{V_avg(t)}</code>.</h3>
+      <h3>Konstruksi profil <strong>\(V_{\text{avg}}(t)\)</strong> = 12·d(t) sebagai jumlah Heaviside terbobot, lalu cari <code>V(s) = L{V_avg(t)}</code>.</h3>
       <span class="fq-arrow">›</span>
     </div>
     <div class="fq-body">
@@ -2924,7 +2924,7 @@ for f in (f53a, f53b, f54):
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Model motor orde-1: <code>τ·ω' + ω = K·V_avg(t)</code> dengan τ = 0.5 s, K = 15 rpm/V. Steady-state (ω' = 0): \(\omega _{ss} = K \cdot V_avg\). Per fase: t∈[0,2): V_avg = 3.6 → <strong>\(\omega _{ss} = 15 \cdot 3.6 = 54\) rpm</strong>. t∈[2,5): V_avg = 7.2 → <strong>\(\omega _{ss} = 108\) rpm</strong>. t≥5: V_avg = 9.6 → <strong>\(\omega _{ss} = 144\) rpm</strong>. Transfer function motor: <code>G(s) = K/(τs+1) = 15/(0.5s+1) = 30/(s+2)</code>. Untuk verifikasi <strong>second shift theorem</strong>: bila kita perlu <code>L{(t−2)·H(t−2)}</code> (e.g. ramp delayed di kontroler), pakai \(L{f(t-a) \cdot H(t-a)} = e^{-as} \cdot F(s)\) dengan f(t)=t → F(s)=1/\(s^2\). Hasil: \(L{(t-2) \cdot H(t-2)} = e^{-2s}/s^2\). Pada s=1: \(e^{-2}/1 \approx 0.135\).</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Model motor orde-1: <code>τ·ω' + ω = K·V_avg(t)</code> dengan τ = 0.5 s, K = 15 rpm/V. Steady-state (ω' = 0): \(\omega _{ss} = K \cdot V_{\text{avg}}\). Per fase: t∈[0,2): V_avg = 3.6 → <strong>\(\omega _{ss} = 15 \cdot 3.6 = 54\) rpm</strong>. t∈[2,5): V_avg = 7.2 → <strong>\(\omega _{ss} = 108\) rpm</strong>. t≥5: V_avg = 9.6 → <strong>\(\omega _{ss} = 144\) rpm</strong>. Transfer function motor: <code>G(s) = K/(τs+1) = 15/(0.5s+1) = 30/(s+2)</code>. Untuk verifikasi <strong>second shift theorem</strong>: bila kita perlu <code>L{(t−2)·H(t−2)}</code> (e.g. ramp delayed di kontroler), pakai \(L{f(t-a) \cdot H(t-a)} = e^{-as} \cdot F(s)\) dengan f(t)=t → F(s)=1/\(s^2\). Hasil: \(L{(t-2) \cdot H(t-2)} = e^{-2s}/s^2\). Pada s=1: \(e^{-2}/1 \approx 0.135\).</p>
         <div style="background:rgba(249,115,22,.04);border:1px solid rgba(249,115,22,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);margin-bottom:12px">
           💬 <em>Second Shift Theorem berlaku <strong>hanya bila</strong> argumen f digeser ke (t−a). Bila kita punya \(t \cdot H(t\)−2) (bukan (t−2)·H(t−2)), perlu <strong>trik reformulasi</strong>: tulis t = (t−2) + 2 → \(t \cdot H(t\)−2) = (t−2)·H(t−2) + 2·H(t−2). Sekarang masing-masing suku bisa dipakai second shift. Hasil: \(L{t \cdot H(t-2)} = e^{-2s}/s^2 + 2 \cdot e^{-2s}/s = e^{-2s} \cdot (1/s^2 + 2/s)\). Trik ini krusial untuk handle sinyal ramp/parabolic ditunda di control system.</em>
         </div>
