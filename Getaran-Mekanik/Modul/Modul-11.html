@@ -1250,7 +1250,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🎯</div>
       <h3>Nyquist Frequency = fs/2</h3>
       <p>Frekuensi maksimum yang bisa direkam akurat = setengah sample rate. Untuk fs = 25600 Hz, fmax = 12800 Hz. Spektrum FFT menampilkan dari 0 sampai fs/2 — itu disebut <strong>Nyquist range</strong>.</p>
-      <div class="formula">\(f_Nyquist = fs/2\)</div>
+      <div class="formula">\(f_{\text{Nyquist}} = fs/2\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌀</div>
@@ -1291,7 +1291,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
   <div class="formula-block reveal">
     <div class="label">Windowing Process</div>
-    \(x_windowed[n] =\) x[n] \(\cdot\) w[n]  \(\cdot X_windowed = FFT(x_windowed)\)
+    \(x_{windowed}[n] =\) x[n] \(\cdot\) w[n]  \(\cdot X_{windowed} = FFT(x_{windowed})\)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
@@ -2350,7 +2350,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       <div class="fq-inner">
         <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Diagnosis tertarget: 1× (30 Hz), 2× (60 Hz), 3× (90 Hz), dan GMF (720 Hz) plus sidebands GMF ± f_shaft. Pertanyaan: apakah fs = 5 120 Hz cukup memenuhi Nyquist untuk semua komponen ini? Apakah Δf = 1.25 Hz cukup memisahkan 1× dan 2× (jarak 30 Hz, jelas terpisah) atau GMF sidebands (jarak 30 Hz, juga terpisah)? Hitung pula durasi rekaman.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">\(f_Nyquist = fs/2\)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">\(f_{\text{Nyquist}} = fs/2\)</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">Δf = fs/N = 1/T</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">T = N/fs</span>
         </div>
@@ -2382,7 +2382,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Pelajari "fingerprint" gangguan mesin umum: <strong>1× dominan</strong> = unbalance, <strong>2× dominan</strong> = misalignment, <strong>3× &amp; harmonik</strong> = mechanical looseness, <strong>GMF dengan sidebands \(\pm f_shaft\)</strong> = gear wear/eksentrisitas (modulasi amplitudo karena gigi tidak seragam), <strong>peak \(\text{non}\;-sinkron 0.4\;\text{--}\;0.5 \times f_shaft\)</strong> = oil whirl. Apa diagnosis untuk kasus dimana spektrum menunjukkan 1× kecil, 2× = 4× amplitudo 1×, dan GMF dengan dua sidebands kuat di ±30 Hz?</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Pelajari "fingerprint" gangguan mesin umum: <strong>1× dominan</strong> = unbalance, <strong>2× dominan</strong> = misalignment, <strong>3× &amp; harmonik</strong> = mechanical looseness, <strong>GMF dengan sidebands \(\pm f_{\text{shaft}}\)</strong> = gear wear/eksentrisitas (modulasi amplitudo karena gigi tidak seragam), <strong>peak \(\text{non}\;-sinkron 0.4\;\text{--}\;0.5 \times f_{\text{shaft}}\)</strong> = oil whirl. Apa diagnosis untuk kasus dimana spektrum menunjukkan 1× kecil, 2× = 4× amplitudo 1×, dan GMF dengan dua sidebands kuat di ±30 Hz?</p>
         <div style="background:rgba(249,115,22,.04);border:1px solid rgba(249,115,22,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);margin-bottom:12px">
           💬 <em>Hint: 2× &gt;&gt; 1× → tanda khas <strong>misalignment</strong> antara motor dan gearbox shaft. GMF dengan sidebands di ±f_shaft → tanda <strong>gear eksentrisitas</strong> atau wear lokal pada satu gigi (gigi tertentu engage tiap satu putaran shaft, modulasi periodik). Diagnosis ganda: lakukan re-alignment (laser alignment) sebagai langkah pertama, lalu inspeksi visual gear.</em>
         </div>
@@ -2417,8 +2417,8 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Sinyal getaran 0.8 s di kasus ini tidak mengandung jumlah putaran yang bulat per komponen frekuensi (mis. 1× = 30 Hz × 0.8 s = 24 putaran — kebetulan bulat untuk 1×, tetapi tidak untuk frekuensi non-integer). Tanpa windowing → spectral leakage. Jelaskan: (a) mengapa Hann lebih baik daripada rectangular, (b) trade-off Hann vs Flat-top vs Hamming, (c) ACF Hann = 2.0 berarti apa.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">\(x_w[n] = w[n] \cdot x[n]\)</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">\(ACF_Hann = 2.0\)</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">\(w_Hann[n] = 0.5(1 - \cos(2\pi n/N))\)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">\(ACF_{Hann} = 2.0\)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">\(w_{Hann}[n] = 0.5(1 - \cos(2\pi n/N))\)</span>
         </div>
         <div style="background:rgba(0,224,158,.04);border:1px solid rgba(0,224,158,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);">
           💬 <em>Hint: Tanpa window (rectangular), DFT mengasumsikan sinyal periodik dalam jendela N sampel — diskontinuitas di ujung jendela menyebar energi ke seluruh spektrum (leakage). Hann (cosine-bell) memperkecil amplitudo di tepi → leakage berkurang sangat besar. Trade-off: amplitudo peak terbaca ~50% lebih rendah → kalikan dengan ACF = 2.0 untuk koreksi. Flat-top (ACF ≈ 4.18) memberi pembacaan amplitudo TERAKURAT tapi resolusi frekuensi lebih buruk. Hamming = mirip Hann tetapi tidak nol di tepi.</em>
