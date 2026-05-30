@@ -1363,174 +1363,164 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <p class="section-desc reveal">Empat cell Python berikut mengimplementasikan workflow Condition Monitoring lengkap end-to-end: load &amp; preprocess data (Cell 1), full feature extraction (Cell 2), trend analysis &amp; alarm logic (Cell 3), simple RUL estimation (Cell 4). Pattern ini foundational untuk implementasi production system.</p>
 
   <!-- Cell 1 -->
-  <div class="code-card reveal" style="margin-bottom:32px">
+  <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
-      <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="code-lang">Python · Cell 1</span>
-      <span class="code-label">Simulate Bearing Degradation Time Series (8 weeks)</span>
-    </div>
-    <div class="code-wrap">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 1 — Simulate Bearing Degradation Time Series (8 weeks)</span>
+      <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">import numpy as np
-
-# Simulate 8 weeks of daily measurements (56 days)
-n_days = 56
-np.random.seed(42)
-
-# Linearly degrading defect intensity over time
-defect_intensity = np.linspace(0.1, 4.0, n_days)
-# Add noise and exponential acceleration in last 2 weeks
-defect_intensity[-14:] *= 1 + 0.3*np.arange(14)  # accelerated growth
-
-fs = 25600.0
-T = 1.0   # 1 sec buffer per measurement
-N = int(fs * T)
-t = np.arange(N) / fs
-
-# Storage for all daily snapshots
-daily_signals = []
-f_BPFO = 100.0  # Hz
-f_resonance = 5000.0
-f_shaft = 30.0  # Hz
-
-for day in range(n_days):
-    # Background machinery vibration
-    bg = (1.5 * np.sin(2*np.pi*f_shaft*t) + 0.4*np.sin(2*np.pi*2*f_shaft*t)
-          + 0.3*np.random.randn(N))
-    # Bearing fault impulse train (intensity grows over time)
-    impulses = np.zeros(N)
-    for k in range(int(T * f_BPFO)):
-        idx = int(k / f_BPFO * fs)
-        if idx < N - 200:
-            decay = np.exp(-np.arange(200) * 0.02)
-            impulses[idx:idx+200] += defect_intensity[day] * decay * np.sin(2*np.pi*f_resonance*np.arange(200)/fs)
-    daily_signals.append(bg + impulses)
-
-print(f"Generated {n_days} days of bearing signals (1 sec each)")
-print(f"Defect intensity grew from {defect_intensity[0]:.2f} to {defect_intensity[-1]:.2f}")</code></pre>
     </div>
+    <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="cm"># Simulate 8 weeks of daily measurements (56 days)</span>
+n_days = <span class="nm">56</span>
+np.random.<span class="fn">seed</span>(<span class="nm">42</span>)
+
+<span class="cm"># Linearly degrading defect intensity over time</span>
+defect_intensity = np.<span class="fn">linspace</span>(<span class="nm">0.1</span>, <span class="nm">4.0</span>, n_days)
+<span class="cm"># Add noise and exponential acceleration in last 2 weeks</span>
+defect_intensity[-<span class="nm">14</span>:] *= <span class="nm">1</span> + <span class="nm">0.3</span>*np.<span class="fn">arange</span>(<span class="nm">14</span>)  <span class="cm"># accelerated growth</span>
+
+fs = <span class="nm">25600.0</span>
+T = <span class="nm">1.0</span>   <span class="cm"># 1 sec buffer per measurement</span>
+N = <span class="fn">int</span>(fs * T)
+t = np.<span class="fn">arange</span>(N) / fs
+
+<span class="cm"># Storage for all daily snapshots</span>
+daily_signals = []
+f_BPFO = <span class="nm">100.0</span>  <span class="cm"># Hz</span>
+f_resonance = <span class="nm">5000.0</span>
+f_shaft = <span class="nm">30.0</span>  <span class="cm"># Hz</span>
+
+<span class="kw">for</span> day <span class="kw">in</span> <span class="fn">range</span>(n_days):
+    <span class="cm"># Background machinery vibration</span>
+    bg = (<span class="nm">1.5</span> * np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*f_shaft*t) + <span class="nm">0.4</span>*np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*<span class="nm">2</span>*f_shaft*t)
+          + <span class="nm">0.3</span>*np.random.<span class="fn">randn</span>(N))
+    <span class="cm"># Bearing fault impulse train (intensity grows over time)</span>
+    impulses = np.<span class="fn">zeros</span>(N)
+    <span class="kw">for</span> k <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">int</span>(T * f_BPFO)):
+        idx = <span class="fn">int</span>(k / f_BPFO * fs)
+        <span class="kw">if</span> idx &lt; N - <span class="nm">200</span>:
+            decay = np.<span class="fn">exp</span>(-np.<span class="fn">arange</span>(<span class="nm">200</span>) * <span class="nm">0.02</span>)
+            impulses[idx:idx+<span class="nm">200</span>] += defect_intensity[day] * decay * np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*f_resonance*np.<span class="fn">arange</span>(<span class="nm">200</span>)/fs)
+    daily_signals.<span class="fn">append</span>(bg + impulses)
+
+<span class="fn">print</span>(<span class="st">f"Generated {n_days} days of bearing signals (1 sec each)"</span>)
+<span class="fn">print</span>(<span class="st">f"Defect intensity grew from {defect_intensity[0]:.2f} to {defect_intensity[-1]:.2f}"</span>)</pre>
   </div>
 
   <!-- Cell 2 -->
-  <div class="code-card reveal" style="margin-bottom:32px">
+  <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
-      <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="code-lang">Python · Cell 2</span>
-      <span class="code-label">Extract 5 Features per Day (Multi-Feature Health)</span>
-    </div>
-    <div class="code-wrap">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 2 — Extract 5 Features per Day (Multi-Feature Health)</span>
+      <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">from scipy.signal import butter, filtfilt, hilbert
-
-def extract_features(x, fs):
-    """Return dict: rms, peak, crest, kurtosis, envelope_BPFO_amp."""
-    x = x - x.mean()
-    rms = np.sqrt(np.mean(x**2))
-    peak = np.max(np.abs(x))
-    crest = peak / rms if rms > 0 else 0
-    kurt = np.mean((x/rms)**4) if rms > 0 else 0
-
-    # Envelope analysis untuk BPFO amplitude
-    nyq = fs/2
-    b, a = butter(4, [3000/nyq, 7000/nyq], btype='band')
-    x_bp = filtfilt(b, a, x)
-    env = np.abs(hilbert(x_bp))
-    env -= env.mean()
-    ENV = np.fft.rfft(env)
-    freqs = np.fft.rfftfreq(len(env), d=1/fs)
-    mag_env = np.abs(ENV) * 2 / len(env)
-    bpfo_mask = (freqs > 95) & (freqs < 105)
-    bpfo_amp = mag_env[bpfo_mask].max() if bpfo_mask.any() else 0
-    return {'rms': rms, 'peak': peak, 'crest': crest,
-            'kurtosis': kurt, 'bpfo_amp': bpfo_amp}
-
-# Extract features for all days
-features_log = [extract_features(daily_signals[d], fs) for d in range(n_days)]
-print(f"{'Day':<5}{'RMS':>8}{'Peak':>8}{'Crest':>8}{'Kurt':>8}{'BPFO':>10}")
-for i in [0, 14, 28, 42, 55]:
-    f = features_log[i]
-    print(f"{i:<5}{f['rms']:>8.3f}{f['peak']:>8.3f}{f['crest']:>8.3f}{f['kurtosis']:>8.3f}{f['bpfo_amp']:>10.3f}")</code></pre>
     </div>
+    <pre><span class="kw">from</span> scipy.signal <span class="kw">import</span> butter, filtfilt, hilbert
+
+<span class="kw">def</span> <span class="fn">extract_features</span>(x, fs):
+    <span class="st">"""Return dict: rms, peak, crest, kurtosis, envelope_BPFO_amp."""</span>
+    x = x - x.<span class="fn">mean</span>()
+    rms = np.<span class="fn">sqrt</span>(np.<span class="fn">mean</span>(x**<span class="nm">2</span>))
+    peak = np.<span class="fn">max</span>(np.<span class="fn">abs</span>(x))
+    crest = peak / rms <span class="kw">if</span> rms &gt; <span class="nm">0</span> <span class="kw">else</span> <span class="nm">0</span>
+    kurt = np.<span class="fn">mean</span>((x/rms)**<span class="nm">4</span>) <span class="kw">if</span> rms &gt; <span class="nm">0</span> <span class="kw">else</span> <span class="nm">0</span>
+
+    <span class="cm"># Envelope analysis untuk BPFO amplitude</span>
+    nyq = fs/<span class="nm">2</span>
+    b, a = <span class="fn">butter</span>(<span class="nm">4</span>, [<span class="nm">3000</span>/nyq, <span class="nm">7000</span>/nyq], btype=<span class="st">'band'</span>)
+    x_bp = <span class="fn">filtfilt</span>(b, a, x)
+    env = np.<span class="fn">abs</span>(<span class="fn">hilbert</span>(x_bp))
+    env -= env.<span class="fn">mean</span>()
+    ENV = np.fft.<span class="fn">rfft</span>(env)
+    freqs = np.fft.<span class="fn">rfftfreq</span>(<span class="fn">len</span>(env), d=<span class="nm">1</span>/fs)
+    mag_env = np.<span class="fn">abs</span>(ENV) * <span class="nm">2</span> / <span class="fn">len</span>(env)
+    bpfo_mask = (freqs &gt; <span class="nm">95</span>) &amp; (freqs &lt; <span class="nm">105</span>)
+    bpfo_amp = mag_env[bpfo_mask].<span class="fn">max</span>() <span class="kw">if</span> bpfo_mask.<span class="fn">any</span>() <span class="kw">else</span> <span class="nm">0</span>
+    <span class="kw">return</span> {<span class="st">'rms'</span>: rms, <span class="st">'peak'</span>: peak, <span class="st">'crest'</span>: crest,
+            <span class="st">'kurtosis'</span>: kurt, <span class="st">'bpfo_amp'</span>: bpfo_amp}
+
+<span class="cm"># Extract features for all days</span>
+features_log = [<span class="fn">extract_features</span>(daily_signals[d], fs) <span class="kw">for</span> d <span class="kw">in</span> <span class="fn">range</span>(n_days)]
+<span class="fn">print</span>(<span class="st">f"{'Day':&lt;5}{'RMS':&gt;8}{'Peak':&gt;8}{'Crest':&gt;8}{'Kurt':&gt;8}{'BPFO':&gt;10}"</span>)
+<span class="kw">for</span> i <span class="kw">in</span> [<span class="nm">0</span>, <span class="nm">14</span>, <span class="nm">28</span>, <span class="nm">42</span>, <span class="nm">55</span>]:
+    f = features_log[i]
+    <span class="fn">print</span>(<span class="st">f"{i:&lt;5}{f['rms']:&gt;8.3f}{f['peak']:&gt;8.3f}{f['crest']:&gt;8.3f}{f['kurtosis']:&gt;8.3f}{f['bpfo_amp']:&gt;10.3f}"</span>)</pre>
   </div>
 
   <!-- Cell 3 -->
-  <div class="code-card reveal" style="margin-bottom:32px">
+  <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
-      <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="code-lang">Python · Cell 3</span>
-      <span class="code-label">Trend Analysis &amp; Alarm Logic</span>
-    </div>
-    <div class="code-wrap">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 3 — Trend Analysis &amp; Alarm Logic</span>
+      <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python">import matplotlib.pyplot as plt
+    </div>
+    <pre><span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
 
-# Convert log to numpy arrays for trending
-days = np.arange(n_days)
-rms_trend = np.array([f['rms'] for f in features_log])
-bpfo_trend = np.array([f['bpfo_amp'] for f in features_log])
-kurt_trend = np.array([f['kurtosis'] for f in features_log])
+<span class="cm"># Convert log to numpy arrays for trending</span>
+days = np.<span class="fn">arange</span>(n_days)
+rms_trend = np.<span class="fn">array</span>([f[<span class="st">'rms'</span>] <span class="kw">for</span> f <span class="kw">in</span> features_log])
+bpfo_trend = np.<span class="fn">array</span>([f[<span class="st">'bpfo_amp'</span>] <span class="kw">for</span> f <span class="kw">in</span> features_log])
+kurt_trend = np.<span class="fn">array</span>([f[<span class="st">'kurtosis'</span>] <span class="kw">for</span> f <span class="kw">in</span> features_log])
 
-# Define alarm thresholds (ISO 10816 + envelope-specific)
-RMS_ALARM = 2.8        # zone B-C boundary (mm/s)
-BPFO_ALARM = 0.5       # envelope threshold
-KURT_ALARM = 8.0       # impulsive defect
+<span class="cm"># Define alarm thresholds (ISO 10816 + envelope-specific)</span>
+RMS_ALARM = <span class="nm">2.8</span>        <span class="cm"># zone B-C boundary (mm/s)</span>
+BPFO_ALARM = <span class="nm">0.5</span>       <span class="cm"># envelope threshold</span>
+KURT_ALARM = <span class="nm">8.0</span>       <span class="cm"># impulsive defect</span>
 
 alarms = {
-    'rms': days[rms_trend > RMS_ALARM],
-    'bpfo': days[bpfo_trend > BPFO_ALARM],
-    'kurt': days[kurt_trend > KURT_ALARM],
+    <span class="st">'rms'</span>: days[rms_trend &gt; RMS_ALARM],
+    <span class="st">'bpfo'</span>: days[bpfo_trend &gt; BPFO_ALARM],
+    <span class="st">'kurt'</span>: days[kurt_trend &gt; KURT_ALARM],
 }
 
-print(f"RMS alarm first triggered: day {alarms['rms'][0] if len(alarms['rms']) else '—'}")
-print(f"BPFO alarm first triggered: day {alarms['bpfo'][0] if len(alarms['bpfo']) else '—'}")
-print(f"Kurtosis alarm first triggered: day {alarms['kurt'][0] if len(alarms['kurt']) else '—'}")
-print("
-Kurtosis & BPFO biasanya alarm lebih dahulu daripada RMS — early warning.")</code></pre>
-    </div>
+<span class="fn">print</span>(<span class="st">f"RMS alarm first triggered: day {alarms['rms'][0] if len(alarms['rms']) else '—'}"</span>)
+<span class="fn">print</span>(<span class="st">f"BPFO alarm first triggered: day {alarms['bpfo'][0] if len(alarms['bpfo']) else '—'}"</span>)
+<span class="fn">print</span>(<span class="st">f"Kurtosis alarm first triggered: day {alarms['kurt'][0] if len(alarms['kurt']) else '—'}"</span>)
+<span class="fn">print</span>(<span class="st">"\nKurtosis &amp; BPFO biasanya alarm lebih dahulu daripada RMS — early warning."</span>)</pre>
   </div>
 
   <!-- Cell 4 -->
-  <div class="code-card reveal" style="margin-bottom:32px">
+  <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
-      <div class="code-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-      <span class="code-lang">Python · Cell 4</span>
-      <span class="code-label">Simple RUL Estimation (Linear Extrapolation)</span>
-    </div>
-    <div class="code-wrap">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 4 — Simple RUL Estimation (Linear Extrapolation)</span>
+      <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-      <pre><code class="lang-python"># Simple RUL: linear regression terakhir 14 hari, extrapolate ke critical threshold
-RUL_THRESHOLD = 4.5    # zone D RMS
-recent_days = days[-14:]
-recent_rms = rms_trend[-14:]
-slope, intercept = np.polyfit(recent_days, recent_rms, 1)
-
-# Extrapolate
-days_to_threshold = (RUL_THRESHOLD - intercept) / slope
-RUL_days = days_to_threshold - days[-1]
-
-# Plot trends + threshold + RUL projection
-fig, ax = plt.subplots(figsize=(11, 5.5))
-ax.plot(days, rms_trend, 'o-', color='#0ea5e9', label='RMS')
-ax.axhline(RMS_ALARM, color='orange', ls='--', alpha=0.7, label=f'Alarm zone B/C ({RMS_ALARM} mm/s)')
-ax.axhline(RUL_THRESHOLD, color='red', ls='--', alpha=0.7, label=f'Critical zone D ({RUL_THRESHOLD} mm/s)')
-
-# Projection to threshold
-proj_days = np.arange(days[-1], days_to_threshold + 5)
-proj_rms = slope*proj_days + intercept
-ax.plot(proj_days, proj_rms, ':', color='red', lw=2, label=f'RUL projection: ~{int(RUL_days)} hari')
-ax.axvline(days_to_threshold, color='red', alpha=0.3)
-
-ax.set_xlabel('Hari'); ax.set_ylabel('RMS Velocity (mm/s)')
-ax.set_title(f'Bearing Degradation Trend &amp; RUL Estimation (RUL = {int(RUL_days)} hari)')
-ax.legend(); ax.grid(alpha=0.3)
-plt.tight_layout(); plt.show()
-
-print(f"
-Final status:")
-print(f"  Current RMS: {rms_trend[-1]:.2f} mm/s ({(rms_trend[-1] / RMS_ALARM):.1f}× alarm)")
-print(f"  Estimated RUL: ~{int(RUL_days)} days until zone D")
-print(f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days (safety margin)")</code></pre>
     </div>
+    <pre><span class="cm"># Simple RUL: linear regression terakhir 14 hari, extrapolate ke critical threshold</span>
+RUL_THRESHOLD = <span class="nm">4.5</span>    <span class="cm"># zone D RMS</span>
+recent_days = days[-<span class="nm">14</span>:]
+recent_rms = rms_trend[-<span class="nm">14</span>:]
+slope, intercept = np.<span class="fn">polyfit</span>(recent_days, recent_rms, <span class="nm">1</span>)
+
+<span class="cm"># Extrapolate</span>
+days_to_threshold = (RUL_THRESHOLD - intercept) / slope
+RUL_days = days_to_threshold - days[-<span class="nm">1</span>]
+
+<span class="cm"># Plot trends + threshold + RUL projection</span>
+fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="nm">11</span>, <span class="nm">5.5</span>))
+ax.<span class="fn">plot</span>(days, rms_trend, <span class="st">'o-'</span>, color=<span class="st">'#0ea5e9'</span>, label=<span class="st">'RMS'</span>)
+ax.<span class="fn">axhline</span>(RMS_ALARM, color=<span class="st">'orange'</span>, ls=<span class="st">'--'</span>, alpha=<span class="nm">0.7</span>, label=<span class="st">f'Alarm zone B/C ({RMS_ALARM} mm/s)'</span>)
+ax.<span class="fn">axhline</span>(RUL_THRESHOLD, color=<span class="st">'red'</span>, ls=<span class="st">'--'</span>, alpha=<span class="nm">0.7</span>, label=<span class="st">f'Critical zone D ({RUL_THRESHOLD} mm/s)'</span>)
+
+<span class="cm"># Projection to threshold</span>
+proj_days = np.<span class="fn">arange</span>(days[-<span class="nm">1</span>], days_to_threshold + <span class="nm">5</span>)
+proj_rms = slope*proj_days + intercept
+ax.<span class="fn">plot</span>(proj_days, proj_rms, <span class="st">':'</span>, color=<span class="st">'red'</span>, lw=<span class="nm">2</span>, label=<span class="st">f'RUL projection: ~{int(RUL_days)} hari'</span>)
+ax.<span class="fn">axvline</span>(days_to_threshold, color=<span class="st">'red'</span>, alpha=<span class="nm">0.3</span>)
+
+ax.<span class="fn">set_xlabel</span>(<span class="st">'Hari'</span>); ax.<span class="fn">set_ylabel</span>(<span class="st">'RMS Velocity (mm/s)'</span>)
+ax.<span class="fn">set_title</span>(<span class="st">f'Bearing Degradation Trend &amp; RUL Estimation (RUL = {int(RUL_days)} hari)'</span>)
+ax.<span class="fn">legend</span>(); ax.<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>)
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
+
+<span class="fn">print</span>(<span class="st">f"\nFinal status:"</span>)
+<span class="fn">print</span>(<span class="st">f"  Current RMS: {rms_trend[-1]:.2f} mm/s ({(rms_trend[-1] / RMS_ALARM):.1f}× alarm)"</span>)
+<span class="fn">print</span>(<span class="st">f"  Estimated RUL: ~{int(RUL_days)} days until zone D"</span>)
+<span class="fn">print</span>(<span class="st">f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days (safety margin)"</span>)</pre>
   </div>
 
   <div class="info-box reveal">
@@ -1870,10 +1860,10 @@ print(f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc1">
-        <div class="radio-option" onclick="selectMC('mc1',this,false)"><div class="radio-circle"></div>(A) &nbsp; Preventive lebih murah dari predictive</div>
-        <div class="radio-option" onclick="selectMC('mc1',this,true)"><div class="radio-circle"></div>(B) &nbsp; Preventive berdasarkan jadwal tetap, predictive berdasarkan kondisi aktual mesin (sensor data)</div>
-        <div class="radio-option" onclick="selectMC('mc1',this,false)"><div class="radio-circle"></div>(C) &nbsp; Predictive dilakukan setelah breakdown</div>
-        <div class="radio-option" onclick="selectMC('mc1',this,false)"><div class="radio-circle"></div>(D) &nbsp; Tidak ada perbedaan signifikan</div>
+        <div class="radio-option" onclick="selectMC('mc1',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Preventive lebih murah dari predictive</div>
+        <div class="radio-option" onclick="selectMC('mc1',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Preventive berdasarkan jadwal tetap, predictive berdasarkan kondisi aktual mesin (sensor data)</div>
+        <div class="radio-option" onclick="selectMC('mc1',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Predictive dilakukan setelah breakdown</div>
+        <div class="radio-option" onclick="selectMC('mc1',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Tidak ada perbedaan signifikan</div>
       </div>
       <button class="mc-submit" id="sub-mc1" onclick="checkMC('mc1')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc1"></div>
@@ -1887,10 +1877,10 @@ print(f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc2">
-        <div class="radio-option" onclick="selectMC('mc2',this,false)"><div class="radio-circle"></div>(A) &nbsp; 5-10%</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,false)"><div class="radio-circle"></div>(B) &nbsp; 15-20%</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,true)"><div class="radio-circle"></div>(C) &nbsp; 25-30%</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,false)"><div class="radio-circle"></div>(D) &nbsp; 50-60%</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'A')"><div class="radio-circle"></div>(A) &nbsp; 5-10%</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'B')"><div class="radio-circle"></div>(B) &nbsp; 15-20%</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'C')"><div class="radio-circle"></div>(C) &nbsp; 25-30%</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'D')"><div class="radio-circle"></div>(D) &nbsp; 50-60%</div>
       </div>
       <button class="mc-submit" id="sub-mc2" onclick="checkMC('mc2')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc2"></div>
@@ -1904,10 +1894,10 @@ print(f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc3">
-        <div class="radio-option" onclick="selectMC('mc3',this,false)"><div class="radio-circle"></div>(A) &nbsp; Pressure vs Flow curve untuk pompa</div>
-        <div class="radio-option" onclick="selectMC('mc3',this,false)"><div class="radio-circle"></div>(B) &nbsp; Phase vs Frequency curve di FFT</div>
-        <div class="radio-option" onclick="selectMC('mc3',this,true)"><div class="radio-circle"></div>(C) &nbsp; Potential failure detection (P) vs Functional failure (F) — window untuk plan maintenance</div>
-        <div class="radio-option" onclick="selectMC('mc3',this,false)"><div class="radio-circle"></div>(D) &nbsp; Power factor curve untuk motor</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Pressure vs Flow curve untuk pompa</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Phase vs Frequency curve di FFT</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Potential failure detection (P) vs Functional failure (F) — window untuk plan maintenance</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Power factor curve untuk motor</div>
       </div>
       <button class="mc-submit" id="sub-mc3" onclick="checkMC('mc3')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc3"></div>
@@ -1921,10 +1911,10 @@ print(f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc4">
-        <div class="radio-option" onclick="selectMC('mc4',this,false)"><div class="radio-circle"></div>(A) &nbsp; Output dalam mV, butuh signal conditioning eksternal</div>
-        <div class="radio-option" onclick="selectMC('mc4',this,true)"><div class="radio-circle"></div>(B) &nbsp; Built-in amplifier, output 4-20 mA atau ±5V, robust untuk industrial</div>
-        <div class="radio-option" onclick="selectMC('mc4',this,false)"><div class="radio-circle"></div>(C) &nbsp; Hanya bekerja di low-frequency (&lt;100 Hz)</div>
-        <div class="radio-option" onclick="selectMC('mc4',this,false)"><div class="radio-circle"></div>(D) &nbsp; Memerlukan power external 24V</div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Output dalam mV, butuh signal conditioning eksternal</div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Built-in amplifier, output 4-20 mA atau ±5V, robust untuk industrial</div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Hanya bekerja di low-frequency (&lt;100 Hz)</div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Memerlukan power external 24V</div>
       </div>
       <button class="mc-submit" id="sub-mc4" onclick="checkMC('mc4')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc4"></div>
@@ -1938,10 +1928,10 @@ print(f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc5">
-        <div class="radio-option" onclick="selectMC('mc5',this,false)"><div class="radio-circle"></div>(A) &nbsp; Hand-held > Magnetic > Adhesive > Stud</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,false)"><div class="radio-circle"></div>(B) &nbsp; Magnetic > Stud > Adhesive > Hand-held</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,true)"><div class="radio-circle"></div>(C) &nbsp; Stud > Adhesive > Magnetic > Hand-held</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,false)"><div class="radio-circle"></div>(D) &nbsp; Adhesive > Stud > Hand-held > Magnetic</div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Hand-held > Magnetic > Adhesive > Stud</div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Magnetic > Stud > Adhesive > Hand-held</div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Stud > Adhesive > Magnetic > Hand-held</div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Adhesive > Stud > Hand-held > Magnetic</div>
       </div>
       <button class="mc-submit" id="sub-mc5" onclick="checkMC('mc5')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc5"></div>
@@ -1955,10 +1945,10 @@ print(f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc6">
-        <div class="radio-option" onclick="selectMC('mc6',this,false)"><div class="radio-circle"></div>(A) &nbsp; fs ≥ 10 kHz</div>
-        <div class="radio-option" onclick="selectMC('mc6',this,false)"><div class="radio-circle"></div>(B) &nbsp; fs ≥ 20 kHz</div>
-        <div class="radio-option" onclick="selectMC('mc6',this,true)"><div class="radio-circle"></div>(C) &nbsp; fs ≥ 25.6 kHz (factor 2.56× rule)</div>
-        <div class="radio-option" onclick="selectMC('mc6',this,false)"><div class="radio-circle"></div>(D) &nbsp; fs ≥ 100 kHz</div>
+        <div class="radio-option" onclick="selectMC('mc6',this,'A')"><div class="radio-circle"></div>(A) &nbsp; fs ≥ 10 kHz</div>
+        <div class="radio-option" onclick="selectMC('mc6',this,'B')"><div class="radio-circle"></div>(B) &nbsp; fs ≥ 20 kHz</div>
+        <div class="radio-option" onclick="selectMC('mc6',this,'C')"><div class="radio-circle"></div>(C) &nbsp; fs ≥ 25.6 kHz (factor 2.56× rule)</div>
+        <div class="radio-option" onclick="selectMC('mc6',this,'D')"><div class="radio-circle"></div>(D) &nbsp; fs ≥ 100 kHz</div>
       </div>
       <button class="mc-submit" id="sub-mc6" onclick="checkMC('mc6')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc6"></div>
@@ -1972,10 +1962,10 @@ print(f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc7">
-        <div class="radio-option" onclick="selectMC('mc7',this,false)"><div class="radio-circle"></div>(A) &nbsp; Mengurangi noise EMI dari power line</div>
-        <div class="radio-option" onclick="selectMC('mc7',this,true)"><div class="radio-circle"></div>(B) &nbsp; Memotong frekuensi di atas fs/2 (Nyquist) untuk mencegah aliasing</div>
-        <div class="radio-option" onclick="selectMC('mc7',this,false)"><div class="radio-circle"></div>(C) &nbsp; Memperbesar amplitudo sinyal</div>
-        <div class="radio-option" onclick="selectMC('mc7',this,false)"><div class="radio-circle"></div>(D) &nbsp; Mengubah sample rate</div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Mengurangi noise EMI dari power line</div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Memotong frekuensi di atas fs/2 (Nyquist) untuk mencegah aliasing</div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Memperbesar amplitudo sinyal</div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Mengubah sample rate</div>
       </div>
       <button class="mc-submit" id="sub-mc7" onclick="checkMC('mc7')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc7"></div>
@@ -1989,10 +1979,10 @@ print(f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc8">
-        <div class="radio-option" onclick="selectMC('mc8',this,true)"><div class="radio-circle"></div>(A) &nbsp; RMS, Peak, Kurtosis, 1×rpm amplitude</div>
-        <div class="radio-option" onclick="selectMC('mc8',this,false)"><div class="radio-circle"></div>(B) &nbsp; Wavelet coefficients lengkap</div>
-        <div class="radio-option" onclick="selectMC('mc8',this,false)"><div class="radio-circle"></div>(C) &nbsp; Autoencoder latent space embeddings</div>
-        <div class="radio-option" onclick="selectMC('mc8',this,false)"><div class="radio-circle"></div>(D) &nbsp; Spectral kurtosis di 1000 frequency bands</div>
+        <div class="radio-option" onclick="selectMC('mc8',this,'A')"><div class="radio-circle"></div>(A) &nbsp; RMS, Peak, Kurtosis, 1×rpm amplitude</div>
+        <div class="radio-option" onclick="selectMC('mc8',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Wavelet coefficients lengkap</div>
+        <div class="radio-option" onclick="selectMC('mc8',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Autoencoder latent space embeddings</div>
+        <div class="radio-option" onclick="selectMC('mc8',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Spectral kurtosis di 1000 frequency bands</div>
       </div>
       <button class="mc-submit" id="sub-mc8" onclick="checkMC('mc8')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc8"></div>
@@ -2006,10 +1996,10 @@ print(f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc9">
-        <div class="radio-option" onclick="selectMC('mc9',this,false)"><div class="radio-circle"></div>(A) &nbsp; Hours (jam-an)</div>
-        <div class="radio-option" onclick="selectMC('mc9',this,false)"><div class="radio-circle"></div>(B) &nbsp; Days (1-7 hari)</div>
-        <div class="radio-option" onclick="selectMC('mc9',this,false)"><div class="radio-circle"></div>(C) &nbsp; Weeks (4-8 minggu)</div>
-        <div class="radio-option" onclick="selectMC('mc9',this,true)"><div class="radio-circle"></div>(D) &nbsp; Months (3-6 bulan)</div>
+        <div class="radio-option" onclick="selectMC('mc9',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Hours (jam-an)</div>
+        <div class="radio-option" onclick="selectMC('mc9',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Days (1-7 hari)</div>
+        <div class="radio-option" onclick="selectMC('mc9',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Weeks (4-8 minggu)</div>
+        <div class="radio-option" onclick="selectMC('mc9',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Months (3-6 bulan)</div>
       </div>
       <button class="mc-submit" id="sub-mc9" onclick="checkMC('mc9')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc9"></div>
@@ -2023,10 +2013,10 @@ print(f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc10">
-        <div class="radio-option" onclick="selectMC('mc10',this,false)"><div class="radio-circle"></div>(A) &nbsp; Single deterministic number (mis. "60 hari")</div>
-        <div class="radio-option" onclick="selectMC('mc10',this,true)"><div class="radio-circle"></div>(B) &nbsp; Distribution / range dengan confidence interval (mis. "4-8 weeks dengan 80% confidence")</div>
-        <div class="radio-option" onclick="selectMC('mc10',this,false)"><div class="radio-circle"></div>(C) &nbsp; Persentase saja (mis. "50% remaining")</div>
-        <div class="radio-option" onclick="selectMC('mc10',this,false)"><div class="radio-circle"></div>(D) &nbsp; Tidak perlu di-quantify, hanya alarm threshold</div>
+        <div class="radio-option" onclick="selectMC('mc10',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Single deterministic number (mis. "60 hari")</div>
+        <div class="radio-option" onclick="selectMC('mc10',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Distribution / range dengan confidence interval (mis. "4-8 weeks dengan 80% confidence")</div>
+        <div class="radio-option" onclick="selectMC('mc10',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Persentase saja (mis. "50% remaining")</div>
+        <div class="radio-option" onclick="selectMC('mc10',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Tidak perlu di-quantify, hanya alarm threshold</div>
       </div>
       <button class="mc-submit" id="sub-mc10" onclick="checkMC('mc10')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc10"></div>
@@ -2063,13 +2053,13 @@ print(f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days
         <div class="comp-q">Hitung <strong>RMS velocity</strong> (mm/s) dari array velocity <code>v = [0.5, 1.0, -0.8, 1.2, -0.4]</code>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>print(np.sqrt(np.mean(np.array([0.5,1.0,-0.8,1.2,-0.4])**2)))</code> &nbsp;|&nbsp; Expected: ≈ 0.834</div>
+      <div class="comp-hint">💡 RMS = √(mean(v²)); susun array (<code>np.array</code>), kuadratkan, pakai <code>np.mean</code> lalu <code>np.sqrt</code>.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
-        <textarea class="code-textarea" id="code-c1" placeholder="import numpy as np&#10;v = np.array([0.5, 1.0, -0.8, 1.2, -0.4])&#10;print(np.sqrt(np.mean(v**2)))" oninput="onCodeInput('c1')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
+        <textarea class="code-textarea" id="code-c1" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c1')"></textarea>
         <div class="stdout-box" id="stdout-c1"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c1" onclick="runAndCheck('c1', 0.834, 0.05)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c1" onclick="runAndCheck('c1')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c1"></div>
     </div>
 
@@ -2080,13 +2070,13 @@ print(f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days
         <div class="comp-q">Untuk RMS velocity = 3.5 mm/s pada Class II, return integer zone (A=1, B=2, C=3, D=4). Thresholds: A≤1.12, B≤2.8, C≤4.5.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 rms=3.5: di atas 2.8 (B), di bawah 4.5 (C) → zone C = 3</div>
+      <div class="comp-hint">💡 Bandingkan RMS dengan ambang ISO (1.12, 2.8, 4.5) secara bertingkat untuk menentukan kode zone (1–4).</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
-        <textarea class="code-textarea" id="code-c2" placeholder="rms = 3.5&#10;if rms <= 1.12: zone = 1&#10;elif rms <= 2.80: zone = 2&#10;elif rms <= 4.50: zone = 3&#10;else: zone = 4&#10;print(zone)" oninput="onCodeInput('c2')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
+        <textarea class="code-textarea" id="code-c2" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c2')"></textarea>
         <div class="stdout-box" id="stdout-c2"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c2" onclick="runAndCheck('c2', 3.0, 0.5)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c2" onclick="runAndCheck('c2')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c2"></div>
     </div>
 
@@ -2097,13 +2087,13 @@ print(f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days
         <div class="comp-q">Convert <strong>acceleration ke velocity</strong>: integrate array <code>a = sin(2π·50·t)</code> (fs=1000, N=1000) dengan <code>scipy.integrate.cumulative_trapezoid</code>. Return RMS velocity.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>v = cumulative_trapezoid(a, dx=1/1000, initial=0); v -= v.mean(); print(np.sqrt(np.mean(v**2)))</code> &nbsp;|&nbsp; Expected: ≈ 0.00225</div>
+      <div class="comp-hint">💡 Integrasikan percepatan ke kecepatan dengan <code>scipy.integrate.cumulative_trapezoid</code>, buang offset DC (kurangi mean), lalu hitung RMS kecepatan.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
-        <textarea class="code-textarea" id="code-c3" placeholder="import numpy as np&#10;from scipy.integrate import cumulative_trapezoid&#10;fs = 1000; N = 1000&#10;t = np.arange(N) / fs&#10;a = np.sin(2*np.pi*50*t)&#10;v = cumulative_trapezoid(a, dx=1/fs, initial=0)&#10;v -= v.mean()&#10;print(np.sqrt(np.mean(v**2)))" oninput="onCodeInput('c3')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
+        <textarea class="code-textarea" id="code-c3" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c3')"></textarea>
         <div class="stdout-box" id="stdout-c3"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c3" onclick="runAndCheck('c3', 0.00225, 0.001)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c3" onclick="runAndCheck('c3')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c3"></div>
     </div>
 
@@ -2114,13 +2104,13 @@ print(f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days
         <div class="comp-q">Hitung <strong>Crest Factor</strong> dari array <code>x = [1, -2, 1, 5, -1, 2, -3, 1]</code> (peak/RMS).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>peak=np.max(np.abs(x)); rms=np.sqrt(np.mean(x**2)); print(peak/rms)</code> &nbsp;|&nbsp; Expected: ≈ 2.108 (peak=5, rms≈2.372)</div>
+      <div class="comp-hint">💡 Crest factor = peak/RMS; hitung peak dengan <code>np.max(np.abs(...))</code> dan RMS dengan √(mean(x²)).</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
-        <textarea class="code-textarea" id="code-c4" placeholder="import numpy as np&#10;x = np.array([1, -2, 1, 5, -1, 2, -3, 1])&#10;peak = np.max(np.abs(x))&#10;rms = np.sqrt(np.mean(x**2))&#10;print(peak / rms)" oninput="onCodeInput('c4')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
+        <textarea class="code-textarea" id="code-c4" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c4')"></textarea>
         <div class="stdout-box" id="stdout-c4"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c4" onclick="runAndCheck('c4', 2.108, 0.05)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c4" onclick="runAndCheck('c4')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c4"></div>
     </div>
 
@@ -2131,13 +2121,13 @@ print(f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days
         <div class="comp-q">Health Index sederhana: <code>HI = 0.5·rms_norm + 0.3·crest_norm + 0.2·kurt_norm</code>. Untuk rms=2.0 (norm=2/4.5=0.44), crest=4 (norm=4/8=0.5), kurt=5 (norm=5/15=0.33). Return HI.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>HI = 0.5*0.44 + 0.3*0.5 + 0.2*0.33; print(HI)</code> &nbsp;|&nbsp; Expected: ≈ 0.436</div>
+      <div class="comp-hint">💡 Substitusikan nilai ternormalisasi ke HI = 0.5·rms_norm + 0.3·crest_norm + 0.2·kurt_norm, lalu jumlahkan tiap suku berbobot.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
-        <textarea class="code-textarea" id="code-c5" placeholder="rms_norm = 2.0 / 4.5&#10;crest_norm = 4 / 8&#10;kurt_norm = 5 / 15&#10;HI = 0.5 * rms_norm + 0.3 * crest_norm + 0.2 * kurt_norm&#10;print(HI)" oninput="onCodeInput('c5')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
+        <textarea class="code-textarea" id="code-c5" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c5')"></textarea>
         <div class="stdout-box" id="stdout-c5"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c5" onclick="runAndCheck('c5', 0.436, 0.01)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c5" onclick="runAndCheck('c5')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c5"></div>
     </div>
 
@@ -2148,13 +2138,13 @@ print(f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days
         <div class="comp-q">Threshold logic: trigger alarm jika RMS &gt; 2.8 mm/s (Class II zone C). Untuk array trend <code>rms_t = [1.5, 2.0, 2.5, 3.0, 3.5]</code>, return jumlah day yang trigger alarm.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>print(sum(1 for r in rms_t if r &gt; 2.8))</code> &nbsp;|&nbsp; Expected: 2 (3.0 dan 3.5 trigger)</div>
+      <div class="comp-hint">💡 Hitung berapa elemen array yang melebihi ambang 2.8 (mis. boolean mask lalu <code>np.sum</code>, atau comprehension).</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
-        <textarea class="code-textarea" id="code-c6" placeholder="rms_t = [1.5, 2.0, 2.5, 3.0, 3.5]&#10;count = sum(1 for r in rms_t if r > 2.8)&#10;print(count)" oninput="onCodeInput('c6')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
+        <textarea class="code-textarea" id="code-c6" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c6')"></textarea>
         <div class="stdout-box" id="stdout-c6"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c6" onclick="runAndCheck('c6', 2.0, 0.5)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c6" onclick="runAndCheck('c6')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c6"></div>
     </div>
 
@@ -2165,13 +2155,13 @@ print(f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days
         <div class="comp-q">Untuk analisis bearing dengan target frequency band 0.5-10 kHz, hitung <strong>minimum sample rate</strong> (fs) dengan factor 2.56×.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>print(2.56 * 10000)</code> &nbsp;|&nbsp; Expected: 25600 Hz</div>
+      <div class="comp-hint">💡 Minimum sample rate = 2.56 × frekuensi maksimum target; kalikan faktor 2.56 dengan batas atas band.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
-        <textarea class="code-textarea" id="code-c7" placeholder="fmax = 10000  # Hz target&#10;fs_min = 2.56 * fmax&#10;print(fs_min)" oninput="onCodeInput('c7')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
+        <textarea class="code-textarea" id="code-c7" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c7')"></textarea>
         <div class="stdout-box" id="stdout-c7"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c7" onclick="runAndCheck('c7', 25600.0, 100.0)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c7" onclick="runAndCheck('c7')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c7"></div>
     </div>
 
@@ -2182,13 +2172,13 @@ print(f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days
         <div class="comp-q">Sliding window RMS: dari array x panjang 1000, hitung RMS untuk window terakhir [900:1000]. Test pada x = sin(2π·50·t)·1.0, fs=1000.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>w = x[900:1000]; print(np.sqrt(np.mean(w**2)))</code> &nbsp;|&nbsp; Expected: ≈ 0.707</div>
+      <div class="comp-hint">💡 Iris window terakhir dari array, lalu hitung RMS = √(mean(window²)) dengan <code>np.mean</code> dan <code>np.sqrt</code>.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
-        <textarea class="code-textarea" id="code-c8" placeholder="import numpy as np&#10;fs = 1000; N = 1000&#10;t = np.arange(N) / fs&#10;x = np.sin(2*np.pi*50*t)&#10;w = x[900:1000]&#10;print(np.sqrt(np.mean(w**2)))" oninput="onCodeInput('c8')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
+        <textarea class="code-textarea" id="code-c8" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c8')"></textarea>
         <div class="stdout-box" id="stdout-c8"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c8" onclick="runAndCheck('c8', 0.707, 0.02)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c8" onclick="runAndCheck('c8')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c8"></div>
     </div>
 
@@ -2199,13 +2189,13 @@ print(f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days
         <div class="comp-q"><strong>Mahalanobis distance</strong> sederhana (1D): jarak (x - mean) / std untuk x=5, baseline mean=2, std=1. Mengukur seberapa "abnormal" sample x.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>print((5 - 2) / 1)</code> &nbsp;|&nbsp; Expected: 3.0 (3 std away from baseline)</div>
+      <div class="comp-hint">💡 Jarak 1D = (x − mean)/std; substitusikan x, mean, dan std baseline.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
-        <textarea class="code-textarea" id="code-c9" placeholder="x = 5; mean = 2; std = 1&#10;d = (x - mean) / std&#10;print(d)" oninput="onCodeInput('c9')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
+        <textarea class="code-textarea" id="code-c9" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c9')"></textarea>
         <div class="stdout-box" id="stdout-c9"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c9" onclick="runAndCheck('c9', 3.0, 0.05)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c9" onclick="runAndCheck('c9')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c9"></div>
     </div>
 
@@ -2216,13 +2206,13 @@ print(f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days
         <div class="comp-q">Linear regression untuk <strong>RUL extrapolation</strong>: dari trend rms terakhir 5 hari [2.0, 2.3, 2.6, 2.9, 3.2], hitung slope (regression coefficient untuk hari).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 <code>days=[0,1,2,3,4]; rms=[2.0,2.3,2.6,2.9,3.2]; slope,_=np.polyfit(days, rms, 1); print(slope)</code> &nbsp;|&nbsp; Expected: ≈ 0.3</div>
+      <div class="comp-hint">💡 Fit garis linear (orde 1) terhadap data hari vs rms dengan <code>np.polyfit</code>; slope adalah koefisien pertama hasilnya.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
-        <textarea class="code-textarea" id="code-c10" placeholder="import numpy as np&#10;days = [0, 1, 2, 3, 4]&#10;rms = [2.0, 2.3, 2.6, 2.9, 3.2]&#10;slope, intercept = np.polyfit(days, rms, 1)&#10;print(slope)" oninput="onCodeInput('c10')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
+        <textarea class="code-textarea" id="code-c10" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c10')"></textarea>
         <div class="stdout-box" id="stdout-c10"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c10" onclick="runAndCheck('c10', 0.3, 0.02)">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c10" onclick="runAndCheck('c10')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c10"></div>
     </div>
   </div>
@@ -2245,13 +2235,13 @@ print(f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days
         <div class="comp-q"><strong>Full feature extraction function</strong>: implementasikan extract_features(x, fs) yang return dict (rms, peak, crest, kurtosis, bpfo_amp). Test pada signal x = sin(2π·30·t) + impulse train 100 Hz × resonance 5kHz (fs=25600, N=25600). Return crest factor.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Steps: (1) Function definition. (2) Compute 4 stats. (3) Add envelope analysis untuk BPFO at 100 Hz. (4) Test signal, return crest. Expected: ≈ 4-8 (impulsive defect).</div>
+      <div class="comp-hint">💡 Definisikan fungsi yang menghitung rms, peak, crest (=peak/rms), kurtosis, dan amplitudo envelope di BPFO, lalu kembalikan crest factor sinyal uji.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">jawaban</strong></span></div>
         <textarea class="code-textarea" id="code-c11" rows="10" placeholder="Implementasikan algoritma sesuai instruksi, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c11')"></textarea>
         <div class="stdout-box" id="stdout-c11"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c11" onclick="runAndCheck('c11', 5.5, 3.5, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c11" onclick="runAndCheck('c11', 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c11"></div>
     </div>
 
@@ -2262,13 +2252,13 @@ print(f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days
         <div class="comp-q"><strong>Anomaly detection dengan baseline</strong>: simulate 30 days RMS healthy (mean=1.5, std=0.2), then 5 days dengan defect (linear ramp ke 3.5). Hitung Z-score untuk last day, alarm jika &gt; 3. Return Z-score last day.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Steps: (1) Generate baseline 30 days N(1.5, 0.2). (2) Compute mean, std baseline. (3) Last day RMS = 3.5. (4) Z = (3.5 - mean) / std. Expected: Z &gt; 5.</div>
+      <div class="comp-hint">💡 Bangkitkan baseline (<code>np.random.normal</code>), hitung mean dan std baseline, lalu Z-score hari terakhir = (rms − mean)/std.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">jawaban</strong></span></div>
         <textarea class="code-textarea" id="code-c12" rows="10" placeholder="Implementasikan algoritma sesuai instruksi, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c12')"></textarea>
         <div class="stdout-box" id="stdout-c12"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c12" onclick="runAndCheck('c12', 10.0, 5.0, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c12" onclick="runAndCheck('c12', 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c12"></div>
     </div>
 
@@ -2279,13 +2269,13 @@ print(f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days
         <div class="comp-q"><strong>RUL linear extrapolation</strong>: dari trend 14 hari rms = 1.0 + 0.15·day (day 0 ke 13), threshold critical = 4.5 mm/s, hitung sisa hari sampai threshold tercapai (RUL).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Steps: (1) Fit linear y = mx+b ke 14 days. (2) Solve x untuk y = 4.5. (3) RUL = x_threshold - last_day. Expected: ≈ 10 days (4.5 reached at day 23.3).</div>
+      <div class="comp-hint">💡 Fit garis y = m·day + b dengan <code>np.polyfit</code>, selesaikan day saat y mencapai threshold, lalu RUL = day_threshold − hari terakhir.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">jawaban</strong></span></div>
         <textarea class="code-textarea" id="code-c13" rows="10" placeholder="Implementasikan algoritma sesuai instruksi, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c13')"></textarea>
         <div class="stdout-box" id="stdout-c13"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c13" onclick="runAndCheck('c13', 10.0, 1.5, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c13" onclick="runAndCheck('c13', 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c13"></div>
     </div>
 
@@ -2296,13 +2286,13 @@ print(f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days
         <div class="comp-q"><strong>Multi-feature health index</strong>: combine 5 features [rms, peak, crest, kurtosis, env_bpfo] dengan weights [0.3, 0.2, 0.2, 0.15, 0.15]. Untuk values [2.5, 5.0, 4.0, 7.5, 0.8] dan baseline [1.5, 3.0, 1.5, 0, 0.2] dan threshold [4.5, 8.0, 8.0, 15, 1.5], hitung normalized HI. Setiap feature dinormalisasi (current-baseline)/(threshold-baseline). HI = sum(weights × normalized).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Compute: norms = [(2.5-1.5)/(4.5-1.5), (5-3)/(8-3), (4-1.5)/(8-1.5), (7.5-0)/(15-0), (0.8-0.2)/(1.5-0.2)] = [0.333, 0.4, 0.385, 0.5, 0.462]. HI = 0.3·0.333 + 0.2·0.4 + 0.2·0.385 + 0.15·0.5 + 0.15·0.462 ≈ 0.4. Expected: 0.40.</div>
+      <div class="comp-hint">💡 Normalisasi tiap fitur dengan (current−baseline)/(threshold−baseline), lalu HI = Σ(weight × normalized) memakai perkalian elemen-wise dan <code>np.sum</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">jawaban</strong></span></div>
         <textarea class="code-textarea" id="code-c14" rows="10" placeholder="Implementasikan algoritma sesuai instruksi, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c14')"></textarea>
         <div class="stdout-box" id="stdout-c14"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c14" onclick="runAndCheck('c14', 0.4, 0.05, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c14" onclick="runAndCheck('c14', 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c14"></div>
     </div>
 
@@ -2310,16 +2300,16 @@ print(f"  Recommendation: Schedule replacement within {int(RUL_days * 0.7)} days
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C15</div>
-        <div class="comp-q"><strong>Hysteresis alarm logic</strong>: alarm trigger saat RMS &gt; 2.8 selama ≥ 3 consecutive days (untuk hindari false alarm transient). Untuk trend rms = [2.0, 2.5, 3.0, 3.2, 2.9, 3.1, 3.3, 3.5, 2.7, 2.6], return day pertama alarm trigger (index 0-based). Expected: day 5 (index 5, after 3 consecutive: days 5, 6, 7).</div>
+        <div class="comp-q"><strong>Hysteresis alarm logic</strong>: alarm trigger saat RMS &gt; 2.8 selama ≥ 3 consecutive days (untuk hindari false alarm transient). Untuk trend rms = [2.0, 2.5, 3.0, 3.2, 2.9, 3.1, 3.3, 3.5, 2.7, 2.6], return day pertama alarm trigger (index 0-based).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Logic: scan dengan sliding window 3 days, alarm at index where 3 consecutive readings &gt; 2.8. Days 2,3,4 = [3.0, 3.2, 2.9] - not all &gt; 2.8 (2.9 OK). Days 3,4,5 = [3.2, 2.9, 3.1] - all &gt; 2.8! Trigger at day 3. Wait - re-check: yang penting 3 consecutive ALL &gt;2.8. days 2,3,4: [3.0,3.2,2.9] — 2.9 OK (>2.8). All > 2.8. Trigger at day 4 (index = end of 3-day window where all triggered). Expected: index 4.</div>
+      <div class="comp-hint">💡 Scan array dengan sliding window 3 hari; alarm pada indeks pertama di mana tiga pembacaan berturut-turut semuanya melebihi ambang 2.8.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">jawaban</strong></span></div>
         <textarea class="code-textarea" id="code-c15" rows="10" placeholder="Implementasikan algoritma sesuai instruksi, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c15')"></textarea>
         <div class="stdout-box" id="stdout-c15"></div>
       </div>
-      <button class="comp-submit run-btn" id="sub-c15" onclick="runAndCheck('c15', 4.0, 1.0, 'hard')">▶ Run &amp; Validasi</button>
+      <button class="comp-submit run-btn" id="sub-c15" onclick="runAndCheck('c15', 'hard')">▶ Run &amp; Validasi</button>
       <div class="feedback" id="fb-c15"></div>
     </div>
   </div>
@@ -2903,20 +2893,6 @@ window._isHardComp = function(qId) {
 };
 
 let mcAnswered = {}, mcScores = {};
-// ── Hint penjelasan jawaban benar untuk setiap soal MC ──
-// Ditampilkan ketika mahasiswa memilih jawaban salah, sebagai panduan belajar.
-const MC_HINTS = {
-  mc1: { answer: 'B', explain: 'Sistem N DoF memiliki <strong>tepat N frekuensi pribadi</strong>. Untuk 2 DoF, ada 2 frekuensi pribadi (ω₁ dan ω₂, dengan konvensi ω₁ &lt; ω₂). Setiap frekuensi punya mode shape (pola gerak) sendiri.' },
-  mc2: { answer: 'B', explain: 'Persamaan gerak 2 DoF dalam bentuk matriks: <code>M·ẍ + K·x = 0</code>, dengan M = matriks massa (biasanya diagonal), K = matriks kekakuan (simetris), x = vektor perpindahan [x₁, x₂].' },
-  mc3: { answer: 'C', explain: 'Aturan: diagonal K(i,i) = jumlah semua kekakuan yang menempel ke massa-i. Off-diagonal K(i,j) = <strong>negatif</strong> kekakuan pegas penghubung. Jadi K(1,1) = k₁+k₂ = 200, K(2,2) = k₂+k₃ = 200, K(1,2) = K(2,1) = −k₂ = −100.' },
-  mc4: { answer: 'B', explain: 'Asumsi solusi harmonik <code>x = X·sin(ωt)</code> memberikan <code>(K − ω²M)·X = 0</code>. Solusi non-trivial memerlukan <code>det(K − ω²M) = 0</code> — inilah persamaan karakteristik (eigenvalue problem). Untuk 2 DoF: polinomial orde 2 dalam ω², menghasilkan ω₁² dan ω₂².' },
-  mc5: { answer: 'B', explain: 'det(K − ω²M) = (200−ω²)² − 10000 = 0 → 200−ω² = ±100 → ω² = 100 atau 300. Akar kuadrat: ω₁ = √100 = <strong>10 rad/s</strong> (terkecil), ω₂ = √300 ≈ 17.32 rad/s (terbesar).' },
-  mc6: { answer: 'A', explain: 'Untuk sistem simetris (m₁=m₂, k₁=k₃), Mode 1 selalu in-phase: kedua massa bergerak searah dan sama besar (X₁=X₂). Konsekuensi fisik: pegas tengah <strong>tidak terdeformasi</strong> (panjangnya tetap), sehingga frekuensi mode 1 lebih rendah karena hanya pegas k₁ dan k₃ yang "bekerja".' },
-  mc7: { answer: 'B', explain: 'Substitusi ω₂²=300 ke (K − 300·M)·X = 0 menghasilkan [[−100,−100],[−100,−100]]·X = 0, yaitu X₁ + X₂ = 0 → X₂ = −X₁. Mode 2 = <strong>[1, −1]</strong> (anti-phase): kedua massa bergerak berlawanan arah, pegas tengah ditekan/diregang dua kali lipat.' },
-  mc8: { answer: 'B', explain: 'Mode shape orthogonal terhadap <strong>matriks massa M</strong>: u₁ᵀ·M·u₂ = 0. Ini lebih kuat dari dot product biasa karena bobot massa diperhitungkan. Untuk M = identitas, ortogonalitas terhadap M sama dengan dot product ortogonal. Sifat ini memungkinkan modal decomposition (memecah getaran kompleks menjadi independent modes).' },
-  mc9: { answer: 'B', explain: 'Vibration absorber bekerja optimal saat frekuensi pribadinya <strong>tepat sama</strong> dengan frekuensi gangguan: <code>ω_a = √(k_a/m_a) = ω_drive</code>. Dengan tuning ini, absorber menyerap energi dari struktur utama → amplitudo struktur turun drastis di ω_drive. Trade-off: muncul 2 puncak baru di ω₁ dan ω₂ yang harus dijauhi dari spektrum gangguan.' },
-  mc10: { answer: 'B', explain: 'Untuk 2 DoF dengan M = identitas, eigenvalue λ_i = ω_i² adalah akar polinomial karakteristik <code>λ² − trace(K)·λ + det(K) = 0</code>. Vieta\'s formula: jumlah akar = trace, hasil kali akar = det. Verifikasi sistem referensi: ω₁²+ω₂² = 100+300 = 400 = trace([[200,−100],[−100,200]]) ✓; ω₁²·ω₂² = 100·300 = 30000 = det(K) ✓.' }
-};
 
 // PEDOMAN §18.2 Layer 1 — Race-condition guard.
 // Mencegah user interact dengan soal sebelum _loadScoredQuestions() selesai restore
@@ -2926,7 +2902,10 @@ const MC_HINTS = {
 let _firebaseStateLoaded = false;
 window._firebaseStateLoaded = () => _firebaseStateLoaded;
 
-function selectMC(qId, opt, correct) {
+// PHASE 3 — selectMC sekarang TIDAK tahu jawaban benar. Arg ke-3 adalah HURUF
+// opsi yang user pilih ('A'/'B'/'C'/'D'). Server (Cloud Function checkModulAnswer)
+// yang lookup answer key dan validasi.
+function selectMC(qId, opt, selectedLetter) {
   if (!_firebaseStateLoaded) {
     const fb = document.getElementById('fb-' + qId);
     if (fb) { fb.className = 'feedback warn'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
@@ -2936,19 +2915,123 @@ function selectMC(qId, opt, correct) {
   const rg = document.getElementById('rg-' + qId);
   rg.querySelectorAll('.radio-option').forEach(o => o.classList.remove('selected'));
   opt.classList.add('selected');
-  opt._correct = correct;
+  opt._letter = selectedLetter;
   document.getElementById('sub-' + qId).disabled = false;
 }
-function checkMC(qId) {
+
+// PHASE 3 — Apply server result untuk MC & Comp (formative: reveal jawaban + explain).
+function _applyModulServerResult(qId, res, type, sub, fb, rg) {
+  const status = res.status || (res.correct ? 'correct' : 'wrong');
+  const delta  = Number(res.scoreDelta) || 0;
+
+  // Update local state (untuk score breakdown & export)
+  // GUARD: jangan overwrite scores saat alreadyAnswered (delta=0 dari server idempotency).
+  // Score sudah tercatat di RTDB; client cuma update flag answered, JANGAN turunkan score.
+  const skipScoreUpdate = res.alreadyAnswered === true && res.healed !== true;
+  if (type === 'mc')   { if (!skipScoreUpdate) mcScores[qId]   = delta; mcAnswered[qId]   = true; }
+  if (type === 'comp') { if (!skipScoreUpdate) compScores[qId] = delta; compAnswered[qId] = true; }
+  if (res.marker) _answeredQ.add(res.marker);
+
+  // ── alreadyAnswered (tanpa healed) ── soal sudah pernah disubmit sebelumnya
+  if (res.alreadyAnswered === true && !res.healed) {
+    if (fb) {
+      fb.className = 'feedback ' + (status === 'correct' ? 'correct' : (status === 'partial' ? 'warn' : 'wrong'));
+      if (status === 'correct') {
+        fb.textContent = '✅ Sudah dijawab BENAR sebelumnya — poin sudah tercatat. TIDAK ADA KESEMPATAN ULANG.';
+      } else if (status === 'partial') {
+        fb.textContent = '△ Sudah dapat partial credit sebelumnya — TIDAK ADA KESEMPATAN ULANG.';
+      } else {
+        fb.textContent = '🔒 Sudah dijawab SALAH sebelumnya — TIDAK ADA KESEMPATAN ULANG.';
+      }
+    }
+    if (sub) sub.disabled = true;
+    if (rg) rg.querySelectorAll('.radio-option').forEach(o => o.style.pointerEvents = 'none');
+    if (typeof updateScore === 'function') updateScore();
+    if (typeof checkExportReady === 'function') checkExportReady();
+    return;
+  }
+
+  // ── healed path ── attempt sebelumnya tercatat di server tapi RTDB belum (recovery)
+  if (res.healed === true && delta > 0) {
+    if (fb) {
+      fb.className = 'feedback correct';
+      fb.textContent = '✅ Poin Anda dari submission sebelumnya BARU SAJA TERPULIHKAN (+' + delta + ' poin).';
+    }
+    if (sub) sub.disabled = true;
+    if (typeof updateScore === 'function') updateScore();
+    if (typeof checkExportReady === 'function') checkExportReady();
+    return;
+  }
+
+  // ── fresh attempt — feedback dgn reveal (formative module) ──
+  if (fb) {
+    if (status === 'correct') {
+      fb.className = 'feedback correct';
+      fb.textContent = '✅ Benar! +' + delta + ' poin tercatat.';
+    } else if (status === 'partial') {
+      const explainHtml = res.explain
+        ? '<br><br><div style="background:rgba(168,85,247,.06);border-left:3px solid #a855f7;border-radius:6px;padding:12px 14px;margin-top:8px;font-weight:400;color:#cbd5e1;line-height:1.7;">📘 <strong style="color:#a855f7">Penjelasan:</strong> ' + res.explain + '</div>'
+        : '';
+      const correctMsg = (res.correctAnswer !== undefined && res.correctAnswer !== null)
+        ? ' Jawaban yang benar: <strong style="color:#00e09e">' + res.correctAnswer + '</strong>.'
+        : '';
+      fb.className = 'feedback warn';
+      fb.innerHTML  = '△ Partial credit +' + delta + ' poin untuk upaya.' + correctMsg + ' Soal dikunci.' + explainHtml;
+    } else {
+      fb.className = 'feedback wrong';
+      const correctMsg = (res.correctAnswer !== undefined && res.correctAnswer !== null)
+        ? (type === 'mc'
+            ? ' Jawaban yang benar adalah <strong style="color:#00e09e">opsi (' + res.correctAnswer + ')</strong>.'
+            : ' Jawaban yang benar: <strong style="color:#00e09e">' + res.correctAnswer + '</strong>.')
+        : '';
+      const explainHtml = res.explain
+        ? '<br><br><div style="background:rgba(168,85,247,.06);border-left:3px solid #a855f7;border-radius:6px;padding:12px 14px;margin-top:8px;font-weight:400;color:#cbd5e1;line-height:1.7;">📘 <strong style="color:#a855f7">Penjelasan:</strong> ' + res.explain + '</div>'
+        : '';
+      fb.innerHTML = '🔒 <strong>Kurang tepat.</strong>' + correctMsg + ' Soal dikunci.' + explainHtml;
+    }
+  }
+
+  // Highlight correct option di DOM (MC only)
+  if (type === 'mc' && rg && res.correctAnswer) {
+    const correctIdx = String(res.correctAnswer).charCodeAt(0) - 'A'.charCodeAt(0);
+    const opts = rg.querySelectorAll('.radio-option');
+    if (correctIdx >= 0 && correctIdx < opts.length && opts[correctIdx]) {
+      opts[correctIdx].classList.add('correct-ans');
+    }
+    opts.forEach(o => {
+      if (o.classList.contains('selected') && !res.correct) o.classList.add('wrong-ans');
+      o.style.pointerEvents = 'none';
+    });
+  }
+
+  if (sub) sub.disabled = true;
+  if (typeof updateScore === 'function') updateScore();
+  if (typeof checkExportReady === 'function') checkExportReady();
+}
+window._applyModulServerResult = _applyModulServerResult;
+
+// PHASE 3 — Error handler standar untuk callable.
+function _handleModulServerError(err, qId, fb) {
+  const code = (err && err.code) || 'unknown';
+  let msg;
+  if      (code === 'failed-precondition') msg = '🔒 ' + (err.message || 'Akses modul ditutup.');
+  else if (code === 'unauthenticated')     msg = '⚠ ' + (err.message || 'PIN expired — login ulang.');
+  else if (code === 'not-found')           msg = '⚠ Soal belum dikonfigurasi di server.';
+  else                                     msg = '⚠ Koneksi/server error — coba lagi. (' + (err && err.message ? err.message : code) + ')';
+  if (fb) { fb.className = 'feedback warn'; fb.innerHTML = msg; }
+  console.error('[modul callable]', qId, code, err);
+}
+window._handleModulServerError = _handleModulServerError;
+
+async function checkMC(qId) {
   if (!_firebaseStateLoaded) {
     const fb = document.getElementById('fb-' + qId);
     if (fb) { fb.className = 'feedback warn'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
     return;
   }
   if (mcAnswered[qId]) {
-    // Already answered (this session or restored from Firebase) — show feedback
     const fb = document.getElementById('fb-' + qId);
-    if (fb && !fb.classList.contains('correct')) {
+    if (fb && !fb.classList.contains('correct') && !fb.classList.contains('wrong') && !fb.classList.contains('warn')) {
       fb.className = 'feedback correct';
       fb.textContent = '✅ Sudah dijawab sebelumnya — poin telah tercatat.';
     }
@@ -2957,32 +3040,31 @@ function checkMC(qId) {
   const rg = document.getElementById('rg-' + qId);
   const sel = rg.querySelector('.radio-option.selected');
   const fb = document.getElementById('fb-' + qId);
+  const sub = document.getElementById('sub-' + qId);
   if (!sel) { fb.className = 'feedback warn'; fb.textContent = '⚠ Pilih salah satu opsi terlebih dahulu.'; return; }
+  const userLetter = sel._letter;
+  if (!userLetter) { fb.className = 'feedback warn'; fb.textContent = '⚠ Re-pilih opsi.'; return; }
+
+  // Optimistic lock — cegah double-submit, server adalah authority sebenarnya
   mcAnswered[qId] = true;
-  document.getElementById('sub-' + qId).disabled = true;
+  if (sub) { sub.disabled = true; sub.textContent = '⏳ Memvalidasi...'; }
   rg.querySelectorAll('.radio-option').forEach(o => o.style.pointerEvents = 'none');
-  if (sel._correct) {
-    sel.classList.add('correct-ans');
-    fb.className = 'feedback correct';
-    fb.textContent = '✅ Benar! +1 poin';
-    mcScores[qId] = 1;
-    if (typeof window._awardPoint === 'function') window._awardPoint(qId);
-  } else {
-    sel.classList.add('wrong-ans');
-    fb.className = 'feedback wrong';
-    rg.querySelectorAll('.radio-option').forEach(o => { if(o._correct) o.classList.add('correct-ans'); });
-    const hint = MC_HINTS[qId];
-    if (hint) {
-      fb.innerHTML = '🔒 <strong>Kurang tepat.</strong> Jawaban yang benar adalah <strong style="color:#00e09e">opsi (' + hint.answer + ')</strong> — ditandai hijau di atas. Soal dikunci.<br><br><div style="background:rgba(168,85,247,.06);border-left:3px solid #a855f7;border-radius:6px;padding:12px 14px;margin-top:8px;font-weight:400;color:#cbd5e1;line-height:1.7;">📘 <strong style="color:#a855f7">Penjelasan:</strong> ' + hint.explain + '</div>';
-    } else {
-      fb.textContent = '🔒 Kurang tepat. Jawaban yang benar ditandai hijau. Soal dikunci.';
+  if (fb) { fb.className = 'feedback warn'; fb.textContent = '⏳ Memvalidasi jawaban ke server...'; }
+
+  try {
+    if (typeof window._callCheckModulAnswer !== 'function') {
+      throw new Error('Callable belum siap — refresh halaman.');
     }
-    mcScores[qId] = 0;
-    // Record failed attempt to Firebase (same anti-manipulation as comp)
-    if (typeof window._recordMcAttempt === 'function') window._recordMcAttempt(qId);
+    const res = await window._callCheckModulAnswer(qId, userLetter);
+    if (sub) sub.textContent = 'Periksa';   // reset sebelum apply
+    _applyModulServerResult(qId, res, 'mc', sub, fb, rg);
+  } catch (err) {
+    // Rollback optimistic lock — biarkan mahasiswa retry
+    mcAnswered[qId] = false;
+    if (sub) { sub.disabled = false; sub.textContent = 'Periksa'; }
+    rg.querySelectorAll('.radio-option').forEach(o => { o.style.pointerEvents = ''; });
+    _handleModulServerError(err, qId, fb);
   }
-  updateScore();
-  checkExportReady();
 }
 
 // ── COMP LOGIC ──
@@ -3197,135 +3279,30 @@ function parseNumbers(str) {
 
 let compAnswered = {}, compScores = {};
 
-// ── Hint penjelasan jawaban benar untuk setiap soal komputasi ──
-// Ditampilkan saat soal dikunci karena kode salah/error, sebagai panduan belajar.
-const COMP_HINTS = {
-  c1: {
-    answer: '20.0 rad/s',
-    explain: 'Frekuensi natural <code>ωₙ = √(k/m)</code>. Dengan <code>k = 2000 N/m</code> dan <code>m = 5 kg</code>: <code>ωₙ = √(2000/5) = √400 = <strong>20 rad/s</strong></code>. Pastikan menggunakan <code>np.sqrt(k/m)</code> dan mencetak dengan <code>print()</code>.'
-  },
-  c2: {
-    answer: '0.2',
-    explain: 'Rasio redaman <code>ζ = c / (2√(km))</code>. Hitung dulu redaman kritis <code>c_c = 2·√(2000·5) = 2·100 = 200 Ns/m</code>. Maka <code>ζ = 40/200 = <strong>0.2</strong></code>. Sistem ini <em>underdamped</em> (ζ &lt; 1), sehingga bisa mengalami resonansi.'
-  },
-  c3: {
-    answer: '≈ 2.456',
-    explain: 'Dengan <code>ω = 18</code> dan <code>ωₙ = 20</code>: <code>r = 18/20 = 0.9</code>. Lalu <code>DMF = 1/√((1−0.9²)² + (2·0.2·0.9)²) = 1/√(0.0361 + 0.1296) = 1/√0.1657 ≈ <strong>2.456</strong></code>. Amplitudo dinamis ~2.5× dari defleksi statik — sudah cukup signifikan.'
-  },
-  c4: {
-    answer: '≈ 0.1228 m',
-    explain: 'Amplitudo steady-state <code>X = (F₀/k) · DMF</code>. Defleksi statik <code>X_st = 100/2000 = 0.05 m</code>. Maka <code>X = 0.05 × 2.456 = <strong>0.1228 m</strong></code> (≈ 12.3 cm). Ini amplitudo peak-to-mean — getaran total peak-to-peak = 2X ≈ 24.6 cm.'
-  },
-  c5: {
-    answer: '≈ 62.2°',
-    explain: 'Sudut fase <code>φ = arctan(2ζr/(1−r²))</code>. Dengan <code>r = 0.9</code>, <code>ζ = 0.2</code>: numerator <code>= 2·0.2·0.9 = 0.36</code>, denominator <code>= 1 − 0.81 = 0.19</code>. <code>φ = arctan(0.36/0.19) = arctan(1.895) ≈ <strong>62.2°</strong></code>. Gunakan <code>np.arctan2</code> untuk kuadran yang benar. Respons tertinggal ~62° dari eksitasi.'
-  },
-  c6: {
-    answer: '2.5',
-    explain: 'Saat resonansi (<code>r = 1</code>), rumus umum DMF menyederhana menjadi <code>DMF_res = 1/(2ζ)</code>. Dengan <code>ζ = 0.2</code>: <code>DMF_res = 1/(2·0.2) = 1/0.4 = <strong>2.5</strong></code>. Semakin kecil ζ, semakin tajam puncak DMF di resonansi.'
-  },
-  c7: {
-    answer: '≈ 2.552',
-    explain: 'DMF maksimum terjadi di <code>r_max = √(1−2ζ²)</code>, bukan di <code>r = 1</code>. Dengan <code>ζ = 0.2</code>: <code>r_max = √(1−0.08) = √0.92 ≈ 0.959</code>. Lalu <code>DMF_max = 1/(2ζ√(1−ζ²)) = 1/(0.4·√0.96) = 1/(0.4·0.9798) ≈ <strong>2.552</strong></code>. Sedikit lebih tinggi dari DMF_res.'
-  },
-  c8: {
-    answer: '≈ 2.611',
-    explain: 'Transmissibility <code>Tᵣ = √(1+(2ζr)²) / √((1−r²)²+(2ζr)²)</code>. Dengan <code>r = 0.9</code>, <code>ζ = 0.2</code>: numerator <code>= √(1+0.1296) = √1.1296 ≈ 1.063</code>; denominator <code>= √0.1657 ≈ 0.407</code>. <code>Tᵣ ≈ 1.063/0.407 ≈ <strong>2.611</strong></code>. Karena <code>Tᵣ &gt; 1</code> (dan <code>r &lt; √2</code>), isolator justru memperbesar getaran — tidak efektif.'
-  },
-  c9: {
-    answer: '≈ 34.1 J',
-    explain: 'Energi disipasi per siklus <code>E_d = π · c · ω · X²</code>. Dengan <code>c = 40</code>, <code>ω = 18</code>, <code>X = 0.1228</code>: <code>E_d = π · 40 · 18 · 0.1228² = π · 40 · 18 · 0.01508 ≈ <strong>34.1 J</strong></code> per siklus. Gunakan <code>np.pi</code> untuk π yang akurat.'
-  },
-  c10: {
-    answer: '≈ 0.0665 m',
-    explain: 'Dengan <code>ω = 25</code>: <code>r = 25/20 = 1.25</code> (di atas resonansi). <code>DMF = 1/√((1−1.5625)² + (2·0.2·1.25)²) = 1/√(0.3164 + 0.25) = 1/√0.5664 ≈ 1.329</code>. Lalu <code>X = 0.05 × 1.329 ≈ <strong>0.0665 m</strong></code>. Amplitudo lebih kecil dari saat <code>ω = 18</code> (0.1228 m) — semakin jauh di atas resonansi, respons semakin kecil.'
-  }
-};
 
-// ── Lock a comp question permanently (wrong answer or error) ──
-// ── LOCK COMP WRONG ──
-// partialPoint: opsional, ke-3 arg. Jika > 0, soal ter-lock dengan state "usaha" (△ Usaha, amber)
-// dan memberi poin partial (khusus Comp Hard: +1 poin). Jika 0 atau undefined, state default
-// "terkunci" (✗ Terkunci, pink) tanpa poin.
-function _lockCompWrong(qId, fbMsg, partialPoint) {
-  const pts = (typeof partialPoint === 'number' && partialPoint > 0) ? partialPoint : 0;
-  compAnswered[qId] = true;
-  compScores[qId] = pts;   // 0 atau 1
+// PHASE 3 — _lockCompWrong adalah dead code (lockState sekarang handled via
+// _applyModulServerResult dengan data dari server). Disisakan sebagai no-op
+// untuk back-compat jika ada call-site lama yang belum ke-migrate.
+function _lockCompWrong(_qId, _fbMsg, _partialPoint) { /* no-op (Phase 3) */ }
 
-  const btn = document.getElementById('sub-' + qId);
-  const ta  = document.getElementById('code-' + qId);
-  const fb  = document.getElementById('fb-' + qId);
-
-  if (pts > 0) {
-    // Partial credit state (amber △ Usaha)
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = '△ Usaha (+' + pts + ')';
-      btn.style.borderColor = 'rgba(251,191,36,.4)';
-      btn.style.color = 'var(--amber)';
-      btn.classList.remove('running');
-    }
-    if (ta) {
-      ta.disabled = true;
-      ta.style.borderColor = 'rgba(251,191,36,.3)';
-      ta.style.opacity = '.75';
-    }
-    if (fb) {
-      fb.className = 'feedback warn';
-      const hint = COMP_HINTS && COMP_HINTS[qId];
-      if (hint) {
-        fb.innerHTML = fbMsg + '<br><br><div style="background:rgba(168,85,247,.06);border-left:3px solid #a855f7;border-radius:6px;padding:12px 14px;margin-top:4px;font-weight:400;color:#cbd5e1;line-height:1.7;">📘 <strong style="color:#a855f7">Jawaban yang benar: ' + hint.answer + '</strong><br>' + hint.explain + '</div>';
-      } else {
-        fb.textContent = fbMsg;
-      }
-    }
-    // Firebase: tulis marker _comp_partial + tambah poin
-    if (typeof window._awardCompPartial === 'function') window._awardCompPartial(qId, pts);
-  } else {
-    // Standard locked state (pink ✗ Terkunci)
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = '✗ Terkunci';
-      btn.style.borderColor = 'rgba(239,68,68,.3)';
-      btn.style.color = 'var(--pink)';
-      btn.classList.remove('running');
-    }
-    if (ta) {
-      ta.disabled = true;
-      ta.style.borderColor = 'rgba(239,68,68,.25)';
-      ta.style.opacity = '.7';
-    }
-    if (fb) {
-      fb.className = 'feedback wrong';
-      const hint = COMP_HINTS && COMP_HINTS[qId];
-      if (hint) {
-        fb.innerHTML = fbMsg + '<br><br><div style="background:rgba(168,85,247,.06);border-left:3px solid #a855f7;border-radius:6px;padding:12px 14px;margin-top:4px;font-weight:400;color:#cbd5e1;line-height:1.7;">📘 <strong style="color:#a855f7">Jawaban yang benar: ' + hint.answer + '</strong><br>' + hint.explain + '</div>';
-      } else {
-        fb.textContent = fbMsg;
-      }
-    }
-    // Firebase: tulis marker _comp_used saja (tanpa poin)
-    if (typeof window._recordCompAttempt === 'function') window._recordCompAttempt(qId);
-  }
-  updateScore();
-  checkExportReady();
-}
-
-async function runAndCheck(qId, expectedAns, tol, difficulty) {
+// PHASE 3 — runAndCheck: jalankan Python di browser (Pyodide) → kirim output
+// numerik + code text ke server (Cloud Function checkModulAnswer) untuk
+// validasi otoritatif. Client tidak punya expected answer/tolerance.
+async function runAndCheck(qId, difficulty) {
   // PEDOMAN §18.2 Layer 1 — race-condition guard
   if (!_firebaseStateLoaded) {
     const fb = document.getElementById('fb-' + qId);
     if (fb) { fb.className = 'feedback warn'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
     return;
   }
-  const isHard = (difficulty === 'hard');
-  const correctPoint = isHard ? SCORE_CONFIG.COMP_HARD_POINT : SCORE_CONFIG.COMP_EZ_POINT;   // 4 atau 2
-  const partialOnFail = isHard ? 1 : 0;   // partial credit hanya untuk Hard
 
   if (compAnswered[qId]) {
     const fb = document.getElementById('fb-' + qId);
     if (fb) {
-      if (compScores[qId] >= correctPoint) {
+      // pakai info local jika ada (dari restore Firebase / sesi sebelumnya)
+      if (compScores[qId] > 0 && window._isHardComp && !window._isHardComp(qId) && compScores[qId] >= SCORE_CONFIG.COMP_EZ_POINT) {
+        fb.className = 'feedback correct'; fb.textContent = '✅ Sudah dijawab benar — poin telah tercatat.';
+      } else if (compScores[qId] >= SCORE_CONFIG.COMP_HARD_POINT) {
         fb.className = 'feedback correct'; fb.textContent = '✅ Sudah dijawab benar — poin telah tercatat.';
       } else if (compScores[qId] > 0) {
         fb.className = 'feedback warn'; fb.textContent = '△ Partial credit sudah tercatat (+' + compScores[qId] + ' poin) — tidak bisa retry.';
@@ -3349,9 +3326,12 @@ async function runAndCheck(qId, expectedAns, tol, difficulty) {
   fb.className = 'feedback warn'; fb.textContent = '⏳ Menjalankan kode...';
   if (stdout) { stdout.innerHTML = ''; stdout.classList.remove('show'); }
 
+  let output = '';
+  let errMsg = null;
+
   try {
     const pyodide = await getPyodide();
-    // PEDOMAN §15.3b-2: lazy-load packages dari import statements (scipy/pandas/etc)
+    // PEDOMAN §15.3b-2: lazy-load packages dari import statements
     try {
       await _ensurePythonPackages(code, fb);
     } catch (pkgErr) {
@@ -3360,7 +3340,6 @@ async function runAndCheck(qId, expectedAns, tol, difficulty) {
     }
     await pyodide.runPythonAsync('_cap.reset(); sys.stdout = _cap');
 
-    let errMsg = null;
     try {
       await pyodide.runPythonAsync(code);
     } catch (runErr) {
@@ -3368,53 +3347,70 @@ async function runAndCheck(qId, expectedAns, tol, difficulty) {
     }
 
     await pyodide.runPythonAsync('sys.stdout = sys.__stdout__');
-    const output = await pyodide.runPythonAsync('_cap.getvalue()');
+    output = await pyodide.runPythonAsync('_cap.getvalue()');
 
     if (stdout) {
       stdout.classList.add('show');
       if (errMsg) {
         stdout.innerHTML = `<div class="stdout-label">❌ Error</div><div class="stderr-line">${errMsg.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`;
-        const msg = partialOnFail > 0
-          ? `🔒 Kode error — soal dikunci. +${partialOnFail} poin untuk upaya Hard (kode non-kosong).`
-          : '🔒 Kode error — soal dikunci. Tidak ada kesempatan ulang.';
-        _lockCompWrong(qId, msg, partialOnFail);
-        return;
+      } else {
+        const outEsc = (output || '').replace(/</g,'&lt;').replace(/>/g,'&gt;') || '(tidak ada output)';
+        stdout.innerHTML = `<div class="stdout-label">📤 Output</div>${outEsc}`;
       }
-      const outEsc = (output||'').replace(/</g,'&lt;').replace(/>/g,'&gt;') || '(tidak ada output)';
-      stdout.innerHTML = `<div class="stdout-label">📤 Output</div>${outEsc}`;
-    }
-
-    const nums = parseNumbers(output || '');
-    const correct = nums.some(n => Math.abs(n - expectedAns) <= tol);
-
-    if (correct) {
-      fb.className = 'feedback correct';
-      fb.textContent = '✅ Kode berjalan tanpa error & output benar! +' + correctPoint + ' poin';
-      compAnswered[qId] = true; compScores[qId] = correctPoint;
-      btn.disabled = true; btn.textContent = '✓ Selesai'; btn.classList.remove('running');
-      if (ta) ta.style.borderColor = 'rgba(0,224,158,.5)';
-      if (typeof window._awardCompPoint === 'function') window._awardCompPoint(qId, correctPoint);
-      updateScore(); checkExportReady();
-    } else {
-      const outPreview = (output || '(kosong)').trim().slice(0, 100);
-      const msg = partialOnFail > 0
-        ? `🔒 Output tidak mengandung nilai yang benar (≈ ${expectedAns}). +${partialOnFail} poin untuk upaya Hard. Output: "${outPreview}"`
-        : `🔒 Output tidak mengandung nilai yang benar (≈ ${expectedAns}). Output: "${outPreview}" — Soal dikunci.`;
-      _lockCompWrong(qId, msg, partialOnFail);
     }
   } catch (e) {
     fb.className = 'feedback wrong';
     fb.textContent = '❌ Gagal memuat Python: ' + String(e).slice(0, 150);
     btn.disabled = false; btn.classList.remove('running');
+    return;
+  }
+
+  // PHASE 3 — kirim hasil eksekusi ke server untuk validasi
+  // userAnswer: angka pertama dari output (atau null jika error/kosong).
+  // userAnswers: SEMUA angka berurutan (utk multi-step validasi server).
+  const nums = errMsg ? [] : parseNumbers(output || '');
+  const userAnswer = (nums.length > 0) ? nums[0] : null;
+
+  // Optimistic lock — server adalah authority sebenarnya
+  compAnswered[qId] = true;
+  btn.disabled = true;
+  btn.textContent = '⏳ Memvalidasi...';
+  btn.classList.remove('running');
+  if (fb) { fb.className = 'feedback warn'; fb.textContent = '⏳ Memvalidasi jawaban ke server...'; }
+
+  try {
+    if (typeof window._callCheckModulAnswer !== 'function') {
+      throw new Error('Callable belum siap — refresh halaman.');
+    }
+    const res = await window._callCheckModulAnswer(qId, userAnswer, code, nums);
+
+    // Visual updates pre-apply (button label restored to allow _applyModulServerResult to set final state)
+    btn.textContent = (res && (res.correct || res.status === 'correct')) ? '✓ Selesai' : '✗ Terkunci';
+    if (ta) {
+      ta.disabled = true;
+      if (res && res.correct) ta.style.borderColor = 'rgba(0,224,158,.5)';
+      else if (res && res.status === 'partial') { ta.style.borderColor = 'rgba(251,191,36,.3)'; ta.style.opacity = '.75'; }
+      else { ta.style.borderColor = 'rgba(239,68,68,.25)'; ta.style.opacity = '.7'; }
+    }
+
+    _applyModulServerResult(qId, res, 'comp', btn, fb, null);
+  } catch (err) {
+    // Rollback optimistic lock
+    compAnswered[qId] = false;
+    btn.disabled = false; btn.textContent = '▶ Run & Validasi'; btn.classList.remove('running');
+    if (ta) ta.disabled = false;
+    _handleModulServerError(err, qId, fb);
   }
 }
 
-// Keep checkComp alias for _loadScoredQuestions compatibility (legacy signature)
-function checkComp(qId, expectedAns, tol) { runAndCheck(qId, expectedAns, tol, 'easy'); }
+// Keep checkComp alias for _loadScoredQuestions compatibility (legacy signature ignored)
+function checkComp(qId) { runAndCheck(qId, 'easy'); }
+
 
 // ── SCORE UPDATE ──
 // Universal 50-poin breakdown: mc (10) + ezComp (20) + hardComp (20) = 50
 // Comp E/M (c1..c10) dan Comp Hard (c11..c15) dipisahkan via _isHardComp().
+function _fmtPts(n){const r=Math.round((Number(n)||0)*100)/100;return (Number.isInteger(r)?r:parseFloat(r.toFixed(2)))+'';}
 function updateScore() {
   const mc = Object.values(mcScores).reduce((a,b) => a+b, 0);
   let ezComp = 0, hardComp = 0;
@@ -3428,10 +3424,10 @@ function updateScore() {
 
   const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
   set('scoreDisplay',  nilai);
-  set('scoreDetail',   total + ' / ' + SCORE_CONFIG.TOTAL + ' poin');
-  set('scoreMC',       mc);
-  set('scoreCompEz',   ezComp);
-  set('scoreCompHard', hardComp);
+  set('scoreDetail',   _fmtPts(total) + ' / ' + SCORE_CONFIG.TOTAL + ' poin');
+  set('scoreMC',       _fmtPts(mc));
+  set('scoreCompEz',   _fmtPts(ezComp));
+  set('scoreCompHard', _fmtPts(hardComp));
   const fill = document.getElementById('scoreFill');
   if (fill) fill.style.width = nilai + '%';
 }
@@ -3581,16 +3577,16 @@ function exportTugasHtml() {
 
   // Comp E/M definitions (c1..c10)
   const compEzDefs = [
-    { id:'c1',  label:'trace(K)',                    q:'trace([[200,−100],[−100,200]]) = 400' },
-    { id:'c2',  label:'det(K)',                      q:'det([[200,−100],[−100,200]]) = 30000' },
-    { id:'c3',  label:'ω₁² (eigenvalue terkecil)',   q:'eig(M⁻¹K) → eigenvalue terkecil = 100' },
-    { id:'c4',  label:'ω₁ (rad/s)',                  q:'√100 = 10.0 rad/s' },
-    { id:'c5',  label:'ω₂ (rad/s)',                  q:'√300 ≈ 17.3205 rad/s' },
-    { id:'c6',  label:'f₁ (Hz)',                     q:'10/(2π) ≈ 1.5915 Hz' },
-    { id:'c7',  label:'T₁ (detik)',                  q:'2π/10 ≈ 0.6283 s' },
-    { id:'c8',  label:'X₂/X₁ Mode 1',                q:'Mode 1 in-phase: X₂/X₁ = 1.0' },
-    { id:'c9',  label:'X₂/X₁ Mode 2',                q:'Mode 2 anti-phase: X₂/X₁ = −1.0' },
-    { id:'c10', label:'Orthogonality u₁ᵀMu₂',        q:'[1,1]·I·[1,−1]ᵀ = 0' }
+    { id:'c1',  label:'trace(K)',                    q:'' },
+    { id:'c2',  label:'det(K)',                      q:'' },
+    { id:'c3',  label:'ω₁² (eigenvalue terkecil)',   q:'' },
+    { id:'c4',  label:'ω₁ (rad/s)',                  q:'' },
+    { id:'c5',  label:'ω₂ (rad/s)',                  q:'' },
+    { id:'c6',  label:'f₁ (Hz)',                     q:'' },
+    { id:'c7',  label:'T₁ (detik)',                  q:'' },
+    { id:'c8',  label:'X₂/X₁ Mode 1',                q:'' },
+    { id:'c9',  label:'X₂/X₁ Mode 2',                q:'' },
+    { id:'c10', label:'Orthogonality u₁ᵀMu₂',        q:'' }
   ];
   // Get full MC question text from DOM (.mc-q) or fallback to MC_QUESTIONS array
   function _getMcFullQ(id) {
@@ -3627,11 +3623,11 @@ function exportTugasHtml() {
 
   // Comp Hard definitions (c11..c15)
   const compHardDefs = [
-    { id:'c11', label:'ω₁ varian m₂=2',              q:'eig untuk M = diag(1,2), K tetap; ω₁ ≈ 7.962 rad/s' },
-    { id:'c12', label:'X₂/X₁ Mode 1 varian',         q:'mode shape Mode 1 untuk varian m₂=2; rasio ≈ 1.366' },
-    { id:'c13', label:'ω₁² + ω₂² (sistem ref)',      q:'sum eigenvalues = 400 (= trace K, sistem referensi)' },
-    { id:'c14', label:'k_a tuning absorber',         q:'k_a = m_a·ω_drive² = 1·10² = 100 N/m' },
-    { id:'c15', label:'x₂(t=0.5) free response',     q:'modal decomposition: 0.5·cos(10·0.5) − 0.5·cos(√300·0.5) ≈ 0.5027' }
+    { id:'c11', label:'ω₁ varian m₂=2',              q:'' },
+    { id:'c12', label:'X₂/X₁ Mode 1 varian',         q:'' },
+    { id:'c13', label:'ω₁² + ω₂² (sistem ref)',      q:'' },
+    { id:'c14', label:'k_a tuning absorber',         q:'' },
+    { id:'c15', label:'x₂(t=0.5) free response',     q:'' }
   ];
   const compHardData = compHardDefs.map(d => {
     const ta = document.getElementById('code-' + d.id);
@@ -3974,16 +3970,16 @@ function exportTugasHtml() {
     <div style="flex:1">
       <div class="score-bar-wrap" style="margin-bottom:8px"><div class="score-bar-fill" style="width:${nilai}%"><div class="bar-particle bp1"></div><div class="bar-particle bp2"></div><div class="bar-particle bp3"></div><div class="bar-particle bp4"></div></div><div class="bar-score-chip" style="left:calc(${nilai}% - 30px)">${nilai}%</div></div>
       <div class="score-detail" style="margin-top:8px">
-        <span class="score-mini">Total: <strong>${total}/${SCORE_CONFIG.TOTAL}</strong></span>
-        <span class="score-mini">PG: <strong>${mc}/${SCORE_CONFIG.MC_TOTAL}</strong></span>
-        <span class="score-mini">Komp E/M: <strong>${compEz}/${SCORE_CONFIG.COMP_EZ_TOTAL}</strong></span>
-        <span class="score-mini">Komp Hard: <strong>${compHard}/${SCORE_CONFIG.COMP_HARD_TOTAL}</strong></span>
+        <span class="score-mini">Total: <strong>${_fmtPts(total)}/${SCORE_CONFIG.TOTAL}</strong></span>
+        <span class="score-mini">PG: <strong>${_fmtPts(mc)}/${SCORE_CONFIG.MC_TOTAL}</strong></span>
+        <span class="score-mini">Komp E/M: <strong>${_fmtPts(compEz)}/${SCORE_CONFIG.COMP_EZ_TOTAL}</strong></span>
+        <span class="score-mini">Komp Hard: <strong>${_fmtPts(compHard)}/${SCORE_CONFIG.COMP_HARD_TOTAL}</strong></span>
       </div>
     </div>
   </div>
 
   <!-- MC TABLE — 10 soal -->
-  <div class="section-head"><h2><span class="anim-icon icon-wiggle" style="color:#a855f7">🅐</span><span>Bagian A — Pilihan Ganda (${mc}/${SCORE_CONFIG.MC_TOTAL} poin)</span></h2></div>
+  <div class="section-head"><h2><span class="anim-icon icon-wiggle" style="color:#a855f7">🅐</span><span>Bagian A — Pilihan Ganda (${_fmtPts(mc)}/${SCORE_CONFIG.MC_TOTAL} poin)</span></h2></div>
   <table>
     <thead><tr><th style="width:40px">No</th><th>Pertanyaan</th><th>Jawaban Anda</th><th style="width:60px;text-align:center">Poin</th></tr></thead>
     <tbody>
@@ -3997,7 +3993,7 @@ function exportTugasHtml() {
   </table>
 
   <!-- COMP E/M TABLE — 10 soal -->
-  <div class="section-head" style="margin-top:2px"><h2><span class="anim-icon icon-pulse" style="color:#22d3ee">💻</span><span>Bagian B — Komputasi Easy/Medium (${compEz}/${SCORE_CONFIG.COMP_EZ_TOTAL} poin)</span></h2></div>
+  <div class="section-head" style="margin-top:2px"><h2><span class="anim-icon icon-pulse" style="color:#22d3ee">💻</span><span>Bagian B — Komputasi Easy/Medium (${_fmtPts(compEz)}/${SCORE_CONFIG.COMP_EZ_TOTAL} poin)</span></h2></div>
   <table>
     <thead><tr><th style="width:40px">No</th><th style="width:30%">Soal</th><th style="width:55%">Kode Python</th><th style="width:60px;text-align:center">Poin</th></tr></thead>
     <tbody>
@@ -4011,7 +4007,7 @@ function exportTugasHtml() {
   </table>
 
   <!-- COMP HARD TABLE — 5 soal @4 poin -->
-  <div class="section-head hard-head" style="margin-top:2px"><h2><span class="anim-icon icon-float" style="color:#ec4899">🧠</span><span>Bagian C — Komputasi Hard (${compHard}/${SCORE_CONFIG.COMP_HARD_TOTAL} poin)</span></h2></div>
+  <div class="section-head hard-head" style="margin-top:2px"><h2><span class="anim-icon icon-float" style="color:#ec4899">🧠</span><span>Bagian C — Komputasi Hard (${_fmtPts(compHard)}/${SCORE_CONFIG.COMP_HARD_TOTAL} poin)</span></h2></div>
   <table>
     <thead><tr><th style="width:40px">No</th><th style="width:30%">Soal</th><th style="width:55%">Kode Python</th><th style="width:60px;text-align:center">Poin</th></tr></thead>
     <tbody>
@@ -4380,7 +4376,8 @@ function fallbackCopy(text, btn, msg) {
 .banner b{font-size:16px;display:block;margin-bottom:4px}
 textarea{width:100%;height:calc(100vh - 180px);font-family:'Courier New',monospace;font-size:12px;padding:14px;border:2px solid #cbd5e1;border-radius:8px;resize:vertical;background:#fff}
 button{background:#0ea5e9;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-top:10px}
-button:hover{background:#0284c7}</style></head><body>
+button:hover{background:#0284c7}
+</style></head><body>
 <div class="banner"><b>📋 Copy Manual</b>Browser tidak mengizinkan otomatis copy. Tekan <kbd>Ctrl+A</kbd> lalu <kbd>Ctrl+C</kbd> di textarea bawah, lalu paste di Fast Learning.</div>
 <button onclick="document.querySelector('textarea').select();document.querySelector('textarea').setSelectionRange(0,99999);">Select All</button>
 <textarea readonly>${text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>
@@ -6617,6 +6614,7 @@ window.addEventListener('resize', () => {
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { getDatabase, ref, get, set, remove, onValue, push, onDisconnect, serverTimestamp, query, limitToLast } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",
@@ -6639,6 +6637,78 @@ const SCHEDULE_PATH = `settings/getaran_mekanik/${PERTEMUAN}/schedule`;
 const LOCAL_IDENTITY = `getaran_mekanik_identity_${MODULE_ID}`;
 const PRESENCE_PATH = `presence/getaran_mekanik/${MODULE_ID}`;
 const CHAT_PATH = `chat/getaran_mekanik/${MODULE_ID}/messages`;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PHASE 3 — Server-side validation untuk soal MC + Comp.
+//   • checkMC / runAndCheck panggil callable `checkModulAnswer`.
+//   • Server (Cloud Function) lookup answer key (Firestore), validasi,
+//     write ke RTDB visitor record, dan return {correct, status, scoreDelta,
+//     correctAnswer, explain, marker, ...}.
+//   • Client award/record helpers (_awardPoint, _awardCompPoint, dst) tetap ada
+//     sebagai no-op shells utk back-compat — server sudah handle write ke RTDB.
+//   • Kunci jawaban TIDAK ada di client. Untuk modul (formative), server
+//     return correctAnswer + explain saat jawaban salah, agar reveal terjadi.
+// ═══════════════════════════════════════════════════════════════════════════
+const MODUL_ID = 'getaran-mekanik-modul-14';   // ID untuk callable (beda dari MODULE_ID yg RTDB path)
+
+const _functions = getFunctions(app, 'asia-southeast1');
+const _checkModulAnswerCallable = httpsCallable(_functions, 'checkModulAnswer');
+
+// PIN hash session-scope (set saat login berhasil, dipakai utk auth ke callable).
+// Disimpan di sessionStorage: survive F5 reload, hilang otomatis saat tab ditutup.
+const _PIN_SESSION_KEY = 'getaran_mekanik_modul_14_pinhash';
+window._sessionPinHash = null;
+try {
+  const stored = sessionStorage.getItem(_PIN_SESSION_KEY);
+  if (stored && /^[0-9a-f]{64}$/.test(stored)) window._sessionPinHash = stored;
+} catch (e) { /* sessionStorage tidak available di beberapa context */ }
+function _setSessionPinHash(hash) {
+  window._sessionPinHash = hash || null;
+  try {
+    if (hash) sessionStorage.setItem(_PIN_SESSION_KEY, hash);
+    else sessionStorage.removeItem(_PIN_SESSION_KEY);
+  } catch (e) {}
+}
+window._setSessionPinHash = _setSessionPinHash;
+
+// Helper: panggil Cloud Function untuk validasi 1 soal.
+// Args:
+//   qId         — string question ID (mis. "mc1", "c11")
+//   userAnswer  — string letter (MC: 'A'/'B'/'C'/'D') | number (Comp) | null (Comp error)
+//   codeText    — string optional (Comp, source code Python utk audit)
+//   userAnswers — number[] optional (Comp multi-step: SEMUA angka di output)
+// Returns Promise<{correct, status, scoreDelta, marker, correctAnswer, explain,
+//                  lateMultiplier, pastDeadline, alreadyAnswered, healed, ...}>
+// Throws Error dengan .code (HttpsError code) dan .message human-readable.
+async function _callCheckModulAnswer(qId, userAnswer, codeText, userAnswers) {
+  const me = getIdentity();
+  if (!me || !me.nim) {
+    const err = new Error('Identity tidak ditemukan — silakan login ulang.');
+    err.code = 'unauthenticated'; throw err;
+  }
+  const pinHash = window._sessionPinHash;
+  if (!pinHash) {
+    const err = new Error('Sesi PIN expired — silakan login ulang dengan PIN.');
+    err.code = 'unauthenticated'; throw err;
+  }
+  const payload = { modulId: MODUL_ID, qId, userAnswer, nim: me.nim, nama: me.nama, pinHash };
+  if (typeof codeText === 'string' && codeText.length > 0) {
+    payload.codeText = codeText.slice(0, 5000);
+  }
+  if (Array.isArray(userAnswers) && userAnswers.length > 0) {
+    payload.userAnswers = userAnswers.slice(0, 64).map(Number).filter(Number.isFinite);
+  }
+  try {
+    const result = await _checkModulAnswerCallable(payload);
+    return result.data;
+  } catch (err) {
+    const wrapped = new Error(err.message || 'Server error');
+    wrapped.code = err.code || 'unknown';
+    wrapped.details = err.details;
+    throw wrapped;
+  }
+}
+window._callCheckModulAnswer = _callCheckModulAnswer;
 const CHAT_LIMIT = 50; // last N messages
 const HEARTBEAT_MS = 20000; // 20s heartbeat
 const ONLINE_THRESHOLD_MS = 45000; // offline if no heartbeat in 45s
@@ -6767,7 +6837,7 @@ function updateLeaderboard(visitors, schedExpired){
   // Top Akses — ONLY students with points > 0 qualify, then sort by visitCount desc, then earliest timestamp
   const akses=[...visited].filter(v=>(v.points||0)>0&&!isLate(v.timestamp)).sort((a,b)=>{const d=(b.visitCount||1)-(a.visitCount||1);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp);});
   const medalR=['🥇','🥈','🥉'];
-  function renderCardSkor(v,idx){const pts=v.points||0;const nilai=pointsToScore(pts);return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="font-size:1rem;flex-shrink:0;">'+medalR[idx]+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(0,224,158,.12);color:#00e09e;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;white-space:nowrap;">'+pts+' <span style="opacity:.7;font-weight:600;">('+nilai+')</span></div></div>';}
+  function renderCardSkor(v,idx){const pts=v.points||0;const nilai=pointsToScore(pts);return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="font-size:1rem;flex-shrink:0;">'+medalR[idx]+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(0,224,158,.12);color:#00e09e;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;white-space:nowrap;">'+_fmtPts(pts)+' <span style="opacity:.7;font-weight:600;">('+nilai+')</span></div></div>';}
   function renderCardAkses(v,idx){const vc=v.visitCount||1;return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(251,191,36,.15);color:#fbbf24;font-size:.65rem;font-weight:800;flex-shrink:0;">'+(idx+1)+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(251,191,36,.12);color:#fbbf24;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+vc+'x</div></div>';}
   rajinEl.innerHTML=topSkor.length?topSkor.slice(0,3).map((v,i)=>renderCardSkor(v,i)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
   santaiEl.innerHTML=akses.length?akses.slice(0,3).map((v,i)=>renderCardAkses(v,i)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
@@ -6941,7 +7011,7 @@ function updateScheduleDisplay(){
 function isLate(timestamp){
   // v8 (Mei 2026): Terlambat = timestamp akses jatuh SETELAH deadline.
   // Mahasiswa terlambat tetap bisa mengerjakan tugas; poin per soal
-  // dikurangi 20%, Comp Hard tidak dapat partial credit, dan tidak
+  // dikurangi 30%, Comp Hard tidak dapat partial credit, dan tidak
   // masuk Top Skor / Top Akses. Lihat Pedoman §9.1, §9.2, §15.4, §17.3.
   if(!currentSchedule || !currentSchedule.end) return false;
   const t = new Date(timestamp).getTime();
@@ -7367,7 +7437,7 @@ function renderVisitors(visitors){
     else{statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(0,224,158,.1);color:#00e09e;border:1px solid rgba(0,224,158,.25);">\u2705 Tepat Waktu</span>';}
     const vcDisplay=vc?vc+'x':'<span style="color:#475569;">—</span>';
     const nilai=pointsToScore(pts);
-    const ptsDisplay=pts?'<span style="color:#00e09e;font-weight:800;">'+pts+'</span> <span style="color:#64748b;font-weight:600;font-size:.78rem;">('+nilai+')</span>':'<span style="color:#475569;">0 <span style="font-weight:600;font-size:.78rem;">(0)</span></span>';
+    const ptsDisplay=pts?'<span style="color:#00e09e;font-weight:800;">'+_fmtPts(pts)+'</span> <span style="color:#64748b;font-weight:600;font-size:.78rem;">('+nilai+')</span>':'<span style="color:#475569;">0 <span style="font-weight:600;font-size:.78rem;">(0)</span></span>';
     const tsColor=bolos?'#ef4444':late?'#fb7185':hasPoints?'#64748b':(hasVisit?'#94a3b8':'#475569');
     const absenClass=(!hasPoints)?' absen':'';
     return `<div class="vt-row${absenClass}" style="${rowBg}"><div class="vt-num" style="color:${tsColor};">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div class="vt-avatar" style="${ac}">${ini}</div><div><div class="vt-name" style="${nameColor}">${escH(nama)}</div></div></div><div style="flex:1;font-size:.8rem;color:${hasVisit?'#94a3b8':'#475569'};font-family:monospace;">${s.nim}</div><div style="flex:1;text-align:center;"><span class="vt-status">${statusCol}</span></div><div style="flex:0.5;text-align:center;font-size:.85rem;">${ptsDisplay}</div><div class="vt-visit" style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:#94a3b8;">${vcDisplay}</div><div style="flex:1;text-align:right;font-size:.78rem;color:${tsColor};">${ts}</div></div>`;
@@ -7492,6 +7562,7 @@ async function submitPinSetup() {
 
   try {
     const pinHash = await _sha256Hex(p1);
+    _setSessionPinHash(pinHash);   // PHASE 3: simpan utk callable server-side
     const { nama, nim, nowISO, schedOpen } = _pinFlow;
     const key = sanitizeKey('mhs_' + nim);
 
@@ -7565,6 +7636,8 @@ async function submitPinVerify() {
       document.getElementById('pinInputField').focus();
       return;
     }
+
+    _setSessionPinHash(inputHash);   // PHASE 3: simpan utk callable server-side
 
     // PIN match → create/update visitor record di course/module CURRENT (TANPA pinHash)
     const key = sanitizeKey('mhs_' + nim);
@@ -7690,6 +7763,26 @@ async function confirmReset(){
   window._resetInProgress = true;
 
   try {
+    // STEP 0 (PHASE 3): Hapus Firestore modulAttempts via callable (admin-only).
+    // Tanpa ini, mahasiswa tetap ke-lock 'alreadyAnswered' di server-side untuk soal
+    // yg pernah dicoba sebelum reset — meskipun RTDB visitor sudah di-clear.
+    try {
+      const adminHash = await _sha256Hex(document.getElementById('resetPw').value);
+      const resetCallable = httpsCallable(_functions, 'resetModulAttempts');
+      const result = await resetCallable({ modulId: MODUL_ID, adminPwHash: adminHash });
+      console.log('[Reset] Firestore modulAttempts cleared:', result.data);
+    } catch (fsErr) {
+      // Kalau Firestore reset gagal, JANGAN lanjut RTDB delete — biar state konsisten.
+      // Dosen bisa retry. Common causes: function belum di-deploy, network, auth.
+      window._resetInProgress = false;
+      btns.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';});
+      const msg = fsErr && fsErr.message ? fsErr.message : String(fsErr);
+      errEl.textContent = '❌ Gagal reset Firestore: ' + msg + '. Cloud Function "resetModulAttempts" mungkin belum di-deploy. Reset RTDB dibatalkan utk konsistensi.';
+      errEl.style.display = 'block';
+      console.error('[Reset] Firestore callable failed:', fsErr);
+      return;
+    }
+
     // STEP 1: Hapus visitor data utama child-by-child (deterministic per-record).
     // Reason: rule .write hanya defined di $visitorKey level. Parent-level remove
     // bisa ambiguous (rule cascade behavior tidak konsisten saat ada concurrent
@@ -7829,7 +7922,8 @@ window.showScheduleModal=showScheduleModal;window.hideScheduleModal=hideSchedule
 setInterval(()=>{renderVisitors(latestVisitors);},30000);
 
 // ═══ POINT SYSTEM — Anti-Duplication (cross-device & incognito) ═══
-const _answeredQ = new Set();
+window._answeredQ = window._answeredQ || new Set();
+const _answeredQ = window._answeredQ;
 
 // ── Schedule gate: returns true only if current time is within
 //    [currentSchedule.start, currentSchedule.end]. Used to block ALL
@@ -7851,7 +7945,7 @@ function _isPastDeadline() {
   return Date.now() > new Date(currentSchedule.end).getTime();
 }
 function _getLateMultiplier() {
-  return _isPastDeadline() ? 0.8 : 1.0;
+  return _isPastDeadline() ? 0.7 : 1.0;
 }
 window._isPastDeadline    = _isPastDeadline;
 window._getLateMultiplier = _getLateMultiplier;
@@ -7877,7 +7971,7 @@ function _updateLateBanner() {
     const msgEl = banner.querySelector('p');
     if (past) {
       if (titleEl) titleEl.textContent = 'Akses Setelah Deadline — Status Terlambat';
-      if (msgEl) msgEl.innerHTML = 'Anda <strong style="color:#fff">tetap dapat mengerjakan tugas</strong>, namun status akan tercatat <strong style="color:#fff">⏰ Terlambat</strong> dengan ketentuan: <strong style="color:#fff">poin per soal dikurangi 20%</strong>, <strong style="color:#fff">tidak masuk Top Skor / Top Akses</strong>, dan <strong style="color:#fff">Comp Hard tidak dapat poin partial</strong> jika jawaban salah.';
+      if (msgEl) msgEl.innerHTML = 'Anda <strong style="color:#fff">tetap dapat mengerjakan tugas</strong>, namun status akan tercatat <strong style="color:#fff">⏰ Terlambat</strong> dengan ketentuan: <strong style="color:#fff">poin per soal dikurangi 30%</strong>, <strong style="color:#fff">tidak masuk Top Skor / Top Akses</strong>, dan <strong style="color:#fff">Comp Hard tidak dapat poin partial</strong> jika jawaban salah.';
     } else {
       if (titleEl) titleEl.textContent = 'Akses di Luar Jadwal Perkuliahan';
       if (msgEl) msgEl.innerHTML = 'Pertemuan belum dibuka. Anda dapat tetap melihat materi, namun <strong style="color:#fff">poin dan kehadiran tidak akan dicatat</strong>. Pengerjaan soal di halaman ini tidak akan disimpan.';
@@ -7919,226 +8013,21 @@ function _checkConsolationPoint(nodeRef, state) {
   } catch(e) { /* swallow */ }
 }
 
-window._awardPoint = function(qId) {
-  if (_answeredQ.has(qId)) return;
-  const me = getIdentity();
-  if (!me || !me.nim || me.role === 'dosen') return;
-  if (!_isScheduleOpen()) {
-    console.warn('[Score] Tidak tersimpan: jadwal belum dibuka oleh dosen.');
-    if (!window._scheduleWarnShown) {
-      window._scheduleWarnShown = true;
-      setTimeout(() => { window._scheduleWarnShown = false; }, 30000);  // re-allow after 30s
-      if (typeof _showResetToast === 'function') {
-        const existing = document.getElementById('_opAdminToast');
-        if (existing) existing.remove();
-        const toast = document.createElement('div');
-        toast.id = '_opAdminToast';
-        toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,rgba(239,68,68,.95),rgba(220,38,38,.95));color:#fff;padding:14px 22px;border-radius:12px;font-size:.88rem;font-weight:600;z-index:200000;box-shadow:0 12px 40px rgba(239,68,68,.3);max-width:90vw;text-align:center;line-height:1.5;opacity:0;transition:opacity .25s ease;';
-        toast.textContent = '⚠ Jadwal pertemuan belum diset oleh dosen — jawaban Anda tidak akan tersimpan ke server.';
-        document.body.appendChild(toast);
-        requestAnimationFrame(() => { toast.style.opacity = '1'; });
-        setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 5500);
-      }
-    }
-    return;
-  }
-  const key = sanitizeKey('mhs_' + me.nim);
-  const nodeRef = ref(db, DB_PATH + '/' + key);
-  get(nodeRef).then(snap => {
-    let ex;
-    if (!snap.exists()) {
-      // Bug fix: visitor record missing — create on-demand from identity
-      console.warn('[Score] Visitor record missing for ' + me.nim + ' — creating now');
-      ex = {
-        nama: me.nama || '—', nim: me.nim, role: 'student',
-        timestamp: me.timestamp || new Date().toISOString(),
-        lastVisit: new Date().toISOString(),
-        visitCount: 1,
-        points: 0,
-        scoredQuestions: ''
-      };
-    } else {
-      ex = snap.val();
-    }
-    const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
-    if (scored.includes(qId)) { _answeredQ.add(qId); return; }
-    _answeredQ.add(qId); scored.push(qId);
-    const updated = Object.assign({}, ex, { points: (ex.points||0)+(1*_getLateMultiplier()), pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(',') });
-    set(nodeRef, updated).catch(err => console.error('[Score] MC point save failed:', err));
-    _checkConsolationPoint(nodeRef, updated);
-  }).catch(err => console.error('[Score] _awardPoint failed:', err));
-};
-
-window._awardCompPoint = function(qId, point) {
-  // Fallback for legacy call sites: deteksi dari _isHardComp jika point tidak diberikan.
-  const pts = (typeof point === 'number' && point > 0) ? point
-            : (window._isHardComp(qId) ? SCORE_CONFIG.COMP_HARD_POINT : SCORE_CONFIG.COMP_EZ_POINT);
-  const compKey = qId + '_comp';
-  if (_answeredQ.has(compKey)) return;
-  const me = getIdentity();
-  if (!me || !me.nim || me.role === 'dosen') return;
-  if (!_isScheduleOpen()) {
-    console.warn('[Score] Tidak tersimpan: jadwal belum dibuka oleh dosen.');
-    if (!window._scheduleWarnShown) {
-      window._scheduleWarnShown = true;
-      setTimeout(() => { window._scheduleWarnShown = false; }, 30000);  // re-allow after 30s
-      if (typeof _showResetToast === 'function') {
-        const existing = document.getElementById('_opAdminToast');
-        if (existing) existing.remove();
-        const toast = document.createElement('div');
-        toast.id = '_opAdminToast';
-        toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,rgba(239,68,68,.95),rgba(220,38,38,.95));color:#fff;padding:14px 22px;border-radius:12px;font-size:.88rem;font-weight:600;z-index:200000;box-shadow:0 12px 40px rgba(239,68,68,.3);max-width:90vw;text-align:center;line-height:1.5;opacity:0;transition:opacity .25s ease;';
-        toast.textContent = '⚠ Jadwal pertemuan belum diset oleh dosen — jawaban Anda tidak akan tersimpan ke server.';
-        document.body.appendChild(toast);
-        requestAnimationFrame(() => { toast.style.opacity = '1'; });
-        setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 5500);
-      }
-    }
-    return;
-  }
-  const key = sanitizeKey('mhs_' + me.nim);
-  const nodeRef = ref(db, DB_PATH + '/' + key);
-  // PEDOMAN §15.4c — Capture code text from textarea for Firebase persistence
-  const codeText = (document.getElementById('code-' + qId)?.value || '').slice(0, 5000);
-  get(nodeRef).then(snap => {
-    let ex;
-    if (!snap.exists()) {
-      console.warn('[Score] Visitor record missing for ' + me.nim + ' — creating now (Comp)');
-      ex = {
-        nama: me.nama || '—', nim: me.nim, role: 'student',
-        timestamp: me.timestamp || new Date().toISOString(),
-        lastVisit: new Date().toISOString(),
-        visitCount: 1,
-        points: 0,
-        scoredQuestions: ''
-      };
-    } else {
-      ex = snap.val();
-    }
-    const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
-    if (scored.includes(compKey)) { _answeredQ.add(compKey); return; }
-    _answeredQ.add(compKey); scored.push(compKey);
-    const newPoints = Math.min((ex.points || 0) + (pts * _getLateMultiplier()), SCORE_CONFIG.TOTAL);
-    const codes = Object.assign({}, ex.codes || {}, codeText ? { [qId]: codeText } : {});
-    const updated = _stripLegacyPinFields(Object.assign({}, ex, { points: newPoints, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(','), codes: codes }));
-    set(nodeRef, updated).catch(err => console.error('[Score] Comp point save failed:', err));
-    _checkConsolationPoint(nodeRef, updated);
-  }).catch(err => console.error('[Score] _awardCompPoint failed:', err));
-};
-
-// ── Partial credit untuk Comp Hard (kode non-kosong tapi output/error salah) ──
-// Menulis marker _comp_partial (berbeda dari _comp dan _comp_used) + tambah poin kecil (1).
-// Tidak trigger konsolasi karena points sudah > 0.
-window._awardCompPartial = function(qId, point) {
-  const pts = (typeof point === 'number' && point > 0) ? point : 1;
-  const partialKey = qId + '_comp_partial';
-  if (_answeredQ.has(partialKey)) return;
-  const me = getIdentity();
-  if (!me || !me.nim || me.role === 'dosen') return;
-  if (!_isScheduleOpen()) {
-    console.warn('[Score] Partial credit tidak tersimpan: jadwal belum dibuka.');
-    return;
-  }
-  if (_isPastDeadline()) return;   // v8: terlambat tidak dapat partial credit Hard
-  const key = sanitizeKey('mhs_' + me.nim);
-  const nodeRef = ref(db, DB_PATH + '/' + key);
-  const codeText = (document.getElementById('code-' + qId)?.value || '').slice(0, 5000);
-  get(nodeRef).then(snap => {
-    let ex;
-    if (!snap.exists()) {
-      console.warn('[Score] Visitor record missing for ' + me.nim + ' — creating now (Partial)');
-      ex = {
-        nama: me.nama || '—', nim: me.nim, role: 'student',
-        timestamp: me.timestamp || new Date().toISOString(),
-        lastVisit: new Date().toISOString(),
-        visitCount: 1,
-        points: 0,
-        scoredQuestions: ''
-      };
-    } else {
-      ex = snap.val();
-    }
-    const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
-    if (scored.includes(partialKey)) { _answeredQ.add(partialKey); return; }
-    _answeredQ.add(partialKey); scored.push(partialKey);
-    const newPoints = Math.min((ex.points || 0) + (pts * _getLateMultiplier()), SCORE_CONFIG.TOTAL);
-    const codes = Object.assign({}, ex.codes || {}, codeText ? { [qId]: codeText } : {});
-    const updated = _stripLegacyPinFields(Object.assign({}, ex, { points: newPoints, pointTimestamp: new Date().toISOString(), scoredQuestions: scored.join(','), codes: codes }));
-    set(nodeRef, updated).catch(err => console.error('[Score] Partial save failed:', err));
-  }).catch(err => console.error('[Score] _awardCompPartial failed:', err));
-};
+// ═══════════════════════════════════════════════════════════════════════════
+// PHASE 3 — Award/record functions sekarang NO-OP shells.
+// Server (Cloud Function `checkModulAnswer`) yang melakukan SEMUA write ke
+// RTDB visitor record (points, scoredQuestions, codes, consolation). Helper
+// di sini disisakan sebagai stub agar legacy call-site (mis. di shuffle/legacy
+// shim) tidak crash dengan TypeError saat memanggil window._awardPoint.
+// ═══════════════════════════════════════════════════════════════════════════
+window._awardPoint       = function(_qId)            { /* no-op (server-side) */ };
+window._awardCompPoint   = function(_qId, _point)    { /* no-op (server-side) */ };
+window._awardCompPartial = function(_qId, _point)    { /* no-op (server-side) */ };
 
 // ── Record a failed MC attempt to Firebase ──
-window._recordMcAttempt = function(qId) {
-  const me = getIdentity();
-  if (!me || !me.nim || me.role === 'dosen') return;
-  if (!_isScheduleOpen()) {
-    console.warn('[Score] MC attempt tidak tersimpan: jadwal belum dibuka.');
-    return;
-  }
-  const key = sanitizeKey('mhs_' + me.nim);
-  const nodeRef = ref(db, DB_PATH + '/' + key);
-  get(nodeRef).then(snap => {
-    let ex;
-    if (!snap.exists()) {
-      console.warn('[Score] Visitor record missing for ' + me.nim + ' — creating now (MC attempt)');
-      ex = {
-        nama: me.nama || '—', nim: me.nim, role: 'student',
-        timestamp: me.timestamp || new Date().toISOString(),
-        lastVisit: new Date().toISOString(),
-        visitCount: 1,
-        points: 0,
-        scoredQuestions: ''
-      };
-    } else {
-      ex = snap.val();
-    }
-    const usedKey = qId + '_mc_used';
-    const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
-    if (scored.includes(usedKey)) return;
-    scored.push(usedKey);
-    const updated = Object.assign({}, ex, { scoredQuestions: scored.join(',') });
-    set(nodeRef, updated).catch(err => console.error('[Score] MC attempt save failed:', err));
-    _checkConsolationPoint(nodeRef, updated);
-  }).catch(err => console.error('[Score] _recordMcAttempt failed:', err));
-};
-
-// ── Record a failed comp attempt to Firebase (anti-manipulation) ──
-window._recordCompAttempt = function(qId) {
-  const me = getIdentity();
-  if (!me || !me.nim || me.role === 'dosen') return;
-  if (!_isScheduleOpen()) {
-    console.warn('[Score] Comp attempt tidak tersimpan: jadwal belum dibuka.');
-    return;
-  }
-  const key = sanitizeKey('mhs_' + me.nim);
-  const nodeRef = ref(db, DB_PATH + '/' + key);
-  const codeText = (document.getElementById('code-' + qId)?.value || '').slice(0, 5000);
-  get(nodeRef).then(snap => {
-    let ex;
-    if (!snap.exists()) {
-      console.warn('[Score] Visitor record missing for ' + me.nim + ' — creating now (Comp attempt)');
-      ex = {
-        nama: me.nama || '—', nim: me.nim, role: 'student',
-        timestamp: me.timestamp || new Date().toISOString(),
-        lastVisit: new Date().toISOString(),
-        visitCount: 1,
-        points: 0,
-        scoredQuestions: ''
-      };
-    } else {
-      ex = snap.val();
-    }
-    const usedKey = qId + '_comp_used';
-    const scored = (ex.scoredQuestions || '').split(',').filter(Boolean);
-    if (scored.includes(usedKey)) return;
-    scored.push(usedKey);
-    const codes = Object.assign({}, ex.codes || {}, codeText ? { [qId]: codeText } : {});
-    const updated = Object.assign({}, ex, { scoredQuestions: scored.join(','), codes: codes });
-    set(nodeRef, updated).catch(err => console.error('[Score] Comp attempt save failed:', err));
-    _checkConsolationPoint(nodeRef, updated);
-  }).catch(err => console.error('[Score] _recordCompAttempt failed:', err));
-};
+// PHASE 3 — record functions also no-op (server-side).
+window._recordMcAttempt   = function(_qId) { /* no-op (server-side) */ };
+window._recordCompAttempt = function(_qId) { /* no-op (server-side) */ };
 
 window._loadScoredQuestions = function() {
   const me = getIdentity();
@@ -8171,7 +8060,7 @@ window._loadScoredQuestions = function() {
 
       // ── Restore MC correct answers ──
       if (/^mc\d+$/.test(qId)) {
-        if (!mcAnswered[qId]) { mcAnswered[qId] = true; mcScores[qId] = 1; }
+        mcAnswered[qId] = true; mcScores[qId] = 1;
         const rg = document.getElementById('rg-' + qId);
         if (rg) {
           rg.dataset.locked='true';
@@ -8189,7 +8078,7 @@ window._loadScoredQuestions = function() {
       // ── Restore MC wrong answers (_mc_used suffix) ──
       else if (/^mc\d+_mc_used$/.test(qId)) {
         const baseId = qId.replace('_mc_used','');
-        if (!mcAnswered[baseId]) { mcAnswered[baseId] = true; mcScores[baseId] = 0; }
+        mcAnswered[baseId] = true; mcScores[baseId] = 0;
         const rg = document.getElementById('rg-' + baseId);
         if (rg) {
           rg.dataset.locked='true';
@@ -8208,10 +8097,8 @@ window._loadScoredQuestions = function() {
       // CEK INI DULU sebelum _comp_used/_comp karena suffix lebih spesifik
       else if (qId.endsWith('_comp_partial')) {
         const baseId = qId.replace('_comp_partial','');
-        if (!compAnswered[baseId]) {
-          compAnswered[baseId] = true;
-          compScores[baseId]   = 1;   // partial = 1 poin
-        }
+        compAnswered[baseId] = true;
+        compScores[baseId]   = 1;   // partial = 1 poin (unconditional restore)
         const sub = document.getElementById('sub-' + baseId);
         if (sub) { sub.disabled=true; sub.textContent='\u25b3 Usaha (+1)'; sub.style.borderColor='rgba(251,191,36,.4)'; sub.style.color='var(--amber)'; sub.classList.remove('running'); }
         const ta = document.getElementById('code-' + baseId);
@@ -8223,7 +8110,7 @@ window._loadScoredQuestions = function() {
       // ── Restore comp wrong/error (Easy/Medium 0 poin — _comp_used suffix) ──
       else if (qId.endsWith('_comp_used')) {
         const baseId = qId.replace('_comp_used','');
-        if (!compAnswered[baseId]) { compAnswered[baseId]=true; compScores[baseId]=0; }
+        compAnswered[baseId]=true; compScores[baseId]=0;
         const sub=document.getElementById('sub-'+baseId);
         if(sub){ sub.disabled=true; sub.textContent='\u2717 Terkunci'; sub.style.borderColor='rgba(239,68,68,.3)'; sub.style.color='var(--pink)'; sub.classList.remove('running'); }
         const ta=document.getElementById('code-'+baseId);
@@ -8239,7 +8126,7 @@ window._loadScoredQuestions = function() {
         const restoredPts = window._isHardComp(baseId)
           ? SCORE_CONFIG.COMP_HARD_POINT
           : SCORE_CONFIG.COMP_EZ_POINT;
-        if (!compAnswered[baseId]) { compAnswered[baseId]=true; compScores[baseId]=restoredPts; }
+        compAnswered[baseId]=true; compScores[baseId]=restoredPts;
         const sub=document.getElementById('sub-'+baseId);
         if(sub){ sub.disabled=true; sub.textContent='\u2713 Selesai'; sub.classList.remove('running'); }
         const ta=document.getElementById('code-'+baseId);
@@ -8252,56 +8139,17 @@ window._loadScoredQuestions = function() {
     _markLoaded();   // PEDOMAN §18.2 — mark ready + trigger checkExport/checkForum/_loadDraft
   }).catch(() => { _markLoaded(); });
 };
-
-// ═══════════════════════════════════════════════════════════════
-// SHUFFLE MC OPTIONS (Pedoman §16.3a) — anti-pattern "selalu di B"
-// ═══════════════════════════════════════════════════════════════
-// Mengacak konten antar posisi A/B/C/D tiap reload. Label A/B/C/D tetap
-// top-to-bottom (UX tidak berubah). Yang shuffle adalah konten + flag
-// isCorrect di onclick attribute. Firebase markers tied ke qId, tidak ke
-// posisi opsi — leaderboard cross-user tetap konsisten meski tiap user
-// melihat order shuffled berbeda.
-//
-// Dipanggil SEKALI saat page load, SEBELUM initVisitor & _loadScoredQuestions
-// agar state restore Firebase landing di posisi shuffled yang benar.
-function shuffleMCOptions() {
-  const LETTERS = ['A', 'B', 'C', 'D'];
-  document.querySelectorAll('.radio-group').forEach(rg => {
-    const qId = (rg.id || '').replace(/^rg-/, '');
-    if (!qId || !qId.startsWith('mc')) return;
-
-    const opts = Array.from(rg.querySelectorAll('.radio-option'));
-    if (opts.length !== 4) return;
-
-    // Parse (content, isCorrect) pairs dari HTML dan onclick
-    const data = opts.map(opt => {
-      // Match: <div class="radio-circle"></div>(X) &nbsp; CONTENT
-      const m = opt.innerHTML.match(/^\s*<div class="radio-circle"><\/div>\s*\([A-D]\)\s*(?:&nbsp;)?\s*([\s\S]+?)\s*$/);
-      if (!m) return null;
-      const onclick = opt.getAttribute('onclick') || '';
-      const bm = onclick.match(/selectMC\([^,]+,\s*this\s*,\s*(true|false)\s*\)/);
-      if (!bm) return null;
-      return { content: m[1], isCorrect: bm[1] === 'true' };
-    });
-    if (data.some(d => d === null)) return;   // bail jika parse gagal — biarkan markup asli
-
-    // Fisher-Yates shuffle
-    for (let i = data.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [data[i], data[j]] = [data[j], data[i]];
-    }
-
-    // Re-render: labels A/B/C/D tetap top-to-bottom, konten + onclick di-acak
-    data.forEach((d, idx) => {
-      const newLetter = LETTERS[idx];
-      opts[idx].innerHTML = '<div class="radio-circle"></div>(' + newLetter + ') &nbsp; ' + d.content;
-      opts[idx].setAttribute('onclick', "selectMC('" + qId + "',this," + d.isCorrect + ")");
-      // Clear session-state classes/props dari render sebelumnya
-      opts[idx].classList.remove('selected', 'correct-ans', 'wrong-ans');
-      if (opts[idx]._correct !== undefined) delete opts[idx]._correct;
-    });
-  });
-}
+// ═══════════════════════════════════════════════════════
+// PHASE 3 — SHUFFLE MC OPTIONS DI-NONAKTIFKAN.
+// Server (Cloud Function checkModulAnswer) menyimpan answer key per qId
+// dengan referensi letter posisi original (mis. mc1.answer = 'B').
+// Kalau client shuffle posisi konten, mahasiswa pilih opsi visual "C"
+// (mengandung konten benar) → kirim 'C' ke server → server compare ke 'B'
+// → false negative. Shuffle harus dipindah ke server (return shuffled
+// mapping per request) atau sepakat keep posisi original. Untuk
+// kompatibilitas dengan server schema sekarang: NO-OP.
+// ═══════════════════════════════════════════════════════
+function shuffleMCOptions() { /* no-op (Phase 3 — server-authoritative letter) */ }
 window.shuffleMCOptions = shuffleMCOptions;
 
 // ─── Init sequence (urutan penting) ───
@@ -8681,6 +8529,240 @@ function _ah(s){let h=5381;s=s+'mEKsP9k4tQ2';for(let i=0;i<s.length;i++)h=((h<<5
 window._pa = {1: '1vcm311', 2: 'crcad2'};
 </script>
 
+
+
+
+<!-- FRICTION LAYER CSS (extracted from popup template — see fix #261) -->
+<style>
+/* ─── FRICTION LAYER (anti-AI deterrent — student only) ──────────────── */
+/* Disable text selection di seluruh body; allow di textarea/input agar
+   mahasiswa tetap bisa edit kode dan input jawaban. Watermark NIM+nama
+   diagonal sebagai deterrent screenshot. */
+body{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;}
+textarea,input,select,option,
+.code-textarea,.v-input,[contenteditable="true"]{
+  -webkit-user-select:text!important;-moz-user-select:text!important;
+  -ms-user-select:text!important;user-select:text!important;
+}
+img,video,svg{-webkit-user-drag:none;user-drag:none;}
+body.friction-blurred{filter:blur(12px);transition:filter .3s ease;}
+body.friction-blurred #frictionNotice,
+body.friction-blurred #frictionToast{filter:none;}
+#frictionWatermark{
+  position:fixed;inset:0;pointer-events:none;z-index:999998;
+  opacity:.08;mix-blend-mode:difference;user-select:none;
+  display:none; /* shown only when student logged in */
+}
+#frictionWatermark.active{display:block;}
+#frictionToast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:rgba(239,68,68,.95);color:#fff;padding:12px 20px;
+  border-radius:12px;font-size:13px;font-weight:600;
+  z-index:999999;box-shadow:0 6px 24px rgba(0,0,0,.4);
+  pointer-events:none;opacity:0;transition:opacity .3s;
+  font-family:'JetBrains Mono',monospace;max-width:90vw;text-align:center;
+}
+#frictionToast.show{opacity:1;}
+#frictionNotice{
+  position:fixed;top:64px;right:16px;
+  background:rgba(124,77,255,.12);border:1px solid rgba(124,77,255,.35);
+  color:#a78bfa;padding:8px 14px;border-radius:10px;font-size:11px;
+  font-weight:700;font-family:'JetBrains Mono',monospace;
+  letter-spacing:.5px;z-index:99997;pointer-events:none;display:none;
+}
+#frictionNotice.active{display:block;}
+@media print {
+  body > * { display: none !important; }
+  body::after {
+    content: "\01F512 Mode Modul \2014 Print/Screenshot dinonaktifkan. Aktivitas terdeteksi & tercatat.";
+    display: block; font-size: 18pt; color: #000; padding: 40px;
+  }
+}
+</style>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     FRICTION LAYER (anti-AI deterrent — student only)
+     DevTools blocker + watermark + tab leave + screen capture detection
+═══════════════════════════════════════════════════════════════════ -->
+<script>
+(function _frictionLayer(){
+  const LK = 'getaran_mekanik_identity_pertemuan-15';
+
+  function getMe(){
+    try { return JSON.parse(localStorage.getItem(LK) || 'null'); }
+    catch(e){ return null; }
+  }
+  function isStudent(){
+    const m = getMe();
+    return !!(m && m.nim && m.role !== 'dosen');
+  }
+  function escH(s){
+    return String(s||'').replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function showToast(msg){
+    let t = document.getElementById('frictionToast');
+    if (!t){
+      t = document.createElement('div');
+      t.id = 'frictionToast';
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(()=> t.classList.remove('show'), 3200);
+  }
+
+  let lastSig = null;
+  function renderWatermark(){
+    const m = getMe();
+    const sig = m ? `${m.nim}-${m.nama}-${m.role}` : null;
+    if (sig === lastSig) return;
+    lastSig = sig;
+
+    const ex = document.getElementById('frictionWatermark');
+    if (ex) ex.remove();
+    const notice = document.getElementById('frictionNotice');
+
+    if (!isStudent()){
+      if (notice) notice.classList.remove('active');
+      return;
+    }
+
+    const text = escH(`${m.nim} · ${m.nama}`);
+    const wm = document.createElement('div');
+    wm.id = 'frictionWatermark';
+    wm.classList.add('active');
+    wm.setAttribute('aria-hidden', 'true');
+    wm.innerHTML =
+      '<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" style="display:block">'
+      + '<defs>'
+      +   '<pattern id="wmp" patternUnits="userSpaceOnUse" width="420" height="200" patternTransform="rotate(-30)">'
+      +     '<text x="20" y="60" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#fff" opacity=".95">'+text+'</text>'
+      +     '<text x="20" y="140" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#fff" opacity=".95">'+text+'</text>'
+      +   '</pattern>'
+      + '</defs>'
+      + '<rect width="100%" height="100%" fill="url(#wmp)"/>'
+      + '</svg>';
+    document.body.appendChild(wm);
+
+    if (notice){
+      notice.classList.add('active');
+    } else {
+      const n = document.createElement('div');
+      n.id = 'frictionNotice';
+      n.classList.add('active');
+      n.textContent = '🔒 Mode Modul Aktif';
+      n.title = 'Tab leave, screen capture, dan aktivitas tercatat.';
+      document.body.appendChild(n);
+    }
+  }
+
+  function onCopy(e){
+    if (!isStudent()) return;
+    if (e.target.closest('textarea, input, [contenteditable="true"]')) return;
+    e.preventDefault();
+    showToast('🔒 Copy teks soal dinonaktifkan.');
+  }
+
+  function onContextMenu(e){
+    if (!isStudent()) return;
+    if (e.target.closest('textarea, input, [contenteditable="true"]')) return;
+    e.preventDefault();
+    showToast('🔒 Klik kanan dinonaktifkan saat mengerjakan modul.');
+  }
+
+  function onKeyDown(e){
+    if (!isStudent()) return;
+    const k = (e.key || '').toLowerCase();
+    if (e.key === 'F12' || ((e.ctrlKey || e.metaKey) && e.shiftKey && ['i','j','c'].includes(k))){
+      e.preventDefault();
+      showToast('🔒 DevTools dinonaktifkan saat mengerjakan modul.');
+      return;
+    }
+    if ((e.ctrlKey || e.metaKey) && k === 'u'){
+      e.preventDefault();
+      showToast('🔒 View source dinonaktifkan.');
+      return;
+    }
+    // Ctrl+A blocker (allow di textarea/input)
+    if ((e.ctrlKey || e.metaKey) && k === 'a'){
+      if (e.target.closest('textarea, input, [contenteditable="true"]')) return;
+      e.preventDefault();
+      showToast('🔒 Select all dinonaktifkan.');
+      return;
+    }
+    // Ctrl+C blocker untuk teks soal (allow di textarea/input)
+    if ((e.ctrlKey || e.metaKey) && k === 'c'){
+      if (e.target.closest('textarea, input, [contenteditable="true"]')) return;
+      // Don't preventDefault — let user-select:none CSS handle it
+      // Just show toast as deterrent feedback
+      const sel = window.getSelection ? String(window.getSelection()) : '';
+      if (sel.trim().length > 3) {
+        showToast('🔒 Copy teks soal dinonaktifkan.');
+      }
+    }
+    if ((e.ctrlKey || e.metaKey) && (k === 'p' || k === 's')){
+      e.preventDefault();
+      showToast('🔒 Print / Save page dinonaktifkan.');
+      return;
+    }
+    if (e.key === 'PrintScreen'){
+      showToast('🔒 PrintScreen terdeteksi. Aktivitas tercatat.');
+    }
+  }
+
+  let tabLeaveCount = 0;
+  let _blurTimer = null;
+  function onVisibility(){
+    if (!isStudent()) return;
+    if (document.hidden){
+      tabLeaveCount++;
+      // Blur halaman setelah 200ms (prevent false trigger Alt+Tab cepat).
+      // Screenshot via OS-level capture saat tab hidden akan tertangkap blur.
+      _blurTimer = setTimeout(() => {
+        document.body.classList.add('friction-blurred');
+      }, 200);
+    } else {
+      clearTimeout(_blurTimer);
+      document.body.classList.remove('friction-blurred');
+      if (tabLeaveCount > 0){
+        showToast('⚠ Anda meninggalkan tab '+tabLeaveCount+'×. Tercatat di sistem.');
+      }
+    }
+  }
+
+  function patchScreenCapture(){
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) return;
+    const orig = navigator.mediaDevices.getDisplayMedia.bind(navigator.mediaDevices);
+    navigator.mediaDevices.getDisplayMedia = function(){
+      if (isStudent()){
+        showToast('🔒 Screen recording terdeteksi. Aktivitas tercatat.');
+      }
+      return orig.apply(navigator.mediaDevices, arguments);
+    };
+  }
+
+  function init(){
+    document.addEventListener('contextmenu', onContextMenu, { capture: true });
+    document.addEventListener('copy', onCopy, { capture: true });
+    document.addEventListener('keydown', onKeyDown, { capture: true });
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('storage', renderWatermark);
+    window.addEventListener('friction:render', renderWatermark);
+    patchScreenCapture();
+    renderWatermark();
+    setInterval(renderWatermark, 1500);
+  }
+
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+  window._frictionRender = renderWatermark;
+})();
+</script>
 
 </body>
 </html>
