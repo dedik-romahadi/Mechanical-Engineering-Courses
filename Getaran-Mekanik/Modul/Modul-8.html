@@ -1314,20 +1314,20 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="card">
       <div class="card-icon">📐</div>
       <h3>Step 2: Define f(t, y)</h3>
-      <p>Function ẏ = f(t, y): top half = velocity (= y[N:]), bottom half = acceleration (= M⁻¹·(F − C·ẋ − \(K \cdot x))\). Implementasi 5 baris numpy.</p>
-      <div class="formula">\(f(\text{t, y}) = [v; M⁻^1 \cdot (\text{F - Cv - Kx})]\)</div>
+      <p>Function \(\dot{y} = f(t, y)\): top half = velocity (\(= y[N:]\)), bottom half = acceleration \(= M^{-1} \cdot (F - C\dot{x} - K \cdot x)\). Implementasi 5 baris numpy.</p>
+      <div class="formula">\(f(t, y) = [v;\, M^{-1} \cdot (F - Cv - Kx)]\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🚀</div>
       <h3>Step 3: Call solve_ivp</h3>
       <p><code>sol = solve_ivp(f, t_span, y0, t_eval=t, method='RK45')</code>. Method default RK45 (adaptive Runge-Kutta order 4-5). Untuk stiff systems pakai 'Radau' atau 'BDF'.</p>
-      <div class="formula">sol = solve_ivp(f, [0, T], y0, t_eval=t)</div>
+      <div class="formula"><code style="font-family:'JetBrains Mono',monospace">sol = solve_ivp(f, [0, T], y0, t_eval=t)</code></div>
     </div>
     <div class="card">
       <div class="card-icon">📊</div>
       <h3>Step 4: Extract &amp; Visualize</h3>
-      <p>sol.y[i, :] = position DoF-i over time. sol.y[N+i, :] = velocity DoF-i. Plot dengan matplotlib. Verify dengan analytical (untuk 1-DoF undamped: x(t) = \(A \cdot \cos(\)ωt)).</p>
-      <div class="formula">\(\(x_i\)(t)\) = sol.y[i, :]</div>
+      <p><code>sol.y[i, :]</code> = position DoF-i over time. <code>sol.y[N+i, :]</code> = velocity DoF-i. Plot dengan matplotlib. Verify dengan analytical (untuk 1-DoF undamped: \(x(t) = A \cdot \cos(\omega t)\)).</p>
+      <div class="formula">\(x_i(t)\) = <code style="font-family:'JetBrains Mono',monospace">sol.y[i, :]</code></div>
     </div>
   </div>
 
@@ -1932,7 +1932,7 @@ mask = sol.t &gt; <span class="nm">8</span>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc7">
-        <div class="radio-option" onclick="selectMC('mc7',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Diagonal dengan elemen \(\(m_i\)\) di posisi (i,i)</div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Diagonal dengan elemen \(m_i\) di posisi (i,i)</div>
         <div class="radio-option" onclick="selectMC('mc7',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Off-diagonal dengan negative values</div>
         <div class="radio-option" onclick="selectMC('mc7',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Tidak simetris</div>
         <div class="radio-option" onclick="selectMC('mc7',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Selalu sama dengan stiffness matrix</div>
@@ -2105,7 +2105,7 @@ mask = sol.t &gt; <span class="nm">8</span>
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C6</div>
-        <div class="comp-q">Compute <strong>\(M⁻^1 \cdot K\)</strong> matrix product. Untuk sistem referensi (M=I, K=[[200,-100],[-100,200]]). Return trace hasil.</div>
+        <div class="comp-q">Compute <strong>\(M^{-1} \cdot K\)</strong> matrix product. Untuk sistem referensi (M=I, K=[[200,-100],[-100,200]]). Return trace hasil.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Bentuk A = M⁻¹·K dengan <code>np.linalg.inv</code> dan operator @, lalu jumlahkan diagonalnya dengan <code>np.trace</code>.</div>
