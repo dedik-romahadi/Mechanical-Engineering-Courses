@@ -1038,7 +1038,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
   <div class="formula-block reveal">
     <div class="label">Generalized Eigenvalue Problem</div>
-    [K]{φ} = ω²[M]{φ} &nbsp;⟺&nbsp; det([K] − ω²[M]) = 0
+    \([K]{\phi } = \omega ^2[M]{\phi } ⟺\) det([K] \(- \omega ^2[M]) = 0\)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
@@ -1046,7 +1046,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📐</div>
       <h3>Versi Standar vs Generalized</h3>
       <p><strong>Standard</strong> eigenvalue: <code>A·v = λ·v</code>. <strong>Generalized</strong> eigenvalue: <code>A·v = λ·B·v</code> (struktural dinamika selalu dengan dua matriks M dan K). Numerical libraries: <code>scipy.linalg.eigh(K, M)</code> atau <code>numpy.linalg.eig(inv(M)@K)</code>.</p>
-      <div class="formula">A·v = λ·B·v (generalized)</div>
+      <div class="formula">\(A \cdot v\) = λ·\(B \cdot v\) (generalized)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔢</div>
@@ -1057,7 +1057,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Setiap ω<sub>i</sub> Punya Mode Shape φ<sub>i</sub></h3>
-      <p>Untuk tiap eigenvalue ω<sub>i</sub>², solve <code>([K] − ω<sub>i</sub>²[M])·{φ<sub>i</sub>} = 0</code> untuk vektor non-trivial φ<sub>i</sub> (mode shape). Mode shape adalah vektor N-dim — menjelaskan pola gerak relatif tiap massa di mode i.</p>
+      <p>Untuk tiap eigenvalue ω<sub>i</sub>², solve \(([K] - \omega _{i}^2[M]) \cdot {\phi _{i}} = 0\) untuk vektor non-trivial φ<sub>i</sub> (mode shape). Mode shape adalah vektor N-dim — menjelaskan pola gerak relatif tiap massa di mode i.</p>
       <div class="formula">([K] − ω_i²[M]){φ_i} = 0</div>
     </div>
     <div class="card">
@@ -1094,7 +1094,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="card">
       <div class="card-icon">⚖️</div>
       <h3>Mass-Normalized: φᵀMφ = 1</h3>
-      <p>Setiap mode shape di-scale agar <code>φ<sub>i</sub>ᵀ[M]φ<sub>i</sub> = 1</code>. Konsekuensi: <code>φ<sub>i</sub>ᵀ[K]φ<sub>i</sub> = ω<sub>i</sub>²</code>. Konvensi paling powerful untuk modal analysis lanjut — modal mass = 1, modal stiffness = ω². Standard di FEM software.</p>
+      <p>Setiap mode shape di-scale agar \(\phi _{i}^{T}[M]\phi _{i} = 1\). Konsekuensi: \(\phi _{i}^{T}[K]\phi _{i} = \omega _{i}^2\). Konvensi paling powerful untuk modal analysis lanjut — modal mass = 1, modal stiffness = ω². Standard di FEM software.</p>
       <div class="formula">φ_i^T M φ_i = 1, φ_i^T K φ_i = ω_i²</div>
     </div>
     <div class="card">
@@ -1107,12 +1107,12 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🎯</div>
       <h3>Unit-Norm: ||φ|| = 1</h3>
       <p>Euclidean norm = 1 (sama seperti unit vector). Default output dari <code>numpy.linalg.eig()</code>. Tidak punya physical meaning langsung, tapi mathematically convenient untuk operasi linear algebra.</p>
-      <div class="formula">||φ_i|| = √(φ_i^T φ_i) = 1</div>
+      <div class="formula">||φ_i|| = \(\sqrt{\phi _i^T \phi _i}\) = 1</div>
     </div>
     <div class="card">
       <div class="card-icon">🔄</div>
       <h3>Konversi Antar Konvensi</h3>
-      <p>Mudah convert: hitung scaling factor untuk current mode, divide dengan target normalization. Mass-normalized: <code>φ<sub>norm</sub> = φ / √(φᵀMφ)</code>. Max-norm: <code>φ<sub>norm</sub> = φ / max(|φ|)</code>. Engineer harus konsisten dalam satu analisis.</p>
+      <p>Mudah convert: hitung scaling factor untuk current mode, divide dengan target normalization. Mass-normalized: \(\phi _{norm} = \phi / \sqrt{\phi ^{T}M\phi }\). Max-norm: \(\phi _{norm} = \phi / max(|\phi |)\). Engineer harus konsisten dalam satu analisis.</p>
       <div class="formula">φ_normalized = φ / scaling_factor</div>
     </div>
   </div>
@@ -1121,10 +1121,10 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <strong>Mass-Normalization adalah Standar Industri</strong><br>
     Mengapa mass-normalized paling banyak dipakai? Karena <strong>response equations menjadi simple</strong>:<br>
     • Modal mass: m<sub>i</sub> = φ<sub>i</sub>ᵀMφ<sub>i</sub> = <strong>1</strong> (no scaling needed)<br>
-    • Modal stiffness: k<sub>i</sub> = φ<sub>i</sub>ᵀKφ<sub>i</sub> = <strong>ω<sub>i</sub>²</strong><br>
-    • Modal damping (Rayleigh): c<sub>i</sub> = φ<sub>i</sub>ᵀCφ<sub>i</sub> = 2ζ<sub>i</sub>ω<sub>i</sub><br>
+    • Modal stiffness: k<sub>i</sub> = φ<sub>i</sub>ᵀKφ<sub>i</sub> = <strong>\(\omega _{i}^2\)</strong><br>
+    \(\cdot\) Modal damping (Rayleigh): \(c_{i} = \phi _{i}^{T}C\phi _{i} = 2\zeta _{i}\omega _{i}\)<br>
     • Modal force: f<sub>i</sub>(t) = φ<sub>i</sub>ᵀ{F(t)}<br>
-    Modal equation untuk tiap mode: <strong>η̈<sub>i</sub> + 2ζ<sub>i</sub>ω<sub>i</sub>η̇<sub>i</sub> + ω<sub>i</sub>²η<sub>i</sub> = f<sub>i</sub>(t)</strong> — bentuk standard 1-DoF! Solve N independent equations, super clean.
+    Modal equation untuk tiap mode: <strong>\(\eta ̈_{i} + 2\zeta _{i}\omega _{i}\eta ̇_{i} + \omega _{i}^2\eta _{i} = f_{i}(t)\)</strong> — bentuk standard 1-DoF! Solve N independent equations, super clean.
   </div>
 
   <div class="tip-box reveal">
@@ -1137,24 +1137,24 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <div class="section" id="m-modes">
   <div class="section-label reveal">Bagian 04</div>
   <h2 class="section-title reveal">Orthogonality Conditions:<br>Mengapa Mode-Mode Bisa "Decoupled"</h2>
-  <p class="section-desc reveal">Property paling fundamental dari mode shape: <strong>orthogonal terhadap matriks M dan K</strong>. Untuk dua mode berbeda i ≠ j: <code>φ<sub>i</sub>ᵀMφ<sub>j</sub> = 0</code> dan <code>φ<sub>i</sub>ᵀKφ<sub>j</sub> = 0</code>. Inilah <em>kunci matematis</em> yang memungkinkan modal decoupling. Tanpa orthogonality, modal analysis tidak akan bekerja.</p>
+  <p class="section-desc reveal">Property paling fundamental dari mode shape: <strong>orthogonal terhadap matriks M dan K</strong>. Untuk dua mode berbeda i ≠ j: \(\phi _{i}^{T}M\phi _{j} = 0\) dan \(\phi _{i}^{T}K\phi _{j} = 0\). Inilah <em>kunci matematis</em> yang memungkinkan modal decoupling. Tanpa orthogonality, modal analysis tidak akan bekerja.</p>
 
   <div class="formula-block reveal">
     <div class="label">Orthogonality Conditions</div>
-    φ<sub>i</sub>ᵀ[M]φ<sub>j</sub> = 0 (i≠j) &nbsp;·&nbsp; φ<sub>i</sub>ᵀ[K]φ<sub>j</sub> = 0 (i≠j)
+    \(\phi _{i}^{T}[M]\phi _{j} = 0\) (i≠j)  \(\cdot \phi _{i}^{T}[K]\phi _{j} = 0\) (i≠j)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
       <div class="card-icon">🔗</div>
       <h3>Orthogonal terhadap M (Mass Orthogonality)</h3>
-      <p><code>φ<sub>i</sub>ᵀ[M]φ<sub>j</sub> = 0</code> untuk i ≠ j. Bukti via eigenvalue equation: kalikan satu equation dengan φ<sub>j</sub>ᵀ, transposed equation dengan φ<sub>i</sub>, subtract. Karena ω<sub>i</sub> ≠ ω<sub>j</sub>, terbukti orthogonal.</p>
+      <p>\(\phi _{i}^{T}[M]\phi _{j} = 0\) untuk i ≠ j. Bukti via eigenvalue equation: kalikan satu equation dengan φ<sub>j</sub>ᵀ, transposed equation dengan φ<sub>i</sub>, subtract. Karena ω<sub>i</sub> ≠ ω<sub>j</sub>, terbukti orthogonal.</p>
       <div class="formula">M-orthogonal: φ_i^T M φ_j = 0</div>
     </div>
     <div class="card">
       <div class="card-icon">🔧</div>
       <h3>Orthogonal terhadap K (Stiffness Orthogonality)</h3>
-      <p>Sama analoginya: <code>φ<sub>i</sub>ᵀ[K]φ<sub>j</sub> = 0</code> untuk i ≠ j. Konsekuensi langsung dari M-orthogonality dan eigenvalue equation. Kedua orthogonality ini bersamaan disebut "M-K orthogonality".</p>
+      <p>Sama analoginya: \(\phi _{i}^{T}[K]\phi _{j} = 0\) untuk i ≠ j. Konsekuensi langsung dari M-orthogonality dan eigenvalue equation. Kedua orthogonality ini bersamaan disebut "M-K orthogonality".</p>
       <div class="formula">K-orthogonal: φ_i^T K φ_j = 0</div>
     </div>
     <div class="card">
@@ -1190,7 +1190,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
   <div class="formula-block reveal">
     <div class="label">Modal Matrix Construction &amp; Transformation</div>
-    [Φ] = [φ<sub>1</sub> φ<sub>2</sub> ... φ<sub>N</sub>] &nbsp;·&nbsp; {x} = [Φ]{η} &nbsp;·&nbsp; {η} = [Φ]<sup>−1</sup>{x}
+    [Φ] \(= [\phi _{1} \phi _{2} ... \phi _{N}] \cdot {x} = [\Phi ]{\eta } \cdot {\eta } = [\Phi ]^{-1}{x}\)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
@@ -1203,7 +1203,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="card">
       <div class="card-icon">🔄</div>
       <h3>Forward Transformation: x → η</h3>
-      <p>Modal coordinates: <code>{η} = [Φ]<sup>−1</sup>{x}</code>. Untuk mass-normalized [Φ]: <code>{η} = [Φ]ᵀ[M]{x}</code> (lebih stable, karena [Φ]ᵀ[M] adalah inverse dari [Φ]). η<sub>i</sub> = participation amplitude mode i.</p>
+      <p>Modal coordinates: \({\eta } = [\Phi ]^{-1}{x}\). Untuk mass-normalized [Φ]: <code>{η} = [Φ]ᵀ[M]{x}</code> (lebih stable, karena [Φ]ᵀ[M] adalah inverse dari [Φ]). η<sub>i</sub> = participation amplitude mode i.</p>
       <div class="formula">η_i = φ_i^T M x (mass-normalized)</div>
     </div>
     <div class="card">
@@ -1215,7 +1215,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Diagonalization Effect</h3>
-      <p>Modal transformation membuat matriks [M] dan [K] menjadi <strong>diagonal</strong>: <code>[Φ]ᵀ[M][Φ] = diag(m<sub>i</sub>)</code>, <code>[Φ]ᵀ[K][Φ] = diag(k<sub>i</sub>)</code>. Inilah essence decoupling — semua off-diagonal terms (yang menyebabkan coupling) menjadi nol.</p>
+      <p>Modal transformation membuat matriks [M] dan [K] menjadi <strong>diagonal</strong>: \([\Phi ]^{T}[M][\Phi ] = diag(m_{i})\), \([\Phi ]^{T}[K][\Phi ] = diag(k_{i})\). Inilah essence decoupling — semua off-diagonal terms (yang menyebabkan coupling) menjadi nol.</p>
       <div class="formula">Φ^T M Φ = M_diag (decoupled)</div>
     </div>
   </div>
@@ -1227,11 +1227,11 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <code>[Φ]ᵀ[M][Φ]{η̈} + [Φ]ᵀ[K][Φ]{η} = [Φ]ᵀ{F(t)}</code><br>
     Karena diagonalization: jadi N independent equations:<br>
     <strong>m<sub>i</sub>η̈<sub>i</sub> + k<sub>i</sub>η<sub>i</sub> = f<sub>i</sub>(t)</strong> &nbsp;untuk i = 1, 2, ..., N<br>
-    Setiap modal equation = standard 1-DoF undamped oscillator dengan ω<sub>i</sub>² = k<sub>i</sub>/m<sub>i</sub>. Solve N independent ODEs (super easy), lalu transform balik ke physical via {x} = [Φ]{η}. Inilah magic of modal analysis.
+    Setiap modal equation \(=\) standard \(1-DoF\) undamped oscillator dengan \(\omega _{i}^2 = k_{i}/m_{i}.\) Solve \(N\) independent ODEs (super easy), lalu transform balik ke physical via \({x} = [\Phi ]{\eta }.\) Inilah magic \(of\) modal analysis.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Modal Participation Factor:</strong> Untuk excitation tertentu (mis. seismic ground motion), modal participation factor <code>Γ<sub>i</sub> = φ<sub>i</sub>ᵀ[M]{r}/(φ<sub>i</sub>ᵀ[M]φ<sub>i</sub>)</code> dimana {r} = arah excitation. Mengukur seberapa kuat mode i ter-excite oleh load tersebut. Mode dengan Γ tinggi paling penting untuk dipertimbangkan dalam response analysis. Standard di seismic design.
+    💡 <strong>Modal Participation Factor:</strong> Untuk excitation tertentu (mis. seismic ground motion), modal participation factor \(\Gamma _{i} = \phi _{i}^{T}[M]{r}/(\phi _{i}^{T}[M]\phi _{i})\) dimana {r} = arah excitation. Mengukur seberapa kuat mode i ter-excite oleh load tersebut. Mode dengan Γ tinggi paling penting untuk dipertimbangkan dalam response analysis. Standard di seismic design.
   </div>
 </div>
 
@@ -1244,14 +1244,14 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
   <div class="formula-block reveal">
     <div class="label">Modal Superposition Equation</div>
-    {x(t)} = Σ φ<sub>i</sub> · η<sub>i</sub>(t) &nbsp;·&nbsp; η<sub>i</sub>(t) dari independent modal ODE
+    \({x(t)} = \Sigma \phi _{i} \cdot \eta _{i}(t) \cdot \eta _{i}(t)\) dari independent modal ODE
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
       <div class="card-icon">📋</div>
       <h3>Workflow Step-by-Step</h3>
-      <p>(1) Solve eigenvalue → ω<sub>i</sub>, φ<sub>i</sub>. (2) Mass-normalize mode shapes. (3) Compute modal force <code>f<sub>i</sub>(t) = φ<sub>i</sub>ᵀ{F(t)}</code>. (4) Solve modal equation untuk η<sub>i</sub>(t) (1-DoF, easy!). (5) Superpose: {x(t)} = Σ φ<sub>i</sub>·η<sub>i</sub>(t).</p>
+      <p>(1) Solve eigenvalue → ω<sub>i</sub>, φ<sub>i</sub>. (2) Mass-normalize mode shapes. (3) Compute modal force \(f_{i}(t) = \phi _{i}^{T}{F(t)}\). (4) Solve modal equation untuk η<sub>i</sub>(t) (1-DoF, easy!). (5) Superpose: {x(t)} = Σ φ<sub>i</sub>·η<sub>i</sub>(t).</p>
       <div class="formula">5 steps: eig → norm → modal F → solve → sum</div>
     </div>
     <div class="card">
@@ -1263,13 +1263,13 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="card">
       <div class="card-icon">💧</div>
       <h3>Rayleigh Damping (Proportional)</h3>
-      <p>Damping matrix <code>[C] = α[M] + β[K]</code>. Sifat: [C] juga diagonalized oleh [Φ] (modal damping). Tiap mode i punya damping ratio ζ<sub>i</sub> independent. Modal equation dengan damping: <code>η̈<sub>i</sub> + 2ζ<sub>i</sub>ω<sub>i</sub>η̇<sub>i</sub> + ω<sub>i</sub>²η<sub>i</sub> = f<sub>i</sub>(t)</code>.</p>
+      <p>Damping matrix <code>[C] = α[M] + β[K]</code>. Sifat: [C] juga diagonalized oleh [Φ] (modal damping). Tiap mode i punya damping ratio ζ<sub>i</sub> independent. Modal equation dengan damping: \(\eta ̈_{i} + 2\zeta _{i}\omega _{i}\eta ̇_{i} + \omega _{i}^2\eta _{i} = f_{i}(t)\).</p>
       <div class="formula">C = αM + βK (Rayleigh)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚙️</div>
       <h3>Comparison vs Direct Integration</h3>
-      <p>Direct integration (Newmark, Wilson-θ): solve coupled ODE [M]{ẍ}+[C]{ẋ}+[K]{x}={F} step by step. <strong>Pros</strong>: handle non-linear, non-proportional damping. <strong>Cons</strong>: lambat (O(N²) per step). <strong>Modal superposition</strong>: super cepat, tapi limited ke linear + Rayleigh damping. Pilih sesuai kebutuhan.</p>
+      <p>Direct integration (Newmark, Wilson-θ): solve coupled ODE [M]{ẍ}+[C]{ẋ}+[K]{x}={F} step by step. <strong>Pros</strong>: handle non-linear, non-proportional damping. <strong>Cons</strong>: lambat (O(\(N^2\)) per step). <strong>Modal superposition</strong>: super cepat, tapi limited ke linear + Rayleigh damping. Pilih sesuai kebutuhan.</p>
       <div class="formula">Modal: fast linear; Direct: slow general</div>
     </div>
   </div>
@@ -1277,17 +1277,17 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="info-box reveal">
     <strong>Use Case Praktis: Seismic Response Building</strong><br>
     Building 20 lantai (N=20 DoF). Loading: ground acceleration earthquake. Workflow:<br>
-    1) Solve 20 eigenvalues, get ω<sub>1</sub>=1.5 Hz (first mode), ω<sub>2</sub>=4.5 Hz, dst.<br>
+    \(1)\) Solve \(20\) eigenvalues, get \(\omega _{1}=1.5 Hz\) (first mode), \(\omega _{2}=4.5 Hz,\) dst.<br>
     2) Mass-normalize semua 20 mode shape.<br>
     3) Compute modal participation untuk arah horizontal: Γ<sub>1</sub>=1.4, Γ<sub>2</sub>=−0.5, Γ<sub>3</sub>=0.3, dst.<br>
-    4) Truncate ke 3 modes pertama (Γ<sub>i</sub>² &gt; 5% total).<br>
-    5) Solve 3 modal ODE dengan modal force = Γ<sub>i</sub>·a<sub>ground</sub>(t).<br>
-    6) Superpose: x(t) = Σ Γ<sub>i</sub>·φ<sub>i</sub>·η<sub>i</sub>(t).<br>
+    \(4)\) Truncate \(ke 3\) modes pertama \((\Gamma _{i}^2\) &gt; \(5%\) total).<br>
+    \(5)\) Solve \(3\) modal ODE dengan modal force \(= \Gamma _{i} \cdot a_{ground}(t).\)<br>
+    \(6)\) Superpose: \(x(t) = \Sigma \Gamma _{i} \cdot \phi _{i} \cdot \eta _{i}(t).\)<br>
     Get inter-story drift, base shear, max acceleration per lantai. Standard practice di structural engineering software (ETABS, SAP2000).
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Akurasi Modal Truncation:</strong> Aturan praktis untuk seismic: pakai mode dengan kumulatif effective modal mass &gt; 90%. Effective modal mass ke-i: <code>M<sub>eff,i</sub> = (Γ<sub>i</sub>)²</code>. Plot kumulatif vs mode count, stop saat &gt; 90%. Biasanya 5-10 mode pertama cukup untuk building sampai 30 lantai. Tugas safety code: ASCE 7 mensyaratkan minimum 90% effective mass participation.
+    💡 <strong>Akurasi Modal Truncation:</strong> Aturan praktis untuk seismic: pakai mode dengan kumulatif effective modal mass &gt; 90%. Effective modal mass ke-i: \(M_{eff,i} = (\Gamma _{i})^2\). Plot kumulatif vs mode count, stop saat &gt; 90%. Biasanya 5-10 mode pertama cukup untuk building sampai 30 lantai. Tugas safety code: ASCE 7 mensyaratkan minimum 90% effective mass participation.
   </div>
 </div>
 
@@ -1300,7 +1300,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
   <div class="formula-block reveal">
     <div class="label">Standard Industry Tools</div>
-    ETABS (gedung) · SAP2000 (general structure) · Abaqus/Nastran (aerospace) · ANSYS (mechanical)
+    ETABS (gedung) \(\cdot SAP2000\) (general structure) \(\cdot Abaqus/Nastran\) (aerospace) \(\cdot\) ANSYS (mechanical)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
@@ -1534,7 +1534,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       <button onclick="window._m9setMode(5)" id="btn-m9-5" style="padding:9px 16px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(220,38,38,.4);background:rgba(220,38,38,.08);color:#dc2626">Mode 5</button>
     </div>
     <div id="anim-info" style="text-align:center;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">
-      Building 5 lantai shear, m=1, k=1.6e6. Pilih mode untuk melihat shape getarannya.
+      Building \(5\) lantai shear, \(m=1, k=1.6e6.\) Pilih mode untuk melihat shape getarannya.
     </div>
   </div>
 
@@ -1555,7 +1555,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       <div id="cvNStory_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
       <div class="tip-box" style="margin-top:16px">
         <strong>📊 Cara Membaca:</strong> Geser jumlah lantai gedung — frekuensi natural ω₁ < ω₂ < ... < ω_N otomatis terhitung.<br>
-        <strong>Insight:</strong> Untuk gedung shear-building N lantai (m identik, k identik per kolom), ω_i = 2·sin((2i-1)π/(2(2N+1)))·√(k/m). N=10 → ω_1 ≈ 0.31, ω_10 ≈ 1.99.
+        <strong>Insight:</strong> Untuk gedung shear-building N lantai (m identik, k identik per kolom), ω_i = 2·sin((2i-1)π/(2(2N+1)))·\(\sqrt{k/m}\). N=10 → ω_1 ≈ 0.31, ω_10 ≈ 1.99.
       </div>
     </div>
   </div>
@@ -2058,10 +2058,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C3</div>
-        <div class="comp-q">Mass-normalize mode shape: untuk eigvec phi=[1, 1] dan M=I, hitung scaling factor c agar c·phi mass-normalized (cᵀMc = 1).</div>
+        <div class="comp-q">Mass-normalize mode shape: untuk eigvec phi=[1, 1] dan M=I, hitung scaling factor c agar \(c \cdot phi\) mass-normalized (cᵀMc = 1).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Faktor mass-normalize c = 1/√(φᵀMφ); hitung φᵀMφ dengan operator @ lalu pakai <code>np.sqrt</code>.</div>
+      <div class="comp-hint">💡 Faktor mass-normalize c = 1/\(\sqrt{\phi ^{T}M\phi }\); hitung φᵀMφ dengan operator @ lalu pakai <code>np.sqrt</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
         <textarea class="code-textarea" id="code-c3" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c3')"></textarea>
@@ -2095,7 +2095,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="comp-q"><strong>Modal participation factor</strong> Γᵢ untuk mode 1 dengan eksitasi ground motion (r = ones). Γᵢ = φᵢᵀM·r. Untuk mass-normalized phi1=[1/√2, 1/√2] dan M=I, r=[1,1]: Γ₁ = ?</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Modal participation Γ₁ = φ₁ᵀ·M·r; substitusikan mode shape mass-normalized, M, dan vektor pengaruh r lalu hitung produknya.</div>
+      <div class="comp-hint">💡 Modal participation Γ₁ = φ₁ᵀ·\(M \cdot r\); substitusikan mode shape mass-normalized, M, dan vektor pengaruh r lalu hitung produknya.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
         <textarea class="code-textarea" id="code-c5" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c5')"></textarea>
@@ -2209,7 +2209,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="comp-q"><strong>Full modal analysis 5-DoF shear building</strong>: tridiagonal K dengan k=1.6e6, m=1000 per lantai. Solve eigenvalue, return ω₁ (lowest natural freq, rad/s).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Bangun [K] tridiagonal dan [M]=m·I, selesaikan dengan <code>scipy.linalg.eigh(K, M)</code>, lalu ω₁ = akar eigenvalue terkecil.</div>
+      <div class="comp-hint">💡 Bangun [K] tridiagonal dan [M]=\(m \cdot I\), selesaikan dengan <code>scipy.linalg.eigh(K, M)</code>, lalu ω₁ = akar eigenvalue terkecil.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">jawaban</strong></span></div>
         <textarea class="code-textarea" id="code-c11" rows="10" placeholder="Implementasikan algoritma sesuai instruksi, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c11')"></textarea>
@@ -2386,9 +2386,9 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       <div class="fq-inner">
         <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Susun K = 8e6·[[2,−1,0],[−1,2,−1],[0,−1,1]] dan M = 5000·I. Selesaikan eigenvalue problem dengan <code>numpy.linalg.eig(inv(M) @ K)</code>. Ambil akar kuadrat → ω_i, lalu konversi ke Hz. Bandingkan dengan rentang frekuensi gempa dominan 2–4 Hz.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">det(K − ω²M) = 0</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">f_i = ω_i / (2π)</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">T_i = 2π / ω_i</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">det(K \(- \omega ^2M) = 0\)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">\(f_i = \omega _i / (2\pi )\)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">\(T_i = 2\pi / \omega _i\)</span>
         </div>
 
         <div class="poll">
@@ -2452,7 +2452,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       <div class="fq-inner">
         <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Transformasi koordinat fisik ke modal: x = Φq. Persamaan jadi terdesompling: <code>m̃_i q̈_i + c̃_i q̇_i + k̃_i q_i = −Γ_i m̃_i ẍ_g(t)</code> per mode. Selesaikan tiap mode dengan damping ζ = 5% (asumsi Rayleigh), lalu rekonstruksi x(t) = Φq(t). Jelaskan keuntungan metode ini dibanding integrasi langsung 3-DoF.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">x(t) = Σ Φ_i · q_i(t)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">\(x(t) = \Sigma \Phi _i \cdot q_i(t)\)</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">Γ_i = Φ_iᵀMr / m̃_i</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">m̃_i = Φ_iᵀMΦ_i</span>
         </div>
@@ -2516,7 +2516,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div style="font-size:12px;color:var(--muted);line-height:1.5">
           <strong style="color:var(--text)">Cara salin (3 langkah):</strong><br>
           1) Klik tombol <strong style="color:var(--cyan)">🔍 Pilih Semua</strong> di bawah kotak HTML · 
-          2) Tekan <kbd style="background:#1e293b;color:#e2e8f0;padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Ctrl+C</kbd> (atau <kbd style="background:#1e293b;color:#e2e8f0;padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Cmd+C</kbd> di Mac) · 
+          \(2)\) Tekan <kbd  LC56  6px;border-radius:4px;font-family:monospace;font-size:11px">Ctrl+C</kbd> (atau <kbd  LC57  6px;border-radius:4px;font-family:monospace;font-size:11px">Cmd+C</kbd> di Mac) \(\cdot\) 
           3) Paste di Fast Learning &gt; mode HTML.<br>
           <em style="color:var(--violet)">Tombol Copy di atas adalah opsional — jika tidak berfungsi, gunakan cara manual ini.</em>
         </div>
