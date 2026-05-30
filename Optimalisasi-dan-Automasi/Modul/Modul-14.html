@@ -1009,11 +1009,11 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <div class="section" id="m-solusi">
   <div class="section-label reveal">Bagian 02</div>
   <h2 class="section-title reveal">Random Forest:<br>Ensemble Decision Tree dengan Bootstrap + Feature Bagging</h2>
-  <p class="section-desc reveal"><strong>Random Forest (RF)</strong> oleh <em>Leo Breiman (2001)</em> adalah ensemble of <em>decorrelated</em> decision trees — salah satu algoritma ML paling populer + powerful + interpretable di tabular data. Tiga ide kunci: (1) <strong>Bootstrap aggregation (bagging)</strong> — tiap tree dilatih di sample acak <em>with-replacement</em> dari training set (~63% unique sample, sisanya duplikat). (2) <strong>Random feature subset per split</strong> — di setiap node, hanya pertimbangkan <code>√(n_features)</code> fitur acak (decorrelate tree, reduce variance). (3) <strong>Majority voting (klasifikasi) atau averaging (regresi)</strong> — ensemble final lebih robust dari single tree. Hasil: low variance (averaging cancel noise), capture non-linear pattern (tree splits axis-aligned), robust ke outlier &amp; missing data. Bonus: <code>feature_importances_</code> built-in untuk interpretability — rank feature mana paling impactful. Hyperparam utama: <em>\(n_{estimators}\)</em> (jumlah trees, default 100), <em>\(max_{\text{depth}}\)</em> (kedalaman tree), <em>\(min_samples_{leaf}\)</em> (regularization). Sklearn API: <code>RandomForestClassifier(n_estimators=100, random_state=42).fit(X_train, y_train)</code>.</p>
+  <p class="section-desc reveal"><strong>Random Forest (RF)</strong> oleh <em>Leo Breiman (2001)</em> adalah ensemble of <em>decorrelated</em> decision trees — salah satu algoritma ML paling populer + powerful + interpretable di tabular data. Tiga ide kunci: (1) <strong>Bootstrap aggregation (bagging)</strong> — tiap tree dilatih di sample acak <em>with-replacement</em> dari training set (~63% unique sample, sisanya duplikat). (2) <strong>Random feature subset per split</strong> — di setiap node, hanya pertimbangkan <code>√(n_features)</code> fitur acak (decorrelate tree, reduce variance). (3) <strong>Majority voting (klasifikasi) atau averaging (regresi)</strong> — ensemble final lebih robust dari single tree. Hasil: low variance (averaging cancel noise), capture non-linear pattern (tree splits axis-aligned), robust ke outlier &amp; missing data. Bonus: <code>feature_importances_</code> built-in untuk interpretability — rank feature mana paling impactful. Hyperparam utama: <em>\(n_{estimators}\)</em> (jumlah trees, default 100), <em>\(max_{\text{depth}}\)</em> (kedalaman tree), <em>\(min_{samples}_{leaf}\)</em> (regularization). Sklearn API: <code>RandomForestClassifier(n_estimators=100, random_state=42).fit(X_train, y_train)</code>.</p>
 
   <div class="formula-block reveal">
     <div class="label">Enam Konsep Inti Random Forest</div>
-    Bootstrap sampling  \(\cdot\) Random feature subset \((\sqrt{n}) \cdot\) Majority voting  \(\cdot n_{estimators}\) (jumlah trees)  \(\cdot feature_importances_ \cdot Out-of-bag\) (OOB) error estimate
+    Bootstrap sampling  \(\cdot\) Random feature subset \((\sqrt{n}) \cdot\) Majority voting  \(\cdot n_{estimators}\) (jumlah trees)  \(\cdot feature_{importances}_ \cdot Out-of-bag\) (OOB) error estimate
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
@@ -1033,13 +1033,13 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">✂️</div>
       <h3>Train/Test Split (80/20)</h3>
       <p>Separasi data ke <em>train set</em> (untuk fit model) dan <em>test set</em> (untuk evaluate). Standard split 80/20 atau 70/30. <code>from sklearn.model_selection import train_test_split; X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)</code>. <strong>stratify=y</strong> wajib untuk imbalanced classes — jaga proporsi healthy/fault sama di train &amp; test. <em>\(random_{state}=42\)</em> untuk reproducibility. <strong>Hindari leakage</strong>: jangan fit scaler di full data → fit hanya di train.</p>
-      <div class="formula">\(train_test_{split}(X, y, 0.2)\)</div>
+      <div class="formula">\(train_{\text{test}}_{split}(X, y, 0.2)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📈</div>
       <h3>Model Fitting (.fit / .predict)</h3>
       <p>API scikit-learn konsisten: <code>from sklearn.ensemble import RandomForestClassifier; model = RandomForestClassifier(n_estimators=100, random_state=42); model.fit(X_train, y_train); y_pred = model.predict(X_test); y_proba = model.predict_proba(X_test)[:, 1]</code>. <em>fit</em>: optimasi parameter dari training data. <em>predict</em>: hard label (0 atau 1). <em>\(predict_{proba}\)</em>: probability score (untuk threshold custom + ROC analysis). Model diff: Logistic Reg simple (linear); RF/SVM kompleks.</p>
-      <div class="formula">\(model.fit(X, y).predict(X')\)</div>
+      <div class="formula">\(model.fit(\text{X, y}).predict(X')\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📏</div>
@@ -1192,7 +1192,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
   <div class="formula-block reveal">
     <div class="label">Enam Konsep Inti Evaluasi Lanjut + Tuning</div>
-    ROC curve &amp; AUC  \(\cdot\) Stratified \(k-fold CV \cdot cross_val_{\text{score}}\) (mean \(\pm\) std)  \(\cdot\) GridSearchCV exhaustive  \(\cdot\) Imbalanced \((class_{\text{weight}},\) SMOTE)  \(\cdot\) Threshold tuning \(cost-sensitive\)
+    ROC curve &amp; AUC  \(\cdot\) Stratified \(k-fold CV \cdot cross_{val}_{\text{score}}\) (mean \(\pm\) std)  \(\cdot\) GridSearchCV exhaustive  \(\cdot\) Imbalanced \((class_{\text{weight}},\) SMOTE)  \(\cdot\) Threshold tuning \(cost-sensitive\)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
@@ -2014,7 +2014,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">02</div>
-        <div class="mc-q">Tujuan <strong>\(train_test_{split}\)</strong> dengan <code>stratify=y</code> di scikit-learn adalah...</div>
+        <div class="mc-q">Tujuan <strong>\(train_{\text{test}}_{split}\)</strong> dengan <code>stratify=y</code> di scikit-learn adalah...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc2">
@@ -2431,12 +2431,12 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C14</div>
-        <div class="comp-q"><strong>GridSearchCV — Hyperparameter Tuning RandomForest</strong>: dataset 4 fitur. <code>np.random.seed(42); n=250; X_h=np.random.randn(n,4); X_f=np.random.randn(n,4)+2.0; X=np.vstack([X_h,X_f]); y=np.concatenate([np.zeros(n),np.ones(n)])</code>. Tune <code>n_estimators=[50,100]</code>, <code>max_depth=[3,5,None]</code> dengan <code>GridSearchCV(cv=3, scoring='accuracy')</code>. Print <strong>\(best_score_\)</strong> (3 desimal).</div>
+        <div class="comp-q"><strong>GridSearchCV — Hyperparameter Tuning RandomForest</strong>: dataset 4 fitur. <code>np.random.seed(42); n=250; X_h=np.random.randn(n,4); X_f=np.random.randn(n,4)+2.0; X=np.vstack([X_h,X_f]); y=np.concatenate([np.zeros(n),np.ones(n)])</code>. Tune <code>n_estimators=[50,100]</code>, <code>max_depth=[3,5,None]</code> dengan <code>GridSearchCV(cv=3, scoring='accuracy')</code>. Print <strong>\(best_{\text{score}}_\)</strong> (3 desimal).</div>
         <div class="comp-pts">4 poin</div>
       </div>
       <div class="comp-hint">💡 Jalankan <code>GridSearchCV</code> dengan param_grid dan cv dari soal, panggil <code>.fit()</code>, lalu baca skor terbaik dari atribut <code>best_score_</code>.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">\(best_score_\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">\(best_{\text{score}}_\)</strong></span></div>
         <textarea class="code-textarea" id="code-c14" rows="14" placeholder="Paste kode GridSearchCV, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c14')"></textarea>
         <div class="stdout-box" id="stdout-c14"></div>
       </div>
