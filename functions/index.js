@@ -119,12 +119,11 @@ const EXAM_CONFIG = {
 // - DB path pakai underscore course slug (math4, getaran_mekanik, optoauto)
 // - RTDB segment per-modul HARUS match client MODULE_ID & PERTEMUAN supaya
 //   server menulis ke path yang sama dgn data mahasiswa & jadwal dosen.
-//   Penomoran TIDAK selalu 1:1 dgn nomor file modul dan dbPath ≠ schedulePath:
-//     • Math (math4): visitor data di visitors/math4/modul-N (MODULE_ID client),
-//       schedule di settings/math4/pertemuan-N (PERTEMUAN client). 1:1 dgn N.
-//     • Getaran/Opto: visitor & schedule keduanya pakai pertemuan-N, TAPI N
-//       bukan nomor file. M1-7 → pertemuan-N, M8-14 → pertemuan-(N+1) karena
-//       Pertemuan 8 dipakai UTS. Mis. Modul-8.html = Pertemuan 9.
+//   Penomoran TIDAK 1:1 dgn nomor file modul; SEMUA mata kuliah skip 8 (UTS).
+//     • math4: visitor di visitors/math4/modul-N (MODULE_ID client = file slot),
+//       schedule di settings/math4/pertemuan-(N≤7?N:N+1) — Pertemuan 8 = UTS.
+//     • Getaran/Opto: visitor & schedule keduanya pakai pertemuan-(N≤7?N:N+1).
+//   Misal Modul-8.html (any course) = Pertemuan 9 (lesson pertama post-UTS).
 // ─────────────────────────────────────────────────────────────────────────────
 function _makeModulConfig(courseSlug, dbSegment, scheduleSegment) {
   return {
@@ -138,15 +137,16 @@ function _makeModulConfig(courseSlug, dbSegment, scheduleSegment) {
 }
 
 // Resolve RTDB segments per nomor file modul, sesuai client paths.
-//   - Math: visitor = modul-N, schedule = pertemuan-N
-//   - Getaran/Opto: keduanya pakai pertemuan-N dgn offset (M8-14 → N+1)
+//   - math4: visitor pakai modul-N (file slot), schedule pakai pertemuan-(offset)
+//   - Getaran/Opto: keduanya pakai pertemuan-(offset)
+// Offset rule (semua mata kuliah): N≤7 → N; N≥8 → N+1 (Pertemuan 8 = UTS).
 function _segmentsForModul(courseId, modulNum) {
-  if (courseId === "math4") {
-    return { db: `modul-${modulNum}`, sched: `pertemuan-${modulNum}` };
-  }
   const pertemuan = modulNum <= 7 ? modulNum : modulNum + 1;
-  const seg = `pertemuan-${pertemuan}`;
-  return { db: seg, sched: seg };
+  const pertSeg = `pertemuan-${pertemuan}`;
+  if (courseId === "math4") {
+    return { db: `modul-${modulNum}`, sched: pertSeg };
+  }
+  return { db: pertSeg, sched: pertSeg };
 }
 
 const MODUL_CONFIG = {};
