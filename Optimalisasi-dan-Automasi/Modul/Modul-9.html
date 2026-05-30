@@ -907,7 +907,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <em>Gradient &amp; Constraint Handling</em><br>
       <span class="hl-amber">Mendaki Bukit Fungsi Konveks dengan KKT</span>
     </h1>
-    <p class="hero-sub">Setelah Pertemuan 9 mengupas LP yang asumsi linieritas-nya cantik, dunia teknik mesin penuh dengan masalah <strong>non-linier</strong>: gaya gesek kuadratik, drag aerodinamis sebanding v², deformasi besar dengan stiffness non-linier, biaya energi yang naik eksponensial saat overload. <strong>Non-Linear Programming (NLP)</strong> menyelesaikan <code>min f(x)</code> di mana f dan/atau kendala g, h berupa fungsi non-linier. Pelajari <em>gradient descent</em> &amp; line search untuk turun mengikuti slope, <em>Newton's method</em> untuk konvergensi kuadratik, kondisi optimalitas <strong style="color:var(--cyan)">KKT</strong> untuk masalah berkendala, dan teknik <em>penalty</em>/<em>Lagrangian</em> untuk transformasi kendala — semua siap dieksekusi via <code>scipy.optimize.minimize</code>.</p>
+    <p class="hero-sub">Setelah Pertemuan 9 mengupas LP yang asumsi linieritas-nya cantik, dunia teknik mesin penuh dengan masalah <strong>non-linier</strong>: gaya gesek kuadratik, drag aerodinamis sebanding \(v^2\), deformasi besar dengan stiffness non-linier, biaya energi yang naik eksponensial saat overload. <strong>Non-Linear Programming (NLP)</strong> menyelesaikan <code>min f(x)</code> di mana f dan/atau kendala g, h berupa fungsi non-linier. Pelajari <em>gradient descent</em> &amp; line search untuk turun mengikuti slope, <em>Newton's method</em> untuk konvergensi kuadratik, kondisi optimalitas <strong style="color:var(--cyan)">KKT</strong> untuk masalah berkendala, dan teknik <em>penalty</em>/<em>Lagrangian</em> untuk transformasi kendala — semua siap dieksekusi via <code>scipy.optimize.minimize</code>.</p>
     <div class="hero-stats">
       <div class="stat"><div class="stat-num">8</div><div class="stat-lbl">Bagian Materi</div></div>
       <div class="stat"><div class="stat-num">4</div><div class="stat-lbl">Animasi</div></div>
@@ -964,7 +964,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
   <div class="formula-block reveal">
     <div class="label">Lima Konsep Inti Non-Linear Programming</div>
-    Gradient ∇f(x) &nbsp;·&nbsp; Hessian ∇²f(x) &nbsp;·&nbsp; Konveksitas &nbsp;·&nbsp; Iterasi descent x_{k+1} = x_k + α·d_k &nbsp;·&nbsp; KKT conditions (kendala)
+    Gradient ∇f(x)  \(\cdot\) Hessian \(∇^2f(x) \cdot\) Konveksitas  \(\cdot\) Iterasi descent \(x_{k+1} = x_k + \alpha \cdot d_k \cdot\) KKT conditions (kendala)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
@@ -1013,7 +1013,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
   <div class="formula-block reveal">
     <div class="label">Empat Komponen Iterasi Descent</div>
-    Initial guess x₀ &nbsp;·&nbsp; Direction d_k = −∇f(x_k) &nbsp;·&nbsp; Step size α_k (line search) &nbsp;·&nbsp; Stopping criterion ‖∇f‖ &lt; ε
+    Initial guess \(x_0 \cdot\) Direction \(d_k = -∇f(x_k) \cdot\) Step size \(\alpha _k\) (line search)  \(\cdot\) Stopping criterion ‖∇f‖ &lt; \(\epsilon\)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
@@ -1058,11 +1058,11 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <div class="section" id="m-dmf">
   <div class="section-label reveal">Bagian 03</div>
   <h2 class="section-title reveal">Newton's Method &amp; Quasi-Newton:<br>Konvergensi Kuadratik dengan Hessian</h2>
-  <p class="section-desc reveal">Gradient descent hanya pakai informasi <em>turunan pertama</em> (∇f). <strong>Newton's method</strong> melangkah lebih jauh: pakai <em>turunan kedua</em> (Hessian ∇²f) untuk model lokal kuadratik fungsi, lalu langsung lompat ke minimum model tersebut. Hasilnya: <strong style="color:var(--cyan)">konvergensi kuadratik</strong> — error berkurang sebagai kuadrat di tiap iterasi (jauh lebih cepat dari linier). Tetapi ada cost: butuh hitung &amp; invert Hessian (O(n³) per iterasi). Untuk n besar, <strong>Quasi-Newton (BFGS, L-BFGS)</strong> mengaproksimasi Hessian dari gradient saja — tetap super-linier, tetapi O(n²) atau O(n) per iterasi.</p>
+  <p class="section-desc reveal">Gradient descent hanya pakai informasi <em>turunan pertama</em> (∇f). <strong>Newton's method</strong> melangkah lebih jauh: pakai <em>turunan kedua</em> (Hessian ∇²f) untuk model lokal kuadratik fungsi, lalu langsung lompat ke minimum model tersebut. Hasilnya: <strong style="color:var(--cyan)">konvergensi kuadratik</strong> — error berkurang sebagai kuadrat di tiap iterasi (jauh lebih cepat dari linier). Tetapi ada cost: butuh hitung &amp; invert Hessian (O(\(n^3\)) per iterasi). Untuk n besar, <strong>Quasi-Newton (BFGS, L-BFGS)</strong> mengaproksimasi Hessian dari gradient saja — tetap super-linier, tetapi O(\(n^2\)) atau O(n) per iterasi.</p>
 
   <div class="formula-block reveal">
     <div class="label">Empat Komponen Newton-Type Methods</div>
-    Newton step d_k = −[∇²f]⁻¹·∇f &nbsp;·&nbsp; Hessian ∇²f(x) &nbsp;·&nbsp; BFGS update H_{k+1} ≈ H_k + ... &nbsp;·&nbsp; L-BFGS (limited memory)
+    Newton step \(d_k = -[∇^2f]⁻^1 \cdot ∇f \cdot\) Hessian \(∇^2f(x) \cdot\) BFGS update \(H_{k+1} \approx H_k + ... \cdot L-BFGS\) (limited memory)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
@@ -1082,7 +1082,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">💾</div>
       <h3>L-BFGS — Limited Memory</h3>
       <p>BFGS simpan matrix <code>n×n</code> — tidak feasible untuk n &gt; 10⁵. <strong>L-BFGS</strong> simpan hanya <em>m terakhir pasangan (s, y)</em>, m=5–20. Memori O(mn), per-iterasi O(mn). Standar deep learning (sebelum SGD/Adam dominan), parameter identification, ML besar. SciPy: <code>method='L-BFGS-B'</code> juga support kendala bounds.</p>
-      <div class="formula">memory = m·(s, y) pairs</div>
+      <div class="formula">memory = \(m \cdot (s\), y) pairs</div>
     </div>
     <div class="card">
       <div class="card-icon">⚠️</div>
@@ -1098,8 +1098,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <tbody>
         <tr><td style="color:var(--cyan)">Steepest Descent</td><td>Linier</td><td>O(n)</td><td>∇f saja</td><td>Konveks well-conditioned, simple</td></tr>
         <tr><td style="color:var(--green)">Conjugate Gradient</td><td>Super-linier (quadratic case)</td><td>O(n)</td><td>∇f saja</td><td>Sparse, large-scale, quadratic-like</td></tr>
-        <tr><td style="color:var(--violet)">Newton</td><td>Kuadratik</td><td>O(n³)</td><td>∇²f eksak</td><td>n kecil, Hessian tersedia analitik</td></tr>
-        <tr><td style="color:var(--amber)">BFGS (Quasi-Newton)</td><td>Super-linier</td><td>O(n²)</td><td>∇f saja</td><td><strong>Default unconstrained NLP</strong>, n ≤ 1000</td></tr>
+        <tr><td style="color:var(--violet)">Newton</td><td>Kuadratik</td><td>O(\(n^3\))</td><td>∇²f eksak</td><td>n kecil, Hessian tersedia analitik</td></tr>
+        <tr><td style="color:var(--amber)">BFGS (Quasi-Newton)</td><td>Super-linier</td><td>O(\(n^2\))</td><td>∇f saja</td><td><strong>Default unconstrained NLP</strong>, n ≤ 1000</td></tr>
         <tr><td style="color:var(--pink)">L-BFGS-B</td><td>Super-linier</td><td>O(mn)</td><td>∇f, bounds OK</td><td>Large-scale, ML, parameter ID</td></tr>
       </tbody>
     </table>
@@ -1124,7 +1124,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
   <div class="formula-block reveal">
     <div class="label">Empat Kondisi KKT (untuk min f s.t. g ≤ 0, h = 0)</div>
-    Stationarity: ∇f + Σλᵢ∇hᵢ + Σμⱼ∇gⱼ = 0 &nbsp;·&nbsp; Primal feasibility: g(x) ≤ 0, h(x) = 0 &nbsp;·&nbsp; Dual feasibility: μⱼ ≥ 0 &nbsp;·&nbsp; Complementary slackness: μⱼ·gⱼ(x) = 0
+    Stationarity: \(∇f + \Sigma \lambda ᵢ∇hᵢ + \Sigma \mu ⱼ∇gⱼ = 0 \cdot\) Primal feasibility: \(g(x) \le 0, h(x) = 0 \cdot\) Dual feasibility: \(\mu ⱼ \ge 0 \cdot\) Complementary slackness: \(\mu ⱼ \cdot gⱼ(x) = 0\)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
@@ -1137,7 +1137,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="card">
       <div class="card-icon">🔓</div>
       <h3>Complementary Slackness — Active vs Inactive</h3>
-      <p>Untuk inequality <code>gⱼ(x) ≤ 0</code> dan multiplier <code>μⱼ ≥ 0</code>, KKT menuntut <strong>μⱼ · gⱼ(x*) = 0</strong>. Konsekuensi: di optimum, <em>kendala aktif</em> (gⱼ = 0) → multiplier μⱼ bisa &gt; 0; <em>kendala tidak aktif</em> (gⱼ &lt; 0) → harus μⱼ = 0. Ini cara natural untuk klasifikasi mana kendala "binding". <strong style="color:var(--cyan)">Shadow price</strong> di NLP = μⱼ optimal.</p>
+      <p>Untuk inequality <code>gⱼ(x) ≤ 0</code> dan multiplier <code>μⱼ ≥ 0</code>, KKT menuntut <strong>\(\mu ⱼ \cdot\) gⱼ(x*) \(= 0\)</strong>. Konsekuensi: di optimum, <em>kendala aktif</em> (gⱼ = 0) → multiplier μⱼ bisa &gt; 0; <em>kendala tidak aktif</em> (gⱼ &lt; 0) → harus μⱼ = 0. Ini cara natural untuk klasifikasi mana kendala "binding". <strong style="color:var(--cyan)">Shadow price</strong> di NLP = μⱼ optimal.</p>
       <div class="formula">μⱼ · gⱼ(x*) = 0, ∀j</div>
     </div>
     <div class="card">
@@ -1181,7 +1181,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
   <div class="info-box reveal">
     <strong>Contoh Konkret — Desain Tangki Silinder Volume Tetap:</strong><br>
-    Cari radius R dan tinggi H tangki silinder yang meminimumkan luas permukaan (= bahan plat) dengan volume tetap V₀ = 1 m³. <code>min f = 2πR² + 2πRH</code> s.t. <code>h(R,H) = πR²H − V₀ = 0</code>. Lagrangian: <code>L = 2πR² + 2πRH + λ·(πR²H − V₀)</code>. KKT: <code>∂L/∂R = 4πR + 2πH + 2λπRH = 0</code>, <code>∂L/∂H = 2πR + λπR² = 0</code>, <code>πR²H = V₀</code>. Solve → <code>H = 2R</code> (rasio optimal!), <code>R = ∛(V₀/2π) ≈ 0.542 m</code>, <code>H = 1.084 m</code>. Multiplier λ = shadow price terhadap volume target.
+    Cari radius R dan tinggi H tangki silinder yang meminimumkan luas permukaan (= bahan plat) dengan volume tetap V₀ = 1 \(m^3\). <code>min f = 2πR² + 2πRH</code> s.t. <code>h(R,H) = πR²H − V₀ = 0</code>. Lagrangian: <code>L = 2πR² + 2πRH + λ·(πR²H − V₀)</code>. KKT: <code>∂L/∂R = 4πR + 2πH + 2λπRH = 0</code>, <code>∂L/∂H = 2πR + λπR² = 0</code>, <code>πR²H = V₀</code>. Solve → <code>H = 2R</code> (rasio optimal!), <code>R = ∛(V₀/2π) ≈ 0.542 m</code>, <code>H = 1.084 m</code>. Multiplier λ = shadow price terhadap volume target.
   </div>
 
   <div class="warn-box reveal">
@@ -1221,7 +1221,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <!-- Analogi 4 -->
   <div class="analogy-box reveal" style="border-left-color:var(--cyan);background:linear-gradient(135deg,rgba(14,165,233,.07),rgba(168,85,247,.03))">
     <span class="analogy-label" style="color:var(--cyan)">🚗 Analogi 4 — Cruise Control Modern (MPC)</span>
-    Cruise control mobil modern (Adaptive Cruise Control) memecahkan <strong>NLP berkendala setiap 100 ms</strong>: <em>min</em> deviasi kecepatan target + konsumsi bahan bakar, <em>s.t.</em> jarak ke mobil depan ≥ safe distance, akselerasi ∈ [-3, +2] m/s², kemiringan jalan, tanjakan/turunan. Ini <em>Model Predictive Control (MPC)</em>: solve NLP horizon prediksi 5–10 detik, eksekusi langkah pertama, ulangi. Tesla Autopilot, Mercedes EQS — semua MPC. NLP solver harus reliable &amp; cepat (&lt; 50 ms) — kalau gagal, mobil pakai fallback safety.
+    Cruise control mobil modern (Adaptive Cruise Control) memecahkan <strong>NLP berkendala setiap 100 ms</strong>: <em>min</em> deviasi kecepatan target + konsumsi bahan bakar, <em>s.t.</em> jarak ke mobil depan ≥ safe distance, akselerasi ∈ [-3, +2] m/\(s^2\), kemiringan jalan, tanjakan/turunan. Ini <em>Model Predictive Control (MPC)</em>: solve NLP horizon prediksi 5–10 detik, eksekusi langkah pertama, ulangi. Tesla Autopilot, Mercedes EQS — semua MPC. NLP solver harus reliable &amp; cepat (&lt; 50 ms) — kalau gagal, mobil pakai fallback safety.
   </div>
 
   <!-- Analogi 5 -->
@@ -1252,7 +1252,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi 1 — Gradient Descent: Trajectory di Contour 2D</span>
+      <span class="anim-title">Animasi \(1\;\text{---}\) Gradient Descent: Trajectory di Contour \(2D\)</span>
     </div>
     <div class="anim-body">
       <canvas id="cvPhysics" height="340"></canvas>
@@ -1297,7 +1297,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div id="sweepInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
       <div class="tip-box" style="margin-top:16px">
         <strong>📊 Cara Membaca:</strong> Kontur elipsoidal = fungsi quadratic ill-conditioned <code>f(x,y) = x² + κ·y²</code> dengan κ = condition number. Trajectory amber = <strong>Steepest Descent</strong> (zigzag karena gradient ortogonal di axis-aligned ellipses). Trajectory pink = <strong>Newton</strong> (langsung ke optimum di 1 langkah karena f quadratic). Bintang = optimum (0,0).<br>
-        <strong>Coba:</strong> (1) κ = 1 → contour lingkaran, SD &amp; Newton sama efisien. (2) κ = 5 → SD mulai zigzag, Newton tetap 1 step. (3) κ = 20 → SD <em>sangat lambat</em> (banyak iter), Newton instant. Pelajaran: <strong>Newton's quadratic convergence</strong> kalahkan steepest descent untuk masalah ill-conditioned. BFGS aproksimasi Newton dengan O(n²) per iter.
+        <strong>Coba:</strong> (1) κ = 1 → contour lingkaran, SD &amp; Newton sama efisien. (2) κ = 5 → SD mulai zigzag, Newton tetap 1 step. (3) κ = 20 → SD <em>sangat lambat</em> (banyak iter), Newton instant. Pelajaran: <strong>Newton's quadratic convergence</strong> kalahkan steepest descent untuk masalah ill-conditioned. BFGS aproksimasi Newton dengan O(\(n^2\)) per iter.
       </div>
     </div>
   </div>
@@ -1346,8 +1346,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       </div>
       <div id="hpbInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Atas = NLP berkendala <code>min f(x,y) = (x−2)² + (y−1.5)² s.t. x² + y² ≤ r²</code>. Kontur biru = level sets f. Lingkaran amber = boundary kendala (g(x,y) = x²+y²−r² = 0). Bintang kuning = optimum constrained x*. Panah ungu = ∇f, panah amber = ∇g. <strong>KKT condition</strong>: ∇f + μ∇g = 0 → kedua gradient PARALEL di x*. Bawah = bar chart Lagrange multiplier μ (dual variable).<br>
-        <strong>Coba:</strong> (1) r besar (≥ √(2²+1.5²)≈2.5) → constraint INACTIVE (μ = 0), x* = unconstrained optimum (2, 1.5). (2) r kecil (1.0) → constraint ACTIVE (μ &gt; 0), x* di boundary. (3) Pelajaran: μ = sensitivity Z* terhadap r — investasi tambah r 1 unit menurunkan f sebesar μ.
+        <strong>📊 Cara Membaca:</strong> Atas = NLP berkendala <code>min f(x,y) = (x−2)² + (y−1.5)² s.t. x² + y² ≤ r²</code>. Kontur biru = level sets f. Lingkaran amber = boundary kendala (g(x,y) = \(x^2\)+\(y^2\)−\(r^2\) = 0). Bintang kuning = optimum constrained x*. Panah ungu = ∇f, panah amber = ∇g. <strong>KKT condition</strong>: ∇f + μ∇g = 0 → kedua gradient PARALEL di x*. Bawah = bar chart Lagrange multiplier μ (dual variable).<br>
+        <strong>Coba:</strong> (1) r besar (≥ \(\sqrt{2^2+1.5^2}\)≈2.5) → constraint INACTIVE (μ = 0), x* = unconstrained optimum (2, 1.5). (2) r kecil (1.0) → constraint ACTIVE (μ &gt; 0), x* di boundary. (3) Pelajaran: μ = sensitivity Z* terhadap r — investasi tambah r 1 unit menurunkan f sebesar μ.
       </div>
     </div>
   </div>
@@ -1662,7 +1662,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   <div class="code-wrap reveal">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 4 — solve_design_nlp() Reusable: Multi-Start + Gradient Validation untuk Non-Konveks</span>
+      <span class="code-label">Cell \(4\;\text{---}\;solve_design_nlp()\) Reusable: \(Multi-Start +\) Gradient Validation untuk \(\text{Non}\;-Konveks\)</span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
@@ -1796,7 +1796,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       <div style="font-size:14px;line-height:1.7">
         S. Boyd &amp; L. Vandenberghe. <em style="color:#fff">Convex Optimization</em>. Cambridge University Press, 2004.
         <br><a href="https://web.stanford.edu/~boyd/cvxbook/" target="_blank" style="color:var(--violet);font-family:'JetBrains Mono',monospace;font-size:12px">▶ web.stanford.edu/~boyd/cvxbook/ (PDF gratis legal)</a>
-        <br><span style="color:var(--muted);font-size:13px">Buku konvex optimization paling berpengaruh. Konsep konveksitas, Lagrangian dual, KKT, sub-gradient, interior point — semua dengan rigor matematis &amp; aplikasi engineering. Wajib untuk EE364A Stanford.</span>
+        <br><span style="color:var(--muted);font-size:13px">Buku konvex optimization paling berpengaruh. Konsep konveksitas, Lagrangian dual, KKT, \(sub-gradient,\) interior point \(\text{---}\) semua dengan rigor matematis &amp; aplikasi engineering. Wajib untuk \(EE364A\) Stanford.</span>
       </div>
     </div>
     <div style="display:flex;gap:16px;padding:18px 22px;background:rgba(255,64,129,.05);border:1px solid rgba(255,64,129,.15);border-left:3px solid var(--amber);border-radius:10px;align-items:flex-start">
@@ -2121,7 +2121,7 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C1</div>
-        <div class="comp-q">Selesaikan unconstrained NLP <strong>min f(x) = (x − 4)²</strong> dengan <code>scipy.optimize.minimize</code> method <code>'BFGS'</code>, x0 = 0. Print nilai <strong>x optimal</strong>.</div>
+        <div class="comp-q">Selesaikan unconstrained NLP <strong>min \(f(x) = (x - 4)^2\)</strong> dengan <code>scipy.optimize.minimize</code> method <code>'BFGS'</code>, x0 = 0. Print nilai <strong>x optimal</strong>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Definisikan fungsi tujuan sebagai lambda, panggil <code>minimize(..., method='BFGS')</code>, lalu ambil x optimal dari <code>res.x</code>. Cek analitik: turunan nol di x = 4.</div>
@@ -2138,10 +2138,10 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C2</div>
-        <div class="comp-q">Untuk fungsi quadratic 2D <strong>f(x,y) = (x−3)² + 2(y−2)²</strong>, hitung <strong>nilai gradient di titik (1, 1)</strong> sebagai vektor norma. <code>‖∇f(1,1)‖ = √(∇f_x² + ∇f_y²)</code>. Print nilainya.</div>
+        <div class="comp-q">Untuk fungsi quadratic 2D <strong>\(f(x,y) = (x-3)^2 + 2(y-2)^2\)</strong>, hitung <strong>nilai gradient di titik (1, 1)</strong> sebagai vektor norma. <code>‖∇f(1,1)‖ = √(∇f_x² + ∇f_y²)</code>. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Gradien ∇f = (2(x−3), 4(y−2)); evaluasi di titik yang diminta lalu hitung norma = √(∇f_x² + ∇f_y²) dengan <code>np.sqrt</code>.</div>
+      <div class="comp-hint">💡 Gradien ∇f = (2(x−3), 4(y−2)); evaluasi di titik yang diminta lalu hitung norma = \(\sqrt{∇f_x^2 + ∇f_y^2}\) dengan <code>np.sqrt</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">‖∇f(1,1)‖</strong></span></div>
         <textarea class="code-textarea" id="code-c2" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c2')"></textarea>
@@ -2155,7 +2155,7 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C3</div>
-        <div class="comp-q">Selesaikan <strong>min f(x,y) = x² + 2y²</strong> dengan <code>scipy.minimize</code> method BFGS, x0 = [3, 2]. Print <strong>nilai f optimal</strong> (f(x*)).</div>
+        <div class="comp-q">Selesaikan <strong>min \(f(x,y) = x^2 + 2y^2\)</strong> dengan <code>scipy.minimize</code> method BFGS, x0 = [3, 2]. Print <strong>nilai f optimal</strong> (f(x*)).</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Panggil <code>minimize(..., method='BFGS')</code> dengan fungsi tujuan sebagai lambda; nilai f optimal dibaca dari <code>res.fun</code> (bisa sangat kecil karena floating point).</div>
@@ -2172,7 +2172,7 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C4</div>
-        <div class="comp-q">Selesaikan NLP berkendala <strong>min f(x,y) = x² + y²</strong> s.t. <code>x + y = 4</code>. Pakai <code>method='SLSQP'</code> dengan <code>constraints={'type':'eq', 'fun': lambda x: x[0]+x[1]-4}</code>. Print <strong>x optimal</strong> (x[0]).</div>
+        <div class="comp-q">Selesaikan NLP berkendala <strong>min \(f(x,y) = x^2 + y^2\)</strong> s.t. <code>x + y = 4</code>. Pakai <code>method='SLSQP'</code> dengan <code>constraints={'type':'eq', 'fun': lambda x: x[0]+x[1]-4}</code>. Print <strong>x optimal</strong> (x[0]).</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Pakai <code>method='SLSQP'</code> dengan kendala equality lewat dict <code>{'type':'eq', 'fun': ...}</code>; mulai dari x0 feasible dan baca x optimal dari <code>res.x</code>.</div>
@@ -2189,12 +2189,12 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C5</div>
-        <div class="comp-q">Untuk masalah C4 (min x²+y² s.t. x+y=4), hitung <strong>multiplier λ</strong> dari Lagrangian L = x² + y² + λ(x+y−4). Solusi: <code>∂L/∂x = 2x + λ = 0, ∂L/∂y = 2y + λ = 0</code>. Print <strong>nilai λ</strong>.</div>
+        <div class="comp-q">Untuk masalah C4 (min \(x^2\)+\(y^2\) s.t. x+y=4), hitung <strong>multiplier \(\lambda\)</strong> dari Lagrangian L = \(x^2\) + \(y^2\) + λ(x+y−4). Solusi: <code>∂L/∂x = 2x + λ = 0, ∂L/∂y = 2y + λ = 0</code>. Print <strong>nilai \(\lambda\)</strong>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Dari kondisi stasioner Lagrangian ∂L/∂x = 2x + λ = 0, sehingga λ = −2x dievaluasi di solusi optimal.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">λ (Lagrange multiplier)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(\lambda\) (Lagrange multiplier)</strong></span></div>
         <textarea class="code-textarea" id="code-c5" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c5')"></textarea>
         <div class="stdout-box" id="stdout-c5"></div>
       </div>
@@ -2206,7 +2206,7 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C6</div>
-        <div class="comp-q">Lakukan <strong>1 iterasi gradient descent</strong> untuk f(x) = x² mulai dari x₀ = 5 dengan step size α = 0.3. Formula: <code>x₁ = x₀ − α·f'(x₀)</code>. Print <strong>x₁</strong>.</div>
+        <div class="comp-q">Lakukan <strong>1 iterasi gradient descent</strong> untuk f(x) = \(x^2\) mulai dari x₀ = 5 dengan step size α = 0.3. Formula: <code>x₁ = x₀ − α·f'(x₀)</code>. Print <strong>x₁</strong>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Turunan f'(x) = 2x; terapkan rumus update x₁ = x₀ − α·f'(x₀) dengan nilai x₀ dan α dari soal.</div>
@@ -2223,7 +2223,7 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C7</div>
-        <div class="comp-q">Untuk fungsi <strong>f(x) = x⁴ − 4x² + 5</strong>, hitung 1 step <strong>Newton's method</strong> mulai dari x₀ = 3 dengan formula <code>x₁ = x₀ − f'(x₀)/f''(x₀)</code>. Print <strong>x₁</strong>.</div>
+        <div class="comp-q">Untuk fungsi <strong>\(f(x) = x^4 - 4x^2 + 5\)</strong>, hitung 1 step <strong>Newton's method</strong> mulai dari x₀ = 3 dengan formula <code>x₁ = x₀ − f'(x₀)/f''(x₀)</code>. Print <strong>x₁</strong>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Turunkan f'(x) = 4x³ − 8x dan f''(x) = 12x² − 8, evaluasi di x₀, lalu terapkan update Newton x₁ = x₀ − f'(x₀)/f''(x₀).</div>
@@ -2240,7 +2240,7 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C8</div>
-        <div class="comp-q">Validasi konveksitas <strong>f(x) = x⁴ + 2x² + 1</strong> di x = 1 via Hessian (2nd derivative). Hitung <code>f''(1)</code>. Print nilainya. Jika <code>f''(x) ≥ 0</code> di seluruh domain → konveks.</div>
+        <div class="comp-q">Validasi konveksitas <strong>\(f(x) = x^4 + 2x^2 + 1\)</strong> di x = 1 via Hessian (2nd derivative). Hitung <code>f''(1)</code>. Print nilainya. Jika <code>f''(x) ≥ 0</code> di seluruh domain → konveks.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Hessian 1D = turunan kedua f''(x) = 12x² + 4; evaluasi di x yang diminta. Karena selalu &gt; 0, fungsi bersifat strictly convex.</div>
@@ -2257,7 +2257,7 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C9</div>
-        <div class="comp-q">Selesaikan NLP berkendala dengan bounds: <strong>min f(x,y) = (x−2)² + (y−3)²</strong> s.t. <code>0 ≤ x ≤ 1</code>, <code>0 ≤ y ≤ 5</code>. Pakai <code>method='L-BFGS-B'</code>, x0 = [0.5, 0.5]. Print <strong>x optimal</strong>.</div>
+        <div class="comp-q">Selesaikan NLP berkendala dengan bounds: <strong>min \(f(x,y) = (x-2)^2 + (y-3)^2\)</strong> s.t. <code>0 ≤ x ≤ 1</code>, <code>0 ≤ y ≤ 5</code>. Pakai <code>method='L-BFGS-B'</code>, x0 = [0.5, 0.5]. Print <strong>x optimal</strong>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Pakai <code>method='L-BFGS-B'</code> dengan parameter <code>bounds</code>; jika optimum tak berkendala di luar batas, solver memproyeksikannya ke boundary. Baca x optimal dari <code>res.x</code>.</div>
@@ -2274,10 +2274,10 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C10</div>
-        <div class="comp-q"><strong>Penalty method</strong>: untuk min f(x) = x² s.t. x ≥ 2, formulasi penalty: <code>F(x) = x² + ρ·max(0, 2−x)²</code>. Hitung <strong>F(1.5)</strong> dengan ρ = 100. Print nilainya.</div>
+        <div class="comp-q"><strong>Penalty method</strong>: untuk min f(x) = \(x^2\) s.t. x ≥ 2, formulasi penalty: <code>F(x) = x² + ρ·max(0, 2−x)²</code>. Hitung <strong>F(1.5)</strong> dengan ρ = 100. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Substitusikan x ke F(x) = x² + ρ·max(0, 2−x)²; suku penalty hanya aktif saat kendala dilanggar. Saat ρ → ∞ solusi mendekati constraint binding (x = 2).</div>
+      <div class="comp-hint">💡 Substitusikan x ke F(x) = \(x^2\) + ρ·max(0, 2−x)²; suku penalty hanya aktif saat kendala dilanggar. Saat ρ → ∞ solusi mendekati constraint binding (x = 2).</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">F(1.5)</strong></span></div>
         <textarea class="code-textarea" id="code-c10" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c10')"></textarea>
@@ -2338,7 +2338,7 @@ from scipy.optimize import minimize
         <div class="comp-q"><strong>Penalty Method Convergence</strong>: untuk <code>min f(x) = x²</code> s.t. <code>x ≥ 2</code>, formulasi penalty <code>F(x) = x² + ρ·max(0, 2−x)²</code>. Solve untuk ρ = 1, 10, 100 dengan <code>scipy.minimize</code>. Print <strong>x* untuk ρ = 100</strong>.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Untuk tiap ρ, minimkan F(x) = x² + ρ·max(0, 2−x)² dengan <code>minimize</code> lalu baca <code>res.x</code>; makin besar ρ, x* makin mendekati constraint binding x = 2.</div>
+      <div class="comp-hint">💡 Untuk tiap ρ, minimkan F(x) = \(x^2\) + ρ·max(0, 2−x)² dengan <code>minimize</code> lalu baca <code>res.x</code>; makin besar ρ, x* makin mendekati constraint binding x = 2.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">x* untuk ρ=100</strong></span></div>
         <textarea class="code-textarea" id="code-c13" rows="14" placeholder="Paste kode penalty method, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c13')"></textarea>
@@ -2369,7 +2369,7 @@ from scipy.optimize import minimize
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C15</div>
-        <div class="comp-q"><strong>Pegas Coil Engineering Design</strong>: min mass <code>m = ρ·π·(d²/4)·(πD)·N</code> dengan ρ = 7.85e−6 kg/mm³, D = 50 mm, F = 500 N. Kendala: τ_max = 8FD/(πd³) ≤ 600 MPa, δ = 8FD³N/(Gd⁴) ≥ 25 mm (G = 79300 MPa), L ≥ N·d. Bounds: d ∈ [2,15], N ∈ [5,30], L ∈ [50,200]. Pakai SLSQP. Print <strong>massa minimum</strong> (g, x0=[8,12,120]).</div>
+        <div class="comp-q"><strong>Pegas Coil Engineering Design</strong>: min mass <code>m = ρ·π·(d²/4)·(πD)·N</code> dengan ρ = 7.85e−6 kg/mm³, D = 50 mm, F = 500 N. Kendala: τ_max = 8FD/(πd³) ≤ 600 MPa, δ = 8FD³N/(Gd⁴) ≥ 25 mm (G = 79300 MPa), L ≥ \(N \cdot d\). Bounds: d ∈ [2,15], N ∈ [5,30], L ∈ [50,200]. Pakai SLSQP. Print <strong>massa minimum</strong> (g, x0=[8,12,120]).</div>
         <div class="comp-pts">4 poin</div>
       </div>
       <div class="comp-hint">💡 Formulasikan fungsi massa dan tiga kendala (tegangan, defleksi, panjang) sebagai dict inequality, lalu selesaikan dengan <code>method='SLSQP'</code> memakai bounds dan x0 dari soal; massa dalam gram = <code>res.fun</code> × 1000.</div>
@@ -2448,13 +2448,13 @@ from scipy.optimize import minimize
     </p>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:16px">
       <div style="background:rgba(0,224,158,.05);border:1px solid rgba(0,224,158,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)">Variabel: d (Ø wire), N (lilitan), L (free length)</div>
-      <div style="background:rgba(255,64,129,.05);border:1px solid rgba(255,64,129,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)">Objektif: <em>min</em> mass = ρπ(d²/4)(πD)N</div>
+      <div style="background:rgba(255,64,129,.05);border:1px solid rgba(255,64,129,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)">Objektif: <em>min</em> mass = ρπ(\(d^2\)/4)(πD)N</div>
       <div style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet)">Stress: 8FD/(πd³) ≤ τ_y = 600 MPa</div>
       <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">Defleksi: 8FD³N/(Gd⁴) ≥ 25 mm</div>
-      <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">Spacing: L ≥ N·d (avoid solid)</div>
+      <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">Spacing: L ≥ \(N \cdot d\) (avoid solid)</div>
       <div style="background:rgba(0,224,158,.05);border:1px solid rgba(0,224,158,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)">Solver SLSQP: m* ≈ 41 g (tegangan + defleksi binding)</div>
     </div>
-    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Pertanyaan kritis: hasil <code>scipy.minimize</code> menunjukkan <em>tegangan dan defleksi keduanya BINDING</em> (g(x*) ≈ 0) — kedua kendala aktif di optimum. Spacing slack (L &gt; N·d). <strong style="color:var(--amber)">Lagrange multiplier μ_stress ≈ 0.18, μ_deflection ≈ 1.45</strong> menunjukkan defleksi adalah kendala lebih "ketat". Beberapa pertanyaan: (a) bagaimana interpretasi multiplier untuk decisi engineering — apa artinya secara fisik? (b) jika manajemen ingin lebih ringan 10%, kendala mana harus di-relaks dan apa risikonya? (c) apakah masalah ini konveks? Bisakah kita yakin solusi global atau perlu multi-start? (d) bagaimana validasi asumsi (mis. shear modulus G konstan vs temperature-dependent)?</p>
+    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Pertanyaan kritis: hasil <code>scipy.minimize</code> menunjukkan <em>tegangan dan defleksi keduanya BINDING</em> (g(x*) ≈ 0) — kedua kendala aktif di optimum. Spacing slack (L &gt; \(N \cdot d)\). <strong style="color:var(--amber)">Lagrange multiplier μ_stress ≈ 0.18, μ_deflection ≈ 1.45</strong> menunjukkan defleksi adalah kendala lebih "ketat". Beberapa pertanyaan: (a) bagaimana interpretasi multiplier untuk decisi engineering — apa artinya secara fisik? (b) jika manajemen ingin lebih ringan 10%, kendala mana harus di-relaks dan apa risikonya? (c) apakah masalah ini konveks? Bisakah kita yakin solusi global atau perlu multi-start? (d) bagaimana validasi asumsi (mis. shear modulus G konstan vs temperature-dependent)?</p>
   </div>
 
   <!-- Canvas Animasi Forum -->
@@ -2474,7 +2474,7 @@ from scipy.optimize import minimize
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Hasil <code>scipy.minimize</code> SLSQP menunjukkan g_stress(x*) ≈ 0 dan g_defl(x*) ≈ 0 — kedua kendala <em>aktif</em> di solusi optimal. Multiplier Lagrange μ_stress &gt; 0 dan μ_defl &gt; 0. Spacing slack (L − N·d) &gt; 0 (tidak binding). Apa arti fisik dari kedua kendala binding ini? Kenapa tidak ada slack di salah satu? Apa yang terjadi kalau kedua kendala dilepas (relaxed) sedikit?</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Hasil <code>scipy.minimize</code> SLSQP menunjukkan g_stress(x*) ≈ 0 dan g_defl(x*) ≈ 0 — kedua kendala <em>aktif</em> di solusi optimal. Multiplier Lagrange μ_stress &gt; 0 dan μ_defl &gt; 0. Spacing slack (L − \(N \cdot d)\) &gt; 0 (tidak binding). Apa arti fisik dari kedua kendala binding ini? Kenapa tidak ada slack di salah satu? Apa yang terjadi kalau kedua kendala dilepas (relaxed) sedikit?</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">τ_max = τ_y (yield)</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">δ = δ_target (deflection min)</span>
@@ -2489,7 +2489,7 @@ from scipy.optimize import minimize
             <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Kedua kendala kebetulan paralel di space (R, H), jadi pasti binding bersamaan</div>
             <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Hanya tegangan binding; defleksi adalah secondary constraint</div>
           </div>
-          <div class="p-fb r" id="fp1r">✅ Tepat! Karakteristik desain "min mass" dengan loading tetap: solusi optimal pasti di <strong>boundary kendala kritis</strong>. Logika: kalau kendala stress tidak binding (τ &lt; τ_y dengan margin), kita bisa <em>kurangi d</em> sedikit → mass turun. Begitu juga kalau defleksi tidak binding (δ &gt; δ_target), kita bisa kurangi N → mass turun. Solver akan terus iterate sampai kedua kendala bertabrakan dengan boundary — <em>complementary slackness</em>. Multiplier μ_defl &gt; μ_stress berarti kendala defleksi <strong>lebih ketat</strong>: relaxasi 1 mm di δ_target akan turunkan mass lebih banyak daripada relaxasi 1 MPa di τ_y. <strong>Spacing tidak binding</strong>: artinya geometri pegas tidak terlalu padat (L &gt; N·d dengan margin) — bisa dipakai untuk visual tolerance / coiling yang lebih nyaman. Action engineering: investigasi material baru dengan G lebih tinggi (turunkan defleksi paling berdampak).</div>
+          <div class="p-fb r" id="fp1r">✅ Tepat! Karakteristik desain "min mass" dengan loading tetap: solusi optimal pasti di <strong>boundary kendala kritis</strong>. Logika: kalau kendala stress tidak binding (τ &lt; τ_y dengan margin), kita bisa <em>kurangi d</em> sedikit → mass turun. Begitu juga kalau defleksi tidak binding (δ &gt; δ_target), kita bisa kurangi N → mass turun. Solver akan terus iterate sampai kedua kendala bertabrakan dengan boundary — <em>complementary slackness</em>. Multiplier μ_defl &gt; μ_stress berarti kendala defleksi <strong>lebih ketat</strong>: relaxasi 1 mm di δ_target akan turunkan mass lebih banyak daripada relaxasi 1 MPa di τ_y. <strong>Spacing tidak binding</strong>: artinya geometri pegas tidak terlalu padat (L &gt; \(N \cdot d\) dengan margin) — bisa dipakai untuk visual tolerance / coiling yang lebih nyaman. Action engineering: investigasi material baru dengan G lebih tinggi (turunkan defleksi paling berdampak).</div>
           <div class="p-fb w" id="fp1w">❌ Periksa kembali. Solver tidak <em>memaksa</em> semua kendala = 0 — kalau kendala spacing slack di optimum, itu hasil natural. Bahkan paralelitas kendala bukan penyebab kedua binding; penyebabnya adalah sifat min-mass dengan loading tetap. Coba cek Lagrange multiplier output dari trust-constr — μ &gt; 0 menunjukkan binding aktif.</div>
         </div>
 
@@ -2508,7 +2508,7 @@ from scipy.optimize import minimize
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Fungsi objektif <code>m = ρπ(d²/4)(πD)N</code> melibatkan perkalian variabel d²·N — <em>tidak konveks</em> (bilinier). Kendala stress <code>8FD/(πd³)</code> juga non-linier dalam d (1/d³). Jadi, secara teoretis, masalah ini <strong>non-konveks</strong>. Pertanyaan praktis: bisakah kita yakin SLSQP sekali memberikan solusi global? Mungkin ada "lokal optimum" lain yang massa-nya lebih kecil tetapi tidak feasible? Bagaimana validasi solusi global?</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Fungsi objektif <code>m = ρπ(d²/4)(πD)N</code> melibatkan perkalian variabel \(d^2\)·N — <em>tidak konveks</em> (bilinier). Kendala stress <code>8FD/(πd³)</code> juga non-linier dalam d (1/\(d^3\)). Jadi, secara teoretis, masalah ini <strong>non-konveks</strong>. Pertanyaan praktis: bisakah kita yakin SLSQP sekali memberikan solusi global? Mungkin ada "lokal optimum" lain yang massa-nya lebih kecil tetapi tidak feasible? Bagaimana validasi solusi global?</p>
         <div style="background:rgba(255,64,129,.04);border:1px solid rgba(255,64,129,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);margin-bottom:12px">
           💬 <em>Petunjuk: cek konveksitas dengan Hessian — ∇²f tidak semi-definit positif untuk semua x → non-konveks. Tetapi <em>masalah ini punya struktur khusus</em>: hanya 1 lembah feasibel di ranah engineering ([2,15], [5,30], [50,200] = bounds wajar). Multi-start dari random x0 akan kembali ke solusi yang sama. Jika kasus desain lebih kompleks (mis. desain crashworthy car body dengan banyak modes), multi-start atau metaheuristik wajib.</em>
         </div>
@@ -2548,7 +2548,7 @@ from scipy.optimize import minimize
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">fatigue endurance</span>
         </div>
         <div style="background:rgba(0,224,158,.04);border:1px solid rgba(0,224,158,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);">
-          💬 <em>Tidak ada jawaban tunggal — yang dinilai pemahaman batasan model. Pertimbangan: (1) Wahl factor <code>K_w = (4C−1)/(4C−4) + 0.615/C</code> dengan C = D/d → tegangan effective &gt; nominal; abaikan kalau d/D moderate. (2) Fatigue: pakai τ_endurance = 0.4·τ_y → safety factor 1.5×. (3) Buckling: kendala tambahan L/d &lt; 6 (Faires criterion). (4) Stochastic loading F ± σ → reliability-based design dengan reliability index β ≥ 3. (5) Manufacturing tolerance ±0.05 mm di d → robust optimization minimize worst-case. (6) Workflow: NLP deterministic untuk baseline, lalu Monte Carlo ribuan run dengan parameter random untuk reliability assessment, lalu re-design dengan margin lebih besar kalau Pf &gt; 1e−4.</em>
+          💬 <em>Tidak ada jawaban tunggal \(\text{---}\) yang dinilai pemahaman batasan model. Pertimbangan: \((1)\) Wahl factor <code>K_w = (4C−1)/(4C−4) + 0.615/C</code> dengan \(C = D/d \to\) tegangan effective &gt; nominal; abaikan kalau \(d/D\) moderate. \((2)\) Fatigue: pakai \(\tau _endurance = 0.4 \cdot \tau _y \to\) safety factor \(1.5 \times . (3)\) Buckling: kendala tambahan \(L/d\) &lt; \(6\) (Faires criterion). \((4)\) Stochastic loading \(F \pm \sigma \to reliability-based\) design dengan reliability index \(\beta \ge 3. (5)\) Manufacturing tolerance \(\pm 0.05 mm di d \to\) robust optimization minimize \(worst-\;\text{case}\;. (6)\) Workflow: NLP deterministic untuk baseline, lalu Monte Carlo ribuan run dengan parameter random untuk reliability assessment, lalu \(re-design\) dengan margin lebih besar kalau \(Pf\) &gt; \(1e-4.\)</em>
         </div>
 
         <textarea class="fq-textarea" id="ans-fq3" placeholder="Tulis analisis validasi asumsi Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Identifikasi minimal 3 asumsi yang mungkin runtuh di kasus pegas ini. (2) Untuk tiap asumsi, jelaskan dampak ke desain (mass naik X%, atau risiko failure naik Y%). (3) Tools alternatif: Wahl factor, fatigue criteria, buckling, Monte Carlo, Robust Optimization, Reliability-Based Design Optimization. (4) Workflow rekomendasi: deterministic NLP → uncertainty quantification → re-optimization. (5) Kapan stop iterasi (acceptable risk vs cost)?" oninput="checkForumReady()"></textarea>
