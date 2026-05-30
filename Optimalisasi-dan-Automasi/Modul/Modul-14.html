@@ -1009,11 +1009,11 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <div class="section" id="m-solusi">
   <div class="section-label reveal">Bagian 02</div>
   <h2 class="section-title reveal">Random Forest:<br>Ensemble Decision Tree dengan Bootstrap + Feature Bagging</h2>
-  <p class="section-desc reveal"><strong>Random Forest (RF)</strong> oleh <em>Leo Breiman (2001)</em> adalah ensemble of <em>decorrelated</em> decision trees — salah satu algoritma ML paling populer + powerful + interpretable di tabular data. Tiga ide kunci: (1) <strong>Bootstrap aggregation (bagging)</strong> — tiap tree dilatih di sample acak <em>with-replacement</em> dari training set (~63% unique sample, sisanya duplikat). (2) <strong>Random feature subset per split</strong> — di setiap node, hanya pertimbangkan <code>√(n_features)</code> fitur acak (decorrelate tree, reduce variance). (3) <strong>Majority voting (klasifikasi) atau averaging (regresi)</strong> — ensemble final lebih robust dari single tree. Hasil: low variance (averaging cancel noise), capture non-linear pattern (tree splits axis-aligned), robust ke outlier &amp; missing data. Bonus: <code>feature_importances_</code> built-in untuk interpretability — rank feature mana paling impactful. Hyperparam utama: <em>\(n_estimators\)</em> (jumlah trees, default 100), <em>\(max_depth\)</em> (kedalaman tree), <em>\(min_samples_leaf\)</em> (regularization). Sklearn API: <code>RandomForestClassifier(n_estimators=100, random_state=42).fit(X_train, y_train)</code>.</p>
+  <p class="section-desc reveal"><strong>Random Forest (RF)</strong> oleh <em>Leo Breiman (2001)</em> adalah ensemble of <em>decorrelated</em> decision trees — salah satu algoritma ML paling populer + powerful + interpretable di tabular data. Tiga ide kunci: (1) <strong>Bootstrap aggregation (bagging)</strong> — tiap tree dilatih di sample acak <em>with-replacement</em> dari training set (~63% unique sample, sisanya duplikat). (2) <strong>Random feature subset per split</strong> — di setiap node, hanya pertimbangkan <code>√(n_features)</code> fitur acak (decorrelate tree, reduce variance). (3) <strong>Majority voting (klasifikasi) atau averaging (regresi)</strong> — ensemble final lebih robust dari single tree. Hasil: low variance (averaging cancel noise), capture non-linear pattern (tree splits axis-aligned), robust ke outlier &amp; missing data. Bonus: <code>feature_importances_</code> built-in untuk interpretability — rank feature mana paling impactful. Hyperparam utama: <em>\(n_{estimators}\)</em> (jumlah trees, default 100), <em>\(max_{\text{depth}}\)</em> (kedalaman tree), <em>\(min_samples_{leaf}\)</em> (regularization). Sklearn API: <code>RandomForestClassifier(n_estimators=100, random_state=42).fit(X_train, y_train)</code>.</p>
 
   <div class="formula-block reveal">
     <div class="label">Enam Konsep Inti Random Forest</div>
-    Bootstrap sampling  \(\cdot\) Random feature subset \((\sqrt{n}) \cdot\) Majority voting  \(\cdot n_estimators\) (jumlah trees)  \(\cdot feature_importances_ \cdot Out-of-bag\) (OOB) error estimate
+    Bootstrap sampling  \(\cdot\) Random feature subset \((\sqrt{n}) \cdot\) Majority voting  \(\cdot n_{estimators}\) (jumlah trees)  \(\cdot feature_importances_ \cdot Out-of-bag\) (OOB) error estimate
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
@@ -1032,13 +1032,13 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="card">
       <div class="card-icon">✂️</div>
       <h3>Train/Test Split (80/20)</h3>
-      <p>Separasi data ke <em>train set</em> (untuk fit model) dan <em>test set</em> (untuk evaluate). Standard split 80/20 atau 70/30. <code>from sklearn.model_selection import train_test_split; X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)</code>. <strong>stratify=y</strong> wajib untuk imbalanced classes — jaga proporsi healthy/fault sama di train &amp; test. <em>\(random_state=42\)</em> untuk reproducibility. <strong>Hindari leakage</strong>: jangan fit scaler di full data → fit hanya di train.</p>
-      <div class="formula">\(train_test_split(X, y, 0.2)\)</div>
+      <p>Separasi data ke <em>train set</em> (untuk fit model) dan <em>test set</em> (untuk evaluate). Standard split 80/20 atau 70/30. <code>from sklearn.model_selection import train_test_split; X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)</code>. <strong>stratify=y</strong> wajib untuk imbalanced classes — jaga proporsi healthy/fault sama di train &amp; test. <em>\(random_{state}=42\)</em> untuk reproducibility. <strong>Hindari leakage</strong>: jangan fit scaler di full data → fit hanya di train.</p>
+      <div class="formula">\(train_test_{split}(X, y, 0.2)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📈</div>
       <h3>Model Fitting (.fit / .predict)</h3>
-      <p>API scikit-learn konsisten: <code>from sklearn.ensemble import RandomForestClassifier; model = RandomForestClassifier(n_estimators=100, random_state=42); model.fit(X_train, y_train); y_pred = model.predict(X_test); y_proba = model.predict_proba(X_test)[:, 1]</code>. <em>fit</em>: optimasi parameter dari training data. <em>predict</em>: hard label (0 atau 1). <em>\(predict_proba\)</em>: probability score (untuk threshold custom + ROC analysis). Model diff: Logistic Reg simple (linear); RF/SVM kompleks.</p>
+      <p>API scikit-learn konsisten: <code>from sklearn.ensemble import RandomForestClassifier; model = RandomForestClassifier(n_estimators=100, random_state=42); model.fit(X_train, y_train); y_pred = model.predict(X_test); y_proba = model.predict_proba(X_test)[:, 1]</code>. <em>fit</em>: optimasi parameter dari training data. <em>predict</em>: hard label (0 atau 1). <em>\(predict_{proba}\)</em>: probability score (untuk threshold custom + ROC analysis). Model diff: Logistic Reg simple (linear); RF/SVM kompleks.</p>
       <div class="formula">\(model.fit(X, y).predict(X')\)</div>
     </div>
     <div class="card">
@@ -1100,7 +1100,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
   <div class="formula-block reveal">
     <div class="label">Enam Konsep Inti SVM + Pipeline</div>
-    Margin maximization  \(\cdot\) Kernel trick (RBF, poly)  \(\cdot\) Hyperparam \(C\) &amp; gamma  \(\cdot\) StandardScaler wajib  \(\cdot\) Pipeline \(\text{anti}\;-leakage \cdot predict_proba\) (Platt scaling)
+    Margin maximization  \(\cdot\) Kernel trick (RBF, poly)  \(\cdot\) Hyperparam \(C\) &amp; gamma  \(\cdot\) StandardScaler wajib  \(\cdot\) Pipeline \(\text{anti}\;-leakage \cdot predict_{proba}\) (Platt scaling)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
@@ -1131,7 +1131,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="card">
       <div class="card-icon">⚖️</div>
       <h3>Bias-Variance Trade-off</h3>
-      <p><strong>High bias</strong> (underfit): model terlalu sederhana, miss pola — accuracy train &amp; test sama-sama rendah. <strong>High variance</strong> (overfit): model terlalu kompleks, memorize train data — accuracy train tinggi, test rendah. <em>Logistic regression</em>: high bias kalau data non-linear. <em>\(RF max_depth\) tak terbatas</em>: high variance. <em>SVM C besar</em>: low bias, high variance. <strong>Diagnostik</strong>: kalau test &lt;&lt; train accuracy → overfit (regularize: kurangi max_depth, naikkan C atau alpha). Kalau train low → underfit (model lebih kompleks atau feature engineering).</p>
+      <p><strong>High bias</strong> (underfit): model terlalu sederhana, miss pola — accuracy train &amp; test sama-sama rendah. <strong>High variance</strong> (overfit): model terlalu kompleks, memorize train data — accuracy train tinggi, test rendah. <em>Logistic regression</em>: high bias kalau data non-linear. <em>\(RF max_{\text{depth}}\) tak terbatas</em>: high variance. <em>SVM C besar</em>: low bias, high variance. <strong>Diagnostik</strong>: kalau test &lt;&lt; train accuracy → overfit (regularize: kurangi max_depth, naikkan C atau alpha). Kalau train low → underfit (model lebih kompleks atau feature engineering).</p>
       <div class="formula">\(err = bias^2 + variance + noise\)</div>
     </div>
     <div class="card">
@@ -1192,7 +1192,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
   <div class="formula-block reveal">
     <div class="label">Enam Konsep Inti Evaluasi Lanjut + Tuning</div>
-    ROC curve &amp; AUC  \(\cdot\) Stratified \(k-fold CV \cdot cross_val_score\) (mean \(\pm\) std)  \(\cdot\) GridSearchCV exhaustive  \(\cdot\) Imbalanced \((class_weight,\) SMOTE)  \(\cdot\) Threshold tuning \(cost-sensitive\)
+    ROC curve &amp; AUC  \(\cdot\) Stratified \(k-fold CV \cdot cross_val_{\text{score}}\) (mean \(\pm\) std)  \(\cdot\) GridSearchCV exhaustive  \(\cdot\) Imbalanced \((class_{\text{weight}},\) SMOTE)  \(\cdot\) Threshold tuning \(cost-sensitive\)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
@@ -1224,13 +1224,13 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">⚖️</div>
       <h3>Imbalanced Class Handling</h3>
       <p>Predictive maintenance sering imbalanced: 1% fault, 99% healthy. Naive accuracy = 99% kalau predict semua "healthy" — useless. Solusi: (1) <strong>Class weighting</strong>: <code>RandomForestClassifier(class_weight='balanced')</code> — weight inverse proporsional class frequency. (2) <strong>Resampling</strong>: SMOTE (oversample minority), undersample majority — pakai <code>imblearn</code> library. (3) <strong>Metrics</strong>: jangan accuracy; pakai precision-recall-F1 (per class), macro-F1, ROC-AUC, atau PR-AUC (lebih robust untuk severe imbalance). (4) <strong>Custom threshold</strong>: dari predict_proba, set threshold optimal berdasarkan business cost FP vs FN.</p>
-      <div class="formula">\(class_weight='balanced'\)</div>
+      <div class="formula">\(class_{\text{weight}}='balanced'\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🚨</div>
       <h3>Overfit Detection</h3>
       <p><strong>Overfit</strong> = train accuracy &gt;&gt; test accuracy. Misalnya: train 99%, test 75% → memorize, tidak generalize. <strong>Diagnostik</strong>: (1) Compare train vs test score; gap besar = overfit. (2) <em>Learning curve</em>: plot accuracy vs training set size. Gap melebar = overfit; gap mengecil dengan data lebih = lack of data. (3) Validation curve: plot accuracy vs hyperparameter complexity (max_depth, C). <strong>Mitigasi</strong>: regularize (smaller max_depth, larger min_samples_leaf, smaller C), more data, simpler model, ensemble (RF averaging reduce overfit), early stopping (XGBoost). API: <code>sklearn.model_selection.learning_curve, validation_curve</code>.</p>
-      <div class="formula">\(train_acc >> test_acc \to overfit\)</div>
+      <div class="formula">\(train_{acc} >> test_{acc} \to overfit\)</div>
     </div>
   </div>
 
@@ -1382,7 +1382,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--violet)"></div>
-      <span class="anim-title">Animasi \(3\;\text{---}\) GridSearchCV Heatmap: Hyperparameter Tuning \(n_estimators \times max_depth\)</span>
+      <span class="anim-title">Animasi \(3\;\text{---}\) GridSearchCV Heatmap: Hyperparameter Tuning \(n_{estimators} \times max_{\text{depth}}\)</span>
     </div>
     <div class="anim-body">
       <canvas id="cvIso" height="320"></canvas>
@@ -2014,7 +2014,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">02</div>
-        <div class="mc-q">Tujuan <strong>\(train_test_split\)</strong> dengan <code>stratify=y</code> di scikit-learn adalah...</div>
+        <div class="mc-q">Tujuan <strong>\(train_test_{split}\)</strong> dengan <code>stratify=y</code> di scikit-learn adalah...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc2">
@@ -2557,7 +2557,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">Accuracy paradox</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">F1 / Recall / ROC-AUC</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">SMOTE \(\cdot class_weight\)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">SMOTE \(\cdot class_{\text{weight}}\)</span>
         </div>
 
         <div class="poll">

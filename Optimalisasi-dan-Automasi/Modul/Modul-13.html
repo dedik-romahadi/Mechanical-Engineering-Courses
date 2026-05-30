@@ -1032,13 +1032,13 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="card">
       <div class="card-icon">✂️</div>
       <h3>Train/Test Split (80/20)</h3>
-      <p>Separasi data ke <em>train set</em> (untuk fit model) dan <em>test set</em> (untuk evaluate). Standard split 80/20 atau 70/30. <code>from sklearn.model_selection import train_test_split; X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)</code>. <strong>stratify=y</strong> wajib untuk imbalanced classes — jaga proporsi healthy/fault sama di train &amp; test. <em>\(random_state=42\)</em> untuk reproducibility. <strong>Hindari leakage</strong>: jangan fit scaler di full data → fit hanya di train.</p>
-      <div class="formula">\(train_test_split(X, y, 0.2)\)</div>
+      <p>Separasi data ke <em>train set</em> (untuk fit model) dan <em>test set</em> (untuk evaluate). Standard split 80/20 atau 70/30. <code>from sklearn.model_selection import train_test_split; X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)</code>. <strong>stratify=y</strong> wajib untuk imbalanced classes — jaga proporsi healthy/fault sama di train &amp; test. <em>\(random_{state}=42\)</em> untuk reproducibility. <strong>Hindari leakage</strong>: jangan fit scaler di full data → fit hanya di train.</p>
+      <div class="formula">\(train_test_{split}(X, y, 0.2)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📈</div>
       <h3>Model Fitting (.fit / .predict)</h3>
-      <p>API scikit-learn konsisten: <code>from sklearn.ensemble import RandomForestClassifier; model = RandomForestClassifier(n_estimators=100, random_state=42); model.fit(X_train, y_train); y_pred = model.predict(X_test); y_proba = model.predict_proba(X_test)[:, 1]</code>. <em>fit</em>: optimasi parameter dari training data. <em>predict</em>: hard label (0 atau 1). <em>\(predict_proba\)</em>: probability score (untuk threshold custom + ROC analysis). Model diff: Logistic Reg simple (linear); RF/SVM kompleks.</p>
+      <p>API scikit-learn konsisten: <code>from sklearn.ensemble import RandomForestClassifier; model = RandomForestClassifier(n_estimators=100, random_state=42); model.fit(X_train, y_train); y_pred = model.predict(X_test); y_proba = model.predict_proba(X_test)[:, 1]</code>. <em>fit</em>: optimasi parameter dari training data. <em>predict</em>: hard label (0 atau 1). <em>\(predict_{proba}\)</em>: probability score (untuk threshold custom + ROC analysis). Model diff: Logistic Reg simple (linear); RF/SVM kompleks.</p>
       <div class="formula">\(model.fit(X, y).predict(X')\)</div>
     </div>
     <div class="card">
@@ -1131,7 +1131,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="card">
       <div class="card-icon">⚖️</div>
       <h3>Bias-Variance Trade-off</h3>
-      <p><strong>High bias</strong> (underfit): model terlalu sederhana, miss pola — accuracy train &amp; test sama-sama rendah. <strong>High variance</strong> (overfit): model terlalu kompleks, memorize train data — accuracy train tinggi, test rendah. <em>Logistic regression</em>: high bias kalau data non-linear. <em>\(RF max_depth\) tak terbatas</em>: high variance. <em>SVM C besar</em>: low bias, high variance. <strong>Diagnostik</strong>: kalau test &lt;&lt; train accuracy → overfit (regularize: kurangi max_depth, naikkan C atau alpha). Kalau train low → underfit (model lebih kompleks atau feature engineering).</p>
+      <p><strong>High bias</strong> (underfit): model terlalu sederhana, miss pola — accuracy train &amp; test sama-sama rendah. <strong>High variance</strong> (overfit): model terlalu kompleks, memorize train data — accuracy train tinggi, test rendah. <em>Logistic regression</em>: high bias kalau data non-linear. <em>\(RF max_{\text{depth}}\) tak terbatas</em>: high variance. <em>SVM C besar</em>: low bias, high variance. <strong>Diagnostik</strong>: kalau test &lt;&lt; train accuracy → overfit (regularize: kurangi max_depth, naikkan C atau alpha). Kalau train low → underfit (model lebih kompleks atau feature engineering).</p>
       <div class="formula">\(err = bias^2 + variance + noise\)</div>
     </div>
     <div class="card">
@@ -1224,13 +1224,13 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">⚖️</div>
       <h3>Imbalanced Class Handling</h3>
       <p>Predictive maintenance sering imbalanced: 1% fault, 99% healthy. Naive accuracy = 99% kalau predict semua "healthy" — useless. Solusi: (1) <strong>Class weighting</strong>: <code>RandomForestClassifier(class_weight='balanced')</code> — weight inverse proporsional class frequency. (2) <strong>Resampling</strong>: SMOTE (oversample minority), undersample majority — pakai <code>imblearn</code> library. (3) <strong>Metrics</strong>: jangan accuracy; pakai precision-recall-F1 (per class), macro-F1, ROC-AUC, atau PR-AUC (lebih robust untuk severe imbalance). (4) <strong>Custom threshold</strong>: dari predict_proba, set threshold optimal berdasarkan business cost FP vs FN.</p>
-      <div class="formula">\(class_weight='balanced'\)</div>
+      <div class="formula">\(class_{\text{weight}}='balanced'\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🚨</div>
       <h3>Overfit Detection</h3>
       <p><strong>Overfit</strong> = train accuracy &gt;&gt; test accuracy. Misalnya: train 99%, test 75% → memorize, tidak generalize. <strong>Diagnostik</strong>: (1) Compare train vs test score; gap besar = overfit. (2) <em>Learning curve</em>: plot accuracy vs training set size. Gap melebar = overfit; gap mengecil dengan data lebih = lack of data. (3) Validation curve: plot accuracy vs hyperparameter complexity (max_depth, C). <strong>Mitigasi</strong>: regularize (smaller max_depth, larger min_samples_leaf, smaller C), more data, simpler model, ensemble (RF averaging reduce overfit), early stopping (XGBoost). API: <code>sklearn.model_selection.learning_curve, validation_curve</code>.</p>
-      <div class="formula">\(train_acc >> test_acc \to overfit\)</div>
+      <div class="formula">\(train_{acc} >> test_{acc} \to overfit\)</div>
     </div>
   </div>
 
@@ -2014,7 +2014,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">02</div>
-        <div class="mc-q">Tujuan <strong>\(train_test_split\)</strong> dengan <code>stratify=y</code> di scikit-learn adalah...</div>
+        <div class="mc-q">Tujuan <strong>\(train_test_{split}\)</strong> dengan <code>stratify=y</code> di scikit-learn adalah...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc2">
@@ -2568,7 +2568,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
             <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Hapus 99% healthy sample supaya jadi 50/50 balanced — model lebih mudah belajar</div>
             <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Tetap pakai accuracy — 99.9% aman</div>
           </div>
-          <div class="p-fb r" id="fp1r">✅ Tepat! <strong>Setup Baseline LogReg untuk Extreme Imbalance</strong> butuh checklist wajib: (1) <strong>stratify=y</strong> di train_test_split — guarantee test set punya proporsi positive sama dengan original (~0.024% × 200K = ~48 positive di test, statistically meaningful). Tanpa stratify, random split bisa kebetulan 0 positive di test → metric meaningless. (2) <strong>\(random_state=42\)</strong> untuk reproducibility. (3) <strong>\(class_weight='balanced'\)</strong> di LogReg — auto-adjust loss inverse proportional ke class frequency. Equivalent dengan oversampling tetapi lebih efisien. (4) <strong>Evaluasi metric</strong>: <em>JANGAN accuracy</em> (99.9% misleading). Pakai <strong>F1</strong> (harmonic mean P&amp;R), <strong>Recall</strong> (sensitivity, critical untuk safety), <strong>PR-AUC</strong> (lebih informatif dari ROC-AUC untuk extreme imbalance). (5) <strong>StratifiedKFold</strong> untuk cross-validation, bukan KFold default. (6) <strong>Threshold tuning</strong>: default 0.5 jauh dari optimal. Plot precision-recall curve dengan <code>sklearn.metrics.precision_recall_curve</code>, pilih threshold di "knee" curve. Untuk safety-critical PdM seperti aviation, threshold ~0.1–0.2 lebih appropriate (recall tinggi, sacrifice precision). (7) <strong>SMOTE alternative</strong>: kalau class_weight tidak cukup, pakai SMOTE oversampling — tetapi HANYA di training set, bukan test set. <code>imblearn.over_sampling.SMOTE</code>. SMOTE generate synthetic positive samples di feature space.</div>
+          <div class="p-fb r" id="fp1r">✅ Tepat! <strong>Setup Baseline LogReg untuk Extreme Imbalance</strong> butuh checklist wajib: (1) <strong>stratify=y</strong> di train_test_split — guarantee test set punya proporsi positive sama dengan original (~0.024% × 200K = ~48 positive di test, statistically meaningful). Tanpa stratify, random split bisa kebetulan 0 positive di test → metric meaningless. (2) <strong>\(random_{state}=42\)</strong> untuk reproducibility. (3) <strong>\(class_{\text{weight}}='balanced'\)</strong> di LogReg — auto-adjust loss inverse proportional ke class frequency. Equivalent dengan oversampling tetapi lebih efisien. (4) <strong>Evaluasi metric</strong>: <em>JANGAN accuracy</em> (99.9% misleading). Pakai <strong>F1</strong> (harmonic mean P&amp;R), <strong>Recall</strong> (sensitivity, critical untuk safety), <strong>PR-AUC</strong> (lebih informatif dari ROC-AUC untuk extreme imbalance). (5) <strong>StratifiedKFold</strong> untuk cross-validation, bukan KFold default. (6) <strong>Threshold tuning</strong>: default 0.5 jauh dari optimal. Plot precision-recall curve dengan <code>sklearn.metrics.precision_recall_curve</code>, pilih threshold di "knee" curve. Untuk safety-critical PdM seperti aviation, threshold ~0.1–0.2 lebih appropriate (recall tinggi, sacrifice precision). (7) <strong>SMOTE alternative</strong>: kalau class_weight tidak cukup, pakai SMOTE oversampling — tetapi HANYA di training set, bukan test set. <code>imblearn.over_sampling.SMOTE</code>. SMOTE generate synthetic positive samples di feature space.</div>
           <div class="p-fb w" id="fp1w">❌ Periksa kembali. Default split TIDAK auto-stratify. Hapus mayoritas = lose representative sampling + violate i.i.d. assumption. Accuracy 99.9% misleading untuk extreme imbalance. Stratify + class_weight + F1/recall + threshold tuning adalah jawaban benar.</div>
         </div>
 
