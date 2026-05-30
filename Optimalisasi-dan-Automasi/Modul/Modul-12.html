@@ -6731,6 +6731,26 @@ function _handleScheduleReady() {
           }
         }).catch(err => { console.error('[Score] silent error suppressed (Bug 1c):', err); });
       }
+      // PIN re-verify jika sessionStorage cleared (tab ditutup, buka tab baru).
+      // Tanpa ini, _callCheck*Answer akan throw 'Sesi PIN expired' saat submit.
+      if (!window._sessionPinHash) {
+        (async () => {
+          const _key = sanitizeKey('mhs_' + me.nim);
+          try {
+            const pinSnap = await get(ref(db, 'pins/' + _key));
+            let existingPin = pinSnap.exists() ? pinSnap.val() : null;
+            if ((!existingPin || !existingPin.pinHash) && typeof _tryMigrateLegacyPin === 'function') {
+              existingPin = await _tryMigrateLegacyPin(me.nim, me.nama);
+            }
+            if (existingPin && existingPin.pinHash) {
+              const visSnap = await get(ref(db, DB_PATH + '/' + _key));
+              const existingVisitor = visSnap.exists() ? visSnap.val() : null;
+              _pinFlow = { nama: me.nama, nim: me.nim, nowISO: new Date().toISOString(), existingPin, existingVisitor, schedOpen: true };
+              if (typeof _showPinInput === 'function') _showPinInput(me.nama);
+            }
+          } catch (e) { console.error('[Auto-login PIN reverify]', e); }
+        })();
+      }
       _applyRoleVisibility();
       setTimeout(function(){ if(typeof window._loadScoredQuestions==='function') window._loadScoredQuestions(); }, 500);
     }
