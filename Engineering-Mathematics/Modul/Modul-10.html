@@ -1144,7 +1144,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     | <code>cos(ωt)</code> | <code>s/(s² + ω²)</code> |<br>
     | <code>sinh(at)</code> | <code>a/(s² − a²)</code> |<br>
     | <code>cosh(at)</code> | <code>s/(s² − a²)</code> |<br>
-    | \(t^{n} \cdot e^{at}\) | \(n!/(s - a)^{n+1}\) |<br>
+    | \(t^{n} \cdot e^{at}\) | \(n!/(\text{s - a})^{n+1}\) |<br>
     | \(e^{at} \cdot \sin(\omega t)\) | <code>ω/[(s − a)² + ω²]</code> |<br>
     | \(e^{at} \cdot \cos(\omega t)\) | <code>(s − a)/[(s − a)² + ω²]</code> |
   </div>
@@ -1152,8 +1152,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="info-box reveal">
     <strong>Contoh — derivasi dari definisi:</strong> Hitung \(L{e^{at}}\) dari definisi.<br>
     \(L{e^{at}} = \int _0^\infty e^{-st} \cdot e^{at} dt = \int _0^\infty e^{-(s-a)t} dt.\)<br>
-    Integral konvergen bila <code>s − a &gt; 0</code> (s &gt; a). Hasil: \(= [-e^{-(s-a)t}/(s-a)]_0^\infty = 0 - (-1/(s-a)) = 1/(s - a)\).<br>
-    <strong>Hasil:</strong> \(L{e^{at}} = 1/(s - a)\) untuk s &gt; a. ✓ Sesuai tabel. Untuk a = 0: <code>L{1} = 1/s</code> (kasus konstanta).
+    Integral konvergen bila <code>s − a &gt; 0</code> (s &gt; a). Hasil: \(= [-e^{-(s-a)t}/(s-a)]_0^\infty = 0 - (-1/(s-a)) = 1/(\text{s - a})\).<br>
+    <strong>Hasil:</strong> \(L{e^{at}} = 1/(\text{s - a})\) untuk s &gt; a. ✓ Sesuai tabel. Untuk a = 0: <code>L{1} = 1/s</code> (kasus konstanta).
   </div>
 
   <div class="info-box reveal">
@@ -1177,7 +1177,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     L{1}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 1/s<br>
     \(L{t} = 1/s^2\)<br>
     L{t<sup>n</sup>}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = n!/s<sup>n+1</sup>&nbsp;&nbsp;(n = 0, 1, 2, …)<br>
-    \(L{e^{at}} = 1/(s - a)\)<br>
+    \(L{e^{at}} = 1/(\text{s - a})\)<br>
     \(L{\cos bt} = s/(s^2 + b^2)\)<br>
     \(L{\sin bt} = b/(s^2 + b^2)\)
   </div>
@@ -1209,13 +1209,13 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="card">
       <div class="card-icon">📐</div>
       <h3>First Shift Theorem</h3>
-      <p>\(L{e^{at} \cdot f(t)} = F(s - a)\) — kalikan fungsi dengan \(e^{at}\) di domain t = geser argumen F oleh a di domain s. Berguna untuk fungsi seperti \(e^{at} \cdot \sin(\omega t)\): ambil L{sin(ωt)} = ω/(\(s^2\)+ω²), lalu shift: \(L{e^{at} \cdot \sin(\omega t)} = \omega /[(s-a)^2 + \omega ^2]\).</p>
+      <p>\(L{e^{at} \cdot f(t)} = F(\text{s - a})\) — kalikan fungsi dengan \(e^{at}\) di domain t = geser argumen F oleh a di domain s. Berguna untuk fungsi seperti \(e^{at} \cdot \sin(\omega t)\): ambil L{sin(ωt)} = ω/(\(s^2\)+ω²), lalu shift: \(L{e^{at} \cdot \sin(\omega t)} = \omega /[(s-a)^2 + \omega ^2]\).</p>
       <div class="formula">L{\(e^{at}\)·f(t)} = F(s−a)</div>
     </div>
     <div class="card">
       <div class="card-icon">⏱</div>
       <h3>Second Shift Theorem</h3>
-      <p>\(L{f(t - a) \cdot H(t - a)} = e^{-as} \cdot F(s)\) — geser fungsi dalam waktu (mis. fungsi yang aktif setelah delay a detik via Heaviside step <code>H(t−a)</code>). Faktor e^(−as) muncul. Sangat penting untuk handling sinyal step, pulse, gigi gergaji.</p>
+      <p>\(L{f(\text{t - a}) \cdot H(\text{t - a})} = e^{-as} \cdot F(s)\) — geser fungsi dalam waktu (mis. fungsi yang aktif setelah delay a detik via Heaviside step <code>H(t−a)</code>). Faktor e^(−as) muncul. Sangat penting untuk handling sinyal step, pulse, gigi gergaji.</p>
       <div class="formula">\(L{f(t-a)H(t-a)} = e^{-as}F(s)\)</div>
     </div>
     <div class="card">
@@ -1229,8 +1229,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="info-box reveal">
     <strong>Sifat-sifat lengkap Laplace yang sering dipakai:</strong><br>
     <strong>(1) Linieritas:</strong> <code>L{αf + βg} = αF + βG</code>.<br>
-    <strong>(2) First Shift (s-shift):</strong> \(L{e^{at} \cdot f(t)} = F(s - a)\).<br>
-    <strong>(3) Second Shift (t-shift):</strong> \(L{f(t - a) \cdot H(t - a)} = e^{-as} \cdot F(s)\).<br>
+    <strong>(2) First Shift (s-shift):</strong> \(L{e^{at} \cdot f(t)} = F(\text{s - a})\).<br>
+    <strong>(3) Second Shift (t-shift):</strong> \(L{f(\text{t - a}) \cdot H(\text{t - a})} = e^{-as} \cdot F(s)\).<br>
     <strong>(4) Skala waktu:</strong> <code>L{f(at)} = (1/a)·F(s/a)</code> untuk a &gt; 0.<br>
     <strong>(5) Multiplikasi t:</strong> <code>L{t·f(t)} = −F'(s)</code>; \(L{t^{n} \cdot f(t)} = (-1)^{n} \cdot F^{(n)}(s)\).<br>
     <strong>(6) Pembagian t:</strong> \(L{f(t)/t} = \int _{s}^\infty F(\sigma ) d\sigma\) (bila lim<sub>t→0</sub> f(t)/t ada).<br>
@@ -1455,13 +1455,13 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="card">
       <div class="card-icon">📐</div>
       <h3>First Shift Inverse</h3>
-      <p>\(L⁻^1{F(s - a)} = e^{at} \cdot L⁻^1{F(s)}\). Bila denominator F(s) berbentuk \((s - a)^{n}\) atau <code>(s − a)² + ω²</code>, identifikasi shift a dan kalikan dengan \(e^{at}\) hasil invers.</p>
+      <p>\(L⁻^1{F(\text{s - a})} = e^{at} \cdot L⁻^1{F(s)}\). Bila denominator F(s) berbentuk \((\text{s - a})^{n}\) atau <code>(s − a)² + ω²</code>, identifikasi shift a dan kalikan dengan \(e^{at}\) hasil invers.</p>
       <div class="formula">L⁻¹{F(s−a)} = \(e^{at}\)f(t)</div>
     </div>
     <div class="card">
       <div class="card-icon">⏱</div>
       <h3>Second Shift Inverse</h3>
-      <p>\(L⁻^1{e^{-as} \cdot F(s)} = f(t - a) \cdot H(t - a)\). Faktor e^(−as) di domain s = delay a detik di domain t (fungsi aktif setelah t = a). Penting untuk PD dengan input step yang ditunda.</p>
+      <p>\(L⁻^1{e^{-as} \cdot F(s)} = f(\text{t - a}) \cdot H(\text{t - a})\). Faktor e^(−as) di domain s = delay a detik di domain t (fungsi aktif setelah t = a). Penting untuk PD dengan input step yang ditunda.</p>
       <div class="formula">\(L⁻^1{e^{-as}F(s)} = f(t-a)H(t-a)\)</div>
     </div>
   </div>
@@ -1473,7 +1473,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     | <code>1/s²</code> | <code>t</code> |<br>
     | \(n!/s^{n+1}\) | \(t^{n}\) |<br>
     | <code>1/(s − a)</code> | \(e^{at}\) |<br>
-    | \(n!/(s - a)^{n+1}\) | \(t^{n} \cdot e^{at}\) |<br>
+    | \(n!/(\text{s - a})^{n+1}\) | \(t^{n} \cdot e^{at}\) |<br>
     | <code>ω/(s² + ω²)</code> | <code>sin(ωt)</code> |<br>
     | <code>s/(s² + ω²)</code> | <code>cos(ωt)</code> |<br>
     | <code>ω/[(s − a)² + ω²]</code> | \(e^{at} \cdot \sin(\omega t)\) |<br>
@@ -1493,7 +1493,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="info-box reveal">
     <strong>Contoh 2 — invers dengan first shift:</strong> Hitung <code>L⁻¹{(s + 2)/(s² + 4s + 13)}</code>.<br>
     <strong>Step 1.</strong> Lengkapi kuadrat denominator: <code>s² + 4s + 13 = (s + 2)² + 9</code>.<br>
-    <strong>Step 2.</strong> Bentuk: <code>F(s) = (s + 2)/[(s + 2)² + 9]</code>. Match dengan entry \((s - a)/[(s - a)^2 + \omega ^2] \to e^{at} \cdot \cos(\omega t)\) dengan a = −2, ω = 3.<br>
+    <strong>Step 2.</strong> Bentuk: <code>F(s) = (s + 2)/[(s + 2)² + 9]</code>. Match dengan entry \((\text{s - a})/[(\text{s - a})^2 + \omega ^2] \to e^{at} \cdot \cos(\omega t)\) dengan a = −2, ω = 3.<br>
     <strong>Hasil:</strong> \(f(t) = e^{-2t} \cdot \cos(3t)\).
   </div>
 
@@ -1576,7 +1576,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="card">
       <div class="card-icon">🅱️</div>
       <h3>Kasus 2: Akar Berulang</h3>
-      <p>Bila \(D(s) = (s - r)^{m} \cdot \ldots\), dekomposisi: \(A_1/(s-r) + A_2/(s-r)^2 + \ldots + A_m/(s-r)^{m}\). Tiap term dengan pangkat lebih tinggi memberi faktor t: \(A_k/(s-r)^{k} \to (A_k/(k-1)!) \cdot t^{k-1} \cdot e^{rt}\).</p>
+      <p>Bila \(D(s) = (\text{s - r})^{m} \cdot \ldots\), dekomposisi: \(A_1/(s-r) + A_2/(s-r)^2 + \ldots + A_m/(s-r)^{m}\). Tiap term dengan pangkat lebih tinggi memberi faktor t: \(A_k/(s-r)^{k} \to (A_k/(k-1)!) \cdot t^{k-1} \cdot e^{rt}\).</p>
       <div class="formula">A_k/(s−r)^k → (A_k/(k−1)!)·t^(k−1)·\(e^{rt}\)</div>
     </div>
     <div class="card">
