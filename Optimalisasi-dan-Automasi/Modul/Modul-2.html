@@ -1012,7 +1012,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
   <div class="formula-block reveal">
     <div class="label">Moving Average — Centered &amp; Trailing</div>
-    Centered: y'<sub>t</sub> = (1/k)·Σ<sup>k/2</sup><sub>i=−k/2</sub>x<sub>t+i</sub> &nbsp;·&nbsp; Trailing: y'<sub>t</sub> = (1/k)·Σ<sup>k−1</sup><sub>i=0</sub>x<sub>t−i</sub>
+    Centered: \(y'_{t} = (1/k) \cdot \Sigma ^{k/2}_{i=-k/2}x_{t+i} \cdot\) Trailing: \(y'_{t} = (1/k) \cdot \Sigma ^{k-1}_{i=0}x_{t-i}\)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
@@ -1020,7 +1020,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📊</div>
       <h3>Centered Moving Average</h3>
       <p>Untuk tiap titik t, rata-ratakan <strong>k titik dengan t di tengah</strong>: t−k/2 sampai t+k/2. Window simetris memberikan <strong style="color:var(--cyan)">zero phase shift</strong> — tidak ada lag temporal. Cocok untuk analisis post-mortem &amp; visualisasi tren historis. Kekurangan: butuh data masa depan (k/2 titik setelah t), jadi tidak bisa real-time.</p>
-      <div class="formula">y'<sub>t</sub> = (1/k)·Σx<sub>t±i</sub></div>
+      <div class="formula">y'<sub>t</sub> = (1/k)·Σx<sub>t\(\pm i\)</sub></div>
     </div>
     <div class="card">
       <div class="card-icon">⏩</div>
@@ -1061,7 +1061,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Trik Insinyur:</strong> Untuk vibration monitoring, gunakan trailing MA dengan window <strong>k = 10–20</strong> sebagai baseline halus. Bandingkan setiap nilai mentah terhadap baseline ini — jika deviasi melebihi <em>3·σ</em> dari baseline, trigger investigasi. Kombinasi ini disebut <em>residual-based anomaly detection</em> dan adalah method industri yang sangat efektif.
+    💡 <strong>Trik Insinyur:</strong> Untuk vibration monitoring, gunakan trailing MA dengan window <strong>k = 10–20</strong> sebagai baseline halus. Bandingkan setiap nilai mentah terhadap baseline ini — jika deviasi melebihi <em>\(3 \cdot \sigma\)</em> dari baseline, trigger investigasi. Kombinasi ini disebut <em>residual-based anomaly detection</em> dan adalah method industri yang sangat efektif.
   </div>
 </div>
 
@@ -1074,20 +1074,20 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
   <div class="formula-block reveal">
     <div class="label">Exponential Moving Average (Recursive Form)</div>
-    EMA<sub>t</sub> = α·x<sub>t</sub> + (1−α)·EMA<sub>t−1</sub> &nbsp;·&nbsp; α ∈ (0, 1]
+    \(EMA_{t} = \alpha \cdot x_{t} + (1-\alpha ) \cdot EMA_{t-1} \cdot \alpha \in (0, 1]\)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Formula Recursive</h3>
-      <p>Hanya butuh <strong>satu state variable</strong> (EMA sebelumnya) untuk hitung EMA berikutnya. Sangat hemat memori — cocok untuk embedded system &amp; streaming data. Bobot pengamatan ke-i dari belakang adalah <strong>α·(1−α)<sup>i</sup></strong> — eksponensial menurun secara geometris. <em>Effective window</em> ≈ 1/α (rule of thumb).</p>
+      <p>Hanya butuh <strong>satu state variable</strong> (EMA sebelumnya) untuk hitung EMA berikutnya. Sangat hemat memori — cocok untuk embedded system &amp; streaming data. Bobot pengamatan ke-i dari belakang adalah <strong>\(\alpha \cdot (1-\alpha )^{i}\)</strong> — eksponensial menurun secara geometris. <em>Effective window</em> ≈ 1/α (rule of thumb).</p>
       <div class="formula">w<sub>i</sub> = α·(1−α)<sup>i</sup></div>
     </div>
     <div class="card">
       <div class="card-icon">🎚️</div>
       <h3>Pemilihan α</h3>
-      <p>α <strong>kecil</strong> (e.g., 0.05): smoothing agresif, lag besar, baseline halus — cocok untuk baseline jangka panjang. α <strong>besar</strong> (e.g., 0.5): responsif terhadap perubahan, kurang smoothing — cocok untuk fast-changing signals. Aturan praktis: <strong>α ≈ 2/(N+1)</strong> dimana N adalah equivalent MA window yang ingin Anda dapatkan.</p>
+      <p>α <strong>kecil</strong> (e.g., 0.05): smoothing agresif, lag besar, baseline halus — cocok untuk baseline jangka panjang. α <strong>besar</strong> (e.g., 0.5): responsif terhadap perubahan, kurang smoothing — cocok untuk fast-changing signals. Aturan praktis: <strong>\(\alpha \approx 2/(N+1)\)</strong> dimana N adalah equivalent MA window yang ingin Anda dapatkan.</p>
       <div class="formula">α = 2/(N+1)</div>
     </div>
     <div class="card">
@@ -1126,7 +1126,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="warn-icon">⚠️</div>
     <div>
       <h4>Kesalahan Umum dengan EMA</h4>
-      <p>(1) <strong>Memilih α terlalu besar</strong> → smoothing tidak efektif, output mirip raw data. (2) <strong>Inisialisasi yang salah</strong> → bias pada output beberapa periode pertama. (3) <strong>Tidak menyesuaikan α dengan f<sub>s</sub></strong> → α=0.1 di 1 Hz vs di 10 kHz bermakna sangat berbeda — pilih berdasarkan time constant yang diinginkan, bukan sample count. (4) <strong>Pakai pandas <code>adjust=True</code></strong> (default) saat ingin recursive form — pandas akan re-weight semua history → pakai <code>adjust=False</code>.</p>
+      <p>(1) <strong>Memilih \(\alpha\) terlalu besar</strong> → smoothing tidak efektif, output mirip raw data. (2) <strong>Inisialisasi yang salah</strong> → bias pada output beberapa periode pertama. (3) <strong>Tidak menyesuaikan \(\alpha\) dengan \(f_{s}\)</strong> → α=0.1 di 1 Hz vs di 10 kHz bermakna sangat berbeda — pilih berdasarkan time constant yang diinginkan, bukan sample count. (4) <strong>Pakai pandas <code>adjust=True</code></strong> (default) saat ingin recursive form — pandas akan re-weight semua history → pakai <code>adjust=False</code>.</p>
     </div>
   </div>
 </div>
@@ -1140,14 +1140,14 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
   <div class="formula-block reveal">
     <div class="label">Savitzky-Golay &amp; Median Filter</div>
-    SG: y'<sub>t</sub> = polyfit(x<sub>t±k</sub>, p)|<sub>t</sub> &nbsp;·&nbsp; Median: y'<sub>t</sub> = median(x<sub>t±k</sub>)
+    SG: \(y'_{t} = polyfit(x_{t \pm k}, p)|_{t} \cdot\) Median: \(y'_{t} = median(x_{t \pm k})\)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
       <div class="card-icon">📐</div>
       <h3>Savitzky-Golay (SG) Filter</h3>
-      <p>Untuk tiap titik t, fit polinomial orde <strong>p</strong> (biasanya 2 atau 3) pada window <strong>2k+1</strong> titik di sekitarnya menggunakan <em>least squares</em>. Output adalah nilai polinomial pada pusat window. Hasil: smoothing yang <strong style="color:var(--violet)">menjaga bentuk peak/lembah</strong> jauh lebih baik daripada MA. Dipakai luas di spektroskopi, signal processing, vibration analysis.</p>
+      <p>Untuk tiap titik t, fit polinomial orde <strong>p</strong> (biasanya 2 atau 3) pada window <strong>\(2k+1\)</strong> titik di sekitarnya menggunakan <em>least squares</em>. Output adalah nilai polinomial pada pusat window. Hasil: smoothing yang <strong style="color:var(--violet)">menjaga bentuk peak/lembah</strong> jauh lebih baik daripada MA. Dipakai luas di spektroskopi, signal processing, vibration analysis.</p>
       <div class="formula">savgol_filter(x, w, p)</div>
     </div>
     <div class="card">
@@ -1176,8 +1176,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <tbody>
         <tr><td style="color:var(--cyan)">Moving Average</td><td>Gaussian, broadband</td><td>❌ tumpul</td><td>✅ trailing</td><td>O(N) ringan</td></tr>
         <tr><td style="color:var(--amber)">EMA</td><td>Gaussian, slow drift</td><td>❌ tumpul</td><td>✅ one-pass</td><td>O(N) sangat ringan</td></tr>
-        <tr><td style="color:var(--violet)">Savitzky-Golay</td><td>Gaussian, signal-preserving</td><td>✅ baik</td><td>⚠ butuh window</td><td>O(N·w·p) sedang</td></tr>
-        <tr><td style="color:var(--pink)">Median</td><td>Impulse, salt-pepper</td><td>✅ sempurna untuk spike</td><td>⚠ butuh window</td><td>O(N·w·log w) berat</td></tr>
+        <tr><td style="color:var(--violet)">Savitzky-Golay</td><td>Gaussian, signal-preserving</td><td>✅ baik</td><td>⚠ butuh window</td><td>O(\(N \cdot w \cdot p)\) sedang</td></tr>
+        <tr><td style="color:var(--pink)">Median</td><td>Impulse, salt-pepper</td><td>✅ sempurna untuk spike</td><td>⚠ butuh window</td><td>O(\(N \cdot w \cdot \log\) w) berat</td></tr>
       </tbody>
     </table>
   </div>
@@ -1281,19 +1281,19 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--amber)"></div>
-      <span class="anim-title">Animasi 2 — EMA: Slider α untuk Responsivitas vs Smoothing</span>
+      <span class="anim-title">Animasi \(2\;\text{---}\) EMA: Slider \(\alpha\) untuk Responsivitas \(vs\) Smoothing</span>
     </div>
     <div class="anim-body">
       <canvas id="m2optEMA" height="300" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Smoothing factor <strong>α</strong> — <span class="ctrl-val" id="m2optEMAa">0.30</span></label>
+          <label>Smoothing factor <strong>\(\alpha\)</strong> — <span class="ctrl-val" id="m2optEMAa">0.30</span></label>
           <input type="range" id="m2optEMAslA" min="0.05" max="1" step="0.05" value="0.30">
         </div>
       </div>
       <div id="m2optEMAInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> EMA formula: <code>y[n] = α·x[n] + (1−α)·y[n−1]</code>. Recursive — hanya butuh 1 prev sample. <strong>α tinggi</strong> (0.9): hampir tidak smooth (output ≈ input). <strong>α rendah</strong> (0.1): heavy smooth tapi delay. <strong>Effective window</strong> ≈ 2/α − 1. Tidak seperti MA, EMA tidak punya hard lag — semua sample berkontribusi dengan exponentially decaying weight.
+        <strong>📊 Cara Membaca:</strong> EMA formula: <code>y[n] = α·x[n] + (1−α)·y[n−1]</code>. Recursive — hanya butuh 1 prev sample. <strong>\(\alpha\) tinggi</strong> (0.9): hampir tidak smooth (output ≈ input). <strong>\(\alpha\) rendah</strong> (0.1): heavy smooth tapi delay. <strong>Effective window</strong> ≈ 2/α − 1. Tidak seperti MA, EMA tidak punya hard lag — semua sample berkontribusi dengan exponentially decaying weight.
       </div>
     </div>
   </div>
@@ -1388,7 +1388,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="card">
       <div class="card-icon">📊</div>
       <h3>Vibration RMS Baseline (EMA)</h3>
-      <p>Untuk monitoring kondisi motor jangka panjang, gunakan <strong>EMA dengan α ≈ 0.05</strong> pada vibration RMS hourly. Baseline ini smooth dari fluktuasi load harian, mengikuti drift sensor secara perlahan, dan mudah di-monitor. Saat current RMS &gt; baseline + 3σ → trigger investigation. <em>Tidak butuh window storage</em>: hanya satu state variable per motor.</p>
+      <p>Untuk monitoring kondisi motor jangka panjang, gunakan <strong>EMA dengan \(\alpha \approx 0.05\)</strong> pada vibration RMS hourly. Baseline ini smooth dari fluktuasi load harian, mengikuti drift sensor secara perlahan, dan mudah di-monitor. Saat current RMS &gt; baseline + 3σ → trigger investigation. <em>Tidak butuh window storage</em>: hanya satu state variable per motor.</p>
       <div class="formula">EMA<sub>t</sub> = 0.05·x<sub>t</sub> + 0.95·EMA<sub>t−1</sub></div>
     </div>
     <div class="card">
@@ -1415,7 +1415,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="warn-icon">⚠️</div>
     <div>
       <h4>Kesalahan Umum di Industri</h4>
-      <p>(1) <strong>Smoothing data sebelum FFT</strong> — mendistorsi spektrum, peak amplitude tidak akurat. Smooth setelah FFT, atau tidak smooth sama sekali kalau ingin spectrum analysis. (2) <strong>Pakai MA panjang untuk shock detection</strong> — kontradiksi: MA menghapus shock! Pakai window pendek (k=3-5) atau jangan smooth sama sekali. (3) <strong>Lupa anti-aliasing analog</strong> — sampling 10 kHz tanpa hardware filter cutoff = aliasing dari frekuensi tinggi yang tidak terlihat di ADC. (4) <strong>α atau k tidak disesuaikan dengan f<sub>s</sub></strong> — α=0.1 sangat berbeda di 1 Hz vs 10 kHz.</p>
+      <p>(1) <strong>Smoothing data sebelum FFT</strong> — mendistorsi spektrum, peak amplitude tidak akurat. Smooth setelah FFT, atau tidak smooth sama sekali kalau ingin spectrum analysis. (2) <strong>Pakai MA panjang untuk shock detection</strong> — kontradiksi: MA menghapus shock! Pakai window pendek (k=3-5) atau jangan smooth sama sekali. (3) <strong>Lupa anti-aliasing analog</strong> — sampling 10 kHz tanpa hardware filter cutoff = aliasing dari frekuensi tinggi yang tidak terlihat di ADC. (4) <strong>\(\alpha\) atau \(k\) tidak disesuaikan dengan \(f_{s}\)</strong> — α=0.1 sangat berbeda di 1 Hz vs 10 kHz.</p>
     </div>
   </div>
 </div>
@@ -1761,7 +1761,7 @@ plt.xlabel('Waktu (s)'); plt.tight_layout(); plt.show()</code></pre>
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">03</div>
-        <div class="mc-q">Pada formula <strong>EMA<sub>t</sub> = α·x<sub>t</sub> + (1−α)·EMA<sub>t−1</sub></strong>, jika α = 0.5 maka...</div>
+        <div class="mc-q">Pada formula <strong>\(EMA_{t} = \alpha \cdot x_{t} + (1-\alpha ) \cdot EMA_{t-1}\)</strong>, jika α = 0.5 maka...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc3">
@@ -1829,7 +1829,7 @@ plt.xlabel('Waktu (s)'); plt.tight_layout(); plt.show()</code></pre>
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">07</div>
-        <div class="mc-q">Hubungan antara <strong>α</strong> EMA dan <strong>effective window N</strong> equivalent adalah...</div>
+        <div class="mc-q">Hubungan antara <strong>\(\alpha\)</strong> EMA dan <strong>effective window N</strong> equivalent adalah...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc7">
@@ -1945,7 +1945,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
       </div>
       <div class="comp-hint">💡 Pakai <code>np.convolve</code> dengan kernel <code>np.ones(k)/k</code> dan <code>mode='same'</code>, lalu ambil rata-rata hasilnya dengan <code>np.mean</code>.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">mean(MA_10)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(mean(MA_10)\)</strong></span></div>
         <textarea class="code-textarea" id="code-c2" placeholder="Paste kode Python, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c2')"></textarea>
         <div class="stdout-box" id="stdout-c2"></div>
       </div>
@@ -1962,7 +1962,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
       </div>
       <div class="comp-hint">💡 Terapkan moving average dengan <code>np.convolve</code> (kernel <code>np.ones(k)/k</code>), lalu hitung std sampel dengan <code>np.std(..., ddof=1)</code>.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">std(MA_50)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(std(MA_50)\)</strong></span></div>
         <textarea class="code-textarea" id="code-c3" placeholder="Paste kode Python, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c3')"></textarea>
         <div class="stdout-box" id="stdout-c3"></div>
       </div>
@@ -1974,7 +1974,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C4</div>
-        <div class="comp-q">Terapkan <strong>EMA dengan α = 0.1</strong> menggunakan pandas: <code>ema = pd.Series(y).ewm(alpha=0.1, adjust=False).mean().values</code>. Cetak <strong>nilai EMA pada indeks terakhir</strong>: <code>ema[-1]</code>.</div>
+        <div class="comp-q">Terapkan <strong>EMA dengan \(\alpha = 0.1\)</strong> menggunakan pandas: <code>ema = pd.Series(y).ewm(alpha=0.1, adjust=False).mean().values</code>. Cetak <strong>nilai EMA pada indeks terakhir</strong>: <code>ema[-1]</code>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Gunakan <code>pd.Series(y).ewm(alpha=..., adjust=False).mean()</code>, lalu ambil nilai pada indeks terakhir.</div>
@@ -1991,7 +1991,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C5</div>
-        <div class="comp-q">Terapkan <strong>EMA dengan α = 0.5</strong> (sangat responsif). Cetak <strong>nilai EMA pada indeks 1500</strong> (segera setelah spike yang ke-4 di indeks 1500). EMA dengan α besar akan "menyerap" spike dengan kuat.</div>
+        <div class="comp-q">Terapkan <strong>EMA dengan \(\alpha = 0.5\)</strong> (sangat responsif). Cetak <strong>nilai EMA pada indeks 1500</strong> (segera setelah spike yang ke-4 di indeks 1500). EMA dengan α besar akan "menyerap" spike dengan kuat.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Hitung EMA responsif dengan <code>ewm(alpha=..., adjust=False).mean()</code>, lalu ambil nilai pada indeks yang diminta soal.</div>
@@ -2025,7 +2025,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C7</div>
-        <div class="comp-q">Terapkan <strong>Median filter dengan kernel_size=5</strong> dari <code>scipy.signal</code>. Cetak <strong>nilai pada indeks 100</strong> (lokasi spike pertama). Median filter akan SEPENUHNYA menghapus spike (tidak seperti MA yang hanya mengurangi).</div>
+        <div class="comp-q">Terapkan <strong>Median filter dengan \(kernel_size=5\)</strong> dari <code>scipy.signal</code>. Cetak <strong>nilai pada indeks 100</strong> (lokasi spike pertama). Median filter akan SEPENUHNYA menghapus spike (tidak seperti MA yang hanya mengurangi).</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Gunakan <code>scipy.signal.medfilt</code> dengan kernel_size dari soal, lalu ambil nilai pada indeks spike yang diminta.</div>
@@ -2047,7 +2047,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
       </div>
       <div class="comp-hint">💡 Effective window N = 2/α − 1. Substitusikan nilai α dari soal.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">N_eff</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(N_eff\)</strong></span></div>
         <textarea class="code-textarea" id="code-c8" placeholder="Paste kode Python, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c8')"></textarea>
         <div class="stdout-box" id="stdout-c8"></div>
       </div>
@@ -2081,7 +2081,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
       </div>
       <div class="comp-hint">💡 Terapkan moving average k=25 dengan <code>np.convolve</code>, lalu hitung RMS hasilnya dengan <code>np.sqrt</code>/<code>np.mean</code>.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">RMS(MA_25)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(RMS(MA_25)\)</strong></span></div>
         <textarea class="code-textarea" id="code-c10" placeholder="Paste kode Python, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c10')"></textarea>
         <div class="stdout-box" id="stdout-c10"></div>
       </div>
@@ -2108,7 +2108,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
       </div>
       <div class="comp-hint">💡 Loop tiap titik i, ambil window centered <code>y[max(0,i-7):min(N,i+8)]</code> dan hitung mean-nya untuk mengisi out[i]; akhirnya ambil rata-rata seluruh out.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">mean(MA_manual)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">\(mean(MA_manual)\)</strong></span></div>
         <textarea class="code-textarea" id="code-c11" rows="12" placeholder="Paste kode MA dari awal (loop, tanpa np.convolve), lalu klik ▶ Run & Validasi" oninput="onCodeInput('c11')"></textarea>
         <div class="stdout-box" id="stdout-c11"></div>
       </div>
@@ -2125,7 +2125,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
       </div>
       <div class="comp-hint">💡 Inisialisasi EMA[0] = mean dari 10 titik pertama, lalu iterasi rumus rekursif EMAᵢ = α·yᵢ + (1−α)·EMAᵢ₋₁; ambil nilai pada indeks yang diminta.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">EMA_manual[100]</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">\(EMA_manual[100]\)</strong></span></div>
         <textarea class="code-textarea" id="code-c12" rows="12" placeholder="Paste kode EMA dari awal (recursive, dengan custom init), lalu klik ▶ Run & Validasi" oninput="onCodeInput('c12')"></textarea>
         <div class="stdout-box" id="stdout-c12"></div>
       </div>
@@ -2142,7 +2142,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
       </div>
       <div class="comp-hint">💡 Untuk tiap pusat window, fit polinomial orde 3 dengan <code>np.polyfit</code> pada 11 titik sekitar, lalu evaluasi di pusat (idx=0) memakai <code>np.polyval</code>; ambil nilai pada indeks yang diminta dan validasi terhadap <code>savgol_filter</code>.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">SG_manual[500]</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">\(SG_manual[500]\)</strong></span></div>
         <textarea class="code-textarea" id="code-c13" rows="14" placeholder="Paste kode Savitzky-Golay dari awal (np.polyfit per window), lalu klik ▶ Run & Validasi" oninput="onCodeInput('c13')"></textarea>
         <div class="stdout-box" id="stdout-c13"></div>
       </div>
@@ -2159,7 +2159,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
       </div>
       <div class="comp-hint">💡 Bangun sinyal beranomali sesuai soal, hitung EMA-nya, lalu residual = sinyal − EMA; hitung berapa titik dengan |residual| melebihi 3×std residual.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">n_detect</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">\(n_detect\)</strong></span></div>
         <textarea class="code-textarea" id="code-c14" rows="14" placeholder="Paste kode anomaly detection EMA+3σ lengkap, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c14')"></textarea>
         <div class="stdout-box" id="stdout-c14"></div>
       </div>
@@ -2252,11 +2252,11 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
     </p>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:16px">
       <div style="background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">📡 fs = 5 kHz · 24-bit ADC</div>
-      <div style="background:rgba(255,179,0,.05);border:1px solid rgba(255,179,0,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)">🌫️ Noise σ ~ 0.4 m/s² (sangat tinggi)</div>
+      <div style="background:rgba(255,179,0,.05);border:1px solid rgba(255,179,0,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)">🌫️ Noise σ ~ 0.4 m/\(s^2\) (sangat tinggi)</div>
       <div style="background:rgba(124,77,255,.05);border:1px solid rgba(124,77,255,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet)">⚡ ~10–15 spike/menit (EMI inverter)</div>
       <div style="background:rgba(0,230,118,.05);border:1px solid rgba(0,230,118,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)">🎯 Target: ISO 10816 + spektrum bearing</div>
     </div>
-    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Karakteristik data: noise gaussian σ ≈ 0.4 m/s² (jauh lebih besar dari ekspektasi), spike acak dari EMI inverter dengan amplitudo 5-10× normal level (~10-15 spike per menit), tidak ada anti-aliasing filter analog yang terbukti dipasang (Sari curiga ada aliasing dari frekuensi &gt; 2.5 kHz). Output yang diharapkan tim: (1) klasifikasi kondisi tiap motor menurut ISO 10816 (RMS), (2) identifikasi peak frekuensi bearing fault dari spektrum FFT. Sari minta saran tim mahasiswa magang untuk merancang <strong style="color:var(--cyan)">filter pipeline yang tepat</strong> sebelum analisis dimulai.</p>
+    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Karakteristik data: noise gaussian σ ≈ 0.4 m/\(s^2\) (jauh lebih besar dari ekspektasi), spike acak dari EMI inverter dengan amplitudo 5-10× normal level (~10-15 spike per menit), tidak ada anti-aliasing filter analog yang terbukti dipasang (Sari curiga ada aliasing dari frekuensi &gt; 2.5 kHz). Output yang diharapkan tim: (1) klasifikasi kondisi tiap motor menurut ISO 10816 (RMS), (2) identifikasi peak frekuensi bearing fault dari spektrum FFT. Sari minta saran tim mahasiswa magang untuk merancang <strong style="color:var(--cyan)">filter pipeline yang tepat</strong> sebelum analisis dimulai.</p>
   </div>
 
   <!-- Canvas Animasi Forum -->
@@ -2312,7 +2312,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
       <div class="fq-inner">
         <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Setelah pipeline filter di atas, Sari masih ingin baseline halus untuk monitoring trend kondisi motor harian. Pilih α yang tepat untuk kasus ini. Pertimbangkan: sampling rate fs=5 kHz, durasi monitoring berhari-hari, kebutuhan sensitivitas terhadap perubahan slow degradation tapi robust terhadap fluctuation jangka pendek operasional. Jelaskan rasionya dengan menggunakan rumus α = 2/(N+1).</p>
         <div style="background:rgba(255,179,0,.04);border:1px solid rgba(255,179,0,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);margin-bottom:12px">
-          💬 <em>Pertimbangkan: dengan fs=5 kHz, 1 detik = 5000 sampel. α=0.1 → effective N≈19 sampel ≈ 4 ms (sangat pendek!). Untuk daily trending, biasanya butuh time constant berhari-hari. Hitung: 1 hari = 4.32×10⁸ sampel. α yang tepat untuk trend harian ≈ 10⁻⁷ — terlalu kecil! Solusi: lakukan EMA pada AGREGASI hourly (RMS per 1 jam = 1 sampel/jam), bukan raw data. α=0.1 pada agregat hourly = effective N=19 jam ≈ 1 hari.</em>
+          💬 <em>Pertimbangkan: dengan \(fs=5\) kHz, \(1\) detik \(= 5000\) sampel. \(\alpha =0.1 \to\) effective \(N \approx 19\) sampel \(\approx 4 ms\) (sangat pendek!). Untuk daily trending, biasanya butuh time constant \(berhari-hari.\) Hitung: \(1\) hari \(= 4.32 \times 10^8\) sampel. \(\alpha\) yang tepat untuk trend harian \(\approx 10⁻^7\;\text{---}\) terlalu kecil! Solusi: lakukan EMA pada AGREGASI hourly (RMS per \(1\) jam \(= 1 sampel/jam),\) bukan raw data. \(\alpha =0.1\) pada agregat hourly \(=\) effective \(N=19\) jam \(\approx 1\) hari.</em>
         </div>
 
         <div class="poll">
