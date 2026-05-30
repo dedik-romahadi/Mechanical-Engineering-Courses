@@ -117,18 +117,38 @@ const EXAM_CONFIG = {
 // - MC answer format: letter 'A'/'B'/'C'/'D' (bukan index seperti exam)
 // - Reveal explain pada submit (formative learning, bukan summative)
 // - DB path pakai underscore course slug (math4, getaran_mekanik, optoauto)
-// - RTDB stored at visitors/<courseSlug>/pertemuan-N
+// - RTDB segment per-modul HARUS match client MODULE_ID & PERTEMUAN supaya
+//   server menulis ke path yang sama dgn data mahasiswa & jadwal dosen.
+//   Penomoran TIDAK selalu 1:1 dgn nomor file modul dan dbPath ≠ schedulePath:
+//     • Math (math4): visitor data di visitors/math4/modul-N (MODULE_ID client),
+//       schedule di settings/math4/pertemuan-N (PERTEMUAN client). 1:1 dgn N.
+//     • Getaran/Opto: visitor & schedule keduanya pakai pertemuan-N, TAPI N
+//       bukan nomor file. M1-7 → pertemuan-N, M8-14 → pertemuan-(N+1) karena
+//       Pertemuan 8 dipakai UTS. Mis. Modul-8.html = Pertemuan 9.
 // ─────────────────────────────────────────────────────────────────────────────
-function _makeModulConfig(courseSlug, modulNum) {
+function _makeModulConfig(courseSlug, dbSegment, scheduleSegment) {
   return {
-    dbPath: `visitors/${courseSlug}/pertemuan-${modulNum}`,
-    schedulePath: `settings/${courseSlug}/pertemuan-${modulNum}/schedule`,
+    dbPath: `visitors/${courseSlug}/${dbSegment}`,
+    schedulePath: `settings/${courseSlug}/${scheduleSegment}/schedule`,
     totalPoints: 50,             // universal: 10 MC × 1 + 10 Comp E × 2 + 5 Comp H × 4
     consolationThreshold: 20,    // ≥20 distinct base-ID attempted
     consolationPoint: 1,
     lateMultiplierValue: 0.7,
   };
 }
+
+// Resolve RTDB segments per nomor file modul, sesuai client paths.
+//   - Math: visitor = modul-N, schedule = pertemuan-N
+//   - Getaran/Opto: keduanya pakai pertemuan-N dgn offset (M8-14 → N+1)
+function _segmentsForModul(courseId, modulNum) {
+  if (courseId === "math4") {
+    return { db: `modul-${modulNum}`, sched: `pertemuan-${modulNum}` };
+  }
+  const pertemuan = modulNum <= 7 ? modulNum : modulNum + 1;
+  const seg = `pertemuan-${pertemuan}`;
+  return { db: seg, sched: seg };
+}
+
 const MODUL_CONFIG = {};
 const _MODUL_COURSES = [
   { slug: "math4",           id: "math4" },
@@ -137,7 +157,8 @@ const _MODUL_COURSES = [
 ];
 for (const { slug, id } of _MODUL_COURSES) {
   for (let n = 1; n <= 14; n++) {
-    MODUL_CONFIG[`${id}-modul-${n}`] = _makeModulConfig(slug, n);
+    const seg = _segmentsForModul(id, n);
+    MODUL_CONFIG[`${id}-modul-${n}`] = _makeModulConfig(slug, seg.db, seg.sched);
   }
 }
 
