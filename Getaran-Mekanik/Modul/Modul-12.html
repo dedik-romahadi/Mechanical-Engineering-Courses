@@ -997,25 +997,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📊</div>
       <h3>Time-Domain vs Frequency-Domain</h3>
       <p>Frequency-domain (FFT) memberi tahu <em>frekuensi mana</em> yang aktif. Time-domain memberi tahu <em>seberapa parah</em> getaran-nya secara overall. Keduanya komplementer: time-domain untuk severity, FFT untuk diagnosis penyebab.</p>
-      <div class="formula">Severity ↔ Time | Cause ↔ Frequency</div>
+      <div class="formula">\(Severity ↔ Time | Cause ↔ Frequency\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Indikator Cepat Tanpa Komputasi Berat</h3>
       <p>RMS, peak, crest, kurtosis dihitung dari sample mentah dengan operasi sederhana (mean, max, var). Tidak perlu FFT, tidak perlu windowing. Bisa dihitung embedded di sensor ADC dengan latency rendah — cocok untuk <strong>online monitoring real-time</strong>.</p>
-      <div class="formula">Compute O(N) — sangat cepat</div>
+      <div class="formula">\(Compute O(N) — sangat cepat\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🏭</div>
       <h3>Standar Industri</h3>
       <p>ISO 10816 (& penggantinya ISO 20816) menggunakan <strong>RMS velocity (mm/s)</strong> sebagai indikator utama untuk klasifikasi severity. Angka tunggal yang mudah dibaca operator: berapa mm/s? Cek tabel zone A-D. Ada di hampir semua vibration meter handheld.</p>
-      <div class="formula">RMS velocity (mm/s) → Zone A-D</div>
+      <div class="formula">\(RMS velocity (mm/s) \to Zone A-D\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚠️</div>
       <h3>Jenis Defect dari Statistik Bentuk</h3>
       <p>Crest factor &amp; kurtosis sensitif terhadap <em>impulsive defect</em> — bearing fault, gear pitting, looseness — yang menghasilkan spike tajam. Sinyal mesin sehat: distribusi Gaussian (kurtosis ≈ 3). Sinyal dengan impact: kurtosis tinggi (5-50+).</p>
-      <div class="formula">Kurtosis &gt; 4 = warning impulsive defect</div>
+      <div class="formula">\(Kurtosis > 4 = warning impulsive defect\)</div>
     </div>
   </div>
 
@@ -1050,13 +1050,13 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">⚡</div>
       <h3>Hubungan dengan Energi</h3>
       <p>RMS² = average power. Untuk sinyal velocity v(t), kinetic energy density ∝ \(v^2\). RMS-nya adalah ukuran "average velocity magnitude" yang konsisten dengan energi mekanik. Inilah mengapa ISO pakai RMS, bukan peak.</p>
-      <div class="formula">P_avg = RMS²/Z (resistive analogy)</div>
+      <div class="formula">\(P_avg = RMS^2/Z (resistive analogy)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌊</div>
       <h3>RMS Sinusoidal vs General</h3>
       <p>Untuk sinusoidal murni \(A \cdot \sin(\)ωt): RMS = A/√2 ≈ 0.707·A. Untuk sinyal real (campuran): hitung dari definisi diskrit. Konstanta 0.707 hanya berlaku sinusoidal — jangan dipakai untuk waveform kompleks.</p>
-      <div class="formula">Sin: RMS = peak / √2</div>
+      <div class="formula">\(Sin: RMS = peak / \sqrt{2}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
@@ -1068,7 +1068,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🏭</div>
       <h3>Satuan untuk ISO Standard</h3>
       <p>ISO 10816 spesifik menggunakan <strong>RMS velocity dalam mm/s</strong> (bukan acceleration g atau displacement μm). Mengapa velocity? Karena RMS velocity relatif <em>flat</em> terhadap frekuensi untuk mesin tipikal — satu angka cocok untuk berbagai rpm.</p>
-      <div class="formula">v_RMS (mm/s) = standar industri</div>
+      <div class="formula">\(v_RMS (mm/s) = standar industri\)</div>
     </div>
   </div>
 
@@ -1105,19 +1105,19 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">↕️</div>
       <h3>Peak-to-Peak (Total Excursion)</h3>
       <p>Selisih max − min. Untuk sinusoidal symmetric: P-P = 2·peak = 2·A. Sering dipakai untuk <strong>displacement</strong> (μm, mil) — clearance &amp; rubbing assessment. Standar ISO untuk displacement biasanya pakai P-P, sementara velocity pakai RMS.</p>
-      <div class="formula">P-P = max(x) − min(x)</div>
+      <div class="formula">\(P-P = max(x) - min(x)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚠️</div>
       <h3>Sensitivitas terhadap Outlier</h3>
       <p>Satu spike noise (mis. EMI dari power line) bisa membuat peak melonjak — <strong>false alarm</strong>. Solusi: gunakan <strong>peak filtered</strong> atau <strong>peak per cycle</strong> untuk averaging. Untuk monitoring presisi, RMS lebih reliable.</p>
-      <div class="formula">Outlier sensitivity = high</div>
+      <div class="formula">\(Outlier sensitivity = high\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🛠️</div>
       <h3>Peak/RMS Ratio = Crest Factor</h3>
       <p>Rasio peak terhadap RMS sangat informatif (Bagian 04). Sinyal sehat: crest ≈ 1.4 (sinusoidal limit). Sinyal dengan impact: crest tinggi (3-10+). Inilah cara membedakan "loud but smooth" vs "loud and impulsive".</p>
-      <div class="formula">Crest = Peak / RMS (Bagian 04)</div>
+      <div class="formula">\(Crest = Peak / RMS (Bagian 04)\)</div>
     </div>
   </div>
 
@@ -1150,25 +1150,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📐</div>
       <h3>CF Sinusoidal Murni = √2</h3>
       <p>Untuk x(t) = \(A \cdot \sin(\)ωt): peak = A, RMS = A/√2. CF = A / (A/√2) = √2 ≈ 1.41. Inilah <strong>baseline minimum</strong> — sinyal real tidak bisa lebih rendah dari ini (kalau ya, ada masalah).</p>
-      <div class="formula">CF_sin = √2</div>
+      <div class="formula">\(CF_\sin = \sqrt{2}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌫️</div>
       <h3>CF White Noise ≈ 3-4</h3>
       <p>Sinyal acak Gaussian: peak ≈ 3σ (rule of thumb), RMS = σ. CF ≈ 3. Sinyal getaran mesin sehat tipikal CF = 3-4 (mix sinusoidal harmonik + sedikit noise).</p>
-      <div class="formula">CF_noise ≈ 3</div>
+      <div class="formula">\(CF_noise \approx 3\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>CF Impulsive Signal &gt; 5</h3>
       <p>Sinyal dengan spike tajam (bearing inner race fault, gear pitting): peak naik drastis, RMS naik sedikit (karena durasi spike pendek). CF = 5-15 tipikal untuk early-stage bearing fault.</p>
-      <div class="formula">CF &gt; 5 = impulsive defect warning</div>
+      <div class="formula">\(CF > 5 = impulsive defect warning\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📉</div>
       <h3>CF Drop = Late-Stage Failure</h3>
       <p>Anehnya, ketika bearing defect menjadi sangat parah (multi-spike, distributed damage), <strong>CF turun lagi</strong> ke ~3 karena banyak spike membesarkan RMS. Trajectory CF: <em>naik dulu (early), turun lagi (advanced)</em>. Plot trend CF vs waktu critical untuk maintenance decision.</p>
-      <div class="formula">CF early high → late low (failure progression)</div>
+      <div class="formula">\(CF early high \to late low (failure progression)\)</div>
     </div>
   </div>
 
@@ -1203,25 +1203,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📊</div>
       <h3>Distribusi Gaussian → K = 3</h3>
       <p>Sinyal acak Gaussian (white noise) memiliki kurtosis tepat 3. Inilah baseline — semua interpretasi kurtosis relatif terhadap angka ini. Sinyal mesin sehat tipikal K ≈ 2.8-3.2.</p>
-      <div class="formula">Gaussian: K = 3 (excess = 0)</div>
+      <div class="formula">\(Gaussian: K = 3 (excess = 0)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Impulsive Signal → K &gt;&gt; 3</h3>
       <p>Bearing fault menghasilkan spike pendek tapi tinggi tiap rotating period — distribusi non-Gaussian dengan tail panjang. Kurtosis 5-15 = early-stage. Kurtosis &gt; 20 = advanced fault. Sangat sensitif tapi reliable.</p>
-      <div class="formula">K &gt; 5 = impulsive warning</div>
+      <div class="formula">\(K > 5 = impulsive warning\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📉</div>
       <h3>Distribusi Flat → K &lt; 3</h3>
       <p>Sinyal sinusoidal murni: K = 1.5. Sinyal uniform random: K = 1.8. Distribusi "flat" (tidak ada extreme outlier) memiliki K rendah. Mesin running smoothly dengan dominasi sinusoidal harmonik akan memiliki K sedikit di bawah 3.</p>
-      <div class="formula">Sin: K = 1.5; Uniform: K ≈ 1.8</div>
+      <div class="formula">\(Sin: K = 1.5; Uniform: K \approx 1.8\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔬</div>
       <h3>Spectral Kurtosis (Lanjutan)</h3>
       <p>Kurtosis dihitung per frequency band setelah filter — disebut <strong>Spectral Kurtosis (SK)</strong>. Membantu identifikasi <em>frekuensi mana</em> yang impulsif. Algoritma <strong>Kurtogram</strong> (Antoni 2007) auto-detect frequency band optimal untuk envelope analysis (Pertemuan 14).</p>
-      <div class="formula">SK(f) → kurtogram → optimal band</div>
+      <div class="formula">\(SK(f) \to kurtogram \to optimal band\)</div>
     </div>
   </div>
 
@@ -1252,19 +1252,19 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">⚖️</div>
       <h3>Mean (μ) — DC Offset</h3>
       <p>Untuk sinyal velocity/acceleration AC, mean idealnya = 0. Mean ≠ 0 menunjukkan DC offset sensor (kalibrasi salah, gravity component). Selalu remove DC sebelum analisis: <code>x = x - x.mean()</code>.</p>
-      <div class="formula">μ = (1/N) Σ x[i]</div>
+      <div class="formula">\(\mu = (1/N) \Sigma x[i]\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📏</div>
       <h3>Standard Deviation (σ)</h3>
       <p>σ = \(\sqrt{variance}\). Untuk zero-mean signal, σ = RMS. Untuk sinyal dengan DC, σ &lt; RMS. Indikator spread/dispersion. Python: <code>np.std(x)</code>.</p>
-      <div class="formula">σ² = (1/N) Σ (x[i] − μ)²</div>
+      <div class="formula">\(\sigma ^2 = (1/N) \Sigma (x[i] - \mu )^2\)</div>
     </div>
     <div class="card">
       <div class="card-icon">↔️</div>
       <h3>Skewness — Asymmetry</h3>
       <p>Momen orde-3: γ₁ = E[(x−μ)³]/σ³. Sinyal symmetric (mesin normal): γ₁ ≈ 0. Sinyal dengan defect arah satu (mis. crack pada gear tooth): γ₁ ≠ 0. Less commonly used than kurtosis tapi diagnostic.</p>
-      <div class="formula">|γ₁| &gt; 0.5 = directional bias</div>
+      <div class="formula">\(|\gamma _1| > 0.5 = directional bias\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📊</div>
@@ -1301,25 +1301,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🟢</div>
       <h3>Zone A — Excellent (Newly Commissioned)</h3>
       <p>Vibrasi sangat rendah, kondisi mesin seperti baru. Untuk mesin medium (Class II): RMS velocity ≤ 1.12 mm/s. Continue normal operation, no maintenance needed.</p>
-      <div class="formula">Class II: ≤ 1.12 mm/s (Zone A)</div>
+      <div class="formula">\(Class II: \le 1.12 mm/s (Zone A)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🟡</div>
       <h3>Zone B — Acceptable (Long-Term Operation)</h3>
       <p>Vibrasi acceptable untuk operasi jangka panjang. Class II: 1.12–2.8 mm/s. Continue operation, monitor periodically (mis. monthly inspection).</p>
-      <div class="formula">Class II: 1.12-2.8 mm/s (Zone B)</div>
+      <div class="formula">\(Class II: 1.12-2.8 mm/s (Zone B)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🟠</div>
       <h3>Zone C — Unsatisfactory (Limited Operation)</h3>
       <p>Vibrasi terlalu tinggi untuk operasi normal. Class II: 2.8–4.5 mm/s. Schedule maintenance dalam waktu dekat. Limited operation OK sampai schedule available.</p>
-      <div class="formula">Class II: 2.8-4.5 mm/s (Zone C)</div>
+      <div class="formula">\(Class II: 2.8-4.5 mm/s (Zone C)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔴</div>
       <h3>Zone D — Damaging (Immediate Shutdown)</h3>
       <p>Vibrasi berbahaya yang akan menyebabkan kerusakan. Class II: &gt; 4.5 mm/s. <strong>Immediate shutdown</strong>. Identifikasi penyebab via FFT diagnosis sebelum restart.</p>
-      <div class="formula">Class II: &gt; 4.5 mm/s (Zone D)</div>
+      <div class="formula">\(Class II: > 4.5 mm/s (Zone D)\)</div>
     </div>
   </div>
 

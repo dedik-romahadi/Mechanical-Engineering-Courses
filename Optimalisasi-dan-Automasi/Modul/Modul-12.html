@@ -972,25 +972,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📊</div>
       <h3>Gradual Escalation: 4-Tier vs Binary</h3>
       <p>Binary (OK / DANGER) = harsh + reactive. Tier 4-level: <strong>Normal → Warning → Alert → Critical</strong> = gradual + proactive. Tiap tier punya action berbeda: Warning = log + email; Alert = SMS supervisor; Critical = auto-shutdown + page operator. Operator bisa preventive action di Warning/Alert sebelum Critical. Memetakan ke ISO 10816 zona: A=Normal, B=Warning, C=Alert, D=Critical. Adopsi di Pertamina, Pupuk Kaltim, PLN sebagai SLA standard. Operator burnout turun, MTTR turun, false alarm efektif berkurang.</p>
-      <div class="formula">N → W → A → C (gradual)</div>
+      <div class="formula">\(N \to W \to A \to C (gradual)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🧠</div>
       <h3>FSM = Memory Sistem</h3>
       <p>Threshold sederhana <em>stateless</em> — tiap sample dievaluasi independen. FSM <em>stateful</em> — ingat: kapan masuk Warning, berapa lama persist, urutan transisi. Ini krusial untuk: (a) <strong>persistence-based escalation</strong> (Warning persist &gt; 5 menit → escalate ke Alert), (b) <strong>auto-recovery dengan grace period</strong> (Alert → Normal hanya kalau persist normal &gt; 1 menit), (c) <strong>audit trail</strong> (timestamp tiap transition untuk post-mortem analysis), (d) <strong>compliance reporting</strong> (durasi total mesin di tier C/D per bulan). Implementasi: 30 baris Python dengan <code>statemachine</code> library.</p>
-      <div class="formula">FSM: state + history + actions</div>
+      <div class="formula">\(FSM: state + history + actions\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⏳</div>
       <h3>Debouncing: Filter Noise Transient</h3>
       <p>Sensor noisy bisa cross threshold sesaat lalu kembali normal. Tanpa debouncing, satu spike → satu alarm → operator confused. Solusi: <strong>require N consecutive samples</strong> di kondisi alert sebelum trigger transition. N=3–5 standar untuk warning, N=1–2 untuk critical (low latency). Trade-off: N besar → robust noise tetapi delay deteksi naik. Pattern dari elektronics (button debouncing 50ms hardware), software equivalent untuk monitoring sensor. Implementasi: counter di-increment kalau kondisi true, reset kalau false. Ketika counter ≥ N, eksekusi transition.</p>
-      <div class="formula">if count ≥ N: transition</div>
+      <div class="formula">\(if count \ge N: transition\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📜</div>
       <h3>ANSI/ISA 18.2 — Alarm Management</h3>
       <p>Standar resmi ISA-18.2 (2009) — wajib di petrochemical, power, pulp&amp;paper. Target: <strong>≤ 1 alarm per 10 menit per operator</strong> di steady state. Lebih = alarm flood = operator overwhelmed = <em>alarm fatigue</em> → ignore alarm penting → safety risk (Texas City BP 2005, 15 fatalities partly due alarm flood). 7 lifecycle phases: identification, rationalization, documentation, implementation, operation, maintenance, monitoring &amp; assessment. EEMUA 191 (UK) ekuivalen. Compliance audit cek alarm rate, response time, dan rationalization document.</p>
-      <div class="formula">≤ 1 alarm / 10 min</div>
+      <div class="formula">\(\le 1 alarm / 10 min\)</div>
     </div>
   </div>
 
@@ -1021,25 +1021,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📐</div>
       <h3>Threshold Absolut: T_low &amp; T_high</h3>
       <p>Bentuk paling sederhana: <code>IF rms &gt; T_high THEN ALERT</code>. Untuk fitur dua-arah (mis. tekanan oli yang tidak boleh terlalu rendah dan terlalu tinggi): <code>IF p &lt; T_low OR p &gt; T_high THEN ALERT</code>. Threshold harus <em>physical-meaningful</em>: didasarkan pada batas mekanis (yield stress, bearing fatigue limit), standar industri, atau baseline operasi normal. <strong>Hindari threshold ditebak</strong> — selalu dokumentasikan sumbernya.</p>
-      <div class="formula">if x &gt; T_high: alert</div>
+      <div class="formula">\(if x > T_high: alert\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🏛️</div>
       <h3>ISO 10816-3 — Zone A/B/C/D</h3>
       <p>Standar internasional untuk vibrasi mesin rotasi. Pakai <strong>RMS velocity (mm/s)</strong> di band 10 Hz–1 kHz. Untuk Group 2 (medium 15–300 kW, rigid foundation): <em>A (Good) ≤ 1.4</em>, <em>B (Acceptable) 1.4–2.8</em>, <em>C (Unsatisfactory) 2.8–4.5</em>, <em>D (Danger) &gt; 4.5</em>. Mesin di zona D harus <strong>shutdown atau diperbaiki segera</strong>. Klasifikasi otomatis = lookup table sederhana di Python: <code>if rms ≤ 1.4: 'A' elif rms ≤ 2.8: 'B' elif rms ≤ 4.5: 'C' else: 'D'</code>.</p>
-      <div class="formula">A | B | C | D zones</div>
+      <div class="formula">\(A | B | C | D zones\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔧</div>
       <h3>Class I–IV (Group Mesin)</h3>
       <p>Threshold ISO 10816-3 berbeda per kelas: <em>Class I</em> (small &lt; 15 kW: motor pump kecil), <em>Class II</em> (medium 15–75 kW: blower, kompresor kecil), <em>Class III</em> (large machines on rigid foundations: turbin uap), <em>Class IV</em> (large machines on flexible foundations: paper machine, large compressor). Mesin yang sama bisa "OK" di Class IV (toleransi besar) tetapi "DANGER" di Class I (toleransi ketat). <strong style="color:var(--cyan)">Selalu cek kelas mesin sebelum pilih threshold</strong>.</p>
-      <div class="formula">Class I (small) → IV (large flex)</div>
+      <div class="formula">\(Class I (small) \to IV (large flex)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🏗️</div>
       <h3>Rigid vs Flexible Foundation</h3>
       <p>Foundation = pondasi mesin. <strong>Rigid</strong> (concrete masif, baseplate steel tebal): vibrasi yang ditransmit kecil → threshold lebih ketat. <strong>Flexible</strong> (skid mounting, isolator karet, struktural baja): foundation menyerap vibrasi → threshold lebih longgar. ISO 10816 punya tabel terpisah untuk keduanya. <em>Rule of thumb</em>: kalau natural frequency foundation &gt; 25% frequency mesin, considered rigid; kalau di bawah, flexible.</p>
-      <div class="formula">f_n_found vs f_machine</div>
+      <div class="formula">\(f_n_found vs f_machine\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📡</div>
@@ -1051,7 +1051,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🔬</div>
       <h3>Multi-Feature Threshold (RMS + Peak + Kurtosis)</h3>
       <p>Threshold tunggal (RMS) bisa miss anomali tertentu. Kombinasi multi-feature lebih sensitif: <strong>RMS</strong> deteksi unbalance/misalignment; <strong>peak amplitude</strong> deteksi impact (bearing pitting); <strong>kurtosis &gt; 4</strong> deteksi distribusi non-Gaussian (early bearing fault). Rule kombinasi: <code>IF rms &gt; T1 OR peak &gt; T2 OR kurt &gt; T3 THEN ALERT</code>. Tools: P1–P7 (extract fitur) lalu P13 (apply rule). Kompleksitas grow → next step: ML (P14).</p>
-      <div class="formula">multi-rule OR/AND combo</div>
+      <div class="formula">\(multi-rule OR/AND combo\)</div>
     </div>
   </div>
 
@@ -1100,37 +1100,37 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">↔️</div>
       <h3>Hysteresis: T_on &gt; T_off</h3>
       <p>Definisi: dua threshold berbeda untuk transition ke "ON" vs ke "OFF". Saat status OFF, perlu sinyal &gt; T_on untuk pindah ke ON. Saat status ON, sinyal harus turun di bawah T_off untuk kembali ke OFF. Tipikal: T_off = T_on − margin (mis. T_on=70, T_off=65). Margin 5–15% biasanya cukup. Tanpa hysteresis, sinyal di sekitar threshold ber-flip-flop sangat cepat (chattering).</p>
-      <div class="formula">T_on = 70, T_off = 65 (margin 5)</div>
+      <div class="formula">\(T_on = 70, T_off = 65 (margin 5)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Schmitt Trigger Analogy</h3>
       <p>Konsep hysteresis dipakai di rangkaian elektronik <strong>Schmitt trigger</strong> (Otto Schmitt 1934) — comparator dengan dua threshold. Awalnya untuk filter noise di radar WWII, sekarang dipakai di setiap microcontroller (Arduino, STM32) untuk debouncing button input. Algoritma yang sama persis bisa diterapkan untuk threshold-based monitoring di software. <strong style="color:var(--cyan)">Insight</strong>: setiap masalah noise-induced chattering punya solusi hysteresis yang elegan.</p>
-      <div class="formula">analog Schmitt trigger</div>
+      <div class="formula">\(analog Schmitt trigger\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎚️</div>
       <h3>Tier Alarm — Tiga Level Eskalasi</h3>
       <p>Bukan binary OK/FAIL, tetapi <em>gradient</em> 3+ level: <strong>WARNING</strong> (yellow, perhatikan) → <strong>ALERT</strong> (orange, action segera) → <strong>CRITICAL</strong> (red, shutdown). Tiap tier punya threshold sendiri: T_warn &lt; T_alert &lt; T_critical. Aksi berbeda: warning → log + notification email; alert → SMS ke supervisor; critical → auto-shutdown + page on-call engineer. Memetakan ke ISO 10816: A (no alarm), B (warning), C (alert), D (critical).</p>
-      <div class="formula">T_warn &lt; T_alert &lt; T_crit</div>
+      <div class="formula">\(T_warn < T_alert < T_crit\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⏱️</div>
       <h3>Escalation Timer (Persistence)</h3>
       <p>Beberapa anomali muncul sesaat (transient noise) dan menghilang sendiri — tidak perlu eskalasi. Tetapi kalau anomali persist &gt; T detik, tier perlu naik. Contoh: <em>warning persist 5 menit → eskalasi ke alert; alert persist 10 menit → eskalasi ke critical</em>. Timer reset ketika sinyal kembali normal (atau hysteresis turun). Implementasi: state machine dengan timer per state.</p>
-      <div class="formula">if t_in_state &gt; Δt: escalate</div>
+      <div class="formula">\(if t_in_state > \Delta t: escalate\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔇</div>
       <h3>Alarm Flood Prevention (ANSI/ISA 18.2)</h3>
       <p>Bahaya nyata: <strong>alarm flood</strong> — saat 1 root cause memicu cascade puluhan alarm sekaligus, operator overwhelmed. ANSI/ISA 18.2 (Alarm Management) menetapkan <em>limit</em>: ≤ 1 alarm/10 menit per operator (steady state); ≤ 10 alarm dalam 10 menit pertama post-disturbance. Solusi: <strong>alarm grouping</strong> (suppress child alarm jika parent sudah on), <strong>shelving</strong> (operator bisa silence alarm selama window terbatas), <strong>alarm rationalization</strong> (review periodik untuk delete alarm yang tidak actionable).</p>
-      <div class="formula">≤ 1 alarm / 10 min</div>
+      <div class="formula">\(\le 1 alarm / 10 min\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎨</div>
       <h3>HMI Color Convention</h3>
       <p>Standar industri (ABB 800xA, Siemens PCS 7, Honeywell Experion) untuk warna alarm: <strong style="color:var(--green)">hijau</strong> (running normal), <strong style="color:var(--cyan)">cyan/biru</strong> (info / state change), <strong style="color:var(--amber)">kuning</strong> (warning), <strong style="color:var(--pink)">orange/oranye</strong> (alert), <strong style="color:#ef4444">merah</strong> (critical), <strong style="color:#a855f7">ungu</strong> (failure / no signal). Konsistensi warna penting untuk operator yang shift-rotate antar mesin/pabrik. Gunakan ikon (✓ ⚠ ✗) di samping warna untuk accessibility (color-blind operators).</p>
-      <div class="formula">green/yellow/orange/red</div>
+      <div class="formula">\(green/yellow/orange/red\)</div>
     </div>
   </div>
 
@@ -1182,37 +1182,37 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🔄</div>
       <h3>States &amp; Transitions</h3>
       <p>FSM didefinisikan oleh <strong>5-tuple</strong>: (S, s₀, Σ, δ, F) — set states S, initial state s₀, input alphabet Σ, transition function δ: S × Σ → S, final states F. Untuk monitoring: S = {NORMAL, WARNING, ALERT, CRITICAL, FAULT}; s₀ = NORMAL; Σ = {sensor reading + timer event}; δ = rules (mis. NORMAL → WARNING jika rms &gt; T_warn). Visualisasi via <strong>state diagram</strong> (lingkaran = state, panah = transition). Tools: <code>graphviz</code>, <code>state_machine</code> Python lib.</p>
-      <div class="formula">δ: S × Σ → S</div>
+      <div class="formula">\(\delta : S \times \Sigma \to S\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🅼</div>
       <h3>Mealy vs Moore Machine</h3>
       <p>Dua varian FSM: <strong>Moore</strong> — output hanya bergantung pada <em>state saat ini</em> (mis. di state ALERT, selalu nyalakan lampu oranye, terlepas dari input). <strong>Mealy</strong> — output bergantung pada <em>state + input</em> (mis. transisi ALERT → CRITICAL kirim SMS; tetapi NORMAL → CRITICAL juga kirim SMS dengan pesan berbeda). Mealy lebih ekspresif tetapi rumit. Untuk monitoring sederhana, Moore cukup.</p>
-      <div class="formula">Moore: f(s); Mealy: f(s, σ)</div>
+      <div class="formula">\(Moore: f(s); Mealy: f(s, \sigma )\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🚪</div>
       <h3>Entry / Exit Actions</h3>
       <p>Tiap state punya 2 hook: <strong>\(on_entry\)</strong> (jalankan saat state baru di-enter) dan <strong>\(on_exit\)</strong> (jalankan saat state ditinggalkan). Contoh: <em>\(on_entry(ALERT)\)</em> = log timestamp + send SMS supervisor. <em>\(on_exit(ALERT)\)</em> = log durasi + cancel SMS escalation timer. Pola ini memisahkan <em>logic transisi</em> dari <em>side effects</em> (notifikasi, logging). Pattern populer: <strong>state pattern</strong> (Gang of Four), implementation di Python <code>statemachine</code> library.</p>
-      <div class="formula">on_entry / on_exit hooks</div>
+      <div class="formula">\(on_entry / on_exit hooks\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⏳</div>
       <h3>Debouncing (N Consecutive Samples)</h3>
       <p>Sinyal sensor noisy bisa cross threshold sesaat lalu kembali normal. Solusi: <strong>require N consecutive samples</strong> di kondisi alert sebelum pindah state. Contoh: untuk pindah dari NORMAL ke WARNING, butuh 5 sample berturut-turut dengan rms &gt; T_warn. Implementasi: counter di-increment kalau kondisi true, reset ke 0 kalau false. Ketika counter &gt;= N, eksekusi transisi. <em>Trade-off</em>: N besar → lebih robust noise, tetapi delay deteksi (latency) makin lama. Tipikal: N = 3–10 (≈ 100–500 ms pada 50 Hz sampling).</p>
-      <div class="formula">if count &gt;= N: transition</div>
+      <div class="formula">\(if count >= N: transition\)</div>
     </div>
     <div class="card">
       <div class="card-icon">💓</div>
       <h3>Heartbeat &amp; Sensor Timeout</h3>
       <p>Sensor bisa mati / disconnect tanpa warning — output frozen di nilai terakhir. Untuk detect, FSM butuh <strong>heartbeat</strong>: harapkan sample baru tiap T detik. Kalau tidak ada sample selama 2·T (atau \(N \cdot T)\), pindah ke state FAULT (sensor failure). Implementasi: timer yang reset tiap kali ada sample masuk; expired timer trigger transisi. Pattern: <em>watchdog timer</em>, dipakai di mikrokontroller (STM32 IWDG, AVR WDT) untuk detect software hang juga.</p>
-      <div class="formula">if Δt &gt; timeout: FAULT</div>
+      <div class="formula">\(if \Delta t > timeout: FAULT\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📜</div>
       <h3>Event Sourcing &amp; Audit Log</h3>
       <p>Tiap transition state harus <strong>di-log</strong> dengan: timestamp, old_state, new_state, trigger value, sample data. Format JSON / CSV / database (SQLite, InfluxDB, TimescaleDB). Audit log = <em>source of truth</em> untuk: (a) post-mortem analysis (kenapa shutdown?), (b) compliance audit (ISO/API), (c) trend analysis (frequency of warnings naik = degradasi mesin), (d) ML training data (P14). Pattern: <strong>event sourcing</strong> — replay log untuk reconstruct state apapun di waktu lalu.</p>
-      <div class="formula">log: ts, s_old, s_new, trigger</div>
+      <div class="formula">\(\log: ts, s_old, s_new, trigger\)</div>
     </div>
   </div>
 
@@ -1443,25 +1443,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🌪️</div>
       <h3>Wind Turbine SCADA Monitoring (Vestas)</h3>
       <p>Vestas (Denmark) memantau ribuan turbin angin di seluruh dunia via SCADA + edge gateway. Per turbin ada 200+ sensor (vibrasi nacelle, temperatur gearbox, generator current, blade pitch angle). <strong>Rule-based threshold + ISO 10816-21</strong> (specific untuk wind turbine) dipakai untuk first-line alerting. State machine track health per komponen: gearbox, generator, blade, tower. Saat alarm, sistem otomatis kurangi pitch angle (curtail power) sebelum shutdown. Reduction MTTR (mean time to repair) 30% via early warning. Tools: <strong>OSIsoft PI System</strong>, <strong>Bachmann Webmonitor</strong>, <strong>Vestas Compass</strong>.</p>
-      <div class="formula">200+ sensor / turbin · SCADA</div>
+      <div class="formula">\(200+ sensor / turbin \cdot SCADA\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🏗️</div>
       <h3>Gedung Tinggi Smart HVAC (Siemens Building)</h3>
       <p>Burj Khalifa (Dubai), One World Trade Center (NYC), Shanghai Tower — gedung &gt; 100 lantai punya BMS (Building Management System) dengan 10,000+ data points (suhu zona, CO₂, occupancy, fan/pump status). <strong>Rule-based dengan tier alarm</strong>: warning saat CO₂ &gt; 800 ppm (kantuk), alert saat &gt; 1000 ppm (lethargy), critical &gt; 1500 ppm (kesehatan). Hysteresis 100 ppm hindari fan flapping. State machine track HVAC mode: occupied / unoccupied / pre-cool / setback. Energy saving 15–25% dari rule-based optimization vs constant operation. Standar: <strong>ASHRAE 90.1</strong>, <strong>EN 15251</strong>.</p>
-      <div class="formula">CO₂ tier: 800 / 1000 / 1500</div>
+      <div class="formula">\(CO_2 tier: 800 / 1000 / 1500\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Power Grid Substation Monitoring (PLN, ABB)</h3>
       <p>Substation 150 kV / 500 kV memantau transformer (oil temp, dissolved gas DGA, tap-changer position), circuit breaker, busbar, lightning arrester. <strong>IEC 61850</strong> protokol untuk komunikasi rule-based logic ke IED (Intelligent Electronic Device). Threshold absolut + rate-of-change (mis. oil temp naik &gt; 5°C/menit = critical). State machine multi-level: normal → caution → emergency → trip. Di PLN, sistem ini detect 90% gangguan sebelum menjadi blackout. Vendor utama: <strong>ABB Relion</strong>, <strong>Siemens Reyrolle</strong>, <strong>Schneider Electric MiCOM</strong>.</p>
-      <div class="formula">IEC 61850 + IED rule logic</div>
+      <div class="formula">\(IEC 61850 + IED rule logic\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🏎️</div>
       <h3>F1 Race Car Telemetry (Mercedes-AMG, McLaren)</h3>
       <p>Mobil F1 punya 300+ sensor (suhu ban tiap sudut, brake temp 800+°C, engine RPM, KERS battery, fuel flow rate). Telemetry real-time ke pit garage via 5G/dedicated network, latency &lt; 50 ms. <strong>Rule-based monitoring agresif</strong>: tier alert untuk suhu rem (warning 700°C, critical 850°C → driver dipanggil pit), tire degradation rate (tier alarm jika &gt; X%/lap). Engineer di pit pakai dashboard custom (NVIDIA Quadro untuk visualisasi). FIA regulasi: data telemetry harus disimpan untuk audit. Sistem: <strong>MES (Mercedes Engine Software)</strong>, <strong>Mclaren Applied Telemetry</strong>.</p>
-      <div class="formula">300+ sensor · telemetry &lt; 50 ms</div>
+      <div class="formula">\(300+ sensor \cdot telemetry < 50 ms\)</div>
     </div>
   </div>
 

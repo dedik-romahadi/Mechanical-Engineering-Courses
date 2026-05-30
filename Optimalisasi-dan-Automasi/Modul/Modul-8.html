@@ -972,25 +972,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📐</div>
       <h3>Linearitas — Asumsi Fundamental</h3>
       <p>LP mengasumsikan <strong>linearitas</strong> di tiga level: (1) <em>fungsi objektif linier</em> — profit per unit konstan; (2) <em>kendala linier</em> — pemakaian sumber daya proporsional; (3) <em>aditivitas</em> — total = jumlah individu, tanpa interaksi sinergis. Asumsi ini valid untuk banyak masalah skala produksi <strong style="color:var(--cyan)">(short-term, sumber daya tetap)</strong>. Untuk fungsi non-linier (skala ekonomi, biaya kuadratik), gunakan NLP di Pertemuan 10.</p>
-      <div class="formula">Z = c₁x₁ + c₂x₂ + ... + cₙxₙ</div>
+      <div class="formula">\(Z = c_1x_1 + c_2x_2 + ... + c_nx_n\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔺</div>
       <h3>Daerah Feasibel = Poligon Konveks</h3>
       <p>Setiap kendala <code>aᵢᵀx ≤ bᵢ</code> adalah <strong>setengah-bidang</strong>. Irisan semua kendala membentuk <em>polihedron konveks</em>. Sifat konveks ini krusial: <strong style="color:var(--green)">setiap maksimum/minimum lokal sekaligus global</strong> — tidak ada "perangkap" lokal seperti di NLP. Inilah yang membuat LP <em>tractable</em> bahkan untuk ratusan ribu variabel.</p>
-      <div class="formula">P = {x | Ax ≤ b, x ≥ 0}</div>
+      <div class="formula">\(P = {x | Ax \le b, x \ge 0}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Teorema Dasar LP (Dantzig 1947)</h3>
       <p>Jika LP punya solusi optimal terbatas, maka <strong>setidaknya satu titik vertex</strong> daerah feasibel adalah solusi optimal. Konsekuensi: alih-alih cek semua titik di poligon (jumlahnya tak hingga), cukup periksa <strong style="color:var(--violet)">vertex saja</strong> — jumlahnya finite (paling banyak C(m+n, n)). <em>Algoritma Simpleks</em> melompat dari vertex ke vertex, selalu memperbaiki Z, hingga tidak ada peningkatan lagi.</p>
-      <div class="formula">x* ∈ vertices(P)</div>
+      <div class="formula">\(x* \in vertices(P)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🐍</div>
       <h3>Implementasi: scipy.optimize.linprog</h3>
       <p>Python menyediakan solver LP gratis lewat <code>scipy.optimize.linprog</code>. Cukup definisikan: <code>c</code> (koefisien objektif), <code>A_ub</code>/<code>b_ub</code> (kendala ≤), <code>A_eq</code>/<code>b_eq</code> (kendala =), <code>bounds</code> (batas variabel). Method default <code>'highs'</code> (HiGHS solver, 2020) menyelesaikan masalah hingga <strong style="color:var(--amber)">jutaan variabel dalam detik</strong>. Untuk LP industrial: pakai PuLP/Pyomo + Gurobi/CPLEX.</p>
-      <div class="formula">linprog(c, A_ub, b_ub, ...)</div>
+      <div class="formula">\(linprog(c, A_ub, b_ub, ...)\)</div>
     </div>
   </div>
 
@@ -1021,25 +1021,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📝</div>
       <h3>Bentuk Kanonik (Maksimisasi)</h3>
       <p>Bentuk paling intuitif untuk masalah produksi: <code>max Z = cᵀx</code> dengan kendala <code>Ax ≤ b</code> dan <code>x ≥ 0</code>. Setiap baris <code>aᵢᵀx ≤ bᵢ</code> merepresentasikan <em>batas sumber daya</em> (kapasitas mesin, bahan baku, jam kerja). <strong style="color:var(--cyan)">Inequality ≤ adalah default</strong> karena menggambarkan "tidak boleh melebihi". Untuk minimisasi, kalikan c dengan −1.</p>
-      <div class="formula">max cᵀx s.t. Ax ≤ b, x ≥ 0</div>
+      <div class="formula">\(max c^{T}x s.t. Ax \le b, x \ge 0\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔄</div>
       <h3>Bentuk Standar (Slack Variables)</h3>
       <p>Konversi <code>aᵢᵀx ≤ bᵢ</code> menjadi <em>persamaan</em> dengan menambah <strong>slack variable</strong> <code>sᵢ ≥ 0</code>: <code>aᵢᵀx + sᵢ = bᵢ</code>. Slack mewakili sumber daya yang tidak terpakai. Untuk kendala <code>≥</code>, kurangi <em>surplus variable</em>. Hasil: sistem persamaan linier <code>[A | I]·[x; s] = b</code> dengan semua variabel non-negatif — bentuk yang dipakai algoritma Simpleks.</p>
-      <div class="formula">Ax + Is = b, x,s ≥ 0</div>
+      <div class="formula">\(Ax + Is = b, x,s \ge 0\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎚️</div>
       <h3>Bounds — Variabel Berbatas</h3>
       <p>Variabel kadang punya <em>batas atas</em> (kapasitas maksimum produksi) dan <em>batas bawah</em> (kontrak minimum). Daripada menulis ulang sebagai kendala umum, solver modern menerima langsung: <code>lb ≤ x ≤ ub</code>. Di SciPy: <code>bounds=[(0, 100), (0, None), ...]</code>. Untuk variabel <em>bebas</em> (tanpa tanda), pakai <code>(None, None)</code> — internal akan dipecah menjadi <code>x = x⁺ − x⁻</code>.</p>
-      <div class="formula">lb ≤ x ≤ ub</div>
+      <div class="formula">\(lb \le x \le ub\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚠️</div>
       <h3>Tiga Status Solusi LP</h3>
       <p>Saat solver berjalan, hasilnya salah satu dari: (1) <strong style="color:var(--green)">Optimal</strong> — solusi unik atau multiple optima ditemukan; (2) <strong style="color:var(--pink)">Infeasible</strong> — kendala kontradiktif, daerah feasibel kosong; (3) <strong style="color:var(--amber)">Unbounded</strong> — Z bisa naik tanpa batas (formulasi kurang kendala). Selalu cek <code>result.status</code> sebelum percaya <code>result.x</code> — jangan asumsi optimal.</p>
-      <div class="formula">status ∈ {0, 2, 3}</div>
+      <div class="formula">\(status \in {0, 2, 3}\)</div>
     </div>
   </div>
 
@@ -1070,25 +1070,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📈</div>
       <h3>Plot Constraint Lines</h3>
       <p>Untuk setiap kendala <code>a₁x₁ + a₂x₂ ≤ b</code>: gambar <em>garis batas</em> <code>a₁x₁ + a₂x₂ = b</code> dengan dua titik (potong sumbu x₁ saat x₂=0, dan sumbu x₂ saat x₁=0). Lalu uji satu titik (biasanya origin) — jika memenuhi kendala, sisi origin adalah feasible; jika tidak, sisi sebaliknya. Ulangi untuk semua kendala. Kendala <code>x ≥ 0</code> membatasi ke <strong>kuadran pertama</strong>.</p>
-      <div class="formula">x₁/b₁ + x₂/b₂ = 1</div>
+      <div class="formula">\(x_1/b_1 + x_2/b_2 = 1\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔻</div>
       <h3>Identifikasi Daerah Feasibel</h3>
       <p>Daerah feasibel = irisan semua setengah-bidang. Berbentuk <strong>poligon konveks</strong> (mungkin bounded atau unbounded). Vertex daerah feasibel = perpotongan dua atau lebih garis constraint yang aktif (binding). Untuk LP 2D dengan m kendala + 2 non-negativitas, jumlah vertex ≤ <code>C(m+2, 2)</code>. <strong style="color:var(--green)">Salah satu vertex inilah solusi optimal</strong> (Teorema Dasar LP).</p>
-      <div class="formula">P = ⋂ {x | aᵢᵀx ≤ bᵢ}</div>
+      <div class="formula">\(P = ⋂ {x | a_i^{T}x \le b_i}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Iso-Profit Line &amp; Optimasi</h3>
       <p>Plot garis <code>c₁x₁ + c₂x₂ = Z₀</code> untuk Z₀ kecil. Garis ini punya kemiringan tetap <code>−c₁/c₂</code>; nilai Z naik saat garis bergeser ke arah <strong>vektor gradien c</strong>. Geser garis menjauhi origin (untuk maksimisasi) hingga <em>menyentuh vertex terakhir</em> daerah feasibel. Vertex itu = solusi optimal x*. Jika garis sejajar dengan satu sisi → <strong>multiple optima</strong>.</p>
-      <div class="formula">∇Z = c → arah peningkatan</div>
+      <div class="formula">\(∇Z = c \to arah peningkatan\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔍</div>
       <h3>Enumerasi Vertex (Brute Force)</h3>
       <p>Alternatif metode grafis: <em>cari semua vertex</em>, evaluasi Z di tiap vertex, pilih yang terbesar. Vertex = solusi sistem persamaan dari 2 kendala aktif. Untuk n=2 dengan m kendala: cek semua <code>C(m,2)</code> kombinasi pasangan, validasi feasibility, lalu evaluasi Z. Cocok untuk <strong style="color:var(--amber)">verifikasi manual</strong> hasil solver di kasus kecil.</p>
-      <div class="formula">x* = argmax{Z(v) : v ∈ vertices}</div>
+      <div class="formula">\(x* = argmax{Z(v) : v \in vertices}\)</div>
     </div>
   </div>
 
@@ -1132,31 +1132,31 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🔢</div>
       <h3>Tableau Awal &amp; Basic Feasible Solution</h3>
       <p>Konversi LP ke bentuk standar dengan slack, lalu susun <strong>tableau</strong>: baris kendala + baris objektif. <em>Basic variables</em> (BV) = kolom yang membentuk identity (awalnya semua slack); <em>non-basic</em> (NBV) = sisanya, di-set ke 0. <strong style="color:var(--cyan)">Solusi awal</strong>: x = 0, slack = b → titik origin di daerah feasibel (asumsi b ≥ 0).</p>
-      <div class="formula">x_BV = B⁻¹b, x_NBV = 0</div>
+      <div class="formula">\(x_BV = B⁻^1b, x_NBV = 0\)</div>
     </div>
     <div class="card">
       <div class="card-icon">💰</div>
       <h3>Pricing — Pilih Variabel Masuk</h3>
       <p>Hitung <strong>reduced cost</strong> tiap NBV: <code>z̄ⱼ = cⱼ − c_BV·B⁻¹·aⱼ</code>. Untuk <em>maksimisasi</em>: pilih NBV dengan <strong style="color:var(--green)">z̄ⱼ paling positif</strong> (Dantzig's rule) — variabel ini akan masuk basis dan menaikkan Z. Jika semua z̄ⱼ ≤ 0 → <em>solusi optimal</em>, stop. Alternatif: <em>steepest edge</em> (lebih cepat tapi lebih mahal per iterasi), <em>Bland's rule</em> (anti-cycling).</p>
-      <div class="formula">j* = argmax{z̄ⱼ : NBV}</div>
+      <div class="formula">\(j* = argmax{z̄_j : NBV}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📏</div>
       <h3>Ratio Test — Pilih Variabel Keluar</h3>
       <p>Setelah variabel <code>x_{j*}</code> dipilih masuk, harus ada satu BV yang keluar (agar tetap n basic variables). <strong>Minimum ratio test</strong>: untuk semua baris <code>i</code> dengan <code>aᵢⱼ* &gt; 0</code>, hitung <code>θᵢ = bᵢ / aᵢⱼ*</code>. Pilih <code>i*</code> dengan <strong>θ minimum</strong> — itulah BV yang keluar. Jika semua <code>aᵢⱼ* ≤ 0</code> → <strong style="color:var(--amber)">unbounded</strong> (Z bisa naik ∞).</p>
-      <div class="formula">θ* = min{bᵢ/aᵢⱼ* : aᵢⱼ* &gt; 0}</div>
+      <div class="formula">\(\theta * = min{b_i/a_i_j* : a_i_j* > 0}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔄</div>
       <h3>Pivot — Update Tableau</h3>
       <p>Pivot di posisi <code>(i*, j*)</code>: bagi baris i* dengan <code>aᵢ*ⱼ*</code> agar pivot = 1, lalu eliminasi kolom j* di semua baris lain dengan <em>row operations Gauss-Jordan</em>. Ulangi pricing → ratio test → pivot. <strong style="color:var(--violet)">Tiap iterasi: Z monoton naik</strong> (untuk maks). Konvergen dalam jumlah finite langkah karena vertex jumlahnya finite, kecuali ada degenerasi (cycling).</p>
-      <div class="formula">Z_(k+1) ≥ Z_k</div>
+      <div class="formula">\(Z_{k+1} \ge Z_k\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Big-M &amp; Two-Phase (Initial BFS)</h3>
       <p>Saat tidak ada slack/identitas siap (mis. ada kendala = atau ≥), pakai <strong>artificial variable</strong>. Dua pendekatan: (1) <em>Big-M method</em>: tambah artificial dengan koefisien penalti M besar di objektif → solver akan menekan ke 0; (2) <em>Two-Phase method</em>: minimize sum of artificial dulu (Phase 1), lalu solve LP asli (Phase 2). Two-Phase lebih numerik stabil di praktik.</p>
-      <div class="formula">min M·Σaⱼ + cᵀx</div>
+      <div class="formula">\(min M \cdot \Sigma a_j + c^{T}x\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🚀</div>
@@ -1393,25 +1393,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🏭</div>
       <h3>Production Planning &amp; Mix Optimization</h3>
       <p>Pabrik komponen otomotif memproduksi 8 jenis bracket dengan profit, waktu CNC, waktu welding, dan demand pasar berbeda. <strong>Variabel</strong>: <code>xᵢ</code> = unit per bracket; <strong>objektif</strong>: max Σ profit·xᵢ; <strong>kendala</strong>: jam mesin, raw material, demand min/max, kontrak supply. LP menyelesaikan dalam detik vs spreadsheet manual yang bisa miss optimal 10–20%. Dipakai di Toyota Production System, Bosch, Astra. SAP IBP (Integrated Business Planning) menjalankan LP setiap shift untuk re-plan.</p>
-      <div class="formula">max cᵀx s.t. capacity, demand</div>
+      <div class="formula">\(max c^{T}x s.t. capacity, demand\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔩</div>
       <h3>Material Blending — Steel &amp; Alloy</h3>
       <p>Pabrik baja blend scrap, pig iron, dan ferro-alloy untuk hasilkan komposisi target (C, Mn, Si, Ni, Cr, %) dengan biaya minimum. <strong>Variabel</strong>: <code>xⱼ</code> = ton tiap raw material; <strong>objektif</strong>: min Σ harga·xⱼ; <strong>kendala</strong>: spek kimia <code>aᵢⱼxⱼ &lt;/&gt; spec_i</code>, total weight, melt capacity. ArcelorMittal, Krakatau Steel, Posco semua pakai LP untuk tiap heat di EAF (Electric Arc Furnace). Hemat 2–8% biaya raw material — translate ke jutaan USD/tahun.</p>
-      <div class="formula">min cᵀx s.t. spec ≤ Ax ≤ spec̄</div>
+      <div class="formula">\(min c^{T}x s.t. spec \le Ax \le spec̄\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🚛</div>
       <h3>Logistik &amp; Vehicle Routing</h3>
       <p>Truk distribusi spare-part: dari 3 warehouse ke 12 pabrik client, total demand 500 ton/minggu. <strong>Variabel</strong>: <code>xᵢⱼ</code> = ton dari warehouse i ke pabrik j; <strong>objektif</strong>: min total ongkos kirim; <strong>kendala</strong>: kapasitas warehouse, demand pabrik, jumlah truk tersedia. <em>Transportation LP</em> klasik. Untuk vehicle routing problem (VRP) yang menentukan urutan stop per truk, LP relaxation digunakan sebagai bound di branch-and-bound MILP. Ini inti kerja Logivan, Amazon FBA, dan dispatch system Astra Toyota Auto-Body.</p>
-      <div class="formula">min Σcᵢⱼxᵢⱼ s.t. supply, demand</div>
+      <div class="formula">\(min \Sigma c_i_jx_i_j s.t. supply, demand\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Energy Optimization Smart Factory</h3>
       <p>Pabrik dengan solar PV (200 kW), genset diesel, dan grid PLN. Bagaimana <em>mix</em> sumber listrik per jam agar total cost minimum, dengan kendala demand pabrik (kompresor, oven, AC) dan batas grid (kontrak max 150 kW). <strong>Variabel</strong>: pᵢ(t) = power tiap sumber per jam; <strong>objektif</strong>: min Σ cost·p; <strong>kendala</strong>: balance Σpᵢ ≥ demand, ramp rate genset, baterai SoC linear approximation. LP dijalankan setiap 15 menit di Energy Management System modern (Siemens MindSphere, GE Predix). Hemat 8–15% tagihan listrik vs operasi manual.</p>
-      <div class="formula">min Σcᵢ(t)·pᵢ(t)</div>
+      <div class="formula">\(min \Sigma c_i(t) \cdot p_i(t)\)</div>
     </div>
   </div>
 
