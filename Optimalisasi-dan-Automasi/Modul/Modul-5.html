@@ -971,19 +971,19 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📈</div>
       <h3>Non-Stasioneritas</h3>
       <p>Deret dikatakan <strong>stasioner</strong> bila mean, varians, dan struktur kovariansnya <em>konstan</em> terhadap waktu. Data sensor mesin hampir tidak pernah stasioner — getaran meningkat seiring aus bearing, suhu bergeser seiring musim. Model seperti ARIMA, forecasting klasik, bahkan banyak ML model <strong style="color:var(--pink)">mensyaratkan stasioneritas</strong> agar prediksinya valid.</p>
-      <div class="formula">μ(t), σ²(t) = const</div>
+      <div class="formula">\(\mu (t), \sigma ^2(t) = const\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📊</div>
       <h3>Varians Tidak Konstan</h3>
       <p>Sensor dengan <em>heteroskedastisitas</em> — variansinya tumbuh seiring besaran sinyal — menghasilkan fitur statistik (RMS, std) yang bias. Transformasi <strong style="color:var(--amber)">log atau Box-Cox</strong> memampatkan fluktuasi besar sehingga varians menjadi lebih homogen; inilah kunci feature engineering yang stabil.</p>
-      <div class="formula">y' = log(y)</div>
+      <div class="formula">\(y' = \log(y)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔄</div>
       <h3>Skala Fitur yang Beragam</h3>
       <p>Dalam monitoring multi-sensor, Anda sering menggabungkan getaran (±20 m/\(s^2\)), suhu (30–120 °C), dan arus listrik (0–50 A) dalam satu model. Tanpa <strong style="color:var(--green)">normalisasi</strong>, fitur dengan skala besar mendominasi; model terperangkap pada sinyal yang bukan akar masalah. Z-score dan Min-Max menyetarakan kontribusi tiap sensor.</p>
-      <div class="formula">z = (x − μ)/σ</div>
+      <div class="formula">\(z = (x - \mu )/\sigma\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🧩</div>
@@ -1020,13 +1020,13 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📉</div>
       <h3>Log Transform</h3>
       <p>Jika data hanya mengandung nilai positif dan variansnya <em>tumbuh</em> seiring mean (fan-shaped plot), <code>y' = log(y)</code> memampatkan nilai besar lebih banyak daripada nilai kecil. Efek: <strong style="color:var(--cyan)">varians menjadi homogen</strong>, distribusi bergeser ke arah normal. Sering dipakai untuk konsumsi energi, daya, volume produksi.</p>
-      <div class="formula">y' = log(y + ε)</div>
+      <div class="formula">\(y' = \log(y + \epsilon )\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
       <h3>Box-Cox (λ Optimal)</h3>
       <p>Box-Cox adalah generalisasi: \(y^{(\lambda )} = (x^{\lambda }-1)/\lambda\). Parameter <strong>\(\lambda\)</strong> dicari otomatis (maksimum likelihood) agar hasil paling mendekati normal. Pilihan λ umum: −1 (reciprocal), 0 (log), 0.5 (akar), 1 (identitas). Pakai <code>scipy.stats.boxcox</code>; syarat: data &gt; 0. Untuk data yang bisa nol/negatif, gunakan varian <strong>Yeo-Johnson</strong>.</p>
-      <div class="formula">λ* = argmax L(λ)</div>
+      <div class="formula">\(\lambda * = argmax L(\lambda )\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔀</div>
@@ -1038,7 +1038,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">⚖️</div>
       <h3>Z-score &amp; Min-Max</h3>
       <p><strong>Z-score</strong> (<code>(x−μ)/σ</code>): output memiliki mean 0, std 1 — cocok untuk algoritma yang sensitif jarak seperti KNN, SVM, PCA. <strong>Min-Max</strong> (<code>(x−min)/(max−min)</code>): output 0–1 — cocok untuk jaringan saraf. Keduanya harus di-<strong style="color:var(--pink)">fit hanya pada train set</strong>; parameter yang sama lalu diterapkan ke test/production untuk mencegah data leakage.</p>
-      <div class="formula">z = (x−μ)/σ</div>
+      <div class="formula">\(z = (x-\mu )/\sigma\)</div>
     </div>
   </div>
 
@@ -1087,13 +1087,13 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">➕</div>
       <h3>Kapan Aditif?</h3>
       <p>Gunakan model <strong>aditif</strong> saat amplitudo pola musiman <em>tidak tumbuh</em> seiring tren. Contoh: suhu lingkungan pabrik harian — variasi siang/malam ±3 °C tetap sama terlepas apakah suhu rata-rata bulan itu 25 °C atau 32 °C. Plot deretnya tampak seperti <em>"rel kereta"</em> — amplitudo konstan.</p>
-      <div class="formula">y = T + S + R</div>
+      <div class="formula">\(y = T + S + R\)</div>
     </div>
     <div class="card">
       <div class="card-icon">✖️</div>
       <h3>Kapan Multiplikatif?</h3>
       <p>Gunakan <strong>multiplikatif</strong> saat amplitudo musiman <em>tumbuh proporsional</em> dengan tren. Contoh: konsumsi energi pabrik yang tumbuh 10% per tahun — variasi harian juga tumbuh 10%. Plot tampak seperti <em>"corong"</em>. Trik: <code>log(y) = log(T) + log(S) + log(R)</code> — dengan log, model multiplikatif menjadi aditif.</p>
-      <div class="formula">y = T × S × R</div>
+      <div class="formula">\(y = T \times S \times R\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌊</div>
@@ -1136,7 +1136,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🔬</div>
       <h3>STL — Keunggulan</h3>
       <p>STL menggunakan <strong>LOESS</strong> (LOcal regrESSion) untuk estimasi tren &amp; musiman. Keunggulan: (1) komponen musiman bisa <em>berubah bertahap</em> seiring waktu (bukan kaku seperti dekomposisi klasik), (2) tahan outlier berkat bobot robust, (3) parameter bandwidth bisa disesuaikan. Di Python: <code>from statsmodels.tsa.seasonal import STL</code>.</p>
-      <div class="formula">STL(y, period=s)</div>
+      <div class="formula">\(STL(y, period=s)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📊</div>
@@ -1148,13 +1148,13 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">⚡</div>
       <h3>Exponential Moving Average</h3>
       <p><strong>EMA</strong> memberi bobot eksponensial menurun ke pengamatan lama: \(EMA_{t} = \alpha \cdot y_{t} + (1-\alpha ) \cdot EMA_{t-1}\). Parameter α ∈ (0,1]: α kecil = lebih halus; α besar = lebih responsif. EMA tidak punya lag sebesar MA — populer untuk alerting real-time (mis. deteksi anomali temperatur bearing).</p>
-      <div class="formula">α ∈ (0, 1]</div>
+      <div class="formula">\(\alpha \in (0, 1]\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
       <h3>Savitzky-Golay Filter</h3>
       <p>Smoothing polynomial berbasis window: untuk tiap titik, pasang polinomial orde <code>p</code> pada window <code>w</code> titik di sekitarnya, gunakan nilai polinomial di pusat window. Keunggulan dibanding MA: <strong>puncak dan lembah terjaga</strong>, sehingga fitur (peak, trough) tidak rata. Cocok untuk deret getaran di mana amplitudo peak penting.</p>
-      <div class="formula">savgol_filter(y, w, p)</div>
+      <div class="formula">\(savgol_filter(y, w, p)\)</div>
     </div>
   </div>
 
@@ -1361,25 +1361,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🛠️</div>
       <h3>Condition Monitoring Bearing</h3>
       <p>Akselerometer pada motor 24 jam × 7 hari menghasilkan ratusan ribu titik data per hari. Rata-rata RMS meningkat perlahan saat bearing aus — tren ini ter-<strong style="color:var(--cyan)">campur</strong> dengan beban operasi yang berfluktuasi. Solusi: <em>log-transform</em> RMS untuk stabilkan varians, lalu <em>STL</em> dengan periode 24 jam. Tren <em>trend-component</em> yang tersisa adalah sinyal kesehatan murni bearing.</p>
-      <div class="formula">log(RMS) → STL → trend</div>
+      <div class="formula">\(\log(RMS) \to STL \to trend\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Energy Monitoring Pabrik</h3>
       <p>Konsumsi listrik pabrik punya tiga lapis: <strong style="color:var(--amber)">tren tahunan</strong> (pertumbuhan produksi), <strong>musiman mingguan</strong> (weekend idle), <strong>musiman harian</strong> (shift malam lebih rendah). Dekomposisi aditif (atau multiplikatif jika pertumbuhan &gt; 15%/tahun) memisahkan ketiganya. Residual yang anomali → deteksi kebocoran, mesin tidak efisien, atau lonjakan yang perlu investigasi.</p>
-      <div class="formula">E = T_y + S_w + S_d + R</div>
+      <div class="formula">\(E = T_y + S_w + S_d + R\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌡️</div>
       <h3>Temperature Sensor Oven</h3>
       <p>Oven furnace punya suhu target dengan <em>ripple</em> termokontrol dan drift perlahan karena kalibrasi sensor. <strong>EMA dengan \(\alpha = 0.05\)</strong> memberi baseline halus. Deviasi instan &gt; 3σ residual → trigger alarm dini (sensor drift atau failure heater). Ini adalah basis <em>rule-based anomaly detection</em> yang paling banyak dipakai di pabrik.</p>
-      <div class="formula">alert: |y−EMA|&gt;3σ</div>
+      <div class="formula">\(alert: |y-EMA|>3\sigma\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📡</div>
       <h3>SCADA Multi-Sensor</h3>
       <p>Dashboard SCADA memonitor puluhan sensor sekaligus (suhu, tekanan, laju aliran, getaran, arus). Sebelum digabung ke ML model prediktif maintenance, semua di-<strong style="color:var(--green)">Z-score normalize</strong>. Fitur turunan (mean, std, skew dalam window 10 menit) kemudian dihitung di data yang sudah ter-normalize — seragam, dan siap di-feed ke Isolation Forest, One-Class SVM, atau autoencoder.</p>
-      <div class="formula">z = (x − μ_train)/σ_train</div>
+      <div class="formula">\(z = (x - \mu _train)/\sigma _train\)</div>
     </div>
   </div>
 

@@ -977,19 +977,19 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🔢</div>
       <h3>ADC: Resolution &amp; Rate</h3>
       <p>ADC (Analog-to-Digital Converter) mengubah V analog ke nilai digital. Dua parameter kunci: <strong>resolusi (bit)</strong> — 12-bit = 4096 level, 16-bit = 65536, 24-bit = 16M (DR ~144 dB); <strong>sampling rate</strong> — fs harus ≥ 2×f_max sinyal (Nyquist). Trade-off: resolusi tinggi + rate tinggi = data besar &amp; mahal. Pilih sesuai aplikasi.</p>
-      <div class="formula">DR(dB) ≈ 6.02·N + 1.76</div>
+      <div class="formula">\(DR(dB) \approx 6.02 \cdot N + 1.76\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📡</div>
       <h3>Edge Device &amp; Bus</h3>
       <p>Setelah ADC, data digital ditangani <strong>edge controller</strong>: STM32, ESP32, Raspberry Pi, atau industrial gateway. Bus komunikasi: I2C/SPI (sensor on-board), Modbus RTU/TCP, Ethernet/IP, MQTT untuk cloud. Edge device sering melakukan <em>preprocessing</em> (RMS, FFT) untuk reduce bandwidth — kirim feature, bukan raw data.</p>
-      <div class="formula">BW = fs · bits · channels</div>
+      <div class="formula">\(BW = fs \cdot bits \cdot channels\)</div>
     </div>
     <div class="card">
       <div class="card-icon">☁️</div>
       <h3>Storage &amp; Cloud</h3>
       <p>Data mengalir ke storage: <strong>edge buffer</strong> (RAM/Flash, hari-mingguan), <strong>local server</strong> (TimescaleDB, InfluxDB), <strong>cloud platform</strong> (AWS Timestream, Azure IoT). Pilih berdasarkan: latensi yang dapat ditoleransi (real-time vs batch), retention period, query patterns (aggregate vs detail). Tier storage = practical pattern.</p>
-      <div class="formula">latency vs retention</div>
+      <div class="formula">\(latency vs retention\)</div>
     </div>
   </div>
 
@@ -1020,13 +1020,13 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📍</div>
       <h3>Akselerometer Vibration</h3>
       <p>Tipe utama: <strong>IEPE/ICP</strong> (industri standar, output 100 mV/g, range 0.5 Hz–10 kHz), <strong>MEMS</strong> (murah, integrated, range DC–1 kHz). Untuk vibration motor: pilih bandwidth ≥ 5× rotational speed dan ≥ 2× ekspektasi bearing fault frequency. Mounting kritis: stud (terbaik), magnetic (cukup), adhesive (buruk untuk frekuensi tinggi).</p>
-      <div class="formula">100 mV/g (IEPE)</div>
+      <div class="formula">\(100 mV/g (IEPE)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌡️</div>
       <h3>Temperature Sensor</h3>
       <p>Tipe: <strong>thermocouple K/J/T</strong> (range −200°C–1300°C, akurasi ±0.5°C), <strong>RTD Pt100</strong> (akurasi ±0.1°C, lebih lambat), <strong>thermistor NTC</strong> (cepat, range terbatas). Sampling rate untuk monitoring proses: 1–10 Hz cukup (dinamika thermal lambat). Beda dengan vibration yang butuh kHz!</p>
-      <div class="formula">Pt100: R(t) = 100·(1+α·t)</div>
+      <div class="formula">\(Pt100: R(t) = 100 \cdot (1+\alpha \cdot t)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
@@ -1081,25 +1081,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">💾</div>
       <h3>Edge Buffer (Hari)</h3>
       <p>Raw data disimpan di edge device (NVMe SSD industrial, 256–1TB) sebagai <strong>circular buffer</strong> — hari ke-15 menimpa hari ke-1. Format: binary (terbaca cepat) atau Parquet (compressed columnar). Edge buffer melayani query investigasi (mis. "tunjukkan vibration motor-3 1 jam sebelum trip").</p>
-      <div class="formula">FIFO: hari N → hari N+15</div>
+      <div class="formula">\(FIFO: hari N \to hari N+15\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🗄️</div>
       <h3>Time Series Database</h3>
       <p>TSDB dirancang khusus untuk data berurutan-waktu: <strong>InfluxDB</strong>, <strong>TimescaleDB</strong> (PostgreSQL extension), <strong>Prometheus</strong>, <strong>QuestDB</strong>. Mendukung downsampling otomatis (raw → 1-min → 1-hour aggregates), retention policy per tier, dan query syntax time-aware (range, window, fill).</p>
-      <div class="formula">SELECT mean(rms) FROM ... GROUP BY time(1h)</div>
+      <div class="formula">\(SELECT mean(rms) FROM ... GROUP BY time(1h)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📤</div>
       <h3>Streaming Protocol</h3>
       <p>Untuk real-time monitoring: <strong>MQTT</strong> (lightweight pub/sub, QoS 0-2, ideal IoT), <strong>Kafka</strong> (high throughput, replay capable, enterprise), <strong>OPC UA</strong> (industri standard, complex info modeling). MQTT cukup untuk 10s of motors; Kafka untuk 1000s. Pilih berdasarkan scale &amp; durability requirements.</p>
-      <div class="formula">QoS: 0=fire&amp;forget, 2=exactly once</div>
+      <div class="formula">\(QoS: 0=fire\&forget, 2=exactly once\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📊</div>
       <h3>Aggregation Strategy</h3>
       <p>Pattern populer untuk vibration: edge hitung <strong>RMS, peak, CF per 1 detik</strong> dari raw 10 kHz → kirim ke cloud (1 nilai/detik = 86k nilai/hari, sangat ringan). Raw data tetap di edge untuk forensic analysis bila ada anomali. Cloud-side aggregate lagi: 1-min, 1-hour, 1-day untuk dashboard. Hemat bandwidth, hemat storage, tetap actionable.</p>
-      <div class="formula">edge: 10kHz → cloud: 1Hz</div>
+      <div class="formula">\(edge: 10kHz \to cloud: 1Hz\)</div>
     </div>
   </div>
 
@@ -1142,25 +1142,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📈</div>
       <h3>Line Plot — Default</h3>
       <p>Line plot adalah <strong>visualisasi default</strong> untuk time series — y vs t. Best practice: (1) sampling display ≤ 10k titik (downsample dengan max/min preservation untuk plot panjang), (2) title yang informatif (apa, kapan, dari mana), (3) y-axis dengan unit eksplisit, (4) grid alpha rendah (0.3) untuk readability, (5) jika multi-line, pakai colormap yang accessible (viridis, bukan rainbow).</p>
-      <div class="formula">plt.plot(t, y); plt.grid()</div>
+      <div class="formula">\(plt.plot(t, y); plt.grid()\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌈</div>
       <h3>Spectrogram</h3>
       <p>Spectrogram = <strong>FFT bergulir di window</strong> — menampilkan bagaimana frekuensi sinyal berubah seiring waktu. Sumbu: t (horizontal) × f (vertikal), warna = amplitudo. Sangat berguna untuk: motor startup/shutdown analysis (frekuensi naik-turun), bearing degradation (peak frekuensi muncul perlahan), gear mesh modulation. Pakai <code>scipy.signal.spectrogram</code>.</p>
-      <div class="formula">spectrogram(x, fs)</div>
+      <div class="formula">\(spectrogram(x, fs)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🟦</div>
       <h3>Heatmap (Multi-Sensor)</h3>
       <p>Untuk pabrik dengan 100+ motor, line plot semua sensor jadi clutter. <strong>Heatmap</strong> dengan baris=sensor, kolom=waktu, warna=metric (mis. RMS) jauh lebih readable. Pattern abnormal langsung terlihat sebagai band warna yang mencolok. Pair dengan annotation otomatis (label sensor di luar threshold). Tooling: matplotlib <code>imshow</code>, seaborn <code>heatmap</code>, plotly.</p>
-      <div class="formula">heatmap(rms_matrix)</div>
+      <div class="formula">\(heatmap(rms_matrix)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📦</div>
       <h3>Boxplot &amp; Violin</h3>
       <p>Statistical plots untuk membandingkan <strong>distribusi</strong> sinyal antar shift, antar bulan, antar mesin. Boxplot: median, quartile, outlier. Violin: kombinasi boxplot + density estimate (lebih informatif tapi lebih kompleks). Sangat efektif untuk identifikasi <em>shift drift</em> (mean shift, variance change) yang tidak terlihat di line plot harian.</p>
-      <div class="formula">boxplot per shift</div>
+      <div class="formula">\(boxplot per shift\)</div>
     </div>
   </div>
 
@@ -1203,37 +1203,37 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🎤</div>
       <h3>Mikrofon Studio Rekaman</h3>
       <p>Setup mikrofon studio = <em>sensor chain industrial</em>: mic → preamp (gain) → audio interface (ADC) → DAW software (storage). Tiap tahap bisa hancurkan kualitas: mic murah → SNR rendah; gain salah → clipping; bit rate kurang → quantization noise. Persis seperti sensor industri: akselerometer murah, op-amp salah, ADC under-resolved.</p>
-      <div class="formula">mic → preamp → ADC → DAW</div>
+      <div class="formula">\(mic \to preamp \to ADC \to DAW\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📷</div>
       <h3>Kamera DSLR vs HP</h3>
       <p>Sensor full-frame DSLR vs sensor kecil HP: <strong>dynamic range</strong> berbeda. DSLR 14-bit RAW = 16384 level cahaya, detail di bayangan &amp; highlight terjaga. HP 8-bit JPEG = 256 level, easily clipped. Persis seperti pilihan ADC: 24-bit untuk vibration high-end (DR 144 dB), 12-bit untuk monitoring kasar.</p>
-      <div class="formula">DR = 6.02·N + 1.76 dB</div>
+      <div class="formula">\(DR = 6.02 \cdot N + 1.76 dB\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📡</div>
       <h3>Streaming Netflix vs Download</h3>
       <p>Netflix <strong>streaming</strong>: bandwidth pendek tapi continuous, buffer kecil (latency rendah, langsung tonton). <strong>Download</strong>: bandwidth besar, simpan sekali pakai berkali-kali (offline access). Persis seperti edge buffer (streaming) vs cloud archive (download). Pilih sesuai pola akses.</p>
-      <div class="formula">streaming vs storage trade-off</div>
+      <div class="formula">\(streaming vs storage trade-off\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🗺️</div>
       <h3>Google Maps Zoom Levels</h3>
       <p>Google Maps <strong>tiered tiles</strong>: zoom dunia = 1 tile blur, zoom kota = ratusan tiles, zoom street = jutaan tiles. Saat zoom out, server tidak streaming detail rumah — kasih agregasi. Persis seperti time series tiered storage: hourly aggregate untuk dashboard daerah luas, raw 10 kHz untuk forensic zoom in.</p>
-      <div class="formula">level-of-detail by zoom</div>
+      <div class="formula">\(level-of-detail by zoom\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📺</div>
       <h3>Dashboard Pesawat / Mobil</h3>
       <p>Dashboard mobil = <em>visualisasi multi-sensor real-time</em>. Speedometer (1 Hz update cukup), tachometer (10 Hz responsif), warning light (binary status), engine temp (1 Hz, stabil). Setiap sensor pakai visualisasi berbeda sesuai karakter datanya. Persis seperti Grafana dashboard: gauge untuk current value, trend untuk history, alert untuk threshold.</p>
-      <div class="formula">visualization fits data character</div>
+      <div class="formula">\(visualization fits data character\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌡️</div>
       <h3>Termometer vs Thermal Imaging</h3>
       <p><strong>Termometer klinis</strong>: 1 angka per pengukuran, akurat tapi single-point. <strong>Thermal imaging camera</strong>: matriks 480×640 piksel temperatur, lihat distribusi spatial. Persis seperti single sensor (line plot) vs sensor array (heatmap). Beda kasus, beda visualisasi optimal.</p>
-      <div class="formula">scalar vs spatial</div>
+      <div class="formula">\(scalar vs spatial\)</div>
     </div>
   </div>
 
@@ -1376,25 +1376,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🏭</div>
       <h3>Vibration Monitoring Pabrik Semen</h3>
       <p>20+ motor mill grinding, 1-15 MW. Setup: <strong>IEPE accelerometer</strong> per motor, <strong>16-bit ADC fs=25 kHz</strong>, edge gateway hitung RMS+CF per detik, kirim via <strong>MQTT ke InfluxDB</strong>. Dashboard <strong>Grafana</strong>: line plot RMS 24h + heatmap 30-day overview semua motor. Alert tier: notice (RMS&gt;2.8), warning (&gt;4.5), critical (&gt;7.1) sesuai ISO 10816 kelas II.</p>
-      <div class="formula">25 kHz · 16-bit · MQTT</div>
+      <div class="formula">\(25 kHz \cdot 16-bit \cdot MQTT\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌾</div>
       <h3>SCADA Kelapa Sawit</h3>
       <p>Pabrik kelapa sawit: ratusan sensor temperatur (RTD/TC), pressure (4-20mA), level (ultrasonic). Setup: <strong>PLC Allen-Bradley</strong> dengan analog input modules, fs=1 Hz, scan time 100ms. Komunikasi <strong>Modbus TCP → SCADA Wonderware</strong>. Dashboard: P&amp;ID dengan live values per tag. Storage: SQL Server historian, retention 5 tahun untuk compliance.</p>
-      <div class="formula">1 Hz · 16-bit · Modbus</div>
+      <div class="formula">\(1 Hz \cdot 16-bit \cdot Modbus\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Power Quality Gardu Distribusi</h3>
       <p>Gardu distribusi 20 kV: 3-phase voltage + current. Setup: <strong>CT/PT trafo</strong> step-down → <strong>20 kHz simultaneous-sampling 16-bit ADC</strong> → real-time FFT untuk THD, harmonik (sampai orde 50). <strong>IEC 61850</strong> protocol untuk integrasi dengan SCADA grid. Output: power quality metrics per 10 menit (sesuai standar EN 50160).</p>
-      <div class="formula">20 kHz · IEC 61850</div>
+      <div class="formula">\(20 kHz \cdot IEC 61850\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🏥</div>
       <h3>Patient Monitor ICU</h3>
       <p>ICU patient monitor: ECG (500 Hz, 12-bit), SpO2 (1 Hz), NIBP (event-based), temp (0.1 Hz). <strong>Multi-rate sampling</strong> di satu device — challenge: sinkronisasi timestamp lintas sensor. Storage: <strong>HL7 FHIR</strong> di hospital information system. Visualization: dashboard waveform 5 detik live + trend metrics 1 jam. Alert berbasis algoritma per metric.</p>
-      <div class="formula">multi-rate sync</div>
+      <div class="formula">\(multi-rate sync\)</div>
     </div>
   </div>
 
