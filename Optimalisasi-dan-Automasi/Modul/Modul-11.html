@@ -1021,7 +1021,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📐</div>
       <h3>Threshold Absolut: T_low &amp; T_high</h3>
       <p>Bentuk paling sederhana: <code>IF rms &gt; T_high THEN ALERT</code>. Untuk fitur dua-arah (mis. tekanan oli yang tidak boleh terlalu rendah dan terlalu tinggi): <code>IF p &lt; T_low OR p &gt; T_high THEN ALERT</code>. Threshold harus <em>physical-meaningful</em>: didasarkan pada batas mekanis (yield stress, bearing fatigue limit), standar industri, atau baseline operasi normal. <strong>Hindari threshold ditebak</strong> — selalu dokumentasikan sumbernya.</p>
-      <div class="formula">\(if x > T_high: alert\)</div>
+      <div class="formula">\(if x > T_{\text{high}}: alert\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🏛️</div>
@@ -1039,7 +1039,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🏗️</div>
       <h3>Rigid vs Flexible Foundation</h3>
       <p>Foundation = pondasi mesin. <strong>Rigid</strong> (concrete masif, baseplate steel tebal): vibrasi yang ditransmit kecil → threshold lebih ketat. <strong>Flexible</strong> (skid mounting, isolator karet, struktural baja): foundation menyerap vibrasi → threshold lebih longgar. ISO 10816 punya tabel terpisah untuk keduanya. <em>Rule of thumb</em>: kalau natural frequency foundation &gt; 25% frequency mesin, considered rigid; kalau di bawah, flexible.</p>
-      <div class="formula">\(f_n_found vs f_machine\)</div>
+      <div class="formula">\(f_n_{found} vs f_{machine}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📡</div>
@@ -1092,7 +1092,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
   <div class="formula-block reveal">
     <div class="label">Lima Konsep Inti Hysteresis &amp; Tier Alarm</div>
-    Hysteresis \((T_on\) &gt; \(T_off) \cdot\) Schmitt trigger analogy  \(\cdot\) Tier alarm \((3\) level)  \(\cdot\) Escalation timer  \(\cdot\) Alarm flood prevention \((ANSI/ISA 18.2)\)
+    Hysteresis \((T_{\text{on}}\) &gt; \(T_{\text{off}}) \cdot\) Schmitt trigger analogy  \(\cdot\) Tier alarm \((3\) level)  \(\cdot\) Escalation timer  \(\cdot\) Alarm flood prevention \((ANSI/ISA 18.2)\)
   </div>
 
   <div class="cards reveal" style="margin-bottom:32px">
@@ -1100,7 +1100,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">↔️</div>
       <h3>Hysteresis: T_on &gt; T_off</h3>
       <p>Definisi: dua threshold berbeda untuk transition ke "ON" vs ke "OFF". Saat status OFF, perlu sinyal &gt; T_on untuk pindah ke ON. Saat status ON, sinyal harus turun di bawah T_off untuk kembali ke OFF. Tipikal: T_off = T_on − margin (mis. T_on=70, T_off=65). Margin 5–15% biasanya cukup. Tanpa hysteresis, sinyal di sekitar threshold ber-flip-flop sangat cepat (chattering).</p>
-      <div class="formula">\(T_on = 70, T_off = 65 (margin 5)\)</div>
+      <div class="formula">\(T_{\text{on}} = 70, T_{\text{off}} = 65 (margin 5)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
@@ -1112,13 +1112,13 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🎚️</div>
       <h3>Tier Alarm — Tiga Level Eskalasi</h3>
       <p>Bukan binary OK/FAIL, tetapi <em>gradient</em> 3+ level: <strong>WARNING</strong> (yellow, perhatikan) → <strong>ALERT</strong> (orange, action segera) → <strong>CRITICAL</strong> (red, shutdown). Tiap tier punya threshold sendiri: T_warn &lt; T_alert &lt; T_critical. Aksi berbeda: warning → log + notification email; alert → SMS ke supervisor; critical → auto-shutdown + page on-call engineer. Memetakan ke ISO 10816: A (no alarm), B (warning), C (alert), D (critical).</p>
-      <div class="formula">\(T_warn < T_alert < T_crit\)</div>
+      <div class="formula">\(T_{warn} < T_{alert} < T_{\text{crit}}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⏱️</div>
       <h3>Escalation Timer (Persistence)</h3>
       <p>Beberapa anomali muncul sesaat (transient noise) dan menghilang sendiri — tidak perlu eskalasi. Tetapi kalau anomali persist &gt; T detik, tier perlu naik. Contoh: <em>warning persist 5 menit → eskalasi ke alert; alert persist 10 menit → eskalasi ke critical</em>. Timer reset ketika sinyal kembali normal (atau hysteresis turun). Implementasi: state machine dengan timer per state.</p>
-      <div class="formula">\(if t_in_state > \Delta t: escalate\)</div>
+      <div class="formula">\(if t_in_{state} > \Delta t: escalate\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔇</div>
@@ -1194,13 +1194,13 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">⚡</div>
       <h3>Current Transformer (CT) Motor</h3>
       <p>Untuk monitor health motor, ukur arus stator. Sensor: <strong>Current Transformer</strong> (split-core CT, clamp-on, no wiring break). Output current AC proporsional dengan primary current. Ratio tipikal 100:5, 1000:5. Pakai dengan burden resistor untuk convert ke voltage. Modern: <strong>Hall-effect sensor</strong> (LEM, Allegro) untuk DC + AC, no contact dengan conductor. Aplikasi: <em>Motor Current Signature Analysis (MCSA)</em> — broken rotor bar, eccentricity, bearing fault detect dari spectrum arus. Threshold: arus naik &gt; 10% baseline = warning.</p>
-      <div class="formula">\(I_secondary = I_primary / N\)</div>
+      <div class="formula">\(I_{secondary} = I_{primary} / N\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📊</div>
       <h3>Sampling Rate: Nyquist Criterion</h3>
-      <p>Aturan emas: <strong>\(f_sampling \ge 2 \times f_max\)</strong> (Shannon-Nyquist 1949). Untuk capture vibrasi sampai 1 kHz, butuh f_s ≥ 2 kHz (industri pakai f_s = 5 kHz untuk margin). <strong>Aliasing</strong>: kalau signal di atas Nyquist, frekuensi tinggi "lipat balik" jadi frekuensi rendah palsu — interpretasi salah. Solusi: <strong>anti-aliasing filter</strong> (low-pass analog, cutoff f_max) sebelum ADC. <em>Best practice</em>: f_s = 2.5–5 × f_max signal. Untuk ISO 10816 (10 Hz – 1 kHz), f_s = 2500–5000 Hz cukup.</p>
-      <div class="formula">\(f_s \ge 2 \times f_max\)</div>
+      <p>Aturan emas: <strong>\(f_{sampling} \ge 2 \times f_{\text{max}}\)</strong> (Shannon-Nyquist 1949). Untuk capture vibrasi sampai 1 kHz, butuh f_s ≥ 2 kHz (industri pakai f_s = 5 kHz untuk margin). <strong>Aliasing</strong>: kalau signal di atas Nyquist, frekuensi tinggi "lipat balik" jadi frekuensi rendah palsu — interpretasi salah. Solusi: <strong>anti-aliasing filter</strong> (low-pass analog, cutoff f_max) sebelum ADC. <em>Best practice</em>: f_s = 2.5–5 × f_max signal. Untuk ISO 10816 (10 Hz – 1 kHz), f_s = 2500–5000 Hz cukup.</p>
+      <div class="formula">\(f_s \ge 2 \times f_{\text{max}}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔌</div>
@@ -1354,7 +1354,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--violet)"></div>
-      <span class="anim-title">Animasi \(3\;\text{---}\) Sensor Sampling &amp; Nyquist: \(f_s vs f_max\) Signal Recovery</span>
+      <span class="anim-title">Animasi \(3\;\text{---}\) Sensor Sampling &amp; Nyquist: \(f_s vs f_{\text{max}}\) Signal Recovery</span>
     </div>
     <div class="anim-body">
       <canvas id="cvIso" height="320"></canvas>
@@ -1372,7 +1372,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div id="isoInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet)"></div>
       <div class="tip-box" style="margin-top:16px">
         <strong>📊 Cara Membaca:</strong> Top = sinyal asli (continuous, ground truth). Mid = sample digital (titik diskrit) pada sampling rate f_s tertentu. Bottom = sinyal hasil reconstruct dari sample. Slider kontrol sampling frequency f_s relatif terhadap f_max sinyal.<br>
-        <strong>Coba:</strong> (1) f_s &lt; f_max → <em>aliasing</em>: sample tidak cukup, sinyal recovered punya frekuensi salah (lipat balik). (2) f_s = 2 × f_max → <strong>Nyquist limit</strong>, batas teoritis recovery. (3) f_s = 5 × f_max → <em>oversampling</em>, recovery sempurna, margin aman terhadap noise. Pelajaran: <strong>aturan emas \(f_s \ge 2.5\;\text{--}\;5 \times f_max\)</strong> + anti-aliasing filter analog sebelum ADC. Untuk ISO 10816 (10 Hz – 1 kHz), pakai f_s = 2500–5000 Hz.
+        <strong>Coba:</strong> (1) f_s &lt; f_max → <em>aliasing</em>: sample tidak cukup, sinyal recovered punya frekuensi salah (lipat balik). (2) f_s = 2 × f_max → <strong>Nyquist limit</strong>, batas teoritis recovery. (3) f_s = 5 × f_max → <em>oversampling</em>, recovery sempurna, margin aman terhadap noise. Pelajaran: <strong>aturan emas \(f_s \ge 2.5\;\text{--}\;5 \times f_{\text{max}}\)</strong> + anti-aliasing filter analog sebelum ADC. Untuk ISO 10816 (10 Hz – 1 kHz), pakai f_s = 2500–5000 Hz.
       </div>
     </div>
   </div>
@@ -1591,7 +1591,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   <div class="code-wrap reveal">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell \(2\;\text{---}\) HysteresisAlarm Class: Hindari Chattering dengan Dual Threshold \((T_on / T_off)\)</span>
+      <span class="code-label">Cell \(2\;\text{---}\) HysteresisAlarm Class: Hindari Chattering dengan Dual Threshold \((T_{\text{on}} / T_{\text{off}})\)</span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
@@ -1855,7 +1855,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   <div class="code-wrap reveal">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell \(4\;\text{---}\;run_monitoring_pipeline()\) Reusable: \(End-to-End\) Pipeline (FSM \(+\) dashboard)</span>
+      <span class="code-label">Cell \(4\;\text{---}\;run_monitoring_{pipeline}()\) Reusable: \(End-to-End\) Pipeline (FSM \(+\) dashboard)</span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
@@ -2346,12 +2346,12 @@ import pandas as pd
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C2</div>
-        <div class="comp-q">Untuk threshold T_on = 2.8 dan margin hysteresis 0.2, hitung <strong>\(T_off\)</strong> (threshold untuk transition kembali ke OFF). Formula: <code>T_off = T_on - margin</code>. Print nilainya.</div>
+        <div class="comp-q">Untuk threshold T_on = 2.8 dan margin hysteresis 0.2, hitung <strong>\(T_{\text{off}}\)</strong> (threshold untuk transition kembali ke OFF). Formula: <code>T_off = T_on - margin</code>. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 T_off = T_on − margin. Sinyal harus turun di bawah T_off untuk kembali OFF, mencegah chattering di sekitar threshold. Substitusikan nilai dari soal.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(T_off\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(T_{\text{off}}\)</strong></span></div>
         <textarea class="code-textarea" id="code-c2" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c2')"></textarea>
         <div class="stdout-box" id="stdout-c2"></div>
       </div>
@@ -2743,7 +2743,7 @@ import pandas as pd
   <div class="fq-card reveal" id="fq3">
     <div class="fq-head" onclick="toggleFQ('fq3')">
       <div class="fq-num" style="background:rgba(0,224,158,.1);border:1px solid rgba(0,224,158,.2);color:var(--green)">03</div>
-      <h3>Hysteresis Margin Tuning: di environment harsh dengan noise std 0.15 mm/s, berapa <strong>hysteresis margin \((T_on - T_off)\)</strong> yang optimal? Trade-off chattering vs sensitivity?</h3>
+      <h3>Hysteresis Margin Tuning: di environment harsh dengan noise std 0.15 mm/s, berapa <strong>hysteresis margin \((T_{\text{on}} - T_{\text{off}})\)</strong> yang optimal? Trade-off chattering vs sensitivity?</h3>
       <span class="fq-arrow">›</span>
     </div>
     <div class="fq-body">
