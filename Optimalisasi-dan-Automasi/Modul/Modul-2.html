@@ -977,7 +977,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📊</div>
       <h3>Mengapa Filter Diperlukan</h3>
       <p>Tanpa filter: <strong style="color:var(--pink)">RMS bias ke atas</strong> (noise menambah energi palsu), <strong>peak detection error</strong> (noise spike disangka event), <strong>FFT noisy</strong> (sulit identifikasi frekuensi sejati), <strong>autocorrelation menurun</strong> (noise acak menipiskan struktur). Filter memisahkan sinyal yang lambat berubah dari noise yang cepat berubah.</p>
-      <div class="formula">y' = filter(y)</div>
+      <div class="formula">\(y' = filter(y)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚖️</div>
@@ -989,7 +989,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🎯</div>
       <h3>Causal vs Non-Causal</h3>
       <p>Filter <strong>causal</strong> (trailing): hanya gunakan masa lalu — cocok untuk real-time monitoring. Filter <strong>non-causal</strong> (centered): gunakan titik-titik sebelum &amp; sesudah — lebih akurat tapi tidak bisa real-time, hanya untuk analisis offline. Pilihan menentukan latency &amp; akurasi.</p>
-      <div class="formula">y[n] = h[n] * x[n]</div>
+      <div class="formula">\(y[n] = h[n] * x[n]\)</div>
     </div>
   </div>
 
@@ -1038,7 +1038,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">⚠️</div>
       <h3>Kelemahan MA</h3>
       <p>(1) <strong style="color:var(--pink)">Bobot uniform</strong> — semua titik dalam window dianggap sama penting (kurang adaptif). (2) <strong>Boundary effect</strong> — k/2 titik di awal &amp; akhir tidak ada output (NaN). (3) <strong>Frequency response yang buruk</strong> — bocor (sidelobes) di domain frekuensi, tidak ideal untuk separasi pita. (4) <strong>Lag pada trailing MA</strong> — bisa delay deteksi event.</p>
-      <div class="formula">lag ≈ (k−1)/2 sampel</div>
+      <div class="formula">\(lag \approx (k-1)/2 sampel\)</div>
     </div>
   </div>
 
@@ -1088,7 +1088,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🎚️</div>
       <h3>Pemilihan α</h3>
       <p>α <strong>kecil</strong> (e.g., 0.05): smoothing agresif, lag besar, baseline halus — cocok untuk baseline jangka panjang. α <strong>besar</strong> (e.g., 0.5): responsif terhadap perubahan, kurang smoothing — cocok untuk fast-changing signals. Aturan praktis: <strong>\(\alpha \approx 2/(N+1)\)</strong> dimana N adalah equivalent MA window yang ingin Anda dapatkan.</p>
-      <div class="formula">α = 2/(N+1)</div>
+      <div class="formula">\(\alpha = 2/(N+1)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔄</div>
@@ -1148,7 +1148,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📐</div>
       <h3>Savitzky-Golay (SG) Filter</h3>
       <p>Untuk tiap titik t, fit polinomial orde <strong>p</strong> (biasanya 2 atau 3) pada window <strong>\(2k+1\)</strong> titik di sekitarnya menggunakan <em>least squares</em>. Output adalah nilai polinomial pada pusat window. Hasil: smoothing yang <strong style="color:var(--violet)">menjaga bentuk peak/lembah</strong> jauh lebih baik daripada MA. Dipakai luas di spektroskopi, signal processing, vibration analysis.</p>
-      <div class="formula">savgol_filter(x, w, p)</div>
+      <div class="formula">\(savgol_filter(x, w, p)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🛡️</div>
@@ -1160,13 +1160,13 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🔬</div>
       <h3>Pemilihan Parameter SG</h3>
       <p><strong>Window w</strong>: ganjil, biasanya 5–101 titik tergantung sampling rate. <strong>Polynomial order p</strong>: 2 untuk smoothing umum, 3 untuk pertahankan curvature, 4–5 untuk pertahankan inflection points. <strong>Aturan</strong>: <code>p &lt; w</code> selalu. Mulai dengan w=11, p=2 lalu sesuaikan. SG juga bisa hitung derivative langsung dengan <code>deriv=1, 2, ...</code>.</p>
-      <div class="formula">5 ≤ w ≤ 101, 2 ≤ p ≤ 5</div>
+      <div class="formula">\(5 \le w \le 101, 2 \le p \le 5\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚖️</div>
       <h3>Kapan Pakai Yang Mana</h3>
       <p><strong>MA</strong>: noise gaussian, prefer simplicity. <strong>EMA</strong>: real-time, perlu adaptif. <strong>SG</strong>: peak/feature preservation penting (spektroskopi, vibration peak detection). <strong>Median</strong>: outlier/spike noise, salt-and-pepper noise di sensor. Bisa <em>chained</em>: median filter dulu untuk hapus spike, lalu SG untuk smoothing — pipeline standard di vibration preprocessing.</p>
-      <div class="formula">median → SG (chained)</div>
+      <div class="formula">\(median \to SG (chained)\)</div>
     </div>
   </div>
 
@@ -1204,7 +1204,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🎧</div>
       <h3>Noise-Cancelling Headphone</h3>
       <p>Headphone NC merekam suara lingkungan (noise) lalu menghasilkan <em>antiphase signal</em> untuk membatalkannya — pas seperti filter membuang komponen frekuensi yang tidak diinginkan. Mahal headphone yang baik = filter yang akurat (cuts noise tanpa merusak musik). Headphone murah = filter buruk (musik ikut "tertumpuk" dengan noise).</p>
-      <div class="formula">music = signal − noisê</div>
+      <div class="formula">\(music = signal - noisê\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🥽</div>
@@ -1222,19 +1222,19 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📸</div>
       <h3>Shutter Speed Eksposur</h3>
       <p>Shutter speed kamera = <em>integration window</em> filter. Shutter cepat (1/1000 detik) menangkap momen tajam dengan noise (sedikit foton, banyak grain). Shutter lambat (1 detik) merata-ratakan banyak foton — gambar halus tanpa noise tapi <em>motion blur</em> jika ada gerakan. Mirip MA: window kecil = noisy responsif; window besar = halus tapi miss transient cepat.</p>
-      <div class="formula">w_window ↔ shutter_time</div>
+      <div class="formula">\(w_window ↔ shutter_time\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎨</div>
       <h3>Photoshop: Gaussian vs Median Blur</h3>
       <p>Photoshop menawarkan dua jenis blur. <strong style="color:var(--cyan)">Gaussian Blur</strong> = MA spasial — meratakan piksel sekitar untuk smooth tapi merusak edge (mirip MA tumpulkan peak). <strong style="color:var(--pink)">Median Blur</strong> menghapus noise titik (debu, scratch) tanpa merusak edge — persis seperti median filter di time series untuk hapus impulse noise.</p>
-      <div class="formula">median ≠ mean</div>
+      <div class="formula">\(median \ne mean\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎚️</div>
       <h3>Audacity: Denoise Audio</h3>
       <p>Saat Anda merekam podcast dengan noise AC, Audacity menggunakan kombinasi filter: <strong>spectral subtraction</strong> (mirip Wiener filter), <strong>median</strong> (untuk klik/pop), dan <strong>SG-like smoothing</strong> (untuk preserve karakter suara). Pipeline ini sama seperti vibration preprocessing: median dulu untuk impulse, lalu SG untuk smoothing yang pertahankan peak frekuensi mesin.</p>
-      <div class="formula">median → SG → output</div>
+      <div class="formula">\(median \to SG \to output\)</div>
     </div>
   </div>
 
@@ -1395,13 +1395,13 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📈</div>
       <h3>Spectral Peak Preservation (SG)</h3>
       <p>Saat menganalisis spektrum vibration untuk identifikasi bearing fault frequencies (BPFI, BPFO, BSF, FTF), <strong>Savitzky-Golay (w=11, p=3)</strong> di domain time menjaga amplitudo peak FFT — kritis untuk severity assessment. MA akan tumpulkan peak dan membuat severity terlihat lebih ringan dari aktualnya, menyebabkan failure terlewatkan.</p>
-      <div class="formula">savgol_filter(x, 11, 3)</div>
+      <div class="formula">\(savgol_filter(x, 11, 3)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🛡️</div>
       <h3>Spike Removal (Median)</h3>
       <p>Sensor vibration kadang menghasilkan spike palsu dari EMI (relay switching, inverter PWM) atau impact mekanis non-relevan (drop tool nearby). <strong>Median filter (w=5)</strong> menghapus spike ini tanpa merusak sinyal vibration sejati. Pasangkan SEBELUM RMS calculation untuk mendapat hasil yang representatif. Catatan: jangan terapkan median di sinyal yang ingin Anda <em>pertahankan</em> impulse-nya (mis. shock detection).</p>
-      <div class="formula">median(x[t±2])</div>
+      <div class="formula">\(median(x[t \pm 2])\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📡</div>

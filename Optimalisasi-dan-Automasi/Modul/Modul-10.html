@@ -972,19 +972,19 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📊</div>
       <h3>Berbasis Bukti Statistik (p-value)</h3>
       <p>Berbeda dari gradient/metaheuristik yang melaporkan "x* = nilai", ANOVA melaporkan <strong>"perbedaan signifikan secara statistik"</strong> dengan <em>p-value</em>. Insinyur dapat klaim "cutting speed 100 m/min memberi roughness terendah dengan p &lt; 0.01" — kuat untuk justifikasi engineering decision di hadapan manajemen / quality assurance. Standar <em>scientific evidence</em> di mechanical, manufacturing, biomedical engineering.</p>
-      <div class="formula">F = MS_b / MS_w → p-value</div>
+      <div class="formula">\(F = MS_b / MS_w \to p-value\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🧪</div>
       <h3>Tangani Noise Pengukuran Eksplisit</h3>
       <p>Setiap trial eksperimen punya noise (variasi alat ukur, fluktuasi material, manusia operator). ANOVA secara eksplisit memodelkan noise sebagai <em>varians dalam-grup (within)</em> dan membandingkan dengan <em>varians antar-grup (between)</em>. Kalau efek faktor lebih besar dari noise → signifikan. Tidak butuh asumsi gradient/smoothness — hanya butuh <strong>data eksperimen di tiap level faktor</strong>.</p>
-      <div class="formula">SS_total = SS_b + SS_w</div>
+      <div class="formula">\(SS_total = SS_b + SS_w\)</div>
     </div>
     <div class="card">
       <div class="card-icon">💰</div>
       <h3>Ekonomis: Sample Size Kecil Cukup</h3>
       <p>Untuk problem 1 faktor × 3 level dengan 5 ulangan tiap level = total 15 eksperimen. Cukup untuk dapat power statistik 80% (deteksi efek sedang). Bandingkan GA/PSO yang butuh ratusan-ribuan evaluasi. Untuk eksperimen mahal (CNC machining, welding, heat treatment), ANOVA jauh lebih hemat. <strong style="color:var(--cyan)">Sweet spot</strong>: 2–5 faktor, 2–4 level/faktor, &lt; 100 total trial.</p>
-      <div class="formula">N_trial = k_levels × n_replicates</div>
+      <div class="formula">\(N_trial = k_levels \times n_replicates\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🐍</div>
@@ -1021,37 +1021,37 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📋</div>
       <h3>Hipotesis: H₀ vs H₁</h3>
       <p>One-way ANOVA membandingkan rata-rata respons di k level faktor. <strong>H₀ (null)</strong>: <code>μ₁ = μ₂ = … = μₖ</code> — semua level sama (tidak ada efek faktor). <strong>H₁ (alternative)</strong>: paling tidak satu pasangan μᵢ ≠ μⱼ. <em>Catatan</em>: ANOVA tidak memberitahu pasangan mana yang berbeda — itu tugas <em>post-hoc test</em> (Tukey HSD). ANOVA hanya menjawab "ada efek atau tidak". Tetapkan α (significance level, biasanya 0.05) sebelum lihat data.</p>
-      <div class="formula">H₀: μ₁ = μ₂ = … = μₖ</div>
+      <div class="formula">\(H_0: \mu _1 = \mu _2 = \ldots = \mu ₖ\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🧮</div>
       <h3>Sum of Squares (SS) — Partisi Varians</h3>
       <p>Total variability data dipecah menjadi dua sumber. <strong>\(SS_total\)</strong> = Σ (yᵢⱼ − ȳ)² (jumlah kuadrat deviasi dari grand mean). <strong>\(SS_between\)</strong> = Σⱼ nⱼ·(ȳⱼ − ȳ)² (deviasi mean grup dari grand mean — efek faktor). <strong>\(SS_within\)</strong> = ΣⱼΣᵢ (yᵢⱼ − ȳⱼ)² (deviasi data dari mean grup — noise). Identitas fundamental: <strong style="color:var(--cyan)">\(SS_total = SS_between + SS_within\)</strong>. Inilah dasar "<em>analysis of variance</em>".</p>
-      <div class="formula">SS_t = SS_b + SS_w</div>
+      <div class="formula">\(SS_t = SS_b + SS_w\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
       <h3>Degrees of Freedom (df)</h3>
       <p>Tiap SS punya degrees of freedom (jumlah informasi independent). Untuk k grup, total N data: <strong>\(df_between\)</strong> = k − 1 (k mean grup, dikurangi 1 karena grand mean tetap). <strong>\(df_within\)</strong> = N − k (tiap grup punya nⱼ − 1 dof, dijumlahkan). <strong>\(df_total\)</strong> = N − 1 = df_b + df_w. Dof penting karena <em>Mean Square = SS/df</em> — normalisasi yang membuat F-statistic bisa dibandingkan ke distribusi teoretis.</p>
-      <div class="formula">df_b = k−1, df_w = N−k</div>
+      <div class="formula">\(df_b = k-1, df_w = N-k\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚖️</div>
       <h3>Mean Squares — Estimasi Varians</h3>
       <p>Mean Square = SS/df, estimasi varians populasi. <strong>\(MS_between\)</strong> = SS_b / df_b → estimasi varians yang mencakup <em>efek faktor + noise</em>. <strong>\(MS_within\)</strong> = SS_w / df_w → estimasi varians <em>noise saja</em>. Kalau H₀ benar (tidak ada efek), MS_b ≈ MS_w karena keduanya sama-sama noise. Kalau H₁ benar, MS_b &gt; MS_w (efek faktor menambah varians antar-grup). MS_w juga disebut <em>MSE</em> (Mean Squared Error) atau <em>residual variance</em>.</p>
-      <div class="formula">MS_b = SS_b / df_b</div>
+      <div class="formula">\(MS_b = SS_b / df_b\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>F-Statistic = MS_b / MS_w</h3>
       <p>Rasio dua estimasi varians. Mengikuti <strong>F-distribution</strong> dengan parameter (df_b, df_w) <em>jika H₀ benar</em>. Distribusi F asimetris, miring ke kanan, hanya nilai positif. F = 1 berarti MS_b = MS_w (no effect). F &gt;&gt; 1 berarti efek faktor besar relatif noise. Untuk α = 0.05 dan (df_b=2, df_w=12), <em>\(F_critical \approx 3.89\)</em> — F observed &gt; F_crit → tolak H₀. Modern workflow: hitung <strong>p-value</strong> langsung lebih informatif dari "F &gt; F_crit".</p>
-      <div class="formula">F = MS_b / MS_w</div>
+      <div class="formula">\(F = MS_b / MS_w\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📈</div>
       <h3>p-Value &amp; Keputusan</h3>
       <p>p-value = P(F_observed ≥ F_data | H₀) — probabilitas mengamati F sebesar ini (atau lebih ekstrem) jika H₀ benar. <strong>\(p\) &lt; \(\alpha\)</strong> (typical 0.05): tolak H₀ → ada efek faktor signifikan. <strong>\(p \ge \alpha\)</strong>: tidak cukup bukti tolak H₀ → bukan berarti tidak ada efek (mungkin sample size kecil, low power). Reporting standar: <em>\("F(2, 12) = 8.45, p = 0.005, \eta ^2 = 0.58"\)</em> — F-statistic, df, p, dan effect size η² (proportion of variance explained).</p>
-      <div class="formula">p &lt; α → tolak H₀</div>
+      <div class="formula">\(p < \alpha \to tolak H_0\)</div>
     </div>
   </div>
 
@@ -1093,7 +1093,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🎯</div>
       <h3>Step 1 — Rumuskan Hipotesis &amp; α</h3>
       <p>Sebelum eksperimen, tetapkan: faktor (mis. cutting speed), respons (Ra μm), level (80/100/120), <strong>\(\alpha\)</strong> (significance level, biasanya 0.05). H₀: μ₁ = μ₂ = μ₃ (cutting speed tidak berpengaruh). H₁: paling tidak satu mean berbeda. <strong style="color:var(--cyan)">Jangan ubah \(\alpha\)</strong> setelah lihat data — itu p-hacking.</p>
-      <div class="formula">α = 0.05 (a priori)</div>
+      <div class="formula">\(\alpha = 0.05 (a priori)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🧪</div>
@@ -1105,25 +1105,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">✅</div>
       <h3>Step 3 — Cek Asumsi ANOVA</h3>
       <p>ANOVA punya 3 asumsi kunci. <strong>(1) Normality</strong>: residual y_ij − ȳ_j berdistribusi normal — uji <code>scipy.stats.shapiro</code>. <strong>(2) Homoscedasticity</strong>: varians dalam-grup sama antar level — uji <code>scipy.stats.levene</code>. <strong>(3) Independence</strong>: trial saling independent (dijamin oleh randomisasi). Kalau asumsi runtuh: <em>Welch's ANOVA</em> (uneven variance) atau <em>Kruskal-Wallis</em> (non-parametric).</p>
-      <div class="formula">Shapiro · Levene · Random</div>
+      <div class="formula">\(Shapiro \cdot Levene \cdot Random\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📋</div>
       <h3>Step 4 — Susun Tabel ANOVA</h3>
       <p>Output Python <code>statsmodels.anova_lm</code> berupa tabel: kolom = SS, df, MS, F, p. Baris = sumber variasi (faktor, residual). Validasi: <strong>\(df_b + df_w = df_total = N - 1\)</strong>; <strong>\(SS_b + SS_w = SS_total\)</strong>. Kalau angka tidak konsisten, ada bug di kode — biasanya formula type Type I vs Type II vs Type III SS keliru. Untuk one-way balanced, ketiganya sama.</p>
-      <div class="formula">SS_b + SS_w = SS_t</div>
+      <div class="formula">\(SS_b + SS_w = SS_t\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎲</div>
       <h3>Step 5 — Hitung F &amp; p-value</h3>
       <p><code>F = MS_b / MS_w</code>. p-value = <code>1 − F.cdf(F_obs, df_b, df_w)</code>. Kalau <strong>\(p\) &lt; \(\alpha\)</strong> (e.g. p = 0.004 &lt; 0.05) → tolak H₀, faktor signifikan. Kalau <strong>\(p \ge \alpha\)</strong> (e.g. p = 0.18) → tidak ada bukti efek (tetapi mungkin sample kecil; cek <em>power</em> dengan G*Power atau pingouin). <strong style="color:var(--amber)">Reporting standar</strong>: F(df_b, df_w) = X.XX, p = X.XXX, η² = X.XX.</p>
-      <div class="formula">p &lt; α ⇒ tolak H₀</div>
+      <div class="formula">\(p < \alpha \Rightarrow tolak H_0\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔍</div>
       <h3>Step 6 — Post-hoc: Tukey HSD</h3>
       <p>ANOVA hanya bilang "ada efek" tanpa identifikasi pasangan. <strong>Tukey HSD</strong> (Honest Significant Difference) bandingkan semua pasangan dengan kontrol <em>family-wise error rate</em>. Output: tabel pairwise dengan p-adjusted; pasangan dengan p &lt; α adalah signifikan berbeda. Library: <code>statsmodels.stats.multicomp.pairwise_tukeyhsd</code> atau <code>pingouin.pairwise_tukey</code>. Pilih level dengan mean optimum yang berbeda signifikan dari level lain.</p>
-      <div class="formula">Tukey: p_adj &lt; α</div>
+      <div class="formula">\(Tukey: p_adj < \alpha\)</div>
     </div>
   </div>
 
@@ -1169,37 +1169,37 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📊</div>
       <h3>Model Aditif: y = μ + αᵢ + βⱼ + (αβ)ᵢⱼ + ε</h3>
       <p>Two-way ANOVA mengasumsikan respons yᵢⱼₖ = grand mean + efek faktor A level i + efek faktor B level j + interaksi level (i,j) + noise. <strong>\(SS_total = SS_A + SS_B + SS_AB + SS_error\)</strong>. Tiap term punya df sendiri: df_A = a−1, df_B = b−1, df_AB = (a−1)(b−1), df_error = ab(n−1). Tabel ANOVA punya 4 baris: A, B, AB interaction, error. <strong style="color:var(--cyan)">Tiga F-test independen</strong>.</p>
-      <div class="formula">y = μ + αᵢ + βⱼ + (αβ)ᵢⱼ + ε</div>
+      <div class="formula">\(y = \mu + \alpha _i + \beta _j + (\alpha \beta )_i_j + \epsilon\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🅰️</div>
       <h3>Main Effect — Pengaruh Tunggal Faktor</h3>
       <p>Main effect faktor A: <code>F_A = MS_A / MS_error</code>. Menjawab "apakah rata-rata respons berbeda antar level A, <em>marjinal</em> atas B?" Mean A_i = rata-rata semua observasi di level A=i (semua level B). Kalau F_A signifikan (p &lt; α), faktor A berpengaruh secara overall. Sama untuk main effect B. <strong style="color:var(--green)">Hati-hati</strong>: main effect bisa misleading kalau ada interaksi kuat — selalu cek interaction dulu.</p>
-      <div class="formula">F_A = MS_A / MS_error</div>
+      <div class="formula">\(F_A = MS_A / MS_error\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔗</div>
       <h3>Interaction Effect A × B</h3>
       <p>Interaksi: efek faktor A <em>berbeda</em> tergantung level B. Contoh: arus 200 A bagus saat voltage rendah tapi buruk saat voltage tinggi. <strong>\(F_AB = MS_AB / MS_error\)</strong>. Visualisasi: <em>interaction plot</em> — plot mean(y) vs A untuk tiap level B; <strong>garis tidak paralel = ada interaksi</strong>. Kalau interaksi signifikan, efek A &amp; B harus dipelajari bersama-sama, tidak terpisah. Reporting: <em>"interaction A×B: F(2, 12) = 4.5, p = 0.04"</em>.</p>
-      <div class="formula">F_AB → garis tidak paralel</div>
+      <div class="formula">\(F_AB \to garis tidak paralel\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
       <h3>Full Factorial — Lengkap tetapi Mahal</h3>
       <p>Full factorial 2² = 4 trial dasar (n replikasi → 4n total). 3³ = 27 trial. 5⁴ = 625 trial. <strong>Cost grow exponential</strong>. Untuk faktor banyak (≥ 4 level @ 3+), full factorial tidak praktis. Solusi: <em>fractional factorial</em> 2^(k-p) — pilih subset trial yang menjaga main effects tetap teridentifikasi tapi sacrifice higher-order interactions. <strong>Resolution III/IV/V</strong> menentukan apa yang tidak teridentifikasi.</p>
-      <div class="formula">Full: k₁·k₂·…·k_p</div>
+      <div class="formula">\(Full: k_1 \cdot k_2 \cdot \ldots \cdot k_p\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🇯🇵</div>
       <h3>Taguchi Orthogonal Arrays</h3>
       <p>Genichi Taguchi (1986) — pilih <em>orthogonal array</em> standar (L4, L8, L9, L16, L18, L27) untuk eksperimen efisien. Contoh L9: 4 faktor × 3 level → hanya 9 trial (vs 81 full factorial). Properti: tiap kombinasi level pasangan faktor muncul dengan frekuensi sama → <em>balance &amp; orthogonal</em>. Tujuan: identifikasi level optimum dengan minimal trial. Kelemahan: tidak menangani interaksi tinggi tanpa modifikasi. Library: <strong>pyDOE2</strong>, <strong>OAPackage</strong>.</p>
-      <div class="formula">L9: 4 faktor × 3 level → 9 trial</div>
+      <div class="formula">\(L9: 4 faktor \times 3 level \to 9 trial\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📈</div>
       <h3>Signal-to-Noise (S/N) Ratio</h3>
       <p>Taguchi memperkenalkan <em>S/N ratio</em> untuk robust design. Tiga jenis: <strong>Larger-the-better</strong> S/N = −10·log₁₀(Σ(1/yᵢ²)/n) (untuk strength, yield); <strong>Smaller-the-better</strong> S/N = −10·log₁₀(Σ(yᵢ²)/n) (untuk roughness, defect rate); <strong>Nominal-the-best</strong> S/N = 10·log₁₀(ȳ²/\(s^2\)) (untuk dimensi target). Lakukan ANOVA pada <em>S/N ratio</em> sebagai respons → identifikasi level yang <strong>maksimumkan S/N</strong> = robust optimal.</p>
-      <div class="formula">S/N = −10·log₁₀(MSD)</div>
+      <div class="formula">\(S/N = -10 \cdot \log_1_0(MSD)\)</div>
     </div>
   </div>
 
@@ -1430,25 +1430,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">⚙️</div>
       <h3>Tuning Parameter CNC Machining (Sandvik)</h3>
       <p>Sandvik Coromant (Swedia) memakai <strong>L9 Taguchi orthogonal array + ANOVA</strong> untuk tuning parameter machining: cutting speed (3 level), feed rate (3 level), depth of cut (3 level). Respons: surface roughness Ra (μm) &amp; tool life (menit). Hanya 9 trial × 3 replikasi = 27 eksperimen (vs full factorial 27 × 3 = 81). ANOVA mengidentifikasi: <em>cutting speed paling berpengaruh \((\eta ^2 = 0.62)\)</em>, feed rate sedang (η² = 0.24), depth tidak signifikan (η² = 0.05). Optimal: V = 200 m/min, f = 0.15 mm/rev, d = 1.0 mm → Ra ↓ 35%, tool life ↑ 50%. Tools: <code>statsmodels.formula.api</code> + Minitab.</p>
-      <div class="formula">L9 → 9 trial → ANOVA</div>
+      <div class="formula">\(L9 \to 9 trial \to ANOVA\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔧</div>
       <h3>Welding Parameter Optimization (Lincoln Electric)</h3>
       <p>Lincoln Electric (USA) memakai <strong>Two-way ANOVA</strong> untuk optimasi MIG/MAG welding pada baja struktural. Faktor: <em>arus las (3 level)</em> &amp; <em>voltage (3 level)</em>, total 9 kombinasi × 5 specimen = 45 spesimen. Respons: tensile strength sambungan (MPa). ANOVA: <em>arus signifikan (F = 28, p &lt; 0.001), voltage signifikan (F = 12, p = 0.003)</em>, interaksi <em>tidak signifikan (p = 0.18)</em> — main effect cukup interpretasi terpisah. Pilih arus 200 A + voltage 28 V (tertinggi dengan nyaman). Quality control: ANOVA jadi protokol wajib di ISO 3834-1 untuk welder qualification.</p>
-      <div class="formula">2-way: arus × voltage → strength</div>
+      <div class="formula">\(2-way: arus \times voltage \to strength\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🏭</div>
       <h3>Quality Control Pabrik Turbin (GE Aviation)</h3>
       <p>GE Aviation memantau toleransi blade turbine via <strong>Statistical Process Control (SPC) + ANOVA</strong>. Tiap shift (3 shift, 100 blade per shift) diukur diameter, panjang, twist angle. ANOVA: shift × hari × machine. Kalau F_shift signifikan → operator/proses shift ada bias; F_machine signifikan → mesin tertentu butuh kalibrasi. Six Sigma DMAIC: <em>Define-Measure-Analyze-Improve-Control</em>. Tahap "Analyze" = ANOVA + regression untuk identifikasi sumber variasi. GE laporkan defect rate turun dari 850 ke 12 ppm (parts per million) lewat ANOVA-driven QC. Tools: Minitab, JMP, Python pingouin.</p>
-      <div class="formula">SPC: shift × machine → defect</div>
+      <div class="formula">\(SPC: shift \times machine \to defect\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🛠️</div>
       <h3>Additive Manufacturing Parameter Validation (GE Additive)</h3>
       <p>GE Additive memakai <strong>full factorial ANOVA</strong> untuk validasi parameter SLM (Selective Laser Melting) untuk paduan Inconel 718. Faktor: laser power (3 level), scan speed (3 level), hatch spacing (3 level), preheat temp (2 level) = 54 kombinasi × 3 replikasi = 162 spesimen, ditest porositas, density, tensile strength. <strong>Three-way ANOVA + interaksi 2-arah</strong>. Hasil: laser power × scan speed punya interaksi kuat (F = 18, p &lt; 0.001) — kombinasi spesifik (300 W × 1000 mm/s) memberi density 99.5%. Hatch spacing signifikan tetapi independent. Preheat tidak signifikan untuk respons utama. Standar wajib ASTM F3301 untuk AM qualification.</p>
-      <div class="formula">3-way ANOVA → AM optimal</div>
+      <div class="formula">\(3-way ANOVA \to AM optimal\)</div>
     </div>
   </div>
 
