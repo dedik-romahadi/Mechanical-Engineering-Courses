@@ -972,25 +972,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📈</div>
       <h3>Non-Linearitas — Wajah Asli Engineering</h3>
       <p>Sebagian besar masalah teknik mesin <em>tidak</em> linier: drag <code>F_d = ½·ρ·Cd·A·v²</code>, energi kinetik <code>E = ½mv²</code>, daya pompa berbentuk parabolik, biaya rugi gesek tergantung kuadrat kecepatan. Kalau dipaksa LP, hasilnya akan <strong style="color:var(--cyan)">overestimate atau underestimate</strong> ekstrim saat skala besar. NLP menerima fungsi non-linier apapun selama bisa dievaluasi numerik (dan ideally turunan tersedia analitik).</p>
-      <div class="formula">f: ℝⁿ → ℝ, non-linier</div>
+      <div class="formula">\(f: \mathbb{R}ⁿ \to \mathbb{R}, non-linier\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Optimum Lokal vs Global</h3>
       <p>Untuk fungsi <strong>konveks</strong>, sembarang minimum lokal = global minimum (sifat seperti LP). Untuk fungsi <em>non-konveks</em> (multi-modal, banyak lembah), iterasi gradient bisa <strong style="color:var(--pink)">terjebak di lokal minimum</strong>. Solusi: (1) start dari banyak titik awal, (2) gunakan metaheuristik (GA, PSO — Pertemuan 11), (3) cek konveksitas dengan Hessian semi-definit positif <code>∇²f ⪰ 0</code>.</p>
-      <div class="formula">∇²f(x*) ≻ 0 → strict min</div>
+      <div class="formula">\(∇^2f(x*) ≻ 0 \to strict min\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔻</div>
       <h3>Iterasi Descent — Loncat Mengikuti Slope</h3>
       <p>Tidak ada <em>closed-form solution</em> umum untuk NLP. Strategi: mulai dari titik awal x₀, hitung gradient ∇f, ambil arah descent <code>d = −∇f</code> (steepest descent) atau <code>d = −H⁻¹·∇f</code> (Newton), pilih step size α dengan <em>line search</em>, update <code>x_{k+1} = x_k + α·d</code>. Stop saat <code>‖∇f‖ &lt; ε</code>. Konvergensi: gradient descent linier, Newton kuadratik (jauh lebih cepat).</p>
-      <div class="formula">x_{k+1} = x_k − α·∇f(x_k)</div>
+      <div class="formula">\(x_{k+1} = x_k - \alpha \cdot ∇f(x_k)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🐍</div>
       <h3>Implementasi: scipy.optimize.minimize</h3>
       <p>Python via <code>scipy.optimize.minimize(fun, x0, method=...)</code>. Method tersedia: <code>'BFGS'</code> (default unconstrained, quasi-Newton), <code>'Newton-CG'</code>, <code>'L-BFGS-B'</code> (bounds), <code>'SLSQP'</code> (kendala umum), <code>'trust-constr'</code> (modern, robust). Bila gradient analitik tersedia, <strong style="color:var(--amber)">selalu sediakan via <code>jac=...</code></strong> — 5–50× lebih cepat &amp; akurat daripada finite difference.</p>
-      <div class="formula">minimize(f, x0, jac=∇f)</div>
+      <div class="formula">\(minimize(f, x0, jac=∇f)\)</div>
     </div>
   </div>
 
@@ -1021,25 +1021,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📉</div>
       <h3>Steepest Descent — Algoritma Klasik</h3>
       <p>Untuk <code>f(x₁,x₂) = x₁² + 2x₂²</code> dengan x₀ = (3, 2): <code>∇f = (2x₁, 4x₂) = (6, 8)</code>. Pakai α = 0.1: <code>x₁ = (3,2) − 0.1·(6,8) = (2.4, 1.2)</code>. Iterasi terus → konvergen ke (0,0). <strong style="color:var(--cyan)">Fungsi konveks → minimum global</strong>. Untuk fungsi quadratic <code>½xᵀAx − bᵀx</code>, optimal step <code>α = (∇fᵀ∇f)/(∇fᵀA∇f)</code>.</p>
-      <div class="formula">x_{k+1} = x_k − α∇f(x_k)</div>
+      <div class="formula">\(x_{k+1} = x_k - \alpha ∇f(x_k)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔍</div>
       <h3>Backtracking Line Search (Armijo Rule)</h3>
       <p>Step size α terlalu besar → overshoot &amp; divergen; terlalu kecil → konvergen lambat. <strong>Armijo backtracking</strong>: mulai dengan α=1, sampai kondisi <code>f(x_k + αd_k) ≤ f(x_k) + c·α·∇fᵀd_k</code> (c≈10⁻⁴), kalau gagal kalikan α dengan ρ=0.5 dan ulangi. Menjamin <em>sufficient decrease</em>. Adaptif &amp; aman tanpa hyperparameter tuning manual.</p>
-      <div class="formula">α: f(x+αd) ≤ f(x) + c·α·∇fᵀd</div>
+      <div class="formula">\(\alpha : f(x+\alpha d) \le f(x) + c \cdot \alpha \cdot ∇f^{T}d\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌊</div>
       <h3>Conjugate Gradient — Lebih Cepat dari SD</h3>
       <p>Steepest descent zigzag pada fungsi quadratic ill-conditioned (κ = λ_max/λ_min besar). <strong>Conjugate Gradient (CG)</strong> Hestenes-Stiefel (1952): pilih arah descent yang <em>conjugate</em> terhadap arah sebelumnya (lewat A-norm), bukan ortogonal. Untuk f quadratik, konvergen <strong style="color:var(--green)">dalam ≤ n iterasi</strong> (n = jumlah variabel). Implementasi: Polak–Ribière, Fletcher–Reeves. SciPy: <code>method='CG'</code>.</p>
-      <div class="formula">d_{k+1} = −∇f + β·d_k</div>
+      <div class="formula">\(d_{k+1} = -∇f + \beta \cdot d_k\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Momentum &amp; Adam (Modern Variants)</h3>
       <p>Inspirasi dari deep learning — <strong>momentum</strong> akumulasi gradient masa lalu untuk <em>melewati lembah dangkal</em>: <code>v_{k+1} = γ·v_k − α·∇f, x_{k+1} = x_k + v_{k+1}</code>. <strong>Adam</strong> (Kingma 2014) tambahan: adaptive learning rate per dimensi. Standar untuk training neural network &amp; banyak NLP non-konveks. Tidak diimplementasikan di scipy.minimize, tapi tersedia di <code>torch.optim</code>, <code>jax.optimizers</code>.</p>
-      <div class="formula">v ← γv − α∇f; x ← x + v</div>
+      <div class="formula">\(v ← \gamma v - \alpha ∇f; x ← x + v\)</div>
     </div>
   </div>
 
@@ -1070,13 +1070,13 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🎯</div>
       <h3>Pure Newton — Quadratic Model</h3>
       <p>Aproksimasi Taylor orde-2 sekitar x_k: <code>f(x_k+d) ≈ f(x_k) + ∇fᵀd + ½dᵀHd</code>. Set turunan terhadap d = 0: <code>Hd = −∇f</code> → <strong>Newton direction</strong>. Untuk fungsi quadratic <code>f = ½xᵀAx − bᵀx</code>, satu Newton step langsung sampai minimum. Untuk fungsi non-quadratic, butuh ~5–15 iterasi dengan akurasi tinggi. <strong style="color:var(--cyan)">Konvergensi kuadratik</strong>: <code>‖x_{k+1} − x*‖ ≤ C·‖x_k − x*‖²</code>.</p>
-      <div class="formula">d = −H⁻¹·∇f</div>
+      <div class="formula">\(d = -H⁻^1 \cdot ∇f\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🧮</div>
       <h3>BFGS — Hessian Approximation</h3>
       <p>Hitung Hessian eksak mahal &amp; sering tidak tersedia analitik. <strong>BFGS</strong> (Broyden-Fletcher-Goldfarb-Shanno, 1970) update matrix <code>B_k ≈ ∇²f</code> dari informasi <code>s_k = x_{k+1}−x_k</code> dan <code>y_k = ∇f_{k+1}−∇f_k</code> (secant condition). Konvergensi super-linier, tanpa Hessian eksplisit. SciPy default untuk unconstrained: <code>method='BFGS'</code>. Robust &amp; sangat cepat untuk n ≤ 1000.</p>
-      <div class="formula">B_{k+1} = B_k + Δ(s,y)</div>
+      <div class="formula">\(B_{k+1} = B_k + \Delta (s,y)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">💾</div>
@@ -1088,7 +1088,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">⚠️</div>
       <h3>Trust Region — Robust Alternative</h3>
       <p>Line search bisa fail kalau Hessian non-positive-definite (misal saddle point). <strong>Trust region</strong>: hanya percaya quadratic model dalam radius Δ_k, solve subproblem <code>min m(d) s.t. ‖d‖ ≤ Δ_k</code>. Update Δ adaptif berdasarkan kualitas prediksi vs aktual. SciPy: <code>method='trust-ncg'</code>, <code>'trust-krylov'</code>, <code>'trust-constr'</code>. Robust untuk masalah ill-conditioned &amp; non-konveks.</p>
-      <div class="formula">‖d‖ ≤ Δ_k (trust radius)</div>
+      <div class="formula">\(‖d‖ \le \Delta _k (trust radius)\)</div>
     </div>
   </div>
 
@@ -1132,37 +1132,37 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">⚖️</div>
       <h3>Lagrangian Function</h3>
       <p>Untuk masalah berkendala equality <code>min f(x) s.t. h(x) = 0</code>, definisikan: <code>L(x, λ) = f(x) + λᵀ·h(x)</code>. Kondisi optimal (Lagrange 1788): <code>∇_x L = ∇f + λᵀ·∇h = 0</code> dan <code>h(x) = 0</code>. Multiplier λ menggambarkan <em>sensitivity</em>: <code>∂f*/∂b = −λ*</code> kalau <code>h(x) = b</code>. KKT memperluas ini untuk inequality kendala dengan slack &amp; condition complementary.</p>
-      <div class="formula">L = f + λᵀh + μᵀg</div>
+      <div class="formula">\(L = f + \lambda ^{T}h + \mu ^{T}g\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔓</div>
       <h3>Complementary Slackness — Active vs Inactive</h3>
       <p>Untuk inequality <code>gⱼ(x) ≤ 0</code> dan multiplier <code>μⱼ ≥ 0</code>, KKT menuntut <strong>\(\mu ⱼ \cdot\) gⱼ(x*) \(= 0\)</strong>. Konsekuensi: di optimum, <em>kendala aktif</em> (gⱼ = 0) → multiplier μⱼ bisa &gt; 0; <em>kendala tidak aktif</em> (gⱼ &lt; 0) → harus μⱼ = 0. Ini cara natural untuk klasifikasi mana kendala "binding". <strong style="color:var(--cyan)">Shadow price</strong> di NLP = μⱼ optimal.</p>
-      <div class="formula">μⱼ · gⱼ(x*) = 0, ∀j</div>
+      <div class="formula">\(\mu _j \cdot g_j(x*) = 0, ∀j\)</div>
     </div>
     <div class="card">
       <div class="card-icon">💰</div>
       <h3>Penalty Method — Soft Constraint</h3>
       <p>Konversi kendala jadi penalty di objektif: <code>min f(x) + ρ·Σ max(0, gⱼ(x))²</code>. Saat <code>ρ → ∞</code>, solusi unconstrained → solusi constrained. Sederhana untuk implementasi (cukup gradient descent), tetapi <strong style="color:var(--pink)">numerically ill-conditioned</strong> untuk ρ besar. Variant: <em>quadratic penalty</em>, <em>augmented Lagrangian</em> (kombinasi penalty + multiplier, lebih stabil).</p>
-      <div class="formula">L_ρ = f + ρ·Σ[g⁺]²</div>
+      <div class="formula">\(L_\rho = f + \rho \cdot \Sigma [g⁺]^2\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🧱</div>
       <h3>Barrier Method — Interior Point</h3>
       <p>Untuk inequality <code>g(x) ≤ 0</code>, tambahkan <strong>log barrier</strong>: <code>min f(x) − μ·Σ log(−gⱼ(x))</code>. Barrier menjadi ∞ saat mendekati boundary, <em>memaksa solusi tetap di interior</em>. Saat <code>μ → 0</code>, solusi → optimum constrained. Dasar dari <strong>Interior Point Methods (IPM)</strong> Karmarkar (1984) — polynomial-time, sangat efisien untuk LP/QP/SDP besar. SciPy: <code>method='trust-constr'</code> atau <code>'interior-point'</code>.</p>
-      <div class="formula">L_μ = f − μ·Σ log(−g)</div>
+      <div class="formula">\(L_\mu = f - \mu \cdot \Sigma \log(-g)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>SQP — Sequential Quadratic Programming</h3>
       <p>Pada tiap iterasi, aproksimasi NLP dengan <strong>QP subproblem</strong>: quadratic objective + linier kendala. Solve QP, gunakan solusi sebagai arah descent untuk masalah asli, line search untuk step size. Konvergensi super-linier ke titik KKT. <strong style="color:var(--green)">Standar industri</strong> untuk NLP berkendala. SciPy: <code>method='SLSQP'</code>. Robust, support equality + inequality + bounds.</p>
-      <div class="formula">QP step: min ½dᵀHd + ∇fᵀd s.t. Jd ≤ −g</div>
+      <div class="formula">\(QP step: min \tfrac{1}{2}d^{T}Hd + ∇f^{T}d s.t. Jd \le -g\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔧</div>
       <h3>Augmented Lagrangian</h3>
       <p>Kombinasi penalty + Lagrangian — best of both: <code>L_A = f + λᵀh + (ρ/2)·‖h‖²</code>. Update <code>λ_{k+1} = λ_k + ρ·h(x_k)</code> tiap iter outer. Tidak perlu ρ → ∞, lebih stabil numerik. Powell (1969), Hestenes (1969). Banyak dipakai di ADMM &amp; large-scale optimization. SciPy <code>method='trust-constr'</code> menggunakan variant ini internal.</p>
-      <div class="formula">L_A = f + λᵀh + ρ/2·‖h‖²</div>
+      <div class="formula">\(L_A = f + \lambda ^{T}h + \rho /2 \cdot ‖h‖^2\)</div>
     </div>
   </div>
 
@@ -1393,25 +1393,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🔧</div>
       <h3>Design Parameter Optimization</h3>
       <p>Desain pegas suspensi mobil: cari <em>diameter wire d, jumlah lilitan N, tinggi bebas L</em> agar massa minimum dengan kendala (1) tegangan ≤ allowable, (2) deflection target ≥ ride comfort, (3) frequency natural di luar zona resonansi (5–15 Hz). Fungsi objektif <code>m = ρ·π·(d²/4)·L·N</code> non-linier; tegangan torsion juga non-linier dalam d. SLSQP atau trust-constr menyelesaikan dalam detik. Dipakai oleh Mercedes, BMW, Toyota suspensi engineers. Tools: ANSYS Workbench Optimization, MATLAB Optimization Toolbox.</p>
-      <div class="formula">min m(d,N,L) s.t. σ ≤ σ_y</div>
+      <div class="formula">\(min m(d,N,L) s.t. \sigma \le \sigma _y\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎛️</div>
       <h3>PID/MPC Controller Tuning</h3>
       <p>Tune kontroler PID <code>K_p, K_i, K_d</code> agar respons sistem mekanik <em>cepat tanpa overshoot</em>. <strong>NLP non-linier</strong>: minimize ITAE (Integral of Time × Absolute Error) atau ISE; kendala: stability (eigenvalue closed-loop di kiri), overshoot ≤ 5%, settling time ≤ 2 s. Solver: scipy SLSQP atau Nelder-Mead (kalau gradient sulit dihitung). Untuk MPC, NLP dijalankan setiap sample time (~10 ms) — robot industrial, drone autopilot, kendaraan otonom semua bergantung pada ini. Library: <code>do-mpc</code>, <code>CasADi</code> (auto-diff super cepat).</p>
-      <div class="formula">min ∫|e(t)|·t dt s.t. stability</div>
+      <div class="formula">\(min \int |e(t)| \cdot t dt s.t. stability\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🏗️</div>
       <h3>Topology Optimization (FEM)</h3>
       <p>Cari <em>distribusi material</em> dalam volume desain agar struktur paling ringan dengan stiffness target. SIMP (Solid Isotropic Material Penalization): variabel = density tiap element ρₑ ∈ [0,1]; objektif min compliance <code>uᵀKu</code>; kendala volume fraction Σρₑ·vₑ ≤ V_target. NLP dengan ribuan variabel — gradient via <em>sensitivity analysis</em> (adjoint method). Hasilnya: desain bertulang yang topologinya sangat optimal — printer-friendly. Dipakai di Boeing 787 brackets, BMW iX gearbox, Tesla giga-castings. Tools: Altair OptiStruct, Siemens NX Topology, Autodesk Fusion 360 Generative Design.</p>
-      <div class="formula">min uᵀKu s.t. Σρₑvₑ ≤ V*</div>
+      <div class="formula">\(min u^{T}Ku s.t. \Sigma \rho ₑvₑ \le V*\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🤖</div>
       <h3>Robot Trajectory &amp; Optimal Control</h3>
       <p>Robot lengan industri pick-and-place: gerakkan end-effector dari titik A ke B dengan <em>waktu minimum</em> sambil hindari obstacle dan menjaga torque motor &lt; rating. <strong>NLP berkendala</strong>: variabel = joint angles q(t) didiskretisasi pada N waypoints; objektif min Σ Δt; kendala kinematic, dynamic, collision avoidance, joint limits. Auto-diff via CasADi memberi gradient analitik untuk masalah dengan ratusan variabel. Sama untuk drone path planning, autonomous vehicle, surgical robot, manipulator KUKA &amp; Universal Robots.</p>
-      <div class="formula">min T s.t. dynamics, joint limits</div>
+      <div class="formula">\(min T s.t. dynamics, joint limits\)</div>
     </div>
   </div>
 

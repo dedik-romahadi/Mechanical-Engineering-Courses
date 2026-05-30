@@ -997,25 +997,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🏢</div>
       <h3>MDoF di Dunia Nyata</h3>
       <p>Gedung 10 lantai = 10 DoF translasi (per lantai). Jembatan suspension = 100+ DoF. Sayap pesawat (FEM) = 10⁴-10⁶ DoF. Setiap struktur kompleks intrinsik adalah MDoF — analisis 1-DoF/2-DoF hanyalah simplifikasi pedagogis.</p>
-      <div class="formula">Real structure: N = 10 - 10⁶ DoF</div>
+      <div class="formula">\(Real structure: N = 10 - 10^6 DoF\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Idea Sentral: Decoupling</h3>
       <p>Persamaan gerak MDoF asli kompleks: <code>[M]{ẍ} + [K]{x} = {F}</code> — N persamaan saling terkait (coupled). Modal analysis transforms ke <strong>N persamaan independen (decoupled)</strong> — masing-masing seperti 1-DoF sederhana. Setelah decouple, solve trivial.</p>
-      <div class="formula">Coupled MDoF → N independent 1-DoF</div>
+      <div class="formula">\(Coupled MDoF \to N independent 1-DoF\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌊</div>
       <h3>Tiga Tahap Modal Analysis</h3>
       <p>(1) <strong>Solve eigenvalue problem</strong>: dapatkan N frekuensi pribadi ω<sub>i</sub> &amp; N mode shape φ<sub>i</sub>. (2) <strong>Modal transformation</strong>: ubah koordinat fisik {x} ke koordinat modal {η} via [Φ]. (3) <strong>Solve N independent equations</strong> in η, lalu transform balik.</p>
-      <div class="formula">Eigen → Transform → Solve → Inverse</div>
+      <div class="formula">\(Eigen \to Transform \to Solve \to Inverse\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎼</div>
       <h3>Analogi: Spektrum Suara</h3>
       <p>Mode shape MDoF system seperti <em>not-not</em> di partitur. Setiap "not" punya frekuensi (mode i) dan amplitudo (kontribusi η<sub>i</sub>). Total respons = <em>chord</em> — kombinasi simultan semua not. Modal analysis = mengurai chord ke not penyusunnya.</p>
-      <div class="formula">x(t) = Σ φ_i · η_i(t)  (modal sum)</div>
+      <div class="formula">\(x(t) = \Sigma \phi _i \cdot \eta _i(t) (modal sum)\)</div>
     </div>
   </div>
 
@@ -1052,19 +1052,19 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🔢</div>
       <h3>N Eigenvalues = N Frekuensi Pribadi</h3>
       <p>Polinomial det([K]−ω²[M])=0 berderajat N → N akar untuk ω². Akar selalu positif (untuk K positive definite, system stable) → N nilai ω<sub>i</sub> positif. Konvensi: ordered ω<sub>1</sub> &lt; ω<sub>2</sub> &lt; ... &lt; ω<sub>N</sub>.</p>
-      <div class="formula">N values: ω₁ &lt; ω₂ &lt; ... &lt; ω_N</div>
+      <div class="formula">\(N values: \omega _1 < \omega _2 < ... < \omega _N\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Setiap ω<sub>i</sub> Punya Mode Shape φ<sub>i</sub></h3>
       <p>Untuk tiap eigenvalue ω<sub>i</sub>², solve \(([K] - \omega _{i}^2[M]) \cdot {\phi _{i}} = 0\) untuk vektor non-trivial φ<sub>i</sub> (mode shape). Mode shape adalah vektor N-dim — menjelaskan pola gerak relatif tiap massa di mode i.</p>
-      <div class="formula">([K] − ω_i²[M]){φ_i} = 0</div>
+      <div class="formula">\(([K] - \omega _i^2[M]){\phi _i} = 0\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Komputasi Modern</h3>
       <p>Untuk MDoF besar (N &gt; 100), pakai <strong>iterative algorithms</strong>: Lanczos, Arnoldi, subspace iteration. Library: scipy.sparse.linalg.eigsh(), MATLAB eigs(). Hanya hitung beberapa eigenvalue terendah (lowest modes paling penting untuk dinamika).</p>
-      <div class="formula">For large N: only solve k &lt; N modes</div>
+      <div class="formula">\(For large N:\;\text{only}\;solve k < N modes\)</div>
     </div>
   </div>
 
@@ -1095,13 +1095,13 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">⚖️</div>
       <h3>Mass-Normalized: φᵀMφ = 1</h3>
       <p>Setiap mode shape di-scale agar \(\phi _{i}^{T}[M]\phi _{i} = 1\). Konsekuensi: \(\phi _{i}^{T}[K]\phi _{i} = \omega _{i}^2\). Konvensi paling powerful untuk modal analysis lanjut — modal mass = 1, modal stiffness = ω². Standard di FEM software.</p>
-      <div class="formula">φ_i^T M φ_i = 1, φ_i^T K φ_i = ω_i²</div>
+      <div class="formula">\(\phi _i^T M \phi _i = 1, \phi _i^T K \phi _i = \omega _i^2\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📏</div>
       <h3>Max-Normalized: φ<sub>max</sub> = 1</h3>
       <p>Element terbesar di mode shape = 1 (atau −1). Mudah interpretasi visual: mode shape directly readable sebagai "rasio relative ke titik dengan amplitudo terbesar". Default umum di textbook untuk pedagogis.</p>
-      <div class="formula">max(|φ_i|) = 1</div>
+      <div class="formula">\(max(|\phi _i|) = 1\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
@@ -1113,7 +1113,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🔄</div>
       <h3>Konversi Antar Konvensi</h3>
       <p>Mudah convert: hitung scaling factor untuk current mode, divide dengan target normalization. Mass-normalized: \(\phi _{norm} = \phi / \sqrt{\phi ^{T}M\phi }\). Max-norm: \(\phi _{norm} = \phi / max(|\phi |)\). Engineer harus konsisten dalam satu analisis.</p>
-      <div class="formula">φ_normalized = φ / scaling_factor</div>
+      <div class="formula">\(\phi _normalized = \phi / scaling_factor\)</div>
     </div>
   </div>
 
@@ -1149,25 +1149,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🔗</div>
       <h3>Orthogonal terhadap M (Mass Orthogonality)</h3>
       <p>\(\phi _{i}^{T}[M]\phi _{j} = 0\) untuk i ≠ j. Bukti via eigenvalue equation: kalikan satu equation dengan φ<sub>j</sub>ᵀ, transposed equation dengan φ<sub>i</sub>, subtract. Karena ω<sub>i</sub> ≠ ω<sub>j</sub>, terbukti orthogonal.</p>
-      <div class="formula">M-orthogonal: φ_i^T M φ_j = 0</div>
+      <div class="formula">\(M-orthogonal: \phi _i^T M \phi _j = 0\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔧</div>
       <h3>Orthogonal terhadap K (Stiffness Orthogonality)</h3>
       <p>Sama analoginya: \(\phi _{i}^{T}[K]\phi _{j} = 0\) untuk i ≠ j. Konsekuensi langsung dari M-orthogonality dan eigenvalue equation. Kedua orthogonality ini bersamaan disebut "M-K orthogonality".</p>
-      <div class="formula">K-orthogonal: φ_i^T K φ_j = 0</div>
+      <div class="formula">\(K-orthogonal: \phi _i^T K \phi _j = 0\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌐</div>
       <h3>Bukan Geometric Orthogonality</h3>
       <p>Hati-hati: mode shape <strong>tidak</strong> orthogonal dalam sense biasa (φ<sub>i</sub>ᵀφ<sub>j</sub> = 0). Hanya orthogonal terhadap M dan K. Ini disebut "M-orthogonality" atau "weighted orthogonality" — generalization dari orthogonality biasa.</p>
-      <div class="formula">φ_i^T φ_j ≠ 0 generally (NOT geometric ortho)</div>
+      <div class="formula">\(\phi _i^T \phi _j \ne 0 generally (NOT geometric ortho)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Konsekuensi untuk Decoupling</h3>
       <p>Substitusi <code>{x} = [Φ]{η}</code> ke equation of motion, lalu pre-multiply dengan [Φ]ᵀ. Hasilnya: <strong>off-diagonal terms semua nol</strong> (karena orthogonality). Persamaan jadi <em>diagonal</em> = N independent equations.</p>
-      <div class="formula">Φ^T M Φ = diag, Φ^T K Φ = diag</div>
+      <div class="formula">\(\Phi ^T M \Phi = \diag, \Phi ^T K \Phi = \diag\)</div>
     </div>
   </div>
 
@@ -1198,25 +1198,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📊</div>
       <h3>Konstruksi Modal Matrix</h3>
       <p>Stack N mode shape (column vectors) menjadi matriks N×N. Kolom 1 = mode 1, kolom 2 = mode 2, dst. Python: <code>Phi = eigvecs</code> (output <code>scipy.linalg.eigh</code> sudah dalam format ini).</p>
-      <div class="formula">Phi[:, i] = mode shape i</div>
+      <div class="formula">\(Phi[:, i] = mode shape i\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔄</div>
       <h3>Forward Transformation: x → η</h3>
       <p>Modal coordinates: \({\eta } = [\Phi ]^{-1}{x}\). Untuk mass-normalized [Φ]: <code>{η} = [Φ]ᵀ[M]{x}</code> (lebih stable, karena [Φ]ᵀ[M] adalah inverse dari [Φ]). η<sub>i</sub> = participation amplitude mode i.</p>
-      <div class="formula">η_i = φ_i^T M x (mass-normalized)</div>
+      <div class="formula">\(\eta _i = \phi _i^T M x (mass-normalized)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔁</div>
       <h3>Inverse Transformation: η → x</h3>
       <p>Setelah solve dalam modal coordinates, kembali ke physical: <code>{x} = [Φ]{η}</code>. Setiap mode kontribusi ke physical displacement = φ<sub>i</sub>·η<sub>i</sub>. Total response = jumlah semua mode contributions (Bagian 06 superposition).</p>
-      <div class="formula">x = Σ φ_i · η_i</div>
+      <div class="formula">\(x = \Sigma \phi _i \cdot \eta _i\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Diagonalization Effect</h3>
       <p>Modal transformation membuat matriks [M] dan [K] menjadi <strong>diagonal</strong>: \([\Phi ]^{T}[M][\Phi ] = diag(m_{i})\), \([\Phi ]^{T}[K][\Phi ] = diag(k_{i})\). Inilah essence decoupling — semua off-diagonal terms (yang menyebabkan coupling) menjadi nol.</p>
-      <div class="formula">Φ^T M Φ = M_diag (decoupled)</div>
+      <div class="formula">\(\Phi ^T M \Phi = M_\diag (decoupled)\)</div>
     </div>
   </div>
 
@@ -1252,25 +1252,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📋</div>
       <h3>Workflow Step-by-Step</h3>
       <p>(1) Solve eigenvalue → ω<sub>i</sub>, φ<sub>i</sub>. (2) Mass-normalize mode shapes. (3) Compute modal force \(f_{i}(t) = \phi _{i}^{T}{F(t)}\). (4) Solve modal equation untuk η<sub>i</sub>(t) (1-DoF, easy!). (5) Superpose: {x(t)} = Σ φ<sub>i</sub>·η<sub>i</sub>(t).</p>
-      <div class="formula">5 steps: eig → norm → modal F → solve → sum</div>
+      <div class="formula">\(5 steps: eig \to norm \to modal F \to solve \to sum\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎚️</div>
       <h3>Modal Truncation (Mode Truncation)</h3>
       <p>Untuk MDoF besar (N=100+), tidak perlu hitung semua N mode. <strong>Truncate</strong> ke beberapa mode dominan saja (mis. mode 1-5). Akurasi 95% untuk loading dominasi low-frequency (gempa, angin). Komputasi <strong>10-100× lebih cepat</strong> dari direct integration.</p>
-      <div class="formula">Truncate to k modes (k &lt;&lt; N)</div>
+      <div class="formula">\(Truncate to k modes (k << N)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">💧</div>
       <h3>Rayleigh Damping (Proportional)</h3>
       <p>Damping matrix <code>[C] = α[M] + β[K]</code>. Sifat: [C] juga diagonalized oleh [Φ] (modal damping). Tiap mode i punya damping ratio ζ<sub>i</sub> independent. Modal equation dengan damping: \(\eta ̈_{i} + 2\zeta _{i}\omega _{i}\eta ̇_{i} + \omega _{i}^2\eta _{i} = f_{i}(t)\).</p>
-      <div class="formula">C = αM + βK (Rayleigh)</div>
+      <div class="formula">\(C = \alpha M + \beta K (Rayleigh)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚙️</div>
       <h3>Comparison vs Direct Integration</h3>
       <p>Direct integration (Newmark, Wilson-θ): solve coupled ODE [M]{ẍ}+[C]{ẋ}+[K]{x}={F} step by step. <strong>Pros</strong>: handle non-linear, non-proportional damping. <strong>Cons</strong>: lambat (O(\(N^2\)) per step). <strong>Modal superposition</strong>: super cepat, tapi limited ke linear + Rayleigh damping. Pilih sesuai kebutuhan.</p>
-      <div class="formula">Modal: fast linear; Direct: slow general</div>
+      <div class="formula">\(Modal: fast linear; Direct: slow general\)</div>
     </div>
   </div>
 
@@ -1308,25 +1308,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🏢</div>
       <h3>Tall Building (Burj Khalifa, Petronas)</h3>
       <p>828 m Burj Khalifa dimodelkan sebagai 100+ DoF. Mode 1 = sway lateral (T ≈ 11 sec), mode 2 = perpendicular sway, mode 3 = torsional. Wind load &amp; seismic dianalisis dengan modal superposition. Tuned mass damper (Bagian 07 Modul-7) di-tune ke f<sub>1</sub>.</p>
-      <div class="formula">Burj Khalifa T_1 ≈ 11 sec (very low f)</div>
+      <div class="formula">\(Burj Khalifa T_1 \approx 11 \sec (very low f)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌉</div>
       <h3>Long-Span Bridge (Tacoma, Akashi)</h3>
       <p>Tacoma Narrows 1940: collapsed karena resonansi vortex shedding dengan mode torsional bridge. Lesson: modal analysis WAJIB include torsional modes. Akashi Kaikyo (1991 m): 200+ DoF analysis, modes 1-20 considered.</p>
-      <div class="formula">Tacoma: torsional flutter at ω_5</div>
+      <div class="formula">\(Tacoma: torsional flutter at \omega _5\)</div>
     </div>
     <div class="card">
       <div class="card-icon">✈️</div>
       <h3>Aircraft Wing (Aeroelastic Flutter)</h3>
       <p>Wing pesawat = continuous structure di-discretize jadi 1000-100000 DoF FEM. Modal analysis identify mode bending vs torsion. <strong>Flutter</strong>: coupling unstable antara dua mode pada speed kritis. Wajib dihindari di certification.</p>
-      <div class="formula">Flutter at V_critical from modal coupling</div>
+      <div class="formula">\(Flutter at V_critical from modal coupling\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🚗</div>
       <h3>Vehicle Body NVH Analysis</h3>
       <p>Body mobil = 10⁵-10⁶ DoF FEM. Modal analysis identify resonance frequencies yang dapat dirasakan penumpang sebagai noise/vibration. Optimization: shift mode frequencies away dari engine excitation (idle, cruising).</p>
-      <div class="formula">NVH: shift modes to f &gt; 200 Hz</div>
+      <div class="formula">\(NVH: shift modes to f > 200 Hz\)</div>
     </div>
   </div>
 

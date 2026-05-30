@@ -972,25 +972,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🧠</div>
       <h3>Pattern Recognition Multi-Feature</h3>
       <p>ML mempelajari <em>relasi non-linear</em> antara banyak fitur sekaligus. Contoh: bearing fault punya signature RMS naik moderat + kurtosis spike tajam + suhu naik perlahan — tidak ada single threshold yang menangkap semua. Random Forest atau SVM bisa belajar pola gabungan ini dari data fault historis. Bandingkan rule-based: tiap kombinasi butuh manual rule, eksplosi kombinatorial.</p>
-      <div class="formula">y = f(x₁, x₂, …, x_d)</div>
+      <div class="formula">\(y = f(x_1, x_2, \ldots , x_d)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📚</div>
       <h3>Belajar dari Data Historis</h3>
       <p>Workflow supervised learning: kumpulkan data <strong>labeled</strong> (X = fitur, y = healthy/fault). <em>Train</em>: algoritma optimasi parameter model untuk minimize error pada data train. <em>Test</em>: evaluate accuracy pada data test (yang model belum lihat). <em>Deploy</em>: prediksi untuk data baru real-time. Kebutuhan minimum: ~100 sample per kelas, idealnya ribuan. Sumber data: maintenance history + vibration logger + operator log book.</p>
-      <div class="formula">Train ⊆ Test ⊆ Deploy</div>
+      <div class="formula">\(Train ⊆ Test ⊆ Deploy\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎲</div>
       <h3>Probabilistik (Confidence Score)</h3>
       <p>Berbeda rule-based (binary OK/FAIL), ML output <em>probability</em>: <code>P(fault | x) = 0.87</code>. Engineer bisa pakai threshold custom: alert kalau P &gt; 0.5 (sensitif), atau P &gt; 0.9 (konservatif). Trade-off jelas: <strong>sensitivity vs specificity</strong> via ROC curve. Untuk safety-critical, set threshold rendah (catch semua fault, accept beberapa false alarm); untuk operator-friendly, threshold tinggi.</p>
-      <div class="formula">P(y | x) ∈ [0, 1]</div>
+      <div class="formula">\(P(y | x) \in [0, 1]\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🐍</div>
       <h3>Implementasi: scikit-learn</h3>
       <p>Library Python ML paling populer (50K+ stars di GitHub). API konsisten: <code>model.fit(X_train, y_train)</code> → <code>model.predict(X_test)</code>. Algoritma lengkap: <strong>Logistic Regression</strong> (linear, interpretable), <strong>Random Forest</strong> (ensemble tree, robust, feature importance), <strong>SVM</strong> (kernel trick, batas non-linear), <strong>Gradient Boosting</strong> (XGBoost, LightGBM — state-of-the-art tabular). Plus tools: <code>train_test_split</code>, <code>cross_val_score</code>, <code>classification_report</code>, <code>confusion_matrix</code>, <code>Pipeline</code>, <code>StandardScaler</code>.</p>
-      <div class="formula">scikit-learn API</div>
+      <div class="formula">\(scikit-learn API\)</div>
     </div>
   </div>
 
@@ -1021,37 +1021,37 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📊</div>
       <h3>Dataset Structure: X (matrix) &amp; y (vector)</h3>
       <p>Format standar tabular: matrix <code>X ∈ ℝ^(n×d)</code> dengan n = sample count, d = feature count; vector <code>y ∈ ℝ^n</code> (regresi) atau <code>y ∈ {0, 1, …, K-1}^n</code> (klasifikasi K-kelas). Contoh: 1000 sample × 8 fitur = X shape (1000, 8). Pandas DataFrame format: <code>df = pd.DataFrame(X, columns=feature_names); df['label'] = y</code>. Format CSV/Parquet untuk persistence. <strong>Label binary</strong> (healthy=0, fault=1) untuk binary classification; <strong>multi-class</strong> (healthy/bearing/imbalance/looseness) untuk diagnostik tipe fault.</p>
-      <div class="formula">X[n, d], y[n]</div>
+      <div class="formula">\(X[n, d], y[n]\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔧</div>
       <h3>Feature Engineering</h3>
       <p>Fitur mentah dari sensor (waveform vibrasi 50000 sample) terlalu high-dim untuk ML klasik. Solusi: <strong>extract domain features</strong> dari P1–P7. <em>Time-domain</em>: RMS, peak, peak-to-peak, crest factor, kurtosis, skewness (6 fitur). <em>Frequency-domain</em>: dominant frequency, spectral entropy, band energy 0–500 Hz / 500–1000 Hz / 1000–2000 Hz (5 fitur). <em>Time-frequency</em>: STFT band energies (10 fitur). Total 21 fitur per sensor — tractable untuk ML. <strong>Standardize</strong>: <code>StandardScaler</code> (zero mean, unit variance) sebelum SVM/logistic.</p>
-      <div class="formula">raw signal → 20+ features</div>
+      <div class="formula">\(raw signal \to 20+ features\)</div>
     </div>
     <div class="card">
       <div class="card-icon">✂️</div>
       <h3>Train/Test Split (80/20)</h3>
       <p>Separasi data ke <em>train set</em> (untuk fit model) dan <em>test set</em> (untuk evaluate). Standard split 80/20 atau 70/30. <code>from sklearn.model_selection import train_test_split; X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)</code>. <strong>stratify=y</strong> wajib untuk imbalanced classes — jaga proporsi healthy/fault sama di train &amp; test. <em>\(random_state=42\)</em> untuk reproducibility. <strong>Hindari leakage</strong>: jangan fit scaler di full data → fit hanya di train.</p>
-      <div class="formula">train_test_split(X, y, 0.2)</div>
+      <div class="formula">\(train_test_split(X, y, 0.2)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📈</div>
       <h3>Model Fitting (.fit / .predict)</h3>
       <p>API scikit-learn konsisten: <code>from sklearn.ensemble import RandomForestClassifier; model = RandomForestClassifier(n_estimators=100, random_state=42); model.fit(X_train, y_train); y_pred = model.predict(X_test); y_proba = model.predict_proba(X_test)[:, 1]</code>. <em>fit</em>: optimasi parameter dari training data. <em>predict</em>: hard label (0 atau 1). <em>\(predict_proba\)</em>: probability score (untuk threshold custom + ROC analysis). Model diff: Logistic Reg simple (linear); RF/SVM kompleks.</p>
-      <div class="formula">model.fit(X, y).predict(X')</div>
+      <div class="formula">\(model.fit(X, y).predict(X')\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📏</div>
       <h3>Evaluation Metrics</h3>
       <p>Accuracy alone tidak cukup untuk imbalanced data. Wajib pakai: <strong>precision</strong> = TP/(TP+FP) (dari yang di-predict fault, berapa benar?), <strong>recall</strong> = TP/(TP+FN) (dari semua fault sebenarnya, berapa kena?), <strong>F1-score</strong> = harmonic mean precision+recall. <strong>Confusion matrix</strong> 2×2 untuk binary atau k×k untuk multi-class. <strong>ROC-AUC</strong> untuk threshold-independent performance. Pakai <code>classification_report</code> + <code>confusion_matrix</code> + <code>roc_auc_score</code> dari <code>sklearn.metrics</code>.</p>
-      <div class="formula">precision, recall, F1, AUC</div>
+      <div class="formula">\(precision, recall, F1, AUC\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎛️</div>
       <h3>Hyperparameter Tuning</h3>
       <p>Algoritma punya hyperparameter (bukan dipelajari dari data, harus di-set). <em>Random Forest</em>: <code>n_estimators</code> (jumlah trees, default 100), <code>max_depth</code> (kedalaman tree, None=tak terbatas), <code>min_samples_split</code>. <em>SVM</em>: <code>C</code> (regularization, default 1.0), <code>kernel</code> ('rbf', 'linear', 'poly'), <code>gamma</code> (kernel coefficient). <strong>Tuning</strong> dengan <code>GridSearchCV</code> atau <code>RandomizedSearchCV</code> + cross-validation. Default biasanya OK untuk baseline; tuning untuk improvement marginal.</p>
-      <div class="formula">GridSearchCV → best params</div>
+      <div class="formula">\(GridSearchCV \to best params\)</div>
     </div>
   </div>
 
@@ -1108,37 +1108,37 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📐</div>
       <h3>Logistic Regression — Linear Baseline</h3>
       <p>Model probabilistik: <code>P(y=1 | x) = σ(wᵀx + b)</code> dengan σ = sigmoid. Loss: cross-entropy. Optimasi: gradient descent (atau IRLS). <strong>Kekuatan</strong>: cepat (linear), sangat interpretable (koefisien w[i] = log-odds contribution fitur i), probabilistic output natural, robust untuk data linearly separable. <strong>Kelemahan</strong>: hanya batas linear; butuh feature engineering untuk non-linear (polynomial, interaction terms). API: <code>from sklearn.linear_model import LogisticRegression; model = LogisticRegression(C=1.0, max_iter=1000)</code>. Hyperparam <em>C</em>: regularization (smaller C = more regularization).</p>
-      <div class="formula">P(y=1|x) = σ(wᵀx + b)</div>
+      <div class="formula">\(P(y=1|x) = \sigma (w^{T}x + b)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌳</div>
       <h3>Random Forest — Ensemble of Trees</h3>
       <p>Kombinasi N decision trees (typically 100), tiap tree dilatih di bootstrap sample + random subset features. Prediksi via <strong>majority voting</strong> (klasifikasi) atau <em>averaging</em> (regresi). <strong>Kekuatan</strong>: robust (low variance via averaging), capture non-linear pattern, feature importance built-in (<code>.feature_importances_</code>), tidak sensitif scaling, handle mixed feature types. <strong>Kelemahan</strong>: lebih lambat dari linear, kurang interpretable per-prediction (tetapi feature importance OK aggregat). API: <code>from sklearn.ensemble import RandomForestClassifier; model = RandomForestClassifier(n_estimators=100, max_depth=None, random_state=42)</code>. Default sangat sering bagus.</p>
-      <div class="formula">RF: majority vote of N trees</div>
+      <div class="formula">\(RF: majority vote of N trees\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Support Vector Machine — Margin + Kernel</h3>
       <p>Find <em>hyperplane</em> yang memaksimalkan margin antara dua kelas. Untuk non-linear: <strong>kernel trick</strong> — implicit map ke space dimensi tinggi via kernel (RBF, polynomial). <strong>Kekuatan</strong>: efektif untuk small-to-medium dataset (≤ 10K sample), kuat di high-dim feature space, kernel flexible. <strong>Kelemahan</strong>: lambat untuk dataset besar (kompleksitas O(\(n^2\)) atau O(\(n^3\))), tidak natural probabilistic (butuh Platt scaling), sangat sensitif scaling. API: <code>from sklearn.svm import SVC; model = SVC(C=1.0, kernel='rbf', gamma='scale', probability=True)</code>. Standardize fitur wajib!</p>
-      <div class="formula">SVM: max margin via kernel</div>
+      <div class="formula">\(SVM: max margin\;\text{via}\;kernel\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🚀</div>
       <h3>Gradient Boosting (XGBoost / LightGBM)</h3>
       <p>State-of-the-art untuk tabular data — sering juara di Kaggle competitions. Iteratif: build tree baru untuk koreksi error tree sebelumnya. Hyperparam banyak (learning rate, max_depth, n_estimators, subsample, dll) → butuh tuning lebih extensive. API: <code>from xgboost import XGBClassifier; model = XGBClassifier(n_estimators=200, learning_rate=0.1, max_depth=5)</code>. Atau <code>lightgbm.LGBMClassifier</code> (faster, memory-efficient). Trade-off: marginal accuracy gain (~1-3%) vs RF, lebih lambat train, lebih rentan overfit kalau tidak hati-hati.</p>
-      <div class="formula">GB: stage-wise additive trees</div>
+      <div class="formula">\(GB: stage-wise additive trees\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚖️</div>
       <h3>Bias-Variance Trade-off</h3>
       <p><strong>High bias</strong> (underfit): model terlalu sederhana, miss pola — accuracy train &amp; test sama-sama rendah. <strong>High variance</strong> (overfit): model terlalu kompleks, memorize train data — accuracy train tinggi, test rendah. <em>Logistic regression</em>: high bias kalau data non-linear. <em>\(RF max_depth\) tak terbatas</em>: high variance. <em>SVM C besar</em>: low bias, high variance. <strong>Diagnostik</strong>: kalau test &lt;&lt; train accuracy → overfit (regularize: kurangi max_depth, naikkan C atau alpha). Kalau train low → underfit (model lebih kompleks atau feature engineering).</p>
-      <div class="formula">err = bias² + variance + noise</div>
+      <div class="formula">\(err = bias^2 + variance + noise\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📋</div>
       <h3>Algorithm Selection Guideline</h3>
       <p><strong>Decision tree</strong> untuk pilih algoritma: (1) Data &lt; 1000 sample → Logistic Regression, SVM. (2) Data 1K–100K, mixed feature → <strong>Random Forest</strong> (default best). (3) Data &gt; 100K, performance critical → <strong>LightGBM</strong>. (4) Butuh interpretability tinggi → Logistic + feature importance, atau Decision Tree single. (5) Imbalanced class (1% positive) → <code>class_weight='balanced'</code> di RF/Logistic. (6) Real-time inference (&lt; 1ms) → Logistic atau small RF. <strong>Always start simple</strong>: Logistic baseline, then RF, then advanced.</p>
-      <div class="formula">simple → complex iteratif</div>
+      <div class="formula">\(simple \to complex iteratif\)</div>
     </div>
   </div>
 
@@ -1200,37 +1200,37 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📊</div>
       <h3>Confusion Matrix (2×2 Binary)</h3>
       <p>Matriks 2×2 untuk binary classification: <strong>TP</strong> (predict fault, actual fault) — correct alarm; <strong>FP</strong> (predict fault, actual healthy) — false alarm; <strong>TN</strong> (predict healthy, actual healthy) — correct normal; <strong>FN</strong> (predict healthy, actual fault) — <em>missed fault</em> = paling berbahaya untuk safety. Untuk multi-class (k=4): k×k matrix. Code: <code>from sklearn.metrics import confusion_matrix; cm = confusion_matrix(y_test, y_pred)</code>. Visualisasi: <code>seaborn.heatmap(cm, annot=True)</code>. Insight engineering: <em>FN cost &gt;&gt; FP cost</em> — biasanya prefer recall tinggi.</p>
-      <div class="formula">[[TN, FP], [FN, TP]]</div>
+      <div class="formula">\([[TN, FP], [FN, TP]]\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📏</div>
       <h3>Precision, Recall, F1-Score</h3>
       <p><strong>Precision</strong> = <code>TP / (TP + FP)</code> — dari yang di-flag fault, berapa benar? Tinggi = sedikit false alarm. <strong>Recall (Sensitivity)</strong> = <code>TP / (TP + FN)</code> — dari semua fault, berapa terdeteksi? Tinggi = sedikit miss. <strong>F1</strong> = <code>2·P·R / (P+R)</code> — harmonic mean, single metric balance. Untuk safety-critical: prioritize <em>recall</em> (jangan miss fault); untuk operator-friendly: prioritize <em>precision</em> (jangan banyak false alarm). API: <code>precision_score, recall_score, f1_score</code> dari <code>sklearn.metrics</code>.</p>
-      <div class="formula">F1 = 2PR/(P+R)</div>
+      <div class="formula">\(F1 = 2PR/(P+R)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📈</div>
       <h3>ROC Curve &amp; AUC</h3>
       <p><strong>ROC</strong> (Receiver Operating Characteristic) plot: TPR (recall) vs FPR (false positive rate) untuk semua threshold. Kurva mendekati pojok kiri-atas = model excellent. <strong>AUC</strong> (Area Under Curve) = single number 0–1 summary. AUC = 0.5 random; AUC = 1.0 perfect; AUC ≥ 0.9 excellent; AUC 0.7–0.9 good; AUC &lt; 0.6 poor. Threshold-independent — bandingkan model dengan satu metrik. API: <code>from sklearn.metrics import roc_curve, roc_auc_score; auc = roc_auc_score(y_test, y_proba)</code>. Plot: <code>fpr, tpr, _ = roc_curve(y_test, y_proba); plt.plot(fpr, tpr)</code>.</p>
-      <div class="formula">AUC ≥ 0.9 = excellent</div>
+      <div class="formula">\(AUC \ge 0.9 = excellent\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔄</div>
       <h3>k-Fold Cross-Validation</h3>
       <p>Single train/test split bisa lucky atau unlucky — variance estimate accuracy tinggi. Solusi: <strong>k-fold CV</strong> — split data ke k bagian, train di k-1, test di 1, ulangi k kali. Hasil: <em>mean ± std</em> dari k metrics. Standar k=5 atau 10. <strong>Stratified k-fold</strong> untuk imbalanced (proporsi class di tiap fold sama). API: <code>from sklearn.model_selection import cross_val_score; scores = cross_val_score(model, X, y, cv=5, scoring='f1_macro'); print(f"{scores.mean():.3f} ± {scores.std():.3f}")</code>. Pakai untuk: model selection, hyperparameter tuning, performance estimate.</p>
-      <div class="formula">CV: mean ± std over k folds</div>
+      <div class="formula">\(CV: mean \pm std over k folds\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚖️</div>
       <h3>Imbalanced Class Handling</h3>
       <p>Predictive maintenance sering imbalanced: 1% fault, 99% healthy. Naive accuracy = 99% kalau predict semua "healthy" — useless. Solusi: (1) <strong>Class weighting</strong>: <code>RandomForestClassifier(class_weight='balanced')</code> — weight inverse proporsional class frequency. (2) <strong>Resampling</strong>: SMOTE (oversample minority), undersample majority — pakai <code>imblearn</code> library. (3) <strong>Metrics</strong>: jangan accuracy; pakai precision-recall-F1 (per class), macro-F1, ROC-AUC, atau PR-AUC (lebih robust untuk severe imbalance). (4) <strong>Custom threshold</strong>: dari predict_proba, set threshold optimal berdasarkan business cost FP vs FN.</p>
-      <div class="formula">class_weight='balanced'</div>
+      <div class="formula">\(class_weight='balanced'\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🚨</div>
       <h3>Overfit Detection</h3>
       <p><strong>Overfit</strong> = train accuracy &gt;&gt; test accuracy. Misalnya: train 99%, test 75% → memorize, tidak generalize. <strong>Diagnostik</strong>: (1) Compare train vs test score; gap besar = overfit. (2) <em>Learning curve</em>: plot accuracy vs training set size. Gap melebar = overfit; gap mengecil dengan data lebih = lack of data. (3) Validation curve: plot accuracy vs hyperparameter complexity (max_depth, C). <strong>Mitigasi</strong>: regularize (smaller max_depth, larger min_samples_leaf, smaller C), more data, simpler model, ensemble (RF averaging reduce overfit), early stopping (XGBoost). API: <code>sklearn.model_selection.learning_curve, validation_curve</code>.</p>
-      <div class="formula">train_acc &gt;&gt; test_acc → overfit</div>
+      <div class="formula">\(train_acc >> test_acc \to overfit\)</div>
     </div>
   </div>
 
@@ -1469,25 +1469,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">✈️</div>
       <h3>Pratt &amp; Whitney Engine Health Management</h3>
       <p>Pratt &amp; Whitney (USA) deploy ML predictive maintenance untuk turbin pesawat (PW1100G di Airbus A320neo). 5000+ engine in-service, tiap engine 1000+ sensor (vibration, EGT, fuel flow, pressure, oil debris). Stack: <strong>edge ETL</strong> (extract features per flight) → <strong>cloud ML</strong> (Random Forest + XGBoost ensemble untuk fault classification, LSTM untuk RUL prediction). Detected 80% failure 30+ hari sebelum unscheduled removal. Saving: $5–10M per avoided AOG (Aircraft On Ground). Stack: AWS + custom MLOps. Standar: <strong>FAA Part 25</strong>, <strong>EASA CS-25</strong>.</p>
-      <div class="formula">RUL: 30+ hari early warning</div>
+      <div class="formula">\(RUL: 30+ hari early warning\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🚄</div>
       <h3>Siemens Mobility ICE/Velaro Train Predictive</h3>
       <p>Kereta cepat ICE (Jerman) &amp; Velaro (China, Spain) operasi 300+ km/h. Komponen kritis: bogie wheelset, traction motor, gearbox, brake. Sistem: <strong>Railigent</strong> — Siemens IoT platform. ML stack: feature extraction dari accelerometer + temperature + current + GPS, klasifikasi fault dengan Random Forest. Deteksi awal: bearing degradation 2–4 minggu sebelum failure → schedule maintenance saat di depot, bukan emergency. Hasil DB Cargo (Deutsche Bahn): availability naik 15%, MTBF +30%. Sistem proven di 600+ trainset.</p>
-      <div class="formula">2–4 minggu early warning bearing</div>
+      <div class="formula">\(2–4 minggu early warning bearing\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>GE Predix APM (Asset Performance Management)</h3>
       <p>GE Digital memimpin platform Industrial IoT untuk 50,000+ aset terhubung di power generation, oil &amp; gas, aviation. <strong>Predix Asset Performance Management</strong> menggabungkan rule-based (P13) + ML (P14). Model digital twin per asset; ML detect anomali di multivariate sensor data. Use case: combined-cycle gas turbine, RUL prediction untuk hot gas path components (max 24,000 jam life). Saving: 5–15% reduction unplanned downtime. Tools: Predix Studio, AWS SageMaker Industrial. Predecessor: Smart Signal di Cilacap (Pertamina).</p>
-      <div class="formula">Predix APM: rule + ML hybrid</div>
+      <div class="formula">\(Predix APM: rule + ML hybrid\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🚗</div>
       <h3>Tesla Battery Management ML</h3>
       <p>Tesla Model 3/Y/S/X memantau 7104+ cell baterai per car (4680/2170 cells × ~96 modules). Real-time ML: classify cell health (healthy/aging/degraded) berbasis voltage curve, internal resistance, temperature gradient. Predict <em>capacity fade</em> &amp; <em>charge efficiency drop</em>. Algoritma: gradient boosting + neural network. Deployed via OTA (Over-The-Air): model update mingguan. Hasil: warranty 8 tahun / 240k km dengan &lt; 30% capacity loss. Data scale: 5+ million cars × terabytes/car/tahun. Pemimpin di battery analytics + ML.</p>
-      <div class="formula">7104 cells × ML per car</div>
+      <div class="formula">\(7104 cells \times ML per car\)</div>
     </div>
   </div>
 

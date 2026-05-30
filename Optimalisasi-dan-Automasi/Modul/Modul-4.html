@@ -898,37 +898,37 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🔍</div>
       <h3>1. Inspeksi Awal</h3>
       <p>Periksa struktur data: jumlah baris, tipe kolom, rentang waktu, ringkasan statistik (<code>df.info()</code>, <code>df.describe()</code>). Cari tanggal aneh, nilai negatif yang mustahil, lompatan besar — semuanya petunjuk masalah yang lebih dalam.</p>
-      <div class="formula">df.info() · df.describe()</div>
+      <div class="formula">\(df.info() \cdot df.describe()\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🕳️</div>
       <h3>2. Missing Values</h3>
       <p>Sensor sering gagal merekam: paket data hilang, koneksi putus, downtime maintenance. Hasilnya NaN. Pilihan: hapus, isi (forward-fill, mean, interpolasi), atau biarkan dengan flag tersendiri tergantung jenis analisis.</p>
-      <div class="formula">df.isnull().sum()</div>
+      <div class="formula">\(df.isnull().sum()\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>3. Outlier Detection</h3>
       <p>Pembacaan ekstrem dari spike listrik, kabel longgar, atau memang anomali fisik. Identifikasi dengan Z-score (|z| &gt; 3) atau IQR (di luar Q1−1.5·IQR / Q3+1.5·IQR). Jangan asal hapus — outlier asli bisa jadi sinyal kerusakan!</p>
-      <div class="formula">|z| &gt; 3 · IQR rule</div>
+      <div class="formula">\(|z| > 3 \cdot IQR rule\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌊</div>
       <h3>4. Noise Reduction</h3>
       <p>Sinyal berfluktuasi acak karena kebisingan elektrik atau getaran lingkungan. Halusan dengan moving average, Savitzky-Golay filter, atau low-pass filter — namun jangan terlalu kuat sampai sinyal asli ikut hilang.</p>
-      <div class="formula">rolling(w).mean() · savgol</div>
+      <div class="formula">\(rolling(w).mean() \cdot savgol\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⏱️</div>
       <h3>5. Resampling</h3>
       <p>Sensor merekam pada laju yang tidak teratur, atau Anda butuh laju seragam untuk model. Upsample (interpolasi ke laju lebih tinggi) atau downsample (rata-rata ke laju lebih rendah) dengan <code>df.resample()</code> berbasis indeks waktu.</p>
-      <div class="formula">df.resample('1S').mean()</div>
+      <div class="formula">\(df.resample('1S').mean()\)</div>
     </div>
     <div class="card">
       <div class="card-icon">✅</div>
       <h3>Validasi Akhir</h3>
       <p>Plot ulang sebelum/sesudah, bandingkan statistik (mean, std, min, max), dan pastikan jumlah baris masuk akal. Catat semua transformasi — reproducibility wajib di workflow industri.</p>
-      <div class="formula">before vs after plot</div>
+      <div class="formula">\(before vs after plot\)</div>
     </div>
   </div>
 
@@ -959,25 +959,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🗑️</div>
       <h3>Drop (Hapus)</h3>
       <p>Hapus baris atau kolom yang mengandung NaN. Cocok jika persentase missing sangat kecil (&lt; 5%) dan data terdistribusi acak. Risiko: hilangnya rentang waktu yang menyebabkan ketidakteraturan indeks.</p>
-      <div class="formula">df.dropna() · df.dropna(axis=1)</div>
+      <div class="formula">\(df.dropna() \cdot df.dropna(axis=1)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⏩</div>
       <h3>Forward / Backward Fill</h3>
       <p>Isi NaN dengan nilai sebelum (ffill) atau sesudahnya (bfill). Cocok untuk data yang berubah lambat (suhu mesin, level tangki). Hindari untuk sinyal cepat (vibrasi) — bisa menyamarkan dinamika asli.</p>
-      <div class="formula">df.fillna(method='ffill')</div>
+      <div class="formula">\(df.fillna(method='ffill')\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📊</div>
       <h3>Mean / Median Fill</h3>
       <p>Isi dengan rata-rata atau median kolom. Sederhana namun menumpulkan variabilitas — tidak cocok untuk time series yang punya tren atau musiman. Median lebih robust terhadap outlier daripada mean.</p>
-      <div class="formula">df.fillna(df.mean())</div>
+      <div class="formula">\(df.fillna(df.mean())\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📈</div>
       <h3>Interpolasi</h3>
       <p>Isi NaN dengan estimasi berdasarkan titik tetangga (linear, time, polynomial, spline). Pilihan terbaik untuk time series numerik karena mempertahankan kontinuitas dan tren lokal.</p>
-      <div class="formula">df.interpolate(method='time')</div>
+      <div class="formula">\(df.interpolate(method='time')\)</div>
     </div>
   </div>
 
@@ -1037,7 +1037,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">✂️</div>
       <h3>Removal (Hapus)</h3>
       <p>Hapus baris berisi outlier. Hanya gunakan jika yakin outlier adalah noise/error pengukuran (misal: glitch sensor saat boot-up). Risiko: kehilangan informasi anomali nyata.</p>
-      <div class="formula">df = df[(z &lt; 3)]</div>
+      <div class="formula">\(df = df[(z < 3)]\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
@@ -1049,13 +1049,13 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🏷️</div>
       <h3>Flag &amp; Investigate</h3>
       <p>Tandai sebagai outlier di kolom terpisah, jangan diubah datanya. Pendekatan terbaik untuk monitoring kondisi mesin — outlier mungkin justru sinyal kerusakan dini.</p>
-      <div class="formula">df['is_outlier'] = (z &gt; 3)</div>
+      <div class="formula">\(df['is_outlier'] = (z > 3)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔧</div>
       <h3>Imputasi</h3>
       <p>Ganti outlier dengan nilai estimasi (median tetangga, interpolasi). Cocok jika anda yakin outlier adalah error pengukuran namun ingin mempertahankan rentang waktu.</p>
-      <div class="formula">x[outlier] = median(x)</div>
+      <div class="formula">\(x[outlier] = median(x)\)</div>
     </div>
   </div>
 
@@ -1076,19 +1076,19 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📉</div>
       <h3>Moving Average</h3>
       <p>Rata-rata sliding window — paling sederhana dan intuitif. Window besar = lebih halus tapi delay lebih besar. Cocok untuk eksplorasi cepat dan tren jangka panjang.</p>
-      <div class="formula">df.rolling(w).mean()</div>
+      <div class="formula">\(df.rolling(w).mean()\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📊</div>
       <h3>Exponential Moving Average</h3>
       <p>EMA memberi bobot lebih besar pada data terbaru — responsif terhadap perubahan namun tetap smooth. Parameter α menentukan keseimbangan responsif vs smoothing.</p>
-      <div class="formula">df.ewm(alpha=0.3).mean()</div>
+      <div class="formula">\(df.ewm(alpha=0.3).mean()\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌀</div>
       <h3>Savitzky-Golay Filter</h3>
       <p>Menyesuaikan polinomial pada window dan mengevaluasinya di titik tengah. Mempertahankan bentuk puncak (peak shape) lebih baik daripada moving average — pilihan utama untuk analisis fitur.</p>
-      <div class="formula">savgol_filter(x, 51, 3)</div>
+      <div class="formula">\(savgol_filter(x, 51, 3)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📡</div>
@@ -1356,25 +1356,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">⬇️</div>
       <h3>Downsampling (Aggregation)</h3>
       <p>Turunkan laju sampling: contoh 100 Hz → 10 Hz dengan rata-rata setiap 10 sampel. Cocok untuk dashboard, penyimpanan jangka panjang. Hati-hati aliasing jika sinyal punya komponen frekuensi tinggi.</p>
-      <div class="formula" style="color:var(--green);border-color:rgba(0,230,118,.2)">df.resample('1S').mean()</div>
+      <div class="formula">\(df.resample('1S').mean()\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⬆️</div>
       <h3>Upsampling (Interpolation)</h3>
       <p>Naikkan laju sampling: contoh 1 menit → 10 detik dengan interpolasi linear. Cocok untuk menjoin dengan sensor laju tinggi. Tidak menambah informasi baru — hanya memperhalus.</p>
-      <div class="formula">df.resample('10S').interpolate()</div>
+      <div class="formula">\(df.resample('10S').interpolate()\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
       <h3>Min-Max Scaling</h3>
       <p>Bawa semua fitur ke rentang [0, 1] atau [-1, 1]. Cocok untuk algoritma berbasis jarak (k-NN, neural network). Sensitif terhadap outlier — outlier mengkompresi rentang fitur lainnya.</p>
-      <div class="formula">MinMaxScaler()</div>
+      <div class="formula">\(MinMaxScaler()\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📊</div>
       <h3>Z-Score Standardization</h3>
       <p>Bawa fitur ke distribusi mean=0, std=1. Cocok untuk algoritma berasumsi data Gaussian (PCA, regresi linear). Lebih robust terhadap outlier daripada min-max.</p>
-      <div class="formula">StandardScaler()</div>
+      <div class="formula">\(StandardScaler()\)</div>
     </div>
   </div>
 

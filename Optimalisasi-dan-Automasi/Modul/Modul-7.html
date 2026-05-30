@@ -972,25 +972,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🔍</div>
       <h3>Lihat Periodicity yang Tak Tampak</h3>
       <p>Sebuah sinyal vibrasi dengan amplitudo kecil pada <strong>177 Hz</strong> hampir mustahil dilihat di plot waktu — tertutupi noise. Tetapi di spektrum FFT, ia muncul sebagai <em>peak diskrit</em> setinggi gunung. Inilah keunggulan domain frekuensi: <strong style="color:var(--cyan)">memisahkan komponen periodik dari noise broadband</strong> bahkan saat SNR domain waktu rendah.</p>
-      <div class="formula">x(t) → X(f) = FFT[x]</div>
+      <div class="formula">\(x(t) \to X(f) = FFT[x]\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🧮</div>
       <h3>FFT: O(N log N), Bukan O(\(N^2\))</h3>
       <p>DFT naif butuh O(\(N^2\)) komputasi. <strong>FFT Cooley–Tukey</strong> (1965) memanfaatkan struktur radix-2 untuk turun ke <strong style="color:var(--green)">O(N log N)</strong> — perbedaan 100×–1000× untuk N besar. Inilah mengapa FFT 8192-point bisa dijalankan real-time di edge device. Library: <code>numpy.fft.fft</code>, <code>scipy.fft.fft</code>, dan <code>scipy.signal.welch</code> untuk PSD.</p>
-      <div class="formula">FFT: O(N log N)</div>
+      <div class="formula">\(FFT: O(N \log N)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚙️</div>
       <h3>Diagnostik Spesifik per Kerusakan</h3>
       <p>Setiap kerusakan mesin punya <em>tanda tangan frekuensi unik</em>. Bearing outer-race fault → peak di <strong>BPFO</strong>. Gear chipped tooth → peak di <strong>frekuensi mesh ± gear-shaft frequency</strong>. Blade unbalance → peak di <strong>blade-pass frequency</strong>. Domain waktu hanya bisa melihat "ada sesuatu yang salah"; domain frekuensi memberitahu <strong>komponen mana</strong> yang rusak.</p>
-      <div class="formula">peak @ BPFO → outer-race</div>
+      <div class="formula">\(peak @ BPFO \to outer-race\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📡</div>
       <h3>Komplemen, Bukan Pengganti</h3>
       <p>Domain frekuensi <strong>tidak menggantikan</strong> domain waktu — keduanya saling melengkapi. RMS &amp; kurtosis (waktu) tetap dipakai untuk <em>severity scoring</em>; peak FFT &amp; band power (frekuensi) untuk <em>fault classification</em>. Best practice industri: <strong style="color:var(--amber)">12 fitur waktu + 12 fitur frekuensi = 24-dim feature vector</strong>, langsung di-feed ke ML classifier (Pertemuan 13).</p>
-      <div class="formula">[φ_t, φ_f] ∈ ℝ^24 → ML</div>
+      <div class="formula">\([\phi _t, \phi _f] \in \mathbb{R}^24 \to ML\)</div>
     </div>
   </div>
 
@@ -1027,19 +1027,19 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">⚡</div>
       <h3>FFT (Fast Fourier Transform)</h3>
       <p>Algoritma <strong>Cooley–Tukey</strong> (1965) memecah DFT N-titik menjadi rekursi pada DFT N/2-titik bersama "twiddle factors". Hasilnya <strong style="color:var(--cyan)">O(N log N)</strong>. Untuk N = 8192: hanya ≈ 100 ribu operasi (660× lebih cepat dari DFT naif). Implementasi modern: <code>numpy.fft.rfft</code> (real-input, lebih cepat 2×) atau <code>scipy.fft.fft</code>.</p>
-      <div class="formula">FFT: O(N log N)</div>
+      <div class="formula">\(FFT: O(N \log N)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
       <h3>Frekuensi Resolusi (Δf)</h3>
       <p>Resolusi frekuensi: <strong>Δf = fs / N</strong>. Sampling 25 kHz dengan N = 8192 → Δf ≈ 3.05 Hz. Untuk membedakan dua peak yang berdekatan (misal BPFO 177 Hz vs 180 Hz line frequency), <em>Δf harus lebih kecil</em>. Solusinya: <strong>perbesar N</strong> (window panjang) — tapi membutuhkan asumsi sinyal tetap stasioner sepanjang window. Trade-off klasik: resolusi vs stationarity.</p>
-      <div class="formula">Δf = fs / N</div>
+      <div class="formula">\(\Delta f = fs / N\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🪟</div>
       <h3>Window Function (Hann, Hamming, Blackman)</h3>
       <p>FFT mengasumsikan sinyal periodik di window. Jika sinyal real tidak persis terkemas di window N, terjadi <strong>spectral leakage</strong> — energi peak menyebar ke bin tetangga. Solusi: kalikan sinyal dengan <em>window function</em> sebelum FFT. <strong>Hann</strong> (umum), <strong>Hamming</strong>, <strong>Blackman</strong> (leakage paling kecil), atau <strong>flat-top</strong> (untuk akurasi amplitudo). Selalu pakai window — rectangular hampir selalu jelek.</p>
-      <div class="formula">x_w[n] = w[n]·x[n]</div>
+      <div class="formula">\(x_w[n] = w[n] \cdot x[n]\)</div>
     </div>
   </div>
 
@@ -1070,25 +1070,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📊</div>
       <h3>Magnitude Spectrum |X[k]|</h3>
       <p>Plot <code>|X[k]|</code> vs <code>f_k = k·fs/N</code>. Peak diskrit menunjukkan komponen periodik. Untuk sinyal real, plot hanya bagian one-sided (k = 0..N/2). Magnitude di-skalakan dengan <strong>2/N</strong> agar peak amplitudo cocok dengan amplitudo sinusoidal asli (kecuali DC dan Nyquist yang dikalikan 1/N).</p>
-      <div class="formula">A_k = (2/N)·|X[k]|</div>
+      <div class="formula">\(A_k = (2/N) \cdot |X[k]|\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Periodogram (Power Spectrum)</h3>
       <p>Estimasi power spectrum sederhana: <code>P[k] = |X[k]|² / (fs·N)</code> — disebut <em>periodogram</em>. Cepat dihitung tetapi <strong>variansi tinggi</strong> (estimator inkonsisten secara statistik): noise spectrum sangat berisik. Tidak cocok untuk diagnostik fault yang butuh peak SNR baik. Solusinya: average banyak periodogram → <strong>Welch's method</strong>.</p>
-      <div class="formula">P[k] = |X[k]|² / (fs·N)</div>
+      <div class="formula">\(P[k] = |X[k]|^2 / (fs \cdot N)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🧮</div>
       <h3>Welch's Method (Recommended)</h3>
       <p>Bagi sinyal panjang menjadi <strong>segmen overlap</strong> (50% umum), terapkan window di tiap segmen, hitung periodogram, lalu rata-rata. Hasil: PSD jauh lebih halus (variansi turun ~2/K untuk K segmen). Library: <code>scipy.signal.welch(x, fs, nperseg=2048, noverlap=1024, window='hann')</code> — standar industri untuk vibration analysis.</p>
-      <div class="formula">PSD_W = (1/K)·ΣP_i</div>
+      <div class="formula">\(PSD_W = (1/K) \cdot \Sigma P_i\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📏</div>
       <h3>Parseval's Theorem (Cross-Check)</h3>
       <p>Energi total sinyal sama di kedua domain: <strong>\(\Sigma |x[n]|^2 = (1/N) \cdot \Sigma |X[k]|^2\)</strong>. Untuk PSD: <em>integral PSD over frekuensi = variance sinyal di waktu</em>. <strong style="color:var(--cyan)">Cross-check wajib</strong> implementasi: hitung RMS dari sinyal waktu, hitung \(\sqrt{\Sigma PSD \cdot \Delta f}\) — keduanya harus sama (dalam toleransi numerik). Jika tidak sama → ada bug di scaling atau window.</p>
-      <div class="formula">Σx² = ∫ PSD df</div>
+      <div class="formula">\(\Sigma x^2 = \int PSD df\)</div>
     </div>
   </div>
 
@@ -1138,19 +1138,19 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🔵</div>
       <h3>BPFI — Inner-race Defect</h3>
       <p>Ball Pass Frequency, Inner race: <code>BPFI = (n/2)·fr·(1+(d/D)·cosα)</code>. Untuk 6205 di 1480 rpm: <strong>BPFI ≈ 133.3 Hz</strong>. Selalu &gt; BPFO. Ciri khas inner-race fault: peak BPFI <strong>dimodulasi oleh fr</strong> (karena inner race berputar bersama shaft) — terlihat sebagai <em>sideband</em> di BPFI ± fr di spektrum envelope.</p>
-      <div class="formula">BPFI &gt; BPFO selalu</div>
+      <div class="formula">\(BPFI > BPFO selalu\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚪</div>
       <h3>BSF — Ball / Roller Defect</h3>
       <p>Ball Spin Frequency: <code>BSF = (D/2d)·fr·(1 − (d/D)²·cos²α)</code>. Untuk 6205 di 1480 rpm: <strong>BSF ≈ 56.9 Hz</strong>. Saat bola sendiri rusak (spalling pada permukaan bola), defect masuk-keluar zona beban tiap setengah putaran — peak BSF muncul tetapi sering bersama harmoni 2·BSF. Defect bola lebih sulit dideteksi dibanding race fault karena posisinya berputar bersama cage.</p>
-      <div class="formula">BSF ≪ BPFO biasanya</div>
+      <div class="formula">\(BSF ≪ BPFO biasanya\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌀</div>
       <h3>FTF — Cage Defect (Fundamental Train Frequency)</h3>
       <p>Frekuensi cage: <code>FTF = (fr/2)·(1−(d/D)·cosα)</code>. Untuk 6205 di 1480 rpm: <strong>FTF ≈ 9.85 Hz</strong>. Selalu &lt; fr/2. Peak di FTF muncul saat <em>cage retak / aus</em>, biasanya akhir umur bearing. FTF rendah, cocok dideteksi dengan FFT resolusi tinggi (Δf &lt; 0.5 Hz). Sering ada sebagai modulasi sideband di sekitar BPFO/BPFI.</p>
-      <div class="formula">FTF &lt; fr/2 selalu</div>
+      <div class="formula">\(FTF < fr/2 selalu\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔁</div>
@@ -1162,7 +1162,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🎵</div>
       <h3>Envelope Analysis (HFRT)</h3>
       <p>Bearing fault menghasilkan resonansi struktural di 5–20 kHz yang dimodulasi oleh frekuensi karakteristik. Trik: <strong>(1) bandpass ke band resonansi, (2) hitung envelope (Hilbert transform), (3) FFT envelope</strong>. Hasilnya: peak BPFO/BPFI/BSF tampak sangat jelas, jauh lebih bersih daripada FFT raw signal. Ini adalah teknik standar industri (SKF Multilog, Bently Nevada).</p>
-      <div class="formula">FFT[|H{bandpass(x)}|]</div>
+      <div class="formula">\(FFT[|H{bandpass(x)}|]\)</div>
     </div>
   </div>
 
@@ -1393,7 +1393,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🛠️</div>
       <h3>Envelope Analysis Bearing</h3>
       <p>Akselerometer pada housing bearing motor 25 kHz. Pipeline: <strong>(1) bandpass 5–10 kHz</strong> ke band resonansi struktural, <strong>(2) Hilbert transform → envelope</strong>, <strong>(3) FFT envelope</strong>. Peak di BPFO/BPFI/BSF tampak jauh lebih jelas dibanding FFT raw. Semua sistem premium SKF, Bently Nevada, dan IFM Octavis pakai envelope analysis sebagai default untuk bearing diagnostik.</p>
-      <div class="formula">x → BP → |H{·}| → FFT → peak</div>
+      <div class="formula">\(x \to BP \to |H{ \cdot }| \to FFT \to peak\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚙️</div>
@@ -1405,13 +1405,13 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">⚡</div>
       <h3>Motor Current Signature Analysis (MCSA)</h3>
       <p>Sensor arus pada motor induksi 3-fase: pakai <strong>FFT arus stator</strong> bukan vibrasi. Broken rotor bar muncul sebagai <em>sideband \(di f_supply \pm 2 \cdot s \cdot f_supply\)</em> (s = slip). Slip = 2–5%, jadi sideband di sekitar 50 Hz pada 47–53 Hz dan 99–101 Hz. Tidak butuh akselerometer — sensor arus sudah ada di MCC. Murah, non-invasive, akurat untuk fault rotor.</p>
-      <div class="formula">f_sb = (1±2s)·f_supply</div>
+      <div class="formula">\(f_sb = (1 \pm 2s) \cdot f_supply\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌬️</div>
       <h3>Wind Turbine Blade-Pass &amp; Tower Resonance</h3>
       <p>Sensor strain gauge di nacelle turbin angin: spektrum menampilkan peak di <strong>\(blade-pass\) frequency \((3 \cdot fr)\)</strong> untuk 3-blade rotor, plus tower natural frequency (~0.3 Hz) yang harus dihindari. Ice buildup di blade → blade-pass amplitude naik tidak simetris → SCADA trigger ice-removal. Spectrogram melacak transient yang muncul saat run-up generator.</p>
-      <div class="formula">f_BP = N_blade × fr</div>
+      <div class="formula">\(f_BP = N_blade \times fr\)</div>
     </div>
   </div>
 

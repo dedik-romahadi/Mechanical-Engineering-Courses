@@ -997,25 +997,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🔄</div>
       <h3>1× rpm — Unbalance</h3>
       <p>Komponen di frekuensi rotasi shaft (f<sub>r</sub> = rpm/60). Dominan = unbalance rotor. Naik dengan kuadrat speed. Salah satu fault paling umum &amp; paling mudah dikoreksi dengan dynamic balancing.</p>
-      <div class="formula">1×rpm dominant = unbalance</div>
+      <div class="formula">\(1 \times rpm dominant = unbalance\)</div>
     </div>
     <div class="card">
       <div class="card-icon">↔️</div>
       <h3>2× rpm — Misalignment</h3>
       <p>Komponen di 2× frekuensi rotasi. Dominan saat coupling shaft tidak sejajar (parallel offset, angular). Pola tipikal: 2× tinggi + 1× moderate. Perlu laser alignment untuk koreksi.</p>
-      <div class="formula">2×rpm dominant = misalignment</div>
+      <div class="formula">\(2 \times rpm dominant = misalignment\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📈</div>
       <h3>3× rpm + Higher — Looseness</h3>
       <p>Komponen di 3×, 4×, 5×, ... rpm. Dominan pada looseness mekanis (baut longgar, fit longgar, fondasi retak). Spektrum "ramai" dengan banyak harmonik integer.</p>
-      <div class="formula">Multi-harmonics = looseness</div>
+      <div class="formula">\(Multi-harmonics = looseness\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚙️</div>
       <h3>Gear Mesh Frequency (GMF)</h3>
       <p>Untuk gearbox: GMF = N<sub>gigi</sub> × f<sub>r</sub>. Dominan di gear sehat. Munculnya <strong>sidebands</strong> di GMF ± \(k \cdot f\)<sub>r</sub> = early warning gear damage (pitting, broken tooth). Akan di-detail di Bagian 06.</p>
-      <div class="formula">GMF = N_teeth × f_rotation</div>
+      <div class="formula">\(GMF = N_teeth \times f_rotation\)</div>
     </div>
   </div>
 
@@ -1051,25 +1051,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📊</div>
       <h3>Frequency Spectrum vs Order Spectrum</h3>
       <p>Sumbu-x frequency spectrum: Hz. Order spectrum: orders (dimensionless). Saat rpm berubah, peak unbalance bergerak di Hz spectrum — tapi tetap di order=1 di order spectrum. Interpretasi <strong>independent of speed</strong>.</p>
-      <div class="formula">Hz = Order × f_shaft</div>
+      <div class="formula">\(Hz = Order \times f_shaft\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📡</div>
       <h3>Tachometer Signal Required</h3>
       <p>Order tracking butuh sinyal referensi rotasi: <strong>tachometer pulse</strong> (1 pulse/rev) atau <strong>encoder</strong> (multi-pulse/rev). Di-record bersama vibration signal. Algorithm meresample data agar setiap rev = jumlah sample konstan.</p>
-      <div class="formula">Tach + vibration = synchronous resampling</div>
+      <div class="formula">\(Tach + vibration = synchronous resampling\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔁</div>
       <h3>Synchronous Resampling Algorithm</h3>
       <p>(1) Detect tach pulses → tahu waktu tiap rev. (2) Interpolate vibration signal pada waktu yang teratur per fraction of rev. (3) FFT hasil resampled — sumbu frekuensi sekarang adalah orders. Library: <code>scipy.signal.resample</code> + custom interpolation.</p>
-      <div class="formula">Resample t-uniform → θ-uniform</div>
+      <div class="formula">\(Resample t-uniform \to \theta -uniform\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Use Case: Run-Up / Coast-Down Test</h3>
       <p>Saat startup turbin/motor, rpm naik dari 0 ke nominal. FFT konvensional jadi waterfall yang sulit dibaca. Order tracking memberi <strong>Campbell diagram</strong> 2D yang clean — order vs time, dengan resonansi struktural muncul sebagai garis horizontal khas.</p>
-      <div class="formula">Run-up → Order vs RPM → Campbell</div>
+      <div class="formula">\(Run-up \to Order vs RPM \to Campbell\)</div>
     </div>
   </div>
 
@@ -1100,25 +1100,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🔁</div>
       <h3>Three Domains: t → f → τ</h3>
       <p>Time domain (t), frequency domain (f), cepstrum domain (τ = quefrency). Satuan τ adalah detik (sama seperti time), tapi makna-nya berbeda: <strong>periode sidebands di spektrum</strong>. Quefrency 0.04 s = sidebands berjarak 25 Hz.</p>
-      <div class="formula">τ = 1 / Δf_sidebands</div>
+      <div class="formula">\(\tau = 1 / \Delta f_sidebands\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚙️</div>
       <h3>Use Case: Gear Sidebands</h3>
       <p>Gear damage menghasilkan modulasi: GMF carrier + sidebands at f<sub>r</sub> spacing. Spektrum cluttered. Cepstrum: satu peak di τ = 1/f<sub>r</sub> yang langsung menunjukkan periode modulasi. Quantitatively measure modulation strength.</p>
-      <div class="formula">Cepstrum peak @ τ_gear = 1/f_r</div>
+      <div class="formula">\(Cepstrum peak @ \tau _gear = 1/f_r\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎺</div>
       <h3>Use Case: Engine Combustion</h3>
       <p>Engine 4-stroke: combustion event tiap 2 revolusi (untuk 4-cyl). Cepstrum menangkap firing rate sebagai peak yang clear. Diagnosis individual cylinder issue (mis. misfiring) dari cepstrum amplitude di firing harmonic.</p>
-      <div class="formula">Cepstrum peak @ firing period</div>
+      <div class="formula">\(Cepstrum peak @ firing period\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🛠️</div>
       <h3>Liftering — Cepstrum Filtering</h3>
       <p>Operasi mirip filtering tapi di cepstrum domain. <strong>Liftering</strong> dapat memisahkan komponen sumber (impulse train) dari komponen filter (struktural resonance). Aplikasi di voice processing &amp; bearing fault separation.</p>
-      <div class="formula">Lifter = filter di quefrency</div>
+      <div class="formula">\(Lifter = filter di quefrency\)</div>
     </div>
   </div>
 
@@ -1152,7 +1152,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🛡️</div>
       <h3>Step 1: Band-Pass Filter (BPF)</h3>
       <p>Filter sinyal di band high-frequency dimana resonansi struktural berada (typical: 3-10 kHz). Membuang komponen low-frequency (rotor unbalance, misalignment) dan high-frequency noise. Tujuan: isolasi sinyal yang ter-modulate impact.</p>
-      <div class="formula">BPF: 3 kHz - 10 kHz typical</div>
+      <div class="formula">\(BPF: 3 kHz - 10 kHz typical\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌊</div>
@@ -1164,13 +1164,13 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📊</div>
       <h3>Step 3: FFT of Envelope</h3>
       <p>Transform envelope ke frequency domain. Output: <strong>envelope spectrum</strong> yang menampilkan frekuensi modulasi — BPFO, BPFI, BSF, FTF muncul sebagai peak yang jelas. Inilah "magic" envelope analysis.</p>
-      <div class="formula">FFT(env) → BPFO/BPFI peaks</div>
+      <div class="formula">\(FFT(env) \to BPFO/BPFI peaks\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Optimal Band Selection: Kurtogram</h3>
       <p>Pilihan band BPF mempengaruhi sensitivity. <strong>Kurtogram</strong> (Antoni 2007): tampilkan kurtosis spectral di berbagai (center freq, bandwidth) — pilih band dengan kurtosis tertinggi untuk envelope analysis optimal.</p>
-      <div class="formula">Kurtogram → optimal (fc, BW)</div>
+      <div class="formula">\(Kurtogram \to optimal (fc, BW)\)</div>
     </div>
   </div>
 
@@ -1255,7 +1255,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">⚙️</div>
       <h3>GMF dari Gear Pinion vs Bull</h3>
       <p>Untuk gear pair: GMF = N<sub>pinion</sub> × f<sub>pinion</sub> = N<sub>bull</sub> × f<sub>bull</sub> (sama persis, karena keduanya mesh bersama). Tapi sidebands berbeda: input shaft vs output shaft.</p>
-      <div class="formula">GMF = N_pinion × f_pinion</div>
+      <div class="formula">\(GMF = N_pinion \times f_pinion\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📍</div>
@@ -1267,13 +1267,13 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">⚠️</div>
       <h3>Single Sideband Pattern → Localized Defect</h3>
       <p>Sidebands <strong>asimetris</strong> (lebih kuat di GMF + f<sub>r</sub> dari pada GMF − f<sub>r</sub>) sering = localized defect (broken tooth, single chip). Harus dikoreksi segera sebelum chain reaction ke gigi lain.</p>
-      <div class="formula">Asymmetric sidebands = local fault</div>
+      <div class="formula">\(Asymmetric sidebands = local fault\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📈</div>
       <h3>Multi-Harmonic GMF</h3>
       <p>2×GMF, 3×GMF muncul saat gear semakin rusak (high contact stress, distorted mesh). Plot trend amplitude GMF + harmonik vs waktu = indikator severity gear damage progression.</p>
-      <div class="formula">2×GMF, 3×GMF rising = severity</div>
+      <div class="formula">\(2 \times GMF, 3 \times GMF rising = severity\)</div>
     </div>
   </div>
 
@@ -1308,25 +1308,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">1️⃣</div>
       <h3>Acquire Data</h3>
       <p>Accelerometer di housing bearing (radial direction). fs = 25.6 kHz minimum. Buffer 1-3 detik. Tachometer signal jika rpm variable. Pastikan mounting rigid (stinger atau magnetic mount minimum, glued mount preferred).</p>
-      <div class="formula">fs ≥ 25 kHz, BW ≥ 5 kHz</div>
+      <div class="formula">\(fs \ge 25 kHz, BW \ge 5 kHz\)</div>
     </div>
     <div class="card">
       <div class="card-icon">2️⃣</div>
       <h3>Time-Domain Quick Check</h3>
       <p>Hitung RMS (severity), crest factor (impulsiveness), kurtosis. Jika RMS zone D → emergency. Jika crest/kurtosis tinggi → impulsive defect kemungkinan, lanjut envelope analysis.</p>
-      <div class="formula">RMS, CF, Kurtosis baseline</div>
+      <div class="formula">\(RMS, CF, Kurtosis baseline\)</div>
     </div>
     <div class="card">
       <div class="card-icon">3️⃣</div>
       <h3>Spectrum Analysis</h3>
       <p>FFT dengan Hann window. Identify peak di 1×rpm, 2×rpm (mekanis). Cek non-integer peaks — ini kemungkinan bearing/gear. Hitung BPFO/BPFI/GMF dari geometry — match dengan peak yang muncul.</p>
-      <div class="formula">FFT → integer vs non-integer</div>
+      <div class="formula">\(FFT \to integer vs non-integer\)</div>
     </div>
     <div class="card">
       <div class="card-icon">4️⃣</div>
       <h3>Envelope &amp; Confirm</h3>
       <p>Jika ada peak non-integer atau crest tinggi, lakukan envelope analysis di band 3-10 kHz. Spektrum envelope harus menampilkan BPFO/BPFI dengan amplitudo &gt; 5× noise floor untuk diagnosis confident. Cross-check dengan cepstrum untuk gear sidebands.</p>
-      <div class="formula">Envelope spectrum → BPFO/BPFI</div>
+      <div class="formula">\(Envelope spectrum \to BPFO/BPFI\)</div>
     </div>
   </div>
 

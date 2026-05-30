@@ -972,25 +972,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">⚡</div>
       <h3>Padatkan 100 000 Sampel → 12 Angka</h3>
       <p>Sebuah sensor accelerometer pada bearing dengan sampling 25 kHz menghasilkan <strong>100 000 sampel dalam 4 detik</strong>. Tidak mungkin membandingkan dua segmen langsung sample-by-sample. Fitur domain waktu menyaring inti informasinya menjadi <em>vektor 12 angka</em> — cukup untuk model klasifikasi <em>healthy / outer-race fault / inner-race fault</em> (lihat dataset CWRB).</p>
-      <div class="formula">x ∈ ℝ^N → φ ∈ ℝ^12</div>
+      <div class="formula">\(x \in \mathbb{R}^N \to \phi \in \mathbb{R}^12\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📏</div>
       <h3>Tetap di Domain Waktu</h3>
       <p>Berbeda dengan Pertemuan 7 (FFT, spektrum), fitur domain waktu <strong>tidak butuh transformasi Fourier</strong>. Hanya operasi statistik dasar: rata-rata, akar kuadrat, momen ke-3 dan ke-4. Komputasinya O(N), <strong style="color:var(--green)">sangat cepat</strong> — cocok untuk monitoring real-time edge device dengan budget komputasi terbatas.</p>
-      <div class="formula">O(N) — real-time ready</div>
+      <div class="formula">\(O(N) — real-time ready\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔬</div>
       <h3>Sensitif terhadap Kerusakan Spesifik</h3>
       <p>Setiap fitur menangkap <em>jenis anomali berbeda</em>. <strong>RMS</strong> naik saat amplitudo getaran membesar (unbalance, misalignment). <strong>Crest factor</strong> dan <strong>kurtosis</strong> melonjak saat ada <em>impak transient</em> kecil (early bearing fault) — bahkan sebelum RMS terpengaruh. Inilah mengapa engineer condition monitoring menggabungkan beberapa fitur sekaligus.</p>
-      <div class="formula">tiap fitur = sensor anomali berbeda</div>
+      <div class="formula">\(tiap fitur = sensor anomali berbeda\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Input Standar untuk Machine Learning</h3>
       <p>Hampir semua algoritma klasifikasi (SVM, Random Forest, XGBoost, Neural Network) menerima <em>vektor fitur</em>, bukan time series mentah. Ekstraksi fitur domain waktu adalah <strong>jembatan wajib</strong> antara raw data dan modeling — sama wajibnya dengan tokenisasi pada NLP. Kombinasikan dengan fitur frekuensi (Pertemuan 7) untuk hasil terbaik.</p>
-      <div class="formula">raw → φ(x) → model</div>
+      <div class="formula">\(raw \to \phi (x) \to model\)</div>
     </div>
   </div>
 
@@ -1027,19 +1027,19 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📈</div>
       <h3>Variance (σ²) &amp; Std (σ)</h3>
       <p>Mengukur <em>spread</em> sinyal di sekitar mean. Untuk vibrasi AC-coupled, σ² ≈ rata-rata kuadrat — sama dengan kuadrat RMS. Std (σ) lebih sering dipakai karena <em>satuan sama dengan x</em> (mm/s, m/\(s^2\), dll). Std meningkat saat amplitudo getaran membesar — fitur dasar untuk monitoring "level vibrasi".</p>
-      <div class="formula">σ² = (1/N)Σ(x−μ)²</div>
+      <div class="formula">\(\sigma ^2 = (1/N)\Sigma (x-\mu )^2\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>RMS (Root Mean Square)</h3>
       <p>Fitur <strong>paling fundamental</strong> dalam analisis vibrasi industri. RMS adalah <em>akar dari rata-rata kuadrat</em> — secara fisik representasi <strong style="color:var(--cyan)">energi sinyal per unit waktu</strong>. ISO 10816 menetapkan ambang batas vibrasi mesin <em>dalam satuan RMS velocity (mm/s)</em>: di bawah 1.8 mm/s = good, 4.5–7.1 mm/s = warning, &gt;11.2 mm/s = stop.</p>
-      <div class="formula">RMS = √[(1/N)Σx²]</div>
+      <div class="formula">\(RMS = √[(1/N)\Sigma x^2]\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔁</div>
       <h3>Hubungan RMS, Std, Mean</h3>
       <p>Identitas penting: <strong>\(RMS^2 = \mu ^2 + \sigma ^2\)</strong>. Untuk sinyal AC-coupled (μ = 0), <code>RMS = σ</code> persis. Untuk sinyal dengan DC offset, RMS sedikit lebih besar dari σ. Hubungan ini sering dipakai untuk <em>cross-check</em> implementasi: jika RMS &lt; σ, ada bug dalam kode!</p>
-      <div class="formula">RMS² = μ² + σ²</div>
+      <div class="formula">\(RMS^2 = \mu ^2 + \sigma ^2\)</div>
     </div>
   </div>
 
@@ -1070,25 +1070,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">⛰️</div>
       <h3>Peak (x<sub>peak</sub>)</h3>
       <p>Nilai <strong>absolut maksimum</strong> dalam segmen sinyal: <code>x_peak = max(|x_i|)</code>. Sangat sensitif terhadap impak transient — lonjakan sesaat saat impak metal-on-metal di bearing rusak. Tetapi juga sensitif terhadap <em>spike noise</em>; pre-filter median/Hampel sebelum hitung peak untuk hasil robust.</p>
-      <div class="formula">x_peak = max|x|</div>
+      <div class="formula">\(x_peak = max|x|\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📏</div>
       <h3>Peak-to-Peak (PP)</h3>
       <p>Selisih nilai <em>maksimum dan minimum</em>: <code>PP = max(x) − min(x)</code>. Lebih informatif dari peak tunggal karena menangkap <em>rentang amplitudo penuh</em> sinyal. Untuk sinyal AC-coupled simetris, PP ≈ 2·x_peak. Banyak displacement sensor mengukur dalam mils PP atau µm PP — bukan RMS.</p>
-      <div class="formula">PP = max − min</div>
+      <div class="formula">\(PP = max - min\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
       <h3>Mean Absolute (|x|<sub>avg</sub>)</h3>
       <p>Rata-rata <strong>nilai absolut</strong>: <code>(1/N)Σ|x_i|</code>. Mirip dengan std untuk distribusi simetris, tetapi tidak melibatkan kuadrat (lebih murah komputasi). Banyak digunakan sebagai alternatif RMS pada hardware terbatas (mikrokontroler tanpa floating-point sqrt). Hubungan dengan RMS untuk sinyal Gaussian: |x|_avg ≈ RMS · \(\sqrt{2/\pi }\) ≈ 0.798·RMS.</p>
-      <div class="formula">|x|_avg = (1/N)Σ|x|</div>
+      <div class="formula">\(|x|_avg = (1/N)\Sigma |x|\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔲</div>
       <h3>Square Mean (SM)</h3>
       <p>Rata-rata <strong>kuadrat nilai</strong>: <code>SM = (1/N)Σx_i²</code> — yang juga sama dengan <code>RMS²</code>. Beberapa standar (terutama akustik) memakai SM langsung daripada RMS karena <em>lebih mudah dihitung secara incremental</em>: <code>SM_new = SM_old + (x_new² − x_oldest²)/N</code>. Berguna untuk streaming data tanpa menyimpan window.</p>
-      <div class="formula">SM = RMS²</div>
+      <div class="formula">\(SM = RMS^2\)</div>
     </div>
   </div>
 
@@ -1132,37 +1132,37 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🏔️</div>
       <h3>Crest Factor (CF)</h3>
       <p>Rasio <strong>peak terhadap RMS</strong>: <code>CF = x_peak / RMS</code>. Untuk sinyal sinusoidal murni: CF = √2 ≈ 1.414. Untuk noise Gaussian: CF ≈ 3–4. Nilai CF &gt; 4–5 menandakan adanya <em>impak transient</em> — biasanya bearing fault stadium awal. CF naik dulu sebelum RMS, sehingga merupakan <strong style="color:var(--amber)">leading indicator</strong>.</p>
-      <div class="formula">CF = x_peak / RMS</div>
+      <div class="formula">\(CF = x_peak / RMS\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Kurtosis (Kurt)</h3>
       <p>Momen <strong>orde-4</strong> ternormalisasi: <code>Kurt = E[(x−μ)⁴]/σ⁴</code>. Mengukur <em>"ketebalan ekor"</em> distribusi. Sinyal Gaussian: Kurt = 3. Sinyal dengan banyak spike (impulsif): Kurt ≫ 3. Kurtosis adalah <strong style="color:var(--cyan)">fitur paling sensitif</strong> untuk deteksi early bearing fault — bisa naik 5–10× sebelum kerusakan kelihatan di trend RMS.</p>
-      <div class="formula">Kurt = E[(x−μ)⁴]/σ⁴</div>
+      <div class="formula">\(Kurt = E[(x-\mu )^4]/\sigma ^4\)</div>
     </div>
     <div class="card">
       <div class="card-icon">↔️</div>
       <h3>Skewness (Skew)</h3>
       <p>Momen <strong>orde-3</strong> ternormalisasi: <code>Skew = E[(x−μ)³]/σ³</code>. Mengukur <em>asimetri</em> distribusi. Sinyal vibrasi sehat (Gaussian/sinusoidal) memiliki Skew ≈ 0. Skewness ≠ 0 menandakan sinyal asimetris — misalnya akibat clipping (sinyal sensor over-saturasi) atau impak satu arah (gear meshing).</p>
-      <div class="formula">Skew = E[(x−μ)³]/σ³</div>
+      <div class="formula">\(Skew = E[(x-\mu )^3]/\sigma ^3\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
       <h3>Shape Factor (SF)</h3>
       <p>Rasio <strong>RMS terhadap mean absolute</strong>: <code>SF = RMS / |x|_avg</code>. Untuk sinyal Gaussian: SF ≈ 1.253 (= \(\sqrt{\pi /2}\)). Naik perlahan saat ada impak — kombinasikan dengan CF untuk diagnosis lebih kuat. SF tahan terhadap noise tunggal karena denominator-nya rata-rata absolut, bukan single peak.</p>
-      <div class="formula">SF = RMS / |x|_avg</div>
+      <div class="formula">\(SF = RMS / |x|_avg\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚠️</div>
       <h3>Impulse Factor (IF)</h3>
       <p>Rasio <strong>peak terhadap mean absolute</strong>: <code>IF = x_peak / |x|_avg</code>. Untuk Gaussian: IF ≈ 3·\(\sqrt{\pi /2}\) ≈ 3.76. Sangat tinggi (IF &gt; 10) untuk sinyal dengan impak singkat dan sangat sedikit. IF dan CF mirip secara konsep tetapi IF lebih sensitif terhadap impulsivitas karena denominator-nya lebih kecil dari RMS untuk sinyal impulsif.</p>
-      <div class="formula">IF = x_peak / |x|_avg</div>
+      <div class="formula">\(IF = x_peak / |x|_avg\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔻</div>
       <h3>Margin Factor (MF)</h3>
       <p>Rasio <strong>peak terhadap square mean of square root</strong>: <code>MF = x_peak / [(1/N)Σ√|x|]²</code>. Lebih jarang dipakai tapi <em>sangat tahan</em> terhadap clipping atau outlier — denominator-nya kompres nilai besar. Berguna saat sensor over-saturasi pada impak besar dan Anda hanya ingin info tentang bentuk gelombang yang tidak clip.</p>
-      <div class="formula">MF = x_peak / [(1/N)Σ√|x|]²</div>
+      <div class="formula">\(MF = x_peak / [(1/N)\Sigma √|x|]^2\)</div>
     </div>
   </div>
 
@@ -1394,25 +1394,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🛠️</div>
       <h3>Bearing Condition Monitoring</h3>
       <p>Akselerometer pada housing bearing motor industri sampling 25 kHz, 4-detik segmen. Tiap segmen menghasilkan vektor 12 fitur domain waktu. Trend <strong style="color:var(--cyan)">RMS</strong> menunjukkan deteorasi keseluruhan; <strong>Crest Factor</strong> dan <strong>Kurtosis</strong> melonjak di stadium awal (saat <em>spalling</em> mikro mulai); kombinasi ini di-feed ke threshold-based atau ML classifier untuk klasifikasi healthy / inner-race / outer-race / ball fault.</p>
-      <div class="formula">x → [RMS, CF, Kurt, ...] → klasifikasi</div>
+      <div class="formula">\(x \to [RMS, CF, Kurt, ...] \to klasifikasi\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚙️</div>
       <h3>Gearbox Tooth Fault Detection</h3>
       <p>Defect pada gigi gear menghasilkan <em>impak periodik</em> tepat pada frekuensi mesh. Di domain waktu: <strong style="color:var(--amber)">peak-to-peak</strong> dan <strong>kurtosis</strong> meningkat tajam saat ada chipped/cracked tooth. Sensitif jauh sebelum komponen itu gagal — ideal untuk planning maintenance window. Wind turbine industry hidup dari fitur-fitur ini (lihat dataset NREL gearbox fault).</p>
-      <div class="formula">PP, Kurt → tooth fault flag</div>
+      <div class="formula">\(PP, Kurt \to tooth fault flag\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌬️</div>
       <h3>Wind Turbine Blade Anomaly</h3>
       <p>Sensor strain gauge di akar blade turbin angin menghasilkan deret time-series 50 Hz. <strong style="color:var(--violet)">Skewness</strong> sinyal naik saat ada <em>icing buildup</em> asimetris di salah satu blade — gaya aerodinamika menjadi tidak seimbang. Sistem SCADA pakai threshold skewness untuk trigger ice-removal protocol sebelum kerusakan struktural terjadi.</p>
-      <div class="formula">Skew &gt; 0.5 → icing alarm</div>
+      <div class="formula">\(Skew > 0.5 \to icing alarm\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🚂</div>
       <h3>Railway Wheel-Track Health</h3>
       <p>Akselerometer di gerbong kereta cepat (high-speed train) memantau kondisi <em>roda + rel</em>. Deret vibrasi vertikal: <strong style="color:var(--green)">RMS naik</strong> = wheel flat atau rail corrugation; <strong>impulse factor naik</strong> = rail joint defect. Algoritma onboard (edge computing) menghitung 12 fitur tiap 100 m dan trigger maintenance work order otomatis untuk segmen rel tertentu.</p>
-      <div class="formula">12 fitur per 100 m segment</div>
+      <div class="formula">\(12 fitur per 100 m segment\)</div>
     </div>
   </div>
 
