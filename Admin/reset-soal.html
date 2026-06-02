@@ -158,7 +158,7 @@ modulEl.value = 8; refreshModulId();
 window.doReset = async function(){
   const btn = document.getElementById('btn');
   const res = document.getElementById('result');
-  res.className='result'; res.style.display='none';
+  res.className='result'; res.removeAttribute('style');
 
   const modulId = modulIdEl.textContent;
   const nim = document.getElementById('nim').value.trim();
@@ -182,14 +182,14 @@ window.doReset = async function(){
       lines.push(`  ${q.qId.padEnd(5)} ${q.found?('reset (−'+q.scoreDelta+' poin, marker '+q.marker+')'):'tidak ada attempt (dilewati)'}`);
     });
     lines.push('','Mahasiswa sekarang bisa submit ulang soal tsb.');
-    res.className='result ok'; res.textContent=lines.join('\n');
+    res.className='result ok'; res.style.display='block'; res.textContent=lines.join('\n');
   }catch(e){
     showErr('Gagal: '+(e.message||e)+(e.code?` [${e.code}]`:''));
   }finally{
     btn.disabled=false; btn.textContent='Reset Soal Terpilih';
   }
 };
-function showErr(msg){ const res=document.getElementById('result'); res.className='result err'; res.textContent='❌ '+msg; }
+function showErr(msg){ const res=document.getElementById('result'); res.className='result err'; res.style.display='block'; res.textContent='❌ '+msg; }
 </script>
 </body>
 </html>
