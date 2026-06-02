@@ -1126,3 +1126,154 @@ exports.resetModulQuestion = onCall({ timeoutSeconds: 60 }, async (request) => {
     throw new HttpsError("internal", `Reset soal gagal: ${e.message || e}`);
   }
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// rescaleModulLatePenalty — admin callable, hitung ULANG penalti keterlambatan
+// untuk attempt yang sudah ter-skor, berdasarkan JADWAL TERKINI.
+//
+// Use case: dosen mengundurkan (memperpanjang) deadline modul. Attempt lama yang
+// terlanjur kena penalti (lateMultiplier 0.7) dihitung ulang: kalau waktu submit
+// asli kini ≤ end baru → multiplier 1.0 (poin penuh). Selisih poin disesuaikan
+// di RTDB. TIDAK perlu mahasiswa submit ulang.
+//
+// Recompute PRESISI: pakai timestamp submit asli (tersimpan di attempt doc) vs
+// schedule terkini. Idempoten — aman dipanggil berulang & benar walau deadline
+// diundur bertahap. Hanya menyentuh attempt yang multiplier-nya berubah.
+//
+// Request:  { modulId, adminPwHash, nims?:[...] }   // nims kosong → semua mhs
+// Response: { modulId, scheduleEnd, totalStudents, totalAdjusted,
+//             students:[{ nimKey, pointsBefore, pointsAfter,
+//               adjustments:[{ qId, oldMultiplier, newMultiplier,
+//                              oldScoreDelta, newScoreDelta }] }] }
+// ─────────────────────────────────────────────────────────────────────────────
+exports.rescaleModulLatePenalty = onCall({ timeoutSeconds: 300 }, async (request) => {
+  const { modulId, adminPwHash, nims } = request.data || {};
+
+  if (!modulId || !MODUL_CONFIG[modulId]) {
+    throw new HttpsError("invalid-argument", `modulId '${modulId}' tidak dikonfigurasi`);
+  }
+  if (!adminPwHash || typeof adminPwHash !== "string" || adminPwHash !== ADMIN_PW_HASH) {
+    throw new HttpsError("permission-denied", "Admin password salah");
+  }
+  if (nims !== undefined && nims !== null && !Array.isArray(nims)) {
+    throw new HttpsError("invalid-argument", "nims harus array (atau dikosongkan)");
+  }
+
+  const cfg = MODUL_CONFIG[modulId];
+  const fs = getFirestore();
+  const rtdb = getDatabase();
+
+  // ── Schedule terkini → tentukan 'end' baru ──
+  const schedSnap = await rtdb.ref(cfg.schedulePath).get();
+  if (!schedSnap.exists()) {
+    throw new HttpsError("failed-precondition", "Jadwal modul belum dikonfigurasi");
+  }
+  const sched = schedSnap.val() || {};
+  if (!sched.end) {
+    throw new HttpsError("failed-precondition", "Jadwal modul belum punya field 'end'");
+  }
+  const endMs = new Date(sched.end).getTime();
+  const lateMul = Number(cfg.lateMultiplierValue) || 0.7;
+  const EPS = 1e-9;
+
+  try {
+    // ── Tentukan daftar studentDoc yang akan diproses ──
+    let studentDocs;
+    if (Array.isArray(nims) && nims.length > 0) {
+      studentDocs = nims.map((n) => {
+        if (typeof n !== "string" || !/^[0-9]{1,20}$/.test(n)) {
+          throw new HttpsError("invalid-argument", `nim '${n}' tidak valid`);
+        }
+        return fs.doc(`modulAttempts/${modulId}/students/${sanitizeKey("mhs_" + n)}`);
+      });
+    } else {
+      studentDocs = await fs.collection(`modulAttempts/${modulId}/students`).listDocuments();
+    }
+
+    const students = [];
+    let totalAdjusted = 0;
+
+    for (const studentDoc of studentDocs) {
+      const nimKey = studentDoc.id;
+      const qsDocs = await studentDoc.collection("qs").listDocuments();
+      const adjustments = [];
+      let netDiff = 0;
+
+      for (const qDoc of qsDocs) {
+        const snap = await qDoc.get();
+        if (!snap.exists) continue;
+        const data = snap.data() || {};
+        const oldScoreDelta = Number(data.scoreDelta) || 0;
+        const oldMul = Number(data.lateMultiplier);
+        // Hanya attempt yg dapat poin (>0) & punya multiplier valid.
+        if (!(oldScoreDelta > 0) || !Number.isFinite(oldMul) || oldMul <= 0) continue;
+        // Butuh timestamp submit asli utk recompute presisi.
+        const ts = data.timestamp && typeof data.timestamp.toMillis === "function"
+          ? data.timestamp.toMillis()
+          : null;
+        if (ts === null) continue;
+
+        const newPastDeadline = ts > endMs;
+        const newMul = newPastDeadline ? lateMul : 1.0;
+        if (Math.abs(newMul - oldMul) < EPS) continue;  // multiplier tak berubah
+
+        // basePoints = poin sebelum penalti = scoreDelta / multiplier lama.
+        const basePoints = Math.round((oldScoreDelta / oldMul) * 1e4) / 1e4;
+        const newScoreDelta = Math.round(basePoints * newMul * 1e4) / 1e4;
+        const diff = newScoreDelta - oldScoreDelta;
+        if (Math.abs(diff) < EPS) continue;
+
+        await qDoc.set({
+          scoreDelta: newScoreDelta,
+          lateMultiplier: newMul,
+          pastDeadline: newPastDeadline,
+          rescaledAt: FieldValue.serverTimestamp(),
+        }, { merge: true });
+
+        adjustments.push({
+          qId: data.qId || qDoc.id,
+          oldMultiplier: oldMul,
+          newMultiplier: newMul,
+          oldScoreDelta,
+          newScoreDelta,
+        });
+        netDiff += diff;
+        totalAdjusted += 1;
+      }
+
+      // ── Sesuaikan points di RTDB sekali per mahasiswa (atomic) ──
+      let pointsBefore = null;
+      let pointsAfter = null;
+      if (Math.abs(netDiff) > EPS) {
+        const vRef = rtdb.ref(`${cfg.dbPath}/${nimKey}`);
+        await vRef.transaction((cur) => {
+          if (cur === null) return cur;
+          pointsBefore = cur.points || 0;
+          const next = Math.max(0, Math.min((cur.points || 0) + netDiff, cfg.totalPoints));
+          cur.points = Math.round(next * 1e4) / 1e4;
+          cur.pointTimestamp = new Date().toISOString();
+          pointsAfter = cur.points;
+          return cur;
+        });
+      }
+
+      if (adjustments.length > 0) {
+        students.push({ nimKey, pointsBefore, pointsAfter, adjustments });
+      }
+    }
+
+    console.log("[rescaleModulLatePenalty]", modulId,
+      "students adjusted:", students.length, "attempts:", totalAdjusted);
+    return {
+      modulId,
+      scheduleEnd: sched.end,
+      totalStudents: students.length,
+      totalAdjusted,
+      students,
+    };
+  } catch (e) {
+    if (e instanceof HttpsError) throw e;
+    console.error("[rescaleModulLatePenalty] FAILED", modulId, e);
+    throw new HttpsError("internal", `Rescale gagal: ${e.message || e}`);
+  }
+});
