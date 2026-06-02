@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Reset Soal per Mahasiswa | Mechanical Engineering Courses</title>
+<style>
+  :root{
+    --bg:#060a10; --surface:#0d1520; --border:#1a2840; --cyan:#00e5ff;
+    --green:#00e676; --amber:#ffb300; --pink:#ff4081; --text:#cdd6e8; --muted:#6b7da0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
+       line-height:1.6;padding:24px;display:flex;justify-content:center}
+  .wrap{width:100%;max-width:680px}
+  h1{font-size:22px;margin-bottom:4px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:24px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin-bottom:18px}
+  label{display:block;font-size:13px;font-weight:600;margin:14px 0 6px;color:#9fb0d0}
+  label:first-child{margin-top:0}
+  input,select,textarea{width:100%;padding:11px 13px;background:#020a18;border:1px solid var(--border);
+    border-radius:9px;color:var(--text);font-size:14px;font-family:inherit;outline:none}
+  input:focus,select:focus,textarea:focus{border-color:var(--cyan)}
+  textarea{font-family:'JetBrains Mono',monospace;font-size:13px;min-height:64px;resize:vertical}
+  .hint{font-size:12px;color:var(--muted);margin-top:5px}
+  .row{display:flex;gap:12px}
+  .row>div{flex:1}
+  button{width:100%;margin-top:20px;padding:13px;border:none;border-radius:10px;
+    background:linear-gradient(135deg,var(--green),#00b894);color:#04140b;font-weight:800;
+    font-size:15px;cursor:pointer;letter-spacing:.3px}
+  button:disabled{opacity:.5;cursor:wait}
+  .warn{background:rgba(255,179,0,.08);border:1px solid rgba(255,179,0,.3);border-radius:10px;
+    padding:12px 14px;font-size:13px;color:#ffd27a;margin-bottom:18px}
+  .result{margin-top:18px;padding:16px;border-radius:10px;font-size:13.5px;display:none;white-space:pre-wrap;
+    font-family:'JetBrains Mono',monospace}
+  .result.ok{background:rgba(0,230,118,.07);border:1px solid rgba(0,230,118,.3);color:#7dffb0;display:block}
+  .result.err{background:rgba(255,64,129,.07);border:1px solid rgba(255,64,129,.35);color:#ff9bbd;display:block}
+  .qchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .qchip{padding:5px 10px;border-radius:7px;border:1px solid var(--border);background:#020a18;
+    font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;user-select:none}
+  .qchip.on{background:rgba(0,229,255,.12);border-color:var(--cyan);color:var(--cyan)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🔧 Reset Soal per Mahasiswa</h1>
+  <div class="sub">Admin-only. Reset presisi attempt 1 soal untuk 1 mahasiswa (anti double-count). Mahasiswa bisa submit ulang setelah di-reset.</div>
+
+  <div class="warn">
+    ⚠ Tool ini menghapus jawaban tersimpan & mengurangi poin sesuai soal yang dipilih. Pastikan NIM &amp; soal benar.
+    Setelah reset, mahasiswa <b>wajib submit ulang</b> untuk dapat poin dengan sistem terbaru.
+  </div>
+
+  <div class="card">
+    <label>Mata Kuliah &amp; Modul</label>
+    <div class="row">
+      <div>
+        <select id="course">
+          <option value="getaran-mekanik">Getaran Mekanik</option>
+          <option value="math4">Matematika 4</option>
+          <option value="optoauto">Optimalisasi &amp; Automasi</option>
+        </select>
+      </div>
+      <div>
+        <select id="modul"></select>
+      </div>
+    </div>
+    <div class="hint">modulId: <span id="modulId" style="color:var(--cyan)">getaran-mekanik-modul-8</span></div>
+
+    <label>NIM Mahasiswa</label>
+    <input id="nim" inputmode="numeric" placeholder="mis. 41323120009" autocomplete="off">
+
+    <label>Pilih Soal yang Direset</label>
+    <div class="qchips" id="qchips"></div>
+    <div class="hint">Klik untuk pilih/batal. Atau ketik manual di bawah (pisah koma).</div>
+    <input id="qManual" placeholder="mis. c1,c5,c8,c15,mc3" autocomplete="off" style="margin-top:8px">
+
+    <label>Password Admin (Dosen)</label>
+    <input id="pw" type="password" placeholder="Password admin" autocomplete="off">
+
+    <button id="btn" onclick="doReset()">Reset Soal Terpilih</button>
+    <div class="result" id="result"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",
+  authDomain: "getaran-mekanik.firebaseapp.com",
+  databaseURL: "https://getaran-mekanik-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "getaran-mekanik",
+  storageBucket: "getaran-mekanik.firebasestorage.app",
+  messagingSenderId: "430886299733",
+  appId: "1:430886299733:web:0edecd5d4adf73e7440cdc",
+  measurementId: "G-NBMYLXXF18"
+};
+const app = initializeApp(firebaseConfig);
+const functions = getFunctions(app, 'asia-southeast1');
+const resetModulQuestion = httpsCallable(functions, 'resetModulQuestion');
+
+// ── SHA-256 hex (untuk hash password admin sebelum kirim) ──
+async function sha256Hex(s){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+// ── Daftar qId standar per modul (10 MC + 10 Comp EZ + 5 Comp Hard) ──
+const ALL_QIDS = [
+  ...Array.from({length:10},(_,i)=>`mc${i+1}`),
+  ...Array.from({length:15},(_,i)=>`c${i+1}`),
+];
+
+const courseEl = document.getElementById('course');
+const modulEl  = document.getElementById('modul');
+const modulIdEl= document.getElementById('modulId');
+const qchipsEl = document.getElementById('qchips');
+const qManualEl= document.getElementById('qManual');
+const selected = new Set();
+
+function buildModulOptions(){
+  modulEl.innerHTML = '';
+  for(let n=1;n<=14;n++){
+    const o = document.createElement('option');
+    o.value = n; o.textContent = `Modul ${n}`;
+    modulEl.appendChild(o);
+  }
+}
+function buildChips(){
+  qchipsEl.innerHTML='';
+  selected.clear();
+  ALL_QIDS.forEach(q=>{
+    const c=document.createElement('div');
+    c.className='qchip'; c.textContent=q;
+    c.onclick=()=>{ c.classList.toggle('on'); c.classList.contains('on')?selected.add(q):selected.delete(q); syncManual(); };
+    qchipsEl.appendChild(c);
+  });
+}
+function syncManual(){ qManualEl.value = Array.from(selected).join(','); }
+function refreshModulId(){ modulIdEl.textContent = `${courseEl.value}-modul-${modulEl.value}`; }
+
+courseEl.onchange = refreshModulId;
+modulEl.onchange  = refreshModulId;
+qManualEl.oninput = ()=>{
+  // sync chips dari manual input
+  const set = new Set(qManualEl.value.split(',').map(s=>s.trim()).filter(Boolean));
+  document.querySelectorAll('.qchip').forEach(c=>{
+    if(set.has(c.textContent)) c.classList.add('on'); else c.classList.remove('on');
+  });
+};
+
+buildModulOptions(); buildChips(); refreshModulId();
+// default ke modul 8 (kasus yang sering)
+modulEl.value = 8; refreshModulId();
+
+window.doReset = async function(){
+  const btn = document.getElementById('btn');
+  const res = document.getElementById('result');
+  res.className='result'; res.style.display='none';
+
+  const modulId = modulIdEl.textContent;
+  const nim = document.getElementById('nim').value.trim();
+  const qIds = qManualEl.value.split(',').map(s=>s.trim()).filter(Boolean);
+  const pw  = document.getElementById('pw').value;
+
+  if(!/^[0-9]{1,20}$/.test(nim)){ showErr('NIM harus angka.'); return; }
+  if(qIds.length===0){ showErr('Pilih minimal 1 soal.'); return; }
+  if(!pw){ showErr('Password admin wajib diisi.'); return; }
+
+  btn.disabled=true; btn.textContent='Memproses...';
+  try{
+    const adminPwHash = await sha256Hex(pw);
+    const r = await resetModulQuestion({ modulId, nim, qIds, adminPwHash });
+    const d = r.data;
+    let lines = [`✅ Reset selesai untuk NIM ${d.nim} — ${d.modulId}`,''];
+    lines.push(`Poin: ${d.pointsBefore} → ${d.pointsAfter}`);
+    lines.push(`Marker dihapus: ${d.markersRemoved.length}`,'');
+    lines.push('Detail per soal:');
+    d.perQuestion.forEach(q=>{
+      lines.push(`  ${q.qId.padEnd(5)} ${q.found?('reset (−'+q.scoreDelta+' poin, marker '+q.marker+')'):'tidak ada attempt (dilewati)'}`);
+    });
+    lines.push('','Mahasiswa sekarang bisa submit ulang soal tsb.');
+    res.className='result ok'; res.textContent=lines.join('\n');
+  }catch(e){
+    showErr('Gagal: '+(e.message||e)+(e.code?` [${e.code}]`:''));
+  }finally{
+    btn.disabled=false; btn.textContent='Reset Soal Terpilih';
+  }
+};
+function showErr(msg){ const res=document.getElementById('result'); res.className='result err'; res.textContent='❌ '+msg; }
+</script>
+</body>
+</html>
