@@ -324,15 +324,36 @@ function evaluateAnswer(ans, userAnswer, userAnswers) {
     // null = client tidak punya jawaban yang bisa di-parse (mis. Pyodide error).
     // Tetap dianggap sbg attempt yg salah, tapi partial-credit logic tetap berlaku
     // utk Comp Hard non-late.
-    if (userAnswer === undefined || userAnswer === null) {
-      return { correct: false, allowPartial: ans.allowPartial === true };
-    }
-    const got = Number(userAnswer);
-    // Field name flexibility: UTS Getaran pakai `answer:`, UAS Getaran pakai `expected:`
-    // (legacy inconsistency dari source HTML). Server support keduanya.
     const target = Number(ans.answer ?? ans.expected);
     const tol = Number(ans.tolerance ?? 0.01);
-    const correct = Number.isFinite(got) && Number.isFinite(target) && Math.abs(got - target) <= tol;
+    if (!Number.isFinite(target)) {
+      return { correct: false, allowPartial: ans.allowPartial === true };
+    }
+    // ROBUST number matching (fix laporan mhs: c1/c5/c8 tidak dapat poin walau
+    // output benar). Client kirim userAnswer = nums[0] (angka PERTAMA output),
+    // padahal mahasiswa sering print nilai antara dulu (matrix, eigenvalue array)
+    // sehingga jawaban final BUKAN angka pertama. Konvensi universal: jawaban di-
+    // print TERAKHIR. Jadi cek angka TERAKHIR dan PERTAMA dari output.
+    //   - Angka terakhir → menangkap "print(intermediate); print(jawaban)".
+    //   - Angka pertama  → backward-compat "print(jawaban)" saja.
+    // Sengaja TIDAK "match angka mana pun" supaya jawaban integer kecil (0, 1, 5)
+    // tidak lolos hanya karena kebetulan muncul di nilai antara. Field name
+    // flexibility: UTS pakai `answer:`, UAS pakai `expected:` (legacy) — keduanya
+    // sudah ditangani di `target`.
+    const finiteNums = Array.isArray(userAnswers)
+      ? userAnswers.map(Number).filter(Number.isFinite)
+      : [];
+    const candidates = [];
+    if (finiteNums.length > 0) {
+      candidates.push(finiteNums[finiteNums.length - 1]); // angka TERAKHIR
+      candidates.push(finiteNums[0]);                      // angka PERTAMA
+    }
+    const ua = Number(userAnswer);
+    if (Number.isFinite(ua)) candidates.push(ua);          // fallback nums[0] client
+    if (candidates.length === 0) {
+      return { correct: false, allowPartial: ans.allowPartial === true };
+    }
+    const correct = candidates.some((v) => Math.abs(v - target) <= tol);
     return { correct, allowPartial: ans.allowPartial === true };
   }
   throw new HttpsError("internal", `Unknown question type: ${ans.type}`);
