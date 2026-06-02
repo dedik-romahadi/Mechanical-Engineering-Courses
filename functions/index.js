@@ -729,7 +729,7 @@ function _computeModulOutcome(ans, evalResult, pastDeadline) {
   return { markerSuffix: "", points: 0, status: "wrong" };
 }
 
-function _evaluateModulAnswer(ans, userAnswer) {
+function _evaluateModulAnswer(ans, userAnswer, userAnswers) {
   if (ans.type === "mc") {
     // Modul MC: answer adalah letter 'A'/'B'/'C'/'D'. User send letter juga.
     if (typeof userAnswer !== "string" || !/^[A-D]$/.test(userAnswer)) {
@@ -738,13 +738,30 @@ function _evaluateModulAnswer(ans, userAnswer) {
     return { correct: userAnswer.toUpperCase() === String(ans.answer).toUpperCase() };
   }
   if (ans.type === "comp") {
-    if (userAnswer === undefined || userAnswer === null) {
-      return { correct: false };
-    }
-    const got = Number(userAnswer);
     const target = Number(ans.answer ?? ans.expected);
     const tol = Number(ans.tolerance ?? 0.01);
-    const correct = Number.isFinite(got) && Number.isFinite(target) && Math.abs(got - target) <= tol;
+    if (!Number.isFinite(target)) {
+      return { correct: false };
+    }
+    // ROBUST number matching (mirror checkExamAnswer #312). Client kirim
+    // userAnswer = nums[0] (angka PERTAMA output), padahal mahasiswa sering
+    // print label / nilai antara (mis. "ω1= 10" → angka pertama = 1 dari "ω1")
+    // sehingga jawaban final BUKAN angka pertama. Konvensi: jawaban di-print
+    // TERAKHIR. Cek angka TERAKHIR dan PERTAMA dari output (+ fallback userAnswer).
+    const finiteNums = Array.isArray(userAnswers)
+      ? userAnswers.map(Number).filter(Number.isFinite)
+      : [];
+    const candidates = [];
+    if (finiteNums.length > 0) {
+      candidates.push(finiteNums[finiteNums.length - 1]); // angka TERAKHIR
+      candidates.push(finiteNums[0]);                      // angka PERTAMA
+    }
+    const ua = Number(userAnswer);
+    if (Number.isFinite(ua)) candidates.push(ua);          // fallback nums[0] client
+    if (candidates.length === 0) {
+      return { correct: false };
+    }
+    const correct = candidates.some((v) => Math.abs(v - target) <= tol);
     return { correct };
   }
   return { correct: false };
@@ -764,7 +781,7 @@ function _evaluateModulAnswer(ans, userAnswer) {
 // - Schedule per-modul (visitors/<course>/pertemuan-N)
 // ─────────────────────────────────────────────────────────────────────────────
 exports.checkModulAnswer = onCall(async (request) => {
-  const { modulId, qId, userAnswer, codeText, nim, nama, pinHash } = request.data || {};
+  const { modulId, qId, userAnswer, userAnswers, codeText, nim, nama, pinHash } = request.data || {};
 
   if (!modulId || typeof modulId !== "string") {
     throw new HttpsError("invalid-argument", "modulId wajib diisi");
@@ -867,7 +884,7 @@ exports.checkModulAnswer = onCall(async (request) => {
   const ans = ansSnap.data();
 
   // ── 5) Evaluate ──
-  const evalResult = _evaluateModulAnswer(ans, userAnswer);
+  const evalResult = _evaluateModulAnswer(ans, userAnswer, userAnswers);
   const outcome = _computeModulOutcome(ans, evalResult, sched.pastDeadline);
   const scoreDelta = outcome.points * sched.multiplier;
   const markerKey = qId + outcome.markerSuffix;
