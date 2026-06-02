@@ -6228,7 +6228,7 @@ window.copyForumHtmlManual = copyForumHtmlManual;
 <!-- ── FIREBASE + VISITOR SYSTEM (identik dengan Modul-1) ── -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getDatabase, ref, get, set, remove, onValue, push, onDisconnect, serverTimestamp, query, limitToLast } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+import { getDatabase, ref, get, set, remove, onValue, push, onDisconnect, serverTimestamp, query, limitToLast, update } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js";
 
 const firebaseConfig = {
@@ -7295,7 +7295,39 @@ async function submitPinVerify() {
 
     if (schedOpen) {
       saveIdentity(visitorRec);
-      await set(ref(db, DB_PATH + '/' + key), visitorRec);
+      try {
+        if (existingVisitor) {
+          // BUMP path — pakai update sparse supaya tidak konflik dgn legacy fields/strict validate
+          const patch = { visitCount: visitorRec.visitCount, lastVisit: visitorRec.lastVisit };
+          if (Object.prototype.hasOwnProperty.call(existingVisitor, 'pinHash')) patch.pinHash = null;
+          if (Object.prototype.hasOwnProperty.call(existingVisitor, 'pinSetAt')) patch.pinSetAt = null;
+          await update(ref(db, DB_PATH + '/' + key), patch);
+        } else {
+          await set(ref(db, DB_PATH + '/' + key), visitorRec);
+        }
+      } catch (writeErr) {
+        console.error('[PIN Verify] Visitor write failed:', writeErr && writeErr.code, writeErr && writeErr.message);
+        // Fallback: kalau update gagal (mis. existing record corrupt), coba set fresh dgn nim/nama dari _pinFlow
+        if (existingVisitor && writeErr && writeErr.code === 'PERMISSION_DENIED') {
+          const freshRec = {
+            nama, nim, role: 'student',
+            timestamp: existingVisitor.timestamp || nowISO,
+            lastVisit: nowISO,
+            visitCount: existingVisitor.visitCount || 1,
+            points: typeof existingVisitor.points === 'number' ? existingVisitor.points : 0,
+            scoredQuestions: typeof existingVisitor.scoredQuestions === 'string' ? existingVisitor.scoredQuestions : ''
+          };
+          try {
+            await set(ref(db, DB_PATH + '/' + key), freshRec);
+            console.log('[PIN Verify] Recovered via fresh set()');
+          } catch (e2) {
+            console.error('[PIN Verify] Recovery failed:', e2 && e2.code, e2 && e2.message);
+            throw writeErr;
+          }
+        } else {
+          throw writeErr;
+        }
+      }
     } else {
       // Di luar jadwal: update identity local saja (tidak write Firebase)
       saveIdentity({ nama, nim, role: 'student', timestamp: existingVisitor ? existingVisitor.timestamp : nowISO });
