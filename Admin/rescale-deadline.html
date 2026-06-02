@@ -43,9 +43,8 @@
   <div class="sub">Admin-only. Hitung ulang poin yang terlanjur kena penalti telat (×0.7) sesuai <b>deadline terbaru</b>. Tidak perlu mahasiswa submit ulang.</div>
 
   <div class="warn">
-    ⚠ <b>Undurkan deadline modul DULU</b> (lewat Atur Jadwal) sebelum jalankan tool ini.
-    Tool menghitung ulang tiap attempt: jika waktu submit asli kini ≤ deadline baru → poin penuh.
-    Aman dipanggil berulang (idempoten).
+    ⚠ Isi <b>Deadline Baru</b> di bawah untuk atur jadwal + rescale sekaligus (atau kosongkan kalau deadline sudah diubah via Atur Jadwal).
+    Tool menghitung ulang tiap attempt terhadap deadline acuan: jika waktu submit asli kini ≤ deadline → poin penuh; soal Hard yang dulu telat (0) bisa jadi <b>partial</b>. Aman dipanggil berulang (idempoten).
   </div>
 
   <div class="card">
@@ -63,6 +62,10 @@
       </div>
     </div>
     <div class="hint">modulId: <span id="modulId" style="color:var(--cyan)">getaran-mekanik-modul-8</span></div>
+
+    <label>Deadline Baru (opsional)</label>
+    <input id="newEnd" type="datetime-local">
+    <div class="hint">Isi untuk <b>atur jadwal sekaligus</b> — server menyimpan deadline ini lalu rescale terhadapnya. Kosongkan = pakai deadline yang sudah ada.</div>
 
     <label>NIM Mahasiswa (opsional)</label>
     <textarea id="nims" placeholder="Kosongkan = SEMUA mahasiswa di modul ini.&#10;Atau isi NIM dipisah koma/baris, mis: 41323110022, 41323120009"></textarea>
@@ -124,6 +127,7 @@ window.doRescale = async function(){
   const modulId = modulIdEl.textContent;
   const nims = document.getElementById('nims').value
     .split(/[,\s]+/).map(s=>s.trim()).filter(Boolean);
+  const newEndLocal = document.getElementById('newEnd').value;
   const pw = document.getElementById('pw').value;
 
   if(nims.some(n=>!/^[0-9]{1,20}$/.test(n))){ showErr('Ada NIM yang bukan angka.'); return; }
@@ -134,17 +138,20 @@ window.doRescale = async function(){
     const adminPwHash = await sha256Hex(pw);
     const payload = { modulId, adminPwHash };
     if(nims.length>0) payload.nims = nims;
+    // datetime-local (waktu lokal dosen) → ISO UTC absolut
+    if(newEndLocal) payload.newEnd = new Date(newEndLocal).toISOString();
     const r = await rescaleModulLatePenalty(payload);
     const d = r.data;
     let lines = [`✅ Rescale selesai — ${d.modulId}`, `Deadline acuan: ${d.scheduleEnd}`, ''];
     lines.push(`Mahasiswa berubah: ${d.totalStudents} · attempt disesuaikan: ${d.totalAdjusted}`,'');
     if(d.students.length === 0){
-      lines.push('(Tidak ada poin yang perlu disesuaikan — semua sudah sesuai deadline terkini.)');
+      lines.push('(Tidak ada poin yang perlu disesuaikan — semua sudah sesuai deadline ini.)');
     } else {
       d.students.forEach(s=>{
         lines.push(`• ${s.nimKey.replace(/^mhs_/,'')}  poin: ${s.pointsBefore} → ${s.pointsAfter}`);
         s.adjustments.forEach(a=>{
-          lines.push(`    ${String(a.qId).padEnd(5)} ×${a.oldMultiplier} → ×${a.newMultiplier}   (Δpoin ${a.oldScoreDelta} → ${a.newScoreDelta})`);
+          const tag = a.oldStatus !== a.newStatus ? `  [${a.oldStatus}→${a.newStatus}]` : '';
+          lines.push(`    ${String(a.qId).padEnd(5)} Δpoin ${a.oldScoreDelta} → ${a.newScoreDelta}${tag}`);
         });
       });
     }

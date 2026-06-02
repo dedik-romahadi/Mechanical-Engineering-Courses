@@ -1128,26 +1128,31 @@ exports.resetModulQuestion = onCall({ timeoutSeconds: 60 }, async (request) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// rescaleModulLatePenalty — admin callable, hitung ULANG penalti keterlambatan
-// untuk attempt yang sudah ter-skor, berdasarkan JADWAL TERKINI.
+// rescaleModulLatePenalty — admin callable. (Opsional) SET deadline baru, lalu
+// HITUNG ULANG outcome tiap attempt modul terhadap deadline tsb — TANPA mahasiswa
+// submit ulang.
 //
-// Use case: dosen mengundurkan (memperpanjang) deadline modul. Attempt lama yang
-// terlanjur kena penalti (lateMultiplier 0.7) dihitung ulang: kalau waktu submit
-// asli kini ≤ end baru → multiplier 1.0 (poin penuh). Selisih poin disesuaikan
-// di RTDB. TIDAK perlu mahasiswa submit ulang.
+// Recompute PENUH (semua tipe soal, termasuk Comp HARD):
+//   Pakai correctness yang sudah tersimpan + timestamp submit asli vs deadline
+//   terkini, lalu jalankan ulang _computeModulOutcome:
+//     • Jawaban BENAR yg dulu telat (×0.7) → kini on-time → poin PENUH (×1.0).
+//     • Soal HARD SALAH yg dulu telat (0 poin, marker _comp_used) → kini on-time
+//       → dapat PARTIAL (+partialPoints, marker _comp_partial). ← termasuk soal Hard
+//     • MC/Comp EZ salah → tetap 0 (tak ada partial).
+//   Marker di scoredQuestions ikut ditukar bila berubah; points RTDB disesuaikan.
+//   Idempoten — hanya menyentuh attempt yang outcome-nya berubah.
 //
-// Recompute PRESISI: pakai timestamp submit asli (tersimpan di attempt doc) vs
-// schedule terkini. Idempoten — aman dipanggil berulang & benar walau deadline
-// diundur bertahap. Hanya menyentuh attempt yang multiplier-nya berubah.
-//
-// Request:  { modulId, adminPwHash, nims?:[...] }   // nims kosong → semua mhs
+// Request:  { modulId, adminPwHash, nims?:[...], newEnd? }
+//   newEnd  — ISO datetime opsional. Jika diisi → tulis ke schedule end DULU
+//             (sekalian atur jadwal), lalu rescale terhadapnya. Jika kosong →
+//             pakai end yang sudah ada di schedule.
 // Response: { modulId, scheduleEnd, totalStudents, totalAdjusted,
 //             students:[{ nimKey, pointsBefore, pointsAfter,
-//               adjustments:[{ qId, oldMultiplier, newMultiplier,
+//               adjustments:[{ qId, oldMarker, newMarker, oldStatus, newStatus,
 //                              oldScoreDelta, newScoreDelta }] }] }
 // ─────────────────────────────────────────────────────────────────────────────
 exports.rescaleModulLatePenalty = onCall({ timeoutSeconds: 300 }, async (request) => {
-  const { modulId, adminPwHash, nims } = request.data || {};
+  const { modulId, adminPwHash, nims, newEnd } = request.data || {};
 
   if (!modulId || !MODUL_CONFIG[modulId]) {
     throw new HttpsError("invalid-argument", `modulId '${modulId}' tidak dikonfigurasi`);
@@ -1162,8 +1167,20 @@ exports.rescaleModulLatePenalty = onCall({ timeoutSeconds: 300 }, async (request
   const cfg = MODUL_CONFIG[modulId];
   const fs = getFirestore();
   const rtdb = getDatabase();
+  const EPS = 1e-9;
+  const round4 = (x) => Math.round(x * 1e4) / 1e4;
 
-  // ── Schedule terkini → tentukan 'end' baru ──
+  // ── (Opsional) SET deadline baru dulu, lalu pakai sbg acuan ──
+  if (newEnd !== undefined && newEnd !== null && String(newEnd).trim() !== "") {
+    const t = new Date(newEnd).getTime();
+    if (!Number.isFinite(t)) {
+      throw new HttpsError("invalid-argument", `newEnd '${newEnd}' bukan tanggal valid`);
+    }
+    // update() sparse → preserve start/extension yang sudah ada
+    await rtdb.ref(cfg.schedulePath).update({ end: new Date(t).toISOString() });
+  }
+
+  // ── Baca schedule terkini → tentukan 'end' acuan ──
   const schedSnap = await rtdb.ref(cfg.schedulePath).get();
   if (!schedSnap.exists()) {
     throw new HttpsError("failed-precondition", "Jadwal modul belum dikonfigurasi");
@@ -1174,10 +1191,9 @@ exports.rescaleModulLatePenalty = onCall({ timeoutSeconds: 300 }, async (request
   }
   const endMs = new Date(sched.end).getTime();
   const lateMul = Number(cfg.lateMultiplierValue) || 0.7;
-  const EPS = 1e-9;
 
   try {
-    // ── Tentukan daftar studentDoc yang akan diproses ──
+    // ── Daftar studentDoc yang diproses ──
     let studentDocs;
     if (Array.isArray(nims) && nims.length > 0) {
       studentDocs = nims.map((n) => {
@@ -1190,6 +1206,15 @@ exports.rescaleModulLatePenalty = onCall({ timeoutSeconds: 300 }, async (request
       studentDocs = await fs.collection(`modulAttempts/${modulId}/students`).listDocuments();
     }
 
+    // Cache answer-key per qId (allowPartial/partialPoints/points/type)
+    const ansCache = {};
+    const getAns = async (qId) => {
+      if (ansCache[qId] !== undefined) return ansCache[qId];
+      const s = await fs.doc(`modulAnswers/${modulId}/qs/${qId}`).get();
+      ansCache[qId] = s.exists ? (s.data() || null) : null;
+      return ansCache[qId];
+    };
+
     const students = [];
     let totalAdjusted = 0;
 
@@ -1197,73 +1222,90 @@ exports.rescaleModulLatePenalty = onCall({ timeoutSeconds: 300 }, async (request
       const nimKey = studentDoc.id;
       const qsDocs = await studentDoc.collection("qs").listDocuments();
       const adjustments = [];
+      const markerSwaps = []; // { oldMarker, newMarker }
       let netDiff = 0;
 
       for (const qDoc of qsDocs) {
         const snap = await qDoc.get();
         if (!snap.exists) continue;
         const data = snap.data() || {};
-        const oldScoreDelta = Number(data.scoreDelta) || 0;
-        const oldMul = Number(data.lateMultiplier);
-        // Hanya attempt yg dapat poin (>0) & punya multiplier valid.
-        if (!(oldScoreDelta > 0) || !Number.isFinite(oldMul) || oldMul <= 0) continue;
-        // Butuh timestamp submit asli utk recompute presisi.
+        const qId = data.qId || qDoc.id;
         const ts = data.timestamp && typeof data.timestamp.toMillis === "function"
           ? data.timestamp.toMillis()
           : null;
-        if (ts === null) continue;
+        if (ts === null) continue; // tak ada timestamp → tak bisa recompute
+
+        const ans = await getAns(qId);
+        if (!ans) continue; // answer key hilang → lewati
 
         const newPastDeadline = ts > endMs;
         const newMul = newPastDeadline ? lateMul : 1.0;
-        if (Math.abs(newMul - oldMul) < EPS) continue;  // multiplier tak berubah
 
-        // basePoints = poin sebelum penalti = scoreDelta / multiplier lama.
-        const basePoints = Math.round((oldScoreDelta / oldMul) * 1e4) / 1e4;
-        const newScoreDelta = Math.round(basePoints * newMul * 1e4) / 1e4;
-        const diff = newScoreDelta - oldScoreDelta;
-        if (Math.abs(diff) < EPS) continue;
+        // Recompute outcome PENUH dari correctness tersimpan + deadline baru.
+        const evalResult = { correct: data.correct === true };
+        const outcome = _computeModulOutcome(ans, evalResult, newPastDeadline);
+        const newMarker = qId + outcome.markerSuffix;
+        const newScoreDelta = round4(outcome.points * newMul);
+
+        const oldMarker = data.marker || qId;
+        const oldScoreDelta = Number(data.scoreDelta) || 0;
+        const oldStatus = data.status || "";
+
+        const markerChanged = newMarker !== oldMarker;
+        const deltaChanged = Math.abs(newScoreDelta - oldScoreDelta) > EPS;
+        if (!markerChanged && !deltaChanged) continue; // tidak ada perubahan
 
         await qDoc.set({
+          marker: newMarker,
+          status: outcome.status,
           scoreDelta: newScoreDelta,
           lateMultiplier: newMul,
           pastDeadline: newPastDeadline,
           rescaledAt: FieldValue.serverTimestamp(),
         }, { merge: true });
 
+        if (markerChanged) markerSwaps.push({ oldMarker, newMarker });
+        netDiff += (newScoreDelta - oldScoreDelta);
         adjustments.push({
-          qId: data.qId || qDoc.id,
-          oldMultiplier: oldMul,
-          newMultiplier: newMul,
-          oldScoreDelta,
-          newScoreDelta,
+          qId,
+          oldMarker, newMarker,
+          oldStatus, newStatus: outcome.status,
+          oldScoreDelta, newScoreDelta,
         });
-        netDiff += diff;
         totalAdjusted += 1;
       }
 
-      // ── Sesuaikan points di RTDB sekali per mahasiswa (atomic) ──
+      // ── Satu transaksi RTDB per mahasiswa: tukar marker + sesuaikan points ──
       let pointsBefore = null;
       let pointsAfter = null;
-      if (Math.abs(netDiff) > EPS) {
+      if (adjustments.length > 0) {
+        const removeSet = new Set(markerSwaps.map((m) => m.oldMarker));
+        const addList = markerSwaps.map((m) => m.newMarker);
         const vRef = rtdb.ref(`${cfg.dbPath}/${nimKey}`);
         await vRef.transaction((cur) => {
           if (cur === null) return cur;
           pointsBefore = cur.points || 0;
+
+          if (markerSwaps.length > 0) {
+            const scored = (cur.scoredQuestions || "").split(",").filter(Boolean);
+            const kept = scored.filter((m) => !removeSet.has(m));
+            for (const am of addList) if (!kept.includes(am)) kept.push(am);
+            cur.scoredQuestions = kept.join(",");
+          }
+
           const next = Math.max(0, Math.min((cur.points || 0) + netDiff, cfg.totalPoints));
-          cur.points = Math.round(next * 1e4) / 1e4;
+          cur.points = round4(next);
           cur.pointTimestamp = new Date().toISOString();
           pointsAfter = cur.points;
           return cur;
         });
-      }
-
-      if (adjustments.length > 0) {
         students.push({ nimKey, pointsBefore, pointsAfter, adjustments });
       }
     }
 
     console.log("[rescaleModulLatePenalty]", modulId,
-      "students adjusted:", students.length, "attempts:", totalAdjusted);
+      "newEnd:", (newEnd || "(none)"),
+      "students:", students.length, "attempts:", totalAdjusted);
     return {
       modulId,
       scheduleEnd: sched.end,
