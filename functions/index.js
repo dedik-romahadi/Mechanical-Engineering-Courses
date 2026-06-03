@@ -1319,3 +1319,74 @@ exports.rescaleModulLatePenalty = onCall({ timeoutSeconds: 300 }, async (request
     throw new HttpsError("internal", `Rescale gagal: ${e.message || e}`);
   }
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// analyzeModulData — admin callable. Kembalikan paket data mentah untuk analisis
+// korban bug grading di BROWSER (Admin/analyze-victims.html re-run kode via Pyodide).
+//
+// Server tidak menjalankan Python (Cloud Functions tidak punya numpy/scipy).
+// Jadi fungsi ini hanya mengumpulkan: answer key comp (answer/tolerance) +
+// tiap mahasiswa (scoredQuestions + codes tersimpan). Browser yang re-run & nilai.
+//
+// Request:  { modulId, adminPwHash }
+// Response: { modulId, answers:{ qId:{answer,tolerance,allowPartial,partialPoints,points} },
+//             students:[{ nimKey, nim, nama, points, scoredQuestions, codes:{qId:code} }] }
+// ─────────────────────────────────────────────────────────────────────────────
+exports.analyzeModulData = onCall({ timeoutSeconds: 120 }, async (request) => {
+  const { modulId, adminPwHash } = request.data || {};
+  if (!modulId || !MODUL_CONFIG[modulId]) {
+    throw new HttpsError("invalid-argument", `modulId '${modulId}' tidak dikonfigurasi`);
+  }
+  if (!adminPwHash || typeof adminPwHash !== "string" || adminPwHash !== ADMIN_PW_HASH) {
+    throw new HttpsError("permission-denied", "Admin password salah");
+  }
+
+  const cfg = MODUL_CONFIG[modulId];
+  const fs = getFirestore();
+  const rtdb = getDatabase();
+
+  try {
+    // ── Answer key comp (answer + tolerance) ──
+    const answers = {};
+    const qsSnap = await fs.collection(`modulAnswers/${modulId}/qs`).get();
+    qsSnap.forEach((doc) => {
+      const d = doc.data() || {};
+      if (d.type === "comp") {
+        answers[doc.id] = {
+          answer: Number(d.answer ?? d.expected),
+          tolerance: Number(d.tolerance ?? 0.01),
+          allowPartial: d.allowPartial === true,
+          partialPoints: Number(d.partialPoints ?? 1),
+          points: Number(d.points ?? 1),
+        };
+      }
+    });
+
+    // ── Visitor records (scoredQuestions + codes) ──
+    const vSnap = await rtdb.ref(cfg.dbPath).get();
+    const visitors = vSnap.val() || {};
+    const students = [];
+    for (const [key, rec] of Object.entries(visitors)) {
+      if (!key.startsWith("mhs_") || !rec || typeof rec !== "object") continue;
+      const codes = (rec.codes && typeof rec.codes === "object") ? rec.codes : {};
+      // hanya kirim mahasiswa yang punya minimal 1 marker comp _used/_partial
+      const scored = String(rec.scoredQuestions || "");
+      if (!/c\d+_comp_(used|partial)/.test(scored)) continue;
+      students.push({
+        nimKey: key,
+        nim: rec.nim || key.replace(/^mhs_/, ""),
+        nama: rec.nama || "",
+        points: rec.points || 0,
+        scoredQuestions: scored,
+        codes,
+      });
+    }
+
+    console.log("[analyzeModulData]", modulId, "students:", students.length, "answers:", Object.keys(answers).length);
+    return { modulId, answers, students };
+  } catch (e) {
+    if (e instanceof HttpsError) throw e;
+    console.error("[analyzeModulData] FAILED", modulId, e);
+    throw new HttpsError("internal", `Analyze gagal: ${e.message || e}`);
+  }
+});
