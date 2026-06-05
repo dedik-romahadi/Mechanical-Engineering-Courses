@@ -8211,6 +8211,32 @@ setInterval(()=>{renderVisitors(latestVisitors);},30000);
 // ════════════════════════════════════════════════════════════
 // Animasi 2 — Animasi 2 — N-DoF Building Eigenvalues (Slider)
 // ════════════════════════════════════════════════════════════
+// Helpers shear-building (dipakai bersama oleh Anim 2/3/4)
+function _sbOmega(N, k){ return 2*Math.sin((2*k-1)*Math.PI/(2*(2*N+1))); }  // ωₖ/√(k/m), k=1..N
+function _sbPhi(N, k, i){ return Math.sin(k*Math.PI*(2*i-1)/(2*N+1)); }      // φᵢ utk mode k, lantai i=1..N
+function _massNormScale(phi){ // skala s sehingga (s·φ)ᵀM(s·φ)=1 dgn M=I
+  let ssq=0; for(const p of phi) ssq += p*p; return ssq>0 ? 1/Math.sqrt(ssq) : 1;
+}
+function _maxNormScale(phi){
+  let m=0; for(const p of phi) m=Math.max(m, Math.abs(p)); return m>0 ? 1/m : 1;
+}
+function _drawSpring(ctx, x, y1, y2, coils, w){
+  const seg=(y2-y1)/(2*coils); ctx.beginPath(); ctx.moveTo(x, y1);
+  for(let i=0;i<2*coils;i++){
+    const ny=y1+seg*(i+1); const nx=x + ((i%2===0)?w:-w);
+    ctx.lineTo(nx, ny);
+  }
+  ctx.lineTo(x, y2); ctx.stroke();
+}
+function _drawFloor(ctx, cx, cy, fw, fh, fill, stroke, label){
+  ctx.fillStyle = fill; ctx.fillRect(cx-fw/2, cy-fh/2, fw, fh);
+  ctx.strokeStyle = stroke; ctx.lineWidth = 1.5; ctx.strokeRect(cx-fw/2, cy-fh/2, fw, fh);
+  if(label){
+    ctx.fillStyle = '#fff'; ctx.font='bold 10px JetBrains Mono'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(label, cx, cy);
+  }
+}
+
 function drawNStory(){
   const cv = document.getElementById('cvNStory'); if(!cv) return;
   const W = cv.clientWidth; cv.width = W; const H = cv.height;
@@ -8219,70 +8245,100 @@ function drawNStory(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const v = parseFloat(document.getElementById('sl_nstory').value);
-  const valEl = document.getElementById('v_nstory');
-  if(valEl) valEl.textContent = v.toFixed(2);
+  const slider = document.getElementById('sl_nstory');
+  const N = Math.max(2, Math.min(12, Math.round(parseFloat(slider.value))));
+  const valEl = document.getElementById('v_nstory'); if(valEl) valEl.textContent = N;
 
-  // Generic visualization: vertical bars representing eigenvalues / spectrum / etc
-  const padL=50, padR=20, padT=30, padB=40;
-  const plotW = W-padL-padR, plotH = H-padT-padB;
-  ctx.strokeStyle = '#0d1929';
-  for(let i=0; i<=10; i++){
-    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  // Layout: kiri 45% gedung shear-building, kanan 55% bar chart ωᵢ
+  const splitX = Math.floor(W*0.42);
+  const padT=24, padB=28;
+  const T = Date.now()/1000;
+
+  // ── KIRI: gedung N lantai dengan osilasi mode 1 lembut ──
+  const groundY = H - padB;
+  const topY = padT + 8;
+  const floorH = Math.max(10, Math.min(28, (groundY - topY - 6) / (N + 0.5)));
+  const fw = Math.max(40, Math.min(90, splitX*0.55));
+  const baseCx = splitX/2;
+  // amplitude scale untuk visual (mode 1 phi naik monoton)
+  const phi1=[]; for(let i=1;i<=N;i++) phi1.push(_sbPhi(N,1,i));
+  const phi1max = Math.max(...phi1.map(Math.abs));
+  const amp = Math.min(16, splitX*0.10);
+  const omega1 = _sbOmega(N,1) * 2.2;  // visual time scale
+  // ground/base
+  ctx.strokeStyle='rgba(255,255,255,.35)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(baseCx-fw*0.8, groundY); ctx.lineTo(baseCx+fw*0.8, groundY); ctx.stroke();
+  // arsiran tanah
+  ctx.strokeStyle='rgba(255,255,255,.18)'; ctx.lineWidth=1;
+  for(let i=0;i<10;i++){ ctx.beginPath(); ctx.moveTo(baseCx-fw*0.8+i*fw*0.18, groundY); ctx.lineTo(baseCx-fw*0.8+i*fw*0.18-6, groundY+6); ctx.stroke(); }
+  // gambar lantai dari bawah ke atas (i=1 paling bawah, i=N paling atas)
+  let prevY = groundY;
+  for(let i=1;i<=N;i++){
+    const cy = groundY - i*floorH - (i-0.5)*4;
+    const dx = (phi1[i-1]/phi1max) * amp * Math.sin(omega1*T);
+    // pegas/kolom dari prevY ke cy+floorH/2
+    ctx.strokeStyle = '#5b6b8e'; ctx.lineWidth=1.4;
+    _drawSpring(ctx, baseCx, prevY, cy+floorH/2, 3, 6);
+    _drawFloor(ctx, baseCx+dx, cy, fw, floorH, '#ffb30022', '#ffb300', 'm');
+    prevY = cy - floorH/2;
   }
-  ctx.strokeStyle = 'rgba(255,255,255,.25)';
-  ctx.beginPath(); ctx.moveTo(padL, padT+plotH); ctx.lineTo(padL+plotW, padT+plotH); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+  // label gedung
+  ctx.fillStyle='#ffb300'; ctx.font='bold 11px JetBrains Mono'; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+  ctx.fillText(`Shear-building N = ${N}`, 12, padT+4);
+  ctx.fillStyle='rgba(255,255,255,.55)'; ctx.font='9px JetBrains Mono';
+  ctx.fillText('(osilasi mode 1)', 12, padT+16);
 
-  // Topic-specific drawing — generic eigenvalue/parameter plot
-  const N = Math.max(2, Math.min(20, Math.floor(v)));
-  const useBars = (N === Math.floor(N));
-  if(useBars){
-    // Bar plot for N components
-    const bw = plotW/(N+1);
-    for(let i=0; i<N; i++){
-      const idx = i+1;
-      const eigval = Math.sin(((2*idx-1)*Math.PI/(2*(2*N+1)))) * 2;  // shear-building eigenvalue formula
-      const bx = padL + (i+0.5)*bw;
-      const bh = (eigval/2.5)*plotH;
-      const grad = ctx.createLinearGradient(0, padT+plotH-bh, 0, padT+plotH);
-      grad.addColorStop(0, '#ffb300');
-      grad.addColorStop(1, '#ffb30040');
-      ctx.fillStyle = grad;
-      ctx.fillRect(bx-bw*0.35, padT+plotH-bh, bw*0.7, bh);
-      ctx.strokeStyle = '#ffb300';
-      ctx.strokeRect(bx-bw*0.35, padT+plotH-bh, bw*0.7, bh);
-      ctx.fillStyle = '#fff'; ctx.font = '9px JetBrains Mono'; ctx.textAlign = 'center';
-      ctx.fillText('ω'+(i+1), bx, padT+plotH+14);
-      ctx.fillText(eigval.toFixed(2), bx, padT+plotH-bh-5);
-    }
-  } else {
-    // Continuous curve
-    ctx.strokeStyle = '#ffb300'; ctx.lineWidth = 2.5;
-    ctx.shadowColor = '#ffb300A0'; ctx.shadowBlur = 6;
-    ctx.beginPath();
-    for(let i=0; i<=200; i++){
-      const x = padL + plotW*i/200;
-      const xv = i/200;
-      const y = padT + plotH - (0.5+0.4*Math.sin(xv*v*Math.PI*2))*plotH;
-      if(i===0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-    ctx.shadowBlur = 0;
+  // ── KANAN: bar chart ωᵢ/√(k/m), i=1..N ──
+  const cPadL = splitX + 36, cPadR = 14;
+  const plotW = W - cPadL - cPadR;
+  const plotH = H - padT - padB - 12;
+  const x0 = cPadL, y0 = padT+10;
+  // axes
+  ctx.strokeStyle='rgba(255,255,255,.30)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0, y0+plotH); ctx.lineTo(x0+plotW, y0+plotH); ctx.stroke();
+  // gridlines horizontal (0, 0.5, 1, 1.5, 2)
+  ctx.strokeStyle='rgba(255,255,255,.07)';
+  for(let g=0; g<=4; g++){
+    const gy = y0+plotH - (g/4)*plotH;
+    ctx.beginPath(); ctx.moveTo(x0, gy); ctx.lineTo(x0+plotW, gy); ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,.40)'; ctx.font='9px JetBrains Mono'; ctx.textAlign='right'; ctx.textBaseline='middle';
+    ctx.fillText((g/2).toFixed(1), x0-4, gy);
   }
-
-  ctx.textAlign = 'left';
-  ctx.fillStyle = '#ffb300'; ctx.font = 'bold 12px JetBrains Mono';
-  ctx.fillText('Jumlah Lantai N = '+v.toFixed(2), padL+10, padT+18);
+  // bars
+  const bw = plotW/(N+1);
+  for(let k=1;k<=N;k++){
+    const w = _sbOmega(N,k);    // 0..2
+    const bx = x0 + k*bw - bw*0.35;
+    const bh = (w/2.0)*plotH;
+    const grad = ctx.createLinearGradient(0, y0+plotH-bh, 0, y0+plotH);
+    grad.addColorStop(0, '#ffb300'); grad.addColorStop(1, '#ffb30033');
+    ctx.fillStyle = grad; ctx.fillRect(bx, y0+plotH-bh, bw*0.7, bh);
+    ctx.strokeStyle='#ffb300'; ctx.lineWidth=1; ctx.strokeRect(bx, y0+plotH-bh, bw*0.7, bh);
+    // value label (skip kalau bar terlalu sempit)
+    if(N <= 8){
+      ctx.fillStyle='#fff'; ctx.font='9px JetBrains Mono'; ctx.textAlign='center';
+      ctx.fillText(w.toFixed(2), bx+bw*0.35, y0+plotH-bh-3);
+    }
+    // x label
+    ctx.fillStyle='rgba(255,255,255,.55)'; ctx.font='9px JetBrains Mono';
+    ctx.fillText('ω'+k, bx+bw*0.35, y0+plotH+12);
+  }
+  // axis labels
+  ctx.fillStyle='#ffb300'; ctx.font='bold 10px JetBrains Mono'; ctx.textAlign='left';
+  ctx.fillText('ωᵢ / √(k/m)', x0, y0-4);
 
   const info = document.getElementById('cvNStory_info');
-  if(info) info.innerHTML = `<strong>Jumlah Lantai N</strong> = ${v.toFixed(2)} · Modal Analysis parameter exploration`;
+  if(info){
+    const w1 = _sbOmega(N,1).toFixed(3), wN = _sbOmega(N,N).toFixed(3);
+    info.innerHTML = `<strong>N = ${N}</strong> lantai → ω₁/√(k/m) = <b>${w1}</b>, ω${N}/√(k/m) = <b>${wN}</b>  ·  rasio ω${N}/ω₁ = <b>${(wN/w1).toFixed(2)}×</b>`;
+  }
 }
-setTimeout(drawNStory, 800+450);
+function _cvNStoryTick(){ drawNStory(); requestAnimationFrame(_cvNStoryTick); }
+setTimeout(_cvNStoryTick, 800+450);
 
 
 // ════════════════════════════════════════════════════════════
-// Animasi 3 — Animasi 3 — Mass-Norm vs Max-Norm Mode Shape (Toggle)
+// Animasi 3 — Mass-Norm vs Max-Norm Mode Shape (Toggle)
 // ════════════════════════════════════════════════════════════
 let _cvNorm_mode = 0;
 window.toggleNorm = function(){
@@ -8299,7 +8355,6 @@ window.toggleNorm = function(){
     if(slider) slider.style.transform = 'translateX(0px)';
     if(lbl){ lbl.textContent = 'Mass-Normalized (φᵀMφ=1)'; lbl.style.color = '#0ea5e9'; }
   }
-  drawNorm();
 };
 
 function drawNorm(){
@@ -8310,60 +8365,135 @@ function drawNorm(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const isMode1 = (_cvNorm_mode === 1);
-  const color = isMode1 ? '#a855f7' : '#0ea5e9';
-  const label = isMode1 ? 'Max-Normalized (max=1)' : 'Mass-Normalized (φᵀMφ=1)';
+  const isMax = (_cvNorm_mode === 1);
+  const color = isMax ? '#a855f7' : '#0ea5e9';
+  const label = isMax ? 'Max-Normalized (max φ = 1)' : 'Mass-Normalized (φᵀMφ = 1, M = I)';
+  ctx.fillStyle = color; ctx.font = 'bold 13px JetBrains Mono'; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+  ctx.fillText(label, 14, 22);
 
-  ctx.fillStyle = color; ctx.font = 'bold 14px JetBrains Mono';
-  ctx.fillText(label, 20, 30);
-
-  // Visualization differs per mode
-  const padL=50, padR=20, padT=50, padB=40;
-  const plotW = W-padL-padR, plotH = H-padT-padB;
-
-  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
-  for(let i=0; i<=10; i++){
-    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
-  }
-  ctx.strokeStyle = 'rgba(255,255,255,.25)';
-  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
-  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
-
-  // Sample comparison curves
+  const N = 4;                          // gedung 4 lantai
+  const k = 1;                          // tampilkan mode 1
+  const phi = []; for(let i=1;i<=N;i++) phi.push(_sbPhi(N,k,i));
+  const scaleMass = _massNormScale(phi); // s sehingga Σ(s·φ)²=1
+  const scaleMax  = _maxNormScale(phi);  // s sehingga max|s·φ|=1
+  const s = isMax ? scaleMax : scaleMass;
+  const phiN = phi.map(p => p*s);
   const T = Date.now()/1000;
-  const N = 200;
-  ctx.strokeStyle = color; ctx.lineWidth = 2.5;
-  ctx.shadowColor = color + 'A0'; ctx.shadowBlur = 6;
-  ctx.beginPath();
-  for(let i=0; i<=N; i++){
-    const x = padL + plotW*i/N;
-    const tt = i/N;
-    let y;
-    if(isMode1){
-      // Mode B: smoother / different
-      y = padT + plotH/2 - 0.5*plotH*0.4*Math.sin(tt*8*Math.PI + T)*Math.cos(tt*Math.PI);
-    } else {
-      // Mode A: standard
-      y = padT + plotH/2 - 0.5*plotH*0.4*Math.sin(tt*6*Math.PI + T);
+  const omega = _sbOmega(N,k) * 2.0;
+  const env = Math.sin(omega*T);
+
+  // ── KIRI: gedung 4 lantai, ter-deflect mengikuti phiN × env ──
+  const splitX = Math.floor(W*0.50);
+  const padT=40, padB=26;
+  const groundY = H - padB;
+  const topY = padT + 4;
+  const floorH = (groundY - topY - 6) / (N + 0.4);
+  const fw = Math.min(80, splitX*0.45);
+  const baseCx = splitX*0.50;
+  // skala visual: di mode max, max|phi|=1 → render setara 36 px
+  const visScale = isMax ? 36 : 36/scaleMax * scaleMass;  // matched visual width antara kedua mode
+  // ground
+  ctx.strokeStyle='rgba(255,255,255,.40)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(baseCx-fw*0.9, groundY); ctx.lineTo(baseCx+fw*0.9, groundY); ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,.20)'; ctx.lineWidth=1;
+  for(let i=0;i<10;i++){ ctx.beginPath(); ctx.moveTo(baseCx-fw*0.9+i*fw*0.20, groundY); ctx.lineTo(baseCx-fw*0.9+i*fw*0.20-6, groundY+6); ctx.stroke(); }
+  // dashed neutral line
+  ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.setLineDash([3,3]); ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(baseCx, topY); ctx.lineTo(baseCx, groundY); ctx.stroke(); ctx.setLineDash([]);
+  // floors
+  let prevY = groundY, prevDx = 0;
+  for(let i=1;i<=N;i++){
+    const cy = groundY - i*floorH - (i-0.5)*5;
+    const dx = phiN[i-1]*visScale*env;
+    ctx.strokeStyle='#5b6b8e'; ctx.lineWidth=1.4;
+    ctx.save(); ctx.translate(0,0);
+    // pegas dari (baseCx+prevDx, prevY) ke (baseCx+dx, cy+floorH/2)
+    const sx = baseCx+prevDx, sy=prevY, ex=baseCx+dx, ey=cy+floorH/2;
+    const segs=4; ctx.beginPath(); ctx.moveTo(sx,sy);
+    for(let q=1;q<=segs*2;q++){
+      const t1=q/(segs*2); const lx=sx+(ex-sx)*t1; const ly=sy+(ey-sy)*t1;
+      const nrm=(q%2===0)?5:-5; ctx.lineTo(lx+nrm, ly);
     }
-    if(i===0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
+    ctx.lineTo(ex, ey); ctx.stroke(); ctx.restore();
+    _drawFloor(ctx, baseCx+dx, cy, fw, floorH, color+'22', color, 'm');
+    prevY = cy - floorH/2; prevDx = dx;
   }
-  ctx.stroke();
-  ctx.shadowBlur = 0;
+
+  // ── KANAN: vertical plot φᵢ (titik per lantai) + guide line normalisasi ──
+  const cPadL = splitX + 40, cPadR = 18;
+  const plotW = W - cPadL - cPadR;
+  const plotTopY = topY+8, plotBotY = groundY;
+  const xZero = cPadL + plotW*0.5;
+  // sumbu vertikal (lantai) + sumbu horizontal nol
+  ctx.strokeStyle='rgba(255,255,255,.30)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(cPadL, plotBotY); ctx.lineTo(cPadL+plotW, plotBotY); ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,.18)'; ctx.setLineDash([2,3]);
+  ctx.beginPath(); ctx.moveTo(xZero, plotTopY); ctx.lineTo(xZero, plotBotY); ctx.stroke(); ctx.setLineDash([]);
+  // grid ±1
+  ctx.fillStyle='rgba(255,255,255,.45)'; ctx.font='9px JetBrains Mono'; ctx.textAlign='center';
+  for(const tv of [-1,-0.5,0,0.5,1]){
+    const tx = xZero + tv*plotW*0.35;
+    ctx.strokeStyle='rgba(255,255,255,.06)'; ctx.beginPath(); ctx.moveTo(tx, plotTopY); ctx.lineTo(tx, plotBotY); ctx.stroke();
+    ctx.fillText(tv.toFixed(1), tx, plotBotY+12);
+  }
+  // gambar mode shape: connect dot di tiap lantai
+  ctx.strokeStyle=color; ctx.lineWidth=2;
+  ctx.shadowColor=color+'80'; ctx.shadowBlur=4;
+  ctx.beginPath();
+  // start di base (φ=0, lantai 0)
+  ctx.moveTo(xZero, plotBotY);
+  const ptScale = plotW*0.35;
+  const floorYs=[];
+  for(let i=1;i<=N;i++){
+    const fy = groundY - i*floorH - (i-0.5)*5;
+    floorYs.push(fy);
+    ctx.lineTo(xZero + phiN[i-1]*ptScale, fy);
+  }
+  ctx.stroke(); ctx.shadowBlur=0;
+  // dots
+  ctx.fillStyle=color;
+  for(let i=0;i<N;i++){
+    ctx.beginPath(); ctx.arc(xZero + phiN[i]*ptScale, floorYs[i], 4, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='9px JetBrains Mono'; ctx.textAlign='left'; ctx.textBaseline='middle';
+    ctx.fillText('φ'+(i+1)+'='+phiN[i].toFixed(3), xZero + phiN[i]*ptScale + 7, floorYs[i]);
+    ctx.fillStyle=color;
+  }
+  // guide constraint line
+  ctx.strokeStyle=color+'66'; ctx.setLineDash([4,3]); ctx.lineWidth=1;
+  if(isMax){
+    // max=1: garis vertikal tipis di x=1
+    const gx = xZero + 1*ptScale;
+    ctx.beginPath(); ctx.moveTo(gx, plotTopY); ctx.lineTo(gx, plotBotY); ctx.stroke();
+    ctx.fillStyle=color; ctx.font='bold 9px JetBrains Mono'; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+    ctx.fillText('max = 1', gx+4, plotTopY+10);
+  } else {
+    // mass-norm: tampilkan Σφᵢ² = 1 (jumlah kuadrat)
+    ctx.setLineDash([]);
+    ctx.fillStyle=color; ctx.font='bold 10px JetBrains Mono'; ctx.textAlign='left';
+    let ssq=0; for(const p of phiN) ssq+=p*p;
+    ctx.fillText('Σφᵢ² = '+ssq.toFixed(3), cPadL+4, plotTopY+10);
+  }
+  ctx.setLineDash([]);
+  // judul plot kanan
+  ctx.fillStyle=color; ctx.font='bold 11px JetBrains Mono'; ctx.textAlign='center'; ctx.textBaseline='alphabetic';
+  ctx.fillText('Mode Shape φ (mode 1)', cPadL+plotW/2, plotTopY-4);
 
   const info = document.getElementById('cvNorm_info');
-  if(info) info.innerHTML = isMode1 ? '🟣 <strong>Max-Normalized (max=1)</strong>' : '🟢 <strong>Mass-Normalized (φᵀMφ=1)</strong>';
+  if(info){
+    const vals = phiN.map(p=>p.toFixed(3)).join(', ');
+    const sumSq = phiN.reduce((a,b)=>a+b*b,0).toFixed(3);
+    const mx = Math.max(...phiN.map(Math.abs)).toFixed(3);
+    info.innerHTML = isMax
+      ? `🟣 <strong>Max-Norm</strong> · φ = [${vals}] · max|φ| = <b>${mx}</b>`
+      : `🔵 <strong>Mass-Norm</strong> · φ = [${vals}] · Σφᵢ² = <b>${sumSq}</b> (M = I)`;
+  }
 }
-function _cvNormTick(){
-  drawNorm();
-  requestAnimationFrame(_cvNormTick);
-}
+function _cvNormTick(){ drawNorm(); requestAnimationFrame(_cvNormTick); }
 setTimeout(_cvNormTick, 850+450);
 
 
 // ════════════════════════════════════════════════════════════
-// Animasi 4 — Animasi 4 — Mode 1/2/3/4 Selection (Radio)
+// Animasi 4 — Mode 1/2/3/4 Selection (Radio) — gedung 4 lantai
 // ════════════════════════════════════════════════════════════
 let _cvModeSel_val = 'm1';
 let _cvModeSel_frame = 0;
@@ -8388,47 +8518,129 @@ function drawModeSel(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const opts = [['Mode 1 (fundamental)', '#0ea5e9', 'm1'], ['Mode 2', '#00e09e', 'm2'], ['Mode 3', '#f97316', 'm3'], ['Mode 4', '#ef4444', 'm4']];
-  const optMap = {};
-  opts.forEach(o => { optMap[o[2]] = {label: o[0], color: o[1]}; });
-  const cur = optMap[_cvModeSel_val] || optMap[opts[0][2]];
-  const t = _cvModeSel_frame * 0.012;
+  const colorByMode = { m1:'#0ea5e9', m2:'#00e09e', m3:'#f97316', m4:'#ef4444' };
+  const labelByMode = { m1:'Mode 1 (fundamental)', m2:'Mode 2', m3:'Mode 3', m4:'Mode 4' };
+  const kByMode = { m1:1, m2:2, m3:3, m4:4 };
+  const color = colorByMode[_cvModeSel_val] || colorByMode.m1;
+  const label = labelByMode[_cvModeSel_val] || labelByMode.m1;
+  const k = kByMode[_cvModeSel_val] || 1;
+  const N = 4;
 
-  ctx.fillStyle = cur.color; ctx.font = 'bold 14px JetBrains Mono';
-  ctx.fillText(cur.label, 20, 30);
+  ctx.fillStyle = color; ctx.font = 'bold 14px JetBrains Mono'; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+  ctx.fillText(label + ' · gedung 4-lantai', 14, 24);
 
-  // Per-option visualization (frequency content)
-  const padL=50, padR=20, padT=50, padB=40;
-  const plotW = W-padL-padR, plotH = H-padT-padB;
-  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
-  for(let i=0; i<=10; i++){
-    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  // Mode shape & frequency
+  const phi=[]; for(let i=1;i<=N;i++) phi.push(_sbPhi(N,k,i));
+  const sMax = _maxNormScale(phi);
+  const phiN = phi.map(p => p*sMax);   // pakai max-norm utk visualisasi konsisten amplitudo
+  const omega = _sbOmega(N,k);          // ω/√(k/m)
+  const tSec = _cvModeSel_frame / 60;   // ~60 fps
+  const env = Math.sin(omega * 2.0 * tSec);
+
+  // Layout: kiri 50% gedung, kanan 50% mode shape (vertikal)
+  const splitX = Math.floor(W*0.50);
+  const padT=42, padB=28;
+  const groundY = H - padB;
+  const topY = padT + 4;
+  const floorH = (groundY - topY - 6) / (N + 0.4);
+  const fw = Math.min(82, splitX*0.45);
+  const baseCx = splitX*0.50;
+  const ampPx = Math.min(34, splitX*0.18);
+
+  // ── KIRI: gedung 4 lantai ter-deflect mode k ──
+  ctx.strokeStyle='rgba(255,255,255,.40)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(baseCx-fw*0.95, groundY); ctx.lineTo(baseCx+fw*0.95, groundY); ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,.18)'; ctx.lineWidth=1;
+  for(let i=0;i<10;i++){ ctx.beginPath(); ctx.moveTo(baseCx-fw*0.95+i*fw*0.21, groundY); ctx.lineTo(baseCx-fw*0.95+i*fw*0.21-6, groundY+6); ctx.stroke(); }
+  // neutral line dashed
+  ctx.strokeStyle='rgba(255,255,255,.22)'; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(baseCx, topY); ctx.lineTo(baseCx, groundY); ctx.stroke(); ctx.setLineDash([]);
+  // bayangan posisi netral (extreme deflection) — bantu visualisasi sumbu
+  ctx.fillStyle = color+'1A';
+  let prevDx = 0, prevY = groundY;
+  for(let i=1;i<=N;i++){
+    const cy = groundY - i*floorH - (i-0.5)*5;
+    const dx = phiN[i-1]*ampPx*env;
+    // spring
+    ctx.strokeStyle='#5b6b8e'; ctx.lineWidth=1.4;
+    const sx = baseCx+prevDx, sy=prevY, ex=baseCx+dx, ey=cy+floorH/2;
+    const segs=4; ctx.beginPath(); ctx.moveTo(sx,sy);
+    for(let q=1;q<=segs*2;q++){
+      const t1=q/(segs*2); const lx=sx+(ex-sx)*t1; const ly=sy+(ey-sy)*t1;
+      const nrm=(q%2===0)?5:-5; ctx.lineTo(lx+nrm, ly);
+    }
+    ctx.lineTo(ex, ey); ctx.stroke();
+    _drawFloor(ctx, baseCx+dx, cy, fw, floorH, color+'33', color, 'm');
+    prevDx = dx; prevY = cy - floorH/2;
   }
-  ctx.strokeStyle = 'rgba(255,255,255,.25)';
-  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
-  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
 
-  // Map opt index → frequency multiplier
-  const optIdx = opts.findIndex(o => o[2] === _cvModeSel_val);
-  const freqMult = (optIdx + 1) * 1.5;
+  // ── KANAN: mode shape vertikal (φ vs lantai) ──
+  const cPadL = splitX + 36, cPadR = 14;
+  const plotW = W - cPadL - cPadR;
+  const xZero = cPadL + plotW*0.5;
+  const ptScale = plotW*0.38;
+  const plotTopY = topY+10, plotBotY = groundY;
 
-  ctx.strokeStyle = cur.color; ctx.lineWidth = 2.5;
-  ctx.shadowColor = cur.color + 'A0'; ctx.shadowBlur = 6;
-  ctx.beginPath();
-  for(let i=0; i<=200; i++){
-    const x = padL + plotW*i/200;
-    const tt = i/200;
-    const y = padT + plotH/2 - plotH*0.35*Math.sin(tt*freqMult*2*Math.PI + t);
-    if(i===0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
+  // judul
+  ctx.fillStyle=color; ctx.font='bold 11px JetBrains Mono'; ctx.textAlign='center'; ctx.textBaseline='alphabetic';
+  ctx.fillText(`Mode shape (k = ${k})`, cPadL+plotW/2, plotTopY-4);
+
+  // sumbu
+  ctx.strokeStyle='rgba(255,255,255,.30)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(cPadL, plotBotY); ctx.lineTo(cPadL+plotW, plotBotY); ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,.18)'; ctx.setLineDash([2,3]);
+  ctx.beginPath(); ctx.moveTo(xZero, plotTopY); ctx.lineTo(xZero, plotBotY); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle='rgba(255,255,255,.45)'; ctx.font='9px JetBrains Mono'; ctx.textAlign='center';
+  for(const tv of [-1,0,1]){
+    const tx = xZero + tv*ptScale;
+    ctx.fillText(tv.toFixed(0), tx, plotBotY+12);
   }
-  ctx.stroke();
-  ctx.shadowBlur = 0;
+
+  // shape statis (warna terang) + shape animasi (dengan env)
+  // statis penuh
+  ctx.strokeStyle = color+'55'; ctx.lineWidth=1.5; ctx.setLineDash([4,3]);
+  ctx.beginPath(); ctx.moveTo(xZero, plotBotY);
+  const floorYs=[];
+  for(let i=1;i<=N;i++){
+    const fy = groundY - i*floorH - (i-0.5)*5;
+    floorYs.push(fy);
+    ctx.lineTo(xZero + phiN[i-1]*ptScale, fy);
+  }
+  ctx.stroke(); ctx.setLineDash([]);
+  // animasi dengan env
+  ctx.strokeStyle=color; ctx.lineWidth=2.5;
+  ctx.shadowColor=color+'90'; ctx.shadowBlur=5;
+  ctx.beginPath(); ctx.moveTo(xZero, plotBotY);
+  for(let i=1;i<=N;i++){
+    ctx.lineTo(xZero + phiN[i-1]*ptScale*env, floorYs[i-1]);
+  }
+  ctx.stroke(); ctx.shadowBlur=0;
+  // dots animasi
+  ctx.fillStyle=color;
+  for(let i=0;i<N;i++){
+    ctx.beginPath(); ctx.arc(xZero + phiN[i]*ptScale*env, floorYs[i], 4, 0, Math.PI*2); ctx.fill();
+  }
+  // counter node lines (zeros of mode shape)
+  ctx.strokeStyle='rgba(255,255,255,.35)'; ctx.setLineDash([2,2]); ctx.lineWidth=1;
+  // hitung node antar lantai: dimana phi ganti tanda
+  let nodes=0;
+  for(let i=1;i<N;i++){
+    if(Math.sign(phiN[i-1]) !== Math.sign(phiN[i]) && phiN[i-1]!==0 && phiN[i]!==0){
+      // node berada antara floorY[i-1] dan floorY[i]
+      const ny = (floorYs[i-1]+floorYs[i])/2;
+      ctx.beginPath(); ctx.moveTo(cPadL, ny); ctx.lineTo(cPadL+plotW, ny); ctx.stroke();
+      nodes++;
+    }
+  }
+  ctx.setLineDash([]);
 
   const info = document.getElementById('cvModeSel_info');
-  if(info) info.innerHTML = `<strong style="color:${cur.color}">${cur.label}</strong> — freq multiplier: ${freqMult.toFixed(1)}×`;
+  if(info){
+    const w = omega.toFixed(3);
+    const vals = phi.map(p=>p.toFixed(3)).join(', ');
+    info.innerHTML = `<strong style="color:${color}">${label}</strong> · ω${k}/√(k/m) = <b>${w}</b> · nodes internal: <b>${nodes}</b> · φ = [${vals}]`;
+  }
 }
-
 function _cvModeSelTick(){
   _cvModeSel_frame++;
   drawModeSel();
