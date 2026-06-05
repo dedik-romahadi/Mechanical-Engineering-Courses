@@ -1574,7 +1574,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
             Toggle Mode:
             <span style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;" onclick="toggleNorm()">
               <input type="checkbox" id="cvNorm_toggle" style="display:none;">
-              <span id="cvNorm_view" style="position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
+              <span id="cvNorm_view" style="position:relative;width:54px;height:26px;background:rgba(14,165,233,.30);border:2px solid #0ea5e9;border-radius:26px;transition:all .2s;">
                 <span style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
               </span>
               <span id="cvNorm_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#0ea5e9;font-weight:700;">Mass-Normalized (φᵀMφ=1)</span>
@@ -8345,16 +8345,18 @@ window.toggleNorm = function(){
   _cvNorm_mode = 1 - _cvNorm_mode;
   const view = document.getElementById('cvNorm_view');
   const lbl = document.getElementById('cvNorm_label');
-  const slider = view ? view.children[0] : null;
+  const knob = view ? view.firstElementChild : null;
   if(_cvNorm_mode === 1){
-    if(view){ view.style.background = '#a855f730'; view.style.borderColor = '#a855f7'; }
-    if(slider) slider.style.transform = 'translateX(28px)';
+    if(view){ view.style.background = 'rgba(168,85,247,.30)'; view.style.borderColor = '#a855f7'; }
+    if(knob) knob.style.transform = 'translateX(28px)';
     if(lbl){ lbl.textContent = 'Max-Normalized (max=1)'; lbl.style.color = '#a855f7'; }
   } else {
-    if(view){ view.style.background = '#0ea5e930'; view.style.borderColor = '#0ea5e9'; }
-    if(slider) slider.style.transform = 'translateX(0px)';
+    if(view){ view.style.background = 'rgba(14,165,233,.30)'; view.style.borderColor = '#0ea5e9'; }
+    if(knob) knob.style.transform = 'translateX(0px)';
     if(lbl){ lbl.textContent = 'Mass-Normalized (φᵀMφ=1)'; lbl.style.color = '#0ea5e9'; }
   }
+  // Force immediate canvas update (jaring pengaman jika RAF loop tidak jalan)
+  if(typeof drawNorm === 'function') drawNorm();
 };
 
 function drawNorm(){
