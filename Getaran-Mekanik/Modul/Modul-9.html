@@ -853,8 +853,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <a href="#m-analogi">Modal Matrix</a>
   <a href="#m-anim">Superposisi</a>
   <a href="#m-aplikasi">Aplikasi MDoF</a>
-  <a href="#m-python">Python</a>
   <a href="#m-visualisasi">Animasi</a>
+  <a href="#m-python">Python</a>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════
@@ -1346,6 +1346,138 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
+<!-- ═══ BAGIAN VISUALISASI — ANIMASI INTERAKTIF ═══ -->
+<hr class="divider">
+<div class="section" id="m-visualisasi">
+  <div class="section-label reveal cyan-label">Visualisasi</div>
+  <h2 class="section-title reveal">5-DoF Building Mode Shapes<br>Visualisasi Modal Pattern</h2>
+  <p class="section-desc reveal">Klik mode untuk lihat shape getaran building 5 lantai. Mode 1 monotonic, mode 2 punya 1 zero crossing, mode N punya N-1 zeros. Frekuensi naik dengan mode. Lima animasi: (1) eigenvalue solver visualization, (2) <strong>slider</strong> N-DoF, (3) <strong>toggle</strong> normalization mode, (4) <strong>radio</strong> mode 1/2/3/4, (5) <strong>dropdown</strong> aplikasi modal.</p>
+
+  <div class="reveal" style="background:#020812;border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px">
+    <canvas id="cv-m9" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap">
+      <button onclick="window._m9setMode(1)" id="btn-m9-1" style="padding:9px 16px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(14,165,233,.5);background:rgba(14,165,233,.18);color:#0ea5e9">Mode 1</button>
+      <button onclick="window._m9setMode(2)" id="btn-m9-2" style="padding:9px 16px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.08);color:#a855f7">Mode 2</button>
+      <button onclick="window._m9setMode(3)" id="btn-m9-3" style="padding:9px 16px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.08);color:var(--green)">Mode 3</button>
+      <button onclick="window._m9setMode(4)" id="btn-m9-4" style="padding:9px 16px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(255,179,0,.4);background:rgba(255,179,0,.08);color:var(--amber)">Mode 4</button>
+      <button onclick="window._m9setMode(5)" id="btn-m9-5" style="padding:9px 16px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(220,38,38,.4);background:rgba(220,38,38,.08);color:#dc2626">Mode 5</button>
+    </div>
+    <div id="anim-info" style="text-align:center;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">
+      Building \(5\) lantai shear, \(m=1, k=1.6e6.\) Pilih mode untuk melihat shape getarannya.
+    </div>
+  </div>
+
+  <!-- Animasi 2: Animasi 2 — N-DoF Building Eigenvalues (Slider) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--amber)"></div>
+      <span class="anim-title">Animasi 2 — N-DoF Building Eigenvalues (Slider)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvNStory" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Jumlah Lantai N — <span class="ctrl-val" id="v_nstory">5</span></label>
+          <input type="range" id="sl_nstory" min="2" max="12" step="1" value="5" oninput="drawNStory()">
+        </div>
+      </div>
+      <div id="cvNStory_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Geser jumlah lantai gedung — frekuensi natural ω₁ < ω₂ < ... < ω_N otomatis terhitung.<br>
+        <strong>Insight:</strong> Untuk gedung shear-building N lantai (m identik, k identik per kolom), \(\omega _i\) = 2·sin((2i-1)π/(2(2N+1)))·\(\sqrt{k/m}\). N=10 → ω_1 ≈ 0.31, ω_10 ≈ 1.99.
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 3: Animasi 3 — Mass-Norm vs Max-Norm Mode Shape (Toggle) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--green)"></div>
+      <span class="anim-title">Animasi 3 — Mass-Norm vs Max-Norm Mode Shape (Toggle)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvNorm" height="260" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+            <span>Toggle Mode:</span>
+            <span style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;" onclick="toggleNorm()">
+              <span id="cvNorm_view" style="position:relative;width:54px;height:26px;background:rgba(14,165,233,.30);border:2px solid #0ea5e9;border-radius:26px;transition:all .2s;">
+                <span style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
+              </span>
+              <span id="cvNorm_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#0ea5e9;font-weight:700;">Mass-Normalized (φᵀMφ=1)</span>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div id="cvNorm_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Mode shape ratio bukan absolute. Pilihan normalisasi tergantung tujuan.<br>
+        <strong>Insight:</strong> Mass-norm: standar untuk modal superposition (\(m_i\) = 1 di equation modal). Max-norm: lebih intuitif untuk visualisasi (puncak = 1).
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 4: Animasi 4 — Mode 1/2/3/4 Selection (Radio) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--pink)"></div>
+      <span class="anim-title">Animasi 4 — Mode 1/2/3/4 Selection (Radio)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvModeSel" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih Mode (radio group):</label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+            <input type="radio" name="mode_radio" id="mode_radio_m1" checked onchange="setModeSel('m1')" style="display:none;">
+            <label for="mode_radio_m1" class="mode-rlbl" data-v="m1" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid #0ea5e9;background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">Mode 1 (fundamental) ✓</label>
+            <input type="radio" name="mode_radio" id="mode_radio_m2"  onchange="setModeSel('m2')" style="display:none;">
+            <label for="mode_radio_m2" class="mode-rlbl" data-v="m2" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.04);color:#00e09e;transition:all .15s;">Mode 2</label>
+            <input type="radio" name="mode_radio" id="mode_radio_m3"  onchange="setModeSel('m3')" style="display:none;">
+            <label for="mode_radio_m3" class="mode-rlbl" data-v="m3" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.04);color:#f97316;transition:all .15s;">Mode 3</label>
+            <input type="radio" name="mode_radio" id="mode_radio_m4"  onchange="setModeSel('m4')" style="display:none;">
+            <label for="mode_radio_m4" class="mode-rlbl" data-v="m4" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.04);color:#ef4444;transition:all .15s;">Mode 4</label>
+          </div>
+        </div>
+      </div>
+      <div id="cvModeSel_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Pilih mode shape untuk gedung 4-lantai. Mode shape = pola defleksi pada frekuensi pribadi.<br>
+        <strong>Insight:</strong> Mode 1: semua lantai sefase (fundamental). Mode 2: lantai atas vs bawah anti-fase. Mode 3-4: lebih banyak nodal point (zigzag). Earthquake: mode 1 dominan biasanya.
+      </div>
+    </div>
+  </div>
+
+  <!-- Animasi 5: Animasi 5 — Modal Analysis Applications (Dropdown) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:#a855f7"></div>
+      <span class="anim-title">Animasi 5 — Modal Analysis Applications (Dropdown)</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="cvModalApp" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih (Dropdown):</label>
+          <select id="sl_modalapp" onchange="setModalApp(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
+            <option value="building">🏢 High-rise building — earthquake mode shapes</option>
+            <option value="bridge">🌉 Suspension bridge — vertical/lateral/torsional modes</option>
+            <option value="aerospace">✈️ Aircraft wing — bending + torsion flutter</option>
+            <option value="automotive">🚗 Vehicle frame — body modes for NVH design</option>
+          </select>
+        </div>
+      </div>
+      <div id="cvModalApp_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Aplikasi modal analysis di industri.<br>
+        <strong>Insight:</strong> Building: mode 1 untuk seismik design. Bridge: identifikasi flutter critical (Tacoma!). Aerospace: aeroelastic clearance. Automotive: NVH (noise-vibration-harshness) tuning untuk komfort.
+      </div>
+    </div>
+  </div>
+
+</div>
+
 <!-- ═══ BAGIAN 08 — IMPLEMENTASI PYTHON ═══ -->
 <hr class="divider">
 <div class="section" id="m-python">
@@ -1515,138 +1647,6 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     3) <strong>Time-history shows oscillation</strong> dengan dominant period = T<sub>1</sub> dari struktur, di-modulasi oleh decay damping.<br>
     Pattern ini bertahan untuk MDoF lebih kompleks. Untuk safety design, pakai max envelope dari semua possible ground motions (ASCE 7 spectrum).
   </div>
-</div>
-
-<!-- ═══ BAGIAN VISUALISASI — ANIMASI INTERAKTIF ═══ -->
-<hr class="divider">
-<div class="section" id="m-visualisasi">
-  <div class="section-label reveal cyan-label">Visualisasi</div>
-  <h2 class="section-title reveal">5-DoF Building Mode Shapes<br>Visualisasi Modal Pattern</h2>
-  <p class="section-desc reveal">Klik mode untuk lihat shape getaran building 5 lantai. Mode 1 monotonic, mode 2 punya 1 zero crossing, mode N punya N-1 zeros. Frekuensi naik dengan mode. Lima animasi: (1) eigenvalue solver visualization, (2) <strong>slider</strong> N-DoF, (3) <strong>toggle</strong> normalization mode, (4) <strong>radio</strong> mode 1/2/3/4, (5) <strong>dropdown</strong> aplikasi modal.</p>
-
-  <div class="reveal" style="background:#020812;border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px">
-    <canvas id="cv-m9" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
-    <div style="display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap">
-      <button onclick="window._m9setMode(1)" id="btn-m9-1" style="padding:9px 16px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(14,165,233,.5);background:rgba(14,165,233,.18);color:#0ea5e9">Mode 1</button>
-      <button onclick="window._m9setMode(2)" id="btn-m9-2" style="padding:9px 16px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.08);color:#a855f7">Mode 2</button>
-      <button onclick="window._m9setMode(3)" id="btn-m9-3" style="padding:9px 16px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.08);color:var(--green)">Mode 3</button>
-      <button onclick="window._m9setMode(4)" id="btn-m9-4" style="padding:9px 16px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(255,179,0,.4);background:rgba(255,179,0,.08);color:var(--amber)">Mode 4</button>
-      <button onclick="window._m9setMode(5)" id="btn-m9-5" style="padding:9px 16px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(220,38,38,.4);background:rgba(220,38,38,.08);color:#dc2626">Mode 5</button>
-    </div>
-    <div id="anim-info" style="text-align:center;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">
-      Building \(5\) lantai shear, \(m=1, k=1.6e6.\) Pilih mode untuk melihat shape getarannya.
-    </div>
-  </div>
-
-  <!-- Animasi 2: Animasi 2 — N-DoF Building Eigenvalues (Slider) -->
-  <div class="anim-panel reveal">
-    <div class="anim-header">
-      <div class="anim-dot" style="background:var(--amber)"></div>
-      <span class="anim-title">Animasi 2 — N-DoF Building Eigenvalues (Slider)</span>
-    </div>
-    <div class="anim-body">
-      <canvas id="cvNStory" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
-      <div class="ctrl-row">
-        <div class="ctrl-group" style="flex:1 1 100%;">
-          <label>Jumlah Lantai N — <span class="ctrl-val" id="v_nstory">5</span></label>
-          <input type="range" id="sl_nstory" min="2" max="12" step="1" value="5" oninput="drawNStory()">
-        </div>
-      </div>
-      <div id="cvNStory_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
-      <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Geser jumlah lantai gedung — frekuensi natural ω₁ < ω₂ < ... < ω_N otomatis terhitung.<br>
-        <strong>Insight:</strong> Untuk gedung shear-building N lantai (m identik, k identik per kolom), \(\omega _i\) = 2·sin((2i-1)π/(2(2N+1)))·\(\sqrt{k/m}\). N=10 → ω_1 ≈ 0.31, ω_10 ≈ 1.99.
-      </div>
-    </div>
-  </div>
-
-  <!-- Animasi 3: Animasi 3 — Mass-Norm vs Max-Norm Mode Shape (Toggle) -->
-  <div class="anim-panel reveal">
-    <div class="anim-header">
-      <div class="anim-dot" style="background:var(--green)"></div>
-      <span class="anim-title">Animasi 3 — Mass-Norm vs Max-Norm Mode Shape (Toggle)</span>
-    </div>
-    <div class="anim-body">
-      <canvas id="cvNorm" height="260" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
-      <div class="ctrl-row">
-        <div class="ctrl-group" style="flex:1 1 100%;">
-          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-            <span>Toggle Mode:</span>
-            <span style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;" onclick="toggleNorm()">
-              <span id="cvNorm_view" style="position:relative;width:54px;height:26px;background:rgba(14,165,233,.30);border:2px solid #0ea5e9;border-radius:26px;transition:all .2s;">
-                <span style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
-              </span>
-              <span id="cvNorm_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#0ea5e9;font-weight:700;">Mass-Normalized (φᵀMφ=1)</span>
-            </span>
-          </div>
-        </div>
-      </div>
-      <div id="cvNorm_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
-      <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Mode shape ratio bukan absolute. Pilihan normalisasi tergantung tujuan.<br>
-        <strong>Insight:</strong> Mass-norm: standar untuk modal superposition (\(m_i\) = 1 di equation modal). Max-norm: lebih intuitif untuk visualisasi (puncak = 1).
-      </div>
-    </div>
-  </div>
-
-  <!-- Animasi 4: Animasi 4 — Mode 1/2/3/4 Selection (Radio) -->
-  <div class="anim-panel reveal">
-    <div class="anim-header">
-      <div class="anim-dot" style="background:var(--pink)"></div>
-      <span class="anim-title">Animasi 4 — Mode 1/2/3/4 Selection (Radio)</span>
-    </div>
-    <div class="anim-body">
-      <canvas id="cvModeSel" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
-      <div class="ctrl-row">
-        <div class="ctrl-group" style="flex:1 1 100%;">
-          <label>Pilih Mode (radio group):</label>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
-            <input type="radio" name="mode_radio" id="mode_radio_m1" checked onchange="setModeSel('m1')" style="display:none;">
-            <label for="mode_radio_m1" class="mode-rlbl" data-v="m1" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid #0ea5e9;background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">Mode 1 (fundamental) ✓</label>
-            <input type="radio" name="mode_radio" id="mode_radio_m2"  onchange="setModeSel('m2')" style="display:none;">
-            <label for="mode_radio_m2" class="mode-rlbl" data-v="m2" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.04);color:#00e09e;transition:all .15s;">Mode 2</label>
-            <input type="radio" name="mode_radio" id="mode_radio_m3"  onchange="setModeSel('m3')" style="display:none;">
-            <label for="mode_radio_m3" class="mode-rlbl" data-v="m3" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.04);color:#f97316;transition:all .15s;">Mode 3</label>
-            <input type="radio" name="mode_radio" id="mode_radio_m4"  onchange="setModeSel('m4')" style="display:none;">
-            <label for="mode_radio_m4" class="mode-rlbl" data-v="m4" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.04);color:#ef4444;transition:all .15s;">Mode 4</label>
-          </div>
-        </div>
-      </div>
-      <div id="cvModeSel_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
-      <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Pilih mode shape untuk gedung 4-lantai. Mode shape = pola defleksi pada frekuensi pribadi.<br>
-        <strong>Insight:</strong> Mode 1: semua lantai sefase (fundamental). Mode 2: lantai atas vs bawah anti-fase. Mode 3-4: lebih banyak nodal point (zigzag). Earthquake: mode 1 dominan biasanya.
-      </div>
-    </div>
-  </div>
-
-  <!-- Animasi 5: Animasi 5 — Modal Analysis Applications (Dropdown) -->
-  <div class="anim-panel reveal">
-    <div class="anim-header">
-      <div class="anim-dot" style="background:#a855f7"></div>
-      <span class="anim-title">Animasi 5 — Modal Analysis Applications (Dropdown)</span>
-    </div>
-    <div class="anim-body">
-      <canvas id="cvModalApp" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
-      <div class="ctrl-row">
-        <div class="ctrl-group" style="flex:1 1 100%;">
-          <label>Pilih (Dropdown):</label>
-          <select id="sl_modalapp" onchange="setModalApp(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
-            <option value="building">🏢 High-rise building — earthquake mode shapes</option>
-            <option value="bridge">🌉 Suspension bridge — vertical/lateral/torsional modes</option>
-            <option value="aerospace">✈️ Aircraft wing — bending + torsion flutter</option>
-            <option value="automotive">🚗 Vehicle frame — body modes for NVH design</option>
-          </select>
-        </div>
-      </div>
-      <div id="cvModalApp_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
-      <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Aplikasi modal analysis di industri.<br>
-        <strong>Insight:</strong> Building: mode 1 untuk seismik design. Bridge: identifikasi flutter critical (Tacoma!). Aerospace: aeroelastic clearance. Automotive: NVH (noise-vibration-harshness) tuning untuk komfort.
-      </div>
-    </div>
-  </div>
-
 </div>
 
 <script>
