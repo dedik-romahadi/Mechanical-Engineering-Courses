@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dokumen OBE — Optimalisasi &amp; Automasi | Teknik Mesin UMB</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
   :root{
     --bg:#070b14; --panel:#0d1626; --panel2:#101c30; --border:#1c2c45;
@@ -450,7 +451,8 @@ function renderForm(formKey, panelId){
       </div>
       <div class="actright">
         <button class="btn btn-import" onclick="pasteCSV('${formKey}')">📋 Paste CSV</button>
-        <button class="btn btn-export" onclick="exportCSV('${formKey}')">⬇️ Export CSV (SIA Import)</button>
+        <button class="btn btn-export" onclick="exportXLS('${formKey}')">📄 File Import .xls</button>
+        <button class="btn" style="background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff" onclick="genBookmarklet('${formKey}')">🔖 Bookmarklet SIA</button>
       </div>
     </div>
     <table>
@@ -589,6 +591,95 @@ function cellCsv(v){
   v = String(v ?? '');
   if(/[",\r\n]/.test(v)) return '"'+v.replace(/"/g,'""')+'"';
   return v;
+}
+
+// ── Export .xls (SheetJS, mirror struktur Form_Nilai_*.xls dari SIA) ──
+function exportXLS(formKey){
+  if(typeof XLSX === 'undefined'){ toast('⚠️ Library xlsx belum termuat, coba lagi'); return; }
+  const form = FORMS[formKey];
+  const cols = form.cols;
+  const r0 = ['','','','','Sub Capaian Pembelajaran Mata Kuliah (Sub CPMK)', ...cols.slice(1).map(()=>'')];
+  const r1 = ['No.','NIM','Nama Mahasiswa','PRE', ...cols.map(c=>`Sub-CPMK ${c[0]}`)];
+  const r2 = ['','Bobot (%)','','', ...cols.map(c=>`${c[1]}%`)];
+  const aoa = [r0, r1, r2];
+  STUDENTS.forEach((st,i)=>{
+    const row = [i+1, st.nim, st.nama, `${st.pre}%`];
+    for(const [sub] of cols){
+      const v = getScore(formKey, st.nim, sub);
+      row.push(v === '' ? '' : Number(v));
+    }
+    aoa.push(row);
+  });
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  // Merge sel "Sub Capaian..." dari kol E sampai akhir (baris 0)
+  ws['!merges'] = [{ s:{r:0,c:4}, e:{r:0,c:3+cols.length} }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, form.label);
+  XLSX.writeFile(wb, `Form_Nilai_${form.label}_347514.xls`, { bookType:'biff8' });
+  toast(`✅ File Import ${form.label} ter-download`);
+}
+
+// ── Generate bookmarklet (self-contained: data + fill logic) ──
+function genBookmarklet(formKey){
+  const form = FORMS[formKey];
+  const cols = form.cols.map(c=>c[0]);  // urutan Sub-CPMK
+  // Data: { nim: [v1,v2,...] } urut sesuai cols, blank → 0
+  const data = {};
+  STUDENTS.forEach(st=>{
+    const arr = form.cols.map(([sub])=>{
+      const v = getScore(formKey, st.nim, sub);
+      return v === '' ? 0 : Number(v);
+    });
+    // hanya sertakan kalau ada minimal 1 nilai > 0
+    if(arr.some(x=>x>0)) data[st.nim] = arr;
+  });
+  if(Object.keys(data).length === 0){ toast('⚠️ Belum ada nilai untuk di-transfer'); return; }
+
+  // Fill logic — heuristik: tiap baris tabel yg memuat NIM, isi input ke-i sesuai urutan kolom.
+  const fillFn = `(function(){
+    var D=__DATA__, COLS=__COLS__, n=0, miss=[];
+    var rows=document.querySelectorAll('tr');
+    for(var nim in D){
+      var done=false;
+      for(var r=0;r<rows.length;r++){
+        if(rows[r].textContent.indexOf(nim)>=0){
+          var ins=rows[r].querySelectorAll('input');
+          if(ins.length>=D[nim].length){
+            for(var i=0;i<D[nim].length;i++){
+              ins[i].value=D[nim][i];
+              ins[i].dispatchEvent(new Event('input',{bubbles:true}));
+              ins[i].dispatchEvent(new Event('change',{bubbles:true}));
+              ins[i].dispatchEvent(new Event('keyup',{bubbles:true}));
+            }
+            n++; done=true; break;
+          }
+        }
+      }
+      if(!done) miss.push(nim);
+    }
+    alert('Bookmarklet '+(__LABEL__)+': terisi '+n+' mahasiswa.'+(miss.length?(' Tidak ketemu: '+miss.join(', ')):''));
+  })();`;
+  const code = fillFn
+    .replace('__DATA__', JSON.stringify(data))
+    .replace('__COLS__', JSON.stringify(cols))
+    .replace('__LABEL__', JSON.stringify(form.label));
+  const bookmarklet = 'javascript:' + encodeURIComponent(code);
+
+  // Tampilkan modal dgn textarea + copy
+  showModal(`
+    <h3 style="margin:0 0 6px;font-size:17px">🔖 Bookmarklet ${form.label}</h3>
+    <p style="font-size:12.5px;color:#8aa0bf;margin-bottom:10px">
+      ${Object.keys(data).length} mahasiswa. Cara pakai:<br>
+      1. Login SIA, buka tab <b>Isi Nilai ${form.label}</b>.<br>
+      2. Copy teks di bawah, tempel di <b>address bar</b> lalu Enter (atau simpan sbg bookmark, klik saat di halaman SIA).
+    </p>
+    <textarea readonly id="bmText" style="width:100%;height:90px;font-family:monospace;font-size:10px;background:#020a18;border:1px solid #1c2c45;border-radius:8px;color:#9be7f5;padding:8px;resize:vertical">${bookmarklet}</textarea>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn btn-export" style="flex:1;padding:10px" onclick="navigator.clipboard.writeText(document.getElementById('bmText').value).then(()=>toast('✅ Bookmarklet ter-copy'))">📋 Copy</button>
+      <button class="btn btn-clear" style="flex:0 0 auto;padding:10px 14px" onclick="closeModal()">Tutup</button>
+    </div>
+    <p style="font-size:11px;color:#5d6f8e;margin-top:10px">⚠ Heuristik mencocokkan NIM per baris lalu mengisi input berurutan. Cek 1-2 baris setelah klik. Kalau struktur SIA berbeda, kabari.</p>
+  `);
 }
 
 // CSV Import (paste): format bebas — minimal kolom NIM + nilai per Sub-CPMK
