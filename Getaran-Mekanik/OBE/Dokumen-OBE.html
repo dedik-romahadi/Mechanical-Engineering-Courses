@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dokumen OBE — Optimalisasi &amp; Automasi | Teknik Mesin UMB</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --bg:#070b14; --panel:#0d1626; --panel2:#101c30; --border:#1c2c45;
+    --head:#1d6a8e; --head2:#176d8a; --rowA:#0f1a2c; --rowB:#13243b;
+    --cyan:#22d3ee; --teal:#2dd4bf; --amber:#fbbf24; --text:#dbe5f3; --muted:#8aa0bf;
+    --ok:#34d399; --warn:#f59e0b; --bad:#f87171;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
+       line-height:1.55;padding:20px;display:flex;justify-content:center}
+  .wrap{width:100%;max-width:1280px}
+
+  /* ── Header ── */
+  .doc-head{background:linear-gradient(135deg,#0d1f33,#0a1626);border:1px solid var(--border);
+    border-radius:16px;padding:22px 26px;margin-bottom:14px;position:relative;overflow:hidden}
+  .doc-head::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;
+    background:linear-gradient(90deg,#22d3ee,#2dd4bf,#fbbf24,#6366f1)}
+  .doc-eyebrow{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan);font-weight:700;font-family:'JetBrains Mono',monospace}
+  .doc-title{font-size:24px;font-weight:800;margin:6px 0 4px;color:#f1f5f9;letter-spacing:-.3px}
+  .doc-sub{font-size:13.5px;color:var(--muted)}
+  .doc-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .chip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;
+    background:rgba(34,211,238,.07);border:1px solid rgba(34,211,238,.2);color:#9be7f5;
+    padding:5px 11px;border-radius:8px}
+
+  /* ── Mode switch ── */
+  .modebar{display:flex;gap:0;margin-bottom:14px;background:var(--panel);border:1px solid var(--border);
+    border-radius:12px;padding:5px;width:fit-content}
+  .modebtn{padding:10px 22px;border-radius:8px;border:none;background:transparent;color:var(--muted);
+    font-size:13.5px;font-weight:700;cursor:pointer;letter-spacing:.3px;transition:all .15s;
+    font-family:inherit;display:inline-flex;align-items:center;gap:7px}
+  .modebtn:hover{color:var(--text)}
+  .modebtn.active{background:linear-gradient(135deg,var(--head),var(--head2));color:#fff;
+    box-shadow:0 2px 12px rgba(29,106,142,.4)}
+
+  /* ── Tabs ── */
+  .tabbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+  .tab{padding:9px 14px;border-radius:9px 9px 0 0;border:1px solid var(--border);border-bottom:none;
+    background:var(--panel);color:var(--muted);font-size:12.5px;font-weight:600;cursor:pointer;
+    transition:all .15s;white-space:nowrap;user-select:none}
+  .tab:hover{color:var(--text);background:var(--panel2)}
+  .tab.active{background:var(--head);color:#fff;font-weight:800;border-color:var(--head);
+    box-shadow:0 -2px 10px rgba(29,106,142,.4)}
+
+  /* ── Panel ── */
+  .mode{display:none}
+  .mode.active{display:block}
+  .panel{display:none;background:var(--panel);border:1px solid var(--border);border-radius:0 14px 14px 14px;
+    padding:16px;overflow-x:auto}
+  .panel.active{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  /* ── Table ── */
+  table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:620px}
+  caption{caption-side:top;background:var(--head);color:#fff;font-weight:800;font-size:13.5px;
+    padding:11px;border-radius:8px 8px 0 0;letter-spacing:.3px}
+  thead th{background:var(--head2);color:#eaf6fb;font-weight:700;font-size:11.5px;padding:10px;
+    text-align:left;border-bottom:2px solid rgba(255,255,255,.08);vertical-align:middle;white-space:nowrap}
+  thead th.num,tbody td.num{text-align:center}
+  thead th.subhdr{font-weight:600;background:rgba(29,106,142,.5);color:#aedaee;font-size:10px}
+  tbody td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text)}
+  tbody tr:nth-child(odd) td{background:var(--rowA)}
+  tbody tr:nth-child(even) td{background:var(--rowB)}
+  tbody td.code{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--cyan);white-space:nowrap;font-size:11.5px}
+  tbody td.desc{color:#b8c6dc;max-width:430px}
+  tbody td.zero{color:#3c4a63}
+  tbody td.val{font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--text)}
+  tbody td.sum{font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--amber)}
+  tbody td.nim{font-family:'JetBrains Mono',monospace;color:#e8b4b4;font-weight:700;font-size:11.5px}
+  tbody td.nama{color:#e8b4b4;font-weight:600;font-size:11.5px}
+  tfoot td{background:var(--head);color:#fff;font-weight:800;padding:11px;font-family:'JetBrains Mono',monospace;
+    border-top:2px solid rgba(255,255,255,.1);font-size:11.5px}
+  tfoot td.num{text-align:center}
+
+  /* ── Inputs ── */
+  .scoreinput{width:54px;padding:5px 6px;background:#020a18;border:1px solid var(--border);
+    border-radius:6px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11.5px;text-align:center;outline:none}
+  .scoreinput:focus{border-color:var(--cyan);background:#03142a}
+  .scoreinput.has{border-color:rgba(52,211,153,.4);color:var(--ok)}
+  .scoreinput:disabled{background:#0a1422;color:#3c4a63;cursor:not-allowed}
+
+  /* ── Action bar ── */
+  .actbar{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;
+    padding:10px 14px;background:rgba(34,211,238,.04);border:1px solid rgba(34,211,238,.15);
+    border-radius:10px;margin-bottom:14px}
+  .actleft{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:12px;color:var(--muted)}
+  .actleft .stat{font-family:'JetBrains Mono',monospace;color:var(--text);font-weight:700}
+  .actright{display:flex;flex-wrap:wrap;gap:6px}
+  .btn{padding:7px 13px;border:none;border-radius:7px;font-family:inherit;font-size:12px;
+    font-weight:700;cursor:pointer;letter-spacing:.2px;display:inline-flex;align-items:center;gap:5px}
+  .btn-export{background:linear-gradient(135deg,var(--ok),#10b981);color:#04140b}
+  .btn-clear{background:rgba(248,113,113,.15);color:#fca5a5;border:1px solid rgba(248,113,113,.3)}
+  .btn-import{background:rgba(34,211,238,.15);color:var(--cyan);border:1px solid rgba(34,211,238,.3)}
+  .btn:hover{filter:brightness(1.1)}
+
+  /* ── Footer ── */
+  .foot{margin-top:18px;padding:12px 16px;background:rgba(255,255,255,.02);border:1px solid var(--border);
+    border-radius:10px;display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;font-size:11.5px;color:var(--muted)}
+  .note{font-size:11.5px;color:var(--muted);margin-top:10px;font-style:italic}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--ok);color:#04140b;font-weight:700;padding:10px 18px;border-radius:10px;
+    box-shadow:0 6px 24px rgba(0,0,0,.4);opacity:0;transition:all .25s;font-size:13px;z-index:9999}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ═══════ HEADER ═══════ -->
+  <div class="doc-head">
+    <div class="doc-eyebrow">Dokumen OBE</div>
+    <div class="doc-title">Getaran Mekanik</div>
+    <div class="doc-sub">Silabus (CPL/CPMK/Sub-CPMK + matrikulasi) &amp; Penilaian Mahasiswa</div>
+    <div class="doc-meta">
+      <span class="chip">👨‍🏫 Dosen Pengampu: Dedik Romahadi, ST., M.Sc</span>
+      <span class="chip">📧 dedik.romahadi@mercubuana.ac.id</span>
+      <span class="chip">🏛️ S1 Teknik Mesin — UMB</span>
+      <span class="chip">📅 T.A. 2025/2026</span>
+      <span class="chip">👥 <span id="studCount">—</span> mahasiswa</span>
+      <span class="chip">🔗 SIA OBE</span>
+    </div>
+  </div>
+
+  <!-- ═══════ MODE SWITCH ═══════ -->
+  <!-- ═══════ ROLE BAR ═══════ -->
+  <div class="modebar" id="modebar">
+    <button class="modebtn active" data-mode="silabus">📚 Silabus</button>
+    <button class="modebtn" data-mode="nilai">✏️ Penilaian</button>
+    <span style="flex:1"></span>
+    <span id="roleChip" class="chip" style="margin-left:auto">🔓 Belum login</span>
+    <button class="modebtn" id="logoutBtn" onclick="logout()" style="display:none;background:rgba(248,113,113,.15);color:#fca5a5">Logout</button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MODE 1 — SILABUS (7 tab)
+  ═══════════════════════════════════════════════════════════ -->
+  <div class="mode active" id="mode-silabus">
+    <div class="tabbar" data-tabgroup="silabus">
+      <div class="tab active" data-tab="s1">Rekap Bobot Asesmen</div>
+      <div class="tab" data-tab="s2">SUB CPMK × Asesmen</div>
+      <div class="tab" data-tab="s3">CPMK × SUB CPMK</div>
+      <div class="tab" data-tab="s4">CPL × CPMK</div>
+      <div class="tab" data-tab="s5">Matrikulasi CPL</div>
+      <div class="tab" data-tab="s6">Deskripsi SUB CPMK</div>
+      <div class="tab" data-tab="s7">Deskripsi CPMK</div>
+    </div>
+
+    <div class="panel active" id="s1">
+      <table>
+        <caption>Rekap Bobot Asesmen</caption>
+        <thead><tr><th>Subyek</th><th>Nama Singkat</th><th class="num">Prosentase</th></tr></thead>
+        <tbody>
+          <tr><td>PROSENTASE PRESENSI</td><td class="code">PRE</td><td class="num zero">0 %</td></tr>
+          <tr><td>PROSENTASE TUGAS</td><td class="code">TGS</td><td class="num val">51 %</td></tr>
+          <tr><td>PROSENTASE PRAKTIKUM</td><td class="code">PRAK</td><td class="num zero">0 %</td></tr>
+          <tr><td>PROSENTASE UTS</td><td class="code">UTS</td><td class="num val">25 %</td></tr>
+          <tr><td>PROSENTASE UAS</td><td class="code">UAS</td><td class="num val">24 %</td></tr>
+        </tbody>
+        <tfoot><tr><td colspan="2">Σ Bobot</td><td class="num">100 %</td></tr></tfoot>
+      </table>
+    </div>
+
+    <div class="panel" id="s2">
+      <table>
+        <caption>Asesmen</caption>
+        <thead><tr>
+          <th>Kode Sub-CPMK</th><th>Deskripsi Sub-CPMK</th>
+          <th class="num">Praktikum</th><th class="num">Tugas</th><th class="num">UTS</th><th class="num">UAS</th>
+          <th class="num">Σ Bobot Sub-CPMK</th>
+        </tr></thead>
+        <tbody id="s2body"></tbody>
+        <tfoot><tr>
+          <td colspan="2" style="text-align:right">Σ Bobot</td>
+          <td class="num">0 %</td><td class="num">51 %</td><td class="num">25 %</td><td class="num">24 %</td><td class="num">100 %</td>
+        </tr></tfoot>
+      </table>
+    </div>
+
+    <div class="panel" id="s3">
+      <table>
+        <caption>Capaian Pembelajaran Mata Kuliah (CPMK)</caption>
+        <thead><tr>
+          <th>Kode Sub-CPMK</th><th>Deskripsi Sub-CPMK</th>
+          <th class="num">CPMK-1</th><th class="num">CPMK-2</th><th class="num">CPMK-3</th><th class="num">CPMK-4</th><th class="num">CPMK-5</th><th class="num">CPMK-6</th>
+          <th class="num">Σ Bobot Sub-CPMK</th>
+        </tr></thead>
+        <tbody id="s3body"></tbody>
+        <tfoot><tr>
+          <td colspan="2" style="text-align:right">Σ Bobot</td>
+          <td class="num">21 %</td><td class="num">16 %</td><td class="num">20 %</td><td class="num">14 %</td><td class="num">8 %</td><td class="num">21 %</td><td class="num">100 %</td>
+        </tr></tfoot>
+      </table>
+    </div>
+
+    <div class="panel" id="s4">
+      <table>
+        <caption>Capaian Pembelajaran Lulusan (CPL)</caption>
+        <thead><tr>
+          <th>Kode CPMK</th><th>Deskripsi CPMK</th>
+          <th class="num">CPL</th>
+          <th class="num">Σ Bobot CPMK</th>
+        </tr></thead>
+        <tbody id="s4body"></tbody>
+        <tfoot><tr>
+          <td colspan="2" style="text-align:right">Σ Bobot</td>
+          <td class="num">100 %</td><td class="num">100 %</td>
+        </tr></tfoot>
+      </table>
+    </div>
+
+    <div class="panel" id="s5">
+      <table>
+        <caption>Matrikulasi CPL</caption>
+        <thead><tr><th>Kode CPL</th><th>Deskripsi CPL</th><th class="num">Bobot</th></tr></thead>
+        <tbody id="s5body"></tbody>
+        <tfoot><tr><td colspan="2" style="text-align:right">Σ Bobot</td><td class="num">100 %</td></tr></tfoot>
+      </table>
+    </div>
+
+    <div class="panel" id="s6">
+      <table>
+        <caption>Deskripsi SUB CPMK</caption>
+        <thead><tr><th>Kode SUB CPMK</th><th>Deskripsi SUB CPMK</th></tr></thead>
+        <tbody id="s6body"></tbody>
+      </table>
+    </div>
+
+    <div class="panel" id="s7">
+      <table>
+        <caption>Deskripsi CPMK</caption>
+        <thead><tr><th>Kode CPMK</th><th>Deskripsi CPMK</th></tr></thead>
+        <tbody id="s7body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MODE 2 — PENILAIAN (4 tab)
+  ═══════════════════════════════════════════════════════════ -->
+  <div class="mode" id="mode-nilai">
+    <div class="tabbar" data-tabgroup="nilai">
+      <div class="tab" data-tab="n5">⚙️ Mapping &amp; Hitung</div>
+      <div class="tab" data-tab="n2">Nilai Tugas</div>
+      <div class="tab" data-tab="n3">Nilai UTS</div>
+      <div class="tab" data-tab="n4">Nilai UAS</div>
+      <div class="tab active" data-tab="n1">Rekap Nilai Mahasiswa</div>
+    </div>
+
+    <div class="panel active" id="n1">
+      <div class="actbar">
+        <div class="actleft">
+          <span>Ringkasan: <span class="stat" id="recapStat">—</span></span>
+        </div>
+        <div class="actright" id="rekapActsDosen" style="display:none">
+          <button class="btn btn-export" onclick="document.getElementById('preXlsInput').click()">📥 Update PRE dari .xls SIA</button>
+          <input type="file" id="preXlsInput" accept=".xls,.xlsx" style="display:none" onchange="importPreFromXls(event)">
+          <button class="btn btn-import" onclick="publishToFirestore()">☁️ Publish ke Firestore</button>
+          <button class="btn btn-clear" onclick="clearAllScores()">🗑️ Reset Lokal</button>
+          <button class="btn btn-clear" onclick="deleteObeFromFirestore()">❌ Hapus dari Server</button>
+        </div>
+      </div>
+      <table>
+        <caption>Rekap Nilai Mahasiswa</caption>
+        <thead><tr>
+          <th>No</th><th>NIM &amp; Nama</th>
+          <th class="num">PRE<br><span style="color:#9be7f5;font-size:10px">0%</span></th>
+          <th class="num">TGS<br><span style="color:#9be7f5;font-size:10px">60%</span></th>
+          <th class="num">UTS<br><span style="color:#9be7f5;font-size:10px">20%</span></th>
+          <th class="num">UAS<br><span style="color:#9be7f5;font-size:10px">20%</span></th>
+          <th class="num">TOTAL</th>
+          <th class="num">NH</th>
+        </tr></thead>
+        <tbody id="n1body"></tbody>
+      </table>
+      <div class="note">TOTAL = TGS·0.6 + UTS·0.2 + UAS·0.2  ·  Tiap komponen = Σ(Sub-CPMK × bobot%)/total bobot komponen × 100  ·  Data auto-sync dari tab isi nilai.</div>
+    </div>
+
+    <!-- TGS / UTS / UAS panels dibangun via JS karena identik strukturnya -->
+    <div class="panel" id="n2"></div>
+    <div class="panel" id="n3"></div>
+    <div class="panel" id="n4"></div>
+    <div class="panel" id="n5"></div>
+  </div>
+
+  <div class="foot">
+    <span>📐 Getaran Mekanik · Dokumen OBE (Silabus + Penilaian)</span>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// DATA — Silabus (sesuai SIA)
+// ═══════════════════════════════════════════════════════════════
+const SUBCPMK = {
+  "1.1":"Memahami Konsep dasar getaran mesin",
+  "1.2":"Memahami sistem getaran dan klasifikasinya",
+  "1.3":"Memahami Persamaan Gerak",
+  "2.1":"Memahami dan menerapkan Getaran Bebas Tanpa Redaman di sistem Rotasi",
+  "2.2":"Memahami dan menerapkan Metode Rayleigh Energi",
+  "3.1":"Memahami dan menerapkan Getaran bebas dengan redaman",
+  "3.2":"Memahami dan menerapkan Respons getaran bebas tanpa redaman dengan eksitasi",
+  "3.3":"Menerapkan Respons getaran paksa secara periodik",
+  "4.1":"Menerapkan Frekuensi pribadi pada sistem 2 DoF",
+  "4.2":"Menerapkan Respons getaran bebas pada sistem 2 DoF",
+  "5.1":"Menjelaskan Komponen-komponen utama pada pengukuran serta Jenis-jenis Getaran",
+  "6.1":"Menerapkan Konsep Transformasi Fourier",
+  "6.2":"Mampu melakukan komputasi domain waktu menjadi domain frekuensi secara komputerisasi",
+  "6.3":"Mampu melakukan diagnosis kerusakan mesin menggunakan sinyal getaran",
+};
+const CPMK = {
+  "CPMK-1":"Capaian Pembelajaran MK ke-1 (mencakup Sub-CPMK 1.1, 1.2, 1.3). Deskripsi terperinci ada di tab Deskripsi SUB CPMK.",
+  "CPMK-2":"Capaian Pembelajaran MK ke-2 (mencakup Sub-CPMK 2.1, 2.2). Deskripsi terperinci ada di tab Deskripsi SUB CPMK.",
+  "CPMK-3":"Capaian Pembelajaran MK ke-3 (mencakup Sub-CPMK 3.1, 3.2, 3.3). Deskripsi terperinci ada di tab Deskripsi SUB CPMK.",
+  "CPMK-4":"Capaian Pembelajaran MK ke-4 (mencakup Sub-CPMK 4.1, 4.2). Deskripsi terperinci ada di tab Deskripsi SUB CPMK.",
+  "CPMK-5":"Capaian Pembelajaran MK ke-5 (mencakup Sub-CPMK 5.1). Deskripsi terperinci ada di tab Deskripsi SUB CPMK.",
+  "CPMK-6":"Capaian Pembelajaran MK ke-6 (mencakup Sub-CPMK 6.1, 6.2, 6.3). Deskripsi terperinci ada di tab Deskripsi SUB CPMK.",
+};
+const CPL = {
+  "CPL":["(Data CPL untuk mata kuliah Getaran Mekanik belum dipetakan ke const ini. Silakan tambahkan saat data prodi tersedia.)","100 %"]
+};
+const T2 = {
+  "1.1":[0,3,5,0,8],
+  "1.2":[0,3,4,0,7],
+  "1.3":[0,4,2,0,6],
+  "2.1":[0,5,3,0,8],
+  "2.2":[0,5,3,0,8],
+  "3.1":[0,3,5,0,8],
+  "3.2":[0,3,3,0,6],
+  "3.3":[0,4,0,2,6],
+  "4.1":[0,5,0,3,8],
+  "4.2":[0,3,0,3,6],
+  "5.1":[0,4,0,4,8],
+  "6.1":[0,3,0,4,7],
+  "6.2":[0,3,0,4,7],
+  "6.3":[0,3,0,4,7],
+};
+const T3 = {
+  "1.1":[8,0,0,0,0,0,8],
+  "1.2":[7,0,0,0,0,0,7],
+  "1.3":[6,0,0,0,0,0,6],
+  "2.1":[0,8,0,0,0,0,8],
+  "2.2":[0,8,0,0,0,0,8],
+  "3.1":[0,0,8,0,0,0,8],
+  "3.2":[0,0,6,0,0,0,6],
+  "3.3":[0,0,6,0,0,0,6],
+  "4.1":[0,0,0,8,0,0,8],
+  "4.2":[0,0,0,6,0,0,6],
+  "5.1":[0,0,0,0,8,0,8],
+  "6.1":[0,0,0,0,0,7,7],
+  "6.2":[0,0,0,0,0,7,7],
+  "6.3":[0,0,0,0,0,7,7],
+};
+const T4 = {
+  "CPMK-1":[21,21],
+  "CPMK-2":[16,16],
+  "CPMK-3":[20,20],
+  "CPMK-4":[14,14],
+  "CPMK-5":[8,8],
+  "CPMK-6":[21,21],
+};
+
+// ═══════════════════════════════════════════════════════════════
+// DATA — Penilaian (roster + form mapping dari export SIA)
+// ═══════════════════════════════════════════════════════════════
+// Roster di-fetch dari Attributes/students.json (single source of truth).
+// PRE default per NIM disimpan di sini sbg fallback; dosen bisa override
+// real-time lewat tombol "📥 Update PRE dari .xls SIA".
+let STUDENTS = [];
+const DEFAULT_PRE = {
+  // Kosong — PRE default 0%; dosen upload .xls SIA untuk override per NIM.
+};
+async function loadStudents(){
+  try {
+    const res = await fetch('../Attributes/students.json', { cache:'no-cache' });
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const arr = await res.json();
+    STUDENTS = arr.map(s => ({ nim:String(s.nim), nama:s.nama, pre: DEFAULT_PRE[String(s.nim)] ?? 0 }));
+  } catch(e){
+    console.error('[loadStudents] gagal fetch students.json:', e);
+    if(typeof toast === 'function') toast('⚠️ Gagal muat daftar mahasiswa');
+    STUDENTS = [];
+  }
+  const el = document.getElementById('studCount');
+  if(el) el.textContent = STUDENTS.length;
+}
+const STUDENTS_READY = loadStudents();
+
+// Kolom Sub-CPMK per form + bobot %  (sesuai export SIA)
+const FORMS = {
+  TGS: { label:"Tugas",  total:51, cols:[["1.1",3],["1.2",3],["1.3",4],["2.1",5],["2.2",5],["3.1",3],["3.2",3],["3.3",4],["4.1",5],["4.2",3],["5.1",4],["6.1",3],["6.2",3],["6.3",3]] },
+  UTS: { label:"UTS",    total:25, cols:[["1.1",5],["1.2",4],["1.3",2],["2.1",3],["2.2",3],["3.1",5],["3.2",3]] },
+  UAS: { label:"UAS",    total:24, cols:[["3.3",2],["4.1",3],["4.2",3],["5.1",4],["6.1",4],["6.2",4],["6.3",4]] }
+};
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER — Silabus tabs
+// ═══════════════════════════════════════════════════════════════
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const pct = v => v===0 ? '<span class="zero">0</span>' : `<span class="val">${v} %</span>`;
+const subKeys = Object.keys(SUBCPMK);
+
+document.getElementById('s2body').innerHTML = subKeys.map(k=>{
+  const d=T2[k];
+  return `<tr><td class="code">Sub-CPMK ${k}</td><td class="desc">${esc(SUBCPMK[k])}</td>`+
+    d.slice(0,4).map(v=>`<td class="num">${pct(v)}</td>`).join('')+
+    `<td class="num sum">${d[4]} %</td></tr>`;
+}).join('');
+document.getElementById('s3body').innerHTML = subKeys.map(k=>{
+  const d=T3[k];
+  return `<tr><td class="code">Sub-CPMK ${k}</td><td class="desc">${esc(SUBCPMK[k])}</td>`+
+    d.slice(0,5).map(v=>`<td class="num">${pct(v)}</td>`).join('')+
+    `<td class="num sum">${d[5]} %</td></tr>`;
+}).join('');
+document.getElementById('s4body').innerHTML = Object.keys(CPMK).map(k=>{
+  const d=T4[k];
+  return `<tr><td class="code">${k}</td><td class="desc">${esc(CPMK[k])}</td>`+
+    d.slice(0,4).map(v=>`<td class="num">${pct(v)}</td>`).join('')+
+    `<td class="num sum">${d[4]} %</td></tr>`;
+}).join('');
+document.getElementById('s5body').innerHTML = Object.keys(CPL).map(k=>
+  `<tr><td class="code">${k}</td><td class="desc">${esc(CPL[k][0])}</td><td class="num sum">${CPL[k][1]}</td></tr>`
+).join('');
+document.getElementById('s6body').innerHTML = subKeys.map(k=>
+  `<tr><td class="code">Sub-CPMK ${k}</td><td class="desc" style="max-width:none">${esc(SUBCPMK[k])}</td></tr>`
+).join('');
+document.getElementById('s7body').innerHTML = Object.keys(CPMK).map(k=>
+  `<tr><td class="code">${k}</td><td class="desc" style="max-width:none">${esc(CPMK[k])}</td></tr>`
+).join('');
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER — Penilaian tabs (Tugas/UTS/UAS)
+// ═══════════════════════════════════════════════════════════════
+const LS_KEY = 'opto-obe-nilai-v1';
+function loadScores(){
+  try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; }
+  catch { return {}; }
+}
+function saveScores(d){ localStorage.setItem(LS_KEY, JSON.stringify(d)); }
+function getScore(form, nim, sub){
+  const d=loadScores();
+  return (d[form] && d[form][nim] && d[form][nim][sub]) ?? '';
+}
+function setScore(form, nim, sub, val){
+  const d=loadScores();
+  d[form] = d[form] || {};
+  d[form][nim] = d[form][nim] || {};
+  if(val === '' || val === null || isNaN(Number(val))) delete d[form][nim][sub];
+  else d[form][nim][sub] = Number(val);
+  saveScores(d);
+}
+
+function renderForm(formKey, panelId){
+  const form = FORMS[formKey];
+  const cols = form.cols;  // [[sub, bobot], ...]
+  const subSumBobot = cols.reduce((a,c)=>a+c[1], 0);
+
+  let html = `
+    <div class="actbar">
+      <div class="actleft">
+        <span>Form: <b>${form.label}</b> · ${cols.length} Sub-CPMK · Σ bobot ${subSumBobot}% (dari total ${form.total}%)</span>
+      </div>
+      <div class="actright">
+        <button class="btn btn-import" onclick="pasteCSV('${formKey}')">📋 Paste CSV</button>
+        <button class="btn btn-export" onclick="exportXLS('${formKey}')">📄 File Import .xls</button>
+        <button class="btn" style="background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff" onclick="genBookmarklet('${formKey}')">🔖 Bookmarklet SIA</button>
+      </div>
+    </div>
+    <table>
+      <caption>Nilai ${form.label} — bobot total ${form.total}%</caption>
+      <thead>
+        <tr>
+          <th rowspan="2">No</th>
+          <th rowspan="2">NIM &amp; Nama</th>
+          <th rowspan="2" class="num">PRE</th>
+          <th colspan="${cols.length}" class="subhdr" style="text-align:center;background:rgba(29,106,142,.7)">Sub-CPMK (nilai mentah 0–100)</th>
+          <th rowspan="2" class="num">Nilai ${form.label}</th>
+        </tr>
+        <tr>
+          ${cols.map(([sub,b])=>`<th class="num subhdr">${sub}<br><span style="color:#9be7f5">${b}%</span></th>`).join('')}
+        </tr>
+      </thead>
+      <tbody>
+        ${STUDENTS.map((st,i)=>{
+          const inputs = cols.map(([sub,b])=>{
+            const val = getScore(formKey, st.nim, sub);
+            return `<td class="num"><input type="number" min="0" max="100" class="scoreinput${val!==''?' has':''}"
+              data-form="${formKey}" data-nim="${st.nim}" data-sub="${sub}" data-bobot="${b}"
+              value="${val}" placeholder="0"></td>`;
+          }).join('');
+          return `<tr>
+            <td class="num">${i+1}</td>
+            <td><div class="nim">${st.nim}</div><div class="nama">${esc(st.nama)}</div></td>
+            <td class="num val">${getPre(st.nim)}%</td>
+            ${inputs}
+            <td class="num sum" id="row-${formKey}-${st.nim}">0.00</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+    <div class="note">Tiap input = nilai mentah Sub-CPMK 0–100. <b>Nilai ${form.label}</b> = Σ(nilai × bobot%)/100. Data tersimpan otomatis di browser (localStorage).</div>
+  `;
+  document.getElementById(panelId).innerHTML = html;
+}
+
+function computeFormScore(formKey, nim){
+  const cols = FORMS[formKey].cols;
+  let sum = 0;
+  for(const [sub, b] of cols){
+    const v = getScore(formKey, nim, sub);
+    if(v !== '' && v !== undefined) sum += (Number(v) * b) / 100;
+  }
+  // Σ bobot kolom mungkin < total component (mis. UTS bobot kolom 20, total 20 → identical)
+  // Hasil sudah dalam skala 0..total. Normalize ke 0..100:
+  const subSumB = cols.reduce((a,c)=>a+c[1],0);
+  return subSumB>0 ? (sum / subSumB) * 100 : 0;
+}
+
+function updateRowTotal(formKey, nim){
+  const cell = document.getElementById(`row-${formKey}-${nim}`);
+  if(cell){
+    const s = computeFormScore(formKey, nim);
+    cell.textContent = s.toFixed(2);
+  }
+}
+
+// Konversi nilai akhir (0-100) → Nilai Huruf, sesuai aturan SIA UMB.
+// Ambang masuk: A≥79.95, B+≥74, B≥68, C+≥62, C≥56, D≥45, sisanya E.
+function toNH(n){
+  if(n >= 79.95) return 'A';
+  if(n >= 74)    return 'B+';
+  if(n >= 68)    return 'B';
+  if(n >= 62)    return 'C+';
+  if(n >= 56)    return 'C';
+  if(n >= 45)    return 'D';
+  return 'E';
+}
+// Warna NH ikut kategori (hijau = lulus baik, kuning = lulus pas, merah = tdk lulus)
+function nhColor(nh){
+  if(nh === 'A' || nh === 'B+' || nh === 'B') return 'color:#7dffb0';
+  if(nh === 'C+' || nh === 'C')               return 'color:#fcd34d';
+  return 'color:#fca5a5';  // D, E
+}
+
+function renderRekap(){
+  const tbody = document.getElementById('n1body');
+  let filled = 0;
+  tbody.innerHTML = STUDENTS.map((st,i)=>{
+    const tgs = computeFormScore('TGS', st.nim);
+    const uts = computeFormScore('UTS', st.nim);
+    const uas = computeFormScore('UAS', st.nim);
+    const na = tgs*0.6 + uts*0.2 + uas*0.2;
+    if(tgs>0 || uts>0 || uas>0) filled++;
+    const naColor = na>=70 ? 'color:#7dffb0' : na>=55 ? 'color:#fcd34d' : 'color:#fca5a5';
+    const nh = toNH(na);
+    return `<tr>
+      <td class="num">${i+1}</td>
+      <td><div class="nim">${st.nim}</div><div class="nama">${esc(st.nama)}</div></td>
+      <td class="num val">${getPre(st.nim)}%</td>
+      <td class="num val">${tgs.toFixed(2)}</td>
+      <td class="num val">${uts.toFixed(2)}</td>
+      <td class="num val">${uas.toFixed(2)}</td>
+      <td class="num sum" style="${naColor}">${na.toFixed(2)}</td>
+      <td class="num sum" style="${nhColor(nh)}">${nh}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('recapStat').textContent =
+    `${filled}/${STUDENTS.length} mahasiswa sudah diisi`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Input events
+// ═══════════════════════════════════════════════════════════════
+document.addEventListener('input', e=>{
+  const inp = e.target.closest('.scoreinput');
+  if(!inp) return;
+  const f=inp.dataset.form, nim=inp.dataset.nim, sub=inp.dataset.sub;
+  let v = inp.value.trim();
+  if(v !== '' && (isNaN(Number(v)) || Number(v) < 0 || Number(v) > 100)){
+    inp.style.borderColor = 'var(--bad)';
+    return;
+  }
+  inp.style.borderColor = '';
+  inp.classList.toggle('has', v !== '');
+  setScore(f, nim, sub, v);
+  updateRowTotal(f, nim);
+  // Rekap tab kalau aktif
+  if(document.getElementById('mode-nilai').classList.contains('active')){
+    const activeTab = document.querySelector('[data-tabgroup="nilai"] .tab.active');
+    if(activeTab && activeTab.dataset.tab === 'n1') renderRekap();
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// CSV Export — format sesuai SIA Import (header sama dgn Form Nilai *.xls)
+// ═══════════════════════════════════════════════════════════════
+function exportCSV(formKey){
+  const form = FORMS[formKey];
+  const cols = form.cols;
+  // Row 0: blank x4 + "Sub Capaian..." (merge dengan kolom kosong supaya layout cocok)
+  const r0 = ['','','','','Sub Capaian Pembelajaran Mata Kuliah (Sub CPMK)', ...cols.slice(1).map(()=>'')];
+  const r1 = ['No.','NIM','Nama Mahasiswa','PRE', ...cols.map(c=>`Sub-CPMK ${c[0]}`)];
+  const r2 = ['','Bobot (%)','','', ...cols.map(c=>`${c[1]}%`)];
+  const rows = [r0, r1, r2];
+  STUDENTS.forEach((st, i)=>{
+    const row = [String(i+1), st.nim, st.nama, `${getPre(st.nim)}%`];
+    for(const [sub, _] of cols){
+      const v = getScore(formKey, st.nim, sub);
+      row.push(v === '' ? '' : String(v));
+    }
+    rows.push(row);
+  });
+  const csv = rows.map(r => r.map(cellCsv).join(',')).join('\r\n');
+  const blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `Form_Nilai_${form.label}_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  toast(`✅ Export ${form.label} (${STUDENTS.length} mahasiswa)`);
+}
+function cellCsv(v){
+  v = String(v ?? '');
+  if(/[",\r\n]/.test(v)) return '"'+v.replace(/"/g,'""')+'"';
+  return v;
+}
+
+// ── PRE override (di-update dari file .xls SIA, simpan ke localStorage) ──
+const PRE_KEY = 'opto-obe-pre-override-v1';
+function loadPreOverride(){ try{return JSON.parse(localStorage.getItem(PRE_KEY))||{};}catch{return{};} }
+function savePreOverride(o){ localStorage.setItem(PRE_KEY, JSON.stringify(o)); }
+function getPre(nim){
+  const o = loadPreOverride();
+  if(nim in o) return o[nim];
+  const s = STUDENTS.find(s=>s.nim===nim);
+  return s ? s.pre : 0;
+}
+
+window.importPreFromXls = function(ev){
+  const file = ev.target.files && ev.target.files[0];
+  ev.target.value = '';  // reset supaya bisa pilih file sama lagi
+  if(!file){ return; }
+  if(typeof XLSX === 'undefined'){ toast('⚠️ Library xlsx belum termuat'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(new Uint8Array(e.target.result), { type:'array' });
+      // Cari sheet "Tugas" (preferred), else sheet pertama
+      const sheetName = wb.SheetNames.find(n => /tugas|uts|uas/i.test(n)) || wb.SheetNames[0];
+      const ws = wb.Sheets[sheetName];
+      const aoa = XLSX.utils.sheet_to_json(ws, { header:1, defval:'' });
+      // Skema: r0/r1/r2 = header, r3+ = data; col 1=NIM, col 3=PRE
+      const override = loadPreOverride();
+      let n = 0, skipped = [];
+      const validNims = new Set(STUDENTS.map(s=>s.nim));
+      for(let r=3; r<aoa.length; r++){
+        const row = aoa[r]; if(!row || !row.length) continue;
+        const nim = String(row[1] || '').trim();
+        const preRaw = String(row[3] || '').trim();
+        if(!nim || !preRaw) continue;
+        const m = preRaw.match(/(\d+(?:\.\d+)?)/);
+        if(!m){ continue; }
+        const pre = Math.round(Number(m[1]));
+        if(!validNims.has(nim)){ skipped.push(nim); continue; }
+        override[nim] = pre; n++;
+      }
+      savePreOverride(override);
+      renderRekap();
+      renderForm('TGS','n2'); renderForm('UTS','n3'); renderForm('UAS','n4');
+      const msg = `✅ PRE ter-update utk ${n} mahasiswa (sheet '${sheetName}')`;
+      toast(skipped.length ? `${msg} · ${skipped.length} NIM tdk dikenal` : msg);
+    } catch(err){
+      toast(`❌ Parse gagal: ${err.message || err}`);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+};
+window.resetPreOverride = function(){
+  if(!confirm('Reset PRE override (kembali ke nilai default di kode)?')) return;
+  localStorage.removeItem(PRE_KEY);
+  renderRekap();
+  renderForm('TGS','n2'); renderForm('UTS','n3'); renderForm('UAS','n4');
+  toast('↩️ PRE override di-reset');
+};
+
+// ── Export .xls (SheetJS, mirror PERSIS struktur Form_Nilai_*.xls dari SIA) ──
+// Referensi: Form_Nilai_<Tugas|UTS|UAS>_2A6134FF_347514.xls
+//   Sheet name = 'Tugas'/'UTS'/'UAS'; merge r0 col E..akhir;
+//   r0: 'Sub Capaian Pembelajaran Mata Kuliah (Sub CPMK)' (merged)
+//   r1: No. NIM Nama PRE Sub-CPMK X.Y ...
+//   r2: '' 'Bobot (%)' '' '' N%...
+//   data: i+1, '<NIM>', '<Nama>', '<pre>%', nilai|''
+// Lebar kolom (Excel char unit, dari ref): No=5, NIM=14, Nama=55, PRE=5, Sub=15
+const SIA_CLASS_TOKEN = 'GTRN0000';  // placeholder; ganti dgn token kelas SIA saat tersedia
+function exportXLS(formKey){
+  if(typeof XLSX === 'undefined'){ toast('⚠️ Library xlsx belum termuat, coba lagi'); return; }
+  const form = FORMS[formKey];
+  const cols = form.cols;
+  const r0 = ['','','','','Sub Capaian Pembelajaran Mata Kuliah (Sub CPMK)', ...cols.slice(1).map(()=>'')];
+  const r1 = ['No.','NIM','Nama Mahasiswa','PRE', ...cols.map(c=>`Sub-CPMK ${c[0]}`)];
+  const r2 = ['','Bobot (%)','','', ...cols.map(c=>`${c[1]}%`)];
+  const aoa = [r0, r1, r2];
+  STUDENTS.forEach((st,i)=>{
+    const row = [i+1, String(st.nim), st.nama, `${getPre(st.nim)}%`];
+    for(const [sub] of cols){
+      const v = getScore(formKey, st.nim, sub);
+      row.push(v === '' ? null : Number(v));  // null = sel kosong (bukan empty string)
+    }
+    aoa.push(row);
+  });
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  // Paksa NIM (kolom B) bertipe TEXT supaya tidak di-coerce ke number oleh Excel
+  for(let r = 3; r < aoa.length; r++){
+    const addr = XLSX.utils.encode_cell({r, c:1});
+    if(ws[addr]) ws[addr].t = 's';
+  }
+  // Merge sel "Sub Capaian..." dari kol E sampai akhir (baris 0)
+  ws['!merges'] = [{ s:{r:0,c:4}, e:{r:0,c:3+cols.length} }];
+  // Lebar kolom: pixel-match file SIA (No=1170, NIM=3583, Nama=14149, PRE=1170, Sub=3912)
+  ws['!cols'] = [
+    { wch: 3.74 },   // No.
+    { wch: 13.16 },  // NIM
+    { wch: 54.44 }, // Nama
+    { wch: 3.74 },   // PRE
+    ...cols.map(()=>({ wch: 14.45 })),  // Sub-CPMK
+  ];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, form.label);
+  XLSX.writeFile(wb, `Form_Nilai_${form.label}_${SIA_CLASS_TOKEN}_347514.xls`, { bookType:'biff8' });
+  toast(`✅ File Import ${form.label} ter-download`);
+}
+
+// ── Generate bookmarklet (self-contained: data + fill logic) ──
+function genBookmarklet(formKey){
+  const form = FORMS[formKey];
+  const cols = form.cols.map(c=>c[0]);  // urutan Sub-CPMK
+  // Data: { nim: [v1,v2,...] } urut sesuai cols, blank → 0
+  const data = {};
+  STUDENTS.forEach(st=>{
+    const arr = form.cols.map(([sub])=>{
+      const v = getScore(formKey, st.nim, sub);
+      return v === '' ? 0 : Number(v);
+    });
+    // hanya sertakan kalau ada minimal 1 nilai > 0
+    if(arr.some(x=>x>0)) data[st.nim] = arr;
+  });
+  if(Object.keys(data).length === 0){ toast('⚠️ Belum ada nilai untuk di-transfer'); return; }
+
+  // Fill logic — heuristik: tiap baris tabel yg memuat NIM, isi input ke-i sesuai urutan kolom.
+  const fillFn = `(function(){
+    var D=__DATA__, COLS=__COLS__, n=0, miss=[];
+    var rows=document.querySelectorAll('tr');
+    for(var nim in D){
+      var done=false;
+      for(var r=0;r<rows.length;r++){
+        if(rows[r].textContent.indexOf(nim)>=0){
+          var ins=rows[r].querySelectorAll('input');
+          if(ins.length>=D[nim].length){
+            for(var i=0;i<D[nim].length;i++){
+              ins[i].value=D[nim][i];
+              ins[i].dispatchEvent(new Event('input',{bubbles:true}));
+              ins[i].dispatchEvent(new Event('change',{bubbles:true}));
+              ins[i].dispatchEvent(new Event('keyup',{bubbles:true}));
+            }
+            n++; done=true; break;
+          }
+        }
+      }
+      if(!done) miss.push(nim);
+    }
+    alert('Bookmarklet '+(__LABEL__)+': terisi '+n+' mahasiswa.'+(miss.length?(' Tidak ketemu: '+miss.join(', ')):''));
+  })();`;
+  const code = fillFn
+    .replace('__DATA__', JSON.stringify(data))
+    .replace('__COLS__', JSON.stringify(cols))
+    .replace('__LABEL__', JSON.stringify(form.label));
+  const bookmarklet = 'javascript:' + encodeURIComponent(code);
+
+  // Tampilkan modal dgn textarea + copy
+  showModal(`
+    <h3 style="margin:0 0 6px;font-size:17px">🔖 Bookmarklet ${form.label}</h3>
+    <p style="font-size:12.5px;color:#8aa0bf;margin-bottom:10px">
+      ${Object.keys(data).length} mahasiswa. Cara pakai:<br>
+      1. Login SIA, buka tab <b>Isi Nilai ${form.label}</b>.<br>
+      2. Copy teks di bawah, tempel di <b>address bar</b> lalu Enter (atau simpan sbg bookmark, klik saat di halaman SIA).
+    </p>
+    <textarea readonly id="bmText" style="width:100%;height:90px;font-family:monospace;font-size:10px;background:#020a18;border:1px solid #1c2c45;border-radius:8px;color:#9be7f5;padding:8px;resize:vertical">${bookmarklet}</textarea>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn btn-export" style="flex:1;padding:10px" onclick="navigator.clipboard.writeText(document.getElementById('bmText').value).then(()=>toast('✅ Bookmarklet ter-copy'))">📋 Copy</button>
+      <button class="btn btn-clear" style="flex:0 0 auto;padding:10px 14px" onclick="closeModal()">Tutup</button>
+    </div>
+    <p style="font-size:11px;color:#5d6f8e;margin-top:10px">⚠ Heuristik mencocokkan NIM per baris lalu mengisi input berurutan. Cek 1-2 baris setelah klik. Kalau struktur SIA berbeda, kabari.</p>
+  `);
+}
+
+// CSV Import (paste): format bebas — minimal kolom NIM + nilai per Sub-CPMK
+function pasteCSV(formKey){
+  const txt = prompt(
+    `Paste data CSV/TSV untuk ${FORMS[formKey].label}.\n\n`+
+    `Format kolom (urut): NIM, Sub-CPMK ${FORMS[formKey].cols.map(c=>c[0]).join(', Sub-CPMK ')}\n`+
+    `(boleh ada header; baris dgn NIM tidak dikenali dilewati.)`
+  );
+  if(!txt) return;
+  const cols = FORMS[formKey].cols;
+  const nimSet = new Set(STUDENTS.map(s=>s.nim));
+  let n=0;
+  txt.trim().split(/\r?\n/).forEach(line=>{
+    const parts = line.split(/[,\t;]/).map(x=>x.trim());
+    const nim = parts.find(p=>nimSet.has(p));
+    if(!nim) return;
+    const nimIdx = parts.indexOf(nim);
+    cols.forEach(([sub,_], i)=>{
+      const v = parts[nimIdx + 1 + i];
+      if(v !== undefined && v !== '' && !isNaN(Number(v))){
+        setScore(formKey, nim, sub, v);
+      }
+    });
+    n++;
+  });
+  renderForm(formKey, formKey==='TGS'?'n2':formKey==='UTS'?'n3':'n4');
+  STUDENTS.forEach(s=>updateRowTotal(formKey, s.nim));
+  renderRekap();
+  toast(`✅ Import: ${n} mahasiswa`);
+}
+
+function clearAllScores(){
+  if(!confirm('Hapus SEMUA nilai (TGS/UTS/UAS) dari browser ini? Tidak bisa di-undo.')) return;
+  localStorage.removeItem(LS_KEY);
+  renderForm('TGS','n2'); renderForm('UTS','n3'); renderForm('UAS','n4');
+  renderRekap();
+  toast('🗑️ Semua nilai dihapus');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Tab + mode switching
+// ═══════════════════════════════════════════════════════════════
+document.getElementById('modebar').addEventListener('click', e=>{
+  const b = e.target.closest('.modebtn'); if(!b) return;
+  document.querySelectorAll('.modebtn').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.mode').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  document.getElementById('mode-'+b.dataset.mode).classList.add('active');
+});
+document.addEventListener('click', e=>{
+  const tab = e.target.closest('.tab'); if(!tab) return;
+  const group = tab.closest('.tabbar');
+  group.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  // Panels in same mode container
+  const mode = group.closest('.mode');
+  mode.querySelectorAll(':scope > .panel').forEach(p=>p.classList.remove('active'));
+  tab.classList.add('active');
+  document.getElementById(tab.dataset.tab).classList.add('active');
+  if(tab.dataset.tab === 'n1') renderRekap();
+});
+
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t=setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+// ── Initial render Penilaian forms (tunggu roster ter-fetch) ──
+STUDENTS_READY.then(() => {
+  renderForm('TGS','n2');
+  renderForm('UTS','n3');
+  renderForm('UAS','n4');
+  renderRekap();
+  ['TGS','UTS','UAS'].forEach(f => STUDENTS.forEach(s => updateRowTotal(f, s.nim)));
+});
+
+// ═══════════════════════════════════════════════════════════════
+// MAPPING editor (Tugas/UTS/UAS → Sub-CPMK) — editable, localStorage
+// ═══════════════════════════════════════════════════════════════
+const MAP_KEY = 'opto-obe-mapping-v1';
+function rangeList(lo,hi){ const a=[]; for(let i=lo;i<=hi;i++)a.push(i); return a; }
+const DEFAULT_MAPPING = {
+  // Tugas kolom (Sub-CPMK) → daftar nomor Modul (1-14)
+  tugas: { "1.3":[1],"2.1":[2],"2.2":[3],"2.3":[4],"3.1":[5],"3.2":[6],"3.3":[7],"4.1":[8],"4.2":[9],"4.3":[10],"5.1":[11,12],"5.2":[13,14] },
+  // UTS Sub-CPMK → daftar nomor soal (Q1-45)
+  uts: { "1.1":rangeList(1,11),"1.2":rangeList(12,22),"1.3":rangeList(23,31),"2.2":rangeList(32,38),"2.3":rangeList(39,45) },
+  // UAS Sub-CPMK → daftar nomor soal
+  uas: { "3.1":rangeList(1,9),"3.2":rangeList(10,16),"3.3":rangeList(17,23),"4.1":rangeList(24,30),"4.2":rangeList(31,36),"4.3":rangeList(37,45) }
+};
+function loadMapping(){
+  try { const m = JSON.parse(localStorage.getItem(MAP_KEY)); return m || structuredClone(DEFAULT_MAPPING); }
+  catch { return structuredClone(DEFAULT_MAPPING); }
+}
+function saveMapping(m){ localStorage.setItem(MAP_KEY, JSON.stringify(m)); }
+
+// Parse "1-11", "1,2,5-8", "3 5 7" → [int]
+function parseNums(str, lo, hi){
+  const out = new Set();
+  String(str).split(/[,\s]+/).filter(Boolean).forEach(tok=>{
+    const r = tok.match(/^(\d+)\s*-\s*(\d+)$/);
+    if(r){ let a=+r[1], b=+r[2]; if(a>b)[a,b]=[b,a]; for(let i=a;i<=b;i++) if(i>=lo&&i<=hi) out.add(i); }
+    else { const n=+tok; if(Number.isInteger(n)&&n>=lo&&n<=hi) out.add(n); }
+  });
+  return Array.from(out).sort((a,b)=>a-b);
+}
+// Format [1,2,3,5,6] → "1-3, 5-6"
+function fmtNums(arr){
+  if(!arr || !arr.length) return '';
+  const a=[...arr].sort((x,y)=>x-y); const parts=[]; let s=a[0], p=a[0];
+  for(let i=1;i<=a.length;i++){
+    if(a[i]===p+1){ p=a[i]; continue; }
+    parts.push(s===p?`${s}`:`${s}-${p}`); s=a[i]; p=a[i];
+  }
+  return parts.join(', ');
+}
+
+// Map nomor soal Q → label (Q1-10 tf, Q11-30 mc, Q31-40 comp, Q41-45 hard)
+function qLabel(q){
+  if(q<=10) return `Q${q} (tf${q})`;
+  if(q<=30) return `Q${q} (mc${q-10})`;
+  if(q<=40) return `Q${q} (comp${q-30})`;
+  return `Q${q} (hard${q-40})`;
+}
+
+function renderMapping(){
+  const m = loadMapping();
+  const section = (title, key, items, lo, hi, hint) => {
+    const rows = items.map(([sub, _b])=>{
+      const cur = (m[key] && m[key][sub]) || [];
+      return `<tr>
+        <td class="code">${key==='tugas'?'Kolom':'Sub-CPMK'} ${sub}</td>
+        <td><input class="mapinput" data-mapkey="${key}" data-sub="${sub}" data-lo="${lo}" data-hi="${hi}"
+          value="${fmtNums(cur)}" placeholder="mis. 1-5, 8"
+          style="width:100%;padding:7px 10px;background:#020a18;border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;outline:none"></td>
+        <td class="num val" id="mapcnt-${key}-${sub}">${cur.length}</td>
+      </tr>`;
+    }).join('');
+    return `<table style="margin-bottom:16px">
+      <caption>${title}</caption>
+      <thead><tr><th style="width:140px">${key==='tugas'?'Kolom Tugas':'Sub-CPMK'}</th><th>${hint}</th><th class="num" style="width:50px">Jml</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  };
+  document.getElementById('n5').innerHTML = `
+    <div class="actbar">
+      <div class="actleft"><span>Mapping menentukan nilai tiap Sub-CPMK dihitung dari mana. Edit lalu <b>Simpan</b>, kemudian <b>Tarik &amp; Hitung</b>.</span></div>
+      <div class="actright">
+        <button class="btn btn-clear" onclick="resetMapping()">↩️ Default</button>
+        <button class="btn btn-import" onclick="saveMappingFromUI()">💾 Simpan Mapping</button>
+        <button class="btn btn-export" onclick="computeFromSystem()">⚡ Tarik &amp; Hitung Nilai</button>
+      </div>
+    </div>
+    ${section('Mapping TUGAS → Modul', 'tugas', FORMS.TGS.cols, 1, 14, 'Nomor Modul (1-14). Contoh: <code>1</code> atau <code>11,12</code> (rata-rata)')}
+    ${section('Mapping UTS → Soal', 'uts', FORMS.UTS.cols, 1, 45, 'Nomor soal UTS (Q1-45). Q1-10=TF, Q11-30=MC, Q31-40=comp, Q41-45=hard. Contoh: <code>1-11</code>')}
+    ${section('Mapping UAS → Soal', 'uas', FORMS.UAS.cols, 1, 45, 'Nomor soal UAS (Q1-45). Contoh: <code>1-9</code>')}
+    <div class="note">
+      <b>Tugas</b>: nilai kolom = rata-rata nilai modul terpilih (poin modul ÷ 50 × 100).
+      <b>UTS/UAS</b>: nilai Sub-CPMK = Σ poin soal diperoleh ÷ Σ poin maks grup × 100.
+      Hasil ditulis ke tab Isi Nilai (localStorage). Klik <b>Publish</b> di Rekap utk kirim ke mahasiswa.
+    </div>`;
+  // live count update
+  document.querySelectorAll('.mapinput').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const arr = parseNums(inp.value, +inp.dataset.lo, +inp.dataset.hi);
+      const cnt = document.getElementById(`mapcnt-${inp.dataset.mapkey}-${inp.dataset.sub}`);
+      if(cnt) cnt.textContent = arr.length;
+    });
+  });
+}
+
+window.saveMappingFromUI = function(){
+  const m = { tugas:{}, uts:{}, uas:{} };
+  document.querySelectorAll('.mapinput').forEach(inp=>{
+    const arr = parseNums(inp.value, +inp.dataset.lo, +inp.dataset.hi);
+    m[inp.dataset.mapkey][inp.dataset.sub] = arr;
+  });
+  saveMapping(m);
+  toast('💾 Mapping tersimpan');
+};
+window.resetMapping = function(){
+  if(!confirm('Kembalikan mapping ke default?')) return;
+  saveMapping(structuredClone(DEFAULT_MAPPING));
+  renderMapping();
+  toast('↩️ Mapping di-reset ke default');
+};
+
+window.computeFromSystem = async function(){
+  const sess = getSession();
+  if(!sess || sess.role !== 'dosen'){ toast('❌ Login dosen dulu'); return; }
+  saveMappingFromUI(); // simpan dulu mapping terkini
+  if(!confirm('Tarik data performa mahasiswa & hitung nilai OBE?\nIni MENIMPA nilai di tab Isi Nilai (lokal).')) return;
+  toast('⏳ Menghitung dari sistem...');
+  try {
+    const fn = await getFb();
+    const r = await fn._call('computeObeScores', {
+      adminPwHash: sess.adminPwHash, courseId: COURSE_ID,
+      nims: STUDENTS.map(s=>s.nim), mapping: loadMapping()
+    });
+    const scores = r.data.scores || {};
+    // tulis ke localStorage struktur nilai
+    const ls = loadScores();
+    Object.entries(scores).forEach(([nim, forms])=>{
+      ['TGS','UTS','UAS'].forEach(f=>{
+        if(forms[f]){
+          ls[f] = ls[f] || {}; ls[f][nim] = forms[f];
+        }
+      });
+    });
+    saveScores(ls);
+    renderForm('TGS','n2'); renderForm('UTS','n3'); renderForm('UAS','n4');
+    ['TGS','UTS','UAS'].forEach(f => STUDENTS.forEach(s => updateRowTotal(f, s.nim)));
+    renderRekap();
+    const miss = (r.data.missing||[]).length;
+    toast(`✅ Nilai dihitung utk ${Object.keys(scores).length} mahasiswa${miss?` (${miss} data exam kosong)`:''}`);
+  } catch(e){
+    toast(`❌ ${e.message || e}`);
+  }
+};
+
+// Render tab Mapping skrg konstanta & helper-nya sudah didefinisikan.
+renderMapping();
+
+// ═══════════════════════════════════════════════════════════════
+// AUTH + ROLE — login modal, mahasiswa/dosen branching, Publish
+// ═══════════════════════════════════════════════════════════════
+const COURSE_ID = 'getaran_mekanik';
+
+// Firebase (untuk callable + PIN check)
+let _fbApp = null, _fbFunctions = null;
+async function getFb(){
+  if(_fbFunctions) return _fbFunctions;
+  const appMod = await import('https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js');
+  const fnMod  = await import('https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js');
+  _fbApp = appMod.initializeApp({
+    apiKey: "AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",
+    authDomain: "getaran-mekanik.firebaseapp.com",
+    databaseURL: "https://getaran-mekanik-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "getaran-mekanik",
+    storageBucket: "getaran-mekanik.firebasestorage.app",
+    messagingSenderId: "430886299733",
+    appId: "1:430886299733:web:0edecd5d4adf73e7440cdc"
+  });
+  _fbFunctions = fnMod.getFunctions(_fbApp, 'asia-southeast1');
+  _fbFunctions._call = (name, data) => fnMod.httpsCallable(_fbFunctions, name)(data);
+  return _fbFunctions;
+}
+async function sha256Hex(s){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+// Session state
+const SESSION_KEY = 'opto-obe-session';
+function getSession(){ try { return JSON.parse(sessionStorage.getItem(SESSION_KEY)) || null; } catch { return null; } }
+function setSession(s){ sessionStorage.setItem(SESSION_KEY, JSON.stringify(s)); }
+function clearSession(){ sessionStorage.removeItem(SESSION_KEY); }
+
+function updateRoleUI(){
+  const sess = getSession();
+  const chip = document.getElementById('roleChip');
+  const logout = document.getElementById('logoutBtn');
+  const dosenActs = document.getElementById('rekapActsDosen');
+  if(!sess){
+    chip.innerHTML = '🔓 Belum login';
+    chip.style.background = 'rgba(248,113,113,.07)'; chip.style.borderColor = 'rgba(248,113,113,.3)'; chip.style.color = '#fca5a5';
+    logout.style.display = 'none';
+    if(dosenActs) dosenActs.style.display = 'none';
+  } else if(sess.role === 'dosen'){
+    chip.innerHTML = '👨‍🏫 Dosen';
+    chip.style.background = 'rgba(34,211,238,.07)'; chip.style.borderColor = 'rgba(34,211,238,.2)'; chip.style.color = '#9be7f5';
+    logout.style.display = 'inline-flex';
+    if(dosenActs) dosenActs.style.display = 'flex';
+  } else if(sess.role === 'mahasiswa'){
+    chip.innerHTML = `🎓 ${sess.nim}`;
+    chip.style.background = 'rgba(52,211,153,.07)'; chip.style.borderColor = 'rgba(52,211,153,.2)'; chip.style.color = '#7dffb0';
+    logout.style.display = 'inline-flex';
+    if(dosenActs) dosenActs.style.display = 'none';
+  }
+}
+
+function showModal(html){
+  let m = document.getElementById('authOverlay');
+  if(!m){
+    m = document.createElement('div');
+    m.id = 'authOverlay';
+    m.style.cssText = 'position:fixed;inset:0;background:rgba(7,11,20,.85);backdrop-filter:blur(6px);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px';
+    document.body.appendChild(m);
+  }
+  m.innerHTML = `<div style="background:#0d1626;border:1px solid #1c2c45;border-radius:14px;padding:26px 28px;width:100%;max-width:380px;color:#dbe5f3;font-family:'Segoe UI',sans-serif">${html}</div>`;
+}
+function closeModal(){ const m=document.getElementById('authOverlay'); if(m) m.remove(); }
+
+function showLoginPicker(){
+  showModal(`
+    <h3 style="margin:0 0 6px;font-size:18px">🔐 Login Diperlukan</h3>
+    <p style="font-size:13px;color:#8aa0bf;margin-bottom:18px">Pilih peran untuk akses halaman Penilaian.</p>
+    <button class="btn btn-import" style="width:100%;padding:11px;margin-bottom:8px" onclick="loginAsMahasiswa()">🎓 Saya Mahasiswa</button>
+    <button class="btn btn-export" style="width:100%;padding:11px" onclick="loginAsDosen()">👨‍🏫 Saya Dosen</button>
+    <p style="font-size:11px;color:#5d6f8e;margin-top:14px;text-align:center">Silabus tetap bisa dibuka tanpa login.</p>
+    <div style="text-align:center;margin-top:10px"><a href="#" onclick="closeModal();switchMode('silabus');return false" style="color:#22d3ee;font-size:12px">← Kembali ke Silabus</a></div>
+  `);
+}
+
+window.loginAsDosen = async function(){
+  showModal(`
+    <h3 style="margin:0 0 6px;font-size:18px">👨‍🏫 Login Dosen</h3>
+    <p style="font-size:13px;color:#8aa0bf;margin-bottom:14px">Masukkan password admin untuk akses penuh editing & publish.</p>
+    <input id="pwInput" type="password" placeholder="Password admin" autocomplete="off"
+      style="width:100%;padding:11px;background:#020a18;border:1px solid #1c2c45;border-radius:9px;color:#dbe5f3;font-size:14px;margin-bottom:12px;outline:none">
+    <button class="btn btn-export" style="width:100%;padding:11px" onclick="submitDosen()">Masuk</button>
+    <div id="loginErr" style="display:none;margin-top:10px;padding:8px;background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.3);border-radius:7px;color:#fca5a5;font-size:12px"></div>
+    <div style="text-align:center;margin-top:10px"><a href="#" onclick="showLoginPicker();return false" style="color:#22d3ee;font-size:12px">← Pilih peran lain</a></div>
+  `);
+  setTimeout(()=>document.getElementById('pwInput').focus(), 50);
+  document.getElementById('pwInput').addEventListener('keydown', e=>{ if(e.key==='Enter') submitDosen(); });
+};
+
+window.submitDosen = async function(){
+  const pw = document.getElementById('pwInput').value;
+  const err = document.getElementById('loginErr');
+  if(!pw){ err.textContent='Password wajib'; err.style.display='block'; return; }
+  err.style.display='none';
+  const hash = await sha256Hex(pw);
+  // Sanity check: try publish with empty scores to validate password (akan throw kalau salah)
+  // Lebih aman: simpan dulu hash di session, validasi nanti saat publish.
+  // Untuk UX langsung, set dulu lalu validasi via getMyObeNilai bukan opsi (PIN-gated).
+  // Kita pakai approach: simpan hash, klik Publish baru ketahuan salah.
+  setSession({ role:'dosen', adminPwHash: hash });
+  closeModal(); updateRoleUI();
+  toast('✅ Login dosen — buka tab Penilaian untuk edit');
+  switchMode('nilai');
+};
+
+window.loginAsMahasiswa = async function(){
+  showModal(`
+    <h3 style="margin:0 0 6px;font-size:18px">🎓 Login Mahasiswa</h3>
+    <p style="font-size:13px;color:#8aa0bf;margin-bottom:14px">Masukkan NIM &amp; PIN (PIN sama dgn yg dipakai di pertemuan).</p>
+    <input id="nimInput" inputmode="numeric" placeholder="NIM (mis. 41323110022)" autocomplete="off"
+      style="width:100%;padding:11px;background:#020a18;border:1px solid #1c2c45;border-radius:9px;color:#dbe5f3;font-size:14px;margin-bottom:10px;outline:none;font-family:'JetBrains Mono',monospace">
+    <input id="pinInput" type="password" inputmode="numeric" maxlength="6" placeholder="PIN 6 digit" autocomplete="off"
+      style="width:100%;padding:11px;background:#020a18;border:1px solid #1c2c45;border-radius:9px;color:#dbe5f3;font-size:14px;margin-bottom:12px;outline:none;font-family:'JetBrains Mono',monospace">
+    <button class="btn btn-import" style="width:100%;padding:11px" onclick="submitMahasiswa()">Masuk</button>
+    <div id="loginErr" style="display:none;margin-top:10px;padding:8px;background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.3);border-radius:7px;color:#fca5a5;font-size:12px"></div>
+    <div style="text-align:center;margin-top:10px"><a href="#" onclick="showLoginPicker();return false" style="color:#22d3ee;font-size:12px">← Pilih peran lain</a></div>
+  `);
+  setTimeout(()=>document.getElementById('nimInput').focus(), 50);
+};
+
+window.submitMahasiswa = async function(){
+  const nim = document.getElementById('nimInput').value.trim();
+  const pin = document.getElementById('pinInput').value.trim();
+  const err = document.getElementById('loginErr');
+  if(!/^\d{1,20}$/.test(nim)){ err.textContent='NIM tidak valid'; err.style.display='block'; return; }
+  if(!/^\d{4,8}$/.test(pin)){ err.textContent='PIN harus 4-8 digit angka'; err.style.display='block'; return; }
+  err.style.display='none';
+  try {
+    const pinHash = await sha256Hex(pin);
+    const fn = await getFb();
+    const r = await fn._call('getMyObeNilai', { courseId: COURSE_ID, nim, pinHash });
+    setSession({ role:'mahasiswa', nim, pinHash, nama: r.data.nama, data: r.data });
+    closeModal(); updateRoleUI();
+    renderMahasiswaView();
+    switchMode('nilai');
+    toast(`✅ Halo ${r.data.nama || nim}`);
+  } catch(e){
+    err.textContent = (e.message || e) + (e.code? ` [${e.code}]` : '');
+    err.style.display = 'block';
+  }
+};
+
+window.logout = function(){
+  if(!confirm('Logout dari halaman ini?')) return;
+  clearSession();
+  // refresh ke silabus + restore dosen view defaultnya
+  location.reload();
+};
+
+window.switchMode = function(mode){
+  document.querySelectorAll('.modebtn[data-mode]').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.mode').forEach(x=>x.classList.remove('active'));
+  document.querySelector(`.modebtn[data-mode="${mode}"]`).classList.add('active');
+  document.getElementById('mode-'+mode).classList.add('active');
+};
+
+// Intercept Penilaian tab click — wajib login
+document.querySelector('.modebtn[data-mode="nilai"]').addEventListener('click', e=>{
+  const sess = getSession();
+  if(!sess){
+    e.stopPropagation();
+    showLoginPicker();
+    return false;
+  }
+}, true);
+
+// Mahasiswa view: hanya tampilkan baris dia, isi tabs disabled
+function renderMahasiswaView(){
+  const sess = getSession();
+  if(!sess || sess.role !== 'mahasiswa') return;
+  const myNim = sess.nim;
+  const data = sess.data || {};
+  // Populate localStorage cache dgn data dia saja, lalu re-render
+  // (jangan timpa LS dosen — pakai struktur in-memory)
+  const myScores = {};
+  ['TGS','UTS','UAS'].forEach(f => {
+    if(data[f]){
+      myScores[f] = { [myNim]: data[f] };
+    }
+  });
+  // Override loadScores/getScore behavior: simpan ke window._mhsOverride
+  window._mhsOverride = myScores;
+  // Sembunyikan baris lain di rekap & form tabs
+  document.querySelectorAll('#n1body tr, #n2 tbody tr, #n3 tbody tr, #n4 tbody tr').forEach(tr => {
+    const nimEl = tr.querySelector('.nim');
+    if(nimEl && nimEl.textContent !== myNim) tr.style.display = 'none';
+  });
+  // Disable all inputs
+  document.querySelectorAll('.scoreinput').forEach(inp => {
+    inp.disabled = true;
+    const f = inp.dataset.form, sub = inp.dataset.sub;
+    const v = (myScores[f] && myScores[f][myNim] && myScores[f][myNim][sub]);
+    if(v !== undefined) { inp.value = v; inp.classList.add('has'); }
+    else inp.value = '';
+  });
+  // Update row totals untuk mahasiswa ini berdasarkan data server
+  function mhsRowTotal(formKey){
+    const cols = FORMS[formKey].cols;
+    const sub = (myScores[formKey] && myScores[formKey][myNim]) || {};
+    const sumB = cols.reduce((a,c)=>a+c[1],0);
+    let s=0; for(const [k,b] of cols){ if(sub[k]!==undefined) s += sub[k]*b/100; }
+    return sumB>0 ? (s/sumB)*100 : 0;
+  }
+  ['TGS','UTS','UAS'].forEach(f=>{
+    const cell = document.getElementById(`row-${f}-${myNim}`);
+    if(cell) cell.textContent = mhsRowTotal(f).toFixed(2);
+  });
+  // Rebuild Rekap utk mahasiswa (1 baris)
+  const tbody = document.getElementById('n1body');
+  const tgs = mhsRowTotal('TGS'), uts = mhsRowTotal('UTS'), uas = mhsRowTotal('UAS');
+  const na = tgs*0.6 + uts*0.2 + uas*0.2;
+  const naColor = na>=70 ? 'color:#7dffb0' : na>=55 ? 'color:#fcd34d' : 'color:#fca5a5';
+  const nh = toNH(na);
+  const me = STUDENTS.find(s=>s.nim === myNim);
+  tbody.innerHTML = `<tr>
+    <td class="num">1</td>
+    <td><div class="nim">${myNim}</div><div class="nama">${esc((me && me.nama) || sess.nama || '')}</div></td>
+    <td class="num val">${(data.pre != null ? data.pre : (me ? getPre(myNim) : 0))}%</td>
+    <td class="num val">${tgs.toFixed(2)}</td>
+    <td class="num val">${uts.toFixed(2)}</td>
+    <td class="num val">${uas.toFixed(2)}</td>
+    <td class="num sum" style="${naColor}">${na.toFixed(2)}</td>
+    <td class="num sum" style="${nhColor(nh)}">${nh}</td>
+  </tr>`;
+  document.getElementById('recapStat').textContent = data.empty ? 'Nilai belum di-publish dosen' : (data.publishedAt ? `Update terakhir: ${new Date(data.publishedAt).toLocaleString('id-ID')}` : 'Tersinkron');
+  // Sembunyikan tombol export/import/paste utk mahasiswa
+  document.querySelectorAll('.actbar .actright').forEach(b=>{
+    b.style.display = 'none';
+  });
+  // Sembunyikan tab Mapping (dosen-only)
+  const mapTab = document.querySelector('[data-tabgroup="nilai"] .tab[data-tab="n5"]');
+  if(mapTab) mapTab.style.display = 'none';
+}
+
+// Publish ke Firestore (dosen)
+window.publishToFirestore = async function(){
+  const sess = getSession();
+  if(!sess || sess.role !== 'dosen'){ toast('❌ Login dosen dulu'); return; }
+  if(!confirm('Publish semua nilai (TGS/UTS/UAS) ke server? Mahasiswa akan langsung bisa lihat.')) return;
+  // Build scores payload dari localStorage
+  const ls = loadScores();
+  const payload = {};
+  STUDENTS.forEach(st => {
+    const o = {};
+    ['TGS','UTS','UAS'].forEach(f => {
+      if(ls[f] && ls[f][st.nim] && Object.keys(ls[f][st.nim]).length>0){
+        o[f] = ls[f][st.nim];
+      }
+    });
+    if(Object.keys(o).length > 0){
+      o.pre = getPre(st.nim);   // PRE (presensi) ikut ter-publish
+      payload[st.nim] = o;
+    }
+  });
+  if(Object.keys(payload).length === 0){ toast('⚠️ Tidak ada nilai untuk publish'); return; }
+  try {
+    const fn = await getFb();
+    const r = await fn._call('publishObeNilai', {
+      adminPwHash: sess.adminPwHash, courseId: COURSE_ID, scores: payload
+    });
+    toast(`✅ Publish OK — ${r.data.written} mahasiswa`);
+  } catch(e){
+    toast(`❌ ${e.message || e}`);
+  }
+};
+
+// Hapus semua nilai OBE yang sudah dipublish dari server (dosen)
+window.deleteObeFromFirestore = async function(){
+  const sess = getSession();
+  if(!sess || sess.role !== 'dosen'){ toast('❌ Login dosen dulu'); return; }
+  if(!confirm('⚠️ HAPUS semua nilai OBE yang sudah dipublish dari server?\n\nMahasiswa tidak akan bisa melihat nilai lagi sampai Bapak Publish ulang. Tindakan ini tidak bisa dibatalkan.\n\n(Nilai lokal di browser ini TIDAK terhapus — pakai "Reset Lokal" untuk itu.)')) return;
+  try {
+    const fn = await getFb();
+    const r = await fn._call('deleteObeNilai', { adminPwHash: sess.adminPwHash, courseId: COURSE_ID });
+    toast(`🗑️ Terhapus dari server — ${r.data.deleted} mahasiswa`);
+  } catch(e){
+    toast(`❌ ${e.message || e}`);
+  }
+};
+
+// On load
+updateRoleUI();
+const sess = getSession();
+if(sess && sess.role === 'mahasiswa') STUDENTS_READY.then(() => renderMahasiswaView());
+</script>
+</body>
+</html>
