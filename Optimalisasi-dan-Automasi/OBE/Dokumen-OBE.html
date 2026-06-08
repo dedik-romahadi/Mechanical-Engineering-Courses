@@ -119,11 +119,12 @@
     <div class="doc-title">Optimalisasi &amp; Automasi</div>
     <div class="doc-sub">Silabus (CPL/CPMK/Sub-CPMK + matrikulasi) &amp; Penilaian Mahasiswa</div>
     <div class="doc-meta">
-      <span class="chip">👨‍🏫 Dedik Romahadi</span>
+      <span class="chip">👨‍🏫 Dosen Pengampu: Dedik Romahadi</span>
+      <span class="chip">📧 dedik.romahadi@mercubuana.ac.id</span>
       <span class="chip">🏛️ S1 Teknik Mesin — UMB</span>
       <span class="chip">📅 T.A. 2025/2026</span>
-      <span class="chip">👥 27 mahasiswa</span>
-      <span class="chip">🔗 SIA OBE: nilaiobe/lst/347514</span>
+      <span class="chip">👥 <span id="studCount">—</span> mahasiswa</span>
+      <span class="chip">🔗 SIA OBE</span>
     </div>
   </div>
 
@@ -289,7 +290,6 @@
 
   <div class="foot">
     <span>📐 Optimalisasi &amp; Automasi · Dokumen OBE (Silabus + Penilaian)</span>
-    <span style="font-family:'JetBrains Mono',monospace">SIA OBE · nilaiobe/lst/347514</span>
   </div>
 </div>
 
@@ -350,35 +350,34 @@ const T4 = {
 // ═══════════════════════════════════════════════════════════════
 // DATA — Penilaian (roster + form mapping dari export SIA)
 // ═══════════════════════════════════════════════════════════════
-const STUDENTS = [
-  {nim:"41321120054", nama:"ANGGA HANDIAPUTRA YUDHATAMA", pre:88},
-  {nim:"41321120057", nama:"MUHAMMAD MAHLIAN HADI MAULANA", pre:88},
-  {nim:"41322010021", nama:"ARIP TEGUH SUHARTO", pre:88},
-  {nim:"41322010029", nama:"AHMAD NURDIN SIMATUPANG", pre:75},
-  {nim:"41322110039", nama:"EKI WIRATAMA PUTRA", pre:88},
-  {nim:"41322110067", nama:"MOCHAMAD NURCHOLIS", pre:88},
-  {nim:"41322110080", nama:"SHOLIH FAUZAN", pre:88},
-  {nim:"41322110087", nama:"FICKRI DIMAS AL FALLAH", pre:88},
-  {nim:"41322110089", nama:"MUHAMMAD IBNU FAUZI", pre:62},
-  {nim:"41322110093", nama:"ADE YULIAN SAPUTRA", pre:75},
-  {nim:"41322120018", nama:"DEVI KRISTIANTO", pre:88},
-  {nim:"41322120038", nama:"FAIYUN", pre:88},
-  {nim:"41322120039", nama:"SUTARI", pre:88},
-  {nim:"41323110002", nama:"KIANDRY RIDHO WIDODO", pre:88},
-  {nim:"41323110003", nama:"SYAMSUDIN", pre:88},
-  {nim:"41323110005", nama:"TRESNA SETYA PUTRA", pre:50},
-  {nim:"41323110011", nama:"EDWIN ANUGRAH EFFENDY", pre:75},
-  {nim:"41323110022", nama:"TAUFIK NUR HIDAYAT", pre:75},
-  {nim:"41323110026", nama:"YOYOK KRISTIYONO", pre:88},
-  {nim:"41323110040", nama:"SAKHA KHAIRUL HAKIM", pre:88},
-  {nim:"41323110042", nama:"RISKI KRISTANTO", pre:88},
-  {nim:"41324120004", nama:"M. NADHIF AL-RAFID", pre:75},
-  {nim:"41324120021", nama:"THIMOTIUS BRIANTIKA PERMANA", pre:75},
-  {nim:"41324120025", nama:"ADITYA RAMADHAN", pre:88},
-  {nim:"41324120026", nama:"HERA DIPTA NUR PRAPTAMA", pre:88},
-  {nim:"41324120032", nama:"PANJI EKA ALFIANINDRA", pre:88},
-  {nim:"41325110020", nama:"SLAMET RAMDHANI", pre:88}
-];
+// Roster di-fetch dari Attributes/students.json (single source of truth).
+// PRE default per NIM disimpan di sini sbg fallback; dosen bisa override
+// real-time lewat tombol "📥 Update PRE dari .xls SIA".
+let STUDENTS = [];
+const DEFAULT_PRE = {
+  "41321120054":88,"41321120057":88,"41322010021":88,"41322010029":75,
+  "41322110039":88,"41322110067":88,"41322110080":88,"41322110087":88,
+  "41322110089":62,"41322110093":75,"41322120018":88,"41322120038":88,
+  "41322120039":88,"41323110002":88,"41323110003":88,"41323110005":50,
+  "41323110011":75,"41323110022":75,"41323110026":88,"41323110040":88,
+  "41323110042":88,"41324120004":75,"41324120021":75,"41324120025":88,
+  "41324120026":88,"41324120032":88,"41325110020":88
+};
+async function loadStudents(){
+  try {
+    const res = await fetch('../Attributes/students.json', { cache:'no-cache' });
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const arr = await res.json();
+    STUDENTS = arr.map(s => ({ nim:String(s.nim), nama:s.nama, pre: DEFAULT_PRE[String(s.nim)] ?? 0 }));
+  } catch(e){
+    console.error('[loadStudents] gagal fetch students.json:', e);
+    if(typeof toast === 'function') toast('⚠️ Gagal muat daftar mahasiswa');
+    STUDENTS = [];
+  }
+  const el = document.getElementById('studCount');
+  if(el) el.textContent = STUDENTS.length;
+}
+const STUDENTS_READY = loadStudents();
 
 // Kolom Sub-CPMK per form + bobot %  (sesuai export SIA)
 const FORMS = {
@@ -833,12 +832,14 @@ function toast(msg){
   toast._t=setTimeout(()=>t.classList.remove('show'), 2200);
 }
 
-// ── Initial render Penilaian forms ──
-renderForm('TGS','n2');
-renderForm('UTS','n3');
-renderForm('UAS','n4');
-renderRekap();
-['TGS','UTS','UAS'].forEach(f => STUDENTS.forEach(s => updateRowTotal(f, s.nim)));
+// ── Initial render Penilaian forms (tunggu roster ter-fetch) ──
+STUDENTS_READY.then(() => {
+  renderForm('TGS','n2');
+  renderForm('UTS','n3');
+  renderForm('UAS','n4');
+  renderRekap();
+  ['TGS','UTS','UAS'].forEach(f => STUDENTS.forEach(s => updateRowTotal(f, s.nim)));
+});
 
 // ═══════════════════════════════════════════════════════════════
 // MAPPING editor (Tugas/UTS/UAS → Sub-CPMK) — editable, localStorage
@@ -1273,7 +1274,7 @@ window.deleteObeFromFirestore = async function(){
 // On load
 updateRoleUI();
 const sess = getSession();
-if(sess && sess.role === 'mahasiswa') renderMahasiswaView();
+if(sess && sess.role === 'mahasiswa') STUDENTS_READY.then(() => renderMahasiswaView());
 </script>
 </body>
 </html>
