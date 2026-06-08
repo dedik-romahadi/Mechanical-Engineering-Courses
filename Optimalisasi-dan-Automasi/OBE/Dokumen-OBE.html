@@ -258,6 +258,8 @@
           <span>Ringkasan: <span class="stat" id="recapStat">—</span></span>
         </div>
         <div class="actright" id="rekapActsDosen" style="display:none">
+          <button class="btn btn-export" onclick="document.getElementById('preXlsInput').click()">📥 Update PRE dari .xls SIA</button>
+          <input type="file" id="preXlsInput" accept=".xls,.xlsx" style="display:none" onchange="importPreFromXls(event)">
           <button class="btn btn-import" onclick="publishToFirestore()">☁️ Publish ke Firestore</button>
           <button class="btn btn-clear" onclick="clearAllScores()">🗑️ Reset Lokal</button>
         </div>
@@ -482,7 +484,7 @@ function renderForm(formKey, panelId){
           return `<tr>
             <td class="num">${i+1}</td>
             <td><div class="nim">${st.nim}</div><div class="nama">${esc(st.nama)}</div></td>
-            <td class="num val">${st.pre}%</td>
+            <td class="num val">${getPre(st.nim)}%</td>
             ${inputs}
             <td class="num sum" id="row-${formKey}-${st.nim}">0.00</td>
           </tr>`;
@@ -528,7 +530,7 @@ function renderRekap(){
     return `<tr>
       <td class="num">${i+1}</td>
       <td><div class="nim">${st.nim}</div><div class="nama">${esc(st.nama)}</div></td>
-      <td class="num val">${st.pre}%</td>
+      <td class="num val">${getPre(st.nim)}%</td>
       <td class="num val">${tgs.toFixed(2)}</td>
       <td class="num val">${uts.toFixed(2)}</td>
       <td class="num val">${uas.toFixed(2)}</td>
@@ -574,7 +576,7 @@ function exportCSV(formKey){
   const r2 = ['','Bobot (%)','','', ...cols.map(c=>`${c[1]}%`)];
   const rows = [r0, r1, r2];
   STUDENTS.forEach((st, i)=>{
-    const row = [String(i+1), st.nim, st.nama, `${st.pre}%`];
+    const row = [String(i+1), st.nim, st.nama, `${getPre(st.nim)}%`];
     for(const [sub, _] of cols){
       const v = getScore(formKey, st.nim, sub);
       row.push(v === '' ? '' : String(v));
@@ -595,6 +597,64 @@ function cellCsv(v){
   return v;
 }
 
+// ── PRE override (di-update dari file .xls SIA, simpan ke localStorage) ──
+const PRE_KEY = 'opto-obe-pre-override-v1';
+function loadPreOverride(){ try{return JSON.parse(localStorage.getItem(PRE_KEY))||{};}catch{return{};} }
+function savePreOverride(o){ localStorage.setItem(PRE_KEY, JSON.stringify(o)); }
+function getPre(nim){
+  const o = loadPreOverride();
+  if(nim in o) return o[nim];
+  const s = STUDENTS.find(s=>s.nim===nim);
+  return s ? s.pre : 0;
+}
+
+window.importPreFromXls = function(ev){
+  const file = ev.target.files && ev.target.files[0];
+  ev.target.value = '';  // reset supaya bisa pilih file sama lagi
+  if(!file){ return; }
+  if(typeof XLSX === 'undefined'){ toast('⚠️ Library xlsx belum termuat'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(new Uint8Array(e.target.result), { type:'array' });
+      // Cari sheet "Tugas" (preferred), else sheet pertama
+      const sheetName = wb.SheetNames.find(n => /tugas|uts|uas/i.test(n)) || wb.SheetNames[0];
+      const ws = wb.Sheets[sheetName];
+      const aoa = XLSX.utils.sheet_to_json(ws, { header:1, defval:'' });
+      // Skema: r0/r1/r2 = header, r3+ = data; col 1=NIM, col 3=PRE
+      const override = loadPreOverride();
+      let n = 0, skipped = [];
+      const validNims = new Set(STUDENTS.map(s=>s.nim));
+      for(let r=3; r<aoa.length; r++){
+        const row = aoa[r]; if(!row || !row.length) continue;
+        const nim = String(row[1] || '').trim();
+        const preRaw = String(row[3] || '').trim();
+        if(!nim || !preRaw) continue;
+        const m = preRaw.match(/(\d+(?:\.\d+)?)/);
+        if(!m){ continue; }
+        const pre = Math.round(Number(m[1]));
+        if(!validNims.has(nim)){ skipped.push(nim); continue; }
+        override[nim] = pre; n++;
+      }
+      savePreOverride(override);
+      renderRekap();
+      renderForm('TGS','n2'); renderForm('UTS','n3'); renderForm('UAS','n4');
+      const msg = `✅ PRE ter-update utk ${n} mahasiswa (sheet '${sheetName}')`;
+      toast(skipped.length ? `${msg} · ${skipped.length} NIM tdk dikenal` : msg);
+    } catch(err){
+      toast(`❌ Parse gagal: ${err.message || err}`);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+};
+window.resetPreOverride = function(){
+  if(!confirm('Reset PRE override (kembali ke nilai default di kode)?')) return;
+  localStorage.removeItem(PRE_KEY);
+  renderRekap();
+  renderForm('TGS','n2'); renderForm('UTS','n3'); renderForm('UAS','n4');
+  toast('↩️ PRE override di-reset');
+};
+
 // ── Export .xls (SheetJS, mirror PERSIS struktur Form_Nilai_*.xls dari SIA) ──
 // Referensi: Form_Nilai_<Tugas|UTS|UAS>_2A6134FF_347514.xls
 //   Sheet name = 'Tugas'/'UTS'/'UAS'; merge r0 col E..akhir;
@@ -613,7 +673,7 @@ function exportXLS(formKey){
   const r2 = ['','Bobot (%)','','', ...cols.map(c=>`${c[1]}%`)];
   const aoa = [r0, r1, r2];
   STUDENTS.forEach((st,i)=>{
-    const row = [i+1, String(st.nim), st.nama, `${st.pre}%`];
+    const row = [i+1, String(st.nim), st.nama, `${getPre(st.nim)}%`];
     for(const [sub] of cols){
       const v = getScore(formKey, st.nim, sub);
       row.push(v === '' ? null : Number(v));  // null = sel kosong (bukan empty string)
@@ -1147,7 +1207,7 @@ function renderMahasiswaView(){
   tbody.innerHTML = `<tr>
     <td class="num">1</td>
     <td><div class="nim">${myNim}</div><div class="nama">${esc((me && me.nama) || sess.nama || '')}</div></td>
-    <td class="num val">${me ? me.pre : 0}%</td>
+    <td class="num val">${me ? getPre(me.nim) : 0}%</td>
     <td class="num val">${tgs.toFixed(2)}</td>
     <td class="num val">${uts.toFixed(2)}</td>
     <td class="num val">${uas.toFixed(2)}</td>
