@@ -1398,7 +1398,7 @@ exports.analyzeModulData = onCall({ timeoutSeconds: 120 }, async (request) => {
 //
 // Request: {
 //   adminPwHash, courseId,
-//   scores: { "<nim>": { TGS:{"1.3":80,...}, UTS:{"1.1":75,...}, UAS:{"3.1":70,...} } }
+//   scores: { "<nim>": { pre:88, TGS:{"1.3":80,...}, UTS:{"1.1":75,...}, UAS:{"3.1":70,...} } }
 // }
 // Response: { courseId, students, written, skipped }
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1435,6 +1435,11 @@ exports.publishObeNilai = onCall({ timeoutSeconds: 60 }, async (request) => {
       }
       if (Object.keys(cleanForm).length > 0) sanitized[form] = cleanForm;
     }
+    // PRE (presensi, %) — opsional, 0-100
+    if (perForm.pre !== undefined) {
+      const preN = Number(perForm.pre);
+      if (Number.isFinite(preN) && preN >= 0 && preN <= 100) sanitized.pre = Math.round(preN);
+    }
     const nimKey = sanitizeKey("mhs_" + nim);
     batch.set(fs.doc(`obeNilai/${courseId}/students/${nimKey}`), sanitized, { merge: true });
     written++;
@@ -1452,7 +1457,7 @@ exports.publishObeNilai = onCall({ timeoutSeconds: 60 }, async (request) => {
 // getMyObeNilai — callable PIN-gated. Mahasiswa fetch nilai OBE-nya sendiri.
 //
 // Request: { courseId, nim, pinHash }
-// Response: { courseId, nim, TGS, UTS, UAS, publishedAt }   (atau {courseId, nim, empty:true})
+// Response: { courseId, nim, pre, TGS, UTS, UAS, publishedAt }   (atau {courseId, nim, empty:true})
 // ─────────────────────────────────────────────────────────────────────────────
 exports.getMyObeNilai = onCall(async (request) => {
   const { courseId, nim, pinHash } = request.data || {};
@@ -1484,11 +1489,40 @@ exports.getMyObeNilai = onCall(async (request) => {
   return {
     courseId, nim,
     nama: storedPin.nama || "",
+    pre: (typeof d.pre === "number") ? d.pre : null,
     TGS: d.TGS || {},
     UTS: d.UTS || {},
     UAS: d.UAS || {},
     publishedAt: d.publishedAt ? d.publishedAt.toMillis() : null,
   };
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// deleteObeNilai — admin callable. Hapus SEMUA nilai OBE yang sudah dipublish
+// untuk satu course (obeNilai/{courseId}/students/*). Mahasiswa tidak lagi bisa
+// melihat nilai setelah ini. Tidak menyentuh localStorage dosen.
+//
+// Request:  { adminPwHash, courseId }
+// Response: { courseId, deleted }
+// ─────────────────────────────────────────────────────────────────────────────
+exports.deleteObeNilai = onCall({ timeoutSeconds: 60 }, async (request) => {
+  const { adminPwHash, courseId } = request.data || {};
+  if (!adminPwHash || typeof adminPwHash !== "string" || adminPwHash !== ADMIN_PW_HASH) {
+    throw new HttpsError("permission-denied", "Admin password salah");
+  }
+  if (!courseId || typeof courseId !== "string" || !/^[a-z0-9_-]{1,40}$/.test(courseId)) {
+    throw new HttpsError("invalid-argument", "courseId wajib (alfanumerik/dash/underscore)");
+  }
+  const fs = getFirestore();
+  const docs = await fs.collection(`obeNilai/${courseId}/students`).listDocuments();
+  let deleted = 0;
+  for (let i = 0; i < docs.length; i += 400) {
+    const batch = fs.batch();
+    docs.slice(i, i + 400).forEach((ref) => { batch.delete(ref); deleted++; });
+    await batch.commit();
+  }
+  console.log("[deleteObeNilai]", courseId, "deleted:", deleted);
+  return { courseId, deleted };
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

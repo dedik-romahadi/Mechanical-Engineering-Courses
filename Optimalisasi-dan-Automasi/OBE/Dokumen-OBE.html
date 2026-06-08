@@ -262,6 +262,7 @@
           <input type="file" id="preXlsInput" accept=".xls,.xlsx" style="display:none" onchange="importPreFromXls(event)">
           <button class="btn btn-import" onclick="publishToFirestore()">☁️ Publish ke Firestore</button>
           <button class="btn btn-clear" onclick="clearAllScores()">🗑️ Reset Lokal</button>
+          <button class="btn btn-clear" onclick="deleteObeFromFirestore()">❌ Hapus dari Server</button>
         </div>
       </div>
       <table>
@@ -272,11 +273,11 @@
           <th class="num">TGS<br><span style="color:#9be7f5;font-size:10px">60%</span></th>
           <th class="num">UTS<br><span style="color:#9be7f5;font-size:10px">20%</span></th>
           <th class="num">UAS<br><span style="color:#9be7f5;font-size:10px">20%</span></th>
-          <th class="num">Total</th>
+          <th class="num">TOTAL</th>
         </tr></thead>
         <tbody id="n1body"></tbody>
       </table>
-      <div class="note">Total = TGS·0.6 + UTS·0.2 + UAS·0.2  ·  Tiap komponen = Σ(Sub-CPMK × bobot%)/total bobot komponen × 100  ·  Data auto-sync dari tab isi nilai.</div>
+      <div class="note">TOTAL = TGS·0.6 + UTS·0.2 + UAS·0.2  ·  Tiap komponen = Σ(Sub-CPMK × bobot%)/total bobot komponen × 100  ·  Data auto-sync dari tab isi nilai.</div>
     </div>
 
     <!-- TGS / UTS / UAS panels dibangun via JS karena identik strukturnya -->
@@ -1207,7 +1208,7 @@ function renderMahasiswaView(){
   tbody.innerHTML = `<tr>
     <td class="num">1</td>
     <td><div class="nim">${myNim}</div><div class="nama">${esc((me && me.nama) || sess.nama || '')}</div></td>
-    <td class="num val">${me ? getPre(me.nim) : 0}%</td>
+    <td class="num val">${(data.pre != null ? data.pre : (me ? getPre(myNim) : 0))}%</td>
     <td class="num val">${tgs.toFixed(2)}</td>
     <td class="num val">${uts.toFixed(2)}</td>
     <td class="num val">${uas.toFixed(2)}</td>
@@ -1238,7 +1239,10 @@ window.publishToFirestore = async function(){
         o[f] = ls[f][st.nim];
       }
     });
-    if(Object.keys(o).length > 0) payload[st.nim] = o;
+    if(Object.keys(o).length > 0){
+      o.pre = getPre(st.nim);   // PRE (presensi) ikut ter-publish
+      payload[st.nim] = o;
+    }
   });
   if(Object.keys(payload).length === 0){ toast('⚠️ Tidak ada nilai untuk publish'); return; }
   try {
@@ -1247,6 +1251,20 @@ window.publishToFirestore = async function(){
       adminPwHash: sess.adminPwHash, courseId: COURSE_ID, scores: payload
     });
     toast(`✅ Publish OK — ${r.data.written} mahasiswa`);
+  } catch(e){
+    toast(`❌ ${e.message || e}`);
+  }
+};
+
+// Hapus semua nilai OBE yang sudah dipublish dari server (dosen)
+window.deleteObeFromFirestore = async function(){
+  const sess = getSession();
+  if(!sess || sess.role !== 'dosen'){ toast('❌ Login dosen dulu'); return; }
+  if(!confirm('⚠️ HAPUS semua nilai OBE yang sudah dipublish dari server?\n\nMahasiswa tidak akan bisa melihat nilai lagi sampai Bapak Publish ulang. Tindakan ini tidak bisa dibatalkan.\n\n(Nilai lokal di browser ini TIDAK terhapus — pakai "Reset Lokal" untuk itu.)')) return;
+  try {
+    const fn = await getFb();
+    const r = await fn._call('deleteObeNilai', { adminPwHash: sess.adminPwHash, courseId: COURSE_ID });
+    toast(`🗑️ Terhapus dari server — ${r.data.deleted} mahasiswa`);
   } catch(e){
     toast(`❌ ${e.message || e}`);
   }
