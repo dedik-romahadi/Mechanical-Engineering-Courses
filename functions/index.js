@@ -1490,3 +1490,176 @@ exports.getMyObeNilai = onCall(async (request) => {
     publishedAt: d.publishedAt ? d.publishedAt.toMillis() : null,
   };
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// computeObeScores — admin callable. Hitung nilai OBE per Sub-CPMK dari data
+// performa mahasiswa (poin modul utk Tugas; per-soal exam utk UTS/UAS).
+//
+// MAPPING (kontigu, proporsional bobot — bisa disesuaikan di OBE_MAP):
+//   Tugas kolom: 1.3←M1, 2.1←M2, 2.2←M3, 2.3←M4, 3.1←M5, 3.2←M6, 3.3←M7,
+//                4.1←M8, 4.2←M9, 4.3←M10, 5.1←avg(M11,M12), 5.2←avg(M13,M14)
+//                (poin modul 0..50 → ×2 → skala 0..100)
+//   UTS soal (Q1-10 tf, Q11-30 mc, Q31-40 comp-2pt, Q41-45 hard-4pt):
+//     1.1←Q1-11, 1.2←Q12-22, 1.3←Q23-31, 2.2←Q32-38, 2.3←Q39-45
+//   UAS soal:
+//     3.1←Q1-9, 3.2←Q10-16, 3.3←Q17-23, 4.1←Q24-30, 4.2←Q31-36, 4.3←Q37-45
+//   Nilai Sub-CPMK exam = Σ poin diperoleh / Σ poin maks (grup) × 100.
+//
+// Request: { adminPwHash, courseId, nims:[...] }
+// Response: { courseId, scores: { nim: { TGS:{sub:val}, UTS:{...}, UAS:{...} } }, missing }
+// ─────────────────────────────────────────────────────────────────────────────
+const OBE_EXAM_ORDER = (prefixComp) => [
+  ...Array.from({length:10}, (_,i)=>`tf${i+1}`),
+  ...Array.from({length:20}, (_,i)=>`mc${i+1}`),
+  ...Array.from({length:10}, (_,i)=>`${prefixComp}${i+1}`),       // comp easy
+  ...Array.from({length:5},  (_,i)=>`${prefixComp}${i+11}`),      // comp hard
+];
+const OBE_ORDER = {
+  "optoauto-uts": (() => { // UTS comp easy = ce1-ce10, hard = ch1-ch5
+    return [
+      ...Array.from({length:10}, (_,i)=>`tf${i+1}`),
+      ...Array.from({length:20}, (_,i)=>`mc${i+1}`),
+      ...Array.from({length:10}, (_,i)=>`ce${i+1}`),
+      ...Array.from({length:5},  (_,i)=>`ch${i+1}`),
+    ];
+  })(),
+  "optoauto-uas": OBE_EXAM_ORDER("c"),  // c1-c10 (easy), c11-c15 (hard)
+};
+// Poin maks per posisi Q (1-based): Q1-30=1, Q31-40=2, Q41-45=4
+function _obeQPoints(qIndex0){ return qIndex0 < 30 ? 1 : qIndex0 < 40 ? 2 : 4; }
+const OBE_MAP = {
+  uts: { "1.1":[1,11], "1.2":[12,22], "1.3":[23,31], "2.2":[32,38], "2.3":[39,45] },
+  uas: { "3.1":[1,9], "3.2":[10,16], "3.3":[17,23], "4.1":[24,30], "4.2":[31,36], "4.3":[37,45] },
+};
+const OBE_TUGAS_COLS = [
+  ["1.3",[1]], ["2.1",[2]], ["2.2",[3]], ["2.3",[4]], ["3.1",[5]], ["3.2",[6]],
+  ["3.3",[7]], ["4.1",[8]], ["4.2",[9]], ["4.3",[10]], ["5.1",[11,12]], ["5.2",[13,14]],
+];
+
+// Default mapping bentuk LIST (jadi fallback kalau client tak kirim).
+function _rangeToList(lo, hi){ const a=[]; for(let i=lo;i<=hi;i++) a.push(i); return a; }
+function _defaultObeMapping(){
+  const tugas = {}; OBE_TUGAS_COLS.forEach(([sub,mods]) => tugas[sub] = mods.slice());
+  const uts = {}; for (const [sub,[lo,hi]] of Object.entries(OBE_MAP.uts)) uts[sub] = _rangeToList(lo,hi);
+  const uas = {}; for (const [sub,[lo,hi]] of Object.entries(OBE_MAP.uas)) uas[sub] = _rangeToList(lo,hi);
+  return { tugas, uts, uas };
+}
+
+exports.computeObeScores = onCall({ timeoutSeconds: 300 }, async (request) => {
+  const { adminPwHash, courseId, nims, mapping } = request.data || {};
+  if (!adminPwHash || adminPwHash !== ADMIN_PW_HASH) {
+    throw new HttpsError("permission-denied", "Admin password salah");
+  }
+  if (courseId !== "optoauto") {
+    throw new HttpsError("invalid-argument", "computeObeScores baru mendukung courseId 'optoauto'");
+  }
+  if (!Array.isArray(nims) || nims.length === 0) {
+    throw new HttpsError("invalid-argument", "nims wajib array NIM");
+  }
+  const validNims = nims.filter(n => /^[0-9]{1,20}$/.test(n));
+
+  // ── Mapping efektif: pakai dari client kalau valid, else default ──
+  const _def = _defaultObeMapping();
+  const _m = (mapping && typeof mapping === "object") ? mapping : {};
+  const _clean = (arr, lo, hi) => Array.isArray(arr)
+    ? Array.from(new Set(arr.map(Number).filter(x => Number.isInteger(x) && x >= lo && x <= hi)))
+    : [];
+  const effTugas = {};
+  for (const [sub, d0] of Object.entries(_def.tugas)) {
+    const v = _m.tugas && _clean(_m.tugas[sub], 1, 14);
+    effTugas[sub] = (v && v.length) ? v : d0;
+  }
+  const _effExam = (which) => {
+    const o = {};
+    for (const [sub, d0] of Object.entries(_def[which])) {
+      const v = _m[which] && _clean(_m[which][sub], 1, 45);
+      o[sub] = (v && v.length) ? v : d0;
+    }
+    return o;
+  };
+  const effUts = _effExam("uts");
+  const effUas = _effExam("uas");
+
+  const fs = getFirestore();
+  const rtdb = getDatabase();
+  const courseSlug = "optoauto";
+
+  try {
+    // ── 1) TUGAS: baca poin modul 1..14 (RTDB visitors/<slug>/<seg>) ──
+    // seg modul N = pertemuan-(N<=7?N:N+1)
+    const modulPoints = {};  // nimKey → {1..14: points}
+    for (let n = 1; n <= 14; n++) {
+      const pert = n <= 7 ? n : n + 1;
+      const snap = await rtdb.ref(`visitors/${courseSlug}/pertemuan-${pert}`).get();
+      const node = snap.val() || {};
+      for (const [key, rec] of Object.entries(node)) {
+        if (!key.startsWith("mhs_") || !rec || typeof rec !== "object") continue;
+        modulPoints[key] = modulPoints[key] || {};
+        modulPoints[key][n] = Number(rec.points) || 0;
+      }
+    }
+
+    // ── 2) EXAM (UTS/UAS): baca attempts per mahasiswa ──
+    async function examEarned(examId, nimKey) {
+      // return { earnedByQ: {qId: pts}, } berdasar correct/status × maks poin
+      const order = OBE_ORDER[examId];
+      const qsCol = fs.collection(`examAttempts/${examId}/students/${nimKey}/qs`);
+      const docs = await qsCol.get();
+      const att = {};
+      docs.forEach(d => { att[d.id] = d.data() || {}; });
+      const earned = {};
+      order.forEach((qId, idx) => {
+        const maxP = _obeQPoints(idx);
+        const a = att[qId];
+        if (!a) { earned[qId] = 0; return; }
+        if (a.status === "correct" || a.correct === true) earned[qId] = maxP;
+        else if (a.status === "partial") earned[qId] = (maxP >= 4 ? 1 : 0); // hard partial = 1
+        else earned[qId] = 0;
+      });
+      return earned;
+    }
+
+    const scores = {};
+    const missing = [];
+    for (const nim of validNims) {
+      const nimKey = sanitizeKey("mhs_" + nim);
+      const out = { TGS:{}, UTS:{}, UAS:{} };
+
+      // TUGAS — tiap kolom = rata-rata nilai modul (skala 100) sesuai mapping
+      const mp = modulPoints[nimKey] || {};
+      const tugas = {};  // 1..14 → skala 100
+      for (let n = 1; n <= 14; n++) tugas[n] = Math.min(100, (mp[n] || 0) * 2);
+      for (const [sub, mods] of Object.entries(effTugas)) {
+        const vals = mods.map(m => tugas[m] || 0);
+        out.TGS[sub] = vals.length ? Math.round((vals.reduce((a,b)=>a+b,0) / vals.length) * 100) / 100 : 0;
+      }
+
+      // UTS / UAS — tiap Sub-CPMK = Σ poin diperoleh / Σ poin maks (grup soal) × 100
+      for (const [examId, key, effMap] of [["optoauto-uts","UTS",effUts], ["optoauto-uas","UAS",effUas]]) {
+        const order = OBE_ORDER[examId];
+        let earned;
+        try { earned = await examEarned(examId, nimKey); }
+        catch (e) { earned = null; }
+        if (!earned) { missing.push(`${nim}/${key}`); continue; }
+        for (const [sub, qNums] of Object.entries(effMap)) {
+          let got = 0, max = 0;
+          for (const q of qNums) {
+            const qId = order[q-1];
+            if (!qId) continue;
+            got += earned[qId] || 0;
+            max += _obeQPoints(q-1);
+          }
+          out[key][sub] = max > 0 ? Math.round((got / max) * 100 * 100) / 100 : 0;
+        }
+      }
+      scores[nim] = out;
+    }
+
+    console.log("[computeObeScores]", courseId, "students:", validNims.length);
+    return { courseId, scores, missing };
+  } catch (e) {
+    if (e instanceof HttpsError) throw e;
+    console.error("[computeObeScores] FAILED", e);
+    throw new HttpsError("internal", `Compute gagal: ${e.message || e}`);
+  }
+});
