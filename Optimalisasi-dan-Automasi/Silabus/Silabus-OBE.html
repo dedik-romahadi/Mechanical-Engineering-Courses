@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dokumen Penilaian OBE — Optimalisasi &amp; Automasi | Teknik Mesin UMB</title>
+<style>
+  :root{
+    --bg:#070b14; --panel:#0d1626; --panel2:#101c30; --border:#1c2c45;
+    --head:#1d6a8e; --head2:#176d8a; --rowA:#0f1a2c; --rowB:#13243b;
+    --cyan:#22d3ee; --teal:#2dd4bf; --amber:#fbbf24; --text:#dbe5f3; --muted:#8aa0bf;
+    --ok:#34d399;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
+       line-height:1.55;padding:20px;display:flex;justify-content:center}
+  .wrap{width:100%;max-width:1180px}
+
+  /* ── Header ── */
+  .doc-head{background:linear-gradient(135deg,#0d1f33,#0a1626);border:1px solid var(--border);
+    border-radius:16px;padding:22px 26px;margin-bottom:18px;position:relative;overflow:hidden}
+  .doc-head::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;
+    background:linear-gradient(90deg,#22d3ee,#2dd4bf,#fbbf24,#6366f1)}
+  .doc-eyebrow{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan);font-weight:700;font-family:'JetBrains Mono',monospace}
+  .doc-title{font-size:24px;font-weight:800;margin:6px 0 4px;color:#f1f5f9;letter-spacing:-.3px}
+  .doc-sub{font-size:13.5px;color:var(--muted)}
+  .doc-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .chip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;
+    background:rgba(34,211,238,.07);border:1px solid rgba(34,211,238,.2);color:#9be7f5;
+    padding:5px 11px;border-radius:8px}
+
+  /* ── Tabs ── */
+  .tabbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+  .tab{padding:9px 15px;border-radius:9px 9px 0 0;border:1px solid var(--border);border-bottom:none;
+    background:var(--panel);color:var(--muted);font-size:12.5px;font-weight:600;cursor:pointer;
+    transition:all .15s;white-space:nowrap;user-select:none}
+  .tab:hover{color:var(--text);background:var(--panel2)}
+  .tab.active{background:var(--head);color:#fff;font-weight:800;border-color:var(--head);
+    box-shadow:0 -2px 10px rgba(29,106,142,.4)}
+
+  /* ── Panel ── */
+  .panel{display:none;background:var(--panel);border:1px solid var(--border);border-radius:0 14px 14px 14px;
+    padding:18px;overflow-x:auto}
+  .panel.active{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  /* ── Table ── */
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:560px}
+  caption{caption-side:top;background:var(--head);color:#fff;font-weight:800;font-size:13.5px;
+    padding:11px;border-radius:8px 8px 0 0;letter-spacing:.3px}
+  thead th{background:var(--head2);color:#eaf6fb;font-weight:700;font-size:12px;padding:11px 12px;
+    text-align:left;border-bottom:2px solid rgba(255,255,255,.08);vertical-align:middle}
+  thead th.num,tbody td.num{text-align:center}
+  tbody td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text)}
+  tbody tr:nth-child(odd) td{background:var(--rowA)}
+  tbody tr:nth-child(even) td{background:var(--rowB)}
+  tbody td.code{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--cyan);white-space:nowrap}
+  tbody td.desc{color:#b8c6dc;max-width:430px}
+  tbody td.zero{color:#3c4a63}
+  tbody td.val{font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--text)}
+  tbody td.sum{font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--amber)}
+  tfoot td{background:var(--head);color:#fff;font-weight:800;padding:11px 12px;font-family:'JetBrains Mono',monospace;
+    border-top:2px solid rgba(255,255,255,.1)}
+  tfoot td.num{text-align:center}
+  .note{margin-top:12px;font-size:11.5px;color:var(--muted);font-style:italic}
+  .foot{margin-top:18px;padding:12px 16px;background:rgba(255,255,255,.02);border:1px solid var(--border);
+    border-radius:10px;display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;font-size:11.5px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ════ HEADER ════ -->
+  <div class="doc-head">
+    <div class="doc-eyebrow">Dokumen Penilaian · OBE</div>
+    <div class="doc-title">Optimalisasi &amp; Automasi</div>
+    <div class="doc-sub">Capaian Pembelajaran (CPL / CPMK / Sub-CPMK) &amp; Matrikulasi Asesmen</div>
+    <div class="doc-meta">
+      <span class="chip">👨‍🏫 Dedik Romahadi</span>
+      <span class="chip">🏛️ S1 Teknik Mesin — Universitas Mercu Buana</span>
+      <span class="chip">📅 T.A. 2025/2026</span>
+      <span class="chip">⚖️ Σ Bobot = 100%</span>
+    </div>
+  </div>
+
+  <!-- ════ TABS ════ -->
+  <div class="tabbar" id="tabbar">
+    <div class="tab active" data-tab="t1">Rekap Bobot Asesmen</div>
+    <div class="tab" data-tab="t2">Matrikulasi SUB CPMK × Asesmen</div>
+    <div class="tab" data-tab="t3">Matrikulasi CPMK × SUB CPMK</div>
+    <div class="tab" data-tab="t4">Matrikulasi CPL × CPMK</div>
+    <div class="tab" data-tab="t5">Matrikulasi CPL</div>
+    <div class="tab" data-tab="t6">Deskripsi SUB CPMK</div>
+    <div class="tab" data-tab="t7">Deskripsi CPMK</div>
+  </div>
+
+  <!-- ════ TAB 1: Rekap Bobot Asesmen ════ -->
+  <div class="panel active" id="t1">
+    <table>
+      <caption>Rekap Bobot Asesmen</caption>
+      <thead><tr><th>Subyek</th><th>Nama Singkat</th><th class="num">Prosentase</th></tr></thead>
+      <tbody>
+        <tr><td>PROSENTASE PRESENSI</td><td class="code">PRE</td><td class="num zero">0 %</td></tr>
+        <tr><td>PROSENTASE TUGAS</td><td class="code">TGS</td><td class="num val">60 %</td></tr>
+        <tr><td>PROSENTASE PRAKTIKUM</td><td class="code">PRAK</td><td class="num zero">0 %</td></tr>
+        <tr><td>PROSENTASE UTS</td><td class="code">UTS</td><td class="num val">20 %</td></tr>
+        <tr><td>PROSENTASE UAS</td><td class="code">UAS</td><td class="num val">20 %</td></tr>
+      </tbody>
+      <tfoot><tr><td colspan="2">Σ Bobot</td><td class="num">100 %</td></tr></tfoot>
+    </table>
+  </div>
+
+  <!-- ════ TAB 2: Matrikulasi SUB CPMK × Asesmen ════ -->
+  <div class="panel" id="t2">
+    <table>
+      <caption>Asesmen</caption>
+      <thead><tr>
+        <th>Kode Sub-CPMK</th><th>Deskripsi Sub-CPMK</th>
+        <th class="num">Praktikum</th><th class="num">Tugas</th><th class="num">UTS</th><th class="num">UAS</th>
+        <th class="num">Σ Bobot Sub-CPMK</th>
+      </tr></thead>
+      <tbody id="t2body"></tbody>
+      <tfoot><tr>
+        <td colspan="2" style="text-align:right">Σ Bobot</td>
+        <td class="num">0 %</td><td class="num">60 %</td><td class="num">20 %</td><td class="num">20 %</td><td class="num">100 %</td>
+      </tr></tfoot>
+    </table>
+  </div>
+
+  <!-- ════ TAB 3: Matrikulasi CPMK × SUB CPMK ════ -->
+  <div class="panel" id="t3">
+    <table>
+      <caption>Capaian Pembelajaran Mata Kuliah (CPMK)</caption>
+      <thead><tr>
+        <th>Kode Sub-CPMK</th><th>Deskripsi Sub-CPMK</th>
+        <th class="num">CPMK-1</th><th class="num">CPMK-2</th><th class="num">CPMK-3</th><th class="num">CPMK-4</th><th class="num">CPMK-5</th>
+        <th class="num">Σ Bobot Sub-CPMK</th>
+      </tr></thead>
+      <tbody id="t3body"></tbody>
+      <tfoot><tr>
+        <td colspan="2" style="text-align:right">Σ Bobot</td>
+        <td class="num">20 %</td><td class="num">23 %</td><td class="num">21 %</td><td class="num">22 %</td><td class="num">14 %</td><td class="num">100 %</td>
+      </tr></tfoot>
+    </table>
+  </div>
+
+  <!-- ════ TAB 4: Matrikulasi CPL × CPMK ════ -->
+  <div class="panel" id="t4">
+    <table>
+      <caption>Capaian Pembelajaran Lulusan (CPL)</caption>
+      <thead><tr>
+        <th>Kode CPMK</th><th>Deskripsi CPMK</th>
+        <th class="num">CPL3</th><th class="num">CPL4</th><th class="num">CPL5</th><th class="num">CPL6</th>
+        <th class="num">Σ Bobot CPMK</th>
+      </tr></thead>
+      <tbody id="t4body"></tbody>
+      <tfoot><tr>
+        <td colspan="2" style="text-align:right">Σ Bobot</td>
+        <td class="num">43 %</td><td class="num">21 %</td><td class="num">22 %</td><td class="num">14 %</td><td class="num">100 %</td>
+      </tr></tfoot>
+    </table>
+  </div>
+
+  <!-- ════ TAB 5: Matrikulasi CPL ════ -->
+  <div class="panel" id="t5">
+    <table>
+      <caption>Matrikulasi CPL</caption>
+      <thead><tr><th>Kode CPL</th><th>Deskripsi CPL</th><th class="num">Bobot</th></tr></thead>
+      <tbody id="t5body"></tbody>
+      <tfoot><tr><td colspan="2" style="text-align:right">Σ Bobot</td><td class="num">100 %</td></tr></tfoot>
+    </table>
+  </div>
+
+  <!-- ════ TAB 6: Deskripsi SUB CPMK ════ -->
+  <div class="panel" id="t6">
+    <table>
+      <caption>Deskripsi SUB CPMK</caption>
+      <thead><tr><th>Kode SUB CPMK</th><th>Deskripsi SUB CPMK</th></tr></thead>
+      <tbody id="t6body"></tbody>
+    </table>
+  </div>
+
+  <!-- ════ TAB 7: Deskripsi CPMK ════ -->
+  <div class="panel" id="t7">
+    <table>
+      <caption>Deskripsi CPMK</caption>
+      <thead><tr><th>Kode CPMK</th><th>Deskripsi CPMK</th></tr></thead>
+      <tbody id="t7body"></tbody>
+    </table>
+  </div>
+
+  <div class="foot">
+    <span>📐 Optimalisasi &amp; Automasi · Dokumen OBE</span>
+    <span style="font-family:'JetBrains Mono',monospace">SIA OBE · nilaiobe/lst/347514</span>
+  </div>
+</div>
+
+<script>
+// ── Sumber data (sesuai SIA OBE Opto) ──
+const SUBCPMK = {
+  "1.1":"Mampu mengidentifikasi komponen dan kebutuhan teknis sistem otomasi.",
+  "1.2":"Mampu menganalisis kebutuhan sistem untuk efisiensi dan keberlanjutan.",
+  "1.3":"Mampu mempertimbangkan aspek ekonomi dalam desain sistem otomasi",
+  "2.1":"Mampu menganalisis dampak sosial dan lingkungan dari sistem otomasi.",
+  "2.2":"Mampu merancang sistem otomasi menggunakan perangkat lunak simulasi.",
+  "2.3":"Mampu mengimplementasikan dan menguji model sistem dengan simulasi.",
+  "3.1":"Mampu menggunakan metode simulasi yang tepat dalam desain sistem",
+  "3.2":"Mampu mengintegrasikan hasil simulasi untuk mendukung keputusan desain.",
+  "3.3":"Mampu menggunakan teknologi 4.0 untuk mengoptimalkan sistem otomasi.",
+  "4.1":"Mampu menganalisis penggunaan teknologi 4.0 untuk meningkatkan kinerja",
+  "4.2":"Mampu merancang sistem otomasi berbasis teknologi 4.0 untuk efisiensi.",
+  "4.3":"Mampu mengevaluasi dampak teknologi 4.0 terhadap kinerja dan kualitas.",
+  "5.1":"Mampu melakukan pengukuran kinerja sistem dan menganalisis hasilnya.",
+  "5.2":"Mampu menginterpretasikan data kinerja dan memberikan rekomendasi perbaikan"
+};
+const CPMK = {
+  "CPMK-1":"Mahasiswa dapat mengidentifikasi dan menganalisis kebutuhan dalam perancangan sistem mekanik dengan mempertimbangkan aspek teknis, ekonomi, dan keberlanjutan",
+  "CPMK-2":"Mahasiswa mampu merancang dan melakukan simulasi sistem mekanik menggunakan metode dan alat desain yang tepat.",
+  "CPMK-3":"Mahasiswa mampu mengaplikasikan teknologi 4.0 dalam optimalisasi dan otomasi sistem teknik mesin untuk meningkatkan efisiensi dan kinerja.",
+  "CPMK-4":"Mampu merancang sistem otomasi dan merancang sistem otomasi berbasis teknologi 4.0",
+  "CPMK-5":"Mahasiswa dapat mengukur kinerja sistem dan melakukan evaluasi berdasarkan analisis data yang diperoleh."
+};
+const CPL = {
+  "CPL3":["Mampu menerapkan pemikiran logis, kritis, sistematis, kreatif dan inovatif dalam merancang komponen, sistem, dan/atau proses dengan pendekatan analisis perekayasa berbasis ilmu dan teknologi 4.0 dan mempertimbangkan standar teknis, aspek kinerja, keandalan, kemudahan penerapan, serta beberapa aspek terkait seperti aspek hukum, ekonomi, lingkungan, sosial, politik, kesehatan dan keselamatan dan juga untuk memanfaatkan potensi sumber daya lokal dan nasional dengan perspektif global dalam rangka menghasilkan solusi, gagasan, atau desain teknik.","43 %"],
+  "CPL4":["Mampu mendesain, melakukan simulasi, dan melakukan eksperimen skala laboratorium serta menganalisis serta menginterpretasikan data hasil kajiannya serta melaporkannya dalam bentuk skripsi atau laporan tugas akhir dan mengunggahnya di laman perguruan tinggi.","21 %"],
+  "CPL5":["Mampu mengidentifikasikan, memformulasikan, menganalisis dan menyelesaikan permasalahan-permasalahan teknik mesin yang kompleks serta mengkaji efisiensi kinerja sistem mekanikal dan melakukan perbaikan sistem yang dibutuhkan.","22 %"],
+  "CPL6":["Mampu mengaplikasikan metode, dan terampil menggunakan alat-alat keteknikan modern yang dibutuhkan dalam praktik-praktik keteknikmesinan.","14 %"]
+};
+// Tab 2: [prak, tugas, uts, uas, sum] per sub-CPMK
+const T2 = {
+  "1.1":[0,0,5,0,5], "1.2":[0,0,5,0,5], "1.3":[0,6,4,0,10],
+  "2.1":[0,7,0,0,7], "2.2":[0,5,3,0,8], "2.3":[0,5,3,0,8],
+  "3.1":[0,3,0,4,7], "3.2":[0,4,0,3,7], "3.3":[0,4,0,3,7],
+  "4.1":[0,4,0,3,7], "4.2":[0,4,0,3,7], "4.3":[0,4,0,4,8],
+  "5.1":[0,7,0,0,7], "5.2":[0,7,0,0,7]
+};
+// Tab 3: [cpmk1..5, sum] per sub-CPMK
+const T3 = {
+  "1.1":[5,0,0,0,0,5], "1.2":[5,0,0,0,0,5], "1.3":[10,0,0,0,0,10],
+  "2.1":[0,7,0,0,0,7], "2.2":[0,8,0,0,0,8], "2.3":[0,8,0,0,0,8],
+  "3.1":[0,0,7,0,0,7], "3.2":[0,0,7,0,0,7], "3.3":[0,0,7,0,0,7],
+  "4.1":[0,0,0,7,0,7], "4.2":[0,0,0,7,0,7], "4.3":[0,0,0,8,0,8],
+  "5.1":[0,0,0,0,7,7], "5.2":[0,0,0,0,7,7]
+};
+// Tab 4: [cpl3,cpl4,cpl5,cpl6, sum] per CPMK
+const T4 = {
+  "CPMK-1":[20,0,0,0,20], "CPMK-2":[23,0,0,0,23], "CPMK-3":[0,21,0,0,21],
+  "CPMK-4":[0,0,22,0,22], "CPMK-5":[0,0,0,14,14]
+};
+
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const pct = v => v===0 ? '<span class="zero">0</span>' : `<span class="val">${v} %</span>`;
+const subKeys = Object.keys(SUBCPMK);
+
+// Tab 2
+document.getElementById('t2body').innerHTML = subKeys.map(k=>{
+  const d=T2[k];
+  return `<tr><td class="code">Sub-CPMK ${k}</td><td class="desc">${esc(SUBCPMK[k])}</td>`+
+    `<td class="num">${pct(d[0])}</td><td class="num">${pct(d[1])}</td><td class="num">${pct(d[2])}</td><td class="num">${pct(d[3])}</td>`+
+    `<td class="num sum">${d[4]} %</td></tr>`;
+}).join('');
+
+// Tab 3
+document.getElementById('t3body').innerHTML = subKeys.map(k=>{
+  const d=T3[k];
+  return `<tr><td class="code">Sub-CPMK ${k}</td><td class="desc">${esc(SUBCPMK[k])}</td>`+
+    d.slice(0,5).map(v=>`<td class="num">${pct(v)}</td>`).join('')+
+    `<td class="num sum">${d[5]} %</td></tr>`;
+}).join('');
+
+// Tab 4
+document.getElementById('t4body').innerHTML = Object.keys(CPMK).map(k=>{
+  const d=T4[k];
+  return `<tr><td class="code">${k}</td><td class="desc">${esc(CPMK[k])}</td>`+
+    d.slice(0,4).map(v=>`<td class="num">${pct(v)}</td>`).join('')+
+    `<td class="num sum">${d[4]} %</td></tr>`;
+}).join('');
+
+// Tab 5
+document.getElementById('t5body').innerHTML = Object.keys(CPL).map(k=>{
+  return `<tr><td class="code">${k}</td><td class="desc">${esc(CPL[k][0])}</td><td class="num sum">${CPL[k][1]}</td></tr>`;
+}).join('');
+
+// Tab 6
+document.getElementById('t6body').innerHTML = subKeys.map(k=>{
+  return `<tr><td class="code">Sub-CPMK ${k}</td><td class="desc" style="max-width:none">${esc(SUBCPMK[k])}</td></tr>`;
+}).join('');
+
+// Tab 7
+document.getElementById('t7body').innerHTML = Object.keys(CPMK).map(k=>{
+  return `<tr><td class="code">${k}</td><td class="desc" style="max-width:none">${esc(CPMK[k])}</td></tr>`;
+}).join('');
+
+// ── Tab switching ──
+document.getElementById('tabbar').addEventListener('click', e=>{
+  const tab = e.target.closest('.tab'); if(!tab) return;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  tab.classList.add('active');
+  document.getElementById(tab.dataset.tab).classList.add('active');
+});
+</script>
+</body>
+</html>
