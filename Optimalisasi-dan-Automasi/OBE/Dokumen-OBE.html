@@ -595,7 +595,15 @@ function cellCsv(v){
   return v;
 }
 
-// ── Export .xls (SheetJS, mirror struktur Form_Nilai_*.xls dari SIA) ──
+// ── Export .xls (SheetJS, mirror PERSIS struktur Form_Nilai_*.xls dari SIA) ──
+// Referensi: Form_Nilai_<Tugas|UTS|UAS>_2A6134FF_347514.xls
+//   Sheet name = 'Tugas'/'UTS'/'UAS'; merge r0 col E..akhir;
+//   r0: 'Sub Capaian Pembelajaran Mata Kuliah (Sub CPMK)' (merged)
+//   r1: No. NIM Nama PRE Sub-CPMK X.Y ...
+//   r2: '' 'Bobot (%)' '' '' N%...
+//   data: i+1, '<NIM>', '<Nama>', '<pre>%', nilai|''
+// Lebar kolom (Excel char unit, dari ref): No=5, NIM=14, Nama=55, PRE=5, Sub=15
+const SIA_CLASS_TOKEN = '2A6134FF';  // dari nama file SIA utk kelas Opto ini
 function exportXLS(formKey){
   if(typeof XLSX === 'undefined'){ toast('⚠️ Library xlsx belum termuat, coba lagi'); return; }
   const form = FORMS[formKey];
@@ -605,19 +613,32 @@ function exportXLS(formKey){
   const r2 = ['','Bobot (%)','','', ...cols.map(c=>`${c[1]}%`)];
   const aoa = [r0, r1, r2];
   STUDENTS.forEach((st,i)=>{
-    const row = [i+1, st.nim, st.nama, `${st.pre}%`];
+    const row = [i+1, String(st.nim), st.nama, `${st.pre}%`];
     for(const [sub] of cols){
       const v = getScore(formKey, st.nim, sub);
-      row.push(v === '' ? '' : Number(v));
+      row.push(v === '' ? null : Number(v));  // null = sel kosong (bukan empty string)
     }
     aoa.push(row);
   });
   const ws = XLSX.utils.aoa_to_sheet(aoa);
+  // Paksa NIM (kolom B) bertipe TEXT supaya tidak di-coerce ke number oleh Excel
+  for(let r = 3; r < aoa.length; r++){
+    const addr = XLSX.utils.encode_cell({r, c:1});
+    if(ws[addr]) ws[addr].t = 's';
+  }
   // Merge sel "Sub Capaian..." dari kol E sampai akhir (baris 0)
   ws['!merges'] = [{ s:{r:0,c:4}, e:{r:0,c:3+cols.length} }];
+  // Lebar kolom: pixel-match file SIA (No=1170, NIM=3583, Nama=14149, PRE=1170, Sub=3912)
+  ws['!cols'] = [
+    { wch: 3.74 },   // No.
+    { wch: 13.16 },  // NIM
+    { wch: 54.44 }, // Nama
+    { wch: 3.74 },   // PRE
+    ...cols.map(()=>({ wch: 14.45 })),  // Sub-CPMK
+  ];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, form.label);
-  XLSX.writeFile(wb, `Form_Nilai_${form.label}_347514.xls`, { bookType:'biff8' });
+  XLSX.writeFile(wb, `Form_Nilai_${form.label}_${SIA_CLASS_TOKEN}_347514.xls`, { bookType:'biff8' });
   toast(`✅ File Import ${form.label} ter-download`);
 }
 
