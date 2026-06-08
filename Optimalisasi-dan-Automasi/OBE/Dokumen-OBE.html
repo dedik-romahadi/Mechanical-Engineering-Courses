@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dokumen OBE — Optimalisasi &amp; Automasi | Teknik Mesin UMB</title>
+<style>
+  :root{
+    --bg:#070b14; --panel:#0d1626; --panel2:#101c30; --border:#1c2c45;
+    --head:#1d6a8e; --head2:#176d8a; --rowA:#0f1a2c; --rowB:#13243b;
+    --cyan:#22d3ee; --teal:#2dd4bf; --amber:#fbbf24; --text:#dbe5f3; --muted:#8aa0bf;
+    --ok:#34d399; --warn:#f59e0b; --bad:#f87171;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
+       line-height:1.55;padding:20px;display:flex;justify-content:center}
+  .wrap{width:100%;max-width:1280px}
+
+  /* ── Header ── */
+  .doc-head{background:linear-gradient(135deg,#0d1f33,#0a1626);border:1px solid var(--border);
+    border-radius:16px;padding:22px 26px;margin-bottom:14px;position:relative;overflow:hidden}
+  .doc-head::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;
+    background:linear-gradient(90deg,#22d3ee,#2dd4bf,#fbbf24,#6366f1)}
+  .doc-eyebrow{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan);font-weight:700;font-family:'JetBrains Mono',monospace}
+  .doc-title{font-size:24px;font-weight:800;margin:6px 0 4px;color:#f1f5f9;letter-spacing:-.3px}
+  .doc-sub{font-size:13.5px;color:var(--muted)}
+  .doc-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .chip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;
+    background:rgba(34,211,238,.07);border:1px solid rgba(34,211,238,.2);color:#9be7f5;
+    padding:5px 11px;border-radius:8px}
+
+  /* ── Mode switch ── */
+  .modebar{display:flex;gap:0;margin-bottom:14px;background:var(--panel);border:1px solid var(--border);
+    border-radius:12px;padding:5px;width:fit-content}
+  .modebtn{padding:10px 22px;border-radius:8px;border:none;background:transparent;color:var(--muted);
+    font-size:13.5px;font-weight:700;cursor:pointer;letter-spacing:.3px;transition:all .15s;
+    font-family:inherit;display:inline-flex;align-items:center;gap:7px}
+  .modebtn:hover{color:var(--text)}
+  .modebtn.active{background:linear-gradient(135deg,var(--head),var(--head2));color:#fff;
+    box-shadow:0 2px 12px rgba(29,106,142,.4)}
+
+  /* ── Tabs ── */
+  .tabbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+  .tab{padding:9px 14px;border-radius:9px 9px 0 0;border:1px solid var(--border);border-bottom:none;
+    background:var(--panel);color:var(--muted);font-size:12.5px;font-weight:600;cursor:pointer;
+    transition:all .15s;white-space:nowrap;user-select:none}
+  .tab:hover{color:var(--text);background:var(--panel2)}
+  .tab.active{background:var(--head);color:#fff;font-weight:800;border-color:var(--head);
+    box-shadow:0 -2px 10px rgba(29,106,142,.4)}
+
+  /* ── Panel ── */
+  .mode{display:none}
+  .mode.active{display:block}
+  .panel{display:none;background:var(--panel);border:1px solid var(--border);border-radius:0 14px 14px 14px;
+    padding:16px;overflow-x:auto}
+  .panel.active{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  /* ── Table ── */
+  table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:620px}
+  caption{caption-side:top;background:var(--head);color:#fff;font-weight:800;font-size:13.5px;
+    padding:11px;border-radius:8px 8px 0 0;letter-spacing:.3px}
+  thead th{background:var(--head2);color:#eaf6fb;font-weight:700;font-size:11.5px;padding:10px;
+    text-align:left;border-bottom:2px solid rgba(255,255,255,.08);vertical-align:middle;white-space:nowrap}
+  thead th.num,tbody td.num{text-align:center}
+  thead th.subhdr{font-weight:600;background:rgba(29,106,142,.5);color:#aedaee;font-size:10px}
+  tbody td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text)}
+  tbody tr:nth-child(odd) td{background:var(--rowA)}
+  tbody tr:nth-child(even) td{background:var(--rowB)}
+  tbody td.code{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--cyan);white-space:nowrap;font-size:11.5px}
+  tbody td.desc{color:#b8c6dc;max-width:430px}
+  tbody td.zero{color:#3c4a63}
+  tbody td.val{font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--text)}
+  tbody td.sum{font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--amber)}
+  tbody td.nim{font-family:'JetBrains Mono',monospace;color:#e8b4b4;font-weight:700;font-size:11.5px}
+  tbody td.nama{color:#e8b4b4;font-weight:600;font-size:11.5px}
+  tfoot td{background:var(--head);color:#fff;font-weight:800;padding:11px;font-family:'JetBrains Mono',monospace;
+    border-top:2px solid rgba(255,255,255,.1);font-size:11.5px}
+  tfoot td.num{text-align:center}
+
+  /* ── Inputs ── */
+  .scoreinput{width:54px;padding:5px 6px;background:#020a18;border:1px solid var(--border);
+    border-radius:6px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11.5px;text-align:center;outline:none}
+  .scoreinput:focus{border-color:var(--cyan);background:#03142a}
+  .scoreinput.has{border-color:rgba(52,211,153,.4);color:var(--ok)}
+  .scoreinput:disabled{background:#0a1422;color:#3c4a63;cursor:not-allowed}
+
+  /* ── Action bar ── */
+  .actbar{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;
+    padding:10px 14px;background:rgba(34,211,238,.04);border:1px solid rgba(34,211,238,.15);
+    border-radius:10px;margin-bottom:14px}
+  .actleft{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:12px;color:var(--muted)}
+  .actleft .stat{font-family:'JetBrains Mono',monospace;color:var(--text);font-weight:700}
+  .actright{display:flex;flex-wrap:wrap;gap:6px}
+  .btn{padding:7px 13px;border:none;border-radius:7px;font-family:inherit;font-size:12px;
+    font-weight:700;cursor:pointer;letter-spacing:.2px;display:inline-flex;align-items:center;gap:5px}
+  .btn-export{background:linear-gradient(135deg,var(--ok),#10b981);color:#04140b}
+  .btn-clear{background:rgba(248,113,113,.15);color:#fca5a5;border:1px solid rgba(248,113,113,.3)}
+  .btn-import{background:rgba(34,211,238,.15);color:var(--cyan);border:1px solid rgba(34,211,238,.3)}
+  .btn:hover{filter:brightness(1.1)}
+
+  /* ── Footer ── */
+  .foot{margin-top:18px;padding:12px 16px;background:rgba(255,255,255,.02);border:1px solid var(--border);
+    border-radius:10px;display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;font-size:11.5px;color:var(--muted)}
+  .note{font-size:11.5px;color:var(--muted);margin-top:10px;font-style:italic}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--ok);color:#04140b;font-weight:700;padding:10px 18px;border-radius:10px;
+    box-shadow:0 6px 24px rgba(0,0,0,.4);opacity:0;transition:all .25s;font-size:13px;z-index:9999}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ═══════ HEADER ═══════ -->
+  <div class="doc-head">
+    <div class="doc-eyebrow">Dokumen OBE</div>
+    <div class="doc-title">Optimalisasi &amp; Automasi</div>
+    <div class="doc-sub">Silabus (CPL/CPMK/Sub-CPMK + matrikulasi) &amp; Penilaian Mahasiswa</div>
+    <div class="doc-meta">
+      <span class="chip">👨‍🏫 Dedik Romahadi</span>
+      <span class="chip">🏛️ S1 Teknik Mesin — UMB</span>
+      <span class="chip">📅 T.A. 2025/2026</span>
+      <span class="chip">👥 27 mahasiswa</span>
+      <span class="chip">🔗 SIA OBE: nilaiobe/lst/347514</span>
+    </div>
+  </div>
+
+  <!-- ═══════ MODE SWITCH ═══════ -->
+  <div class="modebar" id="modebar">
+    <button class="modebtn active" data-mode="silabus">📚 Silabus</button>
+    <button class="modebtn" data-mode="nilai">✏️ Penilaian</button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MODE 1 — SILABUS (7 tab)
+  ═══════════════════════════════════════════════════════════ -->
+  <div class="mode active" id="mode-silabus">
+    <div class="tabbar" data-tabgroup="silabus">
+      <div class="tab active" data-tab="s1">Rekap Bobot Asesmen</div>
+      <div class="tab" data-tab="s2">SUB CPMK × Asesmen</div>
+      <div class="tab" data-tab="s3">CPMK × SUB CPMK</div>
+      <div class="tab" data-tab="s4">CPL × CPMK</div>
+      <div class="tab" data-tab="s5">Matrikulasi CPL</div>
+      <div class="tab" data-tab="s6">Deskripsi SUB CPMK</div>
+      <div class="tab" data-tab="s7">Deskripsi CPMK</div>
+    </div>
+
+    <div class="panel active" id="s1">
+      <table>
+        <caption>Rekap Bobot Asesmen</caption>
+        <thead><tr><th>Subyek</th><th>Nama Singkat</th><th class="num">Prosentase</th></tr></thead>
+        <tbody>
+          <tr><td>PROSENTASE PRESENSI</td><td class="code">PRE</td><td class="num zero">0 %</td></tr>
+          <tr><td>PROSENTASE TUGAS</td><td class="code">TGS</td><td class="num val">60 %</td></tr>
+          <tr><td>PROSENTASE PRAKTIKUM</td><td class="code">PRAK</td><td class="num zero">0 %</td></tr>
+          <tr><td>PROSENTASE UTS</td><td class="code">UTS</td><td class="num val">20 %</td></tr>
+          <tr><td>PROSENTASE UAS</td><td class="code">UAS</td><td class="num val">20 %</td></tr>
+        </tbody>
+        <tfoot><tr><td colspan="2">Σ Bobot</td><td class="num">100 %</td></tr></tfoot>
+      </table>
+    </div>
+
+    <div class="panel" id="s2">
+      <table>
+        <caption>Asesmen</caption>
+        <thead><tr>
+          <th>Kode Sub-CPMK</th><th>Deskripsi Sub-CPMK</th>
+          <th class="num">Praktikum</th><th class="num">Tugas</th><th class="num">UTS</th><th class="num">UAS</th>
+          <th class="num">Σ Bobot Sub-CPMK</th>
+        </tr></thead>
+        <tbody id="s2body"></tbody>
+        <tfoot><tr>
+          <td colspan="2" style="text-align:right">Σ Bobot</td>
+          <td class="num">0 %</td><td class="num">60 %</td><td class="num">20 %</td><td class="num">20 %</td><td class="num">100 %</td>
+        </tr></tfoot>
+      </table>
+    </div>
+
+    <div class="panel" id="s3">
+      <table>
+        <caption>Capaian Pembelajaran Mata Kuliah (CPMK)</caption>
+        <thead><tr>
+          <th>Kode Sub-CPMK</th><th>Deskripsi Sub-CPMK</th>
+          <th class="num">CPMK-1</th><th class="num">CPMK-2</th><th class="num">CPMK-3</th><th class="num">CPMK-4</th><th class="num">CPMK-5</th>
+          <th class="num">Σ Bobot Sub-CPMK</th>
+        </tr></thead>
+        <tbody id="s3body"></tbody>
+        <tfoot><tr>
+          <td colspan="2" style="text-align:right">Σ Bobot</td>
+          <td class="num">20 %</td><td class="num">23 %</td><td class="num">21 %</td><td class="num">22 %</td><td class="num">14 %</td><td class="num">100 %</td>
+        </tr></tfoot>
+      </table>
+    </div>
+
+    <div class="panel" id="s4">
+      <table>
+        <caption>Capaian Pembelajaran Lulusan (CPL)</caption>
+        <thead><tr>
+          <th>Kode CPMK</th><th>Deskripsi CPMK</th>
+          <th class="num">CPL3</th><th class="num">CPL4</th><th class="num">CPL5</th><th class="num">CPL6</th>
+          <th class="num">Σ Bobot CPMK</th>
+        </tr></thead>
+        <tbody id="s4body"></tbody>
+        <tfoot><tr>
+          <td colspan="2" style="text-align:right">Σ Bobot</td>
+          <td class="num">43 %</td><td class="num">21 %</td><td class="num">22 %</td><td class="num">14 %</td><td class="num">100 %</td>
+        </tr></tfoot>
+      </table>
+    </div>
+
+    <div class="panel" id="s5">
+      <table>
+        <caption>Matrikulasi CPL</caption>
+        <thead><tr><th>Kode CPL</th><th>Deskripsi CPL</th><th class="num">Bobot</th></tr></thead>
+        <tbody id="s5body"></tbody>
+        <tfoot><tr><td colspan="2" style="text-align:right">Σ Bobot</td><td class="num">100 %</td></tr></tfoot>
+      </table>
+    </div>
+
+    <div class="panel" id="s6">
+      <table>
+        <caption>Deskripsi SUB CPMK</caption>
+        <thead><tr><th>Kode SUB CPMK</th><th>Deskripsi SUB CPMK</th></tr></thead>
+        <tbody id="s6body"></tbody>
+      </table>
+    </div>
+
+    <div class="panel" id="s7">
+      <table>
+        <caption>Deskripsi CPMK</caption>
+        <thead><tr><th>Kode CPMK</th><th>Deskripsi CPMK</th></tr></thead>
+        <tbody id="s7body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MODE 2 — PENILAIAN (4 tab)
+  ═══════════════════════════════════════════════════════════ -->
+  <div class="mode" id="mode-nilai">
+    <div class="tabbar" data-tabgroup="nilai">
+      <div class="tab active" data-tab="n1">Rekap Nilai Mahasiswa</div>
+      <div class="tab" data-tab="n2">Isi Nilai Tugas</div>
+      <div class="tab" data-tab="n3">Isi Nilai UTS</div>
+      <div class="tab" data-tab="n4">Isi Nilai UAS</div>
+    </div>
+
+    <div class="panel active" id="n1">
+      <div class="actbar">
+        <div class="actleft">
+          <span>Ringkasan: <span class="stat" id="recapStat">—</span></span>
+        </div>
+        <div class="actright">
+          <button class="btn btn-clear" onclick="clearAllScores()">🗑️ Reset Semua Nilai</button>
+        </div>
+      </div>
+      <table>
+        <caption>Rekap Nilai Mahasiswa</caption>
+        <thead><tr>
+          <th>No</th><th>NIM &amp; Nama</th>
+          <th class="num">PRE<br><span style="color:#9be7f5;font-size:10px">0%</span></th>
+          <th class="num">TGS<br><span style="color:#9be7f5;font-size:10px">60%</span></th>
+          <th class="num">UTS<br><span style="color:#9be7f5;font-size:10px">20%</span></th>
+          <th class="num">UAS<br><span style="color:#9be7f5;font-size:10px">20%</span></th>
+          <th class="num">NA</th>
+        </tr></thead>
+        <tbody id="n1body"></tbody>
+      </table>
+      <div class="note">NA = TGS·0.6 + UTS·0.2 + UAS·0.2  ·  Tiap komponen = Σ(Sub-CPMK × bobot%)/total bobot komponen × 100  ·  Data auto-sync dari tab isi nilai.</div>
+    </div>
+
+    <!-- TGS / UTS / UAS panels dibangun via JS karena identik strukturnya -->
+    <div class="panel" id="n2"></div>
+    <div class="panel" id="n3"></div>
+    <div class="panel" id="n4"></div>
+  </div>
+
+  <div class="foot">
+    <span>📐 Optimalisasi &amp; Automasi · Dokumen OBE (Silabus + Penilaian)</span>
+    <span style="font-family:'JetBrains Mono',monospace">SIA OBE · nilaiobe/lst/347514</span>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// DATA — Silabus (sesuai SIA)
+// ═══════════════════════════════════════════════════════════════
+const SUBCPMK = {
+  "1.1":"Mampu mengidentifikasi komponen dan kebutuhan teknis sistem otomasi.",
+  "1.2":"Mampu menganalisis kebutuhan sistem untuk efisiensi dan keberlanjutan.",
+  "1.3":"Mampu mempertimbangkan aspek ekonomi dalam desain sistem otomasi",
+  "2.1":"Mampu menganalisis dampak sosial dan lingkungan dari sistem otomasi.",
+  "2.2":"Mampu merancang sistem otomasi menggunakan perangkat lunak simulasi.",
+  "2.3":"Mampu mengimplementasikan dan menguji model sistem dengan simulasi.",
+  "3.1":"Mampu menggunakan metode simulasi yang tepat dalam desain sistem",
+  "3.2":"Mampu mengintegrasikan hasil simulasi untuk mendukung keputusan desain.",
+  "3.3":"Mampu menggunakan teknologi 4.0 untuk mengoptimalkan sistem otomasi.",
+  "4.1":"Mampu menganalisis penggunaan teknologi 4.0 untuk meningkatkan kinerja",
+  "4.2":"Mampu merancang sistem otomasi berbasis teknologi 4.0 untuk efisiensi.",
+  "4.3":"Mampu mengevaluasi dampak teknologi 4.0 terhadap kinerja dan kualitas.",
+  "5.1":"Mampu melakukan pengukuran kinerja sistem dan menganalisis hasilnya.",
+  "5.2":"Mampu menginterpretasikan data kinerja dan memberikan rekomendasi perbaikan"
+};
+const CPMK = {
+  "CPMK-1":"Mahasiswa dapat mengidentifikasi dan menganalisis kebutuhan dalam perancangan sistem mekanik dengan mempertimbangkan aspek teknis, ekonomi, dan keberlanjutan",
+  "CPMK-2":"Mahasiswa mampu merancang dan melakukan simulasi sistem mekanik menggunakan metode dan alat desain yang tepat.",
+  "CPMK-3":"Mahasiswa mampu mengaplikasikan teknologi 4.0 dalam optimalisasi dan otomasi sistem teknik mesin untuk meningkatkan efisiensi dan kinerja.",
+  "CPMK-4":"Mampu merancang sistem otomasi dan merancang sistem otomasi berbasis teknologi 4.0",
+  "CPMK-5":"Mahasiswa dapat mengukur kinerja sistem dan melakukan evaluasi berdasarkan analisis data yang diperoleh."
+};
+const CPL = {
+  "CPL3":["Mampu menerapkan pemikiran logis, kritis, sistematis, kreatif dan inovatif dalam merancang komponen, sistem, dan/atau proses dengan pendekatan analisis perekayasa berbasis ilmu dan teknologi 4.0 dan mempertimbangkan standar teknis, aspek kinerja, keandalan, kemudahan penerapan, serta beberapa aspek terkait seperti aspek hukum, ekonomi, lingkungan, sosial, politik, kesehatan dan keselamatan dan juga untuk memanfaatkan potensi sumber daya lokal dan nasional dengan perspektif global dalam rangka menghasilkan solusi, gagasan, atau desain teknik.","43 %"],
+  "CPL4":["Mampu mendesain, melakukan simulasi, dan melakukan eksperimen skala laboratorium serta menganalisis serta menginterpretasikan data hasil kajiannya serta melaporkannya dalam bentuk skripsi atau laporan tugas akhir dan mengunggahnya di laman perguruan tinggi.","21 %"],
+  "CPL5":["Mampu mengidentifikasikan, memformulasikan, menganalisis dan menyelesaikan permasalahan-permasalahan teknik mesin yang kompleks serta mengkaji efisiensi kinerja sistem mekanikal dan melakukan perbaikan sistem yang dibutuhkan.","22 %"],
+  "CPL6":["Mampu mengaplikasikan metode, dan terampil menggunakan alat-alat keteknikan modern yang dibutuhkan dalam praktik-praktik keteknikmesinan.","14 %"]
+};
+const T2 = {
+  "1.1":[0,0,5,0,5], "1.2":[0,0,5,0,5], "1.3":[0,6,4,0,10],
+  "2.1":[0,7,0,0,7], "2.2":[0,5,3,0,8], "2.3":[0,5,3,0,8],
+  "3.1":[0,3,0,4,7], "3.2":[0,4,0,3,7], "3.3":[0,4,0,3,7],
+  "4.1":[0,4,0,3,7], "4.2":[0,4,0,3,7], "4.3":[0,4,0,4,8],
+  "5.1":[0,7,0,0,7], "5.2":[0,7,0,0,7]
+};
+const T3 = {
+  "1.1":[5,0,0,0,0,5], "1.2":[5,0,0,0,0,5], "1.3":[10,0,0,0,0,10],
+  "2.1":[0,7,0,0,0,7], "2.2":[0,8,0,0,0,8], "2.3":[0,8,0,0,0,8],
+  "3.1":[0,0,7,0,0,7], "3.2":[0,0,7,0,0,7], "3.3":[0,0,7,0,0,7],
+  "4.1":[0,0,0,7,0,7], "4.2":[0,0,0,7,0,7], "4.3":[0,0,0,8,0,8],
+  "5.1":[0,0,0,0,7,7], "5.2":[0,0,0,0,7,7]
+};
+const T4 = {
+  "CPMK-1":[20,0,0,0,20], "CPMK-2":[23,0,0,0,23], "CPMK-3":[0,21,0,0,21],
+  "CPMK-4":[0,0,22,0,22], "CPMK-5":[0,0,0,14,14]
+};
+
+// ═══════════════════════════════════════════════════════════════
+// DATA — Penilaian (roster + form mapping dari export SIA)
+// ═══════════════════════════════════════════════════════════════
+const STUDENTS = [
+  {nim:"41321120054", nama:"ANGGA HANDIAPUTRA YUDHATAMA", pre:88},
+  {nim:"41321120057", nama:"MUHAMMAD MAHLIAN HADI MAULANA", pre:88},
+  {nim:"41322010021", nama:"ARIP TEGUH SUHARTO", pre:88},
+  {nim:"41322010029", nama:"AHMAD NURDIN SIMATUPANG (Lapor BAP, S. Pj Studi)", pre:75},
+  {nim:"41322110039", nama:"EKI WIRATAMA PUTRA", pre:88},
+  {nim:"41322110067", nama:"MOCHAMAD NURCHOLIS", pre:88},
+  {nim:"41322110080", nama:"SHOLIH FAUZAN", pre:88},
+  {nim:"41322110087", nama:"FICKRI DIMAS AL FALLAH", pre:88},
+  {nim:"41322110089", nama:"MUHAMMAD IBNU FAUZI", pre:62},
+  {nim:"41322110093", nama:"ADE YULIAN SAPUTRA", pre:75},
+  {nim:"41322120018", nama:"DEVI KRISTIANTO", pre:88},
+  {nim:"41322120038", nama:"FAIYUN", pre:88},
+  {nim:"41322120039", nama:"SUTARI", pre:88},
+  {nim:"41323110002", nama:"KIANDRY RIDHO WIDODO", pre:88},
+  {nim:"41323110003", nama:"SYAMSUDIN", pre:88},
+  {nim:"41323110005", nama:"TRESNA SETYA PUTRA", pre:50},
+  {nim:"41323110011", nama:"EDWIN ANUGRAH EFFENDY", pre:75},
+  {nim:"41323110022", nama:"TAUFIK NUR HIDAYAT", pre:75},
+  {nim:"41323110026", nama:"YOYOK KRISTIYONO", pre:88},
+  {nim:"41323110040", nama:"SAKHA KHAIRUL HAKIM", pre:88},
+  {nim:"41323110042", nama:"RISKI KRISTANTO", pre:88},
+  {nim:"41324120004", nama:"M. NADHIF AL-RAFID", pre:75},
+  {nim:"41324120021", nama:"THIMOTIUS BRIANTIKA PERMANA", pre:75},
+  {nim:"41324120025", nama:"ADITYA RAMADHAN", pre:88},
+  {nim:"41324120026", nama:"HERA DIPTA NUR PRAPTAMA", pre:88},
+  {nim:"41324120032", nama:"PANJI EKA ALFIANINDRA", pre:88},
+  {nim:"41325110020", nama:"SLAMET RAMDHANI", pre:88}
+];
+
+// Kolom Sub-CPMK per form + bobot %  (sesuai export SIA)
+const FORMS = {
+  TGS: { label:"Tugas",  total:60, cols:[["1.3",6],["2.1",7],["2.2",5],["2.3",5],["3.1",3],["3.2",4],["3.3",4],["4.1",4],["4.2",4],["4.3",4],["5.1",7],["5.2",7]] },
+  UTS: { label:"UTS",    total:20, cols:[["1.1",5],["1.2",5],["1.3",4],["2.2",3],["2.3",3]] },
+  UAS: { label:"UAS",    total:20, cols:[["3.1",4],["3.2",3],["3.3",3],["4.1",3],["4.2",3],["4.3",4]] }
+};
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER — Silabus tabs
+// ═══════════════════════════════════════════════════════════════
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const pct = v => v===0 ? '<span class="zero">0</span>' : `<span class="val">${v} %</span>`;
+const subKeys = Object.keys(SUBCPMK);
+
+document.getElementById('s2body').innerHTML = subKeys.map(k=>{
+  const d=T2[k];
+  return `<tr><td class="code">Sub-CPMK ${k}</td><td class="desc">${esc(SUBCPMK[k])}</td>`+
+    d.slice(0,4).map(v=>`<td class="num">${pct(v)}</td>`).join('')+
+    `<td class="num sum">${d[4]} %</td></tr>`;
+}).join('');
+document.getElementById('s3body').innerHTML = subKeys.map(k=>{
+  const d=T3[k];
+  return `<tr><td class="code">Sub-CPMK ${k}</td><td class="desc">${esc(SUBCPMK[k])}</td>`+
+    d.slice(0,5).map(v=>`<td class="num">${pct(v)}</td>`).join('')+
+    `<td class="num sum">${d[5]} %</td></tr>`;
+}).join('');
+document.getElementById('s4body').innerHTML = Object.keys(CPMK).map(k=>{
+  const d=T4[k];
+  return `<tr><td class="code">${k}</td><td class="desc">${esc(CPMK[k])}</td>`+
+    d.slice(0,4).map(v=>`<td class="num">${pct(v)}</td>`).join('')+
+    `<td class="num sum">${d[4]} %</td></tr>`;
+}).join('');
+document.getElementById('s5body').innerHTML = Object.keys(CPL).map(k=>
+  `<tr><td class="code">${k}</td><td class="desc">${esc(CPL[k][0])}</td><td class="num sum">${CPL[k][1]}</td></tr>`
+).join('');
+document.getElementById('s6body').innerHTML = subKeys.map(k=>
+  `<tr><td class="code">Sub-CPMK ${k}</td><td class="desc" style="max-width:none">${esc(SUBCPMK[k])}</td></tr>`
+).join('');
+document.getElementById('s7body').innerHTML = Object.keys(CPMK).map(k=>
+  `<tr><td class="code">${k}</td><td class="desc" style="max-width:none">${esc(CPMK[k])}</td></tr>`
+).join('');
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER — Penilaian tabs (Tugas/UTS/UAS)
+// ═══════════════════════════════════════════════════════════════
+const LS_KEY = 'opto-obe-nilai-v1';
+function loadScores(){
+  try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; }
+  catch { return {}; }
+}
+function saveScores(d){ localStorage.setItem(LS_KEY, JSON.stringify(d)); }
+function getScore(form, nim, sub){
+  const d=loadScores();
+  return (d[form] && d[form][nim] && d[form][nim][sub]) ?? '';
+}
+function setScore(form, nim, sub, val){
+  const d=loadScores();
+  d[form] = d[form] || {};
+  d[form][nim] = d[form][nim] || {};
+  if(val === '' || val === null || isNaN(Number(val))) delete d[form][nim][sub];
+  else d[form][nim][sub] = Number(val);
+  saveScores(d);
+}
+
+function renderForm(formKey, panelId){
+  const form = FORMS[formKey];
+  const cols = form.cols;  // [[sub, bobot], ...]
+  const subSumBobot = cols.reduce((a,c)=>a+c[1], 0);
+
+  let html = `
+    <div class="actbar">
+      <div class="actleft">
+        <span>Form: <b>${form.label}</b> · ${cols.length} Sub-CPMK · Σ bobot ${subSumBobot}% (dari total ${form.total}%)</span>
+      </div>
+      <div class="actright">
+        <button class="btn btn-import" onclick="pasteCSV('${formKey}')">📋 Paste CSV</button>
+        <button class="btn btn-export" onclick="exportCSV('${formKey}')">⬇️ Export CSV (SIA Import)</button>
+      </div>
+    </div>
+    <table>
+      <caption>Isi Nilai ${form.label} — bobot total ${form.total}%</caption>
+      <thead>
+        <tr>
+          <th rowspan="2">No</th>
+          <th rowspan="2">NIM &amp; Nama</th>
+          <th rowspan="2" class="num">PRE</th>
+          <th colspan="${cols.length}" class="subhdr" style="text-align:center;background:rgba(29,106,142,.7)">Sub-CPMK (nilai mentah 0–100)</th>
+          <th rowspan="2" class="num">Nilai ${form.label}</th>
+        </tr>
+        <tr>
+          ${cols.map(([sub,b])=>`<th class="num subhdr">${sub}<br><span style="color:#9be7f5">${b}%</span></th>`).join('')}
+        </tr>
+      </thead>
+      <tbody>
+        ${STUDENTS.map((st,i)=>{
+          const inputs = cols.map(([sub,b])=>{
+            const val = getScore(formKey, st.nim, sub);
+            return `<td class="num"><input type="number" min="0" max="100" class="scoreinput${val!==''?' has':''}"
+              data-form="${formKey}" data-nim="${st.nim}" data-sub="${sub}" data-bobot="${b}"
+              value="${val}" placeholder="0"></td>`;
+          }).join('');
+          return `<tr>
+            <td class="num">${i+1}</td>
+            <td><div class="nim">${st.nim}</div><div class="nama">${esc(st.nama)}</div></td>
+            <td class="num val">${st.pre}%</td>
+            ${inputs}
+            <td class="num sum" id="row-${formKey}-${st.nim}">0.00</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+    <div class="note">Tiap input = nilai mentah Sub-CPMK 0–100. <b>Nilai ${form.label}</b> = Σ(nilai × bobot%)/100. Data tersimpan otomatis di browser (localStorage).</div>
+  `;
+  document.getElementById(panelId).innerHTML = html;
+}
+
+function computeFormScore(formKey, nim){
+  const cols = FORMS[formKey].cols;
+  let sum = 0;
+  for(const [sub, b] of cols){
+    const v = getScore(formKey, nim, sub);
+    if(v !== '' && v !== undefined) sum += (Number(v) * b) / 100;
+  }
+  // Σ bobot kolom mungkin < total component (mis. UTS bobot kolom 20, total 20 → identical)
+  // Hasil sudah dalam skala 0..total. Normalize ke 0..100:
+  const subSumB = cols.reduce((a,c)=>a+c[1],0);
+  return subSumB>0 ? (sum / subSumB) * 100 : 0;
+}
+
+function updateRowTotal(formKey, nim){
+  const cell = document.getElementById(`row-${formKey}-${nim}`);
+  if(cell){
+    const s = computeFormScore(formKey, nim);
+    cell.textContent = s.toFixed(2);
+  }
+}
+
+function renderRekap(){
+  const tbody = document.getElementById('n1body');
+  let filled = 0;
+  tbody.innerHTML = STUDENTS.map((st,i)=>{
+    const tgs = computeFormScore('TGS', st.nim);
+    const uts = computeFormScore('UTS', st.nim);
+    const uas = computeFormScore('UAS', st.nim);
+    const na = tgs*0.6 + uts*0.2 + uas*0.2;
+    if(tgs>0 || uts>0 || uas>0) filled++;
+    const naColor = na>=70 ? 'color:#7dffb0' : na>=55 ? 'color:#fcd34d' : 'color:#fca5a5';
+    return `<tr>
+      <td class="num">${i+1}</td>
+      <td><div class="nim">${st.nim}</div><div class="nama">${esc(st.nama)}</div></td>
+      <td class="num val">${st.pre}%</td>
+      <td class="num val">${tgs.toFixed(2)}</td>
+      <td class="num val">${uts.toFixed(2)}</td>
+      <td class="num val">${uas.toFixed(2)}</td>
+      <td class="num sum" style="${naColor}">${na.toFixed(2)}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('recapStat').textContent =
+    `${filled}/${STUDENTS.length} mahasiswa sudah diisi`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Input events
+// ═══════════════════════════════════════════════════════════════
+document.addEventListener('input', e=>{
+  const inp = e.target.closest('.scoreinput');
+  if(!inp) return;
+  const f=inp.dataset.form, nim=inp.dataset.nim, sub=inp.dataset.sub;
+  let v = inp.value.trim();
+  if(v !== '' && (isNaN(Number(v)) || Number(v) < 0 || Number(v) > 100)){
+    inp.style.borderColor = 'var(--bad)';
+    return;
+  }
+  inp.style.borderColor = '';
+  inp.classList.toggle('has', v !== '');
+  setScore(f, nim, sub, v);
+  updateRowTotal(f, nim);
+  // Rekap tab kalau aktif
+  if(document.getElementById('mode-nilai').classList.contains('active')){
+    const activeTab = document.querySelector('[data-tabgroup="nilai"] .tab.active');
+    if(activeTab && activeTab.dataset.tab === 'n1') renderRekap();
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// CSV Export — format sesuai SIA Import (header sama dgn Form Nilai *.xls)
+// ═══════════════════════════════════════════════════════════════
+function exportCSV(formKey){
+  const form = FORMS[formKey];
+  const cols = form.cols;
+  // Row 0: blank x4 + "Sub Capaian..." (merge dengan kolom kosong supaya layout cocok)
+  const r0 = ['','','','','Sub Capaian Pembelajaran Mata Kuliah (Sub CPMK)', ...cols.slice(1).map(()=>'')];
+  const r1 = ['No.','NIM','Nama Mahasiswa','PRE', ...cols.map(c=>`Sub-CPMK ${c[0]}`)];
+  const r2 = ['','Bobot (%)','','', ...cols.map(c=>`${c[1]}%`)];
+  const rows = [r0, r1, r2];
+  STUDENTS.forEach((st, i)=>{
+    const row = [String(i+1), st.nim, st.nama, `${st.pre}%`];
+    for(const [sub, _] of cols){
+      const v = getScore(formKey, st.nim, sub);
+      row.push(v === '' ? '' : String(v));
+    }
+    rows.push(row);
+  });
+  const csv = rows.map(r => r.map(cellCsv).join(',')).join('\r\n');
+  const blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `Form_Nilai_${form.label}_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  toast(`✅ Export ${form.label} (${STUDENTS.length} mahasiswa)`);
+}
+function cellCsv(v){
+  v = String(v ?? '');
+  if(/[",\r\n]/.test(v)) return '"'+v.replace(/"/g,'""')+'"';
+  return v;
+}
+
+// CSV Import (paste): format bebas — minimal kolom NIM + nilai per Sub-CPMK
+function pasteCSV(formKey){
+  const txt = prompt(
+    `Paste data CSV/TSV untuk ${FORMS[formKey].label}.\n\n`+
+    `Format kolom (urut): NIM, Sub-CPMK ${FORMS[formKey].cols.map(c=>c[0]).join(', Sub-CPMK ')}\n`+
+    `(boleh ada header; baris dgn NIM tidak dikenali dilewati.)`
+  );
+  if(!txt) return;
+  const cols = FORMS[formKey].cols;
+  const nimSet = new Set(STUDENTS.map(s=>s.nim));
+  let n=0;
+  txt.trim().split(/\r?\n/).forEach(line=>{
+    const parts = line.split(/[,\t;]/).map(x=>x.trim());
+    const nim = parts.find(p=>nimSet.has(p));
+    if(!nim) return;
+    const nimIdx = parts.indexOf(nim);
+    cols.forEach(([sub,_], i)=>{
+      const v = parts[nimIdx + 1 + i];
+      if(v !== undefined && v !== '' && !isNaN(Number(v))){
+        setScore(formKey, nim, sub, v);
+      }
+    });
+    n++;
+  });
+  renderForm(formKey, formKey==='TGS'?'n2':formKey==='UTS'?'n3':'n4');
+  STUDENTS.forEach(s=>updateRowTotal(formKey, s.nim));
+  renderRekap();
+  toast(`✅ Import: ${n} mahasiswa`);
+}
+
+function clearAllScores(){
+  if(!confirm('Hapus SEMUA nilai (TGS/UTS/UAS) dari browser ini? Tidak bisa di-undo.')) return;
+  localStorage.removeItem(LS_KEY);
+  renderForm('TGS','n2'); renderForm('UTS','n3'); renderForm('UAS','n4');
+  renderRekap();
+  toast('🗑️ Semua nilai dihapus');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Tab + mode switching
+// ═══════════════════════════════════════════════════════════════
+document.getElementById('modebar').addEventListener('click', e=>{
+  const b = e.target.closest('.modebtn'); if(!b) return;
+  document.querySelectorAll('.modebtn').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.mode').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  document.getElementById('mode-'+b.dataset.mode).classList.add('active');
+});
+document.addEventListener('click', e=>{
+  const tab = e.target.closest('.tab'); if(!tab) return;
+  const group = tab.closest('.tabbar');
+  group.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  // Panels in same mode container
+  const mode = group.closest('.mode');
+  mode.querySelectorAll(':scope > .panel').forEach(p=>p.classList.remove('active'));
+  tab.classList.add('active');
+  document.getElementById(tab.dataset.tab).classList.add('active');
+  if(tab.dataset.tab === 'n1') renderRekap();
+});
+
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t=setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+// ── Initial render Penilaian forms ──
+renderForm('TGS','n2');
+renderForm('UTS','n3');
+renderForm('UAS','n4');
+renderRekap();
+// initial row totals
+['TGS','UTS','UAS'].forEach(f => STUDENTS.forEach(s => updateRowTotal(f, s.nim)));
+</script>
+</body>
+</html>
