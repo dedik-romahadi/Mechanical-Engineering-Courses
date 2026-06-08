@@ -1622,11 +1622,13 @@ exports.computeObeScores = onCall({ timeoutSeconds: 300 }, async (request) => {
     const scores = {};
     const missing = [];
     for (const nim of validNims) {
-      const nimKey = sanitizeKey("mhs_" + nim);
+      // Key NIM beda format: modul/visitor pakai prefix "mhs_", examAttempts tanpa.
+      const modulKey = sanitizeKey("mhs_" + nim);   // visitors/<...>/mhs_<NIM>
+      const examKey = sanitizeKey(nim);             // examAttempts/<...>/students/<NIM>
       const out = { TGS:{}, UTS:{}, UAS:{} };
 
       // TUGAS — tiap kolom = rata-rata nilai modul (skala 100) sesuai mapping
-      const mp = modulPoints[nimKey] || {};
+      const mp = modulPoints[modulKey] || {};
       const tugas = {};  // 1..14 → skala 100
       for (let n = 1; n <= 14; n++) tugas[n] = Math.min(100, (mp[n] || 0) * 2);
       for (const [sub, mods] of Object.entries(effTugas)) {
@@ -1638,7 +1640,7 @@ exports.computeObeScores = onCall({ timeoutSeconds: 300 }, async (request) => {
       for (const [examId, key, effMap] of [["optoauto-uts","UTS",effUts], ["optoauto-uas","UAS",effUas]]) {
         const order = OBE_ORDER[examId];
         let earned;
-        try { earned = await examEarned(examId, nimKey); }
+        try { earned = await examEarned(examId, examKey); }
         catch (e) { earned = null; }
         if (!earned) { missing.push(`${nim}/${key}`); continue; }
         for (const [sub, qNums] of Object.entries(effMap)) {
