@@ -80,6 +80,10 @@
 32. [NIM-Direct Variable Pattern — Transparent NIM-to-Variable Mapping (BARU di v7)](#32-nim-direct-variable-pattern--transparent-nim-to-variable-mapping-baru-di-v7)
 33. [Prosedur Pengisian Lembar UTS dengan Acuan Asesmen JSON (BARU di v8)](#33-prosedur-pengisian-lembar-uts-dengan-acuan-asesmen-json-baru-di-v8)
 34. [Strategi Mitigasi API Stream Idle Timeout (BARU di v14)](#34-strategi-mitigasi-api-stream-idle-timeout-baru-di-v14)
+35. [Cinematic Panel Design — Tugas Score-Bar + Forum Copy (BARU di v15)](#35-cinematic-panel-design--tugas-score-bar--forum-copy-baru-di-v15)
+36. [Export HTML Tugas — Animated Standalone File (BARU di v16)](#36-export-html-tugas--animated-standalone-file-baru-di-v16)
+37. [Forum Copy HTML — LMS-Compatible Output (BARU di v16)](#37-forum-copy-html--lms-compatible-output-baru-di-v16)
+38. [Dokumen OBE per Mata Kuliah (BARU di v18)](#38-dokumen-obe-per-mata-kuliah-baru-di-v18)
 
 ---
 
@@ -7469,7 +7473,238 @@ border-top:1px solid rgba(249,115,22,.25)  /* orange untuk Math */
 
 ---
 
+## 38. Dokumen OBE per Mata Kuliah (BARU di v18)
 
+Halaman tunggal yang menggabungkan **Silabus** (CPL/CPMK/Sub-CPMK + matrikulasi + bobot asesmen) dan **Penilaian Mahasiswa** (dosen isi/edit, mahasiswa lihat nilai-nya sendiri) dalam satu HTML. Berfungsi sebagai jembatan antara dokumentasi kurikulum (OBE) dan operasional penilaian (input → publish → mahasiswa). Per-course standalone — satu file per MK di folder `<Course>/OBE/Dokumen-OBE.html`.
+
+**Reference implementation**: `Optimalisasi-dan-Automasi/OBE/Dokumen-OBE.html` (1300+ baris, full feature). Adaptasi per course: `Getaran-Mekanik/OBE/Dokumen-OBE.html`, `Engineering-Mathematics/OBE/Dokumen-OBE.html`.
+
+### 38.1 Dua Mode View + Tabbed Layout
+
+```
+Mode Silabus (default, publik — silakan dilihat tanpa login)
+  ├─ Tab s1: Rekap Bobot Asesmen (PRE/TGS/PRAK/UTS/UAS)
+  ├─ Tab s2: SUB CPMK × Asesmen (bobot per Sub-CPMK per komponen)
+  ├─ Tab s3: CPMK × SUB CPMK (matriks pengelompokan)
+  ├─ Tab s4: CPL × CPMK (matriks ke CPL prodi) — opsional per course
+  ├─ Tab s5: Matrikulasi CPL (deskripsi & bobot per CPL) — opsional per course
+  ├─ Tab s6: Deskripsi SUB CPMK
+  └─ Tab s7: Deskripsi CPMK
+
+Mode Penilaian (perlu login — 2 alur)
+  ├─ Tab n5: ⚙️ Mapping & Hitung (dosen-only — auto-compute via Cloud Function)
+  ├─ Tab n2: Nilai Tugas (input per Sub-CPMK)
+  ├─ Tab n3: Nilai UTS
+  ├─ Tab n4: Nilai UAS
+  └─ Tab n1: Rekap Nilai Mahasiswa (default active, PRE/TGS/UTS/UAS/TOTAL/NH)
+```
+
+**Reorder Penilaian** (sejak v18): Mapping di urutan **pertama** (entry-point dosen untuk auto-compute), Rekap di urutan **terakhir** (landing view default — supaya mahasiswa landing di Rekap, bukan tab Mapping yang disembunyikan). Default `.active` tetap pada Rekap (`data-tab="n1"`).
+
+### 38.2 Sumber Data (Single Source of Truth)
+
+| Data | File | Catatan |
+|------|------|---------|
+| Roster (NIM, nama) | `<Course>/Attributes/students.json` | Di-fetch saat runtime via `loadStudents()` |
+| Asesmen breakdown + Sub-CPMK + CPMK | `<Course>/Attributes/Asesmen-<Course>.json` | Hardcode hasil parse ke const HTML (saat clone) |
+| PRE awal per NIM | `DEFAULT_PRE` (inline di HTML) | Fallback sblm dosen upload .xls SIA |
+| PRE override real-time | `localStorage['opto-obe-pre-override-v1']` | Hasil upload .xls SIA per browser dosen |
+| Nilai TGS/UTS/UAS terisi (draft) | `localStorage[LS_KEY]` | Tidak ter-sync antar perangkat dosen |
+| Nilai yang **dipublish** | Firestore `obeNilai/{courseId}/students/{nimKey}` | Single source untuk mahasiswa, lintas perangkat |
+
+### 38.3 Konstanta yang Wajib Diubah saat Clone per Course
+
+```js
+// ── Top of <script> ──
+const COURSE_ID = 'optoauto';     // slug pendek (alfanumerik/dash/underscore, ≤40 char)
+                                  //  → 'getaran_mekanik', 'math4', dst
+                                  //  Dipakai sbg Firestore path: obeNilai/{COURSE_ID}/students/*
+
+// ── Konstanta Silabus (dari Asesmen-<Course>.json) ──
+const SUBCPMK = { "1.1":"...", ... };          // dari sub_cpmk[].deskripsi
+const CPMK    = { "CPMK-1":"...", ... };       // dari ringkasan_cpmk[] (ada deskripsi atau placeholder)
+const CPL     = { "CPL3":["desk","43 %"],... }; // opsional per prodi
+const T2 = { "1.1":[prak,tgs,uts,uas,total], ... };       // sub_cpmk × Asesmen
+const T3 = { "1.1":[cpmk1,cpmk2,...,total], ... };        // sub_cpmk × CPMK
+const T4 = { "CPMK-1":[cpl1,cpl2,...,total], ... };       // CPMK × CPL (opsional)
+
+// ── Konstanta Penilaian ──
+const FORMS = {
+  TGS: { label:"Tugas", total:<bobot_tugas>, cols:[["1.3",6],...] },
+  UTS: { label:"UTS",   total:<bobot_uts>,   cols:[["1.1",5],...] },
+  UAS: { label:"UAS",   total:<bobot_uas>,   cols:[["3.1",4],...] },
+};
+// `total` & `cols` derived dari Asesmen JSON:
+//   - total = asesmen.total_per_komponen.{tugas|uts|uas}
+//   - cols  = entries [kode, bobot] utk sub_cpmk yg bobot.{komponen} > 0
+
+const DEFAULT_PRE = { "<nim>":<int>, ... };  // PRE awal per mahasiswa (% presensi)
+                                              // Boleh kosong {}; dosen akan override via .xls SIA
+
+const SIA_CLASS_TOKEN = '2A6134FF';  // dipakai utk nama file export Form_Nilai_*_<TOKEN>_347514.xls
+                                      // Ganti per kelas/course (mis. 'GTRN0000', 'MTHF0000')
+```
+
+**Header chips** (di `<div class="doc-meta">`):
+```html
+<span class="chip">👨‍🏫 Dosen Pengampu: <Nama>, <Gelar></span>
+<span class="chip">📧 <email></span>
+<span class="chip">🏛️ S1 Teknik Mesin — UMB</span>
+<span class="chip">📅 T.A. <tahun_akademik></span>
+<span class="chip">👥 <span id="studCount">—</span> mahasiswa</span>
+<span class="chip">🔗 SIA OBE</span>
+```
+`#studCount` di-update otomatis oleh `loadStudents()` setelah fetch selesai.
+
+### 38.4 Auth & Role-Based Visibility
+
+Sama pola dgn Modul (§7): 3 role.
+
+| Role | Tab yang muncul | Aksi yang muncul |
+|------|----------------|------------------|
+| Belum login | Silabus saja (Penilaian di-intercept → login modal) | — |
+| Mahasiswa (NIM + PIN) | Silabus + Penilaian (Rekap & Nilai TGS/UTS/UAS — read-only, row dia saja) | — |
+| Dosen (password hash) | Semua tab termasuk **⚙️ Mapping & Hitung** | Publish, Reset Lokal, Hapus dari Server, Update PRE dari .xls SIA, Export .xls, Import PG dari LMS, Auto-Compute |
+
+Mahasiswa fetch nilai-nya via callable `getMyObeNilai(courseId, nim, pinHash)` — PIN check pakai RTDB `pins/{nimKey}` (sama dengan §8). Tab Mapping disembunyikan untuk mahasiswa: `mapTab.style.display='none'` di `renderMahasiswaView()` (panel-nya tetap inert karena tab tidak bisa di-klik).
+
+### 38.5 Sistem PRE (Presensi)
+
+PRE = persentase kehadiran, masuk ke Rekap tapi **tidak ditimbang** ke TOTAL (TOTAL = TGS·0.6 + UTS·0.2 + UAS·0.2). Info-only untuk monitoring.
+
+**Aliran update**:
+1. `DEFAULT_PRE` inline = nilai awal (di-set saat clone, optional)
+2. Dosen klik **📥 Update PRE dari .xls SIA** → SheetJS parse file `Form_Nilai_*_<TOKEN>_347514.xls` → kolom D (PRE) per NIM (kolom B) → simpan ke `localStorage['opto-obe-pre-override-v1']`
+3. Helper `getPre(nim)` cek override dulu, fallback ke `DEFAULT_PRE[nim]`, fallback ke 0
+4. Saat **Publish ke Firestore**, PRE ikut dikirim (`payload[nim].pre`) → server simpan field `pre` → mahasiswa lintas perangkat lihat PRE terbaru
+
+### 38.6 Konversi Nilai Huruf (NH) — Aturan SIA UMB
+
+Helper `toNH(n)` di Rekap, mengikuti rumus SIA UMB:
+
+| TOTAL | NH | Warna |
+|-------|----|----|
+| ≥ 79.95 | **A**  | 🟢 hijau |
+| ≥ 74    | **B+** | 🟢 hijau |
+| ≥ 68    | **B**  | 🟢 hijau |
+| ≥ 62    | **C+** | 🟡 kuning |
+| ≥ 56    | **C**  | 🟡 kuning |
+| ≥ 45    | **D**  | 🔴 merah |
+| < 45    | **E**  | 🔴 merah |
+
+Catatan: formula Excel asli (`IF(AND(J>=79.95, J<=100), "A", ...)`) punya gap rounding kecil (mis. 73.96 jatuh di luar B+ DAN B → empty string). Implementasi JS `toNH()` menyerap gap itu ke kategori bawah berikutnya — tidak ada nilai yang "kosong".
+
+### 38.7 Firestore Schema & Cloud Functions
+
+**Path**: `obeNilai/{courseId}/students/{nimKey}` (nimKey = `sanitizeKey("mhs_" + nim)`)
+
+**Field**:
+```
+{
+  nim: "41321120054",
+  pre: 88,                              // 0-100, integer
+  TGS: { "1.3": 80, "2.1": 75, ... },   // key = "<major>.<minor>", value 0-100
+  UTS: { "1.1": 75, ... },
+  UAS: { "3.1": 70, ... },
+  publishedAt: <serverTimestamp>
+}
+```
+
+**Callable Functions** (di `functions/index.js`):
+
+| Function | Role | Aksi |
+|----------|------|------|
+| `publishObeNilai` | dosen (admin pw hash) | Batch write/merge nilai per mahasiswa. Sanitize: TGS/UTS/UAS hanya key `\d+\.\d+`, value 0-100. PRE 0-100, dibulatkan. |
+| `getMyObeNilai`   | mahasiswa (PIN-gated) | Fetch nilai 1 mahasiswa berdasarkan NIM + pinHash. PIN dicek di RTDB `pins/{nimKey}`. |
+| `deleteObeNilai`  | dosen (admin pw hash) | Hapus semua dokumen `obeNilai/{courseId}/students/*` (listDocuments + batch chunk 400). Tidak menyentuh localStorage dosen. |
+| `computeObeScores`| dosen (admin pw hash) | Auto-compute nilai TGS dari poin modul + UTS/UAS dari per-soal exam (mapping di OBE_MAP). Output ke localStorage → dosen review → Publish manual. |
+
+Akses lewat callable (admin SDK) → tidak melewati `firestore.rules`, jadi rules tidak perlu diubah saat tambah course baru.
+
+### 38.8 Roster Fetch Pattern (Anti-Race-Condition)
+
+`STUDENTS` tidak hardcoded; di-fetch dari `Attributes/students.json`:
+
+```js
+let STUDENTS = [];
+const DEFAULT_PRE = { /* ... */ };
+
+async function loadStudents(){
+  try {
+    const res = await fetch('../Attributes/students.json', { cache:'no-cache' });
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const arr = await res.json();
+    STUDENTS = arr.map(s => ({
+      nim: String(s.nim),
+      nama: s.nama,
+      pre: DEFAULT_PRE[String(s.nim)] ?? 0
+    }));
+  } catch(e){
+    console.error('[loadStudents] gagal:', e);
+    if(typeof toast === 'function') toast('⚠️ Gagal muat daftar mahasiswa');
+    STUDENTS = [];
+  }
+  const el = document.getElementById('studCount');
+  if(el) el.textContent = STUDENTS.length;
+}
+
+const STUDENTS_READY = loadStudents();
+```
+
+Semua initial render **wajib** di-gate pada `STUDENTS_READY.then(...)` — kalau tidak, render jalan dengan `STUDENTS=[]` dan tabel kosong:
+
+```js
+STUDENTS_READY.then(() => {
+  renderForm('TGS','n2');
+  renderForm('UTS','n3');
+  renderForm('UAS','n4');
+  renderRekap();
+  ['TGS','UTS','UAS'].forEach(f => STUDENTS.forEach(s => updateRowTotal(f, s.nim)));
+});
+
+// dan di bottom (mahasiswa init):
+if(sess && sess.role === 'mahasiswa') STUDENTS_READY.then(() => renderMahasiswaView());
+```
+
+**Penting**: halaman OBE **harus di-serve via HTTP** (Live Server / GitHub Pages / hosting), bukan `file://`, karena `fetch()` blocked oleh CORS pada `file://`.
+
+### 38.9 Checklist Tambah OBE untuk Mata Kuliah Baru
+
+1. **Pastikan data tersedia**:
+   - `<Course>/Attributes/students.json` (roster minimum: array of `{nim, nama}`)
+   - `<Course>/Attributes/Asesmen-<Course>.json` (mengikuti schema §33 — `mata_kuliah`, `asesmen`, `ringkasan_cpmk`, `sub_cpmk`, `metadata`)
+2. **Buat folder & file**: `<Course>/OBE/Dokumen-OBE.html` (clone reference)
+3. **Update header chips** (nama dosen, gelar, email, kode MK kalau ada, T.A.)
+4. **Update `<div class="doc-title">`** dan `<div class="doc-sub">` sesuai nama MK
+5. **Set `COURSE_ID`** = slug pendek (`getaran_mekanik`, `math4`, dst — alfanumerik/`_`/`-`, ≤40 char)
+6. **Generate `SUBCPMK`, `CPMK`, `T2`, `T3`** dari Asesmen JSON (lihat §38.3 di atas)
+7. **`FORMS.{TGS,UTS,UAS}.total`** = bobot komponen dari `asesmen.total_per_komponen`
+8. **`FORMS.{...}.cols`** = entries `[kode_subcpmk_short, bobot]` untuk Sub-CPMK yang `bobot.{komponen} > 0`
+9. **`DEFAULT_PRE`** = `{}` (bisa kosong; dosen upload .xls SIA saat semester berjalan)
+10. **`SIA_CLASS_TOKEN`** placeholder (mis. `GTRN0000`, `MTHF0000`) — ganti dgn token kelas saat dosen pertama kali export
+11. **CPL × CPMK & Matrikulasi CPL** (tab s4 & s5) — opsional. Kalau prodi belum punya data CPL terdokumentasi:
+    - Pilihan A: render dengan placeholder text ("Data CPL belum dipetakan.")
+    - Pilihan B: hapus tab dari tabbar + buang panel & const `CPL`/`T4` (lebih bersih untuk MK yang belum mature CPL-nya)
+12. **Footer rekap (`s1` table footer)** — sesuaikan total % per komponen agar Σ = 100%
+13. **`<th>CPMK-N`** headers di tab s3 — sesuaikan jumlah kolom dgn jumlah CPMK
+14. **Validasi**: HTML parse OK, JS syntax OK, `STUDENTS_READY` gating intact, fetch path `../Attributes/students.json` relatif benar
+15. **Test login dosen** → Publish nilai dummy → Mahasiswa cek dari device lain → terlihat?
+16. **Cloud Functions** — TIDAK perlu deploy ulang kalau hanya tambah course baru (callable function generic untuk semua `courseId`)
+
+### 38.10 Cross-References
+
+- **§3 Multi-Course Configuration** — konstanta course untuk modul/exam (`COURSE_LABEL`, palet, dsb.)
+- **§7 Sistem Login & Visitor** — 3 role + role-based visibility (dipakai sama persis di OBE)
+- **§8 Sistem PIN Keamanan Mahasiswa** — RTDB `pins/{nimKey}` dipakai untuk gate `getMyObeNilai`
+- **§13 Struktur Firebase & Security Rules** — path `obeNilai/{courseId}/students/*` perlu rule deny-all (akses via callable saja)
+- **§19 Password Admin & Hashing** — `ADMIN_PW_HASH` dipakai untuk gate `publishObeNilai`/`deleteObeNilai`/`computeObeScores`
+- **§33 Prosedur Pengisian Lembar UTS dengan Acuan Asesmen JSON** — sumber data Asesmen JSON yang sama dipakai di sini
+
+---
+
+
+*Pedoman v18 — Juni 2026 (Dokumen OBE per Mata Kuliah).*
+*Update v18: §38 BARU — pola Dokumen OBE (Silabus + Penilaian Mahasiswa dalam satu halaman, per MK). Reference impl `Optimalisasi-dan-Automasi/OBE/Dokumen-OBE.html` (1300+ baris). Adaptasi `Getaran-Mekanik/OBE/Dokumen-OBE.html` + `Engineering-Mathematics/OBE/Dokumen-OBE.html` mengikuti checklist §38.9. Fitur: konversi NH (Nilai Huruf) ikut aturan SIA UMB, PRE override real-time dari .xls SIA, Publish/Hapus ke/dari Firestore via callable (`publishObeNilai`, `getMyObeNilai`, `deleteObeNilai`, `computeObeScores`), roster fetch dari `Attributes/students.json` (single source of truth, anti-race via `STUDENTS_READY` promise).*
 
 *Pedoman v17 — Mei 2026 (Layout polish Export HTML Tugas).*
 *Update v17: §36.8 BARU — equal column widths 42%/42% untuk Soal & Kode Python di Bagian B/C, max-width:280px constraint dihapus dari code cells, JS helper `_getCompFullQ` untuk capture full question text dari DOM. §36.9 BARU — Jawaban Anda format reguler (font-weight:400!important override) + rata kiri (no justify-content:center, no min-width fixed). Audit checklist v17 di §36.10 (10 items). Applied ke 48 file (42 modul + 6 exam) dengan 3 pattern handling: compEzDefs+compHardDefs (40), compDefs (2 M4), window.UTS/UAS_COMP_EZ (6 exam).*
