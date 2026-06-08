@@ -246,11 +246,11 @@
   ═══════════════════════════════════════════════════════════ -->
   <div class="mode" id="mode-nilai">
     <div class="tabbar" data-tabgroup="nilai">
-      <div class="tab active" data-tab="n1">Rekap Nilai Mahasiswa</div>
+      <div class="tab" data-tab="n5">⚙️ Mapping &amp; Hitung</div>
       <div class="tab" data-tab="n2">Nilai Tugas</div>
       <div class="tab" data-tab="n3">Nilai UTS</div>
       <div class="tab" data-tab="n4">Nilai UAS</div>
-      <div class="tab" data-tab="n5">⚙️ Mapping &amp; Hitung</div>
+      <div class="tab active" data-tab="n1">Rekap Nilai Mahasiswa</div>
     </div>
 
     <div class="panel active" id="n1">
@@ -275,6 +275,7 @@
           <th class="num">UTS<br><span style="color:#9be7f5;font-size:10px">20%</span></th>
           <th class="num">UAS<br><span style="color:#9be7f5;font-size:10px">20%</span></th>
           <th class="num">TOTAL</th>
+          <th class="num">NH</th>
         </tr></thead>
         <tbody id="n1body"></tbody>
       </table>
@@ -517,6 +518,24 @@ function updateRowTotal(formKey, nim){
   }
 }
 
+// Konversi nilai akhir (0-100) → Nilai Huruf, sesuai aturan SIA UMB.
+// Ambang masuk: A≥79.95, B+≥74, B≥68, C+≥62, C≥56, D≥45, sisanya E.
+function toNH(n){
+  if(n >= 79.95) return 'A';
+  if(n >= 74)    return 'B+';
+  if(n >= 68)    return 'B';
+  if(n >= 62)    return 'C+';
+  if(n >= 56)    return 'C';
+  if(n >= 45)    return 'D';
+  return 'E';
+}
+// Warna NH ikut kategori (hijau = lulus baik, kuning = lulus pas, merah = tdk lulus)
+function nhColor(nh){
+  if(nh === 'A' || nh === 'B+' || nh === 'B') return 'color:#7dffb0';
+  if(nh === 'C+' || nh === 'C')               return 'color:#fcd34d';
+  return 'color:#fca5a5';  // D, E
+}
+
 function renderRekap(){
   const tbody = document.getElementById('n1body');
   let filled = 0;
@@ -527,6 +546,7 @@ function renderRekap(){
     const na = tgs*0.6 + uts*0.2 + uas*0.2;
     if(tgs>0 || uts>0 || uas>0) filled++;
     const naColor = na>=70 ? 'color:#7dffb0' : na>=55 ? 'color:#fcd34d' : 'color:#fca5a5';
+    const nh = toNH(na);
     return `<tr>
       <td class="num">${i+1}</td>
       <td><div class="nim">${st.nim}</div><div class="nama">${esc(st.nama)}</div></td>
@@ -535,6 +555,7 @@ function renderRekap(){
       <td class="num val">${uts.toFixed(2)}</td>
       <td class="num val">${uas.toFixed(2)}</td>
       <td class="num sum" style="${naColor}">${na.toFixed(2)}</td>
+      <td class="num sum" style="${nhColor(nh)}">${nh}</td>
     </tr>`;
   }).join('');
   document.getElementById('recapStat').textContent =
@@ -1205,6 +1226,7 @@ function renderMahasiswaView(){
   const tgs = mhsRowTotal('TGS'), uts = mhsRowTotal('UTS'), uas = mhsRowTotal('UAS');
   const na = tgs*0.6 + uts*0.2 + uas*0.2;
   const naColor = na>=70 ? 'color:#7dffb0' : na>=55 ? 'color:#fcd34d' : 'color:#fca5a5';
+  const nh = toNH(na);
   const me = STUDENTS.find(s=>s.nim === myNim);
   tbody.innerHTML = `<tr>
     <td class="num">1</td>
@@ -1214,6 +1236,7 @@ function renderMahasiswaView(){
     <td class="num val">${uts.toFixed(2)}</td>
     <td class="num val">${uas.toFixed(2)}</td>
     <td class="num sum" style="${naColor}">${na.toFixed(2)}</td>
+    <td class="num sum" style="${nhColor(nh)}">${nh}</td>
   </tr>`;
   document.getElementById('recapStat').textContent = data.empty ? 'Nilai belum di-publish dosen' : (data.publishedAt ? `Update terakhir: ${new Date(data.publishedAt).toLocaleString('id-ID')}` : 'Tersinkron');
   // Sembunyikan tombol export/import/paste utk mahasiswa
