@@ -127,9 +127,13 @@
   </div>
 
   <!-- ═══════ MODE SWITCH ═══════ -->
+  <!-- ═══════ ROLE BAR ═══════ -->
   <div class="modebar" id="modebar">
     <button class="modebtn active" data-mode="silabus">📚 Silabus</button>
     <button class="modebtn" data-mode="nilai">✏️ Penilaian</button>
+    <span style="flex:1"></span>
+    <span id="roleChip" class="chip" style="margin-left:auto">🔓 Belum login</span>
+    <button class="modebtn" id="logoutBtn" onclick="logout()" style="display:none;background:rgba(248,113,113,.15);color:#fca5a5">Logout</button>
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════
@@ -251,8 +255,9 @@
         <div class="actleft">
           <span>Ringkasan: <span class="stat" id="recapStat">—</span></span>
         </div>
-        <div class="actright">
-          <button class="btn btn-clear" onclick="clearAllScores()">🗑️ Reset Semua Nilai</button>
+        <div class="actright" id="rekapActsDosen" style="display:none">
+          <button class="btn btn-import" onclick="publishToFirestore()">☁️ Publish ke Firestore</button>
+          <button class="btn btn-clear" onclick="clearAllScores()">🗑️ Reset Lokal</button>
         </div>
       </div>
       <table>
@@ -658,8 +663,276 @@ renderForm('TGS','n2');
 renderForm('UTS','n3');
 renderForm('UAS','n4');
 renderRekap();
-// initial row totals
 ['TGS','UTS','UAS'].forEach(f => STUDENTS.forEach(s => updateRowTotal(f, s.nim)));
+
+// ═══════════════════════════════════════════════════════════════
+// AUTH + ROLE — login modal, mahasiswa/dosen branching, Publish
+// ═══════════════════════════════════════════════════════════════
+const COURSE_ID = 'optoauto';
+
+// Firebase (untuk callable + PIN check)
+let _fbApp = null, _fbFunctions = null;
+async function getFb(){
+  if(_fbFunctions) return _fbFunctions;
+  const appMod = await import('https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js');
+  const fnMod  = await import('https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js');
+  _fbApp = appMod.initializeApp({
+    apiKey: "AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",
+    authDomain: "getaran-mekanik.firebaseapp.com",
+    databaseURL: "https://getaran-mekanik-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "getaran-mekanik",
+    storageBucket: "getaran-mekanik.firebasestorage.app",
+    messagingSenderId: "430886299733",
+    appId: "1:430886299733:web:0edecd5d4adf73e7440cdc"
+  });
+  _fbFunctions = fnMod.getFunctions(_fbApp, 'asia-southeast1');
+  _fbFunctions._call = (name, data) => fnMod.httpsCallable(_fbFunctions, name)(data);
+  return _fbFunctions;
+}
+async function sha256Hex(s){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+// Session state
+const SESSION_KEY = 'opto-obe-session';
+function getSession(){ try { return JSON.parse(sessionStorage.getItem(SESSION_KEY)) || null; } catch { return null; } }
+function setSession(s){ sessionStorage.setItem(SESSION_KEY, JSON.stringify(s)); }
+function clearSession(){ sessionStorage.removeItem(SESSION_KEY); }
+
+function updateRoleUI(){
+  const sess = getSession();
+  const chip = document.getElementById('roleChip');
+  const logout = document.getElementById('logoutBtn');
+  const dosenActs = document.getElementById('rekapActsDosen');
+  if(!sess){
+    chip.innerHTML = '🔓 Belum login';
+    chip.style.background = 'rgba(248,113,113,.07)'; chip.style.borderColor = 'rgba(248,113,113,.3)'; chip.style.color = '#fca5a5';
+    logout.style.display = 'none';
+    if(dosenActs) dosenActs.style.display = 'none';
+  } else if(sess.role === 'dosen'){
+    chip.innerHTML = '👨‍🏫 Dosen';
+    chip.style.background = 'rgba(34,211,238,.07)'; chip.style.borderColor = 'rgba(34,211,238,.2)'; chip.style.color = '#9be7f5';
+    logout.style.display = 'inline-flex';
+    if(dosenActs) dosenActs.style.display = 'flex';
+  } else if(sess.role === 'mahasiswa'){
+    chip.innerHTML = `🎓 ${sess.nim}`;
+    chip.style.background = 'rgba(52,211,153,.07)'; chip.style.borderColor = 'rgba(52,211,153,.2)'; chip.style.color = '#7dffb0';
+    logout.style.display = 'inline-flex';
+    if(dosenActs) dosenActs.style.display = 'none';
+  }
+}
+
+function showModal(html){
+  let m = document.getElementById('authOverlay');
+  if(!m){
+    m = document.createElement('div');
+    m.id = 'authOverlay';
+    m.style.cssText = 'position:fixed;inset:0;background:rgba(7,11,20,.85);backdrop-filter:blur(6px);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px';
+    document.body.appendChild(m);
+  }
+  m.innerHTML = `<div style="background:#0d1626;border:1px solid #1c2c45;border-radius:14px;padding:26px 28px;width:100%;max-width:380px;color:#dbe5f3;font-family:'Segoe UI',sans-serif">${html}</div>`;
+}
+function closeModal(){ const m=document.getElementById('authOverlay'); if(m) m.remove(); }
+
+function showLoginPicker(){
+  showModal(`
+    <h3 style="margin:0 0 6px;font-size:18px">🔐 Login Diperlukan</h3>
+    <p style="font-size:13px;color:#8aa0bf;margin-bottom:18px">Pilih peran untuk akses halaman Penilaian.</p>
+    <button class="btn btn-import" style="width:100%;padding:11px;margin-bottom:8px" onclick="loginAsMahasiswa()">🎓 Saya Mahasiswa</button>
+    <button class="btn btn-export" style="width:100%;padding:11px" onclick="loginAsDosen()">👨‍🏫 Saya Dosen</button>
+    <p style="font-size:11px;color:#5d6f8e;margin-top:14px;text-align:center">Silabus tetap bisa dibuka tanpa login.</p>
+    <div style="text-align:center;margin-top:10px"><a href="#" onclick="closeModal();switchMode('silabus');return false" style="color:#22d3ee;font-size:12px">← Kembali ke Silabus</a></div>
+  `);
+}
+
+window.loginAsDosen = async function(){
+  showModal(`
+    <h3 style="margin:0 0 6px;font-size:18px">👨‍🏫 Login Dosen</h3>
+    <p style="font-size:13px;color:#8aa0bf;margin-bottom:14px">Masukkan password admin untuk akses penuh editing & publish.</p>
+    <input id="pwInput" type="password" placeholder="Password admin" autocomplete="off"
+      style="width:100%;padding:11px;background:#020a18;border:1px solid #1c2c45;border-radius:9px;color:#dbe5f3;font-size:14px;margin-bottom:12px;outline:none">
+    <button class="btn btn-export" style="width:100%;padding:11px" onclick="submitDosen()">Masuk</button>
+    <div id="loginErr" style="display:none;margin-top:10px;padding:8px;background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.3);border-radius:7px;color:#fca5a5;font-size:12px"></div>
+    <div style="text-align:center;margin-top:10px"><a href="#" onclick="showLoginPicker();return false" style="color:#22d3ee;font-size:12px">← Pilih peran lain</a></div>
+  `);
+  setTimeout(()=>document.getElementById('pwInput').focus(), 50);
+  document.getElementById('pwInput').addEventListener('keydown', e=>{ if(e.key==='Enter') submitDosen(); });
+};
+
+window.submitDosen = async function(){
+  const pw = document.getElementById('pwInput').value;
+  const err = document.getElementById('loginErr');
+  if(!pw){ err.textContent='Password wajib'; err.style.display='block'; return; }
+  err.style.display='none';
+  const hash = await sha256Hex(pw);
+  // Sanity check: try publish with empty scores to validate password (akan throw kalau salah)
+  // Lebih aman: simpan dulu hash di session, validasi nanti saat publish.
+  // Untuk UX langsung, set dulu lalu validasi via getMyObeNilai bukan opsi (PIN-gated).
+  // Kita pakai approach: simpan hash, klik Publish baru ketahuan salah.
+  setSession({ role:'dosen', adminPwHash: hash });
+  closeModal(); updateRoleUI();
+  toast('✅ Login dosen — buka tab Penilaian untuk edit');
+  switchMode('nilai');
+};
+
+window.loginAsMahasiswa = async function(){
+  showModal(`
+    <h3 style="margin:0 0 6px;font-size:18px">🎓 Login Mahasiswa</h3>
+    <p style="font-size:13px;color:#8aa0bf;margin-bottom:14px">Masukkan NIM &amp; PIN (PIN sama dgn yg dipakai di pertemuan).</p>
+    <input id="nimInput" inputmode="numeric" placeholder="NIM (mis. 41323110022)" autocomplete="off"
+      style="width:100%;padding:11px;background:#020a18;border:1px solid #1c2c45;border-radius:9px;color:#dbe5f3;font-size:14px;margin-bottom:10px;outline:none;font-family:'JetBrains Mono',monospace">
+    <input id="pinInput" type="password" inputmode="numeric" maxlength="6" placeholder="PIN 6 digit" autocomplete="off"
+      style="width:100%;padding:11px;background:#020a18;border:1px solid #1c2c45;border-radius:9px;color:#dbe5f3;font-size:14px;margin-bottom:12px;outline:none;font-family:'JetBrains Mono',monospace">
+    <button class="btn btn-import" style="width:100%;padding:11px" onclick="submitMahasiswa()">Masuk</button>
+    <div id="loginErr" style="display:none;margin-top:10px;padding:8px;background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.3);border-radius:7px;color:#fca5a5;font-size:12px"></div>
+    <div style="text-align:center;margin-top:10px"><a href="#" onclick="showLoginPicker();return false" style="color:#22d3ee;font-size:12px">← Pilih peran lain</a></div>
+  `);
+  setTimeout(()=>document.getElementById('nimInput').focus(), 50);
+};
+
+window.submitMahasiswa = async function(){
+  const nim = document.getElementById('nimInput').value.trim();
+  const pin = document.getElementById('pinInput').value.trim();
+  const err = document.getElementById('loginErr');
+  if(!/^\d{1,20}$/.test(nim)){ err.textContent='NIM tidak valid'; err.style.display='block'; return; }
+  if(!/^\d{4,8}$/.test(pin)){ err.textContent='PIN harus 4-8 digit angka'; err.style.display='block'; return; }
+  err.style.display='none';
+  try {
+    const pinHash = await sha256Hex(pin);
+    const fn = await getFb();
+    const r = await fn._call('getMyObeNilai', { courseId: COURSE_ID, nim, pinHash });
+    setSession({ role:'mahasiswa', nim, pinHash, nama: r.data.nama, data: r.data });
+    closeModal(); updateRoleUI();
+    renderMahasiswaView();
+    switchMode('nilai');
+    toast(`✅ Halo ${r.data.nama || nim}`);
+  } catch(e){
+    err.textContent = (e.message || e) + (e.code? ` [${e.code}]` : '');
+    err.style.display = 'block';
+  }
+};
+
+window.logout = function(){
+  if(!confirm('Logout dari halaman ini?')) return;
+  clearSession();
+  // refresh ke silabus + restore dosen view defaultnya
+  location.reload();
+};
+
+window.switchMode = function(mode){
+  document.querySelectorAll('.modebtn[data-mode]').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.mode').forEach(x=>x.classList.remove('active'));
+  document.querySelector(`.modebtn[data-mode="${mode}"]`).classList.add('active');
+  document.getElementById('mode-'+mode).classList.add('active');
+};
+
+// Intercept Penilaian tab click — wajib login
+document.querySelector('.modebtn[data-mode="nilai"]').addEventListener('click', e=>{
+  const sess = getSession();
+  if(!sess){
+    e.stopPropagation();
+    showLoginPicker();
+    return false;
+  }
+}, true);
+
+// Mahasiswa view: hanya tampilkan baris dia, isi tabs disabled
+function renderMahasiswaView(){
+  const sess = getSession();
+  if(!sess || sess.role !== 'mahasiswa') return;
+  const myNim = sess.nim;
+  const data = sess.data || {};
+  // Populate localStorage cache dgn data dia saja, lalu re-render
+  // (jangan timpa LS dosen — pakai struktur in-memory)
+  const myScores = {};
+  ['TGS','UTS','UAS'].forEach(f => {
+    if(data[f]){
+      myScores[f] = { [myNim]: data[f] };
+    }
+  });
+  // Override loadScores/getScore behavior: simpan ke window._mhsOverride
+  window._mhsOverride = myScores;
+  // Sembunyikan baris lain di rekap & form tabs
+  document.querySelectorAll('#n1body tr, #n2 tbody tr, #n3 tbody tr, #n4 tbody tr').forEach(tr => {
+    const nimEl = tr.querySelector('.nim');
+    if(nimEl && nimEl.textContent !== myNim) tr.style.display = 'none';
+  });
+  // Disable all inputs
+  document.querySelectorAll('.scoreinput').forEach(inp => {
+    inp.disabled = true;
+    const f = inp.dataset.form, sub = inp.dataset.sub;
+    const v = (myScores[f] && myScores[f][myNim] && myScores[f][myNim][sub]);
+    if(v !== undefined) { inp.value = v; inp.classList.add('has'); }
+    else inp.value = '';
+  });
+  // Update row totals untuk mahasiswa ini berdasarkan data server
+  function mhsRowTotal(formKey){
+    const cols = FORMS[formKey].cols;
+    const sub = (myScores[formKey] && myScores[formKey][myNim]) || {};
+    const sumB = cols.reduce((a,c)=>a+c[1],0);
+    let s=0; for(const [k,b] of cols){ if(sub[k]!==undefined) s += sub[k]*b/100; }
+    return sumB>0 ? (s/sumB)*100 : 0;
+  }
+  ['TGS','UTS','UAS'].forEach(f=>{
+    const cell = document.getElementById(`row-${f}-${myNim}`);
+    if(cell) cell.textContent = mhsRowTotal(f).toFixed(2);
+  });
+  // Rebuild Rekap utk mahasiswa (1 baris)
+  const tbody = document.getElementById('n1body');
+  const tgs = mhsRowTotal('TGS'), uts = mhsRowTotal('UTS'), uas = mhsRowTotal('UAS');
+  const na = tgs*0.6 + uts*0.2 + uas*0.2;
+  const naColor = na>=70 ? 'color:#7dffb0' : na>=55 ? 'color:#fcd34d' : 'color:#fca5a5';
+  const me = STUDENTS.find(s=>s.nim === myNim);
+  tbody.innerHTML = `<tr>
+    <td class="num">1</td>
+    <td><div class="nim">${myNim}</div><div class="nama">${esc((me && me.nama) || sess.nama || '')}</div></td>
+    <td class="num val">${me ? me.pre : 0}%</td>
+    <td class="num val">${tgs.toFixed(2)}</td>
+    <td class="num val">${uts.toFixed(2)}</td>
+    <td class="num val">${uas.toFixed(2)}</td>
+    <td class="num sum" style="${naColor}">${na.toFixed(2)}</td>
+  </tr>`;
+  document.getElementById('recapStat').textContent = data.empty ? 'Nilai belum di-publish dosen' : (data.publishedAt ? `Update terakhir: ${new Date(data.publishedAt).toLocaleString('id-ID')}` : 'Tersinkron');
+  // Sembunyikan tombol export/import/paste utk mahasiswa
+  document.querySelectorAll('.actbar .actright').forEach(b=>{
+    b.style.display = 'none';
+  });
+}
+
+// Publish ke Firestore (dosen)
+window.publishToFirestore = async function(){
+  const sess = getSession();
+  if(!sess || sess.role !== 'dosen'){ toast('❌ Login dosen dulu'); return; }
+  if(!confirm('Publish semua nilai (TGS/UTS/UAS) ke server? Mahasiswa akan langsung bisa lihat.')) return;
+  // Build scores payload dari localStorage
+  const ls = loadScores();
+  const payload = {};
+  STUDENTS.forEach(st => {
+    const o = {};
+    ['TGS','UTS','UAS'].forEach(f => {
+      if(ls[f] && ls[f][st.nim] && Object.keys(ls[f][st.nim]).length>0){
+        o[f] = ls[f][st.nim];
+      }
+    });
+    if(Object.keys(o).length > 0) payload[st.nim] = o;
+  });
+  if(Object.keys(payload).length === 0){ toast('⚠️ Tidak ada nilai untuk publish'); return; }
+  try {
+    const fn = await getFb();
+    const r = await fn._call('publishObeNilai', {
+      adminPwHash: sess.adminPwHash, courseId: COURSE_ID, scores: payload
+    });
+    toast(`✅ Publish OK — ${r.data.written} mahasiswa`);
+  } catch(e){
+    toast(`❌ ${e.message || e}`);
+  }
+};
+
+// On load
+updateRoleUI();
+const sess = getSession();
+if(sess && sess.role === 'mahasiswa') renderMahasiswaView();
 </script>
 </body>
 </html>

@@ -1390,3 +1390,103 @@ exports.analyzeModulData = onCall({ timeoutSeconds: 120 }, async (request) => {
     throw new HttpsError("internal", `Analyze gagal: ${e.message || e}`);
   }
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// publishObeNilai — admin callable. Tulis batch nilai OBE per mahasiswa ke
+// Firestore obeNilai/{courseId}/students/{nimKey}. Mahasiswa membaca via
+// getMyObeNilai (PIN-gated).
+//
+// Request: {
+//   adminPwHash, courseId,
+//   scores: { "<nim>": { TGS:{"1.3":80,...}, UTS:{"1.1":75,...}, UAS:{"3.1":70,...} } }
+// }
+// Response: { courseId, students, written, skipped }
+// ─────────────────────────────────────────────────────────────────────────────
+exports.publishObeNilai = onCall({ timeoutSeconds: 60 }, async (request) => {
+  const { adminPwHash, courseId, scores } = request.data || {};
+  if (!adminPwHash || typeof adminPwHash !== "string" || adminPwHash !== ADMIN_PW_HASH) {
+    throw new HttpsError("permission-denied", "Admin password salah");
+  }
+  if (!courseId || typeof courseId !== "string" || !/^[a-z0-9_-]{1,40}$/.test(courseId)) {
+    throw new HttpsError("invalid-argument", "courseId wajib (alfanumerik/dash/underscore)");
+  }
+  if (!scores || typeof scores !== "object" || Array.isArray(scores)) {
+    throw new HttpsError("invalid-argument", "scores wajib berupa object {nim: {TGS:{...}}}");
+  }
+
+  const fs = getFirestore();
+  const batch = fs.batch();
+  let written = 0, skipped = 0;
+
+  for (const [nim, perForm] of Object.entries(scores)) {
+    if (!/^[0-9]{1,20}$/.test(nim)) { skipped++; continue; }
+    if (!perForm || typeof perForm !== "object") { skipped++; continue; }
+    // Sanitize: only TGS/UTS/UAS, only numeric sub keys, values 0-100
+    const sanitized = { nim, publishedAt: FieldValue.serverTimestamp() };
+    for (const form of ["TGS", "UTS", "UAS"]) {
+      const f = perForm[form];
+      if (!f || typeof f !== "object") continue;
+      const cleanForm = {};
+      for (const [sub, v] of Object.entries(f)) {
+        if (!/^\d+\.\d+$/.test(sub)) continue;
+        const n = Number(v);
+        if (!Number.isFinite(n) || n < 0 || n > 100) continue;
+        cleanForm[sub] = n;
+      }
+      if (Object.keys(cleanForm).length > 0) sanitized[form] = cleanForm;
+    }
+    const nimKey = sanitizeKey("mhs_" + nim);
+    batch.set(fs.doc(`obeNilai/${courseId}/students/${nimKey}`), sanitized, { merge: true });
+    written++;
+  }
+
+  if (written === 0) {
+    throw new HttpsError("invalid-argument", "Tidak ada nilai valid untuk dipublish");
+  }
+  await batch.commit();
+  console.log("[publishObeNilai]", courseId, "written:", written, "skipped:", skipped);
+  return { courseId, written, skipped };
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// getMyObeNilai — callable PIN-gated. Mahasiswa fetch nilai OBE-nya sendiri.
+//
+// Request: { courseId, nim, pinHash }
+// Response: { courseId, nim, TGS, UTS, UAS, publishedAt }   (atau {courseId, nim, empty:true})
+// ─────────────────────────────────────────────────────────────────────────────
+exports.getMyObeNilai = onCall(async (request) => {
+  const { courseId, nim, pinHash } = request.data || {};
+  if (!courseId || !/^[a-z0-9_-]{1,40}$/.test(courseId)) {
+    throw new HttpsError("invalid-argument", "courseId wajib");
+  }
+  if (!nim || !/^[0-9]{1,20}$/.test(nim)) {
+    throw new HttpsError("invalid-argument", "nim wajib angka");
+  }
+  if (!pinHash || typeof pinHash !== "string") {
+    throw new HttpsError("invalid-argument", "pinHash wajib");
+  }
+  const rtdb = getDatabase();
+  const nimKey = sanitizeKey("mhs_" + nim);
+  const pinSnap = await rtdb.ref(`pins/${nimKey}`).get();
+  if (!pinSnap.exists()) {
+    throw new HttpsError("unauthenticated", "PIN belum di-setup untuk NIM ini");
+  }
+  const storedPin = pinSnap.val();
+  if (storedPin.pinHash !== pinHash) {
+    throw new HttpsError("unauthenticated", "PIN salah");
+  }
+  const fs = getFirestore();
+  const docSnap = await fs.doc(`obeNilai/${courseId}/students/${nimKey}`).get();
+  if (!docSnap.exists) {
+    return { courseId, nim, empty: true, nama: storedPin.nama || "" };
+  }
+  const d = docSnap.data() || {};
+  return {
+    courseId, nim,
+    nama: storedPin.nama || "",
+    TGS: d.TGS || {},
+    UTS: d.UTS || {},
+    UAS: d.UAS || {},
+    publishedAt: d.publishedAt ? d.publishedAt.toMillis() : null,
+  };
+});
