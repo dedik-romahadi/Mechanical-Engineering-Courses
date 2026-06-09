@@ -976,22 +976,22 @@ body.friction-blurred #frictionToast{filter:none;}
     <div class="card">
       <div class="card-icon">🅐</div>
       <h3>Bagian A — True / False</h3>
-      <p><strong>10 soal × 1 poin = 10 poin.</strong> Pilih BENAR atau SALAH untuk setiap pernyataan. Sebagian soal teori, sebagian lain berdasarkan parameter NIM Anda. Sekali submit, jawaban dikunci.</p>
+      <p><strong>10 soal True/False.</strong> Pilih BENAR atau SALAH untuk setiap pernyataan. Poin per soal proporsional bobot Sub-CPMK yang diujikan. Sebagian soal teori, sebagian lain berdasarkan parameter NIM Anda. Sekali submit, jawaban dikunci.</p>
     </div>
     <div class="card">
       <div class="card-icon">🅑</div>
       <h3>Bagian B — Pilihan Ganda</h3>
-      <p><strong>20 soal × 1 poin = 20 poin.</strong> Pilih satu jawaban dari 4 opsi (A, B, C, D). Soal komputasional memiliki opsi numerik yang berbeda untuk setiap mahasiswa.</p>
+      <p><strong>20 soal Pilihan Ganda.</strong> Pilih satu jawaban dari 4 opsi (A, B, C, D). Poin per soal proporsional bobot Sub-CPMK. Soal komputasional memiliki opsi numerik yang berbeda untuk setiap mahasiswa.</p>
     </div>
     <div class="card">
       <div class="card-icon">🅒</div>
       <h3>Bagian C — Komputasi Sedang</h3>
-      <p><strong>10 soal × 2 poin = 20 poin.</strong> Tulis kode Python (5–15 baris) di kolom yang tersedia, klik <em>Run &amp; Validasi</em>. Output numerik harus sesuai nilai yang diharapkan (toleransi terbatas).</p>
+      <p><strong>10 soal Komputasi Sedang.</strong> Poin per soal proporsional bobot Sub-CPMK. Tulis kode Python (5–15 baris) di kolom yang tersedia, klik <em>Run &amp; Validasi</em>. Output numerik harus sesuai nilai yang diharapkan (toleransi terbatas).</p>
     </div>
     <div class="card">
       <div class="card-icon">🅓</div>
       <h3>Bagian D — Komputasi Hard</h3>
-      <p><strong>5 soal × 4 poin = 20 poin.</strong> Algoritma lengkap (20–50+ baris). <strong>Partial credit +1 poin</strong> jika kode di-submit (tidak kosong) tapi output salah/error — sebagai apresiasi atas usaha.</p>
+      <p><strong>5 soal Komputasi Hard.</strong> Poin per soal proporsional bobot Sub-CPMK (biasanya lebih besar dari soal mudah). Algoritma lengkap (20–50+ baris). <strong>Partial credit +1 poin konsolasi</strong> jika kode di-submit (tidak kosong) tapi output salah/error — sebagai apresiasi atas usaha.</p>
     </div>
   </div>
 
@@ -1000,8 +1000,8 @@ body.friction-blurred #frictionToast{filter:none;}
     <ul style="margin-top:12px;line-height:1.8;padding-left:24px">
       <li><strong>Total maksimal: 100 poin</strong> — poin per soal proporsional bobot Sub-CPMK OBE.</li>
       <li><strong>One-shot</strong>: setiap soal hanya bisa di-submit <strong>satu kali</strong>. Setelah dijawab (benar atau salah), tombol terkunci permanen.</li>
-      <li><strong>Komputasi Easy/Medium</strong>: jawaban benar = +2 poin, jawaban salah = 0 poin.</li>
-      <li><strong>Komputasi Hard</strong>: jawaban benar = +4 poin, jawaban salah tapi kode terisi = +1 poin partial.</li>
+      <li><strong>Komputasi Easy/Medium</strong>: jawaban benar = poin proporsional bobot Sub-CPMK, jawaban salah = 0 poin.</li>
+      <li><strong>Komputasi Hard</strong>: jawaban benar = poin proporsional bobot Sub-CPMK, jawaban salah tapi kode terisi = +1 poin partial (konsolasi).</li>
       <li><strong>Konsolasi</strong>: jika ≥20 soal di-attempt tapi total poin = 0, otomatis +1 poin konsolasi.</li>
       <li>Setelah selesai, <strong>Export HTML</strong> untuk laporan kerja yang akan menjadi bukti pengumpulan.</li>
     </ul>
@@ -5922,7 +5922,7 @@ function updateLeaderboard(visitors, schedExpired){
   // Top Akses — ONLY students with points > 0 qualify, then sort by visitCount desc, then earliest timestamp
   const akses=[...visited].filter(v=>(v.points||0)>0&&!isLate(v.timestamp)).sort((a,b)=>{const d=(b.visitCount||1)-(a.visitCount||1);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp);});
   const medalR=['🥇','🥈','🥉'];
-  function renderCardSkor(v,idx){const pts=v.points||0;const nilai=pointsToScore(pts);return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="font-size:1rem;flex-shrink:0;">'+medalR[idx]+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(0,224,158,.12);color:#00e09e;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;white-space:nowrap;">'+pts+' <span style="opacity:.7;font-weight:600;">('+nilai+')</span></div></div>';}
+  function renderCardSkor(v,idx){const pts=v.points||0;const nilai=pointsToScore(pts);return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="font-size:1rem;flex-shrink:0;">'+medalR[idx]+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(0,224,158,.12);color:#00e09e;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;white-space:nowrap;">'+pts+'</div></div>';}
   function renderCardAkses(v,idx){const vc=v.visitCount||1;return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(251,191,36,.15);color:#fbbf24;font-size:.65rem;font-weight:800;flex-shrink:0;">'+(idx+1)+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(251,191,36,.12);color:#fbbf24;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+vc+'x</div></div>';}
   rajinEl.innerHTML=topSkor.length?topSkor.slice(0,3).map((v,i)=>renderCardSkor(v,i)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
   santaiEl.innerHTML=akses.length?akses.slice(0,3).map((v,i)=>renderCardAkses(v,i)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
@@ -6498,7 +6498,7 @@ function renderVisitors(visitors){
     else{statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(0,224,158,.1);color:#00e09e;border:1px solid rgba(0,224,158,.25);">\u2705 Tepat Waktu</span>';}
     const vcDisplay=vc?vc+'x':'<span style="color:#475569;">—</span>';
     const nilai=pointsToScore(pts);
-    const ptsDisplay=pts?'<span style="color:#00e09e;font-weight:800;">'+pts+'</span> <span style="color:#64748b;font-weight:600;font-size:.78rem;">('+nilai+')</span>':'<span style="color:#475569;">0 <span style="font-weight:600;font-size:.78rem;">(0)</span></span>';
+    const ptsDisplay=pts?'<span style="color:#00e09e;font-weight:800;">'+pts+'</span>':'<span style="color:#475569;">0</span>';
     const tsColor=bolos?'#ef4444':late?'#fb7185':hasPoints?'#64748b':(hasVisit?'#94a3b8':'#475569');
     const absenClass=(!hasPoints)?' absen':'';
     return `<div class="vt-row${absenClass}" style="${rowBg}"><div class="vt-num" style="color:${tsColor};">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div class="vt-avatar" style="${ac}">${ini}</div><div><div class="vt-name" style="${nameColor}">${escH(nama)}</div></div></div><div style="flex:1;font-size:.8rem;color:${hasVisit?'#94a3b8':'#475569'};font-family:monospace;">${s.nim}</div><div style="flex:1;text-align:center;"><span class="vt-status">${statusCol}</span></div><div style="flex:0.5;text-align:center;font-size:.85rem;">${ptsDisplay}</div><div class="vt-visit" style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:#94a3b8;">${vcDisplay}</div><div style="flex:1;text-align:right;font-size:.78rem;color:${tsColor};">${ts}</div></div>`;
