@@ -1641,11 +1641,12 @@ exports.computeObeScores = onCall({ timeoutSeconds: 300 }, async (request) => {
 
   try {
     // ── 1) TUGAS: baca poin modul 1..14 (RTDB visitors/<slug>/<seg>) ──
-    // seg modul N = pertemuan-(N<=7?N:N+1)
+    // Segmen path beda per course: _segmentsForModul handle Opto/Getaran
+    // (pertemuan-N, skip 8) vs Math4 (modul-N langsung).
     const modulPoints = {};  // nimKey → {1..14: points}
     for (let n = 1; n <= 14; n++) {
-      const pert = n <= 7 ? n : n + 1;
-      const snap = await rtdb.ref(`visitors/${courseSlug}/pertemuan-${pert}`).get();
+      const { db: dbSeg } = _segmentsForModul(courseId, n);
+      const snap = await rtdb.ref(`visitors/${courseSlug}/${dbSeg}`).get();
       const node = snap.val() || {};
       for (const [key, rec] of Object.entries(node)) {
         if (!key.startsWith("mhs_") || !rec || typeof rec !== "object") continue;
