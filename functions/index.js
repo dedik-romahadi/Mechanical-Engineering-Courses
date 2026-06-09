@@ -159,12 +159,19 @@ const OBE_EXAM_CONFIG = {
   },
 };
 
-// Poin per soal berdasarkan bobot Sub-CPMK OBE.
+// Poin per soal berdasarkan bobot Sub-CPMK OBE + bobot tipe soal.
 // qIdOrIdx: bisa qId string ("tf1","c1",...) atau index 0-based (0..44).
-// Return: float poin per soal = (bobot/Σbobot) × 100 / jumlah_soal_di_sub.
-// Misal Math4 UTS Sub-CPMK 1.1 (b=5, 7 soal): 5/31×100/7 ≈ 2.304 poin/soal.
-// Σ poin semua 45 soal = 100 (re-normalize ke 100 dalam konteks exam).
-// Return null kalau examId tidak ter-konfigurasi atau qId/idx tidak ketemu.
+// Bobot tipe: TF=1, MC=1, Comp Easy=2, Comp Hard=4 (rasio 1:1:2:4).
+// Σ per Sub-CPMK = (bobot_sub/Σbobot)×100 (tetap sesuai bobot OBE);
+// dalam sub yang sama, Hard 4× TF/MC, Easy 2× TF/MC.
+// Σ semua 45 soal = 100. Return null kalau examId/qIdx tidak ketemu.
+const _OBE_TYPE_WEIGHTS = { tf: 1, mc: 1, ce: 2, c_easy: 2, c_hard: 4, ch: 4 };
+function _qTypeWeightByIdx(qIdx0) {
+  if (qIdx0 < 10) return 1;   // tf1-tf10
+  if (qIdx0 < 30) return 1;   // mc1-mc20
+  if (qIdx0 < 40) return 2;   // c1-c10 atau ce1-ce10 (Comp Easy)
+  return 4;                   // c11-c15 atau ch1-ch5 (Comp Hard)
+}
 function _examQPoints(examId, qIdOrIdx) {
   const cfg = OBE_EXAM_CONFIG[examId];
   if (!cfg) return null;
@@ -181,7 +188,12 @@ function _examQPoints(examId, qIdOrIdx) {
     if (qNums.includes(qNum)) {
       const bobot = Number(cfg.bobot[sub] || 0);
       if (bobot <= 0 || qNums.length <= 0) return null;
-      return (bobot / sumBobot) * 100 / qNums.length;
+      const subTotal = (bobot / sumBobot) * 100;
+      // Distribusi internal sub: bobot per tipe (1/1/2/4)
+      let sumW = 0;
+      for (const q of qNums) sumW += _qTypeWeightByIdx(q - 1);
+      const myW = _qTypeWeightByIdx(qIdx);
+      return subTotal * (myW / sumW);
     }
   }
   return null;
