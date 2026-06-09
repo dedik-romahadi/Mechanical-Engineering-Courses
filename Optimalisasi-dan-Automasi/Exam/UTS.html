@@ -1628,6 +1628,14 @@ const SCORE_CONFIG = {
 window.SCORE_CONFIG = SCORE_CONFIG;
 
 // Helper: konversi poin (0..70) → nilai 0–100
+// Poin per soal proporsional bobot Sub-CPMK OBE (auto-injected).
+// Σ poin semua 45 soal = 100. Sinkron dgn OBE_EXAM_CONFIG di functions/index.js.
+const EXAM_QID_POINTS = {"tf1":2.2727, "tf2":2.2727, "tf3":2.2727, "tf4":2.2727, "tf5":2.2727, "tf6":2.2727, "tf7":2.2727, "tf8":2.2727, "tf9":2.2727, "tf10":2.2727, "mc1":2.2727, "mc2":2.2727, "mc3":2.2727, "mc4":2.2727, "mc5":2.2727, "mc6":2.2727, "mc7":2.2727, "mc8":2.2727, "mc9":2.2727, "mc10":2.2727, "mc11":2.2727, "mc12":2.2727, "mc13":2.2222, "mc14":2.2222, "mc15":2.2222, "mc16":2.2222, "mc17":2.2222, "mc18":2.2222, "mc19":2.2222, "mc20":2.2222, "ce1":2.2222, "ce2":2.1429, "ce3":2.1429, "ce4":2.1429, "ce5":2.1429, "ce6":2.1429, "ce7":2.1429, "ce8":2.1429, "ce9":2.1429, "ce10":2.1429, "ch1":2.1429, "ch2":2.1429, "ch3":2.1429, "ch4":2.1429, "ch5":2.1429};
+function getQPoints(qId, fallback) {
+  const p = EXAM_QID_POINTS[qId];
+  return (typeof p === "number") ? p : (fallback ?? 1);
+}
+
 function pointsToScore(pts) {
   // Σ poin per exam = 100 (poin per soal proporsional bobot Sub-CPMK OBE),
   // jadi pts langsung = nilai 0-100. Round utk display bersih.
@@ -3389,7 +3397,7 @@ function renderUTSQuestions() {
             ${data.text}
             <span class="tf-tag ${isParam ? 'tf-tag-nim' : 'tf-tag-theory'}">${isParam ? 'NIM-based' : 'Teori'} · Modul ${q.modul}</span>
           </div>
-          <div class="tf-pts">1 poin</div>
+          <div class="tf-pts">${getQPoints("tf"+num, 1).toFixed(2)} poin</div>
         </div>
         ${data.diagram || ''}
         <div class="tf-options" id="tfopts-${q.id}">
@@ -3432,7 +3440,7 @@ function renderUTSQuestions() {
             ${data.text}
             <span class="tf-tag ${isParam ? 'tf-tag-nim' : 'tf-tag-theory'}" style="margin-left:8px">${isParam ? 'NIM-based' : 'Teori'} · Modul ${q.modul}</span>
           </div>
-          <div class="mc-pts">1 poin</div>
+          <div class="mc-pts">${getQPoints("mc"+num, 1).toFixed(2)} poin</div>
         </div>
         ${data.diagram || ''}
         <div class="radio-group" id="rg-${q.id}">${optsHtml}</div>
@@ -3492,7 +3500,7 @@ function renderUTSQuestions() {
 function _buildCompCard(q, num, data, sectionLetter, isHard) {
   const card = document.createElement('div');
   card.className = 'comp-card reveal' + (isHard ? ' comp-hard' : '');
-  const points = isHard ? 4 : 2;
+  const points = getQPoints(q.id, isHard ? 4 : 2).toFixed(2);
   const partialNote = isHard ? '<span style="color:var(--pink);font-size:11px;margin-left:6px">+1 partial jika kode terisi</span>' : '';
   card.innerHTML = `
     <div class="comp-header">
