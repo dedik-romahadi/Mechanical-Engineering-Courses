@@ -61,52 +61,28 @@ setGlobalOptions({
 // ─────────────────────────────────────────────────────────────────────────────
 const EXAM_CONFIG = {
   "getaran-mekanik-uts": {
-    dbPath: "visitors/getaran_mekanik/uts",
-    schedulePath: "settings/getaran_mekanik/uts/schedule",
-    totalPoints: 100,            // poin per soal proporsional bobot Sub-CPMK; Σ = 100
-    consolationThreshold: 30,    // ≥30 distinct base-ID attempted
-    consolationPoint: 1,
-    lateMultiplierValue: 0.7,    // di window (end, end+extension]
+    bobot:   {"1.1":5,"1.2":4,"1.3":2,"2.1":3,"2.2":3,"3.1":5,"3.2":3},
+    mapping: {"1.1":[34,35,36,37,38,39,40],"1.2":[1,2,3,4,5,6,7,8],"1.3":[9,10,11,12,31],"2.1":[13,14,15,16,17,18,32],"2.2":[19,20,21,22,23,24,33],"3.1":[41,42,43,44,45],"3.2":[25,26,27,28,29,30]},
   },
   "getaran-mekanik-uas": {
-    dbPath: "visitors/getaran_mekanik/uas",
-    schedulePath: "settings/getaran_mekanik/uas/schedule",
-    totalPoints: 100,
-    consolationThreshold: 30,
-    consolationPoint: 1,
-    lateMultiplierValue: 0.7,
+    bobot:   {"3.3":2,"4.1":3,"4.2":3,"5.1":4,"6.1":4,"6.2":4,"6.3":4},
+    mapping: {"3.3":[1,2,3,31],"4.1":[4,5,6,7,8,32],"4.2":[9,10,11,12,13,14,33],"5.1":[15,16,17,18,19,20,21,22],"6.1":[23,24,25,26,27,28,29,30],"6.2":[34,35,36,37,38,39,40],"6.3":[41,42,43,44,45]},
   },
   "optoauto-uts": {
-    dbPath: "visitors/optoauto/uts",
-    schedulePath: "settings/optoauto/uts/schedule",
-    totalPoints: 100,
-    consolationThreshold: 30,
-    consolationPoint: 1,
-    lateMultiplierValue: 0.7,
+    bobot:   {"1.1":5,"1.2":5,"1.3":4,"2.2":3,"2.3":3},
+    mapping: {"1.1":[34,35,36,37,38,39,40],"1.2":[41,42,43,44,45],"1.3":[1,2,3,4,5,6,7,8,9,10,11,12,31],"2.2":[13,14,15,16,17,18,19,20,21,32],"2.3":[22,23,24,25,26,27,28,29,30,33]},
   },
   "optoauto-uas": {
-    dbPath: "visitors/optoauto/uas",
-    schedulePath: "settings/optoauto/uas/schedule",
-    totalPoints: 100,
-    consolationThreshold: 30,
-    consolationPoint: 1,
-    lateMultiplierValue: 0.7,
+    bobot:   {"3.1":4,"3.2":3,"3.3":3,"4.1":3,"4.2":3,"4.3":4},
+    mapping: {"3.1":[34,35,36,37,38,39,40],"3.2":[1,2,3,4,5,6,7,31],"3.3":[8,9,10,11,12,13,14,32],"4.1":[15,16,17,18,19,20,21,22,33],"4.2":[23,24,25,26,27,28,29,30],"4.3":[41,42,43,44,45]},
   },
   "math4-uts": {
-    dbPath: "visitors/math4/uts",
-    schedulePath: "settings/math4/uts/schedule",
-    totalPoints: 100,
-    consolationThreshold: 30,
-    consolationPoint: 1,
-    lateMultiplierValue: 0.7,
+    bobot:   {"1.1":5,"1.2":6,"2.1":5,"2.2":10,"2.3":5},
+    mapping: {"1.1":[1,2,3,4,5,6,7,8,9,10,31],"1.2":[34,35,36,37,38,39,40],"2.1":[11,12,13,14,15,16,17,18,19,20,32],"2.2":[41,42,43,44,45],"2.3":[21,22,23,24,25,26,27,28,29,30,33]},
   },
   "math4-uas": {
-    dbPath: "visitors/math4/uas",
-    schedulePath: "settings/math4/uas/schedule",
-    totalPoints: 100,
-    consolationThreshold: 30,
-    consolationPoint: 1,
-    lateMultiplierValue: 0.7,
+    bobot:   {"3.1":20,"4.1":2,"4.2":3,"5.1":5},
+    mapping: {"3.1":[41,42,43,44,45],"4.1":Array.from({length:12},(_,i)=>i+1),"4.2":Array.from({length:18},(_,i)=>i+13),"5.1":[34,35,36,37,38,39,40]},
   },
 };
 
