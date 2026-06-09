@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin — Recompute OBE Score (Tab Hasil Exam) | Mechanical Engineering Courses</title>
+<title>Admin — Recompute Exam Points (poin OBE) | Mechanical Engineering Courses</title>
 <style>
   :root{
     --bg:#060a10; --surface:#0d1520; --border:#1a2840; --cyan:#00e5ff;
@@ -44,12 +44,12 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>🔄 Recompute OBE Score (Tab Hasil Exam)</h1>
-  <div class="sub">Admin-only. Recompute <code style="color:var(--cyan);font-family:monospace">visitor.obeScore</code> untuk SEMUA mahasiswa di satu exam. Tab Hasil exam akan tampil nilai OBE-weighted (sama dgn Dokumen OBE).</div>
+  <h1>🔄 Recompute Exam Points (poin OBE)</h1>
+  <div class="sub">Admin-only. Recompute <code style="color:var(--cyan);font-family:monospace">visitor.points</code> untuk SEMUA mahasiswa di satu exam, pakai skema poin proporsional bobot Sub-CPMK (Σ = 100).</div>
 
   <div class="info">
-    <b>Kapan dipakai:</b> (1) migrasi data lama (mahasiswa yg sudah submit sebelum hook OBE aktif), atau (2) refresh setelah ubah mapping / bobot Sub-CPMK di OBE.
-    Aman dipanggil berulang — idempotent.
+    <b>Kapan dipakai:</b> (1) migrasi data lama (visitor.points masih skala /70), (2) refresh setelah ubah mapping / bobot di <code>OBE_EXAM_CONFIG</code>, atau (3) perbaiki inkonsistensi attempts.
+    Aman dipanggil berulang — idempotent. Field <code>visitor.obeScore</code> (legacy) juga dibersihkan.
   </div>
 
   <div class="card">
@@ -70,7 +70,7 @@
     <label>Password Admin (Dosen)</label>
     <input id="pw" type="password" placeholder="Password admin" autocomplete="off">
 
-    <button id="btn" onclick="doRecompute()">Recompute OBE Score</button>
+    <button id="btn" onclick="doRecompute()">Recompute Exam Points</button>
     <div class="result" id="result"></div>
 
     <details>
@@ -78,9 +78,9 @@
       <ul>
         <li>List semua mahasiswa yang punya record di <code>visitors/&lt;course&gt;/&lt;exam&gt;</code> (RTDB).</li>
         <li>Per mahasiswa: baca attempts dari Firestore <code>examAttempts/&lt;examId&gt;/students/&lt;nim&gt;/qs/*</code>.</li>
-        <li>Hitung skor per Sub-CPMK = (poin diperoleh / max) × 100.</li>
-        <li>Total = Σ(skor × bobot) / Σ bobot &nbsp;→&nbsp; stamp ke <code>visitor.obeScore</code> (skala 0-100).</li>
-        <li>Tab Hasil exam HTML pakai <code>v.obeScore</code> bila ada, fallback ke raw ratio.</li>
+        <li>Hitung Σ poin = jumlah <code>scoreDelta</code> per soal correct (poin per soal = bobot Sub-CPMK / Σ bobot × 100 / jumlah soal).</li>
+        <li>Stamp ke <code>visitor.points</code> (skala 0-100, di-cap pada <code>cfg.totalPoints</code>).</li>
+        <li>Tab Hasil exam HTML pakai <code>v.points</code> langsung (= nilai 0-100).</li>
         <li>Mapping & bobot di-define di <code>OBE_EXAM_CONFIG</code> server-side, sinkron dgn <code>DEFAULT_MAPPING</code> + <code>FORMS</code> di Dokumen OBE HTML.</li>
       </ul>
     </details>
@@ -108,7 +108,7 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const functions = getFunctions(app, 'asia-southeast1');
-const recomputeAllObeScores = httpsCallable(functions, 'recomputeAllObeScores');
+const recomputeExamPoints = httpsCallable(functions, 'recomputeExamPoints');
 
 async function sha256Hex(s){
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
@@ -173,16 +173,16 @@ window.doRecompute = async function(){
 
   try{
     const adminPwHash = await sha256Hex(pw);
-    const r = await recomputeAllObeScores({ adminPwHash, examId });
+    const r = await recomputeExamPoints({ adminPwHash, examId });
     const d = r.data;
     const lines = [
       `✅ Recompute selesai — ${d.examId}`,
       '',
       `Diproses:  ${d.processed} mahasiswa`,
-      `Di-update: ${d.updated} (obeScore ter-stamp di visitor record)`,
+      `Di-update: ${d.updated} (visitor.points ter-stamp ulang dgn skema 100-poin)`,
       `Di-skip:   ${d.skipped} (belum ada attempt / nimKey invalid)`,
       '',
-      'Tab Hasil exam HTML sekarang akan menampilkan nilai OBE-weighted.',
+      'Tab Hasil exam HTML sekarang menampilkan nilai 0-100 langsung.',
       'Refresh halaman exam untuk lihat perubahan.'
     ];
     res.className='result ok'; res.textContent=lines.join('\n');

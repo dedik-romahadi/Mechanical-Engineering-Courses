@@ -63,7 +63,7 @@ const EXAM_CONFIG = {
   "getaran-mekanik-uts": {
     dbPath: "visitors/getaran_mekanik/uts",
     schedulePath: "settings/getaran_mekanik/uts/schedule",
-    totalPoints: 70,             // 10 TF + 20 MC + 10 Comp E/M + 5 Comp Hard
+    totalPoints: 100,            // poin per soal proporsional bobot Sub-CPMK; Σ = 100
     consolationThreshold: 30,    // ≥30 distinct base-ID attempted
     consolationPoint: 1,
     lateMultiplierValue: 0.7,    // di window (end, end+extension]
@@ -71,7 +71,7 @@ const EXAM_CONFIG = {
   "getaran-mekanik-uas": {
     dbPath: "visitors/getaran_mekanik/uas",
     schedulePath: "settings/getaran_mekanik/uas/schedule",
-    totalPoints: 70,             // schema identik UTS (10 TF + 20 MC + 10 Comp + 5 Hard)
+    totalPoints: 100,
     consolationThreshold: 30,
     consolationPoint: 1,
     lateMultiplierValue: 0.7,
@@ -79,7 +79,7 @@ const EXAM_CONFIG = {
   "optoauto-uts": {
     dbPath: "visitors/optoauto/uts",
     schedulePath: "settings/optoauto/uts/schedule",
-    totalPoints: 70,             // schema identik (10 TF + 20 MC + 10 Comp + 5 Hard)
+    totalPoints: 100,
     consolationThreshold: 30,
     consolationPoint: 1,
     lateMultiplierValue: 0.7,
@@ -87,7 +87,7 @@ const EXAM_CONFIG = {
   "optoauto-uas": {
     dbPath: "visitors/optoauto/uas",
     schedulePath: "settings/optoauto/uas/schedule",
-    totalPoints: 70,
+    totalPoints: 100,
     consolationThreshold: 30,
     consolationPoint: 1,
     lateMultiplierValue: 0.7,
@@ -95,7 +95,7 @@ const EXAM_CONFIG = {
   "math4-uts": {
     dbPath: "visitors/math4/uts",
     schedulePath: "settings/math4/uts/schedule",
-    totalPoints: 70,
+    totalPoints: 100,
     consolationThreshold: 30,
     consolationPoint: 1,
     lateMultiplierValue: 0.7,
@@ -103,7 +103,7 @@ const EXAM_CONFIG = {
   "math4-uas": {
     dbPath: "visitors/math4/uas",
     schedulePath: "settings/math4/uas/schedule",
-    totalPoints: 70,
+    totalPoints: 100,
     consolationThreshold: 30,
     consolationPoint: 1,
     lateMultiplierValue: 0.7,
@@ -112,9 +112,10 @@ const EXAM_CONFIG = {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // OBE_EXAM_CONFIG — mapping (Sub-CPMK → daftar Q 1-45) & bobot Sub-CPMK per
-// exam. Dipakai _computeObeWeightedScore() yg di-call setelah setiap
-// checkExamAnswer untuk stamp visitor.obeScore (skala 0-100, sama formula
-// Dokumen OBE: weighted avg per Sub-CPMK).
+// exam. SUMBER UTAMA poin per soal:
+//   _examQPoints(examId, qIdx0) = (bobot/Σbobot) × 100 / jumlah_soal_di_sub
+// Per soal jadi float proporsional. Σ poin per exam = 100.
+// Juga dipakai computeObeScores untuk hitung Sub-CPMK breakdown (Rekap OBE).
 // Mapping & bobot HARUS sinkron dgn DEFAULT_MAPPING+FORMS di OBE HTML
 // masing-masing course. Lihat Pedoman §38.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -158,39 +159,54 @@ const OBE_EXAM_CONFIG = {
   },
 };
 
-// Compute OBE-weighted score (0-100) per mahasiswa untuk satu exam.
-// Method: per Sub-CPMK, hitung (got/max)*100; total = Σ(score×bobot)/Σbobot.
-// Return null kalau exam tidak ter-konfigurasi atau tidak ada attempt.
-async function _computeObeWeightedScore(examId, nimKey) {
+// Poin per soal berdasarkan bobot Sub-CPMK OBE.
+// qIdOrIdx: bisa qId string ("tf1","c1",...) atau index 0-based (0..44).
+// Return: float poin per soal = (bobot/Σbobot) × 100 / jumlah_soal_di_sub.
+// Misal Math4 UTS Sub-CPMK 1.1 (b=5, 7 soal): 5/31×100/7 ≈ 2.304 poin/soal.
+// Σ poin semua 45 soal = 100 (re-normalize ke 100 dalam konteks exam).
+// Return null kalau examId tidak ter-konfigurasi atau qId/idx tidak ketemu.
+function _examQPoints(examId, qIdOrIdx) {
   const cfg = OBE_EXAM_CONFIG[examId];
   if (!cfg) return null;
   const order = OBE_ORDER[examId];
   if (!order) return null;
-  const fs = getFirestore();
-  const qsSnap = await fs.collection(`examAttempts/${examId}/students/${nimKey}/qs`).get();
-  if (qsSnap.empty) return null;
-  const att = {};
-  qsSnap.forEach(d => { att[d.id] = d.data() || {}; });
-  let totalNum = 0, totalDen = 0;
+  let qIdx;
+  if (typeof qIdOrIdx === "number") qIdx = qIdOrIdx;
+  else qIdx = order.indexOf(qIdOrIdx);
+  if (qIdx < 0) return null;
+  const qNum = qIdx + 1;
+  const sumBobot = Object.values(cfg.bobot).reduce((a,b) => a + Number(b || 0), 0);
+  if (sumBobot <= 0) return null;
   for (const [sub, qNums] of Object.entries(cfg.mapping)) {
-    const b = cfg.bobot[sub] || 0;
-    if (b <= 0) continue;
-    let got = 0, max = 0;
-    for (const q of qNums) {
-      const qId = order[q-1]; if (!qId) continue;
-      const maxP = _obeQPoints(q-1);
-      max += maxP;
-      const a = att[qId];
-      if (!a) continue;
-      if (a.status === "correct" || a.correct === true) got += maxP;
-      else if (a.status === "partial") got += (maxP >= 4 ? 1 : 0);
-    }
-    if (max > 0) {
-      totalNum += (got / max) * 100 * b;
-      totalDen += b;
+    if (qNums.includes(qNum)) {
+      const bobot = Number(cfg.bobot[sub] || 0);
+      if (bobot <= 0 || qNums.length <= 0) return null;
+      return (bobot / sumBobot) * 100 / qNums.length;
     }
   }
-  return totalDen > 0 ? Math.round(totalNum / totalDen) : 0;
+  return null;
+}
+
+// Sum poin semua soal correct di satu attempt-set utk satu exam (sum scoreDelta).
+// Dipakai recomputeExamPoints untuk recompute visitor.points dari attempts.
+async function _sumExamPointsFromAttempts(examId, nimKey) {
+  const cfg = OBE_EXAM_CONFIG[examId];
+  const order = OBE_ORDER[examId];
+  if (!cfg || !order) return null;
+  const fs = getFirestore();
+  const qsSnap = await fs.collection(`examAttempts/${examId}/students/${nimKey}/qs`).get();
+  if (qsSnap.empty) return 0;
+  let sum = 0;
+  qsSnap.forEach(d => {
+    const a = d.data() || {};
+    const qId = d.id;
+    const pts = _examQPoints(examId, qId);
+    if (pts == null) return;
+    const mult = Number(a.lateMultiplier ?? 1);
+    if (a.status === "correct" || a.correct === true) sum += pts * mult;
+    else if (a.status === "partial") sum += 1 * mult;  // konsolasi partial (comp hard)
+  });
+  return sum;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -609,6 +625,14 @@ exports.checkExamAnswer = onCall(async (request) => {
   // ── 6) Evaluate ──
   const evalResult = evaluateAnswer(ans, userAnswer, userAnswers);
   const outcome = computeOutcome(ans, evalResult, sched.pastDeadline);
+  // Override poin per soal dgn bobot OBE — proporsional Sub-CPMK / jumlah soal.
+  // Σ poin semua soal = 100 (lihat _examQPoints + OBE_EXAM_CONFIG).
+  // Mempertahankan logika status (correct=poin penuh, partial=1 konsolasi, wrong=0).
+  const obePts = _examQPoints(examId, qId);
+  if (obePts != null) {
+    if (outcome.status === "correct") outcome.points = obePts;
+    else if (outcome.status === "partial") outcome.points = 1;
+  }
   const scoreDelta = outcome.points * sched.multiplier;
   const markerKey = qId + outcome.markerSuffix;
 
@@ -700,18 +724,6 @@ exports.checkExamAnswer = onCall(async (request) => {
 
     return cur;
   });
-
-  // ── 8b) OBE-weighted score: compute & stamp ke visitor.obeScore ──
-  // Per-Sub-CPMK weighted average (sama metode dgn Dokumen OBE Rekap).
-  // Tab Hasil exam HTML baca v.obeScore → ranking & display 0-100.
-  try {
-    const obeScore = await _computeObeWeightedScore(examId, nimKey);
-    if (obeScore != null) {
-      await vRef.child("obeScore").set(obeScore);
-    }
-  } catch (e) {
-    console.warn("[checkExamAnswer] OBE score update gagal", examId, nimKey, e.message);
-  }
 
   return {
     alreadyAnswered: false,
@@ -1621,15 +1633,16 @@ exports.deleteObeNilai = onCall({ timeoutSeconds: 60 }, async (request) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// recomputeAllObeScores — admin callable. Recompute v.obeScore untuk SEMUA
-// mahasiswa yang punya record di RTDB visitors path utk satu exam.
-// Dipakai utk migrasi data lama (sebelum hook OBE di checkExamAnswer aktif),
-// atau setelah perubahan mapping/bobot di OBE_EXAM_CONFIG.
+// recomputeExamPoints — admin callable. Recompute visitor.points untuk SEMUA
+// mahasiswa di satu exam, pakai poin per soal OBE-mapped (skema 100 poin).
+// Dipakai utk migrasi data lama (visitor.points masih /70 skala) atau setelah
+// perubahan mapping/bobot di OBE_EXAM_CONFIG.
+// Hapus juga visitor.obeScore (legacy) bila ada.
 //
 // Request:  { adminPwHash, examId }
 // Response: { examId, processed, updated, skipped }
 // ─────────────────────────────────────────────────────────────────────────────
-exports.recomputeAllObeScores = onCall({ timeoutSeconds: 300 }, async (request) => {
+exports.recomputeExamPoints = onCall({ timeoutSeconds: 300 }, async (request) => {
   const { adminPwHash, examId } = request.data || {};
   if (!adminPwHash || adminPwHash !== ADMIN_PW_HASH) {
     throw new HttpsError("permission-denied", "Admin password salah");
@@ -1653,17 +1666,19 @@ exports.recomputeAllObeScores = onCall({ timeoutSeconds: 300 }, async (request) 
     processed++;
     const cleanKey = nimKey.replace(/^mhs_/, "");
     try {
-      const score = await _computeObeWeightedScore(examId, cleanKey);
-      if (score == null) { skipped++; continue; }
-      await rtdb.ref(`${cfg.dbPath}/${nimKey}/obeScore`).set(score);
+      const pts = await _sumExamPointsFromAttempts(examId, cleanKey);
+      if (pts == null) { skipped++; continue; }
+      const capped = Math.min(pts, cfg.totalPoints);
+      const updates = { points: Math.round(capped * 100) / 100, obeScore: null };
+      await rtdb.ref(`${cfg.dbPath}/${nimKey}`).update(updates);
       updated++;
     } catch (e) {
-      console.warn("[recomputeAllObeScores]", examId, nimKey, e.message);
+      console.warn("[recomputeExamPoints]", examId, nimKey, e.message);
       skipped++;
     }
   }
 
-  console.log("[recomputeAllObeScores]", examId,
+  console.log("[recomputeExamPoints]", examId,
               "processed:", processed, "updated:", updated, "skipped:", skipped);
   return { examId, processed, updated, skipped };
 });
@@ -1714,7 +1729,9 @@ const OBE_COURSE_EXAMS = {
   "math4":           ["math4-uts",           "math4-uas"],
 };
 // Poin maks per posisi Q (1-based): Q1-30=1, Q31-40=2, Q41-45=4
-function _obeQPoints(qIndex0){ return qIndex0 < 30 ? 1 : qIndex0 < 40 ? 2 : 4; }
+// _obeQPoints (legacy fixed 1/2/4) dihapus — semua call site beralih ke
+// _examQPoints(examId, qIdx0) yang menghitung poin per soal dari bobot
+// Sub-CPMK (proporsional). Skema baru: Σ poin per exam = 100.
 const OBE_MAP = {
   uts: { "1.1":[1,11], "1.2":[12,22], "1.3":[23,31], "2.2":[32,38], "2.3":[39,45] },
   uas: { "3.1":[1,9], "3.2":[10,16], "3.3":[17,23], "4.1":[24,30], "4.2":[31,36], "4.3":[37,45] },
@@ -1808,7 +1825,7 @@ exports.computeObeScores = onCall({ timeoutSeconds: 300 }, async (request) => {
       docs.forEach(d => { att[d.id] = d.data() || {}; });
       const earned = {};
       order.forEach((qId, idx) => {
-        const maxP = _obeQPoints(idx);
+        const maxP = _examQPoints(examId, idx) ?? 0;
         const a = att[qId];
         if (!a) { earned[qId] = 0; return; }
         if (a.status === "correct" || a.correct === true) earned[qId] = maxP;
@@ -1848,7 +1865,7 @@ exports.computeObeScores = onCall({ timeoutSeconds: 300 }, async (request) => {
             const qId = order[q-1];
             if (!qId) continue;
             got += earned[qId] || 0;
-            max += _obeQPoints(q-1);
+            max += _examQPoints(examId, q-1) ?? 0;
           }
           out[key][sub] = max > 0 ? Math.round((got / max) * 100 * 100) / 100 : 0;
         }
