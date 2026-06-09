@@ -111,6 +111,89 @@ const EXAM_CONFIG = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// OBE_EXAM_CONFIG — mapping (Sub-CPMK → daftar Q 1-45) & bobot Sub-CPMK per
+// exam. Dipakai _computeObeWeightedScore() yg di-call setelah setiap
+// checkExamAnswer untuk stamp visitor.obeScore (skala 0-100, sama formula
+// Dokumen OBE: weighted avg per Sub-CPMK).
+// Mapping & bobot HARUS sinkron dgn DEFAULT_MAPPING+FORMS di OBE HTML
+// masing-masing course. Lihat Pedoman §38.
+// ─────────────────────────────────────────────────────────────────────────────
+const OBE_EXAM_CONFIG = {
+  "optoauto-uts": {
+    bobot:   { "1.1":5, "1.2":5, "1.3":4, "2.2":3, "2.3":3 },
+    mapping: { "1.1":[1,2,3,4,5,6,7,8,9,10,11], "1.2":[12,13,14,15,16,17,18,19,20,21,22],
+               "1.3":[23,24,25,26,27,28,29,30,31], "2.2":[32,33,34,35,36,37,38],
+               "2.3":[39,40,41,42,43,44,45] },
+  },
+  "optoauto-uas": {
+    bobot:   { "3.1":4, "3.2":3, "3.3":3, "4.1":3, "4.2":3, "4.3":4 },
+    mapping: { "3.1":[1,2,3,4,5,6,7,8,9], "3.2":[10,11,12,13,14,15,16],
+               "3.3":[17,18,19,20,21,22,23], "4.1":[24,25,26,27,28,29,30],
+               "4.2":[31,32,33,34,35,36], "4.3":[37,38,39,40,41,42,43,44,45] },
+  },
+  "getaran-mekanik-uts": {
+    bobot:   { "1.1":5, "1.2":4, "1.3":2, "2.1":3, "2.2":3, "3.1":5, "3.2":3 },
+    mapping: { "1.1":[1,2,3,4,5,6,7,8,9], "1.2":[10,11,12,13,14,15,16],
+               "1.3":[17,18,19,20], "2.1":[21,22,23,24,25,26],
+               "2.2":[27,28,29,30,31], "3.1":[32,33,34,35,36,37,38,39,40],
+               "3.2":[41,42,43,44,45] },
+  },
+  "getaran-mekanik-uas": {
+    bobot:   { "3.3":2, "4.1":3, "4.2":3, "5.1":4, "6.1":4, "6.2":4, "6.3":4 },
+    mapping: { "3.3":[1,2,3,4], "4.1":[5,6,7,8,9,10], "4.2":[11,12,13,14,15,16],
+               "5.1":[17,18,19,20,21,22,23,24], "6.1":[25,26,27,28,29,30,31],
+               "6.2":[32,33,34,35,36,37,38], "6.3":[39,40,41,42,43,44,45] },
+  },
+  "math4-uts": {
+    bobot:   { "1.1":5, "1.2":6, "2.1":5, "2.2":10, "2.3":5 },
+    mapping: { "1.1":[1,2,3,4,5,6,7], "1.2":[8,9,10,11,12,13,14,15,16],
+               "2.1":[17,18,19,20,21,22,23],
+               "2.2":[24,25,26,27,28,29,30,31,32,33,34,35,36,37,38],
+               "2.3":[39,40,41,42,43,44,45] },
+  },
+  "math4-uas": {
+    bobot:   { "3.1":20, "4.1":2, "4.2":3, "5.1":5 },
+    mapping: { "3.1":Array.from({length:30},(_,i)=>i+1), "4.1":[31,32,33],
+               "4.2":[34,35,36,37,38], "5.1":[39,40,41,42,43,44,45] },
+  },
+};
+
+// Compute OBE-weighted score (0-100) per mahasiswa untuk satu exam.
+// Method: per Sub-CPMK, hitung (got/max)*100; total = Σ(score×bobot)/Σbobot.
+// Return null kalau exam tidak ter-konfigurasi atau tidak ada attempt.
+async function _computeObeWeightedScore(examId, nimKey) {
+  const cfg = OBE_EXAM_CONFIG[examId];
+  if (!cfg) return null;
+  const order = OBE_ORDER[examId];
+  if (!order) return null;
+  const fs = getFirestore();
+  const qsSnap = await fs.collection(`examAttempts/${examId}/students/${nimKey}/qs`).get();
+  if (qsSnap.empty) return null;
+  const att = {};
+  qsSnap.forEach(d => { att[d.id] = d.data() || {}; });
+  let totalNum = 0, totalDen = 0;
+  for (const [sub, qNums] of Object.entries(cfg.mapping)) {
+    const b = cfg.bobot[sub] || 0;
+    if (b <= 0) continue;
+    let got = 0, max = 0;
+    for (const q of qNums) {
+      const qId = order[q-1]; if (!qId) continue;
+      const maxP = _obeQPoints(q-1);
+      max += maxP;
+      const a = att[qId];
+      if (!a) continue;
+      if (a.status === "correct" || a.correct === true) got += maxP;
+      else if (a.status === "partial") got += (maxP >= 4 ? 1 : 0);
+    }
+    if (max > 0) {
+      totalNum += (got / max) * 100 * b;
+      totalDen += b;
+    }
+  }
+  return totalDen > 0 ? Math.round(totalNum / totalDen) : 0;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // MODUL_CONFIG — generated per-modul config (42 modul = 3 course × 14 modul).
 // Schema modul beda dgn exam:
 // - totalPoints: 50 (universal: 10 MC + 10 Comp_EZ + 5 Comp_HARD)
@@ -617,6 +700,18 @@ exports.checkExamAnswer = onCall(async (request) => {
 
     return cur;
   });
+
+  // ── 8b) OBE-weighted score: compute & stamp ke visitor.obeScore ──
+  // Per-Sub-CPMK weighted average (sama metode dgn Dokumen OBE Rekap).
+  // Tab Hasil exam HTML baca v.obeScore → ranking & display 0-100.
+  try {
+    const obeScore = await _computeObeWeightedScore(examId, nimKey);
+    if (obeScore != null) {
+      await vRef.child("obeScore").set(obeScore);
+    }
+  } catch (e) {
+    console.warn("[checkExamAnswer] OBE score update gagal", examId, nimKey, e.message);
+  }
 
   return {
     alreadyAnswered: false,
