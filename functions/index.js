@@ -1621,6 +1621,54 @@ exports.deleteObeNilai = onCall({ timeoutSeconds: 60 }, async (request) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// recomputeAllObeScores — admin callable. Recompute v.obeScore untuk SEMUA
+// mahasiswa yang punya record di RTDB visitors path utk satu exam.
+// Dipakai utk migrasi data lama (sebelum hook OBE di checkExamAnswer aktif),
+// atau setelah perubahan mapping/bobot di OBE_EXAM_CONFIG.
+//
+// Request:  { adminPwHash, examId }
+// Response: { examId, processed, updated, skipped }
+// ─────────────────────────────────────────────────────────────────────────────
+exports.recomputeAllObeScores = onCall({ timeoutSeconds: 300 }, async (request) => {
+  const { adminPwHash, examId } = request.data || {};
+  if (!adminPwHash || adminPwHash !== ADMIN_PW_HASH) {
+    throw new HttpsError("permission-denied", "Admin password salah");
+  }
+  if (!examId || typeof examId !== "string") {
+    throw new HttpsError("invalid-argument", "examId wajib");
+  }
+  const cfg = EXAM_CONFIG[examId];
+  if (!cfg) throw new HttpsError("not-found", `Unknown exam: ${examId}`);
+  if (!OBE_EXAM_CONFIG[examId]) {
+    throw new HttpsError("failed-precondition", `OBE_EXAM_CONFIG belum support ${examId}`);
+  }
+
+  const rtdb = getDatabase();
+  const visitorsSnap = await rtdb.ref(cfg.dbPath).get();
+  const visitors = visitorsSnap.val() || {};
+  let processed = 0, updated = 0, skipped = 0;
+
+  for (const nimKey of Object.keys(visitors)) {
+    if (!nimKey.startsWith("mhs_")) { skipped++; continue; }
+    processed++;
+    const cleanKey = nimKey.replace(/^mhs_/, "");
+    try {
+      const score = await _computeObeWeightedScore(examId, cleanKey);
+      if (score == null) { skipped++; continue; }
+      await rtdb.ref(`${cfg.dbPath}/${nimKey}/obeScore`).set(score);
+      updated++;
+    } catch (e) {
+      console.warn("[recomputeAllObeScores]", examId, nimKey, e.message);
+      skipped++;
+    }
+  }
+
+  console.log("[recomputeAllObeScores]", examId,
+              "processed:", processed, "updated:", updated, "skipped:", skipped);
+  return { examId, processed, updated, skipped };
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // computeObeScores — admin callable. Hitung nilai OBE per Sub-CPMK dari data
 // performa mahasiswa (poin modul utk Tugas; per-soal exam utk UTS/UAS).
 //
