@@ -998,7 +998,7 @@ body.friction-blurred #frictionToast{filter:none;}
   <div class="info-box reveal" style="border-left:4px solid var(--cyan);margin-top:32px">
     <strong style="color:var(--cyan);font-size:15px">📝 Aturan Skoring</strong>
     <ul style="margin-top:12px;line-height:1.8;padding-left:24px">
-      <li><strong>Total maksimal: 70 poin</strong> → dikonversi ke <strong>nilai 100</strong> (rumus: <code>nilai = poin/70 × 100</code>).</li>
+      <li><strong>Total maksimal: 100 poin</strong> — poin per soal proporsional bobot Sub-CPMK OBE.</li>
       <li><strong>One-shot</strong>: setiap soal hanya bisa di-submit <strong>satu kali</strong>. Setelah dijawab (benar atau salah), tombol terkunci permanen.</li>
       <li><strong>Komputasi Easy/Medium</strong>: jawaban benar = +2 poin, jawaban salah = 0 poin.</li>
       <li><strong>Komputasi Hard</strong>: jawaban benar = +4 poin, jawaban salah tapi kode terisi = +1 poin partial.</li>
@@ -1033,9 +1033,9 @@ body.friction-blurred #frictionToast{filter:none;}
     <div class="score-num" id="scoreDisplay">0</div>
     <div class="score-info">
       <div class="score-title">Nilai Sementara · UAS Matematika 4</div>
-      <div id="scoreDetail" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);margin-top:1px">0 / 70 poin (skala 0–100)</div>
+      <div id="scoreDetail" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);margin-top:1px">0 / 100 poin</div>
           <details style="margin-top:6px;font-size:10px;line-height:1.4;color:#94a3b8" id="obeInfo">
-            <summary style="cursor:pointer;color:#7c4dff;font-weight:600;user-select:none">ⓘ Cara hitung nilai (OBE-weighted)</summary>
+            <summary style="cursor:pointer;color:#7c4dff;font-weight:600;user-select:none">ⓘ Cara hitung nilai & bobot Sub-CPMK</summary>
             <div style="margin-top:6px;padding:8px 10px;background:rgba(124,77,255,.06);border-left:2px solid #7c4dff;border-radius:4px">
               <div style="margin-bottom:6px"><b style="color:#cbd5e1">Matematika 4 · UAS</b> — total bobot Σ <b>30%</b> dari nilai akhir mata kuliah.</div>
               <table style="width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:10.5px">
@@ -1047,7 +1047,7 @@ body.friction-blurred #frictionToast{filter:none;}
               <tr><td style="padding:2px 0">5.1</td><td align="right" style="padding:2px 0">5%</td><td align="right" style="padding:2px 0;color:#94a3b8">Q39-45</td></tr>
                 </tbody>
               </table>
-              <div style="margin-top:6px;font-size:10px;color:#94a3b8">Skor Sub-CPMK = (poin diperoleh / poin max sub) × 100. Total = Σ(skor × bobot) / Σ bobot — sama dgn Dokumen OBE Rekap.</div>
+              <div style="margin-top:6px;font-size:10px;color:#94a3b8">Poin per soal sudah proporsional bobot Sub-CPMK (Σ poin di exam = 100). Total exam = Σ poin diperoleh = nilai 0-100, langsung sama dgn nilai di Dokumen OBE Rekap.</div>
             </div>
           </details>
       <div class="score-progress" style="height:5px;margin-top:4px"><div class="score-fill" id="scoreFill" style="height:100%;background:linear-gradient(90deg,var(--cyan),var(--violet),var(--amber),var(--pink));border-radius:3px;width:0%;transition:width .5s"></div></div>
@@ -1604,9 +1604,9 @@ document.addEventListener('DOMContentLoaded', () => {
 // ═══════════════════════════════════════════════════════════════
 // SCORING CONFIG — Universal 50-poin (Pedoman-Modul §15.1a)
 // ═══════════════════════════════════════════════════════════════
-// UAS Matematika 4 — 70-poin (10 TF + 20 MC + 10 Comp E/M + 5 Comp Hard)
-// Konversi: nilai = poin/70 × 100
-// 10 TF × 1 + 20 MC × 1 + 10 Comp E/M × 2 + 5 Comp Hard × 4 = 70
+// Skema scoring: poin per soal proporsional bobot Sub-CPMK OBE.
+// Σ poin per exam = 100 → display sebagai nilai 0-100 langsung.
+// Bobot per Sub-CPMK di server: functions/index.js → OBE_EXAM_CONFIG.
 const SCORE_CONFIG = {
   TF_COUNT:       10,
   TF_POINT:       1,
@@ -1622,17 +1622,15 @@ const SCORE_CONFIG = {
   get MC_TOTAL()       { return this.MC_COUNT * this.MC_POINT; },           // 20
   get COMP_EZ_TOTAL()  { return this.COMP_EZ_COUNT * this.COMP_EZ_POINT; }, // 20
   get COMP_HARD_TOTAL(){ return this.COMP_HARD_COUNT * this.COMP_HARD_POINT; }, // 20
-  get TOTAL()          { return this.TF_TOTAL + this.MC_TOTAL + this.COMP_EZ_TOTAL + this.COMP_HARD_TOTAL; } // 70
+  get TOTAL()          { return 100; }   // Σ poin per soal proporsional bobot Sub-CPMK OBE = 100
 };
 window.SCORE_CONFIG = SCORE_CONFIG;
 
 // Helper: konversi poin (0..70) → nilai 0–100
-function pointsToScore(pts, v) {
-  // Prefer OBE-weighted score yg di-stamp server saat checkExamAnswer.
-  // Sama formula dgn Dokumen OBE Rekap (weighted avg per Sub-CPMK).
-  // Fallback raw ratio bila belum ada (data lama / blm submit / belum deploy).
-  if (v && typeof v.obeScore === "number") return v.obeScore;
-  return Math.round((pts || 0) / SCORE_CONFIG.TOTAL * 100);
+function pointsToScore(pts) {
+  // Σ poin per exam = 100 (poin per soal proporsional bobot Sub-CPMK OBE),
+  // jadi pts langsung = nilai 0-100. Round utk display bersih.
+  return Math.round(pts || 0);
 }
 window.pointsToScore = pointsToScore;
 
@@ -3045,7 +3043,7 @@ async function runAndCheck(qId, difficulty) {
     const fb = document.getElementById('fb-' + qId);
     if (fb) {
       fb.style.display = 'block';
-      if (compScores[qId] > 0 && compScores[qId] >= (difficulty === 'hard' ? SCORE_CONFIG.COMP_HARD_POINT : SCORE_CONFIG.COMP_EZ_POINT)) {
+      if (compScores[qId] > 1) {  // > 1 = correct; partial = 1 (server konsolasi)
         fb.className = 'feedback correct';
         fb.textContent = '✅ Sudah dijawab benar — poin telah tercatat. TIDAK ADA KESEMPATAN ULANG.';
       } else if (compScores[qId] > 0) {
@@ -3187,7 +3185,7 @@ function updateScore() {
 
   const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
   set('scoreDisplay',  nilai);
-  set('scoreDetail',   total + ' / ' + SCORE_CONFIG.TOTAL + ' poin (skala 0–100)');
+  set('scoreDetail',   (Math.round(total*100)/100) + ' / 100 poin');
   set('scoreTF',       tf);
   set('scoreMC',       mc);
   set('scoreCompEz',   ezComp);
@@ -3813,14 +3811,14 @@ function exportTugasHtml() {
     <thead><tr><th style="width:42px">No</th><th style="width:30%">Soal (Singkat)</th><th style="width:55%">Kode Python</th><th style="width:55px;text-align:center">Poin</th></tr></thead>
     <tbody>
       ${compHardData.map(d => {
-        const ptsColor = d.pts >= SCORE_CONFIG.COMP_HARD_POINT ? '#059669'
+        const ptsColor = d.pts > 1 ? '#059669'
                        : d.pts > 0 ? '#d97706'
                        : '#dc2626';
         return `<tr>
           <td>D${String(d.no).padStart(2,'0')}</td>
           <td style="font-size:.78rem;color:#475569"><span class="badge-modul">M${d.modul}</span>${esc(d.title)}</td>
           <td style="font-family:monospace;font-size:.72rem;background:#fdf2f8;padding:6px 8px;border-radius:4px;white-space:pre-wrap;word-break:break-word;white-space:pre-wrap">${esc(d.code||'(belum diisi)')}</td>
-          <td class="pts" style="color:${ptsColor}">${d.pts}${d.pts>0&&d.pts<SCORE_CONFIG.COMP_HARD_POINT?' (partial)':''}</td>
+          <td class="pts" style="color:${ptsColor}">${(Math.round(d.pts*100)/100)}${d.pts>0&&d.pts<=1?' (partial)':''}</td>
         </tr>`;
       }).join('')}
     </tbody>
@@ -5625,7 +5623,7 @@ function updateLeaderboard(visitors, schedExpired){
   // Top Akses — ONLY students with points > 0 qualify, then sort by visitCount desc, then earliest timestamp
   const akses=[...visited].filter(v=>(v.points||0)>0&&!isLate(v.timestamp)).sort((a,b)=>{const d=(b.visitCount||1)-(a.visitCount||1);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp);});
   const medalR=['🥇','🥈','🥉'];
-  function renderCardSkor(v,idx){const pts=v.points||0;const nilai=pointsToScore(pts, v);return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="font-size:1rem;flex-shrink:0;">'+medalR[idx]+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(0,224,158,.12);color:#00e09e;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;white-space:nowrap;">'+pts+' <span style="opacity:.7;font-weight:600;">('+nilai+')</span></div></div>';}
+  function renderCardSkor(v,idx){const pts=v.points||0;const nilai=pointsToScore(pts);return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="font-size:1rem;flex-shrink:0;">'+medalR[idx]+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(0,224,158,.12);color:#00e09e;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;white-space:nowrap;">'+pts+' <span style="opacity:.7;font-weight:600;">('+nilai+')</span></div></div>';}
   function renderCardAkses(v,idx){const vc=v.visitCount||1;return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(251,191,36,.15);color:#fbbf24;font-size:.65rem;font-weight:800;flex-shrink:0;">'+(idx+1)+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(251,191,36,.12);color:#fbbf24;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+vc+'x</div></div>';}
   rajinEl.innerHTML=topSkor.length?topSkor.slice(0,3).map((v,i)=>renderCardSkor(v,i)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
   santaiEl.innerHTML=akses.length?akses.slice(0,3).map((v,i)=>renderCardAkses(v,i)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
@@ -6066,7 +6064,7 @@ function renderVisitors(visitors){
     if (tableEl) {
       if (myData) {
         const pts  = myData.points || 0;
-        const nilai = pointsToScore(pts, myData);
+        const nilai = pointsToScore(pts);
         const vc   = myData.visitCount || 1;
         const dt   = new Date(myData.timestamp);
         const lastV = myData.lastVisit ? new Date(myData.lastVisit) : dt;
@@ -6200,7 +6198,7 @@ function renderVisitors(visitors){
     else if(late){statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(251,113,133,.12);color:#fb7185;border:1px solid rgba(251,113,133,.25);">\u23f0 Terlambat</span>';rowBg='background:rgba(251,113,133,.04);';nameColor='color:#fb7185;';ac='background:rgba(251,113,133,.12);color:#fb7185;';}
     else{statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(0,224,158,.1);color:#00e09e;border:1px solid rgba(0,224,158,.25);">\u2705 Tepat Waktu</span>';}
     const vcDisplay=vc?vc+'x':'<span style="color:#475569;">—</span>';
-    const nilai=pointsToScore(pts, v);
+    const nilai=pointsToScore(pts);
     const ptsDisplay=pts?'<span style="color:#00e09e;font-weight:800;">'+pts+'</span> <span style="color:#64748b;font-weight:600;font-size:.78rem;">('+nilai+')</span>':'<span style="color:#475569;">0 <span style="font-weight:600;font-size:.78rem;">(0)</span></span>';
     const tsColor=bolos?'#ef4444':late?'#fb7185':hasPoints?'#64748b':(hasVisit?'#94a3b8':'#475569');
     const absenClass=(!hasPoints)?' absen':'';
