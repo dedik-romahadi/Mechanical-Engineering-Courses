@@ -1053,10 +1053,10 @@ body.friction-blurred #frictionToast{filter:none;}
       <div class="score-progress" style="height:5px;margin-top:4px"><div class="score-fill" id="scoreFill" style="height:100%;background:linear-gradient(90deg,var(--cyan),var(--violet),var(--amber),var(--pink));border-radius:3px;width:0%;transition:width .5s"></div></div>
     </div>
     <div style="font-family:'JetBrains Mono',monospace;font-size:10px;text-align:right;line-height:1.35">
-      <div>TF: <span id="scoreTF" style="color:var(--cyan)">0</span>/<span style="color:var(--muted)">10</span> poin</div>
-      <div>PG: <span id="scoreMC" style="color:var(--violet)">0</span>/<span style="color:var(--muted)">20</span> poin</div>
-      <div>Komp E/M: <span id="scoreCompEz" style="color:var(--amber)">0</span>/<span style="color:var(--muted)">20</span> poin</div>
-      <div>Komp Hard: <span id="scoreCompHard" style="color:var(--pink)">0</span>/<span style="color:var(--muted)">20</span> poin</div>
+      <div>TF: <span id="scoreTF" style="color:var(--cyan)">0</span>/<span id="scoreTFTotal" style="color:var(--muted)">—</span> poin</div>
+      <div>PG: <span id="scoreMC" style="color:var(--violet)">0</span>/<span id="scoreMCTotal" style="color:var(--muted)">—</span> poin</div>
+      <div>Komp E/M: <span id="scoreCompEz" style="color:var(--amber)">0</span>/<span id="scoreCompEzTotal" style="color:var(--muted)">—</span> poin</div>
+      <div>Komp Hard: <span id="scoreCompHard" style="color:var(--pink)">0</span>/<span id="scoreCompHardTotal" style="color:var(--muted)">—</span> poin</div>
     </div>
     <button class="btn-export" id="btn-score-export" onclick="exportTugasHtml()" disabled style="padding:7px 14px;border-radius:8px;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.1);color:var(--violet);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;min-height:auto">📄 Export HTML</button>
     <!-- ─── Info panel + status message + sisa waktu (compact, chip lebih besar) ─── -->
@@ -1634,6 +1634,31 @@ function getQPoints(qId, fallback) {
   const p = EXAM_QID_POINTS[qId];
   return (typeof p === "number") ? p : (fallback ?? 1);
 }
+
+// Total poin per section, dihitung dari EXAM_QID_POINTS (proporsional Sub-CPMK)
+const SECTION_TOTALS = (() => {
+  const t = { TF:0, MC:0, E:0, H:0 };
+  for (const [qId, pts] of Object.entries(EXAM_QID_POINTS)) {
+    if (/^tf\d+/.test(qId)) t.TF += pts;
+    else if (/^mc\d+/.test(qId)) t.MC += pts;
+    else if (/^ce\d+/.test(qId)) t.E += pts;
+    else if (/^ch\d+/.test(qId)) t.H += pts;
+    else if (/^c\d+/.test(qId)) {
+      const n = parseInt(qId.slice(1), 10);
+      if (n <= 10) t.E += pts; else t.H += pts;
+    }
+  }
+  return { TF: +t.TF.toFixed(2), MC: +t.MC.toFixed(2), E: +t.E.toFixed(2), H: +t.H.toFixed(2) };
+})();
+
+// Populate denominators di breakdown display (DOMContentLoaded)
+document.addEventListener("DOMContentLoaded", () => {
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  set("scoreTFTotal",       SECTION_TOTALS.TF);
+  set("scoreMCTotal",       SECTION_TOTALS.MC);
+  set("scoreCompEzTotal",   SECTION_TOTALS.E);
+  set("scoreCompHardTotal", SECTION_TOTALS.H);
+});
 
 function pointsToScore(pts) {
   // Σ poin per exam = 100 (poin per soal proporsional bobot Sub-CPMK OBE),
