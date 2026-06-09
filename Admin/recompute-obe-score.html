@@ -84,6 +84,11 @@
         <li>Mapping & bobot di-define di <code>OBE_EXAM_CONFIG</code> server-side, sinkron dgn <code>DEFAULT_MAPPING</code> + <code>FORMS</code> di Dokumen OBE HTML.</li>
       </ul>
     </details>
+
+    <details style="margin-top:10px">
+      <summary>Bobot Sub-CPMK per exam (referensi)</summary>
+      <div id="bobotReference"></div>
+    </details>
   </div>
 </div>
 
@@ -118,6 +123,40 @@ function refreshExamId(){ examIdEl.textContent = `${courseEl.value}-${examEl.val
 courseEl.onchange = refreshExamId;
 examEl.onchange   = refreshExamId;
 refreshExamId();
+
+// ── Referensi bobot Sub-CPMK per exam (mirror OBE_EXAM_CONFIG di functions/index.js) ──
+const OBE_REF = [
+  { id:"optoauto-uts",         label:"Optimalisasi & Automasi · UTS", total:20,
+    rows:[["1.1",5,"Q1-11"],["1.2",5,"Q12-22"],["1.3",4,"Q23-31"],["2.2",3,"Q32-38"],["2.3",3,"Q39-45"]] },
+  { id:"optoauto-uas",         label:"Optimalisasi & Automasi · UAS", total:20,
+    rows:[["3.1",4,"Q1-9"],["3.2",3,"Q10-16"],["3.3",3,"Q17-23"],["4.1",3,"Q24-30"],["4.2",3,"Q31-36"],["4.3",4,"Q37-45"]] },
+  { id:"getaran-mekanik-uts",  label:"Getaran Mekanik · UTS", total:25,
+    rows:[["1.1",5,"Q1-9"],["1.2",4,"Q10-16"],["1.3",2,"Q17-20"],["2.1",3,"Q21-26"],["2.2",3,"Q27-31"],["3.1",5,"Q32-40"],["3.2",3,"Q41-45"]] },
+  { id:"getaran-mekanik-uas",  label:"Getaran Mekanik · UAS", total:24,
+    rows:[["3.3",2,"Q1-4"],["4.1",3,"Q5-10"],["4.2",3,"Q11-16"],["5.1",4,"Q17-24"],["6.1",4,"Q25-31"],["6.2",4,"Q32-38"],["6.3",4,"Q39-45"]] },
+  { id:"math4-uts",            label:"Matematika 4 · UTS", total:31,
+    rows:[["1.1",5,"Q1-7"],["1.2",6,"Q8-16"],["2.1",5,"Q17-23"],["2.2",10,"Q24-38"],["2.3",5,"Q39-45"]] },
+  { id:"math4-uas",            label:"Matematika 4 · UAS", total:30,
+    rows:[["3.1",20,"Q1-30"],["4.1",2,"Q31-33"],["4.2",3,"Q34-38"],["5.1",5,"Q39-45"]] },
+];
+function renderBobotReference(){
+  const wrap = document.getElementById('bobotReference');
+  wrap.innerHTML = OBE_REF.map(ex => {
+    const rows = ex.rows.map(([sub,b,q]) =>
+      `<tr><td style="padding:3px 8px">${sub}</td><td align="right" style="padding:3px 8px">${b}%</td><td align="right" style="padding:3px 8px;color:var(--muted)">${q}</td></tr>`
+    ).join('');
+    return `
+      <div style="margin-top:14px">
+        <div style="font-weight:600;color:var(--cyan);font-size:13px;margin-bottom:4px">${ex.label} <span style="color:var(--muted);font-weight:400;font-family:monospace">(${ex.id})</span></div>
+        <div style="font-size:11.5px;color:var(--muted);margin-bottom:4px">Total bobot Σ <b>${ex.total}%</b> dari nilai akhir mata kuliah</div>
+        <table style="width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:12px;background:#020a18;border-radius:6px;overflow:hidden">
+          <thead><tr style="background:rgba(0,229,255,.08);color:#a6efff"><th align="left" style="padding:5px 8px">Sub-CPMK</th><th align="right" style="padding:5px 8px">Bobot</th><th align="right" style="padding:5px 8px">Soal</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  }).join('');
+}
+renderBobotReference();
 
 window.doRecompute = async function(){
   const btn = document.getElementById('btn');
