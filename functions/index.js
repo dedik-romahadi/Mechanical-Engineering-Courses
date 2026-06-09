@@ -1558,6 +1558,17 @@ const OBE_ORDER = {
     ];
   })(),
   "optoauto-uas": OBE_EXAM_ORDER("c"),  // c1-c10 (easy), c11-c15 (hard)
+  // Getaran & Math4: skema seragam c1-c10 easy + c11-c15 hard (lihat seed)
+  "getaran-mekanik-uts": OBE_EXAM_ORDER("c"),
+  "getaran-mekanik-uas": OBE_EXAM_ORDER("c"),
+  "math4-uts": OBE_EXAM_ORDER("c"),
+  "math4-uas": OBE_EXAM_ORDER("c"),
+};
+// courseId (OBE HTML) → [utsExamId, uasExamId]
+const OBE_COURSE_EXAMS = {
+  "optoauto":        ["optoauto-uts",        "optoauto-uas"],
+  "getaran_mekanik": ["getaran-mekanik-uts", "getaran-mekanik-uas"],
+  "math4":           ["math4-uts",           "math4-uas"],
 };
 // Poin maks per posisi Q (1-based): Q1-30=1, Q31-40=2, Q41-45=4
 function _obeQPoints(qIndex0){ return qIndex0 < 30 ? 1 : qIndex0 < 40 ? 2 : 4; }
@@ -1584,9 +1595,13 @@ exports.computeObeScores = onCall({ timeoutSeconds: 300 }, async (request) => {
   if (!adminPwHash || adminPwHash !== ADMIN_PW_HASH) {
     throw new HttpsError("permission-denied", "Admin password salah");
   }
-  if (courseId !== "optoauto") {
-    throw new HttpsError("invalid-argument", "computeObeScores baru mendukung courseId 'optoauto'");
+  if (!OBE_COURSE_EXAMS[courseId]) {
+    throw new HttpsError(
+      "invalid-argument",
+      `computeObeScores belum mendukung courseId '${courseId}'. Tambah entry di OBE_COURSE_EXAMS.`
+    );
   }
+  const [utsExamId, uasExamId] = OBE_COURSE_EXAMS[courseId];
   if (!Array.isArray(nims) || nims.length === 0) {
     throw new HttpsError("invalid-argument", "nims wajib array NIM");
   }
@@ -1616,7 +1631,7 @@ exports.computeObeScores = onCall({ timeoutSeconds: 300 }, async (request) => {
 
   const fs = getFirestore();
   const rtdb = getDatabase();
-  const courseSlug = "optoauto";
+  const courseSlug = courseId;  // visitors/<slug>/pertemuan-N pakai courseId yg sama
 
   try {
     // ── 1) TUGAS: baca poin modul 1..14 (RTDB visitors/<slug>/<seg>) ──
@@ -1671,7 +1686,7 @@ exports.computeObeScores = onCall({ timeoutSeconds: 300 }, async (request) => {
       }
 
       // UTS / UAS — tiap Sub-CPMK = Σ poin diperoleh / Σ poin maks (grup soal) × 100
-      for (const [examId, key, effMap] of [["optoauto-uts","UTS",effUts], ["optoauto-uas","UAS",effUas]]) {
+      for (const [examId, key, effMap] of [[utsExamId,"UTS",effUts], [uasExamId,"UAS",effUas]]) {
         const order = OBE_ORDER[examId];
         let earned;
         try { earned = await examEarned(examId, examKey); }
