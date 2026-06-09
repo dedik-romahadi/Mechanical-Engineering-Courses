@@ -88,6 +88,7 @@
     <input id="pw" type="password" placeholder="Password admin" autocomplete="off">
 
     <button id="btn" onclick="doRescale()">Hitung Ulang Penalti</button>
+    <button id="btnDiag" type="button" onclick="doDiagnose()" style="background:rgba(255,179,0,.12);color:#ffb300;border:1px solid rgba(255,179,0,.35);margin-top:10px;font-weight:700">🔍 Diagnose Modul (cek data dulu)</button>
     <div class="result" id="result"></div>
   </div>
 </div>
@@ -217,6 +218,65 @@ window.doRescale = async function(){
   }
 };
 function showErr(msg){ const res=document.getElementById('result'); res.className='result err'; res.style.display='block'; res.textContent='❌ '+msg; }
+
+// Diagnose: panggil rescale tanpa newEnd (= pakai schedule existing),
+// tanpa modify apa-apa. Hasil: berapa siswa & attempt akan diproses.
+window.doDiagnose = async function(){
+  const btn = document.getElementById('btnDiag');
+  const res = document.getElementById('result');
+  res.className='result';
+  const modulId = modulIdEl.textContent;
+  const pw = document.getElementById('pw').value;
+  if(!pw){ showErr('Password admin wajib diisi.'); return; }
+  btn.disabled=true; btn.textContent='Memeriksa...';
+  try{
+    const adminPwHash = await sha256Hex(pw);
+    // Call dengan nims:[] + tanpa newEnd → server cek schedule + iterate.
+    // Karena nims kosong tapi listDocuments() akan list semua → hasil = realistic count.
+    const r = await rescaleModulLatePenalty({ modulId, adminPwHash });
+    const d = r.data;
+    const fmtId = (iso) => {
+      try {
+        const dt = new Date(iso);
+        const wib = new Date(dt.getTime() + 7*3600*1000);
+        return `${String(wib.getUTCDate()).padStart(2,'0')}-${String(wib.getUTCMonth()+1).padStart(2,'0')}-${wib.getUTCFullYear()} ${String(wib.getUTCHours()).padStart(2,'0')}:${String(wib.getUTCMinutes()).padStart(2,'0')} WIB`;
+      } catch { return iso; }
+    };
+    let lines = [
+      `🔍 Diagnose — ${d.modulId}`,
+      ``,
+      `Deadline yg tersimpan di RTDB:`,
+      `  UTC: ${d.scheduleEnd}`,
+      `  WIB: ${fmtId(d.scheduleEnd)}`,
+      ``,
+      `Mahasiswa di modulAttempts: ${d.totalStudents} mahasiswa yg attempt-nya butuh adjustment`,
+      `Total attempt yg perlu di-rescale (vs deadline ini): ${d.totalAdjusted}`,
+      ``,
+    ];
+    if(d.totalStudents === 0 && d.totalAdjusted === 0){
+      lines.push('⚠ KENAPA 0?');
+      lines.push('  (a) Belum ada mahasiswa submit jawaban modul ini, ATAU');
+      lines.push('  (b) Semua attempt sudah sesuai deadline ini (tidak ada yg penalti).');
+      lines.push('');
+      lines.push('Kalau Bapak ingin rescale terhadap deadline BARU:');
+      lines.push('  → Isi field "Deadline Baru" di atas dengan tanggal+jam target');
+      lines.push('  → klik "Hitung Ulang Penalti"');
+      lines.push('');
+      lines.push('Kalau memang belum ada submission, callable hanya update field');
+      lines.push('schedule.end di RTDB — tidak ada penalti utk di-rescale.');
+    } else {
+      d.students.forEach(s=>{
+        lines.push(`• ${s.nimKey.replace(/^mhs_/,'')}  poin: ${s.pointsBefore} → ${s.pointsAfter}`);
+      });
+    }
+    res.className='result ok'; res.style.display='block'; res.textContent=lines.join('\n');
+  }catch(e){
+    console.error('[diagnose] error:', e);
+    showErr('Diagnose gagal: '+(e.message||e)+(e.code?` [${e.code}]`:''));
+  }finally{
+    btn.disabled=false; btn.textContent='🔍 Diagnose Modul (cek data dulu)';
+  }
+};
 </script>
 </body>
 </html>
