@@ -866,12 +866,25 @@ STUDENTS_READY.then(() => {
 const MAP_KEY = 'opto-obe-mapping-v1';
 function rangeList(lo,hi){ const a=[]; for(let i=lo;i<=hi;i++)a.push(i); return a; }
 const DEFAULT_MAPPING = {
-  // Tugas kolom (Sub-CPMK) → daftar nomor Modul (1-14)
-  tugas: { "1.3":[1],"2.1":[2],"2.2":[3],"2.3":[4],"3.1":[5],"3.2":[6],"3.3":[7],"4.1":[8],"4.2":[9],"4.3":[10],"5.1":[11,12],"5.2":[13,14] },
-  // UTS Sub-CPMK → daftar nomor soal (Q1-45)
-  uts: { "1.1":rangeList(1,11),"1.2":rangeList(12,22),"1.3":rangeList(23,31),"2.2":rangeList(32,38),"2.3":rangeList(39,45) },
-  // UAS Sub-CPMK → daftar nomor soal
-  uas: { "3.1":rangeList(1,9),"3.2":rangeList(10,16),"3.3":rangeList(17,23),"4.1":rangeList(24,30),"4.2":rangeList(31,36),"4.3":rangeList(37,45) }
+  // Tugas kolom (Sub-CPMK) → daftar nomor Modul (1-14).
+  // Kolom 1 & 2 = 1 modul; sisanya = 2 modul (rata-rata).
+  tugas: {
+    "1.1":[1], "1.2":[2],
+    "2.1":[3,4], "2.2":[5,6], "2.3":[7,8],
+    "4.1":[9,10], "4.2":[11,12],
+    "5.1":[13,14]
+  },
+  // UTS Sub-CPMK → daftar nomor soal (Q1-45). Distribusi proporsional bobot (Σ=31).
+  uts: {
+    "1.1":rangeList(1,7), "1.2":rangeList(8,16),
+    "2.1":rangeList(17,23), "2.2":rangeList(24,38), "2.3":rangeList(39,45)
+  },
+  // UAS Sub-CPMK → daftar nomor soal. Distribusi proporsional bobot (Σ=30).
+  uas: {
+    "3.1":rangeList(1,30),
+    "4.1":rangeList(31,33), "4.2":rangeList(34,38),
+    "5.1":rangeList(39,45)
+  }
 };
 function loadMapping(){
   try { const m = JSON.parse(localStorage.getItem(MAP_KEY)); return m || structuredClone(DEFAULT_MAPPING); }
