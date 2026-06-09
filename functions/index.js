@@ -1607,27 +1607,33 @@ exports.computeObeScores = onCall({ timeoutSeconds: 300 }, async (request) => {
   }
   const validNims = nims.filter(n => /^[0-9]{1,20}$/.test(n));
 
-  // ── Mapping efektif: pakai dari client kalau valid, else default ──
+  // ── Mapping efektif: keys diambil dari CLIENT (truth per course), default
+  //    Opto hanya fallback bila client tidak kirim mapping sama sekali.
+  //    Bug lama: iterate _def keys → Sub-CPMK unik per course (mis. Getaran 6.1,
+  //    6.2, 6.3; Math4 1.1, 5.1) tidak ke-compute → blank di UI Rekap.
   const _def = _defaultObeMapping();
   const _m = (mapping && typeof mapping === "object") ? mapping : {};
   const _clean = (arr, lo, hi) => Array.isArray(arr)
     ? Array.from(new Set(arr.map(Number).filter(x => Number.isInteger(x) && x >= lo && x <= hi)))
     : [];
-  const effTugas = {};
-  for (const [sub, d0] of Object.entries(_def.tugas)) {
-    const v = _m.tugas && _clean(_m.tugas[sub], 1, 14);
-    effTugas[sub] = (v && v.length) ? v : d0;
-  }
-  const _effExam = (which) => {
-    const o = {};
-    for (const [sub, d0] of Object.entries(_def[which])) {
-      const v = _m[which] && _clean(_m[which][sub], 1, 45);
-      o[sub] = (v && v.length) ? v : d0;
+  function _effFor(which, hi) {
+    const cm = _m[which];
+    const out = {};
+    if (cm && typeof cm === "object" && Object.keys(cm).length > 0) {
+      // Client provided mapping → trust its keys
+      for (const [sub, arr] of Object.entries(cm)) {
+        const v = _clean(arr, 1, hi);
+        if (v.length) out[sub] = v;
+      }
+      if (Object.keys(out).length) return out;
     }
-    return o;
-  };
-  const effUts = _effExam("uts");
-  const effUas = _effExam("uas");
+    // Fallback default (Opto)
+    for (const [sub, d0] of Object.entries(_def[which])) out[sub] = d0;
+    return out;
+  }
+  const effTugas = _effFor("tugas", 14);
+  const effUts   = _effFor("uts",   45);
+  const effUas   = _effFor("uas",   45);
 
   const fs = getFirestore();
   const rtdb = getDatabase();
