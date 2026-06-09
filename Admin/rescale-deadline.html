@@ -35,6 +35,10 @@
     font-family:'JetBrains Mono',monospace}
   .result.ok{background:rgba(0,230,118,.07);border:1px solid rgba(0,230,118,.3);color:#7dffb0;display:block}
   .result.err{background:rgba(255,64,129,.07);border:1px solid rgba(255,64,129,.35);color:#ff9bbd;display:block}
+  .preset{width:auto;margin:0;padding:6px 11px;font-size:12px;background:rgba(0,229,255,.07);
+    border:1px solid rgba(0,229,255,.25);border-radius:7px;color:#a6efff;cursor:pointer;
+    font-weight:600;letter-spacing:0;font-family:inherit}
+  .preset:hover{background:rgba(0,229,255,.14)}
 </style>
 </head>
 <body>
@@ -64,8 +68,17 @@
     <div class="hint">modulId: <span id="modulId" style="color:var(--cyan)">getaran-mekanik-modul-8</span></div>
 
     <label>Deadline Baru (opsional)</label>
-    <input id="newEnd" type="datetime-local">
-    <div class="hint">Isi untuk <b>atur jadwal sekaligus</b> — server menyimpan deadline ini lalu rescale terhadapnya. Kosongkan = pakai deadline yang sudah ada.</div>
+    <input id="newEnd" type="datetime-local" style="color-scheme:dark">
+    <div id="newEndPreview" style="margin-top:8px;padding:9px 12px;background:rgba(0,229,255,.06);border:1px solid rgba(0,229,255,.25);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a6efff;display:none;">
+      📅 <span id="newEndPreviewText">—</span> <span style="opacity:.7">WIB</span>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">
+      <button type="button" class="preset" onclick="setPreset(0, 23, 59)">Hari ini 23:59</button>
+      <button type="button" class="preset" onclick="setPreset(1, 23, 59)">Besok 23:59</button>
+      <button type="button" class="preset" onclick="setPreset(7, 23, 59)">+ 7 hari 23:59</button>
+      <button type="button" class="preset" onclick="setPreset(14, 23, 59)">+ 14 hari 23:59</button>
+    </div>
+    <div class="hint">Klik input untuk picker, atau pilih preset. Waktu lokal browser Anda (asumsi WIB). Kosongkan = pakai deadline yang sudah ada.</div>
 
     <label>NIM Mahasiswa (opsional)</label>
     <textarea id="nims" placeholder="Kosongkan = SEMUA mahasiswa di modul ini.&#10;Atau isi NIM dipisah koma/baris, mis: 41323110022, 41323120009"></textarea>
@@ -118,6 +131,36 @@ function refreshModulId(){ modulIdEl.textContent = `${courseEl.value}-modul-${mo
 courseEl.onchange = refreshModulId;
 modulEl.onchange  = refreshModulId;
 buildModulOptions(); modulEl.value = 8; refreshModulId();
+
+// ── Deadline picker — preview dd-mm-yyyy hh:mm WIB + presets ──
+const newEndEl = document.getElementById('newEnd');
+const previewWrap = document.getElementById('newEndPreview');
+const previewText = document.getElementById('newEndPreviewText');
+
+function pad2(n){ return String(n).padStart(2, '0'); }
+function fmtIdLocal(d){
+  // d: Date object (waktu lokal browser). Format dd-mm-yyyy hh:mm 24h
+  return `${pad2(d.getDate())}-${pad2(d.getMonth()+1)}-${d.getFullYear()} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+function refreshPreview(){
+  const v = newEndEl.value;
+  if(!v){ previewWrap.style.display = 'none'; return; }
+  const d = new Date(v);
+  if(isNaN(d.getTime())){ previewWrap.style.display = 'none'; return; }
+  previewText.textContent = fmtIdLocal(d);
+  previewWrap.style.display = 'block';
+}
+newEndEl.addEventListener('input', refreshPreview);
+newEndEl.addEventListener('change', refreshPreview);
+
+window.setPreset = function(daysOffset, hour, minute){
+  const d = new Date();
+  d.setDate(d.getDate() + daysOffset);
+  d.setHours(hour, minute, 0, 0);
+  // Set ke datetime-local format (yyyy-MM-ddTHH:mm)
+  newEndEl.value = `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+  refreshPreview();
+};
 
 window.doRescale = async function(){
   const btn = document.getElementById('btn');
