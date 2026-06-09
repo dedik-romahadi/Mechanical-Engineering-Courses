@@ -181,8 +181,16 @@ window.doRescale = async function(){
     const adminPwHash = await sha256Hex(pw);
     const payload = { modulId, adminPwHash };
     if(nims.length>0) payload.nims = nims;
-    // datetime-local (waktu lokal dosen) → ISO UTC absolut
-    if(newEndLocal) payload.newEnd = new Date(newEndLocal).toISOString();
+    // datetime-local diinterpretasi sbg WIB (UTC+7) eksplisit — tidak tergantung
+    // timezone browser dosen. Format input: "2025-12-25T23:59".
+    if(newEndLocal){
+      const [d, t] = newEndLocal.split('T');
+      const [y, mo, da] = d.split('-').map(Number);
+      const [h, mi] = t.split(':').map(Number);
+      // WIB = UTC+7 → kurangi 7 jam supaya jadi UTC
+      payload.newEnd = new Date(Date.UTC(y, mo-1, da, h - 7, mi || 0)).toISOString();
+    }
+    console.log('[rescale] payload:', { ...payload, adminPwHash: '<hidden>' });
     const r = await rescaleModulLatePenalty(payload);
     const d = r.data;
     let lines = [`✅ Rescale selesai — ${d.modulId}`, `Deadline acuan: ${d.scheduleEnd}`, ''];
@@ -200,7 +208,10 @@ window.doRescale = async function(){
     }
     res.className='result ok'; res.style.display='block'; res.textContent=lines.join('\n');
   }catch(e){
-    showErr('Gagal: '+(e.message||e)+(e.code?` [${e.code}]`:''));
+    console.error('[rescale] error:', e);
+    const code = e.code ? ` [${e.code}]` : '';
+    const detail = e.details ? `\nDetail: ${JSON.stringify(e.details)}` : '';
+    showErr(`Gagal: ${e.message || e}${code}${detail}\n\nModul: ${modulId}\nCek console browser (F12) utk log lengkap.`);
   }finally{
     btn.disabled=false; btn.textContent='Hitung Ulang Penalti';
   }
