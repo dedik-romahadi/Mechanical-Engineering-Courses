@@ -543,7 +543,8 @@ footer a:hover{color:var(--cyan)}
 .visitor-overlay.hidden{opacity:0;pointer-events:none}
 
 /* Canvas wave layer */
-#overlayWaveCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.85}
+#overlayWaveCanvas, .overlay-anim-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.85}
+.overlay-anim-particles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 
 /* Floating particles */
 .ov-particle{position:absolute;border-radius:50%;pointer-events:none;animation:ovFloat linear infinite}
@@ -780,7 +781,9 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <!-- ═══ VISITOR LOGIN MODAL ═══ -->
 <!-- ═══ Role Chooser Overlay (OBE-style upfront picker) ═══ -->
 <div class="visitor-overlay" id="roleChooserOverlay" style="z-index:100002;">
-  <div class="visitor-modal" style="max-width:420px;">
+  <canvas id="pickerWaveCanvas" class="overlay-anim-canvas"></canvas>
+  <div id="pickerParticles" class="overlay-anim-particles" aria-hidden="true"></div>
+  <div class="visitor-modal" style="max-width:420px;position:relative;z-index:1;">
     <div style="font-size:2.8rem;margin-bottom:12px;">🔐</div>
     <h2 style="font-size:1.4rem;">Pilih Peran</h2>
     <p class="sub" style="margin-bottom:18px;">Untuk melanjutkan, pilih peran Anda.</p>
@@ -878,7 +881,9 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
 <!-- Dosen Login Modal (password admin dengan masking) -->
 <div class="visitor-overlay hidden" id="dosenLoginOverlay" style="z-index:100001;">
-  <div class="visitor-modal" style="max-width:420px;">
+  <canvas id="dosenWaveCanvas" class="overlay-anim-canvas"></canvas>
+  <div id="dosenParticles" class="overlay-anim-particles" aria-hidden="true"></div>
+  <div class="visitor-modal" style="max-width:420px;position:relative;z-index:1;">
     <div style="font-size:2.4rem;margin-bottom:12px;">👨‍🏫</div>
     <h2 style="font-size:1.3rem;">Login sebagai Dosen</h2>
     <p class="sub">Masukkan password admin untuk melanjutkan sebagai dosen.</p>
@@ -3221,7 +3226,11 @@ plt.<span class="sp-fn">grid</span>(); plt.<span class="sp-fn">show</span>()</pr
     }
     step();
   });
-})();;
+}
+// Call animation utk semua login overlays (picker + visitor + dosen)
+initLoginAnimation('overlayWaveCanvas', 'overlayParticles');
+initLoginAnimation('pickerWaveCanvas',  'pickerParticles');
+initLoginAnimation('dosenWaveCanvas',   'dosenParticles');;
 
 // ── KaTeX ──
 document.addEventListener('DOMContentLoaded', function() {
@@ -6547,8 +6556,8 @@ window.addEventListener('load', () => {
 //   • Palet warna indigo + pink + gold (konsisten dengan tab Hasil)
 //   • Rendering high-DPR agar tajam di layar retina
 // ═══════════════════════════════════════════════════════
-(function initLoginAnimation() {
-  const canvas = document.getElementById('overlayWaveCanvas');
+function initLoginAnimation(_canvasId, _particlesId) {
+  const canvas = document.getElementById(_canvasId);
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   let frame = 0, raf;
@@ -7174,7 +7183,7 @@ window.addEventListener('load', () => {
   }
 
   /* ── Floating particles (DOM-based, tetap dipertahankan untuk layer ekstra) ── */
-  const container = document.getElementById('overlayParticles');
+  const container = document.getElementById(_particlesId);
   if (!container) return;
   const pColors = [
     'rgba(129,140,248,.85)',  'rgba(236,72,153,.75)',
@@ -8422,9 +8431,16 @@ async function submitDosenLogin() {
 function cancelDosenLogin() {
   document.getElementById('dosenLoginOverlay').classList.add('hidden');
   if (_dosenLoginResolver) {
-    _dosenLoginResolver(null);   // null = cancelled
+    _dosenLoginResolver(null);   // null = cancelled (per-action mode)
     _dosenLoginResolver = null;
+    return;
   }
+  // Upfront mode: kembali ke role chooser supaya user bisa pilih ulang
+  window._dosenUpfrontMode = false;
+  const rc = document.getElementById('roleChooserOverlay');
+  if (rc) rc.classList.remove('hidden');
+  const vo = document.getElementById('visitorOverlay');
+  if (vo) vo.classList.add('hidden');
 }
 
 // Enter → submit
