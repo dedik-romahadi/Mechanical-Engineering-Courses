@@ -5733,10 +5733,10 @@ function updateScheduleDisplay(){
     info.style.display='flex';
     const s = new Date(currentSchedule.start), e = new Date(currentSchedule.end);
     const dur = currentSchedule.duration || Math.round((e-s)/(24*60*60*1000));
-    const fmt = (d) => d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    const fmt = (d) => d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric', timeZone:'Asia/Jakarta'})+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit', timeZone:'Asia/Jakarta'});
     range.textContent = fmt(s) + '  \u2014  ' + fmt(e) + '  ('+dur+' hari)';
     const cdD = document.getElementById('cdDeadline');
-    if(cdD) cdD.innerHTML = 'Deadline: <strong style="color:var(--violet)">' + e.toLocaleString('id-ID') + '</strong>';
+    if(cdD) cdD.innerHTML = 'Deadline: <strong style="color:var(--violet)">' + e.toLocaleString('id-ID', {timeZone:'Asia/Jakarta'}) + '</strong>';
     startCountdown(currentSchedule.end);
   } else { info.style.display='none'; }
 }
@@ -5783,7 +5783,7 @@ async function submitVisitor(){
   const now = new Date().getTime();   // hoisted — dipakai di pre-start check + PIN flow schedOpen
   if (!isDosen) {
     const schedStart = new Date(currentSchedule.start).getTime();
-    if(now<schedStart){const sd=new Date(currentSchedule.start);err.textContent='\u26a0 Akses belum dibuka. Jadwal dimulai pada '+sd.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+' '+sd.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+'.';err.style.display='block';return;}
+    if(now<schedStart){const sd=new Date(currentSchedule.start);err.textContent='\u26a0 Akses belum dibuka. Jadwal dimulai pada '+sd.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric', timeZone:'Asia/Jakarta'})+' '+sd.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit', timeZone:'Asia/Jakarta'})+'.';err.style.display='block';return;}
   }
 
   // ─── DOSEN: Verifikasi password admin via modal (Pedoman §19) ───
@@ -5879,7 +5879,7 @@ function renderVisitors(visitors){
   else{
     listEl.innerHTML=visited.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(v=>{
       const ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-      const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+      const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short', timeZone:'Asia/Jakarta'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit', timeZone:'Asia/Jakarta'});
       const hasPoints = (v.points || 0) > 0;
       const late = hasPoints && isLate(v.timestamp);   // badge "Terlambat" butuh poin
       const lBadge=late?'<span style="color:#ff4081;font-size:.65rem;font-weight:600;margin-left:4px;">\u23f0 Terlambat</span>':'';
@@ -5910,7 +5910,7 @@ function renderVisitors(visitors){
     const late = hasPoints && isLate(v.timestamp);
     const bolos = !hasPoints && schedExpired;   // ← diperluas: tidak punya poin + jadwal selesai
     const vc=hasVisit?(v.visitCount||1):0, pts=hasVisit?(v.points||0):0;
-    const ts=hasVisit?(()=>{const dt=new Date(v.timestamp);return dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});})():'—';
+    const ts=hasVisit?(()=>{const dt=new Date(v.timestamp);return dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric', timeZone:'Asia/Jakarta'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit', timeZone:'Asia/Jakarta'});})():'—';
     let statusCol,rowBg='',nameColor='color:#e2e8f0;',ac='background:rgba(255,255,255,.08);color:#e2e8f0;';
     if(bolos){statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25);">\u274c Bolos</span>';rowBg='background:rgba(239,68,68,.03);';nameColor='color:#ef4444;';ac='background:rgba(239,68,68,.12);color:#ef4444;';}
     else if(!hasPoints){statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(100,116,139,.1);color:#94a3b8;border:1px solid rgba(100,116,139,.2);">\u23f3 Belum</span>';rowBg='';nameColor='color:#64748b;';ac='background:rgba(100,116,139,.1);color:#94a3b8;';}

@@ -5799,7 +5799,7 @@ function _handleScheduleReady() {
           if (_vErr) {
             const sd = new Date(currentSchedule.start);
             _vErr.innerHTML = '🔒 <strong>Akses UAS belum dibuka.</strong><br>Jadwal mulai: <strong style="color:var(--cyan)">' +
-              sd.toLocaleString('id-ID', {weekday:'long',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}) +
+              sd.toLocaleString('id-ID', {weekday:'long',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit', timeZone:'Asia/Jakarta'}) +
               '</strong>.<br>Silakan tunggu sampai waktu mulai untuk mengakses UAS.';
             _vErr.style.display = 'block';
           }
@@ -5872,7 +5872,7 @@ function updateScheduleDisplay(){
   if (currentSchedule && currentSchedule.start && currentSchedule.end) {
     const e = new Date(currentSchedule.end);
     const cdD = document.getElementById('cdDeadline');
-    if (cdD) cdD.innerHTML = 'Deadline: <strong style="color:var(--violet)">' + e.toLocaleString('id-ID') + '</strong>';
+    if (cdD) cdD.innerHTML = 'Deadline: <strong style="color:var(--violet)">' + e.toLocaleString('id-ID', {timeZone:'Asia/Jakarta'}) + '</strong>';
     startCountdown(currentSchedule.end);   // mode auto-detect dalam fungsi
   } else {
     // No schedule yet — reset countdown display
@@ -5891,7 +5891,7 @@ function updateScheduleDisplay(){
     const s = new Date(currentSchedule.start), e = new Date(currentSchedule.end);
     // UAS: durasi dalam MENIT
     const dur = currentSchedule.duration || Math.round((e-s)/(60*1000));
-    const fmt = (d) => d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    const fmt = (d) => d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric', timeZone:'Asia/Jakarta'})+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit', timeZone:'Asia/Jakarta'});
     range.textContent = fmt(s) + '  \u2014  ' + fmt(e) + '  ('+dur+' menit)';
   } else if (info) {
     info.style.display='none';
@@ -5918,7 +5918,7 @@ async function submitVisitor(){
   const nama=document.getElementById('vNama').value.trim(), nim=document.getElementById('vNim').value.trim(), err=document.getElementById('vError');
   if(!currentSchedule || !currentSchedule.start || !currentSchedule.end){err.textContent='\u26a0 Jadwal belum diatur. Silakan hubungi dosen.';err.style.display='block';return;}
   const now=new Date().getTime(), schedStart=new Date(currentSchedule.start).getTime();
-  if(now<schedStart){const sd=new Date(currentSchedule.start);err.textContent='\u26a0 Akses belum dibuka. Jadwal dimulai pada '+sd.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+' '+sd.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+'.';err.style.display='block';return;}
+  if(now<schedStart){const sd=new Date(currentSchedule.start);err.textContent='\u26a0 Akses belum dibuka. Jadwal dimulai pada '+sd.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric', timeZone:'Asia/Jakarta'})+' '+sd.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit', timeZone:'Asia/Jakarta'})+'.';err.style.display='block';return;}
   const isDosen=nama.toLowerCase()==='dedik romahadi';
   if(!nama){err.textContent='\u26a0 Nama wajib diisi.';err.style.display='block';return;}
   if(!isValidName(nama)){err.textContent='\u26a0 Format nama salah. Setiap kata harus diawali huruf kapital. Contoh: Dedik Romahadi';err.style.display='block';return;}
@@ -6101,8 +6101,8 @@ function renderVisitors(visitors){
         const vc   = myData.visitCount || 1;
         const dt   = new Date(myData.timestamp);
         const lastV = myData.lastVisit ? new Date(myData.lastVisit) : dt;
-        const tsStr = dt.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-        const lastVStr = lastV.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+', '+lastV.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+        const tsStr = dt.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric', timeZone:'Asia/Jakarta'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit', timeZone:'Asia/Jakarta'});
+        const lastVStr = lastV.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric', timeZone:'Asia/Jakarta'})+', '+lastV.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit', timeZone:'Asia/Jakarta'});
 
         // Status logic (sama seperti view dosen, tapi hanya untuk diri sendiri)
         const schedExpired = currentSchedule && currentSchedule.end && new Date().getTime() > new Date(currentSchedule.end).getTime();
@@ -6189,7 +6189,7 @@ function renderVisitors(visitors){
   else{
     listEl.innerHTML=visited.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(v=>{
       const ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-      const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+      const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short', timeZone:'Asia/Jakarta'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit', timeZone:'Asia/Jakarta'});
       // Badge "Terlambat" di panel hanya diberikan jika mahasiswa juga sudah dapat poin
       // (konsisten dengan status label di tab Hasil — lihat §17.3 Pedoman).
       const late=((v.points||0)>0) && isLate(v.timestamp);
@@ -6224,7 +6224,7 @@ function renderVisitors(visitors){
     const late  = hasPoints && isLate(v.timestamp);    // butuh poin
     const bolos = !hasPoints && schedExpired;          // tidak punya poin + jadwal selesai
     const vc=hasVisit?(v.visitCount||1):0, pts=hasVisit?(v.points||0):0;
-    const ts=hasVisit?(()=>{const dt=new Date(v.timestamp);return dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});})():'—';
+    const ts=hasVisit?(()=>{const dt=new Date(v.timestamp);return dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric', timeZone:'Asia/Jakarta'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit', timeZone:'Asia/Jakarta'});})():'—';
     let statusCol,rowBg='',nameColor='color:#e2e8f0;',ac='background:rgba(255,255,255,.08);color:#e2e8f0;';
     if(bolos){statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25);">\u274c Bolos</span>';rowBg='background:rgba(239,68,68,.03);';nameColor='color:#ef4444;';ac='background:rgba(239,68,68,.12);color:#ef4444;';}
     else if(!hasPoints){statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(100,116,139,.1);color:#94a3b8;border:1px solid rgba(100,116,139,.2);">\u23f3 Belum</span>';rowBg='';nameColor='color:#64748b;';ac='background:rgba(100,116,139,.1);color:#94a3b8;';}
@@ -6884,8 +6884,7 @@ function _updateUASAccessGate() {
         const startDate = new Date(currentSchedule.start);
         const startStr = startDate.toLocaleString('id-ID', {
           weekday:'long', day:'numeric', month:'long', year:'numeric',
-          hour:'2-digit', minute:'2-digit'
-        });
+          hour:'2-digit', minute:'2-digit', timeZone:'Asia/Jakarta'});
         banner.innerHTML = `
           <div style="font-size:36px;margin-bottom:12px">🔒</div>
           <h3 style="font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--amber);margin-bottom:10px">Akses UAS Belum Dibuka</h3>
