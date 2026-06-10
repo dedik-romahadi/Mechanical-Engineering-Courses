@@ -782,7 +782,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <p class="v-error" id="dosenLoginError"></p>
     <input type="password" class="v-input" id="dosenLoginPw" placeholder="Password admin" autocomplete="off">
     <button class="v-btn-primary" id="dosenLoginBtn" onclick="submitDosenLogin()">Masuk sebagai Dosen</button>
-    <button class="v-btn-cancel" id="dosenLoginScheduleBtn" onclick="document.getElementById('dosenLoginOverlay').classList.add('hidden'); if(typeof showScheduleModal==='function') showScheduleModal();" style="margin-top:8px;background:rgba(255,179,0,.12);border-color:rgba(255,179,0,.35);color:#ffb300;">🕐 Atur Jadwal</button>
+    <button class="v-btn-cancel" id="dosenLoginScheduleBtn" onclick="window._scheduleFromDosenLogin=true;document.getElementById('dosenLoginOverlay').classList.add('hidden'); if(typeof showScheduleModal==='function') showScheduleModal();" style="margin-top:8px;background:rgba(255,179,0,.12);border-color:rgba(255,179,0,.35);color:#ffb300;">🕐 Atur Jadwal</button>
     <button class="v-btn-cancel" onclick="cancelDosenLogin()" style="margin-top:8px;">Batal</button>
   </div>
 </div>
@@ -8050,7 +8050,16 @@ function showScheduleModal(){
   else { document.getElementById('scheduleDuration').value='7';var dd=new Date();dd.setDate(dd.getDate()+7);dd.setHours(23,59,0,0);document.getElementById('scheduleDue').value=dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0')+'T23:59'; }
   setTimeout(()=>document.getElementById('schedulePw').focus(),100);
 }
-function hideScheduleModal(){document.getElementById('scheduleOverlay').classList.add('hidden');}
+function hideScheduleModal(){
+  document.getElementById('scheduleOverlay').classList.add('hidden');
+  if(window._scheduleFromDosenLogin){
+    window._scheduleFromDosenLogin = false;
+    const d = document.getElementById('dosenLoginOverlay');
+    if(d) d.classList.remove('hidden');
+    const pw = document.getElementById('dosenLoginPw');
+    if(pw){ pw.value=''; setTimeout(()=>pw.focus(),100); }
+  }
+}
 async function saveSchedule(){
   const errEl = document.getElementById('scheduleError');
   const pw=document.getElementById('schedulePw').value;
