@@ -669,6 +669,17 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
 
 <!-- ═══ VISITOR LOGIN MODAL ═══ -->
+<!-- ═══ Role Chooser Overlay (OBE-style upfront picker) ═══ -->
+<div class="visitor-overlay" id="roleChooserOverlay" style="z-index:99999;">
+  <div class="visitor-modal" style="max-width:420px;">
+    <div style="font-size:2.8rem;margin-bottom:12px;">🔐</div>
+    <h2 style="font-size:1.4rem;">Pilih Peran</h2>
+    <p class="sub" style="margin-bottom:18px;">Untuk melanjutkan, pilih peran Anda.</p>
+    <button class="v-btn-primary" onclick="choseMahasiswa()" style="margin-bottom:10px;">🎓 Saya Mahasiswa</button>
+    <button class="v-btn-primary" onclick="choseDosen()" style="background:linear-gradient(135deg,#7c4dff,#5e35b1);">👨‍🏫 Saya Dosen</button>
+  </div>
+</div>
+
 <div class="visitor-overlay" id="visitorOverlay">
 
   <!-- Animation layer: waves + particles + formulas -->
@@ -7782,6 +7793,38 @@ document.getElementById('dosenLoginPw').addEventListener('keydown', function(e){
 });
 
 window.submitDosenLogin = submitDosenLogin;
+
+// ═══ Role Chooser handlers (OBE-style upfront picker) ═══
+window.choseMahasiswa = function() {
+  const rc = document.getElementById('roleChooserOverlay');
+  if (rc) rc.classList.add('hidden');
+  const nama = document.getElementById('vNama');
+  if (nama) setTimeout(() => nama.focus(), 50);
+};
+window.choseDosen = function() {
+  const rc = document.getElementById('roleChooserOverlay');
+  if (rc) rc.classList.add('hidden');
+  const nama = document.getElementById('vNama');
+  const nim  = document.getElementById('vNim');
+  if (nama) nama.value = 'Dedik Romahadi';
+  if (nim)  nim.value = '00000';  // dummy NIM — dosen path skip NIM check
+  if (typeof window.submitVisitor === 'function') {
+    setTimeout(() => window.submitVisitor(), 50);
+  }
+};
+// Auto-hide picker untuk returning user (existing identity)
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    if (typeof getIdentity === 'function') {
+      const _me = getIdentity();
+      if (_me && _me.nama && _me.role !== 'guest') {
+        const rc = document.getElementById('roleChooserOverlay');
+        if (rc) rc.classList.add('hidden');
+      }
+    }
+  }, 100);
+});
+
 window.cancelDosenLogin = cancelDosenLogin;
 
 
