@@ -8,6 +8,8 @@
 >
 > **Diperbarui:** April 2026 (v7) — mencerminkan refactor Modul-4 (countdown circular, palet per-tab, hero animation per-tab, scoring rule lengkap, Firebase Security Rules, blokir akses di luar jadwal, **sistem PIN 6-digit untuk mahasiswa**, **password admin ter-hash SHA-256**, **animasi login constellation + electric charges + lightning blasts**, **Dosen Login Modal dengan password masking**, **role-based visibility untuk tombol Reset** — tombol Atur Jadwal tetap visible sebagai bootstrap action, **scoring universal 50 poin** dengan 5 soal Komputasi Hard @4 poin, **partial credit +1 poin** untuk Hard yang salah, **status label butuh poin** — Tepat Waktu/Terlambat hanya diberikan jika mahasiswa memperoleh poin > 0 (akses tanpa poin = Belum), **Bolos diperluas** — mencakup juga mahasiswa yang akses tapi 0 poin saat jadwal sudah berakhir, **PIN global lintas-course** — satu PIN per mahasiswa yang berlaku di SEMUA mata kuliah dan modul, disimpan di node `pins/mhs_<NIM>` terpisah dari visitor records sehingga reset modul tidak menghapus PIN).
 >
+> **v19 (Juni 2026) — Role picker + Penalty 0.7 + Schedule defaults:** §39 BARU — login Modul + Exam pakai **role chooser overlay** duluan (`roleChooserOverlay` z-index 100002), bukan branch-by-name. Mahasiswa form **NIM + PIN inline** (no Nama input — auto-lookup dari `masterStudents`); listener `vNama` HARUS dihapus atau TypeError blok semua handler downstream. Dosen modal streamline: tombol "Atur Jadwal" inline, 1× password input + 1× klik "Simpan Jadwal & Masuk" sekaligus login. Animasi `initLoginAnimation(canvasId, particlesId)` refactor dari IIFE → function dipanggil 3× untuk picker+visitor+dosen. **WIB timezone enforcement global** (`timeZone:'Asia/Jakarta'` di semua `toLocale*`); exam pakai helper `_nowPlusMinAsWibString`/`_wibStringToDate` utk `<input type=datetime-local>`. **Schedule defaults baru**: Modul 7 hari + due +6 hari 23:59 WIB; Exam 180 menit + due +180m WIB + extension 120 menit. **Penalti terlambat 0.8 → 0.7 (20% → 30%)** untuk semua asesmen — `_getLateMultiplier() return 0.7` (PR #284); §9.2, §9.5.5, §15.4a + tabel poin (50×0.7=**35 poin** maks) sudah di-update. §38.7 callable table diperluas dengan `recomputeExamPoints`, `checkExamAnswer`, `resetExamAttempts`, `resetModulQuestion`, `rescaleModulLatePenalty`, `analyzeModulData`. §7.1–7.3 deprecated note — alur live ada di §39. CLAUDE.md baru di root utk orientasi sesi Claude. PR references: #370–#386 (login flow), #284 (penalty), #359–#363 (OBE scoring 1:1:2:4 mapping), #354 (recomputeExamPoints).
+>
 > **v18.5 (Mei 2026) — Phase 3 rollout Math UAS + COMPLETE 6/6:** Final exam migration. EXAM_CONFIG tambah entry `math4-uas`. Seed file `functions/seed/uas-math4-answers.js` (45 soal, 24 parametric, MC tidak shuffle). Client UAS.html full migration + hint compliance. Bonus latent bug fixes: (1) 15 comp entries pakai `question:` → renamed ke `text:` (mirror UAS Getaran/Optoauto bug); (2) wrap `${data.hint}` interpolation dgn conditional fallback (comp entries tidak punya hint); (3) **DIVERGENCE FIX di 2 soal Comp**: c2 (Inverse Operator) dan c7 (Partial Fraction) pakai `(N%4)+2` → a∈{2,3,4,5}; ketika a=b=5 menghasilkan 1/0=Infinity, server validation fail untuk 25% NIM. Fix: ubah ke `(N%3)+2` → a∈{2,3,4}, selalu well-defined. **MILESTONE**: Phase 3 rollout 6/6 exams selesai (Getaran UTS/UAS + Optoauto UTS/UAS + Math UTS/UAS). PR #241.
 
 > **v18.4 (Mei 2026) — Phase 3 rollout Math UTS:** Apply pattern v18 ke Engineering Mathematics UTS. EXAM_CONFIG tambah entry `math4-uts`. Seed file baru `functions/seed/uts-math4-answers.js` (45 soal, 27 parametric, MC shuffle pakai per-question offsets `N+100·k`, mc20 exception fixed-order categorical). Client UTS.html: full migration + hint compliance dalam 1 PR (mirror PR #239 pattern Optoauto UAS). Bonus: subagent strip 3 `<em>Hint: ...</em>` snippets dari question text c1/c9/c12 yang reveal formula. PR #240.
@@ -84,6 +86,7 @@
 36. [Export HTML Tugas — Animated Standalone File (BARU di v16)](#36-export-html-tugas--animated-standalone-file-baru-di-v16)
 37. [Forum Copy HTML — LMS-Compatible Output (BARU di v16)](#37-forum-copy-html--lms-compatible-output-baru-di-v16)
 38. [Dokumen OBE per Mata Kuliah (BARU di v18)](#38-dokumen-obe-per-mata-kuliah-baru-di-v18)
+39. [Role Picker + OBE-Style Login Flow (BARU di v19)](#39-role-picker--obe-style-login-flow-baru-di-v19)
 
 ---
 
@@ -430,6 +433,8 @@ Navbar terdiri dari **dua bar fixed** terpisah:
 ---
 
 ## 7. Sistem Login & Visitor
+
+> ⚠ **Catatan v19 (Jun 2026):** §7.1–7.3 mendokumentasikan alur LAMA (branch-by-name `nama === 'Dedik Romahadi'`). Alur live sekarang via **role picker overlay** (Mahasiswa vs Dosen dipilih duluan, sebelum input form). Lihat **§39** untuk implementasi terkini. Section ini dipertahankan untuk konteks historis + referensi pattern PIN/PIN-flow yang masih relevan (mahasiswa form dengan PIN tetap pakai pola yang sama, hanya input berubah dari Nama+NIM+PIN → NIM+PIN inline). §7.4–7.6 (identitas localStorage, role-based UI visibility, dosen hak akses) **tetap berlaku**.
 
 ### 7.1 Dua Alur Login Berbeda
 
@@ -1095,13 +1100,13 @@ Berdasarkan `currentSchedule.start` dan `currentSchedule.end`, ada **3 zona** de
 |------|-------|----------------------|------|
 | **Sebelum Jadwal** | `< start` | ❌ TIDAK disimpan (diblokir `_isScheduleOpen()`) | — |
 | **Tepat Waktu** | `[start, end]` | ✅ Disimpan normal | 100% |
-| **Terlambat** | `> end` | ✅ Tetap disimpan | **80%** (−20%) |
+| **Terlambat** | `> end` | ✅ Tetap disimpan | **70%** (−30%) |
 
 > **Perubahan v8 (Mei 2026) — Aturan terlambat berubah signifikan.** Sebelumnya, mahasiswa yang akses di **24 jam terakhir** sebelum deadline tercatat **Terlambat**. Sekarang, mahasiswa yang akses **dalam rentang aktif** (kapanpun antara start dan end) tetap **Tepat Waktu**. Status **Terlambat** hanya diberikan jika akses **setelah** deadline.
 >
 > **Konsekuensi aturan terlambat baru:**
 > - ✅ Mahasiswa terlambat **TETAP BISA** mengerjakan tugas (poin tersimpan)
-> - ⚠ Poin per soal dikurangi **20%** (multiplier 0.8)
+> - ⚠ Poin per soal dikurangi **30%** (multiplier 0.7) — sejak v19 (Jun 2026), sebelumnya 20%/0.8
 > - ⚠ Comp Hard **TIDAK** dapat partial credit `+1` jika jawaban salah
 > - ⚠ **TIDAK** masuk Top Skor / Top Akses
 > - ⚠ Status badge di leaderboard: ⏰ Terlambat
@@ -1118,7 +1123,7 @@ Berdasarkan `currentSchedule.start` dan `currentSchedule.end`, ada **3 zona** de
 
 ```javascript
 function _isScheduleOpen() {
-  // v8: dropped upper bound — mahasiswa terlambat tetap bisa submit (dengan penalty 20%).
+  // v8: dropped upper bound — mahasiswa terlambat tetap bisa submit (dengan penalty 30%, sejak v19).
   if (!currentSchedule || !currentSchedule.start || !currentSchedule.end) return false;
   const now = Date.now();
   const s = new Date(currentSchedule.start).getTime();
@@ -1132,8 +1137,8 @@ function _isPastDeadline() {
 }
 
 function _getLateMultiplier() {
-  // v8 NEW: return 0.8 jika terlambat, 1.0 jika tepat waktu.
-  return _isPastDeadline() ? 0.8 : 1.0;
+  // v8 NEW + v19: return 0.7 jika terlambat (sebelumnya 0.8), 1.0 jika tepat waktu.
+  return _isPastDeadline() ? 0.7 : 1.0;
 }
 
 function isLate(timestamp) {
@@ -1198,7 +1203,7 @@ Tab Tugas menampilkan banner berbeda sesuai zona:
     <div>Akses Setelah Deadline — Status Terlambat</div>
     <p>Anda <strong>tetap dapat mengerjakan tugas</strong>, namun status akan tercatat
        <strong>⏰ Terlambat</strong> dengan ketentuan:
-       <strong>poin per soal dikurangi 20%</strong>,
+       <strong>poin per soal dikurangi 30%</strong>,
        <strong>tidak masuk Top Skor / Top Akses</strong>, dan
        <strong>Comp Hard tidak dapat poin partial</strong> jika jawaban salah.</p>
   </div>
@@ -1216,7 +1221,7 @@ Diaktifkan oleh `_updateLateBanner()` yang dipanggil:
 
 ## 9.5 Aturan Khusus Exam (UTS / UAS) — v8.1
 
-> **Penting — beda dari modul.** Aturan terlambat di file `Exam/UTS.html` dan `Exam/UAS.html` **berbeda** dari modul. Mahasiswa **TIDAK BISA** lagi mengerjakan ujian setelah `end + extension`. Modul tetap pakai aturan v8 (mahasiswa terlambat bisa submit indefinitely dengan penalty 20%).
+> **Penting — beda dari modul.** Aturan terlambat di file `Exam/UTS.html` dan `Exam/UAS.html` **berbeda** dari modul. Mahasiswa **TIDAK BISA** lagi mengerjakan ujian setelah `end + extension`. Modul tetap pakai aturan v8 (mahasiswa terlambat bisa submit indefinitely dengan penalty 30% sejak v19).
 
 ### 9.5.1 Tiga Zona Waktu Exam
 
@@ -1238,13 +1243,13 @@ Modal "Atur Jadwal Perkuliahan" di Exam memiliki 4 input (sebelumnya 3):
 | Password | password | ✓ | Auth dosen |
 | Durasi | number (menit) | ✓ | Lama ujian dari start ke end |
 | Batas Akhir | datetime-local | ✓ | Due date (= end) |
-| **Perpanjangan** | **number (menit)** | — | **Default 0**, opsional. Window terlambat setelah end |
+| **Perpanjangan** | **number (menit)** | — | **Default 120** (sejak v19, sebelumnya 0), opsional. Window terlambat setelah end |
 
 ```html
 <div style="text-align:left;margin-bottom:14px;">
   <label>Perpanjangan (menit) — opsional</label>
-  <input type="number" id="scheduleExtension" min="0" value="0" placeholder="0 (tanpa perpanjangan)">
-  <p>Mahasiswa yang mengerjakan di sesi perpanjangan tercatat ⏰ Terlambat dengan poin dikurangi 20%. Setelah perpanjangan habis, submit diblokir.</p>
+  <input type="number" id="scheduleExtension" min="0" value="120" placeholder="120">
+  <p>Mahasiswa yang mengerjakan di sesi perpanjangan tercatat ⏰ Terlambat dengan poin dikurangi 30%. Setelah perpanjangan habis, submit diblokir.</p>
 </div>
 ```
 
@@ -1298,22 +1303,22 @@ function _isPastDeadline() {
 | State | Kondisi | Title | Pesan |
 |-------|---------|-------|-------|
 | Belum mulai | `now < start` | "Ujian Belum Dibuka" | Tunggu jadwal, akses tidak disimpan |
-| Sesi perpanjangan | `(end, end+ext]` | "⏰ Sesi Perpanjangan — Status Terlambat" | Sisa N menit, status terlambat, poin -20% |
+| Sesi perpanjangan | `(end, end+ext]` | "⏰ Sesi Perpanjangan — Status Terlambat" | Sisa N menit, status terlambat, poin -30% |
 | Habis total | `> end+ext` | "⏱ Waktu Ujian Sudah Habis" | Submit tidak lagi disimpan |
 
 Dalam zona tepat waktu `[start, end]`, banner di-hide.
 
-### 9.5.5 Konsekuensi Award Functions — Penalty 20% di Sesi Perpanjangan
+### 9.5.5 Konsekuensi Award Functions — Penalty 30% di Sesi Perpanjangan
 
 Karena `_isScheduleOpen()` di Exam return `false` saat `now > end+extension`, semua award functions (`_awardPoint`, `_awardCompPoint`, `_awardCompPartial`) otomatis abort di gate awal — **tidak perlu modifikasi tambahan**.
 
-**Penalty 20% otomatis berlaku** selama `now in (end, end+ext]` (sesi perpanjangan):
+**Penalty 30% otomatis berlaku** selama `now in (end, end+ext]` (sesi perpanjangan):
 - `_isPastDeadline()` return `true` di window ini
-- `_getLateMultiplier()` return `0.8`
-- Award functions: `(ex.points || 0) + (pts * _getLateMultiplier())` → poin ×0.8
+- `_getLateMultiplier()` return `0.7` (sejak v19, sebelumnya 0.8)
+- Award functions: `(ex.points || 0) + (pts * _getLateMultiplier())` → poin ×0.7
 - `_awardCompPartial()` abort jika `_isPastDeadline()` → tidak ada partial credit Hard
 
-**Total max poin mahasiswa di sesi perpanjangan exam:** 50 × 0.8 = **40 poin** (sama seperti modul). Setelah perpanjangan habis, tidak bisa submit sama sekali.
+**Total max poin mahasiswa di sesi perpanjangan exam:** 50 × 0.7 = **35 poin** (sama seperti modul). Setelah perpanjangan habis, tidak bisa submit sama sekali.
 
 ### 9.5.6 Friction Layer (anti-AI deterrent)
 
@@ -2706,7 +2711,7 @@ Ditulis dengan class `.comp-card.comp-hard`. Hint **lebih minimal** — mahasisw
 
 **Anti-gaming:** 1 poin hanya 2% dari nilai total (50 poin). Tidak sepadan dengan submit trivial kode seperti `print(0)`. Mahasiswa tetap terdorong untuk mencari jawaban benar untuk mendapat full +4 poin.
 
-> **v8 — Pengecualian Terlambat:** Mahasiswa **terlambat** (akses setelah deadline) **TIDAK** mendapat partial credit `+1` untuk Comp Hard yang salah. Implementasinya: `_awardCompPartial()` abort di awal jika `_isPastDeadline()` true. Kode yang benar tetap dapat poin penuh (×0.8 = 3.2). Lihat §15.4 untuk aturan late multiplier lengkap.
+> **v8 — Pengecualian Terlambat (multiplier 0.7 sejak v19):** Mahasiswa **terlambat** (akses setelah deadline) **TIDAK** mendapat partial credit `+1` untuk Comp Hard yang salah. Implementasinya: `_awardCompPartial()` abort di awal jika `_isPastDeadline()` true. Kode yang benar tetap dapat poin penuh (×0.7 = 2.8). Lihat §15.4 untuk aturan late multiplier lengkap.
 
 **HTML structure:**
 
@@ -2982,7 +2987,7 @@ window._awardCompPartial = function(qId, point) {
 
 Mahasiswa yang akses & submit jawaban **setelah deadline** mendapat penalti otomatis. Implementasi terdistribusi di 4 titik:
 
-#### 15.4a Multiplier 0.8 di `_awardPoint` & `_awardCompPoint`
+#### 15.4a Multiplier 0.7 di `_awardPoint` & `_awardCompPoint`
 
 ```javascript
 // Helper di setiap modul (v8)
@@ -2992,19 +2997,19 @@ function _isPastDeadline() {
 }
 
 function _getLateMultiplier() {
-  return _isPastDeadline() ? 0.8 : 1.0;
+  return _isPastDeadline() ? 0.7 : 1.0;  // ← v19 (Jun 2026), sebelumnya 0.8
 }
 
 // MC (1 poin)
 const updated = Object.assign({}, ex, {
-  points: (ex.points || 0) + (1 * _getLateMultiplier()),  // ← v8: 0.8 jika terlambat
+  points: (ex.points || 0) + (1 * _getLateMultiplier()),  // ← v8/v19: 0.7 jika terlambat
   pointTimestamp: new Date().toISOString(),
   scoredQuestions: scored.join(',')
 });
 
 // Comp E/M (2 poin) atau Comp Hard (4 poin)
 const newPoints = Math.min(
-  (ex.points || 0) + (pts * _getLateMultiplier()),  // ← v8: pts × 0.8 jika terlambat
+  (ex.points || 0) + (pts * _getLateMultiplier()),  // ← v8/v19: pts × 0.7 jika terlambat
   SCORE_CONFIG.TOTAL
 );
 ```
@@ -3013,13 +3018,13 @@ const newPoints = Math.min(
 
 | Tipe Soal | Base Points | Late Multiplier | Awarded Points |
 |-----------|:-----------:|:---------------:|:--------------:|
-| MC benar | 1 | 0.8 | **0.8** |
-| Comp E/M benar | 2 | 0.8 | **1.6** |
-| Comp Hard benar | 4 | 0.8 | **3.2** |
+| MC benar | 1 | 0.7 | **0.7** |
+| Comp E/M benar | 2 | 0.7 | **1.4** |
+| Comp Hard benar | 4 | 0.7 | **2.8** |
 | Comp Hard salah (partial) | 1 | — | **0** ← lihat §15.4b |
 | Konsolasi | 1 | — | **1** ← tidak terkena multiplier |
 
-**Total maksimal mahasiswa terlambat (semua benar):** 50 × 0.8 = **40 poin** (= nilai 80).
+**Total maksimal mahasiswa terlambat (semua benar):** 50 × 0.7 = **35 poin** (= nilai 70).
 
 #### 15.4b Comp Hard — Tidak Ada Partial untuk Terlambat
 
@@ -3032,7 +3037,7 @@ window._awardCompPartial = function(qId, point) {
 };
 ```
 
-Rasional: Partial credit `+1` adalah penghargaan untuk **upaya menulis kode**. Mahasiswa terlambat sudah dapat pengurangan 20% dari poin penuh; tambahan partial dianggap berlebihan untuk kategori ini.
+Rasional: Partial credit `+1` adalah penghargaan untuk **upaya menulis kode**. Mahasiswa terlambat sudah dapat pengurangan 30% dari poin penuh; tambahan partial dianggap berlebihan untuk kategori ini.
 
 #### 15.4c Top Skor / Top Akses — Eksklusi Terlambat
 
@@ -3040,10 +3045,10 @@ Lihat §17.4. Filter `(v.points || 0) > 0 && !isLate(v.timestamp)`.
 
 #### 15.4d Storage: Float Points
 
-Sebagai konsekuensi multiplier 0.8, field `points` di Firebase sekarang dapat berisi **nilai float** (misal 0.8, 1.6, 3.2, 8.4). Ini fine karena:
+Sebagai konsekuensi multiplier 0.7 (sejak v19), field `points` di Firebase sekarang dapat berisi **nilai float** (misal 0.7, 1.4, 2.8, 7.0). Ini fine karena:
 - `Math.round((pts || 0) / SCORE_CONFIG.TOTAL * 100)` di `pointsToScore()` tetap menghasilkan integer nilai 0–100
 - Display di leaderboard pakai `Math.round(pts)` atau `pts.toFixed(1)` agar UI rapih
-- Firebase rule `points <= 50` tetap valid (40 ≤ 50)
+- Firebase rule `points <= 50` tetap valid (35 ≤ 50)
 
 #### 15.4e Schedule Warning Toast (Pedoman v5)
 
@@ -7618,6 +7623,12 @@ Catatan: formula Excel asli (`IF(AND(J>=79.95, J<=100), "A", ...)`) punya gap ro
 | `getMyObeNilai`   | mahasiswa (PIN-gated) | Fetch nilai 1 mahasiswa berdasarkan NIM + pinHash. PIN dicek di RTDB `pins/{nimKey}`. |
 | `deleteObeNilai`  | dosen (admin pw hash) | Hapus semua dokumen `obeNilai/{courseId}/students/*` (listDocuments + batch chunk 400). Tidak menyentuh localStorage dosen. |
 | `computeObeScores`| dosen (admin pw hash) | Auto-compute nilai TGS dari poin modul + UTS/UAS dari per-soal exam (mapping di OBE_MAP). Output ke localStorage → dosen review → Publish manual. |
+| `recomputeExamPoints` | dosen (admin pw hash) | Batch recompute poin per soal exam dari mapping OBE_EXAM_CONFIG. Dipanggil dari `Admin/recompute-obe-score.html`. Dipakai saat bobot soal per tipe (1:1:2:4) berubah atau mapping Sub-CPMK direvisi. (BARU v19) |
+| `checkExamAnswer` | mahasiswa (PIN-gated) | Server-side validation jawaban UTS/UAS. Lookup answer key di Firestore `examAnswers/<examId>/qs/<qId>`, evaluate, write attempt ke `examAttempts` (idempotency), transaksi RTDB visitor (points + scoredQuestions). Lihat §27 + v18 changelog. |
+| `resetExamAttempts` | dosen (admin pw hash) | Hapus semua `examAttempts/<examId>/students/*` Firestore. Dipanggil sebagai bagian dari Reset Total di exam (sebelum hapus RTDB visitor). Lihat §20. |
+| `resetModulQuestion` | dosen (admin pw hash) | Clear attempt + score untuk **1 soal spesifik** (granular vs `resetModulAttempts` yang full-clear). Dipakai untuk kasus jawaban server salah / mid-correction. (BARU v19) |
+| `rescaleModulLatePenalty` | dosen (admin pw hash) | Ubah deadline modul + recompute poin terlambat utk SEMUA student. Dipakai saat dosen extend/shorten deadline retroaktif. UI di `Admin/rescale-deadline.html`. (BARU v19) |
+| `analyzeModulData` | dosen (admin pw hash) | Kumpulkan answer key + scoredQuestions per student → output JSON untuk re-run grading di browser (`Admin/analyze-victims.html`). Read-only, untuk audit. (BARU v19) |
 
 Akses lewat callable (admin SDK) → tidak melewati `firestore.rules`, jadi rules tidak perlu diubah saat tambah course baru.
 
@@ -7694,14 +7705,202 @@ if(sess && sess.role === 'mahasiswa') STUDENTS_READY.then(() => renderMahasiswaV
 ### 38.10 Cross-References
 
 - **§3 Multi-Course Configuration** — konstanta course untuk modul/exam (`COURSE_LABEL`, palet, dsb.)
-- **§7 Sistem Login & Visitor** — 3 role + role-based visibility (dipakai sama persis di OBE)
+- **§7 Sistem Login & Visitor** — 3 role + role-based visibility (dipakai sama persis di OBE) — **catatan: §7 mendokumentasikan alur lama (branch-by-name); alur sekarang via role picker, lihat §39**
 - **§8 Sistem PIN Keamanan Mahasiswa** — RTDB `pins/{nimKey}` dipakai untuk gate `getMyObeNilai`
 - **§13 Struktur Firebase & Security Rules** — path `obeNilai/{courseId}/students/*` perlu rule deny-all (akses via callable saja)
 - **§19 Password Admin & Hashing** — `ADMIN_PW_HASH` dipakai untuk gate `publishObeNilai`/`deleteObeNilai`/`computeObeScores`
 - **§33 Prosedur Pengisian Lembar UTS dengan Acuan Asesmen JSON** — sumber data Asesmen JSON yang sama dipakai di sini
+- **§39 Role Picker + OBE-Style Login Flow** — alur login terkini (Modul + Exam, sejak v19)
 
 ---
 
+## 39. Role Picker + OBE-Style Login Flow (BARU di v19)
+
+> **Mengganti alur §7.1–7.3.** Sejak Juni 2026 (PR #370–#386), login Modul + Exam tidak lagi branch-by-name (`if nama === 'Dedik Romahadi'`). Sebaliknya, **role picker overlay** muncul duluan — user pilih Mahasiswa vs Dosen secara eksplisit.
+
+### 39.1 Tiga Overlay (z-index stack)
+
+| Overlay | ID | z-index | Visibility default |
+|---------|----|---------|--------------------|
+| **Role chooser** (picker) | `roleChooserOverlay` | **100002** (paling atas) | Visible saat fresh load |
+| **Visitor overlay** (mahasiswa form) | `visitorOverlay` | default | Hidden sampai user pilih Mahasiswa |
+| **Dosen login modal** | `dosenLoginOverlay` | 100001 | Hidden sampai user pilih Dosen |
+| **Schedule modal** | `scheduleOverlay` | 100000 | Hidden, dibuka dari dosen modal |
+
+Returning user (identity di `localStorage`, role ≠ guest) → DOMContentLoaded listener auto-hide role chooser, langsung lanjut alur biasa.
+
+### 39.2 HTML Role Chooser
+
+```html
+<div class="visitor-overlay" id="roleChooserOverlay" style="z-index:100002;">
+  <canvas id="pickerWaveCanvas" class="overlay-anim-canvas"></canvas>
+  <div id="pickerParticles" class="overlay-anim-particles"></div>
+  <div class="visitor-modal" style="max-width:420px;position:relative;z-index:1;">
+    <div style="font-size:2.8rem;">🔐</div>
+    <h2>Pilih Peran</h2>
+    <p class="sub">Untuk melanjutkan, pilih peran Anda.</p>
+    <button class="v-btn-primary" onclick="choseMahasiswa()">🎓 Mahasiswa</button>
+    <button class="v-btn-primary" onclick="choseDosen()"
+            style="background:linear-gradient(135deg,#7c4dff,#5e35b1);">👨‍🏫 Dosen</button>
+  </div>
+</div>
+```
+
+Catatan teks tombol: TIDAK pakai prefix "Saya" (PR #380). Hanya `🎓 Mahasiswa` dan `👨‍🏫 Dosen`.
+
+### 39.3 Mahasiswa Form (OBE-style — NIM + PIN inline)
+
+Form tidak lagi punya input Nama. Nama auto-lookup dari `masterStudents` berdasarkan NIM:
+
+```html
+<input type="text" class="v-input" id="vNim"
+       placeholder="NIM (Nomor Induk Mahasiswa)" inputmode="numeric">
+<input type="password" class="v-input" id="vPin"
+       placeholder="PIN 6 digit" inputmode="numeric" maxlength="6">
+<button class="v-btn-primary" id="vSubmit" onclick="submitVisitor()">Masuk →</button>
+<button class="v-btn-cancel" id="vBackToPicker"
+        onclick="...visitorOverlay.add('hidden'); roleChooserOverlay.remove('hidden');">
+  ← Pilih peran lain
+</button>
+```
+
+`submitVisitor` (pseudocode):
+1. Validate NIM format + PIN 6-digit
+2. Lookup `student = masterStudents.find(s => s.nim === nim)` → ambil `nama`
+3. `_sha256Hex(pin)` → `inputHash`
+4. Fetch `pins/mhs_<NIM>`:
+   - Kalau ada: bandingkan hash → match=lanjut, mismatch=`⚠ PIN salah`
+   - Kalau kosong: validate `_isWeakPin(pin)`, lalu write baru ke `pins/<key>`
+5. `_setSessionPinHash(inputHash)` untuk gating callable server
+6. Save visitor record di `DB_PATH/<key>` (kalau `schedOpen`), lalu hide semua overlay + show FAB
+
+⚠ **`vNama` element TIDAK boleh ada.** Listener `document.getElementById('vNama').addEventListener(...)` akan throw `TypeError` dan blok semua handler downstream (lihat PR #378).
+
+### 39.4 Dosen Streamline (1× password input + 1× klik)
+
+Dosen modal sekarang punya **2 tombol primary**:
+
+```html
+<input type="password" id="dosenLoginPw" placeholder="Password admin">
+<button class="v-btn-primary" onclick="submitDosenLogin()">Masuk sebagai Dosen</button>
+<button class="v-btn-cancel" id="dosenLoginScheduleBtn"
+        onclick="openScheduleFromDosen()"
+        style="background:rgba(255,179,0,.12);color:#ffb300;">🕐 Atur Jadwal</button>
+<button class="v-btn-cancel" onclick="cancelDosenLogin()">Batal</button>
+```
+
+`openScheduleFromDosen()` capture password dari `dosenLoginPw`, simpan di `window._pendingDosenPw`, set flag `window._scheduleFromDosenLogin = true`, lalu buka `scheduleOverlay` dengan:
+- `schedulePw` di-hide + value auto-filled
+- Tombol "Simpan Jadwal" jadi "💾 Simpan Jadwal & Masuk"
+- Subtitle berubah jadi "Isi durasi & batas waktu, lalu klik untuk simpan jadwal dan masuk sebagai dosen."
+
+`saveSchedule()` deteksi `_scheduleFromDosenLogin` → setelah Firebase write sukses, langsung `saveIdentity({nama:'Dedik Romahadi', nim:'DOSEN', role:'dosen', …})` + hide semua overlay. **1 password input, 1 click.**
+
+`hideScheduleModal()` cek `_scheduleFromDosenLogin` — kalau true, restore `schedulePw` visibility, balik ke dosen modal, jangan langsung balik ke main UI (PR #381).
+
+`cancelDosenLogin()` cek `_dosenUpfrontMode` — kalau true, balik ke role picker bukan ke visitor form.
+
+### 39.5 Animasi Shared (initLoginAnimation refactor)
+
+Sebelumnya animasi `overlayWaveCanvas` ditulis sebagai **IIFE** — jalan sekali saat load, hanya untuk 1 canvas. Sejak v19, refactor jadi:
+
+```javascript
+function initLoginAnimation(_canvasId, _particlesId) {
+  const canvas = document.getElementById(_canvasId);
+  if (!canvas) return;
+  const container = document.getElementById(_particlesId);
+  // … semua kode constellation + electric charges + lightning blasts (§12)
+}
+
+// Dipanggil 3× untuk picker + visitor + dosen
+initLoginAnimation('overlayWaveCanvas', 'overlayParticles');
+initLoginAnimation('pickerWaveCanvas',  'pickerParticles');
+initLoginAnimation('dosenWaveCanvas',   'dosenParticles');
+```
+
+CSS class shared:
+```css
+#overlayWaveCanvas, .overlay-anim-canvas {
+  position:absolute; inset:0; width:100%; height:100%; pointer-events:none; opacity:.85
+}
+.overlay-anim-particles { position:absolute; inset:0; pointer-events:none; overflow:hidden }
+```
+
+Tanpa refactor ini, role picker + dosen modal akan tampil dengan background hitam polos (bug yang muncul di PR #371 sebelum di-fix).
+
+### 39.6 WIB Timezone Enforcement (global)
+
+Semua `toLocaleString` / `toLocaleDateString` / `toLocaleTimeString` di Modul + Exam **wajib** pakai `timeZone: 'Asia/Jakarta'`:
+
+```javascript
+sd.toLocaleDateString('id-ID', {
+  day:'numeric', month:'long', year:'numeric', timeZone:'Asia/Jakarta'
+})
+```
+
+Untuk **input datetime-local** di dosen (schedule modal), karena `<input type="datetime-local">` interpret value sebagai LOCAL browser time (bukan WIB), exam pakai 2 helper:
+
+```javascript
+function _nowPlusMinAsWibString(min) {
+  // Format YYYY-MM-DDTHH:MM dalam WIB regardless browser tz
+  const future = new Date(Date.now() + min * 60 * 1000);
+  const fmt = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Jakarta',
+    year:'numeric', month:'2-digit', day:'2-digit',
+    hour:'2-digit', minute:'2-digit', hour12:false
+  });
+  const parts = {};
+  fmt.formatToParts(future).forEach(p => { parts[p.type] = p.value; });
+  const hh = parts.hour === '24' ? '00' : parts.hour;
+  return `${parts.year}-${parts.month}-${parts.day}T${hh}:${parts.minute}`;
+}
+function _wibStringToDate(s) {
+  // Parse "YYYY-MM-DDTHH:MM" sbg UTC+7 regardless browser tz
+  const m = s && s.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+  if (!m) return new Date(s);
+  return new Date(Date.UTC(+m[1], +m[2]-1, +m[3], +m[4]-7, +m[5]));
+}
+```
+
+Default scheduleDue di-set via `_nowPlusMinAsWibString(180)`. `saveSchedule` baca due via `_wibStringToDate(due)` supaya jam yang diketik dosen selalu diinterpretasi WIB.
+
+### 39.7 Schedule Defaults (Modul vs Exam)
+
+| Konteks | Durasi default | Batas akhir default | Perpanjangan default |
+|---------|----------------|---------------------|----------------------|
+| **Modul** (`Modul-N.html`) | **7 hari** | now + 6 hari **WIB 23:59** | n/a (modul allow indefinite late submission dgn penalty) |
+| **Exam** (`UTS.html`, `UAS.html`) | **180 menit** | now + 180 menit **WIB** | **120 menit** |
+
+Modul: input `scheduleDuration` adalah **hari**, calc `startDate = dueDate - dur*86400000`.
+Exam: input `scheduleDuration` adalah **menit**, calc `startDate = dueDate - dur*60000`.
+
+### 39.8 Anti-pola yang sering muncul
+
+| Pattern | Kenapa salah | Lihat |
+|---------|--------------|------|
+| `if (nama === 'Dedik Romahadi')` branch di submitVisitor | Sudah obsolete sejak role picker — dosen masuk via `choseDosen()`, bukan via input nama | §39.1 |
+| `getElementById('vNama').addEventListener(...)` | `vNama` element sudah dihapus → TypeError → semua listener downstream gagal terpasang | PR #378 |
+| `submitBtn.disabled = !hasSchedule` di mount | Tombol Masuk harus selalu aktif — schedule check ada di handler `submitVisitor` | PR #379 |
+| `new Date(dueInput.value)` di exam saveSchedule | Browser local-tz interpretation, bukan WIB | §39.6 — pakai `_wibStringToDate` |
+| Hardcoded `0.8` / `20%` di kode atau text | Penalti sudah `0.7` / `30%` sejak v19 (PR #284) | §15.4a |
+| IIFE `(function initLoginAnimation(){...})();` | Animasi tidak terbagi ke picker/dosen modal → background hitam polos | §39.5 |
+| Reset modul hapus `pins/mhs_<NIM>` | PIN global lintas-course; reset modul hanya boleh hapus visitor record di `DB_PATH` | §8 |
+| Dosen "Atur Jadwal" tanpa pre-validate password kosong | `openScheduleFromDosen` tanpa password akan kebawa ke schedule modal dgn pw kosong | §39.4 |
+
+### 39.9 Cross-References
+
+- **§7** alur login lama (branch-by-name) — DEPRECATED, dipertahankan untuk konteks historis
+- **§8** Sistem PIN Global — masih relevan (PIN flow di Mahasiswa tidak berubah)
+- **§9.5.2** Exam schedule field — tabel sudah di-update ke v19 defaults
+- **§9.5.5** Penalty 30% — sudah di-update
+- **§12** Animasi constellation + electric charges — implementation detail per layer, `initLoginAnimation` body tetap sama
+- **§15.4a** Late multiplier 0.7 — sudah di-update
+
+---
+
+
+*Pedoman v19 — Juni 2026 (Role Picker + Schedule Defaults + Penalty 0.7).*
+*Update v19: §39 BARU — role picker overlay (Mahasiswa vs Dosen sebelum login form), Mahasiswa form OBE-style (NIM + PIN inline, no Nama), dosen streamline (1× pw input + 1× klik utk save jadwal & masuk), animasi `initLoginAnimation(canvasId, particlesId)` shared ke 3 canvas (refactor dari IIFE), WIB timezone enforcement global (`timeZone:'Asia/Jakarta'` di semua display + helper `_nowPlusMinAsWibString`/`_wibStringToDate` di exam). Schedule defaults baru: Modul 7 hari + due +6h WIB 23:59 (PR #383, #384); Exam 180 menit + due +180m WIB + extension 120 menit. **Penalti terlambat 0.8 → 0.7 (20% → 30%)** untuk semua asesmen (PR #284). §38.7 callable table diperluas: tambah `recomputeExamPoints`, `checkExamAnswer`, `resetExamAttempts`, `resetModulQuestion`, `rescaleModulLatePenalty`, `analyzeModulData`. §15.4a + §9.5.5 + §9.2 sync ke multiplier 0.7. §7.1–7.3 deprecated note (dipertahankan utk historis, alur live di §39). PR references: #370–#386 (login flow), #284 (penalty 0.7), #354 (recomputeExamPoints), #359–#363 (OBE scoring mapping 1:1:2:4 + Sub-CPMK biggest bobot owns Comp Hard).*
 
 *Pedoman v18 — Juni 2026 (Dokumen OBE per Mata Kuliah).*
 *Update v18: §38 BARU — pola Dokumen OBE (Silabus + Penilaian Mahasiswa dalam satu halaman, per MK). Reference impl `Optimalisasi-dan-Automasi/OBE/Dokumen-OBE.html` (1300+ baris). Adaptasi `Getaran-Mekanik/OBE/Dokumen-OBE.html` + `Engineering-Mathematics/OBE/Dokumen-OBE.html` mengikuti checklist §38.9. Fitur: konversi NH (Nilai Huruf) ikut aturan SIA UMB, PRE override real-time dari .xls SIA, Publish/Hapus ke/dari Firestore via callable (`publishObeNilai`, `getMyObeNilai`, `deleteObeNilai`, `computeObeScores`), roster fetch dari `Attributes/students.json` (single source of truth, anti-race via `STUDENTS_READY` promise).*
