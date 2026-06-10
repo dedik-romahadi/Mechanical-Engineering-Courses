@@ -3027,11 +3027,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     }
     step();
   });
-}
-// Call animation utk semua login overlays (picker + visitor + dosen)
-initLoginAnimation('overlayWaveCanvas', 'overlayParticles');
-initLoginAnimation('pickerWaveCanvas',  'pickerParticles');
-initLoginAnimation('dosenWaveCanvas',   'dosenParticles');
+})();
 
 // ── KaTeX ──
 document.addEventListener('DOMContentLoaded', function() {
@@ -5926,7 +5922,11 @@ function initLoginAnimation(_canvasId, _particlesId) {
     });
     container.appendChild(el);
   });
-})();
+}
+// Call animation utk semua login overlays (picker + visitor + dosen)
+initLoginAnimation('overlayWaveCanvas', 'overlayParticles');
+initLoginAnimation('pickerWaveCanvas',  'pickerParticles');
+initLoginAnimation('dosenWaveCanvas',   'dosenParticles');
 </script>
 
 <!-- ── FIREBASE + VISITOR SYSTEM (identik dengan Modul-1) ── -->
@@ -6854,6 +6854,15 @@ async function submitDosenLogin() {
       const ok = await _verifyAdminPw(pw);
       if (!ok) {
         if (errEl) { errEl.textContent = 'Password admin salah.'; errEl.style.display = 'block'; }
+        return;
+      }
+      // OK password — tapi cek schedule dulu sebelum izinkan login dosen
+      const hasSched = !!(currentSchedule && currentSchedule.start && currentSchedule.end);
+      if (!hasSched) {
+        if (errEl) {
+          errEl.textContent = 'Jadwal pertemuan belum diatur. Klik "🕐 Atur Jadwal" dulu untuk set jadwal.';
+          errEl.style.display = 'block';
+        }
         return;
       }
       // OK → save identity sebagai dosen
