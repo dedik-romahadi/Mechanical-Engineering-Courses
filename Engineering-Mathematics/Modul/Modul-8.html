@@ -879,6 +879,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <p class="v-error" id="dosenLoginError"></p>
     <input type="password" class="v-input" id="dosenLoginPw" placeholder="Password admin" autocomplete="off">
     <button class="v-btn-primary" id="dosenLoginBtn" onclick="submitDosenLogin()">Masuk sebagai Dosen</button>
+    <button class="v-btn-cancel" id="dosenLoginScheduleBtn" onclick="document.getElementById('dosenLoginOverlay').classList.add('hidden'); if(typeof showScheduleModal==='function') showScheduleModal();" style="margin-top:8px;background:rgba(255,179,0,.12);border-color:rgba(255,179,0,.35);color:#ffb300;">🕐 Atur Jadwal</button>
     <button class="v-btn-cancel" onclick="cancelDosenLogin()" style="margin-top:8px;">Batal</button>
   </div>
 </div>
@@ -8279,8 +8280,38 @@ function askAdminPassword() {
   });
 }
 
-function submitDosenLogin() {
+async function submitDosenLogin() {
   const pw = document.getElementById('dosenLoginPw').value;
+  const errEl = document.getElementById('dosenLoginError');
+  // === UPFRONT MODE (dipanggil dari picker, bukan per-action) ===
+  if (window._dosenUpfrontMode && !_dosenLoginResolver) {
+    if (!pw) {
+      if (errEl) { errEl.textContent = 'Password wajib diisi.'; errEl.style.display = 'block'; }
+      return;
+    }
+    try {
+      const ok = await _verifyAdminPw(pw);
+      if (!ok) {
+        if (errEl) { errEl.textContent = 'Password admin salah.'; errEl.style.display = 'block'; }
+        return;
+      }
+      // OK → save identity sebagai dosen
+      saveIdentity({nama: 'Dedik Romahadi', nim: 'DOSEN', role: 'dosen', timestamp: new Date().toISOString()});
+      document.getElementById('dosenLoginOverlay').classList.add('hidden');
+      const vo = document.getElementById('visitorOverlay');
+      if (vo) vo.classList.add('hidden');
+      const fab = document.getElementById('visitorFab');
+      if (fab) fab.style.display = 'flex';
+      if (typeof _applyRoleVisibility === 'function') _applyRoleVisibility();
+      if (typeof initPresence === 'function') setTimeout(initPresence, 300);
+      window._dosenUpfrontMode = false;
+    } catch (e) {
+      console.error('[Dosen Upfront] Failed:', e);
+      if (errEl) { errEl.textContent = 'Gagal verifikasi: ' + (e.message || e); errEl.style.display = 'block'; }
+    }
+    return;
+  }
+  // === PER-ACTION MODE (existing behavior — resolve promise) ===
   document.getElementById('dosenLoginOverlay').classList.add('hidden');
   if (_dosenLoginResolver) {
     _dosenLoginResolver(pw);
@@ -8310,6 +8341,8 @@ window.choseMahasiswa = function() {
   if (rc) rc.classList.add('hidden');
   const vo = document.getElementById('visitorOverlay');
   if (vo) vo.classList.remove('hidden');
+  const dosenOv = document.getElementById('dosenLoginOverlay');
+  if (dosenOv) dosenOv.classList.add('hidden');
   const nama = document.getElementById('vNama');
   if (nama) setTimeout(() => nama.focus(), 50);
 };
@@ -8317,13 +8350,17 @@ window.choseDosen = function() {
   const rc = document.getElementById('roleChooserOverlay');
   if (rc) rc.classList.add('hidden');
   const vo = document.getElementById('visitorOverlay');
-  if (vo) vo.classList.remove('hidden');  // perlu visible utk submitVisitor read inputs
-  const nama = document.getElementById('vNama');
-  const nim  = document.getElementById('vNim');
-  if (nama) nama.value = 'Dedik Romahadi';
-  if (nim)  nim.value = '00000';  // dummy NIM — dosen path skip NIM check
-  if (typeof window.submitVisitor === 'function') {
-    setTimeout(() => window.submitVisitor(), 50);
+  if (vo) vo.classList.add('hidden');   // sembunyikan form mahasiswa
+  // Show dosen login overlay (UPFRONT mode — bukan per-action confirm)
+  window._dosenUpfrontMode = true;
+  const overlay = document.getElementById('dosenLoginOverlay');
+  if (overlay) {
+    const pwEl  = document.getElementById('dosenLoginPw');
+    const errEl = document.getElementById('dosenLoginError');
+    if (pwEl)  pwEl.value = '';
+    if (errEl) { errEl.textContent = ''; errEl.style.display = 'none'; }
+    overlay.classList.remove('hidden');
+    if (pwEl) setTimeout(() => pwEl.focus(), 100);
   }
 };
 // Auto-hide picker untuk returning user (existing identity)
