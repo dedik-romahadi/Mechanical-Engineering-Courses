@@ -794,13 +794,13 @@ body.friction-blurred #frictionToast{filter:none;}
   <div class="visitor-modal" style="max-width:480px;width:95%;">
     <div style="font-size:2.4rem;margin-bottom:12px;">🕐</div>
     <h2 style="font-size:1.3rem;">Atur Jadwal Perkuliahan</h2>
-    <p class="sub">Masukkan password, durasi (menit), dan batas waktu akhir.</p>
+    <p class="sub">Masukkan password, durasi (menit), dan batas akhir (WIB).</p>
     <p class="v-error" id="scheduleError"></p>
     <input type="password" class="v-input" id="schedulePw" placeholder="Password" autocomplete="off">
     <div style="display:flex;gap:10px;margin-bottom:14px;">
       <div style="flex:1;text-align:left;">
         <label style="font-size:.75rem;color:#94a3b8;font-weight:600;display:block;margin-bottom:4px;">Durasi (menit)</label>
-        <input type="number" class="v-input" id="scheduleDuration" min="1" value="90" placeholder="90" style="margin-bottom:0;">
+        <input type="number" class="v-input" id="scheduleDuration" min="1" value="180" placeholder="180" style="margin-bottom:0;">
       </div>
       <div style="flex:1;text-align:left;">
         <label style="font-size:.75rem;color:#94a3b8;font-weight:600;display:block;margin-bottom:4px;">Batas Akhir (Due Date)</label>
@@ -809,7 +809,7 @@ body.friction-blurred #frictionToast{filter:none;}
     </div>
     <div style="text-align:left;margin-bottom:14px;">
       <label style="font-size:.75rem;color:#94a3b8;font-weight:600;display:block;margin-bottom:4px;">Perpanjangan (menit) — opsional</label>
-      <input type="number" class="v-input" id="scheduleExtension" min="0" value="0" placeholder="0 (tanpa perpanjangan)" style="margin-bottom:0;">
+      <input type="number" class="v-input" id="scheduleExtension" min="0" value="120" placeholder="120" style="margin-bottom:0;">
       <p style="font-size:.7rem;color:#64748b;margin:4px 0 0;line-height:1.4;">Mahasiswa yang mengerjakan di sesi perpanjangan tercatat <strong style="color:#fb7185">⏰ Terlambat</strong> dengan poin dikurangi 30%. Setelah perpanjangan habis, submit diblokir.</p>
     </div>
     <button class="v-btn-primary" onclick="saveSchedule()">💾 Simpan Jadwal</button>
@@ -7323,11 +7323,32 @@ function _showResetToast(msg) {
     setTimeout(() => toast.remove(), 300);
   }, 4500);
 }
+// ─── WIB timezone helpers utk Exam schedule ───
+// Force WIB interpretation regardless of dosen browser timezone.
+function _nowPlusMinAsWibString(min) {
+  const future = new Date(Date.now() + min * 60 * 1000);
+  const fmt = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Jakarta',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: false
+  });
+  const parts = {};
+  fmt.formatToParts(future).forEach(p => { parts[p.type] = p.value; });
+  const hh = parts.hour === '24' ? '00' : parts.hour;
+  return `${parts.year}-${parts.month}-${parts.day}T${hh}:${parts.minute}`;
+}
+function _wibStringToDate(s) {
+  // s = "YYYY-MM-DDTHH:MM" dari datetime-local — interpret sbg WIB (UTC+7)
+  const m = s && s.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+  if (!m) return new Date(s);
+  return new Date(Date.UTC(+m[1], +m[2]-1, +m[3], +m[4]-7, +m[5]));
+}
+
 function showScheduleModal(){
   document.getElementById('scheduleOverlay').classList.remove('hidden'); document.getElementById('schedulePw').value='';
   document.getElementById('scheduleError').textContent=''; document.getElementById('scheduleError').style.display='none';
   if(currentSchedule){ document.getElementById('scheduleDuration').value=currentSchedule.duration||''; document.getElementById('scheduleDue').value=currentSchedule.due||''; document.getElementById('scheduleExtension').value=currentSchedule.extension||0; }
-  else { document.getElementById('scheduleDuration').value='90';var dd=new Date();dd.setHours(dd.getHours()+2);dd.setMinutes(0,0,0);document.getElementById('scheduleDue').value=dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0')+'T'+String(dd.getHours()).padStart(2,'0')+':00';document.getElementById('scheduleExtension').value=0; }
+  else { document.getElementById('scheduleDuration').value='180';document.getElementById('scheduleDue').value=_nowPlusMinAsWibString(180);document.getElementById('scheduleExtension').value='120'; }
   setTimeout(()=>document.getElementById('schedulePw').focus(),100);
 }
 function hideScheduleModal(){
@@ -7361,7 +7382,7 @@ async function saveSchedule(){
   if(ext<0){errEl.textContent='\u26a0 Perpanjangan tidak boleh negatif.';errEl.style.display='block';return;}
   errEl.style.display='none';
   // UTS: durasi dalam MENIT (bukan hari). startDate = dueDate - dur*60*1000
-  const dueDate=new Date(due), startDate=new Date(dueDate.getTime()-dur*60*1000);
+  const dueDate=_wibStringToDate(due), startDate=new Date(dueDate.getTime()-dur*60*1000);
   const btns = document.querySelectorAll('#scheduleOverlay button');
   btns.forEach(b=>{b.disabled=true;b.style.opacity='.5';b.style.cursor='wait';});
 
