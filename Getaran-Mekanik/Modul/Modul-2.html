@@ -8324,7 +8324,7 @@ function showScheduleModal(){
   document.getElementById('scheduleOverlay').classList.remove('hidden'); document.getElementById('schedulePw').value='';
   document.getElementById('scheduleError').textContent=''; document.getElementById('scheduleError').style.display='none';
   if(currentSchedule){ document.getElementById('scheduleDuration').value=currentSchedule.duration||'7'; document.getElementById('scheduleDue').value=currentSchedule.due||''; }
-  else { document.getElementById('scheduleDuration').value='7';var dd=new Date();dd.setDate(dd.getDate()+7);dd.setHours(23,59,0,0);document.getElementById('scheduleDue').value=dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0')+'T23:59'; }
+  else { document.getElementById('scheduleDuration').value='7';var _dueWibParts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(Date.now()+6*24*60*60*1000));var _y=_dueWibParts.find(p=>p.type==='year').value,_mo=_dueWibParts.find(p=>p.type==='month').value,_da=_dueWibParts.find(p=>p.type==='day').value;document.getElementById('scheduleDue').value=_y+'-'+_mo+'-'+_da+'T23:59'; }
   setTimeout(()=>document.getElementById('schedulePw').focus(),100);
 }
 function hideScheduleModal(){
