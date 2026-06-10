@@ -782,7 +782,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <p class="v-error" id="dosenLoginError"></p>
     <input type="password" class="v-input" id="dosenLoginPw" placeholder="Password admin" autocomplete="off">
     <button class="v-btn-primary" id="dosenLoginBtn" onclick="submitDosenLogin()">Masuk sebagai Dosen</button>
-    <button class="v-btn-cancel" id="dosenLoginScheduleBtn" onclick="window._scheduleFromDosenLogin=true;document.getElementById('dosenLoginOverlay').classList.add('hidden'); if(typeof showScheduleModal==='function') showScheduleModal();" style="margin-top:8px;background:rgba(255,179,0,.12);border-color:rgba(255,179,0,.35);color:#ffb300;">🕐 Atur Jadwal</button>
+    <button class="v-btn-cancel" id="dosenLoginScheduleBtn" onclick="openScheduleFromDosen()" style="margin-top:8px;background:rgba(255,179,0,.12);border-color:rgba(255,179,0,.35);color:#ffb300;">🕐 Atur Jadwal</button>
     <button class="v-btn-cancel" onclick="cancelDosenLogin()" style="margin-top:8px;">Batal</button>
   </div>
 </div>
@@ -7882,6 +7882,29 @@ document.getElementById('dosenLoginPw').addEventListener('keydown', function(e){
 
 window.submitDosenLogin = submitDosenLogin;
 
+// Dosen → Atur Jadwal: capture password sekali, reuse di schedule modal
+window.openScheduleFromDosen = function() {
+  const pwEl = document.getElementById('dosenLoginPw');
+  const pw = pwEl ? pwEl.value : '';
+  const errEl = document.getElementById('dosenLoginError');
+  if (!pw) {
+    if (errEl) { errEl.textContent = 'Masukkan password admin dulu sebelum Atur Jadwal.'; errEl.style.display = 'block'; }
+    return;
+  }
+  window._pendingDosenPw = pw;
+  window._scheduleFromDosenLogin = true;
+  document.getElementById('dosenLoginOverlay').classList.add('hidden');
+  if (typeof showScheduleModal === 'function') showScheduleModal();
+  // Setelah showScheduleModal: hide schedulePw + autofill, ubah label tombol
+  const spw = document.getElementById('schedulePw');
+  if (spw) { spw.value = pw; spw.style.display = 'none'; }
+  const saveBtn = document.querySelector('#scheduleOverlay button.v-btn-primary');
+  if (saveBtn) saveBtn.textContent = '💾 Simpan Jadwal & Masuk';
+  const sub = document.querySelector('#scheduleOverlay p.sub');
+  if (sub) sub.textContent = 'Isi durasi & batas waktu, lalu klik untuk simpan jadwal dan masuk sebagai dosen.';
+};
+
+
 // ═══ Role Chooser handlers (OBE-style upfront picker) ═══
 window.choseMahasiswa = function() {
   const rc = document.getElementById('roleChooserOverlay');
@@ -8045,8 +8068,15 @@ function showScheduleModal(){
 }
 function hideScheduleModal(){
   document.getElementById('scheduleOverlay').classList.add('hidden');
+  // Restore schedulePw visibility (kalau disembunyikan oleh openScheduleFromDosen)
+  const spw = document.getElementById('schedulePw');
+  if(spw){ spw.style.display = ''; spw.value = ''; }
+  // Restore tombol label
+  const saveBtn = document.querySelector('#scheduleOverlay button.v-btn-primary');
+  if(saveBtn) saveBtn.textContent = '💾 Simpan Jadwal';
   if(window._scheduleFromDosenLogin){
     window._scheduleFromDosenLogin = false;
+    window._pendingDosenPw = null;
     const d = document.getElementById('dosenLoginOverlay');
     if(d) d.classList.remove('hidden');
     const pw = document.getElementById('dosenLoginPw');
@@ -8055,7 +8085,10 @@ function hideScheduleModal(){
 }
 async function saveSchedule(){
   const errEl = document.getElementById('scheduleError');
-  const pw=document.getElementById('schedulePw').value;
+  // Dosen upfront flow: pakai _pendingDosenPw (sudah validated saat dosen modal)
+  const pw = window._scheduleFromDosenLogin && window._pendingDosenPw
+    ? window._pendingDosenPw
+    : document.getElementById('schedulePw').value;
   const ok = await _verifyAdminPw(pw);
   if(!ok){errEl.textContent='\u26a0 Password salah.';errEl.style.display='block';return;}
   const dur=parseInt(document.getElementById('scheduleDuration').value), due=document.getElementById('scheduleDue').value;
@@ -8079,10 +8112,23 @@ async function saveSchedule(){
     due: due
   }).then(() => {
     btns.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';});
-    hideScheduleModal();
-    // Jangan touch localStorage atau overlay/FAB state — schedule listener
-    // akan re-evaluate via _handleScheduleReady secara otomatis. Dosen yang
-    // sudah login tetap login, mahasiswa aktif tetap bisa lanjut mengerjakan.
+    // Setelah save jadwal, kalau ini dari dosen upfront flow — sekaligus login dosen
+    if (window._scheduleFromDosenLogin) {
+      window._scheduleFromDosenLogin = false;
+      window._pendingDosenPw = null;
+      saveIdentity({nama: 'Dedik Romahadi', nim: 'DOSEN', role: 'dosen', timestamp: new Date().toISOString()});
+      document.getElementById('scheduleOverlay').classList.add('hidden');
+      document.getElementById('dosenLoginOverlay').classList.add('hidden');
+      const vo = document.getElementById('visitorOverlay');
+      if (vo) vo.classList.add('hidden');
+      const fab = document.getElementById('visitorFab');
+      if (fab) fab.style.display = 'flex';
+      if (typeof _applyRoleVisibility === 'function') _applyRoleVisibility();
+      if (typeof initPresence === 'function') setTimeout(initPresence, 300);
+      window._dosenUpfrontMode = false;
+    } else {
+      hideScheduleModal();
+    }
     if (typeof _showResetToast === 'function') {
       _showResetToast('\u2705 Jadwal berhasil disimpan. Data mahasiswa tetap aman.');
     }
