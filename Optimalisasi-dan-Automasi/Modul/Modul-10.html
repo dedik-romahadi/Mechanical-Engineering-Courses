@@ -1122,7 +1122,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="card">
       <div class="card-icon">✅</div>
       <h3>Step 3 — Cek Asumsi ANOVA</h3>
-      <p>ANOVA punya 3 asumsi kunci. <strong>(1) Normality</strong>: residual y_ij − ȳ_j berdistribusi normal — uji <code>scipy.stats.shapiro</code>. <strong>(2) Homoscedasticity</strong>: varians dalam-grup sama antar level — uji <code>scipy.stats.levene</code>. <strong>(3) Independence</strong>: trial saling independent (dijamin oleh randomisasi). Kalau asumsi runtuh: <em>Welch's ANOVA</em> (uneven variance) atau <em>Kruskal-Wallis</em> (non-parametric).</p>
+      <p>ANOVA punya 3 asumsi kunci. <strong>(1) Normality</strong>: residual \(y_{\text{ij}}\) − ȳ_j berdistribusi normal — uji <code>scipy.stats.shapiro</code>. <strong>(2) Homoscedasticity</strong>: varians dalam-grup sama antar level — uji <code>scipy.stats.levene</code>. <strong>(3) Independence</strong>: trial saling independent (dijamin oleh randomisasi). Kalau asumsi runtuh: <em>Welch's ANOVA</em> (uneven variance) atau <em>Kruskal-Wallis</em> (non-parametric).</p>
       <div class="formula">\(\text{Shapiro} \cdot \text{Levene} \cdot \text{Random}\)</div>
     </div>
     <div class="card">
@@ -1351,7 +1351,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       </div>
       <div id="sweepInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Kurva = <strong>F-distribution</strong> dengan parameter (\(df_b\), \(df_w\)). Area ungu = p-value (probabilitas F ≥ \(F_{\text{obs}}\) jika H₀ benar). Garis vertikal merah = F_critical untuk α tertentu. Kalau \(F_{\text{obs}}\) jatuh di kanan \(F_{\text{crit}}\) (area ≤ α), tolak H₀.<br>
+        <strong>📊 Cara Membaca:</strong> Kurva = <strong>F-distribution</strong> dengan parameter (\(df_b\), \(df_w\)). Area ungu = p-value (probabilitas F ≥ \(F_{\text{obs}}\) jika H₀ benar). Garis vertikal merah = \(F_{\text{critical}}\) untuk α tertentu. Kalau \(F_{\text{obs}}\) jatuh di kanan \(F_{\text{crit}}\) (area ≤ α), tolak H₀.<br>
         <strong>Coba:</strong> (1) \(F_{\text{obs}}\) = 0.5 → di area "no effect", p &gt;&gt; α, gagal tolak H₀. (2) \(F_{\text{obs}}\) = 4 dengan α = 0.05 → di critical region, p &lt; α, tolak H₀. (3) Geser α dari 0.05 ke 0.01 → critical region menyempit (lebih konservatif). (4) \(F_{\text{obs}}\) = 9 → p &lt;&lt; 0.001, sangat signifikan. Pelajaran: <strong>F besar = bukti kuat efek faktor</strong>; pemilihan α harus a priori.
       </div>
     </div>
@@ -1459,7 +1459,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="card">
       <div class="card-icon">🏭</div>
       <h3>Quality Control Pabrik Turbin (GE Aviation)</h3>
-      <p>GE Aviation memantau toleransi blade turbine via <strong>Statistical Process Control (SPC) + ANOVA</strong>. Tiap shift (3 shift, 100 blade per shift) diukur diameter, panjang, twist angle. ANOVA: shift × hari × machine. Kalau F_shift signifikan → operator/proses shift ada bias; F_machine signifikan → mesin tertentu butuh kalibrasi. Six Sigma DMAIC: <em>Define-Measure-Analyze-Improve-Control</em>. Tahap "Analyze" = ANOVA + regression untuk identifikasi sumber variasi. GE laporkan defect rate turun dari 850 ke 12 ppm (parts per million) lewat ANOVA-driven QC. Tools: Minitab, JMP, Python pingouin.</p>
+      <p>GE Aviation memantau toleransi blade turbine via <strong>Statistical Process Control (SPC) + ANOVA</strong>. Tiap shift (3 shift, 100 blade per shift) diukur diameter, panjang, twist angle. ANOVA: shift × hari × machine. Kalau \(F_{\text{shift}}\) signifikan → operator/proses shift ada bias; \(F_{\text{machine}}\) signifikan → mesin tertentu butuh kalibrasi. Six Sigma DMAIC: <em>Define-Measure-Analyze-Improve-Control</em>. Tahap "Analyze" = ANOVA + regression untuk identifikasi sumber variasi. GE laporkan defect rate turun dari 850 ke 12 ppm (parts per million) lewat ANOVA-driven QC. Tools: Minitab, JMP, Python pingouin.</p>
       <div class="formula">\(\text{SPC: shift} \times \text{machine} \to \text{defect}\)</div>
     </div>
     <div class="card">
@@ -2123,7 +2123,7 @@ result = <span class="fn">run_anova_workflow</span>(df_demo, <span class="st">'t
       </div>
       <div class="radio-group" id="rg-mc7">
         <div class="radio-option" onclick="selectMC('mc7',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Karena F-statistic-nya rendah</div>
-        <div class="radio-option" onclick="selectMC('mc7',this,'B')"><div class="radio-circle"></div>(B) &nbsp; ANOVA hanya bilang "ada efek" tanpa identifikasi pasangan; Tukey HSD bandingkan semua pasangan dengan kontrol <em>family-wise error rate</em> — pasangan dengan p_adj &lt; α adalah signifikan berbeda</div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'B')"><div class="radio-circle"></div>(B) &nbsp; ANOVA hanya bilang "ada efek" tanpa identifikasi pasangan; Tukey HSD bandingkan semua pasangan dengan kontrol <em>family-wise error rate</em> — pasangan dengan \(p_{\text{adj}}\) &lt; α adalah signifikan berbeda</div>
         <div class="radio-option" onclick="selectMC('mc7',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Untuk menambah sample size secara post-hoc</div>
         <div class="radio-option" onclick="selectMC('mc7',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Untuk mengubah α dari 0.05 ke 0.10</div>
       </div>
@@ -2545,7 +2545,7 @@ F, p = stats.f_oneway(group1, group2, group3)
       <div style="background:rgba(0,224,158,.05);border:1px solid rgba(0,224,158,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)">Faktor: V (m/min), f (mm/rev), d (mm)</div>
       <div style="background:rgba(255,64,129,.05);border:1px solid rgba(255,64,129,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)">Level: 3 per faktor → Taguchi L9</div>
       <div style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet)">Respons: surface roughness Ra (μm)</div>
-      <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">ANOVA: F_V = 28, F_f = 12, F_d = 1.2</div>
+      <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">ANOVA: \(F_V\) = 28, \(F_f\) = 12, \(F_d\) = 1.2</div>
       <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">η²: V = 0.62, f = 0.24, d = 0.05</div>
       <div style="background:rgba(0,224,158,.05);border:1px solid rgba(0,224,158,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)">Optimum: V=200, f=0.15, d=any → Ra ↓ 35%</div>
     </div>
