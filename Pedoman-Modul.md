@@ -195,7 +195,7 @@ const firebaseConfig = {
 |-------------|-------------|---------|---------------|------------------------|------------------------|
 | Matematika 4 | `math4` | `visitors/math4/...` | `settings/math4/...` | `math4_identity_` | `Engineering-Mathematics/Attributes/` |
 | Getaran Mekanik | `getaran_mekanik` | `visitors/getaran_mekanik/...` | `settings/getaran_mekanik/...` | `getaran_mekanik_identity_` | `Getaran-Mekanik/Attributes/` |
-| Optimalisasi & Otomasi | `optoauto` | `visitors/optoauto/...` | `settings/optoauto/...` | `optoauto_identity_` | `Optimization-Automation/Attributes/` |
+| Optimalisasi & Otomasi | `optoauto` | `visitors/optoauto/...` | `settings/optoauto/...` | `optoauto_identity_` | `Optimalisasi-dan-Automasi/Attributes/` |
 
 **Aturan penamaan slug:**
 - Lowercase + underscore (bukan tanda hubung) untuk konsistensi
@@ -244,7 +244,7 @@ const PERTEMUAN       = 'pertemuan-4';
 const RELATED_MODULES = ['forum-4', 'tugas-4'];
 const SCHEDULE_PATH   = `settings/optoauto/${PERTEMUAN}/schedule`;
 const LOCAL_IDENTITY  = `optoauto_identity_${MODULE_ID}`;
-const STUDENTS_JSON_URL = 'https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Optimization-Automation/Attributes/students.json';
+const STUDENTS_JSON_URL = 'https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Optimalisasi-dan-Automasi/Attributes/students.json';
 ```
 
 **Rumus umum:**
@@ -4105,7 +4105,7 @@ const PERTEMUAN       = 'pertemuan-N';
 const RELATED_MODULES = ['forum-N', 'tugas-N'];
 const SCHEDULE_PATH   = `settings/optoauto/${PERTEMUAN}/schedule`;
 const LOCAL_IDENTITY  = `optoauto_identity_${MODULE_ID}`;
-const STUDENTS_JSON_URL = 'https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Optimization-Automation/Attributes/students.json';
+const STUDENTS_JSON_URL = 'https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Optimalisasi-dan-Automasi/Attributes/students.json';
 ```
 
 > **⚠ Konvensi `LOCAL_IDENTITY`:** Prefix WAJIB course-scoped — sama persis dengan slug yang dipakai di `DB_PATH`. Aturan: `` `${COURSE_SLUG}_identity_${MODULE_ID}` ``. **Jangan** meminjam prefix dari mata kuliah lain (misal `optoauto_identity_` untuk course Getaran Mekanik). Ini untuk mencegah bentrok session localStorage antar-course ketika MODULE_ID kebetulan sama (misal dua course pakai `pertemuan-4`), dan memastikan tombol Reset tidak salah menghapus session course lain. Lihat §3.1 dan §7.4 untuk detail.
@@ -6136,15 +6136,17 @@ Lembar UTS adalah dokumen Word formal (`.docx`) yang dilampirkan ke RPS sebagai 
 
 ### 33.2 Asesmen JSON — Single Source of Truth
 
-Setiap mata kuliah memiliki satu file `Asesmen-<Mata-Kuliah>.json` di project root yang mendefinisikan rencana asesmen lengkap. Schema ini di-shared antara lembar UTS, lembar UAS, dan template tugas.
+Setiap mata kuliah memiliki satu file `Asesmen-<Mata-Kuliah>.json` di folder `Attributes/` masing-masing course — path nyata `<Course>/Attributes/Asesmen-<MK>.json` (**bukan** project root) — yang mendefinisikan rencana asesmen lengkap. **File yang sama** menjadi sumber data Dokumen OBE (§38.2). Schema ini di-shared antara lembar UTS, lembar UAS, template tugas, dan OBE.
 
 **Lokasi file (currently maintained):**
 
 ```
-project/
-├── Asesmen-Getaran-Mekanik.json          (UTS 25%, UAS 24%, Tugas 51%)
-├── Asesmen-Matematika-4.json             (UTS 31%, UAS 30%, Tugas 39%)
-└── Asesmen-Optimalisasi-dan-Otomasi.json (UTS 20%, UAS 20%, Tugas 60%)
+Mechanical-Engineering-Courses/
+├── Getaran-Mekanik/Attributes/Asesmen-Getaran-Mekanik.json                       (UTS 25%, UAS 24%, Tugas 51%)
+├── Engineering-Mathematics/Attributes/Asesmen-Matematika-4.json                  (UTS 31%, UAS 30%, Tugas 39%)
+└── Optimalisasi-dan-Automasi/Attributes/Asesmen-Optimalisasi-dan-Otomasi.json    (UTS 20%, UAS 20%, Tugas 60%)
+                          ^^^^^^^^                         ^^^^^^^
+                          folder "Automasi" (A) — tapi nama file "Otomasi" (O); keduanya disengaja, jangan disamakan
 ```
 
 **Schema JSON (excerpt):**
