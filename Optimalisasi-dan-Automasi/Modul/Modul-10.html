@@ -909,12 +909,12 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">F = MS_between / MS_within</span>
-    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">SS_total = SS_between + SS_within</span>
+    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">F = MS antar / MS dalam</span>
+    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">SS total = SS antar + SS dalam</span>
     <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">H₀: μ₁ = μ₂ = … = μₖ</span>
     <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">p &lt; α ⇒ tolak H₀</span>
-    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">df_b = k − 1, df_w = N − k</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">η² = SS_b / SS_total</span>
+    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">df antar = k − 1, df dalam = N − k</span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">η² = SS antar / SS total</span>
     <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">post-hoc: Tukey HSD</span>
     <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">scipy.stats.f_oneway</span>
   </div>
@@ -1007,7 +1007,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="card">
       <div class="card-icon">🐍</div>
       <h3>Implementasi: scipy.stats &amp; statsmodels</h3>
-      <p>Python ekosistem: <strong>\(scipy.stats.f_{oneway}\)</strong> (one-way ANOVA cepat), <strong>statsmodels</strong> (full ANOVA table dengan formula API: <code>ols('y ~ C(faktor)', data).fit() → anova_lm</code>), <strong>pingouin</strong> (effect size, post-hoc Tukey HSD), <strong>pyDOE2</strong> (orthogonal arrays untuk Taguchi method). Visualisasi: <strong>seaborn.boxplot</strong> + <strong>seaborn.pointplot</strong> untuk effect plots; <strong>statsmodels.graphics.factorplots</strong> untuk interaction plot.</p>
+      <p>Python ekosistem: <strong><code>scipy.stats.f_oneway</code></strong> (one-way ANOVA cepat), <strong>statsmodels</strong> (full ANOVA table dengan formula API: <code>ols('y ~ C(faktor)', data).fit() → anova_lm</code>), <strong>pingouin</strong> (effect size, post-hoc Tukey HSD), <strong>pyDOE2</strong> (orthogonal arrays untuk Taguchi method). Visualisasi: <strong>seaborn.boxplot</strong> + <strong>seaborn.pointplot</strong> untuk effect plots; <strong>statsmodels.graphics.factorplots</strong> untuk interaction plot.</p>
       <div class="formula">scipy.stats / statsmodels</div>
     </div>
   </div>
@@ -1050,25 +1050,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="card">
       <div class="card-icon">📐</div>
       <h3>Degrees of Freedom (df)</h3>
-      <p>Tiap SS punya degrees of freedom (jumlah informasi independent). Untuk k grup, total N data: <strong>\(df_{\text{between}}\)</strong> = k − 1 (k mean grup, dikurangi 1 karena grand mean tetap). <strong>\(df_{\text{within}}\)</strong> = N − k (tiap grup punya nⱼ − 1 dof, dijumlahkan). <strong>\(df_{\text{total}}\)</strong> = N − 1 = df_b + df_w. Dof penting karena <em>Mean Square = SS/df</em> — normalisasi yang membuat F-statistic bisa dibandingkan ke distribusi teoretis.</p>
+      <p>Tiap SS punya degrees of freedom (jumlah informasi independent). Untuk k grup, total N data: <strong>\(df_{\text{between}}\)</strong> = k − 1 (k mean grup, dikurangi 1 karena grand mean tetap). <strong>\(df_{\text{within}}\)</strong> = N − k (tiap grup punya nⱼ − 1 dof, dijumlahkan). <strong>\(df_{\text{total}}\)</strong> = N − 1 = \(df_b\) + \(df_w\). Dof penting karena <em>Mean Square = SS/df</em> — normalisasi yang membuat F-statistic bisa dibandingkan ke distribusi teoretis.</p>
       <div class="formula">\(df_b = k-1, df_w = N-k\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚖️</div>
       <h3>Mean Squares — Estimasi Varians</h3>
-      <p>Mean Square = SS/df, estimasi varians populasi. <strong>\(MS_{\text{between}}\)</strong> = SS_b / df_b → estimasi varians yang mencakup <em>efek faktor + noise</em>. <strong>\(MS_{\text{within}}\)</strong> = SS_w / df_w → estimasi varians <em>noise saja</em>. Kalau H₀ benar (tidak ada efek), MS_b ≈ MS_w karena keduanya sama-sama noise. Kalau H₁ benar, MS_b &gt; MS_w (efek faktor menambah varians antar-grup). MS_w juga disebut <em>MSE</em> (Mean Squared Error) atau <em>residual variance</em>.</p>
+      <p>Mean Square = SS/df, estimasi varians populasi. <strong>\(MS_{\text{between}}\)</strong> = \(SS_b\) / \(df_b\) → estimasi varians yang mencakup <em>efek faktor + noise</em>. <strong>\(MS_{\text{within}}\)</strong> = \(SS_w\) / \(df_w\) → estimasi varians <em>noise saja</em>. Kalau H₀ benar (tidak ada efek), \(MS_b\) ≈ \(MS_w\) karena keduanya sama-sama noise. Kalau H₁ benar, \(MS_b\) &gt; \(MS_w\) (efek faktor menambah varians antar-grup). \(MS_w\) juga disebut <em>MSE</em> (Mean Squared Error) atau <em>residual variance</em>.</p>
       <div class="formula">\(MS_b = SS_b / df_b\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
-      <h3>F-Statistic = MS_b / MS_w</h3>
-      <p>Rasio dua estimasi varians. Mengikuti <strong>F-distribution</strong> dengan parameter (df_b, df_w) <em>jika H₀ benar</em>. Distribusi F asimetris, miring ke kanan, hanya nilai positif. F = 1 berarti MS_b = MS_w (no effect). F &gt;&gt; 1 berarti efek faktor besar relatif noise. Untuk α = 0.05 dan (df_b=2, df_w=12), <em>\(F_{\text{critical}} \approx 3.89\)</em> — F observed &gt; F_crit → tolak H₀. Modern workflow: hitung <strong>p-value</strong> langsung lebih informatif dari "F &gt; F_crit".</p>
+      <h3>F-Statistic = \(MS_b\) / \(MS_w\)</h3>
+      <p>Rasio dua estimasi varians. Mengikuti <strong>F-distribution</strong> dengan parameter (\(df_b\), \(df_w\)) <em>jika H₀ benar</em>. Distribusi F asimetris, miring ke kanan, hanya nilai positif. F = 1 berarti \(MS_b\) = \(MS_w\) (no effect). F &gt;&gt; 1 berarti efek faktor besar relatif noise. Untuk α = 0.05 dan (\(df_b\)=2, \(df_w\)=12), <em>\(F_{\text{critical}} \approx 3.89\)</em> — F observed &gt; \(F_{\text{crit}}\) → tolak H₀. Modern workflow: hitung <strong>p-value</strong> langsung lebih informatif dari "F &gt; \(F_{\text{crit}}\)".</p>
       <div class="formula">\(F = MS_b / MS_w\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📈</div>
       <h3>p-Value &amp; Keputusan</h3>
-      <p>p-value = P(F_observed ≥ F_data | H₀) — probabilitas mengamati F sebesar ini (atau lebih ekstrem) jika H₀ benar. <strong>\(p\) &lt; \(\alpha\)</strong> (typical 0.05): tolak H₀ → ada efek faktor signifikan. <strong>\(p \ge \alpha\)</strong>: tidak cukup bukti tolak H₀ → bukan berarti tidak ada efek (mungkin sample size kecil, low power). Reporting standar: <em>\("F(2, 12) = 8.45, p = 0.005, \eta ^2 = 0.58"\)</em> — F-statistic, df, p, dan effect size η² (proportion of variance explained).</p>
+      <p>p-value = P(\(F_{\text{observed}}\) ≥ \(F_{\text{data}}\) | H₀) — probabilitas mengamati F sebesar ini (atau lebih ekstrem) jika H₀ benar. <strong>\(p\) &lt; \(\alpha\)</strong> (typical 0.05): tolak H₀ → ada efek faktor signifikan. <strong>\(p \ge \alpha\)</strong>: tidak cukup bukti tolak H₀ → bukan berarti tidak ada efek (mungkin sample size kecil, low power). Reporting standar: <em>\("F(2, 12) = 8.45, p = 0.005, \eta ^2 = 0.58"\)</em> — F-statistic, df, p, dan effect size η² (proportion of variance explained).</p>
       <div class="formula">\(p \lt \alpha \Rightarrow \text{tolak } H_0\)</div>
     </div>
   </div>
@@ -1077,20 +1077,20 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <table class="data-table">
       <thead><tr><th>Sumber Variasi</th><th>SS</th><th>df</th><th>MS = SS/df</th><th>F</th><th>p-value</th></tr></thead>
       <tbody>
-        <tr><td style="color:var(--cyan)">Antar Grup (faktor)</td><td>SS_b</td><td>k − 1</td><td>MS_b</td><td>MS_b / MS_w</td><td>P(F ≥ F_obs)</td></tr>
-        <tr><td style="color:var(--green)">Dalam Grup (error)</td><td>SS_w</td><td>N − k</td><td>MS_w</td><td>—</td><td>—</td></tr>
-        <tr><td style="color:var(--amber)">Total</td><td>SS_t = SS_b + SS_w</td><td>N − 1</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td style="color:var(--cyan)">Antar Grup (faktor)</td><td>\(SS_b\)</td><td>k − 1</td><td>\(MS_b\)</td><td>\(MS_b\) / \(MS_w\)</td><td>P(F ≥ \(F_{\text{obs}}\))</td></tr>
+        <tr><td style="color:var(--green)">Dalam Grup (error)</td><td>\(SS_w\)</td><td>N − k</td><td>\(MS_w\)</td><td>—</td><td>—</td></tr>
+        <tr><td style="color:var(--amber)">Total</td><td>\(SS_t\) = \(SS_b\) + \(SS_w\)</td><td>N − 1</td><td>—</td><td>—</td><td>—</td></tr>
       </tbody>
     </table>
   </div>
 
   <div class="info-box reveal">
     <strong>Contoh Konkret — Cutting Speed CNC vs Surface Roughness:</strong><br>
-    Eksperimen 3 level cutting speed (80, 100, 120 m/min), masing-masing 5 ulangan independent (total N = 15 trial). Data Ra (μm): level 80 → mean 2.4; level 100 → mean 1.8; level 120 → mean 2.1. SS_between = 0.96, SS_within = 0.64, df_b = 2, df_w = 12. <strong>\(MS_b = 0.48, MS_w = 0.053, F = 9.0, p = 0.004\)</strong>. Karena p &lt; 0.05 → tolak H₀: cutting speed signifikan mempengaruhi roughness. Post-hoc Tukey: level 100 berbeda signifikan dari 80 (p = 0.003); level 120 vs 80 tidak signifikan (p = 0.21). <strong>Keputusan engineering: pilih cutting speed 100 m/min</strong>.
+    Eksperimen 3 level cutting speed (80, 100, 120 m/min), masing-masing 5 ulangan independent (total N = 15 trial). Data Ra (μm): level 80 → mean 2.4; level 100 → mean 1.8; level 120 → mean 2.1. \(SS_{\text{between}}\) = 0.96, \(SS_{\text{within}}\) = 0.64, \(df_b\) = 2, \(df_w\) = 12. <strong>\(MS_b = 0.48, MS_w = 0.053, F = 9.0, p = 0.004\)</strong>. Karena p &lt; 0.05 → tolak H₀: cutting speed signifikan mempengaruhi roughness. Post-hoc Tukey: level 100 berbeda signifikan dari 80 (p = 0.003); level 120 vs 80 tidak signifikan (p = 0.21). <strong>Keputusan engineering: pilih cutting speed 100 m/min</strong>.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Implementasi \(scipy.stats.f_{oneway}:\)</strong> One-liner dalam Python: <code>from scipy.stats import f_oneway; F, p = f_oneway(group1, group2, group3)</code>. <strong>statsmodels</strong> memberikan tabel ANOVA lengkap: <code>import statsmodels.api as sm; from statsmodels.formula.api import ols; model = ols('y ~ C(faktor)', data=df).fit(); table = sm.stats.anova_lm(model, typ=2); print(table)</code>. Untuk effect size dan power analysis: <strong>pingouin</strong> (<code>pg.anova</code> + <code>pg.power_anova</code>). Visualisasi efek: <strong>seaborn.pointplot(x='faktor', y='y', data=df)</strong> + boxplot.
+    💡 <strong>Implementasi <code>scipy.stats.f_oneway</code>:</strong> One-liner dalam Python: <code>from scipy.stats import f_oneway; F, p = f_oneway(group1, group2, group3)</code>. <strong>statsmodels</strong> memberikan tabel ANOVA lengkap: <code>import statsmodels.api as sm; from statsmodels.formula.api import ols; model = ols('y ~ C(faktor)', data=df).fit(); table = sm.stats.anova_lm(model, typ=2); print(table)</code>. Untuk effect size dan power analysis: <strong>pingouin</strong> (<code>pg.anova</code> + <code>pg.power_anova</code>). Visualisasi efek: <strong>seaborn.pointplot(x='faktor', y='y', data=df)</strong> + boxplot.
   </div>
 </div>
 
@@ -1134,7 +1134,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="card">
       <div class="card-icon">🎲</div>
       <h3>Step 5 — Hitung F &amp; p-value</h3>
-      <p><code>F = MS_b / MS_w</code>. p-value = <code>1 − F.cdf(F_obs, df_b, df_w)</code>. Kalau <strong>\(p\) &lt; \(\alpha\)</strong> (e.g. p = 0.004 &lt; 0.05) → tolak H₀, faktor signifikan. Kalau <strong>\(p \ge \alpha\)</strong> (e.g. p = 0.18) → tidak ada bukti efek (tetapi mungkin sample kecil; cek <em>power</em> dengan G*Power atau pingouin). <strong style="color:var(--amber)">Reporting standar</strong>: F(df_b, df_w) = X.XX, p = X.XXX, η² = X.XX.</p>
+      <p><code>F = MS_b / MS_w</code>. p-value = <code>1 − F.cdf(F_obs, df_b, df_w)</code>. Kalau <strong>\(p\) &lt; \(\alpha\)</strong> (e.g. p = 0.004 &lt; 0.05) → tolak H₀, faktor signifikan. Kalau <strong>\(p \ge \alpha\)</strong> (e.g. p = 0.18) → tidak ada bukti efek (tetapi mungkin sample kecil; cek <em>power</em> dengan G*Power atau pingouin). <strong style="color:var(--amber)">Reporting standar</strong>: F(\(df_b\), \(df_w\)) = X.XX, p = X.XXX, η² = X.XX.</p>
       <div class="formula">\(p \lt \alpha \Rightarrow \text{tolak } H_0\)</div>
     </div>
     <div class="card">
@@ -1155,14 +1155,14 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
         <tr><td style="color:var(--violet)">4. ANOVA table</td><td>Hitung SS, df, MS</td><td><code>statsmodels.anova_lm</code></td><td>Tabel ANOVA</td></tr>
         <tr><td style="color:var(--pink)">5. F &amp; p-value</td><td>Compare p ke α</td><td><code>scipy.stats.f_oneway</code></td><td>F, p, decision</td></tr>
         <tr><td style="color:var(--cyan)">6. Post-hoc</td><td>Pairwise compare (Tukey HSD)</td><td><code>pairwise_tukeyhsd</code></td><td>Pasangan signifikan</td></tr>
-        <tr><td style="color:var(--green)">7. Effect size</td><td>η² = SS_b / SS_total</td><td>Manual atau <code>pingouin.anova</code></td><td>η² (small/med/large)</td></tr>
+        <tr><td style="color:var(--green)">7. Effect size</td><td>η² = \(SS_b\) / \(SS_{\text{total}}\)</td><td>Manual atau <code>pingouin.anova</code></td><td>η² (small/med/large)</td></tr>
       </tbody>
     </table>
   </div>
 
   <div class="info-box reveal">
     <strong>Contoh Konkret — Welding Current vs Tensile Strength:</strong><br>
-    Faktor: arus las (3 level: 100, 150, 200 A). Respons: tensile strength sambungan (MPa). Replikasi: n=4 specimen tiap level (total N=12). Data: 100 A → mean 380 MPa (SD 12); 150 A → mean 425 MPa (SD 10); 200 A → mean 410 MPa (SD 14). <strong>Shapiro p = 0.42 (normal OK), Levene p = 0.78 (variance equal OK)</strong>. ANOVA: SS_b = 4180, SS_w = 1620, df_b = 2, df_w = 9. <strong>F = (4180/2) / (1620/9) = 2090 / 180 = 11.6, p = 0.003</strong>. Tolak H₀. Tukey HSD: 150 vs 100 (p = 0.002, signifikan), 150 vs 200 (p = 0.18, tidak), 200 vs 100 (p = 0.04, signifikan). <strong>Keputusan engineering: pilih 150 A</strong> (kekuatan tertinggi, signifikan vs 100 A; vs 200 A tidak berbeda → 150 A lebih hemat energi).
+    Faktor: arus las (3 level: 100, 150, 200 A). Respons: tensile strength sambungan (MPa). Replikasi: n=4 specimen tiap level (total N=12). Data: 100 A → mean 380 MPa (SD 12); 150 A → mean 425 MPa (SD 10); 200 A → mean 410 MPa (SD 14). <strong>Shapiro p = 0.42 (normal OK), Levene p = 0.78 (variance equal OK)</strong>. ANOVA: \(SS_b\) = 4180, \(SS_w\) = 1620, \(df_b\) = 2, \(df_w\) = 9. <strong>F = (4180/2) / (1620/9) = 2090 / 180 = 11.6, p = 0.003</strong>. Tolak H₀. Tukey HSD: 150 vs 100 (p = 0.002, signifikan), 150 vs 200 (p = 0.18, tidak), 200 vs 100 (p = 0.04, signifikan). <strong>Keputusan engineering: pilih 150 A</strong> (kekuatan tertinggi, signifikan vs 100 A; vs 200 A tidak berbeda → 150 A lebih hemat energi).
   </div>
 
   <div class="tip-box reveal">
@@ -1186,13 +1186,13 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="card">
       <div class="card-icon">📊</div>
       <h3>Model Aditif: y = μ + αᵢ + βⱼ + (αβ)ᵢⱼ + ε</h3>
-      <p>Two-way ANOVA mengasumsikan respons yᵢⱼₖ = grand mean + efek faktor A level i + efek faktor B level j + interaksi level (i,j) + noise. <strong>\(SS_{\text{total}} = SS_A + SS_B + SS_{AB} + SS_{error}\)</strong>. Tiap term punya df sendiri: df_A = a−1, df_B = b−1, df_AB = (a−1)(b−1), df_error = ab(n−1). Tabel ANOVA punya 4 baris: A, B, AB interaction, error. <strong style="color:var(--cyan)">Tiga F-test independen</strong>.</p>
+      <p>Two-way ANOVA mengasumsikan respons yᵢⱼₖ = grand mean + efek faktor A level i + efek faktor B level j + interaksi level (i,j) + noise. <strong>\(SS_{\text{total}} = SS_A + SS_B + SS_{AB} + SS_{error}\)</strong>. Tiap term punya df sendiri: \(df_A\) = a−1, \(df_B\) = b−1, \(df_{AB}\) = (a−1)(b−1), \(df_{\text{error}}\) = ab(n−1). Tabel ANOVA punya 4 baris: A, B, AB interaction, error. <strong style="color:var(--cyan)">Tiga F-test independen</strong>.</p>
       <div class="formula">\(y_{ij} = \mu + \alpha_i + \beta_j + (\alpha\beta)_{ij} + \epsilon\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🅰️</div>
       <h3>Main Effect — Pengaruh Tunggal Faktor</h3>
-      <p>Main effect faktor A: <code>F_A = MS_A / MS_error</code>. Menjawab "apakah rata-rata respons berbeda antar level A, <em>marjinal</em> atas B?" Mean A_i = rata-rata semua observasi di level A=i (semua level B). Kalau F_A signifikan (p &lt; α), faktor A berpengaruh secara overall. Sama untuk main effect B. <strong style="color:var(--green)">Hati-hati</strong>: main effect bisa misleading kalau ada interaksi kuat — selalu cek interaction dulu.</p>
+      <p>Main effect faktor A: <code>F_A = MS_A / MS_error</code>. Menjawab "apakah rata-rata respons berbeda antar level A, <em>marjinal</em> atas B?" Mean \(A_i\) = rata-rata semua observasi di level A=i (semua level B). Kalau \(F_A\) signifikan (p &lt; α), faktor A berpengaruh secara overall. Sama untuk main effect B. <strong style="color:var(--green)">Hati-hati</strong>: main effect bisa misleading kalau ada interaksi kuat — selalu cek interaction dulu.</p>
       <div class="formula">\(F_A = MS_A / MS_{error}\)</div>
     </div>
     <div class="card">
@@ -1225,11 +1225,11 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <table class="data-table">
       <thead><tr><th>Sumber</th><th>SS</th><th>df</th><th>MS</th><th>F</th></tr></thead>
       <tbody>
-        <tr><td style="color:var(--cyan)">Faktor A (main)</td><td>SS_A</td><td>a−1</td><td>SS_A/(a−1)</td><td>MS_A/MS_e</td></tr>
-        <tr><td style="color:var(--green)">Faktor B (main)</td><td>SS_B</td><td>b−1</td><td>SS_B/(b−1)</td><td>MS_B/MS_e</td></tr>
-        <tr><td style="color:var(--amber)">Interaksi A×B</td><td>SS_AB</td><td>(a−1)(b−1)</td><td>SS_AB/df_AB</td><td>MS_AB/MS_e</td></tr>
-        <tr><td style="color:var(--violet)">Error (within)</td><td>SS_e</td><td>ab(n−1)</td><td>MS_e</td><td>—</td></tr>
-        <tr><td style="color:var(--pink)">Total</td><td>SS_t = SS_A+SS_B+SS_AB+SS_e</td><td>abn−1</td><td>—</td><td>—</td></tr>
+        <tr><td style="color:var(--cyan)">Faktor A (main)</td><td>\(SS_A\)</td><td>a−1</td><td>\(SS_A\)/(a−1)</td><td>\(MS_A\)/\(MS_e\)</td></tr>
+        <tr><td style="color:var(--green)">Faktor B (main)</td><td>\(SS_B\)</td><td>b−1</td><td>\(SS_B\)/(b−1)</td><td>\(MS_B\)/\(MS_e\)</td></tr>
+        <tr><td style="color:var(--amber)">Interaksi A×B</td><td>\(SS_{AB}\)</td><td>(a−1)(b−1)</td><td>\(SS_{AB}\)/\(df_{AB}\)</td><td>\(MS_{AB}\)/\(MS_e\)</td></tr>
+        <tr><td style="color:var(--violet)">Error (within)</td><td>\(SS_e\)</td><td>ab(n−1)</td><td>\(MS_e\)</td><td>—</td></tr>
+        <tr><td style="color:var(--pink)">Total</td><td>\(SS_t\) = \(SS_A\)+\(SS_B\)+\(SS_{AB}\)+\(SS_e\)</td><td>abn−1</td><td>—</td><td>—</td></tr>
       </tbody>
     </table>
   </div>
@@ -1301,7 +1301,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 06</div>
   <h2 class="section-title reveal">Animasi Interaktif<br>Visualisasi Konsep ANOVA &amp; F-Distribution</h2>
-  <p class="section-desc reveal">Lima animasi yang memvisualisasikan <strong>konsep inti ANOVA</strong>: (1) partisi varians (between vs within) di scatter data 3 grup — tunjukkan bagaimana SS_b dan SS_w terhitung, (2) F-distribution dan critical region — visualisasi area p-value, (3) main effect plot &amp; pengaruh sample size pada power, (4) interaction plot two-way ANOVA — garis paralel vs tidak paralel sebagai tanda ada/tidak interaksi. Tujuannya: membangun intuisi visual sebelum implementasi <code>scipy.stats.f_oneway</code> &amp; <code>statsmodels.anova_lm</code>.</p>
+  <p class="section-desc reveal">Lima animasi yang memvisualisasikan <strong>konsep inti ANOVA</strong>: (1) partisi varians (between vs within) di scatter data 3 grup — tunjukkan bagaimana \(SS_b\) dan \(SS_w\) terhitung, (2) F-distribution dan critical region — visualisasi area p-value, (3) main effect plot &amp; pengaruh sample size pada power, (4) interaction plot two-way ANOVA — garis paralel vs tidak paralel sebagai tanda ada/tidak interaksi. Tujuannya: membangun intuisi visual sebelum implementasi <code>scipy.stats.f_oneway</code> &amp; <code>statsmodels.anova_lm</code>.</p>
 
   <!-- Animasi 1: Variance Partition -->
   <div class="anim-panel reveal">
@@ -1324,8 +1324,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       </div>
       <div id="physicsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Scatter = data 3 grup berbeda warna (level faktor 1, 2, 3). Garis horizontal terang = mean tiap grup; garis putus = grand mean. Jarak vertikal data ke mean grup-nya = SS_within (noise); jarak mean grup ke grand mean = SS_between (efek faktor).<br>
-        <strong>Coba:</strong> (1) Effect size kecil (0.05) → mean grup berdekatan, SS_b kecil, F kecil, p tidak signifikan. (2) Effect size besar (0.4) → mean grup terpisah jelas, SS_b besar, F &gt;&gt; 1, p &lt; 0.05. (3) Sample size kecil (n=10) → estimasi noisy, susah deteksi efek. (4) Sample size besar (n=100) → bahkan efek kecil terdeteksi (statistical power tinggi). Pelajaran: <strong>p-value bergantung pada effect size DAN sample size</strong>.
+        <strong>📊 Cara Membaca:</strong> Scatter = data 3 grup berbeda warna (level faktor 1, 2, 3). Garis horizontal terang = mean tiap grup; garis putus = grand mean. Jarak vertikal data ke mean grup-nya = \(SS_{\text{within}}\) (noise); jarak mean grup ke grand mean = \(SS_{\text{between}}\) (efek faktor).<br>
+        <strong>Coba:</strong> (1) Effect size kecil (0.05) → mean grup berdekatan, \(SS_b\) kecil, F kecil, p tidak signifikan. (2) Effect size besar (0.4) → mean grup terpisah jelas, \(SS_b\) besar, F &gt;&gt; 1, p &lt; 0.05. (3) Sample size kecil (n=10) → estimasi noisy, susah deteksi efek. (4) Sample size besar (n=100) → bahkan efek kecil terdeteksi (statistical power tinggi). Pelajaran: <strong>p-value bergantung pada effect size DAN sample size</strong>.
       </div>
     </div>
   </div>
@@ -1351,8 +1351,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       </div>
       <div id="sweepInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Kurva = <strong>F-distribution</strong> dengan parameter (df_b, df_w). Area ungu = p-value (probabilitas F ≥ F_obs jika H₀ benar). Garis vertikal merah = F_critical untuk α tertentu. Kalau F_obs jatuh di kanan F_crit (area ≤ α), tolak H₀.<br>
-        <strong>Coba:</strong> (1) F_obs = 0.5 → di area "no effect", p &gt;&gt; α, gagal tolak H₀. (2) F_obs = 4 dengan α = 0.05 → di critical region, p &lt; α, tolak H₀. (3) Geser α dari 0.05 ke 0.01 → critical region menyempit (lebih konservatif). (4) F_obs = 9 → p &lt;&lt; 0.001, sangat signifikan. Pelajaran: <strong>F besar = bukti kuat efek faktor</strong>; pemilihan α harus a priori.
+        <strong>📊 Cara Membaca:</strong> Kurva = <strong>F-distribution</strong> dengan parameter (\(df_b\), \(df_w\)). Area ungu = p-value (probabilitas F ≥ \(F_{\text{obs}}\) jika H₀ benar). Garis vertikal merah = F_critical untuk α tertentu. Kalau \(F_{\text{obs}}\) jatuh di kanan \(F_{\text{crit}}\) (area ≤ α), tolak H₀.<br>
+        <strong>Coba:</strong> (1) \(F_{\text{obs}}\) = 0.5 → di area "no effect", p &gt;&gt; α, gagal tolak H₀. (2) \(F_{\text{obs}}\) = 4 dengan α = 0.05 → di critical region, p &lt; α, tolak H₀. (3) Geser α dari 0.05 ke 0.01 → critical region menyempit (lebih konservatif). (4) \(F_{\text{obs}}\) = 9 → p &lt;&lt; 0.001, sangat signifikan. Pelajaran: <strong>F besar = bukti kuat efek faktor</strong>; pemilihan α harus a priori.
       </div>
     </div>
   </div>
@@ -1401,8 +1401,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       </div>
       <div id="hpbInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Atas = <em>interaction plot</em> dengan dua faktor (A: 3 level di X-axis; B: 2 level di line). Tiap titik = mean respons untuk kombinasi (A_i, B_j). Bawah = tabel ANOVA dinamis menampilkan F &amp; p untuk main A, main B, dan interaksi A×B.<br>
-        <strong>Coba:</strong> (1) Interaction = 0 → garis B1 dan B2 paralel — tidak ada interaksi (F_AB tidak signifikan). (2) Interaction = 5 → garis menyilang sebagian — interaksi sedang. (3) Interaction = 10 → garis menyilang tajam — interaksi kuat (F_AB signifikan), efek A bergantung pada level B! Pelajaran: <strong>interaction plot WAJIB</strong> sebelum interpretasi main effect. Garis tidak paralel = main effect bisa misleading.
+        <strong>📊 Cara Membaca:</strong> Atas = <em>interaction plot</em> dengan dua faktor (A: 3 level di X-axis; B: 2 level di line). Tiap titik = mean respons untuk kombinasi (\(A_i\), \(B_j\)). Bawah = tabel ANOVA dinamis menampilkan F &amp; p untuk main A, main B, dan interaksi A×B.<br>
+        <strong>Coba:</strong> (1) Interaction = 0 → garis B1 dan B2 paralel — tidak ada interaksi (\(F_{AB}\) tidak signifikan). (2) Interaction = 5 → garis menyilang sebagian — interaksi sedang. (3) Interaction = 10 → garis menyilang tajam — interaksi kuat (\(F_{AB}\) signifikan), efek A bergantung pada level B! Pelajaran: <strong>interaction plot WAJIB</strong> sebelum interpretasi main effect. Garis tidak paralel = main effect bisa misleading.
       </div>
     </div>
   </div>
@@ -1489,7 +1489,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <div class="section" id="m-jupyter">
   <div class="section-label reveal">Bagian 08</div>
   <h2 class="section-title reveal">Implementasi Python<br>ANOVA &amp; Faktorial Design di Jupyter Notebook</h2>
-  <p class="section-desc reveal">Empat cell berikut menerapkan ANOVA pada eksperimen engineering: Cell 1 implementasi <strong>One-Way ANOVA dari scratch</strong> (manual SS_b, SS_w, F, p) + verifikasi dengan <code>scipy.stats.f_oneway</code> pada data CNC cutting speed → roughness. Cell 2 menggunakan <strong>statsmodels.formula.api</strong> untuk Two-Way ANOVA (arus × voltage welding) dengan tabel ANOVA lengkap + interaction plot. Cell 3 menjalankan <strong>Tukey HSD post-hoc</strong> + cek asumsi (Shapiro-Wilk normality, Levene homoscedasticity) di data injection molding. Cell 4 mendefinisikan <strong>fungsi <code>run_anova_workflow()</code></strong> reusable end-to-end: input data, output ANOVA table + post-hoc + effect size + visualisasi.</p>
+  <p class="section-desc reveal">Empat cell berikut menerapkan ANOVA pada eksperimen engineering: Cell 1 implementasi <strong>One-Way ANOVA dari scratch</strong> (manual \(SS_b\), \(SS_w\), F, p) + verifikasi dengan <code>scipy.stats.f_oneway</code> pada data CNC cutting speed → roughness. Cell 2 menggunakan <strong>statsmodels.formula.api</strong> untuk Two-Way ANOVA (arus × voltage welding) dengan tabel ANOVA lengkap + interaction plot. Cell 3 menjalankan <strong>Tukey HSD post-hoc</strong> + cek asumsi (Shapiro-Wilk normality, Levene homoscedasticity) di data injection molding. Cell 4 mendefinisikan <strong>fungsi <code>run_anova_workflow()</code></strong> reusable end-to-end: input data, output ANOVA table + post-hoc + effect size + visualisasi.</p>
 
   <div class="info-box reveal">
     <strong>📓 Petunjuk Pengerjaan di Jupyter Notebook:</strong><br>
@@ -1504,7 +1504,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="code-wrap reveal">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell \(1\;\text{---}\;One-Way\) ANOVA dari Scratch \(+\) Verifikasi \(scipy.stats.f_{oneway}\) (CNC Cutting Speed)</span>
+      <span class="code-label">Cell \(1\;\text{---}\;One-Way\) ANOVA dari Scratch \(+\) Verifikasi <code>scipy.stats.f_oneway</code> (CNC Cutting Speed)</span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
@@ -1940,8 +1940,8 @@ result = <span class="fn">run_anova_workflow</span>(df_demo, <span class="st">'t
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:8%;font-size:.9rem;color:var(--amber);--dur:20s;--del:0s">F = MS_b / MS_w</span>
-    <span class="ff" style="left:35%;font-size:.85rem;color:var(--cyan);--dur:22s;--del:5s">SS_t = SS_b + SS_w</span>
+    <span class="ff" style="left:8%;font-size:.9rem;color:var(--amber);--dur:20s;--del:0s">F = MS antar / MS dalam</span>
+    <span class="ff" style="left:35%;font-size:.85rem;color:var(--cyan);--dur:22s;--del:5s">SS total = SS antar + SS dalam</span>
     <span class="ff" style="left:55%;font-size:.8rem;color:var(--pink);--dur:18s;--del:5s">H₀: μ₁ = μ₂ = … = μₖ</span>
     <span class="ff" style="left:75%;font-size:.7rem;color:var(--violet);--dur:22s;--del:9s">scipy.stats.f_oneway</span>
   </div>
@@ -2037,10 +2037,10 @@ result = <span class="fn">run_anova_workflow</span>(df_demo, <span class="st">'t
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc2">
-        <div class="radio-option" onclick="selectMC('mc2',this,'A')"><div class="radio-circle"></div>(A) &nbsp; SS_total = SS_between × SS_within</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,'B')"><div class="radio-circle"></div>(B) &nbsp; SS_total = SS_between + SS_within — total varians = varians antar-grup (efek faktor) + varians dalam-grup (noise)</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,'C')"><div class="radio-circle"></div>(C) &nbsp; SS_total = SS_between − SS_within</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,'D')"><div class="radio-circle"></div>(D) &nbsp; SS_total = \(\sqrt{SS_{\text{between}}^2 + SS_{\text{within}}^2}\)</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'A')"><div class="radio-circle"></div>(A) &nbsp; \(SS_{\text{total}}\) = \(SS_{\text{between}}\) × \(SS_{\text{within}}\)</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'B')"><div class="radio-circle"></div>(B) &nbsp; \(SS_{\text{total}}\) = \(SS_{\text{between}}\) + \(SS_{\text{within}}\) — total varians = varians antar-grup (efek faktor) + varians dalam-grup (noise)</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'C')"><div class="radio-circle"></div>(C) &nbsp; \(SS_{\text{total}}\) = \(SS_{\text{between}}\) − \(SS_{\text{within}}\)</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'D')"><div class="radio-circle"></div>(D) &nbsp; \(SS_{\text{total}}\) = \(\sqrt{SS_{\text{between}}^2 + SS_{\text{within}}^2}\)</div>
       </div>
       <button class="mc-submit" id="sub-mc2" onclick="checkMC('mc2')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc2"></div>
@@ -2054,10 +2054,10 @@ result = <span class="fn">run_anova_workflow</span>(df_demo, <span class="st">'t
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc3">
-        <div class="radio-option" onclick="selectMC('mc3',this,'A')"><div class="radio-circle"></div>(A) &nbsp; df_between = 4, df_within = 24</div>
-        <div class="radio-option" onclick="selectMC('mc3',this,'B')"><div class="radio-circle"></div>(B) &nbsp; df_between = k − 1 = 3, df_within = N − k = 20, df_total = N − 1 = 23</div>
-        <div class="radio-option" onclick="selectMC('mc3',this,'C')"><div class="radio-circle"></div>(C) &nbsp; df_between = 24, df_within = 4</div>
-        <div class="radio-option" onclick="selectMC('mc3',this,'D')"><div class="radio-circle"></div>(D) &nbsp; df_between = 1, df_within = 23</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'A')"><div class="radio-circle"></div>(A) &nbsp; \(df_{\text{between}}\) = 4, \(df_{\text{within}}\) = 24</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'B')"><div class="radio-circle"></div>(B) &nbsp; \(df_{\text{between}}\) = k − 1 = 3, \(df_{\text{within}}\) = N − k = 20, \(df_{\text{total}}\) = N − 1 = 23</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'C')"><div class="radio-circle"></div>(C) &nbsp; \(df_{\text{between}}\) = 24, \(df_{\text{within}}\) = 4</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'D')"><div class="radio-circle"></div>(D) &nbsp; \(df_{\text{between}}\) = 1, \(df_{\text{within}}\) = 23</div>
       </div>
       <button class="mc-submit" id="sub-mc3" onclick="checkMC('mc3')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc3"></div>
@@ -2071,8 +2071,8 @@ result = <span class="fn">run_anova_workflow</span>(df_demo, <span class="st">'t
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc4">
-        <div class="radio-option" onclick="selectMC('mc4',this,'A')"><div class="radio-circle"></div>(A) &nbsp; F = SS_between − SS_within</div>
-        <div class="radio-option" onclick="selectMC('mc4',this,'B')"><div class="radio-circle"></div>(B) &nbsp; F = MS_between / MS_within = (SS_b/df_b) / (SS_w/df_w) — rasio dua estimasi varians</div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'A')"><div class="radio-circle"></div>(A) &nbsp; F = \(SS_{\text{between}}\) − \(SS_{\text{within}}\)</div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'B')"><div class="radio-circle"></div>(B) &nbsp; F = \(MS_{\text{between}}\) / \(MS_{\text{within}}\) = (\(SS_b\)/\(df_b\)) / (\(SS_w\)/\(df_w\)) — rasio dua estimasi varians</div>
         <div class="radio-option" onclick="selectMC('mc4',this,'C')"><div class="radio-circle"></div>(C) &nbsp; F = grand_mean / std</div>
         <div class="radio-option" onclick="selectMC('mc4',this,'D')"><div class="radio-circle"></div>(D) &nbsp; F = N − k</div>
       </div>
@@ -2140,9 +2140,9 @@ result = <span class="fn">run_anova_workflow</span>(df_demo, <span class="st">'t
       </div>
       <div class="radio-group" id="rg-mc8">
         <div class="radio-option" onclick="selectMC('mc8',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Garis-garis di interaction plot saling paralel</div>
-        <div class="radio-option" onclick="selectMC('mc8',this,'B')"><div class="radio-circle"></div>(B) &nbsp; F_AB signifikan (p &lt; α) — efek faktor A <em>bergantung pada level B</em>; di interaction plot garis tidak paralel atau saling menyilang. Main effect tidak boleh diinterpretasi terpisah</div>
+        <div class="radio-option" onclick="selectMC('mc8',this,'B')"><div class="radio-circle"></div>(B) &nbsp; \(F_{AB}\) signifikan (p &lt; α) — efek faktor A <em>bergantung pada level B</em>; di interaction plot garis tidak paralel atau saling menyilang. Main effect tidak boleh diinterpretasi terpisah</div>
         <div class="radio-option" onclick="selectMC('mc8',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Saat sample size sama besar untuk semua kombinasi</div>
-        <div class="radio-option" onclick="selectMC('mc8',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Saat F_A dan F_B sama nilainya</div>
+        <div class="radio-option" onclick="selectMC('mc8',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Saat \(F_A\) dan \(F_B\) sama nilainya</div>
       </div>
       <button class="mc-submit" id="sub-mc8" onclick="checkMC('mc8')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc8"></div>
@@ -2318,7 +2318,7 @@ F, p = stats.f_oneway(group1, group2, group3)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C7</div>
-        <div class="comp-q"><strong>Effect size \(\eta ^2\)</strong>: untuk SS_between = 120 dan SS_total = 156, hitung <code>η² = SS_b / SS_total</code>. Print nilainya (desimal).</div>
+        <div class="comp-q"><strong>Effect size \(\eta ^2\)</strong>: untuk \(SS_{\text{between}}\) = 120 dan \(SS_{\text{total}}\) = 156, hitung <code>η² = SS_b / SS_total</code>. Print nilainya (desimal).</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 η² = SS_between ÷ SS_total — proporsi varians yang dijelaskan faktor. Menurut Cohen, η² ≥ 0.14 tergolong large effect.</div>
@@ -2335,7 +2335,7 @@ F, p = stats.f_oneway(group1, group2, group3)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C8</div>
-        <div class="comp-q"><strong>F-critical value</strong>: untuk α = 0.05, df_b = 2, df_w = 12, hitung <code>F_crit</code> menggunakan <code>scipy.stats.f.ppf(0.95, dfn=2, dfd=12)</code>. Print nilainya.</div>
+        <div class="comp-q"><strong>F-critical value</strong>: untuk α = 0.05, \(df_b\) = 2, \(df_w\) = 12, hitung <code>F_crit</code> menggunakan <code>scipy.stats.f.ppf(0.95, dfn=2, dfd=12)</code>. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Gunakan <code>scipy.stats.f.ppf(1−α, dfn, dfd)</code> untuk F-critical; jika F_observed melebihinya, tolak H₀. Makin besar df, F_crit makin kecil.</div>
@@ -2396,7 +2396,7 @@ F, p = stats.f_oneway(group1, group2, group3)
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C11</div>
-        <div class="comp-q"><strong>One-Way ANOVA dari scratch — CNC Cutting Speed → Surface Roughness</strong>: gunakan data 3 grup A=[2.5, 2.4, 2.6, 2.3, 2.2], B=[1.8, 1.7, 1.9, 1.8, 1.6], C=[2.0, 2.2, 2.1, 2.3, 1.9] (Ra μm pada speed 80, 100, 120 m/min). Hitung <strong>F-statistic</strong> manual via SS_between, SS_within, df, MS — tanpa <code>scipy.stats.f_oneway</code>. Print F.</div>
+        <div class="comp-q"><strong>One-Way ANOVA dari scratch — CNC Cutting Speed → Surface Roughness</strong>: gunakan data 3 grup A=[2.5, 2.4, 2.6, 2.3, 2.2], B=[1.8, 1.7, 1.9, 1.8, 1.6], C=[2.0, 2.2, 2.1, 2.3, 1.9] (Ra μm pada speed 80, 100, 120 m/min). Hitung <strong>F-statistic</strong> manual via \(SS_{\text{between}}\), \(SS_{\text{within}}\), df, MS — tanpa <code>scipy.stats.f_oneway</code>. Print F.</div>
         <div class="comp-pts">4 poin</div>
       </div>
       <div class="comp-hint">💡 Hitung mean tiap grup dan grand mean, lalu SS_between, SS_within, MS, dan F = MS_b/MS_w secara manual; verifikasi dengan <code>scipy.stats.f_oneway</code>.</div>
@@ -2518,10 +2518,10 @@ F, p = stats.f_oneway(group1, group2, group3)
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:10%;font-size:.9rem;color:var(--green);--dur:20s;--del:0s">F = MS_b / MS_w</span>
+    <span class="ff" style="left:10%;font-size:.9rem;color:var(--green);--dur:20s;--del:0s">F = MS antar / MS dalam</span>
     <span class="ff" style="left:40%;font-size:.8rem;color:var(--cyan);--dur:18s;--del:7s">H₀: μ₁ = μ₂ = … = μₖ</span>
     <span class="ff" style="left:65%;font-size:.75rem;color:var(--green);--dur:22s;--del:11s">p &lt; α → tolak H₀</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--violet);--dur:19s;--del:5s">η² = SS_b / SS_t</span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--violet);--dur:19s;--del:5s">η² = SS antar / SS total</span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Forum Diskusi · Pertemuan 11 · ANOVA</div>
@@ -2725,7 +2725,7 @@ F, p = stats.f_oneway(group1, group2, group3)
   <div class="float-formulas">
     <span class="ff" style="left:6%;font-size:.9rem;color:var(--violet);--dur:22s;--del:0s">✅ Tepat Waktu</span>
     <span class="ff" style="left:28%;font-size:.75rem;color:var(--pink);--dur:18s;--del:4s">min f(x)</span>
-    <span class="ff" style="left:52%;font-size:.85rem;color:var(--amber);--dur:20s;--del:8s">x_{k+1} = x_k − α∇f</span>
+    <span class="ff" style="left:52%;font-size:.85rem;color:var(--amber);--dur:20s;--del:8s">xₖ₊₁ = xₖ − α∇f</span>
     <span class="ff" style="left:70%;font-size:.7rem;color:var(--pink);--dur:24s;--del:2s">🏆 Top Skor</span>
     <span class="ff" style="left:85%;font-size:.8rem;color:var(--cyan);--dur:16s;--del:11s">scipy.minimize</span>
   </div>
@@ -3675,7 +3675,7 @@ function exportTugasHtml() {
   // MC question titles (10 total)
   const MC_QUESTIONS = [
     'Hipotesis nol H₀ untuk one-way ANOVA',
-    'Identitas partition of variance (SS_total)',
+    'Identitas partition of variance (SS total)',
     'Degrees of freedom untuk k=4, N=24',
     'Definisi F-statistic',
     'Keputusan saat p &lt; α',
@@ -3719,13 +3719,13 @@ function exportTugasHtml() {
 
   // Comp E/M definitions (c1..c10)
   const compEzDefs = [
-    { id:'c1',  label:'SS_total dari 3 grup',                    q:'' },
-    { id:'c2',  label:'SS_between dari 3 grup',                  q:'' },
-    { id:'c3',  label:'SS_within dari 3 grup',                   q:'' },
-    { id:'c4',  label:'F-statistic = MS_b / MS_w',               q:'' },
-    { id:'c5',  label:'df_total untuk k=4, n=5/level',           q:'' },
+    { id:'c1',  label:'SS total dari 3 grup',                    q:'' },
+    { id:'c2',  label:'SS antar dari 3 grup',                  q:'' },
+    { id:'c3',  label:'SS dalam dari 3 grup',                   q:'' },
+    { id:'c4',  label:'F-statistic = MS antar / MS dalam',               q:'' },
+    { id:'c5',  label:'df total untuk k=4, n=5/level',           q:'' },
     { id:'c6',  label:'scipy.stats.f_oneway 3 grup',             q:'' },
-    { id:'c7',  label:'Effect size η² = SS_b / SS_total',         q:'' },
+    { id:'c7',  label:'Effect size η² = SS antar / SS total',         q:'' },
     { id:'c8',  label:'F-critical via scipy.stats.f.ppf',        q:'' },
     { id:'c9',  label:'Shapiro-Wilk normality W-statistic',      q:'' },
     { id:'c10', label:'Reduction ratio Taguchi L9 vs full',      q:'' }
@@ -4694,7 +4694,7 @@ function drawPhysics(){
   // Group means
   const gMeans = samples.map(arr => arr.reduce((a,b)=>a+b,0)/arr.length);
 
-  // SS_between = Σ n*(ḡ_i − ḡ)²; SS_within = Σ Σ (y_ij − ḡ_i)²
+  // SS antar = Σ n*(ḡ_i − ḡ)²; SS dalam = Σ Σ (y_ij − ḡ_i)²
   let SSb = 0, SSw = 0;
   for (let g=0; g<k; g++){
     SSb += n * (gMeans[g] - grandMean) * (gMeans[g] - grandMean);
@@ -4703,7 +4703,7 @@ function drawPhysics(){
   const dfB = k - 1, dfW = totalN - k;
   const MSb = SSb / dfB, MSw = SSw / Math.max(dfW, 1);
   const F = MSw > 1e-9 ? MSb / MSw : 0;
-  // Crude p-value approximation: 1 - tanh(F/F_crit_5%) for visualization only
+  // Crude p-value approximation: 1 - tanh(F/F kritis_5%) for visualization only
   const pApprox = Math.exp(-F * 0.4) / (1 + 0.2*F);
 
   // Grand mean dashed horizontal line
@@ -4750,7 +4750,7 @@ function drawPhysics(){
 
   // Title + legend
   ctx.fillStyle = 'rgba(14,165,233,.95)'; ctx.font = 'bold 12px JetBrains Mono';
-  ctx.fillText('Variance Partition: SS_between (orange ↕) vs SS_within (residuals)', padL, padT-10);
+  ctx.fillText('Variance Partition: SS antar (orange ↕) vs SS dalam (residuals)', padL, padT-10);
   // Y-axis ticks
   ctx.fillStyle = '#64748b'; ctx.font = '9px JetBrains Mono';
   for (let v=2; v<=8; v+=2) ctx.fillText(v.toFixed(0), padL-22, PY(v)+3);
@@ -4765,8 +4765,8 @@ function drawPhysics(){
   // Info panel
   const info = document.getElementById('physicsInfo');
   if (info) {
-    const verdict = F > 3.35 ? '🟢 F &gt; F_crit(0.05) → reject H₀' : '🟡 F &lt; F_crit → fail to reject H₀';
-    info.innerHTML = `SS_between=<strong>${SSb.toFixed(2)}</strong> · SS_within=<strong>${SSw.toFixed(2)}</strong> · MS_b=${MSb.toFixed(2)} · MS_w=${MSw.toFixed(2)} · F(${dfB},${dfW})=<strong>${F.toFixed(2)}</strong> · p≈<strong>${pApprox.toFixed(3)}</strong> · ${verdict}`;
+    const verdict = F > 3.35 ? '🟢 F &gt; F kritis(0.05) → reject H₀' : '🟡 F &lt; F kritis → fail to reject H₀';
+    info.innerHTML = `SS antar=<strong>${SSb.toFixed(2)}</strong> · SS dalam=<strong>${SSw.toFixed(2)}</strong> · MS antar=${MSb.toFixed(2)} · MS dalam=${MSw.toFixed(2)} · F(${dfB},${dfW})=<strong>${F.toFixed(2)}</strong> · p≈<strong>${pApprox.toFixed(3)}</strong> · ${verdict}`;
   }
 }
 
@@ -4840,12 +4840,12 @@ function drawSweep(){
   const PX = (x) => padL + ((x - xMin)/(xMax - xMin)) * wPx;
   const PY = (y) => padT + hPx - (y / yMax) * (hPx - 6);
 
-  // Find F_crit such that P(F ≥ F_crit) ≈ α (numerical via right-tail integration)
+  // Find F kritis such that P(F ≥ F kritis) ≈ α (numerical via right-tail integration)
   // Compute total area & cumulative right-tail
   const dx = (xMax - xMin) / N;
   let totalArea = 0;
   for (let i=0; i<N; i++) totalArea += 0.5 * (ys[i] + ys[i+1]) * dx;
-  // Find F_crit by sweeping right→left until tail area / total ≈ α
+  // Find F kritis by sweeping right→left until tail area / total ≈ α
   let acc = 0, Fcrit = xMax;
   for (let i = N-1; i >= 0; i--){
     acc += 0.5 * (ys[i] + ys[i+1]) * dx;
@@ -4884,22 +4884,22 @@ function drawSweep(){
   }
   ctx.stroke(); ctx.shadowBlur = 0;
 
-  // F_crit vertical line (red dashed)
+  // F kritis vertical line (red dashed)
   ctx.strokeStyle = '#ff4081'; ctx.lineWidth = 2; ctx.setLineDash([5,4]);
   ctx.beginPath(); ctx.moveTo(PX(Fcrit), padT); ctx.lineTo(PX(Fcrit), padT + hPx); ctx.stroke();
   ctx.setLineDash([]);
   ctx.fillStyle = '#ff4081'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText(`F_crit=${Fcrit.toFixed(2)}`, PX(Fcrit)+4, padT+12);
+  ctx.fillText(`F kritis=${Fcrit.toFixed(2)}`, PX(Fcrit)+4, padT+12);
 
-  // F_obs vertical line (green solid)
+  // F observasi vertical line (green solid)
   ctx.strokeStyle = '#00e09e'; ctx.lineWidth = 2.4;
   ctx.shadowColor = 'rgba(0,224,158,.5)'; ctx.shadowBlur = 6;
   ctx.beginPath(); ctx.moveTo(PX(Math.min(Fobs,xMax)), padT); ctx.lineTo(PX(Math.min(Fobs,xMax)), padT + hPx); ctx.stroke();
   ctx.shadowBlur = 0;
   ctx.fillStyle = '#00e09e'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText(`F_obs=${Fobs.toFixed(2)}`, PX(Math.min(Fobs,xMax))+4, padT+28);
+  ctx.fillText(`F observasi=${Fobs.toFixed(2)}`, PX(Math.min(Fobs,xMax))+4, padT+28);
 
-  // Compute p-value (right tail beyond F_obs / total)
+  // Compute p-value (right tail beyond F observasi / total)
   let pTail = 0;
   for (let i=0; i<N; i++){
     if (xs[i] >= Fobs) pTail += 0.5 * (ys[i] + ys[i+1]) * dx;
@@ -4915,7 +4915,7 @@ function drawSweep(){
 
   // Title
   ctx.fillStyle = 'rgba(14,165,233,.95)'; ctx.font = 'bold 12px JetBrains Mono';
-  ctx.fillText(`F-Distribution (df1=${df1}, df2=${df2}) · α=${alpha.toFixed(3)} → F_crit=${Fcrit.toFixed(2)}`, padL, padT-10);
+  ctx.fillText(`F-Distribution (df1=${df1}, df2=${df2}) · α=${alpha.toFixed(3)} → F kritis=${Fcrit.toFixed(2)}`, padL, padT-10);
 
   // Verdict box (top right)
   const reject = Fobs > Fcrit;
@@ -4933,7 +4933,7 @@ function drawSweep(){
   const info = document.getElementById('sweepInfo');
   if (info){
     const sym = reject ? '🟢' : '🟡';
-    info.innerHTML = `α=<strong>${alpha.toFixed(3)}</strong> · F_crit(${df1},${df2})=<strong>${Fcrit.toFixed(2)}</strong> · F_obs=<strong>${Fobs.toFixed(2)}</strong> · p=<strong>${pVal.toFixed(4)}</strong> · ${sym} ${verdict} (p ${reject?'&lt;':'&gt;'} α)`;
+    info.innerHTML = `α=<strong>${alpha.toFixed(3)}</strong> · F kritis(${df1},${df2})=<strong>${Fcrit.toFixed(2)}</strong> · F observasi=<strong>${Fobs.toFixed(2)}</strong> · p=<strong>${pVal.toFixed(4)}</strong> · ${sym} ${verdict} (p ${reject?'&lt;':'&gt;'} α)`;
   }
 }
 
@@ -5224,7 +5224,7 @@ function drawHPB(){
 
   // Bottom area: 3 colored bars showing F values
   ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText('F-statistik tiap term ANOVA (F_crit ≈ 3.4):', padL, botY - 8);
+  ctx.fillText('F-statistik tiap term ANOVA (F kritis ≈ 3.4):', padL, botY - 8);
   const barW = (wPx - 40) / 3, barGap = 20;
   const Fcrit = 3.4, Fmax = 20;
   const rows = [
@@ -5245,13 +5245,13 @@ function drawHPB(){
     ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
     ctx.fillText(r.lbl, bx + (barW-barGap/2)/2 - 18, botY + botH);
   });
-  // F_crit reference line
+  // F kritis reference line
   const yCrit = botY + botH - 14 - (Fcrit/Fmax)*(botH-30);
   ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 1; ctx.setLineDash([4,3]);
   ctx.beginPath(); ctx.moveTo(padL+10, yCrit); ctx.lineTo(padL+wPx-10, yCrit); ctx.stroke();
   ctx.setLineDash([]);
   ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.font = '9px JetBrains Mono';
-  ctx.fillText('F_crit', padL+wPx-44, yCrit-3);
+  ctx.fillText('F kritis', padL+wPx-44, yCrit-3);
 
   // Slider display
   document.getElementById('v_rh').textContent = inter.toFixed(2);
@@ -5263,7 +5263,7 @@ function drawHPB(){
     const verdict = interactionDetected
       ? '🔴 INTERACTION DETECTED — efek A bergantung pada level B (garis tidak paralel)'
       : '🟢 NO INTERACTION — garis paralel, main effect bisa diinterpretasi terpisah';
-    info.innerHTML = `Interaction strength=<strong>${inter.toFixed(2)}</strong> · F_A=<strong>${Fa.toFixed(2)}</strong> · F_B=<strong>${Fb.toFixed(2)}</strong> · F_AB=<strong>${Fab.toFixed(2)}</strong> (F_crit≈${Fcrit}) · ${verdict}`;
+    info.innerHTML = `Interaction strength=<strong>${inter.toFixed(2)}</strong> · F_A=<strong>${Fa.toFixed(2)}</strong> · F_B=<strong>${Fb.toFixed(2)}</strong> · F_AB=<strong>${Fab.toFixed(2)}</strong> (F kritis≈${Fcrit}) · ${verdict}`;
   }
 }
 
