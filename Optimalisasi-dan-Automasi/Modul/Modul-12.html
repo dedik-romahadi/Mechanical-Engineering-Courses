@@ -1037,7 +1037,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
       <div class="card-icon">📐</div>
-      <h3>Threshold Absolut: T_low &amp; T_high</h3>
+      <h3>Threshold Absolut: \(T_{\text{low}}\) &amp; \(T_{\text{high}}\)</h3>
       <p>Bentuk paling sederhana: <code>IF rms &gt; T_high THEN ALERT</code>. Untuk fitur dua-arah (mis. tekanan oli yang tidak boleh terlalu rendah dan terlalu tinggi): <code>IF p &lt; T_low OR p &gt; T_high THEN ALERT</code>. Threshold harus <em>physical-meaningful</em>: didasarkan pada batas mekanis (yield stress, bearing fatigue limit), standar industri, atau baseline operasi normal. <strong>Hindari threshold ditebak</strong> — selalu dokumentasikan sumbernya.</p>
       <div class="formula">\(if x > T_{\text{high}}: alert\)</div>
     </div>
@@ -1063,7 +1063,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📡</div>
       <h3>RMS Velocity 10 Hz – 1 kHz</h3>
       <p>ISO 10816 spesifik mengukur <strong>RMS velocity (bukan acceleration atau displacement)</strong> di band <em>10 Hz – 1 kHz</em>. Pilihan ini berdasarkan: (1) velocity berkorelasi dengan energi kinetik vibrasi (≈ kerusakan), (2) band 10 Hz–1 kHz cover frekuensi mekanis dominan (running speed, gear meshing, bearing characteristic). Untuk mesin di luar range ini (mis. high-speed turbomachinery di 5–10 kHz), pakai standar lain (API 670: acceleration band &gt; 5 kHz).</p>
-      <div class="formula">RMS_v = \(\sqrt{mean(v^2}\)) di 10 Hz–1 kHz</div>
+      <div class="formula">\(RMS_v\) = \(\sqrt{mean(v^2}\)) di 10 Hz–1 kHz</div>
     </div>
     <div class="card">
       <div class="card-icon">🔬</div>
@@ -1116,8 +1116,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
       <div class="card-icon">↔️</div>
-      <h3>Hysteresis: T_on &gt; T_off</h3>
-      <p>Definisi: dua threshold berbeda untuk transition ke "ON" vs ke "OFF". Saat status OFF, perlu sinyal &gt; T_on untuk pindah ke ON. Saat status ON, sinyal harus turun di bawah T_off untuk kembali ke OFF. Tipikal: T_off = T_on − margin (mis. T_on=70, T_off=65). Margin 5–15% biasanya cukup. Tanpa hysteresis, sinyal di sekitar threshold ber-flip-flop sangat cepat (chattering).</p>
+      <h3>Hysteresis: \(T_{\text{on}}\) &gt; \(T_{\text{off}}\)</h3>
+      <p>Definisi: dua threshold berbeda untuk transition ke "ON" vs ke "OFF". Saat status OFF, perlu sinyal &gt; \(T_{\text{on}}\) untuk pindah ke ON. Saat status ON, sinyal harus turun di bawah \(T_{\text{off}}\) untuk kembali ke OFF. Tipikal: \(T_{\text{off}}\) = \(T_{\text{on}}\) − margin (mis. \(T_{\text{on}}\)=70, \(T_{\text{off}}\)=65). Margin 5–15% biasanya cukup. Tanpa hysteresis, sinyal di sekitar threshold ber-flip-flop sangat cepat (chattering).</p>
       <div class="formula">\(T_{\text{on}} = 70, T_{\text{off}} = 65 (margin 5)\)</div>
     </div>
     <div class="card">
@@ -1129,7 +1129,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="card">
       <div class="card-icon">🎚️</div>
       <h3>Tier Alarm — Tiga Level Eskalasi</h3>
-      <p>Bukan binary OK/FAIL, tetapi <em>gradient</em> 3+ level: <strong>WARNING</strong> (yellow, perhatikan) → <strong>ALERT</strong> (orange, action segera) → <strong>CRITICAL</strong> (red, shutdown). Tiap tier punya threshold sendiri: T_warn &lt; T_alert &lt; T_critical. Aksi berbeda: warning → log + notification email; alert → SMS ke supervisor; critical → auto-shutdown + page on-call engineer. Memetakan ke ISO 10816: A (no alarm), B (warning), C (alert), D (critical).</p>
+      <p>Bukan binary OK/FAIL, tetapi <em>gradient</em> 3+ level: <strong>WARNING</strong> (yellow, perhatikan) → <strong>ALERT</strong> (orange, action segera) → <strong>CRITICAL</strong> (red, shutdown). Tiap tier punya threshold sendiri: \(T_{\text{warn}}\) &lt; \(T_{\text{alert}}\) &lt; \(T_{\text{critical}}\). Aksi berbeda: warning → log + notification email; alert → SMS ke supervisor; critical → auto-shutdown + page on-call engineer. Memetakan ke ISO 10816: A (no alarm), B (warning), C (alert), D (critical).</p>
       <div class="formula">\(T_{warn} < T_{alert} < T_{\text{crit}}\)</div>
     </div>
     <div class="card">
@@ -1166,7 +1166,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
   <div class="info-box reveal">
     <strong>Contoh Konkret — Hysteresis Mencegah Chattering:</strong><br>
-    Mesin dengan RMS = 2.79 mm/s (di sekitar T_warn = 2.8). Tanpa hysteresis: noise ±0.05 mm/s membuat status flicker Zone A ↔ B setiap 100 ms — 600 alert/menit, operator gila. Dengan hysteresis (T_warn_on = 2.8, T_warn_off = 2.6): status pindah ke "warning" hanya jika RMS &gt; 2.8, dan kembali ke "normal" hanya jika RMS turun &lt; 2.6. Margin 0.2 mm/s &gt;&gt; noise 0.05 → tidak ada chattering. Hasil: alert hanya pada transition genuine, bukan noise.
+    Mesin dengan RMS = 2.79 mm/s (di sekitar \(T_{\text{warn}}\) = 2.8). Tanpa hysteresis: noise ±0.05 mm/s membuat status flicker Zone A ↔ B setiap 100 ms — 600 alert/menit, operator gila. Dengan hysteresis (\(T_{\text{warn}}\)_on = 2.8, \(T_{\text{warn}}\)_off = 2.6): status pindah ke "warning" hanya jika RMS &gt; 2.8, dan kembali ke "normal" hanya jika RMS turun &lt; 2.6. Margin 0.2 mm/s &gt;&gt; noise 0.05 → tidak ada chattering. Hasil: alert hanya pada transition genuine, bukan noise.
   </div>
 
   <div class="tip-box reveal">
@@ -1199,7 +1199,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="card">
       <div class="card-icon">🔄</div>
       <h3>States &amp; Transitions</h3>
-      <p>FSM didefinisikan oleh <strong>5-tuple</strong>: (S, s₀, Σ, δ, F) — set states S, initial state s₀, input alphabet Σ, transition function δ: S × Σ → S, final states F. Untuk monitoring: S = {NORMAL, WARNING, ALERT, CRITICAL, FAULT}; s₀ = NORMAL; Σ = {sensor reading + timer event}; δ = rules (mis. NORMAL → WARNING jika rms &gt; T_warn). Visualisasi via <strong>state diagram</strong> (lingkaran = state, panah = transition). Tools: <code>graphviz</code>, <code>state_machine</code> Python lib.</p>
+      <p>FSM didefinisikan oleh <strong>5-tuple</strong>: (S, s₀, Σ, δ, F) — set states S, initial state s₀, input alphabet Σ, transition function δ: S × Σ → S, final states F. Untuk monitoring: S = {NORMAL, WARNING, ALERT, CRITICAL, FAULT}; s₀ = NORMAL; Σ = {sensor reading + timer event}; δ = rules (mis. NORMAL → WARNING jika rms &gt; \(T_{\text{warn}}\)). Visualisasi via <strong>state diagram</strong> (lingkaran = state, panah = transition). Tools: <code>graphviz</code>, <code>state_machine</code> Python lib.</p>
       <div class="formula">\(\delta : S \times \Sigma \to S\)</div>
     </div>
     <div class="card">
@@ -1217,7 +1217,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="card">
       <div class="card-icon">⏳</div>
       <h3>Debouncing (N Consecutive Samples)</h3>
-      <p>Sinyal sensor noisy bisa cross threshold sesaat lalu kembali normal. Solusi: <strong>require N consecutive samples</strong> di kondisi alert sebelum pindah state. Contoh: untuk pindah dari NORMAL ke WARNING, butuh 5 sample berturut-turut dengan rms &gt; T_warn. Implementasi: counter di-increment kalau kondisi true, reset ke 0 kalau false. Ketika counter &gt;= N, eksekusi transisi. <em>Trade-off</em>: N besar → lebih robust noise, tetapi delay deteksi (latency) makin lama. Tipikal: N = 3–10 (≈ 100–500 ms pada 50 Hz sampling).</p>
+      <p>Sinyal sensor noisy bisa cross threshold sesaat lalu kembali normal. Solusi: <strong>require N consecutive samples</strong> di kondisi alert sebelum pindah state. Contoh: untuk pindah dari NORMAL ke WARNING, butuh 5 sample berturut-turut dengan rms &gt; \(T_{\text{warn}}\). Implementasi: counter di-increment kalau kondisi true, reset ke 0 kalau false. Ketika counter &gt;= N, eksekusi transisi. <em>Trade-off</em>: N besar → lebih robust noise, tetapi delay deteksi (latency) makin lama. Tipikal: N = 3–10 (≈ 100–500 ms pada 50 Hz sampling).</p>
       <div class="formula">\(if count >= N: transition\)</div>
     </div>
     <div class="card">
@@ -1238,25 +1238,25 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <table class="data-table">
       <thead><tr><th>Transition</th><th>Trigger Condition</th><th>Action (on_entry)</th><th>Debounce N</th></tr></thead>
       <tbody>
-        <tr><td style="color:var(--green)">NORMAL → WARNING</td><td>rms &gt; T_warn (1.4)</td><td>Log + email</td><td>5 samples</td></tr>
-        <tr><td style="color:var(--cyan)">WARNING → ALERT</td><td>rms &gt; T_alert (2.8) OR persist &gt; 5 min</td><td>SMS supervisor</td><td>3 samples</td></tr>
-        <tr><td style="color:var(--amber)">ALERT → CRITICAL</td><td>rms &gt; T_crit (4.5) OR persist &gt; 10 min</td><td>Auto-shutdown + page</td><td>2 samples</td></tr>
+        <tr><td style="color:var(--green)">NORMAL → WARNING</td><td>rms &gt; \(T_{\text{warn}}\) (1.4)</td><td>Log + email</td><td>5 samples</td></tr>
+        <tr><td style="color:var(--cyan)">WARNING → ALERT</td><td>rms &gt; \(T_{\text{alert}}\) (2.8) OR persist &gt; 5 min</td><td>SMS supervisor</td><td>3 samples</td></tr>
+        <tr><td style="color:var(--amber)">ALERT → CRITICAL</td><td>rms &gt; \(T_{\text{crit}}\) (4.5) OR persist &gt; 10 min</td><td>Auto-shutdown + page</td><td>2 samples</td></tr>
         <tr><td style="color:var(--pink)">CRITICAL → FAULT</td><td>sensor timeout &gt; 30 s</td><td>Mark sensor as faulty</td><td>1 timeout</td></tr>
-        <tr><td style="color:var(--violet)">Any → NORMAL</td><td>rms &lt; T_off (hysteresis) AND persist &gt; 1 min</td><td>Log recovery</td><td>10 samples</td></tr>
+        <tr><td style="color:var(--violet)">Any → NORMAL</td><td>rms &lt; \(T_{\text{off}}\) (hysteresis) AND persist &gt; 1 min</td><td>Log recovery</td><td>10 samples</td></tr>
       </tbody>
     </table>
   </div>
 
   <div class="info-box reveal">
     <strong>Contoh Konkret — FSM untuk Monitoring Pump Sentrifugal:</strong><br>
-    State NORMAL (rms = 0.9 mm/s). Mendadak ada spike single-sample ke 4.2 mm/s. Tanpa debouncing, langsung ke ALERT. Dengan debouncing N=3, FSM increment counter tetapi sample berikutnya kembali ke 1.0 mm/s — counter reset, tetap di NORMAL. Bagus, false alarm dihindari. Setelah 1 jam, RMS naik perlahan: 1.5, 1.8, 2.1, 2.5, 2.9, 3.0, 3.1 (5 sample berturut &gt; 1.4) → transisi NORMAL → WARNING (log + email). Persist 6 menit di WARNING (3 sample &gt; 2.8 setelah 5 menit) → escalate ke ALERT (SMS supervisor). Operator inspect, ketemu coupling misalignment → fix → RMS turun 0.8 → 10 sample &lt; T_off (1.2) selama 1 menit → ALERT → NORMAL (log recovery). Total event log = 4 entries — audit trail lengkap.
+    State NORMAL (rms = 0.9 mm/s). Mendadak ada spike single-sample ke 4.2 mm/s. Tanpa debouncing, langsung ke ALERT. Dengan debouncing N=3, FSM increment counter tetapi sample berikutnya kembali ke 1.0 mm/s — counter reset, tetap di NORMAL. Bagus, false alarm dihindari. Setelah 1 jam, RMS naik perlahan: 1.5, 1.8, 2.1, 2.5, 2.9, 3.0, 3.1 (5 sample berturut &gt; 1.4) → transisi NORMAL → WARNING (log + email). Persist 6 menit di WARNING (3 sample &gt; 2.8 setelah 5 menit) → escalate ke ALERT (SMS supervisor). Operator inspect, ketemu coupling misalignment → fix → RMS turun 0.8 → 10 sample &lt; \(T_{\text{off}}\) (1.2) selama 1 menit → ALERT → NORMAL (log recovery). Total event log = 4 entries — audit trail lengkap.
   </div>
 
   <div class="warn-box reveal">
     <div class="warn-icon">⚠️</div>
     <div>
       <h4>Trap FSM &amp; Debouncing yang Sering Diabaikan</h4>
-      <p>(1) <strong>State explosion</strong> — kombinasi state dengan banyak feature (mis. RMS × peak × kurt × suhu) cepat tidak terkelola. Solusi: <em>composite state</em> atau hierarchical FSM (HFSM). (2) <strong>Race condition</strong> — sample baru tiba saat transition belum selesai. Pakai mutex / atomic update. (3) <strong>Stuck state</strong> — kalau exit condition tidak pernah tercapai (mis. T_off terlalu rendah), state stuck selamanya. Tambah escape route via timeout. (4) <strong>Debounce N terlalu besar</strong> — latency deteksi naik, alarm critical bisa terlambat. Trade-off: low N untuk critical (≤ 2), high N untuk warning (5–10). (5) <strong>Lupa heartbeat</strong> — sensor mati silent → output frozen → FSM tetap "NORMAL". Watchdog timer wajib. (6) <strong>Audit log overflow</strong> — high-frequency transitions bisa fill disk. Pakai log rotation, ringkasan (N events/min), atau database time-series (InfluxDB) yang punya retention policy. (7) <strong>State machine tanpa diagram</strong> — kode lama tanpa visualisasi sulit di-debug. Selalu maintain state diagram (graphviz) yang sinkron dengan code.</p>
+      <p>(1) <strong>State explosion</strong> — kombinasi state dengan banyak feature (mis. RMS × peak × kurt × suhu) cepat tidak terkelola. Solusi: <em>composite state</em> atau hierarchical FSM (HFSM). (2) <strong>Race condition</strong> — sample baru tiba saat transition belum selesai. Pakai mutex / atomic update. (3) <strong>Stuck state</strong> — kalau exit condition tidak pernah tercapai (mis. \(T_{\text{off}}\) terlalu rendah), state stuck selamanya. Tambah escape route via timeout. (4) <strong>Debounce N terlalu besar</strong> — latency deteksi naik, alarm critical bisa terlambat. Trade-off: low N untuk critical (≤ 2), high N untuk warning (5–10). (5) <strong>Lupa heartbeat</strong> — sensor mati silent → output frozen → FSM tetap "NORMAL". Watchdog timer wajib. (6) <strong>Audit log overflow</strong> — high-frequency transitions bisa fill disk. Pakai log rotation, ringkasan (N events/min), atau database time-series (InfluxDB) yang punya retention policy. (7) <strong>State machine tanpa diagram</strong> — kode lama tanpa visualisasi sulit di-debug. Selalu maintain state diagram (graphviz) yang sinkron dengan code.</p>
     </div>
   </div>
 </div>
@@ -1338,7 +1338,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div id="physicsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
         <strong>📊 Cara Membaca:</strong> Top trace = sinyal sensor noisy dengan spike transient sesekali (cross threshold sesaat). Mid = simple instant trigger (alert ON tiap kali cross). Bottom = debounced trigger (require N consecutive samples sebelum trigger). Slider kontrol N (1–10).<br>
-        <strong>Coba:</strong> (1) N=1 → equivalent simple threshold, semua spike trigger alarm (alarm flood). (2) N=3 → balance bagus, single spike di-ignore tetapi sustained breach trigger. (3) N=10 → very robust, butuh 10 sample berturut → latency naik 10×. (4) Sustained breach (kondisi genuine fault) tetap detected dengan delay = N × T_sample. Pelajaran: <strong>debounce = trade-off latency vs false-alarm rate</strong>. Untuk critical alarm (safety): N≤2 (low latency). Untuk warning: N=5–10 (filter noise). Implementasi: counter increment kalau condition true, reset kalau false; trigger saat counter ≥ N.
+        <strong>Coba:</strong> (1) N=1 → equivalent simple threshold, semua spike trigger alarm (alarm flood). (2) N=3 → balance bagus, single spike di-ignore tetapi sustained breach trigger. (3) N=10 → very robust, butuh 10 sample berturut → latency naik 10×. (4) Sustained breach (kondisi genuine fault) tetap detected dengan delay = N × \(T_{\text{sample}}\). Pelajaran: <strong>debounce = trade-off latency vs false-alarm rate</strong>. Untuk critical alarm (safety): N≤2 (low latency). Untuk warning: N=5–10 (filter noise). Implementasi: counter increment kalau condition true, reset kalau false; trigger saat counter ≥ N.
       </div>
     </div>
   </div>
@@ -1502,7 +1502,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <div class="section" id="m-jupyter">
   <div class="section-label reveal">Bagian 08</div>
   <h2 class="section-title reveal">Implementasi Python<br>Rule-Based Monitoring di Jupyter Notebook</h2>
-  <p class="section-desc reveal">Empat cell berikut membangun sistem rule-based monitoring lengkap: Cell 1 implementasi <strong>ISO 10816 zone classification</strong> + threshold check pada streaming sinyal RMS sintetis. Cell 2 implementasi <strong>HysteresisAlarm class</strong> dengan dual threshold (T_on/T_off) dan demonstrasi anti-chattering. Cell 3 implementasi <strong>finite state machine (FSM)</strong> lengkap dengan debouncing N consecutive samples, tier alarm (warning/alert/critical), audit log CSV. Cell 4 mendefinisikan <strong>fungsi <code>run_monitoring_pipeline()</code></strong> reusable end-to-end: input sinyal time series, output state history + alert events + dashboard visualization (matplotlib).</p>
+  <p class="section-desc reveal">Empat cell berikut membangun sistem rule-based monitoring lengkap: Cell 1 implementasi <strong>ISO 10816 zone classification</strong> + threshold check pada streaming sinyal RMS sintetis. Cell 2 implementasi <strong>HysteresisAlarm class</strong> dengan dual threshold (\(T_{\text{on}}\)/T_off) dan demonstrasi anti-chattering. Cell 3 implementasi <strong>finite state machine (FSM)</strong> lengkap dengan debouncing N consecutive samples, tier alarm (warning/alert/critical), audit log CSV. Cell 4 mendefinisikan <strong>fungsi <code>run_monitoring_pipeline()</code></strong> reusable end-to-end: input sinyal time series, output state history + alert events + dashboard visualization (matplotlib).</p>
 
   <div class="info-box reveal">
     <strong>📓 Petunjuk Pengerjaan di Jupyter Notebook:</strong><br>
@@ -2188,7 +2188,7 @@ result = <span class="fn">run_monitoring_pipeline</span>(rms_demo, timestamps=ts
       </div>
       <div class="radio-group" id="rg-mc3">
         <div class="radio-option" onclick="selectMC('mc3',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Membuat threshold tunggal lebih ketat</div>
-        <div class="radio-option" onclick="selectMC('mc3',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Hindari <em>chattering</em> (alarm berflicker rapid) saat sinyal di sekitar threshold dengan menggunakan dua threshold: T_on (ke ON) &gt; T_off (ke OFF). Margin biasanya 5–15% dari setpoint</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Hindari <em>chattering</em> (alarm berflicker rapid) saat sinyal di sekitar threshold dengan menggunakan dua threshold: \(T_{\text{on}}\) (ke ON) &gt; \(T_{\text{off}}\) (ke OFF). Margin biasanya 5–15% dari setpoint</div>
         <div class="radio-option" onclick="selectMC('mc3',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Mengganti threshold dengan ML model</div>
         <div class="radio-option" onclick="selectMC('mc3',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Menambah jumlah sensor</div>
       </div>
@@ -2366,7 +2366,7 @@ import pandas as pd
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C2</div>
-        <div class="comp-q">Untuk threshold T_on = 2.8 dan margin hysteresis 0.2, hitung <strong>\(T_{\text{off}}\)</strong> (threshold untuk transition kembali ke OFF). Formula: <code>T_off = T_on - margin</code>. Print nilainya.</div>
+        <div class="comp-q">Untuk threshold \(T_{\text{on}}\) = 2.8 dan margin hysteresis 0.2, hitung <strong>\(T_{\text{off}}\)</strong> (threshold untuk transition kembali ke OFF). Formula: <code>T_off = T_on - margin</code>. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 T_off = T_on − margin. Sinyal harus turun di bawah T_off untuk kembali OFF, mencegah chattering di sekitar threshold. Substitusikan nilai dari soal.</div>
@@ -2485,7 +2485,7 @@ import pandas as pd
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C9</div>
-        <div class="comp-q"><strong>Hysteresis state simulation</strong>: dengan T_on = 2.8 dan T_off = 2.6, RMS sequence = [2.5, 2.7, 2.9, 2.7, 2.5, 2.7, 2.9]. Awal state OFF. Hitung <strong>jumlah transitions</strong> total. Print integer.</div>
+        <div class="comp-q"><strong>Hysteresis state simulation</strong>: dengan \(T_{\text{on}}\) = 2.8 dan \(T_{\text{off}}\) = 2.6, RMS sequence = [2.5, 2.7, 2.9, 2.7, 2.5, 2.7, 2.9]. Awal state OFF. Hitung <strong>jumlah transitions</strong> total. Print integer.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Telusuri sequence sample per sample: state berubah ke ON saat melewati T_on dan ke OFF saat turun di bawah T_off; hitung berapa kali state berubah.</div>
@@ -2529,7 +2529,7 @@ import pandas as pd
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C11</div>
-        <div class="comp-q"><strong>HysteresisAlarm Class — Anti-Chattering Demo</strong>: implementasi class HysteresisAlarm dengan T_on=2.8, T_off=2.6. Generate sinyal RMS noisy: <code>np.random.seed(42); rms = 2.7 + 0.15 * np.random.randn(500)</code>. Apply class ke seluruh sinyal. Print <strong>jumlah transitions</strong> (state change). Hysteresis bertujuan menekan jumlah transisi (anti-chattering) sehingga hasilnya relatif rendah.</div>
+        <div class="comp-q"><strong>HysteresisAlarm Class — Anti-Chattering Demo</strong>: implementasi class HysteresisAlarm dengan \(T_{\text{on}}\)=2.8, \(T_{\text{off}}\)=2.6. Generate sinyal RMS noisy: <code>np.random.seed(42); rms = 2.7 + 0.15 * np.random.randn(500)</code>. Apply class ke seluruh sinyal. Print <strong>jumlah transitions</strong> (state change). Hysteresis bertujuan menekan jumlah transisi (anti-chattering) sehingga hasilnya relatif rendah.</div>
         <div class="comp-pts">4 poin</div>
       </div>
       <div class="comp-hint">💡 Implementasikan class dengan dua threshold (T_on/T_off); margin hysteresis yang lebih besar dari std noise membuat jumlah transition kecil. Hitung berapa kali state berubah di seluruh sinyal.</div>
@@ -2717,7 +2717,7 @@ import pandas as pd
             <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Matikan semua alarm selama jam kerja</div>
             <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Pakai threshold tunggal &amp; abaikan transient</div>
           </div>
-          <div class="p-fb r" id="fp1r">✅ Tepat! <strong>Operating Mode-Aware Alarm Logic</strong> adalah praktik industrial standar. Implementasi: (1) <strong>State machine multi-mode</strong>: tambah dimension "operating mode" ke FSM. Tiap mode punya threshold sendiri (mode = STARTUP → T_alert × 1.5, debounce N=20; mode = STEADY → ISO standard). (2) <strong>Mode detection</strong>: bisa dari DCS PLC tag (operator manual signal), atau auto-detect dari rate-of-change RMS (start-up = RMS naik &gt; 1 mm/s/min). (3) <strong>Grace period</strong>: setelah transition mode → steady, tunggu 5–15 menit sebelum apply ISO threshold ketat. (4) <strong>Alarm shelving</strong>: ANSI/ISA 18.2 allow operator silence specific alarm selama window terbatas (1–8 jam) — useful saat known maintenance. <strong>Action di Pertamina</strong>: integrasi DCS Honeywell Experion + rule engine custom Python via OPC UA → match ke sistem reality. (5) Logging: tetap log RMS &amp; mode; transient yang abnormal (mis. start-up &gt; 5 menit) tetap raise warning untuk maintenance.</div>
+          <div class="p-fb r" id="fp1r">✅ Tepat! <strong>Operating Mode-Aware Alarm Logic</strong> adalah praktik industrial standar. Implementasi: (1) <strong>State machine multi-mode</strong>: tambah dimension "operating mode" ke FSM. Tiap mode punya threshold sendiri (mode = STARTUP → \(T_{\text{alert}}\) × 1.5, debounce N=20; mode = STEADY → ISO standard). (2) <strong>Mode detection</strong>: bisa dari DCS PLC tag (operator manual signal), atau auto-detect dari rate-of-change RMS (start-up = RMS naik &gt; 1 mm/s/min). (3) <strong>Grace period</strong>: setelah transition mode → steady, tunggu 5–15 menit sebelum apply ISO threshold ketat. (4) <strong>Alarm shelving</strong>: ANSI/ISA 18.2 allow operator silence specific alarm selama window terbatas (1–8 jam) — useful saat known maintenance. <strong>Action di Pertamina</strong>: integrasi DCS Honeywell Experion + rule engine custom Python via OPC UA → match ke sistem reality. (5) Logging: tetap log RMS &amp; mode; transient yang abnormal (mis. start-up &gt; 5 menit) tetap raise warning untuk maintenance.</div>
           <div class="p-fb w" id="fp1w">❌ Periksa kembali. Naikkan threshold permanent = lose sensitivity di steady-state (rentan miss genuine danger). Disable alarm 100% = blind ops. Operating-mode-aware alarm logic adalah jawaban yang mature.</div>
         </div>
 

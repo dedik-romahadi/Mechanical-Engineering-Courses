@@ -1125,7 +1125,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
   <div class="info-box reveal">
     <strong>Linear vs dB Plot:</strong><br>
-    Spektrum sering di-plot dalam <strong>dB</strong> (10·log₁₀(P / P_ref)) untuk dynamic range tinggi. Bearing fault peak bisa 40 dB di bawah peak unbalance utama tetapi tetap kritikal untuk diagnostik. Plot linear menyembunyikan peak kecil; plot dB menonjolkannya. Praktik: monitoring trend pakai linear scale (gampang lihat absolute change), <strong>diagnostik fault pakai dB</strong>.
+    Spektrum sering di-plot dalam <strong>dB</strong> (10·log₁₀(P / \(P_{\text{ref}}\))) untuk dynamic range tinggi. Bearing fault peak bisa 40 dB di bawah peak unbalance utama tetapi tetap kritikal untuk diagnostik. Plot linear menyembunyikan peak kecil; plot dB menonjolkannya. Praktik: monitoring trend pakai linear scale (gampang lihat absolute change), <strong>diagnostik fault pakai dB</strong>.
   </div>
 
   <div class="tip-box reveal">
@@ -1442,7 +1442,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="warn-icon">⚠️</div>
     <div>
       <h4>Jebakan Praktis FFT &amp; PSD</h4>
-      <p>(1) <strong>Lupa window function</strong> → spectral leakage; selalu pakai Hann minimal. (2) <strong>Salah scaling magnitude</strong> — kalikan <code>2/N</code> untuk amplitudo asli (kecuali DC dan Nyquist). (3) <strong>FFT sinyal non-stasioner</strong> (run-up motor) → peak smear; pakai STFT atau order tracking. (4) <strong>Resolusi terlalu kasar</strong> untuk pisahkan BPFO dari line frequency 50 Hz harmoni → perbesar N atau pakai zoom-FFT. (5) <strong>Aliasing</strong> jika fs &lt; 2·f_max → lakukan anti-aliasing filter analog sebelum ADC. (6) <strong>Periodogram saja</strong> untuk diagnostik → variansi tinggi; pakai Welch.</p>
+      <p>(1) <strong>Lupa window function</strong> → spectral leakage; selalu pakai Hann minimal. (2) <strong>Salah scaling magnitude</strong> — kalikan <code>2/N</code> untuk amplitudo asli (kecuali DC dan Nyquist). (3) <strong>FFT sinyal non-stasioner</strong> (run-up motor) → peak smear; pakai STFT atau order tracking. (4) <strong>Resolusi terlalu kasar</strong> untuk pisahkan BPFO dari line frequency 50 Hz harmoni → perbesar N atau pakai zoom-FFT. (5) <strong>Aliasing</strong> jika fs &lt; 2·\(f_{\text{max}}\) → lakukan anti-aliasing filter analog sebelum ADC. (6) <strong>Periodogram saja</strong> untuk diagnostik → variansi tinggi; pakai Welch.</p>
     </div>
   </div>
 </div>
@@ -1959,8 +1959,8 @@ peak_env = freqs_e[mask_e][np.<span class="fn">argmax</span>(Env_f[mask_e])]
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc9">
-        <div class="radio-option" onclick="selectMC('mc9',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Σ|x_n|² selalu = 1 (normalisasi otomatis)</div>
-        <div class="radio-option" onclick="selectMC('mc9',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Energi total domain waktu = energi total domain frekuensi: Σ|x_n|² = (1/N) Σ|X_k|²</div>
+        <div class="radio-option" onclick="selectMC('mc9',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Σ|\(x_n\)|² selalu = 1 (normalisasi otomatis)</div>
+        <div class="radio-option" onclick="selectMC('mc9',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Energi total domain waktu = energi total domain frekuensi: Σ|\(x_n\)|² = (1/N) Σ|\(X_k\)|²</div>
         <div class="radio-option" onclick="selectMC('mc9',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Hanya berlaku untuk sinyal sinusoidal murni</div>
         <div class="radio-option" onclick="selectMC('mc9',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Hubungan antara amplitudo dan fase saja</div>
       </div>
@@ -2170,7 +2170,7 @@ ratio = d / D                                    # ≈ 0.2034
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C10</div>
-        <div class="comp-q">Hitung <strong>frekuensi Nyquist</strong> untuk sampling rate fs = 25000 Hz. Formula: f_Nyq = fs/2. Print dalam Hz.</div>
+        <div class="comp-q">Hitung <strong>frekuensi Nyquist</strong> untuk sampling rate fs = 25000 Hz. Formula: \(f_{\text{Nyq}}\) = fs/2. Print dalam Hz.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Frekuensi Nyquist = fs ÷ 2. Komponen di atasnya akan ter-alias; pakai anti-alias low-pass filter sebelum ADC. Substitusikan fs dari soal.</div>
@@ -2197,7 +2197,7 @@ ratio = d / D                                    # ≈ 0.2034
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C11</div>
-        <div class="comp-q">Hitung <strong>sideband frequency atas \((f_{sb},upper)\)</strong> untuk diagnosa <em>broken rotor bar</em> motor induksi. Diketahui frekuensi supply f_s = 50 Hz dan slip s = 0.03 (3%). Sideband muncul pada f_s · (1 ± 2s). Print nilai sideband UPPER (f_s + 2·\(s \cdot f\)_s).</div>
+        <div class="comp-q">Hitung <strong>sideband frequency atas \((f_{sb},upper)\)</strong> untuk diagnosa <em>broken rotor bar</em> motor induksi. Diketahui frekuensi supply \(f_s\) = 50 Hz dan slip s = 0.03 (3%). Sideband muncul pada \(f_s\) · (1 ± 2s). Print nilai sideband UPPER (\(f_s\) + 2·\(s \cdot f\)_s).</div>
         <div class="comp-pts">4 poin</div>
       </div>
       <div class="comp-hint">💡 Sideband broken rotor bar = f_s·(1 ± 2s); pasangan ±2s·f_s khas pada motor squirrel-cage. Substitusikan frekuensi suplai dan slip dari soal.</div>
@@ -2214,7 +2214,7 @@ ratio = d / D                                    # ≈ 0.2034
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C12</div>
-        <div class="comp-q">Hitung <strong>Gear Mesh Frequency (GMF)</strong> untuk pinion 25 gigi pada input shaft 1800 rpm. Formula: GMF = N_teeth · fr_pinion. Print nilainya (Hz).</div>
+        <div class="comp-q">Hitung <strong>Gear Mesh Frequency (GMF)</strong> untuk pinion 25 gigi pada input shaft 1800 rpm. Formula: GMF = \(N_{\text{teeth}}\) · \(fr_{\text{pinion}}\). Print nilainya (Hz).</div>
         <div class="comp-pts">4 poin</div>
       </div>
       <div class="comp-hint">💡 fr_pinion = rpm ÷ 60; GMF = jumlah gigi × fr_pinion. Diagnosa gear lihat GMF beserta sideband ±fr. Substitusikan rpm dan jumlah gigi dari soal.</div>

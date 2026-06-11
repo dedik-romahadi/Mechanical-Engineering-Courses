@@ -925,7 +925,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <em>Sensor, Akuisisi &amp; ISO 10816</em><br>
       <span class="hl-amber">Threshold Detection &amp; Hysteresis Anti-Chattering</span>
     </h1>
-    <p class="hero-sub">Pertemuan 9–11 mengajarkan <em>optimasi</em> (LP, NLP, ANOVA): bagaimana memilih parameter terbaik. Tetapi setelah mesin beroperasi, pertanyaan berubah: <strong>"apakah mesin ini masih sehat saat ini juga?"</strong> Inilah ranah <em>otomatisasi monitoring</em>. Pertemuan 12 fokus pada <strong>fondasi</strong>: <em>sensor selection</em> (accelerometer untuk vibrasi, RTD untuk suhu, current transformer untuk motor, flow/pressure transmitter), <em>akuisisi data</em> (DAQ NI USB-6009, Arduino + IMU, Raspberry Pi, sampling rate Nyquist), <em>standard ISO 10816</em> (zona A/B/C/D berdasarkan RMS velocity untuk Group 1–4 mesin), <em>threshold-based detection</em> (single &amp; multi-level), dan <em>hysteresis</em> (Schmitt trigger anti-chattering, T_on / T_off). Tier alarm escalation, FSM, dan ANSI/ISA 18.2 alarm management dibahas terpisah di <strong>Pertemuan 13</strong>. Modul 50 poin: 4 animasi konsep + 4 sel Python (sensor simulation + ISO classification + hysteresis class + threshold tuning).</p>
+    <p class="hero-sub">Pertemuan 9–11 mengajarkan <em>optimasi</em> (LP, NLP, ANOVA): bagaimana memilih parameter terbaik. Tetapi setelah mesin beroperasi, pertanyaan berubah: <strong>"apakah mesin ini masih sehat saat ini juga?"</strong> Inilah ranah <em>otomatisasi monitoring</em>. Pertemuan 12 fokus pada <strong>fondasi</strong>: <em>sensor selection</em> (accelerometer untuk vibrasi, RTD untuk suhu, current transformer untuk motor, flow/pressure transmitter), <em>akuisisi data</em> (DAQ NI USB-6009, Arduino + IMU, Raspberry Pi, sampling rate Nyquist), <em>standard ISO 10816</em> (zona A/B/C/D berdasarkan RMS velocity untuk Group 1–4 mesin), <em>threshold-based detection</em> (single &amp; multi-level), dan <em>hysteresis</em> (Schmitt trigger anti-chattering, \(T_{\text{on}}\) / \(T_{\text{off}}\)). Tier alarm escalation, FSM, dan ANSI/ISA 18.2 alarm management dibahas terpisah di <strong>Pertemuan 13</strong>. Modul 50 poin: 4 animasi konsep + 4 sel Python (sensor simulation + ISO classification + hysteresis class + threshold tuning).</p>
     <div class="hero-stats">
       <div class="stat"><div class="stat-num">8</div><div class="stat-lbl">Bagian Materi</div></div>
       <div class="stat"><div class="stat-num">4</div><div class="stat-lbl">Animasi</div></div>
@@ -1037,7 +1037,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
       <div class="card-icon">📐</div>
-      <h3>Threshold Absolut: T_low &amp; T_high</h3>
+      <h3>Threshold Absolut: \(T_{\text{low}}\) &amp; \(T_{\text{high}}\)</h3>
       <p>Bentuk paling sederhana: <code>IF rms &gt; T_high THEN ALERT</code>. Untuk fitur dua-arah (mis. tekanan oli yang tidak boleh terlalu rendah dan terlalu tinggi): <code>IF p &lt; T_low OR p &gt; T_high THEN ALERT</code>. Threshold harus <em>physical-meaningful</em>: didasarkan pada batas mekanis (yield stress, bearing fatigue limit), standar industri, atau baseline operasi normal. <strong>Hindari threshold ditebak</strong> — selalu dokumentasikan sumbernya.</p>
       <div class="formula">\(if x > T_{\text{high}}: alert\)</div>
     </div>
@@ -1063,7 +1063,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">📡</div>
       <h3>RMS Velocity 10 Hz – 1 kHz</h3>
       <p>ISO 10816 spesifik mengukur <strong>RMS velocity (bukan acceleration atau displacement)</strong> di band <em>10 Hz – 1 kHz</em>. Pilihan ini berdasarkan: (1) velocity berkorelasi dengan energi kinetik vibrasi (≈ kerusakan), (2) band 10 Hz–1 kHz cover frekuensi mekanis dominan (running speed, gear meshing, bearing characteristic). Untuk mesin di luar range ini (mis. high-speed turbomachinery di 5–10 kHz), pakai standar lain (API 670: acceleration band &gt; 5 kHz).</p>
-      <div class="formula">RMS_v = \(\sqrt{mean(v^2}\)) di 10 Hz–1 kHz</div>
+      <div class="formula">\(RMS_v\) = \(\sqrt{mean(v^2}\)) di 10 Hz–1 kHz</div>
     </div>
     <div class="card">
       <div class="card-icon">🔬</div>
@@ -1106,7 +1106,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <div class="section" id="m-dmf">
   <div class="section-label reveal">Bagian 03</div>
   <h2 class="section-title reveal">Hysteresis (Anti-Chattering):<br>Schmitt Trigger untuk Threshold yang Stable</h2>
-  <p class="section-desc reveal">Threshold tunggal (<code>x &gt; T → ALERT</code>) punya masalah serius di sistem real: <strong>chattering</strong>. Saat sinyal sensor di sekitar threshold (T ± noise level), state berkedip cepat ON/OFF/ON/OFF — operator dibanjiri alert palsu, log file penuh dengan transition spam. Solusi klasik dari electronics: <strong>hysteresis</strong> (dua threshold T_on &gt; T_off). Untuk turn ON butuh signal &gt; T_on; untuk turn OFF butuh signal &lt; T_off. Margin (T_on − T_off) ≥ 2× noise level → chattering hilang. Konsep dari <em>Schmitt trigger</em> (Otto Schmitt 1934) yang dipakai di setiap power MOSFET driver, thermostat, comparator IC. Untuk <em>tier alarm escalation</em> (warning &lt; alert &lt; critical) dan <em>finite state machine</em>, lihat modul berikutnya (Pertemuan 13 — Monitoring Part 2).</p>
+  <p class="section-desc reveal">Threshold tunggal (<code>x &gt; T → ALERT</code>) punya masalah serius di sistem real: <strong>chattering</strong>. Saat sinyal sensor di sekitar threshold (T ± noise level), state berkedip cepat ON/OFF/ON/OFF — operator dibanjiri alert palsu, log file penuh dengan transition spam. Solusi klasik dari electronics: <strong>hysteresis</strong> (dua threshold \(T_{\text{on}}\) &gt; \(T_{\text{off}}\)). Untuk turn ON butuh signal &gt; \(T_{\text{on}}\); untuk turn OFF butuh signal &lt; \(T_{\text{off}}\). Margin (\(T_{\text{on}}\) − \(T_{\text{off}}\)) ≥ 2× noise level → chattering hilang. Konsep dari <em>Schmitt trigger</em> (Otto Schmitt 1934) yang dipakai di setiap power MOSFET driver, thermostat, comparator IC. Untuk <em>tier alarm escalation</em> (warning &lt; alert &lt; critical) dan <em>finite state machine</em>, lihat modul berikutnya (Pertemuan 13 — Monitoring Part 2).</p>
 
   <div class="formula-block reveal">
     <div class="label">Lima Konsep Inti Hysteresis &amp; Tier Alarm</div>
@@ -1116,8 +1116,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <div class="cards reveal" style="margin-bottom:32px">
     <div class="card">
       <div class="card-icon">↔️</div>
-      <h3>Hysteresis: T_on &gt; T_off</h3>
-      <p>Definisi: dua threshold berbeda untuk transition ke "ON" vs ke "OFF". Saat status OFF, perlu sinyal &gt; T_on untuk pindah ke ON. Saat status ON, sinyal harus turun di bawah T_off untuk kembali ke OFF. Tipikal: T_off = T_on − margin (mis. T_on=70, T_off=65). Margin 5–15% biasanya cukup. Tanpa hysteresis, sinyal di sekitar threshold ber-flip-flop sangat cepat (chattering).</p>
+      <h3>Hysteresis: \(T_{\text{on}}\) &gt; \(T_{\text{off}}\)</h3>
+      <p>Definisi: dua threshold berbeda untuk transition ke "ON" vs ke "OFF". Saat status OFF, perlu sinyal &gt; \(T_{\text{on}}\) untuk pindah ke ON. Saat status ON, sinyal harus turun di bawah \(T_{\text{off}}\) untuk kembali ke OFF. Tipikal: \(T_{\text{off}}\) = \(T_{\text{on}}\) − margin (mis. \(T_{\text{on}}\)=70, \(T_{\text{off}}\)=65). Margin 5–15% biasanya cukup. Tanpa hysteresis, sinyal di sekitar threshold ber-flip-flop sangat cepat (chattering).</p>
       <div class="formula">\(T_{\text{on}} = 70, T_{\text{off}} = 65 (margin 5)\)</div>
     </div>
     <div class="card">
@@ -1129,7 +1129,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="card">
       <div class="card-icon">🎚️</div>
       <h3>Tier Alarm — Tiga Level Eskalasi</h3>
-      <p>Bukan binary OK/FAIL, tetapi <em>gradient</em> 3+ level: <strong>WARNING</strong> (yellow, perhatikan) → <strong>ALERT</strong> (orange, action segera) → <strong>CRITICAL</strong> (red, shutdown). Tiap tier punya threshold sendiri: T_warn &lt; T_alert &lt; T_critical. Aksi berbeda: warning → log + notification email; alert → SMS ke supervisor; critical → auto-shutdown + page on-call engineer. Memetakan ke ISO 10816: A (no alarm), B (warning), C (alert), D (critical).</p>
+      <p>Bukan binary OK/FAIL, tetapi <em>gradient</em> 3+ level: <strong>WARNING</strong> (yellow, perhatikan) → <strong>ALERT</strong> (orange, action segera) → <strong>CRITICAL</strong> (red, shutdown). Tiap tier punya threshold sendiri: \(T_{\text{warn}}\) &lt; \(T_{\text{alert}}\) &lt; \(T_{\text{critical}}\). Aksi berbeda: warning → log + notification email; alert → SMS ke supervisor; critical → auto-shutdown + page on-call engineer. Memetakan ke ISO 10816: A (no alarm), B (warning), C (alert), D (critical).</p>
       <div class="formula">\(T_{warn} < T_{alert} < T_{\text{crit}}\)</div>
     </div>
     <div class="card">
@@ -1166,7 +1166,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
   <div class="info-box reveal">
     <strong>Contoh Konkret — Hysteresis Mencegah Chattering:</strong><br>
-    Mesin dengan RMS = 2.79 mm/s (di sekitar T_warn = 2.8). Tanpa hysteresis: noise ±0.05 mm/s membuat status flicker Zone A ↔ B setiap 100 ms — 600 alert/menit, operator gila. Dengan hysteresis (T_warn_on = 2.8, T_warn_off = 2.6): status pindah ke "warning" hanya jika RMS &gt; 2.8, dan kembali ke "normal" hanya jika RMS turun &lt; 2.6. Margin 0.2 mm/s &gt;&gt; noise 0.05 → tidak ada chattering. Hasil: alert hanya pada transition genuine, bukan noise.
+    Mesin dengan RMS = 2.79 mm/s (di sekitar \(T_{\text{warn}}\) = 2.8). Tanpa hysteresis: noise ±0.05 mm/s membuat status flicker Zone A ↔ B setiap 100 ms — 600 alert/menit, operator gila. Dengan hysteresis (\(T_{\text{warn}}\)_on = 2.8, \(T_{\text{warn}}\)_off = 2.6): status pindah ke "warning" hanya jika RMS &gt; 2.8, dan kembali ke "normal" hanya jika RMS turun &lt; 2.6. Margin 0.2 mm/s &gt;&gt; noise 0.05 → tidak ada chattering. Hasil: alert hanya pada transition genuine, bukan noise.
   </div>
 
   <div class="tip-box reveal">
@@ -1188,7 +1188,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <div class="section" id="m-resonashi">
   <div class="section-label reveal">Bagian 04</div>
   <h2 class="section-title reveal">Sensor Selection &amp; Akuisisi Data:<br>Hardware Foundation Monitoring System</h2>
-  <p class="section-desc reveal">Sebelum threshold detection bisa bekerja, harus ada <strong>data sensor berkualitas</strong> yang masuk ke sistem. Pilihan sensor yang salah, sampling rate kurang, atau wiring yang noisy = garbage in, garbage out. Pertemuan ini bahas <em>fondasi hardware monitoring</em>: <strong>jenis sensor</strong> (accelerometer piezoelectric/MEMS untuk vibrasi, RTD/thermocouple untuk suhu, current transformer untuk motor, flow/pressure transmitter), <strong>sampling rate</strong> (Nyquist criterion: f_s ≥ 2 × f_max signal), <strong>DAQ hardware</strong> (NI USB-6009 industrial-grade, Arduino + MPU6050 entry-level lab, Raspberry Pi + ADS1115 mid-range), <strong>signal conditioning</strong> (charge amplifier, anti-aliasing filter, ADC resolution 12–24 bit), dan <strong>protokol komunikasi</strong> (Modbus RTU/TCP, OPC UA, MQTT, RS-485). Pemilihan harus match dengan <em>karakteristik mesin</em> (frekuensi vibrasi dominan), <em>environment</em> (suhu, kelembaban, EMI), dan <em>budget</em>.</p>
+  <p class="section-desc reveal">Sebelum threshold detection bisa bekerja, harus ada <strong>data sensor berkualitas</strong> yang masuk ke sistem. Pilihan sensor yang salah, sampling rate kurang, atau wiring yang noisy = garbage in, garbage out. Pertemuan ini bahas <em>fondasi hardware monitoring</em>: <strong>jenis sensor</strong> (accelerometer piezoelectric/MEMS untuk vibrasi, RTD/thermocouple untuk suhu, current transformer untuk motor, flow/pressure transmitter), <strong>sampling rate</strong> (Nyquist criterion: \(f_s\) ≥ 2 × \(f_{\text{max}}\) signal), <strong>DAQ hardware</strong> (NI USB-6009 industrial-grade, Arduino + MPU6050 entry-level lab, Raspberry Pi + ADS1115 mid-range), <strong>signal conditioning</strong> (charge amplifier, anti-aliasing filter, ADC resolution 12–24 bit), dan <strong>protokol komunikasi</strong> (Modbus RTU/TCP, OPC UA, MQTT, RS-485). Pemilihan harus match dengan <em>karakteristik mesin</em> (frekuensi vibrasi dominan), <em>environment</em> (suhu, kelembaban, EMI), dan <em>budget</em>.</p>
 
   <div class="formula-block reveal">
     <div class="label">Enam Komponen Akuisisi Data Industrial</div>
@@ -1217,7 +1217,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <div class="card">
       <div class="card-icon">📊</div>
       <h3>Sampling Rate: Nyquist Criterion</h3>
-      <p>Aturan emas: <strong>\(f_{sampling} \ge 2 \times f_{\text{max}}\)</strong> (Shannon-Nyquist 1949). Untuk capture vibrasi sampai 1 kHz, butuh f_s ≥ 2 kHz (industri pakai f_s = 5 kHz untuk margin). <strong>Aliasing</strong>: kalau signal di atas Nyquist, frekuensi tinggi "lipat balik" jadi frekuensi rendah palsu — interpretasi salah. Solusi: <strong>anti-aliasing filter</strong> (low-pass analog, cutoff f_max) sebelum ADC. <em>Best practice</em>: f_s = 2.5–5 × f_max signal. Untuk ISO 10816 (10 Hz – 1 kHz), f_s = 2500–5000 Hz cukup.</p>
+      <p>Aturan emas: <strong>\(f_{sampling} \ge 2 \times f_{\text{max}}\)</strong> (Shannon-Nyquist 1949). Untuk capture vibrasi sampai 1 kHz, butuh \(f_s\) ≥ 2 kHz (industri pakai \(f_s\) = 5 kHz untuk margin). <strong>Aliasing</strong>: kalau signal di atas Nyquist, frekuensi tinggi "lipat balik" jadi frekuensi rendah palsu — interpretasi salah. Solusi: <strong>anti-aliasing filter</strong> (low-pass analog, cutoff \(f_{\text{max}}\)) sebelum ADC. <em>Best practice</em>: \(f_s\) = 2.5–5 × \(f_{\text{max}}\) signal. Untuk ISO 10816 (10 Hz – 1 kHz), \(f_s\) = 2500–5000 Hz cukup.</p>
       <div class="formula">\(f_s \ge 2 \times f_{\text{max}}\)</div>
     </div>
     <div class="card">
@@ -1251,7 +1251,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
   <div class="info-box reveal">
     <strong>Contoh Konkret — Setup DAQ untuk Lab Fan Imbalance Detection:</strong><br>
-    Hardware list: (1) <em>Fan blower</em> 12 cm × 24V 5W (~Rp 100K) di lab. (2) <em>Sensor</em>: MPU6050 IMU (3-axis accel + 3-axis gyro, Rp 30K). (3) <em>Microcontroller</em>: Arduino Uno (Rp 150K) atau ESP32 (Rp 80K, WiFi). (4) <em>Power</em>: USB 5V dari laptop. (5) <em>Wiring</em>: I2C 4-wire (VCC, GND, SDA, SCL) ~30 cm. <strong>Sampling</strong>: f_s = 200 Hz (range vibrasi fan 0–100 Hz, Nyquist OK). <strong>Software</strong>: Arduino sketch baca MPU6050 register tiap 5 ms, kirim via Serial USB ke Python <code>pyserial</code>. <strong>Akuisisi 60 detik</strong> baseline (balanced) + 60 detik dengan tape coin di blade (imbalanced) → 2 dataset CSV @ 12,000 sample. <strong>Total cost</strong>: ~Rp 300K untuk capstone-grade setup. Real industrial pakai Bently Nevada @ Rp 50 juta+.
+    Hardware list: (1) <em>Fan blower</em> 12 cm × 24V 5W (~Rp 100K) di lab. (2) <em>Sensor</em>: MPU6050 IMU (3-axis accel + 3-axis gyro, Rp 30K). (3) <em>Microcontroller</em>: Arduino Uno (Rp 150K) atau ESP32 (Rp 80K, WiFi). (4) <em>Power</em>: USB 5V dari laptop. (5) <em>Wiring</em>: I2C 4-wire (VCC, GND, SDA, SCL) ~30 cm. <strong>Sampling</strong>: \(f_s\) = 200 Hz (range vibrasi fan 0–100 Hz, Nyquist OK). <strong>Software</strong>: Arduino sketch baca MPU6050 register tiap 5 ms, kirim via Serial USB ke Python <code>pyserial</code>. <strong>Akuisisi 60 detik</strong> baseline (balanced) + 60 detik dengan tape coin di blade (imbalanced) → 2 dataset CSV @ 12,000 sample. <strong>Total cost</strong>: ~Rp 300K untuk capstone-grade setup. Real industrial pakai Bently Nevada @ Rp 50 juta+.
   </div>
 
   <div class="tip-box reveal">
@@ -1312,7 +1312,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 06</div>
   <h2 class="section-title reveal">Animasi Interaktif<br>Visualisasi Sensor, Sampling, ISO 10816 &amp; Hysteresis</h2>
-  <p class="section-desc reveal">Lima animasi yang memvisualisasikan <strong>fondasi monitoring</strong>: (1) <em>Threshold + Hysteresis Schmitt Trigger</em> — chattering vs stable dengan dual-threshold T_on/T_off. (2) <em>ISO 10816 Zone Classification</em> — RMS velocity berkembang sepanjang lifetime mesin lewat zona A/B/C/D. (3) <em>Sensor Sampling &amp; Nyquist</em> — efek sampling rate ke kualitas signal recovery (under-sampling = aliasing, over-sampling = waste storage). (4) <em>Multi-Sensor Trace + DAQ Pipeline</em> — vibrasi + temperatur + arus motor di-akuisisi simultan, ditampilkan paralel sebagai input ke threshold detector. Tier alarm escalation dan FSM dibahas di animasi modul Pertemuan 13. Tujuan: membangun intuisi sebelum coding hardware setup &amp; threshold detector di Bagian 08.</p>
+  <p class="section-desc reveal">Lima animasi yang memvisualisasikan <strong>fondasi monitoring</strong>: (1) <em>Threshold + Hysteresis Schmitt Trigger</em> — chattering vs stable dengan dual-threshold \(T_{\text{on}}\)/T_off. (2) <em>ISO 10816 Zone Classification</em> — RMS velocity berkembang sepanjang lifetime mesin lewat zona A/B/C/D. (3) <em>Sensor Sampling &amp; Nyquist</em> — efek sampling rate ke kualitas signal recovery (under-sampling = aliasing, over-sampling = waste storage). (4) <em>Multi-Sensor Trace + DAQ Pipeline</em> — vibrasi + temperatur + arus motor di-akuisisi simultan, ditampilkan paralel sebagai input ke threshold detector. Tier alarm escalation dan FSM dibahas di animasi modul Pertemuan 13. Tujuan: membangun intuisi sebelum coding hardware setup &amp; threshold detector di Bagian 08.</p>
 
   <!-- Animasi 1: Threshold vs Hysteresis (Chattering Demo) -->
   <div class="anim-panel reveal">
@@ -1378,19 +1378,19 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <canvas id="cvIso" height="320"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Sinyal Freq f_signal (Hz) — <span class="ctrl-val" id="v_ri">5</span></label>
+          <label>Sinyal Freq \(f_{\text{signal}}\) (Hz) — <span class="ctrl-val" id="v_ri">5</span></label>
           <input type="range" id="sl_ri" min="1" max="20" step="0.5" value="5">
         </div>
         <div class="ctrl-group">
-          <label>Sample Rate f_s (Hz) — <span class="ctrl-val" id="v_zi">25</span></label>
+          <label>Sample Rate \(f_s\) (Hz) — <span class="ctrl-val" id="v_zi">25</span></label>
           <input type="range" id="sl_zi" min="5" max="100" step="1" value="25">
         </div>
         <button class="btn-anim" id="btnIso" onclick="toggleIso()">⏸ PAUSE</button>
       </div>
       <div id="isoInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Top = sinyal asli (continuous, ground truth). Mid = sample digital (titik diskrit) pada sampling rate f_s tertentu. Bottom = sinyal hasil reconstruct dari sample. Slider kontrol sampling frequency f_s relatif terhadap f_max sinyal.<br>
-        <strong>Coba:</strong> (1) f_s &lt; f_max → <em>aliasing</em>: sample tidak cukup, sinyal recovered punya frekuensi salah (lipat balik). (2) f_s = 2 × f_max → <strong>Nyquist limit</strong>, batas teoritis recovery. (3) f_s = 5 × f_max → <em>oversampling</em>, recovery sempurna, margin aman terhadap noise. Pelajaran: <strong>aturan emas \(f_s \ge 2.5\;\text{--}\;5 \times f_{\text{max}}\)</strong> + anti-aliasing filter analog sebelum ADC. Untuk ISO 10816 (10 Hz – 1 kHz), pakai f_s = 2500–5000 Hz.
+        <strong>📊 Cara Membaca:</strong> Top = sinyal asli (continuous, ground truth). Mid = sample digital (titik diskrit) pada sampling rate \(f_s\) tertentu. Bottom = sinyal hasil reconstruct dari sample. Slider kontrol sampling frequency \(f_s\) relatif terhadap \(f_{\text{max}}\) sinyal.<br>
+        <strong>Coba:</strong> (1) \(f_s\) &lt; \(f_{\text{max}}\) → <em>aliasing</em>: sample tidak cukup, sinyal recovered punya frekuensi salah (lipat balik). (2) \(f_s\) = 2 × \(f_{\text{max}}\) → <strong>Nyquist limit</strong>, batas teoritis recovery. (3) \(f_s\) = 5 × \(f_{\text{max}}\) → <em>oversampling</em>, recovery sempurna, margin aman terhadap noise. Pelajaran: <strong>aturan emas \(f_s \ge 2.5\;\text{--}\;5 \times f_{\text{max}}\)</strong> + anti-aliasing filter analog sebelum ADC. Untuk ISO 10816 (10 Hz – 1 kHz), pakai \(f_s\) = 2500–5000 Hz.
       </div>
     </div>
   </div>
@@ -1500,7 +1500,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 <div class="section" id="m-jupyter">
   <div class="section-label reveal">Bagian 08</div>
   <h2 class="section-title reveal">Implementasi Python<br>Rule-Based Monitoring di Jupyter Notebook</h2>
-  <p class="section-desc reveal">Empat cell berikut membangun sistem rule-based monitoring lengkap: Cell 1 implementasi <strong>ISO 10816 zone classification</strong> + threshold check pada streaming sinyal RMS sintetis. Cell 2 implementasi <strong>HysteresisAlarm class</strong> dengan dual threshold (T_on/T_off) dan demonstrasi anti-chattering. Cell 3 implementasi <strong>finite state machine (FSM)</strong> lengkap dengan debouncing N consecutive samples, tier alarm (warning/alert/critical), audit log CSV. Cell 4 mendefinisikan <strong>fungsi <code>run_monitoring_pipeline()</code></strong> reusable end-to-end: input sinyal time series, output state history + alert events + dashboard visualization (matplotlib).</p>
+  <p class="section-desc reveal">Empat cell berikut membangun sistem rule-based monitoring lengkap: Cell 1 implementasi <strong>ISO 10816 zone classification</strong> + threshold check pada streaming sinyal RMS sintetis. Cell 2 implementasi <strong>HysteresisAlarm class</strong> dengan dual threshold (\(T_{\text{on}}\)/T_off) dan demonstrasi anti-chattering. Cell 3 implementasi <strong>finite state machine (FSM)</strong> lengkap dengan debouncing N consecutive samples, tier alarm (warning/alert/critical), audit log CSV. Cell 4 mendefinisikan <strong>fungsi <code>run_monitoring_pipeline()</code></strong> reusable end-to-end: input sinyal time series, output state history + alert events + dashboard visualization (matplotlib).</p>
 
   <div class="info-box reveal">
     <strong>📓 Petunjuk Pengerjaan di Jupyter Notebook:</strong><br>
@@ -2186,7 +2186,7 @@ result = <span class="fn">run_monitoring_pipeline</span>(rms_demo, timestamps=ts
       </div>
       <div class="radio-group" id="rg-mc3">
         <div class="radio-option" onclick="selectMC('mc3',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Membuat threshold tunggal lebih ketat</div>
-        <div class="radio-option" onclick="selectMC('mc3',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Hindari <em>chattering</em> (alarm berflicker rapid) saat sinyal di sekitar threshold dengan menggunakan dua threshold: T_on (ke ON) &gt; T_off (ke OFF). Margin biasanya 5–15% dari setpoint</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Hindari <em>chattering</em> (alarm berflicker rapid) saat sinyal di sekitar threshold dengan menggunakan dua threshold: \(T_{\text{on}}\) (ke ON) &gt; \(T_{\text{off}}\) (ke OFF). Margin biasanya 5–15% dari setpoint</div>
         <div class="radio-option" onclick="selectMC('mc3',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Mengganti threshold dengan ML model</div>
         <div class="radio-option" onclick="selectMC('mc3',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Menambah jumlah sensor</div>
       </div>
@@ -2364,7 +2364,7 @@ import pandas as pd
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C2</div>
-        <div class="comp-q">Untuk threshold T_on = 2.8 dan margin hysteresis 0.2, hitung <strong>\(T_{\text{off}}\)</strong> (threshold untuk transition kembali ke OFF). Formula: <code>T_off = T_on - margin</code>. Print nilainya.</div>
+        <div class="comp-q">Untuk threshold \(T_{\text{on}}\) = 2.8 dan margin hysteresis 0.2, hitung <strong>\(T_{\text{off}}\)</strong> (threshold untuk transition kembali ke OFF). Formula: <code>T_off = T_on - margin</code>. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 T_off = T_on − margin. Sinyal harus turun di bawah T_off untuk kembali OFF, mencegah chattering di sekitar threshold. Substitusikan nilai dari soal.</div>
@@ -2483,7 +2483,7 @@ import pandas as pd
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C9</div>
-        <div class="comp-q"><strong>Hysteresis state simulation</strong>: dengan T_on = 2.8 dan T_off = 2.6, RMS sequence = [2.5, 2.7, 2.9, 2.7, 2.5, 2.7, 2.9]. Awal state OFF. Hitung <strong>jumlah transitions</strong> total. Print integer.</div>
+        <div class="comp-q"><strong>Hysteresis state simulation</strong>: dengan \(T_{\text{on}}\) = 2.8 dan \(T_{\text{off}}\) = 2.6, RMS sequence = [2.5, 2.7, 2.9, 2.7, 2.5, 2.7, 2.9]. Awal state OFF. Hitung <strong>jumlah transitions</strong> total. Print integer.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Telusuri sequence sample per sample: state berubah ke ON saat melewati T_on dan ke OFF saat turun di bawah T_off; hitung berapa kali state berubah.</div>
@@ -2527,7 +2527,7 @@ import pandas as pd
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C11</div>
-        <div class="comp-q"><strong>HysteresisAlarm Class — Anti-Chattering Demo</strong>: implementasi class HysteresisAlarm dengan T_on=2.8, T_off=2.6. Generate sinyal RMS noisy: <code>np.random.seed(42); rms = 2.7 + 0.15 * np.random.randn(500)</code>. Apply class ke seluruh sinyal. Print <strong>jumlah transitions</strong> (state change). Hysteresis bertujuan menekan jumlah transisi (anti-chattering) sehingga hasilnya relatif rendah.</div>
+        <div class="comp-q"><strong>HysteresisAlarm Class — Anti-Chattering Demo</strong>: implementasi class HysteresisAlarm dengan \(T_{\text{on}}\)=2.8, \(T_{\text{off}}\)=2.6. Generate sinyal RMS noisy: <code>np.random.seed(42); rms = 2.7 + 0.15 * np.random.randn(500)</code>. Apply class ke seluruh sinyal. Print <strong>jumlah transitions</strong> (state change). Hysteresis bertujuan menekan jumlah transisi (anti-chattering) sehingga hasilnya relatif rendah.</div>
         <div class="comp-pts">4 poin</div>
       </div>
       <div class="comp-hint">💡 Implementasikan class dengan dua threshold (T_on/T_off); margin hysteresis yang lebih besar dari std noise membuat jumlah transition kecil. Hitung berapa kali state berubah di seluruh sinyal.</div>
@@ -2734,21 +2734,21 @@ import pandas as pd
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Bearing SKF 23048 di mill stand: BPFO ≈ 4.2 × shaft frequency. Pada 1500 RPM = 25 Hz shaft → BPFO ≈ 105 Hz. Untuk diagnosa fault, kita butuh capture sampai 5th harmonic = 525 Hz. Per Nyquist criterion, f_sampling ≥ 2 × f_max = 1050 Hz minimum. Tetapi noise floor + anti-aliasing margin → industri pakai f_s = 5× margin. DAQ NI USB-6009 max 48 kHz total/4 channel = 12 kHz per channel. Dengan 24 channel pakai multiplexer 1 ms → max f_s ~10 kHz total (~400 Hz/channel kalau aksi serentak). Bagaimana pilih?</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Bearing SKF 23048 di mill stand: BPFO ≈ 4.2 × shaft frequency. Pada 1500 RPM = 25 Hz shaft → BPFO ≈ 105 Hz. Untuk diagnosa fault, kita butuh capture sampai 5th harmonic = 525 Hz. Per Nyquist criterion, \(f_{\text{sampling}}\) ≥ 2 × \(f_{\text{max}}\) = 1050 Hz minimum. Tetapi noise floor + anti-aliasing margin → industri pakai \(f_s\) = 5× margin. DAQ NI USB-6009 max 48 kHz total/4 channel = 12 kHz per channel. Dengan 24 channel pakai multiplexer 1 ms → max \(f_s\) ~10 kHz total (~400 Hz/channel kalau aksi serentak). Bagaimana pilih?</p>
         <div style="background:rgba(255,64,129,.04);border:1px solid rgba(255,64,129,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);margin-bottom:12px">
-          💬 <em>Petunjuk: trade-off antara <strong>signal completeness</strong> (high f_s capture all harmonics) vs <strong>data volume</strong> (24 channel × 5 kHz × 24 jam = 100M sample/hari = 400 MB/hari = 150 GB/tahun) vs <strong>cost</strong> (NI cDAQ multi-channel simultaneous Rp 50 jt vs USB-6009 Rp 5 jt). Strategi industri: <em>tiered sampling</em> — high f_s (5 kHz) untuk on-demand burst (5 detik tiap 1 jam = 25k sample), low f_s (10 Hz) untuk continuous trending RMS. Plus <strong>anti-aliasing filter analog low-pass</strong> sebelum ADC wajib.</em>
+          💬 <em>Petunjuk: trade-off antara <strong>signal completeness</strong> (high \(f_s\) capture all harmonics) vs <strong>data volume</strong> (24 channel × 5 kHz × 24 jam = 100M sample/hari = 400 MB/hari = 150 GB/tahun) vs <strong>cost</strong> (NI cDAQ multi-channel simultaneous Rp 50 jt vs USB-6009 Rp 5 jt). Strategi industri: <em>tiered sampling</em> — high \(f_s\) (5 kHz) untuk on-demand burst (5 detik tiap 1 jam = 25k sample), low \(f_s\) (10 Hz) untuk continuous trending RMS. Plus <strong>anti-aliasing filter analog low-pass</strong> sebelum ADC wajib.</em>
         </div>
 
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Strategi sampling paling efektif untuk constraint multi-channel + budget?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Pakai f_s = 1 Hz untuk semua (ultra-cheap), abaikan high frequency analysis</div>
-            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div><strong>Tiered sampling strategy</strong>: continuous low-rate (f_s = 10 Hz) untuk RMS trending + threshold check, plus burst high-rate (f_s = 5 kHz selama 5 detik tiap 1 jam) untuk FFT/envelope analysis on-demand. Pakai NI cDAQ-9171 + IEPE module 24-bit ADC simultaneous. Anti-aliasing filter analog 2 kHz low-pass wajib. Storage: ~150 GB/tahun, manageable di local NAS. Cost: Rp 50 jt one-time setup</div>
-            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Pakai f_s = 50 kHz untuk semua channel sepanjang waktu (overkill, miliaran sample/hari)</div>
-            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Pakai f_s = 100 Hz fixed (compromise, miss BPFO harmonic)</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Pakai \(f_s\) = 1 Hz untuk semua (ultra-cheap), abaikan high frequency analysis</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div><strong>Tiered sampling strategy</strong>: continuous low-rate (\(f_s\) = 10 Hz) untuk RMS trending + threshold check, plus burst high-rate (\(f_s\) = 5 kHz selama 5 detik tiap 1 jam) untuk FFT/envelope analysis on-demand. Pakai NI cDAQ-9171 + IEPE module 24-bit ADC simultaneous. Anti-aliasing filter analog 2 kHz low-pass wajib. Storage: ~150 GB/tahun, manageable di local NAS. Cost: Rp 50 jt one-time setup</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Pakai \(f_s\) = 50 kHz untuk semua channel sepanjang waktu (overkill, miliaran sample/hari)</div>
+            <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Pakai \(f_s\) = 100 Hz fixed (compromise, miss BPFO harmonic)</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Tepat! <strong>Tiered Sampling Strategy</strong> adalah industrial best practice. (1) <strong>\(Low-rate\) continuous \((f_s = 10 Hz)\)</strong>: hanya RMS calculation realtime, bandwidth tipis (10 Hz × 24 channel × 24 jam = 8.6M sample/hari = 35 MB/hari). Cukup untuk threshold check ISO 10816 + trend monitoring. (2) <strong>\(High-rate\) burst \((f_s = 5\) kHz, \(5\) detik tiap jam)</strong>: capture full spectrum untuk FFT analysis. Bandwidth: 5000 × 24 × 5 sec × 24 hr = 14.4M sample/hari = ~60 MB/hari. (3) <strong>Trigger-based capture</strong>: kalau RMS continuous mode threshold breach → trigger burst capture untuk diagnostic detail. (4) <strong>Anti-aliasing filter</strong>: analog 2 kHz Butterworth low-pass sebelum ADC — wajib untuk hindari aliasing high-freq noise. (5) <strong>Hardware</strong>: NI cDAQ-9174 chassis + 9234 IEPE module (4-channel × 51.2 kS/s simultaneous) Rp 50 jt = workhorse industrial setup. (6) <strong>Storage</strong>: TimescaleDB (continuous) + Parquet file (burst snapshots) di NAS Synology Rp 15 jt. <em>Pelajaran</em>: jangan over-engineer dengan 50 kHz semua waktu — bandwidth/storage/cost tidak proportional dengan diagnostic value yang didapat.</div>
-          <div class="p-fb w" id="fp2w">❌ Periksa kembali. f_s = 1 Hz miss BPFO 105 Hz total. f_s = 50 kHz overkill (10 GB/hari, storage problem). f_s = 100 Hz miss harmonic. Tiered = optimal balance.</div>
+          <div class="p-fb w" id="fp2w">❌ Periksa kembali. \(f_s\) = 1 Hz miss BPFO 105 Hz total. \(f_s\) = 50 kHz overkill (10 GB/hari, storage problem). \(f_s\) = 100 Hz miss harmonic. Tiered = optimal balance.</div>
         </div>
 
         <textarea class="fq-textarea" id="ans-fq2" placeholder="Tulis analisis sampling rate Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Hitung Nyquist requirement berdasarkan BPFO + harmonic. (2) Tiered sampling: continuous low-rate untuk trending + burst high-rate untuk diagnostic. (3) Anti-aliasing filter analog wajib. (4) Hardware NI cDAQ vs Arduino + ADS1115 — kapan pilih mana. (5) Storage strategy time-series database." oninput="checkForumReady()"></textarea>
@@ -2774,7 +2774,7 @@ import pandas as pd
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">Margin = 2–3× noise std</span>
         </div>
         <div style="background:rgba(0,224,158,.04);border:1px solid rgba(0,224,158,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);">
-          💬 <em>Tidak ada jawaban tunggal — yang dinilai pemahaman trade-off. Pertimbangan: (1) <strong>Margin = 2–3× noise std</strong> aturan industrial standar. Untuk noise std 0.15 mm/s → margin 0.3–0.45 mm/s. Pakai T_on = 4.5, T_off = 4.5 − 0.4 = 4.1 mm/s. Chattering hilang karena noise (0.15 mm/s) &lt; margin (0.4 mm/s). (2) <strong>Margin terlalu kecil (≤ noise)</strong>: chattering — alarm ON/OFF/ON/OFF. Operator marah, ignore alarm penting. (3) <strong>Margin terlalu besar (≥ 1 mm/s)</strong>: lambat respond ke recovery, jadi sinyal sehat lama dianggap masih alert. Plus miss subtle re-degradation. (4) <strong>Adaptive margin</strong>: rolling window noise estimation. Tiap 30 menit hitung std dari 30 menit data, set margin = 3× std current. Useful untuk environment yang noise level berubah (mis. cuaca, beban produksi). (5) <strong>Validation</strong>: monitor metric "transitions per hour" dan "time spent in transition" sebelum/sesudah set margin. Optimum saat transitions/hour ≤ 2 di steady-state. (6) <strong>Tier alarm + persistence timer</strong> di P13 melengkapi hysteresis untuk handle multi-tier escalation + auto re-evaluate.</em>
+          💬 <em>Tidak ada jawaban tunggal — yang dinilai pemahaman trade-off. Pertimbangan: (1) <strong>Margin = 2–3× noise std</strong> aturan industrial standar. Untuk noise std 0.15 mm/s → margin 0.3–0.45 mm/s. Pakai \(T_{\text{on}}\) = 4.5, \(T_{\text{off}}\) = 4.5 − 0.4 = 4.1 mm/s. Chattering hilang karena noise (0.15 mm/s) &lt; margin (0.4 mm/s). (2) <strong>Margin terlalu kecil (≤ noise)</strong>: chattering — alarm ON/OFF/ON/OFF. Operator marah, ignore alarm penting. (3) <strong>Margin terlalu besar (≥ 1 mm/s)</strong>: lambat respond ke recovery, jadi sinyal sehat lama dianggap masih alert. Plus miss subtle re-degradation. (4) <strong>Adaptive margin</strong>: rolling window noise estimation. Tiap 30 menit hitung std dari 30 menit data, set margin = 3× std current. Useful untuk environment yang noise level berubah (mis. cuaca, beban produksi). (5) <strong>Validation</strong>: monitor metric "transitions per hour" dan "time spent in transition" sebelum/sesudah set margin. Optimum saat transitions/hour ≤ 2 di steady-state. (6) <strong>Tier alarm + persistence timer</strong> di P13 melengkapi hysteresis untuk handle multi-tier escalation + auto re-evaluate.</em>
         </div>
 
         <textarea class="fq-textarea" id="ans-fq3" placeholder="Tulis analisis hysteresis margin tuning Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Hitung margin = 2–3× noise std. (2) Trade-off chattering (margin terlalu kecil) vs slow response (margin terlalu besar). (3) Adaptive margin via rolling window noise estimation. (4) Validation metric: transitions per hour. (5) Bagaimana hysteresis link ke tier alarm + persistence timer di Modul Pertemuan 13." oninput="checkForumReady()"></textarea>
