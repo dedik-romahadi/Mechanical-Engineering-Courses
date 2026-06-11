@@ -1,6 +1,6 @@
 # CLAUDE.md — Orientation untuk Sesi Baru
 
-Quick-start untuk Claude session di repo ini. **Untuk detail apa pun, rujuk ke `Pedoman-Modul.md` (7754 baris, v18+)** — ini cuma peta.
+Quick-start untuk Claude session di repo ini. **Untuk detail apa pun, rujuk ke `Pedoman-Modul.md` (7953 baris, v19)** — ini cuma peta.
 
 ---
 
@@ -13,6 +13,8 @@ LMS multi-course untuk **S1 Teknik Mesin Universitas Mercu Buana** (Dosen: Dedik
 | `Engineering-Mathematics/` | `math4` | Matematika 4 |
 | `Getaran-Mekanik/` | `getaran_mekanik` | Getaran |
 | `Optimalisasi-dan-Automasi/` | `optoauto` | Opto |
+
+> ⚠️ **Ejaan Optoauto (quirk on-disk — gampang salah saat scripting):** folder = `Optimalisasi-dan-Automasi/` (**Automasi**, huruf A) TAPI file asesmennya = `Asesmen-Optimalisasi-dan-Otomasi.json` (**Otomasi**, huruf O). Judul tampil "Optimalisasi & Otomasi", slug `optoauto`. Semua path/URL (`STUDENTS_JSON_URL`, dst.) pakai folder `Optimalisasi-dan-Automasi` — string `Optimization-Automation` **tidak pernah** dipakai di kode (itu salah ketik lama di Pedoman, sudah dikoreksi).
 
 ## Struktur per-course
 
