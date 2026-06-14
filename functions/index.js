@@ -1093,30 +1093,36 @@ exports.resetModulAttempts = onCall({ timeoutSeconds: 60 }, async (request) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// resetModulQuestion — admin callable, reset PRESISI per-NIM + per-soal.
+// resetModulQuestion — admin callable, reset PRESISI per-soal.
 //
-// Berbeda dengan resetModulAttempts (yang hapus SEMUA attempt 1 modul untuk
-// SEMUA mahasiswa), fungsi ini hanya reset soal tertentu untuk 1 mahasiswa.
-// Anti double-count: baca scoreDelta + marker dari attempt record, lalu:
+// Dua mode (ditentukan oleh field `nim`):
+//   • nim DIISI  → reset qIds untuk 1 mahasiswa tsb.
+//   • nim KOSONG → reset qIds untuk SEMUA mahasiswa yang punya attempt di modul
+//     ini (mis. kunci jawaban 1 soal salah → buka ulang utk seluruh kelas).
+//
+// Berbeda dgn resetModulAttempts (hapus SEMUA attempt 1 modul utk semua mhs),
+// fungsi ini hanya menyentuh qIds yang dipilih. Anti double-count: baca
+// scoreDelta + marker dari attempt record, lalu:
 //   1. Hapus Firestore attempt doc (unlock soal).
 //   2. RTDB: buang marker dari scoredQuestions + kurangi points sebesar scoreDelta.
 //   3. RTDB: hapus selections[qId] / codes[qId] (kebersihan).
 //
-// Setelah reset, mahasiswa bisa submit ulang → di-skor fresh dgn logic & kunci
-// jawaban terbaru, tanpa risiko poin lama nyangkut.
+// Setelah reset, mahasiswa bisa submit ulang → di-skor fresh dgn kunci terbaru.
 //
-// Request: { modulId, nim, qIds:[...], adminPwHash }
-// Response: { modulId, nim, perQuestion:[{qId, found, marker, scoreDelta}],
-//             pointsBefore, pointsAfter, markersRemoved }
+// Request: { modulId, nim?, qIds:[...], adminPwHash }   (nim kosong = semua mhs)
+// Response (single): { modulId, nim, allStudents:false, perQuestion, pointsBefore, pointsAfter, markersRemoved }
+// Response (all):    { modulId, allStudents:true, studentsScanned, studentsAffected, totalMarkersRemoved, perStudent }
 // ─────────────────────────────────────────────────────────────────────────────
-exports.resetModulQuestion = onCall({ timeoutSeconds: 60 }, async (request) => {
+exports.resetModulQuestion = onCall({ timeoutSeconds: 300 }, async (request) => {
   const { modulId, nim, qIds, adminPwHash } = request.data || {};
 
   if (!modulId || !MODUL_CONFIG[modulId]) {
     throw new HttpsError("invalid-argument", `modulId '${modulId}' tidak dikonfigurasi`);
   }
-  if (!nim || typeof nim !== "string" || !/^[0-9]{1,20}$/.test(nim)) {
-    throw new HttpsError("invalid-argument", "nim harus berupa angka (1-20 digit)");
+  // nim opsional — kosong/absent = reset untuk SEMUA mahasiswa (per-soal).
+  const allStudents = (nim === undefined || nim === null || String(nim).trim() === "");
+  if (!allStudents && !/^[0-9]{1,20}$/.test(String(nim))) {
+    throw new HttpsError("invalid-argument", "nim harus angka (1-20 digit), atau kosongkan untuk semua mahasiswa");
   }
   if (!Array.isArray(qIds) || qIds.length === 0) {
     throw new HttpsError("invalid-argument", "qIds harus array berisi minimal 1 qId");
@@ -1136,10 +1142,9 @@ exports.resetModulQuestion = onCall({ timeoutSeconds: 60 }, async (request) => {
   const cfg = MODUL_CONFIG[modulId];
   const fs = getFirestore();
   const rtdb = getDatabase();
-  const nimKey = sanitizeKey("mhs_" + nim);
 
-  try {
-    // ── 1) Baca + hapus attempt record tiap qId, kumpulkan marker + scoreDelta ──
+  // Reset qIds untuk satu mahasiswa (nimKey sudah ter-sanitize). Return ringkasan.
+  async function resetOne(nimKey) {
     const perQuestion = [];
     const markersToRemove = [];
     let totalScoreToSubtract = 0;
@@ -1160,51 +1165,79 @@ exports.resetModulQuestion = onCall({ timeoutSeconds: 60 }, async (request) => {
       perQuestion.push({ qId, found: true, marker, scoreDelta });
     }
 
-    // ── 2) RTDB transaction: buang marker dari scoredQuestions + koreksi points ──
     let pointsBefore = null;
     let pointsAfter = null;
     const vRef = rtdb.ref(`${cfg.dbPath}/${nimKey}`);
     await vRef.transaction((cur) => {
-      if (cur === null) return cur;   // visitor record tidak ada → tidak ada yg di-reset
+      if (cur === null) return cur;
       pointsBefore = cur.points || 0;
-
-      // Buang marker yang di-reset dari scoredQuestions CSV
       const scored = (cur.scoredQuestions || "").split(",").filter(Boolean);
       const removeSet = new Set(markersToRemove);
-      const kept = scored.filter((m) => !removeSet.has(m));
-      cur.scoredQuestions = kept.join(",");
-
-      // Kurangi points (clamp ≥ 0)
+      cur.scoredQuestions = scored.filter((m) => !removeSet.has(m)).join(",");
       cur.points = Math.max(0, (cur.points || 0) - totalScoreToSubtract);
       cur.pointTimestamp = new Date().toISOString();
-
-      // Hapus selections[qId] / codes[qId] supaya UI tidak tampilkan jawaban lama
       if (cur.selections) qIds.forEach((q) => { delete cur.selections[q]; });
       if (cur.codes) qIds.forEach((q) => { delete cur.codes[q]; });
-
-      // Reset flag consolation kalau points jadi 0 (biar bisa di-award lagi nanti
-      // kalau memang memenuhi threshold saat submit berikutnya).
       if ((cur.points || 0) === 0) cur.consolationAwarded = false;
-
       pointsAfter = cur.points;
       return cur;
     });
 
-    console.log("[resetModulQuestion]", modulId, nimKey,
-      "qIds:", qIds.join(","),
-      "markersRemoved:", markersToRemove.length,
-      "points:", pointsBefore, "→", pointsAfter);
+    return { perQuestion, markersRemoved: markersToRemove, pointsBefore, pointsAfter };
+  }
+
+  try {
+    // ── MODE 1: satu mahasiswa ──
+    if (!allStudents) {
+      const nimKey = sanitizeKey("mhs_" + String(nim));
+      const r = await resetOne(nimKey);
+      console.log("[resetModulQuestion] single", modulId, nimKey,
+        "qIds:", qIds.join(","), "markers:", r.markersRemoved.length,
+        "points:", r.pointsBefore, "→", r.pointsAfter);
+      return {
+        modulId, nim: String(nim), allStudents: false,
+        perQuestion: r.perQuestion,
+        pointsBefore: r.pointsBefore,
+        pointsAfter: r.pointsAfter,
+        markersRemoved: r.markersRemoved,
+      };
+    }
+
+    // ── MODE 2: SEMUA mahasiswa (nim kosong) ──
+    const studentRefs = await fs.collection(`modulAttempts/${modulId}/students`).listDocuments();
+    let studentsAffected = 0;
+    let totalMarkersRemoved = 0;
+    const perStudent = [];
+
+    for (const sref of studentRefs) {
+      const nimKey = sref.id;
+      const r = await resetOne(nimKey);
+      const removed = r.markersRemoved.length;
+      if (removed > 0) {
+        studentsAffected++;
+        totalMarkersRemoved += removed;
+        perStudent.push({
+          nimKey,
+          markersRemoved: removed,
+          pointsBefore: r.pointsBefore,
+          pointsAfter: r.pointsAfter,
+        });
+      }
+    }
+
+    console.log("[resetModulQuestion] ALL", modulId,
+      "qIds:", qIds.join(","), "scanned:", studentRefs.length,
+      "affected:", studentsAffected, "markers:", totalMarkersRemoved);
 
     return {
-      modulId,
-      nim,
-      perQuestion,
-      pointsBefore,
-      pointsAfter,
-      markersRemoved: markersToRemove,
+      modulId, allStudents: true,
+      studentsScanned: studentRefs.length,
+      studentsAffected,
+      totalMarkersRemoved,
+      perStudent,
     };
   } catch (e) {
-    console.error("[resetModulQuestion] FAILED", modulId, nimKey, e);
+    console.error("[resetModulQuestion] FAILED", modulId, allStudents ? "ALL" : nim, e);
     throw new HttpsError("internal", `Reset soal gagal: ${e.message || e}`);
   }
 });
