@@ -44,7 +44,7 @@
 <body>
 <div class="wrap">
   <h1>🔧 Reset Soal per Mahasiswa</h1>
-  <div class="sub">Admin-only. Reset presisi attempt 1 soal untuk 1 mahasiswa (anti double-count). Mahasiswa bisa submit ulang setelah di-reset.</div>
+  <div class="sub">Admin-only. Reset presisi 1+ soal untuk <b>1 mahasiswa</b> (isi NIM) atau <b>semua mahasiswa</b> (kosongkan NIM). Anti double-count; mahasiswa bisa submit ulang setelah di-reset.</div>
 
   <div class="warn">
     ⚠ Tool ini menghapus jawaban tersimpan & mengurangi poin sesuai soal yang dipilih. Pastikan NIM &amp; soal benar.
@@ -67,8 +67,9 @@
     </div>
     <div class="hint">modulId: <span id="modulId" style="color:var(--cyan)">getaran-mekanik-modul-8</span></div>
 
-    <label>NIM Mahasiswa</label>
-    <input id="nim" inputmode="numeric" placeholder="mis. 41323120009" autocomplete="off">
+    <label>NIM Mahasiswa <span style="color:var(--muted);font-weight:400">— kosongkan = SEMUA mahasiswa</span></label>
+    <input id="nim" inputmode="numeric" placeholder="mis. 41323120009 (kosong = semua)" autocomplete="off">
+    <div class="hint">Isi NIM untuk 1 mahasiswa, atau <b>biarkan kosong</b> untuk reset soal terpilih ke <b>semua mahasiswa</b>.</div>
 
     <label>Pilih Soal yang Direset</label>
     <div class="qchips" id="qchips"></div>
@@ -164,24 +165,43 @@ window.doReset = async function(){
   const nim = document.getElementById('nim').value.trim();
   const qIds = qManualEl.value.split(',').map(s=>s.trim()).filter(Boolean);
   const pw  = document.getElementById('pw').value;
+  const allStudents = (nim === '');
 
-  if(!/^[0-9]{1,20}$/.test(nim)){ showErr('NIM harus angka.'); return; }
+  if(!allStudents && !/^[0-9]{1,20}$/.test(nim)){ showErr('NIM harus angka, atau kosongkan untuk SEMUA mahasiswa.'); return; }
   if(qIds.length===0){ showErr('Pilih minimal 1 soal.'); return; }
   if(!pw){ showErr('Password admin wajib diisi.'); return; }
+  if(allStudents && !confirm(`Reset soal [${qIds.join(', ')}] di ${modulId} untuk SEMUA mahasiswa?\n\nIni menghapus jawaban & poin soal tsb untuk semua mahasiswa yang sudah mengerjakannya. Mereka harus submit ulang. Lanjutkan?`)){ return; }
 
   btn.disabled=true; btn.textContent='Memproses...';
   try{
     const adminPwHash = await sha256Hex(pw);
     const r = await resetModulQuestion({ modulId, nim, qIds, adminPwHash });
     const d = r.data;
-    let lines = [`✅ Reset selesai untuk NIM ${d.nim} — ${d.modulId}`,''];
-    lines.push(`Poin: ${d.pointsBefore} → ${d.pointsAfter}`);
-    lines.push(`Marker dihapus: ${d.markersRemoved.length}`,'');
-    lines.push('Detail per soal:');
-    d.perQuestion.forEach(q=>{
-      lines.push(`  ${q.qId.padEnd(5)} ${q.found?('reset (−'+q.scoreDelta+' poin, marker '+q.marker+')'):'tidak ada attempt (dilewati)'}`);
-    });
-    lines.push('','Mahasiswa sekarang bisa submit ulang soal tsb.');
+    let lines;
+    if(d.allStudents){
+      lines = [`✅ Reset SEMUA mahasiswa — ${d.modulId}`,''];
+      lines.push(`Soal direset: ${qIds.join(', ')}`);
+      lines.push(`Mahasiswa terdampak: ${d.studentsAffected} (dari ${d.studentsScanned} yang punya attempt di modul ini)`);
+      lines.push(`Total marker dihapus: ${d.totalMarkersRemoved}`,'');
+      if(d.perStudent && d.perStudent.length){
+        lines.push('Detail per mahasiswa:');
+        d.perStudent.forEach(s=>{
+          lines.push(`  ${String(s.nimKey).replace(/^mhs_/,'').padEnd(14)} −${s.markersRemoved} marker, poin ${s.pointsBefore}→${s.pointsAfter}`);
+        });
+      } else {
+        lines.push('(Tidak ada mahasiswa yang punya attempt untuk soal tsb — tidak ada yang di-reset.)');
+      }
+      lines.push('','Semua mahasiswa tsb sekarang bisa submit ulang soal ini.');
+    } else {
+      lines = [`✅ Reset selesai untuk NIM ${d.nim} — ${d.modulId}`,''];
+      lines.push(`Poin: ${d.pointsBefore} → ${d.pointsAfter}`);
+      lines.push(`Marker dihapus: ${d.markersRemoved.length}`,'');
+      lines.push('Detail per soal:');
+      d.perQuestion.forEach(q=>{
+        lines.push(`  ${q.qId.padEnd(5)} ${q.found?('reset (−'+q.scoreDelta+' poin, marker '+q.marker+')'):'tidak ada attempt (dilewati)'}`);
+      });
+      lines.push('','Mahasiswa sekarang bisa submit ulang soal tsb.');
+    }
     res.className='result ok'; res.style.display='block'; res.textContent=lines.join('\n');
   }catch(e){
     showErr('Gagal: '+(e.message||e)+(e.code?` [${e.code}]`:''));
