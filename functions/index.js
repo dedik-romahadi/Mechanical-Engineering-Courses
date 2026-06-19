@@ -1113,7 +1113,7 @@ exports.resetModulAttempts = onCall({ timeoutSeconds: 60 }, async (request) => {
 // Response (single): { modulId, nim, allStudents:false, perQuestion, pointsBefore, pointsAfter, markersRemoved }
 // Response (all):    { modulId, allStudents:true, studentsScanned, studentsAffected, totalMarkersRemoved, perStudent }
 // ─────────────────────────────────────────────────────────────────────────────
-exports.resetModulQuestion = onCall({ timeoutSeconds: 300 }, async (request) => {
+exports.resetModulQuestion = onCall({ timeoutSeconds: 300, memory: "512MiB" }, async (request) => {
   const { modulId, nim, qIds, adminPwHash } = request.data || {};
 
   if (!modulId || !MODUL_CONFIG[modulId]) {
@@ -1208,26 +1208,44 @@ exports.resetModulQuestion = onCall({ timeoutSeconds: 300 }, async (request) => 
     let studentsAffected = 0;
     let totalMarkersRemoved = 0;
     const perStudent = [];
+    const errors = [];
 
-    for (const sref of studentRefs) {
-      const nimKey = sref.id;
-      const r = await resetOne(nimKey);
-      const removed = r.markersRemoved.length;
-      if (removed > 0) {
-        studentsAffected++;
-        totalMarkersRemoved += removed;
-        perStudent.push({
-          nimKey,
-          markersRemoved: removed,
-          pointsBefore: r.pointsBefore,
-          pointsAfter: r.pointsAfter,
-        });
+    // Proses paralel ber-batch (concurrency terbatas) supaya selesai cepat dan
+    // tidak melewati timeout instance/callable untuk kelas besar — penyebab
+    // "internal" sebelumnya saat loop sekuensial terlalu lama. Tiap mahasiswa
+    // di-ISOLASI: satu record bermasalah tidak menggagalkan seluruh batch,
+    // melainkan dicatat di `errorsSample` agar selalu kelihatan.
+    const BATCH = 12;
+    for (let i = 0; i < studentRefs.length; i += BATCH) {
+      const slice = studentRefs.slice(i, i + BATCH);
+      const results = await Promise.all(slice.map(async (sref) => {
+        const nimKey = sref.id;
+        try {
+          return { nimKey, ok: true, r: await resetOne(nimKey) };
+        } catch (err) {
+          return { nimKey, ok: false, err: (err && err.message) ? err.message : String(err) };
+        }
+      }));
+      for (const res of results) {
+        if (!res.ok) { errors.push({ nimKey: res.nimKey, error: res.err }); continue; }
+        const removed = res.r.markersRemoved.length;
+        if (removed > 0) {
+          studentsAffected++;
+          totalMarkersRemoved += removed;
+          perStudent.push({
+            nimKey: res.nimKey,
+            markersRemoved: removed,
+            pointsBefore: res.r.pointsBefore,
+            pointsAfter: res.r.pointsAfter,
+          });
+        }
       }
     }
 
     console.log("[resetModulQuestion] ALL", modulId,
       "qIds:", qIds.join(","), "scanned:", studentRefs.length,
-      "affected:", studentsAffected, "markers:", totalMarkersRemoved);
+      "affected:", studentsAffected, "markers:", totalMarkersRemoved,
+      "errors:", errors.length);
 
     return {
       modulId, allStudents: true,
@@ -1235,6 +1253,8 @@ exports.resetModulQuestion = onCall({ timeoutSeconds: 300 }, async (request) => 
       studentsAffected,
       totalMarkersRemoved,
       perStudent,
+      studentsErrored: errors.length,
+      errorsSample: errors.slice(0, 5),
     };
   } catch (e) {
     console.error("[resetModulQuestion] FAILED", modulId, allStudents ? "ALL" : nim, e);

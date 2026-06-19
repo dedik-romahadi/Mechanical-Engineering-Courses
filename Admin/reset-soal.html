@@ -100,7 +100,8 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const functions = getFunctions(app, 'asia-southeast1');
-const resetModulQuestion = httpsCallable(functions, 'resetModulQuestion');
+// timeout 9 menit (default callable 70s terlalu pendek utk reset SEMUA mahasiswa).
+const resetModulQuestion = httpsCallable(functions, 'resetModulQuestion', { timeout: 540000 });
 
 // ── SHA-256 hex (untuk hash password admin sebelum kirim) ──
 async function sha256Hex(s){
@@ -190,6 +191,10 @@ window.doReset = async function(){
         });
       } else {
         lines.push('(Tidak ada mahasiswa yang punya attempt untuk soal tsb — tidak ada yang di-reset.)');
+      }
+      if(d.studentsErrored){
+        lines.push('', `⚠ ${d.studentsErrored} mahasiswa gagal diproses (dilewati, sisanya tetap di-reset):`);
+        (d.errorsSample||[]).forEach(e=>lines.push(`  ${String(e.nimKey).replace(/^mhs_/,'')}: ${e.error}`));
       }
       lines.push('','Semua mahasiswa tsb sekarang bisa submit ulang soal ini.');
     } else {
