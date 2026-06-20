@@ -1502,22 +1502,24 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     signalType = s;
     document.querySelectorAll('[id^="btn-m11-"]').forEach(b => b.style.opacity = '0.6');
     document.getElementById('btn-m11-' + s).style.opacity = '1';
+    draw();
   };
   document.getElementById('btn-m11-0').style.opacity = '1';
-  function genSignal(N, type, t0) {
+  // Frekuensi TETAP per preset, dinyatakan sebagai jumlah siklus per window
+  // (256 sampel) supaya gelombang time-domain tampak jelas — bukan garis.
+  function genSignal(N, type) {
     const x = new Array(N);
     for (let i = 0; i < N; i++) {
-      const t = (i + t0) / N * 0.5; // window time
+      const p = i / N;            // 0..1 sepanjang window (fase tetap)
       let v;
-      if (type === 0) v = Math.sin(2*Math.PI*50*t/100);
-      else if (type === 1) v = Math.sin(2*Math.PI*30*t/100) + 0.5*Math.sin(2*Math.PI*70*t/100) + 0.3*Math.sin(2*Math.PI*110*t/100);
-      else if (type === 2) {
-        // Square wave Fourier sum
+      if (type === 0) v = Math.sin(2*Math.PI*8*p);                       // single tone (8 siklus)
+      else if (type === 1) v = Math.sin(2*Math.PI*5*p) + 0.5*Math.sin(2*Math.PI*12*p) + 0.3*Math.sin(2*Math.PI*20*p); // 3 komponen
+      else if (type === 2) {      // Square wave = jumlah harmonik ganjil (fundamental 5 siklus)
         v = 0;
-        for (let k = 1; k <= 7; k += 2) v += Math.sin(2*Math.PI*30*k*t/100) / k;
+        for (let k = 1; k <= 7; k += 2) v += Math.sin(2*Math.PI*5*k*p) / k;
         v *= 4/Math.PI;
-      } else {
-        v = Math.sin(2*Math.PI*50*t/100) + 0.5*(Math.random() - 0.5) * 2;
+      } else {                    // Noisy: tone 8 siklus + noise putih
+        v = Math.sin(2*Math.PI*8*p) + 0.4*(Math.random() - 0.5) * 2;
       }
       x[i] = v;
     }
@@ -1537,13 +1539,11 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     }
     return mag;
   }
-  let t0 = 0;
   function draw() {
-    t0 += 0.5;
     const W = cv.width = cv.clientWidth;
     const H = cv.height;
     ctx.clearRect(0, 0, W, H);
-    const x = genSignal(N, signalType, t0);
+    const x = genSignal(N, signalType);
     const mag = dft(x);
     // Top: time waveform
     ctx.strokeStyle = '#0ea5e9';
@@ -1574,9 +1574,9 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     }
     ctx.fillStyle = '#94a3b8';
     ctx.fillText('Frequency spectrum |X(f)|', 20, H * 0.55 + 10);
-    requestAnimationFrame(draw);
   }
   draw();
+  window.addEventListener('resize', draw);
 })();
 </script>
 
