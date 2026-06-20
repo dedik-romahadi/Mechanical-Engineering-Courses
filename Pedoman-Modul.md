@@ -8,6 +8,8 @@
 >
 > **Diperbarui:** April 2026 (v7) — mencerminkan refactor Modul-4 (countdown circular, palet per-tab, hero animation per-tab, scoring rule lengkap, Firebase Security Rules, blokir akses di luar jadwal, **sistem PIN 6-digit untuk mahasiswa**, **password admin ter-hash SHA-256**, **animasi login constellation + electric charges + lightning blasts**, **Dosen Login Modal dengan password masking**, **role-based visibility untuk tombol Reset** — tombol Atur Jadwal tetap visible sebagai bootstrap action, **scoring universal 50 poin** dengan 5 soal Komputasi Hard @4 poin, **partial credit +1 poin** untuk Hard yang salah, **status label butuh poin** — Tepat Waktu/Terlambat hanya diberikan jika mahasiswa memperoleh poin > 0 (akses tanpa poin = Belum), **Bolos diperluas** — mencakup juga mahasiswa yang akses tapi 0 poin saat jadwal sudah berakhir, **PIN global lintas-course** — satu PIN per mahasiswa yang berlaku di SEMUA mata kuliah dan modul, disimpan di node `pins/mhs_<NIM>` terpisah dari visitor records sehingga reset modul tidak menghapus PIN).
 >
+> **v20 (Juni 2026) — Content fixes + KaTeX/Animasi/Export anti-patterns:** Sesi perbaikan konten + pelajaran reusable. **Answer-key fixes:** blok MC modal-analysis ter-copy salah ke Getaran Modul-10..14 → di-derive ulang per modul dari soal HTML; 75 penjelasan Comp (reveal) Getaran 10–14 yang masih boilerplate DMF ditulis ulang; 3 kunci numerik salah diperbaiki (modul-10 c2 Den Hartog pangkat-tiga `√(3μ/(8(1+μ)³))`, c5, modul-11 c7 = peak FFT tertinggi KEDUA) + 2 soal rapuh dibenahi (modul-12 c13 raw-vs-excess kurtosis, modul-13 c9 cepstrum) — tiap kunci numerik diverifikasi compute (numpy/scipy). **resetModulQuestion all-students mode di-hardening** (512MiB, loop paralel ber-batch, isolasi per-mahasiswa `studentsErrored`/`errorsSample`, client `httpsCallable` timeout 540s); gejala lama `❌ internal` polos = instance mati pada loop sekuensial. **Anti-pattern baru §25.12–25.16:** (1) KaTeX `\(...\)` TIDAK render di `<option>` maupun teks JS yang di-`innerHTML` setelah `renderMathInElement` (info-div per-frame) → Unicode super/subscript; (2) `ℒ⁻^1{...}` (Unicode `⁻`+`^1`) = KaTeX \"Double superscript\" → `\mathcal{L}^{-1}\{...\}`; (3) slider animasi mati karena `addEventListener('input', ()=>{})` kosong + variabel slider ter-normalisasi keluar dari skala plot; (4) export judul section tak tampak karena ikon emoji render apa-adanya tapi teks judul tak diberi `color`. Callable table §38.7 + §20 di-update. PR references: #401–#409.
+>
 > **v19 (Juni 2026) — Role picker + Penalty 0.7 + Schedule defaults:** §39 BARU — login Modul + Exam pakai **role chooser overlay** duluan (`roleChooserOverlay` z-index 100002), bukan branch-by-name. Mahasiswa form **NIM + PIN inline** (no Nama input — auto-lookup dari `masterStudents`); listener `vNama` HARUS dihapus atau TypeError blok semua handler downstream. Dosen modal streamline: tombol "Atur Jadwal" inline, 1× password input + 1× klik "Simpan Jadwal & Masuk" sekaligus login. Animasi `initLoginAnimation(canvasId, particlesId)` refactor dari IIFE → function dipanggil 3× untuk picker+visitor+dosen. **WIB timezone enforcement global** (`timeZone:'Asia/Jakarta'` di semua `toLocale*`); exam pakai helper `_nowPlusMinAsWibString`/`_wibStringToDate` utk `<input type=datetime-local>`. **Schedule defaults baru**: Modul 7 hari + due +6 hari 23:59 WIB; Exam 180 menit + due +180m WIB + extension 120 menit. **Penalti terlambat 0.8 → 0.7 (20% → 30%)** untuk semua asesmen — `_getLateMultiplier() return 0.7` (PR #284); §9.2, §9.5.5, §15.4a + tabel poin (50×0.7=**35 poin** maks) sudah di-update. §38.7 callable table diperluas dengan `recomputeExamPoints`, `checkExamAnswer`, `resetExamAttempts`, `resetModulQuestion`, `rescaleModulLatePenalty`, `analyzeModulData`. §7.1–7.3 deprecated note — alur live ada di §39. CLAUDE.md baru di root utk orientasi sesi Claude. PR references: #370–#386 (login flow), #284 (penalty), #359–#363 (OBE scoring 1:1:2:4 mapping), #354 (recomputeExamPoints).
 >
 > **v18.5 (Mei 2026) — Phase 3 rollout Math UAS + COMPLETE 6/6:** Final exam migration. EXAM_CONFIG tambah entry `math4-uas`. Seed file `functions/seed/uas-math4-answers.js` (45 soal, 24 parametric, MC tidak shuffle). Client UAS.html full migration + hint compliance. Bonus latent bug fixes: (1) 15 comp entries pakai `question:` → renamed ke `text:` (mirror UAS Getaran/Optoauto bug); (2) wrap `${data.hint}` interpolation dgn conditional fallback (comp entries tidak punya hint); (3) **DIVERGENCE FIX di 2 soal Comp**: c2 (Inverse Operator) dan c7 (Partial Fraction) pakai `(N%4)+2` → a∈{2,3,4,5}; ketika a=b=5 menghasilkan 1/0=Infinity, server validation fail untuk 25% NIM. Fix: ubah ke `(N%3)+2` → a∈{2,3,4}, selalu well-defined. **MILESTONE**: Phase 3 rollout 6/6 exams selesai (Getaran UTS/UAS + Optoauto UTS/UAS + Math UTS/UAS). PR #241.
@@ -4835,6 +4837,56 @@ grep -n ",\\\\s\\*this\\\\s\\*,\\\\s\\*true" Modul-N.html
 # Harus muncul di blok _loadScoredQuestions untuk mc<N> dan mc<N>_mc_used.
 ```
 
+### 25.12 Bug Jun 2026 — KaTeX Tidak Render di `<option>` & Teks JS Dinamis
+
+**Gejala:** Persamaan di dropdown `<option>` (mis. "RC Integrator: \(V_{\text{out}}\)…") dan di info-panel bawah canvas animasi tampil **LaTeX mentah** (`\(V_{\text{out}}\)`, `e^(−as)`), tidak ter-render.
+
+**Root cause:** `renderMathInElement` (KaTeX auto-render) jalan **sekali** saat `DOMContentLoaded`. Dua konteks lolos: (1) **`<option>`/`<title>`/`placeholder`/atribut** hanya boleh berisi **teks polos** — browser tidak render child di dalamnya; (2) **teks yang di-`innerHTML` belakangan oleh JS** (mis. `infoEl.innerHTML=…` di-update tiap frame) — KaTeX sudah selesai jalan, `\(...\)` baru tak ikut. Re-render per-frame TIDAK boleh (mahal/flicker).
+
+**Solusi:** Di kedua konteks JANGAN pakai `\(...\)`. Pakai **Unicode** super/subscript: `ωₙ` (U+2099), `e⁻ᵃˢ` (U+207B U+1D43 U+02E2), `Vₒᵤₜ`/`Vᵢₙ`, `s²`. Eksponen dinamis tulis **simbolik** (`e⁻ᵃˢ`) + tampilkan nilainya terpisah (bukan `e^(−2.0s)`). Subscript `d` tak ada di Unicode → tulis `ωd`.
+
+**Anti-recurrence:** Audit `grep -nE '<option[^>]*>[^<]*\\\\\(' Modul-N.html` = 0. Checklist §25.8.
+
+### 25.13 Bug Jun 2026 — `ℒ⁻^1{…}` KaTeX "Double Superscript"
+
+**Gejala:** Invers Laplace `\(ℒ⁻^1{1/(s-a)} = e^{at}\)` (dan invers matriks `(\text{sI - A})⁻^1`) tidak ter-render — KaTeX (`throwOnError:false`) menampilkan sumber merah.
+
+**Root cause:** String memakai **Unicode superscript-minus `⁻` (U+207B)** lalu `^1`. KaTeX membaca `⁻` sebagai superscript, lalu `^1` = superscript kedua → error **"Double superscript"**. Unicode super/subscript TIDAK valid di math mode KaTeX.
+
+**Solusi:** Perintah KaTeX murni: `\mathcal{L}^{-1}\{1/(s-a)\}` (kurung operator pakai `\{ \}`), invers matriks `(sI - A)^{-1}`. Verifikasi: `node -e "require('katex').renderToString(expr,{throwOnError:true})"` sukses. Catatan: `L⁻¹{…}` di dalam `<code>` AMAN (teks biasa, bukan math).
+
+**Anti-recurrence:** Audit `grep -nF '⁻^' Modul-N.html` = 0 di dalam `\(...\)`.
+
+### 25.14 Bug Jun 2026 — Slider Animasi Mati + Variabel Ter-normalisasi
+
+**Gejala:** Slider animasi tak berefek saat digeser (mis. "Amplitudo K" Animasi 1 Math4 M11).
+
+**Root cause (2 lapis):** (1) **Listener kosong** `el.addEventListener('input', () => {})` → tak redraw saat animasi paused (saat play, loop rAF kebetulan baca slider tiap frame → "kelihatan jalan"). (2) **Variabel ter-normalisasi** keluar dari skala: plot membagi skala-y dengan variabel itu sendiri (`ty=y/(K*1.3)`, `yMax=K*0.5`) → tinggi grafik **identik untuk semua nilai** → slider terbaca tapi efeknya tak terlihat.
+
+**Solusi:** (1) `input` handler WAJIB redraw: `() => { if (!state.running) drawFn(); }` (guard `running` agar tak dobel rAF kalau `drawFn` self-schedule). (2) Pakai **skala TETAP** (`ty=y/3.3`, `yMax=1.5`) agar perubahan variabel terlihat.
+
+**Anti-recurrence:** Audit `grep -nE "addEventListener\('input', *\(\) *=> *\{\}\)" Modul-N.html` = 0. Checklist §25.8.
+
+### 25.15 Bug Jun 2026 — Answer Key MC Ketuker Antar-Modul (Mis-seed)
+
+**Gejala:** Mahasiswa lapor "jawaban PG yang benar tidak sesuai pilihan"; kunci MC Firestore tak cocok dengan soal yang tampil.
+
+**Root cause:** Saat membuat seed file modul baru via copy-paste, blok `const MC = [...]` dari modul lain (mis. modal-analysis Pertemuan 8–9) **ikut tercopy** tanpa di-update ke topik modul tujuan. Comp numerik ter-extract benar per-modul, tapi blok MC (jawaban + penjelasan) basi. Terjadi di Getaran Modul-10..14.
+
+**Solusi:** Derive ulang tiap jawaban MC dari **soal HTML modul itu** (`<div class="mc-q">` + opsi), verifikasi ke isi modul. Lalu **re-seed** `modulAnswers/<modulId>` (workflow `live_seed`) + **reset attempt** via `Admin/reset-soal.html` (qIds `mc1..mc10`, NIM kosong = semua). Urutan: **re-seed dulu, baru reset**.
+
+**Anti-recurrence:** Setelah copy seed file, audit tiap entri MC `answer`+`explain` cocok dengan soal (jangan percaya hasil extract). Soal hitung: verifikasi `answer` numerik dengan compute (numpy/scipy).
+
+### 25.16 Bug Jun 2026 — Bulk Callable "internal" Polos = Instance Mati
+
+**Gejala:** `Admin/reset-soal.html` mode "semua mahasiswa" (NIM kosong) gagal `❌ Gagal: internal [functions/internal]` — pesan polos tanpa detail.
+
+**Root cause:** firebase-functions v2/v6 meneruskan pesan `HttpsError("internal","<detail>")` ke client. Pesan **polos "internal"** (tanpa detail) ⇒ error **bukan** dari `try/catch` kita, melainkan **instance mati** (OOM / timeout / cold-start) di luar handler. Penyebab: loop reset **sekuensial** atas seluruh kelas di instance 256MiB melewati timeout callable client default **70 detik**.
+
+**Solusi (resetModulQuestion):** memory `256→512MiB`; loop all-students **paralel ber-batch** (concurrency 12); isolasi tiap mahasiswa `try/catch` → `studentsErrored`+`errorsSample` (tak gagal diam-diam); client `httpsCallable(..., { timeout: 540000 })`. Wajib **redeploy functions** (`deploy_functions=true`).
+
+**Anti-recurrence:** Callable yang loop atas banyak record HARUS parallel-batch + memory cukup + per-item isolasi + bump client timeout. Client lihat "internal" polos ⇒ curiga instance mati (cek Cloud Functions logs), bukan logika handler.
+
 ### 25.8 Audit Checklist — Wajib Sebelum Deploy Modul Baru
 
 Untuk mencegah ketiga bug di atas terulang, jalankan checklist berikut sebelum push modul baru ke produksi:
@@ -4900,6 +4952,13 @@ Untuk mencegah ketiga bug di atas terulang, jalankan checklist berikut sebelum p
 - [ ] **`renderVisitors`** membedakan state loading vs failure (`masterFetchDone` check)
 - [ ] **Saat HTML structural change** (replace section, remove element, ganti ID): audit semua JS `getElementById()` reference dengan `grep -rn "getElementById('<old_id>')"` (lihat §25.5)
 - [ ] **Cross-modul consistency:** Kalau update fungsi seperti `renderVisitors()`, lakukan di SEMUA modul, jangan hanya satu
+
+#### KaTeX, Animasi & Export (v20)
+- [ ] **Tidak ada `\(...\)` di `<option>`/`placeholder`/`<title>`** atau di string JS yang di-`innerHTML` belakangan → Unicode super/subscript (§25.12)
+- [ ] **Tidak ada `⁻^` di dalam `\(...\)`** — invers Laplace pakai `\mathcal{L}^{-1}\{...\}` (§25.13); verifikasi `katex.renderToString(...,{throwOnError:true})`
+- [ ] **Tiap slider animasi** punya `input` handler yang redraw (bukan `()=>{}`) DAN variabelnya terlihat efeknya (skala plot tidak menormalisasi variabel itu) (§25.14)
+- [ ] **Export: judul tiap section (Bagian A/B/C) punya `color` eksplisit** di `<span>` teks (ikon emoji render apa-adanya, teks tidak) (§25.14)
+- [ ] **Seed file baru:** tiap entri MC `answer`+`explain` cocok dengan soal modul ini (jangan percaya extract); kunci numerik diverifikasi compute (§25.15)
 
 #### Pyodide Package Auto-Load
 - [ ] `_ensurePythonPackages` regex match comma-separated imports: test `import numpy as np, pandas as pd` HARUS detect pandas (lihat §25.7)
@@ -7628,7 +7687,7 @@ Catatan: formula Excel asli (`IF(AND(J>=79.95, J<=100), "A", ...)`) punya gap ro
 | `recomputeExamPoints` | dosen (admin pw hash) | Batch recompute poin per soal exam dari mapping OBE_EXAM_CONFIG. Dipanggil dari `Admin/recompute-obe-score.html`. Dipakai saat bobot soal per tipe (1:1:2:4) berubah atau mapping Sub-CPMK direvisi. (BARU v19) |
 | `checkExamAnswer` | mahasiswa (PIN-gated) | Server-side validation jawaban UTS/UAS. Lookup answer key di Firestore `examAnswers/<examId>/qs/<qId>`, evaluate, write attempt ke `examAttempts` (idempotency), transaksi RTDB visitor (points + scoredQuestions). Lihat §27 + v18 changelog. |
 | `resetExamAttempts` | dosen (admin pw hash) | Hapus semua `examAttempts/<examId>/students/*` Firestore. Dipanggil sebagai bagian dari Reset Total di exam (sebelum hapus RTDB visitor). Lihat §20. |
-| `resetModulQuestion` | dosen (admin pw hash) | Clear attempt + score untuk **1 soal spesifik** (granular vs `resetModulAttempts` yang full-clear). Dipakai untuk kasus jawaban server salah / mid-correction. (BARU v19) |
+| `resetModulQuestion` | dosen (admin pw hash) | Clear attempt + score untuk **soal spesifik** (granular vs `resetModulAttempts`). **NIM diisi** = 1 mahasiswa; **NIM kosong** = SEMUA mahasiswa (loop paralel ber-batch, 512MiB, isolasi per-mhs `errorsSample`). Kasus jawaban server salah / mid-correction. (v19; all-students + hardening v20 — §25.16) |
 | `rescaleModulLatePenalty` | dosen (admin pw hash) | Ubah deadline modul + recompute poin terlambat utk SEMUA student. Dipakai saat dosen extend/shorten deadline retroaktif. UI di `Admin/rescale-deadline.html`. (BARU v19) |
 | `analyzeModulData` | dosen (admin pw hash) | Kumpulkan answer key + scoredQuestions per student → output JSON untuk re-run grading di browser (`Admin/analyze-victims.html`). Read-only, untuk audit. (BARU v19) |
 
