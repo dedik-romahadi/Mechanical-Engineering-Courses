@@ -8408,64 +8408,46 @@ function drawFreqComp(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const v = parseFloat(document.getElementById('sl_f2').value);
+  const f2 = parseFloat(document.getElementById('sl_f2').value);
   const valEl = document.getElementById('v_f2');
-  if(valEl) valEl.textContent = v.toFixed(2);
+  if(valEl) valEl.textContent = f2.toFixed(1);
 
-  // Generic visualization: vertical bars representing eigenvalues / spectrum / etc
-  const padL=50, padR=20, padT=30, padB=40;
-  const plotW = W-padL-padR, plotH = H-padT-padB;
-  ctx.strokeStyle = '#0d1929';
-  for(let i=0; i<=10; i++){
-    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+  // x(t) = sin(2π·f1·t) + sin(2π·f2·t); f1 tetap 5 Hz, f2 dari slider
+  const N = 256, fs = 256, df = fs/N, f1 = 5;   // df = 1 Hz/bin, Nyquist 128 Hz
+  const x = new Array(N);
+  for(let i=0;i<N;i++){ const t = i/fs; x[i] = Math.sin(2*Math.PI*f1*t) + Math.sin(2*Math.PI*f2*t); }
+  // DFT magnitude (N kecil → OK)
+  const mag = new Array(N/2);
+  for(let k=0;k<N/2;k++){ let re=0, im=0; for(let n=0;n<N;n++){ const a=-2*Math.PI*k*n/N; re+=x[n]*Math.cos(a); im+=x[n]*Math.sin(a); } mag[k]=Math.sqrt(re*re+im*im)/N*2; }
+
+  const AMBER = '#ffb300', x0 = 30, xW = W - 50;
+  // ── Top: time waveform ──
+  ctx.strokeStyle = AMBER; ctx.lineWidth = 2; ctx.beginPath();
+  for(let i=0;i<N;i++){ const px = i/N*xW + x0; const py = H*0.27 - x[i]*26; if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py); }
+  ctx.stroke();
+  ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono'; ctx.textAlign = 'left';
+  ctx.fillText('x(t) = sin(2π·5·t) + sin(2π·'+f2.toFixed(1)+'·t)', x0, 16);
+  // Divider
+  ctx.strokeStyle = 'rgba(148,163,184,.2)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0,H*0.5); ctx.lineTo(W,H*0.5); ctx.stroke();
+  // ── Bottom: FFT spectrum (0..FMAX Hz) ──
+  const FMAX = 64, kMax = Math.round(FMAX/df), baseY = H-26, specH = H*0.30, REF = 1.1;
+  for(let k=0;k<=kMax;k++){
+    const px = k/kMax*xW + x0;
+    const bar_h = Math.min(mag[k]/REF, 1)*specH;
+    const isPeak = Math.abs(k*df - f1) < 1 || Math.abs(k*df - f2) < 1;
+    ctx.fillStyle = isPeak ? AMBER : 'rgba(168,85,247,.55)';
+    ctx.fillRect(px, baseY-bar_h, Math.max(2, xW/kMax*0.7), bar_h);
   }
-  ctx.strokeStyle = 'rgba(255,255,255,.25)';
-  ctx.beginPath(); ctx.moveTo(padL, padT+plotH); ctx.lineTo(padL+plotW, padT+plotH); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
-
-  // Topic-specific drawing — generic eigenvalue/parameter plot
-  const N = Math.max(2, Math.min(20, Math.floor(v)));
-  const useBars = (N === Math.floor(N));
-  if(useBars){
-    // Bar plot for N components
-    const bw = plotW/(N+1);
-    for(let i=0; i<N; i++){
-      const idx = i+1;
-      const eigval = Math.sin(((2*idx-1)*Math.PI/(2*(2*N+1)))) * 2;  // shear-building eigenvalue formula
-      const bx = padL + (i+0.5)*bw;
-      const bh = (eigval/2.5)*plotH;
-      const grad = ctx.createLinearGradient(0, padT+plotH-bh, 0, padT+plotH);
-      grad.addColorStop(0, 'var(--amber)');
-      grad.addColorStop(1, 'var(--amber)40');
-      ctx.fillStyle = grad;
-      ctx.fillRect(bx-bw*0.35, padT+plotH-bh, bw*0.7, bh);
-      ctx.strokeStyle = 'var(--amber)';
-      ctx.strokeRect(bx-bw*0.35, padT+plotH-bh, bw*0.7, bh);
-      ctx.fillStyle = '#fff'; ctx.font = '9px JetBrains Mono'; ctx.textAlign = 'center';
-      ctx.fillText('ω'+(i+1), bx, padT+plotH+14);
-      ctx.fillText(eigval.toFixed(2), bx, padT+plotH-bh-5);
-    }
-  } else {
-    // Continuous curve
-    ctx.strokeStyle = 'var(--amber)'; ctx.lineWidth = 2.5;
-    ctx.shadowColor = 'var(--amber)A0'; ctx.shadowBlur = 6;
-    ctx.beginPath();
-    for(let i=0; i<=200; i++){
-      const x = padL + plotW*i/200;
-      const xv = i/200;
-      const y = padT + plotH - (0.5+0.4*Math.sin(xv*v*Math.PI*2))*plotH;
-      if(i===0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-  }
-
-  ctx.textAlign = 'left';
-  ctx.fillStyle = 'var(--amber)'; ctx.font = 'bold 12px JetBrains Mono';
-  ctx.fillText('Frekuensi f₂ (Hz) = '+v.toFixed(2), padL+10, padT+18);
+  // Sumbu frekuensi (Hz)
+  ctx.strokeStyle = 'rgba(148,163,184,.35)'; ctx.beginPath(); ctx.moveTo(x0,baseY); ctx.lineTo(x0+xW,baseY); ctx.stroke();
+  ctx.fillStyle = '#64748b'; ctx.font = '10px JetBrains Mono'; ctx.textAlign = 'center';
+  for(let f=0; f<=FMAX; f+=10){ const px = f/FMAX*xW + x0; ctx.beginPath(); ctx.moveTo(px,baseY); ctx.lineTo(px,baseY+4); ctx.stroke(); ctx.fillText(String(f), px, baseY+15); }
+  ctx.textAlign = 'right'; ctx.fillText('Hz', x0+xW, baseY+15);
+  ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'left';
+  ctx.fillText('FFT |X(f)| — 2 puncak: 5 Hz & '+f2.toFixed(1)+' Hz', x0, H*0.5+16);
 
   const info = document.getElementById('cvFreqComp_info');
-  if(info) info.innerHTML = `<strong>Frekuensi f₂ (Hz)</strong> = ${v.toFixed(2)} · Fourier/FFT parameter exploration`;
+  if(info) info.innerHTML = `<strong>f₂ = ${f2.toFixed(1)} Hz</strong> · x(t) = sin(2π·5·t) + sin(2π·${f2.toFixed(1)}·t) — puncak FFT kedua bergerak saat slider digeser.`;
 }
 setTimeout(drawFreqComp, 800+550);
 
