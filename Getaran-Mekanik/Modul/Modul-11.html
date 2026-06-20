@@ -8537,20 +8537,21 @@ setTimeout(_cvWindowTick, 850+550);
 // Animasi 4 — Animasi 4 — Sample Rate / Aliasing (Radio)
 // ════════════════════════════════════════════════════════════
 let _cvSampleRate_val = 'sr100';
-let _cvSampleRate_frame = 0;
 window.setSampleRate = function(v){
   _cvSampleRate_val = v;
   document.querySelectorAll('.sr-rlbl').forEach(lbl=>{
-    const lv=lbl.dataset.v; const active=(lv===v);
+    const active = (lbl.dataset.v === v);
     lbl.style.background = active?'rgba(255,255,255,.20)':'rgba(255,255,255,.04)';
     lbl.style.borderWidth = active?'2px':'1px';
-    lbl.style.color = active?'#fff':lbl.style.color;
     lbl.style.fontWeight = active?'700':'400';
     lbl.style.boxShadow = active?'0 0 12px rgba(255,255,255,.4)':'none';
     lbl.style.transform = active?'scale(1.05)':'scale(1.0)';
   });
+  drawSampleRate();
 };
 
+// Sinyal asli f0=12 Hz disampling pada fs terpilih; titik sampel di-connect →
+// menelusuri frekuensi ALIAS bila fs < 2·f0 (Nyquist).
 function drawSampleRate(){
   const cv = document.getElementById('cvSampleRate'); if(!cv) return;
   const W = cv.clientWidth; cv.width = W; const H = cv.height;
@@ -8559,64 +8560,58 @@ function drawSampleRate(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const opts = [('100 Hz (oversample)', '#0ea5e9', 'sr100'), ('50 Hz (Nyquist 25 Hz)', '#00e09e', 'sr50'), ('20 Hz (UNDERSAMPLE!)', '#ef4444', 'sr20'), ('10 Hz (severe alias)', '#a855f7', 'sr10')];
-  const optMap = {};
-  opts.forEach(o => { optMap[o[2]] = {label: o[0], color: o[1]}; });
-  const cur = optMap[_cvSampleRate_val] || optMap[opts[0][2]];
-  const t = _cvSampleRate_frame * 0.012;
+  const OPT = {
+    sr100: { fs:100, color:'#0ea5e9', label:'fs = 100 Hz (oversample)' },
+    sr50:  { fs:50,  color:'#00e09e', label:'fs = 50 Hz (Nyquist 25 Hz)' },
+    sr20:  { fs:20,  color:'#ef4444', label:'fs = 20 Hz (UNDERSAMPLE!)' },
+    sr10:  { fs:10,  color:'#a855f7', label:'fs = 10 Hz (severe alias)' }
+  };
+  const cur = OPT[_cvSampleRate_val] || OPT.sr100;
+  const f0 = 12, T = 0.5;
+  let fa = f0 % cur.fs; if (fa > cur.fs/2) fa = cur.fs - fa;   // alias terlipat ke [0, fs/2]
+  const aliased = cur.fs < 2*f0;
 
-  ctx.fillStyle = cur.color; ctx.font = 'bold 14px JetBrains Mono';
-  ctx.fillText(cur.label, 20, 30);
+  const x0 = 36, xW = W - 60, midY = H*0.54, ampY = H*0.30;
+  const tx = (tt) => x0 + (tt/T)*xW;
+  const ty = (val) => midY - val*ampY;
 
-  // Per-option visualization (frequency content)
-  const padL=50, padR=20, padT=50, padB=40;
-  const plotW = W-padL-padR, plotH = H-padT-padB;
-  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
-  for(let i=0; i<=10; i++){
-    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
-  }
-  ctx.strokeStyle = 'rgba(255,255,255,.25)';
-  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
-  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+  ctx.strokeStyle = 'rgba(148,163,184,.18)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(x0, midY); ctx.lineTo(x0+xW, midY); ctx.stroke();
 
-  // Map opt index → frequency multiplier
-  const optIdx = opts.findIndex(o => o[2] === _cvSampleRate_val);
-  const freqMult = (optIdx + 1) * 1.5;
-
-  ctx.strokeStyle = cur.color; ctx.lineWidth = 2.5;
-  ctx.shadowColor = cur.color + 'A0'; ctx.shadowBlur = 6;
-  ctx.beginPath();
-  for(let i=0; i<=200; i++){
-    const x = padL + plotW*i/200;
-    const tt = i/200;
-    const y = padT + plotH/2 - plotH*0.35*Math.sin(tt*freqMult*2*Math.PI + t);
-    if(i===0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  }
+  // sinyal asli 12 Hz (samar)
+  ctx.strokeStyle = 'rgba(148,163,184,.55)'; ctx.lineWidth = 1.4; ctx.beginPath();
+  for(let i=0;i<=400;i++){ const tt=i/400*T; const px=tx(tt), py=ty(Math.sin(2*Math.PI*f0*tt)); if(i===0)ctx.moveTo(px,py); else ctx.lineTo(px,py); }
   ctx.stroke();
-  ctx.shadowBlur = 0;
+
+  // titik sampel + garis penghubung (sinyal yang "terlihat")
+  const sx=[], sy=[]; const ns=Math.floor(T*cur.fs);
+  for(let n=0;n<=ns;n++){ const tt=n/cur.fs; sx.push(tx(tt)); sy.push(ty(Math.sin(2*Math.PI*f0*tt))); }
+  ctx.strokeStyle = cur.color; ctx.lineWidth = 2.4; ctx.beginPath();
+  for(let n=0;n<sx.length;n++){ if(n===0)ctx.moveTo(sx[n],sy[n]); else ctx.lineTo(sx[n],sy[n]); }
+  ctx.stroke();
+  ctx.fillStyle = cur.color;
+  for(let n=0;n<sx.length;n++){ ctx.beginPath(); ctx.arc(sx[n],sy[n],3.2,0,Math.PI*2); ctx.fill(); }
+
+  ctx.textAlign='left'; ctx.fillStyle = cur.color; ctx.font='bold 13px JetBrains Mono';
+  ctx.fillText(cur.label, x0, 22);
+  ctx.fillStyle='rgba(148,163,184,.85)'; ctx.font='11px JetBrains Mono';
+  ctx.fillText('garis abu = sinyal asli 12 Hz · titik = sampel', x0, 40);
 
   const info = document.getElementById('cvSampleRate_info');
-  if(info) info.innerHTML = `<strong style="color:${cur.color}">${cur.label}</strong> — freq multiplier: ${freqMult.toFixed(1)}×`;
+  if(info) info.innerHTML = aliased
+    ? `<strong style="color:${cur.color}">${cur.label}</strong> — 12 Hz ter-<strong>alias</strong> menjadi <strong>${fa} Hz</strong> (fs &lt; 2·12=24 Hz). Titik sampel menelusuri gelombang palsu ${fa} Hz.`
+    : `<strong style="color:${cur.color}">${cur.label}</strong> — fs ≥ 24 Hz, tidak ada alias: sampel menelusuri 12 Hz asli.`;
 }
-
-function _cvSampleRateTick(){
-  _cvSampleRate_frame++;
-  drawSampleRate();
-  requestAnimationFrame(_cvSampleRateTick);
-}
-setTimeout(_cvSampleRateTick, 900+550);
+setTimeout(drawSampleRate, 900+550);
 
 
 // ════════════════════════════════════════════════════════════
 // Animasi 5 — Animasi 5 — FFT Applications (Dropdown)
 // ════════════════════════════════════════════════════════════
 let _cvFFTApp_val = 'vibration';
-let _cvFFTApp_frame = 0;
-window.setFFTApp = function(v){
-  _cvFFTApp_val = v;
-};
+window.setFFTApp = function(v){ _cvFFTApp_val = v; drawFFTApp(); };
 
+// Tiap aplikasi FFT punya "sidik jari" spektrum berbeda (waktu di atas, FFT di bawah).
 function drawFFTApp(){
   const cv = document.getElementById('cvFFTApp'); if(!cv) return;
   const W = cv.clientWidth; cv.width = W; const H = cv.height;
@@ -8625,54 +8620,47 @@ function drawFFTApp(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const opts = [('vibration', '📈 Vibration analysis — fault frequency identification'), ('audio', '🎵 Audio compression (MP3, AAC) — psychoacoustic mask'), ('image', '📷 Image processing (JPEG DCT) — frequency-domain compression'), ('comm', '📡 Communications (OFDM, WiFi 802.11) — multi-carrier modulation')];
-  const idx = opts.findIndex(o => o[0] === _cvFFTApp_val);
-  const opt = opts[Math.max(0, idx)];
-  const t = _cvFFTApp_frame * 0.010;
+  const APPS = {
+    vibration: { color:'#0ea5e9', title:'📈 Vibration — puncak fault 1×/2×/3×',
+      comps:[[50,1.0],[100,0.55],[150,0.35],[200,0.20]] },
+    audio:     { color:'#00e09e', title:'🎵 Audio — fundamental + deret harmonik',
+      comps:[[40,1.0],[80,0.72],[120,0.55],[160,0.42],[200,0.32],[240,0.24],[280,0.18]] },
+    image:     { color:'#f59e0b', title:'📷 Image (DCT) — energi terpusat di frekuensi rendah',
+      comps:[[10,1.0],[20,0.72],[30,0.5],[45,0.33],[65,0.2],[95,0.11]] },
+    comm:      { color:'#a855f7', title:'📡 Comm (OFDM) — banyak sub-carrier sama tinggi',
+      comps:[[120,0.7],[140,0.7],[160,0.7],[180,0.7],[200,0.7],[220,0.7],[240,0.7],[260,0.7]] }
+  };
+  const app = APPS[_cvFFTApp_val] || APPS.vibration;
 
-  ctx.fillStyle = '#a855f7'; ctx.font = 'bold 13px JetBrains Mono';
-  ctx.fillText(opt[1], 20, 25);
+  const N = 256, fs = 640;   // Nyquist 320 Hz
+  const x = new Array(N).fill(0);
+  for(const c of app.comps){ const f=c[0], a=c[1]; for(let i=0;i<N;i++) x[i] += a*Math.sin(2*Math.PI*f*i/fs); }
+  let xmax = 1e-6; for(const v of x) xmax = Math.max(xmax, Math.abs(v));
 
-  // Generic visualization: animated waveform + index-dependent amplitude/frequency
-  const padL=50, padR=20, padT=45, padB=40;
-  const plotW = W-padL-padR, plotH = H-padT-padB;
-  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
-  for(let i=0; i<=10; i++){
-    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
-  }
-  ctx.strokeStyle = 'rgba(255,255,255,.25)';
-  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
-  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
-
-  const colors = ['#0ea5e9', '#00e09e', '#f97316', '#a855f7', '#ef4444', '#facc15'];
-  const color = colors[idx % colors.length];
-
-  ctx.strokeStyle = color; ctx.lineWidth = 2.5;
-  ctx.shadowColor = color + 'A0'; ctx.shadowBlur = 6;
-  ctx.beginPath();
-  for(let i=0; i<=200; i++){
-    const x = padL + plotW*i/200;
-    const tt = i/200;
-    // Composite signal varying per option
-    const f1 = (idx+1)*1.5;
-    const f2 = (idx+1)*2.5;
-    const y = padT + plotH/2 - plotH*0.35*(Math.sin(tt*f1*2*Math.PI + t)+0.4*Math.sin(tt*f2*2*Math.PI - t));
-    if(i===0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  }
+  const x0 = 30, xW = W - 50, FMAX = 320;
+  // ── Atas: gelombang waktu ──
+  ctx.strokeStyle = app.color; ctx.lineWidth = 1.8; ctx.beginPath();
+  for(let i=0;i<N;i++){ const px=i/N*xW+x0; const py=H*0.27 - (x[i]/xmax)*H*0.18; if(i===0)ctx.moveTo(px,py); else ctx.lineTo(px,py); }
   ctx.stroke();
-  ctx.shadowBlur = 0;
+  ctx.fillStyle = app.color; ctx.font = 'bold 12px JetBrains Mono'; ctx.textAlign='left';
+  ctx.fillText(app.title, x0, 18);
+  // pembatas
+  ctx.strokeStyle='rgba(148,163,184,.2)'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(0,H*0.5); ctx.lineTo(W,H*0.5); ctx.stroke();
+  // ── Bawah: spektrum (bar langsung dari komponen) ──
+  const baseY = H-26, specH = H*0.30;
+  ctx.strokeStyle='rgba(148,163,184,.35)'; ctx.beginPath(); ctx.moveTo(x0,baseY); ctx.lineTo(x0+xW,baseY); ctx.stroke();
+  ctx.fillStyle = app.color;
+  for(const c of app.comps){ const px = c[0]/FMAX*xW + x0; const bh = c[1]*specH; ctx.fillRect(px-3, baseY-bh, 6, bh); }
+  // sumbu frekuensi (Hz)
+  ctx.fillStyle='#64748b'; ctx.font='10px JetBrains Mono'; ctx.textAlign='center';
+  for(let f=0; f<=FMAX; f+=80){ const px=f/FMAX*xW+x0; ctx.beginPath(); ctx.moveTo(px,baseY); ctx.lineTo(px,baseY+4); ctx.stroke(); ctx.fillText(String(f), px, baseY+15); }
+  ctx.textAlign='right'; ctx.fillText('Hz', x0+xW, baseY+15);
+  ctx.fillStyle='#94a3b8'; ctx.textAlign='left'; ctx.fillText('FFT |X(f)|', x0, H*0.5+16);
 
   const info = document.getElementById('cvFFTApp_info');
-  if(info) info.innerHTML = `<strong style="color:${color}">${opt[1]}</strong>`;
+  if(info) info.innerHTML = `<strong style="color:${app.color}">${app.title}</strong>`;
 }
-
-function _cvFFTAppTick(){
-  _cvFFTApp_frame++;
-  drawFFTApp();
-  requestAnimationFrame(_cvFFTAppTick);
-}
-setTimeout(_cvFFTAppTick, 950+550);
+setTimeout(drawFFTApp, 950+550);
 
 
 // ── Pedoman §35: Click ripple effect untuk btn-export ──
