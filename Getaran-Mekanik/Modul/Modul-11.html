@@ -1497,29 +1497,30 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   if (!cv) return;
   const ctx = cv.getContext('2d');
   const N = 256;
+  const fs = 1280;            // Hz — df = fs/N = 5 Hz/bin, Nyquist 640 Hz
+  const df = fs / N;
   let signalType = 0;
   window._m11set = function(s) {
     signalType = s;
     document.querySelectorAll('[id^="btn-m11-"]').forEach(b => b.style.opacity = '0.6');
     document.getElementById('btn-m11-' + s).style.opacity = '1';
-    draw();
   };
   document.getElementById('btn-m11-0').style.opacity = '1';
-  // Frekuensi TETAP per preset, dinyatakan sebagai jumlah siklus per window
-  // (256 sampel) supaya gelombang time-domain tampak jelas — bukan garis.
+  // Frekuensi TETAP per preset (dalam Hz; fs=1280 → tepat di bin kelipatan 5 Hz)
+  // supaya gelombang time-domain tampak jelas — bukan garis.
   function genSignal(N, type) {
     const x = new Array(N);
     for (let i = 0; i < N; i++) {
-      const p = i / N;            // 0..1 sepanjang window (fase tetap)
+      const t = i / fs;           // detik (fase tetap)
       let v;
-      if (type === 0) v = Math.sin(2*Math.PI*8*p);                       // single tone (8 siklus)
-      else if (type === 1) v = Math.sin(2*Math.PI*5*p) + 0.5*Math.sin(2*Math.PI*12*p) + 0.3*Math.sin(2*Math.PI*20*p); // 3 komponen
-      else if (type === 2) {      // Square wave = jumlah harmonik ganjil (fundamental 5 siklus)
+      if (type === 0) v = Math.sin(2*Math.PI*50*t);                                                    // 50 Hz
+      else if (type === 1) v = Math.sin(2*Math.PI*50*t) + 0.6*Math.sin(2*Math.PI*90*t) + 0.4*Math.sin(2*Math.PI*130*t); // 50 + 90 + 130 Hz
+      else if (type === 2) {      // Square wave = jumlah harmonik ganjil (fundamental 50 Hz)
         v = 0;
-        for (let k = 1; k <= 7; k += 2) v += Math.sin(2*Math.PI*5*k*p) / k;
+        for (let k = 1; k <= 7; k += 2) v += Math.sin(2*Math.PI*50*k*t) / k;
         v *= 4/Math.PI;
-      } else {                    // Noisy: tone 8 siklus + noise putih
-        v = Math.sin(2*Math.PI*8*p) + 0.4*(Math.random() - 0.5) * 2;
+      } else {                    // Noisy: 50 Hz + noise putih
+        v = Math.sin(2*Math.PI*50*t) + 0.4*(Math.random() - 0.5) * 2;
       }
       x[i] = v;
     }
@@ -1539,13 +1540,17 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     }
     return mag;
   }
+  let phase = 0;
   function draw() {
+    phase += 0.04;
+    const amp = 0.55 + 0.45 * Math.sin(phase);   // amplitudo "hidup" 0.1..1.0 — frekuensi TETAP
     const W = cv.width = cv.clientWidth;
     const H = cv.height;
     ctx.clearRect(0, 0, W, H);
-    const x = genSignal(N, signalType);
+    const base = genSignal(N, signalType);
+    const x = base.map(v => v * amp);
     const mag = dft(x);
-    // Top: time waveform
+    // Top: time waveform (amplitudo berubah-ubah)
     ctx.strokeStyle = '#0ea5e9';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
@@ -1559,24 +1564,38 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     ctx.fillStyle = '#94a3b8';
     ctx.font = '11px monospace';
     ctx.textAlign = 'left';
-    ctx.fillText('Time domain x(t)', 20, 15);
+    ctx.fillText('Time domain x(t)  ·  amplitudo = ' + amp.toFixed(2), 20, 15);
     // Divider
     ctx.strokeStyle = 'rgba(148,163,184,0.2)';
     ctx.beginPath(); ctx.moveTo(0, H*0.5); ctx.lineTo(W, H*0.5); ctx.stroke();
-    // Bottom: spectrum (bar chart)
+    // Bottom: spectrum (bar chart) — skala TETAP supaya tinggi bar ikut amplitudo
+    const x0 = 20, xW = W - 30, baseY = H - 26, specH = H * 0.30, REF = 1.3;
     ctx.fillStyle = '#a855f7';
-    const maxMag = Math.max(0.01, ...mag);
     for (let k = 0; k < mag.length; k++) {
-      const px = k / mag.length * (W - 30) + 20;
-      const bar_h = mag[k] / maxMag * (H * 0.4);
-      const py = H - 20 - bar_h;
-      ctx.fillRect(px, py, (W - 30)/mag.length * 0.7, bar_h);
+      const px = k / mag.length * xW + x0;
+      const bar_h = Math.min(mag[k] / REF, 1) * specH;
+      ctx.fillRect(px, baseY - bar_h, xW / mag.length * 0.7, bar_h);
     }
+    // Sumbu frekuensi (Hz)
+    ctx.strokeStyle = 'rgba(148,163,184,0.35)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x0, baseY); ctx.lineTo(x0 + xW, baseY); ctx.stroke();
+    ctx.fillStyle = '#64748b';
+    ctx.font = '10px monospace';
+    ctx.textAlign = 'center';
+    for (let f = 0; f <= 600; f += 100) {
+      const px = (f / df) / mag.length * xW + x0;
+      ctx.beginPath(); ctx.moveTo(px, baseY); ctx.lineTo(px, baseY + 4); ctx.stroke();
+      ctx.fillText(String(f), px, baseY + 15);
+    }
+    ctx.textAlign = 'right';
+    ctx.fillText('Hz', x0 + xW, baseY + 15);
     ctx.fillStyle = '#94a3b8';
-    ctx.fillText('Frequency spectrum |X(f)|', 20, H * 0.55 + 10);
+    ctx.textAlign = 'left';
+    ctx.fillText('Frequency spectrum |X(f)|', 20, H * 0.5 + 16);
+    requestAnimationFrame(draw);
   }
   draw();
-  window.addEventListener('resize', draw);
 })();
 </script>
 
