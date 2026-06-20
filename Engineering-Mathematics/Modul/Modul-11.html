@@ -1471,9 +1471,9 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <br>
 
     <strong style="color:#fff">Langkah 6 — Invers Laplace Tiap Suku</strong><br>
-    <span style="color:var(--muted);font-size:13px">Pakai entri tabel: \(ℒ⁻^1{1/(\text{s - a})^2} = t \cdot e^{at}\) dan \(ℒ⁻^1{1/(\text{s - a})} = e^{at}.\) Akar berulang menghasilkan faktor <code>t</code>.</span><br>
-    \(ℒ⁻^1{2/(s - 2)^2} = 2t \cdot e^{2t}\)<br>
-    \(ℒ⁻^1{1/(s + 1)} = e^{-t}\)<br>
+    <span style="color:var(--muted);font-size:13px">Pakai entri tabel: \(\mathcal{L}^{-1}\{1/(s-a)^2\} = t \cdot e^{at}\) dan \(\mathcal{L}^{-1}\{1/(s-a)\} = e^{at}\). Akar berulang menghasilkan faktor <code>t</code>.</span><br>
+    \(\mathcal{L}^{-1}\{2/(s-2)^2\} = 2t \cdot e^{2t}\)<br>
+    \(\mathcal{L}^{-1}\{1/(s+1)\} = e^{-t}\)<br>
     <br>
 
     <strong style="color:var(--cyan)">✓ Hasil:   \(y(t) = 2t \cdot e^{2t} + e^{-t}\)</strong>
@@ -1513,7 +1513,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <div class="card-icon">🧮</div>
       <h3>Solve via Matriks</h3>
       <p>Bila (sI − A) invertible (determinan ≠ 0): <code>X(s) = (sI − A)⁻¹·(X(0) + F(s))</code>. Untuk sistem 2×2, pakai rumus Cramer atau invers matriks 2×2 manual. Determinan <code>det(sI − A) = polinomial karakteristik sistem</code> — akar = <em>eigenvalue</em> matriks A.</p>
-      <div class="formula">\(X(s) = (\text{sI - A})⁻^1 \cdot \ldots\)</div>
+      <div class="formula">\(X(s) = (sI - A)^{-1} \cdot \ldots\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
@@ -1725,7 +1725,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
             <option value="motor">🚀 Motor Step Response: PI controller, settling time</option>
             <option value="quake">🏢 Earthquake Response: ground accel + structural</option>
             <option value="tank">🚰 Coupled Tank: 2 PD coupled, MIMO Laplace</option>
-            <option value="rc_int">⚡ RC Integrator: \(V_{\text{out}}\)(t) = ∫\(V_{\text{in}}\) dt (Laplace 1/s)</option>
+            <option value="rc_int">⚡ RC Integrator: V_out(t) = ∫ V_in dt (Laplace 1/s)</option>
           </select>
         </div>
       </div>
@@ -2016,9 +2016,9 @@ plt.<span class="fn">show</span>()
     <br>
 
     <strong style="color:#fff">Langkah 5 — Invers Laplace Tiap Suku</strong><br>
-    <span style="color:var(--muted);font-size:13px">Pakai entri tabel kunci: \(ℒ⁻^1{1/(\text{s - a})} = e^{at}.\) Tiap akar real berbeda memberi satu eksponensial.</span><br>
-    \(ℒ⁻^1{3/(s - 1)} = 3 \cdot e^{t}\)<br>
-    \(ℒ⁻^1{1/(s - 2)} = e^{2t}\)<br>
+    <span style="color:var(--muted);font-size:13px">Pakai entri tabel kunci: \(\mathcal{L}^{-1}\{1/(s-a)\} = e^{at}\). Tiap akar real berbeda memberi satu eksponensial.</span><br>
+    \(\mathcal{L}^{-1}\{3/(s-1)\} = 3 \cdot e^{t}\)<br>
+    \(\mathcal{L}^{-1}\{1/(s-2)\} = e^{2t}\)<br>
     <br>
 
     <strong style="color:var(--cyan)">✓ Hasil:   \(y(t) = 3 \cdot e^{t} + e^{2t}\)</strong>
@@ -9165,7 +9165,7 @@ function _createForumParticleBurst(event) {
     {
       const px0 = 50, px1 = splitX - 16, py0 = padT, py1 = H - padB;
       function tx(t){ return px0 + (t/tMax)*(px1 - px0); }
-      function ty(y){ return py1 - (y/(K*1.3))*(py1 - py0 - 16) - 8; }
+      function ty(y){ return py1 - (y/3.3)*(py1 - py0 - 16) - 8; }
 
       gridLines(ctx, px0, px1, py0, py1, 8, 4);
       ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.5;
@@ -9211,8 +9211,7 @@ function _createForumParticleBurst(event) {
         ys[i] = y;
       }
 
-      let yMax = K * 0.5;
-      for (let i = 0; i <= N; i++) if (Math.abs(ys[i]) > yMax) yMax = Math.abs(ys[i]);
+      const yMax = 1.5;  // skala tetap supaya amplitudo K terlihat (puncak respons ~0.43·K, K≤3)
       function ty(yv){ return (py0+py1)/2 - (yv/yMax)*((py1-py0)/2 - 8); }
 
       gridLines(ctx, px0, px1, py0, py1, 8, 4);
@@ -9257,7 +9256,7 @@ function _createForumParticleBurst(event) {
   function _wireM11Hv(){
     ['m11slA','m11slK'].forEach(id => {
       const el = document.getElementById(id);
-      if (el) el.addEventListener('input', () => {});
+      if (el) el.addEventListener('input', () => { if (!m11Hv.running) drawM11Hv(); });
     });
   }
 
