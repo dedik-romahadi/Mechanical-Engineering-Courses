@@ -8,7 +8,7 @@
 >
 > **Diperbarui:** April 2026 (v7) — mencerminkan refactor Modul-4 (countdown circular, palet per-tab, hero animation per-tab, scoring rule lengkap, Firebase Security Rules, blokir akses di luar jadwal, **sistem PIN 6-digit untuk mahasiswa**, **password admin ter-hash SHA-256**, **animasi login constellation + electric charges + lightning blasts**, **Dosen Login Modal dengan password masking**, **role-based visibility untuk tombol Reset** — tombol Atur Jadwal tetap visible sebagai bootstrap action, **scoring universal 50 poin** dengan 5 soal Komputasi Hard @4 poin, **partial credit +1 poin** untuk Hard yang salah, **status label butuh poin** — Tepat Waktu/Terlambat hanya diberikan jika mahasiswa memperoleh poin > 0 (akses tanpa poin = Belum), **Bolos diperluas** — mencakup juga mahasiswa yang akses tapi 0 poin saat jadwal sudah berakhir, **PIN global lintas-course** — satu PIN per mahasiswa yang berlaku di SEMUA mata kuliah dan modul, disimpan di node `pins/mhs_<NIM>` terpisah dari visitor records sehingga reset modul tidak menghapus PIN).
 >
-> **v20 (Juni 2026) — Content fixes + KaTeX/Animasi/Export anti-patterns:** Sesi perbaikan konten + pelajaran reusable. **Answer-key fixes:** blok MC modal-analysis ter-copy salah ke Getaran Modul-10..14 → di-derive ulang per modul dari soal HTML; 75 penjelasan Comp (reveal) Getaran 10–14 yang masih boilerplate DMF ditulis ulang; 3 kunci numerik salah diperbaiki (modul-10 c2 Den Hartog pangkat-tiga `√(3μ/(8(1+μ)³))`, c5, modul-11 c7 = peak FFT tertinggi KEDUA) + 2 soal rapuh dibenahi (modul-12 c13 raw-vs-excess kurtosis, modul-13 c9 cepstrum) — tiap kunci numerik diverifikasi compute (numpy/scipy). **resetModulQuestion all-students mode di-hardening** (512MiB, loop paralel ber-batch, isolasi per-mahasiswa `studentsErrored`/`errorsSample`, client `httpsCallable` timeout 540s); gejala lama `❌ internal` polos = instance mati pada loop sekuensial. **Anti-pattern baru §25.12–25.16:** (1) KaTeX `\(...\)` TIDAK render di `<option>` maupun teks JS yang di-`innerHTML` setelah `renderMathInElement` (info-div per-frame) → Unicode super/subscript; (2) `ℒ⁻^1{...}` (Unicode `⁻`+`^1`) = KaTeX \"Double superscript\" → `\mathcal{L}^{-1}\{...\}`; (3) slider animasi mati karena `addEventListener('input', ()=>{})` kosong + variabel slider ter-normalisasi keluar dari skala plot; (4) export judul section tak tampak karena ikon emoji render apa-adanya tapi teks judul tak diberi `color`. Callable table §38.7 + §20 di-update. PR references: #401–#409.
+> **v20 (Juni 2026) — Content fixes + KaTeX/Animasi/Export anti-patterns:** Sesi perbaikan konten + pelajaran reusable. **Answer-key Getaran 10–14:** blok MC modal-analysis ter-copy salah → di-derive ulang per modul; 75 penjelasan Comp boilerplate ditulis ulang; 3 kunci numerik salah (modul-10 c2 Den Hartog pangkat-tiga `√(3μ/(8(1+μ)³))` + c5, modul-11 c7) + 2 soal rapuh (modul-12 c13 raw-vs-excess kurtosis, modul-13 c9 cepstrum) diperbaiki — tiap kunci diverifikasi compute (numpy/scipy). **`resetModulQuestion` all-students di-hardening** (512MiB, paralel ber-batch, `errorsSample`, client timeout 540s). **6 anti-pattern reusable — detail di §25.12–25.16 + §36.11:** KaTeX di `<option>`/teks-JS-dinamis, `ℒ⁻^1` double-superscript, slider animasi mati/ter-normalisasi, mis-seed MC antar-modul, bulk callable "internal" = instance mati, export judul tanpa `color`. §38.7 callable table + §25.8/§36.10 checklist di-update. PR references: #401–#409.
 >
 > **v19 (Juni 2026) — Role picker + Penalty 0.7 + Schedule defaults:** §39 BARU — login Modul + Exam pakai **role chooser overlay** duluan (`roleChooserOverlay` z-index 100002), bukan branch-by-name. Mahasiswa form **NIM + PIN inline** (no Nama input — auto-lookup dari `masterStudents`); listener `vNama` HARUS dihapus atau TypeError blok semua handler downstream. Dosen modal streamline: tombol "Atur Jadwal" inline, 1× password input + 1× klik "Simpan Jadwal & Masuk" sekaligus login. Animasi `initLoginAnimation(canvasId, particlesId)` refactor dari IIFE → function dipanggil 3× untuk picker+visitor+dosen. **WIB timezone enforcement global** (`timeZone:'Asia/Jakarta'` di semua `toLocale*`); exam pakai helper `_nowPlusMinAsWibString`/`_wibStringToDate` utk `<input type=datetime-local>`. **Schedule defaults baru**: Modul 7 hari + due +6 hari 23:59 WIB; Exam 180 menit + due +180m WIB + extension 120 menit. **Penalti terlambat 0.8 → 0.7 (20% → 30%)** untuk semua asesmen — `_getLateMultiplier() return 0.7` (PR #284); §9.2, §9.5.5, §15.4a + tabel poin (50×0.7=**35 poin** maks) sudah di-update. §38.7 callable table diperluas dengan `recomputeExamPoints`, `checkExamAnswer`, `resetExamAttempts`, `resetModulQuestion`, `rescaleModulLatePenalty`, `analyzeModulData`. §7.1–7.3 deprecated note — alur live ada di §39. CLAUDE.md baru di root utk orientasi sesi Claude. PR references: #370–#386 (login flow), #284 (penalty), #359–#363 (OBE scoring 1:1:2:4 mapping), #354 (recomputeExamPoints).
 >
@@ -4953,11 +4953,10 @@ Untuk mencegah ketiga bug di atas terulang, jalankan checklist berikut sebelum p
 - [ ] **Saat HTML structural change** (replace section, remove element, ganti ID): audit semua JS `getElementById()` reference dengan `grep -rn "getElementById('<old_id>')"` (lihat §25.5)
 - [ ] **Cross-modul consistency:** Kalau update fungsi seperti `renderVisitors()`, lakukan di SEMUA modul, jangan hanya satu
 
-#### KaTeX, Animasi & Export (v20)
+#### KaTeX, Animasi & Seed (v20)
 - [ ] **Tidak ada `\(...\)` di `<option>`/`placeholder`/`<title>`** atau di string JS yang di-`innerHTML` belakangan → Unicode super/subscript (§25.12)
 - [ ] **Tidak ada `⁻^` di dalam `\(...\)`** — invers Laplace pakai `\mathcal{L}^{-1}\{...\}` (§25.13); verifikasi `katex.renderToString(...,{throwOnError:true})`
 - [ ] **Tiap slider animasi** punya `input` handler yang redraw (bukan `()=>{}`) DAN variabelnya terlihat efeknya (skala plot tidak menormalisasi variabel itu) (§25.14)
-- [ ] **Export: judul tiap section (Bagian A/B/C) punya `color` eksplisit** di `<span>` teks (ikon emoji render apa-adanya, teks tidak) (§25.14)
 - [ ] **Seed file baru:** tiap entri MC `answer`+`explain` cocok dengan soal modul ini (jangan percaya extract); kunci numerik diverifikasi compute (§25.15)
 
 #### Pyodide Package Auto-Load
@@ -7391,6 +7390,21 @@ td:nth-child(4){text-align:center!important}
 - [ ] **Print-friendly mode** — animations disabled saat print
 - [ ] **Mobile responsive** ≤640px — orbs hidden, layout stack
 - [ ] **Theme color per-file preserved** (orange Math, purple OptoAuto, dll)
+- [ ] **Judul Bagian A/B/C punya `color` inline di `<span>` teks** (ikon emoji render apa-adanya, teks tidak — §36.11)
+
+### 36.11 Judul Section (Bagian A/B/C) Wajib Punya `color` Eksplisit (BARU di v20)
+
+> **Bug (Jun 2026, #406):** Di file export, judul tiap section ("🅐 Bagian A", "💻 Bagian B", "🧠 Bagian C") tidak tampak — hanya **ikon emoji** yang muncul, teksnya hilang.
+
+**Root cause:** Ikon adalah **emoji** yang dirender browser dengan warna glyph-nya sendiri — **mengabaikan properti CSS `color`**. Teks judul (huruf biasa) memakai `color`. Template export menumpuk dua tema CSS (dark + light), dan `.section-head h2` mengandalkan warna dari cascade yang pada kondisi tertentu jatuh ke warna tak terbaca di latar terang → ikon tetap kelihatan tapi teks hilang. Karena emoji menipu, **jangan asumsikan "ikon tampak = teks tampak"**.
+
+**Solusi:** Set `color` **inline** langsung di `<span>` teks judul (jangan andalkan cascade — inline mengalahkan semua aturan stylesheet non-`!important`). Warna: Bagian A & B `#5b35d0`, Bagian C (hard) `#be185d`.
+
+```html
+<h2><span class="anim-icon" style="color:#22d3ee">💻</span><span style="color:#5b35d0">Bagian B — …</span></h2>
+```
+
+**Anti-recurrence:** Checklist §36.10. Setiap teks yang berdampingan dengan ikon emoji dan butuh warna spesifik → set `color` eksplisit.
 
 ---
 
