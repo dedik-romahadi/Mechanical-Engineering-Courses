@@ -1353,139 +1353,6 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 08 — IMPLEMENTASI PYTHON FFT ═══ -->
-<hr class="divider">
-<div class="section" id="m-python">
-  <div class="section-label reveal">Bagian 08</div>
-  <h2 class="section-title reveal">Implementasi Python:<br>FFT dengan numpy &amp; scipy</h2>
-  <p class="section-desc reveal">Empat cell Python berikut mengimplementasikan workflow FFT lengkap: generate sinyal sintetis (Cell 1), FFT dasar dengan numpy (Cell 2), windowing &amp; magnitude correction (Cell 3), dan plot spektrum dengan deteksi puncak (Cell 4). Semua langsung runnable di VS Code Jupyter atau Google Colab.</p>
-
-  <!-- Cell 1 -->
-  <div class="code-wrap reveal" style="margin-bottom:32px">
-    <div class="code-header">
-      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 1 — Generate Sinyal Sintetis (3 Komponen + Noise)</span>
-      <span class="code-lang">Python</span>
-      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-    </div>
-    <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
-
-<span class="cm"># Sample rate &amp; duration</span>
-fs = <span class="nm">2000.0</span>          <span class="cm"># 2 kHz</span>
-T  = <span class="nm">2.0</span>             <span class="cm"># 2 detik</span>
-N  = <span class="fn">int</span>(fs * T)     <span class="cm"># 4000 sample</span>
-t  = np.<span class="fn">arange</span>(N) / fs
-
-<span class="cm"># Sinyal sintetis: 3 komponen frekuensi + noise putih</span>
-f1, A1 = <span class="nm">50.0</span>,  <span class="nm">1.0</span>   <span class="cm"># 50 Hz, amplitudo 1.0</span>
-f2, A2 = <span class="nm">120.0</span>, <span class="nm">0.5</span>   <span class="cm"># 120 Hz, amplitudo 0.5</span>
-f3, A3 = <span class="nm">350.0</span>, <span class="nm">0.3</span>   <span class="cm"># 350 Hz, amplitudo 0.3</span>
-
-x = (A1*np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*f1*t)
-     + A2*np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*f2*t)
-     + A3*np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*f3*t))
-x += <span class="nm">0.1</span> * np.random.<span class="fn">randn</span>(N)   <span class="cm"># noise σ=0.1</span>
-
-<span class="fn">print</span>(<span class="st">f"Sample rate: {fs} Hz"</span>)
-<span class="fn">print</span>(<span class="st">f"Total samples: {N}"</span>)
-<span class="fn">print</span>(<span class="st">f"Frequency resolution: {fs/N} Hz/bin"</span>)
-<span class="fn">print</span>(<span class="st">f"Nyquist: {fs/2} Hz"</span>)</pre>
-  </div>
-
-  <!-- Cell 2 -->
-  <div class="code-wrap reveal" style="margin-bottom:32px">
-    <div class="code-header">
-      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 2 — FFT Dasar — numpy.fft.rfft</span>
-      <span class="code-lang">Python</span>
-      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-    </div>
-    <pre><span class="cm"># Real-input FFT (lebih efisien untuk sinyal real)</span>
-X = np.fft.<span class="fn">rfft</span>(x)
-freqs = np.fft.<span class="fn">rfftfreq</span>(N, d=<span class="nm">1</span>/fs)
-
-<span class="cm"># Magnitude (amplitudo) — perlu normalisasi 2/N untuk dapat satuan asli</span>
-magnitude = np.<span class="fn">abs</span>(X) * <span class="nm">2</span> / N
-magnitude[<span class="nm">0</span>] /= <span class="nm">2</span>   <span class="cm"># bin DC tidak digandakan</span>
-
-<span class="fn">print</span>(<span class="st">f"FFT output length: {len(X)}"</span>)
-<span class="fn">print</span>(<span class="st">f"Frequency range: 0 – {freqs[-1]:.1f} Hz"</span>)
-<span class="fn">print</span>(<span class="st">f"\nTop 3 peaks:"</span>)
-top_idx = np.<span class="fn">argsort</span>(magnitude)[-<span class="nm">3</span>:][::-<span class="nm">1</span>]
-<span class="kw">for</span> i <span class="kw">in</span> top_idx:
-    <span class="fn">print</span>(<span class="st">f"  f = {freqs[i]:6.2f} Hz  |  amplitude = {magnitude[i]:.3f}"</span>)</pre>
-  </div>
-
-  <!-- Cell 3 -->
-  <div class="code-wrap reveal" style="margin-bottom:32px">
-    <div class="code-header">
-      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 3 — FFT dengan Hann Window + Correction Factor</span>
-      <span class="code-lang">Python</span>
-      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-    </div>
-    <pre><span class="kw">from</span> scipy.signal <span class="kw">import</span> windows
-
-<span class="cm"># Hann window + amplitude correction factor (~2.0)</span>
-w = windows.<span class="fn">hann</span>(N)
-correction = <span class="nm">1</span> / np.<span class="fn">mean</span>(w)   <span class="cm"># ≈ 2.0 untuk Hann</span>
-
-x_w = x * w
-X_w = np.fft.<span class="fn">rfft</span>(x_w)
-mag_w = np.<span class="fn">abs</span>(X_w) * <span class="nm">2</span> / N * correction
-mag_w[<span class="nm">0</span>] /= <span class="nm">2</span>
-
-<span class="cm"># Bandingkan tanpa window vs dengan Hann</span>
-<span class="fn">print</span>(<span class="st">"Tanpa window (rectangular):"</span>)
-<span class="fn">print</span>(<span class="st">f"  Peak @ f1 = 50 Hz: amp = {magnitude[freqs == 50][0]:.3f} (asli: 1.0)"</span>)
-<span class="fn">print</span>(<span class="st">f"\nDengan Hann window:"</span>)
-<span class="fn">print</span>(<span class="st">f"  Peak @ f1 = 50 Hz: amp = {mag_w[freqs == 50][0]:.3f} (asli: 1.0)"</span>)
-<span class="fn">print</span>(<span class="st">f"\nHann mengurangi spectral leakage di sekitar puncak."</span>)</pre>
-  </div>
-
-  <!-- Cell 4 -->
-  <div class="code-wrap reveal" style="margin-bottom:32px">
-    <div class="code-header">
-      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 4 — Plot Spektrum &amp; Deteksi Puncak</span>
-      <span class="code-lang">Python</span>
-      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-    </div>
-    <pre><span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
-<span class="kw">from</span> scipy.signal <span class="kw">import</span> find_peaks
-
-<span class="cm"># Auto-detect puncak (height threshold)</span>
-peaks_idx, _ = <span class="fn">find_peaks</span>(mag_w, height=<span class="nm">0.1</span>, distance=<span class="nm">10</span>)
-
-fig, (ax1, ax2) = plt.<span class="fn">subplots</span>(<span class="nm">2</span>, <span class="nm">1</span>, figsize=(<span class="nm">11</span>, <span class="nm">6</span>))
-
-<span class="cm"># Plot waveform time-domain</span>
-ax1.<span class="fn">plot</span>(t[:<span class="nm">500</span>], x[:<span class="nm">500</span>], color=<span class="st">'#0ea5e9'</span>, lw=<span class="nm">0.8</span>)
-ax1.<span class="fn">set_xlabel</span>(<span class="st">'Waktu (s)'</span>); ax1.<span class="fn">set_ylabel</span>(<span class="st">'Amplitudo'</span>)
-ax1.<span class="fn">set_title</span>(<span class="st">'Sinyal Time-Domain (0.25 detik pertama)'</span>)
-ax1.<span class="fn">grid</span>(<span class="kw">True</span>, alpha=<span class="nm">0.3</span>)
-
-<span class="cm"># Plot spektrum frequency-domain</span>
-ax2.<span class="fn">plot</span>(freqs, mag_w, color=<span class="st">'#a855f7'</span>, lw=<span class="nm">1</span>)
-ax2.<span class="fn">plot</span>(freqs[peaks_idx], mag_w[peaks_idx], <span class="st">'ro'</span>, ms=<span class="nm">8</span>)
-<span class="kw">for</span> i <span class="kw">in</span> peaks_idx:
-    ax2.<span class="fn">annotate</span>(<span class="st">f'{freqs[i]:.0f} Hz'</span>,
-                 xy=(freqs[i], mag_w[i]),
-                 xytext=(<span class="nm">5</span>, <span class="nm">5</span>), textcoords=<span class="st">'offset points'</span>,
-                 fontsize=<span class="nm">10</span>, color=<span class="st">'#fbbf24'</span>)
-ax2.<span class="fn">set_xlabel</span>(<span class="st">'Frekuensi (Hz)'</span>); ax2.<span class="fn">set_ylabel</span>(<span class="st">'Amplitudo'</span>)
-ax2.<span class="fn">set_title</span>(<span class="st">'Spektrum FFT (Hann window) + Deteksi Puncak'</span>)
-ax2.<span class="fn">set_xlim</span>(<span class="nm">0</span>, <span class="nm">500</span>); ax2.<span class="fn">grid</span>(<span class="kw">True</span>, alpha=<span class="nm">0.3</span>)
-
-plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
-<span class="fn">print</span>(<span class="st">f"Terdeteksi {len(peaks_idx)} puncak di: {freqs[peaks_idx].round(1)} Hz"</span>)</pre>
-  </div>
-
-  <div class="info-box reveal">
-    <strong>Catatan Workflow:</strong> Empat cell di atas mendemonstrasikan workflow FFT standar di vibration analysis: (1) akuisisi/generate sinyal, (2) FFT raw, (3) windowing untuk anti-leakage, (4) interpretasi spektrum + deteksi puncak. Untuk data real dari accelerometer (CSV / TDMS), ganti Cell 1 dengan <code>pd.read_csv()</code> atau <code>nptdms</code>. Workflow lainnya tetap sama.
-  </div>
-</div>
-
 <!-- ═══ BAGIAN VISUALISASI — ANIMASI INTERAKTIF ═══ -->
 <hr class="divider">
 <div class="section" id="m-visualisasi">
@@ -1493,7 +1360,13 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
   <h2 class="section-title reveal">Time-Domain ↔ Frequency-Domain<br>Live FFT Visualization</h2>
   <p class="section-desc reveal">Pilih sinyal: single 50 Hz, multi-component, square wave, atau noisy. Top panel = time waveform, bottom panel = FFT magnitude spectrum. Lima animasi: (1) signal generator, (2) <strong>slider</strong> frequency component, (3) <strong>toggle</strong> windowing, (4) <strong>radio</strong> sample rate, (5) <strong>dropdown</strong> FFT aplikasi.</p>
 
-  <div class="reveal" style="background:#020812;border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px">
+  <!-- Animasi 1: Live FFT Signal Generator (Presets) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:#0ea5e9"></div>
+      <span class="anim-title">Animasi 1 — Signal Generator: Time ↔ Frequency (FFT Live)</span>
+    </div>
+    <div class="anim-body">
     <canvas id="cv-m11" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
     <div style="display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap">
       <button onclick="window._m11set(0)" id="btn-m11-0" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(14,165,233,.5);background:rgba(14,165,233,.18);color:#0ea5e9">50 Hz</button>
@@ -1503,6 +1376,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     </div>
     <div id="anim-info" style="text-align:center;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">
       Top: time domain \(\cdot\) Bottom: frequency spectrum (FFT magnitude)
+    </div>
     </div>
   </div>
 
@@ -1705,6 +1579,139 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
   draw();
 })();
 </script>
+
+<!-- ═══ BAGIAN 08 — IMPLEMENTASI PYTHON FFT ═══ -->
+<hr class="divider">
+<div class="section" id="m-python">
+  <div class="section-label reveal">Bagian 08</div>
+  <h2 class="section-title reveal">Implementasi Python:<br>FFT dengan numpy &amp; scipy</h2>
+  <p class="section-desc reveal">Empat cell Python berikut mengimplementasikan workflow FFT lengkap: generate sinyal sintetis (Cell 1), FFT dasar dengan numpy (Cell 2), windowing &amp; magnitude correction (Cell 3), dan plot spektrum dengan deteksi puncak (Cell 4). Semua langsung runnable di VS Code Jupyter atau Google Colab.</p>
+
+  <!-- Cell 1 -->
+  <div class="code-wrap reveal" style="margin-bottom:32px">
+    <div class="code-header">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 1 — Generate Sinyal Sintetis (3 Komponen + Noise)</span>
+      <span class="code-lang">Python</span>
+      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
+    </div>
+    <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="cm"># Sample rate &amp; duration</span>
+fs = <span class="nm">2000.0</span>          <span class="cm"># 2 kHz</span>
+T  = <span class="nm">2.0</span>             <span class="cm"># 2 detik</span>
+N  = <span class="fn">int</span>(fs * T)     <span class="cm"># 4000 sample</span>
+t  = np.<span class="fn">arange</span>(N) / fs
+
+<span class="cm"># Sinyal sintetis: 3 komponen frekuensi + noise putih</span>
+f1, A1 = <span class="nm">50.0</span>,  <span class="nm">1.0</span>   <span class="cm"># 50 Hz, amplitudo 1.0</span>
+f2, A2 = <span class="nm">120.0</span>, <span class="nm">0.5</span>   <span class="cm"># 120 Hz, amplitudo 0.5</span>
+f3, A3 = <span class="nm">350.0</span>, <span class="nm">0.3</span>   <span class="cm"># 350 Hz, amplitudo 0.3</span>
+
+x = (A1*np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*f1*t)
+     + A2*np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*f2*t)
+     + A3*np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*f3*t))
+x += <span class="nm">0.1</span> * np.random.<span class="fn">randn</span>(N)   <span class="cm"># noise σ=0.1</span>
+
+<span class="fn">print</span>(<span class="st">f"Sample rate: {fs} Hz"</span>)
+<span class="fn">print</span>(<span class="st">f"Total samples: {N}"</span>)
+<span class="fn">print</span>(<span class="st">f"Frequency resolution: {fs/N} Hz/bin"</span>)
+<span class="fn">print</span>(<span class="st">f"Nyquist: {fs/2} Hz"</span>)</pre>
+  </div>
+
+  <!-- Cell 2 -->
+  <div class="code-wrap reveal" style="margin-bottom:32px">
+    <div class="code-header">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 2 — FFT Dasar — numpy.fft.rfft</span>
+      <span class="code-lang">Python</span>
+      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
+    </div>
+    <pre><span class="cm"># Real-input FFT (lebih efisien untuk sinyal real)</span>
+X = np.fft.<span class="fn">rfft</span>(x)
+freqs = np.fft.<span class="fn">rfftfreq</span>(N, d=<span class="nm">1</span>/fs)
+
+<span class="cm"># Magnitude (amplitudo) — perlu normalisasi 2/N untuk dapat satuan asli</span>
+magnitude = np.<span class="fn">abs</span>(X) * <span class="nm">2</span> / N
+magnitude[<span class="nm">0</span>] /= <span class="nm">2</span>   <span class="cm"># bin DC tidak digandakan</span>
+
+<span class="fn">print</span>(<span class="st">f"FFT output length: {len(X)}"</span>)
+<span class="fn">print</span>(<span class="st">f"Frequency range: 0 – {freqs[-1]:.1f} Hz"</span>)
+<span class="fn">print</span>(<span class="st">f"\nTop 3 peaks:"</span>)
+top_idx = np.<span class="fn">argsort</span>(magnitude)[-<span class="nm">3</span>:][::-<span class="nm">1</span>]
+<span class="kw">for</span> i <span class="kw">in</span> top_idx:
+    <span class="fn">print</span>(<span class="st">f"  f = {freqs[i]:6.2f} Hz  |  amplitude = {magnitude[i]:.3f}"</span>)</pre>
+  </div>
+
+  <!-- Cell 3 -->
+  <div class="code-wrap reveal" style="margin-bottom:32px">
+    <div class="code-header">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 3 — FFT dengan Hann Window + Correction Factor</span>
+      <span class="code-lang">Python</span>
+      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
+    </div>
+    <pre><span class="kw">from</span> scipy.signal <span class="kw">import</span> windows
+
+<span class="cm"># Hann window + amplitude correction factor (~2.0)</span>
+w = windows.<span class="fn">hann</span>(N)
+correction = <span class="nm">1</span> / np.<span class="fn">mean</span>(w)   <span class="cm"># ≈ 2.0 untuk Hann</span>
+
+x_w = x * w
+X_w = np.fft.<span class="fn">rfft</span>(x_w)
+mag_w = np.<span class="fn">abs</span>(X_w) * <span class="nm">2</span> / N * correction
+mag_w[<span class="nm">0</span>] /= <span class="nm">2</span>
+
+<span class="cm"># Bandingkan tanpa window vs dengan Hann</span>
+<span class="fn">print</span>(<span class="st">"Tanpa window (rectangular):"</span>)
+<span class="fn">print</span>(<span class="st">f"  Peak @ f1 = 50 Hz: amp = {magnitude[freqs == 50][0]:.3f} (asli: 1.0)"</span>)
+<span class="fn">print</span>(<span class="st">f"\nDengan Hann window:"</span>)
+<span class="fn">print</span>(<span class="st">f"  Peak @ f1 = 50 Hz: amp = {mag_w[freqs == 50][0]:.3f} (asli: 1.0)"</span>)
+<span class="fn">print</span>(<span class="st">f"\nHann mengurangi spectral leakage di sekitar puncak."</span>)</pre>
+  </div>
+
+  <!-- Cell 4 -->
+  <div class="code-wrap reveal" style="margin-bottom:32px">
+    <div class="code-header">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 4 — Plot Spektrum &amp; Deteksi Puncak</span>
+      <span class="code-lang">Python</span>
+      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
+    </div>
+    <pre><span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+<span class="kw">from</span> scipy.signal <span class="kw">import</span> find_peaks
+
+<span class="cm"># Auto-detect puncak (height threshold)</span>
+peaks_idx, _ = <span class="fn">find_peaks</span>(mag_w, height=<span class="nm">0.1</span>, distance=<span class="nm">10</span>)
+
+fig, (ax1, ax2) = plt.<span class="fn">subplots</span>(<span class="nm">2</span>, <span class="nm">1</span>, figsize=(<span class="nm">11</span>, <span class="nm">6</span>))
+
+<span class="cm"># Plot waveform time-domain</span>
+ax1.<span class="fn">plot</span>(t[:<span class="nm">500</span>], x[:<span class="nm">500</span>], color=<span class="st">'#0ea5e9'</span>, lw=<span class="nm">0.8</span>)
+ax1.<span class="fn">set_xlabel</span>(<span class="st">'Waktu (s)'</span>); ax1.<span class="fn">set_ylabel</span>(<span class="st">'Amplitudo'</span>)
+ax1.<span class="fn">set_title</span>(<span class="st">'Sinyal Time-Domain (0.25 detik pertama)'</span>)
+ax1.<span class="fn">grid</span>(<span class="kw">True</span>, alpha=<span class="nm">0.3</span>)
+
+<span class="cm"># Plot spektrum frequency-domain</span>
+ax2.<span class="fn">plot</span>(freqs, mag_w, color=<span class="st">'#a855f7'</span>, lw=<span class="nm">1</span>)
+ax2.<span class="fn">plot</span>(freqs[peaks_idx], mag_w[peaks_idx], <span class="st">'ro'</span>, ms=<span class="nm">8</span>)
+<span class="kw">for</span> i <span class="kw">in</span> peaks_idx:
+    ax2.<span class="fn">annotate</span>(<span class="st">f'{freqs[i]:.0f} Hz'</span>,
+                 xy=(freqs[i], mag_w[i]),
+                 xytext=(<span class="nm">5</span>, <span class="nm">5</span>), textcoords=<span class="st">'offset points'</span>,
+                 fontsize=<span class="nm">10</span>, color=<span class="st">'#fbbf24'</span>)
+ax2.<span class="fn">set_xlabel</span>(<span class="st">'Frekuensi (Hz)'</span>); ax2.<span class="fn">set_ylabel</span>(<span class="st">'Amplitudo'</span>)
+ax2.<span class="fn">set_title</span>(<span class="st">'Spektrum FFT (Hann window) + Deteksi Puncak'</span>)
+ax2.<span class="fn">set_xlim</span>(<span class="nm">0</span>, <span class="nm">500</span>); ax2.<span class="fn">grid</span>(<span class="kw">True</span>, alpha=<span class="nm">0.3</span>)
+
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
+<span class="fn">print</span>(<span class="st">f"Terdeteksi {len(peaks_idx)} puncak di: {freqs[peaks_idx].round(1)} Hz"</span>)</pre>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>Catatan Workflow:</strong> Empat cell di atas mendemonstrasikan workflow FFT standar di vibration analysis: (1) akuisisi/generate sinyal, (2) FFT raw, (3) windowing untuk anti-leakage, (4) interpretasi spektrum + deteksi puncak. Untuk data real dari accelerometer (CSV / TDMS), ganti Cell 1 dengan <code>pd.read_csv()</code> atau <code>nptdms</code>. Workflow lainnya tetap sama.
+  </div>
+</div>
 
 <!-- ═══ DAFTAR PUSTAKA ═══ -->
 <hr class="divider">
