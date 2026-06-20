@@ -1,6 +1,6 @@
 # CLAUDE.md — Orientation untuk Sesi Baru
 
-Quick-start untuk Claude session di repo ini. **Untuk detail apa pun, rujuk ke `Pedoman-Modul.md` (8014 baris, v20)** — ini cuma peta.
+Quick-start untuk Claude session di repo ini. **Untuk detail apa pun, rujuk ke `Pedoman-Modul.md` (8029 baris, v20)** — ini cuma peta.
 
 ---
 
