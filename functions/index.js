@@ -1113,7 +1113,7 @@ exports.resetModulAttempts = onCall({ timeoutSeconds: 60 }, async (request) => {
 // Response (single): { modulId, nim, allStudents:false, perQuestion, pointsBefore, pointsAfter, markersRemoved }
 // Response (all):    { modulId, allStudents:true, studentsScanned, studentsAffected, totalMarkersRemoved, perStudent }
 // ─────────────────────────────────────────────────────────────────────────────
-exports.resetModulQuestion = onCall({ timeoutSeconds: 300, memory: "512MiB" }, async (request) => {
+exports.resetModulQuestion = onCall({ timeoutSeconds: 540, memory: "512MiB" }, async (request) => {
   const { modulId, nim, qIds, adminPwHash } = request.data || {};
 
   if (!modulId || !MODUL_CONFIG[modulId]) {
@@ -1149,21 +1149,30 @@ exports.resetModulQuestion = onCall({ timeoutSeconds: 300, memory: "512MiB" }, a
     const markersToRemove = [];
     let totalScoreToSubtract = 0;
 
-    for (const qId of qIds) {
-      const attemptRef = fs.doc(`modulAttempts/${modulId}/students/${nimKey}/qs/${qId}`);
-      const snap = await attemptRef.get();
+    // Baca semua attempt qId paralel, lalu hapus via SATU batch — kurangi
+    // round-trip dari ~2×N jadi 2 wave I/O per mahasiswa (penting agar reset
+    // massal tidak melewati timeout instance saat kelas besar).
+    const refs = qIds.map((qId) =>
+      fs.doc(`modulAttempts/${modulId}/students/${nimKey}/qs/${qId}`));
+    const snaps = await Promise.all(refs.map((r) => r.get()));
+    const batch = fs.batch();
+    let haveDeletes = false;
+    snaps.forEach((snap, i) => {
+      const qId = qIds[i];
       if (!snap.exists) {
         perQuestion.push({ qId, found: false, marker: null, scoreDelta: 0 });
-        continue;
+        return;
       }
       const data = snap.data() || {};
       const marker = data.marker || qId;
       const scoreDelta = Number(data.scoreDelta) || 0;
       markersToRemove.push(marker);
       totalScoreToSubtract += scoreDelta;
-      await attemptRef.delete();
+      batch.delete(refs[i]);
+      haveDeletes = true;
       perQuestion.push({ qId, found: true, marker, scoreDelta });
-    }
+    });
+    if (haveDeletes) await batch.commit();
 
     let pointsBefore = null;
     let pointsAfter = null;
@@ -1205,6 +1214,8 @@ exports.resetModulQuestion = onCall({ timeoutSeconds: 300, memory: "512MiB" }, a
 
     // ── MODE 2: SEMUA mahasiswa (nim kosong) ──
     const studentRefs = await fs.collection(`modulAttempts/${modulId}/students`).listDocuments();
+    console.log("[resetModulQuestion] ALL start", modulId,
+      "students:", studentRefs.length, "qIds:", qIds.join(","));
     let studentsAffected = 0;
     let totalMarkersRemoved = 0;
     const perStudent = [];
@@ -1257,8 +1268,9 @@ exports.resetModulQuestion = onCall({ timeoutSeconds: 300, memory: "512MiB" }, a
       errorsSample: errors.slice(0, 5),
     };
   } catch (e) {
+    if (e instanceof HttpsError) throw e;
     console.error("[resetModulQuestion] FAILED", modulId, allStudents ? "ALL" : nim, e);
-    throw new HttpsError("internal", `Reset soal gagal: ${e.message || e}`);
+    throw new HttpsError("internal", `Reset soal gagal: ${e && e.message ? e.message : e}`);
   }
 });
 
