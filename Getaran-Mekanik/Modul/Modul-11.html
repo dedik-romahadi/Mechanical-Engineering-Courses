@@ -1769,7 +1769,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Tugas Pertemuan 12 · Fourier &amp; FFT</div>
     <h1 class="hero-title"><span class="hl-amber">Tugas 12</span><br><em>Fourier</em><br>&amp; FFT Spektrum</h1>
-    <p class="hero-sub">10 pilihan ganda + 10 komputasi Easy/Medium + 5 komputasi Hard (Jupyter Notebook) seputar matriks massa &amp; kekakuan, eigenvalue problem, dua frekuensi pribadi ω₁/ω₂, mode shapes (in-phase &amp; anti-phase), dan aplikasi vibration absorber. Total <strong>50 poin</strong>.</p>
+    <p class="hero-sub">10 pilihan ganda + 10 komputasi Easy/Medium + 5 komputasi Hard (Jupyter Notebook) seputar transformasi Fourier (DFT/FFT), frekuensi Nyquist &amp; aliasing, resolusi frekuensi, windowing &amp; spectral leakage, normalisasi amplitudo, serta interpretasi spektrum getaran mesin. Total <strong>50 poin</strong>.</p>
     <div class="hero-stats">
       <div class="stat"><div class="stat-num">10</div><div class="stat-lbl">Pilihan Ganda</div></div>
       <div class="stat"><div class="stat-num">15</div><div class="stat-lbl">Komputasi</div></div>
@@ -2016,15 +2016,8 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="q-type-badge badge-comp-ez">🅑 BAGIAN B — Komputasi Easy/Medium · 10 Soal · @2 Poin</div>
 
     <div class="info-box" style="margin-bottom:28px">
-      <strong>📌 Sistem Referensi (Pertemuan 12 — 2 DoF):</strong><br>
-      <strong style="color:var(--cyan)">Massa:</strong>&nbsp;
-      <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">m₁ = m₂ = 1 kg</code><br>
-      <strong style="color:var(--cyan)">Pegas:</strong>&nbsp;
-      <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">k₁ = k₂ = k₃ = 100 N/m</code><br>
-      <strong style="color:var(--cyan)">Matriks:</strong>&nbsp;
-      <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">M = [[1,0],[0,1]]</code>,
-      <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">K = [[200,−100],[−100,200]]</code><br>
-      <span style="font-size:13px;color:var(--muted);margin-top:6px;display:block">Gunakan parameter ini untuk semua soal Bagian B kecuali disebutkan lain. Lihat <strong>Bagian 08</strong> untuk template kode.</span>
+      <strong>📌 Konteks (Pertemuan 12 — Analisis Spektrum FFT):</strong><br>
+      <span style="font-size:13px;color:var(--muted);margin-top:6px;display:block">Tiap soal mencantumkan parameter sinyalnya sendiri (mis. <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">fs</code>, <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">N</code>, dan frekuensi komponen). Gunakan <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">numpy</code>/<code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">scipy</code> (<code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">np.fft.rfft</code>, <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">np.fft.rfftfreq</code>, <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">scipy.signal</code>) sesuai kebutuhan. Lihat <strong>Bagian 08</strong> untuk template kode.</span>
     </div>
 
     <!-- COMP 1 -->
@@ -2204,7 +2197,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       <span style="font-size:20px;flex-shrink:0">🧠</span>
       <div>
         <div style="font-weight:700;color:var(--pink);margin-bottom:6px;font-size:14px">Bagian Komputasi Hard — 5 Soal × 4 Poin</div>
-        <p style="font-size:13px;color:var(--muted);margin:0;line-height:1.7">Soal-soal berikut membutuhkan <strong style="color:var(--text)">implementasi algoritma lengkap</strong> (15–40 baris kode) — bukan sekadar substitusi formula. Fokus pada eigenvalue komputasi, varian sistem, dan analisis multi-konsep. <strong style="color:var(--amber)">Partial credit +1 poin</strong> diberikan jika kode non-kosong di-submit meski output belum benar atau ada runtime error.</p>
+        <p style="font-size:13px;color:var(--muted);margin:0;line-height:1.7">Soal-soal berikut membutuhkan <strong style="color:var(--text)">implementasi algoritma lengkap</strong> (15–40 baris kode) — bukan sekadar substitusi formula. Fokus pada komputasi DFT/FFT, filtering &amp; PSD, deteksi peak, dan analisis multi-konsep. <strong style="color:var(--amber)">Partial credit +1 poin</strong> diberikan jika kode non-kosong di-submit meski output belum benar atau ada runtime error.</p>
       </div>
     </div>
     <div class="q-type-badge badge-comp-hard">🧠 BAGIAN C — Komputasi Hard · 5 Soal · @4 Poin · Algoritma Lengkap</div>
@@ -3514,16 +3507,16 @@ function exportTugasHtml() {
 
   // MC question titles (10 total)
   const MC_QUESTIONS = [
-    'Banyak frekuensi pribadi 2 DoF',
-    'Bentuk matriks persamaan gerak',
-    'Matriks K sistem referensi',
-    'Persamaan karakteristik 2 DoF',
-    'Nilai ω₁ sistem referensi',
-    'Karakteristik Mode 1 (sistem simetris)',
-    'Mode shape Mode 2 (X₂/X₁)',
-    'Definisi orthogonality mode',
-    'Aturan tuning vibration absorber',
-    'Identitas trace-determinant 2 DoF'
+    'Tujuan transformasi Fourier (time→freq)',
+    'Frekuensi Nyquist (fs/2)',
+    'DFT vs FFT',
+    'Kondisi penyebab aliasing',
+    'Resolusi frekuensi Δf per bin',
+    'Tujuan window function (spectral leakage)',
+    'Interpretasi peak 1× rpm (unbalance)',
+    'Faktor skala amplitudo FFT (2/N)',
+    'Jumlah bin independen sinyal real (N/2+1)',
+    'Kapan FFT lebih informatif dari time-domain'
   ];
 
   // Collect MC answers — 10 soal
@@ -3559,16 +3552,16 @@ function exportTugasHtml() {
 
   // Comp E/M definitions (c1..c10)
   const compEzDefs = [
-    { id:'c1',  label:'trace(K)',                    q:'' },
-    { id:'c2',  label:'det(K)',                      q:'' },
-    { id:'c3',  label:'ω₁² (eigenvalue terkecil)',   q:'' },
-    { id:'c4',  label:'ω₁ (rad/s)',                  q:'' },
-    { id:'c5',  label:'ω₂ (rad/s)',                  q:'' },
-    { id:'c6',  label:'f₁ (Hz)',                     q:'' },
-    { id:'c7',  label:'T₁ (detik)',                  q:'' },
-    { id:'c8',  label:'X₂/X₁ Mode 1',                q:'' },
-    { id:'c9',  label:'X₂/X₁ Mode 2',                q:'' },
-    { id:'c10', label:'Orthogonality u₁ᵀMu₂',        q:'' }
+    { id:'c1',  label:'Frekuensi Nyquist (Hz)',        q:'' },
+    { id:'c2',  label:'Resolusi frekuensi Δf (Hz/bin)', q:'' },
+    { id:'c3',  label:'np.max sinusoida',              q:'' },
+    { id:'c4',  label:'Frekuensi peak FFT (Hz)',       q:'' },
+    { id:'c5',  label:'Indeks bin frekuensi',          q:'' },
+    { id:'c6',  label:'Magnitudo ternormalisasi (2/N)', q:'' },
+    { id:'c7',  label:'Frekuensi peak tertinggi kedua', q:'' },
+    { id:'c8',  label:'Amplitude correction factor',   q:'' },
+    { id:'c9',  label:'np.max Hann window',            q:'' },
+    { id:'c10', label:'RMS sinusoida',                 q:'' }
   ];
   // Get full MC question text from DOM (.mc-q) or fallback to MC_QUESTIONS array
   function _getMcFullQ(id) {
@@ -3605,11 +3598,11 @@ function exportTugasHtml() {
 
   // Comp Hard definitions (c11..c15)
   const compHardDefs = [
-    { id:'c11', label:'ω₁ varian m₂=2',              q:'' },
-    { id:'c12', label:'X₂/X₁ Mode 1 varian',         q:'' },
-    { id:'c13', label:'ω₁² + ω₂² (sistem ref)',      q:'' },
-    { id:'c14', label:'k_a tuning absorber',         q:'' },
-    { id:'c15', label:'x₂(t=0.5) free response',     q:'' }
+    { id:'c11', label:'|X[0]| komponen DC (DFT)',        q:'' },
+    { id:'c12', label:'RMS setelah bandpass Butterworth', q:'' },
+    { id:'c13', label:'Frekuensi peak dominan (find_peaks)', q:'' },
+    { id:'c14', label:'Frekuensi peak PSD (Welch)',      q:'' },
+    { id:'c15', label:'Magnitudo FFT maks (chirp)',      q:'' }
   ];
   const compHardData = compHardDefs.map(d => {
     const ta = document.getElementById('code-' + d.id);
