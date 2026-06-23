@@ -14,6 +14,8 @@ drawings:
   persist: false
 transition: slide-left
 mdc: true
+overviewSnapshots: false
+hideInToc: false
 fonts:
   sans: 'Inter'
   mono: 'Fira Code'
