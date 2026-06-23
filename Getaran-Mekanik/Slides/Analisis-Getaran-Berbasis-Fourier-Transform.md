@@ -21,7 +21,6 @@ layout: none
 ---
 
 <div class="cover" style="background:#1a1917;position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;color:#f5f3ee;">
-  <div class="vignette"></div>
   <div class="corner tl"></div>
   <div class="corner br"></div>
 
@@ -108,13 +107,9 @@ layout: none
   overflow: hidden;
   color: #f5f3ee;
 }
-.vignette {
-  position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(ellipse 80% 80% at 50% 45%, transparent 55%, rgba(0,0,0,0.35) 100%);
-}
 .corner {
   position: absolute; width: 64px; height: 64px;
-  border: 2px solid rgba(245,160,0,0.6);
+  border: 2px solid #f5a000;
   pointer-events: none; z-index: 11;
 }
 .corner.tl { top: 70px; left: 44px; border-right: none; border-bottom: none; }
@@ -141,8 +136,8 @@ layout: none
 .hdr {
   display: flex; align-items: center; justify-content: space-between;
   padding: 14px 32px;
-  border-bottom: 1px solid rgba(245,243,238,0.12);
-  background: rgba(20,20,19,0.55);
+  border-bottom: 2px solid #f5a000;
+  background: #14130f;
   position: relative; z-index: 10;
 }
 .hdr-l   { display: flex; align-items: center; gap: 12px; }
@@ -162,10 +157,10 @@ layout: none
 .hdr-uni  { font-size: 13px; font-weight: 600; color: #f0ede6; }
 .hdr-dept { font-size: 11px; color: #a8a39a; margin-top: 2px; }
 .hdr-tag  {
-  font-size: 12px; font-weight: 600; color: #f5a000;
-  border: 1px solid rgba(245,160,0,0.45);
+  font-size: 12px; font-weight: 600; color: #1a1917;
+  border: 1px solid #f5a000;
   padding: 4px 16px; border-radius: 20px;
-  background: rgba(245,160,0,0.1); letter-spacing: 0.5px;
+  background: #f5a000; letter-spacing: 0.5px;
 }
 .ctr {
   flex: 1; display: flex; flex-direction: column;
@@ -179,9 +174,8 @@ layout: none
   margin-bottom: 18px;
   padding: 4px 14px;
   border-radius: 20px;
-  border: 1px solid rgba(245,160,0,0.3);
-  background: rgba(245,160,0,0.08);
-  box-shadow: 0 0 12px rgba(245,160,0,0.12);
+  border: 1px solid #f5a000;
+  background: #241f15;
   animation: fadeup 0.6s ease both;
 }
 .ttl1 {
@@ -191,10 +185,7 @@ layout: none
 }
 .ttl2 {
   font-size: 52px; font-weight: 800;
-  background: linear-gradient(90deg, #f97316, #fbbf24);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #f5a000;
   line-height: 1.1; margin: 0 0 20px;
   animation: fadeup 0.7s 0.2s ease both;
 }
@@ -202,18 +193,15 @@ layout: none
   font-size: 15px; color: #e8e3da;
   font-family: 'Fira Code', 'Courier New', monospace;
   padding: 10px 24px;
-  border: 1px solid rgba(245,160,0,0.38);
+  border: 1px solid #f5a000;
   border-radius: 10px;
-  background: rgba(255,255,255,0.04);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  box-shadow: 0 8px 28px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.06), 0 0 0 1px rgba(245,160,0,0.1), 0 0 20px rgba(245,160,0,0.08);
+  background: #221d15;
   margin-bottom: 20px;
   animation: fadeup 0.7s 0.3s ease both;
 }
 .sep {
   width: 0; height: 2px;
-  background: linear-gradient(90deg, #f59e0b, #f97316);
+  background: #f5a000;
   border-radius: 2px; margin: 0 auto 16px;
   animation: expand 0.9s 0.4s ease both;
 }
@@ -225,11 +213,11 @@ layout: none
   display: flex; justify-content: center;
   align-items: flex-end; gap: 5px;
   height: 80px; padding: 0 32px;
-  position: relative; z-index: 10; opacity: 0.75;
+  position: relative; z-index: 10;
 }
 .bar {
   width: 11px; height: 4px; min-height: 4px;
-  background: linear-gradient(to top, #b45309, #f5a000);
+  background: #f5a000;
   border-radius: 3px 3px 0 0;
   animation: bpulse 1.4s ease-in-out infinite alternate;
   animation-delay: var(--d, 0s);
@@ -241,12 +229,12 @@ layout: none
 .ftr {
   display: flex; align-items: center; gap: 8px;
   padding: 10px 32px;
-  border-top: 1px solid rgba(245,243,238,0.1);
-  background: rgba(20,20,19,0.55);
-  font-size: 11px; color: #8a857c;
+  border-top: 2px solid #f5a000;
+  background: #14130f;
+  font-size: 11px; color: #b3ada3;
   position: relative; z-index: 10;
 }
-.dot { color: #57534b; }
+.dot { color: #6b6358; }
 .yr  { margin-left: auto; color: #f5a000; font-weight: 700; font-family: 'Fira Code', monospace; font-size: 10px; letter-spacing: 0.3px; }
 @keyframes fadeup {
   from { opacity: 0; transform: translateY(20px); }
