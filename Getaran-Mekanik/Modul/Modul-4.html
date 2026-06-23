@@ -3175,6 +3175,20 @@ function parseNumbers(str) {
   return matches.map(Number).filter(n => isFinite(n));
 }
 
+// Angka PERTAMA pada baris non-kosong TERAKHIR — kandidat "jawaban final" yang
+// robust terhadap label/satuan ekstra. Mahasiswa sering print
+// "Peak tertinggi: 50 Hz, magnitude = 1.0 unit": angka terakhir keseluruhan =
+// 1.0 (magnitudo) & angka pertama keseluruhan bisa dari header, padahal jawaban
+// (50) ada di awal baris terakhir.
+function _lastLineAnswer(str) {
+  const lines = String(str || '').split('\n');
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const ns = parseNumbers(lines[i]);
+    if (ns.length > 0) return ns[0];
+  }
+  return null;
+}
+
 let compAnswered = {}, compScores = {};
 
 
@@ -3274,7 +3288,11 @@ async function runAndCheck(qId, difficulty) {
   // userAnswer: angka pertama dari output (atau null jika error/kosong).
   // userAnswers: SEMUA angka berurutan (utk multi-step validasi server).
   const nums = errMsg ? [] : parseNumbers(output || '');
-  const userAnswer = (nums.length > 0) ? nums[0] : null;
+  let userAnswer = null;
+  if (!errMsg) {
+    const lla = _lastLineAnswer(output || '');
+    userAnswer = (lla !== null) ? lla : ((nums.length > 0) ? nums[0] : null);
+  }
 
   // Optimistic lock — server adalah authority sebenarnya
   compAnswered[qId] = true;
