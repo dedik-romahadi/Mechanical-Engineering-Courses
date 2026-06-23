@@ -1,10 +1,8 @@
-name: Deploy Getaran Mekanik Slides ke GitHub Pages
+name: Deploy ke GitHub Pages
 
 on:
   push:
     branches: [main]
-    paths:
-      - 'Getaran-Mekanik/Slides/**'
   workflow_dispatch:
 
 permissions:
@@ -13,12 +11,12 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages-getaran-slides
+  group: pages
   cancel-in-progress: false
 
 jobs:
   build:
-    name: Build Slidev
+    name: Build & Siapkan Pages
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -28,19 +26,41 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: Getaran-Mekanik/Slides/package-lock.json
 
-      - name: Install dependencies
+      - name: Install Slidev dependencies
         working-directory: Getaran-Mekanik/Slides
-        run: npm install
+        run: npm ci
 
-      - name: Build slide deck
+      - name: Build Slidev ke subdirektori
         working-directory: Getaran-Mekanik/Slides
-        run: npm run build
+        run: |
+          npx slidev build Analisis-Getaran-Berbasis-Fourier-Transform.md \
+            --base /Mechanical-Engineering-Courses/Getaran-Mekanik/Slides/ \
+            --out dist
+
+      - name: Siapkan direktori Pages
+        run: |
+          mkdir -p _site
+          # Copy seluruh repo kecuali .git, node_modules, dan direktori build
+          rsync -a \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='_site' \
+            --exclude='Getaran-Mekanik/Slides/' \
+            . _site/
+          # Copy Slidev build ke subdirektori yang benar
+          mkdir -p _site/Getaran-Mekanik/Slides
+          cp -r Getaran-Mekanik/Slides/dist/. _site/Getaran-Mekanik/Slides/
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: Getaran-Mekanik/Slides/dist
+          path: '_site'
 
   deploy:
     name: Deploy ke GitHub Pages
