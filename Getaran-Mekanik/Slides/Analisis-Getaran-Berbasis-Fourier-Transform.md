@@ -255,40 +255,36 @@ layout: default
 
 # Peta Materi
 
-<div class="grid grid-cols-3 gap-4 mt-4">
-
-<div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
-<h3 class="text-blue-700 font-bold mb-2">📐 Fondasi Matematis</h3>
-<ul class="text-sm space-y-1">
-<li>Sinyal & domain waktu</li>
-<li>Deret Fourier</li>
-<li>Transformasi Fourier kontinu</li>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin:16px 0">
+<div style="background:#1a1714;border:1px solid #3a3526;border-left:3px solid #5b9bd5;border-radius:8px;padding:16px">
+<div style="color:#7fb4e3;font-weight:700;margin-bottom:8px">📐 Fondasi Matematis</div>
+<ul style="font-size:13px;color:#d3cdc3;line-height:1.7;list-style:none;padding:0;margin:0">
+<li>→ Sinyal & domain waktu</li>
+<li>→ Deret Fourier trig & kompleks</li>
+<li>→ Transformasi Fourier Kontinu</li>
 </ul>
 </div>
-
-<div class="bg-green-50 p-4 rounded-lg border border-green-200">
-<h3 class="text-green-700 font-bold mb-2">🔢 Komputasi Digital</h3>
-<ul class="text-sm space-y-1">
-<li>DFT & FFT</li>
-<li>Sampling & Aliasing</li>
-<li>Windowing</li>
+<div style="background:#1a1714;border:1px solid #3a3526;border-left:3px solid #5fae5f;border-radius:8px;padding:16px">
+<div style="color:#82c182;font-weight:700;margin-bottom:8px">🔢 Komputasi Digital</div>
+<ul style="font-size:13px;color:#d3cdc3;line-height:1.7;list-style:none;padding:0;margin:0">
+<li>→ DFT & algoritma FFT</li>
+<li>→ Sampling & Aliasing</li>
+<li>→ Windowing</li>
 </ul>
 </div>
-
-<div class="bg-orange-50 p-4 rounded-lg border border-orange-200">
-<h3 class="text-orange-700 font-bold mb-2">⚙️ Aplikasi Teknik</h3>
-<ul class="text-sm space-y-1">
-<li>Identifikasi frekuensi natural</li>
-<li>Fungsi Respons Frekuensi</li>
-<li>Condition monitoring</li>
+<div style="background:#1a1714;border:1px solid #3a3526;border-left:3px solid #c8922a;border-radius:8px;padding:16px">
+<div style="color:#e0b455;font-weight:700;margin-bottom:8px">⚙️ Aplikasi Teknik</div>
+<ul style="font-size:13px;color:#d3cdc3;line-height:1.7;list-style:none;padding:0;margin:0">
+<li>→ Identifikasi frekuensi natural</li>
+<li>→ Fungsi Respons Frekuensi (FRF)</li>
+<li>→ Condition monitoring</li>
 </ul>
 </div>
-
 </div>
 
-<div class="mt-6 bg-yellow-50 p-3 rounded-lg border-l-4 border-yellow-400">
-💡 <strong>Tujuan:</strong> Memahami bagaimana sinyal getaran dalam domain waktu dapat dianalisis lebih efektif dalam domain frekuensi menggunakan Transformasi Fourier.
-</div>
+<Callout type="analogy">
+Bayangkan belajar membaca <strong>musik</strong>: kita dengar bunyi (domain waktu) → pisahkan nada-nadanya (domain frekuensi) → pelajari cara komputer melakukannya cepat (FFT) → terapkan untuk mendiagnosis "penyakit" mesin di industri. Itulah perjalanan kita hari ini.
+</Callout>
 
 ---
 layout: default
@@ -312,49 +308,25 @@ Setelah mempelajari materi ini, mahasiswa mampu:
 
 </v-clicks>
 
-<div class="mt-4 text-sm text-gray-500" v-click>
-📚 Referensi utama: Rao, S.S. (2018). <em>Mechanical Vibrations</em>, 6th Ed. Pearson.
+<div v-click style="margin-top:16px;background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #c8922a;border-radius:8px;padding:12px 16px;font-size:13px;color:#b6b0a5">
+📚 Referensi utama: Rao, S.S. (2018). <em>Mechanical Vibrations</em>, 6th Ed. Pearson. &nbsp;|&nbsp; Brandt, A. (2011). <em>Noise and Vibration Analysis</em>. Wiley.
 </div>
 
 ---
-layout: two-cols
+layout: default
 ---
 
 # Mengapa Domain Frekuensi?
 
-## Domain Waktu
-Melihat **bagaimana** amplitudo berubah terhadap waktu
+<TimeFreqDemo />
 
-- Komponen harmonik bertumpuk satu sama lain
-- Sulit menentukan frekuensi natural secara visual
-- Diagnosis kerusakan mesin sangat sulit
-- Noise mengaburkan informasi penting
-
-<div class="mt-4 p-3 bg-red-50 rounded border border-red-200 text-sm">
-❌ Sinyal: $x(t) = 2\sin(30t) + 0.8\sin(60t) + \text{noise}$\
-Sulit dibaca langsung dari grafik waktu.
-</div>
-
-::right::
-
-<div class="pl-4">
-
-## Domain Frekuensi
-Melihat **frekuensi apa** yang terkandung dalam sinyal
-
-- Setiap komponen frekuensi terpisah jelas
-- Frekuensi natural langsung terlihat sebagai puncak
-- Diagnosis kerusakan jauh lebih mudah
-- Noise tersebar merata, sinyal tetap menonjol
-
-<div class="mt-4 p-3 bg-green-50 rounded border border-green-200 text-sm">
-✅ Spektrum: Puncak tajam di 30 Hz (1X) dan 60 Hz (2X) langsung teridentifikasi.
-</div>
-
-<div class="mt-3 p-3 bg-blue-50 rounded text-sm">
-💡 <strong>Analogi:</strong> Seperti prisma yang memisahkan cahaya putih menjadi warna pelangi — Fourier Transform memisahkan sinyal getaran menjadi komponen frekuensinya.
-</div>
-
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+<Callout type="warning" title="Domain Waktu — Sulit Dibaca">
+Komponen harmonik bertumpuk. Sulit tentukan frekuensi natural secara visual. Noise mengaburkan informasi penting. Diagnosis kerusakan mesin sangat rumit.
+</Callout>
+<Callout type="tip" title="Domain Frekuensi — Jelas & Terpisah">
+Setiap komponen frekuensi terlihat sebagai <strong>puncak terpisah</strong>. Frekuensi natural langsung teridentifikasi. Noise tersebar merata, sinyal tetap menonjol.
+</Callout>
 </div>
 
 ---
@@ -363,36 +335,45 @@ layout: default
 
 # Sinyal Getaran & Representasinya
 
-## Getaran Harmonik Sederhana (1-DOF, tanpa redaman)
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start">
+<div>
+
+**Getaran Harmonik Sederhana (1-DOF):**
 
 $$x(t) = A\cos(\omega_n t + \phi)$$
 
-di mana: $A$ = amplitudo [m], $\omega_n$ = frekuensi natural [rad/s], $\phi$ = sudut fasa [rad]
+$A$ = amplitudo [m], $\omega_n$ = frek. natural [rad/s], $\phi$ = fasa [rad]
 
-<div class="grid grid-cols-2 gap-4 mt-4">
-
-<div class="bg-gray-50 p-4 rounded">
-
-**Sinyal periodik umum (superposisi harmonik):**
+**Sinyal periodik umum (superposisi):**
 
 $$x(t) = \sum_{k=1}^{N} A_k \cos(k\omega_0 t + \phi_k)$$
 
-Terdiri dari komponen **fundamental** $\omega_0$ dan **harmonik-harmoniknya** $2\omega_0, 3\omega_0, \ldots$
-
+<div style="background:#1a1714;border:1px solid #2e2a21;border-radius:8px;padding:12px;margin-top:8px">
+<svg viewBox="0 0 320 80" style="width:100%;height:80px">
+  <line x1="0" y1="40" x2="320" y2="40" stroke="#3a352b" stroke-width="1" stroke-dasharray="3 3"/>
+  <path id="wave1" stroke="#c8922a" stroke-width="2" fill="none" d="M0,40 C10,20 30,20 40,40 C50,60 70,60 80,40 C90,20 110,20 120,40 C130,60 150,60 160,40 C170,20 190,20 200,40 C210,60 230,60 240,40 C250,20 270,20 280,40 C290,60 310,60 320,40"/>
+  <path stroke="#5b9bd5" stroke-width="1.5" fill="none" opacity="0.7" d="M0,40 C5,25 15,25 20,40 C25,55 35,55 40,40 C45,25 55,25 60,40 C65,55 75,55 80,40 C85,25 95,25 100,40 C105,55 115,55 120,40 C125,25 135,25 140,40 C145,55 155,55 160,40 C165,25 175,25 180,40 C185,55 195,55 200,40 C205,25 215,25 220,40 C225,55 235,55 240,40 C245,25 255,25 260,40 C265,55 275,55 280,40 C285,25 295,25 300,40 C305,55 315,55 320,40"/>
+  <text x="4" y="14" fill="#c8922a" font-size="9">1× komponen (f₀)</text>
+  <text x="4" y="26" fill="#5b9bd5" font-size="9">2× harmonik (2f₀)</text>
+</svg>
 </div>
 
-<div class="bg-gray-50 p-4 rounded">
-
-**Hubungan besaran frekuensi:**
+</div>
+<div>
 
 | Besaran | Simbol | Satuan |
 |---------|--------|--------|
 | Periode | $T$ | s |
 | Frekuensi | $f_0 = 1/T$ | Hz |
-| Frekuensi sudut | $\omega_0 = 2\pi f_0$ | rad/s |
+| Frek. sudut | $\omega_0 = 2\pi f_0$ | rad/s |
+| Amplitudo | $A$ | m |
+| Fasa | $\phi$ | rad |
+
+<Callout type="industry" title="Di Mesin Industri">
+Poros yang berputar menghasilkan getaran <strong>multi-harmonik</strong>: komponen 1× RPM (unbalance), 2× RPM (misalignment), 3× RPM (looseness), dll. FFT memisahkan semua komponen ini sekaligus!
+</Callout>
 
 </div>
-
 </div>
 
 ---
@@ -405,19 +386,33 @@ Setiap sinyal periodik $x(t)$ dengan periode $T$ dapat dinyatakan sebagai:
 
 $$\boxed{x(t) = \frac{a_0}{2} + \sum_{n=1}^{\infty}\left[a_n \cos\!\left(\frac{2\pi n t}{T}\right) + b_n \sin\!\left(\frac{2\pi n t}{T}\right)\right]}$$
 
-**Koefisien Fourier:**
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px">
+<div style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #5b9bd5;border-radius:8px;padding:14px">
+<div style="color:#7fb4e3;font-weight:700;margin-bottom:8px;font-size:14px">Koefisien Fourier</div>
 
 $$a_0 = \frac{2}{T}\int_0^T x(t)\,dt$$
 
-$$a_n = \frac{2}{T}\int_0^T x(t)\cos\!\left(\frac{2\pi n t}{T}\right)dt, \qquad b_n = \frac{2}{T}\int_0^T x(t)\sin\!\left(\frac{2\pi n t}{T}\right)dt$$
+$$a_n = \frac{2}{T}\int_0^T x(t)\cos\!\left(\frac{2\pi n t}{T}\right)dt$$
 
-**Amplitudo dan fasa komponen ke-$n$:**
+$$b_n = \frac{2}{T}\int_0^T x(t)\sin\!\left(\frac{2\pi n t}{T}\right)dt$$
 
-$$C_n = \sqrt{a_n^2 + b_n^2}, \qquad \phi_n = \arctan\!\left(\frac{-b_n}{a_n}\right)$$
-
-<div class="mt-2 bg-blue-50 p-3 rounded text-sm">
-$C_n$ adalah <strong>amplitudo spektral</strong> — inilah yang ditampilkan dalam grafik spektrum frekuensi!
 </div>
+<div style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #c8922a;border-radius:8px;padding:14px">
+<div style="color:#e0b455;font-weight:700;margin-bottom:8px;font-size:14px">Amplitudo & Fasa Spektral</div>
+
+$$C_n = \sqrt{a_n^2 + b_n^2} \quad \text{(amplitudo)}$$
+
+$$\phi_n = \arctan\!\left(\frac{-b_n}{a_n}\right) \quad \text{(fasa)}$$
+
+<div style="margin-top:10px;font-size:13px;color:#b6b0a5">
+$C_n$ inilah yang membentuk <strong style="color:#c8922a">puncak spektrum</strong> di grafik FFT!
+</div>
+</div>
+</div>
+
+<Callout type="analogy">
+Deret Fourier seperti <strong>resep kue</strong>: kita bisa urai "kue" sinyal rumit menjadi daftar bahan (frekuensi-frekuensi) beserta takarannya (amplitudo $C_n$). Mau buat ulang? Tinggal campur balik bahan-bahannya!
+</Callout>
 
 ---
 layout: default
@@ -425,62 +420,47 @@ layout: default
 
 # Deret Fourier — Bentuk Kompleks
 
-Menggunakan identitas Euler $e^{j\theta} = \cos\theta + j\sin\theta$, deret Fourier menjadi:
+Menggunakan identitas Euler $e^{j\theta} = \cos\theta + j\sin\theta$:
 
-$$\boxed{x(t) = \sum_{n=-\infty}^{\infty} X_n \, e^{\,j n \omega_0 t}}$$
+$$\boxed{x(t) = \sum_{n=-\infty}^{\infty} X_n \, e^{\,j n \omega_0 t}} \qquad X_n = \frac{1}{T}\int_0^T x(t)\,e^{-jn\omega_0 t}\,dt$$
 
-dengan koefisien kompleks:
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px">
+<div style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #5b9bd5;border-radius:8px;padding:14px">
+<div style="color:#7fb4e3;font-weight:700;margin-bottom:8px">Hubungan Bentuk Trig ↔ Kompleks</div>
 
-$$X_n = \frac{1}{T}\int_0^T x(t)\,e^{-jn\omega_0 t}\,dt$$
-
-<div class="grid grid-cols-2 gap-4 mt-4">
-
-<div class="bg-blue-50 p-4 rounded">
-
-**Hubungan dengan bentuk trigonometri:**
 $$X_0 = \frac{a_0}{2}, \quad X_n = \frac{a_n - jb_n}{2}, \quad X_{-n} = X_n^*$$
+
 $$|X_n| = \frac{C_n}{2}, \quad \angle X_n = \phi_n$$
 
-</div>
-
-<div class="bg-green-50 p-4 rounded">
-
-**Keunggulan bentuk kompleks:**
-- Notasi jauh lebih ringkas
-- Manipulasi aljabar lebih mudah
-- Dasar langsung dari DFT/FFT
-- Untuk sinyal real: $X_{-n} = X_n^*$ (simetri)
+Untuk sinyal real: $X_{-n} = X_n^*$ (konjugat — simetri)
 
 </div>
+<div style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #5fae5f;border-radius:8px;padding:14px">
+<div style="color:#82c182;font-weight:700;margin-bottom:8px">Keunggulan Bentuk Kompleks</div>
+<ul style="font-size:13px;color:#d3cdc3;line-height:1.8;list-style:none;padding:0;margin:0">
+<li>✓ Notasi jauh lebih ringkas</li>
+<li>✓ Manipulasi aljabar lebih mudah</li>
+<li>✓ Dasar langsung dari DFT & FFT</li>
+<li>✓ Sangat cocok untuk analisis filter digital</li>
+</ul>
 
+<div style="margin-top:10px;font-size:12px;color:#968f84">
+💡 Inilah yang digunakan Python <code>numpy.fft.fft()</code> dan MATLAB <code>fft()</code> secara internal.
+</div>
+</div>
 </div>
 
 ---
 layout: default
 ---
 
-# Contoh: Deret Fourier Gelombang Kotak
+# Deret Fourier — Membangun Gelombang Kotak
 
-Gelombang kotak dengan amplitudo $A$ dan periode $T$:
-
-$$x(t) = \begin{cases} +A & 0 < t < T/2 \\ -A & T/2 < t < T \end{cases}$$
-
-**Karena fungsi ganjil:** $a_n = 0$ untuk semua $n$, dan $a_0 = 0$
-
-$$b_n = \frac{4A}{n\pi} \quad (n = 1,3,5,\ldots), \qquad b_n = 0 \quad (n = 2,4,6,\ldots)$$
-
-**Hasil Deret Fourier:**
+Gelombang kotak hanya mengandung harmonik **ganjil**: $f_0,\, 3f_0,\, 5f_0,\ldots$
 
 $$\boxed{x(t) = \frac{4A}{\pi}\left[\sin(\omega_0 t) + \frac{1}{3}\sin(3\omega_0 t) + \frac{1}{5}\sin(5\omega_0 t) + \cdots\right]}$$
 
-<div class="grid grid-cols-2 gap-3 mt-3 text-sm">
-<div class="bg-yellow-50 p-3 rounded">
-💡 Makin banyak harmonik → approximasi makin mendekati bentuk kotak asli.
-</div>
-<div class="bg-orange-50 p-3 rounded">
-⚠️ <strong>Gibbs phenomenon:</strong> Lonjakan ~9% terjadi di tepi diskontinuitas, tidak hilang meski harmonik → ∞.
-</div>
-</div>
+<FourierBuilder />
 
 ---
 layout: default
@@ -488,38 +468,34 @@ layout: default
 
 # Transformasi Fourier Kontinu (CFT)
 
-Untuk sinyal **non-periodik** (periode $T \to \infty$), deret Fourier menjadi integral Fourier:
+Untuk sinyal **non-periodik** (periode $T \to \infty$), deret Fourier menjadi integral:
 
-$$\boxed{X(f) = \int_{-\infty}^{\infty} x(t)\,e^{-j2\pi ft}\,dt} \qquad \text{(Transformasi Fourier)}$$
+$$\boxed{X(f) = \int_{-\infty}^{\infty} x(t)\,e^{-j2\pi ft}\,dt} \qquad \boxed{x(t) = \int_{-\infty}^{\infty} X(f)\,e^{\,j2\pi ft}\,df}$$
 
-$$\boxed{x(t) = \int_{-\infty}^{\infty} X(f)\,e^{\,j2\pi ft}\,df} \qquad \text{(Transformasi Fourier Invers)}$$
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px">
+<div style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #5b9bd5;border-radius:8px;padding:14px">
+<div style="color:#7fb4e3;font-weight:700;margin-bottom:8px">Interpretasi $X(f)$</div>
 
-<div class="grid grid-cols-2 gap-4 mt-4">
-
-<div class="bg-blue-50 p-4 rounded">
-
-**Interpretasi $X(f)$:**
-- $|X(f)|$ = **spektrum amplitudo** → kontribusi tiap frekuensi
+- $|X(f)|$ = **spektrum amplitudo** — kontribusi tiap frekuensi
 - $\angle X(f)$ = **spektrum fasa**
-- $|X(f)|^2$ = densitas spektral daya (PSD)
-- Satuan: [satuan sinyal / Hz]
+- $|X(f)|^2$ = densitas spektral daya (PSD) $[\text{satuan}^2/\text{Hz}]$
 
 </div>
-
-<div class="bg-green-50 p-4 rounded">
-
-**Pasangan Fourier penting:**
+<div style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #c8922a;border-radius:8px;padding:14px">
+<div style="color:#e0b455;font-weight:700;margin-bottom:8px">Pasangan Fourier Penting</div>
 
 | $x(t)$ | $X(f)$ |
 |--------|--------|
 | $\delta(t)$ | $1$ |
 | $e^{-at}u(t)$ | $\frac{1}{a+j2\pi f}$ |
 | $\cos(2\pi f_0 t)$ | $\frac{\delta(f-f_0)+\delta(f+f_0)}{2}$ |
-| Rect$(t/\tau)$ | $\tau\,\text{sinc}(f\tau)$ |
 
 </div>
-
 </div>
+
+<Callout type="analogy">
+CFT seperti <strong>prisma cahaya</strong>: cahaya putih (sinyal kompleks) dilewatkan prisma (transformasi) → terurai menjadi spektrum pelangi (komponen frekuensi). Tiap warna = satu frekuensi dengan intensitas tertentu.
+</Callout>
 
 ---
 layout: default
@@ -527,29 +503,28 @@ layout: default
 
 # Sifat-Sifat Transformasi Fourier
 
-<div class="text-sm mt-2">
+<div style="font-size:13px;margin-top:8px">
 
 | Sifat | Domain Waktu | Domain Frekuensi |
 |-------|-------------|------------------|
 | **Linearitas** | $\alpha x(t) + \beta y(t)$ | $\alpha X(f) + \beta Y(f)$ |
 | **Pergeseran waktu** | $x(t - t_0)$ | $X(f)\,e^{-j2\pi f t_0}$ |
 | **Pergeseran frekuensi** | $x(t)\,e^{\,j2\pi f_0 t}$ | $X(f - f_0)$ |
-| **Penskalaan** | $x(at)$ | $\frac{1}{|a|}X\!\left(\frac{f}{a}\right)$ |
+| **Penskalaan** | $x(at)$ | $\frac{1}{\|a\|}X\!\left(\frac{f}{a}\right)$ |
 | **Diferensiasi** | $\dot{x}(t)$ | $j2\pi f\,X(f)$ |
 | **Konvolusi** | $x(t) * h(t)$ | $X(f)\cdot H(f)$ |
 | **Perkalian** | $x(t)\cdot y(t)$ | $X(f) * Y(f)$ |
-| **Parseval** | $\int|x|^2dt$ | $\int|X|^2df$ |
+| **Parseval** | $\int\|x\|^2dt$ | $\int\|X\|^2df$ |
 
 </div>
 
-<div class="bg-orange-50 p-3 rounded mt-3">
+<Callout type="concept" title="Sifat Diferensiasi — Kunci Analisis Getaran">
 
-**Sifat diferensiasi — kunci untuk analisis getaran:**
 $$\dot{x}(t) \xrightarrow{\mathcal{F}} j\omega\,X(\omega) \qquad \ddot{x}(t) \xrightarrow{\mathcal{F}} -\omega^2 X(\omega)$$
 
-Artinya: spektrum **kecepatan** = $j\omega$ × spektrum perpindahan; spektrum **akselerasi** = $-\omega^2$ × spektrum perpindahan.
+Artinya: spektrum **kecepatan** = $j\omega$ × spektrum perpindahan; spektrum **akselerasi** = $-\omega^2$ × spektrum perpindahan. Satu pengukuran akselerasi → dapat dihitung spektrum semua besaran!
 
-</div>
+</Callout>
 
 ---
 layout: default
@@ -561,33 +536,27 @@ Dalam praktik, sinyal diukur sebagai **sekuens diskrit** $x[n]$ dari $N$ sampel:
 
 $$\boxed{X[k] = \sum_{n=0}^{N-1} x[n]\,e^{-j\frac{2\pi}{N}kn}, \quad k = 0, 1, \ldots, N-1}$$
 
-$$\boxed{x[n] = \frac{1}{N}\sum_{k=0}^{N-1} X[k]\,e^{\,j\frac{2\pi}{N}kn}, \quad n = 0, 1, \ldots, N-1}$$
+$$\boxed{x[n] = \frac{1}{N}\sum_{k=0}^{N-1} X[k]\,e^{\,j\frac{2\pi}{N}kn}} \qquad \text{Pemetaan: } f_k = \frac{k \cdot f_s}{N}$$
 
-**Pemetaan bin frekuensi ke frekuensi fisik:**
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px">
+<div style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #5b9bd5;border-radius:8px;padding:14px;font-size:14px">
+<div style="color:#7fb4e3;font-weight:700;margin-bottom:8px">Parameter DFT</div>
 
-$$f_k = \frac{k}{N\,\Delta t} = \frac{k \cdot f_s}{N}, \quad k = 0, 1, \ldots, \frac{N}{2}$$
-
-<div class="grid grid-cols-2 gap-3 mt-3 text-sm">
-
-<div class="bg-blue-50 p-3 rounded">
-
-**Parameter DFT:**
-- $N$ = jumlah sampel
-- $\Delta t = 1/f_s$ = interval sampling [s]
+- $N$ = jumlah sampel total
+- $\Delta t = 1/f_s$ = interval antar sampel [s]
 - $f_s$ = frekuensi sampling [Hz]
-- Resolusi frekuensi: $\Delta f = f_s / N = 1/(N\Delta t)$
+- **Resolusi frekuensi:** $\Delta f = f_s / N = 1/T_{total}$
 
 </div>
+<div style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #5fae5f;border-radius:8px;padding:14px;font-size:14px">
+<div style="color:#82c182;font-weight:700;margin-bottom:8px">Kompleksitas Komputasi</div>
 
-<div class="bg-green-50 p-3 rounded">
-
-**Kompleksitas komputasi:**
 - DFT langsung: $\mathcal{O}(N^2)$ operasi
-- FFT (Cooley-Tukey): $\mathcal{O}(N\log_2 N)$
-- Untuk $N=1024$: DFT ≈ $10^6$, FFT ≈ $10^4$ ✨
+- **FFT Cooley-Tukey:** $\mathcal{O}(N\log_2 N)$ ✨
+- Untuk $N = 1024$: DFT ≈ $10^6$ vs FFT ≈ $10^4$ operasi
+- Percepatan: **~100× lebih cepat!**
 
 </div>
-
 </div>
 
 ---
@@ -598,7 +567,7 @@ layout: two-cols
 
 ## Algoritma Cooley-Tukey (1965)
 
-Membagi DFT $N$ titik menjadi dua DFT $N/2$ titik (divide & conquer). Misalkan $W_N = e^{-j2\pi/N}$:
+Membagi DFT $N$ titik menjadi dua DFT $N/2$ titik (*divide & conquer*). Misalkan $W_N = e^{-j2\pi/N}$:
 
 $$X[k] = \underbrace{\sum_{n\,\text{genap}} x[n]\,W_N^{kn}}_{E[k]} + W_N^k \underbrace{\sum_{n\,\text{ganjil}} x[n]\,W_N^{kn}}_{O[k]}$$
 
@@ -606,7 +575,7 @@ $$X[k] = \underbrace{\sum_{n\,\text{genap}} x[n]\,W_N^{kn}}_{E[k]} + W_N^k \unde
 $$X[k] = E[k] + W_N^k \cdot O[k]$$
 $$X[k+N/2] = E[k] - W_N^k \cdot O[k]$$
 
-Proses ini berulang secara rekursif sampai $N=1$, menghasilkan $\log_2 N$ tahap.
+Proses ini rekursif sampai $N=1$, menghasilkan $\log_2 N$ tahap.
 
 ::right::
 
@@ -631,10 +600,11 @@ x = (3*np.sin(2*np.pi*50*t)
 X     = fft(x)
 freqs = fftfreq(N, 1/fs)
 
-# Ambil sisi positif
+# Ambil sisi positif & koreksi amplitudo
 idx = freqs >= 0
 amp = 2*np.abs(X[idx])/N
 f   = freqs[idx]
+# Puncak di 50 Hz (amp≈3) dan 120 Hz (amp≈1) ✓
 ```
 
 </div>
@@ -645,105 +615,50 @@ layout: default
 
 # Resolusi Frekuensi & Parameter Akuisisi
 
-<div class="grid grid-cols-3 gap-4 mt-3">
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:12px">
+<div style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #5b9bd5;border-radius:8px;padding:14px;text-align:center">
+<div style="color:#7fb4e3;font-weight:700;margin-bottom:8px">Resolusi Frekuensi</div>
 
-<div class="bg-blue-50 p-4 rounded">
-
-### Resolusi Frekuensi
 $$\Delta f = \frac{f_s}{N} = \frac{1}{T_{total}}$$
 
-- Makin panjang sinyal → resolusi makin halus
-- **Trade-off:** akurasi frekuensi vs. durasi akuisisi
-
+<div style="font-size:12px;color:#968f84;margin-top:8px">Makin panjang sinyal → resolusi makin halus. Trade-off: akurasi vs. durasi.</div>
 </div>
+<div style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #5fae5f;border-radius:8px;padding:14px;text-align:center">
+<div style="color:#82c182;font-weight:700;margin-bottom:8px">Frekuensi Nyquist</div>
 
-<div class="bg-green-50 p-4 rounded">
-
-### Frekuensi Nyquist
 $$f_{Nyq} = \frac{f_s}{2}$$
 
-- Batas frekuensi tertinggi yang bisa dianalisis
-- Wajib: $f_{Nyq} > f_{\max,\text{sinyal}}$
-- Praktik: $f_s \geq 2.56\,f_{\max}$
-
+<div style="font-size:12px;color:#968f84;margin-top:8px">Batas frekuensi tertinggi yang bisa dianalisis. Praktik industri: $f_s \geq 2.56\,f_{\max}$</div>
 </div>
+<div style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #c8922a;border-radius:8px;padding:14px;text-align:center">
+<div style="color:#e0b455;font-weight:700;margin-bottom:8px">Spectral Lines</div>
 
-<div class="bg-orange-50 p-4 rounded">
-
-### Spectral Lines
 $$N_{lines} = \frac{N}{2.56}$$
 
-- Konvensi analyzer industri
-- $N=1024$ → 400 lines
-- $N=2048$ → 800 lines
-- $N=4096$ → 1600 lines
-
+<div style="font-size:12px;color:#968f84;margin-top:8px">$N=1024$ → 400 lines<br/>$N=2048$ → 800 lines<br/>$N=4096$ → 1600 lines</div>
+</div>
 </div>
 
-</div>
-
-<div class="mt-4 bg-gray-50 p-4 rounded text-sm">
-
-**Contoh perancangan akuisisi:**
-- Frekuensi tertinggi: $f_{\max} = 500$ Hz → $f_s = 2.56 \times 500 = 1280$ Hz
-- Resolusi yang diinginkan: $\Delta f = 0.5$ Hz
-- Jumlah sampel: $N = f_s / \Delta f = 1280 / 0.5 = 2560$ sampel
-- Waktu akuisisi: $T = N/f_s = 2560/1280 = \mathbf{2}$ **detik**
-
+<div style="background:#1a1714;border:1px solid #2e2a21;border-radius:8px;padding:14px;margin-top:14px;font-size:13px">
+<div style="color:#c8922a;font-weight:700;margin-bottom:6px">📐 Contoh Perancangan Akuisisi</div>
+<span style="color:#d3cdc3">Frekuensi tertinggi: $f_{\max} = 500$ Hz → $f_s = 2.56 \times 500 = \mathbf{1280}$ <strong>Hz</strong> | Resolusi: $\Delta f = 0.5$ Hz → $N = 1280/0.5 = \mathbf{2560}$ <strong>sampel</strong> | Waktu akuisisi: $T = 2560/1280 = \mathbf{2}$ <strong>detik</strong></span>
 </div>
 
 ---
-layout: two-cols
+layout: default
 ---
 
 # Teorema Nyquist & Aliasing
 
-## Teorema Nyquist-Shannon
+<AliasingDemo />
 
-Sinyal harus di-sampling minimal **dua kali** frekuensi tertingginya:
-$$f_s \geq 2\,f_{\max}$$
-
-**Aliasing** terjadi bila $f_s < 2f_{\max}$:
-
-$$f_{alias} = \left|f_{sinyal} - n\cdot f_s\right|, \quad n \in \mathbb{Z}$$
-
-Frekuensi tinggi "terlipat" menjadi frekuensi rendah yang tidak nyata!
-
-**Contoh:**
-Sinyal $f_0 = 800$ Hz, $f_s = 1000$ Hz:
-$$f_{alias} = |800 - 1 \times 1000| = 200 \text{ Hz}$$
-
-Terlihat seolah ada komponen 200 Hz yang tidak pernah ada!
-
-::right::
-
-<div class="pl-4">
-
-## Pencegahan Aliasing
-
-<div class="bg-green-50 p-4 rounded mb-3">
-
-**Anti-aliasing filter (hardware):**
-- Low-pass filter analog sebelum ADC
-- Potong di $f_s/2$ (Nyquist)
-- Wajib ada pada setiap sistem akuisisi getaran
-
-</div>
-
-<div class="bg-blue-50 p-4 rounded">
-
-**Oversampling + decimation (software):**
-- Sample jauh lebih cepat dari Nyquist
-- Terapkan digital low-pass filter
-- Downsample ke $f_s$ target
-- Digunakan pada sistem modern (sigma-delta ADC)
-
-</div>
-
-<div class="bg-red-50 p-3 rounded mt-3 text-sm">
-⚠️ Aliasing dalam getaran mesin dapat menyebabkan <strong>salah diagnosis kerusakan</strong>!
-</div>
-
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+<Callout type="concept" title="Teorema Nyquist-Shannon">
+Sinyal harus di-sampling minimal <strong>dua kali</strong> frekuensi tertingginya: $f_s \geq 2\,f_{\max}$. Aliasing terjadi bila $f_s < 2f_{\max}$ → frekuensi tinggi "terlipat" jadi frekuensi rendah palsu: $f_{alias} = |f_{sinyal} - n\cdot f_s|$
+</Callout>
+<Callout type="warning" title="Bahaya Aliasing di Industri">
+Sinyal 800 Hz di-sample pada 1000 Hz → tampak seolah <strong>200 Hz</strong>! Diagnosis bearing yang rusak pada 850 Hz bisa tampak sebagai 150 Hz yang tidak ada. Solusi: <strong>anti-aliasing filter</strong> (low-pass analog) WAJIB sebelum ADC.
+</Callout>
 </div>
 
 ---
@@ -752,14 +667,9 @@ layout: default
 
 # Windowing — Mengatasi Spectral Leakage
 
-**Masalah:** DFT mengasumsikan sinyal periodik dalam window. Jika sinyal tidak berakhir sempurna → *spectral leakage* (energi bocor ke bin frekuensi tetangga).
+**Masalah:** DFT mengasumsikan sinyal periodik dalam window. Jika sinyal tidak berakhir sempurna → *spectral leakage* (energi bocor ke bin tetangga).
 
-**Solusi:** Kalikan sinyal dengan fungsi window $w[n]$ yang memudar ke nol di kedua tepi:
-
-$$x_w[n] = x[n] \cdot w[n]$$
-
-<div class="grid grid-cols-2 gap-4 mt-3">
-
+<div style="display:grid;grid-template-columns:1.2fr 1fr;gap:14px;margin-top:10px">
 <div>
 
 | Window | Keunggulan | Cocok untuk |
@@ -770,20 +680,28 @@ $$x_w[n] = x[n] \cdot w[n]$$
 | **Flattop** | Akurasi amplitudo | Kalibrasi |
 | **Exponential** | Transien meredam | Impact test |
 
+<Callout type="industry" title="Praktik Industri">
+Untuk monitoring getaran mesin <strong>stasioner</strong>, window <strong>Hanning</strong> adalah pilihan default di hampir semua analyzer industri (Brüel & Kjær, National Instruments, PCB Piezotronics).
+</Callout>
+
 </div>
+<div style="background:#1a1714;border:1px solid #2e2a21;border-radius:8px;padding:14px">
+<div style="color:#c8922a;font-weight:700;margin-bottom:8px">Window Hanning</div>
 
-<div class="bg-blue-50 p-4 rounded">
+$$w[n] = 0.5\!\left[1 - \cos\!\left(\frac{2\pi n}{N-1}\right)\right]$$
 
-**Window Hanning (paling umum dipakai):**
-$$w[n] = 0.5\left[1 - \cos\!\left(\frac{2\pi n}{N-1}\right)\right]$$
+<svg viewBox="0 0 200 80" style="width:100%;height:70px;margin:8px 0">
+  <line x1="0" y1="70" x2="200" y2="70" stroke="#3a352b" stroke-width="1"/>
+  <path d="M0,70 C50,70 60,5 100,5 C140,5 150,70 200,70" fill="none" stroke="#c8922a" stroke-width="2"/>
+  <path d="M0,70 L200,70" fill="none" stroke="#5b9bd5" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.6"/>
+  <text x="50" y="20" fill="#c8922a" font-size="9">Hanning</text>
+  <text x="120" y="66" fill="#5b9bd5" font-size="9">Rectangular</text>
+</svg>
 
-**Koreksi amplitudo setelah windowing:**
+**Koreksi amplitudo:**
 $$A_{koreksi} = \frac{2\,|X[k]|}{N \cdot \bar{w}}$$
 
-di mana $\bar{w} = \frac{1}{N}\sum w[n]$ adalah nilai rata-rata window.
-
 </div>
-
 </div>
 
 ---
@@ -792,39 +710,37 @@ layout: default
 
 # Spektrum Amplitudo & Fasa
 
-Dari DFT $X[k]$ diperoleh dua jenis spektrum:
-
-<div class="grid grid-cols-2 gap-4 mt-3">
-
-<div class="bg-blue-50 p-4 rounded">
-
-### Spektrum Amplitudo
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px">
+<div style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #5b9bd5;border-radius:8px;padding:14px">
+<div style="color:#7fb4e3;font-weight:700;margin-bottom:8px">Spektrum Amplitudo</div>
 
 $$|X[k]| = \sqrt{\text{Re}(X[k])^2 + \text{Im}(X[k])^2}$$
 
-- Single-sided (untuk sinyal real): $A_k = \dfrac{2|X[k]|}{N}$ untuk $k > 0$
-- Komponen DC: $A_0 = \dfrac{|X[0]|}{N}$
-- Satuan sama dengan satuan input [m, m/s, m/s²]
-- **Power Spectral Density:** $S_{xx}(f) = \dfrac{|X(f)|^2}{\Delta f}$
+Single-sided (sinyal real): $A_k = \dfrac{2|X[k]|}{N}$ untuk $k > 0$
+
+Komponen DC: $A_0 = \dfrac{|X[0]|}{N}$
+
+**Power Spectral Density:**
+$$S_{xx}(f) = \frac{|X(f)|^2}{\Delta f}$$
 
 </div>
-
-<div class="bg-green-50 p-4 rounded">
-
-### Spektrum Fasa
+<div style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #5fae5f;border-radius:8px;padding:14px">
+<div style="color:#82c182;font-weight:700;margin-bottom:8px">Spektrum Fasa</div>
 
 $$\angle X[k] = \arctan\!\left(\frac{\text{Im}(X[k])}{\text{Re}(X[k])}\right)$$
 
-- Satuan: radian atau derajat
-- Digunakan untuk: analisis modal, ODS (Operational Deflection Shape), balancing rotor
-- Pada monitoring kondisi sederhana sering diabaikan
+Digunakan untuk: analisis modal, ODS (Operational Deflection Shape), **balancing rotor**
 
 **RMS dari spektrum:**
 $$x_{rms} = \sqrt{\sum_{k} |X[k]|^2 / N^2}$$
 
+<div style="font-size:12px;color:#968f84;margin-top:8px">Pada monitoring kondisi sederhana, fasa sering diabaikan — amplitudo cukup untuk deteksi anomali.</div>
+</div>
 </div>
 
-</div>
+<Callout type="analogy">
+Spektrum amplitudo adalah "sidik jari" mesin. Setiap mesin sehat punya pola puncak yang khas dan stabil. Perubahan pola = tanda ada masalah — seperti dokter yang mengenali suara jantung abnormal!
+</Callout>
 
 ---
 layout: default
@@ -832,49 +748,45 @@ layout: default
 
 # Analisis Getaran Mesin dengan FFT
 
-**Prosedur analisis:**
-
-<div class="grid grid-cols-4 gap-3 mt-4">
-
-<div class="bg-blue-50 p-3 rounded text-center">
-<div class="text-3xl mb-1">📡</div>
-<div class="font-bold text-sm">1. Akuisisi</div>
-<div class="text-xs mt-1">Akselerometer → kondisioner sinyal → ADC → data digital $x[n]$</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin:14px 0">
+<div style="background:#1a1714;border:1px solid #2e2a21;border-radius:8px;padding:12px;text-align:center">
+<div style="font-size:28px;margin-bottom:6px">📡</div>
+<div style="color:#c8922a;font-weight:700;font-size:13px;margin-bottom:4px">1. Akuisisi</div>
+<div style="font-size:11px;color:#968f84">Akselerometer → kondisioner sinyal → ADC → data digital $x[n]$</div>
+</div>
+<div style="background:#1a1714;border:1px solid #2e2a21;border-radius:8px;padding:12px;text-align:center">
+<div style="font-size:28px;margin-bottom:6px">🔲</div>
+<div style="color:#7fb4e3;font-weight:700;font-size:13px;margin-bottom:4px">2. Preprocessing</div>
+<div style="font-size:11px;color:#968f84">Anti-alias filter, detrending DC, windowing</div>
+</div>
+<div style="background:#1a1714;border:1px solid #2e2a21;border-radius:8px;padding:12px;text-align:center">
+<div style="font-size:28px;margin-bottom:6px">⚡</div>
+<div style="color:#82c182;font-weight:700;font-size:13px;margin-bottom:4px">3. FFT</div>
+<div style="font-size:11px;color:#968f84">Hitung DFT → spektrum amplitudo $|X[k]|$</div>
+</div>
+<div style="background:#1a1714;border:1px solid #2e2a21;border-radius:8px;padding:12px;text-align:center">
+<div style="font-size:28px;margin-bottom:6px">🔍</div>
+<div style="color:#bda5da;font-weight:700;font-size:13px;margin-bottom:4px">4. Diagnosis</div>
+<div style="font-size:11px;color:#968f84">Identifikasi puncak, bandingkan baseline</div>
+</div>
 </div>
 
-<div class="bg-green-50 p-3 rounded text-center">
-<div class="text-3xl mb-1">🔲</div>
-<div class="font-bold text-sm">2. Preprocessing</div>
-<div class="text-xs mt-1">Anti-alias filter, detrending DC, windowing</div>
-</div>
+<div style="background:#1a1714;border:1px solid #2e2a21;border-radius:8px;padding:12px;font-size:13px;margin-bottom:10px">
+<div style="color:#c8922a;font-weight:700;margin-bottom:6px">Pola Frekuensi Khas Spektrum Getaran Mesin</div>
 
-<div class="bg-orange-50 p-3 rounded text-center">
-<div class="text-3xl mb-1">⚡</div>
-<div class="font-bold text-sm">3. FFT</div>
-<div class="text-xs mt-1">Hitung DFT → spektrum amplitudo $|X[k]|$</div>
-</div>
-
-<div class="bg-purple-50 p-3 rounded text-center">
-<div class="text-3xl mb-1">🔍</div>
-<div class="font-bold text-sm">4. Interpretasi</div>
-<div class="text-xs mt-1">Identifikasi puncak, bandingkan baseline</div>
-</div>
+| Frekuensi | Sumber Getaran |
+|-----------|----------------|
+| $1\times$ RPM | **Unbalance** — ketidakseimbangan massa rotor |
+| $2\times$ RPM | **Misalignment** aksial, keausan bearing |
+| $n\times$ RPM ($n\geq3$) | Harmonik mekanis, looseness (kelonggaran) |
+| $f_{mesh}$ = (RPM/60) × jumlah gigi | **Kerusakan gear** |
+| $f_{BPFO},\,f_{BPFI},\,f_{BSF}$ | **Kerusakan bearing** |
 
 </div>
 
-<div class="mt-4 bg-gray-50 p-4 rounded text-sm">
-
-**Pola frekuensi khas pada spektrum getaran mesin:**
-
-| Frekuensi | Sumber |
-|-----------|--------|
-| $1\times$ RPM | Unbalance (ketidakseimbangan massa) |
-| $2\times$ RPM | Misalignment, bearing wear |
-| $n\times$ RPM ($n\geq3$) | Cacat mekanis, kelonggaran (looseness) |
-| $f_{mesh}$ = (RPM/60) × jumlah gigi | Kerusakan gear |
-| $f_{BPFO}, f_{BPFI}, f_{BSF}$ | Kerusakan bearing |
-
-</div>
+<Callout type="industry" title="Kasus Nyata — Pembangkit Listrik">
+Turbin generator 3000 RPM (50 Hz) menunjukkan peningkatan tiba-tiba komponen 100 Hz (2×). Diagnosis FFT: <strong>misalignment</strong> kopling. Perbaikan dilakukan saat shutdown terencana → mencegah kerusakan bearing senilai Rp 500 juta.
+</Callout>
 
 ---
 layout: default
@@ -882,39 +794,17 @@ layout: default
 
 # Identifikasi Frekuensi Natural via FRF
 
-## Fungsi Respons Frekuensi (FRF)
+$$H(\omega) = \frac{X(\omega)}{F(\omega)} = \frac{1}{k - m\omega^2 + jc\omega} \qquad |H(\omega)| = \frac{1}{\sqrt{(k-m\omega^2)^2 + (c\omega)^2}}$$
 
-FRF adalah rasio respons output terhadap input gaya dalam domain frekuensi:
+<ResonanceCurve />
 
-$$H(\omega) = \frac{X(\omega)}{F(\omega)} = \frac{1}{k - m\omega^2 + jc\omega}$$
-
-$$|H(\omega)| = \frac{1}{\sqrt{(k-m\omega^2)^2 + (c\omega)^2}}$$
-
-<div class="grid grid-cols-2 gap-4 mt-3">
-
-<div class="bg-blue-50 p-4 rounded">
-
-**Puncak FRF → Frekuensi Natural**
-
-Pada resonans $\omega = \omega_n = \sqrt{k/m}$:
-$$|H(\omega_n)|_{\max} = \frac{1}{c\,\omega_n} = \frac{1}{2k\zeta}$$
-
-Makin kecil $\zeta$ → puncak makin tajam dan tinggi.
-
-</div>
-
-<div class="bg-green-50 p-4 rounded">
-
-**Metode Half-Power (−3 dB Band):**
-
-$$\zeta \approx \frac{f_2 - f_1}{2f_n}$$
-
-di mana $f_1, f_2$ adalah frekuensi saat amplitudo FRF turun ke $|H|_{\max}/\sqrt{2}$.
-
-Disebut **bandwidth method** untuk identifikasi damping ratio experimentally.
-
-</div>
-
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
+<Callout type="concept" title="Puncak FRF → Frekuensi Natural">
+Pada resonans $\omega = \omega_n$: $|H|_{\max} = \frac{1}{2k\zeta}$. Makin kecil $\zeta$ → puncak makin tajam. Metode Half-Power (−3 dB): $\zeta \approx \frac{f_2 - f_1}{2f_n}$
+</Callout>
+<Callout type="warning" title="Bahaya Resonansi">
+Saat frekuensi operasi mesin mendekati $\omega_n$ struktur, amplitudo getaran meledak! Jembatan Tacoma Narrows (1940) runtuh karena angin memicu resonansi. Desain mesin <strong>harus menghindari</strong> frekuensi operasi dekat $\omega_n$.
+</Callout>
 </div>
 
 ---
@@ -923,7 +813,7 @@ layout: default
 
 # Contoh Soal 1 — Identifikasi Sumber Getaran
 
-**Soal:** Sensor akselerometer pada poros mengukur getaran mesin yang berputar pada 1800 RPM. Hasil FFT menunjukkan puncak signifikan pada: **30 Hz, 60 Hz, 90 Hz, dan 340 Hz**.
+**Soal:** Sensor akselerometer pada poros mengukur getaran mesin yang berputar pada **1800 RPM**. Hasil FFT menunjukkan puncak signifikan pada: **30 Hz, 60 Hz, 90 Hz, dan 340 Hz**.
 
 Tentukan sumber masing-masing komponen frekuensi!
 
@@ -931,17 +821,19 @@ Tentukan sumber masing-masing komponen frekuensi!
 
 **Penyelesaian:**
 
-Frekuensi putaran: $f_{rot} = 1800\,\text{RPM} / 60 = 30\,\text{Hz}$
+Frekuensi putaran: $f_{rot} = 1800\,\text{RPM} / 60 = \mathbf{30\,\text{Hz}}$
 
 | Frekuensi | Rasio | Diagnosis |
 |-----------|-------|-----------|
-| 30 Hz | $1\times$ | **Unbalance** (ketidakseimbangan massa rotor) |
+| 30 Hz | $1\times$ | **Unbalance** — ketidakseimbangan massa rotor |
 | 60 Hz | $2\times$ | **Misalignment** aksial atau keausan bearing |
 | 90 Hz | $3\times$ | Harmonik ke-3 → kelonggaran mekanis |
-| 340 Hz | $11.3\times$ | Bukan harmonik bulat → kemungkinan **frekuensi meshing** gear (perlu cek jumlah gigi) |
+| 340 Hz | $11.3\times$ | Bukan harmonik bulat → kemungkinan **frekuensi meshing** gear |
 
-**Parameter akuisisi yang digunakan:**
+**Parameter akuisisi:**
 $$\Delta f = \frac{f_s}{N} = \frac{5000}{4096} \approx 1.22\,\text{Hz} \quad (\text{cukup untuk memisahkan 30-60-90 Hz})$$
+
+**Kesimpulan:** Mesin mengalami unbalance + misalignment secara bersamaan. Perlu balancing rotor dan pengecekan kopling!
 
 </v-clicks>
 
@@ -960,15 +852,17 @@ Tentukan $\omega_n$, $\zeta$, $k$, dan $c$!
 
 <v-clicks>
 
-**Penyelesaian:**
+**Penyelesaian langkah demi langkah:**
 
-$$\omega_n = 2\pi \times 125 = 785.4\,\text{rad/s}$$
+$$\omega_n = 2\pi \times 125 = \mathbf{785.4\,\text{rad/s}}$$
 
-$$\zeta = \frac{f_2 - f_1}{2f_n} = \frac{128.5 - 121.5}{2 \times 125} = \frac{7}{250} = 0.028 = \mathbf{2.8\%}$$
+$$\zeta = \frac{f_2 - f_1}{2f_n} = \frac{128.5 - 121.5}{2 \times 125} = \frac{7}{250} = \mathbf{0.028 = 2.8\%}$$
 
-$$k = m\,\omega_n^2 = 2.5 \times (785.4)^2 = 1.54 \times 10^6\,\text{N/m}$$
+$$k = m\,\omega_n^2 = 2.5 \times (785.4)^2 = \mathbf{1.54 \times 10^6\,\text{N/m}}$$
 
-$$c = 2\,m\,\omega_n\,\zeta = 2 \times 2.5 \times 785.4 \times 0.028 = 110.0\,\text{N·s/m}$$
+$$c = 2\,m\,\omega_n\,\zeta = 2 \times 2.5 \times 785.4 \times 0.028 = \mathbf{110.0\,\text{N·s/m}}$$
+
+**Verifikasi:** $|H|_{\max} = \frac{1}{2k\zeta} = \frac{1}{2 \times 1.54\times10^6 \times 0.028} = 1.16\times10^{-5}$ ← (gunakan $c\omega_n$ langsung)
 
 </v-clicks>
 
@@ -994,6 +888,10 @@ di mana $n$ = RPM poros.
 
 <div class="pl-4">
 
+<Callout type="industry" title="Implementasi di Pabrik">
+Perusahaan baja (Krakatau Steel, dll.) memasang sensor akselerometer permanen pada 500+ bearing kritis. Sistem monitoring otomatis membandingkan spektrum FFT real-time vs. baseline → alert dini jika $f_{BPFO}$ atau harmoniknya muncul. <strong>Penghematan: 60-70% biaya maintenance tak terencana.</strong>
+</Callout>
+
 ## Pola Diagnosis
 
 | Kondisi | Pola Spektrum |
@@ -1004,15 +902,6 @@ di mana $n$ = RPM poros.
 | **Bearing BPFO** | Puncak $f_{BPFO}$ + sidebands |
 | **Gear mesh** | $f_{mesh}$ + harmonik |
 
-<div class="mt-4 bg-blue-50 p-3 rounded text-sm">
-
-**Frekuensi fundamental putaran (FTF):**
-$$f_{FTF} = \frac{n}{120}\left(1 - \frac{d}{D}\cos\alpha\right)$$
-
-FTF adalah frekuensi putar sangkar (cage). Kerusakan dini bearing sering muncul sebagai sidebands di sekitar BPFO/BPFI dengan jarak $f_{FTF}$.
-
-</div>
-
 </div>
 
 ---
@@ -1021,46 +910,47 @@ layout: default
 
 # Indikator Kondisi Getaran
 
-Selain spektrum FFT, indikator statistik digunakan untuk monitoring:
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:10px">
+<div style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #5b9bd5;border-radius:8px;padding:14px">
+<div style="color:#7fb4e3;font-weight:700;margin-bottom:8px">RMS</div>
 
-<div class="grid grid-cols-3 gap-4 mt-3">
-
-<div class="bg-blue-50 p-4 rounded">
-
-### RMS
 $$x_{rms} = \sqrt{\frac{1}{N}\sum_{n=1}^{N}x[n]^2}$$
-- Terkait energi total getaran
+
+- Terkait **energi total** getaran
 - ISO 10816: batas per kelas mesin
 - Satuan: mm/s (kecepatan)
 
 </div>
+<div style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #5fae5f;border-radius:8px;padding:14px">
+<div style="color:#82c182;font-weight:700;margin-bottom:8px">Crest Factor</div>
 
-<div class="bg-green-50 p-4 rounded">
-
-### Crest Factor
 $$CF = \frac{x_{\text{peak}}}{x_{rms}}$$
+
 - Normal: $CF \approx 1.4$ – $2.0$
 - Impak/cacat: CF meningkat
 - Deteksi dini kerusakan bearing
 
 </div>
+<div style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #c8922a;border-radius:8px;padding:14px">
+<div style="color:#e0b455;font-weight:700;margin-bottom:8px">Kurtosis</div>
 
-<div class="bg-orange-50 p-4 rounded">
-
-### Kurtosis
 $$K = \frac{\frac{1}{N}\sum(x-\bar{x})^4}{\left(\frac{1}{N}\sum(x-\bar{x})^2\right)^2}$$
-- Normal: $K = 3$
+
+- Normal: $K = 3$ (Gaussian)
 - Cacat bearing: $K > 3$
-- Sangat sensitif di tahap awal
+- Sensitif di tahap awal
 
 </div>
-
 </div>
 
-<div class="mt-3 bg-gray-50 p-3 rounded text-sm">
-
-**Standar ISO 10816-3:** Batas kecepatan getaran RMS [mm/s] untuk mesin industri: Baik <2.3 / Memuaskan 2.3–4.5 / Tidak Memuaskan 4.5–7.1 / Tidak Dapat Diterima >7.1
-
+<div style="background:#1a1714;border:1px solid #2e2a21;border-radius:8px;padding:12px;margin-top:12px;font-size:13px">
+<div style="color:#c8922a;font-weight:700;margin-bottom:4px">Standar ISO 10816-3 — Batas Kecepatan Getaran RMS [mm/s] untuk Mesin Industri</div>
+<div style="color:#d3cdc3">
+✅ <strong style="color:#82c182">Baik:</strong> &lt;2.3 &nbsp;|&nbsp; 
+⚡ <strong style="color:#7fb4e3">Memuaskan:</strong> 2.3–4.5 &nbsp;|&nbsp; 
+⚠️ <strong style="color:#e0b455">Tidak Memuaskan:</strong> 4.5–7.1 &nbsp;|&nbsp; 
+🚨 <strong style="color:#e58a80">Tidak Dapat Diterima:</strong> &gt;7.1
+</div>
 </div>
 
 ---
@@ -1075,17 +965,15 @@ import matplotlib.pyplot as plt
 from scipy.fft import fft, fftfreq
 from scipy.signal import windows
 
-# Simulasi sinyal getaran mesin (1800 RPM)
-fs    = 5000
-T     = 2.0
-N     = int(T * fs)
+# Simulasi sinyal getaran mesin (1800 RPM = 30 Hz)
+fs    = 5000;  T = 2.0;  N = int(T * fs)
 t     = np.linspace(0, T, N, endpoint=False)
 f_rot = 30   # 1X = 30 Hz
 
-x = (2.5 * np.sin(2*np.pi * f_rot * t)       # 1X unbalance
-   + 0.8 * np.sin(2*np.pi * 2*f_rot * t)     # 2X misalignment
-   + 0.3 * np.sin(2*np.pi * 3*f_rot * t)     # 3X harmonik
-   + 0.1 * np.random.randn(N))               # noise
+x = (2.5 * np.sin(2*np.pi * f_rot * t)       # 1X — unbalance
+   + 0.8 * np.sin(2*np.pi * 2*f_rot * t)     # 2X — misalignment
+   + 0.3 * np.sin(2*np.pi * 3*f_rot * t)     # 3X — harmonik
+   + 0.1 * np.random.randn(N))               # noise acak
 
 # Windowing (Hanning) + FFT
 win   = windows.hann(N)
@@ -1096,12 +984,18 @@ freqs = fftfreq(N, 1/fs)
 amp   = 2 * np.abs(X[:N//2]) / (N * np.mean(win))
 f_pos = freqs[:N//2]
 
+# Identifikasi puncak
+from scipy.signal import find_peaks
+peaks, _ = find_peaks(amp, height=0.1, distance=10)
+for p in peaks:
+    print(f"Puncak: {f_pos[p]:.1f} Hz, Amp: {amp[p]:.3f}")
+
 # Plot
 plt.figure(figsize=(10, 4))
-plt.plot(f_pos, amp)
+plt.plot(f_pos, amp, color='#c8922a', linewidth=1.2)
 plt.xlabel('Frekuensi [Hz]'); plt.ylabel('Amplitudo [m/s²]')
 plt.title('Spektrum FFT Getaran Poros (1800 RPM)')
-plt.xlim([0, 200]); plt.grid(True); plt.tight_layout(); plt.show()
+plt.xlim([0, 200]); plt.grid(True, alpha=0.3); plt.tight_layout(); plt.show()
 ```
 
 ---
@@ -1111,67 +1005,63 @@ layout: default
 # Implementasi MATLAB — Analisis Spektral
 
 ```matlab
-%% Analisis FFT Getaran Mesin
+%% Analisis FFT Getaran Mesin — Universitas Mercu Buana
 clear; clc; close all;
 
 % Parameter sinyal
-fs    = 5000;       % frekuensi sampling [Hz]
-T     = 2.0;        % durasi [s]
-N     = fs * T;
+fs    = 5000;  T = 2.0;  N = fs * T;
 t     = (0:N-1) / fs;
-f_rot = 30;         % 1X rotasi = 30 Hz (1800 RPM)
+f_rot = 30;         % 1X = 30 Hz (1800 RPM)
 
 % Simulasi sinyal getaran
-x = 2.5*sin(2*pi*f_rot*t) + 0.8*sin(2*pi*2*f_rot*t) ...
-  + 0.3*sin(2*pi*3*f_rot*t) + 0.1*randn(1,N);
+x = 2.5*sin(2*pi*f_rot*t) ...        % 1X — unbalance
+  + 0.8*sin(2*pi*2*f_rot*t) ...      % 2X — misalignment
+  + 0.3*sin(2*pi*3*f_rot*t) ...      % 3X — harmonik
+  + 0.1*randn(1,N);                  % noise
 
 % Window Hanning + FFT
 win    = hann(N)';
 X      = fft(x .* win);
 f      = (0:N/2-1) * fs/N;
+amp    = 2 * abs(X(1:N/2)) / (N * mean(win));   % koreksi amplitudo
 
-% Koreksi amplitudo untuk window Hanning
-amp    = 2 * abs(X(1:N/2)) / (N * mean(win));
-
-% Visualisasi
+% Plot
 subplot(2,1,1);
-plot(t(1:2000), x(1:2000));
+plot(t(1:2000), x(1:2000), 'Color', [0.78 0.57 0.16]);
 xlabel('Waktu [s]'); ylabel('Akselerasi [m/s²]');
 title('Sinyal Getaran — Domain Waktu');
+grid on; set(gca, 'Color', [0.08 0.07 0.04]);
 
 subplot(2,1,2);
-plot(f, amp);
+plot(f, amp, 'Color', [0.78 0.57 0.16], 'LineWidth', 1.2);
 xlabel('Frekuensi [Hz]'); ylabel('Amplitudo [m/s²]');
-title('Spektrum FFT (Hanning window)'); xlim([0 200]); grid on;
+title('Spektrum FFT (Hanning window)');
+xlim([0 200]); grid on;
+xline(30,'--b','1X'); xline(60,'--g','2X'); xline(90,'--r','3X');
 ```
 
 ---
 layout: default
 ---
 
-# Latihan & Tugas
+# Latihan Interaktif
 
-## Latihan Mandiri
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+<div>
+<Quiz :n="1" q="Sebuah mesin berputar 1500 RPM. Berapakah frekuensi fundamental (1×) getarannya?" :options="['20 Hz','25 Hz','30 Hz','15 Hz']" :answer="1" explain="1500 RPM ÷ 60 = 25 Hz. Selalu bagi RPM dengan 60 untuk mendapat Hz." />
 
-<v-clicks>
+<Quiz :n="2" q="Mengapa kita perlu menggunakan windowing sebelum FFT?" :options="['Mempercepat komputasi FFT','Mengatasi spectral leakage akibat sinyal tidak periodik sempurna dalam window','Meningkatkan resolusi frekuensi','Mengurangi noise acak']" :answer="1" explain="Windowing meredam sinyal ke nol di tepi window sehingga tidak ada loncatan diskontinuitas yang menyebabkan spectral leakage." />
 
-1. **Deret Fourier:** Hitung 5 koefisien pertama Deret Fourier untuk sinyal getaran *segitiga* (triangular wave) dengan amplitudo $A = 1$ m dan periode $T = 0.02$ s.
+<Quiz :n="3" q="Jika sinyal mengandung komponen 120 Hz dan frekuensi sampling fs = 150 Hz, berapakah frekuensi alias yang muncul?" :options="['30 Hz','120 Hz','60 Hz','270 Hz']" :answer="0" explain="|120 - 1×150| = 30 Hz. Karena fs < 2×120 = 240 Hz, terjadi aliasing." />
+</div>
+<div>
+<Quiz :n="4" q="Apa yang ditunjukkan oleh puncak pada frekuensi 2× RPM dalam spektrum getaran mesin?" :options="['Unbalance massa rotor','Misalignment atau keausan bearing','Kerusakan gear','Resonansi struktural']" :answer="1" explain="Komponen 2× RPM yang dominan adalah indikator klasik misalignment atau keausan bearing. Unbalance biasanya dominan di 1×." />
 
-2. **Parameter DFT:** Sistem getaran perlu dianalisis hingga $f_{\max} = 2000$ Hz dengan resolusi $\Delta f = 0.5$ Hz. Tentukan: (a) $f_s$ minimum, (b) jumlah sampel $N$, (c) waktu akuisisi.
+<Quiz :n="5" q="Berapa resolusi frekuensi jika sinyal diambil selama 4 detik dengan fs = 2000 Hz?" :options="['0.5 Hz','0.25 Hz','2 Hz','1 Hz']" :answer="1" explain="Δf = 1/T_total = 1/4 = 0.25 Hz. Atau Δf = fs/N = 2000/8000 = 0.25 Hz." />
 
-3. **Aliasing:** Sinyal mengandung komponen pada 80 Hz, 150 Hz, dan 600 Hz. Jika $f_s = 500$ Hz, tentukan frekuensi alias yang muncul di spektrum.
-
-4. **Interpretasi spektrum:** Dari spektrum FFT poros yang berputar 24 Hz, teridentifikasi puncak pada 24, 48, 72, dan 288 Hz. Berapa jumlah gigi gear jika 288 Hz adalah frekuensi meshing?
-
-</v-clicks>
-
-## Tugas Kelompok (2 orang)
-
-<v-click>
-
-Ukur sinyal getaran menggunakan aplikasi akselerometer smartphone. Ekspor data CSV, lakukan analisis FFT dengan Python, dan identifikasi komponen frekuensi dominan. Kumpulkan laporan 3–5 halaman + kode Python.
-
-</v-click>
+<Quiz :n="6" q="Nilai Kurtosis sinyal getaran bearing yang NORMAL mendekati berapa?" :options="['0','1','3','10']" :answer="2" explain="Sinyal Gaussian (getaran normal) memiliki kurtosis = 3. Nilai K > 3 mengindikasikan impak periodik seperti cacat bearing." />
+</div>
+</div>
 
 ---
 layout: default
@@ -1179,47 +1069,42 @@ layout: default
 
 # Rangkuman
 
-<div class="grid grid-cols-2 gap-6">
-
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:10px">
 <div>
 
 ### Konsep Kunci
 
 <v-clicks>
 
-- **Deret Fourier:** sinyal periodik = jumlah sinusoidal harmonik dengan koefisien $a_n$, $b_n$
-- **Transformasi Fourier:** perpindahan domain waktu ↔ frekuensi untuk sinyal umum
-- **DFT/FFT:** implementasi diskrit & efisien ($\mathcal{O}(N\log N)$) untuk komputer
-- **Spektrum:** memperlihatkan amplitudo dan fasa tiap komponen frekuensi
-- **FRF:** alat identifikasi parameter modal (frekuensi natural, damping)
+- **Deret Fourier:** sinyal periodik = jumlah sinusoidal harmonik dengan koefisien $C_n$
+- **Transformasi Fourier (CFT):** perpindahan domain waktu ↔ frekuensi untuk sinyal kontinu
+- **DFT/FFT:** implementasi diskrit & efisien $\mathcal{O}(N\log N)$ untuk komputer
+- **Spektrum:** memperlihatkan amplitudo $|X[k]|$ dan fasa $\angle X[k]$ tiap frekuensi
+- **FRF:** alat identifikasi parameter modal ($\omega_n$, $\zeta$, $k$, $c$) dari eksperimen
 
 </v-clicks>
 
 </div>
-
 <div>
 
-### Aturan Praktis
+### Aturan Praktis Industri
 
 <v-clicks>
 
 - $f_s \geq 2.56\,f_{\max}$ — standar industri analyzer
 - $\Delta f = 1/T_{total}$ — resolusi frekuensi
-- Selalu gunakan **window** untuk sinyal stasioner
-- **Anti-alias filter** wajib sebelum ADC
+- Selalu gunakan **window Hanning** untuk sinyal stasioner
+- **Anti-alias filter wajib** sebelum ADC
 - Puncak $1\times, 2\times, 3\times$ RPM = panduan diagnosis dasar
 - Validasi spektrum dengan domain waktu!
 
 </v-clicks>
 
 </div>
-
 </div>
 
-<div class="mt-5 bg-blue-50 p-4 rounded" v-click>
-
-**Pesan kunci:** Fourier Transform adalah "kacamata" yang memungkinkan kita melihat sinyal getaran dari sudut pandang frekuensi. Apa yang sulit dibaca dalam domain waktu menjadi jelas dalam domain frekuensi — inilah dasar dari seluruh teknologi predictive maintenance modern.
-
+<div v-click style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #c8922a;border-radius:8px;padding:14px;margin-top:16px">
+<strong style="color:#c8922a">Pesan Kunci:</strong> <span style="color:#d3cdc3">Fourier Transform adalah "kacamata" yang memungkinkan kita melihat sinyal getaran dari sudut pandang frekuensi. Apa yang sulit dibaca dalam domain waktu menjadi jelas dalam domain frekuensi — inilah dasar dari seluruh teknologi predictive maintenance modern.</span>
 </div>
 
 ---
@@ -1228,7 +1113,7 @@ layout: default
 
 # Referensi
 
-<div class="space-y-2 mt-4 text-sm">
+<div style="margin-top:16px;font-size:13.5px;color:#d3cdc3;line-height:2">
 
 1. **Rao, S.S.** (2018). *Mechanical Vibrations*, 6th Ed. Pearson Education. *(Bab 11 — Signal Processing)*
 
@@ -1242,9 +1127,7 @@ layout: default
 
 6. **ISO 10816-3:2009** — Mechanical vibration — Evaluation of machine vibration by measurements on non-rotating parts.
 
-7. **Dokumentasi Python:**
-   - `scipy.fft`: scipy.org/doc/scipy/reference/fft.html
-   - `scipy.signal.windows`: untuk berbagai jenis window functions
+7. **Dokumentasi Python:** `scipy.fft` — scipy.org/doc/scipy/reference/fft.html
 
 </div>
 
@@ -1257,20 +1140,38 @@ class: text-center
 
 **Ada pertanyaan?**
 
-<div class="mt-6 text-gray-600">
+<div style="margin-top:24px;color:#b6b0a5;line-height:2">
 
-Dedik Romahadi, S.T., M.T.\
-📧 dedik.romahadi@mercubuana.ac.id\
+Dedik Romahadi, S.T., M.T.<br/>
+<span style="color:#c8922a">📧</span> dedik.romahadi@mercubuana.ac.id<br/>
 Program Studi Teknik Mesin — Universitas Mercu Buana
 
 </div>
 
-<div class="mt-6 text-sm text-gray-400">
-
-*Slide ini dibuat dengan [Slidev](https://sli.dev) — presentasi berbasis Markdown*
-
+<div style="margin-top:20px">
+<svg viewBox="0 0 400 60" style="width:360px;height:50px;display:block;margin:0 auto">
+  <line x1="0" y1="30" x2="400" y2="30" stroke="#2e2a21" stroke-width="1"/>
+  <rect x="30" y="10" width="8" height="40" rx="2" fill="#c8922a" opacity="0.9"/>
+  <rect x="50" y="20" width="8" height="30" rx="2" fill="#c8922a" opacity="0.7"/>
+  <rect x="70" y="5" width="8" height="50" rx="2" fill="#c8922a" opacity="0.95"/>
+  <rect x="90" y="15" width="8" height="30" rx="2" fill="#5b9bd5" opacity="0.8"/>
+  <rect x="110" y="8" width="8" height="44" rx="2" fill="#c8922a" opacity="0.9"/>
+  <rect x="130" y="22" width="8" height="16" rx="2" fill="#5fae5f" opacity="0.7"/>
+  <rect x="150" y="18" width="8" height="24" rx="2" fill="#c8922a" opacity="0.6"/>
+  <rect x="170" y="12" width="8" height="36" rx="2" fill="#5b9bd5" opacity="0.5"/>
+  <rect x="190" y="25" width="8" height="10" rx="2" fill="#c8922a" opacity="0.4"/>
+  <rect x="210" y="20" width="8" height="20" rx="2" fill="#5fae5f" opacity="0.5"/>
+  <rect x="230" y="28" width="8" height="4" rx="2" fill="#c8922a" opacity="0.3"/>
+  <rect x="250" y="15" width="8" height="30" rx="2" fill="#c8922a" opacity="0.4"/>
+  <rect x="270" y="22" width="8" height="16" rx="2" fill="#5b9bd5" opacity="0.3"/>
+  <rect x="290" y="26" width="8" height="8" rx="2" fill="#c8922a" opacity="0.25"/>
+  <rect x="310" y="28" width="8" height="4" rx="2" fill="#5fae5f" opacity="0.2"/>
+  <rect x="330" y="29" width="8" height="2" rx="2" fill="#c8922a" opacity="0.15"/>
+  <rect x="350" y="29" width="8" height="2" rx="2" fill="#c8922a" opacity="0.1"/>
+</svg>
+<div style="font-size:11px;color:#4a4536;margin-top:4px">Sinyal getaran yang telah dianalisis ✓</div>
 </div>
 
-<div class="abs-br m-6 text-sm text-gray-400">
-Getaran Mekanik — Universitas Mercu Buana | 2026
+<div style="margin-top:12px;font-size:11px;color:#4a4536">
+Getaran Mekanik — S1 Teknik Mesin — Universitas Mercu Buana — Semester Genap 2025/2026
 </div>
