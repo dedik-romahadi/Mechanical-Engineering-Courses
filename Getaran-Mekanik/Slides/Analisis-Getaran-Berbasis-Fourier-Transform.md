@@ -20,7 +20,7 @@ fonts:
 layout: none
 ---
 
-<div class="cover" style="background:#262624;position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;color:#f5f3ee;">
+<div class="cover" style="background:#1a1917;position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;color:#f5f3ee;">
   <div class="vignette"></div>
   <div class="corner tl"></div>
   <div class="corner br"></div>
@@ -101,7 +101,7 @@ layout: none
 
 <style scoped>
 .cover {
-  background: #262624;
+  background: #1a1917;
   position: absolute;
   inset: 0;
   display: flex; flex-direction: column;
@@ -146,7 +146,19 @@ layout: none
   position: relative; z-index: 10;
 }
 .hdr-l   { display: flex; align-items: center; gap: 12px; }
-.hdr-logo { height: 38px; width: auto; object-fit: contain; display: block; }
+.hdr-logo {
+  height: 38px; width: auto; object-fit: contain; display: block;
+  transform-origin: center;
+  animation: logofloat 4.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 0 rgba(245,160,0,0));
+}
+@keyframes logofloat {
+  0%   { transform: translateY(0) rotate(0deg) scale(1); filter: drop-shadow(0 0 2px rgba(245,160,0,0.15)); }
+  25%  { transform: translateY(-3px) rotate(-1.5deg) scale(1.03); filter: drop-shadow(0 0 8px rgba(245,160,0,0.45)); }
+  50%  { transform: translateY(0) rotate(0deg) scale(1); filter: drop-shadow(0 0 4px rgba(245,160,0,0.25)); }
+  75%  { transform: translateY(-3px) rotate(1.5deg) scale(1.03); filter: drop-shadow(0 0 8px rgba(245,160,0,0.45)); }
+  100% { transform: translateY(0) rotate(0deg) scale(1); filter: drop-shadow(0 0 2px rgba(245,160,0,0.15)); }
+}
 .hdr-uni  { font-size: 13px; font-weight: 600; color: #f0ede6; }
 .hdr-dept { font-size: 11px; color: #a8a39a; margin-top: 2px; }
 .hdr-tag  {
