@@ -924,7 +924,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <em>&amp; Akuisisi</em><br>
       <span class="hl-amber">Pipeline Time Series</span>
     </h1>
-    <p class="hero-sub">Melanjutkan pembersihan data dari Pertemuan 4, kini kita <strong>meng-stabilkan variansi</strong> (log, Box-Cox), <strong>membuang tren</strong> (differencing), <strong>menormalkan skala</strong> (Z-score, Min-Max), dan <strong>memecah deret waktu</strong> menjadi komponen tren, musiman, dan residual — fondasi wajib sebelum ekstraksi fitur (Pertemuan 6-7) dan pemodelan prediktif (Pertemuan 33).</p>
+    <p class="hero-sub">Setelah sinyal bisa diakuisisi dan dibersihkan, sistem monitoring nyata butuh <strong>rantai akuisisi data</strong> yang andal. Modul ini membahas <strong>sensor chain &amp; ADC</strong> (dynamic range, LSB, bandwidth), <strong>arsitektur penyimpanan tiered</strong>, <strong>streaming</strong> data dari puluhan motor, hingga <strong>visualisasi time series</strong> yang efektif (line plot, spektrogram, heatmap) untuk dashboard produksi.</p>
     <div class="hero-stats">
       <div class="stat"><div class="stat-num">8</div><div class="stat-lbl">Bagian Materi</div></div>
       <div class="stat"><div class="stat-num">4</div><div class="stat-lbl">Animasi</div></div>
@@ -1685,7 +1685,7 @@ for fn in ['vibration_4motors.csv', 'vibration_4motors.parquet', 'vibration_4mot
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Tugas Pertemuan 3 · Visualisasi &amp; Akuisisi Pipeline</div>
     <h1 class="hero-title"><span class="hl-amber">Tugas 3</span><br><em>Visualisasi &amp;</em><br>Akuisisi Pipeline</h1>
-    <p class="hero-sub">10 pilihan ganda + 10 komputasi Easy/Medium + 5 komputasi Hard (Jupyter Notebook) seputar log &amp; Box-Cox, Z-score &amp; Min-Max scaling, differencing &amp; ADF test, moving average &amp; EMA, serta dekomposisi klasik &amp; STL. Total <strong>50 poin</strong>.</p>
+    <p class="hero-sub">10 pilihan ganda + 10 komputasi Easy/Medium + 5 komputasi Hard (Jupyter Notebook) seputar rantai sensor &amp; ADC (dynamic range, LSB, bandwidth), arsitektur penyimpanan tiered, streaming data, serta visualisasi time series (line plot, spektrogram, heatmap). Total <strong>50 poin</strong>.</p>
     <div class="hero-stats">
       <div class="stat"><div class="stat-num">10</div><div class="stat-lbl">Pilihan Ganda</div></div>
       <div class="stat"><div class="stat-num">15</div><div class="stat-lbl">Komputasi</div></div>
@@ -3429,16 +3429,16 @@ function exportTugasHtml() {
 
   // MC question titles (10 total)
   const MC_QUESTIONS = [
-    'Definisi stasioneritas',
-    'Penanganan varians tumbuh (fan-shape)',
-    'Box-Cox pada λ = 0',
-    'Tujuan differencing orde 1',
-    'Mean/std setelah Z-score',
-    'Kapan model multiplikatif dipakai',
-    'Interpretasi ADF p-value < 0.05',
-    'EMA vs MA (real-time monitoring)',
-    'Praktik fit-transform train/test',
-    'Keunggulan STL vs dekomposisi klasik'
+    'Komponen sensor chain',
+    'Dynamic Range (DR)',
+    'Sampling monitoring motor',
+    'Tiered storage architecture',
+    'Dashboard multi-motor',
+    'Visualisasi spektrogram waktu',
+    'Format data time series',
+    'ADC range terlalu lebar',
+    'Streaming protocol',
+    'Anti-pola visualisasi'
   ];
 
   // Collect MC answers — 10 soal
@@ -3474,16 +3474,16 @@ function exportTugasHtml() {
 
   // Comp E/M definitions (c1..c10)
   const compEzDefs = [
-    { id:'c1',  label:'Mean dataset referensi',         q:'' },
-    { id:'c2',  label:'Std dataset referensi',          q:'' },
-    { id:'c3',  label:'Mean setelah log transform',     q:'' },
-    { id:'c4',  label:'Std setelah Z-score',            q:'' },
-    { id:'c5',  label:'Max setelah Min-Max scaling',    q:'' },
-    { id:'c6',  label:'Mean dari first difference',     q:'' },
-    { id:'c7',  label:'MA window-7 pada indeks 50',     q:'' },
-    { id:'c8',  label:'EMA α=0.1 nilai akhir',          q:'' },
-    { id:'c9',  label:'Box-Cox lambda optimal',         q:'' },
-    { id:'c10', label:'ADF p-value pada ∇y',            q:'' }
+    { id:'c1',   label:'Bandwidth ADC (B/s)', q:'' },
+    { id:'c2',   label:'Storage requirement (MB)', q:'' },
+    { id:'c3',   label:'Dynamic Range (dB)', q:'' },
+    { id:'c4',   label:'LSB (µV)', q:'' },
+    { id:'c5',   label:'Mean motor_1_rms', q:'' },
+    { id:'c6',   label:'Max motor_2_rms', q:'' },
+    { id:'c7',   label:'Count threshold > 2.8 mm/s', q:'' },
+    { id:'c8',   label:'Resample 5-min max', q:'' },
+    { id:'c9',   label:'Jumlah motor > 2.5 mm/s', q:'' },
+    { id:'c10',  label:'Frekuensi peak FFT', q:'' }
   ];
   // Get full MC question text from DOM (.mc-q) or fallback to MC_QUESTIONS array
   function _getMcFullQ(id) {
@@ -3520,11 +3520,11 @@ function exportTugasHtml() {
 
   // Comp Hard definitions (c11..c15)
   const compHardDefs = [
-    { id:'c11', label:'Dekomposisi aditif dari awal',    q:'' },
-    { id:'c12', label:'Savitzky-Golay from scratch',     q:'' },
-    { id:'c13', label:'STL — % varians trend',           q:'' },
-    { id:'c14', label:'Deteksi anomali 3-sigma EMA',     q:'' },
-    { id:'c15', label:'Pipeline preprocessing end-to-end', q:'' }
+    { id:'c11',  label:'Analisis spectrogram', q:'' },
+    { id:'c12',  label:'Deteksi aliasing via FFT', q:'' },
+    { id:'c13',  label:'Heatmap aggregation pipeline', q:'' },
+    { id:'c14',  label:'Pairwise correlation antar motor', q:'' },
+    { id:'c15',  label:'Storage edge tier (GB)', q:'' }
   ];
   const compHardData = compHardDefs.map(d => {
     const ta = document.getElementById('code-' + d.id);

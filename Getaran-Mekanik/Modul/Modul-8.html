@@ -1776,7 +1776,7 @@ mask = sol.t &gt; <span class="nm">8</span>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Tugas Pertemuan 9 · Persamaan Gerak 2 DoF</div>
     <h1 class="hero-title"><span class="hl-amber">Tugas 9</span><br><em>Persamaan Gerak</em><br>Sistem 2 DoF</h1>
-    <p class="hero-sub">10 pilihan ganda + 10 komputasi Easy/Medium + 5 komputasi Hard (Jupyter Notebook) seputar matriks massa &amp; kekakuan, eigenvalue problem, dua frekuensi pribadi ω₁/ω₂, mode shapes (in-phase &amp; anti-phase), dan aplikasi vibration absorber. Total <strong>50 poin</strong>.</p>
+    <p class="hero-sub">10 pilihan ganda + 10 komputasi Easy/Medium + 5 komputasi Hard (Jupyter Notebook) seputar penurunan persamaan gerak via metode Newton (FBD) &amp; Lagrange (energi), matriks massa &amp; kekakuan, energi kinetik/potensial, serta penyelesaian numerik ODE (solve_ivp) &amp; Rayleigh damping. Total <strong>50 poin</strong>.</p>
     <div class="hero-stats">
       <div class="stat"><div class="stat-num">10</div><div class="stat-lbl">Pilihan Ganda</div></div>
       <div class="stat"><div class="stat-num">15</div><div class="stat-lbl">Komputasi</div></div>
@@ -3538,16 +3538,16 @@ function exportTugasHtml() {
 
   // MC question titles (10 total)
   const MC_QUESTIONS = [
-    'Banyak frekuensi pribadi 2 DoF',
-    'Bentuk matriks persamaan gerak',
-    'Matriks K sistem referensi',
-    'Persamaan karakteristik 2 DoF',
-    'Nilai ω₁ sistem referensi',
-    'Karakteristik Mode 1 (sistem simetris)',
-    'Mode shape Mode 2 (X₂/X₁)',
-    'Definisi orthogonality mode',
-    'Aturan tuning vibration absorber',
-    'Identitas trace-determinant 2 DoF'
+    'Definisi derajat kebebasan (DoF)',
+    'Persamaan Newton massa m₁ (2-DoF)',
+    'Definisi Lagrangian L = T − V',
+    'Persamaan Euler-Lagrange',
+    'Kapan metode Lagrange dipilih',
+    'Bentuk matriks EoM standar',
+    'Definisi mass matrix [M]',
+    'Sistem coupled (off-diagonal)',
+    'Numerical solving (solve_ivp)',
+    'Rayleigh damping matrix [C]'
   ];
 
   // Collect MC answers — 10 soal
@@ -3583,16 +3583,16 @@ function exportTugasHtml() {
 
   // Comp E/M definitions (c1..c10)
   const compEzDefs = [
-    { id:'c1',  label:'trace(K)',                    q:'' },
-    { id:'c2',  label:'det(K)',                      q:'' },
-    { id:'c3',  label:'ω₁² (eigenvalue terkecil)',   q:'' },
-    { id:'c4',  label:'ω₁ (rad/s)',                  q:'' },
-    { id:'c5',  label:'ω₂ (rad/s)',                  q:'' },
-    { id:'c6',  label:'f₁ (Hz)',                     q:'' },
-    { id:'c7',  label:'T₁ (detik)',                  q:'' },
-    { id:'c8',  label:'X₂/X₁ Mode 1',                q:'' },
-    { id:'c9',  label:'X₂/X₁ Mode 2',                q:'' },
-    { id:'c10', label:'Orthogonality u₁ᵀMu₂',        q:'' }
+    { id:'c1',   label:'trace [M]', q:'' },
+    { id:'c2',   label:'stiffness [K] referensi', q:'' },
+    { id:'c3',   label:'Cek simetri K = Kᵀ', q:'' },
+    { id:'c4',   label:'Kinetic energy T', q:'' },
+    { id:'c5',   label:'Potential energy V', q:'' },
+    { id:'c6',   label:'Produk M⁻¹·K', q:'' },
+    { id:'c7',   label:'Konversi ODE 2nd→1st order', q:'' },
+    { id:'c8',   label:'Natural frequencies (M=I)', q:'' },
+    { id:'c9',   label:'Rayleigh damping [C]', q:'' },
+    { id:'c10',  label:'Jumlah natural freq N-DoF', q:'' }
   ];
   // Get full MC question text from DOM (.mc-q) or fallback to MC_QUESTIONS array
   function _getMcFullQ(id) {
@@ -3629,11 +3629,11 @@ function exportTugasHtml() {
 
   // Comp Hard definitions (c11..c15)
   const compHardDefs = [
-    { id:'c11', label:'ω₁ varian m₂=2',              q:'' },
-    { id:'c12', label:'X₂/X₁ Mode 1 varian',         q:'' },
-    { id:'c13', label:'ω₁² + ω₂² (sistem ref)',      q:'' },
-    { id:'c14', label:'k_a tuning absorber',         q:'' },
-    { id:'c15', label:'x₂(t=0.5) free response',     q:'' }
+    { id:'c11',  label:'build_2dof() matrix builder', q:'' },
+    { id:'c12',  label:'Lagrange EoM via sympy', q:'' },
+    { id:'c13',  label:'Free vibration (solve_ivp)', q:'' },
+    { id:'c14',  label:'Forced harmonic response', q:'' },
+    { id:'c15',  label:'Parametric study vary k₂', q:'' }
   ];
   const compHardData = compHardDefs.map(d => {
     const ta = document.getElementById('code-' + d.id);

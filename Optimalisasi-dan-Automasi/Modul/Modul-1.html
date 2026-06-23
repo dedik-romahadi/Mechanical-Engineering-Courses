@@ -929,7 +929,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <em>Time Series</em><br>
       <span class="hl-amber">Data &amp; Analisis</span>
     </h1>
-    <p class="hero-sub">Melanjutkan pembersihan data dari Pertemuan 4, kini kita <strong>meng-stabilkan variansi</strong> (log, Box-Cox), <strong>membuang tren</strong> (differencing), <strong>menormalkan skala</strong> (Z-score, Min-Max), dan <strong>memecah deret waktu</strong> menjadi komponen tren, musiman, dan residual — fondasi wajib sebelum ekstraksi fitur (Pertemuan 6-7) dan pemodelan prediktif (Pertemuan 13).</p>
+    <p class="hero-sub">Sebelum menganalisis getaran mesin, sinyal harus <strong>diakuisisi dengan benar</strong>. Modul ini membahas <strong>teori sampling</strong> (Teorema Nyquist-Shannon), <strong>frekuensi Nyquist</strong>, dan bahaya <strong>aliasing</strong> saat sampling rate kurang memadai — lalu memperkenalkan <strong>metrik dasar getaran</strong> (RMS, peak, Crest Factor, SNR) dan klasifikasi severity <strong>ISO 10816</strong> sebagai fondasi monitoring.</p>
     <div class="hero-stats">
       <div class="stat"><div class="stat-num">8</div><div class="stat-lbl">Bagian Materi</div></div>
       <div class="stat"><div class="stat-num">4</div><div class="stat-lbl">Animasi</div></div>
@@ -1703,7 +1703,7 @@ var_noise    = np.<span class="fn">var</span>(noise)
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Tugas Pertemuan 1 · Pengantar Time Series Data</div>
     <h1 class="hero-title"><span class="hl-amber">Tugas 1</span><br><em>Pengantar</em><br>Time Series Data</h1>
-    <p class="hero-sub">10 pilihan ganda + 10 komputasi Easy/Medium + 5 komputasi Hard (Jupyter Notebook) seputar log &amp; Box-Cox, Z-score &amp; Min-Max scaling, differencing &amp; ADF test, moving average &amp; EMA, serta dekomposisi klasik &amp; STL. Total <strong>50 poin</strong>.</p>
+    <p class="hero-sub">10 pilihan ganda + 10 komputasi Easy/Medium + 5 komputasi Hard (Jupyter Notebook) seputar teori sampling (Nyquist-Shannon &amp; aliasing), frekuensi Nyquist, metrik dasar getaran (RMS, peak, Crest Factor, SNR, THD), serta standar severity ISO 10816. Total <strong>50 poin</strong>.</p>
     <div class="hero-stats">
       <div class="stat"><div class="stat-num">10</div><div class="stat-lbl">Pilihan Ganda</div></div>
       <div class="stat"><div class="stat-num">15</div><div class="stat-lbl">Komputasi</div></div>
@@ -3939,16 +3939,16 @@ function exportTugasHtml() {
 
   // MC question titles (10 total)
   const MC_QUESTIONS = [
-    'Definisi stasioneritas',
-    'Penanganan varians tumbuh (fan-shape)',
-    'Box-Cox pada λ = 0',
-    'Tujuan differencing orde 1',
-    'Mean/std setelah Z-score',
-    'Kapan model multiplikatif dipakai',
-    'Interpretasi ADF p-value < 0.05',
-    'EMA vs MA (real-time monitoring)',
-    'Praktik fit-transform train/test',
-    'Keunggulan STL vs dekomposisi klasik'
+    'Karakteristik stasioneritas',
+    'Sampling rate fs',
+    'Teorema Nyquist-Shannon',
+    'Kondisi aliasing',
+    'Frekuensi Nyquist f_N',
+    'Komponen periodik (periode tetap)',
+    'Sinyal AC (osilasi sekitar nol)',
+    'Crest Factor',
+    'Standar ISO 10816',
+    'Sampling bearing high-speed'
   ];
 
   // Collect MC answers — 10 soal
@@ -3984,16 +3984,16 @@ function exportTugasHtml() {
 
   // Comp E/M definitions (c1..c10)
   const compEzDefs = [
-    { id:'c1',  label:'Mean dataset referensi',         q:'' },
-    { id:'c2',  label:'Std dataset referensi',          q:'' },
-    { id:'c3',  label:'Mean setelah log transform',     q:'' },
-    { id:'c4',  label:'Std setelah Z-score',            q:'' },
-    { id:'c5',  label:'Max setelah Min-Max scaling',    q:'' },
-    { id:'c6',  label:'Mean dari first difference',     q:'' },
-    { id:'c7',  label:'MA window-7 pada indeks 50',     q:'' },
-    { id:'c8',  label:'EMA α=0.1 nilai akhir',          q:'' },
-    { id:'c9',  label:'Box-Cox lambda optimal',         q:'' },
-    { id:'c10', label:'ADF p-value pada ∇y',            q:'' }
+    { id:'c1',   label:'Mean sinyal AC', q:'' },
+    { id:'c2',   label:'RMS sinyal', q:'' },
+    { id:'c3',   label:'Standar deviasi (ddof=1)', q:'' },
+    { id:'c4',   label:'Peak (|x|_max)', q:'' },
+    { id:'c5',   label:'Crest Factor', q:'' },
+    { id:'c6',   label:'Frekuensi Nyquist (fs=10kHz)', q:'' },
+    { id:'c7',   label:'Periode sampling Δt (ms)', q:'' },
+    { id:'c8',   label:'Jumlah sampel total', q:'' },
+    { id:'c9',   label:'RMS sinusoidal murni', q:'' },
+    { id:'c10',  label:'Signal-to-Noise Ratio (dB)', q:'' }
   ];
   // Get full MC question text from DOM (.mc-q) or fallback to MC_QUESTIONS array
   function _getMcFullQ(id) {
@@ -4030,11 +4030,11 @@ function exportTugasHtml() {
 
   // Comp Hard definitions (c11..c15)
   const compHardDefs = [
-    { id:'c11', label:'Dekomposisi aditif dari awal',    q:'' },
-    { id:'c12', label:'Savitzky-Golay from scratch',     q:'' },
-    { id:'c13', label:'STL — % varians trend',           q:'' },
-    { id:'c14', label:'Deteksi anomali 3-sigma EMA',     q:'' },
-    { id:'c15', label:'Pipeline preprocessing end-to-end', q:'' }
+    { id:'c11',  label:'RMS teoritis multi-frekuensi', q:'' },
+    { id:'c12',  label:'Demonstrasi aliasing', q:'' },
+    { id:'c13',  label:'Rolling RMS from scratch', q:'' },
+    { id:'c14',  label:'Deteksi periode (autokorelasi)', q:'' },
+    { id:'c15',  label:'Total Harmonic Distortion (THD)', q:'' }
   ];
   const compHardData = compHardDefs.map(d => {
     const ta = document.getElementById('code-' + d.id);
