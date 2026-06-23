@@ -136,7 +136,7 @@ layout: none
 .hdr {
   display: flex; align-items: center; justify-content: space-between;
   padding: 14px 32px;
-  border-bottom: 2px solid #f5a000;
+  border-bottom: 2px solid #ffffff;
   background: #14130f;
   position: relative; z-index: 10;
 }
@@ -157,10 +157,10 @@ layout: none
 .hdr-uni  { font-size: 13px; font-weight: 600; color: #f0ede6; }
 .hdr-dept { font-size: 11px; color: #a8a39a; margin-top: 2px; }
 .hdr-tag  {
-  font-size: 12px; font-weight: 600; color: #1a1917;
+  font-size: 13px; font-weight: 700; color: #1a1917;
   border: 1px solid #f5a000;
-  padding: 4px 16px; border-radius: 20px;
-  background: #f5a000; letter-spacing: 0.5px;
+  padding: 5px 18px; border-radius: 20px;
+  background: #f5a000; letter-spacing: 0.8px;
 }
 .ctr {
   flex: 1; display: flex; flex-direction: column;
@@ -229,7 +229,7 @@ layout: none
 .ftr {
   display: flex; align-items: center; gap: 8px;
   padding: 10px 32px;
-  border-top: 2px solid #f5a000;
+  border-top: 2px solid #ffffff;
   background: #14130f;
   font-size: 11px; color: #b3ada3;
   position: relative; z-index: 10;
