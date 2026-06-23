@@ -21,8 +21,6 @@ layout: none
 ---
 
 <div class="cover" style="background:#191813;position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;color:#f5f3ee;">
-  <div class="corner tl"></div>
-  <div class="corner br"></div>
 
   <div class="wave-track">
     <svg viewBox="0 0 2880 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
@@ -107,13 +105,6 @@ layout: none
   overflow: hidden;
   color: #f0ece3;
 }
-.corner {
-  position: absolute; width: 64px; height: 64px;
-  border: 2px solid #c8922a;
-  pointer-events: none; z-index: 11;
-}
-.corner.tl { top: 70px; left: 44px; border-right: none; border-bottom: none; }
-.corner.br { bottom: 56px; right: 44px; border-left: none; border-top: none; }
 .wave-track {
   position: absolute; top: 73%; left: 0;
   width: 200%; height: 80px;
