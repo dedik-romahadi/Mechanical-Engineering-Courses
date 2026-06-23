@@ -4887,6 +4887,23 @@ grep -n ",\\\\s\\*this\\\\s\\*,\\\\s\\*true" Modul-N.html
 
 **Anti-recurrence:** Callable yang loop atas banyak record HARUS parallel-batch + memory cukup + per-item isolasi + bump client timeout. Client lihat "internal" polos ⇒ curiga instance mati (cek Cloud Functions logs), bukan logika handler.
 
+### 25.17 Bug Jun 2026 — `listDocuments()` Menggantung Instance (akar sebenarnya `resetModulQuestion` "internal")
+
+**Gejala:** `resetModulQuestion` ("Reset Soal" admin) mode SEMUA mahasiswa selalu gagal `internal`, padahal per-NIM jalan. Kelas cuma 16 mhs → **bukan** soal kapasitas/parallel-batch (lihat §25.16).
+
+**Root cause:** `fs.collection(...).listDocuments()` dipakai untuk meng-enumerasi peserta. Pada path tertentu (koleksi besar / index belum siap / dokumen "hantu") panggilan ini **menggantung** sampai instance kena timeout → client terima `internal` polos. Gejalanya mirip §25.16 tapi penyebabnya **API enumerasi**, bukan loop berat.
+
+**Solusi (#425):** Ganti enumerasi peserta dari `listDocuments()` ke **node RTDB `visitors` (`cfg.dbPath`)** — sudah berisi daftar NIM aktif, sekali `.once('value')`, tak menggantung. Wajib `deploy_functions=true`.
+
+**Anti-recurrence:** Hindari `listDocuments()` untuk enumerasi besar di callable; enumerasi peserta dari RTDB `visitors` node. **CATATAN:** `resetModulAttempts`, `resetExamAttempts`, dan `analyzeModulData` MASIH pakai `listDocuments()` — kalau dipakai & kena `internal`, terapkan pola enumerasi RTDB yang sama.
+
+### 25.18 Catatan Arsitektur — Dua Model Kunci Jawaban Modul (extract vs hand-seed)
+
+Tidak semua modul memakai jalur extractor yang sama — penting saat mengedit/menyamakan kunci jawaban:
+
+- **Getaran & Math (extract-based):** HTML berisi `const MC_HINTS = {...}` (answer letter + explain), `const COMP_HINTS = {...}`, dan `runAndCheck('qId', answer, tolerance)` inline. Seed di-generate oleh `functions/seed/extract-modul-answers.js` → **edit HTML, lalu re-extract**.
+- **Optoauto (server-side validation):** HTML **tidak punya** `MC_HINTS`/`COMP_HINTS`; `runAndCheck('qId'[, 'hard'])` hanya kirim kode ke server. Kunci jawaban **murni di seed file** `functions/seed/modul/optoauto-modul-N-answers.js` (= SSOT, di-author manual). Extractor **tidak berlaku** di sini → kalau membedakan/membetulkan soal Opto, edit **HTML (soal+opsi) DAN seed (kunci+tolerance+explain) secara konsisten**, lalu `live_seed`. Verifikasi jawaban komputasi dengan numpy sebelum commit.
+
 ### 25.8 Audit Checklist — Wajib Sebelum Deploy Modul Baru
 
 Untuk mencegah ketiga bug di atas terulang, jalankan checklist berikut sebelum push modul baru ke produksi:
