@@ -1220,24 +1220,30 @@ exports.resetModulQuestion = onCall({ timeoutSeconds: 540, memory: "512MiB" }, a
     }
 
     // ── MODE 2: SEMUA mahasiswa (nim kosong) ──
-    const studentRefs = await fs.collection(`modulAttempts/${modulId}/students`).listDocuments();
+    // Enumerate peserta dari RTDB visitors node — jalur yang dipakai tiap submit,
+    // jadi pasti tersedia & ber-permission. SEBELUMNYA pakai Firestore
+    // collection.listDocuments(), yang ternyata menggantung instance sampai
+    // timeout (butuh izin Firestore "list" tersendiri) → "internal" polos meski
+    // per-NIM jalan normal. resetOne tetap menghapus attempt Firestore + update
+    // RTDB seperti biasa, di-key per nimKey yang sama.
+    const visSnap = await rtdb.ref(cfg.dbPath).once("value");
+    const nimKeys = [];
+    visSnap.forEach((child) => { if (child.key) nimKeys.push(child.key); });
     console.log("[resetModulQuestion] ALL start", modulId,
-      "students:", studentRefs.length, "qIds:", qIds.join(","));
+      "students:", nimKeys.length, "qIds:", qIds.join(","));
     let studentsAffected = 0;
     let totalMarkersRemoved = 0;
     const perStudent = [];
     const errors = [];
 
     // Proses paralel ber-batch (concurrency terbatas) supaya selesai cepat dan
-    // tidak melewati timeout instance/callable untuk kelas besar — penyebab
-    // "internal" sebelumnya saat loop sekuensial terlalu lama. Tiap mahasiswa
+    // tidak melewati timeout instance/callable untuk kelas besar. Tiap mahasiswa
     // di-ISOLASI: satu record bermasalah tidak menggagalkan seluruh batch,
     // melainkan dicatat di `errorsSample` agar selalu kelihatan.
     const BATCH = 24;
-    for (let i = 0; i < studentRefs.length; i += BATCH) {
-      const slice = studentRefs.slice(i, i + BATCH);
-      const results = await Promise.all(slice.map(async (sref) => {
-        const nimKey = sref.id;
+    for (let i = 0; i < nimKeys.length; i += BATCH) {
+      const slice = nimKeys.slice(i, i + BATCH);
+      const results = await Promise.all(slice.map(async (nimKey) => {
         try {
           return { nimKey, ok: true, r: await resetOne(nimKey) };
         } catch (err) {
@@ -1261,13 +1267,13 @@ exports.resetModulQuestion = onCall({ timeoutSeconds: 540, memory: "512MiB" }, a
     }
 
     console.log("[resetModulQuestion] ALL", modulId,
-      "qIds:", qIds.join(","), "scanned:", studentRefs.length,
+      "qIds:", qIds.join(","), "scanned:", nimKeys.length,
       "affected:", studentsAffected, "markers:", totalMarkersRemoved,
       "errors:", errors.length);
 
     return {
       modulId, allStudents: true,
-      studentsScanned: studentRefs.length,
+      studentsScanned: nimKeys.length,
       studentsAffected,
       totalMarkersRemoved,
       perStudent,
