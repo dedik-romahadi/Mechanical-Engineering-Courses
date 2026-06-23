@@ -21,7 +21,9 @@ layout: none
 ---
 
 <div class="cover" style="background:#262624;position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;color:#f5f3ee;">
-  <div class="bg-glow"></div>
+  <div class="vignette"></div>
+  <div class="corner tl"></div>
+  <div class="corner br"></div>
 
   <div class="wave-track">
     <svg viewBox="0 0 2880 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
@@ -41,7 +43,7 @@ layout: none
 
   <header class="hdr">
     <div class="hdr-l">
-      <span class="hdr-ico">🎓</span>
+      <img class="hdr-logo" src="./Logo/UMB.png" alt="Universitas Mercu Buana" />
       <div>
         <div class="hdr-uni">Universitas Mercu Buana</div>
         <div class="hdr-dept">Program Studi Teknik Mesin</div>
@@ -106,13 +108,17 @@ layout: none
   overflow: hidden;
   color: #f5f3ee;
 }
-.bg-glow {
-  position: absolute; top: 42%; left: 50%;
-  transform: translate(-50%, -50%);
-  width: 620px; height: 320px;
-  background: radial-gradient(ellipse, rgba(217,119,87,0.14) 0%, transparent 70%);
-  pointer-events: none;
+.vignette {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse 80% 80% at 50% 45%, transparent 55%, rgba(0,0,0,0.35) 100%);
 }
+.corner {
+  position: absolute; width: 64px; height: 64px;
+  border: 2px solid rgba(217,119,87,0.55);
+  pointer-events: none; z-index: 11;
+}
+.corner.tl { top: 70px; left: 44px; border-right: none; border-bottom: none; }
+.corner.br { bottom: 56px; right: 44px; border-left: none; border-top: none; }
 .wave-track {
   position: absolute; top: 73%; left: 0;
   width: 200%; height: 80px;
@@ -139,8 +145,8 @@ layout: none
   background: rgba(20,20,19,0.55);
   position: relative; z-index: 10;
 }
-.hdr-l   { display: flex; align-items: center; gap: 10px; }
-.hdr-ico  { font-size: 22px; }
+.hdr-l   { display: flex; align-items: center; gap: 12px; }
+.hdr-logo { height: 38px; width: auto; object-fit: contain; display: block; }
 .hdr-uni  { font-size: 13px; font-weight: 600; color: #f0ede6; }
 .hdr-dept { font-size: 11px; color: #a8a39a; margin-top: 2px; }
 .hdr-tag  {
@@ -173,12 +179,15 @@ layout: none
   animation: fadeup 0.7s 0.2s ease both;
 }
 .fml {
-  font-size: 15px; color: #cbc5ba;
+  font-size: 15px; color: #e8e3da;
   font-family: 'Fira Code', 'Courier New', monospace;
-  padding: 8px 22px;
-  border: 1px solid rgba(217,119,87,0.3);
-  border-radius: 8px;
-  background: rgba(217,119,87,0.08);
+  padding: 10px 24px;
+  border: 1px solid rgba(217,119,87,0.35);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.06);
   margin-bottom: 20px;
   animation: fadeup 0.7s 0.3s ease both;
 }
