@@ -1149,12 +1149,12 @@ exports.resetModulQuestion = onCall({ timeoutSeconds: 540, memory: "512MiB" }, a
     const markersToRemove = [];
     let totalScoreToSubtract = 0;
 
-    // Baca semua attempt qId paralel, lalu hapus via SATU batch — kurangi
-    // round-trip dari ~2×N jadi 2 wave I/O per mahasiswa (penting agar reset
-    // massal tidak melewati timeout instance saat kelas besar).
+    // Baca semua attempt qId dalam SATU getAll (1 round-trip, bukan N), lalu
+    // hapus via SATU batch — minim I/O per mahasiswa supaya reset massal kelas
+    // besar tidak melewati timeout instance.
     const refs = qIds.map((qId) =>
       fs.doc(`modulAttempts/${modulId}/students/${nimKey}/qs/${qId}`));
-    const snaps = await Promise.all(refs.map((r) => r.get()));
+    const snaps = await fs.getAll(...refs);
     const batch = fs.batch();
     let haveDeletes = false;
     snaps.forEach((snap, i) => {
@@ -1173,6 +1173,13 @@ exports.resetModulQuestion = onCall({ timeoutSeconds: 540, memory: "512MiB" }, a
       perQuestion.push({ qId, found: true, marker, scoreDelta });
     });
     if (haveDeletes) await batch.commit();
+
+    // Mahasiswa ini tak punya attempt utk qIds tsb → tak ada marker/poin yang
+    // perlu diubah di RTDB. Lewati transaksi (operasi termahal) agar reset massal
+    // tidak menumpuk transaksi sia-sia untuk non-partisipan → cegah timeout.
+    if (markersToRemove.length === 0) {
+      return { perQuestion, markersRemoved: [], pointsBefore: null, pointsAfter: null };
+    }
 
     let pointsBefore = null;
     let pointsAfter = null;
@@ -1226,7 +1233,7 @@ exports.resetModulQuestion = onCall({ timeoutSeconds: 540, memory: "512MiB" }, a
     // "internal" sebelumnya saat loop sekuensial terlalu lama. Tiap mahasiswa
     // di-ISOLASI: satu record bermasalah tidak menggagalkan seluruh batch,
     // melainkan dicatat di `errorsSample` agar selalu kelihatan.
-    const BATCH = 12;
+    const BATCH = 24;
     for (let i = 0; i < studentRefs.length; i += BATCH) {
       const slice = studentRefs.slice(i, i + BATCH);
       const results = await Promise.all(slice.map(async (sref) => {
