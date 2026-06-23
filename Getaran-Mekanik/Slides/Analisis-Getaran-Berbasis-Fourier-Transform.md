@@ -20,7 +20,7 @@ fonts:
 layout: none
 ---
 
-<div class="cover">
+<div class="cover" style="background:#020817;position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;color:#fff;">
   <div class="bg-grid"></div>
   <div class="bg-glow"></div>
 
