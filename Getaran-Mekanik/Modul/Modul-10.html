@@ -1798,7 +1798,7 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Tugas Pertemuan 11 · Vibration Absorber</div>
     <h1 class="hero-title"><span class="hl-amber">Tugas 11</span><br><em>Vibration</em><br>Absorber Isolasi</h1>
-    <p class="hero-sub">10 pilihan ganda + 10 komputasi Easy/Medium + 5 komputasi Hard (Jupyter Notebook) seputar matriks massa &amp; kekakuan, eigenvalue problem, dua frekuensi pribadi ω₁/ω₂, mode shapes (in-phase &amp; anti-phase), dan aplikasi vibration absorber. Total <strong>50 poin</strong>.</p>
+    <p class="hero-sub">10 pilihan ganda + 10 komputasi Easy/Medium + 5 komputasi Hard (Jupyter Notebook) seputar Tuned Mass Damper (TMD) dengan tuning optimal Den Hartog, vibration isolation &amp; transmissibility (TR), static deflection, serta desain isolator praktis. Total <strong>50 poin</strong>.</p>
     <div class="hero-stats">
       <div class="stat"><div class="stat-num">10</div><div class="stat-lbl">Pilihan Ganda</div></div>
       <div class="stat"><div class="stat-num">15</div><div class="stat-lbl">Komputasi</div></div>
@@ -3560,16 +3560,16 @@ function exportTugasHtml() {
 
   // MC question titles (10 total)
   const MC_QUESTIONS = [
-    'Banyak frekuensi pribadi 2 DoF',
-    'Bentuk matriks persamaan gerak',
-    'Matriks K sistem referensi',
-    'Persamaan karakteristik 2 DoF',
-    'Nilai ω₁ sistem referensi',
-    'Karakteristik Mode 1 (sistem simetris)',
-    'Mode shape Mode 2 (X₂/X₁)',
-    'Definisi orthogonality mode',
-    'Aturan tuning vibration absorber',
-    'Identitas trace-determinant 2 DoF'
+    'Strategi vibration absorber',
+    'TMD tuning frekuensi absorber',
+    'Den Hartog f_opt',
+    'Den Hartog damping ζ_opt',
+    'TMD membuat sistem 2-DoF',
+    'Force Transmissibility TR',
+    'Vibration isolator (TR < 1)',
+    'Damping isolator high-freq',
+    'Static deflection',
+    'Studi kasus Taipei 101'
   ];
 
   // Collect MC answers — 10 soal
@@ -3605,16 +3605,16 @@ function exportTugasHtml() {
 
   // Comp E/M definitions (c1..c10)
   const compEzDefs = [
-    { id:'c1',  label:'trace(K)',                    q:'' },
-    { id:'c2',  label:'det(K)',                      q:'' },
-    { id:'c3',  label:'ω₁² (eigenvalue terkecil)',   q:'' },
-    { id:'c4',  label:'ω₁ (rad/s)',                  q:'' },
-    { id:'c5',  label:'ω₂ (rad/s)',                  q:'' },
-    { id:'c6',  label:'f₁ (Hz)',                     q:'' },
-    { id:'c7',  label:'T₁ (detik)',                  q:'' },
-    { id:'c8',  label:'X₂/X₁ Mode 1',                q:'' },
-    { id:'c9',  label:'X₂/X₁ Mode 2',                q:'' },
-    { id:'c10', label:'Orthogonality u₁ᵀMu₂',        q:'' }
+    { id:'c1',   label:'Den Hartog f_opt (μ=0.10)', q:'' },
+    { id:'c2',   label:'Den Hartog ζ_opt (μ=0.10)', q:'' },
+    { id:'c3',   label:'TMD spring stiffness', q:'' },
+    { id:'c4',   label:'Static deflection (f_n=5 Hz)', q:'' },
+    { id:'c5',   label:'Force Transmissibility TR', q:'' },
+    { id:'c6',   label:'Frequency ratio r dari TR', q:'' },
+    { id:'c7',   label:'Natural freq isolator f_n', q:'' },
+    { id:'c8',   label:'Massa absorber m_a', q:'' },
+    { id:'c9',   label:'TMD damping coefficient', q:'' },
+    { id:'c10',  label:'Reduction factor TMD', q:'' }
   ];
   // Get full MC question text from DOM (.mc-q) or fallback to MC_QUESTIONS array
   function _getMcFullQ(id) {
@@ -3651,11 +3651,11 @@ function exportTugasHtml() {
 
   // Comp Hard definitions (c11..c15)
   const compHardDefs = [
-    { id:'c11', label:'ω₁ varian m₂=2',              q:'' },
-    { id:'c12', label:'X₂/X₁ Mode 1 varian',         q:'' },
-    { id:'c13', label:'ω₁² + ω₂² (sistem ref)',      q:'' },
-    { id:'c14', label:'k_a tuning absorber',         q:'' },
-    { id:'c15', label:'x₂(t=0.5) free response',     q:'' }
+    { id:'c11',  label:'Den Hartog full design', q:'' },
+    { id:'c12',  label:'FRF magnitude struktur+TMD', q:'' },
+    { id:'c13',  label:'Transmissibility curve sweep', q:'' },
+    { id:'c14',  label:'Optimal isolator design', q:'' },
+    { id:'c15',  label:'Sensitivity analysis TMD', q:'' }
   ];
   const compHardData = compHardDefs.map(d => {
     const ta = document.getElementById('code-' + d.id);
