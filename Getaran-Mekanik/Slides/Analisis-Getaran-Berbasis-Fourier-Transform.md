@@ -227,23 +227,6 @@ layout: none
 }
 </style>
 
-<style>
-/* Sembunyikan slide navigator/overview panel kanan */
-.slidev-slide-list,
-.slidev-slides-list,
-nav.slidev-nav,
-.nav-start,
-.slide-nav,
-[class*="SlidesList"],
-[class*="slides-list"] {
-  display: none !important;
-}
-/* Pastikan slide container tidak override background */
-.slidev-layout.none {
-  background: transparent !important;
-}
-</style>
-
 ---
 layout: default
 ---
