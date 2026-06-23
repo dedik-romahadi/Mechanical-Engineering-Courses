@@ -20,18 +20,18 @@ fonts:
 layout: none
 ---
 
-<div class="cover" style="background:#0d1b2a;position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;color:#dde4ed;">
+<div class="cover" style="background:#0f2138;position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;color:#e6edf5;">
   <div class="bg-grid"></div>
   <div class="bg-glow"></div>
 
   <div class="wave-track">
     <svg viewBox="0 0 2880 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M0,40 C90,8 180,72 270,40 C360,8 450,72 540,40 C630,8 720,72 810,40 C900,8 990,72 1080,40 C1170,8 1260,72 1350,40 C1440,8 1530,72 1620,40 C1710,8 1800,72 1890,40 C1980,8 2070,72 2160,40 C2250,8 2340,72 2430,40 C2520,8 2610,72 2700,40 C2790,8 2880,72 2880,40" fill="none" stroke="rgba(100,140,190,0.28)" stroke-width="2"/>
+      <path d="M0,40 C90,8 180,72 270,40 C360,8 450,72 540,40 C630,8 720,72 810,40 C900,8 990,72 1080,40 C1170,8 1260,72 1350,40 C1440,8 1530,72 1620,40 C1710,8 1800,72 1890,40 C1980,8 2070,72 2160,40 C2250,8 2340,72 2430,40 C2520,8 2610,72 2700,40 C2790,8 2880,72 2880,40" fill="none" stroke="rgba(77,157,224,0.35)" stroke-width="2"/>
     </svg>
   </div>
   <div class="wave-track w2">
     <svg viewBox="0 0 2880 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M0,40 C120,12 240,68 360,40 C480,12 600,68 720,40 C840,12 960,68 1080,40 C1200,12 1320,68 1440,40 C1560,12 1680,68 1800,40 C1920,12 2040,68 2160,40 C2280,12 2400,68 2520,40 C2640,12 2760,68 2880,40" fill="none" stroke="rgba(100,140,190,0.16)" stroke-width="1.5"/>
+      <path d="M0,40 C120,12 240,68 360,40 C480,12 600,68 720,40 C840,12 960,68 1080,40 C1200,12 1320,68 1440,40 C1560,12 1680,68 1800,40 C1920,12 2040,68 2160,40 C2280,12 2400,68 2520,40 C2640,12 2760,68 2880,40" fill="none" stroke="rgba(240,168,48,0.2)" stroke-width="1.5"/>
     </svg>
   </div>
 
@@ -95,25 +95,25 @@ layout: none
 
 <style scoped>
 .cover {
-  background: #0d1b2a;
+  background: #0f2138;
   position: absolute;
   inset: 0;
   display: flex; flex-direction: column;
   overflow: hidden;
-  color: #dde4ed;
+  color: #e6edf5;
 }
 .bg-grid {
   position: absolute; inset: 0;
   background-image:
-    linear-gradient(rgba(148,163,184,0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148,163,184,0.05) 1px, transparent 1px);
+    linear-gradient(rgba(148,163,184,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148,163,184,0.06) 1px, transparent 1px);
   background-size: 48px 48px;
 }
 .bg-glow {
   position: absolute; top: 40%; left: 50%;
   transform: translate(-50%, -50%);
-  width: 580px; height: 280px;
-  background: radial-gradient(ellipse, rgba(91,127,166,0.1) 0%, transparent 70%);
+  width: 600px; height: 300px;
+  background: radial-gradient(ellipse, rgba(77,157,224,0.14) 0%, transparent 70%);
   pointer-events: none;
 }
 .wave-track {
@@ -134,19 +134,19 @@ layout: none
 .hdr {
   display: flex; align-items: center; justify-content: space-between;
   padding: 14px 32px;
-  border-bottom: 1px solid rgba(148,163,184,0.18);
-  background: rgba(13,27,42,0.92);
+  border-bottom: 1px solid rgba(148,163,184,0.2);
+  background: rgba(15,33,56,0.92);
   position: relative; z-index: 10;
 }
 .hdr-l   { display: flex; align-items: center; gap: 10px; }
 .hdr-ico  { font-size: 22px; }
-.hdr-uni  { font-size: 13px; font-weight: 600; color: #a8bcd4; }
-.hdr-dept { font-size: 11px; color: #607a93; margin-top: 2px; }
+.hdr-uni  { font-size: 13px; font-weight: 600; color: #c2d4e8; }
+.hdr-dept { font-size: 11px; color: #7089a3; margin-top: 2px; }
 .hdr-tag  {
-  font-size: 12px; font-weight: 600; color: #8faec8;
-  border: 1px solid rgba(143,174,200,0.35);
+  font-size: 12px; font-weight: 600; color: #f0a830;
+  border: 1px solid rgba(240,168,48,0.45);
   padding: 4px 16px; border-radius: 20px;
-  background: rgba(91,127,166,0.1); letter-spacing: 0.5px;
+  background: rgba(240,168,48,0.1); letter-spacing: 0.5px;
 }
 .ctr {
   flex: 1; display: flex; flex-direction: column;
@@ -156,50 +156,50 @@ layout: none
 }
 .badge {
   font-size: 11px; letter-spacing: 3px;
-  text-transform: uppercase; color: #8faec8;
+  text-transform: uppercase; color: #f0a830;
   margin-bottom: 18px;
   animation: fadeup 0.6s ease both;
 }
 .ttl1 {
   font-size: 52px; font-weight: 800;
-  color: #dde4ed; line-height: 1.1; margin: 0;
+  color: #f1f5f9; line-height: 1.1; margin: 0;
   animation: fadeup 0.7s 0.1s ease both;
 }
 .ttl2 {
   font-size: 52px; font-weight: 800;
-  color: #8faec8;
+  color: #4d9de0;
   line-height: 1.1; margin: 0 0 20px;
   animation: fadeup 0.7s 0.2s ease both;
 }
 .fml {
-  font-size: 15px; color: rgba(221,228,237,0.55);
+  font-size: 15px; color: rgba(230,237,245,0.6);
   font-family: 'Fira Code', 'Courier New', monospace;
   padding: 8px 22px;
-  border: 1px solid rgba(143,174,200,0.22);
+  border: 1px solid rgba(77,157,224,0.3);
   border-radius: 8px;
-  background: rgba(91,127,166,0.07);
+  background: rgba(77,157,224,0.08);
   margin-bottom: 20px;
   animation: fadeup 0.7s 0.3s ease both;
 }
 .sep {
   width: 0; height: 2px;
-  background: #5b7fa6;
+  background: linear-gradient(90deg, #4d9de0, #f0a830);
   border-radius: 2px; margin: 0 auto 16px;
   animation: expand 0.9s 0.4s ease both;
 }
 @keyframes expand { to { width: 60px; } }
 .au { display: flex; flex-direction: column; gap: 4px; animation: fadeup 0.7s 0.5s ease both; }
-.au-name { font-size: 17px; font-weight: 600; color: #c8d6e3; }
-.au-sem  { font-size: 12px; color: #607a93; }
+.au-name { font-size: 17px; font-weight: 600; color: #d4e1f0; }
+.au-sem  { font-size: 12px; color: #7089a3; }
 .spectrum {
   display: flex; justify-content: center;
   align-items: flex-end; gap: 5px;
   height: 80px; padding: 0 32px;
-  position: relative; z-index: 10; opacity: 0.5;
+  position: relative; z-index: 10; opacity: 0.6;
 }
 .bar {
   width: 11px; height: 4px; min-height: 4px;
-  background: linear-gradient(to top, #2d4a6a, #5b7fa6);
+  background: linear-gradient(to top, #2c5a87, #4d9de0);
   border-radius: 3px 3px 0 0;
   animation: bpulse 1.4s ease-in-out infinite alternate;
   animation-delay: var(--d, 0s);
@@ -211,13 +211,13 @@ layout: none
 .ftr {
   display: flex; align-items: center; gap: 8px;
   padding: 10px 32px;
-  border-top: 1px solid rgba(148,163,184,0.15);
-  background: rgba(13,27,42,0.92);
-  font-size: 11px; color: #4a6278;
+  border-top: 1px solid rgba(148,163,184,0.18);
+  background: rgba(15,33,56,0.92);
+  font-size: 11px; color: #5a7389;
   position: relative; z-index: 10;
 }
-.dot { color: #2e4258; }
-.yr  { margin-left: auto; color: #607a93; font-weight: 600; }
+.dot { color: #34506b; }
+.yr  { margin-left: auto; color: #f0a830; font-weight: 600; }
 @keyframes fadeup {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
