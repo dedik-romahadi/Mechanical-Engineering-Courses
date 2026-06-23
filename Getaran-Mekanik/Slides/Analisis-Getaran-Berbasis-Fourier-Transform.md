@@ -7,7 +7,7 @@ info: |
   Materi Kuliah Getaran Mekanik — S1 Teknik Mesin
   Universitas Mercu Buana
 author: Dedik Romahadi
-colorSchema: light
+colorSchema: dark
 highlighter: shiki
 lineNumbers: false
 drawings:
@@ -96,9 +96,10 @@ layout: none
 <style scoped>
 .cover {
   background: #020817;
-  width: 100%; height: 100%;
+  position: absolute;
+  inset: 0;
   display: flex; flex-direction: column;
-  position: relative; overflow: hidden;
+  overflow: hidden;
   color: #fff;
 }
 .bg-grid {
@@ -223,6 +224,23 @@ layout: none
 @keyframes fadeup {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<style>
+/* Sembunyikan slide navigator/overview panel kanan */
+.slidev-slide-list,
+.slidev-slides-list,
+nav.slidev-nav,
+.nav-start,
+.slide-nav,
+[class*="SlidesList"],
+[class*="slides-list"] {
+  display: none !important;
+}
+/* Pastikan slide container tidak override background */
+.slidev-layout.none {
+  background: transparent !important;
 }
 </style>
 
