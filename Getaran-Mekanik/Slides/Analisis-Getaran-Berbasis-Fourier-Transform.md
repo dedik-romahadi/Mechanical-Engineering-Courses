@@ -20,23 +20,23 @@ fonts:
 layout: none
 ---
 
-<div class="cover" style="background:linear-gradient(135deg,#5b2bd2 0%,#2b68d9 55%,#00c8d5 100%);position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;color:#ffffff;">
+<div class="cover" style="background:#262624;position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;color:#f5f3ee;">
   <div class="bg-grid"></div>
   <div class="bg-glow"></div>
 
   <div class="wave-track">
     <svg viewBox="0 0 2880 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M0,40 C60,5 130,70 200,38 C270,6 310,65 390,42 C470,18 540,72 620,35 C700,3 760,68 850,44 C940,20 990,70 1080,36 C1170,5 1230,74 1320,40 C1410,6 1470,66 1560,38 C1650,12 1710,72 1800,42 C1890,14 1950,68 2040,35 C2130,4 2190,72 2280,44 C2370,18 2430,66 2520,38 C2610,10 2670,74 2760,40 C2820,16 2860,62 2880,40" fill="none" stroke="rgba(255,255,255,0.38)" stroke-width="2"/>
+      <path d="M0,42 L40,18 L75,58 L110,28 L150,66 L185,12 L220,48 L255,34 L295,72 L330,22 L360,52 L400,8 L435,60 L470,30 L510,68 L545,16 L580,44 L615,38 L655,74 L690,20 L725,54 L760,10 L800,62 L835,32 L870,70 L905,18 L945,46 L980,36 L1020,72 L1055,14 L1090,56 L1125,28 L1165,64 L1200,22 L1235,50 L1275,8 L1310,60 L1345,34 L1385,70 L1420,18 L1455,48 L1490,38 L1530,72 L1565,20 L1600,52 L1640,12 L1675,64 L1710,30 L1750,68 L1785,16 L1820,46 L1860,36 L1895,72 L1930,22 L1970,54 L2005,10 L2045,60 L2080,32 L2115,70 L2155,18 L2190,48 L2230,38 L2265,72 L2300,20 L2340,52 L2375,14 L2410,64 L2450,30 L2485,68 L2520,16 L2560,46 L2595,36 L2635,72 L2670,22 L2710,54 L2745,12 L2785,60 L2820,34 L2860,66 L2880,42" fill="none" stroke="rgba(217,119,87,0.5)" stroke-width="1.5"/>
     </svg>
   </div>
   <div class="wave-track w2">
     <svg viewBox="0 0 2880 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M0,38 C80,70 150,8 240,42 C330,72 380,12 460,36 C540,62 600,10 700,44 C800,74 860,6 950,38 C1040,68 1110,14 1200,40 C1290,66 1360,8 1440,36 C1520,70 1580,16 1680,42 C1780,68 1840,10 1940,38 C2040,72 2100,6 2200,40 C2300,70 2360,12 2440,36 C2520,66 2600,8 2700,44 C2800,74 2860,18 2880,38" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+      <path d="M0,38 L35,64 L70,14 L110,50 L145,30 L185,70 L220,18 L260,46 L295,8 L335,58 L370,34 L410,72 L445,20 L485,52 L520,12 L560,66 L595,36 L635,74 L670,24 L710,48 L745,16 L785,60 L820,32 L860,70 L895,18 L935,54 L970,10 L1010,62 L1045,38 L1085,72 L1120,22 L1160,50 L1195,14 L1235,64 L1270,30 L1310,68 L1345,16 L1385,46 L1420,40 L1460,74 L1495,20 L1535,56 L1570,12 L1610,60 L1645,34 L1685,70 L1720,18 L1760,48 L1795,38 L1835,72 L1870,24 L1910,54 L1945,10 L1985,62 L2020,32 L2060,70 L2095,16 L2135,52 L2170,40 L2210,74 L2245,20 L2285,58 L2320,12 L2360,64 L2395,30 L2435,68 L2470,18 L2510,46 L2545,36 L2585,72 L2620,22 L2660,54 L2695,14 L2735,60 L2770,34 L2810,70 L2845,40 L2880,38" fill="none" stroke="rgba(217,119,87,0.28)" stroke-width="1.2"/>
     </svg>
   </div>
   <div class="wave-track w3">
     <svg viewBox="0 0 2880 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M0,50 C50,20 100,60 170,30 C240,5 310,75 400,48 C490,22 530,58 620,28 C710,2 790,72 880,50 C970,28 1020,62 1120,34 C1220,8 1290,70 1380,44 C1470,18 1540,66 1640,40 C1740,14 1800,72 1900,46 C2000,22 2060,64 2160,36 C2260,8 2330,68 2420,44 C2510,20 2580,70 2680,40 C2780,12 2840,62 2880,50" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+      <path d="M0,46 L45,22 L80,62 L120,32 L160,70 L195,16 L235,50 L270,40 L310,74 L345,24 L385,56 L420,12 L460,64 L495,34 L535,72 L570,20 L610,48 L645,38 L685,70 L720,18 L760,52 L795,14 L835,60 L870,30 L910,68 L945,22 L985,46 L1020,40 L1060,74 L1095,20 L1135,54 L1170,12 L1210,62 L1245,36 L1285,72 L1320,18 L1360,50 L1395,38 L1435,68 L1470,24 L1510,56 L1545,10 L1585,64 L1620,34 L1660,70 L1695,20 L1735,48 L1770,40 L1810,72 L1845,22 L1885,54 L1920,14 L1960,60 L1995,32 L2035,68 L2070,18 L2110,52 L2145,38 L2185,74 L2220,24 L2260,56 L2295,12 L2335,62 L2370,36 L2410,70 L2445,20 L2485,48 L2520,40 L2560,72 L2595,22 L2635,54 L2670,16 L2710,60 L2745,34 L2785,68 L2820,24 L2860,52 L2880,46" fill="none" stroke="rgba(245,243,238,0.1)" stroke-width="1"/>
     </svg>
   </div>
 
@@ -100,34 +100,40 @@ layout: none
 
 <style scoped>
 .cover {
-  background: linear-gradient(135deg, #5b2bd2 0%, #2b68d9 55%, #00c8d5 100%);
+  background: #262624;
   position: absolute;
   inset: 0;
   display: flex; flex-direction: column;
   overflow: hidden;
-  color: #ffffff;
+  color: #f5f3ee;
 }
 .bg-grid {
   position: absolute; inset: 0;
   background-image:
-    linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px);
+    linear-gradient(rgba(245,243,238,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(245,243,238,0.035) 1px, transparent 1px);
   background-size: 48px 48px;
 }
-.bg-glow { display: none; }
+.bg-glow {
+  position: absolute; top: 42%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px; height: 300px;
+  background: radial-gradient(ellipse, rgba(217,119,87,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
 .wave-track {
   position: absolute; top: 74%; left: 0;
   width: 200%; height: 80px;
-  animation: wscroll 10s linear infinite;
+  animation: wscroll 9s linear infinite;
 }
 .wave-track.w2 {
   top: 78%;
-  animation-duration: 15s;
+  animation-duration: 13s;
   animation-direction: reverse;
 }
 .wave-track.w3 {
   top: 70%;
-  animation-duration: 22s;
+  animation-duration: 19s;
 }
 .wave-track svg { width: 100%; height: 100%; }
 @keyframes wscroll {
@@ -137,19 +143,19 @@ layout: none
 .hdr {
   display: flex; align-items: center; justify-content: space-between;
   padding: 14px 32px;
-  border-bottom: 1px solid rgba(255,255,255,0.2);
-  background: rgba(0,0,0,0.15);
+  border-bottom: 1px solid rgba(245,243,238,0.12);
+  background: rgba(20,20,19,0.55);
   position: relative; z-index: 10;
 }
 .hdr-l   { display: flex; align-items: center; gap: 10px; }
 .hdr-ico  { font-size: 22px; }
-.hdr-uni  { font-size: 13px; font-weight: 600; color: #ffffff; }
-.hdr-dept { font-size: 11px; color: rgba(255,255,255,0.72); margin-top: 2px; }
+.hdr-uni  { font-size: 13px; font-weight: 600; color: #f0ede6; }
+.hdr-dept { font-size: 11px; color: #a8a39a; margin-top: 2px; }
 .hdr-tag  {
-  font-size: 12px; font-weight: 600; color: #ffffff;
-  border: 1px solid rgba(255,255,255,0.5);
+  font-size: 12px; font-weight: 600; color: #d97757;
+  border: 1px solid rgba(217,119,87,0.45);
   padding: 4px 16px; border-radius: 20px;
-  background: rgba(255,255,255,0.15); letter-spacing: 0.5px;
+  background: rgba(217,119,87,0.1); letter-spacing: 0.5px;
 }
 .ctr {
   flex: 1; display: flex; flex-direction: column;
@@ -159,50 +165,50 @@ layout: none
 }
 .badge {
   font-size: 11px; letter-spacing: 3px;
-  text-transform: uppercase; color: rgba(255,255,255,0.85);
+  text-transform: uppercase; color: #d97757;
   margin-bottom: 18px;
   animation: fadeup 0.6s ease both;
 }
 .ttl1 {
   font-size: 52px; font-weight: 800;
-  color: #ffffff; line-height: 1.1; margin: 0;
+  color: #f5f3ee; line-height: 1.1; margin: 0;
   animation: fadeup 0.7s 0.1s ease both;
 }
 .ttl2 {
   font-size: 52px; font-weight: 800;
-  color: rgba(255,255,255,0.88);
+  color: #d97757;
   line-height: 1.1; margin: 0 0 20px;
   animation: fadeup 0.7s 0.2s ease both;
 }
 .fml {
-  font-size: 15px; color: rgba(255,255,255,0.75);
+  font-size: 15px; color: rgba(245,243,238,0.6);
   font-family: 'Fira Code', 'Courier New', monospace;
   padding: 8px 22px;
-  border: 1px solid rgba(255,255,255,0.3);
+  border: 1px solid rgba(217,119,87,0.28);
   border-radius: 8px;
-  background: rgba(255,255,255,0.1);
+  background: rgba(217,119,87,0.07);
   margin-bottom: 20px;
   animation: fadeup 0.7s 0.3s ease both;
 }
 .sep {
   width: 0; height: 2px;
-  background: rgba(255,255,255,0.7);
+  background: #d97757;
   border-radius: 2px; margin: 0 auto 16px;
   animation: expand 0.9s 0.4s ease both;
 }
 @keyframes expand { to { width: 60px; } }
 .au { display: flex; flex-direction: column; gap: 4px; animation: fadeup 0.7s 0.5s ease both; }
-.au-name { font-size: 17px; font-weight: 600; color: #ffffff; }
-.au-sem  { font-size: 12px; color: rgba(255,255,255,0.7); }
+.au-name { font-size: 17px; font-weight: 600; color: #f0ede6; }
+.au-sem  { font-size: 12px; color: #a8a39a; }
 .spectrum {
   display: flex; justify-content: center;
   align-items: flex-end; gap: 5px;
   height: 80px; padding: 0 32px;
-  position: relative; z-index: 10; opacity: 0.55;
+  position: relative; z-index: 10; opacity: 0.6;
 }
 .bar {
   width: 11px; height: 4px; min-height: 4px;
-  background: rgba(255,255,255,0.8);
+  background: linear-gradient(to top, #8a4530, #d97757);
   border-radius: 3px 3px 0 0;
   animation: bpulse 1.4s ease-in-out infinite alternate;
   animation-delay: var(--d, 0s);
@@ -214,13 +220,13 @@ layout: none
 .ftr {
   display: flex; align-items: center; gap: 8px;
   padding: 10px 32px;
-  border-top: 1px solid rgba(255,255,255,0.18);
-  background: rgba(0,0,0,0.15);
-  font-size: 11px; color: rgba(255,255,255,0.65);
+  border-top: 1px solid rgba(245,243,238,0.1);
+  background: rgba(20,20,19,0.55);
+  font-size: 11px; color: #8a857c;
   position: relative; z-index: 10;
 }
-.dot { color: rgba(255,255,255,0.35); }
-.yr  { margin-left: auto; color: #ffffff; font-weight: 600; }
+.dot { color: #57534b; }
+.yr  { margin-left: auto; color: #d97757; font-weight: 600; }
 @keyframes fadeup {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
