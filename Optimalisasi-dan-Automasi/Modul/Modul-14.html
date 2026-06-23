@@ -1947,7 +1947,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Tugas Pertemuan 15 · Random Forest, SVM &amp; Hyperparameter Tuning</div>
     <h1 class="hero-title"><span class="hl-amber">Tugas 14</span><br><em>Otomatisasi Prediktif</em><br>Machine Learning Dasar</h1>
-    <p class="hero-sub">10 pilihan ganda + 10 komputasi Easy/Medium + 5 komputasi Hard (Jupyter Notebook) seputar supervised learning (X/y, train/test split), klasifikasi (Logistic Regression, Random Forest, SVM), evaluasi (accuracy, precision, recall, F1, ROC-AUC), cross-validation, hyperparameter tuning (GridSearchCV), dan implementasi lengkap dengan <code>scikit-learn</code>. Total <strong>50 poin</strong>.</p>
+    <p class="hero-sub">10 pilihan ganda + 10 komputasi Easy/Medium + 5 komputasi Hard (Jupyter Notebook) seputar klasifikasi pada data imbalanced (rasio kelas, SMOTE, class_weight), metrik lanjutan (specificity, balanced accuracy, ROC-AUC, Youden's J, G-mean, F-beta), threshold tuning &amp; evaluasi cost-sensitive, feature importance, serta penanganan model drift untuk predictive maintenance dengan <code>scikit-learn</code>. Total <strong>50 poin</strong>.</p>
     <div class="hero-stats">
       <div class="stat"><div class="stat-num">10</div><div class="stat-lbl">Pilihan Ganda</div></div>
       <div class="stat"><div class="stat-num">15</div><div class="stat-lbl">Komputasi</div></div>
@@ -2015,14 +2015,14 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">01</div>
-        <div class="mc-q">Pendekatan <strong>supervised learning</strong> berbeda dari <em>unsupervised learning</em> karena...</div>
+        <div class="mc-q">Untuk dataset PdM yang sangat <strong>imbalanced</strong> (mis. 1% fault, 99% healthy), mengapa metrik <strong>accuracy</strong> menyesatkan?</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc1">
-        <div class="radio-option" onclick="selectMC('mc1',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Supervised butuh GPU, unsupervised tidak</div>
-        <div class="radio-option" onclick="selectMC('mc1',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Supervised butuh data <em>labeled</em> (X, y) — model belajar mapping input → output dari contoh. Unsupervised hanya X (cari pattern intrinsik: clustering, dimensionality reduction)</div>
-        <div class="radio-option" onclick="selectMC('mc1',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Supervised hanya untuk regresi, unsupervised untuk klasifikasi</div>
-        <div class="radio-option" onclick="selectMC('mc1',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Tidak ada perbedaan signifikan</div>
+        <div class="radio-option" onclick="selectMC('mc1',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Accuracy selalu bernilai nol pada data imbalanced</div>
+        <div class="radio-option" onclick="selectMC('mc1',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Accuracy hanya bisa dihitung untuk regresi</div>
+        <div class="radio-option" onclick="selectMC('mc1',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Model yang selalu memprediksi 'healthy' sudah memberi accuracy 99% padahal gagal total mendeteksi fault — pakai recall/F1/AUC/balanced accuracy</div>
+        <div class="radio-option" onclick="selectMC('mc1',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Accuracy membutuhkan GPU</div>
       </div>
       <button class="mc-submit" id="sub-mc1" onclick="checkMC('mc1')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc1"></div>
@@ -2032,14 +2032,14 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">02</div>
-        <div class="mc-q">Tujuan <strong>\(\text{train\_test\_split}\)</strong> dengan <code>stratify=y</code> di scikit-learn adalah...</div>
+        <div class="mc-q"><strong>ROC-AUC</strong> unggul sebagai metrik evaluasi karena...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc2">
-        <div class="radio-option" onclick="selectMC('mc2',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Mempercepat training</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Menjaga proporsi tiap kelas <em>sama di train &amp; test set</em> — penting untuk imbalanced data (mis. 1% fault). Tanpa stratify, test set bisa kebetulan tidak punya sample positif sama sekali</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Mengubah label jadi numerik</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Menghapus duplicate sample</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Bergantung pada threshold tetap 0.5</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <em>Threshold-independent</em> — mengukur kemampuan model me-ranking sampel positif di atas negatif (probabilitas fault acak &gt; healthy acak). 0.5 = acak, 1.0 = sempurna</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Hanya berlaku untuk data seimbang sempurna</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Selalu sama dengan accuracy</div>
       </div>
       <button class="mc-submit" id="sub-mc2" onclick="checkMC('mc2')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc2"></div>
@@ -2049,14 +2049,14 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">03</div>
-        <div class="mc-q"><strong>Random Forest</strong> classifier menggabungkan banyak decision tree dengan strategi...</div>
+        <div class="mc-q">Pada data sangat imbalanced, kurva <strong>Precision-Recall</strong> sering lebih informatif daripada ROC karena...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc3">
-        <div class="radio-option" onclick="selectMC('mc3',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Setiap tree dilatih di seluruh dataset yang sama, hasil di-rata-rata</div>
-        <div class="radio-option" onclick="selectMC('mc3',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Tiap tree dilatih di <em>bootstrap sample</em> + <em>random subset features</em>; prediksi via <strong>majority voting</strong>. Diversifikasi mengurangi variance, robust terhadap noise</div>
-        <div class="radio-option" onclick="selectMC('mc3',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Sequential boosting per tree dari error tree sebelumnya</div>
-        <div class="radio-option" onclick="selectMC('mc3',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Single tree dengan max_depth tinggi</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'A')"><div class="radio-circle"></div>(A) &nbsp; PR curve tidak membutuhkan label</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'B')"><div class="radio-circle"></div>(B) &nbsp; ROC tidak bisa dihitung untuk klasifikasi biner</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'C')"><div class="radio-circle"></div>(C) &nbsp; PR curve selalu memberi AUC = 1</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'D')"><div class="radio-circle"></div>(D) &nbsp; ROC bisa tampak optimistis (FPR kecil karena negatif berlimpah), sedangkan PR fokus pada kinerja kelas minoritas (fault) yang justru penting</div>
       </div>
       <button class="mc-submit" id="sub-mc3" onclick="checkMC('mc3')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc3"></div>
@@ -2066,14 +2066,14 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">04</div>
-        <div class="mc-q"><strong>Support Vector Machine (SVM)</strong> dengan kernel RBF mampu menangani batas non-linear karena...</div>
+        <div class="mc-q">Teknik <strong>SMOTE</strong> (Synthetic Minority Over-sampling) menangani imbalanced data dengan...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc4">
-        <div class="radio-option" onclick="selectMC('mc4',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Menggunakan banyak hidden layer seperti neural network</div>
-        <div class="radio-option" onclick="selectMC('mc4',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <em>Kernel trick</em>: implicit map data ke ruang dimensi tinggi via kernel function (RBF, polynomial). Di ruang tersebut, batas linear cukup untuk memisahkan kelas yang non-linear di ruang asli</div>
-        <div class="radio-option" onclick="selectMC('mc4',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Pakai gradient descent agresif</div>
-        <div class="radio-option" onclick="selectMC('mc4',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Hanya bekerja untuk binary classification</div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Menghapus sebagian besar kelas mayoritas secara acak</div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Membuat sampel <em>sintetis</em> kelas minoritas via interpolasi antar tetangga terdekat (bukan duplikasi) — menambah variasi tanpa overfitting duplikat</div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Mengganti label minoritas menjadi mayoritas</div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Menaikkan learning rate</div>
       </div>
       <button class="mc-submit" id="sub-mc4" onclick="checkMC('mc4')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc4"></div>
@@ -2083,14 +2083,14 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">05</div>
-        <div class="mc-q">Untuk dataset <strong>imbalanced 1% fault, 99% healthy</strong>, accuracy 99% dari naive predict-all-healthy adalah...</div>
+        <div class="mc-q">Parameter <code>class_weight='balanced'</code> pada classifier sklearn berfungsi untuk...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc5">
-        <div class="radio-option" onclick="selectMC('mc5',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Excellent — model sukses</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <em>Misleading</em>! Recall = 0% (semua fault missed). Untuk imbalanced data, accuracy tidak relevan — pakai <strong>F1-score, precision, recall, ROC-AUC</strong>. Solusi: <code>class_weight='balanced'</code>, SMOTE, custom threshold</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Tidak bisa diinterpretasi tanpa data lebih</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Bukti overfit</div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Memberi bobot lebih besar pada kelas minoritas saat training (weight ∝ 1/frekuensi kelas) sehingga kesalahan pada fault lebih 'mahal'</div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Menghapus kelas minoritas</div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Menyeimbangkan jumlah fitur</div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Mempercepat training dengan GPU</div>
       </div>
       <button class="mc-submit" id="sub-mc5" onclick="checkMC('mc5')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc5"></div>
@@ -2100,14 +2100,14 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">06</div>
-        <div class="mc-q"><strong>Confusion matrix</strong> 2×2: nilai TN, FP, FN, TP. Untuk safety-critical predictive maintenance, metric paling kritis adalah...</div>
+        <div class="mc-q">Mengapa <strong>threshold keputusan default 0.5</strong> sering bukan pilihan optimal untuk PdM?</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc6">
-        <div class="radio-option" onclick="selectMC('mc6',this,'A')"><div class="radio-circle"></div>(A) &nbsp; FP (false alarm) — yang utama hindari</div>
-        <div class="radio-option" onclick="selectMC('mc6',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <em>FN (missed fault)</em> — paling berbahaya. Predict "healthy" padahal actual "fault" → mesin tidak diperbaiki, catastrophic failure. Solusi: minimize FN via threshold rendah (high recall)</div>
-        <div class="radio-option" onclick="selectMC('mc6',this,'C')"><div class="radio-circle"></div>(C) &nbsp; TN (correct normal) — yang harus dimaksimalkan</div>
-        <div class="radio-option" onclick="selectMC('mc6',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Semua sama pentingnya</div>
+        <div class="radio-option" onclick="selectMC('mc6',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Karena sklearn melarang threshold 0.5</div>
+        <div class="radio-option" onclick="selectMC('mc6',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Karena probabilitas tidak pernah melebihi 0.5</div>
+        <div class="radio-option" onclick="selectMC('mc6',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Threshold optimal bergantung pada biaya kesalahan &amp; distribusi kelas — dipilih via Youden's J, target recall, atau minimisasi biaya, bukan default</div>
+        <div class="radio-option" onclick="selectMC('mc6',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Karena 0.5 hanya untuk regresi</div>
       </div>
       <button class="mc-submit" id="sub-mc6" onclick="checkMC('mc6')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc6"></div>
@@ -2117,14 +2117,14 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">07</div>
-        <div class="mc-q"><strong>F1-score</strong> = 2·\(P \cdot R\) / (P+R) berguna karena...</div>
+        <div class="mc-q">Dalam PdM keselamatan, mengapa <strong>False Negative (fault terlewat)</strong> umumnya jauh lebih mahal daripada False Positive?</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc7">
-        <div class="radio-option" onclick="selectMC('mc7',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Selalu lebih besar dari accuracy</div>
-        <div class="radio-option" onclick="selectMC('mc7',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <em>Harmonic mean</em> precision &amp; recall — single metric yang menyeimbangkan keduanya. F1 tinggi hanya saat P &amp; R keduanya tinggi (penalize jika salah satu rendah). Cocok untuk imbalanced data</div>
-        <div class="radio-option" onclick="selectMC('mc7',this,'C')"><div class="radio-circle"></div>(C) &nbsp; F1 = accuracy untuk binary classification</div>
-        <div class="radio-option" onclick="selectMC('mc7',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Hanya bekerja untuk 2 kelas</div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'A')"><div class="radio-circle"></div>(A) &nbsp; FN dan FP selalu berbiaya sama</div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'B')"><div class="radio-circle"></div>(B) &nbsp; FN = kerusakan/kecelakaan tak terdeteksi (downtime, bahaya, biaya besar), sedangkan FP hanya inspeksi tambahan — sehingga optimasi mengutamakan <em>recall</em></div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'C')"><div class="radio-circle"></div>(C) &nbsp; FP menyebabkan ledakan, FN tidak berdampak apa pun</div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'D')"><div class="radio-circle"></div>(D) &nbsp; FN hanya relevan di regresi</div>
       </div>
       <button class="mc-submit" id="sub-mc7" onclick="checkMC('mc7')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc7"></div>
@@ -2134,14 +2134,14 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">08</div>
-        <div class="mc-q"><strong>k-fold cross-validation</strong> (k=5) lebih reliable daripada single train/test split karena...</div>
+        <div class="mc-q">Perbedaan utama <strong>Gradient Boosting</strong> dan <strong>Random Forest</strong> adalah...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc8">
-        <div class="radio-option" onclick="selectMC('mc8',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Single split selalu underperform CV</div>
-        <div class="radio-option" onclick="selectMC('mc8',this,'B')"><div class="radio-circle"></div>(B) &nbsp; CV memberikan <em>mean ± std</em> dari k metric estimates — single split bisa lucky/unlucky (variance tinggi). CV reduce variance estimate via averaging across k folds, lebih robust untuk model selection &amp; hyperparameter tuning</div>
-        <div class="radio-option" onclick="selectMC('mc8',this,'C')"><div class="radio-circle"></div>(C) &nbsp; CV gunakan algoritma berbeda</div>
-        <div class="radio-option" onclick="selectMC('mc8',this,'D')"><div class="radio-circle"></div>(D) &nbsp; CV lebih cepat 5×</div>
+        <div class="radio-option" onclick="selectMC('mc8',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Keduanya identik</div>
+        <div class="radio-option" onclick="selectMC('mc8',this,'B')"><div class="radio-circle"></div>(B) &nbsp; RF melatih pohon secara sekuensial pada residual</div>
+        <div class="radio-option" onclick="selectMC('mc8',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Gradient Boosting tidak memakai pohon keputusan</div>
+        <div class="radio-option" onclick="selectMC('mc8',this,'D')"><div class="radio-circle"></div>(D) &nbsp; RF = <em>bagging</em> pohon paralel (vote/average → kurangi varians); Gradient Boosting = pohon <em>sekuensial</em> yang tiap pohon mengoreksi error pohon sebelumnya (→ kurangi bias)</div>
       </div>
       <button class="mc-submit" id="sub-mc8" onclick="checkMC('mc8')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc8"></div>
@@ -2151,14 +2151,14 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">09</div>
-        <div class="mc-q"><strong>Overfitting</strong> dalam ML ditandai dengan...</div>
+        <div class="mc-q"><strong>Permutation feature importance</strong> mengukur pentingnya fitur dengan cara...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc9">
-        <div class="radio-option" onclick="selectMC('mc9',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Train accuracy &amp; test accuracy sama-sama rendah</div>
-        <div class="radio-option" onclick="selectMC('mc9',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <em>Train accuracy &gt;&gt; test accuracy</em> — model memorize training data tetapi gagal generalize. Solusi: regularize (smaller max_depth, larger min_samples_leaf, smaller C), more data, simpler model, ensemble averaging, cross-validation</div>
-        <div class="radio-option" onclick="selectMC('mc9',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Model selalu predict kelas mayoritas</div>
-        <div class="radio-option" onclick="selectMC('mc9',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Training error tidak konvergen</div>
+        <div class="radio-option" onclick="selectMC('mc9',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Menghapus fitur lalu melatih ulang model dari awal untuk tiap fitur</div>
+        <div class="radio-option" onclick="selectMC('mc9',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Mengacak (shuffle) nilai satu fitur pada data test dan mengukur penurunan skor model — penurunan besar berarti fitur penting; bersifat model-agnostic</div>
+        <div class="radio-option" onclick="selectMC('mc9',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Mengurutkan fitur secara abjad</div>
+        <div class="radio-option" onclick="selectMC('mc9',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Hanya menghitung korelasi fitur dengan target</div>
       </div>
       <button class="mc-submit" id="sub-mc9" onclick="checkMC('mc9')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc9"></div>
@@ -2168,19 +2168,18 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">10</div>
-        <div class="mc-q">Untuk best practice ML <strong>predictive maintenance production</strong>, arsitektur ideal adalah...</div>
+        <div class="mc-q">Setelah model PdM di-deploy, <strong>model drift / data drift</strong> ditangani dengan...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc10">
-        <div class="radio-option" onclick="selectMC('mc10',this,'A')"><div class="radio-circle"></div>(A) &nbsp; ML 100% menggantikan rule-based</div>
-        <div class="radio-option" onclick="selectMC('mc10',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <em>Hybrid rule-based + ML</em>: rule-based ISO 10816 (P13) sebagai <strong>safety net + compliance</strong>; ML (P14) sebagai <strong>early-warning + diagnosis multi-feature</strong>. Operator dashboard unified. Re-train model periodik (concept drift)</div>
-        <div class="radio-option" onclick="selectMC('mc10',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Hanya ML, abaikan rule-based</div>
-        <div class="radio-option" onclick="selectMC('mc10',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Hanya rule-based, ML tidak diperlukan</div>
+        <div class="radio-option" onclick="selectMC('mc10',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Tidak perlu dipantau — model valid selamanya</div>
+        <div class="radio-option" onclick="selectMC('mc10',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Mengganti model dengan rule-based setiap hari</div>
+        <div class="radio-option" onclick="selectMC('mc10',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Memantau distribusi input &amp; metrik kinerja; bila terdeteksi drift (AUC turun, distribusi fitur bergeser) → trigger <em>retraining</em> dengan data terbaru</div>
+        <div class="radio-option" onclick="selectMC('mc10',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Menambah jumlah kelas target</div>
       </div>
       <button class="mc-submit" id="sub-mc10" onclick="checkMC('mc10')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc10"></div>
     </div>
-
     </div><!-- end pilihan ganda -->
 
   <!-- ─── KOMPUTASI ─── -->
@@ -2195,36 +2194,32 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="q-type-badge badge-comp">💻 BAGIAN B — Soal Komputasi · 10 Soal · @2 Poin · Menggunakan Jupyter Notebook</div>
 
     <div class="info-box" style="margin-bottom:28px">
-      <strong>📌 Pengingat Konstanta ML Klasifikasi (dipakai di C1–C15):</strong><br>
-      <span style="font-size:13px;color:var(--muted);margin-top:6px;display:block">Soal komputasi ML klasifikasi: gunakan scikit-learn standar API <code>fit / predict / predict_proba</code>.</span>
+      <strong>📌 Pengingat Konstanta ML Lanjutan / Imbalanced (dipakai di C1–C15):</strong><br>
+      <span style="font-size:13px;color:var(--muted);margin-top:6px;display:block">Soal komputasi ML lanjutan: metrik dari confusion matrix, ROC-AUC, dan threshold tuning (banyak bisa dihitung tanpa training model).</span>
       <pre style="margin-top:10px;background:#020a18;border:1px solid #1a2840;border-radius:8px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#cbd5e1;overflow-x:auto">import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.svm import SVC
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, confusion_matrix
 
-# Standard split:
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
-
-# Confusion matrix 2x2: [[TN, FP], [FN, TP]]
-# F1 = 2 * (P * R) / (P + R)
-# AUC range: 0.5 (random) - 1.0 (perfect)</pre>
+# Confusion matrix: TP, FP, TN, FN
+#   recall (sensitivity) = TP/(TP+FN)     specificity = TN/(TN+FP)
+#   balanced_acc = (recall + specificity)/2
+#   Youden's J   = sensitivity + specificity - 1
+#   G-mean       = sqrt(sensitivity * specificity)
+#   F-beta       = (1+b**2)*P*R / (b**2*P + R)      # F2: b=2
+# ROC-AUC (Mann-Whitney): rata-rata (skor_pos &gt; skor_neg) atas semua pasangan
+# class_weight='balanced': w_kelas = n_samples / (n_classes * n_kelas)</pre>
     </div>
 
     <!-- COMP 1 -->
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C1</div>
-        <div class="comp-q">Hitung <strong>accuracy</strong> dari confusion matrix: TP=80, FP=10, TN=85, FN=5. Formula: <code>(TP+TN) / (TP+FP+TN+FN)</code>. Print persentase desimal (mis. 91.67).</div>
+        <div class="comp-q">Confusion matrix: TP=80, FP=10, TN=85, FN=5. Hitung <strong>specificity</strong> = <code>TN/(TN+FP)</code>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Accuracy = (TP + TN) ÷ (TP + FP + TN + FN), lalu kalikan 100 untuk persen. Substitusikan nilai confusion matrix dari soal.</div>
+      <div class="comp-hint">💡 Specificity = true negative rate.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">accuracy (%)</strong></span></div>
-        <textarea class="code-textarea" id="code-c1" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi&#10;&#10;Contoh:&#10;TP, FP, TN, FN = 80, 10, 85, 5&#10;acc = (TP+TN) / (TP+FP+TN+FN) * 100&#10;print(f'{acc:.2f}')" oninput="onCodeInput('c1')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">specificity</strong></span></div>
+        <textarea class="code-textarea" id="code-c1" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c1')"></textarea>
         <div class="stdout-box" id="stdout-c1"></div>
       </div>
       <button class="comp-submit run-btn" id="sub-c1" onclick="runAndCheck('c1')">▶ Run &amp; Validasi</button>
@@ -2235,12 +2230,12 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C2</div>
-        <div class="comp-q">Hitung <strong>precision</strong> dari confusion matrix: TP=80, FP=10. Formula: <code>TP / (TP + FP)</code>. Print desimal (3 digit).</div>
+        <div class="comp-q">Dari confusion matrix yang sama (TP=80, FP=10, TN=85, FN=5), hitung <strong>balanced accuracy</strong> = <code>(recall + specificity)/2</code>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Precision = TP ÷ (TP + FP) — proporsi prediksi positif yang benar. Substitusikan nilai dari soal.</div>
+      <div class="comp-hint">💡 Recall = TP/(TP+FN); specificity = TN/(TN+FP); rata-ratakan.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">precision</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">balanced accuracy</strong></span></div>
         <textarea class="code-textarea" id="code-c2" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c2')"></textarea>
         <div class="stdout-box" id="stdout-c2"></div>
       </div>
@@ -2252,12 +2247,12 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C3</div>
-        <div class="comp-q">Hitung <strong>recall (sensitivity)</strong>: TP=80, FN=5. Formula: <code>TP / (TP + FN)</code>. Print desimal (3 digit).</div>
+        <div class="comp-q">Dataset PdM: 950 sampel healthy, 50 sampel fault. Hitung <strong>rasio imbalance</strong> = mayoritas/minoritas.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Recall = TP ÷ (TP + FN) — proporsi positif aktual yang terdeteksi. Substitusikan nilai dari soal.</div>
+      <div class="comp-hint">💡 Bagi jumlah mayoritas dengan minoritas.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">recall</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">rasio imbalance</strong></span></div>
         <textarea class="code-textarea" id="code-c3" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c3')"></textarea>
         <div class="stdout-box" id="stdout-c3"></div>
       </div>
@@ -2269,12 +2264,12 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C4</div>
-        <div class="comp-q">Hitung <strong>F1-score</strong> dari precision = 0.750 dan recall = 0.600. Formula: <code>2·P·R / (P+R)</code>. Print desimal (3 digit).</div>
+        <div class="comp-q">Untuk menyeimbangkan 50 sampel minoritas (fault) hingga sama dengan 950 mayoritas via oversampling, hitung jumlah <strong>sampel sintetis</strong> yang dibuat.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 F1 = 2·\(P \cdot R\) ÷ (P + R) — harmonic mean precision dan recall. Substitusikan P dan R dari soal.</div>
+      <div class="comp-hint">💡 Target jumlah minoritas = mayoritas; sintetis = selisihnya.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">F1-score</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">sampel sintetis</strong></span></div>
         <textarea class="code-textarea" id="code-c4" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c4')"></textarea>
         <div class="stdout-box" id="stdout-c4"></div>
       </div>
@@ -2286,12 +2281,12 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C5</div>
-        <div class="comp-q">Untuk dataset N=1000 sample dengan <code>test_size=0.2</code>, berapa sample di <strong>training set</strong>? Print integer.</div>
+        <div class="comp-q">Hitung <strong>Youden's J</strong> = <code>sensitivity + specificity − 1</code> untuk TP=80, FP=10, TN=85, FN=5.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Training set = N × (1 − test_size); sisanya menjadi test set. Substitusikan N dan test_size dari soal.</div>
+      <div class="comp-hint">💡 sensitivity = recall; J = sensitivity + specificity − 1.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">train size</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">Youden J</strong></span></div>
         <textarea class="code-textarea" id="code-c5" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c5')"></textarea>
         <div class="stdout-box" id="stdout-c5"></div>
       </div>
@@ -2303,12 +2298,12 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C6</div>
-        <div class="comp-q"><strong>5-fold Cross-Validation</strong>: untuk dataset 800 sample, berapa sample di tiap fold sebagai test? Print integer.</div>
+        <div class="comp-q">Hitung <strong>F2-score</strong> (menekankan recall) untuk precision = 0.75, recall = 0.60. Formula: <code>F2 = 5·P·R/(4·P+R)</code>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Ukuran fold test = total sample ÷ jumlah fold (k); sisanya jadi train tiap iterasi. Substitusikan nilai dari soal.</div>
+      <div class="comp-hint">💡 Substitusi P dan R ke formula F-beta dengan β=2.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">test per fold</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">F2-score</strong></span></div>
         <textarea class="code-textarea" id="code-c6" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c6')"></textarea>
         <div class="stdout-box" id="stdout-c6"></div>
       </div>
@@ -2320,12 +2315,12 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C7</div>
-        <div class="comp-q">Untuk Random Forest dengan <code>n_estimators=100</code> dan <code>max_features='sqrt'</code> pada dataset dengan 16 features, berapa <strong>features dipertimbangkan per split</strong>? Print integer (round).</div>
+        <div class="comp-q">Skor prediksi kelas <em>positif</em> = [0.9, 0.4, 0.8] dan kelas <em>negatif</em> = [0.5, 0.3, 0.6]. Hitung <strong>ROC-AUC</strong> = fraksi pasangan (pos, neg) dengan skor pos &gt; neg (Mann-Whitney).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Dengan <code>max_features='sqrt'</code>, jumlah fitur per split = \(\sqrt{\;\text{total}\;fitur}\), dibulatkan. Substitusikan jumlah fitur dari soal.</div>
+      <div class="comp-hint">💡 Bandingkan tiap skor positif dengan tiap skor negatif; hitung fraksi pos &gt; neg.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">features per split</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">ROC-AUC</strong></span></div>
         <textarea class="code-textarea" id="code-c7" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c7')"></textarea>
         <div class="stdout-box" id="stdout-c7"></div>
       </div>
@@ -2337,12 +2332,12 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C8</div>
-        <div class="comp-q"><strong>StandardScaler</strong>: untuk fitur dengan mean=5.0, std=2.0, hitung <strong>scaled value</strong> dari raw=8.0. Formula: <code>z = (x - mean) / std</code>. Print desimal.</div>
+        <div class="comp-q">Untuk 1000 sampel, 2 kelas, minoritas 50 sampel, hitung <strong>bobot kelas minoritas</strong> ala <code>class_weight='balanced'</code> = <code>n_samples/(n_classes×n_minority)</code>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Scaled value z = (x − mean) ÷ std. Substitusikan raw, mean, dan std dari soal. Standardisasi wajib untuk SVM/logistic, tidak untuk tree-based.</div>
+      <div class="comp-hint">💡 Bagi total sampel dengan (jumlah kelas × jumlah minoritas).</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">scaled value</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">bobot minoritas</strong></span></div>
         <textarea class="code-textarea" id="code-c8" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c8')"></textarea>
         <div class="stdout-box" id="stdout-c8"></div>
       </div>
@@ -2354,12 +2349,12 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C9</div>
-        <div class="comp-q"><strong>GridSearchCV</strong>: untuk param_grid dengan <code>n_estimators: [50, 100, 200]</code> dan <code>max_depth: [None, 5, 10, 20]</code>, berapa <strong>total kombinasi</strong> hyperparameter? Print integer.</div>
+        <div class="comp-q">Biaya FP = 1 dan biaya FN = 10 (FN 10× lebih mahal). Untuk FP=10, FN=5, hitung <strong>total biaya</strong> = <code>FP×1 + FN×10</code>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Total kombinasi = perkalian jumlah nilai tiap hyperparameter di grid. Substitusikan jumlah nilai tiap parameter dari soal.</div>
+      <div class="comp-hint">💡 Jumlahkan FP×biaya_FP + FN×biaya_FN.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">total kombinasi</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">total biaya</strong></span></div>
         <textarea class="code-textarea" id="code-c9" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c9')"></textarea>
         <div class="stdout-box" id="stdout-c9"></div>
       </div>
@@ -2371,12 +2366,12 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C10</div>
-        <div class="comp-q">Hitung <strong>FNR (False Negative Rate)</strong> = missed fault rate, dari TP=80, FN=5. Formula: <code>FN / (TP + FN)</code>. Print persentase desimal.</div>
+        <div class="comp-q">Hitung <strong>G-mean</strong> = <code>√(sensitivity × specificity)</code> untuk TP=80, FP=10, TN=85, FN=5.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 FNR = FN ÷ (TP + FN), kalikan 100 untuk persen; ini komplemen recall (FNR = 1 − Recall). Substitusikan nilai dari soal.</div>
+      <div class="comp-hint">💡 Akar dari (recall × specificity).</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">FNR (%)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">G-mean</strong></span></div>
         <textarea class="code-textarea" id="code-c10" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c10')"></textarea>
         <div class="stdout-box" id="stdout-c10"></div>
       </div>
@@ -2398,13 +2393,13 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C11</div>
-        <div class="comp-q"><strong>Logistic Regression Baseline — Synthetic Bearing Dataset</strong>: generate dataset 2-class healthy vs fault dengan separasi clear. <code>np.random.seed(42); n=500; X_h=np.random.randn(n,3); X_f=np.random.randn(n,3)+2.0; X=np.vstack([X_h,X_f]); y=np.concatenate([np.zeros(n),np.ones(n)])</code>. Split 80/20 stratified, train <code>LogisticRegression</code>, print <strong>test accuracy</strong> (3 desimal).</div>
+        <div class="comp-q"><strong>ROC-AUC via Mann-Whitney</strong>: <code>np.random.seed(42)</code>; skor positif = <code>np.random.normal(0.7,0.15,100)</code>; skor negatif = <code>np.random.normal(0.4,0.15,100)</code>. Hitung AUC = rata-rata atas seluruh pasangan (pos,neg): +1 bila pos&gt;neg, +0.5 bila sama.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Split data 80/20 stratified dengan <code>train_test_split</code>, latih <code>LogisticRegression</code>, lalu evaluasi dengan <code>.score()</code> pada test set.</div>
+      <div class="comp-hint">💡 Bandingkan tiap skor positif dengan tiap negatif (100×100 pasangan); rata-ratakan.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">test accuracy</strong></span></div>
-        <textarea class="code-textarea" id="code-c11" rows="14" placeholder="Paste kode Logistic Regression pipeline, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c11')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">ROC-AUC</strong></span></div>
+        <textarea class="code-textarea" id="code-c11" rows="16" placeholder="Paste kode, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c11')"></textarea>
         <div class="stdout-box" id="stdout-c11"></div>
       </div>
       <button class="comp-submit run-btn" id="sub-c11" onclick="runAndCheck('c11', 'hard')">▶ Run &amp; Validasi</button>
@@ -2415,13 +2410,13 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C12</div>
-        <div class="comp-q"><strong>Random Forest + 5-Fold Cross-Validation</strong>: generate dataset healthy vs fault. <code>np.random.seed(42); n=300; X_h=np.random.randn(n,4); X_f=np.random.randn(n,4)+2.0; X=np.vstack([X_h,X_f]); y=np.concatenate([np.zeros(n),np.ones(n)])</code>. Train <code>RandomForestClassifier(n_estimators=100, random_state=42)</code> dengan 5-fold CV, print <strong>mean accuracy</strong> (3 desimal).</div>
+        <div class="comp-q"><strong>Threshold tuning (Youden)</strong>: dengan skor pos/neg dari C11 (seed 42), sapu semua threshold unik; di tiap threshold hitung TPR dan FPR; print <strong>nilai Youden's J maksimum</strong> = max(TPR − FPR).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Gunakan <code>cross_val_score</code> dengan <code>RandomForestClassifier</code>, cv=5, scoring accuracy, lalu ambil rata-ratanya dengan <code>.mean()</code>.</div>
+      <div class="comp-hint">💡 Untuk tiap threshold t, prediksi positif bila skor ≥ t; hitung TPR−FPR; ambil maksimum.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">mean CV accuracy</strong></span></div>
-        <textarea class="code-textarea" id="code-c12" rows="16" placeholder="Paste kode Random Forest + cross_val_score, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c12')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">max Youden J</strong></span></div>
+        <textarea class="code-textarea" id="code-c12" rows="16" placeholder="Paste kode, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c12')"></textarea>
         <div class="stdout-box" id="stdout-c12"></div>
       </div>
       <button class="comp-submit run-btn" id="sub-c12" onclick="runAndCheck('c12', 'hard')">▶ Run &amp; Validasi</button>
@@ -2432,13 +2427,13 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C13</div>
-        <div class="comp-q"><strong>SVM RBF Pipeline + StandardScaler</strong>: dataset multi-skala (butuh scaling sebelum SVM). <code>np.random.seed(42); n=250; X_h=np.random.randn(n,5)*10; X_f=np.random.randn(n,5)*10+5; X=np.vstack([X_h,X_f]); y=np.concatenate([np.zeros(n),np.ones(n)])</code>. Bangun <code>Pipeline([('scl',StandardScaler()),('svm',SVC(kernel='rbf',C=1.0,gamma='scale',random_state=42))])</code>. Split 75/25 stratified, train, print <strong>test accuracy</strong> (3 desimal).</div>
+        <div class="comp-q"><strong>SMOTE 50%</strong>: 920 sampel mayoritas, 80 minoritas. Oversample minoritas hingga mencapai 50% jumlah mayoritas. Hitung jumlah <strong>sampel sintetis</strong> yang ditambahkan.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Bangun <code>Pipeline</code> berisi <code>StandardScaler</code> lalu <code>SVC(kernel='rbf')</code> agar scaling otomatis dan bebas data leakage; split stratified, latih, lalu evaluasi <code>.score()</code> di test set.</div>
+      <div class="comp-hint">💡 Target minoritas = 0.5×mayoritas; sintetis = target − minoritas awal.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">test accuracy</strong></span></div>
-        <textarea class="code-textarea" id="code-c13" rows="16" placeholder="Paste kode SVM Pipeline, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c13')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">sampel sintetis</strong></span></div>
+        <textarea class="code-textarea" id="code-c13" rows="16" placeholder="Paste kode, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c13')"></textarea>
         <div class="stdout-box" id="stdout-c13"></div>
       </div>
       <button class="comp-submit run-btn" id="sub-c13" onclick="runAndCheck('c13', 'hard')">▶ Run &amp; Validasi</button>
@@ -2449,13 +2444,13 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C14</div>
-        <div class="comp-q"><strong>GridSearchCV — Hyperparameter Tuning RandomForest</strong>: dataset 4 fitur. <code>np.random.seed(42); n=250; X_h=np.random.randn(n,4); X_f=np.random.randn(n,4)+2.0; X=np.vstack([X_h,X_f]); y=np.concatenate([np.zeros(n),np.ones(n)])</code>. Tune <code>n_estimators=[50,100]</code>, <code>max_depth=[3,5,None]</code> dengan <code>GridSearchCV(cv=3, scoring='accuracy')</code>. Print <strong>\(\text{best\_score\_}\)</strong> (3 desimal).</div>
+        <div class="comp-q"><strong>Precision pada recall tinggi</strong>: dengan skor &amp; label dari C11 (positif = label 1, negatif = label 0, seed 42), urutkan skor menurun, lalu hitung <strong>precision pada titik pertama dimana recall ≥ 0.9</strong>.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Jalankan <code>GridSearchCV</code> dengan param_grid dan cv dari soal, panggil <code>.fit()</code>, lalu baca skor terbaik dari atribut <code>best_score_</code>.</div>
+      <div class="comp-hint">💡 Urut skor menurun, akumulasi TP/FP, cari recall pertama ≥ 0.9, ambil precision di titik itu.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">\(\text{best\_score\_}\)</strong></span></div>
-        <textarea class="code-textarea" id="code-c14" rows="14" placeholder="Paste kode GridSearchCV, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c14')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">precision@recall 0.9</strong></span></div>
+        <textarea class="code-textarea" id="code-c14" rows="16" placeholder="Paste kode, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c14')"></textarea>
         <div class="stdout-box" id="stdout-c14"></div>
       </div>
       <button class="comp-submit run-btn" id="sub-c14" onclick="runAndCheck('c14', 'hard')">▶ Run &amp; Validasi</button>
@@ -2466,13 +2461,13 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C15</div>
-        <div class="comp-q"><strong>Engineering Pipeline — End-to-End ML Comparison (3 model)</strong>: dataset bearing fault. <code>np.random.seed(42); n=300; X_h=np.random.randn(n,5); X_f=np.random.randn(n,5)+1.8; X=np.vstack([X_h,X_f]); y=np.concatenate([np.zeros(n),np.ones(n)])</code>. Split 80/20 stratified. Train 3 model: <strong>LogReg</strong>, <strong>RandomForest(n=100)</strong>, <strong>SVM-RBF Pipeline (Scaler+SVC probability=True)</strong>. Print <strong>best ROC-AUC</strong> dari 3 model di test set (3 desimal).</div>
+        <div class="comp-q"><strong>Optimasi threshold untuk F1</strong>: dengan data C11 (seed 42), sapu semua threshold; hitung F1 di tiap threshold; print <strong>F1 maksimum</strong>.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Untuk tiap model ambil probabilitas kelas positif via <code>predict_proba(X_test)[:,1]</code>, hitung <code>roc_auc_score(y_test, proba)</code>, lalu pilih AUC terbaik. SVM perlu <code>probability=True</code>.</div>
+      <div class="comp-hint">💡 Untuk tiap threshold hitung precision, recall, lalu F1; ambil maksimum.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">best ROC-AUC</strong></span></div>
-        <textarea class="code-textarea" id="code-c15" rows="20" placeholder="Paste kode end-to-end ML comparison, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c15')"></textarea>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">best F1</strong></span></div>
+        <textarea class="code-textarea" id="code-c15" rows="16" placeholder="Paste kode, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c15')"></textarea>
         <div class="stdout-box" id="stdout-c15"></div>
       </div>
       <button class="comp-submit run-btn" id="sub-c15" onclick="runAndCheck('c15', 'hard')">▶ Run &amp; Validasi</button>
@@ -3694,16 +3689,16 @@ function exportTugasHtml() {
 
   // MC question titles (10 total)
   const MC_QUESTIONS = [
-    'Supervised vs unsupervised learning (X, y)',
-    'train_test_split dengan stratify=y',
-    'Random Forest: bootstrap + random feature + voting',
-    'SVM RBF: kernel trick (high-dim mapping)',
-    'Imbalanced data: accuracy 99% misleading',
-    'Confusion matrix: FN paling kritis di safety PdM',
-    'F1-score = harmonic mean precision &amp; recall',
-    'k-fold cross-validation: mean ± std reliability',
-    'Overfitting: train acc &gt;&gt; test acc, regularize',
-    'Hybrid rule-based + ML predictive maintenance'
+    'Accuracy menyesatkan (imbalanced)',
+    'Interpretasi ROC-AUC',
+    'PR curve vs ROC',
+    'SMOTE oversampling',
+    'class_weight balanced',
+    'Threshold tuning (bukan 0.5)',
+    'Cost-sensitive (FN ≫ FP)',
+    'Gradient Boosting vs RF',
+    'Permutation feature importance',
+    'Model/data drift'
   ];
 
   // Collect MC answers — 10 soal
@@ -3739,16 +3734,16 @@ function exportTugasHtml() {
 
   // Comp E/M definitions (c1..c10)
   const compEzDefs = [
-    { id:'c1',  label:'Accuracy dari confusion matrix',           q:'' },
-    { id:'c2',  label:'Precision = TP/(TP+FP)',                   q:'' },
-    { id:'c3',  label:'Recall = TP/(TP+FN)',                      q:'' },
-    { id:'c4',  label:'F1-score = 2PR/(P+R)',                     q:'' },
-    { id:'c5',  label:'train_size N=1000, test_size=0.2',         q:'' },
-    { id:'c6',  label:'5-fold CV per-fold size dari 800',         q:'' },
-    { id:'c7',  label:'RF max_features=sqrt(16)',                 q:'' },
-    { id:'c8',  label:'StandardScaler z-score (x=8, μ=5, σ=2)',   q:'' },
-    { id:'c9',  label:'GridSearch combinations (3 × 4)',          q:'' },
-    { id:'c10', label:'FNR = FN/(TP+FN)',                         q:'' }
+    { id:'c1',   label:'Specificity (TN/(TN+FP))', q:'' },
+    { id:'c2',   label:'Balanced accuracy', q:'' },
+    { id:'c3',   label:'Rasio imbalance', q:'' },
+    { id:'c4',   label:'Sampel sintetis SMOTE', q:'' },
+    { id:'c5',   label:'Youden J', q:'' },
+    { id:'c6',   label:'F2-score', q:'' },
+    { id:'c7',   label:'ROC-AUC (Mann-Whitney)', q:'' },
+    { id:'c8',   label:'Bobot kelas minoritas', q:'' },
+    { id:'c9',   label:'Cost-sensitive total', q:'' },
+    { id:'c10',  label:'G-mean', q:'' }
   ];
   // Get full MC question text from DOM (.mc-q) or fallback to MC_QUESTIONS array
   function _getMcFullQ(id) {
@@ -3785,11 +3780,11 @@ function exportTugasHtml() {
 
   // Comp Hard definitions (c11..c15)
   const compHardDefs = [
-    { id:'c11', label:'Logistic Regression baseline (3D, sep=2.0)',     q:'' },
-    { id:'c12', label:'Random Forest + 5-fold CV (4D, sep=2.0)',         q:'' },
-    { id:'c13', label:'SVM RBF Pipeline + StandardScaler',               q:'' },
-    { id:'c14', label:'GridSearchCV best_score_ (RF, cv=3)',             q:'' },
-    { id:'c15', label:'End-to-end ML comparison (LR, RF, SVM)',          q:'' }
+    { id:'c11',  label:'ROC-AUC seeded', q:'' },
+    { id:'c12',  label:'Max Youden J (threshold)', q:'' },
+    { id:'c13',  label:'SMOTE 50% oversample', q:'' },
+    { id:'c14',  label:'Precision@recall 0.9', q:'' },
+    { id:'c15',  label:'Best F1 (threshold sweep)', q:'' }
   ];
   const compHardData = compHardDefs.map(d => {
     const ta = document.getElementById('code-' + d.id);
