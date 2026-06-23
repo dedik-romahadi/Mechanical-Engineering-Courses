@@ -17,19 +17,214 @@ mdc: true
 fonts:
   sans: 'Inter'
   mono: 'Fira Code'
+layout: none
 ---
 
-# Analisis Getaran<br>Berbasis Fourier Transform
+<div class="cover">
+  <div class="bg-grid"></div>
+  <div class="bg-glow"></div>
 
-**Mata Kuliah: Getaran Mekanik**
+  <div class="wave-track">
+    <svg viewBox="0 0 2880 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,40 C90,8 180,72 270,40 C360,8 450,72 540,40 C630,8 720,72 810,40 C900,8 990,72 1080,40 C1170,8 1260,72 1350,40 C1440,8 1530,72 1620,40 C1710,8 1800,72 1890,40 C1980,8 2070,72 2160,40 C2250,8 2340,72 2430,40 C2520,8 2610,72 2700,40 C2790,8 2880,72 2880,40" fill="none" stroke="rgba(59,130,246,0.55)" stroke-width="2.5"/>
+    </svg>
+  </div>
+  <div class="wave-track w2">
+    <svg viewBox="0 0 2880 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,40 C120,12 240,68 360,40 C480,12 600,68 720,40 C840,12 960,68 1080,40 C1200,12 1320,68 1440,40 C1560,12 1680,68 1800,40 C1920,12 2040,68 2160,40 C2280,12 2400,68 2520,40 C2640,12 2760,68 2880,40" fill="none" stroke="rgba(16,185,129,0.35)" stroke-width="1.5"/>
+    </svg>
+  </div>
 
-Dedik Romahadi, S.T., M.T.\
-Program Studi Teknik Mesin\
-Universitas Mercu Buana
+  <header class="hdr">
+    <div class="hdr-l">
+      <span class="hdr-ico">🎓</span>
+      <div>
+        <div class="hdr-uni">Universitas Mercu Buana</div>
+        <div class="hdr-dept">Program Studi Teknik Mesin</div>
+      </div>
+    </div>
+    <div class="hdr-tag">Getaran Mekanik</div>
+  </header>
 
-<div class="abs-br m-6 text-sm text-gray-400">
-  Tekan <kbd>Space</kbd> untuk slide berikutnya
+  <main class="ctr">
+    <div class="badge">📊 &nbsp; Materi Kuliah</div>
+    <div class="ttl1">Analisis Getaran</div>
+    <div class="ttl2">Berbasis Fourier Transform</div>
+    <div class="fml">X(f) = ∫<sub>−∞</sub><sup>+∞</sup> x(t) &middot; e<sup>−j2πft</sup> dt</div>
+    <div class="sep"></div>
+    <div class="au">
+      <span class="au-name">Dedik Romahadi, S.T., M.T.</span>
+      <span class="au-sem">Semester Genap 2025/2026</span>
+    </div>
+  </main>
+
+  <div class="spectrum">
+    <div class="bar" style="--pk:14px;--d:0.00s"></div>
+    <div class="bar" style="--pk:32px;--d:0.10s"></div>
+    <div class="bar" style="--pk:58px;--d:0.05s"></div>
+    <div class="bar" style="--pk:82px;--d:0.20s"></div>
+    <div class="bar" style="--pk:64px;--d:0.15s"></div>
+    <div class="bar" style="--pk:38px;--d:0.30s"></div>
+    <div class="bar" style="--pk:72px;--d:0.08s"></div>
+    <div class="bar" style="--pk:92px;--d:0.25s"></div>
+    <div class="bar" style="--pk:76px;--d:0.12s"></div>
+    <div class="bar" style="--pk:50px;--d:0.18s"></div>
+    <div class="bar" style="--pk:28px;--d:0.22s"></div>
+    <div class="bar" style="--pk:62px;--d:0.35s"></div>
+    <div class="bar" style="--pk:86px;--d:0.05s"></div>
+    <div class="bar" style="--pk:54px;--d:0.28s"></div>
+    <div class="bar" style="--pk:44px;--d:0.14s"></div>
+    <div class="bar" style="--pk:68px;--d:0.32s"></div>
+    <div class="bar" style="--pk:40px;--d:0.07s"></div>
+    <div class="bar" style="--pk:24px;--d:0.19s"></div>
+    <div class="bar" style="--pk:66px;--d:0.11s"></div>
+    <div class="bar" style="--pk:48px;--d:0.26s"></div>
+    <div class="bar" style="--pk:80px;--d:0.03s"></div>
+    <div class="bar" style="--pk:36px;--d:0.17s"></div>
+  </div>
+
+  <footer class="ftr">
+    <span>Mata Kuliah Getaran Mekanik</span>
+    <span class="dot">•</span>
+    <span>S1 Teknik Mesin</span>
+    <span class="dot">•</span>
+    <span>Universitas Mercu Buana</span>
+    <span class="yr">2026</span>
+  </footer>
 </div>
+
+<style scoped>
+.cover {
+  background: #020817;
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column;
+  position: relative; overflow: hidden;
+  color: #fff;
+}
+.bg-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(59,130,246,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59,130,246,0.07) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+.bg-glow {
+  position: absolute; top: 38%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 620px; height: 320px;
+  background: radial-gradient(ellipse, rgba(59,130,246,0.2) 0%, transparent 70%);
+  pointer-events: none;
+}
+.wave-track {
+  position: absolute; top: 60%; left: 0;
+  width: 200%; height: 80px;
+  animation: wscroll 10s linear infinite;
+}
+.wave-track.w2 {
+  top: 65%;
+  animation-duration: 15s;
+  animation-direction: reverse;
+}
+.wave-track svg { width: 100%; height: 100%; }
+@keyframes wscroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 32px;
+  border-bottom: 1px solid rgba(59,130,246,0.25);
+  background: rgba(2,8,23,0.85);
+  position: relative; z-index: 10;
+}
+.hdr-l   { display: flex; align-items: center; gap: 10px; }
+.hdr-ico  { font-size: 22px; }
+.hdr-uni  { font-size: 13px; font-weight: 600; color: #93c5fd; }
+.hdr-dept { font-size: 11px; color: #64748b; margin-top: 2px; }
+.hdr-tag  {
+  font-size: 12px; font-weight: 600; color: #10b981;
+  border: 1px solid rgba(16,185,129,0.4);
+  padding: 4px 16px; border-radius: 20px;
+  background: rgba(16,185,129,0.08); letter-spacing: 0.5px;
+}
+.ctr {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center; padding: 0 80px;
+  position: relative; z-index: 10;
+}
+.badge {
+  font-size: 11px; letter-spacing: 3px;
+  text-transform: uppercase; color: #3b82f6;
+  margin-bottom: 18px;
+  animation: fadeup 0.6s ease both;
+}
+.ttl1 {
+  font-size: 56px; font-weight: 800;
+  color: #f1f5f9; line-height: 1.1; margin: 0;
+  text-shadow: 0 0 40px rgba(59,130,246,0.5);
+  animation: fadeup 0.7s 0.1s ease both;
+}
+.ttl2 {
+  font-size: 56px; font-weight: 800;
+  background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.1; margin: 0 0 20px;
+  animation: fadeup 0.7s 0.2s ease both;
+}
+.fml {
+  font-size: 15px; color: rgba(255,255,255,0.4);
+  font-family: 'Fira Code', 'Courier New', monospace;
+  padding: 8px 22px;
+  border: 1px solid rgba(59,130,246,0.2);
+  border-radius: 8px;
+  background: rgba(59,130,246,0.05);
+  margin-bottom: 20px;
+  animation: fadeup 0.7s 0.3s ease both;
+}
+.sep {
+  width: 0; height: 2px;
+  background: linear-gradient(90deg, #3b82f6, #10b981);
+  border-radius: 2px; margin: 0 auto 16px;
+  animation: expand 0.9s 0.4s ease both;
+}
+@keyframes expand { to { width: 60px; } }
+.au { display: flex; flex-direction: column; gap: 4px; animation: fadeup 0.7s 0.5s ease both; }
+.au-name { font-size: 17px; font-weight: 600; color: #e2e8f0; }
+.au-sem  { font-size: 12px; color: #64748b; }
+.spectrum {
+  display: flex; justify-content: center;
+  align-items: flex-end; gap: 5px;
+  height: 96px; padding: 0 32px;
+  position: relative; z-index: 10; opacity: 0.65;
+}
+.bar {
+  width: 11px; height: 4px; min-height: 4px;
+  background: linear-gradient(to top, #1d4ed8, #3b82f6, #10b981);
+  border-radius: 3px 3px 0 0;
+  animation: bpulse 1.4s ease-in-out infinite alternate;
+  animation-delay: var(--d, 0s);
+}
+@keyframes bpulse {
+  from { height: 4px; }
+  to   { height: var(--pk, 20px); }
+}
+.ftr {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 32px;
+  border-top: 1px solid rgba(59,130,246,0.2);
+  background: rgba(2,8,23,0.85);
+  font-size: 11px; color: #475569;
+  position: relative; z-index: 10;
+}
+.dot { color: #1e3a5f; }
+.yr  { margin-left: auto; color: #3b82f6; font-weight: 600; }
+@keyframes fadeup {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+</style>
 
 ---
 layout: default
