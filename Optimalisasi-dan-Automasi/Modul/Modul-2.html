@@ -924,7 +924,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       <em>&amp; Smoothing</em><br>
       <span class="hl-amber">Time Series Data</span>
     </h1>
-    <p class="hero-sub">Melanjutkan pembersihan data dari Pertemuan 4, kini kita <strong>meng-stabilkan variansi</strong> (log, Box-Cox), <strong>membuang tren</strong> (differencing), <strong>menormalkan skala</strong> (Z-score, Min-Max), dan <strong>memecah deret waktu</strong> menjadi komponen tren, musiman, dan residual — fondasi wajib sebelum ekstraksi fitur (Pertemuan 6-7) dan pemodelan prediktif (Pertemuan 23).</p>
+    <p class="hero-sub">Sinyal getaran mentah dari sensor industri selalu <strong>tercampur noise</strong> dan <strong>spike sporadis</strong>. Modul ini membahas teknik <strong>filtering &amp; smoothing</strong>: <strong>Moving Average</strong> (trailing/causal), <strong>Exponential Moving Average</strong> (EMA), <strong>Savitzky-Golay</strong>, dan <strong>median filter</strong> untuk menghapus impulse — serta cara menyusun <strong>pipeline denoising</strong> dan deteksi anomali tanpa merusak kandungan sinyal asli.</p>
     <div class="hero-stats">
       <div class="stat"><div class="stat-num">8</div><div class="stat-lbl">Bagian Materi</div></div>
       <div class="stat"><div class="stat-num">4</div><div class="stat-lbl">Animasi</div></div>
@@ -1677,7 +1677,7 @@ plt.xlabel('Waktu (s)'); plt.tight_layout(); plt.show()</code></pre>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Tugas Pertemuan 2 · Filter &amp; Smoothing Time Series</div>
     <h1 class="hero-title"><span class="hl-amber">Tugas 2</span><br><em>Filter &amp; Smoothing</em><br>Time Series</h1>
-    <p class="hero-sub">10 pilihan ganda + 10 komputasi Easy/Medium + 5 komputasi Hard (Jupyter Notebook) seputar log &amp; Box-Cox, Z-score &amp; Min-Max scaling, differencing &amp; ADF test, moving average &amp; EMA, serta dekomposisi klasik &amp; STL. Total <strong>50 poin</strong>.</p>
+    <p class="hero-sub">10 pilihan ganda + 10 komputasi Easy/Medium + 5 komputasi Hard (Jupyter Notebook) seputar filter low-pass, Moving Average (causal), Exponential Moving Average (EMA), Savitzky-Golay, median filter, serta pipeline denoising &amp; deteksi anomali. Total <strong>50 poin</strong>.</p>
     <div class="hero-stats">
       <div class="stat"><div class="stat-num">10</div><div class="stat-lbl">Pilihan Ganda</div></div>
       <div class="stat"><div class="stat-num">15</div><div class="stat-lbl">Komputasi</div></div>
@@ -3415,16 +3415,16 @@ function exportTugasHtml() {
 
   // MC question titles (10 total)
   const MC_QUESTIONS = [
-    'Definisi stasioneritas',
-    'Penanganan varians tumbuh (fan-shape)',
-    'Box-Cox pada λ = 0',
-    'Tujuan differencing orde 1',
-    'Mean/std setelah Z-score',
-    'Kapan model multiplikatif dipakai',
-    'Interpretasi ADF p-value < 0.05',
-    'EMA vs MA (real-time monitoring)',
-    'Praktik fit-transform train/test',
-    'Keunggulan STL vs dekomposisi klasik'
+    'Tujuan filter low-pass',
+    'Trailing Moving Average (causal)',
+    'Formula EMA',
+    'Keunggulan Savitzky-Golay',
+    'Hapus impulse spike (median)',
+    'Dampak window MA terlalu besar',
+    'Parameter α EMA',
+    'Sumber noise sensor industri',
+    'Pipeline pre-processing',
+    'Anti-pola smoothing'
   ];
 
   // Collect MC answers — 10 soal
@@ -3460,16 +3460,16 @@ function exportTugasHtml() {
 
   // Comp E/M definitions (c1..c10)
   const compEzDefs = [
-    { id:'c1',  label:'Mean dataset referensi',         q:'' },
-    { id:'c2',  label:'Std dataset referensi',          q:'' },
-    { id:'c3',  label:'Mean setelah log transform',     q:'' },
-    { id:'c4',  label:'Std setelah Z-score',            q:'' },
-    { id:'c5',  label:'Max setelah Min-Max scaling',    q:'' },
-    { id:'c6',  label:'Mean dari first difference',     q:'' },
-    { id:'c7',  label:'MA window-7 pada indeks 50',     q:'' },
-    { id:'c8',  label:'EMA α=0.1 nilai akhir',          q:'' },
-    { id:'c9',  label:'Box-Cox lambda optimal',         q:'' },
-    { id:'c10', label:'ADF p-value pada ∇y',            q:'' }
+    { id:'c1',   label:'RMS raw vs clean', q:'' },
+    { id:'c2',   label:'Moving Average (k=10)', q:'' },
+    { id:'c3',   label:'Moving Average (k=50)', q:'' },
+    { id:'c4',   label:'EMA (α=0.1)', q:'' },
+    { id:'c5',   label:'EMA (α=0.5)', q:'' },
+    { id:'c6',   label:'Savitzky-Golay filter', q:'' },
+    { id:'c7',   label:'Median filter', q:'' },
+    { id:'c8',   label:'Effective window EMA', q:'' },
+    { id:'c9',   label:'RMS residual', q:'' },
+    { id:'c10',  label:'MA k=25 RMS', q:'' }
   ];
   // Get full MC question text from DOM (.mc-q) or fallback to MC_QUESTIONS array
   function _getMcFullQ(id) {
@@ -3506,11 +3506,11 @@ function exportTugasHtml() {
 
   // Comp Hard definitions (c11..c15)
   const compHardDefs = [
-    { id:'c11', label:'Dekomposisi aditif dari awal',    q:'' },
-    { id:'c12', label:'Savitzky-Golay from scratch',     q:'' },
-    { id:'c13', label:'STL — % varians trend',           q:'' },
-    { id:'c14', label:'Deteksi anomali 3-sigma EMA',     q:'' },
-    { id:'c15', label:'Pipeline preprocessing end-to-end', q:'' }
+    { id:'c11',  label:'Moving Average from scratch', q:'' },
+    { id:'c12',  label:'EMA from scratch', q:'' },
+    { id:'c13',  label:'Savitzky-Golay from scratch', q:'' },
+    { id:'c14',  label:'Anomaly detection EMA + 3σ', q:'' },
+    { id:'c15',  label:'Filter pipeline lengkap', q:'' }
   ];
   const compHardData = compHardDefs.map(d => {
     const ta = document.getElementById('code-' + d.id);

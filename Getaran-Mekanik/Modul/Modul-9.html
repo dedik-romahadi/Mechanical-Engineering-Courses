@@ -1779,7 +1779,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Tugas Pertemuan 10 · Analisis Modal</div>
     <h1 class="hero-title"><span class="hl-amber">Tugas 10</span><br><em>Analisis</em><br>Modal MDoF</h1>
-    <p class="hero-sub">10 pilihan ganda + 10 komputasi Easy/Medium + 5 komputasi Hard (Jupyter Notebook) seputar matriks massa &amp; kekakuan, eigenvalue problem, dua frekuensi pribadi ω₁/ω₂, mode shapes (in-phase &amp; anti-phase), dan aplikasi vibration absorber. Total <strong>50 poin</strong>.</p>
+    <p class="hero-sub">10 pilihan ganda + 10 komputasi Easy/Medium + 5 komputasi Hard (Jupyter Notebook) seputar modal analysis MDoF, generalized eigenvalue problem, mass-normalization &amp; orthogonality, modal matrix [Φ], superposisi modal, mode truncation, serta effective modal mass. Total <strong>50 poin</strong>.</p>
     <div class="hero-stats">
       <div class="stat"><div class="stat-num">10</div><div class="stat-lbl">Pilihan Ganda</div></div>
       <div class="stat"><div class="stat-num">15</div><div class="stat-lbl">Komputasi</div></div>
@@ -3542,16 +3542,16 @@ function exportTugasHtml() {
 
   // MC question titles (10 total)
   const MC_QUESTIONS = [
-    'Banyak frekuensi pribadi 2 DoF',
-    'Bentuk matriks persamaan gerak',
-    'Matriks K sistem referensi',
-    'Persamaan karakteristik 2 DoF',
-    'Nilai ω₁ sistem referensi',
-    'Karakteristik Mode 1 (sistem simetris)',
-    'Mode shape Mode 2 (X₂/X₁)',
-    'Definisi orthogonality mode',
-    'Aturan tuning vibration absorber',
-    'Identitas trace-determinant 2 DoF'
+    'Tujuan modal analysis',
+    'Sistem N derajat kebebasan',
+    'Generalized eigenvalue problem',
+    'Mass-normalization mode shape',
+    'Orthogonality mode shape',
+    'Modal matrix [Φ]',
+    'Coordinate transformation (modal)',
+    'Modal superposition',
+    'Mode truncation',
+    'Effective modal mass'
   ];
 
   // Collect MC answers — 10 soal
@@ -3587,16 +3587,16 @@ function exportTugasHtml() {
 
   // Comp E/M definitions (c1..c10)
   const compEzDefs = [
-    { id:'c1',  label:'trace(K)',                    q:'' },
-    { id:'c2',  label:'det(K)',                      q:'' },
-    { id:'c3',  label:'ω₁² (eigenvalue terkecil)',   q:'' },
-    { id:'c4',  label:'ω₁ (rad/s)',                  q:'' },
-    { id:'c5',  label:'ω₂ (rad/s)',                  q:'' },
-    { id:'c6',  label:'f₁ (Hz)',                     q:'' },
-    { id:'c7',  label:'T₁ (detik)',                  q:'' },
-    { id:'c8',  label:'X₂/X₁ Mode 1',                q:'' },
-    { id:'c9',  label:'X₂/X₁ Mode 2',                q:'' },
-    { id:'c10', label:'Orthogonality u₁ᵀMu₂',        q:'' }
+    { id:'c1',   label:'Generalized eig (scipy.eigh)', q:'' },
+    { id:'c2',   label:'Frekuensi natural f (Hz)', q:'' },
+    { id:'c3',   label:'Mass-normalize scaling factor', q:'' },
+    { id:'c4',   label:'Verify orthogonality ΦᵀMΦ', q:'' },
+    { id:'c5',   label:'Modal participation factor Γ', q:'' },
+    { id:'c6',   label:'Shear building 3-DoF [K]', q:'' },
+    { id:'c7',   label:'Modal mass φ₁ᵀMφ₁', q:'' },
+    { id:'c8',   label:'Modal stiffness φ₁ᵀKφ₁', q:'' },
+    { id:'c9',   label:'Modal damping ratio ζ', q:'' },
+    { id:'c10',  label:'Periode T₁ dari ω₁', q:'' }
   ];
   // Get full MC question text from DOM (.mc-q) or fallback to MC_QUESTIONS array
   function _getMcFullQ(id) {
@@ -3633,11 +3633,11 @@ function exportTugasHtml() {
 
   // Comp Hard definitions (c11..c15)
   const compHardDefs = [
-    { id:'c11', label:'ω₁ varian m₂=2',              q:'' },
-    { id:'c12', label:'X₂/X₁ Mode 1 varian',         q:'' },
-    { id:'c13', label:'ω₁² + ω₂² (sistem ref)',      q:'' },
-    { id:'c14', label:'k_a tuning absorber',         q:'' },
-    { id:'c15', label:'x₂(t=0.5) free response',     q:'' }
+    { id:'c11',  label:'Full modal analysis 5-DoF', q:'' },
+    { id:'c12',  label:'Modal superposition free vib 3-DoF', q:'' },
+    { id:'c13',  label:'Modal participation factors 3-DoF', q:'' },
+    { id:'c14',  label:'Mode truncation accuracy 5-DoF', q:'' },
+    { id:'c15',  label:'Forced response modal superposition', q:'' }
   ];
   const compHardData = compHardDefs.map(d => {
     const ta = document.getElementById('code-' + d.id);

@@ -1794,7 +1794,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Tugas Pertemuan 14 · Spectrum Diagnosis</div>
     <h1 class="hero-title"><span class="hl-amber">Tugas 14</span><br><em>Order &amp;</em><br>Envelope Analysis</h1>
-    <p class="hero-sub">10 pilihan ganda + 10 komputasi Easy/Medium + 5 komputasi Hard (Jupyter Notebook) seputar matriks massa &amp; kekakuan, eigenvalue problem, dua frekuensi pribadi ω₁/ω₂, mode shapes (in-phase &amp; anti-phase), dan aplikasi vibration absorber. Total <strong>50 poin</strong>.</p>
+    <p class="hero-sub">10 pilihan ganda + 10 komputasi Easy/Medium + 5 komputasi Hard (Jupyter Notebook) seputar diagnosis fault signature: gear mesh frequency, bearing fault (BPFO/BPFI), order tracking, cepstrum, serta envelope analysis (bandpass + Hilbert) &amp; kurtogram. Total <strong>50 poin</strong>.</p>
     <div class="hero-stats">
       <div class="stat"><div class="stat-num">10</div><div class="stat-lbl">Pilihan Ganda</div></div>
       <div class="stat"><div class="stat-num">15</div><div class="stat-lbl">Komputasi</div></div>
@@ -3556,16 +3556,16 @@ function exportTugasHtml() {
 
   // MC question titles (10 total)
   const MC_QUESTIONS = [
-    'Banyak frekuensi pribadi 2 DoF',
-    'Bentuk matriks persamaan gerak',
-    'Matriks K sistem referensi',
-    'Persamaan karakteristik 2 DoF',
-    'Nilai ω₁ sistem referensi',
-    'Karakteristik Mode 1 (sistem simetris)',
-    'Mode shape Mode 2 (X₂/X₁)',
-    'Definisi orthogonality mode',
-    'Aturan tuning vibration absorber',
-    'Identitas trace-determinant 2 DoF'
+    'Peak dominan 1× rpm',
+    'Peak dominan 2× rpm',
+    'Multi-harmonic 1×–5× rpm',
+    'Gear mesh pinion 20 gigi',
+    'Tujuan order tracking',
+    'Domain hasil cepstrum',
+    'Tiga langkah envelope analysis',
+    'Bearing inner race (BPFI)',
+    'Tujuan kurtogram',
+    'Peak non-integer order'
   ];
 
   // Collect MC answers — 10 soal
@@ -3601,16 +3601,16 @@ function exportTugasHtml() {
 
   // Comp E/M definitions (c1..c10)
   const compEzDefs = [
-    { id:'c1',  label:'trace(K)',                    q:'' },
-    { id:'c2',  label:'det(K)',                      q:'' },
-    { id:'c3',  label:'ω₁² (eigenvalue terkecil)',   q:'' },
-    { id:'c4',  label:'ω₁ (rad/s)',                  q:'' },
-    { id:'c5',  label:'ω₂ (rad/s)',                  q:'' },
-    { id:'c6',  label:'f₁ (Hz)',                     q:'' },
-    { id:'c7',  label:'T₁ (detik)',                  q:'' },
-    { id:'c8',  label:'X₂/X₁ Mode 1',                q:'' },
-    { id:'c9',  label:'X₂/X₁ Mode 2',                q:'' },
-    { id:'c10', label:'Orthogonality u₁ᵀMu₂',        q:'' }
+    { id:'c1',   label:'Gear Mesh Frequency (GMF)', q:'' },
+    { id:'c2',   label:'BPFO approx (0.4·n·f_r)', q:'' },
+    { id:'c3',   label:'BPFI approx (0.6·n·f_r)', q:'' },
+    { id:'c4',   label:'Amplitude envelope (Hilbert)', q:'' },
+    { id:'c5',   label:'Bandpass filter Butterworth', q:'' },
+    { id:'c6',   label:'Konversi rpm → Hz', q:'' },
+    { id:'c7',   label:'Quefrency dari sidebands', q:'' },
+    { id:'c8',   label:'FFT magnitude', q:'' },
+    { id:'c9',   label:'Cepstrum', q:'' },
+    { id:'c10',  label:'RMS amplitude envelope', q:'' }
   ];
   // Get full MC question text from DOM (.mc-q) or fallback to MC_QUESTIONS array
   function _getMcFullQ(id) {
@@ -3647,11 +3647,11 @@ function exportTugasHtml() {
 
   // Comp Hard definitions (c11..c15)
   const compHardDefs = [
-    { id:'c11', label:'ω₁ varian m₂=2',              q:'' },
-    { id:'c12', label:'X₂/X₁ Mode 1 varian',         q:'' },
-    { id:'c13', label:'ω₁² + ω₂² (sistem ref)',      q:'' },
-    { id:'c14', label:'k_a tuning absorber',         q:'' },
-    { id:'c15', label:'x₂(t=0.5) free response',     q:'' }
+    { id:'c11',  label:'Full envelope analysis pipeline', q:'' },
+    { id:'c12',  label:'Order tracking + tachometer', q:'' },
+    { id:'c13',  label:'Cepstrum gear sidebands', q:'' },
+    { id:'c14',  label:'Auto-detect bearing fault', q:'' },
+    { id:'c15',  label:'Raw FFT vs envelope spectrum', q:'' }
   ];
   const compHardData = compHardDefs.map(d => {
     const ta = document.getElementById('code-' + d.id);
