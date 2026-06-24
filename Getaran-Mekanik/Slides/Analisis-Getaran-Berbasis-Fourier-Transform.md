@@ -255,7 +255,7 @@ layout: default
 title: "Peta Materi"
 ---
 
-<div style="display:flex;flex-direction:column;height:100%;justify-content:space-between;gap:0">
+<div style="display:flex;flex-direction:column;height:100%;justify-content:flex-start;gap:14px">
 
 <div style="color:#94a3b8;font-size:13px;letter-spacing:.02em;padding-bottom:2px;border-bottom:1px solid rgba(255,255,255,.05)">
   Tiga blok topik yang membentuk kompetensi analisis getaran berbasis Fourier — ditempuh secara berurutan:
@@ -311,7 +311,7 @@ Bayangkan FFT sebagai <strong>detektor nada</strong> pada tuner gitar digital: A
 </v-click>
 
 <v-click>
-<div style="display:flex;gap:10px;margin-top:10px">
+<div style="display:flex;gap:10px">
 <div style="flex:1;background:#0d1526;border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px">
   <span style="font-size:20px">📊</span>
   <div>
