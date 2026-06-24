@@ -487,10 +487,15 @@ di mana $n(t)$ = noise acak terukur
 | **Stasioner acak** | Spektrum kontinu | Turbulensi |
 | **Transien** | Singkat, non-periodik | Impak bearing |
 
-<div style="margin-top:50px">
+<div style="margin-top:14px">
 <Callout type="industry" title="Sinyal Mesin Nyata">
 Poros 1800 RPM: 30 Hz (1×), 60 Hz (2×), 90 Hz (3×) + meshing gear + cacat bearing. FFT memisahkan semuanya dalam satu operasi.
 </Callout>
+</div>
+
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #34d399;border-radius:8px;padding:10px 12px;margin-top:12px">
+<div style="font-size:11px;color:#6ee7b7;font-weight:700;margin-bottom:4px">📊 Spektrum FFT — Domain Frekuensi</div>
+<canvas id="s5fft" style="width:100%;height:86px;display:block"></canvas>
 </div>
 
 </div>
@@ -500,65 +505,94 @@ Poros 1800 RPM: 30 Hz (1×), 60 Hz (2×), 90 Hz (3×) + meshing gear + cacat bea
 import { onMounted, onUnmounted } from 'vue'
 let _s5anim = null
 onMounted(() => {
-  const canvas = document.getElementById('s5wave')
-  if (!canvas) return
-  const ctx = canvas.getContext('2d')
+  const wc = document.getElementById('s5wave')
+  const fc = document.getElementById('s5fft')
+  if (!wc || !fc) return
+  const wCtx = wc.getContext('2d')
+  const fCtx = fc.getContext('2d')
   const show = { f1: true, f2: true, com: true }
   let tick = 0
-  function resize() {
-    const dpr = window.devicePixelRatio || 1
-    const r = canvas.parentElement.getBoundingClientRect()
-    canvas.width = r.width * dpr
-    canvas.height = r.height * dpr
-    ctx.scale(dpr, dpr)
+  const dpr = window.devicePixelRatio || 1
+  function initCanvas(c) {
+    const r = c.getBoundingClientRect()
+    c.width = r.width * dpr; c.height = r.height * dpr
+    c.getContext('2d').scale(dpr, dpr)
   }
-  resize()
-  function draw() {
-    const W = canvas.width / (window.devicePixelRatio || 1)
-    const H = canvas.height / (window.devicePixelRatio || 1)
-    ctx.clearRect(0, 0, W, H)
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)'
-    ctx.lineWidth = 1; ctx.setLineDash([3,4])
-    ctx.beginPath(); ctx.moveTo(0, H/2); ctx.lineTo(W, H/2); ctx.stroke()
-    ctx.setLineDash([])
-    const A1 = H * 0.32, A2 = H * 0.18, spd = 0.9
+  initCanvas(wc); initCanvas(fc)
+  function W(c) { return c.width / dpr }
+  function H(c) { return c.height / dpr }
+  function drawWave() {
+    const cw = W(wc), ch = H(wc)
+    wCtx.clearRect(0, 0, cw, ch)
+    wCtx.strokeStyle = 'rgba(255,255,255,0.05)'; wCtx.lineWidth = 1; wCtx.setLineDash([3,4])
+    wCtx.beginPath(); wCtx.moveTo(0, ch/2); wCtx.lineTo(cw, ch/2); wCtx.stroke()
+    wCtx.setLineDash([])
+    const A1 = ch*0.32, A2 = ch*0.18, spd = 0.9
     if (show.f1) {
-      ctx.strokeStyle = '#a78bfa'; ctx.lineWidth = 2; ctx.globalAlpha = 1
-      ctx.beginPath()
-      for (let x = 0; x <= W; x++) {
-        const y = H/2 - A1 * Math.sin(2*Math.PI*(x/W*4) - tick*spd*0.04)
-        x === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y)
-      }
-      ctx.stroke()
+      wCtx.strokeStyle='#a78bfa'; wCtx.lineWidth=2; wCtx.globalAlpha=1; wCtx.beginPath()
+      for (let x=0;x<=cw;x++) { const y=ch/2-A1*Math.sin(2*Math.PI*(x/cw*4)-tick*spd*0.04); x===0?wCtx.moveTo(x,y):wCtx.lineTo(x,y) }
+      wCtx.stroke()
     }
     if (show.f2) {
-      ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.85
-      ctx.beginPath()
-      for (let x = 0; x <= W; x++) {
-        const y = H/2 - A2 * Math.sin(2*Math.PI*(x/W*8) - tick*spd*0.08)
-        x === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y)
-      }
-      ctx.stroke()
+      wCtx.strokeStyle='#00e5ff'; wCtx.lineWidth=1.5; wCtx.globalAlpha=0.85; wCtx.beginPath()
+      for (let x=0;x<=cw;x++) { const y=ch/2-A2*Math.sin(2*Math.PI*(x/cw*8)-tick*spd*0.08); x===0?wCtx.moveTo(x,y):wCtx.lineTo(x,y) }
+      wCtx.stroke()
     }
     if (show.com) {
-      ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 1.8; ctx.globalAlpha = 0.75
-      ctx.beginPath()
-      for (let x = 0; x <= W; x++) {
-        const y = H/2
-          - A1 * Math.sin(2*Math.PI*(x/W*4) - tick*spd*0.04)
-          - A2 * Math.sin(2*Math.PI*(x/W*8) - tick*spd*0.08)
-        x === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y)
-      }
-      ctx.stroke()
+      wCtx.strokeStyle='#fbbf24'; wCtx.lineWidth=1.8; wCtx.globalAlpha=0.75; wCtx.beginPath()
+      for (let x=0;x<=cw;x++) { const y=ch/2-A1*Math.sin(2*Math.PI*(x/cw*4)-tick*spd*0.04)-A2*Math.sin(2*Math.PI*(x/cw*8)-tick*spd*0.08); x===0?wCtx.moveTo(x,y):wCtx.lineTo(x,y) }
+      wCtx.stroke()
     }
-    ctx.globalAlpha = 1
-    tick++
-    _s5anim = requestAnimationFrame(draw)
+    wCtx.globalAlpha=1
   }
-  draw()
+  function drawFFT() {
+    const fw = W(fc), fh = H(fc)
+    fCtx.clearRect(0, 0, fw, fh)
+    const axY = fh - 18, maxBar = fh - 30, bw = 10
+    // axis
+    fCtx.strokeStyle='rgba(255,255,255,0.08)'; fCtx.lineWidth=1
+    fCtx.beginPath(); fCtx.moveTo(20, axY); fCtx.lineTo(fw-8, axY); fCtx.stroke()
+    // freq tick labels
+    fCtx.fillStyle='#475569'; fCtx.font='9px monospace'; fCtx.textAlign='center'
+    const freqs = [{hz:'0 Hz',x:20},{hz:'30 Hz',x:fw*0.32},{hz:'60 Hz',x:fw*0.60},{hz:'90 Hz',x:fw*0.88}]
+    freqs.forEach(f => { fCtx.fillText(f.hz, f.x, fh-4) })
+    // y label
+    fCtx.fillStyle='#475569'; fCtx.font='9px monospace'; fCtx.textAlign='right'
+    fCtx.fillText('|X|', 18, 10)
+    // 30 Hz bar (f₀) — visible if f1 OR com is on
+    const show30 = show.f1 || show.com
+    const show60 = show.f2 || show.com
+    if (show30) {
+      const bh = maxBar * 0.78
+      const x = fw * 0.32
+      fCtx.globalAlpha = show.f1 ? 1 : 0.5
+      fCtx.shadowColor='#a78bfa'; fCtx.shadowBlur=10
+      fCtx.fillStyle='#a78bfa'
+      fCtx.fillRect(x - bw/2, axY - bh, bw, bh)
+      fCtx.shadowBlur=0
+      fCtx.globalAlpha=1
+      fCtx.fillStyle='#c4b5fd'; fCtx.font='bold 9px sans-serif'; fCtx.textAlign='center'
+      fCtx.fillText('A₁', x, axY - bh - 3)
+    }
+    if (show60) {
+      const bh = maxBar * 0.44
+      const x = fw * 0.60
+      fCtx.globalAlpha = show.f2 ? 1 : 0.5
+      fCtx.shadowColor='#00e5ff'; fCtx.shadowBlur=10
+      fCtx.fillStyle='#00e5ff'
+      fCtx.fillRect(x - bw/2, axY - bh, bw, bh)
+      fCtx.shadowBlur=0
+      fCtx.globalAlpha=1
+      fCtx.fillStyle='#67e8f9'; fCtx.font='bold 9px sans-serif'; fCtx.textAlign='center'
+      fCtx.fillText('A₂', x, axY - bh - 3)
+    }
+    fCtx.globalAlpha=1; fCtx.shadowBlur=0
+  }
+  function loop() { drawWave(); drawFFT(); tick++; _s5anim = requestAnimationFrame(loop) }
+  loop()
   const tog = (id, key) => {
     const el = document.getElementById(id)
-    if (el) el.onclick = () => { show[key] = !show[key]; el.style.opacity = show[key] ? '1' : '0.3' }
+    if (el) el.onclick = () => { show[key]=!show[key]; el.style.opacity=show[key]?'1':'0.3' }
   }
   tog('s5lbl1','f1'); tog('s5lbl2','f2'); tog('s5lbl3','com')
 })
