@@ -350,13 +350,13 @@ layout: default
 title: "Capaian Pembelajaran (CPMK)"
 ---
 
-<div style="display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;flex-direction:column;gap:22px">
 
 <div style="color:#94a3b8;font-size:12.5px;letter-spacing:.02em;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,.05)">
   Setelah mempelajari materi ini, mahasiswa mampu:
 </div>
 
-<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-items:start">
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-items:stretch">
 
 <v-click>
 <div style="background:#0d1526;border:1px solid rgba(0,229,255,.15);border-left:3px solid #00e5ff;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px">
