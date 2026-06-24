@@ -1,7 +1,7 @@
 <template>
   <div v-if="$slidev.nav.currentPage !== 1" class="global-header">
     <div class="header-left">
-      <img src="/Logo/UMB-Logo.png" class="header-logo" alt="UMB" />
+      <img src="/UMB.png" class="header-logo" alt="UMB" />
       <span class="header-course">Getaran Mekanik</span>
     </div>
     <div class="header-title">Analisis Getaran Berbasis Fourier Transform</div>
