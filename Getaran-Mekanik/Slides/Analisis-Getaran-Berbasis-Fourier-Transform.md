@@ -135,7 +135,9 @@ layout: none
 }
 .hdr::after {
   content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1.5px;
-  background: linear-gradient(90deg, #7c4dff, #a78bfa, #00e5ff, #fbbf24);
+  background: linear-gradient(90deg, #7c4dff, #a78bfa, #00e5ff, #fbbf24, #a78bfa, #7c4dff);
+  background-size: 300% 100%;
+  animation: rule-slide 4s linear infinite;
 }
 .hdr-l   { display: flex; align-items: center; gap: 12px; }
 .hdr-logo {
@@ -233,7 +235,13 @@ layout: none
 }
 .ftr::before {
   content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1.5px;
-  background: linear-gradient(90deg, #7c4dff, #a78bfa, #00e5ff, #fbbf24);
+  background: linear-gradient(90deg, #7c4dff, #a78bfa, #00e5ff, #fbbf24, #a78bfa, #7c4dff);
+  background-size: 300% 100%;
+  animation: rule-slide 4s linear infinite;
+}
+@keyframes rule-slide {
+  from { background-position: 0% 0%; }
+  to   { background-position: 100% 0%; }
 }
 .dot { color: #334155; }
 .yr  { margin-left: auto; color: #a78bfa; font-weight: 600; font-family: 'Fira Code', monospace; font-size: 10px; }
