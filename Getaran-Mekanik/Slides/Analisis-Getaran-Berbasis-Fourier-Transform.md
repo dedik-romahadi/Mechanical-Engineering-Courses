@@ -620,12 +620,12 @@ onUnmounted(() => { if (_s5anim) cancelAnimationFrame(_s5anim) })
 ---
 layout: default
 title: "DFT — Transformasi Fourier Diskrit"
+class: tight
 ---
-
 
 Sinyal kontinyu $x(t)$ di-sampling menjadi $N$ sampel diskrit $x[n]$, lalu dihitung:
 
-<div style="font-size:1.18em;line-height:1;margin-top:22px">
+<div style="margin-top:10px">
 
 $$\boxed{X[k] = \sum_{n=0}^{N-1} x[n]\,e^{-j\frac{2\pi}{N}kn}, \quad k = 0,1,\ldots,N{-}1}$$
 
@@ -633,9 +633,9 @@ $$\boxed{x[n] = \frac{1}{N}\sum_{k=0}^{N-1} X[k]\,e^{\,j\frac{2\pi}{N}kn}} \qqua
 
 </div>
 
-<div style="background:#06091a;border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:10px 16px 8px;margin-top:16px;margin-bottom:12px">
-<div style="font-size:10px;color:#475569;letter-spacing:.06em;margin-bottom:5px;font-weight:600">ILUSTRASI — Proses DFT: Sampel Diskrit x[n] → Spektrum Frekuensi X[k]</div>
-<svg viewBox="0 0 800 74" preserveAspectRatio="xMidYMid meet" style="width:100%;height:64px;display:block">
+<div style="background:#06091a;border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:6px 10px 6px;margin-top:8px;margin-bottom:8px">
+<div style="font-size:10px;color:#475569;letter-spacing:.06em;margin-bottom:4px;font-weight:600">ILUSTRASI — Proses DFT: Sampel Diskrit x[n] → Spektrum Frekuensi X[k]</div>
+<svg viewBox="0 0 800 74" width="100%" style="display:block;overflow:hidden">
 <defs>
 <marker id="dft6-arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
 <path d="M0,0.5 L0,5.5 L5.5,3 z" fill="#fbbf24"/>
@@ -703,9 +703,9 @@ $$\boxed{x[n] = \frac{1}{N}\sum_{k=0}^{N-1} X[k]\,e^{\,j\frac{2\pi}{N}kn}} \qqua
 </svg>
 </div>
 
-<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:0;align-items:stretch">
-<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #00e5ff;border-radius:8px;padding:13px;font-size:13px;display:flex;flex-direction:column">
-<div style="color:#67e8f9;font-weight:700;margin-bottom:6px">Parameter DFT</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:0;align-items:stretch">
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #00e5ff;border-radius:8px;padding:10px;display:flex;flex-direction:column">
+<div style="color:#67e8f9;font-weight:700;margin-bottom:5px;font-size:11.5px">Parameter DFT</div>
 
 - $N$ = jumlah sampel
 - $f_s$ = frekuensi sampling [Hz]
@@ -713,8 +713,8 @@ $$\boxed{x[n] = \frac{1}{N}\sum_{k=0}^{N-1} X[k]\,e^{\,j\frac{2\pi}{N}kn}} \qqua
 - **Bin frekuensi:** $f_k = k \cdot f_s / N$
 
 </div>
-<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #34d399;border-radius:8px;padding:13px;font-size:13px;display:flex;flex-direction:column">
-<div style="color:#6ee7b7;font-weight:700;margin-bottom:6px">Output DFT</div>
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #34d399;border-radius:8px;padding:10px;display:flex;flex-direction:column">
+<div style="color:#6ee7b7;font-weight:700;margin-bottom:5px;font-size:11.5px">Output DFT</div>
 
 - $X[k]$ = bilangan kompleks
 - $|X[k]|$ = **amplitudo** komponen $k$
@@ -722,8 +722,8 @@ $$\boxed{x[n] = \frac{1}{N}\sum_{k=0}^{N-1} X[k]\,e^{\,j\frac{2\pi}{N}kn}} \qqua
 - Analisis: $k = 0$ hingga $N/2$ saja
 
 </div>
-<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #a78bfa;border-radius:8px;padding:13px;font-size:13px;display:flex;flex-direction:column">
-<div style="color:#fbbf24;font-weight:700;margin-bottom:6px">Kompleksitas</div>
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #a78bfa;border-radius:8px;padding:10px;display:flex;flex-direction:column">
+<div style="color:#fbbf24;font-weight:700;margin-bottom:5px;font-size:11.5px">Kompleksitas</div>
 
 - DFT langsung: $\mathcal{O}(N^2)$
 - **FFT:** $\mathcal{O}(N\log_2 N)$ ✨
@@ -736,7 +736,7 @@ $$\boxed{x[n] = \frac{1}{N}\sum_{k=0}^{N-1} X[k]\,e^{\,j\frac{2\pi}{N}kn}} \qqua
 ---
 layout: two-cols
 title: "FFT — Algoritma & Implementasi"
-class: tight shift-down
+class: tight
 ---
 
 ### Algoritma Cooley-Tukey (1965)
