@@ -738,7 +738,7 @@ $E[k]$ = DFT sampel genap, $O[k]$ = DFT sampel ganjil.
 
 ::right::
 
-<div class="pl-4">
+<div class="pl-4 col-center">
 
 <div style="font-size:10px;color:#475569;letter-spacing:.06em;font-weight:600;margin-bottom:6px">ILUSTRASI — Diagram Butterfly 4-Point FFT</div>
 <div style="background:#06091a;border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:8px 10px">
