@@ -56,7 +56,7 @@ layout: none
     <div class="fml">X(f) = ∫<sub>−∞</sub><sup>+∞</sup> x(t) &middot; e<sup>−j2πft</sup> dt</div>
     <div class="sep"></div>
     <div class="au">
-      <span class="au-name">Dedik Romahadi, S.T., M.T.</span>
+      <span class="au-name">Dedik Romahadi, S.T., M.Sc.</span>
       <span class="au-sem">Semester Genap 2025/2026</span>
     </div>
   </main>
@@ -1457,7 +1457,7 @@ title: "Terima Kasih"
 </div>
 
 <div class="ty-contact">
-  <div class="ty-name">Dedik Romahadi, S.T., M.T.</div>
+  <div class="ty-name">Dedik Romahadi, S.T., M.Sc.</div>
   <div class="ty-mail">📧 dedik.romahadi@mercubuana.ac.id</div>
   <div class="ty-prodi">Program Studi Teknik Mesin — Universitas Mercu Buana</div>
 </div>

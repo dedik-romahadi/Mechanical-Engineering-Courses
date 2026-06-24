@@ -1,7 +1,7 @@
 <template>
   <div v-if="$slidev.nav.currentPage !== 1" class="global-footer">
     <div class="footer-left">
-      <span>Dedik Romahadi, S.T., M.T.</span>
+      <span>Dedik Romahadi, S.T., M.Sc.</span>
       <span class="footer-sep">·</span>
       <span>Teknik Mesin Universitas Mercu Buana</span>
     </div>
