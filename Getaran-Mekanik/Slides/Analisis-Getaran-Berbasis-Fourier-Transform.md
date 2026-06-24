@@ -1182,7 +1182,7 @@ class: tight
 
 Selain spektrum FFT, indikator statistik domain waktu digunakan untuk monitoring tren:
 
-<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:10px">
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:20px">
 <div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #00e5ff;border-radius:8px;padding:14px">
 <div style="color:#67e8f9;font-weight:700;margin-bottom:8px">RMS</div>
 
@@ -1209,7 +1209,7 @@ Normal: $K = 3$. Cacat bearing: $K > 6$. Sangat sensitif di tahap awal — lebih
 </div>
 </div>
 
-<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px;margin-top:12px;font-size:13px;color:#94a3b8">
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px;margin-top:22px;font-size:13px;color:#94a3b8">
 <strong style="color:#a78bfa">Standar ISO 10816-3</strong> — Batas RMS kecepatan getaran untuk mesin industri: &nbsp;
 <strong style="color:#6ee7b7">Baik</strong> &lt;2.3 mm/s &nbsp;|&nbsp;
 <strong style="color:#67e8f9">Memuaskan</strong> 2.3–4.5 &nbsp;|&nbsp;
