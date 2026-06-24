@@ -663,7 +663,7 @@ $$\boxed{x[n] = \frac{1}{N}\sum_{k=0}^{N-1} X[k]\,e^{\,j\frac{2\pi}{N}kn}} \qqua
   <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 16px;background:#06091a;border-left:1px solid rgba(255,255,255,.06);border-right:1px solid rgba(255,255,255,.06)">
     <div style="font-size:15px;font-weight:800;color:#fbbf24;letter-spacing:.06em">DFT</div>
     <div style="font-size:22px;color:#fbbf24;line-height:1;margin:1px 0 3px">→</div>
-    <div style="font-size:11px;color:#cbd5e1;text-align:center;line-height:1.5;font-family:'Cambria Math',Georgia,serif">Σ x[n]·e<sup style="font-size:8px">−j2πkn/N</sup></div>
+    <div style="font-size:16px;color:#e2e8f0;text-align:center;line-height:1.5;font-family:'Cambria Math',Georgia,serif">Σ x[n]·e<sup style="font-size:11px">−j2πkn/N</sup></div>
   </div>
   <div style="flex:1;padding:8px 12px;background:#0a1020">
     <div style="font-size:9.5px;color:#c4b5fd;font-weight:700;margin-bottom:6px">|X[k]| — Domain Frekuensi</div>
