@@ -148,7 +148,13 @@ function pad(n) {
 .gh-tot { font-size: 11px; color: #475569; font-variant-numeric: tabular-nums; }
 .gh-rule {
   position: absolute; bottom: 0; left: 0; right: 0; height: 1.5px;
-  background: linear-gradient(90deg, #7c4dff, #a78bfa, #00e5ff, #fbbf24);
+  background: linear-gradient(90deg, #7c4dff, #a78bfa, #00e5ff, #fbbf24, #a78bfa, #7c4dff);
+  background-size: 300% 100%;
+  animation: rule-slide 4s linear infinite;
+}
+@keyframes rule-slide {
+  from { background-position: 0% 0%; }
+  to   { background-position: 100% 0%; }
 }
 .gh-swap-enter-active, .gh-swap-leave-active {
   transition: opacity 0.28s ease, transform 0.28s cubic-bezier(0.4,0,0.2,1);

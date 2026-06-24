@@ -33,9 +33,19 @@
   justify-content: space-between;
   padding: 0 20px;
   background: #060c18;
-  border-top: 1px solid rgba(124,77,255,.2);
+  border-top: none;
   z-index: 100;
   font-size: 11px;
+}
+.global-footer::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1.5px;
+  background: linear-gradient(90deg, #7c4dff, #a78bfa, #00e5ff, #fbbf24, #a78bfa, #7c4dff);
+  background-size: 300% 100%;
+  animation: rule-slide 4s linear infinite;
+}
+@keyframes rule-slide {
+  from { background-position: 0% 0%; }
+  to   { background-position: 100% 0%; }
 }
 .footer-left {
   display: flex;
