@@ -170,8 +170,8 @@ function pad(n) {
   50%       { transform: scaleY(1);   opacity: 1; }
 }
 .gh-gear {
-  width: 22px; height: 22px;
-  filter: drop-shadow(0 0 5px rgba(124,77,255,.55));
+  width: 30px; height: 30px;
+  filter: drop-shadow(0 0 6px rgba(124,77,255,.6));
   animation: gear-spin 4s linear infinite;
 }
 @keyframes gear-spin {
