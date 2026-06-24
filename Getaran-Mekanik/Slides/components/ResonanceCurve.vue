@@ -51,7 +51,15 @@ const curve = computed(() => {
 </script>
 
 <style scoped>
-.rc { border: 1px solid #2e2a21; border-radius: 10px; background: #161410; padding: 14px 16px; color: #e7e2d8; }
+.rc {
+  border: 1px solid #2e2a21; border-radius: 10px;
+  background: #161410; padding: 14px 16px; color: #e7e2d8;
+  transition: border-color 0.22s ease, box-shadow 0.22s ease;
+}
+.rc:hover {
+  border-color: rgba(200,146,42,0.55);
+  box-shadow: 0 0 0 1px rgba(200,146,42,0.18), 0 6px 28px rgba(200,146,42,0.13);
+}
 .rc-ctrl { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
 .rc-label { font-size: 13px; color: #b6b0a5; }
 .rc-slider { flex: 1; max-width: 220px; accent-color: #c8922a; }

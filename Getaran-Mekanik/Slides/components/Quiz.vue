@@ -86,6 +86,11 @@ function stateOf(i) {
   padding: 14px 18px;
   margin: 8px 0;
   color: #ece7dd;
+  transition: border-color 0.22s ease, box-shadow 0.22s ease;
+}
+.quiz:hover {
+  border-color: rgba(200,146,42,0.55);
+  box-shadow: 0 0 0 1px rgba(200,146,42,0.18), 0 6px 24px rgba(200,146,42,0.12);
 }
 .quiz-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; }
 .quiz-no {
