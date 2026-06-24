@@ -1259,32 +1259,78 @@ for p in peaks:
 ---
 layout: default
 title: "Contoh Soal 1 — Identifikasi Sumber Getaran"
-class: tight
+class: soal-keren
 ---
 
 
-**Soal:** Akselerometer pada poros mengukur getaran mesin yang berputar **1800 RPM**. Spektrum FFT menunjukkan puncak pada: **30 Hz, 60 Hz, 90 Hz, dan 340 Hz**. Tentukan sumber masing-masing!
+<div class="soal-card">
+<span class="soal-badge">📝 SOAL</span>
+Akselerometer pada poros mengukur getaran mesin berputar <b>1800 RPM</b>. Spektrum FFT menunjukkan puncak pada <b>30, 60, 90, dan 340 Hz</b>. Tentukan sumber masing-masing!
+</div>
 
 <v-clicks>
 
-**Langkah 1 — hitung frekuensi rotasi:**
-$$f_{rot} = 1800 / 60 = 30\,\text{Hz}$$
+<div class="step"><span class="step-no">1</span> <b>Hitung frekuensi rotasi</b> &nbsp; $f_{rot} = \dfrac{1800}{60} = 30\,\text{Hz}$</div>
 
-**Langkah 2 — identifikasi tiap puncak:**
+<div class="step"><span class="step-no">2</span> <b>Identifikasi tiap puncak spektrum:</b></div>
 
 | Frekuensi | Rasio | Sumber |
 |-----------|-------|--------|
-| 30 Hz | $1\times$ | **Unbalance** — ketidakseimbangan massa rotor |
-| 60 Hz | $2\times$ | **Misalignment** aksial atau keausan bearing |
-| 90 Hz | $3\times$ | Harmonik ketiga → kelonggaran mekanis |
-| 340 Hz | $11.3\times$ | Bukan harmonik bulat → kemungkinan **gear mesh** |
+| 30 Hz | $1\times$ | 🔴 **Unbalance** — ketidakseimbangan massa rotor |
+| 60 Hz | $2\times$ | 🟠 **Misalignment** aksial / keausan bearing |
+| 90 Hz | $3\times$ | 🟡 Harmonik ke-3 → kelonggaran mekanis |
+| 340 Hz | $11.3\times$ | 🟣 Non-harmonik → kemungkinan **gear mesh** |
 
-**Langkah 3 — verifikasi gear mesh:**
-Jika roda gigi memiliki $Z$ gigi: $f_{mesh} = f_{rot} \times Z = 30 \times Z$. Untuk 340 Hz → $Z \approx 11.3$ (perlu cek jumlah gigi aktual mesin).
+<div class="step"><span class="step-no">3</span> <b>Verifikasi gear mesh</b> &nbsp; $f_{mesh} = f_{rot}\times Z = 30Z$ → untuk 340 Hz, $Z\approx 11.3$</div>
 
-**Kesimpulan:** Mesin mengalami unbalance + misalignment. Perlu balancing rotor dan pengecekan kopling!
+<div class="kesimpulan">✅ <b>Kesimpulan:</b> Mesin mengalami <b>unbalance + misalignment</b>. Perlu <b>balancing rotor</b> dan pengecekan kopling!</div>
 
 </v-clicks>
+
+<style scoped>
+.slidev-layout { font-size: 15.5px; line-height: 1.5; }
+.soal-card {
+  position: relative;
+  background: linear-gradient(135deg, rgba(124,77,255,.16), rgba(0,229,255,.08));
+  border: 1px solid rgba(167,139,250,.4);
+  border-radius: 12px;
+  padding: 16px 18px 16px 20px;
+  font-size: 16px; line-height: 1.55;
+  margin: 6px 0 18px;
+  box-shadow: 0 6px 24px rgba(124,77,255,.12);
+}
+.soal-badge {
+  display: inline-block;
+  background: #a78bfa; color: #0b1020;
+  font-weight: 800; font-size: 12px; letter-spacing: .06em;
+  padding: 2px 10px; border-radius: 999px; margin-right: 8px;
+}
+.soal-card b { color: #f8fafc; }
+.step {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 16px; margin: 14px 0 8px;
+}
+.step-no {
+  flex: none; width: 26px; height: 26px; border-radius: 50%;
+  background: linear-gradient(135deg,#7c4dff,#00e5ff);
+  color: #fff; font-weight: 800; font-size: 14px;
+  display: inline-flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 12px rgba(124,77,255,.5);
+}
+.step b { color: #c4b5fd; }
+.slidev-layout table { font-size: 14.5px; }
+.slidev-layout td, .slidev-layout th { padding: 6px 11px; }
+.kesimpulan {
+  background: linear-gradient(135deg, rgba(52,211,153,.18), rgba(52,211,153,.05));
+  border: 1px solid rgba(52,211,153,.45);
+  border-left: 4px solid #34d399;
+  border-radius: 10px;
+  padding: 13px 16px; font-size: 15.5px;
+  margin-top: 18px;
+}
+.kesimpulan b { color: #6ee7b7; }
+.slidev-vclick-target { transition: all .3s ease; }
+</style>
 
 ---
 layout: default
