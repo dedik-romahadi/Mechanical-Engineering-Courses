@@ -337,15 +337,24 @@
 
 /* ============================================================
    Efek hover universal untuk SEMUA kartu di seluruh slide.
-   Kartu di deck ini konsisten ber-background #0d1526 (kartu
-   konten) atau #06091a (kontainer kode), plus kartu ber-class
-   (.soal-card, .kesimpulan, .pesan-kunci). Saat cursor menyentuh:
-   kartu terangkat, muncul cincin cyan + glow ungu, sedikit lebih
-   terang. translateY tidak menggeser tata letak (tanpa reflow);
-   cincin via box-shadow agar aksen border-kiri warna tetap utuh.
+   Strategi gabungan agar menjangkau semua varian kartu:
+   1) Selektor STRUKTURAL: setiap <div> ber-`border-radius`
+      (pola kartu), KECUALI:
+        • bar grafik  → punya `height:` (mis. height:58%)
+        • badge/pill  → punya `display:inline-block`
+   2) Selektor WARNA panel gelap untuk kartu yang TANPA
+      border-radius inline (#0d1526, #060c18, #06091a, #0a1020).
+   3) Kartu ber-class gradien (.soal-card/.kesimpulan/.pesan-kunci).
+   Saat cursor menyentuh: kartu terangkat, muncul cincin cyan +
+   glow ungu, sedikit lebih terang. translateY tidak menggeser
+   tata letak (tanpa reflow); cincin via box-shadow agar aksen
+   border-kiri warna tiap kartu tetap utuh.
    ============================================================ */
+.slidev-layout div[style*="border-radius"]:not([style*="height:"]):not([style*="inline-block"]),
 .slidev-layout div[style*="#0d1526"],
+.slidev-layout div[style*="#060c18"],
 .slidev-layout div[style*="#06091a"],
+.slidev-layout div[style*="#0a1020"],
 .slidev-layout .soal-card,
 .slidev-layout .kesimpulan,
 .slidev-layout .pesan-kunci {
@@ -353,8 +362,11 @@
               box-shadow .22s ease,
               filter .22s ease;
 }
+.slidev-layout div[style*="border-radius"]:not([style*="height:"]):not([style*="inline-block"]):hover,
 .slidev-layout div[style*="#0d1526"]:hover,
+.slidev-layout div[style*="#060c18"]:hover,
 .slidev-layout div[style*="#06091a"]:hover,
+.slidev-layout div[style*="#0a1020"]:hover,
 .slidev-layout .soal-card:hover,
 .slidev-layout .kesimpulan:hover,
 .slidev-layout .pesan-kunci:hover {
