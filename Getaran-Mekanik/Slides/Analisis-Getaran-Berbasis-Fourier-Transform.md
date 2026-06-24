@@ -1470,12 +1470,6 @@ title: "Referensi"
 ---
 
 
-<div class="ref-title">
-  <span class="ref-ico">📖</span>
-  <span class="ref-word">Referensi</span>
-  <span class="ref-ico ref-ico2">📚</span>
-</div>
-
 <div class="ref-list">
 
 1. **Brandt, A.** (2011). *Noise and Vibration Analysis: Signal Analysis and Experimental Procedures*. Wiley. *(Referensi utama — DFT/FFT praktis)*
@@ -1505,7 +1499,21 @@ title: "Terima Kasih"
 
 <img src="/UMB.png" class="ty-logo" alt="Universitas Mercu Buana" />
 
-<div class="ty-title">Terima Kasih</div>
+<div class="ty-title-row">
+  <svg class="ty-wave" viewBox="0 0 64 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0 12 Q 8 0 16 12 T 32 12 T 48 12 T 64 12" stroke="url(#tyg)" stroke-width="2.4" stroke-linecap="round"/>
+    <defs><linearGradient id="tyg" x1="0" y1="0" x2="64" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#00e5ff"/><stop offset="1" stop-color="#a78bfa"/>
+    </linearGradient></defs>
+  </svg>
+  <div class="ty-title">Terima Kasih</div>
+  <svg class="ty-wave ty-wave-r" viewBox="0 0 64 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0 12 Q 8 0 16 12 T 32 12 T 48 12 T 64 12" stroke="url(#tyg2)" stroke-width="2.4" stroke-linecap="round"/>
+    <defs><linearGradient id="tyg2" x1="0" y1="0" x2="64" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#a78bfa"/><stop offset="1" stop-color="#00e5ff"/>
+    </linearGradient></defs>
+  </svg>
+</div>
 <div class="ty-sub">Ada pertanyaan?</div>
 
 <div class="ty-eq">
@@ -1552,6 +1560,19 @@ title: "Terima Kasih"
   filter: drop-shadow(0 0 16px rgba(124,77,255,.55));
   animation: ty-float 3.2s ease-in-out infinite;
 }
+.ty-title-row {
+  display: flex; align-items: center; justify-content: center; gap: 16px;
+}
+.ty-wave {
+  width: 64px; height: 24px; flex: none;
+  filter: drop-shadow(0 0 6px rgba(0,229,255,.5));
+}
+.ty-wave path {
+  stroke-dasharray: 6 5;
+  animation: ty-flow 1.1s linear infinite;
+}
+.ty-wave-r path { animation-direction: reverse; }
+@keyframes ty-flow { to { stroke-dashoffset: -22; } }
 .ty-title {
   font-size: 56px; font-weight: 800; letter-spacing: .01em; line-height: 1.05;
   background: linear-gradient(90deg, #a78bfa, #00e5ff, #fbbf24, #a78bfa);
