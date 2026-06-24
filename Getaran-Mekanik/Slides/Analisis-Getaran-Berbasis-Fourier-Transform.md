@@ -500,7 +500,7 @@ title: "DFT — Transformasi Fourier Diskrit"
 
 Sinyal kontinyu $x(t)$ di-sampling menjadi $N$ sampel diskrit $x[n]$, lalu dihitung:
 
-<div style="font-size:1.18em;line-height:1;margin-top:10px">
+<div style="font-size:1.18em;line-height:1;margin-top:22px">
 
 $$\boxed{X[k] = \sum_{n=0}^{N-1} x[n]\,e^{-j\frac{2\pi}{N}kn}, \quad k = 0,1,\ldots,N{-}1}$$
 
@@ -508,7 +508,7 @@ $$\boxed{x[n] = \frac{1}{N}\sum_{k=0}^{N-1} X[k]\,e^{\,j\frac{2\pi}{N}kn}} \qqua
 
 </div>
 
-<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:22px;align-items:stretch">
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:36px;align-items:stretch">
 <div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #00e5ff;border-radius:8px;padding:13px;font-size:13px;display:flex;flex-direction:column">
 <div style="color:#67e8f9;font-weight:700;margin-bottom:6px">Parameter DFT</div>
 
