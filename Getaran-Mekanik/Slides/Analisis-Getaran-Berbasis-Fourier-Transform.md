@@ -457,13 +457,13 @@ class: tight
 
 $$\Large x(t) = A\cos(\omega t + \phi)$$
 
-<div style="margin-top:22px">**Sinyal multi-komponen (mesin nyata):**</div>
+**Sinyal multi-komponen (mesin nyata):**
 
 $$\Large x(t) = \sum_{k} A_k\cos(\omega_k t + \phi_k) + n(t)$$
 
-<div style="margin-top:10px;font-size:12px;color:#94a3b8">di mana $n(t)$ = noise acak terukur</div>
+di mana $n(t)$ = noise acak terukur
 
-<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px 12px;margin-top:28px">
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px 12px;margin-top:20px">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
   <div style="display:flex;gap:12px;font-size:11px">
     <span id="s5lbl1" style="color:#a78bfa;cursor:pointer;user-select:none">▬ f₀ (30 Hz)</span>
@@ -487,9 +487,11 @@ $$\Large x(t) = \sum_{k} A_k\cos(\omega_k t + \phi_k) + n(t)$$
 | **Stasioner acak** | Spektrum kontinu | Turbulensi |
 | **Transien** | Singkat, non-periodik | Impak bearing |
 
+<div style="margin-top:20px">
 <Callout type="industry" title="Sinyal Mesin Nyata">
 Poros 1800 RPM: 30 Hz (1×), 60 Hz (2×), 90 Hz (3×) + meshing gear + cacat bearing. FFT memisahkan semuanya dalam satu operasi.
 </Callout>
+</div>
 
 </div>
 </div>
