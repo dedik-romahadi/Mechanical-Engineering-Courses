@@ -450,9 +450,11 @@ title: "Sinyal Getaran — Karakteristik & Representasi"
 class: tight
 ---
 
+<div style="display:flex;flex-direction:column;height:100%;gap:10px">
 
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start">
-<div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:stretch;flex:1">
+
+<div style="display:flex;flex-direction:column;gap:6px">
 
 **Sinyal harmonik sederhana:**
 $$x(t) = A\cos(\omega t + \phi)$$
@@ -460,21 +462,23 @@ $$x(t) = A\cos(\omega t + \phi)$$
 **Sinyal multi-komponen (mesin nyata):**
 $$x(t) = \sum_{k} A_k\cos(\omega_k t + \phi_k) + n(t)$$
 
-di mana $n(t)$ = noise acak terukur
+<div style="font-size:12px;color:#94a3b8">di mana $n(t)$ = noise acak terukur</div>
 
-<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px 12px;margin-top:8px">
-<div style="display:flex;gap:16px;font-size:11px;margin-bottom:4px"><span style="color:#a78bfa">▬ fundamental f₀</span><span style="color:#5b9bd5">▬ harmonik 2f₀</span></div>
-<svg viewBox="0 0 300 80" preserveAspectRatio="none" style="width:100%;height:54px">
-  <line x1="0" y1="40" x2="300" y2="40" stroke="rgba(255,255,255,.1)" stroke-width="1" stroke-dasharray="3 3"/>
-  <path fill="none" stroke="#a78bfa" stroke-width="2"
-    d="M0,40 C8,18 22,18 30,40 C38,62 52,62 60,40 C68,18 82,18 90,40 C98,62 112,62 120,40 C128,18 142,18 150,40 C158,62 172,62 180,40 C188,18 202,18 210,40 C218,62 232,62 240,40 C248,18 262,18 270,40 C278,62 292,62 300,40"/>
-  <path fill="none" stroke="#00e5ff" stroke-width="1.4" opacity="0.7"
-    d="M0,40 C4,27 11,27 15,40 C19,53 26,53 30,40 C34,27 41,27 45,40 C49,53 56,53 60,40 C64,27 71,27 75,40 C79,53 86,53 90,40 C94,27 101,27 105,40 C109,53 116,53 120,40 C124,27 131,27 135,40 C139,53 146,53 150,40 C154,27 161,27 165,40 C169,53 176,53 180,40 C184,27 191,27 195,40 C199,53 206,53 210,40 C214,27 221,27 225,40 C229,53 236,53 240,40 C244,27 251,27 255,40 C259,53 266,53 270,40 C274,27 281,27 285,40 C289,53 296,53 300,40"/>
-</svg>
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px 12px;flex:1;display:flex;flex-direction:column">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+  <div style="display:flex;gap:14px;font-size:11px">
+    <span id="s5lbl1" style="color:#a78bfa;cursor:pointer;user-select:none" title="Klik untuk toggle">▬ f₀ (30 Hz)</span>
+    <span id="s5lbl2" style="color:#00e5ff;cursor:pointer;user-select:none" title="Klik untuk toggle">▬ 2f₀ (60 Hz)</span>
+    <span id="s5lbl3" style="color:#fbbf24;cursor:pointer;user-select:none" title="Klik untuk toggle">▬ Gabungan</span>
+  </div>
+  <span style="font-size:10px;color:#475569">↑ klik label</span>
+</div>
+<canvas id="s5wave" style="width:100%;flex:1;min-height:90px;display:block;border-radius:4px"></canvas>
 </div>
 
 </div>
-<div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
 
 **Jenis sinyal getaran:**
 
@@ -486,11 +490,83 @@ di mana $n(t)$ = noise acak terukur
 | **Transien** | Singkat, non-periodik | Impak bearing |
 
 <Callout type="industry" title="Sinyal Mesin Nyata">
-Poros 1800 RPM menghasilkan campuran: 30 Hz (1×), 60 Hz (2×), 90 Hz (3×) — ditambah frekuensi meshing gear dan frekuensi cacat bearing. FFT memisahkan semuanya dalam satu operasi.
+Poros 1800 RPM: 30 Hz (1×), 60 Hz (2×), 90 Hz (3×) + frekuensi meshing gear + cacat bearing. FFT memisahkan semuanya dalam satu operasi.
 </Callout>
 
 </div>
+
 </div>
+
+</div>
+
+<script setup>
+import { onMounted, onUnmounted } from 'vue'
+let _s5anim = null
+onMounted(() => {
+  const canvas = document.getElementById('s5wave')
+  if (!canvas) return
+  const ctx = canvas.getContext('2d')
+  const show = { f1: true, f2: true, com: true }
+  let tick = 0
+  function resize() {
+    const dpr = window.devicePixelRatio || 1
+    const r = canvas.parentElement.getBoundingClientRect()
+    canvas.width = r.width * dpr
+    canvas.height = r.height * dpr
+    ctx.scale(dpr, dpr)
+  }
+  resize()
+  function draw() {
+    const W = canvas.width / (window.devicePixelRatio || 1)
+    const H = canvas.height / (window.devicePixelRatio || 1)
+    ctx.clearRect(0, 0, W, H)
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)'
+    ctx.lineWidth = 1; ctx.setLineDash([3,4])
+    ctx.beginPath(); ctx.moveTo(0, H/2); ctx.lineTo(W, H/2); ctx.stroke()
+    ctx.setLineDash([])
+    const A1 = H * 0.32, A2 = H * 0.18, spd = 0.9
+    if (show.f1) {
+      ctx.strokeStyle = '#a78bfa'; ctx.lineWidth = 2; ctx.globalAlpha = 1
+      ctx.beginPath()
+      for (let x = 0; x <= W; x++) {
+        const y = H/2 - A1 * Math.sin(2*Math.PI*(x/W*4) - tick*spd*0.04)
+        x === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y)
+      }
+      ctx.stroke()
+    }
+    if (show.f2) {
+      ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.85
+      ctx.beginPath()
+      for (let x = 0; x <= W; x++) {
+        const y = H/2 - A2 * Math.sin(2*Math.PI*(x/W*8) - tick*spd*0.08)
+        x === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y)
+      }
+      ctx.stroke()
+    }
+    if (show.com) {
+      ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 1.8; ctx.globalAlpha = 0.75
+      ctx.beginPath()
+      for (let x = 0; x <= W; x++) {
+        const y = H/2
+          - A1 * Math.sin(2*Math.PI*(x/W*4) - tick*spd*0.04)
+          - A2 * Math.sin(2*Math.PI*(x/W*8) - tick*spd*0.08)
+        x === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y)
+      }
+      ctx.stroke()
+    }
+    ctx.globalAlpha = 1
+    tick++
+    _s5anim = requestAnimationFrame(draw)
+  }
+  draw()
+  const tog = (id, key) => {
+    const el = document.getElementById(id)
+    if (el) el.onclick = () => { show[key] = !show[key]; el.style.opacity = show[key] ? '1' : '0.3' }
+  }
+  tog('s5lbl1','f1'); tog('s5lbl2','f2'); tog('s5lbl3','com')
+})
+onUnmounted(() => { if (_s5anim) cancelAnimationFrame(_s5anim) })
+</script>
 
 ---
 layout: default
