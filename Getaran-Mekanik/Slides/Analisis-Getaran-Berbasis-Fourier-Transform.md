@@ -555,17 +555,17 @@ onMounted(() => {
     const A1 = ch*0.32, A2 = ch*0.18, spd = 0.9
     if (show.f1) {
       wCtx.strokeStyle='#a78bfa'; wCtx.lineWidth=2; wCtx.globalAlpha=1; wCtx.beginPath()
-      for (let x=0;x<=cw;x++) { const y=ch/2-A1*Math.sin(2*Math.PI*(x/cw*4)-tick*spd*0.04); x===0?wCtx.moveTo(x,y):wCtx.lineTo(x,y) }
+      for (let x=0;x<=cw;x++) { const y=ch/2-A1*Math.sin(2*Math.PI*(x/cw*4)+tick*spd*0.04); x===0?wCtx.moveTo(x,y):wCtx.lineTo(x,y) }
       wCtx.stroke()
     }
     if (show.f2) {
       wCtx.strokeStyle='#00e5ff'; wCtx.lineWidth=1.5; wCtx.globalAlpha=0.85; wCtx.beginPath()
-      for (let x=0;x<=cw;x++) { const y=ch/2-A2*Math.sin(2*Math.PI*(x/cw*8)-tick*spd*0.08); x===0?wCtx.moveTo(x,y):wCtx.lineTo(x,y) }
+      for (let x=0;x<=cw;x++) { const y=ch/2-A2*Math.sin(2*Math.PI*(x/cw*8)+tick*spd*0.08); x===0?wCtx.moveTo(x,y):wCtx.lineTo(x,y) }
       wCtx.stroke()
     }
     if (show.com) {
       wCtx.strokeStyle='#fbbf24'; wCtx.lineWidth=1.8; wCtx.globalAlpha=0.75; wCtx.beginPath()
-      for (let x=0;x<=cw;x++) { const y=ch/2-A1*Math.sin(2*Math.PI*(x/cw*4)-tick*spd*0.04)-A2*Math.sin(2*Math.PI*(x/cw*8)-tick*spd*0.08); x===0?wCtx.moveTo(x,y):wCtx.lineTo(x,y) }
+      for (let x=0;x<=cw;x++) { const y=ch/2-A1*Math.sin(2*Math.PI*(x/cw*4)+tick*spd*0.04)-A2*Math.sin(2*Math.PI*(x/cw*8)+tick*spd*0.08); x===0?wCtx.moveTo(x,y):wCtx.lineTo(x,y) }
       wCtx.stroke()
     }
     wCtx.globalAlpha=1
