@@ -1065,7 +1065,7 @@ Analyzer industri (Brüel & Kjær, SKF, Fluke) menjalankan loop ini otomatis set
 ---
 layout: default
 title: "Pola Spektrum & Diagnosis Kerusakan Mesin"
-class: tight shift-up
+class: tight
 ---
 
 
