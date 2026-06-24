@@ -148,7 +148,7 @@ layout: none
 .hdr-uni  { font-size: 13px; font-weight: 600; color: #ede8df; }
 .hdr-dept { font-size: 11px; color: #9a9590; margin-top: 2px; }
 .hdr-tag  {
-  font-size: 12px; font-weight: 600; color: #c8922a;
+  font-size: 12px; font-weight: 600; color: #a78bfa;
   border: 1px solid #c8922a;
   padding: 4px 16px; border-radius: 4px;
   background: transparent; letter-spacing: 1px;
@@ -162,7 +162,7 @@ layout: none
 }
 .badge {
   font-size: 11px; letter-spacing: 3px;
-  text-transform: uppercase; color: #c8922a;
+  text-transform: uppercase; color: #a78bfa;
   margin-bottom: 18px;
   animation: fadeup 0.6s ease both;
 }
@@ -173,7 +173,7 @@ layout: none
 }
 .ttl2 {
   font-size: 52px; font-weight: 800;
-  color: #c8922a;
+  color: #a78bfa;
   line-height: 1.1; margin: 0 0 20px;
   animation: fadeup 0.7s 0.2s ease both;
 }
@@ -181,12 +181,12 @@ layout: none
   font-size: 15px; color: #ddd8cf;
   font-family: 'Fira Code', 'Courier New', monospace;
   padding: 10px 24px;
-  border-left: 3px solid #c8922a;
+  border-left: 3px solid #a78bfa;
   border-top: 1px solid #2e2a21;
   border-right: 1px solid #2e2a21;
   border-bottom: 1px solid #2e2a21;
   border-radius: 0 6px 6px 0;
-  background: #1f1c15;
+  background: #060c18;
   margin-bottom: 20px;
   animation: fadeup 0.7s 0.3s ease both;
 }
@@ -226,7 +226,7 @@ layout: none
   position: relative; z-index: 10;
 }
 .dot { color: #4a4740; }
-.yr  { margin-left: auto; color: #c8922a; font-weight: 600; font-family: 'Fira Code', monospace; font-size: 10px; }
+.yr  { margin-left: auto; color: #a78bfa; font-weight: 600; font-family: 'Fira Code', monospace; font-size: 10px; }
 @keyframes fadeup {
   from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -257,25 +257,25 @@ title: "Peta Materi"
 
 
 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin:16px 0">
-<div style="background:#1a1714;border:1px solid #3a3526;border-left:3px solid #5b9bd5;border-radius:8px;padding:16px">
-<div style="color:#7fb4e3;font-weight:700;margin-bottom:8px">🔢 Dasar DFT/FFT</div>
-<ul style="font-size:13px;color:#d3cdc3;line-height:1.8;list-style:none;padding:0;margin:0">
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #00e5ff;border-radius:8px;padding:16px">
+<div style="color:#67e8f9;font-weight:700;margin-bottom:8px">🔢 Dasar DFT/FFT</div>
+<ul style="font-size:13px;color:#94a3b8;line-height:1.8;list-style:none;padding:0;margin:0">
 <li>→ Dari sinyal analog ke diskrit</li>
 <li>→ Definisi DFT & parameter</li>
 <li>→ Algoritma FFT Cooley-Tukey</li>
 </ul>
 </div>
-<div style="background:#1a1714;border:1px solid #3a3526;border-left:3px solid #5fae5f;border-radius:8px;padding:16px">
-<div style="color:#82c182;font-weight:700;margin-bottom:8px">⚙️ Parameter Akuisisi</div>
-<ul style="font-size:13px;color:#d3cdc3;line-height:1.8;list-style:none;padding:0;margin:0">
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #34d399;border-radius:8px;padding:16px">
+<div style="color:#6ee7b7;font-weight:700;margin-bottom:8px">⚙️ Parameter Akuisisi</div>
+<ul style="font-size:13px;color:#94a3b8;line-height:1.8;list-style:none;padding:0;margin:0">
 <li>→ Resolusi frekuensi & sampling</li>
 <li>→ Teorema Nyquist & aliasing</li>
 <li>→ Windowing & spectral leakage</li>
 </ul>
 </div>
-<div style="background:#1a1714;border:1px solid #3a3526;border-left:3px solid #c8922a;border-radius:8px;padding:16px">
-<div style="color:#e0b455;font-weight:700;margin-bottom:8px">🏭 Aplikasi Teknik</div>
-<ul style="font-size:13px;color:#d3cdc3;line-height:1.8;list-style:none;padding:0;margin:0">
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #a78bfa;border-radius:8px;padding:16px">
+<div style="color:#fbbf24;font-weight:700;margin-bottom:8px">🏭 Aplikasi Teknik</div>
+<ul style="font-size:13px;color:#94a3b8;line-height:1.8;list-style:none;padding:0;margin:0">
 <li>→ Diagnosis kerusakan mesin</li>
 <li>→ Fungsi Respons Frekuensi (FRF)</li>
 <li>→ Predictive maintenance</li>
@@ -309,7 +309,7 @@ Setelah mempelajari materi ini, mahasiswa mampu:
 
 </v-clicks>
 
-<div v-click style="margin-top:16px;background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #c8922a;border-radius:8px;padding:12px 16px;font-size:13px;color:#b6b0a5">
+<div v-click style="margin-top:16px;background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #a78bfa;border-radius:8px;padding:12px 16px;font-size:13px;color:#94a3b8">
 📚 Referensi: Brandt (2011) <em>Noise and Vibration Analysis</em>. Wiley &nbsp;|&nbsp; Rao (2018) <em>Mechanical Vibrations</em>, 6th Ed. Pearson
 </div>
 
@@ -348,13 +348,13 @@ $$x(t) = \sum_{k} A_k\cos(\omega_k t + \phi_k) + n(t)$$
 
 di mana $n(t)$ = noise acak terukur
 
-<div style="background:#1a1714;border:1px solid #2e2a21;border-radius:8px;padding:10px 12px;margin-top:8px">
-<div style="display:flex;gap:16px;font-size:11px;margin-bottom:4px"><span style="color:#c8922a">▬ fundamental f₀</span><span style="color:#5b9bd5">▬ harmonik 2f₀</span></div>
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px 12px;margin-top:8px">
+<div style="display:flex;gap:16px;font-size:11px;margin-bottom:4px"><span style="color:#a78bfa">▬ fundamental f₀</span><span style="color:#5b9bd5">▬ harmonik 2f₀</span></div>
 <svg viewBox="0 0 300 80" preserveAspectRatio="none" style="width:100%;height:54px">
-  <line x1="0" y1="40" x2="300" y2="40" stroke="#3a352b" stroke-width="1" stroke-dasharray="3 3"/>
-  <path fill="none" stroke="#c8922a" stroke-width="2"
+  <line x1="0" y1="40" x2="300" y2="40" stroke="rgba(255,255,255,.1)" stroke-width="1" stroke-dasharray="3 3"/>
+  <path fill="none" stroke="#a78bfa" stroke-width="2"
     d="M0,40 C8,18 22,18 30,40 C38,62 52,62 60,40 C68,18 82,18 90,40 C98,62 112,62 120,40 C128,18 142,18 150,40 C158,62 172,62 180,40 C188,18 202,18 210,40 C218,62 232,62 240,40 C248,18 262,18 270,40 C278,62 292,62 300,40"/>
-  <path fill="none" stroke="#5b9bd5" stroke-width="1.4" opacity="0.7"
+  <path fill="none" stroke="#00e5ff" stroke-width="1.4" opacity="0.7"
     d="M0,40 C4,27 11,27 15,40 C19,53 26,53 30,40 C34,27 41,27 45,40 C49,53 56,53 60,40 C64,27 71,27 75,40 C79,53 86,53 90,40 C94,27 101,27 105,40 C109,53 116,53 120,40 C124,27 131,27 135,40 C139,53 146,53 150,40 C154,27 161,27 165,40 C169,53 176,53 180,40 C184,27 191,27 195,40 C199,53 206,53 210,40 C214,27 221,27 225,40 C229,53 236,53 240,40 C244,27 251,27 255,40 C259,53 266,53 270,40 C274,27 281,27 285,40 C289,53 296,53 300,40"/>
 </svg>
 </div>
@@ -391,8 +391,8 @@ $$\boxed{X[k] = \sum_{n=0}^{N-1} x[n]\,e^{-j\frac{2\pi}{N}kn}, \quad k = 0,1,\ld
 $$\boxed{x[n] = \frac{1}{N}\sum_{k=0}^{N-1} X[k]\,e^{\,j\frac{2\pi}{N}kn}} \qquad \text{(IDFT — kebalikan DFT)}$$
 
 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px">
-<div style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #5b9bd5;border-radius:8px;padding:13px;font-size:13px">
-<div style="color:#7fb4e3;font-weight:700;margin-bottom:6px">Parameter DFT</div>
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #00e5ff;border-radius:8px;padding:13px;font-size:13px">
+<div style="color:#67e8f9;font-weight:700;margin-bottom:6px">Parameter DFT</div>
 
 - $N$ = jumlah sampel
 - $f_s$ = frekuensi sampling [Hz]
@@ -400,8 +400,8 @@ $$\boxed{x[n] = \frac{1}{N}\sum_{k=0}^{N-1} X[k]\,e^{\,j\frac{2\pi}{N}kn}} \qqua
 - **Bin frekuensi:** $f_k = k \cdot f_s / N$
 
 </div>
-<div style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #5fae5f;border-radius:8px;padding:13px;font-size:13px">
-<div style="color:#82c182;font-weight:700;margin-bottom:6px">Output DFT</div>
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #34d399;border-radius:8px;padding:13px;font-size:13px">
+<div style="color:#6ee7b7;font-weight:700;margin-bottom:6px">Output DFT</div>
 
 - $X[k]$ = bilangan kompleks
 - $|X[k]|$ = **amplitudo** komponen $k$
@@ -409,8 +409,8 @@ $$\boxed{x[n] = \frac{1}{N}\sum_{k=0}^{N-1} X[k]\,e^{\,j\frac{2\pi}{N}kn}} \qqua
 - Analisis: $k = 0$ hingga $N/2$ saja
 
 </div>
-<div style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #c8922a;border-radius:8px;padding:13px;font-size:13px">
-<div style="color:#e0b455;font-weight:700;margin-bottom:6px">Kompleksitas</div>
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #a78bfa;border-radius:8px;padding:13px;font-size:13px">
+<div style="color:#fbbf24;font-weight:700;margin-bottom:6px">Kompleksitas</div>
 
 - DFT langsung: $\mathcal{O}(N^2)$
 - **FFT:** $\mathcal{O}(N\log_2 N)$ ✨
@@ -440,7 +440,7 @@ di mana $E[k]$ = DFT sampel genap, $O[k]$ = DFT sampel ganjil.
 
 Disebut **butterfly** — inti komputasi FFT. Diulang rekursif $\log_2 N$ tahap → total selesai dalam $\mathcal{O}(N\log_2 N)$.
 
-<div style="background:#1a1714;border:1px solid #2e2a21;border-radius:6px;padding:10px;margin-top:10px;font-size:12px;color:#b6b0a5">
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:10px;margin-top:10px;font-size:12px;color:#94a3b8">
 💡 FFT hanya efisien untuk $N = 2^m$ (power-of-two). Jika $N$ bukan pangkat 2, zero-padding ke $2^m$ terdekat.
 </div>
 
@@ -483,24 +483,24 @@ title: "Resolusi Frekuensi & Desain Akuisisi"
 
 
 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:10px">
-<div style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #5b9bd5;border-radius:8px;padding:14px">
-<div style="color:#7fb4e3;font-weight:700;margin-bottom:8px">Resolusi Frekuensi</div>
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #00e5ff;border-radius:8px;padding:14px">
+<div style="color:#67e8f9;font-weight:700;margin-bottom:8px">Resolusi Frekuensi</div>
 
 $$\Delta f = \frac{f_s}{N} = \frac{1}{T_{total}}$$
 
 Makin panjang rekaman → $\Delta f$ lebih kecil → dapat membedakan frekuensi yang berdekatan
 
 </div>
-<div style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #5fae5f;border-radius:8px;padding:14px">
-<div style="color:#82c182;font-weight:700;margin-bottom:8px">Frekuensi Nyquist</div>
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #34d399;border-radius:8px;padding:14px">
+<div style="color:#6ee7b7;font-weight:700;margin-bottom:8px">Frekuensi Nyquist</div>
 
 $$f_{Nyq} = \frac{f_s}{2}$$
 
 Batas frekuensi tertinggi yang bisa dianalisis. Standar industri: $f_s \geq 2.56\,f_{\max}$
 
 </div>
-<div style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #c8922a;border-radius:8px;padding:14px">
-<div style="color:#e0b455;font-weight:700;margin-bottom:8px">Spectral Lines</div>
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #a78bfa;border-radius:8px;padding:14px">
+<div style="color:#fbbf24;font-weight:700;margin-bottom:8px">Spectral Lines</div>
 
 $$N_{lines} = N / 2.56$$
 
@@ -511,24 +511,24 @@ $N=4096$ → 1600 lines
 </div>
 </div>
 
-<div style="background:#1a1714;border:1px solid #2e2a21;border-radius:8px;padding:14px;margin-top:14px">
-<div style="color:#c8922a;font-weight:700;margin-bottom:8px">Prosedur Desain Akuisisi — Contoh Langkah demi Langkah</div>
-<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;font-size:13px;color:#d3cdc3">
-<div style="background:#1f1c15;border-radius:6px;padding:10px;text-align:center">
-<div style="color:#7fb4e3;font-weight:700;margin-bottom:4px">① Tentukan f<sub>max</sub></div>
-<div>Frekuensi tertinggi yang dianalisis<br/><strong style="color:#c8922a">misal: 500 Hz</strong></div>
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:14px;margin-top:14px">
+<div style="color:#a78bfa;font-weight:700;margin-bottom:8px">Prosedur Desain Akuisisi — Contoh Langkah demi Langkah</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;font-size:13px;color:#94a3b8">
+<div style="background:#060c18;border-radius:6px;padding:10px;text-align:center">
+<div style="color:#67e8f9;font-weight:700;margin-bottom:4px">① Tentukan f<sub>max</sub></div>
+<div>Frekuensi tertinggi yang dianalisis<br/><strong style="color:#a78bfa">misal: 500 Hz</strong></div>
 </div>
-<div style="background:#1f1c15;border-radius:6px;padding:10px;text-align:center">
-<div style="color:#82c182;font-weight:700;margin-bottom:4px">② Tentukan f<sub>s</sub></div>
-<div>$f_s = 2.56 \times 500$<br/><strong style="color:#c8922a">= 1280 Hz</strong></div>
+<div style="background:#060c18;border-radius:6px;padding:10px;text-align:center">
+<div style="color:#6ee7b7;font-weight:700;margin-bottom:4px">② Tentukan f<sub>s</sub></div>
+<div>$f_s = 2.56 \times 500$<br/><strong style="color:#a78bfa">= 1280 Hz</strong></div>
 </div>
-<div style="background:#1f1c15;border-radius:6px;padding:10px;text-align:center">
-<div style="color:#e0b455;font-weight:700;margin-bottom:4px">③ Tentukan &Delta;f</div>
-<div>Resolusi yang diinginkan<br/><strong style="color:#c8922a">misal: 0.5 Hz</strong></div>
+<div style="background:#060c18;border-radius:6px;padding:10px;text-align:center">
+<div style="color:#fbbf24;font-weight:700;margin-bottom:4px">③ Tentukan &Delta;f</div>
+<div>Resolusi yang diinginkan<br/><strong style="color:#a78bfa">misal: 0.5 Hz</strong></div>
 </div>
-<div style="background:#1f1c15;border-radius:6px;padding:10px;text-align:center">
-<div style="color:#bda5da;font-weight:700;margin-bottom:4px">④ Hitung N & T</div>
-<div>$N = 1280/0.5 = 2560$<br/><strong style="color:#c8922a">T = 2 detik</strong></div>
+<div style="background:#060c18;border-radius:6px;padding:10px;text-align:center">
+<div style="color:#c4b5fd;font-weight:700;margin-bottom:4px">④ Hitung N & T</div>
+<div>$N = 1280/0.5 = 2560$<br/><strong style="color:#a78bfa">T = 2 detik</strong></div>
 </div>
 </div>
 </div>
@@ -585,21 +585,21 @@ title: "Windowing — Mengatasi Spectral Leakage"
 </Callout>
 
 </div>
-<div style="background:#1a1714;border:1px solid #2e2a21;border-radius:8px;padding:14px">
-<div style="color:#c8922a;font-weight:700;margin-bottom:8px">Hanning Window</div>
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:14px">
+<div style="color:#a78bfa;font-weight:700;margin-bottom:8px">Hanning Window</div>
 
 $$w[n] = 0.5\!\left[1 - \cos\!\left(\frac{2\pi n}{N-1}\right)\right]$$
 
-<div style="display:flex;gap:14px;font-size:10.5px;margin:4px 0 2px"><span style="color:#c8922a">▬ Hanning (memudar)</span><span style="color:#5b9bd5">▬ Rectangular</span></div>
+<div style="display:flex;gap:14px;font-size:10.5px;margin:4px 0 2px"><span style="color:#a78bfa">▬ Hanning (memudar)</span><span style="color:#5b9bd5">▬ Rectangular</span></div>
 <svg viewBox="0 0 220 86" preserveAspectRatio="none" style="width:100%;height:72px">
-  <line x1="10" y1="78" x2="210" y2="78" stroke="#3a352b" stroke-width="1"/>
-  <path d="M10,78 C60,78 70,8 110,8 C150,8 160,78 210,78" fill="rgba(200,146,42,0.12)" stroke="#c8922a" stroke-width="2"/>
-  <path d="M10,78 L210,78" fill="none" stroke="#5b9bd5" stroke-width="1.5" stroke-dasharray="5 4" opacity="0.7"/>
-  <text x="10" y="85" fill="#6a6356" font-size="8">0</text>
-  <text x="202" y="85" fill="#6a6356" font-size="8">N</text>
+  <line x1="10" y1="78" x2="210" y2="78" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
+  <path d="M10,78 C60,78 70,8 110,8 C150,8 160,78 210,78" fill="rgba(167,139,250,0.12)" stroke="#a78bfa" stroke-width="2"/>
+  <path d="M10,78 L210,78" fill="none" stroke="#00e5ff" stroke-width="1.5" stroke-dasharray="5 4" opacity="0.7"/>
+  <text x="10" y="85" fill="#475569" font-size="8">0</text>
+  <text x="202" y="85" fill="#475569" font-size="8">N</text>
 </svg>
 
-<div style="font-size:12px;color:#968f84">Trade-off: leakage turun drastis, resolusi sedikit berkurang (main lobe lebih lebar). Menguntungkan untuk diagnosis mesin.</div>
+<div style="font-size:12px;color:#94a3b8">Trade-off: leakage turun drastis, resolusi sedikit berkurang (main lobe lebih lebar). Menguntungkan untuk diagnosis mesin.</div>
 </div>
 </div>
 
@@ -612,8 +612,8 @@ title: "Spektrum FFT — Interpretasi Output"
 Output DFT adalah $X[k]$ (bilangan kompleks) untuk $k = 0,\ldots,N-1$. Dua kuantitas utama:
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px">
-<div style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #5b9bd5;border-radius:8px;padding:14px">
-<div style="color:#7fb4e3;font-weight:700;margin-bottom:8px">Spektrum Amplitudo</div>
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #00e5ff;border-radius:8px;padding:14px">
+<div style="color:#67e8f9;font-weight:700;margin-bottom:8px">Spektrum Amplitudo</div>
 
 $$|X[k]| = \sqrt{\text{Re}^2(X[k]) + \text{Im}^2(X[k])}$$
 
@@ -624,8 +624,8 @@ $$A_k = \frac{2\,|X[k]|}{N} \;(k>0); \quad A_0 = \frac{|X[0]|}{N}$$
 $$S_{xx}[k] = \frac{|X[k]|^2}{\Delta f} \quad [\text{m}^2/\text{Hz}]$$
 
 </div>
-<div style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #c8922a;border-radius:8px;padding:14px">
-<div style="color:#e0b455;font-weight:700;margin-bottom:8px">Spektrum Fasa</div>
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #a78bfa;border-radius:8px;padding:14px">
+<div style="color:#fbbf24;font-weight:700;margin-bottom:8px">Spektrum Fasa</div>
 
 $$\angle X[k] = \arctan\!\left(\frac{\text{Im}(X[k])}{\text{Re}(X[k])}\right)$$
 
@@ -637,7 +637,7 @@ $$\angle X[k] = \arctan\!\left(\frac{\text{Im}(X[k])}{\text{Re}(X[k])}\right)$$
 **RMS dari spektrum:**
 $$x_{rms} = \sqrt{\sum_k |X[k]|^2 / N^2}$$
 
-<div style="font-size:12px;color:#968f84;margin-top:8px">Untuk diagnosis rutin, cukup amplitudo. Fasa dibutuhkan untuk analisis kuantitatif lanjut.</div>
+<div style="font-size:12px;color:#94a3b8;margin-top:8px">Untuk diagnosis rutin, cukup amplitudo. Fasa dibutuhkan untuk analisis kuantitatif lanjut.</div>
 </div>
 </div>
 
@@ -648,25 +648,25 @@ title: "Prosedur Analisis FFT Getaran Mesin"
 
 
 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0">
-<div style="background:#1a1714;border:1px solid #2e2a21;border-radius:8px;padding:12px;text-align:center">
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px;text-align:center">
 <div style="font-size:28px;margin-bottom:6px">📡</div>
-<div style="color:#7fb4e3;font-weight:700;font-size:13px;margin-bottom:4px">① Akuisisi</div>
-<div style="font-size:11px;color:#968f84">Akselerometer → kondisioner → ADC → rekam $x[n]$</div>
+<div style="color:#67e8f9;font-weight:700;font-size:13px;margin-bottom:4px">① Akuisisi</div>
+<div style="font-size:11px;color:#94a3b8">Akselerometer → kondisioner → ADC → rekam $x[n]$</div>
 </div>
-<div style="background:#1a1714;border:1px solid #2e2a21;border-radius:8px;padding:12px;text-align:center">
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px;text-align:center">
 <div style="font-size:28px;margin-bottom:6px">🔲</div>
-<div style="color:#82c182;font-weight:700;font-size:13px;margin-bottom:4px">② Preprocessing</div>
-<div style="font-size:11px;color:#968f84">Anti-alias filter, detrending DC, windowing (Hanning)</div>
+<div style="color:#6ee7b7;font-weight:700;font-size:13px;margin-bottom:4px">② Preprocessing</div>
+<div style="font-size:11px;color:#94a3b8">Anti-alias filter, detrending DC, windowing (Hanning)</div>
 </div>
-<div style="background:#1a1714;border:1px solid #2e2a21;border-radius:8px;padding:12px;text-align:center">
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px;text-align:center">
 <div style="font-size:28px;margin-bottom:6px">⚡</div>
-<div style="color:#e0b455;font-weight:700;font-size:13px;margin-bottom:4px">③ FFT</div>
-<div style="font-size:11px;color:#968f84">Hitung $X[k]$, koreksi amplitudo, plot spektrum</div>
+<div style="color:#fbbf24;font-weight:700;font-size:13px;margin-bottom:4px">③ FFT</div>
+<div style="font-size:11px;color:#94a3b8">Hitung $X[k]$, koreksi amplitudo, plot spektrum</div>
 </div>
-<div style="background:#1a1714;border:1px solid #2e2a21;border-radius:8px;padding:12px;text-align:center">
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px;text-align:center">
 <div style="font-size:28px;margin-bottom:6px">🔍</div>
-<div style="color:#bda5da;font-weight:700;font-size:13px;margin-bottom:4px">④ Interpretasi</div>
-<div style="font-size:11px;color:#968f84">Identifikasi puncak, bandingkan baseline</div>
+<div style="color:#c4b5fd;font-weight:700;font-size:13px;margin-bottom:4px">④ Interpretasi</div>
+<div style="font-size:11px;color:#94a3b8">Identifikasi puncak, bandingkan baseline</div>
 </div>
 </div>
 
@@ -674,8 +674,8 @@ title: "Prosedur Analisis FFT Getaran Mesin"
 Analyzer industri (Brüel & Kjær, SKF, Fluke) menjalankan loop ini otomatis setiap beberapa detik — merekam, menghitung FFT, membandingkan dengan alarm threshold. Alert dikirim via email/SMS jika spektrum menyimpang dari baseline.
 </Callout>
 
-<div style="background:#1a1714;border:1px solid #2e2a21;border-radius:8px;padding:12px;margin-top:10px;font-size:13px">
-<strong style="color:#c8922a">Tip kualitas data:</strong> <span style="color:#d3cdc3">Ambil 5–10 average FFT (synchronous averaging) untuk menekan noise acak. Pastikan mesin beroperasi pada RPM konstan selama akuisisi.</span>
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px;margin-top:10px;font-size:13px">
+<strong style="color:#a78bfa">Tip kualitas data:</strong> <span style="color:#94a3b8">Ambil 5–10 average FFT (synchronous averaging) untuk menekan noise acak. Pastikan mesin beroperasi pada RPM konstan selama akuisisi.</span>
 </div>
 
 ---
@@ -765,7 +765,7 @@ Pabrik baja dan petrokimia memasang sensor akselerometer permanen pada ratusan b
 
 ## Tahapan Kerusakan Bearing
 
-<div style="font-size:12px;color:#d3cdc3;margin-top:8px">
+<div style="font-size:12px;color:#94a3b8;margin-top:8px">
 
 | Tahap | Indikator Spektrum |
 |-------|-------------------|
@@ -787,24 +787,24 @@ title: "Indikator Kondisi Getaran"
 Selain spektrum FFT, indikator statistik domain waktu digunakan untuk monitoring tren:
 
 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:10px">
-<div style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #5b9bd5;border-radius:8px;padding:14px">
-<div style="color:#7fb4e3;font-weight:700;margin-bottom:8px">RMS</div>
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #00e5ff;border-radius:8px;padding:14px">
+<div style="color:#67e8f9;font-weight:700;margin-bottom:8px">RMS</div>
 
 $$x_{rms} = \sqrt{\frac{1}{N}\sum_{n=1}^{N}x[n]^2}$$
 
 Terkait energi total getaran. Baik untuk tren jangka panjang. Satuan: mm/s (kecepatan).
 
 </div>
-<div style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #5fae5f;border-radius:8px;padding:14px">
-<div style="color:#82c182;font-weight:700;margin-bottom:8px">Crest Factor</div>
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #34d399;border-radius:8px;padding:14px">
+<div style="color:#6ee7b7;font-weight:700;margin-bottom:8px">Crest Factor</div>
 
 $$CF = \frac{x_{\text{peak}}}{x_{rms}}$$
 
 Normal: $CF \approx 1.4$–$2.0$. Meningkat saat ada impak periodik. Berguna untuk deteksi dini kerusakan bearing.
 
 </div>
-<div style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #c8922a;border-radius:8px;padding:14px">
-<div style="color:#e0b455;font-weight:700;margin-bottom:8px">Kurtosis</div>
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #a78bfa;border-radius:8px;padding:14px">
+<div style="color:#fbbf24;font-weight:700;margin-bottom:8px">Kurtosis</div>
 
 $$K = \frac{\frac{1}{N}\sum(x-\bar{x})^4}{\sigma^4}$$
 
@@ -813,12 +813,12 @@ Normal: $K = 3$. Cacat bearing: $K > 6$. Sangat sensitif di tahap awal — lebih
 </div>
 </div>
 
-<div style="background:#1a1714;border:1px solid #2e2a21;border-radius:8px;padding:12px;margin-top:12px;font-size:13px;color:#d3cdc3">
-<strong style="color:#c8922a">Standar ISO 10816-3</strong> — Batas RMS kecepatan getaran untuk mesin industri: &nbsp;
-<strong style="color:#82c182">Baik</strong> &lt;2.3 mm/s &nbsp;|&nbsp;
-<strong style="color:#7fb4e3">Memuaskan</strong> 2.3–4.5 &nbsp;|&nbsp;
-<strong style="color:#e0b455">Tidak Memuaskan</strong> 4.5–7.1 &nbsp;|&nbsp;
-<strong style="color:#e58a80">Kritis</strong> &gt;7.1 mm/s
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px;margin-top:12px;font-size:13px;color:#94a3b8">
+<strong style="color:#a78bfa">Standar ISO 10816-3</strong> — Batas RMS kecepatan getaran untuk mesin industri: &nbsp;
+<strong style="color:#6ee7b7">Baik</strong> &lt;2.3 mm/s &nbsp;|&nbsp;
+<strong style="color:#67e8f9">Memuaskan</strong> 2.3–4.5 &nbsp;|&nbsp;
+<strong style="color:#fbbf24">Tidak Memuaskan</strong> 4.5–7.1 &nbsp;|&nbsp;
+<strong style="color:#fca5a5">Kritis</strong> &gt;7.1 mm/s
 </div>
 
 ---
@@ -1023,8 +1023,8 @@ class: tight
 </div>
 </div>
 
-<div v-click style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #c8922a;border-radius:8px;padding:14px;margin-top:14px">
-<strong style="color:#c8922a">Pesan Kunci:</strong> <span style="color:#d3cdc3">FFT adalah alat utama diagnosis getaran mesin. Dari sinyal waktu yang sulit dibaca, FFT menghasilkan spektrum yang langsung menunjuk ke sumber masalah — unbalance, misalignment, bearing, atau gear. Inilah fondasi predictive maintenance modern.</span>
+<div v-click style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #a78bfa;border-radius:8px;padding:14px;margin-top:14px">
+<strong style="color:#a78bfa">Pesan Kunci:</strong> <span style="color:#94a3b8">FFT adalah alat utama diagnosis getaran mesin. Dari sinyal waktu yang sulit dibaca, FFT menghasilkan spektrum yang langsung menunjuk ke sumber masalah — unbalance, misalignment, bearing, atau gear. Inilah fondasi predictive maintenance modern.</span>
 </div>
 
 ---
@@ -1033,7 +1033,7 @@ title: "Referensi"
 ---
 
 
-<div style="margin-top:16px;font-size:13.5px;color:#d3cdc3;line-height:2.2">
+<div style="margin-top:16px;font-size:13.5px;color:#94a3b8;line-height:2.2">
 
 1. **Brandt, A.** (2011). *Noise and Vibration Analysis: Signal Analysis and Experimental Procedures*. Wiley. *(Referensi utama — DFT/FFT praktis)*
 
@@ -1060,38 +1060,38 @@ title: "Terima Kasih"
 
 **Ada pertanyaan?**
 
-<div style="margin-top:24px;color:#b6b0a5;line-height:2.2">
+<div style="margin-top:24px;color:#94a3b8;line-height:2.2">
 
 Dedik Romahadi, S.T., M.T.<br/>
-<span style="color:#c8922a">📧</span> dedik.romahadi@mercubuana.ac.id<br/>
+<span style="color:#a78bfa">📧</span> dedik.romahadi@mercubuana.ac.id<br/>
 Program Studi Teknik Mesin — Universitas Mercu Buana
 
 </div>
 
 <div style="margin-top:20px">
 <svg viewBox="0 0 400 60" style="width:360px;height:50px;display:block;margin:0 auto">
-  <line x1="0" y1="30" x2="400" y2="30" stroke="#2e2a21" stroke-width="1"/>
-  <rect x="30"  y="10" width="8" height="40" rx="2" fill="#c8922a" opacity="0.9"/>
-  <rect x="50"  y="20" width="8" height="30" rx="2" fill="#c8922a" opacity="0.7"/>
-  <rect x="70"  y="5"  width="8" height="50" rx="2" fill="#c8922a" opacity="0.95"/>
-  <rect x="90"  y="15" width="8" height="30" rx="2" fill="#5b9bd5" opacity="0.8"/>
-  <rect x="110" y="8"  width="8" height="44" rx="2" fill="#c8922a" opacity="0.9"/>
-  <rect x="130" y="22" width="8" height="16" rx="2" fill="#5fae5f" opacity="0.7"/>
-  <rect x="150" y="18" width="8" height="24" rx="2" fill="#c8922a" opacity="0.6"/>
-  <rect x="170" y="12" width="8" height="36" rx="2" fill="#5b9bd5" opacity="0.5"/>
-  <rect x="190" y="25" width="8" height="10" rx="2" fill="#c8922a" opacity="0.4"/>
-  <rect x="210" y="20" width="8" height="20" rx="2" fill="#5fae5f" opacity="0.5"/>
-  <rect x="230" y="28" width="8" height="4"  rx="2" fill="#c8922a" opacity="0.3"/>
-  <rect x="250" y="15" width="8" height="30" rx="2" fill="#c8922a" opacity="0.4"/>
-  <rect x="270" y="22" width="8" height="16" rx="2" fill="#5b9bd5" opacity="0.3"/>
-  <rect x="290" y="26" width="8" height="8"  rx="2" fill="#c8922a" opacity="0.25"/>
-  <rect x="310" y="28" width="8" height="4"  rx="2" fill="#5fae5f" opacity="0.2"/>
-  <rect x="330" y="29" width="8" height="2"  rx="2" fill="#c8922a" opacity="0.15"/>
-  <rect x="350" y="29" width="8" height="2"  rx="2" fill="#c8922a" opacity="0.1"/>
+  <line x1="0" y1="30" x2="400" y2="30" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
+  <rect x="30"  y="10" width="8" height="40" rx="2" fill="#a78bfa" opacity="0.9"/>
+  <rect x="50"  y="20" width="8" height="30" rx="2" fill="#a78bfa" opacity="0.7"/>
+  <rect x="70"  y="5"  width="8" height="50" rx="2" fill="#a78bfa" opacity="0.95"/>
+  <rect x="90"  y="15" width="8" height="30" rx="2" fill="#00e5ff" opacity="0.8"/>
+  <rect x="110" y="8"  width="8" height="44" rx="2" fill="#a78bfa" opacity="0.9"/>
+  <rect x="130" y="22" width="8" height="16" rx="2" fill="#34d399" opacity="0.7"/>
+  <rect x="150" y="18" width="8" height="24" rx="2" fill="#a78bfa" opacity="0.6"/>
+  <rect x="170" y="12" width="8" height="36" rx="2" fill="#00e5ff" opacity="0.5"/>
+  <rect x="190" y="25" width="8" height="10" rx="2" fill="#a78bfa" opacity="0.4"/>
+  <rect x="210" y="20" width="8" height="20" rx="2" fill="#34d399" opacity="0.5"/>
+  <rect x="230" y="28" width="8" height="4"  rx="2" fill="#a78bfa" opacity="0.3"/>
+  <rect x="250" y="15" width="8" height="30" rx="2" fill="#a78bfa" opacity="0.4"/>
+  <rect x="270" y="22" width="8" height="16" rx="2" fill="#00e5ff" opacity="0.3"/>
+  <rect x="290" y="26" width="8" height="8"  rx="2" fill="#a78bfa" opacity="0.25"/>
+  <rect x="310" y="28" width="8" height="4"  rx="2" fill="#34d399" opacity="0.2"/>
+  <rect x="330" y="29" width="8" height="2"  rx="2" fill="#a78bfa" opacity="0.15"/>
+  <rect x="350" y="29" width="8" height="2"  rx="2" fill="#a78bfa" opacity="0.1"/>
 </svg>
-<div style="font-size:11px;color:#4a4536;margin-top:4px">Spektrum FFT sinyal getaran mesin</div>
+<div style="font-size:11px;color:#334155;margin-top:4px">Spektrum FFT sinyal getaran mesin</div>
 </div>
 
-<div style="margin-top:10px;font-size:11px;color:#4a4536">
+<div style="margin-top:10px;font-size:11px;color:#334155">
 Getaran Mekanik — S1 Teknik Mesin — Universitas Mercu Buana — Semester Genap 2025/2026
 </div>
