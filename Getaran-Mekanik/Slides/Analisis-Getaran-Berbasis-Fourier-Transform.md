@@ -1042,11 +1042,11 @@ class: tight
 ---
 
 
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0">
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:20px 0 22px">
 <div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px;text-align:center">
 <div style="font-size:28px;margin-bottom:6px">📡</div>
 <div style="color:#67e8f9;font-weight:700;font-size:13px;margin-bottom:4px">① Akuisisi</div>
-<div style="font-size:11px;color:#94a3b8">Akselerometer → kondisioner → ADC → rekam $x[n]$</div>
+<div style="font-size:11px;color:#94a3b8">Akselerometer → kondisioner → ADC → rekam <i>x</i>[n]</div>
 </div>
 <div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px;text-align:center">
 <div style="font-size:28px;margin-bottom:6px">🔲</div>
@@ -1056,7 +1056,7 @@ class: tight
 <div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px;text-align:center">
 <div style="font-size:28px;margin-bottom:6px">⚡</div>
 <div style="color:#fbbf24;font-weight:700;font-size:13px;margin-bottom:4px">③ FFT</div>
-<div style="font-size:11px;color:#94a3b8">Hitung $X[k]$, koreksi amplitudo, plot spektrum</div>
+<div style="font-size:11px;color:#94a3b8">Hitung <i>X</i>[k], koreksi amplitudo, plot spektrum</div>
 </div>
 <div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px;text-align:center">
 <div style="font-size:28px;margin-bottom:6px">🔍</div>
@@ -1069,7 +1069,7 @@ class: tight
 Analyzer industri (Brüel & Kjær, SKF, Fluke) menjalankan loop ini otomatis setiap beberapa detik — merekam, menghitung FFT, membandingkan dengan alarm threshold. Alert dikirim via email/SMS jika spektrum menyimpang dari baseline.
 </Callout>
 
-<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px;margin-top:10px;font-size:13px">
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px;margin-top:22px;font-size:13px">
 <strong style="color:#a78bfa">Tip kualitas data:</strong> <span style="color:#94a3b8">Ambil 5–10 average FFT (synchronous averaging) untuk menekan noise acak. Pastikan mesin beroperasi pada RPM konstan selama akuisisi.</span>
 </div>
 
