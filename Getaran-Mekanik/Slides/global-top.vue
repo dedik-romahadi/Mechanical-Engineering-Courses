@@ -21,7 +21,13 @@
       <div class="gh-topic">
         <span class="gh-bar"></span>
         <transition name="gh-swap" mode="out-in">
-          <span class="gh-title" :key="page">{{ title }}</span>
+          <svg v-if="isClosing" key="wave" class="gh-wave" viewBox="0 0 140 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 10 Q 8.75 2 17.5 10 T 35 10 T 52.5 10 T 70 10 T 87.5 10 T 105 10 T 122.5 10 T 140 10" stroke="url(#ghw)" stroke-width="2.2" stroke-linecap="round"/>
+            <defs><linearGradient id="ghw" x1="0" y1="0" x2="140" y2="0" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#00e5ff"/><stop offset="0.5" stop-color="#a78bfa"/><stop offset="1" stop-color="#fbbf24"/>
+            </linearGradient></defs>
+          </svg>
+          <span v-else class="gh-title" :key="page">{{ title }}</span>
         </transition>
         <span class="gh-bar"></span>
       </div>
@@ -50,6 +56,8 @@ const show = computed(() => currentPage.value !== 1)
 const title = computed(
   () => currentSlideRoute.value?.meta?.slide?.title || 'Analisis Getaran Berbasis Fourier Transform',
 )
+// Slide penutup: judul header diganti animasi gelombang (relevan tema getaran).
+const isClosing = computed(() => title.value === 'Terima Kasih')
 function pad(n) {
   return String(n).padStart(2, '0')
 }
@@ -121,6 +129,15 @@ function pad(n) {
   text-overflow: ellipsis;
   text-shadow: 0 1px 8px rgba(0,0,0,0.6);
 }
+.gh-wave {
+  width: 140px; height: 20px;
+  filter: drop-shadow(0 0 5px rgba(0,229,255,.5));
+}
+.gh-wave path {
+  stroke-dasharray: 8 6;
+  animation: gh-flow 1.2s linear infinite;
+}
+@keyframes gh-flow { to { stroke-dashoffset: -28; } }
 .gh-index {
   display: flex; align-items: center; gap: 9px;
   flex: 0 0 auto; z-index: 1;

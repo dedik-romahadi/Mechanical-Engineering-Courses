@@ -1499,15 +1499,7 @@ title: "Terima Kasih"
 
 <img src="/UMB.png" class="ty-logo" alt="Universitas Mercu Buana" />
 
-<div class="ty-hero">
-  <svg class="ty-herowave" viewBox="0 0 360 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path class="tw-back" d="M0 40 Q 15 12 30 40 T 60 40 T 90 40 T 120 40 T 150 40 T 180 40 T 210 40 T 240 40 T 270 40 T 300 40 T 330 40 T 360 40" stroke="url(#twg)" stroke-width="2" stroke-linecap="round" opacity="0.35"/>
-    <path class="tw-main" d="M0 40 Q 15 8 30 40 T 60 40 T 90 40 T 120 40 T 150 40 T 180 40 T 210 40 T 240 40 T 270 40 T 300 40 T 330 40 T 360 40" stroke="url(#twg)" stroke-width="3.4" stroke-linecap="round"/>
-    <defs><linearGradient id="twg" x1="0" y1="0" x2="360" y2="0" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#a78bfa"/><stop offset="0.5" stop-color="#00e5ff"/><stop offset="1" stop-color="#fbbf24"/>
-    </linearGradient></defs>
-  </svg>
-</div>
+<div class="ty-title">Terima Kasih</div>
 <div class="ty-sub">Ada pertanyaan?</div>
 
 <div class="ty-eq">
@@ -1554,23 +1546,13 @@ title: "Terima Kasih"
   filter: drop-shadow(0 0 16px rgba(124,77,255,.55));
   animation: ty-float 3.2s ease-in-out infinite;
 }
-.ty-hero {
-  display: flex; align-items: center; justify-content: center;
-  margin: 4px 0 2px;
+.ty-title {
+  font-size: 56px; font-weight: 800; letter-spacing: .01em; line-height: 1.05;
+  background: linear-gradient(90deg, #a78bfa, #00e5ff, #fbbf24, #a78bfa);
+  background-size: 250% auto;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: ty-shine 5s linear infinite;
 }
-.ty-herowave {
-  width: 360px; max-width: 80vw; height: 80px;
-  filter: drop-shadow(0 0 12px rgba(0,229,255,.45));
-}
-.ty-herowave .tw-main {
-  stroke-dasharray: 10 7;
-  animation: ty-flow 1.4s linear infinite;
-}
-.ty-herowave .tw-back {
-  stroke-dasharray: 4 8;
-  animation: ty-flow 2.6s linear infinite reverse;
-}
-@keyframes ty-flow { to { stroke-dashoffset: -34; } }
 .ty-sub { font-size: 18px; color: #94a3b8; margin-top: 8px; letter-spacing: .02em; }
 .ty-eq {
   display: flex; align-items: flex-end; justify-content: center;
