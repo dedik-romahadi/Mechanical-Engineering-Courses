@@ -1304,7 +1304,7 @@ $$c = 2m\omega_n\zeta = 2 \times 2.5 \times 785.4 \times 0.028 = \mathbf{110.0\,
 
 ---
 layout: default
-title: "Latihan Interaktif"
+title: "Latihan Interaktif (1/3)"
 class: tight
 ---
 
@@ -1312,16 +1312,40 @@ class: tight
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
 <div>
 <Quiz :n="1" q="Mesin berputar 1500 RPM. Pada frekuensi berapa (Hz) komponen 2× muncul di spektrum?" :options="['25 Hz','50 Hz','75 Hz','100 Hz']" :answer="1" explain="1× = 1500/60 = 25 Hz. Komponen 2× = 2 × 25 = 50 Hz. Komponen 2× yang dominan mengindikasikan misalignment." />
-
+</div>
+<div>
 <Quiz :n="2" q="Sinyal 200 Hz di-sampling pada fs = 350 Hz. Berapakah frekuensi alias yang muncul?" :options="['150 Hz','50 Hz','200 Hz','175 Hz']" :answer="0" explain="|f_sinyal - n·f_s| = |200 - 1×350| = 150 Hz. Karena fs=350 < 2×200=400 (melanggar Nyquist), terjadi aliasing ke 150 Hz." />
+</div>
+</div>
 
+---
+layout: default
+title: "Latihan Interaktif (2/3)"
+class: tight
+---
+
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+<div>
 <Quiz :n="3" q="Mengapa window Hanning digunakan sebelum FFT pada sinyal stasioner?" :options="['Mempercepat komputasi FFT','Meningkatkan resolusi frekuensi','Mengurangi spectral leakage di tepi window','Menambah jumlah sampel efektif']" :answer="2" explain="Window Hanning memudar sinyal ke nol di kedua ujung, menghilangkan diskontinuitas yang menyebabkan energi bocor ke bin frekuensi tetangga." />
 </div>
 <div>
 <Quiz :n="4" q="Resolusi frekuensi FFT jika merekam sinyal selama 5 detik dengan fs = 4000 Hz?" :options="['0.5 Hz','0.2 Hz','4 Hz','0.8 Hz']" :answer="1" explain="df = 1/T_total = 1/5 = 0.2 Hz. Atau: N = 4000x5 = 20000, df = fs/N = 4000/20000 = 0.2 Hz." />
+</div>
+</div>
 
+---
+layout: default
+title: "Latihan Interaktif (3/3)"
+class: tight
+---
+
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+<div>
 <Quiz :n="5" q="Puncak FFT pada frekuensi 3× RPM yang kuat mengindikasikan apa?" :options="['Unbalance massa rotor','Misalignment kopling','Looseness — kelonggaran mekanis','Kerusakan bearing']" :answer="2" explain="Harmonik ke-3 (3x) dan seterusnya yang menonjol adalah tanda klasik mechanical looseness. Unbalance dominan di 1x, misalignment di 1x dan 2x." />
-
+</div>
+<div>
 <Quiz :n="6" q="Nilai Kurtosis sinyal getaran NORMAL (Gaussian) mendekati berapa?" :options="['0','1','3','10']" :answer="2" explain="Distribusi Gaussian murni memiliki kurtosis = 3. Nilai K > 6 mengindikasikan impak periodik seperti cacat bearing." />
 </div>
 </div>
