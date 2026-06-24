@@ -450,11 +450,8 @@ title: "Sinyal Getaran — Karakteristik & Representasi"
 class: tight
 ---
 
-<div style="display:flex;flex-direction:column;height:100%;gap:10px">
-
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:stretch;flex:1">
-
-<div style="display:flex;flex-direction:column;gap:6px">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start">
+<div>
 
 **Sinyal harmonik sederhana:**
 $$x(t) = A\cos(\omega t + \phi)$$
@@ -462,23 +459,22 @@ $$x(t) = A\cos(\omega t + \phi)$$
 **Sinyal multi-komponen (mesin nyata):**
 $$x(t) = \sum_{k} A_k\cos(\omega_k t + \phi_k) + n(t)$$
 
-<div style="font-size:12px;color:#94a3b8">di mana $n(t)$ = noise acak terukur</div>
+di mana $n(t)$ = noise acak terukur
 
-<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px 12px;flex:1;display:flex;flex-direction:column">
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px 12px;margin-top:8px">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-  <div style="display:flex;gap:14px;font-size:11px">
-    <span id="s5lbl1" style="color:#a78bfa;cursor:pointer;user-select:none" title="Klik untuk toggle">▬ f₀ (30 Hz)</span>
-    <span id="s5lbl2" style="color:#00e5ff;cursor:pointer;user-select:none" title="Klik untuk toggle">▬ 2f₀ (60 Hz)</span>
-    <span id="s5lbl3" style="color:#fbbf24;cursor:pointer;user-select:none" title="Klik untuk toggle">▬ Gabungan</span>
+  <div style="display:flex;gap:12px;font-size:11px">
+    <span id="s5lbl1" style="color:#a78bfa;cursor:pointer;user-select:none">▬ f₀ (30 Hz)</span>
+    <span id="s5lbl2" style="color:#00e5ff;cursor:pointer;user-select:none">▬ 2f₀ (60 Hz)</span>
+    <span id="s5lbl3" style="color:#fbbf24;cursor:pointer;user-select:none">▬ Gabungan</span>
   </div>
-  <span style="font-size:10px;color:#475569">↑ klik label</span>
+  <span style="font-size:10px;color:#475569">klik ↑ toggle</span>
 </div>
-<canvas id="s5wave" style="width:100%;flex:1;min-height:90px;display:block;border-radius:4px"></canvas>
-</div>
-
+<canvas id="s5wave" style="width:100%;height:100px;display:block;border-radius:4px"></canvas>
 </div>
 
-<div style="display:flex;flex-direction:column;gap:8px">
+</div>
+<div>
 
 **Jenis sinyal getaran:**
 
@@ -490,13 +486,10 @@ $$x(t) = \sum_{k} A_k\cos(\omega_k t + \phi_k) + n(t)$$
 | **Transien** | Singkat, non-periodik | Impak bearing |
 
 <Callout type="industry" title="Sinyal Mesin Nyata">
-Poros 1800 RPM: 30 Hz (1×), 60 Hz (2×), 90 Hz (3×) + frekuensi meshing gear + cacat bearing. FFT memisahkan semuanya dalam satu operasi.
+Poros 1800 RPM: 30 Hz (1×), 60 Hz (2×), 90 Hz (3×) + meshing gear + cacat bearing. FFT memisahkan semuanya dalam satu operasi.
 </Callout>
 
 </div>
-
-</div>
-
 </div>
 
 <script setup>
