@@ -1372,47 +1372,6 @@ $$c = 2m\omega_n\zeta = 2 \times 2.5 \times 785.4 \times 0.028 = \mathbf{110.0\,
 
 </v-clicks>
 
-<style scoped>
-.slidev-layout { font-size: 14.5px; line-height: 1.45; padding-top: 60px !important; padding-bottom: 40px !important; }
-.slidev-layout .katex-display { margin: 4px 0 !important; }
-.soal-card {
-  background: linear-gradient(135deg, rgba(124,77,255,.16), rgba(0,229,255,.08));
-  border: 1px solid rgba(167,139,250,.4);
-  border-radius: 12px;
-  padding: 13px 18px; font-size: 15.5px; line-height: 1.5;
-  margin: 2px 0 14px;
-  box-shadow: 0 6px 24px rgba(124,77,255,.12);
-}
-.soal-badge {
-  display: inline-block;
-  background: #a78bfa; color: #0b1020;
-  font-weight: 800; font-size: 12px; letter-spacing: .06em;
-  padding: 2px 10px; border-radius: 999px; margin-right: 8px;
-}
-.soal-card b, .soal-card i { color: #f8fafc; }
-.step {
-  display: flex; align-items: center; gap: 10px;
-  font-size: 15px; margin: 10px 0 2px;
-}
-.step-no {
-  flex: none; width: 24px; height: 24px; border-radius: 50%;
-  background: linear-gradient(135deg,#7c4dff,#00e5ff);
-  color: #fff; font-weight: 800; font-size: 13px;
-  display: inline-flex; align-items: center; justify-content: center;
-  box-shadow: 0 0 12px rgba(124,77,255,.5);
-}
-.step b { color: #c4b5fd; }
-.kesimpulan {
-  background: linear-gradient(135deg, rgba(52,211,153,.18), rgba(52,211,153,.05));
-  border: 1px solid rgba(52,211,153,.45);
-  border-left: 4px solid #34d399;
-  border-radius: 10px;
-  padding: 7px 16px; font-size: 14px; line-height: 1.4;
-  margin-top: 22px;
-}
-.kesimpulan b { color: #6ee7b7; }
-</style>
-
 ---
 layout: default
 title: "Latihan Interaktif (1/3)"
