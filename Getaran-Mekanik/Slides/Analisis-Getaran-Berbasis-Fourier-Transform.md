@@ -261,7 +261,7 @@ title: "Peta Materi"
   Tiga blok topik yang membentuk kompetensi analisis getaran berbasis Fourier — ditempuh secara berurutan:
 </div>
 
-<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;flex:1;margin:12px 0;align-items:start">
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:12px 0;align-items:start">
 
 <v-click>
 <div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #00e5ff;border-radius:8px;padding:10px 12px 10px;box-sizing:border-box;display:flex;flex-direction:column">
