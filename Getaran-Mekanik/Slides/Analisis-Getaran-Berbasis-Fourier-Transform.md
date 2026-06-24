@@ -1212,6 +1212,9 @@ title: "Implementasi Python — Analisis FFT Lengkap"
 class: code-dense
 ---
 
+<div style="display:flex;justify-content:flex-end;margin-bottom:-4px">
+  <button @click="copyCode()" style="font-size:11px;background:#fbbf24;color:#1a1917;border:none;border-radius:5px;padding:3px 14px;cursor:pointer;font-weight:700">{{ copied ? '✓ Tersalin!' : '⎘ Salin Kode' }}</button>
+</div>
 
 ```python
 import numpy as np
@@ -1245,47 +1248,47 @@ for p in peaks:
     print(f"{f[p]:6.1f} Hz | {amp[p]:.3f} m/s2 | {f[p]/f_rot:.1f}x")
 ```
 
----
-layout: default
-title: "Implementasi MATLAB — Analisis Spektral"
-class: code-dense
----
-
-
-```matlab
-%% Analisis FFT Getaran Mesin — Teknik Mesin Universitas Mercu Buana
-clear; clc; close all;
-
-% Parameter
-fs = 5000;  T = 2.0;  N = fs*T;
-t = (0:N-1)/fs;  f_rot = 30;          % 1x = 30 Hz (1800 RPM)
-
-% Sinyal simulasi
-x = 2.5*sin(2*pi*f_rot*t) ...         % 1x — unbalance
-  + 0.8*sin(2*pi*2*f_rot*t) ...       % 2x — misalignment
-  + 0.3*sin(2*pi*3*f_rot*t) ...       % 3x — looseness
-  + 0.1*randn(1,N);
-
-% Hanning + FFT + koreksi amplitudo
-win = hann(N)';
-X   = fft(x .* win);
-f   = (0:N/2-1)*fs/N;
-amp = 2*abs(X(1:N/2)) / (N*mean(win));
-
-% Visualisasi
-subplot(2,1,1);
-plot(t(1:fs*0.2), x(1:fs*0.2));
-xlabel('Waktu [s]'); ylabel('[m/s2]');
-title('Domain Waktu'); grid on;
-
-subplot(2,1,2);
-plot(f, amp, 'LineWidth', 1.2);
-xlabel('Frekuensi [Hz]'); ylabel('[m/s2]');
-title('Spektrum FFT (Hanning window)');
-xlim([0 200]);
-xline([30 60 90],'--r',{'1x','2x','3x'});
-grid on;
-```
+<script setup>
+import { ref } from 'vue'
+const copied = ref(false)
+const PYTHON = [
+  'import numpy as np',
+  'from scipy.fft import fft, fftfreq',
+  'from scipy.signal import windows, find_peaks',
+  '',
+  '# Parameter',
+  'fs, T = 5000, 2.0                        # sampling [Hz], durasi [s]',
+  'N = int(T * fs)                          # 10 000 sampel',
+  't = np.linspace(0, T, N, endpoint=False)',
+  'f_rot = 30                               # 1x = 30 Hz (1800 RPM)',
+  '',
+  '# Sinyal simulasi: 1x, 2x, 3x + noise',
+  'x = (2.5 * np.sin(2*np.pi * f_rot * t)       # 1x — unbalance',
+  '   + 0.8 * np.sin(2*np.pi * 2*f_rot * t)     # 2x — misalignment',
+  '   + 0.3 * np.sin(2*np.pi * 3*f_rot * t)     # 3x — looseness',
+  '   + 0.1 * np.random.randn(N))               # noise',
+  '',
+  '# Windowing Hanning + FFT',
+  'win  = windows.hann(N)',
+  'X    = fft(x * win)',
+  'freq = fftfreq(N, 1/fs)',
+  '',
+  '# Spektrum amplitudo single-sided (koreksi Hanning)',
+  'amp  = 2 * np.abs(X[:N//2]) / (N * np.mean(win))',
+  'f    = freq[:N//2]',
+  '',
+  '# Identifikasi puncak otomatis',
+  'peaks, _ = find_peaks(amp, height=0.05, distance=int(20/f[1]))',
+  'for p in peaks:',
+  '    print(f"{f[p]:6.1f} Hz | {amp[p]:.3f} m/s2 | {f[p]/f_rot:.1f}x")'
+].join('\n')
+function copyCode() {
+  navigator.clipboard.writeText(PYTHON).then(() => {
+    copied.value = true
+    setTimeout(() => { copied.value = false }, 2500)
+  })
+}
+</script>
 
 ---
 layout: default
