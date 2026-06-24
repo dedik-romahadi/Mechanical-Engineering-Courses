@@ -261,10 +261,10 @@ title: "Peta Materi"
   Tiga blok topik yang membentuk kompetensi analisis getaran berbasis Fourier — ditempuh secara berurutan:
 </div>
 
-<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;flex:1;margin:12px 0">
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;flex:1;margin:12px 0;align-items:start">
 
 <v-click>
-<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #00e5ff;border-radius:8px;padding:10px 12px 10px;height:100%;box-sizing:border-box;display:flex;flex-direction:column">
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #00e5ff;border-radius:8px;padding:10px 12px 10px;box-sizing:border-box;display:flex;flex-direction:column">
 <div style="color:#67e8f9;font-weight:700;margin-bottom:8px;font-size:13.5px">① &nbsp;🔢 Dasar DFT/FFT</div>
 <ul style="font-size:12.5px;color:#94a3b8;line-height:1.75;list-style:none;padding:0;margin:0">
 <li>→ Dari sinyal analog ke diskrit</li>
@@ -277,7 +277,7 @@ title: "Peta Materi"
 </v-click>
 
 <v-click>
-<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #34d399;border-radius:8px;padding:10px 12px 10px;height:100%;box-sizing:border-box;display:flex;flex-direction:column">
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #34d399;border-radius:8px;padding:10px 12px 10px;box-sizing:border-box;display:flex;flex-direction:column">
 <div style="color:#6ee7b7;font-weight:700;margin-bottom:8px;font-size:13.5px">② &nbsp;⚙️ Parameter Akuisisi</div>
 <ul style="font-size:12.5px;color:#94a3b8;line-height:1.75;list-style:none;padding:0;margin:0">
 <li>→ Resolusi frekuensi &amp; sampling</li>
@@ -290,7 +290,7 @@ title: "Peta Materi"
 </v-click>
 
 <v-click>
-<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #a78bfa;border-radius:8px;padding:10px 12px 10px;height:100%;box-sizing:border-box;display:flex;flex-direction:column">
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #a78bfa;border-radius:8px;padding:10px 12px 10px;box-sizing:border-box;display:flex;flex-direction:column">
 <div style="color:#fbbf24;font-weight:700;margin-bottom:8px;font-size:13.5px">③ &nbsp;🏭 Aplikasi Teknik</div>
 <ul style="font-size:12.5px;color:#94a3b8;line-height:1.75;list-style:none;padding:0;margin:0">
 <li>→ Diagnosis kerusakan mesin</li>
