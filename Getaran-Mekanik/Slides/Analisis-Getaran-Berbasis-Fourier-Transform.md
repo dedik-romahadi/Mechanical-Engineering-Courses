@@ -255,48 +255,50 @@ layout: default
 title: "Peta Materi"
 ---
 
-<div style="color:#94a3b8;font-size:13px;margin-bottom:14px;letter-spacing:.02em">
+<div style="display:flex;flex-direction:column;height:100%;justify-content:space-between;gap:0">
+
+<div style="color:#94a3b8;font-size:13px;letter-spacing:.02em;padding-bottom:2px;border-bottom:1px solid rgba(255,255,255,.05)">
   Tiga blok topik yang membentuk kompetensi analisis getaran berbasis Fourier — ditempuh secara berurutan:
 </div>
 
-<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px">
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;flex:1;margin:18px 0">
 
 <v-click>
-<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #00e5ff;border-radius:8px;padding:16px 16px 14px">
-<div style="color:#67e8f9;font-weight:700;margin-bottom:10px;font-size:13.5px">① &nbsp;🔢 Dasar DFT/FFT</div>
-<ul style="font-size:12.5px;color:#94a3b8;line-height:1.85;list-style:none;padding:0;margin:0 0 10px">
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #00e5ff;border-radius:8px;padding:20px 18px 16px;height:100%;box-sizing:border-box">
+<div style="color:#67e8f9;font-weight:700;margin-bottom:14px;font-size:13.5px">① &nbsp;🔢 Dasar DFT/FFT</div>
+<ul style="font-size:12.5px;color:#94a3b8;line-height:2;list-style:none;padding:0;margin:0 0 16px">
 <li>→ Dari sinyal analog ke diskrit</li>
 <li>→ Definisi DFT &amp; parameter kunci</li>
 <li>→ Algoritma FFT Cooley-Tukey</li>
 <li>→ Kompleksitas O(N log N)</li>
 </ul>
-<div style="font-size:11px;color:#67e8f9;background:rgba(0,229,255,.07);border-radius:5px;padding:4px 8px;display:inline-block">Slide 3 – 9</div>
+<div style="font-size:11px;color:#67e8f9;background:rgba(0,229,255,.07);border-radius:5px;padding:5px 10px;display:inline-block">Slide 3 – 9</div>
 </div>
 </v-click>
 
 <v-click>
-<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #34d399;border-radius:8px;padding:16px 16px 14px">
-<div style="color:#6ee7b7;font-weight:700;margin-bottom:10px;font-size:13.5px">② &nbsp;⚙️ Parameter Akuisisi</div>
-<ul style="font-size:12.5px;color:#94a3b8;line-height:1.85;list-style:none;padding:0;margin:0 0 10px">
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #34d399;border-radius:8px;padding:20px 18px 16px;height:100%;box-sizing:border-box">
+<div style="color:#6ee7b7;font-weight:700;margin-bottom:14px;font-size:13.5px">② &nbsp;⚙️ Parameter Akuisisi</div>
+<ul style="font-size:12.5px;color:#94a3b8;line-height:2;list-style:none;padding:0;margin:0 0 16px">
 <li>→ Resolusi frekuensi &amp; sampling</li>
 <li>→ Teorema Nyquist &amp; aliasing</li>
 <li>→ Windowing &amp; spectral leakage</li>
 <li>→ Zero-padding &amp; averaging</li>
 </ul>
-<div style="font-size:11px;color:#6ee7b7;background:rgba(52,211,153,.07);border-radius:5px;padding:4px 8px;display:inline-block">Slide 10 – 18</div>
+<div style="font-size:11px;color:#6ee7b7;background:rgba(52,211,153,.07);border-radius:5px;padding:5px 10px;display:inline-block">Slide 10 – 18</div>
 </div>
 </v-click>
 
 <v-click>
-<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #a78bfa;border-radius:8px;padding:16px 16px 14px">
-<div style="color:#fbbf24;font-weight:700;margin-bottom:10px;font-size:13.5px">③ &nbsp;🏭 Aplikasi Teknik</div>
-<ul style="font-size:12.5px;color:#94a3b8;line-height:1.85;list-style:none;padding:0;margin:0 0 10px">
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #a78bfa;border-radius:8px;padding:20px 18px 16px;height:100%;box-sizing:border-box">
+<div style="color:#fbbf24;font-weight:700;margin-bottom:14px;font-size:13.5px">③ &nbsp;🏭 Aplikasi Teknik</div>
+<ul style="font-size:12.5px;color:#94a3b8;line-height:2;list-style:none;padding:0;margin:0 0 16px">
 <li>→ Diagnosis kerusakan mesin</li>
 <li>→ Fungsi Respons Frekuensi (FRF)</li>
 <li>→ Predictive maintenance</li>
 <li>→ Implementasi Python/MATLAB</li>
 </ul>
-<div style="font-size:11px;color:#fbbf24;background:rgba(251,191,36,.07);border-radius:5px;padding:4px 8px;display:inline-block">Slide 19 – 28</div>
+<div style="font-size:11px;color:#fbbf24;background:rgba(251,191,36,.07);border-radius:5px;padding:5px 10px;display:inline-block">Slide 19 – 28</div>
 </div>
 </v-click>
 
@@ -309,37 +311,39 @@ Bayangkan FFT sebagai <strong>detektor nada</strong> pada tuner gitar digital: A
 </v-click>
 
 <v-click>
-<div style="display:flex;gap:10px;margin-top:12px">
-<div style="flex:1;background:#0d1526;border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px">
-  <span style="font-size:20px">📊</span>
+<div style="display:flex;gap:12px;margin-top:18px">
+<div style="flex:1;background:#0d1526;border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:13px 16px;display:flex;align-items:center;gap:12px">
+  <span style="font-size:22px">📊</span>
   <div>
-    <div style="font-size:18px;font-weight:800;color:#a78bfa;line-height:1">28</div>
-    <div style="font-size:10.5px;color:#475569;margin-top:1px">Total Slide</div>
+    <div style="font-size:20px;font-weight:800;color:#a78bfa;line-height:1">28</div>
+    <div style="font-size:10.5px;color:#475569;margin-top:2px">Total Slide</div>
   </div>
 </div>
-<div style="flex:1;background:#0d1526;border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px">
-  <span style="font-size:20px">🧮</span>
+<div style="flex:1;background:#0d1526;border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:13px 16px;display:flex;align-items:center;gap:12px">
+  <span style="font-size:22px">🧮</span>
   <div>
-    <div style="font-size:18px;font-weight:800;color:#00e5ff;line-height:1">3</div>
-    <div style="font-size:10.5px;color:#475569;margin-top:1px">Demo Interaktif</div>
+    <div style="font-size:20px;font-weight:800;color:#00e5ff;line-height:1">3</div>
+    <div style="font-size:10.5px;color:#475569;margin-top:2px">Demo Interaktif</div>
   </div>
 </div>
-<div style="flex:1;background:#0d1526;border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px">
-  <span style="font-size:20px">💡</span>
+<div style="flex:1;background:#0d1526;border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:13px 16px;display:flex;align-items:center;gap:12px">
+  <span style="font-size:22px">💡</span>
   <div>
-    <div style="font-size:18px;font-weight:800;color:#34d399;line-height:1">8</div>
-    <div style="font-size:10.5px;color:#475569;margin-top:1px">Soal Kuis</div>
+    <div style="font-size:20px;font-weight:800;color:#34d399;line-height:1">8</div>
+    <div style="font-size:10.5px;color:#475569;margin-top:2px">Soal Kuis</div>
   </div>
 </div>
-<div style="flex:1;background:#0d1526;border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px">
-  <span style="font-size:20px">🏭</span>
+<div style="flex:1;background:#0d1526;border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:13px 16px;display:flex;align-items:center;gap:12px">
+  <span style="font-size:22px">🏭</span>
   <div>
-    <div style="font-size:18px;font-weight:800;color:#fbbf24;line-height:1">5</div>
-    <div style="font-size:10.5px;color:#475569;margin-top:1px">Kasus Industri</div>
+    <div style="font-size:20px;font-weight:800;color:#fbbf24;line-height:1">5</div>
+    <div style="font-size:10.5px;color:#475569;margin-top:2px">Kasus Industri</div>
   </div>
 </div>
 </div>
 </v-click>
+
+</div>
 
 ---
 layout: default
