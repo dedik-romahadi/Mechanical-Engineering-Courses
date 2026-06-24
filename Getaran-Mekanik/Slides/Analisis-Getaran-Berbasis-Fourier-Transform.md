@@ -500,12 +500,16 @@ title: "DFT — Transformasi Fourier Diskrit"
 
 Sinyal kontinyu $x(t)$ di-sampling menjadi $N$ sampel diskrit $x[n]$, lalu dihitung:
 
+<div style="font-size:1.18em;line-height:1">
+
 $$\boxed{X[k] = \sum_{n=0}^{N-1} x[n]\,e^{-j\frac{2\pi}{N}kn}, \quad k = 0,1,\ldots,N{-}1}$$
 
 $$\boxed{x[n] = \frac{1}{N}\sum_{k=0}^{N-1} X[k]\,e^{\,j\frac{2\pi}{N}kn}} \qquad \text{(IDFT — kebalikan DFT)}$$
 
-<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px">
-<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #00e5ff;border-radius:8px;padding:13px;font-size:13px">
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px;align-items:stretch">
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #00e5ff;border-radius:8px;padding:13px;font-size:13px;display:flex;flex-direction:column">
 <div style="color:#67e8f9;font-weight:700;margin-bottom:6px">Parameter DFT</div>
 
 - $N$ = jumlah sampel
@@ -514,7 +518,7 @@ $$\boxed{x[n] = \frac{1}{N}\sum_{k=0}^{N-1} X[k]\,e^{\,j\frac{2\pi}{N}kn}} \qqua
 - **Bin frekuensi:** $f_k = k \cdot f_s / N$
 
 </div>
-<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #34d399;border-radius:8px;padding:13px;font-size:13px">
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #34d399;border-radius:8px;padding:13px;font-size:13px;display:flex;flex-direction:column">
 <div style="color:#6ee7b7;font-weight:700;margin-bottom:6px">Output DFT</div>
 
 - $X[k]$ = bilangan kompleks
@@ -523,7 +527,7 @@ $$\boxed{x[n] = \frac{1}{N}\sum_{k=0}^{N-1} X[k]\,e^{\,j\frac{2\pi}{N}kn}} \qqua
 - Analisis: $k = 0$ hingga $N/2$ saja
 
 </div>
-<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #a78bfa;border-radius:8px;padding:13px;font-size:13px">
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #a78bfa;border-radius:8px;padding:13px;font-size:13px;display:flex;flex-direction:column">
 <div style="color:#fbbf24;font-weight:700;margin-bottom:6px">Kompleksitas</div>
 
 - DFT langsung: $\mathcal{O}(N^2)$
