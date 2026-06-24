@@ -1373,7 +1373,7 @@ $$c = 2m\omega_n\zeta = 2 \times 2.5 \times 785.4 \times 0.028 = \mathbf{110.0\,
 </v-clicks>
 
 <style scoped>
-.slidev-layout { font-size: 14.5px; line-height: 1.45; padding-top: 40px !important; padding-bottom: 40px !important; }
+.slidev-layout { font-size: 14.5px; line-height: 1.45; padding-top: 60px !important; padding-bottom: 40px !important; }
 .slidev-layout .katex-display { margin: 4px 0 !important; }
 .soal-card {
   background: linear-gradient(135deg, rgba(124,77,255,.16), rgba(0,229,255,.08));
@@ -1408,7 +1408,7 @@ $$c = 2m\omega_n\zeta = 2 \times 2.5 \times 785.4 \times 0.028 = \mathbf{110.0\,
   border-left: 4px solid #34d399;
   border-radius: 10px;
   padding: 7px 16px; font-size: 14px; line-height: 1.4;
-  margin-top: 10px;
+  margin-top: 22px;
 }
 .kesimpulan b { color: #6ee7b7; }
 </style>
