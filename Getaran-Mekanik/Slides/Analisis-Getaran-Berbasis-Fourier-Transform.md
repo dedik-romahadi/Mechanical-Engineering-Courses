@@ -1470,6 +1470,12 @@ title: "Referensi"
 ---
 
 
+<div class="ref-title">
+  <span class="ref-ico">📖</span>
+  <span class="ref-word">Referensi</span>
+  <span class="ref-ico ref-ico2">📚</span>
+</div>
+
 <div class="ref-list">
 
 1. **Brandt, A.** (2011). *Noise and Vibration Analysis: Signal Analysis and Experimental Procedures*. Wiley. *(Referensi utama — DFT/FFT praktis)*
