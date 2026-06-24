@@ -919,7 +919,7 @@ $N=4096$ → 1600 lines
 </div>
 <div style="background:#060c18;border-radius:6px;padding:10px;text-align:center">
 <div style="color:#6ee7b7;font-weight:700;margin-bottom:4px">② Tentukan f<sub>s</sub></div>
-<div>$f_s = 2.56 \times 500$<br/><strong style="color:#a78bfa">= 1280 Hz</strong></div>
+<div><i>f</i><sub>s</sub> = 2.56 × 500<br/><strong style="color:#a78bfa">= 1280 Hz</strong></div>
 </div>
 <div style="background:#060c18;border-radius:6px;padding:10px;text-align:center">
 <div style="color:#fbbf24;font-weight:700;margin-bottom:4px">③ Tentukan &Delta;f</div>
@@ -927,7 +927,7 @@ $N=4096$ → 1600 lines
 </div>
 <div style="background:#060c18;border-radius:6px;padding:10px;text-align:center">
 <div style="color:#c4b5fd;font-weight:700;margin-bottom:4px">④ Hitung N & T</div>
-<div>$N = 1280/0.5 = 2560$<br/><strong style="color:#a78bfa">T = 2 detik</strong></div>
+<div><i>N</i> = 1280 / 0.5 = 2560<br/><strong style="color:#a78bfa">T = 2 detik</strong></div>
 </div>
 </div>
 </div>
