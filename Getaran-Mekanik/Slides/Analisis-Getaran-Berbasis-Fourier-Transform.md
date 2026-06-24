@@ -1425,40 +1425,82 @@ title: "Terima Kasih"
 ---
 
 
-**Ada pertanyaan?**
+<div class="ty-wrap">
 
-<div style="margin-top:24px;color:#94a3b8;line-height:2.2">
+<img src="/UMB.png" class="ty-logo" alt="Universitas Mercu Buana" />
 
-Dedik Romahadi, S.T., M.T.<br/>
-<span style="color:#a78bfa">📧</span> dedik.romahadi@mercubuana.ac.id<br/>
-Program Studi Teknik Mesin — Universitas Mercu Buana
+<div class="ty-title">Terima Kasih</div>
+<div class="ty-sub">Ada pertanyaan?</div>
+
+<div class="ty-eq">
+  <span style="height:26px;animation-delay:0s"></span>
+  <span style="height:38px;animation-delay:.12s"></span>
+  <span style="height:50px;animation-delay:.24s"></span>
+  <span style="height:32px;animation-delay:.36s"></span>
+  <span style="height:44px;animation-delay:.48s"></span>
+  <span style="height:22px;animation-delay:.10s"></span>
+  <span style="height:34px;animation-delay:.30s"></span>
+  <span style="height:48px;animation-delay:.18s"></span>
+  <span style="height:28px;animation-delay:.42s"></span>
+  <span style="height:40px;animation-delay:.06s"></span>
+  <span style="height:20px;animation-delay:.34s"></span>
+  <span style="height:46px;animation-delay:.22s"></span>
+  <span style="height:30px;animation-delay:.50s"></span>
+  <span style="height:42px;animation-delay:.14s"></span>
+  <span style="height:24px;animation-delay:.38s"></span>
+  <span style="height:36px;animation-delay:.26s"></span>
+  <span style="height:18px;animation-delay:.46s"></span>
+  <span style="height:32px;animation-delay:.08s"></span>
+  <span style="height:26px;animation-delay:.32s"></span>
+  <span style="height:22px;animation-delay:.20s"></span>
+  <span style="height:16px;animation-delay:.44s"></span>
+</div>
+
+<div class="ty-contact">
+  <div class="ty-name">Dedik Romahadi, S.T., M.T.</div>
+  <div class="ty-mail">📧 dedik.romahadi@mercubuana.ac.id</div>
+  <div class="ty-prodi">Program Studi Teknik Mesin — Universitas Mercu Buana</div>
+</div>
+
+<div class="ty-foot">Getaran Mekanik · S1 Teknik Mesin · Universitas Mercu Buana · Semester Genap 2025/2026</div>
 
 </div>
 
-<div style="margin-top:20px">
-<svg viewBox="0 0 400 60" style="width:360px;height:50px;display:block;margin:0 auto">
-  <line x1="0" y1="30" x2="400" y2="30" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
-  <rect x="30"  y="10" width="8" height="40" rx="2" fill="#a78bfa" opacity="0.9"/>
-  <rect x="50"  y="20" width="8" height="30" rx="2" fill="#a78bfa" opacity="0.7"/>
-  <rect x="70"  y="5"  width="8" height="50" rx="2" fill="#a78bfa" opacity="0.95"/>
-  <rect x="90"  y="15" width="8" height="30" rx="2" fill="#00e5ff" opacity="0.8"/>
-  <rect x="110" y="8"  width="8" height="44" rx="2" fill="#a78bfa" opacity="0.9"/>
-  <rect x="130" y="22" width="8" height="16" rx="2" fill="#34d399" opacity="0.7"/>
-  <rect x="150" y="18" width="8" height="24" rx="2" fill="#a78bfa" opacity="0.6"/>
-  <rect x="170" y="12" width="8" height="36" rx="2" fill="#00e5ff" opacity="0.5"/>
-  <rect x="190" y="25" width="8" height="10" rx="2" fill="#a78bfa" opacity="0.4"/>
-  <rect x="210" y="20" width="8" height="20" rx="2" fill="#34d399" opacity="0.5"/>
-  <rect x="230" y="28" width="8" height="4"  rx="2" fill="#a78bfa" opacity="0.3"/>
-  <rect x="250" y="15" width="8" height="30" rx="2" fill="#a78bfa" opacity="0.4"/>
-  <rect x="270" y="22" width="8" height="16" rx="2" fill="#00e5ff" opacity="0.3"/>
-  <rect x="290" y="26" width="8" height="8"  rx="2" fill="#a78bfa" opacity="0.25"/>
-  <rect x="310" y="28" width="8" height="4"  rx="2" fill="#34d399" opacity="0.2"/>
-  <rect x="330" y="29" width="8" height="2"  rx="2" fill="#a78bfa" opacity="0.15"/>
-  <rect x="350" y="29" width="8" height="2"  rx="2" fill="#a78bfa" opacity="0.1"/>
-</svg>
-<div style="font-size:11px;color:#334155;margin-top:4px">Spektrum FFT sinyal getaran mesin</div>
-</div>
-
-<div style="margin-top:10px;font-size:11px;color:#334155">
-Getaran Mekanik — S1 Teknik Mesin — Universitas Mercu Buana — Semester Genap 2025/2026
-</div>
+<style scoped>
+.ty-wrap {
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; gap: 0;
+}
+.ty-logo {
+  width: 76px; height: auto; margin-bottom: 16px;
+  filter: drop-shadow(0 0 16px rgba(124,77,255,.55));
+  animation: ty-float 3.2s ease-in-out infinite;
+}
+.ty-title {
+  font-size: 56px; font-weight: 800; letter-spacing: .01em; line-height: 1.05;
+  background: linear-gradient(90deg, #a78bfa, #00e5ff, #fbbf24, #a78bfa);
+  background-size: 250% auto;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: ty-shine 5s linear infinite;
+}
+.ty-sub { font-size: 18px; color: #94a3b8; margin-top: 8px; letter-spacing: .02em; }
+.ty-eq {
+  display: flex; align-items: flex-end; justify-content: center;
+  gap: 4px; height: 52px; margin: 26px 0 22px;
+}
+.ty-eq span {
+  width: 6px; border-radius: 3px;
+  background: linear-gradient(180deg, #00e5ff, #a78bfa);
+  transform-origin: bottom;
+  animation: ty-bar 1.1s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(124,77,255,.35);
+}
+.ty-contact { line-height: 1.85; }
+.ty-name { color: #f1f5f9; font-weight: 700; font-size: 16px; }
+.ty-mail { color: #a78bfa; font-size: 14px; }
+.ty-prodi { color: #64748b; font-size: 13px; }
+.ty-foot { margin-top: 18px; font-size: 11px; color: #334155; letter-spacing: .03em; }
+@keyframes ty-shine { to { background-position: 250% center; } }
+@keyframes ty-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes ty-bar { 0%,100% { transform: scaleY(.28); opacity: .65; } 50% { transform: scaleY(1); opacity: 1; } }
+</style>
