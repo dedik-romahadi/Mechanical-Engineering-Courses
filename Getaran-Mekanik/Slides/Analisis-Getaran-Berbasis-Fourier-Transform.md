@@ -712,7 +712,7 @@ class: tight
 <div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #00e5ff;border-radius:8px;padding:14px">
 <div style="color:#67e8f9;font-weight:700;margin-bottom:8px">Resolusi Frekuensi</div>
 
-$$\Delta f = \frac{f_s}{N} = \frac{1}{T_{total}}$$
+$\displaystyle \Delta f = \frac{f_s}{N} = \frac{1}{T_{total}}$
 
 Makin panjang rekaman → $\Delta f$ lebih kecil → dapat membedakan frekuensi yang berdekatan
 
@@ -720,7 +720,7 @@ Makin panjang rekaman → $\Delta f$ lebih kecil → dapat membedakan frekuensi 
 <div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #34d399;border-radius:8px;padding:14px">
 <div style="color:#6ee7b7;font-weight:700;margin-bottom:8px">Frekuensi Nyquist</div>
 
-$$f_{Nyq} = \frac{f_s}{2}$$
+$\displaystyle f_{Nyq} = \frac{f_s}{2}$
 
 Batas frekuensi tertinggi yang bisa dianalisis. Standar industri: $f_s \geq 2.56\,f_{\max}$
 
@@ -728,7 +728,7 @@ Batas frekuensi tertinggi yang bisa dianalisis. Standar industri: $f_s \geq 2.56
 <div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #a78bfa;border-radius:8px;padding:14px">
 <div style="color:#fbbf24;font-weight:700;margin-bottom:8px">Spectral Lines</div>
 
-$$N_{lines} = N / 2.56$$
+$\displaystyle N_{lines} = N / 2.56$
 
 $N=1024$ → 400 lines
 $N=2048$ → 800 lines
@@ -815,7 +815,7 @@ class: tight
 <div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:14px">
 <div style="color:#a78bfa;font-weight:700;margin-bottom:8px">Hanning Window</div>
 
-$$w[n] = 0.5\!\left[1 - \cos\!\left(\frac{2\pi n}{N-1}\right)\right]$$
+$\displaystyle w[n] = 0.5\!\left[1 - \cos\!\left(\frac{2\pi n}{N-1}\right)\right]$
 
 <div style="display:flex;gap:14px;font-size:10.5px;margin:4px 0 2px"><span style="color:#a78bfa">▬ Hanning (memudar)</span><span style="color:#5b9bd5">▬ Rectangular</span></div>
 <svg viewBox="0 0 220 86" preserveAspectRatio="none" style="width:100%;height:72px">
@@ -843,19 +843,19 @@ Output DFT adalah $X[k]$ (bilangan kompleks) untuk $k = 0,\ldots,N-1$. Dua kuant
 <div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #00e5ff;border-radius:8px;padding:14px">
 <div style="color:#67e8f9;font-weight:700;margin-bottom:8px">Spektrum Amplitudo</div>
 
-$$|X[k]| = \sqrt{\text{Re}^2(X[k]) + \text{Im}^2(X[k])}$$
+$\displaystyle |X[k]| = \sqrt{\text{Re}^2(X[k]) + \text{Im}^2(X[k])}$
 
 Koreksi untuk sinyal real (single-sided):
-$$A_k = \frac{2\,|X[k]|}{N} \;(k>0); \quad A_0 = \frac{|X[0]|}{N}$$
+$\displaystyle A_k = \frac{2\,|X[k]|}{N} \;(k>0); \quad A_0 = \frac{|X[0]|}{N}$
 
 **Power Spectral Density:**
-$$S_{xx}[k] = \frac{|X[k]|^2}{\Delta f} \quad [\text{m}^2/\text{Hz}]$$
+$\displaystyle S_{xx}[k] = \frac{|X[k]|^2}{\Delta f} \quad [\text{m}^2/\text{Hz}]$
 
 </div>
 <div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #a78bfa;border-radius:8px;padding:14px">
 <div style="color:#fbbf24;font-weight:700;margin-bottom:8px">Spektrum Fasa</div>
 
-$$\angle X[k] = \arctan\!\left(\frac{\text{Im}(X[k])}{\text{Re}(X[k])}\right)$$
+$\displaystyle \angle X[k] = \arctan\!\left(\frac{\text{Im}(X[k])}{\text{Re}(X[k])}\right)$
 
 **Penggunaan:**
 - Balancing rotor (koreksi massa & sudut)
@@ -863,7 +863,7 @@ $$\angle X[k] = \arctan\!\left(\frac{\text{Im}(X[k])}{\text{Re}(X[k])}\right)$$
 - Pengukuran transfer function
 
 **RMS dari spektrum:**
-$$x_{rms} = \sqrt{\sum_k |X[k]|^2 / N^2}$$
+$\displaystyle x_{rms} = \sqrt{\sum_k |X[k]|^2 / N^2}$
 
 <div style="font-size:12px;color:#94a3b8;margin-top:8px">Untuk diagnosis rutin, cukup amplitudo. Fasa dibutuhkan untuk analisis kuantitatif lanjut.</div>
 </div>
@@ -1020,7 +1020,7 @@ Selain spektrum FFT, indikator statistik domain waktu digunakan untuk monitoring
 <div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #00e5ff;border-radius:8px;padding:14px">
 <div style="color:#67e8f9;font-weight:700;margin-bottom:8px">RMS</div>
 
-$$x_{rms} = \sqrt{\frac{1}{N}\sum_{n=1}^{N}x[n]^2}$$
+$\displaystyle x_{rms} = \sqrt{\frac{1}{N}\sum_{n=1}^{N}x[n]^2}$
 
 Terkait energi total getaran. Baik untuk tren jangka panjang. Satuan: mm/s (kecepatan).
 
@@ -1028,7 +1028,7 @@ Terkait energi total getaran. Baik untuk tren jangka panjang. Satuan: mm/s (kece
 <div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #34d399;border-radius:8px;padding:14px">
 <div style="color:#6ee7b7;font-weight:700;margin-bottom:8px">Crest Factor</div>
 
-$$CF = \frac{x_{\text{peak}}}{x_{rms}}$$
+$\displaystyle CF = \frac{x_{\text{peak}}}{x_{rms}}$
 
 Normal: $CF \approx 1.4$–$2.0$. Meningkat saat ada impak periodik. Berguna untuk deteksi dini kerusakan bearing.
 
@@ -1036,7 +1036,7 @@ Normal: $CF \approx 1.4$–$2.0$. Meningkat saat ada impak periodik. Berguna unt
 <div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #a78bfa;border-radius:8px;padding:14px">
 <div style="color:#fbbf24;font-weight:700;margin-bottom:8px">Kurtosis</div>
 
-$$K = \frac{\frac{1}{N}\sum(x-\bar{x})^4}{\sigma^4}$$
+$\displaystyle K = \frac{\frac{1}{N}\sum(x-\bar{x})^4}{\sigma^4}$
 
 Normal: $K = 3$. Cacat bearing: $K > 6$. Sangat sensitif di tahap awal — lebih baik dari RMS untuk deteksi dini.
 
