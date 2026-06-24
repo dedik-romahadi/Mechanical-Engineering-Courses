@@ -276,3 +276,51 @@
 #slidev-goto-dialog {
   display: none !important;
 }
+
+/* ============================================================
+   Transisi antar-slide kustom (selain bawaan Slidev:
+   slide-left/right/up/down, fade, fade-out). Dipakai via
+   `transition:` di frontmatter tiap slide. Durasi global di
+   bawah agar terasa mulus tapi tetap responsif.
+   ============================================================ */
+:root { --slidev-transition-duration: 480ms; }
+
+/* Zoom — masuk membesar dari kecil, keluar membesar sedikit lalu pudar */
+.zoom-enter-active, .zoom-leave-active {
+  transition: opacity var(--slidev-transition-duration) ease,
+              transform var(--slidev-transition-duration) cubic-bezier(.4,0,.2,1);
+}
+.zoom-enter-from { opacity: 0; transform: scale(.86); }
+.zoom-leave-to  { opacity: 0; transform: scale(1.08); }
+
+/* Flip — putar 3D pada sumbu Y, kesan kartu dibalik */
+.flip-enter-active, .flip-leave-active {
+  transition: opacity var(--slidev-transition-duration) ease,
+              transform var(--slidev-transition-duration) cubic-bezier(.4,0,.2,1);
+  backface-visibility: hidden;
+}
+.flip-enter-from { opacity: 0; transform: perspective(1400px) rotateY(38deg) scale(.92); }
+.flip-leave-to  { opacity: 0; transform: perspective(1400px) rotateY(-38deg) scale(.92); }
+
+/* Glide — geser halus + sedikit mengecil, lebih lembut dari slide */
+.glide-enter-active, .glide-leave-active {
+  transition: opacity var(--slidev-transition-duration) ease,
+              transform var(--slidev-transition-duration) cubic-bezier(.22,1,.36,1);
+}
+.glide-enter-from { opacity: 0; transform: translateX(64px) scale(.96); }
+.glide-leave-to  { opacity: 0; transform: translateX(-64px) scale(.96); }
+
+/* Swirl — putar ringan + skala, kesan dinamis */
+.swirl-enter-active, .swirl-leave-active {
+  transition: opacity var(--slidev-transition-duration) ease,
+              transform var(--slidev-transition-duration) cubic-bezier(.4,0,.2,1);
+}
+.swirl-enter-from { opacity: 0; transform: rotate(-6deg) scale(.84); }
+.swirl-leave-to   { opacity: 0; transform: rotate(6deg) scale(1.1); }
+
+/* Blur-fade — pudar disertai blur, transisi sinematik */
+.blur-fade-enter-active, .blur-fade-leave-active {
+  transition: opacity var(--slidev-transition-duration) ease,
+              filter var(--slidev-transition-duration) ease;
+}
+.blur-fade-enter-from, .blur-fade-leave-to { opacity: 0; filter: blur(14px); }

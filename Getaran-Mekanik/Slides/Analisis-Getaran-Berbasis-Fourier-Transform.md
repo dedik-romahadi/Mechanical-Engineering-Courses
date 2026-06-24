@@ -270,6 +270,7 @@ onBeforeUnmount(() => clearInterval(_t))
 
 ---
 layout: default
+transition: slide-left | slide-right
 title: "Peta Materi"
 ---
 
@@ -365,6 +366,7 @@ Bayangkan FFT sebagai <strong>detektor nada</strong> pada tuner gitar digital: A
 
 ---
 layout: default
+transition: fade
 title: "Capaian Pembelajaran (CPMK)"
 ---
 
@@ -447,6 +449,7 @@ title: "Capaian Pembelajaran (CPMK)"
 
 ---
 layout: default
+transition: slide-up | slide-down
 title: "Mengapa Domain Frekuensi?"
 ---
 
@@ -464,6 +467,7 @@ Tiap komponen muncul sebagai <strong>puncak terpisah</strong> di frekuensinya ma
 
 ---
 layout: default
+transition: zoom
 title: "Sinyal Getaran — Karakteristik & Representasi"
 class: tight
 ---
@@ -630,6 +634,7 @@ onUnmounted(() => { if (_s5anim) cancelAnimationFrame(_s5anim) })
 
 ---
 layout: default
+transition: glide
 title: "DFT — Transformasi Fourier Diskrit"
 class: tight
 ---
@@ -725,6 +730,7 @@ $$\boxed{x[n] = \frac{1}{N}\sum_{k=0}^{N-1} X[k]\,e^{\,j\frac{2\pi}{N}kn}} \qqua
 
 ---
 layout: two-cols
+transition: flip
 title: "FFT — Algoritma & Implementasi"
 class: tight shift-down
 ---
@@ -869,6 +875,7 @@ function copyCode() {
 
 ---
 layout: default
+transition: slide-left | slide-right
 title: "Resolusi Frekuensi & Desain Akuisisi"
 class: tight
 ---
@@ -927,6 +934,7 @@ $N=4096$ → 1600 lines
 
 ---
 layout: default
+transition: swirl
 title: "Teorema Nyquist & Aliasing"
 class: tight
 ---
@@ -951,6 +959,7 @@ Jika dilanggar → aliasing: $f_{alias} = |f_{sinyal} - n \cdot f_s|$
 
 ---
 layout: default
+transition: blur-fade
 title: "Windowing — Mengatasi Spectral Leakage"
 class: tight
 ---
@@ -998,6 +1007,7 @@ $\displaystyle w[n] = 0.5\!\left[1 - \cos\!\left(\frac{2\pi n}{N-1}\right)\right
 
 ---
 layout: default
+transition: zoom
 title: "Spektrum FFT — Interpretasi Output"
 class: tight
 ---
@@ -1037,6 +1047,7 @@ $\displaystyle x_{rms} = \sqrt{\sum_k |X[k]|^2 / N^2}$
 
 ---
 layout: default
+transition: slide-up | slide-down
 title: "Prosedur Analisis FFT Getaran Mesin"
 class: tight
 ---
@@ -1075,6 +1086,7 @@ Analyzer industri (Brüel & Kjær, SKF, Fluke) menjalankan loop ini otomatis set
 
 ---
 layout: default
+transition: glide
 title: "Pola Spektrum & Diagnosis Kerusakan Mesin"
 class: tight
 ---
@@ -1109,6 +1121,7 @@ $f_{rot}$ = 50 Hz. Tiba-tiba muncul puncak besar di <strong>100 Hz (2×)</strong
 
 ---
 layout: default
+transition: fade
 title: "FRF & Identifikasi Frekuensi Natural"
 class: tight
 ---
@@ -1133,6 +1146,7 @@ Saat frekuensi operasi mesin mendekati $\omega_n$, amplitudo meledak. Jembatan T
 
 ---
 layout: two-cols
+transition: flip
 title: "Aplikasi — Predictive Maintenance & Bearing"
 class: tight
 ---
@@ -1175,6 +1189,7 @@ Pabrik baja dan petrokimia memasang sensor akselerometer permanen pada ratusan b
 
 ---
 layout: default
+transition: slide-left | slide-right
 title: "Indikator Kondisi Getaran"
 class: tight
 ---
@@ -1219,6 +1234,7 @@ Normal: $K = 3$. Cacat bearing: $K > 6$. Sangat sensitif di tahap awal — lebih
 
 ---
 layout: default
+transition: blur-fade
 title: "Implementasi Python — Analisis FFT Lengkap"
 class: code-dense
 ---
@@ -1258,6 +1274,7 @@ for p in peaks:
 
 ---
 layout: default
+transition: zoom
 title: "Contoh Soal 1 — Identifikasi Sumber Getaran"
 class: soal-keren
 ---
@@ -1340,6 +1357,7 @@ Akselerometer pada poros mengukur getaran mesin berputar <b>1800 RPM</b>. Spektr
 
 ---
 layout: default
+transition: glide
 title: "Contoh Soal 2 — Identifikasi Parameter Modal via FRF"
 class: soal-keren
 ---
@@ -1374,6 +1392,7 @@ $$c = 2m\omega_n\zeta = 2 \times 2.5 \times 785.4 \times 0.028 = \mathbf{110.0\,
 
 ---
 layout: default
+transition: slide-left | slide-right
 title: "Latihan Interaktif (1/3)"
 class: tight
 ---
@@ -1390,6 +1409,7 @@ class: tight
 
 ---
 layout: default
+transition: slide-left | slide-right
 title: "Latihan Interaktif (2/3)"
 class: tight
 ---
@@ -1406,6 +1426,7 @@ class: tight
 
 ---
 layout: default
+transition: slide-left | slide-right
 title: "Latihan Interaktif (3/3)"
 class: tight
 ---
@@ -1422,6 +1443,7 @@ class: tight
 
 ---
 layout: default
+transition: swirl
 title: "Rangkuman"
 class: tight
 ---
@@ -1466,6 +1488,7 @@ class: tight
 
 ---
 layout: default
+transition: fade
 title: "Referensi"
 ---
 
@@ -1491,6 +1514,7 @@ title: "Referensi"
 ---
 layout: center
 class: text-center
+transition: zoom
 title: "Terima Kasih"
 ---
 
