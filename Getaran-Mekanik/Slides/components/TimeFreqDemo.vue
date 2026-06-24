@@ -1,6 +1,5 @@
 <!--
-  TimeFreqDemo.vue — Ilustrasi interaktif: dari domain waktu ke domain frekuensi.
-  Klik "Urai" → sinyal campuran (3 sinus) terpisah menjadi puncak-puncak spektrum.
+  TimeFreqDemo.vue — Ilustrasi interaktif: domain waktu ke domain frekuensi.
 -->
 <template>
   <div class="tf">
@@ -12,12 +11,10 @@
           <path :d="mixPath" class="tf-mix" />
         </svg>
       </div>
-
       <div class="tf-arrow">
         <div class="tf-ft">ℱ</div>
         <div class="tf-arrowline">→</div>
       </div>
-
       <div class="tf-card">
         <div class="tf-cap">Domain Frekuensi — puncak terpisah jelas</div>
         <svg viewBox="0 0 360 120" preserveAspectRatio="none" class="tf-svg">
@@ -30,7 +27,6 @@
         </svg>
       </div>
     </div>
-
     <div class="tf-ctrl">
       <button class="tf-btn" @click="toggle">{{ exploded ? '↩ Gabung kembali' : '✨ Urai sinyal (FFT)' }}</button>
       <span class="tf-hint">{{ exploded ? 'Tiap warna = satu komponen frekuensi.' : 'Klik untuk memisahkan komponen.' }}</span>
@@ -39,15 +35,12 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
-
-// 3 komponen: (frekuensi tampilan, amplitudo, posisi-x spektrum, warna)
+import { ref, computed } from 'vue'
 const comps = [
-  { f: 30,  amp: 1.0, fx: 70,  h: 80, color: '#c8922a' },
-  { f: 60,  amp: 0.5, fx: 170, h: 42, color: '#5b9bd5' },
-  { f: 90,  amp: 0.3, fx: 270, h: 26, color: '#82c182' },
+  { f: 30, amp: 1.0, fx: 70,  h: 80, color: '#a78bfa' },
+  { f: 60, amp: 0.5, fx: 170, h: 42, color: '#00e5ff' },
+  { f: 90, amp: 0.3, fx: 270, h: 26, color: '#fbbf24' },
 ]
-
 const W = 360, MID = 60
 const mixPath = computed(() => {
   let d = ''
@@ -59,7 +52,6 @@ const mixPath = computed(() => {
   }
   return d
 })
-
 const exploded = ref(false)
 const grown = ref(0)
 let raf = null
@@ -73,38 +65,29 @@ function animate(target) {
   }
   step()
 }
-function toggle() {
-  exploded.value = !exploded.value
-  animate(exploded.value ? 1 : 0)
-}
+function toggle() { exploded.value = !exploded.value; animate(exploded.value ? 1 : 0) }
 </script>
 
 <style scoped>
 .tf {
-  border: 1px solid #2e2a21; border-radius: 10px;
-  background: #161410; padding: 14px 16px; color: #e7e2d8;
+  border: 1px solid rgba(255,255,255,.08); border-radius: 10px;
+  background: #0d1526; padding: 14px 16px; color: #f1f5f9;
   transition: border-color 0.22s ease, box-shadow 0.22s ease;
 }
-.tf:hover {
-  border-color: rgba(200,146,42,0.55);
-  box-shadow: 0 0 0 1px rgba(200,146,42,0.18), 0 6px 28px rgba(200,146,42,0.13);
-}
+.tf:hover { border-color: rgba(167,139,250,0.5); box-shadow: 0 0 0 1px rgba(167,139,250,0.15), 0 6px 28px rgba(167,139,250,0.12); }
 .tf-row { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; }
-.tf-card { background: #100e0a; border: 1px solid #26221a; border-radius: 8px; padding: 8px; }
-.tf-cap { font-size: 11px; color: #968f84; margin-bottom: 4px; }
+.tf-card { background: #06091a; border: 1px solid rgba(255,255,255,.06); border-radius: 8px; padding: 8px; }
+.tf-cap { font-size: 11px; color: #64748b; margin-bottom: 4px; }
 .tf-svg { width: 100%; height: 120px; display: block; }
-.tf-axis { stroke: #3a352b; stroke-width: 1; stroke-dasharray: 3 3; }
-.tf-mix { fill: none; stroke: #d9b15a; stroke-width: 2; }
+.tf-axis { stroke: rgba(255,255,255,.1); stroke-width: 1; stroke-dasharray: 3 3; }
+.tf-mix { fill: none; stroke: #c4b5fd; stroke-width: 2; }
 .tf-peak { transition: none; }
-.tf-tick { fill: #8a8478; font-size: 9px; text-anchor: middle; }
-.tf-arrow { display: flex; flex-direction: column; align-items: center; color: #c8922a; }
+.tf-tick { fill: #64748b; font-size: 9px; text-anchor: middle; }
+.tf-arrow { display: flex; flex-direction: column; align-items: center; color: #a78bfa; }
 .tf-ft { font-size: 22px; font-style: italic; font-weight: 700; }
 .tf-arrowline { font-size: 26px; line-height: 1; }
 .tf-ctrl { display: flex; align-items: center; gap: 14px; margin-top: 12px; }
-.tf-btn {
-  font-size: 13px; font-weight: 600; color: #1a1917; background: #c8922a;
-  border: none; border-radius: 6px; padding: 6px 16px; cursor: pointer;
-}
-.tf-btn:hover { background: #d9a838; }
-.tf-hint { font-size: 12px; color: #968f84; }
+.tf-btn { font-size: 13px; font-weight: 600; color: #030712; background: #a78bfa; border: none; border-radius: 6px; padding: 6px 16px; cursor: pointer; }
+.tf-btn:hover { background: #c4b5fd; }
+.tf-hint { font-size: 12px; color: #64748b; }
 </style>
