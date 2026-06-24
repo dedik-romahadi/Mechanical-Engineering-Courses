@@ -1270,7 +1270,7 @@ Akselerometer pada poros mengukur getaran mesin berputar <b>1800 RPM</b>. Spektr
 
 <v-clicks>
 
-<div class="step"><span class="step-no">1</span> <b>Hitung frekuensi rotasi</b> &nbsp; $f_{rot} = \dfrac{1800}{60} = 30\,\text{Hz}$</div>
+<div class="step"><span class="step-no">1</span> <b>Hitung frekuensi rotasi</b> &nbsp; <span class="eq"><i>f</i><sub>rot</sub> = 1800 / 60 = <b>30 Hz</b></span></div>
 
 <div class="step"><span class="step-no">2</span> <b>Identifikasi tiap puncak spektrum:</b></div>
 
@@ -1281,14 +1281,20 @@ Akselerometer pada poros mengukur getaran mesin berputar <b>1800 RPM</b>. Spektr
 | 90 Hz | $3\times$ | 🟡 Harmonik ke-3 → kelonggaran mekanis |
 | 340 Hz | $11.3\times$ | 🟣 Non-harmonik → kemungkinan **gear mesh** |
 
-<div class="step"><span class="step-no">3</span> <b>Verifikasi gear mesh</b> &nbsp; $f_{mesh} = f_{rot}\times Z = 30Z$ → untuk 340 Hz, $Z\approx 11.3$</div>
+<div class="step"><span class="step-no">3</span> <b>Verifikasi gear mesh</b> &nbsp; <span class="eq"><i>f</i><sub>mesh</sub> = <i>f</i><sub>rot</sub> × Z = 30Z</span> → untuk 340 Hz, <span class="eq">Z ≈ 11.3</span></div>
 
 <div class="kesimpulan">✅ <b>Kesimpulan:</b> Mesin mengalami <b>unbalance + misalignment</b>. Perlu <b>balancing rotor</b> dan pengecekan kopling!</div>
 
 </v-clicks>
 
 <style scoped>
-.slidev-layout { font-size: 15.5px; line-height: 1.5; }
+.slidev-layout { font-size: 15.5px; line-height: 1.5; padding-top: 34px !important; }
+.eq {
+  font-family: 'KaTeX_Main', 'Times New Roman', serif;
+  color: #e9d5ff; font-size: 16px;
+}
+.eq i { font-family: 'KaTeX_Math', 'Times New Roman', serif; }
+.eq b { color: #67e8f9; }
 .soal-card {
   position: relative;
   background: linear-gradient(135deg, rgba(124,77,255,.16), rgba(0,229,255,.08));
