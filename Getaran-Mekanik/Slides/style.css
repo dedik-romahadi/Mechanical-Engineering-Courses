@@ -170,9 +170,14 @@
   padding: 6px 10px 6px 12px !important;
   margin: 6px 0 !important;
   font-size: 12.5px; line-height: 1.4;
-  transition: border-color .2s ease, transform .2s ease;
+  transition: border-color .2s ease, transform .2s cubic-bezier(.22,1,.36,1), box-shadow .2s ease, filter .2s ease;
 }
-.slidev-page-23 li:hover { border-left-color: #00e5ff; transform: translateX(2px); }
+.slidev-page-23 li:hover {
+  border-left-color: #00e5ff;
+  transform: translateY(-4px);
+  box-shadow: 0 10px 28px rgba(0,0,0,.45), 0 0 18px rgba(124,77,255,.3);
+  filter: brightness(1.08);
+}
 .slidev-page-23 .pesan-kunci {
   background: linear-gradient(135deg, rgba(124,77,255,.18), rgba(0,229,255,.07));
   border: 1px solid rgba(167,139,250,.4);
@@ -196,9 +201,14 @@
   padding: 8px 12px 8px 44px !important;
   margin: 7px 0 !important;
   font-size: 12.5px; line-height: 1.5; color: #cbd5e1;
-  transition: border-color .2s ease;
+  transition: border-color .2s ease, transform .2s cubic-bezier(.22,1,.36,1), box-shadow .2s ease, filter .2s ease;
 }
-.slidev-page-24 .ref-list li:hover { border-color: rgba(124,77,255,.5); }
+.slidev-page-24 .ref-list li:hover {
+  border-color: rgba(0,229,255,.4);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 28px rgba(0,0,0,.45), 0 0 18px rgba(124,77,255,.3);
+  filter: brightness(1.08);
+}
 .slidev-page-24 .ref-list li::before {
   content: counter(ref);
   position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
@@ -324,3 +334,33 @@
               filter var(--slidev-transition-duration) ease;
 }
 .blur-fade-enter-from, .blur-fade-leave-to { opacity: 0; filter: blur(14px); }
+
+/* ============================================================
+   Efek hover universal untuk SEMUA kartu di seluruh slide.
+   Kartu di deck ini konsisten ber-background #0d1526 (kartu
+   konten) atau #06091a (kontainer kode), plus kartu ber-class
+   (.soal-card, .kesimpulan, .pesan-kunci). Saat cursor menyentuh:
+   kartu terangkat, muncul cincin cyan + glow ungu, sedikit lebih
+   terang. translateY tidak menggeser tata letak (tanpa reflow);
+   cincin via box-shadow agar aksen border-kiri warna tetap utuh.
+   ============================================================ */
+.slidev-layout div[style*="#0d1526"],
+.slidev-layout div[style*="#06091a"],
+.slidev-layout .soal-card,
+.slidev-layout .kesimpulan,
+.slidev-layout .pesan-kunci {
+  transition: transform .22s cubic-bezier(.22,1,.36,1),
+              box-shadow .22s ease,
+              filter .22s ease;
+}
+.slidev-layout div[style*="#0d1526"]:hover,
+.slidev-layout div[style*="#06091a"]:hover,
+.slidev-layout .soal-card:hover,
+.slidev-layout .kesimpulan:hover,
+.slidev-layout .pesan-kunci:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(0,0,0,.45),
+              0 0 0 1px rgba(0,229,255,.4),
+              0 0 22px rgba(124,77,255,.32);
+  filter: brightness(1.08);
+}
