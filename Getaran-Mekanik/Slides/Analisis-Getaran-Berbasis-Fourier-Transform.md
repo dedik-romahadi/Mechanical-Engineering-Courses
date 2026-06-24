@@ -127,9 +127,15 @@ layout: none
 .hdr {
   display: flex; align-items: center; justify-content: space-between;
   padding: 14px 32px;
-  border-bottom: 1px solid rgba(255,255,255,.1);
-  background: #060c18;
+  border-bottom: none;
+  background:
+    radial-gradient(120% 180% at 50% -60%, rgba(124,77,255,0.14), transparent 60%),
+    linear-gradient(90deg, #060c18 0%, #0d1526 50%, #060c18 100%);
   position: relative; z-index: 10;
+}
+.hdr::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1.5px;
+  background: linear-gradient(90deg, #7c4dff, #a78bfa, #00e5ff, #fbbf24);
 }
 .hdr-l   { display: flex; align-items: center; gap: 12px; }
 .hdr-logo {
@@ -220,10 +226,14 @@ layout: none
 .ftr {
   display: flex; align-items: center; gap: 8px;
   padding: 10px 32px;
-  border-top: 1px solid rgba(255,255,255,.1);
+  border-top: none;
   background: #060c18;
   font-size: 11px; color: #64748b;
   position: relative; z-index: 10;
+}
+.ftr::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1.5px;
+  background: linear-gradient(90deg, #7c4dff, #a78bfa, #00e5ff, #fbbf24);
 }
 .dot { color: #334155; }
 .yr  { margin-left: auto; color: #a78bfa; font-weight: 600; font-family: 'Fira Code', monospace; font-size: 10px; }
