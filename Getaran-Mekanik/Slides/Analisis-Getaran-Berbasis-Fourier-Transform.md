@@ -537,6 +537,7 @@ f    = freqs[mask]
 ---
 layout: default
 title: "Resolusi Frekuensi & Desain Akuisisi"
+class: tight
 ---
 
 
@@ -571,7 +572,7 @@ $N=4096$ → 1600 lines
 
 <div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:14px;margin-top:14px">
 <div style="color:#a78bfa;font-weight:700;margin-bottom:8px">Prosedur Desain Akuisisi — Contoh Langkah demi Langkah</div>
-<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;font-size:13px;color:#94a3b8">
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;font-size:12px;color:#94a3b8">
 <div style="background:#060c18;border-radius:6px;padding:10px;text-align:center">
 <div style="color:#67e8f9;font-weight:700;margin-bottom:4px">① Tentukan f<sub>max</sub></div>
 <div>Frekuensi tertinggi yang dianalisis<br/><strong style="color:#a78bfa">misal: 500 Hz</strong></div>
@@ -618,6 +619,7 @@ Jika dilanggar → aliasing: $f_{alias} = |f_{sinyal} - n \cdot f_s|$
 ---
 layout: default
 title: "Windowing — Mengatasi Spectral Leakage"
+class: tight
 ---
 
 
@@ -664,6 +666,7 @@ $$w[n] = 0.5\!\left[1 - \cos\!\left(\frac{2\pi n}{N-1}\right)\right]$$
 ---
 layout: default
 title: "Spektrum FFT — Interpretasi Output"
+class: tight
 ---
 
 
@@ -702,6 +705,7 @@ $$x_{rms} = \sqrt{\sum_k |X[k]|^2 / N^2}$$
 ---
 layout: default
 title: "Prosedur Analisis FFT Getaran Mesin"
+class: tight
 ---
 
 
@@ -797,7 +801,7 @@ Saat frekuensi operasi mesin mendekati $\omega_n$, amplitudo meledak. Jembatan T
 ---
 layout: two-cols
 title: "Aplikasi — Predictive Maintenance & Bearing"
-class: shift-down
+class: tight
 ---
 
 
@@ -839,6 +843,7 @@ Pabrik baja dan petrokimia memasang sensor akselerometer permanen pada ratusan b
 ---
 layout: default
 title: "Indikator Kondisi Getaran"
+class: tight
 ---
 
 
@@ -1091,7 +1096,7 @@ title: "Referensi"
 ---
 
 
-<div style="margin-top:16px;font-size:13.5px;color:#94a3b8;line-height:2.2">
+<div style="margin-top:8px;font-size:13px;color:#94a3b8;line-height:1.9">
 
 1. **Brandt, A.** (2011). *Noise and Vibration Analysis: Signal Analysis and Experimental Procedures*. Wiley. *(Referensi utama — DFT/FFT praktis)*
 
