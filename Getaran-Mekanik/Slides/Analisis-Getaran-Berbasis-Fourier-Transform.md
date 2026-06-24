@@ -633,74 +633,43 @@ $$\boxed{x[n] = \frac{1}{N}\sum_{k=0}^{N-1} X[k]\,e^{\,j\frac{2\pi}{N}kn}} \qqua
 
 </div>
 
-<div style="background:#06091a;border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:6px 10px 6px;margin-top:8px;margin-bottom:8px">
-<div style="font-size:10px;color:#475569;letter-spacing:.06em;margin-bottom:4px;font-weight:600">ILUSTRASI — Proses DFT: Sampel Diskrit x[n] → Spektrum Frekuensi X[k]</div>
-<svg viewBox="0 0 800 74" width="100%" style="display:block;overflow:hidden">
-<defs>
-<marker id="dft6-arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-<path d="M0,0.5 L0,5.5 L5.5,3 z" fill="#fbbf24"/>
-</marker>
-</defs>
-<!-- Panel kiri: x[n] domain waktu -->
-<rect x="1" y="1" width="334" height="72" rx="5" fill="#0d1526" stroke="rgba(0,229,255,.2)" stroke-width="1"/>
-<text x="167" y="12" text-anchor="middle" fill="#67e8f9" font-size="9" font-weight="700" font-family="sans-serif">x[n] — Domain Waktu (N = 8 sampel)</text>
-<line x1="14" y1="46" x2="325" y2="46" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
-<text x="329" y="50" fill="#475569" font-size="7" font-family="monospace">n</text>
-<path d="M14,46 C44,46 64,32 94,32 C124,32 144,46 174,46 C204,46 224,60 254,60 C284,60 300,46 314,46" fill="none" stroke="rgba(0,229,255,0.2)" stroke-width="1.5" stroke-dasharray="3,3"/>
-<line x1="54" y1="36" x2="54" y2="46" stroke="rgba(255,255,255,.18)" stroke-width="1"/>
-<line x1="94" y1="32" x2="94" y2="46" stroke="rgba(255,255,255,.18)" stroke-width="1"/>
-<line x1="134" y1="36" x2="134" y2="46" stroke="rgba(255,255,255,.18)" stroke-width="1"/>
-<line x1="214" y1="56" x2="214" y2="46" stroke="rgba(255,255,255,.18)" stroke-width="1"/>
-<line x1="254" y1="60" x2="254" y2="46" stroke="rgba(255,255,255,.18)" stroke-width="1"/>
-<line x1="294" y1="56" x2="294" y2="46" stroke="rgba(255,255,255,.18)" stroke-width="1"/>
-<circle cx="14" cy="46" r="3.5" fill="#00e5ff"/><circle cx="54" cy="36" r="3.5" fill="#00e5ff"/>
-<circle cx="94" cy="32" r="3.5" fill="#00e5ff"/><circle cx="134" cy="36" r="3.5" fill="#00e5ff"/>
-<circle cx="174" cy="46" r="3.5" fill="#00e5ff"/><circle cx="214" cy="56" r="3.5" fill="#00e5ff"/>
-<circle cx="254" cy="60" r="3.5" fill="#00e5ff"/><circle cx="294" cy="56" r="3.5" fill="#00e5ff"/>
-<text x="14" y="68" text-anchor="middle" fill="#475569" font-size="7.5" font-family="monospace">0</text>
-<text x="54" y="68" text-anchor="middle" fill="#475569" font-size="7.5" font-family="monospace">1</text>
-<text x="94" y="68" text-anchor="middle" fill="#475569" font-size="7.5" font-family="monospace">2</text>
-<text x="134" y="68" text-anchor="middle" fill="#475569" font-size="7.5" font-family="monospace">3</text>
-<text x="174" y="68" text-anchor="middle" fill="#475569" font-size="7.5" font-family="monospace">4</text>
-<text x="214" y="68" text-anchor="middle" fill="#475569" font-size="7.5" font-family="monospace">5</text>
-<text x="254" y="68" text-anchor="middle" fill="#475569" font-size="7.5" font-family="monospace">6</text>
-<text x="294" y="68" text-anchor="middle" fill="#475569" font-size="7.5" font-family="monospace">7</text>
-<!-- Panah + label DFT -->
-<line x1="348" y1="37" x2="443" y2="37" stroke="#fbbf24" stroke-width="2.5" marker-end="url(#dft6-arr)"/>
-<text x="395" y="29" text-anchor="middle" fill="#fbbf24" font-size="11" font-weight="800" font-family="sans-serif">DFT</text>
-<text x="395" y="52" text-anchor="middle" fill="#6b7280" font-size="7.5" font-family="monospace">Σ x[n]·e^{−j2πkn/N}</text>
-<!-- Panel kanan: |X[k]| domain frekuensi -->
-<rect x="456" y="1" width="342" height="72" rx="5" fill="#0d1526" stroke="rgba(167,139,250,.2)" stroke-width="1"/>
-<text x="627" y="12" text-anchor="middle" fill="#c4b5fd" font-size="9" font-weight="700" font-family="sans-serif">|X[k]| — Domain Frekuensi</text>
-<line x1="470" y1="58" x2="790" y2="58" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
-<text x="793" y="62" fill="#475569" font-size="7" font-family="monospace">k</text>
-<!-- k=0 DC -->
-<rect x="480" y="54" width="10" height="4" rx="1" fill="rgba(100,116,139,0.5)"/>
-<!-- k=1 fundamental (ungu, utama, glow) -->
-<rect x="519" y="17" width="18" height="43" rx="2" fill="#a78bfa" opacity="0.22"/>
-<rect x="521" y="19" width="14" height="39" rx="1" fill="#a78bfa"/>
-<text x="528" y="15" text-anchor="middle" fill="#c4b5fd" font-size="8" font-weight="700" font-family="sans-serif">A₁</text>
-<!-- k=2 harmonik ke-2 (cyan) -->
-<rect x="559" y="33" width="16" height="27" rx="2" fill="#00e5ff" opacity="0.18"/>
-<rect x="561" y="35" width="12" height="23" rx="1" fill="#00e5ff"/>
-<text x="567" y="31" text-anchor="middle" fill="#67e8f9" font-size="8" font-family="sans-serif">A₂</text>
-<!-- k=3 -->
-<rect x="601" y="47" width="10" height="11" rx="1" fill="#34d399" opacity="0.75"/>
-<!-- k=4..7 sangat kecil -->
-<rect x="641" y="55" width="10" height="3" rx="1" fill="rgba(100,116,139,0.4)"/>
-<rect x="681" y="57" width="10" height="1" fill="rgba(100,116,139,0.3)"/>
-<rect x="721" y="57" width="10" height="1" fill="rgba(100,116,139,0.2)"/>
-<rect x="761" y="57" width="10" height="1" fill="rgba(100,116,139,0.1)"/>
-<!-- Label k -->
-<text x="485" y="68" text-anchor="middle" fill="#475569" font-size="7.5" font-family="monospace">0</text>
-<text x="528" y="68" text-anchor="middle" fill="#a78bfa" font-size="7.5" font-weight="700" font-family="monospace">1</text>
-<text x="567" y="68" text-anchor="middle" fill="#67e8f9" font-size="7.5" font-family="monospace">2</text>
-<text x="606" y="68" text-anchor="middle" fill="#6ee7b7" font-size="7.5" font-family="monospace">3</text>
-<text x="646" y="68" text-anchor="middle" fill="#475569" font-size="7.5" font-family="monospace">4</text>
-<text x="686" y="68" text-anchor="middle" fill="#475569" font-size="7.5" font-family="monospace">5</text>
-<text x="726" y="68" text-anchor="middle" fill="#475569" font-size="7.5" font-family="monospace">6</text>
-<text x="766" y="68" text-anchor="middle" fill="#475569" font-size="7.5" font-family="monospace">7</text>
-</svg>
+<div style="background:#06091a;border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:8px 10px;margin:8px 0">
+<div style="font-size:9px;color:#475569;letter-spacing:.06em;font-weight:600;margin-bottom:6px">ILUSTRASI — Proses DFT: Sampel Diskrit x[n] → Spektrum Frekuensi X[k]</div>
+<div style="display:flex;align-items:stretch;gap:0;border-radius:6px;overflow:hidden;border:1px solid rgba(255,255,255,.06)">
+  <div style="flex:1;padding:8px 12px;background:#0a1020">
+    <div style="font-size:9.5px;color:#67e8f9;font-weight:700;margin-bottom:6px">x[n] — Domain Waktu</div>
+    <div style="display:flex;align-items:flex-end;gap:3px;height:38px">
+      <div style="flex:1;border-radius:2px 2px 0 0;background:#00e5ff;opacity:.65;height:60%"></div>
+      <div style="flex:1;border-radius:2px 2px 0 0;background:#00e5ff;opacity:.85;height:88%"></div>
+      <div style="flex:1;border-radius:2px 2px 0 0;background:#00e5ff;height:100%"></div>
+      <div style="flex:1;border-radius:2px 2px 0 0;background:#00e5ff;opacity:.85;height:82%"></div>
+      <div style="flex:1;border-radius:2px 2px 0 0;background:#00e5ff;opacity:.65;height:58%"></div>
+      <div style="flex:1;border-radius:2px 2px 0 0;background:#00e5ff;opacity:.45;height:34%"></div>
+      <div style="flex:1;border-radius:2px 2px 0 0;background:#00e5ff;opacity:.35;height:20%"></div>
+      <div style="flex:1;border-radius:2px 2px 0 0;background:#00e5ff;opacity:.25;height:14%"></div>
+    </div>
+    <div style="display:flex;justify-content:space-around;font-size:7.5px;color:#475569;margin-top:3px;font-family:monospace"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span></div>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 18px;background:#06091a;border-left:1px solid rgba(255,255,255,.06);border-right:1px solid rgba(255,255,255,.06)">
+    <div style="font-size:14px;font-weight:800;color:#fbbf24;letter-spacing:.06em">DFT</div>
+    <div style="font-size:20px;color:#fbbf24;line-height:1;margin-top:2px">→</div>
+    <div style="font-size:7px;color:#6b7280;margin-top:3px;text-align:center;line-height:1.4">Σ x[n]<br>·e^{−j2πkn/N}</div>
+  </div>
+  <div style="flex:1;padding:8px 12px;background:#0a1020">
+    <div style="font-size:9.5px;color:#c4b5fd;font-weight:700;margin-bottom:6px">|X[k]| — Domain Frekuensi</div>
+    <div style="display:flex;align-items:flex-end;gap:3px;height:38px">
+      <div style="flex:1;border-radius:2px 2px 0 0;background:rgba(100,116,139,.4);height:8%"></div>
+      <div style="flex:1;border-radius:2px 2px 0 0;background:#a78bfa;height:100%;box-shadow:0 0 8px rgba(167,139,250,.5)"></div>
+      <div style="flex:1;border-radius:2px 2px 0 0;background:#00e5ff;height:58%"></div>
+      <div style="flex:1;border-radius:2px 2px 0 0;background:#34d399;height:26%"></div>
+      <div style="flex:1;border-radius:2px 2px 0 0;background:rgba(100,116,139,.3);height:8%"></div>
+      <div style="flex:1;border-radius:2px 2px 0 0;background:rgba(100,116,139,.2);height:5%"></div>
+      <div style="flex:1;border-radius:2px 2px 0 0;background:rgba(100,116,139,.15);height:3%"></div>
+      <div style="flex:1;border-radius:2px 2px 0 0;background:rgba(100,116,139,.1);height:2%"></div>
+    </div>
+    <div style="display:flex;justify-content:space-around;font-size:7.5px;margin-top:3px;font-family:monospace"><span style="color:#475569">0</span><span style="color:#a78bfa;font-weight:700">1</span><span style="color:#67e8f9">2</span><span style="color:#6ee7b7">3</span><span style="color:#475569">4</span><span style="color:#475569">5</span><span style="color:#475569">6</span><span style="color:#475569">7</span></div>
+  </div>
+</div>
 </div>
 
 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:0;align-items:stretch">
@@ -763,7 +732,7 @@ $E[k]$ = DFT sampel genap, $O[k]$ = DFT sampel ganjil.
 
 <div style="font-size:10px;color:#475569;letter-spacing:.06em;font-weight:600;margin-bottom:6px">ILUSTRASI — Diagram Butterfly 4-Point FFT</div>
 <div style="background:#06091a;border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:8px 10px">
-<svg viewBox="0 0 395 192" style="width:100%;height:170px;display:block">
+<svg viewBox="0 0 395 192" width="395" height="192" style="width:100%;height:148px;display:block;overflow:hidden">
   <!-- Stage column headers -->
   <text x="52" y="13" text-anchor="middle" fill="#475569" font-size="9" font-family="sans-serif">Input</text>
   <text x="152" y="13" text-anchor="middle" fill="#a78bfa" font-size="9" font-family="sans-serif">Tahap 1</text>
