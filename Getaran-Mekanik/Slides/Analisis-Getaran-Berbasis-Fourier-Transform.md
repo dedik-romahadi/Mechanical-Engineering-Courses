@@ -638,22 +638,32 @@ $$\boxed{x[n] = \frac{1}{N}\sum_{k=0}^{N-1} X[k]\,e^{\,j\frac{2\pi}{N}kn}} \qqua
 <div style="display:flex;align-items:stretch;gap:0;border-radius:6px;overflow:hidden;border:1px solid rgba(255,255,255,.06)">
   <div style="flex:1;padding:8px 12px;background:#0a1020">
     <div style="font-size:9.5px;color:#67e8f9;font-weight:700;margin-bottom:6px">x[n] — Domain Waktu</div>
-    <div style="display:flex;align-items:flex-end;gap:3px;height:38px">
-      <div style="flex:1;border-radius:2px 2px 0 0;background:#00e5ff;opacity:.65;height:60%"></div>
-      <div style="flex:1;border-radius:2px 2px 0 0;background:#00e5ff;opacity:.85;height:88%"></div>
-      <div style="flex:1;border-radius:2px 2px 0 0;background:#00e5ff;height:100%"></div>
-      <div style="flex:1;border-radius:2px 2px 0 0;background:#00e5ff;opacity:.85;height:82%"></div>
-      <div style="flex:1;border-radius:2px 2px 0 0;background:#00e5ff;opacity:.65;height:58%"></div>
-      <div style="flex:1;border-radius:2px 2px 0 0;background:#00e5ff;opacity:.45;height:34%"></div>
-      <div style="flex:1;border-radius:2px 2px 0 0;background:#00e5ff;opacity:.35;height:20%"></div>
-      <div style="flex:1;border-radius:2px 2px 0 0;background:#00e5ff;opacity:.25;height:14%"></div>
-    </div>
+    <svg viewBox="0 0 240 48" width="240" height="48" style="width:100%;height:38px;display:block;overflow:visible">
+      <line x1="6" y1="24" x2="234" y2="24" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
+      <path d="M6,24 C24,24 30,8 48,8 C66,8 72,24 90,24 C108,24 114,40 132,40 C150,40 156,24 174,24 C192,24 198,14 216,17 C228,19 232,23 234,24" fill="none" stroke="#00e5ff" stroke-width="1.6" opacity="0.45"/>
+      <line x1="6" y1="24" x2="6" y2="24" stroke="#00e5ff" stroke-width="1.5"/>
+      <line x1="34" y1="24" x2="34" y2="12" stroke="#00e5ff" stroke-width="1.5"/>
+      <line x1="62" y1="24" x2="62" y2="14" stroke="#00e5ff" stroke-width="1.5"/>
+      <line x1="90" y1="24" x2="90" y2="24" stroke="#00e5ff" stroke-width="1.5"/>
+      <line x1="118" y1="24" x2="118" y2="37" stroke="#00e5ff" stroke-width="1.5"/>
+      <line x1="146" y1="24" x2="146" y2="33" stroke="#00e5ff" stroke-width="1.5"/>
+      <line x1="174" y1="24" x2="174" y2="24" stroke="#00e5ff" stroke-width="1.5"/>
+      <line x1="202" y1="24" x2="202" y2="18" stroke="#00e5ff" stroke-width="1.5"/>
+      <circle cx="6" cy="24" r="2.6" fill="#00e5ff"/>
+      <circle cx="34" cy="12" r="2.6" fill="#00e5ff"/>
+      <circle cx="62" cy="14" r="2.6" fill="#00e5ff"/>
+      <circle cx="90" cy="24" r="2.6" fill="#00e5ff"/>
+      <circle cx="118" cy="37" r="2.6" fill="#00e5ff"/>
+      <circle cx="146" cy="33" r="2.6" fill="#00e5ff"/>
+      <circle cx="174" cy="24" r="2.6" fill="#00e5ff"/>
+      <circle cx="202" cy="18" r="2.6" fill="#00e5ff"/>
+    </svg>
     <div style="display:flex;justify-content:space-around;font-size:7.5px;color:#475569;margin-top:3px;font-family:monospace"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span></div>
   </div>
-  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 18px;background:#06091a;border-left:1px solid rgba(255,255,255,.06);border-right:1px solid rgba(255,255,255,.06)">
-    <div style="font-size:14px;font-weight:800;color:#fbbf24;letter-spacing:.06em">DFT</div>
-    <div style="font-size:20px;color:#fbbf24;line-height:1;margin-top:2px">→</div>
-    <div style="font-size:7px;color:#6b7280;margin-top:3px;text-align:center;line-height:1.4">Σ x[n]<br>·e^{−j2πkn/N}</div>
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 16px;background:#06091a;border-left:1px solid rgba(255,255,255,.06);border-right:1px solid rgba(255,255,255,.06)">
+    <div style="font-size:15px;font-weight:800;color:#fbbf24;letter-spacing:.06em">DFT</div>
+    <div style="font-size:22px;color:#fbbf24;line-height:1;margin:1px 0 3px">→</div>
+    <div style="font-size:11px;color:#cbd5e1;text-align:center;line-height:1.5;font-family:'Cambria Math',Georgia,serif">Σ x[n]·e<sup style="font-size:8px">−j2πkn/N</sup></div>
   </div>
   <div style="flex:1;padding:8px 12px;background:#0a1020">
     <div style="font-size:9.5px;color:#c4b5fd;font-weight:700;margin-bottom:6px">|X[k]| — Domain Frekuensi</div>
