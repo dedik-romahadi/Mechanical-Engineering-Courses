@@ -1046,7 +1046,7 @@ class: tight
 <div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px;text-align:center">
 <div style="font-size:28px;margin-bottom:6px">📡</div>
 <div style="color:#67e8f9;font-weight:700;font-size:13px;margin-bottom:4px">① Akuisisi</div>
-<div style="font-size:11px;color:#94a3b8">Akselerometer → kondisioner → ADC → rekam $x[n]$</div>
+<div style="font-size:11px;color:#94a3b8">Akselerometer → kondisioner → ADC → rekam <i>x</i>[n]</div>
 </div>
 <div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px;text-align:center">
 <div style="font-size:28px;margin-bottom:6px">🔲</div>
@@ -1056,7 +1056,7 @@ class: tight
 <div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px;text-align:center">
 <div style="font-size:28px;margin-bottom:6px">⚡</div>
 <div style="color:#fbbf24;font-weight:700;font-size:13px;margin-bottom:4px">③ FFT</div>
-<div style="font-size:11px;color:#94a3b8">Hitung $X[k]$, koreksi amplitudo, plot spektrum</div>
+<div style="font-size:11px;color:#94a3b8">Hitung <i>X</i>[k], koreksi amplitudo, plot spektrum</div>
 </div>
 <div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px;text-align:center">
 <div style="font-size:28px;margin-bottom:6px">🔍</div>
