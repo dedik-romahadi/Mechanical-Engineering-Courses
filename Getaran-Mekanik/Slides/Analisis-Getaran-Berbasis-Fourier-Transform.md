@@ -715,7 +715,7 @@ $$\boxed{x[n] = \frac{1}{N}\sum_{k=0}^{N-1} X[k]\,e^{\,j\frac{2\pi}{N}kn}} \qqua
 ---
 layout: two-cols
 title: "FFT — Algoritma & Implementasi"
-class: tight
+class: tight shift-down
 ---
 
 ### Algoritma Cooley-Tukey (1965)
