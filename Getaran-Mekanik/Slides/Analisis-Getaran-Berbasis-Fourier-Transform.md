@@ -264,41 +264,41 @@ title: "Peta Materi"
 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;flex:1;margin:12px 0">
 
 <v-click>
-<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #00e5ff;border-radius:8px;padding:10px 12px 10px;height:100%;box-sizing:border-box">
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #00e5ff;border-radius:8px;padding:10px 12px 10px;height:100%;box-sizing:border-box;display:flex;flex-direction:column">
 <div style="color:#67e8f9;font-weight:700;margin-bottom:8px;font-size:13.5px">① &nbsp;🔢 Dasar DFT/FFT</div>
-<ul style="font-size:12.5px;color:#94a3b8;line-height:1.75;list-style:none;padding:0;margin:0 0 10px">
+<ul style="font-size:12.5px;color:#94a3b8;line-height:1.75;list-style:none;padding:0;margin:0">
 <li>→ Dari sinyal analog ke diskrit</li>
 <li>→ Definisi DFT &amp; parameter kunci</li>
 <li>→ Algoritma FFT Cooley-Tukey</li>
 <li>→ Kompleksitas O(N log N)</li>
 </ul>
-<div style="font-size:11px;color:#67e8f9;background:rgba(0,229,255,.07);border-radius:5px;padding:4px 8px;display:inline-block">Slide 3 – 9</div>
+<div style="font-size:11px;color:#67e8f9;background:rgba(0,229,255,.07);border-radius:5px;padding:4px 8px;display:inline-block;margin-top:auto;align-self:flex-start">Slide 3 – 9</div>
 </div>
 </v-click>
 
 <v-click>
-<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #34d399;border-radius:8px;padding:10px 12px 10px;height:100%;box-sizing:border-box">
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #34d399;border-radius:8px;padding:10px 12px 10px;height:100%;box-sizing:border-box;display:flex;flex-direction:column">
 <div style="color:#6ee7b7;font-weight:700;margin-bottom:8px;font-size:13.5px">② &nbsp;⚙️ Parameter Akuisisi</div>
-<ul style="font-size:12.5px;color:#94a3b8;line-height:1.75;list-style:none;padding:0;margin:0 0 10px">
+<ul style="font-size:12.5px;color:#94a3b8;line-height:1.75;list-style:none;padding:0;margin:0">
 <li>→ Resolusi frekuensi &amp; sampling</li>
 <li>→ Teorema Nyquist &amp; aliasing</li>
 <li>→ Windowing &amp; spectral leakage</li>
 <li>→ Zero-padding &amp; averaging</li>
 </ul>
-<div style="font-size:11px;color:#6ee7b7;background:rgba(52,211,153,.07);border-radius:5px;padding:4px 8px;display:inline-block">Slide 10 – 18</div>
+<div style="font-size:11px;color:#6ee7b7;background:rgba(52,211,153,.07);border-radius:5px;padding:4px 8px;display:inline-block;margin-top:auto;align-self:flex-start">Slide 10 – 18</div>
 </div>
 </v-click>
 
 <v-click>
-<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #a78bfa;border-radius:8px;padding:10px 12px 10px;height:100%;box-sizing:border-box">
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #a78bfa;border-radius:8px;padding:10px 12px 10px;height:100%;box-sizing:border-box;display:flex;flex-direction:column">
 <div style="color:#fbbf24;font-weight:700;margin-bottom:8px;font-size:13.5px">③ &nbsp;🏭 Aplikasi Teknik</div>
-<ul style="font-size:12.5px;color:#94a3b8;line-height:1.75;list-style:none;padding:0;margin:0 0 10px">
+<ul style="font-size:12.5px;color:#94a3b8;line-height:1.75;list-style:none;padding:0;margin:0">
 <li>→ Diagnosis kerusakan mesin</li>
 <li>→ Fungsi Respons Frekuensi (FRF)</li>
 <li>→ Predictive maintenance</li>
 <li>→ Implementasi Python/MATLAB</li>
 </ul>
-<div style="font-size:11px;color:#fbbf24;background:rgba(251,191,36,.07);border-radius:5px;padding:4px 8px;display:inline-block">Slide 19 – 28</div>
+<div style="font-size:11px;color:#fbbf24;background:rgba(251,191,36,.07);border-radius:5px;padding:4px 8px;display:inline-block;margin-top:auto;align-self:flex-start">Slide 19 – 28</div>
 </div>
 </v-click>
 
