@@ -741,18 +741,18 @@ $E[k]$ = DFT sampel genap, $O[k]$ = DFT sampel ganjil.
 <div class="pl-4 col-center">
 
 <div style="font-size:10px;color:#475569;letter-spacing:.06em;font-weight:600;margin-bottom:6px">ILUSTRASI — Diagram Butterfly 4-Point FFT</div>
-<div style="background:#06091a;border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:8px 10px">
-<svg viewBox="0 0 395 192" width="395" height="192" style="width:100%;height:148px;display:block;overflow:hidden">
+<div style="background:#06091a;border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:12px 14px">
+<svg viewBox="0 0 395 192" style="width:100%;height:auto;display:block">
   <!-- Stage column headers -->
-  <text x="52" y="13" text-anchor="middle" fill="#475569" font-size="9" font-family="sans-serif">Input</text>
-  <text x="152" y="13" text-anchor="middle" fill="#a78bfa" font-size="9" font-family="sans-serif">Tahap 1</text>
-  <text x="257" y="13" text-anchor="middle" fill="#34d399" font-size="9" font-family="sans-serif">Tahap 2</text>
-  <text x="342" y="13" text-anchor="middle" fill="#fb7185" font-size="9" font-family="sans-serif">Output</text>
+  <text x="52" y="11" text-anchor="middle" fill="#475569" font-size="7" font-family="sans-serif">Input</text>
+  <text x="152" y="11" text-anchor="middle" fill="#a78bfa" font-size="7" font-family="sans-serif">Tahap 1</text>
+  <text x="257" y="11" text-anchor="middle" fill="#34d399" font-size="7" font-family="sans-serif">Tahap 2</text>
+  <text x="342" y="11" text-anchor="middle" fill="#fb7185" font-size="7" font-family="sans-serif">Output</text>
   <!-- Input node labels -->
-  <text x="2" y="43" fill="#64748b" font-size="9" font-family="monospace">x[0]</text>
-  <text x="2" y="83" fill="#64748b" font-size="9" font-family="monospace">x[2]</text>
-  <text x="2" y="123" fill="#64748b" font-size="9" font-family="monospace">x[1]</text>
-  <text x="2" y="163" fill="#64748b" font-size="9" font-family="monospace">x[3]</text>
+  <text x="4" y="43" fill="#64748b" font-size="7.5" font-family="monospace">x[0]</text>
+  <text x="4" y="83" fill="#64748b" font-size="7.5" font-family="monospace">x[2]</text>
+  <text x="4" y="123" fill="#64748b" font-size="7.5" font-family="monospace">x[1]</text>
+  <text x="4" y="163" fill="#64748b" font-size="7.5" font-family="monospace">x[3]</text>
   <!-- Stage 1 butterfly 1: rows y=40 & y=80 (purple) -->
   <line x1="52" y1="40" x2="152" y2="40" stroke="#a78bfa" stroke-width="1.3" opacity="0.75"/>
   <line x1="52" y1="80" x2="152" y2="80" stroke="#a78bfa" stroke-width="1.3" opacity="0.75"/>
@@ -794,17 +794,17 @@ $E[k]$ = DFT sampel genap, $O[k]$ = DFT sampel ganjil.
   <circle cx="257" cy="120" r="4" fill="#34d399"/>
   <circle cx="257" cy="160" r="4" fill="#34d399"/>
   <!-- Output labels -->
-  <text x="348" y="43" fill="#fb7185" font-size="9" font-family="monospace">X[0]</text>
-  <text x="348" y="83" fill="#fb7185" font-size="9" font-family="monospace">X[1]</text>
-  <text x="348" y="123" fill="#fb7185" font-size="9" font-family="monospace">X[2]</text>
-  <text x="348" y="163" fill="#fb7185" font-size="9" font-family="monospace">X[3]</text>
+  <text x="350" y="43" fill="#fb7185" font-size="7.5" font-family="monospace">X[0]</text>
+  <text x="350" y="83" fill="#fb7185" font-size="7.5" font-family="monospace">X[1]</text>
+  <text x="350" y="123" fill="#fb7185" font-size="7.5" font-family="monospace">X[2]</text>
+  <text x="350" y="163" fill="#fb7185" font-size="7.5" font-family="monospace">X[3]</text>
   <!-- Twiddle factor labels near crossing midpoints -->
-  <text x="102" y="58" text-anchor="middle" fill="#a78bfa" font-size="8" font-family="monospace" opacity="0.85">W⁰</text>
-  <text x="102" y="138" text-anchor="middle" fill="#a78bfa" font-size="8" font-family="monospace" opacity="0.85">W⁰</text>
-  <text x="204" y="78" text-anchor="middle" fill="#34d399" font-size="8" font-family="monospace" opacity="0.85">W⁰</text>
-  <text x="204" y="126" text-anchor="middle" fill="#34d399" font-size="8" font-family="monospace" opacity="0.85">W¹</text>
+  <text x="102" y="56" text-anchor="middle" fill="#a78bfa" font-size="6.5" font-family="monospace" opacity="0.85">W⁰</text>
+  <text x="102" y="136" text-anchor="middle" fill="#a78bfa" font-size="6.5" font-family="monospace" opacity="0.85">W⁰</text>
+  <text x="204" y="76" text-anchor="middle" fill="#34d399" font-size="6.5" font-family="monospace" opacity="0.85">W⁰</text>
+  <text x="204" y="124" text-anchor="middle" fill="#34d399" font-size="6.5" font-family="monospace" opacity="0.85">W¹</text>
   <!-- Footer note -->
-  <text x="197" y="183" text-anchor="middle" fill="#475569" font-size="8" font-family="sans-serif">4-point: 2 tahap · 8-point: 3 tahap · N-point: log₂N tahap</text>
+  <text x="197" y="184" text-anchor="middle" fill="#475569" font-size="6.5" font-family="sans-serif">4-point: 2 tahap · 8-point: 3 tahap · N-point: log₂N tahap</text>
 </svg>
 </div>
 
