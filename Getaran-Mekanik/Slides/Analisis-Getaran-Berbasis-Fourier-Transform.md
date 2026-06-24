@@ -1042,7 +1042,7 @@ class: tight
 ---
 
 
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0">
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:20px 0 22px">
 <div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px;text-align:center">
 <div style="font-size:28px;margin-bottom:6px">📡</div>
 <div style="color:#67e8f9;font-weight:700;font-size:13px;margin-bottom:4px">① Akuisisi</div>
@@ -1069,7 +1069,7 @@ class: tight
 Analyzer industri (Brüel & Kjær, SKF, Fluke) menjalankan loop ini otomatis setiap beberapa detik — merekam, menghitung FFT, membandingkan dengan alarm threshold. Alert dikirim via email/SMS jika spektrum menyimpang dari baseline.
 </Callout>
 
-<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px;margin-top:10px;font-size:13px">
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px;margin-top:22px;font-size:13px">
 <strong style="color:#a78bfa">Tip kualitas data:</strong> <span style="color:#94a3b8">Ambil 5–10 average FFT (synchronous averaging) untuk menekan noise acak. Pastikan mesin beroperasi pada RPM konstan selama akuisisi.</span>
 </div>
 
