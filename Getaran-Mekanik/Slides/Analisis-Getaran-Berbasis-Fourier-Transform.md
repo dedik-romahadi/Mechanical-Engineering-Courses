@@ -733,7 +733,7 @@ $E[k]$ = DFT sampel genap, $O[k]$ = DFT sampel ganjil.
 **Butterfly** — inti FFT, diulang rekursif $\log_2 N$ tahap → $\mathcal{O}(N\log_2 N)$.
 
 <div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:8px 10px;margin-top:8px;font-size:11.5px;color:#94a3b8">
-💡 FFT efisien untuk $N = 2^m$. Jika bukan pangkat 2 → zero-padding ke $2^m$ terdekat.
+💡 FFT efisien untuk <span style="font-style:italic;color:#c4b5fd">N = 2<sup>m</sup></span>. Jika bukan pangkat 2 → zero-padding ke <span style="font-style:italic;color:#c4b5fd">2<sup>m</sup></span> terdekat.
 </div>
 
 ::right::
@@ -742,69 +742,69 @@ $E[k]$ = DFT sampel genap, $O[k]$ = DFT sampel ganjil.
 
 <div style="font-size:10px;color:#475569;letter-spacing:.06em;font-weight:600;margin-bottom:6px">ILUSTRASI — Diagram Butterfly 4-Point FFT</div>
 <div style="background:#06091a;border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:12px 14px">
-<svg viewBox="0 0 395 192" style="width:100%;height:auto;display:block">
+<svg viewBox="0 0 395 244" style="width:100%;max-width:330px;height:auto;display:block;margin:0 auto">
   <!-- Stage column headers -->
-  <text x="52" y="11" text-anchor="middle" fill="#475569" font-size="7" font-family="sans-serif">Input</text>
-  <text x="152" y="11" text-anchor="middle" fill="#a78bfa" font-size="7" font-family="sans-serif">Tahap 1</text>
-  <text x="257" y="11" text-anchor="middle" fill="#34d399" font-size="7" font-family="sans-serif">Tahap 2</text>
-  <text x="342" y="11" text-anchor="middle" fill="#fb7185" font-size="7" font-family="sans-serif">Output</text>
+  <text x="52" y="22" text-anchor="middle" fill="#475569" font-size="8" font-family="sans-serif">Input</text>
+  <text x="152" y="22" text-anchor="middle" fill="#a78bfa" font-size="8" font-family="sans-serif">Tahap 1</text>
+  <text x="257" y="22" text-anchor="middle" fill="#34d399" font-size="8" font-family="sans-serif">Tahap 2</text>
+  <text x="342" y="22" text-anchor="middle" fill="#fb7185" font-size="8" font-family="sans-serif">Output</text>
   <!-- Input node labels -->
-  <text x="4" y="43" fill="#64748b" font-size="7.5" font-family="monospace">x[0]</text>
-  <text x="4" y="83" fill="#64748b" font-size="7.5" font-family="monospace">x[2]</text>
-  <text x="4" y="123" fill="#64748b" font-size="7.5" font-family="monospace">x[1]</text>
-  <text x="4" y="163" fill="#64748b" font-size="7.5" font-family="monospace">x[3]</text>
-  <!-- Stage 1 butterfly 1: rows y=40 & y=80 (purple) -->
-  <line x1="52" y1="40" x2="152" y2="40" stroke="#a78bfa" stroke-width="1.3" opacity="0.75"/>
-  <line x1="52" y1="80" x2="152" y2="80" stroke="#a78bfa" stroke-width="1.3" opacity="0.75"/>
-  <line x1="52" y1="40" x2="152" y2="80" stroke="#a78bfa" stroke-width="1" opacity="0.45" stroke-dasharray="3 2"/>
-  <line x1="52" y1="80" x2="152" y2="40" stroke="#a78bfa" stroke-width="1" opacity="0.45" stroke-dasharray="3 2"/>
-  <!-- Stage 1 butterfly 2: rows y=120 & y=160 (purple) -->
-  <line x1="52" y1="120" x2="152" y2="120" stroke="#a78bfa" stroke-width="1.3" opacity="0.75"/>
-  <line x1="52" y1="160" x2="152" y2="160" stroke="#a78bfa" stroke-width="1.3" opacity="0.75"/>
-  <line x1="52" y1="120" x2="152" y2="160" stroke="#a78bfa" stroke-width="1" opacity="0.45" stroke-dasharray="3 2"/>
-  <line x1="52" y1="160" x2="152" y2="120" stroke="#a78bfa" stroke-width="1" opacity="0.45" stroke-dasharray="3 2"/>
-  <!-- Stage 2 butterfly 1: rows y=40 & y=120 (green) -->
-  <line x1="152" y1="40" x2="257" y2="40" stroke="#34d399" stroke-width="1.3" opacity="0.75"/>
-  <line x1="152" y1="120" x2="257" y2="120" stroke="#34d399" stroke-width="1.3" opacity="0.75"/>
-  <line x1="152" y1="40" x2="257" y2="120" stroke="#34d399" stroke-width="1" opacity="0.45" stroke-dasharray="3 2"/>
-  <line x1="152" y1="120" x2="257" y2="40" stroke="#34d399" stroke-width="1" opacity="0.45" stroke-dasharray="3 2"/>
-  <!-- Stage 2 butterfly 2: rows y=80 & y=160 (green) -->
-  <line x1="152" y1="80" x2="257" y2="80" stroke="#34d399" stroke-width="1.3" opacity="0.75"/>
-  <line x1="152" y1="160" x2="257" y2="160" stroke="#34d399" stroke-width="1.3" opacity="0.75"/>
-  <line x1="152" y1="80" x2="257" y2="160" stroke="#34d399" stroke-width="1" opacity="0.45" stroke-dasharray="3 2"/>
-  <line x1="152" y1="160" x2="257" y2="80" stroke="#34d399" stroke-width="1" opacity="0.45" stroke-dasharray="3 2"/>
+  <text x="4" y="61" fill="#64748b" font-size="8" font-family="monospace">x[0]</text>
+  <text x="4" y="106" fill="#64748b" font-size="8" font-family="monospace">x[2]</text>
+  <text x="4" y="151" fill="#64748b" font-size="8" font-family="monospace">x[1]</text>
+  <text x="4" y="196" fill="#64748b" font-size="8" font-family="monospace">x[3]</text>
+  <!-- Stage 1 butterfly 1: rows y=58 & y=103 (purple) -->
+  <line x1="52" y1="58" x2="152" y2="58" stroke="#a78bfa" stroke-width="1.3" opacity="0.75"/>
+  <line x1="52" y1="103" x2="152" y2="103" stroke="#a78bfa" stroke-width="1.3" opacity="0.75"/>
+  <line x1="52" y1="58" x2="152" y2="103" stroke="#a78bfa" stroke-width="1" opacity="0.45" stroke-dasharray="3 2"/>
+  <line x1="52" y1="103" x2="152" y2="58" stroke="#a78bfa" stroke-width="1" opacity="0.45" stroke-dasharray="3 2"/>
+  <!-- Stage 1 butterfly 2: rows y=148 & y=193 (purple) -->
+  <line x1="52" y1="148" x2="152" y2="148" stroke="#a78bfa" stroke-width="1.3" opacity="0.75"/>
+  <line x1="52" y1="193" x2="152" y2="193" stroke="#a78bfa" stroke-width="1.3" opacity="0.75"/>
+  <line x1="52" y1="148" x2="152" y2="193" stroke="#a78bfa" stroke-width="1" opacity="0.45" stroke-dasharray="3 2"/>
+  <line x1="52" y1="193" x2="152" y2="148" stroke="#a78bfa" stroke-width="1" opacity="0.45" stroke-dasharray="3 2"/>
+  <!-- Stage 2 butterfly 1: rows y=58 & y=148 (green) -->
+  <line x1="152" y1="58" x2="257" y2="58" stroke="#34d399" stroke-width="1.3" opacity="0.75"/>
+  <line x1="152" y1="148" x2="257" y2="148" stroke="#34d399" stroke-width="1.3" opacity="0.75"/>
+  <line x1="152" y1="58" x2="257" y2="148" stroke="#34d399" stroke-width="1" opacity="0.45" stroke-dasharray="3 2"/>
+  <line x1="152" y1="148" x2="257" y2="58" stroke="#34d399" stroke-width="1" opacity="0.45" stroke-dasharray="3 2"/>
+  <!-- Stage 2 butterfly 2: rows y=103 & y=193 (green) -->
+  <line x1="152" y1="103" x2="257" y2="103" stroke="#34d399" stroke-width="1.3" opacity="0.75"/>
+  <line x1="152" y1="193" x2="257" y2="193" stroke="#34d399" stroke-width="1.3" opacity="0.75"/>
+  <line x1="152" y1="103" x2="257" y2="193" stroke="#34d399" stroke-width="1" opacity="0.45" stroke-dasharray="3 2"/>
+  <line x1="152" y1="193" x2="257" y2="103" stroke="#34d399" stroke-width="1" opacity="0.45" stroke-dasharray="3 2"/>
   <!-- Output connector lines -->
-  <line x1="257" y1="40" x2="342" y2="40" stroke="rgba(251,113,133,.5)" stroke-width="1"/>
-  <line x1="257" y1="80" x2="342" y2="80" stroke="rgba(251,113,133,.5)" stroke-width="1"/>
-  <line x1="257" y1="120" x2="342" y2="120" stroke="rgba(251,113,133,.5)" stroke-width="1"/>
-  <line x1="257" y1="160" x2="342" y2="160" stroke="rgba(251,113,133,.5)" stroke-width="1"/>
+  <line x1="257" y1="58" x2="342" y2="58" stroke="rgba(251,113,133,.5)" stroke-width="1"/>
+  <line x1="257" y1="103" x2="342" y2="103" stroke="rgba(251,113,133,.5)" stroke-width="1"/>
+  <line x1="257" y1="148" x2="342" y2="148" stroke="rgba(251,113,133,.5)" stroke-width="1"/>
+  <line x1="257" y1="193" x2="342" y2="193" stroke="rgba(251,113,133,.5)" stroke-width="1"/>
   <!-- Input nodes (cyan) -->
-  <circle cx="52" cy="40" r="4.5" fill="#00e5ff" opacity="0.9"/>
-  <circle cx="52" cy="80" r="4.5" fill="#00e5ff" opacity="0.9"/>
-  <circle cx="52" cy="120" r="4.5" fill="#00e5ff" opacity="0.9"/>
-  <circle cx="52" cy="160" r="4.5" fill="#00e5ff" opacity="0.9"/>
+  <circle cx="52" cy="58" r="4" fill="#00e5ff" opacity="0.9"/>
+  <circle cx="52" cy="103" r="4" fill="#00e5ff" opacity="0.9"/>
+  <circle cx="52" cy="148" r="4" fill="#00e5ff" opacity="0.9"/>
+  <circle cx="52" cy="193" r="4" fill="#00e5ff" opacity="0.9"/>
   <!-- Stage 1 nodes (purple) -->
-  <circle cx="152" cy="40" r="4" fill="#a78bfa"/>
-  <circle cx="152" cy="80" r="4" fill="#a78bfa"/>
-  <circle cx="152" cy="120" r="4" fill="#a78bfa"/>
-  <circle cx="152" cy="160" r="4" fill="#a78bfa"/>
+  <circle cx="152" cy="58" r="3.5" fill="#a78bfa"/>
+  <circle cx="152" cy="103" r="3.5" fill="#a78bfa"/>
+  <circle cx="152" cy="148" r="3.5" fill="#a78bfa"/>
+  <circle cx="152" cy="193" r="3.5" fill="#a78bfa"/>
   <!-- Stage 2 nodes (green) -->
-  <circle cx="257" cy="40" r="4" fill="#34d399"/>
-  <circle cx="257" cy="80" r="4" fill="#34d399"/>
-  <circle cx="257" cy="120" r="4" fill="#34d399"/>
-  <circle cx="257" cy="160" r="4" fill="#34d399"/>
+  <circle cx="257" cy="58" r="3.5" fill="#34d399"/>
+  <circle cx="257" cy="103" r="3.5" fill="#34d399"/>
+  <circle cx="257" cy="148" r="3.5" fill="#34d399"/>
+  <circle cx="257" cy="193" r="3.5" fill="#34d399"/>
   <!-- Output labels -->
-  <text x="350" y="43" fill="#fb7185" font-size="7.5" font-family="monospace">X[0]</text>
-  <text x="350" y="83" fill="#fb7185" font-size="7.5" font-family="monospace">X[1]</text>
-  <text x="350" y="123" fill="#fb7185" font-size="7.5" font-family="monospace">X[2]</text>
-  <text x="350" y="163" fill="#fb7185" font-size="7.5" font-family="monospace">X[3]</text>
+  <text x="350" y="61" fill="#fb7185" font-size="8" font-family="monospace">X[0]</text>
+  <text x="350" y="106" fill="#fb7185" font-size="8" font-family="monospace">X[1]</text>
+  <text x="350" y="151" fill="#fb7185" font-size="8" font-family="monospace">X[2]</text>
+  <text x="350" y="196" fill="#fb7185" font-size="8" font-family="monospace">X[3]</text>
   <!-- Twiddle factor labels near crossing midpoints -->
-  <text x="102" y="56" text-anchor="middle" fill="#a78bfa" font-size="6.5" font-family="monospace" opacity="0.85">W⁰</text>
-  <text x="102" y="136" text-anchor="middle" fill="#a78bfa" font-size="6.5" font-family="monospace" opacity="0.85">W⁰</text>
-  <text x="204" y="76" text-anchor="middle" fill="#34d399" font-size="6.5" font-family="monospace" opacity="0.85">W⁰</text>
-  <text x="204" y="124" text-anchor="middle" fill="#34d399" font-size="6.5" font-family="monospace" opacity="0.85">W¹</text>
+  <text x="102" y="77" text-anchor="middle" fill="#a78bfa" font-size="7" font-family="monospace" opacity="0.85">W⁰</text>
+  <text x="102" y="167" text-anchor="middle" fill="#a78bfa" font-size="7" font-family="monospace" opacity="0.85">W⁰</text>
+  <text x="204" y="97" text-anchor="middle" fill="#34d399" font-size="7" font-family="monospace" opacity="0.85">W⁰</text>
+  <text x="204" y="147" text-anchor="middle" fill="#34d399" font-size="7" font-family="monospace" opacity="0.85">W¹</text>
   <!-- Footer note -->
-  <text x="197" y="184" text-anchor="middle" fill="#475569" font-size="6.5" font-family="sans-serif">4-point: 2 tahap · 8-point: 3 tahap · N-point: log₂N tahap</text>
+  <text x="197" y="232" text-anchor="middle" fill="#475569" font-size="7" font-family="sans-serif">4-point: 2 tahap · 8-point: 3 tahap · N-point: log₂N tahap</text>
 </svg>
 </div>
 
