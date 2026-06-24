@@ -1288,7 +1288,7 @@ Akselerometer pada poros mengukur getaran mesin berputar <b>1800 RPM</b>. Spektr
 </v-clicks>
 
 <style scoped>
-.slidev-layout { font-size: 15.5px; line-height: 1.5; padding-top: 34px !important; }
+.slidev-layout { font-size: 15.5px; line-height: 1.5; padding-top: 52px !important; }
 .eq {
   font-family: 'KaTeX_Main', 'Times New Roman', serif;
   color: #e9d5ff; font-size: 16px;
