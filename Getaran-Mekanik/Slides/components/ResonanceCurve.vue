@@ -65,12 +65,12 @@ const curve = computed(() => {
 .rc-slider { flex: 1; max-width: 220px; accent-color: #c8922a; }
 .rc-badge { font-weight: 700; background: #c8922a; color: #1a1917; border-radius: 5px; padding: 2px 8px; font-size: 13px; }
 .rc-q { font-size: 12px; color: #968f84; }
-.rc-svg { width: 100%; height: 200px; display: block; background: #100e0a; border-radius: 8px; }
+.rc-svg { width: 100%; height: 158px; display: block; background: #100e0a; border-radius: 8px; }
 .rc-axis { stroke: #4a4536; stroke-width: 1.2; }
 .rc-rline { stroke: #5b9bd5; stroke-width: 1; stroke-dasharray: 4 3; opacity: 0.7; }
 .rc-curve { fill: none; stroke: #c8922a; stroke-width: 2.4; }
 .rc-tick { fill: #7fb4e3; font-size: 9px; text-anchor: middle; }
 .rc-ylab { fill: #8a8478; font-size: 10px; }
-.rc-note { font-size: 12px; color: #b6b0a5; margin-top: 10px; line-height: 1.45; }
+.rc-note { font-size: 11px; color: #b6b0a5; margin-top: 6px; line-height: 1.4; }
 .rc-note b { color: #e0b455; }
 </style>

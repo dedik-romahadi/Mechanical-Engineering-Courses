@@ -106,7 +106,7 @@ const aliasPath = computed(() => {
   min-width: 54px; text-align: center; font-weight: 700;
   background: #c8922a; color: #1a1917; border-radius: 5px; padding: 2px 8px; font-size: 13px;
 }
-.al-svg { width: 100%; height: 150px; display: block; background: #100e0a; border-radius: 8px; }
+.al-svg { width: 100%; height: 118px; display: block; background: #100e0a; border-radius: 8px; }
 .al-axis { stroke: #3a352b; stroke-width: 1; stroke-dasharray: 3 3; }
 .al-true { fill: none; stroke: #5b9bd5; stroke-width: 2; opacity: 0.85; }
 .al-dot { fill: #c8922a; }
