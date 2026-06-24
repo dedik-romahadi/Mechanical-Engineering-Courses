@@ -531,12 +531,19 @@ onMounted(() => {
   const show = { f1: true, f2: true, com: true }
   let tick = 0
   const dpr = window.devicePixelRatio || 1
-  function initCanvas(c) {
+  // Ukur ulang & set backing-store hanya jika dimensi CSS berubah (atau saat
+  // pertama kali lebar > 0). Mengatasi kasus rect=0 saat mount di build.
+  function ensureSized(c) {
     const r = c.getBoundingClientRect()
-    c.width = r.width * dpr; c.height = r.height * dpr
-    c.getContext('2d').scale(dpr, dpr)
+    if (r.width === 0 || r.height === 0) return false
+    const wantW = Math.round(r.width * dpr), wantH = Math.round(r.height * dpr)
+    if (c.width !== wantW || c.height !== wantH) {
+      c.width = wantW; c.height = wantH
+      c.getContext('2d').setTransform(1, 0, 0, 1, 0, 0)
+      c.getContext('2d').scale(dpr, dpr)
+    }
+    return true
   }
-  initCanvas(wc); initCanvas(fc)
   function W(c) { return c.width / dpr }
   function H(c) { return c.height / dpr }
   function drawWave() {
@@ -606,7 +613,11 @@ onMounted(() => {
     }
     fCtx.globalAlpha=1; fCtx.shadowBlur=0
   }
-  function loop() { drawWave(); drawFFT(); tick++; _s5anim = requestAnimationFrame(loop) }
+  function loop() {
+    if (ensureSized(wc)) drawWave()
+    if (ensureSized(fc)) drawFFT()
+    tick++; _s5anim = requestAnimationFrame(loop)
+  }
   loop()
   const tog = (id, key) => {
     const el = document.getElementById(id)
