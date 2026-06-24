@@ -333,6 +333,7 @@ Tiap komponen muncul sebagai <strong>puncak terpisah</strong> di frekuensinya ma
 ---
 layout: default
 title: "Sinyal Getaran — Karakteristik & Representasi"
+class: tight
 ---
 
 
@@ -347,15 +348,14 @@ $$x(t) = \sum_{k} A_k\cos(\omega_k t + \phi_k) + n(t)$$
 
 di mana $n(t)$ = noise acak terukur
 
-<div style="background:#1a1714;border:1px solid #2e2a21;border-radius:8px;padding:12px;margin-top:10px">
-<svg viewBox="0 0 300 80" style="width:100%;height:70px">
+<div style="background:#1a1714;border:1px solid #2e2a21;border-radius:8px;padding:10px 12px;margin-top:8px">
+<div style="display:flex;gap:16px;font-size:11px;margin-bottom:4px"><span style="color:#c8922a">▬ fundamental f₀</span><span style="color:#5b9bd5">▬ harmonik 2f₀</span></div>
+<svg viewBox="0 0 300 80" preserveAspectRatio="none" style="width:100%;height:54px">
   <line x1="0" y1="40" x2="300" y2="40" stroke="#3a352b" stroke-width="1" stroke-dasharray="3 3"/>
   <path fill="none" stroke="#c8922a" stroke-width="2"
     d="M0,40 C8,18 22,18 30,40 C38,62 52,62 60,40 C68,18 82,18 90,40 C98,62 112,62 120,40 C128,18 142,18 150,40 C158,62 172,62 180,40 C188,18 202,18 210,40 C218,62 232,62 240,40 C248,18 262,18 270,40 C278,62 292,62 300,40"/>
   <path fill="none" stroke="#5b9bd5" stroke-width="1.4" opacity="0.7"
     d="M0,40 C4,27 11,27 15,40 C19,53 26,53 30,40 C34,27 41,27 45,40 C49,53 56,53 60,40 C64,27 71,27 75,40 C79,53 86,53 90,40 C94,27 101,27 105,40 C109,53 116,53 120,40 C124,27 131,27 135,40 C139,53 146,53 150,40 C154,27 161,27 165,40 C169,53 176,53 180,40 C184,27 191,27 195,40 C199,53 206,53 210,40 C214,27 221,27 225,40 C229,53 236,53 240,40 C244,27 251,27 255,40 C259,53 266,53 270,40 C274,27 281,27 285,40 C289,53 296,53 300,40"/>
-  <text x="4" y="12" fill="#c8922a" font-size="9">fundamental f₀</text>
-  <text x="4" y="24" fill="#5b9bd5" font-size="9">harmonik 2f₀</text>
 </svg>
 </div>
 
@@ -423,6 +423,7 @@ $$\boxed{x[n] = \frac{1}{N}\sum_{k=0}^{N-1} X[k]\,e^{\,j\frac{2\pi}{N}kn}} \qqua
 ---
 layout: two-cols
 title: "FFT — Algoritma & Implementasi"
+class: tight
 ---
 
 
@@ -535,6 +536,7 @@ $N=4096$ → 1600 lines
 ---
 layout: default
 title: "Teorema Nyquist & Aliasing"
+class: tight
 ---
 
 
@@ -549,7 +551,9 @@ $$f_s \geq 2\,f_{\max}$$
 Jika dilanggar → aliasing: $f_{alias} = |f_{sinyal} - n \cdot f_s|$
 </Callout>
 <Callout type="warning" title="Pencegahan Aliasing">
+
 <strong>Anti-aliasing filter (wajib):</strong> Low-pass filter analog dipasang sebelum ADC, memotong di $f_s/2$. Tanpa filter ini, energi di atas Nyquist terlipat ke spektrum — menyebabkan <strong>salah diagnosis kerusakan mesin</strong>.
+
 </Callout>
 </div>
 
@@ -575,7 +579,9 @@ title: "Windowing — Mengatasi Spectral Leakage"
 | **Exponential** | — | — | Impact hammer test |
 
 <Callout type="tip" title="Default Industri">
+
 <strong>Hanning</strong> adalah pilihan default di hampir semua analyzer getaran industri. Setelah windowing, koreksi amplitudo wajib: $A = 2|X[k]|/(N\cdot\bar{w})$
+
 </Callout>
 
 </div>
@@ -584,14 +590,13 @@ title: "Windowing — Mengatasi Spectral Leakage"
 
 $$w[n] = 0.5\!\left[1 - \cos\!\left(\frac{2\pi n}{N-1}\right)\right]$$
 
-<svg viewBox="0 0 220 90" style="width:100%;height:80px;margin:8px 0">
+<div style="display:flex;gap:14px;font-size:10.5px;margin:4px 0 2px"><span style="color:#c8922a">▬ Hanning (memudar)</span><span style="color:#5b9bd5">▬ Rectangular</span></div>
+<svg viewBox="0 0 220 86" preserveAspectRatio="none" style="width:100%;height:72px">
   <line x1="10" y1="78" x2="210" y2="78" stroke="#3a352b" stroke-width="1"/>
   <path d="M10,78 C60,78 70,8 110,8 C150,8 160,78 210,78" fill="rgba(200,146,42,0.12)" stroke="#c8922a" stroke-width="2"/>
   <path d="M10,78 L210,78" fill="none" stroke="#5b9bd5" stroke-width="1.5" stroke-dasharray="5 4" opacity="0.7"/>
-  <text x="80" y="24" fill="#c8922a" font-size="10">Hanning</text>
-  <text x="120" y="72" fill="#5b9bd5" font-size="10">Rectangular</text>
-  <text x="10" y="90" fill="#4a4536" font-size="9">0</text>
-  <text x="200" y="90" fill="#4a4536" font-size="9">N</text>
+  <text x="10" y="85" fill="#6a6356" font-size="8">0</text>
+  <text x="202" y="85" fill="#6a6356" font-size="8">N</text>
 </svg>
 
 <div style="font-size:12px;color:#968f84">Trade-off: leakage turun drastis, resolusi sedikit berkurang (main lobe lebih lebar). Menguntungkan untuk diagnosis mesin.</div>
@@ -676,6 +681,7 @@ Analyzer industri (Brüel & Kjær, SKF, Fluke) menjalankan loop ini otomatis set
 ---
 layout: default
 title: "Pola Spektrum & Diagnosis Kerusakan Mesin"
+class: tight
 ---
 
 
@@ -695,16 +701,21 @@ Setelah FFT dihitung, identifikasi puncak berdasarkan $f_{rot}$ = RPM/60:
 </div>
 
 <Callout type="analogy">
+
 Membaca spektrum FFT mesin seperti membaca EKG jantung: tiap "ketidaknormalan" puncak pada frekuensi tertentu menunjuk ke sumber masalah spesifik. Mekanik berpengalaman langsung tahu arti pola $1\times$, $2\times$, dan sideband.
+
 </Callout>
 
 <Callout type="industry" title="Contoh Kasus — Turbin 3000 RPM">
+
 $f_{rot}$ = 50 Hz. Tiba-tiba muncul puncak besar di <strong>100 Hz (2×)</strong> dan sidebands di 50 Hz → diagnosis: <strong>misalignment kopling</strong>. Penggantian kopling saat shutdown terjadwal mencegah kerusakan bearing senilai Rp 500 juta.
+
 </Callout>
 
 ---
 layout: default
 title: "FRF & Identifikasi Frekuensi Natural"
+class: tight
 ---
 
 
@@ -714,16 +725,21 @@ $$H(\omega) = \frac{X(\omega)}{F(\omega)} = \frac{1}{k - m\omega^2 + jc\omega} \
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
 <Callout type="concept" title="Puncak FRF = Frekuensi Natural">
+
 Pada $\omega = \omega_n$: $|H|_{max} = 1/(2k\zeta)$. Metode Half-Power (−3 dB): $\zeta \approx (f_2 - f_1)/(2f_n)$ — cara eksperimental menentukan damping ratio dari kurva FRF.
+
 </Callout>
 <Callout type="warning" title="Resonansi — Bahaya Struktural">
+
 Saat frekuensi operasi mesin mendekati $\omega_n$, amplitudo meledak. Jembatan Tacoma Narrows (1940) runtuh karena resonansi angin. Desain mesin wajib memastikan frekuensi operasi <strong>jauh dari</strong> $\omega_n$ struktur.
+
 </Callout>
 </div>
 
 ---
 layout: two-cols
 title: "Aplikasi — Predictive Maintenance & Bearing"
+class: shift-down
 ---
 
 
@@ -808,6 +824,7 @@ Normal: $K = 3$. Cacat bearing: $K > 6$. Sangat sensitif di tahap awal — lebih
 ---
 layout: default
 title: "Implementasi Python — Analisis FFT Lengkap"
+class: code-dense
 ---
 
 
@@ -846,6 +863,7 @@ for p in peaks:
 ---
 layout: default
 title: "Implementasi MATLAB — Analisis Spektral"
+class: code-dense
 ---
 
 
@@ -887,6 +905,7 @@ grid on;
 ---
 layout: default
 title: "Contoh Soal 1 — Identifikasi Sumber Getaran"
+class: tight
 ---
 
 
@@ -916,6 +935,7 @@ Jika roda gigi memiliki $Z$ gigi: $f_{mesh} = f_{rot} \times Z = 30 \times Z$. U
 ---
 layout: default
 title: "Contoh Soal 2 — Identifikasi Parameter Modal via FRF"
+class: tight
 ---
 
 
@@ -942,6 +962,7 @@ $$c = 2m\omega_n\zeta = 2 \times 2.5 \times 785.4 \times 0.028 = \mathbf{110.0\,
 ---
 layout: default
 title: "Latihan Interaktif"
+class: tight
 ---
 
 
@@ -965,6 +986,7 @@ title: "Latihan Interaktif"
 ---
 layout: default
 title: "Rangkuman"
+class: tight
 ---
 
 

@@ -83,8 +83,8 @@ function stateOf(i) {
   border-left: 3px solid #c8922a;
   border-radius: 0 8px 8px 0;
   background: #1c1a14;
-  padding: 14px 18px;
-  margin: 8px 0;
+  padding: 8px 12px;
+  margin: 5px 0;
   color: #ece7dd;
   transition: border-color 0.22s ease, box-shadow 0.22s ease;
 }
@@ -92,27 +92,27 @@ function stateOf(i) {
   border-color: rgba(200,146,42,0.55);
   box-shadow: 0 0 0 1px rgba(200,146,42,0.18), 0 6px 24px rgba(200,146,42,0.12);
 }
-.quiz-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; }
+.quiz-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 7px; }
 .quiz-no {
   flex: none; display: inline-flex; align-items: center; justify-content: center;
-  width: 24px; height: 24px; border-radius: 50%;
-  background: #c8922a; color: #1a1917; font-weight: 700; font-size: 13px;
+  width: 19px; height: 19px; border-radius: 50%;
+  background: #c8922a; color: #1a1917; font-weight: 700; font-size: 11px;
 }
-.quiz-q { font-size: 16px; font-weight: 600; line-height: 1.4; }
-.quiz-opts { display: flex; flex-direction: column; gap: 8px; }
+.quiz-q { font-size: 12.5px; font-weight: 600; line-height: 1.32; }
+.quiz-opts { display: flex; flex-direction: column; gap: 5px; }
 .quiz-opt {
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: 9px;
   text-align: left; width: 100%;
-  padding: 9px 12px; border-radius: 6px;
+  padding: 5px 9px; border-radius: 6px;
   border: 1px solid #38332a; background: #232019;
-  color: #ddd8cf; font-size: 14px; cursor: pointer;
+  color: #ddd8cf; font-size: 11.5px; cursor: pointer;
   transition: all 0.15s ease;
 }
 .quiz-opt:hover { border-color: #c8922a; background: #2a261d; }
 .quiz-key {
-  flex: none; width: 22px; height: 22px; border-radius: 4px;
+  flex: none; width: 17px; height: 17px; border-radius: 4px;
   display: inline-flex; align-items: center; justify-content: center;
-  background: #38332a; color: #c8922a; font-weight: 700; font-size: 12px;
+  background: #38332a; color: #c8922a; font-weight: 700; font-size: 10.5px;
 }
 .quiz-text { flex: 1; }
 .quiz-mark { font-weight: 800; color: #5fae5f; }
