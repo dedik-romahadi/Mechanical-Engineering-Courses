@@ -1341,29 +1341,77 @@ Akselerometer pada poros mengukur getaran mesin berputar <b>1800 RPM</b>. Spektr
 ---
 layout: default
 title: "Contoh Soal 2 — Identifikasi Parameter Modal via FRF"
-class: tight
+class: soal-keren
 ---
 
 
-**Soal:** Uji impak (hammer test) pada pelat baja memberikan FRF dengan puncak $f_n = 125$ Hz, titik half-power $f_1 = 121.5$ Hz dan $f_2 = 128.5$ Hz, massa efektif $m = 2.5$ kg. Tentukan $\omega_n$, $\zeta$, $k$, dan $c$!
+<div class="soal-card">
+<span class="soal-badge">📝 SOAL</span>
+Uji impak (hammer test) pada pelat baja memberikan FRF dengan puncak <i>f</i><sub>n</sub> = 125 Hz, titik half-power <i>f</i><sub>1</sub> = 121.5 Hz dan <i>f</i><sub>2</sub> = 128.5 Hz, massa efektif <i>m</i> = 2.5 kg. Tentukan ω<sub>n</sub>, ζ, k, dan c!
+</div>
 
 <v-clicks>
 
-**① Frekuensi natural sudut:**
+<div class="step"><span class="step-no">1</span> <b>Frekuensi natural sudut</b></div>
+
 $$\omega_n = 2\pi \times 125 = \mathbf{785.4\,\text{rad/s}}$$
 
-**② Rasio redaman — metode half-power:**
+<div class="step"><span class="step-no">2</span> <b>Rasio redaman — metode half-power</b></div>
+
 $$\zeta = \frac{f_2 - f_1}{2f_n} = \frac{128.5 - 121.5}{250} = \mathbf{0.028\;(2.8\%)}$$
 
-**③ Kekakuan:**
+<div class="step"><span class="step-no">3</span> <b>Kekakuan</b></div>
+
 $$k = m\,\omega_n^2 = 2.5 \times (785.4)^2 = \mathbf{1.54 \times 10^6\,\text{N/m}}$$
 
-**④ Koefisien redaman:**
+<div class="step"><span class="step-no">4</span> <b>Koefisien redaman</b></div>
+
 $$c = 2m\omega_n\zeta = 2 \times 2.5 \times 785.4 \times 0.028 = \mathbf{110.0\,\text{N·s/m}}$$
 
-**Kesimpulan:** Sistem *lightly damped* ($\zeta = 2.8\%$) — resonansi akan menghasilkan amplifikasi sangat tinggi jika mesin beroperasi di dekat 125 Hz!
+<div class="kesimpulan">✅ <b>Kesimpulan:</b> Sistem <i>lightly damped</i> (ζ = 2.8%) — resonansi menghasilkan amplifikasi sangat tinggi jika mesin beroperasi dekat 125 Hz!</div>
 
 </v-clicks>
+
+<style scoped>
+.slidev-layout { font-size: 14.5px; line-height: 1.45; padding-top: 40px !important; padding-bottom: 40px !important; }
+.slidev-layout .katex-display { margin: 4px 0 !important; }
+.soal-card {
+  background: linear-gradient(135deg, rgba(124,77,255,.16), rgba(0,229,255,.08));
+  border: 1px solid rgba(167,139,250,.4);
+  border-radius: 12px;
+  padding: 13px 18px; font-size: 15.5px; line-height: 1.5;
+  margin: 2px 0 14px;
+  box-shadow: 0 6px 24px rgba(124,77,255,.12);
+}
+.soal-badge {
+  display: inline-block;
+  background: #a78bfa; color: #0b1020;
+  font-weight: 800; font-size: 12px; letter-spacing: .06em;
+  padding: 2px 10px; border-radius: 999px; margin-right: 8px;
+}
+.soal-card b, .soal-card i { color: #f8fafc; }
+.step {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 15px; margin: 10px 0 2px;
+}
+.step-no {
+  flex: none; width: 24px; height: 24px; border-radius: 50%;
+  background: linear-gradient(135deg,#7c4dff,#00e5ff);
+  color: #fff; font-weight: 800; font-size: 13px;
+  display: inline-flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 12px rgba(124,77,255,.5);
+}
+.step b { color: #c4b5fd; }
+.kesimpulan {
+  background: linear-gradient(135deg, rgba(52,211,153,.18), rgba(52,211,153,.05));
+  border: 1px solid rgba(52,211,153,.45);
+  border-left: 4px solid #34d399;
+  border-radius: 10px;
+  padding: 7px 16px; font-size: 14px; line-height: 1.4;
+  margin-top: 10px;
+}
+.kesimpulan b { color: #6ee7b7; }
+</style>
 
 ---
 layout: default
