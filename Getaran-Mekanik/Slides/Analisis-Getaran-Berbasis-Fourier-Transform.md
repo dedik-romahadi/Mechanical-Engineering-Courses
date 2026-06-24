@@ -487,7 +487,7 @@ di mana $n(t)$ = noise acak terukur
 | **Stasioner acak** | Spektrum kontinu | Turbulensi |
 | **Transien** | Singkat, non-periodik | Impak bearing |
 
-<div style="margin-top:20px">
+<div style="margin-top:50px">
 <Callout type="industry" title="Sinyal Mesin Nyata">
 Poros 1800 RPM: 30 Hz (1×), 60 Hz (2×), 90 Hz (3×) + meshing gear + cacat bearing. FFT memisahkan semuanya dalam satu operasi.
 </Callout>
