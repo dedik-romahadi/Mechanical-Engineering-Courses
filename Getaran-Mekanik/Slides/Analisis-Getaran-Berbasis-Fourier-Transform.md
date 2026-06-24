@@ -350,25 +350,81 @@ layout: default
 title: "Capaian Pembelajaran (CPMK)"
 ---
 
+<div style="display:flex;flex-direction:column;gap:10px">
 
-Setelah mempelajari materi ini, mahasiswa mampu:
+<div style="color:#94a3b8;font-size:12.5px;letter-spacing:.02em;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,.05)">
+  Setelah mempelajari materi ini, mahasiswa mampu:
+</div>
 
-<v-clicks>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-items:start">
 
-1. **Menjelaskan** prinsip DFT dan FFT serta perbedaan parameter kunci (resolusi frekuensi, Nyquist, windowing)
+<v-click>
+<div style="background:#0d1526;border:1px solid rgba(0,229,255,.15);border-left:3px solid #00e5ff;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px">
+  <div style="display:flex;align-items:center;gap:7px">
+    <span style="background:rgba(0,229,255,.12);color:#00e5ff;font-weight:700;font-size:10.5px;padding:2px 7px;border-radius:4px;white-space:nowrap">CPMK 1</span>
+    <span style="color:#67e8f9;font-weight:700;font-size:13px">Menjelaskan</span>
+  </div>
+  <div style="font-size:12px;color:#94a3b8;line-height:1.5">Prinsip DFT & FFT serta perbedaan parameter kunci: resolusi frekuensi, Nyquist, windowing</div>
+  <div style="font-size:11px;color:#475569;margin-top:2px">🔢 Dasar Teori</div>
+</div>
+</v-click>
 
-2. **Menerapkan** algoritma FFT untuk menganalisis sinyal getaran diskrit dan menginterpretasi spektrum amplitudo
+<v-click>
+<div style="background:#0d1526;border:1px solid rgba(52,211,153,.15);border-left:3px solid #34d399;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px">
+  <div style="display:flex;align-items:center;gap:7px">
+    <span style="background:rgba(52,211,153,.12);color:#34d399;font-weight:700;font-size:10.5px;padding:2px 7px;border-radius:4px;white-space:nowrap">CPMK 2</span>
+    <span style="color:#6ee7b7;font-weight:700;font-size:13px">Menerapkan</span>
+  </div>
+  <div style="font-size:12px;color:#94a3b8;line-height:1.5">Algoritma FFT untuk analisis sinyal getaran diskrit & interpretasi spektrum amplitudo</div>
+  <div style="font-size:11px;color:#475569;margin-top:2px">⚙️ Implementasi</div>
+</div>
+</v-click>
 
-3. **Merancang** parameter akuisisi sinyal (frekuensi sampling, jumlah sampel) sesuai kebutuhan analisis
+<v-click>
+<div style="background:#0d1526;border:1px solid rgba(251,191,36,.15);border-left:3px solid #fbbf24;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px">
+  <div style="display:flex;align-items:center;gap:7px">
+    <span style="background:rgba(251,191,36,.12);color:#fbbf24;font-weight:700;font-size:10.5px;padding:2px 7px;border-radius:4px;white-space:nowrap">CPMK 3</span>
+    <span style="color:#fcd34d;font-weight:700;font-size:13px">Merancang</span>
+  </div>
+  <div style="font-size:12px;color:#94a3b8;line-height:1.5">Parameter akuisisi sinyal (frekuensi sampling, jumlah sampel) sesuai kebutuhan analisis</div>
+  <div style="font-size:11px;color:#475569;margin-top:2px">🎛️ Desain Sistem</div>
+</div>
+</v-click>
 
-4. **Mengidentifikasi** frekuensi natural, harmonik, dan pola kerusakan dari spektrum getaran mesin
+</div>
 
-5. **Menggunakan** Python/MATLAB untuk analisis FFT sinyal getaran nyata dan visualisasi hasilnya
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start">
 
-</v-clicks>
+<v-click>
+<div style="background:#0d1526;border:1px solid rgba(251,113,133,.15);border-left:3px solid #fb7185;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px">
+  <div style="display:flex;align-items:center;gap:7px">
+    <span style="background:rgba(251,113,133,.12);color:#fb7185;font-weight:700;font-size:10.5px;padding:2px 7px;border-radius:4px;white-space:nowrap">CPMK 4</span>
+    <span style="color:#fda4af;font-weight:700;font-size:13px">Mengidentifikasi</span>
+  </div>
+  <div style="font-size:12px;color:#94a3b8;line-height:1.5">Frekuensi natural, harmonik, dan pola kerusakan dari spektrum getaran mesin industri</div>
+  <div style="font-size:11px;color:#475569;margin-top:2px">🔍 Diagnosis Mesin</div>
+</div>
+</v-click>
 
-<div v-click style="margin-top:16px;background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #a78bfa;border-radius:8px;padding:12px 16px;font-size:13px;color:#94a3b8">
-📚 Referensi: Brandt (2011) <em>Noise and Vibration Analysis</em>. Wiley &nbsp;|&nbsp; Rao (2018) <em>Mechanical Vibrations</em>, 6th Ed. Pearson
+<v-click>
+<div style="background:#0d1526;border:1px solid rgba(167,139,250,.15);border-left:3px solid #a78bfa;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px">
+  <div style="display:flex;align-items:center;gap:7px">
+    <span style="background:rgba(167,139,250,.12);color:#a78bfa;font-weight:700;font-size:10.5px;padding:2px 7px;border-radius:4px;white-space:nowrap">CPMK 5</span>
+    <span style="color:#c4b5fd;font-weight:700;font-size:13px">Menggunakan</span>
+  </div>
+  <div style="font-size:12px;color:#94a3b8;line-height:1.5">Python / MATLAB untuk analisis FFT sinyal getaran nyata dan visualisasi hasilnya</div>
+  <div style="font-size:11px;color:#475569;margin-top:2px">💻 Pemrograman</div>
+</div>
+</v-click>
+
+</div>
+
+<v-click>
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #a78bfa;border-radius:8px;padding:8px 14px;font-size:12px;color:#94a3b8">
+  📚 Referensi: Brandt (2011) <em>Noise and Vibration Analysis</em>. Wiley &nbsp;|&nbsp; Rao (2018) <em>Mechanical Vibrations</em>, 6th Ed. Pearson
+</div>
+</v-click>
+
 </div>
 
 ---
