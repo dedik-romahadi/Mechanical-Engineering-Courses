@@ -41,7 +41,13 @@ const defaultTitle = computed(() => (map[props.type] || map.tip).t)
   border-radius: 8px; overflow: hidden;
   background: #1c1a14; border: 1px solid #2e2a21;
   margin: 10px 0; color: #e7e2d8;
+  transition: border-color 0.22s ease, box-shadow 0.22s ease;
 }
+.callout.analogy:hover  { border-color: rgba(200,146,42,0.6); box-shadow: 0 0 0 1px rgba(200,146,42,0.18), 0 6px 22px rgba(200,146,42,0.12); }
+.callout.industry:hover { border-color: rgba(91,155,213,0.6); box-shadow: 0 0 0 1px rgba(91,155,213,0.18), 0 6px 22px rgba(91,155,213,0.12); }
+.callout.tip:hover      { border-color: rgba(95,174,95,0.6);  box-shadow: 0 0 0 1px rgba(95,174,95,0.18), 0 6px 22px rgba(95,174,95,0.12); }
+.callout.warning:hover  { border-color: rgba(217,101,90,0.6); box-shadow: 0 0 0 1px rgba(217,101,90,0.18), 0 6px 22px rgba(217,101,90,0.12); }
+.callout.concept:hover  { border-color: rgba(167,139,200,0.6); box-shadow: 0 0 0 1px rgba(167,139,200,0.18), 0 6px 22px rgba(167,139,200,0.12); }
 .callout-bar { flex: none; width: 5px; }
 .callout-body { padding: 10px 14px; }
 .callout-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; display: flex; align-items: center; gap: 7px; }

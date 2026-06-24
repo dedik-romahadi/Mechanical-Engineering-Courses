@@ -252,9 +252,9 @@ onBeforeUnmount(() => clearInterval(_t))
 
 ---
 layout: default
+title: "Peta Materi"
 ---
 
-# Peta Materi
 
 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin:16px 0">
 <div style="background:#1a1714;border:1px solid #3a3526;border-left:3px solid #5b9bd5;border-radius:8px;padding:16px">
@@ -289,9 +289,9 @@ Bayangkan FFT sebagai <strong>detektor nada</strong> pada tuner gitar digital: A
 
 ---
 layout: default
+title: "Capaian Pembelajaran (CPMK)"
 ---
 
-# Capaian Pembelajaran (CPMK)
 
 Setelah mempelajari materi ini, mahasiswa mampu:
 
@@ -315,9 +315,9 @@ Setelah mempelajari materi ini, mahasiswa mampu:
 
 ---
 layout: default
+title: "Mengapa Domain Frekuensi?"
 ---
 
-# Mengapa Domain Frekuensi?
 
 <TimeFreqDemo />
 
@@ -332,9 +332,9 @@ Tiap komponen muncul sebagai <strong>puncak terpisah</strong> di frekuensinya ma
 
 ---
 layout: default
+title: "Sinyal Getaran — Karakteristik & Representasi"
 ---
 
-# Sinyal Getaran — Karakteristik & Representasi
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start">
 <div>
@@ -380,9 +380,9 @@ Poros 1800 RPM menghasilkan campuran: 30 Hz (1×), 60 Hz (2×), 90 Hz (3×) — 
 
 ---
 layout: default
+title: "DFT — Transformasi Fourier Diskrit"
 ---
 
-# DFT — Transformasi Fourier Diskrit
 
 Sinyal kontinyu $x(t)$ di-sampling menjadi $N$ sampel diskrit $x[n]$, lalu dihitung:
 
@@ -422,9 +422,9 @@ $$\boxed{x[n] = \frac{1}{N}\sum_{k=0}^{N-1} X[k]\,e^{\,j\frac{2\pi}{N}kn}} \qqua
 
 ---
 layout: two-cols
+title: "FFT — Algoritma & Implementasi"
 ---
 
-# FFT — Algoritma & Implementasi
 
 ## Algoritma Cooley-Tukey (1965)
 
@@ -477,9 +477,9 @@ f    = freqs[mask]
 
 ---
 layout: default
+title: "Resolusi Frekuensi & Desain Akuisisi"
 ---
 
-# Resolusi Frekuensi & Desain Akuisisi
 
 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:10px">
 <div style="background:#1a1714;border:1px solid #2e2a21;border-left:3px solid #5b9bd5;border-radius:8px;padding:14px">
@@ -534,9 +534,9 @@ $N=4096$ → 1600 lines
 
 ---
 layout: default
+title: "Teorema Nyquist & Aliasing"
 ---
 
-# Teorema Nyquist & Aliasing
 
 <AliasingDemo />
 
@@ -555,9 +555,9 @@ Jika dilanggar → aliasing: $f_{alias} = |f_{sinyal} - n \cdot f_s|$
 
 ---
 layout: default
+title: "Windowing — Mengatasi Spectral Leakage"
 ---
 
-# Windowing — Mengatasi Spectral Leakage
 
 **Masalah:** DFT mengasumsikan sinyal periodik sempurna dalam window. Sinyal nyata tidak berakhir di nol → diskontinuitas di tepi → energi bocor ke bin frekuensi tetangga (*spectral leakage*).
 
@@ -600,9 +600,9 @@ $$w[n] = 0.5\!\left[1 - \cos\!\left(\frac{2\pi n}{N-1}\right)\right]$$
 
 ---
 layout: default
+title: "Spektrum FFT — Interpretasi Output"
 ---
 
-# Spektrum FFT — Interpretasi Output
 
 Output DFT adalah $X[k]$ (bilangan kompleks) untuk $k = 0,\ldots,N-1$. Dua kuantitas utama:
 
@@ -638,9 +638,9 @@ $$x_{rms} = \sqrt{\sum_k |X[k]|^2 / N^2}$$
 
 ---
 layout: default
+title: "Prosedur Analisis FFT Getaran Mesin"
 ---
 
-# Prosedur Analisis FFT Getaran Mesin
 
 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0">
 <div style="background:#1a1714;border:1px solid #2e2a21;border-radius:8px;padding:12px;text-align:center">
@@ -675,9 +675,9 @@ Analyzer industri (Brüel & Kjær, SKF, Fluke) menjalankan loop ini otomatis set
 
 ---
 layout: default
+title: "Pola Spektrum & Diagnosis Kerusakan Mesin"
 ---
 
-# Pola Spektrum & Diagnosis Kerusakan Mesin
 
 Setelah FFT dihitung, identifikasi puncak berdasarkan $f_{rot}$ = RPM/60:
 
@@ -704,9 +704,9 @@ $f_{rot}$ = 50 Hz. Tiba-tiba muncul puncak besar di <strong>100 Hz (2×)</strong
 
 ---
 layout: default
+title: "FRF & Identifikasi Frekuensi Natural"
 ---
 
-# FRF & Identifikasi Frekuensi Natural
 
 $$H(\omega) = \frac{X(\omega)}{F(\omega)} = \frac{1}{k - m\omega^2 + jc\omega} \qquad |H(\omega)| = \frac{1}{\sqrt{(k-m\omega^2)^2 + (c\omega)^2}}$$
 
@@ -723,9 +723,9 @@ Saat frekuensi operasi mesin mendekati $\omega_n$, amplitudo meledak. Jembatan T
 
 ---
 layout: two-cols
+title: "Aplikasi — Predictive Maintenance & Bearing"
 ---
 
-# Aplikasi — Predictive Maintenance & Bearing
 
 ## Frekuensi Cacat Bearing
 
@@ -764,9 +764,9 @@ Pabrik baja dan petrokimia memasang sensor akselerometer permanen pada ratusan b
 
 ---
 layout: default
+title: "Indikator Kondisi Getaran"
 ---
 
-# Indikator Kondisi Getaran
 
 Selain spektrum FFT, indikator statistik domain waktu digunakan untuk monitoring tren:
 
@@ -807,9 +807,9 @@ Normal: $K = 3$. Cacat bearing: $K > 6$. Sangat sensitif di tahap awal — lebih
 
 ---
 layout: default
+title: "Implementasi Python — Analisis FFT Lengkap"
 ---
 
-# Implementasi Python — Analisis FFT Lengkap
 
 ```python
 import numpy as np
@@ -845,9 +845,9 @@ for p in peaks:
 
 ---
 layout: default
+title: "Implementasi MATLAB — Analisis Spektral"
 ---
 
-# Implementasi MATLAB — Analisis Spektral
 
 ```matlab
 %% Analisis FFT Getaran Mesin — Teknik Mesin Universitas Mercu Buana
@@ -886,9 +886,9 @@ grid on;
 
 ---
 layout: default
+title: "Contoh Soal 1 — Identifikasi Sumber Getaran"
 ---
 
-# Contoh Soal 1 — Identifikasi Sumber Getaran
 
 **Soal:** Akselerometer pada poros mengukur getaran mesin yang berputar **1800 RPM**. Spektrum FFT menunjukkan puncak pada: **30 Hz, 60 Hz, 90 Hz, dan 340 Hz**. Tentukan sumber masing-masing!
 
@@ -915,9 +915,9 @@ Jika roda gigi memiliki $Z$ gigi: $f_{mesh} = f_{rot} \times Z = 30 \times Z$. U
 
 ---
 layout: default
+title: "Contoh Soal 2 — Identifikasi Parameter Modal via FRF"
 ---
 
-# Contoh Soal 2 — Identifikasi Parameter Modal via FRF
 
 **Soal:** Uji impak (hammer test) pada pelat baja memberikan FRF dengan puncak $f_n = 125$ Hz, titik half-power $f_1 = 121.5$ Hz dan $f_2 = 128.5$ Hz, massa efektif $m = 2.5$ kg. Tentukan $\omega_n$, $\zeta$, $k$, dan $c$!
 
@@ -941,9 +941,9 @@ $$c = 2m\omega_n\zeta = 2 \times 2.5 \times 785.4 \times 0.028 = \mathbf{110.0\,
 
 ---
 layout: default
+title: "Latihan Interaktif"
 ---
 
-# Latihan Interaktif
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
 <div>
@@ -964,9 +964,9 @@ layout: default
 
 ---
 layout: default
+title: "Rangkuman"
 ---
 
-# Rangkuman
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:10px">
 <div>
@@ -1007,9 +1007,9 @@ layout: default
 
 ---
 layout: default
+title: "Referensi"
 ---
 
-# Referensi
 
 <div style="margin-top:16px;font-size:13.5px;color:#d3cdc3;line-height:2.2">
 
@@ -1032,9 +1032,9 @@ layout: default
 ---
 layout: center
 class: text-center
+title: "Terima Kasih"
 ---
 
-# Terima Kasih
 
 **Ada pertanyaan?**
 

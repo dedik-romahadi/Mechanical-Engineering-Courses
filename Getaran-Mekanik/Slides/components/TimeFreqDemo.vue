@@ -80,7 +80,15 @@ function toggle() {
 </script>
 
 <style scoped>
-.tf { border: 1px solid #2e2a21; border-radius: 10px; background: #161410; padding: 14px 16px; color: #e7e2d8; }
+.tf {
+  border: 1px solid #2e2a21; border-radius: 10px;
+  background: #161410; padding: 14px 16px; color: #e7e2d8;
+  transition: border-color 0.22s ease, box-shadow 0.22s ease;
+}
+.tf:hover {
+  border-color: rgba(200,146,42,0.55);
+  box-shadow: 0 0 0 1px rgba(200,146,42,0.18), 0 6px 28px rgba(200,146,42,0.13);
+}
 .tf-row { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; }
 .tf-card { background: #100e0a; border: 1px solid #26221a; border-radius: 8px; padding: 8px; }
 .tf-cap { font-size: 11px; color: #968f84; margin-bottom: 4px; }
