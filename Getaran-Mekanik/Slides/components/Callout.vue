@@ -1,9 +1,6 @@
 <!--
-  Callout.vue — Kotak sorot serbaguna: analogi, contoh industri, tips, peringatan, konsep.
-  Props:
-    type  : 'analogy' | 'industry' | 'tip' | 'warning' | 'concept'
-    title : judul (opsional, ada default per-type)
-  Slot   : isi konten.
+  Callout.vue — Kotak sorot serbaguna.
+  type: 'analogy' | 'industry' | 'tip' | 'warning' | 'concept'
 -->
 <template>
   <div class="callout" :class="type">
@@ -39,30 +36,29 @@ const defaultTitle = computed(() => (map[props.type] || map.tip).t)
 .callout {
   display: flex; gap: 0;
   border-radius: 8px; overflow: hidden;
-  background: #1c1a14; border: 1px solid #2e2a21;
-  margin: 10px 0; color: #e7e2d8;
+  background: #0d1526; border: 1px solid rgba(255,255,255,.08);
+  margin: 10px 0; color: #f1f5f9;
   transition: border-color 0.22s ease, box-shadow 0.22s ease;
 }
-.callout.analogy:hover  { border-color: rgba(200,146,42,0.6); box-shadow: 0 0 0 1px rgba(200,146,42,0.18), 0 6px 22px rgba(200,146,42,0.12); }
-.callout.industry:hover { border-color: rgba(91,155,213,0.6); box-shadow: 0 0 0 1px rgba(91,155,213,0.18), 0 6px 22px rgba(91,155,213,0.12); }
-.callout.tip:hover      { border-color: rgba(95,174,95,0.6);  box-shadow: 0 0 0 1px rgba(95,174,95,0.18), 0 6px 22px rgba(95,174,95,0.12); }
-.callout.warning:hover  { border-color: rgba(217,101,90,0.6); box-shadow: 0 0 0 1px rgba(217,101,90,0.18), 0 6px 22px rgba(217,101,90,0.12); }
-.callout.concept:hover  { border-color: rgba(167,139,200,0.6); box-shadow: 0 0 0 1px rgba(167,139,200,0.18), 0 6px 22px rgba(167,139,200,0.12); }
+.callout.analogy:hover  { border-color: rgba(251,191,36,0.5);  box-shadow: 0 0 0 1px rgba(251,191,36,0.15), 0 6px 22px rgba(251,191,36,0.1); }
+.callout.industry:hover { border-color: rgba(0,229,255,0.5);   box-shadow: 0 0 0 1px rgba(0,229,255,0.15), 0 6px 22px rgba(0,229,255,0.1); }
+.callout.tip:hover      { border-color: rgba(52,211,153,0.5);  box-shadow: 0 0 0 1px rgba(52,211,153,0.15), 0 6px 22px rgba(52,211,153,0.1); }
+.callout.warning:hover  { border-color: rgba(251,113,133,0.5); box-shadow: 0 0 0 1px rgba(251,113,133,0.15), 0 6px 22px rgba(251,113,133,0.1); }
+.callout.concept:hover  { border-color: rgba(167,139,250,0.5); box-shadow: 0 0 0 1px rgba(167,139,250,0.15), 0 6px 22px rgba(167,139,250,0.1); }
 .callout-bar { flex: none; width: 5px; }
 .callout-body { padding: 10px 14px; }
 .callout-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; display: flex; align-items: center; gap: 7px; }
 .callout-ico { font-size: 16px; }
-.callout-content { font-size: 13.5px; line-height: 1.5; color: #d3cdc3; }
-.callout-content :deep(strong) { color: #f0ece3; }
-
-.callout.analogy  .callout-bar { background: #c8922a; }
-.callout.analogy  .callout-title { color: #e0b455; }
-.callout.industry .callout-bar { background: #5b9bd5; }
-.callout.industry .callout-title { color: #7fb4e3; }
-.callout.tip      .callout-bar { background: #5fae5f; }
-.callout.tip      .callout-title { color: #82c182; }
-.callout.warning  .callout-bar { background: #d9655a; }
-.callout.warning  .callout-title { color: #e58a80; }
-.callout.concept  .callout-bar { background: #a78bc8; }
-.callout.concept  .callout-title { color: #bda5da; }
+.callout-content { font-size: 13.5px; line-height: 1.5; color: #94a3b8; }
+.callout-content :deep(strong) { color: #f8fafc; }
+.callout.analogy  .callout-bar { background: #fbbf24; }
+.callout.analogy  .callout-title { color: #fbbf24; }
+.callout.industry .callout-bar { background: #00e5ff; }
+.callout.industry .callout-title { color: #67e8f9; }
+.callout.tip      .callout-bar { background: #34d399; }
+.callout.tip      .callout-title { color: #6ee7b7; }
+.callout.warning  .callout-bar { background: #fb7185; }
+.callout.warning  .callout-title { color: #fca5a5; }
+.callout.concept  .callout-bar { background: #a78bfa; }
+.callout.concept  .callout-title { color: #c4b5fd; }
 </style>

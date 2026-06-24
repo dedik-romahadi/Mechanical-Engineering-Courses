@@ -1,7 +1,7 @@
 <!--
   global-top.vue — Header global untuk slide 2+.
   Judul topik tiap slide (route.meta.slide.title) ditampilkan secara dinamis
-  dengan garis aksen emas di kiri DAN kanan, posisi benar-benar di tengah.
+  dengan garis aksen di kiri DAN kanan, posisi benar-benar di tengah.
 -->
 <template>
   <div v-if="show" class="gh">
@@ -62,8 +62,8 @@ function pad(n) {
   height: 44px;
   z-index: 100;
   background:
-    radial-gradient(120% 180% at 50% -60%, rgba(200,146,42,0.10), transparent 60%),
-    linear-gradient(90deg, #1b1b1a 0%, #272725 50%, #1b1b1a 100%);
+    radial-gradient(120% 180% at 50% -60%, rgba(124,77,255,0.14), transparent 60%),
+    linear-gradient(90deg, #060c18 0%, #0d1526 50%, #060c18 100%);
 }
 .gh-inner {
   position: relative;
@@ -73,8 +73,6 @@ function pad(n) {
   justify-content: space-between;
   padding: 0 18px;
 }
-
-/* Brand */
 .gh-brand {
   display: flex;
   align-items: center;
@@ -85,18 +83,16 @@ function pad(n) {
 .gh-logo-wrap {
   display: flex; align-items: center; justify-content: center;
   width: 30px; height: 30px; border-radius: 8px;
-  background: radial-gradient(circle at 50% 30%, #2a2a28, #121211);
-  border: 1px solid rgba(200,146,42,0.45);
-  box-shadow: 0 0 10px rgba(200,146,42,0.18), inset 0 1px 2px rgba(0,0,0,0.5);
+  background: radial-gradient(circle at 50% 30%, #0d1526, #060c18);
+  border: 1px solid rgba(124,77,255,0.45);
+  box-shadow: 0 0 10px rgba(124,77,255,0.22), inset 0 1px 2px rgba(0,0,0,0.5);
 }
 .gh-logo { height: 21px; width: auto; object-fit: contain; }
 .gh-brand-text { display: flex; flex-direction: column; line-height: 1.1; }
 .gh-brand-name {
-  font-size: 11px; font-weight: 800; letter-spacing: 0.13em; color: #c8922a;
+  font-size: 11px; font-weight: 800; letter-spacing: 0.13em; color: #a78bfa;
 }
-.gh-brand-sub { font-size: 9px; letter-spacing: 0.05em; color: #8f8f8a; text-transform: uppercase; }
-
-/* Topik: absolutely centered */
+.gh-brand-sub { font-size: 9px; letter-spacing: 0.05em; color: #475569; text-transform: uppercase; }
 .gh-topic {
   position: absolute;
   left: 50%;
@@ -112,21 +108,19 @@ function pad(n) {
   width: 3px;
   height: 20px;
   border-radius: 2px;
-  background: linear-gradient(#f0cd86, #c8922a);
-  box-shadow: 0 0 8px rgba(200,146,42,0.7);
+  background: linear-gradient(180deg, #00e5ff, #7c4dff);
+  box-shadow: 0 0 8px rgba(124,77,255,0.7);
 }
 .gh-title {
   font-size: 18px;
   font-weight: 700;
-  color: #f0ece3;
+  color: #f1f5f9;
   letter-spacing: 0.01em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-shadow: 0 1px 8px rgba(0,0,0,0.5);
+  text-shadow: 0 1px 8px rgba(0,0,0,0.6);
 }
-
-/* Index + equalizer */
 .gh-index {
   display: flex; align-items: center; gap: 9px;
   flex: 0 0 auto; z-index: 1;
@@ -136,7 +130,7 @@ function pad(n) {
 }
 .gh-eq i {
   display: block; width: 2.5px; border-radius: 2px;
-  background: linear-gradient(#f0cd86, #c8922a);
+  background: linear-gradient(180deg, #00e5ff, #7c4dff);
   transform-origin: center;
   animation: gh-eq 1.15s ease-in-out infinite;
 }
@@ -150,23 +144,12 @@ function pad(n) {
   0%, 100% { transform: scaleY(0.35); opacity: 0.65; }
   50%       { transform: scaleY(1);   opacity: 1; }
 }
-.gh-num { font-size: 14px; font-weight: 800; color: #c8922a; font-variant-numeric: tabular-nums; }
-.gh-tot { font-size: 11px; color: #7a7a76; font-variant-numeric: tabular-nums; }
-
-/* Gold rule */
+.gh-num { font-size: 14px; font-weight: 800; color: #a78bfa; font-variant-numeric: tabular-nums; }
+.gh-tot { font-size: 11px; color: #475569; font-variant-numeric: tabular-nums; }
 .gh-rule {
   position: absolute; bottom: 0; left: 0; right: 0; height: 1.5px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(200,146,42,0.2) 12%,
-    #c8922a 38%, #f0cd86 50%, #c8922a 62%,
-    rgba(200,146,42,0.2) 88%,
-    transparent
-  );
+  background: linear-gradient(90deg, #7c4dff, #a78bfa, #00e5ff, #fbbf24);
 }
-
-/* Title transition */
 .gh-swap-enter-active, .gh-swap-leave-active {
   transition: opacity 0.28s ease, transform 0.28s cubic-bezier(0.4,0,0.2,1);
 }
