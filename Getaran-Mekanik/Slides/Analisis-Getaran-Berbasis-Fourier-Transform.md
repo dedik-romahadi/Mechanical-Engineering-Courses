@@ -648,32 +648,32 @@ $$\boxed{x[n] = \frac{1}{N}\sum_{k=0}^{N-1} X[k]\,e^{\,j\frac{2\pi}{N}kn}} \qqua
 ---
 layout: two-cols
 title: "FFT — Algoritma & Implementasi"
-class: tight
+class: tight code-dense
 ---
 
-
-## Algoritma Cooley-Tukey (1965)
+### Algoritma Cooley-Tukey (1965)
 
 Prinsip *divide & conquer*: DFT $N$ titik dipecah menjadi dua DFT $N/2$ titik rekursif.
 
-Notasi: $W_N = e^{-j2\pi/N}$ (twiddle factor)
+**Notasi:** $W_N = e^{-j2\pi/N}$ (twiddle factor)
 
 $$X[k] = E[k] + W_N^k \cdot O[k]$$
+
 $$X[k+N/2] = E[k] - W_N^k \cdot O[k]$$
 
-di mana $E[k]$ = DFT sampel genap, $O[k]$ = DFT sampel ganjil.
+$E[k]$ = DFT sampel genap, $O[k]$ = DFT sampel ganjil.
 
-Disebut **butterfly** — inti komputasi FFT. Diulang rekursif $\log_2 N$ tahap → total selesai dalam $\mathcal{O}(N\log_2 N)$.
+**Butterfly** — inti FFT, diulang rekursif $\log_2 N$ tahap → $\mathcal{O}(N\log_2 N)$.
 
-<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:10px;margin-top:10px;font-size:12px;color:#94a3b8">
-💡 FFT hanya efisien untuk $N = 2^m$ (power-of-two). Jika $N$ bukan pangkat 2, zero-padding ke $2^m$ terdekat.
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:8px 10px;margin-top:8px;font-size:11.5px;color:#94a3b8">
+💡 FFT efisien untuk $N = 2^m$. Jika bukan pangkat 2 → zero-padding ke $2^m$ terdekat.
 </div>
 
 ::right::
 
 <div class="pl-4">
 
-## Kode Python
+### Kode Python
 
 ```python
 import numpy as np
