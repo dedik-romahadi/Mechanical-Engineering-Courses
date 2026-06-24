@@ -1430,7 +1430,7 @@ class: tight
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:10px">
 <div>
 
-### Konsep DFT/FFT
+### 🧮 Konsep DFT/FFT
 
 <v-clicks>
 
@@ -1445,7 +1445,7 @@ class: tight
 </div>
 <div>
 
-### Aplikasi & Diagnosis
+### 🔧 Aplikasi & Diagnosis
 
 <v-clicks>
 
@@ -1460,8 +1460,8 @@ class: tight
 </div>
 </div>
 
-<div v-click style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #a78bfa;border-radius:8px;padding:14px;margin-top:14px">
-<strong style="color:#a78bfa">Pesan Kunci:</strong> <span style="color:#94a3b8">FFT adalah alat utama diagnosis getaran mesin. Dari sinyal waktu yang sulit dibaca, FFT menghasilkan spektrum yang langsung menunjuk ke sumber masalah — unbalance, misalignment, bearing, atau gear. Inilah fondasi predictive maintenance modern.</span>
+<div v-click class="pesan-kunci">
+<strong>🔑 Pesan Kunci:</strong> <span>FFT adalah alat utama diagnosis getaran mesin. Dari sinyal waktu yang sulit dibaca, FFT menghasilkan spektrum yang langsung menunjuk ke sumber masalah — unbalance, misalignment, bearing, atau gear. Inilah fondasi predictive maintenance modern.</span>
 </div>
 
 ---
@@ -1470,7 +1470,7 @@ title: "Referensi"
 ---
 
 
-<div style="margin-top:8px;font-size:13px;color:#94a3b8;line-height:1.9">
+<div class="ref-list">
 
 1. **Brandt, A.** (2011). *Noise and Vibration Analysis: Signal Analysis and Experimental Procedures*. Wiley. *(Referensi utama — DFT/FFT praktis)*
 
