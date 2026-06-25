@@ -225,7 +225,7 @@ title: "Rule-Based vs Machine Learning"
 class: tight
 ---
 
-<div style="padding-top:32px">
+<div class="col-center">
 
 ### 🔔 Rule-Based (Pertemuan 13)
 
