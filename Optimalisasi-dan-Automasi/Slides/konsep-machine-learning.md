@@ -35,14 +35,14 @@ layout: none
         <line x1="230" y1="240" x2="390" y2="110"/><line x1="230" y1="240" x2="390" y2="190"/>
       </g>
       <g>
-        <circle class="nn-node" cx="70" cy="70" r="13" fill="#a78bfa" style="--d:0s"/>
-        <circle class="nn-node" cx="70" cy="150" r="13" fill="#a78bfa" style="--d:.3s"/>
-        <circle class="nn-node" cx="70" cy="230" r="13" fill="#a78bfa" style="--d:.6s"/>
-        <circle class="nn-node" cx="230" cy="60" r="14" fill="#38bdf8" style="--d:.2s"/>
-        <circle class="nn-node" cx="230" cy="150" r="14" fill="#38bdf8" style="--d:.5s"/>
-        <circle class="nn-node" cx="230" cy="240" r="14" fill="#38bdf8" style="--d:.8s"/>
-        <circle class="nn-node" cx="390" cy="110" r="16" fill="#34d399" style="--d:.4s"/>
-        <circle class="nn-node" cx="390" cy="190" r="16" fill="#fb7185" style="--d:.7s"/>
+        <circle class="nn-node" cx="70" cy="70" r="8" fill="#a78bfa" style="--d:0s"/>
+        <circle class="nn-node" cx="70" cy="150" r="8" fill="#a78bfa" style="--d:.3s"/>
+        <circle class="nn-node" cx="70" cy="230" r="8" fill="#a78bfa" style="--d:.6s"/>
+        <circle class="nn-node" cx="230" cy="60" r="9" fill="#38bdf8" style="--d:.2s"/>
+        <circle class="nn-node" cx="230" cy="150" r="9" fill="#38bdf8" style="--d:.5s"/>
+        <circle class="nn-node" cx="230" cy="240" r="9" fill="#38bdf8" style="--d:.8s"/>
+        <circle class="nn-node" cx="390" cy="110" r="10" fill="#34d399" style="--d:.4s"/>
+        <circle class="nn-node" cx="390" cy="190" r="10" fill="#fb7185" style="--d:.7s"/>
       </g>
       <defs>
         <linearGradient id="nng" x1="0" y1="0" x2="520" y2="0" gradientUnits="userSpaceOnUse">
@@ -103,8 +103,8 @@ onBeforeUnmount(() => clearInterval(timer))
 .cover { background: #080e1a; position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; color: #f1f5f9; }
 .nn-bg { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-46%); width: 92%; max-width: 980px; opacity: 0.22; pointer-events: none; }
 .nn-bg svg { width: 100%; height: auto; }
-.nn-node { transform-origin: center; animation: nn-pulse 2.6s ease-in-out infinite; animation-delay: var(--d); filter: drop-shadow(0 0 8px currentColor); }
-@keyframes nn-pulse { 0%,100% { opacity: .5; r: 12px; } 50% { opacity: 1; r: 16px; } }
+.nn-node { transform-origin: center; animation: nn-pulse 2.6s ease-in-out infinite; animation-delay: var(--d); filter: drop-shadow(0 0 6px currentColor); }
+@keyframes nn-pulse { 0%,100% { opacity: .3; r: 7px; } 50% { opacity: .6; r: 10px; } }
 .hdr {
   display: flex; align-items: center; justify-content: space-between;
   padding: 14px 32px; border-bottom: none; position: relative; z-index: 10;
