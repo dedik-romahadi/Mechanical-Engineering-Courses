@@ -1655,13 +1655,18 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   let t0 = 0;
   function genSignal(N) {
     const x = new Array(N);
+    const phase = t0 * 0.15;                 // slow drift → animasi bergerak
+    const period = 40;                       // jarak antar impuls (sampel)
+    const amp = mode === 0 ? 0 : (mode === 1 ? 2.5 : 6);  // severity impuls
     for (let i = 0; i < N; i++) {
-      const t = (i + t0) / 100;
-      let v = 1.5 * Math.sin(2*Math.PI*30*t/N) + 0.3 * (Math.random() - 0.5) * 2;
-      // Add impulse for faulty
-      if (mode > 0 && Math.floor((i + t0) % 25) === 0) {
-        const amp = mode === 1 ? 3 : 7;
-        v += amp * Math.exp(-((i % 25) - 0)/2) * Math.sin(20 * (i % 25));
+      // getaran latar: dua harmonik + noise pengukuran
+      let v = 1.0 * Math.sin(2*Math.PI*6*i/N + phase)
+            + 0.4 * Math.sin(2*Math.PI*13*i/N + phase*1.3)
+            + 0.18 * (Math.random() - 0.5) * 2;
+      // impuls periodik (impulsive bearing defect) — hanya saat faulty
+      if (amp > 0) {
+        const k = (i + Math.floor(t0)) % period;        // posisi dalam periode impuls
+        v += amp * Math.exp(-k/3) * Math.sin(2*Math.PI*k/3.5);  // decaying ring
       }
       x[i] = v;
     }
@@ -8420,64 +8425,64 @@ function drawSigGen(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const v = parseFloat(document.getElementById('sl_asin').value);
+  const AMBER = '#ffb300';
+  const Asin = parseFloat(document.getElementById('sl_asin').value);
   const valEl = document.getElementById('v_asin');
-  if(valEl) valEl.textContent = v.toFixed(2);
+  if(valEl) valEl.textContent = Asin.toFixed(1);
 
-  // Generic visualization: vertical bars representing eigenvalues / spectrum / etc
-  const padL=50, padR=20, padT=30, padB=40;
+  const padL=50, padR=20, padT=30, padB=30;
   const plotW = W-padL-padR, plotH = H-padT-padB;
-  ctx.strokeStyle = '#0d1929';
+  const midY = padT + plotH/2;
+
+  // grid + axes
+  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
   for(let i=0; i<=10; i++){
     ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
   }
   ctx.strokeStyle = 'rgba(255,255,255,.25)';
-  ctx.beginPath(); ctx.moveTo(padL, padT+plotH); ctx.lineTo(padL+plotW, padT+plotH); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(padL, midY); ctx.lineTo(padL+plotW, midY);
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
 
-  // Topic-specific drawing — generic eigenvalue/parameter plot
-  const N = Math.max(2, Math.min(20, Math.floor(v)));
-  const useBars = (N === Math.floor(N));
-  if(useBars){
-    // Bar plot for N components
-    const bw = plotW/(N+1);
-    for(let i=0; i<N; i++){
-      const idx = i+1;
-      const eigval = Math.sin(((2*idx-1)*Math.PI/(2*(2*N+1)))) * 2;  // shear-building eigenvalue formula
-      const bx = padL + (i+0.5)*bw;
-      const bh = (eigval/2.5)*plotH;
-      const grad = ctx.createLinearGradient(0, padT+plotH-bh, 0, padT+plotH);
-      grad.addColorStop(0, 'var(--amber)');
-      grad.addColorStop(1, 'var(--amber)40');
-      ctx.fillStyle = grad;
-      ctx.fillRect(bx-bw*0.35, padT+plotH-bh, bw*0.7, bh);
-      ctx.strokeStyle = 'var(--amber)';
-      ctx.strokeRect(bx-bw*0.35, padT+plotH-bh, bw*0.7, bh);
-      ctx.fillStyle = '#fff'; ctx.font = '9px JetBrains Mono'; ctx.textAlign = 'center';
-      ctx.fillText('ω'+(i+1), bx, padT+plotH+14);
-      ctx.fillText(eigval.toFixed(2), bx, padT+plotH-bh-5);
-    }
-  } else {
-    // Continuous curve
-    ctx.strokeStyle = 'var(--amber)'; ctx.lineWidth = 2.5;
-    ctx.shadowColor = 'var(--amber)A0'; ctx.shadowBlur = 6;
-    ctx.beginPath();
-    for(let i=0; i<=200; i++){
-      const x = padL + plotW*i/200;
-      const xv = i/200;
-      const y = padT + plotH - (0.5+0.4*Math.sin(xv*v*Math.PI*2))*plotH;
-      if(i===0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-    ctx.shadowBlur = 0;
+  // signal: x(t) = Asin·sin(2π·4t) + periodic impulses (impulsive bearing defect)
+  const Aimp = 6.0;
+  const N = 240;
+  const sig = new Array(N);
+  for(let i=0; i<N; i++){
+    let v = Asin*Math.sin(2*Math.PI*4*i/N);
+    if(i % 48 === 0) v += Aimp;               // sharp periodic impulse
+    sig[i] = v;
   }
+  // time-domain statistics
+  const mean = sig.reduce((a,b)=>a+b,0)/N;
+  const rms  = Math.sqrt(sig.reduce((a,b)=>a+(b-mean)*(b-mean),0)/N);
+  const peak = Math.max(...sig.map(Math.abs));
+  const crest = peak/Math.max(0.001, rms);
+  const sc = (plotH/2*0.92)/Math.max(peak, 1);
+
+  // ±RMS band
+  ctx.strokeStyle = 'rgba(14,165,233,.7)'; ctx.lineWidth = 1; ctx.setLineDash([5,4]);
+  ctx.beginPath();
+  ctx.moveTo(padL, midY-rms*sc); ctx.lineTo(padL+plotW, midY-rms*sc);
+  ctx.moveTo(padL, midY+rms*sc); ctx.lineTo(padL+plotW, midY+rms*sc);
+  ctx.stroke(); ctx.setLineDash([]);
+
+  // waveform
+  ctx.strokeStyle = AMBER; ctx.lineWidth = 2;
+  ctx.shadowColor = 'rgba(255,179,0,.5)'; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for(let i=0; i<N; i++){
+    const x = padL + plotW*i/(N-1);
+    const y = midY - sig[i]*sc;
+    if(i===0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke(); ctx.shadowBlur = 0;
 
   ctx.textAlign = 'left';
-  ctx.fillStyle = 'var(--amber)'; ctx.font = 'bold 12px JetBrains Mono';
-  ctx.fillText('Amplitudo Sinusoidal A_sin = '+v.toFixed(2), padL+10, padT+18);
+  ctx.fillStyle = AMBER; ctx.font = 'bold 12px JetBrains Mono';
+  ctx.fillText('x(t) = '+Asin.toFixed(1)+'·sin(2πt) + impulse', padL+8, padT+16);
 
   const info = document.getElementById('cvSigGen_info');
-  if(info) info.innerHTML = `<strong>Amplitudo Sinusoidal A_sin</strong> = ${v.toFixed(2)} · Time-domain stats parameter exploration`;
+  if(info) info.innerHTML = `RMS = <strong>${rms.toFixed(2)}</strong> · Peak = <strong>${peak.toFixed(2)}</strong> · Crest = <strong>${crest.toFixed(2)}</strong> — naikkan A<sub>sin</sub> → RMS &amp; Peak↑, Crest↓ (impulse relatif mengecil)`;
 }
 setTimeout(drawSigGen, 800+600);
 
@@ -8512,49 +8517,61 @@ function drawSeverity(){
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
   const isMode1 = (_cvSeverity_mode === 1);
-  const color = isMode1 ? '#ef4444' : '#00e09e';
+  const color = isMode1 ? '#ef4444' : '#00e676';
   const label = isMode1 ? 'Zone D: STOP (RMS > 11.2 mm/s)' : 'Zone A: Good (RMS < 2.8 mm/s)';
+  const rmsVal = isMode1 ? 11.2 : 1.6;          // representative RMS per zona
 
-  ctx.fillStyle = color; ctx.font = 'bold 14px JetBrains Mono';
-  ctx.fillText(label, 20, 30);
+  ctx.fillStyle = color; ctx.font = 'bold 14px JetBrains Mono'; ctx.textAlign = 'left';
+  ctx.fillText(label, 20, 28);
 
-  // Visualization differs per mode
-  const padL=50, padR=20, padT=50, padB=40;
-  const plotW = W-padL-padR, plotH = H-padT-padB;
+  const padL=50, padR=20, padT=44;
+  const waveH = 104, plotW = W-padL-padR;
+  const midY = padT + waveH/2;
 
+  // grid + zero axis
   ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
   for(let i=0; i<=10; i++){
-    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+waveH); ctx.stroke();
   }
   ctx.strokeStyle = 'rgba(255,255,255,.25)';
-  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
-  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(padL, midY); ctx.lineTo(padL+plotW, midY); ctx.stroke();
 
-  // Sample comparison curves
+  // vibration waveform with amplitude ∝ RMS of the zone
   const T = Date.now()/1000;
-  const N = 200;
-  ctx.strokeStyle = color; ctx.lineWidth = 2.5;
-  ctx.shadowColor = color + 'A0'; ctx.shadowBlur = 6;
+  const amp = (waveH/2*0.85) * (rmsVal/12);
+  ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.shadowColor = color; ctx.shadowBlur = 6;
   ctx.beginPath();
-  for(let i=0; i<=N; i++){
-    const x = padL + plotW*i/N;
-    const tt = i/N;
-    let y;
-    if(isMode1){
-      // Mode B: smoother / different
-      y = padT + plotH/2 - 0.5*plotH*0.4*Math.sin(tt*8*Math.PI + T)*Math.cos(tt*Math.PI);
-    } else {
-      // Mode A: standard
-      y = padT + plotH/2 - 0.5*plotH*0.4*Math.sin(tt*6*Math.PI + T);
-    }
-    if(i===0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
+  for(let i=0; i<=200; i++){
+    const x = padL + plotW*i/200, tt = i/200;
+    const noise = isMode1 ? 0.35*Math.sin(tt*23*Math.PI + T*1.6) : 0.06*Math.sin(tt*41*Math.PI);
+    const y = midY - amp*(Math.sin(tt*10*Math.PI + T) + noise);
+    if(i===0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
   }
-  ctx.stroke();
-  ctx.shadowBlur = 0;
+  ctx.stroke(); ctx.shadowBlur = 0;
+
+  // ISO 10816 zone scale bar
+  const barY = padT+waveH+24, barH = 22, zmax = 12;
+  const zb = [2.8, 4.5, 7.1];                   // A|B, B|C, C|D
+  const bounds = [0, zb[0], zb[1], zb[2], zmax];
+  const zoneCols = ['#00e676','#a3e635','#ffb300','#ef4444'];
+  const zoneLbl  = ['A','B','C','D'];
+  ctx.textAlign = 'center';
+  for(let z=0; z<4; z++){
+    const x0 = padL + plotW*bounds[z]/zmax, x1 = padL + plotW*bounds[z+1]/zmax;
+    ctx.fillStyle = zoneCols[z]; ctx.globalAlpha = 0.38;
+    ctx.fillRect(x0, barY, x1-x0, barH); ctx.globalAlpha = 1;
+    ctx.fillStyle = zoneCols[z]; ctx.font = 'bold 11px JetBrains Mono';
+    ctx.fillText(zoneLbl[z], (x0+x1)/2, barY+barH-6);
+  }
+  // RMS marker
+  const mx = padL + plotW*Math.min(rmsVal,zmax)/zmax;
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(mx, barY-6); ctx.lineTo(mx, barY+barH+6); ctx.stroke();
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 11px JetBrains Mono';
+  ctx.fillText(rmsVal.toFixed(1)+' mm/s', mx, barY+barH+18);
 
   const info = document.getElementById('cvSeverity_info');
-  if(info) info.innerHTML = isMode1 ? '🟣 <strong>Zone D: STOP (RMS > 11.2 mm/s)</strong>' : '🟢 <strong>Zone A: Good (RMS < 2.8 mm/s)</strong>';
+  if(info) info.innerHTML = isMode1 ? '🔴 <strong>Zone D: STOP</strong> — kerusakan parah, imminent failure' : '🟢 <strong>Zone A: Good</strong> — mesin sehat, lanjut operasi';
 }
 function _cvSeverityTick(){
   drawSeverity();
@@ -8589,45 +8606,83 @@ function drawIndic(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const opts = [('RMS (energy)', '#0ea5e9', 'rms'), ('Peak (max)', '#00e09e', 'peak'), ('Crest Factor (Peak/RMS)', '#f97316', 'crest'), ('Kurtosis (impulsiveness)', '#a855f7', 'kurt')];
-  const optMap = {};
-  opts.forEach(o => { optMap[o[2]] = {label: o[0], color: o[1]}; });
-  const cur = optMap[_cvIndic_val] || optMap[opts[0][2]];
+  const optMap = {
+    rms:   {label:'RMS (energy)',              color:'#0ea5e9'},
+    peak:  {label:'Peak (max)',                color:'#00e676'},
+    crest: {label:'Crest Factor (Peak/RMS)',   color:'#f97316'},
+    kurt:  {label:'Kurtosis (impulsiveness)',  color:'#a855f7'},
+  };
+  const cur = optMap[_cvIndic_val] || optMap.rms;
   const t = _cvIndic_frame * 0.012;
 
-  ctx.fillStyle = cur.color; ctx.font = 'bold 14px JetBrains Mono';
-  ctx.fillText(cur.label, 20, 30);
+  ctx.fillStyle = cur.color; ctx.font = 'bold 14px JetBrains Mono'; ctx.textAlign = 'left';
+  ctx.fillText(cur.label, 20, 28);
 
-  // Per-option visualization (frequency content)
-  const padL=50, padR=20, padT=50, padB=40;
+  const padL=50, padR=20, padT=46, padB=36;
   const plotW = W-padL-padR, plotH = H-padT-padB;
+  const midY = padT + plotH/2;
   ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
   for(let i=0; i<=10; i++){
     ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
   }
   ctx.strokeStyle = 'rgba(255,255,255,.25)';
-  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
+  ctx.beginPath(); ctx.moveTo(padL, midY); ctx.lineTo(padL+plotW, midY);
   ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
 
-  // Map opt index → frequency multiplier
-  const optIdx = opts.findIndex(o => o[2] === _cvIndic_val);
-  const freqMult = (optIdx + 1) * 1.5;
-
-  ctx.strokeStyle = cur.color; ctx.lineWidth = 2.5;
-  ctx.shadowColor = cur.color + 'A0'; ctx.shadowBlur = 6;
-  ctx.beginPath();
-  for(let i=0; i<=200; i++){
-    const x = padL + plotW*i/200;
-    const tt = i/200;
-    const y = padT + plotH/2 - plotH*0.35*Math.sin(tt*freqMult*2*Math.PI + t);
-    if(i===0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
+  // common signal: sinusoid + drifting periodic impulses (impulsive defect)
+  const N = 240; const sig = new Array(N);
+  for(let i=0; i<N; i++){
+    let v = Math.sin(i/N*8*Math.PI + t);
+    const ph = (i + Math.floor(t*20)) % 60;
+    if(ph < 3) v += 2.6*Math.exp(-ph);
+    sig[i] = v;
   }
-  ctx.stroke();
-  ctx.shadowBlur = 0;
+  const mean = sig.reduce((a,b)=>a+b,0)/N;
+  const rms  = Math.sqrt(sig.reduce((a,b)=>a+(b-mean)*(b-mean),0)/N);
+  let peak = 0, peakI = 0;
+  for(let i=0;i<N;i++){ if(Math.abs(sig[i])>peak){ peak=Math.abs(sig[i]); peakI=i; } }
+  const crest = peak/Math.max(0.001, rms);
+  const m4 = sig.reduce((a,b)=>a+Math.pow(b-mean,4),0)/N;
+  const kurt = m4/Math.pow(rms,4);
+  const sc = (plotH/2*0.9)/Math.max(peak, 1);
+
+  // waveform
+  ctx.strokeStyle = cur.color; ctx.lineWidth = 2; ctx.shadowColor = cur.color; ctx.shadowBlur = 5;
+  ctx.beginPath();
+  for(let i=0; i<N; i++){
+    const x = padL + plotW*i/(N-1), y = midY - sig[i]*sc;
+    if(i===0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke(); ctx.shadowBlur = 0;
+
+  // overlay highlighting what the chosen indicator measures
+  let val = 0, sub = '';
+  ctx.lineWidth = 1.4;
+  if(_cvIndic_val === 'rms'){
+    ctx.strokeStyle = 'rgba(14,165,233,.9)'; ctx.setLineDash([5,4]);
+    ctx.beginPath();
+    ctx.moveTo(padL, midY-rms*sc); ctx.lineTo(padL+plotW, midY-rms*sc);
+    ctx.moveTo(padL, midY+rms*sc); ctx.lineTo(padL+plotW, midY+rms*sc);
+    ctx.stroke(); ctx.setLineDash([]);
+    val = rms; sub = 'band ±RMS — energi sinyal';
+  } else if(_cvIndic_val === 'peak'){
+    const px = padL + plotW*peakI/(N-1), py = midY - sig[peakI]*sc;
+    ctx.fillStyle = '#00e676';
+    ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI*2); ctx.fill();
+    val = peak; sub = 'nilai |maks| sinyal (shock loading)';
+  } else if(_cvIndic_val === 'crest'){
+    ctx.strokeStyle = 'rgba(249,115,22,.9)'; ctx.setLineDash([5,4]);
+    ctx.beginPath();
+    ctx.moveTo(padL, midY-peak*sc); ctx.lineTo(padL+plotW, midY-peak*sc);
+    ctx.moveTo(padL, midY-rms*sc);  ctx.lineTo(padL+plotW, midY-rms*sc);
+    ctx.stroke(); ctx.setLineDash([]);
+    val = crest; sub = 'Peak / RMS — deteksi early fault';
+  } else {
+    val = kurt; sub = 'tailedness distribusi — impulsiveness';
+  }
 
   const info = document.getElementById('cvIndic_info');
-  if(info) info.innerHTML = `<strong style="color:${cur.color}">${cur.label}</strong> — freq multiplier: ${freqMult.toFixed(1)}×`;
+  if(info) info.innerHTML = `<strong style="color:${cur.color}">${cur.label}</strong> = ${val.toFixed(2)} — ${sub}`;
 }
 
 function _cvIndicTick(){
@@ -8647,6 +8702,12 @@ window.setISOZone = function(v){
   _cvISOZone_val = v;
 };
 
+const ISO_CLASSES = {
+  class1: {name:'Class I — Small (< 15 kW)',       b:[0.71, 1.8, 4.5],  max:7},
+  class2: {name:'Class II — Medium (15–75 kW)',    b:[1.12, 2.8, 7.1],  max:11},
+  class3: {name:'Class III — Large, rigid found.', b:[1.8,  4.5, 11.2], max:16},
+  class4: {name:'Class IV — Large, flexible found.', b:[2.8, 7.1, 18.0], max:25},
+};
 function drawISOZone(){
   const cv = document.getElementById('cvISOZone'); if(!cv) return;
   const W = cv.clientWidth; cv.width = W; const H = cv.height;
@@ -8655,46 +8716,66 @@ function drawISOZone(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const opts = [('class1', '⚙️ Class I — Small machines (motor < 15 kW)'), ('class2', '⚙️ Class II — Medium machines (motor 15-75 kW)'), ('class3', '🏭 Class III — Large machines on rigid found.'), ('class4', '🏭 Class IV — Large machines on flexible found.')];
-  const idx = opts.findIndex(o => o[0] === _cvISOZone_val);
-  const opt = opts[Math.max(0, idx)];
+  const cls = ISO_CLASSES[_cvISOZone_val] || ISO_CLASSES.class1;
   const t = _cvISOZone_frame * 0.010;
 
-  ctx.fillStyle = '#a855f7'; ctx.font = 'bold 13px JetBrains Mono';
-  ctx.fillText(opt[1], 20, 25);
+  ctx.fillStyle = '#a855f7'; ctx.font = 'bold 13px JetBrains Mono'; ctx.textAlign = 'left';
+  ctx.fillText('ISO 10816 — ' + cls.name, 20, 24);
 
-  // Generic visualization: animated waveform + index-dependent amplitude/frequency
-  const padL=50, padR=20, padT=45, padB=40;
-  const plotW = W-padL-padR, plotH = H-padT-padB;
+  const padL=50, padR=20, padT=40;
+  const waveH = 98, plotW = W-padL-padR;
+  const midY = padT + waveH/2;
+
+  // current machine RMS (slowly oscillating to sweep across zones)
+  const rmsVal = cls.max * (0.52 + 0.4*Math.sin(t));
+  const bnd = cls.b;
+  let zi = 3; if(rmsVal < bnd[0]) zi = 0; else if(rmsVal < bnd[1]) zi = 1; else if(rmsVal < bnd[2]) zi = 2;
+  const zoneCols = ['#00e676','#a3e635','#ffb300','#ef4444'];
+  const col = zoneCols[zi];
+
+  // grid + zero axis
   ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
   for(let i=0; i<=10; i++){
-    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+waveH); ctx.stroke();
   }
   ctx.strokeStyle = 'rgba(255,255,255,.25)';
-  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
-  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(padL, midY); ctx.lineTo(padL+plotW, midY); ctx.stroke();
 
-  const colors = ['#0ea5e9', '#00e09e', '#f97316', '#a855f7', '#ef4444', '#facc15'];
-  const color = colors[idx % colors.length];
-
-  ctx.strokeStyle = color; ctx.lineWidth = 2.5;
-  ctx.shadowColor = color + 'A0'; ctx.shadowBlur = 6;
+  // waveform amplitude ∝ current RMS, colored by current zone
+  const amp = (waveH/2*0.85) * (rmsVal/cls.max);
+  ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.shadowColor = col; ctx.shadowBlur = 6;
   ctx.beginPath();
   for(let i=0; i<=200; i++){
-    const x = padL + plotW*i/200;
-    const tt = i/200;
-    // Composite signal varying per option
-    const f1 = (idx+1)*1.5;
-    const f2 = (idx+1)*2.5;
-    const y = padT + plotH/2 - plotH*0.35*(Math.sin(tt*f1*2*Math.PI + t)+0.4*Math.sin(tt*f2*2*Math.PI - t));
-    if(i===0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
+    const x = padL + plotW*i/200, tt = i/200;
+    const y = midY - amp*Math.sin(tt*12*Math.PI + t*3);
+    if(i===0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
   }
-  ctx.stroke();
-  ctx.shadowBlur = 0;
+  ctx.stroke(); ctx.shadowBlur = 0;
+
+  // ISO zone bar with per-class thresholds
+  const barY = padT+waveH+22, barH = 24;
+  const bounds = [0, bnd[0], bnd[1], bnd[2], cls.max];
+  const zoneLbl = ['A Good','B OK','C Warn','D Stop'];
+  for(let z=0; z<4; z++){
+    const x0 = padL + plotW*bounds[z]/cls.max, x1 = padL + plotW*bounds[z+1]/cls.max;
+    ctx.fillStyle = zoneCols[z]; ctx.globalAlpha = (z===zi) ? 0.78 : 0.3;
+    ctx.fillRect(x0, barY, x1-x0, barH); ctx.globalAlpha = 1;
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 10px JetBrains Mono'; ctx.textAlign = 'center';
+    if(x1-x0 > 34) ctx.fillText(zoneLbl[z], (x0+x1)/2, barY+barH-8);
+    if(z < 3){
+      ctx.fillStyle = '#94a3b8'; ctx.font = '9px JetBrains Mono';
+      ctx.fillText(bnd[z].toFixed(z===0?2:1), x1, barY+barH+12);
+    }
+  }
+  // RMS marker
+  const mx = padL + plotW*Math.min(rmsVal,cls.max)/cls.max;
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(mx, barY-6); ctx.lineTo(mx, barY+barH+4); ctx.stroke();
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 11px JetBrains Mono'; ctx.textAlign = 'center';
+  ctx.fillText(rmsVal.toFixed(1), mx, barY-9);
 
   const info = document.getElementById('cvISOZone_info');
-  if(info) info.innerHTML = `<strong style="color:${color}">${opt[1]}</strong>`;
+  if(info) info.innerHTML = `<strong style="color:${col}">${cls.name}</strong> · RMS = ${rmsVal.toFixed(1)} mm/s → Zone <strong>${['A','B','C','D'][zi]}</strong>`;
 }
 
 function _cvISOZoneTick(){
