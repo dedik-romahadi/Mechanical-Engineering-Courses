@@ -5002,8 +5002,9 @@ function drawSweep(){
     const yTgt = y1 - Math.min(target, 12) / 12 * (y1 - y0);
     ctx.strokeStyle = 'rgba(34,197,94,.55)'; ctx.lineWidth = 1.2; ctx.setLineDash([4,3]);
     ctx.beginPath(); ctx.moveTo(padL, yTgt); ctx.lineTo(W - padR, yTgt); ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillStyle = 'rgba(34,197,94,.85)'; ctx.font = '9px JetBrains Mono';
-    ctx.fillText('ANSI/ISA target ≤' + target + '/min', padL + 4, yTgt - 3);
+    // label placed BELOW its line so it never collides with the lane label at the top-left
+    ctx.fillStyle = 'rgba(34,197,94,.9)'; ctx.font = '9px JetBrains Mono';
+    ctx.fillText('ANSI/ISA target ≤' + target + '/min', padL + 4, yTgt + 12);
     // Stacked bars by priority
     arr.forEach((cnt, b) => {
       const x = padL + b * binW + 1;
@@ -8296,7 +8297,7 @@ function drawOA5(){
   ctx.fillStyle = s.col; ctx.font = 'bold 14px JetBrains Mono';
   ctx.fillText(s.emoji + ' ' + s.name, 14, dy);
   ctx.fillStyle = 'rgba(226,232,240,.85)'; ctx.font = '10px JetBrains Mono';
-  dy = _oa5wrap(ctx, s.desc, 14, dy + 17, splitX - 24, 13) + 4;
+  dy = _oa5wrap(ctx, s.desc, 14, dy + 17, splitX - 24, 13) + 18; // clear a full line below last desc row
   ctx.fillStyle = s.col; ctx.font = 'bold 10px JetBrains Mono';
   _oa5wrap(ctx, '▶ ' + s.action, 14, dy, splitX - 24, 13);
 
@@ -8364,11 +8365,13 @@ function drawOA5(){
     ctx.beginPath(); ctx.arc(x, y, 4.5, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
   }
 
-  // peak magnitude readout (right-aligned, top of scope)
+  // peak magnitude readout (right-aligned, top of scope) — only when it clears the "Signal x(t)" header
   let peak = 0; for(let i=0;i<N;i++) peak = Math.max(peak, Math.abs(_oa5Hist[i]));
-  ctx.textAlign = 'right'; ctx.fillStyle = s.col; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText('|x|peak=' + peak.toFixed(2), plotX0 + plotW - 6, plotY0 + 12);
-  ctx.textAlign = 'left';
+  if (plotW > 230) {
+    ctx.textAlign = 'right'; ctx.fillStyle = s.col; ctx.font = 'bold 10px JetBrains Mono';
+    ctx.fillText('|x|peak=' + peak.toFixed(2), plotX0 + plotW - 6, plotY0 + 12);
+    ctx.textAlign = 'left';
+  }
 
   const info = document.getElementById('oa5Info');
   if(info) info.innerHTML = `<strong style="color:${s.col}">${s.emoji} ${s.name}</strong> — ${s.desc} &middot; |x|<sub>peak</sub>=<strong>${peak.toFixed(2)}</strong> &middot; ${s.action}`;
