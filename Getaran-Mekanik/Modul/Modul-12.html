@@ -1517,15 +1517,29 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   <h2 class="section-title reveal">Time-Domain Statistical Indicators<br>RMS · Peak · Crest · Kurtosis</h2>
   <p class="section-desc reveal">Live signal generation dengan statistik real-time. Healthy = Gaussian-like. Faulty = impulsive (CF dan Kurtosis naik signifikan). Lima animasi: (1) statistik panel, (2) <strong>slider</strong> signal type, (3) <strong>toggle</strong> ISO severity, (4) <strong>radio</strong> indicator, (5) <strong>dropdown</strong> ISO 10816 zones.</p>
 
-  <div class="reveal" style="background:#020812;border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px">
-    <canvas id="cv-m12" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
-    <div style="display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap">
-      <button onclick="window._m12set(0)" id="btn-m12-0" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(0,224,158,.5);background:rgba(0,224,158,.18);color:var(--green)">Healthy</button>
-      <button onclick="window._m12set(1)" id="btn-m12-1" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(255,179,0,.4);background:rgba(255,179,0,.08);color:var(--amber)">Stage 1 (Early)</button>
-      <button onclick="window._m12set(2)" id="btn-m12-2" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(220,38,38,.5);background:rgba(220,38,38,.18);color:#dc2626">Stage 3 (Severe)</button>
+  <!-- Animasi 1: Live Signal + Statistik (Button) -->
+  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--cyan)"></div>
+      <span class="anim-title">Animasi 1 — Live Signal + Statistik (Button)</span>
     </div>
-    <div id="anim-info" style="text-align:center;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">
-      Live signal + statistik: RMS, Peak, Crest Factor, Kurtosis. Ganti scenario untuk lihat perubahan.
+    <div class="anim-body">
+      <canvas id="cv-m12" height="280" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group" style="flex:1 1 100%;">
+          <label>Pilih Mode (button group):</label>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px">
+            <button onclick="window._m12set(0)" id="btn-m12-0" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(0,230,118,.5);background:rgba(0,230,118,.18);color:var(--green)">Healthy</button>
+            <button onclick="window._m12set(1)" id="btn-m12-1" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(255,179,0,.4);background:rgba(255,179,0,.08);color:var(--amber)">Stage 1 (Early)</button>
+            <button onclick="window._m12set(2)" id="btn-m12-2" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(220,38,38,.5);background:rgba(220,38,38,.18);color:#ef4444">Stage 3 (Severe)</button>
+          </div>
+        </div>
+      </div>
+      <div id="anim-info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)"></div>
+      <div class="tip-box" style="margin-top:16px">
+        <strong>📊 Cara Membaca:</strong> Pilih mode severity — sinyal & 4 meter (RMS, Peak, Crest, Kurtosis) berubah real-time.<br>
+        <strong>Insight:</strong> Healthy = sinyal Gaussian (RMS rendah, Kurtosis ~3). Stage 1 = early fault, impuls mulai muncul (Crest naik). Stage 3 = severe fault, impuls dominan (Kurtosis > 7, Crest > 4.5 → bearing defect terdeteksi).
+      </div>
     </div>
   </div>
 
