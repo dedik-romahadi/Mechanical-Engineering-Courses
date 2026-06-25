@@ -871,8 +871,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <a href="#m-analogi">Kurtosis</a>
   <a href="#m-anim">Skewness</a>
   <a href="#m-aplikasi">ISO 10816</a>
-  <a href="#m-python">Python</a>
   <a href="#m-visualisasi">Animasi</a>
+  <a href="#m-python">Python</a>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════
@@ -1357,159 +1357,6 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 08 — IMPLEMENTASI PYTHON ═══ -->
-<hr class="divider">
-<div class="section" id="m-python">
-  <div class="section-label reveal">Bagian 08</div>
-  <h2 class="section-title reveal">Implementasi Python:<br>Real-Time Monitoring Dashboard</h2>
-  <p class="section-desc reveal">Empat cell Python berikut mengimplementasikan workflow time-domain monitoring lengkap: generate sinyal getaran sintetis (Cell 1), hitung RMS/peak/crest/kurtosis (Cell 2), klasifikasi ISO 10816 (Cell 3), dan plot dashboard monitoring dengan trend (Cell 4). Langsung runnable di VS Code Jupyter atau Google Colab.</p>
-
-  <!-- Cell 1 -->
-  <div class="code-wrap reveal" style="margin-bottom:32px">
-    <div class="code-header">
-      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 1 — Generate Sinyal Getaran Sintetis (Healthy + Faulty)</span>
-      <span class="code-lang">Python</span>
-      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-    </div>
-    <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
-
-fs = <span class="nm">25600.0</span>       <span class="cm"># 25.6 kHz (standar industri)</span>
-T = <span class="nm">1.0</span>            <span class="cm"># 1 detik buffer</span>
-N = <span class="fn">int</span>(fs * T)
-t = np.<span class="fn">arange</span>(N) / fs
-
-<span class="cm"># Sinyal Healthy: 1× rpm + 2× rpm + sedikit noise</span>
-rpm = <span class="nm">1800</span>
-f_rpm = rpm / <span class="nm">60</span>   <span class="cm"># 30 Hz</span>
-v_healthy = (<span class="nm">1.5</span> * np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*f_rpm*t)
-             + <span class="nm">0.5</span> * np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*<span class="nm">2</span>*f_rpm*t)
-             + <span class="nm">0.2</span> * np.random.<span class="fn">randn</span>(N))   <span class="cm"># mm/s velocity</span>
-
-<span class="cm"># Sinyal Faulty: ditambah impulse 100 Hz (BPFO bearing) + noise</span>
-f_bpfo = <span class="nm">100</span>
-impulse_train = np.<span class="fn">zeros</span>(N)
-<span class="kw">for</span> k <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">int</span>(T * f_bpfo)):
-    idx = <span class="fn">int</span>(k / f_bpfo * fs)
-    <span class="kw">if</span> idx &lt; N - <span class="nm">50</span>:
-        impulse_train[idx:idx+<span class="nm">50</span>] = <span class="nm">8</span> * np.<span class="fn">exp</span>(-np.<span class="fn">arange</span>(<span class="nm">50</span>)/<span class="nm">3</span>) * np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*<span class="nm">5000</span>*np.<span class="fn">arange</span>(<span class="nm">50</span>)/fs)
-
-v_faulty = v_healthy + <span class="nm">0.4</span> * impulse_train
-
-<span class="fn">print</span>(<span class="st">f"Sample rate: {fs} Hz, Buffer: {T} s, Samples: {N}"</span>)
-<span class="fn">print</span>(<span class="st">f"Healthy velocity range: [{v_healthy.min():.2f}, {v_healthy.max():.2f}] mm/s"</span>)
-<span class="fn">print</span>(<span class="st">f"Faulty velocity range : [{v_faulty.min():.2f}, {v_faulty.max():.2f}] mm/s"</span>)</pre>
-  </div>
-
-  <!-- Cell 2 -->
-  <div class="code-wrap reveal" style="margin-bottom:32px">
-    <div class="code-header">
-      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 2 — Hitung 4 Indikator Time-Domain</span>
-      <span class="code-lang">Python</span>
-      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-    </div>
-    <pre><span class="kw">def</span> <span class="fn">time_domain_indicators</span>(x):
-    <span class="st">"""Return dict: rms, peak, crest, kurtosis (excess)."""</span>
-    x = x - x.<span class="fn">mean</span>()                    <span class="cm"># remove DC</span>
-    rms = np.<span class="fn">sqrt</span>(np.<span class="fn">mean</span>(x**<span class="nm">2</span>))
-    peak = np.<span class="fn">max</span>(np.<span class="fn">abs</span>(x))
-    crest = peak / rms <span class="kw">if</span> rms &gt; <span class="nm">0</span> <span class="kw">else</span> <span class="nm">0</span>
-    <span class="cm"># Excess kurtosis (subtract 3 so Gaussian = 0)</span>
-    kurt = np.<span class="fn">mean</span>((x/rms)**<span class="nm">4</span>) - <span class="nm">3</span> <span class="kw">if</span> rms &gt; <span class="nm">0</span> <span class="kw">else</span> <span class="nm">0</span>
-    <span class="kw">return</span> {<span class="st">'rms'</span>: rms, <span class="st">'peak'</span>: peak, <span class="st">'crest'</span>: crest, <span class="st">'kurtosis_excess'</span>: kurt}
-
-stats_h = <span class="fn">time_domain_indicators</span>(v_healthy)
-stats_f = <span class="fn">time_domain_indicators</span>(v_faulty)
-
-<span class="fn">print</span>(<span class="st">f"{'Indikator':&lt;20} {'Healthy':&gt;10} {'Faulty':&gt;10}"</span>)
-<span class="fn">print</span>(<span class="st">'-'</span> * <span class="nm">42</span>)
-<span class="kw">for</span> k <span class="kw">in</span> [<span class="st">'rms'</span>, <span class="st">'peak'</span>, <span class="st">'crest'</span>, <span class="st">'kurtosis_excess'</span>]:
-    <span class="fn">print</span>(<span class="st">f"{k:&lt;20} {stats_h[k]:&gt;10.3f} {stats_f[k]:&gt;10.3f}"</span>)</pre>
-  </div>
-
-  <!-- Cell 3 -->
-  <div class="code-wrap reveal" style="margin-bottom:32px">
-    <div class="code-header">
-      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 3 — Klasifikasi ISO 10816 (Class II Medium Machine)</span>
-      <span class="code-lang">Python</span>
-      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-    </div>
-    <pre><span class="cm"># ISO 10816-1 thresholds untuk Class II (medium machines, rigid foundation)</span>
-ISO_THRESHOLDS_CLASS_II = {
-    <span class="st">'A_max'</span>: <span class="nm">1.12</span>,   <span class="cm"># Newly Commissioned</span>
-    <span class="st">'B_max'</span>: <span class="nm">2.80</span>,   <span class="cm"># Acceptable</span>
-    <span class="st">'C_max'</span>: <span class="nm">4.50</span>,   <span class="cm"># Unsatisfactory (D = above)</span>
-}
-
-<span class="kw">def</span> <span class="fn">classify_iso_10816</span>(rms_velocity_mms, class_thresholds=ISO_THRESHOLDS_CLASS_II):
-    <span class="kw">if</span> rms_velocity_mms &lt;= class_thresholds[<span class="st">'A_max'</span>]:
-        <span class="kw">return</span> <span class="st">'A'</span>, <span class="st">'Excellent (Newly Commissioned)'</span>
-    <span class="kw">elif</span> rms_velocity_mms &lt;= class_thresholds[<span class="st">'B_max'</span>]:
-        <span class="kw">return</span> <span class="st">'B'</span>, <span class="st">'Acceptable (Long-term Operation)'</span>
-    <span class="kw">elif</span> rms_velocity_mms &lt;= class_thresholds[<span class="st">'C_max'</span>]:
-        <span class="kw">return</span> <span class="st">'C'</span>, <span class="st">'Unsatisfactory (Limited Operation)'</span>
-    <span class="kw">else</span>:
-        <span class="kw">return</span> <span class="st">'D'</span>, <span class="st">'Damaging (Immediate Shutdown)'</span>
-
-zone_h, status_h = <span class="fn">classify_iso_10816</span>(stats_h[<span class="st">'rms'</span>])
-zone_f, status_f = <span class="fn">classify_iso_10816</span>(stats_f[<span class="st">'rms'</span>])
-
-<span class="fn">print</span>(<span class="st">f"Healthy mesin:  RMS = {stats_h['rms']:.2f} mm/s  →  Zone {zone_h} ({status_h})"</span>)
-<span class="fn">print</span>(<span class="st">f"Faulty  mesin:  RMS = {stats_f['rms']:.2f} mm/s  →  Zone {zone_f} ({status_f})"</span>)</pre>
-  </div>
-
-  <!-- Cell 4 -->
-  <div class="code-wrap reveal" style="margin-bottom:32px">
-    <div class="code-header">
-      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 4 — Plot Dashboard: Waveform + Histogram + Indicators</span>
-      <span class="code-lang">Python</span>
-      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-    </div>
-    <pre><span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
-
-fig, axes = plt.<span class="fn">subplots</span>(<span class="nm">2</span>, <span class="nm">2</span>, figsize=(<span class="nm">12</span>, <span class="nm">7</span>))
-
-<span class="cm"># Healthy waveform</span>
-axes[<span class="nm">0</span>,<span class="nm">0</span>].<span class="fn">plot</span>(t[:<span class="nm">5000</span>], v_healthy[:<span class="nm">5000</span>], color=<span class="st">'#16a34a'</span>, lw=<span class="nm">0.7</span>)
-axes[<span class="nm">0</span>,<span class="nm">0</span>].<span class="fn">set_title</span>(<span class="st">f'Healthy: RMS={stats_h["rms"]:.2f} mm/s → Zone {zone_h}'</span>)
-axes[<span class="nm">0</span>,<span class="nm">0</span>].<span class="fn">set_xlabel</span>(<span class="st">'t (s)'</span>); axes[<span class="nm">0</span>,<span class="nm">0</span>].<span class="fn">set_ylabel</span>(<span class="st">'v (mm/s)'</span>)
-axes[<span class="nm">0</span>,<span class="nm">0</span>].<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>)
-
-<span class="cm"># Faulty waveform</span>
-axes[<span class="nm">0</span>,<span class="nm">1</span>].<span class="fn">plot</span>(t[:<span class="nm">5000</span>], v_faulty[:<span class="nm">5000</span>], color=<span class="st">'#dc2626'</span>, lw=<span class="nm">0.7</span>)
-axes[<span class="nm">0</span>,<span class="nm">1</span>].<span class="fn">set_title</span>(<span class="st">f'Faulty: RMS={stats_f["rms"]:.2f} mm/s → Zone {zone_f}'</span>)
-axes[<span class="nm">0</span>,<span class="nm">1</span>].<span class="fn">set_xlabel</span>(<span class="st">'t (s)'</span>); axes[<span class="nm">0</span>,<span class="nm">1</span>].<span class="fn">set_ylabel</span>(<span class="st">'v (mm/s)'</span>)
-axes[<span class="nm">0</span>,<span class="nm">1</span>].<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>)
-
-<span class="cm"># Histogram comparison</span>
-axes[<span class="nm">1</span>,<span class="nm">0</span>].<span class="fn">hist</span>(v_healthy, bins=<span class="nm">80</span>, color=<span class="st">'#16a34a'</span>, alpha=<span class="nm">0.6</span>, label=<span class="st">'Healthy'</span>)
-axes[<span class="nm">1</span>,<span class="nm">0</span>].<span class="fn">hist</span>(v_faulty, bins=<span class="nm">80</span>, color=<span class="st">'#dc2626'</span>, alpha=<span class="nm">0.6</span>, label=<span class="st">'Faulty'</span>)
-axes[<span class="nm">1</span>,<span class="nm">0</span>].<span class="fn">set_title</span>(<span class="st">f'Distribusi: Healthy K={stats_h["kurtosis_excess"]:.2f}, Faulty K={stats_f["kurtosis_excess"]:.2f}'</span>)
-axes[<span class="nm">1</span>,<span class="nm">0</span>].<span class="fn">set_xlabel</span>(<span class="st">'v (mm/s)'</span>); axes[<span class="nm">1</span>,<span class="nm">0</span>].<span class="fn">set_ylabel</span>(<span class="st">'count'</span>)
-axes[<span class="nm">1</span>,<span class="nm">0</span>].<span class="fn">legend</span>(); axes[<span class="nm">1</span>,<span class="nm">0</span>].<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>)
-
-<span class="cm"># Indicator comparison bar chart</span>
-labels = [<span class="st">'RMS'</span>, <span class="st">'Peak'</span>, <span class="st">'Crest'</span>, <span class="st">'Kurtosis'</span>]
-healthy_vals = [stats_h[<span class="st">'rms'</span>], stats_h[<span class="st">'peak'</span>], stats_h[<span class="st">'crest'</span>], stats_h[<span class="st">'kurtosis_excess'</span>]]
-faulty_vals = [stats_f[<span class="st">'rms'</span>], stats_f[<span class="st">'peak'</span>], stats_f[<span class="st">'crest'</span>], stats_f[<span class="st">'kurtosis_excess'</span>]]
-x_pos = np.<span class="fn">arange</span>(<span class="fn">len</span>(labels))
-axes[<span class="nm">1</span>,<span class="nm">1</span>].<span class="fn">bar</span>(x_pos - <span class="nm">0.2</span>, healthy_vals, <span class="nm">0.4</span>, color=<span class="st">'#16a34a'</span>, label=<span class="st">'Healthy'</span>)
-axes[<span class="nm">1</span>,<span class="nm">1</span>].<span class="fn">bar</span>(x_pos + <span class="nm">0.2</span>, faulty_vals, <span class="nm">0.4</span>, color=<span class="st">'#dc2626'</span>, label=<span class="st">'Faulty'</span>)
-axes[<span class="nm">1</span>,<span class="nm">1</span>].<span class="fn">set_xticks</span>(x_pos); axes[<span class="nm">1</span>,<span class="nm">1</span>].<span class="fn">set_xticklabels</span>(labels)
-axes[<span class="nm">1</span>,<span class="nm">1</span>].<span class="fn">set_title</span>(<span class="st">'Indikator Comparison'</span>)
-axes[<span class="nm">1</span>,<span class="nm">1</span>].<span class="fn">legend</span>(); axes[<span class="nm">1</span>,<span class="nm">1</span>].<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>, axis=<span class="st">'y'</span>)
-
-plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
-  </div>
-
-  <div class="info-box reveal">
-    <strong>Workflow untuk Production Monitoring:</strong> Cell 1-4 di atas adalah <em>simulasi</em> untuk pembelajaran. Untuk implementasi production: ganti Cell 1 dengan akuisisi data real dari accelerometer (misalnya via NI-DAQ, IEPE sensor + ADC, atau MEMS chip seperti ADXL355). Wrap Cell 2-3 dalam loop yang dieksekusi tiap N detik. Push hasil ke database time-series (InfluxDB, TimescaleDB) untuk trending. Set alarm via webhook ke Slack/Telegram saat zone berubah.
-  </div>
-</div>
-
 <!-- ═══ BAGIAN VISUALISASI — ANIMASI INTERAKTIF ═══ -->
 <hr class="divider">
 <div class="section" id="m-visualisasi">
@@ -1746,6 +1593,159 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   draw();
 })();
 </script>
+
+<!-- ═══ BAGIAN 08 — IMPLEMENTASI PYTHON ═══ -->
+<hr class="divider">
+<div class="section" id="m-python">
+  <div class="section-label reveal">Bagian 08</div>
+  <h2 class="section-title reveal">Implementasi Python:<br>Real-Time Monitoring Dashboard</h2>
+  <p class="section-desc reveal">Empat cell Python berikut mengimplementasikan workflow time-domain monitoring lengkap: generate sinyal getaran sintetis (Cell 1), hitung RMS/peak/crest/kurtosis (Cell 2), klasifikasi ISO 10816 (Cell 3), dan plot dashboard monitoring dengan trend (Cell 4). Langsung runnable di VS Code Jupyter atau Google Colab.</p>
+
+  <!-- Cell 1 -->
+  <div class="code-wrap reveal" style="margin-bottom:32px">
+    <div class="code-header">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 1 — Generate Sinyal Getaran Sintetis (Healthy + Faulty)</span>
+      <span class="code-lang">Python</span>
+      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
+    </div>
+    <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
+
+fs = <span class="nm">25600.0</span>       <span class="cm"># 25.6 kHz (standar industri)</span>
+T = <span class="nm">1.0</span>            <span class="cm"># 1 detik buffer</span>
+N = <span class="fn">int</span>(fs * T)
+t = np.<span class="fn">arange</span>(N) / fs
+
+<span class="cm"># Sinyal Healthy: 1× rpm + 2× rpm + sedikit noise</span>
+rpm = <span class="nm">1800</span>
+f_rpm = rpm / <span class="nm">60</span>   <span class="cm"># 30 Hz</span>
+v_healthy = (<span class="nm">1.5</span> * np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*f_rpm*t)
+             + <span class="nm">0.5</span> * np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*<span class="nm">2</span>*f_rpm*t)
+             + <span class="nm">0.2</span> * np.random.<span class="fn">randn</span>(N))   <span class="cm"># mm/s velocity</span>
+
+<span class="cm"># Sinyal Faulty: ditambah impulse 100 Hz (BPFO bearing) + noise</span>
+f_bpfo = <span class="nm">100</span>
+impulse_train = np.<span class="fn">zeros</span>(N)
+<span class="kw">for</span> k <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">int</span>(T * f_bpfo)):
+    idx = <span class="fn">int</span>(k / f_bpfo * fs)
+    <span class="kw">if</span> idx &lt; N - <span class="nm">50</span>:
+        impulse_train[idx:idx+<span class="nm">50</span>] = <span class="nm">8</span> * np.<span class="fn">exp</span>(-np.<span class="fn">arange</span>(<span class="nm">50</span>)/<span class="nm">3</span>) * np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*<span class="nm">5000</span>*np.<span class="fn">arange</span>(<span class="nm">50</span>)/fs)
+
+v_faulty = v_healthy + <span class="nm">0.4</span> * impulse_train
+
+<span class="fn">print</span>(<span class="st">f"Sample rate: {fs} Hz, Buffer: {T} s, Samples: {N}"</span>)
+<span class="fn">print</span>(<span class="st">f"Healthy velocity range: [{v_healthy.min():.2f}, {v_healthy.max():.2f}] mm/s"</span>)
+<span class="fn">print</span>(<span class="st">f"Faulty velocity range : [{v_faulty.min():.2f}, {v_faulty.max():.2f}] mm/s"</span>)</pre>
+  </div>
+
+  <!-- Cell 2 -->
+  <div class="code-wrap reveal" style="margin-bottom:32px">
+    <div class="code-header">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 2 — Hitung 4 Indikator Time-Domain</span>
+      <span class="code-lang">Python</span>
+      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
+    </div>
+    <pre><span class="kw">def</span> <span class="fn">time_domain_indicators</span>(x):
+    <span class="st">"""Return dict: rms, peak, crest, kurtosis (excess)."""</span>
+    x = x - x.<span class="fn">mean</span>()                    <span class="cm"># remove DC</span>
+    rms = np.<span class="fn">sqrt</span>(np.<span class="fn">mean</span>(x**<span class="nm">2</span>))
+    peak = np.<span class="fn">max</span>(np.<span class="fn">abs</span>(x))
+    crest = peak / rms <span class="kw">if</span> rms &gt; <span class="nm">0</span> <span class="kw">else</span> <span class="nm">0</span>
+    <span class="cm"># Excess kurtosis (subtract 3 so Gaussian = 0)</span>
+    kurt = np.<span class="fn">mean</span>((x/rms)**<span class="nm">4</span>) - <span class="nm">3</span> <span class="kw">if</span> rms &gt; <span class="nm">0</span> <span class="kw">else</span> <span class="nm">0</span>
+    <span class="kw">return</span> {<span class="st">'rms'</span>: rms, <span class="st">'peak'</span>: peak, <span class="st">'crest'</span>: crest, <span class="st">'kurtosis_excess'</span>: kurt}
+
+stats_h = <span class="fn">time_domain_indicators</span>(v_healthy)
+stats_f = <span class="fn">time_domain_indicators</span>(v_faulty)
+
+<span class="fn">print</span>(<span class="st">f"{'Indikator':&lt;20} {'Healthy':&gt;10} {'Faulty':&gt;10}"</span>)
+<span class="fn">print</span>(<span class="st">'-'</span> * <span class="nm">42</span>)
+<span class="kw">for</span> k <span class="kw">in</span> [<span class="st">'rms'</span>, <span class="st">'peak'</span>, <span class="st">'crest'</span>, <span class="st">'kurtosis_excess'</span>]:
+    <span class="fn">print</span>(<span class="st">f"{k:&lt;20} {stats_h[k]:&gt;10.3f} {stats_f[k]:&gt;10.3f}"</span>)</pre>
+  </div>
+
+  <!-- Cell 3 -->
+  <div class="code-wrap reveal" style="margin-bottom:32px">
+    <div class="code-header">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 3 — Klasifikasi ISO 10816 (Class II Medium Machine)</span>
+      <span class="code-lang">Python</span>
+      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
+    </div>
+    <pre><span class="cm"># ISO 10816-1 thresholds untuk Class II (medium machines, rigid foundation)</span>
+ISO_THRESHOLDS_CLASS_II = {
+    <span class="st">'A_max'</span>: <span class="nm">1.12</span>,   <span class="cm"># Newly Commissioned</span>
+    <span class="st">'B_max'</span>: <span class="nm">2.80</span>,   <span class="cm"># Acceptable</span>
+    <span class="st">'C_max'</span>: <span class="nm">4.50</span>,   <span class="cm"># Unsatisfactory (D = above)</span>
+}
+
+<span class="kw">def</span> <span class="fn">classify_iso_10816</span>(rms_velocity_mms, class_thresholds=ISO_THRESHOLDS_CLASS_II):
+    <span class="kw">if</span> rms_velocity_mms &lt;= class_thresholds[<span class="st">'A_max'</span>]:
+        <span class="kw">return</span> <span class="st">'A'</span>, <span class="st">'Excellent (Newly Commissioned)'</span>
+    <span class="kw">elif</span> rms_velocity_mms &lt;= class_thresholds[<span class="st">'B_max'</span>]:
+        <span class="kw">return</span> <span class="st">'B'</span>, <span class="st">'Acceptable (Long-term Operation)'</span>
+    <span class="kw">elif</span> rms_velocity_mms &lt;= class_thresholds[<span class="st">'C_max'</span>]:
+        <span class="kw">return</span> <span class="st">'C'</span>, <span class="st">'Unsatisfactory (Limited Operation)'</span>
+    <span class="kw">else</span>:
+        <span class="kw">return</span> <span class="st">'D'</span>, <span class="st">'Damaging (Immediate Shutdown)'</span>
+
+zone_h, status_h = <span class="fn">classify_iso_10816</span>(stats_h[<span class="st">'rms'</span>])
+zone_f, status_f = <span class="fn">classify_iso_10816</span>(stats_f[<span class="st">'rms'</span>])
+
+<span class="fn">print</span>(<span class="st">f"Healthy mesin:  RMS = {stats_h['rms']:.2f} mm/s  →  Zone {zone_h} ({status_h})"</span>)
+<span class="fn">print</span>(<span class="st">f"Faulty  mesin:  RMS = {stats_f['rms']:.2f} mm/s  →  Zone {zone_f} ({status_f})"</span>)</pre>
+  </div>
+
+  <!-- Cell 4 -->
+  <div class="code-wrap reveal" style="margin-bottom:32px">
+    <div class="code-header">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 4 — Plot Dashboard: Waveform + Histogram + Indicators</span>
+      <span class="code-lang">Python</span>
+      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
+    </div>
+    <pre><span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+
+fig, axes = plt.<span class="fn">subplots</span>(<span class="nm">2</span>, <span class="nm">2</span>, figsize=(<span class="nm">12</span>, <span class="nm">7</span>))
+
+<span class="cm"># Healthy waveform</span>
+axes[<span class="nm">0</span>,<span class="nm">0</span>].<span class="fn">plot</span>(t[:<span class="nm">5000</span>], v_healthy[:<span class="nm">5000</span>], color=<span class="st">'#16a34a'</span>, lw=<span class="nm">0.7</span>)
+axes[<span class="nm">0</span>,<span class="nm">0</span>].<span class="fn">set_title</span>(<span class="st">f'Healthy: RMS={stats_h["rms"]:.2f} mm/s → Zone {zone_h}'</span>)
+axes[<span class="nm">0</span>,<span class="nm">0</span>].<span class="fn">set_xlabel</span>(<span class="st">'t (s)'</span>); axes[<span class="nm">0</span>,<span class="nm">0</span>].<span class="fn">set_ylabel</span>(<span class="st">'v (mm/s)'</span>)
+axes[<span class="nm">0</span>,<span class="nm">0</span>].<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>)
+
+<span class="cm"># Faulty waveform</span>
+axes[<span class="nm">0</span>,<span class="nm">1</span>].<span class="fn">plot</span>(t[:<span class="nm">5000</span>], v_faulty[:<span class="nm">5000</span>], color=<span class="st">'#dc2626'</span>, lw=<span class="nm">0.7</span>)
+axes[<span class="nm">0</span>,<span class="nm">1</span>].<span class="fn">set_title</span>(<span class="st">f'Faulty: RMS={stats_f["rms"]:.2f} mm/s → Zone {zone_f}'</span>)
+axes[<span class="nm">0</span>,<span class="nm">1</span>].<span class="fn">set_xlabel</span>(<span class="st">'t (s)'</span>); axes[<span class="nm">0</span>,<span class="nm">1</span>].<span class="fn">set_ylabel</span>(<span class="st">'v (mm/s)'</span>)
+axes[<span class="nm">0</span>,<span class="nm">1</span>].<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>)
+
+<span class="cm"># Histogram comparison</span>
+axes[<span class="nm">1</span>,<span class="nm">0</span>].<span class="fn">hist</span>(v_healthy, bins=<span class="nm">80</span>, color=<span class="st">'#16a34a'</span>, alpha=<span class="nm">0.6</span>, label=<span class="st">'Healthy'</span>)
+axes[<span class="nm">1</span>,<span class="nm">0</span>].<span class="fn">hist</span>(v_faulty, bins=<span class="nm">80</span>, color=<span class="st">'#dc2626'</span>, alpha=<span class="nm">0.6</span>, label=<span class="st">'Faulty'</span>)
+axes[<span class="nm">1</span>,<span class="nm">0</span>].<span class="fn">set_title</span>(<span class="st">f'Distribusi: Healthy K={stats_h["kurtosis_excess"]:.2f}, Faulty K={stats_f["kurtosis_excess"]:.2f}'</span>)
+axes[<span class="nm">1</span>,<span class="nm">0</span>].<span class="fn">set_xlabel</span>(<span class="st">'v (mm/s)'</span>); axes[<span class="nm">1</span>,<span class="nm">0</span>].<span class="fn">set_ylabel</span>(<span class="st">'count'</span>)
+axes[<span class="nm">1</span>,<span class="nm">0</span>].<span class="fn">legend</span>(); axes[<span class="nm">1</span>,<span class="nm">0</span>].<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>)
+
+<span class="cm"># Indicator comparison bar chart</span>
+labels = [<span class="st">'RMS'</span>, <span class="st">'Peak'</span>, <span class="st">'Crest'</span>, <span class="st">'Kurtosis'</span>]
+healthy_vals = [stats_h[<span class="st">'rms'</span>], stats_h[<span class="st">'peak'</span>], stats_h[<span class="st">'crest'</span>], stats_h[<span class="st">'kurtosis_excess'</span>]]
+faulty_vals = [stats_f[<span class="st">'rms'</span>], stats_f[<span class="st">'peak'</span>], stats_f[<span class="st">'crest'</span>], stats_f[<span class="st">'kurtosis_excess'</span>]]
+x_pos = np.<span class="fn">arange</span>(<span class="fn">len</span>(labels))
+axes[<span class="nm">1</span>,<span class="nm">1</span>].<span class="fn">bar</span>(x_pos - <span class="nm">0.2</span>, healthy_vals, <span class="nm">0.4</span>, color=<span class="st">'#16a34a'</span>, label=<span class="st">'Healthy'</span>)
+axes[<span class="nm">1</span>,<span class="nm">1</span>].<span class="fn">bar</span>(x_pos + <span class="nm">0.2</span>, faulty_vals, <span class="nm">0.4</span>, color=<span class="st">'#dc2626'</span>, label=<span class="st">'Faulty'</span>)
+axes[<span class="nm">1</span>,<span class="nm">1</span>].<span class="fn">set_xticks</span>(x_pos); axes[<span class="nm">1</span>,<span class="nm">1</span>].<span class="fn">set_xticklabels</span>(labels)
+axes[<span class="nm">1</span>,<span class="nm">1</span>].<span class="fn">set_title</span>(<span class="st">'Indikator Comparison'</span>)
+axes[<span class="nm">1</span>,<span class="nm">1</span>].<span class="fn">legend</span>(); axes[<span class="nm">1</span>,<span class="nm">1</span>].<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>, axis=<span class="st">'y'</span>)
+
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>Workflow untuk Production Monitoring:</strong> Cell 1-4 di atas adalah <em>simulasi</em> untuk pembelajaran. Untuk implementasi production: ganti Cell 1 dengan akuisisi data real dari accelerometer (misalnya via NI-DAQ, IEPE sensor + ADC, atau MEMS chip seperti ADXL355). Wrap Cell 2-3 dalam loop yang dieksekusi tiap N detik. Push hasil ke database time-series (InfluxDB, TimescaleDB) untuk trending. Set alarm via webhook ke Slack/Telegram saat zone berubah.
+  </div>
+</div>
 
 <!-- ═══ DAFTAR PUSTAKA ═══ -->
 <hr class="divider">
