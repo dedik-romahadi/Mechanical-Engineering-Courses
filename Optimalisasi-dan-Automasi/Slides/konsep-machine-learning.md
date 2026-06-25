@@ -27,17 +27,15 @@ layout: none
   <div class="nn-bg">
     <svg viewBox="0 0 520 300" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
       <g stroke="url(#nng)" stroke-width="1.6" opacity="0.55">
-        <line x1="70" y1="70" x2="230" y2="60"/><line x1="70" y1="70" x2="230" y2="150"/><line x1="70" y1="70" x2="230" y2="240"/>
-        <line x1="70" y1="150" x2="230" y2="60"/><line x1="70" y1="150" x2="230" y2="150"/><line x1="70" y1="150" x2="230" y2="240"/>
-        <line x1="70" y1="230" x2="230" y2="60"/><line x1="70" y1="230" x2="230" y2="150"/><line x1="70" y1="230" x2="230" y2="240"/>
+        <line x1="70" y1="110" x2="230" y2="60"/><line x1="70" y1="110" x2="230" y2="150"/><line x1="70" y1="110" x2="230" y2="240"/>
+        <line x1="70" y1="190" x2="230" y2="60"/><line x1="70" y1="190" x2="230" y2="150"/><line x1="70" y1="190" x2="230" y2="240"/>
         <line x1="230" y1="60" x2="390" y2="110"/><line x1="230" y1="60" x2="390" y2="190"/>
         <line x1="230" y1="150" x2="390" y2="110"/><line x1="230" y1="150" x2="390" y2="190"/>
         <line x1="230" y1="240" x2="390" y2="110"/><line x1="230" y1="240" x2="390" y2="190"/>
       </g>
       <g>
-        <circle class="nn-node" cx="70" cy="70" r="8" fill="#a78bfa" style="--d:0s"/>
-        <circle class="nn-node" cx="70" cy="150" r="8" fill="#a78bfa" style="--d:.3s"/>
-        <circle class="nn-node" cx="70" cy="230" r="8" fill="#a78bfa" style="--d:.6s"/>
+        <circle class="nn-node" cx="70" cy="110" r="8" fill="#a78bfa" style="--d:0s"/>
+        <circle class="nn-node" cx="70" cy="190" r="8" fill="#a78bfa" style="--d:.3s"/>
         <circle class="nn-node" cx="230" cy="60" r="9" fill="#38bdf8" style="--d:.2s"/>
         <circle class="nn-node" cx="230" cy="150" r="9" fill="#38bdf8" style="--d:.5s"/>
         <circle class="nn-node" cx="230" cy="240" r="9" fill="#38bdf8" style="--d:.8s"/>
