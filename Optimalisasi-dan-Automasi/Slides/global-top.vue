@@ -62,7 +62,7 @@ const { currentPage, total, currentSlideRoute } = useNav()
 const page = currentPage
 const show = computed(() => currentPage.value !== 1)
 const title = computed(
-  () => currentSlideRoute.value?.meta?.slide?.title || 'Konsep Machine Learning',
+  () => currentSlideRoute.value?.meta?.slide?.title || 'Penerapan Machine Learning',
 )
 // Slide penutup: judul header diganti animasi gelombang (relevan tema getaran).
 const isClosing = computed(() => title.value === 'Terima Kasih')

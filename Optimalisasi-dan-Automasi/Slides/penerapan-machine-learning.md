@@ -1,9 +1,9 @@
 ---
 theme: default
-title: Konsep Machine Learning
+title: Penerapan Machine Learning
 titleTemplate: '%s — Optimalisasi & Otomasi'
 info: |
-  ## Konsep Machine Learning
+  ## Penerapan Machine Learning
   Deteksi Kerusakan Mesin dari Data Getaran
   Mata Kuliah Optimalisasi & Otomasi — S1 Teknik Mesin
   Universitas Mercu Buana
@@ -63,7 +63,7 @@ layout: none
 
   <main class="ctr">
     <div class="badge">🤖 &nbsp; Materi Kuliah · Otomatisasi Prediktif</div>
-    <div class="ttl1">Konsep Machine Learning</div>
+    <div class="ttl1">Penerapan Machine Learning</div>
     <div class="ttl2">Deteksi Kerusakan Mesin dari Data Getaran</div>
     <div class="fml">ŷ = f( <span class="fx">x</span> ; θ )&nbsp;&nbsp;→&nbsp;&nbsp;<span class="ok">🟢 Sehat</span> &nbsp;/&nbsp; <span class="bad">🔴 Rusak</span></div>
     <div class="sep"></div>
