@@ -1441,8 +1441,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       </div>
       <div id="oa5Info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Pilih state alarm — visualisasi finite state machine ANSI/ISA 18.2.<br>
-        <strong>Insight:</strong> Normal → Alert (deviation begins). Alert → Alarm (threshold crossed). Alarm → Shutdown (safety limit). Reverse via operator ack/reset. Hysteresis untuk avoid chatter.
+        <strong>📊 Cara Membaca:</strong> Pilih tier alarm di dropdown. <strong>Kiri</strong> = lampu indikator 4-tier (yang aktif menyala). <strong>Kanan</strong> = osiloskop sinyal x(t) dengan <em>zona severity</em> berwarna: hijau (aman) → kuning → oranye → merah (bahaya). Tiap tier punya <strong>amplitudo &amp; karakter berbeda</strong>: Normal tenang di zona hijau, makin tinggi tier makin besar ayunan sinyal hingga SHUTDOWN menabrak zona merah &amp; <em>saturasi/clipping</em> di ±max. Perhatikan <code>|x|peak</code> naik tajam antar-tier.<br>
+        <strong>Insight:</strong> Normal → Alert (deviasi mulai). Alert → Alarm (ambang terlampaui). Alarm → Shutdown (batas keselamatan). Eskalasi naik otomatis bila persist; turun lewat operator ACK/reset. Hysteresis mencegah chatter di batas zona.
       </div>
     </div>
   </div>
@@ -4897,7 +4897,7 @@ function drawPhysics(){
     }
   }
   ctx.fillStyle = 'rgba(239,68,68,.95)'; ctx.font = 'bold 9px JetBrains Mono';
-  ctx.fillText('● FALSE TRIGGER (raw)', padL + 240, yTop0 + 12);
+  ctx.textAlign = 'right'; ctx.fillText('● FALSE TRIGGER (raw)', W - padR - 6, yTop0 + 12); ctx.textAlign = 'left';
 
   // Title
   ctx.fillStyle = 'rgba(14,165,233,.95)'; ctx.font = 'bold 11px JetBrains Mono';
@@ -5035,12 +5035,18 @@ function drawSweep(){
   }
   ctx.fillText('time (10-min window)', (W - 100) / 2, H - 6);
 
-  // Legend (priority pills)
-  const lx = padL + 220, ly = yTop0 + 12;
-  ['HIGH','MED','LOW'].forEach((p, i) => {
-    ctx.fillStyle = prioCols[i]; ctx.fillRect(lx + i*70, ly - 8, 10, 10);
-    ctx.fillStyle = '#fff'; ctx.font = '9px JetBrains Mono'; ctx.fillText(p, lx + i*70 + 14, ly + 1);
-  });
+  // Legend (priority pills) — right-aligned, only when the lane is wide enough to avoid the label
+  if (W > 560) {
+    ctx.font = 'bold 11px JetBrains Mono';
+    const lblEnd = padL + 6 + ctx.measureText('BEFORE rationalization (flood)').width;
+    const lx = W - padR - 200, ly = yTop0 + 12;
+    if (lx > lblEnd + 12) {
+      ['HIGH','MED','LOW'].forEach((p, i) => {
+        ctx.fillStyle = prioCols[i]; ctx.fillRect(lx + i*64, ly - 8, 10, 10);
+        ctx.fillStyle = '#fff'; ctx.font = '9px JetBrains Mono'; ctx.fillText(p, lx + i*64 + 14, ly + 1);
+      });
+    }
+  }
 
   // Title
   ctx.fillStyle = 'rgba(249,115,22,.95)'; ctx.font = 'bold 11px JetBrains Mono';
@@ -5185,22 +5191,26 @@ function drawIso(){
   ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.moveTo(tPx(tNow), sigY0 - 4); ctx.lineTo(tPx(tNow), ribY1 + 4); ctx.stroke();
 
-  // === Tier pills + threshold markers T1, T2 ===
+  // === Tier pills + threshold markers T1, T2 (responsive: fit full width) ===
+  const pillSlot = (W - padL - padR) / 4;
+  const pillW = Math.max(40, Math.min(pillSlot - 8, 150));
+  ctx.textAlign = 'center';
   ['NORMAL','WARN','ALERT','CRITICAL'].forEach((nm, i) => {
-    const px = padL + i * 110;
+    const px = padL + i * pillSlot + (pillSlot - pillW) / 2;
     const active = (i === state);
     ctx.fillStyle = active ? cols[i] : 'rgba(255,255,255,.06)';
-    ctx.fillRect(px, pillY, 100, 26);
+    ctx.fillRect(px, pillY, pillW, 26);
     ctx.strokeStyle = active ? '#fff' : 'rgba(255,255,255,.2)'; ctx.lineWidth = active ? 1.5 : 1;
-    ctx.strokeRect(px, pillY, 100, 26);
+    ctx.strokeRect(px, pillY, pillW, 26);
     ctx.fillStyle = active ? '#000' : 'rgba(255,255,255,.6)';
-    ctx.font = 'bold 10px JetBrains Mono';
-    ctx.fillText(nm, px + 8, pillY + 17);
+    ctx.font = 'bold 9px JetBrains Mono';
+    ctx.fillText(nm, px + pillW/2, pillY + 17);
   });
-  // T1 / T2 annotations
+  ctx.textAlign = 'start';
+  // T1 / T2 annotations — placed at the boundaries they govern (warn→alert, alert→critical)
   ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '9px JetBrains Mono';
-  ctx.fillText('T1=' + T1.toFixed(0) + 's', padL + 110 + 5, pillY + 38);
-  ctx.fillText('T2=' + T2.toFixed(0) + 's', padL + 220 + 5, pillY + 38);
+  ctx.fillText('T1=' + T1.toFixed(0) + 's', padL + pillSlot * 1.5 - 14, pillY + 38);
+  ctx.fillText('T2=' + T2.toFixed(0) + 's', padL + pillSlot * 2.5 - 14, pillY + 38);
 
   // Time axis ticks
   ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 1;
@@ -5321,10 +5331,12 @@ function drawHPB(){
   const xs = [0,1,2,3].map(i => padL + 70 + i * ((W - padL - padR - 140) / 3));
   const R = 32;
 
-  // Edges: forward arrows with labels (debounce-N, hysteresis, ack)
-  const drawArrow = (x0, y0, x1, y1, label, color, curveAbove) => {
+  // Edges: arrows with labels (debounce-N, hysteresis, ack)
+  // depth = vertical bow magnitude; labelDy = label offset from the bow apex.
+  const drawArrow = (x0, y0, x1, y1, label, color, curveAbove, depth) => {
+    depth = depth || 34;
     ctx.strokeStyle = color; ctx.lineWidth = 1.6;
-    const cy = y0 + (curveAbove ? -34 : 34);
+    const cy = y0 + (curveAbove ? -depth : depth);
     ctx.beginPath();
     ctx.moveTo(x0, y0);
     ctx.quadraticCurveTo((x0+x1)/2, cy, x1, y1);
@@ -5337,19 +5349,22 @@ function drawHPB(){
     ctx.lineTo(x1 - 8*Math.cos(ang - 0.4), y1 - 8*Math.sin(ang - 0.4));
     ctx.lineTo(x1 - 8*Math.cos(ang + 0.4), y1 - 8*Math.sin(ang + 0.4));
     ctx.closePath(); ctx.fill();
-    // label
-    ctx.fillStyle = color; ctx.font = '9px JetBrains Mono';
-    ctx.fillText(label, (x0+x1)/2 - 30, cy + (curveAbove ? -2 : 12));
+    // label — bow apex y ≈ 0.5*cy + 0.25*(y0+y1); place text clear of it
+    const apexY = 0.5*cy + 0.25*(y0 + y1);
+    ctx.fillStyle = color; ctx.font = '9px JetBrains Mono'; ctx.textAlign = 'center';
+    ctx.fillText(label, (x0+x1)/2, apexY + (curveAbove ? -5 : 13));
+    ctx.textAlign = 'start';
   };
 
-  // Forward edges (debounce N)
-  drawArrow(xs[0] + R, nodeY, xs[1] - R, nodeY, 'debounce N', 'rgba(234,179,8,.85)', true);
-  drawArrow(xs[1] + R, nodeY, xs[2] - R, nodeY, 'persist > T1', 'rgba(249,115,22,.85)', true);
-  drawArrow(xs[2] + R, nodeY, xs[3] - R, nodeY, 'persist > T2', 'rgba(239,68,68,.9)', true);
-  // Reverse edges (hysteresis / ack)
-  drawArrow(xs[1] - R*0.8, nodeY + 8, xs[0] + R*0.8, nodeY + 8, 'hyst clear', 'rgba(34,197,94,.7)', false);
-  drawArrow(xs[2] - R*0.8, nodeY + 8, xs[1] + R*0.8, nodeY + 8, 'hyst clear', 'rgba(34,197,94,.7)', false);
-  drawArrow(xs[3] - R*0.8, nodeY + 8, xs[0] + R*0.8, nodeY + 8, 'operator ACK', 'rgba(56,189,248,.85)', false);
+  // Forward edges (escalation) — bow ABOVE the nodes, shallow, non-overlapping midpoints
+  drawArrow(xs[0] + R, nodeY, xs[1] - R, nodeY, 'debounce N', 'rgba(234,179,8,.85)', true, 30);
+  drawArrow(xs[1] + R, nodeY, xs[2] - R, nodeY, 'persist > T1', 'rgba(249,115,22,.85)', true, 30);
+  drawArrow(xs[2] + R, nodeY, xs[3] - R, nodeY, 'persist > T2', 'rgba(239,68,68,.9)', true, 30);
+  // Reverse edges — bow BELOW the nodes. Short hysteresis hops sit just under the
+  // node row; the full-width operator-ACK arc is routed deeper so it never crosses a node.
+  drawArrow(xs[1] - R*0.7, nodeY + R*0.7, xs[0] + R*0.7, nodeY + R*0.7, 'hyst clear', 'rgba(34,197,94,.75)', false, 30);
+  drawArrow(xs[2] - R*0.7, nodeY + R*0.7, xs[1] + R*0.7, nodeY + R*0.7, 'hyst clear', 'rgba(34,197,94,.75)', false, 30);
+  drawArrow(xs[3] - R*0.7, nodeY + R*0.9, xs[0] + R*0.7, nodeY + R*0.9, 'operator ACK (reset latch)', 'rgba(56,189,248,.9)', false, 64);
 
   // Nodes
   xs.forEach((x, i) => {
@@ -8204,6 +8219,19 @@ let _oa5Frame = 0;
 let _oa5Hist = [];
 window.setOA5 = function(m){ _oa5Mode = m; _oa5Hist = []; };
 
+// Word-wrap helper for the left panel
+function _oa5wrap(ctx, text, x, y, maxW, lh){
+  const words = text.split(' '); let line = '';
+  for(const w of words){
+    if(ctx.measureText(line + w).width > maxW && line){
+      ctx.fillText(line.trim(), x, y); y += lh; line = '';
+    }
+    line += w + ' ';
+  }
+  if(line) ctx.fillText(line.trim(), x, y);
+  return y;
+}
+
 function drawOA5(){
   const cv = document.getElementById('cvOA5'); if(!cv) return;
   const W = cv.clientWidth; cv.width = W; const H = cv.height;
@@ -8212,104 +8240,138 @@ function drawOA5(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const opts = [
-    ["normal", "✅ Normal — green light, all OK"],
-    ["alert", "⚠️ Alert — yellow, watch trend"],
-    ["alarm", "🚨 Alarm — orange, action soon"],
-    ["shutdown", "🛑 Shutdown — red, immediate stop"]
-  ];
-  const idx = opts.findIndex(o => o[0] === _oa5Mode);
-  const opt = opts[Math.max(0, idx)];
-  const colors = ['#0ea5e9', '#00e09e', '#f97316', '#a855f7', '#ef4444', '#facc15'];
-  const color = colors[idx % colors.length];
+  // Per-state config (ANSI/ISA 18.2 tiers) — each visually DISTINCT:
+  // colour, amplitude (calm→violent), frequency, jitter, and spike behaviour.
+  const STATES = {
+    normal:   {i:0, name:'NORMAL',   emoji:'✅', col:'#22c55e', amp:0.16, freq:1.1, jitter:0.02, spike:0,    desc:'Semua parameter di zona aman (hijau).', action:'Monitoring rutin — tidak ada aksi.'},
+    alert:    {i:1, name:'ALERT',    emoji:'⚠️', col:'#eab308', amp:0.42, freq:1.9, jitter:0.05, spike:0,    desc:'Deviasi mulai terdeteksi (kuning).',    action:'Pantau tren, siapkan tindakan.'},
+    alarm:    {i:2, name:'ALARM',    emoji:'🚨', col:'#f97316', amp:0.70, freq:2.9, jitter:0.10, spike:0.30, desc:'Ambang batas terlampaui (oranye).',     action:'Tindakan operator SEGERA.'},
+    shutdown: {i:3, name:'SHUTDOWN', emoji:'🛑', col:'#ef4444', amp:0.98, freq:4.3, jitter:0.20, spike:0.95, desc:'Batas keselamatan tercapai (merah).',   action:'Trip otomatis — STOP segera.'}
+  };
+  const order = ['normal','alert','alarm','shutdown'];
+  const s = STATES[_oa5Mode] || STATES.normal;
 
-  // Split: 50% kiri info, 50% kanan signal trace
-  const splitX = Math.floor(W*0.40);
+  // ── Generate this frame's sample — amplitude/character keyed to the state ──
+  const t = _oa5Frame * 0.045;
+  let v = s.amp * (0.70*Math.sin(s.freq*t) + 0.30*Math.sin(s.freq*1.7*t + 0.6));
+  v += s.jitter * (Math.random()-0.5) * 2;
+  if (s.spike && Math.random() > 0.90) v += (Math.random()-0.5) * 2 * s.spike;
+  v = Math.max(-1, Math.min(1, v)); // hard clip = visible saturation at SHUTDOWN
+  _oa5Hist.push(v);
+  const WINDOW = 600;
+  if (_oa5Hist.length > WINDOW) _oa5Hist.shift();
+
+  // ── Layout: left tier-light panel | right severity scope ──
+  const splitX = Math.max(150, Math.floor(W*0.40));
   ctx.strokeStyle = 'rgba(148,163,184,.15)';
-  ctx.beginPath(); ctx.moveTo(splitX, 10); ctx.lineTo(splitX, H-10); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(splitX, 12); ctx.lineTo(splitX, H-12); ctx.stroke();
 
-  // Left: title + label
-  ctx.fillStyle = color; ctx.font = 'bold 13px JetBrains Mono';
+  // ===== LEFT: traffic-light tier indicator =====
   ctx.textAlign = 'left';
-  // Word-wrap long labels
-  const words = opt[1].split(' ');
-  let line = ''; let yy = 30;
-  for(const w of words){
-    if(line.length + w.length > 22 && line){
-      ctx.fillText(line.trim(), 14, yy); yy += 18; line = '';
+  ctx.fillStyle = 'rgba(148,163,184,.85)'; ctx.font = 'bold 10px JetBrains Mono';
+  ctx.fillText('TIER ALARM — ANSI/ISA 18.2', 14, 20);
+
+  const lampX = 28, lampR = 12, lamp0 = 44, lampGap = 34;
+  order.forEach((key, i) => {
+    const st = STATES[key];
+    const cy = lamp0 + i*lampGap;
+    const active = (key === _oa5Mode);
+    if (active){
+      ctx.fillStyle = st.col; ctx.shadowColor = st.col; ctx.shadowBlur = 16;
+      ctx.beginPath(); ctx.arc(lampX, cy, lampR, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+    } else {
+      ctx.fillStyle = 'rgba(20,30,50,.9)';
+      ctx.beginPath(); ctx.arc(lampX, cy, lampR, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = st.col + '55'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(lampX, cy, lampR, 0, Math.PI*2); ctx.stroke();
     }
-    line += w + ' ';
-  }
-  if(line) ctx.fillText(line.trim(), 14, yy);
+    ctx.fillStyle = active ? st.col : 'rgba(148,163,184,.5)';
+    ctx.font = (active ? 'bold ' : '') + '11px JetBrains Mono';
+    ctx.fillText(st.emoji + ' ' + st.name, lampX + lampR + 9, cy + 4);
+  });
 
-  // Compute signal value based on mode index (different waveform per option)
-  const t = _oa5Frame * 0.012;
-  const f1 = (idx+1)*1.5;
-  const f2 = (idx+1)*0.8 + 1.5;
-  const sigValue = 0.35*Math.sin(f1*t) + 0.25*Math.sin(f2*t + 0.5) + 0.05*(Math.random()-0.5);
+  // current-state detail block under the lamps
+  let dy = lamp0 + 4*lampGap - 2;
+  ctx.fillStyle = s.col; ctx.font = 'bold 14px JetBrains Mono';
+  ctx.fillText(s.emoji + ' ' + s.name, 14, dy);
+  ctx.fillStyle = 'rgba(226,232,240,.85)'; ctx.font = '10px JetBrains Mono';
+  dy = _oa5wrap(ctx, s.desc, 14, dy + 17, splitX - 24, 13) + 4;
+  ctx.fillStyle = s.col; ctx.font = 'bold 10px JetBrains Mono';
+  _oa5wrap(ctx, '▶ ' + s.action, 14, dy, splitX - 24, 13);
 
-  // Append history
-  _oa5Hist.push(Math.max(-1, Math.min(1, sigValue)));
-  if(_oa5Hist.length > 1000) _oa5Hist.shift();
-
-  // Right: signal trace plot
-  const padR = 14, padTR = 24, padBR = 26;
-  const plotX0 = splitX + 12;
+  // ===== RIGHT: signal scope with colour-coded severity zones =====
+  const padR = 14, padTR = 22, padBR = 22;
+  const plotX0 = splitX + 16;
   const plotW = W - plotX0 - padR;
-  const plotH = H - padTR - padBR;
   const plotY0 = padTR;
+  const plotH = H - padTR - padBR;
+  const midY = plotY0 + plotH/2;
+  const half = plotH/2 - 6;
 
-  ctx.strokeStyle = 'rgba(255,255,255,.06)'; ctx.lineWidth = 1;
+  // severity bands by |v| (mirrored around centre): green→yellow→orange→red
+  const zones = [
+    {lo:0.80, hi:1.00, col:'rgba(239,68,68,.16)'},
+    {lo:0.55, hi:0.80, col:'rgba(249,115,22,.15)'},
+    {lo:0.30, hi:0.55, col:'rgba(234,179,8,.13)'},
+    {lo:0.00, hi:0.30, col:'rgba(34,197,94,.13)'}
+  ];
+  zones.forEach(z => {
+    ctx.fillStyle = z.col;
+    ctx.fillRect(plotX0, midY - z.hi*half, plotW, (z.hi - z.lo)*half); // top mirror
+    ctx.fillRect(plotX0, midY + z.lo*half, plotW, (z.hi - z.lo)*half); // bottom
+  });
+  // zone boundary lines
+  ctx.setLineDash([3,3]); ctx.lineWidth = 1;
+  [0.30,0.55,0.80].forEach(thr => {
+    ctx.strokeStyle = 'rgba(255,255,255,.10)';
+    ctx.beginPath(); ctx.moveTo(plotX0, midY - thr*half); ctx.lineTo(plotX0+plotW, midY - thr*half); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(plotX0, midY + thr*half); ctx.lineTo(plotX0+plotW, midY + thr*half); ctx.stroke();
+  });
+  ctx.setLineDash([]);
+  // frame + centre line
+  ctx.strokeStyle = 'rgba(255,255,255,.10)'; ctx.lineWidth = 1;
   ctx.strokeRect(plotX0, plotY0, plotW, plotH);
-  ctx.strokeStyle = 'rgba(148,163,184,.2)';
-  ctx.beginPath(); ctx.moveTo(plotX0, plotY0+plotH/2); ctx.lineTo(plotX0+plotW, plotY0+plotH/2); ctx.stroke();
+  ctx.strokeStyle = 'rgba(148,163,184,.25)';
+  ctx.beginPath(); ctx.moveTo(plotX0, midY); ctx.lineTo(plotX0+plotW, midY); ctx.stroke();
 
-  ctx.fillStyle = '#94a3b8'; ctx.font = '9px JetBrains Mono'; ctx.textAlign = 'right';
-  ctx.fillText('+max', plotX0-3, plotY0+10);
-  ctx.fillText('0', plotX0-3, plotY0+plotH/2+3);
-  ctx.fillText('−max', plotX0-3, plotY0+plotH-3);
-  ctx.textAlign = 'left'; ctx.fillStyle = '#22d3ee'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText('Signal trace x(t)', plotX0+6, plotY0+12);
+  // header + time axis
+  ctx.fillStyle = s.col; ctx.font = 'bold 11px JetBrains Mono'; ctx.textAlign = 'left';
+  ctx.fillText('Signal x(t)', plotX0 + 6, plotY0 + 12);
   ctx.fillStyle = '#94a3b8'; ctx.font = '9px JetBrains Mono'; ctx.textAlign = 'center';
-  ctx.fillText('-10s', plotX0, plotY0+plotH+14);
-  ctx.fillText('-5s', plotX0+plotW/2, plotY0+plotH+14);
-  ctx.fillText('now', plotX0+plotW, plotY0+plotH+14);
+  ctx.fillText('-10s', plotX0 + 16, H - 7);
+  ctx.fillText('now', plotX0 + plotW - 12, H - 7);
 
+  // signal fill + trace, coloured by the active tier
   const N = _oa5Hist.length;
-  if(N > 1){
-    ctx.fillStyle = 'rgba(34,211,238,.15)';
-    ctx.beginPath(); ctx.moveTo(plotX0, plotY0+plotH/2);
-    for(let i=0; i<N; i++){
-      const px = plotX0 + (i/999)*plotW;
-      const py = plotY0+plotH/2 - _oa5Hist[i]*(plotH/2-8);
-      ctx.lineTo(px, py);
-    }
-    ctx.lineTo(plotX0 + ((N-1)/999)*plotW, plotY0+plotH/2);
-    ctx.closePath(); ctx.fill();
+  const xAt = (i) => plotX0 + (i/(WINDOW-1))*plotW;
+  const yAt = (val) => midY - val*half;
+  if (N > 1){
+    ctx.fillStyle = s.col + '22';
+    ctx.beginPath(); ctx.moveTo(xAt(0), midY);
+    for(let i=0;i<N;i++) ctx.lineTo(xAt(i), yAt(_oa5Hist[i]));
+    ctx.lineTo(xAt(N-1), midY); ctx.closePath(); ctx.fill();
   }
-  ctx.strokeStyle = '#22d3ee'; ctx.lineWidth = 2.4;
-  ctx.shadowColor = '#22d3ee'; ctx.shadowBlur = 8;
+  ctx.strokeStyle = s.col; ctx.lineWidth = 2.2; ctx.shadowColor = s.col; ctx.shadowBlur = 8;
   ctx.lineJoin = 'round'; ctx.lineCap = 'round';
   ctx.beginPath();
-  for(let i=0; i<N; i++){
-    const px = plotX0 + (i/999)*plotW;
-    const py = plotY0+plotH/2 - _oa5Hist[i]*(plotH/2-8);
-    if(i===0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-  }
-  ctx.stroke();
-  ctx.shadowBlur = 0;
-  if(N > 0){
-    const px = plotX0 + ((N-1)/999)*plotW;
-    const py = plotY0+plotH/2 - _oa5Hist[N-1]*(plotH/2-8);
-    ctx.fillStyle = 'rgba(251,191,36,.3)';
-    ctx.beginPath(); ctx.arc(px, py, 9, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = '#fbbf24'; ctx.shadowColor = '#fbbf24'; ctx.shadowBlur = 10;
-    ctx.beginPath(); ctx.arc(px, py, 4.5, 0, Math.PI*2); ctx.fill();
-    ctx.shadowBlur = 0;
+  for(let i=0;i<N;i++){ const x = xAt(i), y = yAt(_oa5Hist[i]); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); }
+  ctx.stroke(); ctx.shadowBlur = 0;
+  if (N > 0){
+    const x = xAt(N-1), y = yAt(_oa5Hist[N-1]);
+    ctx.fillStyle = s.col + '44'; ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = s.col; ctx.shadowColor = s.col; ctx.shadowBlur = 10;
+    ctx.beginPath(); ctx.arc(x, y, 4.5, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
   }
 
+  // peak magnitude readout (right-aligned, top of scope)
+  let peak = 0; for(let i=0;i<N;i++) peak = Math.max(peak, Math.abs(_oa5Hist[i]));
+  ctx.textAlign = 'right'; ctx.fillStyle = s.col; ctx.font = 'bold 10px JetBrains Mono';
+  ctx.fillText('|x|peak=' + peak.toFixed(2), plotX0 + plotW - 6, plotY0 + 12);
+  ctx.textAlign = 'left';
+
   const info = document.getElementById('oa5Info');
-  if(info) info.innerHTML = `<strong style="color:${color}">${opt[1]}</strong>`;
+  if(info) info.innerHTML = `<strong style="color:${s.col}">${s.emoji} ${s.name}</strong> — ${s.desc} &middot; |x|<sub>peak</sub>=<strong>${peak.toFixed(2)}</strong> &middot; ${s.action}`;
 }
 
 function _oa5Tick(){
