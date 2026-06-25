@@ -75,31 +75,6 @@ layout: none
     </div>
   </main>
 
-  <div class="spectrum">
-    <div class="bar" style="--pk:18px;--d:0.00s;--c:#a78bfa"></div>
-    <div class="bar" style="--pk:40px;--d:0.10s;--c:#38bdf8"></div>
-    <div class="bar" style="--pk:64px;--d:0.05s;--c:#34d399"></div>
-    <div class="bar" style="--pk:88px;--d:0.20s;--c:#fbbf24"></div>
-    <div class="bar" style="--pk:58px;--d:0.15s;--c:#fb7185"></div>
-    <div class="bar" style="--pk:34px;--d:0.30s;--c:#a78bfa"></div>
-    <div class="bar" style="--pk:74px;--d:0.08s;--c:#38bdf8"></div>
-    <div class="bar" style="--pk:96px;--d:0.25s;--c:#34d399"></div>
-    <div class="bar" style="--pk:70px;--d:0.12s;--c:#fbbf24"></div>
-    <div class="bar" style="--pk:46px;--d:0.18s;--c:#fb7185"></div>
-    <div class="bar" style="--pk:26px;--d:0.22s;--c:#a78bfa"></div>
-    <div class="bar" style="--pk:60px;--d:0.35s;--c:#38bdf8"></div>
-    <div class="bar" style="--pk:84px;--d:0.05s;--c:#34d399"></div>
-    <div class="bar" style="--pk:52px;--d:0.28s;--c:#fbbf24"></div>
-    <div class="bar" style="--pk:40px;--d:0.14s;--c:#fb7185"></div>
-    <div class="bar" style="--pk:66px;--d:0.32s;--c:#a78bfa"></div>
-    <div class="bar" style="--pk:38px;--d:0.07s;--c:#38bdf8"></div>
-    <div class="bar" style="--pk:22px;--d:0.19s;--c:#34d399"></div>
-    <div class="bar" style="--pk:64px;--d:0.11s;--c:#fbbf24"></div>
-    <div class="bar" style="--pk:46px;--d:0.26s;--c:#fb7185"></div>
-    <div class="bar" style="--pk:80px;--d:0.03s;--c:#a78bfa"></div>
-    <div class="bar" style="--pk:34px;--d:0.17s;--c:#38bdf8"></div>
-  </div>
-
   <footer class="ftr">
     <span>Mata Kuliah Optimalisasi &amp; Otomasi</span>
     <span class="dot">•</span>
@@ -158,9 +133,6 @@ onBeforeUnmount(() => clearInterval(timer))
 .au { display: flex; flex-direction: column; gap: 3px; }
 .au-name { font-size: 16px; font-weight: 700; color: #f1f5f9; }
 .au-sem { font-size: 12px; color: #64748b; }
-.spectrum { position: absolute; bottom: 30px; left: 0; right: 0; display: flex; align-items: flex-end; justify-content: center; gap: 5px; height: 100px; opacity: .8; z-index: 4; }
-.spectrum .bar { width: 9px; height: var(--pk); border-radius: 3px 3px 0 0; background: linear-gradient(180deg, var(--c), transparent); animation: barpulse 1.8s ease-in-out infinite; animation-delay: var(--d); }
-@keyframes barpulse { 0%,100% { transform: scaleY(.55); opacity: .6; } 50% { transform: scaleY(1); opacity: 1; } }
 .ftr {
   display: flex; align-items: center; gap: 10px; padding: 9px 28px; font-size: 11.5px; color: #64748b;
   background: #060c18; position: relative; z-index: 10;
