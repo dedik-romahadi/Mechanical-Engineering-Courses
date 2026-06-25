@@ -225,6 +225,8 @@ title: "Rule-Based vs Machine Learning"
 class: tight
 ---
 
+<div style="padding-top:32px">
+
 ### 🔔 Rule-Based (Pertemuan 13)
 
 Keputusan dari **aturan tetap** buatan engineer:
@@ -241,6 +243,8 @@ JIKA Kurtosis > 5    → Cek bearing
 <div class="ml-card c" style="margin-top:6px">
   <div class="ml-h">✘ Batasnya</div>
   <div class="ml-t">Tak skalabel: 50 fitur × 100 mode kerusakan → ribuan aturan manual yang mustahil dirawat.</div>
+</div>
+
 </div>
 
 ::right::
