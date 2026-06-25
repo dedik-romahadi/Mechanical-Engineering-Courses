@@ -26,7 +26,7 @@ layout: none
   <!-- Motif jaringan saraf (faint, di belakang) -->
   <div class="nn-bg">
     <svg viewBox="0 0 520 300" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
-      <g stroke="url(#nng)" stroke-width="1" opacity="0.5">
+      <g stroke="url(#nng)" stroke-width="1.6" opacity="0.55">
         <line x1="70" y1="70" x2="230" y2="60"/><line x1="70" y1="70" x2="230" y2="150"/><line x1="70" y1="70" x2="230" y2="240"/>
         <line x1="70" y1="150" x2="230" y2="60"/><line x1="70" y1="150" x2="230" y2="150"/><line x1="70" y1="150" x2="230" y2="240"/>
         <line x1="70" y1="230" x2="230" y2="60"/><line x1="70" y1="230" x2="230" y2="150"/><line x1="70" y1="230" x2="230" y2="240"/>
@@ -35,14 +35,14 @@ layout: none
         <line x1="230" y1="240" x2="390" y2="110"/><line x1="230" y1="240" x2="390" y2="190"/>
       </g>
       <g>
-        <circle class="nn-node" cx="70" cy="70" r="9" fill="#a78bfa" style="--d:0s"/>
-        <circle class="nn-node" cx="70" cy="150" r="9" fill="#a78bfa" style="--d:.3s"/>
-        <circle class="nn-node" cx="70" cy="230" r="9" fill="#a78bfa" style="--d:.6s"/>
-        <circle class="nn-node" cx="230" cy="60" r="10" fill="#38bdf8" style="--d:.2s"/>
-        <circle class="nn-node" cx="230" cy="150" r="10" fill="#38bdf8" style="--d:.5s"/>
-        <circle class="nn-node" cx="230" cy="240" r="10" fill="#38bdf8" style="--d:.8s"/>
-        <circle class="nn-node" cx="390" cy="110" r="11" fill="#34d399" style="--d:.4s"/>
-        <circle class="nn-node" cx="390" cy="190" r="11" fill="#fb7185" style="--d:.7s"/>
+        <circle class="nn-node" cx="70" cy="70" r="13" fill="#a78bfa" style="--d:0s"/>
+        <circle class="nn-node" cx="70" cy="150" r="13" fill="#a78bfa" style="--d:.3s"/>
+        <circle class="nn-node" cx="70" cy="230" r="13" fill="#a78bfa" style="--d:.6s"/>
+        <circle class="nn-node" cx="230" cy="60" r="14" fill="#38bdf8" style="--d:.2s"/>
+        <circle class="nn-node" cx="230" cy="150" r="14" fill="#38bdf8" style="--d:.5s"/>
+        <circle class="nn-node" cx="230" cy="240" r="14" fill="#38bdf8" style="--d:.8s"/>
+        <circle class="nn-node" cx="390" cy="110" r="16" fill="#34d399" style="--d:.4s"/>
+        <circle class="nn-node" cx="390" cy="190" r="16" fill="#fb7185" style="--d:.7s"/>
       </g>
       <defs>
         <linearGradient id="nng" x1="0" y1="0" x2="520" y2="0" gradientUnits="userSpaceOnUse">
@@ -101,10 +101,10 @@ onBeforeUnmount(() => clearInterval(timer))
 
 <style scoped>
 .cover { background: #080e1a; position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; color: #f1f5f9; }
-.nn-bg { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-46%); width: 70%; max-width: 760px; opacity: 0.16; pointer-events: none; }
+.nn-bg { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-46%); width: 92%; max-width: 980px; opacity: 0.22; pointer-events: none; }
 .nn-bg svg { width: 100%; height: auto; }
-.nn-node { transform-origin: center; animation: nn-pulse 2.6s ease-in-out infinite; animation-delay: var(--d); filter: drop-shadow(0 0 6px currentColor); }
-@keyframes nn-pulse { 0%,100% { opacity: .55; r: 8px; } 50% { opacity: 1; r: 11px; } }
+.nn-node { transform-origin: center; animation: nn-pulse 2.6s ease-in-out infinite; animation-delay: var(--d); filter: drop-shadow(0 0 8px currentColor); }
+@keyframes nn-pulse { 0%,100% { opacity: .5; r: 12px; } 50% { opacity: 1; r: 16px; } }
 .hdr {
   display: flex; align-items: center; justify-content: space-between;
   padding: 14px 32px; border-bottom: none; position: relative; z-index: 10;
@@ -125,10 +125,15 @@ onBeforeUnmount(() => clearInterval(timer))
 .hdr-tag { font-size: 12px; font-weight: 700; letter-spacing: .04em; color: #a78bfa; border: 1px solid rgba(167,139,250,.35); border-radius: 999px; padding: 5px 14px; background: rgba(167,139,250,.08); }
 .ctr { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative; z-index: 5; padding: 0 24px; }
 .badge { font-size: 13px; font-weight: 700; letter-spacing: .03em; color: #38bdf8; background: rgba(56,189,248,.10); border: 1px solid rgba(56,189,248,.3); border-radius: 999px; padding: 6px 16px; margin-bottom: 22px; }
-.ttl1 { font-size: 56px; font-weight: 800; line-height: 1.05; letter-spacing: -.02em; background: linear-gradient(120deg, #a78bfa 0%, #38bdf8 50%, #34d399 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.ttl1 { font-size: 56px; font-weight: 800; line-height: 1.05; letter-spacing: -.02em; background: linear-gradient(120deg, #a78bfa 0%, #38bdf8 33%, #34d399 66%, #a78bfa 100%); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: ttl-grad 5s linear infinite; }
+@keyframes ttl-grad { from { background-position: 0% 0%; } to { background-position: -200% 0%; } }
 .ttl2 { font-size: 21px; font-weight: 500; color: #cbd5e1; margin-top: 10px; }
 .fml { margin-top: 22px; font-family: 'Fira Code', monospace; font-size: 19px; color: #e2e8f0; background: rgba(13,21,38,.7); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 9px 20px; }
-.fml .fx { color: #fbbf24; } .fml .ok { color: #34d399; } .fml .bad { color: #fb7185; }
+.fml .fx { color: #fbbf24; }
+.fml .ok  { color: #34d399; animation: glow-ok  2s ease-in-out infinite; }
+.fml .bad { color: #fb7185; animation: glow-bad 2s ease-in-out infinite; animation-delay: 1s; }
+@keyframes glow-ok  { 0%,100% { filter: drop-shadow(0 0 2px #34d399); opacity: .65; } 50% { filter: drop-shadow(0 0 14px #34d399) brightness(1.4); opacity: 1; } }
+@keyframes glow-bad { 0%,100% { filter: drop-shadow(0 0 2px #fb7185); opacity: .65; } 50% { filter: drop-shadow(0 0 14px #fb7185) brightness(1.4); opacity: 1; } }
 .sep { width: 120px; height: 2px; margin: 24px 0 16px; background: linear-gradient(90deg, transparent, #a78bfa, #38bdf8, transparent); }
 .au { display: flex; flex-direction: column; gap: 3px; }
 .au-name { font-size: 16px; font-weight: 700; color: #f1f5f9; }
