@@ -1655,13 +1655,18 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   let t0 = 0;
   function genSignal(N) {
     const x = new Array(N);
+    const phase = t0 * 0.15;                 // slow drift → animasi bergerak
+    const period = 40;                       // jarak antar impuls (sampel)
+    const amp = mode === 0 ? 0 : (mode === 1 ? 2.5 : 6);  // severity impuls
     for (let i = 0; i < N; i++) {
-      const t = (i + t0) / 100;
-      let v = 1.5 * Math.sin(2*Math.PI*30*t/N) + 0.3 * (Math.random() - 0.5) * 2;
-      // Add impulse for faulty
-      if (mode > 0 && Math.floor((i + t0) % 25) === 0) {
-        const amp = mode === 1 ? 3 : 7;
-        v += amp * Math.exp(-((i % 25) - 0)/2) * Math.sin(20 * (i % 25));
+      // getaran latar: dua harmonik + noise pengukuran
+      let v = 1.0 * Math.sin(2*Math.PI*6*i/N + phase)
+            + 0.4 * Math.sin(2*Math.PI*13*i/N + phase*1.3)
+            + 0.18 * (Math.random() - 0.5) * 2;
+      // impuls periodik (impulsive bearing defect) — hanya saat faulty
+      if (amp > 0) {
+        const k = (i + Math.floor(t0)) % period;        // posisi dalam periode impuls
+        v += amp * Math.exp(-k/3) * Math.sin(2*Math.PI*k/3.5);  // decaying ring
       }
       x[i] = v;
     }
