@@ -151,8 +151,6 @@ transition: slide-left | slide-right
 title: "Peta Materi"
 ---
 
-# Peta Materi
-
 Perjalanan dari **konsep dasar Machine Learning** menuju **penerapan nyata**: mendeteksi kerusakan mesin secara otomatis dari sinyal getaran.
 
 <div class="ml-grid c2" style="margin-top:14px">
@@ -181,8 +179,6 @@ layout: default
 transition: fade
 title: "Apa itu Machine Learning?"
 ---
-
-# Apa itu Machine Learning?
 
 > **Machine Learning** = membuat komputer **belajar pola dari data** untuk membuat keputusan, **tanpa diprogram aturan secara eksplisit**.
 
@@ -228,8 +224,6 @@ transition: slide-up | slide-down
 title: "Rule-Based vs Machine Learning"
 class: tight
 ---
-
-# Rule-Based vs ML
 
 ### 🔔 Rule-Based (Pertemuan 13)
 
@@ -278,8 +272,6 @@ transition: zoom
 title: "Tiga Paradigma Pembelajaran"
 ---
 
-# Tiga Paradigma Pembelajaran
-
 <div class="ml-grid c3" style="margin-top:10px">
   <div class="ml-card e">
     <div class="ml-h">🎯 Supervised</div>
@@ -311,8 +303,6 @@ transition: glide
 title: "Alur Kerja Machine Learning"
 ---
 
-# Alur Kerja ML — dari Sinyal ke Keputusan
-
 <div style="color:#94a3b8;font-size:13px;margin-bottom:6px">Klik tiap tahap untuk melihat detailnya. Inilah <i>pipeline</i> yang sama dipakai di hampir semua sistem ML industri.</div>
 
 <MLPipeline />
@@ -323,8 +313,6 @@ transition: slide-left | slide-right
 title: "Dari Getaran ke Fitur"
 class: tight
 ---
-
-# Dari Getaran ke Fitur (Feature Extraction)
 
 Model tak "membaca" sinyal mentah ribuan titik. Sinyal diringkas jadi **fitur** — angka padat yang mewakili kondisi mesin.
 
@@ -346,8 +334,6 @@ transition: slide-left | slide-right
 title: "Memisahkan Sehat vs Rusak"
 ---
 
-# Klasifikasi: Memisahkan Sehat vs Rusak
-
 <div style="color:#94a3b8;font-size:13px;margin-bottom:4px">Tiap titik = satu mesin, diplot pada 2 fitur. Geser <b>garis batas keputusan</b> (slider) dan amati akurasinya — inilah inti kerja sebuah <i>classifier</i>.</div>
 
 <FeatureScatter />
@@ -364,8 +350,6 @@ transition: flip
 title: "Melatih Model: Train/Test & Overfitting"
 class: tight
 ---
-
-# Melatih & Menguji Model
 
 Data dibagi agar performa diukur **jujur** pada data yang belum pernah dilihat:
 
@@ -405,8 +389,6 @@ transition: swirl
 title: "Algoritma Klasifikasi Populer"
 ---
 
-# Algoritma Klasifikasi Populer
-
 <div class="ml-grid c2" style="margin-top:10px">
   <div class="ml-card s">
     <div class="ml-h">📍 k-Nearest Neighbors</div>
@@ -436,8 +418,6 @@ transition: slide-up | slide-down
 title: "Mengukur Performa Model"
 ---
 
-# Mengukur Performa: Confusion Matrix
-
 <div style="color:#94a3b8;font-size:13px;margin-bottom:4px">Geser <b>ambang batas</b> dan amati pertukaran <b>Presisi ↔ Recall</b>. Tak ada ambang yang sempurna — semua soal kompromi.</div>
 
 <ThresholdMetrics />
@@ -452,8 +432,6 @@ transition: glide
 title: "Studi Kasus — Deteksi Kerusakan Bearing"
 class: tight
 ---
-
-# Studi Kasus: Deteksi Kerusakan *Bearing*
 
 <div class="step"><span class="step-no">1</span><b>Akuisisi</b> — akselerometer di rumah bearing merekam getaran (mis. 12 kHz).</div>
 <div class="step"><span class="step-no">2</span><b>Ekstraksi fitur</b> — hitung RMS, Crest, Kurtosis, & puncak FFT @ BPFO/BPFI per cuplikan.</div>
@@ -476,8 +454,6 @@ transition: zoom
 title: "Contoh Kode Python (scikit-learn)"
 class: tight
 ---
-
-# Contoh Kode: Klasifikasi dengan `scikit-learn`
 
 ```python
 import numpy as np
@@ -515,8 +491,6 @@ title: "Analogi & Penerapan Industri"
 class: tight
 ---
 
-# Analogi & Di Industri
-
 <Callout type="analogy">
 ML seperti <b>dokter berpengalaman</b>: setelah membaca ribuan hasil lab (data berlabel), ia mengenali penyakit dari pola angka — tanpa menghafal satu per satu aturan kaku.
 </Callout>
@@ -550,8 +524,6 @@ title: "Uji Pemahaman"
 class: tight
 ---
 
-# Uji Pemahaman
-
 <Quiz
   :n="1"
   q="Apa pembeda utama Machine Learning dari pemrograman klasik?"
@@ -584,8 +556,6 @@ transition: fade
 title: "Rangkuman"
 ---
 
-# Rangkuman
-
 <div class="rangkuman">
 
 ### Poin-Poin Kunci
@@ -608,8 +578,6 @@ layout: default
 transition: slide-up
 title: "Referensi"
 ---
-
-# Referensi
 
 <div class="ref-list">
 
