@@ -1,0 +1,393 @@
+/* Global Slidev overrides */
+
+/* Force slide 1 (cover) container to transparent so our dark div shows */
+#slide-content,
+.slidev-slide-content {
+  background: transparent !important;
+}
+.slidev-page-1 .slidev-layout {
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+.slidev-page-1 .slidev-layout > div {
+  width: 100%;
+  height: 100%;
+}
+
+/* Dark navy theme for content slides (slides 2+) */
+.slidev-layout.default,
+.slidev-layout.two-cols,
+.slidev-layout.center {
+  background: #080e1a !important;
+  color: #f1f5f9 !important;
+  padding-top: 68px !important;
+  padding-bottom: 34px !important;
+}
+
+/* Latar lebih hitam untuk slide ganjil (3,5,7,…) agar berselang-seling
+   dengan slide genap (#080e1a). Slide = komponen terpisah, jadi enumerasi
+   per-halaman, bukan :nth-child. Slide 1 (cover) dikecualikan (transparan). */
+.slidev-page-3 .slidev-layout,
+.slidev-page-5 .slidev-layout,
+.slidev-page-7 .slidev-layout,
+.slidev-page-9 .slidev-layout,
+.slidev-page-11 .slidev-layout,
+.slidev-page-13 .slidev-layout,
+.slidev-page-15 .slidev-layout,
+.slidev-page-17 .slidev-layout,
+.slidev-page-19 .slidev-layout,
+.slidev-page-21 .slidev-layout,
+.slidev-page-23 .slidev-layout,
+.slidev-page-25 .slidev-layout {
+  background: #04060d !important;
+}
+
+/* Headings */
+.slidev-layout h1 {
+  color: #a78bfa !important;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  padding-bottom: 6px;
+  margin-bottom: 14px;
+}
+.slidev-layout h2 { color: #c4b5fd !important; }
+.slidev-layout h3 { color: #94a3b8 !important; }
+.slidev-layout p  { color: #f1f5f9 !important; }
+.slidev-layout li { color: #cbd5e1 !important; }
+.slidev-layout strong { color: #f8fafc !important; }
+.slidev-layout a  { color: #67e8f9 !important; }
+
+/* === Kompaksi konten agar muat dalam 1 layar (slide 2+) === */
+.slidev-layout.default,
+.slidev-layout.two-cols {
+  font-size: 13.5px;
+  line-height: 1.42;
+}
+.slidev-layout.default > h2,
+.slidev-layout.two-cols h2 {
+  font-size: 1.02rem;
+  margin: 0.15em 0 0.35em !important;
+}
+.slidev-layout.default h3,
+.slidev-layout.two-cols h3 {
+  font-size: 0.92rem;
+  margin: 0.15em 0 0.25em !important;
+}
+.slidev-layout.default p,
+.slidev-layout.two-cols p { margin: 0.3em 0 !important; }
+.slidev-layout.default ul,
+.slidev-layout.default ol,
+.slidev-layout.two-cols ul,
+.slidev-layout.two-cols ol { margin: 0.25em 0 !important; padding-left: 1.1em; }
+.slidev-layout.default li,
+.slidev-layout.two-cols li { margin: 0.1em 0 !important; line-height: 1.38; }
+
+/* Rumus KaTeX block lebih rapat */
+.slidev-layout .katex-display { margin: 0.4em 0 !important; }
+
+/* Cegah konten lebar (rumus/kode) meluap & menumpuk antar kolom grid */
+.slidev-layout div[style*="grid"] > div { min-width: 0; }
+
+/* Kelas bantu: konten ekstra padat (teks panjang) */
+.slidev-layout.tight { font-size: 12.5px !important; line-height: 1.38; }
+.slidev-layout.tight .katex-display { margin: 0.3em 0 !important; }
+
+/* Kelas bantu: slide kode panjang (Python/MATLAB) */
+.slidev-layout.code-dense pre {
+  font-size: 9.5px !important;
+  line-height: 1.26 !important;
+  padding: 7px 12px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   KOMPONEN KARTU GENERIK (page-agnostic) + PALET KOMPONEN ML.
+   Latar slide, header & footer TETAP SAMA (tema dasar navy +
+   aksen ungu/cyan/amber). Yang "berbeda tapi matching" hanya
+   warna pada KOMPONEN konten: violet · emerald · amber · coral ·
+   sky, dipadukan di atas latar navy yang sama.
+   ════════════════════════════════════════════════════════════ */
+
+/* Kartu contoh/soal + langkah + kesimpulan (dipakai lintas slide) */
+.slidev-layout .soal-card {
+  background: linear-gradient(135deg, rgba(124,77,255,.16), rgba(56,189,248,.08));
+  border: 1px solid rgba(167,139,250,.4);
+  border-radius: 12px;
+  padding: 12px 18px; font-size: 14.5px; line-height: 1.5;
+  margin: 2px 0 14px;
+  box-shadow: 0 6px 24px rgba(124,77,255,.12);
+}
+.slidev-layout .soal-badge {
+  display: inline-block;
+  background: #a78bfa; color: #0b1020;
+  font-weight: 800; font-size: 12px; letter-spacing: .06em;
+  padding: 2px 10px; border-radius: 999px; margin-right: 8px;
+}
+.slidev-layout .soal-card b, .slidev-layout .soal-card i { color: #f8fafc; }
+.slidev-layout .step { display: flex; align-items: center; gap: 10px; font-size: 14px; margin: 9px 0 2px; }
+.slidev-layout .step-no {
+  flex: none; width: 24px; height: 24px; border-radius: 50%;
+  background: linear-gradient(135deg,#7c4dff,#38bdf8);
+  color: #fff; font-weight: 800; font-size: 13px;
+  display: inline-flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 12px rgba(124,77,255,.5);
+}
+.slidev-layout .step b { color: #c4b5fd; }
+.slidev-layout .kesimpulan {
+  background: linear-gradient(135deg, rgba(52,211,153,.18), rgba(52,211,153,.05));
+  border: 1px solid rgba(52,211,153,.45);
+  border-left: 4px solid #34d399;
+  border-radius: 10px;
+  padding: 8px 16px; font-size: 14px; line-height: 1.4; margin-top: 16px;
+}
+.slidev-layout .kesimpulan b { color: #6ee7b7; }
+
+/* Pesan kunci / highlight */
+.slidev-layout .pesan-kunci {
+  background: linear-gradient(135deg, rgba(124,77,255,.18), rgba(56,189,248,.07));
+  border: 1px solid rgba(167,139,250,.4);
+  border-left: 4px solid #a78bfa;
+  border-radius: 10px;
+  padding: 12px 16px; margin-top: 14px; font-size: 13px;
+  box-shadow: 0 6px 24px rgba(124,77,255,.12);
+}
+.slidev-layout .pesan-kunci strong { color: #c4b5fd; }
+.slidev-layout .pesan-kunci span { color: #cbd5e1; }
+
+/* Daftar Rangkuman: list jadi kartu (bungkus pakai .rangkuman) */
+.slidev-layout .rangkuman h3 {
+  color: #c4b5fd !important; font-size: 1.0rem !important;
+  border-bottom: 2px solid rgba(124,77,255,.35);
+  padding-bottom: 4px; margin-bottom: 8px !important;
+}
+.slidev-layout .rangkuman ul { list-style: none !important; padding-left: 0 !important; }
+.slidev-layout .rangkuman li {
+  position: relative; background: #0d1526;
+  border: 1px solid rgba(255,255,255,.06);
+  border-left: 3px solid var(--rk, #7c4dff);
+  border-radius: 7px;
+  padding: 6px 10px 6px 12px !important; margin: 6px 0 !important;
+  font-size: 12.5px; line-height: 1.4;
+}
+
+/* Daftar pustaka bernomor */
+.slidev-layout .ref-list ol { list-style: none !important; counter-reset: ref; padding-left: 0 !important; margin: 0 !important; }
+.slidev-layout .ref-list li {
+  counter-increment: ref; position: relative; background: #0d1526;
+  border: 1px solid rgba(255,255,255,.06); border-radius: 8px;
+  padding: 8px 12px 8px 44px !important; margin: 7px 0 !important;
+  font-size: 12.5px; line-height: 1.5; color: #cbd5e1;
+}
+.slidev-layout .ref-list li::before {
+  content: counter(ref);
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  width: 24px; height: 24px; border-radius: 50%;
+  background: linear-gradient(135deg,#7c4dff,#38bdf8);
+  color: #fff; font-weight: 800; font-size: 12px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 10px rgba(124,77,255,.4);
+}
+.slidev-layout .ref-list strong { color: #f1f5f9; }
+.slidev-layout .ref-list em { color: #94a3b8; }
+
+/* ── Grid + kartu beraksen (palet komponen ML) ── */
+.slidev-layout .ml-grid { display: grid; gap: 10px; margin: 6px 0; }
+.slidev-layout .ml-grid.c2 { grid-template-columns: 1fr 1fr; }
+.slidev-layout .ml-grid.c3 { grid-template-columns: 1fr 1fr 1fr; }
+.slidev-layout .ml-grid.c4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+.slidev-layout .ml-card {
+  background: #0d1526; border: 1px solid rgba(255,255,255,.08);
+  border-left: 3px solid var(--ac, #a78bfa);
+  border-radius: 10px; padding: 9px 12px; min-width: 0;
+}
+.slidev-layout .ml-card .ml-h { font-weight: 700; font-size: 13.5px; color: var(--ac, #a78bfa); margin-bottom: 3px; display: flex; align-items: center; gap: 6px; }
+.slidev-layout .ml-card .ml-t { font-size: 12.5px; line-height: 1.45; color: #cbd5e1; }
+.slidev-layout .ml-card.v { --ac: #a78bfa; }
+.slidev-layout .ml-card.e { --ac: #34d399; }
+.slidev-layout .ml-card.a { --ac: #fbbf24; }
+.slidev-layout .ml-card.c { --ac: #fb7185; }
+.slidev-layout .ml-card.s { --ac: #38bdf8; }
+
+/* Pills/chips beraksen */
+.slidev-layout .chip {
+  display: inline-block; padding: 2px 10px; border-radius: 999px;
+  font-size: 11.5px; font-weight: 700; margin: 2px 4px 2px 0;
+  border: 1px solid var(--ac, #a78bfa); color: var(--ac, #a78bfa);
+  background: var(--acbg, rgba(167,139,250,.12));
+}
+.slidev-layout .chip.v { --ac: #a78bfa; --acbg: rgba(167,139,250,.12); }
+.slidev-layout .chip.e { --ac: #34d399; --acbg: rgba(52,211,153,.12); }
+.slidev-layout .chip.a { --ac: #fbbf24; --acbg: rgba(251,191,36,.12); }
+.slidev-layout .chip.c { --ac: #fb7185; --acbg: rgba(251,113,133,.12); }
+.slidev-layout .chip.s { --ac: #38bdf8; --acbg: rgba(56,189,248,.12); }
+
+/* Kartu metrik angka besar */
+.slidev-layout .metric {
+  background: #060c18; border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px; padding: 8px 12px; text-align: center;
+}
+.slidev-layout .metric .mv { font-size: 22px; font-weight: 800; color: var(--ac, #38bdf8); font-family: 'Fira Code', ui-monospace, monospace; line-height: 1.1; }
+.slidev-layout .metric .ml { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+.slidev-layout .metric.v { --ac: #a78bfa; }
+.slidev-layout .metric.e { --ac: #34d399; }
+.slidev-layout .metric.a { --ac: #fbbf24; }
+.slidev-layout .metric.c { --ac: #fb7185; }
+.slidev-layout .metric.s { --ac: #38bdf8; }
+
+/* Hover lift untuk kartu generik berbasis-class (selain selektor universal) */
+.slidev-layout .ml-card, .slidev-layout .metric,
+.slidev-layout .rangkuman li, .slidev-layout .ref-list li {
+  transition: transform .2s cubic-bezier(.22,1,.36,1), box-shadow .2s ease, filter .2s ease, border-color .2s ease;
+}
+.slidev-layout .ml-card:hover, .slidev-layout .metric:hover,
+.slidev-layout .rangkuman li:hover, .slidev-layout .ref-list li:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 28px rgba(0,0,0,.45), 0 0 18px rgba(124,77,255,.28);
+  filter: brightness(1.08);
+}
+
+/* Kelas bantu: dorong konten ke bawah */
+.slidev-layout.shift-down,
+.slidev-layout.default.shift-down { padding-top: 168px !important; }
+/* two-cols: class frontmatter diterapkan ke kolom (.col-left/.col-right),
+   root-nya .two-columns — bukan .slidev-layout. Target kolomnya langsung. */
+.slidev-layout .col-left.shift-down,
+.slidev-layout .col-right.shift-down { padding-top: 24px !important; }
+
+/* Kelas bantu: kolom kanan two-cols rata tengah vertikal */
+.slidev-layout .col-center { height: 100%; display: flex; flex-direction: column; justify-content: center; }
+
+/* Tables */
+.slidev-layout table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 12.5px;
+}
+.slidev-layout th {
+  background: rgba(124,77,255,.15) !important;
+  color: #a78bfa !important;
+  border: 1px solid rgba(124,77,255,.25) !important;
+  padding: 5px 9px;
+}
+.slidev-layout td {
+  color: #f1f5f9 !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  padding: 4px 9px;
+}
+.slidev-layout tr:nth-child(even) td {
+  background: rgba(124,77,255,.05) !important;
+}
+
+/* Code blocks */
+.slidev-layout pre {
+  background: #06091a !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  border-radius: 8px !important;
+  font-size: 11px !important;
+  line-height: 1.34 !important;
+  padding: 9px 12px !important;
+}
+.slidev-layout code:not(pre code) {
+  background: rgba(124,77,255,.18) !important;
+  color: #c4b5fd !important;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+/* v-click items fade color */
+.slidev-vclick-prior { opacity: 0.85; }
+
+/* Sembunyikan dialog "Go to slide" */
+#slidev-goto-dialog {
+  display: none !important;
+}
+
+/* ============================================================
+   Transisi antar-slide kustom (selain bawaan Slidev:
+   slide-left/right/up/down, fade, fade-out). Dipakai via
+   `transition:` di frontmatter tiap slide. Durasi global di
+   bawah agar terasa mulus tapi tetap responsif.
+   ============================================================ */
+:root { --slidev-transition-duration: 480ms; }
+
+/* Zoom — masuk membesar dari kecil, keluar membesar sedikit lalu pudar */
+.zoom-enter-active, .zoom-leave-active {
+  transition: opacity var(--slidev-transition-duration) ease,
+              transform var(--slidev-transition-duration) cubic-bezier(.4,0,.2,1);
+}
+.zoom-enter-from { opacity: 0; transform: scale(.86); }
+.zoom-leave-to  { opacity: 0; transform: scale(1.08); }
+
+/* Flip — putar 3D pada sumbu Y, kesan kartu dibalik */
+.flip-enter-active, .flip-leave-active {
+  transition: opacity var(--slidev-transition-duration) ease,
+              transform var(--slidev-transition-duration) cubic-bezier(.4,0,.2,1);
+  backface-visibility: hidden;
+}
+.flip-enter-from { opacity: 0; transform: perspective(1400px) rotateY(38deg) scale(.92); }
+.flip-leave-to  { opacity: 0; transform: perspective(1400px) rotateY(-38deg) scale(.92); }
+
+/* Glide — geser halus + sedikit mengecil, lebih lembut dari slide */
+.glide-enter-active, .glide-leave-active {
+  transition: opacity var(--slidev-transition-duration) ease,
+              transform var(--slidev-transition-duration) cubic-bezier(.22,1,.36,1);
+}
+.glide-enter-from { opacity: 0; transform: translateX(64px) scale(.96); }
+.glide-leave-to  { opacity: 0; transform: translateX(-64px) scale(.96); }
+
+/* Swirl — putar ringan + skala, kesan dinamis */
+.swirl-enter-active, .swirl-leave-active {
+  transition: opacity var(--slidev-transition-duration) ease,
+              transform var(--slidev-transition-duration) cubic-bezier(.4,0,.2,1);
+}
+.swirl-enter-from { opacity: 0; transform: rotate(-6deg) scale(.84); }
+.swirl-leave-to   { opacity: 0; transform: rotate(6deg) scale(1.1); }
+
+/* Blur-fade — pudar disertai blur, transisi sinematik */
+.blur-fade-enter-active, .blur-fade-leave-active {
+  transition: opacity var(--slidev-transition-duration) ease,
+              filter var(--slidev-transition-duration) ease;
+}
+.blur-fade-enter-from, .blur-fade-leave-to { opacity: 0; filter: blur(14px); }
+
+/* ============================================================
+   Efek hover universal untuk SEMUA kartu di seluruh slide.
+   Strategi gabungan agar menjangkau semua varian kartu:
+   1) Selektor STRUKTURAL: setiap <div> ber-`border-radius`
+      (pola kartu), KECUALI:
+        • bar grafik  → punya `height:` (mis. height:58%)
+        • badge/pill  → punya `display:inline-block`
+   2) Selektor WARNA panel gelap untuk kartu yang TANPA
+      border-radius inline (#0d1526, #060c18, #06091a, #0a1020).
+   3) Kartu ber-class gradien (.soal-card/.kesimpulan/.pesan-kunci).
+   Saat cursor menyentuh: kartu terangkat, muncul cincin cyan +
+   glow ungu, sedikit lebih terang. translateY tidak menggeser
+   tata letak (tanpa reflow); cincin via box-shadow agar aksen
+   border-kiri warna tiap kartu tetap utuh.
+   ============================================================ */
+.slidev-layout div[style*="border-radius"]:not([style*="height:"]):not([style*="inline-block"]),
+.slidev-layout div[style*="#0d1526"],
+.slidev-layout div[style*="#060c18"],
+.slidev-layout div[style*="#06091a"],
+.slidev-layout div[style*="#0a1020"],
+.slidev-layout .soal-card,
+.slidev-layout .kesimpulan,
+.slidev-layout .pesan-kunci {
+  transition: transform .22s cubic-bezier(.22,1,.36,1),
+              box-shadow .22s ease,
+              filter .22s ease;
+}
+.slidev-layout div[style*="border-radius"]:not([style*="height:"]):not([style*="inline-block"]):hover,
+.slidev-layout div[style*="#0d1526"]:hover,
+.slidev-layout div[style*="#060c18"]:hover,
+.slidev-layout div[style*="#06091a"]:hover,
+.slidev-layout div[style*="#0a1020"]:hover,
+.slidev-layout .soal-card:hover,
+.slidev-layout .kesimpulan:hover,
+.slidev-layout .pesan-kunci:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(0,0,0,.45),
+              0 0 0 1px rgba(0,229,255,.4),
+              0 0 22px rgba(124,77,255,.32);
+  filter: brightness(1.08);
+}
