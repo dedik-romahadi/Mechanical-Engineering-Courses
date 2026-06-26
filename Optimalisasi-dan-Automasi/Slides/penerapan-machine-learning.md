@@ -65,7 +65,13 @@ layout: none
     <div class="badge">🤖 &nbsp; Materi Kuliah · Otomatisasi Prediktif</div>
     <div class="ttl1">Penerapan Machine Learning</div>
     <div class="ttl2">Deteksi Kerusakan Mesin dari Data Getaran</div>
-    <div class="fml">ŷ = f( <span class="fx">x</span> ; θ )&nbsp;&nbsp;→&nbsp;&nbsp;<span class="ok">🟢 Sehat</span> &nbsp;/&nbsp; <span class="bad">🔴 Rusak</span></div>
+    <div class="fml">
+      <span class="eq"><span class="vy">ŷ</span><span class="op"> = </span><span class="vf">f</span><span class="op">(</span><span class="vx">x</span><span class="op">;&nbsp;</span><span class="vt">θ</span><span class="op">)</span></span>
+      <span class="arrow">⟶</span>
+      <span class="out ok">🟢&nbsp;Sehat</span>
+      <span class="out-sep">/</span>
+      <span class="out bad">🔴&nbsp;Rusak</span>
+    </div>
     <div class="sep"></div>
     <div class="au">
       <span class="au-name">Dedik Romahadi, S.T., M.Sc.</span>
@@ -126,12 +132,40 @@ onBeforeUnmount(() => clearInterval(timer))
 .ttl1 { font-size: 56px; font-weight: 800; line-height: 1.05; letter-spacing: -.02em; background: linear-gradient(120deg, #a78bfa 0%, #38bdf8 33%, #34d399 66%, #a78bfa 100%); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: ttl-grad 5s linear infinite; }
 @keyframes ttl-grad { from { background-position: 0% 0%; } to { background-position: -200% 0%; } }
 .ttl2 { font-size: 21px; font-weight: 500; color: #cbd5e1; margin-top: 10px; }
-.fml { margin-top: 22px; font-family: 'Fira Code', monospace; font-size: 19px; color: #e2e8f0; background: rgba(13,21,38,.7); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 9px 20px; }
-.fml .fx { color: #fbbf24; }
-.fml .ok  { color: #34d399; animation: glow-ok  2s ease-in-out infinite; }
-.fml .bad { color: #fb7185; animation: glow-bad 2s ease-in-out infinite; animation-delay: 1s; }
-@keyframes glow-ok  { 0%,100% { filter: drop-shadow(0 0 2px #34d399); opacity: .65; } 50% { filter: drop-shadow(0 0 14px #34d399) brightness(1.4); opacity: 1; } }
-@keyframes glow-bad { 0%,100% { filter: drop-shadow(0 0 2px #fb7185); opacity: .65; } 50% { filter: drop-shadow(0 0 14px #fb7185) brightness(1.4); opacity: 1; } }
+.fml {
+  margin-top: 22px;
+  display: inline-flex; align-items: center; gap: 15px;
+  color: #e2e8f0;
+  background: linear-gradient(135deg, rgba(13,21,38,.92), rgba(13,21,38,.55));
+  border: 1px solid rgba(124,77,255,.3);
+  border-radius: 13px;
+  padding: 10px 22px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.06);
+}
+.fml .eq {
+  font-family: 'Cambria Math', 'KaTeX_Math', Georgia, 'Times New Roman', serif;
+  font-style: italic; font-size: 24px; letter-spacing: .4px; white-space: nowrap;
+}
+.fml .eq .op { font-style: normal; color: #64748b; }
+.fml .eq .vy { color: #f8fafc; }
+.fml .eq .vf { color: #a78bfa; }
+.fml .eq .vx { color: #fbbf24; }
+.fml .eq .vt { color: #38bdf8; }
+.fml .arrow {
+  font-size: 22px; line-height: 1;
+  background: linear-gradient(90deg, #a78bfa, #38bdf8);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 6px rgba(56,189,248,.45));
+}
+.fml .out {
+  font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700;
+  padding: 4px 13px; border-radius: 999px;
+}
+.fml .out.ok  { color: #6ee7b7; background: rgba(52,211,153,.12); border: 1px solid rgba(52,211,153,.35); animation: glow-ok  2.4s ease-in-out infinite; }
+.fml .out.bad { color: #fda4af; background: rgba(251,113,133,.12); border: 1px solid rgba(251,113,133,.35); animation: glow-bad 2.4s ease-in-out infinite 1.2s; }
+.fml .out-sep { color: #475569; font-size: 15px; }
+@keyframes glow-ok  { 0%,100% { box-shadow: 0 0 0 rgba(52,211,153,0); } 50% { box-shadow: 0 0 16px rgba(52,211,153,.5); } }
+@keyframes glow-bad { 0%,100% { box-shadow: 0 0 0 rgba(251,113,133,0); } 50% { box-shadow: 0 0 16px rgba(251,113,133,.5); } }
 .sep { width: 120px; height: 2px; margin: 24px 0 16px; background: linear-gradient(90deg, transparent, #a78bfa, #38bdf8, transparent); }
 .au { display: flex; flex-direction: column; gap: 3px; }
 .au-name { font-size: 16px; font-weight: 700; color: #f1f5f9; }
