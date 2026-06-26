@@ -13,7 +13,7 @@
         </div>
         <div class="gh-brand-text">
           <span class="gh-brand-name">OPTIMALISASI &amp; OTOMASI</span>
-          <span class="gh-brand-sub">Machine Learning</span>
+          <span class="gh-brand-sub">Penerapan Machine Learning</span>
         </div>
       </div>
 
