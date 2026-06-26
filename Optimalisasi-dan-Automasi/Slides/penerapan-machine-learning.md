@@ -67,7 +67,7 @@ layout: none
     <div class="ttl2">Deteksi Kerusakan Mesin dari Data Getaran</div>
     <div class="fml">
       <span class="eq"><span class="vy">ŷ</span><span class="op"> = </span><span class="vf">f</span><span class="op">(</span><span class="vx">x</span><span class="op">;&nbsp;</span><span class="vt">θ</span><span class="op">)</span></span>
-      <span class="arrow">⟶</span>
+      <span class="flow"><i></i><i></i><i></i></span>
       <span class="out ok">🟢&nbsp;Sehat</span>
       <span class="out-sep">/</span>
       <span class="out bad">🔴&nbsp;Rusak</span>
@@ -133,37 +133,58 @@ onBeforeUnmount(() => clearInterval(timer))
 @keyframes ttl-grad { from { background-position: 0% 0%; } to { background-position: -200% 0%; } }
 .ttl2 { font-size: 21px; font-weight: 500; color: #cbd5e1; margin-top: 10px; }
 .fml {
-  margin-top: 22px;
-  display: inline-flex; align-items: center; gap: 15px;
+  position: relative;
+  margin-top: 24px;
+  display: inline-flex; align-items: center; gap: 17px;
   color: #e2e8f0;
-  background: linear-gradient(135deg, rgba(13,21,38,.92), rgba(13,21,38,.55));
-  border: 1px solid rgba(124,77,255,.3);
-  border-radius: 13px;
-  padding: 10px 22px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.06);
+  border: 1.6px solid transparent;
+  border-radius: 14px;
+  padding: 12px 26px;
+  background:
+    linear-gradient(135deg, rgba(10,16,30,.96), rgba(13,21,38,.82)) padding-box,
+    conic-gradient(from var(--fa), #a78bfa, #38bdf8, #34d399, #fbbf24, #fb7185, #a78bfa) border-box;
+  box-shadow: 0 14px 38px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.06);
+  animation: fml-rot 7s linear infinite, fml-aura 7s ease-in-out infinite;
 }
 .fml .eq {
   font-family: 'Cambria Math', 'KaTeX_Math', Georgia, 'Times New Roman', serif;
-  font-style: italic; font-size: 24px; letter-spacing: .4px; white-space: nowrap;
+  font-style: italic; font-size: 25px; letter-spacing: .4px; white-space: nowrap;
+  text-shadow: 0 1px 10px rgba(0,0,0,.55);
 }
 .fml .eq .op { font-style: normal; color: #64748b; }
 .fml .eq .vy { color: #f8fafc; }
-.fml .eq .vf { color: #a78bfa; }
+.fml .eq .vf { color: #c4b5fd; }
 .fml .eq .vx { color: #fbbf24; }
-.fml .eq .vt { color: #38bdf8; }
-.fml .arrow {
-  font-size: 22px; line-height: 1;
-  background: linear-gradient(90deg, #a78bfa, #38bdf8);
-  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 6px rgba(56,189,248,.45));
+.fml .eq .vt { color: #67e8f9; }
+.fml .flow {
+  position: relative; width: 50px; height: 3px; border-radius: 2px;
+  background: linear-gradient(90deg, rgba(167,139,250,.4), rgba(56,189,248,.7));
 }
+.fml .flow::after {
+  content: ''; position: absolute; right: -3px; top: 50%; transform: translateY(-50%);
+  width: 0; height: 0; border-top: 7px solid transparent; border-bottom: 7px solid transparent;
+  border-left: 11px solid #38bdf8; filter: drop-shadow(0 0 5px rgba(56,189,248,.75));
+}
+.fml .flow i {
+  position: absolute; top: 50%; width: 8px; height: 8px; border-radius: 50%;
+  background: #38bdf8; box-shadow: 0 0 10px #38bdf8; transform: translateY(-50%);
+  opacity: 0; animation: fml-dot 1.6s linear infinite;
+}
+.fml .flow i:nth-child(2) { animation-delay: .53s; }
+.fml .flow i:nth-child(3) { animation-delay: 1.06s; }
 .fml .out {
   font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700;
-  padding: 4px 13px; border-radius: 999px;
+  padding: 5px 14px; border-radius: 999px;
 }
-.fml .out.ok  { color: #6ee7b7; background: rgba(52,211,153,.12); border: 1px solid rgba(52,211,153,.35); animation: glow-ok  2.4s ease-in-out infinite; }
-.fml .out.bad { color: #fda4af; background: rgba(251,113,133,.12); border: 1px solid rgba(251,113,133,.35); animation: glow-bad 2.4s ease-in-out infinite 1.2s; }
+.fml .out.ok  { color: #6ee7b7; background: rgba(52,211,153,.12); border: 1px solid rgba(52,211,153,.4); animation: glow-ok  2.4s ease-in-out infinite; }
+.fml .out.bad { color: #fda4af; background: rgba(251,113,133,.12); border: 1px solid rgba(251,113,133,.4); animation: glow-bad 2.4s ease-in-out infinite 1.2s; }
 .fml .out-sep { color: #475569; font-size: 15px; }
+@keyframes fml-rot { to { --fa: 360deg; } }
+@keyframes fml-aura {
+  0%,100% { box-shadow: 0 0 22px rgba(167,139,250,.38), 0 14px 38px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.06); }
+  50%     { box-shadow: 0 0 30px rgba(56,189,248,.42), 0 14px 38px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.06); }
+}
+@keyframes fml-dot { 0% { left: -3px; opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { left: 46px; opacity: 0; } }
 @keyframes glow-ok  { 0%,100% { box-shadow: 0 0 0 rgba(52,211,153,0); } 50% { box-shadow: 0 0 16px rgba(52,211,153,.5); } }
 @keyframes glow-bad { 0%,100% { box-shadow: 0 0 0 rgba(251,113,133,0); } 50% { box-shadow: 0 0 16px rgba(251,113,133,.5); } }
 .sep { width: 120px; height: 2px; margin: 24px 0 16px; background: linear-gradient(90deg, transparent, #a78bfa, #38bdf8, transparent); }
