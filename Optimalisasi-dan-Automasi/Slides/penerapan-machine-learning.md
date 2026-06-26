@@ -381,7 +381,7 @@ class: tight
 
 <div class="col-center">
 
-### 🔔 Rule-Based (Pertemuan 13)
+### 🔔 Rule-Based
 
 Keputusan dari **aturan tetap** buatan engineer:
 
