@@ -150,35 +150,6 @@ onBeforeUnmount(() => clearInterval(timer))
 
 ---
 layout: default
-transition: slide-left | slide-right
-title: "Peta Materi"
----
-
-Perjalanan dari **konsep dasar Machine Learning** menuju **penerapan nyata**: mendeteksi kerusakan mesin secara otomatis dari sinyal getaran.
-
-<div class="ml-grid c2" style="margin-top:14px">
-  <div class="ml-card v">
-    <div class="ml-h">🧠 Fondasi</div>
-    <div class="ml-t">Apa itu ML, AI vs ML vs Deep Learning, dan tiga paradigma pembelajaran (supervised, unsupervised, reinforcement).</div>
-  </div>
-  <div class="ml-card s">
-    <div class="ml-h">🔄 Alur Kerja</div>
-    <div class="ml-t">Pipeline ML end-to-end: dari sinyal getaran → ekstraksi fitur → model → prediksi.</div>
-  </div>
-  <div class="ml-card e">
-    <div class="ml-h">📊 Klasifikasi</div>
-    <div class="ml-t">Memisahkan kondisi <b>Sehat</b> vs <b>Rusak</b>, melatih model, dan algoritma populer (k-NN, Tree, RF, SVM).</div>
-  </div>
-  <div class="ml-card c">
-    <div class="ml-h">🛠️ Studi Kasus</div>
-    <div class="ml-t">Evaluasi (confusion matrix, precision/recall) dan deteksi kerusakan <i>bearing</i> dari getaran, lengkap dengan kode.</div>
-  </div>
-</div>
-
-<div style="margin-top:14px;text-align:center;color:#94a3b8;font-size:13px">🎯 <b style="color:#c4b5fd">Tujuan</b>: paham <i>kapan</i> & <i>bagaimana</i> ML menggantikan aturan manual untuk <i>predictive maintenance</i>.</div>
-
----
-layout: default
 transition: fade
 title: "Capaian Pembelajaran"
 ---
@@ -275,6 +246,35 @@ title: "Capaian Pembelajaran"
 @keyframes cp2-fill { to { opacity:.5; } }
 @keyframes cp2-tip { 0%,100% { r:3.2; opacity:.7; } 50% { r:5; opacity:1; } }
 </style>
+
+---
+layout: default
+transition: slide-left | slide-right
+title: "Peta Materi"
+---
+
+Perjalanan dari **konsep dasar Machine Learning** menuju **penerapan nyata**: mendeteksi kerusakan mesin secara otomatis dari sinyal getaran.
+
+<div class="ml-grid c2" style="margin-top:14px">
+  <div class="ml-card v">
+    <div class="ml-h">🧠 Fondasi</div>
+    <div class="ml-t">Apa itu ML, AI vs ML vs Deep Learning, dan tiga paradigma pembelajaran (supervised, unsupervised, reinforcement).</div>
+  </div>
+  <div class="ml-card s">
+    <div class="ml-h">🔄 Alur Kerja</div>
+    <div class="ml-t">Pipeline ML end-to-end: dari sinyal getaran → ekstraksi fitur → model → prediksi.</div>
+  </div>
+  <div class="ml-card e">
+    <div class="ml-h">📊 Klasifikasi</div>
+    <div class="ml-t">Memisahkan kondisi <b>Sehat</b> vs <b>Rusak</b>, melatih model, dan algoritma populer (k-NN, Tree, RF, SVM).</div>
+  </div>
+  <div class="ml-card c">
+    <div class="ml-h">🛠️ Studi Kasus</div>
+    <div class="ml-t">Evaluasi (confusion matrix, precision/recall) dan deteksi kerusakan <i>bearing</i> dari getaran, lengkap dengan kode.</div>
+  </div>
+</div>
+
+<div style="margin-top:14px;text-align:center;color:#94a3b8;font-size:13px">🎯 <b style="color:#c4b5fd">Tujuan</b>: paham <i>kapan</i> & <i>bagaimana</i> ML menggantikan aturan manual untuk <i>predictive maintenance</i>.</div>
 
 ---
 layout: default
