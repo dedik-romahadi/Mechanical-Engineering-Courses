@@ -4,6 +4,8 @@
       <span>Dedik Romahadi, S.T., M.Sc.</span>
       <span class="footer-sep">·</span>
       <span>Teknik Mesin Universitas Mercu Buana</span>
+      <span class="footer-sep">·</span>
+      <span class="footer-page">{{ $slidev.nav.currentPage }} / {{ $slidev.nav.total }}</span>
     </div>
     <div class="footer-center">
       <span class="footer-dots">
@@ -15,9 +17,8 @@
         ></span>
       </span>
     </div>
-    <div class="footer-right">
-      <span class="footer-page">{{ $slidev.nav.currentPage }} / {{ $slidev.nav.total }}</span>
-    </div>
+    <!-- Pojok kanan bawah dikosongkan untuk ruang kamera terkunci. -->
+    <div class="footer-right" style="min-width:150px"></div>
   </div>
 
   <!-- Ruang kamera (pojok kanan bawah) — panduan posisi overlay webcam. -->
