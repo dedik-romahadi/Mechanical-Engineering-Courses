@@ -385,10 +385,14 @@ class: tight
 
 Keputusan dari **aturan tetap** buatan engineer:
 
+<div style="max-width:78%">
+
 ```text
 JIKA RMS > 4.5 mm/s  → Alarm
 JIKA Kurtosis > 5    → Cek bearing
 ```
+
+</div>
 
 <div class="ml-card a" style="margin-top:8px; max-width:78%">
   <div class="ml-h">✔️ Keunggulan</div>
